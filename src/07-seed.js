@@ -30,11 +30,12 @@ function seed(){
       {type:'media',name:'Media'},
       {type:'lifeevent',name:'Life events'},
       {type:'letter',name:'Letters'},
+      {type:'decision',name:'Decisions'},
       {type:'progress',name:'Practice log'},
       {type:'uncategorized',name:'Uncategorized'},
     ],
     rehearsal:{script:'', winning:'', aim:'', cycleStart:'', days:[]},
     reviews:{lastWeekly:null,lastSeasonal:null,lastAnnual:null},
-    people:[], places:[],
+    people:[], places:[], boards:[],
   };
 }

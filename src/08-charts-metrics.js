@@ -157,6 +157,11 @@ function entryExtraHTML(e){
   return rows.length ? `<div class="stack" style="gap:6px;margin-top:8px;font-size:.85rem">${rows.join('')}</div>` : '';
 }
 function entryCard(e, {clamp:cl=true, tools=true}={}){
+  if(typeof letterIsSealed === 'function' && letterIsSealed(e)) return `<article class="entry rv sealed" data-entry="${e.id}">
+    <div class="meta"><span class="mono">✉ Sealed letter</span><span class="mono">written ${esc(fmtDate((e.createdAt||'').slice(0,10),'med'))}</span></div>
+    <div class="title">${esc(e.title || 'To myself')}</div>
+    <div class="body muted">Sealed until ${esc(fmtDate(e.extra.sealedUntil,'med'))} — ${daysBetween(today(), e.extra.sealedUntil)} days from now. Whatever is in here was written for someone you have not become yet.</div>
+  </article>`;
   const q = e.type==='quote';
   return `<article class="entry rv" data-entry="${e.id}">
     <div class="meta"><span class="mono">${typeIcon(e.type)} ${typeName(e.type)}</span><span class="mono">${esc(fmtDate(e.occurredAt,'med'))}</span>${e.confidence?`<span class="status-pill">${esc(e.confidence)}</span>`:''}${tools?`<span class="tools"><button class="tbtn" data-edit="${e.id}">edit</button></span>`:''}</div>${tools?`<button class="del-x" data-del="${e.id}" title="delete" aria-label="delete entry">×</button>`:''}

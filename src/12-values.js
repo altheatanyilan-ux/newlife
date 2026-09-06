@@ -114,9 +114,15 @@ function deltaHTML(cur, prev){ if(prev === undefined || prev === null) return '<
 async function openSnapshotModal(after, existing=null){
   let last = null; try { last = await lastSnapshotFromDB(); } catch(e){ last = latestSnapshot() || null; }   // the last snapshot, read from the database
   const ref = existing || last;
-  const base = {}; S.valueOrder.forEach(id => base[id] = ref ? (ref.ratings[id] ?? 50) : 50);
-  const m = openModal(`<h2>${existing?'Edit snapshot':'Congruence snapshot'}</h2><p class="muted">${existing?`Taken ${fmtDate(existing.date,'med')}. Adjust a value to change it; notes stay editable below.`:`0–100 for each value. Not aspiration — where you actually are, this week.${last?` Sliders start where you left them on ${fmtDate(last.date,'med')}; move one and a note opens beneath it.`:''}`}</p>${existing?`<div class="field" style="margin-bottom:10px"><label>Date</label><input class="inp" type="date" id="snapDate" value="${existing.date}"></div>`:''}
-    <div class="snapshot-form">${S.valueOrder.map(id=>{ const v=byId(S.values,id); return `<div class="sv-block" data-svb="${id}" style="--c:${v.color}"><div class="r"><span class="n" style="color:${v.color}">${esc(v.name)}</span><input type="range" class="slider" min="0" max="100" value="${base[id]}" data-sv="${id}" style="--c:${v.color}"><span class="mono" data-svl="${id}">${base[id]}</span></div>
+  const base = {}, evidence = {};
+  S.valueOrder.forEach(id => {
+    const sug = existing ? null : suggestedCongruence(id);
+    evidence[id] = sug;
+    base[id] = sug ? sug.suggested : (ref ? (ref.ratings[id] ?? 50) : 50);
+  });
+  const anyEvidence = Object.values(evidence).some(Boolean);
+  const m = openModal(`<h2>${existing?'Edit snapshot':'Congruence snapshot'}</h2><p class="muted">${existing?`Taken ${fmtDate(existing.date,'med')}. Adjust a value to change it; notes stay editable below.`:`0–100 for each value. Not aspiration — where you actually are, this week.${last?` Sliders start where you left them on ${fmtDate(last.date,'med')}; move one and a note opens beneath it.`:''}${!existing && anyEvidence ? ' Where a value has weekly practices, the slider starts from what those weeks actually contained.' : ''}`}</p>${existing?`<div class="field" style="margin-bottom:10px"><label>Date</label><input class="inp" type="date" id="snapDate" value="${existing.date}"></div>`:''}
+    <div class="snapshot-form">${S.valueOrder.map(id=>{ const v=byId(S.values,id); return `<div class="sv-block" data-svb="${id}" style="--c:${v.color}"><div class="r"><span class="n" style="color:${v.color}">${esc(v.name)}</span><input type="range" class="slider" min="0" max="100" value="${base[id]}" data-sv="${id}" style="--c:${v.color}"><span class="mono" data-svl="${id}">${base[id]}</span></div>${evidence[id] ? `<div class="sv-evidence mono">practices say ${evidence[id].behavioural} · you last said ${evidence[id].previous} · starting at ${evidence[id].suggested}</div>` : ''}
       <div class="sv-note" data-svn="${id}" style="height:0" aria-hidden="true"><textarea class="ta" rows="2" data-svt="${id}" placeholder="What's driving this score today?" disabled tabindex="-1">${esc(existing?.notes?.[id]||'')}</textarea></div></div>`; }).join('')}</div>
     <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary" id="snapSave">${existing?'Save changes':'Take snapshot'}</button></div>`);
   if(existing) Object.keys(existing.notes||{}).forEach(id => { const note = m.querySelector(`[data-svn="${id}"]`); if(note){ note.classList.add('open'); note.style.height='auto'; note.setAttribute('aria-hidden','false'); const ta = note.querySelector('textarea'); ta.disabled=false; ta.tabIndex=0; } });
@@ -175,6 +181,8 @@ routes.value = function(root, params){
   root.innerHTML = `<div class="page narrow">
     <div class="page-head" style="margin-top:20px"><div class="mono">value · ranked #${rank} of ${S.valueOrder.length}</div><h1 style="color:${v.color}">${ed(`values.#${v.id}.name`)}</h1><div class="row" style="margin-top:12px"><div class="bar" style="flex:1;--c:${v.color}"><i style="width:${cur}%"></i></div><span class="num" data-tween="${cur}" data-suffix="%">0</span></div></div>
     <div class="card rv">${sparkline(snaps.map(s=>s.ratings[v.id]??null),{h:60,min:0,max:100,color:v.color,dots:true,labels:snaps.map(s=>`${fmtDate(s.date,'med')}: ${s.ratings[v.id]??'–'}${s.note?' — '+s.note:''}`)})}<div class="row between mono"><span>${snaps[0]?fmtDate(snaps[0].date,'med'):''}</span><span>congruence over a lifetime</span><span>now</span></div></div>
+    <section class="section rv" id="pracBox">${practicesHTML(v)}</section>
+    <section class="section rv">${boardHTML(boardId('value', v.id), {title:'Board', hint:'What this value looks like, before you can argue for it.', compact:true})}</section>
     ${F('embody','How would I know if I embody this value?','Observable, behavioural indicators. Not aspirations — evidence.')}
     ${F('hundred','What takes me to 100%?','What does full congruence actually look like, day to day?')}
     ${F('motivation','How do I increase my positive motivation for this value?','Strategies, reminders, environments, people.')}
@@ -190,4 +198,87 @@ routes.value = function(root, params){
   $('#valColor').onchange = e => { v.color = e.target.value; saveNow(); rerender(); };
   root.querySelectorAll('[data-vf]').forEach(b => b.onclick = () => { const k = b.dataset.vf; const latest = (v.fields[k]||[]).slice(-1)[0]; const m = openModal(`<h2>A new version</h2><textarea class="ta" id="vfText" style="min-height:160px">${esc(latest?.text||'')}</textarea><p class="faint" style="font-size:.78rem">The previous version is kept. Growth in self-understanding stays visible.</p><div class="row" style="justify-content:flex-end"><button class="btn primary" id="vfSave">Keep</button></div>`); m.querySelector('#vfSave').onclick = () => { const t = m.querySelector('#vfText').value.trim(); if(!t) return; v.fields[k] = v.fields[k]||[]; v.fields[k].push({date:today(),text:t}); saveNow(); m.remove(); rerender(); sound('save'); }; });
   root.querySelectorAll('[data-pol]').forEach(b => b.onclick = () => openEntryModal({type:'reflection', links:{values:[{id:v.id,pol:b.dataset.pol}]}}));
+  bindPractices(root); bindBoard(root);
 };
+
+/* ============================================================
+   PRACTICES — the small weekly behaviours under each value.
+   A congruence score you invent from memory drifts. These are
+   things you either did or did not do, and they give the score
+   something to stand on: the snapshot arrives pre-filled with
+   what your weeks actually contained, and you adjust from there.
+   ============================================================ */
+function migrateValuePractices(){
+  (S.values||[]).forEach(v => {
+    v.practices = Array.isArray(v.practices) ? v.practices : [];
+    v.practices.forEach(p => { p.log = Array.isArray(p.log) ? p.log : []; p.perWeek = +p.perWeek || 1; });
+  });
+}
+function isoWeek(d = today()){ const x = parseDay(d); const day = (x.getDay()+6)%7; x.setDate(x.getDate()-day+3); const first = new Date(x.getFullYear(),0,4); const n = 1 + Math.round(((x - first)/DAY - 3 + ((first.getDay()+6)%7))/7); return `${x.getFullYear()}-W${pad(n)}`; }
+function practiceDone(p, d = today()){ return (p.log||[]).includes(d); }
+function togglePractice(v, p, d = today()){ const i = (p.log||[]).indexOf(d); if(i >= 0) p.log.splice(i,1); else p.log.push(d); saveNow(); }
+function practiceWeekCount(p, weeksAgo = 0){
+  const start = addDays(weekStart(), -weeksAgo*7), end = addDays(start, 6);
+  return (p.log||[]).filter(d => d >= start && d <= end).length;
+}
+/* what the last four weeks actually contained, 0–100 */
+function behaviouralCongruence(v){
+  const ps = v.practices || []; if(!ps.length) return null;
+  const rates = [];
+  for(let w = 0; w < 4; w++){
+    const wanted = sum(ps.map(p => p.perWeek || 1));
+    const got = sum(ps.map(p => Math.min(practiceWeekCount(p, w), p.perWeek || 1)));
+    if(wanted) rates.push(got / wanted);
+  }
+  return rates.length ? Math.round(avg(rates) * 100) : null;
+}
+/* the number the snapshot starts from: evidence where there is some,
+   the last thing you said where there is not */
+function suggestedCongruence(id){
+  const v = byId(S.values, id); if(!v) return null;
+  const beh = behaviouralCongruence(v);
+  const last = valueCurrent(id);
+  if(beh === null) return null;
+  return {suggested: Math.round(beh * 0.65 + last * 0.35), behavioural: beh, previous: last};
+}
+function practicesHTML(v){
+  const T = today(); const week = lastDays(7).slice().reverse();
+  const beh = behaviouralCongruence(v);
+  return `<div class="row between"><span class="sc" style="margin:0">Weekly practices</span><button class="btn sm ghost" data-pracadd="${v.id}">＋ practice</button></div>
+    <p class="muted" style="font-size:.85rem">One to three small things that would make this value true in an ordinary week. Tick them as you go; the congruence score starts from what you actually did rather than from memory.</p>
+    ${beh !== null ? `<div class="row between prac-summary"><span>Your last four weeks say <b style="color:${v.color}">${beh}</b> out of 100.</span><span class="mono">you last said ${valueCurrent(v.id)}</span></div>` : ''}
+    ${(v.practices||[]).length ? `<div class="prac-list">${v.practices.map((p,i)=>`<div class="prac" data-prac="${p.id}">
+        <div class="prac-head"><span class="prac-text">${ed(`values.#${v.id}.practices.${i}.text`, {ph:'make something small'})}</span>
+          <span class="row" style="gap:6px"><span class="mono">${practiceWeekCount(p)}/${p.perWeek} this week</span>
+          <select class="sel prac-freq" data-pracfreq="${v.id}:${p.id}">${[1,2,3,4,5,6,7].map(n=>`<option value="${n}" ${p.perWeek===n?'selected':''}>${n}× / week</option>`).join('')}</select>
+          <button class="del-x inline" data-pracdel="${v.id}:${p.id}" title="remove practice">×</button></span></div>
+        <div class="prac-week">${week.map(d=>`<button class="pw ${practiceDone(p,d)?'on':''} ${d===T?'today':''}" data-practick="${v.id}:${p.id}:${d}" title="${fmtDate(d,'med')}"><span>${DOW[parseDay(d).getDay()][0]}</span></button>`).join('')}</div>
+      </div>`).join('')}</div>`
+      : `<div class="empty">No practices yet. “Make something small”, “call one person”, “walk without the phone” — the plainer the better.</div>`}`;
+}
+function bindPractices(root, after){
+  const redraw = after || rerender;
+  $$('[data-pracadd]', root).forEach(b => b.onclick = () => {
+    const v = byId(S.values, b.dataset.pracadd); if((v.practices||[]).length >= 3){ toast('Three is the ceiling on purpose. Replace one instead.'); return; }
+    v.practices.push({id:uid(), text:'', perWeek:1, log:[]}); saveNow(); redraw();
+    setTimeout(()=>{ const n = document.querySelectorAll('.prac-text .ed'); n.length && beginEdit(n[n.length-1]); }, 60);
+  });
+  $$('[data-practick]', root).forEach(b => b.onclick = () => {
+    const [vid, pid, d] = b.dataset.practick.split(':'); const v = byId(S.values, vid); const p = byId(v.practices, pid);
+    togglePractice(v, p, d); sound(practiceDone(p,d) ? 'success' : 'click'); redraw();
+  });
+  $$('[data-pracfreq]', root).forEach(sel => sel.onchange = () => { const [vid,pid] = sel.dataset.pracfreq.split(':'); byId(byId(S.values,vid).practices, pid).perWeek = +sel.value; saveNow(); redraw(); });
+  $$('[data-pracdel]', root).forEach(b => b.onclick = () => { const [vid,pid] = b.dataset.pracdel.split(':'); const v = byId(S.values, vid); const p = byId(v.practices, pid);
+    requestDelete({label:p.text || 'this practice', node:b.closest('.prac'), remove:()=>spliceOut(v.practices, x=>x.id===pid), after:redraw}); });
+}
+/* today's practices across every value, for the Today page */
+function practicesDueToday(){
+  const T = today(); const out = [];
+  (S.values||[]).forEach(v => (v.practices||[]).forEach(p => {
+    if(!p.text) return;
+    const doneThisWeek = practiceWeekCount(p);
+    if(doneThisWeek >= (p.perWeek||1) && !practiceDone(p,T)) return;   // already satisfied this week
+    out.push({v, p, done: practiceDone(p,T), doneThisWeek});
+  }));
+  return out;
+}

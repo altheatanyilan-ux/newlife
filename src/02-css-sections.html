@@ -26,6 +26,93 @@
 .amb-opt.on{border-color:var(--page-accent);background:color-mix(in srgb,var(--page-accent) 12%,var(--surface-2))}
 .amb-name{font-family:var(--serif);font-size:1rem;color:var(--text)}
 .amb-desc{font-family:var(--quote);font-style:italic;font-size:.8rem;color:var(--muted)}
+/* ---------- boards ---------- */
+.board{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));grid-auto-rows:118px;gap:12px;margin-top:12px}
+.board.compact{grid-auto-rows:96px;gap:9px}
+.pin{position:relative;margin:0;border-radius:12px;overflow:hidden;background:var(--surface-2);border:1px solid var(--line);cursor:grab;transform:rotate(var(--rot,0deg));transition:transform .25s var(--page-ease),box-shadow .25s var(--ease),border-color .2s var(--ease)}
+.pin:hover{transform:rotate(0deg) scale(1.02);box-shadow:var(--shadow);z-index:2;border-color:var(--page-accent)}
+.pin.dragging{opacity:.4}
+.pin.over{border-color:var(--page-accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--page-accent) 40%,transparent)}
+.pin.sp-s{grid-column:span 1;grid-row:span 1}
+.pin.sp-m{grid-column:span 1;grid-row:span 2}
+.pin.sp-l{grid-column:span 2;grid-row:span 2}
+.pin.sp-w{grid-column:span 2;grid-row:span 1}
+.pin img{width:100%;height:100%;object-fit:cover;display:block;cursor:zoom-in}
+.pin.word{display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,color-mix(in srgb,var(--page-gradient-start) 20%,var(--surface-2)),var(--surface-2))}
+.pin-word{font-family:var(--serif);font-size:1.3rem;text-align:center;padding:10px;line-height:1.25;color:var(--text)}
+.pin figcaption{position:absolute;left:0;right:0;bottom:0;padding:14px 8px 6px;background:linear-gradient(180deg,transparent,rgba(10,8,6,.82));font-size:.72rem;color:#e8e0d4;opacity:0;transition:opacity .2s var(--ease)}
+.pin.word figcaption{position:static;background:none;padding:0 8px 8px;color:var(--muted);text-align:center}
+.pin:hover figcaption,.pin:focus-within figcaption{opacity:1}
+.pin-ctl{position:absolute;top:5px;right:5px;display:flex;gap:4px;opacity:0;transition:opacity .2s var(--ease)}
+.pin:hover .pin-ctl{opacity:1}
+.pin-btn{width:22px;height:22px;border-radius:50%;border:none;background:rgba(20,17,14,.72);color:#e8e0d4;font-size:.72rem;cursor:pointer;backdrop-filter:blur(4px)}
+.pin-btn:hover{background:var(--page-accent);color:var(--page-accent-ink)}
+.board-empty{grid-column:1/-1}
+.board-strip{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;align-items:center}
+.board-strip img{width:54px;height:54px;object-fit:cover;border-radius:8px;border:1px solid var(--line)}
+.strip-word{font-family:var(--serif);font-size:.82rem;padding:6px 10px;border-radius:8px;background:var(--surface-2);border:1px solid var(--line)}
+.strip-more{font-family:var(--mono);font-size:.7rem;color:var(--faint)}
+/* ---------- people ---------- */
+.people-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;margin-top:12px}
+.person-card{display:flex;gap:12px;align-items:center;padding:12px 14px;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--c);border-radius:var(--radius);text-decoration:none;color:inherit;transition:transform .22s var(--page-ease),border-color .22s var(--ease)}
+.person-card:hover{transform:var(--page-lift);border-color:color-mix(in srgb,var(--c) 60%,var(--line))}
+.person-face{flex:none;width:48px;height:48px;border-radius:50%;overflow:hidden;background:color-mix(in srgb,var(--c) 22%,var(--surface-2));display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:1.3rem;color:var(--c)}
+.person-face img{width:100%;height:100%;object-fit:cover}
+.person-body{display:flex;flex-direction:column;gap:1px;min-width:0}
+.person-body b{font-family:var(--serif);font-size:1.02rem;font-weight:500}
+.person-body .mono{font-size:.66rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.quiet-row{padding:6px 0;border-top:1px dashed var(--line);text-decoration:none;color:inherit}
+.quiet-row:first-child{border-top:none}
+.quiet-row:hover{color:var(--page-accent)}
+.year-block{margin-top:18px}
+.year-label{font-size:.72rem;letter-spacing:.16em;color:var(--faint);border-bottom:1px solid var(--line);padding-bottom:4px;margin-bottom:6px}
+/* ---------- sealed letters & decisions ---------- */
+.entry.sealed{opacity:.9}
+.entry.sealed .title{color:var(--muted)}
+.ready-letter{border-left:3px solid var(--gold)}
+.sealed-row{display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:10px;background:var(--surface-2);border:1px solid var(--line)}
+.sealed-row .wax{width:26px;height:26px;border-radius:50%;background:color-mix(in srgb,#b0616a 30%,transparent);border:1px solid #b0616a;color:#e0a0a0;display:flex;align-items:center;justify-content:center;font-size:.8rem;flex:none}
+.letter-open{border-left:2px solid var(--page-accent);padding-left:18px;margin:10px 0 20px}
+.dec-row{display:grid;grid-template-columns:78px 1fr auto auto;gap:12px;align-items:baseline;width:100%;text-align:left;background:none;border:1px solid transparent;border-radius:10px;padding:9px 10px;cursor:pointer;color:inherit;font-family:var(--sans);transition:background .18s var(--ease),border-color .18s var(--ease)}
+.dec-row:hover{background:var(--surface-2);border-color:var(--line)}
+.dec-name b{font-family:var(--serif);font-size:1rem;font-weight:500}
+.dec-chose{display:block;font-size:.78rem;color:var(--muted);margin-top:1px}
+.dec-conf,.dec-tag{font-size:.66rem}
+.dec-then{background:var(--surface-2);border-radius:var(--radius);padding:16px 18px;margin-bottom:8px}
+.dec-field{margin-top:10px}
+.dec-field .k{font-family:var(--mono);font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;color:var(--page-accent);margin-bottom:3px}
+/* ---------- on this day ---------- */
+.otd-rich{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.otd-card{display:grid;grid-template-columns:66px 1fr;gap:14px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);cursor:pointer;transition:border-color .2s var(--ease),transform .2s var(--page-ease)}
+.otd-card:hover{border-color:var(--page-accent);transform:var(--page-lift)}
+.otd-years{display:flex;flex-direction:column;align-items:center;justify-content:center;border-right:1px solid var(--line);padding-right:12px}
+.otd-years b{font-family:var(--serif);font-size:1.9rem;line-height:1;color:var(--page-accent)}
+.otd-years span{font-family:var(--mono);font-size:.6rem;color:var(--faint);letter-spacing:.1em}
+.otd-title{font-family:var(--serif);font-size:1.06rem;margin-top:3px}
+.otd-text{color:var(--muted);font-size:.88rem;line-height:1.65;margin-top:3px}
+.otd-list-row{display:flex;gap:12px;align-items:flex-start;border-top:1px dashed var(--line);padding-top:6px}
+.otd-list-row .mono{padding-top:14px;color:var(--page-accent);flex:none}
+/* ---------- value practices ---------- */
+.prac-summary{padding:10px 14px;border-radius:10px;background:var(--surface-2);border:1px solid var(--line);margin:10px 0}
+.prac-list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.prac{padding:10px 12px;border-radius:10px;background:var(--surface);border:1px solid var(--line)}
+.prac-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.prac-text{font-family:var(--serif);font-size:1rem;flex:1;min-width:140px}
+.prac-freq{width:auto;padding:1px 6px;font-size:.64rem}
+.prac-week{display:flex;gap:5px;margin-top:8px}
+.pw{width:30px;height:26px;border-radius:7px;border:1px solid var(--line-2);background:var(--surface-2);color:var(--faint);font-family:var(--mono);font-size:.62rem;cursor:pointer;transition:background .18s var(--ease),color .18s var(--ease),border-color .18s var(--ease)}
+.pw:hover{border-color:var(--c,var(--page-accent))}
+.pw.on{background:var(--c,var(--page-accent));border-color:var(--c,var(--page-accent));color:var(--page-accent-ink)}
+.pw.today{box-shadow:0 0 0 2px color-mix(in srgb,var(--c,var(--page-accent)) 26%,transparent)}
+.prac-today{display:flex;flex-direction:column;gap:6px}
+.prac-chip{display:grid;grid-template-columns:22px 1fr auto;gap:10px;align-items:center;text-align:left;background:none;border:1px solid var(--line);border-radius:10px;padding:9px 12px;cursor:pointer;color:inherit;font-family:var(--sans);transition:background .18s var(--ease),border-color .18s var(--ease)}
+.prac-chip:hover{border-color:var(--c)}
+.prac-chip.on{background:color-mix(in srgb,var(--c) 12%,transparent);border-color:var(--c)}
+.prac-chip.on .pc-text{text-decoration:line-through;color:var(--muted)}
+.pc-tick{color:var(--c);font-size:.9rem}
+.pc-text{font-size:.94rem}
+.pc-val{font-size:.64rem}
+.sv-evidence{font-size:.64rem;color:var(--faint);padding:2px 0 0 2px}
 /* ---------- dictation & AI ---------- */
 .dictate{display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap}
 .dict-btn{display:inline-flex;align-items:center;gap:5px;background:var(--surface-2);border:1px solid var(--line-2);color:var(--muted);border-radius:999px;padding:4px 12px;font-size:.72rem;font-family:var(--sans);cursor:pointer;transition:border-color .2s var(--ease),color .2s var(--ease),background .2s var(--ease)}

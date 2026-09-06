@@ -105,6 +105,7 @@ function openProjectPanel(id){
     <div class="vp-sec"><div class="row between"><span class="sc">Activity, twelve weeks</span><button class="btn sm primary" id="pNod">+ nod</button></div>${nodHeat(p)}</div>
     <div class="vp-sec"><span class="sc">Income stream</span><div class="spec-grid"><div><div class="k">revenue model</div>${ed(`projects.#${p.id}.income.model`,{ph:'freelance / product / subscriptions / patronage'})}</div><div><div class="k">current monthly (¥)</div>${ed(`projects.#${p.id}.income.current`,{ph:'0',cls:'mono',hook:'pnum:'+p.id})}</div><div><div class="k">target monthly (¥)</div>${ed(`projects.#${p.id}.income.target`,{ph:'0',cls:'mono',hook:'pnum:'+p.id})}</div></div>
       <div class="row between" style="margin-top:10px"><span class="k mono">milestones</span><button class="btn sm ghost" id="pMile">+ milestone</button></div>${(p.income.milestones||[]).map((m,i)=>`<div class="evidence-item"><span class="mono">${ed(`projects.#${p.id}.income.milestones.${i}.date`,{ph:'date',cls:'mono'})}</span><span style="flex:1">${ed(`projects.#${p.id}.income.milestones.${i}.text`,{ph:'first user, first dollar, first referral…'})}</span><button class="tbtn" data-mdel="${i}">×</button></div>`).join('')||'<div class="empty">Small wins, recorded. None yet.</div>'}</div>
+    ${boardStrip(boardId('project', p.id), 'Board')}
     <div class="vp-sec"><span class="sc">Cross-pollination</span><div class="stack" style="gap:6px;font-size:.88rem">
       <div>draws on threads: ${threads.map(t=>`<span class="chip on" style="--c:${t.color}">${esc(t.name)}</span>`).join(' ')||'<span class="faint">—</span>'}</div>
       <div>exercises skills: ${skills.map(s=>`<span class="chip on click" style="--c:var(--ment)" data-go="#/skills/${s.id}">${esc(s.name)}</span>`).join(' ')||'<span class="faint">—</span>'}</div>
@@ -131,6 +132,7 @@ function openProjectPanel(id){
   pn.querySelector('#resAdd').onclick = () => { p.resources.push({title:'', url:'', type:'link'}); saveNow(); reopen(); setTimeout(()=>{ const last = $$('#panel .res-row').slice(-1)[0]; const e = last?.querySelector('.ed'); if(e){ last.querySelector('.res-edit').style.display='flex'; beginEdit(e); } },60); };
   pn.querySelectorAll('[data-prestype]').forEach(sel => sel.onchange = () => { p.resources[+sel.dataset.prestype].type = sel.value; saveNow(); reopen(); });
   pn.querySelectorAll('[data-presdel]').forEach(b => b.onclick = () => { const rs = p.resources[+b.dataset.presdel]; requestDelete({label:rs.title||'Resource', remove:()=>spliceOut(p.resources, x=>x===rs), after:reopen}); });
+  bindBoardStrip(pn, () => p.name);
   pn.querySelector('#pNod').onclick = () => openNodModal(p.id, ()=>{ rerender(); openProjectPanel(id); });
   pn.querySelector('#pMile').onclick = () => { p.income.milestones.push({date:today(),text:''}); saveNow(); openProjectPanel(id); };
   pn.querySelectorAll('[data-mdel]').forEach(b => b.onclick = () => { const ms = p.income.milestones[+b.dataset.mdel]; requestDelete({label: ms.text || 'Milestone', node: b.closest('.evidence-item'), remove: () => spliceOut(p.income.milestones, x => x === ms), after: () => openProjectPanel(id)}); });

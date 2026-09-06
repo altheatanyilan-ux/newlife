@@ -126,6 +126,13 @@ const PAGE_SCENES = {
 PAGE_SCENES.calendar = () => scWrap(`<g stroke="${A}" opacity=".22" stroke-width="1.4">${Array.from({length:9},(_,i)=>`<line x1="120" y1="${120+i*72}" x2="1080" y2="${120+i*72}"/>`).join('')}${Array.from({length:8},(_,i)=>`<line x1="${120+i*137}" y1="120" x2="${120+i*137}" y2="696"/>`).join('')}</g>
     <g opacity=".4" fill="${A}">${Array.from({length:26},(_,i)=>`<circle cx="${188+((i*3)%7)*137}" cy="${156+Math.floor(i/7)*72}" r="${4+(i%4)*2}"/>`).join('')}</g>
     ${cloud(300,80,.9,G2,.2)}${moon(980,90,34,A)}`);
+PAGE_SCENES.people = () => scWrap(`${hill(560,26,G2,.22)}
+    <g stroke="${A}" fill="none" stroke-width="2.4" opacity=".55">${[[380,520,1],[520,540,1.25],[680,530,1.1],[820,545,.9]].map(([x,y,s])=>`<g transform="translate(${x},${y}) scale(${s})"><circle cx="0" cy="-58" r="26"/><path d="M-34,42 q0,-56 34,-56 q34,0 34,56"/></g>`).join('')}</g>
+    <g opacity=".3" stroke="${A}" stroke-width="1.4" stroke-dasharray="5 7" fill="none"><path d="M380,470 q70,-60 140,-32"/><path d="M520,468 q80,-46 160,-8"/><path d="M680,478 q70,-30 140,10"/></g>
+    ${cloud(300,170,.9,G1,.2)}`);
+PAGE_SCENES.board = () => scWrap(`<g opacity=".5" stroke="${A}" fill="none" stroke-width="2.2">${[[180,180,220,150,-3],[440,140,180,240,2],[660,200,250,170,-2],[300,400,200,180,3],[560,430,170,150,-4],[790,420,190,220,2]].map(([x,y,w,h,r])=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" transform="rotate(${r} ${x+w/2} ${y+h/2})"/>`).join('')}</g>
+    <g opacity=".3" fill="${G2}">${[[180,180,220,150],[660,200,250,170],[300,400,200,180]].map(([x,y,w,h])=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6"/>`).join('')}</g>
+    <g opacity=".45" fill="${A}">${[[290,180],[530,140],[785,200],[400,400],[645,430],[885,420]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="5"/>`).join('')}</g>`);
 PAGE_SCENES.tag = PAGE_SCENES.journals;
 
 /* ---------- a motif no other record has ---------- */

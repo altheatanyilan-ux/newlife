@@ -4,9 +4,12 @@
 routes.journals = function(root, params){
   const type = params[0] || S._journal || 'reflection'; S._journal = type;
   const j = S.journals.find(x=>x.type===type) || S.journals[0];
-  if(type === 'quote') registerPageEntry({pageName:'Journals', addLabel:'New quote or saved link', defaultEntryType:'quote', prefilledFields:{journalType:'quote'}, options:[{label:'New quote', run:()=>EntryActions.libraryQuote()}]});
+  if(type === 'letter') registerPageEntry({pageName:'Journals', addLabel:'Seal a letter', defaultEntryType:'letter', prefilledFields:{}, options:[{icon:'✉', label:'Seal a letter', desc:'To be opened on a date you choose.', run:()=>openLetterModal()}]});
+  else if(type === 'decision') registerPageEntry({pageName:'Journals', addLabel:'Log a decision', defaultEntryType:'decision', prefilledFields:{}, options:[{icon:'⚖', label:'Log a decision', desc:'Your reasoning now, so you can grade it later.', run:()=>openDecisionModal()}]});
+  else if(type === 'quote') registerPageEntry({pageName:'Journals', addLabel:'New quote or saved link', defaultEntryType:'quote', prefilledFields:{journalType:'quote'}, options:[{label:'New quote', run:()=>EntryActions.libraryQuote()}]});
   else registerPageEntry({pageName:'Journals', addLabel:`New ${typeName(type).toLowerCase()}`, defaultEntryType:type, prefilledFields:{journalType:type}, options:[{label:'New entry', run:(pre)=>openEntryModal({type:pre.journalType, allowedTypes:[pre.journalType], heading:`New ${typeName(pre.journalType).toLowerCase()}`})}]});
   const all = sortEntries(S.entries.filter(e=>e.type===type));
+  const special = type === 'letter' ? 'letters' : type === 'decision' ? 'decisions' : null;
   const q = (S._jq||'').toLowerCase(); const from = S._jfrom||'', to = S._jto||''; const tag = S._jtag||'';
   const filtered = all.filter(e => (!q || (e.title+' '+e.body).toLowerCase().includes(q)) && (!from || (e.occurredAt||'') >= from) && (!to || (e.occurredAt||'').slice(0,10) <= to) && (!tag || JSON.stringify(e.links).includes(tag)));
   const otd = onThisDay().filter(e=>e.type===type);
@@ -21,10 +24,14 @@ routes.journals = function(root, params){
         ${type==='question'?'<p class="quote">Questions you are living with. They don\'t get archived; they sit open until an answer accumulates.</p>':''}
         ${type==='synchronicity'?'<p class="quote">Entries flagged “revisit later” resurface in the Today page prompts. Synchronicities often only make sense in retrospect.</p>':''}
         ${type==='manifestation'?'<p class="quote">Ask → It Is Given → Allow. When an intention arrives, offer it to the Vision Tree as fruit.</p>':''}
-        <div id="jList">${filtered.map(e=>entryCard(e)+(type==='manifestation'&&e.extra?.status==='arrived'&&e.links.visions.length?`<div class="row" style="margin:-8px 0 12px"><button class="btn sm ghost" data-fruit="${e.id}">offer as fruit to ${esc(byId(S.visions,e.links.visions[0])?.name||'its vision')} →</button></div>`:'')).join('')||'<div class="empty">Nothing here matches. Loosen the filters, or write something.</div>'}</div>
+        <div id="jSpecial">${special === 'letters' ? sealedLettersHTML() : special === 'decisions' ? decisionListHTML() : ''}</div>
+        <div id="jList">${special ? '' : filtered.map(e=>entryCard(e)+(type==='manifestation'&&e.extra?.status==='arrived'&&e.links.visions.length?`<div class="row" style="margin:-8px 0 12px"><button class="btn sm ghost" data-fruit="${e.id}">offer as fruit to ${esc(byId(S.visions,e.links.visions[0])?.name||'its vision')} →</button></div>`:'')).join('')||'<div class="empty">Nothing here matches. Loosen the filters, or write something.</div>'}</div>
       </div>
     </div></div>`;
   const refilter = debounce(()=>{ S._jq = $('#jq').value; S._jfrom = $('#jfrom').value; S._jto = $('#jto').value; S._jtag = $('#jtag').value; rerender(); $('#jq')?.focus(); }, 300);
+
+  if(special === 'letters') bindSealedLetters(root);
+  if(special === 'decisions') bindDecisionList(root);
   $('#jq').oninput = refilter; $('#jfrom').onchange = refilter; $('#jto').onchange = refilter; $('#jtag').onchange = refilter;
   $('#jRandom').onclick = () => { if(!all.length) return; const e = all[Math.floor(Math.random()*all.length)]; openPanel(`<div class="mono">a random ${esc(typeName(type).toLowerCase())}</div>${entryCard(e,{clamp:false})}`); $$('#panel .rv').forEach(n=>n.classList.add('in')); };
   $('#jManage').onclick = () => manageJournalsModal();
@@ -50,7 +57,7 @@ function deleteJournalType(t){
 }
 
 function manageJournalsModal(){
-  const m = openModal(`<h2>Journals</h2><p class="muted">Rename a journal by clicking its name. Reorder with the arrows.</p><div class="stack" style="gap:6px">${S.journals.map((j,i)=>`<div class="row between" style="padding:8px 0;border-top:1px dashed var(--line)"><span class="row"><span class="mono">${typeIcon(j.type)}</span><b class="serif" style="font-size:1.05rem">${ed(`journals.${i}.name`,{ph:'journal name'})}</b><span class="mono">${S.entries.filter(e=>e.type===j.type).length}</span></span><span class="row" style="gap:2px"><button class="tbtn" data-jup="${i}">↑</button><button class="tbtn" data-jdown="${i}">↓</button><button class="tbtn" data-jdel="${j.type}" style="color:var(--faint)">delete…</button></span></div>`).join('')}</div>`,'narrow');
+  const m = openModal(`<h2>Journals</h2><p class="muted">Rename a journal by clicking its name. Reorder with the arrows.</p><div class="stack" style="gap:6px">${S.journals.map((j,i)=>`<div class="row between" style="padding:8px 0;border-top:1px dashed var(--line)"><span class="row"><span class="mono">${typeIcon(j.type)}</span><b class="serif" style="font-size:1.05rem">${ed(`journals.${i}.name`,{ph:'journal name'})}</b><span class="mono">${S.entries.filter(e=>e.type===j.type).length}</span></span><span class="row" style="gap:2px"><button class="tbtn" data-jup="${i}">↑</button><button class="tbtn" data-jdown="${i}">↓</button><button class="tbtn" data-jdel="${j.type}" style="color:var(--faint)">delete…</button></span></div>`).join('')}}</div>`,'narrow');
   m.querySelectorAll('[data-jup]').forEach(b => b.onclick = () => { const i=+b.dataset.jup; if(i>0){ [S.journals[i-1],S.journals[i]]=[S.journals[i],S.journals[i-1]]; saveNow(); m.remove(); rerender(); manageJournalsModal(); } });
   m.querySelectorAll('[data-jdown]').forEach(b => b.onclick = () => { const i=+b.dataset.jdown; if(i<S.journals.length-1){ [S.journals[i+1],S.journals[i]]=[S.journals[i],S.journals[i+1]]; saveNow(); m.remove(); rerender(); manageJournalsModal(); } });
   m.querySelectorAll('[data-jdel]').forEach(b => b.onclick = () => { m.remove(); deleteJournalType(b.dataset.jdel); });

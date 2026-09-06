@@ -392,6 +392,93 @@ html.reduce-motion *,html.reduce-motion *::before,html.reduce-motion *::after{an
 .amb-opt.on{border-color:var(--page-accent);background:color-mix(in srgb,var(--page-accent) 12%,var(--surface-2))}
 .amb-name{font-family:var(--serif);font-size:1rem;color:var(--text)}
 .amb-desc{font-family:var(--quote);font-style:italic;font-size:.8rem;color:var(--muted)}
+/* ---------- boards ---------- */
+.board{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));grid-auto-rows:118px;gap:12px;margin-top:12px}
+.board.compact{grid-auto-rows:96px;gap:9px}
+.pin{position:relative;margin:0;border-radius:12px;overflow:hidden;background:var(--surface-2);border:1px solid var(--line);cursor:grab;transform:rotate(var(--rot,0deg));transition:transform .25s var(--page-ease),box-shadow .25s var(--ease),border-color .2s var(--ease)}
+.pin:hover{transform:rotate(0deg) scale(1.02);box-shadow:var(--shadow);z-index:2;border-color:var(--page-accent)}
+.pin.dragging{opacity:.4}
+.pin.over{border-color:var(--page-accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--page-accent) 40%,transparent)}
+.pin.sp-s{grid-column:span 1;grid-row:span 1}
+.pin.sp-m{grid-column:span 1;grid-row:span 2}
+.pin.sp-l{grid-column:span 2;grid-row:span 2}
+.pin.sp-w{grid-column:span 2;grid-row:span 1}
+.pin img{width:100%;height:100%;object-fit:cover;display:block;cursor:zoom-in}
+.pin.word{display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,color-mix(in srgb,var(--page-gradient-start) 20%,var(--surface-2)),var(--surface-2))}
+.pin-word{font-family:var(--serif);font-size:1.3rem;text-align:center;padding:10px;line-height:1.25;color:var(--text)}
+.pin figcaption{position:absolute;left:0;right:0;bottom:0;padding:14px 8px 6px;background:linear-gradient(180deg,transparent,rgba(10,8,6,.82));font-size:.72rem;color:#e8e0d4;opacity:0;transition:opacity .2s var(--ease)}
+.pin.word figcaption{position:static;background:none;padding:0 8px 8px;color:var(--muted);text-align:center}
+.pin:hover figcaption,.pin:focus-within figcaption{opacity:1}
+.pin-ctl{position:absolute;top:5px;right:5px;display:flex;gap:4px;opacity:0;transition:opacity .2s var(--ease)}
+.pin:hover .pin-ctl{opacity:1}
+.pin-btn{width:22px;height:22px;border-radius:50%;border:none;background:rgba(20,17,14,.72);color:#e8e0d4;font-size:.72rem;cursor:pointer;backdrop-filter:blur(4px)}
+.pin-btn:hover{background:var(--page-accent);color:var(--page-accent-ink)}
+.board-empty{grid-column:1/-1}
+.board-strip{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;align-items:center}
+.board-strip img{width:54px;height:54px;object-fit:cover;border-radius:8px;border:1px solid var(--line)}
+.strip-word{font-family:var(--serif);font-size:.82rem;padding:6px 10px;border-radius:8px;background:var(--surface-2);border:1px solid var(--line)}
+.strip-more{font-family:var(--mono);font-size:.7rem;color:var(--faint)}
+/* ---------- people ---------- */
+.people-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;margin-top:12px}
+.person-card{display:flex;gap:12px;align-items:center;padding:12px 14px;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--c);border-radius:var(--radius);text-decoration:none;color:inherit;transition:transform .22s var(--page-ease),border-color .22s var(--ease)}
+.person-card:hover{transform:var(--page-lift);border-color:color-mix(in srgb,var(--c) 60%,var(--line))}
+.person-face{flex:none;width:48px;height:48px;border-radius:50%;overflow:hidden;background:color-mix(in srgb,var(--c) 22%,var(--surface-2));display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:1.3rem;color:var(--c)}
+.person-face img{width:100%;height:100%;object-fit:cover}
+.person-body{display:flex;flex-direction:column;gap:1px;min-width:0}
+.person-body b{font-family:var(--serif);font-size:1.02rem;font-weight:500}
+.person-body .mono{font-size:.66rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.quiet-row{padding:6px 0;border-top:1px dashed var(--line);text-decoration:none;color:inherit}
+.quiet-row:first-child{border-top:none}
+.quiet-row:hover{color:var(--page-accent)}
+.year-block{margin-top:18px}
+.year-label{font-size:.72rem;letter-spacing:.16em;color:var(--faint);border-bottom:1px solid var(--line);padding-bottom:4px;margin-bottom:6px}
+/* ---------- sealed letters & decisions ---------- */
+.entry.sealed{opacity:.9}
+.entry.sealed .title{color:var(--muted)}
+.ready-letter{border-left:3px solid var(--gold)}
+.sealed-row{display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:10px;background:var(--surface-2);border:1px solid var(--line)}
+.sealed-row .wax{width:26px;height:26px;border-radius:50%;background:color-mix(in srgb,#b0616a 30%,transparent);border:1px solid #b0616a;color:#e0a0a0;display:flex;align-items:center;justify-content:center;font-size:.8rem;flex:none}
+.letter-open{border-left:2px solid var(--page-accent);padding-left:18px;margin:10px 0 20px}
+.dec-row{display:grid;grid-template-columns:78px 1fr auto auto;gap:12px;align-items:baseline;width:100%;text-align:left;background:none;border:1px solid transparent;border-radius:10px;padding:9px 10px;cursor:pointer;color:inherit;font-family:var(--sans);transition:background .18s var(--ease),border-color .18s var(--ease)}
+.dec-row:hover{background:var(--surface-2);border-color:var(--line)}
+.dec-name b{font-family:var(--serif);font-size:1rem;font-weight:500}
+.dec-chose{display:block;font-size:.78rem;color:var(--muted);margin-top:1px}
+.dec-conf,.dec-tag{font-size:.66rem}
+.dec-then{background:var(--surface-2);border-radius:var(--radius);padding:16px 18px;margin-bottom:8px}
+.dec-field{margin-top:10px}
+.dec-field .k{font-family:var(--mono);font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;color:var(--page-accent);margin-bottom:3px}
+/* ---------- on this day ---------- */
+.otd-rich{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.otd-card{display:grid;grid-template-columns:66px 1fr;gap:14px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);cursor:pointer;transition:border-color .2s var(--ease),transform .2s var(--page-ease)}
+.otd-card:hover{border-color:var(--page-accent);transform:var(--page-lift)}
+.otd-years{display:flex;flex-direction:column;align-items:center;justify-content:center;border-right:1px solid var(--line);padding-right:12px}
+.otd-years b{font-family:var(--serif);font-size:1.9rem;line-height:1;color:var(--page-accent)}
+.otd-years span{font-family:var(--mono);font-size:.6rem;color:var(--faint);letter-spacing:.1em}
+.otd-title{font-family:var(--serif);font-size:1.06rem;margin-top:3px}
+.otd-text{color:var(--muted);font-size:.88rem;line-height:1.65;margin-top:3px}
+.otd-list-row{display:flex;gap:12px;align-items:flex-start;border-top:1px dashed var(--line);padding-top:6px}
+.otd-list-row .mono{padding-top:14px;color:var(--page-accent);flex:none}
+/* ---------- value practices ---------- */
+.prac-summary{padding:10px 14px;border-radius:10px;background:var(--surface-2);border:1px solid var(--line);margin:10px 0}
+.prac-list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.prac{padding:10px 12px;border-radius:10px;background:var(--surface);border:1px solid var(--line)}
+.prac-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.prac-text{font-family:var(--serif);font-size:1rem;flex:1;min-width:140px}
+.prac-freq{width:auto;padding:1px 6px;font-size:.64rem}
+.prac-week{display:flex;gap:5px;margin-top:8px}
+.pw{width:30px;height:26px;border-radius:7px;border:1px solid var(--line-2);background:var(--surface-2);color:var(--faint);font-family:var(--mono);font-size:.62rem;cursor:pointer;transition:background .18s var(--ease),color .18s var(--ease),border-color .18s var(--ease)}
+.pw:hover{border-color:var(--c,var(--page-accent))}
+.pw.on{background:var(--c,var(--page-accent));border-color:var(--c,var(--page-accent));color:var(--page-accent-ink)}
+.pw.today{box-shadow:0 0 0 2px color-mix(in srgb,var(--c,var(--page-accent)) 26%,transparent)}
+.prac-today{display:flex;flex-direction:column;gap:6px}
+.prac-chip{display:grid;grid-template-columns:22px 1fr auto;gap:10px;align-items:center;text-align:left;background:none;border:1px solid var(--line);border-radius:10px;padding:9px 12px;cursor:pointer;color:inherit;font-family:var(--sans);transition:background .18s var(--ease),border-color .18s var(--ease)}
+.prac-chip:hover{border-color:var(--c)}
+.prac-chip.on{background:color-mix(in srgb,var(--c) 12%,transparent);border-color:var(--c)}
+.prac-chip.on .pc-text{text-decoration:line-through;color:var(--muted)}
+.pc-tick{color:var(--c);font-size:.9rem}
+.pc-text{font-size:.94rem}
+.pc-val{font-size:.64rem}
+.sv-evidence{font-size:.64rem;color:var(--faint);padding:2px 0 0 2px}
 /* ---------- dictation & AI ---------- */
 .dictate{display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap}
 .dict-btn{display:inline-flex;align-items:center;gap:5px;background:var(--surface-2);border:1px solid var(--line-2);color:var(--muted);border-radius:999px;padding:4px 12px;font-size:.72rem;font-family:var(--sans);cursor:pointer;transition:border-color .2s var(--ease),color .2s var(--ease),background .2s var(--ease)}
@@ -1269,7 +1356,7 @@ function tagChips(e, {link=true}={}){ const t = entryTags(e); return t.length ? 
 const KEY = 'lifeinstrument.v1';
 let S = null;
 /* persistence lives in db.js (Dexie schema + load/save/backup) */
-function migrate(){ if(S.settings && S.settings.home === 'map') S.settings.home = 'home'; wipeDemoData(); if(S.rehearsal && !S.rehearsal){ S.rehearsal = S.rehearsal; } delete S.rehearsal; if(typeof migrateEras === 'function') migrateEras(); const d = seed(); for(const k of Object.keys(d)) if(S[k]===undefined) S[k] = d[k]; if(typeof migrateLifeline === 'function') migrateLifeline(); if(typeof migrateSkillLevels === 'function') migrateSkillLevels(); if(typeof migrateProjects === 'function') migrateProjects(); if(typeof migrateStages === 'function') migrateStages(); if(typeof migrateTasks === 'function') migrateTasks(); if(typeof migrateIdeas === 'function') migrateIdeas(); if(typeof migrateMedia === 'function') migrateMedia(); if(typeof migrateSkillFocus === 'function') migrateSkillFocus(); }
+function migrate(){ if(S.settings && S.settings.home === 'map') S.settings.home = 'home'; wipeDemoData(); if(S.rehearsal && !S.rehearsal){ S.rehearsal = S.rehearsal; } delete S.rehearsal; if(typeof migrateEras === 'function') migrateEras(); const d = seed(); for(const k of Object.keys(d)) if(S[k]===undefined) S[k] = d[k]; if(typeof migrateLifeline === 'function') migrateLifeline(); if(typeof migrateSkillLevels === 'function') migrateSkillLevels(); if(typeof migrateProjects === 'function') migrateProjects(); if(typeof migrateStages === 'function') migrateStages(); if(typeof migrateTasks === 'function') migrateTasks(); if(typeof migrateIdeas === 'function') migrateIdeas(); if(typeof migrateMedia === 'function') migrateMedia(); if(typeof migrateSkillFocus === 'function') migrateSkillFocus(); if(typeof migratePeople === 'function') migratePeople(); if(typeof migrateValuePractices === 'function') migrateValuePractices(); S.boards = Array.isArray(S.boards) ? S.boards : []; }
 
 /* One-time: the house used to open furnished with a demonstration life. If that
    demonstration is still here, clear it so the rooms start empty. */
@@ -1492,7 +1579,7 @@ const HICKS = ['Fear / Grief / Depression / Despair / Powerlessness','Insecurity
 const hicksName = n => HICKS[clamp(Math.round(n),1,22)-1];
 const DIMS = [{id:'physical',name:'Physical',c:'var(--phys)'},{id:'emotional',name:'Emotional',c:'var(--emo)'},{id:'mental',name:'Mental',c:'var(--ment)'},{id:'spiritual',name:'Spiritual',c:'var(--spir)'}];
 const CONF = ['hunch','exploring','plan','committed','in motion','lived'];
-const ENTRY_TYPES = [['uncategorized','Uncategorized','▫'],['lifeevent','Life event','◆'],['memory','Memory','◌'],['reflection','Reflection','✎'],['synchronicity','Synchronicity','∞'],['manifestation','Manifestation','✦'],['gratitude','Gratitude','♡'],['dream','Dream','☾'],['progress','Progress','↗'],['nod','Nod','·'],['artifact','Artifact','▣'],['letter','Letter','✉'],['quote','Quote','“'],['question','Question','?'],['visualization','Visualization','◉']];
+const ENTRY_TYPES = [['uncategorized','Uncategorized','▫'],['decision','Decision','⚖'],['lifeevent','Life event','◆'],['memory','Memory','◌'],['reflection','Reflection','✎'],['synchronicity','Synchronicity','∞'],['manifestation','Manifestation','✦'],['gratitude','Gratitude','♡'],['dream','Dream','☾'],['progress','Progress','↗'],['nod','Nod','·'],['artifact','Artifact','▣'],['letter','Letter','✉'],['quote','Quote','“'],['question','Question','?'],['visualization','Visualization','◉']];
 const typeName = t => (ENTRY_TYPES.find(x=>x[0]===t)||[t,t])[1];
 const typeIcon = t => (ENTRY_TYPES.find(x=>x[0]===t)||['','','·'])[2];
 
@@ -1524,6 +1611,8 @@ const PAGE_THEMES = {
   timeline: {name:'Timeline',       accent:['#cba85a','#96762a'], ink:'#1a1816', gradient:['#c9a55a','#8a6a4a'], mood:'nostalgic, warm',        motion:'calm',      glyph:'憶', icon:'⏳'},
   home:     {name:'Home',         accent:['#94a6b5','#5b7082'], ink:'#1a1816', gradient:['#8a9aa6','#6c8299'], mood:'analytical, clear',      motion:'calm',      glyph:'家', icon:'⌂'},
   calendar: {name:'Calendar',      accent:['#8fa9c4','#4f7093'], ink:'#1a1816', gradient:['#7d97b3','#c2cfdb'], mood:'wide, seasonal',         motion:'calm',      glyph:'暦', icon:'▦'},
+  people:   {name:'People',        accent:['#d99a9a','#a5605f'], ink:'#1a1816', gradient:['#c98a8a','#e6c3b4'], mood:'warm, particular',       motion:'calm',      glyph:'人', icon:'☺'},
+  board:    {name:'The Board',     accent:['#c9a86a','#8a6a33'], ink:'#1a1816', gradient:['#b4934f','#dfc9a0'], mood:'felt, unarguable',       motion:'calm',      glyph:'像', icon:'▣'},
   plan:     {name:'Plan',          accent:['#d98f6a','#a8613e'], ink:'#1a1816', gradient:['#c97f5e','#e0b48a'], mood:'ordered, near',          motion:'crisp',     glyph:'週', icon:'▤'},
   reviews:  {name:'Reviews',       accent:['#8fb0a8','#4f7d73'], ink:'#1a1816', gradient:['#6f9a91','#a9bfa2'], mood:'measured, honest',       motion:'calm',      glyph:'省', icon:'◷'},
   writing:  {name:'Writing',       accent:['#c8b79a','#8a7452'], ink:'#1a1816', gradient:['#b6a184','#d9c9ae'], mood:'quiet, unhurried',   motion:'calm',      glyph:'文', icon:'✒'},
@@ -1688,6 +1777,13 @@ const PAGE_SCENES = {
 PAGE_SCENES.calendar = () => scWrap(`<g stroke="${A}" opacity=".22" stroke-width="1.4">${Array.from({length:9},(_,i)=>`<line x1="120" y1="${120+i*72}" x2="1080" y2="${120+i*72}"/>`).join('')}${Array.from({length:8},(_,i)=>`<line x1="${120+i*137}" y1="120" x2="${120+i*137}" y2="696"/>`).join('')}</g>
     <g opacity=".4" fill="${A}">${Array.from({length:26},(_,i)=>`<circle cx="${188+((i*3)%7)*137}" cy="${156+Math.floor(i/7)*72}" r="${4+(i%4)*2}"/>`).join('')}</g>
     ${cloud(300,80,.9,G2,.2)}${moon(980,90,34,A)}`);
+PAGE_SCENES.people = () => scWrap(`${hill(560,26,G2,.22)}
+    <g stroke="${A}" fill="none" stroke-width="2.4" opacity=".55">${[[380,520,1],[520,540,1.25],[680,530,1.1],[820,545,.9]].map(([x,y,s])=>`<g transform="translate(${x},${y}) scale(${s})"><circle cx="0" cy="-58" r="26"/><path d="M-34,42 q0,-56 34,-56 q34,0 34,56"/></g>`).join('')}</g>
+    <g opacity=".3" stroke="${A}" stroke-width="1.4" stroke-dasharray="5 7" fill="none"><path d="M380,470 q70,-60 140,-32"/><path d="M520,468 q80,-46 160,-8"/><path d="M680,478 q70,-30 140,10"/></g>
+    ${cloud(300,170,.9,G1,.2)}`);
+PAGE_SCENES.board = () => scWrap(`<g opacity=".5" stroke="${A}" fill="none" stroke-width="2.2">${[[180,180,220,150,-3],[440,140,180,240,2],[660,200,250,170,-2],[300,400,200,180,3],[560,430,170,150,-4],[790,420,190,220,2]].map(([x,y,w,h,r])=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" transform="rotate(${r} ${x+w/2} ${y+h/2})"/>`).join('')}</g>
+    <g opacity=".3" fill="${G2}">${[[180,180,220,150],[660,200,250,170],[300,400,200,180]].map(([x,y,w,h])=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6"/>`).join('')}</g>
+    <g opacity=".45" fill="${A}">${[[290,180],[530,140],[785,200],[400,400],[645,430],[885,420]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="5"/>`).join('')}</g>`);
 PAGE_SCENES.tag = PAGE_SCENES.journals;
 
 /* ---------- a motif no other record has ---------- */
@@ -2245,10 +2341,12 @@ const DB_SCHEMA = {          // primary key first, then indexes — Dexie syntax
   reminders:      'id, date, done',
   visionEras:     'id, order',
   tasks:          'id, day, done',
+  boards:         'id',
+  people:         'id, tier',
 };
 /* keys of S that are single objects/arrays without their own identity — kept as rows in `meta` */
-const META_KEYS = ['settings','rehearsal','reviews','valueOrder','valueOrderHistory','people','places','journals','negLast'];
-const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders','visionEras','tasks'];
+const META_KEYS = ['settings','rehearsal','reviews','valueOrder','valueOrderHistory','places','journals','negLast'];
+const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders','visionEras','tasks','boards','people'];
 
 /* ---------- MiniDexie: Dexie-compatible subset over IndexedDB ---------- */
 class MiniTable {
@@ -2286,7 +2384,7 @@ const usingRealDexie = DexieImpl !== MiniDexie;
 
 /* ---------- the database ---------- */
 const db = new DexieImpl(DB_NAME);
-db.version(4).stores(DB_SCHEMA);   // v2 `reminders`, v3 `visionEras`, v4 `tasks`
+db.version(5).stores(DB_SCHEMA);   // v2 `reminders`, v3 `visionEras`, v4 `tasks`, v5 `boards`+`people`
 
 /* ---------- S <-> stores ---------- */
 function stateToStores(state){
@@ -2473,12 +2571,13 @@ function seed(){
       {type:'media',name:'Media'},
       {type:'lifeevent',name:'Life events'},
       {type:'letter',name:'Letters'},
+      {type:'decision',name:'Decisions'},
       {type:'progress',name:'Practice log'},
       {type:'uncategorized',name:'Uncategorized'},
     ],
     rehearsal:{script:'', winning:'', aim:'', cycleStart:'', days:[]},
     reviews:{lastWeekly:null,lastSeasonal:null,lastAnnual:null},
-    people:[], places:[],
+    people:[], places:[], boards:[],
   };
 }
 /* ============================================================
@@ -2640,6 +2739,11 @@ function entryExtraHTML(e){
   return rows.length ? `<div class="stack" style="gap:6px;margin-top:8px;font-size:.85rem">${rows.join('')}</div>` : '';
 }
 function entryCard(e, {clamp:cl=true, tools=true}={}){
+  if(typeof letterIsSealed === 'function' && letterIsSealed(e)) return `<article class="entry rv sealed" data-entry="${e.id}">
+    <div class="meta"><span class="mono">✉ Sealed letter</span><span class="mono">written ${esc(fmtDate((e.createdAt||'').slice(0,10),'med'))}</span></div>
+    <div class="title">${esc(e.title || 'To myself')}</div>
+    <div class="body muted">Sealed until ${esc(fmtDate(e.extra.sealedUntil,'med'))} — ${daysBetween(today(), e.extra.sealedUntil)} days from now. Whatever is in here was written for someone you have not become yet.</div>
+  </article>`;
   const q = e.type==='quote';
   return `<article class="entry rv" data-entry="${e.id}">
     <div class="meta"><span class="mono">${typeIcon(e.type)} ${typeName(e.type)}</span><span class="mono">${esc(fmtDate(e.occurredAt,'med'))}</span>${e.confidence?`<span class="status-pill">${esc(e.confidence)}</span>`:''}${tools?`<span class="tools"><button class="tbtn" data-edit="${e.id}">edit</button></span>`:''}</div>${tools?`<button class="del-x" data-del="${e.id}" title="delete" aria-label="delete entry">×</button>`:''}
@@ -2702,6 +2806,9 @@ routes.today = function(root){
       </div>
     </details>
 
+    ${(()=>{ const ready = lettersOpeningNow(); return ready.length ? `<section class="section rv"><div class="card ready-letter"><div class="sc">A letter from you has come due</div>${ready.map(e=>`<div class="row between" style="margin-top:8px"><span><b class="serif">${esc(e.title||'To myself')}</b><div class="mono">sealed ${fmtDate((e.createdAt||'').slice(0,10),'med')} · ${daysBetween((e.createdAt||'').slice(0,10), today())} days ago</div></span><button class="btn sm primary" data-lopen="${e.id}">Open it</button></div>`).join('')}</div></section>` : ''; })()}
+    ${(()=>{ const due = decisionsDue(); return due.length ? `<section class="section rv"><div class="card"><div class="row between"><span class="sc" style="margin:0">Decisions ready to grade</span><a class="mono" href="#/journals/decision">all decisions →</a></div>${due.map(e=>`<div class="row between" style="margin-top:8px"><span><b class="serif">${esc(e.title)}</b><div class="mono">decided ${fmtDate((e.createdAt||'').slice(0,10),'med')} · you were ${esc(e.extra.confidence||'unsure')}</div></span><button class="btn sm" data-dopen="${e.id}">Look back</button></div>`).join('')}</div></section>` : ''; })()}
+
     <!-- 3. the day's work -->
     <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Today's tasks</span><span class="mono">${rows.length?`${doneN} of ${rows.length} done`:'nothing parked yet'}</span></div>
       <div class="card" data-daydrop="${T}" style="margin-top:10px">
@@ -2709,6 +2816,9 @@ routes.today = function(root){
         <div class="row" style="margin-top:10px;gap:8px">${quickTaskInput(T)}<button class="btn sm ghost" id="pullTask">pull in ↓</button><a class="btn sm ghost" href="#/plan">plan the week →</a></div>
         ${carried.length?`<div class="row" style="margin-top:10px"><span class="mono" style="color:#d08080">${carried.length} carried over from earlier days</span><button class="btn sm ghost" id="carryAll">bring to today</button></div>`:''}
       </div></section>
+
+    ${(()=>{ const pr = practicesDueToday(); return pr.length ? `<section class="section rv"><div class="row between"><span class="sc" style="margin:0">Today's practices</span><a class="mono" href="#/values">the compass →</a></div>
+      <div class="card" style="margin-top:10px"><div class="prac-today">${pr.map(({v,p,done,doneThisWeek})=>`<button class="prac-chip ${done?'on':''}" data-practoday="${v.id}:${p.id}" style="--c:${v.color}"><span class="pc-tick">${done?'✓':'○'}</span><span class="pc-text">${esc(p.text)}</span><span class="pc-val mono">${esc(v.name)} · ${doneThisWeek}/${p.perWeek}</span></button>`).join('')}</div></div></section>` : ''; })()}
 
     ${(()=>{ const due = milestonesDueSoon(30); return due.length ? `<section class="section rv"><span class="sc">Skill milestones within 30 days</span><div class="card" style="border-left:3px solid var(--ment)">${due.map(({skill,m,days})=>`<a href="#/skills/${skill.id}" class="row between" style="text-decoration:none;color:inherit;padding:8px 0;border-top:1px dashed var(--line);gap:12px"><span><b class="serif">${esc(skill.name)}</b> <span class="muted">→ ${esc(skillLevelLabel(skill,m.levelTarget))} (L${m.levelTarget})</span>${m.note?`<div class="quote" style="font-size:.85rem">${esc(m.note)}</div>`:''}</span><span class="status-pill ${days<0?'due':'ahead'}">${days<0?`⚠ ${-days}d overdue`:days===0?'today':`in ${days}d`}</span></a>`).join('')}</div></section>` : ''; })()}
 
@@ -2733,8 +2843,8 @@ routes.today = function(root){
       </div>
     </section>
 
-    <section class="section rv"><span class="sc">On this day</span>
-      ${otd.length ? otd.slice(0,3).map(e=>entryCard(e)).join('') : `<div class="empty">No memories from this day yet. You're making them now.</div>`}
+    <section class="section rv"><span class="sc">This day, in the years behind it</span>
+      ${onThisDayHTML()}
     </section>
 
     <section class="section rv"><span class="sc">A gentle prompt</span>
@@ -2758,6 +2868,9 @@ routes.today = function(root){
   $('#pullTask').onclick = () => openTaskPicker(T, rerender);
   if($('#carryAll')) $('#carryAll').onclick = () => { carried.forEach(r => r.task.day = T); saveNow(); sound('success'); rerender(); };
   bindTaskRows(root); bindDayDrop(root); bindQuickTask(root);
+  bindSealedLetters(root); bindOnThisDay(root);
+  $$('[data-dopen]',root).forEach(b => b.onclick = () => openDecisionPanel(b.dataset.dopen));
+  $$('[data-practoday]',root).forEach(b => b.onclick = () => { const [vid,pid] = b.dataset.practoday.split(':'); const v = byId(S.values,vid); const p = byId(v.practices,pid); togglePractice(v,p); sound(practiceDone(p)?'success':'click'); rerender(); });
 };
 
 /* ============================================================
@@ -2942,6 +3055,7 @@ routes.stage = function(root, params){
     <section class="section rv"><div class="row between"><span class="sc">Everything from this stage</span></div>
       ${es.filter(e=>e.type!=='memory').map(e=>entryCard(e)).join('') || '<div class="empty">Only memories so far. Add a reflection, a quote, a dream.</div>'}
     </section>
+    <section class="section rv">${boardHTML(boardId('stage', s.id), {title:'Board for this chapter', hint:'Photographs, objects, a colour you associate with these years.', compact:true})}</section>
     ${moreSection(`<div class="row" style="gap:20px;flex-wrap:wrap"><div class="field"><label>Character</label>${ed(`stages.#${s.id}.char`,{cls:'serif',ph:'一'})}</div><div class="field"><label>Accent colour</label><input type="color" id="stageHue" value="${s.hue}" style="width:40px;height:28px;border:none;background:none;padding:0;cursor:pointer"></div><div class="field"><label>Order</label><span class="mono">stage ${s.num} of ${S.stages.length}</span> <button class="btn sm ghost" id="stageUp">↑</button><button class="btn sm ghost" id="stageDown">↓</button></div></div>
       <div class="danger-zone"><span>Stages are the load-bearing walls of the house. Deleting one keeps its entries but unlinks them.</span><button class="btn sm ghost danger" id="delStage">Delete this stage</button></div>`, 'More about this stage')}
   </div>`;
@@ -2951,6 +3065,7 @@ routes.stage = function(root, params){
   $('#addSub').onclick = () => { s.substages.push({id:uid(),name:'New chapter',desc:'',photos:[]}); saveNow(); rerender(); };
   $$('[data-ssdel]',root).forEach(b => b.onclick = () => { const ss = s.substages[+b.dataset.ssdel]; requestDelete({label: ss.name, node: b.closest('.substage'), remove: () => { const touched = S.entries.filter(e => (e.links?.substages||[]).includes(ss.id)); const rl = snapshotLinks(touched); touched.forEach(e => e.links.substages = e.links.substages.filter(x => x !== ss.id)); const back = spliceOut(s.substages, x => x === ss); return () => { back(); rl(); }; }}); });
   $$('[data-verdel]',root).forEach(b => b.onclick = () => { const v = s.narrativeHistory[+b.dataset.verdel]; requestDelete({label: `Version from ${fmtDate(v.date,'med')}`, node: b.closest('.v'), remove: () => spliceOut(s.narrativeHistory, x => x === v)}); });
+  bindBoard(root);
   $('#charEdit') && ($('#charEdit').onclick = () => { const n = root.querySelector('.han .ed'); if(n) beginEdit(n); });
   $('#delStage').onclick = () => deleteStage(s, null, () => navigate('#/timeline'));
   $('#stageHue').onchange = e => { s.hue = e.target.value; saveNow(); rerender(); };
@@ -3115,6 +3230,7 @@ function openVisionPanel(id){
     <div class="vp-sec"><span class="sc">Self-image required (Maltz)</span><p class="faint" style="font-size:.8rem;margin:0 0 6px">What kind of person would I need to be for this to feel natural?</p>${ed(`visions.#${v.id}.selfImage`,{multi:true,ph:'Someone who…'})}</div>
     <div class="vp-sec"><span class="sc">Linked values</span><div class="deps">${S.valueOrder.map(id=>{ const val = byId(S.values,id); return `<span class="chip click ${v.values.includes(id)?'on':''}" style="--c:${val.color}" data-vval="${id}">${esc(val.name)}</span>`; }).join('')}</div></div>
     <div class="vp-sec"><span class="sc">The 80-year-old check</span><p class="faint" style="font-size:.8rem;margin:0 0 6px">Why does this matter when I look back from the end?</p>${ed(`visions.#${v.id}.obituary`,{multi:true,ph:'If the answer is thin, the vision may be vanity.'})}</div>
+    ${boardStrip(boardId('vision', id), 'Board')}
     <div class="vp-sec"><div class="row between"><span class="sc">Manifestation evidence log</span><button class="btn sm ghost" id="addEv">+ evidence</button></div><p class="faint" style="font-size:.8rem;margin:0 0 6px">Coincidences, doors, people who appeared. Evidence of alignment arrives before full manifestation.</p>${v.evidence.map((e,i)=>`<div class="evidence-item"><span class="mono">${ed(`visions.#${v.id}.evidence.${i}.date`,{ph:'date',cls:'mono'})}</span><span style="flex:1">${ed(`visions.#${v.id}.evidence.${i}.text`,{multi:true})}</span><button class="tbtn" data-evdel="${i}">×</button></div>`).join('')||'<div class="empty">Nothing logged yet. Watch for it.</div>'}</div>
     <div class="vp-sec"><div class="row between"><span class="sc">Leaves — progress entries (${leaves.length})</span><button class="btn sm" id="addLeaf">+ water this vision</button></div>${sortEntries(leaves).map(e=>entryCard(e)).join('')||'<div class="empty">No leaves yet. Every tagged entry grows one.</div>'}</div>
     <div class="row" style="margin-top:30px"><button class="btn sm ghost" data-back>← back</button></div>
@@ -3123,6 +3239,7 @@ function openVisionPanel(id){
   $$('#panel .rv').forEach(n=>n.classList.add('in'));
   p.querySelectorAll('[data-conf]').forEach(b => b.onclick = () => { const was = v.confidence; v.confidence = b.dataset.conf; if(v.confidence==='lived'){ v.status='completed'; v.completedAt = v.completedAt || today(); v.progress = 100; } else if(was==='lived'){ v.status='pending'; } saveNow(); if(v.confidence==='lived' && was!=='lived') fruitCeremony(v); else { rerender(); openVisionPanel(v.id); } });
   p.querySelectorAll('[data-feel]').forEach(b => b.onclick = () => { v.feeling = +b.dataset.feel; saveNow(); rerender(); openVisionPanel(v.id); });
+  bindBoardStrip(document.querySelector('#panel'), () => byId(S.visions,id)?.name || 'Vision');
   p.querySelector('#addRes').onclick = () => { v.resistance.push({text:'',threadId:null}); saveNow(); openVisionPanel(v.id); };
   p.querySelectorAll('[data-resthread]').forEach(s => s.onchange = () => { v.resistance[+s.dataset.resthread].threadId = s.value||null; saveNow(); });
   p.querySelectorAll('[data-resdel]').forEach(b => b.onclick = () => { const r = v.resistance[+b.dataset.resdel]; requestDelete({label: r.text || 'Resistance', node: b.closest('.evidence-item'), remove: () => spliceOut(v.resistance, x => x === r), after: () => openVisionPanel(v.id)}); });
@@ -3272,6 +3389,282 @@ function bindLifeline(root, drawTree){
   });
 }
 /* ============================================================
+   BOARDS — the sensory half of a vision.
+   The Vision Canvas holds what you can argue about; a board holds
+   what you can only feel. Any record can have one: a value, a
+   skill, a project, a goal, a chapter, a person — and there is a
+   main board that belongs to no one thing.
+   ============================================================ */
+function boardId(kind, id){ return id ? `${kind}:${id}` : kind; }
+function getBoard(key){
+  S.boards = Array.isArray(S.boards) ? S.boards : [];
+  let b = S.boards.find(x => x.id === key);
+  if(!b){ b = {id:key, items:[], note:''}; S.boards.push(b); }
+  b.items = Array.isArray(b.items) ? b.items : [];
+  return b;
+}
+function boardCount(key){ return (S.boards||[]).find(x => x.id === key)?.items.length || 0; }
+const PIN_SPANS = [['s','small'],['m','medium'],['l','large'],['w','wide']];
+function boardHTML(key, {title = 'Board', hint = '', compact = false} = {}){
+  const b = getBoard(key);
+  return `<div class="board-wrap" data-board="${esc(key)}">
+    <div class="row between"><span class="sc" style="margin:0">${esc(title)}</span><span class="mono">${b.items.length} pinned</span></div>
+    ${hint ? `<p class="muted" style="font-size:.85rem;margin:4px 0 0">${esc(hint)}</p>` : ''}
+    <div class="row" style="gap:8px;margin:12px 0">
+      <button class="btn sm primary" data-bupload="${esc(key)}">＋ Upload images</button>
+      <button class="btn sm ghost" data-blink="${esc(key)}">＋ From a link</button>
+      <button class="btn sm ghost" data-bword="${esc(key)}">＋ A word</button>
+      <input type="file" accept="image/*" multiple hidden data-bfile="${esc(key)}">
+    </div>
+    <div class="board ${compact ? 'compact' : ''}" data-bgrid="${esc(key)}">
+      ${b.items.length ? b.items.map((it,i) => `<figure class="pin sp-${it.span || 'm'} ${it.kind === 'word' ? 'word' : ''}" draggable="true" data-pin="${it.id}" style="--rot:${((it.id.charCodeAt(0) % 5) - 2) * .55}deg">
+          ${it.kind === 'word'
+            ? `<div class="pin-word">${esc(it.caption || '')}</div>`
+            : `<img src="${esc(it.src)}" alt="${esc(it.caption || '')}" loading="lazy" data-blb="${it.id}">`}
+          <figcaption>${ed(`boards.#${key}.items.${i}.caption`, {ph:'a word about it'})}</figcaption>
+          <div class="pin-ctl">
+            <button class="pin-btn" data-bspan="${it.id}" title="change size">⤢</button>
+            <button class="pin-btn" data-bdel="${it.id}" title="remove">×</button>
+          </div>
+        </figure>`).join('')
+        : `<div class="empty board-empty">Nothing pinned yet. Photographs, a room, a face, a colour, a single word — whatever makes the thing feel real before you can argue for it.</div>`}
+    </div>
+    <div class="field" style="margin-top:14px"><label>What this board is about</label>${ed(`boards.#${key}.note`, {multi:true, ph:'One or two lines, for the day the images stop speaking for themselves.'})}</div>
+  </div>`;
+}
+function bindBoard(root, after){
+  const redraw = after || rerender;
+  $$('[data-bupload]', root).forEach(b => b.onclick = () => root.querySelector(`[data-bfile="${CSS.escape(b.dataset.bupload)}"]`)?.click());
+  $$('[data-bfile]', root).forEach(inp => inp.onchange = e => {
+    const key = inp.dataset.bfile, files = e.target.files; e.target.value = '';
+    if(!files?.length) return;
+    readImages(files, src => { getBoard(key).items.push({id:uid(), kind:'image', src, caption:'', span:'m'}); saveNow(); sound('success'); redraw(); });
+  });
+  $$('[data-blink]', root).forEach(b => b.onclick = () => {
+    const key = b.dataset.blink;
+    const m = openModal(`<h2>Pin from a link</h2><div class="stack"><div class="field"><label>Image address</label><input class="inp mono" id="bUrl" placeholder="https://…/photograph.jpg" autofocus></div><div class="field"><label>Caption</label><input class="inp" id="bCap" placeholder="optional"></div><p class="faint" style="font-size:.76rem">Linked images are fetched from wherever they live, so they can disappear if that page does. Uploading keeps a copy in your own database.</p></div><div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn primary" id="bAdd">Pin it</button></div>`, 'narrow');
+    const go = () => { const u = m.querySelector('#bUrl').value.trim(); if(!u) return; getBoard(key).items.push({id:uid(), kind:'image', src:u, caption:m.querySelector('#bCap').value.trim(), span:'m'}); saveNow(); m.remove(); sound('success'); redraw(); };
+    m.querySelector('#bAdd').onclick = go; m.querySelector('#bUrl').onkeydown = e => { if(e.key === 'Enter') go(); };
+  });
+  $$('[data-bword]', root).forEach(b => b.onclick = () => {
+    const key = b.dataset.bword;
+    const m = openModal(`<h2>Pin a word</h2><input class="inp serif-lg" id="bWord" placeholder="quiet · eleven seats · rain" autofocus><div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn primary" id="bwAdd">Pin it</button></div>`, 'narrow');
+    const go = () => { const w = m.querySelector('#bWord').value.trim(); if(!w) return; getBoard(key).items.push({id:uid(), kind:'word', src:'', caption:w, span:'s'}); saveNow(); m.remove(); sound('success'); redraw(); };
+    m.querySelector('#bwAdd').onclick = go; m.querySelector('#bWord').onkeydown = e => { if(e.key === 'Enter') go(); };
+  });
+  $$('[data-bspan]', root).forEach(b => b.onclick = e => { e.stopPropagation();
+    const key = b.closest('[data-board]').dataset.board, it = getBoard(key).items.find(x => x.id === b.dataset.bspan);
+    const order = PIN_SPANS.map(s => s[0]); it.span = order[(order.indexOf(it.span || 'm') + 1) % order.length]; saveNow(); redraw(); });
+  $$('[data-bdel]', root).forEach(b => b.onclick = e => { e.stopPropagation();
+    const key = b.closest('[data-board]').dataset.board, bd = getBoard(key), it = bd.items.find(x => x.id === b.dataset.bdel);
+    requestDelete({label: it.caption || 'this pin', node: b.closest('.pin'), remove: () => spliceOut(bd.items, x => x.id === it.id), after: redraw}); });
+  $$('[data-blb]', root).forEach(img => img.onclick = () => lightbox(img.src, img.alt));
+  // drag to rearrange
+  let drag = null;
+  $$('.pin', root).forEach(pin => {
+    pin.addEventListener('dragstart', ev => { if(ev.target.closest('.ed')){ ev.preventDefault(); return; } drag = pin.dataset.pin; pin.classList.add('dragging'); ev.dataTransfer.effectAllowed = 'move'; });
+    pin.addEventListener('dragend', () => { pin.classList.remove('dragging'); drag = null; $$('.pin.over', root).forEach(p => p.classList.remove('over')); });
+    pin.addEventListener('dragover', ev => { ev.preventDefault(); if(drag && drag !== pin.dataset.pin) pin.classList.add('over'); });
+    pin.addEventListener('dragleave', () => pin.classList.remove('over'));
+    pin.addEventListener('drop', ev => { ev.preventDefault(); pin.classList.remove('over'); if(!drag || drag === pin.dataset.pin) return;
+      const key = pin.closest('[data-board]').dataset.board, items = getBoard(key).items;
+      const from = items.findIndex(x => x.id === drag), to = items.findIndex(x => x.id === pin.dataset.pin);
+      if(from < 0 || to < 0) return; items.splice(to, 0, items.splice(from, 1)[0]); saveNow(); redraw(); });
+  });
+}
+/* a small strip for panels: shows what is pinned and opens the full board */
+function boardStrip(key, label){
+  const b = getBoard(key); const n = b.items.length;
+  return `<div class="vp-sec"><div class="row between"><span class="sc">${esc(label || 'Board')}</span><button class="btn sm ghost" data-bopen="${esc(key)}">${n ? 'open the board' : 'start a board'}</button></div>
+    ${n ? `<div class="board-strip">${b.items.slice(0,8).map(it => it.kind === 'word' ? `<span class="strip-word">${esc(it.caption)}</span>` : `<img src="${esc(it.src)}" alt="${esc(it.caption||'')}" loading="lazy">`).join('')}${n > 8 ? `<span class="strip-more">+${n-8}</span>` : ''}</div>`
+      : `<p class="faint" style="font-size:.8rem;margin:6px 0 0">The written half is above. This is the half you can only feel — pin images, a colour, a single word.</p>`}</div>`;
+}
+function bindBoardStrip(root, titleFor){
+  $$('[data-bopen]', root).forEach(b => b.onclick = () => openBoardPanel(b.dataset.bopen, titleFor ? titleFor(b.dataset.bopen) : 'Board'));
+}
+function openBoardPanel(key, title){
+  const p = openPanel(`<div class="mono">board</div><h2>${esc(title || 'Board')}</h2>${boardHTML(key, {title:'Pinned', hint:'Drag to rearrange. Click a pin to see it large, ⤢ to resize it.'})}`, 'board-panel');
+  const redraw = () => { const scroll = p.scrollTop; openBoardPanel(key, title); const np = $('#panel'); if(np) np.scrollTop = scroll; };
+  bindBoard(p, redraw);
+}
+/* ---------- the standalone board room ---------- */
+routes.board = function(root, params){
+  const key = params[0] ? decodeURIComponent(params[0]) : 'main';
+  const named = boardTitle(key);
+  registerPageEntry({pageName:'Board', addLabel:'Pin an image', defaultEntryType:'board', prefilledFields:{}, options:[
+    {icon:'▣', label:'Upload images', desc:'From this device, kept in your own database.', run:()=>document.querySelector(`[data-bupload="${CSS.escape(key)}"]`)?.click()},
+    {icon:'🔗', label:'From a link', desc:'Anything already on the web.', run:()=>document.querySelector(`[data-blink="${CSS.escape(key)}"]`)?.click()},
+    {icon:'✎', label:'A word', desc:'Sometimes one word does more than a photograph.', run:()=>document.querySelector(`[data-bword="${CSS.escape(key)}"]`)?.click()}]});
+  const others = (S.boards||[]).filter(b => b.items.length && b.id !== key);
+  root.innerHTML = `<div class="page">
+    <div class="page-head"><h1>${esc(named)}</h1><div class="sub">The Vision Canvas is what you can argue for. This is what you can only feel — and research is fairly clear that looking at it changes what you do.</div></div>
+    ${boardHTML(key, {title:'Pinned', hint:'Drag to rearrange. Click a pin to see it large, ⤢ to cycle its size.'})}
+    ${others.length ? `<section class="section rv"><span class="sc">Other boards</span><div class="row" style="gap:8px;flex-wrap:wrap;margin-top:10px">${others.map(b => `<a class="chip click" href="#/board/${encodeURIComponent(b.id)}">${esc(boardTitle(b.id))} <span class="mono">${b.items.length}</span></a>`).join('')}</div></section>` : ''}
+  </div>`;
+  bindBoard(root);
+};
+function boardTitle(key){
+  if(key === 'main') return 'The Board';
+  const [kind, id] = key.split(':');
+  const name = {value:() => byId(S.values,id)?.name, skill:() => byId(S.skills,id)?.name, project:() => byId(S.projects,id)?.name,
+    vision:() => byId(S.visions,id)?.name, era:() => byId(S.visionEras,id)?.name, stage:() => byId(S.stages,id)?.name,
+    person:() => byId(S.people,id)?.name}[kind];
+  const n = name ? name() : null;
+  return n ? `${n} — board` : 'Board';
+}
+/* ============================================================
+   PEOPLE — the ones a life is actually made of.
+   Not a contact list and not a CRM. A person here is somewhere
+   your attention goes: how you met, what they gave you, when you
+   last thought about them on paper, and a board of their face.
+   Tagging an entry with a person is the whole engine — everything
+   else is read back out of what you have already written.
+   ============================================================ */
+const PERSON_TIERS = {
+  inner:   ['◉','Inner ring',  'the few you would call at three in the morning', 30,  '#c25b5b'],
+  close:   ['○','Close',       'people you want in the year, often',             60,  '#d4a44c'],
+  orbit:   ['·','In orbit',    'good to keep warm, no obligation',               180, '#7f916a'],
+  past:    ['◌','Past',        'mattered once; kept because it did',             0,   '#8a8d8f'],
+};
+function migratePeople(){
+  // people used to be a list of bare names on entries and in settings
+  if(!Array.isArray(S.people)) S.people = [];
+  // any bare name left by an older version becomes a real record, keeping its id stable by name
+  S.people = S.people.map(p => (typeof p === 'string' || !p || !p.id) ? newPerson(typeof p === 'string' ? p : (p?.name || '')) : p)
+                     .filter(p => p.name || p.id);
+  const seen = new Set();
+  S.people = S.people.filter(p => { const k = p.name.toLowerCase(); if(!k) return true; if(seen.has(k)) return false; seen.add(k); return true; });
+  S.people.forEach(p => { p.tier = PERSON_TIERS[p.tier] ? p.tier : 'orbit'; p.aka = p.aka || []; p.relation = p.relation || ''; p.met = p.met || ''; p.gave = p.gave || ''; p.owe = p.owe || ''; p.notes = p.notes || ''; p.birthday = p.birthday || ''; });
+  // fold free-text names on entries into real records, keeping the text
+  S.entries.forEach(e => {
+    e.links = e.links || {}; e.links.people = Array.isArray(e.links.people) ? e.links.people : [];
+    (e.people || []).forEach(n => {
+      const nm = String(n).trim(); if(!nm) return;
+      let p = S.people.find(x => x.name.toLowerCase() === nm.toLowerCase() || (x.aka||[]).some(a => a.toLowerCase() === nm.toLowerCase()));
+      if(!p){ p = newPerson(nm); S.people.push(p); }
+      if(!e.links.people.includes(p.id)) e.links.people.push(p.id);
+    });
+  });
+}
+function newPerson(name = ''){ return {id:uid(), name, aka:[], relation:'', tier:'orbit', birthday:'', met:'', gave:'', owe:'', notes:'', createdAt:new Date().toISOString()}; }
+function personEntries(id){ return sortEntries(S.entries.filter(e => (e.links?.people||[]).includes(id))); }
+function personLastSeen(id){ const es = personEntries(id); return es.length ? (es[0].occurredAt || es[0].createdAt || '').slice(0,10) : null; }
+function personGoneQuiet(p){
+  const cadence = PERSON_TIERS[p.tier][3]; if(!cadence) return null;
+  const last = personLastSeen(p.id); const d = last ? daysSince(last) : Infinity;
+  return d > cadence ? {days:d, cadence} : null;
+}
+function personChip(id, {click = true} = {}){
+  const p = byId(S.people, id); if(!p) return '';
+  const t = PERSON_TIERS[p.tier];
+  return `<a class="chip on${click?' click':''}" style="--c:${t[4]};text-decoration:none" href="#/people/${p.id}">${t[0]} ${esc(p.name)}</a>`;
+}
+routes.people = function(root, params){
+  migratePeople();
+  registerPageEntry({pageName:'People', addLabel:'Add a person', defaultEntryType:'person', prefilledFields:{}, options:[
+    {icon:'☺', label:'Add a person', desc:'Someone your attention keeps going to.', run:()=>openPersonModal()},
+    {icon:'✎', label:'Note about someone', desc:'A memory or reflection, tagged to them.', run:()=>openEntryModal({type:'reflection', allowedTypes:['reflection','memory','gratitude'], heading:'About someone', openLinks:true})}]});
+  if(params[0]) return renderPersonPage(root, params[0]);
+  const q = (S._pplq || '').toLowerCase();
+  const list = S.people.filter(p => !q || `${p.name} ${p.relation} ${(p.aka||[]).join(' ')}`.toLowerCase().includes(q));
+  const quiet = S.people.map(p => ({p, q: personGoneQuiet(p)})).filter(x => x.q).sort((a,b) => b.q.days - a.q.days);
+  const byTier = t => list.filter(p => p.tier === t);
+  const T = today();
+  const soon = S.people.filter(p => p.birthday).map(p => {
+    const [_, mm, dd] = (p.birthday.match(/(\d{2})-(\d{2})$/) || []); if(!mm) return null;
+    const yr = parseDay(T).getFullYear(); let next = `${yr}-${mm}-${dd}`; if(next < T) next = `${yr+1}-${mm}-${dd}`;
+    return {p, next, days: daysBetween(T, next)};
+  }).filter(x => x && x.days <= 45).sort((a,b) => a.days - b.days);
+  root.innerHTML = `<div class="page">
+    <div class="page-head"><h1>People</h1><div class="sub">A life is mostly other people. Tag them in what you write and this room fills itself: who you have been thinking about, and who has gone quiet without you deciding it.</div></div>
+
+    ${quiet.length || soon.length ? `<div class="grid c2 rv" style="margin-bottom:22px;align-items:start">
+      ${quiet.length ? `<div class="card"><span class="sc">Gone quiet</span><p class="muted" style="font-size:.84rem">Not a reprimand — just what the record says. You set the rhythm for each ring yourself.</p>
+        <div class="stack" style="gap:6px;margin-top:10px">${quiet.slice(0,6).map(({p,q}) => `<a class="row between quiet-row" href="#/people/${p.id}"><span>${PERSON_TIERS[p.tier][0]} ${esc(p.name)}</span><span class="mono">${q.days === Infinity ? 'never written about' : `${q.days}d — you meant every ${q.cadence}`}</span></a>`).join('')}</div></div>` : ''}
+      ${soon.length ? `<div class="card"><span class="sc">Coming up</span><div class="stack" style="gap:6px;margin-top:10px">${soon.map(({p,next,days}) => `<a class="row between quiet-row" href="#/people/${p.id}"><span>${esc(p.name)}</span><span class="mono">${days === 0 ? 'today' : `in ${days}d · ${fmtDate(next,'med')}`}</span></a>`).join('')}</div></div>` : ''}
+    </div>` : ''}
+
+    <div class="row rv" style="gap:8px;margin-bottom:14px"><input class="inp" id="pplq" placeholder="search names and relations" value="${esc(S._pplq||'')}" style="flex:1;max-width:340px"><button class="btn sm primary" id="pplNew">＋ Add a person</button></div>
+
+    ${Object.entries(PERSON_TIERS).map(([k,t]) => { const ps = byTier(k); if(!ps.length) return '';
+      return `<section class="section rv"><div class="row between"><span class="sc" style="margin:0;color:${t[4]}">${t[0]} ${t[1]}</span><span class="mono">${esc(t[2])}</span></div>
+        <div class="people-grid">${ps.map(p => { const last = personLastSeen(p.id); const n = personEntries(p.id).length; const bk = boardId('person', p.id);
+          return `<a class="person-card" href="#/people/${p.id}" style="--c:${t[4]}">
+            <div class="person-face">${boardCount(bk) ? `<img src="${esc(getBoard(bk).items.find(i=>i.kind!=='word')?.src || '')}" alt="">` : `<span>${esc((p.name||'?').trim()[0] || '?')}</span>`}</div>
+            <div class="person-body"><b>${esc(p.name)}</b>${p.relation ? `<span class="mono">${esc(p.relation)}</span>` : ''}
+              <span class="mono faint">${n ? `${n} entr${n===1?'y':'ies'} · ${last ? relDays(daysSince(last)) : ''}` : 'not written about yet'}</span></div>
+          </a>`; }).join('')}</div></section>`; }).join('')}
+
+    ${!S.people.length ? `<div class="empty rv">No one here yet. Add the handful of people your life actually turns on — then tag them when you write, and the rest of this page fills itself in.</div>` : ''}
+  </div>`;
+  $('#pplNew').onclick = () => openPersonModal();
+  const q2 = $('#pplq'); q2.addEventListener('input', debounce(() => { S._pplq = q2.value; rerender(); const i = $('#pplq'); if(i){ i.focus(); i.setSelectionRange(i.value.length, i.value.length); } }, 300));
+};
+function openPersonModal(existing){
+  const p = existing || newPerson();
+  const m = openModal(`<h2>${existing ? 'Edit person' : 'Someone who matters'}</h2><div class="stack">
+    <div class="field"><label>Name</label><input class="inp serif-lg" id="pName" value="${esc(p.name)}" autofocus></div>
+    <div class="grid c2" style="gap:10px">
+      <div class="field"><label>Who they are to you</label><input class="inp" id="pRel" value="${esc(p.relation)}" placeholder="grandmother · the chef in Lisbon · oldest friend"></div>
+      <div class="field"><label>Ring</label><select class="sel" id="pTier">${Object.entries(PERSON_TIERS).map(([k,t])=>`<option value="${k}" ${p.tier===k?'selected':''}>${t[0]} ${t[1]} — ${t[2]}</option>`).join('')}</select></div>
+    </div>
+    <div class="field"><label>Birthday (optional)</label><input class="inp" type="date" id="pBday" value="${esc(p.birthday)}"></div>
+  </div><div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn primary" id="pSave">${existing ? 'Save' : 'Add'}</button></div>`, 'narrow');
+  m.querySelector('#pSave').onclick = () => {
+    const name = m.querySelector('#pName').value.trim(); if(!name){ toast('A name, at least.'); return; }
+    Object.assign(p, {name, relation:m.querySelector('#pRel').value.trim(), tier:m.querySelector('#pTier').value, birthday:m.querySelector('#pBday').value});
+    if(!existing) S.people.push(p);
+    saveNow(); m.remove(); sound('success');
+    if(currentRoute === 'people') rerender(); else navigate('#/people/' + p.id);
+  };
+}
+function renderPersonPage(root, id){
+  const p = byId(S.people, id); if(!p){ navigate('#/people'); return; }
+  const t = PERSON_TIERS[p.tier]; const es = personEntries(id); const last = personLastSeen(id);
+  const quiet = personGoneQuiet(p); const bk = boardId('person', p.id);
+  const byYear = {}; es.forEach(e => { const y = (e.occurredAt||e.createdAt||'').slice(0,4); (byYear[y] = byYear[y] || []).push(e); });
+  root.innerHTML = `<div class="page narrow" style="--c:${t[4]}">
+    <div class="page-head"><div class="mono">${t[0]} ${esc(t[1].toLowerCase())}${p.relation ? ` · ${esc(p.relation)}` : ''}</div><h1>${ed(`people.#${p.id}.name`)}</h1>
+      <div class="sub">${es.length ? `${es.length} entr${es.length===1?'y':'ies'} mention them${last ? `, most recently ${relDays(daysSince(last))}` : ''}.` : 'Nothing written about them yet.'}</div></div>
+
+    ${quiet ? `<div class="card rv late-card" style="margin-bottom:18px"><b class="serif">It has been ${quiet.days === Infinity ? 'a while' : `${quiet.days} days`}.</b><div class="muted" style="font-size:.88rem;margin-top:4px">You put them in the ${esc(t[1].toLowerCase())} ring, which you set at about every ${quiet.cadence} days. No obligation — just the record noticing.</div></div>` : ''}
+
+    <div class="grid c2 rv" style="align-items:start;margin-bottom:20px">
+      <div class="card"><span class="sc">How we met</span>${ed(`people.#${p.id}.met`, {multi:true, ph:'Where, when, and what the first hour was like.'})}</div>
+      <div class="card"><span class="sc">What they gave me</span>${ed(`people.#${p.id}.gave`, {multi:true, ph:'A habit, a sentence, a door opened. Be specific.'})}</div>
+    </div>
+    <div class="grid c2 rv" style="align-items:start;margin-bottom:20px">
+      <div class="card"><span class="sc">What I owe them</span>${ed(`people.#${p.id}.owe`, {multi:true, ph:'A call, a thank-you, a debt you have not named.'})}</div>
+      <div class="card"><span class="sc">Ring &amp; details</span>
+        <div class="row" style="gap:8px;margin-top:8px;flex-wrap:wrap"><select class="sel" style="width:auto" id="ppTier">${Object.entries(PERSON_TIERS).map(([k,x])=>`<option value="${k}" ${p.tier===k?'selected':''}>${x[0]} ${x[1]}</option>`).join('')}</select>
+          <span class="mono">birthday</span>${ed(`people.#${p.id}.birthday`, {ph:'YYYY-MM-DD', cls:'mono'})}</div>
+        <div class="field" style="margin-top:10px"><label>Also known as</label>${ed(`people.#${p.id}._aka`, {ph:'comma separated', cls:'mono', hook:'paka:'+p.id})}</div>
+        <div class="field" style="margin-top:10px"><label>Relation</label>${ed(`people.#${p.id}.relation`, {ph:'who they are to you'})}</div></div>
+    </div>
+
+    <section class="section rv">${boardHTML(bk, {title:'Their board', hint:'A face, a place, their handwriting.', compact:true})}</section>
+
+    <section class="section rv"><span class="sc">Notes</span><div class="card">${ed(`people.#${p.id}.notes`, {multi:true, mdr:true, cls:'prose', ph:'Anything that does not belong under the headings above.'})}</div></section>
+
+    <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Where they appear</span><button class="btn sm ghost" id="ppWrite">write about them</button></div>
+      ${es.length ? Object.keys(byYear).sort().reverse().map(y => `<div class="year-block"><div class="year-label mono">${esc(y)}</div>${byYear[y].map(e => entryCard(e)).join('')}</div>`).join('')
+        : '<div class="empty">Tag them in an entry — in the entry form, under Connect this entry — and everything you have written about them collects here.</div>'}</section>
+
+    ${moreSection(`<div class="danger-zone"><span>This removes the person and untags them from your entries. What you wrote stays.</span><button class="btn sm ghost danger" id="ppDel">Remove this person</button></div>`)}
+  </div>`;
+  p._aka = (p.aka || []).join(', ');
+  $('#ppTier').onchange = e => { p.tier = e.target.value; saveNow(); rerender(); };
+  $('#ppWrite').onclick = () => openEntryModal({type:'reflection', allowedTypes:['reflection','memory','gratitude','letter'], heading:`About ${p.name}`, links:{people:[p.id]}, openLinks:true});
+  $('#ppDel').onclick = () => requestDelete({label:p.name, remove: () => {
+    const touched = S.entries.filter(e => (e.links?.people||[]).includes(p.id));
+    touched.forEach(e => e.links.people = e.links.people.filter(x => x !== p.id));
+    const back = spliceOut(S.people, x => x.id === p.id);
+    return () => { back(); touched.forEach(e => e.links.people.push(p.id)); };
+  }, after: () => navigate('#/people')});
+  bindBoard(root);
+}
+hooks.paka = (id, oldV, v) => { const p = byId(S.people, id); if(p){ p.aka = v.split(',').map(x=>x.trim()).filter(Boolean); saveNow(); } };
+/* ============================================================
    5. VALUES CONGRUENCE — the compass beneath the floorboards
    ============================================================ */
 routes.values = function(root){
@@ -3387,9 +3780,15 @@ function deltaHTML(cur, prev){ if(prev === undefined || prev === null) return '<
 async function openSnapshotModal(after, existing=null){
   let last = null; try { last = await lastSnapshotFromDB(); } catch(e){ last = latestSnapshot() || null; }   // the last snapshot, read from the database
   const ref = existing || last;
-  const base = {}; S.valueOrder.forEach(id => base[id] = ref ? (ref.ratings[id] ?? 50) : 50);
-  const m = openModal(`<h2>${existing?'Edit snapshot':'Congruence snapshot'}</h2><p class="muted">${existing?`Taken ${fmtDate(existing.date,'med')}. Adjust a value to change it; notes stay editable below.`:`0–100 for each value. Not aspiration — where you actually are, this week.${last?` Sliders start where you left them on ${fmtDate(last.date,'med')}; move one and a note opens beneath it.`:''}`}</p>${existing?`<div class="field" style="margin-bottom:10px"><label>Date</label><input class="inp" type="date" id="snapDate" value="${existing.date}"></div>`:''}
-    <div class="snapshot-form">${S.valueOrder.map(id=>{ const v=byId(S.values,id); return `<div class="sv-block" data-svb="${id}" style="--c:${v.color}"><div class="r"><span class="n" style="color:${v.color}">${esc(v.name)}</span><input type="range" class="slider" min="0" max="100" value="${base[id]}" data-sv="${id}" style="--c:${v.color}"><span class="mono" data-svl="${id}">${base[id]}</span></div>
+  const base = {}, evidence = {};
+  S.valueOrder.forEach(id => {
+    const sug = existing ? null : suggestedCongruence(id);
+    evidence[id] = sug;
+    base[id] = sug ? sug.suggested : (ref ? (ref.ratings[id] ?? 50) : 50);
+  });
+  const anyEvidence = Object.values(evidence).some(Boolean);
+  const m = openModal(`<h2>${existing?'Edit snapshot':'Congruence snapshot'}</h2><p class="muted">${existing?`Taken ${fmtDate(existing.date,'med')}. Adjust a value to change it; notes stay editable below.`:`0–100 for each value. Not aspiration — where you actually are, this week.${last?` Sliders start where you left them on ${fmtDate(last.date,'med')}; move one and a note opens beneath it.`:''}${!existing && anyEvidence ? ' Where a value has weekly practices, the slider starts from what those weeks actually contained.' : ''}`}</p>${existing?`<div class="field" style="margin-bottom:10px"><label>Date</label><input class="inp" type="date" id="snapDate" value="${existing.date}"></div>`:''}
+    <div class="snapshot-form">${S.valueOrder.map(id=>{ const v=byId(S.values,id); return `<div class="sv-block" data-svb="${id}" style="--c:${v.color}"><div class="r"><span class="n" style="color:${v.color}">${esc(v.name)}</span><input type="range" class="slider" min="0" max="100" value="${base[id]}" data-sv="${id}" style="--c:${v.color}"><span class="mono" data-svl="${id}">${base[id]}</span></div>${evidence[id] ? `<div class="sv-evidence mono">practices say ${evidence[id].behavioural} · you last said ${evidence[id].previous} · starting at ${evidence[id].suggested}</div>` : ''}
       <div class="sv-note" data-svn="${id}" style="height:0" aria-hidden="true"><textarea class="ta" rows="2" data-svt="${id}" placeholder="What's driving this score today?" disabled tabindex="-1">${esc(existing?.notes?.[id]||'')}</textarea></div></div>`; }).join('')}</div>
     <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary" id="snapSave">${existing?'Save changes':'Take snapshot'}</button></div>`);
   if(existing) Object.keys(existing.notes||{}).forEach(id => { const note = m.querySelector(`[data-svn="${id}"]`); if(note){ note.classList.add('open'); note.style.height='auto'; note.setAttribute('aria-hidden','false'); const ta = note.querySelector('textarea'); ta.disabled=false; ta.tabIndex=0; } });
@@ -3448,6 +3847,8 @@ routes.value = function(root, params){
   root.innerHTML = `<div class="page narrow">
     <div class="page-head" style="margin-top:20px"><div class="mono">value · ranked #${rank} of ${S.valueOrder.length}</div><h1 style="color:${v.color}">${ed(`values.#${v.id}.name`)}</h1><div class="row" style="margin-top:12px"><div class="bar" style="flex:1;--c:${v.color}"><i style="width:${cur}%"></i></div><span class="num" data-tween="${cur}" data-suffix="%">0</span></div></div>
     <div class="card rv">${sparkline(snaps.map(s=>s.ratings[v.id]??null),{h:60,min:0,max:100,color:v.color,dots:true,labels:snaps.map(s=>`${fmtDate(s.date,'med')}: ${s.ratings[v.id]??'–'}${s.note?' — '+s.note:''}`)})}<div class="row between mono"><span>${snaps[0]?fmtDate(snaps[0].date,'med'):''}</span><span>congruence over a lifetime</span><span>now</span></div></div>
+    <section class="section rv" id="pracBox">${practicesHTML(v)}</section>
+    <section class="section rv">${boardHTML(boardId('value', v.id), {title:'Board', hint:'What this value looks like, before you can argue for it.', compact:true})}</section>
     ${F('embody','How would I know if I embody this value?','Observable, behavioural indicators. Not aspirations — evidence.')}
     ${F('hundred','What takes me to 100%?','What does full congruence actually look like, day to day?')}
     ${F('motivation','How do I increase my positive motivation for this value?','Strategies, reminders, environments, people.')}
@@ -3463,16 +3864,102 @@ routes.value = function(root, params){
   $('#valColor').onchange = e => { v.color = e.target.value; saveNow(); rerender(); };
   root.querySelectorAll('[data-vf]').forEach(b => b.onclick = () => { const k = b.dataset.vf; const latest = (v.fields[k]||[]).slice(-1)[0]; const m = openModal(`<h2>A new version</h2><textarea class="ta" id="vfText" style="min-height:160px">${esc(latest?.text||'')}</textarea><p class="faint" style="font-size:.78rem">The previous version is kept. Growth in self-understanding stays visible.</p><div class="row" style="justify-content:flex-end"><button class="btn primary" id="vfSave">Keep</button></div>`); m.querySelector('#vfSave').onclick = () => { const t = m.querySelector('#vfText').value.trim(); if(!t) return; v.fields[k] = v.fields[k]||[]; v.fields[k].push({date:today(),text:t}); saveNow(); m.remove(); rerender(); sound('save'); }; });
   root.querySelectorAll('[data-pol]').forEach(b => b.onclick = () => openEntryModal({type:'reflection', links:{values:[{id:v.id,pol:b.dataset.pol}]}}));
+  bindPractices(root); bindBoard(root);
 };
+
+/* ============================================================
+   PRACTICES — the small weekly behaviours under each value.
+   A congruence score you invent from memory drifts. These are
+   things you either did or did not do, and they give the score
+   something to stand on: the snapshot arrives pre-filled with
+   what your weeks actually contained, and you adjust from there.
+   ============================================================ */
+function migrateValuePractices(){
+  (S.values||[]).forEach(v => {
+    v.practices = Array.isArray(v.practices) ? v.practices : [];
+    v.practices.forEach(p => { p.log = Array.isArray(p.log) ? p.log : []; p.perWeek = +p.perWeek || 1; });
+  });
+}
+function isoWeek(d = today()){ const x = parseDay(d); const day = (x.getDay()+6)%7; x.setDate(x.getDate()-day+3); const first = new Date(x.getFullYear(),0,4); const n = 1 + Math.round(((x - first)/DAY - 3 + ((first.getDay()+6)%7))/7); return `${x.getFullYear()}-W${pad(n)}`; }
+function practiceDone(p, d = today()){ return (p.log||[]).includes(d); }
+function togglePractice(v, p, d = today()){ const i = (p.log||[]).indexOf(d); if(i >= 0) p.log.splice(i,1); else p.log.push(d); saveNow(); }
+function practiceWeekCount(p, weeksAgo = 0){
+  const start = addDays(weekStart(), -weeksAgo*7), end = addDays(start, 6);
+  return (p.log||[]).filter(d => d >= start && d <= end).length;
+}
+/* what the last four weeks actually contained, 0–100 */
+function behaviouralCongruence(v){
+  const ps = v.practices || []; if(!ps.length) return null;
+  const rates = [];
+  for(let w = 0; w < 4; w++){
+    const wanted = sum(ps.map(p => p.perWeek || 1));
+    const got = sum(ps.map(p => Math.min(practiceWeekCount(p, w), p.perWeek || 1)));
+    if(wanted) rates.push(got / wanted);
+  }
+  return rates.length ? Math.round(avg(rates) * 100) : null;
+}
+/* the number the snapshot starts from: evidence where there is some,
+   the last thing you said where there is not */
+function suggestedCongruence(id){
+  const v = byId(S.values, id); if(!v) return null;
+  const beh = behaviouralCongruence(v);
+  const last = valueCurrent(id);
+  if(beh === null) return null;
+  return {suggested: Math.round(beh * 0.65 + last * 0.35), behavioural: beh, previous: last};
+}
+function practicesHTML(v){
+  const T = today(); const week = lastDays(7).slice().reverse();
+  const beh = behaviouralCongruence(v);
+  return `<div class="row between"><span class="sc" style="margin:0">Weekly practices</span><button class="btn sm ghost" data-pracadd="${v.id}">＋ practice</button></div>
+    <p class="muted" style="font-size:.85rem">One to three small things that would make this value true in an ordinary week. Tick them as you go; the congruence score starts from what you actually did rather than from memory.</p>
+    ${beh !== null ? `<div class="row between prac-summary"><span>Your last four weeks say <b style="color:${v.color}">${beh}</b> out of 100.</span><span class="mono">you last said ${valueCurrent(v.id)}</span></div>` : ''}
+    ${(v.practices||[]).length ? `<div class="prac-list">${v.practices.map((p,i)=>`<div class="prac" data-prac="${p.id}">
+        <div class="prac-head"><span class="prac-text">${ed(`values.#${v.id}.practices.${i}.text`, {ph:'make something small'})}</span>
+          <span class="row" style="gap:6px"><span class="mono">${practiceWeekCount(p)}/${p.perWeek} this week</span>
+          <select class="sel prac-freq" data-pracfreq="${v.id}:${p.id}">${[1,2,3,4,5,6,7].map(n=>`<option value="${n}" ${p.perWeek===n?'selected':''}>${n}× / week</option>`).join('')}</select>
+          <button class="del-x inline" data-pracdel="${v.id}:${p.id}" title="remove practice">×</button></span></div>
+        <div class="prac-week">${week.map(d=>`<button class="pw ${practiceDone(p,d)?'on':''} ${d===T?'today':''}" data-practick="${v.id}:${p.id}:${d}" title="${fmtDate(d,'med')}"><span>${DOW[parseDay(d).getDay()][0]}</span></button>`).join('')}</div>
+      </div>`).join('')}</div>`
+      : `<div class="empty">No practices yet. “Make something small”, “call one person”, “walk without the phone” — the plainer the better.</div>`}`;
+}
+function bindPractices(root, after){
+  const redraw = after || rerender;
+  $$('[data-pracadd]', root).forEach(b => b.onclick = () => {
+    const v = byId(S.values, b.dataset.pracadd); if((v.practices||[]).length >= 3){ toast('Three is the ceiling on purpose. Replace one instead.'); return; }
+    v.practices.push({id:uid(), text:'', perWeek:1, log:[]}); saveNow(); redraw();
+    setTimeout(()=>{ const n = document.querySelectorAll('.prac-text .ed'); n.length && beginEdit(n[n.length-1]); }, 60);
+  });
+  $$('[data-practick]', root).forEach(b => b.onclick = () => {
+    const [vid, pid, d] = b.dataset.practick.split(':'); const v = byId(S.values, vid); const p = byId(v.practices, pid);
+    togglePractice(v, p, d); sound(practiceDone(p,d) ? 'success' : 'click'); redraw();
+  });
+  $$('[data-pracfreq]', root).forEach(sel => sel.onchange = () => { const [vid,pid] = sel.dataset.pracfreq.split(':'); byId(byId(S.values,vid).practices, pid).perWeek = +sel.value; saveNow(); redraw(); });
+  $$('[data-pracdel]', root).forEach(b => b.onclick = () => { const [vid,pid] = b.dataset.pracdel.split(':'); const v = byId(S.values, vid); const p = byId(v.practices, pid);
+    requestDelete({label:p.text || 'this practice', node:b.closest('.prac'), remove:()=>spliceOut(v.practices, x=>x.id===pid), after:redraw}); });
+}
+/* today's practices across every value, for the Today page */
+function practicesDueToday(){
+  const T = today(); const out = [];
+  (S.values||[]).forEach(v => (v.practices||[]).forEach(p => {
+    if(!p.text) return;
+    const doneThisWeek = practiceWeekCount(p);
+    if(doneThisWeek >= (p.perWeek||1) && !practiceDone(p,T)) return;   // already satisfied this week
+    out.push({v, p, done: practiceDone(p,T), doneThisWeek});
+  }));
+  return out;
+}
 /* ============================================================
    6. COMMONPLACE BOOK — journals
    ============================================================ */
 routes.journals = function(root, params){
   const type = params[0] || S._journal || 'reflection'; S._journal = type;
   const j = S.journals.find(x=>x.type===type) || S.journals[0];
-  if(type === 'quote') registerPageEntry({pageName:'Journals', addLabel:'New quote or saved link', defaultEntryType:'quote', prefilledFields:{journalType:'quote'}, options:[{label:'New quote', run:()=>EntryActions.libraryQuote()}]});
+  if(type === 'letter') registerPageEntry({pageName:'Journals', addLabel:'Seal a letter', defaultEntryType:'letter', prefilledFields:{}, options:[{icon:'✉', label:'Seal a letter', desc:'To be opened on a date you choose.', run:()=>openLetterModal()}]});
+  else if(type === 'decision') registerPageEntry({pageName:'Journals', addLabel:'Log a decision', defaultEntryType:'decision', prefilledFields:{}, options:[{icon:'⚖', label:'Log a decision', desc:'Your reasoning now, so you can grade it later.', run:()=>openDecisionModal()}]});
+  else if(type === 'quote') registerPageEntry({pageName:'Journals', addLabel:'New quote or saved link', defaultEntryType:'quote', prefilledFields:{journalType:'quote'}, options:[{label:'New quote', run:()=>EntryActions.libraryQuote()}]});
   else registerPageEntry({pageName:'Journals', addLabel:`New ${typeName(type).toLowerCase()}`, defaultEntryType:type, prefilledFields:{journalType:type}, options:[{label:'New entry', run:(pre)=>openEntryModal({type:pre.journalType, allowedTypes:[pre.journalType], heading:`New ${typeName(pre.journalType).toLowerCase()}`})}]});
   const all = sortEntries(S.entries.filter(e=>e.type===type));
+  const special = type === 'letter' ? 'letters' : type === 'decision' ? 'decisions' : null;
   const q = (S._jq||'').toLowerCase(); const from = S._jfrom||'', to = S._jto||''; const tag = S._jtag||'';
   const filtered = all.filter(e => (!q || (e.title+' '+e.body).toLowerCase().includes(q)) && (!from || (e.occurredAt||'') >= from) && (!to || (e.occurredAt||'').slice(0,10) <= to) && (!tag || JSON.stringify(e.links).includes(tag)));
   const otd = onThisDay().filter(e=>e.type===type);
@@ -3487,10 +3974,14 @@ routes.journals = function(root, params){
         ${type==='question'?'<p class="quote">Questions you are living with. They don\'t get archived; they sit open until an answer accumulates.</p>':''}
         ${type==='synchronicity'?'<p class="quote">Entries flagged “revisit later” resurface in the Today page prompts. Synchronicities often only make sense in retrospect.</p>':''}
         ${type==='manifestation'?'<p class="quote">Ask → It Is Given → Allow. When an intention arrives, offer it to the Vision Tree as fruit.</p>':''}
-        <div id="jList">${filtered.map(e=>entryCard(e)+(type==='manifestation'&&e.extra?.status==='arrived'&&e.links.visions.length?`<div class="row" style="margin:-8px 0 12px"><button class="btn sm ghost" data-fruit="${e.id}">offer as fruit to ${esc(byId(S.visions,e.links.visions[0])?.name||'its vision')} →</button></div>`:'')).join('')||'<div class="empty">Nothing here matches. Loosen the filters, or write something.</div>'}</div>
+        <div id="jSpecial">${special === 'letters' ? sealedLettersHTML() : special === 'decisions' ? decisionListHTML() : ''}</div>
+        <div id="jList">${special ? '' : filtered.map(e=>entryCard(e)+(type==='manifestation'&&e.extra?.status==='arrived'&&e.links.visions.length?`<div class="row" style="margin:-8px 0 12px"><button class="btn sm ghost" data-fruit="${e.id}">offer as fruit to ${esc(byId(S.visions,e.links.visions[0])?.name||'its vision')} →</button></div>`:'')).join('')||'<div class="empty">Nothing here matches. Loosen the filters, or write something.</div>'}</div>
       </div>
     </div></div>`;
   const refilter = debounce(()=>{ S._jq = $('#jq').value; S._jfrom = $('#jfrom').value; S._jto = $('#jto').value; S._jtag = $('#jtag').value; rerender(); $('#jq')?.focus(); }, 300);
+
+  if(special === 'letters') bindSealedLetters(root);
+  if(special === 'decisions') bindDecisionList(root);
   $('#jq').oninput = refilter; $('#jfrom').onchange = refilter; $('#jto').onchange = refilter; $('#jtag').onchange = refilter;
   $('#jRandom').onclick = () => { if(!all.length) return; const e = all[Math.floor(Math.random()*all.length)]; openPanel(`<div class="mono">a random ${esc(typeName(type).toLowerCase())}</div>${entryCard(e,{clamp:false})}`); $$('#panel .rv').forEach(n=>n.classList.add('in')); };
   $('#jManage').onclick = () => manageJournalsModal();
@@ -3516,10 +4007,202 @@ function deleteJournalType(t){
 }
 
 function manageJournalsModal(){
-  const m = openModal(`<h2>Journals</h2><p class="muted">Rename a journal by clicking its name. Reorder with the arrows.</p><div class="stack" style="gap:6px">${S.journals.map((j,i)=>`<div class="row between" style="padding:8px 0;border-top:1px dashed var(--line)"><span class="row"><span class="mono">${typeIcon(j.type)}</span><b class="serif" style="font-size:1.05rem">${ed(`journals.${i}.name`,{ph:'journal name'})}</b><span class="mono">${S.entries.filter(e=>e.type===j.type).length}</span></span><span class="row" style="gap:2px"><button class="tbtn" data-jup="${i}">↑</button><button class="tbtn" data-jdown="${i}">↓</button><button class="tbtn" data-jdel="${j.type}" style="color:var(--faint)">delete…</button></span></div>`).join('')}</div>`,'narrow');
+  const m = openModal(`<h2>Journals</h2><p class="muted">Rename a journal by clicking its name. Reorder with the arrows.</p><div class="stack" style="gap:6px">${S.journals.map((j,i)=>`<div class="row between" style="padding:8px 0;border-top:1px dashed var(--line)"><span class="row"><span class="mono">${typeIcon(j.type)}</span><b class="serif" style="font-size:1.05rem">${ed(`journals.${i}.name`,{ph:'journal name'})}</b><span class="mono">${S.entries.filter(e=>e.type===j.type).length}</span></span><span class="row" style="gap:2px"><button class="tbtn" data-jup="${i}">↑</button><button class="tbtn" data-jdown="${i}">↓</button><button class="tbtn" data-jdel="${j.type}" style="color:var(--faint)">delete…</button></span></div>`).join('')}}</div>`,'narrow');
   m.querySelectorAll('[data-jup]').forEach(b => b.onclick = () => { const i=+b.dataset.jup; if(i>0){ [S.journals[i-1],S.journals[i]]=[S.journals[i],S.journals[i-1]]; saveNow(); m.remove(); rerender(); manageJournalsModal(); } });
   m.querySelectorAll('[data-jdown]').forEach(b => b.onclick = () => { const i=+b.dataset.jdown; if(i<S.journals.length-1){ [S.journals[i+1],S.journals[i]]=[S.journals[i],S.journals[i+1]]; saveNow(); m.remove(); rerender(); manageJournalsModal(); } });
   m.querySelectorAll('[data-jdel]').forEach(b => b.onclick = () => { m.remove(); deleteJournalType(b.dataset.jdel); });
+}
+/* ============================================================
+   SEALED LETTERS, DECISIONS, AND THE YEARS BEHIND TODAY
+   Three small systems that all turn on the same idea: the person
+   who wrote something is not the person who reads it back.
+   ============================================================ */
+
+/* ---------- 1. letters to a future self ---------- */
+function letterIsSealed(e){ const u = e.extra?.sealedUntil; return !!u && u > today(); }
+function sealedLetters(){ return S.entries.filter(e => e.type === 'letter' && e.extra?.sealedUntil).sort((a,b) => (a.extra.sealedUntil||'').localeCompare(b.extra.sealedUntil||'')); }
+function lettersOpeningNow(){ return S.entries.filter(e => e.type === 'letter' && e.extra?.sealedUntil && e.extra.sealedUntil <= today() && !e.extra.openedAt); }
+function openSealedLetter(id){
+  const e = byId(S.entries, id); if(!e) return;
+  if(letterIsSealed(e)){ toast(`Sealed until ${fmtDate(e.extra.sealedUntil,'med')}. That was the point.`); return; }
+  if(!e.extra.openedAt){ e.extra.openedAt = today(); saveNow(); }
+  const wroteAgo = daysBetween((e.createdAt||'').slice(0,10), today());
+  openPanel(`<div class="mono">a letter you sealed${wroteAgo ? ` ${relDays(wroteAgo)}` : ''}</div>
+    <h2>${esc(e.title || 'To myself')}</h2>
+    <div class="mono" style="margin:6px 0 18px">written ${fmtDate((e.createdAt||'').slice(0,10),'med')} · opened ${fmtDate(e.extra.openedAt,'med')}</div>
+    <div class="letter-open prose serif-lg">${md(e.body)}</div>
+    ${tagChips(e)}
+    <div class="vp-sec"><span class="sc">Reading it now</span><div class="faint" style="font-size:.8rem;margin-bottom:6px">What did the person who wrote this get right, and what did they not know yet?</div>${ed(`entries.#${e.id}.extra.reply`, {multi:true, mdr:true, cls:'prose', ph:'Answer them.'})}</div>
+    <div class="row" style="margin-top:18px"><button class="btn sm ghost" id="lWriteBack">Seal a new one</button></div>`, 'letter-panel');
+  const b = document.querySelector('#lWriteBack'); if(b) b.onclick = () => openLetterModal();
+  sound('open');
+}
+function openLetterModal(){
+  const opts = [[90,'in three months'],[180,'in six months'],[365,'in a year'],[730,'in two years'],[1825,'in five years']];
+  const m = openModal(`<h2>A letter to your future self</h2>
+    <p class="muted" style="font-size:.88rem">It will be sealed until the date you choose — hidden from this page, from search, and from every list. When the day comes it surfaces on Today.</p>
+    <div class="stack">
+      <input class="inp serif-lg" id="lTitle" placeholder="Title (optional)">
+      <textarea class="ta" id="lBody" placeholder="Write to whoever you will be. Tell them what today feels like, what you are afraid of, and what you hope they have stopped worrying about." style="min-height:200px"></textarea>
+      <div class="field"><label>Open it</label><div class="row" style="gap:6px;flex-wrap:wrap">${opts.map(([d,l])=>`<button type="button" class="btn sm ghost" data-lwhen="${d}">${l}</button>`).join('')}</div>
+        <input class="inp" type="date" id="lDate" value="${addDays(today(),365)}" style="margin-top:8px;max-width:14em"></div>
+      <div class="row between"><span class="faint" style="font-size:.78rem" id="lHint">Opens ${fmtDate(addDays(today(),365),'med')}.</span><button class="btn primary" id="lSave">Seal it</button></div>
+    </div>`, 'wide');
+  const dateI = m.querySelector('#lDate'), hint = m.querySelector('#lHint');
+  const setHint = () => { const d = dateI.value; hint.textContent = d > today() ? `Opens ${fmtDate(d,'med')} — ${daysBetween(today(), d)} days from now.` : 'That date is not in the future; it will open immediately.'; };
+  m.querySelectorAll('[data-lwhen]').forEach(b => b.onclick = () => { dateI.value = addDays(today(), +b.dataset.lwhen); setHint(); });
+  dateI.onchange = setHint;
+  attachDictationIn(m);
+  m.querySelector('#lSave').onclick = () => {
+    const body = m.querySelector('#lBody').value.trim(); if(!body){ toast('Write something to them first.'); return; }
+    const e = {id:uid(), type:'letter', title:m.querySelector('#lTitle').value.trim(), body, occurredAt:today(), createdAt:new Date().toISOString(),
+      media:[], links:{stages:[],substages:[],threads:[],values:[],visions:[],skills:[],projects:[],people:[]}, people:[], places:[], emotions:[], tags:[], confidence:'',
+      extra:{sealedUntil:dateI.value || addDays(today(),365), openedAt:'', reply:''}};
+    S.entries.push(e); saveNow(); m.remove(); sound('success');
+    toast(`Sealed until ${fmtDate(e.extra.sealedUntil,'med')}. You will not see it again until then.`);
+    rerender();
+  };
+  setTimeout(()=>m.querySelector('#lBody').focus(), 60);
+}
+function sealedLettersHTML(){
+  const sealed = sealedLetters().filter(letterIsSealed);
+  const ready = lettersOpeningNow();
+  const opened = S.entries.filter(e => e.type === 'letter' && e.extra?.openedAt).sort((a,b)=>(b.extra.openedAt||'').localeCompare(a.extra.openedAt||''));
+  return `<div class="row between"><span class="sc" style="margin:0">Letters to yourself</span><button class="btn sm primary" id="newLetter">＋ Seal a letter</button></div>
+    <p class="muted" style="font-size:.85rem">A sealed letter is hidden everywhere until its date. Your past self gets to speak once, without being edited by hindsight.</p>
+    ${ready.length ? `<div class="card ready-letter" style="margin-top:12px">${ready.map(e=>`<div class="row between"><span><b class="serif">${esc(e.title||'A letter from you')}</b><div class="mono">sealed ${fmtDate((e.createdAt||'').slice(0,10),'med')} · ready since ${fmtDate(e.extra.sealedUntil,'med')}</div></span><button class="btn sm primary" data-lopen="${e.id}">Open it</button></div>`).join('')}</div>` : ''}
+    ${sealed.length ? `<div class="stack" style="gap:6px;margin-top:12px">${sealed.map(e=>`<div class="sealed-row"><span class="wax">✉</span><span style="flex:1"><b>${esc(e.title||'Sealed letter')}</b><div class="mono">written ${fmtDate((e.createdAt||'').slice(0,10),'med')}</div></span><span class="mono">opens ${fmtDate(e.extra.sealedUntil,'med')} · ${daysBetween(today(), e.extra.sealedUntil)}d</span></div>`).join('')}</div>` : ''}
+    ${opened.length ? `<details style="margin-top:12px"><summary><span class="mono">${opened.length} already opened</span></summary><div class="body stack" style="gap:6px">${opened.map(e=>`<div class="row between"><button class="linkish" data-lopen="${e.id}">${esc(e.title||'A letter')}</button><span class="mono">opened ${fmtDate(e.extra.openedAt,'med')}</span></div>`).join('')}</div></details>` : ''}
+    ${!sealed.length && !ready.length && !opened.length ? '<div class="empty">Nothing sealed yet.</div>' : ''}`;
+}
+function bindSealedLetters(root){
+  const b = root.querySelector('#newLetter'); if(b) b.onclick = () => openLetterModal();
+  root.querySelectorAll('[data-lopen]').forEach(x => x.onclick = () => openSealedLetter(x.dataset.lopen));
+}
+
+/* ---------- 2. the decision journal ---------- */
+const DECISION_FIELDS = [
+  ['situation','The situation','What was actually in front of you, in plain terms.'],
+  ['options','Options I considered','List them, including the one you rejected fastest.'],
+  ['chosen','What I chose',''],
+  ['reasoning','Why — my reasoning at the time','The real reasons, not the presentable ones. This is the whole point.'],
+  ['expected','What I expect to happen','Be specific enough to be wrong.'],
+  ['worry','What would make this a mistake','The signal you would need to see to change your mind.'],
+];
+const DECISION_OUTCOME = [
+  ['outcome','What actually happened',''],
+  ['right','What I got right',''],
+  ['wrong','What I did not see',''],
+  ['lesson','What I would tell myself','One sentence you would carry into the next decision.'],
+];
+function decisions(){ return S.entries.filter(e => e.type === 'decision'); }
+function decisionsDue(){ const T = today(); return decisions().filter(e => !e.extra?.reviewedAt && e.extra?.reviewOn && e.extra.reviewOn <= T); }
+function openDecisionModal(){
+  const m = openModal(`<h2>A decision worth remembering</h2>
+    <p class="muted" style="font-size:.88rem">Written now, read later. The gap between why you thought something and what actually happened is where self-knowledge lives — but only if you write the reasoning down before you know the answer.</p>
+    <div class="stack">
+      <input class="inp serif-lg" id="dTitle" placeholder="The decision, in a few words" autofocus>
+      ${DECISION_FIELDS.map(([k,l,h])=>`<div class="field"><label>${l}</label>${h?`<div class="faint" style="font-size:.78rem;margin-bottom:4px">${h}</div>`:''}<textarea class="ta" data-df="${k}" style="min-height:${k==='chosen'?60:84}px"></textarea></div>`).join('')}
+      <div class="grid c2" style="gap:10px">
+        <div class="field"><label>How sure am I?</label><select class="sel" id="dConf">${['a coin flip','leaning','fairly sure','confident','certain'].map(c=>`<option ${c==='leaning'?'selected':''}>${c}</option>`).join('')}</select></div>
+        <div class="field"><label>Come back to it on</label><input class="inp" type="date" id="dReview" value="${addDays(today(),180)}"></div>
+      </div>
+      <div class="row" style="justify-content:flex-end"><button class="btn primary" id="dSave">Log the decision</button></div>
+    </div>`, 'wide');
+  attachDictationIn(m);
+  m.querySelector('#dSave').onclick = () => {
+    const title = m.querySelector('#dTitle').value.trim(); if(!title){ toast('Name the decision first.'); return; }
+    const extra = {reviewOn:m.querySelector('#dReview').value, reviewedAt:'', confidence:m.querySelector('#dConf').value};
+    m.querySelectorAll('[data-df]').forEach(t => extra[t.dataset.df] = t.value.trim());
+    const e = {id:uid(), type:'decision', title, body:extra.reasoning || '', occurredAt:today(), createdAt:new Date().toISOString(), media:[],
+      links:{stages:[],substages:[],threads:[],values:[],visions:[],skills:[],projects:[],people:[]}, people:[], places:[], emotions:[], tags:[], confidence:'', extra};
+    S.entries.push(e); saveNow(); m.remove(); sound('success'); toast(`Logged. It comes back to you on ${fmtDate(extra.reviewOn,'med')}.`); rerender();
+  };
+}
+function openDecisionPanel(id){
+  const e = byId(S.entries, id); if(!e) return; const x = e.extra || {};
+  const age = daysBetween((e.createdAt||'').slice(0,10), today());
+  const settled = !!x.reviewedAt;
+  const p = openPanel(`<div class="mono">decision · ${age ? `${age} days ago` : 'today'}${x.confidence ? ` · you were ${esc(x.confidence)}` : ''}</div>
+    <h2>${ed(`entries.#${e.id}.title`)}</h2>
+    <div class="dec-then"><div class="sc">What you thought at the time</div>
+      ${DECISION_FIELDS.map(([k,l]) => x[k] ? `<div class="dec-field"><div class="k">${l}</div><div class="prose">${md(x[k])}</div></div>` : '').join('') || '<div class="empty">Nothing was written down.</div>'}</div>
+    <div class="vp-sec"><div class="row between"><span class="sc">Looking back</span><span class="mono">${settled ? `reviewed ${fmtDate(x.reviewedAt,'med')}` : x.reviewOn ? `due ${fmtDate(x.reviewOn,'med')}` : ''}</span></div>
+      <p class="faint" style="font-size:.8rem">Do not reread the reasoning above and then write what you wish you had thought. Answer honestly; the value is in the gap.</p>
+      ${DECISION_OUTCOME.map(([k,l,h]) => `<div class="field" style="margin-top:10px"><label>${l}</label>${h?`<div class="faint" style="font-size:.76rem;margin-bottom:4px">${h}</div>`:''}${ed(`entries.#${e.id}.extra.${k}`, {multi:true, mdr:true, cls:'prose', ph:'…'})}</div>`).join('')}
+      <div class="row" style="margin-top:14px;gap:8px"><span class="mono">verdict</span><select class="sel" style="width:auto" id="dVerdict">${['','right for the reasons I thought','right for other reasons','wrong, and I can see why','wrong, and I still would have chosen it','too early to say'].map(v=>`<option ${x.verdict===v?'selected':''}>${v||'—'}</option>`).join('')}</select>
+        <button class="btn sm ${settled?'ghost':'primary'}" id="dDone">${settled ? 'reviewed' : 'mark reviewed'}</button></div></div>
+    <div class="vp-sec"><span class="sc">Come back again on</span><div class="row">${ed(`entries.#${e.id}.extra.reviewOn`, {ph:'YYYY-MM-DD', cls:'mono'})}</div></div>
+    ${moreSection(`<div class="danger-zone"><span>This deletes the decision and everything written about it.</span><button class="btn sm ghost danger" id="dDel">Delete this decision</button></div>`)}`, 'decision-panel');
+  p.querySelector('#dVerdict').onchange = ev => { x.verdict = ev.target.value; saveNow(); };
+  p.querySelector('#dDone').onclick = () => { x.reviewedAt = x.reviewedAt ? '' : today(); saveNow(); sound(x.reviewedAt ? 'success' : 'click'); rerender(); openDecisionPanel(id); };
+  p.querySelector('#dDel').onclick = () => requestDelete({label:e.title||'this decision', remove:()=>spliceOut(S.entries, y=>y.id===e.id), after:()=>{ closePanel(); rerender(); }});
+}
+
+/* ---------- 3. this day, in the years behind it ---------- */
+/* the old version looked at one calendar day; this one widens the window
+   when the day itself is empty, and says how long ago each thing was. */
+function onThisDayRich({window: w = 3} = {}){
+  const T = today(); const d = parseDay(T); const md_ = x => { const dd = parseDay(x); return {m:dd.getMonth(), day:dd.getDate(), y:dd.getFullYear()}; };
+  const dated = S.entries.filter(e => /^\d{4}-\d{2}-\d{2}/.test(e.occurredAt||'') && !letterIsSealed(e));
+  const withDist = dated.map(e => {
+    const o = md_(e.occurredAt.slice(0,10)); if(o.y >= d.getFullYear()) return null;
+    const anniv = new Date(d.getFullYear(), o.m, o.day);
+    const off = Math.round((anniv - d) / DAY);
+    return Math.abs(off) <= w ? {e, off, yearsAgo: d.getFullYear() - o.y} : null;
+  }).filter(Boolean);
+  const exact = withDist.filter(x => x.off === 0);
+  const near = withDist.filter(x => x.off !== 0).sort((a,b) => Math.abs(a.off) - Math.abs(b.off));
+  const items = (exact.length ? exact : near).sort((a,b) => a.yearsAgo - b.yearsAgo);
+  const years = [...new Set(withDist.map(x => x.yearsAgo))].sort((a,b)=>a-b);
+  return {items, exact: exact.length, near: near.length, years};
+}
+function onThisDayHTML(){
+  const r = onThisDayRich(); const T = today();
+  const stage = S.stages.find(s => (s.years||'').match(/(\d{4})/) && !s.notyet);
+  if(!r.items.length) return `<div class="empty">Nothing from this day in earlier years — yet. Everything you write today becomes someone's anniversary.</div>`;
+  return `<div class="otd-rich">
+    ${r.items.slice(0,4).map(({e, off, yearsAgo}) => `<article class="otd-card" data-otd="${e.id}">
+      <div class="otd-years"><b>${yearsAgo}</b><span>${yearsAgo === 1 ? 'year' : 'years'} ago</span></div>
+      <div class="otd-body">
+        <div class="mono">${typeIcon(e.type)} ${esc(fmtDate(e.occurredAt,'med'))}${off ? ` · ${Math.abs(off)}d ${off < 0 ? 'earlier' : 'later'} in the year` : ''}</div>
+        ${e.title ? `<div class="otd-title">${esc(e.title)}</div>` : ''}
+        <div class="otd-text">${esc((e.body||'').slice(0,240))}${(e.body||'').length > 240 ? '…' : ''}</div>
+        ${entryTags(e).length ? tagChips(e) : ''}
+      </div></article>`).join('')}
+    ${r.items.length > 4 ? `<button class="btn sm ghost" id="otdMore">${r.items.length - 4} more from around this day</button>` : ''}
+  </div>`;
+}
+function bindOnThisDay(root){
+  root.querySelectorAll('[data-otd]').forEach(c => c.onclick = () => openEntryModal({entryId: c.dataset.otd}));
+  const more = root.querySelector('#otdMore');
+  if(more) more.onclick = () => {
+    const r = onThisDayRich({window: 7});
+    const m = openModal(`<h2>Around this day</h2><p class="muted" style="font-size:.86rem">Everything within a week of today's date, in earlier years.</p><div class="stack" style="gap:0;max-height:60vh;overflow:auto">${r.items.map(({e,yearsAgo}) => `<div class="otd-list-row"><span class="mono">${yearsAgo}y</span>${entryCard(e, {tools:false})}</div>`).join('')}</div>`, 'wide');
+    m.querySelectorAll('.entry').forEach(x => x.style.cursor = 'default');
+  };
+}
+
+/* the decisions pane inside Journals */
+function decisionListHTML(){
+  const all = decisions().sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||''));
+  const due = decisionsDue(); const open_ = all.filter(e => !e.extra?.reviewedAt && !due.includes(e)); const done = all.filter(e => e.extra?.reviewedAt);
+  const row = (e, tag) => { const x = e.extra||{}; const age = daysBetween((e.createdAt||'').slice(0,10), today());
+    return `<button class="dec-row" data-dopen="${e.id}">
+      <span class="dec-when mono">${age === 0 ? 'today' : `${age}d ago`}</span>
+      <span class="dec-name"><b>${esc(e.title)}</b>${x.chosen?`<span class="dec-chose">chose: ${esc(x.chosen.slice(0,90))}</span>`:''}</span>
+      <span class="mono dec-conf">${esc(x.confidence||'')}</span>
+      <span class="mono dec-tag">${tag}</span></button>`; };
+  return `<div class="row between"><span class="sc" style="margin:0">Decision journal</span><button class="btn sm primary" id="newDecision">＋ Log a decision</button></div>
+    <p class="muted" style="font-size:.85rem">Write the reasoning while you still do not know the answer. Months later, grade it. The distance between the two is the only reliable way to learn how you think.</p>
+    ${due.length ? `<div class="card ready-letter" style="margin-top:12px"><div class="sc">Ready to look back at</div><div class="stack" style="gap:2px;margin-top:8px">${due.map(e=>row(e,'review due')).join('')}</div></div>` : ''}
+    ${open_.length ? `<div class="stack" style="gap:2px;margin-top:12px">${open_.map(e=>row(e, e.extra?.reviewOn ? `back on ${fmtDate(e.extra.reviewOn,'short')}` : 'open')).join('')}</div>` : ''}
+    ${done.length ? `<details style="margin-top:12px"><summary><span class="mono">${done.length} reviewed</span></summary><div class="body stack" style="gap:2px">${done.map(e=>row(e, esc(e.extra.verdict || 'reviewed'))).join('')}</div></details>` : ''}
+    ${!all.length ? '<div class="empty">No decisions logged. The next real one — a job, a move, a person — is worth four minutes now.</div>' : ''}`;
+}
+function bindDecisionList(root){
+  const b = root.querySelector('#newDecision'); if(b) b.onclick = () => openDecisionModal();
+  root.querySelectorAll('[data-dopen]').forEach(x => x.onclick = () => openDecisionPanel(x.dataset.dopen));
 }
 /* ============================================================
    7. SKILL TREE — the architecture of becoming
@@ -3868,6 +4551,7 @@ function openSkillPanel(id){
     <div class="archetype">${arche}</div>
     ${levelTrackHTML(s)}
     ${milestoneTimelineHTML(s)}
+    ${boardStrip(boardId('skill', s.id), 'Board')}
     <div class="vp-sec"><span class="sc">Prerequisites</span><div class="deps">${S.skills.filter(x=>x.id!==s.id).map(x=>`<span class="chip click ${s.prereqs.includes(x.id)?'on':''}" style="--c:${catColor(x.cat)}" data-pre="${x.id}">${esc(x.name)}</span>`).join('')}</div></div>
     <div class="vp-sec"><span class="sc">Cross-mappings</span>
       <div class="k mono" style="margin:6px 0 4px">load-bearing for visions — what do I need to become to live that life?</div><div class="deps">${visions.map(v=>`<span class="chip on click" style="--c:var(--sage)" data-go="#/vision/${v.id}">🌿 ${esc(v.name)}</span>`).join('')||'<span class="faint">no vision depends on this yet</span>'}</div>
@@ -3877,6 +4561,7 @@ function openSkillPanel(id){
     ${moreSection(`<div class="danger-zone"><span>Skills accrue slowly. Consider marking it planned or lowering the level before deleting.</span><button class="btn sm ghost danger" id="skDel">Delete this skill</button></div>`)}`);
   $$('#panel .rv').forEach(n=>n.classList.add('in'));
   p.querySelector('#skCatSel').onchange = e => { s.cat = e.target.value; saveNow(); rerender(); openSkillPanel(id); };
+  bindBoardStrip(p, () => s.name);
   p.querySelector('#skHzSel').onchange = e => { s.horizon = e.target.value; s.planned = s.horizon === 'someday'; if(!s.planned && s.currentLevel===0) s.currentLevel = 1; saveNow(); rerender(); openSkillPanel(id); };
   p.querySelector('#skPrioSel').onchange = e => { s.priority = e.target.value; saveNow(); rerender(); openSkillPanel(id); };
   bindLevelTrack(p, s);
@@ -4053,6 +4738,7 @@ function openProjectPanel(id){
     <div class="vp-sec"><div class="row between"><span class="sc">Activity, twelve weeks</span><button class="btn sm primary" id="pNod">+ nod</button></div>${nodHeat(p)}</div>
     <div class="vp-sec"><span class="sc">Income stream</span><div class="spec-grid"><div><div class="k">revenue model</div>${ed(`projects.#${p.id}.income.model`,{ph:'freelance / product / subscriptions / patronage'})}</div><div><div class="k">current monthly (¥)</div>${ed(`projects.#${p.id}.income.current`,{ph:'0',cls:'mono',hook:'pnum:'+p.id})}</div><div><div class="k">target monthly (¥)</div>${ed(`projects.#${p.id}.income.target`,{ph:'0',cls:'mono',hook:'pnum:'+p.id})}</div></div>
       <div class="row between" style="margin-top:10px"><span class="k mono">milestones</span><button class="btn sm ghost" id="pMile">+ milestone</button></div>${(p.income.milestones||[]).map((m,i)=>`<div class="evidence-item"><span class="mono">${ed(`projects.#${p.id}.income.milestones.${i}.date`,{ph:'date',cls:'mono'})}</span><span style="flex:1">${ed(`projects.#${p.id}.income.milestones.${i}.text`,{ph:'first user, first dollar, first referral…'})}</span><button class="tbtn" data-mdel="${i}">×</button></div>`).join('')||'<div class="empty">Small wins, recorded. None yet.</div>'}</div>
+    ${boardStrip(boardId('project', p.id), 'Board')}
     <div class="vp-sec"><span class="sc">Cross-pollination</span><div class="stack" style="gap:6px;font-size:.88rem">
       <div>draws on threads: ${threads.map(t=>`<span class="chip on" style="--c:${t.color}">${esc(t.name)}</span>`).join(' ')||'<span class="faint">—</span>'}</div>
       <div>exercises skills: ${skills.map(s=>`<span class="chip on click" style="--c:var(--ment)" data-go="#/skills/${s.id}">${esc(s.name)}</span>`).join(' ')||'<span class="faint">—</span>'}</div>
@@ -4079,6 +4765,7 @@ function openProjectPanel(id){
   pn.querySelector('#resAdd').onclick = () => { p.resources.push({title:'', url:'', type:'link'}); saveNow(); reopen(); setTimeout(()=>{ const last = $$('#panel .res-row').slice(-1)[0]; const e = last?.querySelector('.ed'); if(e){ last.querySelector('.res-edit').style.display='flex'; beginEdit(e); } },60); };
   pn.querySelectorAll('[data-prestype]').forEach(sel => sel.onchange = () => { p.resources[+sel.dataset.prestype].type = sel.value; saveNow(); reopen(); });
   pn.querySelectorAll('[data-presdel]').forEach(b => b.onclick = () => { const rs = p.resources[+b.dataset.presdel]; requestDelete({label:rs.title||'Resource', remove:()=>spliceOut(p.resources, x=>x===rs), after:reopen}); });
+  bindBoardStrip(pn, () => p.name);
   pn.querySelector('#pNod').onclick = () => openNodModal(p.id, ()=>{ rerender(); openProjectPanel(id); });
   pn.querySelector('#pMile').onclick = () => { p.income.milestones.push({date:today(),text:''}); saveNow(); openProjectPanel(id); };
   pn.querySelectorAll('[data-mdel]').forEach(b => b.onclick = () => { const ms = p.income.milestones[+b.dataset.mdel]; requestDelete({label: ms.text || 'Milestone', node: b.closest('.evidence-item'), remove: () => spliceOut(p.income.milestones, x => x === ms), after: () => openProjectPanel(id)}); });
@@ -5054,6 +5741,8 @@ const NAV_ICONS = {
   plan:     '<svg viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="14" rx="2.5"/><path d="M3.5 10h17M8.5 3.5v4M15.5 3.5v4"/><path d="M7.5 13.5h3M7.5 16.5h6"/></svg>',
   calendar: '<svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/><circle cx="8.5" cy="13.5" r="1"/><circle cx="12" cy="13.5" r="1"/><circle cx="15.5" cy="13.5" r="1"/><circle cx="8.5" cy="16.8" r="1"/><circle cx="12" cy="16.8" r="1"/></svg>',
   writing:  '<svg viewBox="0 0 24 24"><path d="M4.5 19.5 5.7 15 16 4.7a2 2 0 0 1 2.8 2.8L8.5 17.8Z"/><path d="M14.2 6.5 17 9.3"/><path d="M4.5 21h15"/></svg>',
+  people:   '<svg viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19.5c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/><circle cx="16.8" cy="9.5" r="2.4"/><path d="M15 14.9c3 .2 5.5 1.9 5.5 4.6"/></svg>',
+  board:    '<svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="7" height="9" rx="1.5"/><rect x="13.5" y="4.5" width="7" height="5.5" rx="1.5"/><rect x="3.5" y="16" width="7" height="3.5" rx="1.5"/><rect x="13.5" y="12.5" width="7" height="7" rx="1.5"/></svg>',
   commonplace:'<svg viewBox="0 0 24 24"><path d="M5 4.5h9a2.5 2.5 0 0 1 2.5 2.5v12.5H7.5A2.5 2.5 0 0 1 5 17Z"/><path d="M16.5 7H19v12.5H7.5"/><path d="M8 8.5h5.5M8 11.5h5.5"/></svg>',
 };
 /* labels match the h1 of the page they open; `short` is for the mobile bar only */
@@ -5066,13 +5755,15 @@ const NAV_PAGES = {
   plan:     {label:'Plan',             short:'Plan',     ico:NAV_ICONS.plan,     route:'#/plan'},
   calendar: {label:'Calendar',         short:'Calendar', ico:NAV_ICONS.calendar, route:'#/calendar'},
   writing:  {label:'Writing',          short:'Writing',  ico:NAV_ICONS.writing,  route:'#/writing'},
+  people:   {label:'People',           short:'People',   ico:NAV_ICONS.people,   route:'#/people'},
+  board:    {label:'The Board',        short:'Board',    ico:NAV_ICONS.board,    route:'#/board'},
   commonplace:{label:'Commonplace Book', short:'Media',  ico:NAV_ICONS.commonplace, route:'#/commonplace'},
   values:   {label:'Values',           short:'Values',   ico:NAV_ICONS.values,   route:'#/values'},
   skills:   {label:'Skill Tree',       short:'Skills',   ico:NAV_ICONS.skills,   route:'#/skills'},
   vision:   {label:'Vision Canvas',    short:'Vision',   ico:NAV_ICONS.vision,   route:'#/vision'},
   timeline: {label:'Timeline',         short:'Timeline', ico:NAV_ICONS.timeline, route:'#/timeline'},
 };
-const NAV_DEFAULT = { present:['today','plan','calendar','projects','rituals'], becoming:['values','skills','vision','timeline'], standalone:['journals','commonplace','writing','reviews'] };
+const NAV_DEFAULT = { present:['today','plan','calendar','projects','rituals'], becoming:['values','skills','vision','timeline'], standalone:['journals','commonplace','writing','people','board','reviews'] };
 const NAV_ZONES = [ {id:'present', label:'Present', hint:'short-term, daily use', accent:'var(--sage)'}, {id:'becoming', label:'Becoming', hint:'identity, growth', accent:'var(--ment)'} ];
 const MOBILE_PRIMARY = ['today','plan','journals','projects','skills'];
 function navConfig(){ if(!S.settings.nav) S.settings.nav = JSON.parse(JSON.stringify(NAV_DEFAULT)); const n = S.settings.nav; ['present','becoming','standalone'].forEach(z => { n[z] = (n[z]||[]).filter(k => NAV_PAGES[k]); }); const placed = new Set([...n.present, ...n.becoming, ...n.standalone]); Object.keys(NAV_PAGES).forEach(k => { if(k !== 'home' && !placed.has(k)) n.standalone.push(k); }); ['present','becoming','standalone'].forEach(z => n[z] = n[z].filter(k => NAV_PAGES[k] && k !== 'home')); return n; }
@@ -5137,6 +5828,8 @@ function houseStats(){
     reviews:  {line:`weekly ${daysSince(S.reviews.lastWeekly)===Infinity?'never':daysSince(S.reviews.lastWeekly)+'d ago'}`, ok:daysSince(S.reviews.lastWeekly)<=7, cadence:'weekly', tip:'The rhythm above the daily one.'},
     writing:  {line:`${S.entries.filter(e=>e.type==='writing').length} pieces`, ok:true, cadence:'weekly', tip:'A room for contemplation, fed by your own hashtags.'},
     commonplace:{line:`${S.entries.filter(e=>e.type==='media').length} works logged`, ok:true, cadence:'archival', tip:'What you read, watched and listened to — and what it changed.'},
+    people:   {line:`${(S.people||[]).length} people${(S.people||[]).filter(p=>personGoneQuiet(p)).length?` · ${(S.people||[]).filter(p=>personGoneQuiet(p)).length} gone quiet`:''}`, ok:!(S.people||[]).filter(p=>personGoneQuiet(p)).length, cadence:'weekly', tip:'A life is mostly other people.'},
+    board:    {line:`${boardCount('main')} pinned`, ok:true, cadence:'seasonal', tip:'The half of a vision you can only feel.'},
   };
   return {stat, due, done, vs, wither, last, snapDays, gaps, atro, hrs30, active, nods7, j7, quotes, memories, c, rem, zonesOf: k => n.present.includes(k)?'present':n.becoming.includes(k)?'becoming':'always'};
 }
@@ -5217,7 +5910,7 @@ function bindZoneEditor(root){
    ============================================================ */
 function openEntryModal({type='reflection', links={}, entryId=null, after=null, title='', occurredAt='', allowedTypes=null, heading='', openLinks=false}={}){
   const existing = entryId ? byId(S.entries, entryId) : null;
-  const e = existing ? JSON.parse(JSON.stringify(existing)) : {id:uid(),type,title,body:'',occurredAt:occurredAt||today(),createdAt:new Date().toISOString(),media:[],links:Object.assign({stages:[],substages:[],threads:[],values:[],visions:[],skills:[],projects:[]}, links),people:[],places:[],emotions:[],tags:[],confidence:'',extra:{}};
+  const e = existing ? JSON.parse(JSON.stringify(existing)) : {id:uid(),type,title,body:'',occurredAt:occurredAt||today(),createdAt:new Date().toISOString(),media:[],links:Object.assign({stages:[],substages:[],threads:[],values:[],visions:[],skills:[],projects:[],people:[]}, links),people:[],places:[],emotions:[],tags:[],confidence:'',extra:{}};
   const types = (allowedTypes && !existing) ? ENTRY_TYPES.filter(([t]) => allowedTypes.includes(t)) : ENTRY_TYPES;
   const m = openModal(`<h2>${existing?'Edit entry':esc(heading || 'New '+typeName(e.type).toLowerCase())}</h2>
     <div class="typerow" id="typeRow" ${types.length<=1?'hidden':''}>${types.map(([t,n,i])=>`<button class="${e.type===t?'on':''}" data-t="${t}">${i} ${n}</button>`).join('')}</div>
@@ -5236,7 +5929,7 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
         <div class="field"><label>Visions</label><div class="deps">${S.visions.map(v=>`<span class="chip click" style="--c:var(--sage)" data-lk="visions" data-id="${v.id}">🌿 ${esc(v.name)}</span>`).join('')}</div></div>
         <div class="field"><label>Skills</label><div class="deps">${S.skills.map(s=>`<span class="chip click" style="--c:var(--ment)" data-lk="skills" data-id="${s.id}">${esc(s.name)}</span>`).join('')}</div></div>
         <div class="field"><label>Projects</label><div class="deps">${S.projects.map(p=>`<span class="chip click" style="--c:var(--terra)" data-lk="projects" data-id="${p.id}">${esc(p.name)}</span>`).join('')}</div></div>
-        <div class="grid c3" style="gap:8px"><div class="field"><label>People</label><input class="inp" id="ePeople" value="${esc(e.people.join(', '))}" placeholder="comma-separated" list="peopleList"><datalist id="peopleList">${(S.people||[]).map(p=>`<option value="${esc(p)}">`).join('')}</datalist></div><div class="field"><label>Places</label><input class="inp" id="ePlaces" value="${esc(e.places.join(', '))}" list="placeList"><datalist id="placeList">${(S.places||[]).map(p=>`<option value="${esc(p)}">`).join('')}</datalist></div><div class="field"><label>Emotions</label><input class="inp" id="eEmo" value="${esc(e.emotions.join(', '))}"></div></div>
+        <div class="grid c2" style="gap:8px"><div class="field" style="grid-column:1/-1"><label>People — tag anyone this involves</label><div class="deps" id="peopleChips">${(S.people||[]).map(p=>`<span class="chip click" style="--c:${PERSON_TIERS[p.tier][4]}" data-lk="people" data-id="${p.id}">${PERSON_TIERS[p.tier][0]} ${esc(p.name)}</span>`).join('')}<button type="button" class="chip click" id="eNewPerson" style="--c:var(--page-accent)">＋ someone new</button></div></div><div class="field"><label>Places</label><input class="inp" id="ePlaces" value="${esc(e.places.join(', '))}" list="placeList"><datalist id="placeList">${(S.places||[]).map(p=>`<option value="${esc(p)}">`).join('')}</datalist></div><div class="field"><label>Emotions</label><input class="inp" id="eEmo" value="${esc(e.emotions.join(', '))}"></div></div>
         <div class="field"><label>Confidence (for future-facing entries)</label><div class="ladder">${CONF.map(c=>`<button data-conf="${c}" class="${e.confidence===c?'on':''}">${c}</button>`).join('')}</div></div>
       </div></details>
       <div class="row between"><span class="faint" style="font-size:.78rem" id="linkNudge"></span><button class="btn primary" id="eSave" style="padding:12px 28px;font-size:1rem">${existing?'Save changes':'Save entry'}</button></div>
@@ -5260,8 +5953,18 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
   };
   renderExtra();
   m.querySelectorAll('#typeRow button').forEach(b => b.onclick = () => { e.type = b.dataset.t; m.querySelectorAll('#typeRow button').forEach(y=>y.classList.toggle('on', y===b)); if(e.type==='nod'){ m.remove(); openNodModal(); return; } renderExtra(); m.querySelector('#tagField').hidden = !TAGGABLE.includes(e.type); });
+  const npBtn = m.querySelector('#eNewPerson');
+  if(npBtn) npBtn.onclick = () => {
+    const name = prompt('Who?'); if(!name || !name.trim()) return;
+    const p = newPerson(name.trim()); S.people.push(p); saveNow();
+    e.links.people = e.links.people || []; e.links.people.push(p.id);
+    const chips = m.querySelector('#peopleChips');
+    chips.insertAdjacentHTML('afterbegin', `<span class="chip click on" style="--c:${PERSON_TIERS[p.tier][4]}" data-lk="people" data-id="${p.id}">${PERSON_TIERS[p.tier][0]} ${esc(p.name)}</span>`);
+    bindLk(chips.firstElementChild);
+  };
   const syncChips = () => { m.querySelectorAll('[data-lk]').forEach(c => { const k = c.dataset.lk, id = c.dataset.id; const arr = e.links[k]; const hit = arr.find(v => (typeof v==='string'?v:v.id)===id); c.classList.toggle('on', !!hit); if(k==='values') c.querySelector('.pol').textContent = hit ? hit.pol : ''; }); const n = Object.values(e.links).reduce((a,b)=>a+b.length,0); m.querySelector('#linkCount').textContent = n ? `${n} linked` : ''; m.querySelector('#linkNudge').textContent = n ? '' : 'Consider linking this to a stage, a value, or a vision — that is how the house connects.'; const subs = e.links.stages.flatMap(sid => (byId(S.stages,sid)?.substages||[]).map(ss=>({...ss, hue:byId(S.stages,sid).hue}))); m.querySelector('#subField').style.display = subs.length?'':'none'; m.querySelector('#subChips').innerHTML = subs.map(ss=>`<span class="chip click ${e.links.substages.includes(ss.id)?'on':''}" style="--c:${ss.hue}" data-sub="${ss.id}">${esc(ss.name)}</span>`).join(''); m.querySelectorAll('[data-sub]').forEach(c => c.onclick = () => { const id = c.dataset.sub; e.links.substages = e.links.substages.includes(id) ? e.links.substages.filter(y=>y!==id) : [...e.links.substages,id]; syncChips(); }); };
-  m.querySelectorAll('[data-lk]').forEach(c => c.onclick = () => { const k = c.dataset.lk, id = c.dataset.id; const arr = e.links[k]; if(k==='values'){ const i = arr.findIndex(v=>v.id===id); if(i<0) arr.push({id,pol:'+'}); else if(arr[i].pol==='+') arr[i].pol='−'; else arr.splice(i,1); } else { const i = arr.indexOf(id); if(i<0) arr.push(id); else arr.splice(i,1); } syncChips(); });
+  const bindLk = c => { c.onclick = () => { const k = c.dataset.lk, id = c.dataset.id; const arr = e.links[k]; if(k==='values'){ const i = arr.findIndex(v=>v.id===id); if(i<0) arr.push({id,pol:'+'}); else if(arr[i].pol==='+') arr[i].pol='−'; else arr.splice(i,1); } else { const i = arr.indexOf(id); if(i<0) arr.push(id); else arr.splice(i,1); } syncChips(); }; };
+  m.querySelectorAll('[data-lk]').forEach(bindLk);
   syncChips();
   m.querySelectorAll('[data-conf]').forEach(b => b.onclick = () => { e.confidence = e.confidence===b.dataset.conf ? '' : b.dataset.conf; m.querySelectorAll('[data-conf]').forEach(y=>y.classList.toggle('on', y.dataset.conf===e.confidence)); });
   const thumbs = m.querySelector('#eThumbs'); const drawThumbs = () => { thumbs.innerHTML = e.media.map(md_=>`<div style="display:flex;flex-direction:column;gap:4px;width:120px"><img src="${md_.src}" style="width:120px;height:80px"><input class="inp" style="padding:3px 6px;font-size:.7rem" placeholder="caption" value="${esc(md_.caption)}" data-cap="${md_.id}"><input class="inp" style="padding:3px 6px;font-size:.7rem" placeholder="people" value="${esc((md_.people||[]).join(', '))}" data-ppl="${md_.id}"><button class="tbtn" data-rm="${md_.id}">remove</button></div>`).join(''); thumbs.querySelectorAll('[data-cap]').forEach(i=>i.oninput=()=>byId(e.media,i.dataset.cap).caption=i.value); thumbs.querySelectorAll('[data-ppl]').forEach(i=>i.oninput=()=>byId(e.media,i.dataset.ppl).people=i.value.split(',').map(s=>s.trim()).filter(Boolean)); thumbs.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{ e.media = e.media.filter(y=>y.id!==b.dataset.rm); drawThumbs(); }); }; drawThumbs();
@@ -5277,8 +5980,8 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
     if(e.type==='dream'){ e.extra.recurring = !!m.querySelector('#xRec')?.classList.contains('on'); e.extra.symbols = (e.extra.symbols_||'').split(',').map(s=>s.trim()).filter(Boolean); delete e.extra.symbols_; }
     if(e.type==='question') e.extra.answers = e.extra.answers||[];
     const split = id => m.querySelector(id).value.split(',').map(s=>s.trim()).filter(Boolean);
-    e.people = split('#ePeople'); e.places = split('#ePlaces'); e.emotions = split('#eEmo');
-    S.people = [...new Set([...(S.people||[]), ...e.people])]; S.places = [...new Set([...(S.places||[]), ...e.places])];
+    e.places = split('#ePlaces'); e.emotions = split('#eEmo'); e.people = (e.links.people||[]).map(id => byId(S.people,id)?.name).filter(Boolean);
+    S.places = [...new Set([...(S.places||[]), ...e.places])];
     if(existing) Object.assign(existing, e); else S.entries.push(e);
     saveNow();
     const primary = e.links.values[0] ? byId(S.values,e.links.values[0].id)?.color : e.links.stages[0] ? byId(S.stages,e.links.stages[0])?.hue : e.links.visions[0] ? 'var(--sage)' : 'var(--terra)';
@@ -5307,7 +6010,7 @@ function openSearch(){
     grp('Projects', S.projects.filter(x=>hit(x.name+' '+(x.description||''))).map(x=>({t:x.name,go:'#/projects/'+x.id,m:x.status})));
     grp('Threads', S.threads.filter(x=>hit(x.name)).map(x=>({t:x.name,go:'#/timeline/threads',m:x.status})));
     grp('Habits', S.habits.filter(x=>!x.archived&&hit(x.name)).map(x=>({t:x.name,go:'#/rituals',m:x.dimension})));
-    if(s) grp('Entries', sortEntries(S.entries.filter(x=>hit(x.title+' '+x.body))).map(x=>({t:x.title||x.body.slice(0,80),go:'#/journals/'+x.type,m:typeName(x.type)+' · '+fmtDate(x.occurredAt,'med'),entry:x.id})));
+    if(s) grp('Entries', sortEntries(S.entries.filter(x => !letterIsSealed(x)).filter(x=>hit(x.title+' '+x.body))).map(x=>({t:x.title||x.body.slice(0,80),go:'#/journals/'+x.type,m:typeName(x.type)+' · '+fmtDate(x.occurredAt,'med'),entry:x.id})));
     sel = 0; draw(); };
   const draw = () => { let i=0; res.innerHTML = items.map(x => x.grp ? `<div class="grp">${x.grp}</div>` : `<div class="res ${i===sel?'sel':''}" data-i="${i++}"><span class="t">${esc(x.t)}</span><span class="m">${esc(x.m)}</span></div>`).join('') || '<div class="empty" style="padding:18px 22px">Nothing found.</div>'; res.querySelectorAll('.res').forEach(r => r.onclick = () => go(+r.dataset.i)); res.querySelector('.res.sel')?.scrollIntoView({block:'nearest'}); };
   const go = i => { const list = items.filter(x=>!x.grp); const x = list[i]; if(!x) return; m.remove(); if(x.run){ x.run(); return; } if(x.entry){ navigate(x.go); setTimeout(()=>{ const n = document.querySelector(`[data-entry="${x.entry}"]`); if(n){ n.scrollIntoView({block:'center'}); n.style.background='color-mix(in srgb,var(--terra) 12%,transparent)'; setTimeout(()=>n.style.background='',1600); } },350); } else navigate(x.go); };

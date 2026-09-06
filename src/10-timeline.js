@@ -180,6 +180,7 @@ routes.stage = function(root, params){
     <section class="section rv"><div class="row between"><span class="sc">Everything from this stage</span></div>
       ${es.filter(e=>e.type!=='memory').map(e=>entryCard(e)).join('') || '<div class="empty">Only memories so far. Add a reflection, a quote, a dream.</div>'}
     </section>
+    <section class="section rv">${boardHTML(boardId('stage', s.id), {title:'Board for this chapter', hint:'Photographs, objects, a colour you associate with these years.', compact:true})}</section>
     ${moreSection(`<div class="row" style="gap:20px;flex-wrap:wrap"><div class="field"><label>Character</label>${ed(`stages.#${s.id}.char`,{cls:'serif',ph:'一'})}</div><div class="field"><label>Accent colour</label><input type="color" id="stageHue" value="${s.hue}" style="width:40px;height:28px;border:none;background:none;padding:0;cursor:pointer"></div><div class="field"><label>Order</label><span class="mono">stage ${s.num} of ${S.stages.length}</span> <button class="btn sm ghost" id="stageUp">↑</button><button class="btn sm ghost" id="stageDown">↓</button></div></div>
       <div class="danger-zone"><span>Stages are the load-bearing walls of the house. Deleting one keeps its entries but unlinks them.</span><button class="btn sm ghost danger" id="delStage">Delete this stage</button></div>`, 'More about this stage')}
   </div>`;
@@ -189,6 +190,7 @@ routes.stage = function(root, params){
   $('#addSub').onclick = () => { s.substages.push({id:uid(),name:'New chapter',desc:'',photos:[]}); saveNow(); rerender(); };
   $$('[data-ssdel]',root).forEach(b => b.onclick = () => { const ss = s.substages[+b.dataset.ssdel]; requestDelete({label: ss.name, node: b.closest('.substage'), remove: () => { const touched = S.entries.filter(e => (e.links?.substages||[]).includes(ss.id)); const rl = snapshotLinks(touched); touched.forEach(e => e.links.substages = e.links.substages.filter(x => x !== ss.id)); const back = spliceOut(s.substages, x => x === ss); return () => { back(); rl(); }; }}); });
   $$('[data-verdel]',root).forEach(b => b.onclick = () => { const v = s.narrativeHistory[+b.dataset.verdel]; requestDelete({label: `Version from ${fmtDate(v.date,'med')}`, node: b.closest('.v'), remove: () => spliceOut(s.narrativeHistory, x => x === v)}); });
+  bindBoard(root);
   $('#charEdit') && ($('#charEdit').onclick = () => { const n = root.querySelector('.han .ed'); if(n) beginEdit(n); });
   $('#delStage').onclick = () => deleteStage(s, null, () => navigate('#/timeline'));
   $('#stageHue').onchange = e => { s.hue = e.target.value; saveNow(); rerender(); };

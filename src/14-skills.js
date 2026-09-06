@@ -345,6 +345,7 @@ function openSkillPanel(id){
     <div class="archetype">${arche}</div>
     ${levelTrackHTML(s)}
     ${milestoneTimelineHTML(s)}
+    ${boardStrip(boardId('skill', s.id), 'Board')}
     <div class="vp-sec"><span class="sc">Prerequisites</span><div class="deps">${S.skills.filter(x=>x.id!==s.id).map(x=>`<span class="chip click ${s.prereqs.includes(x.id)?'on':''}" style="--c:${catColor(x.cat)}" data-pre="${x.id}">${esc(x.name)}</span>`).join('')}</div></div>
     <div class="vp-sec"><span class="sc">Cross-mappings</span>
       <div class="k mono" style="margin:6px 0 4px">load-bearing for visions — what do I need to become to live that life?</div><div class="deps">${visions.map(v=>`<span class="chip on click" style="--c:var(--sage)" data-go="#/vision/${v.id}">🌿 ${esc(v.name)}</span>`).join('')||'<span class="faint">no vision depends on this yet</span>'}</div>
@@ -354,6 +355,7 @@ function openSkillPanel(id){
     ${moreSection(`<div class="danger-zone"><span>Skills accrue slowly. Consider marking it planned or lowering the level before deleting.</span><button class="btn sm ghost danger" id="skDel">Delete this skill</button></div>`)}`);
   $$('#panel .rv').forEach(n=>n.classList.add('in'));
   p.querySelector('#skCatSel').onchange = e => { s.cat = e.target.value; saveNow(); rerender(); openSkillPanel(id); };
+  bindBoardStrip(p, () => s.name);
   p.querySelector('#skHzSel').onchange = e => { s.horizon = e.target.value; s.planned = s.horizon === 'someday'; if(!s.planned && s.currentLevel===0) s.currentLevel = 1; saveNow(); rerender(); openSkillPanel(id); };
   p.querySelector('#skPrioSel').onchange = e => { s.priority = e.target.value; saveNow(); rerender(); openSkillPanel(id); };
   bindLevelTrack(p, s);

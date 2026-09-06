@@ -40,6 +40,9 @@ routes.today = function(root){
       </div>
     </details>
 
+    ${(()=>{ const ready = lettersOpeningNow(); return ready.length ? `<section class="section rv"><div class="card ready-letter"><div class="sc">A letter from you has come due</div>${ready.map(e=>`<div class="row between" style="margin-top:8px"><span><b class="serif">${esc(e.title||'To myself')}</b><div class="mono">sealed ${fmtDate((e.createdAt||'').slice(0,10),'med')} · ${daysBetween((e.createdAt||'').slice(0,10), today())} days ago</div></span><button class="btn sm primary" data-lopen="${e.id}">Open it</button></div>`).join('')}</div></section>` : ''; })()}
+    ${(()=>{ const due = decisionsDue(); return due.length ? `<section class="section rv"><div class="card"><div class="row between"><span class="sc" style="margin:0">Decisions ready to grade</span><a class="mono" href="#/journals/decision">all decisions →</a></div>${due.map(e=>`<div class="row between" style="margin-top:8px"><span><b class="serif">${esc(e.title)}</b><div class="mono">decided ${fmtDate((e.createdAt||'').slice(0,10),'med')} · you were ${esc(e.extra.confidence||'unsure')}</div></span><button class="btn sm" data-dopen="${e.id}">Look back</button></div>`).join('')}</div></section>` : ''; })()}
+
     <!-- 3. the day's work -->
     <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Today's tasks</span><span class="mono">${rows.length?`${doneN} of ${rows.length} done`:'nothing parked yet'}</span></div>
       <div class="card" data-daydrop="${T}" style="margin-top:10px">
@@ -47,6 +50,9 @@ routes.today = function(root){
         <div class="row" style="margin-top:10px;gap:8px">${quickTaskInput(T)}<button class="btn sm ghost" id="pullTask">pull in ↓</button><a class="btn sm ghost" href="#/plan">plan the week →</a></div>
         ${carried.length?`<div class="row" style="margin-top:10px"><span class="mono" style="color:#d08080">${carried.length} carried over from earlier days</span><button class="btn sm ghost" id="carryAll">bring to today</button></div>`:''}
       </div></section>
+
+    ${(()=>{ const pr = practicesDueToday(); return pr.length ? `<section class="section rv"><div class="row between"><span class="sc" style="margin:0">Today's practices</span><a class="mono" href="#/values">the compass →</a></div>
+      <div class="card" style="margin-top:10px"><div class="prac-today">${pr.map(({v,p,done,doneThisWeek})=>`<button class="prac-chip ${done?'on':''}" data-practoday="${v.id}:${p.id}" style="--c:${v.color}"><span class="pc-tick">${done?'✓':'○'}</span><span class="pc-text">${esc(p.text)}</span><span class="pc-val mono">${esc(v.name)} · ${doneThisWeek}/${p.perWeek}</span></button>`).join('')}</div></div></section>` : ''; })()}
 
     ${(()=>{ const due = milestonesDueSoon(30); return due.length ? `<section class="section rv"><span class="sc">Skill milestones within 30 days</span><div class="card" style="border-left:3px solid var(--ment)">${due.map(({skill,m,days})=>`<a href="#/skills/${skill.id}" class="row between" style="text-decoration:none;color:inherit;padding:8px 0;border-top:1px dashed var(--line);gap:12px"><span><b class="serif">${esc(skill.name)}</b> <span class="muted">→ ${esc(skillLevelLabel(skill,m.levelTarget))} (L${m.levelTarget})</span>${m.note?`<div class="quote" style="font-size:.85rem">${esc(m.note)}</div>`:''}</span><span class="status-pill ${days<0?'due':'ahead'}">${days<0?`⚠ ${-days}d overdue`:days===0?'today':`in ${days}d`}</span></a>`).join('')}</div></section>` : ''; })()}
 
@@ -71,8 +77,8 @@ routes.today = function(root){
       </div>
     </section>
 
-    <section class="section rv"><span class="sc">On this day</span>
-      ${otd.length ? otd.slice(0,3).map(e=>entryCard(e)).join('') : `<div class="empty">No memories from this day yet. You're making them now.</div>`}
+    <section class="section rv"><span class="sc">This day, in the years behind it</span>
+      ${onThisDayHTML()}
     </section>
 
     <section class="section rv"><span class="sc">A gentle prompt</span>
@@ -96,5 +102,8 @@ routes.today = function(root){
   $('#pullTask').onclick = () => openTaskPicker(T, rerender);
   if($('#carryAll')) $('#carryAll').onclick = () => { carried.forEach(r => r.task.day = T); saveNow(); sound('success'); rerender(); };
   bindTaskRows(root); bindDayDrop(root); bindQuickTask(root);
+  bindSealedLetters(root); bindOnThisDay(root);
+  $$('[data-dopen]',root).forEach(b => b.onclick = () => openDecisionPanel(b.dataset.dopen));
+  $$('[data-practoday]',root).forEach(b => b.onclick = () => { const [vid,pid] = b.dataset.practoday.split(':'); const v = byId(S.values,vid); const p = byId(v.practices,pid); togglePractice(v,p); sound(practiceDone(p)?'success':'click'); rerender(); });
 };
 

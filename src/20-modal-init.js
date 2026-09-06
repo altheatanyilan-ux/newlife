@@ -3,7 +3,7 @@
    ============================================================ */
 function openEntryModal({type='reflection', links={}, entryId=null, after=null, title='', occurredAt='', allowedTypes=null, heading='', openLinks=false}={}){
   const existing = entryId ? byId(S.entries, entryId) : null;
-  const e = existing ? JSON.parse(JSON.stringify(existing)) : {id:uid(),type,title,body:'',occurredAt:occurredAt||today(),createdAt:new Date().toISOString(),media:[],links:Object.assign({stages:[],substages:[],threads:[],values:[],visions:[],skills:[],projects:[]}, links),people:[],places:[],emotions:[],tags:[],confidence:'',extra:{}};
+  const e = existing ? JSON.parse(JSON.stringify(existing)) : {id:uid(),type,title,body:'',occurredAt:occurredAt||today(),createdAt:new Date().toISOString(),media:[],links:Object.assign({stages:[],substages:[],threads:[],values:[],visions:[],skills:[],projects:[],people:[]}, links),people:[],places:[],emotions:[],tags:[],confidence:'',extra:{}};
   const types = (allowedTypes && !existing) ? ENTRY_TYPES.filter(([t]) => allowedTypes.includes(t)) : ENTRY_TYPES;
   const m = openModal(`<h2>${existing?'Edit entry':esc(heading || 'New '+typeName(e.type).toLowerCase())}</h2>
     <div class="typerow" id="typeRow" ${types.length<=1?'hidden':''}>${types.map(([t,n,i])=>`<button class="${e.type===t?'on':''}" data-t="${t}">${i} ${n}</button>`).join('')}</div>
@@ -22,7 +22,7 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
         <div class="field"><label>Visions</label><div class="deps">${S.visions.map(v=>`<span class="chip click" style="--c:var(--sage)" data-lk="visions" data-id="${v.id}">🌿 ${esc(v.name)}</span>`).join('')}</div></div>
         <div class="field"><label>Skills</label><div class="deps">${S.skills.map(s=>`<span class="chip click" style="--c:var(--ment)" data-lk="skills" data-id="${s.id}">${esc(s.name)}</span>`).join('')}</div></div>
         <div class="field"><label>Projects</label><div class="deps">${S.projects.map(p=>`<span class="chip click" style="--c:var(--terra)" data-lk="projects" data-id="${p.id}">${esc(p.name)}</span>`).join('')}</div></div>
-        <div class="grid c3" style="gap:8px"><div class="field"><label>People</label><input class="inp" id="ePeople" value="${esc(e.people.join(', '))}" placeholder="comma-separated" list="peopleList"><datalist id="peopleList">${(S.people||[]).map(p=>`<option value="${esc(p)}">`).join('')}</datalist></div><div class="field"><label>Places</label><input class="inp" id="ePlaces" value="${esc(e.places.join(', '))}" list="placeList"><datalist id="placeList">${(S.places||[]).map(p=>`<option value="${esc(p)}">`).join('')}</datalist></div><div class="field"><label>Emotions</label><input class="inp" id="eEmo" value="${esc(e.emotions.join(', '))}"></div></div>
+        <div class="grid c2" style="gap:8px"><div class="field" style="grid-column:1/-1"><label>People — tag anyone this involves</label><div class="deps" id="peopleChips">${(S.people||[]).map(p=>`<span class="chip click" style="--c:${PERSON_TIERS[p.tier][4]}" data-lk="people" data-id="${p.id}">${PERSON_TIERS[p.tier][0]} ${esc(p.name)}</span>`).join('')}<button type="button" class="chip click" id="eNewPerson" style="--c:var(--page-accent)">＋ someone new</button></div></div><div class="field"><label>Places</label><input class="inp" id="ePlaces" value="${esc(e.places.join(', '))}" list="placeList"><datalist id="placeList">${(S.places||[]).map(p=>`<option value="${esc(p)}">`).join('')}</datalist></div><div class="field"><label>Emotions</label><input class="inp" id="eEmo" value="${esc(e.emotions.join(', '))}"></div></div>
         <div class="field"><label>Confidence (for future-facing entries)</label><div class="ladder">${CONF.map(c=>`<button data-conf="${c}" class="${e.confidence===c?'on':''}">${c}</button>`).join('')}</div></div>
       </div></details>
       <div class="row between"><span class="faint" style="font-size:.78rem" id="linkNudge"></span><button class="btn primary" id="eSave" style="padding:12px 28px;font-size:1rem">${existing?'Save changes':'Save entry'}</button></div>
@@ -46,8 +46,18 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
   };
   renderExtra();
   m.querySelectorAll('#typeRow button').forEach(b => b.onclick = () => { e.type = b.dataset.t; m.querySelectorAll('#typeRow button').forEach(y=>y.classList.toggle('on', y===b)); if(e.type==='nod'){ m.remove(); openNodModal(); return; } renderExtra(); m.querySelector('#tagField').hidden = !TAGGABLE.includes(e.type); });
+  const npBtn = m.querySelector('#eNewPerson');
+  if(npBtn) npBtn.onclick = () => {
+    const name = prompt('Who?'); if(!name || !name.trim()) return;
+    const p = newPerson(name.trim()); S.people.push(p); saveNow();
+    e.links.people = e.links.people || []; e.links.people.push(p.id);
+    const chips = m.querySelector('#peopleChips');
+    chips.insertAdjacentHTML('afterbegin', `<span class="chip click on" style="--c:${PERSON_TIERS[p.tier][4]}" data-lk="people" data-id="${p.id}">${PERSON_TIERS[p.tier][0]} ${esc(p.name)}</span>`);
+    bindLk(chips.firstElementChild);
+  };
   const syncChips = () => { m.querySelectorAll('[data-lk]').forEach(c => { const k = c.dataset.lk, id = c.dataset.id; const arr = e.links[k]; const hit = arr.find(v => (typeof v==='string'?v:v.id)===id); c.classList.toggle('on', !!hit); if(k==='values') c.querySelector('.pol').textContent = hit ? hit.pol : ''; }); const n = Object.values(e.links).reduce((a,b)=>a+b.length,0); m.querySelector('#linkCount').textContent = n ? `${n} linked` : ''; m.querySelector('#linkNudge').textContent = n ? '' : 'Consider linking this to a stage, a value, or a vision — that is how the house connects.'; const subs = e.links.stages.flatMap(sid => (byId(S.stages,sid)?.substages||[]).map(ss=>({...ss, hue:byId(S.stages,sid).hue}))); m.querySelector('#subField').style.display = subs.length?'':'none'; m.querySelector('#subChips').innerHTML = subs.map(ss=>`<span class="chip click ${e.links.substages.includes(ss.id)?'on':''}" style="--c:${ss.hue}" data-sub="${ss.id}">${esc(ss.name)}</span>`).join(''); m.querySelectorAll('[data-sub]').forEach(c => c.onclick = () => { const id = c.dataset.sub; e.links.substages = e.links.substages.includes(id) ? e.links.substages.filter(y=>y!==id) : [...e.links.substages,id]; syncChips(); }); };
-  m.querySelectorAll('[data-lk]').forEach(c => c.onclick = () => { const k = c.dataset.lk, id = c.dataset.id; const arr = e.links[k]; if(k==='values'){ const i = arr.findIndex(v=>v.id===id); if(i<0) arr.push({id,pol:'+'}); else if(arr[i].pol==='+') arr[i].pol='−'; else arr.splice(i,1); } else { const i = arr.indexOf(id); if(i<0) arr.push(id); else arr.splice(i,1); } syncChips(); });
+  const bindLk = c => { c.onclick = () => { const k = c.dataset.lk, id = c.dataset.id; const arr = e.links[k]; if(k==='values'){ const i = arr.findIndex(v=>v.id===id); if(i<0) arr.push({id,pol:'+'}); else if(arr[i].pol==='+') arr[i].pol='−'; else arr.splice(i,1); } else { const i = arr.indexOf(id); if(i<0) arr.push(id); else arr.splice(i,1); } syncChips(); }; };
+  m.querySelectorAll('[data-lk]').forEach(bindLk);
   syncChips();
   m.querySelectorAll('[data-conf]').forEach(b => b.onclick = () => { e.confidence = e.confidence===b.dataset.conf ? '' : b.dataset.conf; m.querySelectorAll('[data-conf]').forEach(y=>y.classList.toggle('on', y.dataset.conf===e.confidence)); });
   const thumbs = m.querySelector('#eThumbs'); const drawThumbs = () => { thumbs.innerHTML = e.media.map(md_=>`<div style="display:flex;flex-direction:column;gap:4px;width:120px"><img src="${md_.src}" style="width:120px;height:80px"><input class="inp" style="padding:3px 6px;font-size:.7rem" placeholder="caption" value="${esc(md_.caption)}" data-cap="${md_.id}"><input class="inp" style="padding:3px 6px;font-size:.7rem" placeholder="people" value="${esc((md_.people||[]).join(', '))}" data-ppl="${md_.id}"><button class="tbtn" data-rm="${md_.id}">remove</button></div>`).join(''); thumbs.querySelectorAll('[data-cap]').forEach(i=>i.oninput=()=>byId(e.media,i.dataset.cap).caption=i.value); thumbs.querySelectorAll('[data-ppl]').forEach(i=>i.oninput=()=>byId(e.media,i.dataset.ppl).people=i.value.split(',').map(s=>s.trim()).filter(Boolean)); thumbs.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{ e.media = e.media.filter(y=>y.id!==b.dataset.rm); drawThumbs(); }); }; drawThumbs();
@@ -63,8 +73,8 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
     if(e.type==='dream'){ e.extra.recurring = !!m.querySelector('#xRec')?.classList.contains('on'); e.extra.symbols = (e.extra.symbols_||'').split(',').map(s=>s.trim()).filter(Boolean); delete e.extra.symbols_; }
     if(e.type==='question') e.extra.answers = e.extra.answers||[];
     const split = id => m.querySelector(id).value.split(',').map(s=>s.trim()).filter(Boolean);
-    e.people = split('#ePeople'); e.places = split('#ePlaces'); e.emotions = split('#eEmo');
-    S.people = [...new Set([...(S.people||[]), ...e.people])]; S.places = [...new Set([...(S.places||[]), ...e.places])];
+    e.places = split('#ePlaces'); e.emotions = split('#eEmo'); e.people = (e.links.people||[]).map(id => byId(S.people,id)?.name).filter(Boolean);
+    S.places = [...new Set([...(S.places||[]), ...e.places])];
     if(existing) Object.assign(existing, e); else S.entries.push(e);
     saveNow();
     const primary = e.links.values[0] ? byId(S.values,e.links.values[0].id)?.color : e.links.stages[0] ? byId(S.stages,e.links.stages[0])?.hue : e.links.visions[0] ? 'var(--sage)' : 'var(--terra)';
@@ -93,7 +103,7 @@ function openSearch(){
     grp('Projects', S.projects.filter(x=>hit(x.name+' '+(x.description||''))).map(x=>({t:x.name,go:'#/projects/'+x.id,m:x.status})));
     grp('Threads', S.threads.filter(x=>hit(x.name)).map(x=>({t:x.name,go:'#/timeline/threads',m:x.status})));
     grp('Habits', S.habits.filter(x=>!x.archived&&hit(x.name)).map(x=>({t:x.name,go:'#/rituals',m:x.dimension})));
-    if(s) grp('Entries', sortEntries(S.entries.filter(x=>hit(x.title+' '+x.body))).map(x=>({t:x.title||x.body.slice(0,80),go:'#/journals/'+x.type,m:typeName(x.type)+' · '+fmtDate(x.occurredAt,'med'),entry:x.id})));
+    if(s) grp('Entries', sortEntries(S.entries.filter(x => !letterIsSealed(x)).filter(x=>hit(x.title+' '+x.body))).map(x=>({t:x.title||x.body.slice(0,80),go:'#/journals/'+x.type,m:typeName(x.type)+' · '+fmtDate(x.occurredAt,'med'),entry:x.id})));
     sel = 0; draw(); };
   const draw = () => { let i=0; res.innerHTML = items.map(x => x.grp ? `<div class="grp">${x.grp}</div>` : `<div class="res ${i===sel?'sel':''}" data-i="${i++}"><span class="t">${esc(x.t)}</span><span class="m">${esc(x.m)}</span></div>`).join('') || '<div class="empty" style="padding:18px 22px">Nothing found.</div>'; res.querySelectorAll('.res').forEach(r => r.onclick = () => go(+r.dataset.i)); res.querySelector('.res.sel')?.scrollIntoView({block:'nearest'}); };
   const go = i => { const list = items.filter(x=>!x.grp); const x = list[i]; if(!x) return; m.remove(); if(x.run){ x.run(); return; } if(x.entry){ navigate(x.go); setTimeout(()=>{ const n = document.querySelector(`[data-entry="${x.entry}"]`); if(n){ n.scrollIntoView({block:'center'}); n.style.background='color-mix(in srgb,var(--terra) 12%,transparent)'; setTimeout(()=>n.style.background='',1600); } },350); } else navigate(x.go); };
