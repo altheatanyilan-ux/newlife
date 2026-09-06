@@ -13,9 +13,8 @@ const NAV_PAGES = {
   vision:   {label:'Vision Tree', ico:'🌳', route:'#/vision'},
   timeline: {label:'Memory',      ico:'⏳', route:'#/timeline'},
   library:  {label:'Library',     ico:'📚', route:'#/journals/quote'},
-  map:      {label:'System Map',  ico:'🗺', route:'#/map'},
 };
-const NAV_DEFAULT = { present:['today','journals','projects','rituals'], becoming:['values','skills','vision','timeline'], standalone:['library','map'] };
+const NAV_DEFAULT = { present:['today','journals','projects','rituals'], becoming:['values','skills','vision','timeline'], standalone:['library'] };
 const NAV_ZONES = [ {id:'present', label:'Present', hint:'short-term, daily use', accent:'var(--sage)'}, {id:'becoming', label:'Becoming', hint:'identity, growth', accent:'var(--ment)'} ];
 const MOBILE_PRIMARY = ['today','journals','values','skills','vision'];
 function navConfig(){ if(!S.settings.nav) S.settings.nav = JSON.parse(JSON.stringify(NAV_DEFAULT)); const n = S.settings.nav; const placed = new Set([...n.present, ...n.becoming, ...n.standalone]); Object.keys(NAV_PAGES).forEach(k => { if(k !== 'home' && !placed.has(k)) n.standalone.push(k); }); ['present','becoming','standalone'].forEach(z => n[z] = n[z].filter(k => NAV_PAGES[k] && k !== 'home')); return n; }
@@ -55,28 +54,91 @@ function openNavOverlay(){
 }
 NAV_PAGES.home = {label:'Home', ico:'⌂', route:'#/home'};
 
-/* ---------- Home dashboard: one summary card per zone, counts read from the database on mount ---------- */
-routes.home = function(root){
+/* ---------- Home: life at a glance — today's focus, the living house, long-term panels ---------- */
+const HOUSE_EDGES = [['vision','skills','visions require skills; skills serve visions'],['vision','values','visions serve values; unserved values are blind spots'],['timeline','values','retrospective readings fill the values history'],['timeline','vision','formative events inform what you now want'],['projects','skills','projects exercise skills'],['projects','vision','income streams advance financial visions'],['journals','timeline','memories become formative events'],['journals','vision','entries grow leaves'],['rituals','today','rituals fill today\'s rings'],['today','vision','signals surface neglected visions'],['today','values','the biggest values gap is a daily signal'],['library','journals','quotes are journal entries with a source']];
+function houseStats(){
   const T = today(); const n = navConfig();
-  root.innerHTML = `<div class="page narrow"><div class="page-head"><h1>${fmtDate(T)}</h1><div class="sub">The porch. One card per zone; walk into whichever room needs you.</div></div><div class="stack" id="homeCards"><div class="empty">Reading the house…</div></div></div>`;
-  (async () => {
-    let entries=[], nods=[], projects=[], snaps=[], skills=[], visions=[], habits=[], habitLog=[], checkins=[], reminders=[];
-    try { [entries, nods, projects, snaps, skills, visions, habits, habitLog, checkins, reminders] = await Promise.all(['entries','nods','projects','valueSnapshots','skills','visions','habits','habitLog','checkins','reminders'].map(t => db[t].toArray())); } catch(e){ entries=S.entries; nods=S.nods; projects=S.projects; snaps=S.valueSnapshots; skills=S.skills; visions=S.visions; habits=S.habits; habitLog=Object.entries(S.habitLog).map(([day,log])=>({day,log})); checkins=Object.entries(S.checkins).map(([day,v])=>({day,...v})); reminders=S.reminders||[]; }
-    const todayEntries = entries.filter(e => (e.createdAt||'').slice(0,10) === T).length + nods.filter(x => x.date === T).length;
-    const active = projects.filter(p => p.status === 'active').length;
-    const due = habits.filter(h => !h.archived && !h.negative && habitDue(h, T)); const todayLog = habitLog.find(r => r.day === T)?.log || {}; const done = due.filter(h => todayLog[h.id]).length;
-    const checked = checkins.some(c => c.day === T && c.mood); const dueRem = reminders.filter(r => !r.done && r.date <= T).length;
-    const lastSnap = [...snaps].sort((a,b)=>a.date<b.date?1:-1)[0]; const snapDays = lastSnap ? daysSince(lastSnap.date) : null;
-    const dueSkills = skills.filter(s => s.targetDate && daysBetween(T, s.targetDate) <= 30 && daysBetween(T, s.targetDate) >= 0 && s.level < s.target);
-    const wither = visions.filter(v => v.confidence !== 'lived' && vividness(v).lastTended > 60).length;
-    const memories = entries.filter(e => e.type === 'memory').length; const quotes = entries.filter(e => e.type === 'quote').length;
-    const card = (z, lines, links) => `<div class="card home-card rv" style="--z:${z.accent}"><div class="row between"><h3 style="margin:0">${esc(z.label)}</h3><span class="mono">${esc(z.hint)}</span></div><div class="home-lines">${lines.map(l=>`<div>${l}</div>`).join('')}</div><div class="row" style="margin-top:12px">${links.map(k=>`<a class="chip click on" style="--c:${z.accent}" href="${NAV_PAGES[k].route}">${NAV_PAGES[k].ico} ${esc(NAV_PAGES[k].label)}</a>`).join('')}</div></div>`;
-    $('#homeCards').innerHTML =
-      card(NAV_ZONES[0], [`<b>${todayEntries}</b> item${todayEntries===1?'':'s'} logged today · <b>${active}</b> active project${active===1?'':'s'}`, `${checked?'Checked in':'<span style="color:var(--gold)">Not yet checked in</span>'} · habit rings <b>${done}/${due.length}</b>${dueRem?` · <b>${dueRem}</b> reminder${dueRem===1?'':'s'} waiting`:''}`], n.present) +
-      card(NAV_ZONES[1], [`Last snapshot <b>${snapDays===null?'never':snapDays===0?'today':snapDays+' days ago'}</b> · <b>${dueSkills.length}</b> skill milestone${dueSkills.length===1?'':'s'} due within 30 days`, `<b>${visions.filter(v=>v.confidence!=='lived').length}</b> visions growing${wither?`, <span style="color:var(--gold)">${wither} withering</span>`:''} · <b>${memories}</b> memories kept`], n.becoming) +
-      card({label:'Always', hint:'reference', accent:'var(--terra)'}, [`<b>${quotes}</b> quotes in the library · the system map shows what needs tending`], n.standalone);
-    reveal($('#homeCards')); $$('#homeCards .rv').forEach(x => x.classList.add('in'));
-  })();
+  const due = S.habits.filter(h=>!h.archived&&!h.negative&&habitDue(h,T)); const done = due.filter(h=>habitDone(h,T)).length;
+  const vs = S.visions.filter(v=>v.confidence!=='lived').map(v=>({v,...vividness(v)})); const wither = vs.filter(x=>x.lastTended>60).length;
+  const last = latestSnapshot(); const snapDays = last ? daysSince(last.date) : null; const gaps = valueGaps();
+  const atro = S.skills.filter(s=>!s.planned && daysSince(skillLastPracticed(s))>90).length; const hrs30 = S.skills.reduce((n,s)=>n+entriesLinked('skills',s.id).filter(e=>daysSince(e.createdAt.slice(0,10))<=30).reduce((m,e)=>m+((+e.extra?.duration||0)/60),0),0);
+  const active = S.projects.filter(p=>p.status==='active'); const nods7 = S.nods.filter(x=>daysSince(x.date)<=7).length; const cold = active.filter(p=>daysSince(projectNods(p)[0]?.date)>7).length;
+  const j7 = S.entries.filter(e=>daysSince(e.createdAt.slice(0,10))<=7).length; const quotes = S.entries.filter(e=>e.type==='quote').length; const memories = S.entries.filter(e=>e.type==='memory').length;
+  const c = S.checkins[T]; const rem = (S.reminders||[]).filter(r=>!r.done&&r.date<=T).length;
+  const stat = {
+    today:    {line:`${c?.mood?'checked in':'not checked in'} · rings ${done}/${due.length}`, ok:!!c?.mood, cadence:'daily', tip:`${c?.intention?'Intention: '+c.intention:'No intention set yet'}${rem?` · ${rem} reminder${rem>1?'s':''} waiting`:''}`},
+    rituals:  {line:`${done}/${due.length} rings today`, ok:due.length>0&&done===due.length, cadence:'daily', tip:`${theatreDoneToday()?'Morning Theatre practised':'Morning Theatre not yet practised'} · weekly review ${relDays(daysSince(S.reviews.lastWeekly))}`},
+    journals: {line:`${j7} entr${j7===1?'y':'ies'} this week`, ok:j7>0, cadence:'daily', tip:`${S.entries.length} entries across ${S.journals.length} journals`},
+    projects: {line:`${active.length} active · ${nods7} nods / 7d`, ok:cold===0, cadence:'daily', tip:cold?`${cold} active project${cold>1?'s':''} without a nod this week`:'every active project nodded this week'},
+    values:   {line:`snapshot ${snapDays===null?'never':snapDays===0?'today':snapDays+'d ago'}`, ok:snapDays!==null&&snapDays<=7, cadence:'weekly', tip:gaps[0]?`Biggest gap: ${gaps[0].name} (${gaps[0].gap>0?'+':''}${gaps[0].gap})`:''},
+    skills:   {line:`${hrs30.toFixed(0)}h / 30d${atro?` · ${atro} atrophying`:''}`, ok:atro===0, cadence:'monthly', tip:`${S.skills.filter(s=>!s.planned).length} skills held, ${S.skills.filter(s=>s.planned).length} planned`},
+    vision:   {line:`${vs.length} growing${wither?` · ${wither} withering`:''}`, ok:wither===0, cadence:'weekly', tip:vs.length?`Most vivid: ${[...vs].sort((a,b)=>b.score-a.score)[0].v.name}`:''},
+    timeline: {line:`${memories} memories · ${S.stages.length} stages`, ok:true, cadence:'archival', tip:'The museum of the past. Formative events and the story you tell.'},
+    library:  {line:`${quotes} quotes`, ok:true, cadence:'archival', tip:'Quotes and marginalia; why each one caught you.'},
+  };
+  return {stat, due, done, vs, wither, last, snapDays, gaps, atro, hrs30, active, nods7, j7, quotes, memories, c, rem, zonesOf: k => n.present.includes(k)?'present':n.becoming.includes(k)?'becoming':'always'};
+}
+function houseSVG(st){
+  const n = navConfig(); const keys = [...n.present, ...n.becoming, ...n.standalone].filter(k => NAV_PAGES[k] && st.stat[k]);
+  const W = 760, H = 460, cx = W/2, cy = H/2, R = 170; const pos = {}; const zoneColor = k => st.zonesOf(k)==='present' ? 'var(--sage)' : st.zonesOf(k)==='becoming' ? 'var(--ment)' : 'var(--terra)';
+  keys.forEach((k,i) => { const a = -Math.PI/2 + i*2*Math.PI/keys.length; pos[k] = [cx + Math.cos(a)*R, cy + Math.sin(a)*R]; });
+  let g = '';
+  HOUSE_EDGES.forEach(([a,b,label],i) => { if(!pos[a]||!pos[b]) return; const [x1,y1]=pos[a],[x2,y2]=pos[b]; const mx=(x1+x2)/2+(cx-(x1+x2)/2)*.25, my=(y1+y2)/2+(cy-(y1+y2)/2)*.25; g += `<path class="hedge" d="M${x1},${y1} Q${mx},${my} ${x2},${y2}" data-a="${a}" data-b="${b}" data-label="${esc(label)}"/>`; });
+  g += `<circle cx="${cx}" cy="${cy}" r="30" fill="var(--surface-2)" stroke="var(--terra)" stroke-width="1.2"/><text x="${cx}" y="${cy-4}" text-anchor="middle" style="font-family:var(--han);font-size:22px;fill:var(--terra)">生</text><text x="${cx}" y="${cy+14}" text-anchor="middle" style="font-family:var(--mono);font-size:8px;fill:var(--faint)">${fmtDate(today(),'short').toUpperCase()}</text>`;
+  keys.forEach(k => { const [x,y] = pos[k]; const s = st.stat[k]; const p = NAV_PAGES[k]; const r = s.cadence==='daily'?34:s.cadence==='weekly'?31:27;
+    g += `<g class="hnode ${s.cadence}" data-node="${k}" data-go="${p.route}" style="--zc:${zoneColor(k)}"><circle class="body" cx="${x}" cy="${y}" r="${r}" fill="color-mix(in srgb,${zoneColor(k)} ${s.cadence==='daily'?22:s.cadence==='weekly'?14:8}%,var(--surface))" stroke="${zoneColor(k)}" stroke-width="1.4" ${s.cadence==='monthly'||s.cadence==='archival'?'stroke-dasharray="4 3"':''} opacity="${s.cadence==='archival'?.7:1}"/><text x="${x}" y="${y+6}" text-anchor="middle" style="font-size:${r*.6}px">${p.ico}</text><circle cx="${x+r*.7}" cy="${y-r*.7}" r="5" fill="${s.ok?'var(--sage)':'var(--gold)'}" stroke="var(--surface)" stroke-width="1.5"/><text class="hl" x="${x}" y="${y+r+16}" text-anchor="middle">${esc(p.label)}</text><text class="hs" x="${x}" y="${y+r+28}" text-anchor="middle">${esc(s.line)}</text></g>`; });
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">${g}</svg>`;
+}
+routes.home = function(root){
+  const T = today(); const st = houseStats(); const moon = moonPhase(); const c = checkin(T);
+  const days30 = lastDays(30); const weeks12 = Array.from({length:12},(_,w)=>w).map(w => lastDays(84).slice(w*7, w*7+7));
+  const axes = S.valueOrder.map(id=>{ const v=byId(S.values,id); return {name:v.name, short:v.name.split(' ')[0], color:v.color}; });
+  const snaps = allSnapshotsWithRetro(); const avgCong = snaps.map(s => avg(S.valueOrder.map(id => s.ratings[id]).filter(x=>x!=null)));
+  const habitRate = weeks12.map(days => { let due=0, done=0; days.forEach(d => S.habits.forEach(h => { if(!h.archived&&!h.negative&&habitDue(h,d)){ due++; if(habitDone(h,d)) done++; } })); return due ? Math.round(done/due*100) : null; });
+  const nodsW = weeks12.map(days => S.nods.filter(x => days.includes(x.date)).length);
+  const entriesW = weeks12.map(days => S.entries.filter(e => days.includes(e.createdAt.slice(0,10))).length);
+  const topV = [...st.vs].sort((a,b)=>b.score-a.score).slice(0,5); const nextActs = [...st.vs].filter(x=>x.v.nextAction).sort((a,b)=>b.score-a.score).slice(0,3);
+  const stageCounts = S.stages.map(s => ({s, n: stageEntries(s).length})); const maxStage = Math.max(...stageCounts.map(x=>x.n),1);
+  const skillHrs = S.skills.filter(s=>!s.planned).map(s=>({s,h:skillHours(s)})).sort((a,b)=>b.h-a.h).slice(0,4);
+  const income = sum(S.projects.map(p=>p.income?.current||0));
+  root.innerHTML = `<div class="page">
+    <div class="page-head" style="margin-bottom:22px"><div><h1>${fmtDate(T)}</h1><div class="moon">${moonSVG(moon.p)} <span>${moon.name}</span><span class="mono" style="margin-left:6px">· your life at a glance</span></div></div></div>
+
+    <div class="home-hero">
+      <div class="focus-card rv"><div class="row between"><span class="k mono" style="text-transform:uppercase;letter-spacing:.12em;font-size:.62rem;color:var(--terra)">Today's focus</span><a class="btn sm ghost" href="#/today">open Today →</a></div>
+        <div class="intent">${ed(`checkins.${T}.intention`,{ph:'One thing to give attention to today. Click to set it.'})}</div>
+        <div class="focus-row">
+          <div class="mini-rings" title="habit rings">${st.due.slice(0,10).map(h=>ringSVG(habitDone(h,T)?(habitDone(h,T).level==='min'?.5:1):0,{size:26,stroke:4,color:DIMS.find(d=>d.id===h.dimension).c})).join('')}<span class="mono">${st.done}/${st.due.length}</span></div>
+          <span class="mono">${c.mood?'mood '+['heavy','low','level','light','luminous'][c.mood-1]:'<span style="color:var(--gold)">not checked in</span>'}</span>
+          <span class="mono">${c.setpoint?hicksName(c.setpoint).split(' / ')[0]:''}</span>
+          <span class="mono">${theatreDoneToday()?'theatre ✓':'theatre ·'}</span>
+          ${st.rem?`<span class="mono" style="color:var(--gold)">${st.rem} reminder${st.rem>1?'s':''}</span>`:''}
+        </div>
+        ${nextActs.length?`<div class="next-actions"><div class="k mono" style="font-size:.6rem;text-transform:uppercase;letter-spacing:.12em;color:var(--gold)">Nearest next actions</div>${nextActs.map(x=>`<div><span class="mono">🌿</span><span style="flex:1">${esc(x.v.nextAction)}</span><a class="mono" href="#/vision/${x.v.id}" style="text-decoration:none">${esc(x.v.name)}</a></div>`).join('')}</div>`:''}
+      </div>
+      <div class="card rv" style="padding:18px 20px"><div class="k mono" style="text-transform:uppercase;letter-spacing:.12em;font-size:.62rem">Gentle prompt</div><div class="quote" style="margin-top:8px;font-size:1.1rem;color:var(--text)">${gentlePrompt()}</div>
+        <div class="k mono" style="text-transform:uppercase;letter-spacing:.12em;font-size:.62rem;margin-top:18px">Signals</div>
+        <div class="stack" style="gap:6px;margin-top:6px">${signals().slice(0,4).map(s=>`<a href="${s.go}" class="row between" style="text-decoration:none;color:inherit;padding:6px 0;border-top:1px dashed var(--line);gap:12px"><span class="mono" style="flex:none">${esc(s.k)}</span><span style="text-align:right;font-size:.85rem">${esc(s.v)}</span></a>`).join('')}</div></div>
+    </div>
+
+    <section class="section rv" style="margin-top:22px"><div class="row between"><span class="sc" style="margin:0">The house</span><span class="mono">● green tended · ● amber needs you · solid rings daily, dashed seasonal · hover to see what feeds what</span></div>
+      <div class="house-wrap" id="houseWrap" style="margin-top:10px">${houseSVG(st)}<div class="htip" id="htip"></div></div></section>
+
+    <section class="section rv"><span class="sc">The long view</span>
+    <div class="bento">
+      <div class="card span2"><div class="k">Compass <a href="#/values">→</a></div>${radar(axes,[{vals:S.valueOrder.map(id=>st.last?.ratings[id]??0),color:'var(--terra)'}],{size:230})}<div class="sub">${st.gaps[0]?`Widest gap: <b style="color:${st.gaps[0].color}">${esc(st.gaps[0].name)}</b> — ranked #${st.gaps[0].rank}, congruence ${st.gaps[0].congruence}%`:''}</div></div>
+      <div class="card span2"><div class="k">Congruence over a lifetime</div><div class="big" data-tween="${avgCong.slice(-1)[0]||0}" data-suffix="%">0</div>${sparkline(avgCong,{h:56,min:0,max:100,color:'var(--terra)'})}<div class="sub">average across ten values · ${snaps.length} readings from ${snaps[0]?fmtDate(snaps[0].date,'med'):'—'}</div></div>
+      <div class="card span2"><div class="k">Energy, 30 days <a href="#/today">→</a></div>${multiSpark(DIMS.map(d=>({vals:days30.map(x=>S.checkins[x]?.energy?.[d.id]||null),color:d.c})),{h:56})}<div class="legend">${DIMS.map(d=>`<span style="--c:${d.c}">${d.name}</span>`).join('')}</div>${sparkline(days30.map(d=>S.checkins[d]?.setpoint||null),{h:34,min:1,max:22,color:'var(--rose)'})}<div class="sub">emotional set-point · avg ${avg(days30.map(d=>S.checkins[d]?.setpoint).filter(Boolean)).toFixed(1)} — ${hicksName(avg(days30.map(d=>S.checkins[d]?.setpoint).filter(Boolean))||14).split(' / ')[0]}</div></div>
+      <div class="card span3"><div class="k">Visions <a href="#/vision">→</a></div><div class="sub">${st.vs.length} growing${st.wither?`, <span style="color:var(--gold)">${st.wither} withering</span>`:''} · average vividness ${Math.round(avg(st.vs.map(x=>x.score)))}</div>${topV.map(x=>`<div class="vbar"><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(x.v.name)}</span><div class="bar" style="--c:${x.lastTended>60?'var(--gold)':'var(--sage)'}"><i style="width:${x.score}%"></i></div><span class="mono">${x.score}</span></div>`).join('')}</div>
+      <div class="card span3"><div class="k">Habits, 12 weeks <a href="#/rituals">→</a></div><div class="big" data-tween="${habitRate.slice(-1)[0]||0}" data-suffix="%">0<small>this week</small></div>${sparkline(habitRate,{h:56,min:0,max:100,color:'var(--sage)'})}<div class="sub">weekly completion · best streak ${Math.max(0,...S.habits.filter(h=>!h.archived&&!h.negative).map(h=>habitStreak(h).best))} days · weekly review ${relDays(daysSince(S.reviews.lastWeekly))}</div></div>
+      <div class="card span2"><div class="k">Projects <a href="#/projects">→</a></div><div class="big" data-tween="${st.nods7}">0<small>nods this week</small></div>${sparkline(nodsW,{h:44,min:0,color:'var(--terra)'})}<div class="sub">${st.active.length} active · ${fmtYen(income)}/mo across ${S.projects.filter(p=>p.income?.current>0).length} stream${S.projects.filter(p=>p.income?.current>0).length===1?'':'s'}</div></div>
+      <div class="card span2"><div class="k">Skills <a href="#/skills">→</a></div><div class="big" data-tween="${st.hrs30}" data-dec="1">0<small>hours / 30d</small></div>${skillHrs.map(x=>`<div class="vbar"><span>${esc(x.s.name)}</span><div class="bar" style="--c:var(--ment)"><i style="width:${Math.min(100,x.h/Math.max(skillHrs[0].h,1)*100)}%"></i></div><span class="mono">${x.h.toFixed(0)}h</span></div>`).join('')}<div class="sub">${st.atro?`<span style="color:var(--gold)">${st.atro} atrophying</span> · `:''}${S.skills.filter(s=>s.planned).length} buds planned</div></div>
+      <div class="card span2"><div class="k">Journal &amp; memory <a href="#/journals">→</a></div><div class="big" data-tween="${S.entries.length}">0<small>entries</small></div>${sparkline(entriesW,{h:40,min:0,color:'var(--rose)'})}<div class="sub">${st.j7} this week · ${st.memories} memories · ${st.quotes} quotes</div><div class="stagebars" title="entries per stage">${stageCounts.map(x=>`<i style="--c:${x.s.hue};height:${Math.max(4,x.n/maxStage*44)}px" title="${esc(x.s.name)} · ${x.n}"></i>`).join('')}</div></div>
+    </div></section>
+  </div>`;
+  const wrap = $('#houseWrap'), tip = $('#htip'); const showTip = (e, html) => { tip.innerHTML = html; tip.style.display='block'; const r = wrap.getBoundingClientRect(); tip.style.left = Math.min(e.clientX-r.left+14, r.width-290)+'px'; tip.style.top = (e.clientY-r.top+14)+'px'; };
+  wrap.querySelectorAll('.hnode').forEach(nd => { nd.onmouseenter = e => { wrap.classList.add('hov'); nd.classList.add('hot'); wrap.querySelectorAll('.hedge').forEach(ed_ => { if(ed_.dataset.a===nd.dataset.node||ed_.dataset.b===nd.dataset.node){ ed_.classList.add('hot'); wrap.querySelector(`[data-node="${ed_.dataset.a}"]`)?.classList.add('hot'); wrap.querySelector(`[data-node="${ed_.dataset.b}"]`)?.classList.add('hot'); } }); const s = st.stat[nd.dataset.node]; showTip(e, `<b class="serif">${esc(NAV_PAGES[nd.dataset.node].label)}</b> · <span class="mono">${s.cadence}</span><br>${esc(s.line)}${s.tip?'<br>'+esc(s.tip):''}<br><span class="mono">click to open</span>`); }; nd.onmousemove = e => showTip(e, tip.innerHTML); nd.onmouseleave = () => { wrap.classList.remove('hov'); wrap.querySelectorAll('.hot').forEach(x=>x.classList.remove('hot')); tip.style.display='none'; }; });
+  wrap.querySelectorAll('.hedge').forEach(ed_ => { ed_.onmouseenter = e => { ed_.classList.add('hot'); showTip(e, `<span class="mono">${esc(NAV_PAGES[ed_.dataset.a].label)} ↔ ${esc(NAV_PAGES[ed_.dataset.b].label)}</span><br>${esc(ed_.dataset.label)}`); }; ed_.onmousemove = e => showTip(e, tip.innerHTML); ed_.onmouseleave = () => { ed_.classList.remove('hot'); tip.style.display='none'; }; });
 };
 
 /* ---------- Settings: drag-and-drop zone editor ---------- */

@@ -354,26 +354,49 @@ html[data-theme="light"] .stage-hero .veil{background:linear-gradient(180deg,rgb
 /* ============================================================
    10. SYSTEM MAP
    ============================================================ */
-.map-wrap{position:relative;height:calc(100vh - 170px);min-height:600px;border-radius:20px;overflow:hidden;background:var(--surface);border:1px solid var(--line)}
-.map-wrap svg{width:100%;height:100%;display:block}
-.map-wrap .mnode{cursor:pointer}
-.map-wrap .mnode rect{transition:all .3s var(--ease)}
-.map-wrap .mnode text.t{font-family:var(--serif);font-size:15px;fill:var(--text);letter-spacing:.06em;text-transform:uppercase;pointer-events:none}
-.map-wrap .mnode text.c{font-family:var(--mono);font-size:9px;fill:var(--muted);letter-spacing:.1em;text-transform:uppercase;pointer-events:none}
-.map-wrap .mnode.daily rect{animation:pulseb 3.5s ease-in-out infinite}
-@keyframes pulseb{0%,100%{stroke-opacity:.5;filter:drop-shadow(0 0 4px color-mix(in srgb,var(--terra) 40%,transparent))}50%{stroke-opacity:1;filter:drop-shadow(0 0 14px color-mix(in srgb,var(--terra) 60%,transparent))}}
-.map-wrap .medge{fill:none;stroke:var(--line-2);stroke-width:1.5;transition:all .3s var(--ease);cursor:pointer}
-.map-wrap .medge.hot,.map-wrap.hov .medge.hot{stroke:var(--terra);stroke-width:2.5;filter:drop-shadow(0 0 5px color-mix(in srgb,var(--terra) 60%,transparent))}
-.map-wrap.hov .medge:not(.hot){opacity:.25}
-.map-wrap.hov .mnode:not(.hot){opacity:.4}
-.map-wrap .mtip{position:absolute;background:var(--surface-2);border:1px solid var(--line-2);padding:10px 14px;border-radius:10px;font-size:.78rem;max-width:280px;pointer-events:none;display:none;box-shadow:var(--shadow);z-index:5;line-height:1.5}
-.map-legend{display:flex;gap:18px;flex-wrap:wrap;font-size:.72rem;color:var(--muted);margin-top:12px}
-.map-legend span{display:inline-flex;align-items:center;gap:6px}
-.map-legend i{width:26px;height:14px;border-radius:4px;border:1.5px solid var(--terra);display:inline-block}
-.map-legend i.d{background:color-mix(in srgb,var(--terra) 30%,transparent)}
-.map-legend i.w{background:color-mix(in srgb,var(--terra) 16%,transparent);width:22px}
-.map-legend i.m{border-style:dashed;width:20px}
-.map-legend i.a{opacity:.4;width:18px}
+/* ============================================================
+   HOME — life at a glance
+   ============================================================ */
+.home-hero{display:grid;grid-template-columns:1.3fr 1fr;gap:18px;align-items:stretch}
+@media (max-width:900px){.home-hero{grid-template-columns:1fr}}
+.focus-card{background:linear-gradient(135deg,color-mix(in srgb,var(--terra) 10%,var(--surface)),var(--surface));border:1px solid var(--line);border-radius:18px;padding:22px 24px}
+.focus-card .intent{font-family:var(--serif);font-size:1.5rem;line-height:1.35;margin:6px 0 14px}
+.focus-card .intent .ed{display:block}
+.focus-row{display:flex;gap:18px;flex-wrap:wrap;align-items:center}
+.mini-rings{display:flex;gap:6px;align-items:center}
+.mini-rings svg{width:26px;height:26px}
+.next-actions{margin-top:14px;border-top:1px dashed var(--line);padding-top:10px}
+.next-actions div{display:flex;gap:10px;align-items:baseline;padding:4px 0;font-size:.9rem}
+.next-actions .mono{flex:none}
+.house-wrap{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:18px;overflow:hidden;min-height:420px}
+.house-wrap svg{width:100%;height:100%;display:block;min-height:420px}
+.hnode{cursor:pointer}
+.hnode circle.body{transition:r .35s var(--ease),stroke-width .3s var(--ease)}
+.hnode:hover circle.body{stroke-width:2.5}
+.hnode text{pointer-events:none}
+.hnode .hl{font-family:var(--serif);font-size:12.5px;fill:var(--text);letter-spacing:.04em}
+.hnode .hs{font-family:var(--mono);font-size:8.5px;fill:var(--muted)}
+.hnode.daily circle.body{animation:pulseb 3.5s ease-in-out infinite}
+@keyframes pulseb{0%,100%{filter:drop-shadow(0 0 3px color-mix(in srgb,var(--terra) 35%,transparent))}50%{filter:drop-shadow(0 0 12px color-mix(in srgb,var(--terra) 60%,transparent))}}
+.hedge{fill:none;stroke:var(--line-2);stroke-width:1.2;transition:all .3s var(--ease)}
+.house-wrap.hov .hedge:not(.hot){opacity:.15}
+.house-wrap.hov .hnode:not(.hot){opacity:.35}
+.hedge.hot{stroke:var(--terra);stroke-width:2;filter:drop-shadow(0 0 4px color-mix(in srgb,var(--terra) 60%,transparent))}
+.htip{position:absolute;background:var(--surface-2);border:1px solid var(--line-2);padding:10px 14px;border-radius:10px;font-size:.78rem;max-width:280px;pointer-events:none;display:none;box-shadow:var(--shadow);z-index:5;line-height:1.5}
+.bento{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-top:18px}
+.bento .card{padding:18px 20px;display:flex;flex-direction:column;gap:8px}
+.bento .span2{grid-column:span 2}.bento .span3{grid-column:span 3}.bento .span4{grid-column:span 4}.bento .span6{grid-column:span 6}
+@media (max-width:1100px){.bento{grid-template-columns:repeat(2,1fr)}.bento .span2,.bento .span3,.bento .span4,.bento .span6{grid-column:span 2}}
+@media (max-width:640px){.bento{grid-template-columns:1fr}.bento .span2,.bento .span3,.bento .span4,.bento .span6{grid-column:span 1}}
+.bento .k{font-family:var(--mono);font-size:.62rem;text-transform:uppercase;letter-spacing:.12em;color:var(--faint);display:flex;justify-content:space-between;align-items:center}
+.bento .k a{color:var(--muted);text-decoration:none}
+.bento .k a:hover{color:var(--text)}
+.bento .big{font-family:var(--serif);font-size:2rem;line-height:1;font-variant-numeric:tabular-nums}
+.bento .big small{font-family:var(--sans);font-size:.75rem;color:var(--muted);margin-left:6px}
+.bento .sub{font-size:.8rem;color:var(--muted);line-height:1.5}
+.vbar{display:grid;grid-template-columns:1fr 3fr 34px;gap:8px;align-items:center;font-size:.8rem;padding:2px 0}
+.stagebars{display:flex;gap:4px;align-items:flex-end;height:44px}
+.stagebars i{flex:1;border-radius:3px 3px 1px 1px;background:var(--c);opacity:.8;min-height:2px;transition:height .6s var(--ease)}
 
 /* ============================================================
    13. SETTINGS

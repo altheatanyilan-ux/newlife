@@ -690,26 +690,49 @@ html[data-theme="light"] .stage-hero .veil{background:linear-gradient(180deg,rgb
 /* ============================================================
    10. SYSTEM MAP
    ============================================================ */
-.map-wrap{position:relative;height:calc(100vh - 170px);min-height:600px;border-radius:20px;overflow:hidden;background:var(--surface);border:1px solid var(--line)}
-.map-wrap svg{width:100%;height:100%;display:block}
-.map-wrap .mnode{cursor:pointer}
-.map-wrap .mnode rect{transition:all .3s var(--ease)}
-.map-wrap .mnode text.t{font-family:var(--serif);font-size:15px;fill:var(--text);letter-spacing:.06em;text-transform:uppercase;pointer-events:none}
-.map-wrap .mnode text.c{font-family:var(--mono);font-size:9px;fill:var(--muted);letter-spacing:.1em;text-transform:uppercase;pointer-events:none}
-.map-wrap .mnode.daily rect{animation:pulseb 3.5s ease-in-out infinite}
-@keyframes pulseb{0%,100%{stroke-opacity:.5;filter:drop-shadow(0 0 4px color-mix(in srgb,var(--terra) 40%,transparent))}50%{stroke-opacity:1;filter:drop-shadow(0 0 14px color-mix(in srgb,var(--terra) 60%,transparent))}}
-.map-wrap .medge{fill:none;stroke:var(--line-2);stroke-width:1.5;transition:all .3s var(--ease);cursor:pointer}
-.map-wrap .medge.hot,.map-wrap.hov .medge.hot{stroke:var(--terra);stroke-width:2.5;filter:drop-shadow(0 0 5px color-mix(in srgb,var(--terra) 60%,transparent))}
-.map-wrap.hov .medge:not(.hot){opacity:.25}
-.map-wrap.hov .mnode:not(.hot){opacity:.4}
-.map-wrap .mtip{position:absolute;background:var(--surface-2);border:1px solid var(--line-2);padding:10px 14px;border-radius:10px;font-size:.78rem;max-width:280px;pointer-events:none;display:none;box-shadow:var(--shadow);z-index:5;line-height:1.5}
-.map-legend{display:flex;gap:18px;flex-wrap:wrap;font-size:.72rem;color:var(--muted);margin-top:12px}
-.map-legend span{display:inline-flex;align-items:center;gap:6px}
-.map-legend i{width:26px;height:14px;border-radius:4px;border:1.5px solid var(--terra);display:inline-block}
-.map-legend i.d{background:color-mix(in srgb,var(--terra) 30%,transparent)}
-.map-legend i.w{background:color-mix(in srgb,var(--terra) 16%,transparent);width:22px}
-.map-legend i.m{border-style:dashed;width:20px}
-.map-legend i.a{opacity:.4;width:18px}
+/* ============================================================
+   HOME — life at a glance
+   ============================================================ */
+.home-hero{display:grid;grid-template-columns:1.3fr 1fr;gap:18px;align-items:stretch}
+@media (max-width:900px){.home-hero{grid-template-columns:1fr}}
+.focus-card{background:linear-gradient(135deg,color-mix(in srgb,var(--terra) 10%,var(--surface)),var(--surface));border:1px solid var(--line);border-radius:18px;padding:22px 24px}
+.focus-card .intent{font-family:var(--serif);font-size:1.5rem;line-height:1.35;margin:6px 0 14px}
+.focus-card .intent .ed{display:block}
+.focus-row{display:flex;gap:18px;flex-wrap:wrap;align-items:center}
+.mini-rings{display:flex;gap:6px;align-items:center}
+.mini-rings svg{width:26px;height:26px}
+.next-actions{margin-top:14px;border-top:1px dashed var(--line);padding-top:10px}
+.next-actions div{display:flex;gap:10px;align-items:baseline;padding:4px 0;font-size:.9rem}
+.next-actions .mono{flex:none}
+.house-wrap{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:18px;overflow:hidden;min-height:420px}
+.house-wrap svg{width:100%;height:100%;display:block;min-height:420px}
+.hnode{cursor:pointer}
+.hnode circle.body{transition:r .35s var(--ease),stroke-width .3s var(--ease)}
+.hnode:hover circle.body{stroke-width:2.5}
+.hnode text{pointer-events:none}
+.hnode .hl{font-family:var(--serif);font-size:12.5px;fill:var(--text);letter-spacing:.04em}
+.hnode .hs{font-family:var(--mono);font-size:8.5px;fill:var(--muted)}
+.hnode.daily circle.body{animation:pulseb 3.5s ease-in-out infinite}
+@keyframes pulseb{0%,100%{filter:drop-shadow(0 0 3px color-mix(in srgb,var(--terra) 35%,transparent))}50%{filter:drop-shadow(0 0 12px color-mix(in srgb,var(--terra) 60%,transparent))}}
+.hedge{fill:none;stroke:var(--line-2);stroke-width:1.2;transition:all .3s var(--ease)}
+.house-wrap.hov .hedge:not(.hot){opacity:.15}
+.house-wrap.hov .hnode:not(.hot){opacity:.35}
+.hedge.hot{stroke:var(--terra);stroke-width:2;filter:drop-shadow(0 0 4px color-mix(in srgb,var(--terra) 60%,transparent))}
+.htip{position:absolute;background:var(--surface-2);border:1px solid var(--line-2);padding:10px 14px;border-radius:10px;font-size:.78rem;max-width:280px;pointer-events:none;display:none;box-shadow:var(--shadow);z-index:5;line-height:1.5}
+.bento{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-top:18px}
+.bento .card{padding:18px 20px;display:flex;flex-direction:column;gap:8px}
+.bento .span2{grid-column:span 2}.bento .span3{grid-column:span 3}.bento .span4{grid-column:span 4}.bento .span6{grid-column:span 6}
+@media (max-width:1100px){.bento{grid-template-columns:repeat(2,1fr)}.bento .span2,.bento .span3,.bento .span4,.bento .span6{grid-column:span 2}}
+@media (max-width:640px){.bento{grid-template-columns:1fr}.bento .span2,.bento .span3,.bento .span4,.bento .span6{grid-column:span 1}}
+.bento .k{font-family:var(--mono);font-size:.62rem;text-transform:uppercase;letter-spacing:.12em;color:var(--faint);display:flex;justify-content:space-between;align-items:center}
+.bento .k a{color:var(--muted);text-decoration:none}
+.bento .k a:hover{color:var(--text)}
+.bento .big{font-family:var(--serif);font-size:2rem;line-height:1;font-variant-numeric:tabular-nums}
+.bento .big small{font-family:var(--sans);font-size:.75rem;color:var(--muted);margin-left:6px}
+.bento .sub{font-size:.8rem;color:var(--muted);line-height:1.5}
+.vbar{display:grid;grid-template-columns:1fr 3fr 34px;gap:8px;align-items:center;font-size:.8rem;padding:2px 0}
+.stagebars{display:flex;gap:4px;align-items:flex-end;height:44px}
+.stagebars i{flex:1;border-radius:3px 3px 1px 1px;background:var(--c);opacity:.8;min-height:2px;transition:height .6s var(--ease)}
 
 /* ============================================================
    13. SETTINGS
@@ -801,7 +824,7 @@ function md(src){
 const KEY = 'lifeinstrument.v1';
 let S = null;
 /* persistence lives in db.js (Dexie schema + load/save/backup) */
-function migrate(){ if(typeof migrateEras === 'function') migrateEras(); const d = seed(); for(const k of Object.keys(d)) if(S[k]===undefined) S[k] = d[k]; }
+function migrate(){ if(S.settings && S.settings.home === 'map') S.settings.home = 'home'; if(typeof migrateEras === 'function') migrateEras(); const d = seed(); for(const k of Object.keys(d)) if(S[k]===undefined) S[k] = d[k]; }
 
 /* path access: "stages.#id.narrative" or "theatre.script" */
 function resolve(path){ const segs = path.split('.'); let o = S; for(let i=0;i<segs.length-1;i++){ o = step(o, segs[i]); if(o==null) return [null,null]; } return [o, segs[segs.length-1]]; }
@@ -898,12 +921,12 @@ function applySeason(){ const m = new Date().getMonth(); const hue = [200,200,12
 const routes = {};
 let currentRoute = null;
 function navigate(hash){ location.hash = hash; }
-function parseHash(){ const h = (location.hash||'').replace(/^#\/?/,''); const [name, ...rest] = h.split('/'); return {name: name || (S.settings.home || 'home'), params: rest.map(decodeURIComponent)}; }
+function parseHash(){ const h = (location.hash||'').replace(/^#\/?/,''); const [name, ...rest] = h.split('/'); return {name: name || homeRoute(), params: rest.map(decodeURIComponent)}; }
 function renderRoute(){
   const {name, params} = parseHash();
   markActiveNav();
   const main = $('#main');
-  const fn = routes[name] || routes.today;
+  const fn = routes[name] || routes.home;
   closePanel({keep:true});
   main.innerHTML = '';
   main.style.animation = 'none'; void main.offsetWidth; main.style.animation = '';
@@ -912,7 +935,7 @@ function renderRoute(){
   mountContextAdd(main); reveal(main); tweenAll(main); backupBanner(); updateBackButton();
   window.scrollTo({top:0, behavior:'instant'});
 }
-function rerender(){ const y = window.scrollY; const main = $('#main'); const {name, params} = parseHash(); main.innerHTML=''; PageEntryConfig.clear(); (routes[name]||routes.today)(main, params); mountContextAdd(main); $$('.rv', main).forEach(n=>n.classList.add('in')); tweenAll(main); window.scrollTo({top:y}); }
+function rerender(){ const y = window.scrollY; const main = $('#main'); const {name, params} = parseHash(); main.innerHTML=''; PageEntryConfig.clear(); (routes[name]||routes.home)(main, params); mountContextAdd(main); $$('.rv', main).forEach(n=>n.classList.add('in')); tweenAll(main); window.scrollTo({top:y}); }
 window.addEventListener('hashchange', () => { sound('page'); if(document.startViewTransition && !reduced() && document.visibilityState==='visible') document.startViewTransition(renderRoute); else renderRoute(); });
 
 /* ---------- side panel ---------- */
@@ -920,7 +943,7 @@ function openPanel(html, cls=''){ closePanel({keep:true}); sound('open'); if(!hi
 function closePanel({keep=false}={}){ const had = !!$('#panel'); $('#panelOv')?.remove(); $('#panel')?.remove(); if(had && !keep && history.state?.liPanel){ history.back(); } else updateBackButton(); }
 window.addEventListener('popstate', e => { if($('#panel') && !e.state?.liPanel) closePanel({keep:true}); updateBackButton(); });
 /* ---------- persistent Back button: history.back() only, never a link ---------- */
-function homeRoute(){ return S?.settings?.home || 'home'; }
+function homeRoute(){ const h = S?.settings?.home; return (h && h !== 'map' && routes[h]) ? h : 'home'; }
 function updateBackButton(){
   const b = $('#backBtn'); if(!b) return;
   const {name} = parseHash();
@@ -1224,7 +1247,7 @@ async function readLegacyBlobDB(){
 }
 async function load(){
   await db.open();
-  const metaCount = await db.meta.count(); console.log('[load] metaCount', metaCount, 'version', (await db._open()).version, 'stores', [...(await db._open()).objectStoreNames].join(','));
+  const metaCount = await db.meta.count();
   if(metaCount){ S = storesToState(await readAllStores()); lastWritten = {}; const before = stateToStores(S); for(const k of Object.keys(before)) lastWritten[k] = JSON.stringify(before[k]); migrate(); saveNow(); return; }   // anything migrate() added is dirty and gets written
   // migration source 1: the interim single-blob IndexedDB database
   const blob = await readLegacyBlobDB();
@@ -1232,7 +1255,7 @@ async function load(){
   // migration source 2: the original localStorage key
   let raw = null; try { raw = localStorage.getItem(KEY); } catch(e){}
   if(raw){ try { S = JSON.parse(raw); migrate(); await writeAllStores(stateToStores(S)); try { localStorage.removeItem(KEY); } catch(e){} setTimeout(() => toast('Your data was migrated from browser storage into the new database.', 5000), 600); return; } catch(e){ console.warn('localStorage migration failed', e); } }
-  console.log('[load] falling back to seed'); S = seed(); await writeAllStores(stateToStores(S));
+  S = seed(); await writeAllStores(stateToStores(S));
 }
 async function resetAll(){ S = seed(); await writeAllStores(stateToStores(S)); }
 async function storageInfo(){ try { const e = await navigator.storage?.estimate?.(); if(e) return {usage:e.usage||0, quota:e.quota||0}; } catch(err){} return null; }
@@ -2737,61 +2760,6 @@ function renderReviews(body){
   body.querySelectorAll('[data-letter]').forEach(b => b.onclick = () => openEntryModal({type:'letter', title:'To myself, one year from now', occurredAt:addDays(today(),365)}));
 }
 /* ============================================================
-   10. SYSTEM MAP — the control room
-   ============================================================ */
-function mapNodes(){
-  const T = today(); const topV = S.visions.filter(v=>v.confidence!=='lived').map(v=>({v,...vividness(v)})).sort((a,b)=>b.score-a.score)[0];
-  const due = S.habits.filter(h=>!h.archived&&!h.negative&&habitDue(h,T)); const doneH = due.filter(h=>habitDone(h,T)).length;
-  const dot = (ok, warn) => ok ? {c:'var(--sage)',t:'✓'} : warn ? {c:'var(--gold)',t:'!'} : null;
-  return [
-    {id:'theatre',t:'Morning Theatre',c:'daily',x:120,y:120,go:'#/today',desc:'Daily self-image rehearsal. Who you rehearse becoming shapes which visions feel achievable.',status:dot(theatreDoneToday(), !theatreDoneToday())},
-    {id:'today',t:'Today',c:'daily',x:120,y:300,go:'#/today',desc:'The daily entry point. Surfaces signals from every room.',status:dot(!!S.checkins[T]?.mood, !S.checkins[T]?.mood)},
-    {id:'rituals',t:'Rituals & Habits',c:'daily',x:120,y:480,go:'#/rituals',desc:`The maintenance engine for everything above. ${doneH}/${due.length} rings full today.`,status:dot(due.length&&doneH===due.length, doneH<due.length)},
-    {id:'vision',t:'Vision Tree',c:'weekly',x:470,y:120,go:'#/vision',desc:'Ask. Vividness measures Given. Resistance identifies what blocks Allowing.',status:topV?dot(topV.lastTended<=30, topV.lastTended>30):null},
-    {id:'values',t:'Values',c:'weekly',x:470,y:300,go:'#/values',desc:'Priority vs. congruence. Unserved values are blind spots.',status:dot(daysSince(latestSnapshot()?.date)<=7, daysSince(latestSnapshot()?.date)>7)},
-    {id:'skills',t:'Skill Tree',c:'monthly',x:470,y:480,go:'#/skills',desc:'Career capital. Rubrics reviewed seasonally; practice logged as it happens.',status:dot(!S.skills.some(s=>!s.planned&&daysSince(skillLastPracticed(s))>90), S.skills.some(s=>!s.planned&&daysSince(skillLastPracticed(s))>90))},
-    {id:'projects',t:'Creative Projects',c:'daily',x:820,y:120,go:'#/projects',desc:'Nods daily; income streams advance financial visions.',status:dot(S.nods.some(n=>n.date===T), !S.nods.some(n=>n.date===T))},
-    {id:'journals',t:'Journals',c:'daily',x:820,y:300,go:'#/journals',desc:'Entries cross-link to every other section. The connective tissue.',status:null},
-    {id:'timeline',t:'Timeline & Threads',c:'archival',x:820,y:480,go:'#/timeline',desc:'The museum of the past. Formative events, versioned narratives, threads that run through everything.',status:null},
-    {id:'annual',t:'Annual Rite · Letters · Artifacts',c:'archival',x:470,y:640,go:'#/rituals/reviews',desc:'The deepest archival layer. Tended once a year, or when the moment asks.',status:dot(daysSince(S.reviews.lastAnnual)<365, daysSince(S.reviews.lastAnnual)>=365)},
-  ];
-}
-const MAP_EDGES = [
-  ['theatre','vision','Who you rehearse becoming shapes which visions feel achievable — the self-image required by each vision is closed in the Theatre.'],
-  ['vision','skills','Visions require skills; skills serve visions. Hover a vision to see which skills are load-bearing.',true],
-  ['vision','values','Visions serve values; values no vision serves are structural blind spots.',true],
-  ['timeline','values','Retrospective values readings from each stage populate the Values radar across a whole life.'],
-  ['timeline','vision','Formative events and self-image patterns inform what you now want to create.'],
-  ['projects','skills','Projects exercise skills; skills enable projects.',true],
-  ['projects','vision','Income streams advance financial visions; nods grow leaves.'],
-  ['journals','vision','Entries cross-link to every section — a tagged entry is a leaf, a value reading, a practice log.'],
-  ['journals','timeline','Memories tagged to stages become formative events.'],
-  ['rituals','today','Rituals are the maintenance engine; Today is where the rings are filled.'],
-  ['today','vision','Signals surface the most neglected vision and the greatest structural tension.'],
-  ['today','values','The biggest values gap is a daily signal.'],
-  ['rituals','vision','Weekly review waters one vision.'],
-  ['rituals','values','Weekly review logs a congruence snapshot.'],
-  ['annual','timeline','The annual rite mints the year into the Timeline.'],
-];
-routes.map = function(root){
-  const nodes = mapNodes(); const N = {}; nodes.forEach(n=>N[n.id]=n); const W=940, H=740, w=200, h=64;
-  const style = {daily:{fill:'color-mix(in srgb,var(--terra) 30%,var(--surface))',stroke:'var(--terra)',dash:'',op:1,sc:1}, weekly:{fill:'color-mix(in srgb,var(--terra) 14%,var(--surface))',stroke:'var(--terra)',dash:'',op:1,sc:.92}, monthly:{fill:'var(--surface)',stroke:'var(--muted)',dash:'6 4',op:.9,sc:.86}, archival:{fill:'var(--surface)',stroke:'var(--line-2)',dash:'',op:.55,sc:.8}};
-  const edge = ([a,b,label,bi],i) => { const A=N[a], B=N[b]; const dx=B.x-A.x, dy=B.y-A.y; const ax = A.x + (Math.abs(dx)>Math.abs(dy) ? Math.sign(dx)*w/2*style[A.c].sc : 0), ay = A.y + (Math.abs(dx)>Math.abs(dy) ? 0 : Math.sign(dy)*h/2*style[A.c].sc); const bx = B.x - (Math.abs(dx)>Math.abs(dy) ? Math.sign(dx)*w/2*style[B.c].sc : 0), by = B.y - (Math.abs(dx)>Math.abs(dy) ? 0 : Math.sign(dy)*h/2*style[B.c].sc); const mx=(ax+bx)/2, my=(ay+by)/2; const d = Math.abs(dx)>Math.abs(dy) ? `M${ax},${ay} C${mx},${ay} ${mx},${by} ${bx},${by}` : `M${ax},${ay} C${ax},${my} ${bx},${my} ${bx},${by}`; return `<path class="medge" d="${d}" data-a="${a}" data-b="${b}" data-i="${i}" marker-end="url(#ma)" ${bi?'marker-start="url(#mb)"':''}/>`; };
-  root.innerHTML = `<div class="page">
-    <div class="page-head row between"><div><h1>System Map</h1><div class="sub">How the rooms feed each other, and which need tending today. Click a room to walk in.</div></div><label class="toggle ${S.settings.home==='map'?'on':''}" id="homeToggle"><span class="sw"></span><span>open here on launch</span></label></div>
-    <div class="map-wrap" id="mapWrap"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet"><defs><marker id="ma" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--line-2)"/></marker><marker id="mb" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M10,0 L0,5 L10,10 z" fill="var(--line-2)"/></marker></defs>
-      ${MAP_EDGES.map(edge).join('')}
-      ${nodes.map(n => { const s = style[n.c]; const ww = w*s.sc, hh = h*s.sc; return `<g class="mnode ${n.c}" data-node="${n.id}" data-go="${n.go}" transform="translate(${n.x},${n.y})" style="opacity:${s.op}"><rect x="${-ww/2}" y="${-hh/2}" width="${ww}" height="${hh}" rx="12" fill="${s.fill}" stroke="${s.stroke}" stroke-width="1.5" ${s.dash?`stroke-dasharray="${s.dash}"`:''}/><text class="t" text-anchor="middle" y="-2" style="font-size:${(15*s.sc).toFixed(1)}px">${esc(n.t)}</text><text class="c" text-anchor="middle" y="16">${n.c}</text>${n.status?`<circle cx="${ww/2-10}" cy="${-hh/2+10}" r="5" fill="${n.status.c}"/>`:''}</g>`; }).join('')}
-    </svg><div class="mtip" id="mtip"></div></div>
-    <div class="map-legend"><span><i class="d"></i> daily — solid, glowing, pulsing</span><span><i class="w"></i> weekly — solid, smaller</span><span><i class="m"></i> monthly / seasonal — outlined, dashed</span><span><i class="a"></i> as-needed / archival — faded, smallest</span><span>● green: tended · ● amber: needs attention</span></div>
-  </div>`;
-  const wrap = $('#mapWrap'), tip = $('#mtip'); const showTip = (e,html) => { tip.innerHTML = html; tip.style.display='block'; const r = wrap.getBoundingClientRect(); tip.style.left = Math.min(e.clientX-r.left+14, r.width-300)+'px'; tip.style.top = (e.clientY-r.top+14)+'px'; };
-  wrap.querySelectorAll('.mnode').forEach(n => { n.onmouseenter = e => { wrap.classList.add('hov'); n.classList.add('hot'); wrap.querySelectorAll('.medge').forEach(ed_ => { if(ed_.dataset.a===n.dataset.node||ed_.dataset.b===n.dataset.node){ ed_.classList.add('hot'); wrap.querySelector(`[data-node="${ed_.dataset.a}"]`).classList.add('hot'); wrap.querySelector(`[data-node="${ed_.dataset.b}"]`).classList.add('hot'); } }); const nd = N[n.dataset.node]; showTip(e, `<b class="serif">${esc(nd.t)}</b><br>${esc(nd.desc)}<br><span class="mono">click to open</span>`); }; n.onmousemove = e => showTip(e, tip.innerHTML); n.onmouseleave = () => { wrap.classList.remove('hov'); wrap.querySelectorAll('.hot').forEach(x=>x.classList.remove('hot')); tip.style.display='none'; }; });
-  wrap.querySelectorAll('.medge').forEach(ed_ => { ed_.onmouseenter = e => { ed_.classList.add('hot'); showTip(e, `<span class="mono">${esc(N[ed_.dataset.a].t)} → ${esc(N[ed_.dataset.b].t)}</span><br>${esc(MAP_EDGES[+ed_.dataset.i][2])}`); }; ed_.onmousemove = e => showTip(e, tip.innerHTML); ed_.onmouseleave = () => { ed_.classList.remove('hot'); tip.style.display='none'; }; ed_.onclick = () => navigate(N[ed_.dataset.b].go); });
-  $('#homeToggle').onclick = function(){ S.settings.home = S.settings.home==='map' ? 'home' : 'map'; saveNow(); this.classList.toggle('on', S.settings.home==='map'); };
-};
-
-/* ============================================================
    13. SETTINGS
    ============================================================ */
 routes.settings = function(root){
@@ -2801,7 +2769,7 @@ routes.settings = function(root){
       <div class="opt"><div><b>Interaction sounds 🔔</b><div class="d">Soft chimes on clicks, a low note on navigation, a rising pair when something is completed. Synthesised in the browser; nothing is downloaded.</div></div><label class="toggle ${SoundManager.state().soundEnabled?'on':''}" id="sSound"><span class="sw"></span></label></div>
       <div class="opt"><div><b>Ambient background 🌊</b><div class="d">A barely-audible brown-noise wash, low-passed at 200 Hz. Ducks briefly under each click. Off by default.</div></div><label class="toggle ${SoundManager.state().ambientEnabled?'on':''}" id="sAmbient"><span class="sw"></span></label></div>
       <div class="opt"><div><b>Felt time</b><div class="d">Default timeline mode: stretch dense stages, compress thin ones.</div></div><label class="toggle ${S.settings.feltTime?'on':''}" id="sFelt"><span>clock</span><span class="sw"></span><span>felt</span></label></div>
-      <div class="opt"><div><b>Landing page</b><div class="d">Where the site opens.</div></div><select class="sel" style="width:auto" id="sHome">${[['home','Home dashboard'],['today','Today'],['map','System Map']].map(([v,l])=>`<option value="${v}" ${(S.settings.home||'home')===v?'selected':''}>${l}</option>`).join('')}</select></div>
+      <div class="opt"><div><b>Landing page</b><div class="d">Where the site opens.</div></div><select class="sel" style="width:auto" id="sHome">${[['home','Home'],['today','Today']].map(([v,l])=>`<option value="${v}" ${(S.settings.home||'home')===v?'selected':''}>${l}</option>`).join('')}</select></div>
     </div>
     <div class="card rv"><h3>Navigation zones</h3><p class="muted" style="font-size:.85rem">Drag pages between Present, Becoming, and Always. The sidebar and the mobile menu follow.</p>${zoneEditorHTML()}
     </div>
@@ -2951,9 +2919,8 @@ const NAV_PAGES = {
   vision:   {label:'Vision Tree', ico:'🌳', route:'#/vision'},
   timeline: {label:'Memory',      ico:'⏳', route:'#/timeline'},
   library:  {label:'Library',     ico:'📚', route:'#/journals/quote'},
-  map:      {label:'System Map',  ico:'🗺', route:'#/map'},
 };
-const NAV_DEFAULT = { present:['today','journals','projects','rituals'], becoming:['values','skills','vision','timeline'], standalone:['library','map'] };
+const NAV_DEFAULT = { present:['today','journals','projects','rituals'], becoming:['values','skills','vision','timeline'], standalone:['library'] };
 const NAV_ZONES = [ {id:'present', label:'Present', hint:'short-term, daily use', accent:'var(--sage)'}, {id:'becoming', label:'Becoming', hint:'identity, growth', accent:'var(--ment)'} ];
 const MOBILE_PRIMARY = ['today','journals','values','skills','vision'];
 function navConfig(){ if(!S.settings.nav) S.settings.nav = JSON.parse(JSON.stringify(NAV_DEFAULT)); const n = S.settings.nav; const placed = new Set([...n.present, ...n.becoming, ...n.standalone]); Object.keys(NAV_PAGES).forEach(k => { if(k !== 'home' && !placed.has(k)) n.standalone.push(k); }); ['present','becoming','standalone'].forEach(z => n[z] = n[z].filter(k => NAV_PAGES[k] && k !== 'home')); return n; }
@@ -2993,28 +2960,91 @@ function openNavOverlay(){
 }
 NAV_PAGES.home = {label:'Home', ico:'⌂', route:'#/home'};
 
-/* ---------- Home dashboard: one summary card per zone, counts read from the database on mount ---------- */
-routes.home = function(root){
+/* ---------- Home: life at a glance — today's focus, the living house, long-term panels ---------- */
+const HOUSE_EDGES = [['vision','skills','visions require skills; skills serve visions'],['vision','values','visions serve values; unserved values are blind spots'],['timeline','values','retrospective readings fill the values history'],['timeline','vision','formative events inform what you now want'],['projects','skills','projects exercise skills'],['projects','vision','income streams advance financial visions'],['journals','timeline','memories become formative events'],['journals','vision','entries grow leaves'],['rituals','today','rituals fill today\'s rings'],['today','vision','signals surface neglected visions'],['today','values','the biggest values gap is a daily signal'],['library','journals','quotes are journal entries with a source']];
+function houseStats(){
   const T = today(); const n = navConfig();
-  root.innerHTML = `<div class="page narrow"><div class="page-head"><h1>${fmtDate(T)}</h1><div class="sub">The porch. One card per zone; walk into whichever room needs you.</div></div><div class="stack" id="homeCards"><div class="empty">Reading the house…</div></div></div>`;
-  (async () => {
-    let entries=[], nods=[], projects=[], snaps=[], skills=[], visions=[], habits=[], habitLog=[], checkins=[], reminders=[];
-    try { [entries, nods, projects, snaps, skills, visions, habits, habitLog, checkins, reminders] = await Promise.all(['entries','nods','projects','valueSnapshots','skills','visions','habits','habitLog','checkins','reminders'].map(t => db[t].toArray())); } catch(e){ entries=S.entries; nods=S.nods; projects=S.projects; snaps=S.valueSnapshots; skills=S.skills; visions=S.visions; habits=S.habits; habitLog=Object.entries(S.habitLog).map(([day,log])=>({day,log})); checkins=Object.entries(S.checkins).map(([day,v])=>({day,...v})); reminders=S.reminders||[]; }
-    const todayEntries = entries.filter(e => (e.createdAt||'').slice(0,10) === T).length + nods.filter(x => x.date === T).length;
-    const active = projects.filter(p => p.status === 'active').length;
-    const due = habits.filter(h => !h.archived && !h.negative && habitDue(h, T)); const todayLog = habitLog.find(r => r.day === T)?.log || {}; const done = due.filter(h => todayLog[h.id]).length;
-    const checked = checkins.some(c => c.day === T && c.mood); const dueRem = reminders.filter(r => !r.done && r.date <= T).length;
-    const lastSnap = [...snaps].sort((a,b)=>a.date<b.date?1:-1)[0]; const snapDays = lastSnap ? daysSince(lastSnap.date) : null;
-    const dueSkills = skills.filter(s => s.targetDate && daysBetween(T, s.targetDate) <= 30 && daysBetween(T, s.targetDate) >= 0 && s.level < s.target);
-    const wither = visions.filter(v => v.confidence !== 'lived' && vividness(v).lastTended > 60).length;
-    const memories = entries.filter(e => e.type === 'memory').length; const quotes = entries.filter(e => e.type === 'quote').length;
-    const card = (z, lines, links) => `<div class="card home-card rv" style="--z:${z.accent}"><div class="row between"><h3 style="margin:0">${esc(z.label)}</h3><span class="mono">${esc(z.hint)}</span></div><div class="home-lines">${lines.map(l=>`<div>${l}</div>`).join('')}</div><div class="row" style="margin-top:12px">${links.map(k=>`<a class="chip click on" style="--c:${z.accent}" href="${NAV_PAGES[k].route}">${NAV_PAGES[k].ico} ${esc(NAV_PAGES[k].label)}</a>`).join('')}</div></div>`;
-    $('#homeCards').innerHTML =
-      card(NAV_ZONES[0], [`<b>${todayEntries}</b> item${todayEntries===1?'':'s'} logged today · <b>${active}</b> active project${active===1?'':'s'}`, `${checked?'Checked in':'<span style="color:var(--gold)">Not yet checked in</span>'} · habit rings <b>${done}/${due.length}</b>${dueRem?` · <b>${dueRem}</b> reminder${dueRem===1?'':'s'} waiting`:''}`], n.present) +
-      card(NAV_ZONES[1], [`Last snapshot <b>${snapDays===null?'never':snapDays===0?'today':snapDays+' days ago'}</b> · <b>${dueSkills.length}</b> skill milestone${dueSkills.length===1?'':'s'} due within 30 days`, `<b>${visions.filter(v=>v.confidence!=='lived').length}</b> visions growing${wither?`, <span style="color:var(--gold)">${wither} withering</span>`:''} · <b>${memories}</b> memories kept`], n.becoming) +
-      card({label:'Always', hint:'reference', accent:'var(--terra)'}, [`<b>${quotes}</b> quotes in the library · the system map shows what needs tending`], n.standalone);
-    reveal($('#homeCards')); $$('#homeCards .rv').forEach(x => x.classList.add('in'));
-  })();
+  const due = S.habits.filter(h=>!h.archived&&!h.negative&&habitDue(h,T)); const done = due.filter(h=>habitDone(h,T)).length;
+  const vs = S.visions.filter(v=>v.confidence!=='lived').map(v=>({v,...vividness(v)})); const wither = vs.filter(x=>x.lastTended>60).length;
+  const last = latestSnapshot(); const snapDays = last ? daysSince(last.date) : null; const gaps = valueGaps();
+  const atro = S.skills.filter(s=>!s.planned && daysSince(skillLastPracticed(s))>90).length; const hrs30 = S.skills.reduce((n,s)=>n+entriesLinked('skills',s.id).filter(e=>daysSince(e.createdAt.slice(0,10))<=30).reduce((m,e)=>m+((+e.extra?.duration||0)/60),0),0);
+  const active = S.projects.filter(p=>p.status==='active'); const nods7 = S.nods.filter(x=>daysSince(x.date)<=7).length; const cold = active.filter(p=>daysSince(projectNods(p)[0]?.date)>7).length;
+  const j7 = S.entries.filter(e=>daysSince(e.createdAt.slice(0,10))<=7).length; const quotes = S.entries.filter(e=>e.type==='quote').length; const memories = S.entries.filter(e=>e.type==='memory').length;
+  const c = S.checkins[T]; const rem = (S.reminders||[]).filter(r=>!r.done&&r.date<=T).length;
+  const stat = {
+    today:    {line:`${c?.mood?'checked in':'not checked in'} · rings ${done}/${due.length}`, ok:!!c?.mood, cadence:'daily', tip:`${c?.intention?'Intention: '+c.intention:'No intention set yet'}${rem?` · ${rem} reminder${rem>1?'s':''} waiting`:''}`},
+    rituals:  {line:`${done}/${due.length} rings today`, ok:due.length>0&&done===due.length, cadence:'daily', tip:`${theatreDoneToday()?'Morning Theatre practised':'Morning Theatre not yet practised'} · weekly review ${relDays(daysSince(S.reviews.lastWeekly))}`},
+    journals: {line:`${j7} entr${j7===1?'y':'ies'} this week`, ok:j7>0, cadence:'daily', tip:`${S.entries.length} entries across ${S.journals.length} journals`},
+    projects: {line:`${active.length} active · ${nods7} nods / 7d`, ok:cold===0, cadence:'daily', tip:cold?`${cold} active project${cold>1?'s':''} without a nod this week`:'every active project nodded this week'},
+    values:   {line:`snapshot ${snapDays===null?'never':snapDays===0?'today':snapDays+'d ago'}`, ok:snapDays!==null&&snapDays<=7, cadence:'weekly', tip:gaps[0]?`Biggest gap: ${gaps[0].name} (${gaps[0].gap>0?'+':''}${gaps[0].gap})`:''},
+    skills:   {line:`${hrs30.toFixed(0)}h / 30d${atro?` · ${atro} atrophying`:''}`, ok:atro===0, cadence:'monthly', tip:`${S.skills.filter(s=>!s.planned).length} skills held, ${S.skills.filter(s=>s.planned).length} planned`},
+    vision:   {line:`${vs.length} growing${wither?` · ${wither} withering`:''}`, ok:wither===0, cadence:'weekly', tip:vs.length?`Most vivid: ${[...vs].sort((a,b)=>b.score-a.score)[0].v.name}`:''},
+    timeline: {line:`${memories} memories · ${S.stages.length} stages`, ok:true, cadence:'archival', tip:'The museum of the past. Formative events and the story you tell.'},
+    library:  {line:`${quotes} quotes`, ok:true, cadence:'archival', tip:'Quotes and marginalia; why each one caught you.'},
+  };
+  return {stat, due, done, vs, wither, last, snapDays, gaps, atro, hrs30, active, nods7, j7, quotes, memories, c, rem, zonesOf: k => n.present.includes(k)?'present':n.becoming.includes(k)?'becoming':'always'};
+}
+function houseSVG(st){
+  const n = navConfig(); const keys = [...n.present, ...n.becoming, ...n.standalone].filter(k => NAV_PAGES[k] && st.stat[k]);
+  const W = 760, H = 460, cx = W/2, cy = H/2, R = 170; const pos = {}; const zoneColor = k => st.zonesOf(k)==='present' ? 'var(--sage)' : st.zonesOf(k)==='becoming' ? 'var(--ment)' : 'var(--terra)';
+  keys.forEach((k,i) => { const a = -Math.PI/2 + i*2*Math.PI/keys.length; pos[k] = [cx + Math.cos(a)*R, cy + Math.sin(a)*R]; });
+  let g = '';
+  HOUSE_EDGES.forEach(([a,b,label],i) => { if(!pos[a]||!pos[b]) return; const [x1,y1]=pos[a],[x2,y2]=pos[b]; const mx=(x1+x2)/2+(cx-(x1+x2)/2)*.25, my=(y1+y2)/2+(cy-(y1+y2)/2)*.25; g += `<path class="hedge" d="M${x1},${y1} Q${mx},${my} ${x2},${y2}" data-a="${a}" data-b="${b}" data-label="${esc(label)}"/>`; });
+  g += `<circle cx="${cx}" cy="${cy}" r="30" fill="var(--surface-2)" stroke="var(--terra)" stroke-width="1.2"/><text x="${cx}" y="${cy-4}" text-anchor="middle" style="font-family:var(--han);font-size:22px;fill:var(--terra)">生</text><text x="${cx}" y="${cy+14}" text-anchor="middle" style="font-family:var(--mono);font-size:8px;fill:var(--faint)">${fmtDate(today(),'short').toUpperCase()}</text>`;
+  keys.forEach(k => { const [x,y] = pos[k]; const s = st.stat[k]; const p = NAV_PAGES[k]; const r = s.cadence==='daily'?34:s.cadence==='weekly'?31:27;
+    g += `<g class="hnode ${s.cadence}" data-node="${k}" data-go="${p.route}" style="--zc:${zoneColor(k)}"><circle class="body" cx="${x}" cy="${y}" r="${r}" fill="color-mix(in srgb,${zoneColor(k)} ${s.cadence==='daily'?22:s.cadence==='weekly'?14:8}%,var(--surface))" stroke="${zoneColor(k)}" stroke-width="1.4" ${s.cadence==='monthly'||s.cadence==='archival'?'stroke-dasharray="4 3"':''} opacity="${s.cadence==='archival'?.7:1}"/><text x="${x}" y="${y+6}" text-anchor="middle" style="font-size:${r*.6}px">${p.ico}</text><circle cx="${x+r*.7}" cy="${y-r*.7}" r="5" fill="${s.ok?'var(--sage)':'var(--gold)'}" stroke="var(--surface)" stroke-width="1.5"/><text class="hl" x="${x}" y="${y+r+16}" text-anchor="middle">${esc(p.label)}</text><text class="hs" x="${x}" y="${y+r+28}" text-anchor="middle">${esc(s.line)}</text></g>`; });
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">${g}</svg>`;
+}
+routes.home = function(root){
+  const T = today(); const st = houseStats(); const moon = moonPhase(); const c = checkin(T);
+  const days30 = lastDays(30); const weeks12 = Array.from({length:12},(_,w)=>w).map(w => lastDays(84).slice(w*7, w*7+7));
+  const axes = S.valueOrder.map(id=>{ const v=byId(S.values,id); return {name:v.name, short:v.name.split(' ')[0], color:v.color}; });
+  const snaps = allSnapshotsWithRetro(); const avgCong = snaps.map(s => avg(S.valueOrder.map(id => s.ratings[id]).filter(x=>x!=null)));
+  const habitRate = weeks12.map(days => { let due=0, done=0; days.forEach(d => S.habits.forEach(h => { if(!h.archived&&!h.negative&&habitDue(h,d)){ due++; if(habitDone(h,d)) done++; } })); return due ? Math.round(done/due*100) : null; });
+  const nodsW = weeks12.map(days => S.nods.filter(x => days.includes(x.date)).length);
+  const entriesW = weeks12.map(days => S.entries.filter(e => days.includes(e.createdAt.slice(0,10))).length);
+  const topV = [...st.vs].sort((a,b)=>b.score-a.score).slice(0,5); const nextActs = [...st.vs].filter(x=>x.v.nextAction).sort((a,b)=>b.score-a.score).slice(0,3);
+  const stageCounts = S.stages.map(s => ({s, n: stageEntries(s).length})); const maxStage = Math.max(...stageCounts.map(x=>x.n),1);
+  const skillHrs = S.skills.filter(s=>!s.planned).map(s=>({s,h:skillHours(s)})).sort((a,b)=>b.h-a.h).slice(0,4);
+  const income = sum(S.projects.map(p=>p.income?.current||0));
+  root.innerHTML = `<div class="page">
+    <div class="page-head" style="margin-bottom:22px"><div><h1>${fmtDate(T)}</h1><div class="moon">${moonSVG(moon.p)} <span>${moon.name}</span><span class="mono" style="margin-left:6px">· your life at a glance</span></div></div></div>
+
+    <div class="home-hero">
+      <div class="focus-card rv"><div class="row between"><span class="k mono" style="text-transform:uppercase;letter-spacing:.12em;font-size:.62rem;color:var(--terra)">Today's focus</span><a class="btn sm ghost" href="#/today">open Today →</a></div>
+        <div class="intent">${ed(`checkins.${T}.intention`,{ph:'One thing to give attention to today. Click to set it.'})}</div>
+        <div class="focus-row">
+          <div class="mini-rings" title="habit rings">${st.due.slice(0,10).map(h=>ringSVG(habitDone(h,T)?(habitDone(h,T).level==='min'?.5:1):0,{size:26,stroke:4,color:DIMS.find(d=>d.id===h.dimension).c})).join('')}<span class="mono">${st.done}/${st.due.length}</span></div>
+          <span class="mono">${c.mood?'mood '+['heavy','low','level','light','luminous'][c.mood-1]:'<span style="color:var(--gold)">not checked in</span>'}</span>
+          <span class="mono">${c.setpoint?hicksName(c.setpoint).split(' / ')[0]:''}</span>
+          <span class="mono">${theatreDoneToday()?'theatre ✓':'theatre ·'}</span>
+          ${st.rem?`<span class="mono" style="color:var(--gold)">${st.rem} reminder${st.rem>1?'s':''}</span>`:''}
+        </div>
+        ${nextActs.length?`<div class="next-actions"><div class="k mono" style="font-size:.6rem;text-transform:uppercase;letter-spacing:.12em;color:var(--gold)">Nearest next actions</div>${nextActs.map(x=>`<div><span class="mono">🌿</span><span style="flex:1">${esc(x.v.nextAction)}</span><a class="mono" href="#/vision/${x.v.id}" style="text-decoration:none">${esc(x.v.name)}</a></div>`).join('')}</div>`:''}
+      </div>
+      <div class="card rv" style="padding:18px 20px"><div class="k mono" style="text-transform:uppercase;letter-spacing:.12em;font-size:.62rem">Gentle prompt</div><div class="quote" style="margin-top:8px;font-size:1.1rem;color:var(--text)">${gentlePrompt()}</div>
+        <div class="k mono" style="text-transform:uppercase;letter-spacing:.12em;font-size:.62rem;margin-top:18px">Signals</div>
+        <div class="stack" style="gap:6px;margin-top:6px">${signals().slice(0,4).map(s=>`<a href="${s.go}" class="row between" style="text-decoration:none;color:inherit;padding:6px 0;border-top:1px dashed var(--line);gap:12px"><span class="mono" style="flex:none">${esc(s.k)}</span><span style="text-align:right;font-size:.85rem">${esc(s.v)}</span></a>`).join('')}</div></div>
+    </div>
+
+    <section class="section rv" style="margin-top:22px"><div class="row between"><span class="sc" style="margin:0">The house</span><span class="mono">● green tended · ● amber needs you · solid rings daily, dashed seasonal · hover to see what feeds what</span></div>
+      <div class="house-wrap" id="houseWrap" style="margin-top:10px">${houseSVG(st)}<div class="htip" id="htip"></div></div></section>
+
+    <section class="section rv"><span class="sc">The long view</span>
+    <div class="bento">
+      <div class="card span2"><div class="k">Compass <a href="#/values">→</a></div>${radar(axes,[{vals:S.valueOrder.map(id=>st.last?.ratings[id]??0),color:'var(--terra)'}],{size:230})}<div class="sub">${st.gaps[0]?`Widest gap: <b style="color:${st.gaps[0].color}">${esc(st.gaps[0].name)}</b> — ranked #${st.gaps[0].rank}, congruence ${st.gaps[0].congruence}%`:''}</div></div>
+      <div class="card span2"><div class="k">Congruence over a lifetime</div><div class="big" data-tween="${avgCong.slice(-1)[0]||0}" data-suffix="%">0</div>${sparkline(avgCong,{h:56,min:0,max:100,color:'var(--terra)'})}<div class="sub">average across ten values · ${snaps.length} readings from ${snaps[0]?fmtDate(snaps[0].date,'med'):'—'}</div></div>
+      <div class="card span2"><div class="k">Energy, 30 days <a href="#/today">→</a></div>${multiSpark(DIMS.map(d=>({vals:days30.map(x=>S.checkins[x]?.energy?.[d.id]||null),color:d.c})),{h:56})}<div class="legend">${DIMS.map(d=>`<span style="--c:${d.c}">${d.name}</span>`).join('')}</div>${sparkline(days30.map(d=>S.checkins[d]?.setpoint||null),{h:34,min:1,max:22,color:'var(--rose)'})}<div class="sub">emotional set-point · avg ${avg(days30.map(d=>S.checkins[d]?.setpoint).filter(Boolean)).toFixed(1)} — ${hicksName(avg(days30.map(d=>S.checkins[d]?.setpoint).filter(Boolean))||14).split(' / ')[0]}</div></div>
+      <div class="card span3"><div class="k">Visions <a href="#/vision">→</a></div><div class="sub">${st.vs.length} growing${st.wither?`, <span style="color:var(--gold)">${st.wither} withering</span>`:''} · average vividness ${Math.round(avg(st.vs.map(x=>x.score)))}</div>${topV.map(x=>`<div class="vbar"><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(x.v.name)}</span><div class="bar" style="--c:${x.lastTended>60?'var(--gold)':'var(--sage)'}"><i style="width:${x.score}%"></i></div><span class="mono">${x.score}</span></div>`).join('')}</div>
+      <div class="card span3"><div class="k">Habits, 12 weeks <a href="#/rituals">→</a></div><div class="big" data-tween="${habitRate.slice(-1)[0]||0}" data-suffix="%">0<small>this week</small></div>${sparkline(habitRate,{h:56,min:0,max:100,color:'var(--sage)'})}<div class="sub">weekly completion · best streak ${Math.max(0,...S.habits.filter(h=>!h.archived&&!h.negative).map(h=>habitStreak(h).best))} days · weekly review ${relDays(daysSince(S.reviews.lastWeekly))}</div></div>
+      <div class="card span2"><div class="k">Projects <a href="#/projects">→</a></div><div class="big" data-tween="${st.nods7}">0<small>nods this week</small></div>${sparkline(nodsW,{h:44,min:0,color:'var(--terra)'})}<div class="sub">${st.active.length} active · ${fmtYen(income)}/mo across ${S.projects.filter(p=>p.income?.current>0).length} stream${S.projects.filter(p=>p.income?.current>0).length===1?'':'s'}</div></div>
+      <div class="card span2"><div class="k">Skills <a href="#/skills">→</a></div><div class="big" data-tween="${st.hrs30}" data-dec="1">0<small>hours / 30d</small></div>${skillHrs.map(x=>`<div class="vbar"><span>${esc(x.s.name)}</span><div class="bar" style="--c:var(--ment)"><i style="width:${Math.min(100,x.h/Math.max(skillHrs[0].h,1)*100)}%"></i></div><span class="mono">${x.h.toFixed(0)}h</span></div>`).join('')}<div class="sub">${st.atro?`<span style="color:var(--gold)">${st.atro} atrophying</span> · `:''}${S.skills.filter(s=>s.planned).length} buds planned</div></div>
+      <div class="card span2"><div class="k">Journal &amp; memory <a href="#/journals">→</a></div><div class="big" data-tween="${S.entries.length}">0<small>entries</small></div>${sparkline(entriesW,{h:40,min:0,color:'var(--rose)'})}<div class="sub">${st.j7} this week · ${st.memories} memories · ${st.quotes} quotes</div><div class="stagebars" title="entries per stage">${stageCounts.map(x=>`<i style="--c:${x.s.hue};height:${Math.max(4,x.n/maxStage*44)}px" title="${esc(x.s.name)} · ${x.n}"></i>`).join('')}</div></div>
+    </div></section>
+  </div>`;
+  const wrap = $('#houseWrap'), tip = $('#htip'); const showTip = (e, html) => { tip.innerHTML = html; tip.style.display='block'; const r = wrap.getBoundingClientRect(); tip.style.left = Math.min(e.clientX-r.left+14, r.width-290)+'px'; tip.style.top = (e.clientY-r.top+14)+'px'; };
+  wrap.querySelectorAll('.hnode').forEach(nd => { nd.onmouseenter = e => { wrap.classList.add('hov'); nd.classList.add('hot'); wrap.querySelectorAll('.hedge').forEach(ed_ => { if(ed_.dataset.a===nd.dataset.node||ed_.dataset.b===nd.dataset.node){ ed_.classList.add('hot'); wrap.querySelector(`[data-node="${ed_.dataset.a}"]`)?.classList.add('hot'); wrap.querySelector(`[data-node="${ed_.dataset.b}"]`)?.classList.add('hot'); } }); const s = st.stat[nd.dataset.node]; showTip(e, `<b class="serif">${esc(NAV_PAGES[nd.dataset.node].label)}</b> · <span class="mono">${s.cadence}</span><br>${esc(s.line)}${s.tip?'<br>'+esc(s.tip):''}<br><span class="mono">click to open</span>`); }; nd.onmousemove = e => showTip(e, tip.innerHTML); nd.onmouseleave = () => { wrap.classList.remove('hov'); wrap.querySelectorAll('.hot').forEach(x=>x.classList.remove('hot')); tip.style.display='none'; }; });
+  wrap.querySelectorAll('.hedge').forEach(ed_ => { ed_.onmouseenter = e => { ed_.classList.add('hot'); showTip(e, `<span class="mono">${esc(NAV_PAGES[ed_.dataset.a].label)} ↔ ${esc(NAV_PAGES[ed_.dataset.b].label)}</span><br>${esc(ed_.dataset.label)}`); }; ed_.onmousemove = e => showTip(e, tip.innerHTML); ed_.onmouseleave = () => { ed_.classList.remove('hot'); tip.style.display='none'; }; });
 };
 
 /* ---------- Settings: drag-and-drop zone editor ---------- */
@@ -3107,7 +3137,7 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
 function openSearch(){
   const m = openModal(`<input id="palQ" placeholder="Search entries, visions, values, skills, projects, habits, sections…" autofocus><div class="results" id="palRes"></div>`, 'palette');
   const q = m.querySelector('#palQ'), res = m.querySelector('#palRes'); let sel = 0, items = [];
-  const sections = [['Home','#/home'],['Today','#/today'],['Timeline','#/timeline'],['Threads & Tensions','#/timeline/threads'],['Vision Tree','#/vision'],['Values','#/values'],['Journals','#/journals'],['Skill Tree','#/skills'],['Creative Projects','#/projects'],['Rituals & Habits','#/rituals'],['Guided Reviews','#/rituals/reviews'],['System Map','#/map'],['Settings','#/settings']];
+  const sections = [['Home','#/home'],['Today','#/today'],['Timeline','#/timeline'],['Threads & Tensions','#/timeline/threads'],['Vision Tree','#/vision'],['Values','#/values'],['Journals','#/journals'],['Skill Tree','#/skills'],['Creative Projects','#/projects'],['Rituals & Habits','#/rituals'],['Guided Reviews','#/rituals/reviews'],['Settings','#/settings']];
   const run = () => { const s = q.value.trim().toLowerCase(); const hit = t => !s || String(t).toLowerCase().includes(s); items = [];
     const grp = (name, arr) => { if(arr.length){ items.push({grp:name}); arr.slice(0,8).forEach(x=>items.push(x)); } };
     grp('Add', SPEED_DIAL.flatMap(it => it.actions ? it.actions.map(([l,fn]) => ({t:`${it.icon} ${it.zone} — ${l}`, m:'add', run:fn, key:it.zone+' '+l+' '+it.label})) : [{t:`${it.icon} ${it.label}`, m:'add', run:it.run, key:it.zone+' '+it.label}]).filter(x=>hit(x.key)));
@@ -3131,7 +3161,7 @@ function openSearch(){
    Ambient dust (canvas views only), shortcuts, init
    ============================================================ */
 function startDust(){ const c = $('#dust'); if(!c || reduced()) return; const ctx = c.getContext('2d'); let ps = []; const resize = () => { c.width = innerWidth; c.height = innerHeight; }; resize(); window.addEventListener('resize', resize); for(let i=0;i<40;i++) ps.push({x:Math.random()*innerWidth, y:Math.random()*innerHeight, r:.6+Math.random()*1.6, vx:(Math.random()-.5)*.15, vy:-.05-Math.random()*.12, a:Math.random()*Math.PI*2});
-  const tick = () => { const on = ['vision','map','skills'].includes(currentRoute); ctx.clearRect(0,0,c.width,c.height); if(on){ ctx.fillStyle = S.settings.theme==='dark' ? 'rgba(232,224,212,.05)' : 'rgba(120,90,60,.06)'; ps.forEach(p => { p.a += .01; p.x += p.vx + Math.sin(p.a)*.1; p.y += p.vy; if(p.y < -5){ p.y = innerHeight+5; p.x = Math.random()*innerWidth; } if(p.x<-5) p.x = innerWidth+5; if(p.x>innerWidth+5) p.x=-5; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); }); } requestAnimationFrame(tick); }; requestAnimationFrame(tick); }
+  const tick = () => { const on = ['vision','home','skills'].includes(currentRoute); ctx.clearRect(0,0,c.width,c.height); if(on){ ctx.fillStyle = S.settings.theme==='dark' ? 'rgba(232,224,212,.05)' : 'rgba(120,90,60,.06)'; ps.forEach(p => { p.a += .01; p.x += p.vx + Math.sin(p.a)*.1; p.y += p.vy; if(p.y < -5){ p.y = innerHeight+5; p.x = Math.random()*innerWidth; } if(p.x<-5) p.x = innerWidth+5; if(p.x>innerWidth+5) p.x=-5; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); }); } requestAnimationFrame(tick); }; requestAnimationFrame(tick); }
 document.addEventListener('keydown', e => {
   const mod = e.metaKey || e.ctrlKey;
   if(mod && e.key.toLowerCase()==='n'){ e.preventDefault(); toggleSpeedDialWithFilter(); }
@@ -3146,7 +3176,7 @@ async function init(){
   $('#btnSearch').onclick = openSearch; $('#fab').onclick = e => { e.stopPropagation(); toggleSpeedDial(); };
   renderNav();
   if(navigator.platform.toUpperCase().indexOf('MAC')<0){ $$('kbd').forEach(k => k.textContent = k.textContent.replace('⌘','Ctrl+')); $('.fab .hint').textContent = 'new entry · Ctrl+N'; }
-  if(!location.hash) location.hash = '#/' + (S.settings.home || 'home');
+  if(!location.hash) location.hash = '#/' + homeRoute();
   renderRoute(); startDust(); updateBackButton();
   window.addEventListener('beforeunload', () => { if(saving || savePending) saveNow(); });
   if(S.settings.firstOpen === today() && !S._welcomed){ S._welcomed = true; setTimeout(()=>toast('Welcome home. Every piece of text here is editable — click it. The placeholder life is yours to overwrite.', 7000), 800); }
