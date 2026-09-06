@@ -41,20 +41,17 @@ function skillNodeSVG(n, mode, selected, revealFrom){
   </g>`;
 }
 routes.skills = function(root, params){
-  registerPageEntry({pageName:'Skill Tree', addLabel:'Add to the skill tree', defaultEntryType:'progress', prefilledFields:{}, options:[
-    {icon:'◉', label:'New skill node', desc:'A skill you hold, or a bud you intend to open.', run:()=>EntryActions.newSkill()},
-    {icon:'↗', label:'Add a level to a skill', desc:'Log practice on an existing skill; set the level from its rubric.', run:()=>EntryActions.skillProgress()}]});
-  const mode = S.settings.skillLayout || 'tree';
+  registerPageEntry({pageName:'Skill Tree', addLabel:'New skill', defaultEntryType:'progress', prefilledFields:{}, options:[
+    {icon:'◉', label:'New skill', desc:'A skill you hold, or a bud you intend to open.', run:()=>EntryActions.newSkill()},
+    {icon:'↗', label:'Log practice', desc:'Time spent on a skill you already have.', run:()=>EntryActions.skillProgress()}]});
+  const mode = 'tree';
   root.innerHTML = `<div class="page">
     <div class="page-head row between"><div><h1>Skill Tree</h1><div class="sub">${mode==='tree' ? 'Career capital, grown on the plateau. Every level you climb puts leaves on the twig; mastery bears fruit; neglect turns the leaves brown.' : "Categories branch into skills; a skill's first prerequisite is its parent. Drag a node onto another to re-parent it."}</div></div>
-      <div class="row"><button class="btn sm ${mode==='tree'?'primary':''}" data-layout="tree">🌳 tree</button><button class="btn sm ${mode==='vertical'?'primary':''}" data-layout="vertical">⊤ vertical</button><button class="btn sm ${mode==='radial'?'primary':''}" data-layout="radial">◎ radial</button>${mode==='tree'?'':`<button class="btn sm ghost" id="skExpandAll">expand all</button><button class="btn sm ghost" id="skCollapseAll">collapse all</button><button class="btn sm ghost" id="skReset" title="reset zoom, centre root">⟳</button>`}</div></div>
+<button class="btn sm ghost" id="skReset" title="redraw the tree">⟳ redraw</button></div>
     <div class="skill-wrap" id="skillWrap"><div class="minimap" id="minimap"></div><div class="sk-hint mono">scroll to zoom · drag the canvas to pan · ± to fold a branch</div></div>
     <div class="grid c3 section">${S.skills.map(s=>{ const st = skillStreak(s); const last = skillLastPracticed(s); return `<div class="card rv" data-sopen="${s.id}" style="cursor:pointer;border-left:3px solid ${catColor(s.cat)}"><div class="row between"><h3 style="margin:0">${esc(s.name)}</h3><span class="mono">${esc(s.cat)}</span></div><div class="muted" style="font-size:.82rem;margin-top:6px">${s.planned?'planned — a bud not yet opened':`${esc(skillLevelLabel(s,s.currentLevel))} · level ${s.currentLevel} of ${skillLevelCount(s)}`}${nextMilestone(s)?.by?` · <span class="mono" style="color:${daysBetween(today(),nextMilestone(s).by)<0?'#d08080':'var(--muted)'}">📅 L${nextMilestone(s).levelTarget} by ${fmtMonth(nextMilestone(s).by)}</span>`:''}</div><div class="mono" style="margin-top:8px">last ${relDays(daysSince(last))} · streak ${st.cur}d (best ${st.best}) · ${skillHours(s).toFixed(1)}h</div>${S.projects.some(p=>(p.linkedSkills||[]).includes(s.id))?`<div class="row" style="margin-top:6px;gap:4px">${S.projects.filter(p=>(p.linkedSkills||[]).includes(s.id)).map(p=>`<span class="chip on" style="--c:var(--terra);font-size:.62rem">🎨 ${esc(p.name)}</span>`).join('')}</div>`:''}</div>`; }).join('')}</div>
   </div>`;
   drawSkillTree(root);
-  $$('[data-layout]',root).forEach(b => b.onclick = () => { S.settings.skillLayout = b.dataset.layout; saveNow(); rerender(); });
-  if($('#skExpandAll')) $('#skExpandAll').onclick = () => { S.settings.skillCollapsed = {}; saveNow(); rerender(); };
-  if($('#skCollapseAll')) $('#skCollapseAll').onclick = () => { const c = {}; S.skills.forEach(s => { if(S.skills.some(x => x.prereqs[0]===s.id)) c[s.id] = true; }); [...new Set(S.skills.map(s=>s.cat))].forEach(cat => c['cat:'+cat] = true); S.settings.skillCollapsed = c; saveNow(); rerender(); };
   if($('#skReset')) $('#skReset').onclick = () => { root._skView?.reset(); };
   window.addEventListener('resize', debounce(() => { if(currentRoute==='skills' && (S.settings.skillLayout||'tree')==='tree') drawSkillTree(root); }, 250), {once:true});
   $$('[data-sopen]',root).forEach(c => c.onclick = () => openSkillPanel(c.dataset.sopen));
@@ -167,42 +164,8 @@ function drawOrganicTree(root){
   root._skView = { reset: () => drawOrganicTree(root), burst: (id) => { const t = svg.querySelector(`.sk-twig[data-skill="${id}"]`); if(!t) return; const pt = svg.createSVGPoint(); pt.x = +t.dataset.x; pt.y = +t.dataset.y; const sp = pt.matrixTransform(svg.getScreenCTM()); levelUpBurst(sp.x, sp.y, catColor(byId(S.skills,id)?.cat)); } };
   if(typeof startSway === 'function') startSway(wrap);
 }
-let skillSelected = null, skillRevealFrom = null;
-function drawSkillTree(root){
-  if((S.settings.skillLayout || 'tree') === 'tree') return drawOrganicTree(root);
-  const wrap = $('#skillWrap'); if(!wrap) return; wrap.querySelector('svg')?.remove(); const mm0 = $('#minimap'); if(mm0) mm0.hidden = false;
-  const mode = S.settings.skillLayout || 'vertical'; const tree = skillHierarchy(); const {nodes, links} = tidyLayout(tree, mode);
-  const W = Math.max(wrap.clientWidth, 600), H = wrap.clientHeight || 620;
-  const xs = nodes.map(n=>n.x), ys = nodes.map(n=>n.y); const bb = {x0:Math.min(...xs)-110, x1:Math.max(...xs)+110, y0:Math.min(...ys)-40, y1:Math.max(...ys)+40};
-  const view = {k:1, tx:0, ty:0};
-  const fit = () => { const bw = bb.x1-bb.x0, bh = bb.y1-bb.y0; const rootN = nodes.find(n=>n.kind==='root'); if(mode==='radial'){ view.k = clamp(Math.min((W-40)/bw, (H-40)/bh), .45, 1); view.tx = W/2 - (bb.x0+bb.x1)/2*view.k; view.ty = H/2 - (bb.y0+bb.y1)/2*view.k; } else { view.k = clamp(Math.min((W-40)/bw, (H-60)/bh), .7, 1); view.tx = W/2 - rootN.x*view.k; view.ty = 36 - bb.y0*view.k; } };
-  fit();
-  const svg = el(`<svg class="sk-svg" viewBox="0 0 ${W} ${H}"><defs><filter id="skglow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect class="sk-bg" width="${W}" height="${H}" fill="transparent"/><g id="skView"><g class="sk-links">${links.map(([p,c]) => `<path class="sk-link" data-from="${p.id}" data-to="${c.id}" d="${linkPath(p,c,mode)}"/>`).join('')}</g><g class="sk-nodes">${nodes.map(n => skillNodeSVG(n, mode, n.id===skillSelected, skillRevealFrom)).join('')}</g></g></svg>`);
-  wrap.insertBefore(svg, wrap.firstChild);
-  const vp = svg.querySelector('#skView'); const apply = () => { vp.setAttribute('transform', `translate(${view.tx.toFixed(1)},${view.ty.toFixed(1)}) scale(${view.k.toFixed(3)})`); drawMinimap(); }; apply();
-  // reveal animation for a just-expanded branch
-  if(skillRevealFrom && !reduced()){ const parent = nodes.find(n=>n.id===skillRevealFrom); if(parent){ const ids = new Set(); const collect = n => n.children.forEach(c => { ids.add(c.id); collect(c); }); collect(parent); svg.querySelectorAll('.sk-node').forEach(g => { if(ids.has(g.dataset.node)){ g.classList.add('reveal'); g.style.setProperty('--oy', mode==='radial' ? '0px' : `${(parent.y - +g.getAttribute('transform').match(/,([-\d.]+)\)/)[1]).toFixed(1)}px`); } }); svg.querySelectorAll('.sk-link').forEach(l => { if(ids.has(l.dataset.to)) l.classList.add('reveal'); }); } skillRevealFrom = null; }
-  // zoom (wheel) & pan (drag on background)
-  svg.addEventListener('wheel', e => { e.preventDefault(); const r = svg.getBoundingClientRect(); const mx = (e.clientX-r.left)*(W/r.width), my = (e.clientY-r.top)*(H/r.height); const f = Math.exp(-e.deltaY*.0015); const k = clamp(view.k*f, .2, 3); view.tx = mx - (mx-view.tx)*(k/view.k); view.ty = my - (my-view.ty)*(k/view.k); view.k = k; apply(); }, {passive:false});
-  let pan = null, dragNode = null, ghost = null;
-  const toSvg = e => { const r = svg.getBoundingClientRect(); return [(e.clientX-r.left)*(W/r.width), (e.clientY-r.top)*(H/r.height)]; };
-  const capture = e => { try { svg.setPointerCapture(e.pointerId); } catch(err){} };
-  svg.addEventListener('pointerdown', e => { const g = e.target.closest('.sk-node'); if(g && g.classList.contains('locked')) return; if(g && g.dataset.skill && !e.target.closest('.sk-toggle')){ dragNode = {id:g.dataset.skill, start:toSvg(e), moved:false, el:g}; capture(e); } else if(!g){ pan = {start:toSvg(e), tx:view.tx, ty:view.ty}; capture(e); svg.classList.add('panning'); } });
-  svg.addEventListener('pointermove', e => { const p = toSvg(e); if(pan){ view.tx = pan.tx + (p[0]-pan.start[0]); view.ty = pan.ty + (p[1]-pan.start[1]); apply(); } else if(dragNode){ const d = Math.hypot(p[0]-dragNode.start[0], p[1]-dragNode.start[1]); if(d > 8 && !dragNode.moved){ dragNode.moved = true; ghost = el(`<div class="sk-ghost">${esc(byId(S.skills,dragNode.id).name)}</div>`); wrap.appendChild(ghost); dragNode.el.classList.add('dragging'); } if(ghost){ const r = svg.getBoundingClientRect(); ghost.style.left = (e.clientX - r.left + 12)+'px'; ghost.style.top = (e.clientY - r.top + 12)+'px'; svg.querySelectorAll('.sk-node.droptarget').forEach(x=>x.classList.remove('droptarget')); const over = document.elementFromPoint(e.clientX, e.clientY)?.closest('.sk-node'); if(over && over.dataset.node !== dragNode.id && !over.classList.contains('root')) over.classList.add('droptarget'); } } });
-  const endDrag = e => { if(pan){ pan = null; svg.classList.remove('panning'); } if(dragNode){ const dn = dragNode; dragNode = null; dn.el.classList.remove('dragging'); ghost?.remove(); ghost = null; const over = dn.moved ? document.elementFromPoint(e.clientX, e.clientY)?.closest('.sk-node') : null; svg.querySelectorAll('.sk-node.droptarget').forEach(x=>x.classList.remove('droptarget'));
-    if(!dn.moved){ skillSelected = dn.id; openSkillPanel(dn.id); drawSkillTree(root); return; }
-    if(over && over.dataset.node !== dn.id) reparentSkill(dn.id, over.dataset.node); } };
-  svg.addEventListener('pointerup', endDrag); svg.addEventListener('pointercancel', endDrag);
-  svg.querySelectorAll('.sk-toggle').forEach(t => t.addEventListener('click', e => { e.stopPropagation(); const id = t.dataset.toggle; const c = S.settings.skillCollapsed = S.settings.skillCollapsed || {}; if(c[id]) { delete c[id]; skillRevealFrom = id; } else c[id] = true; saveNow(); drawSkillTree(root); }));
-  svg.querySelectorAll('.sk-node').forEach(g => { g.addEventListener('mouseenter', () => { svg.querySelectorAll(`.sk-link[data-from="${g.dataset.node}"]`).forEach(l => l.classList.add('hot')); }); g.addEventListener('mouseleave', () => svg.querySelectorAll('.sk-link.hot').forEach(l => l.classList.remove('hot'))); g.addEventListener('click', e => { if(g.classList.contains('locked') || e.target.closest('.sk-toggle')) return; }); });
-  svg.querySelectorAll('.sk-node.cat').forEach(g => g.addEventListener('click', e => { if(e.target.closest('.sk-toggle')) return; const id = g.dataset.node; const c = S.settings.skillCollapsed = S.settings.skillCollapsed || {}; if(c[id]){ delete c[id]; skillRevealFrom = id; } else c[id] = true; saveNow(); drawSkillTree(root); }));
-  // minimap
-  function drawMinimap(){ const mm = $('#minimap'); if(!mm) return; const mw = 150, mh = 100; const bw = bb.x1-bb.x0, bh = bb.y1-bb.y0; const sc = Math.min(mw/bw, mh/bh); const ox = (mw - bw*sc)/2, oy = (mh - bh*sc)/2; const vx0 = (0 - view.tx)/view.k, vy0 = (0 - view.ty)/view.k, vx1 = (W - view.tx)/view.k, vy1 = (H - view.ty)/view.k;
-    mm.innerHTML = `<svg viewBox="0 0 ${mw} ${mh}">${nodes.map(n => `<rect x="${(ox+(n.x-n.w/2-bb.x0)*sc).toFixed(1)}" y="${(oy+(n.y-n.h/2-bb.y0)*sc).toFixed(1)}" width="${Math.max(2,n.w*sc).toFixed(1)}" height="${Math.max(1.5,n.h*sc).toFixed(1)}" rx="1" fill="${n.color}" opacity=".8"/>`).join('')}<rect class="mm-view" x="${(ox+(vx0-bb.x0)*sc).toFixed(1)}" y="${(oy+(vy0-bb.y0)*sc).toFixed(1)}" width="${((vx1-vx0)*sc).toFixed(1)}" height="${((vy1-vy0)*sc).toFixed(1)}"/></svg>`;
-    mm.onclick = e => { const r = mm.getBoundingClientRect(); const px = (e.clientX-r.left)/r.width*mw, py = (e.clientY-r.top)/r.height*mh; const wx = (px-ox)/sc + bb.x0, wy = (py-oy)/sc + bb.y0; view.tx = W/2 - wx*view.k; view.ty = H/2 - wy*view.k; apply(); }; }
-  root._skView = { reset: () => { fit(); apply(); }, burst: (id) => { const g = svg.querySelector(`.sk-node[data-skill="${id}"]`); if(!g) return; const m = g.getAttribute('transform').match(/translate\(([-\d.]+),([-\d.]+)\)/); const pt = svg.createSVGPoint(); pt.x = +m[1]*view.k + view.tx; pt.y = +m[2]*view.k + view.ty; const sp = pt.matrixTransform(svg.getScreenCTM()); levelUpBurst(sp.x, sp.y, byId(S.skills,id) ? catColor(byId(S.skills,id).cat) : 'var(--gold)'); } };
-  drawMinimap();
-}
+let skillSelected = null;
+function drawSkillTree(root){ drawOrganicTree(root); }
 function reparentSkill(id, targetNodeId){
   const s = byId(S.skills, id); if(!s) return;
   if(targetNodeId.startsWith('cat:')){ const cat = targetNodeId.slice(4); s.prereqs = s.prereqs.filter(p => !byId(S.skills,p)); s.cat = cat; }

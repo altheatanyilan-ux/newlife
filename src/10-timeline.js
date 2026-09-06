@@ -132,7 +132,7 @@ routes.stage = function(root, params){
   root.innerHTML = `<div class="page" style="--c:${s.hue}">
     <div class="stage-hero" style="margin-top:34px"><div class="mosaic" style="view-transition-name:stage-mosaic">${mosaicHTML(s,18,true)}</div><div class="veil"></div>
       <button class="btn sm addphoto" id="addPhotos">+ photos</button><input type="file" id="photoFile" accept="image/*" multiple hidden>
-      <div class="inner"><div class="han" style="view-transition-name:stage-char">${s.char}</div><div class="meta"><div class="mono" style="margin-bottom:6px">stage ${s.num} of ${S.stages.length}</div><h1>${ed(`stages.#${s.id}.name`)}</h1><div class="quote" style="margin-top:8px">${ed(`stages.#${s.id}.tagline`,{ph:'a tagline'})}</div><div class="mono" style="margin-top:8px">${ed(`stages.#${s.id}.years`,{ph:'years'})}</div></div></div>
+      <div class="inner"><div class="han-wrap"><div class="han" style="view-transition-name:stage-char">${ed(`stages.#${s.id}.char`,{cls:'han-ed',ph:'一'})}</div><button class="han-edit" id="charEdit" title="change this character">✎</button></div><div class="meta"><div class="mono" style="margin-bottom:6px">stage ${s.num} of ${S.stages.length}</div><h1>${ed(`stages.#${s.id}.name`)}</h1><div class="quote" style="margin-top:8px">${ed(`stages.#${s.id}.tagline`,{ph:'a tagline'})}</div><div class="mono" style="margin-top:8px">${ed(`stages.#${s.id}.years`,{ph:'years'})}</div></div></div>
     </div>
     ${s.photos?.length?`<div class="gallery rv" style="margin:-16px 0 30px">${s.photos.map((p,i)=>photoTile(p,`stages.#${s.id}.photos.${i}`)).join('')}</div>`:''}
 
@@ -188,6 +188,7 @@ routes.stage = function(root, params){
   $('#addSub').onclick = () => { s.substages.push({id:uid(),name:'New chapter',desc:'',photos:[]}); saveNow(); rerender(); };
   $$('[data-ssdel]',root).forEach(b => b.onclick = () => { const ss = s.substages[+b.dataset.ssdel]; requestDelete({label: ss.name, node: b.closest('.substage'), remove: () => { const touched = S.entries.filter(e => (e.links?.substages||[]).includes(ss.id)); const rl = snapshotLinks(touched); touched.forEach(e => e.links.substages = e.links.substages.filter(x => x !== ss.id)); const back = spliceOut(s.substages, x => x === ss); return () => { back(); rl(); }; }}); });
   $$('[data-verdel]',root).forEach(b => b.onclick = () => { const v = s.narrativeHistory[+b.dataset.verdel]; requestDelete({label: `Version from ${fmtDate(v.date,'med')}`, node: b.closest('.v'), remove: () => spliceOut(s.narrativeHistory, x => x === v)}); });
+  $('#charEdit') && ($('#charEdit').onclick = () => { const n = root.querySelector('.han .ed'); if(n) beginEdit(n); });
   $('#delStage').onclick = () => deleteStage(s, null, () => navigate('#/timeline'));
   $('#stageHue').onchange = e => { s.hue = e.target.value; saveNow(); rerender(); };
   const moveStage = d => { const i = S.stages.indexOf(s), j = i + d; if(j < 0 || j >= S.stages.length) return; [S.stages[i], S.stages[j]] = [S.stages[j], S.stages[i]]; S.stages.forEach((x,k) => x.num = k+1); saveNow(); rerender(); };

@@ -3,12 +3,12 @@
    ============================================================ */
 function checkin(day=today()){ if(!S.checkins[day]) S.checkins[day] = {mood:0, sentence:'', energy:{}, setpoint:0, intention:''}; return S.checkins[day]; }
 routes.today = function(root){
-  registerPageEntry({pageName:'Today', addLabel:'Add to today', defaultEntryType:'reflection', prefilledFields:{}, options:[
-    {icon:'✎', label:'Quick note', desc:'One honest line, kept as a reflection.', run:()=>EntryActions.quickNote()},
-    {icon:'◷', label:'Task reminder', desc:'A small thing to surface on a day.', run:()=>EntryActions.taskReminder()},
-    {icon:'◎', label:'Daily intention', desc:'One thing to give attention to today.', run:()=>EntryActions.dailyIntention()}]});
+  registerPageEntry({pageName:'Today', addLabel:'New note', defaultEntryType:'reflection', prefilledFields:{}, options:[
+    {icon:'✎', label:'Note', desc:'One honest line, kept as a reflection.', run:()=>EntryActions.quickNote()},
+    {icon:'◷', label:'Reminder', desc:'A small thing to surface on a day.', run:()=>EntryActions.taskReminder()},
+    {icon:'◎', label:'Intention', desc:'One thing to give attention to today.', run:()=>EntryActions.dailyIntention()}]});
   const T = today(); const c = checkin(T); const moon = moonPhase(); const yday = S.checkins[addDays(T,-1)];
-  const otd = onThisDay(); const cycleDay = S.theatre.cycleStart ? daysBetween(S.theatre.cycleStart, T) : 0;
+  const otd = onThisDay(); const cycleDay = S.rehearsal.cycleStart ? daysBetween(S.rehearsal.cycleStart, T) : 0;
   const sig = signals();
   root.innerHTML = `<div class="page narrow">
     <header class="rv page-head">
@@ -28,20 +28,19 @@ routes.today = function(root){
           <div class="cur"><span id="spName">${c.setpoint?hicksName(c.setpoint):'<span class="faint">place yourself on the scale</span>'}</span><span class="mono" id="spNum">${c.setpoint||''}</span></div>
         </div>
         <div class="field"><label>Intention — one thing I want to give attention to today</label>${ed(`checkins.${T}.intention`, {ph:'Just one.', cls:'serif-lg'})}</div>
-        ${yday?.intention?`<div class="quote">Yesterday you said: “${esc(yday.intention)}”</div>`:''}
       </div>
     </details>
 
-    <details class="rv theatre-wrap" ${theatreDoneToday()?'':'open'} style="margin-top:8px">
-      <summary><span class="sc lg">The Morning Theatre</span><span class="mono">${theatreDoneToday()?'practised today':'30 minutes'}</span></summary>
-      <div class="body theatre stack" style="gap:24px">
-        <p class="quote">Close your eyes for 30 minutes. See yourself on a mental motion picture screen. Pay attention to small details — sights, sounds, smells. See yourself acting, feeling, and being as you want to be. Your nervous system cannot tell the difference between a real experience and one vividly imagined. — Maltz</p>
-        <div class="field"><label>Today's Self-Image Script</label>${ed('theatre.script',{multi:true,mdr:true,cls:'prose serif-lg',ph:'First person, present tense. Who you are becoming — vivid, sensory, felt as already real.'})}</div>
-        <div class="field"><label>The Winning Feeling</label><div class="faint" style="font-size:.8rem;margin-bottom:4px">Recall a moment when you felt self-confident and successful. Capture that feeling. Now weld it to your vision of the future.</div>${ed('theatre.winning',{multi:true,cls:'prose',ph:'Where were you? What did your body do?'})}</div>
-        <div class="field"><label>Today's Auto-Suggestion — Definite Chief Aim (Hill)</label><div class="faint" style="font-size:.8rem;margin-bottom:4px">The exact thing desired, what you'll give in return, the date, the plan. Read aloud morning and night, with emotion.</div>${ed('theatre.aim',{multi:true,cls:'prose serif-lg',ph:'By [date] I will have [exactly this]. In return I will give [this].'})}</div>
-        <div class="field"><label>21-day tracker <span class="mono" style="text-transform:none;letter-spacing:0">· day ${clamp(cycleDay+1,1,21)} of 21 · ${S.theatre.days.filter(d=>d>=S.theatre.cycleStart).length} practised</span></label>
-          <div class="tracker">${Array.from({length:21},(_,i)=>{ const d = addDays(S.theatre.cycleStart||T, i); return `<i class="${S.theatre.days.includes(d)?'done':''} ${d===T?'today':''}" data-td="${d}" title="${fmtDate(d,'med')}"></i>`; }).join('')}</div>
-          <div class="row" style="margin-top:12px"><button class="btn sm ${theatreDoneToday()?'':'primary'}" id="markTheatre">${theatreDoneToday()?'✓ Practised today':'Mark today\'s practice'}</button><button class="btn sm ghost" id="newCycle">Begin a new 21-day cycle</button></div>
+    <details class="rv rehearsal-wrap" ${rehearsalDoneToday()?'':'open'} style="margin-top:8px">
+      <summary><span class="sc lg">Morning Rehearsal</span><span class="mono">${rehearsalDoneToday()?'practised today':'30 minutes'}</span></summary>
+      <div class="body rehearsal stack" style="gap:24px">
+        <blockquote class="rehearsal-epigraph">Close your eyes for thirty minutes. See yourself on a mental screen — sights, sounds, smells. See yourself acting, feeling and being as you want to be. The nervous system cannot tell a real experience from one vividly imagined.<cite>Maxwell Maltz</cite></blockquote>
+        <div class="field"><label>Self-image script</label>${ed('rehearsal.script',{multi:true,mdr:true,cls:'prose serif-lg',ph:'First person, present tense. Who you are becoming — vivid, sensory, felt as already real.'})}</div>
+        <div class="field"><label>The winning feeling</label><div class="faint" style="font-size:.8rem;margin-bottom:4px">Recall a moment when you felt self-confident and successful. Capture that feeling. Now weld it to your vision of the future.</div>${ed('rehearsal.winning',{multi:true,cls:'prose',ph:'Where were you? What did your body do?'})}</div>
+        <div class="field"><label>Definite chief aim</label><div class="faint" style="font-size:.8rem;margin-bottom:4px">The exact thing desired, what you'll give in return, the date, the plan. Read aloud morning and night, with emotion.</div>${ed('rehearsal.aim',{multi:true,cls:'prose serif-lg',ph:'By [date] I will have [exactly this]. In return I will give [this].'})}</div>
+        <div class="field"><label>21-day tracker <span class="mono" style="text-transform:none;letter-spacing:0">· day ${clamp(cycleDay+1,1,21)} of 21 · ${S.rehearsal.days.filter(d=>d>=S.rehearsal.cycleStart).length} practised</span></label>
+          <div class="tracker">${Array.from({length:21},(_,i)=>{ const d = addDays(S.rehearsal.cycleStart||T, i); return `<i class="${S.rehearsal.days.includes(d)?'done':''} ${d===T?'today':''}" data-td="${d}" title="${fmtDate(d,'med')}"></i>`; }).join('')}</div>
+          <div class="row" style="margin-top:12px"><button class="btn sm ${rehearsalDoneToday()?'':'primary'}" id="markTheatre">${rehearsalDoneToday()?'✓ Practised today':'Mark today\'s practice'}</button><button class="btn sm ghost" id="newCycle">Begin a new 21-day cycle</button></div>
         </div>
       </div>
     </details>
@@ -50,7 +49,7 @@ routes.today = function(root){
     <section class="section rv"><span class="sc">Signals</span>
       <div class="signals">${sig.map(s=>`<div class="signal" data-go="${s.go}"><div class="k">${s.k}</div><div class="v">${esc(s.v)}</div><div class="d">${esc(s.d)}</div></div>`).join('')}
         <div class="signal" data-go="#/rituals"><div class="k">Days since weekly review</div><div class="v">${daysSince(S.reviews.lastWeekly)}</div><div class="d">${daysSince(S.reviews.lastWeekly)>7?'a review is due':'on rhythm'}</div></div>
-        <div class="signal" data-go="#/today"><div class="k">Morning Theatre streak</div><div class="v">${theatreStreak()} days</div><div class="d">of the current 21-day cycle</div></div>
+        <div class="signal" data-go="#/today"><div class="k">Morning Rehearsal streak</div><div class="v">${rehearsalStreak()} days</div><div class="d">of the current 21-day cycle</div></div>
       </div>
     </section>
 
@@ -76,9 +75,9 @@ routes.today = function(root){
   root.querySelectorAll('.mood').forEach(m => m.onclick = () => { c.mood = +m.dataset.mood; c.ts = new Date().toISOString(); saveNow(); root.querySelectorAll('.mood').forEach(x=>x.classList.toggle('on', x===m)); $('#moodLbl').textContent = ['heavy','low','level','light','luminous'][c.mood-1]; sound('save'); });
   root.querySelectorAll('.dots i').forEach(i => i.onclick = () => { c.energy = c.energy||{}; c.energy[i.dataset.dim] = +i.dataset.n; saveNow(); const dim = i.closest('.energy-dim'); dim.querySelectorAll('i').forEach(x=>x.classList.toggle('on', +x.dataset.n <= +i.dataset.n)); dim.querySelector('.lbl .mono').textContent = i.dataset.n+'/5'; });
   const sp = $('#setpoint'); sp.oninput = () => { $('#spName').textContent = hicksName(+sp.value); $('#spNum').textContent = sp.value; }; sp.onchange = () => { c.setpoint = +sp.value; saveNow(); sound('save'); };
-  $('#markTheatre').onclick = () => { if(!S.theatre.days.includes(T)){ S.theatre.days.push(T); if(!S.theatre.cycleStart) S.theatre.cycleStart = T; saveNow(); sound('chime'); toast('Practice marked. The nervous system takes care of the rest, in time.'); rerender(); } };
-  $('#newCycle').onclick = () => confirmDlg('Start a fresh 21-day cycle from today? Past days stay in your history.', () => { S.theatre.cycleStart = T; saveNow(); rerender(); });
-  root.querySelectorAll('.tracker i').forEach(i => i.onclick = () => { const d = i.dataset.td; if(d > T) return; const idx = S.theatre.days.indexOf(d); if(idx>=0) S.theatre.days.splice(idx,1); else S.theatre.days.push(d); saveNow(); rerender(); });
+  $('#markTheatre').onclick = () => { if(!S.rehearsal.days.includes(T)){ S.rehearsal.days.push(T); if(!S.rehearsal.cycleStart) S.rehearsal.cycleStart = T; saveNow(); sound('chime'); toast('Practice marked. The nervous system takes care of the rest, in time.'); rerender(); } };
+  $('#newCycle').onclick = () => confirmDlg('Start a fresh 21-day cycle from today? Past days stay in your history.', () => { S.rehearsal.cycleStart = T; saveNow(); rerender(); });
+  root.querySelectorAll('.tracker i').forEach(i => i.onclick = () => { const d = i.dataset.td; if(d > T) return; const idx = S.rehearsal.days.indexOf(d); if(idx>=0) S.rehearsal.days.splice(idx,1); else S.rehearsal.days.push(d); saveNow(); rerender(); });
   $('#anotherPrompt').onclick = () => { S._promptShift = (S._promptShift||0)+1; $('#promptText').innerHTML = gentlePrompt(); };
   root.querySelectorAll('[data-quick]').forEach(b => b.onclick = () => { const t = b.dataset.quick; if(t==='nod') openNodModal(); else openEntryModal({type:t}); });
   root.querySelectorAll('[data-rmdate]').forEach(i => { i.onchange = () => { byId(S.reminders, i.dataset.rmdate).date = i.value; saveNow(); rerender(); }; });

@@ -75,8 +75,8 @@ function habitDone(h, day){ return S.habitLog[day]?.[h.id]; }
 function habitStreak(h){ let cur=0, d=today(); if(!habitDone(h,d)) d = addDays(d,-1); while(true){ if(habitDone(h,d)) cur++; else if(habitDue(h,d) || h.freq.type!=='days') break; d = addDays(d,-1); if(cur>400) break; } let best=cur; let run=0; lastDays(365).forEach(x => { if(habitDone(h,x)){ run++; best=Math.max(best,run);} else if(habitDue(h,x)) run=0; }); return {cur,best}; }
 function habitWeekRates(h, weeks=4){ const out=[]; for(let w=weeks-1; w>=0; w--){ const days = Array.from({length:7},(_,i)=>addDays(today(), -(w*7+ (6-i)))); const due = h.freq.type==='perWeek' ? h.freq.count : h.freq.type==='perMonth' ? Math.max(1,Math.round(h.freq.count/4)) : days.filter(d=>habitDue(h,d)).length; const done = days.filter(d=>habitDone(h,d)).length; out.push({done, due:Math.max(due,1)}); } return out; }
 function energyBalance(week=true){ const days = week ? lastDays(7) : [today()]; const out = {}; DIMS.forEach(d => out[d.id] = {exp:0, rec:0}); days.forEach(day => S.habits.forEach(h => { if(habitDone(h,day) && !h.negative) out[h.dimension][h.kind==='recovery'?'rec':'exp']++; })); return out; }
-function theatreDoneToday(){ return S.theatre.days.includes(today()); }
-function theatreStreak(){ let n=0, d=today(); if(!S.theatre.days.includes(d)) d=addDays(d,-1); while(S.theatre.days.includes(d)){n++; d=addDays(d,-1);} return n; }
+function rehearsalDoneToday(){ return S.rehearsal.days.includes(today()); }
+function rehearsalStreak(){ let n=0, d=today(); if(!S.rehearsal.days.includes(d)) d=addDays(d,-1); while(S.rehearsal.days.includes(d)){n++; d=addDays(d,-1);} return n; }
 function signals(){
   const out = [];
   const vs = S.visions.filter(v=>v.confidence!=='lived').map(v=>({v, ...vividness(v)}));

@@ -2,8 +2,8 @@
    5. VALUES CONGRUENCE — the compass beneath the floorboards
    ============================================================ */
 routes.values = function(root){
-  registerPageEntry({pageName:'Values', addLabel:'Add to the compass', defaultEntryType:'snapshot', prefilledFields:{}, options:[
-    {icon:'◔', label:'Congruence snapshot', desc:'0–100 for each value, where you actually are this week.', run:()=>EntryActions.snapshot()},
+  registerPageEntry({pageName:'Values', addLabel:'New snapshot', defaultEntryType:'snapshot', prefilledFields:{}, options:[
+    {icon:'◔', label:'Congruence snapshot', desc:'Score each value 0–100 for this week.', run:()=>EntryActions.snapshot()},
     ...(S.values.length < 10 ? [{icon:'✦', label:'New value', desc:`The compass has ${S.values.length} of 10 points.`, run:()=>EntryActions.newValue()}] : [])]});
   const snaps = allSnapshotsWithRetro(); const latest = snaps.slice(-1)[0]; const axes = S.valueOrder.map(id=>{ const v=byId(S.values,id); return {name:v.name, short:v.name.split(' ')[0], color:v.color}; });
   const gaps = valueGaps();

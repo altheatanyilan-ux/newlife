@@ -73,10 +73,10 @@ function renderReviews(body){
   const atro = S.skills.filter(s=>!s.planned && daysSince(skillLastPracticed(s))>90);
   const step = (t,d,act='') => `<div class="step"><div><div class="t">${t}</div><div class="d">${d}</div>${act?`<div class="act row">${act}</div>`:''}</div></div>`;
   body.innerHTML = `<div class="grid c2" style="align-items:start">
-    <div class="card rv"><h3>Daily Morning Practice</h3><div class="mono">30 minutes · Maltz + Hill + Hicks · last: ${theatreDoneToday()?'today':theatreStreak()?'yesterday':'—'}</div><div class="flow">
-      ${step('Sit quietly. Close your eyes.','Review your Self-Image Script in the Morning Theatre.','<button class="btn sm" data-go="#/today">open the Theatre</button>')}
+    <div class="card rv"><h3>Daily Morning Practice</h3><div class="mono">30 minutes · Maltz + Hill + Hicks · last: ${rehearsalDoneToday()?'today':rehearsalStreak()?'yesterday':'—'}</div><div class="flow">
+      ${step('Sit quietly. Close your eyes.','Review your Self-Image Script in the Morning Rehearsal.','<button class="btn sm" data-go="#/today">open the Theatre</button>')}
       ${step('Visualize for 15–20 minutes.','See yourself acting, feeling, being as you want to be. Sensory details. “Your nervous system will take care of the rest in time — if you continue to practice.”','<button class="btn sm ghost" data-quick="visualization">log what you saw</button>')}
-      ${step('Read your Definite Chief Aim aloud.','With emotion. Twice daily.',`<span class="quote" style="font-size:.9rem">${esc((S.theatre.aim||'').slice(0,160))}…</span>`)}
+      ${step('Read your Definite Chief Aim aloud.','With emotion. Twice daily.',`<span class="quote" style="font-size:.9rem">${esc((S.rehearsal.aim||'').slice(0,160))}…</span>`)}
       ${step('Log your emotional set-point.','Where on the Hicks scale are you, honestly?','<button class="btn sm ghost" data-go="#/today">set-point slider</button>')}
       ${step("Set today's one intention.",'One thing to give attention to.')}
       ${step('Mark the 21-day tracker.','Consistency, quietly.','<button class="btn sm primary" id="rMark">mark practice done</button>')}
@@ -94,7 +94,7 @@ function renderReviews(body){
     <div class="card rv"><h3>Seasonal / Quarterly Review</h3><div class="mono">30 minutes · last ${relDays(daysSince(S.reviews.lastSeasonal))}</div><div class="flow">
       ${step('Re-rank value priorities.','Drag to reorder. The previous ranking is kept.','<button class="btn sm ghost" data-go="#/values">values</button>')}
       ${step('Update vision confidence rungs.','hunch → exploring → plan → committed → in motion → lived','<button class="btn sm ghost" data-go="#/vision">vision tree</button>')}
-      ${step('Re-read one past stage narrative.','Does it still feel true? If not, rewrite it — the old version is kept.',`<button class="btn sm ghost" data-go="#/stage/${S.stages[Math.floor(Math.random()*7)].id}">a random stage</button>`)}
+      ${step('Re-read one past stage narrative.','Does it still feel true? If not, rewrite it — the old version is kept.',S.stages.length ? `<button class="btn sm ghost" data-go="#/stage/${S.stages[Math.floor(Math.random()*S.stages.length)].id}">a random stage</button>` : '')}
       ${step('Revisit flagged synchronicities.',revisit.length?`${revisit.length} flagged: ${revisit.map(e=>'<em>'+esc(e.title)+'</em>').join(', ')}. Do any make more sense now?`:'None flagged.','<button class="btn sm ghost" data-go="#/journals/synchronicity">synchronicities</button>')}
       ${step('Review skill atrophy.',atro.length?`Atrophying: ${atro.map(s=>'<b>'+esc(s.name)+'</b>').join(', ')}. Worth reviving, or worth surrendering?`:'Nothing atrophying.','<button class="btn sm ghost" data-go="#/skills">skill tree</button>')}
       ${step('Review the project energy chart.','Any projects to pause or promote?','<button class="btn sm ghost" data-go="#/projects">energy vs. output</button>')}
@@ -106,12 +106,12 @@ function renderReviews(body){
       ${step("Re-read last year's Future Memories.",'Which visions came closer? Which drifted? Compare with current-reality assessments.','<button class="btn sm ghost" data-go="#/vision">vision tree</button>')}
       ${step('Watch the Values radar from January to December.','What shifted?','<button class="btn sm ghost" data-go="#/values">time slider</button>')}
       ${step("Review the year's emotional set-point trend.",'Did you climb the scale? Where are you stuck?','<button class="btn sm ghost" data-go="#/today">set-point history</button>')}
-      ${step('Review your self-image script.','Who did you become this year? How is that different from who you were at the start?','<button class="btn sm ghost" data-go="#/today">Morning Theatre</button>')}
+      ${step('Review your self-image script.','Who did you become this year? How is that different from who you were at the start?','<button class="btn sm ghost" data-go="#/today">Morning Rehearsal</button>')}
       ${step('Set three visions for the coming year.','','<button class="btn sm ghost" data-go="#/vision">+ vision</button>')}
       ${step("Write a letter to next year's self.",'Dated one year forward.','<button class="btn sm ghost" data-letter="1">+ letter</button><button class="btn sm primary" id="rAnnual">mark annual rite done</button>')}
     </div></div></div>`;
   reveal(body);
-  $('#rMark').onclick = () => { if(!S.theatre.days.includes(today())){ S.theatre.days.push(today()); S.theatre.cycleStart = S.theatre.cycleStart||today(); saveNow(); sound('chime'); } toast('Marked.'); rerender(); };
+  $('#rMark').onclick = () => { if(!S.rehearsal.days.includes(today())){ S.rehearsal.days.push(today()); S.rehearsal.cycleStart = S.rehearsal.cycleStart||today(); saveNow(); sound('chime'); } toast('Marked.'); rerender(); };
   $('#rSnap').onclick = () => openSnapshotModal(()=>rerender());
   $('#rWeekly').onclick = () => { S.reviews.lastWeekly = today(); saveNow(); toast('Weekly review done. See you next week.'); rerender(); };
   $('#rSeasonal').onclick = () => { S.reviews.lastSeasonal = today(); saveNow(); toast('Seasonal review done.'); rerender(); };

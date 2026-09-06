@@ -38,9 +38,14 @@ function mountContextAdd(main){
   $('#ctxAdd')?.remove();
   const cfg = PageEntryConfig.current; if(!cfg) return;
   const page = main.querySelector('.page'); if(!page) return;
-  const bar = el(`<div class="ctx-add" id="ctxAdd"><button class="btn primary" id="ctxAddBtn" aria-label="${esc(cfg.addLabel)}">＋ ${esc(cfg.addLabel)}</button>${cfg.hint ? `<span class="hint">${esc(cfg.hint)}</span>` : ''}</div>`);
+  const opts = (cfg.options || []).slice(0, 4);
+  const buttons = opts.length > 1
+    ? opts.map((o,i) => `<button class="btn ${i?'':'primary'}" data-ctxopt="${i}" title="${esc(o.desc||'')}">＋ ${esc(o.label)}</button>`).join('')
+    : `<button class="btn primary" id="ctxAddBtn" aria-label="${esc(cfg.addLabel)}">＋ ${esc(cfg.addLabel)}</button>`;
+  const bar = el(`<div class="ctx-add" id="ctxAdd">${buttons}${cfg.hint ? `<span class="hint">${esc(cfg.hint)}</span>` : ''}</div>`);
   page.insertBefore(bar, page.firstChild);
-  bar.querySelector('#ctxAddBtn').onclick = () => runContextAdd(cfg);
+  bar.querySelector('#ctxAddBtn') && (bar.querySelector('#ctxAddBtn').onclick = () => runContextAdd(cfg));
+  bar.querySelectorAll('[data-ctxopt]').forEach(b => b.onclick = () => opts[+b.dataset.ctxopt].run(cfg.prefilledFields || {}));
 }
 function runContextAdd(cfg){
   const opts = (cfg.options || []).slice(0, 3);

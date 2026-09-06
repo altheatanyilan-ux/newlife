@@ -52,9 +52,21 @@ function md(src){
 const KEY = 'lifeinstrument.v1';
 let S = null;
 /* persistence lives in db.js (Dexie schema + load/save/backup) */
-function migrate(){ if(S.settings && S.settings.home === 'map') S.settings.home = 'home'; if(typeof migrateEras === 'function') migrateEras(); const d = seed(); for(const k of Object.keys(d)) if(S[k]===undefined) S[k] = d[k]; if(typeof migrateLifeline === 'function') migrateLifeline(); if(typeof migrateSkillLevels === 'function') migrateSkillLevels(); if(typeof migrateProjects === 'function') migrateProjects(); if(typeof migrateStages === 'function') migrateStages(); }
+function migrate(){ if(S.settings && S.settings.home === 'map') S.settings.home = 'home'; wipeDemoData(); if(S.rehearsal && !S.rehearsal){ S.rehearsal = S.rehearsal; } delete S.rehearsal; if(typeof migrateEras === 'function') migrateEras(); const d = seed(); for(const k of Object.keys(d)) if(S[k]===undefined) S[k] = d[k]; if(typeof migrateLifeline === 'function') migrateLifeline(); if(typeof migrateSkillLevels === 'function') migrateSkillLevels(); if(typeof migrateProjects === 'function') migrateProjects(); if(typeof migrateStages === 'function') migrateStages(); }
 
-/* path access: "stages.#id.narrative" or "theatre.script" */
+/* One-time: the house used to open furnished with a demonstration life. If that
+   demonstration is still here, clear it so the rooms start empty. */
+function wipeDemoData(){
+  if(S.settings?.demoWiped) return;
+  const demo = (S.stages||[]).some(s => s.id === 's1') || (S.skills||[]).some(s => s.id === 'sk-jp-conv') || (S.projects||[]).some(p => p.id === 'p-bar');
+  const keep = S.settings || {};
+  const fresh = seed();
+  for(const k of Object.keys(fresh)) if(demo || S[k] === undefined) S[k] = fresh[k];
+  if(demo) S.settings = Object.assign(fresh.settings, {theme:keep.theme||'dark', sound:keep.sound, feltTime:keep.feltTime, home:keep.home||'home', nav:keep.nav, projectView:keep.projectView, firstOpen:keep.firstOpen||today()});
+  S.settings.demoWiped = true;
+}
+
+/* path access: "stages.#id.narrative" or "rehearsal.script" */
 function resolve(path){ const segs = path.split('.'); let o = S; for(let i=0;i<segs.length-1;i++){ o = step(o, segs[i]); if(o==null) return [null,null]; } return [o, segs[segs.length-1]]; }
 function step(o, seg){ if(seg.startsWith('#')) return Array.isArray(o) ? o.find(x=>x.id===seg.slice(1)) : undefined; return o?.[seg]; }
 function getPath(p){ const [o,k] = resolve(p); return o==null ? undefined : step(o,k); }

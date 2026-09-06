@@ -20,12 +20,12 @@ const NAV_ICONS = {
 /* labels match the h1 of the page they open; `short` is for the mobile bar only */
 const NAV_PAGES = {
   today:    {label:'Today',            short:'Today',    ico:NAV_ICONS.today,    route:'#/today'},
-  journals: {label:'Commonplace Book', short:'Book',     ico:NAV_ICONS.journals, route:'#/journals'},
+  journals: {label:'Journals',         short:'Journal',  ico:NAV_ICONS.journals, route:'#/journals'},
   projects: {label:'Creative Projects',short:'Projects', ico:NAV_ICONS.projects, route:'#/projects'},
   rituals:  {label:'Rituals & Habits', short:'Rituals',  ico:NAV_ICONS.rituals,  route:'#/rituals'},
   values:   {label:'Values',           short:'Values',   ico:NAV_ICONS.values,   route:'#/values'},
   skills:   {label:'Skill Tree',       short:'Skills',   ico:NAV_ICONS.skills,   route:'#/skills'},
-  vision:   {label:'Vision Tree',      short:'Vision',   ico:NAV_ICONS.vision,   route:'#/vision'},
+  vision:   {label:'Vision Canvas',    short:'Vision',   ico:NAV_ICONS.vision,   route:'#/vision'},
   timeline: {label:'Timeline',         short:'Timeline', ico:NAV_ICONS.timeline, route:'#/timeline'},
 };
 const NAV_DEFAULT = { present:['today','journals','projects','rituals'], becoming:['values','skills','vision','timeline'], standalone:[] };
@@ -81,7 +81,7 @@ function houseStats(){
   const c = S.checkins[T]; const rem = (S.reminders||[]).filter(r=>!r.done&&r.date<=T).length;
   const stat = {
     today:    {line:`${c?.mood?'checked in':'not checked in'} · rings ${done}/${due.length}`, ok:!!c?.mood, cadence:'daily', tip:`${c?.intention?'Intention: '+c.intention:'No intention set yet'}${rem?` · ${rem} reminder${rem>1?'s':''} waiting`:''}`},
-    rituals:  {line:`${done}/${due.length} rings today`, ok:due.length>0&&done===due.length, cadence:'daily', tip:`${theatreDoneToday()?'Morning Theatre practised':'Morning Theatre not yet practised'} · weekly review ${relDays(daysSince(S.reviews.lastWeekly))}`},
+    rituals:  {line:`${done}/${due.length} rings today`, ok:due.length>0&&done===due.length, cadence:'daily', tip:`${rehearsalDoneToday()?'Morning Theatre practised':'Morning Theatre not yet practised'} · weekly review ${relDays(daysSince(S.reviews.lastWeekly))}`},
     journals: {line:`${j7} entr${j7===1?'y':'ies'} this week`, ok:j7>0, cadence:'daily', tip:`${S.entries.length} entries across ${S.journals.length} journals`},
     projects: {line:`${active.length} active · ${nods7} nods / 7d`, ok:cold===0, cadence:'daily', tip:cold?`${cold} active project${cold>1?'s':''} without a nod this week`:'every active project nodded this week'},
     values:   {line:`snapshot ${snapDays===null?'never':snapDays===0?'today':snapDays+'d ago'}`, ok:snapDays!==null&&snapDays<=7, cadence:'weekly', tip:gaps[0]?`Biggest gap: ${gaps[0].name} (${gaps[0].gap>0?'+':''}${gaps[0].gap})`:''},
@@ -124,7 +124,7 @@ routes.home = function(root){
           <div class="mini-rings" title="habit rings">${st.due.slice(0,10).map(h=>ringSVG(habitDone(h,T)?(habitDone(h,T).level==='min'?.5:1):0,{size:26,stroke:4,color:DIMS.find(d=>d.id===h.dimension).c})).join('')}<span class="mono">${st.done}/${st.due.length}</span></div>
           <span class="mono">${c.mood?'mood '+['heavy','low','level','light','luminous'][c.mood-1]:'<span style="color:var(--gold)">not checked in</span>'}</span>
           <span class="mono">${c.setpoint?hicksName(c.setpoint).split(' / ')[0]:''}</span>
-          <span class="mono">${theatreDoneToday()?'theatre ✓':'theatre ·'}</span>
+          <span class="mono">${rehearsalDoneToday()?'theatre ✓':'theatre ·'}</span>
           ${st.rem?`<span class="mono" style="color:var(--gold)">${st.rem} reminder${st.rem>1?'s':''}</span>`:''}
         </div>
         ${nextActs.length?`<div class="next-actions"><div class="k mono" style="font-size:.6rem;text-transform:uppercase;letter-spacing:.12em;color:var(--gold)">Nearest next actions</div>${nextActs.map(x=>`<div><span class="mono">🌿</span><span style="flex:1">${esc(x.v.nextAction)}</span><a class="mono" href="#/vision/${x.v.id}" style="text-decoration:none">${esc(x.v.name)}</a></div>`).join('')}</div>`:''}
