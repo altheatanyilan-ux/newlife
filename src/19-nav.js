@@ -18,6 +18,7 @@ const NAV_ICONS = {
   more:     '<svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg>',
   reviews:  '<svg viewBox="0 0 24 24"><path d="M12 4.5a7.5 7.5 0 1 1-7.3 9.2"/><path d="M4.5 8.2 4.7 13l4.6-1.1"/><path d="M12 8.5v4l2.8 1.6"/></svg>',
   plan:     '<svg viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="14" rx="2.5"/><path d="M3.5 10h17M8.5 3.5v4M15.5 3.5v4"/><path d="M7.5 13.5h3M7.5 16.5h6"/></svg>',
+  calendar: '<svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/><circle cx="8.5" cy="13.5" r="1"/><circle cx="12" cy="13.5" r="1"/><circle cx="15.5" cy="13.5" r="1"/><circle cx="8.5" cy="16.8" r="1"/><circle cx="12" cy="16.8" r="1"/></svg>',
   writing:  '<svg viewBox="0 0 24 24"><path d="M4.5 19.5 5.7 15 16 4.7a2 2 0 0 1 2.8 2.8L8.5 17.8Z"/><path d="M14.2 6.5 17 9.3"/><path d="M4.5 21h15"/></svg>',
   commonplace:'<svg viewBox="0 0 24 24"><path d="M5 4.5h9a2.5 2.5 0 0 1 2.5 2.5v12.5H7.5A2.5 2.5 0 0 1 5 17Z"/><path d="M16.5 7H19v12.5H7.5"/><path d="M8 8.5h5.5M8 11.5h5.5"/></svg>',
 };
@@ -29,6 +30,7 @@ const NAV_PAGES = {
   rituals:  {label:'Habits',           short:'Habits',   ico:NAV_ICONS.rituals,  route:'#/rituals'},
   reviews:  {label:'Reviews',          short:'Reviews',  ico:NAV_ICONS.reviews,  route:'#/reviews'},
   plan:     {label:'Plan',             short:'Plan',     ico:NAV_ICONS.plan,     route:'#/plan'},
+  calendar: {label:'Calendar',         short:'Calendar', ico:NAV_ICONS.calendar, route:'#/calendar'},
   writing:  {label:'Writing',          short:'Writing',  ico:NAV_ICONS.writing,  route:'#/writing'},
   commonplace:{label:'Commonplace Book', short:'Media',  ico:NAV_ICONS.commonplace, route:'#/commonplace'},
   values:   {label:'Values',           short:'Values',   ico:NAV_ICONS.values,   route:'#/values'},
@@ -36,7 +38,7 @@ const NAV_PAGES = {
   vision:   {label:'Vision Canvas',    short:'Vision',   ico:NAV_ICONS.vision,   route:'#/vision'},
   timeline: {label:'Timeline',         short:'Timeline', ico:NAV_ICONS.timeline, route:'#/timeline'},
 };
-const NAV_DEFAULT = { present:['today','plan','projects','rituals'], becoming:['values','skills','vision','timeline'], standalone:['journals','commonplace','writing','reviews'] };
+const NAV_DEFAULT = { present:['today','plan','calendar','projects','rituals'], becoming:['values','skills','vision','timeline'], standalone:['journals','commonplace','writing','reviews'] };
 const NAV_ZONES = [ {id:'present', label:'Present', hint:'short-term, daily use', accent:'var(--sage)'}, {id:'becoming', label:'Becoming', hint:'identity, growth', accent:'var(--ment)'} ];
 const MOBILE_PRIMARY = ['today','plan','journals','projects','skills'];
 function navConfig(){ if(!S.settings.nav) S.settings.nav = JSON.parse(JSON.stringify(NAV_DEFAULT)); const n = S.settings.nav; ['present','becoming','standalone'].forEach(z => { n[z] = (n[z]||[]).filter(k => NAV_PAGES[k]); }); const placed = new Set([...n.present, ...n.becoming, ...n.standalone]); Object.keys(NAV_PAGES).forEach(k => { if(k !== 'home' && !placed.has(k)) n.standalone.push(k); }); ['present','becoming','standalone'].forEach(z => n[z] = n[z].filter(k => NAV_PAGES[k] && k !== 'home')); return n; }
@@ -97,6 +99,7 @@ function houseStats(){
     vision:   {line:`${vs.length} growing${wither?` · ${wither} withering`:''}`, ok:wither===0, cadence:'weekly', tip:vs.length?`Most vivid: ${[...vs].sort((a,b)=>b.score-a.score)[0].v.name}`:''},
     timeline: {line:`${memories} memories · ${S.stages.length} stages`, ok:true, cadence:'archival', tip:'The museum of the past. Formative events and the story you tell.'},
     plan:     {line:`${tasksForDay(T).length} today · ${unscheduledTasks().length} waiting`, ok:true, cadence:'daily', tip:'Tomorrow and the week after it, one card at a time.'},
+    calendar: {line:`${lastDays(30).filter(d=>S.checkins[d]).length} days logged / 30`, ok:true, cadence:'daily', tip:'The month as a surface, coloured by how the days went.'},
     reviews:  {line:`weekly ${daysSince(S.reviews.lastWeekly)===Infinity?'never':daysSince(S.reviews.lastWeekly)+'d ago'}`, ok:daysSince(S.reviews.lastWeekly)<=7, cadence:'weekly', tip:'The rhythm above the daily one.'},
     writing:  {line:`${S.entries.filter(e=>e.type==='writing').length} pieces`, ok:true, cadence:'weekly', tip:'A room for contemplation, fed by your own hashtags.'},
     commonplace:{line:`${S.entries.filter(e=>e.type==='media').length} works logged`, ok:true, cadence:'archival', tip:'What you read, watched and listened to — and what it changed.'},

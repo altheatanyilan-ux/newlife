@@ -40,23 +40,164 @@ function skillNodeSVG(n, mode, selected, revealFrom){
     ${n.kidCount?`<g class="sk-toggle" data-toggle="${n.id}"><circle cx="${w/2-12}" cy="0" r="8"/><text x="${w/2-12}" y="3.5" text-anchor="middle">${n.collapsed?'+':'−'}</text></g>`:''}
   </g>`;
 }
+/* ---------- skill horizon & priority: catch every idea, focus on a few ---------- */
+const SKILL_HORIZONS = {
+  focus:   ['◉','In focus',  'the handful you are actually practising now', '#7f916a'],
+  active:  ['○','Active',    'held and kept warm, but not the priority',    '#6b7f8e'],
+  next:    ['↗','Up next',   'starting soon — weeks or a few months away',  '#d4a44c'],
+  someday: ['◌','Someday',   'written down so it stops taking up room in your head', '#8a8d8f'],
+  paused:  ['⏸','Resting',   'deliberately set down, not neglected',        '#a89f94'],
+};
+const SKILL_PRIOS = {P1:['P1','#c25b5b'],P2:['P2','#d4a44c'],P3:['P3','#7f916a'],P4:['P4','#8a8d8f']};
+function migrateSkillFocus(){
+  (S.skills||[]).forEach(s => {
+    if(!SKILL_HORIZONS[s.horizon]) s.horizon = s.planned ? 'someday' : 'active';
+    if(!SKILL_PRIOS[s.priority]) s.priority = 'P3';
+    if(s.why === undefined) s.why = '';
+    if(s.startBy === undefined) s.startBy = '';
+    if(!Array.isArray(s.tags)) s.tags = [];
+  });
+}
+const skillHorizon = s => SKILL_HORIZONS[s.horizon] ? s.horizon : 'active';
+function focusSkills(){ return S.skills.filter(s => skillHorizon(s) === 'focus'); }
+function skillIsAtrophying(s){ const d = daysSince(skillLastPracticed(s)); return skillHorizon(s) !== 'someday' && !s.planned && d > 90; }
+/* every milestone across every skill, inside a window of days */
+function milestonesWithin(days){
+  const T = today(); const lim = addDays(T, days); const out = [];
+  S.skills.forEach(s => (skillMilestones(s)||[]).forEach(m => {
+    if(!m.by || m.levelTarget <= s.currentLevel) return;
+    if(m.by > lim) return;
+    out.push({skill:s, m, days: daysBetween(T, m.by)});
+  }));
+  return out.sort((a,b) => a.m.by.localeCompare(b.m.by));
+}
+function skillFilterState(){
+  const f = S._skf = S._skf || {q:'', horizon:'all', cat:'all', level:'all', prio:'all', sort:'horizon'};
+  return f;
+}
+function filteredSkills(){
+  const f = skillFilterState(); const q = f.q.toLowerCase();
+  let list = S.skills.filter(s => {
+    if(f.horizon !== 'all' && skillHorizon(s) !== f.horizon) return false;
+    if(f.cat !== 'all' && s.cat !== f.cat) return false;
+    if(f.prio !== 'all' && (s.priority||'P3') !== f.prio) return false;
+    if(f.level !== 'all'){
+      const lv = s.currentLevel || 0;
+      if(f.level === '0' && lv !== 0) return false;
+      if(f.level === '1-2' && !(lv >= 1 && lv <= 2)) return false;
+      if(f.level === '3-4' && !(lv >= 3 && lv <= 4)) return false;
+      if(f.level === '5+' && lv < 5) return false;
+      if(f.level === 'atrophy' && !skillIsAtrophying(s)) return false;
+      if(f.level === 'due' && !nextMilestone(s)?.by) return false;
+    }
+    if(q && !`${s.name} ${s.cat} ${s.why||''} ${(s.tags||[]).join(' ')}`.toLowerCase().includes(q)) return false;
+    return true;
+  });
+  const ho = Object.keys(SKILL_HORIZONS);
+  const cmp = {
+    horizon: (a,b) => ho.indexOf(skillHorizon(a)) - ho.indexOf(skillHorizon(b)) || (a.priority||'P3').localeCompare(b.priority||'P3') || a.name.localeCompare(b.name),
+    priority:(a,b) => (a.priority||'P3').localeCompare(b.priority||'P3') || a.name.localeCompare(b.name),
+    level:   (a,b) => (b.currentLevel||0) - (a.currentLevel||0) || a.name.localeCompare(b.name),
+    recent:  (a,b) => daysSince(skillLastPracticed(a)) - daysSince(skillLastPracticed(b)),
+    name:    (a,b) => a.name.localeCompare(b.name),
+    cat:     (a,b) => a.cat.localeCompare(b.cat) || a.name.localeCompare(b.name),
+  }[f.sort] || ((a,b)=>0);
+  return list.sort(cmp);
+}
 routes.skills = function(root, params){
-  registerPageEntry({pageName:'Skill Tree', addLabel:'New skill', defaultEntryType:'progress', prefilledFields:{}, options:[
-    {icon:'◉', label:'New skill', desc:'A skill you hold, or a bud you intend to open.', run:()=>EntryActions.newSkill()},
-    {icon:'↗', label:'Log practice', desc:'Time spent on a skill you already have.', run:()=>EntryActions.skillProgress()}]});
-  const mode = 'tree';
+  registerPageEntry({pageName:'Skill Tree', addLabel:'Log practice', defaultEntryType:'progress', prefilledFields:{}, options:[
+    {icon:'↗', label:'Log practice', desc:'Time spent today on something you are already growing.', run:()=>EntryActions.skillProgress()},
+    {icon:'✓', label:'Reached a level', desc:'Move a skill up its own ladder.', run:()=>openLevelUpPicker()},
+    {icon:'📅', label:'Set a milestone', desc:'A level, and the date you want it by.', run:()=>openMilestonePicker()}]});
+  migrateSkillFocus();
+  const f = skillFilterState(); const foc = focusSkills(); const T = today();
+  const win = S._skWindow || 90; const due = milestonesWithin(win);
+  const list = filteredSkills(); const cats = [...new Set(S.skills.map(s=>s.cat))].sort();
+  const counts = {}; Object.keys(SKILL_HORIZONS).forEach(k => counts[k] = S.skills.filter(s => skillHorizon(s) === k).length);
   root.innerHTML = `<div class="page">
-    <div class="page-head row between"><div><h1>Skill Tree</h1><div class="sub">${mode==='tree' ? 'Career capital, grown on the plateau. Every level you climb puts leaves on the twig; mastery bears fruit; neglect turns the leaves brown.' : "Categories branch into skills; a skill's first prerequisite is its parent. Drag a node onto another to re-parent it."}</div></div>
-<button class="btn sm ghost" id="skReset" title="redraw the tree">⟳ redraw</button></div>
-    <div class="skill-wrap" id="skillWrap"><div class="minimap" id="minimap"></div><div class="sk-hint mono">scroll to zoom · drag the canvas to pan · ± to fold a branch</div></div>
-    <div class="grid c3 section">${S.skills.map(s=>{ const st = skillStreak(s); const last = skillLastPracticed(s); return `<div class="card rv" data-sopen="${s.id}" style="cursor:pointer;border-left:3px solid ${catColor(s.cat)}"><div class="row between"><h3 style="margin:0">${esc(s.name)}</h3><span class="mono">${esc(s.cat)}</span></div><div class="muted" style="font-size:.82rem;margin-top:6px">${s.planned?'planned — a bud not yet opened':`${esc(skillLevelLabel(s,s.currentLevel))} · level ${s.currentLevel} of ${skillLevelCount(s)}`}${nextMilestone(s)?.by?` · <span class="mono" style="color:${daysBetween(today(),nextMilestone(s).by)<0?'#d08080':'var(--muted)'}">📅 L${nextMilestone(s).levelTarget} by ${fmtMonth(nextMilestone(s).by)}</span>`:''}</div><div class="mono" style="margin-top:8px">last ${relDays(daysSince(last))} · streak ${st.cur}d (best ${st.best}) · ${skillHours(s).toFixed(1)}h</div>${S.projects.some(p=>(p.linkedSkills||[]).includes(s.id))?`<div class="row" style="margin-top:6px;gap:4px">${S.projects.filter(p=>(p.linkedSkills||[]).includes(s.id)).map(p=>`<span class="chip on" style="--c:var(--terra);font-size:.62rem">🎨 ${esc(p.name)}</span>`).join('')}</div>`:''}</div>`; }).join('')}</div>
+    <div class="page-head"><h1>Skill Tree</h1><div class="sub">Write every one of them down — even the ones for a life you have not started yet. Then put four or five in focus and let the rest wait without nagging you.</div></div>
+
+    <!-- 1. what you are actually doing now -->
+    <section class="section rv"><div class="row between"><span class="sc" style="margin:0">In focus now</span><span class="mono">${foc.length ? `${foc.length} skill${foc.length===1?'':'s'} · everything else is waiting patiently` : 'nothing in focus'}</span></div>
+      ${foc.length ? `<div class="focus-row">${foc.map(s => { const lc = skillLevelCount(s); const lv = s.currentLevel||0; const since = daysSince(skillLastPracticed(s)); const nm = nextMilestone(s); const dd = nm?.by ? daysBetween(T, nm.by) : null; const col = catColor(s.cat); const warm = since <= 7;
+        return `<div class="focus-card" data-sopen="${s.id}" style="--c:${col}">
+          <div class="row between"><b class="serif" style="font-size:1.06rem">${esc(s.name)}</b><span class="pri ${s.priority||'P3'}" style="--c:${(SKILL_PRIOS[s.priority||'P3'])[1]}">${s.priority||'P3'}</span></div>
+          <div class="mono" style="margin-top:4px">${esc(skillLevelLabel(s,lv))} · level ${lv} of ${lc}</div>
+          <div class="lvl-dots">${Array.from({length:lc},(_,i)=>`<i class="${i<lv?'on':''}"></i>`).join('')}</div>
+          <div class="row between" style="margin-top:8px"><span class="mono ${warm?'':'faint'}">${since===Infinity?'never practised':warm?`practised ${relDays(since)}`:`last ${relDays(since)}`}</span>${dd!==null?`<span class="status-pill ${dd<0?'due':'ahead'}">${dd<0?`${-dd}d over`:dd===0?'today':`L${nm.levelTarget} in ${dd}d`}</span>`:''}</div>
+          <button class="btn sm" data-logskill="${s.id}">log practice</button>
+        </div>`; }).join('')}</div>`
+      : `<div class="empty">Nothing is in focus. Open a skill and set its horizon to <b>In focus</b> — four or five is a working number, more than that is a wish list.</div>`}
+    </section>
+
+    <!-- 2. milestones inside a window you choose -->
+    <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Milestones ahead</span>
+      <div class="row">${[30,60,90,180,365].map(d=>`<button class="btn sm ${win===d?'primary':'ghost'}" data-skwin="${d}">${d===365?'a year':d+'d'}</button>`).join('')}</div></div>
+      ${due.length ? `<div class="card" style="margin-top:10px">${due.map(({skill,m,days}) => `<a href="#/skills/${skill.id}" class="ms-line ${days<0?'over':''}">
+        <span class="ms-when mono">${days<0?`${-days}d over`:days===0?'today':`in ${days}d`}</span>
+        <span class="ms-what"><b class="serif">${esc(skill.name)}</b> <span class="muted">→ ${esc(skillLevelLabel(skill,m.levelTarget))} (L${m.levelTarget})</span>${m.note?`<span class="quote"> — ${esc(m.note)}</span>`:''}</span>
+        <span class="mono ms-date">${fmtDate(m.by,'med')}</span></a>`).join('')}</div>`
+      : `<div class="empty">No milestones in the next ${win === 365 ? 'year' : win + ' days'}. A date turns a skill from a hope into a plan — open one and set one.</div>`}
+    </section>
+
+    <!-- 3. the tree -->
+    <div class="row between" style="margin:30px 0 8px"><span class="sc" style="margin:0">The tree</span><button class="btn sm ghost" id="skReset" title="redraw the tree">⟳ redraw</button></div>
+    <div class="skill-wrap" id="skillWrap"><div class="minimap" id="minimap" hidden></div><div class="sk-hint mono">leaves grow with each level · gold fruit is mastery · click a twig to open it</div></div>
+
+    <!-- 4. the inventory, with the add button right above it -->
+    <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Inventory</span><span class="mono">${list.length} of ${S.skills.length} shown</span></div>
+      <p class="muted" style="font-size:.85rem">Everything you have written down, including the skills for a life you have not started yet.</p>
+      <div class="row" style="gap:8px;margin:12px 0"><button class="btn primary" id="skNew">＋ New skill</button><button class="btn ghost" id="skSomeday">＋ Someday skill</button></div>
+      <div class="filter-bar">
+        <input class="inp" id="skq" placeholder="search name, category, reason, tag" value="${esc(f.q)}">
+        <select class="sel" id="skHorizon"><option value="all">every horizon</option>${Object.entries(SKILL_HORIZONS).map(([k,v])=>`<option value="${k}" ${f.horizon===k?'selected':''}>${v[0]} ${v[1]} (${counts[k]})</option>`).join('')}</select>
+        <select class="sel" id="skCat"><option value="all">every category</option>${cats.map(c=>`<option value="${esc(c)}" ${f.cat===c?'selected':''}>${esc(c)}</option>`).join('')}</select>
+        <select class="sel" id="skLevel">${[['all','any level'],['0','not started'],['1-2','level 1–2'],['3-4','level 3–4'],['5+','level 5 and up'],['due','has a milestone'],['atrophy','atrophying']].map(([v,l])=>`<option value="${v}" ${f.level===v?'selected':''}>${l}</option>`).join('')}</select>
+        <select class="sel" id="skPrio"><option value="all">any priority</option>${Object.keys(SKILL_PRIOS).map(p=>`<option value="${p}" ${f.prio===p?'selected':''}>${p}</option>`).join('')}</select>
+        <select class="sel" id="skSort">${[['horizon','by horizon'],['priority','by priority'],['level','by level'],['recent','by last practised'],['cat','by category'],['name','by name']].map(([v,l])=>`<option value="${v}" ${f.sort===v?'selected':''}>${l}</option>`).join('')}</select>
+        ${(f.q||f.horizon!=='all'||f.cat!=='all'||f.level!=='all'||f.prio!=='all')?`<button class="btn sm ghost" id="skClearF">clear</button>`:''}
+      </div>
+      <div class="chip-row" style="margin-bottom:12px">${Object.entries(SKILL_HORIZONS).map(([k,v])=>`<button class="chip click ${f.horizon===k?'on':''}" style="--c:${v[3]}" data-skh="${k}" title="${esc(v[2])}">${v[0]} ${v[1]} <span class="mono">${counts[k]}</span></button>`).join('')}</div>
+      <div class="inv-list">${list.length ? list.map(s => { const h = SKILL_HORIZONS[skillHorizon(s)]; const lc = skillLevelCount(s); const lv = s.currentLevel||0; const since = daysSince(skillLastPracticed(s)); const nm = nextMilestone(s);
+        return `<div class="inv-row" data-sopen="${s.id}" style="--c:${catColor(s.cat)}">
+          <span class="inv-h" title="${esc(h[2])}" style="color:${h[3]}">${h[0]}</span>
+          <span class="inv-name"><b>${esc(s.name)}</b>${s.why?`<span class="inv-why">${esc(s.why)}</span>`:''}</span>
+          <span class="chip" style="--c:${catColor(s.cat)}">${esc(s.cat)}</span>
+          <span class="pri ${s.priority||'P3'}" style="--c:${(SKILL_PRIOS[s.priority||'P3'])[1]}">${s.priority||'P3'}</span>
+          <span class="inv-lv"><span class="lvl-dots">${Array.from({length:lc},(_,i)=>`<i class="${i<lv?'on':''}"></i>`).join('')}</span><span class="mono">${lv}/${lc}</span></span>
+          <span class="mono inv-last ${skillIsAtrophying(s)?'atrophy':''}">${skillHorizon(s)==='someday'?(s.startBy?`start by ${fmtDate(s.startBy,'short')}`:'not started'):since===Infinity?'never':relDays(since)}</span>
+          <span class="mono inv-ms">${nm?.by?`L${nm.levelTarget} · ${fmtDate(nm.by,'short')}`:''}</span>
+          <select class="sel inv-set" data-sethz="${s.id}" title="move this skill's horizon">${Object.entries(SKILL_HORIZONS).map(([k,v])=>`<option value="${k}" ${skillHorizon(s)===k?'selected':''}>${v[0]} ${v[1]}</option>`).join('')}</select>
+        </div>`; }).join('') : `<div class="empty">Nothing matches those filters.</div>`}</div>
+    </section>
   </div>`;
   drawSkillTree(root);
   if($('#skReset')) $('#skReset').onclick = () => { root._skView?.reset(); };
-  window.addEventListener('resize', debounce(() => { if(currentRoute==='skills' && (S.settings.skillLayout||'tree')==='tree') drawSkillTree(root); }, 250), {once:true});
-  $$('[data-sopen]',root).forEach(c => c.onclick = () => openSkillPanel(c.dataset.sopen));
+  window.addEventListener('resize', debounce(() => { if(currentRoute==='skills') drawSkillTree(root); }, 250), {once:true});
+  $$('[data-sopen]',root).forEach(c => c.addEventListener('click', e => { if(e.target.closest('.inv-set,[data-logskill]')) return; openSkillPanel(c.dataset.sopen); }));
+  $$('[data-logskill]',root).forEach(b => b.onclick = e => { e.stopPropagation(); openEntryModal({type:'progress', allowedTypes:['progress'], heading:'Log practice', links:{skills:[b.dataset.logskill]}, openLinks:true}); });
+  $$('[data-skwin]',root).forEach(b => b.onclick = () => { S._skWindow = +b.dataset.skwin; rerender(); });
+  $$('[data-skh]',root).forEach(b => b.onclick = () => { f.horizon = f.horizon === b.dataset.skh ? 'all' : b.dataset.skh; rerender(); });
+  $$('[data-sethz]',root).forEach(sel => sel.onchange = e => { e.stopPropagation(); const s = byId(S.skills, sel.dataset.sethz); s.horizon = sel.value; if(sel.value !== 'someday') s.planned = false; saveNow(); sound('click'); rerender(); });
+  $('#skNew').onclick = () => EntryActions.newSkill();
+  $('#skSomeday').onclick = () => newSkillDialog({horizon:'someday'});
+  const bindF = (id, key, ev='change') => { const el_ = $('#'+id); if(el_) el_.addEventListener(ev, () => { f[key] = el_.value; rerender(); if(key==='q'){ const i = $('#skq'); if(i){ i.focus(); i.setSelectionRange(i.value.length,i.value.length); } } }); };
+  const q = $('#skq'); if(q) q.addEventListener('input', debounce(() => { f.q = q.value; rerender(); const i = $('#skq'); if(i){ i.focus(); i.setSelectionRange(i.value.length,i.value.length); } }, 350));
+  bindF('skHorizon','horizon'); bindF('skCat','cat'); bindF('skLevel','level'); bindF('skPrio','prio'); bindF('skSort','sort');
+  if($('#skClearF')) $('#skClearF').onclick = () => { S._skf = {q:'', horizon:'all', cat:'all', level:'all', prio:'all', sort:'horizon'}; rerender(); };
   if(params[0]) openSkillPanel(params[0]);
 };
+/* pick a skill, then jump straight to the thing you meant to do */
+function openLevelUpPicker(){
+  if(!S.skills.length){ toast('Add a skill first.'); return; }
+  const m = openModal(`<h2>Which skill moved?</h2><div class="stack" style="gap:6px;max-height:50vh;overflow:auto">${S.skills.map(s=>`<button class="choice" data-lu="${s.id}"><span class="ico">${SKILL_HORIZONS[skillHorizon(s)][0]}</span><span><b>${esc(s.name)}</b><div class="d">level ${s.currentLevel||0} of ${skillLevelCount(s)} · ${esc(s.cat)}</div></span></button>`).join('')}</div>`,'narrow');
+  m.querySelectorAll('[data-lu]').forEach(b => b.onclick = () => { m.remove(); openSkillPanel(b.dataset.lu); setTimeout(()=>document.querySelector('#panel .lvl-track')?.scrollIntoView({block:'center',behavior:'smooth'}),200); });
+}
+function openMilestonePicker(){
+  if(!S.skills.length){ toast('Add a skill first.'); return; }
+  const m = openModal(`<h2>A milestone for which skill?</h2><div class="stack" style="gap:6px;max-height:50vh;overflow:auto">${S.skills.map(s=>`<button class="choice" data-ms="${s.id}"><span class="ico">📅</span><span><b>${esc(s.name)}</b><div class="d">${(s.milestones||[]).length} target${(s.milestones||[]).length===1?'':'s'} set</div></span></button>`).join('')}</div>`,'narrow');
+  m.querySelectorAll('[data-ms]').forEach(b => b.onclick = () => { m.remove(); openSkillPanel(b.dataset.ms); setTimeout(()=>document.querySelector('#panel #msAdd')?.click(),260); });
+}
 
 /* ---------- the living tree: trunk, category branches, skill twigs, leaves for progress ---------- */
 function organicLayout(){
@@ -192,7 +333,14 @@ function openSkillPanel(id){
   const visions = S.visions.filter(v=>v.preSkills.includes(s.id)); const projects = S.projects.filter(p => (p.linkedSkills||[]).includes(s.id) || es.some(e=>(e.links.projects||[]).includes(p.id))); const values = {}; es.forEach(e=>(e.links.values||[]).forEach(x=>values[x.id]=(values[x.id]||0)+1));
   const arche = s.planned ? 'A bud. Nothing to judge yet.' : since>90 ? 'The Dabbler? Enthusiasm, then a plateau, then silence. Or perhaps a deliberate surrender — some competencies are meant to be let go.' : st.best>=14 && st.cur===0 ? 'The Obsessive? A long hard streak, then a break. Watch for burnout; oscillation is the rhythm, not a failure.' : s.currentLevel>=3 && !skillTargetLevel(s) && s.currentLevel < skillLevelCount(s) ? 'The Hacker? Good enough, and stopped. Is this the level you chose, or the one you settled for?' : 'On the path. Loving the plateau. The master stays on the mat five minutes longer.';
   const p = openPanel(`<div class="mono">${esc(s.cat)} · ${s.planned?'planned':'level '+s.currentLevel+' of '+skillLevelCount(s)}</div><h2>${ed(`skills.#${s.id}.name`)}</h2>
-    <div class="row" style="margin:8px 0 18px"><select class="sel" style="width:auto" id="skCatSel">${SKILL_CATS.map(c=>`<option ${s.cat===c?'selected':''}>${c}</option>`).join('')}</select><label class="toggle ${s.planned?'on':''}" id="skPl"><span class="sw"></span><span>planned</span></label></div>
+    <div class="row" style="margin:8px 0 10px;gap:8px;flex-wrap:wrap">
+      <select class="sel" style="width:auto" id="skCatSel">${SKILL_CATS.map(c=>`<option ${s.cat===c?'selected':''}>${c}</option>`).join('')}</select>
+      <select class="sel" style="width:auto" id="skHzSel" title="how near this skill is">${Object.entries(SKILL_HORIZONS).map(([k,v])=>`<option value="${k}" ${skillHorizon(s)===k?'selected':''}>${v[0]} ${v[1]}</option>`).join('')}</select>
+      <select class="sel" style="width:auto" id="skPrioSel" title="priority">${Object.keys(SKILL_PRIOS).map(pp=>`<option ${(s.priority||'P3')===pp?'selected':''}>${pp}</option>`).join('')}</select>
+    </div>
+    <div class="faint" style="font-size:.78rem;margin-bottom:10px">${esc(SKILL_HORIZONS[skillHorizon(s)][2])}</div>
+    <div class="field" style="margin-bottom:14px"><label>Why this one?</label>${ed(`skills.#${s.id}.why`,{ph:'One line, for the day you have forgotten.'})}</div>
+    ${['someday','next'].includes(skillHorizon(s))?`<div class="field" style="margin-bottom:14px"><label>Start by</label>${ed(`skills.#${s.id}.startBy`,{ph:'YYYY-MM-DD',cls:'mono'})}</div>`:''}
     <div class="grid c3" style="gap:10px"><div class="card" style="padding:12px 14px"><div class="mono">last practiced</div><div class="serif" style="font-size:1.2rem">${relDays(since)}</div></div><div class="card" style="padding:12px 14px"><div class="mono">streak</div><div class="serif" style="font-size:1.2rem">${st.cur}d <span class="faint" style="font-size:.8rem">best ${st.best}</span></div></div><div class="card" style="padding:12px 14px"><div class="mono">total hours</div><div class="serif" style="font-size:1.2rem" data-tween="${skillHours(s)}" data-dec="1">0</div></div></div>
     <div class="archetype">${arche}</div>
     ${levelTrackHTML(s)}
@@ -206,7 +354,8 @@ function openSkillPanel(id){
     ${moreSection(`<div class="danger-zone"><span>Skills accrue slowly. Consider marking it planned or lowering the level before deleting.</span><button class="btn sm ghost danger" id="skDel">Delete this skill</button></div>`)}`);
   $$('#panel .rv').forEach(n=>n.classList.add('in'));
   p.querySelector('#skCatSel').onchange = e => { s.cat = e.target.value; saveNow(); rerender(); openSkillPanel(id); };
-  p.querySelector('#skPl').onclick = () => { s.planned = !s.planned; if(!s.planned && s.currentLevel===0) s.currentLevel=1; saveNow(); rerender(); openSkillPanel(id); };
+  p.querySelector('#skHzSel').onchange = e => { s.horizon = e.target.value; s.planned = s.horizon === 'someday'; if(!s.planned && s.currentLevel===0) s.currentLevel = 1; saveNow(); rerender(); openSkillPanel(id); };
+  p.querySelector('#skPrioSel').onchange = e => { s.priority = e.target.value; saveNow(); rerender(); openSkillPanel(id); };
   bindLevelTrack(p, s);
   bindMilestones(p, s);
   p.querySelectorAll('[data-pre]').forEach(c => c.onclick = () => { const x = c.dataset.pre; s.prereqs = s.prereqs.includes(x) ? s.prereqs.filter(y=>y!==x) : [...s.prereqs,x]; saveNow(); c.classList.toggle('on'); rerender(); });

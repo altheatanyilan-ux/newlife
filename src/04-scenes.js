@@ -123,6 +123,9 @@ const PAGE_SCENES = {
       <circle cx="790" cy="530" r="76"/><circle cx="790" cy="530" r="32"/>
       ${Array.from({length:10},(_,i)=>{const a=i*Math.PI/5; return `<line x1="${(790+Math.cos(a)*76).toFixed(0)}" y1="${(530+Math.sin(a)*76).toFixed(0)}" x2="${(790+Math.cos(a)*98).toFixed(0)}" y2="${(530+Math.sin(a)*98).toFixed(0)}" stroke-width="10"/>`;}).join('')}</g>`),
 };
+PAGE_SCENES.calendar = () => scWrap(`<g stroke="${A}" opacity=".22" stroke-width="1.4">${Array.from({length:9},(_,i)=>`<line x1="120" y1="${120+i*72}" x2="1080" y2="${120+i*72}"/>`).join('')}${Array.from({length:8},(_,i)=>`<line x1="${120+i*137}" y1="120" x2="${120+i*137}" y2="696"/>`).join('')}</g>
+    <g opacity=".4" fill="${A}">${Array.from({length:26},(_,i)=>`<circle cx="${188+((i*3)%7)*137}" cy="${156+Math.floor(i/7)*72}" r="${4+(i%4)*2}"/>`).join('')}</g>
+    ${cloud(300,80,.9,G2,.2)}${moon(980,90,34,A)}`);
 PAGE_SCENES.tag = PAGE_SCENES.journals;
 
 /* ---------- a motif no other record has ---------- */

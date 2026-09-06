@@ -25,7 +25,7 @@ const EntryActions = {
   libraryQuote:   (pre={}) => openEntryModal({type:'quote', allowedTypes:['quote'], heading:'New quote or saved link', links: pre.links}),
   snapshot:       ()       => openSnapshotModal(),
   newValue:       ()       => newValueDialog(),
-  newSkill:       ()       => newSkillDialog(),
+  newSkill:       (pre={}) => newSkillDialog(pre),
   skillProgress:  (pre={}) => openEntryModal({type:'progress', allowedTypes:['progress'], heading:'Add a level to a skill — log practice', links: pre.links, openLinks:true}),
   newVision:      (pre={}) => newVisionDialog(pre),
   lifeEvent:      (pre={}) => openLifeEventModal(pre.era || presentEra()?.id),
@@ -102,9 +102,30 @@ function newVisionDialog(pre={}){
   m.querySelector('#vnSave').onclick = () => { const name = m.querySelector('#vnName').value.trim(); if(!name) return; const v = {id:uid(),name,era:m.querySelector('#vnEra').value,parentId:m.querySelector('#vnParent').value||null,status:'pending',phase:'in-progress',progress:0,startedAt:today(),completedAt:'',successCriteria:'',reflection:'',archived:false,confidence:'hunch',nextAction:'',sensory:{see:'',hear:'',smell:'',firstHour:'',who:'',noLonger:''},futureMemory:'',futureMemoryHistory:[],costs:'',currentReality:'',currentRealityHistory:[],resistance:[],preSkills:[],selfImage:'',values:[],obituary:'',evidence:[],feeling:0,targetDate:'',location:'',money:'',createdAt:today()}; S.visions.push(v); saveNow(); m.remove(); if(currentRoute !== 'vision') navigate('#/vision'); else rerender(); setTimeout(() => openVisionPanel(v.id), currentRoute==='vision' ? 0 : 400); };
   setTimeout(() => m.querySelector('#vnName').focus(), 50);
 }
-function newSkillDialog(){
-  const m = openModal(`<h2>A new skill</h2><div class="stack"><div class="field"><label>Name</label><input class="inp" id="skName"></div><div class="field"><label>Category</label><select class="sel" id="skCat">${SKILL_CATS.map(c=>`<option>${c}</option>`).join('')}</select></div><label class="toggle" id="skPlanned"><span class="sw"></span><span>planned — a bud, not yet begun</span></label></div><div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn primary" id="skSave">Add</button></div>`,'narrow');
-  let planned=false; m.querySelector('#skPlanned').onclick = function(){ planned=!planned; this.classList.toggle('on',planned); };
-  m.querySelector('#skSave').onclick = () => { const name = m.querySelector('#skName').value.trim(); if(!name) return; const s = {id:uid(),name,cat:m.querySelector('#skCat').value,levels:[{number:1,label:'Beginner',description:'',criteria:[],resources:[],estimatedTime:'',targetDate:null},{number:2,label:'Competent',description:'',criteria:[],resources:[],estimatedTime:'',targetDate:null},{number:3,label:'Proficient',description:'',criteria:[],resources:[],estimatedTime:'',targetDate:null}],currentLevel:planned?0:1,milestones:[],prereqs:[],planned}; S.skills.push(s); saveNow(); m.remove(); if(currentRoute !== 'skills') navigate('#/skills'); else rerender(); setTimeout(() => openSkillPanel(s.id), currentRoute==='skills' ? 0 : 400); };
+function newSkillDialog(pre={}){
+  const hz = pre.horizon || 'active';
+  const m = openModal(`<h2>${hz==='someday'?'A skill for later':'A new skill'}</h2><div class="stack">
+    <div class="field"><label>Name</label><input class="inp" id="skName" placeholder="Conversational Japanese"></div>
+    <div class="grid c2" style="gap:10px">
+      <div class="field"><label>Category</label><select class="sel" id="skCat">${SKILL_CATS.map(c=>`<option>${c}</option>`).join('')}</select></div>
+      <div class="field"><label>Priority</label><select class="sel" id="skPrio">${Object.keys(SKILL_PRIOS).map(p=>`<option ${p==='P3'?'selected':''}>${p}</option>`).join('')}</select></div>
+    </div>
+    <div class="field"><label>Horizon</label><select class="sel" id="skHz">${Object.entries(SKILL_HORIZONS).map(([k,v])=>`<option value="${k}" ${hz===k?'selected':''}>${v[0]} ${v[1]} — ${v[2]}</option>`).join('')}</select></div>
+    <div class="field" id="startByField" ${hz==='someday'||hz==='next'?'':'hidden'}><label>Start by (optional)</label><input class="inp" type="date" id="skStart"></div>
+    <div class="field"><label>Why this one?</label><input class="inp" id="skWhy" placeholder="One line. It is what you will read when you have forgotten."></div>
+  </div><div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn primary" id="skSave">Add</button></div>`,'narrow');
+  const hzSel = m.querySelector('#skHz');
+  hzSel.onchange = () => { m.querySelector('#startByField').hidden = !['someday','next'].includes(hzSel.value); };
+  m.querySelector('#skSave').onclick = () => {
+    const name = m.querySelector('#skName').value.trim(); if(!name){ toast('It needs a name.'); return; }
+    const horizon = hzSel.value;
+    const s = {id:uid(), name, cat:m.querySelector('#skCat').value, horizon, priority:m.querySelector('#skPrio').value,
+      why:m.querySelector('#skWhy').value.trim(), startBy:m.querySelector('#skStart')?.value || '', tags:[],
+      levels:[{number:1,label:'Beginner',description:'',criteria:[],resources:[],estimatedTime:'',targetDate:null},{number:2,label:'Competent',description:'',criteria:[],resources:[],estimatedTime:'',targetDate:null},{number:3,label:'Proficient',description:'',criteria:[],resources:[],estimatedTime:'',targetDate:null}],
+      currentLevel: horizon==='someday' ? 0 : 1, milestones:[], prereqs:[], planned: horizon==='someday'};
+    S.skills.push(s); saveNow(); m.remove(); sound('success');
+    if(currentRoute !== 'skills') navigate('#/skills'); else rerender();
+    if(horizon !== 'someday') setTimeout(() => openSkillPanel(s.id), 260);
+  };
   setTimeout(() => m.querySelector('#skName').focus(), 50);
 }

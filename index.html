@@ -392,6 +392,56 @@ html.reduce-motion *,html.reduce-motion *::before,html.reduce-motion *::after{an
 .amb-opt.on{border-color:var(--page-accent);background:color-mix(in srgb,var(--page-accent) 12%,var(--surface-2))}
 .amb-name{font-family:var(--serif);font-size:1rem;color:var(--text)}
 .amb-desc{font-family:var(--quote);font-style:italic;font-size:.8rem;color:var(--muted)}
+/* ---------- calendar ---------- */
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.cal-dow{font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);text-align:center;padding-bottom:4px}
+.cal-day{position:relative;min-height:104px;display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:8px 9px;background:var(--surface);border:1px solid var(--line);border-radius:12px;cursor:pointer;text-align:left;font-family:var(--sans);color:inherit;overflow:hidden;transition:transform .2s var(--page-ease),border-color .2s var(--ease),background .2s var(--ease)}
+.cal-day:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--dc,var(--page-accent)) 65%,var(--line));background:var(--surface-2)}
+.cal-day.out{opacity:.32}
+.cal-day.today{border-color:var(--page-accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--page-accent) 22%,transparent)}
+.cal-day.has{background:linear-gradient(180deg,color-mix(in srgb,var(--dc) 11%,var(--surface)),var(--surface))}
+.cd-num{font-family:var(--serif);font-size:1.06rem;line-height:1}
+.cd-state{display:block;width:100%;height:var(--h,6px);max-height:34px;border-radius:3px;background:var(--dc,var(--page-accent));opacity:.55}
+.cd-marks{display:flex;gap:3px;flex-wrap:wrap;margin-top:auto}
+.cd-marks i,.cal-legend i{width:6px;height:6px;border-radius:50%;display:inline-block}
+.m-reh{background:var(--gold)}.m-ent{background:var(--page-accent)}.m-task{background:var(--sage)}.m-hab{background:var(--ment)}.m-nod{background:var(--terra)}
+.cd-line{font-family:var(--quote);font-style:italic;font-size:.66rem;color:var(--muted);line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.cal-legend{display:flex;gap:14px;flex-wrap:wrap;font-family:var(--mono);font-size:.64rem;color:var(--muted);align-items:center}
+.cal-legend span{display:inline-flex;align-items:center;gap:5px}
+.cal-legend i{width:9px;height:9px;border-radius:2px}
+.day-page .vp-sec:first-of-type{margin-top:0}
+@media (max-width:760px){.cal-day{min-height:76px;padding:6px}.cd-line{display:none}}
+/* ---------- skills: focus row, milestone lines, inventory ---------- */
+.focus-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(228px,1fr));gap:12px;margin-top:12px}
+.focus-card{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--c);border-radius:var(--radius);padding:14px 16px;cursor:pointer;transition:transform .25s var(--page-ease),border-color .25s var(--ease)}
+.focus-card:hover{transform:var(--page-lift);border-color:color-mix(in srgb,var(--c) 60%,var(--line))}
+.focus-card .btn{margin-top:10px;width:100%}
+.lvl-dots{display:inline-flex;gap:3px;margin-top:6px}
+.lvl-dots i{width:16px;height:4px;border-radius:2px;background:var(--surface-3)}
+.lvl-dots i.on{background:var(--c,var(--page-accent))}
+.ms-line{display:grid;grid-template-columns:82px 1fr auto;align-items:baseline;gap:12px;padding:9px 0;border-top:1px dashed var(--line);text-decoration:none;color:inherit}
+.ms-line:first-child{border-top:none}
+.ms-line:hover .ms-what b{color:var(--page-accent)}
+.ms-line.over .ms-when{color:#d08080;font-weight:600}
+.ms-line .ms-what .quote{font-size:.86rem}
+.filter-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.filter-bar .inp{flex:1;min-width:190px}
+.filter-bar .sel{width:auto}
+.chip-row{display:flex;flex-wrap:wrap;gap:6px}
+.chip-row .chip{cursor:pointer}
+.inv-list{display:flex;flex-direction:column;gap:1px}
+.inv-row{display:grid;grid-template-columns:20px minmax(140px,2fr) auto 34px 92px 96px 96px auto;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;border:1px solid transparent;cursor:pointer;transition:background .18s var(--ease),border-color .18s var(--ease)}
+.inv-row:hover{background:var(--surface-2);border-color:var(--line)}
+.inv-h{text-align:center;font-size:.9rem}
+.inv-name b{font-family:var(--serif);font-size:1rem;font-weight:500}
+.inv-why{display:block;font-family:var(--quote);font-style:italic;font-size:.78rem;color:var(--muted);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.inv-lv{display:flex;align-items:center;gap:6px}
+.inv-lv .lvl-dots{margin-top:0}
+.inv-lv .lvl-dots i{width:10px}
+.inv-last.atrophy{color:#c9a05a}
+.inv-set{width:auto;padding:2px 6px;font-size:.66rem;opacity:0;transition:opacity .2s var(--ease)}
+.inv-row:hover .inv-set,.inv-set:focus{opacity:1}
+@media (max-width:1000px){.inv-row{grid-template-columns:20px 1fr auto auto;row-gap:4px}.inv-lv,.inv-ms,.inv-last{grid-column:2/-1}.inv-set{opacity:1}}
 /* ---------- values: the reading, then the evidence ---------- */
 .reading-card{padding:26px 30px;border-radius:var(--radius);border:1px solid color-mix(in srgb,var(--page-accent) 30%,var(--line));background:linear-gradient(135deg,color-mix(in srgb,var(--page-gradient-start) 12%,var(--surface)),var(--surface) 65%);position:relative;overflow:hidden}
 .reading-card::after{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--page-accent),transparent)}
@@ -1207,7 +1257,7 @@ function tagChips(e, {link=true}={}){ const t = entryTags(e); return t.length ? 
 const KEY = 'lifeinstrument.v1';
 let S = null;
 /* persistence lives in db.js (Dexie schema + load/save/backup) */
-function migrate(){ if(S.settings && S.settings.home === 'map') S.settings.home = 'home'; wipeDemoData(); if(S.rehearsal && !S.rehearsal){ S.rehearsal = S.rehearsal; } delete S.rehearsal; if(typeof migrateEras === 'function') migrateEras(); const d = seed(); for(const k of Object.keys(d)) if(S[k]===undefined) S[k] = d[k]; if(typeof migrateLifeline === 'function') migrateLifeline(); if(typeof migrateSkillLevels === 'function') migrateSkillLevels(); if(typeof migrateProjects === 'function') migrateProjects(); if(typeof migrateStages === 'function') migrateStages(); if(typeof migrateTasks === 'function') migrateTasks(); if(typeof migrateIdeas === 'function') migrateIdeas(); if(typeof migrateMedia === 'function') migrateMedia(); }
+function migrate(){ if(S.settings && S.settings.home === 'map') S.settings.home = 'home'; wipeDemoData(); if(S.rehearsal && !S.rehearsal){ S.rehearsal = S.rehearsal; } delete S.rehearsal; if(typeof migrateEras === 'function') migrateEras(); const d = seed(); for(const k of Object.keys(d)) if(S[k]===undefined) S[k] = d[k]; if(typeof migrateLifeline === 'function') migrateLifeline(); if(typeof migrateSkillLevels === 'function') migrateSkillLevels(); if(typeof migrateProjects === 'function') migrateProjects(); if(typeof migrateStages === 'function') migrateStages(); if(typeof migrateTasks === 'function') migrateTasks(); if(typeof migrateIdeas === 'function') migrateIdeas(); if(typeof migrateMedia === 'function') migrateMedia(); if(typeof migrateSkillFocus === 'function') migrateSkillFocus(); }
 
 /* One-time: the house used to open furnished with a demonstration life. If that
    demonstration is still here, clear it so the rooms start empty. */
@@ -1459,6 +1509,7 @@ const PAGE_THEMES = {
   vision:   {name:'Vision Canvas',  accent:['#7b7de3','#4d50b6'], ink:'#f6f4ff', gradient:['#4b4fb0','#8a5fc9'], mood:'expansive, dreamy',      motion:'calm',      glyph:'夢', icon:'🌳'},
   timeline: {name:'Timeline',       accent:['#cba85a','#96762a'], ink:'#1a1816', gradient:['#c9a55a','#8a6a4a'], mood:'nostalgic, warm',        motion:'calm',      glyph:'憶', icon:'⏳'},
   home:     {name:'Home',         accent:['#94a6b5','#5b7082'], ink:'#1a1816', gradient:['#8a9aa6','#6c8299'], mood:'analytical, clear',      motion:'calm',      glyph:'家', icon:'⌂'},
+  calendar: {name:'Calendar',      accent:['#8fa9c4','#4f7093'], ink:'#1a1816', gradient:['#7d97b3','#c2cfdb'], mood:'wide, seasonal',         motion:'calm',      glyph:'暦', icon:'▦'},
   plan:     {name:'Plan',          accent:['#d98f6a','#a8613e'], ink:'#1a1816', gradient:['#c97f5e','#e0b48a'], mood:'ordered, near',          motion:'crisp',     glyph:'週', icon:'▤'},
   reviews:  {name:'Reviews',       accent:['#8fb0a8','#4f7d73'], ink:'#1a1816', gradient:['#6f9a91','#a9bfa2'], mood:'measured, honest',       motion:'calm',      glyph:'省', icon:'◷'},
   writing:  {name:'Writing',       accent:['#c8b79a','#8a7452'], ink:'#1a1816', gradient:['#b6a184','#d9c9ae'], mood:'quiet, unhurried',   motion:'calm',      glyph:'文', icon:'✒'},
@@ -1620,6 +1671,9 @@ const PAGE_SCENES = {
       <circle cx="790" cy="530" r="76"/><circle cx="790" cy="530" r="32"/>
       ${Array.from({length:10},(_,i)=>{const a=i*Math.PI/5; return `<line x1="${(790+Math.cos(a)*76).toFixed(0)}" y1="${(530+Math.sin(a)*76).toFixed(0)}" x2="${(790+Math.cos(a)*98).toFixed(0)}" y2="${(530+Math.sin(a)*98).toFixed(0)}" stroke-width="10"/>`;}).join('')}</g>`),
 };
+PAGE_SCENES.calendar = () => scWrap(`<g stroke="${A}" opacity=".22" stroke-width="1.4">${Array.from({length:9},(_,i)=>`<line x1="120" y1="${120+i*72}" x2="1080" y2="${120+i*72}"/>`).join('')}${Array.from({length:8},(_,i)=>`<line x1="${120+i*137}" y1="120" x2="${120+i*137}" y2="696"/>`).join('')}</g>
+    <g opacity=".4" fill="${A}">${Array.from({length:26},(_,i)=>`<circle cx="${188+((i*3)%7)*137}" cy="${156+Math.floor(i/7)*72}" r="${4+(i%4)*2}"/>`).join('')}</g>
+    ${cloud(300,80,.9,G2,.2)}${moon(980,90,34,A)}`);
 PAGE_SCENES.tag = PAGE_SCENES.journals;
 
 /* ---------- a motif no other record has ---------- */
@@ -3288,23 +3342,164 @@ function skillNodeSVG(n, mode, selected, revealFrom){
     ${n.kidCount?`<g class="sk-toggle" data-toggle="${n.id}"><circle cx="${w/2-12}" cy="0" r="8"/><text x="${w/2-12}" y="3.5" text-anchor="middle">${n.collapsed?'+':'−'}</text></g>`:''}
   </g>`;
 }
+/* ---------- skill horizon & priority: catch every idea, focus on a few ---------- */
+const SKILL_HORIZONS = {
+  focus:   ['◉','In focus',  'the handful you are actually practising now', '#7f916a'],
+  active:  ['○','Active',    'held and kept warm, but not the priority',    '#6b7f8e'],
+  next:    ['↗','Up next',   'starting soon — weeks or a few months away',  '#d4a44c'],
+  someday: ['◌','Someday',   'written down so it stops taking up room in your head', '#8a8d8f'],
+  paused:  ['⏸','Resting',   'deliberately set down, not neglected',        '#a89f94'],
+};
+const SKILL_PRIOS = {P1:['P1','#c25b5b'],P2:['P2','#d4a44c'],P3:['P3','#7f916a'],P4:['P4','#8a8d8f']};
+function migrateSkillFocus(){
+  (S.skills||[]).forEach(s => {
+    if(!SKILL_HORIZONS[s.horizon]) s.horizon = s.planned ? 'someday' : 'active';
+    if(!SKILL_PRIOS[s.priority]) s.priority = 'P3';
+    if(s.why === undefined) s.why = '';
+    if(s.startBy === undefined) s.startBy = '';
+    if(!Array.isArray(s.tags)) s.tags = [];
+  });
+}
+const skillHorizon = s => SKILL_HORIZONS[s.horizon] ? s.horizon : 'active';
+function focusSkills(){ return S.skills.filter(s => skillHorizon(s) === 'focus'); }
+function skillIsAtrophying(s){ const d = daysSince(skillLastPracticed(s)); return skillHorizon(s) !== 'someday' && !s.planned && d > 90; }
+/* every milestone across every skill, inside a window of days */
+function milestonesWithin(days){
+  const T = today(); const lim = addDays(T, days); const out = [];
+  S.skills.forEach(s => (skillMilestones(s)||[]).forEach(m => {
+    if(!m.by || m.levelTarget <= s.currentLevel) return;
+    if(m.by > lim) return;
+    out.push({skill:s, m, days: daysBetween(T, m.by)});
+  }));
+  return out.sort((a,b) => a.m.by.localeCompare(b.m.by));
+}
+function skillFilterState(){
+  const f = S._skf = S._skf || {q:'', horizon:'all', cat:'all', level:'all', prio:'all', sort:'horizon'};
+  return f;
+}
+function filteredSkills(){
+  const f = skillFilterState(); const q = f.q.toLowerCase();
+  let list = S.skills.filter(s => {
+    if(f.horizon !== 'all' && skillHorizon(s) !== f.horizon) return false;
+    if(f.cat !== 'all' && s.cat !== f.cat) return false;
+    if(f.prio !== 'all' && (s.priority||'P3') !== f.prio) return false;
+    if(f.level !== 'all'){
+      const lv = s.currentLevel || 0;
+      if(f.level === '0' && lv !== 0) return false;
+      if(f.level === '1-2' && !(lv >= 1 && lv <= 2)) return false;
+      if(f.level === '3-4' && !(lv >= 3 && lv <= 4)) return false;
+      if(f.level === '5+' && lv < 5) return false;
+      if(f.level === 'atrophy' && !skillIsAtrophying(s)) return false;
+      if(f.level === 'due' && !nextMilestone(s)?.by) return false;
+    }
+    if(q && !`${s.name} ${s.cat} ${s.why||''} ${(s.tags||[]).join(' ')}`.toLowerCase().includes(q)) return false;
+    return true;
+  });
+  const ho = Object.keys(SKILL_HORIZONS);
+  const cmp = {
+    horizon: (a,b) => ho.indexOf(skillHorizon(a)) - ho.indexOf(skillHorizon(b)) || (a.priority||'P3').localeCompare(b.priority||'P3') || a.name.localeCompare(b.name),
+    priority:(a,b) => (a.priority||'P3').localeCompare(b.priority||'P3') || a.name.localeCompare(b.name),
+    level:   (a,b) => (b.currentLevel||0) - (a.currentLevel||0) || a.name.localeCompare(b.name),
+    recent:  (a,b) => daysSince(skillLastPracticed(a)) - daysSince(skillLastPracticed(b)),
+    name:    (a,b) => a.name.localeCompare(b.name),
+    cat:     (a,b) => a.cat.localeCompare(b.cat) || a.name.localeCompare(b.name),
+  }[f.sort] || ((a,b)=>0);
+  return list.sort(cmp);
+}
 routes.skills = function(root, params){
-  registerPageEntry({pageName:'Skill Tree', addLabel:'New skill', defaultEntryType:'progress', prefilledFields:{}, options:[
-    {icon:'◉', label:'New skill', desc:'A skill you hold, or a bud you intend to open.', run:()=>EntryActions.newSkill()},
-    {icon:'↗', label:'Log practice', desc:'Time spent on a skill you already have.', run:()=>EntryActions.skillProgress()}]});
-  const mode = 'tree';
+  registerPageEntry({pageName:'Skill Tree', addLabel:'Log practice', defaultEntryType:'progress', prefilledFields:{}, options:[
+    {icon:'↗', label:'Log practice', desc:'Time spent today on something you are already growing.', run:()=>EntryActions.skillProgress()},
+    {icon:'✓', label:'Reached a level', desc:'Move a skill up its own ladder.', run:()=>openLevelUpPicker()},
+    {icon:'📅', label:'Set a milestone', desc:'A level, and the date you want it by.', run:()=>openMilestonePicker()}]});
+  migrateSkillFocus();
+  const f = skillFilterState(); const foc = focusSkills(); const T = today();
+  const win = S._skWindow || 90; const due = milestonesWithin(win);
+  const list = filteredSkills(); const cats = [...new Set(S.skills.map(s=>s.cat))].sort();
+  const counts = {}; Object.keys(SKILL_HORIZONS).forEach(k => counts[k] = S.skills.filter(s => skillHorizon(s) === k).length);
   root.innerHTML = `<div class="page">
-    <div class="page-head row between"><div><h1>Skill Tree</h1><div class="sub">${mode==='tree' ? 'Career capital, grown on the plateau. Every level you climb puts leaves on the twig; mastery bears fruit; neglect turns the leaves brown.' : "Categories branch into skills; a skill's first prerequisite is its parent. Drag a node onto another to re-parent it."}</div></div>
-<button class="btn sm ghost" id="skReset" title="redraw the tree">⟳ redraw</button></div>
-    <div class="skill-wrap" id="skillWrap"><div class="minimap" id="minimap"></div><div class="sk-hint mono">scroll to zoom · drag the canvas to pan · ± to fold a branch</div></div>
-    <div class="grid c3 section">${S.skills.map(s=>{ const st = skillStreak(s); const last = skillLastPracticed(s); return `<div class="card rv" data-sopen="${s.id}" style="cursor:pointer;border-left:3px solid ${catColor(s.cat)}"><div class="row between"><h3 style="margin:0">${esc(s.name)}</h3><span class="mono">${esc(s.cat)}</span></div><div class="muted" style="font-size:.82rem;margin-top:6px">${s.planned?'planned — a bud not yet opened':`${esc(skillLevelLabel(s,s.currentLevel))} · level ${s.currentLevel} of ${skillLevelCount(s)}`}${nextMilestone(s)?.by?` · <span class="mono" style="color:${daysBetween(today(),nextMilestone(s).by)<0?'#d08080':'var(--muted)'}">📅 L${nextMilestone(s).levelTarget} by ${fmtMonth(nextMilestone(s).by)}</span>`:''}</div><div class="mono" style="margin-top:8px">last ${relDays(daysSince(last))} · streak ${st.cur}d (best ${st.best}) · ${skillHours(s).toFixed(1)}h</div>${S.projects.some(p=>(p.linkedSkills||[]).includes(s.id))?`<div class="row" style="margin-top:6px;gap:4px">${S.projects.filter(p=>(p.linkedSkills||[]).includes(s.id)).map(p=>`<span class="chip on" style="--c:var(--terra);font-size:.62rem">🎨 ${esc(p.name)}</span>`).join('')}</div>`:''}</div>`; }).join('')}</div>
+    <div class="page-head"><h1>Skill Tree</h1><div class="sub">Write every one of them down — even the ones for a life you have not started yet. Then put four or five in focus and let the rest wait without nagging you.</div></div>
+
+    <!-- 1. what you are actually doing now -->
+    <section class="section rv"><div class="row between"><span class="sc" style="margin:0">In focus now</span><span class="mono">${foc.length ? `${foc.length} skill${foc.length===1?'':'s'} · everything else is waiting patiently` : 'nothing in focus'}</span></div>
+      ${foc.length ? `<div class="focus-row">${foc.map(s => { const lc = skillLevelCount(s); const lv = s.currentLevel||0; const since = daysSince(skillLastPracticed(s)); const nm = nextMilestone(s); const dd = nm?.by ? daysBetween(T, nm.by) : null; const col = catColor(s.cat); const warm = since <= 7;
+        return `<div class="focus-card" data-sopen="${s.id}" style="--c:${col}">
+          <div class="row between"><b class="serif" style="font-size:1.06rem">${esc(s.name)}</b><span class="pri ${s.priority||'P3'}" style="--c:${(SKILL_PRIOS[s.priority||'P3'])[1]}">${s.priority||'P3'}</span></div>
+          <div class="mono" style="margin-top:4px">${esc(skillLevelLabel(s,lv))} · level ${lv} of ${lc}</div>
+          <div class="lvl-dots">${Array.from({length:lc},(_,i)=>`<i class="${i<lv?'on':''}"></i>`).join('')}</div>
+          <div class="row between" style="margin-top:8px"><span class="mono ${warm?'':'faint'}">${since===Infinity?'never practised':warm?`practised ${relDays(since)}`:`last ${relDays(since)}`}</span>${dd!==null?`<span class="status-pill ${dd<0?'due':'ahead'}">${dd<0?`${-dd}d over`:dd===0?'today':`L${nm.levelTarget} in ${dd}d`}</span>`:''}</div>
+          <button class="btn sm" data-logskill="${s.id}">log practice</button>
+        </div>`; }).join('')}</div>`
+      : `<div class="empty">Nothing is in focus. Open a skill and set its horizon to <b>In focus</b> — four or five is a working number, more than that is a wish list.</div>`}
+    </section>
+
+    <!-- 2. milestones inside a window you choose -->
+    <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Milestones ahead</span>
+      <div class="row">${[30,60,90,180,365].map(d=>`<button class="btn sm ${win===d?'primary':'ghost'}" data-skwin="${d}">${d===365?'a year':d+'d'}</button>`).join('')}</div></div>
+      ${due.length ? `<div class="card" style="margin-top:10px">${due.map(({skill,m,days}) => `<a href="#/skills/${skill.id}" class="ms-line ${days<0?'over':''}">
+        <span class="ms-when mono">${days<0?`${-days}d over`:days===0?'today':`in ${days}d`}</span>
+        <span class="ms-what"><b class="serif">${esc(skill.name)}</b> <span class="muted">→ ${esc(skillLevelLabel(skill,m.levelTarget))} (L${m.levelTarget})</span>${m.note?`<span class="quote"> — ${esc(m.note)}</span>`:''}</span>
+        <span class="mono ms-date">${fmtDate(m.by,'med')}</span></a>`).join('')}</div>`
+      : `<div class="empty">No milestones in the next ${win === 365 ? 'year' : win + ' days'}. A date turns a skill from a hope into a plan — open one and set one.</div>`}
+    </section>
+
+    <!-- 3. the tree -->
+    <div class="row between" style="margin:30px 0 8px"><span class="sc" style="margin:0">The tree</span><button class="btn sm ghost" id="skReset" title="redraw the tree">⟳ redraw</button></div>
+    <div class="skill-wrap" id="skillWrap"><div class="minimap" id="minimap" hidden></div><div class="sk-hint mono">leaves grow with each level · gold fruit is mastery · click a twig to open it</div></div>
+
+    <!-- 4. the inventory, with the add button right above it -->
+    <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Inventory</span><span class="mono">${list.length} of ${S.skills.length} shown</span></div>
+      <p class="muted" style="font-size:.85rem">Everything you have written down, including the skills for a life you have not started yet.</p>
+      <div class="row" style="gap:8px;margin:12px 0"><button class="btn primary" id="skNew">＋ New skill</button><button class="btn ghost" id="skSomeday">＋ Someday skill</button></div>
+      <div class="filter-bar">
+        <input class="inp" id="skq" placeholder="search name, category, reason, tag" value="${esc(f.q)}">
+        <select class="sel" id="skHorizon"><option value="all">every horizon</option>${Object.entries(SKILL_HORIZONS).map(([k,v])=>`<option value="${k}" ${f.horizon===k?'selected':''}>${v[0]} ${v[1]} (${counts[k]})</option>`).join('')}</select>
+        <select class="sel" id="skCat"><option value="all">every category</option>${cats.map(c=>`<option value="${esc(c)}" ${f.cat===c?'selected':''}>${esc(c)}</option>`).join('')}</select>
+        <select class="sel" id="skLevel">${[['all','any level'],['0','not started'],['1-2','level 1–2'],['3-4','level 3–4'],['5+','level 5 and up'],['due','has a milestone'],['atrophy','atrophying']].map(([v,l])=>`<option value="${v}" ${f.level===v?'selected':''}>${l}</option>`).join('')}</select>
+        <select class="sel" id="skPrio"><option value="all">any priority</option>${Object.keys(SKILL_PRIOS).map(p=>`<option value="${p}" ${f.prio===p?'selected':''}>${p}</option>`).join('')}</select>
+        <select class="sel" id="skSort">${[['horizon','by horizon'],['priority','by priority'],['level','by level'],['recent','by last practised'],['cat','by category'],['name','by name']].map(([v,l])=>`<option value="${v}" ${f.sort===v?'selected':''}>${l}</option>`).join('')}</select>
+        ${(f.q||f.horizon!=='all'||f.cat!=='all'||f.level!=='all'||f.prio!=='all')?`<button class="btn sm ghost" id="skClearF">clear</button>`:''}
+      </div>
+      <div class="chip-row" style="margin-bottom:12px">${Object.entries(SKILL_HORIZONS).map(([k,v])=>`<button class="chip click ${f.horizon===k?'on':''}" style="--c:${v[3]}" data-skh="${k}" title="${esc(v[2])}">${v[0]} ${v[1]} <span class="mono">${counts[k]}</span></button>`).join('')}</div>
+      <div class="inv-list">${list.length ? list.map(s => { const h = SKILL_HORIZONS[skillHorizon(s)]; const lc = skillLevelCount(s); const lv = s.currentLevel||0; const since = daysSince(skillLastPracticed(s)); const nm = nextMilestone(s);
+        return `<div class="inv-row" data-sopen="${s.id}" style="--c:${catColor(s.cat)}">
+          <span class="inv-h" title="${esc(h[2])}" style="color:${h[3]}">${h[0]}</span>
+          <span class="inv-name"><b>${esc(s.name)}</b>${s.why?`<span class="inv-why">${esc(s.why)}</span>`:''}</span>
+          <span class="chip" style="--c:${catColor(s.cat)}">${esc(s.cat)}</span>
+          <span class="pri ${s.priority||'P3'}" style="--c:${(SKILL_PRIOS[s.priority||'P3'])[1]}">${s.priority||'P3'}</span>
+          <span class="inv-lv"><span class="lvl-dots">${Array.from({length:lc},(_,i)=>`<i class="${i<lv?'on':''}"></i>`).join('')}</span><span class="mono">${lv}/${lc}</span></span>
+          <span class="mono inv-last ${skillIsAtrophying(s)?'atrophy':''}">${skillHorizon(s)==='someday'?(s.startBy?`start by ${fmtDate(s.startBy,'short')}`:'not started'):since===Infinity?'never':relDays(since)}</span>
+          <span class="mono inv-ms">${nm?.by?`L${nm.levelTarget} · ${fmtDate(nm.by,'short')}`:''}</span>
+          <select class="sel inv-set" data-sethz="${s.id}" title="move this skill's horizon">${Object.entries(SKILL_HORIZONS).map(([k,v])=>`<option value="${k}" ${skillHorizon(s)===k?'selected':''}>${v[0]} ${v[1]}</option>`).join('')}</select>
+        </div>`; }).join('') : `<div class="empty">Nothing matches those filters.</div>`}</div>
+    </section>
   </div>`;
   drawSkillTree(root);
   if($('#skReset')) $('#skReset').onclick = () => { root._skView?.reset(); };
-  window.addEventListener('resize', debounce(() => { if(currentRoute==='skills' && (S.settings.skillLayout||'tree')==='tree') drawSkillTree(root); }, 250), {once:true});
-  $$('[data-sopen]',root).forEach(c => c.onclick = () => openSkillPanel(c.dataset.sopen));
+  window.addEventListener('resize', debounce(() => { if(currentRoute==='skills') drawSkillTree(root); }, 250), {once:true});
+  $$('[data-sopen]',root).forEach(c => c.addEventListener('click', e => { if(e.target.closest('.inv-set,[data-logskill]')) return; openSkillPanel(c.dataset.sopen); }));
+  $$('[data-logskill]',root).forEach(b => b.onclick = e => { e.stopPropagation(); openEntryModal({type:'progress', allowedTypes:['progress'], heading:'Log practice', links:{skills:[b.dataset.logskill]}, openLinks:true}); });
+  $$('[data-skwin]',root).forEach(b => b.onclick = () => { S._skWindow = +b.dataset.skwin; rerender(); });
+  $$('[data-skh]',root).forEach(b => b.onclick = () => { f.horizon = f.horizon === b.dataset.skh ? 'all' : b.dataset.skh; rerender(); });
+  $$('[data-sethz]',root).forEach(sel => sel.onchange = e => { e.stopPropagation(); const s = byId(S.skills, sel.dataset.sethz); s.horizon = sel.value; if(sel.value !== 'someday') s.planned = false; saveNow(); sound('click'); rerender(); });
+  $('#skNew').onclick = () => EntryActions.newSkill();
+  $('#skSomeday').onclick = () => newSkillDialog({horizon:'someday'});
+  const bindF = (id, key, ev='change') => { const el_ = $('#'+id); if(el_) el_.addEventListener(ev, () => { f[key] = el_.value; rerender(); if(key==='q'){ const i = $('#skq'); if(i){ i.focus(); i.setSelectionRange(i.value.length,i.value.length); } } }); };
+  const q = $('#skq'); if(q) q.addEventListener('input', debounce(() => { f.q = q.value; rerender(); const i = $('#skq'); if(i){ i.focus(); i.setSelectionRange(i.value.length,i.value.length); } }, 350));
+  bindF('skHorizon','horizon'); bindF('skCat','cat'); bindF('skLevel','level'); bindF('skPrio','prio'); bindF('skSort','sort');
+  if($('#skClearF')) $('#skClearF').onclick = () => { S._skf = {q:'', horizon:'all', cat:'all', level:'all', prio:'all', sort:'horizon'}; rerender(); };
   if(params[0]) openSkillPanel(params[0]);
 };
+/* pick a skill, then jump straight to the thing you meant to do */
+function openLevelUpPicker(){
+  if(!S.skills.length){ toast('Add a skill first.'); return; }
+  const m = openModal(`<h2>Which skill moved?</h2><div class="stack" style="gap:6px;max-height:50vh;overflow:auto">${S.skills.map(s=>`<button class="choice" data-lu="${s.id}"><span class="ico">${SKILL_HORIZONS[skillHorizon(s)][0]}</span><span><b>${esc(s.name)}</b><div class="d">level ${s.currentLevel||0} of ${skillLevelCount(s)} · ${esc(s.cat)}</div></span></button>`).join('')}</div>`,'narrow');
+  m.querySelectorAll('[data-lu]').forEach(b => b.onclick = () => { m.remove(); openSkillPanel(b.dataset.lu); setTimeout(()=>document.querySelector('#panel .lvl-track')?.scrollIntoView({block:'center',behavior:'smooth'}),200); });
+}
+function openMilestonePicker(){
+  if(!S.skills.length){ toast('Add a skill first.'); return; }
+  const m = openModal(`<h2>A milestone for which skill?</h2><div class="stack" style="gap:6px;max-height:50vh;overflow:auto">${S.skills.map(s=>`<button class="choice" data-ms="${s.id}"><span class="ico">📅</span><span><b>${esc(s.name)}</b><div class="d">${(s.milestones||[]).length} target${(s.milestones||[]).length===1?'':'s'} set</div></span></button>`).join('')}</div>`,'narrow');
+  m.querySelectorAll('[data-ms]').forEach(b => b.onclick = () => { m.remove(); openSkillPanel(b.dataset.ms); setTimeout(()=>document.querySelector('#panel #msAdd')?.click(),260); });
+}
 
 /* ---------- the living tree: trunk, category branches, skill twigs, leaves for progress ---------- */
 function organicLayout(){
@@ -3440,7 +3635,14 @@ function openSkillPanel(id){
   const visions = S.visions.filter(v=>v.preSkills.includes(s.id)); const projects = S.projects.filter(p => (p.linkedSkills||[]).includes(s.id) || es.some(e=>(e.links.projects||[]).includes(p.id))); const values = {}; es.forEach(e=>(e.links.values||[]).forEach(x=>values[x.id]=(values[x.id]||0)+1));
   const arche = s.planned ? 'A bud. Nothing to judge yet.' : since>90 ? 'The Dabbler? Enthusiasm, then a plateau, then silence. Or perhaps a deliberate surrender — some competencies are meant to be let go.' : st.best>=14 && st.cur===0 ? 'The Obsessive? A long hard streak, then a break. Watch for burnout; oscillation is the rhythm, not a failure.' : s.currentLevel>=3 && !skillTargetLevel(s) && s.currentLevel < skillLevelCount(s) ? 'The Hacker? Good enough, and stopped. Is this the level you chose, or the one you settled for?' : 'On the path. Loving the plateau. The master stays on the mat five minutes longer.';
   const p = openPanel(`<div class="mono">${esc(s.cat)} · ${s.planned?'planned':'level '+s.currentLevel+' of '+skillLevelCount(s)}</div><h2>${ed(`skills.#${s.id}.name`)}</h2>
-    <div class="row" style="margin:8px 0 18px"><select class="sel" style="width:auto" id="skCatSel">${SKILL_CATS.map(c=>`<option ${s.cat===c?'selected':''}>${c}</option>`).join('')}</select><label class="toggle ${s.planned?'on':''}" id="skPl"><span class="sw"></span><span>planned</span></label></div>
+    <div class="row" style="margin:8px 0 10px;gap:8px;flex-wrap:wrap">
+      <select class="sel" style="width:auto" id="skCatSel">${SKILL_CATS.map(c=>`<option ${s.cat===c?'selected':''}>${c}</option>`).join('')}</select>
+      <select class="sel" style="width:auto" id="skHzSel" title="how near this skill is">${Object.entries(SKILL_HORIZONS).map(([k,v])=>`<option value="${k}" ${skillHorizon(s)===k?'selected':''}>${v[0]} ${v[1]}</option>`).join('')}</select>
+      <select class="sel" style="width:auto" id="skPrioSel" title="priority">${Object.keys(SKILL_PRIOS).map(pp=>`<option ${(s.priority||'P3')===pp?'selected':''}>${pp}</option>`).join('')}</select>
+    </div>
+    <div class="faint" style="font-size:.78rem;margin-bottom:10px">${esc(SKILL_HORIZONS[skillHorizon(s)][2])}</div>
+    <div class="field" style="margin-bottom:14px"><label>Why this one?</label>${ed(`skills.#${s.id}.why`,{ph:'One line, for the day you have forgotten.'})}</div>
+    ${['someday','next'].includes(skillHorizon(s))?`<div class="field" style="margin-bottom:14px"><label>Start by</label>${ed(`skills.#${s.id}.startBy`,{ph:'YYYY-MM-DD',cls:'mono'})}</div>`:''}
     <div class="grid c3" style="gap:10px"><div class="card" style="padding:12px 14px"><div class="mono">last practiced</div><div class="serif" style="font-size:1.2rem">${relDays(since)}</div></div><div class="card" style="padding:12px 14px"><div class="mono">streak</div><div class="serif" style="font-size:1.2rem">${st.cur}d <span class="faint" style="font-size:.8rem">best ${st.best}</span></div></div><div class="card" style="padding:12px 14px"><div class="mono">total hours</div><div class="serif" style="font-size:1.2rem" data-tween="${skillHours(s)}" data-dec="1">0</div></div></div>
     <div class="archetype">${arche}</div>
     ${levelTrackHTML(s)}
@@ -3454,7 +3656,8 @@ function openSkillPanel(id){
     ${moreSection(`<div class="danger-zone"><span>Skills accrue slowly. Consider marking it planned or lowering the level before deleting.</span><button class="btn sm ghost danger" id="skDel">Delete this skill</button></div>`)}`);
   $$('#panel .rv').forEach(n=>n.classList.add('in'));
   p.querySelector('#skCatSel').onchange = e => { s.cat = e.target.value; saveNow(); rerender(); openSkillPanel(id); };
-  p.querySelector('#skPl').onclick = () => { s.planned = !s.planned; if(!s.planned && s.currentLevel===0) s.currentLevel=1; saveNow(); rerender(); openSkillPanel(id); };
+  p.querySelector('#skHzSel').onchange = e => { s.horizon = e.target.value; s.planned = s.horizon === 'someday'; if(!s.planned && s.currentLevel===0) s.currentLevel = 1; saveNow(); rerender(); openSkillPanel(id); };
+  p.querySelector('#skPrioSel').onchange = e => { s.priority = e.target.value; saveNow(); rerender(); openSkillPanel(id); };
   bindLevelTrack(p, s);
   bindMilestones(p, s);
   p.querySelectorAll('[data-pre]').forEach(c => c.onclick = () => { const x = c.dataset.pre; s.prereqs = s.prereqs.includes(x) ? s.prereqs.filter(y=>y!==x) : [...s.prereqs,x]; saveNow(); c.classList.toggle('on'); rerender(); });
@@ -3857,6 +4060,120 @@ function renderReviews(body){
   body.querySelectorAll('[data-letter]').forEach(b => b.onclick = () => openEntryModal({type:'letter', title:'To myself, one year from now', occurredAt:addDays(today(),365)}));
 }
 /* ============================================================
+   CALENDAR — the year as a surface you can look across.
+   A month of days, each carrying the colour of how that day
+   actually went. Open one and it becomes a page: the intention,
+   the rehearsal, what you finished, what you wrote.
+   ============================================================ */
+function monthDays(y, m){                       // full weeks, Monday first
+  const first = new Date(y, m, 1), last = new Date(y, m+1, 0);
+  const lead = (first.getDay()+6)%7, out = [];
+  for(let i=0;i<lead;i++) out.push({d:isoDay(new Date(y, m, 1-(lead-i))), out:true});
+  for(let i=1;i<=last.getDate();i++) out.push({d:isoDay(new Date(y, m, i)), out:false});
+  while(out.length % 7) out.push({d:isoDay(new Date(y, m+1, out.length-lead-last.getDate()+1)), out:true});
+  return out;
+}
+/* everything that happened on one day, gathered once */
+function dayRecord(d){
+  const c = S.checkins[d] || null;
+  const entries = S.entries.filter(e => (e.occurredAt||'').slice(0,10) === d || (e.createdAt||'').slice(0,10) === d);
+  const tasks = allTaskRefs().filter(r => r.day === d);
+  const habits = S.habits.filter(h => !h.archived && !h.negative && habitDue(h,d));
+  const habitsDone = habits.filter(h => habitDone(h,d));
+  const nods = S.nods.filter(n => (n.date||'').slice(0,10) === d);
+  return {d, c, entries, tasks, habits, habitsDone, nods,
+    state: dayState(d), rehearsed: (S.rehearsal.days||[]).includes(d),
+    weight: entries.length + tasks.filter(t=>t.done).length + nods.length + habitsDone.length};
+}
+function stateColor(v){
+  if(v === null || v === undefined) return null;
+  return v >= 70 ? 'var(--sage)' : v >= 45 ? 'var(--page-accent)' : v >= 25 ? 'var(--gold)' : '#b0616a';
+}
+routes.calendar = function(root, params){
+  registerPageEntry({pageName:'Calendar', addLabel:'Note for a day', defaultEntryType:'reflection', prefilledFields:{}, options:[
+    {icon:'✎', label:'Note for today', desc:'A line filed on today.', run:()=>EntryActions.quickNote()},
+    {icon:'▫', label:'Task for a day', desc:'Pick the day, then the work.', run:()=>pickDayThenTask()}]});
+  const T = today(); const now = parseDay(T);
+  const y = S._calY ?? now.getFullYear(), m = S._calM ?? now.getMonth();
+  const cells = monthDays(y, m);
+  const inMonth = cells.filter(c => !c.out).map(c => c.d);
+  const recs = {}; cells.forEach(c => recs[c.d] = dayRecord(c.d));
+  const states = inMonth.map(d => recs[d].state).filter(v => v !== null);
+  const logged = inMonth.filter(d => S.checkins[d] && (recs[d].state !== null || S.checkins[d].sentence));
+  const best = [...inMonth].filter(d=>recs[d].state!==null).sort((a,b)=>recs[b].state-recs[a].state)[0];
+  const worst = [...inMonth].filter(d=>recs[d].state!==null).sort((a,b)=>recs[a].state-recs[b].state)[0];
+  const entriesN = inMonth.reduce((n,d)=>n+recs[d].entries.length,0);
+  const monthName = `${MONTHS[m]} ${y}`;
+  root.innerHTML = `<div class="page">
+    <div class="page-head row between"><div><h1>Calendar</h1><div class="sub">A month at a glance, coloured by how the days actually went. Open one and it becomes a page you can read.</div></div>
+      <div class="row"><button class="btn sm ghost" id="calPrev">‹</button><span class="serif" style="min-width:10em;text-align:center;font-size:1.15rem">${esc(monthName)}</span><button class="btn sm ghost" id="calNext">›</button>${(y!==now.getFullYear()||m!==now.getMonth())?'<button class="btn sm ghost" id="calNow">this month</button>':''}</div></div>
+
+    <div class="card rv" style="margin-bottom:20px"><div class="income-strip">
+      <div><div class="k">days logged</div><div class="num">${logged.length}</div><div class="mono">of ${inMonth.length}</div></div>
+      <div><div class="k">average state</div><div class="num" style="color:${stateColor(states.length?avg(states):null)||'var(--muted)'}">${states.length?Math.round(avg(states)):'—'}</div><div class="mono">${states.length?'out of 100':'nothing logged yet'}</div></div>
+      <div><div class="k">entries written</div><div class="num">${entriesN}</div></div>
+      <div><div class="k">rehearsals</div><div class="num">${inMonth.filter(d=>recs[d].rehearsed).length}</div><div class="mono">mornings practised</div></div>
+    </div></div>
+
+    <div class="cal-grid rv">
+      ${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>`<div class="cal-dow">${d}</div>`).join('')}
+      ${cells.map(c => { const r = recs[c.d]; const col = stateColor(r.state); const isT = c.d === T;
+        return `<button class="cal-day ${c.out?'out':''} ${isT?'today':''} ${r.state!==null?'has':''}" data-calday="${c.d}" style="${col?`--dc:${col}`:''}" title="${fmtDate(c.d,'med')}">
+          <span class="cd-num">${parseDay(c.d).getDate()}</span>
+          ${r.state!==null?`<span class="cd-state" style="--h:${Math.max(6, r.state*0.34)}px"></span>`:''}
+          <span class="cd-marks">${r.rehearsed?'<i class="m-reh" title="rehearsed"></i>':''}${r.entries.length?`<i class="m-ent" title="${r.entries.length} entries"></i>`:''}${r.tasks.some(t=>t.done)?'<i class="m-task" title="tasks finished"></i>':''}${r.habitsDone.length?'<i class="m-hab" title="habits kept"></i>':''}${r.nods.length?'<i class="m-nod" title="nods"></i>':''}</span>
+          ${r.c?.intention?`<span class="cd-line">${esc(r.c.intention)}</span>`:r.c?.sentence?`<span class="cd-line">${esc(r.c.sentence)}</span>`:''}
+        </button>`; }).join('')}
+    </div>
+
+    <div class="row between rv" style="margin-top:14px;flex-wrap:wrap;gap:14px">
+      <div class="cal-legend"><span><i style="background:#b0616a"></i>heavy</span><span><i style="background:var(--gold)"></i>low</span><span><i style="background:var(--page-accent)"></i>level</span><span><i style="background:var(--sage)"></i>bright</span><span class="faint">bar height is that day's overall state</span></div>
+      <div class="cal-legend"><span><i class="m-reh"></i>rehearsal</span><span><i class="m-ent"></i>entry</span><span><i class="m-task"></i>task</span><span><i class="m-hab"></i>habit</span><span><i class="m-nod"></i>nod</span></div>
+    </div>
+
+    ${states.length>1?`<section class="section rv"><span class="sc">The month as a line</span>
+      <div class="card">${sparkline(inMonth.map(d=>recs[d].state),{h:70,min:0,max:100,color:'var(--page-accent)',dots:true,labels:inMonth.map(d=>`${fmtDate(d,'short')}: ${recs[d].state===null?'—':recs[d].state+'/100'}${recs[d].c?.sentence?' · '+recs[d].c.sentence:''}`)})}
+        <div class="row between" style="margin-top:10px"><span class="mono">${best?`brightest ${fmtDate(best,'med')} (${recs[best].state})`:''}</span><span class="mono">${worst?`heaviest ${fmtDate(worst,'med')} (${recs[worst].state})`:''}</span></div></div></section>`:''}
+  </div>`;
+  $('#calPrev').onclick = () => { const d = new Date(y, m-1, 1); S._calY = d.getFullYear(); S._calM = d.getMonth(); rerender(); };
+  $('#calNext').onclick = () => { const d = new Date(y, m+1, 1); S._calY = d.getFullYear(); S._calM = d.getMonth(); rerender(); };
+  if($('#calNow')) $('#calNow').onclick = () => { S._calY = now.getFullYear(); S._calM = now.getMonth(); rerender(); };
+  $$('[data-calday]',root).forEach(b => b.onclick = () => openDayPage(b.dataset.calday));
+  if(params[0]) openDayPage(params[0]);
+};
+/* ---------- one day, written out as a page ---------- */
+function openDayPage(d){
+  const r = dayRecord(d); const c = r.c; const T = today(); const isT = d === T;
+  const col = stateColor(r.state);
+  const sec = (title, body) => body ? `<div class="vp-sec"><span class="sc">${title}</span>${body}</div>` : '';
+  const p = openPanel(`<div class="mono">${isT?'today':daysBetween(d,T)>0?`${daysBetween(d,T)} days ago`:`in ${-daysBetween(d,T)} days`}</div>
+    <h2 style="margin-bottom:2px">${esc(fmtDate(d))}</h2>
+    <div class="row" style="gap:10px;margin:8px 0 18px;flex-wrap:wrap">
+      ${r.state!==null?`<span class="status-pill" style="border-color:${col};color:${col}">state ${r.state}/100</span>`:'<span class="faint mono">no check-in</span>'}
+      ${r.rehearsed?'<span class="status-pill">rehearsed</span>':''}
+      ${r.habits.length?`<span class="mono">${r.habitsDone.length}/${r.habits.length} habits</span>`:''}
+      ${r.tasks.length?`<span class="mono">${r.tasks.filter(t=>t.done).length}/${r.tasks.length} tasks</span>`:''}
+    </div>
+    ${c?.intention?`<div class="intention-card" style="font-size:1.12rem;margin-bottom:16px">${esc(c.intention)}</div>`:''}
+    ${c?.sentence?`<blockquote class="rehearsal-epigraph" style="font-size:.98rem">${esc(c.sentence)}<cite>how the day was, in one line</cite></blockquote>`:''}
+    ${sec('Energy', c?.energy && Object.keys(c.energy).length ? `<div class="energy-row">${DIMS.map(x=>`<div class="energy-dim" style="--c:${x.c}"><div class="lbl"><span>${x.name}</span><span class="mono">${c.energy[x.id]||'–'}/5</span></div><div class="dots">${[1,2,3,4,5].map(n=>`<i class="${(c.energy[x.id]||0)>=n?'on':''}"></i>`).join('')}</div></div>`).join('')}</div>${c.setpoint?`<div class="mono" style="margin-top:8px">set-point ${c.setpoint} · ${esc(hicksName(c.setpoint))}</div>`:''}` : '')}
+    ${sec('Tasks', r.tasks.length ? `<div class="stack" style="gap:2px">${r.tasks.map(t=>`<div class="task-row ${t.done?'done':''}"><span class="task-check" style="pointer-events:none">${t.done?'✓':''}</span><span class="task-text">${esc(t.text)}</span>${t.where?`<span class="task-where">${esc(t.where)}</span>`:''}</div>`).join('')}</div>` : '')}
+    ${sec('Habits', r.habits.length ? `<div class="row" style="flex-wrap:wrap;gap:6px">${r.habits.map(h=>{ const done = habitDone(h,d); const dim = DIMS.find(x=>x.id===h.dimension); return `<span class="chip ${done?'on':''}" style="--c:${dim?dim.c:'var(--muted)'}">${done?(done.level==='min'?'½':'✓'):'○'} ${esc(h.name)}</span>`; }).join('')}</div>` : '')}
+    ${sec('Nods', r.nods.length ? r.nods.map(n=>`<div class="nod"><span class="mono">${esc(byId(S.projects,n.projectId)?.name||'')}</span><span>${esc(n.text)}</span></div>`).join('') : '')}
+    ${sec(`Written that day${r.entries.length?` · ${r.entries.length}`:''}`, r.entries.length ? sortEntries(r.entries).map(e=>entryCard(e,{clamp:false})).join('') : '<div class="empty">Nothing written on this day.</div>')}
+    <div class="row" style="margin-top:20px;gap:8px;flex-wrap:wrap">
+      ${isT?`<a class="btn sm primary" href="#/today">open Today</a>`:''}
+      <button class="btn sm ghost" id="dpNote">write a note for this day</button>
+      <button class="btn sm ghost" id="dpTask">plan a task for this day</button>
+      <button class="btn sm ghost" id="dpPrev">‹ ${fmtDate(addDays(d,-1),'short')}</button>
+      <button class="btn sm ghost" id="dpNext">${fmtDate(addDays(d,1),'short')} ›</button>
+    </div>`, 'day-page');
+  p.querySelector('#dpNote').onclick = () => openEntryModal({type:'reflection', allowedTypes:['reflection','memory','gratitude','dream'], occurredAt:d, heading:`A note for ${fmtDate(d,'med')}`});
+  p.querySelector('#dpTask').onclick = () => openTaskPicker(d, () => { rerender(); openDayPage(d); });
+  p.querySelector('#dpPrev').onclick = () => openDayPage(addDays(d,-1));
+  p.querySelector('#dpNext').onclick = () => openDayPage(addDays(d,1));
+}
+/* ============================================================
    13. SETTINGS
    ============================================================ */
 routes.settings = function(root){
@@ -4082,7 +4399,7 @@ const EntryActions = {
   libraryQuote:   (pre={}) => openEntryModal({type:'quote', allowedTypes:['quote'], heading:'New quote or saved link', links: pre.links}),
   snapshot:       ()       => openSnapshotModal(),
   newValue:       ()       => newValueDialog(),
-  newSkill:       ()       => newSkillDialog(),
+  newSkill:       (pre={}) => newSkillDialog(pre),
   skillProgress:  (pre={}) => openEntryModal({type:'progress', allowedTypes:['progress'], heading:'Add a level to a skill — log practice', links: pre.links, openLinks:true}),
   newVision:      (pre={}) => newVisionDialog(pre),
   lifeEvent:      (pre={}) => openLifeEventModal(pre.era || presentEra()?.id),
@@ -4159,10 +4476,31 @@ function newVisionDialog(pre={}){
   m.querySelector('#vnSave').onclick = () => { const name = m.querySelector('#vnName').value.trim(); if(!name) return; const v = {id:uid(),name,era:m.querySelector('#vnEra').value,parentId:m.querySelector('#vnParent').value||null,status:'pending',phase:'in-progress',progress:0,startedAt:today(),completedAt:'',successCriteria:'',reflection:'',archived:false,confidence:'hunch',nextAction:'',sensory:{see:'',hear:'',smell:'',firstHour:'',who:'',noLonger:''},futureMemory:'',futureMemoryHistory:[],costs:'',currentReality:'',currentRealityHistory:[],resistance:[],preSkills:[],selfImage:'',values:[],obituary:'',evidence:[],feeling:0,targetDate:'',location:'',money:'',createdAt:today()}; S.visions.push(v); saveNow(); m.remove(); if(currentRoute !== 'vision') navigate('#/vision'); else rerender(); setTimeout(() => openVisionPanel(v.id), currentRoute==='vision' ? 0 : 400); };
   setTimeout(() => m.querySelector('#vnName').focus(), 50);
 }
-function newSkillDialog(){
-  const m = openModal(`<h2>A new skill</h2><div class="stack"><div class="field"><label>Name</label><input class="inp" id="skName"></div><div class="field"><label>Category</label><select class="sel" id="skCat">${SKILL_CATS.map(c=>`<option>${c}</option>`).join('')}</select></div><label class="toggle" id="skPlanned"><span class="sw"></span><span>planned — a bud, not yet begun</span></label></div><div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn primary" id="skSave">Add</button></div>`,'narrow');
-  let planned=false; m.querySelector('#skPlanned').onclick = function(){ planned=!planned; this.classList.toggle('on',planned); };
-  m.querySelector('#skSave').onclick = () => { const name = m.querySelector('#skName').value.trim(); if(!name) return; const s = {id:uid(),name,cat:m.querySelector('#skCat').value,levels:[{number:1,label:'Beginner',description:'',criteria:[],resources:[],estimatedTime:'',targetDate:null},{number:2,label:'Competent',description:'',criteria:[],resources:[],estimatedTime:'',targetDate:null},{number:3,label:'Proficient',description:'',criteria:[],resources:[],estimatedTime:'',targetDate:null}],currentLevel:planned?0:1,milestones:[],prereqs:[],planned}; S.skills.push(s); saveNow(); m.remove(); if(currentRoute !== 'skills') navigate('#/skills'); else rerender(); setTimeout(() => openSkillPanel(s.id), currentRoute==='skills' ? 0 : 400); };
+function newSkillDialog(pre={}){
+  const hz = pre.horizon || 'active';
+  const m = openModal(`<h2>${hz==='someday'?'A skill for later':'A new skill'}</h2><div class="stack">
+    <div class="field"><label>Name</label><input class="inp" id="skName" placeholder="Conversational Japanese"></div>
+    <div class="grid c2" style="gap:10px">
+      <div class="field"><label>Category</label><select class="sel" id="skCat">${SKILL_CATS.map(c=>`<option>${c}</option>`).join('')}</select></div>
+      <div class="field"><label>Priority</label><select class="sel" id="skPrio">${Object.keys(SKILL_PRIOS).map(p=>`<option ${p==='P3'?'selected':''}>${p}</option>`).join('')}</select></div>
+    </div>
+    <div class="field"><label>Horizon</label><select class="sel" id="skHz">${Object.entries(SKILL_HORIZONS).map(([k,v])=>`<option value="${k}" ${hz===k?'selected':''}>${v[0]} ${v[1]} — ${v[2]}</option>`).join('')}</select></div>
+    <div class="field" id="startByField" ${hz==='someday'||hz==='next'?'':'hidden'}><label>Start by (optional)</label><input class="inp" type="date" id="skStart"></div>
+    <div class="field"><label>Why this one?</label><input class="inp" id="skWhy" placeholder="One line. It is what you will read when you have forgotten."></div>
+  </div><div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn primary" id="skSave">Add</button></div>`,'narrow');
+  const hzSel = m.querySelector('#skHz');
+  hzSel.onchange = () => { m.querySelector('#startByField').hidden = !['someday','next'].includes(hzSel.value); };
+  m.querySelector('#skSave').onclick = () => {
+    const name = m.querySelector('#skName').value.trim(); if(!name){ toast('It needs a name.'); return; }
+    const horizon = hzSel.value;
+    const s = {id:uid(), name, cat:m.querySelector('#skCat').value, horizon, priority:m.querySelector('#skPrio').value,
+      why:m.querySelector('#skWhy').value.trim(), startBy:m.querySelector('#skStart')?.value || '', tags:[],
+      levels:[{number:1,label:'Beginner',description:'',criteria:[],resources:[],estimatedTime:'',targetDate:null},{number:2,label:'Competent',description:'',criteria:[],resources:[],estimatedTime:'',targetDate:null},{number:3,label:'Proficient',description:'',criteria:[],resources:[],estimatedTime:'',targetDate:null}],
+      currentLevel: horizon==='someday' ? 0 : 1, milestones:[], prereqs:[], planned: horizon==='someday'};
+    S.skills.push(s); saveNow(); m.remove(); sound('success');
+    if(currentRoute !== 'skills') navigate('#/skills'); else rerender();
+    if(horizon !== 'someday') setTimeout(() => openSkillPanel(s.id), 260);
+  };
   setTimeout(() => m.querySelector('#skName').focus(), 50);
 }
 /* ============================================================
@@ -4415,6 +4753,7 @@ const NAV_ICONS = {
   more:     '<svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg>',
   reviews:  '<svg viewBox="0 0 24 24"><path d="M12 4.5a7.5 7.5 0 1 1-7.3 9.2"/><path d="M4.5 8.2 4.7 13l4.6-1.1"/><path d="M12 8.5v4l2.8 1.6"/></svg>',
   plan:     '<svg viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="14" rx="2.5"/><path d="M3.5 10h17M8.5 3.5v4M15.5 3.5v4"/><path d="M7.5 13.5h3M7.5 16.5h6"/></svg>',
+  calendar: '<svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/><circle cx="8.5" cy="13.5" r="1"/><circle cx="12" cy="13.5" r="1"/><circle cx="15.5" cy="13.5" r="1"/><circle cx="8.5" cy="16.8" r="1"/><circle cx="12" cy="16.8" r="1"/></svg>',
   writing:  '<svg viewBox="0 0 24 24"><path d="M4.5 19.5 5.7 15 16 4.7a2 2 0 0 1 2.8 2.8L8.5 17.8Z"/><path d="M14.2 6.5 17 9.3"/><path d="M4.5 21h15"/></svg>',
   commonplace:'<svg viewBox="0 0 24 24"><path d="M5 4.5h9a2.5 2.5 0 0 1 2.5 2.5v12.5H7.5A2.5 2.5 0 0 1 5 17Z"/><path d="M16.5 7H19v12.5H7.5"/><path d="M8 8.5h5.5M8 11.5h5.5"/></svg>',
 };
@@ -4426,6 +4765,7 @@ const NAV_PAGES = {
   rituals:  {label:'Habits',           short:'Habits',   ico:NAV_ICONS.rituals,  route:'#/rituals'},
   reviews:  {label:'Reviews',          short:'Reviews',  ico:NAV_ICONS.reviews,  route:'#/reviews'},
   plan:     {label:'Plan',             short:'Plan',     ico:NAV_ICONS.plan,     route:'#/plan'},
+  calendar: {label:'Calendar',         short:'Calendar', ico:NAV_ICONS.calendar, route:'#/calendar'},
   writing:  {label:'Writing',          short:'Writing',  ico:NAV_ICONS.writing,  route:'#/writing'},
   commonplace:{label:'Commonplace Book', short:'Media',  ico:NAV_ICONS.commonplace, route:'#/commonplace'},
   values:   {label:'Values',           short:'Values',   ico:NAV_ICONS.values,   route:'#/values'},
@@ -4433,7 +4773,7 @@ const NAV_PAGES = {
   vision:   {label:'Vision Canvas',    short:'Vision',   ico:NAV_ICONS.vision,   route:'#/vision'},
   timeline: {label:'Timeline',         short:'Timeline', ico:NAV_ICONS.timeline, route:'#/timeline'},
 };
-const NAV_DEFAULT = { present:['today','plan','projects','rituals'], becoming:['values','skills','vision','timeline'], standalone:['journals','commonplace','writing','reviews'] };
+const NAV_DEFAULT = { present:['today','plan','calendar','projects','rituals'], becoming:['values','skills','vision','timeline'], standalone:['journals','commonplace','writing','reviews'] };
 const NAV_ZONES = [ {id:'present', label:'Present', hint:'short-term, daily use', accent:'var(--sage)'}, {id:'becoming', label:'Becoming', hint:'identity, growth', accent:'var(--ment)'} ];
 const MOBILE_PRIMARY = ['today','plan','journals','projects','skills'];
 function navConfig(){ if(!S.settings.nav) S.settings.nav = JSON.parse(JSON.stringify(NAV_DEFAULT)); const n = S.settings.nav; ['present','becoming','standalone'].forEach(z => { n[z] = (n[z]||[]).filter(k => NAV_PAGES[k]); }); const placed = new Set([...n.present, ...n.becoming, ...n.standalone]); Object.keys(NAV_PAGES).forEach(k => { if(k !== 'home' && !placed.has(k)) n.standalone.push(k); }); ['present','becoming','standalone'].forEach(z => n[z] = n[z].filter(k => NAV_PAGES[k] && k !== 'home')); return n; }
@@ -4494,6 +4834,7 @@ function houseStats(){
     vision:   {line:`${vs.length} growing${wither?` · ${wither} withering`:''}`, ok:wither===0, cadence:'weekly', tip:vs.length?`Most vivid: ${[...vs].sort((a,b)=>b.score-a.score)[0].v.name}`:''},
     timeline: {line:`${memories} memories · ${S.stages.length} stages`, ok:true, cadence:'archival', tip:'The museum of the past. Formative events and the story you tell.'},
     plan:     {line:`${tasksForDay(T).length} today · ${unscheduledTasks().length} waiting`, ok:true, cadence:'daily', tip:'Tomorrow and the week after it, one card at a time.'},
+    calendar: {line:`${lastDays(30).filter(d=>S.checkins[d]).length} days logged / 30`, ok:true, cadence:'daily', tip:'The month as a surface, coloured by how the days went.'},
     reviews:  {line:`weekly ${daysSince(S.reviews.lastWeekly)===Infinity?'never':daysSince(S.reviews.lastWeekly)+'d ago'}`, ok:daysSince(S.reviews.lastWeekly)<=7, cadence:'weekly', tip:'The rhythm above the daily one.'},
     writing:  {line:`${S.entries.filter(e=>e.type==='writing').length} pieces`, ok:true, cadence:'weekly', tip:'A room for contemplation, fed by your own hashtags.'},
     commonplace:{line:`${S.entries.filter(e=>e.type==='media').length} works logged`, ok:true, cadence:'archival', tip:'What you read, watched and listened to — and what it changed.'},
