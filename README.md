@@ -46,7 +46,7 @@ The sidebar groups the rooms into two zones by time horizon: **Present** (Today,
 | `#/vision` | The lifeline: past, present, and future eras as a horizontal timeline with a NOW marker, goals with completion and progress, life events, and a close-chapter wizard; the vision tree below it |
 | `#/values` | Priority ranking, radar with life-long time slider, weather strip, gap analysis, values-to-visions matrix |
 | `#/journals` | Commonplace Book: synchronicity, manifestation, reflections, gratitude, dreams, quotes, open questions |
-| `#/skills` | Radial skill graph, user-defined rubrics, atrophy, cross-mappings |
+| `#/skills` | Hierarchical skill tree (vertical or radial) with zoom, pan, minimap, fold and unfold, drag-to-reparent, locked nodes, user-defined rubrics, atrophy, cross-mappings |
 | `#/projects` | Project cards with nod heatmaps, energy-vs-output chart, income streams, idea inbox |
 | `#/rituals` | Habit rings, four-dimension energy balance, 90-day calendars, guided daily/weekly/seasonal/annual reviews |
 | `#/settings` | Theme, ambient sound, felt time, home page, export/import/clear |

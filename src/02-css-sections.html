@@ -314,16 +314,42 @@ html[data-theme="light"] .stage-hero .veil{background:linear-gradient(180deg,rgb
 /* ============================================================
    7. SKILLS
    ============================================================ */
-.skill-wrap{position:relative;height:620px;border-radius:20px;overflow:hidden;background:var(--surface);border:1px solid var(--line)}
-.skill-wrap svg{width:100%;height:100%;display:block}
-.skill-wrap .cat-lbl{font-family:var(--serif);font-size:12px;letter-spacing:.2em;text-transform:uppercase;fill:var(--muted)}
-.skill-wrap .node{cursor:pointer}
-.skill-wrap .node circle.c{transition:r .5s var(--ease),fill .5s,opacity .5s}
-.skill-wrap .node text{fill:var(--text);font-family:var(--sans);font-size:11px;pointer-events:none}
-.skill-wrap .node text.sub{fill:var(--faint);font-family:var(--mono);font-size:8px}
-.skill-wrap .edge{stroke:var(--line-2);stroke-width:1.2;fill:none;transition:stroke .3s}
-.skill-wrap .edge.hot{stroke:var(--terra);stroke-width:2}
-.skill-wrap .node.hot circle.c{stroke:var(--terra);stroke-width:2}
+/* ---- skill tree (hierarchical, zoomable) ---- */
+.skill-wrap{position:relative;height:640px;border-radius:20px;overflow:hidden;background:radial-gradient(ellipse at 50% 0%,color-mix(in srgb,var(--terra) 6%,transparent),transparent 60%),var(--surface);border:1px solid var(--line);touch-action:none}
+.skill-wrap svg.sk-svg{width:100%;height:100%;display:block;cursor:grab}
+.skill-wrap svg.sk-svg.panning{cursor:grabbing}
+.sk-hint{position:absolute;left:14px;bottom:10px;font-size:.6rem;color:var(--faint);pointer-events:none}
+.sk-link{fill:none;stroke:var(--line-2);stroke-width:1.4;transition:stroke .2s var(--ease),stroke-width .2s var(--ease),opacity .3s}
+.sk-link.hot{stroke:var(--terra);stroke-width:2.2;filter:drop-shadow(0 0 4px color-mix(in srgb,var(--terra) 55%,transparent))}
+.sk-node{cursor:pointer;transform-box:fill-box;transform-origin:center;transition:transform .1s ease-out,opacity .3s var(--ease)}
+.sk-node:hover{transform:scale(1.05)}
+.sk-node:hover .sk-body{filter:drop-shadow(0 0 8px color-mix(in srgb,var(--nc) 55%,transparent));stroke:var(--nc)}
+.sk-body{fill:var(--surface-2);stroke:color-mix(in srgb,var(--nc) 45%,var(--line-2));stroke-width:1.2;transition:filter .2s var(--ease),stroke .2s var(--ease)}
+.sk-node.root .sk-body{fill:color-mix(in srgb,var(--terra) 14%,var(--surface-2));stroke:var(--terra)}
+.sk-node.cat .sk-body{fill:color-mix(in srgb,var(--nc) 12%,var(--surface-2))}
+.sk-bar{fill:var(--nc)}
+.sk-title{fill:var(--text);font-family:var(--serif);letter-spacing:.02em;pointer-events:none}
+.sk-sub{fill:var(--muted);font-family:var(--mono);font-size:8.5px;pointer-events:none}
+.sk-toggle circle{fill:var(--surface);stroke:var(--line-2);stroke-width:1;cursor:pointer;transition:stroke .2s}
+.sk-toggle:hover circle{stroke:var(--nc)}
+.sk-toggle text{fill:var(--muted);font-family:var(--mono);font-size:11px;pointer-events:none}
+.sk-node.locked{opacity:.5;cursor:not-allowed}
+.sk-node.locked:hover{transform:none}
+.sk-node.locked .sk-body{filter:none}
+.sk-node.glow .sk-body{animation:nodeGlow 2s ease-in-out infinite}
+.sk-node.selected .sk-body{stroke:var(--nc);stroke-width:2}
+@keyframes nodeGlow{0%,100%{filter:drop-shadow(0 0 3px color-mix(in srgb,var(--nc) 45%,transparent)) drop-shadow(0 0 6px color-mix(in srgb,var(--nc) 25%,transparent))}50%{filter:drop-shadow(0 0 6px color-mix(in srgb,var(--nc) 70%,transparent)) drop-shadow(0 0 12px color-mix(in srgb,var(--nc) 45%,transparent))}}
+.sk-node.reveal{animation:skReveal .32s var(--ease) both;transform-origin:center var(--oy,center)}
+@keyframes skReveal{from{opacity:0;transform:scaleY(0) translateY(-6px)}to{opacity:1;transform:none}}
+.sk-link.reveal{animation:skFade .35s var(--ease) both}
+@keyframes skFade{from{opacity:0}to{opacity:1}}
+.sk-node.dragging{opacity:.35}
+.sk-node.droptarget .sk-body{stroke:var(--gold);stroke-width:2.5;filter:drop-shadow(0 0 8px color-mix(in srgb,var(--gold) 60%,transparent))}
+.sk-ghost{position:absolute;z-index:6;pointer-events:none;background:var(--surface-2);border:1px solid var(--terra);border-radius:8px;padding:4px 10px;font-size:.8rem;box-shadow:var(--shadow)}
+.minimap{position:absolute;right:12px;bottom:12px;width:150px;height:100px;background:color-mix(in srgb,var(--surface) 80%,transparent);border:1px solid var(--line-2);border-radius:8px;overflow:hidden;cursor:pointer;z-index:4;backdrop-filter:blur(4px)}
+.minimap svg{width:100%;height:100%;display:block}
+.minimap .mm-view{fill:color-mix(in srgb,var(--terra) 14%,transparent);stroke:var(--terra);stroke-width:1}
+@media (prefers-reduced-motion:reduce){.sk-node.glow .sk-body,.sk-node.reveal,.sk-link.reveal{animation:none}}
 .rubric li{padding:8px 10px;border-top:1px dashed var(--line);display:grid;grid-template-columns:28px 1fr;gap:10px;cursor:pointer;border-radius:8px;transition:background .2s}
 .rubric li:hover{background:var(--surface-2)}
 .rubric li.cur{background:color-mix(in srgb,var(--sage) 14%,transparent)}
