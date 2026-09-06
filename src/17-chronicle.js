@@ -18,12 +18,24 @@ const TURN_TYPES = {
   encounter:   ['☺','Encounter',   'someone walked in and the trajectory bent', '#a0727e'],
 };
 const CHAPTER_KINDS = {week:'week', month:'month', year:'year', custom:'custom'};
+const STAR_ICONS = ['☆','★','★★'];
+function migrateChapterShape(c){
+  c.kind = CHAPTER_KINDS[c.kind] ? c.kind : 'custom';
+  c.narrative = c.narrative || '';
+  c.narrativeHistory = Array.isArray(c.narrativeHistory) ? c.narrativeHistory : (c.narrative ? [{date:c.startDate||today(), text:c.narrative}] : []);
+  c.color = c.color || '#b08968';
+  c.starred = [0,1,2].includes(c.starred) ? c.starred : 0;
+  c.promotedToStageId = c.promotedToStageId || null;
+  c.status = ['open','closed','abandoned'].includes(c.status) ? c.status : 'open';
+  c.linkedThreadIds = Array.isArray(c.linkedThreadIds) ? c.linkedThreadIds : [];
+  c.linkedPeopleIds = Array.isArray(c.linkedPeopleIds) ? c.linkedPeopleIds : [];
+}
 /* one-time migration: fold the old chapters/turns/threadsN into entries + the real thread list */
 function migrateChronicle(){
   S.chapters = Array.isArray(S.chapters) ? S.chapters : [];
   S.turns = Array.isArray(S.turns) ? S.turns : [];
   S.threadsN = Array.isArray(S.threadsN) ? S.threadsN : [];
-  if(S.settings.chronicleV2){ S.chapters.forEach(c => { c.kind = CHAPTER_KINDS[c.kind] ? c.kind : 'custom'; c.narrative = c.narrative || ''; c.color = c.color || '#b08968'; }); return; }
+  if(S.settings.chronicleV2){ S.chapters.forEach(migrateChapterShape); return; }
   const threadMap = {};
   S.threadsN.forEach(tn => { let t = S.threads.find(x => x.name.toLowerCase() === (tn.name||'').toLowerCase());
     if(!t){ t = {id:uid(), name:tn.name||'Untitled thread', desc:tn.description||'', color:tn.color||'#7f916a', status:'active'}; S.threads.push(t); }
@@ -44,7 +56,7 @@ function migrateChronicle(){
     entry.links.people = entry.links.people || []; entry.people = entry.people || [];
     (t.linkedPeopleIds||[]).forEach(pid => { if(!entry.links.people.includes(pid)) entry.links.people.push(pid); const nm = byId(S.people,pid)?.name; if(nm && !entry.people.includes(nm)) entry.people.push(nm); });
   });
-  S.chapters.forEach(c => { c.kind = 'custom'; c.narrative = c.narrative || ''; c.color = c.color || '#b08968'; });
+  S.chapters.forEach(c => { c.kind = 'custom'; migrateChapterShape(c); });
   S.turns = []; S.threadsN = [];
   S.settings.chronicleV2 = true;
 }
@@ -70,7 +82,7 @@ function periodRange(kind, anchor){
 function findOrCreatePeriodChapter(kind, anchor){
   const r = periodRange(kind, anchor); const id = `auto-${kind}-${r.start}`;
   let c = byId(S.chapters, id);
-  if(!c){ c = {id, title:r.title, subtitle:'', startDate:r.start, endDate:r.end, kind, color:'#b08968', narrative:'', linkedEraId:null}; S.chapters.push(c); saveNow(); }
+  if(!c){ c = {id, title:r.title, subtitle:'', startDate:r.start, endDate:r.end, kind, color:'#b08968', narrative:'', linkedEraId:null}; migrateChapterShape(c); S.chapters.push(c); saveNow(); }
   return c;
 }
 function shiftAnchor(kind, anchor, n){
@@ -100,6 +112,7 @@ function openChapterModal(){
   m.querySelector('#chSave').onclick = () => {
     const title = m.querySelector('#chTitle').value.trim(); if(!title){ toast('Name it, even roughly.'); return; }
     const c = {id:uid(), title, subtitle:'', startDate:m.querySelector('#chFrom').value||today(), endDate:m.querySelector('#chTo').value||null, kind:'custom', color:m.querySelector('#chColor').value, narrative:'', linkedEraId:null};
+    migrateChapterShape(c);
     S.chapters.push(c); saveNow(); m.remove(); sound('success');
     S._chKind = 'custom'; S._chCustomId = c.id; navigate('#/chronicle');
   };
@@ -128,6 +141,24 @@ function openTurningPointPicker(){
   draw(''); m.querySelector('#tpQ').oninput = e => draw(e.target.value);
 }
 
+/* the period's narrative, versioned like a value or person's deep fields — hindsight kept, not overwritten */
+function chapterNarrativeF(chapter){
+  const hist = chapter.narrativeHistory || []; const latest = hist.slice(-1)[0];
+  return `<div class="value-field rv"><div class="q">The narrative</div><div class="faint" style="font-size:.8rem;margin-bottom:8px">Write it once you've seen the shape below — hindsight is the point, not a running log.</div>
+    <div class="prose serif-lg">${latest?md(latest.text):'<span class="empty">Not yet written.</span>'}</div>
+    <div class="row" style="margin-top:8px"><button class="btn sm ghost" data-chnarr="${chapter.id}">${latest?'write a new version':'write it'}</button>${hist.length>1?`<details style="border:none;flex:1"><summary><span class="mono">${hist.length-1} earlier version${hist.length-1===1?'':'s'}</span></summary><div class="body versions">${hist.slice(0,-1).map(h=>`<div class="v"><div class="mono">${fmtDate(h.date,'med')}</div>${md(h.text)}</div>`).reverse().join('')}</div></details>`:latest?`<span class="mono">${fmtDate(latest.date,'med')}</span>`:''}</div></div>`;
+}
+/* a double-starred, narrated period earns its way into the permanent record */
+function promoteChapterToTimeline(chapterId){
+  const c = byId(S.chapters, chapterId); if(!c) return;
+  const stage = stageForDate(c.startDate) || S.stages.find(s => !s.notyet);
+  if(!stage){ toast('No life stage to add it to yet.'); return; }
+  const text = (c.narrativeHistory||[]).slice(-1)[0]?.text || c.narrative || '';
+  stage.substages = stage.substages || [];
+  stage.substages.push({id:uid(), name:c.title, desc:text, photos:[], fromChapter:c.id});
+  c.promotedToStageId = stage.id; saveNow(); sound('success'); rerender();
+  toast(`Added as a sub-stage of ${esc(stage.name)}.`, 6000, {label:'open', fn:()=>navigate('#/stage/'+stage.id)});
+}
 /* ---------- Summary: the periodic digest ---------- */
 function chronSummary(box){
   let kind = S._chKind || 'month';
@@ -135,12 +166,19 @@ function chronSummary(box){
   if(kind === 'custom' && S._chCustomId) chapter = byId(S.chapters, S._chCustomId);
   if(!chapter){ kind = ['week','month','year'].includes(kind) ? kind : 'month'; chapter = findOrCreatePeriodChapter(kind, S._chAnchor || today()); }
   const d = periodDigest(chapter.startDate, chapter.endDate);
+  const canPromote = chapter.starred === 2 && (chapter.narrativeHistory||[]).length && !chapter.promotedToStageId;
   box.innerHTML = `
     <div class="row rv" style="gap:10px;margin:14px 0;flex-wrap:wrap;align-items:center">
       <div class="lib-tabs">${[['week','Week'],['month','Month'],['year','Year']].map(([k,l])=>`<button class="${kind===k?'active':''}" data-chkind="${k}">${l}</button>`).join('')}${kind==='custom'?`<button class="active">${esc(chapter.title)}</button>`:''}</div>
       ${kind!=='custom'?`<button class="btn sm ghost" id="chPrev">‹</button>`:''}<b class="serif" style="font-size:1.15rem">${esc(chapter.title)}</b>${kind!=='custom'?`<button class="btn sm ghost" id="chNext">›</button>`:''}
       <span class="mono faint">${esc(chapter.startDate)}${chapter.endDate?` – ${esc(chapter.endDate)}`:' – now'}</span>
+      <button class="btn sm ghost" id="chStar" title="star this period — starred periods stay visible in Chapters">${STAR_ICONS[chapter.starred]}</button>
     </div>
+    ${chapter.kind==='custom' ? `<div class="row rv" style="gap:10px;margin-bottom:14px;align-items:center">
+      <select class="sel" style="width:auto" id="chStatus"><option value="open" ${chapter.status==='open'?'selected':''}>open</option><option value="closed" ${chapter.status==='closed'?'selected':''}>closed</option><option value="abandoned" ${chapter.status==='abandoned'?'selected':''}>abandoned</option></select>
+    </div>
+    <div class="field rv"><label>Threads active in this chapter</label><div class="deps">${S.threads.map(t=>`<span class="chip click ${(chapter.linkedThreadIds||[]).includes(t.id)?'on':''}" style="--c:${t.color}" data-chthread="${t.id}">${esc(t.name)}</span>`).join('')||'<span class="faint">No threads named yet on Timeline.</span>'}</div></div>
+    <div class="field rv" style="margin-bottom:14px"><label>The cast — people in this chapter</label><div class="deps">${(S.people||[]).map(p=>`<span class="chip click ${(chapter.linkedPeopleIds||[]).includes(p.id)?'on':''}" style="--c:${personNodeColor(p)}" data-chperson="${p.id}">${esc(p.name)}</span>`).join('')||'<span class="faint">No one added yet.</span>'}</div></div>` : ''}
     <div class="card rv" style="margin-bottom:18px"><div class="income-strip">
       <div><div class="k">entries</div><div class="num" data-tween="${d.es.length}">0</div></div>
       <div><div class="k">turning points</div><div class="num" data-tween="${d.tps.length}">0</div></div>
@@ -148,26 +186,66 @@ function chronSummary(box){
       <div><div class="k">media finished</div><div class="num" data-tween="${d.media.length}">0</div></div>
     </div></div>
     ${d.topThreads.length ? `<div class="row rv" style="gap:6px;flex-wrap:wrap;margin-bottom:16px">${d.topThreads.map(({t,n})=>`<span class="chip on" style="--c:${t.color}">${esc(t.name)} · ${n}</span>`).join('')}</div>` : ''}
-    <section class="section rv"><span class="sc">The narrative</span><p class="faint" style="font-size:.78rem">Write it once you've seen the shape below — hindsight is the point, not a running log.</p>${ed(`chapters.#${chapter.id}.narrative`,{multi:true,mdr:true,cls:'prose serif-lg',ph:'It began when…'})}</section>
+    ${chapterNarrativeF(chapter)}
+    ${canPromote ? `<div class="nudges" style="margin:0 0 18px"><a class="nudge" href="javascript:void(0)" id="chPromote"><span class="nu-ico">★★</span><span>This looks like a significant period. Would you like to add it as a sub-stage in your Timeline?</span></a></div>` : ''}
     ${d.tps.length ? `<section class="section rv"><span class="sc">Turning points</span>${d.tps.map(e=>entryCard(e)).join('')}</section>` : ''}
     <section class="section rv"><span class="sc">Everything, in order</span>${d.es.length ? d.es.map(e=>entryCard(e)).join('') : '<div class="empty">Nothing dated in this stretch yet.</div>'}</section>
   `;
   box.querySelectorAll('[data-chkind]').forEach(b => b.onclick = () => { S._chKind = b.dataset.chkind; S._chCustomId = null; S._chAnchor = today(); rerender(); });
   box.querySelector('#chPrev')?.addEventListener('click', () => { S._chAnchor = shiftAnchor(kind, S._chAnchor||today(), -1); rerender(); });
+  box.querySelector('#chStar').onclick = () => { chapter.starred = (chapter.starred+1)%3; saveNow(); sound('click'); rerender(); };
+  box.querySelector('#chStatus')?.addEventListener('change', function(){ chapter.status = this.value; saveNow(); });
+  box.querySelectorAll('[data-chthread]').forEach(c => c.onclick = () => { chapter.linkedThreadIds = chapter.linkedThreadIds||[]; const id = c.dataset.chthread;
+    chapter.linkedThreadIds = chapter.linkedThreadIds.includes(id) ? chapter.linkedThreadIds.filter(x=>x!==id) : [...chapter.linkedThreadIds, id]; saveNow(); c.classList.toggle('on'); });
+  box.querySelectorAll('[data-chperson]').forEach(c => c.onclick = () => { chapter.linkedPeopleIds = chapter.linkedPeopleIds||[]; const id = c.dataset.chperson;
+    chapter.linkedPeopleIds = chapter.linkedPeopleIds.includes(id) ? chapter.linkedPeopleIds.filter(x=>x!==id) : [...chapter.linkedPeopleIds, id]; saveNow(); c.classList.toggle('on'); });
+  box.querySelectorAll('[data-chnarr]').forEach(b => b.onclick = () => {
+    const latest = (chapter.narrativeHistory||[]).slice(-1)[0];
+    const m = openModal(`<h2>A new version</h2><textarea class="ta" id="cnText" style="min-height:200px">${esc(latest?.text||chapter.narrative||'')}</textarea><p class="faint" style="font-size:.78rem">The previous version is kept.</p><div class="row" style="justify-content:flex-end"><button class="btn primary" id="cnSave">Keep</button></div>`);
+    m.querySelector('#cnSave').onclick = () => { const t = m.querySelector('#cnText').value.trim(); if(!t) return;
+      chapter.narrativeHistory = chapter.narrativeHistory||[]; chapter.narrativeHistory.push({date:today(), text:t}); chapter.narrative = t; saveNow(); m.remove(); rerender(); sound('save'); };
+  });
+  box.querySelector('#chPromote')?.addEventListener('click', () => promoteChapterToTimeline(chapter.id));
   box.querySelector('#chNext')?.addEventListener('click', () => { S._chAnchor = shiftAnchor(kind, S._chAnchor||today(), 1); rerender(); });
 }
 
+/* ---------- overlapping arcs across custom chapters — life as several stories at once ---------- */
+function chapterBarsHTML(chapters){
+  const T = today(); const withDates = chapters.filter(c => c.startDate);
+  if(withDates.length < 1) return '';
+  const min = withDates.map(c => c.startDate).reduce((a,b) => a<b?a:b);
+  const max = withDates.map(c => c.endDate || T).reduce((a,b) => a>b?a:b);
+  const totalDays = Math.max(1, daysBetween(min, max));
+  const pct = dd => clamp(daysBetween(min, dd)/totalDays*100, 0, 100);
+  const overlaps = (a,b) => !((a.endDate||T) < b.startDate || (b.endDate||T) < a.startDate);
+  const sorted = [...withDates].sort((a,b) => a.startDate.localeCompare(b.startDate));
+  const rows = [];
+  sorted.forEach(c => { let row = rows.find(r => !r.some(x => overlaps(x,c))); if(!row){ row = []; rows.push(row); } row.push(c); });
+  const stagesInRange = S.stages.filter(s => !s.notyet && stageYearRange(s));
+  return `<div class="chapter-bars rv" style="margin:14px 0">
+    ${rows.map(row => `<div class="cb-row">${row.map(c => `<div class="cb-bar click" data-chopen="${c.id}" style="left:${pct(c.startDate).toFixed(2)}%;width:${Math.max(1.2,pct(c.endDate||T)-pct(c.startDate)).toFixed(2)}%;--c:${c.color}" title="${esc(c.title)}">${esc(c.title)}</div>`).join('')}</div>`).join('')}
+    <div class="cb-stages">${stagesInRange.map(s => { const r = stageYearRange(s); let sStart = `${r[0]}-01-01`, sEnd = `${r[1]}-12-31`; if(sEnd<min||sStart>max) return '';
+      if(sStart<min) sStart=min; if(sEnd>max) sEnd=max; const left = pct(sStart), right = pct(sEnd);
+      return `<div class="cb-stage" style="left:${left}%;width:${Math.max(1,right-left)}%" title="${esc(s.name)}">${esc(s.char||'')}</div>`; }).join('')}</div>
+    <div class="cb-scale mono"><span>${esc(fmtDate(min,'med'))}</span><span>${esc(fmtDate(max,'med'))}</span></div>
+  </div>`;
+}
 /* ---------- Chapters: every period you've ever looked at or named, browsable ---------- */
 function chronChapters(box){
-  const chs = [...S.chapters].sort((a,b) => (b.startDate||'').localeCompare(a.startDate||''));
-  box.innerHTML = `<div class="row rv" style="margin:14px 0"><button class="btn sm ghost" id="chNewCustom">＋ name a custom chapter</button></div>
-    <div class="stack rv" style="gap:8px">${chs.length ? chs.map(c => { const d = periodDigest(c.startDate, c.endDate);
-      return `<div class="card click" data-chopen="${c.id}" style="border-left:3px solid ${c.color}"><div class="row between"><b class="serif">${esc(c.title)}</b><span class="mono">${esc(c.startDate)}${c.endDate?` – ${esc(c.endDate)}`:' – now'}</span></div>
+  const showAll = !!S._chShowAll;
+  const chsAll = [...S.chapters].sort((a,b) => (b.startDate||'').localeCompare(a.startDate||''));
+  const chs = showAll ? chsAll : chsAll.filter(c => (c.starred||0) > 0);
+  const hidden = chsAll.length - chs.length;
+  box.innerHTML = `<div class="row rv" style="margin:14px 0;gap:8px;flex-wrap:wrap"><button class="btn sm ghost" id="chNewCustom">＋ name a custom chapter</button>${hidden?`<button class="btn sm ghost" id="chShowAll">${showAll?'hide unstarred':`show all ${chsAll.length} periods (${hidden} unstarred)`}</button>`:''}</div>
+    ${chapterBarsHTML(S.chapters.filter(c => c.kind === 'custom'))}
+    <div class="stack rv" style="gap:8px">${chs.length ? chs.map(c => { const d = periodDigest(c.startDate, c.endDate); const star = STAR_ICONS[c.starred||0];
+      return `<div class="card click" data-chopen="${c.id}" style="border-left:3px solid ${c.color}"><div class="row between"><b class="serif">${star!=='☆'?`${star} `:''}${esc(c.title)}${c.status && c.status!=='open'?` <span class="mono faint">· ${esc(c.status)}</span>`:''}</b><span class="mono">${esc(c.startDate)}${c.endDate?` – ${esc(c.endDate)}`:' – now'}</span></div>
         ${c.narrative?`<div class="quote" style="font-size:.85rem;margin-top:4px">${esc(c.narrative.slice(0,160))}${c.narrative.length>160?'…':''}</div>`:''}
         <div class="mono" style="margin-top:6px">${d.es.length} entries · ${d.tps.length} turning point${d.tps.length===1?'':'s'}</div></div>`; }).join('')
-      : '<div class="empty">Nothing yet — open a week, month or year from Summary and it appears here, or name a custom chapter by hand.</div>'}</div>`;
+      : `<div class="empty">${showAll?'Nothing yet — open a week, month or year from Summary and it appears here, or name a custom chapter by hand.':'No starred periods yet — star one from Summary, or show all periods above.'}</div>`}</div>`;
   box.querySelectorAll('[data-chopen]').forEach(c => c.onclick = () => { const ch = byId(S.chapters, c.dataset.chopen); if(ch.kind==='custom'){ S._chKind='custom'; S._chCustomId=ch.id; } else { S._chKind=ch.kind; S._chAnchor=ch.startDate; S._chCustomId=null; } navigate('#/chronicle'); });
   $('#chNewCustom').onclick = () => openChapterModal();
+  $('#chShowAll') && ($('#chShowAll').onclick = () => { S._chShowAll = !showAll; rerender(); });
 }
 
 /* ---------- Patterns ---------- */

@@ -226,6 +226,13 @@
 .rt-bar{height:100%;border-radius:7px;background:var(--c);opacity:.8}
 .rt-bar.dashed{background:repeating-linear-gradient(90deg,var(--c) 0 6px,transparent 6px 11px);opacity:.6}
 .rt-bar.ended{opacity:.45}
+.chapter-bars{overflow-x:auto}
+.cb-row{position:relative;height:28px;margin-bottom:4px;min-width:480px}
+.cb-bar{position:absolute;top:0;height:24px;border-radius:7px;background:color-mix(in srgb,var(--c) 30%,var(--surface-2));border-left:3px solid var(--c);padding:3px 8px;font-size:.72rem;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;cursor:pointer;transition:filter .15s var(--ease)}
+.cb-bar:hover{filter:brightness(1.15)}
+.cb-stages{position:relative;height:20px;margin:6px 0 4px;min-width:480px;border-top:1px solid var(--line)}
+.cb-stage{position:absolute;top:3px;font-family:var(--han);font-size:.9rem;color:var(--faint);text-align:center;overflow:hidden}
+.cb-scale{display:flex;justify-content:space-between;min-width:480px;font-size:.62rem;color:var(--faint)}
 .ppl-face{flex:none;width:34px;height:34px;border-radius:50%;background:color-mix(in srgb,var(--c,var(--page-accent)) 22%,var(--surface-2));color:var(--c,var(--page-accent));display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:.82rem;overflow:hidden;position:relative}
 .ppl-face img{width:100%;height:100%;object-fit:cover}
 .ppl-face.sm{width:28px;height:28px;font-size:.7rem}
