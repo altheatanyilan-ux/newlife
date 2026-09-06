@@ -353,6 +353,21 @@
 .now-line::before{content:"";position:absolute;left:-4px;top:-3px;width:8px;height:8px;border-radius:50%;background:#e07a5f}
 .cd-blocks{display:flex;gap:2px;align-items:center;margin-top:auto}
 .cd-blocks i{width:5px;height:5px;border-radius:50%}
+/* habit rings row, above the calendar body */
+.cal-rings-row{display:grid;grid-template-columns:52px repeat(var(--n,7),minmax(0,1fr));gap:2px;margin-bottom:8px}
+.cal-rings-col{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;align-items:center;min-height:8px}
+.hring-btn{position:relative;background:none;border:none;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:50%;transition:transform .16s var(--ease)}
+.hring-btn:hover{transform:scale(1.08)}
+.hring-btn.future{opacity:.35;cursor:not-allowed}
+.hring-btn.future:hover{transform:none}
+.hring-streak{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:.62rem;color:var(--muted);pointer-events:none}
+.hg-cell.bloom,.hring-btn.bloom{animation:ringBloom .6s var(--ease)}
+@keyframes ringBloom{0%{transform:scale(1)}40%{transform:scale(1.4);filter:brightness(1.35)}100%{transform:scale(1)}}
+.pulse-once{animation:pulseOnce 1.1s ease-in-out 2}
+@keyframes pulseOnce{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--page-accent) 45%,transparent)}50%{box-shadow:0 0 0 7px color-mix(in srgb,var(--page-accent) 0%,transparent)}}
+.energy-arcs{display:flex;gap:14px;margin:10px 0 4px;flex-wrap:wrap}
+.earc{display:flex;flex-direction:column;align-items:center;gap:2px}
+.earc .mono{font-size:.6rem;color:var(--faint)}
 /* plan panel */
 .intentions{margin:12px 0;display:flex;flex-direction:column;gap:6px}
 .intention{display:flex;gap:9px;align-items:baseline;padding:9px 12px;border-radius:10px;background:linear-gradient(135deg,color-mix(in srgb,var(--page-accent) 11%,var(--surface)),var(--surface));border:1px solid color-mix(in srgb,var(--page-accent) 22%,var(--line));font-family:var(--serif);font-size:1.02rem}

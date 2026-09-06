@@ -165,6 +165,7 @@ routes.rhythm = function(root, params){
   if(tab === 'plan') renderPlanPanel(side, focus);
   else if(tab === 'habits') renderHabitsPanel(side, focus);
   else renderReviewPanel(side, focus);
+  window._bloomHabit = null; window._pulseHabitId = null;
   $$('[data-rtab]',root).forEach(b => b.onclick = () => { S._rhyTab = b.dataset.rtab; navigate('#/rhythm/' + b.dataset.rtab); if(location.hash === '#/rhythm/' + b.dataset.rtab) rerender(); });
   $$('[data-rview]',root).forEach(b => b.onclick = () => { S._rhyView = b.dataset.rview; rerender(); });
   const step = n => { S._rhyDay = addDays(focus, view === 'day' ? n : view === 'week' ? n*7 : n*30); rerender(); };
@@ -181,6 +182,7 @@ function drawRhythmCalendar(box, view, focus){
   if(view === 'month') return drawRhythmMonth(box, focus);
   const hours = Array.from({length:HOUR1-HOUR0}, (_,i) => HOUR0+i);
   box.innerHTML = `<div class="cal-head"><div class="cal-gutter"></div>${days.map(d => `<div class="cal-dayh ${d===T?'today':''} ${d===focus?'focus':''}" data-calfocus="${d}"><span class="dn">${DOW[parseDay(d).getDay()].slice(0,3)}</span><span class="dd">${parseDay(d).getDate()}</span></div>`).join('')}</div>
+    ${habitRingsRow(days, view==='day'?56:34)}
     <div class="cal-body" style="--hpx:${HOUR_PX}px">
       <div class="cal-gutter">${hours.map(h => `<div class="cal-hour"><span>${String(h).padStart(2,'0')}</span></div>`).join('')}</div>
       ${days.map(d => { const blocks = dayBlocks(d); const lanes = layoutBlocks(blocks);
@@ -193,8 +195,9 @@ function drawRhythmCalendar(box, view, focus){
           ${d===T ? `<div class="now-line" style="top:${((nowHour()-HOUR0)*HOUR_PX).toFixed(1)}px"></div>` : ''}
         </div>`; }).join('')}
     </div>
-    <div class="cal-legend" style="margin-top:10px"><span><i style="background:var(--page-accent)"></i>events</span><span><i style="background:var(--terra)"></i>tasks</span><span><i style="background:var(--sage)"></i>habits</span><span class="faint">drag on empty space to make an event · drag a block to move it</span></div>`;
+    <div class="cal-legend" style="margin-top:10px"><span><i style="background:var(--page-accent)"></i>events</span><span><i style="background:var(--terra)"></i>tasks</span><span><i style="background:var(--sage)"></i>habits</span><span class="faint">drag on empty space to make an event · drag a block to move it · rings above are today's habits, one tap to log</span></div>`;
   bindCalendar(box, days);
+  bindHabitRings(box);
 }
 function nowHour(){ const d = new Date(); return d.getHours() + d.getMinutes()/60; }
 function planDaysFrom(d){ const s = weekStart(d); return Array.from({length:7},(_,i)=>addDays(s,i)); }
@@ -437,6 +440,91 @@ function recentEnergyDip(){
 
 /* ---------- panel 3: habits ---------- */
 const STREAK_MARKS = [7, 30, 100];
+/* one shared place that mutates a habit's log for a day — used by the grid cells and the rings alike */
+function habitDayToggle(h, d){
+  S.habitLog[d] = S.habitLog[d] || {};
+  const cur = S.habitLog[d][h.id];
+  let justCompleted = false;
+  if(!cur){ S.habitLog[d][h.id] = {level:'full', note:''}; justCompleted = true; }
+  else if(cur.level === 'full') S.habitLog[d][h.id] = {level:'min', note:''};
+  else delete S.habitLog[d][h.id];
+  saveNow(); sound(S.habitLog[d][h.id] ? 'success' : 'click');
+  const st = habitStreak(h);
+  const mark = STREAK_MARKS.find(x => st.cur === x && !(h.celebrated||[]).includes(x));
+  if(mark){ h.celebrated = [...(h.celebrated||[]), mark]; saveNow(); celebrateStreak(h, mark); }
+  if(h.linkedSkill && S.habitLog[d][h.id]){ const sk = byId(S.skills, h.linkedSkill); if(sk) toast(`Logged — ${esc(sk.name)} felt that.`); }
+  justCompleted = justCompleted && !!S.habitLog[d][h.id];
+  if(justCompleted && h.relational){
+    S._pplView = h.relational === 'ringreview' ? 'circles' : S._pplView;
+    if(h.relational === 'reachout') reachOutRitual(()=>{});
+    else if(h.relational === 'gratitude') gratitudeRitual(()=>{});
+    else if(h.relational === 'ringreview'){ toast('Open the constellation — has anyone moved? Should anyone?', 6000); navigate('#/people'); }
+  }
+  return {justCompleted, streak: st};
+}
+function checkAllHabitsDone(d){
+  const due = S.habits.filter(h => !h.archived && !h.negative && habitDue(h,d));
+  if(!due.length || !due.every(h => habitDone(h,d))) return;
+  S._habitsCelebrated = S._habitsCelebrated || {};
+  if(S._habitsCelebrated[d]) return;
+  S._habitsCelebrated[d] = true; saveNow();
+  toast('Every habit, today. That is the whole game.', 5000);
+  if(typeof levelUpBurst === 'function' && !reduced()) levelUpBurst(innerWidth/2, innerHeight/2, 'var(--gold)');
+}
+/* a line or two, right where a habit with a prompt just closed */
+function microJournalPrompt(h, d){
+  const m = openModal(`<h2>${esc(h.icon||'')} ${esc(h.prompt)}</h2>
+    <textarea class="ta" id="mjText" placeholder="A line or two." autofocus style="min-height:80px"></textarea>
+    <div class="row" style="justify-content:flex-end;gap:8px;margin-top:12px"><button class="btn sm ghost" id="mjSkip">skip</button><button class="btn primary" id="mjSave">Save</button></div>`, 'narrow');
+  m.querySelector('#mjSkip').onclick = () => m.remove();
+  m.querySelector('#mjSave').onclick = () => {
+    const body = m.querySelector('#mjText').value.trim();
+    if(body){
+      S.entries.push({id:uid(), type:'reflection', title:h.prompt, body, occurredAt:d, createdAt:new Date().toISOString(), media:[],
+        links:{stages:[],substages:[],threads:[],values:[],visions:[],skills:h.links?.skills?[...h.links.skills]:[],projects:[],people:[]},
+        people:[], places:[], emotions:[], tags:[h.name.toLowerCase().replace(/[^a-z0-9]+/g,'')].filter(Boolean), confidence:'', extra:{}});
+      saveNow(); sound('success'); toast('Noted.');
+    }
+    m.remove();
+  };
+  attachDictationIn(m);
+}
+/* four small arcs — how each energy dimension's habits are going today */
+function energyBalanceArcsHTML(d){
+  const due = S.habits.filter(h => !h.archived && !h.negative && habitDue(h,d));
+  if(!due.length) return '';
+  const arcs = DIMS.map(dim => { const hs = due.filter(h => h.dimension === dim.id); if(!hs.length) return ''; const n = hs.filter(h => habitDone(h,d)).length;
+    return `<div class="earc">${ringSVG(n/hs.length, {size:48, stroke:5, color:dim.c})}<span class="mono">${dim.name}</span></div>`; }).filter(Boolean);
+  return arcs.length ? `<div class="energy-arcs">${arcs.join('')}</div>` : '';
+}
+/* the rings row that sits above the calendar body — a lighter, prettier face on the same log as the grid */
+function habitRingsRow(days, size){
+  const bloomKey = window._bloomHabit, pulseId = window._pulseHabitId;
+  const T = today();
+  const cols = days.map(d => {
+    const due = S.habits.filter(h => !h.archived && !h.negative && habitDue(h,d));
+    if(!due.length) return `<div class="cal-rings-col"></div>`;
+    return `<div class="cal-rings-col">${due.map(h => {
+      const done = habitDone(h,d); const pct = done ? (done.level==='min'?0.5:1) : 0; const future = d > T;
+      const dim = DIMS.find(x => x.id === h.dimension); const st = habitStreak(h);
+      const cls = [future?'future':'', bloomKey === `${h.id}:${d}` ? 'bloom' : '', (pulseId === h.id && d === T) ? 'pulse-once' : ''].filter(Boolean).join(' ');
+      return `<button class="hring-btn ${cls}" data-hring="${h.id}:${d}" ${future?'disabled':''} title="${esc(h.name)}${st.cur?` · ${st.cur}d streak`:''}${future?' · not yet':''}">
+        ${ringSVG(pct, {size, color: dim?dim.c:'var(--sage)', stroke: Math.max(3, Math.round(size/9))})}
+        ${st.cur ? `<span class="hring-streak mono">${st.cur}</span>` : ''}</button>`;
+    }).join('')}</div>`;
+  });
+  return `<div class="cal-rings-row"><div class="cal-gutter"></div>${cols.join('')}</div>`;
+}
+function bindHabitRings(box){
+  $$('[data-hring]', box).forEach(b => b.onclick = () => {
+    const [id, d] = b.dataset.hring.split(':'); const h = byId(S.habits, id);
+    const stacked = S.habits.find(x => x.stackAfter === h.id && !x.archived && habitDue(x,d) && !habitDone(x,d));
+    const res = habitDayToggle(h, d);
+    if(res.justCompleted){ window._bloomHabit = `${id}:${d}`; if(stacked) window._pulseHabitId = stacked.id; checkAllHabitsDone(d); }
+    rerender();
+    if(res.justCompleted && h.prompt) microJournalPrompt(h, d);
+  });
+}
 function renderHabitsPanel(box, focus){
   const T = today(); const week = planDaysFrom(focus);
   const list = S.habits.filter(h => !h.archived && !h.negative).sort((a,b) => TOD.indexOf(a.timeOfDay) - TOD.indexOf(b.timeOfDay) || (a.order||0) - (b.order||0));
@@ -445,14 +533,16 @@ function renderHabitsPanel(box, focus){
   const weekRate = rates.length ? Math.round(avg(rates) * 100) : null;
   const worst = list.length ? list[rates.indexOf(Math.min(...rates))] : null;
   const best = list.reduce((b,h) => habitStreak(h).best > (b ? habitStreak(b).best : 0) ? h : b, null);
+  const bloomKey = window._bloomHabit;
   box.innerHTML = `
     <div class="row between"><span class="sc" style="margin:0">The grid</span><span class="mono">${weekRate === null ? '' : `${weekRate}% this week`}</span></div>
+    ${energyBalanceArcsHTML(T)}
     ${list.length ? `<div class="habit-grid" style="--cols:${week.length}">
       <div class="hg-corner"></div>${week.map(d=>`<div class="hg-dow ${d===T?'today':''}">${DOW[parseDay(d).getDay()][0]}<span class="mono">${parseDay(d).getDate()}</span></div>`).join('')}
       ${list.map(h => { const st = habitStreak(h); const dim = DIMS.find(x=>x.id===h.dimension);
         return `<div class="hg-name" data-hopen="${h.id}" style="--c:${dim?dim.c:'var(--page-accent)'}"><span class="hg-ico">${h.icon||'○'}</span><span class="hg-t">${esc(h.name)}</span>${st.cur?`<span class="hg-streak mono">${st.cur}d</span>`:''}</div>
-        ${week.map(d => { const done = habitDone(h,d); const due = habitDue(h,d); const past = d < T; const future = d > T;
-          return `<button class="hg-cell ${done?(done.level==='min'?'half':'full'):past&&due?'miss':''} ${future?'future':''} ${due?'':'off'}" data-hcell="${h.id}:${d}" ${future?'disabled':''} style="--c:${dim?dim.c:'var(--page-accent)'}" title="${fmtDate(d,'med')}${due?'':' · not due'}"></button>`; }).join('')}`; }).join('')}
+        ${week.map(d => { const done = habitDone(h,d); const due = habitDue(h,d); const past = d < T; const future = d > T; const bloom = bloomKey === `${h.id}:${d}` ? 'bloom' : '';
+          return `<button class="hg-cell ${done?(done.level==='min'?'half':'full'):past&&due?'miss':''} ${future?'future':''} ${due?'':'off'} ${bloom}" data-hcell="${h.id}:${d}" ${future?'disabled':''} style="--c:${dim?dim.c:'var(--page-accent)'}" title="${fmtDate(d,'med')}${due?'':' · not due'}"></button>`; }).join('')}`; }).join('')}
     </div>` : `<div class="empty">No habits yet. One is enough to start — the grid is more persuasive than any argument.</div>`}
     <div class="row" style="gap:6px;margin-top:10px"><button class="btn sm primary" id="hNew">＋ Habit</button>${S.habits.some(h=>h.archived)?'<button class="btn sm ghost" id="hArch">archived</button>':''}</div>
 
@@ -469,17 +559,11 @@ function renderHabitsPanel(box, focus){
   $$('[data-relapse]',box).forEach(b => b.onclick = () => { S.negLast = S.negLast||{}; S.negLast[b.dataset.relapse] = today(); saveNow(); sound('error'); rerender(); });
   $$('[data-hcell]',box).forEach(c => c.onclick = () => {
     const [id, d] = c.dataset.hcell.split(':'); const h = byId(S.habits, id);
-    S.habitLog[d] = S.habitLog[d] || {};
-    const cur = S.habitLog[d][id];
-    if(!cur) S.habitLog[d][id] = {level:'full', note:''};
-    else if(cur.level === 'full') S.habitLog[d][id] = {level:'min', note:''};
-    else delete S.habitLog[d][id];
-    saveNow(); sound(S.habitLog[d][id] ? 'success' : 'click');
-    const st = habitStreak(h);
-    const mark = STREAK_MARKS.find(x => st.cur === x && !(h.celebrated||[]).includes(x));
-    if(mark){ h.celebrated = [...(h.celebrated||[]), mark]; saveNow(); celebrateStreak(h, mark); }
-    if(h.linkedSkill && S.habitLog[d][id]){ const sk = byId(S.skills, h.linkedSkill); if(sk) toast(`Logged — ${esc(sk.name)} felt that.`); }
+    const stacked = S.habits.find(x => x.stackAfter === h.id && !x.archived && habitDue(x,d) && !habitDone(x,d));
+    const res = habitDayToggle(h, d);
+    if(res.justCompleted){ window._bloomHabit = `${id}:${d}`; if(stacked) window._pulseHabitId = stacked.id; checkAllHabitsDone(d); }
     rerender();
+    if(res.justCompleted && h.prompt) microJournalPrompt(h, d);
   });
 }
 function celebrateStreak(h, n){
