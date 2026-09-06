@@ -52,7 +52,7 @@ function md(src){
 const KEY = 'lifeinstrument.v1';
 let S = null;
 /* persistence lives in db.js (Dexie schema + load/save/backup) */
-function migrate(){ if(S.settings && S.settings.home === 'map') S.settings.home = 'home'; if(typeof migrateEras === 'function') migrateEras(); const d = seed(); for(const k of Object.keys(d)) if(S[k]===undefined) S[k] = d[k]; }
+function migrate(){ if(S.settings && S.settings.home === 'map') S.settings.home = 'home'; if(typeof migrateEras === 'function') migrateEras(); const d = seed(); for(const k of Object.keys(d)) if(S[k]===undefined) S[k] = d[k]; if(typeof migrateLifeline === 'function') migrateLifeline(); }
 
 /* path access: "stages.#id.narrative" or "theatre.script" */
 function resolve(path){ const segs = path.split('.'); let o = S; for(let i=0;i<segs.length-1;i++){ o = step(o, segs[i]); if(o==null) return [null,null]; } return [o, segs[segs.length-1]]; }
@@ -230,6 +230,6 @@ const HICKS = ['Fear / Grief / Depression / Despair / Powerlessness','Insecurity
 const hicksName = n => HICKS[clamp(Math.round(n),1,22)-1];
 const DIMS = [{id:'physical',name:'Physical',c:'var(--phys)'},{id:'emotional',name:'Emotional',c:'var(--emo)'},{id:'mental',name:'Mental',c:'var(--ment)'},{id:'spiritual',name:'Spiritual',c:'var(--spir)'}];
 const CONF = ['hunch','exploring','plan','committed','in motion','lived'];
-const ENTRY_TYPES = [['uncategorized','Uncategorized','▫'],['memory','Memory','◌'],['reflection','Reflection','✎'],['synchronicity','Synchronicity','∞'],['manifestation','Manifestation','✦'],['gratitude','Gratitude','♡'],['dream','Dream','☾'],['progress','Progress','↗'],['nod','Nod','·'],['artifact','Artifact','▣'],['letter','Letter','✉'],['quote','Quote','“'],['question','Question','?'],['visualization','Visualization','◉']];
+const ENTRY_TYPES = [['uncategorized','Uncategorized','▫'],['lifeevent','Life event','◆'],['memory','Memory','◌'],['reflection','Reflection','✎'],['synchronicity','Synchronicity','∞'],['manifestation','Manifestation','✦'],['gratitude','Gratitude','♡'],['dream','Dream','☾'],['progress','Progress','↗'],['nod','Nod','·'],['artifact','Artifact','▣'],['letter','Letter','✉'],['quote','Quote','“'],['question','Question','?'],['visualization','Visualization','◉']];
 const typeName = t => (ENTRY_TYPES.find(x=>x[0]===t)||[t,t])[1];
 const typeIcon = t => (ENTRY_TYPES.find(x=>x[0]===t)||['','','·'])[2];

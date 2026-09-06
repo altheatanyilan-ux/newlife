@@ -62,21 +62,21 @@ routes.vision = function(root, params){
   const eras = erasList(); const activeEra = eras.some(e=>e.id===S._activeEra) ? S._activeEra : (eras[0]?.id || null);
   registerPageEntry({pageName:'Vision Tree', addLabel:'Add to the tree', defaultEntryType:'progress', prefilledFields:{era:activeEra}, options:[
     {icon:'🌿', label:'New goal', desc:`A new branch, in the ${esc(byId(eras,activeEra)?.name||'first')} era by default.`, run:(pre)=>EntryActions.newVision(pre)},
-    {icon:'◌', label:'New life event', desc:'A leaf on an existing vision — progress, a visualization, a manifestation.', run:(pre)=>EntryActions.lifeEvent(pre)}]});
+    {icon:'◆', label:'New life event', desc:'Something that happened — a memory for the current chapter, not a task.', run:(pre)=>openLifeEventModal(byId(erasList().filter(e=>e.type!=='future'),activeEra)?activeEra:(erasList().find(e=>e.type==='present')?.id))}]});
   root.innerHTML = `<div class="page">
     <div class="page-head row between"><div><h1>Vision Tree</h1><div class="sub">Every entry tagged to a vision grows a leaf. Vividness is the sap. Untended branches wither — honestly, reversibly.</div></div><div class="row"><select class="sel" style="width:auto" id="activeEra" title="active era for new goals">${eras.map(e=>`<option value="${e.id}" ${activeEra===e.id?'selected':''}>${esc(e.name)}</option>`).join('')}</select></div></div>
-    <div class="era-strip-wrap"><div class="row between" style="margin-bottom:8px"><span class="sc" style="margin:0">Eras — trunk segments</span><span class="mono">double-click a name to rename · drag ⠿ to reorder</span></div><div class="era-strip" id="eraStrip">${eras.map(e => eraCardHTML(e)).join('')}<button class="era-add" id="addEra">＋ Add era</button></div></div>
+    ${lifelineHTML()}
+    <div class="row between" style="margin:34px 0 8px"><span class="sc" style="margin:0">The tree</span><span class="mono">the same goals as branches — vividness is the sap</span></div>
     <div class="tree-wrap" id="treeWrap" style="height:${Math.max(560, 150*eras.length + 120)}px;max-height:${eras.length>5?'none':'calc(100vh - 150px)'}"><div class="tree-tools"></div><div class="tree-legend"><span>bare twig 0–15</span><span>budding 16–30</span><span>leafing 31–50</span><span>canopy 51–70</span><span>flowering 71–85</span><span>fruiting 86–100</span><span>· hover a branch to trace its lineage</span></div></div>
-    <div class="grid c3 section">${S.visions.map(v => { const {score, lastTended} = vividness(v); return `<div class="card rv" data-vopen="${v.id}" style="cursor:pointer"><div class="row between"><h3 style="margin:0">${esc(v.name)}</h3><span class="mono" style="color:${byId(erasList(),v.era)?.color||'var(--faint)'}">${esc(byId(erasList(),v.era)?.name||v.era)}</span></div><div class="row" style="margin:8px 0"><div class="bar" style="flex:1;--c:${v.confidence==='lived'?'var(--gold)':'var(--sage)'}"><i style="width:${score}%"></i></div><span class="mono" data-tween="${score}">0</span></div><div class="muted" style="font-size:.8rem">${esc(v.confidence)} · tended ${relDays(lastTended)}${v.nextAction?`<br><span style="color:var(--gold)">→</span> ${esc(v.nextAction)}`:''}</div></div>`; }).join('')}</div>
   </div>`;
   drawTree();
   function drawTree(){ const wrap = $('#treeWrap'); const W = Math.max(wrap.clientWidth, 600), H = wrap.clientHeight; wrap.querySelector('svg')?.remove(); wrap.insertAdjacentHTML('afterbegin', treeSVG(W,H)); const svg = wrap.querySelector('svg');
     svg.querySelectorAll('.branch').forEach(b => { b.onclick = () => openVisionPanel(b.dataset.vision); b.onmouseenter = () => { const [sx,sy] = b.dataset.start.split(',').map(Number); const [tx,ty] = b.dataset.trunk.split(',').map(Number); const tr = $('#trace'); tr.setAttribute('d', `M${sx},${sy} L${tx},${sy} L${tx},${ty}`); tr.style.opacity = '.6'; sound('leaf'); }; b.onmouseleave = () => { $('#trace').style.opacity = '0'; }; });
     startSway(svg); }
   window.addEventListener('resize', debounce(()=>{ if(currentRoute==='vision') drawTree(); }, 250), {once:true});
-  $$('[data-vopen]',root).forEach(c => c.onclick = () => openVisionPanel(c.dataset.vopen));
   $('#activeEra').onchange = e => { S._activeEra = e.target.value; rerender(); };
-  bindEraStrip(root, drawTree);
+  bindLifeline(root, drawTree);
+  if(!S.settings.chapterNamed) setTimeout(promptChapterName, 400);
   if(params[0]) openVisionPanel(params[0]);
 };
 function deleteVision(v, node, after){
@@ -99,6 +99,15 @@ function openVisionPanel(id){
     <div class="score"><div class="bar" style="flex:1;--c:${lived?'var(--gold)':'var(--sage)'}"><i style="width:${score}%"></i></div><span class="num" data-tween="${score}">0</span><span class="mono">vividness</span></div>
     <details><summary><span class="mono">how the score is made</span></summary><div class="body mono" style="line-height:1.9">${Object.entries(parts).map(([k,x])=>`${k} ${x.toFixed(1)}`).join(' · ')}<br>volume 20 · recency 20 (half-life 30d) · specificity 15 · sensory 15 · evidence 10 · resonance 10 · structural tension 10</div></details>
     <div class="vp-sec"><span class="sc">Confidence ladder</span><div class="ladder">${CONF.map(c=>`<button class="${v.confidence===c?'on':''}" data-conf="${c}">${c}</button>`).join('')}</div></div>
+    <div class="vp-sec lifeline-sec"><span class="sc">On the lifeline</span>
+      <div class="row" style="gap:14px;flex-wrap:wrap;margin-bottom:8px"><label class="toggle ${v.status==='completed'?'on':''}" id="vDone"><span class="sw"></span><span>${v.status==='completed'?'completed':'pending'}</span></label>
+        ${byId(erasList(),v.era)?.type==='present'?`<select class="sel" style="width:auto;font-size:.8rem" id="vPhase">${['in-progress','just-completed','documenting'].map(p=>`<option ${v.phase===p?'selected':''}>${p}</option>`).join('')}</select>`:''}
+        <label class="toggle ${v.archived?'on':''}" id="vArchived"><span class="sw"></span><span>archived</span></label></div>
+      <div class="spec-grid"><div><div class="k">started</div>${ed(`visions.#${v.id}.startedAt`,{ph:'YYYY-MM-DD',cls:'mono'})}</div><div><div class="k">completed</div>${ed(`visions.#${v.id}.completedAt`,{ph:'YYYY-MM-DD',cls:'mono'})}</div></div>
+      <div style="margin-top:10px"><div class="k mono" style="font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;color:var(--faint)">progress ${v.progress||0}%</div><input type="range" class="slider" min="0" max="100" value="${v.progress||0}" id="vProgress" style="--c:${byId(erasList(),v.era)?.color||'var(--sage)'}"></div>
+      <div style="margin-top:10px"><div class="k mono" style="font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;color:var(--faint)">success criteria — how will I know it is done?</div>${ed(`visions.#${v.id}.successCriteria`,{multi:true,ph:'Observable. Specific. Dated if possible.'})}</div>
+      <div style="margin-top:10px"><div class="k mono" style="font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;color:var(--faint)">reflection — what it was actually like</div>${ed(`visions.#${v.id}.reflection`,{multi:true,ph:'Written afterwards, or along the way.'})}</div>
+    </div>
     <div class="next-action"><div class="k">The nearest next action</div>${ed(`visions.#${v.id}.nextAction`,{ph:'One concrete thing. Small enough to do this week.'})}</div>
     <div class="vp-sec"><span class="sc">Specificity</span><div class="spec-grid"><div><div class="k">target date</div>${ed(`visions.#${v.id}.targetDate`,{ph:'YYYY-MM-DD'})}</div><div><div class="k">location</div>${ed(`visions.#${v.id}.location`,{ph:'where?'})}</div><div><div class="k">money</div>${ed(`visions.#${v.id}.money`,{ph:'a figure'})}</div><div><div class="k">feeling when I contemplate it</div><div class="feeling">${[1,2,3,4,5].map(n=>`<button class="${v.feeling===n?'on':''}" data-feel="${n}" title="${['resistance','anxious','neutral','warm','alignment'][n-1]}">${n}</button>`).join('')}<span class="mono">${v.feeling?['resistance','anxious','neutral','warm','alignment'][v.feeling-1]:'resistance ← → alignment'}</span></div></div></div></div>
     <div class="vp-sec sensory"><span class="sc">Sensory field</span><p class="faint" style="font-size:.8rem;margin:0 0 6px">Details of the imagined environment are all-important. This is the vividness engine.</p>
@@ -124,7 +133,7 @@ function openVisionPanel(id){
     ${moreSection(`<div class="danger-zone"><span>Visions are meant to be tended, not pruned casually. Its entries stay in the journals.</span><button class="btn sm ghost danger" id="delVision">Delete this vision</button></div>`)}
   </div>`,'vision-panel');
   $$('#panel .rv').forEach(n=>n.classList.add('in'));
-  p.querySelectorAll('[data-conf]').forEach(b => b.onclick = () => { const was = v.confidence; v.confidence = b.dataset.conf; saveNow(); if(v.confidence==='lived' && was!=='lived') fruitCeremony(v); else { rerender(); openVisionPanel(v.id); } });
+  p.querySelectorAll('[data-conf]').forEach(b => b.onclick = () => { const was = v.confidence; v.confidence = b.dataset.conf; if(v.confidence==='lived'){ v.status='completed'; v.completedAt = v.completedAt || today(); v.progress = 100; } else if(was==='lived'){ v.status='pending'; } saveNow(); if(v.confidence==='lived' && was!=='lived') fruitCeremony(v); else { rerender(); openVisionPanel(v.id); } });
   p.querySelectorAll('[data-feel]').forEach(b => b.onclick = () => { v.feeling = +b.dataset.feel; saveNow(); rerender(); openVisionPanel(v.id); });
   p.querySelector('#addRes').onclick = () => { v.resistance.push({text:'',threadId:null}); saveNow(); openVisionPanel(v.id); };
   p.querySelectorAll('[data-resthread]').forEach(s => s.onchange = () => { v.resistance[+s.dataset.resthread].threadId = s.value||null; saveNow(); });
@@ -137,6 +146,10 @@ function openVisionPanel(id){
   p.querySelectorAll('[data-evdel]').forEach(b => b.onclick = () => { const ev = v.evidence[+b.dataset.evdel]; requestDelete({label: ev.text || 'Evidence', node: b.closest('.evidence-item'), remove: () => spliceOut(v.evidence, x => x === ev), after: () => openVisionPanel(v.id)}); });
   p.querySelector('#addLeaf').onclick = () => openEntryModal({type:'progress', links:{visions:[v.id]}, after:()=>{ rerender(); openVisionPanel(v.id); }});
   p.querySelector('#vEra').onchange = e => { v.era = e.target.value; saveNow(); rerender(); openVisionPanel(v.id); };
+  p.querySelector('#vDone').onclick = () => { setGoalStatus(v, v.status==='completed' ? 'pending' : 'completed'); rerender(); openVisionPanel(v.id); };
+  p.querySelector('#vArchived').onclick = () => { v.archived = !v.archived; saveNow(); rerender(); openVisionPanel(v.id); };
+  p.querySelector('#vPhase')?.addEventListener('change', e => { v.phase = e.target.value; if(v.phase==='just-completed' && v.status!=='completed') setGoalStatus(v,'completed'); saveNow(); rerender(); openVisionPanel(v.id); });
+  const pr = p.querySelector('#vProgress'); pr.oninput = () => { pr.previousElementSibling.textContent = `progress ${pr.value}%`; }; pr.onchange = () => { v.progress = +pr.value; saveNow(); rerender(); };
   p.querySelector('#delVision').onclick = () => deleteVision(v, null, () => { closePanel(); rerender(); });
 }
 function fruitCeremony(v){
@@ -152,36 +165,120 @@ function fruitCeremony(v){
   toast(`🍂 <b>${esc(v.name)}</b> has fruited. It has been planted into the Timeline as a new chapter of 未 Not Yet.`, 6000);
 }
 
-/* ---------- era strip: add · rename (double-click) · reorder (drag) · delete (cascade) · 8-colour palette ---------- */
-function eraCardHTML(e){ const n = S.visions.filter(v=>v.era===e.id).length; return `<div class="era-card" draggable="true" data-era="${e.id}" style="--c:${e.color}"><div class="era-top"><span class="era-handle" title="drag to reorder">⠿</span><button class="era-swatch" data-eracolor="${e.id}" title="colour" style="background:${e.color}"></button><span class="era-name" data-eraname="${e.id}" title="double-click to rename">${esc(e.name)}</span><button class="era-del" data-eradel="${e.id}" title="delete era">🗑️</button></div><div class="era-sub">${ed(`visionEras.#${e.id}.subtitle`,{ph:'what this era is for'})}</div><div class="era-years mono">${ed(`visionEras.#${e.id}.startYear`,{ph:'from',cls:'mono',hook:'erayear:'+e.id})} – ${ed(`visionEras.#${e.id}.endYear`,{ph:'to',cls:'mono',hook:'erayear:'+e.id})} · ${n} goal${n===1?'':'s'}</div></div>`; }
+
+/* ============================================================
+   THE LIFELINE — past (lived) → present (live) → future (envisioned)
+   ============================================================ */
+const PHASES = ['in-progress','just-completed','documenting'];
+function setGoalStatus(v, status){ v.status = status; if(status==='completed'){ v.completedAt = v.completedAt || today(); v.progress = 100; if(v.confidence!=='lived') v.confidence = 'lived'; } else { v.completedAt = ''; if(v.confidence==='lived') v.confidence = 'in motion'; if(v.progress===100) v.progress = 80; } saveNow(); }
+function presentEra(){ return erasList().find(e=>e.type==='present') || null; }
+function eraGoals(e){ return S.visions.filter(v=>v.era===e.id && !v.archived); }
+function eraEvents(e){ return S.entries.filter(x=>x.type==='lifeevent' && x.extra?.eraId===e.id).sort((a,b)=>occurredSort(b)-occurredSort(a)); }
 hooks.erayear = (id) => { const e = byId(S.visionEras,id); if(!e) return; ['startYear','endYear'].forEach(k => { const v = parseInt(String(e[k]).replace(/\D/g,''),10); e[k] = isNaN(v) ? null : v; }); saveNow(); };
+function goalCardHTML(v, e){
+  const done = v.status==='completed'; const skills = (v.preSkills||[]).map(id=>byId(S.skills,id)).filter(Boolean); const projects = S.projects.filter(p => S.entries.some(en => (en.links.visions||[]).includes(v.id) && (en.links.projects||[]).includes(p.id)));
+  const chips = [...skills.map(s=>`<span class="chip" style="font-size:.62rem">🛠 ${esc(s.name)}</span>`), ...projects.map(p=>`<span class="chip" style="font-size:.62rem">🎨 ${esc(p.name)}</span>`)].join('');
+  let meta = '';
+  if(e.type==='past' || done) meta = `<div class="goal-meta"><span class="mono">✓ ${done?ed(`visions.#${v.id}.completedAt`,{ph:'date completed',cls:'mono'}):''}</span></div>${v.reflection?`<div class="goal-refl">${esc(v.reflection)}</div>`:`<div class="goal-refl faint">${ed(`visions.#${v.id}.reflection`,{ph:'what was it actually like?'})}</div>`}`;
+  else if(e.type==='present') meta = `<div class="goal-meta"><select class="sel goal-phase" data-phase="${v.id}" style="width:auto;padding:1px 6px;font-size:.66rem">${PHASES.map(p=>`<option ${v.phase===p?'selected':''}>${p}</option>`).join('')}</select><span class="mono">${v.startedAt?'since '+fmtDate(v.startedAt,'med'):''}</span></div>`;
+  else meta = `<div class="goal-meta"><span class="mono">${v.targetDate?'target '+fmtDate(v.targetDate,'med'):'no target date'}</span></div>${v.successCriteria?`<div class="goal-refl">↳ ${esc(v.successCriteria)}</div>`:''}`;
+  const ring = (e.type==='present' && !done) ? `<span class="goal-ring" title="progress ${v.progress||0}%">${ringSVG((v.progress||0)/100,{size:28,stroke:4,color:e.color})}</span>` : '';
+  return `<div class="goal-card ${done?'done':''} ${e.type}" data-goal="${v.id}" style="--c:${e.color}"><label class="goal-check" title="${done?'mark pending':'mark completed'}"><input type="checkbox" data-toggle="${v.id}" ${done?'checked':''}></label><div class="goal-body"><div class="goal-title">${esc(v.name)}${done?' <span class="goal-badge">✓</span>':''}</div>${meta}${chips?`<div class="row" style="gap:4px;margin-top:4px">${chips}</div>`:''}</div>${ring}</div>`;
+}
+function lifeEventHTML(x, e){ return `<div class="life-event" style="--c:${e.color}" data-entry="${x.id}"><span class="mono">${ed(`entries.#${x.id}.occurredAt`,{ph:'date',cls:'mono'})}</span><em>${ed(`entries.#${x.id}.body`,{multi:true,ph:'what happened?'})}</em><button class="del-x" data-del="${x.id}" title="delete">×</button></div>`; }
+function eraColumnHTML(e){
+  const goals = eraGoals(e); const pending = goals.filter(v=>v.status!=='completed'); const done = goals.filter(v=>v.status==='completed').sort((a,b)=>(b.completedAt||'')<(a.completedAt||'')?-1:1); const events = eraEvents(e); const stage = e.stageRef ? byId(S.stages, e.stageRef) : null;
+  const badge = e.type==='past' ? `<span class="era-badge closed">era closed</span>` : e.type==='present' ? `<span class="era-badge live"><i></i>LIVE</span>` : `<span class="era-badge ahead">ahead</span>`;
+  return `<section class="era-col ${e.type}" draggable="true" data-era="${e.id}" style="--c:${e.color}">
+    <header class="era-head">
+      <div class="era-top"><span class="era-handle" title="drag to reorder">⠿</span><button class="era-swatch" data-eracolor="${e.id}" title="colour" style="background:${e.color}"></button><span class="era-name" data-eraname="${e.id}" title="double-click to rename">${esc(e.name)}</span>${badge}<button class="era-del" data-eradel="${e.id}" title="delete era">🗑️</button></div>
+      <div class="era-sub">${ed(`visionEras.#${e.id}.subtitle`,{ph:'what this chapter is for'})}</div>
+      <div class="era-years mono">${ed(`visionEras.#${e.id}.startYear`,{ph:'from',cls:'mono',hook:'erayear:'+e.id})} – ${ed(`visionEras.#${e.id}.endYear`,{ph:e.type==='present'?'now':'to',cls:'mono',hook:'erayear:'+e.id})}${done.length?` · <span class="done-badge">${done.length} completed</span>`:''}</div>
+      <div class="era-stage">${stage?`<a href="#/stage/${stage.id}" class="chip on click" style="--c:${stage.hue};font-size:.62rem"><span class="han-sm">${stage.char}</span> ${esc(stage.name)}</a>`:''}<select class="sel stage-link" data-stageref="${e.id}" title="link to a chapter of the chronicle"><option value="">${stage?'change chapter…':'link a chronicle chapter…'}</option>${S.stages.map(s=>`<option value="${s.id}" ${e.stageRef===s.id?'selected':''}>${s.char} ${esc(s.name)}</option>`).join('')}<option value="-">— unlink —</option></select></div>
+    </header>
+    <div class="era-goals">${pending.length ? pending.map(v=>goalCardHTML(v,e)).join('') : `<div class="faint" style="font-size:.78rem;padding:6px 2px">${e.type==='past'?'no open goals':'nothing planned yet'}</div>`}</div>
+    ${e.type!=='future' ? `<div class="era-events"><div class="era-divider">What happened <span class="mono">· life events</span></div>${events.map(x=>lifeEventHTML(x,e)).join('')||'<div class="faint" style="font-size:.76rem;padding:4px 2px;font-style:italic">nothing recorded yet</div>'}<button class="btn sm ghost" data-addevent="${e.id}">+ life event</button></div>` : ''}
+    ${done.length ? `<div class="era-lived"><div class="era-divider">What happened ✓ <span class="mono">· ${done.length} goal${done.length===1?'':'s'}</span></div>${done.map(v=>goalCardHTML(v,e)).join('')}</div>` : ''}
+    <footer class="era-foot"><button class="btn sm" data-addgoal="${e.id}">+ goal</button>${e.type==='present'?`<button class="btn sm ghost" data-closechapter="${e.id}">Close this chapter →</button>`:''}</footer>
+  </section>`;
+}
+function lifelineHTML(){
+  const eras = erasList(); const now = new Date(); const label = `NOW — ${MONTHS[now.getMonth()]} ${now.getFullYear()}`;
+  let out = ''; eras.forEach(e => { out += eraColumnHTML(e); if(e.type==='present') out += `<div class="now-marker" title="${esc(label)}"><div class="now-line"></div><div class="now-dot"></div><div class="now-label">${esc(label)}</div></div>`; });
+  if(!eras.some(e=>e.type==='present')) out += `<div class="now-marker"><div class="now-line"></div><div class="now-dot"></div><div class="now-label">${esc(label)}</div></div>`;
+  return `<div class="lifeline-wrap"><div class="row between" style="margin-bottom:8px"><span class="sc" style="margin:0">The lifeline</span><span class="mono">past → present → future · double-click a chapter to rename · drag ⠿ to reorder</span></div><div class="lifeline" id="lifeline">${out}<button class="era-add" id="addEra">＋ Add era</button></div></div>`;
+}
 function renameEraInline(nameEl, era, redraw){
   if(nameEl.querySelector('input')) return;
   const inp = el(`<input class="era-rename" value="${esc(era.name)}" aria-label="era name">`); nameEl.textContent = ''; nameEl.appendChild(inp); inp.focus(); inp.select();
   const commit = () => { const v = inp.value.trim(); era.name = v || era.name; saveNow(); nameEl.textContent = era.name; redraw(); };
   inp.addEventListener('blur', commit); inp.addEventListener('keydown', ev => { ev.stopPropagation(); if(ev.key==='Enter'){ inp.blur(); } if(ev.key==='Escape'){ inp.value = era.name; inp.blur(); } });
 }
-function bindEraStrip(root, drawTree){
-  const strip = root.querySelector('#eraStrip'); if(!strip) return;
-  const redraw = () => { drawTree(); root.querySelectorAll('.era-card').forEach(c => { const e = byId(S.visionEras, c.dataset.era); if(e){ c.style.setProperty('--c', e.color); c.querySelector('.era-swatch').style.background = e.color; } }); };
-  root.querySelector('#addEra').onclick = () => { const order = S.visionEras.length ? Math.max(...S.visionEras.map(e=>e.order))+1 : 0; const e = {id:'era-'+uid(), name:'New era', subtitle:'', startYear:null, endYear:null, color:ERA_PALETTE[S.visionEras.length % ERA_PALETTE.length], order}; S.visionEras.push(e); saveNow(); rerender(); setTimeout(() => { const card = document.querySelector(`.era-card[data-era="${e.id}"]`); card?.scrollIntoView({inline:'end', behavior:'smooth'}); const nm = card?.querySelector('.era-name'); if(nm) renameEraInline(nm, e, () => rerender()); }, 60); };
-  strip.querySelectorAll('.era-name').forEach(nm => nm.addEventListener('dblclick', () => renameEraInline(nm, byId(S.visionEras, nm.dataset.eraname), redraw)));
-  strip.querySelectorAll('[data-eracolor]').forEach(b => b.onclick = () => { const e = byId(S.visionEras, b.dataset.eracolor); document.querySelector('.era-palette')?.remove(); const pal = el(`<div class="era-palette">${ERA_PALETTE.map(c=>`<button data-c="${c}" style="background:${c}" class="${e.color===c?'on':''}" title="${c}"></button>`).join('')}</div>`); b.parentElement.appendChild(pal); pal.querySelectorAll('button').forEach(x => x.onclick = ev => { ev.stopPropagation(); e.color = x.dataset.c; saveNow(); pal.remove(); redraw(); }); setTimeout(() => document.addEventListener('click', () => pal.remove(), {once:true}), 0); });
-  strip.querySelectorAll('[data-eradel]').forEach(b => b.onclick = () => { const e = byId(S.visionEras, b.dataset.eradel); const goals = S.visions.filter(v=>v.era===e.id); const m = openModal(`<h2>Delete this era and all its contents?</h2><p class="muted">This cannot be undone.<br><span class="mono">${esc(e.name)} · ${goals.length} goal${goals.length===1?'':'s'} and their life events</span></p><div class="row" style="justify-content:flex-end;margin-top:18px"><button class="btn" data-x="no">Cancel</button><button class="btn destructive" data-x="yes">Delete</button></div>`,'narrow'); m.querySelector('[data-x=no]').onclick = () => m.remove(); m.querySelector('[data-x=yes]').onclick = () => { m.remove(); requestDelete({label:`Era ${e.name}`, skipConfirm:true, node: b.closest('.era-card'), remove: () => {
-    const ids = new Set(goals.map(v=>v.id)); const removedGoals = goals.map(v => [S.visions.indexOf(v), v]); goals.forEach(v => S.visions.splice(S.visions.indexOf(v),1));
-    S.visions.forEach(v => { if(ids.has(v.parentId)) v.parentId = null; });
-    const events = S.entries.filter(en => (en.links?.visions||[]).some(id => ids.has(id))); const removedEvents = events.map(en => [S.entries.indexOf(en), en]); events.forEach(en => S.entries.splice(S.entries.indexOf(en),1));
+function openLifeEventModal(eraId, existing=null){
+  const eras = erasList().filter(e=>e.type!=='future'); const m = openModal(`<h2>${existing?'Edit life event':'A life event'}</h2><p class="muted" style="margin-top:-8px">Something that happened. Not a task — a memory for this chapter.</p><div class="stack">
+    <div class="field"><label>Chapter</label><select class="sel" id="leEra">${eras.map(e=>`<option value="${e.id}" ${(existing?.extra?.eraId||eraId)===e.id?'selected':''}>${esc(e.name)}</option>`).join('')}</select></div>
+    <div class="field"><label>Date</label><input class="inp" type="date" id="leDate" value="${existing?.occurredAt?.slice(0,10)||today()}"></div>
+    <div class="field"><label>What happened</label><textarea class="ta serif-lg" id="leText" placeholder="One moment, in your own words.">${esc(existing?.body||'')}</textarea></div>
+    <div class="row" style="justify-content:flex-end"><button class="btn primary" id="leSave">${existing?'Save':'Keep it'}</button></div></div>`,'narrow');
+  m.querySelector('#leSave').onclick = e => { const text = m.querySelector('#leText').value.trim(); if(!text) return; const era = m.querySelector('#leEra').value, date = m.querySelector('#leDate').value || today();
+    if(existing){ existing.body = text; existing.occurredAt = date; existing.extra.eraId = era; }
+    else S.entries.push({id:uid(),type:'lifeevent',title:'',body:text,occurredAt:date,createdAt:new Date().toISOString(),media:[],links:{stages:[],substages:[],threads:[],values:[],visions:[],skills:[],projects:[]},people:[],places:[],emotions:[],confidence:'',extra:{eraId:era}});
+    saveNow(); ripple(e.clientX,e.clientY,byId(S.visionEras,era)?.color); sound('success'); m.remove(); toast('Life event kept.'); rerender(); };
+  setTimeout(()=>m.querySelector('#leText').focus(),50);
+}
+function promptChapterName(){
+  const cur = presentEra(); if(!cur || S.settings.chapterNamed) return;
+  const m = openModal(`<h2>What would you name your current chapter?</h2><p class="muted">The chapter you are living right now. Not a decade, not a placeholder — a name that means something to you.</p><input class="inp serif-lg" id="chName" value="${esc(cur.name)}"><div class="row" style="justify-content:space-between;margin-top:16px"><button class="btn ghost" id="chKeep">Keep “${esc(cur.name)}”</button><button class="btn primary" id="chSave">Name it</button></div>`,'narrow');
+  const fin = (rename) => { if(rename){ const v = m.querySelector('#chName').value.trim(); if(v) cur.name = v; } S.settings.chapterNamed = true; saveNow(); m.remove(); rerender(); };
+  m.querySelector('#chSave').onclick = () => fin(true); m.querySelector('#chKeep').onclick = () => fin(false); m.querySelector('#chName').onkeydown = e => { if(e.key==='Enter') fin(true); }; setTimeout(()=>{ m.querySelector('#chName').focus(); m.querySelector('#chName').select(); },50);
+}
+function closeChapterWizard(cur){
+  const eras = erasList(); const next = eras.find(e => e.type==='future' && e.order > cur.order) || eras.find(e => e.type==='future'); const open = eraGoals(cur).filter(v=>v.status!=='completed'); const y = new Date().getFullYear();
+  const m = openModal(`<h2>Close “${esc(cur.name)}”</h2><p class="muted">This chapter becomes part of the past. Decide what happens to each open goal, then name the chapter that begins now.</p>
+    <div class="stack" style="gap:8px">${open.length ? open.map(v=>`<div class="wiz-row" data-wiz="${v.id}"><b class="serif">${esc(v.name)}</b><div class="row" style="gap:4px">${[['forward','move forward'],['archive','archive'],['complete','mark complete']].map(([k,l],i)=>`<button class="btn sm ${i===0?'primary':''}" data-choice="${k}">${l}</button>`).join('')}</div></div>`).join('') : '<div class="faint">No open goals. Clean close.</div>'}</div>
+    <div class="field" style="margin-top:18px"><label>Name your next chapter</label><input class="inp serif-lg" id="nextName" value="${esc(next?next.name:'')}" placeholder="What is this next chapter called?"></div>
+    ${next?`<p class="faint" style="font-size:.78rem">“${esc(next.name)}” is the next era on the lifeline; it becomes the live chapter under this name.</p>`:'<p class="faint" style="font-size:.78rem">A new era will be created and placed after this one.</p>'}
+    <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn" data-x="no">Cancel</button><button class="btn primary" id="wizGo">Close chapter</button></div>`);
+  const choice = {}; open.forEach(v => choice[v.id] = 'forward');
+  m.querySelectorAll('.wiz-row').forEach(r => r.querySelectorAll('[data-choice]').forEach(b => b.onclick = () => { choice[r.dataset.wiz] = b.dataset.choice; r.querySelectorAll('[data-choice]').forEach(x=>x.classList.toggle('primary', x===b)); }));
+  m.querySelector('[data-x=no]').onclick = () => m.remove();
+  m.querySelector('#wizGo').onclick = () => {
+    const name = m.querySelector('#nextName').value.trim(); if(!name){ toast('Give the next chapter a name.'); return; }
+    let target = next; if(!target){ target = {id:'era-'+uid(), name, subtitle:'', startYear:y, endYear:null, color:ERA_PALETTE[S.visionEras.length % ERA_PALETTE.length], order:cur.order + .5, type:'present', stageRef:null}; S.visionEras.push(target); erasList().forEach((e,i)=>e.order=i); }
+    else { target.name = name; target.type = 'present'; target.startYear = y; }
+    cur.type = 'past'; cur.endYear = y;
+    open.forEach(v => { const c = choice[v.id]; if(c==='forward') v.era = target.id; else if(c==='archive') v.archived = true; else setGoalStatus(v,'completed'); });
+    S.settings.chapterNamed = true; S._activeEra = target.id; saveNow(); m.remove(); sound('chime'); toast(`“${esc(cur.name)}” is closed. “${esc(target.name)}” is live.`, 6000); rerender();
+  };
+}
+function bindLifeline(root, drawTree){
+  const line = root.querySelector('#lifeline'); if(!line) return;
+  const redraw = () => { drawTree(); };
+  root.querySelector('#addEra').onclick = () => { const eras = erasList(); const order = eras.length ? Math.max(...eras.map(e=>e.order))+1 : 0; const e = {id:'era-'+uid(), name:'New era', subtitle:'', startYear:null, endYear:null, color:ERA_PALETTE[S.visionEras.length % ERA_PALETTE.length], order, type: eras.some(x=>x.type==='present') ? 'future' : 'present', stageRef:null}; S.visionEras.push(e); saveNow(); rerender(); setTimeout(() => { const card = document.querySelector(`.era-col[data-era="${e.id}"]`); card?.scrollIntoView({inline:'end', behavior:'smooth'}); const nm = card?.querySelector('.era-name'); if(nm) renameEraInline(nm, e, () => rerender()); }, 60); };
+  line.querySelectorAll('.era-name').forEach(nm => nm.addEventListener('dblclick', () => renameEraInline(nm, byId(S.visionEras, nm.dataset.eraname), redraw)));
+  line.querySelectorAll('[data-eracolor]').forEach(b => b.onclick = () => { const e = byId(S.visionEras, b.dataset.eracolor); document.querySelector('.era-palette')?.remove(); const pal = el(`<div class="era-palette">${ERA_PALETTE.map(c=>`<button data-c="${c}" style="background:${c}" class="${e.color===c?'on':''}" title="${c}"></button>`).join('')}</div>`); b.parentElement.appendChild(pal); pal.querySelectorAll('button').forEach(x => x.onclick = ev => { ev.stopPropagation(); e.color = x.dataset.c; saveNow(); pal.remove(); rerender(); }); setTimeout(() => document.addEventListener('click', () => pal.remove(), {once:true}), 0); });
+  line.querySelectorAll('[data-stageref]').forEach(sel => sel.onchange = () => { const e = byId(S.visionEras, sel.dataset.stageref); e.stageRef = sel.value === '-' ? null : (sel.value || e.stageRef); saveNow(); rerender(); });
+  line.querySelectorAll('[data-eradel]').forEach(b => b.onclick = () => { const e = byId(S.visionEras, b.dataset.eradel); const goals = S.visions.filter(v=>v.era===e.id); const m = openModal(`<h2>Delete this era and all its contents?</h2><p class="muted">This cannot be undone.<br><span class="mono">${esc(e.name)} · ${goals.length} goal${goals.length===1?'':'s'}, their life events and leaves</span></p><div class="row" style="justify-content:flex-end;margin-top:18px"><button class="btn" data-x="no">Cancel</button><button class="btn destructive" data-x="yes">Delete</button></div>`,'narrow'); m.querySelector('[data-x=no]').onclick = () => m.remove(); m.querySelector('[data-x=yes]').onclick = () => { m.remove(); requestDelete({label:`Era ${e.name}`, skipConfirm:true, node: b.closest('.era-col'), remove: () => {
+    const ids = new Set(goals.map(v=>v.id)); const removedGoals = goals.map(v => [S.visions.indexOf(v), v]); goals.forEach(v => S.visions.splice(S.visions.indexOf(v),1)); S.visions.forEach(v => { if(ids.has(v.parentId)) v.parentId = null; });
+    const events = S.entries.filter(en => (en.links?.visions||[]).some(id => ids.has(id)) || (en.type==='lifeevent' && en.extra?.eraId===e.id)); const removedEvents = events.map(en => [S.entries.indexOf(en), en]); events.forEach(en => S.entries.splice(S.entries.indexOf(en),1));
     const habits = S.habits.filter(h => (h.links?.visions||[]).some(id => ids.has(id))); const hl = habits.map(h => [h, [...h.links.visions]]); habits.forEach(h => h.links.visions = h.links.visions.filter(id => !ids.has(id)));
     const back = spliceOut(S.visionEras, x => x.id === e.id); if(S._activeEra === e.id) S._activeEra = null;
     return () => { back(); removedGoals.forEach(([i,v]) => S.visions.splice(Math.min(i,S.visions.length),0,v)); removedEvents.forEach(([i,en]) => S.entries.splice(Math.min(i,S.entries.length),0,en)); hl.forEach(([h,l]) => h.links.visions = l); };
   }}); }; });
-  // drag to reorder
+  // goals
+  line.querySelectorAll('[data-toggle]').forEach(c => c.addEventListener('change', () => { const v = byId(S.visions, c.dataset.toggle); setGoalStatus(v, c.checked ? 'completed' : 'pending'); sound(c.checked?'success':'click'); rerender(); }));
+  line.querySelectorAll('[data-phase]').forEach(sel => { sel.onclick = e => e.stopPropagation(); sel.onchange = () => { const v = byId(S.visions, sel.dataset.phase); v.phase = sel.value; if(v.phase==='just-completed' && v.status!=='completed') setGoalStatus(v,'completed'); saveNow(); rerender(); }; });
+  line.querySelectorAll('.goal-card').forEach(card => card.addEventListener('click', e => { if(e.target.closest('input,select,label,.ed,button,a')) return; openVisionPanel(card.dataset.goal); }));
+  line.querySelectorAll('[data-addgoal]').forEach(b => b.onclick = () => newVisionDialog({era:b.dataset.addgoal}));
+  line.querySelectorAll('[data-addevent]').forEach(b => b.onclick = () => openLifeEventModal(b.dataset.addevent));
+  line.querySelectorAll('[data-closechapter]').forEach(b => b.onclick = () => closeChapterWizard(byId(S.visionEras, b.dataset.closechapter)));
+  // drag to reorder columns
   let dragId = null;
-  strip.querySelectorAll('.era-card').forEach(card => {
-    card.addEventListener('dragstart', ev => { dragId = card.dataset.era; card.classList.add('dragging'); ev.dataTransfer.effectAllowed = 'move'; try { ev.dataTransfer.setData('text/plain', dragId); } catch(e){} });
-    card.addEventListener('dragend', () => { card.classList.remove('dragging'); strip.querySelectorAll('.era-card').forEach(c => c.classList.remove('over')); });
-    card.addEventListener('dragover', ev => { ev.preventDefault(); ev.dataTransfer.dropEffect = 'move'; card.classList.add('over'); });
-    card.addEventListener('dragleave', () => card.classList.remove('over'));
-    card.addEventListener('drop', ev => { ev.preventDefault(); card.classList.remove('over'); const from = dragId || ev.dataTransfer.getData('text/plain'); const to = card.dataset.era; if(!from || from === to) return; const list = erasList().map(e=>e.id); list.splice(list.indexOf(from),1); list.splice(list.indexOf(to),0,from); list.forEach((id,i) => byId(S.visionEras,id).order = i); dragId = null; saveNow(); rerender(); });
+  line.querySelectorAll('.era-col').forEach(col => {
+    col.addEventListener('dragstart', ev => { if(ev.target.closest('.goal-card,.life-event,.ed')){ ev.preventDefault(); return; } dragId = col.dataset.era; col.classList.add('dragging'); ev.dataTransfer.effectAllowed = 'move'; try { ev.dataTransfer.setData('text/plain', dragId); } catch(e){} });
+    col.addEventListener('dragend', () => { col.classList.remove('dragging'); line.querySelectorAll('.era-col').forEach(c => c.classList.remove('over')); });
+    col.addEventListener('dragover', ev => { ev.preventDefault(); ev.dataTransfer.dropEffect = 'move'; col.classList.add('over'); });
+    col.addEventListener('dragleave', () => col.classList.remove('over'));
+    col.addEventListener('drop', ev => { ev.preventDefault(); col.classList.remove('over'); const from = dragId || ev.dataTransfer.getData('text/plain'); const to = col.dataset.era; if(!from || from === to) return; const list = erasList().map(e=>e.id); list.splice(list.indexOf(from),1); list.splice(list.indexOf(to),0,from); list.forEach((id,i) => byId(S.visionEras,id).order = i); const p = presentEra(); if(p) erasList().forEach(e => { if(e.type!=='present') e.type = e.order < p.order ? 'past' : 'future'; }); dragId = null; saveNow(); rerender(); });
   });
 }

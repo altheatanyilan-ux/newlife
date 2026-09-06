@@ -93,6 +93,19 @@ function storesToState(rows){
 /* eras: the ordered list the tree, the panels, and the add dialogs read */
 const ERA_PALETTE = ['#7f916a','#6b7f8e','#b08968','#a0727e','#d4a44c','#8a7f9e','#c47832','#8a8d8f'];
 function erasList(){ return [...(S.visionEras||[])].sort((a,b)=>a.order-b.order).map(e => Object.assign(e, {label:e.name, desc:e.subtitle})); }
+function migrateLifeline(){
+  const y = new Date().getFullYear(); const eras = erasList(); if(!eras.length) return;
+  eras.forEach(e => { if(e.stageRef === undefined) e.stageRef = null; });
+  if(!eras.some(e => e.type === 'present')){
+    let cur = eras.find(e => (e.startYear==null || e.startYear <= y) && (e.endYear==null || e.endYear >= y) && !(e.type==='past'));
+    if(!cur) cur = eras.find(e => e.type !== 'past') || eras[0];
+    eras.forEach(e => { e.type = e === cur ? 'present' : (e.order < cur.order ? 'past' : 'future'); });
+  } else { let seen = false; eras.forEach(e => { if(e.type === 'present'){ if(seen) e.type = 'future'; seen = true; } else if(!['past','future'].includes(e.type)) e.type = seen ? 'future' : 'past'; }); }
+  const present = eras.find(e => e.type === 'present');
+  if(present && !present.stageRef){ const st = S.stages.find(s => { const m = (s.years||'').match(/(\d{4})\s*[–-]\s*(\d{4})?/); return m && +m[1] <= y && (!m[2] || +m[2] >= y); }); if(st) present.stageRef = st.id; }
+  S.visions.forEach(v => { if(!v.status) v.status = v.confidence === 'lived' ? 'completed' : 'pending'; if(v.status === 'completed' && !v.completedAt) v.completedAt = v.createdAt || today(); if(v.phase === undefined) v.phase = 'in-progress'; if(v.progress === undefined) v.progress = v.status === 'completed' ? 100 : 0; if(v.startedAt === undefined) v.startedAt = v.createdAt || ''; if(v.successCriteria === undefined) v.successCriteria = ''; if(v.reflection === undefined) v.reflection = ''; if(v.archived === undefined) v.archived = false; });
+  if(!S.journals.some(j => j.type === 'lifeevent')) S.journals.push({type:'lifeevent', name:'Life events'});
+}
 function migrateEras(){ if(Array.isArray(S.visionEras) && S.visionEras.length) return; const old = Array.isArray(S.eras) ? S.eras : []; S.visionEras = old.map((e,i) => ({id:e.id, name:e.label||e.name||'Era', subtitle:e.desc||e.subtitle||'', startYear:null, endYear:null, color:ERA_PALETTE[i%ERA_PALETTE.length], order:i})); delete S.eras; }
 async function readAllStores(){ const rows = {}; for(const t of db.tables) rows[t.name] = await t.toArray(); return rows; }
 async function writeAllStores(rows){

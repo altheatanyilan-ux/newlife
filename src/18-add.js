@@ -28,7 +28,7 @@ const EntryActions = {
   newSkill:       ()       => newSkillDialog(),
   skillProgress:  (pre={}) => openEntryModal({type:'progress', allowedTypes:['progress'], heading:'Add a level to a skill — log practice', links: pre.links, openLinks:true}),
   newVision:      (pre={}) => newVisionDialog(pre),
-  lifeEvent:      (pre={}) => openEntryModal({type:'progress', allowedTypes:['progress','visualization','manifestation'], heading:'New life event on a vision', links: pre.links, openLinks:true}),
+  lifeEvent:      (pre={}) => openLifeEventModal(pre.era || presentEra()?.id),
   newProject:     ()       => createProject(),
   newHabit:       ()       => openHabitModal(),
 };
@@ -58,6 +58,7 @@ const SPEED_DIAL = [
   {zone:'Compass',  icon:'🧭', label:'Congruence snapshot',  run: ()=>EntryActions.snapshot()},
   {zone:'Skills',   icon:'🌳', label:'Skill node',           run: ()=>EntryActions.newSkill()},
   {zone:'Vision',   icon:'🔮', label:'Vision goal',          run: ()=>EntryActions.newVision()},
+  {zone:'Lifeline', icon:'◆', label:'Life event',            run: ()=>EntryActions.lifeEvent()},
   {zone:'Projects', icon:'📋', label:'Project',              run: ()=>EntryActions.newProject()},
 ];
 function buildSpeedDial(){
@@ -93,7 +94,7 @@ function newValueDialog(){
 }
 function newVisionDialog(pre={}){
   const m = openModal(`<h2>A new branch</h2><div class="stack"><div class="field"><label>Name</label><input class="inp" id="vnName" placeholder="What do you want to create?"></div><div class="field"><label>Era</label><select class="sel" id="vnEra">${erasList().map(e=>`<option value="${e.id}" ${pre.era===e.id?'selected':''}>${esc(e.name)}${e.subtitle?' — '+esc(e.subtitle):''}</option>`).join('')}</select></div><div class="field"><label>Forks from (optional)</label><select class="sel" id="vnParent"><option value="">the trunk</option>${S.visions.map(v=>`<option value="${v.id}">${esc(v.name)}</option>`).join('')}</select></div></div><div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn primary" id="vnSave">Plant it</button></div>`,'narrow');
-  m.querySelector('#vnSave').onclick = () => { const name = m.querySelector('#vnName').value.trim(); if(!name) return; const v = {id:uid(),name,era:m.querySelector('#vnEra').value,parentId:m.querySelector('#vnParent').value||null,confidence:'hunch',nextAction:'',sensory:{see:'',hear:'',smell:'',firstHour:'',who:'',noLonger:''},futureMemory:'',futureMemoryHistory:[],costs:'',currentReality:'',currentRealityHistory:[],resistance:[],preSkills:[],selfImage:'',values:[],obituary:'',evidence:[],feeling:0,targetDate:'',location:'',money:'',createdAt:today()}; S.visions.push(v); saveNow(); m.remove(); if(currentRoute !== 'vision') navigate('#/vision'); else rerender(); setTimeout(() => openVisionPanel(v.id), currentRoute==='vision' ? 0 : 400); };
+  m.querySelector('#vnSave').onclick = () => { const name = m.querySelector('#vnName').value.trim(); if(!name) return; const v = {id:uid(),name,era:m.querySelector('#vnEra').value,parentId:m.querySelector('#vnParent').value||null,status:'pending',phase:'in-progress',progress:0,startedAt:today(),completedAt:'',successCriteria:'',reflection:'',archived:false,confidence:'hunch',nextAction:'',sensory:{see:'',hear:'',smell:'',firstHour:'',who:'',noLonger:''},futureMemory:'',futureMemoryHistory:[],costs:'',currentReality:'',currentRealityHistory:[],resistance:[],preSkills:[],selfImage:'',values:[],obituary:'',evidence:[],feeling:0,targetDate:'',location:'',money:'',createdAt:today()}; S.visions.push(v); saveNow(); m.remove(); if(currentRoute !== 'vision') navigate('#/vision'); else rerender(); setTimeout(() => openVisionPanel(v.id), currentRoute==='vision' ? 0 : 400); };
   setTimeout(() => m.querySelector('#vnName').focus(), 50);
 }
 function newSkillDialog(){

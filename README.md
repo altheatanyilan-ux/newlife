@@ -43,7 +43,7 @@ The sidebar groups the rooms into two zones by time horizon: **Present** (Today,
 | `#/today` | Daily check-in, Morning Theatre, signals, on-this-day, gentle prompt, 30-day charts |
 | `#/timeline` | Eight life stages on a spine, felt-time toggle, thread ribbons, tensions |
 | `#/stage/:id` | Stage detail: versioned narrative, sub-stages, formative events, retrospective values, soundtrack, artifacts, letters |
-| `#/vision` | Vision Tree with vividness scoring, withering, per-vision detail panel, fruit ceremony |
+| `#/vision` | The lifeline: past, present, and future eras as a horizontal timeline with a NOW marker, goals with completion and progress, life events, and a close-chapter wizard; the vision tree below it |
 | `#/values` | Priority ranking, radar with life-long time slider, weather strip, gap analysis, values-to-visions matrix |
 | `#/journals` | Commonplace Book: synchronicity, manifestation, reflections, gratitude, dreams, quotes, open questions |
 | `#/skills` | Radial skill graph, user-defined rubrics, atrophy, cross-mappings |
