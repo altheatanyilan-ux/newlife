@@ -10,6 +10,7 @@
 .mood:hover{transform:scale(1.1)}
 .mood.on{border-color:var(--page-accent);box-shadow:0 0 0 4px color-mix(in srgb,var(--page-accent) 22%,transparent)}
 .energy-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media (max-width:620px){.energy-row{grid-template-columns:repeat(2,1fr);gap:12px 16px}.dots{gap:5px}.dots i{width:13px;height:13px}}
 .energy-dim .lbl{font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px;display:flex;justify-content:space-between}
 .dots{display:flex;gap:6px}
 .dots i{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--c);cursor:pointer;transition:all .2s var(--ease);opacity:.6}
@@ -90,6 +91,32 @@
 .m-net.pos{color:var(--sage)}.m-net.neg{color:#d08080}
 @media (max-width:820px){.txn{grid-template-columns:56px 10px 1fr auto auto}.tx-acct{display:none}}
 /* ---------- chronicle ---------- */
+/* ---- Chronicle: the narrative timeline ---- */
+.chron-scroll{overflow-x:auto;overflow-y:hidden;padding:6px 0 2px;margin-top:14px}
+.chron-svg{display:block;max-width:100%;height:auto;min-width:640px}
+.ch-block{cursor:pointer}
+.ch-block rect{transition:fill-opacity .25s var(--page-ease,ease),stroke-opacity .25s}
+.ch-block:hover rect{fill-opacity:.3;stroke-opacity:1}
+.ch-block.sel rect{fill-opacity:.34;stroke-opacity:1;stroke-width:1.6}
+.ch-blk-t{font-family:var(--serif);font-size:14px;fill:var(--text)}
+.ch-blk-s{font-family:var(--mono);font-size:9.5px;fill:var(--muted);letter-spacing:.04em}
+.ch-blk-d{font-family:var(--mono);font-size:9px;fill:var(--faint);letter-spacing:.1em;text-transform:uppercase}
+.turn-node{cursor:pointer}
+.turn-node circle{transition:r .2s var(--page-ease,ease)}
+.turn-node:hover circle{r:13}
+.turn-glyph{font-size:9px;fill:#fff;pointer-events:none;opacity:.92}
+.th-line{pointer-events:none}
+/* ---- Chronicle: the chapter, opened ---- */
+.chapter-detail{margin-top:22px;padding:20px 22px;border:1px solid var(--line);border-left:3px solid var(--c);border-radius:12px;background:var(--surface)}
+.turn-list{display:flex;flex-direction:column;gap:6px;margin-top:14px}
+.turn-row{display:flex;gap:11px;align-items:flex-start;width:100%;text-align:left;padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:transparent;cursor:pointer;transition:border-color .2s,background .2s}
+.turn-row:hover{border-color:color-mix(in srgb,var(--c) 55%,var(--line));background:color-mix(in srgb,var(--c) 6%,transparent)}
+.tr-ico{flex:none;width:24px;height:24px;border-radius:50%;background:color-mix(in srgb,var(--c) 22%,transparent);color:var(--c);display:flex;align-items:center;justify-content:center;font-size:.8rem}
+.tr-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.tr-body b{font-family:var(--serif);font-weight:400;font-size:1rem;color:var(--text)}
+.tr-desc{font-size:.8rem;color:var(--muted);line-height:1.45;display:block;overflow:hidden}
+.turn-panel .vp-sec{margin-bottom:18px}
+.chronicle-page{max-width:100%}
 .chron-picks{display:flex;flex-direction:column;gap:4px;margin-top:10px}
 .chron-pick{display:flex;gap:9px;align-items:flex-start;padding:7px 10px;border-radius:9px;border:1px solid var(--line);cursor:pointer;transition:border-color .2s var(--ease),background .2s var(--ease)}
 .chron-pick.on{border-color:var(--page-accent);background:color-mix(in srgb,var(--page-accent) 8%,transparent)}
@@ -181,7 +208,7 @@
 .cm-name{position:absolute;top:calc(100% + 3px);left:50%;transform:translateX(-50%);font-family:var(--sans);font-size:.62rem;color:var(--muted);white-space:nowrap;pointer-events:none}
 .cm-person.overdue{border-color:#c25b5b;border-style:dashed}
 .cm-warn{position:absolute;top:-3px;right:-3px;width:14px;height:14px;border-radius:50%;background:#c25b5b;color:#fff;font-size:.55rem;display:flex;align-items:center;justify-content:center}
-.cm-drop{position:absolute;left:50%;top:50%;width:calc(var(--r) * 2px);height:calc(var(--r) * 2px);transform:translate(-50%,-50%);border-radius:50%;pointer-events:none}
+.cm-drop{position:absolute;left:50%;top:50%;width:calc(var(--rp) * 2%);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;pointer-events:none}
 .circle-map.dragging-active .cm-drop{pointer-events:auto}
 .cm-drop.over{background:color-mix(in srgb,var(--page-accent) 8%,transparent)}
 .cm-empty{position:absolute;inset:auto 0 40% 0}
@@ -1089,6 +1116,22 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 /* ============================================================
    HOME — life at a glance
    ============================================================ */
+/* the zone summary cards — one per navigation zone */
+.zone-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:20px}
+@media (max-width:1180px){.zone-cards{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:620px){.zone-cards{grid-template-columns:1fr}}
+.zone-card{position:relative;display:flex;flex-direction:column;gap:10px;padding:15px 16px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);text-decoration:none;color:inherit;overflow:hidden;transition:border-color .25s var(--page-ease,ease),transform .25s var(--page-ease,ease),box-shadow .25s}
+.zone-card::before{content:'';position:absolute;inset:0 auto 0 0;width:3px;background:var(--z);opacity:.6;transition:opacity .25s,width .25s}
+.zone-card:hover{border-color:color-mix(in srgb,var(--z) 45%,var(--line));transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.09)}
+.zone-card:hover::before{opacity:1;width:4px}
+.zc-h{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.zc-label{font-family:var(--serif);font-size:1.06rem;color:var(--z);letter-spacing:.01em}
+.zc-hint{font-size:.6rem;color:var(--faint);text-align:right;line-height:1.3}
+.zc-lines{display:flex;flex-direction:column;gap:5px;flex:1}
+.zc-line{font-size:.82rem;color:var(--muted);line-height:1.4}
+.zc-line:first-child{color:var(--text);font-size:.88rem}
+.zc-go{font-size:.62rem;color:var(--faint);opacity:0;transition:opacity .25s}
+.zone-card:hover .zc-go{opacity:1}
 .home-hero{display:grid;grid-template-columns:1.3fr 1fr;gap:18px;align-items:stretch}
 @media (max-width:900px){.home-hero{grid-template-columns:1fr}}
 .focus-card{background:linear-gradient(135deg,color-mix(in srgb,var(--page-accent) 10%,var(--surface)),var(--surface));border:1px solid var(--line);border-radius:18px;padding:22px 24px}

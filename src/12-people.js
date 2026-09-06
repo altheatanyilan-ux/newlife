@@ -125,7 +125,7 @@ function pplCircles(box){
           ${p.photo?`<img src="${esc(p.photo)}" alt="">`:`<span>${esc(personInitials(p))}</span>`}
           <span class="cm-name">${esc(p.nickname || p.name.split(' ')[0])}</span>${od?'<span class="cm-warn">!</span>':''}</button>`; }).join('');
     }).join('')}
-    ${Object.keys(CIRCLES).map(k=>`<div class="cm-drop" data-cmring="${k}" style="--r:${R[k]}"></div>`).join('')}
+    ${Object.keys(CIRCLES).map(k=>`<div class="cm-drop" data-cmring="${k}" style="--rp:${(R[k]/760*100).toFixed(2)}"></div>`).join('')}
     ${!S.people.length ? '<div class="empty cm-empty">No one here yet. Start with five names — the ones you would actually call.</div>' : ''}
   </div>
   <div class="row rv" style="gap:14px;justify-content:center;margin-top:6px;flex-wrap:wrap">${Object.entries(CIRCLES).map(([k,c])=>`<span class="mono" style="color:${c[4]}">${c[0]} ${esc(c[1])} · ${ring(k).length}${c[3]?` of about ${c[3]}`:''}</span>`).join('')}<span class="faint mono">drag a face between rings to reclassify</span></div>`;

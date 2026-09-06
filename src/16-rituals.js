@@ -39,7 +39,7 @@ function renderReviews(body){
   const step = (t,d,act='') => `<div class="step"><div><div class="t">${t}</div><div class="d">${d}</div>${act?`<div class="act row">${act}</div>`:''}</div></div>`;
   body.innerHTML = `<div class="grid c2" style="align-items:start">
     <div class="card rv"><h3>Daily Morning Practice</h3><div class="mono">30 minutes · Maltz + Hill + Hicks · last: ${rehearsalDoneToday()?'today':rehearsalStreak()?'yesterday':'—'}</div><div class="flow">
-      ${step('Sit quietly. Close your eyes.','Review your Self-Image Script in the Morning Rehearsal.','<button class="btn sm" data-go="#/today">open the Theatre</button>')}
+      ${step('Sit quietly. Close your eyes.','Review your Self-Image Script in the Morning Rehearsal.','<button class="btn sm" data-go="#/today">open the Rehearsal</button>')}
       ${step('Visualize for 15–20 minutes.','See yourself acting, feeling, being as you want to be. Sensory details. “Your nervous system will take care of the rest in time — if you continue to practice.”','<button class="btn sm ghost" data-quick="visualization">log what you saw</button>')}
       ${step('Read your Definite Chief Aim aloud.','With emotion. Twice daily.',`<span class="quote" style="font-size:.9rem">${esc((S.rehearsal.aim||'').slice(0,160))}…</span>`)}
       ${step('Log your emotional set-point.','Where on the Hicks scale are you, honestly?','<button class="btn sm ghost" data-go="#/today">set-point slider</button>')}

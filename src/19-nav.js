@@ -43,10 +43,23 @@ const NAV_PAGES = {
   vision:   {label:'Vision Canvas',    short:'Vision',   ico:NAV_ICONS.vision,   route:'#/vision'},
   timeline: {label:'Timeline',         short:'Timeline', ico:NAV_ICONS.timeline, route:'#/timeline'},
 };
-const NAV_DEFAULT = { present:['today','rhythm','projects'], becoming:['values','skills','vision'], standalone:['people','timeline','chronicle','journals','commonplace','writing','finance'] };
-const NAV_ZONES = [ {id:'present', label:'Present', hint:'short-term, daily use', accent:'var(--sage)'}, {id:'becoming', label:'Becoming', hint:'identity, growth', accent:'var(--ment)'} ];
+const NAV_DEFAULT = {
+  present:   ['today','rhythm','projects'],
+  becoming:  ['values','skills','vision'],
+  story:     ['people','timeline','chronicle','journals'],
+  standalone:['commonplace','writing','finance'],
+};
+const NAV_ZONES = [
+  {id:'present',  label:'Present',  hint:"what is happening now",            accent:'var(--sage)'},
+  {id:'becoming', label:'Becoming', hint:'long-term growth, identity',       accent:'var(--ment)'},
+  {id:'story',    label:'Story',    hint:'relationships, memory, meaning',   accent:'var(--rose)'},
+];
+const NAV_ZONE_IDS = [...NAV_ZONES.map(z => z.id), 'standalone'];
 const MOBILE_PRIMARY = ['today','rhythm','projects','journals','skills'];
-function navConfig(){ if(!S.settings.nav) S.settings.nav = JSON.parse(JSON.stringify(NAV_DEFAULT)); const n = S.settings.nav; ['present','becoming','standalone'].forEach(z => { n[z] = (n[z]||[]).filter(k => NAV_PAGES[k]); }); const placed = new Set([...n.present, ...n.becoming, ...n.standalone]); Object.keys(NAV_PAGES).forEach(k => { if(k !== 'home' && !placed.has(k)) n.standalone.push(k); }); ['present','becoming','standalone'].forEach(z => n[z] = n[z].filter(k => NAV_PAGES[k] && k !== 'home')); return n; }
+function navConfig(){ if(!S.settings.nav) S.settings.nav = JSON.parse(JSON.stringify(NAV_DEFAULT)); const n = S.settings.nav; // a nav laid out before the Story zone existed: lift its pages out of wherever they sat
+  if(!Array.isArray(n.story)){ n.story = []; NAV_DEFAULT.story.forEach(k => { NAV_ZONE_IDS.forEach(z => { if(Array.isArray(n[z])) n[z] = n[z].filter(x => x !== k); }); n.story.push(k); }); }
+  NAV_ZONE_IDS.forEach(z => { if(!Array.isArray(n[z])) n[z] = [...(NAV_DEFAULT[z]||[])]; });
+  { const seen = new Set(); NAV_ZONE_IDS.forEach(z => n[z] = n[z].filter(k => !seen.has(k) && seen.add(k))); } NAV_ZONE_IDS.forEach(z => { n[z] = (n[z]||[]).filter(k => NAV_PAGES[k]); }); const placed = new Set(NAV_ZONE_IDS.flatMap(z => n[z])); Object.keys(NAV_PAGES).forEach(k => { if(k !== 'home' && !placed.has(k)) n.standalone.push(k); }); NAV_ZONE_IDS.forEach(z => n[z] = n[z].filter(k => NAV_PAGES[k] && k !== 'home')); return n; }
 const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch(e){ return d; } };
 const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} };
 function activePageKey(){ const {name} = parseHash(); return {stage:'timeline', value:'values', home:'home'}[name] || name; }
@@ -105,14 +118,15 @@ function houseStats(){
     timeline: {line:`${memories} memories · ${S.stages.length} stages`, ok:true, cadence:'archival', tip:'The museum of the past. Formative events and the story you tell.'},
     writing:  {line:`${S.entries.filter(e=>e.type==='writing').length} pieces`, ok:true, cadence:'weekly', tip:'A room for contemplation, fed by your own hashtags.'},
     commonplace:{line:`${S.entries.filter(e=>e.type==='media').length} works logged`, ok:true, cadence:'archival', tip:'What you read, watched and listened to — and what it changed.'},
-    people:   {line:`${(S.people||[]).length} people${(S.people||[]).filter(p=>personGoneQuiet(p)).length?` · ${(S.people||[]).filter(p=>personGoneQuiet(p)).length} gone quiet`:''}`, ok:!(S.people||[]).filter(p=>personGoneQuiet(p)).length, cadence:'weekly', tip:'A life is mostly other people.'},
+    people:   (()=>{ const od = typeof peopleNeedingAttention === 'function' ? peopleNeedingAttention() : [];
+      return {line:`${(S.people||[]).length} people${od.length?` · ${od.length} overdue`:''}`, ok:!od.length, cadence:'weekly', tip:'A life is mostly other people.'}; })(),
     finance:  {line: (S.accounts||[]).length ? `${money(netWorth())} · ${txnMonth(today().slice(0,7)).length} this month` : 'nothing listed', ok:true, cadence:'monthly', tip:'Net worth, envelopes and what you are saving toward.'},
     chronicle:{line:'the record as a book', ok:true, cadence:'annual', tip:'Print it, or save it as a PDF.'},
   };
   return {stat, due, done, vs, wither, last, snapDays, gaps, atro, hrs30, active, nods7, j7, quotes, memories, c, rem, zonesOf: k => n.present.includes(k)?'present':n.becoming.includes(k)?'becoming':'always'};
 }
 function houseSVG(st){
-  const n = navConfig(); const keys = [...n.present, ...n.becoming, ...n.standalone].filter(k => NAV_PAGES[k] && st.stat[k]);
+  const n = navConfig(); const keys = NAV_ZONE_IDS.flatMap(z => n[z]).filter(k => NAV_PAGES[k] && st.stat[k]);
   const W = 760, H = 460, cx = W/2, cy = H/2, R = 170; const pos = {}; const zoneColor = k => st.zonesOf(k)==='present' ? 'var(--sage)' : st.zonesOf(k)==='becoming' ? 'var(--ment)' : 'var(--terra)';
   keys.forEach((k,i) => { const a = -Math.PI/2 + i*2*Math.PI/keys.length; pos[k] = [cx + Math.cos(a)*R, cy + Math.sin(a)*R]; });
   let g = '';
@@ -121,6 +135,72 @@ function houseSVG(st){
   keys.forEach(k => { const [x,y] = pos[k]; const s = st.stat[k]; const p = NAV_PAGES[k]; const r = s.cadence==='daily'?34:s.cadence==='weekly'?31:27;
     g += `<g class="hnode ${s.cadence}" data-node="${k}" data-go="${p.route}" style="--zc:${zoneColor(k)}"><circle class="body" cx="${x}" cy="${y}" r="${r}" fill="color-mix(in srgb,${zoneColor(k)} ${s.cadence==='daily'?22:s.cadence==='weekly'?14:8}%,var(--surface))" stroke="${zoneColor(k)}" stroke-width="1.4" ${s.cadence==='monthly'||s.cadence==='archival'?'stroke-dasharray="4 3"':''} opacity="${s.cadence==='archival'?.7:1}"/><text x="${x}" y="${y+6}" text-anchor="middle" style="font-size:${r*.6}px">${p.ico}</text><circle cx="${x+r*.7}" cy="${y-r*.7}" r="5" fill="${s.ok?'var(--sage)':'var(--gold)'}" stroke="var(--surface)" stroke-width="1.5"/><text class="hl" x="${x}" y="${y+r+16}" text-anchor="middle">${esc(p.label)}</text><text class="hs" x="${x}" y="${y+r+28}" text-anchor="middle">${esc(s.line)}</text></g>`; });
   return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">${g}</svg>`;
+}
+/* ---------- the four zone cards on Home ----------
+   One card per navigation zone, answering the question that zone exists
+   for. Each line is a live count, and each card opens the room where you
+   would act on it. */
+function nextReviewLine(){
+  const last = S.reviews?.lastWeekly; const d = last ? daysSince(last) : null;
+  if(d === null) return ['no weekly review yet', 'var(--gold)'];
+  if(d >= 7) return [`weekly review due${d > 8 ? ` · ${d - 7}d late` : ''}`, 'var(--gold)'];
+  return [`next review in ${7 - d} day${7 - d === 1 ? '' : 's'}`, ''];
+}
+function zoneSummaries(){
+  const T = today(); const st = houseStats();
+  const cards = [];
+
+  const tasks = typeof tasksForDay === 'function' ? tasksForDay(T) : [];
+  const openTasks = tasks.filter(t => !t.done);
+  const [revLine, revC] = nextReviewLine();
+  cards.push({label:'Present', hint:'what is happening now', accent:'var(--sage)', route:'#/rhythm',
+    lines:[
+      [openTasks.length ? `${openTasks.length} item${openTasks.length === 1 ? '' : 's'} still planned today` : (tasks.length ? 'everything planned today is done' : 'nothing planned today'), openTasks.length ? '' : (tasks.length ? 'var(--sage)' : 'var(--faint)')],
+      [st.due.length ? `${st.done} of ${st.due.length} habit${st.due.length === 1 ? '' : 's'} done` : 'no habits due today', st.due.length ? (st.done === st.due.length ? 'var(--sage)' : '') : 'var(--faint)'],
+      [revLine, revC],
+    ]});
+
+  const ms = typeof milestonesWithin === 'function' ? milestonesWithin(365) : [];
+  const nextMs = ms[0];
+  const snaps = allSnapshotsWithRetro(); const lastSnap = snaps[snaps.length - 1];
+  const snapAge = lastSnap ? daysSince(lastSnap.date) : null;
+  cards.push({label:'Becoming', hint:'long-term growth, identity', accent:'var(--ment)', route:'#/skills',
+    lines:[
+      nextMs ? [nextMs.days < 0 ? `${esc(nextMs.skill.name)} milestone ${-nextMs.days}d overdue` : `${esc(nextMs.skill.name)} milestone in ${nextMs.days} day${nextMs.days === 1 ? '' : 's'}`, nextMs.days < 0 ? 'var(--gold)' : '']
+              : ['no skill milestone dated', 'var(--faint)'],
+      snapAge === null ? ['no congruence snapshot yet', 'var(--gold)'] : [`congruence read ${relDays(snapAge)}`, snapAge > 45 ? 'var(--gold)' : ''],
+      [`${st.vs.length} vision${st.vs.length === 1 ? '' : 's'} growing${st.wither ? ` · ${st.wither} withering` : ''}`, st.wither ? 'var(--gold)' : ''],
+    ]});
+
+  const overdue = typeof peopleNeedingAttention === 'function' ? peopleNeedingAttention() : [];
+  const bdays = typeof birthdaysSoon === 'function' ? birthdaysSoon(30) : [];
+  const jrn = sortEntries(S.entries.filter(e => ['journal','reflection','dream','gratitude'].includes(e.type)))[0];
+  const jrnAge = jrn ? daysSince((jrn.occurredAt || jrn.createdAt || '').slice(0,10)) : null;
+  cards.push({label:'Story', hint:'relationships, memory, meaning', accent:'var(--rose)', route:'#/people',
+    lines:[
+      overdue.length ? [`${overdue.length} ${overdue.length === 1 ? 'person is' : 'people are'} overdue for contact`, 'var(--gold)'] : ['everyone is within their cadence', 'var(--sage)'],
+      jrnAge === null ? ['nothing written yet', 'var(--faint)'] : [`last journal ${relDays(jrnAge)}`, jrnAge > 7 ? 'var(--gold)' : ''],
+      bdays.length ? [`${esc(bdays[0].p.name)}&#39;s birthday in ${bdays[0].days} day${bdays[0].days === 1 ? '' : 's'}`, 'var(--terra)']
+                   : [`${(S.turns || []).length} turning point${(S.turns || []).length === 1 ? '' : 's'} in the Chronicle`, ''],
+    ]});
+
+  const m = T.slice(0,7);
+  const nw = typeof netWorth === 'function' ? netWorth() : 0;
+  const budgeted = sum((S.budgets || []).map(b => +b.monthlyLimit || 0));
+  const spent = sum((S.budgets || []).map(b => spentIn(b.category, m)));
+  cards.push({label:'Finance', hint:'the material floor', accent:'var(--gold)', route:'#/finance',
+    lines:[
+      (S.accounts || []).length ? [`${money(nw)} net worth`, nw < 0 ? 'var(--gold)' : ''] : ['no accounts yet', 'var(--faint)'],
+      budgeted ? [`${money(budgeted - spent)} left in this month&#39;s envelopes`, budgeted - spent < 0 ? 'var(--gold)' : ''] : ['no envelopes set', 'var(--faint)'],
+      [`${money(monthSpend(m))} spent this month · ${money(monthIncome(m))} in`, ''],
+    ]});
+  return cards;
+}
+function zoneCardsHTML(){
+  return `<section class="zone-cards rv">${zoneSummaries().map(c => `<a class="zone-card" href="${c.route}" style="--z:${c.accent}">
+    <div class="zc-h"><span class="zc-label">${esc(c.label)}</span><span class="zc-hint mono">${esc(c.hint)}</span></div>
+    <div class="zc-lines">${c.lines.map(([t, col]) => `<div class="zc-line"${col ? ` style="color:${col}"` : ''}>${t}</div>`).join('')}</div>
+    <span class="zc-go mono">open →</span></a>`).join('')}</section>`;
 }
 routes.home = function(root){
   const T = today(); const st = houseStats(); const moon = moonPhase(); const c = checkin(T);
@@ -144,7 +224,7 @@ routes.home = function(root){
           <div class="mini-rings" title="habit rings">${st.due.slice(0,10).map(h=>ringSVG(habitDone(h,T)?(habitDone(h,T).level==='min'?.5:1):0,{size:26,stroke:4,color:DIMS.find(d=>d.id===h.dimension).c})).join('')}<span class="mono">${st.done}/${st.due.length}</span></div>
           <span class="mono">${c.mood?'mood '+['heavy','low','level','light','luminous'][c.mood-1]:'<span style="color:var(--gold)">not checked in</span>'}</span>
           <span class="mono">${c.setpoint?hicksName(c.setpoint).split(' / ')[0]:''}</span>
-          <span class="mono">${rehearsalDoneToday()?'theatre ✓':'theatre ·'}</span>
+          <span class="mono">${rehearsalDoneToday()?'rehearsal ✓':'rehearsal ·'}</span>
           ${st.rem?`<span class="mono" style="color:var(--gold)">${st.rem} reminder${st.rem>1?'s':''}</span>`:''}
         </div>
         ${nextActs.length?`<div class="next-actions"><div class="k mono" style="font-size:.6rem;text-transform:uppercase;letter-spacing:.12em;color:var(--gold)">Nearest next actions</div>${nextActs.map(x=>`<div><span class="mono">🌿</span><span style="flex:1">${esc(x.v.nextAction)}</span><a class="mono" href="#/vision/${x.v.id}" style="text-decoration:none">${esc(x.v.name)}</a></div>`).join('')}</div>`:''}
@@ -153,6 +233,8 @@ routes.home = function(root){
         <div class="k mono" style="text-transform:uppercase;letter-spacing:.12em;font-size:.62rem;margin-top:18px">Signals</div>
         <div class="stack" style="gap:6px;margin-top:6px">${signals().slice(0,4).map(s=>`<a href="${s.go}" class="row between" style="text-decoration:none;color:inherit;padding:6px 0;border-top:1px dashed var(--line);gap:12px"><span class="mono" style="flex:none">${esc(s.k)}</span><span style="text-align:right;font-size:.85rem">${esc(s.v)}</span></a>`).join('')}</div></div>
     </div>
+
+    ${zoneCardsHTML()}
 
     <section class="section rv" style="margin-top:22px"><div class="row between"><span class="sc" style="margin:0">The house</span><span class="mono">● green tended · ● amber needs you · solid rings daily, dashed seasonal · hover to see what feeds what</span></div>
       <div class="house-wrap" id="houseWrap" style="margin-top:10px">${houseSVG(st)}<div class="htip" id="htip"></div></div></section>
@@ -163,7 +245,7 @@ routes.home = function(root){
       <div class="card span2"><div class="k">Congruence over a lifetime</div><div class="big" data-tween="${avgCong.slice(-1)[0]||0}" data-suffix="%">0</div>${sparkline(avgCong,{h:56,min:0,max:100,color:'var(--terra)'})}<div class="sub">average across ten values · ${snaps.length} readings from ${snaps[0]?fmtDate(snaps[0].date,'med'):'—'}</div></div>
       <div class="card span2"><div class="k">Energy, 30 days <a href="#/today">→</a></div>${multiSpark(DIMS.map(d=>({vals:days30.map(x=>S.checkins[x]?.energy?.[d.id]||null),color:d.c})),{h:56})}<div class="legend">${DIMS.map(d=>`<span style="--c:${d.c}">${d.name}</span>`).join('')}</div>${sparkline(days30.map(d=>S.checkins[d]?.setpoint||null),{h:34,min:1,max:22,color:'var(--rose)'})}<div class="sub">emotional set-point · avg ${avg(days30.map(d=>S.checkins[d]?.setpoint).filter(Boolean)).toFixed(1)} — ${hicksName(avg(days30.map(d=>S.checkins[d]?.setpoint).filter(Boolean))||14).split(' / ')[0]}</div></div>
       <div class="card span3"><div class="k">Visions <a href="#/vision">→</a></div><div class="sub">${st.vs.length} growing${st.wither?`, <span style="color:var(--gold)">${st.wither} withering</span>`:''} · average vividness ${Math.round(avg(st.vs.map(x=>x.score)))}</div>${topV.map(x=>`<div class="vbar"><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(x.v.name)}</span><div class="bar" style="--c:${x.lastTended>60?'var(--gold)':'var(--sage)'}"><i style="width:${x.score}%"></i></div><span class="mono">${x.score}</span></div>`).join('')}</div>
-      <div class="card span3"><div class="k">Habits, 12 weeks <a href="#/rituals">→</a></div><div class="big" data-tween="${habitRate.slice(-1)[0]||0}" data-suffix="%">0<small>this week</small></div>${sparkline(habitRate,{h:56,min:0,max:100,color:'var(--sage)'})}<div class="sub">weekly completion · best streak ${Math.max(0,...S.habits.filter(h=>!h.archived&&!h.negative).map(h=>habitStreak(h).best))} days · weekly review ${relDays(daysSince(S.reviews.lastWeekly))}</div></div>
+      <div class="card span3"><div class="k">Habits, 12 weeks <a href="#/rhythm/habits">→</a></div><div class="big" data-tween="${habitRate.slice(-1)[0]||0}" data-suffix="%">0<small>this week</small></div>${sparkline(habitRate,{h:56,min:0,max:100,color:'var(--sage)'})}<div class="sub">weekly completion · best streak ${Math.max(0,...S.habits.filter(h=>!h.archived&&!h.negative).map(h=>habitStreak(h).best))} days · weekly review ${relDays(daysSince(S.reviews.lastWeekly))}</div></div>
       <div class="card span2"><div class="k">Projects <a href="#/projects">→</a></div><div class="big" data-tween="${st.nods7}">0<small>nods this week</small></div>${sparkline(nodsW,{h:44,min:0,color:'var(--terra)'})}<div class="sub">${st.active.length} active · ${fmtYen(income)}/mo across ${S.projects.filter(p=>p.income?.current>0).length} stream${S.projects.filter(p=>p.income?.current>0).length===1?'':'s'}</div></div>
       <div class="card span2"><div class="k">Skills <a href="#/skills">→</a></div><div class="big" data-tween="${st.hrs30}" data-dec="1">0<small>hours / 30d</small></div>${skillHrs.map(x=>`<div class="vbar"><span>${esc(x.s.name)}</span><div class="bar" style="--c:var(--ment)"><i style="width:${Math.min(100,x.h/Math.max(skillHrs[0].h,1)*100)}%"></i></div><span class="mono">${x.h.toFixed(0)}h</span></div>`).join('')}<div class="sub">${st.atro?`<span style="color:var(--gold)">${st.atro} atrophying</span> · `:''}${S.skills.filter(s=>s.planned).length} buds planned</div></div>
       <div class="card span2"><div class="k">Journal &amp; memory <a href="#/journals">→</a></div><div class="big" data-tween="${S.entries.length}">0<small>entries</small></div>${sparkline(entriesW,{h:40,min:0,color:'var(--rose)'})}<div class="sub">${st.j7} this week · ${st.memories} memories · ${st.quotes} quotes</div><div class="stagebars" title="entries per stage">${stageCounts.map(x=>`<i style="--c:${x.s.hue};height:${Math.max(4,x.n/maxStage*44)}px" title="${esc(x.s.name)} · ${x.n}"></i>`).join('')}</div></div>
@@ -176,10 +258,10 @@ routes.home = function(root){
 
 /* ---------- Settings: drag-and-drop zone editor ---------- */
 function zoneEditorHTML(){ const n = navConfig(); const col = (id, label, keys, accent) => `<div class="zone-col" data-zcol="${id}" style="--z:${accent}"><div class="sc" style="color:${accent}">${label}</div>${keys.map(k => `<div class="zone-item" draggable="true" data-zitem="${k}"><span class="ico">${NAV_PAGES[k].ico}</span>${esc(NAV_PAGES[k].label)}<span class="mono">⋮</span></div>`).join('')||'<div class="faint" style="font-size:.75rem;padding:6px">drop pages here</div>'}</div>`;
-  return `<div class="zone-editor" id="zoneEditor">${col('present','Present',n.present,'var(--sage)')}${col('becoming','Becoming',n.becoming,'var(--ment)')}${col('standalone','Always',n.standalone,'var(--terra)')}</div><div class="row" style="margin-top:10px"><button class="btn sm ghost" id="zoneReset">reset to default</button></div>`; }
+  return `<div class="zone-editor" id="zoneEditor">${NAV_ZONES.map(z => col(z.id, z.label, n[z.id], z.accent)).join('')}${col('standalone','Always',n.standalone,'var(--terra)')}</div><div class="row" style="margin-top:10px"><button class="btn sm ghost" id="zoneReset">reset to default</button></div>`; }
 function bindZoneEditor(root){
   let dragKey = null; const n = navConfig();
   root.querySelectorAll('.zone-item').forEach(it => { it.addEventListener('dragstart', () => { dragKey = it.dataset.zitem; it.classList.add('dragging'); }); it.addEventListener('dragend', () => it.classList.remove('dragging')); });
-  root.querySelectorAll('.zone-col').forEach(col => { col.addEventListener('dragover', e => { e.preventDefault(); col.classList.add('over'); }); col.addEventListener('dragleave', () => col.classList.remove('over')); col.addEventListener('drop', e => { e.preventDefault(); col.classList.remove('over'); if(!dragKey) return; ['present','becoming','standalone'].forEach(z => n[z] = n[z].filter(k => k !== dragKey)); const target = col.dataset.zcol; const after = e.target.closest('.zone-item')?.dataset.zitem; const arr = n[target]; const i = after ? arr.indexOf(after) : -1; if(i >= 0) arr.splice(i, 0, dragKey); else arr.push(dragKey); dragKey = null; saveNow(); renderNav(); rerender(); }); });
+  root.querySelectorAll('.zone-col').forEach(col => { col.addEventListener('dragover', e => { e.preventDefault(); col.classList.add('over'); }); col.addEventListener('dragleave', () => col.classList.remove('over')); col.addEventListener('drop', e => { e.preventDefault(); col.classList.remove('over'); if(!dragKey) return; NAV_ZONE_IDS.forEach(z => n[z] = n[z].filter(k => k !== dragKey)); const target = col.dataset.zcol; const after = e.target.closest('.zone-item')?.dataset.zitem; const arr = n[target]; const i = after ? arr.indexOf(after) : -1; if(i >= 0) arr.splice(i, 0, dragKey); else arr.push(dragKey); dragKey = null; saveNow(); renderNav(); rerender(); }); });
   root.querySelector('#zoneReset').onclick = () => { S.settings.nav = JSON.parse(JSON.stringify(NAV_DEFAULT)); saveNow(); renderNav(); rerender(); };
 }

@@ -62,11 +62,11 @@ function chronTimeline(box){
   const allDates = [...chs.map(c=>c.startDate), ...chs.map(c=>c.endDate||today()), ...S.turns.map(t=>t.date)].filter(Boolean).sort();
   const t0 = parseDay(allDates[0]).getTime(), t1 = parseDay(allDates[allDates.length-1]).getTime();
   const span = Math.max(t1 - t0, DAY*365);
-  const W = Math.max(900, chs.length * 260), H = 40 + chs.length * 74 + 60;
+  const W = Math.max(900, chs.length * 260), H = 40 + chs.length * 82 + 60;
   const X = d => 60 + ((parseDay(d).getTime() - t0) / span) * (W - 110);
-  const rowY = i => 46 + i * 74;
+  const rowY = i => 46 + i * 82;
   const threadPaths = S.threadsN.map(th => {
-    const pts = threadTurns(th.id).map(t => { const i = chs.findIndex(c => c.id === t.chapterId); return i < 0 ? null : [X(t.date), rowY(i) + 22]; }).filter(Boolean);
+    const pts = threadTurns(th.id).map(t => { const i = chs.findIndex(c => c.id === t.chapterId); return i < 0 ? null : [X(t.date), rowY(i) + 44]; }).filter(Boolean);
     if(pts.length < 2) return '';
     const d = pts.map((p,i) => i === 0 ? `M${p[0].toFixed(1)},${p[1].toFixed(1)}` :
       `Q${((pts[i-1][0]+p[0])/2).toFixed(1)},${(Math.min(pts[i-1][1],p[1]) - 26).toFixed(1)} ${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
@@ -83,23 +83,19 @@ function chronTimeline(box){
         </g>`; }).join('')}
       ${threadPaths}
       ${chs.map((c,i) => chapterTurns(c.id).map(t => { const ty = TURN_TYPES[t.type];
-        return `<g class="turn-node" data-turnopen="${t.id}" transform="translate(${X(t.date).toFixed(1)},${rowY(i)+22})">
-          <circle r="9" fill="${ty[3]}" fill-opacity=".9" stroke="var(--surface)" stroke-width="2"/>
+        return `<g class="turn-node" data-turnopen="${t.id}" transform="translate(${X(t.date).toFixed(1)},${rowY(i)+44})">
+          <circle r="10" fill="${ty[3]}" fill-opacity=".92" stroke="var(--surface)" stroke-width="2"/>
+          <text y="3.5" text-anchor="middle" class="turn-glyph">${esc(ty[0])}</text>
           <title>${esc(t.title)} · ${esc(ty[1])} · ${esc(fmtDate(t.date,'med'))}</title></g>`; }).join('')).join('')}
       <line x1="${X(today()).toFixed(1)}" y1="30" x2="${X(today()).toFixed(1)}" y2="${H-30}" stroke="var(--page-accent)" stroke-dasharray="3 4" opacity=".5"/>
       <text x="${(X(today())+5).toFixed(1)}" y="${H-18}" class="ch-blk-d" style="fill:var(--page-accent)">now</text>
     </svg></div>
 
-    <div class="row rv" style="gap:8px;margin-top:12px;flex-wrap:wrap">
-      <button class="btn sm primary" id="chAdd">＋ Chapter</button>
-      <button class="btn sm ghost" id="chTurn">＋ Turning point</button>
-      <button class="btn sm ghost" id="chThread">＋ Thread</button>
+    <div class="row rv" style="gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center">
+      <span class="mono faint" style="font-size:.68rem">${S.turns.length} turning point${S.turns.length===1?'':'s'} across ${chs.length} chapter${chs.length===1?'':'s'} · click a block to open it, a dot to open the moment</span>
       ${S.threadsN.length ? `<span class="row" style="gap:6px;margin-left:auto;flex-wrap:wrap">${S.threadsN.map(t=>`<button class="chip click" style="--c:${t.color}" data-thopen="${t.id}">〜 ${esc(t.name)} <span class="mono">${threadTurns(t.id).length}</span></button>`).join('')}</span>` : ''}
     </div>
     <div id="chDetail"></div>`;
-  $('#chAdd').onclick = () => openChapterModal();
-  $('#chTurn').onclick = () => openTurnModal();
-  $('#chThread').onclick = () => openThreadModal();
   $$('[data-chopen]',box).forEach(g => g.onclick = () => { S._chSel = g.dataset.chopen; rerender(); setTimeout(()=>document.querySelector('#chDetail')?.scrollIntoView({block:'start',behavior:'smooth'}), 120); });
   $$('[data-turnopen]',box).forEach(g => g.onclick = e => { e.stopPropagation(); openTurnPanel(g.dataset.turnopen); });
   $$('[data-thopen]',box).forEach(b => b.onclick = () => openThreadModal(byId(S.threadsN, b.dataset.thopen)));
@@ -304,8 +300,8 @@ function chronAnalysis(box){
   box.innerHTML = `
     ${total ? `<section class="reading-card rv" style="margin-bottom:20px"><div class="sc">What the shape says</div>
       <div class="reading-body"><p>You have marked <b>${total}</b> turning point${total===1?'':'s'} across <b>${chs.length}</b> chapter${chs.length===1?'':'s'}.</p>
-      ${dominant ? `<p>Most of them are <b>${esc(TURN_TYPES[dominant[0]][1].toLowerCase())}s</b> (${dominant[1]} of ${total}).${dominant[0]==='decision'?' You read your own life as something you shaped rather than something that happened to you — worth noticing, and worth checking against the record.':dominant[0]==='event'?' Your story is told mostly as things that happened to you. That may be accurate; it is also worth asking where the decisions were.':''}</p>` : ''}
-      ${S.threadsN.length ? `<p>${S.threadsN.length} thread${S.threadsN.length===1?'':'s'} run through it${S.threadsN.length?`: ${S.threadsN.map(t=>`<b>${esc(t.name)}</b>`).join(', ')}`:''}.</p>` : '<p>No threads named yet. A thread is what turns a list of events into a story — the theme you notice showing up in three different chapters.</p>'}
+      ${dominant && dominant[1] > 1 && Object.values(counts).filter(v => v === dominant[1]).length === 1 ? `<p>Most of them are <b>${esc(TURN_TYPES[dominant[0]][1].toLowerCase())}s</b> (${dominant[1]} of ${total}).${dominant[0]==='decision'?' You read your own life as something you shaped rather than something that happened to you — worth noticing, and worth checking against the record.':dominant[0]==='event'?' Your story is told mostly as things that happened to you. That may be accurate; it is also worth asking where the decisions were.':''}</p>` : ''}
+      ${S.threadsN.length ? `<p>${S.threadsN.length} thread${S.threadsN.length===1?' runs':'s run'} through it: ${S.threadsN.map(t=>`<b>${esc(t.name)}</b>`).join(', ')}.</p>` : '<p>No threads named yet. A thread is what turns a list of events into a story — the theme you notice showing up in three different chapters.</p>'}
       ${chs.filter(c=>!c.narrative).length ? `<p>${chs.filter(c=>!c.narrative).length} chapter${chs.filter(c=>!c.narrative).length===1?' has':'s have'} no narrative written yet. The timeline is the skeleton; the narrative is the part that changes how you see it.</p>` : ''}</div></section>` : ''}
 
     <div class="grid c2 rv" style="align-items:start">
