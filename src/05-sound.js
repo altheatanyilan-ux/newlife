@@ -1,7 +1,15 @@
 /* ============================================================
    SOUND — two layers, all synthesised, nothing downloaded.
-   Layer 1: interaction sounds. Not beeps: struck wood, felt,
-            and a small bell, each with a short room around it.
+   Layer 1: interaction sounds. Every one of them is a singing
+            bowl — a rin gong struck with a padded mallet, in
+            a range of sizes. What makes a bowl a bowl and not
+            a bell is two things: its overtones are not whole
+            multiples of the fundamental (roughly 1 : 2.75 :
+            5.18 : 8.16 : 11.9, the modes of a thin metal
+            shell), and each of those modes is really a pair
+            split a few cents apart, so the note breathes in
+            and out a few times a second. Both are modelled
+            here, then put in a stone room.
    Layer 2: an opt-in atmosphere — noise beds, or a slow
             generative piano that never repeats itself.
    The AudioContext is created lazily inside the first user
@@ -31,7 +39,7 @@ const SoundManager = (() => {
   const ambientGainValue = () => BASE_GAIN * clamp(ambientVol, 0, 1) * 2;
 
   /* ---- context lifecycle (gesture-gated) ---- */
-  function makeImpulse(seconds=1.6, decay=2.6){
+  function makeImpulse(seconds=2.6, decay=2.2){
     const rate = ctx.sampleRate, len = Math.floor(rate*seconds);
     const buf = ctx.createBuffer(2, len, rate);
     for(let c=0;c<2;c++){ const d = buf.getChannelData(c);
@@ -46,7 +54,7 @@ const SoundManager = (() => {
     dry = ctx.createGain(); dry.gain.value = 1; dry.connect(master);
     try {
       verb = ctx.createConvolver(); verb.buffer = makeImpulse();
-      const wet = ctx.createGain(); wet.gain.value = .9; verb.connect(wet); wet.connect(master);
+      const wet = ctx.createGain(); wet.gain.value = 1.05; verb.connect(wet); wet.connect(master);
       verbSend = ctx.createGain(); verbSend.gain.value = .3; verbSend.connect(verb);
     } catch(e){ verb = verbSend = null; }
     return ctx;
@@ -58,18 +66,33 @@ const SoundManager = (() => {
   const send = (node) => { if(verbSend) node.connect(verbSend); };
 
   /* ---- primitives ---- */
-  /* a struck body: a few decaying partials, slightly inharmonic, like something with mass */
-  function struck({freq, dur=.5, gain=.06, partials=[1,2.01,3.03], detune=0, at=0, wet=1}){
+  /* the modes of a bowl: inharmonic, and each one a doublet a few cents apart */
+  const BOWL_MODES = [1, 2.75, 5.18, 8.16, 11.9];
+  /* a struck bowl. `size` stretches the decay of the higher partials — a big
+     bowl keeps its shimmer, a small one loses it almost at once. `beat` is how
+     far apart the two halves of each mode sit, in cents: that split is the slow
+     wobble you hear in the tail. */
+  function bowl({freq, dur=1.2, gain=.05, beat=7, modes=BOWL_MODES, size=1, at=0, wet=1, attack=0}){
     if(!ctx) return; const t = ctx.currentTime + at;
     const bus = ctx.createGain(); bus.gain.value = 1; bus.connect(out()); if(wet) send(bus);
-    partials.forEach((p, i) => {
-      const o = ctx.createOscillator(), g = ctx.createGain();
-      o.type = 'sine'; o.frequency.setValueAtTime(freq*p, t); if(detune) o.detune.setValueAtTime(detune, t);
-      const amp = gain / (i+1.6), d = dur / (1 + i*.55);
-      g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(amp, t+.004); g.gain.exponentialRampToValueAtTime(.0001, t+d);
-      o.connect(g); g.connect(bus); o.start(t); o.stop(t+d+.05);
+    modes.forEach((m, i) => {
+      /* higher modes are quieter and die sooner — the strike is bright, the tail is not */
+      const amp = gain * Math.pow(.52, i) * (i ? 1 : 1.25);
+      const d = Math.max(.09, dur * Math.pow(.62, i) * (i ? size : 1));
+      const f = freq * m * (1 + (i ? (i % 2 ? .004 : -.003) : 0));   // real bowls are never exactly on ratio
+      [-1, 1].forEach(side => {
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = 'sine'; o.frequency.setValueAtTime(f, t);
+        o.detune.setValueAtTime(side * beat * (1 + i * .5), t);       // the split that makes it breathe
+        g.gain.setValueAtTime(.0001, t);
+        g.gain.linearRampToValueAtTime(amp / 2, t + .006 + i * .002 + attack); // metal takes a moment to speak
+        g.gain.exponentialRampToValueAtTime(.0001, t + d);
+        o.connect(g); g.connect(bus); o.start(t); o.stop(t + d + .05);
+      });
     });
   }
+  /* the mallet itself: leather on metal, felt for the softer ones. Almost subliminal. */
+  function mallet({freq=900, dur=.05, gain=.02, q=.8, at=0}){ noise({dur, freq, q, gain, sweep:freq*.45, wet:.35, at}); }
   /* a short filtered noise transient: the touch, the felt, the breath */
   function noise({dur=.08, freq=1200, q=1.2, gain=.05, type='bandpass', at=0, sweep=null, wet=.5}){
     if(!ctx) return; const t = ctx.currentTime + at;
@@ -85,18 +108,20 @@ const SoundManager = (() => {
     src.start(t); src.stop(t+dur+.05);
   }
   const recipes = {
-    /* fingertip on a wooden desk: a transient plus a low body */
-    click:   () => { noise({dur:.035, freq:2600, q:.9, gain:.035, wet:.25}); struck({freq:196, dur:.16, gain:.035, partials:[1,2.4], wet:.4}); },
-    /* a page turning: soft air, no pitch */
-    nav:     () => { noise({dur:.19, freq:1500, q:.6, gain:.028, sweep:520, wet:.6}); struck({freq:147, dur:.22, gain:.022, partials:[1,3.1], wet:.5}); },
-    /* a small struck bell, quiet and a little inharmonic */
-    success: () => { struck({freq:587.33, dur:1.5, gain:.05, partials:[1,2.76,5.4,8.9], wet:1}); struck({freq:880, dur:1.1, gain:.022, partials:[1,2.76], at:.055, wet:1}); },
-    /* a soft closed knock — noticed, never scolding */
-    error:   () => { noise({dur:.05, freq:420, q:1.4, gain:.05, wet:.3}); struck({freq:110, dur:.26, gain:.04, partials:[1,1.7], wet:.4}); },
-    /* a drawer sliding open */
-    open:    () => { noise({dur:.34, freq:400, q:.5, gain:.03, sweep:1400, wet:.8}); struck({freq:220, dur:.5, gain:.025, partials:[1,2.02,3.9], wet:1}); },
-    /* barely there: a leaf */
-    leaf:    () => noise({dur:.2, freq:5200, q:.7, gain:.014, sweep:2400, wet:.8}),
+    /* a small bowl, tapped once with a padded mallet and let go */
+    click:   () => { mallet({freq:1500, dur:.028, gain:.014}); bowl({freq:523.25, dur:.55, gain:.034, beat:9, size:.6, wet:.9}); },
+    /* the same bowl, lower and softer — a page turning in a quiet room */
+    nav:     () => { mallet({freq:900, dur:.05, gain:.012, q:.5}); bowl({freq:392, dur:.9, gain:.034, beat:6, size:.75, wet:1}); },
+    /* a full bowl, struck properly and allowed to ring out */
+    success: () => { mallet({freq:2000, dur:.035, gain:.02}); bowl({freq:261.63, dur:2.8, gain:.05, beat:5, size:1, wet:1});
+                     bowl({freq:392, dur:1.9, gain:.02, beat:8, size:.8, at:.09, wet:1}); },
+    /* struck, then a palm on the rim: it stops before it can bloom */
+    error:   () => { mallet({freq:520, dur:.05, gain:.024, q:1.2}); bowl({freq:174.61, dur:.42, gain:.05, beat:11, size:.4, modes:[1,2.75,5.18], wet:.5}); },
+    /* not struck at all — the rim rubbed, so the note arrives instead of starting */
+    open:    () => { bowl({freq:196, dur:1.6, gain:.03, beat:4, size:1, modes:[1,2.75,5.18], attack:.26, wet:1});
+                     noise({dur:.5, freq:700, q:.4, gain:.012, sweep:2200, wet:.9}); },
+    /* the smallest bowl there is, barely touched */
+    leaf:    () => bowl({freq:1046.5, dur:.42, gain:.014, beat:12, size:.45, modes:[1,2.75,5.18], wet:1}),
   };
 
   /* ---- layer 1 ---- */
@@ -105,7 +130,7 @@ const SoundManager = (() => {
     if(!soundOn || !recipes[kind]) return;
     if(!ctx){ if(!ensureCtx()) return; }
     if(ctx.state === 'suspended'){ ctx.resume().catch(()=>{}); }
-    const now = performance.now(); if(now - lastPlay < 40) return; lastPlay = now;
+    const now = performance.now(); if(now - lastPlay < 60) return; lastPlay = now;
     recipes[kind](); duck();
   }
   function scheduleClick(){ if(!soundOn) return; clearTimeout(pendingClick); pendingClick = setTimeout(() => { pendingClick = null; play('click'); }, 0); }
