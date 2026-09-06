@@ -719,6 +719,22 @@ html.reduce-motion *,html.reduce-motion *::before,html.reduce-motion *::after{an
 .now-line::before{content:"";position:absolute;left:-4px;top:-3px;width:8px;height:8px;border-radius:50%;background:#e07a5f}
 .cd-blocks{display:flex;gap:2px;align-items:center;margin-top:auto}
 .cd-blocks i{width:5px;height:5px;border-radius:50%}
+/* running log */
+.rl-badge{font-size:.56rem;color:var(--faint);margin-top:1px}
+.cal-with-log{display:flex;gap:14px;align-items:flex-start}
+.cal-with-log .cal-body{flex:1;min-width:0}
+.runlog-wrap{width:220px;flex:none}
+.runlog-head{margin-bottom:6px}
+.runlog-quick{width:100%;font-size:.78rem;padding:6px 9px;margin-bottom:8px}
+.runlog-track{position:relative;border-left:1px solid var(--line)}
+.rl-pin{position:absolute;left:8px;right:0;display:flex;align-items:baseline;gap:5px;font-size:.76rem;line-height:1.3;padding:1px 0}
+.rl-pin:hover .del-x{opacity:1}
+.rl-ico{color:var(--c);flex:none}
+.rl-at{font-size:.6rem;color:var(--faint);flex:none}
+.rl-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.rl-pin .del-x{opacity:0;transition:opacity .15s var(--ease)}
+.runlog-summary{margin-top:10px;font-size:.72rem;line-height:1.5}
+@media (max-width:1100px){.cal-with-log{flex-direction:column}.runlog-wrap{width:100%}.runlog-track{border-left:none;padding-left:0}.rl-pin{position:static;padding:3px 0;border-bottom:1px solid var(--line-2)}}
 /* habit rings row, above the calendar body */
 .cal-rings-row{display:grid;grid-template-columns:52px repeat(var(--n,7),minmax(0,1fr));gap:2px;margin-bottom:8px}
 .cal-rings-col{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;align-items:center;min-height:8px}
@@ -6334,6 +6350,7 @@ function migrateRhythm(){
   S.events.forEach(e => { e.day = e.day || today(); e.start = e.start ?? 9; e.dur = e.dur ?? 1; e.domain = e.domain || ''; e.note = e.note || ''; });
   S.plans = S.plans && typeof S.plans === 'object' ? S.plans : {};
   S.reviewLog = S.reviewLog && typeof S.reviewLog === 'object' ? S.reviewLog : {};
+  S.runLog = S.runLog && typeof S.runLog === 'object' ? S.runLog : {};
   domains();
   (S.habits||[]).forEach(h => { if(h.at === undefined) h.at = null; if(!h.icon) h.icon = ''; if(!h.linkedSkill) h.linkedSkill = null; if(!Array.isArray(h.celebrated)) h.celebrated = []; });
 }
@@ -6416,8 +6433,11 @@ function drawRhythmCalendar(box, view, focus){
   const days = view === 'day' ? [focus] : view === 'week' ? planDaysFrom(focus) : null;
   if(view === 'month') return drawRhythmMonth(box, focus);
   const hours = Array.from({length:HOUR1-HOUR0}, (_,i) => HOUR0+i);
-  box.innerHTML = `<div class="cal-head"><div class="cal-gutter"></div>${days.map(d => `<div class="cal-dayh ${d===T?'today':''} ${d===focus?'focus':''}" data-calfocus="${d}"><span class="dn">${DOW[parseDay(d).getDay()].slice(0,3)}</span><span class="dd">${parseDay(d).getDate()}</span></div>`).join('')}</div>
+  const showLog = view === 'day';
+  box.innerHTML = `<div class="cal-head"><div class="cal-gutter"></div>${days.map(d => { const n = runLogDay(d).length;
+      return `<div class="cal-dayh ${d===T?'today':''} ${d===focus?'focus':''}" data-calfocus="${d}"><span class="dn">${DOW[parseDay(d).getDay()].slice(0,3)}</span><span class="dd">${parseDay(d).getDate()}</span>${(!showLog && n) ? `<span class="rl-badge mono" title="${n} running-log line${n===1?'':'s'}">${n}⌇</span>` : ''}</div>`; }).join('')}</div>
     ${habitRingsRow(days, view==='day'?56:34)}
+    <div class="cal-with-log">
     <div class="cal-body" style="--hpx:${HOUR_PX}px">
       <div class="cal-gutter">${hours.map(h => `<div class="cal-hour"><span>${String(h).padStart(2,'0')}</span></div>`).join('')}</div>
       ${days.map(d => { const blocks = dayBlocks(d); const lanes = layoutBlocks(blocks);
@@ -6430,9 +6450,12 @@ function drawRhythmCalendar(box, view, focus){
           ${d===T ? `<div class="now-line" style="top:${((nowHour()-HOUR0)*HOUR_PX).toFixed(1)}px"></div>` : ''}
         </div>`; }).join('')}
     </div>
+    ${showLog ? runLogTrackHTML(days[0]) : ''}
+    </div>
     <div class="cal-legend" style="margin-top:10px"><span><i style="background:var(--page-accent)"></i>events</span><span><i style="background:var(--terra)"></i>tasks</span><span><i style="background:var(--sage)"></i>habits</span><span class="faint">drag on empty space to make an event · drag a block to move it · rings above are today's habits, one tap to log</span></div>`;
   bindCalendar(box, days);
   bindHabitRings(box);
+  if(showLog) bindRunLog(box, days[0]);
 }
 function nowHour(){ const d = new Date(); return d.getHours() + d.getMinutes()/60; }
 function planDaysFrom(d){ const s = weekStart(d); return Array.from({length:7},(_,i)=>addDays(s,i)); }
@@ -6560,6 +6583,67 @@ function openTaskSidePanel(r){
   const tsN = p.querySelector('#tsNote'); tsN.addEventListener('input', debounce(() => { r.task.notes = tsN.value; saveNow(); }, 500));
   p.querySelector('#tsDel').onclick = () => { closePanel(); deleteTaskRef(r.id, null, rerender); };
   attachDictationIn(p);
+}
+
+/* ---------- the running log: a spoken-aloud, append-only narration of the day ---------- */
+const RUNLOG_TYPES = [
+  ['start',    'Starting',   '▶', '#7f916a'],
+  ['switch',   'Switching',  '⇄', '#6b7f8e'],
+  ['pause',    'Pausing',    '⏸', '#b08968'],
+  ['drop',     'Dropping',   '⨯', '#b0616a'],
+  ['complete', 'Completing', '✓', '#7f916a'],
+  ['reflect',  'Reflecting', '◔', '#8a8d8f'],
+  ['energy',   'Energy note','⚡', '#c47832'],
+];
+function runLogDay(d){ S.runLog = S.runLog || {}; S.runLog[d] = S.runLog[d] || []; return S.runLog[d]; }
+function detectRunLogType(text){
+  const t = text.toLowerCase();
+  if(/^(start|starting|beginning|begin)\b/.test(t)) return 'start';
+  if(/^(switch|switching|now on|moving to|onto)\b/.test(t)) return 'switch';
+  if(/^(pause|pausing|stepping away|break|back in)\b/.test(t)) return 'pause';
+  if(/^(drop|dropping|abandon|giving up on|shelving)\b/.test(t)) return 'drop';
+  if(/^(done|finished|complete|completing|completed|wrapped)\b/.test(t)) return 'complete';
+  if(/energy|tired|drained|wired|energi[sz]ed|foggy|caffeinat/.test(t)) return 'energy';
+  return 'reflect';
+}
+function addRunLogEntry(d, text, type){
+  const log = runLogDay(d);
+  log.push({id:uid(), at: new Date().toTimeString().slice(0,5), type: type || detectRunLogType(text), text: text.trim()});
+  saveNow();
+}
+/* a line of what the day added up to, generated from its own log — no separate write required */
+function runLogSummaryHTML(d){
+  const log = runLogDay(d);
+  if(log.length < 2) return '';
+  const counts = {}; log.forEach(e => counts[e.type] = (counts[e.type]||0)+1);
+  const order = RUNLOG_TYPES.map(x=>x[0]).filter(k => counts[k]);
+  const parts = order.map(k => { const t = RUNLOG_TYPES.find(x=>x[0]===k); const n = counts[k]; return `${n} ${t[1].toLowerCase()}${n>1?'s':''}`; });
+  return `<div class="runlog-summary faint">${esc(parts.join(' · '))}${log.length?` · first line at ${log[0].at}`:''}</div>`;
+}
+/* pinned to the same hour scale as the calendar's blocks, so a glance across both lines up */
+function runLogTrackHTML(d){
+  const log = runLogDay(d).slice().sort((a,b) => a.at.localeCompare(b.at));
+  const trackH = (HOUR1-HOUR0)*HOUR_PX;
+  const pins = log.map(e => {
+    const [hh,mm] = e.at.split(':').map(Number); const frac = hh + (mm||0)/60;
+    const top = clamp((frac-HOUR0)*HOUR_PX, 0, Math.max(0,trackH-22));
+    const t = RUNLOG_TYPES.find(x=>x[0]===e.type) || RUNLOG_TYPES[5];
+    return `<div class="rl-pin" style="top:${top.toFixed(1)}px;--c:${t[3]}" data-rlid="${e.id}" title="${esc(e.at)}">
+      <span class="rl-ico">${t[2]}</span><span class="rl-at mono">${e.at}</span><span class="rl-text">${esc(e.text)}</span><button class="del-x inline" data-rldel="${e.id}">×</button></div>`;
+  }).join('');
+  return `<div class="runlog-wrap">
+    <div class="runlog-head"><span class="sc" style="margin:0">Running log</span></div>
+    <input class="inp sm runlog-quick" data-rlday="${d}" placeholder="＋ starting / switching / done / feeling…">
+    <div class="runlog-track" style="height:${trackH}px">${pins || '<div class="empty" style="font-size:.78rem;position:static">Nothing narrated yet today.</div>'}</div>
+    ${runLogSummaryHTML(d)}
+  </div>`;
+}
+function bindRunLog(box, d){
+  const inp = box.querySelector('[data-rlday]');
+  if(inp) inp.addEventListener('keydown', e => { if(e.key !== 'Enter') return; const v = e.target.value.trim(); if(!v) return;
+    addRunLogEntry(d, v); sound('click'); rerender(); });
+  $$('[data-rldel]', box).forEach(b => b.onclick = () => { const log = runLogDay(d); const i = log.findIndex(x => x.id === b.dataset.rldel); if(i < 0) return;
+    requestDelete({label: log[i].text || 'Log line', node: b.closest('.rl-pin'), remove: () => { const g = log.splice(i,1)[0]; return () => log.splice(i,0,g); }}); });
 }
 
 /* ---------- panel 2: the day's plan ---------- */

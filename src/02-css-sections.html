@@ -353,6 +353,22 @@
 .now-line::before{content:"";position:absolute;left:-4px;top:-3px;width:8px;height:8px;border-radius:50%;background:#e07a5f}
 .cd-blocks{display:flex;gap:2px;align-items:center;margin-top:auto}
 .cd-blocks i{width:5px;height:5px;border-radius:50%}
+/* running log */
+.rl-badge{font-size:.56rem;color:var(--faint);margin-top:1px}
+.cal-with-log{display:flex;gap:14px;align-items:flex-start}
+.cal-with-log .cal-body{flex:1;min-width:0}
+.runlog-wrap{width:220px;flex:none}
+.runlog-head{margin-bottom:6px}
+.runlog-quick{width:100%;font-size:.78rem;padding:6px 9px;margin-bottom:8px}
+.runlog-track{position:relative;border-left:1px solid var(--line)}
+.rl-pin{position:absolute;left:8px;right:0;display:flex;align-items:baseline;gap:5px;font-size:.76rem;line-height:1.3;padding:1px 0}
+.rl-pin:hover .del-x{opacity:1}
+.rl-ico{color:var(--c);flex:none}
+.rl-at{font-size:.6rem;color:var(--faint);flex:none}
+.rl-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.rl-pin .del-x{opacity:0;transition:opacity .15s var(--ease)}
+.runlog-summary{margin-top:10px;font-size:.72rem;line-height:1.5}
+@media (max-width:1100px){.cal-with-log{flex-direction:column}.runlog-wrap{width:100%}.runlog-track{border-left:none;padding-left:0}.rl-pin{position:static;padding:3px 0;border-bottom:1px solid var(--line-2)}}
 /* habit rings row, above the calendar body */
 .cal-rings-row{display:grid;grid-template-columns:52px repeat(var(--n,7),minmax(0,1fr));gap:2px;margin-bottom:8px}
 .cal-rings-col{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;align-items:center;min-height:8px}
