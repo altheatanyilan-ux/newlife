@@ -149,11 +149,10 @@ function applySeason(){ const m = new Date().getMonth(); const hue = [200,200,12
 const routes = {};
 let currentRoute = null;
 function navigate(hash){ location.hash = hash; }
-function parseHash(){ const h = (location.hash||'').replace(/^#\/?/,''); const [name, ...rest] = h.split('/'); return {name: name || (S.settings.home==='map'?'map':'today'), params: rest.map(decodeURIComponent)}; }
+function parseHash(){ const h = (location.hash||'').replace(/^#\/?/,''); const [name, ...rest] = h.split('/'); return {name: name || (S.settings.home || 'home'), params: rest.map(decodeURIComponent)}; }
 function renderRoute(){
   const {name, params} = parseHash();
-  const base = {stage:'timeline', value:'values'}[name] || name;
-  $$('#nav a, .settings-link a').forEach(a => a.classList.toggle('active', a.dataset.r === base));
+  markActiveNav();
   const main = $('#main');
   const fn = routes[name] || routes.today;
   closePanel({keep:true});
@@ -172,7 +171,7 @@ function openPanel(html, cls=''){ closePanel({keep:true}); sound('open'); if(!hi
 function closePanel({keep=false}={}){ const had = !!$('#panel'); $('#panelOv')?.remove(); $('#panel')?.remove(); if(had && !keep && history.state?.liPanel){ history.back(); } else updateBackButton(); }
 window.addEventListener('popstate', e => { if($('#panel') && !e.state?.liPanel) closePanel({keep:true}); updateBackButton(); });
 /* ---------- persistent Back button: history.back() only, never a link ---------- */
-function homeRoute(){ return S?.settings?.home==='map' ? 'map' : 'today'; }
+function homeRoute(){ return S?.settings?.home || 'home'; }
 function updateBackButton(){
   const b = $('#backBtn'); if(!b) return;
   const {name} = parseHash();

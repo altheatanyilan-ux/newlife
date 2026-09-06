@@ -79,7 +79,7 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
 function openSearch(){
   const m = openModal(`<input id="palQ" placeholder="Search entries, visions, values, skills, projects, habits, sections…" autofocus><div class="results" id="palRes"></div>`, 'palette');
   const q = m.querySelector('#palQ'), res = m.querySelector('#palRes'); let sel = 0, items = [];
-  const sections = [['Today','#/today'],['Timeline','#/timeline'],['Threads & Tensions','#/timeline/threads'],['Vision Tree','#/vision'],['Values','#/values'],['Journals','#/journals'],['Skill Tree','#/skills'],['Creative Projects','#/projects'],['Rituals & Habits','#/rituals'],['Guided Reviews','#/rituals/reviews'],['System Map','#/map'],['Settings','#/settings']];
+  const sections = [['Home','#/home'],['Today','#/today'],['Timeline','#/timeline'],['Threads & Tensions','#/timeline/threads'],['Vision Tree','#/vision'],['Values','#/values'],['Journals','#/journals'],['Skill Tree','#/skills'],['Creative Projects','#/projects'],['Rituals & Habits','#/rituals'],['Guided Reviews','#/rituals/reviews'],['System Map','#/map'],['Settings','#/settings']];
   const run = () => { const s = q.value.trim().toLowerCase(); const hit = t => !s || String(t).toLowerCase().includes(s); items = [];
     const grp = (name, arr) => { if(arr.length){ items.push({grp:name}); arr.slice(0,8).forEach(x=>items.push(x)); } };
     grp('Add', SPEED_DIAL.flatMap(it => it.actions ? it.actions.map(([l,fn]) => ({t:`${it.icon} ${it.zone} — ${l}`, m:'add', run:fn, key:it.zone+' '+l+' '+it.label})) : [{t:`${it.icon} ${it.label}`, m:'add', run:it.run, key:it.zone+' '+it.label}]).filter(x=>hit(x.key)));
@@ -116,9 +116,9 @@ async function init(){
   $('#btnTheme').onclick = () => { S.settings.theme = S.settings.theme==='dark'?'light':'dark'; saveNow(); applyTheme(); };
   $('#btnSound').onclick = () => SoundManager.toggleSound(); $('#btnAmbient').onclick = () => SoundManager.toggleAmbient(); syncSoundButtons();
   $('#btnSearch').onclick = openSearch; $('#fab').onclick = e => { e.stopPropagation(); toggleSpeedDial(); };
-  const sb = $('#sidebar'); $('.brand', sb).onclick = () => sb.classList.toggle('open');
+  renderNav();
   if(navigator.platform.toUpperCase().indexOf('MAC')<0){ $$('kbd').forEach(k => k.textContent = k.textContent.replace('⌘','Ctrl+')); $('.fab .hint').textContent = 'new entry · Ctrl+N'; }
-  if(!location.hash) location.hash = S.settings.home==='map' ? '#/map' : '#/today';
+  if(!location.hash) location.hash = '#/' + (S.settings.home || 'home');
   renderRoute(); startDust(); updateBackButton();
   window.addEventListener('beforeunload', () => { if(saving || savePending) saveNow(); });
   if(S.settings.firstOpen === today() && !S._welcomed){ S._welcomed = true; setTimeout(()=>toast('Welcome home. Every piece of text here is editable — click it. The placeholder life is yours to overwrite.', 7000), 800); }

@@ -312,7 +312,7 @@ function seed(){
 
   return {
     version:1,
-    settings:{theme:'dark',sound:false,feltTime:false,home:'today',ribbons:true,firstOpen:T},
+    settings:{theme:'dark',sound:false,feltTime:false,home:'home',ribbons:true,firstOpen:T},
     reminders:[], stages, threads, tensions, values, valueOrder, valueOrderHistory, valueSnapshots, eras, visions, skills, projects, nods, ideas, habits, habitLog, negLast, checkins, entries,
     journals:[{type:'synchronicity',name:'Synchronicity'},{type:'manifestation',name:'Manifestation'},{type:'reflection',name:'Reflections'},{type:'gratitude',name:'Gratitude'},{type:'dream',name:'Dreams'},{type:'quote',name:'Quotes & Marginalia'},{type:'question',name:'Open Questions'},{type:'visualization',name:'Visualizations'},{type:'letter',name:'Letters'}],
     theatre:{

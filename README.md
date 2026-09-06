@@ -35,8 +35,11 @@ To restore your data on a new device: open this website in the same browser, go 
 
 ## Rooms
 
+The sidebar groups the rooms into two zones by time horizon: **Present** (Today, Journal, Projects, Rituals) and **Becoming** (Compass, Skill Tree, Vision Tree, Memory), with Library and System Map always available below a separator. Zones collapse, the sidebar collapses to icons, and both states persist. On narrow screens a bottom bar shows the five most-used rooms and a More button opens the full grouped menu. Pages can be moved between zones by drag-and-drop in Settings.
+
 | Route | Room |
 |---|---|
+| `#/home` | Dashboard: one summary card per zone, counts read from the database on open |
 | `#/today` | Daily check-in, Morning Theatre, signals, on-this-day, gentle prompt, 30-day charts |
 | `#/timeline` | Eight life stages on a spine, felt-time toggle, thread ribbons, tensions |
 | `#/stage/:id` | Stage detail: versioned narrative, sub-stages, formative events, retrospective values, soundtrack, artifacts, letters |

@@ -26,7 +26,7 @@
   --ease:cubic-bezier(.4,0,.2,1);
   --blob-op:.04;
   --radius:14px;
-  --sidebar:64px;
+  --sidebar:220px;
   --content:640px;
 }
 html[data-theme="light"]{
@@ -85,20 +85,56 @@ kbd{font-family:var(--mono);font-size:.68rem;padding:2px 6px;border:1px solid va
 
 /* Layout */
 #app{position:relative;z-index:1;display:flex;min-height:100vh}
-.sidebar{position:fixed;left:0;top:0;bottom:0;width:var(--sidebar);background:var(--surface);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:14px 0;z-index:40;transition:width .3s var(--ease);overflow:hidden}
-.sidebar:hover,.sidebar.open{width:212px;box-shadow:var(--shadow)}
-.sidebar .brand{display:flex;align-items:center;gap:12px;padding:8px 18px 22px;white-space:nowrap}
-.sidebar .brand .mark{font-family:var(--han);font-size:1.5rem;color:var(--terra);line-height:1;min-width:28px;text-align:center}
-.sidebar .brand .name{font-family:var(--serif);font-size:1.05rem;letter-spacing:.08em;text-transform:uppercase;opacity:0;transition:opacity .25s var(--ease)}
-.sidebar:hover .name,.sidebar.open .name{opacity:1}
-.nav{display:flex;flex-direction:column;gap:2px;flex:1}
-.nav a{display:flex;align-items:center;gap:14px;padding:10px 20px;color:var(--muted);text-decoration:none;white-space:nowrap;border-left:2px solid transparent;transition:all .25s var(--ease);font-size:.9rem}
+html.sb-collapsed{--sidebar:64px}
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:var(--sidebar);background:var(--surface);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:14px 0;z-index:40;transition:width .3s var(--ease);overflow:visible}
+.sidebar .brand{display:flex;align-items:center;gap:12px;padding:8px 14px 18px 18px;white-space:nowrap;position:relative}
+.sidebar .brand .mark{font-family:var(--han);font-size:1.5rem;color:var(--terra);line-height:1;min-width:28px;text-align:center;text-decoration:none}
+.sidebar .brand .name{font-family:var(--serif);font-size:.88rem;letter-spacing:.06em;text-transform:uppercase;color:var(--text);text-decoration:none;flex:1;overflow:hidden;transition:opacity .2s var(--ease)}
+.sb-toggle{position:absolute;right:-12px;top:12px;width:24px;height:24px;border-radius:50%;border:1px solid var(--line-2);background:var(--surface);color:var(--muted);cursor:pointer;font-size:.8rem;line-height:1;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);z-index:2}
+.sb-toggle:hover{color:var(--text);border-color:var(--terra)}
+.nav{display:flex;flex-direction:column;gap:2px;flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:none}
+.nav.settings-link{flex:0 0 auto;border-top:1px solid var(--line);padding-top:6px;overflow:visible}
+.nav a{display:flex;align-items:center;gap:14px;padding:8px 20px;color:var(--muted);text-decoration:none;white-space:nowrap;border-left:2px solid transparent;transition:all .25s var(--ease);font-size:.9rem;position:relative}
 .nav a .ico{font-size:1.05rem;min-width:24px;text-align:center;filter:saturate(.6)}
-.nav a .lbl{opacity:0;transition:opacity .25s var(--ease)}
-.sidebar:hover .lbl,.sidebar.open .lbl{opacity:1}
 .nav a:hover{color:var(--text);background:var(--surface-2)}
-.nav a.active{color:var(--text);border-left-color:var(--terra);background:linear-gradient(90deg,rgba(176,137,104,.14),transparent)}
+.nav a.active{color:var(--text);border-left-color:var(--z,var(--terra));background:linear-gradient(90deg,color-mix(in srgb,var(--z,var(--terra)) 16%,transparent),transparent)}
 .nav a.active .ico{filter:none}
+.zone{display:flex;flex-direction:column;margin-top:10px}
+.zone-h{display:flex;align-items:center;justify-content:space-between;background:none;border:none;padding:6px 20px 4px;cursor:pointer;color:var(--faint);font-family:var(--serif);font-size:.68rem;letter-spacing:.16em;text-transform:uppercase}
+.zone-h .zone-lbl{color:var(--z)}
+.zone-chev{transition:transform .25s var(--ease);transform:rotate(90deg);font-size:.9rem}
+.zone.collapsed .zone-chev{transform:rotate(0)}
+.zone-pages{display:grid;grid-template-rows:1fr;transition:grid-template-rows .25s var(--ease)}
+.zone-pages>a{min-height:0}
+.zone.collapsed .zone-pages{grid-template-rows:0fr;overflow:hidden}
+.zone.collapsed .zone-pages>a{padding-top:0;padding-bottom:0;height:0;overflow:hidden;border-width:0}
+.zone .nav-a,.zone-pages a{border-left-color:transparent}
+.zone-pages a .ico{color:var(--z)}
+.nav-sep{height:1px;background:var(--line);margin:14px 18px 8px}
+html.sb-collapsed .sidebar .brand .name,html.sb-collapsed .nav a .lbl,html.sb-collapsed .zone-h .zone-lbl,html.sb-collapsed .zone-chev{display:none}
+html.sb-collapsed .nav a{padding:9px 0;justify-content:center;gap:0}
+html.sb-collapsed .zone-h{justify-content:center;padding:6px 0 2px}
+html.sb-collapsed .zone-h::before{content:"";display:block;width:18px;height:2px;background:var(--z);border-radius:1px;opacity:.7}
+html.sb-collapsed .nav a[data-tip]:hover::after{content:attr(data-tip);position:absolute;left:calc(100% + 8px);top:50%;transform:translateY(-50%);background:var(--surface-2);border:1px solid var(--line-2);color:var(--text);padding:4px 10px;border-radius:8px;font-size:.78rem;white-space:nowrap;box-shadow:var(--shadow);z-index:50;pointer-events:none}
+.mobile-nav{display:none}
+.nav-overlay{position:fixed;inset:0;z-index:130;background:var(--bg);overflow-y:auto;padding:24px 20px 90px;animation:fadein .2s var(--ease)}
+.nav-overlay .close{position:absolute;right:16px;top:12px;background:none;border:none;color:var(--muted);font-size:1.6rem;cursor:pointer}
+.nav-overlay-inner{display:flex;flex-direction:column;gap:18px;max-width:520px;margin:0 auto}
+.ov-zone{display:flex;flex-direction:column;gap:4px}
+.ov-zone-h{font-family:var(--serif);text-transform:uppercase;letter-spacing:.16em;font-size:.72rem;color:var(--z);padding:6px 4px}
+.ov-link{display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:12px;text-decoration:none;color:var(--text);border:1px solid var(--line);background:var(--surface);font-size:1rem}
+.ov-link.active{border-color:var(--z);background:color-mix(in srgb,var(--z) 12%,transparent)}
+.ov-link .ico{font-size:1.2rem;min-width:26px;text-align:center}
+.home-card{border-left:3px solid var(--z)}
+.home-lines{display:flex;flex-direction:column;gap:6px;margin-top:10px;color:var(--muted);line-height:1.6}
+.home-lines b{color:var(--text);font-family:var(--serif);font-size:1.15rem}
+.zone-editor{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:10px}
+.zone-col{background:var(--surface-2);border:1px dashed var(--line-2);border-radius:12px;padding:10px;min-height:120px;transition:border-color .2s}
+.zone-col.over{border-color:var(--z);background:color-mix(in srgb,var(--z) 8%,var(--surface-2))}
+.zone-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;background:var(--surface);border:1px solid var(--line);margin-top:6px;cursor:grab;font-size:.85rem}
+.zone-item .mono{margin-left:auto;color:var(--faint)}
+.zone-item.dragging{opacity:.4}
+@media (max-width:640px){.zone-editor{grid-template-columns:1fr}}
 main{margin-left:var(--sidebar);flex:1;min-width:0;padding:48px 56px 120px;animation:pagein .3s var(--ease)}
 @keyframes pagein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .page{max-width:1180px;margin:0 auto}
@@ -112,6 +148,7 @@ main{margin-left:var(--sidebar);flex:1;min-width:0;padding:48px 56px 120px;anima
 .fab.open{transform:rotate(45deg);background:var(--surface-3);color:var(--text)}
 .fab.open .hint{display:none}
 .speed-dial{display:flex;flex-direction:column;align-items:flex-end;gap:6px;margin-bottom:4px}
+.speed-dial[hidden]{display:none}
 .sd-filter-wrap{width:100%;display:flex;justify-content:flex-end;margin-bottom:4px}
 .sd-filter{width:260px;max-width:70vw;background:var(--surface);border:1px solid var(--line-2);border-radius:999px;padding:8px 14px;font-size:.82rem;color:var(--text);outline:none;box-shadow:var(--shadow)}
 .sd-filter:focus{border-color:var(--terra)}
@@ -280,12 +317,12 @@ svg text{font-family:var(--mono);fill:var(--faint);font-size:10px}
 .slider::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--c,var(--terra));cursor:pointer;border:2px solid var(--bg)}
 
 @media (max-width:900px){
-  .sidebar{top:auto;bottom:0;width:100%!important;height:58px;flex-direction:row;padding:0;border-right:none;border-top:1px solid var(--line)}
-  .sidebar .brand,.sidebar .settings-link .lbl{display:none}
-  .nav{flex-direction:row;overflow-x:auto;width:100%}
-  .nav a{flex-direction:column;gap:2px;padding:8px 12px;border-left:none;border-top:2px solid transparent;font-size:.6rem}
-  .nav a .lbl{opacity:1}
-  .nav a.active{border-top-color:var(--terra)}
+  :root,html.sb-collapsed{--sidebar:0px}
+  .sidebar{display:none}
+  .mobile-nav{display:flex;position:fixed;left:0;right:0;bottom:0;height:60px;background:var(--surface);border-top:1px solid var(--line);z-index:40;padding:0 4px}
+  .mobile-nav a,.mobile-nav button{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--muted);text-decoration:none;font-size:.6rem;border:none;background:none;border-top:2px solid transparent;cursor:pointer;font-family:var(--sans)}
+  .mobile-nav .ico{font-size:1.15rem}
+  .mobile-nav a.active{color:var(--text);border-top-color:var(--terra)}
   main{margin-left:0;padding:28px 18px 120px}
   .fab-wrap{bottom:74px}
   .toast-wrap{bottom:74px;left:16px;right:96px}
@@ -674,21 +711,7 @@ html[data-theme="light"] .stage-hero .veil{background:linear-gradient(180deg,rgb
 <div class="ambient"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
 <canvas class="dust" id="dust"></canvas>
 <div id="app">
-  <aside class="sidebar" id="sidebar">
-    <div class="brand"><span class="mark">生</span><span class="name">Life Instrument</span></div>
-    <nav class="nav" id="nav">
-      <a href="#/today" data-r="today"><span class="ico">🏠</span><span class="lbl">Today</span></a>
-      <a href="#/timeline" data-r="timeline"><span class="ico">⏳</span><span class="lbl">Timeline</span></a>
-      <a href="#/vision" data-r="vision"><span class="ico">🌳</span><span class="lbl">Vision Tree</span></a>
-      <a href="#/values" data-r="values"><span class="ico">🧭</span><span class="lbl">Values</span></a>
-      <a href="#/journals" data-r="journals"><span class="ico">📖</span><span class="lbl">Journals</span></a>
-      <a href="#/skills" data-r="skills"><span class="ico">🛠</span><span class="lbl">Skills</span></a>
-      <a href="#/projects" data-r="projects"><span class="ico">🎨</span><span class="lbl">Projects</span></a>
-      <a href="#/rituals" data-r="rituals"><span class="ico">✨</span><span class="lbl">Rituals &amp; Habits</span></a>
-      <a href="#/map" data-r="map"><span class="ico">🗺</span><span class="lbl">System Map</span></a>
-    </nav>
-    <nav class="nav settings-link" style="flex:0"><a href="#/settings" data-r="settings"><span class="ico">⚙</span><span class="lbl">Settings</span></a></nav>
-  </aside>
+  <aside class="sidebar" id="sidebar"></aside>
   <main id="main"></main>
 </div>
 <button class="back-btn" id="backBtn" data-back hidden aria-label="Go back"><span class="arrow">←</span> Back</button>
@@ -853,11 +876,10 @@ function applySeason(){ const m = new Date().getMonth(); const hue = [200,200,12
 const routes = {};
 let currentRoute = null;
 function navigate(hash){ location.hash = hash; }
-function parseHash(){ const h = (location.hash||'').replace(/^#\/?/,''); const [name, ...rest] = h.split('/'); return {name: name || (S.settings.home==='map'?'map':'today'), params: rest.map(decodeURIComponent)}; }
+function parseHash(){ const h = (location.hash||'').replace(/^#\/?/,''); const [name, ...rest] = h.split('/'); return {name: name || (S.settings.home || 'home'), params: rest.map(decodeURIComponent)}; }
 function renderRoute(){
   const {name, params} = parseHash();
-  const base = {stage:'timeline', value:'values'}[name] || name;
-  $$('#nav a, .settings-link a').forEach(a => a.classList.toggle('active', a.dataset.r === base));
+  markActiveNav();
   const main = $('#main');
   const fn = routes[name] || routes.today;
   closePanel({keep:true});
@@ -876,7 +898,7 @@ function openPanel(html, cls=''){ closePanel({keep:true}); sound('open'); if(!hi
 function closePanel({keep=false}={}){ const had = !!$('#panel'); $('#panelOv')?.remove(); $('#panel')?.remove(); if(had && !keep && history.state?.liPanel){ history.back(); } else updateBackButton(); }
 window.addEventListener('popstate', e => { if($('#panel') && !e.state?.liPanel) closePanel({keep:true}); updateBackButton(); });
 /* ---------- persistent Back button: history.back() only, never a link ---------- */
-function homeRoute(){ return S?.settings?.home==='map' ? 'map' : 'today'; }
+function homeRoute(){ return S?.settings?.home || 'home'; }
 function updateBackButton(){
   const b = $('#backBtn'); if(!b) return;
   const {name} = parseHash();
@@ -1549,7 +1571,7 @@ function seed(){
 
   return {
     version:1,
-    settings:{theme:'dark',sound:false,feltTime:false,home:'today',ribbons:true,firstOpen:T},
+    settings:{theme:'dark',sound:false,feltTime:false,home:'home',ribbons:true,firstOpen:T},
     reminders:[], stages, threads, tensions, values, valueOrder, valueOrderHistory, valueSnapshots, eras, visions, skills, projects, nods, ideas, habits, habitLog, negLast, checkins, entries,
     journals:[{type:'synchronicity',name:'Synchronicity'},{type:'manifestation',name:'Manifestation'},{type:'reflection',name:'Reflections'},{type:'gratitude',name:'Gratitude'},{type:'dream',name:'Dreams'},{type:'quote',name:'Quotes & Marginalia'},{type:'question',name:'Open Questions'},{type:'visualization',name:'Visualizations'},{type:'letter',name:'Letters'}],
     theatre:{
@@ -2705,7 +2727,7 @@ routes.map = function(root){
   const wrap = $('#mapWrap'), tip = $('#mtip'); const showTip = (e,html) => { tip.innerHTML = html; tip.style.display='block'; const r = wrap.getBoundingClientRect(); tip.style.left = Math.min(e.clientX-r.left+14, r.width-300)+'px'; tip.style.top = (e.clientY-r.top+14)+'px'; };
   wrap.querySelectorAll('.mnode').forEach(n => { n.onmouseenter = e => { wrap.classList.add('hov'); n.classList.add('hot'); wrap.querySelectorAll('.medge').forEach(ed_ => { if(ed_.dataset.a===n.dataset.node||ed_.dataset.b===n.dataset.node){ ed_.classList.add('hot'); wrap.querySelector(`[data-node="${ed_.dataset.a}"]`).classList.add('hot'); wrap.querySelector(`[data-node="${ed_.dataset.b}"]`).classList.add('hot'); } }); const nd = N[n.dataset.node]; showTip(e, `<b class="serif">${esc(nd.t)}</b><br>${esc(nd.desc)}<br><span class="mono">click to open</span>`); }; n.onmousemove = e => showTip(e, tip.innerHTML); n.onmouseleave = () => { wrap.classList.remove('hov'); wrap.querySelectorAll('.hot').forEach(x=>x.classList.remove('hot')); tip.style.display='none'; }; });
   wrap.querySelectorAll('.medge').forEach(ed_ => { ed_.onmouseenter = e => { ed_.classList.add('hot'); showTip(e, `<span class="mono">${esc(N[ed_.dataset.a].t)} → ${esc(N[ed_.dataset.b].t)}</span><br>${esc(MAP_EDGES[+ed_.dataset.i][2])}`); }; ed_.onmousemove = e => showTip(e, tip.innerHTML); ed_.onmouseleave = () => { ed_.classList.remove('hot'); tip.style.display='none'; }; ed_.onclick = () => navigate(N[ed_.dataset.b].go); });
-  $('#homeToggle').onclick = function(){ S.settings.home = S.settings.home==='map' ? 'today' : 'map'; saveNow(); this.classList.toggle('on', S.settings.home==='map'); };
+  $('#homeToggle').onclick = function(){ S.settings.home = S.settings.home==='map' ? 'home' : 'map'; saveNow(); this.classList.toggle('on', S.settings.home==='map'); };
 };
 
 /* ============================================================
@@ -2718,7 +2740,9 @@ routes.settings = function(root){
       <div class="opt"><div><b>Interaction sounds 🔔</b><div class="d">Soft chimes on clicks, a low note on navigation, a rising pair when something is completed. Synthesised in the browser; nothing is downloaded.</div></div><label class="toggle ${SoundManager.state().soundEnabled?'on':''}" id="sSound"><span class="sw"></span></label></div>
       <div class="opt"><div><b>Ambient background 🌊</b><div class="d">A barely-audible brown-noise wash, low-passed at 200 Hz. Ducks briefly under each click. Off by default.</div></div><label class="toggle ${SoundManager.state().ambientEnabled?'on':''}" id="sAmbient"><span class="sw"></span></label></div>
       <div class="opt"><div><b>Felt time</b><div class="d">Default timeline mode: stretch dense stages, compress thin ones.</div></div><label class="toggle ${S.settings.feltTime?'on':''}" id="sFelt"><span>clock</span><span class="sw"></span><span>felt</span></label></div>
-      <div class="opt"><div><b>Home</b><div class="d">Land on Today, or on the System Map.</div></div><label class="toggle ${S.settings.home==='map'?'on':''}" id="sHome"><span>today</span><span class="sw"></span><span>map</span></label></div>
+      <div class="opt"><div><b>Landing page</b><div class="d">Where the site opens.</div></div><select class="sel" style="width:auto" id="sHome">${[['home','Home dashboard'],['today','Today'],['map','System Map']].map(([v,l])=>`<option value="${v}" ${(S.settings.home||'home')===v?'selected':''}>${l}</option>`).join('')}</select></div>
+    </div>
+    <div class="card rv"><h3>Navigation zones</h3><p class="muted" style="font-size:.85rem">Drag pages between Present, Becoming, and Always. The sidebar and the mobile menu follow.</p>${zoneEditorHTML()}
     </div>
     <div class="card rv"><h3>Data &amp; backups</h3><p class="muted" style="font-size:.85rem" id="storageLine">Everything lives in this browser, in an IndexedDB database. Measuring…</p><div class="bar" style="--c:var(--sage);margin-bottom:12px"><i id="storageBar" style="width:0%"></i></div>
       <div class="row"><button class="btn primary" id="sExport">💾 Export backup</button><button class="btn" id="sImport">Import backup</button><input type="file" id="sFile" accept=".json,application/json" hidden><button class="btn ghost" id="sRestoreInfo" title="${esc(RECOVERY_TEXT)}">ⓘ How to restore</button></div>
@@ -2738,7 +2762,8 @@ routes.settings = function(root){
   $('#sSound').onclick = function(){ SoundManager.toggleSound(); this.classList.toggle('on', SoundManager.state().soundEnabled); };
   $('#sAmbient').onclick = function(){ SoundManager.toggleAmbient(); this.classList.toggle('on', SoundManager.state().ambientEnabled); };
   $('#sFelt').onclick = function(){ S.settings.feltTime = !S.settings.feltTime; saveNow(); this.classList.toggle('on', S.settings.feltTime); };
-  $('#sHome').onclick = function(){ S.settings.home = S.settings.home==='map'?'today':'map'; saveNow(); this.classList.toggle('on', S.settings.home==='map'); };
+  $('#sHome').onchange = e => { S.settings.home = e.target.value; saveNow(); };
+  bindZoneEditor($('#zoneEditor').parentElement);
   const lb = daysSinceBackup(); $('#lastBackupLine').textContent = lb === null ? 'No backup exported yet from this browser.' : `Last backup: ${lb === 0 ? 'today' : lb + ' days ago'}.`;
   $('#sExport').onclick = () => exportToJSON().then(() => { toast('Backup exported.'); rerender(); });
   $('#sRestoreInfo').onclick = showRecoveryInfo;
@@ -2819,7 +2844,7 @@ function buildSpeedDial(){
 }
 function openSpeedDial({focusFilter=false}={}){ const d = $('#speedDial'); if(!d) return; buildSpeedDial(); d.hidden = false; $('#fab').classList.add('open'); $('#fab').setAttribute('aria-expanded','true'); if(focusFilter) setTimeout(() => d.querySelector('#sdFilter')?.focus(), 30); }
 function toggleSpeedDialWithFilter(){ $('#speedDial')?.hidden ? openSpeedDial({focusFilter:true}) : closeSpeedDial(); }
-function closeSpeedDial(){ const d = $('#speedDial'); if(!d || d.hidden) return; d.hidden = true; $('#fab').classList.remove('open'); $('#fab').setAttribute('aria-expanded','false'); }
+function closeSpeedDial(){ const d = $('#speedDial'); if(!d || d.hidden) return; d.hidden = true; d.innerHTML = ''; $('#fab').classList.remove('open'); $('#fab').setAttribute('aria-expanded','false'); }
 function toggleSpeedDial(){ $('#speedDial')?.hidden ? openSpeedDial() : closeSpeedDial(); }
 document.addEventListener('click', e => { if(!e.target.closest('#fabWrap')) closeSpeedDial(); });
 document.addEventListener('keydown', e => { if(e.key === 'Escape' && !$('#speedDial')?.hidden) closeSpeedDial(); });
@@ -2849,6 +2874,96 @@ function newSkillDialog(){
   let planned=false; m.querySelector('#skPlanned').onclick = function(){ planned=!planned; this.classList.toggle('on',planned); };
   m.querySelector('#skSave').onclick = () => { const name = m.querySelector('#skName').value.trim(); if(!name) return; const s = {id:uid(),name,cat:m.querySelector('#skCat').value,rubric:['','','','',''],level:planned?0:1,target:3,targetDate:'',prereqs:[],planned}; S.skills.push(s); saveNow(); m.remove(); if(currentRoute !== 'skills') navigate('#/skills'); else rerender(); setTimeout(() => openSkillPanel(s.id), currentRoute==='skills' ? 0 : 400); };
   setTimeout(() => m.querySelector('#skName').focus(), 50);
+}
+/* ============================================================
+   NAVIGATION — two zones (Present / Becoming) + standalone pages
+   Rendered from S.settings.nav so the user can move pages between
+   zones in Settings. Page content is untouched; routes are unchanged.
+   ============================================================ */
+const NAV_PAGES = {
+  today:    {label:'Today',       ico:'🏠', route:'#/today'},
+  journals: {label:'Journal',     ico:'📖', route:'#/journals'},
+  projects: {label:'Projects',    ico:'🎨', route:'#/projects'},
+  rituals:  {label:'Rituals',     ico:'✨', route:'#/rituals'},
+  values:   {label:'Compass',     ico:'🧭', route:'#/values'},
+  skills:   {label:'Skill Tree',  ico:'🛠', route:'#/skills'},
+  vision:   {label:'Vision Tree', ico:'🌳', route:'#/vision'},
+  timeline: {label:'Memory',      ico:'⏳', route:'#/timeline'},
+  library:  {label:'Library',     ico:'📚', route:'#/journals/quote'},
+  map:      {label:'System Map',  ico:'🗺', route:'#/map'},
+};
+const NAV_DEFAULT = { present:['today','journals','projects','rituals'], becoming:['values','skills','vision','timeline'], standalone:['library','map'] };
+const NAV_ZONES = [ {id:'present', label:'Present', hint:'short-term, daily use', accent:'var(--sage)'}, {id:'becoming', label:'Becoming', hint:'identity, growth', accent:'var(--ment)'} ];
+const MOBILE_PRIMARY = ['today','journals','values','skills','vision'];
+function navConfig(){ if(!S.settings.nav) S.settings.nav = JSON.parse(JSON.stringify(NAV_DEFAULT)); const n = S.settings.nav; const placed = new Set([...n.present, ...n.becoming, ...n.standalone]); Object.keys(NAV_PAGES).forEach(k => { if(k !== 'home' && !placed.has(k)) n.standalone.push(k); }); ['present','becoming','standalone'].forEach(z => n[z] = n[z].filter(k => NAV_PAGES[k] && k !== 'home')); return n; }
+const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch(e){ return d; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} };
+function activePageKey(){ const {name, params} = parseHash(); if(name === 'journals' && params[0] === 'quote') return 'library'; return {stage:'timeline', value:'values', home:'home'}[name] || name; }
+function navLink(key, zoneAccent){ const p = NAV_PAGES[key]; return `<a href="${p.route}" data-page="${key}" data-tip="${esc(p.label)}" style="--z:${zoneAccent||'var(--terra)'}"><span class="ico">${p.ico}</span><span class="lbl">${esc(p.label)}</span></a>`; }
+function renderNav(){
+  const n = navConfig(); const collapsedZones = lsGet('navZoneCollapsed', {}); const sbCollapsed = lsGet('sidebarCollapsed', false);
+  document.documentElement.classList.toggle('sb-collapsed', !!sbCollapsed);
+  const sb = $('#sidebar');
+  sb.innerHTML = `<div class="brand"><a href="#/home" class="mark" data-tip="Home" title="Home">生</a><a href="#/home" class="name">Life Instrument</a><button class="sb-toggle" id="sbToggle" title="${sbCollapsed?'Expand sidebar':'Collapse sidebar'}">${sbCollapsed?'»':'«'}</button></div>
+    <nav class="nav" id="nav">
+      ${navLink('home','var(--terra)').replace('data-page="home"','data-page="home"')}
+      ${NAV_ZONES.map(z => `<div class="zone ${collapsedZones[z.id]?'collapsed':''}" data-zone="${z.id}" style="--z:${z.accent}"><button class="zone-h" data-zoneh="${z.id}" title="${esc(z.hint)}"><span class="zone-lbl">${esc(z.label)}</span><span class="zone-chev">›</span></button><div class="zone-pages">${n[z.id].map(k => navLink(k, z.accent)).join('')}</div></div>`).join('')}
+      <div class="nav-sep"></div>
+      ${n.standalone.map(k => navLink(k, 'var(--terra)')).join('')}
+    </nav>
+    <nav class="nav settings-link"><a href="#/settings" data-page="settings" data-tip="Settings" style="--z:var(--terra)"><span class="ico">⚙</span><span class="lbl">Settings</span></a></nav>`;
+  sb.querySelector('#sbToggle').onclick = () => { lsSet('sidebarCollapsed', !lsGet('sidebarCollapsed', false)); renderNav(); };
+  sb.querySelectorAll('[data-zoneh]').forEach(b => b.onclick = () => { const c = lsGet('navZoneCollapsed', {}); c[b.dataset.zoneh] = !c[b.dataset.zoneh]; lsSet('navZoneCollapsed', c); renderNav(); });
+  // mobile bottom bar
+  let mb = $('#mobileNav'); if(!mb){ mb = el('<nav class="mobile-nav" id="mobileNav"></nav>'); document.body.appendChild(mb); }
+  mb.innerHTML = MOBILE_PRIMARY.map(k => { const p = NAV_PAGES[k]; return `<a href="${p.route}" data-page="${k}"><span class="ico">${p.ico}</span><span class="lbl">${esc(p.label)}</span></a>`; }).join('') + `<button id="mobileMore" data-page="more"><span class="ico">⋯</span><span class="lbl">More</span></button>`;
+  mb.querySelector('#mobileMore').onclick = openNavOverlay;
+  markActiveNav();
+}
+function markActiveNav(){ const key = activePageKey(); $$('#sidebar a[data-page], #mobileNav a[data-page]').forEach(a => a.classList.toggle('active', a.dataset.page === key)); }
+function openNavOverlay(){
+  const n = navConfig(); const key = activePageKey();
+  const ov = el(`<div class="nav-overlay" id="navOverlay"><button class="close" aria-label="close">×</button><div class="nav-overlay-inner">
+    <a href="#/home" class="ov-link ${key==='home'?'active':''}" style="--z:var(--terra)"><span class="ico">${NAV_PAGES.home?.ico||'⌂'}</span>Home</a>
+    ${NAV_ZONES.map(z => `<div class="ov-zone" style="--z:${z.accent}"><div class="ov-zone-h">${esc(z.label)} <span class="mono">${esc(z.hint)}</span></div>${n[z.id].map(k => `<a href="${NAV_PAGES[k].route}" class="ov-link ${key===k?'active':''}"><span class="ico">${NAV_PAGES[k].ico}</span>${esc(NAV_PAGES[k].label)}</a>`).join('')}</div>`).join('')}
+    <div class="ov-zone" style="--z:var(--terra)"><div class="ov-zone-h">Always</div>${n.standalone.map(k => `<a href="${NAV_PAGES[k].route}" class="ov-link ${key===k?'active':''}"><span class="ico">${NAV_PAGES[k].ico}</span>${esc(NAV_PAGES[k].label)}</a>`).join('')}<a href="#/settings" class="ov-link ${key==='settings'?'active':''}"><span class="ico">⚙</span>Settings</a></div>
+  </div></div>`);
+  document.body.appendChild(ov); ov.querySelector('.close').onclick = () => ov.remove(); ov.querySelectorAll('a').forEach(a => a.addEventListener('click', () => ov.remove()));
+}
+NAV_PAGES.home = {label:'Home', ico:'⌂', route:'#/home'};
+
+/* ---------- Home dashboard: one summary card per zone, counts read from the database on mount ---------- */
+routes.home = function(root){
+  const T = today(); const n = navConfig();
+  root.innerHTML = `<div class="page narrow"><div class="page-head"><h1>${fmtDate(T)}</h1><div class="sub">The porch. One card per zone; walk into whichever room needs you.</div></div><div class="stack" id="homeCards"><div class="empty">Reading the house…</div></div></div>`;
+  (async () => {
+    let entries=[], nods=[], projects=[], snaps=[], skills=[], visions=[], habits=[], habitLog=[], checkins=[], reminders=[];
+    try { [entries, nods, projects, snaps, skills, visions, habits, habitLog, checkins, reminders] = await Promise.all(['entries','nods','projects','valueSnapshots','skills','visions','habits','habitLog','checkins','reminders'].map(t => db[t].toArray())); } catch(e){ entries=S.entries; nods=S.nods; projects=S.projects; snaps=S.valueSnapshots; skills=S.skills; visions=S.visions; habits=S.habits; habitLog=Object.entries(S.habitLog).map(([day,log])=>({day,log})); checkins=Object.entries(S.checkins).map(([day,v])=>({day,...v})); reminders=S.reminders||[]; }
+    const todayEntries = entries.filter(e => (e.createdAt||'').slice(0,10) === T).length + nods.filter(x => x.date === T).length;
+    const active = projects.filter(p => p.status === 'active').length;
+    const due = habits.filter(h => !h.archived && !h.negative && habitDue(h, T)); const todayLog = habitLog.find(r => r.day === T)?.log || {}; const done = due.filter(h => todayLog[h.id]).length;
+    const checked = checkins.some(c => c.day === T && c.mood); const dueRem = reminders.filter(r => !r.done && r.date <= T).length;
+    const lastSnap = [...snaps].sort((a,b)=>a.date<b.date?1:-1)[0]; const snapDays = lastSnap ? daysSince(lastSnap.date) : null;
+    const dueSkills = skills.filter(s => s.targetDate && daysBetween(T, s.targetDate) <= 30 && daysBetween(T, s.targetDate) >= 0 && s.level < s.target);
+    const wither = visions.filter(v => v.confidence !== 'lived' && vividness(v).lastTended > 60).length;
+    const memories = entries.filter(e => e.type === 'memory').length; const quotes = entries.filter(e => e.type === 'quote').length;
+    const card = (z, lines, links) => `<div class="card home-card rv" style="--z:${z.accent}"><div class="row between"><h3 style="margin:0">${esc(z.label)}</h3><span class="mono">${esc(z.hint)}</span></div><div class="home-lines">${lines.map(l=>`<div>${l}</div>`).join('')}</div><div class="row" style="margin-top:12px">${links.map(k=>`<a class="chip click on" style="--c:${z.accent}" href="${NAV_PAGES[k].route}">${NAV_PAGES[k].ico} ${esc(NAV_PAGES[k].label)}</a>`).join('')}</div></div>`;
+    $('#homeCards').innerHTML =
+      card(NAV_ZONES[0], [`<b>${todayEntries}</b> item${todayEntries===1?'':'s'} logged today · <b>${active}</b> active project${active===1?'':'s'}`, `${checked?'Checked in':'<span style="color:var(--gold)">Not yet checked in</span>'} · habit rings <b>${done}/${due.length}</b>${dueRem?` · <b>${dueRem}</b> reminder${dueRem===1?'':'s'} waiting`:''}`], n.present) +
+      card(NAV_ZONES[1], [`Last snapshot <b>${snapDays===null?'never':snapDays===0?'today':snapDays+' days ago'}</b> · <b>${dueSkills.length}</b> skill milestone${dueSkills.length===1?'':'s'} due within 30 days`, `<b>${visions.filter(v=>v.confidence!=='lived').length}</b> visions growing${wither?`, <span style="color:var(--gold)">${wither} withering</span>`:''} · <b>${memories}</b> memories kept`], n.becoming) +
+      card({label:'Always', hint:'reference', accent:'var(--terra)'}, [`<b>${quotes}</b> quotes in the library · the system map shows what needs tending`], n.standalone);
+    reveal($('#homeCards')); $$('#homeCards .rv').forEach(x => x.classList.add('in'));
+  })();
+};
+
+/* ---------- Settings: drag-and-drop zone editor ---------- */
+function zoneEditorHTML(){ const n = navConfig(); const col = (id, label, keys, accent) => `<div class="zone-col" data-zcol="${id}" style="--z:${accent}"><div class="sc" style="color:${accent}">${label}</div>${keys.map(k => `<div class="zone-item" draggable="true" data-zitem="${k}"><span class="ico">${NAV_PAGES[k].ico}</span>${esc(NAV_PAGES[k].label)}<span class="mono">⋮</span></div>`).join('')||'<div class="faint" style="font-size:.75rem;padding:6px">drop pages here</div>'}</div>`;
+  return `<div class="zone-editor" id="zoneEditor">${col('present','Present',n.present,'var(--sage)')}${col('becoming','Becoming',n.becoming,'var(--ment)')}${col('standalone','Always',n.standalone,'var(--terra)')}</div><div class="row" style="margin-top:10px"><button class="btn sm ghost" id="zoneReset">reset to default</button></div>`; }
+function bindZoneEditor(root){
+  let dragKey = null; const n = navConfig();
+  root.querySelectorAll('.zone-item').forEach(it => { it.addEventListener('dragstart', () => { dragKey = it.dataset.zitem; it.classList.add('dragging'); }); it.addEventListener('dragend', () => it.classList.remove('dragging')); });
+  root.querySelectorAll('.zone-col').forEach(col => { col.addEventListener('dragover', e => { e.preventDefault(); col.classList.add('over'); }); col.addEventListener('dragleave', () => col.classList.remove('over')); col.addEventListener('drop', e => { e.preventDefault(); col.classList.remove('over'); if(!dragKey) return; ['present','becoming','standalone'].forEach(z => n[z] = n[z].filter(k => k !== dragKey)); const target = col.dataset.zcol; const after = e.target.closest('.zone-item')?.dataset.zitem; const arr = n[target]; const i = after ? arr.indexOf(after) : -1; if(i >= 0) arr.splice(i, 0, dragKey); else arr.push(dragKey); dragKey = null; saveNow(); renderNav(); rerender(); }); });
+  root.querySelector('#zoneReset').onclick = () => { S.settings.nav = JSON.parse(JSON.stringify(NAV_DEFAULT)); saveNow(); renderNav(); rerender(); };
 }
 /* ============================================================
    11. GLOBAL ADD ENTRY MODAL
@@ -2931,7 +3046,7 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
 function openSearch(){
   const m = openModal(`<input id="palQ" placeholder="Search entries, visions, values, skills, projects, habits, sections…" autofocus><div class="results" id="palRes"></div>`, 'palette');
   const q = m.querySelector('#palQ'), res = m.querySelector('#palRes'); let sel = 0, items = [];
-  const sections = [['Today','#/today'],['Timeline','#/timeline'],['Threads & Tensions','#/timeline/threads'],['Vision Tree','#/vision'],['Values','#/values'],['Journals','#/journals'],['Skill Tree','#/skills'],['Creative Projects','#/projects'],['Rituals & Habits','#/rituals'],['Guided Reviews','#/rituals/reviews'],['System Map','#/map'],['Settings','#/settings']];
+  const sections = [['Home','#/home'],['Today','#/today'],['Timeline','#/timeline'],['Threads & Tensions','#/timeline/threads'],['Vision Tree','#/vision'],['Values','#/values'],['Journals','#/journals'],['Skill Tree','#/skills'],['Creative Projects','#/projects'],['Rituals & Habits','#/rituals'],['Guided Reviews','#/rituals/reviews'],['System Map','#/map'],['Settings','#/settings']];
   const run = () => { const s = q.value.trim().toLowerCase(); const hit = t => !s || String(t).toLowerCase().includes(s); items = [];
     const grp = (name, arr) => { if(arr.length){ items.push({grp:name}); arr.slice(0,8).forEach(x=>items.push(x)); } };
     grp('Add', SPEED_DIAL.flatMap(it => it.actions ? it.actions.map(([l,fn]) => ({t:`${it.icon} ${it.zone} — ${l}`, m:'add', run:fn, key:it.zone+' '+l+' '+it.label})) : [{t:`${it.icon} ${it.label}`, m:'add', run:it.run, key:it.zone+' '+it.label}]).filter(x=>hit(x.key)));
@@ -2968,9 +3083,9 @@ async function init(){
   $('#btnTheme').onclick = () => { S.settings.theme = S.settings.theme==='dark'?'light':'dark'; saveNow(); applyTheme(); };
   $('#btnSound').onclick = () => SoundManager.toggleSound(); $('#btnAmbient').onclick = () => SoundManager.toggleAmbient(); syncSoundButtons();
   $('#btnSearch').onclick = openSearch; $('#fab').onclick = e => { e.stopPropagation(); toggleSpeedDial(); };
-  const sb = $('#sidebar'); $('.brand', sb).onclick = () => sb.classList.toggle('open');
+  renderNav();
   if(navigator.platform.toUpperCase().indexOf('MAC')<0){ $$('kbd').forEach(k => k.textContent = k.textContent.replace('⌘','Ctrl+')); $('.fab .hint').textContent = 'new entry · Ctrl+N'; }
-  if(!location.hash) location.hash = S.settings.home==='map' ? '#/map' : '#/today';
+  if(!location.hash) location.hash = '#/' + (S.settings.home || 'home');
   renderRoute(); startDust(); updateBackButton();
   window.addEventListener('beforeunload', () => { if(saving || savePending) saveNow(); });
   if(S.settings.firstOpen === today() && !S._welcomed){ S._welcomed = true; setTimeout(()=>toast('Welcome home. Every piece of text here is editable — click it. The placeholder life is yours to overwrite.', 7000), 800); }

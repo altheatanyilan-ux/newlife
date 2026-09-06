@@ -71,7 +71,7 @@ function buildSpeedDial(){
 }
 function openSpeedDial({focusFilter=false}={}){ const d = $('#speedDial'); if(!d) return; buildSpeedDial(); d.hidden = false; $('#fab').classList.add('open'); $('#fab').setAttribute('aria-expanded','true'); if(focusFilter) setTimeout(() => d.querySelector('#sdFilter')?.focus(), 30); }
 function toggleSpeedDialWithFilter(){ $('#speedDial')?.hidden ? openSpeedDial({focusFilter:true}) : closeSpeedDial(); }
-function closeSpeedDial(){ const d = $('#speedDial'); if(!d || d.hidden) return; d.hidden = true; $('#fab').classList.remove('open'); $('#fab').setAttribute('aria-expanded','false'); }
+function closeSpeedDial(){ const d = $('#speedDial'); if(!d || d.hidden) return; d.hidden = true; d.innerHTML = ''; $('#fab').classList.remove('open'); $('#fab').setAttribute('aria-expanded','false'); }
 function toggleSpeedDial(){ $('#speedDial')?.hidden ? openSpeedDial() : closeSpeedDial(); }
 document.addEventListener('click', e => { if(!e.target.closest('#fabWrap')) closeSpeedDial(); });
 document.addEventListener('keydown', e => { if(e.key === 'Escape' && !$('#speedDial')?.hidden) closeSpeedDial(); });

@@ -50,7 +50,7 @@ routes.map = function(root){
   const wrap = $('#mapWrap'), tip = $('#mtip'); const showTip = (e,html) => { tip.innerHTML = html; tip.style.display='block'; const r = wrap.getBoundingClientRect(); tip.style.left = Math.min(e.clientX-r.left+14, r.width-300)+'px'; tip.style.top = (e.clientY-r.top+14)+'px'; };
   wrap.querySelectorAll('.mnode').forEach(n => { n.onmouseenter = e => { wrap.classList.add('hov'); n.classList.add('hot'); wrap.querySelectorAll('.medge').forEach(ed_ => { if(ed_.dataset.a===n.dataset.node||ed_.dataset.b===n.dataset.node){ ed_.classList.add('hot'); wrap.querySelector(`[data-node="${ed_.dataset.a}"]`).classList.add('hot'); wrap.querySelector(`[data-node="${ed_.dataset.b}"]`).classList.add('hot'); } }); const nd = N[n.dataset.node]; showTip(e, `<b class="serif">${esc(nd.t)}</b><br>${esc(nd.desc)}<br><span class="mono">click to open</span>`); }; n.onmousemove = e => showTip(e, tip.innerHTML); n.onmouseleave = () => { wrap.classList.remove('hov'); wrap.querySelectorAll('.hot').forEach(x=>x.classList.remove('hot')); tip.style.display='none'; }; });
   wrap.querySelectorAll('.medge').forEach(ed_ => { ed_.onmouseenter = e => { ed_.classList.add('hot'); showTip(e, `<span class="mono">${esc(N[ed_.dataset.a].t)} → ${esc(N[ed_.dataset.b].t)}</span><br>${esc(MAP_EDGES[+ed_.dataset.i][2])}`); }; ed_.onmousemove = e => showTip(e, tip.innerHTML); ed_.onmouseleave = () => { ed_.classList.remove('hot'); tip.style.display='none'; }; ed_.onclick = () => navigate(N[ed_.dataset.b].go); });
-  $('#homeToggle').onclick = function(){ S.settings.home = S.settings.home==='map' ? 'today' : 'map'; saveNow(); this.classList.toggle('on', S.settings.home==='map'); };
+  $('#homeToggle').onclick = function(){ S.settings.home = S.settings.home==='map' ? 'home' : 'map'; saveNow(); this.classList.toggle('on', S.settings.home==='map'); };
 };
 
 /* ============================================================
@@ -63,7 +63,9 @@ routes.settings = function(root){
       <div class="opt"><div><b>Interaction sounds 🔔</b><div class="d">Soft chimes on clicks, a low note on navigation, a rising pair when something is completed. Synthesised in the browser; nothing is downloaded.</div></div><label class="toggle ${SoundManager.state().soundEnabled?'on':''}" id="sSound"><span class="sw"></span></label></div>
       <div class="opt"><div><b>Ambient background 🌊</b><div class="d">A barely-audible brown-noise wash, low-passed at 200 Hz. Ducks briefly under each click. Off by default.</div></div><label class="toggle ${SoundManager.state().ambientEnabled?'on':''}" id="sAmbient"><span class="sw"></span></label></div>
       <div class="opt"><div><b>Felt time</b><div class="d">Default timeline mode: stretch dense stages, compress thin ones.</div></div><label class="toggle ${S.settings.feltTime?'on':''}" id="sFelt"><span>clock</span><span class="sw"></span><span>felt</span></label></div>
-      <div class="opt"><div><b>Home</b><div class="d">Land on Today, or on the System Map.</div></div><label class="toggle ${S.settings.home==='map'?'on':''}" id="sHome"><span>today</span><span class="sw"></span><span>map</span></label></div>
+      <div class="opt"><div><b>Landing page</b><div class="d">Where the site opens.</div></div><select class="sel" style="width:auto" id="sHome">${[['home','Home dashboard'],['today','Today'],['map','System Map']].map(([v,l])=>`<option value="${v}" ${(S.settings.home||'home')===v?'selected':''}>${l}</option>`).join('')}</select></div>
+    </div>
+    <div class="card rv"><h3>Navigation zones</h3><p class="muted" style="font-size:.85rem">Drag pages between Present, Becoming, and Always. The sidebar and the mobile menu follow.</p>${zoneEditorHTML()}
     </div>
     <div class="card rv"><h3>Data &amp; backups</h3><p class="muted" style="font-size:.85rem" id="storageLine">Everything lives in this browser, in an IndexedDB database. Measuring…</p><div class="bar" style="--c:var(--sage);margin-bottom:12px"><i id="storageBar" style="width:0%"></i></div>
       <div class="row"><button class="btn primary" id="sExport">💾 Export backup</button><button class="btn" id="sImport">Import backup</button><input type="file" id="sFile" accept=".json,application/json" hidden><button class="btn ghost" id="sRestoreInfo" title="${esc(RECOVERY_TEXT)}">ⓘ How to restore</button></div>
@@ -83,7 +85,8 @@ routes.settings = function(root){
   $('#sSound').onclick = function(){ SoundManager.toggleSound(); this.classList.toggle('on', SoundManager.state().soundEnabled); };
   $('#sAmbient').onclick = function(){ SoundManager.toggleAmbient(); this.classList.toggle('on', SoundManager.state().ambientEnabled); };
   $('#sFelt').onclick = function(){ S.settings.feltTime = !S.settings.feltTime; saveNow(); this.classList.toggle('on', S.settings.feltTime); };
-  $('#sHome').onclick = function(){ S.settings.home = S.settings.home==='map'?'today':'map'; saveNow(); this.classList.toggle('on', S.settings.home==='map'); };
+  $('#sHome').onchange = e => { S.settings.home = e.target.value; saveNow(); };
+  bindZoneEditor($('#zoneEditor').parentElement);
   const lb = daysSinceBackup(); $('#lastBackupLine').textContent = lb === null ? 'No backup exported yet from this browser.' : `Last backup: ${lb === 0 ? 'today' : lb + ' days ago'}.`;
   $('#sExport').onclick = () => exportToJSON().then(() => { toast('Backup exported.'); rerender(); });
   $('#sRestoreInfo').onclick = showRecoveryInfo;
