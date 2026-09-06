@@ -39,5 +39,6 @@ function seed(){
     people:[], places:[], boards:[], events:[], plans:{}, reviewLog:{}, accounts:[], txns:[], budgets:[], finGoals:[], chapters:[], turns:[], threadsN:[], interactions:[],
     finance:{currency:'SGD', categories:[], netWorthLog:[], principles:[], note:'', assigned:{}},
     mediaQueue:[], mediaLists:[], mediaRecs:[], compost:[],
+    incomeStreams:[], spendCategories:[],
   };
 }

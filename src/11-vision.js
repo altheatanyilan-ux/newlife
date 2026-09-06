@@ -60,18 +60,28 @@ let swayRAF = null;
 function startSway(root){ cancelAnimationFrame(swayRAF); if(reduced()) return; const leaves = $$('.leaf', root); const t0 = performance.now(); const tick = t => { if(!document.contains(root)){ cancelAnimationFrame(swayRAF); return; } const s = (t-t0)/1000; leaves.forEach(l => { const ph = +l.dataset.phase, per = +l.dataset.period; l.style.transform = `rotate(${(Math.sin(s*2*Math.PI/per + ph)*3).toFixed(2)}deg)`; }); swayRAF = requestAnimationFrame(tick); }; swayRAF = requestAnimationFrame(tick); }
 routes.vision = function(root, params){
   const eras = erasList(); const activeEra = eras.some(e=>e.id===S._activeEra) ? S._activeEra : (eras[0]?.id || null);
-  registerPageEntry({pageName:'Vision Canvas', addLabel:'Add a goal or life event', defaultEntryType:'progress', prefilledFields:{era:activeEra}, options:[
-    {icon:'🌿', label:'New goal', desc:'A branch on the canvas — something you are moving toward.', run:(pre)=>EntryActions.newVision(pre)},
+  registerPageEntry({pageName:'Vision', addLabel:'Add a goal or life event', defaultEntryType:'progress', prefilledFields:{era:activeEra}, options:[
+    {icon:'🌿', label:'New goal', desc:'A branch on the tree — something you are moving toward.', run:(pre)=>EntryActions.newVision(pre)},
     {icon:'◆', label:'New life event', desc:'Something that happened — a memory for the current chapter, not a task.', run:(pre)=>openLifeEventModal(byId(erasList().filter(e=>e.type!=='future'),activeEra)?activeEra:(erasList().find(e=>e.type==='present')?.id))}]});
-  const vtab = (params[0] === 'board') ? 'board' : 'timeline';
-  if(vtab === 'board') return renderVisionBoard(root);
+  const boardScope = S._boardEra && eras.some(e => e.id === S._boardEra) ? S._boardEra : 'all';
+  const boardKey = boardScope === 'all' ? 'main' : boardId('era', boardScope);
   root.innerHTML = `<div class="page">
-    <div class="page-head"><h1>Vision Canvas</h1><div class="sub">The chapters of a life, side by side: what happened, what is happening, what you are moving toward. Every entry tagged to a goal grows a leaf.</div></div>
-    <div class="tabs"><button class="active" data-go="#/vision">◷ Timeline</button><button data-go="#/vision/board">▣ Vision board</button></div>
+    <div class="page-head"><h1>Vision</h1><div class="sub">What you can only feel, then the chapters of a life side by side — what happened, what is happening, what you are moving toward. Every entry tagged to a goal grows a leaf.</div></div>
+
+    <section class="vision-board-top rv">
+      ${eras.length ? `<div class="chip-row" style="margin-bottom:10px">${[['all','the whole life']].concat(eras.map(e=>[e.id,e.name])).map(([id,name])=>`<button class="chip click ${boardScope===id?'on':''}" ${id!=='all'?`style="--c:${byId(eras,id).color}"`:''} data-bscope="${id}">${esc(name)}${id!=='all'?` <span class="mono">${boardCount(boardId('era',id))}</span>`:''}</button>`).join('')}</div>` : ''}
+      ${boardHTML(boardKey, {title: boardScope === 'all' ? 'Vision board' : `Vision board — ${esc(byId(eras, boardScope)?.name || 'this chapter')}`, hint:'What you can only feel, before you can argue for it. Looking at this changes what you do — it stays at the top on purpose.'})}
+      <button class="btn sm ghost" id="pinGoal" style="margin-top:8px">🌿 pin a goal card</button>
+    </section>
+
+    <div class="row between" style="margin:34px 0 8px"><span class="sc" style="margin:0">Building it, chapter by chapter</span><span class="mono">what happened, what's live, what's ahead — completed goals tuck away</span></div>
     ${lifelineHTML()}
-    <div class="row between" style="margin:34px 0 8px"><span class="sc" style="margin:0">The tree</span><span class="mono">the same goals as branches — vividness is the sap</span></div>
+    <div class="row between" style="margin:34px 0 8px"><span class="sc" style="margin:0">The tree</span><span class="mono">every goal at once, as branches — vividness is the sap</span></div>
     <div class="tree-wrap" id="treeWrap" style="height:${Math.max(560, 150*eras.length + 120)}px;max-height:${eras.length>5?'none':'calc(100vh - 150px)'}"><div class="tree-tools"></div><div class="tree-legend"><span>bare twig 0–15</span><span>budding 16–30</span><span>leafing 31–50</span><span>canopy 51–70</span><span>flowering 71–85</span><span>fruiting 86–100</span><span>· hover a branch to trace its lineage</span></div></div>
   </div>`;
+  $$('[data-bscope]',root).forEach(b => b.onclick = () => { S._boardEra = b.dataset.bscope === 'all' ? null : b.dataset.bscope; rerender(); });
+  $('#pinGoal').onclick = () => pinGoalCard(boardKey);
+  bindBoard(root);
   drawTree();
   function drawTree(){ const wrap = $('#treeWrap'); const W = Math.max(wrap.clientWidth, 600), H = wrap.clientHeight; wrap.querySelector('svg')?.remove(); wrap.insertAdjacentHTML('afterbegin', treeSVG(W,H)); const svg = wrap.querySelector('svg');
     svg.querySelectorAll('.branch').forEach(b => { b.onclick = () => openVisionPanel(b.dataset.vision); b.onmouseenter = () => { const [sx,sy] = b.dataset.start.split(',').map(Number); const [tx,ty] = b.dataset.trunk.split(',').map(Number); const tr = $('#trace'); tr.setAttribute('d', `M${sx},${sy} L${tx},${sy} L${tx},${ty}`); tr.style.opacity = '.6'; sound('leaf'); }; b.onmouseleave = () => { $('#trace').style.opacity = '0'; }; });
@@ -164,7 +174,7 @@ function fruitCeremony(v){
   sound('chime');
   const s8 = S.stages.find(s=>s.notyet) || S.stages.slice(-1)[0];
   s8.substages = s8.substages.filter(ss => ss.name!=='not yet' || ss.desc);
-  s8.substages.push({id:uid(), name:v.name, desc:`Lived. Planted from the Vision Canvas on ${fmtDate(today(),'med')}.\n\n${v.futureMemory||''}`, photos:[], fromVision:v.id});
+  s8.substages.push({id:uid(), name:v.name, desc:`Lived. Planted from Vision on ${fmtDate(today(),'med')}.\n\n${v.futureMemory||''}`, photos:[], fromVision:v.id});
   S.entries.push({id:uid(),type:'reflection',title:`${v.name} — lived`,body:v.futureMemory||'A vision became a memory.',occurredAt:today(),createdAt:new Date().toISOString(),media:[],links:{stages:[s8.id],substages:[s8.substages.slice(-1)[0].id],threads:[],values:v.values.map(id=>({id,pol:'+'})),visions:[v.id],skills:[],projects:[]},people:[],places:[],emotions:[],confidence:'lived',extra:{}});
   saveNow();
   toast(`🍂 <b>${esc(v.name)}</b> has fruited. It has been planted into the Timeline as a new chapter of 未 Not Yet.`, 6000);
@@ -204,7 +214,7 @@ function eraColumnHTML(e){
     </header>
     <div class="era-goals">${pending.length ? pending.map(v=>goalCardHTML(v,e)).join('') : `<div class="faint" style="font-size:.78rem;padding:6px 2px">${e.type==='past'?'no open goals':'nothing planned yet'}</div>`}</div>
     ${e.type!=='future' ? `<div class="era-events"><div class="era-divider">What happened <span class="mono">· life events</span></div>${events.map(x=>lifeEventHTML(x,e)).join('')||'<div class="faint" style="font-size:.76rem;padding:4px 2px;font-style:italic">nothing recorded yet</div>'}<button class="btn sm ghost" data-addevent="${e.id}">+ life event</button></div>` : ''}
-    ${done.length ? `<div class="era-lived"><div class="era-divider">What happened ✓ <span class="mono">· ${done.length} goal${done.length===1?'':'s'}</span></div>${done.map(v=>goalCardHTML(v,e)).join('')}</div>` : ''}
+    ${done.length ? `<details class="era-lived"><summary class="era-divider">What happened ✓ <span class="mono">· ${done.length} completed — show</span></summary>${done.map(v=>goalCardHTML(v,e)).join('')}</details>` : ''}
     <footer class="era-foot"><button class="btn sm" data-addgoal="${e.id}">+ goal</button>${e.type==='present'?`<button class="btn sm ghost" data-closechapter="${e.id}">Close this chapter →</button>`:''}</footer>
   </section>`;
 }

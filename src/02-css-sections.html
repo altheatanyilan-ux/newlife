@@ -732,6 +732,7 @@ html[data-theme="light"] .stage-hero .veil{background:linear-gradient(180deg,rgb
 @keyframes burst{from{transform:translate(0,0) scale(1);opacity:1}to{transform:translate(var(--dx),var(--dy)) scale(.2);opacity:0}}
 
 /* ---- the lifeline ---- */
+.vision-board-top{margin-bottom:8px}
 .lifeline-wrap{margin:0 0 18px}
 .lifeline{display:flex;gap:16px;overflow-x:auto;padding:8px 4px 16px;scroll-snap-type:x proximity;scroll-behavior:smooth;scrollbar-width:thin;align-items:stretch}
 .era-col{flex:0 0 320px;scroll-snap-align:start;background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--c);border-radius:14px;padding:14px 16px 12px;position:relative;display:flex;flex-direction:column;gap:10px;transition:border-color .2s var(--ease),transform .2s var(--ease),opacity .2s,box-shadow .3s var(--ease)}
@@ -781,6 +782,10 @@ html[data-theme="light"] .stage-hero .veil{background:linear-gradient(180deg,rgb
 .era-divider{font-family:var(--serif);text-transform:uppercase;letter-spacing:.14em;font-size:.66rem;color:var(--faint);padding:6px 0 6px;border-top:1px dashed var(--line-2);margin-top:4px;display:flex;justify-content:space-between}
 .era-events{display:flex;flex-direction:column;gap:6px}
 .era-lived{display:flex;flex-direction:column;gap:8px}
+details.era-lived > summary{cursor:pointer;list-style:none}
+details.era-lived > summary::-webkit-details-marker{display:none}
+details.era-lived > summary::before{content:'▸ ';display:inline-block;transition:transform .15s var(--ease)}
+details.era-lived[open] > summary::before{transform:rotate(90deg)}
 .life-event{position:relative;border-left:3px solid var(--c);padding:6px 24px 6px 12px;background:transparent;border-radius:0 8px 8px 0;display:flex;flex-direction:column;gap:2px}
 .life-event em{font-family:var(--quote);font-size:.9rem;line-height:1.5;color:var(--text)}
 .life-event .mono{font-size:.62rem}
@@ -1177,6 +1182,9 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 .bento .big small{font-family:var(--sans);font-size:.75rem;color:var(--muted);margin-left:6px}
 .bento .sub{font-size:.8rem;color:var(--muted);line-height:1.5}
 .vbar{display:grid;grid-template-columns:1fr 3fr 34px;gap:8px;align-items:center;font-size:.8rem;padding:2px 0}
+.spend-row{padding:9px 0;border-top:1px dashed var(--line)}
+.spend-row:first-child{border-top:none}
+.stream-card{padding:16px 18px}
 .stagebars{display:flex;gap:4px;align-items:flex-end;height:44px}
 .stagebars i{flex:1;border-radius:3px 3px 1px 1px;background:var(--c);opacity:.8;min-height:2px;transition:height .6s var(--ease)}
 

@@ -174,7 +174,7 @@ const routes = {};
 let currentRoute = null;
 function navigate(hash){ location.hash = hash; }
 function parseHash(){ const h = (location.hash||'').replace(/^#\/?/,''); const [name, ...rest] = h.split('/'); return {name: name || homeRoute(), params: rest.map(decodeURIComponent)}; }
-const ROUTE_ALIASES = {calendar:'rhythm', plan:'rhythm/plan', rituals:'rhythm/habits', reviews:'rhythm/review', board:'vision/board'};
+const ROUTE_ALIASES = {calendar:'rhythm', plan:'rhythm/plan', rituals:'rhythm/habits', reviews:'rhythm/review', board:'vision'};
 function renderRoute(){
   let {name, params} = parseHash();
   if(ROUTE_ALIASES[name] && !routes[name]){ const t = ROUTE_ALIASES[name]; navigate('#/' + t + (params[0] && !t.includes('/') ? '/' + params[0] : '')); return; }

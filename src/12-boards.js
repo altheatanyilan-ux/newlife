@@ -1,6 +1,6 @@
 /* ============================================================
    BOARDS — the sensory half of a vision.
-   The Vision Canvas holds what you can argue about; a board holds
+   The Vision page holds what you can argue about; a board holds
    what you can only feel. Any record can have one: a value, a
    skill, a project, a goal, a chapter, a person — and there is a
    main board that belongs to no one thing.
@@ -99,25 +99,6 @@ function openBoardPanel(key, title){
   const p = openPanel(`<div class="mono">board</div><h2>${esc(title || 'Board')}</h2>${boardHTML(key, {title:'Pinned', hint:'Drag to rearrange. Click a pin to see it large, ⤢ to resize it.'})}`, 'board-panel');
   const redraw = () => { const scroll = p.scrollTop; openBoardPanel(key, title); const np = $('#panel'); if(np) np.scrollTop = scroll; };
   bindBoard(p, redraw);
-}
-/* ---------- the vision board, inside the Vision Canvas ---------- */
-function renderVisionBoard(root){
-  const eras = typeof erasList === 'function' ? erasList() : [];
-  const scope = S._boardEra && eras.some(e => e.id === S._boardEra) ? S._boardEra : 'all';
-  const key = scope === 'all' ? 'main' : boardId('era', scope);
-  registerPageEntry({pageName:'Vision Canvas', addLabel:'Pin something', defaultEntryType:'board', prefilledFields:{}, options:[
-    {icon:'▣', label:'Image', desc:'Upload from this device — a copy is kept in your own database.', run:()=>document.querySelector(`[data-bupload="${CSS.escape(key)}"]`)?.click()},
-    {icon:'🔗', label:'Link', desc:'Anything already on the web.', run:()=>document.querySelector(`[data-blink="${CSS.escape(key)}"]`)?.click()},
-    {icon:'✎', label:'Word', desc:'Sometimes one word does more than a photograph.', run:()=>document.querySelector(`[data-bword="${CSS.escape(key)}"]`)?.click()},
-    {icon:'🌿', label:'Goal card', desc:'Pull a goal onto the board with its progress.', run:()=>pinGoalCard(key)}]});
-  root.innerHTML = `<div class="page">
-    <div class="page-head"><h1>Vision Canvas</h1><div class="sub">The timeline is what you can argue for. This is what you can only feel — and looking at it changes what you do.</div></div>
-    <div class="tabs"><button data-go="#/vision">◷ Timeline</button><button class="active" data-go="#/vision/board">▣ Vision board</button></div>
-    ${eras.length ? `<div class="chip-row rv" style="margin:14px 0"><button class="chip click ${scope==='all'?'on':''}" data-bscope="all">the whole life</button>${eras.map(e=>`<button class="chip click ${scope===e.id?'on':''}" style="--c:${e.color}" data-bscope="${e.id}">${esc(e.name)} <span class="mono">${boardCount(boardId('era', e.id))}</span></button>`).join('')}</div>` : ''}
-    ${boardHTML(key, {title: scope === 'all' ? 'Pinned' : `Pinned for ${esc(byId(eras, scope)?.name || 'this chapter')}`, hint:'Drag to rearrange. Click a pin to see it large, ⤢ to cycle its size.'})}
-  </div>`;
-  $$('[data-bscope]',root).forEach(b => b.onclick = () => { S._boardEra = b.dataset.bscope === 'all' ? null : b.dataset.bscope; rerender(); });
-  bindBoard(root);
 }
 function pinGoalCard(key){
   const goals = S.visions.filter(v => !v.archived);

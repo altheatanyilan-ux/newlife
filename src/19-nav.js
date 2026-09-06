@@ -40,7 +40,7 @@ const NAV_PAGES = {
   commonplace:{label:'The Library',    short:'Library',  ico:NAV_ICONS.commonplace, route:'#/commonplace'},
   values:   {label:'Values',           short:'Values',   ico:NAV_ICONS.values,   route:'#/values'},
   skills:   {label:'Skill Tree',       short:'Skills',   ico:NAV_ICONS.skills,   route:'#/skills'},
-  vision:   {label:'Vision Canvas',    short:'Vision',   ico:NAV_ICONS.vision,   route:'#/vision'},
+  vision:   {label:'Vision',           short:'Vision',   ico:NAV_ICONS.vision,   route:'#/vision'},
   timeline: {label:'Timeline',         short:'Timeline', ico:NAV_ICONS.timeline, route:'#/timeline'},
 };
 const NAV_DEFAULT = {
@@ -120,7 +120,8 @@ function houseStats(){
     commonplace:{line:`${S.entries.filter(e=>e.type==='media').length} works logged`, ok:true, cadence:'archival', tip:'What you read, watched and listened to — and what it changed.'},
     people:   (()=>{ const od = typeof peopleNeedingAttention === 'function' ? peopleNeedingAttention() : [];
       return {line:`${(S.people||[]).length} people${od.length?` · ${od.length} overdue`:''}`, ok:!od.length, cadence:'weekly', tip:'A life is mostly other people.'}; })(),
-    finance:  {line: (S.accounts||[]).length ? `${money(netWorth())} · ${txnMonth(today().slice(0,7)).length} this month` : 'nothing listed', ok:true, cadence:'monthly', tip:'Net worth, envelopes and what you are saving toward.'},
+    finance:  (()=>{ const streams = typeof incomeStreamList==='function' ? incomeStreamList() : []; const tc = sum(streams.map(s=>s.income.current||0));
+      return {line: streams.length ? `${money(tc)}/mo across ${streams.length} stream${streams.length===1?'':'s'}` : 'no income streams yet', ok:true, cadence:'monthly', tip:'Building ways to make money, and what enough looks like.'}; })(),
     chronicle:{line:'the record as a book', ok:true, cadence:'annual', tip:'Print it, or save it as a PDF.'},
   };
   return {stat, due, done, vs, wither, last, snapDays, gaps, atro, hrs30, active, nods7, j7, quotes, memories, c, rem, zonesOf: k => n.present.includes(k)?'present':n.becoming.includes(k)?'becoming':'always'};
@@ -185,14 +186,14 @@ function zoneSummaries(){
     ]});
 
   const m = T.slice(0,7);
-  const nw = typeof netWorth === 'function' ? netWorth() : 0;
-  const budgeted = sum((S.budgets || []).map(b => +b.monthlyLimit || 0));
-  const spent = sum((S.budgets || []).map(b => spentIn(b.category, m)));
-  cards.push({label:'Finance', hint:'the material floor', accent:'var(--gold)', route:'#/finance',
+  const streams = typeof incomeStreamList === 'function' ? incomeStreamList() : [];
+  const totalCurrent = sum(streams.map(s=>s.income.current||0)), totalTarget = sum(streams.map(s=>s.income.target||0));
+  const annualWant = sum((S.spendCategories||[]).map(c=>c.annualAmount||0));
+  cards.push({label:'Finance', hint:'ways to make money, and what enough looks like', accent:'var(--gold)', route:'#/finance',
     lines:[
-      (S.accounts || []).length ? [`${money(nw)} net worth`, nw < 0 ? 'var(--gold)' : ''] : ['no accounts yet', 'var(--faint)'],
-      budgeted ? [`${money(budgeted - spent)} left in this month&#39;s envelopes`, budgeted - spent < 0 ? 'var(--gold)' : ''] : ['no envelopes set', 'var(--faint)'],
-      [`${money(monthSpend(m))} spent this month · ${money(monthIncome(m))} in`, ''],
+      streams.length ? [`${money(totalCurrent)}/mo across ${streams.length} stream${streams.length===1?'':'s'}`, ''] : ['no income streams yet', 'var(--faint)'],
+      totalTarget ? [`${money(totalTarget)}/mo target`, ''] : ['no target set', 'var(--faint)'],
+      annualWant ? [`covers ${Math.round(totalCurrent*12/annualWant*100)}% of ${money(annualWant)}/yr wanted`, totalCurrent*12 < annualWant ? 'var(--gold)' : 'var(--sage)'] : ['no annual spend vision set', 'var(--faint)'],
     ]});
   return cards;
 }
