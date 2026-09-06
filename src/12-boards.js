@@ -27,9 +27,12 @@ function boardHTML(key, {title = 'Board', hint = '', compact = false} = {}){
       <input type="file" accept="image/*" multiple hidden data-bfile="${esc(key)}">
     </div>
     <div class="board ${compact ? 'compact' : ''}" data-bgrid="${esc(key)}">
-      ${b.items.length ? b.items.map((it,i) => `<figure class="pin sp-${it.span || 'm'} ${it.kind === 'word' ? 'word' : ''}" draggable="true" data-pin="${it.id}" style="--rot:${((it.id.charCodeAt(0) % 5) - 2) * .55}deg">
+      ${b.items.length ? b.items.map((it,i) => `<figure class="pin sp-${it.span || 'm'} ${it.kind === 'word' ? 'word' : ''} ${it.kind === 'goal' ? 'goalcard' : ''}" draggable="true" data-pin="${it.id}" style="--rot:${((it.id.charCodeAt(0) % 5) - 2) * .55}deg">
           ${it.kind === 'word'
             ? `<div class="pin-word">${esc(it.caption || '')}</div>`
+            : it.kind === 'goal'
+            ? (() => { const g = byId(S.visions, it.goalId); const sc = g ? (typeof vividness === 'function' ? vividness(g).score : 0) : 0;
+                return `<a class="pin-goal" href="#/vision/${it.goalId}"><span class="pg-name">🌿 ${esc(g ? g.name : it.caption)}</span>${g?`<span class="bar" style="--c:var(--sage)"><i style="width:${sc}%"></i></span><span class="mono">${esc(g.confidence||'')} · vividness ${sc}</span>`:'<span class="mono">this goal is gone</span>'}</a>`; })()
             : `<img src="${esc(it.src)}" alt="${esc(it.caption || '')}" loading="lazy" data-blb="${it.id}">`}
           <figcaption>${ed(`boards.#${key}.items.${i}.caption`, {ph:'a word about it'})}</figcaption>
           <div class="pin-ctl">
@@ -97,22 +100,35 @@ function openBoardPanel(key, title){
   const redraw = () => { const scroll = p.scrollTop; openBoardPanel(key, title); const np = $('#panel'); if(np) np.scrollTop = scroll; };
   bindBoard(p, redraw);
 }
-/* ---------- the standalone board room ---------- */
-routes.board = function(root, params){
-  const key = params[0] ? decodeURIComponent(params[0]) : 'main';
-  const named = boardTitle(key);
-  registerPageEntry({pageName:'Board', addLabel:'Pin an image', defaultEntryType:'board', prefilledFields:{}, options:[
-    {icon:'▣', label:'Upload images', desc:'From this device, kept in your own database.', run:()=>document.querySelector(`[data-bupload="${CSS.escape(key)}"]`)?.click()},
-    {icon:'🔗', label:'From a link', desc:'Anything already on the web.', run:()=>document.querySelector(`[data-blink="${CSS.escape(key)}"]`)?.click()},
-    {icon:'✎', label:'A word', desc:'Sometimes one word does more than a photograph.', run:()=>document.querySelector(`[data-bword="${CSS.escape(key)}"]`)?.click()}]});
-  const others = (S.boards||[]).filter(b => b.items.length && b.id !== key);
+/* ---------- the vision board, inside the Vision Canvas ---------- */
+function renderVisionBoard(root){
+  const eras = typeof erasList === 'function' ? erasList() : [];
+  const scope = S._boardEra && eras.some(e => e.id === S._boardEra) ? S._boardEra : 'all';
+  const key = scope === 'all' ? 'main' : boardId('era', scope);
+  registerPageEntry({pageName:'Vision Canvas', addLabel:'Pin something', defaultEntryType:'board', prefilledFields:{}, options:[
+    {icon:'▣', label:'Image', desc:'Upload from this device — a copy is kept in your own database.', run:()=>document.querySelector(`[data-bupload="${CSS.escape(key)}"]`)?.click()},
+    {icon:'🔗', label:'Link', desc:'Anything already on the web.', run:()=>document.querySelector(`[data-blink="${CSS.escape(key)}"]`)?.click()},
+    {icon:'✎', label:'Word', desc:'Sometimes one word does more than a photograph.', run:()=>document.querySelector(`[data-bword="${CSS.escape(key)}"]`)?.click()},
+    {icon:'🌿', label:'Goal card', desc:'Pull a goal onto the board with its progress.', run:()=>pinGoalCard(key)}]});
   root.innerHTML = `<div class="page">
-    <div class="page-head"><h1>${esc(named)}</h1><div class="sub">The Vision Canvas is what you can argue for. This is what you can only feel — and research is fairly clear that looking at it changes what you do.</div></div>
-    ${boardHTML(key, {title:'Pinned', hint:'Drag to rearrange. Click a pin to see it large, ⤢ to cycle its size.'})}
-    ${others.length ? `<section class="section rv"><span class="sc">Other boards</span><div class="row" style="gap:8px;flex-wrap:wrap;margin-top:10px">${others.map(b => `<a class="chip click" href="#/board/${encodeURIComponent(b.id)}">${esc(boardTitle(b.id))} <span class="mono">${b.items.length}</span></a>`).join('')}</div></section>` : ''}
+    <div class="page-head"><h1>Vision Canvas</h1><div class="sub">The timeline is what you can argue for. This is what you can only feel — and looking at it changes what you do.</div></div>
+    <div class="tabs"><button data-go="#/vision">◷ Timeline</button><button class="active" data-go="#/vision/board">▣ Vision board</button></div>
+    ${eras.length ? `<div class="chip-row rv" style="margin:14px 0"><button class="chip click ${scope==='all'?'on':''}" data-bscope="all">the whole life</button>${eras.map(e=>`<button class="chip click ${scope===e.id?'on':''}" style="--c:${e.color}" data-bscope="${e.id}">${esc(e.name)} <span class="mono">${boardCount(boardId('era', e.id))}</span></button>`).join('')}</div>` : ''}
+    ${boardHTML(key, {title: scope === 'all' ? 'Pinned' : `Pinned for ${esc(byId(eras, scope)?.name || 'this chapter')}`, hint:'Drag to rearrange. Click a pin to see it large, ⤢ to cycle its size.'})}
   </div>`;
+  $$('[data-bscope]',root).forEach(b => b.onclick = () => { S._boardEra = b.dataset.bscope === 'all' ? null : b.dataset.bscope; rerender(); });
   bindBoard(root);
-};
+}
+function pinGoalCard(key){
+  const goals = S.visions.filter(v => !v.archived);
+  if(!goals.length){ toast('No goals yet — the timeline tab is where they start.'); return; }
+  const m = openModal(`<h2>Pin a goal</h2><div class="stack" style="gap:6px;max-height:50vh;overflow:auto">${goals.map(v=>`<button class="choice" data-pg="${v.id}"><span class="ico">🌿</span><span><b>${esc(v.name)}</b><div class="d">${esc(v.confidence||'')}${v.progress?` · ${v.progress}%`:''}</div></span></button>`).join('')}</div>`, 'narrow');
+  m.querySelectorAll('[data-pg]').forEach(b => b.onclick = () => {
+    const v = byId(S.visions, b.dataset.pg);
+    getBoard(key).items.push({id:uid(), kind:'goal', src:'', caption:v.name, span:'w', goalId:v.id});
+    saveNow(); m.remove(); sound('success'); rerender();
+  });
+}
 function boardTitle(key){
   if(key === 'main') return 'The Board';
   const [kind, id] = key.split(':');

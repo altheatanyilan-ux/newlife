@@ -63,8 +63,11 @@ routes.vision = function(root, params){
   registerPageEntry({pageName:'Vision Canvas', addLabel:'Add a goal or life event', defaultEntryType:'progress', prefilledFields:{era:activeEra}, options:[
     {icon:'🌿', label:'New goal', desc:'A branch on the canvas — something you are moving toward.', run:(pre)=>EntryActions.newVision(pre)},
     {icon:'◆', label:'New life event', desc:'Something that happened — a memory for the current chapter, not a task.', run:(pre)=>openLifeEventModal(byId(erasList().filter(e=>e.type!=='future'),activeEra)?activeEra:(erasList().find(e=>e.type==='present')?.id))}]});
+  const vtab = (params[0] === 'board') ? 'board' : 'timeline';
+  if(vtab === 'board') return renderVisionBoard(root);
   root.innerHTML = `<div class="page">
     <div class="page-head"><h1>Vision Canvas</h1><div class="sub">The chapters of a life, side by side: what happened, what is happening, what you are moving toward. Every entry tagged to a goal grows a leaf.</div></div>
+    <div class="tabs"><button class="active" data-go="#/vision">◷ Timeline</button><button data-go="#/vision/board">▣ Vision board</button></div>
     ${lifelineHTML()}
     <div class="row between" style="margin:34px 0 8px"><span class="sc" style="margin:0">The tree</span><span class="mono">the same goals as branches — vividness is the sap</span></div>
     <div class="tree-wrap" id="treeWrap" style="height:${Math.max(560, 150*eras.length + 120)}px;max-height:${eras.length>5?'none':'calc(100vh - 150px)'}"><div class="tree-tools"></div><div class="tree-legend"><span>bare twig 0–15</span><span>budding 16–30</span><span>leafing 31–50</span><span>canopy 51–70</span><span>flowering 71–85</span><span>fruiting 86–100</span><span>· hover a branch to trace its lineage</span></div></div>

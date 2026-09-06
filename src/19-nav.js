@@ -35,7 +35,6 @@ const NAV_PAGES = {
   rhythm:   {label:'Rhythm',           short:'Rhythm',   ico:NAV_ICONS.rhythm,   route:'#/rhythm'},
   writing:  {label:'Writing',          short:'Writing',  ico:NAV_ICONS.writing,  route:'#/writing'},
   people:   {label:'People',           short:'People',   ico:NAV_ICONS.people,   route:'#/people'},
-  board:    {label:'The Board',        short:'Board',    ico:NAV_ICONS.board,    route:'#/board'},
   finance:  {label:'Finance',          short:'Money',    ico:NAV_ICONS.finance,  route:'#/finance'},
   chronicle:{label:'Chronicle',        short:'Book',     ico:NAV_ICONS.chronicle,route:'#/chronicle'},
   commonplace:{label:'Commonplace Book', short:'Media',  ico:NAV_ICONS.commonplace, route:'#/commonplace'},
@@ -107,7 +106,6 @@ function houseStats(){
     writing:  {line:`${S.entries.filter(e=>e.type==='writing').length} pieces`, ok:true, cadence:'weekly', tip:'A room for contemplation, fed by your own hashtags.'},
     commonplace:{line:`${S.entries.filter(e=>e.type==='media').length} works logged`, ok:true, cadence:'archival', tip:'What you read, watched and listened to — and what it changed.'},
     people:   {line:`${(S.people||[]).length} people${(S.people||[]).filter(p=>personGoneQuiet(p)).length?` · ${(S.people||[]).filter(p=>personGoneQuiet(p)).length} gone quiet`:''}`, ok:!(S.people||[]).filter(p=>personGoneQuiet(p)).length, cadence:'weekly', tip:'A life is mostly other people.'},
-    board:    {line:`${boardCount('main')} pinned`, ok:true, cadence:'seasonal', tip:'The half of a vision you can only feel.'},
     finance:  {line: (S.accounts||[]).length ? `${money(netWorth())} · ${txnMonth(today().slice(0,7)).length} this month` : 'nothing listed', ok:true, cadence:'monthly', tip:'Net worth, envelopes and what you are saving toward.'},
     chronicle:{line:'the record as a book', ok:true, cadence:'annual', tip:'Print it, or save it as a PDF.'},
   };

@@ -31,7 +31,6 @@ const PAGE_THEMES = {
   finance:  {name:'Finance',       accent:['#8fae86','#4d7a4a'], ink:'#1a1816', gradient:['#6f9a68','#c3cf9f'], mood:'plain, countable',       motion:'crisp',     glyph:'財', icon:'▤'},
   chronicle:{name:'Chronicle',     accent:['#b8a68c','#7a6547'], ink:'#1a1816', gradient:['#a69070','#d8cab0'], mood:'bound, finished',        motion:'calm',      glyph:'伝', icon:'⎙'},
   people:   {name:'People',        accent:['#d99a9a','#a5605f'], ink:'#1a1816', gradient:['#c98a8a','#e6c3b4'], mood:'warm, particular',       motion:'calm',      glyph:'人', icon:'☺'},
-  board:    {name:'The Board',     accent:['#c9a86a','#8a6a33'], ink:'#1a1816', gradient:['#b4934f','#dfc9a0'], mood:'felt, unarguable',       motion:'calm',      glyph:'像', icon:'▣'},
   plan:     {name:'Plan',          accent:['#d98f6a','#a8613e'], ink:'#1a1816', gradient:['#c97f5e','#e0b48a'], mood:'ordered, near',          motion:'crisp',     glyph:'週', icon:'▤'},
   reviews:  {name:'Reviews',       accent:['#8fb0a8','#4f7d73'], ink:'#1a1816', gradient:['#6f9a91','#a9bfa2'], mood:'measured, honest',       motion:'calm',      glyph:'省', icon:'◷'},
   writing:  {name:'Writing',       accent:['#c8b79a','#8a7452'], ink:'#1a1816', gradient:['#b6a184','#d9c9ae'], mood:'quiet, unhurried',   motion:'calm',      glyph:'文', icon:'✒'},

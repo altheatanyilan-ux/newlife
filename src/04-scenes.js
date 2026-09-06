@@ -145,6 +145,7 @@ PAGE_SCENES.chronicle = () => scWrap(`<g stroke="${A}" fill="none" stroke-width=
 PAGE_SCENES.rhythm = () => scWrap(`<g stroke="${A}" opacity=".2" stroke-width="1.3">${Array.from({length:13},(_,i)=>`<line x1="150" y1="${110+i*46}" x2="1050" y2="${110+i*46}"/>`).join('')}${Array.from({length:8},(_,i)=>`<line x1="${150+i*129}" y1="110" x2="${150+i*129}" y2="662"/>`).join('')}</g>
     <g opacity=".4">${[[1,2,3,2.5],[2,4,2,2],[3,1,4,3],[4,5,2.5,2],[5,3,3,2.5],[0,6,2,1.5]].map(([c,r,h,w],i)=>`<rect x="${162+c*129}" y="${118+r*46}" width="${w*44}" height="${h*46-8}" rx="5" fill="${i%2?G1:G2}" opacity=".55"/>`).join('')}</g>
     <line x1="150" y1="386" x2="1050" y2="386" stroke="#e07a5f" stroke-width="2" opacity=".55"/><circle cx="150" cy="386" r="5" fill="#e07a5f" opacity=".7"/>`);
+PAGE_SCENES.board = PAGE_SCENES.vision;
 PAGE_SCENES.tag = PAGE_SCENES.journals;
 
 /* ---------- a motif no other record has ---------- */
