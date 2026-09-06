@@ -39,10 +39,14 @@ const DB_SCHEMA = {          // primary key first, then indexes — Dexie syntax
   txns:           'id, date, category, accountId',
   budgets:        'id, category',
   finGoals:       'id',
+  chapters:       'id, startDate',
+  turns:          'id, chapterId, date',
+  threadsN:       'id',
+  interactions:   'id, personId, date',
 };
 /* keys of S that are single objects/arrays without their own identity — kept as rows in `meta` */
 const META_KEYS = ['settings','rehearsal','reviews','valueOrder','valueOrderHistory','places','journals','negLast','finance','plans','reviewLog'];
-const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders','visionEras','tasks','boards','people','events','accounts','txns','budgets','finGoals'];
+const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders','visionEras','tasks','boards','people','events','accounts','txns','budgets','finGoals','chapters','turns','threadsN','interactions'];
 
 /* ---------- MiniDexie: Dexie-compatible subset over IndexedDB ---------- */
 class MiniTable {
@@ -80,7 +84,7 @@ const usingRealDexie = DexieImpl !== MiniDexie;
 
 /* ---------- the database ---------- */
 const db = new DexieImpl(DB_NAME);
-db.version(8).stores(DB_SCHEMA);   // v7 events, v8 accounts/txns/budgets/finGoals (streams retired)
+db.version(9).stores(DB_SCHEMA);   // v8 finance rebuild, v9 chronicle chapters/turns/threads + interactions
 
 /* ---------- S <-> stores ---------- */
 function stateToStores(state){

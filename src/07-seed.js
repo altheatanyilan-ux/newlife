@@ -36,7 +36,7 @@ function seed(){
     ],
     rehearsal:{script:'', winning:'', aim:'', cycleStart:'', days:[]},
     reviews:{lastWeekly:null,lastSeasonal:null,lastAnnual:null},
-    people:[], places:[], boards:[], events:[], plans:{}, reviewLog:{}, accounts:[], txns:[], budgets:[], finGoals:[],
+    people:[], places:[], boards:[], events:[], plans:{}, reviewLog:{}, accounts:[], txns:[], budgets:[], finGoals:[], chapters:[], turns:[], threadsN:[], interactions:[],
     finance:{currency:'SGD', categories:[], netWorthLog:[], principles:[], note:'', assigned:{}},
   };
 }
