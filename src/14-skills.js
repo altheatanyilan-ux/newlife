@@ -60,7 +60,12 @@ function migrateSkillFocus(){
 }
 const skillHorizon = s => SKILL_HORIZONS[s.horizon] ? s.horizon : 'active';
 function focusSkills(){ return S.skills.filter(s => skillHorizon(s) === 'focus'); }
-function skillIsAtrophying(s){ const h = skillHorizon(s); if(h === 'someday' || h === 'paused' || s.planned) return false; return daysSince(skillLastPracticed(s)) > 90; }
+/* Atrophy is a skill going cold, not a skill that has not started. Something you
+   have never once practised has nothing to lose yet — it reads as "never", not
+   as withering. */
+function skillIsAtrophying(s){ const h = skillHorizon(s); if(h === 'someday' || h === 'paused' || s.planned) return false;
+  const last = skillLastPracticed(s); if(!last) return false;
+  return daysSince(last) > 90; }
 /* every milestone across every skill, inside a window of days */
 function milestonesWithin(days){
   const T = today(); const lim = addDays(T, days); const out = [];
@@ -258,9 +263,9 @@ function organicSVG(W, H){
     lblItems.push({id:'cat:'+it.cat, ex:X(e[0]), ey:Y(e[1])+8, x:lx, y:Y(e[1])+8, anchor, w:it.cat.length*6.4+8, h:24, fixed:true});
   });
   items.filter(i => i.kind==='skill').sort((a,b)=>a.depth-b.depth).forEach(it => {
-    const s = it.skill; const col = catColor(s.cat); const locked = skillIsLocked(s); const since = daysSince(skillLastPracticed(s)); const active = !locked && !s.planned && since <= 7;
+    const s = it.skill; const col = catColor(s.cat); const locked = skillIsLocked(s); const last = skillLastPracticed(s); const since = daysSince(last); const active = !locked && !s.planned && since <= 7;
     const lc = skillLevelCount(s); const lvl = s.currentLevel||0; const prog = lc ? lvl/lc : 0; const mastered = !s.planned && lc >= 2 && lvl >= lc;
-    const wither = !s.planned && !locked && since > 90 ? clamp((since-90)/180, 0, .8) : 0;
+    const wither = last && !s.planned && !locked && since > 90 ? clamp((since-90)/180, 0, .8) : 0;
     const nm = nextMilestone(s); const due = nm?.by ? daysBetween(T, nm.by) : null; const blossom = due !== null && due >= 0 && due <= 45; const overdue = due !== null && due < 0;
     const limbW = ((it.depth===2 ? 3.2 : 2.4) + lvl*.5) * k * (1 - wither*.3); const limbCol = locked ? '#5a554f' : lerpColor('#6b5642', '#5a4634', prog);
     const leafBase = lerpColor(col, '#6f9a58', .25 + .45*prog); const leafCol = lerpColor(leafBase, '#8a6a3a', wither);
@@ -280,7 +285,7 @@ function organicSVG(W, H){
     if(active){ lf = `<circle class="halo" cx="${X(it.end[0]).toFixed(1)}" cy="${Y(it.end[1]).toFixed(1)}" r="${(15*k).toFixed(1)}" fill="${col}" opacity=".16"/>` + lf; }
     if(overdue){ lf += `<circle cx="${X(it.end[0]).toFixed(1)}" cy="${Y(it.end[1]).toFixed(1)}" r="${(3*k).toFixed(1)}" fill="#c25b5b"/>`; }
     const outward = it.end[0] >= 0 ? 1 : -1;
-    const sub = s.planned ? 'planned' : locked ? 'locked' : mastered ? 'mastered' : `lvl ${lvl}/${lc}${active?' · active':wither?' · withering':''}`;
+    const sub = s.planned ? 'planned' : locked ? 'locked' : mastered ? 'mastered' : `lvl ${lvl}/${lc}${active?' · active':wither?' · withering':!last?' · not yet practised':''}`;
     const name = (locked?'🔒 ':'') + s.name; const fs = it.depth===2 ? 11.5 : 10.5;
     lblItems.push({id:s.id, ex:X(it.end[0]), ey:Y(it.end[1]), x:X(it.end[0]) + outward*8, y:Y(it.end[1]), anchor:outward>0?'start':'end', w:Math.max(name.length*fs*.56, sub.length*8.5*.62) + 6, h:24, name, sub, fs, col});
     g += `<g class="sk-twig ${locked?'locked':''} ${active?'active':''} ${mastered?'mastered':''}" data-skill="${s.id}" data-parent="${it.parent}" data-x="${X(it.end[0]).toFixed(1)}" data-y="${Y(it.end[1]).toFixed(1)}" style="--nc:${col}"><title>${esc(s.name)} · ${esc(sub)}${since<Infinity?` · last practised ${relDays(since)}`:''}</title>${inner}<g class="sk-leaves">${lf}</g><g class="sk-lblslot" data-for="${s.id}"></g></g>`;

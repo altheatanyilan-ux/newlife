@@ -442,7 +442,11 @@
 .inv-last.atrophy{color:#c9a05a}
 .inv-set{width:auto;padding:2px 6px;font-size:.66rem;opacity:0;transition:opacity .2s var(--ease)}
 .inv-row:hover .inv-set,.inv-set:focus{opacity:1}
+.inv-row > *{min-width:0}
+.inv-name{min-width:0}
+.inv-name b{overflow-wrap:anywhere}
 @media (max-width:1000px){.inv-row{grid-template-columns:20px 1fr auto auto;row-gap:4px}.inv-lv,.inv-ms,.inv-last{grid-column:2/-1}.inv-set{opacity:1}}
+@media (max-width:620px){.inv-row{grid-template-columns:18px 1fr auto;gap:8px;padding:9px 6px}.inv-lv,.inv-ms,.inv-last{grid-column:2/-1}.inv-why{white-space:normal}}
 /* ---------- values: the reading, then the evidence ---------- */
 .reading-card{padding:26px 30px;border-radius:var(--radius);border:1px solid color-mix(in srgb,var(--page-accent) 30%,var(--line));background:linear-gradient(135deg,color-mix(in srgb,var(--page-gradient-start) 12%,var(--surface)),var(--surface) 65%);position:relative;overflow:hidden}
 .reading-card::after{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--page-accent),transparent)}
@@ -1141,8 +1145,11 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 .mini-rings{display:flex;gap:6px;align-items:center}
 .mini-rings svg{width:26px;height:26px}
 .next-actions{margin-top:14px;border-top:1px dashed var(--line);padding-top:10px}
-.next-actions div{display:flex;gap:10px;align-items:baseline;padding:4px 0;font-size:.9rem}
+.next-actions div{display:flex;gap:10px;align-items:baseline;padding:4px 0;font-size:.9rem;min-width:0}
+.next-actions div > span[style]{min-width:0;overflow-wrap:anywhere}
 .next-actions .mono{flex:none}
+.next-actions a.mono{flex:0 1 auto;min-width:0;max-width:45%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (max-width:560px){.next-actions div{flex-wrap:wrap}.next-actions a.mono{max-width:100%;margin-left:auto}}
 .house-wrap{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:18px;overflow:hidden;min-height:420px}
 .house-wrap svg{width:100%;height:100%;display:block;min-height:420px}
 .hnode{cursor:pointer}

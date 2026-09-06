@@ -4,7 +4,38 @@
    they told you, notice when you have drifted, and be
    deliberate about the handful of people a life is made of.
    ============================================================ */
-const RELATIONSHIPS = ['family','close friend','friend','colleague','mentor','mentee','acquaintance','other'];
+/* the ones every list needs; anything else you name yourself and it stays named */
+const RELATIONSHIPS_BUILT_IN = ['partner','family','close friend','friend','colleague','mentor','mentee','acquaintance','other'];
+function relationships(){
+  const own = Array.isArray(S.settings?.relationships) ? S.settings.relationships : [];
+  const used = (S.people || []).map(p => p.relationship).filter(Boolean);
+  return [...new Set([...RELATIONSHIPS_BUILT_IN, ...own, ...used])];
+}
+function addRelationship(name){
+  const v = String(name || '').trim().toLowerCase().replace(/\s+/g, ' ').slice(0, 40);
+  if(!v) return null;
+  if(!relationships().includes(v)){ S.settings.relationships = [...(S.settings.relationships || []), v]; saveNow(); }
+  return v;
+}
+/* a <select> of relationships with a way out of the list at the bottom */
+function relSelect(id, current, extra=''){
+  const list = relationships();
+  return `<select class="sel" id="${id}" ${extra}>${list.map(r=>`<option ${current===r?'selected':''}>${esc(r)}</option>`).join('')}<option value="__new" style="font-style:italic">＋ name another…</option></select>`;
+}
+/* wire one up: picking "name another" asks, adds it, and selects it */
+function bindRelSelect(sel, onPick){
+  if(!sel) return;
+  let last = sel.value;
+  sel.onchange = () => {
+    if(sel.value === '__new'){
+      const v = addRelationship(prompt('What do you call this relationship?', ''));
+      if(!v){ sel.value = last; return; }
+      sel.insertBefore(el(`<option selected>${esc(v)}</option>`), sel.querySelector('[value="__new"]'));
+      sel.value = v;
+    }
+    last = sel.value; onPick && onPick(sel.value);
+  };
+}
 const CIRCLES = {
   inner:  ['◉','Inner',  'the few you would call at three in the morning', 5,  '#c25b5b'],
   middle: ['○','Middle', 'the people you want in your year, often',        15, '#d4a44c'],
@@ -31,13 +62,13 @@ function migratePeople(){
     if(p.tier) out.circle = {inner:'inner', close:'middle', orbit:'outer', past:'outer'}[p.tier] || 'outer';
     if(!CIRCLES[out.circle]) out.circle = 'outer';
     if(p.tier === 'past' && !out.desiredFrequency) out.desiredFrequency = null;
-    if(!RELATIONSHIPS.includes(out.relationship)) out.relationship = p.relation && RELATIONSHIPS.includes(p.relation) ? p.relation : 'friend';
+    if(!out.relationship) out.relationship = p.relation || 'friend';
     out.details = Object.assign({interests:[], importantDates:[], notes:'', lifeUpdates:''}, out.details || {});
     if(p.met && !out.details.notes) out.details.notes = `How we met. ${p.met}`;
     if(p.gave) out.details.lifeUpdates = [out.details.lifeUpdates, `What they gave me. ${p.gave}`].filter(Boolean).join('\n\n');
     if(p.owe) out.details.notes = [out.details.notes, `What I owe them. ${p.owe}`].filter(Boolean).join('\n\n');
     if(p.notes) out.details.notes = [out.details.notes, p.notes].filter(Boolean).join('\n\n');
-    if(p.relation && !out.nickname && !RELATIONSHIPS.includes(p.relation)) out.nickname = p.relation;
+
     out.contactInfo = Object.assign({phone:'', email:'', social:[]}, out.contactInfo || {});
     out.tags = normTags((out.tags && out.tags.length) ? out.tags : (p.aka || []));
     delete out.tier; delete out.relation; delete out.met; delete out.gave; delete out.owe; delete out.notes; delete out.aka;
@@ -161,7 +192,7 @@ function pplList(box){
   list = list.sort(cmp);
   box.innerHTML = `<div class="filter-bar rv">
       <input class="inp" id="plq" placeholder="search name, nickname, tag" value="${esc(f.q)}">
-      <select class="sel" id="plRel"><option value="all">any relationship</option>${RELATIONSHIPS.map(r=>`<option value="${r}" ${f.rel===r?'selected':''}>${r}</option>`).join('')}</select>
+      <select class="sel" id="plRel"><option value="all">any relationship</option>${relationships().map(r=>`<option value="${esc(r)}" ${f.rel===r?'selected':''}>${esc(r)}</option>`).join('')}</select>
       <select class="sel" id="plCircle"><option value="all">any circle</option>${Object.entries(CIRCLES).map(([k,c])=>`<option value="${k}" ${f.circle===k?'selected':''}>${c[1]}</option>`).join('')}</select>
       ${tags.length?`<select class="sel" id="plTag"><option value="all">any tag</option>${tags.map(t=>`<option value="${esc(t)}" ${f.tag===t?'selected':''}>#${esc(t)}</option>`).join('')}</select>`:''}
       <select class="sel" id="plSort">${[['last','losing touch first'],['name','by name'],['circle','by circle'],['birthday','next birthday']].map(([v,l])=>`<option value="${v}" ${f.sort===v?'selected':''}>${l}</option>`).join('')}</select>
@@ -221,7 +252,7 @@ function renderPersonPage(root, id){
         <h1 style="margin:0">${ed(`people.#${p.id}.name`)}</h1>
         ${p.nickname?`<div class="quote">“${esc(p.nickname)}”</div>`:''}
         <div class="row" style="gap:8px;margin-top:8px;flex-wrap:wrap">
-          <select class="sel" style="width:auto" id="ppRel">${RELATIONSHIPS.map(r=>`<option ${p.relationship===r?'selected':''}>${r}</option>`).join('')}</select>
+          ${relSelect('ppRel', p.relationship, 'style="width:auto"')}
           <select class="sel" style="width:auto" id="ppCircle">${Object.entries(CIRCLES).map(([k,x])=>`<option value="${k}" ${p.circle===k?'selected':''}>${x[0]} ${x[1]} ring</option>`).join('')}</select>
           <select class="sel" style="width:auto" id="ppFreq" title="how often you would like to be in touch"><option value="">no rhythm set</option>${Object.keys(FREQUENCIES).map(k=>`<option value="${k}" ${p.desiredFrequency===k?'selected':''}>${k}</option>`).join('')}</select>
         </div></div>
@@ -270,7 +301,7 @@ function renderPersonPage(root, id){
     ${moreSection(`<div class="danger-zone"><span>This removes the person, their interactions and their board. What you wrote stays.</span><button class="btn sm ghost danger" id="ppDel">Remove this person</button></div>`)}
   </div>`;
   p._interests = (p.details.interests || []).join(', ');
-  $('#ppRel').onchange = e => { p.relationship = e.target.value; saveNow(); };
+  bindRelSelect($('#ppRel'), v => { p.relationship = v; saveNow(); });
   $('#ppCircle').onchange = e => { p.circle = e.target.value; saveNow(); rerender(); };
   $('#ppFreq').onchange = e => { p.desiredFrequency = e.target.value || null; saveNow(); rerender(); };
   $('#ppLog').onclick = () => openInteractionModal(null, p.id);
@@ -302,7 +333,7 @@ function openPersonModal(ex){
       <div class="field"><label>What you call them</label><input class="inp" id="pNick" value="${esc(p.nickname||'')}" placeholder="optional"></div>
     </div>
     <div class="grid c3" style="gap:10px">
-      <div class="field"><label>Relationship</label><select class="sel" id="pRel">${RELATIONSHIPS.map(r=>`<option ${p.relationship===r?'selected':''}>${r}</option>`).join('')}</select></div>
+      <div class="field"><label>Relationship</label>${relSelect('pRel', p.relationship)}</div>
       <div class="field"><label>Circle</label><select class="sel" id="pCircle">${Object.entries(CIRCLES).map(([k,c])=>`<option value="${k}" ${p.circle===k?'selected':''}>${c[0]} ${c[1]}</option>`).join('')}</select></div>
       <div class="field"><label>In touch how often</label><select class="sel" id="pFreq"><option value="">no rhythm</option>${Object.keys(FREQUENCIES).map(k=>`<option value="${k}" ${p.desiredFrequency===k?'selected':''}>${k}</option>`).join('')}</select></div>
     </div>
@@ -311,6 +342,7 @@ function openPersonModal(ex){
       <div class="field"><label>Tags</label><input class="inp mono" id="pTags" value="${esc((p.tags||[]).map(t=>'#'+t).join(' '))}" placeholder="#climbing #nus"></div>
     </div>
   </div><div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn primary" id="pSave">${ex?'Save':'Add'}</button></div>`, 'narrow');
+  bindRelSelect(m.querySelector('#pRel'));
   m.querySelector('#pSave').onclick = () => {
     const name = m.querySelector('#pName').value.trim(); if(!name){ toast('A name, at least.'); return; }
     Object.assign(p, {name, nickname:m.querySelector('#pNick').value.trim(), relationship:m.querySelector('#pRel').value,

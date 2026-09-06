@@ -147,6 +147,7 @@ async function init(){
   markNavDirection(); renderRoute(); startDust(); updateBackButton();
   window.addEventListener('beforeunload', () => { if(saving || savePending) saveNow(); });
   if(S.settings.firstOpen === today() && !S._welcomed){ S._welcomed = true; setTimeout(()=>toast('Welcome home. Every piece of text here is editable — click it. The placeholder life is yours to overwrite.', 7000), 800); }
+  setTimeout(() => { try { maybeOfferStarter(); } catch(e){ console.warn('starter set skipped', e); } }, 1200);
 }
 document.readyState==='loading' ? document.addEventListener('DOMContentLoaded', init) : init();
 </script>

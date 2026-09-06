@@ -7,7 +7,7 @@ function seed(){
   const T = today();
   return {
     version:1,
-    settings:{theme:'dark',sound:false,feltTime:false,home:'home',chapterNamed:false,ribbons:true,firstOpen:T},
+    settings:{theme:'dark',sound:false,feltTime:false,home:'home',chapterNamed:false,ribbons:true,firstOpen:T,relationships:[]},
     reminders:[], tasks:[],
     stages:[], threads:[], tensions:[],
     values:[], valueOrder:[], valueOrderHistory:[], valueSnapshots:[],

@@ -119,7 +119,7 @@ A Claude Pro or Max subscription — or a ChatGPT one — cannot be used for thi
 
 - **Sealed letters** (Journals → Letters): write to a future self and seal it until a date. It is hidden from cards, lists and search until then, and surfaces on Today when it comes due, with room to answer the person who wrote it.
 - **Decision journal** (Journals → Decisions): the situation, the options, the real reasoning, what you expect and what would make it a mistake — then a review date that returns on Today, with what actually happened and a verdict.
-- **People**: tag anyone in an entry and the People room fills itself — every mention becomes a logged interaction, and anyone you have not been in touch with inside their cadence surfaces as overdue.
+- **People**: tag anyone in an entry and the People room fills itself — every mention becomes a logged interaction, and anyone you have not been in touch with inside their cadence surfaces as overdue. Relationship types are a list you extend: pick **＋ name another…** in any relationship dropdown and whatever you type is added, kept, and available everywhere from then on.
 
 ## Hashtags
 
@@ -135,9 +135,15 @@ Journal keeps your days and Timeline keeps your moments; neither answers what th
 
 Any memory, life event, reflection or decision can be promoted straight into it with the **→ turning point** button on its card: it files itself into the chapter its date falls in and links back to the entry. The **Patterns** tab shows which kinds of moment your story is made of — a life told mostly as events that happened to you reads differently from one told as decisions — and **Print the book** sets the whole record as a printable volume.
 
+## The starter set
+
+The house opens with a first draft in it: four goals, seven skills, four projects with real phase checklists, a five-point compass, three narrative threads, a shelf of things to get to, some open questions and a handful of sparks. It is written from things the owner actually said — the vision board, the work in progress — rather than invented, and where writing it would have meant inventing a biography (life stages, people, memories, money) it leaves a named, empty room instead. **No habits and no habit log**, because a logged day is the one thing in here you cannot cleanly take back.
+
+Every record it adds carries `seeded:'starter'`, so **Settings → Starter set → Take it out** removes all of it in one action and touches nothing you wrote yourself. It is offered only into a house that is still empty; if you have written anything, the button in Settings is the only way in. Applying it twice is a no-op — records are matched on a stable key.
+
 ## Starting empty
 
-The house opens unfurnished. Nothing is seeded except the journal categories and three neutral chapters on the Vision Canvas, so every stage, value, skill, project and habit is yours from the first one.
+Underneath the starter set the house is unfurnished: nothing is seeded except the journal categories and three neutral chapters on the Vision Canvas. Take the starter set out and every stage, value, skill, project and habit is yours from the first one.
 
 ## Keyboard
 

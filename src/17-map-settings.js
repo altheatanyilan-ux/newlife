@@ -12,6 +12,11 @@ routes.settings = function(root){
     </div>
     <div class="card rv"><h3>Navigation zones</h3><p class="muted" style="font-size:.85rem">Drag pages between Present, Becoming, and Always. The sidebar and the mobile menu follow.</p>${zoneEditorHTML()}
     </div>
+    <div class="card rv"><h3>Starter set</h3>
+      <p class="muted" style="font-size:.85rem">A first draft of the house — goals, skills, projects, a compass, threads and open questions, written from the vision board you described rather than invented. It is stamped, so it comes out cleanly and takes nothing you have written with it. Where knowing your history would have been required, it leaves an empty room instead of a story.</p>
+      <div class="opt"><div><b id="starterState"></b><div class="d" id="starterHint"></div></div>
+        <span class="row" style="gap:8px"><button class="btn" id="sStarterAdd">Add it</button><button class="btn ghost danger" id="sStarterDel">Take it out</button></span></div>
+    </div>
     <div class="card rv"><h3>Data &amp; backups</h3><p class="muted" style="font-size:.85rem" id="storageLine">Everything lives in this browser, in an IndexedDB database. Measuring…</p><div class="bar" style="--c:var(--sage);margin-bottom:12px"><i id="storageBar" style="width:0%"></i></div>
       <div class="row"><button class="btn primary" id="sExport">💾 Export backup</button><button class="btn" id="sImport">Import backup</button><input type="file" id="sFile" accept=".json,application/json" hidden><button class="btn ghost" id="sRestoreInfo" title="${esc(RECOVERY_TEXT)}">ⓘ How to restore</button></div>
       <p class="muted" style="font-size:.85rem;margin-top:12px" id="lastBackupLine"></p>
@@ -34,6 +39,22 @@ routes.settings = function(root){
     </div></div></div>`;
   storageInfo().then(i => { const line = $('#storageLine'); if(!line) return; const mode = usingRealDexie ? 'an IndexedDB database (Dexie)' : 'an IndexedDB database'; if(i && i.quota){ line.textContent = `Everything lives in this browser, in ${mode}. Using ${fmtBytes(i.usage)} of about ${fmtBytes(i.quota)} available to this site.`; $('#storageBar').style.width = Math.max(1, i.usage/i.quota*100).toFixed(1)+'%'; } else { line.textContent = `Everything lives in this browser, in ${mode}.`; } });
   $('#sPhotoMax').onchange = e => { S.settings.photoMax = +e.target.value; saveNow(); };
+  /* the starter set: how much of it is still here, and the two buttons */
+  (() => {
+    const n = starterCount();
+    $('#starterState').textContent = n ? `${n} record${n===1?'':'s'} from the starter set are still here` : 'The starter set is not in this house';
+    $('#starterHint').textContent = n ? 'Anything you have edited keeps your edits — but “take it out” removes it along with the rest.'
+      : 'Adding it will not touch anything you have written.';
+    $('#sStarterAdd').disabled = !!n;
+    $('#sStarterDel').disabled = !n;
+    $('#sStarterAdd').onclick = () => { applyStarter(); sound('success'); toast('Added. Every piece of it is editable, and this button becomes “take it out”.', 6000); rerender(); };
+    $('#sStarterDel').onclick = () => { const c = starterCount();
+      requestDelete({label:`the starter set (${c} record${c===1?'':'s'})`, remove:() => {
+        const snap = JSON.parse(JSON.stringify({stages:S.stages, values:S.values, valueOrder:S.valueOrder, visions:S.visions, skills:S.skills, projects:S.projects, threadsN:S.threadsN, entries:S.entries, ideas:S.ideas}));
+        removeStarter();
+        return () => { Object.assign(S, snap); saveNow(); };
+      }, after:() => { S.settings.starterDeclined = true; saveNow(); rerender(); }}); };
+  })();
 
   if($('#ambSettings')) bindAmbientMenu($('#ambSettings'));
   if($('#aiSave')) $('#aiSave').onclick = () => { setAiKey($('#aiKey').value); toast(aiReady() ? 'Key saved in this browser.' : 'Key removed.'); rerender(); };
