@@ -28,6 +28,15 @@ Open `index.html` in a browser. That is the whole deployment. There is no build 
 | `#/map` | System Map: how the rooms feed each other, coded by attention cadence |
 | `#/settings` | Theme, ambient sound, felt time, home page, export/import/clear |
 
+## Sound
+
+Two synthesised layers, nothing downloaded. Both are off by default and remembered in `localStorage` (`soundEnabled`, `ambientEnabled`).
+
+- 🔔 Interaction sounds: a two-note chime on clicks (528 → 660 Hz), a 432 Hz note on navigation, a rising 440 → 880 Hz pair when a habit, entry, or practice is completed, a 220 Hz note on destructive actions, and a 396 Hz swell when a panel or modal opens.
+- 🌊 Ambient: a brown-noise wash generated in an AudioWorklet (ScriptProcessor fallback), low-passed at 200 Hz at gain 0.03. It ducks to 0.015 under each interaction sound and recovers over 0.8 s.
+
+The AudioContext is created lazily inside the first user gesture and reused. `useSoundManager()` returns the manager: `play(kind)`, `toggleSound()`, `toggleAmbient()`, `state()`, `subscribe(fn)`.
+
 ## Keyboard
 
 - `⌘N` / `Ctrl+N` new entry
