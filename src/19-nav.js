@@ -108,7 +108,7 @@ function houseStats(){
     commonplace:{line:`${S.entries.filter(e=>e.type==='media').length} works logged`, ok:true, cadence:'archival', tip:'What you read, watched and listened to — and what it changed.'},
     people:   {line:`${(S.people||[]).length} people${(S.people||[]).filter(p=>personGoneQuiet(p)).length?` · ${(S.people||[]).filter(p=>personGoneQuiet(p)).length} gone quiet`:''}`, ok:!(S.people||[]).filter(p=>personGoneQuiet(p)).length, cadence:'weekly', tip:'A life is mostly other people.'},
     board:    {line:`${boardCount('main')} pinned`, ok:true, cadence:'seasonal', tip:'The half of a vision you can only feel.'},
-    finance:  {line: (S.streams||[]).length ? `${money(monthlyIn())}/mo · ${activeStreams().length} stream${activeStreams().length===1?'':'s'}` : 'nothing listed', ok:true, cadence:'monthly', tip:'What comes in, how fragile it is, and how far the door is.'},
+    finance:  {line: (S.accounts||[]).length ? `${money(netWorth())} · ${txnMonth(today().slice(0,7)).length} this month` : 'nothing listed', ok:true, cadence:'monthly', tip:'Net worth, envelopes and what you are saving toward.'},
     chronicle:{line:'the record as a book', ok:true, cadence:'annual', tip:'Print it, or save it as a PDF.'},
   };
   return {stat, due, done, vs, wither, last, snapDays, gaps, atro, hrs30, active, nods7, j7, quotes, memories, c, rem, zonesOf: k => n.present.includes(k)?'present':n.becoming.includes(k)?'becoming':'always'};
