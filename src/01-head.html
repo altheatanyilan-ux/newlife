@@ -228,7 +228,7 @@ details .body{padding:4px 0 18px}
 .dropzone:hover,.dropzone.over{border-color:var(--terra);color:var(--muted)}
 .thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 .thumbs img{width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--line)}
-.toast-wrap{position:fixed;bottom:100px;right:28px;z-index:120;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+.toast-wrap{position:fixed;bottom:28px;left:calc(var(--sidebar) + 24px);z-index:120;display:flex;flex-direction:column;gap:8px;align-items:flex-start}
 .toast{background:var(--surface);border:1px solid var(--line-2);border-left:3px solid var(--terra);padding:10px 16px;border-radius:10px;font-size:.85rem;box-shadow:var(--shadow);animation:rise .3s var(--ease);max-width:340px}
 .ripple{position:fixed;border-radius:50%;pointer-events:none;z-index:200;transform:translate(-50%,-50%);animation:rip 1s var(--ease) forwards;border:2px solid var(--c,var(--terra))}
 @keyframes rip{from{width:0;height:0;opacity:.8}to{width:520px;height:520px;opacity:0}}
@@ -284,7 +284,7 @@ svg text{font-family:var(--mono);fill:var(--faint);font-size:10px}
   .nav a.active{border-top-color:var(--terra)}
   main{margin-left:0;padding:28px 18px 120px}
   .fab-wrap{bottom:74px}
-  .toast-wrap{bottom:140px}
+  .toast-wrap{bottom:74px;left:16px;right:96px}
   .topbar{top:8px;right:12px}
 }
 @media (prefers-reduced-motion:reduce){
