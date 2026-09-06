@@ -173,7 +173,7 @@ function openTurnPanel(id){
       ${[...mems, ...jrns].length ? [...mems, ...jrns].map(e => entryCard(e, {tools:false})).join('') : '<div class="faint" style="font-size:.8rem">Nothing linked. A memory or journal entry from around this time gives the moment its texture.</div>'}</div>
 
     ${moreSection(`<div class="danger-zone"><span>This deletes the turning point and everything written about it.</span><button class="btn sm ghost danger" id="tpDel">Delete this turning point</button></div>`)}`, 'turn-panel');
-  const reopen = () => { rerender(); openTurnPanel(id); };
+  const reopen = () => reopenPanel(() => { rerender(); openTurnPanel(id); });
   p.querySelector('#tpType').onchange = e => { t.type = e.target.value; saveNow(); reopen(); };
   p.querySelector('#tpCh').onchange = e => { t.chapterId = e.target.value || null; saveNow(); reopen(); };
   p.querySelectorAll('[data-tpth]').forEach(c => c.onclick = () => { const id2 = c.dataset.tpth;

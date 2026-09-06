@@ -131,28 +131,29 @@ function openVisionPanel(id){
     <div class="vp-sec"><span class="sc">The 80-year-old check</span><p class="faint" style="font-size:.8rem;margin:0 0 6px">Why does this matter when I look back from the end?</p>${ed(`visions.#${v.id}.obituary`,{multi:true,ph:'If the answer is thin, the vision may be vanity.'})}</div>
     ${boardStrip(boardId('vision', id), 'Board')}
     <div class="vp-sec"><div class="row between"><span class="sc">Manifestation evidence log</span><button class="btn sm ghost" id="addEv">+ evidence</button></div><p class="faint" style="font-size:.8rem;margin:0 0 6px">Coincidences, doors, people who appeared. Evidence of alignment arrives before full manifestation.</p>${v.evidence.map((e,i)=>`<div class="evidence-item"><span class="mono">${ed(`visions.#${v.id}.evidence.${i}.date`,{ph:'date',cls:'mono'})}</span><span style="flex:1">${ed(`visions.#${v.id}.evidence.${i}.text`,{multi:true})}</span><button class="tbtn" data-evdel="${i}">×</button></div>`).join('')||'<div class="empty">Nothing logged yet. Watch for it.</div>'}</div>
+    ${(typeof mediaEntries==='function' ? mediaEntries().filter(m=>(m.links.visions||[]).includes(v.id)) : []).length ? `<div class="vp-sec"><span class="sc">Media feeding this vision</span><div class="row" style="gap:8px;flex-wrap:wrap">${mediaEntries().filter(m=>(m.links.visions||[]).includes(v.id)).map(m=>{ const mx=mediaX(m); const k=MEDIA_KINDS[mx.kind]||MEDIA_KINDS.book; return `<span class="chip on click" style="--c:${k[2]}" data-go="#/commonplace/${m.id}">${k[0]} ${esc(m.title)}</span>`; }).join('')}</div></div>` : ''}
     <div class="vp-sec"><div class="row between"><span class="sc">Leaves — progress entries (${leaves.length})</span><button class="btn sm" id="addLeaf">+ water this vision</button></div>${sortEntries(leaves).map(e=>entryCard(e)).join('')||'<div class="empty">No leaves yet. Every tagged entry grows one.</div>'}</div>
     <div class="row" style="margin-top:30px"><button class="btn sm ghost" data-back>← back</button></div>
     ${moreSection(`<div class="danger-zone"><span>Visions are meant to be tended, not pruned casually. Its entries stay in the journals.</span><button class="btn sm ghost danger" id="delVision">Delete this vision</button></div>`)}
   </div>`,'vision-panel');
   $$('#panel .rv').forEach(n=>n.classList.add('in'));
-  p.querySelectorAll('[data-conf]').forEach(b => b.onclick = () => { const was = v.confidence; v.confidence = b.dataset.conf; if(v.confidence==='lived'){ v.status='completed'; v.completedAt = v.completedAt || today(); v.progress = 100; } else if(was==='lived'){ v.status='pending'; } saveNow(); if(v.confidence==='lived' && was!=='lived') fruitCeremony(v); else { rerender(); openVisionPanel(v.id); } });
-  p.querySelectorAll('[data-feel]').forEach(b => b.onclick = () => { v.feeling = +b.dataset.feel; saveNow(); rerender(); openVisionPanel(v.id); });
+  p.querySelectorAll('[data-conf]').forEach(b => b.onclick = () => { const was = v.confidence; v.confidence = b.dataset.conf; if(v.confidence==='lived'){ v.status='completed'; v.completedAt = v.completedAt || today(); v.progress = 100; } else if(was==='lived'){ v.status='pending'; } saveNow(); if(v.confidence==='lived' && was!=='lived') fruitCeremony(v); else { reopenPanel(() => { rerender(); openVisionPanel(v.id); }); } });
+  p.querySelectorAll('[data-feel]').forEach(b => b.onclick = () => { v.feeling = +b.dataset.feel; saveNow(); reopenPanel(() => { rerender(); openVisionPanel(v.id); }); });
   bindBoardStrip(document.querySelector('#panel'), () => byId(S.visions,id)?.name || 'Vision');
   p.querySelector('#addRes').onclick = () => { v.resistance.push({text:'',threadId:null}); saveNow(); openVisionPanel(v.id); };
   p.querySelectorAll('[data-resthread]').forEach(s => s.onchange = () => { v.resistance[+s.dataset.resthread].threadId = s.value||null; saveNow(); });
   p.querySelectorAll('[data-resdel]').forEach(b => b.onclick = () => { const r = v.resistance[+b.dataset.resdel]; requestDelete({label: r.text || 'Resistance', node: b.closest('.evidence-item'), remove: () => spliceOut(v.resistance, x => x === r), after: () => openVisionPanel(v.id)}); });
   p.querySelectorAll('[data-vlink]').forEach(c => c.onclick = () => openVisionPanel(c.dataset.vlink));
   p.querySelectorAll('[data-preskill]').forEach(c => c.onclick = () => { const id = c.dataset.preskill; v.preSkills = v.preSkills.includes(id) ? v.preSkills.filter(x=>x!==id) : [...v.preSkills,id]; saveNow(); c.classList.toggle('on'); });
-  p.querySelector('#vParent').onchange = e => { v.parentId = e.target.value||null; saveNow(); rerender(); openVisionPanel(v.id); };
+  p.querySelector('#vParent').onchange = e => { v.parentId = e.target.value||null; saveNow(); reopenPanel(() => { rerender(); openVisionPanel(v.id); }); };
   p.querySelectorAll('[data-vval]').forEach(c => c.onclick = () => { const id = c.dataset.vval; v.values = v.values.includes(id) ? v.values.filter(x=>x!==id) : [...v.values,id]; saveNow(); c.classList.toggle('on'); });
   p.querySelector('#addEv').onclick = () => { v.evidence.push({date:today(),text:''}); saveNow(); openVisionPanel(v.id); setTimeout(()=>{ const last = $$('#panel .evidence-item .ed').slice(-1)[0]; last && beginEdit(last); },50); };
   p.querySelectorAll('[data-evdel]').forEach(b => b.onclick = () => { const ev = v.evidence[+b.dataset.evdel]; requestDelete({label: ev.text || 'Evidence', node: b.closest('.evidence-item'), remove: () => spliceOut(v.evidence, x => x === ev), after: () => openVisionPanel(v.id)}); });
-  p.querySelector('#addLeaf').onclick = () => openEntryModal({type:'progress', links:{visions:[v.id]}, after:()=>{ rerender(); openVisionPanel(v.id); }});
-  p.querySelector('#vEra').onchange = e => { v.era = e.target.value; saveNow(); rerender(); openVisionPanel(v.id); };
-  p.querySelector('#vDone').onclick = () => { setGoalStatus(v, v.status==='completed' ? 'pending' : 'completed'); rerender(); openVisionPanel(v.id); };
-  p.querySelector('#vArchived').onclick = () => { v.archived = !v.archived; saveNow(); rerender(); openVisionPanel(v.id); };
-  p.querySelector('#vPhase')?.addEventListener('change', e => { v.phase = e.target.value; if(v.phase==='just-completed' && v.status!=='completed') setGoalStatus(v,'completed'); saveNow(); rerender(); openVisionPanel(v.id); });
+  p.querySelector('#addLeaf').onclick = () => openEntryModal({type:'progress', links:{visions:[v.id]}, after:()=>{ reopenPanel(() => { rerender(); openVisionPanel(v.id); }); }});
+  p.querySelector('#vEra').onchange = e => { v.era = e.target.value; saveNow(); reopenPanel(() => { rerender(); openVisionPanel(v.id); }); };
+  p.querySelector('#vDone').onclick = () => { setGoalStatus(v, v.status==='completed' ? 'pending' : 'completed'); reopenPanel(() => { rerender(); openVisionPanel(v.id); }); };
+  p.querySelector('#vArchived').onclick = () => { v.archived = !v.archived; saveNow(); reopenPanel(() => { rerender(); openVisionPanel(v.id); }); };
+  p.querySelector('#vPhase')?.addEventListener('change', e => { v.phase = e.target.value; if(v.phase==='just-completed' && v.status!=='completed') setGoalStatus(v,'completed'); saveNow(); reopenPanel(() => { rerender(); openVisionPanel(v.id); }); });
   const pr = p.querySelector('#vProgress'); pr.oninput = () => { pr.previousElementSibling.textContent = `progress ${pr.value}%`; }; pr.onchange = () => { v.progress = +pr.value; saveNow(); rerender(); };
   p.querySelector('#delVision').onclick = () => deleteVision(v, null, () => { closePanel(); rerender(); });
 }

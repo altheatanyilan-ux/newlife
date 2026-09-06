@@ -226,6 +226,19 @@ function bindPanelResize(p){
   grip.addEventListener('dblclick', () => { lsSet('panelWidth', panelWidthDefault()); lsSet('panelWide', false); applyPanelWidth(p); });
   wideBtn.onclick = () => { lsSet('panelWide', !lsGet('panelWide', false)); applyPanelWidth(p); sound('click'); };
 }
+/* Many detail panels rebuild their whole innerHTML on every small edit (an added
+   milestone, a ticked task) by closing and reopening themselves. That is simple
+   and safe, but it also resets panel scroll to the top — so a click near the
+   bottom of a long panel flings the user back up. This wraps that "reopen"
+   pattern so the scroll position survives the rebuild. */
+function reopenPanel(fn){ const p = $('#panel'); const y = p ? p.scrollTop : 0; fn(); const p2 = $('#panel'); if(p2) p2.scrollTop = y; }
+/* Same idea for scrollable sub-panels on an ordinary page (not the side panel) —
+   e.g. the Writing Studio's research drawer, which re-renders on every pin. */
+function preserveScroll(selectors, fn){
+  const before = selectors.map(sel => { const n = document.querySelector(sel); return [sel, n ? n.scrollTop : 0]; });
+  fn();
+  before.forEach(([sel,y]) => { const n = document.querySelector(sel); if(n) n.scrollTop = y; });
+}
 function closePanel({keep=false}={}){ const had = !!$('#panel'); $('#panelOv')?.remove(); $('#panel')?.remove(); if(had && !keep && history.state?.liPanel){ history.back(); } else updateBackButton(); }
 window.addEventListener('popstate', e => { if($('#panel') && !e.state?.liPanel) closePanel({keep:true}); updateBackButton(); });
 /* ---------- persistent Back button: history.back() only, never a link ---------- */
@@ -265,6 +278,30 @@ function readImages(files, cb){
     };
     r.readAsDataURL(f);
   });
+}
+
+/* ---------- shared cross-tagging editor: values (±) / threads / visions / skills / projects ----------
+   Any object with a `.links` shape like an entry's can use this — the same chip
+   grammar as "Connect this entry" in the universal Add modal, factored out so
+   other rooms (the Library, the Writing Studio) can offer the same mutual
+   tagging without re-deriving it. */
+function linksEditorHTML(links, {legend=true}={}){
+  links.threads = links.threads||[]; links.values = links.values||[]; links.visions = links.visions||[]; links.skills = links.skills||[]; links.projects = links.projects||[];
+  return `
+    <div class="field"><label>Values ${legend?'— click to link, click again to flip polarity, third click to unlink':''}</label><div class="deps">${S.valueOrder.map(id=>{ const v=byId(S.values,id); return `<span class="chip click" style="--c:${v.color}" data-lk="values" data-id="${v.id}"><span class="pol"></span>${esc(v.name)}</span>`; }).join('') || '<span class="faint">no values yet</span>'}</div></div>
+    <div class="field"><label>Threads</label><div class="deps">${S.threads.map(t=>`<span class="chip click" style="--c:${t.color}" data-lk="threads" data-id="${t.id}">${esc(t.name)}</span>`).join('') || '<span class="faint">no threads yet</span>'}</div></div>
+    <div class="field"><label>Visions</label><div class="deps">${S.visions.map(v=>`<span class="chip click" style="--c:var(--sage)" data-lk="visions" data-id="${v.id}">🌿 ${esc(v.name)}</span>`).join('') || '<span class="faint">no visions yet</span>'}</div></div>
+    <div class="field"><label>Skills</label><div class="deps">${S.skills.map(s=>`<span class="chip click" style="--c:var(--ment)" data-lk="skills" data-id="${s.id}">${esc(s.name)}</span>`).join('') || '<span class="faint">no skills yet</span>'}</div></div>
+    <div class="field"><label>Projects</label><div class="deps">${S.projects.map(p=>`<span class="chip click" style="--c:var(--terra)" data-lk="projects" data-id="${p.id}">${esc(p.name)}</span>`).join('') || '<span class="faint">no projects yet</span>'}</div></div>`;
+}
+function bindLinksEditor(container, links, onChange){
+  const sync = () => { container.querySelectorAll('[data-lk]').forEach(c => { const k = c.dataset.lk, id = c.dataset.id; const arr = links[k]||(links[k]=[]); const hit = arr.find(v => (typeof v==='string'?v:v.id)===id); c.classList.toggle('on', !!hit); if(k==='values') c.querySelector('.pol').textContent = hit ? hit.pol : ''; }); };
+  container.querySelectorAll('[data-lk]').forEach(c => c.onclick = () => { const k = c.dataset.lk, id = c.dataset.id; const arr = links[k]||(links[k]=[]);
+    if(k==='values'){ const i = arr.findIndex(v=>v.id===id); if(i<0) arr.push({id,pol:'+'}); else if(arr[i].pol==='+') arr[i].pol='−'; else arr.splice(i,1); }
+    else { const i = arr.indexOf(id); if(i<0) arr.push(id); else arr.splice(i,1); }
+    saveNow(); sync(); onChange && onChange();
+  });
+  sync();
 }
 
 /* ---------- moon phase (calculated) ---------- */

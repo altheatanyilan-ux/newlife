@@ -77,7 +77,7 @@ function openDayPage(d){
       <button class="btn sm ghost" id="dpNext">${fmtDate(addDays(d,1),'short')} ›</button>
     </div>`, 'day-page');
   p.querySelector('#dpNote').onclick = () => openEntryModal({type:'reflection', allowedTypes:['reflection','memory','gratitude','dream'], occurredAt:d, heading:`A note for ${fmtDate(d,'med')}`});
-  p.querySelector('#dpTask').onclick = () => openTaskPicker(d, () => { rerender(); openDayPage(d); });
+  p.querySelector('#dpTask').onclick = () => openTaskPicker(d, () => reopenPanel(() => { rerender(); openDayPage(d); }));
   p.querySelector('#dpPrev').onclick = () => openDayPage(addDays(d,-1));
   p.querySelector('#dpNext').onclick = () => openDayPage(addDays(d,1));
 }

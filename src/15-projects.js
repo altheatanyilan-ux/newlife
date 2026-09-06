@@ -117,11 +117,11 @@ function openProjectPanel(id){
     ${moreSection(`<div class="danger-zone"><span>Projects carry their nods with them. Archive it instead if it may return.</span><button class="btn sm ghost danger" id="pDel">Delete this project</button></div>`)}`);
   $$('#panel .rv').forEach(n=>n.classList.add('in'));
   p._tags = (p.tags||[]).join(', ');
-  pn.querySelector('#pStatus').onchange = e => { p.status = e.target.value; saveNow(); rerender(); openProjectPanel(id); };
-  pn.querySelector('#pPri').onchange = e => { p.priority = e.target.value; saveNow(); rerender(); openProjectPanel(id); };
-  pn.querySelector('#pEra').onchange = e => { p.linkedVisionEra = e.target.value || null; saveNow(); rerender(); openProjectPanel(id); };
+  pn.querySelector('#pStatus').onchange = e => { p.status = e.target.value; saveNow(); reopenPanel(() => { rerender(); openProjectPanel(id); }); };
+  pn.querySelector('#pPri').onchange = e => { p.priority = e.target.value; saveNow(); reopenPanel(() => { rerender(); openProjectPanel(id); }); };
+  pn.querySelector('#pEra').onchange = e => { p.linkedVisionEra = e.target.value || null; saveNow(); reopenPanel(() => { rerender(); openProjectPanel(id); }); };
   pn.querySelectorAll('[data-plink]').forEach(c => c.onclick = () => { const sid = c.dataset.plink; p.linkedSkills = (p.linkedSkills||[]).includes(sid) ? p.linkedSkills.filter(x=>x!==sid) : [...(p.linkedSkills||[]), sid]; saveNow(); c.classList.toggle('on'); });
-  const reopen = () => { rerender(); openProjectPanel(id); };
+  const reopen = () => { reopenPanel(() => { rerender(); openProjectPanel(id); }); };
   pn.querySelector('#phAdd').onclick = () => { const ph = {id:uid(), name:`Phase ${(p.phases||[]).length+1}`, startDate:'', endDate:'', tasks:[]}; p.phases.push(ph); S._openPhase = {...(S._openPhase||{}), [id]:ph.id}; saveNow(); reopen(); setTimeout(()=>{ const n = document.querySelector(`#panel .phase[data-phase="${ph.id}"] .phase-name .ed`); if(n){ beginEdit(n); n.querySelector('input')?.select(); } },60); };
   pn.querySelectorAll('[data-phtoggle]').forEach(h => h.addEventListener('click', e => { if(e.target.closest('.ed,button,input')) return; const row = h.closest('.phase'); const open = !row.classList.contains('open'); pn.querySelectorAll('.phase').forEach(x=>x.classList.remove('open')); if(open){ row.classList.add('open'); S._openPhase = {...(S._openPhase||{}), [id]:h.dataset.phtoggle}; } }));
   pn.querySelectorAll('[data-phdel]').forEach(b => b.onclick = e => { e.stopPropagation(); const ph = byId(p.phases, b.dataset.phdel); requestDelete({label:`${ph.name} (${(ph.tasks||[]).length} tasks)`, node:b.closest('.phase'), remove:()=>spliceOut(p.phases, x=>x.id===ph.id), after:reopen}); });
@@ -133,11 +133,11 @@ function openProjectPanel(id){
   pn.querySelectorAll('[data-prestype]').forEach(sel => sel.onchange = () => { p.resources[+sel.dataset.prestype].type = sel.value; saveNow(); reopen(); });
   pn.querySelectorAll('[data-presdel]').forEach(b => b.onclick = () => { const rs = p.resources[+b.dataset.presdel]; requestDelete({label:rs.title||'Resource', remove:()=>spliceOut(p.resources, x=>x===rs), after:reopen}); });
   bindBoardStrip(pn, () => p.name);
-  pn.querySelector('#pNod').onclick = () => openNodModal(p.id, ()=>{ rerender(); openProjectPanel(id); });
+  pn.querySelector('#pNod').onclick = () => openNodModal(p.id, ()=>{ reopenPanel(() => { rerender(); openProjectPanel(id); }); });
   pn.querySelector('#pMile').onclick = () => { p.income.milestones.push({date:today(),text:''}); saveNow(); openProjectPanel(id); };
   pn.querySelectorAll('[data-mdel]').forEach(b => b.onclick = () => { const ms = p.income.milestones[+b.dataset.mdel]; requestDelete({label: ms.text || 'Milestone', node: b.closest('.evidence-item'), remove: () => spliceOut(p.income.milestones, x => x === ms), after: () => openProjectPanel(id)}); });
-  pn.querySelectorAll('[data-nodedit]').forEach(b => b.onclick = () => openNodModal(p.id, () => { rerender(); openProjectPanel(id); }, byId(S.nods, b.dataset.nodedit)));
-  pn.querySelectorAll('[data-noddel]').forEach(b => b.onclick = () => { const n = byId(S.nods, b.dataset.noddel); requestDelete({label: n.text, node: b.closest('.nod'), remove: () => spliceOut(S.nods, x => x.id === n.id), after: () => { rerender(); openProjectPanel(id); }}); });
+  pn.querySelectorAll('[data-nodedit]').forEach(b => b.onclick = () => openNodModal(p.id, () => { reopenPanel(() => { rerender(); openProjectPanel(id); }); }, byId(S.nods, b.dataset.nodedit)));
+  pn.querySelectorAll('[data-noddel]').forEach(b => b.onclick = () => { const n = byId(S.nods, b.dataset.noddel); requestDelete({label: n.text, node: b.closest('.nod'), remove: () => spliceOut(S.nods, x => x.id === n.id), after: () => { reopenPanel(() => { rerender(); openProjectPanel(id); }); }}); });
   pn.querySelector('#pDel').onclick = () => deleteProject(p, null, () => { closePanel(); rerender(); });
 }
 hooks.ptags = (pid, o, n) => { const p = byId(S.projects,pid); if(p){ p.tags = n.split(',').map(s=>s.trim()).filter(Boolean); saveNow(); } };

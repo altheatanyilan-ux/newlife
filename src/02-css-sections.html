@@ -1196,5 +1196,74 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 .lightbox{position:fixed;inset:0;background:rgba(10,8,6,.9);z-index:150;display:flex;align-items:center;justify-content:center;cursor:zoom-out;animation:fadein .25s}
 .lightbox img{max-width:92vw;max-height:88vh;border-radius:8px;box-shadow:var(--shadow)}
 .lightbox .cap{position:absolute;bottom:24px;left:0;right:0;text-align:center;color:#e8e0d4;font-family:var(--quote);font-style:italic}
+
+/* ============================================================
+   14. THE LIBRARY (Commonplace Book redesign)
+   ============================================================ */
+.media-kind-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;margin-bottom:16px}
+.media-kind-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 6px;border-radius:12px;border:1px solid var(--line);background:var(--surface);cursor:pointer;transition:border-color .18s var(--ease),background .18s var(--ease),transform .18s var(--page-ease);color:var(--text)}
+.media-kind-btn:hover{transform:var(--page-lift)}
+.media-kind-btn .ico{font-size:1.3rem}
+.media-kind-btn .lbl{font-size:.7rem;font-family:var(--mono)}
+.media-kind-btn .n{font-size:.62rem;color:var(--faint)}
+.media-kind-btn.on{border-color:var(--c);background:color-mix(in srgb,var(--c) 14%,var(--surface))}
+.lib-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0}
+.lib-tabs button{padding:6px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-size:.78rem;font-family:var(--mono);cursor:pointer;color:var(--muted)}
+.lib-tabs button.active{background:var(--page-accent);color:var(--page-accent-ink);border-color:var(--page-accent)}
+.resonance-scale{display:flex;gap:6px;flex-wrap:wrap}
+.resonance-scale button{padding:5px 11px;border-radius:999px;border:1px solid var(--line-2);background:var(--surface-2);font-size:.72rem;font-family:var(--mono);cursor:pointer;color:var(--muted)}
+.resonance-scale button.on{background:var(--c);border-color:var(--c);color:var(--page-accent-ink)}
+.resonance-pill{font-size:.62rem;font-family:var(--mono);padding:2px 8px;border-radius:999px;border:1px solid var(--c);color:var(--c)}
+.queue-list{display:flex;flex-direction:column;gap:8px}
+.queue-item{display:flex;gap:10px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:grab}
+.queue-item.dragging{opacity:.4}
+.queue-item .grip{color:var(--faint);cursor:grab;padding-top:2px}
+.queue-item .body{flex:1;min-width:0}
+.curated-list-card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.curated-list-card .entries{margin-top:8px;display:flex;flex-direction:column;gap:5px}
+.curated-entry{display:flex;justify-content:space-between;gap:8px;font-size:.85rem;padding:4px 0;border-top:1px dashed var(--line)}
+.rec-row{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px dashed var(--line)}
+.influence-bar{display:flex;align-items:center;gap:8px;font-size:.8rem;margin:4px 0}
+.influence-bar .track{flex:1;height:8px;border-radius:4px;background:var(--surface-2);overflow:hidden}
+.influence-bar .track i{display:block;height:100%;background:var(--c,var(--page-accent))}
+.lib-stage-col{border-left:3px solid var(--c);padding-left:12px;margin-bottom:20px}
+.lib-stage-col .works{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+.lib-stage-work{width:110px;font-size:.72rem;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px}
+
+/* ============================================================
+   15. THE WRITING STUDIO (Writing redesign)
+   ============================================================ */
+.wstudio-board{display:flex;flex-direction:column;gap:10px}
+.wkanban{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px}
+.wkcol{flex:0 0 230px;background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--c);border-radius:12px;min-height:160px;display:flex;flex-direction:column}
+.wkcol.over{border-color:var(--c);background:color-mix(in srgb,var(--c) 8%,var(--surface))}
+.wkcol-h{padding:10px 12px;font-family:var(--serif);font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--c);display:flex;justify-content:space-between}
+.wkcol-body{display:flex;flex-direction:column;gap:8px;padding:0 10px 10px;flex:1}
+.wkcard{background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:9px 10px;cursor:pointer}
+.wkcard:hover{border-color:var(--c)}
+.wproject-card{cursor:pointer}
+.wproject-card .premise{font-family:var(--quote);font-style:italic;color:var(--muted);font-size:.88rem;margin-top:6px}
+.wstudio-layout{display:grid;grid-template-columns:280px minmax(0,1fr) 300px;gap:20px;align-items:start}
+.wstudio-focus .drawer,.wstudio-focus .structure-board{opacity:.08;pointer-events:none;transition:opacity .25s var(--ease)}
+.wstudio-focus .drawer:hover,.wstudio-focus .structure-board:hover{opacity:1;pointer-events:auto}
+.drawer,.structure-board{position:sticky;top:20px;max-height:calc(100vh - 60px);overflow-y:auto;padding-right:4px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+.drawer-search{margin-bottom:10px}
+.drawer-item{background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:8px 10px;margin-bottom:8px;cursor:grab}
+.drawer-item .meta{font-size:.68rem;font-family:var(--mono);color:var(--faint)}
+.drawer-item .snippet{font-size:.8rem;color:var(--muted);line-height:1.55;margin-top:3px}
+.drawer-item .row{margin-top:6px;gap:4px}
+.struct-tabs{display:flex;gap:4px;margin-bottom:10px}
+.struct-tabs button{flex:1;padding:5px 4px;font-size:.68rem;font-family:var(--mono);border-radius:8px;border:1px solid var(--line);background:var(--surface-2);cursor:pointer;color:var(--muted)}
+.struct-tabs button.active{background:var(--page-accent);color:var(--page-accent-ink);border-color:var(--page-accent)}
+.outline-node,.beat-row{background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:8px 10px;margin-bottom:7px;cursor:grab}
+.outline-node.dragging,.beat-row.dragging,.drawer-item.dragging{opacity:.4}
+.outline-node .gap{font-size:.65rem;color:var(--rose);margin-top:3px}
+.compost-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.compost-frag{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:.85rem;line-height:1.55}
+.session-count{font-family:var(--mono);font-size:.7rem;color:var(--faint)}
+.pub-row{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px dashed var(--line);font-size:.85rem}
+.snip-btn{background:none;border:none;cursor:pointer;color:var(--faint);font-size:.8rem;padding:2px 4px}
+.snip-btn:hover{color:var(--page-accent)}
+@media (max-width:1150px){.wstudio-layout{grid-template-columns:1fr}.drawer,.structure-board{position:static;max-height:none}}
 </style>
 </head>

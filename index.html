@@ -1562,6 +1562,75 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 .lightbox{position:fixed;inset:0;background:rgba(10,8,6,.9);z-index:150;display:flex;align-items:center;justify-content:center;cursor:zoom-out;animation:fadein .25s}
 .lightbox img{max-width:92vw;max-height:88vh;border-radius:8px;box-shadow:var(--shadow)}
 .lightbox .cap{position:absolute;bottom:24px;left:0;right:0;text-align:center;color:#e8e0d4;font-family:var(--quote);font-style:italic}
+
+/* ============================================================
+   14. THE LIBRARY (Commonplace Book redesign)
+   ============================================================ */
+.media-kind-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;margin-bottom:16px}
+.media-kind-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 6px;border-radius:12px;border:1px solid var(--line);background:var(--surface);cursor:pointer;transition:border-color .18s var(--ease),background .18s var(--ease),transform .18s var(--page-ease);color:var(--text)}
+.media-kind-btn:hover{transform:var(--page-lift)}
+.media-kind-btn .ico{font-size:1.3rem}
+.media-kind-btn .lbl{font-size:.7rem;font-family:var(--mono)}
+.media-kind-btn .n{font-size:.62rem;color:var(--faint)}
+.media-kind-btn.on{border-color:var(--c);background:color-mix(in srgb,var(--c) 14%,var(--surface))}
+.lib-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0}
+.lib-tabs button{padding:6px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-size:.78rem;font-family:var(--mono);cursor:pointer;color:var(--muted)}
+.lib-tabs button.active{background:var(--page-accent);color:var(--page-accent-ink);border-color:var(--page-accent)}
+.resonance-scale{display:flex;gap:6px;flex-wrap:wrap}
+.resonance-scale button{padding:5px 11px;border-radius:999px;border:1px solid var(--line-2);background:var(--surface-2);font-size:.72rem;font-family:var(--mono);cursor:pointer;color:var(--muted)}
+.resonance-scale button.on{background:var(--c);border-color:var(--c);color:var(--page-accent-ink)}
+.resonance-pill{font-size:.62rem;font-family:var(--mono);padding:2px 8px;border-radius:999px;border:1px solid var(--c);color:var(--c)}
+.queue-list{display:flex;flex-direction:column;gap:8px}
+.queue-item{display:flex;gap:10px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:grab}
+.queue-item.dragging{opacity:.4}
+.queue-item .grip{color:var(--faint);cursor:grab;padding-top:2px}
+.queue-item .body{flex:1;min-width:0}
+.curated-list-card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.curated-list-card .entries{margin-top:8px;display:flex;flex-direction:column;gap:5px}
+.curated-entry{display:flex;justify-content:space-between;gap:8px;font-size:.85rem;padding:4px 0;border-top:1px dashed var(--line)}
+.rec-row{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px dashed var(--line)}
+.influence-bar{display:flex;align-items:center;gap:8px;font-size:.8rem;margin:4px 0}
+.influence-bar .track{flex:1;height:8px;border-radius:4px;background:var(--surface-2);overflow:hidden}
+.influence-bar .track i{display:block;height:100%;background:var(--c,var(--page-accent))}
+.lib-stage-col{border-left:3px solid var(--c);padding-left:12px;margin-bottom:20px}
+.lib-stage-col .works{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+.lib-stage-work{width:110px;font-size:.72rem;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px}
+
+/* ============================================================
+   15. THE WRITING STUDIO (Writing redesign)
+   ============================================================ */
+.wstudio-board{display:flex;flex-direction:column;gap:10px}
+.wkanban{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px}
+.wkcol{flex:0 0 230px;background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--c);border-radius:12px;min-height:160px;display:flex;flex-direction:column}
+.wkcol.over{border-color:var(--c);background:color-mix(in srgb,var(--c) 8%,var(--surface))}
+.wkcol-h{padding:10px 12px;font-family:var(--serif);font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--c);display:flex;justify-content:space-between}
+.wkcol-body{display:flex;flex-direction:column;gap:8px;padding:0 10px 10px;flex:1}
+.wkcard{background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:9px 10px;cursor:pointer}
+.wkcard:hover{border-color:var(--c)}
+.wproject-card{cursor:pointer}
+.wproject-card .premise{font-family:var(--quote);font-style:italic;color:var(--muted);font-size:.88rem;margin-top:6px}
+.wstudio-layout{display:grid;grid-template-columns:280px minmax(0,1fr) 300px;gap:20px;align-items:start}
+.wstudio-focus .drawer,.wstudio-focus .structure-board{opacity:.08;pointer-events:none;transition:opacity .25s var(--ease)}
+.wstudio-focus .drawer:hover,.wstudio-focus .structure-board:hover{opacity:1;pointer-events:auto}
+.drawer,.structure-board{position:sticky;top:20px;max-height:calc(100vh - 60px);overflow-y:auto;padding-right:4px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+.drawer-search{margin-bottom:10px}
+.drawer-item{background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:8px 10px;margin-bottom:8px;cursor:grab}
+.drawer-item .meta{font-size:.68rem;font-family:var(--mono);color:var(--faint)}
+.drawer-item .snippet{font-size:.8rem;color:var(--muted);line-height:1.55;margin-top:3px}
+.drawer-item .row{margin-top:6px;gap:4px}
+.struct-tabs{display:flex;gap:4px;margin-bottom:10px}
+.struct-tabs button{flex:1;padding:5px 4px;font-size:.68rem;font-family:var(--mono);border-radius:8px;border:1px solid var(--line);background:var(--surface-2);cursor:pointer;color:var(--muted)}
+.struct-tabs button.active{background:var(--page-accent);color:var(--page-accent-ink);border-color:var(--page-accent)}
+.outline-node,.beat-row{background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:8px 10px;margin-bottom:7px;cursor:grab}
+.outline-node.dragging,.beat-row.dragging,.drawer-item.dragging{opacity:.4}
+.outline-node .gap{font-size:.65rem;color:var(--rose);margin-top:3px}
+.compost-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.compost-frag{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:.85rem;line-height:1.55}
+.session-count{font-family:var(--mono);font-size:.7rem;color:var(--faint)}
+.pub-row{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px dashed var(--line);font-size:.85rem}
+.snip-btn{background:none;border:none;cursor:pointer;color:var(--faint);font-size:.8rem;padding:2px 4px}
+.snip-btn:hover{color:var(--page-accent)}
+@media (max-width:1150px){.wstudio-layout{grid-template-columns:1fr}.drawer,.structure-board{position:static;max-height:none}}
 </style>
 </head>
 <body>
@@ -1810,6 +1879,19 @@ function bindPanelResize(p){
   grip.addEventListener('dblclick', () => { lsSet('panelWidth', panelWidthDefault()); lsSet('panelWide', false); applyPanelWidth(p); });
   wideBtn.onclick = () => { lsSet('panelWide', !lsGet('panelWide', false)); applyPanelWidth(p); sound('click'); };
 }
+/* Many detail panels rebuild their whole innerHTML on every small edit (an added
+   milestone, a ticked task) by closing and reopening themselves. That is simple
+   and safe, but it also resets panel scroll to the top — so a click near the
+   bottom of a long panel flings the user back up. This wraps that "reopen"
+   pattern so the scroll position survives the rebuild. */
+function reopenPanel(fn){ const p = $('#panel'); const y = p ? p.scrollTop : 0; fn(); const p2 = $('#panel'); if(p2) p2.scrollTop = y; }
+/* Same idea for scrollable sub-panels on an ordinary page (not the side panel) —
+   e.g. the Writing Studio's research drawer, which re-renders on every pin. */
+function preserveScroll(selectors, fn){
+  const before = selectors.map(sel => { const n = document.querySelector(sel); return [sel, n ? n.scrollTop : 0]; });
+  fn();
+  before.forEach(([sel,y]) => { const n = document.querySelector(sel); if(n) n.scrollTop = y; });
+}
 function closePanel({keep=false}={}){ const had = !!$('#panel'); $('#panelOv')?.remove(); $('#panel')?.remove(); if(had && !keep && history.state?.liPanel){ history.back(); } else updateBackButton(); }
 window.addEventListener('popstate', e => { if($('#panel') && !e.state?.liPanel) closePanel({keep:true}); updateBackButton(); });
 /* ---------- persistent Back button: history.back() only, never a link ---------- */
@@ -1849,6 +1931,30 @@ function readImages(files, cb){
     };
     r.readAsDataURL(f);
   });
+}
+
+/* ---------- shared cross-tagging editor: values (±) / threads / visions / skills / projects ----------
+   Any object with a `.links` shape like an entry's can use this — the same chip
+   grammar as "Connect this entry" in the universal Add modal, factored out so
+   other rooms (the Library, the Writing Studio) can offer the same mutual
+   tagging without re-deriving it. */
+function linksEditorHTML(links, {legend=true}={}){
+  links.threads = links.threads||[]; links.values = links.values||[]; links.visions = links.visions||[]; links.skills = links.skills||[]; links.projects = links.projects||[];
+  return `
+    <div class="field"><label>Values ${legend?'— click to link, click again to flip polarity, third click to unlink':''}</label><div class="deps">${S.valueOrder.map(id=>{ const v=byId(S.values,id); return `<span class="chip click" style="--c:${v.color}" data-lk="values" data-id="${v.id}"><span class="pol"></span>${esc(v.name)}</span>`; }).join('') || '<span class="faint">no values yet</span>'}</div></div>
+    <div class="field"><label>Threads</label><div class="deps">${S.threads.map(t=>`<span class="chip click" style="--c:${t.color}" data-lk="threads" data-id="${t.id}">${esc(t.name)}</span>`).join('') || '<span class="faint">no threads yet</span>'}</div></div>
+    <div class="field"><label>Visions</label><div class="deps">${S.visions.map(v=>`<span class="chip click" style="--c:var(--sage)" data-lk="visions" data-id="${v.id}">🌿 ${esc(v.name)}</span>`).join('') || '<span class="faint">no visions yet</span>'}</div></div>
+    <div class="field"><label>Skills</label><div class="deps">${S.skills.map(s=>`<span class="chip click" style="--c:var(--ment)" data-lk="skills" data-id="${s.id}">${esc(s.name)}</span>`).join('') || '<span class="faint">no skills yet</span>'}</div></div>
+    <div class="field"><label>Projects</label><div class="deps">${S.projects.map(p=>`<span class="chip click" style="--c:var(--terra)" data-lk="projects" data-id="${p.id}">${esc(p.name)}</span>`).join('') || '<span class="faint">no projects yet</span>'}</div></div>`;
+}
+function bindLinksEditor(container, links, onChange){
+  const sync = () => { container.querySelectorAll('[data-lk]').forEach(c => { const k = c.dataset.lk, id = c.dataset.id; const arr = links[k]||(links[k]=[]); const hit = arr.find(v => (typeof v==='string'?v:v.id)===id); c.classList.toggle('on', !!hit); if(k==='values') c.querySelector('.pol').textContent = hit ? hit.pol : ''; }); };
+  container.querySelectorAll('[data-lk]').forEach(c => c.onclick = () => { const k = c.dataset.lk, id = c.dataset.id; const arr = links[k]||(links[k]=[]);
+    if(k==='values'){ const i = arr.findIndex(v=>v.id===id); if(i<0) arr.push({id,pol:'+'}); else if(arr[i].pol==='+') arr[i].pol='−'; else arr.splice(i,1); }
+    else { const i = arr.indexOf(id); if(i<0) arr.push(id); else arr.splice(i,1); }
+    saveNow(); sync(); onChange && onChange();
+  });
+  sync();
 }
 
 /* ---------- moon phase (calculated) ---------- */
@@ -3003,10 +3109,14 @@ const DB_SCHEMA = {          // primary key first, then indexes — Dexie syntax
   turns:          'id, chapterId, date',
   threadsN:       'id',
   interactions:   'id, personId, date',
+  mediaQueue:     'id',
+  mediaLists:     'id',
+  mediaRecs:      'id',
+  compost:        'id',
 };
 /* keys of S that are single objects/arrays without their own identity — kept as rows in `meta` */
 const META_KEYS = ['settings','rehearsal','reviews','valueOrder','valueOrderHistory','places','journals','negLast','finance','plans','reviewLog'];
-const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders','visionEras','tasks','boards','people','events','accounts','txns','budgets','finGoals','chapters','turns','threadsN','interactions'];
+const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders','visionEras','tasks','boards','people','events','accounts','txns','budgets','finGoals','chapters','turns','threadsN','interactions','mediaQueue','mediaLists','mediaRecs','compost'];
 
 /* ---------- MiniDexie: Dexie-compatible subset over IndexedDB ---------- */
 class MiniTable {
@@ -3044,7 +3154,7 @@ const usingRealDexie = DexieImpl !== MiniDexie;
 
 /* ---------- the database ---------- */
 const db = new DexieImpl(DB_NAME);
-db.version(9).stores(DB_SCHEMA);   // v8 finance rebuild, v9 chronicle chapters/turns/threads + interactions
+db.version(10).stores(DB_SCHEMA);   // v8 finance rebuild, v9 chronicle chapters/turns/threads + interactions, v10 library + writing studio stores
 
 /* ---------- S <-> stores ---------- */
 function stateToStores(state){
@@ -3239,6 +3349,7 @@ function seed(){
     reviews:{lastWeekly:null,lastSeasonal:null,lastAnnual:null},
     people:[], places:[], boards:[], events:[], plans:{}, reviewLog:{}, accounts:[], txns:[], budgets:[], finGoals:[], chapters:[], turns:[], threadsN:[], interactions:[],
     finance:{currency:'SGD', categories:[], netWorthLog:[], principles:[], note:'', assigned:{}},
+    mediaQueue:[], mediaLists:[], mediaRecs:[], compost:[],
   };
 }
 /* ============================================================
@@ -3396,7 +3507,8 @@ function entryExtraHTML(e){
   if(e.type==='quote'){ rows.push(`<div class="mono">— ${esc(x.author||'')}${x.source?', <em>'+esc(x.source)+'</em>':''}${x.page?' · '+esc(x.page):''}${x.link?` · <a href="${esc(x.link)}" target="_blank" rel="noopener">↗ link</a>`:''}</div>`); if(x.why) rows.push(`<div><span class="mono">why this caught me</span><br>${esc(x.why)}</div>`); }
   if(e.type==='question'){ const ans = x.answers||[]; rows.push(`<div class="answer-log">${ans.length? ans.map(a=>`<div class="a"><span class="mono">${fmtDate(a.date,'med')}</span> · ${esc(a.text)}</div>`).join('') : '<div class="a faint">no answer yet — still living with it</div>'}<button class="tbtn" data-answer="${e.id}">+ add an answer</button></div>`); }
   if(e.type==='progress' && x.duration) rows.push(`<span class="status-pill">${x.duration} min</span>`);
-  if(e.type==='memory' && x.installed) rows.push(`<div class="installed"><div class="k" style="font-family:var(--mono);font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;color:var(--terra)">what this installed in me</div>${esc(x.installed)}</div>`);
+  if(e.type==='media'){ const r = typeof resonanceMeta==='function' ? resonanceMeta(x.resonanceLevel) : null; rows.push(`<span class="status-pill">${(typeof MEDIA_STATUS_LABEL!=='undefined'&&MEDIA_STATUS_LABEL[x.status])||x.status||''}</span>${r?` <span class="resonance-pill" style="--c:${r[2]}">${r[1]}</span>`:''}`); if(x.oneLineCapture) rows.push(`<div class="quote" style="font-size:.85rem">${esc(x.oneLineCapture)}</div>`); }
+  if(x.installed) rows.push(`<div class="installed"><div class="k" style="font-family:var(--mono);font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;color:var(--terra)">what this installed in me</div>${esc(x.installed)}</div>`);
   return rows.length ? `<div class="stack" style="gap:6px;margin-top:8px;font-size:.85rem">${rows.join('')}</div>` : '';
 }
 function entryCard(e, {clamp:cl=true, tools=true}={}){
@@ -3407,7 +3519,7 @@ function entryCard(e, {clamp:cl=true, tools=true}={}){
   </article>`;
   const q = e.type==='quote';
   return `<article class="entry rv" data-entry="${e.id}">
-    <div class="meta"><span class="mono">${typeIcon(e.type)} ${typeName(e.type)}</span><span class="mono">${esc(fmtDate(e.occurredAt,'med'))}</span>${e.confidence?`<span class="status-pill">${esc(e.confidence)}</span>`:''}${tools?`<span class="tools"><button class="tbtn" data-edit="${e.id}">edit</button>${['memory','lifeevent','reflection','decision'].includes(e.type)?`<button class="tbtn" data-promote-turn="${e.id}" title="make this a turning point in the Chronicle">→ turning point</button>`:''}</span>`:''}</div>${tools?`<button class="del-x" data-del="${e.id}" title="delete" aria-label="delete entry">×</button>`:''}
+    <div class="meta"><span class="mono">${typeIcon(e.type)} ${typeName(e.type)}</span><span class="mono">${esc(fmtDate(e.occurredAt,'med'))}</span>${e.confidence?`<span class="status-pill">${esc(e.confidence)}</span>`:''}${tools?`<span class="tools"><button class="tbtn" data-edit="${e.id}">edit</button>${['memory','lifeevent','reflection','decision'].includes(e.type)?`<button class="tbtn" data-promote-turn="${e.id}" title="make this a turning point in the Chronicle">→ turning point</button>`:''}<button class="snip-btn" data-snip="${e.id}" title="save to the Writing Studio">✂</button></span>`:''}</div>${tools?`<button class="del-x" data-del="${e.id}" title="delete" aria-label="delete entry">×</button>`:''}
     ${e.title?`<div class="title">${esc(e.title)}</div>`:''}
     ${e.body?`<div class="body ${cl?'clamp':''} ${q?'quote':''}">${q?'“'+esc(e.body)+'”':md(e.body)}</div>`:''}
     ${e.media?.length?`<div class="thumbs">${e.media.map(m=>`<div class="photo" style="width:88px;height:88px;cursor:zoom-in" data-lb="${m.id}"><img src="${m.src}" alt="${esc(m.caption)}"></div>`).join('')}</div>`:''}
@@ -3897,28 +4009,29 @@ function openVisionPanel(id){
     <div class="vp-sec"><span class="sc">The 80-year-old check</span><p class="faint" style="font-size:.8rem;margin:0 0 6px">Why does this matter when I look back from the end?</p>${ed(`visions.#${v.id}.obituary`,{multi:true,ph:'If the answer is thin, the vision may be vanity.'})}</div>
     ${boardStrip(boardId('vision', id), 'Board')}
     <div class="vp-sec"><div class="row between"><span class="sc">Manifestation evidence log</span><button class="btn sm ghost" id="addEv">+ evidence</button></div><p class="faint" style="font-size:.8rem;margin:0 0 6px">Coincidences, doors, people who appeared. Evidence of alignment arrives before full manifestation.</p>${v.evidence.map((e,i)=>`<div class="evidence-item"><span class="mono">${ed(`visions.#${v.id}.evidence.${i}.date`,{ph:'date',cls:'mono'})}</span><span style="flex:1">${ed(`visions.#${v.id}.evidence.${i}.text`,{multi:true})}</span><button class="tbtn" data-evdel="${i}">×</button></div>`).join('')||'<div class="empty">Nothing logged yet. Watch for it.</div>'}</div>
+    ${(typeof mediaEntries==='function' ? mediaEntries().filter(m=>(m.links.visions||[]).includes(v.id)) : []).length ? `<div class="vp-sec"><span class="sc">Media feeding this vision</span><div class="row" style="gap:8px;flex-wrap:wrap">${mediaEntries().filter(m=>(m.links.visions||[]).includes(v.id)).map(m=>{ const mx=mediaX(m); const k=MEDIA_KINDS[mx.kind]||MEDIA_KINDS.book; return `<span class="chip on click" style="--c:${k[2]}" data-go="#/commonplace/${m.id}">${k[0]} ${esc(m.title)}</span>`; }).join('')}</div></div>` : ''}
     <div class="vp-sec"><div class="row between"><span class="sc">Leaves — progress entries (${leaves.length})</span><button class="btn sm" id="addLeaf">+ water this vision</button></div>${sortEntries(leaves).map(e=>entryCard(e)).join('')||'<div class="empty">No leaves yet. Every tagged entry grows one.</div>'}</div>
     <div class="row" style="margin-top:30px"><button class="btn sm ghost" data-back>← back</button></div>
     ${moreSection(`<div class="danger-zone"><span>Visions are meant to be tended, not pruned casually. Its entries stay in the journals.</span><button class="btn sm ghost danger" id="delVision">Delete this vision</button></div>`)}
   </div>`,'vision-panel');
   $$('#panel .rv').forEach(n=>n.classList.add('in'));
-  p.querySelectorAll('[data-conf]').forEach(b => b.onclick = () => { const was = v.confidence; v.confidence = b.dataset.conf; if(v.confidence==='lived'){ v.status='completed'; v.completedAt = v.completedAt || today(); v.progress = 100; } else if(was==='lived'){ v.status='pending'; } saveNow(); if(v.confidence==='lived' && was!=='lived') fruitCeremony(v); else { rerender(); openVisionPanel(v.id); } });
-  p.querySelectorAll('[data-feel]').forEach(b => b.onclick = () => { v.feeling = +b.dataset.feel; saveNow(); rerender(); openVisionPanel(v.id); });
+  p.querySelectorAll('[data-conf]').forEach(b => b.onclick = () => { const was = v.confidence; v.confidence = b.dataset.conf; if(v.confidence==='lived'){ v.status='completed'; v.completedAt = v.completedAt || today(); v.progress = 100; } else if(was==='lived'){ v.status='pending'; } saveNow(); if(v.confidence==='lived' && was!=='lived') fruitCeremony(v); else { reopenPanel(() => { rerender(); openVisionPanel(v.id); }); } });
+  p.querySelectorAll('[data-feel]').forEach(b => b.onclick = () => { v.feeling = +b.dataset.feel; saveNow(); reopenPanel(() => { rerender(); openVisionPanel(v.id); }); });
   bindBoardStrip(document.querySelector('#panel'), () => byId(S.visions,id)?.name || 'Vision');
   p.querySelector('#addRes').onclick = () => { v.resistance.push({text:'',threadId:null}); saveNow(); openVisionPanel(v.id); };
   p.querySelectorAll('[data-resthread]').forEach(s => s.onchange = () => { v.resistance[+s.dataset.resthread].threadId = s.value||null; saveNow(); });
   p.querySelectorAll('[data-resdel]').forEach(b => b.onclick = () => { const r = v.resistance[+b.dataset.resdel]; requestDelete({label: r.text || 'Resistance', node: b.closest('.evidence-item'), remove: () => spliceOut(v.resistance, x => x === r), after: () => openVisionPanel(v.id)}); });
   p.querySelectorAll('[data-vlink]').forEach(c => c.onclick = () => openVisionPanel(c.dataset.vlink));
   p.querySelectorAll('[data-preskill]').forEach(c => c.onclick = () => { const id = c.dataset.preskill; v.preSkills = v.preSkills.includes(id) ? v.preSkills.filter(x=>x!==id) : [...v.preSkills,id]; saveNow(); c.classList.toggle('on'); });
-  p.querySelector('#vParent').onchange = e => { v.parentId = e.target.value||null; saveNow(); rerender(); openVisionPanel(v.id); };
+  p.querySelector('#vParent').onchange = e => { v.parentId = e.target.value||null; saveNow(); reopenPanel(() => { rerender(); openVisionPanel(v.id); }); };
   p.querySelectorAll('[data-vval]').forEach(c => c.onclick = () => { const id = c.dataset.vval; v.values = v.values.includes(id) ? v.values.filter(x=>x!==id) : [...v.values,id]; saveNow(); c.classList.toggle('on'); });
   p.querySelector('#addEv').onclick = () => { v.evidence.push({date:today(),text:''}); saveNow(); openVisionPanel(v.id); setTimeout(()=>{ const last = $$('#panel .evidence-item .ed').slice(-1)[0]; last && beginEdit(last); },50); };
   p.querySelectorAll('[data-evdel]').forEach(b => b.onclick = () => { const ev = v.evidence[+b.dataset.evdel]; requestDelete({label: ev.text || 'Evidence', node: b.closest('.evidence-item'), remove: () => spliceOut(v.evidence, x => x === ev), after: () => openVisionPanel(v.id)}); });
-  p.querySelector('#addLeaf').onclick = () => openEntryModal({type:'progress', links:{visions:[v.id]}, after:()=>{ rerender(); openVisionPanel(v.id); }});
-  p.querySelector('#vEra').onchange = e => { v.era = e.target.value; saveNow(); rerender(); openVisionPanel(v.id); };
-  p.querySelector('#vDone').onclick = () => { setGoalStatus(v, v.status==='completed' ? 'pending' : 'completed'); rerender(); openVisionPanel(v.id); };
-  p.querySelector('#vArchived').onclick = () => { v.archived = !v.archived; saveNow(); rerender(); openVisionPanel(v.id); };
-  p.querySelector('#vPhase')?.addEventListener('change', e => { v.phase = e.target.value; if(v.phase==='just-completed' && v.status!=='completed') setGoalStatus(v,'completed'); saveNow(); rerender(); openVisionPanel(v.id); });
+  p.querySelector('#addLeaf').onclick = () => openEntryModal({type:'progress', links:{visions:[v.id]}, after:()=>{ reopenPanel(() => { rerender(); openVisionPanel(v.id); }); }});
+  p.querySelector('#vEra').onchange = e => { v.era = e.target.value; saveNow(); reopenPanel(() => { rerender(); openVisionPanel(v.id); }); };
+  p.querySelector('#vDone').onclick = () => { setGoalStatus(v, v.status==='completed' ? 'pending' : 'completed'); reopenPanel(() => { rerender(); openVisionPanel(v.id); }); };
+  p.querySelector('#vArchived').onclick = () => { v.archived = !v.archived; saveNow(); reopenPanel(() => { rerender(); openVisionPanel(v.id); }); };
+  p.querySelector('#vPhase')?.addEventListener('change', e => { v.phase = e.target.value; if(v.phase==='just-completed' && v.status!=='completed') setGoalStatus(v,'completed'); saveNow(); reopenPanel(() => { rerender(); openVisionPanel(v.id); }); });
   const pr = p.querySelector('#vProgress'); pr.oninput = () => { pr.previousElementSibling.textContent = `progress ${pr.value}%`; }; pr.onchange = () => { v.progress = +pr.value; saveNow(); rerender(); };
   p.querySelector('#delVision').onclick = () => deleteVision(v, null, () => { closePanel(); rerender(); });
 }
@@ -4764,7 +4877,7 @@ routes.value = function(root, params){
     ${F('hundred','What takes me to 100%?','What does full congruence actually look like, day to day?')}
     ${F('motivation','How do I increase my positive motivation for this value?','Strategies, reminders, environments, people.')}
     ${F('counterfeit','What counterfeits this value?','The cheap imitation that feels like the value but isn\'t. This field prevents self-deception.')}
-    <section class="section rv"><span class="sc">Served by visions</span><div class="row">${S.visions.filter(x=>x.values.includes(v.id)).map(x=>`<span class="chip on click" style="--c:var(--sage)" data-go="#/vision/${x.id}">🌿 ${esc(x.name)}</span>`).join('')||'<span class="empty">No vision serves this value — a structural blind spot.</span>'}</div></section>
+    <section class="section rv"><span class="sc">Served by visions</span><p class="muted" style="font-size:.85rem">Click a vision to link or unlink it — this is the same list a vision's own page uses, so tagging works from either side.</p><div class="row deps">${S.visions.length ? S.visions.map(x=>`<span class="chip click ${x.values.includes(v.id)?'on':''}" style="--c:var(--sage)" data-valvision="${x.id}">🌿 ${esc(x.name)}</span>`).join('') : '<span class="empty">No visions yet — a structural blind spot.</span>'}</div></section>
     <section class="section rv"><div class="row between"><span class="sc">Evidence feed</span><span class="row"><button class="btn sm" data-pol="+">+ embodied</button><button class="btn sm" data-pol="-">− betrayed</button></span></div>
       ${es.map(e=>{ const pol = e.links.values.find(x=>x.id===v.id)?.pol||'+'; return `<div style="display:grid;grid-template-columns:28px 1fr;gap:8px"><span class="serif" style="font-size:1.5rem;color:${pol==='+'?'var(--sage)':'var(--rose)'};padding-top:14px">${pol==='+'?'+':'−'}</span>${entryCard(e)}</div>`; }).join('')||'<div class="empty">No entries tagged to this value yet.</div>'}</section>
     ${moreSection(`<div class="row" style="gap:20px"><div class="field"><label>Colour</label><input type="color" id="valColor" value="${v.color}" style="width:40px;height:28px;border:none;background:none;padding:0;cursor:pointer"></div></div>
@@ -4775,6 +4888,7 @@ routes.value = function(root, params){
   $('#valColor').onchange = e => { v.color = e.target.value; saveNow(); rerender(); };
   root.querySelectorAll('[data-vf]').forEach(b => b.onclick = () => { const k = b.dataset.vf; const latest = (v.fields[k]||[]).slice(-1)[0]; const m = openModal(`<h2>A new version</h2><textarea class="ta" id="vfText" style="min-height:160px">${esc(latest?.text||'')}</textarea><p class="faint" style="font-size:.78rem">The previous version is kept. Growth in self-understanding stays visible.</p><div class="row" style="justify-content:flex-end"><button class="btn primary" id="vfSave">Keep</button></div>`); m.querySelector('#vfSave').onclick = () => { const t = m.querySelector('#vfText').value.trim(); if(!t) return; v.fields[k] = v.fields[k]||[]; v.fields[k].push({date:today(),text:t}); saveNow(); m.remove(); rerender(); sound('save'); }; });
   root.querySelectorAll('[data-pol]').forEach(b => b.onclick = () => openEntryModal({type:'reflection', links:{values:[{id:v.id,pol:b.dataset.pol}]}}));
+  root.querySelectorAll('[data-valvision]').forEach(c => c.onclick = () => { const x = byId(S.visions, c.dataset.valvision); x.values = x.values.includes(v.id) ? x.values.filter(y=>y!==v.id) : [...x.values, v.id]; saveNow(); c.classList.toggle('on'); });
   bindPractices(root); bindBoard(root);
 };
 
@@ -4836,7 +4950,8 @@ function practicesHTML(v){
 function bindPractices(root, after){
   const redraw = after || rerender;
   $$('[data-pracadd]', root).forEach(b => b.onclick = () => {
-    const v = byId(S.values, b.dataset.pracadd); if((v.practices||[]).length >= 3){ toast('Three is the ceiling on purpose. Replace one instead.'); return; }
+    const v = byId(S.values, b.dataset.pracadd); v.practices = v.practices || [];
+    if(v.practices.length >= 3){ toast('Three is the ceiling on purpose. Replace one instead.'); return; }
     v.practices.push({id:uid(), text:'', perWeek:1, log:[]}); saveNow(); redraw();
     setTimeout(()=>{ const n = document.querySelectorAll('.prac-text .ed'); n.length && beginEdit(n[n.length-1]); }, 60);
   });
@@ -5046,7 +5161,7 @@ function openDecisionPanel(id){
     <div class="vp-sec"><span class="sc">Come back again on</span><div class="row">${ed(`entries.#${e.id}.extra.reviewOn`, {ph:'YYYY-MM-DD', cls:'mono'})}</div></div>
     ${moreSection(`<div class="danger-zone"><span>This deletes the decision and everything written about it.</span><button class="btn sm ghost danger" id="dDel">Delete this decision</button></div>`)}`, 'decision-panel');
   p.querySelector('#dVerdict').onchange = ev => { x.verdict = ev.target.value; saveNow(); };
-  p.querySelector('#dDone').onclick = () => { x.reviewedAt = x.reviewedAt ? '' : today(); saveNow(); sound(x.reviewedAt ? 'success' : 'click'); rerender(); openDecisionPanel(id); };
+  p.querySelector('#dDone').onclick = () => { x.reviewedAt = x.reviewedAt ? '' : today(); saveNow(); sound(x.reviewedAt ? 'success' : 'click'); reopenPanel(() => { rerender(); openDecisionPanel(id); }); };
   p.querySelector('#dDel').onclick = () => requestDelete({label:e.title||'this decision', remove:()=>spliceOut(S.entries, y=>y.id===e.id), after:()=>{ closePanel(); rerender(); }});
 }
 
@@ -5452,7 +5567,7 @@ function deleteSkill(sk, node, after){
 }
 function openSkillPanel(id){
   const s = byId(S.skills,id); if(!s) return; const es = sortEntries(entriesLinked('skills',s.id)); const st = skillStreak(s); const last = skillLastPracticed(s); const since = daysSince(last);
-  const visions = S.visions.filter(v=>v.preSkills.includes(s.id)); const projects = S.projects.filter(p => (p.linkedSkills||[]).includes(s.id) || es.some(e=>(e.links.projects||[]).includes(p.id))); const values = {}; es.forEach(e=>(e.links.values||[]).forEach(x=>values[x.id]=(values[x.id]||0)+1));
+  const values = {}; es.forEach(e=>(e.links.values||[]).forEach(x=>values[x.id]=(values[x.id]||0)+1));
   const arche = s.planned ? 'A bud. Nothing to judge yet.' : since>90 ? 'The Dabbler? Enthusiasm, then a plateau, then silence. Or perhaps a deliberate surrender — some competencies are meant to be let go.' : st.best>=14 && st.cur===0 ? 'The Obsessive? A long hard streak, then a break. Watch for burnout; oscillation is the rhythm, not a failure.' : s.currentLevel>=3 && !skillTargetLevel(s) && s.currentLevel < skillLevelCount(s) ? 'The Hacker? Good enough, and stopped. Is this the level you chose, or the one you settled for?' : 'On the path. Loving the plateau. The master stays on the mat five minutes longer.';
   const p = openPanel(`<div class="mono">${esc(s.cat)} · ${s.planned?'planned':'level '+s.currentLevel+' of '+skillLevelCount(s)}</div><h2>${ed(`skills.#${s.id}.name`)}</h2>
     <div class="row" style="margin:8px 0 10px;gap:8px;flex-wrap:wrap">
@@ -5470,20 +5585,22 @@ function openSkillPanel(id){
     ${boardStrip(boardId('skill', s.id), 'Board')}
     <div class="vp-sec"><span class="sc">Prerequisites</span><div class="deps">${S.skills.filter(x=>x.id!==s.id).map(x=>`<span class="chip click ${s.prereqs.includes(x.id)?'on':''}" style="--c:${catColor(x.cat)}" data-pre="${x.id}">${esc(x.name)}</span>`).join('')}</div></div>
     <div class="vp-sec"><span class="sc">Cross-mappings</span>
-      <div class="k mono" style="margin:6px 0 4px">load-bearing for visions — what do I need to become to live that life?</div><div class="deps">${visions.map(v=>`<span class="chip on click" style="--c:var(--sage)" data-go="#/vision/${v.id}">🌿 ${esc(v.name)}</span>`).join('')||'<span class="faint">no vision depends on this yet</span>'}</div>
-      <div class="k mono" style="margin:10px 0 4px">linked projects — am I practising what I claim to build?</div><div class="deps">${projects.map(pr=>`<span class="chip on click" style="--c:var(--terra)" data-go="#/projects/${pr.id}">🎨 ${esc(pr.name)}${(pr.linkedSkills||[]).includes(s.id)?' · linked':''}</span>`).join('')||'<span class="faint">no linked projects yet — tag this skill from a project</span>'}</div>
+      <div class="k mono" style="margin:6px 0 4px">load-bearing for visions — what do I need to become to live that life? click to link</div><div class="deps">${S.visions.map(v=>`<span class="chip click ${v.preSkills.includes(s.id)?'on':''}" style="--c:var(--sage)" data-skvision="${v.id}">🌿 ${esc(v.name)}</span>`).join('')||'<span class="faint">no visions yet</span>'}</div>
+      <div class="k mono" style="margin:10px 0 4px">linked projects — am I practising what I claim to build? click to link</div><div class="deps">${S.projects.map(pr=>`<span class="chip click ${(pr.linkedSkills||[]).includes(s.id)?'on':''}" style="--c:var(--terra)" data-skproj="${pr.id}">🎨 ${esc(pr.name)}</span>`).join('')||'<span class="faint">no projects yet</span>'}</div>
       <div class="k mono" style="margin:10px 0 4px">serves values</div><div class="deps">${Object.entries(values).map(([id,n])=>{ const v=byId(S.values,id); return v?`<span class="chip on click" style="--c:${v.color}" data-go="#/value/${id}">${esc(v.name)} · ${n}</span>`:''; }).join('')||'<span class="faint">tag values on progress entries</span>'}</div></div>
     <div class="vp-sec"><div class="row between"><span class="sc">Progress log</span><button class="btn sm" id="skLog">+ practice</button></div>${es.map(e=>entryCard(e)).join('')||'<div class="empty">No practice logged yet.</div>'}</div>
     ${moreSection(`<div class="danger-zone"><span>Skills accrue slowly. Consider marking it planned or lowering the level before deleting.</span><button class="btn sm ghost danger" id="skDel">Delete this skill</button></div>`)}`);
   $$('#panel .rv').forEach(n=>n.classList.add('in'));
-  p.querySelector('#skCatSel').onchange = e => { s.cat = e.target.value; saveNow(); rerender(); openSkillPanel(id); };
+  p.querySelector('#skCatSel').onchange = e => { s.cat = e.target.value; saveNow(); reopenPanel(() => { rerender(); openSkillPanel(id); }); };
   bindBoardStrip(p, () => s.name);
-  p.querySelector('#skHzSel').onchange = e => { s.horizon = e.target.value; s.planned = s.horizon === 'someday'; if(!s.planned && s.currentLevel===0) s.currentLevel = 1; saveNow(); rerender(); openSkillPanel(id); };
-  p.querySelector('#skPrioSel').onchange = e => { s.priority = e.target.value; saveNow(); rerender(); openSkillPanel(id); };
+  p.querySelector('#skHzSel').onchange = e => { s.horizon = e.target.value; s.planned = s.horizon === 'someday'; if(!s.planned && s.currentLevel===0) s.currentLevel = 1; saveNow(); reopenPanel(() => { rerender(); openSkillPanel(id); }); };
+  p.querySelector('#skPrioSel').onchange = e => { s.priority = e.target.value; saveNow(); reopenPanel(() => { rerender(); openSkillPanel(id); }); };
   bindLevelTrack(p, s);
   bindMilestones(p, s);
   p.querySelectorAll('[data-pre]').forEach(c => c.onclick = () => { const x = c.dataset.pre; s.prereqs = s.prereqs.includes(x) ? s.prereqs.filter(y=>y!==x) : [...s.prereqs,x]; saveNow(); c.classList.toggle('on'); rerender(); });
-  p.querySelector('#skLog').onclick = () => openEntryModal({type:'progress', links:{skills:[s.id]}, after:()=>{ rerender(); openSkillPanel(id); }});
+  p.querySelectorAll('[data-skvision]').forEach(c => c.onclick = () => { const v = byId(S.visions, c.dataset.skvision); v.preSkills = v.preSkills.includes(s.id) ? v.preSkills.filter(x=>x!==s.id) : [...v.preSkills, s.id]; saveNow(); c.classList.toggle('on'); });
+  p.querySelectorAll('[data-skproj]').forEach(c => c.onclick = () => { const pr = byId(S.projects, c.dataset.skproj); pr.linkedSkills = (pr.linkedSkills||[]).includes(s.id) ? pr.linkedSkills.filter(x=>x!==s.id) : [...(pr.linkedSkills||[]), s.id]; saveNow(); c.classList.toggle('on'); });
+  p.querySelector('#skLog').onclick = () => openEntryModal({type:'progress', links:{skills:[s.id]}, after:()=>{ reopenPanel(() => { rerender(); openSkillPanel(id); }); }});
   p.querySelector('#skDel').onclick = () => deleteSkill(s, null, () => { closePanel(); rerender(); });
 }
 
@@ -5511,7 +5628,7 @@ function levelTrackHTML(s){
 }
 hooks.lvldate = (arg) => { const [sid, i] = arg.split(':'); const s = byId(S.skills, sid); if(!s) return; const l = s.levels[+i]; if(l && l.targetDate === '') l.targetDate = null; saveNow(); };
 function bindLevelTrack(p, s){
-  const id = s.id; const reopen = () => { rerender(); openSkillPanel(id); };
+  const id = s.id; const reopen = () => { reopenPanel(() => { rerender(); openSkillPanel(id); }); };
   p.querySelectorAll('[data-setlevel]').forEach(b => b.onclick = e => { e.stopPropagation(); const n = +b.dataset.setlevel; const up = n > s.currentLevel; s.currentLevel = n; s.planned = false; saveNow(); reopen(); if(up) setTimeout(() => $('#main')?._skView?.burst(id), 60); });
   p.querySelectorAll('[data-expand]').forEach(h => h.addEventListener('click', e => { if(e.target.closest('.ed')) return; const n = +h.dataset.expand; S._openLevel = S._openLevel||{}; S._openLevel[id] = S._openLevel[id]===n ? null : n; const row = h.closest('.lvl'); const wasOpen = row.classList.contains('open'); p.querySelectorAll('.lvl').forEach(x => x.classList.remove('open')); if(!wasOpen) row.classList.add('open'); }));
   p.querySelector('#lvlAdd').onclick = () => { const n = s.levels.length+1; s.levels.push({number:n, label:LEVEL_LABELS[n-1]||`Level ${n}`, description:'', criteria:[], resources:[], estimatedTime:'', targetDate:null}); S._openLevel = {...(S._openLevel||{}), [id]:n}; saveNow(); reopen(); };
@@ -5541,7 +5658,7 @@ function milestoneTimelineHTML(s){
       return `<div class="ms-row"><select class="sel" data-mslevel="${idx}" style="width:auto;padding:2px 6px;font-size:.7rem">${s.levels.map((l,li)=>`<option value="${li+1}" ${m.levelTarget===li+1?'selected':''}>L${li+1} · ${esc(l.label)}</option>`).join('')}</select><input type="date" class="inp" value="${m.by?m.by.slice(0,10):''}" data-msdate="${idx}" style="width:auto;padding:2px 6px;font-size:.7rem"><span class="ms-note">${ed(`skills.#${s.id}.milestones.${idx}.note`,{ph:'why this date?'})}</span>${badge}<button class="del-x inline" data-msdel="${idx}" title="remove">×</button></div>`; }).join('')}</div></div>`;
 }
 function bindMilestones(p, s){
-  const id = s.id; const reopen = () => { rerender(); openSkillPanel(id); };
+  const id = s.id; const reopen = () => { reopenPanel(() => { rerender(); openSkillPanel(id); }); };
   p.querySelector('#msAdd').onclick = () => { s.milestones = s.milestones||[]; s.milestones.push({levelTarget: Math.min(s.currentLevel+1, skillLevelCount(s)), by: addDays(today(), 90), note:''}); saveNow(); reopen(); };
   p.querySelectorAll('[data-mslevel]').forEach(sel => sel.onchange = () => { s.milestones[+sel.dataset.mslevel].levelTarget = +sel.value; saveNow(); reopen(); });
   p.querySelectorAll('[data-msdate]').forEach(inp => inp.onchange = () => { s.milestones[+inp.dataset.msdate].by = inp.value || null; saveNow(); reopen(); });
@@ -5666,11 +5783,11 @@ function openProjectPanel(id){
     ${moreSection(`<div class="danger-zone"><span>Projects carry their nods with them. Archive it instead if it may return.</span><button class="btn sm ghost danger" id="pDel">Delete this project</button></div>`)}`);
   $$('#panel .rv').forEach(n=>n.classList.add('in'));
   p._tags = (p.tags||[]).join(', ');
-  pn.querySelector('#pStatus').onchange = e => { p.status = e.target.value; saveNow(); rerender(); openProjectPanel(id); };
-  pn.querySelector('#pPri').onchange = e => { p.priority = e.target.value; saveNow(); rerender(); openProjectPanel(id); };
-  pn.querySelector('#pEra').onchange = e => { p.linkedVisionEra = e.target.value || null; saveNow(); rerender(); openProjectPanel(id); };
+  pn.querySelector('#pStatus').onchange = e => { p.status = e.target.value; saveNow(); reopenPanel(() => { rerender(); openProjectPanel(id); }); };
+  pn.querySelector('#pPri').onchange = e => { p.priority = e.target.value; saveNow(); reopenPanel(() => { rerender(); openProjectPanel(id); }); };
+  pn.querySelector('#pEra').onchange = e => { p.linkedVisionEra = e.target.value || null; saveNow(); reopenPanel(() => { rerender(); openProjectPanel(id); }); };
   pn.querySelectorAll('[data-plink]').forEach(c => c.onclick = () => { const sid = c.dataset.plink; p.linkedSkills = (p.linkedSkills||[]).includes(sid) ? p.linkedSkills.filter(x=>x!==sid) : [...(p.linkedSkills||[]), sid]; saveNow(); c.classList.toggle('on'); });
-  const reopen = () => { rerender(); openProjectPanel(id); };
+  const reopen = () => { reopenPanel(() => { rerender(); openProjectPanel(id); }); };
   pn.querySelector('#phAdd').onclick = () => { const ph = {id:uid(), name:`Phase ${(p.phases||[]).length+1}`, startDate:'', endDate:'', tasks:[]}; p.phases.push(ph); S._openPhase = {...(S._openPhase||{}), [id]:ph.id}; saveNow(); reopen(); setTimeout(()=>{ const n = document.querySelector(`#panel .phase[data-phase="${ph.id}"] .phase-name .ed`); if(n){ beginEdit(n); n.querySelector('input')?.select(); } },60); };
   pn.querySelectorAll('[data-phtoggle]').forEach(h => h.addEventListener('click', e => { if(e.target.closest('.ed,button,input')) return; const row = h.closest('.phase'); const open = !row.classList.contains('open'); pn.querySelectorAll('.phase').forEach(x=>x.classList.remove('open')); if(open){ row.classList.add('open'); S._openPhase = {...(S._openPhase||{}), [id]:h.dataset.phtoggle}; } }));
   pn.querySelectorAll('[data-phdel]').forEach(b => b.onclick = e => { e.stopPropagation(); const ph = byId(p.phases, b.dataset.phdel); requestDelete({label:`${ph.name} (${(ph.tasks||[]).length} tasks)`, node:b.closest('.phase'), remove:()=>spliceOut(p.phases, x=>x.id===ph.id), after:reopen}); });
@@ -5682,11 +5799,11 @@ function openProjectPanel(id){
   pn.querySelectorAll('[data-prestype]').forEach(sel => sel.onchange = () => { p.resources[+sel.dataset.prestype].type = sel.value; saveNow(); reopen(); });
   pn.querySelectorAll('[data-presdel]').forEach(b => b.onclick = () => { const rs = p.resources[+b.dataset.presdel]; requestDelete({label:rs.title||'Resource', remove:()=>spliceOut(p.resources, x=>x===rs), after:reopen}); });
   bindBoardStrip(pn, () => p.name);
-  pn.querySelector('#pNod').onclick = () => openNodModal(p.id, ()=>{ rerender(); openProjectPanel(id); });
+  pn.querySelector('#pNod').onclick = () => openNodModal(p.id, ()=>{ reopenPanel(() => { rerender(); openProjectPanel(id); }); });
   pn.querySelector('#pMile').onclick = () => { p.income.milestones.push({date:today(),text:''}); saveNow(); openProjectPanel(id); };
   pn.querySelectorAll('[data-mdel]').forEach(b => b.onclick = () => { const ms = p.income.milestones[+b.dataset.mdel]; requestDelete({label: ms.text || 'Milestone', node: b.closest('.evidence-item'), remove: () => spliceOut(p.income.milestones, x => x === ms), after: () => openProjectPanel(id)}); });
-  pn.querySelectorAll('[data-nodedit]').forEach(b => b.onclick = () => openNodModal(p.id, () => { rerender(); openProjectPanel(id); }, byId(S.nods, b.dataset.nodedit)));
-  pn.querySelectorAll('[data-noddel]').forEach(b => b.onclick = () => { const n = byId(S.nods, b.dataset.noddel); requestDelete({label: n.text, node: b.closest('.nod'), remove: () => spliceOut(S.nods, x => x.id === n.id), after: () => { rerender(); openProjectPanel(id); }}); });
+  pn.querySelectorAll('[data-nodedit]').forEach(b => b.onclick = () => openNodModal(p.id, () => { reopenPanel(() => { rerender(); openProjectPanel(id); }); }, byId(S.nods, b.dataset.nodedit)));
+  pn.querySelectorAll('[data-noddel]').forEach(b => b.onclick = () => { const n = byId(S.nods, b.dataset.noddel); requestDelete({label: n.text, node: b.closest('.nod'), remove: () => spliceOut(S.nods, x => x.id === n.id), after: () => { reopenPanel(() => { rerender(); openProjectPanel(id); }); }}); });
   pn.querySelector('#pDel').onclick = () => deleteProject(p, null, () => { closePanel(); rerender(); });
 }
 hooks.ptags = (pid, o, n) => { const p = byId(S.projects,pid); if(p){ p.tags = n.split(',').map(s=>s.trim()).filter(Boolean); saveNow(); } };
@@ -6311,7 +6428,7 @@ function openDayPage(d){
       <button class="btn sm ghost" id="dpNext">${fmtDate(addDays(d,1),'short')} ›</button>
     </div>`, 'day-page');
   p.querySelector('#dpNote').onclick = () => openEntryModal({type:'reflection', allowedTypes:['reflection','memory','gratitude','dream'], occurredAt:d, heading:`A note for ${fmtDate(d,'med')}`});
-  p.querySelector('#dpTask').onclick = () => openTaskPicker(d, () => { rerender(); openDayPage(d); });
+  p.querySelector('#dpTask').onclick = () => openTaskPicker(d, () => reopenPanel(() => { rerender(); openDayPage(d); }));
   p.querySelector('#dpPrev').onclick = () => openDayPage(addDays(d,-1));
   p.querySelector('#dpNext').onclick = () => openDayPage(addDays(d,1));
 }
@@ -7126,7 +7243,7 @@ function openTurnPanel(id){
       ${[...mems, ...jrns].length ? [...mems, ...jrns].map(e => entryCard(e, {tools:false})).join('') : '<div class="faint" style="font-size:.8rem">Nothing linked. A memory or journal entry from around this time gives the moment its texture.</div>'}</div>
 
     ${moreSection(`<div class="danger-zone"><span>This deletes the turning point and everything written about it.</span><button class="btn sm ghost danger" id="tpDel">Delete this turning point</button></div>`)}`, 'turn-panel');
-  const reopen = () => { rerender(); openTurnPanel(id); };
+  const reopen = () => reopenPanel(() => { rerender(); openTurnPanel(id); });
   p.querySelector('#tpType').onchange = e => { t.type = e.target.value; saveNow(); reopen(); };
   p.querySelector('#tpCh').onchange = e => { t.chapterId = e.target.value || null; saveNow(); reopen(); };
   p.querySelectorAll('[data-tpth]').forEach(c => c.onclick = () => { const id2 = c.dataset.tpth;
@@ -7682,7 +7799,7 @@ function openReminderModal(){
 function newValueDialog(){
   if(S.values.length >= 10){ toast('The compass holds ten values. Rename one instead of adding an eleventh.'); return; }
   const m = openModal(`<h2>A new value</h2><div class="stack"><div class="field"><label>Name</label><input class="inp" id="nvName" placeholder="e.g. Generosity"></div><div class="field"><label>Colour</label><input type="color" id="nvColor" value="#b08968" style="width:48px;height:32px;border:none;background:none;padding:0"></div><div class="row" style="justify-content:flex-end"><button class="btn primary" id="nvSave">Add value</button></div></div>`, 'narrow');
-  m.querySelector('#nvSave').onclick = () => { const name = m.querySelector('#nvName').value.trim(); if(!name) return; const v = {id:'v-'+uid(), name, color:m.querySelector('#nvColor').value, fields:{embody:[],hundred:[],motivation:[],counterfeit:[]}}; S.values.push(v); S.valueOrderHistory.push({date:today(), order:[...S.valueOrder]}); S.valueOrder.push(v.id); saveNow(); m.remove(); rerender(); navigate('#/value/'+v.id); };
+  m.querySelector('#nvSave').onclick = () => { const name = m.querySelector('#nvName').value.trim(); if(!name) return; const v = {id:'v-'+uid(), name, color:m.querySelector('#nvColor').value, fields:{embody:[],hundred:[],motivation:[],counterfeit:[]}, practices:[]}; S.values.push(v); S.valueOrderHistory.push({date:today(), order:[...S.valueOrder]}); S.valueOrder.push(v.id); saveNow(); m.remove(); rerender(); navigate('#/value/'+v.id); };
 }
 function newVisionDialog(pre={}){
   const m = openModal(`<h2>A new branch</h2><div class="stack"><div class="field"><label>Name</label><input class="inp" id="vnName" placeholder="What do you want to create?"></div><div class="field"><label>Era</label><select class="sel" id="vnEra">${erasList().map(e=>`<option value="${e.id}" ${pre.era===e.id?'selected':''}>${esc(e.name)}${e.subtitle?' — '+esc(e.subtitle):''}</option>`).join('')}</select></div><div class="field"><label>Forks from (optional)</label><select class="sel" id="vnParent"><option value="">the trunk</option>${S.visions.map(v=>`<option value="${v.id}">${esc(v.name)}</option>`).join('')}</select></div></div><div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn primary" id="vnSave">Plant it</button></div>`,'narrow');
@@ -7717,94 +7834,320 @@ function newSkillDialog(pre={}){
   setTimeout(() => m.querySelector('#skName').focus(), 50);
 }
 /* ============================================================
-   COMMONPLACE BOOK — what you read, watched, heard, and what it
-   changed. Not a rating site: the prompts ask what a work did to
-   you, what you argued with, and what you intend to steal.
-   Stored as entries of type `media`, so search and hashtags work.
+   THE LIBRARY (formerly the Commonplace Book) — media as a
+   theory base for lived experience. Not a rating site: every
+   work is asked what it did to you, not whether it was "good".
+   Stored as entries of type `media`, so search, hashtags, and
+   the cross-tagging system all just work.
    ============================================================ */
 const MEDIA_KINDS = {
-  book:      ['📗','Book',       '#7f916a'],
-  film:      ['🎞','Film',       '#a0727e'],
-  series:    ['📺','Series',     '#6b7f8e'],
-  album:     ['🎵','Album',      '#b08968'],
-  article:   ['📄','Article',    '#8a8d8f'],
-  talk:      ['🎤','Talk',       '#c47832'],
-  exhibition:['🖼','Exhibition', '#9a8fb8'],
-  game:      ['🎮','Game',       '#6fa39a'],
+  book:       ['📗','Book',        '#7f916a'],
+  film:       ['🎞','Film',        '#a0727e'],
+  documentary:['🎥','Documentary', '#5c7c8a'],
+  podcast:    ['🎙','Podcast',     '#c9975c'],
+  article:    ['📄','Article',     '#8a8d8f'],
+  series:     ['📺','Series',      '#6b7f8e'],
+  album:      ['🎵','Music Album', '#b08968'],
+  lecture:    ['🎤','Lecture',     '#c47832'],
+  exhibition: ['🖼','Exhibition',  '#9a8fb8'],
+  game:       ['🎮','Game',        '#6fa39a'],
+  other:      ['✦','Other',       '#a89f94'],
 };
-const MEDIA_STATUS = ['wishlist','reading','finished','abandoned'];
-const MEDIA_PROMPTS = [
-  ['oneLine',   'In one sentence, to a friend',   'What is it, and is it worth their evening?'],
-  ['resonance', 'Why it caught me',                'What in my own life was it answering? Be specific — a season, a question, a person.'],
-  ['argued',    'Where I argued with it',          'The part that felt false, thin, or too easy. Disagreement is where reading becomes thinking.'],
-  ['steal',     'What I am stealing',              'A technique, a sentence rhythm, a way of framing. Name the thing you will actually use.'],
-  ['changed',   'What it changed',                 'One thing you will do differently. If nothing, say that honestly.'],
+const MEDIA_STATUS = ['want','progress','finished','abandoned','reexperiencing'];
+const MEDIA_STATUS_LABEL = {want:'Want', progress:'In Progress', finished:'Finished', abandoned:'Abandoned', reexperiencing:'Re-experiencing'};
+/* the resonance scale — not "was it good?" but "what did it do to me?" */
+const RESONANCE_LEVELS = [
+  ['passed', 'Passed through me', '#8a8d8f'],
+  ['stayed', 'Stayed with me',    '#6b7f8e'],
+  ['changed','Changed me',        '#c47832'],
+  ['lives',  'Lives in me',       '#d4a44c'],
 ];
+const resonanceMeta = k => RESONANCE_LEVELS.find(r=>r[0]===k) || null;
 function mediaEntries(){ return S.entries.filter(e => e.type === 'media'); }
 function mediaX(e){ e.extra = e.extra || {}; return e.extra; }
-function migrateMedia(){ mediaEntries().forEach(e => { const x = mediaX(e); x.kind = x.kind || 'book'; x.status = MEDIA_STATUS.includes(x.status) ? x.status : 'finished'; x.rating = +x.rating || 0; x.passages = Array.isArray(x.passages) ? x.passages : []; }); }
-function mediaStars(n, {click=false, id=''}={}){ return `<span class="stars ${click?'click':''}" ${click?`data-stars="${id}"`:''}>${[1,2,3,4,5].map(i=>`<i class="${i<=n?'on':''}" data-star="${i}">★</i>`).join('')}</span>`; }
-routes.commonplace = function(root, params){
-  registerPageEntry({pageName:'Commonplace Book', addLabel:'Log a work', defaultEntryType:'media', prefilledFields:{}, options:[
-    {icon:'📗', label:'Book', desc:'Something you are reading or have read.', run:()=>openMediaModal({kind:'book'})},
-    {icon:'🎞', label:'Film or series', desc:'Something you watched.', run:()=>openMediaModal({kind:'film'})},
-    {icon:'🎵', label:'Album or talk', desc:'Something you listened to.', run:()=>openMediaModal({kind:'album'})}]});
-  const all = mediaEntries();
-  const kind = S._mKind || 'all', status = S._mStatus || 'all', q = (S._mq||'').toLowerCase();
-  const list = all.filter(e => { const x = mediaX(e);
-      return (kind==='all' || x.kind===kind) && (status==='all' || x.status===status)
-        && (!q || `${e.title} ${x.creator||''} ${e.body||''} ${entryTags(e).join(' ')}`.toLowerCase().includes(q)); })
-    .sort((a,b) => (mediaX(b).finishedAt||b.occurredAt||'').localeCompare(mediaX(a).finishedAt||a.occurredAt||''));
-  const finished = all.filter(e => mediaX(e).status === 'finished');
-  const thisYear = finished.filter(e => (mediaX(e).finishedAt||e.occurredAt||'').slice(0,4) === String(new Date().getFullYear()));
-  const counts = {}; all.forEach(e => { const k = mediaX(e).kind; counts[k] = (counts[k]||0)+1; });
-  root.innerHTML = `<div class="page">
-    <div class="page-head"><h1>Commonplace Book</h1><div class="sub">Everything that went in, and what it did once it was there. A rating is the least interesting thing on this page.</div></div>
+function migrateMedia(){
+  mediaEntries().forEach(e => {
+    const x = mediaX(e);
+    if(x.kind === 'talk') x.kind = 'lecture';
+    x.kind = MEDIA_KINDS[x.kind] ? x.kind : 'book';
+    const STATUS_MAP = {wishlist:'want', reading:'progress'};
+    x.status = MEDIA_STATUS.includes(x.status) ? x.status : (STATUS_MAP[x.status] || 'finished');
+    if(x.resonanceLevel === undefined){ const map = {1:'passed',2:'passed',3:'stayed',4:'changed',5:'lives'}; x.resonanceLevel = map[+x.rating] || null; }
+    if(!Array.isArray(x.quotes)) x.quotes = (Array.isArray(x.passages)?x.passages:[]).map(p => ({id:uid(), text:p.text||'', where:p.where||'', why:p.note||''}));
+    if(x.oneLineCapture === undefined) x.oneLineCapture = x.oneLine || '';
+    if(x.installed === undefined) x.installed = '';
+    if(x.recommend === undefined) x.recommend = '';
+    if(x.recommendWho === undefined) x.recommendWho = '';
+    if(!x._convoMigrated){
+      const parts = [];
+      if(x.resonance) parts.push(x.resonance);
+      if(x.argued) parts.push(`**Where I argued with it.** ${x.argued}`);
+      if(x.steal) parts.push(`**What I am stealing.** ${x.steal}`);
+      if(x.changed) parts.push(`**What it changed.** ${x.changed}`);
+      if(parts.length && !e.body) e.body = parts.join('\n\n');
+      x._convoMigrated = true;
+    }
+    delete x.passages; delete x.rating;
+    e.links = e.links || {}; ['stages','substages','threads','values','visions','skills','projects'].forEach(k => { if(!Array.isArray(e.links[k])) e.links[k] = []; });
+  });
+}
 
-    <div class="card rv" style="margin-bottom:20px"><div class="income-strip">
+/* ---------- life stage auto-tag, derived from date consumed ---------- */
+function stageYearRange(s){ const m = (s.years||'').match(/(\d{4})\s*[–-]\s*(\d{4})?/); if(!m) return null; return [+m[1], m[2] ? +m[2] : new Date().getFullYear()]; }
+function stageForDate(dateStr){ const y = +String(dateStr||'').slice(0,4); if(!y) return null; return (S.stages||[]).find(s => { const r = stageYearRange(s); return r && y>=r[0] && y<=r[1]; }) || null; }
+function mediaDateConsumed(e){ const x = mediaX(e); return x.finishedAt || e.occurredAt || ''; }
+function mediaLifeStage(e){ return stageForDate(mediaDateConsumed(e)); }
+
+/* ---------- quotes & marginalia: auto-feed into the Quotes journal ---------- */
+function syncMediaQuotes(e){
+  const x = mediaX(e);
+  (x.quotes||[]).forEach(q => {
+    if(!q.text || !q.text.trim()){ if(q.quoteEntryId){ const old = byId(S.entries, q.quoteEntryId); if(old) S.entries.splice(S.entries.indexOf(old),1); q.quoteEntryId = null; } return; }
+    let qe = q.quoteEntryId ? byId(S.entries, q.quoteEntryId) : null;
+    if(!qe){ qe = {id:uid(), type:'quote', title:e.title, body:q.text, occurredAt:e.occurredAt, createdAt:new Date().toISOString(), media:[], links:{stages:[],substages:[],threads:[],values:[],visions:[],skills:[],projects:[]}, people:[], places:[], emotions:[], tags:[], confidence:'', extra:{author:mediaX(e).creator||'', source:e.title, link:'', page:q.where||'', why:q.why||'', fromMedia:e.id}}; S.entries.push(qe); q.quoteEntryId = qe.id; }
+    else { qe.body = q.text; qe.extra.page = q.where||''; qe.extra.why = q.why||''; qe.extra.author = mediaX(e).creator||''; qe.extra.source = e.title; }
+  });
+  const keep = new Set((x.quotes||[]).map(q=>q.quoteEntryId).filter(Boolean));
+  S.entries = S.entries.filter(en => !(en.type==='quote' && en.extra?.fromMedia===e.id && !keep.has(en.id)));
+  saveNow();
+}
+hooks.syncquote = (mediaId) => { const e = byId(S.entries, mediaId); if(e) syncMediaQuotes(e); };
+
+/* ---------- the Personal Queue — a single ordered "up next" list ---------- */
+function openQueueItemModal(existing){
+  const it = existing || {id:uid(), title:'', medium:'book', why:'', visionId:'', valueId:'', createdAt:today()};
+  const m = openModal(`<h2>${existing?'Edit queue item':'Add to the queue'}</h2><div class="stack">
+    <input class="inp serif-lg" id="qiTitle" placeholder="Title" value="${esc(it.title)}" autofocus>
+    <div class="grid c2" style="gap:8px"><select class="sel" id="qiMedium">${Object.entries(MEDIA_KINDS).map(([k,v])=>`<option value="${k}" ${it.medium===k?'selected':''}>${v[0]} ${v[1]}</option>`).join('')}</select>
+    <select class="sel" id="qiVision"><option value="">no vision</option>${S.visions.map(v=>`<option value="${v.id}" ${it.visionId===v.id?'selected':''}>🌿 ${esc(v.name)}</option>`).join('')}</select></div>
+    <input class="inp" id="qiWhy" placeholder="Why it's here — one line" value="${esc(it.why)}">
+    <select class="sel" id="qiValue"><option value="">no value</option>${S.valueOrder.map(id=>{ const v=byId(S.values,id); return `<option value="${id}" ${it.valueId===id?'selected':''}>${esc(v.name)}</option>`; }).join('')}</select>
+    <div class="row" style="justify-content:flex-end"><button class="btn primary" id="qiSave">${existing?'Save':'Add to queue'}</button></div></div>`,'narrow');
+  m.querySelector('#qiSave').onclick = () => {
+    const title = m.querySelector('#qiTitle').value.trim(); if(!title){ toast('Give it a title.'); return; }
+    Object.assign(it, {title, medium:m.querySelector('#qiMedium').value, why:m.querySelector('#qiWhy').value.trim(), visionId:m.querySelector('#qiVision').value||'', valueId:m.querySelector('#qiValue').value||''});
+    if(!existing) S.mediaQueue.push(it); saveNow(); m.remove(); sound('success'); rerender();
+  };
+}
+function startQueueItem(id){
+  const it = byId(S.mediaQueue, id); if(!it) return;
+  openMediaModal({kind:it.medium, title:it.title, status:'progress'});
+  S.mediaQueue = S.mediaQueue.filter(x=>x.id!==id); saveNow();
+}
+
+/* ---------- Curated Lists ---------- */
+const SUGGESTED_LISTS = [
+  ['Books that built my self-image', 'Retrospective — the works that shaped how you see yourself.'],
+  ['Films for when the world is too loud', 'Mood-based — reach for these on the hard days.'],
+  ['The Tokyo reading list', 'Vision-specific — everything feeding a life not yet lived.'],
+  ['If I could only recommend 10 books', 'The distilled canon.'],
+  ['What to read in your 20s', 'Life-stage-specific advice to a younger self.'],
+];
+function newCuratedList(title='', description=''){ const l = {id:uid(), title, description, forWhom:'myself', personName:'', private:true, entries:[]}; S.mediaLists.push(l); saveNow(); return l; }
+function openListEditModal(l){
+  const m = openModal(`<h2>${l.title?'Edit list':'A new list'}</h2><div class="stack">
+    <input class="inp serif-lg" id="mlTitle" placeholder="Title" value="${esc(l.title)}">
+    <textarea class="ta" id="mlDesc" placeholder="What is this collection for?">${esc(l.description)}</textarea>
+    <div class="grid c2" style="gap:8px"><select class="sel" id="mlFor"><option value="myself" ${l.forWhom==='myself'?'selected':''}>for myself</option><option value="person" ${l.forWhom==='person'?'selected':''}>for a specific person</option><option value="anyone" ${l.forWhom==='anyone'?'selected':''}>for anyone on a similar path</option></select>
+    <input class="inp" id="mlPerson" placeholder="who? (if for a person)" value="${esc(l.personName||'')}"></div>
+    <label class="toggle ${l.private?'on':''}" id="mlPriv"><span class="sw"></span><span>private</span></label>
+    <div class="row" style="justify-content:flex-end"><button class="btn primary" id="mlSave">Save</button></div></div>`,'narrow');
+  m.querySelector('#mlSave').onclick = () => {
+    const title = m.querySelector('#mlTitle').value.trim(); if(!title){ toast('Name the list.'); return; }
+    Object.assign(l, {title, description:m.querySelector('#mlDesc').value.trim(), forWhom:m.querySelector('#mlFor').value, personName:m.querySelector('#mlPerson').value.trim(), private:m.querySelector('#mlPriv').classList.contains('on')});
+    saveNow(); m.remove(); rerender();
+  };
+}
+function exportListAsPage(l){
+  const rows = (l.entries||[]).map(id=>byId(S.entries,id)).filter(Boolean);
+  const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(l.title)}</title><style>body{font-family:Georgia,serif;max-width:640px;margin:60px auto;line-height:1.7;color:#2a241d}h1{font-size:1.8rem}p.d{color:#665e52;font-style:italic}ol{padding-left:1.3em}li{margin-bottom:14px}b{display:block}</style></head><body>
+    <h1>${esc(l.title)}</h1>${l.description?`<p class="d">${esc(l.description)}</p>`:''}
+    <ol>${rows.map(e=>{ const x=mediaX(e); return `<li><b>${esc(e.title)}</b>${x.creator?` — ${esc(x.creator)}`:''}${x.oneLineCapture?`<br>${esc(x.oneLineCapture)}`:''}</li>`; }).join('')}</ol></body></html>`;
+  const blob = new Blob([html], {type:'text/html'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `${l.title.replace(/[^\w-]+/g,'-')||'list'}.html`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),2000);
+}
+
+/* ---------- Received Recommendations ---------- */
+function openRecModal(existing){
+  const r = existing || {id:uid(), title:'', from:'', why:'', status:'queued', addedAt:today()};
+  const m = openModal(`<h2>${existing?'Edit recommendation':'Someone recommended something'}</h2><div class="stack">
+    <input class="inp serif-lg" id="rcTitle" placeholder="Title" value="${esc(r.title)}" autofocus>
+    <input class="inp" id="rcFrom" placeholder="Who recommended it?" value="${esc(r.from)}">
+    <textarea class="ta" id="rcWhy" placeholder="Why they said to consume it">${esc(r.why)}</textarea>
+    <div class="row" style="justify-content:flex-end"><button class="btn primary" id="rcSave">${existing?'Save':'Add to inbox'}</button></div></div>`,'narrow');
+  m.querySelector('#rcSave').onclick = () => { const title = m.querySelector('#rcTitle').value.trim(); if(!title){ toast('Give it a title.'); return; }
+    Object.assign(r, {title, from:m.querySelector('#rcFrom').value.trim(), why:m.querySelector('#rcWhy').value.trim()});
+    if(!existing) S.mediaRecs.push(r); saveNow(); m.remove(); rerender(); };
+}
+
+/* ---------- the Influence Map — patterns across media ---------- */
+function influenceMapHTML(){
+  const all = mediaEntries();
+  if(!all.length) return '<div class="empty">Log a few works and the patterns will show up here.</div>';
+  const valTally = {}, thTally = {};
+  all.forEach(e => { (e.links.values||[]).forEach(x=>valTally[x.id]=(valTally[x.id]||0)+1); (e.links.threads||[]).forEach(id=>thTally[id]=(thTally[id]||0)+1); });
+  const kindTally = {}; all.forEach(e => { const k = mediaX(e).kind; kindTally[k] = (kindTally[k]||0)+1; });
+  const resTally = {}; RESONANCE_LEVELS.forEach(([k])=>resTally[k]=0); all.forEach(e => { const r = mediaX(e).resonanceLevel; if(r) resTally[r]++; });
+  const reexp = all.filter(e => { const x = mediaX(e); return x.resonanceLevel==='lives' && x.finishedAt && daysSince(x.finishedAt) > 365; });
+  const bar = (label,n,max,color) => `<div class="influence-bar"><span style="width:130px;flex:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(label)}</span><span class="track"><i style="width:${max?Math.round(n/max*100):0}%;--c:${color}"></i></span><span class="mono" style="width:22px;text-align:right">${n}</span></div>`;
+  const maxVal = Math.max(1,...Object.values(valTally),0); const maxTh = Math.max(1,...Object.values(thTally),0); const maxKind = Math.max(1,...Object.values(kindTally),0); const maxRes = Math.max(1,...Object.values(resTally),0);
+  const starved = S.valueOrder.filter(id=>!valTally[id]);
+  return `<div class="grid c2" style="align-items:start;gap:24px">
+      <div><span class="sc">Values your media touches</span>${Object.keys(valTally).length ? Object.entries(valTally).sort((a,b)=>b[1]-a[1]).map(([id,n])=>{ const v=byId(S.values,id); return v?bar(v.name,n,maxVal,v.color):''; }).join('') : '<div class="empty">Nothing tagged to a value yet.</div>'}
+        ${starved.length?`<p class="faint" style="font-size:.78rem;margin-top:8px">Media-starved: ${starved.map(id=>esc(byId(S.values,id).name)).join(', ')}.</p>`:''}</div>
+      <div><span class="sc">Threads that keep appearing</span>${Object.keys(thTally).length ? Object.entries(thTally).sort((a,b)=>b[1]-a[1]).map(([id,n])=>{ const t=byId(S.threads,id); return t?bar(t.name,n,maxTh,t.color):''; }).join('') : '<div class="empty">No threads tagged yet.</div>'}</div>
+    </div>
+    <div class="grid c2" style="align-items:start;gap:24px;margin-top:20px">
+      <div><span class="sc">Medium balance</span>${Object.entries(kindTally).sort((a,b)=>b[1]-a[1]).map(([k,n])=>bar((MEDIA_KINDS[k]||MEDIA_KINDS.other)[1],n,maxKind,(MEDIA_KINDS[k]||MEDIA_KINDS.other)[2])).join('')}</div>
+      <div><span class="sc">Resonance distribution</span>${RESONANCE_LEVELS.map(([k,label,color])=>bar(label,resTally[k],maxRes,color)).join('')}
+        ${all.length && resTally.passed > all.length*.6 ? '<p class="faint" style="font-size:.78rem;margin-top:8px">Most of what you log only passes through you. Maybe that\'s fine — or maybe you are consuming faster than you absorb.</p>' : ''}</div>
+    </div>
+    ${reexp.length?`<div style="margin-top:20px"><span class="sc">Re-experience candidates</span><p class="faint" style="font-size:.78rem">Rated “lives in me”, untouched in over a year.</p><div class="row" style="gap:8px;flex-wrap:wrap;margin-top:8px">${reexp.map(e=>`<span class="chip click" data-mopen="${e.id}">${(MEDIA_KINDS[mediaX(e).kind]||MEDIA_KINDS.book)[0]} ${esc(e.title)}</span>`).join('')}</div></div>`:''}`;
+}
+
+/* ---------- Timeline view: media mapped onto the 8 life stages ---------- */
+function renderLibraryTimeline(root){
+  const stages = S.stages.filter(s=>!s.notyet); const all = mediaEntries();
+  root.innerHTML = stages.length ? stages.map(s => {
+    const works = all.filter(e => mediaLifeStage(e)?.id === s.id).sort((a,b)=>(mediaDateConsumed(a)).localeCompare(mediaDateConsumed(b)));
+    return `<div class="lib-stage-col rv" style="--c:${s.hue}"><div class="row between"><b class="serif" style="font-size:1.1rem;color:${s.hue}">${s.char} ${esc(s.name)}</b><span class="mono">${esc(s.years||'')} · ${works.length}</span></div>
+      ${works.length ? `<div class="works">${works.map(e => { const x = mediaX(e); const k = MEDIA_KINDS[x.kind]||MEDIA_KINDS.book; const r = resonanceMeta(x.resonanceLevel);
+        return `<div class="lib-stage-work click" data-mopen="${e.id}" style="${r?`border-color:${r[2]}`:''}"><div>${k[0]} ${esc(e.title)}</div>${r?`<div class="faint" style="color:${r[2]}">${r[1]}</div>`:''}</div>`; }).join('')}</div>`
+      : `<div class="empty">What were you reading during ${esc(s.name)}? What films do you remember? <button class="tbtn" data-retro-add="${s.id}">log one</button></div>`}
+    </div>`; }).join('') : '<div class="empty">Add life stages on the Timeline page first, and media can be mapped onto them.</div>';
+  root.querySelectorAll('[data-mopen]').forEach(c=>c.onclick=()=>openMediaPanel(c.dataset.mopen));
+  root.querySelectorAll('[data-retro-add]').forEach(b=>b.onclick=()=>{ const s = byId(S.stages,b.dataset.retroAdd); const r = stageYearRange(s); openMediaModal({finishedAt: r ? `${r[0]}-06-15` : ''}); });
+}
+
+/* ---------- Lists & Queue view ---------- */
+function renderLibraryLists(root){
+  root.innerHTML = `
+    <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Personal queue — up next</span><button class="btn sm ghost" id="qAdd">＋ add to queue</button></div>
+      <p class="muted" style="font-size:.85rem">What you want to encounter next. Drag to reorder; the top of the list is what you'll actually pick up.</p>
+      <div class="queue-list" id="queueList">${S.mediaQueue.map((it,i) => { const k = MEDIA_KINDS[it.medium]||MEDIA_KINDS.book; const vis = it.visionId?byId(S.visions,it.visionId):null; const val = it.valueId?byId(S.values,it.valueId):null;
+        return `<div class="queue-item" draggable="true" data-qid="${it.id}"><span class="grip">⠿</span><span class="body"><div class="row between"><b class="serif">${k[0]} ${esc(it.title)}</b><span class="row" style="gap:4px"><button class="tbtn" data-qstart="${it.id}">mark started →</button><button class="tbtn" data-qedit="${it.id}">edit</button><button class="del-x inline" data-qdel="${it.id}">×</button></span></div>${it.why?`<div class="quote" style="font-size:.85rem">${esc(it.why)}</div>`:''}${vis||val?`<div class="row" style="gap:4px;margin-top:4px">${vis?`<span class="chip on" style="--c:var(--sage)">🌿 ${esc(vis.name)}</span>`:''}${val?`<span class="chip on" style="--c:${val.color}">${esc(val.name)}</span>`:''}</div>`:''}</span></div>`; }).join('') || '<div class="empty">Nothing queued. What do you want to encounter next?</div>'}</div></section>
+
+    <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Curated lists</span><button class="btn sm ghost" id="mlAdd">＋ new list</button></div>
+      ${!S.mediaLists.length ? `<p class="muted" style="font-size:.85rem">Themed collections — what you'd give to someone you care about, or the distilled canon. A few to start with:</p><div class="row" style="gap:6px;flex-wrap:wrap;margin-bottom:14px">${SUGGESTED_LISTS.map(([t,d])=>`<button class="btn sm ghost" data-suggest="${esc(t)}" data-suggestd="${esc(d)}">＋ ${esc(t)}</button>`).join('')}</div>` : ''}
+      <div class="grid c2" style="align-items:start">${S.mediaLists.map(l => { const rows = (l.entries||[]).map(id=>byId(S.entries,id)).filter(Boolean);
+        return `<div class="curated-list-card"><div class="row between"><b class="serif" style="font-size:1.05rem">${esc(l.title)}</b><span class="row" style="gap:4px"><button class="tbtn" data-mledit="${l.id}">edit</button><button class="tbtn" data-mlexport="${l.id}">export</button><button class="del-x inline" data-mldel="${l.id}">×</button></span></div>
+          ${l.description?`<div class="muted" style="font-size:.82rem;margin-top:4px">${esc(l.description)}</div>`:''}
+          <div class="row" style="margin-top:6px"><span class="status-pill">${l.forWhom==='myself'?'for myself':l.forWhom==='person'?`for ${esc(l.personName||'someone')}`:'for anyone on a similar path'}</span>${l.private?'<span class="status-pill">private</span>':''}</div>
+          <div class="entries">${rows.map(e=>`<div class="curated-entry"><span>${(MEDIA_KINDS[mediaX(e).kind]||MEDIA_KINDS.book)[0]} ${esc(e.title)}</span><button class="del-x inline" data-mlrm="${l.id}:${e.id}">×</button></div>`).join('') || '<div class="faint" style="font-size:.78rem">Empty so far.</div>'}</div>
+          <button class="tbtn" data-mladdwork="${l.id}" style="margin-top:6px">+ add a work</button></div>`; }).join('') || ''}</div></section>
+
+    <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Received recommendations</span><button class="btn sm ghost" id="rcAdd">＋ someone told me to</button></div>
+      <p class="muted" style="font-size:.85rem">So you stop forgetting who told you to read what.</p>
+      ${S.mediaRecs.length ? S.mediaRecs.map(r=>`<div class="rec-row"><span><b class="serif">${esc(r.title)}</b><div class="mono">from ${esc(r.from||'someone')}</div>${r.why?`<div class="quote" style="font-size:.85rem">${esc(r.why)}</div>`:''}</span><span class="row" style="gap:6px"><select class="sel" style="width:auto" data-rcstatus="${r.id}">${['queued','consumed','declined'].map(s=>`<option value="${s}" ${r.status===s?'selected':''}>${s}</option>`).join('')}</select><button class="tbtn" data-rclog="${r.id}">log it →</button><button class="del-x inline" data-rcdel="${r.id}">×</button></span></div>`).join('') : '<div class="empty">Nobody\'s told you to read anything yet — or you\'ve forgotten already.</div>'}</section>`;
+
+  $('#qAdd').onclick = () => openQueueItemModal();
+  root.querySelectorAll('[data-qedit]').forEach(b=>b.onclick=()=>openQueueItemModal(byId(S.mediaQueue,b.dataset.qedit)));
+  root.querySelectorAll('[data-qstart]').forEach(b=>b.onclick=()=>startQueueItem(b.dataset.qstart));
+  root.querySelectorAll('[data-qdel]').forEach(b=>b.onclick=()=>{ const it = byId(S.mediaQueue,b.dataset.qdel); requestDelete({label:it.title, node:b.closest('.queue-item'), remove:()=>spliceOut(S.mediaQueue,x=>x.id===it.id)}); });
+  { let dragId = null; root.querySelectorAll('.queue-item').forEach(li => { li.addEventListener('dragstart', ()=>{ dragId=li.dataset.qid; li.classList.add('dragging'); }); li.addEventListener('dragend', ()=>li.classList.remove('dragging')); li.addEventListener('dragover', e=>e.preventDefault()); li.addEventListener('drop', e=>{ e.preventDefault(); if(!dragId||dragId===li.dataset.qid) return; const o = S.mediaQueue.filter(x=>x.id!==dragId); const item = byId(S.mediaQueue,dragId); o.splice(o.findIndex(x=>x.id===li.dataset.qid),0,item); S.mediaQueue = o; saveNow(); rerender(); }); }); }
+  $('#mlAdd').onclick = () => openListEditModal(newCuratedList());
+  root.querySelectorAll('[data-suggest]').forEach(b=>b.onclick=()=>openListEditModal(newCuratedList(b.dataset.suggest, b.dataset.suggestd)));
+  root.querySelectorAll('[data-mledit]').forEach(b=>b.onclick=()=>openListEditModal(byId(S.mediaLists,b.dataset.mledit)));
+  root.querySelectorAll('[data-mlexport]').forEach(b=>b.onclick=()=>exportListAsPage(byId(S.mediaLists,b.dataset.mlexport)));
+  root.querySelectorAll('[data-mldel]').forEach(b=>b.onclick=()=>{ const l = byId(S.mediaLists,b.dataset.mldel); requestDelete({label:l.title, remove:()=>spliceOut(S.mediaLists,x=>x.id===l.id)}); });
+  root.querySelectorAll('[data-mlrm]').forEach(b=>b.onclick=()=>{ const [lid,eid] = b.dataset.mlrm.split(':'); const l = byId(S.mediaLists,lid); l.entries = l.entries.filter(x=>x!==eid); saveNow(); rerender(); });
+  root.querySelectorAll('[data-mladdwork]').forEach(b=>b.onclick=()=>{ const l = byId(S.mediaLists,b.dataset.mladdwork); const pool = mediaEntries().filter(e=>!(l.entries||[]).includes(e.id));
+    const m = openModal(`<h2>Add a work to “${esc(l.title)}”</h2><input class="inp" id="mlQ" placeholder="search the shelf" autofocus><div class="stack" id="mlPick" style="gap:4px;margin-top:10px;max-height:50vh;overflow:auto"></div>`,'narrow');
+    const draw = q => { const list = pool.filter(e=>!q||e.title.toLowerCase().includes(q.toLowerCase())).slice(0,60); m.querySelector('#mlPick').innerHTML = list.map(e=>`<button class="choice" data-pick="${e.id}"><span class="ico">${(MEDIA_KINDS[mediaX(e).kind]||MEDIA_KINDS.book)[0]}</span><span><b>${esc(e.title)}</b></span></button>`).join('') || '<div class="empty">Nothing on the shelf matches — or it\'s already in this list.</div>'; m.querySelectorAll('[data-pick]').forEach(x=>x.onclick=()=>{ l.entries.push(x.dataset.pick); saveNow(); m.remove(); rerender(); }); };
+    draw(''); m.querySelector('#mlQ').oninput = e => draw(e.target.value); });
+  $('#rcAdd').onclick = () => openRecModal();
+  root.querySelectorAll('[data-rcstatus]').forEach(s=>s.onchange=()=>{ byId(S.mediaRecs,s.dataset.rcstatus).status = s.value; saveNow(); });
+  root.querySelectorAll('[data-rcdel]').forEach(b=>b.onclick=()=>{ const r = byId(S.mediaRecs,b.dataset.rcdel); requestDelete({label:r.title, node:b.closest('.rec-row'), remove:()=>spliceOut(S.mediaRecs,x=>x.id===r.id)}); });
+  root.querySelectorAll('[data-rclog]').forEach(b=>b.onclick=()=>{ const r = byId(S.mediaRecs,b.dataset.rclog); r.status = 'consumed'; saveNow(); openMediaModal({title:r.title, status:'want'}); });
+}
+
+/* ---------- the Shelf & the Review ---------- */
+routes.commonplace = function(root, params){
+  registerPageEntry({pageName:'The Library', addLabel:'Log a work', defaultEntryType:'media', prefilledFields:{}, options:[{icon:'📗', label:'Log a work', desc:'Pick the kind on the next screen.', run:()=>openMediaModal({})}]});
+  const tab = ['timeline','lists'].includes(params[0]) ? params[0] : 'shelf';
+  const all = mediaEntries();
+  const kind = S._mKind || 'all', status = S._mStatus || 'all', res = S._mRes || 'all', q = (S._mq||'').toLowerCase();
+  const view = S._mView || 'shelf'; const sortBy = S._mSort || 'consumed';
+  const list = all.filter(e => { const x = mediaX(e);
+      return (kind==='all' || x.kind===kind) && (status==='all' || x.status===status) && (res==='all' || x.resonanceLevel===res)
+        && (!q || `${e.title} ${x.creator||''} ${e.body||''} ${entryTags(e).join(' ')}`.toLowerCase().includes(q)); })
+    .sort((a,b) => sortBy==='added' ? (b.createdAt||'').localeCompare(a.createdAt||'') : sortBy==='resonance' ? RESONANCE_LEVELS.findIndex(r=>r[0]===mediaX(b).resonanceLevel) - RESONANCE_LEVELS.findIndex(r=>r[0]===mediaX(a).resonanceLevel) : mediaDateConsumed(b).localeCompare(mediaDateConsumed(a)));
+  const finished = all.filter(e => mediaX(e).status === 'finished');
+  const thisYear = finished.filter(e => mediaDateConsumed(e).slice(0,4) === String(new Date().getFullYear()));
+  const counts = {}; all.forEach(e => { const k = mediaX(e).kind; counts[k] = (counts[k]||0)+1; });
+
+  root.innerHTML = `<div class="page">
+    <div class="page-head"><h1>The Library</h1><div class="sub">Everything that went in, and what it did once it was there. Media is a theory base — for the life already lived, and the hopeful one ahead.</div></div>
+
+    <div class="media-kind-row rv">${Object.entries(MEDIA_KINDS).map(([k,v])=>`<button class="media-kind-btn ${kind===k?'on':''}" style="--c:${v[2]}" data-mkind="${k}"><span class="ico">${v[0]}</span><span class="lbl">${v[1]}</span><span class="n">${counts[k]||0}</span></button>`).join('')}</div>
+
+    <div class="tabs rv">${[['shelf','The Shelf'],['timeline','Timeline'],['lists','Queue & Lists']].map(([k,l])=>`<button class="${tab===k?'active':''}" data-go="#/commonplace${k==='shelf'?'':'/'+k}">${l}</button>`).join('')}</div>
+
+    ${tab==='shelf' ? `
+    <div class="card rv" style="margin:16px 0"><div class="income-strip">
       <div><div class="k">finished this year</div><div class="num" data-tween="${thisYear.length}">0</div><div class="mono">${finished.length} in all</div></div>
-      <div><div class="k">in progress</div><div class="num" data-tween="${all.filter(e=>mediaX(e).status==='reading').length}">0</div></div>
-      <div><div class="k">waiting</div><div class="num" data-tween="${all.filter(e=>mediaX(e).status==='wishlist').length}">0</div></div>
-      <div><div class="k">average rating</div><div class="num">${finished.filter(e=>mediaX(e).rating).length ? avg(finished.filter(e=>mediaX(e).rating).map(e=>mediaX(e).rating)).toFixed(1) : '—'}</div><div class="mono">of the rated ones</div></div>
+      <div><div class="k">in progress</div><div class="num" data-tween="${all.filter(e=>mediaX(e).status==='progress').length}">0</div></div>
+      <div><div class="k">wanted</div><div class="num" data-tween="${all.filter(e=>mediaX(e).status==='want').length}">0</div></div>
+      <div><div class="k">lives in me</div><div class="num" data-tween="${all.filter(e=>mediaX(e).resonanceLevel==='lives').length}">0</div><div class="mono">of ${all.length} logged</div></div>
     </div></div>
 
     <div class="row rv" style="gap:8px;flex-wrap:wrap;margin-bottom:14px">
       <input class="inp" id="mq" placeholder="search title, maker, notes, tags" value="${esc(S._mq||'')}" style="flex:1;min-width:200px">
-      <select class="sel" id="mKind" style="width:auto"><option value="all">every kind</option>${Object.entries(MEDIA_KINDS).map(([k,v])=>`<option value="${k}" ${kind===k?'selected':''}>${v[0]} ${v[1]}${counts[k]?` (${counts[k]})`:''}</option>`).join('')}</select>
-      <select class="sel" id="mStatus" style="width:auto"><option value="all">any status</option>${MEDIA_STATUS.map(s=>`<option value="${s}" ${status===s?'selected':''}>${s}</option>`).join('')}</select>
+      <select class="sel" id="mStatus" style="width:auto"><option value="all">any status</option>${MEDIA_STATUS.map(s=>`<option value="${s}" ${status===s?'selected':''}>${MEDIA_STATUS_LABEL[s]}</option>`).join('')}</select>
+      <select class="sel" id="mRes" style="width:auto"><option value="all">any resonance</option>${RESONANCE_LEVELS.map(([k,l])=>`<option value="${k}" ${res===k?'selected':''}>${l}</option>`).join('')}</select>
+      <select class="sel" id="mSort" style="width:auto"><option value="consumed" ${sortBy==='consumed'?'selected':''}>by date consumed</option><option value="added" ${sortBy==='added'?'selected':''}>by date added</option><option value="resonance" ${sortBy==='resonance'?'selected':''}>by resonance</option></select>
+      <div class="view-toggle">${[['shelf','▦'],['list','☰']].map(([k,l])=>`<button class="${view===k?'on':''}" data-mview="${k}" title="${k} view">${l}</button>`).join('')}</div>
     </div>
 
-    <div class="shelf-grid rv">${list.length ? list.map(e => { const x = mediaX(e); const k = MEDIA_KINDS[x.kind] || MEDIA_KINDS.book;
+    ${kind!=='all'||status!=='all'||res!=='all' ? `<div class="row rv" style="margin-bottom:10px"><button class="btn sm ghost" id="mClearF">clear filters</button></div>` : ''}
+
+    ${view==='shelf' ? `<div class="shelf-grid rv">${list.length ? list.map(e => { const x = mediaX(e); const k = MEDIA_KINDS[x.kind] || MEDIA_KINDS.book; const r = resonanceMeta(x.resonanceLevel); const stage = mediaLifeStage(e);
       return `<div class="work" data-mopen="${e.id}" style="--c:${k[2]}">
         <div class="work-spine">${k[0]}</div>
         <div class="work-body">
           <div class="work-title">${esc(e.title||'Untitled')}</div>
           <div class="mono work-maker">${esc(x.creator||'')}${x.year?` · ${esc(x.year)}`:''}</div>
-          <div class="row between" style="margin-top:6px"><span class="status-pill">${esc(x.status)}</span>${x.rating?mediaStars(x.rating):'<span class="faint mono">unrated</span>'}</div>
-          ${x.oneLine?`<div class="work-line">${esc(x.oneLine)}</div>`:''}
+          <div class="row between" style="margin-top:6px"><span class="status-pill">${MEDIA_STATUS_LABEL[x.status]}</span>${r?`<span class="resonance-pill" style="--c:${r[2]}">${r[1]}</span>`:'<span class="faint mono">no resonance yet</span>'}</div>
+          ${x.oneLineCapture?`<div class="work-line">${esc(x.oneLineCapture)}</div>`:''}
+          ${stage?`<div class="mono faint" style="margin-top:4px">${stage.char} ${esc(stage.name)}</div>`:''}
           ${entryTags(e).length?tagChips(e):''}
         </div></div>`; }).join('')
-      : `<div class="empty">Nothing logged yet. The first one can be whatever you happen to be in the middle of.</div>`}</div>
+      : `<div class="empty">Nothing logged yet. The first one can be whatever you happen to be in the middle of.</div>`}</div>`
+    : `<div class="stack" style="gap:6px">${list.length ? list.map(e => { const x = mediaX(e); const k = MEDIA_KINDS[x.kind]||MEDIA_KINDS.book; const r = resonanceMeta(x.resonanceLevel);
+        return `<div class="row between click" data-mopen="${e.id}" style="padding:9px 12px;border:1px solid var(--line);border-radius:9px;cursor:pointer"><span class="row" style="gap:10px"><span>${k[0]}</span><b class="serif">${esc(e.title)}</b><span class="mono faint">${esc(x.creator||'')}</span></span><span class="row" style="gap:8px"><span class="status-pill">${MEDIA_STATUS_LABEL[x.status]}</span>${r?`<span class="resonance-pill" style="--c:${r[2]}">${r[1]}</span>`:''}</span></div>`; }).join('') : '<div class="empty">Nothing matches.</div>'}</div>`}
 
     ${all.length ? `<section class="section rv"><span class="sc">What you keep coming back to</span>
       <div class="tag-cloud" style="margin-top:10px">${allTags().filter(([t]) => mediaEntries().some(e=>entryTags(e).includes(t))).slice(0,24).map(([t,n])=>`<a class="tag" href="#/tag/${encodeURIComponent(t)}" style="--n:${Math.min(n,5)}">#${esc(t)}<span class="n">${n}</span></a>`).join('') || '<span class="faint">Tag a few works and the pattern shows up here.</span>'}</div></section>` : ''}
+
+    <details class="section rv"><summary><span class="sc">The influence map</span></summary><div class="body" style="padding-top:10px">${influenceMapHTML()}</div></details>
+    ` : tab==='timeline' ? `<div id="libTimeline" style="margin-top:16px"></div>`
+    : `<div id="libLists" style="margin-top:16px"></div>`}
   </div>`;
+
+  if(tab==='timeline') renderLibraryTimeline($('#libTimeline'));
+  if(tab==='lists') renderLibraryLists($('#libLists'));
+  if(tab!=='shelf') return bindGlobal();
   $('#mq').oninput = debounce(e => { S._mq = e.target.value; rerender(); const i = $('#mq'); if(i){ i.focus(); i.setSelectionRange(i.value.length,i.value.length); } }, 350);
-  $('#mKind').onchange = e => { S._mKind = e.target.value; rerender(); };
   $('#mStatus').onchange = e => { S._mStatus = e.target.value; rerender(); };
-  $$('[data-mopen]',root).forEach(c => c.onclick = () => openMediaPanel(c.dataset.mopen));
-  if(params[0]) openMediaPanel(params[0]);
+  $('#mRes').onchange = e => { S._mRes = e.target.value; rerender(); };
+  $('#mSort').onchange = e => { S._mSort = e.target.value; rerender(); };
+  $$('[data-mview]',root).forEach(b => b.onclick = () => { S._mView = b.dataset.mview; rerender(); });
+  $$('[data-mkind]',root).forEach(b => b.onclick = () => { S._mKind = (S._mKind===b.dataset.mkind) ? 'all' : b.dataset.mkind; rerender(); });
+  if($('#mClearF')) $('#mClearF').onclick = () => { S._mKind='all'; S._mStatus='all'; S._mRes='all'; rerender(); };
+  bindGlobal();
+  function bindGlobal(){ $$('[data-mopen]',root).forEach(c => c.onclick = () => openMediaPanel(c.dataset.mopen)); }
+  if(params[0] && !['timeline','lists'].includes(params[0])) openMediaPanel(params[0]);
 };
+
 function openMediaModal(pre={}){
   const kinds = Object.entries(MEDIA_KINDS);
   const m = openModal(`<h2>Log a work</h2>
     <div class="typerow" id="mkRow">${kinds.map(([k,v])=>`<button class="${(pre.kind||'book')===k?'on':''}" data-mk="${k}">${v[0]} ${v[1]}</button>`).join('')}</div>
     <div class="stack">
-      <input class="inp serif-lg" id="mTitle" placeholder="Title" autofocus>
+      <input class="inp serif-lg" id="mTitle" placeholder="Title" value="${esc(pre.title||'')}" autofocus>
       <div class="grid c3" style="gap:8px">
-        <input class="inp" id="mCreator" placeholder="Who made it">
+        <input class="inp" id="mCreator" placeholder="Author / director / maker">
         <input class="inp" id="mYear" placeholder="Year">
-        <select class="sel" id="mStat">${MEDIA_STATUS.map(s=>`<option value="${s}" ${s==='reading'?'selected':''}>${s}</option>`).join('')}</select>
+        <select class="sel" id="mStat">${MEDIA_STATUS.map(s=>`<option value="${s}" ${(pre.status||'progress')===s?'selected':''}>${MEDIA_STATUS_LABEL[s]}</option>`).join('')}</select>
       </div>
       <div class="row" style="justify-content:flex-end"><button class="btn primary" id="mSave">Add to the shelf</button></div>
     </div>`, 'narrow');
@@ -7814,137 +8157,385 @@ function openMediaModal(pre={}){
     const title = m.querySelector('#mTitle').value.trim(); if(!title){ toast('It needs a title, at least.'); return; }
     const st = m.querySelector('#mStat').value;
     const e = {id:uid(), type:'media', title, body:'', occurredAt:today(), createdAt:new Date().toISOString(), media:[], links:{stages:[],substages:[],threads:[],values:[],visions:[],skills:[],projects:[]}, people:[], places:[], emotions:[], tags:[], confidence:'',
-      extra:{kind, creator:m.querySelector('#mCreator').value.trim(), year:m.querySelector('#mYear').value.trim(), status:st, rating:0, passages:[], startedAt: st==='reading'?today():'', finishedAt: st==='finished'?today():'', oneLine:'', resonance:'', argued:'', steal:'', changed:''}};
+      extra:{kind, creator:m.querySelector('#mCreator').value.trim(), year:m.querySelector('#mYear').value.trim(), status:st, resonanceLevel:null, quotes:[], startedAt: st==='progress'?today():'', finishedAt: pre.finishedAt || (st==='finished'?today():''), oneLineCapture:'', installed:'', recommend:'', recommendWho:''}};
     S.entries.push(e); saveNow(); m.remove(); sound('success'); rerender(); openMediaPanel(e.id);
   };
 }
 function openMediaPanel(id){
   const e = byId(S.entries, id); if(!e || e.type !== 'media') return;
-  const x = mediaX(e); const k = MEDIA_KINDS[x.kind] || MEDIA_KINDS.book;
-  const p = openPanel(`<div class="mono">${k[0]} ${k[1].toLowerCase()} · ${esc(x.status)}</div>
-    <h2>${ed(`entries.#${e.id}.title`,{ph:'Title'})}</h2>
+  const x = mediaX(e); const k = MEDIA_KINDS[x.kind] || MEDIA_KINDS.book; const stage = mediaLifeStage(e);
+  const reopen = () => reopenPanel(() => { rerender(); openMediaPanel(id); });
+  const p = openPanel(`<div class="mono">${k[0]} ${k[1].toLowerCase()} · ${MEDIA_STATUS_LABEL[x.status]}${stage?` · consumed during ${stage.char} ${esc(stage.name)}`:''}</div>
+    <div class="row between" style="align-items:flex-start"><h2 style="flex:1">${ed(`entries.#${e.id}.title`,{ph:'Title'})}</h2><button class="snip-btn" data-snip="${e.id}" title="save this review to the Writing Studio">✂ save to writing</button></div>
     <div class="row" style="gap:14px;margin:6px 0 18px;flex-wrap:wrap">
       <span class="mono">by</span><span style="flex:1;min-width:8em">${ed(`entries.#${e.id}.extra.creator`,{ph:'who made it'})}</span>
       <span class="mono">year</span>${ed(`entries.#${e.id}.extra.year`,{ph:'—',cls:'mono'})}
     </div>
-    <div class="row" style="gap:10px;flex-wrap:wrap;margin-bottom:18px">
-      <select class="sel" style="width:auto" id="mpStatus">${MEDIA_STATUS.map(s=>`<option value="${s}" ${x.status===s?'selected':''}>${s}</option>`).join('')}</select>
+    <div class="row" style="gap:10px;flex-wrap:wrap;margin-bottom:10px">
+      <select class="sel" style="width:auto" id="mpStatus">${MEDIA_STATUS.map(s=>`<option value="${s}" ${x.status===s?'selected':''}>${MEDIA_STATUS_LABEL[s]}</option>`).join('')}</select>
       <select class="sel" style="width:auto" id="mpKind">${Object.entries(MEDIA_KINDS).map(([kk,v])=>`<option value="${kk}" ${x.kind===kk?'selected':''}>${v[0]} ${v[1]}</option>`).join('')}</select>
-      ${mediaStars(x.rating,{click:true,id:e.id})}
     </div>
-    <div class="spec-grid" style="margin-bottom:18px">
+    <div class="spec-grid" style="margin-bottom:14px">
       <div><div class="k">started</div>${ed(`entries.#${e.id}.extra.startedAt`,{ph:'YYYY-MM-DD',cls:'mono'})}</div>
-      <div><div class="k">finished</div>${ed(`entries.#${e.id}.extra.finishedAt`,{ph:'YYYY-MM-DD',cls:'mono'})}</div>
+      <div><div class="k">date consumed (finished)</div>${ed(`entries.#${e.id}.extra.finishedAt`,{ph:'YYYY-MM-DD',cls:'mono'})}</div>
     </div>
 
-    ${MEDIA_PROMPTS.map(([key,label,hint]) => `<div class="vp-sec"><span class="sc">${label}</span><div class="faint" style="font-size:.78rem;margin:2px 0 6px">${hint}</div>${ed(`entries.#${e.id}.extra.${key}`,{multi:true,mdr:true,cls:'prose',ph:'…'})}</div>`).join('')}
+    <div class="vp-sec"><span class="sc">Resonance — not "was it good?", but "what did it do to me?"</span>
+      <div class="resonance-scale" id="mpRes">${RESONANCE_LEVELS.map(([kk,label,color])=>`<button class="${x.resonanceLevel===kk?'on':''}" style="--c:${color}" data-res="${kk}">${label}</button>`).join('')}</div></div>
 
-    <div class="vp-sec"><div class="row between"><span class="sc">Passages</span><button class="btn sm ghost" id="mpAddP">＋ passage</button></div>
-      <p class="faint" style="font-size:.78rem">The lines worth carrying out. Add where it came from so you can find it again.</p>
-      ${(x.passages||[]).map((_,i)=>`<div class="passage"><div class="passage-q">${ed(`entries.#${e.id}.extra.passages.${i}.text`,{multi:true,cls:'quote',ph:'the line itself'})}</div><div class="row between"><span class="mono">${ed(`entries.#${e.id}.extra.passages.${i}.where`,{ph:'page / chapter / timestamp',cls:'mono'})}</span><button class="del-x inline" data-pdel="${i}" title="delete passage">×</button></div><div class="passage-note">${ed(`entries.#${e.id}.extra.passages.${i}.note`,{multi:true,ph:'and what you make of it'})}</div></div>`).join('') || '<div class="empty">No passages yet.</div>'}</div>
+    <div class="vp-sec"><span class="sc">One-line capture</span><div class="faint" style="font-size:.78rem;margin-bottom:6px">In one sentence, what is this about at its deepest level?</div>${ed(`entries.#${e.id}.extra.oneLineCapture`,{cls:'quote',ph:'Force the distillation.'})}</div>
 
-    <div class="vp-sec"><span class="sc">Hashtags</span><div class="faint" style="font-size:.78rem;margin-bottom:6px">The thread this work belongs to. The Writing room can pull every entry that shares a tag.</div>
+    <div class="vp-sec"><span class="sc">What it installed in me</span><div class="faint" style="font-size:.78rem;margin-bottom:6px">The belief, idea, fear, or capability this work left behind — the same field a formative event on the Timeline uses, so the two show up side by side when you trace a thread.</div>${ed(`entries.#${e.id}.extra.installed`,{multi:true,mdr:true,cls:'prose',ph:'…'})}</div>
+
+    <div class="vp-sec"><div class="row between"><span class="sc">Quotes &amp; marginalia</span><button class="btn sm ghost" id="mpAddQ">＋ quote</button></div>
+      <p class="faint" style="font-size:.78rem">The lines worth carrying out. These auto-feed into the Quotes &amp; Marginalia journal.</p>
+      ${(x.quotes||[]).map((qq,i)=>`<div class="passage"><div class="passage-q">${ed(`entries.#${e.id}.extra.quotes.${i}.text`,{multi:true,cls:'quote',ph:'the line itself',hook:'syncquote:'+e.id})}</div><div class="row between"><span class="mono">${ed(`entries.#${e.id}.extra.quotes.${i}.where`,{ph:'page / timestamp',cls:'mono',hook:'syncquote:'+e.id})}</span><button class="del-x inline" data-qdel="${i}" title="delete quote">×</button></div><div class="passage-note"><span class="k mono" style="font-size:.62rem">why this caught me</span>${ed(`entries.#${e.id}.extra.quotes.${i}.why`,{multi:true,ph:'required — what it caught in you',hook:'syncquote:'+e.id})}</div></div>`).join('') || '<div class="empty">No quotes yet.</div>'}</div>
+
+    <div class="vp-sec"><span class="sc">Linked dimensions</span><div class="faint" style="font-size:.78rem;margin-bottom:8px">Values touched (±), threads activated, visions fed, skills informed.</div>${linksEditorHTML(e.links)}</div>
+
+    <div class="vp-sec"><span class="sc">The conversation</span><div class="faint" style="font-size:.78rem;margin-bottom:6px">The full review, as long or short as you want. Markdown welcome.</div>${ed(`entries.#${e.id}.body`,{multi:true,mdr:true,cls:'prose serif-lg',ph:'Anything that does not fit the fields above.'})}</div>
+
+    <div class="vp-sec"><span class="sc">Would I recommend this?</span>
+      <div class="row" style="gap:6px" id="mpRec">${['yes','conditionally','no'].map(v=>`<button class="btn sm ${x.recommend===v?'primary':'ghost'}" data-rec="${v}">${v}</button>`).join('')}</div>
+      ${x.recommend && x.recommend!=='no' ? `<div class="field" style="margin-top:8px"><label>Who should read/watch this, and when?</label>${ed(`entries.#${e.id}.extra.recommendWho`,{ph:'…'})}</div>` : ''}</div>
+
+    <div class="vp-sec"><span class="sc">Hashtags</span><div class="faint" style="font-size:.78rem;margin-bottom:6px">The thread this work belongs to. The Writing Studio's research drawer can pull every entry that shares a tag.</div>
       <input class="inp mono" id="mpTags" value="${esc((e.tags||[]).map(t=>'#'+t).join(' '))}" placeholder="#kyoto #jazz #craft" list="tagList2"><datalist id="tagList2">${allTags().map(([t])=>`<option value="#${esc(t)}">`).join('')}</datalist></div>
 
-    <div class="vp-sec"><span class="sc">Loose notes</span>${ed(`entries.#${e.id}.body`,{multi:true,mdr:true,cls:'prose',ph:'Anything that does not fit the prompts above.'})}</div>
-
-    ${moreSection(`<div class="danger-zone"><span>This removes the work and everything you wrote about it.</span><button class="btn sm ghost danger" id="mpDel">Delete this entry</button></div>`)}`, 'media-panel');
-  const reopen = () => { rerender(); openMediaPanel(id); };
-  p.querySelector('#mpStatus').onchange = ev => { x.status = ev.target.value; if(x.status==='finished' && !x.finishedAt) x.finishedAt = today(); if(x.status==='reading' && !x.startedAt) x.startedAt = today(); saveNow(); reopen(); };
+    ${moreSection(`<div class="danger-zone"><span>This removes the work, its quotes, and everything you wrote about it.</span><button class="btn sm ghost danger" id="mpDel">Delete this entry</button></div>`)}`, 'media-panel');
+  p.querySelector('#mpStatus').onchange = ev => { x.status = ev.target.value; if(x.status==='finished' && !x.finishedAt) x.finishedAt = today(); if(x.status==='progress' && !x.startedAt) x.startedAt = today(); saveNow(); reopen(); };
   p.querySelector('#mpKind').onchange = ev => { x.kind = ev.target.value; saveNow(); reopen(); };
-  p.querySelectorAll('[data-stars] i').forEach(st => st.onclick = () => { x.rating = (+st.dataset.star === x.rating) ? 0 : +st.dataset.star; saveNow(); sound('click'); reopen(); });
-  p.querySelector('#mpAddP').onclick = () => { x.passages.push({text:'', where:'', note:''}); saveNow(); reopen(); setTimeout(()=>{ const n = document.querySelectorAll('#panel .passage-q .ed'); n.length && beginEdit(n[n.length-1]); },60); };
-  p.querySelectorAll('[data-pdel]').forEach(b => b.onclick = () => { const i = +b.dataset.pdel; requestDelete({label:'Passage', node:b.closest('.passage'), remove:()=>{ const gone = x.passages.splice(i,1)[0]; return () => x.passages.splice(i,0,gone); }, after:reopen}); });
+  p.querySelectorAll('[data-res]').forEach(b => b.onclick = () => { x.resonanceLevel = (x.resonanceLevel===b.dataset.res) ? null : b.dataset.res; saveNow(); sound('click'); reopen(); });
+  p.querySelector('#mpAddQ').onclick = () => { x.quotes.push({id:uid(), text:'', where:'', why:''}); saveNow(); reopen(); setTimeout(()=>{ const n = document.querySelectorAll('#panel .passage-q .ed'); n.length && beginEdit(n[n.length-1]); },60); };
+  p.querySelectorAll('[data-qdel]').forEach(b => b.onclick = () => { const i = +b.dataset.qdel; requestDelete({label:'Quote', node:b.closest('.passage'), remove:()=>{ const gone = x.quotes.splice(i,1)[0]; if(gone.quoteEntryId){ const qe = byId(S.entries, gone.quoteEntryId); if(qe) S.entries.splice(S.entries.indexOf(qe),1); } return () => x.quotes.splice(i,0,gone); }, after:reopen}); });
+  bindLinksEditor(p, e.links, () => saveNow());
+  p.querySelectorAll('[data-rec]').forEach(b => b.onclick = () => { x.recommend = (x.recommend===b.dataset.rec) ? '' : b.dataset.rec; saveNow(); reopen(); });
   const tagI = p.querySelector('#mpTags'); tagI.onchange = () => { e.tags = normTags(tagI.value.split(/[\s,]+/)); saveNow(); reopen(); };
-  p.querySelector('#mpDel').onclick = () => requestDelete({label:e.title||'this entry', remove:()=>spliceOut(S.entries, y=>y.id===e.id), after:()=>{ closePanel(); rerender(); }});
+  p.querySelector('#mpDel').onclick = () => requestDelete({label:e.title||'this entry', remove:()=>{ (x.quotes||[]).forEach(q=>{ if(q.quoteEntryId){ const qe = byId(S.entries,q.quoteEntryId); if(qe) S.entries.splice(S.entries.indexOf(qe),1); } }); return spliceOut(S.entries, y=>y.id===e.id); }, after:()=>{ closePanel(); rerender(); }});
 }
 /* ============================================================
-   WRITING — a room for the long thought.
-   Set an intention, choose the hashtags it draws on, and the
-   entries carrying those tags line up beside the page as source
-   material. Pieces are entries of type `writing`.
+   THE WRITING STUDIO (formerly Writing) — a desk, a research
+   drawer that reaches into every other room, and a place for
+   the fragments that don't have a home yet.
+   Pieces are entries of type `writing`; fragments live in
+   S.compost, independent of any project until assigned.
    ============================================================ */
-function writings(){ return S.entries.filter(e => e.type === 'writing').sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||'')); }
+const WRITING_KINDS = ['Essay','Article','Short Story','Poetry','Newsletter','Script','Speech','Book Chapter','Journal Piece','Pitch','Other'];
+const WRITING_STATUSES = ['Seed','Gathering','Outlining','Drafting','Revising','Polished','Published','Shelved'];
+const PUB_STATUSES = ['drafted','submitted','accepted','rejected','published','withdrawn'];
+function writings(){ return S.entries.filter(e => e.type === 'writing'); }
 function wordCount(s){ const t = (s||'').trim(); return t ? t.split(/\s+/).length : 0; }
+function migrateWriting(){
+  const STATUS_MAP = {drafting:'Drafting', resting:'Gathering', revising:'Revising', finished:'Polished'};
+  writings().forEach(e => {
+    const x = e.extra = e.extra || {};
+    if(!WRITING_KINDS.includes(x.kind)) x.kind = 'Essay';
+    if(!WRITING_STATUSES.includes(x.status)) x.status = STATUS_MAP[x.status] || 'Seed';
+    if(x.premise === undefined) x.premise = x.intention || '';
+    x.target = x.target || {}; if(x.target.dest === undefined) x.target.dest = ''; if(x.target.wordTarget === undefined) x.target.wordTarget = x.wordTarget||0; if(x.target.deadline === undefined) x.target.deadline = '';
+    x.pinned = Array.isArray(x.pinned) ? x.pinned : [];
+    x.outline = Array.isArray(x.outline) ? x.outline : [];
+    x.beats = Array.isArray(x.beats) ? x.beats : [];
+    x.comments = Array.isArray(x.comments) ? x.comments : [];
+    x.versions = Array.isArray(x.versions) ? x.versions : [];
+    x.scratchpad = x.scratchpad || '';
+    x.publication = x.publication || {status:'drafted', where:'', when:'', notes:''};
+    if(x.sourceTags && x.sourceTags.length) e.tags = normTags([...(e.tags||[]), ...x.sourceTags]);
+    e.links = e.links || {}; ['stages','substages','threads','values','visions','skills','projects'].forEach(k => { if(!Array.isArray(e.links[k])) e.links[k] = []; });
+  });
+  S.compost = Array.isArray(S.compost) ? S.compost : [];
+  S.compost.forEach(f => { f.tags = f.tags||[]; if(f.projectId === undefined) f.projectId = null; });
+}
 function newWriting(){
   const e = {id:uid(), type:'writing', title:'', body:'', occurredAt:today(), createdAt:new Date().toISOString(), media:[],
     links:{stages:[],substages:[],threads:[],values:[],visions:[],skills:[],projects:[]}, people:[], places:[], emotions:[], tags:[], confidence:'',
-    extra:{intention:'', sourceTags:[], wordTarget:0, status:'drafting'}};
+    extra:{kind:'Essay', status:'Seed', premise:'', target:{dest:'',wordTarget:0,deadline:''}, pinned:[], outline:[], beats:[], comments:[], versions:[], scratchpad:'', publication:{status:'drafted',where:'',when:'',notes:''}}};
   S.entries.push(e); saveNow(); return e;
 }
-routes.writing = function(root, params){
-  registerPageEntry({pageName:'Writing', addLabel:'New piece', defaultEntryType:'writing', prefilledFields:{}, options:[
-    {icon:'✒', label:'New piece', desc:'Set an intention, then write.', run:()=>{ const e = newWriting(); location.hash = '#/writing/'+e.id; }}]});
-  if(params[0]) return renderWritingDesk(root, params[0]);
-  const ws = writings();
+
+/* ---------- the Compost Heap — a frictionless parking lot for raw material ---------- */
+function addCompost(text, tags=[]){ if(!text.trim()) return; S.compost.unshift({id:uid(), text:text.trim(), date:today(), tags:normTags(tags), projectId:null}); saveNow(); }
+function renderCompostPage(root){
+  registerPageEntry({pageName:'The Writing Studio', addLabel:'Catch a fragment', defaultEntryType:'compost', prefilledFields:{}, options:[{icon:'🌱', label:'Catch a fragment', desc:'A sentence, an image, an overheard line.', run:()=>{ const t = prompt('What just occurred to you?'); if(t) addCompost(t); rerender(); }}]});
+  const q = (S._compQ||'').toLowerCase();
+  const list = S.compost.filter(f => !q || f.text.toLowerCase().includes(q) || (f.tags||[]).some(t=>t.includes(q)));
   root.innerHTML = `<div class="page">
-    <div class="page-head"><h1>Writing</h1><div class="sub">Thinking that takes longer than a journal entry. Name the intention first; the room gathers what you have already written on the subject.</div></div>
-    ${ws.length ? `<div class="grid c2">${ws.map(e => { const x = e.extra||{}; const n = wordCount(e.body); return `<div class="card rv writing-card" data-wopen="${e.id}" style="cursor:pointer">
-        <div class="row between"><h3 style="margin:0">${esc(e.title || 'Untitled piece')}</h3><span class="status-pill">${esc(x.status||'drafting')}</span></div>
-        ${x.intention?`<div class="quote" style="font-size:.92rem;margin-top:6px">${esc(x.intention)}</div>`:''}
-        <div class="row between" style="margin-top:10px"><span class="mono">${n} word${n===1?'':'s'}${x.wordTarget?` of ${x.wordTarget}`:''}</span><span class="mono">${fmtDate((e.createdAt||'').slice(0,10),'med')}</span></div>
-        ${x.wordTarget?`<div class="bar" style="margin-top:6px"><i style="width:${clamp(n/x.wordTarget*100,0,100)}%"></i></div>`:''}
-        ${(x.sourceTags||[]).length?`<div class="tagrow">${x.sourceTags.map(t=>`<span class="tag">#${esc(t)}</span>`).join('')}</div>`:''}
-      </div>`; }).join('')}</div>`
-    : `<div class="empty rv">Nothing written here yet. A piece starts with one sentence about why you are writing it.</div>`}
-    <section class="section rv"><span class="sc">Threads you could pull on</span>
-      <p class="muted" style="font-size:.85rem">Your most-used hashtags. Each one is a pile of material already waiting.</p>
-      <div class="tag-cloud" style="margin-top:10px">${allTags().slice(0,26).map(([t,n])=>`<a class="tag" href="#/tag/${encodeURIComponent(t)}" style="--n:${Math.min(n,5)}">#${esc(t)}<span class="n">${n}</span></a>`).join('') || '<span class="faint">Tag some entries and they will collect here.</span>'}</div></section>
+    <div class="row between rv" style="margin-bottom:16px"><a class="btn sm ghost" href="#/writing">‹ the desk</a><h1 style="margin:0">The Compost Heap</h1><span></span></div>
+    <div class="sub" style="max-width:var(--content);margin-bottom:16px">Sentences that came to you in the shower, one-line observations, overheard dialogue, half-formed essay ideas. Nothing here has to become anything yet.</div>
+    <div class="row rv" style="gap:8px;margin-bottom:16px"><input class="inp" id="compIn" placeholder="Catch it before it's gone…" style="flex:1"><button class="btn primary" id="compAdd">Catch it</button></div>
+    <input class="inp rv" id="compQ" placeholder="search fragments" value="${esc(S._compQ||'')}" style="max-width:320px;margin-bottom:16px">
+    <div class="compost-grid rv">${list.length ? list.map(f => `<div class="compost-frag" data-cid="${f.id}"><div>${esc(f.text)}</div><div class="row between" style="margin-top:8px"><span class="mono faint">${fmtDate(f.date,'short')}${f.projectId?` · ${esc(byId(S.entries,f.projectId)?.title||'assigned')}`:''}</span><span class="row" style="gap:4px"><select class="sel" style="width:auto;padding:2px 6px;font-size:.68rem" data-cassign="${f.id}"><option value="">unassigned</option>${writings().map(p=>`<option value="${p.id}" ${f.projectId===p.id?'selected':''}>${esc(p.title||'Untitled')}</option>`).join('')}</select><button class="del-x inline" data-cdel="${f.id}">×</button></span></div></div>`).join('') : '<div class="empty">Nothing composting yet.</div>'}</div>
   </div>`;
+  $('#compAdd').onclick = () => { addCompost($('#compIn').value); rerender(); };
+  $('#compIn').onkeydown = e => { if(e.key==='Enter'){ addCompost($('#compIn').value); rerender(); } };
+  $('#compQ').oninput = debounce(e => { S._compQ = e.target.value; rerender(); }, 300);
+  root.querySelectorAll('[data-cassign]').forEach(s => s.onchange = () => { byId(S.compost,s.dataset.cassign).projectId = s.value||null; saveNow(); });
+  root.querySelectorAll('[data-cdel]').forEach(b => b.onclick = () => { const f = byId(S.compost,b.dataset.cdel); requestDelete({label:'Fragment', node:b.closest('.compost-frag'), remove:()=>spliceOut(S.compost,x=>x.id===f.id)}); });
+}
+
+/* ---------- the Snippet Collector — ambient capture from anywhere in the site ----------
+   Called from the ✂ button that entryCard() and the Library's media panel expose on
+   every entry and quote. Pins a reference into a project's research drawer, or parks
+   it in the Compost Heap unassigned. */
+function saveSnippetModal(kind, sourceId, opts={}){
+  const projects = writings();
+  const m = openModal(`<h2>Save to Writing</h2><div class="stack">
+    <select class="sel" id="ssProj"><option value="">Unassigned — the Compost Heap</option>${projects.map(p=>`<option value="${p.id}">${esc(p.title||'Untitled piece')}</option>`).join('')}<option value="__new">＋ new project</option></select>
+    <input class="inp" id="ssNote" placeholder="optional note — e.g. “use as the opening anecdote”">
+    <div class="row" style="justify-content:flex-end"><button class="btn primary" id="ssSave">Save</button></div></div>`,'narrow');
+  m.querySelector('#ssSave').onclick = () => {
+    const note = m.querySelector('#ssNote').value.trim(); let projId = m.querySelector('#ssProj').value;
+    if(projId === '__new'){ const p = newWriting(); projId = p.id; }
+    if(projId){ const p = byId(S.entries, projId); p.extra.pinned = p.extra.pinned||[]; if(!p.extra.pinned.some(pn=>pn.kind===kind && pn.sourceId===sourceId)) p.extra.pinned.push({id:uid(), kind, sourceId, note, addedAt:today()}); saveNow(); m.remove(); sound('success'); toast('Pinned to the research drawer.', 4000, {label:'open', fn:()=>navigate('#/writing/'+projId)}); }
+    else { const src = kind==='entry' ? byId(S.entries, sourceId) : null; S.compost.unshift({id:uid(), text: (src ? (src.title||src.body||'') : opts.text||'').slice(0,400), date:today(), tags:[], projectId:null, sourceKind:kind, sourceId}); saveNow(); m.remove(); sound('success'); toast('Saved to the Compost Heap.'); }
+  };
+}
+document.addEventListener('click', e => { const b = e.target.closest('[data-snip]'); if(b){ e.stopPropagation(); saveSnippetModal('entry', b.dataset.snip); } });
+
+/* ---------- Research Drawer: pull material from anywhere, by tag/dimension or search ---------- */
+function researchPool(proj){
+  const tags = entryTags(proj); const dims = proj.links;
+  const overlaps = (e) => { if(e.id === proj.id) return false;
+    if(tags.length && entryTags(e).some(t=>tags.includes(t))) return true;
+    for(const k of ['values','threads','visions','skills','projects']){ const a = (dims[k]||[]).map(v=>typeof v==='string'?v:v.id); if(!a.length) continue; const b = (e.links?.[k]||[]).map(v=>typeof v==='string'?v:v.id); if(a.some(id=>b.includes(id))) return true; }
+    return false; };
+  const entries = sortEntries(S.entries.filter(overlaps));
+  const compost = S.compost.filter(f => (f.tags||[]).some(t=>tags.includes(t)) || f.projectId === proj.id);
+  return {entries, compost};
+}
+function researchSearch(q){
+  const s = q.trim().toLowerCase(); if(!s) return {entries:[], compost:[]};
+  const entries = sortEntries(S.entries.filter(e => `${e.title} ${e.body}`.toLowerCase().includes(s) || entryTags(e).some(t=>t.includes(s)))).slice(0,40);
+  const compost = S.compost.filter(f => f.text.toLowerCase().includes(s)).slice(0,20);
+  return {entries, compost};
+}
+function pinnedMeta(pn){
+  if(pn.kind === 'raw') return {title:'Raw snippet', body:pn.text||'', dateLabel:fmtDate(pn.addedAt,'short'), go:null};
+  if(pn.kind === 'compost'){ const f = byId(S.compost, pn.sourceId); return f ? {title:'Compost fragment', body:f.text, dateLabel:fmtDate(f.date,'short'), go:null} : null; }
+  const e = byId(S.entries, pn.sourceId); if(!e) return null;
+  return {title: e.title || typeName(e.type), body: e.body||'', dateLabel: fmtDate(e.occurredAt,'short'), typeLabel: typeName(e.type), go: e.type==='media' ? '#/commonplace/'+e.id : e.type==='writing' ? '#/writing/'+e.id : null};
+}
+function attribution(pn){
+  const m = pinnedMeta(pn); if(!m) return '';
+  return `[From: ${m.typeLabel||m.title}, ${m.dateLabel}]`;
+}
+function drawerItemHTML(kind, sourceId, {pinnedId=null, note=''}={}){
+  const meta = kind==='entry' ? pinnedMeta({kind,sourceId}) : kind==='compost' ? pinnedMeta({kind,sourceId}) : null;
+  if(!meta) return '';
+  return `<div class="drawer-item" draggable="true" data-dkind="${kind}" data-dsrc="${sourceId}" ${pinnedId?`data-pinned="${pinnedId}"`:''}>
+    <div class="meta">${esc(meta.typeLabel||'fragment')} · ${esc(meta.dateLabel)}</div>
+    <div class="snippet">${esc((meta.body||meta.title||'').slice(0,140))}${(meta.body||'').length>140?'…':''}</div>
+    ${note?`<div class="faint" style="font-size:.72rem;margin-top:3px">note: ${esc(note)}</div>`:''}
+    <div class="row">${pinnedId ? `<button class="tbtn" data-insert="${pinnedId}">insert →</button><button class="tbtn" data-unpin="${pinnedId}">unpin</button>` : `<button class="tbtn" data-pin="${kind}:${sourceId}">pin</button>`}</div>
+  </div>`;
+}
+function researchDrawerHTML(proj){
+  const {entries, compost} = researchPool(proj);
+  const pinnedIds = new Set(proj.extra.pinned.map(p=>p.kind+':'+p.sourceId));
+  const pulled = entries.filter(e => !pinnedIds.has('entry:'+e.id)).slice(0,20);
+  const pulledCompost = compost.filter(f => !pinnedIds.has('compost:'+f.id));
+  const pinnedTags = new Set(); proj.extra.pinned.forEach(pn => { const e = pn.kind==='entry'?byId(S.entries,pn.sourceId):null; if(e) entryTags(e).forEach(t=>pinnedTags.add(t)); });
+  const suggestions = pinnedTags.size ? sortEntries(S.entries.filter(e => e.id!==proj.id && !pinnedIds.has('entry:'+e.id) && entryTags(e).some(t=>pinnedTags.has(t)))).slice(0,5) : [];
+  return `<div class="drawer" id="drawer">
+    <div class="sc">Research Drawer</div>
+    <input class="inp drawer-search" id="drawerSearch" placeholder="search everything — keyword, #tag, type">
+    <div id="drawerSearchResults"></div>
+    <details open><summary><span class="mono">pinned to this project (${proj.extra.pinned.length})</span></summary><div class="body" id="drawerPinned">${proj.extra.pinned.length ? proj.extra.pinned.map(pn => drawerItemHTML(pn.kind, pn.sourceId, {pinnedId:pn.id, note:pn.note})).join('') : '<div class="faint" style="font-size:.78rem;padding:4px 0">Nothing pinned yet. Pull from your tags below, or search above.</div>'}</div></details>
+    <details open style="margin-top:10px"><summary><span class="mono">from your tags &amp; dimensions (${pulled.length+pulledCompost.length})</span></summary><div class="body">${pulled.map(e=>drawerItemHTML('entry',e.id)).join('') + pulledCompost.map(f=>drawerItemHTML('compost',f.id)).join('') || '<div class="faint" style="font-size:.78rem;padding:4px 0">Link this piece to a value, thread, vision, skill or project, and everything tagged to it shows up here.</div>'}</div></details>
+    ${suggestions.length ? `<details style="margin-top:10px"><summary><span class="mono">you might not have considered (${suggestions.length})</span></summary><div class="body">${suggestions.map(e=>drawerItemHTML('entry',e.id)).join('')}</div></details>` : ''}
+  </div>`;
+}
+function bindResearchDrawer(root, proj, redraw){
+  const drawer = root.querySelector('#drawer'); if(!drawer) return;
+  const ta = root.querySelector('#wBody');
+  const insertText = (text) => { if(!ta) return; const pos = ta.selectionStart ?? ta.value.length; ta.setRangeText(text, pos, ta.selectionEnd ?? pos, 'end'); ta.dispatchEvent(new Event('input')); ta.focus(); };
+  drawer.querySelector('#drawerSearch').oninput = debounce(e => {
+    const {entries, compost} = researchSearch(e.target.value);
+    const box = drawer.querySelector('#drawerSearchResults');
+    box.innerHTML = (entries.length||compost.length) ? `<div class="faint mono" style="font-size:.68rem;margin:8px 0 4px">search results</div>${entries.map(x=>drawerItemHTML('entry',x.id)).join('')}${compost.map(x=>drawerItemHTML('compost',x.id)).join('')}` : (e.target.value.trim() ? '<div class="faint" style="font-size:.78rem;padding:4px 0">Nothing matches.</div>' : '');
+    bind(box);
+  }, 300);
+  const bind = (scope) => {
+    scope.querySelectorAll('[data-pin]').forEach(b => b.onclick = () => { const [kind,sourceId] = b.dataset.pin.split(':'); proj.extra.pinned.push({id:uid(), kind, sourceId, note:'', addedAt:today()}); saveNow(); preserveScroll(['#drawer'], redraw); });
+    scope.querySelectorAll('[data-unpin]').forEach(b => b.onclick = () => { proj.extra.pinned = proj.extra.pinned.filter(p=>p.id!==b.dataset.unpin); saveNow(); preserveScroll(['#drawer'], redraw); });
+    scope.querySelectorAll('[data-insert]').forEach(b => b.onclick = () => { const pn = byId(proj.extra.pinned, b.dataset.insert); insertText(`\n\n> ${(pinnedMeta(pn)?.body||'').trim().replace(/\n/g,'\n> ')}\n> ${attribution(pn)}\n\n`); });
+    scope.querySelectorAll('[data-dkind]').forEach(it => { it.addEventListener('dragstart', ev => { ev.dataTransfer.setData('text/plain', pinnedMeta({kind:it.dataset.dkind, sourceId:it.dataset.dsrc})?.body || ''); }); });
+  };
+  bind(drawer);
+  if(ta) ta.addEventListener('drop', ev => { ev.preventDefault(); const text = ev.dataTransfer.getData('text/plain'); if(!text) return; const pos = ta.selectionStart; ta.setRangeText(`\n\n> ${text}\n\n`, pos, pos, 'end'); ta.dispatchEvent(new Event('input')); });
+}
+
+/* ---------- Structure Board: Outline / Threads & Arguments / Connections ---------- */
+function structureBoardHTML(proj){
+  const tab = (S._wStructTab||{})[proj.id] || 'outline';
+  return `<div class="structure-board" id="structBoard">
+    <div class="sc">Structure Board</div>
+    <div class="struct-tabs">${[['outline','Outline'],['threads','Threads & Arguments'],['connections','Connections']].map(([k,l])=>`<button class="${tab===k?'active':''}" data-stab="${k}">${l}</button>`).join('')}</div>
+    <div id="structBody">${tab==='outline' ? outlineTabHTML(proj) : tab==='threads' ? threadsTabHTML(proj) : connectionsTabHTML(proj)}</div>
+  </div>`;
+}
+function outlineTabHTML(proj){
+  const nodes = proj.extra.outline;
+  return `<div id="outlineList">${nodes.map((n,i)=>`<div class="outline-node" draggable="true" data-onode="${n.id}"><div class="row between"><b class="serif" style="font-size:.92rem">${esc(n.heading||'Untitled section')}</b><button class="del-x inline" data-odel="${n.id}">×</button></div>${n.desc?`<div class="faint" style="font-size:.76rem;margin-top:2px">${esc(n.desc)}</div>`:''}${(n.linked||[]).length?`<div class="mono faint" style="margin-top:4px">${n.linked.length} source${n.linked.length===1?'':'s'} pinned here</div>`:'<div class="gap">this section has no source material yet</div>'}<button class="tbtn" data-ojump="${n.id}" style="margin-top:4px">jump to draft →</button></div>`).join('') || '<div class="empty">No sections yet.</div>'}</div>
+    <button class="btn sm ghost" id="outlineAdd" style="margin-top:6px">＋ section</button>`;
+}
+function threadsTabHTML(proj){
+  const beats = proj.extra.beats;
+  return `<p class="faint" style="font-size:.76rem">The logic of the piece, before the prose. A sequence of claims or beats.</p>
+    <div id="beatList">${beats.map((b)=>`<div class="beat-row" draggable="true" data-beat="${b.id}"><div class="row between"><span style="flex:1;font-size:.86rem">${esc(b.text||'a claim, a turn, a beat')}</span><button class="del-x inline" data-bdel="${b.id}">×</button></div>${(b.evidence||[]).length?`<div class="mono faint" style="margin-top:4px">${b.evidence.length} piece${b.evidence.length===1?'':'s'} of evidence</div>`:''}<button class="tbtn" data-bedit="${b.id}" style="margin-top:3px">edit</button></div>`).join('') || '<div class="empty">No beats yet.</div>'}</div>
+    <button class="btn sm ghost" id="beatAdd" style="margin-top:6px">＋ beat</button>`;
+}
+function connectionsTabHTML(proj){
+  const kinds = {}; proj.extra.pinned.forEach(pn => kinds[pn.kind] = (kinds[pn.kind]||0)+1);
+  const dims = proj.links; const dimCounts = ['stages','threads','values','visions','skills','projects'].map(k=>[k,(dims[k]||[]).length]).filter(x=>x[1]);
+  const siblings = writings().filter(w => w.id!==proj.id && (entryTags(w).some(t=>entryTags(proj).includes(t)) || ['values','threads','visions','skills','projects'].some(k => (dims[k]||[]).some(id0=>{const id=typeof id0==='string'?id0:id0.id; return (w.links[k]||[]).some(v=>(typeof v==='string'?v:v.id)===id);}))));
+  return `<p style="font-size:.85rem">This piece pulls from ${dimCounts.map(([k,n])=>`${n} ${k}`).join(', ') || 'nothing linked yet'}, and has ${proj.extra.pinned.length} pinned reference${proj.extra.pinned.length===1?'':'s'}${Object.keys(kinds).length?` (${Object.entries(kinds).map(([k,n])=>`${n} ${k}`).join(', ')})`:''}.</p>
+    <div class="field"><label>Linked dimensions</label>${linksEditorHTML(proj.links, {legend:false})}</div>
+    ${siblings.length ? `<div class="field"><label>Other pieces sharing tags or dimensions</label><div class="deps">${siblings.map(w=>`<span class="chip click" data-go="#/writing/${w.id}">${esc(w.title||'Untitled')}</span>`).join('')}</div></div>` : ''}`;
+}
+function bindStructureBoard(root, proj, redraw){
+  const box = root.querySelector('#structBoard'); if(!box) return;
+  box.querySelectorAll('[data-stab]').forEach(b => b.onclick = () => { S._wStructTab = S._wStructTab||{}; S._wStructTab[proj.id] = b.dataset.stab; preserveScroll(['#structBoard'], redraw); });
+  const ta = root.querySelector('#wBody');
+  box.querySelectorAll('[data-odel]').forEach(b => b.onclick = () => { requestDelete({label:'Section', node:b.closest('.outline-node'), remove:()=>spliceOut(proj.extra.outline, x=>x.id===b.dataset.odel), after:()=>preserveScroll(['#structBoard'],redraw)}); });
+  box.querySelector('#outlineAdd')?.addEventListener('click', () => { proj.extra.outline.push({id:uid(), heading:'', desc:'', linked:[]}); saveNow(); preserveScroll(['#structBoard'], redraw); const m = openModal(`<h2>New section</h2><input class="inp serif-lg" id="onH" placeholder="Section heading" autofocus><textarea class="ta" id="onD" placeholder="what does this section do?"></textarea><div class="row" style="justify-content:flex-end"><button class="btn primary" id="onSave">Save</button></div>`,'narrow'); m.querySelector('#onSave').onclick = () => { const n = proj.extra.outline[proj.extra.outline.length-1]; n.heading = m.querySelector('#onH').value.trim(); n.desc = m.querySelector('#onD').value.trim(); saveNow(); m.remove(); preserveScroll(['#structBoard'],redraw); }; });
+  box.querySelectorAll('[data-ojump]').forEach(b => b.onclick = () => { const n = byId(proj.extra.outline, b.dataset.ojump); if(!ta) return; const marker = `# ${n.heading}`; let idx = ta.value.indexOf(marker); if(idx < 0){ ta.value += (ta.value.trim()?'\n\n':'') + marker + '\n\n'; idx = ta.value.indexOf(marker); proj.body = ta.value; saveNow(); ta.dispatchEvent(new Event('input')); } ta.focus(); ta.setSelectionRange(idx, idx+marker.length); ta.scrollTop = ta.scrollHeight * (idx/ta.value.length); });
+  box.querySelectorAll('[data-bdel]').forEach(b => b.onclick = () => { requestDelete({label:'Beat', node:b.closest('.beat-row'), remove:()=>spliceOut(proj.extra.beats, x=>x.id===b.dataset.bdel), after:()=>preserveScroll(['#structBoard'],redraw)}); });
+  box.querySelector('#beatAdd')?.addEventListener('click', () => { proj.extra.beats.push({id:uid(), text:'', evidence:[]}); saveNow(); preserveScroll(['#structBoard'], redraw); });
+  box.querySelectorAll('[data-bedit]').forEach(b => b.onclick = () => { const beat = byId(proj.extra.beats, b.dataset.bedit); const pool = proj.extra.pinned; const m = openModal(`<h2>A beat</h2><textarea class="ta" id="btText" placeholder="The medals were never for me — they were proof for adults.">${esc(beat.text)}</textarea><div class="field"><label>Evidence from the research drawer</label><div class="deps">${pool.map(pn=>{ const meta = pinnedMeta(pn); return meta?`<span class="chip click ${(beat.evidence||[]).includes(pn.id)?'on':''}" data-ev="${pn.id}">${esc((meta.title||'').slice(0,30))}</span>`:''; }).join('') || '<span class="faint">Pin something to the drawer first.</span>'}</div></div><div class="row" style="justify-content:flex-end"><button class="btn primary" id="btSave">Save</button></div>`,'narrow');
+    m.querySelectorAll('[data-ev]').forEach(c=>c.onclick=()=>{ beat.evidence = beat.evidence||[]; const id0 = c.dataset.ev; beat.evidence = beat.evidence.includes(id0) ? beat.evidence.filter(x=>x!==id0) : [...beat.evidence,id0]; c.classList.toggle('on'); });
+    m.querySelector('#btSave').onclick = () => { beat.text = m.querySelector('#btText').value.trim(); saveNow(); m.remove(); preserveScroll(['#structBoard'],redraw); }; });
+  bindLinksEditor(box, proj.links, () => preserveScroll(['#structBoard'], redraw));
+  box.querySelectorAll('[data-go]').forEach(c => c.onclick = () => navigate(c.dataset.go));
+  // drag-reorder for outline & beats
+  const dragList = (containerSel, arr, itemSel, idAttr) => { const cont = box.querySelector(containerSel); if(!cont) return; let dragId = null;
+    cont.querySelectorAll(itemSel).forEach(row => { row.addEventListener('dragstart', ev => { if(ev.target.closest('button')){ ev.preventDefault(); return; } dragId = row.dataset[idAttr]; row.classList.add('dragging'); }); row.addEventListener('dragend', () => row.classList.remove('dragging')); row.addEventListener('dragover', ev => ev.preventDefault()); row.addEventListener('drop', ev => { ev.preventDefault(); const toId = row.dataset[idAttr]; if(!dragId || dragId===toId) return; const from = arr.findIndex(x=>x.id===dragId), to = arr.findIndex(x=>x.id===toId); const [m] = arr.splice(from,1); arr.splice(to,0,m); saveNow(); preserveScroll(['#structBoard'],redraw); }); }); };
+  dragList('#outlineList', proj.extra.outline, '[data-onode]', 'onode');
+  dragList('#beatList', proj.extra.beats, '[data-beat]', 'beat');
+}
+
+/* ---------- Publishing pipeline & exports ---------- */
+function exportWriting(proj, format){
+  const body = proj.body || '';
+  let out = body, ext = 'md', mime = 'text/markdown';
+  if(format === 'plain'){ out = body.replace(/^#+\s*/gm,'').replace(/\*\*(.+?)\*\*/g,'$1').replace(/\*(.+?)\*/g,'$1').replace(/^>\s*/gm,''); ext='txt'; mime='text/plain'; }
+  if(format === 'html'){ out = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(proj.title)}</title><style>body{font-family:Georgia,serif;max-width:640px;margin:60px auto;line-height:1.8;color:#2a241d}blockquote{border-left:3px solid #ccc;padding-left:1em;color:#665e52}</style></head><body><h1>${esc(proj.title)}</h1>${md(body)}</body></html>`; ext='html'; mime='text/html'; }
+  const blob = new Blob([out], {type:mime}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `${(proj.title||'untitled').replace(/[^\w-]+/g,'-')}.${ext}`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url), 2000);
+}
+
+/* ---------- The Desk — project board ---------- */
+routes.writing = function(root, params){
+  migrateWriting();
+  registerPageEntry({pageName:'The Writing Studio', addLabel:'New project', defaultEntryType:'writing', prefilledFields:{}, options:[{icon:'✒', label:'New project', desc:'Name the premise; the drawer gathers the rest.', run:()=>{ const e = newWriting(); location.hash = '#/writing/'+e.id; }}]});
+  if(params[0] === 'compost') return renderCompostPage(root);
+  if(params[0]) return renderWritingDesk(root, params[0]);
+  const view = S._wView || 'board';
+  const ws = writings();
+  const published = ws.filter(e => e.extra.publication?.status === 'published');
+  root.innerHTML = `<div class="page">
+    <div class="page-head"><h1>The Writing Studio</h1><div class="sub">Material accumulates while you live the rest of the site; this is where it gets shaped into something.</div></div>
+    <div class="row rv" style="gap:8px;margin-bottom:16px"><a class="btn sm ghost" href="#/writing/compost">🌱 Compost Heap (${S.compost.length})</a><button class="btn sm ghost" id="wHabit">+ a writing habit</button><div class="view-toggle">${[['board','▥ Board'],['list','☰ List']].map(([k,l])=>`<button class="${view===k?'on':''}" data-wv="${k}">${l}</button>`).join('')}</div></div>
+    ${ws.length ? (view==='board' ? `<div class="wkanban rv" id="wkanban">${WRITING_STATUSES.map(st => `<div class="wkcol" data-wcol="${esc(st)}" style="--c:var(--page-accent)"><div class="wkcol-h"><span>${esc(st)}</span><span>${ws.filter(e=>e.extra.status===st).length}</span></div><div class="wkcol-body">${ws.filter(e=>e.extra.status===st).map(e=>`<div class="wkcard" draggable="true" data-wdrag="${e.id}" data-wopen="${e.id}"><b class="serif" style="font-size:.92rem">${esc(e.title||'Untitled piece')}</b>${e.extra.premise?`<div class="premise">${esc(e.extra.premise)}</div>`:''}<div class="mono faint" style="margin-top:4px">${esc(e.extra.kind)} · ${wordCount(e.body)}w</div></div>`).join('')}</div>`).join('')}</div>`
+      : `<div class="stack" style="gap:8px">${ws.map(e=>`<div class="card rv wproject-card" data-wopen="${e.id}"><div class="row between"><b class="serif">${esc(e.title||'Untitled piece')}</b><span class="status-pill">${esc(e.extra.status)}</span></div>${e.extra.premise?`<div class="premise">${esc(e.extra.premise)}</div>`:''}<div class="row between" style="margin-top:8px"><span class="mono">${esc(e.extra.kind)} · ${wordCount(e.body)} words${e.extra.target?.wordTarget?` of ${e.extra.target.wordTarget}`:''}</span><span class="mono">${fmtDate((e.createdAt||'').slice(0,10),'med')}</span></div></div>`).join('')}</div>`)
+    : `<div class="empty rv">Nothing here yet. A piece starts with one sentence about what it's really about.</div>`}
+
+    ${published.length ? `<section class="section rv"><span class="sc">Published archive</span>${published.map(e=>`<div class="pub-row"><span><b>${esc(e.title)}</b> <span class="mono">${esc(e.extra.kind)}</span></span><span>${e.extra.publication.where?`<a href="${esc(e.extra.publication.where)}" target="_blank" rel="noopener">↗ where it lives</a>`:''}</span></div>`).join('')}</section>` : ''}
+
+    <section class="section rv"><details><summary><span class="sc">Cross-pollination</span></summary><div class="body" style="padding-top:10px">${crossPollinationHTML()}</div></details></section>
+  </div>`;
+  $$('[data-wv]',root).forEach(b=>b.onclick=()=>{ S._wView = b.dataset.wv; rerender(); });
+  $('#wHabit').onclick = () => openHabitModal();
   $$('[data-wopen]',root).forEach(c => c.onclick = () => { location.hash = '#/writing/'+c.dataset.wopen; });
+  // drag between kanban status columns
+  let wdrag = null;
+  $$('[data-wdrag]',root).forEach(card => { card.addEventListener('dragstart', ev => { wdrag = card.dataset.wdrag; card.classList.add('dragging'); }); card.addEventListener('dragend', () => card.classList.remove('dragging')); });
+  $$('.wkcol',root).forEach(col => { col.addEventListener('dragover', ev => { ev.preventDefault(); col.classList.add('over'); }); col.addEventListener('dragleave', () => col.classList.remove('over')); col.addEventListener('drop', ev => { ev.preventDefault(); col.classList.remove('over'); const e = byId(S.entries, wdrag); if(!e) return; e.extra.status = col.dataset.wcol; saveNow(); rerender(); }); });
 };
+function crossPollinationHTML(){
+  const ws = writings(); if(!ws.length) return '<div class="empty">Write a few pieces and the patterns show up here.</div>';
+  const thTally = {}, valTally = {}, visTally = {}, mediaTally = {};
+  ws.forEach(e => { (e.links.threads||[]).forEach(id=>thTally[id]=(thTally[id]||0)+1); (e.links.values||[]).forEach(x=>valTally[x.id]=(valTally[x.id]||0)+1); (e.links.visions||[]).forEach(id=>visTally[id]=(visTally[id]||0)+1);
+    e.extra.pinned.forEach(pn => { if(pn.kind==='entry'){ const s = byId(S.entries, pn.sourceId); if(s && s.type==='media') mediaTally[s.id] = (mediaTally[s.id]||0)+1; } }); });
+  const top = (obj,resolver,max=5) => Object.entries(obj).sort((a,b)=>b[1]-a[1]).slice(0,max).map(([id,n])=>{ const r = resolver(id); return r ? `<span class="chip on">${esc(r)} · ${n}</span>` : ''; }).join('') || '<span class="faint">nothing yet</span>';
+  return `<div class="stack" style="gap:14px">
+    <div><span class="k mono">threads you write about most</span><div class="row" style="gap:6px;flex-wrap:wrap;margin-top:6px">${top(thTally, id=>byId(S.threads,id)?.name)}</div></div>
+    <div><span class="k mono">values most present in your writing</span><div class="row" style="gap:6px;flex-wrap:wrap;margin-top:6px">${top(valTally, id=>byId(S.values,id)?.name)}</div></div>
+    <div><span class="k mono">visions your writing feeds</span><div class="row" style="gap:6px;flex-wrap:wrap;margin-top:6px">${top(visTally, id=>byId(S.visions,id)?.name)}</div></div>
+    <div><span class="k mono">media that generated the most writing</span><div class="row" style="gap:6px;flex-wrap:wrap;margin-top:6px">${top(mediaTally, id=>byId(S.entries,id)?.title)}</div></div>
+  </div>`;
+}
+
+/* ---------- Inside a project: the three-panel workspace ---------- */
+let _wSession = {id:null, base:0};
 function renderWritingDesk(root, id){
-  const e = byId(S.entries, id); if(!e){ navigate('#/writing'); return; }
-  const x = e.extra = e.extra || {}; x.sourceTags = normTags(x.sourceTags||[]);
-  const sources = x.sourceTags.length
-    ? sortEntries(S.entries.filter(y => y.id !== e.id && entryTags(y).some(t => x.sourceTags.includes(t))))
-    : [];
+  const e = byId(S.entries, id); if(!e || e.type !== 'writing'){ navigate('#/writing'); return; }
+  const x = e.extra = e.extra || {}; migrateWriting();
+  if(_wSession.id !== id){ _wSession = {id, base: wordCount(e.body)}; }
   const n = wordCount(e.body); const focus = !!S._writeFocus;
-  root.innerHTML = `<div class="page ${focus?'write-focus':''}">
-    <div class="row between rv" style="margin-bottom:16px"><a class="btn sm ghost" href="#/writing">‹ all pieces</a>
-      <div class="row"><span class="mono">${n} word${n===1?'':'s'}${x.wordTarget?` · ${clamp(Math.round(n/x.wordTarget*100),0,999)}% of ${x.wordTarget}`:''}</span>
-        <select class="sel" style="width:auto" id="wStatus">${['drafting','resting','revising','finished'].map(s=>`<option ${x.status===s?'selected':''}>${s}</option>`).join('')}</select>
-        <button class="btn sm ${focus?'primary':'ghost'}" id="wFocus" title="hide everything but the page">${focus?'✓ focus':'focus'}</button></div></div>
+  const redraw = () => rerender();
+  root.innerHTML = `<div class="page ${focus?'wstudio-focus':''}">
+    <div class="row between rv" style="margin-bottom:16px"><a class="btn sm ghost" href="#/writing">‹ the desk</a>
+      <div class="row" style="gap:8px;flex-wrap:wrap">
+        <select class="sel" style="width:auto" id="wKind">${WRITING_KINDS.map(k=>`<option ${x.kind===k?'selected':''}>${k}</option>`).join('')}</select>
+        <select class="sel" style="width:auto" id="wStatus">${WRITING_STATUSES.map(s=>`<option ${x.status===s?'selected':''}>${s}</option>`).join('')}</select>
+        <button class="btn sm ${focus?'primary':'ghost'}" id="wFocus" title="hide the drawer and the board">${focus?'✓ focus':'focus'}</button>
+        <div class="row" style="gap:4px"><button class="btn sm ghost" id="expMd">↓ .md</button><button class="btn sm ghost" id="expTxt">↓ .txt</button><button class="btn sm ghost" id="expHtml">↓ .html</button></div>
+      </div></div>
 
     <div class="writing-head rv">
-      <h1 class="write-title">${ed(`entries.#${e.id}.title`,{ph:'Title it later if you like'})}</h1>
-      <div class="field"><label>Intention — what am I trying to work out?</label>${ed(`entries.#${e.id}.extra.intention`,{multi:true,cls:'quote',ph:'One or two sentences. Not the topic — the question underneath it.'})}</div>
-      <div class="row" style="gap:10px;flex-wrap:wrap;align-items:flex-end">
-        <div class="field" style="flex:1;min-width:240px"><label>Draw on these hashtags</label>
-          <input class="inp mono" id="wTags" value="${esc(x.sourceTags.map(t=>'#'+t).join(' '))}" placeholder="#kyoto #jazz" list="wTagList"><datalist id="wTagList">${allTags().map(([t,c])=>`<option value="#${esc(t)}">${c}</option>`).join('')}</datalist></div>
-        <div class="field"><label>Word target</label><input class="inp mono" id="wTarget" type="number" min="0" step="100" value="${x.wordTarget||''}" placeholder="0" style="width:8em"></div>
+      <h1 class="write-title">${ed(`entries.#${e.id}.title`,{ph:'Working title'})}</h1>
+      <div class="field"><label>One-line premise — what is this really about?</label>${ed(`entries.#${e.id}.extra.premise`,{cls:'quote',ph:'Forces clarity before writing begins.'})}</div>
+      <div class="row" style="gap:10px;flex-wrap:wrap">
+        <div class="field"><label>Target — where is this going?</label>${ed(`entries.#${e.id}.extra.target.dest`,{ph:'blog / publication / portfolio / private'})}</div>
+        <div class="field"><label>Word target</label><input class="inp mono" id="wTarget" type="number" min="0" step="100" value="${x.target.wordTarget||''}" style="width:8em"></div>
+        <div class="field"><label>Deadline</label><input class="inp mono" id="wDeadline" type="date" value="${x.target.deadline||''}"></div>
       </div>
-      ${allTags().length?`<div class="tag-cloud" style="margin-top:8px">${allTags().slice(0,18).map(([t,c])=>`<button class="tag ${x.sourceTags.includes(t)?'on':''}" data-wtag="${esc(t)}">#${esc(t)}<span class="n">${c}</span></button>`).join('')}</div>`:''}
     </div>
 
-    <div class="write-layout">
-      <div class="write-page rv"><textarea class="ta write-area" id="wBody" placeholder="Begin anywhere. You can fix the beginning last.">${esc(e.body)}</textarea></div>
-      <aside class="write-rail rv">
-        <div class="sc">Source material</div>
-        <p class="faint" style="font-size:.76rem">${x.sourceTags.length ? `${sources.length} entr${sources.length===1?'y':'ies'} carrying ${x.sourceTags.map(t=>'#'+t).join(', ')}.` : 'Choose a hashtag above and everything you have written on it appears here.'}</p>
-        <div class="rail-list">${sources.slice(0,40).map(s=>`<div class="rail-item" data-railq="${s.id}">
-          <div class="mono">${typeIcon(s.type)} ${esc(fmtDate(s.occurredAt,'med'))}</div>
-          ${s.title?`<div class="rail-title">${esc(s.title)}</div>`:''}
-          <div class="rail-body">${esc((s.body||'').slice(0,260))}${(s.body||'').length>260?'…':''}</div>
-          <button class="tbtn" data-quote="${s.id}" title="quote this into the page">quote →</button>
-        </div>`).join('') || (x.sourceTags.length?'<div class="empty">Nothing carries those tags yet.</div>':'')}</div>
-      </aside>
+    <div class="wstudio-layout">
+      ${researchDrawerHTML(e)}
+      <div>
+        <div class="write-page rv"><textarea class="ta write-area" id="wBody" placeholder="Begin anywhere. You can fix the beginning last.">${esc(e.body)}</textarea></div>
+        <div class="row between" style="margin-top:8px"><span class="mono">${n} word${n===1?'':'s'}${x.target.wordTarget?` · ${clamp(Math.round(n/x.target.wordTarget*100),0,999)}% of ${x.target.wordTarget}`:''}</span><span class="session-count">${Math.max(0,n-_wSession.base)} written this session</span></div>
+        <details style="margin-top:14px"><summary><span class="sc">Scratchpad</span></summary><div class="body"><textarea class="ta" id="wScratch" placeholder="Rough notes, fragments, sentence attempts.">${esc(x.scratchpad)}</textarea></div></details>
+        <details style="margin-top:10px"><summary><span class="sc">Comments — private revision notes (${x.comments.length})</span></summary><div class="body">
+          <button class="btn sm ghost" id="cAdd">+ comment on selection</button>
+          <div class="stack" style="gap:6px;margin-top:8px">${x.comments.map(c=>`<div class="rail-item"><div class="quote" style="font-size:.82rem">“${esc(c.quote)}”</div><div style="margin-top:4px">${esc(c.note)}</div><button class="del-x inline" data-cdeln="${c.id}">×</button></div>`).join('') || '<div class="faint" style="font-size:.78rem">Highlight text in the draft, then add a note — “come back to this”, “needs a better example”.</div>'}</div></div></details>
+        <details style="margin-top:10px"><summary><span class="sc">Version history (${x.versions.length})</span></summary><div class="body">
+          <button class="btn sm ghost" id="vKeep">keep this version</button>
+          <div class="stack" style="gap:6px;margin-top:8px">${[...x.versions].reverse().map((v,ri)=>{ const i = x.versions.length-1-ri; return `<div class="rail-item"><div class="row between"><span class="mono">${fmtDate(v.date,'med')} · ${v.words}w</span><span class="row" style="gap:4px"><button class="tbtn" data-vrestore="${i}">restore</button><button class="del-x inline" data-vdel="${i}">×</button></span></div></div>`; }).join('') || '<div class="faint" style="font-size:.78rem">Every "keep this version" click creates a snapshot you can come back to.</div>'}</div></div></details>
+        <details style="margin-top:10px"><summary><span class="sc">Publishing pipeline</span></summary><div class="body stack" style="gap:8px">
+          <select class="sel" id="pubStatus" style="width:auto">${PUB_STATUSES.map(s=>`<option ${x.publication.status===s?'selected':''}>${s}</option>`).join('')}</select>
+          <input class="inp" id="pubWhere" placeholder="submitted to / published at (a name or URL)" value="${esc(x.publication.where)}">
+          <input class="inp" id="pubWhen" type="date" value="${x.publication.when||''}">
+        </div></details>
+        ${moreSection(`<div class="danger-zone"><span>This deletes the piece, its research pins, and its version history.</span><button class="btn sm ghost danger" id="wDel">Delete this piece</button></div>`)}
+      </div>
+      ${structureBoardHTML(e)}
     </div>
-    ${moreSection(`<div class="danger-zone"><span>This deletes the piece and its text.</span><button class="btn sm ghost danger" id="wDel">Delete this piece</button></div>`)}
   </div>`;
   const ta = $('#wBody');
   const grow = () => { ta.style.height = 'auto'; ta.style.height = Math.max(420, ta.scrollHeight) + 'px'; }; grow();
-  const save = debounce(() => { e.body = ta.value; e.updatedAt = new Date().toISOString(); saveNow(); const w = $('.row.between .mono'); if(w) w.textContent = `${wordCount(ta.value)} words${x.wordTarget?` · ${clamp(Math.round(wordCount(ta.value)/x.wordTarget*100),0,999)}% of ${x.wordTarget}`:''}`; }, 600);
-  ta.addEventListener('input', () => { grow(); save(); });
-  $('#wFocus').onclick = () => { S._writeFocus = !S._writeFocus; rerender(); setTimeout(()=>$('#wBody')?.focus(),60); };
+  const save = debounce(() => { e.body = ta.value; e.updatedAt = new Date().toISOString(); saveNow(); const w = document.querySelector('.write-page + .row .mono'); const nn = wordCount(ta.value); if(w) w.textContent = `${nn} word${nn===1?'':'s'}${x.target.wordTarget?` · ${clamp(Math.round(nn/x.target.wordTarget*100),0,999)}% of ${x.target.wordTarget}`:''}`; const sc = document.querySelector('.session-count'); if(sc) sc.textContent = `${Math.max(0,nn-_wSession.base)} written this session`; }, 500);
+  ta.addEventListener('input', () => { e.body = ta.value; grow(); save(); });
+  $('#wFocus').onclick = () => { S._writeFocus = !S._writeFocus; redraw(); setTimeout(()=>$('#wBody')?.focus(),60); };
+  $('#wKind').onchange = ev => { x.kind = ev.target.value; saveNow(); };
   $('#wStatus').onchange = ev => { x.status = ev.target.value; saveNow(); };
-  $('#wTarget').onchange = ev => { x.wordTarget = +ev.target.value || 0; saveNow(); rerender(); };
-  const tagI = $('#wTags'); tagI.onchange = () => { x.sourceTags = normTags(tagI.value.split(/[\s,]+/)); saveNow(); rerender(); };
-  $$('[data-wtag]',root).forEach(b => b.onclick = () => { const t = b.dataset.wtag; x.sourceTags = x.sourceTags.includes(t) ? x.sourceTags.filter(y=>y!==t) : [...x.sourceTags, t]; saveNow(); rerender(); });
-  $$('[data-quote]',root).forEach(b => b.onclick = ev => { ev.stopPropagation(); const s = byId(S.entries, b.dataset.quote); if(!s) return;
-    const block = `\n\n> ${(s.body||s.title||'').trim().replace(/\n/g,'\n> ')}\n> — ${s.title || typeName(s.type)}, ${fmtDate(s.occurredAt,'med')}\n\n`;
-    ta.value = ta.value + block; e.body = ta.value; saveNow(); grow(); sound('click'); toast('Quoted into the page.'); ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); });
+  $('#wTarget').onchange = ev => { x.target.wordTarget = +ev.target.value||0; saveNow(); redraw(); };
+  $('#wDeadline').onchange = ev => { x.target.deadline = ev.target.value; saveNow(); };
+  $('#wScratch').addEventListener('input', debounce(ev => { x.scratchpad = ev.target.value; saveNow(); }, 500));
+  $('#cAdd').onclick = () => { const quote = ta.value.slice(ta.selectionStart, ta.selectionEnd).trim(); if(!quote){ toast('Highlight some text in the draft first.'); return; } const note = prompt('Note on this passage:'); if(note===null) return; x.comments.push({id:uid(), quote, note, createdAt:today()}); saveNow(); redraw(); };
+  root.querySelectorAll('[data-cdeln]').forEach(b => b.onclick = () => { x.comments = x.comments.filter(c=>c.id!==b.dataset.cdeln); saveNow(); redraw(); });
+  $('#vKeep').onclick = () => { x.versions.push({date:today(), body:e.body, words:wordCount(e.body)}); saveNow(); toast('Version kept.'); redraw(); };
+  root.querySelectorAll('[data-vrestore]').forEach(b => b.onclick = () => confirmDlg('Replace the current draft with this version? The current text is kept as a version first.', () => { x.versions.push({date:today(), body:e.body, words:wordCount(e.body)}); const v = x.versions[+b.dataset.vrestore]; e.body = v.body; saveNow(); redraw(); }));
+  root.querySelectorAll('[data-vdel]').forEach(b => b.onclick = () => { x.versions.splice(+b.dataset.vdel,1); saveNow(); redraw(); });
+  $('#pubStatus').onchange = ev => { x.publication.status = ev.target.value; saveNow(); redraw(); };
+  $('#pubWhere').onchange = ev => { x.publication.where = ev.target.value.trim(); saveNow(); };
+  $('#pubWhen').onchange = ev => { x.publication.when = ev.target.value; saveNow(); };
+  $('#expMd').onclick = () => exportWriting(e,'md'); $('#expTxt').onclick = () => exportWriting(e,'plain'); $('#expHtml').onclick = () => exportWriting(e,'html');
   $('#wDel').onclick = () => requestDelete({label:e.title||'this piece', remove:()=>spliceOut(S.entries, y=>y.id===e.id), after:()=>navigate('#/writing')});
+  bindResearchDrawer(root, e, redraw);
+  bindStructureBoard(root, e, redraw);
 }
 /* ============================================================
    NAVIGATION — two zones (Present / Becoming) + standalone pages
@@ -7981,11 +8572,11 @@ const NAV_PAGES = {
   journals: {label:'Journals',         short:'Journal',  ico:NAV_ICONS.journals, route:'#/journals'},
   projects: {label:'Projects',         short:'Projects', ico:NAV_ICONS.projects, route:'#/projects'},
   rhythm:   {label:'Rhythm',           short:'Rhythm',   ico:NAV_ICONS.rhythm,   route:'#/rhythm'},
-  writing:  {label:'Writing',          short:'Writing',  ico:NAV_ICONS.writing,  route:'#/writing'},
+  writing:  {label:'The Writing Studio', short:'Writing', ico:NAV_ICONS.writing,  route:'#/writing'},
   people:   {label:'People',           short:'People',   ico:NAV_ICONS.people,   route:'#/people'},
   finance:  {label:'Finance',          short:'Money',    ico:NAV_ICONS.finance,  route:'#/finance'},
   chronicle:{label:'Chronicle',        short:'Book',     ico:NAV_ICONS.chronicle,route:'#/chronicle'},
-  commonplace:{label:'Commonplace Book', short:'Media',  ico:NAV_ICONS.commonplace, route:'#/commonplace'},
+  commonplace:{label:'The Library',    short:'Library',  ico:NAV_ICONS.commonplace, route:'#/commonplace'},
   values:   {label:'Values',           short:'Values',   ico:NAV_ICONS.values,   route:'#/values'},
   skills:   {label:'Skill Tree',       short:'Skills',   ico:NAV_ICONS.skills,   route:'#/skills'},
   vision:   {label:'Vision Canvas',    short:'Vision',   ico:NAV_ICONS.vision,   route:'#/vision'},

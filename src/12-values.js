@@ -187,7 +187,7 @@ routes.value = function(root, params){
     ${F('hundred','What takes me to 100%?','What does full congruence actually look like, day to day?')}
     ${F('motivation','How do I increase my positive motivation for this value?','Strategies, reminders, environments, people.')}
     ${F('counterfeit','What counterfeits this value?','The cheap imitation that feels like the value but isn\'t. This field prevents self-deception.')}
-    <section class="section rv"><span class="sc">Served by visions</span><div class="row">${S.visions.filter(x=>x.values.includes(v.id)).map(x=>`<span class="chip on click" style="--c:var(--sage)" data-go="#/vision/${x.id}">🌿 ${esc(x.name)}</span>`).join('')||'<span class="empty">No vision serves this value — a structural blind spot.</span>'}</div></section>
+    <section class="section rv"><span class="sc">Served by visions</span><p class="muted" style="font-size:.85rem">Click a vision to link or unlink it — this is the same list a vision's own page uses, so tagging works from either side.</p><div class="row deps">${S.visions.length ? S.visions.map(x=>`<span class="chip click ${x.values.includes(v.id)?'on':''}" style="--c:var(--sage)" data-valvision="${x.id}">🌿 ${esc(x.name)}</span>`).join('') : '<span class="empty">No visions yet — a structural blind spot.</span>'}</div></section>
     <section class="section rv"><div class="row between"><span class="sc">Evidence feed</span><span class="row"><button class="btn sm" data-pol="+">+ embodied</button><button class="btn sm" data-pol="-">− betrayed</button></span></div>
       ${es.map(e=>{ const pol = e.links.values.find(x=>x.id===v.id)?.pol||'+'; return `<div style="display:grid;grid-template-columns:28px 1fr;gap:8px"><span class="serif" style="font-size:1.5rem;color:${pol==='+'?'var(--sage)':'var(--rose)'};padding-top:14px">${pol==='+'?'+':'−'}</span>${entryCard(e)}</div>`; }).join('')||'<div class="empty">No entries tagged to this value yet.</div>'}</section>
     ${moreSection(`<div class="row" style="gap:20px"><div class="field"><label>Colour</label><input type="color" id="valColor" value="${v.color}" style="width:40px;height:28px;border:none;background:none;padding:0;cursor:pointer"></div></div>
@@ -198,6 +198,7 @@ routes.value = function(root, params){
   $('#valColor').onchange = e => { v.color = e.target.value; saveNow(); rerender(); };
   root.querySelectorAll('[data-vf]').forEach(b => b.onclick = () => { const k = b.dataset.vf; const latest = (v.fields[k]||[]).slice(-1)[0]; const m = openModal(`<h2>A new version</h2><textarea class="ta" id="vfText" style="min-height:160px">${esc(latest?.text||'')}</textarea><p class="faint" style="font-size:.78rem">The previous version is kept. Growth in self-understanding stays visible.</p><div class="row" style="justify-content:flex-end"><button class="btn primary" id="vfSave">Keep</button></div>`); m.querySelector('#vfSave').onclick = () => { const t = m.querySelector('#vfText').value.trim(); if(!t) return; v.fields[k] = v.fields[k]||[]; v.fields[k].push({date:today(),text:t}); saveNow(); m.remove(); rerender(); sound('save'); }; });
   root.querySelectorAll('[data-pol]').forEach(b => b.onclick = () => openEntryModal({type:'reflection', links:{values:[{id:v.id,pol:b.dataset.pol}]}}));
+  root.querySelectorAll('[data-valvision]').forEach(c => c.onclick = () => { const x = byId(S.visions, c.dataset.valvision); x.values = x.values.includes(v.id) ? x.values.filter(y=>y!==v.id) : [...x.values, v.id]; saveNow(); c.classList.toggle('on'); });
   bindPractices(root); bindBoard(root);
 };
 
@@ -259,7 +260,8 @@ function practicesHTML(v){
 function bindPractices(root, after){
   const redraw = after || rerender;
   $$('[data-pracadd]', root).forEach(b => b.onclick = () => {
-    const v = byId(S.values, b.dataset.pracadd); if((v.practices||[]).length >= 3){ toast('Three is the ceiling on purpose. Replace one instead.'); return; }
+    const v = byId(S.values, b.dataset.pracadd); v.practices = v.practices || [];
+    if(v.practices.length >= 3){ toast('Three is the ceiling on purpose. Replace one instead.'); return; }
     v.practices.push({id:uid(), text:'', perWeek:1, log:[]}); saveNow(); redraw();
     setTimeout(()=>{ const n = document.querySelectorAll('.prac-text .ed'); n.length && beginEdit(n[n.length-1]); }, 60);
   });

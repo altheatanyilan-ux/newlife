@@ -121,7 +121,7 @@ function openDecisionPanel(id){
     <div class="vp-sec"><span class="sc">Come back again on</span><div class="row">${ed(`entries.#${e.id}.extra.reviewOn`, {ph:'YYYY-MM-DD', cls:'mono'})}</div></div>
     ${moreSection(`<div class="danger-zone"><span>This deletes the decision and everything written about it.</span><button class="btn sm ghost danger" id="dDel">Delete this decision</button></div>`)}`, 'decision-panel');
   p.querySelector('#dVerdict').onchange = ev => { x.verdict = ev.target.value; saveNow(); };
-  p.querySelector('#dDone').onclick = () => { x.reviewedAt = x.reviewedAt ? '' : today(); saveNow(); sound(x.reviewedAt ? 'success' : 'click'); rerender(); openDecisionPanel(id); };
+  p.querySelector('#dDone').onclick = () => { x.reviewedAt = x.reviewedAt ? '' : today(); saveNow(); sound(x.reviewedAt ? 'success' : 'click'); reopenPanel(() => { rerender(); openDecisionPanel(id); }); };
   p.querySelector('#dDel').onclick = () => requestDelete({label:e.title||'this decision', remove:()=>spliceOut(S.entries, y=>y.id===e.id), after:()=>{ closePanel(); rerender(); }});
 }
 
