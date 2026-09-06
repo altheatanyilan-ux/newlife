@@ -122,6 +122,8 @@ function requestDelete({label='Entry', node=null, remove, after=null, skipConfir
 }
 function flushPendingDeletes(){ if(!pendingDeletes.size) return; pendingDeletes.forEach(p => clearTimeout(p.timer)); pendingDeletes.clear(); saveNow(); }
 window.addEventListener('beforeunload', flushPendingDeletes);
+/* A quiet, collapsed management section for persistent things (stages, visions, skills, projects, values). Delete lives here, not on hover. */
+function moreSection(inner, label='More'){ return `<details class="more-section"><summary><span class="mono">${esc(label)}</span></summary><div class="body">${inner}</div></details>`; }
 function spliceOut(arr, pred){ const i = arr.findIndex(pred); if(i < 0) return () => {}; const [item] = arr.splice(i, 1); return () => { arr.splice(Math.min(i, arr.length), 0, item); }; }
 function snapshotLinks(list){ const saved = list.map(o => [o, JSON.stringify(o.links)]); return () => saved.forEach(([o, j]) => { o.links = JSON.parse(j); }); }
 function ripple(x, y, color){ if(reduced()) return; const r = el(`<div class="ripple"></div>`); r.style.left = x+'px'; r.style.top = y+'px'; r.style.setProperty('--c', color||'var(--terra)'); document.body.appendChild(r); setTimeout(()=>r.remove(), 1000); }
