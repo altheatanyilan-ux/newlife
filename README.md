@@ -47,7 +47,7 @@ The sidebar groups the rooms into two zones by time horizon: **Present** (Today,
 | `#/values` | Priority ranking, radar with life-long time slider, weather strip, gap analysis, values-to-visions matrix |
 | `#/journals` | Commonplace Book: synchronicity, manifestation, reflections, gratitude, dreams, quotes, open questions |
 | `#/skills` | Hierarchical skill tree (vertical or radial) with zoom, pan, minimap, fold and unfold, drag-to-reparent, locked nodes, customisable levels (labels, descriptions, criteria, typed resources, estimated time), multi-target milestones on a timeline, atrophy, cross-mappings |
-| `#/projects` | Project cards with nod heatmaps, energy-vs-output chart, income streams, idea inbox |
+| `#/projects` | Projects in three views: cards (priority, status, task ratio, target date), a kanban board with drag between status columns, and a Gantt timeline of phases; each project has phases with task checklists and quick capture, resources, linked skills and vision chapter, notes, nod heatmaps, income streams; energy-vs-output chart and idea inbox |
 | `#/rituals` | Habit rings, four-dimension energy balance, 90-day calendars, guided daily/weekly/seasonal/annual reviews |
 | `#/settings` | Theme, ambient sound, felt time, home page, export/import/clear |
 

@@ -112,6 +112,18 @@ function nextMilestone(s){ return skillMilestones(s).find(m => m.levelTarget > s
 function skillTargetLevel(s){ const ms = (s.milestones||[]).filter(m => m.levelTarget > s.currentLevel); return ms.length ? Math.max(...ms.map(m=>m.levelTarget)) : null; }
 function milestonesDueSoon(days=30){ const T = today(); const out = []; S.skills.forEach(s => (s.milestones||[]).forEach(m => { if(!m.by || m.levelTarget <= s.currentLevel) return; const d = daysBetween(T, m.by.slice(0,10)); if(d <= days) out.push({skill:s, m, days:d}); })); return out.sort((a,b)=>a.days-b.days); }
 const fmtMonth = d => { if(!d) return ''; const x = parseDay(d.slice(0,10)); return `${MONTHS[x.getMonth()].slice(0,3)} ${x.getFullYear()}`; };
+function migrateProjects(){
+  S.projects.forEach(p => {
+    if(p.description === undefined) p.description = p.desc || ''; delete p.desc;
+    if(p.status === 'shipped') p.status = 'completed';
+    if(!['idea','active','paused','completed','archived','abandoned'].includes(p.status)) p.status = 'idea';
+    if(!p.priority) p.priority = 'P3'; if(p.startDate === undefined) p.startDate = (p.createdAt||today()).slice(0,10); if(p.targetDate === undefined) p.targetDate = '';
+    p.phases = Array.isArray(p.phases) ? p.phases : []; p.phases.forEach(ph => { ph.id = ph.id||uid(); ph.tasks = ph.tasks||[]; ph.startDate = ph.startDate||''; ph.endDate = ph.endDate||''; ph.tasks.forEach(t => { t.id = t.id||uid(); t.done = !!t.done; if(t.dueDate===undefined) t.dueDate = null; }); });
+    p.resources = Array.isArray(p.resources) ? p.resources : []; p.linkedSkills = Array.isArray(p.linkedSkills) ? p.linkedSkills : []; if(p.linkedVisionEra === undefined) p.linkedVisionEra = null; if(p.notes === undefined) p.notes = ''; p.tags = p.tags||[]; p.income = p.income||{model:'',current:0,target:0,milestones:[]};
+  });
+}
+function projectTasks(p){ return (p.phases||[]).flatMap(ph => ph.tasks||[]); }
+function projectTaskRatio(p){ const t = projectTasks(p); return {done:t.filter(x=>x.done).length, total:t.length}; }
 function migrateLifeline(){
   const y = new Date().getFullYear(); const eras = erasList(); if(!eras.length) return;
   eras.forEach(e => { if(e.stageRef === undefined) e.stageRef = null; });
