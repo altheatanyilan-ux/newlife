@@ -32,7 +32,7 @@ routes.settings = function(root){
         <p class="muted" style="font-size:.85rem;margin:0 0 10px">Tidying dictation and the pattern report work without a key, using rules and statistics computed in this page. Paste an <b>Anthropic API key</b> and both get a real language model instead. A Claude Pro or Max subscription cannot be used here — consumer subscriptions do not issue API credentials, and API usage is billed separately.</p>
         <div class="row" style="gap:8px"><input class="inp mono" id="aiKey" type="password" placeholder="sk-ant-…" value="${esc(aiKey())}" autocomplete="off" style="flex:1"><button class="btn sm" id="aiSave">Save</button>${aiKey()?'<button class="btn sm ghost" id="aiClear">Remove</button>':''}</div>
         <div class="faint" style="font-size:.74rem;margin-top:6px">Stored only in this browser's localStorage. It is never written into a backup file. <span id="aiState">${aiReady()?'Connected.':'Not connected — local mode.'}</span></div>
-        <div class="row" style="margin-top:8px"><button class="btn sm ghost" id="aiTest">Test the connection</button><a class="btn sm ghost" href="#/reviews/patterns">Open the pattern report →</a></div>
+        <div class="row" style="margin-top:8px"><button class="btn sm ghost" id="aiTest">Test the connection</button><a class="btn sm ghost" href="#/rhythm/patterns">Open the pattern report →</a></div>
       </div>
       <div class="field" style="margin:18px 0"><label>Atmosphere</label><div id="ambSettings">${ambientMenuHTML()}</div></div>
       <p class="mono">keyboard: N new entry · ⌘K or / search · ← → previous / next stage (Timeline) · Esc close</p>

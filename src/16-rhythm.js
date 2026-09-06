@@ -102,6 +102,9 @@ function migrateRhythm(){
   S.plans = S.plans && typeof S.plans === 'object' ? S.plans : {};
   S.reviewLog = S.reviewLog && typeof S.reviewLog === 'object' ? S.reviewLog : {};
   S.runLog = S.runLog && typeof S.runLog === 'object' ? S.runLog : {};
+  S.weekPlans = S.weekPlans && typeof S.weekPlans === 'object' ? S.weekPlans : {};
+  S.monthPlans = S.monthPlans && typeof S.monthPlans === 'object' ? S.monthPlans : {};
+  S.monthReviews = S.monthReviews && typeof S.monthReviews === 'object' ? S.monthReviews : {};
   domains();
   (S.habits||[]).forEach(h => { if(h.at === undefined) h.at = null; if(!h.icon) h.icon = ''; if(!h.linkedSkill) h.linkedSkill = null; if(!Array.isArray(h.celebrated)) h.celebrated = []; });
 }
@@ -143,7 +146,7 @@ function moveBlock(kind, id, day, start){
 routes.rhythm = function(root, params){
   migrateRhythm();
   const T = today();
-  const tab = ['plan','habits','review'].includes(params[0]) ? params[0] : (S._rhyTab || 'plan');
+  const tab = ['plan','habits','review','patterns'].includes(params[0]) ? params[0] : (S._rhyTab || 'plan');
   S._rhyTab = tab;
   const view = S._rhyView || 'week';
   const focus = S._rhyDay && /^\d{4}-\d{2}-\d{2}$/.test(S._rhyDay) ? S._rhyDay : T;
@@ -159,7 +162,7 @@ routes.rhythm = function(root, params){
     <div class="rhythm-grid">
       <div class="rhy-cal" id="rhyCal"></div>
       <aside class="rhy-side">
-        <div class="seg">${[['plan','Plan'],['habits','Habits'],['review','Review']].map(([k,l])=>`<button class="${tab===k?'on':''}" data-rtab="${k}">${l}</button>`).join('')}</div>
+        <div class="seg">${[['plan','Plan'],['habits','Habits'],['review','Review'],['patterns','Patterns']].map(([k,l])=>`<button class="${tab===k?'on':''}" data-rtab="${k}">${l}</button>`).join('')}</div>
         <div id="rhySide"></div>
       </aside>
     </div>
@@ -168,6 +171,7 @@ routes.rhythm = function(root, params){
   const side = $('#rhySide');
   if(tab === 'plan') renderPlanPanel(side, focus);
   else if(tab === 'habits') renderHabitsPanel(side, focus);
+  else if(tab === 'patterns') renderPatterns(side);
   else renderReviewPanel(side, focus);
   window._bloomHabit = null; window._pulseHabitId = null;
   $$('[data-rtab]',root).forEach(b => b.onclick = () => { S._rhyTab = b.dataset.rtab; navigate('#/rhythm/' + b.dataset.rtab); if(location.hash === '#/rhythm/' + b.dataset.rtab) rerender(); });
@@ -523,8 +527,10 @@ function renderPlanPanel(box, d){
   const planned = sum(p.items.map(i => +i.est || 0)) + sum(rows.filter(r => !p.items.some(i => i.ref === r.id)).map(r => +r.task.est || 0));
   const doneN = p.items.filter(i => i.done).length + rows.filter(r => r.done).length;
   const totalN = p.items.length + rows.length;
+  const wk = weekStart(d); const wp = weekPlan(wk); const mp = monthPlan(monthKey(d));
   box.innerHTML = `
     <div class="row between"><span class="sc" style="margin:0">${d === T ? 'Today' : fmtDate(d,'med')}</span><span class="mono">${totalN ? `${doneN}/${totalN} done` : 'nothing planned'}</span></div>
+    ${(wp.theme || wp.outcomes.some(o=>o.text)) ? `<div class="intention-card" style="margin:10px 0;font-size:.92rem">${wp.theme?`<b>${esc(wp.theme)}</b>`:''}${wp.outcomes.filter(o=>o.text).length?`<div class="faint" style="font-size:.78rem;margin-top:4px">${wp.outcomes.filter(o=>o.text).map(o=>esc(o.text)).join(' · ')}</div>`:''}</div>` : ''}
     ${p.planned ? '' : `<button class="btn primary" id="planStart" style="width:100%;margin-top:10px">◎ Plan my day</button>`}
     ${p.intentions.some(Boolean) ? `<div class="intentions">${p.intentions.map((t,i)=> t ? `<div class="intention"><span class="in-n">${i+1}</span><span>${esc(t)}</span></div>` : '').join('')}</div>` : ''}
 
@@ -551,12 +557,18 @@ function renderPlanPanel(box, d){
       <button class="btn sm ghost" id="planEvent">＋ event</button>
       ${p.planned ? `<button class="btn sm ghost" id="planRedo">re-plan</button>` : ''}
     </div>
+    <div class="row" style="gap:6px;margin-top:6px;flex-wrap:wrap">
+      <button class="btn sm ghost" id="planWeekly">Weekly plan${wp.theme?'':' · not set'}</button>
+      <button class="btn sm ghost" id="planMonthly">Monthly plan${mp.theme?'':' · not set'}</button>
+    </div>
     ${carried.length ? `<div class="carried"><span class="mono">${carried.length} carried over</span><button class="btn sm ghost" id="planCarry">bring forward</button></div>` : ''}
     ${nudgesHTML(d)}`;
   $('#planStart') && ($('#planStart').onclick = () => planMyDay(d));
   $('#planRedo') && ($('#planRedo').onclick = () => planMyDay(d));
   $('#planPull').onclick = () => openTaskPicker(d, rerender);
   $('#planEvent').onclick = () => openEventModal({day:d});
+  $('#planWeekly').onclick = () => openWeeklyPlan(d);
+  $('#planMonthly').onclick = () => openMonthlyPlan(d);
   $('#planCarry') && ($('#planCarry').onclick = () => { carried.forEach(r => r.task.day = d); saveNow(); sound('success'); rerender(); });
   $('#planQuick').addEventListener('keydown', e => { if(e.key !== 'Enter') return; const v = e.target.value.trim(); if(!v) return;
     p.items.push({id:uid(), text:v, est:0, done:false, doneAt:''}); saveNow(); sound('click'); rerender(); });
@@ -774,6 +786,7 @@ function renderReviewPanel(box, d){
   const habits = S.habits.filter(h => !h.archived && !h.negative && habitDue(h,d));
   const hDone = habits.filter(h => habitDone(h,d)).length;
   const isWeekEnd = parseDay(d).getDay() === 0;
+  const isMonthEnd = parseDay(d).getDate() === new Date(parseDay(d).getFullYear(), parseDay(d).getMonth()+1, 0).getDate();
   box.innerHTML = `
     <div class="row between"><span class="sc" style="margin:0">Close the day</span><span class="mono">${r.closedAt ? `closed ${esc(r.closedAt)}` : fmtDate(d,'med')}</span></div>
     <div class="rev-summary">${total || habits.length ? `You finished <b>${done} of ${total}</b> planned item${total===1?'':'s'} and <b>${hDone} of ${habits.length}</b> habit${habits.length===1?'':'s'}.${p.intentions.filter(Boolean).length?` You named ${p.intentions.filter(Boolean).length} intention${p.intentions.filter(Boolean).length===1?'':'s'} this morning.`:''}` : 'Nothing was planned for this day.'}</div>
@@ -787,7 +800,7 @@ function renderReviewPanel(box, d){
 
     <div class="field"><label>Anything worth saying</label><textarea class="ta" id="revNote" placeholder="What went well? What would you change?">${esc(r.note||'')}</textarea></div>
 
-    <div class="row" style="gap:8px;margin-top:12px"><button class="btn primary" id="revClose">${r.closedAt?'Update':'Close the day'}</button><button class="btn sm ghost" id="revWeek">Weekly review${isWeekEnd?' ·  due':''}</button></div>
+    <div class="row" style="gap:8px;margin-top:12px;flex-wrap:wrap"><button class="btn primary" id="revClose">${r.closedAt?'Update':'Close the day'}</button><button class="btn sm ghost" id="revWeek">Weekly review${isWeekEnd?' ·  due':''}</button><button class="btn sm ghost" id="revMonth">Monthly review${isMonthEnd?' · due':''}</button></div>
 
     ${recentEnergyDip() ? `<div class="nudges" style="margin-top:14px"><a class="nudge" href="#/values"><span class="nu-ico">◔</span><span>Your energy has been low for a couple of weeks. A congruence snapshot might show which value is going unpaid.</span></a></div>` : ''}`;
   $$('[data-renergy]',box).forEach(b => b.onclick = () => { r.energy = r.energy === +b.dataset.renergy ? 0 : +b.dataset.renergy; saveNow(); sound('click'); rerender(); });
@@ -803,6 +816,7 @@ function renderReviewPanel(box, d){
     saveNow(); sound('success'); toast('Day closed.'); rerender();
   };
   $('#revWeek').onclick = () => openWeeklyReview(d);
+  $('#revMonth').onclick = () => openMonthlyReview(d);
   attachDictationIn(box);
 }
 function openWeeklyReview(d = today()){
@@ -840,4 +854,98 @@ function openWeeklyReview(d = today()){
     S.reviews.nextWeekFocus = m.querySelector('#wkFocus').value.trim();
     S.reviews.lastWeekly = today(); saveNow(); m.remove(); sound('success'); toast('Week reviewed.'); rerender();
   };
+}
+
+/* ---------- forward-looking planning: the week and the month, before they happen ---------- */
+function weekPlan(wk){
+  S.weekPlans = S.weekPlans && typeof S.weekPlans === 'object' ? S.weekPlans : {};
+  if(!S.weekPlans[wk]) S.weekPlans[wk] = {theme:'', outcomes:[], energyBudget:{}, setAt:''};
+  const p = S.weekPlans[wk]; p.outcomes = p.outcomes || []; p.energyBudget = p.energyBudget || {};
+  return p;
+}
+function monthKey(d = today()){ const x = parseDay(d); return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}`; }
+function monthPlan(mk){
+  S.monthPlans = S.monthPlans && typeof S.monthPlans === 'object' ? S.monthPlans : {};
+  if(!S.monthPlans[mk]) S.monthPlans[mk] = {theme:'', milestones:[], setAt:''};
+  const p = S.monthPlans[mk]; p.milestones = p.milestones || [];
+  return p;
+}
+function monthReview(mk){
+  S.monthReviews = S.monthReviews && typeof S.monthReviews === 'object' ? S.monthReviews : {};
+  if(!S.monthReviews[mk]) S.monthReviews[mk] = {note:'', closedAt:''};
+  return S.monthReviews[mk];
+}
+function habitMonthRate(h, days){ const due = days.filter(d => habitDue(h,d)); if(!due.length) return null; return Math.round(due.filter(d => habitDone(h,d)).length / due.length * 100); }
+function openWeeklyPlan(d = today()){
+  const wk = weekStart(d); const p = weekPlan(wk);
+  while(p.outcomes.length < 3) p.outcomes.push({id:uid(), text:'', linkType:'', linkId:null});
+  const m = openModal(`<h2>The week ahead — ${fmtDate(wk,'med')}</h2>
+    <div class="field"><label>Theme for the week</label><input class="inp serif-lg" id="wpTheme" value="${esc(p.theme)}" placeholder="One phrase that names what this week is for" autofocus></div>
+    <div class="field"><label>Up to three key outcomes</label><div class="stack" style="gap:8px">${p.outcomes.slice(0,3).map((o,i) => `
+      <div class="row" style="gap:6px"><span class="in-n">${i+1}</span><input class="inp" data-wpout="${i}" value="${esc(o.text)}" placeholder="what would make this week a win">
+        <select class="sel" data-wplink="${i}" style="width:auto"><option value="">—</option>
+          ${S.visions.map(v => `<option value="vision:${v.id}" ${o.linkType==='vision'&&o.linkId===v.id?'selected':''}>🌿 ${esc(v.name)}</option>`).join('')}
+          ${S.projects.map(pr => `<option value="project:${pr.id}" ${o.linkType==='project'&&o.linkId===pr.id?'selected':''}>${esc(pr.name)}</option>`).join('')}</select></div>`).join('')}</div></div>
+    <div class="field"><label>Energy budget by dimension</label><div class="grid c2" style="gap:8px">${DIMS.map(dm => `<div class="row between"><span style="color:${dm.c}">${dm.name}</span><input class="inp mono" type="number" min="0" max="60" style="width:70px" data-wpenergy="${dm.id}" value="${p.energyBudget[dm.id]||0}"></div>`).join('')}</div><div class="faint" style="font-size:.74rem">Hours you mean to give each, roughly — not a ledger, a leaning.</div></div>
+    <div class="row between" style="margin-top:14px"><span class="faint" style="font-size:.78rem">${p.setAt ? `set ${relDays(daysSince(p.setAt))}` : 'not yet set this week'}</span><button class="btn primary" id="wpSave">Save the week's plan</button></div>`, 'wide');
+  m.querySelector('#wpSave').onclick = () => {
+    p.theme = m.querySelector('#wpTheme').value.trim();
+    m.querySelectorAll('[data-wpout]').forEach(i => p.outcomes[+i.dataset.wpout].text = i.value.trim());
+    m.querySelectorAll('[data-wplink]').forEach(s => { const [t,id] = (s.value||'').split(':'); p.outcomes[+s.dataset.wplink].linkType = t||''; p.outcomes[+s.dataset.wplink].linkId = id||null; });
+    m.querySelectorAll('[data-wpenergy]').forEach(i => p.energyBudget[i.dataset.wpenergy] = +i.value||0);
+    p.setAt = today(); saveNow(); m.remove(); sound('success'); toast("This week has a shape."); rerender();
+  };
+  attachDictationIn(m);
+}
+function openMonthlyPlan(d = today()){
+  const mk = monthKey(d); const p = monthPlan(mk); const x = parseDay(d);
+  while(p.milestones.length < 5) p.milestones.push({id:uid(), text:'', visionId:null, done:false});
+  const m = openModal(`<h2>${MONTHS[x.getMonth()]} ${x.getFullYear()} — the month ahead</h2>
+    <div class="field"><label>Theme for the month</label><input class="inp serif-lg" id="mpTheme" value="${esc(p.theme)}" placeholder="What is this month building toward?" autofocus></div>
+    <div class="field"><label>Up to five milestones</label><div class="stack" style="gap:8px">${p.milestones.slice(0,5).map((ms,i) => `
+      <div class="row" style="gap:6px"><span class="in-n">${i+1}</span><input class="inp" data-mpm="${i}" value="${esc(ms.text)}" placeholder="a milestone worth naming">
+        <select class="sel" data-mpv="${i}" style="width:auto"><option value="">—</option>${S.visions.map(v => `<option value="${v.id}" ${ms.visionId===v.id?'selected':''}>🌿 ${esc(v.name)}</option>`).join('')}</select></div>`).join('')}</div>
+      <div class="faint" style="font-size:.74rem">Link to the vision each milestone is structural tension for — the gap between now and there is what pulls the month along.</div></div>
+    <div class="row between" style="margin-top:14px"><span class="faint" style="font-size:.78rem">${p.setAt ? `set ${relDays(daysSince(p.setAt))}` : 'not yet set this month'}</span><button class="btn primary" id="mpSave">Save the month's plan</button></div>`, 'wide');
+  m.querySelector('#mpSave').onclick = () => {
+    p.theme = m.querySelector('#mpTheme').value.trim();
+    m.querySelectorAll('[data-mpm]').forEach(i => p.milestones[+i.dataset.mpm].text = i.value.trim());
+    m.querySelectorAll('[data-mpv]').forEach(s => p.milestones[+s.dataset.mpv].visionId = s.value || null);
+    p.setAt = today(); saveNow(); m.remove(); sound('success'); toast('The month has a shape.'); rerender();
+  };
+  attachDictationIn(m);
+}
+function openMonthlyReview(d = today()){
+  const mk = monthKey(d); const x = parseDay(d); const y = x.getFullYear(), mo = x.getMonth();
+  const days = monthDays(y, mo).filter(c => !c.out).map(c => c.d);
+  const mp = monthPlan(mk); const mr = monthReview(mk);
+  const revs = days.map(dd => S.reviewLog?.[dd]).filter(r => r && (r.energy || r.moods?.length));
+  const energies = revs.map(r => r.energy).filter(Boolean);
+  const moodCount = {}; revs.forEach(r => (r.moods||[]).forEach(mm => moodCount[mm] = (moodCount[mm]||0)+1));
+  const habitsAll = S.habits.filter(h => !h.archived && !h.negative);
+  const habitRates = habitsAll.map(h => ({h, rate: habitMonthRate(h, days)})).filter(o => o.rate !== null);
+  const monthLog = days.flatMap(dd => runLogDay(dd));
+  const logCounts = {}; monthLog.forEach(en => logCounts[en.type] = (logCounts[en.type]||0)+1);
+  const namedMilestones = mp.milestones.map((ms,i) => ({...ms, i})).filter(ms => ms.text);
+  const m = openModal(`<h2>${MONTHS[mo]} ${y}, reviewed</h2>
+    ${mp.theme ? `<div class="intention-card" style="margin-bottom:14px">${esc(mp.theme)}</div>` : ''}
+    <div class="grid c2" style="gap:14px;align-items:start">
+      <div><span class="sc">Milestones</span>
+        <div class="stack" style="gap:4px;margin-top:8px">${namedMilestones.length ? namedMilestones.map(ms => `<label class="pick-row ${ms.done?'on':''}"><input type="checkbox" data-mrms="${ms.i}" ${ms.done?'checked':''}><span>${esc(ms.text)}${ms.visionId?`<span class="d">${esc(byId(S.visions,ms.visionId)?.name||'')}</span>`:''}</span></label>`).join('') : '<div class="empty">No milestones were set this month.</div>'}</div></div>
+      <div><span class="sc">Habits, across the month</span>
+        <div class="stack" style="gap:5px;margin-top:8px">${habitRates.length ? habitRates.map(({h,rate}) => `<div class="row between"><span>${esc(h.name)}</span><span class="bar" style="flex:1;--c:${(DIMS.find(x=>x.id===h.dimension)||{}).c||'var(--page-accent)'}"><i style="width:${rate}%"></i></span><span class="mono">${rate}%</span></div>`).join('') : '<div class="empty">No habits tracked.</div>'}</div></div>
+    </div>
+    <div class="grid c2" style="gap:14px;align-items:start;margin-top:16px">
+      <div><span class="sc">The running log said</span>
+        ${Object.keys(logCounts).length ? `<div class="stack" style="gap:5px;margin-top:8px">${RUNLOG_TYPES.filter(t => logCounts[t[0]]).map(t => `<div class="row between"><span>${t[2]} ${t[1]}</span><span class="mono">${logCounts[t[0]]}</span></div>`).join('')}</div>` : '<div class="empty">Nothing narrated this month.</div>'}</div>
+      <div><span class="sc">Energy &amp; mood</span>
+        <div class="row between mono" style="margin-top:8px"><span>average energy</span><span>${energies.length?avg(energies).toFixed(1):'—'} / 5</span></div>
+        ${Object.keys(moodCount).length ? `<div class="mood-bars" style="margin-top:8px">${Object.entries(moodCount).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([t,n]) => `<div class="row between"><span>${esc(t)}</span><span class="bar" style="flex:1;--c:var(--page-accent)"><i style="width:${Math.round(n/revs.length*100)}%"></i></span><span class="mono">${n}</span></div>`).join('')}</div>` : ''}
+      </div>
+    </div>
+    <div class="field" style="margin-top:16px"><label>Anything else worth carrying into next month</label><textarea class="ta" id="mrNote">${esc(mr.note||'')}</textarea></div>
+    <div class="row between" style="margin-top:14px"><span class="faint" style="font-size:.78rem">${mr.closedAt?`reviewed ${relDays(daysSince(mr.closedAt))}`:'not yet reviewed'}</span><button class="btn primary" id="mrSave">Mark the month reviewed</button></div>`, 'wide');
+  m.querySelectorAll('[data-mrms]').forEach(c => c.onchange = () => { mp.milestones[+c.dataset.mrms].done = c.checked; saveNow(); c.closest('.pick-row').classList.toggle('on', c.checked); });
+  m.querySelector('#mrSave').onclick = () => { mr.note = m.querySelector('#mrNote').value.trim(); mr.closedAt = today(); saveNow(); m.remove(); sound('success'); toast('Month reviewed.'); rerender(); };
+  attachDictationIn(m);
 }
