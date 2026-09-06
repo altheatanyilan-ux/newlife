@@ -5,13 +5,13 @@ const qpt = (p0,c,p1,t) => [ (1-t)*(1-t)*p0[0] + 2*(1-t)*t*c[0] + t*t*p1[0], (1-
 const qtan = (p0,c,p1,t) => { const dx = 2*(1-t)*(c[0]-p0[0]) + 2*t*(p1[0]-c[0]), dy = 2*(1-t)*(c[1]-p0[1]) + 2*t*(p1[1]-c[1]); return Math.atan2(dy,dx); };
 function lerpColor(a,b,t){ const pa = a.match(/\w\w/g).map(x=>parseInt(x,16)), pb = b.match(/\w\w/g).map(x=>parseInt(x,16)); return '#' + pa.map((x,i)=>Math.round(x+(pb[i]-x)*t).toString(16).padStart(2,'0')).join(''); }
 function layoutTree(W, H){
-  const trunkX = W*.5, top = 70, bottom = H-30; const segH = (bottom-top)/S.eras.length;
-  const seg = {}; S.eras.forEach((e,i) => seg[e.id] = {y1: bottom - i*segH, y0: bottom - (i+1)*segH});
+  const eras = erasList(); const trunkX = W*.5, top = 70, bottom = H-30; const segH = (bottom-top)/Math.max(eras.length,1);
+  const seg = {}; eras.forEach((e,i) => seg[e.id] = {y1: bottom - i*segH, y0: bottom - (i+1)*segH});
   const nodes = {}; const info = {}; S.visions.forEach(v => info[v.id] = vividness(v));
   const roots = S.visions.filter(v => !v.parentId || !byId(S.visions, v.parentId));
   const byEra = {}; roots.forEach(v => (byEra[v.era] = byEra[v.era]||[]).push(v));
   let gi = 0;
-  Object.entries(byEra).forEach(([era, vs]) => { const sg = seg[era] || seg[S.eras[0].id]; vs.forEach((v,i) => { const t = (i+1)/(vs.length+1); const y = sg.y1 - t*(sg.y1-sg.y0); const side = gi++ % 2 ? 1 : -1; place(v, [trunkX, y], side, side>0 ? -Math.PI*.22 : -Math.PI*.78, 0); }); });
+  Object.entries(byEra).forEach(([era, vs]) => { const sg = seg[era] || seg[eras[0]?.id] || {y1:bottom, y0:top}; vs.forEach((v,i) => { const t = (i+1)/(vs.length+1); const y = sg.y1 - t*(sg.y1-sg.y0); const side = gi++ % 2 ? 1 : -1; place(v, [trunkX, y], side, side>0 ? -Math.PI*.22 : -Math.PI*.78, 0); }); });
   function place(v, start, side, angle, depth){
     const sc = info[v.id].score; const len = (95 + sc*1.5) * Math.pow(.82, depth) * Math.min(1, W/900);
     const end = [start[0] + Math.cos(angle)*len, start[1] + Math.sin(angle)*len];
@@ -30,7 +30,8 @@ function treeSVG(W, H){
   // roots + trunk
   g += `<path d="M${trunkX-40},${H} Q${trunkX-10},${bottom+10} ${trunkX},${bottom} Q${trunkX+10},${bottom+10} ${trunkX+40},${H}" fill="url(#trunk)" opacity=".8"/>`;
   g += `<path d="M${trunkX},${bottom} C${trunkX-8},${(bottom+top)/2} ${trunkX+8},${(bottom+top)/2} ${trunkX},${top}" stroke="url(#trunk)" stroke-width="22" stroke-linecap="round" fill="none"/>`;
-  S.eras.forEach(e => { const s = seg[e.id]; g += `<line x1="${trunkX-16}" x2="${trunkX+16}" y1="${s.y0}" y2="${s.y0}" stroke="var(--bg)" stroke-width="1.5" opacity=".5"/><text class="era-lbl" x="${trunkX+22}" y="${(s.y0+s.y1)/2}" dominant-baseline="middle"><tspan>${esc(e.label)}</tspan></text><text x="${trunkX+22}" y="${(s.y0+s.y1)/2+14}" style="font-family:var(--quote);font-style:italic;font-size:10px;fill:var(--faint)">${esc(e.desc)}</text>`; });
+  const segH = (bottom-top)/Math.max(erasList().length,1);
+  erasList().forEach(e => { const s = seg[e.id]; if(!s) return; const yrs = (e.startYear||e.endYear) ? ` ${e.startYear||''}–${e.endYear||''}` : ''; g += `<line x1="${trunkX-16}" x2="${trunkX+16}" y1="${s.y0}" y2="${s.y0}" stroke="${e.color}" stroke-width="2" opacity=".7"/><text class="era-lbl" x="${trunkX+22}" y="${(s.y0+s.y1)/2}" dominant-baseline="middle" style="fill:${e.color}"><tspan>${esc(e.name)}</tspan><tspan style="letter-spacing:0;font-size:9px;opacity:.7">${esc(yrs)}</tspan></text>${segH>34?`<text x="${trunkX+22}" y="${(s.y0+s.y1)/2+14}" style="font-family:var(--quote);font-style:italic;font-size:10px;fill:var(--faint)">${esc(e.subtitle||'')}</text>`:''}`; });
   g += `<path class="trace" id="trace" d=""/>`;
   const order = Object.values(nodes).sort((a,b)=>a.depth-b.depth);
   order.forEach(n => {
@@ -58,14 +59,15 @@ function treeSVG(W, H){
 let swayRAF = null;
 function startSway(root){ cancelAnimationFrame(swayRAF); if(reduced()) return; const leaves = $$('.leaf', root); const t0 = performance.now(); const tick = t => { if(!document.contains(root)){ cancelAnimationFrame(swayRAF); return; } const s = (t-t0)/1000; leaves.forEach(l => { const ph = +l.dataset.phase, per = +l.dataset.period; l.style.transform = `rotate(${(Math.sin(s*2*Math.PI/per + ph)*3).toFixed(2)}deg)`; }); swayRAF = requestAnimationFrame(tick); }; swayRAF = requestAnimationFrame(tick); }
 routes.vision = function(root, params){
-  const activeEra = S._activeEra || S.eras[0].id;
+  const eras = erasList(); const activeEra = eras.some(e=>e.id===S._activeEra) ? S._activeEra : (eras[0]?.id || null);
   registerPageEntry({pageName:'Vision Tree', addLabel:'Add to the tree', defaultEntryType:'progress', prefilledFields:{era:activeEra}, options:[
-    {icon:'🌿', label:'New goal', desc:`A new branch, in the ${activeEra} era by default.`, run:(pre)=>EntryActions.newVision(pre)},
+    {icon:'🌿', label:'New goal', desc:`A new branch, in the ${esc(byId(eras,activeEra)?.name||'first')} era by default.`, run:(pre)=>EntryActions.newVision(pre)},
     {icon:'◌', label:'New life event', desc:'A leaf on an existing vision — progress, a visualization, a manifestation.', run:(pre)=>EntryActions.lifeEvent(pre)}]});
   root.innerHTML = `<div class="page">
-    <div class="page-head row between"><div><h1>Vision Tree</h1><div class="sub">Every entry tagged to a vision grows a leaf. Vividness is the sap. Untended branches wither — honestly, reversibly.</div></div><div class="row"><select class="sel" style="width:auto" id="activeEra" title="active era for new goals">${S.eras.map(e=>`<option value="${e.id}" ${activeEra===e.id?'selected':''}>${esc(e.label)}</option>`).join('')}</select><button class="btn ghost" id="editEras">eras</button></div></div>
-    <div class="tree-wrap" id="treeWrap"><div class="tree-tools"></div><div class="tree-legend"><span>bare twig 0–15</span><span>budding 16–30</span><span>leafing 31–50</span><span>canopy 51–70</span><span>flowering 71–85</span><span>fruiting 86–100</span><span>· hover a branch to trace its lineage</span></div></div>
-    <div class="grid c3 section">${S.visions.map(v => { const {score, lastTended} = vividness(v); return `<div class="card rv" data-vopen="${v.id}" style="cursor:pointer"><div class="row between"><h3 style="margin:0">${esc(v.name)}</h3><span class="mono">${v.era}</span></div><div class="row" style="margin:8px 0"><div class="bar" style="flex:1;--c:${v.confidence==='lived'?'var(--gold)':'var(--sage)'}"><i style="width:${score}%"></i></div><span class="mono" data-tween="${score}">0</span></div><div class="muted" style="font-size:.8rem">${esc(v.confidence)} · tended ${relDays(lastTended)}${v.nextAction?`<br><span style="color:var(--gold)">→</span> ${esc(v.nextAction)}`:''}</div></div>`; }).join('')}</div>
+    <div class="page-head row between"><div><h1>Vision Tree</h1><div class="sub">Every entry tagged to a vision grows a leaf. Vividness is the sap. Untended branches wither — honestly, reversibly.</div></div><div class="row"><select class="sel" style="width:auto" id="activeEra" title="active era for new goals">${eras.map(e=>`<option value="${e.id}" ${activeEra===e.id?'selected':''}>${esc(e.name)}</option>`).join('')}</select></div></div>
+    <div class="era-strip-wrap"><div class="row between" style="margin-bottom:8px"><span class="sc" style="margin:0">Eras — trunk segments</span><span class="mono">double-click a name to rename · drag ⠿ to reorder</span></div><div class="era-strip" id="eraStrip">${eras.map(e => eraCardHTML(e)).join('')}<button class="era-add" id="addEra">＋ Add era</button></div></div>
+    <div class="tree-wrap" id="treeWrap" style="height:${Math.max(560, 150*eras.length + 120)}px;max-height:${eras.length>5?'none':'calc(100vh - 150px)'}"><div class="tree-tools"></div><div class="tree-legend"><span>bare twig 0–15</span><span>budding 16–30</span><span>leafing 31–50</span><span>canopy 51–70</span><span>flowering 71–85</span><span>fruiting 86–100</span><span>· hover a branch to trace its lineage</span></div></div>
+    <div class="grid c3 section">${S.visions.map(v => { const {score, lastTended} = vividness(v); return `<div class="card rv" data-vopen="${v.id}" style="cursor:pointer"><div class="row between"><h3 style="margin:0">${esc(v.name)}</h3><span class="mono" style="color:${byId(erasList(),v.era)?.color||'var(--faint)'}">${esc(byId(erasList(),v.era)?.name||v.era)}</span></div><div class="row" style="margin:8px 0"><div class="bar" style="flex:1;--c:${v.confidence==='lived'?'var(--gold)':'var(--sage)'}"><i style="width:${score}%"></i></div><span class="mono" data-tween="${score}">0</span></div><div class="muted" style="font-size:.8rem">${esc(v.confidence)} · tended ${relDays(lastTended)}${v.nextAction?`<br><span style="color:var(--gold)">→</span> ${esc(v.nextAction)}`:''}</div></div>`; }).join('')}</div>
   </div>`;
   drawTree();
   function drawTree(){ const wrap = $('#treeWrap'); const W = Math.max(wrap.clientWidth, 600), H = wrap.clientHeight; wrap.querySelector('svg')?.remove(); wrap.insertAdjacentHTML('afterbegin', treeSVG(W,H)); const svg = wrap.querySelector('svg');
@@ -74,9 +76,7 @@ routes.vision = function(root, params){
   window.addEventListener('resize', debounce(()=>{ if(currentRoute==='vision') drawTree(); }, 250), {once:true});
   $$('[data-vopen]',root).forEach(c => c.onclick = () => openVisionPanel(c.dataset.vopen));
   $('#activeEra').onchange = e => { S._activeEra = e.target.value; rerender(); };
-  $('#editEras').onclick = () => { const m = openModal(`<h2>Trunk segments</h2><p class="muted">Life decades or eras. Edit the labels and descriptions.</p><div class="stack">${S.eras.map((e,i)=>`<div class="card" style="padding:14px 16px"><b class="serif">${ed(`eras.${i}.label`)}</b><div class="muted">${ed(`eras.${i}.desc`,{ph:'what this decade is for'})}</div>${S.eras.length>1?`<button class="del-x" data-eradel="${e.id}" title="delete era">×</button>`:''}</div>`).join('')}</div><div class="row" style="margin-top:12px"><button class="btn sm ghost" id="addEra">+ era</button></div>`,'narrow');
-    m.querySelector('#addEra').onclick = () => { S.eras.push({id:'era-'+uid(), label:'New era', desc:''}); saveNow(); m.remove(); rerender(); $('#editEras').click(); };
-    m.querySelectorAll('[data-eradel]').forEach(b => b.onclick = () => { const era = byId(S.eras, b.dataset.eradel); m.remove(); requestDelete({label: `Era ${era.label}`, remove: () => { const back = spliceOut(S.eras, x => x.id === era.id); const moved = S.visions.filter(v => v.era === era.id); const to = S.eras[0]?.id; moved.forEach(v => v.era = to); return () => { back(); moved.forEach(v => v.era = era.id); }; }}); }); };
+  bindEraStrip(root, drawTree);
   if(params[0]) openVisionPanel(params[0]);
 };
 function deleteVision(v, node, after){
@@ -94,7 +94,7 @@ function openVisionPanel(id){
   const v = byId(S.visions,id); if(!v) return; const {score, parts, leaves, lastTended} = vividness(v); const lived = v.confidence==='lived';
   const kids = S.visions.filter(k=>k.parentId===v.id); const parent = byId(S.visions, v.parentId);
   const p = openPanel(`<div class="vision-panel">
-    <div class="mono">vision · <select class="sel" id="vEra" style="width:auto;padding:1px 6px;font-size:.7rem;display:inline-block">${S.eras.map(e=>`<option value="${e.id}" ${v.era===e.id?'selected':''}>${esc(e.label)}</option>`).join('')}</select> · planted ${fmtDate(v.createdAt,'med')} · tended ${relDays(lastTended)}</div>
+    <div class="mono">vision · <select class="sel" id="vEra" style="width:auto;padding:1px 6px;font-size:.7rem;display:inline-block">${erasList().map(e=>`<option value="${e.id}" ${v.era===e.id?'selected':''}>${esc(e.name)}</option>`).join('')}</select> · planted ${fmtDate(v.createdAt,'med')} · tended ${relDays(lastTended)}</div>
     <h2>${ed(`visions.#${v.id}.name`)}</h2>
     <div class="score"><div class="bar" style="flex:1;--c:${lived?'var(--gold)':'var(--sage)'}"><i style="width:${score}%"></i></div><span class="num" data-tween="${score}">0</span><span class="mono">vividness</span></div>
     <details><summary><span class="mono">how the score is made</span></summary><div class="body mono" style="line-height:1.9">${Object.entries(parts).map(([k,x])=>`${k} ${x.toFixed(1)}`).join(' · ')}<br>volume 20 · recency 20 (half-life 30d) · specificity 15 · sensory 15 · evidence 10 · resonance 10 · structural tension 10</div></details>
@@ -150,4 +150,38 @@ function fruitCeremony(v){
   S.entries.push({id:uid(),type:'reflection',title:`${v.name} — lived`,body:v.futureMemory||'A vision became a memory.',occurredAt:today(),createdAt:new Date().toISOString(),media:[],links:{stages:[s8.id],substages:[s8.substages.slice(-1)[0].id],threads:[],values:v.values.map(id=>({id,pol:'+'})),visions:[v.id],skills:[],projects:[]},people:[],places:[],emotions:[],confidence:'lived',extra:{}});
   saveNow();
   toast(`🍂 <b>${esc(v.name)}</b> has fruited. It has been planted into the Timeline as a new chapter of 未 Not Yet.`, 6000);
+}
+
+/* ---------- era strip: add · rename (double-click) · reorder (drag) · delete (cascade) · 8-colour palette ---------- */
+function eraCardHTML(e){ const n = S.visions.filter(v=>v.era===e.id).length; return `<div class="era-card" draggable="true" data-era="${e.id}" style="--c:${e.color}"><div class="era-top"><span class="era-handle" title="drag to reorder">⠿</span><button class="era-swatch" data-eracolor="${e.id}" title="colour" style="background:${e.color}"></button><span class="era-name" data-eraname="${e.id}" title="double-click to rename">${esc(e.name)}</span><button class="era-del" data-eradel="${e.id}" title="delete era">🗑️</button></div><div class="era-sub">${ed(`visionEras.#${e.id}.subtitle`,{ph:'what this era is for'})}</div><div class="era-years mono">${ed(`visionEras.#${e.id}.startYear`,{ph:'from',cls:'mono',hook:'erayear:'+e.id})} – ${ed(`visionEras.#${e.id}.endYear`,{ph:'to',cls:'mono',hook:'erayear:'+e.id})} · ${n} goal${n===1?'':'s'}</div></div>`; }
+hooks.erayear = (id) => { const e = byId(S.visionEras,id); if(!e) return; ['startYear','endYear'].forEach(k => { const v = parseInt(String(e[k]).replace(/\D/g,''),10); e[k] = isNaN(v) ? null : v; }); saveNow(); };
+function renameEraInline(nameEl, era, redraw){
+  if(nameEl.querySelector('input')) return;
+  const inp = el(`<input class="era-rename" value="${esc(era.name)}" aria-label="era name">`); nameEl.textContent = ''; nameEl.appendChild(inp); inp.focus(); inp.select();
+  const commit = () => { const v = inp.value.trim(); era.name = v || era.name; saveNow(); nameEl.textContent = era.name; redraw(); };
+  inp.addEventListener('blur', commit); inp.addEventListener('keydown', ev => { ev.stopPropagation(); if(ev.key==='Enter'){ inp.blur(); } if(ev.key==='Escape'){ inp.value = era.name; inp.blur(); } });
+}
+function bindEraStrip(root, drawTree){
+  const strip = root.querySelector('#eraStrip'); if(!strip) return;
+  const redraw = () => { drawTree(); root.querySelectorAll('.era-card').forEach(c => { const e = byId(S.visionEras, c.dataset.era); if(e){ c.style.setProperty('--c', e.color); c.querySelector('.era-swatch').style.background = e.color; } }); };
+  root.querySelector('#addEra').onclick = () => { const order = S.visionEras.length ? Math.max(...S.visionEras.map(e=>e.order))+1 : 0; const e = {id:'era-'+uid(), name:'New era', subtitle:'', startYear:null, endYear:null, color:ERA_PALETTE[S.visionEras.length % ERA_PALETTE.length], order}; S.visionEras.push(e); saveNow(); rerender(); setTimeout(() => { const card = document.querySelector(`.era-card[data-era="${e.id}"]`); card?.scrollIntoView({inline:'end', behavior:'smooth'}); const nm = card?.querySelector('.era-name'); if(nm) renameEraInline(nm, e, () => rerender()); }, 60); };
+  strip.querySelectorAll('.era-name').forEach(nm => nm.addEventListener('dblclick', () => renameEraInline(nm, byId(S.visionEras, nm.dataset.eraname), redraw)));
+  strip.querySelectorAll('[data-eracolor]').forEach(b => b.onclick = () => { const e = byId(S.visionEras, b.dataset.eracolor); document.querySelector('.era-palette')?.remove(); const pal = el(`<div class="era-palette">${ERA_PALETTE.map(c=>`<button data-c="${c}" style="background:${c}" class="${e.color===c?'on':''}" title="${c}"></button>`).join('')}</div>`); b.parentElement.appendChild(pal); pal.querySelectorAll('button').forEach(x => x.onclick = ev => { ev.stopPropagation(); e.color = x.dataset.c; saveNow(); pal.remove(); redraw(); }); setTimeout(() => document.addEventListener('click', () => pal.remove(), {once:true}), 0); });
+  strip.querySelectorAll('[data-eradel]').forEach(b => b.onclick = () => { const e = byId(S.visionEras, b.dataset.eradel); const goals = S.visions.filter(v=>v.era===e.id); const m = openModal(`<h2>Delete this era and all its contents?</h2><p class="muted">This cannot be undone.<br><span class="mono">${esc(e.name)} · ${goals.length} goal${goals.length===1?'':'s'} and their life events</span></p><div class="row" style="justify-content:flex-end;margin-top:18px"><button class="btn" data-x="no">Cancel</button><button class="btn destructive" data-x="yes">Delete</button></div>`,'narrow'); m.querySelector('[data-x=no]').onclick = () => m.remove(); m.querySelector('[data-x=yes]').onclick = () => { m.remove(); requestDelete({label:`Era ${e.name}`, skipConfirm:true, node: b.closest('.era-card'), remove: () => {
+    const ids = new Set(goals.map(v=>v.id)); const removedGoals = goals.map(v => [S.visions.indexOf(v), v]); goals.forEach(v => S.visions.splice(S.visions.indexOf(v),1));
+    S.visions.forEach(v => { if(ids.has(v.parentId)) v.parentId = null; });
+    const events = S.entries.filter(en => (en.links?.visions||[]).some(id => ids.has(id))); const removedEvents = events.map(en => [S.entries.indexOf(en), en]); events.forEach(en => S.entries.splice(S.entries.indexOf(en),1));
+    const habits = S.habits.filter(h => (h.links?.visions||[]).some(id => ids.has(id))); const hl = habits.map(h => [h, [...h.links.visions]]); habits.forEach(h => h.links.visions = h.links.visions.filter(id => !ids.has(id)));
+    const back = spliceOut(S.visionEras, x => x.id === e.id); if(S._activeEra === e.id) S._activeEra = null;
+    return () => { back(); removedGoals.forEach(([i,v]) => S.visions.splice(Math.min(i,S.visions.length),0,v)); removedEvents.forEach(([i,en]) => S.entries.splice(Math.min(i,S.entries.length),0,en)); hl.forEach(([h,l]) => h.links.visions = l); };
+  }}); }; });
+  // drag to reorder
+  let dragId = null;
+  strip.querySelectorAll('.era-card').forEach(card => {
+    card.addEventListener('dragstart', ev => { dragId = card.dataset.era; card.classList.add('dragging'); ev.dataTransfer.effectAllowed = 'move'; try { ev.dataTransfer.setData('text/plain', dragId); } catch(e){} });
+    card.addEventListener('dragend', () => { card.classList.remove('dragging'); strip.querySelectorAll('.era-card').forEach(c => c.classList.remove('over')); });
+    card.addEventListener('dragover', ev => { ev.preventDefault(); ev.dataTransfer.dropEffect = 'move'; card.classList.add('over'); });
+    card.addEventListener('dragleave', () => card.classList.remove('over'));
+    card.addEventListener('drop', ev => { ev.preventDefault(); card.classList.remove('over'); const from = dragId || ev.dataTransfer.getData('text/plain'); const to = card.dataset.era; if(!from || from === to) return; const list = erasList().map(e=>e.id); list.splice(list.indexOf(from),1); list.splice(list.indexOf(to),0,from); list.forEach((id,i) => byId(S.visionEras,id).order = i); dragId = null; saveNow(); rerender(); });
+  });
 }

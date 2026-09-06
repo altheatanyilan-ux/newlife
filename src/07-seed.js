@@ -123,7 +123,7 @@ function seed(){
     Object.assign(snap(3,{'v-wisdom':71,'v-auth':79,'v-conn':81,'v-free':42,'v-creat':74,'v-exp':46,'v-health':68,'v-spirit':74,'v-awe':76,'v-indep':57},'Freedom is the gap. Everything else is climbing.'),{notes:{'v-creat':'Three shipped things this week. The newsletter tier is real now.','v-exp':'Same three streets for a month. Chosen, but still.'}}),
   ];
 
-  const eras = [{id:'20s',label:'20s',desc:'Exposure, escape, and the first real choices.'},{id:'30s',label:'30s',desc:'A base, a craft, a family. Depth over breadth.'},{id:'40s',label:'40s+',desc:'Mastery, stewardship, the long game.'}];
+  const visionEras = [{id:'20s',name:'20s',subtitle:'Exposure, escape, and the first real choices.',startYear:2018,endYear:2028,color:'#7f916a',order:0},{id:'30s',name:'30s',subtitle:'A base, a craft, a family. Depth over breadth.',startYear:2028,endYear:2038,color:'#6b7f8e',order:1},{id:'40s',name:'40s+',subtitle:'Mastery, stewardship, the long game.',startYear:2038,endYear:null,color:'#b08968',order:2}];
   const V = (o) => Object.assign({id:'',name:'',era:'20s',parentId:null,confidence:'exploring',nextAction:'',sensory:{see:'',hear:'',smell:'',firstHour:'',who:'',noLonger:''},futureMemory:'',futureMemoryHistory:[],costs:'',currentReality:'',currentRealityHistory:[],resistance:[],preSkills:[],selfImage:'',values:[],obituary:'',evidence:[],feeling:0,targetDate:'',location:'',money:'',createdAt:ago(200)}, o);
   const visions = [
     V({id:'vi-jet',name:'JET Programme',era:'20s',confidence:'committed',nextAction:'Ask Prof. Lin for the second reference letter by Friday.',targetDate:'2027-07-31',location:'Anywhere in Kansai, ideally Nara',money:'¥3.36M/yr',
@@ -313,7 +313,7 @@ function seed(){
   return {
     version:1,
     settings:{theme:'dark',sound:false,feltTime:false,home:'home',ribbons:true,firstOpen:T},
-    reminders:[], stages, threads, tensions, values, valueOrder, valueOrderHistory, valueSnapshots, eras, visions, skills, projects, nods, ideas, habits, habitLog, negLast, checkins, entries,
+    reminders:[], stages, threads, tensions, values, valueOrder, valueOrderHistory, valueSnapshots, visionEras, visions, skills, projects, nods, ideas, habits, habitLog, negLast, checkins, entries,
     journals:[{type:'synchronicity',name:'Synchronicity'},{type:'manifestation',name:'Manifestation'},{type:'reflection',name:'Reflections'},{type:'gratitude',name:'Gratitude'},{type:'dream',name:'Dreams'},{type:'quote',name:'Quotes & Marginalia'},{type:'question',name:'Open Questions'},{type:'visualization',name:'Visualizations'},{type:'letter',name:'Letters'}],
     theatre:{
       script:"I am someone who builds small warm rooms in large cold cities. I move through my mornings unhurried; I have already decided what matters. I speak Japanese with my whole face. I am useful in rooms without needing to be the smartest person in them. When someone looks at me through a story, I let them. My body is a colleague I respect. I close every room well.\n\nI see myself behind a counter, polishing a glass, the far end of the bar laughing at something I said in a second language. I feel the weight of the glass. I smell yuzu. This is not a wish. This is a memory I haven't reached yet.",

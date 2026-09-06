@@ -164,6 +164,28 @@ html[data-theme="light"] .stage-hero .veil{background:linear-gradient(180deg,rgb
 .fruit-ceremony i{position:absolute;width:6px;height:6px;border-radius:50%;background:var(--gold);animation:burst 1.4s var(--ease) forwards}
 @keyframes burst{from{transform:translate(0,0) scale(1);opacity:1}to{transform:translate(var(--dx),var(--dy)) scale(.2);opacity:0}}
 
+/* era strip */
+.era-strip-wrap{margin:0 0 18px}
+.era-strip{display:flex;gap:12px;overflow-x:auto;padding:6px 2px 12px;scroll-snap-type:x proximity;scroll-behavior:smooth;scrollbar-width:thin}
+.era-card{flex:0 0 240px;scroll-snap-align:start;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--c);border-radius:12px;padding:12px 14px;position:relative;transition:border-color .2s var(--ease),transform .2s var(--ease),opacity .2s}
+.era-card.dragging{opacity:.4}
+.era-card.over{border-color:var(--c);transform:translateX(6px)}
+.era-top{display:flex;align-items:center;gap:8px}
+.era-handle{cursor:grab;color:var(--faint);font-size:1rem;user-select:none}
+.era-swatch{width:16px;height:16px;border-radius:50%;border:2px solid var(--surface-3);cursor:pointer;flex:none;padding:0}
+.era-name{font-family:var(--serif);font-size:1.15rem;flex:1;cursor:text;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.era-rename{width:100%;font:inherit;background:var(--surface-2);border:1px solid var(--c);border-radius:6px;padding:2px 6px;color:var(--text);outline:none}
+.era-del{background:none;border:none;cursor:pointer;opacity:.35;font-size:.85rem;padding:2px;transition:opacity .2s}
+.era-del:hover{opacity:1}
+.era-sub{font-size:.8rem;color:var(--muted);margin-top:6px;min-height:1.3em}
+.era-years{margin-top:6px}
+.era-add{flex:0 0 150px;scroll-snap-align:end;border:1px dashed var(--line-2);border-radius:12px;background:transparent;color:var(--muted);cursor:pointer;font-family:var(--sans);font-size:.9rem;transition:all .2s var(--ease)}
+.era-add:hover{border-color:var(--terra);color:var(--text)}
+.era-palette{position:absolute;left:12px;top:40px;z-index:5;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:8px;background:var(--surface-2);border:1px solid var(--line-2);border-radius:10px;box-shadow:var(--shadow)}
+.era-palette button{width:22px;height:22px;border-radius:50%;border:2px solid transparent;cursor:pointer}
+.era-palette button.on,.era-palette button:hover{border-color:var(--text)}
+
+
 /* ============================================================
    5. VALUES
    ============================================================ */

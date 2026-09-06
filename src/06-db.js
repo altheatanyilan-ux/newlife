@@ -29,10 +29,11 @@ const DB_SCHEMA = {          // primary key first, then indexes — Dexie syntax
   checkins:       'day',
   entries:        'id, type, occurredAt, createdAt',
   reminders:      'id, date, done',
+  visionEras:     'id, order',
 };
 /* keys of S that are single objects/arrays without their own identity — kept as rows in `meta` */
-const META_KEYS = ['settings','theatre','reviews','valueOrder','valueOrderHistory','people','places','journals','eras','negLast'];
-const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders'];
+const META_KEYS = ['settings','theatre','reviews','valueOrder','valueOrderHistory','people','places','journals','negLast'];
+const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders','visionEras'];
 
 /* ---------- MiniDexie: Dexie-compatible subset over IndexedDB ---------- */
 class MiniTable {
@@ -70,7 +71,7 @@ const usingRealDexie = DexieImpl !== MiniDexie;
 
 /* ---------- the database ---------- */
 const db = new DexieImpl(DB_NAME);
-db.version(2).stores(DB_SCHEMA);   // v2 added `reminders`
+db.version(3).stores(DB_SCHEMA);   // v2 added `reminders`, v3 added `visionEras`
 
 /* ---------- S <-> stores ---------- */
 function stateToStores(state){
@@ -89,6 +90,10 @@ function storesToState(rows){
   state.checkins = {}; (rows.checkins || []).forEach(({day, ...v}) => state.checkins[day] = v);
   return state;
 }
+/* eras: the ordered list the tree, the panels, and the add dialogs read */
+const ERA_PALETTE = ['#7f916a','#6b7f8e','#b08968','#a0727e','#d4a44c','#8a7f9e','#c47832','#8a8d8f'];
+function erasList(){ return [...(S.visionEras||[])].sort((a,b)=>a.order-b.order).map(e => Object.assign(e, {label:e.name, desc:e.subtitle})); }
+function migrateEras(){ if(Array.isArray(S.visionEras) && S.visionEras.length) return; const old = Array.isArray(S.eras) ? S.eras : []; S.visionEras = old.map((e,i) => ({id:e.id, name:e.label||e.name||'Era', subtitle:e.desc||e.subtitle||'', startYear:null, endYear:null, color:ERA_PALETTE[i%ERA_PALETTE.length], order:i})); delete S.eras; }
 async function readAllStores(){ const rows = {}; for(const t of db.tables) rows[t.name] = await t.toArray(); return rows; }
 async function writeAllStores(rows){
   await db.transaction('rw', db.tables, async tx => { for(const t of db.tables){ const table = tx[t.name] || tx.table(t.name); await table.clear(); if(rows[t.name]?.length) await table.bulkPut(rows[t.name]); } });
@@ -118,7 +123,7 @@ async function readLegacyBlobDB(){
 async function load(){
   await db.open();
   const metaCount = await db.meta.count();
-  if(metaCount){ S = storesToState(await readAllStores()); migrate(); lastWritten = {}; const rows = stateToStores(S); for(const k of Object.keys(rows)) lastWritten[k] = JSON.stringify(rows[k]); return; }
+  if(metaCount){ S = storesToState(await readAllStores()); lastWritten = {}; const before = stateToStores(S); for(const k of Object.keys(before)) lastWritten[k] = JSON.stringify(before[k]); migrate(); saveNow(); return; }   // anything migrate() added is dirty and gets written
   // migration source 1: the interim single-blob IndexedDB database
   const blob = await readLegacyBlobDB();
   if(blob){ S = blob; migrate(); await writeAllStores(stateToStores(S)); try { indexedDB.deleteDatabase('lifeinstrument'); } catch(e){} setTimeout(() => toast('Your data was migrated into the new database.', 5000), 600); return; }

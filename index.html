@@ -500,6 +500,28 @@ html[data-theme="light"] .stage-hero .veil{background:linear-gradient(180deg,rgb
 .fruit-ceremony i{position:absolute;width:6px;height:6px;border-radius:50%;background:var(--gold);animation:burst 1.4s var(--ease) forwards}
 @keyframes burst{from{transform:translate(0,0) scale(1);opacity:1}to{transform:translate(var(--dx),var(--dy)) scale(.2);opacity:0}}
 
+/* era strip */
+.era-strip-wrap{margin:0 0 18px}
+.era-strip{display:flex;gap:12px;overflow-x:auto;padding:6px 2px 12px;scroll-snap-type:x proximity;scroll-behavior:smooth;scrollbar-width:thin}
+.era-card{flex:0 0 240px;scroll-snap-align:start;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--c);border-radius:12px;padding:12px 14px;position:relative;transition:border-color .2s var(--ease),transform .2s var(--ease),opacity .2s}
+.era-card.dragging{opacity:.4}
+.era-card.over{border-color:var(--c);transform:translateX(6px)}
+.era-top{display:flex;align-items:center;gap:8px}
+.era-handle{cursor:grab;color:var(--faint);font-size:1rem;user-select:none}
+.era-swatch{width:16px;height:16px;border-radius:50%;border:2px solid var(--surface-3);cursor:pointer;flex:none;padding:0}
+.era-name{font-family:var(--serif);font-size:1.15rem;flex:1;cursor:text;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.era-rename{width:100%;font:inherit;background:var(--surface-2);border:1px solid var(--c);border-radius:6px;padding:2px 6px;color:var(--text);outline:none}
+.era-del{background:none;border:none;cursor:pointer;opacity:.35;font-size:.85rem;padding:2px;transition:opacity .2s}
+.era-del:hover{opacity:1}
+.era-sub{font-size:.8rem;color:var(--muted);margin-top:6px;min-height:1.3em}
+.era-years{margin-top:6px}
+.era-add{flex:0 0 150px;scroll-snap-align:end;border:1px dashed var(--line-2);border-radius:12px;background:transparent;color:var(--muted);cursor:pointer;font-family:var(--sans);font-size:.9rem;transition:all .2s var(--ease)}
+.era-add:hover{border-color:var(--terra);color:var(--text)}
+.era-palette{position:absolute;left:12px;top:40px;z-index:5;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:8px;background:var(--surface-2);border:1px solid var(--line-2);border-radius:10px;box-shadow:var(--shadow)}
+.era-palette button{width:22px;height:22px;border-radius:50%;border:2px solid transparent;cursor:pointer}
+.era-palette button.on,.era-palette button:hover{border-color:var(--text)}
+
+
 /* ============================================================
    5. VALUES
    ============================================================ */
@@ -779,7 +801,7 @@ function md(src){
 const KEY = 'lifeinstrument.v1';
 let S = null;
 /* persistence lives in db.js (Dexie schema + load/save/backup) */
-function migrate(){ const d = seed(); for(const k of Object.keys(d)) if(S[k]===undefined) S[k] = d[k]; }
+function migrate(){ if(typeof migrateEras === 'function') migrateEras(); const d = seed(); for(const k of Object.keys(d)) if(S[k]===undefined) S[k] = d[k]; }
 
 /* path access: "stages.#id.narrative" or "theatre.script" */
 function resolve(path){ const segs = path.split('.'); let o = S; for(let i=0;i<segs.length-1;i++){ o = step(o, segs[i]); if(o==null) return [null,null]; } return [o, segs[segs.length-1]]; }
@@ -1109,10 +1131,11 @@ const DB_SCHEMA = {          // primary key first, then indexes — Dexie syntax
   checkins:       'day',
   entries:        'id, type, occurredAt, createdAt',
   reminders:      'id, date, done',
+  visionEras:     'id, order',
 };
 /* keys of S that are single objects/arrays without their own identity — kept as rows in `meta` */
-const META_KEYS = ['settings','theatre','reviews','valueOrder','valueOrderHistory','people','places','journals','eras','negLast'];
-const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders'];
+const META_KEYS = ['settings','theatre','reviews','valueOrder','valueOrderHistory','people','places','journals','negLast'];
+const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders','visionEras'];
 
 /* ---------- MiniDexie: Dexie-compatible subset over IndexedDB ---------- */
 class MiniTable {
@@ -1150,7 +1173,7 @@ const usingRealDexie = DexieImpl !== MiniDexie;
 
 /* ---------- the database ---------- */
 const db = new DexieImpl(DB_NAME);
-db.version(2).stores(DB_SCHEMA);   // v2 added `reminders`
+db.version(3).stores(DB_SCHEMA);   // v2 added `reminders`, v3 added `visionEras`
 
 /* ---------- S <-> stores ---------- */
 function stateToStores(state){
@@ -1169,6 +1192,10 @@ function storesToState(rows){
   state.checkins = {}; (rows.checkins || []).forEach(({day, ...v}) => state.checkins[day] = v);
   return state;
 }
+/* eras: the ordered list the tree, the panels, and the add dialogs read */
+const ERA_PALETTE = ['#7f916a','#6b7f8e','#b08968','#a0727e','#d4a44c','#8a7f9e','#c47832','#8a8d8f'];
+function erasList(){ return [...(S.visionEras||[])].sort((a,b)=>a.order-b.order).map(e => Object.assign(e, {label:e.name, desc:e.subtitle})); }
+function migrateEras(){ if(Array.isArray(S.visionEras) && S.visionEras.length) return; const old = Array.isArray(S.eras) ? S.eras : []; S.visionEras = old.map((e,i) => ({id:e.id, name:e.label||e.name||'Era', subtitle:e.desc||e.subtitle||'', startYear:null, endYear:null, color:ERA_PALETTE[i%ERA_PALETTE.length], order:i})); delete S.eras; }
 async function readAllStores(){ const rows = {}; for(const t of db.tables) rows[t.name] = await t.toArray(); return rows; }
 async function writeAllStores(rows){
   await db.transaction('rw', db.tables, async tx => { for(const t of db.tables){ const table = tx[t.name] || tx.table(t.name); await table.clear(); if(rows[t.name]?.length) await table.bulkPut(rows[t.name]); } });
@@ -1197,15 +1224,15 @@ async function readLegacyBlobDB(){
 }
 async function load(){
   await db.open();
-  const metaCount = await db.meta.count();
-  if(metaCount){ S = storesToState(await readAllStores()); migrate(); lastWritten = {}; const rows = stateToStores(S); for(const k of Object.keys(rows)) lastWritten[k] = JSON.stringify(rows[k]); return; }
+  const metaCount = await db.meta.count(); console.log('[load] metaCount', metaCount, 'version', (await db._open()).version, 'stores', [...(await db._open()).objectStoreNames].join(','));
+  if(metaCount){ S = storesToState(await readAllStores()); lastWritten = {}; const before = stateToStores(S); for(const k of Object.keys(before)) lastWritten[k] = JSON.stringify(before[k]); migrate(); saveNow(); return; }   // anything migrate() added is dirty and gets written
   // migration source 1: the interim single-blob IndexedDB database
   const blob = await readLegacyBlobDB();
   if(blob){ S = blob; migrate(); await writeAllStores(stateToStores(S)); try { indexedDB.deleteDatabase('lifeinstrument'); } catch(e){} setTimeout(() => toast('Your data was migrated into the new database.', 5000), 600); return; }
   // migration source 2: the original localStorage key
   let raw = null; try { raw = localStorage.getItem(KEY); } catch(e){}
   if(raw){ try { S = JSON.parse(raw); migrate(); await writeAllStores(stateToStores(S)); try { localStorage.removeItem(KEY); } catch(e){} setTimeout(() => toast('Your data was migrated from browser storage into the new database.', 5000), 600); return; } catch(e){ console.warn('localStorage migration failed', e); } }
-  S = seed(); await writeAllStores(stateToStores(S));
+  console.log('[load] falling back to seed'); S = seed(); await writeAllStores(stateToStores(S));
 }
 async function resetAll(){ S = seed(); await writeAllStores(stateToStores(S)); }
 async function storageInfo(){ try { const e = await navigator.storage?.estimate?.(); if(e) return {usage:e.usage||0, quota:e.quota||0}; } catch(err){} return null; }
@@ -1382,7 +1409,7 @@ function seed(){
     Object.assign(snap(3,{'v-wisdom':71,'v-auth':79,'v-conn':81,'v-free':42,'v-creat':74,'v-exp':46,'v-health':68,'v-spirit':74,'v-awe':76,'v-indep':57},'Freedom is the gap. Everything else is climbing.'),{notes:{'v-creat':'Three shipped things this week. The newsletter tier is real now.','v-exp':'Same three streets for a month. Chosen, but still.'}}),
   ];
 
-  const eras = [{id:'20s',label:'20s',desc:'Exposure, escape, and the first real choices.'},{id:'30s',label:'30s',desc:'A base, a craft, a family. Depth over breadth.'},{id:'40s',label:'40s+',desc:'Mastery, stewardship, the long game.'}];
+  const visionEras = [{id:'20s',name:'20s',subtitle:'Exposure, escape, and the first real choices.',startYear:2018,endYear:2028,color:'#7f916a',order:0},{id:'30s',name:'30s',subtitle:'A base, a craft, a family. Depth over breadth.',startYear:2028,endYear:2038,color:'#6b7f8e',order:1},{id:'40s',name:'40s+',subtitle:'Mastery, stewardship, the long game.',startYear:2038,endYear:null,color:'#b08968',order:2}];
   const V = (o) => Object.assign({id:'',name:'',era:'20s',parentId:null,confidence:'exploring',nextAction:'',sensory:{see:'',hear:'',smell:'',firstHour:'',who:'',noLonger:''},futureMemory:'',futureMemoryHistory:[],costs:'',currentReality:'',currentRealityHistory:[],resistance:[],preSkills:[],selfImage:'',values:[],obituary:'',evidence:[],feeling:0,targetDate:'',location:'',money:'',createdAt:ago(200)}, o);
   const visions = [
     V({id:'vi-jet',name:'JET Programme',era:'20s',confidence:'committed',nextAction:'Ask Prof. Lin for the second reference letter by Friday.',targetDate:'2027-07-31',location:'Anywhere in Kansai, ideally Nara',money:'¥3.36M/yr',
@@ -1572,7 +1599,7 @@ function seed(){
   return {
     version:1,
     settings:{theme:'dark',sound:false,feltTime:false,home:'home',ribbons:true,firstOpen:T},
-    reminders:[], stages, threads, tensions, values, valueOrder, valueOrderHistory, valueSnapshots, eras, visions, skills, projects, nods, ideas, habits, habitLog, negLast, checkins, entries,
+    reminders:[], stages, threads, tensions, values, valueOrder, valueOrderHistory, valueSnapshots, visionEras, visions, skills, projects, nods, ideas, habits, habitLog, negLast, checkins, entries,
     journals:[{type:'synchronicity',name:'Synchronicity'},{type:'manifestation',name:'Manifestation'},{type:'reflection',name:'Reflections'},{type:'gratitude',name:'Gratitude'},{type:'dream',name:'Dreams'},{type:'quote',name:'Quotes & Marginalia'},{type:'question',name:'Open Questions'},{type:'visualization',name:'Visualizations'},{type:'letter',name:'Letters'}],
     theatre:{
       script:"I am someone who builds small warm rooms in large cold cities. I move through my mornings unhurried; I have already decided what matters. I speak Japanese with my whole face. I am useful in rooms without needing to be the smartest person in them. When someone looks at me through a story, I let them. My body is a colleague I respect. I close every room well.\n\nI see myself behind a counter, polishing a glass, the far end of the bar laughing at something I said in a second language. I feel the weight of the glass. I smell yuzu. This is not a wish. This is a memory I haven't reached yet.",
@@ -2044,13 +2071,13 @@ const qpt = (p0,c,p1,t) => [ (1-t)*(1-t)*p0[0] + 2*(1-t)*t*c[0] + t*t*p1[0], (1-
 const qtan = (p0,c,p1,t) => { const dx = 2*(1-t)*(c[0]-p0[0]) + 2*t*(p1[0]-c[0]), dy = 2*(1-t)*(c[1]-p0[1]) + 2*t*(p1[1]-c[1]); return Math.atan2(dy,dx); };
 function lerpColor(a,b,t){ const pa = a.match(/\w\w/g).map(x=>parseInt(x,16)), pb = b.match(/\w\w/g).map(x=>parseInt(x,16)); return '#' + pa.map((x,i)=>Math.round(x+(pb[i]-x)*t).toString(16).padStart(2,'0')).join(''); }
 function layoutTree(W, H){
-  const trunkX = W*.5, top = 70, bottom = H-30; const segH = (bottom-top)/S.eras.length;
-  const seg = {}; S.eras.forEach((e,i) => seg[e.id] = {y1: bottom - i*segH, y0: bottom - (i+1)*segH});
+  const eras = erasList(); const trunkX = W*.5, top = 70, bottom = H-30; const segH = (bottom-top)/Math.max(eras.length,1);
+  const seg = {}; eras.forEach((e,i) => seg[e.id] = {y1: bottom - i*segH, y0: bottom - (i+1)*segH});
   const nodes = {}; const info = {}; S.visions.forEach(v => info[v.id] = vividness(v));
   const roots = S.visions.filter(v => !v.parentId || !byId(S.visions, v.parentId));
   const byEra = {}; roots.forEach(v => (byEra[v.era] = byEra[v.era]||[]).push(v));
   let gi = 0;
-  Object.entries(byEra).forEach(([era, vs]) => { const sg = seg[era] || seg[S.eras[0].id]; vs.forEach((v,i) => { const t = (i+1)/(vs.length+1); const y = sg.y1 - t*(sg.y1-sg.y0); const side = gi++ % 2 ? 1 : -1; place(v, [trunkX, y], side, side>0 ? -Math.PI*.22 : -Math.PI*.78, 0); }); });
+  Object.entries(byEra).forEach(([era, vs]) => { const sg = seg[era] || seg[eras[0]?.id] || {y1:bottom, y0:top}; vs.forEach((v,i) => { const t = (i+1)/(vs.length+1); const y = sg.y1 - t*(sg.y1-sg.y0); const side = gi++ % 2 ? 1 : -1; place(v, [trunkX, y], side, side>0 ? -Math.PI*.22 : -Math.PI*.78, 0); }); });
   function place(v, start, side, angle, depth){
     const sc = info[v.id].score; const len = (95 + sc*1.5) * Math.pow(.82, depth) * Math.min(1, W/900);
     const end = [start[0] + Math.cos(angle)*len, start[1] + Math.sin(angle)*len];
@@ -2069,7 +2096,8 @@ function treeSVG(W, H){
   // roots + trunk
   g += `<path d="M${trunkX-40},${H} Q${trunkX-10},${bottom+10} ${trunkX},${bottom} Q${trunkX+10},${bottom+10} ${trunkX+40},${H}" fill="url(#trunk)" opacity=".8"/>`;
   g += `<path d="M${trunkX},${bottom} C${trunkX-8},${(bottom+top)/2} ${trunkX+8},${(bottom+top)/2} ${trunkX},${top}" stroke="url(#trunk)" stroke-width="22" stroke-linecap="round" fill="none"/>`;
-  S.eras.forEach(e => { const s = seg[e.id]; g += `<line x1="${trunkX-16}" x2="${trunkX+16}" y1="${s.y0}" y2="${s.y0}" stroke="var(--bg)" stroke-width="1.5" opacity=".5"/><text class="era-lbl" x="${trunkX+22}" y="${(s.y0+s.y1)/2}" dominant-baseline="middle"><tspan>${esc(e.label)}</tspan></text><text x="${trunkX+22}" y="${(s.y0+s.y1)/2+14}" style="font-family:var(--quote);font-style:italic;font-size:10px;fill:var(--faint)">${esc(e.desc)}</text>`; });
+  const segH = (bottom-top)/Math.max(erasList().length,1);
+  erasList().forEach(e => { const s = seg[e.id]; if(!s) return; const yrs = (e.startYear||e.endYear) ? ` ${e.startYear||''}–${e.endYear||''}` : ''; g += `<line x1="${trunkX-16}" x2="${trunkX+16}" y1="${s.y0}" y2="${s.y0}" stroke="${e.color}" stroke-width="2" opacity=".7"/><text class="era-lbl" x="${trunkX+22}" y="${(s.y0+s.y1)/2}" dominant-baseline="middle" style="fill:${e.color}"><tspan>${esc(e.name)}</tspan><tspan style="letter-spacing:0;font-size:9px;opacity:.7">${esc(yrs)}</tspan></text>${segH>34?`<text x="${trunkX+22}" y="${(s.y0+s.y1)/2+14}" style="font-family:var(--quote);font-style:italic;font-size:10px;fill:var(--faint)">${esc(e.subtitle||'')}</text>`:''}`; });
   g += `<path class="trace" id="trace" d=""/>`;
   const order = Object.values(nodes).sort((a,b)=>a.depth-b.depth);
   order.forEach(n => {
@@ -2097,14 +2125,15 @@ function treeSVG(W, H){
 let swayRAF = null;
 function startSway(root){ cancelAnimationFrame(swayRAF); if(reduced()) return; const leaves = $$('.leaf', root); const t0 = performance.now(); const tick = t => { if(!document.contains(root)){ cancelAnimationFrame(swayRAF); return; } const s = (t-t0)/1000; leaves.forEach(l => { const ph = +l.dataset.phase, per = +l.dataset.period; l.style.transform = `rotate(${(Math.sin(s*2*Math.PI/per + ph)*3).toFixed(2)}deg)`; }); swayRAF = requestAnimationFrame(tick); }; swayRAF = requestAnimationFrame(tick); }
 routes.vision = function(root, params){
-  const activeEra = S._activeEra || S.eras[0].id;
+  const eras = erasList(); const activeEra = eras.some(e=>e.id===S._activeEra) ? S._activeEra : (eras[0]?.id || null);
   registerPageEntry({pageName:'Vision Tree', addLabel:'Add to the tree', defaultEntryType:'progress', prefilledFields:{era:activeEra}, options:[
-    {icon:'🌿', label:'New goal', desc:`A new branch, in the ${activeEra} era by default.`, run:(pre)=>EntryActions.newVision(pre)},
+    {icon:'🌿', label:'New goal', desc:`A new branch, in the ${esc(byId(eras,activeEra)?.name||'first')} era by default.`, run:(pre)=>EntryActions.newVision(pre)},
     {icon:'◌', label:'New life event', desc:'A leaf on an existing vision — progress, a visualization, a manifestation.', run:(pre)=>EntryActions.lifeEvent(pre)}]});
   root.innerHTML = `<div class="page">
-    <div class="page-head row between"><div><h1>Vision Tree</h1><div class="sub">Every entry tagged to a vision grows a leaf. Vividness is the sap. Untended branches wither — honestly, reversibly.</div></div><div class="row"><select class="sel" style="width:auto" id="activeEra" title="active era for new goals">${S.eras.map(e=>`<option value="${e.id}" ${activeEra===e.id?'selected':''}>${esc(e.label)}</option>`).join('')}</select><button class="btn ghost" id="editEras">eras</button></div></div>
-    <div class="tree-wrap" id="treeWrap"><div class="tree-tools"></div><div class="tree-legend"><span>bare twig 0–15</span><span>budding 16–30</span><span>leafing 31–50</span><span>canopy 51–70</span><span>flowering 71–85</span><span>fruiting 86–100</span><span>· hover a branch to trace its lineage</span></div></div>
-    <div class="grid c3 section">${S.visions.map(v => { const {score, lastTended} = vividness(v); return `<div class="card rv" data-vopen="${v.id}" style="cursor:pointer"><div class="row between"><h3 style="margin:0">${esc(v.name)}</h3><span class="mono">${v.era}</span></div><div class="row" style="margin:8px 0"><div class="bar" style="flex:1;--c:${v.confidence==='lived'?'var(--gold)':'var(--sage)'}"><i style="width:${score}%"></i></div><span class="mono" data-tween="${score}">0</span></div><div class="muted" style="font-size:.8rem">${esc(v.confidence)} · tended ${relDays(lastTended)}${v.nextAction?`<br><span style="color:var(--gold)">→</span> ${esc(v.nextAction)}`:''}</div></div>`; }).join('')}</div>
+    <div class="page-head row between"><div><h1>Vision Tree</h1><div class="sub">Every entry tagged to a vision grows a leaf. Vividness is the sap. Untended branches wither — honestly, reversibly.</div></div><div class="row"><select class="sel" style="width:auto" id="activeEra" title="active era for new goals">${eras.map(e=>`<option value="${e.id}" ${activeEra===e.id?'selected':''}>${esc(e.name)}</option>`).join('')}</select></div></div>
+    <div class="era-strip-wrap"><div class="row between" style="margin-bottom:8px"><span class="sc" style="margin:0">Eras — trunk segments</span><span class="mono">double-click a name to rename · drag ⠿ to reorder</span></div><div class="era-strip" id="eraStrip">${eras.map(e => eraCardHTML(e)).join('')}<button class="era-add" id="addEra">＋ Add era</button></div></div>
+    <div class="tree-wrap" id="treeWrap" style="height:${Math.max(560, 150*eras.length + 120)}px;max-height:${eras.length>5?'none':'calc(100vh - 150px)'}"><div class="tree-tools"></div><div class="tree-legend"><span>bare twig 0–15</span><span>budding 16–30</span><span>leafing 31–50</span><span>canopy 51–70</span><span>flowering 71–85</span><span>fruiting 86–100</span><span>· hover a branch to trace its lineage</span></div></div>
+    <div class="grid c3 section">${S.visions.map(v => { const {score, lastTended} = vividness(v); return `<div class="card rv" data-vopen="${v.id}" style="cursor:pointer"><div class="row between"><h3 style="margin:0">${esc(v.name)}</h3><span class="mono" style="color:${byId(erasList(),v.era)?.color||'var(--faint)'}">${esc(byId(erasList(),v.era)?.name||v.era)}</span></div><div class="row" style="margin:8px 0"><div class="bar" style="flex:1;--c:${v.confidence==='lived'?'var(--gold)':'var(--sage)'}"><i style="width:${score}%"></i></div><span class="mono" data-tween="${score}">0</span></div><div class="muted" style="font-size:.8rem">${esc(v.confidence)} · tended ${relDays(lastTended)}${v.nextAction?`<br><span style="color:var(--gold)">→</span> ${esc(v.nextAction)}`:''}</div></div>`; }).join('')}</div>
   </div>`;
   drawTree();
   function drawTree(){ const wrap = $('#treeWrap'); const W = Math.max(wrap.clientWidth, 600), H = wrap.clientHeight; wrap.querySelector('svg')?.remove(); wrap.insertAdjacentHTML('afterbegin', treeSVG(W,H)); const svg = wrap.querySelector('svg');
@@ -2113,9 +2142,7 @@ routes.vision = function(root, params){
   window.addEventListener('resize', debounce(()=>{ if(currentRoute==='vision') drawTree(); }, 250), {once:true});
   $$('[data-vopen]',root).forEach(c => c.onclick = () => openVisionPanel(c.dataset.vopen));
   $('#activeEra').onchange = e => { S._activeEra = e.target.value; rerender(); };
-  $('#editEras').onclick = () => { const m = openModal(`<h2>Trunk segments</h2><p class="muted">Life decades or eras. Edit the labels and descriptions.</p><div class="stack">${S.eras.map((e,i)=>`<div class="card" style="padding:14px 16px"><b class="serif">${ed(`eras.${i}.label`)}</b><div class="muted">${ed(`eras.${i}.desc`,{ph:'what this decade is for'})}</div>${S.eras.length>1?`<button class="del-x" data-eradel="${e.id}" title="delete era">×</button>`:''}</div>`).join('')}</div><div class="row" style="margin-top:12px"><button class="btn sm ghost" id="addEra">+ era</button></div>`,'narrow');
-    m.querySelector('#addEra').onclick = () => { S.eras.push({id:'era-'+uid(), label:'New era', desc:''}); saveNow(); m.remove(); rerender(); $('#editEras').click(); };
-    m.querySelectorAll('[data-eradel]').forEach(b => b.onclick = () => { const era = byId(S.eras, b.dataset.eradel); m.remove(); requestDelete({label: `Era ${era.label}`, remove: () => { const back = spliceOut(S.eras, x => x.id === era.id); const moved = S.visions.filter(v => v.era === era.id); const to = S.eras[0]?.id; moved.forEach(v => v.era = to); return () => { back(); moved.forEach(v => v.era = era.id); }; }}); }); };
+  bindEraStrip(root, drawTree);
   if(params[0]) openVisionPanel(params[0]);
 };
 function deleteVision(v, node, after){
@@ -2133,7 +2160,7 @@ function openVisionPanel(id){
   const v = byId(S.visions,id); if(!v) return; const {score, parts, leaves, lastTended} = vividness(v); const lived = v.confidence==='lived';
   const kids = S.visions.filter(k=>k.parentId===v.id); const parent = byId(S.visions, v.parentId);
   const p = openPanel(`<div class="vision-panel">
-    <div class="mono">vision · <select class="sel" id="vEra" style="width:auto;padding:1px 6px;font-size:.7rem;display:inline-block">${S.eras.map(e=>`<option value="${e.id}" ${v.era===e.id?'selected':''}>${esc(e.label)}</option>`).join('')}</select> · planted ${fmtDate(v.createdAt,'med')} · tended ${relDays(lastTended)}</div>
+    <div class="mono">vision · <select class="sel" id="vEra" style="width:auto;padding:1px 6px;font-size:.7rem;display:inline-block">${erasList().map(e=>`<option value="${e.id}" ${v.era===e.id?'selected':''}>${esc(e.name)}</option>`).join('')}</select> · planted ${fmtDate(v.createdAt,'med')} · tended ${relDays(lastTended)}</div>
     <h2>${ed(`visions.#${v.id}.name`)}</h2>
     <div class="score"><div class="bar" style="flex:1;--c:${lived?'var(--gold)':'var(--sage)'}"><i style="width:${score}%"></i></div><span class="num" data-tween="${score}">0</span><span class="mono">vividness</span></div>
     <details><summary><span class="mono">how the score is made</span></summary><div class="body mono" style="line-height:1.9">${Object.entries(parts).map(([k,x])=>`${k} ${x.toFixed(1)}`).join(' · ')}<br>volume 20 · recency 20 (half-life 30d) · specificity 15 · sensory 15 · evidence 10 · resonance 10 · structural tension 10</div></details>
@@ -2189,6 +2216,40 @@ function fruitCeremony(v){
   S.entries.push({id:uid(),type:'reflection',title:`${v.name} — lived`,body:v.futureMemory||'A vision became a memory.',occurredAt:today(),createdAt:new Date().toISOString(),media:[],links:{stages:[s8.id],substages:[s8.substages.slice(-1)[0].id],threads:[],values:v.values.map(id=>({id,pol:'+'})),visions:[v.id],skills:[],projects:[]},people:[],places:[],emotions:[],confidence:'lived',extra:{}});
   saveNow();
   toast(`🍂 <b>${esc(v.name)}</b> has fruited. It has been planted into the Timeline as a new chapter of 未 Not Yet.`, 6000);
+}
+
+/* ---------- era strip: add · rename (double-click) · reorder (drag) · delete (cascade) · 8-colour palette ---------- */
+function eraCardHTML(e){ const n = S.visions.filter(v=>v.era===e.id).length; return `<div class="era-card" draggable="true" data-era="${e.id}" style="--c:${e.color}"><div class="era-top"><span class="era-handle" title="drag to reorder">⠿</span><button class="era-swatch" data-eracolor="${e.id}" title="colour" style="background:${e.color}"></button><span class="era-name" data-eraname="${e.id}" title="double-click to rename">${esc(e.name)}</span><button class="era-del" data-eradel="${e.id}" title="delete era">🗑️</button></div><div class="era-sub">${ed(`visionEras.#${e.id}.subtitle`,{ph:'what this era is for'})}</div><div class="era-years mono">${ed(`visionEras.#${e.id}.startYear`,{ph:'from',cls:'mono',hook:'erayear:'+e.id})} – ${ed(`visionEras.#${e.id}.endYear`,{ph:'to',cls:'mono',hook:'erayear:'+e.id})} · ${n} goal${n===1?'':'s'}</div></div>`; }
+hooks.erayear = (id) => { const e = byId(S.visionEras,id); if(!e) return; ['startYear','endYear'].forEach(k => { const v = parseInt(String(e[k]).replace(/\D/g,''),10); e[k] = isNaN(v) ? null : v; }); saveNow(); };
+function renameEraInline(nameEl, era, redraw){
+  if(nameEl.querySelector('input')) return;
+  const inp = el(`<input class="era-rename" value="${esc(era.name)}" aria-label="era name">`); nameEl.textContent = ''; nameEl.appendChild(inp); inp.focus(); inp.select();
+  const commit = () => { const v = inp.value.trim(); era.name = v || era.name; saveNow(); nameEl.textContent = era.name; redraw(); };
+  inp.addEventListener('blur', commit); inp.addEventListener('keydown', ev => { ev.stopPropagation(); if(ev.key==='Enter'){ inp.blur(); } if(ev.key==='Escape'){ inp.value = era.name; inp.blur(); } });
+}
+function bindEraStrip(root, drawTree){
+  const strip = root.querySelector('#eraStrip'); if(!strip) return;
+  const redraw = () => { drawTree(); root.querySelectorAll('.era-card').forEach(c => { const e = byId(S.visionEras, c.dataset.era); if(e){ c.style.setProperty('--c', e.color); c.querySelector('.era-swatch').style.background = e.color; } }); };
+  root.querySelector('#addEra').onclick = () => { const order = S.visionEras.length ? Math.max(...S.visionEras.map(e=>e.order))+1 : 0; const e = {id:'era-'+uid(), name:'New era', subtitle:'', startYear:null, endYear:null, color:ERA_PALETTE[S.visionEras.length % ERA_PALETTE.length], order}; S.visionEras.push(e); saveNow(); rerender(); setTimeout(() => { const card = document.querySelector(`.era-card[data-era="${e.id}"]`); card?.scrollIntoView({inline:'end', behavior:'smooth'}); const nm = card?.querySelector('.era-name'); if(nm) renameEraInline(nm, e, () => rerender()); }, 60); };
+  strip.querySelectorAll('.era-name').forEach(nm => nm.addEventListener('dblclick', () => renameEraInline(nm, byId(S.visionEras, nm.dataset.eraname), redraw)));
+  strip.querySelectorAll('[data-eracolor]').forEach(b => b.onclick = () => { const e = byId(S.visionEras, b.dataset.eracolor); document.querySelector('.era-palette')?.remove(); const pal = el(`<div class="era-palette">${ERA_PALETTE.map(c=>`<button data-c="${c}" style="background:${c}" class="${e.color===c?'on':''}" title="${c}"></button>`).join('')}</div>`); b.parentElement.appendChild(pal); pal.querySelectorAll('button').forEach(x => x.onclick = ev => { ev.stopPropagation(); e.color = x.dataset.c; saveNow(); pal.remove(); redraw(); }); setTimeout(() => document.addEventListener('click', () => pal.remove(), {once:true}), 0); });
+  strip.querySelectorAll('[data-eradel]').forEach(b => b.onclick = () => { const e = byId(S.visionEras, b.dataset.eradel); const goals = S.visions.filter(v=>v.era===e.id); const m = openModal(`<h2>Delete this era and all its contents?</h2><p class="muted">This cannot be undone.<br><span class="mono">${esc(e.name)} · ${goals.length} goal${goals.length===1?'':'s'} and their life events</span></p><div class="row" style="justify-content:flex-end;margin-top:18px"><button class="btn" data-x="no">Cancel</button><button class="btn destructive" data-x="yes">Delete</button></div>`,'narrow'); m.querySelector('[data-x=no]').onclick = () => m.remove(); m.querySelector('[data-x=yes]').onclick = () => { m.remove(); requestDelete({label:`Era ${e.name}`, skipConfirm:true, node: b.closest('.era-card'), remove: () => {
+    const ids = new Set(goals.map(v=>v.id)); const removedGoals = goals.map(v => [S.visions.indexOf(v), v]); goals.forEach(v => S.visions.splice(S.visions.indexOf(v),1));
+    S.visions.forEach(v => { if(ids.has(v.parentId)) v.parentId = null; });
+    const events = S.entries.filter(en => (en.links?.visions||[]).some(id => ids.has(id))); const removedEvents = events.map(en => [S.entries.indexOf(en), en]); events.forEach(en => S.entries.splice(S.entries.indexOf(en),1));
+    const habits = S.habits.filter(h => (h.links?.visions||[]).some(id => ids.has(id))); const hl = habits.map(h => [h, [...h.links.visions]]); habits.forEach(h => h.links.visions = h.links.visions.filter(id => !ids.has(id)));
+    const back = spliceOut(S.visionEras, x => x.id === e.id); if(S._activeEra === e.id) S._activeEra = null;
+    return () => { back(); removedGoals.forEach(([i,v]) => S.visions.splice(Math.min(i,S.visions.length),0,v)); removedEvents.forEach(([i,en]) => S.entries.splice(Math.min(i,S.entries.length),0,en)); hl.forEach(([h,l]) => h.links.visions = l); };
+  }}); }; });
+  // drag to reorder
+  let dragId = null;
+  strip.querySelectorAll('.era-card').forEach(card => {
+    card.addEventListener('dragstart', ev => { dragId = card.dataset.era; card.classList.add('dragging'); ev.dataTransfer.effectAllowed = 'move'; try { ev.dataTransfer.setData('text/plain', dragId); } catch(e){} });
+    card.addEventListener('dragend', () => { card.classList.remove('dragging'); strip.querySelectorAll('.era-card').forEach(c => c.classList.remove('over')); });
+    card.addEventListener('dragover', ev => { ev.preventDefault(); ev.dataTransfer.dropEffect = 'move'; card.classList.add('over'); });
+    card.addEventListener('dragleave', () => card.classList.remove('over'));
+    card.addEventListener('drop', ev => { ev.preventDefault(); card.classList.remove('over'); const from = dragId || ev.dataTransfer.getData('text/plain'); const to = card.dataset.era; if(!from || from === to) return; const list = erasList().map(e=>e.id); list.splice(list.indexOf(from),1); list.splice(list.indexOf(to),0,from); list.forEach((id,i) => byId(S.visionEras,id).order = i); dragId = null; saveNow(); rerender(); });
+  });
 }
 /* ============================================================
    5. VALUES CONGRUENCE — the compass beneath the floorboards
@@ -2865,7 +2926,7 @@ function newValueDialog(){
   m.querySelector('#nvSave').onclick = () => { const name = m.querySelector('#nvName').value.trim(); if(!name) return; const v = {id:'v-'+uid(), name, color:m.querySelector('#nvColor').value, fields:{embody:[],hundred:[],motivation:[],counterfeit:[]}}; S.values.push(v); S.valueOrderHistory.push({date:today(), order:[...S.valueOrder]}); S.valueOrder.push(v.id); saveNow(); m.remove(); rerender(); navigate('#/value/'+v.id); };
 }
 function newVisionDialog(pre={}){
-  const m = openModal(`<h2>A new branch</h2><div class="stack"><div class="field"><label>Name</label><input class="inp" id="vnName" placeholder="What do you want to create?"></div><div class="field"><label>Era</label><select class="sel" id="vnEra">${S.eras.map(e=>`<option value="${e.id}" ${pre.era===e.id?'selected':''}>${esc(e.label)} — ${esc(e.desc)}</option>`).join('')}</select></div><div class="field"><label>Forks from (optional)</label><select class="sel" id="vnParent"><option value="">the trunk</option>${S.visions.map(v=>`<option value="${v.id}">${esc(v.name)}</option>`).join('')}</select></div></div><div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn primary" id="vnSave">Plant it</button></div>`,'narrow');
+  const m = openModal(`<h2>A new branch</h2><div class="stack"><div class="field"><label>Name</label><input class="inp" id="vnName" placeholder="What do you want to create?"></div><div class="field"><label>Era</label><select class="sel" id="vnEra">${erasList().map(e=>`<option value="${e.id}" ${pre.era===e.id?'selected':''}>${esc(e.name)}${e.subtitle?' — '+esc(e.subtitle):''}</option>`).join('')}</select></div><div class="field"><label>Forks from (optional)</label><select class="sel" id="vnParent"><option value="">the trunk</option>${S.visions.map(v=>`<option value="${v.id}">${esc(v.name)}</option>`).join('')}</select></div></div><div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn primary" id="vnSave">Plant it</button></div>`,'narrow');
   m.querySelector('#vnSave').onclick = () => { const name = m.querySelector('#vnName').value.trim(); if(!name) return; const v = {id:uid(),name,era:m.querySelector('#vnEra').value,parentId:m.querySelector('#vnParent').value||null,confidence:'hunch',nextAction:'',sensory:{see:'',hear:'',smell:'',firstHour:'',who:'',noLonger:''},futureMemory:'',futureMemoryHistory:[],costs:'',currentReality:'',currentRealityHistory:[],resistance:[],preSkills:[],selfImage:'',values:[],obituary:'',evidence:[],feeling:0,targetDate:'',location:'',money:'',createdAt:today()}; S.visions.push(v); saveNow(); m.remove(); if(currentRoute !== 'vision') navigate('#/vision'); else rerender(); setTimeout(() => openVisionPanel(v.id), currentRoute==='vision' ? 0 : 400); };
   setTimeout(() => m.querySelector('#vnName').focus(), 50);
 }
