@@ -194,11 +194,10 @@ html[data-theme="light"] .stage-hero .veil{background:linear-gradient(180deg,rgb
 .value-field .hist{margin-top:8px}
 .snapshot-form .r{display:grid;grid-template-columns:1fr 1fr 44px;gap:12px;align-items:center;padding:6px 0}
 .snapshot-form .r .n{font-family:var(--serif)}
-.sv-block{border-top:1px dashed var(--line)}
-.sv-note{display:grid;grid-template-rows:0fr;transition:grid-template-rows .2s var(--ease);}
-.sv-note-inner{overflow:hidden;min-height:0}
-.sv-note.open{grid-template-rows:1fr}
-.sv-note .ta{margin:2px 0 10px;box-shadow:0 0 0 3px color-mix(in srgb,var(--terra) 14%,transparent);transform:translateY(-4px);opacity:0;transition:opacity .2s var(--ease) .05s,transform .2s var(--ease) .05s}
+.sv-block{border-top:1px dashed var(--line);padding-left:10px;margin-left:-10px;border-left:2px solid transparent;transition:border-color .2s var(--ease),background .2s var(--ease)}
+.sv-block.changed{border-left-color:var(--c);background:color-mix(in srgb,var(--c) 6%,transparent)}
+.sv-note{height:0;overflow:hidden;transition:height .2s var(--ease)}
+.sv-note .ta{margin:2px 0 10px;box-shadow:0 0 0 3px color-mix(in srgb,var(--c,var(--terra)) 16%,transparent);border-color:var(--c,var(--terra));opacity:0;transform:translateY(-4px);transition:opacity .2s var(--ease) .04s,transform .2s var(--ease) .04s}
 .sv-note.open .ta{opacity:1;transform:none}
 .delta{font-family:var(--mono);font-size:.6rem;white-space:nowrap}
 .delta.up{color:var(--sage)}.delta.down{color:var(--rose)}.delta.same,.delta.none{color:var(--faint)}
