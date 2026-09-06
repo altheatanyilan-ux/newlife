@@ -87,7 +87,7 @@ function openSearch(){
     grp('Stages', S.stages.filter(x=>hit(x.name+' '+x.char+' '+x.tagline)).map(x=>({t:`${x.char} ${x.name}`,go:'#/stage/'+x.id,m:x.years})));
     grp('Visions', S.visions.filter(x=>hit(x.name)).map(x=>({t:x.name,go:'#/vision/'+x.id,m:x.confidence})));
     grp('Values', S.values.filter(x=>hit(x.name)).map(x=>({t:x.name,go:'#/value/'+x.id,m:valueCurrent(x.id)+'%'})));
-    grp('Skills', S.skills.filter(x=>hit(x.name)).map(x=>({t:x.name,go:'#/skills/'+x.id,m:'lvl '+x.level})));
+    grp('Skills', S.skills.filter(x=>hit(x.name)).map(x=>({t:x.name,go:'#/skills/'+x.id,m:'lvl '+x.currentLevel+' of '+skillLevelCount(x)})));
     grp('Projects', S.projects.filter(x=>hit(x.name+' '+x.desc)).map(x=>({t:x.name,go:'#/projects/'+x.id,m:x.status})));
     grp('Threads', S.threads.filter(x=>hit(x.name)).map(x=>({t:x.name,go:'#/timeline/threads',m:x.status})));
     grp('Habits', S.habits.filter(x=>!x.archived&&hit(x.name)).map(x=>({t:x.name,go:'#/rituals',m:x.dimension})));

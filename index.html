@@ -686,12 +686,62 @@ html[data-theme="light"] .stage-hero .veil{background:linear-gradient(180deg,rgb
 .minimap svg{width:100%;height:100%;display:block}
 .minimap .mm-view{fill:color-mix(in srgb,var(--terra) 14%,transparent);stroke:var(--terra);stroke-width:1}
 @media (prefers-reduced-motion:reduce){.sk-node.glow .sk-body,.sk-node.reveal,.sk-link.reveal{animation:none}}
-.rubric li{padding:8px 10px;border-top:1px dashed var(--line);display:grid;grid-template-columns:28px 1fr;gap:10px;cursor:pointer;border-radius:8px;transition:background .2s}
-.rubric li:hover{background:var(--surface-2)}
-.rubric li.cur{background:color-mix(in srgb,var(--sage) 14%,transparent)}
-.rubric li.target{outline:1px dashed var(--sage)}
-.rubric{list-style:none;padding:0;margin:0}
-.rubric .lv{font-family:var(--serif);font-size:1.1rem;color:var(--muted)}
+.lvl-track{display:flex;flex-direction:column;position:relative;padding-left:4px}
+.lvl-track::before{content:"";position:absolute;left:33px;top:14px;bottom:44px;width:2px;background:var(--line-2)}
+.lvl{display:grid;grid-template-columns:44px 1fr;gap:10px;padding:6px 0;position:relative;transition:opacity .2s}
+.lvl.dragging{opacity:.35}
+.lvl.over .lvl-body{outline:1px dashed var(--c);border-radius:10px}
+.lvl-rail{display:flex;align-items:flex-start;gap:4px;position:relative;padding-top:6px}
+.lvl-handle{cursor:grab;color:var(--faint);font-size:.9rem;opacity:0;transition:opacity .2s}
+.lvl:hover .lvl-handle{opacity:1}
+.lvl-node{width:28px;height:28px;border-radius:50%;border:2px solid var(--line-2);background:var(--surface-2);color:var(--muted);font-family:var(--serif);font-size:.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .25s var(--ease);position:relative;z-index:1;padding:0}
+.lvl.done .lvl-node{background:var(--c);border-color:var(--c);color:#1a1816}
+.lvl.current .lvl-node{border-color:var(--c);color:var(--text);background:color-mix(in srgb,var(--c) 25%,var(--surface));box-shadow:0 0 0 4px color-mix(in srgb,var(--c) 22%,transparent);animation:lvlGlow 2s ease-in-out infinite}
+@keyframes lvlGlow{0%,100%{box-shadow:0 0 0 4px color-mix(in srgb,var(--c) 22%,transparent)}50%{box-shadow:0 0 0 7px color-mix(in srgb,var(--c) 38%,transparent),0 0 14px color-mix(in srgb,var(--c) 50%,transparent)}}
+.lvl.future .lvl-node{opacity:.55}
+.lvl.future .lvl-body{opacity:.72}
+.lvl-body{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+.lvl.current .lvl-body{border-color:color-mix(in srgb,var(--c) 50%,var(--line))}
+.lvl-head{display:flex;align-items:center;gap:10px;cursor:pointer}
+.lvl-label{font-family:var(--serif);font-size:1.02rem;flex:1}
+.lvl-meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.ms-chip{font-family:var(--mono);font-size:.62rem;padding:1px 7px;border-radius:999px;border:1px solid var(--line-2);color:var(--muted)}
+.ms-chip.due{color:#d08080;border-color:#b05050}
+.lvl-chev{color:var(--faint);transition:transform .25s var(--ease)}
+.lvl.open .lvl-chev{transform:rotate(90deg)}
+.lvl-detail{display:grid;grid-template-rows:0fr;transition:grid-template-rows .25s var(--ease)}
+.lvl-detail-inner{overflow:hidden;min-height:0}
+.lvl.open .lvl-detail{grid-template-rows:1fr}
+.lvl.open .lvl-detail-inner{padding-top:10px}
+.lvl-detail .k{font-family:var(--mono);font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);margin-bottom:3px}
+.lvl-criteria{list-style:none;padding:0;margin:0}
+.lvl-criteria li{display:flex;gap:8px;align-items:flex-start;padding:3px 0;font-size:.88rem;position:relative}
+.lvl-criteria li .ed{flex:1}
+.lvl-res{display:flex;flex-direction:column;gap:4px}
+.res-row{display:flex;gap:8px;align-items:center;font-size:.85rem;flex-wrap:wrap;position:relative}
+.res-type{font-size:.85rem;min-width:18px;text-align:center}
+.res-link{display:inline-flex;align-items:center;gap:6px;color:var(--terra);text-decoration:none}
+.res-link:hover{text-decoration:underline}
+.res-fav{width:14px;height:14px;border-radius:3px}
+.res-edit{display:none;gap:6px;align-items:center;flex-wrap:wrap;width:100%}
+.res-row:hover .res-edit,.res-row:focus-within .res-edit{display:flex}
+.res-edit .ed-wrap{min-width:120px;font-size:.72rem}
+.ms-axis{position:relative;height:74px;margin:14px 4px 6px}
+.ms-line{position:absolute;left:0;right:0;top:18px;height:2px;background:var(--line-2)}
+.ms-now{position:absolute;top:8px;transform:translateX(-50%);text-align:center;font-family:var(--mono);font-size:.58rem;color:var(--gold)}
+.ms-now i{display:block;width:2px;height:22px;background:var(--gold);margin:0 auto 2px}
+.ms-mark{position:absolute;top:12px;transform:translateX(-50%);text-align:center;font-size:.68rem;line-height:1.25}
+.ms-mark i{display:block;width:14px;height:14px;border-radius:50%;margin:0 auto 4px;border:2px solid var(--c);background:var(--surface)}
+.ms-mark.reached i{background:var(--c)}
+.ms-mark.due i{border-color:#d08080;background:#8e3b3b}
+.ms-mark.due .ms-lbl{color:#d08080}
+.ms-mark.ahead .ms-lbl{color:var(--text)}
+.ms-lbl .mono{font-size:.58rem}
+.ms-list{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.ms-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:.85rem;padding:6px 0;border-top:1px dashed var(--line)}
+.ms-note{flex:1;min-width:120px;font-family:var(--quote);font-style:italic;color:var(--muted);font-size:.85rem}
+.status-pill.due{color:#d08080;border:1px solid #b05050;background:transparent}
+.status-pill.ahead{color:var(--sage)}
 .archetype{font-family:var(--quote);font-style:italic;color:var(--muted);font-size:.9rem;padding:10px 14px;border-left:2px solid var(--line-2);margin-top:12px}
 
 /* ============================================================
@@ -896,7 +946,7 @@ function md(src){
 const KEY = 'lifeinstrument.v1';
 let S = null;
 /* persistence lives in db.js (Dexie schema + load/save/backup) */
-function migrate(){ if(S.settings && S.settings.home === 'map') S.settings.home = 'home'; if(typeof migrateEras === 'function') migrateEras(); const d = seed(); for(const k of Object.keys(d)) if(S[k]===undefined) S[k] = d[k]; if(typeof migrateLifeline === 'function') migrateLifeline(); }
+function migrate(){ if(S.settings && S.settings.home === 'map') S.settings.home = 'home'; if(typeof migrateEras === 'function') migrateEras(); const d = seed(); for(const k of Object.keys(d)) if(S[k]===undefined) S[k] = d[k]; if(typeof migrateLifeline === 'function') migrateLifeline(); if(typeof migrateSkillLevels === 'function') migrateSkillLevels(); }
 
 /* path access: "stages.#id.narrative" or "theatre.script" */
 function resolve(path){ const segs = path.split('.'); let o = S; for(let i=0;i<segs.length-1;i++){ o = step(o, segs[i]); if(o==null) return [null,null]; } return [o, segs[segs.length-1]]; }
@@ -1290,6 +1340,25 @@ function storesToState(rows){
 /* eras: the ordered list the tree, the panels, and the add dialogs read */
 const ERA_PALETTE = ['#7f916a','#6b7f8e','#b08968','#a0727e','#d4a44c','#8a7f9e','#c47832','#8a8d8f'];
 function erasList(){ return [...(S.visionEras||[])].sort((a,b)=>a.order-b.order).map(e => Object.assign(e, {label:e.name, desc:e.subtitle})); }
+const LEVEL_LABELS = ['Beginner','Novice','Competent','Proficient','Expert','Master'];
+const RESOURCE_TYPES = ['book','video','course','article','tool'];
+function migrateSkillLevels(){
+  S.skills.forEach(s => {
+    if(!Array.isArray(s.levels) || !s.levels.length){ const rub = Array.isArray(s.rubric) && s.rubric.length ? s.rubric : ['','','','','']; s.levels = rub.map((d,i) => ({number:i+1, label:LEVEL_LABELS[i] || `Level ${i+1}`, description:d||'', criteria:[], resources:[], estimatedTime:'', targetDate:null})); }
+    s.levels.forEach((l,i) => { l.number = i+1; l.criteria = l.criteria||[]; l.resources = l.resources||[]; l.estimatedTime = l.estimatedTime||''; if(l.targetDate===undefined) l.targetDate = null; if(!l.label) l.label = `Level ${i+1}`; if(l.description===undefined) l.description = ''; });
+    if(s.currentLevel === undefined) s.currentLevel = s.level ?? (s.planned ? 0 : 1);
+    s.currentLevel = Math.min(s.currentLevel, s.levels.length);
+    if(!Array.isArray(s.milestones)){ s.milestones = []; if(s.target && s.target > s.currentLevel) s.milestones.push({levelTarget:s.target, by:s.targetDate||null, note:''}); }
+    delete s.rubric; delete s.level; delete s.target; delete s.targetDate;
+  });
+}
+function skillLevelCount(s){ return (s.levels||[]).length || 1; }
+function skillLevelLabel(s, n){ const l = (s.levels||[])[n-1]; return l ? l.label : `Level ${n}`; }
+function skillMilestones(s){ return [...(s.milestones||[])].sort((a,b)=>(a.by||'9999')<(b.by||'9999')?-1:1); }
+function nextMilestone(s){ return skillMilestones(s).find(m => m.levelTarget > s.currentLevel) || null; }
+function skillTargetLevel(s){ const ms = (s.milestones||[]).filter(m => m.levelTarget > s.currentLevel); return ms.length ? Math.max(...ms.map(m=>m.levelTarget)) : null; }
+function milestonesDueSoon(days=30){ const T = today(); const out = []; S.skills.forEach(s => (s.milestones||[]).forEach(m => { if(!m.by || m.levelTarget <= s.currentLevel) return; const d = daysBetween(T, m.by.slice(0,10)); if(d <= days) out.push({skill:s, m, days:d}); })); return out.sort((a,b)=>a.days-b.days); }
+const fmtMonth = d => { if(!d) return ''; const x = parseDay(d.slice(0,10)); return `${MONTHS[x.getMonth()].slice(0,3)} ${x.getFullYear()}`; };
 function migrateLifeline(){
   const y = new Date().getFullYear(); const eras = erasList(); if(!eras.length) return;
   eras.forEach(e => { if(e.stageRef === undefined) e.stageRef = null; });
@@ -1340,9 +1409,9 @@ async function load(){
   // migration source 2: the original localStorage key
   let raw = null; try { raw = localStorage.getItem(KEY); } catch(e){}
   if(raw){ try { S = JSON.parse(raw); migrate(); await writeAllStores(stateToStores(S)); try { localStorage.removeItem(KEY); } catch(e){} setTimeout(() => toast('Your data was migrated from browser storage into the new database.', 5000), 600); return; } catch(e){ console.warn('localStorage migration failed', e); } }
-  S = seed(); await writeAllStores(stateToStores(S));
+  S = seed(); migrate(); await writeAllStores(stateToStores(S));
 }
-async function resetAll(){ S = seed(); await writeAllStores(stateToStores(S)); }
+async function resetAll(){ S = seed(); migrate(); await writeAllStores(stateToStores(S)); }
 async function storageInfo(){ try { const e = await navigator.storage?.estimate?.(); if(e) return {usage:e.usage||0, quota:e.quota||0}; } catch(err){} return null; }
 const fmtBytes = n => n > 1e9 ? (n/1e9).toFixed(2)+' GB' : n > 1e6 ? (n/1e6).toFixed(1)+' MB' : (n/1e3).toFixed(0)+' KB';
 
@@ -1571,7 +1640,14 @@ function seed(){
   ];
 
   const skills = [
-    {id:'sk-jp-conv',name:'Conversational Japanese',cat:'Languages',rubric:['Hiragana, katakana, greetings','5-minute chat about daily life','20-minute conversation, some abstraction','N2 — functional at work','N1+ — funny, formal, literate'],level:3,target:4,targetDate:'2027-12-01',prereqs:[],planned:false},
+    {id:'sk-jp-conv',name:'Conversational Japanese',cat:'Languages',currentLevel:3,prereqs:[],planned:false,
+      levels:[
+        {number:1,label:'Kana',description:'Hiragana, katakana, greetings.',criteria:['Read a menu without romaji','Introduce myself in three sentences'],resources:[{title:'Tofugu hiragana guide',url:'https://www.tofugu.com/japanese/learn-hiragana/',type:'article'}],estimatedTime:'1 month',targetDate:null},
+        {number:2,label:'Daily life',description:'A 5-minute chat about daily topics.',criteria:['Order food and ask for the bill','Talk about my week for two minutes'],resources:[{title:'Genki I',url:'https://genki3.japantimes.co.jp/en/',type:'book'}],estimatedTime:'4 months',targetDate:null},
+        {number:3,label:'Conversational',description:'A 20-minute conversation with some abstraction.',criteria:['Explain why I left law, in Japanese','Follow a drama episode without subtitles'],resources:[{title:'Genki II',url:'https://genki3.japantimes.co.jp/en/',type:'book'},{title:'Nihongo con Teppei',url:'https://nihongoconteppei.com/',type:'video'}],estimatedTime:'8 months',targetDate:null},
+        {number:4,label:'Functional (N2)',description:'N2 — functional in a work environment.',criteria:['Pass N2','Run a bar shift entirely in Japanese','Read an NHK article cold'],resources:[{title:'Shin Kanzen Master N2',url:'https://www.3anet.co.jp/np/en/',type:'book'},{title:'Anki',url:'https://apps.ankiweb.net/',type:'tool'}],estimatedTime:'12 months',targetDate:'2027-12-01'},
+        {number:5,label:'Literate (N1+)',description:'N1+ — funny, formal, literate.',criteria:['Make a pun a chef repeats','Write a formal email without checking'],resources:[],estimatedTime:'2 years',targetDate:null}],
+      milestones:[{levelTarget:4,by:'2027-12-01',note:'Before the JET placement starts'},{levelTarget:5,by:'2029-04-01',note:'Master\'s seminar in Japanese'}]},
     {id:'sk-jp-read',name:'Reading Japanese',cat:'Languages',rubric:['Kana + 100 kanji','Menus, signs, simple manga','News with a dictionary','Novels slowly','Literature, legal text'],level:2,target:4,targetDate:'2028-04-01',prereqs:['sk-jp-conv'],planned:false},
     {id:'sk-jp-biz',name:'Business Japanese',cat:'Languages',rubric:['Keigo basics','Emails','Meetings','Negotiation','Presentations'],level:0,target:3,targetDate:'',prereqs:['sk-jp-conv','sk-jp-read'],planned:true},
     {id:'sk-mandarin',name:'Mandarin (maintenance)',cat:'Languages',rubric:['Household','Conversational','Reads news','Writes essays','Literary'],level:3,target:3,targetDate:'',prereqs:[],planned:false},
@@ -1580,7 +1656,7 @@ function seed(){
     {id:'sk-writing',name:'Essay writing',cat:'Creative',rubric:['Clear paragraphs','A voice','Publishable pieces','Readers who pay','A book'],level:3,target:4,targetDate:'2027-01-01',prereqs:[],planned:false},
     {id:'sk-photo',name:'Photography',cat:'Creative',rubric:['Auto mode','Manual exposure','A consistent eye','Paid work','Exhibitions'],level:3,target:3,targetDate:'',prereqs:[],planned:false},
     {id:'sk-piano',name:'Piano (reclaimed)',cat:'Creative',rubric:['Remember the scales','Play for pleasure, 3 pieces','Improvise','Accompany singers','Compose'],level:1,target:2,targetDate:'',prereqs:[],planned:false},
-    {id:'sk-run',name:'Running',cat:'Physical',rubric:['5k','10k comfortably','Half marathon','Marathon','Ultra / lifelong'],level:2,target:3,targetDate:'2027-03-01',prereqs:[],planned:false},
+    {id:'sk-run',name:'Running',cat:'Physical',rubric:['5k','10k comfortably','Half marathon','Marathon','Ultra / lifelong'],level:2,target:3,targetDate:addDays(T,21),prereqs:[],planned:false},
     {id:'sk-climb',name:'Climbing',cat:'Physical',rubric:['Top rope','Lead indoors','5.11 / V4','Outdoor lead','Multi-pitch'],level:2,target:3,targetDate:'',prereqs:[],planned:false},
     {id:'sk-hosting',name:'Hosting a room',cat:'Social',rubric:['Remember names','Make one stranger comfortable','Run a dinner for 8','Run a room of 30','People come back for the host'],level:3,target:5,targetDate:'',prereqs:[],planned:false},
     {id:'sk-listen',name:'Deep listening',cat:'Social',rubric:['Wait my turn','Reflect back','Notice what is not said','Hold silence','Be a mirror'],level:2,target:4,targetDate:'',prereqs:[],planned:false},
@@ -1934,6 +2010,7 @@ routes.today = function(root){
       </div>
     </details>
 
+    ${(()=>{ const due = milestonesDueSoon(30); return due.length ? `<section class="section rv"><span class="sc">Skill milestones within 30 days</span><div class="card" style="border-left:3px solid var(--ment)">${due.map(({skill,m,days})=>`<a href="#/skills/${skill.id}" class="row between" style="text-decoration:none;color:inherit;padding:8px 0;border-top:1px dashed var(--line);gap:12px"><span><b class="serif">${esc(skill.name)}</b> <span class="muted">→ ${esc(skillLevelLabel(skill,m.levelTarget))} (L${m.levelTarget})</span>${m.note?`<div class="quote" style="font-size:.85rem">${esc(m.note)}</div>`:''}</span><span class="status-pill ${days<0?'due':'ahead'}">${days<0?`⚠ ${-days}d overdue`:days===0?'today':`in ${days}d`}</span></a>`).join('')}</div></section>` : ''; })()}
     <section class="section rv"><span class="sc">Signals</span>
       <div class="signals">${sig.map(s=>`<div class="signal" data-go="${s.go}"><div class="k">${s.k}</div><div class="v">${esc(s.v)}</div><div class="d">${esc(s.d)}</div></div>`).join('')}
         <div class="signal" data-go="#/rituals"><div class="k">Days since weekly review</div><div class="v">${daysSince(S.reviews.lastWeekly)}</div><div class="d">${daysSince(S.reviews.lastWeekly)>7?'a review is due':'on rhythm'}</div></div>
@@ -2662,7 +2739,7 @@ function manageJournalsModal(){
 const SKILL_CATS = ['Languages','Technical','Creative','Physical','Social','Craft'];
 const catColor = c => ({Languages:'#6b7f8e',Technical:'#8a8d8f',Creative:'#b08968',Physical:'#c47832',Social:'#a0727e',Craft:'#7f916a'}[c]||'#a89f94');
 /* ---------- hierarchy: virtual root → categories → skills (parent = first prerequisite) ---------- */
-function skillIsLocked(s){ return s.prereqs.some(p => { const ps = byId(S.skills,p); return ps && ps.level < 2; }) && s.level === 0; }
+function skillIsLocked(s){ return s.prereqs.some(p => { const ps = byId(S.skills,p); return ps && ps.currentLevel < 2; }) && s.currentLevel === 0; }
 function skillHierarchy(){
   const collapsed = S.settings.skillCollapsed || {};
   const cats = [...new Set([...SKILL_CATS, ...S.skills.map(s=>s.cat)])].filter(c => S.skills.some(s=>s.cat===c));
@@ -2688,7 +2765,7 @@ function linkPath(p, c, mode){
 }
 function skillNodeSVG(n, mode, selected, revealFrom){
   const s = n.skill; const w = n.w, h = n.h; const locked = s ? skillIsLocked(s) : false; const since = s ? daysSince(skillLastPracticed(s)) : Infinity; const active = s && !locked && !s.planned && since <= 7; const atro = s && !s.planned && since > 90;
-  const sub = s ? (s.planned ? 'planned' : locked ? 'locked' : `lvl ${s.level}${s.target>s.level?' → '+s.target:''}${atro?' · atrophy':''}`) : (n.kind==='cat' ? `${n.kidCount} skill${n.kidCount===1?'':'s'}` : `${S.skills.length} skills`);
+  const nm = s ? nextMilestone(s) : null; const sub = s ? (s.planned ? 'planned' : locked ? 'locked' : `lvl ${s.currentLevel}/${skillLevelCount(s)}${skillTargetLevel(s)?' → '+skillTargetLevel(s):''}${atro?' · atrophy':''}${nm?.by?` · 📅 ${fmtMonth(nm.by)}`:''}`) : (n.kind==='cat' ? `${n.kidCount} skill${n.kidCount===1?'':'s'}` : `${S.skills.length} skills`);
   const glow = (selected || active) && !locked;
   return `<g class="sk-node ${n.kind} ${locked?'locked':''} ${glow?'glow':''} ${selected?'selected':''} ${revealFrom===n.id?'':''}" data-node="${n.id}" ${s?`data-skill="${s.id}"`:''} transform="translate(${n.x.toFixed(1)},${n.y.toFixed(1)})" style="--nc:${n.color}">
     <rect class="sk-body" x="${-w/2}" y="${-h/2}" width="${w}" height="${h}" rx="9" ${s?.planned?'stroke-dasharray="5 4"':''}/>
@@ -2707,7 +2784,7 @@ routes.skills = function(root, params){
     <div class="page-head row between"><div><h1>Skill Tree</h1><div class="sub">Career capital, built on the plateau. Categories branch into skills; a skill's first prerequisite is its parent. Drag a node onto another to re-parent it.</div></div>
       <div class="row"><button class="btn sm ${mode==='vertical'?'primary':''}" data-layout="vertical">⊤ vertical</button><button class="btn sm ${mode==='radial'?'primary':''}" data-layout="radial">◎ radial</button><button class="btn sm ghost" id="skExpandAll">expand all</button><button class="btn sm ghost" id="skCollapseAll">collapse all</button><button class="btn sm ghost" id="skReset" title="reset zoom, centre root">⟳</button></div></div>
     <div class="skill-wrap" id="skillWrap"><div class="minimap" id="minimap"></div><div class="sk-hint mono">scroll to zoom · drag the canvas to pan · ± to fold a branch</div></div>
-    <div class="grid c3 section">${S.skills.map(s=>{ const st = skillStreak(s); const last = skillLastPracticed(s); return `<div class="card rv" data-sopen="${s.id}" style="cursor:pointer;border-left:3px solid ${catColor(s.cat)}"><div class="row between"><h3 style="margin:0">${esc(s.name)}</h3><span class="mono">${esc(s.cat)}</span></div><div class="muted" style="font-size:.82rem;margin-top:6px">${s.planned?'planned — a bud not yet opened':`level ${s.level} of 5 · ${(s.rubric[s.level-1]||'').slice(0,60)}`}</div><div class="mono" style="margin-top:8px">last ${relDays(daysSince(last))} · streak ${st.cur}d (best ${st.best}) · ${skillHours(s).toFixed(1)}h</div></div>`; }).join('')}</div>
+    <div class="grid c3 section">${S.skills.map(s=>{ const st = skillStreak(s); const last = skillLastPracticed(s); return `<div class="card rv" data-sopen="${s.id}" style="cursor:pointer;border-left:3px solid ${catColor(s.cat)}"><div class="row between"><h3 style="margin:0">${esc(s.name)}</h3><span class="mono">${esc(s.cat)}</span></div><div class="muted" style="font-size:.82rem;margin-top:6px">${s.planned?'planned — a bud not yet opened':`${esc(skillLevelLabel(s,s.currentLevel))} · level ${s.currentLevel} of ${skillLevelCount(s)}`}${nextMilestone(s)?.by?` · <span class="mono" style="color:${daysBetween(today(),nextMilestone(s).by)<0?'#d08080':'var(--muted)'}">📅 L${nextMilestone(s).levelTarget} by ${fmtMonth(nextMilestone(s).by)}</span>`:''}</div><div class="mono" style="margin-top:8px">last ${relDays(daysSince(last))} · streak ${st.cur}d (best ${st.best}) · ${skillHours(s).toFixed(1)}h</div></div>`; }).join('')}</div>
   </div>`;
   drawSkillTree(root);
   $$('[data-layout]',root).forEach(b => b.onclick = () => { S.settings.skillLayout = b.dataset.layout; saveNow(); rerender(); });
@@ -2776,14 +2853,13 @@ function deleteSkill(sk, node, after){
 function openSkillPanel(id){
   const s = byId(S.skills,id); if(!s) return; const es = sortEntries(entriesLinked('skills',s.id)); const st = skillStreak(s); const last = skillLastPracticed(s); const since = daysSince(last);
   const visions = S.visions.filter(v=>v.preSkills.includes(s.id)); const projects = S.projects.filter(p => es.some(e=>(e.links.projects||[]).includes(p.id))); const values = {}; es.forEach(e=>(e.links.values||[]).forEach(x=>values[x.id]=(values[x.id]||0)+1));
-  const arche = s.planned ? 'A bud. Nothing to judge yet.' : since>90 ? 'The Dabbler? Enthusiasm, then a plateau, then silence. Or perhaps a deliberate surrender — some competencies are meant to be let go.' : st.best>=14 && st.cur===0 ? 'The Obsessive? A long hard streak, then a break. Watch for burnout; oscillation is the rhythm, not a failure.' : s.level>=3 && s.level===s.target ? 'The Hacker? Good enough, and stopped. Is this the level you chose, or the one you settled for?' : 'On the path. Loving the plateau. The master stays on the mat five minutes longer.';
-  const p = openPanel(`<div class="mono">${esc(s.cat)} · ${s.planned?'planned':'level '+s.level}</div><h2>${ed(`skills.#${s.id}.name`)}</h2>
+  const arche = s.planned ? 'A bud. Nothing to judge yet.' : since>90 ? 'The Dabbler? Enthusiasm, then a plateau, then silence. Or perhaps a deliberate surrender — some competencies are meant to be let go.' : st.best>=14 && st.cur===0 ? 'The Obsessive? A long hard streak, then a break. Watch for burnout; oscillation is the rhythm, not a failure.' : s.currentLevel>=3 && !skillTargetLevel(s) && s.currentLevel < skillLevelCount(s) ? 'The Hacker? Good enough, and stopped. Is this the level you chose, or the one you settled for?' : 'On the path. Loving the plateau. The master stays on the mat five minutes longer.';
+  const p = openPanel(`<div class="mono">${esc(s.cat)} · ${s.planned?'planned':'level '+s.currentLevel+' of '+skillLevelCount(s)}</div><h2>${ed(`skills.#${s.id}.name`)}</h2>
     <div class="row" style="margin:8px 0 18px"><select class="sel" style="width:auto" id="skCatSel">${SKILL_CATS.map(c=>`<option ${s.cat===c?'selected':''}>${c}</option>`).join('')}</select><label class="toggle ${s.planned?'on':''}" id="skPl"><span class="sw"></span><span>planned</span></label></div>
     <div class="grid c3" style="gap:10px"><div class="card" style="padding:12px 14px"><div class="mono">last practiced</div><div class="serif" style="font-size:1.2rem">${relDays(since)}</div></div><div class="card" style="padding:12px 14px"><div class="mono">streak</div><div class="serif" style="font-size:1.2rem">${st.cur}d <span class="faint" style="font-size:.8rem">best ${st.best}</span></div></div><div class="card" style="padding:12px 14px"><div class="mono">total hours</div><div class="serif" style="font-size:1.2rem" data-tween="${skillHours(s)}" data-dec="1">0</div></div></div>
     <div class="archetype">${arche}</div>
-    <div class="vp-sec"><span class="sc">Your rubric — what each level means, for you</span><p class="faint" style="font-size:.8rem;margin:0 0 6px">Click a level to set it as current. Dashed outline is the target.</p>
-      <ul class="rubric">${[1,2,3,4,5].map(l=>`<li class="${s.level===l?'cur':''} ${s.target===l?'target':''}" data-lv="${l}"><span class="lv">${l}</span><span>${ed(`skills.#${s.id}.rubric.${l-1}`,{ph:'what does level '+l+' mean for this skill?'})}</span></li>`).join('')}</ul>
-      <div class="row" style="margin-top:10px"><span class="mono">target level</span><select class="sel" style="width:auto;padding:3px 8px" id="skTarget">${[1,2,3,4,5].map(l=>`<option ${s.target===l?'selected':''}>${l}</option>`).join('')}</select><span class="mono">by</span>${ed(`skills.#${s.id}.targetDate`,{ph:'YYYY-MM-DD',cls:'mono'})}</div></div>
+    ${levelTrackHTML(s)}
+    ${milestoneTimelineHTML(s)}
     <div class="vp-sec"><span class="sc">Prerequisites</span><div class="deps">${S.skills.filter(x=>x.id!==s.id).map(x=>`<span class="chip click ${s.prereqs.includes(x.id)?'on':''}" style="--c:${catColor(x.cat)}" data-pre="${x.id}">${esc(x.name)}</span>`).join('')}</div></div>
     <div class="vp-sec"><span class="sc">Cross-mappings</span>
       <div class="k mono" style="margin:6px 0 4px">load-bearing for visions — what do I need to become to live that life?</div><div class="deps">${visions.map(v=>`<span class="chip on click" style="--c:var(--sage)" data-go="#/vision/${v.id}">🌿 ${esc(v.name)}</span>`).join('')||'<span class="faint">no vision depends on this yet</span>'}</div>
@@ -2793,12 +2869,73 @@ function openSkillPanel(id){
     ${moreSection(`<div class="danger-zone"><span>Skills accrue slowly. Consider marking it planned or lowering the level before deleting.</span><button class="btn sm ghost danger" id="skDel">Delete this skill</button></div>`)}`);
   $$('#panel .rv').forEach(n=>n.classList.add('in'));
   p.querySelector('#skCatSel').onchange = e => { s.cat = e.target.value; saveNow(); rerender(); openSkillPanel(id); };
-  p.querySelector('#skPl').onclick = () => { s.planned = !s.planned; if(!s.planned && s.level===0) s.level=1; saveNow(); rerender(); openSkillPanel(id); };
-  p.querySelectorAll('.rubric li').forEach(li => li.addEventListener('click', e => { if(e.target.closest('.ed')) return; const up = +li.dataset.lv > s.level; s.level = +li.dataset.lv; s.planned=false; saveNow(); rerender(); openSkillPanel(id); if(up) setTimeout(() => $('#main')?._skView?.burst(id), 60); }));
-  p.querySelector('#skTarget').onchange = e => { s.target = +e.target.value; saveNow(); openSkillPanel(id); };
+  p.querySelector('#skPl').onclick = () => { s.planned = !s.planned; if(!s.planned && s.currentLevel===0) s.currentLevel=1; saveNow(); rerender(); openSkillPanel(id); };
+  bindLevelTrack(p, s);
+  bindMilestones(p, s);
   p.querySelectorAll('[data-pre]').forEach(c => c.onclick = () => { const x = c.dataset.pre; s.prereqs = s.prereqs.includes(x) ? s.prereqs.filter(y=>y!==x) : [...s.prereqs,x]; saveNow(); c.classList.toggle('on'); rerender(); });
   p.querySelector('#skLog').onclick = () => openEntryModal({type:'progress', links:{skills:[s.id]}, after:()=>{ rerender(); openSkillPanel(id); }});
   p.querySelector('#skDel').onclick = () => deleteSkill(s, null, () => { closePanel(); rerender(); });
+}
+
+/* ============================================================
+   LEVELS — customisable progression track, and MILESTONES
+   ============================================================ */
+const RES_ICON = {book:'📖', video:'▶', course:'🎓', article:'📄', tool:'🛠'};
+function levelTrackHTML(s){
+  const n = skillLevelCount(s), cur = s.currentLevel; const color = catColor(s.cat); const openLv = S._openLevel?.[s.id];
+  return `<div class="vp-sec"><div class="row between"><span class="sc">The path — ${n} level${n===1?'':'s'}</span><span class="mono">Level ${cur} of ${n}</span></div>
+    <div class="bar" style="--c:${color};margin:6px 0 14px"><i style="width:${(cur/n*100).toFixed(0)}%"></i></div>
+    <div class="lvl-track" id="lvlTrack" style="--c:${color}">${s.levels.map((l,i) => { const num = i+1; const state = num < cur ? 'done' : num === cur ? 'current' : 'future'; const ms = (s.milestones||[]).filter(m => m.levelTarget === num); return `<div class="lvl ${state} ${openLv===num?'open':''}" data-level="${num}" draggable="true">
+      <div class="lvl-rail"><span class="lvl-handle" title="drag to reorder">⠿</span><button class="lvl-node" data-setlevel="${num}" title="${state==='current'?'current level':'set as current level'}">${state==='done'?'✓':num}</button></div>
+      <div class="lvl-body">
+        <div class="lvl-head" data-expand="${num}"><span class="lvl-label">${ed(`skills.#${s.id}.levels.${i}.label`,{ph:'level name'})}</span><span class="mono lvl-meta">${l.estimatedTime?`⏱ ${esc(l.estimatedTime)}`:''}${ms.map(m=>` <span class="ms-chip ${m.by&&daysBetween(today(),m.by)<0?'due':''}">📅 ${m.by?fmtMonth(m.by):'no date'}</span>`).join('')}</span><span class="lvl-chev">›</span></div>
+        <div class="lvl-detail"><div class="lvl-detail-inner">
+          <div class="k mono">what I can do at this level</div><div class="prose" style="font-size:.9rem">${ed(`skills.#${s.id}.levels.${i}.description`,{multi:true,mdr:true,ph:'Describe the capability. Markdown welcome.'})}</div>
+          <div class="k mono" style="margin-top:10px">criteria — observable behaviours</div><ul class="lvl-criteria">${l.criteria.map((c,ci)=>`<li><span class="mono">▸</span>${ed(`skills.#${s.id}.levels.${i}.criteria.${ci}`,{ph:'something I can be seen doing'})}<button class="del-x inline" data-critdel="${i}:${ci}" title="remove">×</button></li>`).join('')}</ul><button class="tbtn" data-critadd="${i}">+ criterion</button>
+          <div class="k mono" style="margin-top:10px">resources</div><div class="lvl-res">${l.resources.map((r,ri)=>{ let host=''; try { host = new URL(r.url).hostname; } catch(e){} return `<div class="res-row"><span class="res-type" title="${esc(r.type)}">${RES_ICON[r.type]||'▫'}</span>${r.url?`<a class="res-link" href="${esc(r.url)}" target="_blank" rel="noopener">${host?`<img class="res-fav" src="https://www.google.com/s2/favicons?domain=${esc(host)}&sz=16" alt="" onerror="this.style.display='none'">`:''}${esc(r.title||r.url)}</a>`:`<span>${esc(r.title||'untitled resource')}</span>`}<span class="status-pill" style="font-size:.6rem">${esc(r.type)}</span><span class="res-edit"><span class="ed-wrap">${ed(`skills.#${s.id}.levels.${i}.resources.${ri}.title`,{ph:'title',cls:'mono'})}</span><span class="ed-wrap">${ed(`skills.#${s.id}.levels.${i}.resources.${ri}.url`,{ph:'https://…',cls:'mono'})}</span><select class="sel" data-restype="${i}:${ri}" style="width:auto;padding:1px 6px;font-size:.66rem">${RESOURCE_TYPES.map(t=>`<option ${r.type===t?'selected':''}>${t}</option>`).join('')}</select><button class="del-x inline" data-resdel="${i}:${ri}" title="remove">×</button></span></div>`; }).join('')}</div><button class="tbtn" data-resadd="${i}">+ resource</button>
+          <div class="row" style="gap:16px;margin-top:10px;flex-wrap:wrap"><span><span class="k mono">estimated time</span> ${ed(`skills.#${s.id}.levels.${i}.estimatedTime`,{ph:'e.g. 3 months',cls:'mono'})}</span><span><span class="k mono">target date</span> ${ed(`skills.#${s.id}.levels.${i}.targetDate`,{ph:'YYYY-MM-DD',cls:'mono',hook:'lvldate:'+s.id+':'+i})}</span><button class="tbtn" data-lvldel="${i}" style="margin-left:auto;color:var(--faint)">remove level</button></div>
+        </div></div>
+      </div></div>`; }).join('')}
+      <button class="btn sm ghost" id="lvlAdd" style="margin:8px 0 0 44px">＋ Add level</button>
+    </div></div>`;
+}
+hooks.lvldate = (arg) => { const [sid, i] = arg.split(':'); const s = byId(S.skills, sid); if(!s) return; const l = s.levels[+i]; if(l && l.targetDate === '') l.targetDate = null; saveNow(); };
+function bindLevelTrack(p, s){
+  const id = s.id; const reopen = () => { rerender(); openSkillPanel(id); };
+  p.querySelectorAll('[data-setlevel]').forEach(b => b.onclick = e => { e.stopPropagation(); const n = +b.dataset.setlevel; const up = n > s.currentLevel; s.currentLevel = n; s.planned = false; saveNow(); reopen(); if(up) setTimeout(() => $('#main')?._skView?.burst(id), 60); });
+  p.querySelectorAll('[data-expand]').forEach(h => h.addEventListener('click', e => { if(e.target.closest('.ed')) return; const n = +h.dataset.expand; S._openLevel = S._openLevel||{}; S._openLevel[id] = S._openLevel[id]===n ? null : n; const row = h.closest('.lvl'); const wasOpen = row.classList.contains('open'); p.querySelectorAll('.lvl').forEach(x => x.classList.remove('open')); if(!wasOpen) row.classList.add('open'); }));
+  p.querySelector('#lvlAdd').onclick = () => { const n = s.levels.length+1; s.levels.push({number:n, label:LEVEL_LABELS[n-1]||`Level ${n}`, description:'', criteria:[], resources:[], estimatedTime:'', targetDate:null}); S._openLevel = {...(S._openLevel||{}), [id]:n}; saveNow(); reopen(); };
+  p.querySelectorAll('[data-lvldel]').forEach(b => b.onclick = () => { if(s.levels.length <= 1){ toast('A skill needs at least one level.'); return; } const i = +b.dataset.lvldel; const lv = s.levels[i]; requestDelete({label:`Level ${i+1} · ${lv.label}`, remove: () => { const oldCur = s.currentLevel; const back = spliceOut(s.levels, x => x === lv); s.levels.forEach((l,k)=>l.number=k+1); if(s.currentLevel > s.levels.length) s.currentLevel = s.levels.length; (s.milestones||[]).forEach(m => { if(m.levelTarget > s.levels.length) m.levelTarget = s.levels.length; }); return () => { back(); s.levels.forEach((l,k)=>l.number=k+1); s.currentLevel = oldCur; }; }, after: reopen}); });
+  p.querySelectorAll('[data-critadd]').forEach(b => b.onclick = () => { const i = +b.dataset.critadd; s.levels[i].criteria.push(''); S._openLevel = {...(S._openLevel||{}), [id]:i+1}; saveNow(); reopen(); setTimeout(()=>{ const last = $$(`#panel .lvl[data-level="${i+1}"] .lvl-criteria .ed`).slice(-1)[0]; last && beginEdit(last); },60); });
+  p.querySelectorAll('[data-critdel]').forEach(b => b.onclick = () => { const [i,ci] = b.dataset.critdel.split(':').map(Number); s.levels[i].criteria.splice(ci,1); saveNow(); reopen(); });
+  p.querySelectorAll('[data-resadd]').forEach(b => b.onclick = () => { const i = +b.dataset.resadd; s.levels[i].resources.push({title:'', url:'', type:'article'}); S._openLevel = {...(S._openLevel||{}), [id]:i+1}; saveNow(); reopen(); setTimeout(()=>{ const last = $$(`#panel .lvl[data-level="${i+1}"] .res-row`).slice(-1)[0]; const ed_ = last?.querySelector('.ed'); if(ed_){ last.querySelector('.res-edit').style.display='flex'; beginEdit(ed_); } },60); });
+  p.querySelectorAll('[data-resdel]').forEach(b => b.onclick = () => { const [i,ri] = b.dataset.resdel.split(':').map(Number); s.levels[i].resources.splice(ri,1); saveNow(); reopen(); });
+  p.querySelectorAll('[data-restype]').forEach(sel => sel.onchange = () => { const [i,ri] = sel.dataset.restype.split(':').map(Number); s.levels[i].resources[ri].type = sel.value; saveNow(); reopen(); });
+  let drag = null; const track = p.querySelector('#lvlTrack');
+  track.querySelectorAll('.lvl').forEach(row => {
+    row.addEventListener('dragstart', ev => { if(ev.target.closest('.ed,button,select,a,input')){ ev.preventDefault(); return; } drag = +row.dataset.level; row.classList.add('dragging'); ev.dataTransfer.effectAllowed='move'; try { ev.dataTransfer.setData('text/plain', String(drag)); } catch(e){} });
+    row.addEventListener('dragend', () => { row.classList.remove('dragging'); track.querySelectorAll('.lvl').forEach(x=>x.classList.remove('over')); });
+    row.addEventListener('dragover', ev => { ev.preventDefault(); row.classList.add('over'); });
+    row.addEventListener('dragleave', () => row.classList.remove('over'));
+    row.addEventListener('drop', ev => { ev.preventDefault(); const from = drag || +ev.dataTransfer.getData('text/plain'); const to = +row.dataset.level; if(!from || from === to) return; const curObj = s.levels[s.currentLevel-1]; const [moved] = s.levels.splice(from-1, 1); s.levels.splice(to-1, 0, moved); const map = {}; s.levels.forEach((l,k) => { map[l.number] = k+1; }); s.levels.forEach((l,k) => l.number = k+1); if(curObj) s.currentLevel = s.levels.indexOf(curObj)+1; (s.milestones||[]).forEach(m => { if(map[m.levelTarget]) m.levelTarget = map[m.levelTarget]; }); drag = null; saveNow(); reopen(); });
+  });
+}
+function milestoneTimelineHTML(s){
+  const ms = skillMilestones(s); const T = today(); const color = catColor(s.cat);
+  const dated = ms.filter(m => m.by); let axis = '';
+  if(dated.length){ const t0 = Math.min(parseDay(T).getTime(), ...dated.map(m=>parseDay(m.by.slice(0,10)).getTime())); const t1 = Math.max(parseDay(T).getTime()+DAY*30, ...dated.map(m=>parseDay(m.by.slice(0,10)).getTime())); const X = d => 4 + ((parseDay(d.slice(0,10)).getTime()-t0)/Math.max(t1-t0,1))*92;
+    axis = `<div class="ms-axis" style="--c:${color}"><div class="ms-line"></div><div class="ms-now" style="left:${X(T).toFixed(1)}%" title="today"><i></i><span>now</span></div>${dated.map((m,i)=>{ const d = daysBetween(T, m.by.slice(0,10)); const reached = s.currentLevel >= m.levelTarget; return `<div class="ms-mark ${reached?'reached':d<0?'due':'ahead'}" style="left:${X(m.by).toFixed(1)}%" title="${esc(m.note||'')}"><i></i><span class="ms-lbl">L${m.levelTarget}${reached?' ✓':d<0?' ⚠':''}<br><span class="mono">${fmtDate(m.by,'short')} ${m.by.slice(0,4)}</span></span></div>`; }).join('')}</div>`; }
+  return `<div class="vp-sec"><div class="row between"><span class="sc">Milestones — ${ms.length||'no'} target${ms.length===1?'':'s'}</span><button class="btn sm ghost" id="msAdd">+ milestone</button></div>
+    ${axis || '<div class="faint" style="font-size:.8rem;padding:4px 0">Set a level and a date. They appear as markers here, as chips on the tree, and on Today when they are close.</div>'}
+    <div class="ms-list">${ms.map(m => { const idx = (s.milestones||[]).indexOf(m); const d = m.by ? daysBetween(T, m.by.slice(0,10)) : null; const reached = s.currentLevel >= m.levelTarget; const badge = reached ? '<span class="status-pill" style="color:var(--sage)">reached</span>' : d===null ? '<span class="status-pill">no date</span>' : d<0 ? `<span class="status-pill due">⚠ ${-d}d overdue</span>` : `<span class="status-pill ahead">in ${d}d</span>`;
+      return `<div class="ms-row"><select class="sel" data-mslevel="${idx}" style="width:auto;padding:2px 6px;font-size:.7rem">${s.levels.map((l,li)=>`<option value="${li+1}" ${m.levelTarget===li+1?'selected':''}>L${li+1} · ${esc(l.label)}</option>`).join('')}</select><input type="date" class="inp" value="${m.by?m.by.slice(0,10):''}" data-msdate="${idx}" style="width:auto;padding:2px 6px;font-size:.7rem"><span class="ms-note">${ed(`skills.#${s.id}.milestones.${idx}.note`,{ph:'why this date?'})}</span>${badge}<button class="del-x inline" data-msdel="${idx}" title="remove">×</button></div>`; }).join('')}</div></div>`;
+}
+function bindMilestones(p, s){
+  const id = s.id; const reopen = () => { rerender(); openSkillPanel(id); };
+  p.querySelector('#msAdd').onclick = () => { s.milestones = s.milestones||[]; s.milestones.push({levelTarget: Math.min(s.currentLevel+1, skillLevelCount(s)), by: addDays(today(), 90), note:''}); saveNow(); reopen(); };
+  p.querySelectorAll('[data-mslevel]').forEach(sel => sel.onchange = () => { s.milestones[+sel.dataset.mslevel].levelTarget = +sel.value; saveNow(); reopen(); });
+  p.querySelectorAll('[data-msdate]').forEach(inp => inp.onchange = () => { s.milestones[+inp.dataset.msdate].by = inp.value || null; saveNow(); reopen(); });
+  p.querySelectorAll('[data-msdel]').forEach(b => b.onclick = () => { const m = s.milestones[+b.dataset.msdel]; requestDelete({label:`Milestone L${m.levelTarget}${m.by?' · '+fmtMonth(m.by):''}`, remove: () => spliceOut(s.milestones, x => x === m), after: reopen}); });
 }
 /* ============================================================
    8. CREATIVE PROJECTS — the gardens you tend
@@ -3160,7 +3297,7 @@ function newVisionDialog(pre={}){
 function newSkillDialog(){
   const m = openModal(`<h2>A new skill</h2><div class="stack"><div class="field"><label>Name</label><input class="inp" id="skName"></div><div class="field"><label>Category</label><select class="sel" id="skCat">${SKILL_CATS.map(c=>`<option>${c}</option>`).join('')}</select></div><label class="toggle" id="skPlanned"><span class="sw"></span><span>planned — a bud, not yet begun</span></label></div><div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn primary" id="skSave">Add</button></div>`,'narrow');
   let planned=false; m.querySelector('#skPlanned').onclick = function(){ planned=!planned; this.classList.toggle('on',planned); };
-  m.querySelector('#skSave').onclick = () => { const name = m.querySelector('#skName').value.trim(); if(!name) return; const s = {id:uid(),name,cat:m.querySelector('#skCat').value,rubric:['','','','',''],level:planned?0:1,target:3,targetDate:'',prereqs:[],planned}; S.skills.push(s); saveNow(); m.remove(); if(currentRoute !== 'skills') navigate('#/skills'); else rerender(); setTimeout(() => openSkillPanel(s.id), currentRoute==='skills' ? 0 : 400); };
+  m.querySelector('#skSave').onclick = () => { const name = m.querySelector('#skName').value.trim(); if(!name) return; const s = {id:uid(),name,cat:m.querySelector('#skCat').value,levels:[{number:1,label:'Beginner',description:'',criteria:[],resources:[],estimatedTime:'',targetDate:null},{number:2,label:'Competent',description:'',criteria:[],resources:[],estimatedTime:'',targetDate:null},{number:3,label:'Proficient',description:'',criteria:[],resources:[],estimatedTime:'',targetDate:null}],currentLevel:planned?0:1,milestones:[],prereqs:[],planned}; S.skills.push(s); saveNow(); m.remove(); if(currentRoute !== 'skills') navigate('#/skills'); else rerender(); setTimeout(() => openSkillPanel(s.id), currentRoute==='skills' ? 0 : 400); };
   setTimeout(() => m.querySelector('#skName').focus(), 50);
 }
 /* ============================================================
@@ -3236,7 +3373,7 @@ function houseStats(){
     journals: {line:`${j7} entr${j7===1?'y':'ies'} this week`, ok:j7>0, cadence:'daily', tip:`${S.entries.length} entries across ${S.journals.length} journals`},
     projects: {line:`${active.length} active · ${nods7} nods / 7d`, ok:cold===0, cadence:'daily', tip:cold?`${cold} active project${cold>1?'s':''} without a nod this week`:'every active project nodded this week'},
     values:   {line:`snapshot ${snapDays===null?'never':snapDays===0?'today':snapDays+'d ago'}`, ok:snapDays!==null&&snapDays<=7, cadence:'weekly', tip:gaps[0]?`Biggest gap: ${gaps[0].name} (${gaps[0].gap>0?'+':''}${gaps[0].gap})`:''},
-    skills:   {line:`${hrs30.toFixed(0)}h / 30d${atro?` · ${atro} atrophying`:''}`, ok:atro===0, cadence:'monthly', tip:`${S.skills.filter(s=>!s.planned).length} skills held, ${S.skills.filter(s=>s.planned).length} planned`},
+    skills:   {line:`${hrs30.toFixed(0)}h / 30d${atro?` · ${atro} atrophying`:''}`, ok:atro===0, cadence:'monthly', tip:`${S.skills.filter(s=>!s.planned).length} skills held, ${S.skills.filter(s=>s.planned).length} planned${milestonesDueSoon(30).length?` · ${milestonesDueSoon(30).length} milestone${milestonesDueSoon(30).length>1?'s':''} within 30 days`:''}`},
     vision:   {line:`${vs.length} growing${wither?` · ${wither} withering`:''}`, ok:wither===0, cadence:'weekly', tip:vs.length?`Most vivid: ${[...vs].sort((a,b)=>b.score-a.score)[0].v.name}`:''},
     timeline: {line:`${memories} memories · ${S.stages.length} stages`, ok:true, cadence:'archival', tip:'The museum of the past. Formative events and the story you tell.'},
     library:  {line:`${quotes} quotes`, ok:true, cadence:'archival', tip:'Quotes and marginalia; why each one caught you.'},
@@ -3404,7 +3541,7 @@ function openSearch(){
     grp('Stages', S.stages.filter(x=>hit(x.name+' '+x.char+' '+x.tagline)).map(x=>({t:`${x.char} ${x.name}`,go:'#/stage/'+x.id,m:x.years})));
     grp('Visions', S.visions.filter(x=>hit(x.name)).map(x=>({t:x.name,go:'#/vision/'+x.id,m:x.confidence})));
     grp('Values', S.values.filter(x=>hit(x.name)).map(x=>({t:x.name,go:'#/value/'+x.id,m:valueCurrent(x.id)+'%'})));
-    grp('Skills', S.skills.filter(x=>hit(x.name)).map(x=>({t:x.name,go:'#/skills/'+x.id,m:'lvl '+x.level})));
+    grp('Skills', S.skills.filter(x=>hit(x.name)).map(x=>({t:x.name,go:'#/skills/'+x.id,m:'lvl '+x.currentLevel+' of '+skillLevelCount(x)})));
     grp('Projects', S.projects.filter(x=>hit(x.name+' '+x.desc)).map(x=>({t:x.name,go:'#/projects/'+x.id,m:x.status})));
     grp('Threads', S.threads.filter(x=>hit(x.name)).map(x=>({t:x.name,go:'#/timeline/threads',m:x.status})));
     grp('Habits', S.habits.filter(x=>!x.archived&&hit(x.name)).map(x=>({t:x.name,go:'#/rituals',m:x.dimension})));

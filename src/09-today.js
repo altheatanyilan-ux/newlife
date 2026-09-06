@@ -46,6 +46,7 @@ routes.today = function(root){
       </div>
     </details>
 
+    ${(()=>{ const due = milestonesDueSoon(30); return due.length ? `<section class="section rv"><span class="sc">Skill milestones within 30 days</span><div class="card" style="border-left:3px solid var(--ment)">${due.map(({skill,m,days})=>`<a href="#/skills/${skill.id}" class="row between" style="text-decoration:none;color:inherit;padding:8px 0;border-top:1px dashed var(--line);gap:12px"><span><b class="serif">${esc(skill.name)}</b> <span class="muted">→ ${esc(skillLevelLabel(skill,m.levelTarget))} (L${m.levelTarget})</span>${m.note?`<div class="quote" style="font-size:.85rem">${esc(m.note)}</div>`:''}</span><span class="status-pill ${days<0?'due':'ahead'}">${days<0?`⚠ ${-days}d overdue`:days===0?'today':`in ${days}d`}</span></a>`).join('')}</div></section>` : ''; })()}
     <section class="section rv"><span class="sc">Signals</span>
       <div class="signals">${sig.map(s=>`<div class="signal" data-go="${s.go}"><div class="k">${s.k}</div><div class="v">${esc(s.v)}</div><div class="d">${esc(s.d)}</div></div>`).join('')}
         <div class="signal" data-go="#/rituals"><div class="k">Days since weekly review</div><div class="v">${daysSince(S.reviews.lastWeekly)}</div><div class="d">${daysSince(S.reviews.lastWeekly)>7?'a review is due':'on rhythm'}</div></div>

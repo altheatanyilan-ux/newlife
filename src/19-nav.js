@@ -71,7 +71,7 @@ function houseStats(){
     journals: {line:`${j7} entr${j7===1?'y':'ies'} this week`, ok:j7>0, cadence:'daily', tip:`${S.entries.length} entries across ${S.journals.length} journals`},
     projects: {line:`${active.length} active · ${nods7} nods / 7d`, ok:cold===0, cadence:'daily', tip:cold?`${cold} active project${cold>1?'s':''} without a nod this week`:'every active project nodded this week'},
     values:   {line:`snapshot ${snapDays===null?'never':snapDays===0?'today':snapDays+'d ago'}`, ok:snapDays!==null&&snapDays<=7, cadence:'weekly', tip:gaps[0]?`Biggest gap: ${gaps[0].name} (${gaps[0].gap>0?'+':''}${gaps[0].gap})`:''},
-    skills:   {line:`${hrs30.toFixed(0)}h / 30d${atro?` · ${atro} atrophying`:''}`, ok:atro===0, cadence:'monthly', tip:`${S.skills.filter(s=>!s.planned).length} skills held, ${S.skills.filter(s=>s.planned).length} planned`},
+    skills:   {line:`${hrs30.toFixed(0)}h / 30d${atro?` · ${atro} atrophying`:''}`, ok:atro===0, cadence:'monthly', tip:`${S.skills.filter(s=>!s.planned).length} skills held, ${S.skills.filter(s=>s.planned).length} planned${milestonesDueSoon(30).length?` · ${milestonesDueSoon(30).length} milestone${milestonesDueSoon(30).length>1?'s':''} within 30 days`:''}`},
     vision:   {line:`${vs.length} growing${wither?` · ${wither} withering`:''}`, ok:wither===0, cadence:'weekly', tip:vs.length?`Most vivid: ${[...vs].sort((a,b)=>b.score-a.score)[0].v.name}`:''},
     timeline: {line:`${memories} memories · ${S.stages.length} stages`, ok:true, cadence:'archival', tip:'The museum of the past. Formative events and the story you tell.'},
     library:  {line:`${quotes} quotes`, ok:true, cadence:'archival', tip:'Quotes and marginalia; why each one caught you.'},

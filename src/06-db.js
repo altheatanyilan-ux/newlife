@@ -93,6 +93,25 @@ function storesToState(rows){
 /* eras: the ordered list the tree, the panels, and the add dialogs read */
 const ERA_PALETTE = ['#7f916a','#6b7f8e','#b08968','#a0727e','#d4a44c','#8a7f9e','#c47832','#8a8d8f'];
 function erasList(){ return [...(S.visionEras||[])].sort((a,b)=>a.order-b.order).map(e => Object.assign(e, {label:e.name, desc:e.subtitle})); }
+const LEVEL_LABELS = ['Beginner','Novice','Competent','Proficient','Expert','Master'];
+const RESOURCE_TYPES = ['book','video','course','article','tool'];
+function migrateSkillLevels(){
+  S.skills.forEach(s => {
+    if(!Array.isArray(s.levels) || !s.levels.length){ const rub = Array.isArray(s.rubric) && s.rubric.length ? s.rubric : ['','','','','']; s.levels = rub.map((d,i) => ({number:i+1, label:LEVEL_LABELS[i] || `Level ${i+1}`, description:d||'', criteria:[], resources:[], estimatedTime:'', targetDate:null})); }
+    s.levels.forEach((l,i) => { l.number = i+1; l.criteria = l.criteria||[]; l.resources = l.resources||[]; l.estimatedTime = l.estimatedTime||''; if(l.targetDate===undefined) l.targetDate = null; if(!l.label) l.label = `Level ${i+1}`; if(l.description===undefined) l.description = ''; });
+    if(s.currentLevel === undefined) s.currentLevel = s.level ?? (s.planned ? 0 : 1);
+    s.currentLevel = Math.min(s.currentLevel, s.levels.length);
+    if(!Array.isArray(s.milestones)){ s.milestones = []; if(s.target && s.target > s.currentLevel) s.milestones.push({levelTarget:s.target, by:s.targetDate||null, note:''}); }
+    delete s.rubric; delete s.level; delete s.target; delete s.targetDate;
+  });
+}
+function skillLevelCount(s){ return (s.levels||[]).length || 1; }
+function skillLevelLabel(s, n){ const l = (s.levels||[])[n-1]; return l ? l.label : `Level ${n}`; }
+function skillMilestones(s){ return [...(s.milestones||[])].sort((a,b)=>(a.by||'9999')<(b.by||'9999')?-1:1); }
+function nextMilestone(s){ return skillMilestones(s).find(m => m.levelTarget > s.currentLevel) || null; }
+function skillTargetLevel(s){ const ms = (s.milestones||[]).filter(m => m.levelTarget > s.currentLevel); return ms.length ? Math.max(...ms.map(m=>m.levelTarget)) : null; }
+function milestonesDueSoon(days=30){ const T = today(); const out = []; S.skills.forEach(s => (s.milestones||[]).forEach(m => { if(!m.by || m.levelTarget <= s.currentLevel) return; const d = daysBetween(T, m.by.slice(0,10)); if(d <= days) out.push({skill:s, m, days:d}); })); return out.sort((a,b)=>a.days-b.days); }
+const fmtMonth = d => { if(!d) return ''; const x = parseDay(d.slice(0,10)); return `${MONTHS[x.getMonth()].slice(0,3)} ${x.getFullYear()}`; };
 function migrateLifeline(){
   const y = new Date().getFullYear(); const eras = erasList(); if(!eras.length) return;
   eras.forEach(e => { if(e.stageRef === undefined) e.stageRef = null; });
@@ -143,9 +162,9 @@ async function load(){
   // migration source 2: the original localStorage key
   let raw = null; try { raw = localStorage.getItem(KEY); } catch(e){}
   if(raw){ try { S = JSON.parse(raw); migrate(); await writeAllStores(stateToStores(S)); try { localStorage.removeItem(KEY); } catch(e){} setTimeout(() => toast('Your data was migrated from browser storage into the new database.', 5000), 600); return; } catch(e){ console.warn('localStorage migration failed', e); } }
-  S = seed(); await writeAllStores(stateToStores(S));
+  S = seed(); migrate(); await writeAllStores(stateToStores(S));
 }
-async function resetAll(){ S = seed(); await writeAllStores(stateToStores(S)); }
+async function resetAll(){ S = seed(); migrate(); await writeAllStores(stateToStores(S)); }
 async function storageInfo(){ try { const e = await navigator.storage?.estimate?.(); if(e) return {usage:e.usage||0, quota:e.quota||0}; } catch(err){} return null; }
 const fmtBytes = n => n > 1e9 ? (n/1e9).toFixed(2)+' GB' : n > 1e6 ? (n/1e6).toFixed(1)+' MB' : (n/1e3).toFixed(0)+' KB';
 

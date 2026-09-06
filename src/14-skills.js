@@ -4,7 +4,7 @@
 const SKILL_CATS = ['Languages','Technical','Creative','Physical','Social','Craft'];
 const catColor = c => ({Languages:'#6b7f8e',Technical:'#8a8d8f',Creative:'#b08968',Physical:'#c47832',Social:'#a0727e',Craft:'#7f916a'}[c]||'#a89f94');
 /* ---------- hierarchy: virtual root → categories → skills (parent = first prerequisite) ---------- */
-function skillIsLocked(s){ return s.prereqs.some(p => { const ps = byId(S.skills,p); return ps && ps.level < 2; }) && s.level === 0; }
+function skillIsLocked(s){ return s.prereqs.some(p => { const ps = byId(S.skills,p); return ps && ps.currentLevel < 2; }) && s.currentLevel === 0; }
 function skillHierarchy(){
   const collapsed = S.settings.skillCollapsed || {};
   const cats = [...new Set([...SKILL_CATS, ...S.skills.map(s=>s.cat)])].filter(c => S.skills.some(s=>s.cat===c));
@@ -30,7 +30,7 @@ function linkPath(p, c, mode){
 }
 function skillNodeSVG(n, mode, selected, revealFrom){
   const s = n.skill; const w = n.w, h = n.h; const locked = s ? skillIsLocked(s) : false; const since = s ? daysSince(skillLastPracticed(s)) : Infinity; const active = s && !locked && !s.planned && since <= 7; const atro = s && !s.planned && since > 90;
-  const sub = s ? (s.planned ? 'planned' : locked ? 'locked' : `lvl ${s.level}${s.target>s.level?' → '+s.target:''}${atro?' · atrophy':''}`) : (n.kind==='cat' ? `${n.kidCount} skill${n.kidCount===1?'':'s'}` : `${S.skills.length} skills`);
+  const nm = s ? nextMilestone(s) : null; const sub = s ? (s.planned ? 'planned' : locked ? 'locked' : `lvl ${s.currentLevel}/${skillLevelCount(s)}${skillTargetLevel(s)?' → '+skillTargetLevel(s):''}${atro?' · atrophy':''}${nm?.by?` · 📅 ${fmtMonth(nm.by)}`:''}`) : (n.kind==='cat' ? `${n.kidCount} skill${n.kidCount===1?'':'s'}` : `${S.skills.length} skills`);
   const glow = (selected || active) && !locked;
   return `<g class="sk-node ${n.kind} ${locked?'locked':''} ${glow?'glow':''} ${selected?'selected':''} ${revealFrom===n.id?'':''}" data-node="${n.id}" ${s?`data-skill="${s.id}"`:''} transform="translate(${n.x.toFixed(1)},${n.y.toFixed(1)})" style="--nc:${n.color}">
     <rect class="sk-body" x="${-w/2}" y="${-h/2}" width="${w}" height="${h}" rx="9" ${s?.planned?'stroke-dasharray="5 4"':''}/>
@@ -49,7 +49,7 @@ routes.skills = function(root, params){
     <div class="page-head row between"><div><h1>Skill Tree</h1><div class="sub">Career capital, built on the plateau. Categories branch into skills; a skill's first prerequisite is its parent. Drag a node onto another to re-parent it.</div></div>
       <div class="row"><button class="btn sm ${mode==='vertical'?'primary':''}" data-layout="vertical">⊤ vertical</button><button class="btn sm ${mode==='radial'?'primary':''}" data-layout="radial">◎ radial</button><button class="btn sm ghost" id="skExpandAll">expand all</button><button class="btn sm ghost" id="skCollapseAll">collapse all</button><button class="btn sm ghost" id="skReset" title="reset zoom, centre root">⟳</button></div></div>
     <div class="skill-wrap" id="skillWrap"><div class="minimap" id="minimap"></div><div class="sk-hint mono">scroll to zoom · drag the canvas to pan · ± to fold a branch</div></div>
-    <div class="grid c3 section">${S.skills.map(s=>{ const st = skillStreak(s); const last = skillLastPracticed(s); return `<div class="card rv" data-sopen="${s.id}" style="cursor:pointer;border-left:3px solid ${catColor(s.cat)}"><div class="row between"><h3 style="margin:0">${esc(s.name)}</h3><span class="mono">${esc(s.cat)}</span></div><div class="muted" style="font-size:.82rem;margin-top:6px">${s.planned?'planned — a bud not yet opened':`level ${s.level} of 5 · ${(s.rubric[s.level-1]||'').slice(0,60)}`}</div><div class="mono" style="margin-top:8px">last ${relDays(daysSince(last))} · streak ${st.cur}d (best ${st.best}) · ${skillHours(s).toFixed(1)}h</div></div>`; }).join('')}</div>
+    <div class="grid c3 section">${S.skills.map(s=>{ const st = skillStreak(s); const last = skillLastPracticed(s); return `<div class="card rv" data-sopen="${s.id}" style="cursor:pointer;border-left:3px solid ${catColor(s.cat)}"><div class="row between"><h3 style="margin:0">${esc(s.name)}</h3><span class="mono">${esc(s.cat)}</span></div><div class="muted" style="font-size:.82rem;margin-top:6px">${s.planned?'planned — a bud not yet opened':`${esc(skillLevelLabel(s,s.currentLevel))} · level ${s.currentLevel} of ${skillLevelCount(s)}`}${nextMilestone(s)?.by?` · <span class="mono" style="color:${daysBetween(today(),nextMilestone(s).by)<0?'#d08080':'var(--muted)'}">📅 L${nextMilestone(s).levelTarget} by ${fmtMonth(nextMilestone(s).by)}</span>`:''}</div><div class="mono" style="margin-top:8px">last ${relDays(daysSince(last))} · streak ${st.cur}d (best ${st.best}) · ${skillHours(s).toFixed(1)}h</div></div>`; }).join('')}</div>
   </div>`;
   drawSkillTree(root);
   $$('[data-layout]',root).forEach(b => b.onclick = () => { S.settings.skillLayout = b.dataset.layout; saveNow(); rerender(); });
@@ -118,14 +118,13 @@ function deleteSkill(sk, node, after){
 function openSkillPanel(id){
   const s = byId(S.skills,id); if(!s) return; const es = sortEntries(entriesLinked('skills',s.id)); const st = skillStreak(s); const last = skillLastPracticed(s); const since = daysSince(last);
   const visions = S.visions.filter(v=>v.preSkills.includes(s.id)); const projects = S.projects.filter(p => es.some(e=>(e.links.projects||[]).includes(p.id))); const values = {}; es.forEach(e=>(e.links.values||[]).forEach(x=>values[x.id]=(values[x.id]||0)+1));
-  const arche = s.planned ? 'A bud. Nothing to judge yet.' : since>90 ? 'The Dabbler? Enthusiasm, then a plateau, then silence. Or perhaps a deliberate surrender — some competencies are meant to be let go.' : st.best>=14 && st.cur===0 ? 'The Obsessive? A long hard streak, then a break. Watch for burnout; oscillation is the rhythm, not a failure.' : s.level>=3 && s.level===s.target ? 'The Hacker? Good enough, and stopped. Is this the level you chose, or the one you settled for?' : 'On the path. Loving the plateau. The master stays on the mat five minutes longer.';
-  const p = openPanel(`<div class="mono">${esc(s.cat)} · ${s.planned?'planned':'level '+s.level}</div><h2>${ed(`skills.#${s.id}.name`)}</h2>
+  const arche = s.planned ? 'A bud. Nothing to judge yet.' : since>90 ? 'The Dabbler? Enthusiasm, then a plateau, then silence. Or perhaps a deliberate surrender — some competencies are meant to be let go.' : st.best>=14 && st.cur===0 ? 'The Obsessive? A long hard streak, then a break. Watch for burnout; oscillation is the rhythm, not a failure.' : s.currentLevel>=3 && !skillTargetLevel(s) && s.currentLevel < skillLevelCount(s) ? 'The Hacker? Good enough, and stopped. Is this the level you chose, or the one you settled for?' : 'On the path. Loving the plateau. The master stays on the mat five minutes longer.';
+  const p = openPanel(`<div class="mono">${esc(s.cat)} · ${s.planned?'planned':'level '+s.currentLevel+' of '+skillLevelCount(s)}</div><h2>${ed(`skills.#${s.id}.name`)}</h2>
     <div class="row" style="margin:8px 0 18px"><select class="sel" style="width:auto" id="skCatSel">${SKILL_CATS.map(c=>`<option ${s.cat===c?'selected':''}>${c}</option>`).join('')}</select><label class="toggle ${s.planned?'on':''}" id="skPl"><span class="sw"></span><span>planned</span></label></div>
     <div class="grid c3" style="gap:10px"><div class="card" style="padding:12px 14px"><div class="mono">last practiced</div><div class="serif" style="font-size:1.2rem">${relDays(since)}</div></div><div class="card" style="padding:12px 14px"><div class="mono">streak</div><div class="serif" style="font-size:1.2rem">${st.cur}d <span class="faint" style="font-size:.8rem">best ${st.best}</span></div></div><div class="card" style="padding:12px 14px"><div class="mono">total hours</div><div class="serif" style="font-size:1.2rem" data-tween="${skillHours(s)}" data-dec="1">0</div></div></div>
     <div class="archetype">${arche}</div>
-    <div class="vp-sec"><span class="sc">Your rubric — what each level means, for you</span><p class="faint" style="font-size:.8rem;margin:0 0 6px">Click a level to set it as current. Dashed outline is the target.</p>
-      <ul class="rubric">${[1,2,3,4,5].map(l=>`<li class="${s.level===l?'cur':''} ${s.target===l?'target':''}" data-lv="${l}"><span class="lv">${l}</span><span>${ed(`skills.#${s.id}.rubric.${l-1}`,{ph:'what does level '+l+' mean for this skill?'})}</span></li>`).join('')}</ul>
-      <div class="row" style="margin-top:10px"><span class="mono">target level</span><select class="sel" style="width:auto;padding:3px 8px" id="skTarget">${[1,2,3,4,5].map(l=>`<option ${s.target===l?'selected':''}>${l}</option>`).join('')}</select><span class="mono">by</span>${ed(`skills.#${s.id}.targetDate`,{ph:'YYYY-MM-DD',cls:'mono'})}</div></div>
+    ${levelTrackHTML(s)}
+    ${milestoneTimelineHTML(s)}
     <div class="vp-sec"><span class="sc">Prerequisites</span><div class="deps">${S.skills.filter(x=>x.id!==s.id).map(x=>`<span class="chip click ${s.prereqs.includes(x.id)?'on':''}" style="--c:${catColor(x.cat)}" data-pre="${x.id}">${esc(x.name)}</span>`).join('')}</div></div>
     <div class="vp-sec"><span class="sc">Cross-mappings</span>
       <div class="k mono" style="margin:6px 0 4px">load-bearing for visions — what do I need to become to live that life?</div><div class="deps">${visions.map(v=>`<span class="chip on click" style="--c:var(--sage)" data-go="#/vision/${v.id}">🌿 ${esc(v.name)}</span>`).join('')||'<span class="faint">no vision depends on this yet</span>'}</div>
@@ -135,10 +134,71 @@ function openSkillPanel(id){
     ${moreSection(`<div class="danger-zone"><span>Skills accrue slowly. Consider marking it planned or lowering the level before deleting.</span><button class="btn sm ghost danger" id="skDel">Delete this skill</button></div>`)}`);
   $$('#panel .rv').forEach(n=>n.classList.add('in'));
   p.querySelector('#skCatSel').onchange = e => { s.cat = e.target.value; saveNow(); rerender(); openSkillPanel(id); };
-  p.querySelector('#skPl').onclick = () => { s.planned = !s.planned; if(!s.planned && s.level===0) s.level=1; saveNow(); rerender(); openSkillPanel(id); };
-  p.querySelectorAll('.rubric li').forEach(li => li.addEventListener('click', e => { if(e.target.closest('.ed')) return; const up = +li.dataset.lv > s.level; s.level = +li.dataset.lv; s.planned=false; saveNow(); rerender(); openSkillPanel(id); if(up) setTimeout(() => $('#main')?._skView?.burst(id), 60); }));
-  p.querySelector('#skTarget').onchange = e => { s.target = +e.target.value; saveNow(); openSkillPanel(id); };
+  p.querySelector('#skPl').onclick = () => { s.planned = !s.planned; if(!s.planned && s.currentLevel===0) s.currentLevel=1; saveNow(); rerender(); openSkillPanel(id); };
+  bindLevelTrack(p, s);
+  bindMilestones(p, s);
   p.querySelectorAll('[data-pre]').forEach(c => c.onclick = () => { const x = c.dataset.pre; s.prereqs = s.prereqs.includes(x) ? s.prereqs.filter(y=>y!==x) : [...s.prereqs,x]; saveNow(); c.classList.toggle('on'); rerender(); });
   p.querySelector('#skLog').onclick = () => openEntryModal({type:'progress', links:{skills:[s.id]}, after:()=>{ rerender(); openSkillPanel(id); }});
   p.querySelector('#skDel').onclick = () => deleteSkill(s, null, () => { closePanel(); rerender(); });
+}
+
+/* ============================================================
+   LEVELS — customisable progression track, and MILESTONES
+   ============================================================ */
+const RES_ICON = {book:'📖', video:'▶', course:'🎓', article:'📄', tool:'🛠'};
+function levelTrackHTML(s){
+  const n = skillLevelCount(s), cur = s.currentLevel; const color = catColor(s.cat); const openLv = S._openLevel?.[s.id];
+  return `<div class="vp-sec"><div class="row between"><span class="sc">The path — ${n} level${n===1?'':'s'}</span><span class="mono">Level ${cur} of ${n}</span></div>
+    <div class="bar" style="--c:${color};margin:6px 0 14px"><i style="width:${(cur/n*100).toFixed(0)}%"></i></div>
+    <div class="lvl-track" id="lvlTrack" style="--c:${color}">${s.levels.map((l,i) => { const num = i+1; const state = num < cur ? 'done' : num === cur ? 'current' : 'future'; const ms = (s.milestones||[]).filter(m => m.levelTarget === num); return `<div class="lvl ${state} ${openLv===num?'open':''}" data-level="${num}" draggable="true">
+      <div class="lvl-rail"><span class="lvl-handle" title="drag to reorder">⠿</span><button class="lvl-node" data-setlevel="${num}" title="${state==='current'?'current level':'set as current level'}">${state==='done'?'✓':num}</button></div>
+      <div class="lvl-body">
+        <div class="lvl-head" data-expand="${num}"><span class="lvl-label">${ed(`skills.#${s.id}.levels.${i}.label`,{ph:'level name'})}</span><span class="mono lvl-meta">${l.estimatedTime?`⏱ ${esc(l.estimatedTime)}`:''}${ms.map(m=>` <span class="ms-chip ${m.by&&daysBetween(today(),m.by)<0?'due':''}">📅 ${m.by?fmtMonth(m.by):'no date'}</span>`).join('')}</span><span class="lvl-chev">›</span></div>
+        <div class="lvl-detail"><div class="lvl-detail-inner">
+          <div class="k mono">what I can do at this level</div><div class="prose" style="font-size:.9rem">${ed(`skills.#${s.id}.levels.${i}.description`,{multi:true,mdr:true,ph:'Describe the capability. Markdown welcome.'})}</div>
+          <div class="k mono" style="margin-top:10px">criteria — observable behaviours</div><ul class="lvl-criteria">${l.criteria.map((c,ci)=>`<li><span class="mono">▸</span>${ed(`skills.#${s.id}.levels.${i}.criteria.${ci}`,{ph:'something I can be seen doing'})}<button class="del-x inline" data-critdel="${i}:${ci}" title="remove">×</button></li>`).join('')}</ul><button class="tbtn" data-critadd="${i}">+ criterion</button>
+          <div class="k mono" style="margin-top:10px">resources</div><div class="lvl-res">${l.resources.map((r,ri)=>{ let host=''; try { host = new URL(r.url).hostname; } catch(e){} return `<div class="res-row"><span class="res-type" title="${esc(r.type)}">${RES_ICON[r.type]||'▫'}</span>${r.url?`<a class="res-link" href="${esc(r.url)}" target="_blank" rel="noopener">${host?`<img class="res-fav" src="https://www.google.com/s2/favicons?domain=${esc(host)}&sz=16" alt="" onerror="this.style.display='none'">`:''}${esc(r.title||r.url)}</a>`:`<span>${esc(r.title||'untitled resource')}</span>`}<span class="status-pill" style="font-size:.6rem">${esc(r.type)}</span><span class="res-edit"><span class="ed-wrap">${ed(`skills.#${s.id}.levels.${i}.resources.${ri}.title`,{ph:'title',cls:'mono'})}</span><span class="ed-wrap">${ed(`skills.#${s.id}.levels.${i}.resources.${ri}.url`,{ph:'https://…',cls:'mono'})}</span><select class="sel" data-restype="${i}:${ri}" style="width:auto;padding:1px 6px;font-size:.66rem">${RESOURCE_TYPES.map(t=>`<option ${r.type===t?'selected':''}>${t}</option>`).join('')}</select><button class="del-x inline" data-resdel="${i}:${ri}" title="remove">×</button></span></div>`; }).join('')}</div><button class="tbtn" data-resadd="${i}">+ resource</button>
+          <div class="row" style="gap:16px;margin-top:10px;flex-wrap:wrap"><span><span class="k mono">estimated time</span> ${ed(`skills.#${s.id}.levels.${i}.estimatedTime`,{ph:'e.g. 3 months',cls:'mono'})}</span><span><span class="k mono">target date</span> ${ed(`skills.#${s.id}.levels.${i}.targetDate`,{ph:'YYYY-MM-DD',cls:'mono',hook:'lvldate:'+s.id+':'+i})}</span><button class="tbtn" data-lvldel="${i}" style="margin-left:auto;color:var(--faint)">remove level</button></div>
+        </div></div>
+      </div></div>`; }).join('')}
+      <button class="btn sm ghost" id="lvlAdd" style="margin:8px 0 0 44px">＋ Add level</button>
+    </div></div>`;
+}
+hooks.lvldate = (arg) => { const [sid, i] = arg.split(':'); const s = byId(S.skills, sid); if(!s) return; const l = s.levels[+i]; if(l && l.targetDate === '') l.targetDate = null; saveNow(); };
+function bindLevelTrack(p, s){
+  const id = s.id; const reopen = () => { rerender(); openSkillPanel(id); };
+  p.querySelectorAll('[data-setlevel]').forEach(b => b.onclick = e => { e.stopPropagation(); const n = +b.dataset.setlevel; const up = n > s.currentLevel; s.currentLevel = n; s.planned = false; saveNow(); reopen(); if(up) setTimeout(() => $('#main')?._skView?.burst(id), 60); });
+  p.querySelectorAll('[data-expand]').forEach(h => h.addEventListener('click', e => { if(e.target.closest('.ed')) return; const n = +h.dataset.expand; S._openLevel = S._openLevel||{}; S._openLevel[id] = S._openLevel[id]===n ? null : n; const row = h.closest('.lvl'); const wasOpen = row.classList.contains('open'); p.querySelectorAll('.lvl').forEach(x => x.classList.remove('open')); if(!wasOpen) row.classList.add('open'); }));
+  p.querySelector('#lvlAdd').onclick = () => { const n = s.levels.length+1; s.levels.push({number:n, label:LEVEL_LABELS[n-1]||`Level ${n}`, description:'', criteria:[], resources:[], estimatedTime:'', targetDate:null}); S._openLevel = {...(S._openLevel||{}), [id]:n}; saveNow(); reopen(); };
+  p.querySelectorAll('[data-lvldel]').forEach(b => b.onclick = () => { if(s.levels.length <= 1){ toast('A skill needs at least one level.'); return; } const i = +b.dataset.lvldel; const lv = s.levels[i]; requestDelete({label:`Level ${i+1} · ${lv.label}`, remove: () => { const oldCur = s.currentLevel; const back = spliceOut(s.levels, x => x === lv); s.levels.forEach((l,k)=>l.number=k+1); if(s.currentLevel > s.levels.length) s.currentLevel = s.levels.length; (s.milestones||[]).forEach(m => { if(m.levelTarget > s.levels.length) m.levelTarget = s.levels.length; }); return () => { back(); s.levels.forEach((l,k)=>l.number=k+1); s.currentLevel = oldCur; }; }, after: reopen}); });
+  p.querySelectorAll('[data-critadd]').forEach(b => b.onclick = () => { const i = +b.dataset.critadd; s.levels[i].criteria.push(''); S._openLevel = {...(S._openLevel||{}), [id]:i+1}; saveNow(); reopen(); setTimeout(()=>{ const last = $$(`#panel .lvl[data-level="${i+1}"] .lvl-criteria .ed`).slice(-1)[0]; last && beginEdit(last); },60); });
+  p.querySelectorAll('[data-critdel]').forEach(b => b.onclick = () => { const [i,ci] = b.dataset.critdel.split(':').map(Number); s.levels[i].criteria.splice(ci,1); saveNow(); reopen(); });
+  p.querySelectorAll('[data-resadd]').forEach(b => b.onclick = () => { const i = +b.dataset.resadd; s.levels[i].resources.push({title:'', url:'', type:'article'}); S._openLevel = {...(S._openLevel||{}), [id]:i+1}; saveNow(); reopen(); setTimeout(()=>{ const last = $$(`#panel .lvl[data-level="${i+1}"] .res-row`).slice(-1)[0]; const ed_ = last?.querySelector('.ed'); if(ed_){ last.querySelector('.res-edit').style.display='flex'; beginEdit(ed_); } },60); });
+  p.querySelectorAll('[data-resdel]').forEach(b => b.onclick = () => { const [i,ri] = b.dataset.resdel.split(':').map(Number); s.levels[i].resources.splice(ri,1); saveNow(); reopen(); });
+  p.querySelectorAll('[data-restype]').forEach(sel => sel.onchange = () => { const [i,ri] = sel.dataset.restype.split(':').map(Number); s.levels[i].resources[ri].type = sel.value; saveNow(); reopen(); });
+  let drag = null; const track = p.querySelector('#lvlTrack');
+  track.querySelectorAll('.lvl').forEach(row => {
+    row.addEventListener('dragstart', ev => { if(ev.target.closest('.ed,button,select,a,input')){ ev.preventDefault(); return; } drag = +row.dataset.level; row.classList.add('dragging'); ev.dataTransfer.effectAllowed='move'; try { ev.dataTransfer.setData('text/plain', String(drag)); } catch(e){} });
+    row.addEventListener('dragend', () => { row.classList.remove('dragging'); track.querySelectorAll('.lvl').forEach(x=>x.classList.remove('over')); });
+    row.addEventListener('dragover', ev => { ev.preventDefault(); row.classList.add('over'); });
+    row.addEventListener('dragleave', () => row.classList.remove('over'));
+    row.addEventListener('drop', ev => { ev.preventDefault(); const from = drag || +ev.dataTransfer.getData('text/plain'); const to = +row.dataset.level; if(!from || from === to) return; const curObj = s.levels[s.currentLevel-1]; const [moved] = s.levels.splice(from-1, 1); s.levels.splice(to-1, 0, moved); const map = {}; s.levels.forEach((l,k) => { map[l.number] = k+1; }); s.levels.forEach((l,k) => l.number = k+1); if(curObj) s.currentLevel = s.levels.indexOf(curObj)+1; (s.milestones||[]).forEach(m => { if(map[m.levelTarget]) m.levelTarget = map[m.levelTarget]; }); drag = null; saveNow(); reopen(); });
+  });
+}
+function milestoneTimelineHTML(s){
+  const ms = skillMilestones(s); const T = today(); const color = catColor(s.cat);
+  const dated = ms.filter(m => m.by); let axis = '';
+  if(dated.length){ const t0 = Math.min(parseDay(T).getTime(), ...dated.map(m=>parseDay(m.by.slice(0,10)).getTime())); const t1 = Math.max(parseDay(T).getTime()+DAY*30, ...dated.map(m=>parseDay(m.by.slice(0,10)).getTime())); const X = d => 4 + ((parseDay(d.slice(0,10)).getTime()-t0)/Math.max(t1-t0,1))*92;
+    axis = `<div class="ms-axis" style="--c:${color}"><div class="ms-line"></div><div class="ms-now" style="left:${X(T).toFixed(1)}%" title="today"><i></i><span>now</span></div>${dated.map((m,i)=>{ const d = daysBetween(T, m.by.slice(0,10)); const reached = s.currentLevel >= m.levelTarget; return `<div class="ms-mark ${reached?'reached':d<0?'due':'ahead'}" style="left:${X(m.by).toFixed(1)}%" title="${esc(m.note||'')}"><i></i><span class="ms-lbl">L${m.levelTarget}${reached?' ✓':d<0?' ⚠':''}<br><span class="mono">${fmtDate(m.by,'short')} ${m.by.slice(0,4)}</span></span></div>`; }).join('')}</div>`; }
+  return `<div class="vp-sec"><div class="row between"><span class="sc">Milestones — ${ms.length||'no'} target${ms.length===1?'':'s'}</span><button class="btn sm ghost" id="msAdd">+ milestone</button></div>
+    ${axis || '<div class="faint" style="font-size:.8rem;padding:4px 0">Set a level and a date. They appear as markers here, as chips on the tree, and on Today when they are close.</div>'}
+    <div class="ms-list">${ms.map(m => { const idx = (s.milestones||[]).indexOf(m); const d = m.by ? daysBetween(T, m.by.slice(0,10)) : null; const reached = s.currentLevel >= m.levelTarget; const badge = reached ? '<span class="status-pill" style="color:var(--sage)">reached</span>' : d===null ? '<span class="status-pill">no date</span>' : d<0 ? `<span class="status-pill due">⚠ ${-d}d overdue</span>` : `<span class="status-pill ahead">in ${d}d</span>`;
+      return `<div class="ms-row"><select class="sel" data-mslevel="${idx}" style="width:auto;padding:2px 6px;font-size:.7rem">${s.levels.map((l,li)=>`<option value="${li+1}" ${m.levelTarget===li+1?'selected':''}>L${li+1} · ${esc(l.label)}</option>`).join('')}</select><input type="date" class="inp" value="${m.by?m.by.slice(0,10):''}" data-msdate="${idx}" style="width:auto;padding:2px 6px;font-size:.7rem"><span class="ms-note">${ed(`skills.#${s.id}.milestones.${idx}.note`,{ph:'why this date?'})}</span>${badge}<button class="del-x inline" data-msdel="${idx}" title="remove">×</button></div>`; }).join('')}</div></div>`;
+}
+function bindMilestones(p, s){
+  const id = s.id; const reopen = () => { rerender(); openSkillPanel(id); };
+  p.querySelector('#msAdd').onclick = () => { s.milestones = s.milestones||[]; s.milestones.push({levelTarget: Math.min(s.currentLevel+1, skillLevelCount(s)), by: addDays(today(), 90), note:''}); saveNow(); reopen(); };
+  p.querySelectorAll('[data-mslevel]').forEach(sel => sel.onchange = () => { s.milestones[+sel.dataset.mslevel].levelTarget = +sel.value; saveNow(); reopen(); });
+  p.querySelectorAll('[data-msdate]').forEach(inp => inp.onchange = () => { s.milestones[+inp.dataset.msdate].by = inp.value || null; saveNow(); reopen(); });
+  p.querySelectorAll('[data-msdel]').forEach(b => b.onclick = () => { const m = s.milestones[+b.dataset.msdel]; requestDelete({label:`Milestone L${m.levelTarget}${m.by?' · '+fmtMonth(m.by):''}`, remove: () => spliceOut(s.milestones, x => x === m), after: reopen}); });
 }

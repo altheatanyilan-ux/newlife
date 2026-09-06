@@ -177,7 +177,14 @@ function seed(){
   ];
 
   const skills = [
-    {id:'sk-jp-conv',name:'Conversational Japanese',cat:'Languages',rubric:['Hiragana, katakana, greetings','5-minute chat about daily life','20-minute conversation, some abstraction','N2 — functional at work','N1+ — funny, formal, literate'],level:3,target:4,targetDate:'2027-12-01',prereqs:[],planned:false},
+    {id:'sk-jp-conv',name:'Conversational Japanese',cat:'Languages',currentLevel:3,prereqs:[],planned:false,
+      levels:[
+        {number:1,label:'Kana',description:'Hiragana, katakana, greetings.',criteria:['Read a menu without romaji','Introduce myself in three sentences'],resources:[{title:'Tofugu hiragana guide',url:'https://www.tofugu.com/japanese/learn-hiragana/',type:'article'}],estimatedTime:'1 month',targetDate:null},
+        {number:2,label:'Daily life',description:'A 5-minute chat about daily topics.',criteria:['Order food and ask for the bill','Talk about my week for two minutes'],resources:[{title:'Genki I',url:'https://genki3.japantimes.co.jp/en/',type:'book'}],estimatedTime:'4 months',targetDate:null},
+        {number:3,label:'Conversational',description:'A 20-minute conversation with some abstraction.',criteria:['Explain why I left law, in Japanese','Follow a drama episode without subtitles'],resources:[{title:'Genki II',url:'https://genki3.japantimes.co.jp/en/',type:'book'},{title:'Nihongo con Teppei',url:'https://nihongoconteppei.com/',type:'video'}],estimatedTime:'8 months',targetDate:null},
+        {number:4,label:'Functional (N2)',description:'N2 — functional in a work environment.',criteria:['Pass N2','Run a bar shift entirely in Japanese','Read an NHK article cold'],resources:[{title:'Shin Kanzen Master N2',url:'https://www.3anet.co.jp/np/en/',type:'book'},{title:'Anki',url:'https://apps.ankiweb.net/',type:'tool'}],estimatedTime:'12 months',targetDate:'2027-12-01'},
+        {number:5,label:'Literate (N1+)',description:'N1+ — funny, formal, literate.',criteria:['Make a pun a chef repeats','Write a formal email without checking'],resources:[],estimatedTime:'2 years',targetDate:null}],
+      milestones:[{levelTarget:4,by:'2027-12-01',note:'Before the JET placement starts'},{levelTarget:5,by:'2029-04-01',note:'Master\'s seminar in Japanese'}]},
     {id:'sk-jp-read',name:'Reading Japanese',cat:'Languages',rubric:['Kana + 100 kanji','Menus, signs, simple manga','News with a dictionary','Novels slowly','Literature, legal text'],level:2,target:4,targetDate:'2028-04-01',prereqs:['sk-jp-conv'],planned:false},
     {id:'sk-jp-biz',name:'Business Japanese',cat:'Languages',rubric:['Keigo basics','Emails','Meetings','Negotiation','Presentations'],level:0,target:3,targetDate:'',prereqs:['sk-jp-conv','sk-jp-read'],planned:true},
     {id:'sk-mandarin',name:'Mandarin (maintenance)',cat:'Languages',rubric:['Household','Conversational','Reads news','Writes essays','Literary'],level:3,target:3,targetDate:'',prereqs:[],planned:false},
@@ -186,7 +193,7 @@ function seed(){
     {id:'sk-writing',name:'Essay writing',cat:'Creative',rubric:['Clear paragraphs','A voice','Publishable pieces','Readers who pay','A book'],level:3,target:4,targetDate:'2027-01-01',prereqs:[],planned:false},
     {id:'sk-photo',name:'Photography',cat:'Creative',rubric:['Auto mode','Manual exposure','A consistent eye','Paid work','Exhibitions'],level:3,target:3,targetDate:'',prereqs:[],planned:false},
     {id:'sk-piano',name:'Piano (reclaimed)',cat:'Creative',rubric:['Remember the scales','Play for pleasure, 3 pieces','Improvise','Accompany singers','Compose'],level:1,target:2,targetDate:'',prereqs:[],planned:false},
-    {id:'sk-run',name:'Running',cat:'Physical',rubric:['5k','10k comfortably','Half marathon','Marathon','Ultra / lifelong'],level:2,target:3,targetDate:'2027-03-01',prereqs:[],planned:false},
+    {id:'sk-run',name:'Running',cat:'Physical',rubric:['5k','10k comfortably','Half marathon','Marathon','Ultra / lifelong'],level:2,target:3,targetDate:addDays(T,21),prereqs:[],planned:false},
     {id:'sk-climb',name:'Climbing',cat:'Physical',rubric:['Top rope','Lead indoors','5.11 / V4','Outdoor lead','Multi-pitch'],level:2,target:3,targetDate:'',prereqs:[],planned:false},
     {id:'sk-hosting',name:'Hosting a room',cat:'Social',rubric:['Remember names','Make one stranger comfortable','Run a dinner for 8','Run a room of 30','People come back for the host'],level:3,target:5,targetDate:'',prereqs:[],planned:false},
     {id:'sk-listen',name:'Deep listening',cat:'Social',rubric:['Wait my turn','Reflect back','Notice what is not said','Hold silence','Be a mirror'],level:2,target:4,targetDate:'',prereqs:[],planned:false},
