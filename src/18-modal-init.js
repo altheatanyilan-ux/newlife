@@ -117,7 +117,7 @@ async function init(){
   const sb = $('#sidebar'); $('.brand', sb).onclick = () => sb.classList.toggle('open');
   if(navigator.platform.toUpperCase().indexOf('MAC')<0){ $$('kbd').forEach(k => k.textContent = k.textContent.replace('⌘','Ctrl+')); $('.fab .hint').textContent = 'new entry · Ctrl+N'; }
   if(!location.hash) location.hash = S.settings.home==='map' ? '#/map' : '#/today';
-  renderRoute(); startDust();
+  renderRoute(); startDust(); updateBackButton();
   window.addEventListener('beforeunload', () => { if(saving || savePending) saveNow(); });
   if(S.settings.firstOpen === today() && !S._welcomed){ S._welcomed = true; setTimeout(()=>toast('Welcome home. Every piece of text here is editable — click it. The placeholder life is yours to overwrite.', 7000), 800); }
 }

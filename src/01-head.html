@@ -62,6 +62,16 @@ button{font-family:inherit;color:inherit}
 input,textarea,select{font-family:inherit;font-size:inherit;color:inherit}
 kbd{font-family:var(--mono);font-size:.68rem;padding:2px 6px;border:1px solid var(--line-2);border-radius:5px;color:var(--muted);background:var(--surface-2)}
 
+/* Back button: fixed top-left, semi-transparent pill, fades in on mount */
+.back-btn{position:fixed;top:16px;left:calc(var(--sidebar) + 16px);z-index:100;display:inline-flex;align-items:center;gap:8px;padding:7px 14px 7px 11px;border-radius:999px;border:1px solid var(--line-2);background:color-mix(in srgb,var(--surface) 72%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:var(--muted);font-size:.8rem;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.18);transition:color .2s var(--ease),border-color .2s var(--ease),transform .2s var(--ease)}
+.back-btn:hover{color:var(--text);border-color:var(--terra);transform:translateX(-2px)}
+.back-btn .arrow{font-family:var(--serif);font-size:1.05rem;line-height:1}
+.back-btn.entering{animation:backin .28s var(--ease) both}
+.back-btn.leaving{animation:backout .2s var(--ease) both;pointer-events:none}
+@keyframes backin{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+@keyframes backout{from{opacity:1}to{opacity:0;transform:translateX(-6px)}}
+@media (max-width:900px){.back-btn{left:16px}}
+
 /* Ambient blobs */
 .ambient{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
 .blob{position:absolute;width:60vmax;height:60vmax;border-radius:50%;filter:blur(120px);opacity:var(--blob-op);will-change:transform}

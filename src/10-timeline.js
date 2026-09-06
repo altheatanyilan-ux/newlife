@@ -115,8 +115,7 @@ routes.stage = function(root, params){
   const cur = latestSnapshot()?.ratings || {};
   const axes = S.valueOrder.map(id=>{ const v=byId(S.values,id); return {name:v.name, short:v.name.split(' ')[0], color:v.color}; });
   root.innerHTML = `<div class="page" style="--c:${s.hue}">
-    <a href="#/timeline" class="mono" style="text-decoration:none">← timeline</a>
-    <div class="stage-hero" style="margin-top:14px"><div class="mosaic" style="view-transition-name:stage-mosaic">${mosaicHTML(s,18,true)}</div><div class="veil"></div>
+    <div class="stage-hero" style="margin-top:34px"><div class="mosaic" style="view-transition-name:stage-mosaic">${mosaicHTML(s,18,true)}</div><div class="veil"></div>
       <button class="btn sm addphoto" id="addPhotos">+ photos</button><input type="file" id="photoFile" accept="image/*" multiple hidden>
       <div class="inner"><div class="han" style="view-transition-name:stage-char">${s.char}</div><div class="meta"><div class="mono" style="margin-bottom:6px">stage ${s.num} of 8</div><h1>${ed(`stages.#${s.id}.name`)}</h1><div class="quote" style="margin-top:8px">${ed(`stages.#${s.id}.tagline`,{ph:'a tagline'})}</div><div class="mono" style="margin-top:8px">${ed(`stages.#${s.id}.years`,{ph:'years'})}</div></div></div>
     </div>

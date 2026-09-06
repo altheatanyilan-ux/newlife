@@ -62,6 +62,16 @@ button{font-family:inherit;color:inherit}
 input,textarea,select{font-family:inherit;font-size:inherit;color:inherit}
 kbd{font-family:var(--mono);font-size:.68rem;padding:2px 6px;border:1px solid var(--line-2);border-radius:5px;color:var(--muted);background:var(--surface-2)}
 
+/* Back button: fixed top-left, semi-transparent pill, fades in on mount */
+.back-btn{position:fixed;top:16px;left:calc(var(--sidebar) + 16px);z-index:100;display:inline-flex;align-items:center;gap:8px;padding:7px 14px 7px 11px;border-radius:999px;border:1px solid var(--line-2);background:color-mix(in srgb,var(--surface) 72%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:var(--muted);font-size:.8rem;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.18);transition:color .2s var(--ease),border-color .2s var(--ease),transform .2s var(--ease)}
+.back-btn:hover{color:var(--text);border-color:var(--terra);transform:translateX(-2px)}
+.back-btn .arrow{font-family:var(--serif);font-size:1.05rem;line-height:1}
+.back-btn.entering{animation:backin .28s var(--ease) both}
+.back-btn.leaving{animation:backout .2s var(--ease) both;pointer-events:none}
+@keyframes backin{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+@keyframes backout{from{opacity:1}to{opacity:0;transform:translateX(-6px)}}
+@media (max-width:900px){.back-btn{left:16px}}
+
 /* Ambient blobs */
 .ambient{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
 .blob{position:absolute;width:60vmax;height:60vmax;border-radius:50%;filter:blur(120px);opacity:var(--blob-op);will-change:transform}
@@ -620,6 +630,7 @@ html[data-theme="light"] .stage-hero .veil{background:linear-gradient(180deg,rgb
   </aside>
   <main id="main"></main>
 </div>
+<button class="back-btn" id="backBtn" data-back hidden aria-label="Go back"><span class="arrow">←</span> Back</button>
 <div class="topbar">
   <button class="iconbtn" id="btnSearch" title="Search (⌘K)">⌕ <span>search</span> <kbd>⌘K</kbd></button>
   <button class="iconbtn" id="btnSound" title="Interaction sounds">🔕</button>
@@ -756,22 +767,35 @@ function renderRoute(){
   $$('#nav a, .settings-link a').forEach(a => a.classList.toggle('active', a.dataset.r === base));
   const main = $('#main');
   const fn = routes[name] || routes.today;
-  closePanel();
+  closePanel({keep:true});
   main.innerHTML = '';
   main.style.animation = 'none'; void main.offsetWidth; main.style.animation = '';
   currentRoute = name;
   try { fn(main, params); } catch(err){ console.error(err); main.innerHTML = `<div class="page narrow"><h1>Something went wrong</h1><p class="muted">${esc(err.message)}</p></div>`; }
-  reveal(main); tweenAll(main); backupBanner();
+  reveal(main); tweenAll(main); backupBanner(); updateBackButton();
   window.scrollTo({top:0, behavior:'instant'});
 }
 function rerender(){ const y = window.scrollY; const main = $('#main'); const {name, params} = parseHash(); main.innerHTML=''; (routes[name]||routes.today)(main, params); $$('.rv', main).forEach(n=>n.classList.add('in')); tweenAll(main); window.scrollTo({top:y}); }
 window.addEventListener('hashchange', () => { sound('page'); if(document.startViewTransition && !reduced() && document.visibilityState==='visible') document.startViewTransition(renderRoute); else renderRoute(); });
 
 /* ---------- side panel ---------- */
-function openPanel(html, cls=''){ closePanel(); sound('open'); const ov = el(`<div class="panel-overlay" id="panelOv"></div>`); const p = el(`<div class="side-panel ${cls}" id="panel"><button class="close" title="close">×</button>${html}</div>`); document.body.appendChild(ov); document.body.appendChild(p); ov.onclick = closePanel; p.querySelector('.close').onclick = closePanel; tweenAll(p); return p; }
-function closePanel(){ $('#panelOv')?.remove(); $('#panel')?.remove(); }
+function openPanel(html, cls=''){ closePanel({keep:true}); sound('open'); if(!history.state?.liPanel){ try { history.pushState({liPanel:true}, '', location.href); } catch(e){} } const ov = el(`<div class="panel-overlay" id="panelOv"></div>`); const p = el(`<div class="side-panel ${cls}" id="panel"><button class="close" title="close">×</button>${html}</div>`); document.body.appendChild(ov); document.body.appendChild(p); ov.onclick = closePanel; p.querySelector('.close').onclick = closePanel; tweenAll(p); return p; }
+function closePanel({keep=false}={}){ const had = !!$('#panel'); $('#panelOv')?.remove(); $('#panel')?.remove(); if(had && !keep && history.state?.liPanel){ history.back(); } else updateBackButton(); }
+window.addEventListener('popstate', e => { if($('#panel') && !e.state?.liPanel) closePanel({keep:true}); updateBackButton(); });
+/* ---------- persistent Back button: history.back() only, never a link ---------- */
+function homeRoute(){ return S?.settings?.home==='map' ? 'map' : 'today'; }
+function updateBackButton(){
+  const b = $('#backBtn'); if(!b) return;
+  const {name} = parseHash();
+  const show = history.length > 1 && (name !== homeRoute() || !!$('#panel'));
+  if(show && b.hidden){ b.hidden = false; b.classList.remove('leaving'); b.classList.add('entering'); }
+  else if(!show && !b.hidden){ if(reduced()){ b.hidden = true; return; } b.classList.add('leaving'); setTimeout(() => { if(b.classList.contains('leaving')){ b.hidden = true; b.classList.remove('leaving'); } }, 220); }
+}
+function goBack(){ if(history.length > 1) history.back(); else navigate('#/' + homeRoute()); }
+document.addEventListener('click', e => { const b = e.target.closest('[data-back]'); if(b){ e.preventDefault(); goBack(); } });
 function openModal(html, cls=''){ sound('open'); const ov = el(`<div class="overlay"><div class="modal ${cls}"><button class="close">×</button>${html}</div></div>`); ov.addEventListener('mousedown', e => { if(e.target===ov) ov.remove(); }); ov.querySelector('.close').onclick = () => ov.remove(); $('#modals').appendChild(ov); return ov; }
 function closeModals(){ $$('#modals .overlay').forEach(o=>o.remove()); $('.lightbox')?.remove(); closePanel(); }
+/* the Escape key closes a panel through history so the stack stays true */
 function lightbox(src, cap=''){ const lb = el(`<div class="lightbox"><img src="${src}"><div class="cap">${esc(cap)}</div></div>`); lb.onclick = ()=>lb.remove(); document.body.appendChild(lb); }
 function confirmDlg(msg, onYes){ const m = openModal(`<h2>Are you sure?</h2><p class="muted">${msg}</p><div class="row" style="justify-content:flex-end;margin-top:18px"><button class="btn" data-x="no">Cancel</button><button class="btn danger" data-x="yes">Yes, do it</button></div>`, 'narrow'); m.querySelector('[data-x=no]').onclick = ()=>m.remove(); m.querySelector('[data-x=yes]').onclick = ()=>{ sound('error'); m.remove(); onYes(); }; }
 /* Photos are resized on the way in: long edge capped (default 1600px) and re-encoded as JPEG.
@@ -1803,8 +1827,7 @@ routes.stage = function(root, params){
   const cur = latestSnapshot()?.ratings || {};
   const axes = S.valueOrder.map(id=>{ const v=byId(S.values,id); return {name:v.name, short:v.name.split(' ')[0], color:v.color}; });
   root.innerHTML = `<div class="page" style="--c:${s.hue}">
-    <a href="#/timeline" class="mono" style="text-decoration:none">← timeline</a>
-    <div class="stage-hero" style="margin-top:14px"><div class="mosaic" style="view-transition-name:stage-mosaic">${mosaicHTML(s,18,true)}</div><div class="veil"></div>
+    <div class="stage-hero" style="margin-top:34px"><div class="mosaic" style="view-transition-name:stage-mosaic">${mosaicHTML(s,18,true)}</div><div class="veil"></div>
       <button class="btn sm addphoto" id="addPhotos">+ photos</button><input type="file" id="photoFile" accept="image/*" multiple hidden>
       <div class="inner"><div class="han" style="view-transition-name:stage-char">${s.char}</div><div class="meta"><div class="mono" style="margin-bottom:6px">stage ${s.num} of 8</div><h1>${ed(`stages.#${s.id}.name`)}</h1><div class="quote" style="margin-top:8px">${ed(`stages.#${s.id}.tagline`,{ph:'a tagline'})}</div><div class="mono" style="margin-top:8px">${ed(`stages.#${s.id}.years`,{ph:'years'})}</div></div></div>
     </div>
@@ -1980,7 +2003,7 @@ function openVisionPanel(id){
     <div class="vp-sec"><span class="sc">The 80-year-old check</span><p class="faint" style="font-size:.8rem;margin:0 0 6px">Why does this matter when I look back from the end?</p>${ed(`visions.#${v.id}.obituary`,{multi:true,ph:'If the answer is thin, the vision may be vanity.'})}</div>
     <div class="vp-sec"><div class="row between"><span class="sc">Manifestation evidence log</span><button class="btn sm ghost" id="addEv">+ evidence</button></div><p class="faint" style="font-size:.8rem;margin:0 0 6px">Coincidences, doors, people who appeared. Evidence of alignment arrives before full manifestation.</p>${v.evidence.map((e,i)=>`<div class="evidence-item"><span class="mono">${fmtDate(e.date,'med')}</span><span style="flex:1">${ed(`visions.#${v.id}.evidence.${i}.text`,{multi:true})}</span><button class="tbtn" data-evdel="${i}">×</button></div>`).join('')||'<div class="empty">Nothing logged yet. Watch for it.</div>'}</div>
     <div class="vp-sec"><div class="row between"><span class="sc">Leaves — progress entries (${leaves.length})</span><button class="btn sm" id="addLeaf">+ water this vision</button></div>${sortEntries(leaves).map(e=>entryCard(e)).join('')||'<div class="empty">No leaves yet. Every tagged entry grows one.</div>'}</div>
-    <div class="row" style="margin-top:30px;justify-content:space-between"><button class="btn sm ghost" data-go="#/vision">back to the tree</button><button class="btn sm ghost danger" id="delVision">remove this vision</button></div>
+    <div class="row" style="margin-top:30px;justify-content:space-between"><button class="btn sm ghost" data-back>← back</button><button class="btn sm ghost danger" id="delVision">remove this vision</button></div>
   </div>`,'vision-panel');
   $$('#panel .rv').forEach(n=>n.classList.add('in'));
   p.querySelectorAll('[data-conf]').forEach(b => b.onclick = () => { const was = v.confidence; v.confidence = b.dataset.conf; saveNow(); if(v.confidence==='lived' && was!=='lived') fruitCeremony(v); else { rerender(); openVisionPanel(v.id); } });
@@ -2058,8 +2081,7 @@ routes.value = function(root, params){
   const rank = S.valueOrder.indexOf(v.id)+1; const cur = valueCurrent(v.id);
   const F = (k, q, hint) => { const hist = v.fields[k]||[]; const latest = hist.slice(-1)[0]; return `<div class="value-field rv"><div class="q">${q}</div><div class="faint" style="font-size:.8rem;margin-bottom:8px">${hint}</div><div class="prose serif-lg">${latest?md(latest.text):'<span class="empty">Not yet written.</span>'}</div><div class="row" style="margin-top:8px"><button class="btn sm ghost" data-vf="${k}">${latest?'write a new version':'write'}</button>${hist.length>1?`<details style="border:none;flex:1"><summary><span class="mono">${hist.length-1} earlier versions</span></summary><div class="body versions">${hist.slice(0,-1).reverse().map(h=>`<div class="v"><div class="mono">${fmtDate(h.date,'med')}</div>${md(h.text)}</div>`).join('')}</div></details>`:latest?`<span class="mono">${fmtDate(latest.date,'med')}</span>`:''}</div></div>`; };
   root.innerHTML = `<div class="page narrow">
-    <a href="#/values" class="mono" style="text-decoration:none">← values</a>
-    <div class="page-head" style="margin-top:14px"><div class="mono">value · ranked #${rank} of ${S.valueOrder.length}</div><h1 style="color:${v.color}">${ed(`values.#${v.id}.name`)}</h1><div class="row" style="margin-top:12px"><div class="bar" style="flex:1;--c:${v.color}"><i style="width:${cur}%"></i></div><span class="num" data-tween="${cur}" data-suffix="%">0</span></div></div>
+    <div class="page-head" style="margin-top:20px"><div class="mono">value · ranked #${rank} of ${S.valueOrder.length}</div><h1 style="color:${v.color}">${ed(`values.#${v.id}.name`)}</h1><div class="row" style="margin-top:12px"><div class="bar" style="flex:1;--c:${v.color}"><i style="width:${cur}%"></i></div><span class="num" data-tween="${cur}" data-suffix="%">0</span></div></div>
     <div class="card rv">${sparkline(snaps.map(s=>s.ratings[v.id]??null),{h:60,min:0,max:100,color:v.color,dots:true,labels:snaps.map(s=>`${fmtDate(s.date,'med')}: ${s.ratings[v.id]??'–'}${s.note?' — '+s.note:''}`)})}<div class="row between mono"><span>${snaps[0]?fmtDate(snaps[0].date,'med'):''}</span><span>congruence over a lifetime</span><span>now</span></div></div>
     ${F('embody','How would I know if I embody this value?','Observable, behavioural indicators. Not aspirations — evidence.')}
     ${F('hundred','What takes me to 100%?','What does full congruence actually look like, day to day?')}
@@ -2580,7 +2602,7 @@ async function init(){
   const sb = $('#sidebar'); $('.brand', sb).onclick = () => sb.classList.toggle('open');
   if(navigator.platform.toUpperCase().indexOf('MAC')<0){ $$('kbd').forEach(k => k.textContent = k.textContent.replace('⌘','Ctrl+')); $('.fab .hint').textContent = 'new entry · Ctrl+N'; }
   if(!location.hash) location.hash = S.settings.home==='map' ? '#/map' : '#/today';
-  renderRoute(); startDust();
+  renderRoute(); startDust(); updateBackButton();
   window.addEventListener('beforeunload', () => { if(saving || savePending) saveNow(); });
   if(S.settings.firstOpen === today() && !S._welcomed){ S._welcomed = true; setTimeout(()=>toast('Welcome home. Every piece of text here is editable — click it. The placeholder life is yours to overwrite.', 7000), 800); }
 }
