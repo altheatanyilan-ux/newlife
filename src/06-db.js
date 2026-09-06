@@ -34,10 +34,11 @@ const DB_SCHEMA = {          // primary key first, then indexes — Dexie syntax
   boards:         'id',
   people:         'id, tier',
   streams:        'id, status',
+  events:         'id, day',
 };
 /* keys of S that are single objects/arrays without their own identity — kept as rows in `meta` */
-const META_KEYS = ['settings','rehearsal','reviews','valueOrder','valueOrderHistory','places','journals','negLast','finance'];
-const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders','visionEras','tasks','boards','people','streams'];
+const META_KEYS = ['settings','rehearsal','reviews','valueOrder','valueOrderHistory','places','journals','negLast','finance','plans','reviewLog'];
+const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders','visionEras','tasks','boards','people','streams','events'];
 
 /* ---------- MiniDexie: Dexie-compatible subset over IndexedDB ---------- */
 class MiniTable {
@@ -75,7 +76,7 @@ const usingRealDexie = DexieImpl !== MiniDexie;
 
 /* ---------- the database ---------- */
 const db = new DexieImpl(DB_NAME);
-db.version(6).stores(DB_SCHEMA);   // v2 `reminders`, v3 `visionEras`, v4 `tasks`, v5 `boards`+`people`, v6 `streams`
+db.version(7).stores(DB_SCHEMA);   // v2 reminders, v3 visionEras, v4 tasks, v5 boards+people, v6 streams, v7 events
 
 /* ---------- S <-> stores ---------- */
 function stateToStores(state){

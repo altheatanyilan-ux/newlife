@@ -36,6 +36,6 @@ function seed(){
     ],
     rehearsal:{script:'', winning:'', aim:'', cycleStart:'', days:[]},
     reviews:{lastWeekly:null,lastSeasonal:null,lastAnnual:null},
-    people:[], places:[], boards:[], streams:[], finance:{currency:'¥',essentials:0,savings:0,target:0,targetBy:'',principles:[],milestones:[],months:[],note:''},
+    people:[], places:[], boards:[], streams:[], events:[], plans:{}, reviewLog:{}, finance:{currency:'¥',essentials:0,savings:0,target:0,targetBy:'',principles:[],milestones:[],months:[],note:''},
   };
 }

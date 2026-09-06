@@ -1,44 +1,11 @@
 /* ============================================================
-   9. RITUALS, HABITS & ENERGY MANAGEMENT — the maintenance loop
+   HABIT MECHANICS, GUIDED REVIEWS, PATTERNS
+   The pages that used these live in Rhythm now; these are the
+   pieces they are built from.
    ============================================================ */
 const TOD = ['morning','afternoon','evening','anytime'];
 function habitFreqLabel(h){ const f = h.freq; if(f.type==='daily') return 'daily'; if(f.type==='days') return f.days.map(d=>DOW[d].slice(0,3)).join(' '); if(f.type==='perWeek') return `${f.count}× / week`; if(f.type==='perMonth') return `${f.count}× / month`; return ''; }
 function markHabit(h, level, note=''){ const T = today(); S.habitLog[T] = S.habitLog[T]||{}; if(level) S.habitLog[T][h.id] = {level, note}; else delete S.habitLog[T][h.id]; saveNow(); }
-routes.rituals = function(root, params){
-  registerPageEntry({pageName:'Habits', addLabel:'New habit', defaultEntryType:'habit', prefilledFields:{}, options:[{label:'New habit', run:()=>EntryActions.newHabit()}]});
-  const T = today();
-  const active = S.habits.filter(h=>!h.archived && !h.negative).sort((a,b)=>TOD.indexOf(a.timeOfDay)-TOD.indexOf(b.timeOfDay) || a.order-b.order);
-  const dueToday = active.filter(h=>habitDue(h,T)); const bal = energyBalance(false); const wk = energyBalance(true);
-  root.innerHTML = `<div class="page">
-    <div class="page-head"><h1>Habits</h1><div class="sub">Positive energy rituals, not willpower. Sprints and recovery across four dimensions. Missing a day is part of the path.</div></div>
-    <div id="ritBody"></div></div>`;
-  const body = $('#ritBody');
-  body.innerHTML = `
-    <div class="card rv"><div class="row between"><h3>Today</h3><span class="mono">${dueToday.filter(h=>habitDone(h,T)).length} of ${dueToday.length} rings full</span></div>
-      <div class="rings-today">${dueToday.map(h => { const d = habitDone(h,T); const pct = d ? (d.level==='min'?.5:1) : 0; const dim = DIMS.find(x=>x.id===h.dimension); const st = habitStreak(h); return `<div class="ring-h" data-hring="${h.id}" title="click: ideal · shift-click: minimum">${h.stackAfter?'<span class="chainline"></span>':''}${ringSVG(pct,{color:dim.c,label:d?(d.level==='min'?'½':'✓'):''})}<div class="n">${esc(h.name)}</div><div class="s">${h.timeOfDay} · ${st.cur?st.cur+'d':''}</div></div>`; }).join('')}</div>
-      <div class="row between" style="margin-top:14px;flex-wrap:wrap;gap:20px">
-        <div><div class="mono" style="margin-bottom:6px">energy balance today · expenditure / recovery</div><div class="balance">${DIMS.map(d=>`<div style="--c:${d.c}"><b>${bal[d.id].exp}/${bal[d.id].rec}</b>${d.name}</div>`).join('')}</div></div>
-        <div><div class="mono" style="margin-bottom:6px">oscillation this week</div><div class="stack" style="gap:4px;font-size:.8rem">${DIMS.map(d=>{ const x=wk[d.id]; const diff=x.exp-x.rec; return `<div style="color:${d.c}">${d.name}: <span style="color:var(--text)">${diff>1?'overtraining':diff<-1?'undertraining':'balanced'}</span> <span class="mono">${x.exp} exp · ${x.rec} rec</span></div>`; }).join('')}</div><div class="faint" style="font-size:.75rem;margin-top:6px;max-width:300px">“Most of us are undertrained physically and spiritually and overtrained mentally and emotionally.”</div></div>
-        <div><div class="mono" style="margin-bottom:6px">negative habits · days since</div>${S.habits.filter(h=>h.negative&&!h.archived).map(h=>`<div class="row"><span class="since" data-tween="${daysSince(S.negLast?.[h.id])===Infinity?0:daysSince(S.negLast?.[h.id])}">0</span><span>${esc(h.name)}</span><button class="btn sm ghost" data-relapse="${h.id}">it happened</button></div>`).join('')||'<span class="faint">none</span>'}</div>
-      </div></div>
-    ${DIMS.map(d => { const hs = S.habits.filter(h=>h.dimension===d.id && !h.archived).sort((a,b)=>a.order-b.order); return `<details open class="rv" style="margin-top:18px;--c:${d.c}"><summary class="dim-head" style="border:none"><span class="sw"></span><h3>${d.name}</h3><span class="mono">${hs.length} habits</span></summary><div class="body" id="dim-${d.id}">
-      ${hs.map(h => { const st = habitStreak(h); const rates = habitWeekRates(h); const days = lastDays(91); const counts = {}; return `<div class="habit" draggable="true" data-hid="${h.id}">
-        <div>${h.negative?`<div class="since" style="font-size:1.1rem">${daysSince(S.negLast?.[h.id])===Infinity?'–':daysSince(S.negLast?.[h.id])}d</div>`:ringSVG(habitDone(h,T)?(habitDone(h,T).level==='min'?.5:1):0,{size:44,stroke:5,color:d.c})}</div>
-        <div><div class="nm">${esc(h.name)} ${h.negative?'<span class="status-pill">avoid</span>':''} ${h.kind==='recovery'?'<span class="status-pill">recovery</span>':'<span class="status-pill">expenditure</span>'}</div><div class="sub">${habitFreqLabel(h)} · ${h.timeOfDay}${h.stackAfter?` · after “${esc(byId(S.habits,h.stackAfter)?.name||'')}”`:''}${h.min?` · min: ${esc(h.min)}`:''}${h.ideal?` · ideal: ${esc(h.ideal)}`:''}</div><div class="row" style="margin-top:4px;gap:4px">${(h.links.values||[]).map(id=>{const v=byId(S.values,id);return v?`<span class="chip" style="font-size:.62rem">${esc(v.name.split(' ')[0])}</span>`:''}).join('')}${(h.links.visions||[]).map(id=>{const v=byId(S.visions,id);return v?`<span class="chip" style="font-size:.62rem">🌿 ${esc(v.name)}</span>`:''}).join('')}${(h.links.skills||[]).map(id=>{const v=byId(S.skills,id);return v?`<span class="chip" style="font-size:.62rem">🛠 ${esc(v.name)}</span>`:''}).join('')}</div></div>
-        <div>${h.negative?'':`<div class="cal90">${days.map(x=>{ const l = habitDone(h,x); return `<i class="${l?(l.level==='min'?'min':'full'):''} ${x>T?'future':''}" title="${x}${l?.note?' — '+esc(l.note):''}"></i>`; }).join('')}</div>`}</div>
-        <div>${h.negative?'':`<div class="trend">${rates.map(r=>`<span title="${r.done}/${r.due}"><i style="--w:${clamp(r.done/r.due,0,1)*100}%;--c:${d.c}"></i></span>`).join('')}</div><div class="mono" style="margin-top:4px">${rates.map(r=>`${r.done}/${r.due}`).join(' · ')}</div><div class="mono">streak ${st.cur}d · best ${st.best}d</div>`}</div>
-        <div class="row" style="gap:2px"><button class="tbtn" data-hedit="${h.id}">edit</button><button class="tbtn" data-harch="${h.id}">archive</button></div>
-      </div>`; }).join('')||'<div class="empty">No habits in this dimension yet.</div>'}</div></details>`; }).join('')}
-    ${S.habits.some(h=>h.archived)?`<details class="rv" style="margin-top:18px"><summary><span class="sc">Archived</span></summary><div class="body">${S.habits.filter(h=>h.archived).map(h=>`<div class="row between archived-row" style="padding:6px 0"><span class="muted">${esc(h.name)}</span><span class="row"><button class="btn sm ghost" data-hedit="${h.id}">edit</button><button class="btn sm ghost" data-hun="${h.id}">restore</button></span></div>`).join('')}</div></details>`:''}`;
-  reveal(body); tweenAll(body);
-  body.querySelectorAll('[data-hring]').forEach(r => r.onclick = e => { const h = byId(S.habits,r.dataset.hring); const cur = habitDone(h,T); const level = e.shiftKey ? (cur?.level==='min'?null:'min') : (cur?.level==='full'?null:'full'); if(level && h.prompt){ const m = openModal(`<h2>${esc(h.prompt)}</h2><input class="inp" id="hNote" placeholder="one line, optional"><div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary" id="hNoteSave">Done</button></div>`,'narrow'); const fin = () => { markHabit(h, level, m.querySelector('#hNote').value); m.remove(); sound('success'); r.classList.add('bloom'); setTimeout(rerender, 400); }; m.querySelector('#hNoteSave').onclick = fin; m.querySelector('#hNote').onkeydown = ev => { if(ev.key==='Enter') fin(); }; setTimeout(()=>m.querySelector('#hNote').focus(),50); } else { markHabit(h, level); if(level){ sound('success'); r.classList.add('bloom'); } setTimeout(rerender, level?400:0); } });
-  body.querySelectorAll('[data-relapse]').forEach(b => b.onclick = () => { S.negLast = S.negLast||{}; S.negLast[b.dataset.relapse] = T; saveNow(); rerender(); toast('Reset, without punishment. The master stays on the mat.'); });
-  body.querySelectorAll('[data-hedit]').forEach(b => b.onclick = () => openHabitModal(b.dataset.hedit));
-  body.querySelectorAll('[data-harch]').forEach(b => b.onclick = () => { byId(S.habits,b.dataset.harch).archived = true; saveNow(); rerender(); });
-  body.querySelectorAll('[data-hun]').forEach(b => b.onclick = () => { byId(S.habits,b.dataset.hun).archived = false; saveNow(); rerender(); });
-  body.querySelectorAll('[data-hedit]').forEach(b => b.onclick = () => openHabitModal(b.dataset.hedit));
-  let drag = null; body.querySelectorAll('.habit').forEach(hb => { hb.addEventListener('dragstart', ()=>{ drag = hb.dataset.hid; hb.classList.add('dragging'); }); hb.addEventListener('dragend', ()=>hb.classList.remove('dragging')); hb.addEventListener('dragover', e=>e.preventDefault()); hb.addEventListener('drop', e => { e.preventDefault(); if(!drag||drag===hb.dataset.hid) return; const a = byId(S.habits,drag), b = byId(S.habits,hb.dataset.hid); if(a.dimension!==b.dimension) return; const list = S.habits.filter(h=>h.dimension===a.dimension).sort((x,y)=>x.order-y.order).map(h=>h.id); list.splice(list.indexOf(a.id),1); list.splice(list.indexOf(b.id),0,a.id); list.forEach((id,i)=>byId(S.habits,id).order=i); saveNow(); rerender(); }); });
-};
 function openHabitModal(id){
   const h = id ? byId(S.habits,id) : {id:uid(),name:'',freq:{type:'daily',days:[],count:3},timeOfDay:'morning',dimension:'physical',kind:'expenditure',links:{values:[],visions:[],skills:[]},min:'',ideal:'',prompt:'',negative:false,archived:false,stackAfter:null,order:S.habits.length};
   const m = openModal(`<h2>${id?'Edit habit':'A new habit'}</h2><div class="stack">
@@ -63,17 +30,6 @@ function openHabitModal(id){
   m.querySelectorAll('[data-lv],[data-lvi],[data-lsk]').forEach(c => c.onclick = () => c.classList.toggle('on'));
   m.querySelector('#hSave').onclick = () => { h.name = m.querySelector('#hName').value.trim(); if(!h.name) return; h.freq = {type:m.querySelector('#hFreq').value, days:[...m.querySelectorAll('[data-day].primary')].map(b=>+b.dataset.day), count:+m.querySelector('#hCountN').value||1}; h.timeOfDay = m.querySelector('#hTod').value; h.dimension = m.querySelector('#hDim').value; h.kind = m.querySelector('#hKind').value; h.min = m.querySelector('#hMin').value; h.ideal = m.querySelector('#hIdeal').value; h.stackAfter = m.querySelector('#hStack').value||null; h.prompt = m.querySelector('#hPrompt').value; h.negative = m.querySelector('#hNeg').classList.contains('on'); h.links = {values:[...m.querySelectorAll('[data-lv].on')].map(c=>c.dataset.lv), visions:[...m.querySelectorAll('[data-lvi].on')].map(c=>c.dataset.lvi), skills:[...m.querySelectorAll('[data-lsk].on')].map(c=>c.dataset.lsk)}; if(!id) S.habits.push(h); saveNow(); m.remove(); rerender(); sound('save'); };
 }
-routes.reviews = function(root, params){
-  registerPageEntry({pageName:'Reviews', addLabel:'Start a review', defaultEntryType:'reflection', prefilledFields:{}, options:[
-    {icon:'◷', label:'Weekly review', desc:'Fifteen minutes, once a week.', run:()=>{ location.hash = '#/reviews'; setTimeout(()=>document.querySelector('#rWeekly')?.scrollIntoView({block:'center',behavior:'smooth'}),200); }},
-    {icon:'✎', label:'Note from a review', desc:'Something the review turned up.', run:()=>EntryActions.quickNote()}]});
-  const tab = (params && params[0] === 'patterns') ? 'patterns' : 'guided';
-  root.innerHTML = `<div class="page">
-    <div class="page-head"><h1>Reviews</h1><div class="sub">The rhythm above the daily one: a week, a season, a year — and, when you want it, a reading of the record itself.</div></div>
-    <div class="tabs"><button class="${tab==='guided'?'active':''}" data-go="#/reviews">Guided reviews</button><button class="${tab==='patterns'?'active':''}" data-go="#/reviews/patterns">Patterns in the record</button></div>
-    <div id="revBody"></div></div>`;
-  if(tab === 'patterns') renderPatterns($('#revBody')); else renderReviews($('#revBody'));
-};
 function renderReviews(body){
   const gaps = valueGaps(); const g0 = gaps[0]; const vs = S.visions.filter(v=>v.confidence!=='lived'); const st = vs.map(v=>({v,t:structuralTension(v)})).sort((a,b)=>b.t-a.t)[0];
   const cold = S.projects.filter(p=>p.status==='active').sort((a,b)=>daysSince(projectNods(b)[0]?.date)-daysSince(projectNods(a)[0]?.date))[0];
