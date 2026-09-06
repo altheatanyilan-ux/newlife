@@ -392,6 +392,96 @@ html.reduce-motion *,html.reduce-motion *::before,html.reduce-motion *::after{an
 .amb-opt.on{border-color:var(--page-accent);background:color-mix(in srgb,var(--page-accent) 12%,var(--surface-2))}
 .amb-name{font-family:var(--serif);font-size:1rem;color:var(--text)}
 .amb-desc{font-family:var(--quote);font-style:italic;font-size:.8rem;color:var(--muted)}
+/* ---------- finance ---------- */
+.freedom-bar{position:relative;height:34px;border-radius:17px;background:var(--surface-2);border:1px solid var(--line);overflow:hidden;margin-top:12px}
+.freedom-bar i{display:block;height:100%;background:linear-gradient(90deg,color-mix(in srgb,var(--page-accent) 70%,transparent),var(--page-accent));transition:width .9s var(--ease)}
+.fb-label{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:.74rem;color:var(--text)}
+.fin-milestones{margin-top:14px;display:flex;flex-direction:column;gap:2px}
+.fin-ms{display:grid;grid-template-columns:14px 110px 1fr auto auto;gap:10px;align-items:center;padding:7px 8px;border-radius:9px;transition:background .18s var(--ease)}
+.fin-ms:hover{background:var(--surface-2)}
+.fm-dot{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--line-2)}
+.fin-ms.hit .fm-dot{background:var(--sage);border-color:var(--sage)}
+.fin-ms.hit .fm-amt{color:var(--sage)}
+.fm-amt{font-family:var(--mono);font-size:.86rem}
+.fm-label{font-family:var(--serif)}
+.stream-list{display:flex;flex-direction:column;gap:2px;margin-top:12px}
+.stream{display:grid;grid-template-columns:26px minmax(140px,1.6fr) 120px minmax(90px,1fr) auto auto;gap:12px;align-items:center;padding:10px;border-radius:10px;border:1px solid transparent;cursor:pointer;transition:background .18s var(--ease),border-color .18s var(--ease)}
+.stream:hover{background:var(--surface-2);border-color:var(--line)}
+.st-ico{text-align:center}
+.st-name b{font-family:var(--serif);font-size:1.02rem;font-weight:500;display:block}
+.st-name .mono{font-size:.64rem;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.st-amt{font-family:var(--mono);font-size:1rem;text-align:right}
+.st-amt .mono{font-size:.62rem;color:var(--faint)}
+.st-share{display:flex;align-items:center;gap:8px}
+.st-share .bar{flex:1;height:6px}
+.status-pill.fragile{color:#d08080;border-color:#b0616a}
+.status-pill.steady{color:var(--sage);border-color:var(--sage)}
+.principles{list-style:none;padding:0;margin:10px 0 0;display:flex;flex-direction:column;gap:4px}
+.principles li{display:flex;gap:8px;align-items:baseline;padding:7px 10px;border-radius:9px;background:var(--surface-2);border-left:2px solid var(--page-accent)}
+.principles li span{flex:1;font-family:var(--quote);font-style:italic}
+.month-list{margin-top:14px;display:flex;flex-direction:column;gap:1px}
+.month-row{display:grid;grid-template-columns:78px 92px 92px 92px 1fr auto;gap:10px;align-items:baseline;padding:6px 8px;border-radius:8px;font-size:.86rem}
+.month-row:hover{background:var(--surface-2)}
+.m-in,.m-out,.m-net{font-family:var(--mono);text-align:right}
+.m-out{color:var(--muted)}
+.m-net.pos{color:var(--sage)}.m-net.neg{color:#d08080}
+.m-note{font-size:.66rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (max-width:900px){.stream{grid-template-columns:26px 1fr auto auto;row-gap:6px}.st-share{grid-column:2/-1}.month-row{grid-template-columns:70px 1fr 1fr auto}.m-note{display:none}}
+/* ---------- chronicle ---------- */
+.chron-picks{display:flex;flex-direction:column;gap:4px;margin-top:10px}
+.chron-pick{display:flex;gap:9px;align-items:flex-start;padding:7px 10px;border-radius:9px;border:1px solid var(--line);cursor:pointer;transition:border-color .2s var(--ease),background .2s var(--ease)}
+.chron-pick.on{border-color:var(--page-accent);background:color-mix(in srgb,var(--page-accent) 8%,transparent)}
+.chron-pick b{font-size:.9rem;font-weight:500}
+.chron-pick .d{display:block;font-size:.74rem;color:var(--muted)}
+.chronicle{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:48px 56px;max-width:840px;margin:0 auto;font-family:var(--serif)}
+.ch-cover{text-align:center;padding:80px 0 96px}
+.ch-mark{font-family:var(--han);font-size:3.4rem;color:var(--page-accent);opacity:.75}
+.ch-title{font-size:2.9rem;margin-top:26px;line-height:1.15}
+.ch-sub{font-family:var(--quote);font-style:italic;color:var(--muted);font-size:1.1rem;margin-top:10px}
+.ch-rule{width:74px;height:1px;background:var(--page-accent);margin:30px auto;opacity:.6}
+.ch-author{font-size:1.1rem}
+.ch-date,.ch-counts{font-family:var(--mono);font-size:.7rem;color:var(--faint);margin-top:6px}
+.ch-section{padding:28px 0;border-top:1px solid var(--line)}
+.ch-h{font-size:1.7rem;margin-bottom:20px;letter-spacing:.02em}
+.ch-stage{margin-bottom:30px}
+.ch-stage-head{display:flex;gap:16px;align-items:baseline;margin-bottom:10px}
+.ch-han{font-family:var(--han);font-size:2.2rem;color:var(--page-accent)}
+.ch-stage-head h3{font-size:1.28rem}
+.ch-prose{line-height:1.8;color:var(--text);font-size:1.02rem}
+.ch-prose p{margin:0 0 .8em}
+.ch-empty{color:var(--faint);font-style:italic;font-size:.92rem}
+.ch-sub-list{margin-top:10px;padding-left:14px;border-left:2px solid var(--line)}
+.ch-substage{font-size:.92rem;color:var(--muted);margin-bottom:5px}
+.ch-photos{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.ch-photos img{width:150px;height:110px;object-fit:cover;border-radius:6px}
+.ch-entry{display:grid;grid-template-columns:120px 1fr;gap:18px;padding:14px 0;border-top:1px dashed var(--line)}
+.ch-when{color:var(--faint);padding-top:3px}
+.ch-entry-title{font-size:1.1rem;margin-bottom:4px}
+.ch-thread,.ch-era,.ch-person,.ch-letter{margin-bottom:22px}
+.ch-era-sub{font-family:var(--quote);font-style:italic;color:var(--muted);margin:2px 0 8px}
+.ch-goals,.ch-values{padding-left:20px;line-height:1.9}
+.ch-reply{margin-top:10px;padding-left:16px;border-left:2px solid var(--page-accent);color:var(--muted)}
+.ch-closing{text-align:center;padding:60px 0}
+.ch-closing-line{font-family:var(--quote);font-style:italic;color:var(--muted);font-size:1.15rem}
+.ch-blank{height:220px}
+@media print{
+  .sidebar,.mobile-nav,.topbar,.back-btn,.fab-wrap,.ambient,#toasts,#modals,.no-print,.ctx-add,#dust,.side-panel,.panel-overlay{display:none!important}
+  html,body{background:#fff!important;color:#111!important}
+  main{margin:0!important;padding:0!important;animation:none!important}
+  .page{max-width:none}
+  .chronicle{border:none;border-radius:0;padding:0;max-width:none;background:#fff;color:#111}
+  .ch-break{break-before:page;page-break-before:always}
+  .ch-cover{break-before:auto;page-break-before:auto;padding:120px 0}
+  .ch-section{border-top:none}
+  .ch-stage,.ch-entry,.ch-person,.ch-letter,.ch-thread,.ch-era{break-inside:avoid;page-break-inside:avoid}
+  .ch-h{border-bottom:1px solid #ccc;padding-bottom:6px}
+  .ch-han,.ch-mark,.ch-rule{color:#8a6a3a!important;background:#8a6a3a}
+  .ch-mark,.ch-han{background:none}
+  .ch-when,.ch-date,.ch-counts,.ch-empty{color:#666!important}
+  .ch-prose{color:#111!important}
+  a{color:#111!important;text-decoration:none}
+  @page{margin:20mm 18mm}
+}
 /* ---------- boards ---------- */
 .board{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));grid-auto-rows:118px;gap:12px;margin-top:12px}
 .board.compact{grid-auto-rows:96px;gap:9px}
@@ -1356,7 +1446,7 @@ function tagChips(e, {link=true}={}){ const t = entryTags(e); return t.length ? 
 const KEY = 'lifeinstrument.v1';
 let S = null;
 /* persistence lives in db.js (Dexie schema + load/save/backup) */
-function migrate(){ if(S.settings && S.settings.home === 'map') S.settings.home = 'home'; wipeDemoData(); if(S.rehearsal && !S.rehearsal){ S.rehearsal = S.rehearsal; } delete S.rehearsal; if(typeof migrateEras === 'function') migrateEras(); const d = seed(); for(const k of Object.keys(d)) if(S[k]===undefined) S[k] = d[k]; if(typeof migrateLifeline === 'function') migrateLifeline(); if(typeof migrateSkillLevels === 'function') migrateSkillLevels(); if(typeof migrateProjects === 'function') migrateProjects(); if(typeof migrateStages === 'function') migrateStages(); if(typeof migrateTasks === 'function') migrateTasks(); if(typeof migrateIdeas === 'function') migrateIdeas(); if(typeof migrateMedia === 'function') migrateMedia(); if(typeof migrateSkillFocus === 'function') migrateSkillFocus(); if(typeof migratePeople === 'function') migratePeople(); if(typeof migrateValuePractices === 'function') migrateValuePractices(); S.boards = Array.isArray(S.boards) ? S.boards : []; }
+function migrate(){ if(S.settings && S.settings.home === 'map') S.settings.home = 'home'; wipeDemoData(); if(S.rehearsal && !S.rehearsal){ S.rehearsal = S.rehearsal; } delete S.rehearsal; if(typeof migrateEras === 'function') migrateEras(); const d = seed(); for(const k of Object.keys(d)) if(S[k]===undefined) S[k] = d[k]; if(typeof migrateLifeline === 'function') migrateLifeline(); if(typeof migrateSkillLevels === 'function') migrateSkillLevels(); if(typeof migrateProjects === 'function') migrateProjects(); if(typeof migrateStages === 'function') migrateStages(); if(typeof migrateTasks === 'function') migrateTasks(); if(typeof migrateIdeas === 'function') migrateIdeas(); if(typeof migrateMedia === 'function') migrateMedia(); if(typeof migrateSkillFocus === 'function') migrateSkillFocus(); if(typeof migratePeople === 'function') migratePeople(); if(typeof migrateValuePractices === 'function') migrateValuePractices(); if(typeof migrateFinance === 'function') migrateFinance(); S.boards = Array.isArray(S.boards) ? S.boards : []; }
 
 /* One-time: the house used to open furnished with a demonstration life. If that
    demonstration is still here, clear it so the rooms start empty. */
@@ -1611,6 +1701,8 @@ const PAGE_THEMES = {
   timeline: {name:'Timeline',       accent:['#cba85a','#96762a'], ink:'#1a1816', gradient:['#c9a55a','#8a6a4a'], mood:'nostalgic, warm',        motion:'calm',      glyph:'憶', icon:'⏳'},
   home:     {name:'Home',         accent:['#94a6b5','#5b7082'], ink:'#1a1816', gradient:['#8a9aa6','#6c8299'], mood:'analytical, clear',      motion:'calm',      glyph:'家', icon:'⌂'},
   calendar: {name:'Calendar',      accent:['#8fa9c4','#4f7093'], ink:'#1a1816', gradient:['#7d97b3','#c2cfdb'], mood:'wide, seasonal',         motion:'calm',      glyph:'暦', icon:'▦'},
+  finance:  {name:'Finance',       accent:['#8fae86','#4d7a4a'], ink:'#1a1816', gradient:['#6f9a68','#c3cf9f'], mood:'plain, countable',       motion:'crisp',     glyph:'財', icon:'▤'},
+  chronicle:{name:'Chronicle',     accent:['#b8a68c','#7a6547'], ink:'#1a1816', gradient:['#a69070','#d8cab0'], mood:'bound, finished',        motion:'calm',      glyph:'伝', icon:'⎙'},
   people:   {name:'People',        accent:['#d99a9a','#a5605f'], ink:'#1a1816', gradient:['#c98a8a','#e6c3b4'], mood:'warm, particular',       motion:'calm',      glyph:'人', icon:'☺'},
   board:    {name:'The Board',     accent:['#c9a86a','#8a6a33'], ink:'#1a1816', gradient:['#b4934f','#dfc9a0'], mood:'felt, unarguable',       motion:'calm',      glyph:'像', icon:'▣'},
   plan:     {name:'Plan',          accent:['#d98f6a','#a8613e'], ink:'#1a1816', gradient:['#c97f5e','#e0b48a'], mood:'ordered, near',          motion:'crisp',     glyph:'週', icon:'▤'},
@@ -1784,6 +1876,15 @@ PAGE_SCENES.people = () => scWrap(`${hill(560,26,G2,.22)}
 PAGE_SCENES.board = () => scWrap(`<g opacity=".5" stroke="${A}" fill="none" stroke-width="2.2">${[[180,180,220,150,-3],[440,140,180,240,2],[660,200,250,170,-2],[300,400,200,180,3],[560,430,170,150,-4],[790,420,190,220,2]].map(([x,y,w,h,r])=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" transform="rotate(${r} ${x+w/2} ${y+h/2})"/>`).join('')}</g>
     <g opacity=".3" fill="${G2}">${[[180,180,220,150],[660,200,250,170],[300,400,200,180]].map(([x,y,w,h])=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6"/>`).join('')}</g>
     <g opacity=".45" fill="${A}">${[[290,180],[530,140],[785,200],[400,400],[645,430],[885,420]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="5"/>`).join('')}</g>`);
+PAGE_SCENES.finance = () => scWrap(`${hill(600,18,G2,.2)}
+    <g opacity=".5" stroke="${A}" fill="none" stroke-width="2.6">${[[240,560],[380,470],[520,500],[660,380],[800,300],[940,210]].map(([x,y],i,a)=>i?`<line x1="${a[i-1][0]}" y1="${a[i-1][1]}" x2="${x}" y2="${y}"/>`:'').join('')}</g>
+    <g opacity=".45" fill="${A}">${[[240,560],[380,470],[520,500],[660,380],[800,300],[940,210]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="6"/>`).join('')}</g>
+    <g opacity=".28" fill="${G1}">${[0,1,2,3,4].map(i=>`<rect x="${200+i*150}" y="${640-i*46}" width="72" height="${60+i*46}" rx="4"/>`).join('')}</g>
+    <line x1="120" y1="700" x2="1080" y2="700" stroke="${A}" stroke-width="2" opacity=".4"/>`);
+PAGE_SCENES.chronicle = () => scWrap(`<g stroke="${A}" fill="none" stroke-width="2.6" opacity=".5">
+      <path d="M600,250 v380"/><path d="M600,250 q-160,-46 -300,-14 v380 q140,-32 300,14"/><path d="M600,250 q160,-46 300,-14 v380 q-140,-32 -300,14"/></g>
+    <g opacity=".28" stroke="${A}" stroke-width="1.4">${Array.from({length:9},(_,i)=>`<line x1="340" y1="${300+i*36}" x2="560" y2="${292+i*36}"/><line x1="640" y1="${292+i*36}" x2="860" y2="${300+i*36}"/>`).join('')}</g>
+    ${cloud(280,140,.8,G2,.18)}`);
 PAGE_SCENES.tag = PAGE_SCENES.journals;
 
 /* ---------- a motif no other record has ---------- */
@@ -2343,10 +2444,11 @@ const DB_SCHEMA = {          // primary key first, then indexes — Dexie syntax
   tasks:          'id, day, done',
   boards:         'id',
   people:         'id, tier',
+  streams:        'id, status',
 };
 /* keys of S that are single objects/arrays without their own identity — kept as rows in `meta` */
-const META_KEYS = ['settings','rehearsal','reviews','valueOrder','valueOrderHistory','places','journals','negLast'];
-const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders','visionEras','tasks','boards','people'];
+const META_KEYS = ['settings','rehearsal','reviews','valueOrder','valueOrderHistory','places','journals','negLast','finance'];
+const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders','visionEras','tasks','boards','people','streams'];
 
 /* ---------- MiniDexie: Dexie-compatible subset over IndexedDB ---------- */
 class MiniTable {
@@ -2384,7 +2486,7 @@ const usingRealDexie = DexieImpl !== MiniDexie;
 
 /* ---------- the database ---------- */
 const db = new DexieImpl(DB_NAME);
-db.version(5).stores(DB_SCHEMA);   // v2 `reminders`, v3 `visionEras`, v4 `tasks`, v5 `boards`+`people`
+db.version(6).stores(DB_SCHEMA);   // v2 `reminders`, v3 `visionEras`, v4 `tasks`, v5 `boards`+`people`, v6 `streams`
 
 /* ---------- S <-> stores ---------- */
 function stateToStores(state){
@@ -2577,7 +2679,7 @@ function seed(){
     ],
     rehearsal:{script:'', winning:'', aim:'', cycleStart:'', days:[]},
     reviews:{lastWeekly:null,lastSeasonal:null,lastAnnual:null},
-    people:[], places:[], boards:[],
+    people:[], places:[], boards:[], streams:[], finance:{currency:'¥',essentials:0,savings:0,target:0,targetBy:'',principles:[],milestones:[],months:[],note:''},
   };
 }
 /* ============================================================
@@ -4838,6 +4940,202 @@ function renderIdeation(root){
   $$('[data-idel]',root).forEach(b => b.onclick = () => { const i = byId(S.ideas, b.dataset.idel); requestDelete({label: i.text, node: b.closest('.spark'), remove: () => spliceOut(S.ideas, x => x.id === i.id)}); });
 }
 /* ============================================================
+   FINANCE — enough, and how far away it is.
+   Not an accounting app. Four questions: what comes in, how
+   fragile it is, how long you could last without it, and what
+   number means you can stop doing work you have outgrown.
+   ============================================================ */
+const STREAM_KINDS = {
+  salary:    ['💼','Salary',        'one employer, low variance, high dependence', '#8a8d8f'],
+  freelance: ['✍','Freelance',     'you trade hours; it stops when you do',        '#c47832'],
+  product:   ['▣','Product',       'made once, sold many times',                   '#7f916a'],
+  audience:  ['◎','Audience',      'subscriptions, patronage, a list that trusts you', '#a0727e'],
+  service:   ['☕','Service',       'a place or a practice with customers',         '#b08968'],
+  yield:     ['↗','Yield',         'interest, dividends, rent — money that works',  '#6b7f8e'],
+  other:     ['·','Other',         '',                                             '#a89f94'],
+};
+const FIN_DEFAULT = {currency:'¥', essentials:0, savings:0, target:0, targetBy:'', principles:[], milestones:[], months:[], note:''};
+function migrateFinance(){
+  S.streams = Array.isArray(S.streams) ? S.streams : [];
+  S.streams.forEach(s => { s.monthly = +s.monthly || 0; s.kind = STREAM_KINDS[s.kind] ? s.kind : 'other'; s.status = s.status || 'active'; s.reliability = s.reliability || 'steady'; s.note = s.note || ''; s.projectId = s.projectId || ''; });
+  S.finance = Object.assign({}, FIN_DEFAULT, S.finance || {});
+  S.finance.principles = Array.isArray(S.finance.principles) ? S.finance.principles : [];
+  S.finance.milestones = Array.isArray(S.finance.milestones) ? S.finance.milestones : [];
+  S.finance.months = Array.isArray(S.finance.months) ? S.finance.months : [];
+}
+const money = n => `${S.finance?.currency || '¥'}${Math.round(+n || 0).toLocaleString()}`;
+const activeStreams = () => S.streams.filter(s => s.status === 'active');
+const monthlyIn = () => sum(activeStreams().map(s => +s.monthly || 0));
+/* concentration: 0 is perfectly spread, 100 is one stream carrying everything */
+function concentration(){
+  const tot = monthlyIn(); if(!tot) return null;
+  return Math.round(sum(activeStreams().map(s => Math.pow((s.monthly||0)/tot, 2))) * 100);
+}
+function runwayMonths(){ const e = +S.finance.essentials || 0; return e ? (+S.finance.savings || 0) / e : null; }
+function freedomProgress(){ const t = +S.finance.target || 0; return t ? clamp(monthlyIn() / t * 100, 0, 100) : null; }
+function monthKey(d = today()){ return d.slice(0,7); }
+function financeReading(){
+  const out = []; const tot = monthlyIn(); const f = S.finance;
+  if(!S.streams.length) return ['Nothing here yet. List what comes in each month — even the salary you want to leave — and this page starts telling you how far away the door is.'];
+  out.push(`**${money(tot)}** a month across ${activeStreams().length} active stream${activeStreams().length===1?'':'s'}.`);
+  const c = concentration();
+  if(c !== null){
+    const top = [...activeStreams()].sort((a,b)=>b.monthly-a.monthly)[0];
+    const share = tot ? Math.round(top.monthly/tot*100) : 0;
+    out.push(share >= 70
+      ? `**${esc(top.name)}** carries ${share}% of it. That is not income, it is one relationship. The work is not earning more — it is earning it from somewhere else too.`
+      : share >= 45 ? `**${esc(top.name)}** is ${share}% of the total. Comfortable, not yet independent.`
+      : `No single stream is more than ${share}% of the total. That is what resilience actually looks like.`);
+  }
+  const r = runwayMonths();
+  if(r !== null) out.push(r >= 12 ? `Your savings cover **${r.toFixed(1)} months** of essentials. That is a year of saying no.`
+    : r >= 6 ? `Your savings cover **${r.toFixed(1)} months** of essentials — the usual advice is six, so you are at it.`
+    : r >= 3 ? `Your savings cover **${r.toFixed(1)} months**. Enough to absorb a bad quarter, not enough to make a leap.`
+    : `Your savings cover **${r.toFixed(1)} months** of essentials. Before anything ambitious, this is the number to move.`);
+  const p = freedomProgress();
+  if(p !== null){
+    const gap = Math.max(0, (+f.target||0) - tot);
+    out.push(p >= 100 ? `You are **at** the number you called enough. The question is no longer financial.`
+      : `You are **${Math.round(p)}%** of the way to ${money(f.target)} a month${f.targetBy ? ` by ${fmtDate(f.targetBy,'med')}` : ''} — ${money(gap)} short${f.targetBy && daysBetween(today(), f.targetBy) > 0 ? `, with ${Math.round(daysBetween(today(), f.targetBy)/30)} months to find it` : ''}.`);
+  } else out.push('You have not named the number that would mean enough. Until you do, "building income" stays a feeling rather than a distance.');
+  const dormant = S.streams.filter(s => s.status === 'building');
+  if(dormant.length) out.push(`${dormant.length} stream${dormant.length===1?' is':'s are'} still being built: ${dormant.map(s=>esc(s.name)).join(', ')}. These are the ones that decide what next year looks like.`);
+  return out;
+}
+routes.finance = function(root){
+  migrateFinance();
+  registerPageEntry({pageName:'Finance', addLabel:'Add an income stream', defaultEntryType:'stream', prefilledFields:{}, options:[
+    {icon:'▤', label:'Income stream', desc:'Anything that puts money in each month.', run:()=>openStreamModal()},
+    {icon:'◷', label:'Log this month', desc:'What actually came in and went out.', run:()=>openMonthModal()},
+    {icon:'◆', label:'Financial milestone', desc:'A number, and the date you want it by.', run:()=>addFinMilestone()}]});
+  const f = S.finance; const tot = monthlyIn(); const c = concentration(); const r = runwayMonths(); const prog = freedomProgress();
+  const months = [...f.months].sort((a,b)=>a.month.localeCompare(b.month));
+  const rd = financeReading();
+  const surplus = tot - (+f.essentials || 0);
+  root.innerHTML = `<div class="page">
+    <div class="page-head"><h1>Finance</h1><div class="sub">Enough is a number, not a feeling. This page holds what comes in, how fragile it is, how long you could last without it, and how far away the door is.</div></div>
+
+    <section class="reading-card rv"><div class="sc">Where you actually stand</div>
+      <div class="reading-body">${rd.map(l=>`<p>${mdInline(l)}</p>`).join('')}</div></section>
+
+    <div class="card rv" style="margin:22px 0"><div class="income-strip">
+      <div><div class="k">monthly, in</div><div class="num">${money(tot)}</div><div class="mono">${activeStreams().length} active stream${activeStreams().length===1?'':'s'}</div></div>
+      <div><div class="k">monthly essentials</div><div class="num">${money(f.essentials)}</div><div class="mono" style="color:${surplus>=0?'var(--sage)':'#c25b5b'}">${surplus>=0?'+':''}${money(surplus)} surplus</div></div>
+      <div><div class="k">runway</div><div class="num">${r===null?'—':r.toFixed(1)}</div><div class="mono">${r===null?'set essentials & savings':'months of essentials saved'}</div></div>
+      <div><div class="k">concentration</div><div class="num" style="color:${c===null?'var(--muted)':c>50?'#c25b5b':c>30?'var(--gold)':'var(--sage)'}">${c===null?'—':c}</div><div class="mono">${c===null?'':c>50?'one stream carries it':c>30?'somewhat concentrated':'well spread'}</div></div>
+    </div></div>
+
+    ${prog !== null ? `<section class="section rv"><div class="row between"><span class="sc" style="margin:0">The number that means enough</span><span class="mono">${money(tot)} of ${money(f.target)}${f.targetBy?` · by ${fmtDate(f.targetBy,'med')}`:''}</span></div>
+      <div class="freedom-bar"><i style="width:${prog}%"></i><span class="fb-label">${Math.round(prog)}%</span></div>
+      ${f.milestones.length ? `<div class="fin-milestones">${[...f.milestones].sort((a,b)=>(a.by||'').localeCompare(b.by||'')).map(m => { const hit = tot >= (+m.amount||0); const days = m.by ? daysBetween(today(), m.by) : null;
+        return `<div class="fin-ms ${hit?'hit':''}"><span class="fm-dot"></span><span class="fm-amt">${money(m.amount)}</span><span class="fm-label">${ed(`finance.milestones.${f.milestones.indexOf(m)}.label`,{ph:'what this unlocks'})}</span><span class="mono">${m.by?`${fmtDate(m.by,'med')}${days!==null?` · ${days<0?`${-days}d past`:`${Math.round(days/30)}mo`}`:''}`:'no date'}</span><button class="del-x inline" data-fmdel="${m.id}">×</button></div>`; }).join('')}</div>` : ''}
+      <div class="row" style="margin-top:10px"><button class="btn sm ghost" id="finMs">＋ milestone</button></div></section>` : ''}
+
+    <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Income streams</span><button class="btn sm primary" id="finNew">＋ Add a stream</button></div>
+      ${S.streams.length ? `<div class="stream-list">${S.streams.map(s => { const k = STREAM_KINDS[s.kind]; const share = tot ? Math.round((s.monthly||0)/tot*100) : 0; const pr = s.projectId ? byId(S.projects, s.projectId) : null;
+        return `<div class="stream" data-sopen2="${s.id}" style="--c:${k[3]}">
+          <span class="st-ico" title="${esc(k[2])}">${k[0]}</span>
+          <span class="st-name"><b>${esc(s.name)}</b><span class="mono">${esc(k[1])}${pr?` · ${esc(pr.name)}`:''}${s.note?` · ${esc(s.note)}`:''}</span></span>
+          <span class="st-amt">${money(s.monthly)}<span class="mono">/mo</span></span>
+          <span class="st-share"><span class="bar" style="--c:${k[3]}"><i style="width:${share}%"></i></span><span class="mono">${s.status==='active'?`${share}%`:esc(s.status)}</span></span>
+          <span class="status-pill ${s.reliability}">${esc(s.reliability)}</span>
+          <button class="del-x inline" data-stdel="${s.id}" title="remove stream">×</button>
+        </div>`; }).join('')}</div>`
+        : `<div class="empty">No streams listed. Start with the one you have — the salary counts, and seeing it beside the small new ones is the whole point.</div>`}
+      ${S.projects.some(p => p.income?.current > 0 && !S.streams.some(s => s.projectId === p.id)) ? `<div class="row" style="margin-top:10px"><button class="btn sm ghost" id="finImport">import ${S.projects.filter(p=>p.income?.current>0 && !S.streams.some(s=>s.projectId===p.id)).length} from projects</button></div>` : ''}
+    </section>
+
+    <div class="grid c2 section rv" style="align-items:start">
+      <div class="card"><span class="sc">The shape of it</span>
+        <div class="spec-grid" style="margin-top:12px">
+          <div><div class="k">currency</div>${ed('finance.currency',{ph:'¥',cls:'mono'})}</div>
+          <div><div class="k">monthly essentials</div>${ed('finance.essentials',{ph:'0',cls:'mono',hook:'finnum:essentials'})}</div>
+          <div><div class="k">savings</div>${ed('finance.savings',{ph:'0',cls:'mono',hook:'finnum:savings'})}</div>
+          <div><div class="k">enough, per month</div>${ed('finance.target',{ph:'0',cls:'mono',hook:'finnum:target'})}</div>
+          <div><div class="k">by when</div>${ed('finance.targetBy',{ph:'YYYY-MM-DD',cls:'mono'})}</div>
+        </div>
+        <div class="faint" style="font-size:.76rem;margin-top:10px">Essentials means the number you could actually live on for a while — rent, food, transport, insurance — not your current spending.</div>
+      </div>
+      <div class="card"><div class="row between"><span class="sc">Principles</span><button class="btn sm ghost" id="finPrin">＋ principle</button></div>
+        <p class="muted" style="font-size:.84rem">Your own rules, written once, so a decision at eleven at night is not a fresh argument.</p>
+        ${f.principles.length ? `<ul class="principles">${f.principles.map((p,i)=>`<li><span>${ed(`finance.principles.${i}`,{ph:'a rule you want to keep'})}</span><button class="del-x inline" data-fpdel="${i}">×</button></li>`).join('')}</ul>`
+          : `<div class="empty">None yet. Common ones worth stealing: keep six months of essentials before any leap; raise your rate every year without asking permission; every new stream must survive one client leaving; pay the future first, on the day you are paid.</div>`}
+      </div>
+    </div>
+
+    <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Month by month</span><button class="btn sm ghost" id="finMonth">log ${fmtMonthName(monthKey())}</button></div>
+      <p class="muted" style="font-size:.85rem">One row a month is enough to make the line real. Projections lie; this does not.</p>
+      ${months.length ? `<div class="card">${sparkline(months.map(m=>+m.income||0),{h:70,color:'var(--page-accent)',dots:true,labels:months.map(m=>`${fmtMonthName(m.month)}: in ${money(m.income)}${m.expenses?` · out ${money(m.expenses)}`:''}${m.note?' · '+m.note:''}`)})}
+        <div class="month-list">${[...months].reverse().slice(0,14).map((m,i)=>`<div class="month-row"><span class="mono">${fmtMonthName(m.month)}</span><span class="m-in">${money(m.income)}</span><span class="m-out">${m.expenses?money(m.expenses):'—'}</span><span class="m-net ${(+m.income||0)-(+m.expenses||0)>=0?'pos':'neg'}">${money((+m.income||0)-(+m.expenses||0))}</span><span class="mono m-note">${esc(m.note||'')}</span><button class="del-x inline" data-fmodel="${esc(m.month)}">×</button></div>`).join('')}</div></div>`
+        : `<div class="empty">Nothing logged. At the end of this month, put in two numbers.</div>`}
+    </section>
+
+    <section class="section rv"><span class="sc">Notes on money</span><div class="card">${ed('finance.note',{multi:true,mdr:true,cls:'prose',ph:'What you are working out about money: fears, plans, the thing you have never said out loud about it.'})}</div></section>
+  </div>`;
+  $('#finNew').onclick = () => openStreamModal();
+  if($('#finImport')) $('#finImport').onclick = () => {
+    S.projects.filter(p => p.income?.current > 0 && !S.streams.some(s => s.projectId === p.id))
+      .forEach(p => S.streams.push({id:uid(), name:p.name, kind:'product', monthly:p.income.current, status:'active', reliability:'variable', note:'', projectId:p.id, startedAt:today()}));
+    saveNow(); sound('success'); rerender();
+  };
+  if($('#finMs')) $('#finMs').onclick = () => addFinMilestone();
+  $('#finPrin').onclick = () => { S.finance.principles.push(''); saveNow(); rerender(); setTimeout(()=>{ const n = document.querySelectorAll('.principles .ed'); n.length && beginEdit(n[n.length-1]); },60); };
+  $('#finMonth').onclick = () => openMonthModal();
+  $$('[data-sopen2]',root).forEach(x => x.addEventListener('click', e => { if(e.target.closest('.del-x,.ed')) return; openStreamModal(byId(S.streams, x.dataset.sopen2)); }));
+  $$('[data-stdel]',root).forEach(b => b.onclick = e => { e.stopPropagation(); const s = byId(S.streams, b.dataset.stdel); requestDelete({label:s.name, node:b.closest('.stream'), remove:()=>spliceOut(S.streams, x=>x.id===s.id)}); });
+  $$('[data-fpdel]',root).forEach(b => b.onclick = () => { const i = +b.dataset.fpdel; requestDelete({label:S.finance.principles[i]||'this principle', node:b.closest('li'), remove:()=>{ const g = S.finance.principles.splice(i,1)[0]; return () => S.finance.principles.splice(i,0,g); }}); });
+  $$('[data-fmdel]',root).forEach(b => b.onclick = () => { const m = byId(S.finance.milestones, b.dataset.fmdel); requestDelete({label:money(m.amount), node:b.closest('.fin-ms'), remove:()=>spliceOut(S.finance.milestones, x=>x.id===m.id)}); });
+  $$('[data-fmodel]',root).forEach(b => b.onclick = () => { const k = b.dataset.fmodel; requestDelete({label:fmtMonthName(k), node:b.closest('.month-row'), remove:()=>spliceOut(S.finance.months, x=>x.month===k)}); });
+};
+function fmtMonthName(k){ const [y,m] = String(k||'').split('-'); return m ? `${MONTHS[+m-1].slice(0,3)} ${y}` : k; }
+hooks.finnum = (key, oldV, v) => { S.finance[key] = +String(v).replace(/[^\d.-]/g,'') || 0; saveNow(); rerender(); };
+function addFinMilestone(){
+  migrateFinance();
+  S.finance.milestones.push({id:uid(), amount: Math.round((monthlyIn() || 100000) * 1.5), label:'', by: addDays(today(), 365)});
+  saveNow(); if(currentRoute !== 'finance') navigate('#/finance'); else rerender();
+}
+function openStreamModal(existing){
+  const s = existing || {id:uid(), name:'', kind:'freelance', monthly:0, status:'active', reliability:'variable', note:'', projectId:'', startedAt:today()};
+  const m = openModal(`<h2>${existing ? 'Income stream' : 'A stream of income'}</h2><div class="stack">
+    <div class="field"><label>Name</label><input class="inp serif-lg" id="stName" value="${esc(s.name)}" placeholder="Freelance writing · the bar · the day job" autofocus></div>
+    <div class="grid c2" style="gap:10px">
+      <div class="field"><label>Kind</label><select class="sel" id="stKind">${Object.entries(STREAM_KINDS).map(([k,v])=>`<option value="${k}" ${s.kind===k?'selected':''}>${v[0]} ${v[1]}</option>`).join('')}</select></div>
+      <div class="field"><label>Roughly, per month</label><input class="inp mono" id="stAmt" value="${s.monthly||''}" placeholder="0" inputmode="numeric"></div>
+    </div>
+    <div class="grid c2" style="gap:10px">
+      <div class="field"><label>Status</label><select class="sel" id="stStatus">${['active','building','paused','ended'].map(x=>`<option ${s.status===x?'selected':''}>${x}</option>`).join('')}</select></div>
+      <div class="field"><label>How reliable</label><select class="sel" id="stRel">${['steady','variable','fragile'].map(x=>`<option ${s.reliability===x?'selected':''}>${x}</option>`).join('')}</select></div>
+    </div>
+    <div class="field"><label>From a project?</label><select class="sel" id="stProj"><option value="">—</option>${S.projects.map(p=>`<option value="${p.id}" ${s.projectId===p.id?'selected':''}>${esc(p.name)}</option>`).join('')}</select></div>
+    <div class="field"><label>Note</label><input class="inp" id="stNote" value="${esc(s.note)}" placeholder="three clients, one of them most of it"></div>
+  </div><div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn primary" id="stSave">${existing?'Save':'Add'}</button></div>`, 'narrow');
+  m.querySelector('#stSave').onclick = () => {
+    const name = m.querySelector('#stName').value.trim(); if(!name){ toast('Give it a name.'); return; }
+    Object.assign(s, {name, kind:m.querySelector('#stKind').value, monthly:+String(m.querySelector('#stAmt').value).replace(/[^\d.-]/g,'')||0,
+      status:m.querySelector('#stStatus').value, reliability:m.querySelector('#stRel').value, projectId:m.querySelector('#stProj').value, note:m.querySelector('#stNote').value.trim()});
+    if(!existing) S.streams.push(s);
+    saveNow(); m.remove(); sound('success'); if(currentRoute !== 'finance') navigate('#/finance'); else rerender();
+  };
+}
+function openMonthModal(){
+  migrateFinance();
+  const k = monthKey(); const ex = S.finance.months.find(x => x.month === k) || {month:k, income:monthlyIn(), expenses:S.finance.essentials, saved:0, note:''};
+  const m = openModal(`<h2>${fmtMonthName(k)}</h2><p class="muted" style="font-size:.86rem">Round numbers are fine. The point is the line, not the ledger.</p><div class="stack">
+    <div class="grid c2" style="gap:10px">
+      <div class="field"><label>Came in</label><input class="inp mono" id="moIn" value="${ex.income||''}" inputmode="numeric"></div>
+      <div class="field"><label>Went out</label><input class="inp mono" id="moOut" value="${ex.expenses||''}" inputmode="numeric"></div>
+    </div>
+    <div class="field"><label>A note about the month</label><input class="inp" id="moNote" value="${esc(ex.note||'')}" placeholder="a slow month; one client paid late"></div>
+  </div><div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn primary" id="moSave">Save the month</button></div>`, 'narrow');
+  m.querySelector('#moSave').onclick = () => {
+    const num = id => +String(m.querySelector(id).value).replace(/[^\d.-]/g,'') || 0;
+    const row = {month:k, income:num('#moIn'), expenses:num('#moOut'), saved:0, note:m.querySelector('#moNote').value.trim()};
+    const i = S.finance.months.findIndex(x => x.month === k);
+    if(i >= 0) S.finance.months[i] = row; else S.finance.months.push(row);
+    saveNow(); m.remove(); sound('success'); if(currentRoute !== 'finance') navigate('#/finance'); else rerender();
+  };
+}
+/* ============================================================
    9. RITUALS, HABITS & ENERGY MANAGEMENT — the maintenance loop
    ============================================================ */
 const TOD = ['morning','afternoon','evening','anytime'];
@@ -5144,6 +5442,120 @@ function openDayPage(d){
   p.querySelector('#dpPrev').onclick = () => openDayPage(addDays(d,-1));
   p.querySelector('#dpNext').onclick = () => openDayPage(addDays(d,1));
 }
+/* ============================================================
+   CHRONICLE — the whole thing as a document you can hold.
+   Renders the record into a printable book: stages and their
+   narratives, the chapters ahead, values, people, the memories
+   worth keeping. Print it, or save it as a PDF from the print
+   dialogue — no library, nothing sent anywhere.
+   ============================================================ */
+const CHRONICLE_SECTIONS = [
+  ['cover',    'Title page',        'Your name, the date, one line.'],
+  ['stages',   'The chapters lived','Each life stage with its narrative and years.'],
+  ['memories', 'Memories',          'Formative events and the entries you marked as memories.'],
+  ['threads',  'Threads',           'The motifs that run through more than one chapter.'],
+  ['vision',   'What comes next',   'The chapters ahead and the goals inside them.'],
+  ['values',   'The compass',       'Your values, their order, and where they stand.'],
+  ['people',   'The people',        'Who is in the inner rings, and what they gave you.'],
+  ['letters',  'Letters',           'Letters to yourself that have been opened.'],
+  ['closing',  'A closing page',    'One page left blank for a hand-written line.'],
+];
+function chronicleConfig(){
+  const c = S.settings.chronicle = Object.assign({sections:CHRONICLE_SECTIONS.map(s=>s[0]), images:true, title:'', subtitle:'', author:''}, S.settings.chronicle || {});
+  return c;
+}
+routes.chronicle = function(root){
+  const c = chronicleConfig();
+  const on = k => c.sections.includes(k);
+  registerPageEntry({pageName:'Chronicle', addLabel:'Print or save as PDF', defaultEntryType:'none', prefilledFields:{}, options:[
+    {icon:'⎙', label:'Print or save as PDF', desc:'Opens your print dialogue; choose "Save as PDF" there.', run:()=>window.print()}]});
+  const stages = S.stages.filter(s => !s.notyet);
+  const memories = sortEntries(S.entries.filter(e => ['memory','lifeevent','artifact'].includes(e.type) && !letterIsSealed(e)));
+  const eras = typeof erasList === 'function' ? erasList() : [];
+  const openedLetters = S.entries.filter(e => e.type === 'letter' && e.extra?.openedAt);
+  root.innerHTML = `<div class="page chronicle-page">
+    <div class="page-head no-print"><h1>Life Chronicle</h1><div class="sub">The record set as a book. Choose what goes in, then print it — or choose “Save as PDF” in the print dialogue and it becomes a file you can keep, send, or put on a shelf.</div></div>
+
+    <div class="card rv no-print" style="margin-bottom:24px">
+      <div class="grid c2" style="gap:14px;align-items:start">
+        <div><span class="sc">What to include</span>
+          <div class="chron-picks">${CHRONICLE_SECTIONS.map(([k,label,desc])=>`<label class="chron-pick ${on(k)?'on':''}"><input type="checkbox" data-cs="${k}" ${on(k)?'checked':''}><span><b>${esc(label)}</b><span class="d">${esc(desc)}</span></span></label>`).join('')}</div>
+          <label class="toggle ${c.images?'on':''}" id="chImages" style="margin-top:10px"><span class="sw"></span><span>include photographs</span></label>
+        </div>
+        <div><span class="sc">The title page</span>
+          <div class="stack" style="gap:8px;margin-top:8px">
+            <input class="inp serif-lg" id="chTitle" value="${esc(c.title)}" placeholder="A Life, So Far">
+            <input class="inp" id="chSub" value="${esc(c.subtitle)}" placeholder="a subtitle, if you want one">
+            <input class="inp" id="chAuthor" value="${esc(c.author)}" placeholder="your name">
+          </div>
+          <div class="row" style="margin-top:14px;gap:8px"><button class="btn primary" id="chPrint">⎙ Print · Save as PDF</button></div>
+          <div class="faint" style="font-size:.76rem;margin-top:8px">Everything below is what will print. In the dialogue, choose “Save as PDF” as the destination; turn on background graphics for the coloured pieces.</div>
+        </div>
+      </div>
+    </div>
+
+    <article class="chronicle" id="chronicle">
+      ${on('cover') ? `<section class="ch-cover ch-break">
+        <div class="ch-mark">生</div>
+        <h1 class="ch-title">${esc(c.title || 'A Life, So Far')}</h1>
+        ${c.subtitle ? `<div class="ch-sub">${esc(c.subtitle)}</div>` : ''}
+        <div class="ch-rule"></div>
+        <div class="ch-author">${esc(c.author || '')}</div>
+        <div class="ch-date">${esc(fmtDate(today()))}</div>
+        <div class="ch-counts mono">${stages.length} chapters · ${S.entries.length} entries · ${S.values.length} values · ${(S.people||[]).length} people</div>
+      </section>` : ''}
+
+      ${on('stages') && stages.length ? `<section class="ch-section ch-break"><h2 class="ch-h">The chapters lived</h2>
+        ${stages.map(s => `<div class="ch-stage">
+          <div class="ch-stage-head"><span class="ch-han">${esc(s.char||'')}</span><div><h3>${esc(s.name)}</h3><div class="mono">${esc(s.years||'')}${s.tagline?` · ${esc(s.tagline)}`:''}</div></div></div>
+          ${s.narrative ? `<div class="ch-prose">${md(s.narrative)}</div>` : '<div class="ch-empty">Not yet written.</div>'}
+          ${(s.substages||[]).filter(x=>x.desc).length ? `<div class="ch-sub-list">${s.substages.filter(x=>x.desc).map(x=>`<div class="ch-substage"><b>${esc(x.name)}</b> — ${esc(x.desc)}</div>`).join('')}</div>` : ''}
+          ${c.images && (s.photos||[]).length ? `<div class="ch-photos">${s.photos.slice(0,6).map(p=>`<img src="${esc(p.src)}" alt="">`).join('')}</div>` : ''}
+        </div>`).join('')}</section>` : ''}
+
+      ${on('memories') && memories.length ? `<section class="ch-section ch-break"><h2 class="ch-h">Memories</h2>
+        ${memories.slice(0,60).map(e => `<div class="ch-entry"><div class="ch-when mono">${esc(fmtDate(e.occurredAt,'med'))}</div>
+          <div>${e.title?`<div class="ch-entry-title">${esc(e.title)}</div>`:''}<div class="ch-prose">${md(e.body||'')}</div>
+          ${c.images && (e.media||[]).length ? `<div class="ch-photos">${e.media.slice(0,3).map(m=>`<img src="${esc(m.src)}" alt="">`).join('')}</div>` : ''}</div></div>`).join('')}</section>` : ''}
+
+      ${on('threads') && S.threads.length ? `<section class="ch-section ch-break"><h2 class="ch-h">Threads</h2>
+        ${S.threads.map(t => `<div class="ch-thread"><h3 style="color:${esc(t.color||'inherit')}">${esc(t.name)}</h3>${t.note?`<div class="ch-prose">${md(t.note)}</div>`:''}</div>`).join('')}</section>` : ''}
+
+      ${on('vision') && eras.length ? `<section class="ch-section ch-break"><h2 class="ch-h">What comes next</h2>
+        ${eras.map(era => { const goals = S.visions.filter(v => v.era === era.id && !v.archived);
+          return `<div class="ch-era"><h3>${esc(era.name)}${era.startYear||era.endYear?` <span class="mono">${esc(era.startYear||'')}–${esc(era.endYear||'')}</span>`:''}</h3>
+          ${era.subtitle?`<div class="ch-era-sub">${esc(era.subtitle)}</div>`:''}
+          ${goals.length ? `<ul class="ch-goals">${goals.map(v=>`<li><b>${esc(v.name)}</b>${v.successCriteria?` — ${esc(v.successCriteria)}`:''}</li>`).join('')}</ul>` : '<div class="ch-empty">Nothing written for this chapter yet.</div>'}</div>`; }).join('')}</section>` : ''}
+
+      ${on('values') && S.valueOrder.length ? `<section class="ch-section ch-break"><h2 class="ch-h">The compass</h2>
+        <ol class="ch-values">${S.valueOrder.map(id => { const v = byId(S.values,id); if(!v) return ''; const cur = valueCurrent(id);
+          return `<li><b style="color:${esc(v.color)}">${esc(v.name)}</b> <span class="mono">${cur}/100</span>${(v.fields?.embody||[]).slice(-1)[0]?.text ? `<div class="ch-prose">${esc((v.fields.embody||[]).slice(-1)[0].text)}</div>` : ''}</li>`; }).join('')}</ol></section>` : ''}
+
+      ${on('people') && (S.people||[]).length ? `<section class="ch-section ch-break"><h2 class="ch-h">The people</h2>
+        ${(S.people||[]).filter(p => ['inner','close'].includes(p.tier)).map(p => `<div class="ch-person"><h3>${esc(p.name)}${p.relation?` <span class="mono">${esc(p.relation)}</span>`:''}</h3>
+          ${p.met?`<div class="ch-prose"><em>How we met.</em> ${esc(p.met)}</div>`:''}
+          ${p.gave?`<div class="ch-prose"><em>What they gave me.</em> ${esc(p.gave)}</div>`:''}</div>`).join('') || '<div class="ch-empty">No one in the inner rings yet.</div>'}</section>` : ''}
+
+      ${on('letters') && openedLetters.length ? `<section class="ch-section ch-break"><h2 class="ch-h">Letters</h2>
+        ${openedLetters.map(e => `<div class="ch-letter"><div class="mono">written ${esc(fmtDate((e.createdAt||'').slice(0,10),'med'))} · opened ${esc(fmtDate(e.extra.openedAt,'med'))}</div>
+          ${e.title?`<h3>${esc(e.title)}</h3>`:''}<div class="ch-prose">${md(e.body)}</div>
+          ${e.extra.reply?`<div class="ch-reply"><em>Reading it back.</em> ${md(e.extra.reply)}</div>`:''}</div>`).join('')}</section>` : ''}
+
+      ${on('closing') ? `<section class="ch-closing ch-break"><div class="ch-rule"></div><p class="ch-closing-line">The rest is not written yet.</p><div class="ch-blank"></div></section>` : ''}
+    </article>
+  </div>`;
+  $('#chPrint').onclick = () => { sound('open'); setTimeout(() => window.print(), 120); };
+  $$('[data-cs]',root).forEach(cb => cb.onchange = () => {
+    const k = cb.dataset.cs;
+    c.sections = cb.checked ? [...new Set([...c.sections, k])] : c.sections.filter(x => x !== k);
+    saveNow(); rerender();
+  });
+  $('#chImages').onclick = () => { c.images = !c.images; saveNow(); rerender(); };
+  ['chTitle:title','chSub:subtitle','chAuthor:author'].forEach(pair => {
+    const [id, key] = pair.split(':'); const el_ = $('#'+id);
+    el_.addEventListener('input', debounce(() => { c[key] = el_.value; saveNow(); const t = document.querySelector('.ch-title'); if(key==='title' && t) t.textContent = c.title || 'A Life, So Far'; }, 400));
+  });
+};
 /* ============================================================
    13. SETTINGS
    ============================================================ */
@@ -5743,6 +6155,8 @@ const NAV_ICONS = {
   writing:  '<svg viewBox="0 0 24 24"><path d="M4.5 19.5 5.7 15 16 4.7a2 2 0 0 1 2.8 2.8L8.5 17.8Z"/><path d="M14.2 6.5 17 9.3"/><path d="M4.5 21h15"/></svg>',
   people:   '<svg viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19.5c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/><circle cx="16.8" cy="9.5" r="2.4"/><path d="M15 14.9c3 .2 5.5 1.9 5.5 4.6"/></svg>',
   board:    '<svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="7" height="9" rx="1.5"/><rect x="13.5" y="4.5" width="7" height="5.5" rx="1.5"/><rect x="3.5" y="16" width="7" height="3.5" rx="1.5"/><rect x="13.5" y="12.5" width="7" height="7" rx="1.5"/></svg>',
+  finance:  '<svg viewBox="0 0 24 24"><path d="M4 19V9M9.3 19V5.5M14.7 19v-8M20 19V7.5"/><path d="M3 21h18"/></svg>',
+  chronicle:'<svg viewBox="0 0 24 24"><path d="M5.5 4.5h9a2 2 0 0 1 2 2V20H7.5a2 2 0 0 1-2-2Z"/><path d="M16.5 6.5h2V20H7.5"/><path d="M8.5 8.5h5M8.5 11.5h5M8.5 14.5h3"/></svg>',
   commonplace:'<svg viewBox="0 0 24 24"><path d="M5 4.5h9a2.5 2.5 0 0 1 2.5 2.5v12.5H7.5A2.5 2.5 0 0 1 5 17Z"/><path d="M16.5 7H19v12.5H7.5"/><path d="M8 8.5h5.5M8 11.5h5.5"/></svg>',
 };
 /* labels match the h1 of the page they open; `short` is for the mobile bar only */
@@ -5757,13 +6171,15 @@ const NAV_PAGES = {
   writing:  {label:'Writing',          short:'Writing',  ico:NAV_ICONS.writing,  route:'#/writing'},
   people:   {label:'People',           short:'People',   ico:NAV_ICONS.people,   route:'#/people'},
   board:    {label:'The Board',        short:'Board',    ico:NAV_ICONS.board,    route:'#/board'},
+  finance:  {label:'Finance',          short:'Money',    ico:NAV_ICONS.finance,  route:'#/finance'},
+  chronicle:{label:'Chronicle',        short:'Book',     ico:NAV_ICONS.chronicle,route:'#/chronicle'},
   commonplace:{label:'Commonplace Book', short:'Media',  ico:NAV_ICONS.commonplace, route:'#/commonplace'},
   values:   {label:'Values',           short:'Values',   ico:NAV_ICONS.values,   route:'#/values'},
   skills:   {label:'Skill Tree',       short:'Skills',   ico:NAV_ICONS.skills,   route:'#/skills'},
   vision:   {label:'Vision Canvas',    short:'Vision',   ico:NAV_ICONS.vision,   route:'#/vision'},
   timeline: {label:'Timeline',         short:'Timeline', ico:NAV_ICONS.timeline, route:'#/timeline'},
 };
-const NAV_DEFAULT = { present:['today','plan','calendar','projects','rituals'], becoming:['values','skills','vision','timeline'], standalone:['journals','commonplace','writing','people','board','reviews'] };
+const NAV_DEFAULT = { present:['today','plan','calendar','projects','rituals'], becoming:['values','skills','vision','timeline'], standalone:['journals','commonplace','writing','people','board','finance','reviews','chronicle'] };
 const NAV_ZONES = [ {id:'present', label:'Present', hint:'short-term, daily use', accent:'var(--sage)'}, {id:'becoming', label:'Becoming', hint:'identity, growth', accent:'var(--ment)'} ];
 const MOBILE_PRIMARY = ['today','plan','journals','projects','skills'];
 function navConfig(){ if(!S.settings.nav) S.settings.nav = JSON.parse(JSON.stringify(NAV_DEFAULT)); const n = S.settings.nav; ['present','becoming','standalone'].forEach(z => { n[z] = (n[z]||[]).filter(k => NAV_PAGES[k]); }); const placed = new Set([...n.present, ...n.becoming, ...n.standalone]); Object.keys(NAV_PAGES).forEach(k => { if(k !== 'home' && !placed.has(k)) n.standalone.push(k); }); ['present','becoming','standalone'].forEach(z => n[z] = n[z].filter(k => NAV_PAGES[k] && k !== 'home')); return n; }
@@ -5830,6 +6246,8 @@ function houseStats(){
     commonplace:{line:`${S.entries.filter(e=>e.type==='media').length} works logged`, ok:true, cadence:'archival', tip:'What you read, watched and listened to — and what it changed.'},
     people:   {line:`${(S.people||[]).length} people${(S.people||[]).filter(p=>personGoneQuiet(p)).length?` · ${(S.people||[]).filter(p=>personGoneQuiet(p)).length} gone quiet`:''}`, ok:!(S.people||[]).filter(p=>personGoneQuiet(p)).length, cadence:'weekly', tip:'A life is mostly other people.'},
     board:    {line:`${boardCount('main')} pinned`, ok:true, cadence:'seasonal', tip:'The half of a vision you can only feel.'},
+    finance:  {line: (S.streams||[]).length ? `${money(monthlyIn())}/mo · ${activeStreams().length} stream${activeStreams().length===1?'':'s'}` : 'nothing listed', ok:true, cadence:'monthly', tip:'What comes in, how fragile it is, and how far the door is.'},
+    chronicle:{line:'the record as a book', ok:true, cadence:'annual', tip:'Print it, or save it as a PDF.'},
   };
   return {stat, due, done, vs, wither, last, snapDays, gaps, atro, hrs30, active, nods7, j7, quotes, memories, c, rem, zonesOf: k => n.present.includes(k)?'present':n.becoming.includes(k)?'becoming':'always'};
 }

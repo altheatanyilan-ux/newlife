@@ -22,6 +22,8 @@ const NAV_ICONS = {
   writing:  '<svg viewBox="0 0 24 24"><path d="M4.5 19.5 5.7 15 16 4.7a2 2 0 0 1 2.8 2.8L8.5 17.8Z"/><path d="M14.2 6.5 17 9.3"/><path d="M4.5 21h15"/></svg>',
   people:   '<svg viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19.5c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/><circle cx="16.8" cy="9.5" r="2.4"/><path d="M15 14.9c3 .2 5.5 1.9 5.5 4.6"/></svg>',
   board:    '<svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="7" height="9" rx="1.5"/><rect x="13.5" y="4.5" width="7" height="5.5" rx="1.5"/><rect x="3.5" y="16" width="7" height="3.5" rx="1.5"/><rect x="13.5" y="12.5" width="7" height="7" rx="1.5"/></svg>',
+  finance:  '<svg viewBox="0 0 24 24"><path d="M4 19V9M9.3 19V5.5M14.7 19v-8M20 19V7.5"/><path d="M3 21h18"/></svg>',
+  chronicle:'<svg viewBox="0 0 24 24"><path d="M5.5 4.5h9a2 2 0 0 1 2 2V20H7.5a2 2 0 0 1-2-2Z"/><path d="M16.5 6.5h2V20H7.5"/><path d="M8.5 8.5h5M8.5 11.5h5M8.5 14.5h3"/></svg>',
   commonplace:'<svg viewBox="0 0 24 24"><path d="M5 4.5h9a2.5 2.5 0 0 1 2.5 2.5v12.5H7.5A2.5 2.5 0 0 1 5 17Z"/><path d="M16.5 7H19v12.5H7.5"/><path d="M8 8.5h5.5M8 11.5h5.5"/></svg>',
 };
 /* labels match the h1 of the page they open; `short` is for the mobile bar only */
@@ -36,13 +38,15 @@ const NAV_PAGES = {
   writing:  {label:'Writing',          short:'Writing',  ico:NAV_ICONS.writing,  route:'#/writing'},
   people:   {label:'People',           short:'People',   ico:NAV_ICONS.people,   route:'#/people'},
   board:    {label:'The Board',        short:'Board',    ico:NAV_ICONS.board,    route:'#/board'},
+  finance:  {label:'Finance',          short:'Money',    ico:NAV_ICONS.finance,  route:'#/finance'},
+  chronicle:{label:'Chronicle',        short:'Book',     ico:NAV_ICONS.chronicle,route:'#/chronicle'},
   commonplace:{label:'Commonplace Book', short:'Media',  ico:NAV_ICONS.commonplace, route:'#/commonplace'},
   values:   {label:'Values',           short:'Values',   ico:NAV_ICONS.values,   route:'#/values'},
   skills:   {label:'Skill Tree',       short:'Skills',   ico:NAV_ICONS.skills,   route:'#/skills'},
   vision:   {label:'Vision Canvas',    short:'Vision',   ico:NAV_ICONS.vision,   route:'#/vision'},
   timeline: {label:'Timeline',         short:'Timeline', ico:NAV_ICONS.timeline, route:'#/timeline'},
 };
-const NAV_DEFAULT = { present:['today','plan','calendar','projects','rituals'], becoming:['values','skills','vision','timeline'], standalone:['journals','commonplace','writing','people','board','reviews'] };
+const NAV_DEFAULT = { present:['today','plan','calendar','projects','rituals'], becoming:['values','skills','vision','timeline'], standalone:['journals','commonplace','writing','people','board','finance','reviews','chronicle'] };
 const NAV_ZONES = [ {id:'present', label:'Present', hint:'short-term, daily use', accent:'var(--sage)'}, {id:'becoming', label:'Becoming', hint:'identity, growth', accent:'var(--ment)'} ];
 const MOBILE_PRIMARY = ['today','plan','journals','projects','skills'];
 function navConfig(){ if(!S.settings.nav) S.settings.nav = JSON.parse(JSON.stringify(NAV_DEFAULT)); const n = S.settings.nav; ['present','becoming','standalone'].forEach(z => { n[z] = (n[z]||[]).filter(k => NAV_PAGES[k]); }); const placed = new Set([...n.present, ...n.becoming, ...n.standalone]); Object.keys(NAV_PAGES).forEach(k => { if(k !== 'home' && !placed.has(k)) n.standalone.push(k); }); ['present','becoming','standalone'].forEach(z => n[z] = n[z].filter(k => NAV_PAGES[k] && k !== 'home')); return n; }
@@ -109,6 +113,8 @@ function houseStats(){
     commonplace:{line:`${S.entries.filter(e=>e.type==='media').length} works logged`, ok:true, cadence:'archival', tip:'What you read, watched and listened to — and what it changed.'},
     people:   {line:`${(S.people||[]).length} people${(S.people||[]).filter(p=>personGoneQuiet(p)).length?` · ${(S.people||[]).filter(p=>personGoneQuiet(p)).length} gone quiet`:''}`, ok:!(S.people||[]).filter(p=>personGoneQuiet(p)).length, cadence:'weekly', tip:'A life is mostly other people.'},
     board:    {line:`${boardCount('main')} pinned`, ok:true, cadence:'seasonal', tip:'The half of a vision you can only feel.'},
+    finance:  {line: (S.streams||[]).length ? `${money(monthlyIn())}/mo · ${activeStreams().length} stream${activeStreams().length===1?'':'s'}` : 'nothing listed', ok:true, cadence:'monthly', tip:'What comes in, how fragile it is, and how far the door is.'},
+    chronicle:{line:'the record as a book', ok:true, cadence:'annual', tip:'Print it, or save it as a PDF.'},
   };
   return {stat, due, done, vs, wither, last, snapDays, gaps, atro, hrs30, active, nods7, j7, quotes, memories, c, rem, zonesOf: k => n.present.includes(k)?'present':n.becoming.includes(k)?'becoming':'always'};
 }

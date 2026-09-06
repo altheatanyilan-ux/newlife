@@ -35,23 +35,28 @@ To restore your data on a new device: open this website in the same browser, go 
 
 ## Rooms
 
-The sidebar groups the rooms into two zones by time horizon: **Present** (Today, Plan, Projects, Habits) and **Becoming** (Values, Skill Tree, Vision Canvas, Timeline), with Journals, Commonplace Book, Writing and Reviews always available below a separator. Sidebar labels are the same names the pages carry as their titles, drawn with thin line icons. Zones collapse, the sidebar collapses to icons, and both states persist. On narrow screens a bottom bar shows the five most-used rooms and a More button opens the full grouped menu. Pages can be moved between zones by drag-and-drop in Settings.
+The sidebar groups the rooms into two zones by time horizon: **Present** (Today, Plan, Calendar, Projects, Habits) and **Becoming** (Values, Skill Tree, Vision Canvas, Timeline), with Journals, Commonplace Book, Writing, People, The Board, Finance, Reviews and Chronicle always available below a separator. Sidebar labels are the same names the pages carry as their titles, drawn with thin line icons. Zones collapse, the sidebar collapses to icons, and both states persist. On narrow screens a bottom bar shows the five most-used rooms and a More button opens the full grouped menu. Pages can be moved between zones by drag-and-drop in Settings.
 
 | Route | Room |
 |---|---|
 | `#/home` | Life at a glance: today's focus, the living house diagram of rooms with health dots and flows, and long-term panels with charts |
 | `#/today` | Daily check-in, Morning Theatre, signals, on-this-day, gentle prompt, 30-day charts |
 | `#/plan` | The week as seven drop targets, a carried-over strip and an unscheduled shelf; drag a task to a day or pull existing project work onto one |
+| `#/calendar` | A month coloured by each day's overall state, with marks for rehearsals, entries, tasks, habits and nods; open a day and it becomes a readable page of it |
+| `#/people` | People by ring, how you met, what they gave you, what you owe them, their board, everything you have written about them, and who has gone quiet |
+| `#/board` | A pin board of images and single words; every value, skill, project, goal, chapter and person can have one of its own |
+| `#/finance` | Income streams and how concentrated they are, runway in months, the number that means enough, milestones, principles, and a month-by-month line |
+| `#/chronicle` | The whole record set as a printable book — choose the sections, then print or save as PDF |
 | `#/writing` | Pieces with an intention and source hashtags; the entries carrying those tags line up beside the page and can be quoted straight in |
 | `#/commonplace` | Books, films, series, albums, talks: status, rating, passages, and prompts that ask what a work changed rather than what it scored |
-| `#/reviews` | Guided weekly, seasonal and annual reviews |
+| `#/reviews` | Guided weekly, seasonal and annual reviews, plus **Patterns in the record**: statistics computed in the page, and optionally Claude's reading of them |
 | `#/tag/:name` | Every entry carrying one hashtag |
 | `#/timeline` | Life stages on a spine (add a stage from the dashed tile at the end of the spine), felt-time toggle, thread ribbons, tensions |
 | `#/stage/:id` | Stage detail: versioned narrative, sub-stages, formative events, retrospective values, soundtrack, artifacts, letters |
 | `#/vision` | The lifeline: past, present, and future eras as a horizontal timeline with a NOW marker, goals with completion and progress, life events, and a close-chapter wizard; the vision tree below it |
-| `#/values` | A written reading of what the numbers mean first, then four figures, one table that is priority, congruence, gap and trend at once, and the radar over time |
+| `#/values` | A written reading of what the numbers mean first, then four figures, one table that is priority, congruence, gap and trend at once, and the radar over time. Each value carries weekly practices; a snapshot starts from what those weeks contained |
 | `#/journals` | Commonplace Book: synchronicity, manifestation, reflections, gratitude, dreams, quotes, open questions |
-| `#/skills` | The living tree: trunk, one branch per category, a twig per skill whose leaves grow with each level, gold fruit for mastery, blossoms when a milestone is near, brown falling leaves for atrophy, sap flowing on recently practised twigs, a sun by day and a moon at night; customisable levels (labels, descriptions, criteria, typed resources, estimated time), multi-target milestones on a timeline, atrophy, cross-mappings |
+| `#/skills` | What you are practising now, milestones inside a window you choose, then the living tree: trunk, one branch per category, a twig per skill whose leaves grow with each level, gold fruit for mastery, blossoms when a milestone is near, brown falling leaves for atrophy, sap flowing on recently practised twigs, a sun by day and a moon at night; customisable levels (labels, descriptions, criteria, typed resources, estimated time), multi-target milestones on a timeline, atrophy, cross-mappings |
 | `#/projects` | Ideation mode (sparks, questions, inspirations, experiments and a brainstorm page) and Tracking mode. Tracking has three views: cards (priority, status, task ratio, target date), a kanban board with drag between status columns, and a Gantt timeline of phases; each project has phases with task checklists and quick capture, resources, linked skills and vision chapter, notes, nod heatmaps, income streams; energy-vs-output chart and idea inbox |
 | `#/rituals` | Habit rings, four-dimension energy balance, 90-day calendars |
 | `#/settings` | Theme, ambient sound, felt time, home page, export/import/clear |
@@ -70,6 +75,11 @@ Every room shares one design language but carries its own personality. The confi
 | Writing | parchment | sand → oat | calm |
 | Commonplace Book | mulberry | plum → rose | calm |
 | Reviews | sea green | teal → sage | calm |
+| Calendar | slate | slate → mist | calm |
+| People | dusty rose | rose → clay | calm |
+| The Board | old gold | gold → oat | calm |
+| Finance | moss | moss → sage | crisp |
+| Chronicle | linen | linen → parchment | calm |
 | Values | soft purple | lavender → mauve | calm |
 | Skill Tree | emerald | emerald → teal | energetic (springy) |
 | Vision Canvas | deep indigo | indigo → violet | calm (floats, parallax) |
@@ -91,6 +101,22 @@ Two synthesised layers, nothing downloaded. Both are off by default and remember
 Every room has a drawn scene in the ambient layer — a house and hills for Home, a low sun for Today, rain on a window for Journals, a stack of books and a lamp for the Commonplace Book, a desk at night for Writing, lanterns and a shopfront for Projects, a bamboo grove for the Skill Tree, mountains and a moon for the Vision Canvas, receding hills for the Timeline. They are drawn in each page's own accent and gradient at low opacity, with a soft vignette so text stays readable.
 
 Pages about one record — a project, a skill, a stage, a value, a media entry, a piece of writing — get an emblem generated from that record's id instead, so no two look alike and each looks the same every time you open it.
+
+## Voice and Claude
+
+Every long field carries two buttons. **Speak** uses the browser's own speech recogniser (Chrome, Edge, Safari): no audio is recorded, stored or uploaded — the browser returns text and the text is all that exists. **Tidy** cleans up what is written.
+
+Tidy and the pattern report work in two modes. Without a key everything runs locally: fillers removed, spoken punctuation converted, sentences and paragraphs restored, and a report built from statistics computed in the page. Paste an **Anthropic API key** in Settings and both get a language model instead.
+
+A Claude Pro or Max subscription — or a ChatGPT one — cannot be used for this. Consumer subscriptions do not issue API credentials; API access is a separate, pay-as-you-go product. The key is kept only in this browser's `localStorage` and is never written into a backup file.
+
+**Patterns in the record** (Reviews → Patterns) always shows the true numbers first: entry cadence, recurring words and hashtags, values that have fallen or risen several readings in a row, overall state by half-period and by weekday, skills going cold, habits under 40%, and the people who recur. With a key, Claude is asked to interpret exactly those numbers and nothing else.
+
+## Letters, decisions and people
+
+- **Sealed letters** (Journals → Letters): write to a future self and seal it until a date. It is hidden from cards, lists and search until then, and surfaces on Today when it comes due, with room to answer the person who wrote it.
+- **Decision journal** (Journals → Decisions): the situation, the options, the real reasoning, what you expect and what would make it a mistake — then a review date that returns on Today, with what actually happened and a verdict.
+- **People**: tag anyone in an entry and the People room fills itself — where they appear by year, and who has gone quiet against the rhythm you set for their ring.
 
 ## Hashtags
 

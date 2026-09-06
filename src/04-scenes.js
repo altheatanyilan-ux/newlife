@@ -133,6 +133,15 @@ PAGE_SCENES.people = () => scWrap(`${hill(560,26,G2,.22)}
 PAGE_SCENES.board = () => scWrap(`<g opacity=".5" stroke="${A}" fill="none" stroke-width="2.2">${[[180,180,220,150,-3],[440,140,180,240,2],[660,200,250,170,-2],[300,400,200,180,3],[560,430,170,150,-4],[790,420,190,220,2]].map(([x,y,w,h,r])=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" transform="rotate(${r} ${x+w/2} ${y+h/2})"/>`).join('')}</g>
     <g opacity=".3" fill="${G2}">${[[180,180,220,150],[660,200,250,170],[300,400,200,180]].map(([x,y,w,h])=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6"/>`).join('')}</g>
     <g opacity=".45" fill="${A}">${[[290,180],[530,140],[785,200],[400,400],[645,430],[885,420]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="5"/>`).join('')}</g>`);
+PAGE_SCENES.finance = () => scWrap(`${hill(600,18,G2,.2)}
+    <g opacity=".5" stroke="${A}" fill="none" stroke-width="2.6">${[[240,560],[380,470],[520,500],[660,380],[800,300],[940,210]].map(([x,y],i,a)=>i?`<line x1="${a[i-1][0]}" y1="${a[i-1][1]}" x2="${x}" y2="${y}"/>`:'').join('')}</g>
+    <g opacity=".45" fill="${A}">${[[240,560],[380,470],[520,500],[660,380],[800,300],[940,210]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="6"/>`).join('')}</g>
+    <g opacity=".28" fill="${G1}">${[0,1,2,3,4].map(i=>`<rect x="${200+i*150}" y="${640-i*46}" width="72" height="${60+i*46}" rx="4"/>`).join('')}</g>
+    <line x1="120" y1="700" x2="1080" y2="700" stroke="${A}" stroke-width="2" opacity=".4"/>`);
+PAGE_SCENES.chronicle = () => scWrap(`<g stroke="${A}" fill="none" stroke-width="2.6" opacity=".5">
+      <path d="M600,250 v380"/><path d="M600,250 q-160,-46 -300,-14 v380 q140,-32 300,14"/><path d="M600,250 q160,-46 300,-14 v380 q-140,-32 -300,14"/></g>
+    <g opacity=".28" stroke="${A}" stroke-width="1.4">${Array.from({length:9},(_,i)=>`<line x1="340" y1="${300+i*36}" x2="560" y2="${292+i*36}"/><line x1="640" y1="${292+i*36}" x2="860" y2="${300+i*36}"/>`).join('')}</g>
+    ${cloud(280,140,.8,G2,.18)}`);
 PAGE_SCENES.tag = PAGE_SCENES.journals;
 
 /* ---------- a motif no other record has ---------- */
