@@ -6,11 +6,32 @@ The governing metaphor is a house still being built. Each section is a room; a u
 
 ## Running it
 
-Open `index.html` in a browser. That is the whole deployment. There is no build step and no server.
+Open `index.html` in a browser. That is the whole deployment; no server is needed.
 
-- All data lives in `localStorage` under the key `lifeinstrument.v1`. Images are stored inline as base64.
-- The only external dependency is Google Fonts (EB Garamond, Nunito Sans, Noto Serif SC, Lora, IBM Plex Mono). Without a network connection the site falls back to system serif and sans faces.
-- Export and import the full data store as JSON from Settings.
+- The only external dependency at runtime is Google Fonts (EB Garamond, Nunito Sans, Noto Serif SC, Lora, IBM Plex Mono). Without a network connection the site falls back to system serif and sans faces.
+
+## Building it
+
+`index.html` is generated from the parts in `src/` by `build.js`:
+
+```
+npm install     # installs dexie; optional, see below
+npm run build   # writes index.html
+```
+
+If `dexie` is installed, the build inlines its UMD bundle so the database layer runs on real Dexie. If it is not, `src/06-db.js` falls back to a small built-in class with the same API subset over raw IndexedDB. Either way the output is one self-contained file.
+
+## Data
+
+All data lives in an IndexedDB database named `lifeinstrument-db`, declared in `src/06-db.js` with one object store per data structure: `meta`, `stages`, `threads`, `tensions`, `values`, `valueSnapshots`, `visions`, `skills`, `projects`, `nods`, `ideas`, `habits`, `habitLog`, `checkins`, `entries`. Photos are resized on upload and stored inline as base64. On first load the app migrates any data found under the old `localStorage` key or the interim single-blob database, then removes the old copy.
+
+Three small preferences stay in `localStorage`: `soundEnabled`, `ambientEnabled`, and `lastBackupDate`.
+
+### Backups
+
+Settings has **Export backup**, which downloads `backup-YYYY-MM-DD.json` in the shape `{ version: 1, exportedAt, data: { <store>: [rows] } }`, and **Import backup**, which validates the file, asks for confirmation, then clears every store and reloads from the file. Older whole-state exports are accepted too. If the last export was more than 14 days ago, a banner at the top of each page reminds you.
+
+To restore your data on a new device: open this website in the same browser, go to Settings, click Import Backup, and select your exported .json file.
 
 ## Rooms
 

@@ -1,0 +1,31 @@
+<body>
+<div class="ambient"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+<canvas class="dust" id="dust"></canvas>
+<div id="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><span class="mark">生</span><span class="name">Life Instrument</span></div>
+    <nav class="nav" id="nav">
+      <a href="#/today" data-r="today"><span class="ico">🏠</span><span class="lbl">Today</span></a>
+      <a href="#/timeline" data-r="timeline"><span class="ico">⏳</span><span class="lbl">Timeline</span></a>
+      <a href="#/vision" data-r="vision"><span class="ico">🌳</span><span class="lbl">Vision Tree</span></a>
+      <a href="#/values" data-r="values"><span class="ico">🧭</span><span class="lbl">Values</span></a>
+      <a href="#/journals" data-r="journals"><span class="ico">📖</span><span class="lbl">Journals</span></a>
+      <a href="#/skills" data-r="skills"><span class="ico">🛠</span><span class="lbl">Skills</span></a>
+      <a href="#/projects" data-r="projects"><span class="ico">🎨</span><span class="lbl">Projects</span></a>
+      <a href="#/rituals" data-r="rituals"><span class="ico">✨</span><span class="lbl">Rituals &amp; Habits</span></a>
+      <a href="#/map" data-r="map"><span class="ico">🗺</span><span class="lbl">System Map</span></a>
+    </nav>
+    <nav class="nav settings-link" style="flex:0"><a href="#/settings" data-r="settings"><span class="ico">⚙</span><span class="lbl">Settings</span></a></nav>
+  </aside>
+  <main id="main"></main>
+</div>
+<div class="topbar">
+  <button class="iconbtn" id="btnSearch" title="Search (⌘K)">⌕ <span>search</span> <kbd>⌘K</kbd></button>
+  <button class="iconbtn" id="btnSound" title="Interaction sounds">🔕</button>
+  <button class="iconbtn" id="btnAmbient" title="Ambient background">🌊</button>
+  <button class="iconbtn" id="btnTheme" title="Toggle theme">☾</button>
+</div>
+<button class="fab" id="fab" title="New entry (⌘N)">+<span class="hint">new entry · ⌘N</span></button>
+<div class="toast-wrap" id="toasts"></div>
+<div id="modals"></div>
+<script>

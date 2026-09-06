@@ -1,0 +1,13 @@
+{
+  "name": "life-instrument",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A single-file personal website: a structured container for a life examined and a life deliberately created.",
+  "scripts": {
+    "build": "node build.js",
+    "start": "npx --yes serve -l 8080 ."
+  },
+  "dependencies": {
+    "dexie": "^4.0.11"
+  }
+}

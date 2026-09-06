@@ -588,6 +588,8 @@ html[data-theme="light"] .stage-hero .veil{background:linear-gradient(180deg,rgb
 .settings .opt{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid var(--line);gap:20px}
 .settings .opt .d{font-size:.82rem;color:var(--muted)}
 
+.backup-banner{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;max-width:1180px;margin:-18px auto 26px;padding:10px 16px;border:1px solid color-mix(in srgb,var(--gold) 40%,transparent);background:color-mix(in srgb,var(--gold) 8%,transparent);border-radius:12px;font-size:.85rem;color:var(--muted)}
+
 /* view transitions */
 ::view-transition-old(root),::view-transition-new(root){animation-duration:.3s}
 ::view-transition-old(stage-char),::view-transition-new(stage-char){animation-duration:.6s;animation-timing-function:cubic-bezier(.4,0,.2,1);mix-blend-mode:normal}
@@ -681,34 +683,8 @@ function md(src){
 /* ---------- state ---------- */
 const KEY = 'lifeinstrument.v1';
 let S = null;
-/* Primary store is IndexedDB (hundreds of MB+). localStorage (~5 MB) is only a fallback
-   for browsers that block IndexedDB, and the migration source for older data. */
-const idb = {
-  db: null,
-  open(){ return new Promise((res, rej) => { if(!window.indexedDB) return rej(new Error('no idb')); const r = indexedDB.open('lifeinstrument', 1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); r.onblocked = () => rej(new Error('blocked')); }); },
-  async get(k){ const db = this.db || (this.db = await this.open()); return new Promise((res, rej) => { const q = db.transaction('kv','readonly').objectStore('kv').get(k); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); }); },
-  async set(k, v){ const db = this.db || (this.db = await this.open()); return new Promise((res, rej) => { const t = db.transaction('kv','readwrite'); t.objectStore('kv').put(v, k); t.oncomplete = () => res(); t.onerror = () => rej(t.error); t.onabort = () => rej(t.error); }); },
-  async del(k){ const db = this.db || (this.db = await this.open()); return new Promise((res, rej) => { const t = db.transaction('kv','readwrite'); t.objectStore('kv').delete(k); t.oncomplete = () => res(); t.onerror = () => rej(t.error); }); },
-};
-let storageMode = 'idb';
-let saveWarned = false;
-function saveLocal(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){ if(!saveWarned){ saveWarned = true; toast('This browser is blocking large storage. Export your data from Settings to keep it safe.', 6000); } } }
-function saveNow(){
-  if(storageMode === 'idb'){ const snap = JSON.parse(JSON.stringify(S)); idb.set(KEY, snap).catch(err => { console.warn('IndexedDB write failed, falling back to localStorage', err); storageMode = 'local'; saveLocal(); }); }
-  else saveLocal();
-}
-const save = debounce(saveNow, 400);
-async function load(){
-  try { const v = await idb.get(KEY); if(v){ S = v; migrate(); return; } }
-  catch(e){ storageMode = 'local'; }
-  try { const raw = localStorage.getItem(KEY); if(raw){ S = JSON.parse(raw); migrate(); if(storageMode === 'idb'){ await idb.set(KEY, JSON.parse(JSON.stringify(S))); localStorage.removeItem(KEY); toast('Your data has moved to a larger store. Photos no longer count against the 5 MB limit.', 6000); } return; } } catch(e){}
-  S = seed();
-  saveNow();
-}
+/* persistence lives in db.js (Dexie schema + load/save/backup) */
 function migrate(){ const d = seed(); for(const k of Object.keys(d)) if(S[k]===undefined) S[k] = d[k]; }
-async function resetAll(){ try { await idb.del(KEY); } catch(e){} localStorage.removeItem(KEY); S = seed(); saveNow(); }
-async function storageInfo(){ try { const e = await navigator.storage?.estimate?.(); if(e) return {usage:e.usage||0, quota:e.quota||0}; } catch(err){} return null; }
-const fmtBytes = n => n > 1e9 ? (n/1e9).toFixed(2)+' GB' : n > 1e6 ? (n/1e6).toFixed(1)+' MB' : (n/1e3).toFixed(0)+' KB';
 
 /* path access: "stages.#id.narrative" or "theatre.script" */
 function resolve(path){ const segs = path.split('.'); let o = S; for(let i=0;i<segs.length-1;i++){ o = step(o, segs[i]); if(o==null) return [null,null]; } return [o, segs[segs.length-1]]; }
@@ -785,7 +761,7 @@ function renderRoute(){
   main.style.animation = 'none'; void main.offsetWidth; main.style.animation = '';
   currentRoute = name;
   try { fn(main, params); } catch(err){ console.error(err); main.innerHTML = `<div class="page narrow"><h1>Something went wrong</h1><p class="muted">${esc(err.message)}</p></div>`; }
-  reveal(main); tweenAll(main);
+  reveal(main); tweenAll(main); backupBanner();
   window.scrollTo({top:0, behavior:'instant'});
 }
 function rerender(){ const y = window.scrollY; const main = $('#main'); const {name, params} = parseHash(); main.innerHTML=''; (routes[name]||routes.today)(main, params); $$('.rv', main).forEach(n=>n.classList.add('in')); tweenAll(main); window.scrollTo({top:y}); }
@@ -963,6 +939,184 @@ function syncSoundButtons(){
   const a = $('#btnAmbient'); if(a){ a.textContent = '🌊'; a.title = ambientEnabled ? 'Ambient on' : 'Ambient off'; a.classList.toggle('on', ambientEnabled); a.style.opacity = ambientEnabled ? '1' : '.45'; }
 }
 SoundManager.subscribe(syncSoundButtons);
+/* ============================================================
+   db.js — Dexie database schema and persistence layer
+   ------------------------------------------------------------
+   The app keeps its working model in memory (`S`) so every room can
+   render synchronously. All persistence goes through the Dexie
+   database declared here: load() hydrates S from the object stores,
+   saveNow() writes back only the stores that changed.
+
+   Real Dexie is used when the build inlined it (npm install && npm run
+   build). Without it, MiniDexie below provides the same API subset over
+   raw IndexedDB: version().stores(), table.get/put/bulkPut/toArray/
+   clear/delete/count, transaction('rw', tables, fn) and db.tables.
+   ============================================================ */
+const DB_NAME = 'lifeinstrument-db';
+const DB_SCHEMA = {          // primary key first, then indexes — Dexie syntax
+  meta:           'key',
+  stages:         'id, num',
+  threads:        'id, status',
+  tensions:       'id, threadId',
+  values:         'id',
+  valueSnapshots: 'id, date',
+  visions:        'id, era, parentId, confidence',
+  skills:         'id, cat',
+  projects:       'id, status',
+  nods:           'id, projectId, date',
+  ideas:          'id',
+  habits:         'id, dimension',
+  habitLog:       'day',
+  checkins:       'day',
+  entries:        'id, type, occurredAt, createdAt',
+};
+/* keys of S that are single objects/arrays without their own identity — kept as rows in `meta` */
+const META_KEYS = ['settings','theatre','reviews','valueOrder','valueOrderHistory','people','places','journals','eras','negLast'];
+const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries'];
+
+/* ---------- MiniDexie: Dexie-compatible subset over IndexedDB ---------- */
+class MiniTable {
+  constructor(db, name, tx){ this.db = db; this.name = name; this._tx = tx || null; }
+  async _store(mode){ if(this._tx) return this._tx.objectStore(this.name); const idb = await this.db._open(); return idb.transaction(this.name, mode).objectStore(this.name); }
+  _req(r){ return new Promise((res, rej) => { r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
+  async get(key){ return this._req((await this._store('readonly')).get(key)); }
+  async put(obj){ return this._req((await this._store('readwrite')).put(obj)); }
+  async bulkPut(arr){ const st = await this._store('readwrite'); const ps = arr.map(o => this._req(st.put(o))); await Promise.all(ps); }
+  async delete(key){ return this._req((await this._store('readwrite')).delete(key)); }
+  async bulkDelete(keys){ const st = await this._store('readwrite'); await Promise.all(keys.map(k => this._req(st.delete(k)))); }
+  async clear(){ return this._req((await this._store('readwrite')).clear()); }
+  async toArray(){ return this._req((await this._store('readonly')).getAll()); }
+  async count(){ return this._req((await this._store('readonly')).count()); }
+  where(index){ const t = this; return { equals: v => ({ toArray: async () => t._req((await t._store('readonly')).index(index).getAll(v)) }) }; }
+}
+class MiniDexie {
+  constructor(name){ this.name = name; this._schema = null; this._version = 1; this._db = null; this.tables = []; }
+  version(n){ this._version = n; return { stores: schema => { this._schema = schema; this.tables = Object.keys(schema).map(k => { const t = new MiniTable(this, k); this[k] = t; return t; }); return this; } }; }
+  _open(){ if(this._db) return Promise.resolve(this._db); if(this._opening) return this._opening;
+    this._opening = new Promise((res, rej) => { const r = indexedDB.open(this.name, this._version);
+      r.onupgradeneeded = () => { const d = r.result; for(const [name, spec] of Object.entries(this._schema)){ const [pk, ...idx] = spec.split(',').map(s => s.trim()); if(!d.objectStoreNames.contains(name)){ const st = d.createObjectStore(name, {keyPath: pk}); idx.forEach(i => st.createIndex(i, i)); } } };
+      r.onsuccess = () => { this._db = r.result; this._db.onversionchange = () => this._db.close(); res(this._db); }; r.onerror = () => rej(r.error); r.onblocked = () => rej(new Error('blocked')); });
+    return this._opening; }
+  open(){ return this._open(); }
+  async transaction(mode, tables, fn){ const idb = await this._open(); const names = (Array.isArray(tables) ? tables : [tables]).map(t => typeof t === 'string' ? t : t.name); const tx = idb.transaction(names, mode === 'r' ? 'readonly' : 'readwrite');
+    const scope = {}; names.forEach(n => scope[n] = new MiniTable(this, n, tx)); scope.table = n => scope[n];
+    const done = new Promise((res, rej) => { tx.oncomplete = () => res(); tx.onerror = () => rej(tx.error); tx.onabort = () => rej(tx.error || new Error('aborted')); });
+    let result; try { result = await fn(scope); } catch(e){ try { tx.abort(); } catch(_){} throw e; }
+    await done; return result; }
+  delete(){ return new Promise((res, rej) => { if(this._db){ this._db.close(); this._db = null; this._opening = null; } const r = indexedDB.deleteDatabase(this.name); r.onsuccess = () => res(); r.onerror = () => rej(r.error); }); }
+}
+const DexieImpl = (typeof Dexie !== 'undefined') ? Dexie : MiniDexie;
+const usingRealDexie = DexieImpl !== MiniDexie;
+
+/* ---------- the database ---------- */
+const db = new DexieImpl(DB_NAME);
+db.version(1).stores(DB_SCHEMA);
+
+/* ---------- S <-> stores ---------- */
+function stateToStores(state){
+  const out = {};
+  out.meta = META_KEYS.filter(k => state[k] !== undefined).map(k => ({key: k, value: state[k]}));
+  ARRAY_STORES.forEach(k => out[k] = Array.isArray(state[k]) ? state[k] : []);
+  out.habitLog = Object.entries(state.habitLog || {}).map(([day, log]) => ({day, log}));
+  out.checkins = Object.entries(state.checkins || {}).map(([day, v]) => ({day, ...v}));
+  return out;
+}
+function storesToState(rows){
+  const state = {};
+  (rows.meta || []).forEach(r => state[r.key] = r.value);
+  ARRAY_STORES.forEach(k => state[k] = rows[k] || []);
+  state.habitLog = {}; (rows.habitLog || []).forEach(r => state.habitLog[r.day] = r.log);
+  state.checkins = {}; (rows.checkins || []).forEach(({day, ...v}) => state.checkins[day] = v);
+  return state;
+}
+async function readAllStores(){ const rows = {}; for(const t of db.tables) rows[t.name] = await t.toArray(); return rows; }
+async function writeAllStores(rows){
+  await db.transaction('rw', db.tables, async tx => { for(const t of db.tables){ const table = tx[t.name] || tx.table(t.name); await table.clear(); if(rows[t.name]?.length) await table.bulkPut(rows[t.name]); } });
+  lastWritten = {}; for(const k of Object.keys(rows)) lastWritten[k] = JSON.stringify(rows[k]);
+}
+
+/* ---------- save: only stores whose contents changed ---------- */
+let lastWritten = {}; let saving = null; let savePending = false;
+async function persist(){
+  const rows = stateToStores(S); const dirty = Object.keys(rows).filter(k => JSON.stringify(rows[k]) !== lastWritten[k]);
+  if(!dirty.length) return;
+  await db.transaction('rw', dirty.map(k => db[k]), async tx => { for(const k of dirty){ const table = tx[k] || tx.table(k); await table.clear(); if(rows[k].length) await table.bulkPut(rows[k]); } });
+  dirty.forEach(k => lastWritten[k] = JSON.stringify(rows[k]));
+}
+function saveNow(){
+  if(saving){ savePending = true; return saving; }
+  saving = persist().catch(err => { console.error('save failed', err); toast('Saving failed — export a backup from Settings to be safe.', 6000); }).finally(() => { saving = null; if(savePending){ savePending = false; saveNow(); } });
+  return saving;
+}
+const save = debounce(saveNow, 400);
+function flushSave(){ return saving ? saving.then(() => saving || Promise.resolve()) : Promise.resolve(); }
+
+/* ---------- load, with one-time migration from older stores ---------- */
+async function readLegacyBlobDB(){
+  return new Promise(res => { try { const r = indexedDB.open('lifeinstrument'); r.onupgradeneeded = () => { r.transaction.abort(); res(null); }; r.onsuccess = () => { const d = r.result; if(!d.objectStoreNames.contains('kv')){ d.close(); res(null); return; } const q = d.transaction('kv','readonly').objectStore('kv').get(KEY); q.onsuccess = () => { d.close(); res(q.result || null); }; q.onerror = () => { d.close(); res(null); }; }; r.onerror = () => res(null); r.onblocked = () => res(null); } catch(e){ res(null); } });
+}
+async function load(){
+  await db.open();
+  const metaCount = await db.meta.count();
+  if(metaCount){ S = storesToState(await readAllStores()); migrate(); lastWritten = {}; const rows = stateToStores(S); for(const k of Object.keys(rows)) lastWritten[k] = JSON.stringify(rows[k]); return; }
+  // migration source 1: the interim single-blob IndexedDB database
+  const blob = await readLegacyBlobDB();
+  if(blob){ S = blob; migrate(); await writeAllStores(stateToStores(S)); try { indexedDB.deleteDatabase('lifeinstrument'); } catch(e){} setTimeout(() => toast('Your data was migrated into the new database.', 5000), 600); return; }
+  // migration source 2: the original localStorage key
+  let raw = null; try { raw = localStorage.getItem(KEY); } catch(e){}
+  if(raw){ try { S = JSON.parse(raw); migrate(); await writeAllStores(stateToStores(S)); try { localStorage.removeItem(KEY); } catch(e){} setTimeout(() => toast('Your data was migrated from browser storage into the new database.', 5000), 600); return; } catch(e){ console.warn('localStorage migration failed', e); } }
+  S = seed(); await writeAllStores(stateToStores(S));
+}
+async function resetAll(){ S = seed(); await writeAllStores(stateToStores(S)); }
+async function storageInfo(){ try { const e = await navigator.storage?.estimate?.(); if(e) return {usage:e.usage||0, quota:e.quota||0}; } catch(err){} return null; }
+const fmtBytes = n => n > 1e9 ? (n/1e9).toFixed(2)+' GB' : n > 1e6 ? (n/1e6).toFixed(1)+' MB' : (n/1e3).toFixed(0)+' KB';
+
+/* ============================================================
+   Backup — export / import through the database
+   ============================================================ */
+const LAST_BACKUP_KEY = 'lastBackupDate';
+async function exportToJSON(){
+  await flushSave();
+  const data = {}; for(const t of db.tables) data[t.name] = await t.toArray();
+  const payload = {version: 1, exportedAt: new Date().toISOString(), data};
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `backup-${today()}.json`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000);
+  try { localStorage.setItem(LAST_BACKUP_KEY, today()); } catch(e){}
+  $('#backupBanner')?.remove();
+  return payload;
+}
+function validateBackup(obj){
+  if(!obj || typeof obj !== 'object') return 'That file is not a backup.';
+  if(obj.version === undefined) return 'That file has no version field — it is not a Life Instrument backup.';
+  if(!obj.data || typeof obj.data !== 'object') return 'That file has no data section.';
+  const missing = ['meta','stages','entries','visions','values','habits'].filter(k => !Array.isArray(obj.data[k]));
+  if(missing.length) return `Backup is missing expected stores: ${missing.join(', ')}.`;
+  return null;
+}
+function normaliseBackup(obj){
+  if(obj && obj.data === undefined && Array.isArray(obj.stages) && Array.isArray(obj.entries)){ // legacy whole-state export
+    const s = {...obj}; delete s._about; delete s.exportedAt; return {version: 0, exportedAt: obj.exportedAt || '', data: stateToStores(s)};
+  }
+  return obj;
+}
+async function importBackup(obj){
+  const rows = {}; for(const t of db.tables) rows[t.name] = Array.isArray(obj.data[t.name]) ? obj.data[t.name] : [];
+  await writeAllStores(rows);
+  S = storesToState(rows); migrate();
+}
+function daysSinceBackup(){ let d = null; try { d = localStorage.getItem(LAST_BACKUP_KEY); } catch(e){} return d ? daysSince(d) : null; }
+function backupBanner(){
+  $('#backupBanner')?.remove();
+  const n = daysSinceBackup(); const firstOpen = S?.settings?.firstOpen;
+  const due = n === null ? (firstOpen && daysSince(firstOpen) > 14) : n > 14;
+  if(!due || sessionStorage.getItem('backupBannerDismissed') === today()) return;
+  const b = el(`<div class="backup-banner" id="backupBanner"><span>💾 Last backup: ${n === null ? 'never' : n + ' days ago'} — consider exporting</span><span class="row"><button class="btn sm" id="bbExport">Export backup</button><button class="tbtn" id="bbDismiss" title="not today">×</button></span></div>`);
+  $('#main').prepend(b);
+  b.querySelector('#bbExport').onclick = () => exportToJSON().then(() => toast('Backup exported.'));
+  b.querySelector('#bbDismiss').onclick = () => { try { sessionStorage.setItem('backupBannerDismissed', today()); } catch(e){} b.remove(); };
+}
+const RECOVERY_TEXT = 'To restore your data on a new device: open this website in the same browser, go to Settings, click Import Backup, and select your exported .json file.';
+function showRecoveryInfo(){ openModal(`<h2>Restoring from a backup</h2><p class="prose" style="font-size:1rem;line-height:1.7">${RECOVERY_TEXT}</p><p class="muted" style="font-size:.85rem">Backups are plain JSON and include your photos. Keep them somewhere you trust: a cloud folder, an external drive, an email to yourself.</p>`, 'narrow'); }
 /* ============================================================
    SEED — the house is furnished on first open
    ============================================================ */
@@ -2281,10 +2435,11 @@ routes.settings = function(root){
       <div class="opt"><div><b>Felt time</b><div class="d">Default timeline mode: stretch dense stages, compress thin ones.</div></div><label class="toggle ${S.settings.feltTime?'on':''}" id="sFelt"><span>clock</span><span class="sw"></span><span>felt</span></label></div>
       <div class="opt"><div><b>Home</b><div class="d">Land on Today, or on the System Map.</div></div><label class="toggle ${S.settings.home==='map'?'on':''}" id="sHome"><span>today</span><span class="sw"></span><span>map</span></label></div>
     </div>
-    <div class="card rv"><h3>Data</h3><p class="muted" style="font-size:.85rem" id="storageLine">Everything lives in this browser, in IndexedDB. Measuring…</p><div class="bar" style="--c:var(--sage);margin-bottom:12px"><i id="storageBar" style="width:0%"></i></div><p class="muted" style="font-size:.85rem">Photos are resized on upload so they stay small. Export often; import replaces or merges.</p>
+    <div class="card rv"><h3>Data &amp; backups</h3><p class="muted" style="font-size:.85rem" id="storageLine">Everything lives in this browser, in an IndexedDB database. Measuring…</p><div class="bar" style="--c:var(--sage);margin-bottom:12px"><i id="storageBar" style="width:0%"></i></div>
+      <div class="row"><button class="btn primary" id="sExport">💾 Export backup</button><button class="btn" id="sImport">Import backup</button><input type="file" id="sFile" accept=".json,application/json" hidden><button class="btn ghost" id="sRestoreInfo" title="${esc(RECOVERY_TEXT)}">ⓘ How to restore</button></div>
+      <p class="muted" style="font-size:.85rem;margin-top:12px" id="lastBackupLine"></p>
       <div class="opt"><div><b>Photo size on upload</b><div class="d">Long edge in pixels. Larger keeps more detail and uses more space.</div></div><select class="sel" style="width:auto" id="sPhotoMax">${[1200,1600,2400,4000].map(n=>`<option value="${n}" ${(S.settings.photoMax||1600)===n?'selected':''}>${n}px${n===1600?' (default)':''}</option>`).join('')}</select></div>
-      <div class="row"><button class="btn" id="sExport">Export JSON</button><button class="btn" id="sImport">Import JSON</button><input type="file" id="sFile" accept="application/json" hidden><button class="btn danger" id="sClear">Clear all data</button></div>
-      <div class="row" style="margin-top:10px"><label class="toggle" id="sMerge"><span class="sw"></span><span>merge on import (keep existing entries, add new)</span></label></div>
+      <div class="opt"><div><b>Clear all data</b><div class="d">Erases everything in this browser and restores the placeholder content. Export first.</div></div><button class="btn danger" id="sClear">Clear all data</button></div>
     </div>
     <div class="card rv"><h3>About</h3><div class="prose muted" style="font-size:.9rem">
       <p>Life Instrument is a house you are still building. Each section is a room. Some rooms look backward; some look forward; some hold tools; some hold artifacts. The hallway connecting them is a single data model that lets one entry live in many rooms at once.</p>
@@ -2292,17 +2447,18 @@ routes.settings = function(root){
       <p>It draws on Maltz (self-image and mental rehearsal), Fritz (structural tension), Hicks (the emotional guidance scale), Hill (auto-suggestion), Loehr &amp; Schwartz (four-dimensional energy and oscillation), Leonard (mastery and the plateau), and Newport (career capital). The Philosophical Integration is structural, not decorative: every mechanic embodies a teaching.</p>
       <p class="mono">keyboard: ⌘N new entry · ⌘K search · ← → timeline · Esc close</p>
     </div></div></div>`;
-  storageInfo().then(i => { const line = $('#storageLine'); if(!line) return; const mode = storageMode==='idb' ? 'IndexedDB' : 'localStorage (fallback — about 5 MB only)'; if(i && i.quota){ line.textContent = `Everything lives in this browser, in ${mode}. Using ${fmtBytes(i.usage)} of about ${fmtBytes(i.quota)} available to this site.`; $('#storageBar').style.width = Math.max(1, i.usage/i.quota*100).toFixed(1)+'%'; } else { line.textContent = `Everything lives in this browser, in ${mode}.`; } });
+  storageInfo().then(i => { const line = $('#storageLine'); if(!line) return; const mode = usingRealDexie ? 'an IndexedDB database (Dexie)' : 'an IndexedDB database'; if(i && i.quota){ line.textContent = `Everything lives in this browser, in ${mode}. Using ${fmtBytes(i.usage)} of about ${fmtBytes(i.quota)} available to this site.`; $('#storageBar').style.width = Math.max(1, i.usage/i.quota*100).toFixed(1)+'%'; } else { line.textContent = `Everything lives in this browser, in ${mode}.`; } });
   $('#sPhotoMax').onchange = e => { S.settings.photoMax = +e.target.value; saveNow(); };
   $('#sTheme').onclick = function(){ S.settings.theme = S.settings.theme==='dark'?'light':'dark'; saveNow(); applyTheme(); this.classList.toggle('on', S.settings.theme==='light'); };
   $('#sSound').onclick = function(){ SoundManager.toggleSound(); this.classList.toggle('on', SoundManager.state().soundEnabled); };
   $('#sAmbient').onclick = function(){ SoundManager.toggleAmbient(); this.classList.toggle('on', SoundManager.state().ambientEnabled); };
   $('#sFelt').onclick = function(){ S.settings.feltTime = !S.settings.feltTime; saveNow(); this.classList.toggle('on', S.settings.feltTime); };
   $('#sHome').onclick = function(){ S.settings.home = S.settings.home==='map'?'today':'map'; saveNow(); this.classList.toggle('on', S.settings.home==='map'); };
-  let merge = false; $('#sMerge').onclick = function(){ merge=!merge; this.classList.toggle('on',merge); };
-  $('#sExport').onclick = () => { const out = {"_about":"Life Instrument export. Schema: settings · stages[] (narrative, narrativeHistory, substages, photos, soundtrack, artifacts, letters, retroValues) · threads[] · tensions[] · values[] (fields with version history) · valueOrder · valueOrderHistory · valueSnapshots[] · eras[] · visions[] (sensory, futureMemory, currentReality, resistance, evidence…) · skills[] (rubric, level, target, prereqs) · projects[] (income) · nods[] · ideas[] · habits[] · habitLog{day:{habitId:{level,note}}} · negLast · checkins{day:{mood,sentence,energy,setpoint,intention}} · entries[] (unified model: type, title, body, occurredAt, media, links{stages,substages,threads,values[{id,pol}],visions,skills,projects}, people, places, emotions, confidence, extra) · journals[] · theatre · reviews", "exportedAt": new Date().toISOString(), ...S}; delete out._promptShift; const blob = new Blob([JSON.stringify(out,null,2)],{type:'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `life-instrument-${today()}.json`; a.click(); toast('Exported.'); };
+  const lb = daysSinceBackup(); $('#lastBackupLine').textContent = lb === null ? 'No backup exported yet from this browser.' : `Last backup: ${lb === 0 ? 'today' : lb + ' days ago'}.`;
+  $('#sExport').onclick = () => exportToJSON().then(() => { toast('Backup exported.'); rerender(); });
+  $('#sRestoreInfo').onclick = showRecoveryInfo;
   $('#sImport').onclick = () => $('#sFile').click();
-  $('#sFile').onchange = e => { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = () => { try { const d = JSON.parse(r.result); delete d._about; delete d.exportedAt; if(merge){ const ids = new Set(S.entries.map(x=>x.id)); (d.entries||[]).forEach(x=>{ if(!ids.has(x.id)) S.entries.push(x); }); ['visions','skills','projects','habits','threads','tensions','nods','ideas'].forEach(k => { const have = new Set((S[k]||[]).map(x=>x.id)); (d[k]||[]).forEach(x=>{ if(!have.has(x.id)) S[k].push(x); }); }); Object.assign(S.checkins, d.checkins||{}); Object.assign(S.habitLog, d.habitLog||{}); } else { S = d; migrate(); } saveNow(); applyTheme(); toast(merge?'Merged.':'Imported. The house has been refurnished.'); rerender(); } catch(err){ toast('That file could not be read.'); } }; r.readAsText(f); };
+  $('#sFile').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if(!f) return; const r = new FileReader(); r.onload = () => { let obj; try { obj = normaliseBackup(JSON.parse(r.result)); } catch(err){ toast('That file could not be read as JSON.'); return; } const problem = validateBackup(obj); if(problem){ toast(problem, 6000); return; } const counts = ['entries','stages','visions','habits'].map(k => `${obj.data[k].length} ${k}`).join(' · '); confirmDlg(`This will overwrite all current data. Are you sure?<br><span class="mono">backup from ${esc((obj.exportedAt||'').slice(0,10) || 'unknown date')} · ${counts}</span>`, async () => { try { await importBackup(obj); applyTheme(); toast('Backup imported. The house has been refurnished.'); rerender(); } catch(err){ console.error(err); toast('Import failed: ' + err.message, 6000); } }); }; r.readAsText(f); };
   $('#sClear').onclick = () => confirmDlg('This erases everything in this browser and re-seeds the placeholder content. Export first if in doubt.', async ()=>{ await resetAll(); applyTheme(); toast('Cleared. Seed content restored.'); navigate('#/today'); rerender(); });
 };
 /* ============================================================
@@ -2425,6 +2581,7 @@ async function init(){
   if(navigator.platform.toUpperCase().indexOf('MAC')<0){ $$('kbd').forEach(k => k.textContent = k.textContent.replace('⌘','Ctrl+')); $('.fab .hint').textContent = 'new entry · Ctrl+N'; }
   if(!location.hash) location.hash = S.settings.home==='map' ? '#/map' : '#/today';
   renderRoute(); startDust();
+  window.addEventListener('beforeunload', () => { if(saving || savePending) saveNow(); });
   if(S.settings.firstOpen === today() && !S._welcomed){ S._welcomed = true; setTimeout(()=>toast('Welcome home. Every piece of text here is editable — click it. The placeholder life is yours to overwrite.', 7000), 800); }
 }
 document.readyState==='loading' ? document.addEventListener('DOMContentLoaded', init) : init();
