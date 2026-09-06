@@ -51,6 +51,25 @@ The sidebar groups the rooms into two zones by time horizon: **Present** (Today,
 | `#/rituals` | Habit rings, four-dimension energy balance, 90-day calendars, guided daily/weekly/seasonal/annual reviews |
 | `#/settings` | Theme, ambient sound, felt time, home page, export/import/clear |
 
+## Page themes
+
+Every room shares one design language but carries its own personality. The config lives in `src/04-page-themes.js` (`PAGE_THEMES`): an accent colour (one for dark, one for light), the ink colour used on top of it, a two-stop gradient, a mood line, a Han glyph for the header banner, and a motion profile (`calm`, `energetic`, `crisp`, `snappy`, defined in `MOTION_PROFILES`).
+
+| Room | Accent | Gradient | Motion |
+|---|---|---|---|
+| Today | warm coral | coral → peach | snappy |
+| Journal | warm amber | amber → rose | calm |
+| Projects | slate blue | slate → sky | crisp |
+| Rituals | sea teal | teal → sage | calm |
+| Compass | soft purple | lavender → mauve | calm |
+| Skill Tree | emerald | emerald → teal | energetic (springy) |
+| Vision Tree | deep indigo | indigo → violet | calm (floats, parallax) |
+| Memory | dusty gold | gold → sepia | calm |
+| Library | forest green | green → sage | calm |
+| Home | cool gray | gray → blue-gray | calm |
+
+On every route change `applyPageTheme()` sets `--page-accent`, `--page-accent-ink`, `--page-gradient-start`, `--page-gradient-end`, `--page-motion-speed`, `--page-ease` and `--page-glyph` on the root element. Shared components (buttons, inputs, chips, toggles, tabs, bars, sliders, the FAB, toasts, selection) read those variables, so they adapt without per-page CSS. The `.page-head` becomes a gradient banner with the room's glyph and mood line, the ambient background gradient crossfades between two layers in 350 ms, and the two large blobs take the page's gradient colours.
+
 ## Sound
 
 Two synthesised layers, nothing downloaded. Both are off by default and remembered in `localStorage` (`soundEnabled`, `ambientEnabled`).

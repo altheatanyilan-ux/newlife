@@ -139,11 +139,11 @@ function tweenAll(root=document){ $$('[data-tween]', root).forEach(n => { tween(
 
 /* ---------- reveal on scroll ---------- */
 const io = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } }), {threshold:.05});
-function reveal(root=document){ let i=0; $$('.rv:not(.in)', root).forEach(n => { n.style.transitionDelay = `${(i++%12)*60}ms`; io.observe(n); }); }
+function reveal(root=document){ let i=0; const sp = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--page-motion-speed')) || 1; $$('.rv:not(.in)', root).forEach(n => { n.style.transitionDelay = `${Math.round((i++%12)*60*sp)}ms`; io.observe(n); }); }
 
 /* ---------- theme ---------- */
-function applyTheme(){ document.documentElement.dataset.theme = S.settings.theme; $('#btnTheme').textContent = S.settings.theme==='dark' ? '☾' : '☀'; applySeason(); }
-function applySeason(){ const m = new Date().getMonth(); const hue = [200,200,120,110,100,60,40,35,30,25,20,210][m]; const b1=$('.blob.b1'), b2=$('.blob.b2'); if(b1) b1.style.filter = `blur(120px) hue-rotate(${(hue-30)/6}deg)`; if(b2) b2.style.filter = `blur(120px) hue-rotate(${(hue-100)/8}deg)`; }
+function applyTheme(){ document.documentElement.dataset.theme = S.settings.theme; $('#btnTheme').textContent = S.settings.theme==='dark' ? '☾' : '☀'; applySeason(); if(typeof applyPageTheme === 'function') applyPageTheme(); }
+function applySeason(){ const m = new Date().getMonth(); const hue = [200,200,120,110,100,60,40,35,30,25,20,210][m]; const b3=$('.blob.b3'); if(b3) b3.style.filter = `blur(120px) hue-rotate(${(hue-30)/6}deg)`; }
 
 /* ---------- router ---------- */
 const routes = {};
@@ -152,7 +152,7 @@ function navigate(hash){ location.hash = hash; }
 function parseHash(){ const h = (location.hash||'').replace(/^#\/?/,''); const [name, ...rest] = h.split('/'); return {name: name || homeRoute(), params: rest.map(decodeURIComponent)}; }
 function renderRoute(){
   const {name, params} = parseHash();
-  markActiveNav();
+  markActiveNav(); applyPageTheme();
   const main = $('#main');
   const fn = routes[name] || routes.home;
   closePanel({keep:true});
@@ -160,10 +160,10 @@ function renderRoute(){
   main.style.animation = 'none'; void main.offsetWidth; main.style.animation = '';
   currentRoute = name; PageEntryConfig.clear();
   try { fn(main, params); } catch(err){ console.error(err); main.innerHTML = `<div class="page narrow"><h1>Something went wrong</h1><p class="muted">${esc(err.message)}</p></div>`; }
-  mountContextAdd(main); reveal(main); tweenAll(main); backupBanner(); updateBackButton();
+  decoratePageHead(main); mountContextAdd(main); reveal(main); tweenAll(main); backupBanner(); updateBackButton();
   window.scrollTo({top:0, behavior:'instant'});
 }
-function rerender(){ const y = window.scrollY; const main = $('#main'); const {name, params} = parseHash(); main.innerHTML=''; PageEntryConfig.clear(); (routes[name]||routes.home)(main, params); mountContextAdd(main); $$('.rv', main).forEach(n=>n.classList.add('in')); tweenAll(main); window.scrollTo({top:y}); }
+function rerender(){ const y = window.scrollY; const main = $('#main'); const {name, params} = parseHash(); main.innerHTML=''; PageEntryConfig.clear(); (routes[name]||routes.home)(main, params); decoratePageHead(main); mountContextAdd(main); $$('.rv', main).forEach(n=>n.classList.add('in')); tweenAll(main); window.scrollTo({top:y}); }
 window.addEventListener('hashchange', () => { sound('page'); if(document.startViewTransition && !reduced() && document.visibilityState==='visible') document.startViewTransition(renderRoute); else renderRoute(); });
 
 /* ---------- side panel ---------- */

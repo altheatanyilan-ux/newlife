@@ -11,7 +11,7 @@ routes.today = function(root){
   const otd = onThisDay(); const cycleDay = S.theatre.cycleStart ? daysBetween(S.theatre.cycleStart, T) : 0;
   const sig = signals();
   root.innerHTML = `<div class="page narrow">
-    <header class="rv" style="margin-bottom:34px">
+    <header class="rv page-head">
       <div class="today-date">${fmtDate(T)}</div>
       <div class="moon">${moonSVG(moon.p)} <span>${moon.name}</span><span class="mono" style="margin-left:6px">· day ${Math.round(moon.age)} of the cycle</span></div>
     </header>
