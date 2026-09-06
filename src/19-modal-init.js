@@ -1,18 +1,19 @@
 /* ============================================================
    11. GLOBAL ADD ENTRY MODAL
    ============================================================ */
-function openEntryModal({type='reflection', links={}, entryId=null, after=null, title='', occurredAt=''}={}){
+function openEntryModal({type='reflection', links={}, entryId=null, after=null, title='', occurredAt='', allowedTypes=null, heading='', openLinks=false}={}){
   const existing = entryId ? byId(S.entries, entryId) : null;
   const e = existing ? JSON.parse(JSON.stringify(existing)) : {id:uid(),type,title,body:'',occurredAt:occurredAt||today(),createdAt:new Date().toISOString(),media:[],links:Object.assign({stages:[],substages:[],threads:[],values:[],visions:[],skills:[],projects:[]}, links),people:[],places:[],emotions:[],confidence:'',extra:{}};
-  const m = openModal(`<h2>${existing?'Edit entry':'New entry'}</h2>
-    <div class="typerow" id="typeRow">${ENTRY_TYPES.map(([t,n,i])=>`<button class="${e.type===t?'on':''}" data-t="${t}">${i} ${n}</button>`).join('')}</div>
+  const types = (allowedTypes && !existing) ? ENTRY_TYPES.filter(([t]) => allowedTypes.includes(t)) : ENTRY_TYPES;
+  const m = openModal(`<h2>${existing?'Edit entry':esc(heading || 'New '+typeName(e.type).toLowerCase())}</h2>
+    <div class="typerow" id="typeRow" ${types.length<=1?'hidden':''}>${types.map(([t,n,i])=>`<button class="${e.type===t?'on':''}" data-t="${t}">${i} ${n}</button>`).join('')}</div>
     <div class="stack">
       <input class="inp serif-lg" id="eTitle" placeholder="Title (optional)" value="${esc(e.title)}">
       <textarea class="ta" id="eBody" placeholder="Body — markdown welcome. **bold**, *italic*, > quote, - list" style="min-height:120px">${esc(e.body)}</textarea>
       <div id="extraFields"></div>
       <div class="field"><label>Occurred at</label><input class="inp" id="eWhen" value="${esc(e.occurredAt)}" placeholder="2024-09-14 · or “Summer 2019” · or “age 15”"><div class="faint" style="font-size:.74rem">Exact dates sort precisely; approximate ones sort by year. Memories can be logged today about decades ago.</div></div>
       <div class="field"><label>Media</label><div class="dropzone" id="eDrop">drop images here, or click to choose</div><input type="file" id="eFile" accept="image/*" multiple hidden><div class="thumbs" id="eThumbs"></div></div>
-      <details ${Object.values(e.links).some(a=>a.length)?'open':''}><summary><span class="sc">Connect this entry</span><span class="mono" id="linkCount"></span></summary><div class="body stack" style="gap:12px">
+      <details ${(openLinks || Object.values(e.links).some(a=>a.length))?'open':''}><summary><span class="sc">Connect this entry</span><span class="mono" id="linkCount"></span></summary><div class="body stack" style="gap:12px">
         <div class="field"><label>Stages</label><div class="deps">${S.stages.map(s=>`<span class="chip click" style="--c:${s.hue}" data-lk="stages" data-id="${s.id}">${s.char} ${esc(s.name)}</span>`).join('')}</div></div>
         <div class="field" id="subField"><label>Sub-stages</label><div class="deps" id="subChips"></div></div>
         <div class="field"><label>Threads</label><div class="deps">${S.threads.map(t=>`<span class="chip click" style="--c:${t.color}" data-lk="threads" data-id="${t.id}">${esc(t.name)}</span>`).join('')}</div></div>
@@ -31,7 +32,7 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
     if(t==='synchronicity') html = f('preceded','What preceded it','What were you thinking about, doing, asking?',true) + f('read','What I read into it','',true) + `<label class="toggle ${x().revisit?'on':''}" id="xRevisit"><span class="sw"></span><span>revisit later — resurface this in Today's prompts</span></label>`;
     if(t==='manifestation') html = `<div class="field"><label>Status</label><select class="sel" data-x="status">${['held','evidence appearing','arrived','released'].map(s=>`<option ${x().status===s?'selected':''}>${s}</option>`).join('')}</select></div>` + `<div class="field"><label>Evidence log</label><textarea class="ta" data-xlist="evidence" style="min-height:60px" placeholder="one piece of evidence per line">${esc((x().evidence||[]).map(v=>v.text).join('\n'))}</textarea></div>`;
     if(t==='dream') html = `<div class="field"><label>Vividness</label><div class="feeling">${[1,2,3,4,5].map(n=>`<button data-vivid="${n}" class="${x().vivid===n?'on':''}">${n}</button>`).join('')}</div></div><label class="toggle ${x().recurring?'on':''}" id="xRec"><span class="sw"></span><span>recurring</span></label>` + f('symbols_','Symbols / motifs','comma-separated');
-    if(t==='quote') html = f('author','Author','') + f('source','Source','book, film, a person') + f('page','Page / location','') + f('why','Why this caught me (required)','',true);
+    if(t==='quote') html = f('author','Author','') + f('source','Source','book, film, a person') + f('link','Saved link (optional)','https://…') + f('page','Page / location','') + f('why','Why this caught me (required)','',true);
     if(t==='question') html = `<div class="faint" style="font-size:.8rem">Put the question in the title. Answers accumulate over time from the journal view.</div>`;
     if(t==='progress'||t==='nod') html = f('duration','Duration (minutes)','45') + f('resources','Resources used','');
     if(t==='memory') html = f('installed','What this installed in me','The belief, fear, pattern, or capability this event left behind.',true);
@@ -104,7 +105,7 @@ function startDust(){ const c = $('#dust'); if(!c || reduced()) return; const ct
   const tick = () => { const on = ['vision','map','skills'].includes(currentRoute); ctx.clearRect(0,0,c.width,c.height); if(on){ ctx.fillStyle = S.settings.theme==='dark' ? 'rgba(232,224,212,.05)' : 'rgba(120,90,60,.06)'; ps.forEach(p => { p.a += .01; p.x += p.vx + Math.sin(p.a)*.1; p.y += p.vy; if(p.y < -5){ p.y = innerHeight+5; p.x = Math.random()*innerWidth; } if(p.x<-5) p.x = innerWidth+5; if(p.x>innerWidth+5) p.x=-5; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); }); } requestAnimationFrame(tick); }; requestAnimationFrame(tick); }
 document.addEventListener('keydown', e => {
   const mod = e.metaKey || e.ctrlKey;
-  if(mod && e.key.toLowerCase()==='n'){ e.preventDefault(); openEntryModal(); }
+  if(mod && e.key.toLowerCase()==='n'){ e.preventDefault(); toggleSpeedDial(); }
   if(mod && e.key.toLowerCase()==='k'){ e.preventDefault(); openSearch(); }
   if(e.key==='Escape'){ if(document.activeElement?.closest?.('.ed')) return; closeModals(); }
 });
@@ -113,7 +114,7 @@ async function init(){
   try { navigator.storage?.persist?.(); } catch(e){}
   $('#btnTheme').onclick = () => { S.settings.theme = S.settings.theme==='dark'?'light':'dark'; saveNow(); applyTheme(); };
   $('#btnSound').onclick = () => SoundManager.toggleSound(); $('#btnAmbient').onclick = () => SoundManager.toggleAmbient(); syncSoundButtons();
-  $('#btnSearch').onclick = openSearch; $('#fab').onclick = () => openEntryModal();
+  $('#btnSearch').onclick = openSearch; $('#fab').onclick = e => { e.stopPropagation(); toggleSpeedDial(); };
   const sb = $('#sidebar'); $('.brand', sb).onclick = () => sb.classList.toggle('open');
   if(navigator.platform.toUpperCase().indexOf('MAC')<0){ $$('kbd').forEach(k => k.textContent = k.textContent.replace('⌘','Ctrl+')); $('.fab .hint').textContent = 'new entry · Ctrl+N'; }
   if(!location.hash) location.hash = S.settings.home==='map' ? '#/map' : '#/today';

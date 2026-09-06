@@ -2,11 +2,14 @@
    5. VALUES CONGRUENCE — the compass beneath the floorboards
    ============================================================ */
 routes.values = function(root){
+  registerPageEntry({pageName:'Compass', addLabel:'Add to the compass', defaultEntryType:'snapshot', prefilledFields:{}, options:[
+    {icon:'◔', label:'Congruence snapshot', desc:'0–100 for each value, where you actually are this week.', run:()=>EntryActions.snapshot()},
+    ...(S.values.length < 10 ? [{icon:'✦', label:'New value', desc:`The compass has ${S.values.length} of 10 points.`, run:()=>EntryActions.newValue()}] : [])]});
   const snaps = allSnapshotsWithRetro(); const latest = snaps.slice(-1)[0]; const axes = S.valueOrder.map(id=>{ const v=byId(S.values,id); return {name:v.name, short:v.name.split(' ')[0], color:v.color}; });
   const gaps = valueGaps();
   const servedBy = {}; S.valueOrder.forEach(id => servedBy[id] = S.visions.filter(v=>v.confidence!=='lived' && v.values.includes(id)));
   root.innerHTML = `<div class="page">
-    <div class="page-head row between"><div><h1>Values</h1><div class="sub">Ten compass points. Priority is what you say; congruence is what your days say. The gap between them is where your life and your values disagree.</div></div><div class="row"><button class="btn primary" id="logSnap">Log a congruence snapshot</button></div></div>
+    <div class="page-head row between"><div><h1>Values</h1><div class="sub">Ten compass points. Priority is what you say; congruence is what your days say. The gap between them is where your life and your values disagree.</div></div></div>
     <div class="grid c2" style="align-items:start">
       <div class="card rv"><div class="row between"><h3>Priority order</h3><span class="mono">drag to re-rank · ${S.valueOrderHistory.length} re-rankings</span></div>
         <ul class="values-list" id="valuesList">${S.valueOrder.map((id,i)=>{ const v = byId(S.values,id); const c = valueCurrent(id); return `<li draggable="true" data-vid="${id}"><span class="rank">${i+1}</span><span class="nm"><a href="#/value/${id}" style="color:${v.color}">${esc(v.name)}</a></span><div class="bar" style="--c:${v.color}"><i style="width:${c}%"></i></div><span class="pct" data-tween="${c}" data-suffix="%">0</span><span class="faint">⋮</span></li>`; }).join('')}</ul>
@@ -33,7 +36,6 @@ routes.values = function(root){
   const ts = $('#timeSlider'); let ghost = false;
   const drawRadar = () => { const s = snaps[+ts.value]; const series = []; if(ghost && snaps[0] && +ts.value>0) series.push({vals:S.valueOrder.map(id=>snaps[0].ratings[id]??0),color:'var(--faint)',dashed:true}); series.push({vals:S.valueOrder.map(id=>s.ratings[id]??0),color:s.retro?(byId(S.stages,s.stageId)?.hue||'var(--terra)'):'var(--terra)'}); $('#radarBox').innerHTML = radar(axes,series,{size:360}); $('#tsLbl').textContent = fmtDate(s.date,'med'); $('#tsNote').textContent = s.note||''; };
   ts.oninput = drawRadar; $('#ghostToggle').onclick = () => { ghost=!ghost; $('#ghostToggle').classList.toggle('on',ghost); drawRadar(); };
-  $('#logSnap').onclick = openSnapshotModal;
 };
 function openSnapshotModal(after){
   const last = latestSnapshot()?.ratings||{};
@@ -43,6 +45,7 @@ function openSnapshotModal(after){
 }
 routes.value = function(root, params){
   const v = byId(S.values, params[0]); if(!v){ navigate('#/values'); return; }
+  registerPageEntry({pageName:'Compass', addLabel:`Evidence for ${v.name}`, defaultEntryType:'reflection', prefilledFields:{links:{values:[{id:v.id,pol:'+'}]}}, options:[{label:'Evidence', run:(pre)=>openEntryModal({type:'reflection', allowedTypes:['reflection','memory','gratitude'], heading:`Evidence for ${v.name}`, links:pre.links, openLinks:true})}]});
   const snaps = allSnapshotsWithRetro(); const es = sortEntries(S.entries.filter(e=>(e.links?.values||[]).some(x=>x.id===v.id)));
   const rank = S.valueOrder.indexOf(v.id)+1; const cur = valueCurrent(v.id);
   const F = (k, q, hint) => { const hist = v.fields[k]||[]; const latest = hist.slice(-1)[0]; return `<div class="value-field rv"><div class="q">${q}</div><div class="faint" style="font-size:.8rem;margin-bottom:8px">${hint}</div><div class="prose serif-lg">${latest?md(latest.text):'<span class="empty">Not yet written.</span>'}</div><div class="row" style="margin-top:8px"><button class="btn sm ghost" data-vf="${k}">${latest?'write a new version':'write'}</button>${hist.length>1?`<details style="border:none;flex:1"><summary><span class="mono">${hist.length-1} earlier versions</span></summary><div class="body versions">${hist.slice(0,-1).reverse().map(h=>`<div class="v"><div class="mono">${fmtDate(h.date,'med')}</div>${md(h.text)}</div>`).join('')}</div></details>`:latest?`<span class="mono">${fmtDate(latest.date,'med')}</span>`:''}</div></div>`; };

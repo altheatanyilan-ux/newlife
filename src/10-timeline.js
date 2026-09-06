@@ -34,6 +34,7 @@ function ribbonsSVG(width){
   return `<svg viewBox="0 0 ${width} ${H}" preserveAspectRatio="none">${out}</svg>`;
 }
 routes.timeline = function(root, params){
+  registerPageEntry({pageName:'Memory', addLabel:'New memory', defaultEntryType:'memory', prefilledFields:{}, hint:'Open a stage to file it there directly.', options:[{label:'New memory', run:()=>EntryActions.memory()}]});
   const tab = params[0]==='threads' ? 'threads' : 'stages';
   const counts = S.stages.map(s=>stageEntries(s).length); const maxc = Math.max(...counts,1);
   root.innerHTML = `<div class="page">
@@ -110,6 +111,7 @@ hooks.stageNarrative = (sid, oldV, newV) => { const s = byId(S.stages,sid); if(!
 routes.stage = function(root, params){
   const s = byId(S.stages, params[0]); if(!s){ navigate('#/timeline'); return; }
   S._lastStage = s.id;
+  registerPageEntry({pageName:'Memory', addLabel:`New memory in ${s.name}`, defaultEntryType:'memory', prefilledFields:{links:{stages:[s.id]}}, options:[{label:'New memory', run:(pre)=>EntryActions.memory(pre)}]});
   const es = sortEntries(stageEntries(s)); const memories = es.filter(e=>e.type==='memory');
   const threadsHere = S.threads.filter(t => es.some(e=>(e.links?.threads||[]).includes(t.id)));
   const cur = latestSnapshot()?.ratings || {};
@@ -161,7 +163,7 @@ routes.stage = function(root, params){
       <div class="shelf">${(s.artifacts||[]).length ? s.artifacts.map((a,i)=>`<div class="artifact" style="--rot:${((i*37)%9-4)}deg"><div class="paper" ${a.src?`data-lb="${a.id}"`:''}>${a.src?`<img src="${a.src}" alt="${esc(a.caption)}">`:esc(a.caption)}</div><div class="cap">${ed(`stages.#${s.id}.artifacts.${i}.caption`,{ph:'caption'})} <span class="mono">${ed(`stages.#${s.id}.artifacts.${i}.date`,{ph:'date'})}</span> <button class="tbtn" data-artdel="${i}">×</button></div></div>`).join('') : '<div class="empty">Tickets, letters, report cards, handwriting. Scan them and set them here.</div>'}</div>
     </section>
 
-    <section class="section rv"><div class="row between"><span class="sc">Everything from this stage</span><button class="btn sm" id="addHere">+ entry here</button></div>
+    <section class="section rv"><div class="row between"><span class="sc">Everything from this stage</span></div>
       ${es.filter(e=>e.type!=='memory').map(e=>entryCard(e)).join('') || '<div class="empty">Only memories so far. Add a reflection, a quote, a dream.</div>'}
     </section>
   </div>`;
@@ -181,6 +183,5 @@ routes.stage = function(root, params){
   $('#addArtifact').onclick = () => $('#artFile').click();
   $('#artFile').onchange = e => { if(!e.target.files.length){ s.artifacts.push({id:uid(),caption:'New artifact',date:'',src:''}); saveNow(); rerender(); return; } readImages(e.target.files, img => { s.artifacts = s.artifacts||[]; s.artifacts.push({id:img.id,caption:'',date:'',src:img.src}); saveNow(); rerender(); }); };
   $$('[data-artdel]',root).forEach(b => b.onclick = () => { s.artifacts.splice(+b.dataset.artdel,1); saveNow(); rerender(); });
-  $('#addHere').onclick = () => openEntryModal({type:'reflection', links:{stages:[s.id]}});
   root.querySelectorAll('.artifact .paper[data-lb]').forEach(p => p.onclick = () => lightbox(p.querySelector('img').src, p.nextElementSibling?.textContent||''));
 };

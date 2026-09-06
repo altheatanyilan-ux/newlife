@@ -3,6 +3,10 @@
    ============================================================ */
 function checkin(day=today()){ if(!S.checkins[day]) S.checkins[day] = {mood:0, sentence:'', energy:{}, setpoint:0, intention:''}; return S.checkins[day]; }
 routes.today = function(root){
+  registerPageEntry({pageName:'Today', addLabel:'Add to today', defaultEntryType:'reflection', prefilledFields:{}, options:[
+    {icon:'✎', label:'Quick note', desc:'One honest line, kept as a reflection.', run:()=>EntryActions.quickNote()},
+    {icon:'◷', label:'Task reminder', desc:'A small thing to surface on a day.', run:()=>EntryActions.taskReminder()},
+    {icon:'◎', label:'Daily intention', desc:'One thing to give attention to today.', run:()=>EntryActions.dailyIntention()}]});
   const T = today(); const c = checkin(T); const moon = moonPhase(); const yday = S.checkins[addDays(T,-1)];
   const otd = onThisDay(); const cycleDay = S.theatre.cycleStart ? daysBetween(S.theatre.cycleStart, T) : 0;
   const sig = signals();
@@ -57,9 +61,7 @@ routes.today = function(root){
       <div class="prompt-card"><div class="quote" id="promptText">${gentlePrompt()}</div><div class="row" style="margin-top:14px;justify-content:space-between"><button class="btn sm ghost" id="anotherPrompt">another</button><button class="btn sm" data-quick="reflection">respond ✎</button></div></div>
     </section>
 
-    <section class="section rv"><span class="sc">Quick add</span>
-      <div class="quick">${[['memory','+ Memory'],['reflection','+ Reflection'],['nod','+ Nod'],['synchronicity','+ Synchronicity'],['gratitude','+ Gratitude'],['visualization','+ Visualization']].map(([t,l])=>`<button class="btn sm" data-quick="${t}">${l}</button>`).join('')}<span class="mono" style="margin-left:8px">or <kbd>⌘N</kbd> anywhere</span></div>
-    </section>
+    ${(S.reminders||[]).some(r=>!r.done && r.date<=T)?`<section class="section rv"><span class="sc">Reminders</span>${(S.reminders||[]).filter(r=>!r.done && r.date<=T).sort((a,b)=>a.date<b.date?-1:1).map(r=>`<label class="row" style="padding:8px 0;border-top:1px dashed var(--line);cursor:pointer"><input type="checkbox" data-rm="${r.id}"><span class="serif" style="font-size:1.05rem">${esc(r.text)}</span><span class="mono">${r.date<T?'since '+fmtDate(r.date,'short'):'today'}</span></label>`).join('')}</section>`:''}
 
     <section class="section rv"><span class="sc">The last thirty days</span>
       <div class="charts3">
@@ -78,4 +80,5 @@ routes.today = function(root){
   root.querySelectorAll('.tracker i').forEach(i => i.onclick = () => { const d = i.dataset.td; if(d > T) return; const idx = S.theatre.days.indexOf(d); if(idx>=0) S.theatre.days.splice(idx,1); else S.theatre.days.push(d); saveNow(); rerender(); });
   $('#anotherPrompt').onclick = () => { S._promptShift = (S._promptShift||0)+1; $('#promptText').innerHTML = gentlePrompt(); };
   root.querySelectorAll('[data-quick]').forEach(b => b.onclick = () => { const t = b.dataset.quick; if(t==='nod') openNodModal(); else openEntryModal({type:t}); });
+  root.querySelectorAll('[data-rm]').forEach(c => c.onchange = () => { const r = byId(S.reminders, c.dataset.rm); if(r){ r.done = true; r.doneAt = today(); saveNow(); sound('success'); setTimeout(rerender, 300); } });
 };

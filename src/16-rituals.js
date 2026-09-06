@@ -5,11 +5,12 @@ const TOD = ['morning','afternoon','evening','anytime'];
 function habitFreqLabel(h){ const f = h.freq; if(f.type==='daily') return 'daily'; if(f.type==='days') return f.days.map(d=>DOW[d].slice(0,3)).join(' '); if(f.type==='perWeek') return `${f.count}× / week`; if(f.type==='perMonth') return `${f.count}× / month`; return ''; }
 function markHabit(h, level, note=''){ const T = today(); S.habitLog[T] = S.habitLog[T]||{}; if(level) S.habitLog[T][h.id] = {level, note}; else delete S.habitLog[T][h.id]; saveNow(); }
 routes.rituals = function(root, params){
+  registerPageEntry({pageName:'Rituals', addLabel:'New habit', defaultEntryType:'habit', prefilledFields:{}, options:[{label:'New habit', run:()=>EntryActions.newHabit()}]});
   const T = today(); const tab = params[0] || 'habits';
   const active = S.habits.filter(h=>!h.archived && !h.negative).sort((a,b)=>TOD.indexOf(a.timeOfDay)-TOD.indexOf(b.timeOfDay) || a.order-b.order);
   const dueToday = active.filter(h=>habitDue(h,T)); const bal = energyBalance(false); const wk = energyBalance(true);
   root.innerHTML = `<div class="page">
-    <div class="page-head row between"><div><h1>Rituals &amp; Habits</h1><div class="sub">Positive energy rituals, not willpower. Sprints and recovery across four dimensions. Missing a day is part of the path.</div></div><div class="row"><button class="btn" id="addHabit">+ habit</button></div></div>
+    <div class="page-head row between"><div><h1>Rituals &amp; Habits</h1><div class="sub">Positive energy rituals, not willpower. Sprints and recovery across four dimensions. Missing a day is part of the path.</div></div></div>
     <div class="tabs"><button class="${tab==='habits'?'active':''}" data-go="#/rituals">Today &amp; Habits</button><button class="${tab==='reviews'?'active':''}" data-go="#/rituals/reviews">Guided reviews</button></div>
     <div id="ritBody"></div></div>`;
   const body = $('#ritBody');
@@ -37,7 +38,6 @@ routes.rituals = function(root, params){
   body.querySelectorAll('[data-hedit]').forEach(b => b.onclick = () => openHabitModal(b.dataset.hedit));
   body.querySelectorAll('[data-harch]').forEach(b => b.onclick = () => { byId(S.habits,b.dataset.harch).archived = true; saveNow(); rerender(); });
   body.querySelectorAll('[data-hun]').forEach(b => b.onclick = () => { byId(S.habits,b.dataset.hun).archived = false; saveNow(); rerender(); });
-  $('#addHabit').onclick = () => openHabitModal();
   let drag = null; body.querySelectorAll('.habit').forEach(hb => { hb.addEventListener('dragstart', ()=>{ drag = hb.dataset.hid; hb.classList.add('dragging'); }); hb.addEventListener('dragend', ()=>hb.classList.remove('dragging')); hb.addEventListener('dragover', e=>e.preventDefault()); hb.addEventListener('drop', e => { e.preventDefault(); if(!drag||drag===hb.dataset.hid) return; const a = byId(S.habits,drag), b = byId(S.habits,hb.dataset.hid); if(a.dimension!==b.dimension) return; const list = S.habits.filter(h=>h.dimension===a.dimension).sort((x,y)=>x.order-y.order).map(h=>h.id); list.splice(list.indexOf(a.id),1); list.splice(list.indexOf(b.id),0,a.id); list.forEach((id,i)=>byId(S.habits,id).order=i); saveNow(); rerender(); }); });
 };
 function openHabitModal(id){

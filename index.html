@@ -106,8 +106,26 @@ main{margin-left:var(--sidebar);flex:1;min-width:0;padding:48px 56px 120px;anima
 .page-head{margin-bottom:34px}
 .page-head h1{font-size:2.4rem}
 .page-head .sub{font-family:var(--quote);font-style:italic;color:var(--muted);margin-top:6px}
-.fab{position:fixed;right:28px;bottom:28px;width:54px;height:54px;border-radius:50%;background:var(--terra);color:#1a1816;border:none;font-size:1.6rem;box-shadow:var(--shadow);cursor:pointer;z-index:45;display:flex;align-items:center;justify-content:center;transition:transform .25s var(--ease),background .25s}
+.fab-wrap{position:fixed;right:24px;bottom:24px;z-index:45;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+.fab{position:relative;right:auto;bottom:auto;width:54px;height:54px;border-radius:50%;background:var(--terra);color:#1a1816;border:none;font-size:1.6rem;box-shadow:var(--shadow);cursor:pointer;z-index:45;display:flex;align-items:center;justify-content:center;transition:transform .25s var(--ease),background .25s}
 .fab:hover{transform:scale(1.06) rotate(90deg)}
+.fab.open{transform:rotate(45deg);background:var(--surface-3);color:var(--text)}
+.fab.open .hint{display:none}
+.speed-dial{display:flex;flex-direction:column;align-items:flex-end;gap:6px;margin-bottom:4px}
+.sd-item{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line-2);border-radius:999px;padding:6px 14px 6px 10px;box-shadow:var(--shadow);font-size:.82rem;animation:sdin .25s var(--ease) both;animation-delay:calc(var(--i) * 30ms)}
+@keyframes sdin{from{opacity:0;transform:translateY(8px) scale(.96)}to{opacity:1;transform:none}}
+.sd-ico{font-size:1rem;filter:saturate(.7)}
+.sd-lbl{color:var(--muted)}
+.sd-sep{color:var(--faint)}
+.sd-act{background:none;border:none;color:var(--text);cursor:pointer;padding:2px 4px;border-radius:6px;font-size:.82rem}
+.sd-act:hover{color:var(--terra);background:color-mix(in srgb,var(--terra) 12%,transparent)}
+.ctx-add{display:flex;align-items:center;gap:14px;margin:34px 0 22px}
+@media (max-width:900px){.ctx-add{margin-top:38px}}
+.ctx-add .hint{font-family:var(--quote);font-style:italic;color:var(--faint);font-size:.85rem}
+.choice{display:flex;gap:12px;align-items:flex-start;text-align:left;width:100%;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer;transition:border-color .2s var(--ease)}
+.choice:hover{border-color:var(--terra)}
+.choice .ico{font-family:var(--serif);font-size:1.2rem;color:var(--terra);min-width:20px}
+.choice .d{font-size:.78rem;color:var(--muted);margin-top:2px}
 .fab .hint{position:absolute;right:64px;top:50%;transform:translateY(-50%);background:var(--surface);color:var(--muted);padding:4px 10px;border-radius:8px;font-size:.75rem;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .2s;font-family:var(--mono);border:1px solid var(--line)}
 .fab:hover .hint{opacity:1}
 .topbar{display:flex;justify-content:flex-end;gap:8px;position:fixed;top:14px;right:28px;z-index:44}
@@ -252,7 +270,7 @@ svg text{font-family:var(--mono);fill:var(--faint);font-size:10px}
   .nav a .lbl{opacity:1}
   .nav a.active{border-top-color:var(--terra)}
   main{margin-left:0;padding:28px 18px 120px}
-  .fab{bottom:74px}
+  .fab-wrap{bottom:74px}
   .toast-wrap{bottom:140px}
   .topbar{top:8px;right:12px}
 }
@@ -637,7 +655,7 @@ html[data-theme="light"] .stage-hero .veil{background:linear-gradient(180deg,rgb
   <button class="iconbtn" id="btnAmbient" title="Ambient background">🌊</button>
   <button class="iconbtn" id="btnTheme" title="Toggle theme">☾</button>
 </div>
-<button class="fab" id="fab" title="New entry (⌘N)">+<span class="hint">new entry · ⌘N</span></button>
+<div class="fab-wrap" id="fabWrap"><div class="speed-dial" id="speedDial" hidden></div><button class="fab" id="fab" title="Add anything (⌘N)" aria-expanded="false">+<span class="hint">add anything · ⌘N</span></button></div>
 <div class="toast-wrap" id="toasts"></div>
 <div id="modals"></div>
 <script>
@@ -770,12 +788,12 @@ function renderRoute(){
   closePanel({keep:true});
   main.innerHTML = '';
   main.style.animation = 'none'; void main.offsetWidth; main.style.animation = '';
-  currentRoute = name;
+  currentRoute = name; PageEntryConfig.clear();
   try { fn(main, params); } catch(err){ console.error(err); main.innerHTML = `<div class="page narrow"><h1>Something went wrong</h1><p class="muted">${esc(err.message)}</p></div>`; }
-  reveal(main); tweenAll(main); backupBanner(); updateBackButton();
+  mountContextAdd(main); reveal(main); tweenAll(main); backupBanner(); updateBackButton();
   window.scrollTo({top:0, behavior:'instant'});
 }
-function rerender(){ const y = window.scrollY; const main = $('#main'); const {name, params} = parseHash(); main.innerHTML=''; (routes[name]||routes.today)(main, params); $$('.rv', main).forEach(n=>n.classList.add('in')); tweenAll(main); window.scrollTo({top:y}); }
+function rerender(){ const y = window.scrollY; const main = $('#main'); const {name, params} = parseHash(); main.innerHTML=''; PageEntryConfig.clear(); (routes[name]||routes.today)(main, params); mountContextAdd(main); $$('.rv', main).forEach(n=>n.classList.add('in')); tweenAll(main); window.scrollTo({top:y}); }
 window.addEventListener('hashchange', () => { sound('page'); if(document.startViewTransition && !reduced() && document.visibilityState==='visible') document.startViewTransition(renderRoute); else renderRoute(); });
 
 /* ---------- side panel ---------- */
@@ -993,10 +1011,11 @@ const DB_SCHEMA = {          // primary key first, then indexes — Dexie syntax
   habitLog:       'day',
   checkins:       'day',
   entries:        'id, type, occurredAt, createdAt',
+  reminders:      'id, date, done',
 };
 /* keys of S that are single objects/arrays without their own identity — kept as rows in `meta` */
 const META_KEYS = ['settings','theatre','reviews','valueOrder','valueOrderHistory','people','places','journals','eras','negLast'];
-const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries'];
+const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders'];
 
 /* ---------- MiniDexie: Dexie-compatible subset over IndexedDB ---------- */
 class MiniTable {
@@ -1034,7 +1053,7 @@ const usingRealDexie = DexieImpl !== MiniDexie;
 
 /* ---------- the database ---------- */
 const db = new DexieImpl(DB_NAME);
-db.version(1).stores(DB_SCHEMA);
+db.version(2).stores(DB_SCHEMA);   // v2 added `reminders`
 
 /* ---------- S <-> stores ---------- */
 function stateToStores(state){
@@ -1456,7 +1475,7 @@ function seed(){
   return {
     version:1,
     settings:{theme:'dark',sound:false,feltTime:false,home:'today',ribbons:true,firstOpen:T},
-    stages, threads, tensions, values, valueOrder, valueOrderHistory, valueSnapshots, eras, visions, skills, projects, nods, ideas, habits, habitLog, negLast, checkins, entries,
+    reminders:[], stages, threads, tensions, values, valueOrder, valueOrderHistory, valueSnapshots, eras, visions, skills, projects, nods, ideas, habits, habitLog, negLast, checkins, entries,
     journals:[{type:'synchronicity',name:'Synchronicity'},{type:'manifestation',name:'Manifestation'},{type:'reflection',name:'Reflections'},{type:'gratitude',name:'Gratitude'},{type:'dream',name:'Dreams'},{type:'quote',name:'Quotes & Marginalia'},{type:'question',name:'Open Questions'},{type:'visualization',name:'Visualizations'},{type:'letter',name:'Letters'}],
     theatre:{
       script:"I am someone who builds small warm rooms in large cold cities. I move through my mornings unhurried; I have already decided what matters. I speak Japanese with my whole face. I am useful in rooms without needing to be the smartest person in them. When someone looks at me through a story, I let them. My body is a colleague I respect. I close every room well.\n\nI see myself behind a counter, polishing a glass, the far end of the bar laughing at something I said in a second language. I feel the weight of the glass. I smell yuzu. This is not a wish. This is a memory I haven't reached yet.",
@@ -1603,7 +1622,7 @@ function entryExtraHTML(e){
   if(e.type==='synchronicity'){ if(x.preceded) rows.push(`<div><span class="mono">what preceded it</span><br>${esc(x.preceded)}</div>`); if(x.read) rows.push(`<div><span class="mono">what I read into it</span><br>${esc(x.read)}</div>`); if(x.revisit) rows.push(`<span class="status-pill">revisit later</span>`); }
   if(e.type==='manifestation'){ rows.push(`<span class="status-pill">${esc(x.status||'held')}</span>`); (x.evidence||[]).forEach(ev => rows.push(`<div class="evidence-item"><span class="mono">${fmtDate(ev.date,'med')}</span><span>${esc(ev.text)}</span></div>`)); }
   if(e.type==='dream'){ rows.push(`<span class="status-pill">vividness ${'●'.repeat(x.vivid||0)}${'○'.repeat(5-(x.vivid||0))}</span> ${x.recurring?'<span class="status-pill">recurring</span>':''} ${(x.symbols||[]).map(s=>`<span class="chip">${esc(s)}</span>`).join(' ')}`); }
-  if(e.type==='quote'){ rows.push(`<div class="mono">— ${esc(x.author||'')}${x.source?', <em>'+esc(x.source)+'</em>':''}${x.page?' · '+esc(x.page):''}</div>`); if(x.why) rows.push(`<div><span class="mono">why this caught me</span><br>${esc(x.why)}</div>`); }
+  if(e.type==='quote'){ rows.push(`<div class="mono">— ${esc(x.author||'')}${x.source?', <em>'+esc(x.source)+'</em>':''}${x.page?' · '+esc(x.page):''}${x.link?` · <a href="${esc(x.link)}" target="_blank" rel="noopener">↗ link</a>`:''}</div>`); if(x.why) rows.push(`<div><span class="mono">why this caught me</span><br>${esc(x.why)}</div>`); }
   if(e.type==='question'){ const ans = x.answers||[]; rows.push(`<div class="answer-log">${ans.length? ans.map(a=>`<div class="a"><span class="mono">${fmtDate(a.date,'med')}</span> · ${esc(a.text)}</div>`).join('') : '<div class="a faint">no answer yet — still living with it</div>'}<button class="tbtn" data-answer="${e.id}">+ add an answer</button></div>`); }
   if(e.type==='progress' && x.duration) rows.push(`<span class="status-pill">${x.duration} min</span>`);
   if(e.type==='memory' && x.installed) rows.push(`<div class="installed"><div class="k" style="font-family:var(--mono);font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;color:var(--terra)">what this installed in me</div>${esc(x.installed)}</div>`);
@@ -1634,6 +1653,10 @@ function stageChip(s){ return `<span class="chip on click" style="--c:${s.hue}" 
    ============================================================ */
 function checkin(day=today()){ if(!S.checkins[day]) S.checkins[day] = {mood:0, sentence:'', energy:{}, setpoint:0, intention:''}; return S.checkins[day]; }
 routes.today = function(root){
+  registerPageEntry({pageName:'Today', addLabel:'Add to today', defaultEntryType:'reflection', prefilledFields:{}, options:[
+    {icon:'✎', label:'Quick note', desc:'One honest line, kept as a reflection.', run:()=>EntryActions.quickNote()},
+    {icon:'◷', label:'Task reminder', desc:'A small thing to surface on a day.', run:()=>EntryActions.taskReminder()},
+    {icon:'◎', label:'Daily intention', desc:'One thing to give attention to today.', run:()=>EntryActions.dailyIntention()}]});
   const T = today(); const c = checkin(T); const moon = moonPhase(); const yday = S.checkins[addDays(T,-1)];
   const otd = onThisDay(); const cycleDay = S.theatre.cycleStart ? daysBetween(S.theatre.cycleStart, T) : 0;
   const sig = signals();
@@ -1688,9 +1711,7 @@ routes.today = function(root){
       <div class="prompt-card"><div class="quote" id="promptText">${gentlePrompt()}</div><div class="row" style="margin-top:14px;justify-content:space-between"><button class="btn sm ghost" id="anotherPrompt">another</button><button class="btn sm" data-quick="reflection">respond ✎</button></div></div>
     </section>
 
-    <section class="section rv"><span class="sc">Quick add</span>
-      <div class="quick">${[['memory','+ Memory'],['reflection','+ Reflection'],['nod','+ Nod'],['synchronicity','+ Synchronicity'],['gratitude','+ Gratitude'],['visualization','+ Visualization']].map(([t,l])=>`<button class="btn sm" data-quick="${t}">${l}</button>`).join('')}<span class="mono" style="margin-left:8px">or <kbd>⌘N</kbd> anywhere</span></div>
-    </section>
+    ${(S.reminders||[]).some(r=>!r.done && r.date<=T)?`<section class="section rv"><span class="sc">Reminders</span>${(S.reminders||[]).filter(r=>!r.done && r.date<=T).sort((a,b)=>a.date<b.date?-1:1).map(r=>`<label class="row" style="padding:8px 0;border-top:1px dashed var(--line);cursor:pointer"><input type="checkbox" data-rm="${r.id}"><span class="serif" style="font-size:1.05rem">${esc(r.text)}</span><span class="mono">${r.date<T?'since '+fmtDate(r.date,'short'):'today'}</span></label>`).join('')}</section>`:''}
 
     <section class="section rv"><span class="sc">The last thirty days</span>
       <div class="charts3">
@@ -1709,6 +1730,7 @@ routes.today = function(root){
   root.querySelectorAll('.tracker i').forEach(i => i.onclick = () => { const d = i.dataset.td; if(d > T) return; const idx = S.theatre.days.indexOf(d); if(idx>=0) S.theatre.days.splice(idx,1); else S.theatre.days.push(d); saveNow(); rerender(); });
   $('#anotherPrompt').onclick = () => { S._promptShift = (S._promptShift||0)+1; $('#promptText').innerHTML = gentlePrompt(); };
   root.querySelectorAll('[data-quick]').forEach(b => b.onclick = () => { const t = b.dataset.quick; if(t==='nod') openNodModal(); else openEntryModal({type:t}); });
+  root.querySelectorAll('[data-rm]').forEach(c => c.onchange = () => { const r = byId(S.reminders, c.dataset.rm); if(r){ r.done = true; r.doneAt = today(); saveNow(); sound('success'); setTimeout(rerender, 300); } });
 };
 /* ============================================================
    2. TIMELINE — the museum of the past (with Threads woven in)
@@ -1746,6 +1768,7 @@ function ribbonsSVG(width){
   return `<svg viewBox="0 0 ${width} ${H}" preserveAspectRatio="none">${out}</svg>`;
 }
 routes.timeline = function(root, params){
+  registerPageEntry({pageName:'Memory', addLabel:'New memory', defaultEntryType:'memory', prefilledFields:{}, hint:'Open a stage to file it there directly.', options:[{label:'New memory', run:()=>EntryActions.memory()}]});
   const tab = params[0]==='threads' ? 'threads' : 'stages';
   const counts = S.stages.map(s=>stageEntries(s).length); const maxc = Math.max(...counts,1);
   root.innerHTML = `<div class="page">
@@ -1822,6 +1845,7 @@ hooks.stageNarrative = (sid, oldV, newV) => { const s = byId(S.stages,sid); if(!
 routes.stage = function(root, params){
   const s = byId(S.stages, params[0]); if(!s){ navigate('#/timeline'); return; }
   S._lastStage = s.id;
+  registerPageEntry({pageName:'Memory', addLabel:`New memory in ${s.name}`, defaultEntryType:'memory', prefilledFields:{links:{stages:[s.id]}}, options:[{label:'New memory', run:(pre)=>EntryActions.memory(pre)}]});
   const es = sortEntries(stageEntries(s)); const memories = es.filter(e=>e.type==='memory');
   const threadsHere = S.threads.filter(t => es.some(e=>(e.links?.threads||[]).includes(t.id)));
   const cur = latestSnapshot()?.ratings || {};
@@ -1873,7 +1897,7 @@ routes.stage = function(root, params){
       <div class="shelf">${(s.artifacts||[]).length ? s.artifacts.map((a,i)=>`<div class="artifact" style="--rot:${((i*37)%9-4)}deg"><div class="paper" ${a.src?`data-lb="${a.id}"`:''}>${a.src?`<img src="${a.src}" alt="${esc(a.caption)}">`:esc(a.caption)}</div><div class="cap">${ed(`stages.#${s.id}.artifacts.${i}.caption`,{ph:'caption'})} <span class="mono">${ed(`stages.#${s.id}.artifacts.${i}.date`,{ph:'date'})}</span> <button class="tbtn" data-artdel="${i}">×</button></div></div>`).join('') : '<div class="empty">Tickets, letters, report cards, handwriting. Scan them and set them here.</div>'}</div>
     </section>
 
-    <section class="section rv"><div class="row between"><span class="sc">Everything from this stage</span><button class="btn sm" id="addHere">+ entry here</button></div>
+    <section class="section rv"><div class="row between"><span class="sc">Everything from this stage</span></div>
       ${es.filter(e=>e.type!=='memory').map(e=>entryCard(e)).join('') || '<div class="empty">Only memories so far. Add a reflection, a quote, a dream.</div>'}
     </section>
   </div>`;
@@ -1893,7 +1917,6 @@ routes.stage = function(root, params){
   $('#addArtifact').onclick = () => $('#artFile').click();
   $('#artFile').onchange = e => { if(!e.target.files.length){ s.artifacts.push({id:uid(),caption:'New artifact',date:'',src:''}); saveNow(); rerender(); return; } readImages(e.target.files, img => { s.artifacts = s.artifacts||[]; s.artifacts.push({id:img.id,caption:'',date:'',src:img.src}); saveNow(); rerender(); }); };
   $$('[data-artdel]',root).forEach(b => b.onclick = () => { s.artifacts.splice(+b.dataset.artdel,1); saveNow(); rerender(); });
-  $('#addHere').onclick = () => openEntryModal({type:'reflection', links:{stages:[s.id]}});
   root.querySelectorAll('.artifact .paper[data-lb]').forEach(p => p.onclick = () => lightbox(p.querySelector('img').src, p.nextElementSibling?.textContent||''));
 };
 /* ============================================================
@@ -1956,8 +1979,12 @@ function treeSVG(W, H){
 let swayRAF = null;
 function startSway(root){ cancelAnimationFrame(swayRAF); if(reduced()) return; const leaves = $$('.leaf', root); const t0 = performance.now(); const tick = t => { if(!document.contains(root)){ cancelAnimationFrame(swayRAF); return; } const s = (t-t0)/1000; leaves.forEach(l => { const ph = +l.dataset.phase, per = +l.dataset.period; l.style.transform = `rotate(${(Math.sin(s*2*Math.PI/per + ph)*3).toFixed(2)}deg)`; }); swayRAF = requestAnimationFrame(tick); }; swayRAF = requestAnimationFrame(tick); }
 routes.vision = function(root, params){
+  const activeEra = S._activeEra || S.eras[0].id;
+  registerPageEntry({pageName:'Vision Tree', addLabel:'Add to the tree', defaultEntryType:'progress', prefilledFields:{era:activeEra}, options:[
+    {icon:'🌿', label:'New goal', desc:`A new branch, in the ${activeEra} era by default.`, run:(pre)=>EntryActions.newVision(pre)},
+    {icon:'◌', label:'New life event', desc:'A leaf on an existing vision — progress, a visualization, a manifestation.', run:(pre)=>EntryActions.lifeEvent(pre)}]});
   root.innerHTML = `<div class="page">
-    <div class="page-head row between"><div><h1>Vision Tree</h1><div class="sub">Every entry tagged to a vision grows a leaf. Vividness is the sap. Untended branches wither — honestly, reversibly.</div></div><div class="row"><button class="btn" id="addVision">+ vision</button><button class="btn ghost" id="editEras">eras</button></div></div>
+    <div class="page-head row between"><div><h1>Vision Tree</h1><div class="sub">Every entry tagged to a vision grows a leaf. Vividness is the sap. Untended branches wither — honestly, reversibly.</div></div><div class="row"><select class="sel" style="width:auto" id="activeEra" title="active era for new goals">${S.eras.map(e=>`<option value="${e.id}" ${activeEra===e.id?'selected':''}>${esc(e.label)}</option>`).join('')}</select><button class="btn ghost" id="editEras">eras</button></div></div>
     <div class="tree-wrap" id="treeWrap"><div class="tree-tools"></div><div class="tree-legend"><span>bare twig 0–15</span><span>budding 16–30</span><span>leafing 31–50</span><span>canopy 51–70</span><span>flowering 71–85</span><span>fruiting 86–100</span><span>· hover a branch to trace its lineage</span></div></div>
     <div class="grid c3 section">${S.visions.map(v => { const {score, lastTended} = vividness(v); return `<div class="card rv" data-vopen="${v.id}" style="cursor:pointer"><div class="row between"><h3 style="margin:0">${esc(v.name)}</h3><span class="mono">${v.era}</span></div><div class="row" style="margin:8px 0"><div class="bar" style="flex:1;--c:${v.confidence==='lived'?'var(--gold)':'var(--sage)'}"><i style="width:${score}%"></i></div><span class="mono" data-tween="${score}">0</span></div><div class="muted" style="font-size:.8rem">${esc(v.confidence)} · tended ${relDays(lastTended)}${v.nextAction?`<br><span style="color:var(--gold)">→</span> ${esc(v.nextAction)}`:''}</div></div>`; }).join('')}</div>
   </div>`;
@@ -1967,7 +1994,7 @@ routes.vision = function(root, params){
     startSway(svg); }
   window.addEventListener('resize', debounce(()=>{ if(currentRoute==='vision') drawTree(); }, 250), {once:true});
   $$('[data-vopen]',root).forEach(c => c.onclick = () => openVisionPanel(c.dataset.vopen));
-  $('#addVision').onclick = () => { const m = openModal(`<h2>A new branch</h2><div class="stack"><div class="field"><label>Name</label><input class="inp" id="vnName" placeholder="What do you want to create?"></div><div class="field"><label>Era</label><select class="sel" id="vnEra">${S.eras.map(e=>`<option value="${e.id}">${esc(e.label)} — ${esc(e.desc)}</option>`).join('')}</select></div><div class="field"><label>Forks from (optional)</label><select class="sel" id="vnParent"><option value="">the trunk</option>${S.visions.map(v=>`<option value="${v.id}">${esc(v.name)}</option>`).join('')}</select></div></div><div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn primary" id="vnSave">Plant it</button></div>`,'narrow'); m.querySelector('#vnSave').onclick = () => { const name = m.querySelector('#vnName').value.trim(); if(!name) return; const v = {id:uid(),name,era:m.querySelector('#vnEra').value,parentId:m.querySelector('#vnParent').value||null,confidence:'hunch',nextAction:'',sensory:{see:'',hear:'',smell:'',firstHour:'',who:'',noLonger:''},futureMemory:'',futureMemoryHistory:[],costs:'',currentReality:'',currentRealityHistory:[],resistance:[],preSkills:[],selfImage:'',values:[],obituary:'',evidence:[],feeling:0,targetDate:'',location:'',money:'',createdAt:today()}; S.visions.push(v); saveNow(); m.remove(); rerender(); openVisionPanel(v.id); }; };
+  $('#activeEra').onchange = e => { S._activeEra = e.target.value; rerender(); };
   $('#editEras').onclick = () => { openModal(`<h2>Trunk segments</h2><p class="muted">Life decades or eras. Edit the labels and descriptions.</p><div class="stack">${S.eras.map((e,i)=>`<div class="card" style="padding:14px 16px"><b class="serif">${ed(`eras.${i}.label`)}</b><div class="muted">${ed(`eras.${i}.desc`,{ph:'what this decade is for'})}</div></div>`).join('')}</div>`,'narrow'); };
   if(params[0]) openVisionPanel(params[0]);
 };
@@ -2036,11 +2063,14 @@ function fruitCeremony(v){
    5. VALUES CONGRUENCE — the compass beneath the floorboards
    ============================================================ */
 routes.values = function(root){
+  registerPageEntry({pageName:'Compass', addLabel:'Add to the compass', defaultEntryType:'snapshot', prefilledFields:{}, options:[
+    {icon:'◔', label:'Congruence snapshot', desc:'0–100 for each value, where you actually are this week.', run:()=>EntryActions.snapshot()},
+    ...(S.values.length < 10 ? [{icon:'✦', label:'New value', desc:`The compass has ${S.values.length} of 10 points.`, run:()=>EntryActions.newValue()}] : [])]});
   const snaps = allSnapshotsWithRetro(); const latest = snaps.slice(-1)[0]; const axes = S.valueOrder.map(id=>{ const v=byId(S.values,id); return {name:v.name, short:v.name.split(' ')[0], color:v.color}; });
   const gaps = valueGaps();
   const servedBy = {}; S.valueOrder.forEach(id => servedBy[id] = S.visions.filter(v=>v.confidence!=='lived' && v.values.includes(id)));
   root.innerHTML = `<div class="page">
-    <div class="page-head row between"><div><h1>Values</h1><div class="sub">Ten compass points. Priority is what you say; congruence is what your days say. The gap between them is where your life and your values disagree.</div></div><div class="row"><button class="btn primary" id="logSnap">Log a congruence snapshot</button></div></div>
+    <div class="page-head row between"><div><h1>Values</h1><div class="sub">Ten compass points. Priority is what you say; congruence is what your days say. The gap between them is where your life and your values disagree.</div></div></div>
     <div class="grid c2" style="align-items:start">
       <div class="card rv"><div class="row between"><h3>Priority order</h3><span class="mono">drag to re-rank · ${S.valueOrderHistory.length} re-rankings</span></div>
         <ul class="values-list" id="valuesList">${S.valueOrder.map((id,i)=>{ const v = byId(S.values,id); const c = valueCurrent(id); return `<li draggable="true" data-vid="${id}"><span class="rank">${i+1}</span><span class="nm"><a href="#/value/${id}" style="color:${v.color}">${esc(v.name)}</a></span><div class="bar" style="--c:${v.color}"><i style="width:${c}%"></i></div><span class="pct" data-tween="${c}" data-suffix="%">0</span><span class="faint">⋮</span></li>`; }).join('')}</ul>
@@ -2067,7 +2097,6 @@ routes.values = function(root){
   const ts = $('#timeSlider'); let ghost = false;
   const drawRadar = () => { const s = snaps[+ts.value]; const series = []; if(ghost && snaps[0] && +ts.value>0) series.push({vals:S.valueOrder.map(id=>snaps[0].ratings[id]??0),color:'var(--faint)',dashed:true}); series.push({vals:S.valueOrder.map(id=>s.ratings[id]??0),color:s.retro?(byId(S.stages,s.stageId)?.hue||'var(--terra)'):'var(--terra)'}); $('#radarBox').innerHTML = radar(axes,series,{size:360}); $('#tsLbl').textContent = fmtDate(s.date,'med'); $('#tsNote').textContent = s.note||''; };
   ts.oninput = drawRadar; $('#ghostToggle').onclick = () => { ghost=!ghost; $('#ghostToggle').classList.toggle('on',ghost); drawRadar(); };
-  $('#logSnap').onclick = openSnapshotModal;
 };
 function openSnapshotModal(after){
   const last = latestSnapshot()?.ratings||{};
@@ -2077,6 +2106,7 @@ function openSnapshotModal(after){
 }
 routes.value = function(root, params){
   const v = byId(S.values, params[0]); if(!v){ navigate('#/values'); return; }
+  registerPageEntry({pageName:'Compass', addLabel:`Evidence for ${v.name}`, defaultEntryType:'reflection', prefilledFields:{links:{values:[{id:v.id,pol:'+'}]}}, options:[{label:'Evidence', run:(pre)=>openEntryModal({type:'reflection', allowedTypes:['reflection','memory','gratitude'], heading:`Evidence for ${v.name}`, links:pre.links, openLinks:true})}]});
   const snaps = allSnapshotsWithRetro(); const es = sortEntries(S.entries.filter(e=>(e.links?.values||[]).some(x=>x.id===v.id)));
   const rank = S.valueOrder.indexOf(v.id)+1; const cur = valueCurrent(v.id);
   const F = (k, q, hint) => { const hist = v.fields[k]||[]; const latest = hist.slice(-1)[0]; return `<div class="value-field rv"><div class="q">${q}</div><div class="faint" style="font-size:.8rem;margin-bottom:8px">${hint}</div><div class="prose serif-lg">${latest?md(latest.text):'<span class="empty">Not yet written.</span>'}</div><div class="row" style="margin-top:8px"><button class="btn sm ghost" data-vf="${k}">${latest?'write a new version':'write'}</button>${hist.length>1?`<details style="border:none;flex:1"><summary><span class="mono">${hist.length-1} earlier versions</span></summary><div class="body versions">${hist.slice(0,-1).reverse().map(h=>`<div class="v"><div class="mono">${fmtDate(h.date,'med')}</div>${md(h.text)}</div>`).join('')}</div></details>`:latest?`<span class="mono">${fmtDate(latest.date,'med')}</span>`:''}</div></div>`; };
@@ -2100,13 +2130,15 @@ routes.value = function(root, params){
 routes.journals = function(root, params){
   const type = params[0] || S._journal || 'reflection'; S._journal = type;
   const j = S.journals.find(x=>x.type===type) || S.journals[0];
+  if(type === 'quote') registerPageEntry({pageName:'Library', addLabel:'New quote or saved link', defaultEntryType:'quote', prefilledFields:{journalType:'quote'}, options:[{label:'New quote', run:()=>EntryActions.libraryQuote()}]});
+  else registerPageEntry({pageName:'Journal', addLabel:`New ${typeName(type).toLowerCase()}`, defaultEntryType:type, prefilledFields:{journalType:type}, options:[{label:'New entry', run:(pre)=>openEntryModal({type:pre.journalType, allowedTypes:[pre.journalType], heading:`New ${typeName(pre.journalType).toLowerCase()}`})}]});
   const all = sortEntries(S.entries.filter(e=>e.type===type));
   const q = (S._jq||'').toLowerCase(); const from = S._jfrom||'', to = S._jto||''; const tag = S._jtag||'';
   const filtered = all.filter(e => (!q || (e.title+' '+e.body).toLowerCase().includes(q)) && (!from || (e.occurredAt||'') >= from) && (!to || (e.occurredAt||'').slice(0,10) <= to) && (!tag || JSON.stringify(e.links).includes(tag)));
   const otd = onThisDay().filter(e=>e.type===type);
   const dimOpts = [...S.stages.map(s=>[s.id,s.char+' '+s.name]),...S.threads.map(t=>[t.id,'thread · '+t.name]),...S.values.map(v=>[v.id,'value · '+v.name]),...S.visions.map(v=>[v.id,'vision · '+v.name]),...S.skills.map(s=>[s.id,'skill · '+s.name]),...S.projects.map(p=>[p.id,'project · '+p.name])];
   root.innerHTML = `<div class="page">
-    <div class="page-head row between"><div><h1>Commonplace Book</h1><div class="sub">Append-only. Every entry can live in many rooms at once — link it, and the house connects.</div></div><button class="btn primary" id="jAdd">+ ${esc(typeName(type))}</button></div>
+    <div class="page-head"><h1>Commonplace Book</h1><div class="sub">Append-only. Every entry can live in many rooms at once — link it, and the house connects.</div></div>
     <div class="journal-layout">
       <div class="jnav">${S.journals.map(x=>`<button class="${x.type===type?'active':''}" data-go="#/journals/${x.type}"><span>${typeIcon(x.type)} ${esc(x.name)}</span><span class="n">${S.entries.filter(e=>e.type===x.type).length}</span></button>`).join('')}<button id="jNew" style="color:var(--faint)">+ new journal type</button></div>
       <div>
@@ -2118,7 +2150,6 @@ routes.journals = function(root, params){
         <div id="jList">${filtered.map(e=>entryCard(e)+(type==='manifestation'&&e.extra?.status==='arrived'&&e.links.visions.length?`<div class="row" style="margin:-8px 0 12px"><button class="btn sm ghost" data-fruit="${e.id}">offer as fruit to ${esc(byId(S.visions,e.links.visions[0])?.name||'its vision')} →</button></div>`:'')).join('')||'<div class="empty">Nothing here matches. Loosen the filters, or write something.</div>'}</div>
       </div>
     </div></div>`;
-  $('#jAdd').onclick = () => openEntryModal({type});
   const refilter = debounce(()=>{ S._jq = $('#jq').value; S._jfrom = $('#jfrom').value; S._jto = $('#jto').value; S._jtag = $('#jtag').value; rerender(); $('#jq')?.focus(); }, 300);
   $('#jq').oninput = refilter; $('#jfrom').onchange = refilter; $('#jto').onchange = refilter; $('#jtag').onchange = refilter;
   $('#jRandom').onclick = () => { if(!all.length) return; const e = all[Math.floor(Math.random()*all.length)]; openPanel(`<div class="mono">a random ${esc(typeName(type).toLowerCase())}</div>${entryCard(e,{clamp:false})}`); $$('#panel .rv').forEach(n=>n.classList.add('in')); };
@@ -2146,8 +2177,11 @@ function skillSVG(W,H){
   return `<svg viewBox="0 0 ${W} ${H}">${g}</svg>`;
 }
 routes.skills = function(root, params){
+  registerPageEntry({pageName:'Skill Tree', addLabel:'Add to the skill tree', defaultEntryType:'progress', prefilledFields:{}, options:[
+    {icon:'◉', label:'New skill node', desc:'A skill you hold, or a bud you intend to open.', run:()=>EntryActions.newSkill()},
+    {icon:'↗', label:'Add a level to a skill', desc:'Log practice on an existing skill; set the level from its rubric.', run:()=>EntryActions.skillProgress()}]});
   root.innerHTML = `<div class="page">
-    <div class="page-head row between"><div><h1>Skill Tree</h1><div class="sub">Career capital, built on the plateau. Size is proficiency; dashed nodes are buds; faded nodes are atrophying.</div></div><button class="btn" id="addSkill">+ skill</button></div>
+    <div class="page-head row between"><div><h1>Skill Tree</h1><div class="sub">Career capital, built on the plateau. Size is proficiency; dashed nodes are buds; faded nodes are atrophying.</div></div></div>
     <div class="skill-wrap" id="skillWrap"></div>
     <div class="grid c3 section">${S.skills.map(s=>{ const st = skillStreak(s); const last = skillLastPracticed(s); return `<div class="card rv" data-sopen="${s.id}" style="cursor:pointer;border-left:3px solid ${catColor(s.cat)}"><div class="row between"><h3 style="margin:0">${esc(s.name)}</h3><span class="mono">${esc(s.cat)}</span></div><div class="muted" style="font-size:.82rem;margin-top:6px">${s.planned?'planned — a bud not yet opened':`level ${s.level} of 5 · ${(s.rubric[s.level-1]||'').slice(0,60)}`}</div><div class="mono" style="margin-top:8px">last ${relDays(daysSince(last))} · streak ${st.cur}d (best ${st.best}) · ${skillHours(s).toFixed(1)}h</div></div>`; }).join('')}</div>
   </div>`;
@@ -2157,7 +2191,6 @@ routes.skills = function(root, params){
     if(!reduced()){ const pt = svg.createSVGPoint(); svg.addEventListener('mousemove', e => { pt.x = e.clientX; pt.y = e.clientY; const p = pt.matrixTransform(svg.getScreenCTM().inverse()); svg.querySelectorAll('.node').forEach(n => { const m = n.getAttribute('transform').match(/translate\(([-\d.]+),([-\d.]+)\)/); const x=+m[1], y=+m[2]; const dx = p.x-x, dy = p.y-y; const d = Math.hypot(dx,dy); const c = n.querySelector('circle.c'); if(d<60){ const k = (1-d/60)*4; c.style.transform = `translate(${(dx/d*k).toFixed(1)}px,${(dy/d*k).toFixed(1)}px)`; } else c.style.transform=''; }); }); } };
   draw(); window.addEventListener('resize', debounce(()=>{ if(currentRoute==='skills') draw(); },250), {once:true});
   $$('[data-sopen]',root).forEach(c => c.onclick = () => openSkillPanel(c.dataset.sopen));
-  $('#addSkill').onclick = () => { const m = openModal(`<h2>A new skill</h2><div class="stack"><div class="field"><label>Name</label><input class="inp" id="skName"></div><div class="field"><label>Category</label><select class="sel" id="skCat">${SKILL_CATS.map(c=>`<option>${c}</option>`).join('')}</select></div><label class="toggle" id="skPlanned"><span class="sw"></span><span>planned — a bud, not yet begun</span></label></div><div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn primary" id="skSave">Add</button></div>`,'narrow'); let planned=false; m.querySelector('#skPlanned').onclick = function(){ planned=!planned; this.classList.toggle('on',planned); }; m.querySelector('#skSave').onclick = () => { const name = m.querySelector('#skName').value.trim(); if(!name) return; const s = {id:uid(),name,cat:m.querySelector('#skCat').value,rubric:['','','','',''],level:planned?0:1,target:3,targetDate:'',prereqs:[],planned}; S.skills.push(s); saveNow(); m.remove(); rerender(); openSkillPanel(s.id); }; };
   if(params[0]) openSkillPanel(params[0]);
 };
 function openSkillPanel(id){
@@ -2194,12 +2227,13 @@ const PSTATUS = {idea:['💭','idea','#8a8d8f'],active:['🌱','active','#7f916a
 const fmtYen = n => '¥' + Math.round(n||0).toLocaleString();
 function nodHeat(p){ const days = lastDays(84); const counts = {}; S.nods.filter(n=>n.projectId===p.id).forEach(n => counts[n.date] = (counts[n.date]||0)+1); return heatGrid(days, 12, d => counts[d] ? (counts[d]>=3?'l3':counts[d]===2?'l2':'l1') : ''); }
 routes.projects = function(root, params){
+  registerPageEntry({pageName:'Projects', addLabel:'New project', defaultEntryType:'project', prefilledFields:{}, hint:'Nods have their own button — they must stay fast.', options:[{label:'New project', run:()=>EntryActions.newProject()}]});
   const sort = S._psort || 'activity';
   const ps = [...S.projects].sort((a,b) => sort==='name' ? a.name.localeCompare(b.name) : sort==='status' ? Object.keys(PSTATUS).indexOf(a.status)-Object.keys(PSTATUS).indexOf(b.status) : daysSince(projectNods(a)[0]?.date) - daysSince(projectNods(b)[0]?.date));
   const income = S.projects.filter(p=>p.income?.current>0); const total = sum(income.map(p=>p.income.current)); const diversified = income.filter(p=>p.income.current/total > .1).length;
   const W=520,H=300; const pts = S.projects.filter(p=>projectNods(p).length).map(p => { const ns = projectNods(p); return {p, x:avg(ns.map(n=>n.energy)), y:ns.length}; }); const maxY = Math.max(...pts.map(x=>x.y),1);
   root.innerHTML = `<div class="page">
-    <button class="btn primary nod-fab" id="nodFab" title="quick nod">+ nod</button><div class="page-head row between"><div><h1>Creative Projects</h1><div class="sub">A nod is the atomic unit: “I showed up and did this.” Under five seconds, or the system dies.</div></div><div class="row"><select class="sel" style="width:auto" id="psort"><option value="activity" ${sort==='activity'?'selected':''}>by last activity</option><option value="status" ${sort==='status'?'selected':''}>by status</option><option value="name" ${sort==='name'?'selected':''}>by name</option></select><button class="btn" id="addProject">+ project</button><button class="btn primary" id="addNod">+ nod</button></div></div>
+    <button class="btn primary nod-fab" id="nodFab" title="quick nod">+ nod</button><div class="page-head row between"><div><h1>Creative Projects</h1><div class="sub">A nod is the atomic unit: “I showed up and did this.” Under five seconds, or the system dies.</div></div><div class="row"><select class="sel" style="width:auto" id="psort"><option value="activity" ${sort==='activity'?'selected':''}>by last activity</option><option value="status" ${sort==='status'?'selected':''}>by status</option><option value="name" ${sort==='name'?'selected':''}>by name</option></select><button class="btn primary" id="addNod">+ nod</button></div></div>
     <div class="card rv" style="margin-bottom:22px"><div class="income-strip"><div><div class="k">monthly income, all streams</div><div class="num">${fmtYen(total)}</div><div class="mono">per month</div></div><div><div class="k">active streams</div><div class="num">${income.length}</div></div><div><div class="k">diversification</div><div class="num">${diversified}</div><div class="mono">contribute &gt;10%</div></div><div><div class="k">target</div><div class="num">${fmtYen(sum(S.projects.map(p=>p.income?.target||0)))}</div></div></div></div>
     <div class="grid c3">${ps.map(p => { const ns = projectNods(p); const st = PSTATUS[p.status]||PSTATUS.idea; return `<div class="card pcard rv" data-popen="${p.id}" style="cursor:pointer;--c:${st[2]}"><div class="hd"><h3>${esc(p.name)}</h3><span class="pstatus">${st[0]} ${st[1]}</span></div><div class="muted" style="font-size:.85rem">${esc(p.desc)}</div><div class="row">${(p.tags||[]).map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div>${nodHeat(p)}<div class="mono">${ns.length} nods · last ${relDays(daysSince(ns[0]?.date))}${p.income?.current?` · ${fmtYen(p.income.current)}/mo`:''}</div>${p.link&&p.status==='shipped'?`<a href="${esc(p.link)}" target="_blank" rel="noopener" class="mono" onclick="event.stopPropagation()">↗ ${esc(p.link)}</a>`:''}</div>`; }).join('')}</div>
     <section class="section rv"><span class="sc">Energy vs. output</span><p class="muted" style="font-size:.85rem">X: average energy reading across nods. Y: volume of effort. Which interests deserve to become income streams, and which are taxes you pay for a self you've outgrown?</p>
@@ -2215,7 +2249,6 @@ routes.projects = function(root, params){
   </div>`;
   $('#psort').onchange = e => { S._psort = e.target.value; rerender(); };
   $('#addNod').onclick = () => openNodModal(); $('#nodFab').onclick = () => openNodModal();
-  $('#addProject').onclick = () => createProject();
   $$('[data-popen]',root).forEach(c => c.onclick = () => openProjectPanel(c.dataset.popen));
   const addIdea = () => { const t = $('#ideaInp').value.trim(); if(!t) return; S.ideas.unshift({id:uid(),text:t}); saveNow(); rerender(); $('#ideaInp')?.focus(); };
   $('#ideaAdd').onclick = addIdea; $('#ideaInp').onkeydown = e => { if(e.key==='Enter') addIdea(); };
@@ -2277,11 +2310,12 @@ const TOD = ['morning','afternoon','evening','anytime'];
 function habitFreqLabel(h){ const f = h.freq; if(f.type==='daily') return 'daily'; if(f.type==='days') return f.days.map(d=>DOW[d].slice(0,3)).join(' '); if(f.type==='perWeek') return `${f.count}× / week`; if(f.type==='perMonth') return `${f.count}× / month`; return ''; }
 function markHabit(h, level, note=''){ const T = today(); S.habitLog[T] = S.habitLog[T]||{}; if(level) S.habitLog[T][h.id] = {level, note}; else delete S.habitLog[T][h.id]; saveNow(); }
 routes.rituals = function(root, params){
+  registerPageEntry({pageName:'Rituals', addLabel:'New habit', defaultEntryType:'habit', prefilledFields:{}, options:[{label:'New habit', run:()=>EntryActions.newHabit()}]});
   const T = today(); const tab = params[0] || 'habits';
   const active = S.habits.filter(h=>!h.archived && !h.negative).sort((a,b)=>TOD.indexOf(a.timeOfDay)-TOD.indexOf(b.timeOfDay) || a.order-b.order);
   const dueToday = active.filter(h=>habitDue(h,T)); const bal = energyBalance(false); const wk = energyBalance(true);
   root.innerHTML = `<div class="page">
-    <div class="page-head row between"><div><h1>Rituals &amp; Habits</h1><div class="sub">Positive energy rituals, not willpower. Sprints and recovery across four dimensions. Missing a day is part of the path.</div></div><div class="row"><button class="btn" id="addHabit">+ habit</button></div></div>
+    <div class="page-head row between"><div><h1>Rituals &amp; Habits</h1><div class="sub">Positive energy rituals, not willpower. Sprints and recovery across four dimensions. Missing a day is part of the path.</div></div></div>
     <div class="tabs"><button class="${tab==='habits'?'active':''}" data-go="#/rituals">Today &amp; Habits</button><button class="${tab==='reviews'?'active':''}" data-go="#/rituals/reviews">Guided reviews</button></div>
     <div id="ritBody"></div></div>`;
   const body = $('#ritBody');
@@ -2309,7 +2343,6 @@ routes.rituals = function(root, params){
   body.querySelectorAll('[data-hedit]').forEach(b => b.onclick = () => openHabitModal(b.dataset.hedit));
   body.querySelectorAll('[data-harch]').forEach(b => b.onclick = () => { byId(S.habits,b.dataset.harch).archived = true; saveNow(); rerender(); });
   body.querySelectorAll('[data-hun]').forEach(b => b.onclick = () => { byId(S.habits,b.dataset.hun).archived = false; saveNow(); rerender(); });
-  $('#addHabit').onclick = () => openHabitModal();
   let drag = null; body.querySelectorAll('.habit').forEach(hb => { hb.addEventListener('dragstart', ()=>{ drag = hb.dataset.hid; hb.classList.add('dragging'); }); hb.addEventListener('dragend', ()=>hb.classList.remove('dragging')); hb.addEventListener('dragover', e=>e.preventDefault()); hb.addEventListener('drop', e => { e.preventDefault(); if(!drag||drag===hb.dataset.hid) return; const a = byId(S.habits,drag), b = byId(S.habits,hb.dataset.hid); if(a.dimension!==b.dimension) return; const list = S.habits.filter(h=>h.dimension===a.dimension).sort((x,y)=>x.order-y.order).map(h=>h.id); list.splice(list.indexOf(a.id),1); list.splice(list.indexOf(b.id),0,a.id); list.forEach((id,i)=>byId(S.habits,id).order=i); saveNow(); rerender(); }); });
 };
 function openHabitModal(id){
@@ -2484,20 +2517,120 @@ routes.settings = function(root){
   $('#sClear').onclick = () => confirmDlg('This erases everything in this browser and re-seeds the placeholder content. Export first if in doubt.', async ()=>{ await resetAll(); applyTheme(); toast('Cleared. Seed content restored.'); navigate('#/today'); rerender(); });
 };
 /* ============================================================
+   ADD — two tiers, two code paths.
+   Tier 1: the contextual per-page Add. Each page registers a
+           PageEntryConfig; the button only reads it.
+   Tier 2: the universal FAB speed dial. Every entry type in the
+           app, grouped by zone. The power-user escape hatch.
+   ============================================================ */
+
+/* ---------- context registration ---------- */
+const PageEntryConfig = {
+  current: null,
+  register(cfg){ this.current = cfg; return cfg; },
+  clear(){ this.current = null; },
+};
+function registerPageEntry(cfg){ return PageEntryConfig.register(cfg); }
+
+/* ---------- named entry actions (referenced by page configs and by the FAB) ---------- */
+const journalTypes = () => S.journals.map(j => j.type);
+const EntryActions = {
+  quickNote:      (pre={}) => openEntryModal({type:'reflection', allowedTypes:['reflection'], heading:'Quick note', ...pre}),
+  taskReminder:   ()       => openReminderModal(),
+  dailyIntention: ()       => focusIntention(),
+  journalEntry:   (pre={}) => openEntryModal({type: pre.journalType || S._journal || 'reflection', allowedTypes: journalTypes(), heading:'New journal entry', links: pre.links}),
+  memory:         (pre={}) => openEntryModal({type:'memory', allowedTypes:['memory','artifact','letter'], heading:'New memory', links: pre.links}),
+  libraryQuote:   (pre={}) => openEntryModal({type:'quote', allowedTypes:['quote'], heading:'New quote or saved link', links: pre.links}),
+  snapshot:       ()       => openSnapshotModal(),
+  newValue:       ()       => newValueDialog(),
+  newSkill:       ()       => newSkillDialog(),
+  skillProgress:  (pre={}) => openEntryModal({type:'progress', allowedTypes:['progress'], heading:'Add a level to a skill — log practice', links: pre.links, openLinks:true}),
+  newVision:      (pre={}) => newVisionDialog(pre),
+  lifeEvent:      (pre={}) => openEntryModal({type:'progress', allowedTypes:['progress','visualization','manifestation'], heading:'New life event on a vision', links: pre.links, openLinks:true}),
+  newProject:     ()       => createProject(),
+  newHabit:       ()       => openHabitModal(),
+};
+
+/* ---------- Tier 1: contextual Add (inline, top of the page content) ---------- */
+function mountContextAdd(main){
+  $('#ctxAdd')?.remove();
+  const cfg = PageEntryConfig.current; if(!cfg) return;
+  const page = main.querySelector('.page'); if(!page) return;
+  const bar = el(`<div class="ctx-add" id="ctxAdd"><button class="btn primary" id="ctxAddBtn" aria-label="${esc(cfg.addLabel)}">＋ ${esc(cfg.addLabel)}</button>${cfg.hint ? `<span class="hint">${esc(cfg.hint)}</span>` : ''}</div>`);
+  page.insertBefore(bar, page.firstChild);
+  bar.querySelector('#ctxAddBtn').onclick = () => runContextAdd(cfg);
+}
+function runContextAdd(cfg){
+  const opts = (cfg.options || []).slice(0, 3);
+  if(opts.length <= 1){ const run = opts[0]?.run || (() => openEntryModal({type: cfg.defaultEntryType, allowedTypes:[cfg.defaultEntryType], ...(cfg.prefilledFields||{})})); run(cfg.prefilledFields || {}); return; }
+  const m = openModal(`<h2>${esc(cfg.addLabel)}</h2><div class="stack" style="gap:8px">${opts.map((o,i) => `<button class="choice" data-i="${i}"><span class="ico">${o.icon||'＋'}</span><span><b>${esc(o.label)}</b>${o.desc?`<div class="d">${esc(o.desc)}</div>`:''}</span></button>`).join('')}</div>`, 'narrow');
+  m.querySelectorAll('.choice').forEach(b => b.onclick = () => { m.remove(); opts[+b.dataset.i].run(cfg.prefilledFields || {}); });
+}
+
+/* ---------- Tier 2: universal FAB speed dial (separate path) ---------- */
+const SPEED_DIAL = [
+  {zone:'Today',    icon:'📅', label:'Today — Quick note / Task', actions:[['Quick note', ()=>EntryActions.quickNote()], ['Task', ()=>EntryActions.taskReminder()]]},
+  {zone:'Journal',  icon:'📓', label:'Journal entry',        run: ()=>EntryActions.journalEntry()},
+  {zone:'Memory',   icon:'💭', label:'Memory',               run: ()=>EntryActions.memory()},
+  {zone:'Library',  icon:'📚', label:'Library quote',        run: ()=>EntryActions.libraryQuote()},
+  {zone:'Compass',  icon:'🧭', label:'Congruence snapshot',  run: ()=>EntryActions.snapshot()},
+  {zone:'Skills',   icon:'🌳', label:'Skill node',           run: ()=>EntryActions.newSkill()},
+  {zone:'Vision',   icon:'🔮', label:'Vision goal',          run: ()=>EntryActions.newVision()},
+  {zone:'Projects', icon:'📋', label:'Project',              run: ()=>EntryActions.newProject()},
+];
+function buildSpeedDial(){
+  const dial = $('#speedDial'); if(!dial) return;
+  dial.innerHTML = SPEED_DIAL.map((it,i) => `<div class="sd-item" style="--i:${i}"><span class="sd-ico">${it.icon}</span>${it.actions ? `<span class="sd-lbl">${esc(it.zone)} —</span>${it.actions.map(([l],j)=>`<button class="sd-act" data-i="${i}" data-j="${j}">${esc(l)}</button>`).join('<span class="sd-sep">/</span>')}` : `<button class="sd-act sd-main" data-i="${i}">${esc(it.label)}</button>`}</div>`).join('');
+  dial.querySelectorAll('.sd-act').forEach(b => b.onclick = () => { const it = SPEED_DIAL[+b.dataset.i]; closeSpeedDial(); (it.actions ? it.actions[+b.dataset.j][1] : it.run)(); });
+}
+function openSpeedDial(){ const d = $('#speedDial'); if(!d) return; buildSpeedDial(); d.hidden = false; $('#fab').classList.add('open'); $('#fab').setAttribute('aria-expanded','true'); }
+function closeSpeedDial(){ const d = $('#speedDial'); if(!d || d.hidden) return; d.hidden = true; $('#fab').classList.remove('open'); $('#fab').setAttribute('aria-expanded','false'); }
+function toggleSpeedDial(){ $('#speedDial')?.hidden ? openSpeedDial() : closeSpeedDial(); }
+document.addEventListener('click', e => { if(!e.target.closest('#fabWrap')) closeSpeedDial(); });
+document.addEventListener('keydown', e => { if(e.key === 'Escape' && !$('#speedDial')?.hidden) closeSpeedDial(); });
+
+/* ---------- small helpers used by actions ---------- */
+function focusIntention(){
+  const go = () => { const n = document.querySelector('.ed[data-path$=".intention"]'); if(!n) return; const det = n.closest('details'); if(det) det.open = true; n.scrollIntoView({block:'center', behavior:'smooth'}); setTimeout(() => beginEdit(n), 250); };
+  if(currentRoute === 'today') go(); else { navigate('#/today'); setTimeout(go, 450); }
+}
+function openReminderModal(){
+  const m = openModal(`<h2>Task reminder</h2><p class="muted" style="margin-top:-8px">A small thing to surface on Today. Not a task manager — a nudge.</p><div class="stack"><input class="inp serif-lg" id="rmText" placeholder="What needs doing?"><div class="field"><label>Surface on</label><input class="inp" type="date" id="rmDate" value="${today()}"></div><div class="row" style="justify-content:flex-end"><button class="btn primary" id="rmSave">Set reminder</button></div></div>`, 'narrow');
+  const fin = () => { const t = m.querySelector('#rmText').value.trim(); if(!t) return; S.reminders = S.reminders || []; S.reminders.push({id:uid(), text:t, date:m.querySelector('#rmDate').value || today(), done:false, createdAt:today()}); saveNow(); m.remove(); sound('success'); toast('Reminder set.'); if(currentRoute === 'today') rerender(); };
+  m.querySelector('#rmSave').onclick = fin; m.querySelector('#rmText').onkeydown = e => { if(e.key === 'Enter') fin(); }; setTimeout(() => m.querySelector('#rmText').focus(), 50);
+}
+function newValueDialog(){
+  if(S.values.length >= 10){ toast('The compass holds ten values. Rename one instead of adding an eleventh.'); return; }
+  const m = openModal(`<h2>A new value</h2><div class="stack"><div class="field"><label>Name</label><input class="inp" id="nvName" placeholder="e.g. Generosity"></div><div class="field"><label>Colour</label><input type="color" id="nvColor" value="#b08968" style="width:48px;height:32px;border:none;background:none;padding:0"></div><div class="row" style="justify-content:flex-end"><button class="btn primary" id="nvSave">Add value</button></div></div>`, 'narrow');
+  m.querySelector('#nvSave').onclick = () => { const name = m.querySelector('#nvName').value.trim(); if(!name) return; const v = {id:'v-'+uid(), name, color:m.querySelector('#nvColor').value, fields:{embody:[],hundred:[],motivation:[],counterfeit:[]}}; S.values.push(v); S.valueOrderHistory.push({date:today(), order:[...S.valueOrder]}); S.valueOrder.push(v.id); saveNow(); m.remove(); rerender(); navigate('#/value/'+v.id); };
+}
+function newVisionDialog(pre={}){
+  const m = openModal(`<h2>A new branch</h2><div class="stack"><div class="field"><label>Name</label><input class="inp" id="vnName" placeholder="What do you want to create?"></div><div class="field"><label>Era</label><select class="sel" id="vnEra">${S.eras.map(e=>`<option value="${e.id}" ${pre.era===e.id?'selected':''}>${esc(e.label)} — ${esc(e.desc)}</option>`).join('')}</select></div><div class="field"><label>Forks from (optional)</label><select class="sel" id="vnParent"><option value="">the trunk</option>${S.visions.map(v=>`<option value="${v.id}">${esc(v.name)}</option>`).join('')}</select></div></div><div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn primary" id="vnSave">Plant it</button></div>`,'narrow');
+  m.querySelector('#vnSave').onclick = () => { const name = m.querySelector('#vnName').value.trim(); if(!name) return; const v = {id:uid(),name,era:m.querySelector('#vnEra').value,parentId:m.querySelector('#vnParent').value||null,confidence:'hunch',nextAction:'',sensory:{see:'',hear:'',smell:'',firstHour:'',who:'',noLonger:''},futureMemory:'',futureMemoryHistory:[],costs:'',currentReality:'',currentRealityHistory:[],resistance:[],preSkills:[],selfImage:'',values:[],obituary:'',evidence:[],feeling:0,targetDate:'',location:'',money:'',createdAt:today()}; S.visions.push(v); saveNow(); m.remove(); if(currentRoute !== 'vision') navigate('#/vision'); else rerender(); setTimeout(() => openVisionPanel(v.id), currentRoute==='vision' ? 0 : 400); };
+  setTimeout(() => m.querySelector('#vnName').focus(), 50);
+}
+function newSkillDialog(){
+  const m = openModal(`<h2>A new skill</h2><div class="stack"><div class="field"><label>Name</label><input class="inp" id="skName"></div><div class="field"><label>Category</label><select class="sel" id="skCat">${SKILL_CATS.map(c=>`<option>${c}</option>`).join('')}</select></div><label class="toggle" id="skPlanned"><span class="sw"></span><span>planned — a bud, not yet begun</span></label></div><div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn primary" id="skSave">Add</button></div>`,'narrow');
+  let planned=false; m.querySelector('#skPlanned').onclick = function(){ planned=!planned; this.classList.toggle('on',planned); };
+  m.querySelector('#skSave').onclick = () => { const name = m.querySelector('#skName').value.trim(); if(!name) return; const s = {id:uid(),name,cat:m.querySelector('#skCat').value,rubric:['','','','',''],level:planned?0:1,target:3,targetDate:'',prereqs:[],planned}; S.skills.push(s); saveNow(); m.remove(); if(currentRoute !== 'skills') navigate('#/skills'); else rerender(); setTimeout(() => openSkillPanel(s.id), currentRoute==='skills' ? 0 : 400); };
+  setTimeout(() => m.querySelector('#skName').focus(), 50);
+}
+/* ============================================================
    11. GLOBAL ADD ENTRY MODAL
    ============================================================ */
-function openEntryModal({type='reflection', links={}, entryId=null, after=null, title='', occurredAt=''}={}){
+function openEntryModal({type='reflection', links={}, entryId=null, after=null, title='', occurredAt='', allowedTypes=null, heading='', openLinks=false}={}){
   const existing = entryId ? byId(S.entries, entryId) : null;
   const e = existing ? JSON.parse(JSON.stringify(existing)) : {id:uid(),type,title,body:'',occurredAt:occurredAt||today(),createdAt:new Date().toISOString(),media:[],links:Object.assign({stages:[],substages:[],threads:[],values:[],visions:[],skills:[],projects:[]}, links),people:[],places:[],emotions:[],confidence:'',extra:{}};
-  const m = openModal(`<h2>${existing?'Edit entry':'New entry'}</h2>
-    <div class="typerow" id="typeRow">${ENTRY_TYPES.map(([t,n,i])=>`<button class="${e.type===t?'on':''}" data-t="${t}">${i} ${n}</button>`).join('')}</div>
+  const types = (allowedTypes && !existing) ? ENTRY_TYPES.filter(([t]) => allowedTypes.includes(t)) : ENTRY_TYPES;
+  const m = openModal(`<h2>${existing?'Edit entry':esc(heading || 'New '+typeName(e.type).toLowerCase())}</h2>
+    <div class="typerow" id="typeRow" ${types.length<=1?'hidden':''}>${types.map(([t,n,i])=>`<button class="${e.type===t?'on':''}" data-t="${t}">${i} ${n}</button>`).join('')}</div>
     <div class="stack">
       <input class="inp serif-lg" id="eTitle" placeholder="Title (optional)" value="${esc(e.title)}">
       <textarea class="ta" id="eBody" placeholder="Body — markdown welcome. **bold**, *italic*, > quote, - list" style="min-height:120px">${esc(e.body)}</textarea>
       <div id="extraFields"></div>
       <div class="field"><label>Occurred at</label><input class="inp" id="eWhen" value="${esc(e.occurredAt)}" placeholder="2024-09-14 · or “Summer 2019” · or “age 15”"><div class="faint" style="font-size:.74rem">Exact dates sort precisely; approximate ones sort by year. Memories can be logged today about decades ago.</div></div>
       <div class="field"><label>Media</label><div class="dropzone" id="eDrop">drop images here, or click to choose</div><input type="file" id="eFile" accept="image/*" multiple hidden><div class="thumbs" id="eThumbs"></div></div>
-      <details ${Object.values(e.links).some(a=>a.length)?'open':''}><summary><span class="sc">Connect this entry</span><span class="mono" id="linkCount"></span></summary><div class="body stack" style="gap:12px">
+      <details ${(openLinks || Object.values(e.links).some(a=>a.length))?'open':''}><summary><span class="sc">Connect this entry</span><span class="mono" id="linkCount"></span></summary><div class="body stack" style="gap:12px">
         <div class="field"><label>Stages</label><div class="deps">${S.stages.map(s=>`<span class="chip click" style="--c:${s.hue}" data-lk="stages" data-id="${s.id}">${s.char} ${esc(s.name)}</span>`).join('')}</div></div>
         <div class="field" id="subField"><label>Sub-stages</label><div class="deps" id="subChips"></div></div>
         <div class="field"><label>Threads</label><div class="deps">${S.threads.map(t=>`<span class="chip click" style="--c:${t.color}" data-lk="threads" data-id="${t.id}">${esc(t.name)}</span>`).join('')}</div></div>
@@ -2516,7 +2649,7 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
     if(t==='synchronicity') html = f('preceded','What preceded it','What were you thinking about, doing, asking?',true) + f('read','What I read into it','',true) + `<label class="toggle ${x().revisit?'on':''}" id="xRevisit"><span class="sw"></span><span>revisit later — resurface this in Today's prompts</span></label>`;
     if(t==='manifestation') html = `<div class="field"><label>Status</label><select class="sel" data-x="status">${['held','evidence appearing','arrived','released'].map(s=>`<option ${x().status===s?'selected':''}>${s}</option>`).join('')}</select></div>` + `<div class="field"><label>Evidence log</label><textarea class="ta" data-xlist="evidence" style="min-height:60px" placeholder="one piece of evidence per line">${esc((x().evidence||[]).map(v=>v.text).join('\n'))}</textarea></div>`;
     if(t==='dream') html = `<div class="field"><label>Vividness</label><div class="feeling">${[1,2,3,4,5].map(n=>`<button data-vivid="${n}" class="${x().vivid===n?'on':''}">${n}</button>`).join('')}</div></div><label class="toggle ${x().recurring?'on':''}" id="xRec"><span class="sw"></span><span>recurring</span></label>` + f('symbols_','Symbols / motifs','comma-separated');
-    if(t==='quote') html = f('author','Author','') + f('source','Source','book, film, a person') + f('page','Page / location','') + f('why','Why this caught me (required)','',true);
+    if(t==='quote') html = f('author','Author','') + f('source','Source','book, film, a person') + f('link','Saved link (optional)','https://…') + f('page','Page / location','') + f('why','Why this caught me (required)','',true);
     if(t==='question') html = `<div class="faint" style="font-size:.8rem">Put the question in the title. Answers accumulate over time from the journal view.</div>`;
     if(t==='progress'||t==='nod') html = f('duration','Duration (minutes)','45') + f('resources','Resources used','');
     if(t==='memory') html = f('installed','What this installed in me','The belief, fear, pattern, or capability this event left behind.',true);
@@ -2589,7 +2722,7 @@ function startDust(){ const c = $('#dust'); if(!c || reduced()) return; const ct
   const tick = () => { const on = ['vision','map','skills'].includes(currentRoute); ctx.clearRect(0,0,c.width,c.height); if(on){ ctx.fillStyle = S.settings.theme==='dark' ? 'rgba(232,224,212,.05)' : 'rgba(120,90,60,.06)'; ps.forEach(p => { p.a += .01; p.x += p.vx + Math.sin(p.a)*.1; p.y += p.vy; if(p.y < -5){ p.y = innerHeight+5; p.x = Math.random()*innerWidth; } if(p.x<-5) p.x = innerWidth+5; if(p.x>innerWidth+5) p.x=-5; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); }); } requestAnimationFrame(tick); }; requestAnimationFrame(tick); }
 document.addEventListener('keydown', e => {
   const mod = e.metaKey || e.ctrlKey;
-  if(mod && e.key.toLowerCase()==='n'){ e.preventDefault(); openEntryModal(); }
+  if(mod && e.key.toLowerCase()==='n'){ e.preventDefault(); toggleSpeedDial(); }
   if(mod && e.key.toLowerCase()==='k'){ e.preventDefault(); openSearch(); }
   if(e.key==='Escape'){ if(document.activeElement?.closest?.('.ed')) return; closeModals(); }
 });
@@ -2598,7 +2731,7 @@ async function init(){
   try { navigator.storage?.persist?.(); } catch(e){}
   $('#btnTheme').onclick = () => { S.settings.theme = S.settings.theme==='dark'?'light':'dark'; saveNow(); applyTheme(); };
   $('#btnSound').onclick = () => SoundManager.toggleSound(); $('#btnAmbient').onclick = () => SoundManager.toggleAmbient(); syncSoundButtons();
-  $('#btnSearch').onclick = openSearch; $('#fab').onclick = () => openEntryModal();
+  $('#btnSearch').onclick = openSearch; $('#fab').onclick = e => { e.stopPropagation(); toggleSpeedDial(); };
   const sb = $('#sidebar'); $('.brand', sb).onclick = () => sb.classList.toggle('open');
   if(navigator.platform.toUpperCase().indexOf('MAC')<0){ $$('kbd').forEach(k => k.textContent = k.textContent.replace('⌘','Ctrl+')); $('.fab .hint').textContent = 'new entry · Ctrl+N'; }
   if(!location.hash) location.hash = S.settings.home==='map' ? '#/map' : '#/today';

@@ -127,12 +127,12 @@ function renderRoute(){
   closePanel({keep:true});
   main.innerHTML = '';
   main.style.animation = 'none'; void main.offsetWidth; main.style.animation = '';
-  currentRoute = name;
+  currentRoute = name; PageEntryConfig.clear();
   try { fn(main, params); } catch(err){ console.error(err); main.innerHTML = `<div class="page narrow"><h1>Something went wrong</h1><p class="muted">${esc(err.message)}</p></div>`; }
-  reveal(main); tweenAll(main); backupBanner(); updateBackButton();
+  mountContextAdd(main); reveal(main); tweenAll(main); backupBanner(); updateBackButton();
   window.scrollTo({top:0, behavior:'instant'});
 }
-function rerender(){ const y = window.scrollY; const main = $('#main'); const {name, params} = parseHash(); main.innerHTML=''; (routes[name]||routes.today)(main, params); $$('.rv', main).forEach(n=>n.classList.add('in')); tweenAll(main); window.scrollTo({top:y}); }
+function rerender(){ const y = window.scrollY; const main = $('#main'); const {name, params} = parseHash(); main.innerHTML=''; PageEntryConfig.clear(); (routes[name]||routes.today)(main, params); mountContextAdd(main); $$('.rv', main).forEach(n=>n.classList.add('in')); tweenAll(main); window.scrollTo({top:y}); }
 window.addEventListener('hashchange', () => { sound('page'); if(document.startViewTransition && !reduced() && document.visibilityState==='visible') document.startViewTransition(renderRoute); else renderRoute(); });
 
 /* ---------- side panel ---------- */

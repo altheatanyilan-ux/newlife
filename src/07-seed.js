@@ -313,7 +313,7 @@ function seed(){
   return {
     version:1,
     settings:{theme:'dark',sound:false,feltTime:false,home:'today',ribbons:true,firstOpen:T},
-    stages, threads, tensions, values, valueOrder, valueOrderHistory, valueSnapshots, eras, visions, skills, projects, nods, ideas, habits, habitLog, negLast, checkins, entries,
+    reminders:[], stages, threads, tensions, values, valueOrder, valueOrderHistory, valueSnapshots, eras, visions, skills, projects, nods, ideas, habits, habitLog, negLast, checkins, entries,
     journals:[{type:'synchronicity',name:'Synchronicity'},{type:'manifestation',name:'Manifestation'},{type:'reflection',name:'Reflections'},{type:'gratitude',name:'Gratitude'},{type:'dream',name:'Dreams'},{type:'quote',name:'Quotes & Marginalia'},{type:'question',name:'Open Questions'},{type:'visualization',name:'Visualizations'},{type:'letter',name:'Letters'}],
     theatre:{
       script:"I am someone who builds small warm rooms in large cold cities. I move through my mornings unhurried; I have already decided what matters. I speak Japanese with my whole face. I am useful in rooms without needing to be the smartest person in them. When someone looks at me through a story, I let them. My body is a colleague I respect. I close every room well.\n\nI see myself behind a counter, polishing a glass, the far end of the bar laughing at something I said in a second language. I feel the weight of the glass. I smell yuzu. This is not a wish. This is a memory I haven't reached yet.",

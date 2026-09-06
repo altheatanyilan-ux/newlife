@@ -19,8 +19,11 @@ function skillSVG(W,H){
   return `<svg viewBox="0 0 ${W} ${H}">${g}</svg>`;
 }
 routes.skills = function(root, params){
+  registerPageEntry({pageName:'Skill Tree', addLabel:'Add to the skill tree', defaultEntryType:'progress', prefilledFields:{}, options:[
+    {icon:'◉', label:'New skill node', desc:'A skill you hold, or a bud you intend to open.', run:()=>EntryActions.newSkill()},
+    {icon:'↗', label:'Add a level to a skill', desc:'Log practice on an existing skill; set the level from its rubric.', run:()=>EntryActions.skillProgress()}]});
   root.innerHTML = `<div class="page">
-    <div class="page-head row between"><div><h1>Skill Tree</h1><div class="sub">Career capital, built on the plateau. Size is proficiency; dashed nodes are buds; faded nodes are atrophying.</div></div><button class="btn" id="addSkill">+ skill</button></div>
+    <div class="page-head row between"><div><h1>Skill Tree</h1><div class="sub">Career capital, built on the plateau. Size is proficiency; dashed nodes are buds; faded nodes are atrophying.</div></div></div>
     <div class="skill-wrap" id="skillWrap"></div>
     <div class="grid c3 section">${S.skills.map(s=>{ const st = skillStreak(s); const last = skillLastPracticed(s); return `<div class="card rv" data-sopen="${s.id}" style="cursor:pointer;border-left:3px solid ${catColor(s.cat)}"><div class="row between"><h3 style="margin:0">${esc(s.name)}</h3><span class="mono">${esc(s.cat)}</span></div><div class="muted" style="font-size:.82rem;margin-top:6px">${s.planned?'planned — a bud not yet opened':`level ${s.level} of 5 · ${(s.rubric[s.level-1]||'').slice(0,60)}`}</div><div class="mono" style="margin-top:8px">last ${relDays(daysSince(last))} · streak ${st.cur}d (best ${st.best}) · ${skillHours(s).toFixed(1)}h</div></div>`; }).join('')}</div>
   </div>`;
@@ -30,7 +33,6 @@ routes.skills = function(root, params){
     if(!reduced()){ const pt = svg.createSVGPoint(); svg.addEventListener('mousemove', e => { pt.x = e.clientX; pt.y = e.clientY; const p = pt.matrixTransform(svg.getScreenCTM().inverse()); svg.querySelectorAll('.node').forEach(n => { const m = n.getAttribute('transform').match(/translate\(([-\d.]+),([-\d.]+)\)/); const x=+m[1], y=+m[2]; const dx = p.x-x, dy = p.y-y; const d = Math.hypot(dx,dy); const c = n.querySelector('circle.c'); if(d<60){ const k = (1-d/60)*4; c.style.transform = `translate(${(dx/d*k).toFixed(1)}px,${(dy/d*k).toFixed(1)}px)`; } else c.style.transform=''; }); }); } };
   draw(); window.addEventListener('resize', debounce(()=>{ if(currentRoute==='skills') draw(); },250), {once:true});
   $$('[data-sopen]',root).forEach(c => c.onclick = () => openSkillPanel(c.dataset.sopen));
-  $('#addSkill').onclick = () => { const m = openModal(`<h2>A new skill</h2><div class="stack"><div class="field"><label>Name</label><input class="inp" id="skName"></div><div class="field"><label>Category</label><select class="sel" id="skCat">${SKILL_CATS.map(c=>`<option>${c}</option>`).join('')}</select></div><label class="toggle" id="skPlanned"><span class="sw"></span><span>planned — a bud, not yet begun</span></label></div><div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn primary" id="skSave">Add</button></div>`,'narrow'); let planned=false; m.querySelector('#skPlanned').onclick = function(){ planned=!planned; this.classList.toggle('on',planned); }; m.querySelector('#skSave').onclick = () => { const name = m.querySelector('#skName').value.trim(); if(!name) return; const s = {id:uid(),name,cat:m.querySelector('#skCat').value,rubric:['','','','',''],level:planned?0:1,target:3,targetDate:'',prereqs:[],planned}; S.skills.push(s); saveNow(); m.remove(); rerender(); openSkillPanel(s.id); }; };
   if(params[0]) openSkillPanel(params[0]);
 };
 function openSkillPanel(id){
