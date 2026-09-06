@@ -115,7 +115,9 @@ function openThreadNarrative(tid){
   const t = byId(S.threads,tid); const es = sortEntries(S.entries.filter(e=>(e.links?.threads||[]).includes(tid))).reverse();
   const byStage = {}; es.forEach(e => { const sid = (e.links.stages||[])[0] || 'none'; (byStage[sid] = byStage[sid]||[]).push(e); });
   const order = [...S.stages.map(s=>s.id),'none'];
+  const people = S.people.filter(p=>(p.threadsLinked||[]).includes(tid));
   openPanel(`<div class="mono" style="margin-bottom:6px">thread narrative · ${t.status}</div><h2 style="color:${t.color}">${esc(t.name)}</h2><p class="quote">${esc(t.desc)}</p>
+    ${people.length ? `<div class="row" style="gap:6px;flex-wrap:wrap;margin-bottom:10px">${people.map(p=>personChip(p.id)).join('')}</div>` : ''}
     ${es.length ? order.filter(k=>byStage[k]).map(k => { const s = byId(S.stages,k); return `<div class="section" style="margin-top:28px"><span class="sc" style="color:${s?.hue||'var(--muted)'}">${s?`${s.char} ${s.name} · ${s.years}`:'untethered to a stage'}</span>${byStage[k].map(e=>entryCard(e,{clamp:false,tools:false})).join('')}</div>`; }).join('') : '<div class="empty">No entries carry this thread yet. Tag one from the Add Entry modal.</div>'}`);
   $$('#panel .rv').forEach(n=>n.classList.add('in'));
 }
