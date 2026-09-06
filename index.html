@@ -710,6 +710,7 @@ html.reduce-motion *,html.reduce-motion *::before,html.reduce-motion *::after{an
 .cal-ev.dragging{opacity:.4}
 .cal-ev.k-task{background:repeating-linear-gradient(45deg,color-mix(in srgb,var(--c) 22%,var(--surface)),color-mix(in srgb,var(--c) 22%,var(--surface)) 5px,color-mix(in srgb,var(--c) 10%,var(--surface)) 5px,color-mix(in srgb,var(--c) 10%,var(--surface)) 10px)}
 .cal-ev.k-habit{background:color-mix(in srgb,var(--c) 13%,transparent);border-left-style:dashed}
+.cal-ev.imported{background:repeating-linear-gradient(-45deg,color-mix(in srgb,var(--c) 16%,var(--surface)),color-mix(in srgb,var(--c) 16%,var(--surface)) 4px,color-mix(in srgb,var(--c) 6%,var(--surface)) 4px,color-mix(in srgb,var(--c) 6%,var(--surface)) 8px)}
 .cal-ev.done{opacity:.5}
 .cal-ev.done .ev-t{text-decoration:line-through}
 .ev-t{font-size:.72rem;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -6347,7 +6348,9 @@ const domainColor = id => (domains().find(d => d.id === id) || {}).color || 'var
 const domainName  = id => (domains().find(d => d.id === id) || {}).name || '';
 function migrateRhythm(){
   S.events = Array.isArray(S.events) ? S.events : [];
-  S.events.forEach(e => { e.day = e.day || today(); e.start = e.start ?? 9; e.dur = e.dur ?? 1; e.domain = e.domain || ''; e.note = e.note || ''; });
+  S.events.forEach(e => { e.day = e.day || today(); e.start = e.start ?? 9; e.dur = e.dur ?? 1; e.domain = e.domain || ''; e.note = e.note || '';
+    e.intention = e.intention || ''; e.reflectionEntryId = e.reflectionEntryId || null; e.energyBefore = e.energyBefore || 0; e.energyAfter = e.energyAfter || 0;
+    e.moodBefore = e.moodBefore || ''; e.moodAfter = e.moodAfter || ''; e.imported = !!e.imported; });
   S.plans = S.plans && typeof S.plans === 'object' ? S.plans : {};
   S.reviewLog = S.reviewLog && typeof S.reviewLog === 'object' ? S.reviewLog : {};
   S.runLog = S.runLog && typeof S.runLog === 'object' ? S.runLog : {};
@@ -6372,7 +6375,7 @@ const EST_OPTIONS = [[0,'—'],[0.25,'15m'],[0.5,'30m'],[1,'1h'],[1.5,'1½h'],[2
 /* everything that lands on one day, from all three sources */
 function dayBlocks(d){
   const out = [];
-  S.events.filter(e => e.day === d).forEach(e => out.push({kind:'event', id:e.id, title:e.title, start:+e.start, dur:+e.dur, color:domainColor(e.domain) , ref:e}));
+  S.events.filter(e => e.day === d).forEach(e => out.push({kind:'event', id:e.id, title:e.title, start:+e.start, dur:+e.dur, color:domainColor(e.domain), imported:!!e.imported, ref:e}));
   allTaskRefs().filter(r => r.day === d).forEach(r => { const at = r.task.at; if(at == null) return;
     out.push({kind:'task', id:r.id, title:r.text, start:+at, dur:+(r.task.est || 1), color:'var(--terra)', done:r.done, ref:r}); });
   S.habits.filter(h => !h.archived && !h.negative && habitDue(h,d) && h.at != null).forEach(h => {
@@ -6399,7 +6402,8 @@ routes.rhythm = function(root, params){
   registerPageEntry({pageName:'Rhythm', addLabel:'Add to the day', defaultEntryType:'event', prefilledFields:{}, options:[
     {icon:'▦', label:'Event', desc:'A block of time with a name.', run:()=>openEventModal({day:focus})},
     {icon:'▫', label:'Task for today', desc:'Something to finish before the day closes.', run:()=>openTaskPicker(focus, rerender)},
-    {icon:'◎', label:'Plan my day', desc:'The three-step morning ritual.', run:()=>planMyDay(focus)}]});
+    {icon:'◎', label:'Plan my day', desc:'The three-step morning ritual.', run:()=>planMyDay(focus)},
+    {icon:'⤓', label:'Import a calendar (.ics)', desc:'A one-time upload from Google Calendar or another app — daily/weekly repeats only, no live sync.', run:()=>openICSImport()}]});
   root.innerHTML = `<div class="page rhythm-page">
     <div class="page-head row between"><div><h1>${esc(S.settings.rhythmName || 'Rhythm')}</h1><div class="sub">The day in one place: what is on it, what you meant to do, what you keep doing, and how it actually went.</div></div>
       <div class="row"><div class="view-toggle">${[['day','Day'],['week','Week'],['month','Month']].map(([k,l])=>`<button class="${view===k?'on':''}" data-rview="${k}">${l}</button>`).join('')}</div>
@@ -6444,9 +6448,9 @@ function drawRhythmCalendar(box, view, focus){
         return `<div class="cal-col ${d===T?'today':''}" data-calday="${d}">
           ${hours.map(h => `<div class="cal-slot" data-slot="${d}:${h}"></div>`).join('')}
           ${blocks.map((b,i) => { const L = lanes[i];
-            return `<div class="cal-ev k-${b.kind} ${b.done?'done':''}" draggable="true" data-evk="${b.kind}" data-evid="${b.id}"
+            return `<div class="cal-ev k-${b.kind} ${b.done?'done':''} ${b.imported?'imported':''}" draggable="true" data-evk="${b.kind}" data-evid="${b.id}"
               style="--c:${b.color};top:${((b.start-HOUR0)*HOUR_PX).toFixed(1)}px;height:${Math.max(18,(b.dur*HOUR_PX)-2).toFixed(1)}px;left:${(L.i*100/L.n).toFixed(2)}%;width:${(100/L.n).toFixed(2)}%">
-              <span class="ev-t">${esc(b.title)}</span>${b.dur >= .75 ? `<span class="ev-h mono">${fmtHour(b.start)}</span>` : ''}</div>`; }).join('')}
+              <span class="ev-t">${b.imported?'⤓ ':''}${esc(b.title)}</span>${b.dur >= .75 ? `<span class="ev-h mono">${fmtHour(b.start)}</span>` : ''}</div>`; }).join('')}
           ${d===T ? `<div class="now-line" style="top:${((nowHour()-HOUR0)*HOUR_PX).toFixed(1)}px"></div>` : ''}
         </div>`; }).join('')}
     </div>
@@ -6529,8 +6533,9 @@ function drawRhythmMonth(box, focus){
 }
 function openEventModal({id = null, day = today(), start = 9, dur = 1, inline = false} = {}){
   const ex = id ? byId(S.events, id) : null;
-  const e = ex || {id:uid(), title:'', day, start, dur, domain:'', note:''};
-  const m = openModal(`<h2>${ex ? 'Event' : 'New event'}</h2><div class="stack">
+  const e = ex || {id:uid(), title:'', day, start, dur, domain:'', note:'', intention:'', reflectionEntryId:null, energyBefore:0, energyAfter:0, moodBefore:'', moodAfter:'', imported:false};
+  const refEntry = e.reflectionEntryId ? byId(S.entries, e.reflectionEntryId) : null;
+  const m = openModal(`<h2>${ex ? 'Event' : 'New event'}</h2>${e.imported?'<div class="status-pill mono" style="margin-bottom:8px">⤓ imported</div>':''}<div class="stack">
     <input class="inp serif-lg" id="evTitle" value="${esc(e.title)}" placeholder="What is this block for?" autofocus>
     <div class="grid c3" style="gap:8px">
       <div class="field"><label>Day</label><input class="inp" type="date" id="evDay" value="${e.day}"></div>
@@ -6539,16 +6544,39 @@ function openEventModal({id = null, day = today(), start = 9, dur = 1, inline = 
     </div>
     <div class="field"><label>Life domain</label><div class="deps" id="evDom">${domains().map(d=>`<span class="chip click ${e.domain===d.id?'on':''}" style="--c:${d.color}" data-dom="${d.id}">${esc(d.name)}</span>`).join('')}<button type="button" class="chip click" id="evDomEdit" style="--c:var(--muted)">⚙ edit domains</button></div></div>
     <div class="field"><label>Note</label><input class="inp" id="evNote" value="${esc(e.note)}" placeholder="optional"></div>
+    <details class="more-section" ${(e.intention||e.energyBefore||e.energyAfter||e.moodBefore||e.moodAfter||refEntry)?'open':''}><summary><span class="mono">Before &amp; after</span></summary><div class="body stack" style="gap:12px">
+      <div class="field"><label>Intention going in</label><input class="inp" id="evIntention" value="${esc(e.intention)}" placeholder="What would make this worth the time?"></div>
+      <div class="grid c2" style="gap:10px">
+        <div class="field"><label>Energy before</label><div class="energy-faces">${[1,2,3,4,5].map(n=>`<button type="button" class="ef ${e.energyBefore===n?'on':''}" data-evenb="${n}">${n}</button>`).join('')}</div></div>
+        <div class="field"><label>Energy after</label><div class="energy-faces">${[1,2,3,4,5].map(n=>`<button type="button" class="ef ${e.energyAfter===n?'on':''}" data-evena="${n}">${n}</button>`).join('')}</div></div>
+      </div>
+      <div class="grid c2" style="gap:10px">
+        <div class="field"><label>Mood going in</label><select class="sel" id="evMoodB"><option value="">—</option>${MOOD_TAGS.map(t=>`<option ${e.moodBefore===t?'selected':''}>${t}</option>`).join('')}</select></div>
+        <div class="field"><label>Mood coming out</label><select class="sel" id="evMoodA"><option value="">—</option>${MOOD_TAGS.map(t=>`<option ${e.moodAfter===t?'selected':''}>${t}</option>`).join('')}</select></div>
+      </div>
+      <div class="field"><label>Reflection</label>${refEntry
+        ? `<div class="rev-summary" style="margin:0"><b>${esc(refEntry.title||'Untitled')}</b>${refEntry.body?`<div class="faint" style="margin-top:4px">${esc(refEntry.body.slice(0,140))}${refEntry.body.length>140?'…':''}</div>`:''}</div><button type="button" class="btn sm ghost" id="evOpenRef" style="margin-top:6px">open in Journals →</button>`
+        : `<button type="button" class="btn sm ghost" id="evAddRef">＋ write a reflection, linked to this block</button>`}</div>
+    </div></details>
     <div class="row between">${ex?`<button class="btn sm ghost danger" id="evDel">Delete</button>`:'<span></span>'}<button class="btn primary" id="evSave">${ex?'Save':'Add to the day'}</button></div>
   </div>`, inline ? 'narrow' : 'narrow');
-  let dom = e.domain;
+  let dom = e.domain, energyBefore = e.energyBefore, energyAfter = e.energyAfter, isNew = !ex;
   m.querySelectorAll('[data-dom]').forEach(c => c.onclick = () => { dom = dom === c.dataset.dom ? '' : c.dataset.dom; m.querySelectorAll('[data-dom]').forEach(x => x.classList.toggle('on', x.dataset.dom === dom)); });
   m.querySelector('#evDomEdit').onclick = () => { m.remove(); openDomainsModal(); };
+  m.querySelectorAll('[data-evenb]').forEach(b => b.onclick = () => { energyBefore = energyBefore === +b.dataset.evenb ? 0 : +b.dataset.evenb; m.querySelectorAll('[data-evenb]').forEach(x => x.classList.toggle('on', +x.dataset.evenb === energyBefore)); });
+  m.querySelectorAll('[data-evena]').forEach(b => b.onclick = () => { energyAfter = energyAfter === +b.dataset.evena ? 0 : +b.dataset.evena; m.querySelectorAll('[data-evena]').forEach(x => x.classList.toggle('on', +x.dataset.evena === energyAfter)); });
+  const saveFields = () => { e.title = m.querySelector('#evTitle').value.trim() || e.title || 'Untitled block'; e.day = m.querySelector('#evDay').value || day; e.start = +m.querySelector('#evStart').value; e.dur = +m.querySelector('#evDur').value; e.domain = dom; e.note = m.querySelector('#evNote').value.trim();
+    e.intention = m.querySelector('#evIntention').value.trim(); e.energyBefore = energyBefore; e.energyAfter = energyAfter; e.moodBefore = m.querySelector('#evMoodB').value; e.moodAfter = m.querySelector('#evMoodA').value;
+    if(isNew){ S.events.push(e); isNew = false; } saveNow(); };
+  const refBtn = m.querySelector('#evAddRef');
+  if(refBtn) refBtn.onclick = () => { saveFields(); m.remove();
+    openEntryModal({type:'reflection', title:e.title, occurredAt:e.day, heading:`Reflect on ${e.title || 'this block'}`, after: () => { const last = S.entries[S.entries.length-1]; e.reflectionEntryId = last.id; saveNow(); openEventModal({id:e.id}); } }); };
+  const openRefBtn = m.querySelector('#evOpenRef');
+  if(openRefBtn) openRefBtn.onclick = () => { m.remove(); navigate('#/journals/'+(refEntry.type||'reflection')); };
   m.querySelector('#evSave').onclick = () => {
     const title = m.querySelector('#evTitle').value.trim(); if(!title){ toast('Give the block a name.'); return; }
-    Object.assign(e, {title, day:m.querySelector('#evDay').value || day, start:+m.querySelector('#evStart').value, dur:+m.querySelector('#evDur').value, domain:dom, note:m.querySelector('#evNote').value.trim()});
-    if(!ex) S.events.push(e);
-    saveNow(); m.remove(); sound('success'); rerender();
+    saveFields();
+    m.remove(); sound('success'); rerender();
   };
   if(ex) m.querySelector('#evDel').onclick = () => { m.remove(); requestDelete({label:e.title, remove:()=>spliceOut(S.events, x=>x.id===e.id)}); };
 }
@@ -6563,6 +6591,100 @@ function openDomainsModal(){
   rebind();
   m.querySelector('#domAdd').onclick = () => { domains().push({id:uid(), name:'New domain', color:'#8a8d8f'}); saveNow(); m.querySelector('#domList').innerHTML = draw(); rebind(); };
   m.querySelector('#domDone').onclick = () => { m.remove(); rerender(); };
+}
+
+/* ---------- .ics import — a one-time client-side read, not a live sync ----------
+   Google Calendar's own feed URLs are blocked from the browser by CORS, so this
+   deliberately stays a file upload: export a calendar to .ics, drop it here, done.
+   Only DAILY and WEEKLY RRULEs are expanded (a fixed 120-day horizon); anything
+   fancier (BYDAY lists, MONTHLY, exceptions) is imported as its first occurrence only. */
+function icsUnfold(text){
+  return text.replace(/\r\n/g,'\n').split('\n').reduce((lines, line) => {
+    if(/^[ \t]/.test(line) && lines.length) lines[lines.length-1] += line.slice(1);
+    else lines.push(line);
+    return lines;
+  }, []);
+}
+function icsUnescape(v){ return (v||'').replace(/\\n/gi,' ').replace(/\\,/g,',').replace(/\\;/g,';').replace(/\\\\/g,'\\'); }
+function icsParseDT(raw){
+  const m = (raw||'').match(/^(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(\d{2})(Z)?)?$/);
+  if(!m) return null;
+  const [,y,mo,da,hh,mi,ss,z] = m;
+  if(hh === undefined) return {day:`${y}-${mo}-${da}`, allDay:true, hour:9};
+  if(z){ const dt = new Date(Date.UTC(+y,+mo-1,+da,+hh,+mi,+ss||0)); return {day:isoDay(dt), allDay:false, hour: dt.getHours() + dt.getMinutes()/60}; }
+  return {day:`${y}-${mo}-${da}`, allDay:false, hour: +hh + (+mi)/60};
+}
+function parseICSEvents(text){
+  const lines = icsUnfold(text);
+  const events = []; let cur = null;
+  lines.forEach(line => {
+    if(line.startsWith('BEGIN:VEVENT')){ cur = {}; return; }
+    if(line.startsWith('END:VEVENT')){ if(cur) events.push(cur); cur = null; return; }
+    if(!cur) return;
+    const ci = line.indexOf(':'); if(ci < 0) return;
+    let key = line.slice(0, ci); const value = line.slice(ci+1);
+    const semi = key.indexOf(';'); key = semi >= 0 ? key.slice(0, semi) : key;
+    if(key === 'DTSTART') cur.dtstart = value;
+    else if(key === 'DTEND') cur.dtend = value;
+    else if(key === 'SUMMARY') cur.summary = icsUnescape(value);
+    else if(key === 'DESCRIPTION') cur.description = icsUnescape(value);
+    else if(key === 'RRULE') cur.rrule = value;
+  });
+  return events;
+}
+function expandRecurrence(startDay, rrule, horizonDays){
+  const days = [startDay];
+  if(!rrule) return days;
+  const parts = {}; rrule.split(';').forEach(p => { const [k,v] = p.split('='); parts[k] = v; });
+  const freq = parts.FREQ; if(freq !== 'DAILY' && freq !== 'WEEKLY') return days;
+  const interval = +(parts.INTERVAL || 1) || 1;
+  const count = parts.COUNT ? +parts.COUNT : null;
+  const until = parts.UNTIL ? icsParseDT(parts.UNTIL)?.day : null;
+  const horizon = addDays(today(), horizonDays);
+  const step = freq === 'DAILY' ? interval : interval * 7;
+  let d = startDay, n = 1;
+  while(days.length < 200){
+    d = addDays(d, step); n++;
+    if(count && n > count) break;
+    if(until && d > until) break;
+    if(!count && !until && d > horizon) break;
+    days.push(d);
+  }
+  return days;
+}
+function importICSText(text){
+  const raw = parseICSEvents(text);
+  let added = 0, skipped = 0;
+  raw.forEach(ev => {
+    if(!ev.dtstart) return;
+    const start = icsParseDT(ev.dtstart); if(!start) return;
+    const end = ev.dtend ? icsParseDT(ev.dtend) : null;
+    const dur = (end && !start.allDay && end.day === start.day && end.hour > start.hour) ? Math.round((end.hour-start.hour)*4)/4 : 1;
+    const title = (ev.summary || 'Imported event').trim() + (start.allDay ? ' (all day)' : '');
+    expandRecurrence(start.day, ev.rrule, 120).forEach(day => {
+      if(S.events.find(x => x.imported && x.title === title && x.day === day && x.start === start.hour)){ skipped++; return; }
+      S.events.push({id:uid(), title, day, start:start.hour, dur, domain:'', note:(ev.description||'').slice(0,300),
+        intention:'', reflectionEntryId:null, energyBefore:0, energyAfter:0, moodBefore:'', moodAfter:'', imported:true});
+      added++;
+    });
+  });
+  saveNow();
+  return {added, skipped};
+}
+function openICSImport(){
+  const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.ics,text/calendar';
+  inp.onchange = () => {
+    const f = inp.files[0]; if(!f) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const {added, skipped} = importICSText(String(reader.result||''));
+      if(!added && !skipped){ toast('No events found in that file.'); return; }
+      toast(`Imported ${added} event${added===1?'':'s'}${skipped ? ` · ${skipped} already here` : ''}. Daily/weekly repeats only, no live sync.`, 7000);
+      rerender();
+    };
+    reader.readAsText(f);
+  };
+  inp.click();
 }
 function openTaskSidePanel(r){
   const p = openPanel(`<div class="mono">task${r.where?` · ${esc(r.where)}`:''}</div><h2>${esc(r.text)}</h2>
