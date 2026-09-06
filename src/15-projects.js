@@ -141,7 +141,7 @@ function openProjectPanel(id){
   pn.querySelector('#pDel').onclick = () => deleteProject(p, null, () => { closePanel(); rerender(); });
 }
 hooks.ptags = (pid, o, n) => { const p = byId(S.projects,pid); if(p){ p.tags = n.split(',').map(s=>s.trim()).filter(Boolean); saveNow(); } };
-hooks.pnum = (pid) => { const p = byId(S.projects,pid); if(p){ p.income.current = parseFloat(String(p.income.current).replace(/[^\d.]/g,''))||0; p.income.target = parseFloat(String(p.income.target).replace(/[^\d.]/g,''))||0; saveNow(); } };
+hooks.pnum = (pid) => { const p = byId(S.projects,pid); if(p){ ['current','target','hoursPerWeek'].forEach(k => { p.income[k] = parseFloat(String(p.income[k]).replace(/[^\d.]/g,''))||0; }); saveNow(); } };
 function openNodModal(projectId, after, existing=null){
   const active = S.projects.filter(p=>p.status!=='archived' || p.id===existing?.projectId);
   const m = openModal(`<h2>${existing?'Edit nod':'A nod'}</h2><p class="muted" style="margin-top:-8px">${existing?fmtDate(existing.date,'med'):'I showed up and did this.'}</p><div class="stack">

@@ -186,14 +186,14 @@ function zoneSummaries(){
     ]});
 
   const m = T.slice(0,7);
-  const streams = typeof incomeStreamList === 'function' ? incomeStreamList() : [];
-  const totalCurrent = sum(streams.map(s=>s.income.current||0)), totalTarget = sum(streams.map(s=>s.income.target||0));
-  const annualWant = sum((S.spendCategories||[]).map(c=>c.annualAmount||0));
+  if(typeof migrateFinance === 'function') migrateFinance();
+  const {streams, totalCurrentBase, totalTargetBase} = typeof portfolioTotals === 'function' ? portfolioTotals() : {streams:[], totalCurrentBase:0, totalTargetBase:0};
+  const annualWant = typeof activeScenario === 'function' ? scenarioAnnualTotal(activeScenario()) : 0;
   cards.push({label:'Finance', hint:'ways to make money, and what enough looks like', accent:'var(--gold)', route:'#/finance',
     lines:[
-      streams.length ? [`${money(totalCurrent)}/mo across ${streams.length} stream${streams.length===1?'':'s'}`, ''] : ['no income streams yet', 'var(--faint)'],
-      totalTarget ? [`${money(totalTarget)}/mo target`, ''] : ['no target set', 'var(--faint)'],
-      annualWant ? [`covers ${Math.round(totalCurrent*12/annualWant*100)}% of ${money(annualWant)}/yr wanted`, totalCurrent*12 < annualWant ? 'var(--gold)' : 'var(--sage)'] : ['no annual spend vision set', 'var(--faint)'],
+      streams.length ? [`${money(totalCurrentBase)}/mo across ${streams.length} stream${streams.length===1?'':'s'}`, ''] : ['no income streams yet', 'var(--faint)'],
+      totalTargetBase ? [`${money(totalTargetBase)}/mo target`, ''] : ['no target set', 'var(--faint)'],
+      annualWant ? [`covers ${Math.round(totalCurrentBase*12/annualWant*100)}% of ${money(annualWant)}/yr wanted`, totalCurrentBase*12 < annualWant ? 'var(--gold)' : 'var(--sage)'] : ['no life-cost scenario priced yet', 'var(--faint)'],
     ]});
   return cards;
 }
