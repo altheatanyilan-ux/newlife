@@ -37,13 +37,17 @@ function ganttHTML(ps){
   return `<div class="gantt"><div class="g-names" style="height:${HH}px;flex:0 0 ${NW}px">${names}</div><svg viewBox="0 0 ${W} ${HH}" width="${W}" height="${HH}" style="display:block;flex:0 0 ${W}px;overflow:visible">${g}<line class="g-today" x1="${xT.toFixed(1)}" y1="22" x2="${xT.toFixed(1)}" y2="${HH}" stroke="#e3a15a" stroke-width="1.5" stroke-dasharray="3 3"/><text x="${(xT+3).toFixed(1)}" y="${HH-2}" style="fill:#e3a15a">today</text></svg></div>`;
 }
 routes.projects = function(root, params){
-  registerPageEntry({pageName:'Creative Projects', addLabel:'New project', defaultEntryType:'project', prefilledFields:{}, hint:'Nods have their own button — they must stay fast.', options:[{label:'New project', run:()=>EntryActions.newProject()}]});
+  registerPageEntry({pageName:'Projects', addLabel:'New project', defaultEntryType:'project', prefilledFields:{}, hint:'Nods have their own button — they must stay fast.', options:[{label:'New project', run:()=>EntryActions.newProject()}]});
   const sort = S._psort || 'activity'; const view = S.settings.projectView || 'cards';
   const ps = [...S.projects].sort((a,b) => sort==='name' ? a.name.localeCompare(b.name) : sort==='status' ? Object.keys(PSTATUS).indexOf(a.status)-Object.keys(PSTATUS).indexOf(b.status) : sort==='priority' ? (a.priority||'P3').localeCompare(b.priority||'P3') : daysSince(projectNods(a)[0]?.date) - daysSince(projectNods(b)[0]?.date));
   const income = S.projects.filter(p=>p.income?.current>0); const total = sum(income.map(p=>p.income.current)); const diversified = income.filter(p=>p.income.current/total > .1).length;
   const W=520,H=300; const pts = S.projects.filter(p=>projectNods(p).length).map(p => { const ns = projectNods(p); return {p, x:avg(ns.map(n=>n.energy)), y:ns.length}; }); const maxY = Math.max(...pts.map(x=>x.y),1);
+  const mode = S.settings.projectMode || 'tracking';
+  if(mode === 'ideation'){ renderIdeation(root); return; }
   root.innerHTML = `<div class="page">
-    <button class="btn primary nod-fab" id="nodFab" title="quick nod">+ nod</button><div class="page-head row between"><div><h1>Creative Projects</h1><div class="sub">A nod is the atomic unit: “I showed up and did this.” Under five seconds, or the system dies.</div></div><div class="row"><div class="view-toggle">${[['cards','▦ Cards'],['kanban','▥ Board'],['timeline','▬ Timeline']].map(([k,l])=>`<button class="${view===k?'on':''}" data-pview="${k}">${l}</button>`).join('')}</div><select class="sel" style="width:auto" id="psort"><option value="activity" ${sort==='activity'?'selected':''}>by last activity</option><option value="priority" ${sort==='priority'?'selected':''}>by priority</option><option value="status" ${sort==='status'?'selected':''}>by status</option><option value="name" ${sort==='name'?'selected':''}>by name</option></select><button class="btn primary" id="addNod">+ nod</button></div></div>
+    <button class="btn primary nod-fab" id="nodFab" title="quick nod">+ nod</button>
+    <div class="mode-switch rv">${[['ideation','◌ Ideation','sparks, inspiration, brainstorming'],['tracking','◉ Tracking','the work already under way']].map(([k,l,d])=>`<button class="${mode===k?'on':''}" data-pmode="${k}" title="${d}">${l}</button>`).join('')}</div>
+    <div class="page-head row between"><div><h1>Projects</h1><div class="sub">A nod is the atomic unit: “I showed up and did this.” Under five seconds, or the system dies.</div></div><div class="row"><div class="view-toggle">${[['cards','▦ Cards'],['kanban','▥ Board'],['timeline','▬ Timeline']].map(([k,l])=>`<button class="${view===k?'on':''}" data-pview="${k}">${l}</button>`).join('')}</div><select class="sel" style="width:auto" id="psort"><option value="activity" ${sort==='activity'?'selected':''}>by last activity</option><option value="priority" ${sort==='priority'?'selected':''}>by priority</option><option value="status" ${sort==='status'?'selected':''}>by status</option><option value="name" ${sort==='name'?'selected':''}>by name</option></select><button class="btn primary" id="addNod">+ nod</button></div></div>
     <div class="card rv" style="margin-bottom:22px"><div class="income-strip"><div><div class="k">monthly income, all streams</div><div class="num">${fmtYen(total)}</div><div class="mono">per month</div></div><div><div class="k">active streams</div><div class="num">${income.length}</div></div><div><div class="k">diversification</div><div class="num">${diversified}</div><div class="mono">contribute &gt;10%</div></div><div><div class="k">open tasks</div><div class="num">${sum(S.projects.filter(p=>!['completed','archived','abandoned'].includes(p.status)).map(p=>{ const r = projectTaskRatio(p); return r.total-r.done; }))}</div></div></div></div>
     ${view==='cards' ? `<div class="grid c3" id="pcards">${ps.map(projectCardHTML).join('')}</div>` : view==='kanban' ? kanbanHTML(ps) : `<div class="card rv"><div class="row between" style="margin-bottom:8px"><span class="sc" style="margin:0">Phases over time</span><span class="mono">bars are phases · lighter fill is tasks done · click a bar to open</span></div>${ganttHTML(ps)}</div>`}
     <section class="section rv"><span class="sc">Energy vs. output</span><p class="muted" style="font-size:.85rem">X: average energy reading across nods. Y: volume of effort. Which interests deserve to become income streams, and which are taxes you pay for a self you've outgrown?</p>
@@ -53,11 +57,10 @@ routes.projects = function(root, params){
         <text x="${W/2}" y="${H-8}" text-anchor="middle">drained ← energy → energized</text><text x="14" y="${H/2}" text-anchor="middle" transform="rotate(-90 14 ${H/2})">nods</text>
         ${pts.map(({p,x,y}) => { const px = 40 + ((x-1)/4)*(W-50), py = (H-30) - (y/maxY)*(H-50); const st = PSTATUS[p.status]||PSTATUS.idea; return `<g data-popen="${p.id}" style="cursor:pointer"><circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="${(6+Math.sqrt(y)).toFixed(1)}" fill="${st[2]}" fill-opacity=".7" stroke="${st[2]}"/><text x="${(px+12).toFixed(1)}" y="${(py+4).toFixed(1)}" style="fill:var(--text);font-family:var(--sans);font-size:11px">${esc(p.name)}</text></g>`; }).join('')}
       </svg></div></section>
-    <section class="section rv" style="max-width:var(--content)"><span class="sc">Idea inbox</span><p class="muted" style="font-size:.85rem">A parking lot for sparks. Promote one to a project with a click.</p>
-      <div class="row"><input class="inp" id="ideaInp" placeholder="a spark…"><button class="btn sm" id="ideaAdd">park it</button></div>
-      <ul class="ideas">${S.ideas.map(i=>`<li><span style="flex:1">${ed(`ideas.#${i.id}.text`,{ph:'a spark'})}</span><span class="row"><button class="btn sm ghost" data-promote="${i.id}">promote →</button><button class="tbtn" data-idel="${i.id}">×</button></span></li>`).join('')}</ul></section>
+    
   </div>`;
   $('#psort').onchange = e => { S._psort = e.target.value; rerender(); };
+  $$('[data-pmode]',root).forEach(b => b.onclick = () => { S.settings.projectMode = b.dataset.pmode; saveNow(); rerender(); });
   $$('[data-pview]',root).forEach(b => b.onclick = () => { S.settings.projectView = b.dataset.pview; saveNow(); rerender(); });
   { const gt = root.querySelector('.gantt'); const tl = gt?.querySelector('.g-today'); if(gt && tl){ gt.scrollLeft = Math.max(0, +tl.getAttribute('x1') - (gt.clientWidth-170)*0.6); } }
   $('#addNod').onclick = () => openNodModal(); $('#nodFab').onclick = () => openNodModal();
@@ -66,10 +69,6 @@ routes.projects = function(root, params){
   let kdrag = null;
   $$('[data-kdrag]',root).forEach(card => { card.addEventListener('dragstart', ev => { if(ev.target.closest('.ed')){ ev.preventDefault(); return; } kdrag = card.dataset.kdrag; card.classList.add('dragging'); ev.dataTransfer.effectAllowed='move'; try { ev.dataTransfer.setData('text/plain', kdrag); } catch(e){} }); card.addEventListener('dragend', () => { card.classList.remove('dragging'); $$('.kcol.over',root).forEach(c=>c.classList.remove('over')); }); });
   $$('.kcol',root).forEach(col => { col.addEventListener('dragover', ev => { ev.preventDefault(); col.classList.add('over'); }); col.addEventListener('dragleave', () => col.classList.remove('over')); col.addEventListener('drop', ev => { ev.preventDefault(); col.classList.remove('over'); const id = kdrag || ev.dataTransfer.getData('text/plain'); const p = byId(S.projects,id); if(!p) return; const to = col.dataset.kcol; if(p.status === to || (to==='archived' && p.status==='abandoned')) return; p.status = to; saveNow(); sound('success'); rerender(); }); });
-  const addIdea = () => { const t = $('#ideaInp').value.trim(); if(!t) return; S.ideas.unshift({id:uid(),text:t}); saveNow(); rerender(); $('#ideaInp')?.focus(); };
-  $('#ideaAdd').onclick = addIdea; $('#ideaInp').onkeydown = e => { if(e.key==='Enter') addIdea(); };
-  $$('[data-promote]',root).forEach(b => b.onclick = () => { const i = byId(S.ideas,b.dataset.promote); S.ideas = S.ideas.filter(x=>x.id!==i.id); createProject(i.text); });
-  $$('[data-idel]',root).forEach(b => b.onclick = () => { const i = byId(S.ideas, b.dataset.idel); requestDelete({label: i.text, node: b.closest('li'), remove: () => spliceOut(S.ideas, x => x.id === i.id)}); });
   if(params[0]) openProjectPanel(params[0]);
 };
 function createProject(name=''){ const p = {id:uid(),name:name||'New project',description:'',tags:[],status:'idea',priority:'P3',startDate:today(),targetDate:'',phases:[],resources:[],linkedSkills:[],linkedVisionEra:null,notes:'',link:'',income:{model:'',current:0,target:0,milestones:[]},createdAt:today()}; S.projects.push(p); saveNow(); rerender(); openProjectPanel(p.id); }
@@ -158,4 +157,39 @@ function openNodModal(projectId, after, existing=null){
   const dz = m.querySelector('#nodDrop'); dz.onclick = () => m.querySelector('#nodFile').click(); m.querySelector('#nodFile').onchange = e => readImages(e.target.files, img => { image = img.src; dz.textContent = 'image attached'; }); dz.ondragover = e => { e.preventDefault(); dz.classList.add('over'); }; dz.ondragleave = () => dz.classList.remove('over'); dz.ondrop = e => { e.preventDefault(); dz.classList.remove('over'); readImages(e.dataTransfer.files, img => { image = img.src; dz.textContent='image attached'; }); };
   const saveNod = e => { const text = m.querySelector('#nodText').value.trim(); if(!text) return; if(existing){ Object.assign(existing, {projectId:m.querySelector('#nodP').value, text, duration:dur, link:m.querySelector('#nodLink').value.trim(), image, energy, date:m.querySelector('#nodDate').value||existing.date}); } else S.nods.push({id:uid(),projectId:m.querySelector('#nodP').value,text,duration:dur,link:m.querySelector('#nodLink').value.trim(),image,energy,date:today()}); saveNow(); ripple(e.clientX||innerWidth/2, e.clientY||innerHeight/2, 'var(--terra)'); sound('success'); m.remove(); toast('Nod recorded.'); after ? after() : (currentRoute==='projects' && rerender()); };
   m.querySelector('#nodSave').onclick = saveNod; m.querySelector('#nodText').onkeydown = e => { if(e.key==='Enter') saveNod(e); }; setTimeout(()=>m.querySelector('#nodText').focus(),50);
+}
+
+/* ---------- Ideation: before anything is a project ---------- */
+const SPARK_KINDS = {spark:['◌','spark','#d4a44c'], question:['?','question','#6b7f8e'], inspiration:['✦','inspiration','#a0727e'], experiment:['⚗','experiment','#7f916a']};
+function migrateIdeas(){ (S.ideas||[]).forEach(i => { i.kind = i.kind || 'spark'; i.note = i.note || ''; i.createdAt = i.createdAt || new Date().toISOString(); i.tags = normTags(i.tags||[]); }); }
+function renderIdeation(root){
+  registerPageEntry({pageName:'Projects', addLabel:'New spark', defaultEntryType:'idea', prefilledFields:{}, options:[
+    {icon:'◌', label:'Spark', desc:'A half-thought worth keeping.', run:()=>addIdea('spark')},
+    {icon:'?', label:'Question', desc:'Something you want to find out.', run:()=>addIdea('question')},
+    {icon:'✦', label:'Inspiration', desc:'Something that lit you up — and where it came from.', run:()=>addIdea('inspiration')},
+    {icon:'⚗', label:'Experiment', desc:'A small test you could actually run.', run:()=>addIdea('experiment')}]});
+  const ideas = [...(S.ideas||[])];
+  const byKind = k => ideas.filter(i => (i.kind||'spark') === k);
+  root.innerHTML = `<div class="page">
+    <div class="mode-switch rv">${[['ideation','◌ Ideation','sparks, inspiration, brainstorming'],['tracking','◉ Tracking','the work already under way']].map(([k,l,d])=>`<button class="${k==='ideation'?'on':''}" data-pmode="${k}" title="${d}">${l}</button>`).join('')}</div>
+    <div class="page-head"><h1>Projects</h1><div class="sub">Nothing here has to become anything. Catch it first; decide later. Promote a spark when it starts asking for your hands.</div></div>
+    <div class="card rv" style="margin-bottom:20px"><div class="row" style="gap:8px;flex-wrap:wrap">
+      <input class="inp" id="ideaInp" placeholder="What just occurred to you?" style="flex:1;min-width:240px">
+      <select class="sel" id="ideaKind" style="width:auto">${Object.entries(SPARK_KINDS).map(([k,v])=>`<option value="${k}">${v[0]} ${v[1]}</option>`).join('')}</select>
+      <button class="btn primary" id="ideaAdd">Catch it</button></div>
+      <div class="faint" style="font-size:.78rem;margin-top:8px">Hashtags work here too — #kyoto, #bar, #jazz.</div></div>
+    <div class="grid c2 spark-grid-wrap">${Object.entries(SPARK_KINDS).map(([k,[ico,label,col]]) => { const list = byKind(k); return `<section class="rv"><div class="row between"><span class="sc" style="margin:0;color:${col}">${ico} ${label}s</span><span class="mono">${list.length}</span></div>
+      <div class="card" style="margin-top:8px;border-left:3px solid ${col}">${list.length ? list.map(i=>`<div class="spark" data-spark="${i.id}"><div class="row between"><span style="flex:1">${ed(`ideas.#${i.id}.text`,{ph:'a spark'})}</span><span class="row" style="gap:4px"><button class="tbtn" data-promote="${i.id}" title="make this a project">promote →</button><button class="del-x inline" data-idel="${i.id}" title="delete">×</button></span></div>
+        <div class="spark-note">${ed(`ideas.#${i.id}.note`,{multi:true,ph:'why it caught you, or what it might become'})}</div>
+        <div class="row between"><span class="mono">${i.createdAt?fmtDate(i.createdAt.slice(0,10),'med'):''}</span><select class="sel spark-kind" data-ikind="${i.id}">${Object.entries(SPARK_KINDS).map(([kk,vv])=>`<option value="${kk}" ${(i.kind||'spark')===kk?'selected':''}>${vv[0]} ${vv[1]}</option>`).join('')}</select></div></div>`).join('') : `<div class="empty">Nothing yet. ${label==='question'?'What do you not know?':'Catch the next one above.'}</div>`}</div></section>`; }).join('')}</div>
+    <section class="section rv" style="max-width:var(--content)"><span class="sc">Brainstorm</span>
+      <p class="muted" style="font-size:.85rem">A scratch page that is never graded. Nothing here is saved as an entry until you promote it.</p>
+      <div class="card">${ed('settings.brainstorm',{multi:true,mdr:true,cls:'prose',ph:'Write badly and quickly. Ten bad ideas beat one careful one at this stage.'})}</div></section>
+  </div>`;
+  $$('[data-pmode]',root).forEach(b => b.onclick = () => { S.settings.projectMode = b.dataset.pmode; saveNow(); rerender(); });
+  const add = () => { const t = $('#ideaInp').value.trim(); if(!t) return; S.ideas.unshift({id:uid(), text:t, kind:$('#ideaKind').value, note:'', createdAt:new Date().toISOString(), tags:parseTags(t)}); saveNow(); sound('success'); rerender(); setTimeout(()=>$('#ideaInp')?.focus(),50); };
+  $('#ideaAdd').onclick = add; $('#ideaInp').onkeydown = e => { if(e.key==='Enter') add(); };
+  $$('[data-ikind]',root).forEach(sel => sel.onchange = () => { byId(S.ideas, sel.dataset.ikind).kind = sel.value; saveNow(); rerender(); });
+  $$('[data-promote]',root).forEach(b => b.onclick = () => { const i = byId(S.ideas,b.dataset.promote); S.ideas = S.ideas.filter(x=>x.id!==i.id); S.settings.projectMode = 'tracking'; createProject(i.text); });
+  $$('[data-idel]',root).forEach(b => b.onclick = () => { const i = byId(S.ideas, b.dataset.idel); requestDelete({label: i.text, node: b.closest('.spark'), remove: () => spliceOut(S.ideas, x => x.id === i.id)}); });
 }

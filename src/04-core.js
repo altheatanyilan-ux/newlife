@@ -44,15 +44,26 @@ function md(src){
   s = s.replace(/^[-*] (.*)$/gm,'<li>$1</li>').replace(/(<li>[\s\S]*?<\/li>)(?!\n<li>)/g,'<ul>$1</ul>').replace(/<\/li>\n<li>/g,'</li><li>');
   s = s.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/(^|[^*])\*([^*\n]+)\*/g,'$1<em>$2</em>').replace(/_([^_\n]+)_/g,'<em>$1</em>');
   s = s.replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
+  s = s.replace(TAG_RE, (m, pre, t) => `${pre}<a class="tag" href="#/tag/${encodeURIComponent(t.toLowerCase())}">#${t}</a>`);
   s = s.split(/\n{2,}/).map(p => /^<(h\d|ul|blockquote)/.test(p.trim()) ? p : `<p>${p.replace(/\n/g,'<br>')}</p>`).join('');
   return s;
 }
+
+/* ---------- hashtags: any substantive entry can carry them ---------- */
+const TAG_RE = /(^|[\s(])#([\p{L}\p{N}][\p{L}\p{N}_-]{1,31})/gu;
+const TAGGABLE = ['reflection','memory','lifeevent','media','writing','synchronicity','manifestation','gratitude','dream','question','quote','letter','artifact','progress'];
+function parseTags(text){ const out = []; if(!text) return out; for(const m of String(text).matchAll(TAG_RE)) out.push(m[2].toLowerCase()); return out; }
+function normTags(list){ return [...new Set((list||[]).map(t => String(t).replace(/^#/,'').trim().toLowerCase()).filter(Boolean))]; }
+function entryTags(e){ return normTags([...(e.tags||[]), ...parseTags(e.title), ...parseTags(e.body)]); }
+function allTags(){ const c = {}; S.entries.forEach(e => entryTags(e).forEach(t => c[t] = (c[t]||0)+1)); return Object.entries(c).sort((a,b)=>b[1]-a[1] || a[0].localeCompare(b[0])); }
+function entriesWithTag(t){ const k = String(t).toLowerCase(); return S.entries.filter(e => entryTags(e).includes(k)); }
+function tagChips(e, {link=true}={}){ const t = entryTags(e); return t.length ? `<span class="tagrow">${t.map(x => link ? `<a class="tag" href="#/tag/${encodeURIComponent(x)}">#${x}</a>` : `<span class="tag">#${x}</span>`).join('')}</span>` : ''; }
 
 /* ---------- state ---------- */
 const KEY = 'lifeinstrument.v1';
 let S = null;
 /* persistence lives in db.js (Dexie schema + load/save/backup) */
-function migrate(){ if(S.settings && S.settings.home === 'map') S.settings.home = 'home'; wipeDemoData(); if(S.rehearsal && !S.rehearsal){ S.rehearsal = S.rehearsal; } delete S.rehearsal; if(typeof migrateEras === 'function') migrateEras(); const d = seed(); for(const k of Object.keys(d)) if(S[k]===undefined) S[k] = d[k]; if(typeof migrateLifeline === 'function') migrateLifeline(); if(typeof migrateSkillLevels === 'function') migrateSkillLevels(); if(typeof migrateProjects === 'function') migrateProjects(); if(typeof migrateStages === 'function') migrateStages(); }
+function migrate(){ if(S.settings && S.settings.home === 'map') S.settings.home = 'home'; wipeDemoData(); if(S.rehearsal && !S.rehearsal){ S.rehearsal = S.rehearsal; } delete S.rehearsal; if(typeof migrateEras === 'function') migrateEras(); const d = seed(); for(const k of Object.keys(d)) if(S[k]===undefined) S[k] = d[k]; if(typeof migrateLifeline === 'function') migrateLifeline(); if(typeof migrateSkillLevels === 'function') migrateSkillLevels(); if(typeof migrateProjects === 'function') migrateProjects(); if(typeof migrateStages === 'function') migrateStages(); if(typeof migrateTasks === 'function') migrateTasks(); if(typeof migrateIdeas === 'function') migrateIdeas(); if(typeof migrateMedia === 'function') migrateMedia(); }
 
 /* One-time: the house used to open furnished with a demonstration life. If that
    demonstration is still here, clear it so the rooms start empty. */

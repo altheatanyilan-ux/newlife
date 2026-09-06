@@ -5,16 +5,14 @@ const TOD = ['morning','afternoon','evening','anytime'];
 function habitFreqLabel(h){ const f = h.freq; if(f.type==='daily') return 'daily'; if(f.type==='days') return f.days.map(d=>DOW[d].slice(0,3)).join(' '); if(f.type==='perWeek') return `${f.count}× / week`; if(f.type==='perMonth') return `${f.count}× / month`; return ''; }
 function markHabit(h, level, note=''){ const T = today(); S.habitLog[T] = S.habitLog[T]||{}; if(level) S.habitLog[T][h.id] = {level, note}; else delete S.habitLog[T][h.id]; saveNow(); }
 routes.rituals = function(root, params){
-  registerPageEntry({pageName:'Rituals & Habits', addLabel:'New habit', defaultEntryType:'habit', prefilledFields:{}, options:[{label:'New habit', run:()=>EntryActions.newHabit()}]});
-  const T = today(); const tab = params[0] || 'habits';
+  registerPageEntry({pageName:'Habits', addLabel:'New habit', defaultEntryType:'habit', prefilledFields:{}, options:[{label:'New habit', run:()=>EntryActions.newHabit()}]});
+  const T = today();
   const active = S.habits.filter(h=>!h.archived && !h.negative).sort((a,b)=>TOD.indexOf(a.timeOfDay)-TOD.indexOf(b.timeOfDay) || a.order-b.order);
   const dueToday = active.filter(h=>habitDue(h,T)); const bal = energyBalance(false); const wk = energyBalance(true);
   root.innerHTML = `<div class="page">
-    <div class="page-head row between"><div><h1>Rituals &amp; Habits</h1><div class="sub">Positive energy rituals, not willpower. Sprints and recovery across four dimensions. Missing a day is part of the path.</div></div></div>
-    <div class="tabs"><button class="${tab==='habits'?'active':''}" data-go="#/rituals">Today &amp; Habits</button><button class="${tab==='reviews'?'active':''}" data-go="#/rituals/reviews">Guided reviews</button></div>
+    <div class="page-head"><h1>Habits</h1><div class="sub">Positive energy rituals, not willpower. Sprints and recovery across four dimensions. Missing a day is part of the path.</div></div>
     <div id="ritBody"></div></div>`;
   const body = $('#ritBody');
-  if(tab==='reviews'){ renderReviews(body); return; }
   body.innerHTML = `
     <div class="card rv"><div class="row between"><h3>Today</h3><span class="mono">${dueToday.filter(h=>habitDone(h,T)).length} of ${dueToday.length} rings full</span></div>
       <div class="rings-today">${dueToday.map(h => { const d = habitDone(h,T); const pct = d ? (d.level==='min'?.5:1) : 0; const dim = DIMS.find(x=>x.id===h.dimension); const st = habitStreak(h); return `<div class="ring-h" data-hring="${h.id}" title="click: ideal · shift-click: minimum">${h.stackAfter?'<span class="chainline"></span>':''}${ringSVG(pct,{color:dim.c,label:d?(d.level==='min'?'½':'✓'):''})}<div class="n">${esc(h.name)}</div><div class="s">${h.timeOfDay} · ${st.cur?st.cur+'d':''}</div></div>`; }).join('')}</div>
@@ -65,6 +63,15 @@ function openHabitModal(id){
   m.querySelectorAll('[data-lv],[data-lvi],[data-lsk]').forEach(c => c.onclick = () => c.classList.toggle('on'));
   m.querySelector('#hSave').onclick = () => { h.name = m.querySelector('#hName').value.trim(); if(!h.name) return; h.freq = {type:m.querySelector('#hFreq').value, days:[...m.querySelectorAll('[data-day].primary')].map(b=>+b.dataset.day), count:+m.querySelector('#hCountN').value||1}; h.timeOfDay = m.querySelector('#hTod').value; h.dimension = m.querySelector('#hDim').value; h.kind = m.querySelector('#hKind').value; h.min = m.querySelector('#hMin').value; h.ideal = m.querySelector('#hIdeal').value; h.stackAfter = m.querySelector('#hStack').value||null; h.prompt = m.querySelector('#hPrompt').value; h.negative = m.querySelector('#hNeg').classList.contains('on'); h.links = {values:[...m.querySelectorAll('[data-lv].on')].map(c=>c.dataset.lv), visions:[...m.querySelectorAll('[data-lvi].on')].map(c=>c.dataset.lvi), skills:[...m.querySelectorAll('[data-lsk].on')].map(c=>c.dataset.lsk)}; if(!id) S.habits.push(h); saveNow(); m.remove(); rerender(); sound('save'); };
 }
+routes.reviews = function(root){
+  registerPageEntry({pageName:'Reviews', addLabel:'Start a review', defaultEntryType:'reflection', prefilledFields:{}, options:[
+    {icon:'◷', label:'Weekly review', desc:'Fifteen minutes, once a week.', run:()=>{ location.hash = '#/reviews'; setTimeout(()=>document.querySelector('#rWeekly')?.scrollIntoView({block:'center',behavior:'smooth'}),200); }},
+    {icon:'✎', label:'Note from a review', desc:'Something the review turned up.', run:()=>EntryActions.quickNote()}]});
+  root.innerHTML = `<div class="page">
+    <div class="page-head"><h1>Reviews</h1><div class="sub">The rhythm above the daily one: a week, a season, a year. Each is a short set of questions and a date stamp, not a report.</div></div>
+    <div id="revBody"></div></div>`;
+  renderReviews($('#revBody'));
+};
 function renderReviews(body){
   const gaps = valueGaps(); const g0 = gaps[0]; const vs = S.visions.filter(v=>v.confidence!=='lived'); const st = vs.map(v=>({v,t:structuralTension(v)})).sort((a,b)=>b.t-a.t)[0];
   const cold = S.projects.filter(p=>p.status==='active').sort((a,b)=>daysSince(projectNods(b)[0]?.date)-daysSince(projectNods(a)[0]?.date))[0];

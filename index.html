@@ -378,6 +378,94 @@ html.reduce-motion *,html.reduce-motion *::before,html.reduce-motion *::after{an
 .setpoint{margin-top:8px}
 .setpoint .lbls{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.62rem;color:var(--faint);margin-top:6px}
 .setpoint .cur{font-family:var(--serif);font-size:1.15rem;margin-top:8px;display:flex;justify-content:space-between;align-items:baseline}
+.intention-card{margin-top:8px;padding:22px 26px;border-radius:var(--radius);border:1px solid color-mix(in srgb,var(--page-accent) 26%,var(--line));background:linear-gradient(135deg,color-mix(in srgb,var(--page-accent) 10%,var(--surface)),var(--surface));font-size:1.3rem;line-height:1.5}
+.intention-card .ed{display:block;min-height:1.4em}
+/* ---------- projects: ideation vs tracking ---------- */
+.mode-switch{display:inline-flex;gap:2px;padding:3px;border-radius:12px;border:1px solid var(--line-2);background:var(--surface-2);margin-bottom:18px}
+.mode-switch button{background:none;border:none;color:var(--muted);font-family:var(--sans);font-size:.84rem;padding:7px 16px;border-radius:9px;cursor:pointer;transition:background .2s var(--ease),color .2s var(--ease)}
+.mode-switch button.on{background:var(--page-accent);color:var(--page-accent-ink);font-weight:600}
+.mode-switch button:not(.on):hover{color:var(--text)}
+.spark{padding:10px 0;border-top:1px dashed var(--line)}
+.spark:first-child{border-top:none}
+.spark-note{font-size:.85rem;color:var(--muted);margin:4px 0}
+.spark-kind{width:auto;padding:1px 6px;font-size:.66rem}
+/* ---------- commonplace book ---------- */
+.shelf-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.work{display:flex;gap:0;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:transform .25s var(--page-ease),border-color .25s var(--ease)}
+.work:hover{transform:var(--page-lift);border-color:color-mix(in srgb,var(--c) 60%,var(--line))}
+.work-spine{flex:none;width:40px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;background:color-mix(in srgb,var(--c) 18%,var(--surface-2));border-right:1px solid color-mix(in srgb,var(--c) 30%,transparent)}
+.work-body{padding:14px 16px;min-width:0;flex:1}
+.work-title{font-family:var(--serif);font-size:1.08rem;line-height:1.25}
+.work-maker{margin-top:2px}
+.work-line{margin-top:8px;font-family:var(--quote);font-style:italic;font-size:.88rem;color:var(--muted);line-height:1.55}
+.stars i{font-style:normal;color:var(--line-2);font-size:.85rem}
+.stars i.on{color:var(--gold)}
+.stars.click i{cursor:pointer;transition:color .15s var(--ease)}
+.stars.click:hover i{color:var(--gold);opacity:.5}
+.stars.click i:hover~i{color:var(--line-2);opacity:1}
+.passage{padding:12px 0;border-top:1px dashed var(--line)}
+.passage-q{border-left:2px solid color-mix(in srgb,var(--page-accent) 60%,transparent);padding-left:14px}
+.passage-note{font-size:.85rem;color:var(--muted);margin-top:6px}
+/* ---------- writing ---------- */
+.writing-head{max-width:var(--content);margin-bottom:24px}
+.writing-head .field{margin-top:16px}
+.write-title{font-size:2.1rem;margin-bottom:14px}
+.tag-cloud button.tag{cursor:pointer;font-family:var(--mono)}
+.tag-cloud button.tag.on{background:var(--page-accent);border-color:var(--page-accent);color:var(--page-accent-ink)}
+.write-layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:26px;align-items:start}
+.write-page{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:26px 30px}
+.write-area{border:none;background:none;padding:0;font-family:var(--serif);font-size:1.16rem;line-height:1.85;resize:none;min-height:420px;width:100%;outline:none;box-shadow:none}
+.write-area:focus{box-shadow:none}
+.write-rail{position:sticky;top:20px;max-height:calc(100vh - 60px);overflow-y:auto;padding-right:4px}
+.rail-list{margin-top:10px;display:flex;flex-direction:column;gap:10px}
+.rail-item{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;position:relative}
+.rail-title{font-family:var(--serif);font-size:.95rem;margin-top:2px}
+.rail-body{font-size:.8rem;color:var(--muted);line-height:1.6;margin-top:4px}
+.rail-item .tbtn{margin-top:6px;opacity:.6}
+.rail-item:hover .tbtn{opacity:1;color:var(--page-accent)}
+.write-focus .writing-head .field,.write-focus .tag-cloud,.write-focus .write-rail,.write-focus .more-section{display:none}
+.write-focus .write-layout{grid-template-columns:minmax(0,1fr);max-width:var(--content);margin:0 auto}
+@media (max-width:1000px){.write-layout{grid-template-columns:1fr}.write-rail{position:static;max-height:none}}
+/* ---------- tasks & the planner ---------- */
+.task-row{display:flex;align-items:center;gap:10px;padding:6px 8px;border-radius:8px;border:1px solid transparent;cursor:grab;transition:background .18s var(--ease),border-color .18s var(--ease),opacity .2s}
+.task-row:hover{background:var(--surface-2);border-color:var(--line)}
+.task-row.dragging{opacity:.4;cursor:grabbing}
+.task-row.done .task-text{text-decoration:line-through;color:var(--faint)}
+.task-row.late .task-day{color:#d08080}
+.task-check{flex:none;width:18px;height:18px;border-radius:6px;border:1.5px solid var(--line-2);background:none;color:var(--page-accent-ink);font-size:.72rem;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s var(--ease),border-color .2s var(--ease)}
+.task-row.done .task-check{background:var(--page-accent);border-color:var(--page-accent)}
+.task-text{flex:1;min-width:0;font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.task-where{font-family:var(--mono);font-size:.62rem;color:var(--faint);text-decoration:none;max-width:11em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.task-where:hover{color:var(--terra)}
+.task-day{flex:none}
+.week-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px;margin-top:8px}
+.day-col{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:10px 9px;min-height:220px;display:flex;flex-direction:column;transition:border-color .2s var(--ease),background .2s var(--ease)}
+.day-col.over,.late-card.over,.shelf-drop.over{border-color:var(--page-accent);background:color-mix(in srgb,var(--page-accent) 7%,var(--surface))}
+.day-col.today{border-color:color-mix(in srgb,var(--page-accent) 55%,var(--line))}
+.day-col.past{opacity:.62}
+.day-h{display:flex;align-items:baseline;gap:6px;padding-bottom:8px;border-bottom:1px solid var(--line);margin-bottom:6px}
+.day-h .dnum{font-family:var(--serif);font-size:1.25rem;line-height:1}
+.day-h .dname{font-family:var(--mono);font-size:.62rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}
+.day-h .tdy{color:var(--page-accent)}
+.day-h .cnt{margin-left:auto}
+.day-body{flex:1;display:flex;flex-direction:column;gap:1px}
+.day-col .task-row{padding:5px 5px;gap:6px;align-items:flex-start}
+.day-col .task-check{margin-top:1px}
+.day-col .task-where{display:none}
+.day-col .task-text{font-size:.8rem;white-space:normal}
+.day-empty{color:var(--faint);font-size:.75rem;padding:6px 4px}
+.day-foot{margin-top:8px;display:flex;flex-direction:column;gap:4px}
+.day-foot .quick-task{font-size:.72rem;padding:5px 7px;text-overflow:ellipsis}
+.day-foot .tbtn{align-self:flex-start;padding:2px 4px}
+.late-card{border-left:3px solid #c25b5b}
+@media (max-width:1100px){.week-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:600px){.week-grid{grid-template-columns:1fr}}
+a.tag,span.tag{display:inline-block;font-family:var(--mono);font-size:.7rem;letter-spacing:.02em;color:var(--page-accent);background:color-mix(in srgb,var(--page-accent) 10%,transparent);border:1px solid color-mix(in srgb,var(--page-accent) 22%,transparent);border-radius:999px;padding:1px 8px;text-decoration:none;transition:background .2s var(--ease),border-color .2s var(--ease)}
+a.tag:hover{background:color-mix(in srgb,var(--page-accent) 22%,transparent);border-color:var(--page-accent)}
+.tagrow{display:inline-flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.tag-cloud{display:flex;flex-wrap:wrap;gap:7px;align-items:baseline}
+.tag-cloud .tag{font-size:calc(.66rem + var(--n,0) * .06rem)}
+.tag-cloud .tag .n{opacity:.5;margin-left:5px;font-size:.9em}
 .han-wrap{position:relative;display:inline-block}
 .han-wrap .han-edit{position:absolute;right:-26px;top:2px;width:24px;height:24px;border-radius:50%;border:1px solid var(--line-2);background:color-mix(in srgb,var(--bg) 70%,transparent);color:var(--faint);font-size:.72rem;cursor:pointer;opacity:0;transition:opacity .25s var(--ease),color .2s;backdrop-filter:blur(4px)}
 .han-wrap:hover .han-edit,.han-wrap .han-edit:focus{opacity:1}
@@ -1063,15 +1151,26 @@ function md(src){
   s = s.replace(/^[-*] (.*)$/gm,'<li>$1</li>').replace(/(<li>[\s\S]*?<\/li>)(?!\n<li>)/g,'<ul>$1</ul>').replace(/<\/li>\n<li>/g,'</li><li>');
   s = s.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/(^|[^*])\*([^*\n]+)\*/g,'$1<em>$2</em>').replace(/_([^_\n]+)_/g,'<em>$1</em>');
   s = s.replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
+  s = s.replace(TAG_RE, (m, pre, t) => `${pre}<a class="tag" href="#/tag/${encodeURIComponent(t.toLowerCase())}">#${t}</a>`);
   s = s.split(/\n{2,}/).map(p => /^<(h\d|ul|blockquote)/.test(p.trim()) ? p : `<p>${p.replace(/\n/g,'<br>')}</p>`).join('');
   return s;
 }
+
+/* ---------- hashtags: any substantive entry can carry them ---------- */
+const TAG_RE = /(^|[\s(])#([\p{L}\p{N}][\p{L}\p{N}_-]{1,31})/gu;
+const TAGGABLE = ['reflection','memory','lifeevent','media','writing','synchronicity','manifestation','gratitude','dream','question','quote','letter','artifact','progress'];
+function parseTags(text){ const out = []; if(!text) return out; for(const m of String(text).matchAll(TAG_RE)) out.push(m[2].toLowerCase()); return out; }
+function normTags(list){ return [...new Set((list||[]).map(t => String(t).replace(/^#/,'').trim().toLowerCase()).filter(Boolean))]; }
+function entryTags(e){ return normTags([...(e.tags||[]), ...parseTags(e.title), ...parseTags(e.body)]); }
+function allTags(){ const c = {}; S.entries.forEach(e => entryTags(e).forEach(t => c[t] = (c[t]||0)+1)); return Object.entries(c).sort((a,b)=>b[1]-a[1] || a[0].localeCompare(b[0])); }
+function entriesWithTag(t){ const k = String(t).toLowerCase(); return S.entries.filter(e => entryTags(e).includes(k)); }
+function tagChips(e, {link=true}={}){ const t = entryTags(e); return t.length ? `<span class="tagrow">${t.map(x => link ? `<a class="tag" href="#/tag/${encodeURIComponent(x)}">#${x}</a>` : `<span class="tag">#${x}</span>`).join('')}</span>` : ''; }
 
 /* ---------- state ---------- */
 const KEY = 'lifeinstrument.v1';
 let S = null;
 /* persistence lives in db.js (Dexie schema + load/save/backup) */
-function migrate(){ if(S.settings && S.settings.home === 'map') S.settings.home = 'home'; wipeDemoData(); if(S.rehearsal && !S.rehearsal){ S.rehearsal = S.rehearsal; } delete S.rehearsal; if(typeof migrateEras === 'function') migrateEras(); const d = seed(); for(const k of Object.keys(d)) if(S[k]===undefined) S[k] = d[k]; if(typeof migrateLifeline === 'function') migrateLifeline(); if(typeof migrateSkillLevels === 'function') migrateSkillLevels(); if(typeof migrateProjects === 'function') migrateProjects(); if(typeof migrateStages === 'function') migrateStages(); }
+function migrate(){ if(S.settings && S.settings.home === 'map') S.settings.home = 'home'; wipeDemoData(); if(S.rehearsal && !S.rehearsal){ S.rehearsal = S.rehearsal; } delete S.rehearsal; if(typeof migrateEras === 'function') migrateEras(); const d = seed(); for(const k of Object.keys(d)) if(S[k]===undefined) S[k] = d[k]; if(typeof migrateLifeline === 'function') migrateLifeline(); if(typeof migrateSkillLevels === 'function') migrateSkillLevels(); if(typeof migrateProjects === 'function') migrateProjects(); if(typeof migrateStages === 'function') migrateStages(); if(typeof migrateTasks === 'function') migrateTasks(); if(typeof migrateIdeas === 'function') migrateIdeas(); if(typeof migrateMedia === 'function') migrateMedia(); }
 
 /* One-time: the house used to open furnished with a demonstration life. If that
    demonstration is still here, clear it so the rooms start empty. */
@@ -1297,13 +1396,17 @@ const MOTION_PROFILES = {
 const PAGE_THEMES = {
   today:    {name:'Today',        accent:['#e07a5f','#c25d40'], ink:'#1a1816', gradient:['#e07a5f','#f2b28c'], mood:'present, inviting',      motion:'snappy',    glyph:'今', icon:'🏠'},
   journals: {name:'Journals',      accent:['#d9a441','#b07f27'], ink:'#1a1816', gradient:['#d9a441','#c46b7a'], mood:'reflective, warm',       motion:'calm',      glyph:'記', icon:'📖'},
-  projects: {name:'Creative Projects',     accent:['#7f97c9','#4d68a3'], ink:'#1a1816', gradient:['#6b7fa8','#8ec5e8'], mood:'structured, focused',    motion:'crisp',     glyph:'作', icon:'🎨'},
+  projects: {name:'Projects',     accent:['#7f97c9','#4d68a3'], ink:'#1a1816', gradient:['#6b7fa8','#8ec5e8'], mood:'structured, focused',    motion:'crisp',     glyph:'作', icon:'🎨'},
   rituals:  {name:'Rituals & Habits',      accent:['#6fa39a','#457d74'], ink:'#1a1816', gradient:['#5f968d','#b7c9a0'], mood:'steady, rhythmic',       motion:'calm',      glyph:'儀', icon:'✨'},
   values:   {name:'Values',      accent:['#ab93cf','#7a60a8'], ink:'#1a1816', gradient:['#b7a2d8','#a3798f'], mood:'introspective, calm',    motion:'calm',      glyph:'心', icon:'🧭'},
   skills:   {name:'Skill Tree',   accent:['#3fae7a','#25835a'], ink:'#1a1816', gradient:['#2f9e6e','#2aa7a0'], mood:'growth, energy',         motion:'energetic', glyph:'技', icon:'🛠'},
   vision:   {name:'Vision Canvas',  accent:['#7b7de3','#4d50b6'], ink:'#f6f4ff', gradient:['#4b4fb0','#8a5fc9'], mood:'expansive, dreamy',      motion:'calm',      glyph:'夢', icon:'🌳'},
   timeline: {name:'Timeline',       accent:['#cba85a','#96762a'], ink:'#1a1816', gradient:['#c9a55a','#8a6a4a'], mood:'nostalgic, warm',        motion:'calm',      glyph:'憶', icon:'⏳'},
   home:     {name:'Home',         accent:['#94a6b5','#5b7082'], ink:'#1a1816', gradient:['#8a9aa6','#6c8299'], mood:'analytical, clear',      motion:'calm',      glyph:'家', icon:'⌂'},
+  plan:     {name:'Plan',          accent:['#d98f6a','#a8613e'], ink:'#1a1816', gradient:['#c97f5e','#e0b48a'], mood:'ordered, near',          motion:'crisp',     glyph:'週', icon:'▤'},
+  reviews:  {name:'Reviews',       accent:['#8fb0a8','#4f7d73'], ink:'#1a1816', gradient:['#6f9a91','#a9bfa2'], mood:'measured, honest',       motion:'calm',      glyph:'省', icon:'◷'},
+  writing:  {name:'Writing',       accent:['#c8b79a','#8a7452'], ink:'#1a1816', gradient:['#b6a184','#d9c9ae'], mood:'quiet, unhurried',   motion:'calm',      glyph:'文', icon:'✒'},
+  commonplace:{name:'Commonplace Book', accent:['#b98aa6','#8a5476'], ink:'#1a1816', gradient:['#a3789a','#d0aebd'], mood:'curious, collected', motion:'calm',    glyph:'典', icon:'📖'},
   settings: {name:'Settings',     accent:['#a3978a','#776a5c'], ink:'#1a1816', gradient:['#a3978a','#c9b8a4'], mood:'quiet, practical',       motion:'crisp',     glyph:'設', icon:'⚙'},
 };
 /* routes that live inside another room's theme */
@@ -1799,6 +1902,23 @@ function habitDone(h, day){ return S.habitLog[day]?.[h.id]; }
 function habitStreak(h){ let cur=0, d=today(); if(!habitDone(h,d)) d = addDays(d,-1); while(true){ if(habitDone(h,d)) cur++; else if(habitDue(h,d) || h.freq.type!=='days') break; d = addDays(d,-1); if(cur>400) break; } let best=cur; let run=0; lastDays(365).forEach(x => { if(habitDone(h,x)){ run++; best=Math.max(best,run);} else if(habitDue(h,x)) run=0; }); return {cur,best}; }
 function habitWeekRates(h, weeks=4){ const out=[]; for(let w=weeks-1; w>=0; w--){ const days = Array.from({length:7},(_,i)=>addDays(today(), -(w*7+ (6-i)))); const due = h.freq.type==='perWeek' ? h.freq.count : h.freq.type==='perMonth' ? Math.max(1,Math.round(h.freq.count/4)) : days.filter(d=>habitDue(h,d)).length; const done = days.filter(d=>habitDone(h,d)).length; out.push({done, due:Math.max(due,1)}); } return out; }
 function energyBalance(week=true){ const days = week ? lastDays(7) : [today()]; const out = {}; DIMS.forEach(d => out[d.id] = {exp:0, rec:0}); days.forEach(day => S.habits.forEach(h => { if(habitDone(h,day) && !h.negative) out[h.dimension][h.kind==='recovery'?'rec':'exp']++; })); return out; }
+/* one honest number for a day: the four energy dimensions and the emotional
+   set-point, each normalised, averaged over whatever was actually logged. */
+function dayState(day){
+  const c = S.checkins[day]; if(!c) return null;
+  const parts = [];
+  const en = DIMS.map(d => c.energy?.[d.id]).filter(v => v > 0);
+  if(en.length) parts.push(avg(en.map(v => (v-1)/4*100)));
+  if(c.setpoint) parts.push((c.setpoint-1)/21*100);
+  return parts.length ? Math.round(avg(parts)) : null;
+}
+function stateBlurb(trend){
+  const vals = trend.filter(v => v !== null); if(vals.length < 2) return 'not enough evenings logged yet';
+  const half = Math.ceil(vals.length/2); const a = avg(vals.slice(0,half)), b = avg(vals.slice(half));
+  const d = b - a; const now = Math.round(vals.slice(-1)[0]);
+  const dir = d > 6 ? 'rising' : d < -6 ? 'sinking' : 'level';
+  return `now ${now}/100 · ${dir} over ${vals.length} logged days`;
+}
 function rehearsalDoneToday(){ return S.rehearsal.days.includes(today()); }
 function rehearsalStreak(){ let n=0, d=today(); if(!S.rehearsal.days.includes(d)) d=addDays(d,-1); while(S.rehearsal.days.includes(d)){n++; d=addDays(d,-1);} return n; }
 function signals(){
@@ -1871,6 +1991,7 @@ function entryCard(e, {clamp:cl=true, tools=true}={}){
     ${e.body?`<div class="body ${cl?'clamp':''} ${q?'quote':''}">${q?'“'+esc(e.body)+'”':md(e.body)}</div>`:''}
     ${e.media?.length?`<div class="thumbs">${e.media.map(m=>`<div class="photo" style="width:88px;height:88px;cursor:zoom-in" data-lb="${m.id}"><img src="${m.src}" alt="${esc(m.caption)}"></div>`).join('')}</div>`:''}
     ${entryExtraHTML(e)}
+    ${tagChips(e)}
     <div class="links">${linkChips(e)}</div>
   </article>`;
 }
@@ -1888,41 +2009,36 @@ function stageChip(s){ return `<span class="chip on click" style="--c:${s.hue}" 
    ============================================================ */
 function checkin(day=today()){ if(!S.checkins[day]) S.checkins[day] = {mood:0, sentence:'', energy:{}, setpoint:0, intention:''}; return S.checkins[day]; }
 routes.today = function(root){
+  const T = today(); const c = checkin(T); const moon = moonPhase();
   registerPageEntry({pageName:'Today', addLabel:'New note', defaultEntryType:'reflection', prefilledFields:{}, options:[
+    {icon:'▫', label:'Task for today', desc:'Something to finish before the day closes.', run:()=>openTaskPicker(T, rerender)},
     {icon:'✎', label:'Note', desc:'One honest line, kept as a reflection.', run:()=>EntryActions.quickNote()},
-    {icon:'◷', label:'Reminder', desc:'A small thing to surface on a day.', run:()=>EntryActions.taskReminder()},
-    {icon:'◎', label:'Intention', desc:'One thing to give attention to today.', run:()=>EntryActions.dailyIntention()}]});
-  const T = today(); const c = checkin(T); const moon = moonPhase(); const yday = S.checkins[addDays(T,-1)];
+    {icon:'◎', label:'Intention', desc:'The one thing to give attention to today.', run:()=>EntryActions.dailyIntention()}]});
   const otd = onThisDay(); const cycleDay = S.rehearsal.cycleStart ? daysBetween(S.rehearsal.cycleStart, T) : 0;
-  const sig = signals();
+  const sig = signals(); const rows = tasksForDay(T); const carried = allTaskRefs().filter(r => r.day && !r.done && r.day < T);
+  const doneN = rows.filter(r=>r.done).length; const evening = new Date().getHours() >= 17;
+  const trend = lastDays(30).map(d => dayState(d));
+  const hasState = trend.some(v => v !== null);
   root.innerHTML = `<div class="page narrow">
     <header class="rv page-head">
       <div class="today-date">${fmtDate(T)}</div>
       <div class="moon">${moonSVG(moon.p)} <span>${moon.name}</span><span class="mono" style="margin-left:6px">· day ${Math.round(moon.age)} of the cycle</span></div>
     </header>
 
-    <details class="rv" ${c.mood && c.intention ? '' : 'open'}>
-      <summary><span class="sc lg">Daily check-in</span>${c.mood?`<span class="mono">logged</span>`:''}</summary>
-      <div class="body stack" style="gap:22px">
-        <div class="field"><label>Mood</label><div class="moods">${[1,2,3,4,5].map(m=>`<div class="mood ${c.mood===m?'on':''}" data-mood="${m}" style="--fill:${(m-1)*22+8}%" title="${['heavy','low','level','light','luminous'][m-1]}"></div>`).join('')}<span class="mono" id="moodLbl">${c.mood?['heavy','low','level','light','luminous'][c.mood-1]:''}</span></div></div>
-        <div class="field"><label>In one sentence, how is today?</label>${ed(`checkins.${T}.sentence`, {ph:'One honest sentence.', cls:'serif-lg'})}</div>
-        <div class="field"><label>Energy pulse — four dimensions</label><div class="energy-row">${DIMS.map(d=>`<div class="energy-dim" style="--c:${d.c}"><div class="lbl"><span>${d.name}</span><span class="mono">${c.energy?.[d.id]||'–'}/5</span></div><div class="dots">${[1,2,3,4,5].map(n=>`<i class="${(c.energy?.[d.id]||0)>=n?'on':''}" data-dim="${d.id}" data-n="${n}"></i>`).join('')}</div></div>`).join('')}</div></div>
-        <div class="field setpoint"><label>Emotional set-point (Hicks' guidance scale)</label>
-          <input type="range" class="slider" min="1" max="22" value="${c.setpoint||14}" id="setpoint" style="--c:var(--rose)">
-          <div class="lbls"><span>1 · Fear / Despair</span><span>11 · Disappointment</span><span>22 · Joy / Freedom / Love</span></div>
-          <div class="cur"><span id="spName">${c.setpoint?hicksName(c.setpoint):'<span class="faint">place yourself on the scale</span>'}</span><span class="mono" id="spNum">${c.setpoint||''}</span></div>
-        </div>
-        <div class="field"><label>Intention — one thing I want to give attention to today</label>${ed(`checkins.${T}.intention`, {ph:'Just one.', cls:'serif-lg'})}</div>
-      </div>
-    </details>
+    <!-- 1. morning: what today is for -->
+    <section class="section rv intention-block">
+      <span class="sc">The one thing</span>
+      <div class="intention-card">${ed(`checkins.${T}.intention`, {ph:'One thing to give attention to today. Click to set it.', cls:'serif-lg'})}</div>
+    </section>
 
+    <!-- 2. morning: the rehearsal -->
     <details class="rv rehearsal-wrap" ${rehearsalDoneToday()?'':'open'} style="margin-top:8px">
       <summary><span class="sc lg">Morning Rehearsal</span><span class="mono">${rehearsalDoneToday()?'practised today':'30 minutes'}</span></summary>
       <div class="body rehearsal stack" style="gap:24px">
         <blockquote class="rehearsal-epigraph">Close your eyes for thirty minutes. See yourself on a mental screen — sights, sounds, smells. See yourself acting, feeling and being as you want to be. The nervous system cannot tell a real experience from one vividly imagined.<cite>Maxwell Maltz</cite></blockquote>
         <div class="field"><label>Self-image script</label>${ed('rehearsal.script',{multi:true,mdr:true,cls:'prose serif-lg',ph:'First person, present tense. Who you are becoming — vivid, sensory, felt as already real.'})}</div>
-        <div class="field"><label>The winning feeling</label><div class="faint" style="font-size:.8rem;margin-bottom:4px">Recall a moment when you felt self-confident and successful. Capture that feeling. Now weld it to your vision of the future.</div>${ed('rehearsal.winning',{multi:true,cls:'prose',ph:'Where were you? What did your body do?'})}</div>
-        <div class="field"><label>Definite chief aim</label><div class="faint" style="font-size:.8rem;margin-bottom:4px">The exact thing desired, what you'll give in return, the date, the plan. Read aloud morning and night, with emotion.</div>${ed('rehearsal.aim',{multi:true,cls:'prose serif-lg',ph:'By [date] I will have [exactly this]. In return I will give [this].'})}</div>
+        <div class="field"><label>The winning feeling</label><div class="faint" style="font-size:.8rem;margin-bottom:4px">Recall a moment when you felt self-confident and successful. Capture that feeling, then weld it to your vision of the future.</div>${ed('rehearsal.winning',{multi:true,cls:'prose',ph:'Where were you? What did your body do?'})}</div>
+        <div class="field"><label>Definite chief aim</label><div class="faint" style="font-size:.8rem;margin-bottom:4px">The exact thing desired, what you will give in return, the date, the plan. Read aloud morning and night, with feeling.</div>${ed('rehearsal.aim',{multi:true,cls:'prose serif-lg',ph:'By [date] I will have [exactly this]. In return I will give [this].'})}</div>
         <div class="field"><label>21-day tracker <span class="mono" style="text-transform:none;letter-spacing:0">· day ${clamp(cycleDay+1,1,21)} of 21 · ${S.rehearsal.days.filter(d=>d>=S.rehearsal.cycleStart).length} practised</span></label>
           <div class="tracker">${Array.from({length:21},(_,i)=>{ const d = addDays(S.rehearsal.cycleStart||T, i); return `<i class="${S.rehearsal.days.includes(d)?'done':''} ${d===T?'today':''}" data-td="${d}" title="${fmtDate(d,'med')}"></i>`; }).join('')}</div>
           <div class="row" style="margin-top:12px"><button class="btn sm ${rehearsalDoneToday()?'':'primary'}" id="markTheatre">${rehearsalDoneToday()?'✓ Practised today':'Mark today\'s practice'}</button><button class="btn sm ghost" id="newCycle">Begin a new 21-day cycle</button></div>
@@ -1930,10 +2046,33 @@ routes.today = function(root){
       </div>
     </details>
 
+    <!-- 3. the day's work -->
+    <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Today's tasks</span><span class="mono">${rows.length?`${doneN} of ${rows.length} done`:'nothing parked yet'}</span></div>
+      <div class="card" data-daydrop="${T}" style="margin-top:10px">
+        <div class="stack" style="gap:2px">${rows.map(r=>taskRowHTML(r)).join('')||`<div class="empty">Park work here from a project, or write one below.</div>`}</div>
+        <div class="row" style="margin-top:10px;gap:8px">${quickTaskInput(T)}<button class="btn sm ghost" id="pullTask">pull in ↓</button><a class="btn sm ghost" href="#/plan">plan the week →</a></div>
+        ${carried.length?`<div class="row" style="margin-top:10px"><span class="mono" style="color:#d08080">${carried.length} carried over from earlier days</span><button class="btn sm ghost" id="carryAll">bring to today</button></div>`:''}
+      </div></section>
+
     ${(()=>{ const due = milestonesDueSoon(30); return due.length ? `<section class="section rv"><span class="sc">Skill milestones within 30 days</span><div class="card" style="border-left:3px solid var(--ment)">${due.map(({skill,m,days})=>`<a href="#/skills/${skill.id}" class="row between" style="text-decoration:none;color:inherit;padding:8px 0;border-top:1px dashed var(--line);gap:12px"><span><b class="serif">${esc(skill.name)}</b> <span class="muted">→ ${esc(skillLevelLabel(skill,m.levelTarget))} (L${m.levelTarget})</span>${m.note?`<div class="quote" style="font-size:.85rem">${esc(m.note)}</div>`:''}</span><span class="status-pill ${days<0?'due':'ahead'}">${days<0?`⚠ ${-days}d overdue`:days===0?'today':`in ${days}d`}</span></a>`).join('')}</div></section>` : ''; })()}
+
+    <!-- 4. evening: how it actually went -->
+    <details class="rv" ${evening && !c.setpoint ? 'open' : ''} style="margin-top:8px">
+      <summary><span class="sc lg">Evening check-in</span><span class="mono">${c.setpoint||Object.keys(c.energy||{}).length?'logged':'at the end of the day'}</span></summary>
+      <div class="body stack" style="gap:22px">
+        <div class="field"><label>In one sentence, how was today?</label>${ed(`checkins.${T}.sentence`, {ph:'One honest sentence.', cls:'serif-lg'})}</div>
+        <div class="field"><label>Energy — four dimensions</label><div class="energy-row">${DIMS.map(d=>`<div class="energy-dim" style="--c:${d.c}"><div class="lbl"><span>${d.name}</span><span class="mono">${c.energy?.[d.id]||'–'}/5</span></div><div class="dots">${[1,2,3,4,5].map(n=>`<i class="${(c.energy?.[d.id]||0)>=n?'on':''}" data-dim="${d.id}" data-n="${n}"></i>`).join('')}</div></div>`).join('')}</div></div>
+        <div class="field setpoint"><label>Emotional set-point (Hicks' guidance scale)</label>
+          <input type="range" class="slider" min="1" max="22" value="${c.setpoint||14}" id="setpoint" style="--c:var(--rose)">
+          <div class="lbls"><span>1 · Fear / Despair</span><span>11 · Disappointment</span><span>22 · Joy / Freedom / Love</span></div>
+          <div class="cur"><span id="spName">${c.setpoint?hicksName(c.setpoint):'<span class="faint">place yourself on the scale</span>'}</span><span class="mono" id="spNum">${c.setpoint||''}</span></div>
+        </div>
+      </div>
+    </details>
+
     <section class="section rv"><span class="sc">Signals</span>
       <div class="signals">${sig.map(s=>`<div class="signal" data-go="${s.go}"><div class="k">${s.k}</div><div class="v">${esc(s.v)}</div><div class="d">${esc(s.d)}</div></div>`).join('')}
-        <div class="signal" data-go="#/rituals"><div class="k">Days since weekly review</div><div class="v">${daysSince(S.reviews.lastWeekly)}</div><div class="d">${daysSince(S.reviews.lastWeekly)>7?'a review is due':'on rhythm'}</div></div>
+        <div class="signal" data-go="#/reviews"><div class="k">Days since weekly review</div><div class="v">${daysSince(S.reviews.lastWeekly)}</div><div class="d">${daysSince(S.reviews.lastWeekly)>7?'a review is due':'on rhythm'}</div></div>
         <div class="signal" data-go="#/today"><div class="k">Morning Rehearsal streak</div><div class="v">${rehearsalStreak()} days</div><div class="d">of the current 21-day cycle</div></div>
       </div>
     </section>
@@ -1946,18 +2085,13 @@ routes.today = function(root){
       <div class="prompt-card"><div class="quote" id="promptText">${gentlePrompt()}</div><div class="row" style="margin-top:14px;justify-content:space-between"><button class="btn sm ghost" id="anotherPrompt">another</button><button class="btn sm" data-quick="reflection">respond ✎</button></div></div>
     </section>
 
-    ${(S.reminders||[]).some(r=>!r.done && r.date<=T)?`<section class="section rv"><span class="sc">Reminders</span>${(S.reminders||[]).filter(r=>!r.done && r.date<=T).sort((a,b)=>a.date<b.date?-1:1).map(r=>`<div class="row" style="padding:8px 0;border-top:1px dashed var(--line)"><label style="cursor:pointer;display:flex"><input type="checkbox" data-rm="${r.id}" title="done"></label><span class="serif" style="font-size:1.05rem;flex:1">${ed(`reminders.#${r.id}.text`,{ph:'what needs doing'})}</span><span class="mono">${r.date<T?'since '+fmtDate(r.date,'short'):'today'}</span><input type="date" class="inp" value="${r.date}" data-rmdate="${r.id}" style="width:auto;padding:2px 6px;font-size:.7rem"><button class="del-x inline" data-rmdel="${r.id}" title="delete reminder">×</button></div>`).join('')}</section>`:''}
-
-    <section class="section rv"><span class="sc">The last thirty days</span>
-      <div class="charts3">
-        <div class="card"><div class="mono" style="margin-bottom:8px">mood</div>${sparkline(lastDays(30).map(d=>S.checkins[d]?.mood||null),{h:50,min:1,max:5,color:'var(--gold)',dots:true,labels:lastDays(30).map(d=>`${fmtDate(d,'short')}: ${S.checkins[d]?.sentence||'—'}`)})}</div>
-        <div class="card"><div class="mono" style="margin-bottom:8px">energy — four dimensions</div>${multiSpark(DIMS.map(d=>({vals:lastDays(30).map(x=>S.checkins[x]?.energy?.[d.id]||null),color:d.c})),{h:50})}<div class="legend" style="margin-top:8px">${DIMS.map(d=>`<span style="--c:${d.c}">${d.name}</span>`).join('')}</div></div>
-        <div class="card"><div class="mono" style="margin-bottom:8px">emotional set-point</div>${sparkline(lastDays(30).map(d=>S.checkins[d]?.setpoint||null),{h:50,min:1,max:22,color:'var(--rose)',dots:true,labels:lastDays(30).map(d=>`${fmtDate(d,'short')}: ${S.checkins[d]?.setpoint?hicksName(S.checkins[d].setpoint):'—'}`)})}<div class="mono" style="margin-top:6px">avg ${avg(lastDays(30).map(d=>S.checkins[d]?.setpoint).filter(Boolean)).toFixed(1)} · ${hicksName(avg(lastDays(30).map(d=>S.checkins[d]?.setpoint).filter(Boolean))||14).split(' / ')[0]}</div></div>
-      </div>
+    <section class="section rv"><span class="sc">How you have been, these thirty days</span>
+      <div class="card">${hasState ? `${sparkline(trend,{h:74,min:0,max:100,color:'var(--page-accent)',dots:true,labels:lastDays(30).map(d=>`${fmtDate(d,'short')}: ${dayState(d)===null?'—':dayState(d)+'/100'}${S.checkins[d]?.sentence?' · '+S.checkins[d].sentence:''}`)})}
+        <div class="row between" style="margin-top:10px"><span class="mono">${stateBlurb(trend)}</span><span class="mono">one line: energy and set-point together</span></div>`
+        : `<div class="empty">Check in for a few evenings and one honest line will appear here — your overall state, not five charts to decode.</div>`}</div>
     </section>
   </div>`;
 
-  root.querySelectorAll('.mood').forEach(m => m.onclick = () => { c.mood = +m.dataset.mood; c.ts = new Date().toISOString(); saveNow(); root.querySelectorAll('.mood').forEach(x=>x.classList.toggle('on', x===m)); $('#moodLbl').textContent = ['heavy','low','level','light','luminous'][c.mood-1]; sound('save'); });
   root.querySelectorAll('.dots i').forEach(i => i.onclick = () => { c.energy = c.energy||{}; c.energy[i.dataset.dim] = +i.dataset.n; saveNow(); const dim = i.closest('.energy-dim'); dim.querySelectorAll('i').forEach(x=>x.classList.toggle('on', +x.dataset.n <= +i.dataset.n)); dim.querySelector('.lbl .mono').textContent = i.dataset.n+'/5'; });
   const sp = $('#setpoint'); sp.oninput = () => { $('#spName').textContent = hicksName(+sp.value); $('#spNum').textContent = sp.value; }; sp.onchange = () => { c.setpoint = +sp.value; saveNow(); sound('save'); };
   $('#markTheatre').onclick = () => { if(!S.rehearsal.days.includes(T)){ S.rehearsal.days.push(T); if(!S.rehearsal.cycleStart) S.rehearsal.cycleStart = T; saveNow(); sound('chime'); toast('Practice marked. The nervous system takes care of the rest, in time.'); rerender(); } };
@@ -1965,10 +2099,11 @@ routes.today = function(root){
   root.querySelectorAll('.tracker i').forEach(i => i.onclick = () => { const d = i.dataset.td; if(d > T) return; const idx = S.rehearsal.days.indexOf(d); if(idx>=0) S.rehearsal.days.splice(idx,1); else S.rehearsal.days.push(d); saveNow(); rerender(); });
   $('#anotherPrompt').onclick = () => { S._promptShift = (S._promptShift||0)+1; $('#promptText').innerHTML = gentlePrompt(); };
   root.querySelectorAll('[data-quick]').forEach(b => b.onclick = () => { const t = b.dataset.quick; if(t==='nod') openNodModal(); else openEntryModal({type:t}); });
-  root.querySelectorAll('[data-rmdate]').forEach(i => { i.onchange = () => { byId(S.reminders, i.dataset.rmdate).date = i.value; saveNow(); rerender(); }; });
-  root.querySelectorAll('[data-rmdel]').forEach(b => b.onclick = e => { e.stopPropagation(); const r = byId(S.reminders, b.dataset.rmdel); requestDelete({label: r.text, node: b.closest('.row'), remove: () => spliceOut(S.reminders, x => x.id === r.id)}); });
-  root.querySelectorAll('[data-rm]').forEach(c => c.onchange = () => { const r = byId(S.reminders, c.dataset.rm); if(r){ r.done = true; r.doneAt = today(); saveNow(); sound('success'); setTimeout(rerender, 300); } });
+  $('#pullTask').onclick = () => openTaskPicker(T, rerender);
+  if($('#carryAll')) $('#carryAll').onclick = () => { carried.forEach(r => r.task.day = T); saveNow(); sound('success'); rerender(); };
+  bindTaskRows(root); bindDayDrop(root); bindQuickTask(root);
 };
+
 /* ============================================================
    2. TIMELINE — the museum of the past (with Threads woven in)
    ============================================================ */
@@ -2988,13 +3123,17 @@ function ganttHTML(ps){
   return `<div class="gantt"><div class="g-names" style="height:${HH}px;flex:0 0 ${NW}px">${names}</div><svg viewBox="0 0 ${W} ${HH}" width="${W}" height="${HH}" style="display:block;flex:0 0 ${W}px;overflow:visible">${g}<line class="g-today" x1="${xT.toFixed(1)}" y1="22" x2="${xT.toFixed(1)}" y2="${HH}" stroke="#e3a15a" stroke-width="1.5" stroke-dasharray="3 3"/><text x="${(xT+3).toFixed(1)}" y="${HH-2}" style="fill:#e3a15a">today</text></svg></div>`;
 }
 routes.projects = function(root, params){
-  registerPageEntry({pageName:'Creative Projects', addLabel:'New project', defaultEntryType:'project', prefilledFields:{}, hint:'Nods have their own button — they must stay fast.', options:[{label:'New project', run:()=>EntryActions.newProject()}]});
+  registerPageEntry({pageName:'Projects', addLabel:'New project', defaultEntryType:'project', prefilledFields:{}, hint:'Nods have their own button — they must stay fast.', options:[{label:'New project', run:()=>EntryActions.newProject()}]});
   const sort = S._psort || 'activity'; const view = S.settings.projectView || 'cards';
   const ps = [...S.projects].sort((a,b) => sort==='name' ? a.name.localeCompare(b.name) : sort==='status' ? Object.keys(PSTATUS).indexOf(a.status)-Object.keys(PSTATUS).indexOf(b.status) : sort==='priority' ? (a.priority||'P3').localeCompare(b.priority||'P3') : daysSince(projectNods(a)[0]?.date) - daysSince(projectNods(b)[0]?.date));
   const income = S.projects.filter(p=>p.income?.current>0); const total = sum(income.map(p=>p.income.current)); const diversified = income.filter(p=>p.income.current/total > .1).length;
   const W=520,H=300; const pts = S.projects.filter(p=>projectNods(p).length).map(p => { const ns = projectNods(p); return {p, x:avg(ns.map(n=>n.energy)), y:ns.length}; }); const maxY = Math.max(...pts.map(x=>x.y),1);
+  const mode = S.settings.projectMode || 'tracking';
+  if(mode === 'ideation'){ renderIdeation(root); return; }
   root.innerHTML = `<div class="page">
-    <button class="btn primary nod-fab" id="nodFab" title="quick nod">+ nod</button><div class="page-head row between"><div><h1>Creative Projects</h1><div class="sub">A nod is the atomic unit: “I showed up and did this.” Under five seconds, or the system dies.</div></div><div class="row"><div class="view-toggle">${[['cards','▦ Cards'],['kanban','▥ Board'],['timeline','▬ Timeline']].map(([k,l])=>`<button class="${view===k?'on':''}" data-pview="${k}">${l}</button>`).join('')}</div><select class="sel" style="width:auto" id="psort"><option value="activity" ${sort==='activity'?'selected':''}>by last activity</option><option value="priority" ${sort==='priority'?'selected':''}>by priority</option><option value="status" ${sort==='status'?'selected':''}>by status</option><option value="name" ${sort==='name'?'selected':''}>by name</option></select><button class="btn primary" id="addNod">+ nod</button></div></div>
+    <button class="btn primary nod-fab" id="nodFab" title="quick nod">+ nod</button>
+    <div class="mode-switch rv">${[['ideation','◌ Ideation','sparks, inspiration, brainstorming'],['tracking','◉ Tracking','the work already under way']].map(([k,l,d])=>`<button class="${mode===k?'on':''}" data-pmode="${k}" title="${d}">${l}</button>`).join('')}</div>
+    <div class="page-head row between"><div><h1>Projects</h1><div class="sub">A nod is the atomic unit: “I showed up and did this.” Under five seconds, or the system dies.</div></div><div class="row"><div class="view-toggle">${[['cards','▦ Cards'],['kanban','▥ Board'],['timeline','▬ Timeline']].map(([k,l])=>`<button class="${view===k?'on':''}" data-pview="${k}">${l}</button>`).join('')}</div><select class="sel" style="width:auto" id="psort"><option value="activity" ${sort==='activity'?'selected':''}>by last activity</option><option value="priority" ${sort==='priority'?'selected':''}>by priority</option><option value="status" ${sort==='status'?'selected':''}>by status</option><option value="name" ${sort==='name'?'selected':''}>by name</option></select><button class="btn primary" id="addNod">+ nod</button></div></div>
     <div class="card rv" style="margin-bottom:22px"><div class="income-strip"><div><div class="k">monthly income, all streams</div><div class="num">${fmtYen(total)}</div><div class="mono">per month</div></div><div><div class="k">active streams</div><div class="num">${income.length}</div></div><div><div class="k">diversification</div><div class="num">${diversified}</div><div class="mono">contribute &gt;10%</div></div><div><div class="k">open tasks</div><div class="num">${sum(S.projects.filter(p=>!['completed','archived','abandoned'].includes(p.status)).map(p=>{ const r = projectTaskRatio(p); return r.total-r.done; }))}</div></div></div></div>
     ${view==='cards' ? `<div class="grid c3" id="pcards">${ps.map(projectCardHTML).join('')}</div>` : view==='kanban' ? kanbanHTML(ps) : `<div class="card rv"><div class="row between" style="margin-bottom:8px"><span class="sc" style="margin:0">Phases over time</span><span class="mono">bars are phases · lighter fill is tasks done · click a bar to open</span></div>${ganttHTML(ps)}</div>`}
     <section class="section rv"><span class="sc">Energy vs. output</span><p class="muted" style="font-size:.85rem">X: average energy reading across nods. Y: volume of effort. Which interests deserve to become income streams, and which are taxes you pay for a self you've outgrown?</p>
@@ -3004,11 +3143,10 @@ routes.projects = function(root, params){
         <text x="${W/2}" y="${H-8}" text-anchor="middle">drained ← energy → energized</text><text x="14" y="${H/2}" text-anchor="middle" transform="rotate(-90 14 ${H/2})">nods</text>
         ${pts.map(({p,x,y}) => { const px = 40 + ((x-1)/4)*(W-50), py = (H-30) - (y/maxY)*(H-50); const st = PSTATUS[p.status]||PSTATUS.idea; return `<g data-popen="${p.id}" style="cursor:pointer"><circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="${(6+Math.sqrt(y)).toFixed(1)}" fill="${st[2]}" fill-opacity=".7" stroke="${st[2]}"/><text x="${(px+12).toFixed(1)}" y="${(py+4).toFixed(1)}" style="fill:var(--text);font-family:var(--sans);font-size:11px">${esc(p.name)}</text></g>`; }).join('')}
       </svg></div></section>
-    <section class="section rv" style="max-width:var(--content)"><span class="sc">Idea inbox</span><p class="muted" style="font-size:.85rem">A parking lot for sparks. Promote one to a project with a click.</p>
-      <div class="row"><input class="inp" id="ideaInp" placeholder="a spark…"><button class="btn sm" id="ideaAdd">park it</button></div>
-      <ul class="ideas">${S.ideas.map(i=>`<li><span style="flex:1">${ed(`ideas.#${i.id}.text`,{ph:'a spark'})}</span><span class="row"><button class="btn sm ghost" data-promote="${i.id}">promote →</button><button class="tbtn" data-idel="${i.id}">×</button></span></li>`).join('')}</ul></section>
+    
   </div>`;
   $('#psort').onchange = e => { S._psort = e.target.value; rerender(); };
+  $$('[data-pmode]',root).forEach(b => b.onclick = () => { S.settings.projectMode = b.dataset.pmode; saveNow(); rerender(); });
   $$('[data-pview]',root).forEach(b => b.onclick = () => { S.settings.projectView = b.dataset.pview; saveNow(); rerender(); });
   { const gt = root.querySelector('.gantt'); const tl = gt?.querySelector('.g-today'); if(gt && tl){ gt.scrollLeft = Math.max(0, +tl.getAttribute('x1') - (gt.clientWidth-170)*0.6); } }
   $('#addNod').onclick = () => openNodModal(); $('#nodFab').onclick = () => openNodModal();
@@ -3017,10 +3155,6 @@ routes.projects = function(root, params){
   let kdrag = null;
   $$('[data-kdrag]',root).forEach(card => { card.addEventListener('dragstart', ev => { if(ev.target.closest('.ed')){ ev.preventDefault(); return; } kdrag = card.dataset.kdrag; card.classList.add('dragging'); ev.dataTransfer.effectAllowed='move'; try { ev.dataTransfer.setData('text/plain', kdrag); } catch(e){} }); card.addEventListener('dragend', () => { card.classList.remove('dragging'); $$('.kcol.over',root).forEach(c=>c.classList.remove('over')); }); });
   $$('.kcol',root).forEach(col => { col.addEventListener('dragover', ev => { ev.preventDefault(); col.classList.add('over'); }); col.addEventListener('dragleave', () => col.classList.remove('over')); col.addEventListener('drop', ev => { ev.preventDefault(); col.classList.remove('over'); const id = kdrag || ev.dataTransfer.getData('text/plain'); const p = byId(S.projects,id); if(!p) return; const to = col.dataset.kcol; if(p.status === to || (to==='archived' && p.status==='abandoned')) return; p.status = to; saveNow(); sound('success'); rerender(); }); });
-  const addIdea = () => { const t = $('#ideaInp').value.trim(); if(!t) return; S.ideas.unshift({id:uid(),text:t}); saveNow(); rerender(); $('#ideaInp')?.focus(); };
-  $('#ideaAdd').onclick = addIdea; $('#ideaInp').onkeydown = e => { if(e.key==='Enter') addIdea(); };
-  $$('[data-promote]',root).forEach(b => b.onclick = () => { const i = byId(S.ideas,b.dataset.promote); S.ideas = S.ideas.filter(x=>x.id!==i.id); createProject(i.text); });
-  $$('[data-idel]',root).forEach(b => b.onclick = () => { const i = byId(S.ideas, b.dataset.idel); requestDelete({label: i.text, node: b.closest('li'), remove: () => spliceOut(S.ideas, x => x.id === i.id)}); });
   if(params[0]) openProjectPanel(params[0]);
 };
 function createProject(name=''){ const p = {id:uid(),name:name||'New project',description:'',tags:[],status:'idea',priority:'P3',startDate:today(),targetDate:'',phases:[],resources:[],linkedSkills:[],linkedVisionEra:null,notes:'',link:'',income:{model:'',current:0,target:0,milestones:[]},createdAt:today()}; S.projects.push(p); saveNow(); rerender(); openProjectPanel(p.id); }
@@ -3110,6 +3244,41 @@ function openNodModal(projectId, after, existing=null){
   const saveNod = e => { const text = m.querySelector('#nodText').value.trim(); if(!text) return; if(existing){ Object.assign(existing, {projectId:m.querySelector('#nodP').value, text, duration:dur, link:m.querySelector('#nodLink').value.trim(), image, energy, date:m.querySelector('#nodDate').value||existing.date}); } else S.nods.push({id:uid(),projectId:m.querySelector('#nodP').value,text,duration:dur,link:m.querySelector('#nodLink').value.trim(),image,energy,date:today()}); saveNow(); ripple(e.clientX||innerWidth/2, e.clientY||innerHeight/2, 'var(--terra)'); sound('success'); m.remove(); toast('Nod recorded.'); after ? after() : (currentRoute==='projects' && rerender()); };
   m.querySelector('#nodSave').onclick = saveNod; m.querySelector('#nodText').onkeydown = e => { if(e.key==='Enter') saveNod(e); }; setTimeout(()=>m.querySelector('#nodText').focus(),50);
 }
+
+/* ---------- Ideation: before anything is a project ---------- */
+const SPARK_KINDS = {spark:['◌','spark','#d4a44c'], question:['?','question','#6b7f8e'], inspiration:['✦','inspiration','#a0727e'], experiment:['⚗','experiment','#7f916a']};
+function migrateIdeas(){ (S.ideas||[]).forEach(i => { i.kind = i.kind || 'spark'; i.note = i.note || ''; i.createdAt = i.createdAt || new Date().toISOString(); i.tags = normTags(i.tags||[]); }); }
+function renderIdeation(root){
+  registerPageEntry({pageName:'Projects', addLabel:'New spark', defaultEntryType:'idea', prefilledFields:{}, options:[
+    {icon:'◌', label:'Spark', desc:'A half-thought worth keeping.', run:()=>addIdea('spark')},
+    {icon:'?', label:'Question', desc:'Something you want to find out.', run:()=>addIdea('question')},
+    {icon:'✦', label:'Inspiration', desc:'Something that lit you up — and where it came from.', run:()=>addIdea('inspiration')},
+    {icon:'⚗', label:'Experiment', desc:'A small test you could actually run.', run:()=>addIdea('experiment')}]});
+  const ideas = [...(S.ideas||[])];
+  const byKind = k => ideas.filter(i => (i.kind||'spark') === k);
+  root.innerHTML = `<div class="page">
+    <div class="mode-switch rv">${[['ideation','◌ Ideation','sparks, inspiration, brainstorming'],['tracking','◉ Tracking','the work already under way']].map(([k,l,d])=>`<button class="${k==='ideation'?'on':''}" data-pmode="${k}" title="${d}">${l}</button>`).join('')}</div>
+    <div class="page-head"><h1>Projects</h1><div class="sub">Nothing here has to become anything. Catch it first; decide later. Promote a spark when it starts asking for your hands.</div></div>
+    <div class="card rv" style="margin-bottom:20px"><div class="row" style="gap:8px;flex-wrap:wrap">
+      <input class="inp" id="ideaInp" placeholder="What just occurred to you?" style="flex:1;min-width:240px">
+      <select class="sel" id="ideaKind" style="width:auto">${Object.entries(SPARK_KINDS).map(([k,v])=>`<option value="${k}">${v[0]} ${v[1]}</option>`).join('')}</select>
+      <button class="btn primary" id="ideaAdd">Catch it</button></div>
+      <div class="faint" style="font-size:.78rem;margin-top:8px">Hashtags work here too — #kyoto, #bar, #jazz.</div></div>
+    <div class="grid c2 spark-grid-wrap">${Object.entries(SPARK_KINDS).map(([k,[ico,label,col]]) => { const list = byKind(k); return `<section class="rv"><div class="row between"><span class="sc" style="margin:0;color:${col}">${ico} ${label}s</span><span class="mono">${list.length}</span></div>
+      <div class="card" style="margin-top:8px;border-left:3px solid ${col}">${list.length ? list.map(i=>`<div class="spark" data-spark="${i.id}"><div class="row between"><span style="flex:1">${ed(`ideas.#${i.id}.text`,{ph:'a spark'})}</span><span class="row" style="gap:4px"><button class="tbtn" data-promote="${i.id}" title="make this a project">promote →</button><button class="del-x inline" data-idel="${i.id}" title="delete">×</button></span></div>
+        <div class="spark-note">${ed(`ideas.#${i.id}.note`,{multi:true,ph:'why it caught you, or what it might become'})}</div>
+        <div class="row between"><span class="mono">${i.createdAt?fmtDate(i.createdAt.slice(0,10),'med'):''}</span><select class="sel spark-kind" data-ikind="${i.id}">${Object.entries(SPARK_KINDS).map(([kk,vv])=>`<option value="${kk}" ${(i.kind||'spark')===kk?'selected':''}>${vv[0]} ${vv[1]}</option>`).join('')}</select></div></div>`).join('') : `<div class="empty">Nothing yet. ${label==='question'?'What do you not know?':'Catch the next one above.'}</div>`}</div></section>`; }).join('')}</div>
+    <section class="section rv" style="max-width:var(--content)"><span class="sc">Brainstorm</span>
+      <p class="muted" style="font-size:.85rem">A scratch page that is never graded. Nothing here is saved as an entry until you promote it.</p>
+      <div class="card">${ed('settings.brainstorm',{multi:true,mdr:true,cls:'prose',ph:'Write badly and quickly. Ten bad ideas beat one careful one at this stage.'})}</div></section>
+  </div>`;
+  $$('[data-pmode]',root).forEach(b => b.onclick = () => { S.settings.projectMode = b.dataset.pmode; saveNow(); rerender(); });
+  const add = () => { const t = $('#ideaInp').value.trim(); if(!t) return; S.ideas.unshift({id:uid(), text:t, kind:$('#ideaKind').value, note:'', createdAt:new Date().toISOString(), tags:parseTags(t)}); saveNow(); sound('success'); rerender(); setTimeout(()=>$('#ideaInp')?.focus(),50); };
+  $('#ideaAdd').onclick = add; $('#ideaInp').onkeydown = e => { if(e.key==='Enter') add(); };
+  $$('[data-ikind]',root).forEach(sel => sel.onchange = () => { byId(S.ideas, sel.dataset.ikind).kind = sel.value; saveNow(); rerender(); });
+  $$('[data-promote]',root).forEach(b => b.onclick = () => { const i = byId(S.ideas,b.dataset.promote); S.ideas = S.ideas.filter(x=>x.id!==i.id); S.settings.projectMode = 'tracking'; createProject(i.text); });
+  $$('[data-idel]',root).forEach(b => b.onclick = () => { const i = byId(S.ideas, b.dataset.idel); requestDelete({label: i.text, node: b.closest('.spark'), remove: () => spliceOut(S.ideas, x => x.id === i.id)}); });
+}
 /* ============================================================
    9. RITUALS, HABITS & ENERGY MANAGEMENT — the maintenance loop
    ============================================================ */
@@ -3117,16 +3286,14 @@ const TOD = ['morning','afternoon','evening','anytime'];
 function habitFreqLabel(h){ const f = h.freq; if(f.type==='daily') return 'daily'; if(f.type==='days') return f.days.map(d=>DOW[d].slice(0,3)).join(' '); if(f.type==='perWeek') return `${f.count}× / week`; if(f.type==='perMonth') return `${f.count}× / month`; return ''; }
 function markHabit(h, level, note=''){ const T = today(); S.habitLog[T] = S.habitLog[T]||{}; if(level) S.habitLog[T][h.id] = {level, note}; else delete S.habitLog[T][h.id]; saveNow(); }
 routes.rituals = function(root, params){
-  registerPageEntry({pageName:'Rituals & Habits', addLabel:'New habit', defaultEntryType:'habit', prefilledFields:{}, options:[{label:'New habit', run:()=>EntryActions.newHabit()}]});
-  const T = today(); const tab = params[0] || 'habits';
+  registerPageEntry({pageName:'Habits', addLabel:'New habit', defaultEntryType:'habit', prefilledFields:{}, options:[{label:'New habit', run:()=>EntryActions.newHabit()}]});
+  const T = today();
   const active = S.habits.filter(h=>!h.archived && !h.negative).sort((a,b)=>TOD.indexOf(a.timeOfDay)-TOD.indexOf(b.timeOfDay) || a.order-b.order);
   const dueToday = active.filter(h=>habitDue(h,T)); const bal = energyBalance(false); const wk = energyBalance(true);
   root.innerHTML = `<div class="page">
-    <div class="page-head row between"><div><h1>Rituals &amp; Habits</h1><div class="sub">Positive energy rituals, not willpower. Sprints and recovery across four dimensions. Missing a day is part of the path.</div></div></div>
-    <div class="tabs"><button class="${tab==='habits'?'active':''}" data-go="#/rituals">Today &amp; Habits</button><button class="${tab==='reviews'?'active':''}" data-go="#/rituals/reviews">Guided reviews</button></div>
+    <div class="page-head"><h1>Habits</h1><div class="sub">Positive energy rituals, not willpower. Sprints and recovery across four dimensions. Missing a day is part of the path.</div></div>
     <div id="ritBody"></div></div>`;
   const body = $('#ritBody');
-  if(tab==='reviews'){ renderReviews(body); return; }
   body.innerHTML = `
     <div class="card rv"><div class="row between"><h3>Today</h3><span class="mono">${dueToday.filter(h=>habitDone(h,T)).length} of ${dueToday.length} rings full</span></div>
       <div class="rings-today">${dueToday.map(h => { const d = habitDone(h,T); const pct = d ? (d.level==='min'?.5:1) : 0; const dim = DIMS.find(x=>x.id===h.dimension); const st = habitStreak(h); return `<div class="ring-h" data-hring="${h.id}" title="click: ideal · shift-click: minimum">${h.stackAfter?'<span class="chainline"></span>':''}${ringSVG(pct,{color:dim.c,label:d?(d.level==='min'?'½':'✓'):''})}<div class="n">${esc(h.name)}</div><div class="s">${h.timeOfDay} · ${st.cur?st.cur+'d':''}</div></div>`; }).join('')}</div>
@@ -3177,6 +3344,15 @@ function openHabitModal(id){
   m.querySelectorAll('[data-lv],[data-lvi],[data-lsk]').forEach(c => c.onclick = () => c.classList.toggle('on'));
   m.querySelector('#hSave').onclick = () => { h.name = m.querySelector('#hName').value.trim(); if(!h.name) return; h.freq = {type:m.querySelector('#hFreq').value, days:[...m.querySelectorAll('[data-day].primary')].map(b=>+b.dataset.day), count:+m.querySelector('#hCountN').value||1}; h.timeOfDay = m.querySelector('#hTod').value; h.dimension = m.querySelector('#hDim').value; h.kind = m.querySelector('#hKind').value; h.min = m.querySelector('#hMin').value; h.ideal = m.querySelector('#hIdeal').value; h.stackAfter = m.querySelector('#hStack').value||null; h.prompt = m.querySelector('#hPrompt').value; h.negative = m.querySelector('#hNeg').classList.contains('on'); h.links = {values:[...m.querySelectorAll('[data-lv].on')].map(c=>c.dataset.lv), visions:[...m.querySelectorAll('[data-lvi].on')].map(c=>c.dataset.lvi), skills:[...m.querySelectorAll('[data-lsk].on')].map(c=>c.dataset.lsk)}; if(!id) S.habits.push(h); saveNow(); m.remove(); rerender(); sound('save'); };
 }
+routes.reviews = function(root){
+  registerPageEntry({pageName:'Reviews', addLabel:'Start a review', defaultEntryType:'reflection', prefilledFields:{}, options:[
+    {icon:'◷', label:'Weekly review', desc:'Fifteen minutes, once a week.', run:()=>{ location.hash = '#/reviews'; setTimeout(()=>document.querySelector('#rWeekly')?.scrollIntoView({block:'center',behavior:'smooth'}),200); }},
+    {icon:'✎', label:'Note from a review', desc:'Something the review turned up.', run:()=>EntryActions.quickNote()}]});
+  root.innerHTML = `<div class="page">
+    <div class="page-head"><h1>Reviews</h1><div class="sub">The rhythm above the daily one: a week, a season, a year. Each is a short set of questions and a date stamp, not a report.</div></div>
+    <div id="revBody"></div></div>`;
+  renderReviews($('#revBody'));
+};
 function renderReviews(body){
   const gaps = valueGaps(); const g0 = gaps[0]; const vs = S.visions.filter(v=>v.confidence!=='lived'); const st = vs.map(v=>({v,t:structuralTension(v)})).sort((a,b)=>b.t-a.t)[0];
   const cold = S.projects.filter(p=>p.status==='active').sort((a,b)=>daysSince(projectNods(b)[0]?.date)-daysSince(projectNods(a)[0]?.date))[0];
@@ -3274,6 +3450,162 @@ routes.settings = function(root){
   $('#sFile').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if(!f) return; const r = new FileReader(); r.onload = () => { let obj; try { obj = normaliseBackup(JSON.parse(r.result)); } catch(err){ toast('That file could not be read as JSON.'); return; } const problem = validateBackup(obj); if(problem){ toast(problem, 6000); return; } const counts = ['entries','stages','visions','habits'].map(k => `${obj.data[k].length} ${k}`).join(' · '); confirmDlg(`This will overwrite all current data. Are you sure?<br><span class="mono">backup from ${esc((obj.exportedAt||'').slice(0,10) || 'unknown date')} · ${counts}</span>`, async () => { try { await importBackup(obj); applyTheme(); toast('Backup imported. The house has been refurnished.'); rerender(); } catch(err){ console.error(err); toast('Import failed: ' + err.message, 6000); } }); }; r.readAsText(f); };
   $('#sClear').onclick = () => confirmDlg('This erases everything in this browser and re-seeds the placeholder content. Export first if in doubt.', async ()=>{ await resetAll(); applyTheme(); toast('Cleared. Seed content restored.'); navigate('#/today'); rerender(); });
 };
+/* ============================================================
+   PLAN — tomorrow, and the week after it
+   Planning is deciding when, so this page only moves existing
+   work around. Drag a card to a day; drop it back on Unscheduled
+   to let it go quiet again.
+   ============================================================ */
+function weekStart(d=today()){ const x = parseDay(d); const dow = (x.getDay()+6)%7; return addDays(d, -dow); }
+function planDays(offsetWeeks=0){ const s = addDays(weekStart(), offsetWeeks*7); return Array.from({length:7},(_,i)=>addDays(s,i)); }
+routes.plan = function(root){
+  registerPageEntry({pageName:'Plan', addLabel:'New task', defaultEntryType:'task', prefilledFields:{}, options:[
+    {icon:'▫', label:'Task for tomorrow', desc:'One thing to do tomorrow.', run:()=>openTaskPicker(addDays(today(),1), rerender)},
+    {icon:'▤', label:'Task for a day', desc:'Pick the day, then the work.', run:()=>pickDayThenTask()}]});
+  const off = S._planWeek || 0; const days = planDays(off); const T = today();
+  const un = unscheduledTasks(); const overdue = allTaskRefs().filter(r => r.day && !r.done && r.day < T);
+  const load = d => tasksForDay(d);
+  const weekLabel = off === 0 ? 'This week' : off === 1 ? 'Next week' : off === -1 ? 'Last week' : `${fmtDate(days[0],'med')} – ${fmtDate(days[6],'med')}`;
+  root.innerHTML = `<div class="page">
+    <div class="page-head row between"><div><h1>Plan</h1><div class="sub">Deciding when, not making more. Drag a task onto a day; drag it back to the shelf to let it wait.</div></div>
+      <div class="row"><button class="btn sm ghost" id="pwPrev">‹</button><span class="mono" style="min-width:9em;text-align:center">${esc(weekLabel)}</span><button class="btn sm ghost" id="pwNext">›</button>${off?`<button class="btn sm ghost" id="pwNow">this week</button>`:''}</div></div>
+
+    ${overdue.length?`<div class="card rv late-card" data-daydrop="${T}"><div class="row between"><span class="sc" style="margin:0">Carried over</span><span class="mono">${overdue.length} past their day</span></div>
+      <div class="stack" style="gap:2px;margin-top:8px">${overdue.map(r=>taskRowHTML(r,{showDay:true})).join('')}</div>
+      <div class="row" style="margin-top:10px"><button class="btn sm" id="pullToday">Move all to today</button></div></div>`:''}
+
+    <div class="week-grid rv">
+      ${days.map(d => { const rows = load(d); const done = rows.filter(r=>r.done).length; const isT = d===T; const past = d < T;
+        return `<div class="day-col ${isT?'today':''} ${past?'past':''}" data-daydrop="${d}">
+          <div class="day-h"><span class="dnum">${parseDay(d).getDate()}</span><span class="dname">${DOW[parseDay(d).getDay()].slice(0,3)}</span>${isT?'<span class="mono tdy">today</span>':''}<span class="mono cnt">${rows.length?`${done}/${rows.length}`:''}</span></div>
+          <div class="day-body">${rows.map(r=>taskRowHTML(r)).join('')||'<div class="day-empty">—</div>'}</div>
+          <div class="day-foot">${quickTaskInput(d)}<button class="tbtn" data-pickday="${d}" title="pull in existing work">pull in ↓</button></div>
+        </div>`; }).join('')}
+    </div>
+
+    <section class="section rv"><div class="row between"><span class="sc" style="margin:0">The shelf — unscheduled</span><span class="mono">${un.length} waiting</span></div>
+      <p class="muted" style="font-size:.85rem">Everything you have written down but not yet given a day. Tasks made inside a project live here too.</p>
+      <div class="card shelf-drop" data-daydrop=""><div class="stack" style="gap:2px">${un.map(r=>taskRowHTML(r)).join('')||'<div class="empty">Nothing waiting. Rare and good.</div>'}</div>
+        <div style="margin-top:10px">${quickTaskInput('')}</div></div></section>
+  </div>`;
+  $('#pwPrev').onclick = () => { S._planWeek = off-1; rerender(); };
+  $('#pwNext').onclick = () => { S._planWeek = off+1; rerender(); };
+  if($('#pwNow')) $('#pwNow').onclick = () => { S._planWeek = 0; rerender(); };
+  if($('#pullToday')) $('#pullToday').onclick = () => { overdue.forEach(r => r.task.day = T); saveNow(); sound('success'); rerender(); };
+  $$('[data-pickday]',root).forEach(b => b.onclick = () => openTaskPicker(b.dataset.pickday, rerender));
+  bindTaskRows(root); bindDayDrop(root); bindQuickTask(root);
+};
+function pickDayThenTask(){
+  const m = openModal(`<h2>Which day?</h2><input class="inp" type="date" id="pdDay" value="${addDays(today(),1)}"><div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn primary" id="pdGo">Continue</button></div>`,'narrow');
+  m.querySelector('#pdGo').onclick = () => { const d = m.querySelector('#pdDay').value || addDays(today(),1); m.remove(); openTaskPicker(d, rerender); };
+}
+/* ---------- every entry that carries a hashtag ---------- */
+routes.tag = function(root, params){
+  const t = decodeURIComponent(params[0]||''); const es = sortEntries(entriesWithTag(t));
+  const co = {}; es.forEach(e => entryTags(e).forEach(x => { if(x !== t) co[x] = (co[x]||0)+1; }));
+  root.innerHTML = `<div class="page narrow">
+    <div class="page-head"><h1>#${esc(t)}</h1><div class="sub">${es.length} ${es.length===1?'entry':'entries'} carry this tag${Object.keys(co).length?' — and travel with the tags below':''}.</div></div>
+    ${Object.keys(co).length?`<div class="tag-cloud rv" style="margin-bottom:20px">${Object.entries(co).sort((a,b)=>b[1]-a[1]).slice(0,14).map(([x,n])=>`<a class="tag" href="#/tag/${encodeURIComponent(x)}" style="--n:${Math.min(n,5)}">#${esc(x)}<span class="n">${n}</span></a>`).join('')}</div>`:''}
+    <section class="section rv">${es.map(e=>entryCard(e)).join('')||'<div class="empty">Nothing carries this tag yet.</div>'}</section>
+    <div class="row" style="margin-top:24px"><a class="btn sm ghost" href="#/journals">All journals</a><a class="btn sm ghost" href="#/writing">Write from this tag →</a></div>
+  </div>`;
+};
+/* ============================================================
+   TASKS — one list, many sources.
+   A task is either its own thing (S.tasks) or a task that already
+   lives inside a project phase. Both can be given a day, which is
+   what "planning" means here: deciding when, not making new work.
+   ============================================================ */
+function newTask(text='', day=''){ return {id:uid(), text, day, done:false, doneAt:null, notes:'', order:Date.now(), createdAt:new Date().toISOString(), links:{projects:[],skills:[]}}; }
+function migrateTasks(){
+  S.tasks = Array.isArray(S.tasks) ? S.tasks : [];
+  S.tasks.forEach(t => { t.links = t.links || {projects:[],skills:[]}; if(t.day === undefined) t.day = ''; if(t.done === undefined) t.done = false; });
+  // reminders were dated one-liners: the same thing, so fold them in once
+  if(Array.isArray(S.reminders) && S.reminders.length){
+    S.reminders.forEach(r => { if(!S.tasks.some(t => t.id === r.id)) S.tasks.push(Object.assign(newTask(r.text || '', r.date || ''), {id:r.id, done:!!r.done, doneAt:r.doneAt||null})); });
+    S.reminders = [];
+  }
+}
+/* a uniform view over both kinds, so the planner does not care where a task lives */
+function taskRef(t){ return {kind:'own', id:t.id, text:t.text, day:t.day||'', done:!!t.done, task:t, where:'', color:'var(--page-accent)', go:''}; }
+function projectTaskRefs(){
+  const out = [];
+  (S.projects||[]).forEach(p => (p.phases||[]).forEach(ph => (ph.tasks||[]).forEach(t => {
+    out.push({kind:'project', id:`${p.id}:${ph.id}:${t.id}`, text:t.text, day:t.day||'', done:!!t.done, task:t, project:p, phase:ph, where:`${p.name} · ${ph.name}`, color:'var(--terra)', go:`#/projects/${p.id}`});
+  })));
+  return out;
+}
+function allTaskRefs(){ return [...(S.tasks||[]).map(taskRef), ...projectTaskRefs()]; }
+function findTaskRef(id){ return allTaskRefs().find(r => r.id === id); }
+function tasksForDay(day){ return allTaskRefs().filter(r => r.day === day).sort((a,b)=> (a.done?1:0)-(b.done?1:0) || a.text.localeCompare(b.text)); }
+function tasksDueBy(day){ return allTaskRefs().filter(r => r.day && r.day <= day && !r.done).sort((a,b)=> a.day.localeCompare(b.day)); }
+function unscheduledTasks(){ return allTaskRefs().filter(r => !r.day && !r.done); }
+function setTaskDay(id, day){ const r = findTaskRef(id); if(!r) return; r.task.day = day || ''; saveNow(); }
+function setTaskDone(id, done){ const r = findTaskRef(id); if(!r) return; r.task.done = !!done; r.task.doneAt = done ? today() : null; saveNow(); }
+function deleteTaskRef(id, node, after){
+  const r = findTaskRef(id); if(!r) return;
+  requestDelete({label:r.text || 'Task', node, after, remove: () => r.kind === 'own'
+    ? spliceOut(S.tasks, x => x.id === r.task.id)
+    : spliceOut(r.phase.tasks, x => x.id === r.task.id)});
+}
+/* ---------- one row, used by Today and by the Planner ---------- */
+function taskRowHTML(r, {showDay=false}={}){
+  const late = r.day && !r.done && r.day < today();
+  return `<div class="task-row ${r.done?'done':''} ${late?'late':''}" data-taskrow="${r.id}" draggable="true">
+    <button class="task-check" data-tcheck="${r.id}" role="checkbox" aria-checked="${r.done}" title="${r.done?'mark not done':'mark done'}">${r.done?'✓':''}</button>
+    <span class="task-text">${esc(r.text || 'Untitled task')}</span>
+    ${r.where?`<a class="task-where" href="${r.go}" title="${esc(r.where)}">${esc(r.where)}</a>`:''}
+    ${showDay && r.day?`<span class="mono task-day">${late?'⚠ ':''}${fmtDate(r.day,'short')}</span>`:''}
+    <button class="del-x inline" data-tdel="${r.id}" title="delete task">×</button>
+  </div>`;
+}
+function bindTaskRows(root, after){
+  const redraw = after || rerender;
+  $$('[data-tcheck]', root).forEach(b => b.onclick = () => { const r = findTaskRef(b.dataset.tcheck); if(!r) return; setTaskDone(r.id, !r.done); sound(r.done ? 'click' : 'success'); redraw(); });
+  $$('[data-tdel]', root).forEach(b => b.onclick = e => { e.stopPropagation(); deleteTaskRef(b.dataset.tdel, b.closest('.task-row'), redraw); });
+  $$('[data-taskrow]', root).forEach(row => {
+    row.addEventListener('dragstart', ev => { ev.dataTransfer.setData('text/plain', row.dataset.taskrow); ev.dataTransfer.effectAllowed = 'move'; row.classList.add('dragging'); window._taskDrag = row.dataset.taskrow; });
+    row.addEventListener('dragend', () => { row.classList.remove('dragging'); window._taskDrag = null; });
+  });
+}
+function bindDayDrop(root, after){
+  const redraw = after || rerender;
+  $$('[data-daydrop]', root).forEach(col => {
+    col.addEventListener('dragover', ev => { ev.preventDefault(); col.classList.add('over'); });
+    col.addEventListener('dragleave', () => col.classList.remove('over'));
+    col.addEventListener('drop', ev => { ev.preventDefault(); col.classList.remove('over'); const id = window._taskDrag || ev.dataTransfer.getData('text/plain'); if(!id) return; setTaskDay(id, col.dataset.daydrop); sound('click'); redraw(); });
+  });
+}
+/* ---------- pull existing work onto a day ---------- */
+function openTaskPicker(day, after){
+  const redraw = after || rerender;
+  const draw = (q='') => {
+    const needle = q.toLowerCase();
+    const pool = allTaskRefs().filter(r => !r.done && r.day !== day && (!needle || (r.text+' '+r.where).toLowerCase().includes(needle)));
+    return pool.length ? pool.slice(0,60).map(r => `<button class="choice" data-pick="${r.id}"><span class="ico">${r.kind==='project'?'🎨':'▫'}</span><span><b>${esc(r.text||'Untitled task')}</b>${r.where?`<div class="d">${esc(r.where)}</div>`:''}${r.day?`<div class="d mono">currently ${fmtDate(r.day,'med')}</div>`:'<div class="d mono">unscheduled</div>'}</span></button>`).join('')
+      : `<div class="empty">Nothing to pull in. Tasks made inside a project appear here, and so does anything you add below.</div>`;
+  };
+  const m = openModal(`<h2>Plan work for ${fmtDate(day,'med')}</h2>
+    <input class="inp" id="tpQ" placeholder="Search tasks from projects and your own list" autofocus>
+    <div class="stack" id="tpList" style="gap:8px;margin-top:12px;max-height:44vh;overflow:auto">${draw()}</div>
+    <div class="row" style="margin-top:16px;gap:8px"><input class="inp" id="tpNew" placeholder="…or write a new task for this day"><button class="btn primary" id="tpAdd">Add</button></div>`, 'narrow');
+  const list = m.querySelector('#tpList');
+  const bind = () => list.querySelectorAll('[data-pick]').forEach(b => b.onclick = () => { setTaskDay(b.dataset.pick, day); m.remove(); sound('success'); redraw(); });
+  bind();
+  m.querySelector('#tpQ').oninput = e => { list.innerHTML = draw(e.target.value.trim()); bind(); };
+  const add = () => { const v = m.querySelector('#tpNew').value.trim(); if(!v) return; S.tasks.push(newTask(v, day)); saveNow(); m.remove(); sound('success'); redraw(); };
+  m.querySelector('#tpAdd').onclick = add;
+  m.querySelector('#tpNew').onkeydown = e => { if(e.key === 'Enter') add(); };
+}
+/* quick capture: one input that makes a task for a given day */
+function quickTaskInput(day, id){ return `<input class="inp quick-task" data-qtask="${day}" id="${id||''}" placeholder="＋ add a task and press Enter">`; }
+function bindQuickTask(root, after){
+  const redraw = after || rerender;
+  $$('[data-qtask]', root).forEach(inp => inp.addEventListener('keydown', e => {
+    if(e.key !== 'Enter') return; const v = inp.value.trim(); if(!v) return;
+    S.tasks.push(newTask(v, inp.dataset.qtask)); saveNow(); sound('click'); redraw();
+  }));
+}
 /* ============================================================
    ADD — two tiers, two code paths.
    Tier 1: the contextual per-page Add. Each page registers a
@@ -3385,6 +3717,236 @@ function newSkillDialog(){
   setTimeout(() => m.querySelector('#skName').focus(), 50);
 }
 /* ============================================================
+   COMMONPLACE BOOK — what you read, watched, heard, and what it
+   changed. Not a rating site: the prompts ask what a work did to
+   you, what you argued with, and what you intend to steal.
+   Stored as entries of type `media`, so search and hashtags work.
+   ============================================================ */
+const MEDIA_KINDS = {
+  book:      ['📗','Book',       '#7f916a'],
+  film:      ['🎞','Film',       '#a0727e'],
+  series:    ['📺','Series',     '#6b7f8e'],
+  album:     ['🎵','Album',      '#b08968'],
+  article:   ['📄','Article',    '#8a8d8f'],
+  talk:      ['🎤','Talk',       '#c47832'],
+  exhibition:['🖼','Exhibition', '#9a8fb8'],
+  game:      ['🎮','Game',       '#6fa39a'],
+};
+const MEDIA_STATUS = ['wishlist','reading','finished','abandoned'];
+const MEDIA_PROMPTS = [
+  ['oneLine',   'In one sentence, to a friend',   'What is it, and is it worth their evening?'],
+  ['resonance', 'Why it caught me',                'What in my own life was it answering? Be specific — a season, a question, a person.'],
+  ['argued',    'Where I argued with it',          'The part that felt false, thin, or too easy. Disagreement is where reading becomes thinking.'],
+  ['steal',     'What I am stealing',              'A technique, a sentence rhythm, a way of framing. Name the thing you will actually use.'],
+  ['changed',   'What it changed',                 'One thing you will do differently. If nothing, say that honestly.'],
+];
+function mediaEntries(){ return S.entries.filter(e => e.type === 'media'); }
+function mediaX(e){ e.extra = e.extra || {}; return e.extra; }
+function migrateMedia(){ mediaEntries().forEach(e => { const x = mediaX(e); x.kind = x.kind || 'book'; x.status = MEDIA_STATUS.includes(x.status) ? x.status : 'finished'; x.rating = +x.rating || 0; x.passages = Array.isArray(x.passages) ? x.passages : []; }); }
+function mediaStars(n, {click=false, id=''}={}){ return `<span class="stars ${click?'click':''}" ${click?`data-stars="${id}"`:''}>${[1,2,3,4,5].map(i=>`<i class="${i<=n?'on':''}" data-star="${i}">★</i>`).join('')}</span>`; }
+routes.commonplace = function(root, params){
+  registerPageEntry({pageName:'Commonplace Book', addLabel:'Log a work', defaultEntryType:'media', prefilledFields:{}, options:[
+    {icon:'📗', label:'Book', desc:'Something you are reading or have read.', run:()=>openMediaModal({kind:'book'})},
+    {icon:'🎞', label:'Film or series', desc:'Something you watched.', run:()=>openMediaModal({kind:'film'})},
+    {icon:'🎵', label:'Album or talk', desc:'Something you listened to.', run:()=>openMediaModal({kind:'album'})}]});
+  const all = mediaEntries();
+  const kind = S._mKind || 'all', status = S._mStatus || 'all', q = (S._mq||'').toLowerCase();
+  const list = all.filter(e => { const x = mediaX(e);
+      return (kind==='all' || x.kind===kind) && (status==='all' || x.status===status)
+        && (!q || `${e.title} ${x.creator||''} ${e.body||''} ${entryTags(e).join(' ')}`.toLowerCase().includes(q)); })
+    .sort((a,b) => (mediaX(b).finishedAt||b.occurredAt||'').localeCompare(mediaX(a).finishedAt||a.occurredAt||''));
+  const finished = all.filter(e => mediaX(e).status === 'finished');
+  const thisYear = finished.filter(e => (mediaX(e).finishedAt||e.occurredAt||'').slice(0,4) === String(new Date().getFullYear()));
+  const counts = {}; all.forEach(e => { const k = mediaX(e).kind; counts[k] = (counts[k]||0)+1; });
+  root.innerHTML = `<div class="page">
+    <div class="page-head"><h1>Commonplace Book</h1><div class="sub">Everything that went in, and what it did once it was there. A rating is the least interesting thing on this page.</div></div>
+
+    <div class="card rv" style="margin-bottom:20px"><div class="income-strip">
+      <div><div class="k">finished this year</div><div class="num" data-tween="${thisYear.length}">0</div><div class="mono">${finished.length} in all</div></div>
+      <div><div class="k">in progress</div><div class="num" data-tween="${all.filter(e=>mediaX(e).status==='reading').length}">0</div></div>
+      <div><div class="k">waiting</div><div class="num" data-tween="${all.filter(e=>mediaX(e).status==='wishlist').length}">0</div></div>
+      <div><div class="k">average rating</div><div class="num">${finished.filter(e=>mediaX(e).rating).length ? avg(finished.filter(e=>mediaX(e).rating).map(e=>mediaX(e).rating)).toFixed(1) : '—'}</div><div class="mono">of the rated ones</div></div>
+    </div></div>
+
+    <div class="row rv" style="gap:8px;flex-wrap:wrap;margin-bottom:14px">
+      <input class="inp" id="mq" placeholder="search title, maker, notes, tags" value="${esc(S._mq||'')}" style="flex:1;min-width:200px">
+      <select class="sel" id="mKind" style="width:auto"><option value="all">every kind</option>${Object.entries(MEDIA_KINDS).map(([k,v])=>`<option value="${k}" ${kind===k?'selected':''}>${v[0]} ${v[1]}${counts[k]?` (${counts[k]})`:''}</option>`).join('')}</select>
+      <select class="sel" id="mStatus" style="width:auto"><option value="all">any status</option>${MEDIA_STATUS.map(s=>`<option value="${s}" ${status===s?'selected':''}>${s}</option>`).join('')}</select>
+    </div>
+
+    <div class="shelf-grid rv">${list.length ? list.map(e => { const x = mediaX(e); const k = MEDIA_KINDS[x.kind] || MEDIA_KINDS.book;
+      return `<div class="work" data-mopen="${e.id}" style="--c:${k[2]}">
+        <div class="work-spine">${k[0]}</div>
+        <div class="work-body">
+          <div class="work-title">${esc(e.title||'Untitled')}</div>
+          <div class="mono work-maker">${esc(x.creator||'')}${x.year?` · ${esc(x.year)}`:''}</div>
+          <div class="row between" style="margin-top:6px"><span class="status-pill">${esc(x.status)}</span>${x.rating?mediaStars(x.rating):'<span class="faint mono">unrated</span>'}</div>
+          ${x.oneLine?`<div class="work-line">${esc(x.oneLine)}</div>`:''}
+          ${entryTags(e).length?tagChips(e):''}
+        </div></div>`; }).join('')
+      : `<div class="empty">Nothing logged yet. The first one can be whatever you happen to be in the middle of.</div>`}</div>
+
+    ${all.length ? `<section class="section rv"><span class="sc">What you keep coming back to</span>
+      <div class="tag-cloud" style="margin-top:10px">${allTags().filter(([t]) => mediaEntries().some(e=>entryTags(e).includes(t))).slice(0,24).map(([t,n])=>`<a class="tag" href="#/tag/${encodeURIComponent(t)}" style="--n:${Math.min(n,5)}">#${esc(t)}<span class="n">${n}</span></a>`).join('') || '<span class="faint">Tag a few works and the pattern shows up here.</span>'}</div></section>` : ''}
+  </div>`;
+  $('#mq').oninput = debounce(e => { S._mq = e.target.value; rerender(); const i = $('#mq'); if(i){ i.focus(); i.setSelectionRange(i.value.length,i.value.length); } }, 350);
+  $('#mKind').onchange = e => { S._mKind = e.target.value; rerender(); };
+  $('#mStatus').onchange = e => { S._mStatus = e.target.value; rerender(); };
+  $$('[data-mopen]',root).forEach(c => c.onclick = () => openMediaPanel(c.dataset.mopen));
+  if(params[0]) openMediaPanel(params[0]);
+};
+function openMediaModal(pre={}){
+  const kinds = Object.entries(MEDIA_KINDS);
+  const m = openModal(`<h2>Log a work</h2>
+    <div class="typerow" id="mkRow">${kinds.map(([k,v])=>`<button class="${(pre.kind||'book')===k?'on':''}" data-mk="${k}">${v[0]} ${v[1]}</button>`).join('')}</div>
+    <div class="stack">
+      <input class="inp serif-lg" id="mTitle" placeholder="Title" autofocus>
+      <div class="grid c3" style="gap:8px">
+        <input class="inp" id="mCreator" placeholder="Who made it">
+        <input class="inp" id="mYear" placeholder="Year">
+        <select class="sel" id="mStat">${MEDIA_STATUS.map(s=>`<option value="${s}" ${s==='reading'?'selected':''}>${s}</option>`).join('')}</select>
+      </div>
+      <div class="row" style="justify-content:flex-end"><button class="btn primary" id="mSave">Add to the shelf</button></div>
+    </div>`, 'narrow');
+  let kind = pre.kind || 'book';
+  m.querySelectorAll('[data-mk]').forEach(b => b.onclick = () => { kind = b.dataset.mk; m.querySelectorAll('[data-mk]').forEach(x=>x.classList.toggle('on', x===b)); });
+  m.querySelector('#mSave').onclick = () => {
+    const title = m.querySelector('#mTitle').value.trim(); if(!title){ toast('It needs a title, at least.'); return; }
+    const st = m.querySelector('#mStat').value;
+    const e = {id:uid(), type:'media', title, body:'', occurredAt:today(), createdAt:new Date().toISOString(), media:[], links:{stages:[],substages:[],threads:[],values:[],visions:[],skills:[],projects:[]}, people:[], places:[], emotions:[], tags:[], confidence:'',
+      extra:{kind, creator:m.querySelector('#mCreator').value.trim(), year:m.querySelector('#mYear').value.trim(), status:st, rating:0, passages:[], startedAt: st==='reading'?today():'', finishedAt: st==='finished'?today():'', oneLine:'', resonance:'', argued:'', steal:'', changed:''}};
+    S.entries.push(e); saveNow(); m.remove(); sound('success'); rerender(); openMediaPanel(e.id);
+  };
+}
+function openMediaPanel(id){
+  const e = byId(S.entries, id); if(!e || e.type !== 'media') return;
+  const x = mediaX(e); const k = MEDIA_KINDS[x.kind] || MEDIA_KINDS.book;
+  const p = openPanel(`<div class="mono">${k[0]} ${k[1].toLowerCase()} · ${esc(x.status)}</div>
+    <h2>${ed(`entries.#${e.id}.title`,{ph:'Title'})}</h2>
+    <div class="row" style="gap:14px;margin:6px 0 18px;flex-wrap:wrap">
+      <span class="mono">by</span><span style="flex:1;min-width:8em">${ed(`entries.#${e.id}.extra.creator`,{ph:'who made it'})}</span>
+      <span class="mono">year</span>${ed(`entries.#${e.id}.extra.year`,{ph:'—',cls:'mono'})}
+    </div>
+    <div class="row" style="gap:10px;flex-wrap:wrap;margin-bottom:18px">
+      <select class="sel" style="width:auto" id="mpStatus">${MEDIA_STATUS.map(s=>`<option value="${s}" ${x.status===s?'selected':''}>${s}</option>`).join('')}</select>
+      <select class="sel" style="width:auto" id="mpKind">${Object.entries(MEDIA_KINDS).map(([kk,v])=>`<option value="${kk}" ${x.kind===kk?'selected':''}>${v[0]} ${v[1]}</option>`).join('')}</select>
+      ${mediaStars(x.rating,{click:true,id:e.id})}
+    </div>
+    <div class="spec-grid" style="margin-bottom:18px">
+      <div><div class="k">started</div>${ed(`entries.#${e.id}.extra.startedAt`,{ph:'YYYY-MM-DD',cls:'mono'})}</div>
+      <div><div class="k">finished</div>${ed(`entries.#${e.id}.extra.finishedAt`,{ph:'YYYY-MM-DD',cls:'mono'})}</div>
+    </div>
+
+    ${MEDIA_PROMPTS.map(([key,label,hint]) => `<div class="vp-sec"><span class="sc">${label}</span><div class="faint" style="font-size:.78rem;margin:2px 0 6px">${hint}</div>${ed(`entries.#${e.id}.extra.${key}`,{multi:true,mdr:true,cls:'prose',ph:'…'})}</div>`).join('')}
+
+    <div class="vp-sec"><div class="row between"><span class="sc">Passages</span><button class="btn sm ghost" id="mpAddP">＋ passage</button></div>
+      <p class="faint" style="font-size:.78rem">The lines worth carrying out. Add where it came from so you can find it again.</p>
+      ${(x.passages||[]).map((_,i)=>`<div class="passage"><div class="passage-q">${ed(`entries.#${e.id}.extra.passages.${i}.text`,{multi:true,cls:'quote',ph:'the line itself'})}</div><div class="row between"><span class="mono">${ed(`entries.#${e.id}.extra.passages.${i}.where`,{ph:'page / chapter / timestamp',cls:'mono'})}</span><button class="del-x inline" data-pdel="${i}" title="delete passage">×</button></div><div class="passage-note">${ed(`entries.#${e.id}.extra.passages.${i}.note`,{multi:true,ph:'and what you make of it'})}</div></div>`).join('') || '<div class="empty">No passages yet.</div>'}</div>
+
+    <div class="vp-sec"><span class="sc">Hashtags</span><div class="faint" style="font-size:.78rem;margin-bottom:6px">The thread this work belongs to. The Writing room can pull every entry that shares a tag.</div>
+      <input class="inp mono" id="mpTags" value="${esc((e.tags||[]).map(t=>'#'+t).join(' '))}" placeholder="#kyoto #jazz #craft" list="tagList2"><datalist id="tagList2">${allTags().map(([t])=>`<option value="#${esc(t)}">`).join('')}</datalist></div>
+
+    <div class="vp-sec"><span class="sc">Loose notes</span>${ed(`entries.#${e.id}.body`,{multi:true,mdr:true,cls:'prose',ph:'Anything that does not fit the prompts above.'})}</div>
+
+    ${moreSection(`<div class="danger-zone"><span>This removes the work and everything you wrote about it.</span><button class="btn sm ghost danger" id="mpDel">Delete this entry</button></div>`)}`, 'media-panel');
+  const reopen = () => { rerender(); openMediaPanel(id); };
+  p.querySelector('#mpStatus').onchange = ev => { x.status = ev.target.value; if(x.status==='finished' && !x.finishedAt) x.finishedAt = today(); if(x.status==='reading' && !x.startedAt) x.startedAt = today(); saveNow(); reopen(); };
+  p.querySelector('#mpKind').onchange = ev => { x.kind = ev.target.value; saveNow(); reopen(); };
+  p.querySelectorAll('[data-stars] i').forEach(st => st.onclick = () => { x.rating = (+st.dataset.star === x.rating) ? 0 : +st.dataset.star; saveNow(); sound('click'); reopen(); });
+  p.querySelector('#mpAddP').onclick = () => { x.passages.push({text:'', where:'', note:''}); saveNow(); reopen(); setTimeout(()=>{ const n = document.querySelectorAll('#panel .passage-q .ed'); n.length && beginEdit(n[n.length-1]); },60); };
+  p.querySelectorAll('[data-pdel]').forEach(b => b.onclick = () => { const i = +b.dataset.pdel; requestDelete({label:'Passage', node:b.closest('.passage'), remove:()=>{ const gone = x.passages.splice(i,1)[0]; return () => x.passages.splice(i,0,gone); }, after:reopen}); });
+  const tagI = p.querySelector('#mpTags'); tagI.onchange = () => { e.tags = normTags(tagI.value.split(/[\s,]+/)); saveNow(); reopen(); };
+  p.querySelector('#mpDel').onclick = () => requestDelete({label:e.title||'this entry', remove:()=>spliceOut(S.entries, y=>y.id===e.id), after:()=>{ closePanel(); rerender(); }});
+}
+/* ============================================================
+   WRITING — a room for the long thought.
+   Set an intention, choose the hashtags it draws on, and the
+   entries carrying those tags line up beside the page as source
+   material. Pieces are entries of type `writing`.
+   ============================================================ */
+function writings(){ return S.entries.filter(e => e.type === 'writing').sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||'')); }
+function wordCount(s){ const t = (s||'').trim(); return t ? t.split(/\s+/).length : 0; }
+function newWriting(){
+  const e = {id:uid(), type:'writing', title:'', body:'', occurredAt:today(), createdAt:new Date().toISOString(), media:[],
+    links:{stages:[],substages:[],threads:[],values:[],visions:[],skills:[],projects:[]}, people:[], places:[], emotions:[], tags:[], confidence:'',
+    extra:{intention:'', sourceTags:[], wordTarget:0, status:'drafting'}};
+  S.entries.push(e); saveNow(); return e;
+}
+routes.writing = function(root, params){
+  registerPageEntry({pageName:'Writing', addLabel:'New piece', defaultEntryType:'writing', prefilledFields:{}, options:[
+    {icon:'✒', label:'New piece', desc:'Set an intention, then write.', run:()=>{ const e = newWriting(); location.hash = '#/writing/'+e.id; }}]});
+  if(params[0]) return renderWritingDesk(root, params[0]);
+  const ws = writings();
+  root.innerHTML = `<div class="page">
+    <div class="page-head"><h1>Writing</h1><div class="sub">Thinking that takes longer than a journal entry. Name the intention first; the room gathers what you have already written on the subject.</div></div>
+    ${ws.length ? `<div class="grid c2">${ws.map(e => { const x = e.extra||{}; const n = wordCount(e.body); return `<div class="card rv writing-card" data-wopen="${e.id}" style="cursor:pointer">
+        <div class="row between"><h3 style="margin:0">${esc(e.title || 'Untitled piece')}</h3><span class="status-pill">${esc(x.status||'drafting')}</span></div>
+        ${x.intention?`<div class="quote" style="font-size:.92rem;margin-top:6px">${esc(x.intention)}</div>`:''}
+        <div class="row between" style="margin-top:10px"><span class="mono">${n} word${n===1?'':'s'}${x.wordTarget?` of ${x.wordTarget}`:''}</span><span class="mono">${fmtDate((e.createdAt||'').slice(0,10),'med')}</span></div>
+        ${x.wordTarget?`<div class="bar" style="margin-top:6px"><i style="width:${clamp(n/x.wordTarget*100,0,100)}%"></i></div>`:''}
+        ${(x.sourceTags||[]).length?`<div class="tagrow">${x.sourceTags.map(t=>`<span class="tag">#${esc(t)}</span>`).join('')}</div>`:''}
+      </div>`; }).join('')}</div>`
+    : `<div class="empty rv">Nothing written here yet. A piece starts with one sentence about why you are writing it.</div>`}
+    <section class="section rv"><span class="sc">Threads you could pull on</span>
+      <p class="muted" style="font-size:.85rem">Your most-used hashtags. Each one is a pile of material already waiting.</p>
+      <div class="tag-cloud" style="margin-top:10px">${allTags().slice(0,26).map(([t,n])=>`<a class="tag" href="#/tag/${encodeURIComponent(t)}" style="--n:${Math.min(n,5)}">#${esc(t)}<span class="n">${n}</span></a>`).join('') || '<span class="faint">Tag some entries and they will collect here.</span>'}</div></section>
+  </div>`;
+  $$('[data-wopen]',root).forEach(c => c.onclick = () => { location.hash = '#/writing/'+c.dataset.wopen; });
+};
+function renderWritingDesk(root, id){
+  const e = byId(S.entries, id); if(!e){ navigate('#/writing'); return; }
+  const x = e.extra = e.extra || {}; x.sourceTags = normTags(x.sourceTags||[]);
+  const sources = x.sourceTags.length
+    ? sortEntries(S.entries.filter(y => y.id !== e.id && entryTags(y).some(t => x.sourceTags.includes(t))))
+    : [];
+  const n = wordCount(e.body); const focus = !!S._writeFocus;
+  root.innerHTML = `<div class="page ${focus?'write-focus':''}">
+    <div class="row between rv" style="margin-bottom:16px"><a class="btn sm ghost" href="#/writing">‹ all pieces</a>
+      <div class="row"><span class="mono">${n} word${n===1?'':'s'}${x.wordTarget?` · ${clamp(Math.round(n/x.wordTarget*100),0,999)}% of ${x.wordTarget}`:''}</span>
+        <select class="sel" style="width:auto" id="wStatus">${['drafting','resting','revising','finished'].map(s=>`<option ${x.status===s?'selected':''}>${s}</option>`).join('')}</select>
+        <button class="btn sm ${focus?'primary':'ghost'}" id="wFocus" title="hide everything but the page">${focus?'✓ focus':'focus'}</button></div></div>
+
+    <div class="writing-head rv">
+      <h1 class="write-title">${ed(`entries.#${e.id}.title`,{ph:'Title it later if you like'})}</h1>
+      <div class="field"><label>Intention — what am I trying to work out?</label>${ed(`entries.#${e.id}.extra.intention`,{multi:true,cls:'quote',ph:'One or two sentences. Not the topic — the question underneath it.'})}</div>
+      <div class="row" style="gap:10px;flex-wrap:wrap;align-items:flex-end">
+        <div class="field" style="flex:1;min-width:240px"><label>Draw on these hashtags</label>
+          <input class="inp mono" id="wTags" value="${esc(x.sourceTags.map(t=>'#'+t).join(' '))}" placeholder="#kyoto #jazz" list="wTagList"><datalist id="wTagList">${allTags().map(([t,c])=>`<option value="#${esc(t)}">${c}</option>`).join('')}</datalist></div>
+        <div class="field"><label>Word target</label><input class="inp mono" id="wTarget" type="number" min="0" step="100" value="${x.wordTarget||''}" placeholder="0" style="width:8em"></div>
+      </div>
+      ${allTags().length?`<div class="tag-cloud" style="margin-top:8px">${allTags().slice(0,18).map(([t,c])=>`<button class="tag ${x.sourceTags.includes(t)?'on':''}" data-wtag="${esc(t)}">#${esc(t)}<span class="n">${c}</span></button>`).join('')}</div>`:''}
+    </div>
+
+    <div class="write-layout">
+      <div class="write-page rv"><textarea class="ta write-area" id="wBody" placeholder="Begin anywhere. You can fix the beginning last.">${esc(e.body)}</textarea></div>
+      <aside class="write-rail rv">
+        <div class="sc">Source material</div>
+        <p class="faint" style="font-size:.76rem">${x.sourceTags.length ? `${sources.length} entr${sources.length===1?'y':'ies'} carrying ${x.sourceTags.map(t=>'#'+t).join(', ')}.` : 'Choose a hashtag above and everything you have written on it appears here.'}</p>
+        <div class="rail-list">${sources.slice(0,40).map(s=>`<div class="rail-item" data-railq="${s.id}">
+          <div class="mono">${typeIcon(s.type)} ${esc(fmtDate(s.occurredAt,'med'))}</div>
+          ${s.title?`<div class="rail-title">${esc(s.title)}</div>`:''}
+          <div class="rail-body">${esc((s.body||'').slice(0,260))}${(s.body||'').length>260?'…':''}</div>
+          <button class="tbtn" data-quote="${s.id}" title="quote this into the page">quote →</button>
+        </div>`).join('') || (x.sourceTags.length?'<div class="empty">Nothing carries those tags yet.</div>':'')}</div>
+      </aside>
+    </div>
+    ${moreSection(`<div class="danger-zone"><span>This deletes the piece and its text.</span><button class="btn sm ghost danger" id="wDel">Delete this piece</button></div>`)}
+  </div>`;
+  const ta = $('#wBody');
+  const grow = () => { ta.style.height = 'auto'; ta.style.height = Math.max(420, ta.scrollHeight) + 'px'; }; grow();
+  const save = debounce(() => { e.body = ta.value; e.updatedAt = new Date().toISOString(); saveNow(); const w = $('.row.between .mono'); if(w) w.textContent = `${wordCount(ta.value)} words${x.wordTarget?` · ${clamp(Math.round(wordCount(ta.value)/x.wordTarget*100),0,999)}% of ${x.wordTarget}`:''}`; }, 600);
+  ta.addEventListener('input', () => { grow(); save(); });
+  $('#wFocus').onclick = () => { S._writeFocus = !S._writeFocus; rerender(); setTimeout(()=>$('#wBody')?.focus(),60); };
+  $('#wStatus').onchange = ev => { x.status = ev.target.value; saveNow(); };
+  $('#wTarget').onchange = ev => { x.wordTarget = +ev.target.value || 0; saveNow(); rerender(); };
+  const tagI = $('#wTags'); tagI.onchange = () => { x.sourceTags = normTags(tagI.value.split(/[\s,]+/)); saveNow(); rerender(); };
+  $$('[data-wtag]',root).forEach(b => b.onclick = () => { const t = b.dataset.wtag; x.sourceTags = x.sourceTags.includes(t) ? x.sourceTags.filter(y=>y!==t) : [...x.sourceTags, t]; saveNow(); rerender(); });
+  $$('[data-quote]',root).forEach(b => b.onclick = ev => { ev.stopPropagation(); const s = byId(S.entries, b.dataset.quote); if(!s) return;
+    const block = `\n\n> ${(s.body||s.title||'').trim().replace(/\n/g,'\n> ')}\n> — ${s.title || typeName(s.type)}, ${fmtDate(s.occurredAt,'med')}\n\n`;
+    ta.value = ta.value + block; e.body = ta.value; saveNow(); grow(); sound('click'); toast('Quoted into the page.'); ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); });
+  $('#wDel').onclick = () => requestDelete({label:e.title||'this piece', remove:()=>spliceOut(S.entries, y=>y.id===e.id), after:()=>navigate('#/writing')});
+}
+/* ============================================================
    NAVIGATION — two zones (Present / Becoming) + standalone pages
    Rendered from S.settings.nav so the user can move pages between
    zones in Settings. Page content is untouched; routes are unchanged.
@@ -3402,21 +3964,29 @@ const NAV_ICONS = {
   timeline: '<svg viewBox="0 0 24 24"><path d="M7 3.5h10M7 20.5h10"/><path d="M8.5 3.5v2.8c0 2.3 3.5 3.6 3.5 5.7s-3.5 3.4-3.5 5.7v2.8M15.5 3.5v2.8c0 2.3-3.5 3.6-3.5 5.7s3.5 3.4 3.5 5.7v2.8"/></svg>',
   settings: '<svg viewBox="0 0 24 24"><path d="M4 7.5h9M17 7.5h3M4 16.5h3M11 16.5h9"/><circle cx="15" cy="7.5" r="2"/><circle cx="9" cy="16.5" r="2"/></svg>',
   more:     '<svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg>',
+  reviews:  '<svg viewBox="0 0 24 24"><path d="M12 4.5a7.5 7.5 0 1 1-7.3 9.2"/><path d="M4.5 8.2 4.7 13l4.6-1.1"/><path d="M12 8.5v4l2.8 1.6"/></svg>',
+  plan:     '<svg viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="14" rx="2.5"/><path d="M3.5 10h17M8.5 3.5v4M15.5 3.5v4"/><path d="M7.5 13.5h3M7.5 16.5h6"/></svg>',
+  writing:  '<svg viewBox="0 0 24 24"><path d="M4.5 19.5 5.7 15 16 4.7a2 2 0 0 1 2.8 2.8L8.5 17.8Z"/><path d="M14.2 6.5 17 9.3"/><path d="M4.5 21h15"/></svg>',
+  commonplace:'<svg viewBox="0 0 24 24"><path d="M5 4.5h9a2.5 2.5 0 0 1 2.5 2.5v12.5H7.5A2.5 2.5 0 0 1 5 17Z"/><path d="M16.5 7H19v12.5H7.5"/><path d="M8 8.5h5.5M8 11.5h5.5"/></svg>',
 };
 /* labels match the h1 of the page they open; `short` is for the mobile bar only */
 const NAV_PAGES = {
   today:    {label:'Today',            short:'Today',    ico:NAV_ICONS.today,    route:'#/today'},
   journals: {label:'Journals',         short:'Journal',  ico:NAV_ICONS.journals, route:'#/journals'},
-  projects: {label:'Creative Projects',short:'Projects', ico:NAV_ICONS.projects, route:'#/projects'},
-  rituals:  {label:'Rituals & Habits', short:'Rituals',  ico:NAV_ICONS.rituals,  route:'#/rituals'},
+  projects: {label:'Projects',         short:'Projects', ico:NAV_ICONS.projects, route:'#/projects'},
+  rituals:  {label:'Habits',           short:'Habits',   ico:NAV_ICONS.rituals,  route:'#/rituals'},
+  reviews:  {label:'Reviews',          short:'Reviews',  ico:NAV_ICONS.reviews,  route:'#/reviews'},
+  plan:     {label:'Plan',             short:'Plan',     ico:NAV_ICONS.plan,     route:'#/plan'},
+  writing:  {label:'Writing',          short:'Writing',  ico:NAV_ICONS.writing,  route:'#/writing'},
+  commonplace:{label:'Commonplace Book', short:'Media',  ico:NAV_ICONS.commonplace, route:'#/commonplace'},
   values:   {label:'Values',           short:'Values',   ico:NAV_ICONS.values,   route:'#/values'},
   skills:   {label:'Skill Tree',       short:'Skills',   ico:NAV_ICONS.skills,   route:'#/skills'},
   vision:   {label:'Vision Canvas',    short:'Vision',   ico:NAV_ICONS.vision,   route:'#/vision'},
   timeline: {label:'Timeline',         short:'Timeline', ico:NAV_ICONS.timeline, route:'#/timeline'},
 };
-const NAV_DEFAULT = { present:['today','journals','projects','rituals'], becoming:['values','skills','vision','timeline'], standalone:[] };
+const NAV_DEFAULT = { present:['today','plan','projects','rituals'], becoming:['values','skills','vision','timeline'], standalone:['journals','commonplace','writing','reviews'] };
 const NAV_ZONES = [ {id:'present', label:'Present', hint:'short-term, daily use', accent:'var(--sage)'}, {id:'becoming', label:'Becoming', hint:'identity, growth', accent:'var(--ment)'} ];
-const MOBILE_PRIMARY = ['today','journals','values','skills','vision'];
+const MOBILE_PRIMARY = ['today','plan','journals','projects','skills'];
 function navConfig(){ if(!S.settings.nav) S.settings.nav = JSON.parse(JSON.stringify(NAV_DEFAULT)); const n = S.settings.nav; ['present','becoming','standalone'].forEach(z => { n[z] = (n[z]||[]).filter(k => NAV_PAGES[k]); }); const placed = new Set([...n.present, ...n.becoming, ...n.standalone]); Object.keys(NAV_PAGES).forEach(k => { if(k !== 'home' && !placed.has(k)) n.standalone.push(k); }); ['present','becoming','standalone'].forEach(z => n[z] = n[z].filter(k => NAV_PAGES[k] && k !== 'home')); return n; }
 const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch(e){ return d; } };
 const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} };
@@ -3474,6 +4044,10 @@ function houseStats(){
     skills:   {line:`${hrs30.toFixed(0)}h / 30d${atro?` · ${atro} atrophying`:''}`, ok:atro===0, cadence:'monthly', tip:`${S.skills.filter(s=>!s.planned).length} skills held, ${S.skills.filter(s=>s.planned).length} planned${milestonesDueSoon(30).length?` · ${milestonesDueSoon(30).length} milestone${milestonesDueSoon(30).length>1?'s':''} within 30 days`:''}`},
     vision:   {line:`${vs.length} growing${wither?` · ${wither} withering`:''}`, ok:wither===0, cadence:'weekly', tip:vs.length?`Most vivid: ${[...vs].sort((a,b)=>b.score-a.score)[0].v.name}`:''},
     timeline: {line:`${memories} memories · ${S.stages.length} stages`, ok:true, cadence:'archival', tip:'The museum of the past. Formative events and the story you tell.'},
+    plan:     {line:`${tasksForDay(T).length} today · ${unscheduledTasks().length} waiting`, ok:true, cadence:'daily', tip:'Tomorrow and the week after it, one card at a time.'},
+    reviews:  {line:`weekly ${daysSince(S.reviews.lastWeekly)===Infinity?'never':daysSince(S.reviews.lastWeekly)+'d ago'}`, ok:daysSince(S.reviews.lastWeekly)<=7, cadence:'weekly', tip:'The rhythm above the daily one.'},
+    writing:  {line:`${S.entries.filter(e=>e.type==='writing').length} pieces`, ok:true, cadence:'weekly', tip:'A room for contemplation, fed by your own hashtags.'},
+    commonplace:{line:`${S.entries.filter(e=>e.type==='media').length} works logged`, ok:true, cadence:'archival', tip:'What you read, watched and listened to — and what it changed.'},
   };
   return {stat, due, done, vs, wither, last, snapDays, gaps, atro, hrs30, active, nods7, j7, quotes, memories, c, rem, zonesOf: k => n.present.includes(k)?'present':n.becoming.includes(k)?'becoming':'always'};
 }
@@ -3554,7 +4128,7 @@ function bindZoneEditor(root){
    ============================================================ */
 function openEntryModal({type='reflection', links={}, entryId=null, after=null, title='', occurredAt='', allowedTypes=null, heading='', openLinks=false}={}){
   const existing = entryId ? byId(S.entries, entryId) : null;
-  const e = existing ? JSON.parse(JSON.stringify(existing)) : {id:uid(),type,title,body:'',occurredAt:occurredAt||today(),createdAt:new Date().toISOString(),media:[],links:Object.assign({stages:[],substages:[],threads:[],values:[],visions:[],skills:[],projects:[]}, links),people:[],places:[],emotions:[],confidence:'',extra:{}};
+  const e = existing ? JSON.parse(JSON.stringify(existing)) : {id:uid(),type,title,body:'',occurredAt:occurredAt||today(),createdAt:new Date().toISOString(),media:[],links:Object.assign({stages:[],substages:[],threads:[],values:[],visions:[],skills:[],projects:[]}, links),people:[],places:[],emotions:[],tags:[],confidence:'',extra:{}};
   const types = (allowedTypes && !existing) ? ENTRY_TYPES.filter(([t]) => allowedTypes.includes(t)) : ENTRY_TYPES;
   const m = openModal(`<h2>${existing?'Edit entry':esc(heading || 'New '+typeName(e.type).toLowerCase())}</h2>
     <div class="typerow" id="typeRow" ${types.length<=1?'hidden':''}>${types.map(([t,n,i])=>`<button class="${e.type===t?'on':''}" data-t="${t}">${i} ${n}</button>`).join('')}</div>
@@ -3562,6 +4136,7 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
       <input class="inp serif-lg" id="eTitle" placeholder="Title (optional)" value="${esc(e.title)}">
       <textarea class="ta" id="eBody" placeholder="Body — markdown welcome. **bold**, *italic*, > quote, - list" style="min-height:120px">${esc(e.body)}</textarea>
       <div id="extraFields"></div>
+      <div class="field" id="tagField" ${TAGGABLE.includes(e.type)?'':'hidden'}><label>Hashtags — one thread through many entries</label><input class="inp mono" id="eTags" value="${esc((e.tags||[]).map(t=>'#'+t).join(' '))}" placeholder="#kyoto #jazz #beginnings" list="tagList"><datalist id="tagList">${allTags().map(([t,n])=>`<option value="#${esc(t)}">${n}</option>`).join('')}</datalist><div class="faint" style="font-size:.74rem">Typing #something in the body works too.</div></div>
       <div class="field"><label>Occurred at</label><input class="inp" id="eWhen" value="${esc(e.occurredAt)}" placeholder="2024-09-14 · or “Summer 2019” · or “age 15”"><div class="faint" style="font-size:.74rem">Exact dates sort precisely; approximate ones sort by year. Memories can be logged today about decades ago.</div></div>
       <div class="field"><label>Media</label><div class="dropzone" id="eDrop">drop images here, or click to choose</div><input type="file" id="eFile" accept="image/*" multiple hidden><div class="thumbs" id="eThumbs"></div></div>
       <details ${(openLinks || Object.values(e.links).some(a=>a.length))?'open':''}><summary><span class="sc">Connect this entry</span><span class="mono" id="linkCount"></span></summary><div class="body stack" style="gap:12px">
@@ -3595,7 +4170,7 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
     box.querySelectorAll('[data-vivid]').forEach(b => b.onclick = () => { x().vivid = +b.dataset.vivid; box.querySelectorAll('[data-vivid]').forEach(y=>y.classList.toggle('on', y===b)); });
   };
   renderExtra();
-  m.querySelectorAll('#typeRow button').forEach(b => b.onclick = () => { e.type = b.dataset.t; m.querySelectorAll('#typeRow button').forEach(y=>y.classList.toggle('on', y===b)); if(e.type==='nod'){ m.remove(); openNodModal(); return; } renderExtra(); });
+  m.querySelectorAll('#typeRow button').forEach(b => b.onclick = () => { e.type = b.dataset.t; m.querySelectorAll('#typeRow button').forEach(y=>y.classList.toggle('on', y===b)); if(e.type==='nod'){ m.remove(); openNodModal(); return; } renderExtra(); m.querySelector('#tagField').hidden = !TAGGABLE.includes(e.type); });
   const syncChips = () => { m.querySelectorAll('[data-lk]').forEach(c => { const k = c.dataset.lk, id = c.dataset.id; const arr = e.links[k]; const hit = arr.find(v => (typeof v==='string'?v:v.id)===id); c.classList.toggle('on', !!hit); if(k==='values') c.querySelector('.pol').textContent = hit ? hit.pol : ''; }); const n = Object.values(e.links).reduce((a,b)=>a+b.length,0); m.querySelector('#linkCount').textContent = n ? `${n} linked` : ''; m.querySelector('#linkNudge').textContent = n ? '' : 'Consider linking this to a stage, a value, or a vision — that is how the house connects.'; const subs = e.links.stages.flatMap(sid => (byId(S.stages,sid)?.substages||[]).map(ss=>({...ss, hue:byId(S.stages,sid).hue}))); m.querySelector('#subField').style.display = subs.length?'':'none'; m.querySelector('#subChips').innerHTML = subs.map(ss=>`<span class="chip click ${e.links.substages.includes(ss.id)?'on':''}" style="--c:${ss.hue}" data-sub="${ss.id}">${esc(ss.name)}</span>`).join(''); m.querySelectorAll('[data-sub]').forEach(c => c.onclick = () => { const id = c.dataset.sub; e.links.substages = e.links.substages.includes(id) ? e.links.substages.filter(y=>y!==id) : [...e.links.substages,id]; syncChips(); }); };
   m.querySelectorAll('[data-lk]').forEach(c => c.onclick = () => { const k = c.dataset.lk, id = c.dataset.id; const arr = e.links[k]; if(k==='values'){ const i = arr.findIndex(v=>v.id===id); if(i<0) arr.push({id,pol:'+'}); else if(arr[i].pol==='+') arr[i].pol='−'; else arr.splice(i,1); } else { const i = arr.indexOf(id); if(i<0) arr.push(id); else arr.splice(i,1); } syncChips(); });
   syncChips();
@@ -3606,6 +4181,7 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
     e.title = m.querySelector('#eTitle').value.trim(); e.body = m.querySelector('#eBody').value; e.occurredAt = m.querySelector('#eWhen').value.trim() || today();
     if(!e.title && !e.body){ toast('Write something first — even one line.'); return; }
     if(e.type==='quote' && !m.querySelector('[data-x=why]')?.value.trim()){ toast('“Why this caught me” is required for a quote.'); return; }
+    e.tags = normTags((m.querySelector('#eTags')?.value || '').split(/[\s,]+/));
     m.querySelectorAll('[data-x]').forEach(i => e.extra[i.dataset.x] = i.value);
     m.querySelectorAll('[data-xlist]').forEach(i => { const old = e.extra[i.dataset.xlist]||[]; e.extra[i.dataset.xlist] = i.value.split('\n').map(s=>s.trim()).filter(Boolean).map(t => old.find(o=>o.text===t) || {date:today(),text:t}); });
     if(e.type==='synchronicity') e.extra.revisit = !!m.querySelector('#xRevisit')?.classList.contains('on');
