@@ -52,7 +52,7 @@ function md(src){
 const KEY = 'lifeinstrument.v1';
 let S = null;
 /* persistence lives in db.js (Dexie schema + load/save/backup) */
-function migrate(){ if(S.settings && S.settings.home === 'map') S.settings.home = 'home'; if(typeof migrateEras === 'function') migrateEras(); const d = seed(); for(const k of Object.keys(d)) if(S[k]===undefined) S[k] = d[k]; if(typeof migrateLifeline === 'function') migrateLifeline(); if(typeof migrateSkillLevels === 'function') migrateSkillLevels(); if(typeof migrateProjects === 'function') migrateProjects(); }
+function migrate(){ if(S.settings && S.settings.home === 'map') S.settings.home = 'home'; if(typeof migrateEras === 'function') migrateEras(); const d = seed(); for(const k of Object.keys(d)) if(S[k]===undefined) S[k] = d[k]; if(typeof migrateLifeline === 'function') migrateLifeline(); if(typeof migrateSkillLevels === 'function') migrateSkillLevels(); if(typeof migrateProjects === 'function') migrateProjects(); if(typeof migrateStages === 'function') migrateStages(); }
 
 /* path access: "stages.#id.narrative" or "theatre.script" */
 function resolve(path){ const segs = path.split('.'); let o = S; for(let i=0;i<segs.length-1;i++){ o = step(o, segs[i]); if(o==null) return [null,null]; } return [o, segs[segs.length-1]]; }
@@ -118,7 +118,7 @@ function requestDelete({label='Entry', node=null, remove, after=null, skipConfir
     (after || rerender)();
     toast(`${esc(label)} deleted`, 5000, {label:'Undo', fn: () => { const p = pendingDeletes.get(id); if(!p) return; clearTimeout(p.timer); pendingDeletes.delete(id); p.restore(); saveNow(); rerender(); toast('Restored.'); }});
   });
-  skipConfirm ? run() : confirmDelete(label, run);
+  run(); // no confirmation step — the five-second Undo in the toast is the safety net
 }
 function flushPendingDeletes(){ if(!pendingDeletes.size) return; pendingDeletes.forEach(p => clearTimeout(p.timer)); pendingDeletes.clear(); saveNow(); }
 window.addEventListener('beforeunload', flushPendingDeletes);
@@ -167,7 +167,19 @@ function rerender(){ const y = window.scrollY; const main = $('#main'); const {n
 window.addEventListener('hashchange', () => { sound('page'); if(document.startViewTransition && !reduced() && document.visibilityState==='visible') document.startViewTransition(renderRoute); else renderRoute(); });
 
 /* ---------- side panel ---------- */
-function openPanel(html, cls=''){ closePanel({keep:true}); sound('open'); if(!history.state?.liPanel){ try { history.pushState({liPanel:true}, '', location.href); } catch(e){} } const ov = el(`<div class="panel-overlay" id="panelOv"></div>`); const p = el(`<div class="side-panel ${cls}" id="panel"><button class="close" title="close">×</button>${html}</div>`); document.body.appendChild(ov); document.body.appendChild(p); ov.onclick = closePanel; p.querySelector('.close').onclick = closePanel; tweenAll(p); return p; }
+function openPanel(html, cls=''){ closePanel({keep:true}); sound('open'); if(!history.state?.liPanel){ try { history.pushState({liPanel:true}, '', location.href); } catch(e){} } const ov = el(`<div class="panel-overlay" id="panelOv"></div>`); const p = el(`<div class="side-panel ${cls}" id="panel"><div class="panel-grip" title="drag to resize · double-click to reset"></div><button class="panel-wide" title="widen / narrow (focus)">⤢</button><button class="close" title="close">×</button>${html}</div>`); document.body.appendChild(ov); document.body.appendChild(p); ov.onclick = closePanel; p.querySelector('.close').onclick = closePanel; bindPanelResize(p); tweenAll(p); return p; }
+/* panel width: drag the left edge, persisted; ⤢ toggles a wide "focus" width */
+function panelWidthDefault(){ return 560; }
+function applyPanelWidth(p){ const wide = lsGet('panelWide', false); const w = wide ? Math.min(1180, innerWidth*.94) : clamp(lsGet('panelWidth', panelWidthDefault()), 380, innerWidth*.94); p.style.setProperty('--panel-w', Math.round(w)+'px'); p.classList.toggle('wide', !!wide); }
+function bindPanelResize(p){
+  applyPanelWidth(p); const grip = p.querySelector('.panel-grip'); const wideBtn = p.querySelector('.panel-wide'); let drag = null;
+  grip.addEventListener('pointerdown', e => { e.preventDefault(); drag = {x:e.clientX, w:p.getBoundingClientRect().width}; try { grip.setPointerCapture(e.pointerId); } catch(err){} document.body.classList.add('panel-resizing'); p.classList.add('resizing'); });
+  grip.addEventListener('pointermove', e => { if(!drag) return; const w = clamp(drag.w + (drag.x - e.clientX), 380, innerWidth*.94); p.style.setProperty('--panel-w', Math.round(w)+'px'); });
+  const end = () => { if(!drag) return; const w = Math.round(p.getBoundingClientRect().width); drag = null; document.body.classList.remove('panel-resizing'); p.classList.remove('resizing'); lsSet('panelWidth', w); lsSet('panelWide', false); p.classList.remove('wide'); };
+  grip.addEventListener('pointerup', end); grip.addEventListener('pointercancel', end);
+  grip.addEventListener('dblclick', () => { lsSet('panelWidth', panelWidthDefault()); lsSet('panelWide', false); applyPanelWidth(p); });
+  wideBtn.onclick = () => { lsSet('panelWide', !lsGet('panelWide', false)); applyPanelWidth(p); sound('click'); };
+}
 function closePanel({keep=false}={}){ const had = !!$('#panel'); $('#panelOv')?.remove(); $('#panel')?.remove(); if(had && !keep && history.state?.liPanel){ history.back(); } else updateBackButton(); }
 window.addEventListener('popstate', e => { if($('#panel') && !e.state?.liPanel) closePanel({keep:true}); updateBackButton(); });
 /* ---------- persistent Back button: history.back() only, never a link ---------- */

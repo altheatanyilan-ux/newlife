@@ -104,11 +104,24 @@ function openSearch(){
    ============================================================ */
 function startDust(){ const c = $('#dust'); if(!c || reduced()) return; const ctx = c.getContext('2d'); let ps = []; const resize = () => { c.width = innerWidth; c.height = innerHeight; }; resize(); window.addEventListener('resize', resize); for(let i=0;i<40;i++) ps.push({x:Math.random()*innerWidth, y:Math.random()*innerHeight, r:.6+Math.random()*1.6, vx:(Math.random()-.5)*.15, vy:-.05-Math.random()*.12, a:Math.random()*Math.PI*2});
   const tick = () => { const on = ['vision','home','skills'].includes(currentRoute); ctx.clearRect(0,0,c.width,c.height); if(on){ ctx.fillStyle = S.settings.theme==='dark' ? 'rgba(232,224,212,.05)' : 'rgba(120,90,60,.06)'; ps.forEach(p => { p.a += .01; p.x += p.vx + Math.sin(p.a)*.1; p.y += p.vy; if(p.y < -5){ p.y = innerHeight+5; p.x = Math.random()*innerWidth; } if(p.x<-5) p.x = innerWidth+5; if(p.x>innerWidth+5) p.x=-5; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); }); } requestAnimationFrame(tick); }; requestAnimationFrame(tick); }
+/* Shortcuts. Browsers reserve ⌘N / Ctrl+N (new window) and cannot be overridden, so
+   the app uses single keys when you are not typing: N new entry, / search, ← → stages, Esc close. */
+function isTyping(){ const a = document.activeElement; return !!a && (/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) || a.isContentEditable); }
 document.addEventListener('keydown', e => {
   const mod = e.metaKey || e.ctrlKey;
-  if(mod && e.key.toLowerCase()==='n'){ e.preventDefault(); toggleSpeedDialWithFilter(); }
-  if(mod && e.key.toLowerCase()==='k'){ e.preventDefault(); openSearch(); }
-  if(e.key==='Escape'){ if(document.activeElement?.closest?.('.ed')) return; closeModals(); }
+  if(mod && e.key.toLowerCase()==='k'){ e.preventDefault(); openSearch(); return; }
+  if(mod && e.key.toLowerCase()==='n'){ e.preventDefault(); toggleSpeedDialWithFilter(); return; } // honoured where the browser allows it (installed app)
+  if(e.key==='Escape'){
+    const a = document.activeElement; if(a?.closest?.('.ed')){ a.blur(); return; }
+    if($('#speedDial') && !$('#speedDial').hidden){ closeSpeedDial(); return; }
+    if($('#navOverlay')){ $('#navOverlay').remove(); return; }
+    if(a && /^(INPUT|TEXTAREA)$/.test(a.tagName) && !a.closest('.modal,.overlay,.side-panel,.palette')){ a.blur(); return; }
+    closeModals(); return;
+  }
+  if(mod || e.altKey || isTyping() || $('#modals .overlay') || $('#panel')) return;
+  if(e.key==='n' || e.key==='N'){ e.preventDefault(); toggleSpeedDialWithFilter(); }
+  else if(e.key==='/'){ e.preventDefault(); openSearch(); }
+  else if(e.key==='ArrowLeft' || e.key==='ArrowRight'){ if(typeof stepTimeline === 'function' && stepTimeline(e.key==='ArrowRight' ? 1 : -1)) e.preventDefault(); }
 });
 async function init(){
   await load(); applyTheme();
@@ -117,7 +130,7 @@ async function init(){
   $('#btnSound').onclick = () => SoundManager.toggleSound(); $('#btnAmbient').onclick = () => SoundManager.toggleAmbient(); syncSoundButtons();
   $('#btnSearch').onclick = openSearch; $('#fab').onclick = e => { e.stopPropagation(); toggleSpeedDial(); };
   renderNav();
-  if(navigator.platform.toUpperCase().indexOf('MAC')<0){ $$('kbd').forEach(k => k.textContent = k.textContent.replace('⌘','Ctrl+')); $('.fab .hint').textContent = 'new entry · Ctrl+N'; }
+  if(navigator.platform.toUpperCase().indexOf('MAC')<0){ $$('kbd').forEach(k => k.textContent = k.textContent.replace('⌘','Ctrl+')); }
   if(!location.hash) location.hash = '#/' + homeRoute();
   renderRoute(); startDust(); updateBackButton();
   window.addEventListener('beforeunload', () => { if(saving || savePending) saveNow(); });

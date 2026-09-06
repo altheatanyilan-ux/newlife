@@ -3,24 +3,38 @@
    Rendered from S.settings.nav so the user can move pages between
    zones in Settings. Page content is untouched; routes are unchanged.
    ============================================================ */
-const NAV_PAGES = {
-  today:    {label:'Today',       ico:'🏠', route:'#/today'},
-  journals: {label:'Journal',     ico:'📖', route:'#/journals'},
-  projects: {label:'Projects',    ico:'🎨', route:'#/projects'},
-  rituals:  {label:'Rituals',     ico:'✨', route:'#/rituals'},
-  values:   {label:'Compass',     ico:'🧭', route:'#/values'},
-  skills:   {label:'Skill Tree',  ico:'🛠', route:'#/skills'},
-  vision:   {label:'Vision Tree', ico:'🌳', route:'#/vision'},
-  timeline: {label:'Memory',      ico:'⏳', route:'#/timeline'},
-  library:  {label:'Library',     ico:'📚', route:'#/journals/quote'},
+/* thin line icons, 24×24, drawn in currentColor */
+const NAV_ICONS = {
+  home:     '<svg viewBox="0 0 24 24"><path d="M4 11.5 12 5l8 6.5"/><path d="M6.5 10.5V19h11v-8.5"/><path d="M10.5 19v-4.5h3V19"/></svg>',
+  today:    '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4"/></svg>',
+  journals: '<svg viewBox="0 0 24 24"><path d="M12 6.5c-1.6-1.4-3.8-1.8-7-1.5v13c3.2-.3 5.4.1 7 1.5 1.6-1.4 3.8-1.8 7-1.5V5c-3.2-.3-5.4.1-7 1.5Z"/><path d="M12 6.5v13"/></svg>',
+  projects: '<svg viewBox="0 0 24 24"><path d="M19 4.5c-3.5 1-8.5 5-10.5 9.5"/><path d="M8.5 14c1.8-.4 3.2.9 3 2.7-.2 1.9-2 3-4.5 2.8-1.2-.1-2.2-.6-3-1.4 1.1-.3 1.7-1 1.8-2 .2-1.3 1.1-2 2.7-2.1Z"/></svg>',
+  rituals:  '<svg viewBox="0 0 24 24"><path d="M12 3.5c1.4 2.2 4.5 4.6 4.5 8.4a4.5 4.5 0 0 1-9 0c0-1.6.6-2.9 1.4-4 .3 1 .9 1.8 1.6 2.2.6-2.6.4-4.8 1.5-6.6Z"/><path d="M7 20.5h10"/></svg>',
+  values:   '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="m15.5 8.5-2.2 5.2-4.8 1.8 2.2-5.2z"/><path d="M12 3.5v1.5M12 19v1.5M3.5 12H5M19 12h1.5"/></svg>',
+  skills:   '<svg viewBox="0 0 24 24"><path d="M12 20.5V9"/><path d="M12 13c-2.8 0-4.6-1.6-5-4 2.8-.2 4.6 1.2 5 4Z"/><path d="M12 10c.4-2.8 2.2-4.2 5-4-.4 2.4-2.2 4-5 4Z"/><path d="M12 16.5c-2.2 0-3.8-1.2-4.2-3.3 2.2-.2 3.8.9 4.2 3.3Z"/></svg>',
+  vision:   '<svg viewBox="0 0 24 24"><path d="M12 21v-6"/><path d="M12 15c-3.9 0-6.5-2.3-6.5-5.4 0-1.6.8-3 2.1-3.8C8 3.6 9.8 2.5 12 2.5s4 1.1 4.4 3.3c1.3.8 2.1 2.2 2.1 3.8 0 3.1-2.6 5.4-6.5 5.4Z"/></svg>',
+  timeline: '<svg viewBox="0 0 24 24"><path d="M7 3.5h10M7 20.5h10"/><path d="M8.5 3.5v2.8c0 2.3 3.5 3.6 3.5 5.7s-3.5 3.4-3.5 5.7v2.8M15.5 3.5v2.8c0 2.3-3.5 3.6-3.5 5.7s3.5 3.4 3.5 5.7v2.8"/></svg>',
+  settings: '<svg viewBox="0 0 24 24"><path d="M4 7.5h9M17 7.5h3M4 16.5h3M11 16.5h9"/><circle cx="15" cy="7.5" r="2"/><circle cx="9" cy="16.5" r="2"/></svg>',
+  more:     '<svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg>',
 };
-const NAV_DEFAULT = { present:['today','journals','projects','rituals'], becoming:['values','skills','vision','timeline'], standalone:['library'] };
+/* labels match the h1 of the page they open; `short` is for the mobile bar only */
+const NAV_PAGES = {
+  today:    {label:'Today',            short:'Today',    ico:NAV_ICONS.today,    route:'#/today'},
+  journals: {label:'Commonplace Book', short:'Book',     ico:NAV_ICONS.journals, route:'#/journals'},
+  projects: {label:'Creative Projects',short:'Projects', ico:NAV_ICONS.projects, route:'#/projects'},
+  rituals:  {label:'Rituals & Habits', short:'Rituals',  ico:NAV_ICONS.rituals,  route:'#/rituals'},
+  values:   {label:'Values',           short:'Values',   ico:NAV_ICONS.values,   route:'#/values'},
+  skills:   {label:'Skill Tree',       short:'Skills',   ico:NAV_ICONS.skills,   route:'#/skills'},
+  vision:   {label:'Vision Tree',      short:'Vision',   ico:NAV_ICONS.vision,   route:'#/vision'},
+  timeline: {label:'Timeline',         short:'Timeline', ico:NAV_ICONS.timeline, route:'#/timeline'},
+};
+const NAV_DEFAULT = { present:['today','journals','projects','rituals'], becoming:['values','skills','vision','timeline'], standalone:[] };
 const NAV_ZONES = [ {id:'present', label:'Present', hint:'short-term, daily use', accent:'var(--sage)'}, {id:'becoming', label:'Becoming', hint:'identity, growth', accent:'var(--ment)'} ];
 const MOBILE_PRIMARY = ['today','journals','values','skills','vision'];
-function navConfig(){ if(!S.settings.nav) S.settings.nav = JSON.parse(JSON.stringify(NAV_DEFAULT)); const n = S.settings.nav; const placed = new Set([...n.present, ...n.becoming, ...n.standalone]); Object.keys(NAV_PAGES).forEach(k => { if(k !== 'home' && !placed.has(k)) n.standalone.push(k); }); ['present','becoming','standalone'].forEach(z => n[z] = n[z].filter(k => NAV_PAGES[k] && k !== 'home')); return n; }
+function navConfig(){ if(!S.settings.nav) S.settings.nav = JSON.parse(JSON.stringify(NAV_DEFAULT)); const n = S.settings.nav; ['present','becoming','standalone'].forEach(z => { n[z] = (n[z]||[]).filter(k => NAV_PAGES[k]); }); const placed = new Set([...n.present, ...n.becoming, ...n.standalone]); Object.keys(NAV_PAGES).forEach(k => { if(k !== 'home' && !placed.has(k)) n.standalone.push(k); }); ['present','becoming','standalone'].forEach(z => n[z] = n[z].filter(k => NAV_PAGES[k] && k !== 'home')); return n; }
 const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch(e){ return d; } };
 const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} };
-function activePageKey(){ const {name, params} = parseHash(); if(name === 'journals' && params[0] === 'quote') return 'library'; return {stage:'timeline', value:'values', home:'home'}[name] || name; }
+function activePageKey(){ const {name} = parseHash(); return {stage:'timeline', value:'values', home:'home'}[name] || name; }
 function navLink(key, zoneAccent){ const p = NAV_PAGES[key]; return `<a href="${p.route}" data-page="${key}" data-tip="${esc(p.label)}" style="--z:${zoneAccent||'var(--terra)'}"><span class="ico">${p.ico}</span><span class="lbl">${esc(p.label)}</span></a>`; }
 function renderNav(){
   const n = navConfig(); const collapsedZones = lsGet('navZoneCollapsed', {}); const sbCollapsed = lsGet('sidebarCollapsed', false);
@@ -33,12 +47,12 @@ function renderNav(){
       <div class="nav-sep"></div>
       ${n.standalone.map(k => navLink(k, 'var(--terra)')).join('')}
     </nav>
-    <nav class="nav settings-link"><a href="#/settings" data-page="settings" data-tip="Settings" style="--z:var(--terra)"><span class="ico">⚙</span><span class="lbl">Settings</span></a></nav>`;
+    <nav class="nav settings-link"><a href="#/settings" data-page="settings" data-tip="Settings" style="--z:var(--terra)"><span class="ico">${NAV_ICONS.settings}</span><span class="lbl">Settings</span></a></nav>`;
   sb.querySelector('#sbToggle').onclick = () => { lsSet('sidebarCollapsed', !lsGet('sidebarCollapsed', false)); renderNav(); };
   sb.querySelectorAll('[data-zoneh]').forEach(b => b.onclick = () => { const c = lsGet('navZoneCollapsed', {}); c[b.dataset.zoneh] = !c[b.dataset.zoneh]; lsSet('navZoneCollapsed', c); renderNav(); });
   // mobile bottom bar
   let mb = $('#mobileNav'); if(!mb){ mb = el('<nav class="mobile-nav" id="mobileNav"></nav>'); document.body.appendChild(mb); }
-  mb.innerHTML = MOBILE_PRIMARY.map(k => { const p = NAV_PAGES[k]; return `<a href="${p.route}" data-page="${k}"><span class="ico">${p.ico}</span><span class="lbl">${esc(p.label)}</span></a>`; }).join('') + `<button id="mobileMore" data-page="more"><span class="ico">⋯</span><span class="lbl">More</span></button>`;
+  mb.innerHTML = MOBILE_PRIMARY.map(k => { const p = NAV_PAGES[k]; return `<a href="${p.route}" data-page="${k}"><span class="ico">${p.ico}</span><span class="lbl">${esc(p.short||p.label)}</span></a>`; }).join('') + `<button id="mobileMore" data-page="more"><span class="ico">${NAV_ICONS.more}</span><span class="lbl">More</span></button>`;
   mb.querySelector('#mobileMore').onclick = openNavOverlay;
   markActiveNav();
 }
@@ -48,11 +62,11 @@ function openNavOverlay(){
   const ov = el(`<div class="nav-overlay" id="navOverlay"><button class="close" aria-label="close">×</button><div class="nav-overlay-inner">
     <a href="#/home" class="ov-link ${key==='home'?'active':''}" style="--z:var(--terra)"><span class="ico">${NAV_PAGES.home?.ico||'⌂'}</span>Home</a>
     ${NAV_ZONES.map(z => `<div class="ov-zone" style="--z:${z.accent}"><div class="ov-zone-h">${esc(z.label)} <span class="mono">${esc(z.hint)}</span></div>${n[z.id].map(k => `<a href="${NAV_PAGES[k].route}" class="ov-link ${key===k?'active':''}"><span class="ico">${NAV_PAGES[k].ico}</span>${esc(NAV_PAGES[k].label)}</a>`).join('')}</div>`).join('')}
-    <div class="ov-zone" style="--z:var(--terra)"><div class="ov-zone-h">Always</div>${n.standalone.map(k => `<a href="${NAV_PAGES[k].route}" class="ov-link ${key===k?'active':''}"><span class="ico">${NAV_PAGES[k].ico}</span>${esc(NAV_PAGES[k].label)}</a>`).join('')}<a href="#/settings" class="ov-link ${key==='settings'?'active':''}"><span class="ico">⚙</span>Settings</a></div>
+    <div class="ov-zone" style="--z:var(--terra)"><div class="ov-zone-h">Always</div>${n.standalone.map(k => `<a href="${NAV_PAGES[k].route}" class="ov-link ${key===k?'active':''}"><span class="ico">${NAV_PAGES[k].ico}</span>${esc(NAV_PAGES[k].label)}</a>`).join('')}<a href="#/settings" class="ov-link ${key==='settings'?'active':''}"><span class="ico">${NAV_ICONS.settings}</span>Settings</a></div>
   </div></div>`);
   document.body.appendChild(ov); ov.querySelector('.close').onclick = () => ov.remove(); ov.querySelectorAll('a').forEach(a => a.addEventListener('click', () => ov.remove()));
 }
-NAV_PAGES.home = {label:'Home', ico:'⌂', route:'#/home'};
+NAV_PAGES.home = {label:'Home', short:'Home', ico:NAV_ICONS.home, route:'#/home'};
 
 /* ---------- Home: life at a glance — today's focus, the living house, long-term panels ---------- */
 const HOUSE_EDGES = [['vision','skills','visions require skills; skills serve visions'],['vision','values','visions serve values; unserved values are blind spots'],['timeline','values','retrospective readings fill the values history'],['timeline','vision','formative events inform what you now want'],['projects','skills','projects exercise skills'],['projects','vision','income streams advance financial visions'],['journals','timeline','memories become formative events'],['journals','vision','entries grow leaves'],['rituals','today','rituals fill today\'s rings'],['today','vision','signals surface neglected visions'],['today','values','the biggest values gap is a daily signal'],['library','journals','quotes are journal entries with a source']];
@@ -74,7 +88,6 @@ function houseStats(){
     skills:   {line:`${hrs30.toFixed(0)}h / 30d${atro?` · ${atro} atrophying`:''}`, ok:atro===0, cadence:'monthly', tip:`${S.skills.filter(s=>!s.planned).length} skills held, ${S.skills.filter(s=>s.planned).length} planned${milestonesDueSoon(30).length?` · ${milestonesDueSoon(30).length} milestone${milestonesDueSoon(30).length>1?'s':''} within 30 days`:''}`},
     vision:   {line:`${vs.length} growing${wither?` · ${wither} withering`:''}`, ok:wither===0, cadence:'weekly', tip:vs.length?`Most vivid: ${[...vs].sort((a,b)=>b.score-a.score)[0].v.name}`:''},
     timeline: {line:`${memories} memories · ${S.stages.length} stages`, ok:true, cadence:'archival', tip:'The museum of the past. Formative events and the story you tell.'},
-    library:  {line:`${quotes} quotes`, ok:true, cadence:'archival', tip:'Quotes and marginalia; why each one caught you.'},
   };
   return {stat, due, done, vs, wither, last, snapDays, gaps, atro, hrs30, active, nods7, j7, quotes, memories, c, rem, zonesOf: k => n.present.includes(k)?'present':n.becoming.includes(k)?'becoming':'always'};
 }

@@ -44,11 +44,11 @@ function deleteStage(st, node, after){
   }});
 }
 routes.timeline = function(root, params){
-  registerPageEntry({pageName:'Memory', addLabel:'New memory', defaultEntryType:'memory', prefilledFields:{}, hint:'Open a stage to file it there directly.', options:[{label:'New memory', run:()=>EntryActions.memory()}]});
+  registerPageEntry({pageName:'Timeline', addLabel:'New memory', defaultEntryType:'memory', prefilledFields:{}, hint:'Open a stage to file it there directly.', options:[{label:'New memory', run:()=>EntryActions.memory()}]});
   const tab = params[0]==='threads' ? 'threads' : 'stages';
   const counts = S.stages.map(s=>stageEntries(s).length); const maxc = Math.max(...counts,1);
   root.innerHTML = `<div class="page">
-    <div class="page-head tl-head"><div><h1>Timeline</h1><div class="sub">Eight rooms. The story you tell about each one changes — and that change is the insight.</div></div>
+    <div class="page-head tl-head"><div><h1>Timeline</h1><div class="sub">${S.stages.length} rooms. The story you tell about each one changes — and that change is the insight.</div></div>
       <div class="row">
         <label class="toggle ${S.settings.feltTime?'on':''}" id="feltToggle"><span>clock time</span><span class="sw"></span><span>felt time</span></label>
         <label class="toggle ${S.settings.ribbons?'on':''}" id="ribToggle"><span class="sw"></span><span>threads</span></label>
@@ -56,22 +56,24 @@ routes.timeline = function(root, params){
     <div class="tabs"><button class="${tab==='stages'?'active':''}" data-go="#/timeline">Stages</button><button class="${tab==='threads'?'active':''}" data-go="#/timeline/threads">Threads &amp; Tensions</button></div>
     <div class="spine-wrap"><div class="spine" id="spine">
       <svg class="curve" viewBox="0 0 1000 120" preserveAspectRatio="none"><path d="M0,60 C250,20 750,100 1000,60" fill="none" stroke="var(--line-2)" stroke-width="1.5"/></svg>
-      ${S.stages.map((s,i)=>`<div class="tile ${s.num===8?'notyet':''}" data-stage="${s.id}" style="--c:${s.hue};${S.settings.feltTime?`flex:${(.6 + counts[i]/maxc*1.4).toFixed(2)} 1 0`:''}" tabindex="0">
+      ${S.stages.map((s,i)=>`<div class="tile ${s.notyet?'notyet':''}" data-stage="${s.id}" style="--c:${s.hue};${S.settings.feltTime?`flex:${(.6 + counts[i]/maxc*1.4).toFixed(2)} 1 0`:''}" tabindex="0">
         <div class="glow"></div><div class="bg">${mosaicHTML(s,9)}</div><div class="veil"></div>
         <div class="fg"><div class="han">${s.char}</div><div class="nm">${esc(s.name)}</div><div class="tg">${esc(s.tagline)}</div><div class="yr">${esc(s.years)} · ${counts[i]} entries</div></div>
       </div>`).join('')}
+      <div class="tile add-stage" id="addStage" tabindex="0" title="Add a life stage"><div class="fg"><div class="han">＋</div><div class="nm">add a stage</div><div class="tg">a chapter that spans years</div></div></div>
     </div></div>
     <div class="tendril"><span>the seam between the past and the</span><span class="line"></span><a href="#/vision" style="color:var(--terra);text-decoration:none">Vision Tree →</a></div>
     <div class="ribbons" id="ribbons" ${S.settings.ribbons?'':'hidden'}></div><div class="ribbon-tip" id="ribTip"></div>
     <div id="tlBody"></div>
   </div>`;
+  $('#addStage').onclick = () => createStage(); $('#addStage').onkeydown = e => { if(e.key==='Enter') createStage(); };
   const spine = $('#spine');
   spine.addEventListener('mouseover', e => { if(e.target.closest('.tile')) spine.classList.add('hovering'); });
   spine.addEventListener('mouseleave', () => spine.classList.remove('hovering'));
-  $$('.tile', root).forEach(t => { const go = () => { t.querySelector('.han').style.viewTransitionName = 'stage-char'; t.querySelector('.bg').style.viewTransitionName = 'stage-mosaic'; S._lastStage = t.dataset.stage; navigate('#/stage/'+t.dataset.stage); }; t.onclick = go; t.onkeydown = e => { if(e.key==='Enter') go(); }; });
+  $$('.tile[data-stage]', root).forEach(t => { const go = () => { t.querySelector('.han').style.viewTransitionName = 'stage-char'; t.querySelector('.bg').style.viewTransitionName = 'stage-mosaic'; S._lastStage = t.dataset.stage; navigate('#/stage/'+t.dataset.stage); }; t.onclick = go; t.onkeydown = e => { if(e.key==='Enter') go(); }; });
   if(S._lastStage){ const t = root.querySelector(`.tile[data-stage="${S._lastStage}"]`); if(t){ t.querySelector('.han').style.viewTransitionName='stage-char'; t.querySelector('.bg').style.viewTransitionName='stage-mosaic'; } }
   const wrap = $('.spine-wrap', root); wrap.addEventListener('wheel', e => { if(Math.abs(e.deltaY) > Math.abs(e.deltaX) && wrap.scrollWidth > wrap.clientWidth){ wrap.scrollLeft += e.deltaY; e.preventDefault(); } }, {passive:false});
-  $('#feltToggle').onclick = () => { S.settings.feltTime = !S.settings.feltTime; saveNow(); $('#feltToggle').classList.toggle('on', S.settings.feltTime); $$('.tile',root).forEach((t,i)=> t.style.flex = S.settings.feltTime ? `${(.6 + counts[i]/maxc*1.4).toFixed(2)} 1 0` : ''); drawRibbons(); };
+  $('#feltToggle').onclick = () => { S.settings.feltTime = !S.settings.feltTime; saveNow(); $('#feltToggle').classList.toggle('on', S.settings.feltTime); $$('.tile[data-stage]',root).forEach((t,i)=> t.style.flex = S.settings.feltTime ? `${(.6 + counts[i]/maxc*1.4).toFixed(2)} 1 0` : ''); drawRibbons(); };
   $('#ribToggle').onclick = () => { S.settings.ribbons = !S.settings.ribbons; saveNow(); $('#ribToggle').classList.toggle('on', S.settings.ribbons); $('#ribbons').hidden = !S.settings.ribbons; drawRibbons(); };
   function drawRibbons(){ const r = $('#ribbons'); if(!r || r.hidden) return; const w = r.clientWidth || 1000; r.innerHTML = ribbonsSVG(w); r.querySelectorAll('[data-thread]').forEach(p => { p.onmouseenter = e => { r.classList.add('hov'); r.querySelectorAll(`[data-thread="${p.dataset.thread}"]`).forEach(x=>x.classList.add('hot')); const t = byId(S.threads,p.dataset.thread); const cs = threadStageCounts(t); $('#ribTip').style.display='block'; $('#ribTip').innerHTML = `<b style="color:${t.color}">${esc(t.name)}</b> · ${t.status}<br><span class="mono">${S.stages.map((s,i)=>`${s.char}${cs[i]}`).join(' ')}</span>`; }; p.onmousemove = e => { const tip = $('#ribTip'); const rect = r.getBoundingClientRect(); tip.style.left = (e.clientX-rect.left+14)+'px'; tip.style.top = (e.clientY-rect.top-10)+'px'; }; p.onmouseleave = () => { r.classList.remove('hov'); r.querySelectorAll('.hot').forEach(x=>x.classList.remove('hot')); $('#ribTip').style.display='none'; }; p.onclick = () => openThreadNarrative(p.dataset.thread); }); }
   drawRibbons(); window.addEventListener('resize', debounce(drawRibbons, 200), {once:true});
@@ -79,7 +81,6 @@ routes.timeline = function(root, params){
   if(tab==='threads') renderThreadsTab(body); else body.innerHTML = `<div class="section rv" style="max-width:var(--content)"><span class="sc">How to read this room</span><p class="muted">Hover a stage to feel it come forward. Click to walk in. The coloured ribbons beneath are your Threads — recurring motifs that run through many stages, thickening where they had many entries and thinning where they went quiet. Active threads continue, dashed, toward the Vision Tree. Toggle <em>felt time</em> to let dense stages stretch and thin ones compress.</p></div>`;
   reveal(body);
 };
-document.addEventListener('keydown', e => { if(currentRoute!=='timeline' || e.target.matches('input,textarea')) return; if(e.key==='ArrowRight'||e.key==='ArrowLeft'){ const tiles = $$('.tile'); const cur = tiles.indexOf(document.activeElement); const nxt = e.key==='ArrowRight' ? Math.min(tiles.length-1, cur+1) : Math.max(0, cur-1); tiles[nxt]?.focus(); tiles[nxt]?.scrollIntoView({inline:'center',block:'nearest',behavior:'smooth'}); } });
 
 function renderThreadsTab(body){
   body.innerHTML = `<div class="grid c2" style="margin-top:24px;align-items:start">
@@ -123,7 +124,7 @@ hooks.stageNarrative = (sid, oldV, newV) => { const s = byId(S.stages,sid); if(!
 routes.stage = function(root, params){
   const s = byId(S.stages, params[0]); if(!s){ navigate('#/timeline'); return; }
   S._lastStage = s.id;
-  registerPageEntry({pageName:'Memory', addLabel:`New memory in ${s.name}`, defaultEntryType:'memory', prefilledFields:{links:{stages:[s.id]}}, options:[{label:'New memory', run:(pre)=>EntryActions.memory(pre)}]});
+  registerPageEntry({pageName:'Timeline', addLabel:`New memory in ${s.name}`, defaultEntryType:'memory', prefilledFields:{links:{stages:[s.id]}}, options:[{label:'New memory', run:(pre)=>EntryActions.memory(pre)}]});
   const es = sortEntries(stageEntries(s)); const memories = es.filter(e=>e.type==='memory');
   const threadsHere = S.threads.filter(t => es.some(e=>(e.links?.threads||[]).includes(t.id)));
   const cur = latestSnapshot()?.ratings || {};
@@ -131,7 +132,7 @@ routes.stage = function(root, params){
   root.innerHTML = `<div class="page" style="--c:${s.hue}">
     <div class="stage-hero" style="margin-top:34px"><div class="mosaic" style="view-transition-name:stage-mosaic">${mosaicHTML(s,18,true)}</div><div class="veil"></div>
       <button class="btn sm addphoto" id="addPhotos">+ photos</button><input type="file" id="photoFile" accept="image/*" multiple hidden>
-      <div class="inner"><div class="han" style="view-transition-name:stage-char">${s.char}</div><div class="meta"><div class="mono" style="margin-bottom:6px">stage ${s.num} of 8</div><h1>${ed(`stages.#${s.id}.name`)}</h1><div class="quote" style="margin-top:8px">${ed(`stages.#${s.id}.tagline`,{ph:'a tagline'})}</div><div class="mono" style="margin-top:8px">${ed(`stages.#${s.id}.years`,{ph:'years'})}</div></div></div>
+      <div class="inner"><div class="han" style="view-transition-name:stage-char">${s.char}</div><div class="meta"><div class="mono" style="margin-bottom:6px">stage ${s.num} of ${S.stages.length}</div><h1>${ed(`stages.#${s.id}.name`)}</h1><div class="quote" style="margin-top:8px">${ed(`stages.#${s.id}.tagline`,{ph:'a tagline'})}</div><div class="mono" style="margin-top:8px">${ed(`stages.#${s.id}.years`,{ph:'years'})}</div></div></div>
     </div>
     ${s.photos?.length?`<div class="gallery rv" style="margin:-16px 0 30px">${s.photos.map((p,i)=>photoTile(p,`stages.#${s.id}.photos.${i}`)).join('')}</div>`:''}
 
@@ -204,3 +205,21 @@ routes.stage = function(root, params){
   $$('[data-artdel]',root).forEach(b => b.onclick = () => { const a = s.artifacts[+b.dataset.artdel]; requestDelete({label: a.caption || 'Artifact', node: b.closest('.artifact'), remove: () => spliceOut(s.artifacts, x => x === a)}); });
   root.querySelectorAll('.artifact .paper[data-lb]').forEach(p => p.onclick = () => lightbox(p.querySelector('img').src, p.nextElementSibling?.textContent||''));
 };
+
+/* ---------- stages: create, renumber, keyboard stepping ---------- */
+const STAGE_HUES = ['#d4a44c','#a0855a','#7f916a','#6b7f8e','#a0727e','#c47832','#8a8d8f','#b08968','#9a8fb8','#6fa39a'];
+function renumberStages(){ S.stages.forEach((s,i) => s.num = i+1); }
+function createStage(){
+  const s = {id:uid(), num:0, char:'新', name:'New stage', tagline:'', hue:STAGE_HUES[S.stages.length % STAGE_HUES.length], years:'', narrative:'', narrativeHistory:[], substages:[], photos:[], soundtrack:[], artifacts:[], letters:{to:'',from:''}, retroValues:{}, notyet:false};
+  const ny = S.stages.findIndex(x => x.notyet); if(ny >= 0) S.stages.splice(ny, 0, s); else S.stages.push(s);
+  renumberStages(); saveNow(); sound('success'); navigate('#/stage/'+s.id);
+  setTimeout(() => { const n = document.querySelector('.stage-hero h1 .ed'); if(n){ beginEdit(n); n.querySelector('input')?.select(); } toast('A new room in the house. Name it, give it years, and set its character under More.', 6000); }, 350);
+}
+function migrateStages(){ S.stages.forEach(s => { if(s.notyet === undefined) s.notyet = s.name === 'Not Yet'; s.narrativeHistory ||= []; s.substages ||= []; s.photos ||= []; s.soundtrack ||= []; s.artifacts ||= []; s.letters ||= {to:'',from:''}; s.retroValues ||= {}; }); renumberStages(); }
+/* ← → : previous / next stage on a stage page; move focus along the spine on the Timeline */
+function stepTimeline(dir){
+  const {name, params} = parseHash();
+  if(name === 'stage'){ const i = S.stages.findIndex(x => x.id === params[0]); const nx = S.stages[i + dir]; if(!nx) return false; navigate('#/stage/'+nx.id); return true; }
+  if(name === 'timeline'){ const tiles = $$('#spine .tile[data-stage]'); if(!tiles.length) return false; const cur = tiles.findIndex(t => t === document.activeElement || t.classList.contains('kbd')); const ni = clamp((cur < 0 ? (dir > 0 ? -1 : tiles.length) : cur) + dir, 0, tiles.length-1); tiles.forEach(t => t.classList.remove('kbd')); tiles[ni].classList.add('kbd'); tiles[ni].focus({preventScroll:true}); tiles[ni].scrollIntoView({block:'nearest', inline:'center', behavior:reduced()?'instant':'smooth'}); return true; }
+  return false;
+}

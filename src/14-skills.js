@@ -44,24 +44,133 @@ routes.skills = function(root, params){
   registerPageEntry({pageName:'Skill Tree', addLabel:'Add to the skill tree', defaultEntryType:'progress', prefilledFields:{}, options:[
     {icon:'◉', label:'New skill node', desc:'A skill you hold, or a bud you intend to open.', run:()=>EntryActions.newSkill()},
     {icon:'↗', label:'Add a level to a skill', desc:'Log practice on an existing skill; set the level from its rubric.', run:()=>EntryActions.skillProgress()}]});
-  const mode = S.settings.skillLayout || 'vertical';
+  const mode = S.settings.skillLayout || 'tree';
   root.innerHTML = `<div class="page">
-    <div class="page-head row between"><div><h1>Skill Tree</h1><div class="sub">Career capital, built on the plateau. Categories branch into skills; a skill's first prerequisite is its parent. Drag a node onto another to re-parent it.</div></div>
-      <div class="row"><button class="btn sm ${mode==='vertical'?'primary':''}" data-layout="vertical">⊤ vertical</button><button class="btn sm ${mode==='radial'?'primary':''}" data-layout="radial">◎ radial</button><button class="btn sm ghost" id="skExpandAll">expand all</button><button class="btn sm ghost" id="skCollapseAll">collapse all</button><button class="btn sm ghost" id="skReset" title="reset zoom, centre root">⟳</button></div></div>
+    <div class="page-head row between"><div><h1>Skill Tree</h1><div class="sub">${mode==='tree' ? 'Career capital, grown on the plateau. Every level you climb puts leaves on the twig; mastery bears fruit; neglect turns the leaves brown.' : "Categories branch into skills; a skill's first prerequisite is its parent. Drag a node onto another to re-parent it."}</div></div>
+      <div class="row"><button class="btn sm ${mode==='tree'?'primary':''}" data-layout="tree">🌳 tree</button><button class="btn sm ${mode==='vertical'?'primary':''}" data-layout="vertical">⊤ vertical</button><button class="btn sm ${mode==='radial'?'primary':''}" data-layout="radial">◎ radial</button>${mode==='tree'?'':`<button class="btn sm ghost" id="skExpandAll">expand all</button><button class="btn sm ghost" id="skCollapseAll">collapse all</button><button class="btn sm ghost" id="skReset" title="reset zoom, centre root">⟳</button>`}</div></div>
     <div class="skill-wrap" id="skillWrap"><div class="minimap" id="minimap"></div><div class="sk-hint mono">scroll to zoom · drag the canvas to pan · ± to fold a branch</div></div>
     <div class="grid c3 section">${S.skills.map(s=>{ const st = skillStreak(s); const last = skillLastPracticed(s); return `<div class="card rv" data-sopen="${s.id}" style="cursor:pointer;border-left:3px solid ${catColor(s.cat)}"><div class="row between"><h3 style="margin:0">${esc(s.name)}</h3><span class="mono">${esc(s.cat)}</span></div><div class="muted" style="font-size:.82rem;margin-top:6px">${s.planned?'planned — a bud not yet opened':`${esc(skillLevelLabel(s,s.currentLevel))} · level ${s.currentLevel} of ${skillLevelCount(s)}`}${nextMilestone(s)?.by?` · <span class="mono" style="color:${daysBetween(today(),nextMilestone(s).by)<0?'#d08080':'var(--muted)'}">📅 L${nextMilestone(s).levelTarget} by ${fmtMonth(nextMilestone(s).by)}</span>`:''}</div><div class="mono" style="margin-top:8px">last ${relDays(daysSince(last))} · streak ${st.cur}d (best ${st.best}) · ${skillHours(s).toFixed(1)}h</div>${S.projects.some(p=>(p.linkedSkills||[]).includes(s.id))?`<div class="row" style="margin-top:6px;gap:4px">${S.projects.filter(p=>(p.linkedSkills||[]).includes(s.id)).map(p=>`<span class="chip on" style="--c:var(--terra);font-size:.62rem">🎨 ${esc(p.name)}</span>`).join('')}</div>`:''}</div>`; }).join('')}</div>
   </div>`;
   drawSkillTree(root);
   $$('[data-layout]',root).forEach(b => b.onclick = () => { S.settings.skillLayout = b.dataset.layout; saveNow(); rerender(); });
-  $('#skExpandAll').onclick = () => { S.settings.skillCollapsed = {}; saveNow(); rerender(); };
-  $('#skCollapseAll').onclick = () => { const c = {}; S.skills.forEach(s => { if(S.skills.some(x => x.prereqs[0]===s.id)) c[s.id] = true; }); [...new Set(S.skills.map(s=>s.cat))].forEach(cat => c['cat:'+cat] = true); S.settings.skillCollapsed = c; saveNow(); rerender(); };
-  $('#skReset').onclick = () => { root._skView?.reset(); };
+  if($('#skExpandAll')) $('#skExpandAll').onclick = () => { S.settings.skillCollapsed = {}; saveNow(); rerender(); };
+  if($('#skCollapseAll')) $('#skCollapseAll').onclick = () => { const c = {}; S.skills.forEach(s => { if(S.skills.some(x => x.prereqs[0]===s.id)) c[s.id] = true; }); [...new Set(S.skills.map(s=>s.cat))].forEach(cat => c['cat:'+cat] = true); S.settings.skillCollapsed = c; saveNow(); rerender(); };
+  if($('#skReset')) $('#skReset').onclick = () => { root._skView?.reset(); };
+  window.addEventListener('resize', debounce(() => { if(currentRoute==='skills' && (S.settings.skillLayout||'tree')==='tree') drawSkillTree(root); }, 250), {once:true});
   $$('[data-sopen]',root).forEach(c => c.onclick = () => openSkillPanel(c.dataset.sopen));
   if(params[0]) openSkillPanel(params[0]);
 };
+
+/* ---------- the living tree: trunk, category branches, skill twigs, leaves for progress ---------- */
+function organicLayout(){
+  const cats = [...new Set([...SKILL_CATS, ...S.skills.map(s=>s.cat)])].filter(c => S.skills.some(s=>s.cat===c));
+  const parentOf = s => s.prereqs.find(id => byId(S.skills,id)) || null;
+  const items = []; const trunkTop = 300;
+  const rad = d => d*Math.PI/180; const dir = a => [Math.cos(a), Math.sin(a)]; // y up in layout space
+  const limb = (start, ang, len, droop) => { const d = dir(ang); const end = [start[0]+d[0]*len, start[1]+d[1]*len]; const cd = dir(ang - droop); const ctrl = [start[0]+cd[0]*len*.55, start[1]+cd[1]*len*.55]; return {end, ctrl}; };
+  const qp = (a,c,b,t) => [ (1-t)*(1-t)*a[0] + 2*(1-t)*t*c[0] + t*t*b[0], (1-t)*(1-t)*a[1] + 2*(1-t)*t*c[1] + t*t*b[1] ];
+  const qt = (a,c,b,t) => Math.atan2( 2*(1-t)*(c[1]-a[1]) + 2*t*(b[1]-c[1]), 2*(1-t)*(c[0]-a[0]) + 2*t*(b[0]-c[0]) );
+  const twig = (sk, parentItem, t, sideSign, depth) => {
+    const start = qp(parentItem.start, parentItem.ctrl, parentItem.end, t); const tan = qt(parentItem.start, parentItem.ctrl, parentItem.end, t);
+    let ang = tan + sideSign*rad(depth===2 ? 38 : 44); if(Math.sin(ang) < .2) ang = (Math.cos(ang) >= 0 ? rad(24) : rad(156)); // always reach upward
+    const kids = S.skills.filter(x => parentOf(x) === sk.id); const len = (depth===2 ? 88 : 60) + 13*(sk.currentLevel||0) + 8*kids.length;
+    const {end, ctrl} = limb(start, ang, len, sideSign*rad(14)); const it = {id:sk.id, kind:'skill', skill:sk, cat:sk.cat, start, end, ctrl, ang, depth, parent:parentItem.id, side:sideSign}; items.push(it);
+    kids.forEach((k,m) => twig(k, it, .45 + .5*(m+.5)/kids.length, m%2 ? -sideSign : sideSign, depth+1));
+    return it;
+  };
+  cats.forEach((c,i) => {
+    const side = i%2===0 ? -1 : 1; const frac = cats.length===1 ? .6 : .18 + .78*(i/(cats.length-1)); const y0 = 30 + frac*(trunkTop-60);
+    const roots = S.skills.filter(s => s.cat===c && !parentOf(s)); const all = S.skills.filter(s => s.cat===c);
+    const elev = rad(16 + 30*frac); const ang = side < 0 ? Math.PI - elev : elev; const len = 165 + 52*Math.sqrt(all.length);
+    const start = [0, y0]; const {end, ctrl} = limb(start, ang, len, side*rad(-10));
+    const it = {id:'cat:'+c, kind:'cat', cat:c, start, end, ctrl, ang, depth:1, parent:null, side, count:all.length}; items.push(it);
+    roots.forEach((sk,j) => twig(sk, it, .42 + .58*(j+.5)/roots.length, j%2 ? -1 : 1, 2));
+  });
+  return {items, cats, trunkTop};
+}
+function organicSVG(W, H){
+  const {items, cats, trunkTop} = organicLayout(); const T = today();
+  // fit layout (y up, trunk base at origin) into the canvas
+  const xs = [0], ys = [0, trunkTop]; items.forEach(it => { [it.start, it.end, it.ctrl].forEach(p => { xs.push(p[0]); ys.push(p[1]); }); if(it.kind==='skill'){ xs.push(it.end[0] + (it.end[0] >= 0 ? 90 : -90)); ys.push(it.end[1] + 18); } else { xs.push(it.end[0] + it.side*80); } });
+  const bx0 = Math.min(...xs), bx1 = Math.max(...xs), by1 = Math.max(...ys) + 20; const padX = 30, ground = H - 44;
+  const k = Math.min((W - padX*2)/(bx1 - bx0), (ground - 30)/by1); const ox = padX + (W - padX*2 - (bx1-bx0)*k)/2 - bx0*k;
+  const X = x => ox + x*k, Y = y => ground - y*k; const P = p => `${X(p[0]).toFixed(1)},${Y(p[1]).toFixed(1)}`;
+  const qp = (a,c,b,t) => [ (1-t)*(1-t)*a[0] + 2*(1-t)*t*c[0] + t*t*b[0], (1-t)*(1-t)*a[1] + 2*(1-t)*t*c[1] + t*t*b[1] ];
+  const qt = (a,c,b,t) => Math.atan2( 2*(1-t)*(c[1]-a[1]) + 2*t*(b[1]-c[1]), 2*(1-t)*(c[0]-a[0]) + 2*t*(b[0]-c[0]) );
+  const season = [-8,-6,0,6,10,12,10,6,2,-2,-6,-8][new Date().getMonth()];
+  const trunkX = X(0); let g = '', labels = ''; const lblItems = [], labelsBySkill = {};
+  g += `<defs><linearGradient id="skTrunk" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#4a3a2c"/><stop offset="1" stop-color="#6e5a44"/></linearGradient><radialGradient id="skSun"><stop offset="0" stop-color="var(--page-accent)" stop-opacity=".22"/><stop offset="1" stop-color="var(--page-accent)" stop-opacity="0"/></radialGradient><radialGradient id="skMoon"><stop offset="0" stop-color="#e8e0d4" stop-opacity=".16"/><stop offset="1" stop-color="#e8e0d4" stop-opacity="0"/></radialGradient><radialGradient id="skGround"><stop offset="0" stop-color="#3a3128" stop-opacity=".55"/><stop offset="1" stop-color="#3a3128" stop-opacity="0"/></radialGradient></defs>`;
+  const hour = new Date().getHours(); const daytime = hour >= 6 && hour < 19;
+  g += daytime ? `<circle class="sk-sun" cx="${(W*.84).toFixed(0)}" cy="70" r="120" fill="url(#skSun)"/>` : `<g class="sk-moon" transform="translate(${(W*.84).toFixed(0)},70)"><circle r="90" fill="url(#skMoon)"/><path d="M-8,-14 a15,15 0 1 0 12,24 a11,11 0 1 1 -12,-24 Z" fill="#e8e0d4" opacity=".55"/></g>`;
+  items.filter(i => i.kind==='cat').forEach(it => { const e = it.end; const r = (46 + 10*Math.sqrt(it.count))*k; g += `<circle class="sk-canopy" cx="${X(e[0]).toFixed(1)}" cy="${(Y(e[1])-10).toFixed(1)}" r="${r.toFixed(1)}" fill="${catColor(it.cat)}" opacity=".07"/>`; });
+  g += `<ellipse cx="${trunkX.toFixed(1)}" cy="${ground+4}" rx="${(W*.3).toFixed(0)}" ry="14" fill="url(#skGround)"/><line x1="${(trunkX-W*.34).toFixed(0)}" x2="${(trunkX+W*.34).toFixed(0)}" y1="${ground}" y2="${ground}" stroke="var(--line-2)" stroke-width="1"/>`;
+  // roots and trunk
+  const tw = clamp(10 + S.skills.length*.9, 12, 26)*k;
+  g += `<path d="M${(trunkX-tw*2.4).toFixed(1)},${ground+2} Q${(trunkX-tw*.8).toFixed(1)},${(ground-tw*.5).toFixed(1)} ${trunkX.toFixed(1)},${(ground-tw).toFixed(1)} Q${(trunkX+tw*.8).toFixed(1)},${(ground-tw*.5).toFixed(1)} ${(trunkX+tw*2.4).toFixed(1)},${ground+2} Z" fill="url(#skTrunk)" opacity=".85"/>`;
+  [[-1,.6],[1,.5],[-1,.3],[1,.25]].forEach(([sd,f],i) => g += `<path class="sk-root" d="M${trunkX.toFixed(1)},${(ground-4).toFixed(1)} Q${(trunkX+sd*tw*(1.2+i*.4)).toFixed(1)},${(ground+6+i*3).toFixed(1)} ${(trunkX+sd*tw*(2.6+i*.8)).toFixed(1)},${(ground+16+i*4*f).toFixed(1)}" stroke="url(#skTrunk)" stroke-width="${(3.2-i*.5).toFixed(1)}" fill="none" opacity=".55"/>`);
+  g += `<path class="sk-trunk" d="M${trunkX.toFixed(1)},${ground} C${(trunkX-6*k).toFixed(1)},${Y(trunkTop*.35).toFixed(1)} ${(trunkX+7*k).toFixed(1)},${Y(trunkTop*.7).toFixed(1)} ${trunkX.toFixed(1)},${Y(trunkTop).toFixed(1)}" stroke="url(#skTrunk)" stroke-width="${tw.toFixed(1)}" stroke-linecap="round" fill="none"/>`;
+  g += `<path class="sk-trunk-light" d="M${(trunkX-tw*.22).toFixed(1)},${ground-10} C${(trunkX-6*k-tw*.2).toFixed(1)},${Y(trunkTop*.35).toFixed(1)} ${(trunkX+7*k-tw*.2).toFixed(1)},${Y(trunkTop*.7).toFixed(1)} ${(trunkX-tw*.15).toFixed(1)},${Y(trunkTop*.96).toFixed(1)}" stroke="#8b7357" stroke-width="${(tw*.18).toFixed(1)}" stroke-linecap="round" fill="none" opacity=".35"/>`;
+  // crown bud at the top of the trunk: the skills still to be named
+  g += `<circle cx="${trunkX.toFixed(1)}" cy="${Y(trunkTop).toFixed(1)}" r="${(tw*.42).toFixed(1)}" fill="#6e5a44"/>`;
+  items.filter(i => i.kind==='cat').forEach(it => {
+    const col = catColor(it.cat); const w = (4 + 1.6*Math.sqrt(it.count))*k;
+    g += `<g class="sk-branch" data-node="${it.id}" style="--nc:${col}"><path class="limb" d="M${P(it.start)} Q${P(it.ctrl)} ${P(it.end)}" stroke="url(#skTrunk)" stroke-width="${w.toFixed(1)}" stroke-linecap="round" fill="none"/><path class="limb-tint" d="M${P(it.start)} Q${P(it.ctrl)} ${P(it.end)}" stroke="${col}" stroke-width="${(w*.5).toFixed(1)}" stroke-linecap="round" fill="none" opacity=".28"/></g>`;
+    const e = it.end; const lx = X(e[0]) + it.side*12, anchor = it.side>0 ? 'start' : 'end';
+    labels += `<text class="sk-catlbl" x="${lx.toFixed(1)}" y="${(Y(e[1])+4).toFixed(1)}" text-anchor="${anchor}" style="fill:${col}">${esc(it.cat)}</text><text class="sk-catsub" x="${lx.toFixed(1)}" y="${(Y(e[1])+16).toFixed(1)}" text-anchor="${anchor}">${it.count} skill${it.count===1?'':'s'}</text>`;
+    lblItems.push({id:'cat:'+it.cat, ex:X(e[0]), ey:Y(e[1])+8, x:lx, y:Y(e[1])+8, anchor, w:it.cat.length*6.4+8, h:24, fixed:true});
+  });
+  items.filter(i => i.kind==='skill').sort((a,b)=>a.depth-b.depth).forEach(it => {
+    const s = it.skill; const col = catColor(s.cat); const locked = skillIsLocked(s); const since = daysSince(skillLastPracticed(s)); const active = !locked && !s.planned && since <= 7;
+    const lc = skillLevelCount(s); const lvl = s.currentLevel||0; const prog = lc ? lvl/lc : 0; const mastered = !s.planned && lc >= 2 && lvl >= lc;
+    const wither = !s.planned && !locked && since > 90 ? clamp((since-90)/180, 0, .8) : 0;
+    const nm = nextMilestone(s); const due = nm?.by ? daysBetween(T, nm.by) : null; const blossom = due !== null && due >= 0 && due <= 45; const overdue = due !== null && due < 0;
+    const limbW = ((it.depth===2 ? 3.2 : 2.4) + lvl*.5) * k * (1 - wither*.3); const limbCol = locked ? '#5a554f' : lerpColor('#6b5642', '#5a4634', prog);
+    const leafBase = lerpColor(col, '#6f9a58', .25 + .45*prog); const leafCol = lerpColor(leafBase, '#8a6a3a', wither);
+    const pid = `tw-${s.id}`; let inner = `<path class="limb" id="${pid}" d="M${P(it.start)} Q${P(it.ctrl)} ${P(it.end)}" stroke="${limbCol}" stroke-width="${limbW.toFixed(1)}" stroke-linecap="round" fill="none" ${locked?'stroke-dasharray="4 4"':''}/>`;
+    if(active && !reduced()) inner += `<circle class="sap" r="${(2.2*k).toFixed(1)}" fill="#fff6dc" opacity=".9"><animateMotion dur="${(2.6 + (s.id.length%3)*.5).toFixed(1)}s" repeatCount="indefinite"><mpath href="#${pid}"/></animateMotion></circle>`;
+    const twigLen = Math.hypot(it.end[0]-it.start[0], it.end[1]-it.start[1]); const n = s.planned || locked ? 0 : Math.min(2 + lvl*2 + Math.round(prog*2), 13, Math.round(twigLen/7));
+    let lf = '';
+    for(let i=0;i<n;i++){
+      const t = .3 + (i/Math.max(n-1,1))*.68; const p = qp(it.start, it.ctrl, it.end, t); const tan = -qt(it.start, it.ctrl, it.end, t)*180/Math.PI; const sd = i%2 ? 1 : -1;
+      const size = (4.2 + lvl*1.1) * k * (1 - wither*.3) * (.8 + ((i*7)%5)/10); const rot = tan + sd*(40 + ((i*13)%20)); const curl = wither ? ` Q${(size*.6).toFixed(1)},${(size*.35*sd).toFixed(1)} ${(size*.8).toFixed(1)},${(size*.5).toFixed(1)}` : '';
+      lf += `<g transform="translate(${P(p)}) rotate(${rot.toFixed(1)})"><g class="leaf" data-phase="${(i*1.7)%6.28}" data-period="${(2.8 + (i*.37)%2).toFixed(2)}"><path d="M0,0 Q${size},${-size*.7} ${size*2},0 Q${size},${size*.7} 0,0${curl}" fill="${leafCol}" opacity="${(.9 - wither*.35).toFixed(2)}"/><path d="M0,0 L${(size*1.7).toFixed(1)},0" stroke="#1a1816" stroke-opacity=".18" stroke-width=".6"/></g></g>`;
+    }
+    if(s.planned || locked){ for(let i=0;i<3;i++){ const p = qp(it.start, it.ctrl, it.end, .55 + i*.2); lf += `<circle class="bud" cx="${X(p[0]).toFixed(1)}" cy="${Y(p[1]).toFixed(1)}" r="${(2.4*k).toFixed(1)}" fill="${locked?'#5a554f':col}" opacity=".7"/>`; } }
+    if(mastered){ for(let i=0;i<3;i++){ const p = qp(it.start, it.ctrl, it.end, .6 + i*.16); const sd = i%2?1:-1; lf += `<circle class="fruit" cx="${(X(p[0])+sd*7*k).toFixed(1)}" cy="${(Y(p[1])+5*k).toFixed(1)}" r="${(4.6*k).toFixed(1)}" fill="#d4a44c" stroke="#7a5a3c" stroke-width=".8"/>`; } }
+    if(blossom){ for(let i=0;i<3;i++){ const p = qp(it.start, it.ctrl, it.end, .7 + i*.12); const sd = i%2?1:-1; lf += `<circle class="blossom" cx="${(X(p[0])+sd*6*k).toFixed(1)}" cy="${(Y(p[1])-5*k).toFixed(1)}" r="${(2.8*k).toFixed(1)}" fill="#e6b8c4" opacity=".95"/>`; } }
+    if(wither > .3){ for(let i=0;i<2;i++){ const p = qp(it.start, it.ctrl, it.end, .5 + i*.3); lf += `<g class="fall" style="animation-delay:${(i*2.1).toFixed(1)}s;animation-duration:${(6 + i*1.5).toFixed(1)}s" transform="translate(${P(p)})"><path d="M0,0 Q4,-3 8,0 Q4,3 0,0" fill="${leafCol}" opacity=".8"/></g>`; } }
+    if(active){ lf = `<circle class="halo" cx="${X(it.end[0]).toFixed(1)}" cy="${Y(it.end[1]).toFixed(1)}" r="${(15*k).toFixed(1)}" fill="${col}" opacity=".16"/>` + lf; }
+    if(overdue){ lf += `<circle cx="${X(it.end[0]).toFixed(1)}" cy="${Y(it.end[1]).toFixed(1)}" r="${(3*k).toFixed(1)}" fill="#c25b5b"/>`; }
+    const outward = it.end[0] >= 0 ? 1 : -1;
+    const sub = s.planned ? 'planned' : locked ? 'locked' : mastered ? 'mastered' : `lvl ${lvl}/${lc}${active?' · active':wither?' · withering':''}`;
+    const name = (locked?'🔒 ':'') + s.name; const fs = it.depth===2 ? 11.5 : 10.5;
+    lblItems.push({id:s.id, ex:X(it.end[0]), ey:Y(it.end[1]), x:X(it.end[0]) + outward*8, y:Y(it.end[1]), anchor:outward>0?'start':'end', w:Math.max(name.length*fs*.56, sub.length*8.5*.62) + 6, h:24, name, sub, fs, col});
+    g += `<g class="sk-twig ${locked?'locked':''} ${active?'active':''} ${mastered?'mastered':''}" data-skill="${s.id}" data-parent="${it.parent}" data-x="${X(it.end[0]).toFixed(1)}" data-y="${Y(it.end[1]).toFixed(1)}" style="--nc:${col}"><title>${esc(s.name)} · ${esc(sub)}${since<Infinity?` · last practised ${relDays(since)}`:''}</title>${inner}<g class="sk-leaves">${lf}</g><g class="sk-lblslot" data-for="${s.id}"></g></g>`;
+  });
+  // relax labels so they never sit on top of each other; a faint leader joins a moved label to its twig
+  const boxOf = l => ({left: l.anchor==='start' ? l.x : l.x - l.w, right: l.anchor==='start' ? l.x + l.w : l.x, top: l.y - 13, bottom: l.y + 13});
+  for(let pass=0; pass<20; pass++){ let moved = false; for(let i=0;i<lblItems.length;i++) for(let j=i+1;j<lblItems.length;j++){ const a = lblItems[i], b = lblItems[j]; const A = boxOf(a), B = boxOf(b); const ox = Math.min(A.right,B.right) - Math.max(A.left,B.left), oy = Math.min(A.bottom,B.bottom) - Math.max(A.top,B.top); if(ox > 2 && oy > 0){ const lower = a.y >= b.y ? a : b, upper = lower===a ? b : a; if(lower.fixed && upper.fixed) continue; if(lower.fixed) upper.y -= oy + 2; else if(upper.fixed) lower.y += oy + 2; else { lower.y += oy/2 + 1; upper.y -= oy/2 + 1; } moved = true; } } if(!moved) break; }
+  lblItems.forEach(l => { if(l.fixed) return; l.y = clamp(l.y, 16, H - 52); const dy = Math.abs(l.y - l.ey); const leader = dy > 7 ? `<line class="sk-leader" x1="${l.ex.toFixed(1)}" y1="${l.ey.toFixed(1)}" x2="${(l.anchor==='start' ? l.x - 2 : l.x + 2).toFixed(1)}" y2="${l.y.toFixed(1)}"/>` : ''; labelsBySkill[l.id] = `${leader}<text class="sk-lbl" x="${l.x.toFixed(1)}" y="${(l.y-3).toFixed(1)}" text-anchor="${l.anchor}" style="font-size:${l.fs}px">${esc(l.name)}</text><text class="sk-sublbl" x="${l.x.toFixed(1)}" y="${(l.y+9).toFixed(1)}" text-anchor="${l.anchor}">${esc(l.sub)}</text>`; });
+  g = g.replace(/<g class="sk-lblslot" data-for="([^"]+)"><\/g>/g, (m, id) => `<g class="sk-lblslot">${labelsBySkill[id]||''}</g>`);
+  return `<svg class="sk-organic" viewBox="0 0 ${W} ${H}" style="filter:hue-rotate(${season}deg)">${g}${labels}</svg>`;
+}
+function drawOrganicTree(root){
+  const wrap = $('#skillWrap'); if(!wrap) return; wrap.querySelector('svg')?.remove(); const mm = $('#minimap'); if(mm) mm.hidden = true; const hint = wrap.querySelector('.sk-hint'); if(hint) hint.textContent = 'leaves grow with each level · gold fruit is mastery · blossoms mean a milestone is near · brown leaves are withering';
+  const W = Math.max(wrap.clientWidth, 600), H = wrap.clientHeight || 640; const svg = el(organicSVG(W, H)); wrap.insertBefore(svg, wrap.firstChild);
+  const chain = id => { const out = new Set(); let cur = svg.querySelector(`.sk-twig[data-skill="${id}"]`); while(cur){ out.add(cur.dataset.skill); const p = cur.dataset.parent; cur = p && !p.startsWith('cat:') ? svg.querySelector(`.sk-twig[data-skill="${p}"]`) : null; if(p && p.startsWith('cat:')) out.add(p); } return out; };
+  svg.querySelectorAll('.sk-twig').forEach(t => {
+    t.addEventListener('mouseenter', () => { const ids = chain(t.dataset.skill); svg.classList.add('hov'); svg.querySelectorAll('.sk-twig,.sk-branch').forEach(x => x.classList.toggle('hot', ids.has(x.dataset.skill || x.dataset.node))); });
+    t.addEventListener('mouseleave', () => { svg.classList.remove('hov'); svg.querySelectorAll('.hot').forEach(x => x.classList.remove('hot')); });
+    t.addEventListener('click', () => { if(t.classList.contains('locked')){ toast('Locked — raise its prerequisite to level 2 first.'); return; } skillSelected = t.dataset.skill; openSkillPanel(t.dataset.skill); });
+  });
+  svg.querySelectorAll('.sk-branch').forEach(b => b.addEventListener('click', () => { const cat = b.dataset.node.slice(4); const first = S.skills.find(s => s.cat===cat); if(first) openSkillPanel(first.id); }));
+  root._skView = { reset: () => drawOrganicTree(root), burst: (id) => { const t = svg.querySelector(`.sk-twig[data-skill="${id}"]`); if(!t) return; const pt = svg.createSVGPoint(); pt.x = +t.dataset.x; pt.y = +t.dataset.y; const sp = pt.matrixTransform(svg.getScreenCTM()); levelUpBurst(sp.x, sp.y, catColor(byId(S.skills,id)?.cat)); } };
+  if(typeof startSway === 'function') startSway(wrap);
+}
 let skillSelected = null, skillRevealFrom = null;
 function drawSkillTree(root){
-  const wrap = $('#skillWrap'); if(!wrap) return; wrap.querySelector('svg')?.remove();
+  if((S.settings.skillLayout || 'tree') === 'tree') return drawOrganicTree(root);
+  const wrap = $('#skillWrap'); if(!wrap) return; wrap.querySelector('svg')?.remove(); const mm0 = $('#minimap'); if(mm0) mm0.hidden = false;
   const mode = S.settings.skillLayout || 'vertical'; const tree = skillHierarchy(); const {nodes, links} = tidyLayout(tree, mode);
   const W = Math.max(wrap.clientWidth, 600), H = wrap.clientHeight || 620;
   const xs = nodes.map(n=>n.x), ys = nodes.map(n=>n.y); const bb = {x0:Math.min(...xs)-110, x1:Math.max(...xs)+110, y0:Math.min(...ys)-40, y1:Math.max(...ys)+40};

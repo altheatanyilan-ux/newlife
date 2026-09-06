@@ -157,7 +157,7 @@ function fruitCeremony(v){
   const wrap = $('#treeWrap'); const br = wrap?.querySelector(`[data-vision="${v.id}"] .lbl`); const rect = br?.getBoundingClientRect(); const cx = rect ? rect.left : innerWidth/2, cy = rect ? rect.top : innerHeight/2;
   if(!reduced()){ const c = el('<div class="fruit-ceremony"></div>'); for(let i=0;i<28;i++){ const a = Math.random()*Math.PI*2, d = 40+Math.random()*120; c.insertAdjacentHTML('beforeend', `<i style="left:${cx}px;top:${cy}px;--dx:${Math.cos(a)*d}px;--dy:${Math.sin(a)*d+60}px;animation-delay:${Math.random()*.2}s;background:${['#d4a44c','#7f916a','#b08968'][i%3]}"></i>`); } document.body.appendChild(c); setTimeout(()=>c.remove(),1800); }
   sound('chime');
-  const s8 = S.stages.find(s=>s.num===8) || S.stages.slice(-1)[0];
+  const s8 = S.stages.find(s=>s.notyet) || S.stages.slice(-1)[0];
   s8.substages = s8.substages.filter(ss => ss.name!=='not yet' || ss.desc);
   s8.substages.push({id:uid(), name:v.name, desc:`Lived. Planted from the Vision Tree on ${fmtDate(today(),'med')}.\n\n${v.futureMemory||''}`, photos:[], fromVision:v.id});
   S.entries.push({id:uid(),type:'reflection',title:`${v.name} — lived`,body:v.futureMemory||'A vision became a memory.',occurredAt:today(),createdAt:new Date().toISOString(),media:[],links:{stages:[s8.id],substages:[s8.substages.slice(-1)[0].id],threads:[],values:v.values.map(id=>({id,pol:'+'})),visions:[v.id],skills:[],projects:[]},people:[],places:[],emotions:[],confidence:'lived',extra:{}});

@@ -35,18 +35,18 @@ To restore your data on a new device: open this website in the same browser, go 
 
 ## Rooms
 
-The sidebar groups the rooms into two zones by time horizon: **Present** (Today, Journal, Projects, Rituals) and **Becoming** (Compass, Skill Tree, Vision Tree, Memory), with Library always available below a separator. Zones collapse, the sidebar collapses to icons, and both states persist. On narrow screens a bottom bar shows the five most-used rooms and a More button opens the full grouped menu. Pages can be moved between zones by drag-and-drop in Settings.
+The sidebar groups the rooms into two zones by time horizon: **Present** (Today, Commonplace Book, Creative Projects, Rituals & Habits) and **Becoming** (Values, Skill Tree, Vision Tree, Timeline). Sidebar labels are the same names the pages carry as their titles, drawn with thin line icons. Zones collapse, the sidebar collapses to icons, and both states persist. On narrow screens a bottom bar shows the five most-used rooms and a More button opens the full grouped menu. Pages can be moved between zones by drag-and-drop in Settings.
 
 | Route | Room |
 |---|---|
 | `#/home` | Life at a glance: today's focus, the living house diagram of rooms with health dots and flows, and long-term panels with charts |
 | `#/today` | Daily check-in, Morning Theatre, signals, on-this-day, gentle prompt, 30-day charts |
-| `#/timeline` | Eight life stages on a spine, felt-time toggle, thread ribbons, tensions |
+| `#/timeline` | Life stages on a spine (add a stage from the dashed tile at the end of the spine), felt-time toggle, thread ribbons, tensions |
 | `#/stage/:id` | Stage detail: versioned narrative, sub-stages, formative events, retrospective values, soundtrack, artifacts, letters |
 | `#/vision` | The lifeline: past, present, and future eras as a horizontal timeline with a NOW marker, goals with completion and progress, life events, and a close-chapter wizard; the vision tree below it |
 | `#/values` | Priority ranking, radar with life-long time slider, weather strip, gap analysis, values-to-visions matrix |
 | `#/journals` | Commonplace Book: synchronicity, manifestation, reflections, gratitude, dreams, quotes, open questions |
-| `#/skills` | Hierarchical skill tree (vertical or radial) with zoom, pan, minimap, fold and unfold, drag-to-reparent, locked nodes, customisable levels (labels, descriptions, criteria, typed resources, estimated time), multi-target milestones on a timeline, atrophy, cross-mappings |
+| `#/skills` | The living tree (default): trunk, one branch per category, a twig per skill whose leaves grow with each level, gold fruit for mastery, blossoms when a milestone is near, brown falling leaves for atrophy, sap flowing on recently practised twigs, a sun by day and a moon at night; plus the vertical and radial hierarchical layouts with zoom, pan, minimap, fold and unfold, drag-to-reparent, locked nodes, customisable levels (labels, descriptions, criteria, typed resources, estimated time), multi-target milestones on a timeline, atrophy, cross-mappings |
 | `#/projects` | Projects in three views: cards (priority, status, task ratio, target date), a kanban board with drag between status columns, and a Gantt timeline of phases; each project has phases with task checklists and quick capture, resources, linked skills and vision chapter, notes, nod heatmaps, income streams; energy-vs-output chart and idea inbox |
 | `#/rituals` | Habit rings, four-dimension energy balance, 90-day calendars, guided daily/weekly/seasonal/annual reviews |
 | `#/settings` | Theme, ambient sound, felt time, home page, export/import/clear |
@@ -58,14 +58,13 @@ Every room shares one design language but carries its own personality. The confi
 | Room | Accent | Gradient | Motion |
 |---|---|---|---|
 | Today | warm coral | coral → peach | snappy |
-| Journal | warm amber | amber → rose | calm |
-| Projects | slate blue | slate → sky | crisp |
-| Rituals | sea teal | teal → sage | calm |
-| Compass | soft purple | lavender → mauve | calm |
+| Commonplace Book | warm amber | amber → rose | calm |
+| Creative Projects | slate blue | slate → sky | crisp |
+| Rituals & Habits | sea teal | teal → sage | calm |
+| Values | soft purple | lavender → mauve | calm |
 | Skill Tree | emerald | emerald → teal | energetic (springy) |
 | Vision Tree | deep indigo | indigo → violet | calm (floats, parallax) |
-| Memory | dusty gold | gold → sepia | calm |
-| Library | forest green | green → sage | calm |
+| Timeline | dusty gold | gold → sepia | calm |
 | Home | cool gray | gray → blue-gray | calm |
 
 On every route change `applyPageTheme()` sets `--page-accent`, `--page-accent-ink`, `--page-gradient-start`, `--page-gradient-end`, `--page-motion-speed`, `--page-ease` and `--page-glyph` on the root element. Shared components (buttons, inputs, chips, toggles, tabs, bars, sliders, the FAB, toasts, selection) read those variables, so they adapt without per-page CSS. The `.page-head` becomes a gradient banner with the room's glyph and mood line, the ambient background gradient crossfades between two layers in 350 ms, and the two large blobs take the page's gradient colours.
@@ -81,9 +80,11 @@ The AudioContext is created lazily inside the first user gesture and reused. `us
 
 ## Keyboard
 
-- `⌘N` / `Ctrl+N` new entry
-- `⌘K` / `Ctrl+K` omni-search
-- `←` `→` move along the timeline
-- `Esc` close panels and modals
+- `N` new entry (browsers reserve `⌘N` / `Ctrl+N` for a new window, so the app uses the bare key when you are not typing)
+- `⌘K` / `Ctrl+K` or `/` omni-search
+- `←` `→` previous / next stage on a stage page; move along the spine on the Timeline
+- `Esc` close the speed dial, search, panels and modals
+
+Deleting anything happens immediately with a five-second **Undo** in the toast; there is no confirmation dialog. Detail panels open on the right: drag their left edge to resize (the width is remembered), press ⤢ to widen one for focus, double-click the edge to reset.
 
 Everything that looks like text is inline-editable. Click it, type, click away. There are no save buttons.

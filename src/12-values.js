@@ -2,7 +2,7 @@
    5. VALUES CONGRUENCE — the compass beneath the floorboards
    ============================================================ */
 routes.values = function(root){
-  registerPageEntry({pageName:'Compass', addLabel:'Add to the compass', defaultEntryType:'snapshot', prefilledFields:{}, options:[
+  registerPageEntry({pageName:'Values', addLabel:'Add to the compass', defaultEntryType:'snapshot', prefilledFields:{}, options:[
     {icon:'◔', label:'Congruence snapshot', desc:'0–100 for each value, where you actually are this week.', run:()=>EntryActions.snapshot()},
     ...(S.values.length < 10 ? [{icon:'✦', label:'New value', desc:`The compass has ${S.values.length} of 10 points.`, run:()=>EntryActions.newValue()}] : [])]});
   const snaps = allSnapshotsWithRetro(); const latest = snaps.slice(-1)[0]; const axes = S.valueOrder.map(id=>{ const v=byId(S.values,id); return {name:v.name, short:v.name.split(' ')[0], color:v.color}; });
@@ -112,7 +112,7 @@ async function renderSnapshotHistory(container){
 }
 routes.value = function(root, params){
   const v = byId(S.values, params[0]); if(!v){ navigate('#/values'); return; }
-  registerPageEntry({pageName:'Compass', addLabel:`Evidence for ${v.name}`, defaultEntryType:'reflection', prefilledFields:{links:{values:[{id:v.id,pol:'+'}]}}, options:[{label:'Evidence', run:(pre)=>openEntryModal({type:'reflection', allowedTypes:['reflection','memory','gratitude'], heading:`Evidence for ${v.name}`, links:pre.links, openLinks:true})}]});
+  registerPageEntry({pageName:'Values', addLabel:`Evidence for ${v.name}`, defaultEntryType:'reflection', prefilledFields:{links:{values:[{id:v.id,pol:'+'}]}}, options:[{label:'Evidence', run:(pre)=>openEntryModal({type:'reflection', allowedTypes:['reflection','memory','gratitude'], heading:`Evidence for ${v.name}`, links:pre.links, openLinks:true})}]});
   const snaps = allSnapshotsWithRetro(); const es = sortEntries(S.entries.filter(e=>(e.links?.values||[]).some(x=>x.id===v.id)));
   const rank = S.valueOrder.indexOf(v.id)+1; const cur = valueCurrent(v.id);
   const F = (k, q, hint) => { const hist = v.fields[k]||[]; const latest = hist.slice(-1)[0]; return `<div class="value-field rv"><div class="q">${q}</div><div class="faint" style="font-size:.8rem;margin-bottom:8px">${hint}</div><div class="prose serif-lg">${latest?md(latest.text):'<span class="empty">Not yet written.</span>'}</div><div class="row" style="margin-top:8px"><button class="btn sm ghost" data-vf="${k}">${latest?'write a new version':'write'}</button>${hist.length>1?`<details style="border:none;flex:1"><summary><span class="mono">${hist.length-1} earlier versions</span></summary><div class="body versions">${hist.slice(0,-1).map((h,i)=>`<div class="v"><div class="mono">${fmtDate(h.date,'med')}</div>${md(h.text)}<button class="del-x" data-vfdel="${k}:${i}" title="delete this version">×</button></div>`).reverse().join('')}</div></details>`:latest?`<span class="mono">${fmtDate(latest.date,'med')}</span>`:''}</div></div>`; };

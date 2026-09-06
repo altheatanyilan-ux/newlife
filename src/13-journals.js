@@ -4,8 +4,8 @@
 routes.journals = function(root, params){
   const type = params[0] || S._journal || 'reflection'; S._journal = type;
   const j = S.journals.find(x=>x.type===type) || S.journals[0];
-  if(type === 'quote') registerPageEntry({pageName:'Library', addLabel:'New quote or saved link', defaultEntryType:'quote', prefilledFields:{journalType:'quote'}, options:[{label:'New quote', run:()=>EntryActions.libraryQuote()}]});
-  else registerPageEntry({pageName:'Journal', addLabel:`New ${typeName(type).toLowerCase()}`, defaultEntryType:type, prefilledFields:{journalType:type}, options:[{label:'New entry', run:(pre)=>openEntryModal({type:pre.journalType, allowedTypes:[pre.journalType], heading:`New ${typeName(pre.journalType).toLowerCase()}`})}]});
+  if(type === 'quote') registerPageEntry({pageName:'Commonplace Book', addLabel:'New quote or saved link', defaultEntryType:'quote', prefilledFields:{journalType:'quote'}, options:[{label:'New quote', run:()=>EntryActions.libraryQuote()}]});
+  else registerPageEntry({pageName:'Commonplace Book', addLabel:`New ${typeName(type).toLowerCase()}`, defaultEntryType:type, prefilledFields:{journalType:type}, options:[{label:'New entry', run:(pre)=>openEntryModal({type:pre.journalType, allowedTypes:[pre.journalType], heading:`New ${typeName(pre.journalType).toLowerCase()}`})}]});
   const all = sortEntries(S.entries.filter(e=>e.type===type));
   const q = (S._jq||'').toLowerCase(); const from = S._jfrom||'', to = S._jto||''; const tag = S._jtag||'';
   const filtered = all.filter(e => (!q || (e.title+' '+e.body).toLowerCase().includes(q)) && (!from || (e.occurredAt||'') >= from) && (!to || (e.occurredAt||'').slice(0,10) <= to) && (!tag || JSON.stringify(e.links).includes(tag)));

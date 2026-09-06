@@ -52,14 +52,14 @@ function runContextAdd(cfg){
 /* ---------- Tier 2: universal FAB speed dial (separate path) ---------- */
 const SPEED_DIAL = [
   {zone:'Today',    icon:'📅', label:'Today — Quick note / Task', actions:[['Quick note', ()=>EntryActions.quickNote()], ['Task', ()=>EntryActions.taskReminder()]]},
-  {zone:'Journal',  icon:'📓', label:'Journal entry',        run: ()=>EntryActions.journalEntry()},
-  {zone:'Memory',   icon:'💭', label:'Memory',               run: ()=>EntryActions.memory()},
-  {zone:'Library',  icon:'📚', label:'Library quote',        run: ()=>EntryActions.libraryQuote()},
-  {zone:'Compass',  icon:'🧭', label:'Congruence snapshot',  run: ()=>EntryActions.snapshot()},
-  {zone:'Skills',   icon:'🌳', label:'Skill node',           run: ()=>EntryActions.newSkill()},
-  {zone:'Vision',   icon:'🔮', label:'Vision goal',          run: ()=>EntryActions.newVision()},
-  {zone:'Lifeline', icon:'◆', label:'Life event',            run: ()=>EntryActions.lifeEvent()},
-  {zone:'Projects', icon:'📋', label:'Project',              run: ()=>EntryActions.newProject()},
+  {zone:'Commonplace Book', icon:'📓', label:'Journal entry',  run: ()=>EntryActions.journalEntry()},
+  {zone:'Timeline', icon:'💭', label:'Memory',               run: ()=>EntryActions.memory()},
+  {zone:'Commonplace Book', icon:'📚', label:'Quote or saved link', run: ()=>EntryActions.libraryQuote()},
+  {zone:'Values',   icon:'🧭', label:'Congruence snapshot',  run: ()=>EntryActions.snapshot()},
+  {zone:'Skill Tree', icon:'🌿', label:'Skill node',         run: ()=>EntryActions.newSkill()},
+  {zone:'Vision Tree', icon:'🔮', label:'Vision goal',       run: ()=>EntryActions.newVision()},
+  {zone:'Vision Tree', icon:'◆', label:'Life event',         run: ()=>EntryActions.lifeEvent()},
+  {zone:'Creative Projects', icon:'📋', label:'Project',    run: ()=>EntryActions.newProject()},
 ];
 function buildSpeedDial(){
   const dial = $('#speedDial'); if(!dial) return;

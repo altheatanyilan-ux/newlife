@@ -37,7 +37,7 @@ function ganttHTML(ps){
   return `<div class="gantt"><div class="g-names" style="height:${HH}px;flex:0 0 ${NW}px">${names}</div><svg viewBox="0 0 ${W} ${HH}" width="${W}" height="${HH}" style="display:block;flex:0 0 ${W}px;overflow:visible">${g}<line class="g-today" x1="${xT.toFixed(1)}" y1="22" x2="${xT.toFixed(1)}" y2="${HH}" stroke="#e3a15a" stroke-width="1.5" stroke-dasharray="3 3"/><text x="${(xT+3).toFixed(1)}" y="${HH-2}" style="fill:#e3a15a">today</text></svg></div>`;
 }
 routes.projects = function(root, params){
-  registerPageEntry({pageName:'Projects', addLabel:'New project', defaultEntryType:'project', prefilledFields:{}, hint:'Nods have their own button — they must stay fast.', options:[{label:'New project', run:()=>EntryActions.newProject()}]});
+  registerPageEntry({pageName:'Creative Projects', addLabel:'New project', defaultEntryType:'project', prefilledFields:{}, hint:'Nods have their own button — they must stay fast.', options:[{label:'New project', run:()=>EntryActions.newProject()}]});
   const sort = S._psort || 'activity'; const view = S.settings.projectView || 'cards';
   const ps = [...S.projects].sort((a,b) => sort==='name' ? a.name.localeCompare(b.name) : sort==='status' ? Object.keys(PSTATUS).indexOf(a.status)-Object.keys(PSTATUS).indexOf(b.status) : sort==='priority' ? (a.priority||'P3').localeCompare(b.priority||'P3') : daysSince(projectNods(a)[0]?.date) - daysSince(projectNods(b)[0]?.date));
   const income = S.projects.filter(p=>p.income?.current>0); const total = sum(income.map(p=>p.income.current)); const diversified = income.filter(p=>p.income.current/total > .1).length;

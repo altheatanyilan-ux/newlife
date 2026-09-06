@@ -5,7 +5,7 @@ const TOD = ['morning','afternoon','evening','anytime'];
 function habitFreqLabel(h){ const f = h.freq; if(f.type==='daily') return 'daily'; if(f.type==='days') return f.days.map(d=>DOW[d].slice(0,3)).join(' '); if(f.type==='perWeek') return `${f.count}× / week`; if(f.type==='perMonth') return `${f.count}× / month`; return ''; }
 function markHabit(h, level, note=''){ const T = today(); S.habitLog[T] = S.habitLog[T]||{}; if(level) S.habitLog[T][h.id] = {level, note}; else delete S.habitLog[T][h.id]; saveNow(); }
 routes.rituals = function(root, params){
-  registerPageEntry({pageName:'Rituals', addLabel:'New habit', defaultEntryType:'habit', prefilledFields:{}, options:[{label:'New habit', run:()=>EntryActions.newHabit()}]});
+  registerPageEntry({pageName:'Rituals & Habits', addLabel:'New habit', defaultEntryType:'habit', prefilledFields:{}, options:[{label:'New habit', run:()=>EntryActions.newHabit()}]});
   const T = today(); const tab = params[0] || 'habits';
   const active = S.habits.filter(h=>!h.archived && !h.negative).sort((a,b)=>TOD.indexOf(a.timeOfDay)-TOD.indexOf(b.timeOfDay) || a.order-b.order);
   const dueToday = active.filter(h=>habitDue(h,T)); const bal = energyBalance(false); const wk = energyBalance(true);

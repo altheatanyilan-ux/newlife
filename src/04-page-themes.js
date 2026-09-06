@@ -18,20 +18,19 @@ const MOTION_PROFILES = {
    glyph: the Han character that illustrates the header banner. */
 const PAGE_THEMES = {
   today:    {name:'Today',        accent:['#e07a5f','#c25d40'], ink:'#1a1816', gradient:['#e07a5f','#f2b28c'], mood:'present, inviting',      motion:'snappy',    glyph:'今', icon:'🏠'},
-  journals: {name:'Journal',      accent:['#d9a441','#b07f27'], ink:'#1a1816', gradient:['#d9a441','#c46b7a'], mood:'reflective, warm',       motion:'calm',      glyph:'記', icon:'📖'},
-  projects: {name:'Projects',     accent:['#7f97c9','#4d68a3'], ink:'#1a1816', gradient:['#6b7fa8','#8ec5e8'], mood:'structured, focused',    motion:'crisp',     glyph:'作', icon:'🎨'},
-  rituals:  {name:'Rituals',      accent:['#6fa39a','#457d74'], ink:'#1a1816', gradient:['#5f968d','#b7c9a0'], mood:'steady, rhythmic',       motion:'calm',      glyph:'儀', icon:'✨'},
-  values:   {name:'Compass',      accent:['#ab93cf','#7a60a8'], ink:'#1a1816', gradient:['#b7a2d8','#a3798f'], mood:'introspective, calm',    motion:'calm',      glyph:'心', icon:'🧭'},
+  journals: {name:'Commonplace Book',      accent:['#d9a441','#b07f27'], ink:'#1a1816', gradient:['#d9a441','#c46b7a'], mood:'reflective, warm',       motion:'calm',      glyph:'記', icon:'📖'},
+  projects: {name:'Creative Projects',     accent:['#7f97c9','#4d68a3'], ink:'#1a1816', gradient:['#6b7fa8','#8ec5e8'], mood:'structured, focused',    motion:'crisp',     glyph:'作', icon:'🎨'},
+  rituals:  {name:'Rituals & Habits',      accent:['#6fa39a','#457d74'], ink:'#1a1816', gradient:['#5f968d','#b7c9a0'], mood:'steady, rhythmic',       motion:'calm',      glyph:'儀', icon:'✨'},
+  values:   {name:'Values',      accent:['#ab93cf','#7a60a8'], ink:'#1a1816', gradient:['#b7a2d8','#a3798f'], mood:'introspective, calm',    motion:'calm',      glyph:'心', icon:'🧭'},
   skills:   {name:'Skill Tree',   accent:['#3fae7a','#25835a'], ink:'#1a1816', gradient:['#2f9e6e','#2aa7a0'], mood:'growth, energy',         motion:'energetic', glyph:'技', icon:'🛠'},
   vision:   {name:'Vision Tree',  accent:['#7b7de3','#4d50b6'], ink:'#f6f4ff', gradient:['#4b4fb0','#8a5fc9'], mood:'expansive, dreamy',      motion:'calm',      glyph:'夢', icon:'🌳'},
-  timeline: {name:'Memory',       accent:['#cba85a','#96762a'], ink:'#1a1816', gradient:['#c9a55a','#8a6a4a'], mood:'nostalgic, warm',        motion:'calm',      glyph:'憶', icon:'⏳'},
-  library:  {name:'Library',      accent:['#6a9a63','#3f7039'], ink:'#1a1816', gradient:['#3f6f3a','#9bb08a'], mood:'grounded, collected',    motion:'calm',      glyph:'書', icon:'📚'},
+  timeline: {name:'Timeline',       accent:['#cba85a','#96762a'], ink:'#1a1816', gradient:['#c9a55a','#8a6a4a'], mood:'nostalgic, warm',        motion:'calm',      glyph:'憶', icon:'⏳'},
   home:     {name:'Home',         accent:['#94a6b5','#5b7082'], ink:'#1a1816', gradient:['#8a9aa6','#6c8299'], mood:'analytical, clear',      motion:'calm',      glyph:'家', icon:'⌂'},
   settings: {name:'Settings',     accent:['#a3978a','#776a5c'], ink:'#1a1816', gradient:['#a3978a','#c9b8a4'], mood:'quiet, practical',       motion:'crisp',     glyph:'設', icon:'⚙'},
 };
 /* routes that live inside another room's theme */
 const PAGE_THEME_ALIASES = {stage:'timeline', value:'values'};
-function pageThemeKey(){ const {name, params} = parseHash(); if(name === 'journals' && params[0] === 'quote') return 'library'; const k = PAGE_THEME_ALIASES[name] || name; return PAGE_THEMES[k] ? k : 'home'; }
+function pageThemeKey(){ const {name} = parseHash(); const k = PAGE_THEME_ALIASES[name] || name; return PAGE_THEMES[k] ? k : 'home'; }
 function pageTheme(key){ return PAGE_THEMES[key] || PAGE_THEMES.home; }
 function pageGradientCSS(t){ return `linear-gradient(135deg, ${t.gradient[0]} 0%, ${t.gradient[1]} 100%)`; }
 let _pageThemeKey = null, _gradLayer = 0;
