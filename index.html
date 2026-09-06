@@ -356,6 +356,11 @@ html[data-theme="light"] .stage-hero .veil{background:linear-gradient(180deg,rgb
 .substage .hd h3{font-size:1.35rem}
 .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin:10px 0}
 .gallery .photo{aspect-ratio:1;cursor:zoom-in}
+.gallery .photo .pctl{position:absolute;top:6px;right:6px;z-index:3;display:flex;gap:4px;opacity:0;transition:opacity .2s var(--ease)}
+.gallery .photo:hover .pctl,.gallery .photo:focus-within .pctl{opacity:1}
+.gallery .photo .pctl button{width:26px;height:26px;border-radius:50%;border:none;background:rgba(26,24,22,.75);color:#e8e0d4;cursor:pointer;font-size:.8rem;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.gallery .photo .pctl button:hover{background:var(--terra);color:#1a1816}
+.gallery .photo .pcap{position:absolute;left:0;right:0;bottom:0;z-index:3;padding:14px 8px 6px;font-size:.66rem;color:#e8e0d4;background:linear-gradient(transparent,rgba(26,24,22,.8));pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .formative{background:var(--surface-2);border-radius:12px;padding:16px 18px;margin-top:10px}
 .formative .installed{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line-2)}
 .formative .installed .k{font-family:var(--mono);font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;color:var(--terra);margin-bottom:4px}
@@ -1387,6 +1392,15 @@ routes.today = function(root){
    ============================================================ */
 function stageEntries(s){ return S.entries.filter(e => (e.links?.stages||[]).includes(s.id) || (e.links?.substages||[]).some(id => (s.substages||[]).some(ss=>ss.id===id))); }
 function threadStageCounts(t){ return S.stages.map(s => stageEntries(s).filter(e => (e.links?.threads||[]).includes(t.id)).length); }
+function photoTile(p, path){ return `<div class="photo" data-lb="${p.id}"><img src="${p.src}" alt="${esc(p.caption)}"><div class="pctl"><button data-pmeta="${path}" title="caption, date, people">✎</button><button data-pdel="${path}" title="remove photo">×</button></div>${p.caption||p.date?`<div class="pcap">${esc(p.caption)}${p.date?` · ${esc(p.date)}`:''}</div>`:''}</div>`; }
+function photoList(path){ return getPath(path); }
+document.addEventListener('click', e => {
+  const del = e.target.closest('[data-pdel]'); if(del){ e.stopPropagation(); const arr = photoList(del.dataset.pdel.replace(/\.\d+$/,'')); const i = +del.dataset.pdel.split('.').pop(); confirmDlg('Remove this photo? It cannot be recovered unless you exported.', ()=>{ arr.splice(i,1); saveNow(); rerender(); toast('Photo removed.'); }); return; }
+  const meta = e.target.closest('[data-pmeta]'); if(meta){ e.stopPropagation(); const path = meta.dataset.pmeta; const p = getPath(path); const m = openModal(`<h2>This photo</h2><img src="${p.src}" style="width:100%;max-height:260px;object-fit:contain;border-radius:8px;margin-bottom:14px"><div class="stack"><div class="field"><label>Caption</label><input class="inp" id="pmCap" value="${esc(p.caption||'')}"></div><div class="field"><label>Date</label><input class="inp" id="pmDate" value="${esc(p.date||'')}" placeholder="2013-10 · or “that summer”"></div><div class="field"><label>People</label><input class="inp" id="pmPpl" value="${esc((p.people||[]).join(', '))}" placeholder="comma-separated"></div><div class="row between"><button class="btn sm ghost danger" id="pmDel">remove photo</button><button class="btn primary" id="pmSave">Save</button></div></div>`,'narrow');
+    m.querySelector('#pmSave').onclick = () => { p.caption = m.querySelector('#pmCap').value.trim(); p.date = m.querySelector('#pmDate').value.trim(); p.people = m.querySelector('#pmPpl').value.split(',').map(s=>s.trim()).filter(Boolean); S.people = [...new Set([...(S.people||[]), ...p.people])]; saveNow(); m.remove(); rerender(); sound('save'); };
+    m.querySelector('#pmDel').onclick = () => { m.remove(); const arr = photoList(path.replace(/\.\d+$/,'')); arr.splice(+path.split('.').pop(),1); saveNow(); rerender(); toast('Photo removed.'); };
+  }
+}, true);
 function mosaicHTML(s, n=9, hero=false){ const ph = s.photos||[]; let out=''; for(let i=0;i<n;i++){ const p = ph[i % Math.max(ph.length,1)]; const big = i===0 || (hero && i===7); out += ph.length ? `<img src="${p.src}" class="${big?'big':''}" alt="">` : `<div class="tex ${big?'big':''}"></div>`; } return out; }
 function catmull(pts, closed=false){ if(pts.length<2) return ''; let d = `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`; for(let i=0;i<pts.length-1;i++){ const p0=pts[i-1]||pts[i], p1=pts[i], p2=pts[i+1], p3=pts[i+2]||p2; const c1=[p1[0]+(p2[0]-p0[0])/6, p1[1]+(p2[1]-p0[1])/6], c2=[p2[0]-(p3[0]-p1[0])/6, p2[1]-(p3[1]-p1[1])/6]; d += ` C${c1[0].toFixed(1)},${c1[1].toFixed(1)} ${c2[0].toFixed(1)},${c2[1].toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`; } return d; }
 function ribbonsSVG(width){
@@ -1495,7 +1509,7 @@ routes.stage = function(root, params){
       <button class="btn sm addphoto" id="addPhotos">+ photos</button><input type="file" id="photoFile" accept="image/*" multiple hidden>
       <div class="inner"><div class="han" style="view-transition-name:stage-char">${s.char}</div><div class="meta"><div class="mono" style="margin-bottom:6px">stage ${s.num} of 8</div><h1>${ed(`stages.#${s.id}.name`)}</h1><div class="quote" style="margin-top:8px">${ed(`stages.#${s.id}.tagline`,{ph:'a tagline'})}</div><div class="mono" style="margin-top:8px">${ed(`stages.#${s.id}.years`,{ph:'years'})}</div></div></div>
     </div>
-    ${s.photos?.length?`<div class="gallery rv" style="margin:-16px 0 30px">${s.photos.map(p=>`<div class="photo" data-lb="${p.id}"><img src="${p.src}" alt="${esc(p.caption)}"></div>`).join('')}</div>`:''}
+    ${s.photos?.length?`<div class="gallery rv" style="margin:-16px 0 30px">${s.photos.map((p,i)=>photoTile(p,`stages.#${s.id}.photos.${i}`)).join('')}</div>`:''}
 
     <section class="section rv"><span class="sc">The story I tell about this stage</span>
       ${ed(`stages.#${s.id}.narrative`,{multi:true,mdr:true,cls:'prose serif-lg',ph:'Your current interpretation of this era. It will change. That is the point.',hook:'stageNarrative:'+s.id})}
@@ -1508,7 +1522,7 @@ routes.stage = function(root, params){
         <div class="hd"><h3>${ed(`stages.#${s.id}.substages.${i}.name`,{ph:'name this chapter'})}</h3><span class="row" style="margin-left:auto"><button class="tbtn" data-ssup="${i}">↑</button><button class="tbtn" data-ssdown="${i}">↓</button><button class="tbtn" data-ssdel="${i}">×</button></span></div>
         <div class="muted" style="max-width:var(--content)">${ed(`stages.#${s.id}.substages.${i}.desc`,{multi:true,mdr:true,ph:'What happened here? Markdown welcome.'})}</div>
         <div class="row" style="margin:8px 0"><button class="btn sm ghost" data-ssphoto="${i}">+ photos</button><button class="btn sm ghost" data-ssmem="${ss.id}">+ formative event</button></div>
-        ${ss.photos?.length?`<div class="gallery">${ss.photos.map(p=>`<div class="photo" data-lb="${p.id}"><img src="${p.src}" alt="${esc(p.caption)}"></div>`).join('')}</div>`:''}
+        ${ss.photos?.length?`<div class="gallery">${ss.photos.map((p,j)=>photoTile(p,`stages.#${s.id}.substages.${i}.photos.${j}`)).join('')}</div>`:''}
         ${fe.length?`<div class="sc" style="margin-top:8px">Formative events</div>`:''}
         ${fe.map(e=>`<div class="formative"><div class="row between"><b class="serif" style="font-size:1.1rem">${esc(e.title)}</b><span class="mono">${esc(fmtDate(e.occurredAt,'med'))} <button class="tbtn" data-edit="${e.id}">edit</button></span></div><div class="muted" style="margin-top:4px;line-height:1.7">${md(e.body)}</div>${e.media?.length?`<div class="thumbs">${e.media.map(m=>`<div class="photo" style="width:72px;height:72px" data-lb="${m.id}"><img src="${m.src}"></div>`).join('')}</div>`:''}<div class="installed"><div class="k">What this installed in me</div>${ed(`entries.#${e.id}.extra.installed`,{multi:true,ph:'The belief, fear, pattern, or capability this event left behind.'})}</div></div>`).join('')}
       </div>`; }).join('')}
