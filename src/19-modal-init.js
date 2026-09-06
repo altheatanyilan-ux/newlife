@@ -82,6 +82,7 @@ function openSearch(){
   const sections = [['Today','#/today'],['Timeline','#/timeline'],['Threads & Tensions','#/timeline/threads'],['Vision Tree','#/vision'],['Values','#/values'],['Journals','#/journals'],['Skill Tree','#/skills'],['Creative Projects','#/projects'],['Rituals & Habits','#/rituals'],['Guided Reviews','#/rituals/reviews'],['System Map','#/map'],['Settings','#/settings']];
   const run = () => { const s = q.value.trim().toLowerCase(); const hit = t => !s || String(t).toLowerCase().includes(s); items = [];
     const grp = (name, arr) => { if(arr.length){ items.push({grp:name}); arr.slice(0,8).forEach(x=>items.push(x)); } };
+    grp('Add', SPEED_DIAL.flatMap(it => it.actions ? it.actions.map(([l,fn]) => ({t:`${it.icon} ${it.zone} — ${l}`, m:'add', run:fn, key:it.zone+' '+l+' '+it.label})) : [{t:`${it.icon} ${it.label}`, m:'add', run:it.run, key:it.zone+' '+it.label}]).filter(x=>hit(x.key)));
     grp('Sections', sections.filter(([n])=>hit(n)).map(([n,go])=>({t:n,go,m:''})));
     grp('Stages', S.stages.filter(x=>hit(x.name+' '+x.char+' '+x.tagline)).map(x=>({t:`${x.char} ${x.name}`,go:'#/stage/'+x.id,m:x.years})));
     grp('Visions', S.visions.filter(x=>hit(x.name)).map(x=>({t:x.name,go:'#/vision/'+x.id,m:x.confidence})));
@@ -93,7 +94,7 @@ function openSearch(){
     if(s) grp('Entries', sortEntries(S.entries.filter(x=>hit(x.title+' '+x.body))).map(x=>({t:x.title||x.body.slice(0,80),go:'#/journals/'+x.type,m:typeName(x.type)+' · '+fmtDate(x.occurredAt,'med'),entry:x.id})));
     sel = 0; draw(); };
   const draw = () => { let i=0; res.innerHTML = items.map(x => x.grp ? `<div class="grp">${x.grp}</div>` : `<div class="res ${i===sel?'sel':''}" data-i="${i++}"><span class="t">${esc(x.t)}</span><span class="m">${esc(x.m)}</span></div>`).join('') || '<div class="empty" style="padding:18px 22px">Nothing found.</div>'; res.querySelectorAll('.res').forEach(r => r.onclick = () => go(+r.dataset.i)); res.querySelector('.res.sel')?.scrollIntoView({block:'nearest'}); };
-  const go = i => { const list = items.filter(x=>!x.grp); const x = list[i]; if(!x) return; m.remove(); if(x.entry){ navigate(x.go); setTimeout(()=>{ const n = document.querySelector(`[data-entry="${x.entry}"]`); if(n){ n.scrollIntoView({block:'center'}); n.style.background='color-mix(in srgb,var(--terra) 12%,transparent)'; setTimeout(()=>n.style.background='',1600); } },350); } else navigate(x.go); };
+  const go = i => { const list = items.filter(x=>!x.grp); const x = list[i]; if(!x) return; m.remove(); if(x.run){ x.run(); return; } if(x.entry){ navigate(x.go); setTimeout(()=>{ const n = document.querySelector(`[data-entry="${x.entry}"]`); if(n){ n.scrollIntoView({block:'center'}); n.style.background='color-mix(in srgb,var(--terra) 12%,transparent)'; setTimeout(()=>n.style.background='',1600); } },350); } else navigate(x.go); };
   q.oninput = run; q.onkeydown = ev => { const n = items.filter(x=>!x.grp).length; if(ev.key==='ArrowDown'){ sel = Math.min(n-1, sel+1); draw(); ev.preventDefault(); } if(ev.key==='ArrowUp'){ sel = Math.max(0, sel-1); draw(); ev.preventDefault(); } if(ev.key==='Enter') go(sel); };
   run(); setTimeout(()=>q.focus(), 30);
 }
@@ -105,7 +106,7 @@ function startDust(){ const c = $('#dust'); if(!c || reduced()) return; const ct
   const tick = () => { const on = ['vision','map','skills'].includes(currentRoute); ctx.clearRect(0,0,c.width,c.height); if(on){ ctx.fillStyle = S.settings.theme==='dark' ? 'rgba(232,224,212,.05)' : 'rgba(120,90,60,.06)'; ps.forEach(p => { p.a += .01; p.x += p.vx + Math.sin(p.a)*.1; p.y += p.vy; if(p.y < -5){ p.y = innerHeight+5; p.x = Math.random()*innerWidth; } if(p.x<-5) p.x = innerWidth+5; if(p.x>innerWidth+5) p.x=-5; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); }); } requestAnimationFrame(tick); }; requestAnimationFrame(tick); }
 document.addEventListener('keydown', e => {
   const mod = e.metaKey || e.ctrlKey;
-  if(mod && e.key.toLowerCase()==='n'){ e.preventDefault(); toggleSpeedDial(); }
+  if(mod && e.key.toLowerCase()==='n'){ e.preventDefault(); toggleSpeedDialWithFilter(); }
   if(mod && e.key.toLowerCase()==='k'){ e.preventDefault(); openSearch(); }
   if(e.key==='Escape'){ if(document.activeElement?.closest?.('.ed')) return; closeModals(); }
 });

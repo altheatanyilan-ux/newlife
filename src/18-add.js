@@ -62,10 +62,15 @@ const SPEED_DIAL = [
 ];
 function buildSpeedDial(){
   const dial = $('#speedDial'); if(!dial) return;
-  dial.innerHTML = SPEED_DIAL.map((it,i) => `<div class="sd-item" style="--i:${i}"><span class="sd-ico">${it.icon}</span>${it.actions ? `<span class="sd-lbl">${esc(it.zone)} —</span>${it.actions.map(([l],j)=>`<button class="sd-act" data-i="${i}" data-j="${j}">${esc(l)}</button>`).join('<span class="sd-sep">/</span>')}` : `<button class="sd-act sd-main" data-i="${i}">${esc(it.label)}</button>`}</div>`).join('');
+  dial.innerHTML = `<div class="sd-filter-wrap"><input class="sd-filter" id="sdFilter" placeholder="Type to filter… e.g. journal" autocomplete="off" aria-label="filter entry types"></div>` + SPEED_DIAL.map((it,i) => `<div class="sd-item" style="--i:${i}"><span class="sd-ico">${it.icon}</span>${it.actions ? `<span class="sd-lbl">${esc(it.zone)} —</span>${it.actions.map(([l],j)=>`<button class="sd-act" data-i="${i}" data-j="${j}">${esc(l)}</button>`).join('<span class="sd-sep">/</span>')}` : `<button class="sd-act sd-main" data-i="${i}">${esc(it.label)}</button>`}</div>`).join('');
   dial.querySelectorAll('.sd-act').forEach(b => b.onclick = () => { const it = SPEED_DIAL[+b.dataset.i]; closeSpeedDial(); (it.actions ? it.actions[+b.dataset.j][1] : it.run)(); });
+  const f = dial.querySelector('#sdFilter');
+  const applyFilter = () => { const q = f.value.trim().toLowerCase(); let n = 0; dial.querySelectorAll('.sd-item').forEach(it => { const show = !q || it.textContent.toLowerCase().includes(q); it.hidden = !show; if(show) n++; }); dial.querySelector('.sd-empty')?.remove(); if(!n) dial.insertAdjacentHTML('beforeend', '<div class="sd-item sd-empty"><span class="sd-lbl">nothing matches</span></div>'); };
+  f.addEventListener('input', applyFilter);
+  f.addEventListener('keydown', e => { e.stopPropagation(); if(e.key === 'Escape'){ closeSpeedDial(); $('#fab').focus(); } if(e.key === 'Enter'){ const first = dial.querySelector('.sd-item:not([hidden]) .sd-act'); first?.click(); } });
 }
-function openSpeedDial(){ const d = $('#speedDial'); if(!d) return; buildSpeedDial(); d.hidden = false; $('#fab').classList.add('open'); $('#fab').setAttribute('aria-expanded','true'); }
+function openSpeedDial({focusFilter=false}={}){ const d = $('#speedDial'); if(!d) return; buildSpeedDial(); d.hidden = false; $('#fab').classList.add('open'); $('#fab').setAttribute('aria-expanded','true'); if(focusFilter) setTimeout(() => d.querySelector('#sdFilter')?.focus(), 30); }
+function toggleSpeedDialWithFilter(){ $('#speedDial')?.hidden ? openSpeedDial({focusFilter:true}) : closeSpeedDial(); }
 function closeSpeedDial(){ const d = $('#speedDial'); if(!d || d.hidden) return; d.hidden = true; $('#fab').classList.remove('open'); $('#fab').setAttribute('aria-expanded','false'); }
 function toggleSpeedDial(){ $('#speedDial')?.hidden ? openSpeedDial() : closeSpeedDial(); }
 document.addEventListener('click', e => { if(!e.target.closest('#fabWrap')) closeSpeedDial(); });

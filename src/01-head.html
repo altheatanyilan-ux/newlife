@@ -106,12 +106,15 @@ main{margin-left:var(--sidebar);flex:1;min-width:0;padding:48px 56px 120px;anima
 .page-head{margin-bottom:34px}
 .page-head h1{font-size:2.4rem}
 .page-head .sub{font-family:var(--quote);font-style:italic;color:var(--muted);margin-top:6px}
-.fab-wrap{position:fixed;right:24px;bottom:24px;z-index:45;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+.fab-wrap{position:fixed;right:24px;bottom:24px;z-index:100;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
 .fab{position:relative;right:auto;bottom:auto;width:54px;height:54px;border-radius:50%;background:var(--terra);color:#1a1816;border:none;font-size:1.6rem;box-shadow:var(--shadow);cursor:pointer;z-index:45;display:flex;align-items:center;justify-content:center;transition:transform .25s var(--ease),background .25s}
 .fab:hover{transform:scale(1.06) rotate(90deg)}
 .fab.open{transform:rotate(45deg);background:var(--surface-3);color:var(--text)}
 .fab.open .hint{display:none}
 .speed-dial{display:flex;flex-direction:column;align-items:flex-end;gap:6px;margin-bottom:4px}
+.sd-filter-wrap{width:100%;display:flex;justify-content:flex-end;margin-bottom:4px}
+.sd-filter{width:260px;max-width:70vw;background:var(--surface);border:1px solid var(--line-2);border-radius:999px;padding:8px 14px;font-size:.82rem;color:var(--text);outline:none;box-shadow:var(--shadow)}
+.sd-filter:focus{border-color:var(--terra)}
 .sd-item{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line-2);border-radius:999px;padding:6px 14px 6px 10px;box-shadow:var(--shadow);font-size:.82rem;animation:sdin .25s var(--ease) both;animation-delay:calc(var(--i) * 30ms)}
 @keyframes sdin{from{opacity:0;transform:translateY(8px) scale(.96)}to{opacity:1;transform:none}}
 .sd-ico{font-size:1rem;filter:saturate(.7)}
