@@ -181,7 +181,7 @@ function zoneSummaries(){
       overdue.length ? [`${overdue.length} ${overdue.length === 1 ? 'person is' : 'people are'} overdue for contact`, 'var(--gold)'] : ['everyone is within their cadence', 'var(--sage)'],
       jrnAge === null ? ['nothing written yet', 'var(--faint)'] : [`last journal ${relDays(jrnAge)}`, jrnAge > 7 ? 'var(--gold)' : ''],
       bdays.length ? [`${esc(bdays[0].p.name)}&#39;s birthday in ${bdays[0].days} day${bdays[0].days === 1 ? '' : 's'}`, 'var(--terra)']
-                   : [`${(S.turns || []).length} turning point${(S.turns || []).length === 1 ? '' : 's'} in the Chronicle`, ''],
+                   : [`${turningPointEntries().length} turning point${turningPointEntries().length === 1 ? '' : 's'} in the Chronicle`, ''],
     ]});
 
   const m = T.slice(0,7);

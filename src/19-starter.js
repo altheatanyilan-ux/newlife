@@ -179,7 +179,7 @@ const STARTER = {
 /* ---------- applying it ---------- */
 function starterCount(){
   const n = a => (a||[]).filter(x => x && x.seeded === STARTER_TAG).length;
-  return n(S.visions) + n(S.skills) + n(S.projects) + n(S.values) + n(S.entries) + n(S.ideas) + n(S.threadsN) + n(S.stages);
+  return n(S.visions) + n(S.skills) + n(S.projects) + n(S.values) + n(S.entries) + n(S.ideas) + n(S.threads) + n(S.stages);
 }
 function houseIsEmpty(){
   return !(S.visions||[]).length && !(S.skills||[]).length && !(S.projects||[]).length
@@ -228,9 +228,9 @@ function applyStarter(){
       resources:[], linkedSkills:(pr.skills||[]).map(k => skillId[k]).filter(Boolean), linkedVisionEra:null,
       notes:'', link:'', income:{model:'', current:0, target:0, milestones:[]}, createdAt:T}); });
 
-  STARTER.threads.forEach(th => { if(has(S.threadsN, th.key)) return;
-    S.threadsN = S.threadsN || [];
-    S.threadsN.push({id:uid(), seeded:STARTER_TAG, seedKey:th.key, name:th.name, description:th.description, color:th.color}); });
+  STARTER.threads.forEach(th => { if(has(S.threads, th.key)) return;
+    S.threads = S.threads || [];
+    S.threads.push({id:uid(), seeded:STARTER_TAG, seedKey:th.key, name:th.name, desc:th.description, color:th.color, status:'active'}); });
 
   const blank = (type, title, body, extra, tags) => ({id:uid(), seeded:STARTER_TAG, type, title, body:body||'',
     occurredAt:T, createdAt:stamp, media:[],
@@ -254,7 +254,7 @@ function applyStarter(){
 function removeStarter(){
   const strip = name => { const arr = S[name]; if(!Array.isArray(arr)) return; S[name] = arr.filter(x => !(x && x.seeded === STARTER_TAG)); };
   const goneValues = (S.values||[]).filter(v => v.seeded === STARTER_TAG).map(v => v.id);
-  ['stages','values','visions','skills','projects','threadsN','entries','ideas'].forEach(strip);
+  ['stages','values','visions','skills','projects','threads','entries','ideas'].forEach(strip);
   S.valueOrder = (S.valueOrder||[]).filter(id => !goneValues.includes(id));
   if(typeof renumberStages === 'function') renumberStages();
   S.settings.starterApplied = null;

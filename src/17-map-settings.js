@@ -50,7 +50,7 @@ routes.settings = function(root){
     $('#sStarterAdd').onclick = () => { applyStarter(); sound('success'); toast('Added. Every piece of it is editable, and this button becomes “take it out”.', 6000); rerender(); };
     $('#sStarterDel').onclick = () => { const c = starterCount();
       requestDelete({label:`the starter set (${c} record${c===1?'':'s'})`, remove:() => {
-        const snap = JSON.parse(JSON.stringify({stages:S.stages, values:S.values, valueOrder:S.valueOrder, visions:S.visions, skills:S.skills, projects:S.projects, threadsN:S.threadsN, entries:S.entries, ideas:S.ideas}));
+        const snap = JSON.parse(JSON.stringify({stages:S.stages, values:S.values, valueOrder:S.valueOrder, visions:S.visions, skills:S.skills, projects:S.projects, threads:S.threads, entries:S.entries, ideas:S.ideas}));
         removeStarter();
         return () => { Object.assign(S, snap); saveNow(); };
       }, after:() => { S.settings.starterDeclined = true; saveNow(); rerender(); }}); };
