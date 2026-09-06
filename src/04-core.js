@@ -102,6 +102,7 @@ function beginEdit(node){
   node.innerHTML = ''; node.appendChild(inp);
   const autosize = () => { if(multi){ inp.style.height = 'auto'; inp.style.height = inp.scrollHeight + 'px'; } };
   autosize(); inp.focus();
+  if(multi && typeof attachDictation === 'function') attachDictation(inp, {compact:true});
   const commit = debounce(() => { setPath(path, inp.value); save(); }, 500);
   inp.addEventListener('input', () => { autosize(); commit(); });
   inp.addEventListener('keydown', e => { if(e.key==='Enter' && !multi){ e.preventDefault(); inp.blur(); } if(e.key==='Escape'){ inp.blur(); } e.stopPropagation(); });
@@ -184,9 +185,10 @@ function renderRoute(){
   currentRoute = name; PageEntryConfig.clear();
   try { fn(main, params); } catch(err){ console.error(err); main.innerHTML = `<div class="page narrow"><h1>Something went wrong</h1><p class="muted">${esc(err.message)}</p></div>`; }
   decoratePageHead(main); mountContextAdd(main); reveal(main); tweenAll(main); backupBanner(); updateBackButton();
+  if(typeof attachDictationIn === 'function') attachDictationIn(main);
   restoreScroll(location.hash);
 }
-function rerender(){ const y = window.scrollY; const main = $('#main'); const {name, params} = parseHash(); main.innerHTML=''; PageEntryConfig.clear(); (routes[name]||routes.home)(main, params); decoratePageHead(main); mountContextAdd(main); $$('.rv', main).forEach(n=>n.classList.add('in')); tweenAll(main); window.scrollTo({top:y}); }
+function rerender(){ const y = window.scrollY; const main = $('#main'); const {name, params} = parseHash(); main.innerHTML=''; PageEntryConfig.clear(); (routes[name]||routes.home)(main, params); decoratePageHead(main); mountContextAdd(main); if(typeof attachDictationIn === 'function') attachDictationIn(main); $$('.rv', main).forEach(n=>n.classList.add('in')); tweenAll(main); window.scrollTo({top:y}); }
 /* where you were on each page, so Back returns you to the spot and not the top */
 try { history.scrollRestoration = 'manual'; } catch(e){}
 const scrollMem = new Map(); let wentBack = false, navSeq = 0, navIdx = -1;
@@ -209,7 +211,7 @@ window.addEventListener('hashchange', () => {
 });
 
 /* ---------- side panel ---------- */
-function openPanel(html, cls=''){ closePanel({keep:true}); sound('open'); if(!history.state?.liPanel){ try { history.pushState({liPanel:true, liIdx:navIdx}, '', location.href); } catch(e){} } const ov = el(`<div class="panel-overlay" id="panelOv"></div>`); const p = el(`<div class="side-panel ${cls}" id="panel"><div class="panel-grip" title="drag to resize · double-click to reset"></div><button class="panel-wide" title="widen / narrow (focus)">⤢</button><button class="close" title="close">×</button>${html}</div>`); document.body.appendChild(ov); document.body.appendChild(p); ov.onclick = closePanel; p.querySelector('.close').onclick = closePanel; bindPanelResize(p); tweenAll(p); return p; }
+function openPanel(html, cls=''){ closePanel({keep:true}); sound('open'); if(!history.state?.liPanel){ try { history.pushState({liPanel:true, liIdx:navIdx}, '', location.href); } catch(e){} } const ov = el(`<div class="panel-overlay" id="panelOv"></div>`); const p = el(`<div class="side-panel ${cls}" id="panel"><div class="panel-grip" title="drag to resize · double-click to reset"></div><button class="panel-wide" title="widen / narrow (focus)">⤢</button><button class="close" title="close">×</button>${html}</div>`); document.body.appendChild(ov); document.body.appendChild(p); ov.onclick = closePanel; p.querySelector('.close').onclick = closePanel; bindPanelResize(p); tweenAll(p); if(typeof attachDictationIn === 'function') attachDictationIn(p); return p; }
 /* panel width: drag the left edge, persisted; ⤢ toggles a wide "focus" width */
 function panelWidthDefault(){ return 560; }
 function applyPanelWidth(p){ const wide = lsGet('panelWide', false); const w = wide ? Math.min(1180, innerWidth*.94) : clamp(lsGet('panelWidth', panelWidthDefault()), 380, innerWidth*.94); p.style.setProperty('--panel-w', Math.round(w)+'px'); p.classList.toggle('wide', !!wide); }
@@ -235,7 +237,7 @@ function updateBackButton(){
 }
 function goBack(){ if(history.length > 1) history.back(); else navigate('#/' + homeRoute()); }
 document.addEventListener('click', e => { const b = e.target.closest('[data-back]'); if(b){ e.preventDefault(); goBack(); } });
-function openModal(html, cls=''){ sound('open'); const ov = el(`<div class="overlay"><div class="modal ${cls}"><button class="close">×</button>${html}</div></div>`); ov.addEventListener('mousedown', e => { if(e.target===ov) ov.remove(); }); ov.querySelector('.close').onclick = () => ov.remove(); $('#modals').appendChild(ov); return ov; }
+function openModal(html, cls=''){ sound('open'); const ov = el(`<div class="overlay"><div class="modal ${cls}"><button class="close">×</button>${html}</div></div>`); ov.addEventListener('mousedown', e => { if(e.target===ov) ov.remove(); }); ov.querySelector('.close').onclick = () => ov.remove(); $('#modals').appendChild(ov); if(typeof attachDictationIn === 'function') attachDictationIn(ov); return ov; }
 function closeModals(){ $$('#modals .overlay').forEach(o=>o.remove()); $('.lightbox')?.remove(); closePanel(); }
 /* the Escape key closes a panel through history so the stack stays true */
 function lightbox(src, cap=''){ const lb = el(`<div class="lightbox"><img src="${src}"><div class="cap">${esc(cap)}</div></div>`); lb.onclick = ()=>lb.remove(); document.body.appendChild(lb); }

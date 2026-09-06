@@ -392,6 +392,18 @@ html.reduce-motion *,html.reduce-motion *::before,html.reduce-motion *::after{an
 .amb-opt.on{border-color:var(--page-accent);background:color-mix(in srgb,var(--page-accent) 12%,var(--surface-2))}
 .amb-name{font-family:var(--serif);font-size:1rem;color:var(--text)}
 .amb-desc{font-family:var(--quote);font-style:italic;font-size:.8rem;color:var(--muted)}
+/* ---------- dictation & AI ---------- */
+.dictate{display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap}
+.dict-btn{display:inline-flex;align-items:center;gap:5px;background:var(--surface-2);border:1px solid var(--line-2);color:var(--muted);border-radius:999px;padding:4px 12px;font-size:.72rem;font-family:var(--sans);cursor:pointer;transition:border-color .2s var(--ease),color .2s var(--ease),background .2s var(--ease)}
+.dict-btn:hover:not(:disabled){color:var(--text);border-color:var(--page-accent)}
+.dict-btn:disabled{opacity:.4;cursor:not-allowed}
+.dict-btn.rec{border-color:#c25b5b;color:#e08b8b;background:color-mix(in srgb,#c25b5b 14%,transparent);animation:recPulse 1.6s ease-in-out infinite}
+@keyframes recPulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,#c25b5b 45%,transparent)}50%{box-shadow:0 0 0 5px transparent}}
+.dict-state{color:var(--faint);font-size:.68rem}
+.linkish{background:none;border:none;color:var(--page-accent);cursor:pointer;font-family:var(--mono);font-size:.68rem;padding:0;text-decoration:underline}
+.dictate.compact .dict-btn span{display:none}
+.dictate.compact .dict-btn{padding:3px 8px}
+@media (prefers-reduced-motion:reduce){.dict-btn.rec{animation:none}}
 /* ---------- calendar ---------- */
 .cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
 .cal-dow{font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);text-align:center;padding-bottom:4px}
@@ -1296,6 +1308,7 @@ function beginEdit(node){
   node.innerHTML = ''; node.appendChild(inp);
   const autosize = () => { if(multi){ inp.style.height = 'auto'; inp.style.height = inp.scrollHeight + 'px'; } };
   autosize(); inp.focus();
+  if(multi && typeof attachDictation === 'function') attachDictation(inp, {compact:true});
   const commit = debounce(() => { setPath(path, inp.value); save(); }, 500);
   inp.addEventListener('input', () => { autosize(); commit(); });
   inp.addEventListener('keydown', e => { if(e.key==='Enter' && !multi){ e.preventDefault(); inp.blur(); } if(e.key==='Escape'){ inp.blur(); } e.stopPropagation(); });
@@ -1378,9 +1391,10 @@ function renderRoute(){
   currentRoute = name; PageEntryConfig.clear();
   try { fn(main, params); } catch(err){ console.error(err); main.innerHTML = `<div class="page narrow"><h1>Something went wrong</h1><p class="muted">${esc(err.message)}</p></div>`; }
   decoratePageHead(main); mountContextAdd(main); reveal(main); tweenAll(main); backupBanner(); updateBackButton();
+  if(typeof attachDictationIn === 'function') attachDictationIn(main);
   restoreScroll(location.hash);
 }
-function rerender(){ const y = window.scrollY; const main = $('#main'); const {name, params} = parseHash(); main.innerHTML=''; PageEntryConfig.clear(); (routes[name]||routes.home)(main, params); decoratePageHead(main); mountContextAdd(main); $$('.rv', main).forEach(n=>n.classList.add('in')); tweenAll(main); window.scrollTo({top:y}); }
+function rerender(){ const y = window.scrollY; const main = $('#main'); const {name, params} = parseHash(); main.innerHTML=''; PageEntryConfig.clear(); (routes[name]||routes.home)(main, params); decoratePageHead(main); mountContextAdd(main); if(typeof attachDictationIn === 'function') attachDictationIn(main); $$('.rv', main).forEach(n=>n.classList.add('in')); tweenAll(main); window.scrollTo({top:y}); }
 /* where you were on each page, so Back returns you to the spot and not the top */
 try { history.scrollRestoration = 'manual'; } catch(e){}
 const scrollMem = new Map(); let wentBack = false, navSeq = 0, navIdx = -1;
@@ -1403,7 +1417,7 @@ window.addEventListener('hashchange', () => {
 });
 
 /* ---------- side panel ---------- */
-function openPanel(html, cls=''){ closePanel({keep:true}); sound('open'); if(!history.state?.liPanel){ try { history.pushState({liPanel:true, liIdx:navIdx}, '', location.href); } catch(e){} } const ov = el(`<div class="panel-overlay" id="panelOv"></div>`); const p = el(`<div class="side-panel ${cls}" id="panel"><div class="panel-grip" title="drag to resize · double-click to reset"></div><button class="panel-wide" title="widen / narrow (focus)">⤢</button><button class="close" title="close">×</button>${html}</div>`); document.body.appendChild(ov); document.body.appendChild(p); ov.onclick = closePanel; p.querySelector('.close').onclick = closePanel; bindPanelResize(p); tweenAll(p); return p; }
+function openPanel(html, cls=''){ closePanel({keep:true}); sound('open'); if(!history.state?.liPanel){ try { history.pushState({liPanel:true, liIdx:navIdx}, '', location.href); } catch(e){} } const ov = el(`<div class="panel-overlay" id="panelOv"></div>`); const p = el(`<div class="side-panel ${cls}" id="panel"><div class="panel-grip" title="drag to resize · double-click to reset"></div><button class="panel-wide" title="widen / narrow (focus)">⤢</button><button class="close" title="close">×</button>${html}</div>`); document.body.appendChild(ov); document.body.appendChild(p); ov.onclick = closePanel; p.querySelector('.close').onclick = closePanel; bindPanelResize(p); tweenAll(p); if(typeof attachDictationIn === 'function') attachDictationIn(p); return p; }
 /* panel width: drag the left edge, persisted; ⤢ toggles a wide "focus" width */
 function panelWidthDefault(){ return 560; }
 function applyPanelWidth(p){ const wide = lsGet('panelWide', false); const w = wide ? Math.min(1180, innerWidth*.94) : clamp(lsGet('panelWidth', panelWidthDefault()), 380, innerWidth*.94); p.style.setProperty('--panel-w', Math.round(w)+'px'); p.classList.toggle('wide', !!wide); }
@@ -1429,7 +1443,7 @@ function updateBackButton(){
 }
 function goBack(){ if(history.length > 1) history.back(); else navigate('#/' + homeRoute()); }
 document.addEventListener('click', e => { const b = e.target.closest('[data-back]'); if(b){ e.preventDefault(); goBack(); } });
-function openModal(html, cls=''){ sound('open'); const ov = el(`<div class="overlay"><div class="modal ${cls}"><button class="close">×</button>${html}</div></div>`); ov.addEventListener('mousedown', e => { if(e.target===ov) ov.remove(); }); ov.querySelector('.close').onclick = () => ov.remove(); $('#modals').appendChild(ov); return ov; }
+function openModal(html, cls=''){ sound('open'); const ov = el(`<div class="overlay"><div class="modal ${cls}"><button class="close">×</button>${html}</div></div>`); ov.addEventListener('mousedown', e => { if(e.target===ov) ov.remove(); }); ov.querySelector('.close').onclick = () => ov.remove(); $('#modals').appendChild(ov); if(typeof attachDictationIn === 'function') attachDictationIn(ov); return ov; }
 function closeModals(){ $$('#modals .overlay').forEach(o=>o.remove()); $('.lightbox')?.remove(); closePanel(); }
 /* the Escape key closes a panel through history so the stack stays true */
 function lightbox(src, cap=''){ const lb = el(`<div class="lightbox"><img src="${src}"><div class="cap">${esc(cap)}</div></div>`); lb.onclick = ()=>lb.remove(); document.body.appendChild(lb); }
@@ -1990,6 +2004,213 @@ function bindAmbientMenu(root){
 function openAmbientMenu(){
   const m = openModal(`<h2>Atmosphere</h2><p class="muted" style="font-size:.86rem">A bed of sound under the room. All of it is made in the browser — nothing is downloaded, and the piano never plays the same phrase twice.</p>${ambientMenuHTML()}`, 'narrow');
   bindAmbientMenu(m);
+}
+/* ============================================================
+   VOICE & AI — speaking, tidying, and one honest report.
+
+   Dictation uses the browser's own speech recogniser. No audio is
+   recorded, stored or uploaded; the browser hands back text and
+   the text is all that exists.
+
+   Polishing and the pattern report work in two modes:
+     · local   — always available, no key, nothing leaves the page.
+                 Rule-based cleanup and real statistics.
+     · Claude  — if you paste an Anthropic API key in Settings, the
+                 same material is sent to the API for a better pass.
+   A Claude Pro/Max or ChatGPT subscription cannot be used here:
+   those are consumer products and do not issue API credentials.
+   API usage is billed separately, pay as you go.
+   ============================================================ */
+
+/* ---------- 1. dictation ---------- */
+const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+const dictationSupported = () => !!SpeechRec;
+let activeDictation = null;
+function startDictation(target, {onText, onEnd} = {}){
+  if(!SpeechRec){ toast('This browser has no speech recogniser. Chrome, Edge and Safari have one.'); return null; }
+  stopDictation();
+  const rec = new SpeechRec();
+  rec.lang = S.settings.dictationLang || navigator.language || 'en-US';
+  rec.continuous = true; rec.interimResults = true;
+  let settled = '';
+  rec.onresult = ev => {
+    let interim = '';
+    for(let i = ev.resultIndex; i < ev.results.length; i++){
+      const r = ev.results[i];
+      if(r.isFinal) settled += (settled && !/\s$/.test(settled) ? ' ' : '') + r[0].transcript.trim();
+      else interim += r[0].transcript;
+    }
+    onText && onText(settled, interim);
+  };
+  rec.onerror = ev => { if(ev.error === 'not-allowed') toast('Microphone permission was refused.'); else if(ev.error !== 'aborted' && ev.error !== 'no-speech') toast(`Dictation stopped: ${ev.error}`); stopDictation(); };
+  rec.onend = () => { if(activeDictation && activeDictation.rec === rec){ activeDictation = null; onEnd && onEnd(settled); } };
+  activeDictation = {rec, target};
+  try { rec.start(); } catch(e){ activeDictation = null; toast('Could not start the microphone.'); return null; }
+  return rec;
+}
+function stopDictation(){ const a = activeDictation; activeDictation = null; if(a){ try { a.rec.stop(); } catch(e){} } }
+
+/* ---------- 2. tidying raw speech ---------- */
+const FILLERS = /\b(um+|uh+|erm+|er|like|you know|i mean|sort of|kind of|basically|actually|literally|just kinda)\b[,]?\s*/gi;
+/* a local pass: spoken text has no punctuation and too many fillers. This
+   fixes the mechanics without inventing anything you did not say. */
+function tidyLocally(raw){
+  let t = String(raw || '').replace(/\s+/g, ' ').trim();
+  if(!t) return '';
+  t = t.replace(FILLERS, '');
+  // spoken punctuation words people actually say
+  t = t.replace(/\s*\b(full stop|period)\b\s*/gi, '. ')
+       .replace(/\s*\bcomma\b\s*/gi, ', ')
+       .replace(/\s*\b(question mark)\b\s*/gi, '? ')
+       .replace(/\s*\b(exclamation (mark|point))\b\s*/gi, '! ')
+       .replace(/\s*\b(new paragraph|paragraph break)\b\s*/gi, '\n\n')
+       .replace(/\s*\b(new line)\b\s*/gi, '\n');
+  // sentence breaks before common openers when none exist
+  t = t.replace(/([a-z0-9])\s+(?=(?:And then|But then|So then|And so)\b)/g, '$1. ');
+  t = t.replace(/\s+([,.;:!?])/g, '$1').replace(/([,.;:!?])(?=[^\s\d])/g, '$1 ');
+  if(!/[.!?]$/.test(t)) t += '.';
+  // capitalise sentence starts and the standalone I
+  t = t.replace(/(^|[.!?]\s+|\n\s*)([a-z])/g, (m,a,b) => a + b.toUpperCase()).replace(/\bi\b/g, 'I');
+  t = t.replace(/\n{3,}/g, '\n\n').replace(/[ \t]{2,}/g, ' ');
+  return t.trim();
+}
+
+/* ---------- 3. the optional Claude connection ---------- */
+const AI_KEY_LS = 'anthropicKey';
+const AI_MODEL = 'claude-sonnet-5';
+function aiKey(){ try { return localStorage.getItem(AI_KEY_LS) || ''; } catch(e){ return ''; } }
+function setAiKey(k){ try { k ? localStorage.setItem(AI_KEY_LS, k.trim()) : localStorage.removeItem(AI_KEY_LS); } catch(e){} }
+const aiReady = () => !!aiKey();
+async function askClaude(system, user, {maxTokens = 1200} = {}){
+  const key = aiKey(); if(!key) throw new Error('no key');
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST',
+    headers:{'content-type':'application/json', 'x-api-key':key, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true'},
+    body: JSON.stringify({model: AI_MODEL, max_tokens: maxTokens, system, messages:[{role:'user', content:user}]}),
+  });
+  if(!res.ok){
+    const body = await res.text().catch(()=> '');
+    throw new Error(res.status === 401 ? 'That key was refused. Check it in Settings.' : res.status === 429 ? 'Rate limited — try again in a minute.' : `Claude returned ${res.status}. ${body.slice(0,140)}`);
+  }
+  const data = await res.json();
+  return (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('').trim();
+}
+const POLISH_SYSTEM = `You clean up dictated personal-journal text for its own author. Rules, without exception:
+- Preserve meaning, facts, names and voice exactly. Never add an idea, image, feeling or detail that is not already there.
+- Remove filler words and false starts. Add punctuation, sentence and paragraph breaks.
+- Keep the author's own words wherever they work. Do not raise the register or make it literary.
+- Keep first person and the original tense. Keep any #hashtags verbatim.
+- Return only the cleaned text. No preamble, no commentary, no quotation marks around it.`;
+async function polishText(raw){
+  const local = tidyLocally(raw);
+  if(!aiReady()) return {text: local, via: 'local'};
+  try { const out = await askClaude(POLISH_SYSTEM, `Clean up this dictation:\n\n${raw}`, {maxTokens: Math.min(4000, 400 + raw.length)}); return {text: out || local, via: 'claude'}; }
+  catch(e){ return {text: local, via: 'local', error: e.message}; }
+}
+
+/* ---------- 4. the microphone button that sits on a long field ---------- */
+function attachDictation(textarea, {compact = false} = {}){
+  if(!textarea || textarea.dataset.dictated) return;
+  textarea.dataset.dictated = '1';
+  const wrap = document.createElement('div'); wrap.className = 'dictate' + (compact ? ' compact' : '');
+  wrap.innerHTML = `<button type="button" class="dict-btn" title="${dictationSupported() ? 'Dictate — speak and it types' : 'This browser has no speech recogniser'}" ${dictationSupported()?'':'disabled'}>🎙<span>speak</span></button>
+    <button type="button" class="dict-btn tidy" title="Tidy up what is written: fillers out, punctuation in">✧<span>tidy</span></button>
+    <span class="dict-state mono"></span>`;
+  textarea.insertAdjacentElement('afterend', wrap);
+  const btn = wrap.querySelector('.dict-btn'), tidyBtn = wrap.querySelector('.tidy'), state = wrap.querySelector('.dict-state');
+  const base = () => textarea.dataset.dictBase || '';
+  const fire = () => textarea.dispatchEvent(new Event('input', {bubbles:true}));
+  btn.onclick = () => {
+    if(activeDictation && activeDictation.target === textarea){ stopDictation(); return; }
+    textarea.dataset.dictBase = textarea.value ? textarea.value.replace(/\s*$/, '') + ' ' : '';
+    const rec = startDictation(textarea, {
+      onText: (settled, interim) => { textarea.value = base() + settled + (interim ? (settled ? ' ' : '') + interim : ''); fire(); textarea.scrollTop = textarea.scrollHeight; },
+      onEnd: () => { btn.classList.remove('rec'); btn.querySelector('span').textContent = 'speak'; state.textContent = textarea.value.length > base().length ? 'dictated — press ✧ to tidy it' : ''; },
+    });
+    if(rec){ btn.classList.add('rec'); btn.querySelector('span').textContent = 'stop'; state.textContent = 'listening — audio is never stored'; }
+  };
+  tidyBtn.onclick = async () => {
+    const raw = textarea.value.trim(); if(!raw){ toast('Nothing to tidy yet.'); return; }
+    tidyBtn.disabled = true; state.textContent = aiReady() ? 'Claude is tidying…' : 'tidying…';
+    const prev = raw;
+    const {text, via, error} = await polishText(raw);
+    textarea.value = text; fire();
+    tidyBtn.disabled = false;
+    state.innerHTML = `${via === 'claude' ? 'tidied by Claude' : 'tidied locally'} · <button type="button" class="linkish" data-undo>undo</button>`;
+    state.querySelector('[data-undo]').onclick = () => { textarea.value = prev; fire(); state.textContent = 'reverted'; };
+    if(error) toast(error);
+    sound('success');
+  };
+}
+/* every long field in a modal, panel or page gets the pair of buttons */
+function attachDictationIn(root){ $$('textarea.ta, textarea.write-area', root || document).forEach(t => attachDictation(t, {compact: t.classList.contains('write-area')})); }
+
+/* ---------- 5. the pattern report ---------- */
+/* Real numbers first. These are computed here and are true whether or not
+   a key is present; Claude is only ever asked to interpret them. */
+function gatherPatterns({days = 90} = {}){
+  const T = today(); const from = addDays(T, -days);
+  const es = S.entries.filter(e => (e.createdAt||e.occurredAt||'').slice(0,10) >= from);
+  const snaps = allSnapshotsWithRetro();
+  const words = {}; const STOP = new Set('the a an and or but if then than that this these those i me my myself we our you your he she it they them is are was were be been being have has had do does did of in on at to for with about into over after under again more most other some such no nor not only own same so too very can will just should now it\'s i\'m don\'t there here what when where who how out up down as by from'.split(' '));
+  es.forEach(e => `${e.title||''} ${e.body||''}`.toLowerCase().replace(/[^\p{L}\p{N}\s#]/gu,' ').split(/\s+/).forEach(w => { if(w.length > 3 && !STOP.has(w)) words[w] = (words[w]||0)+1; }));
+  const topWords = Object.entries(words).sort((a,b)=>b[1]-a[1]).slice(0,14);
+  const tagCounts = {}; es.forEach(e => entryTags(e).forEach(t => tagCounts[t] = (tagCounts[t]||0)+1));
+  const valueTrends = S.valueOrder.map(id => {
+    const v = byId(S.values, id); if(!v) return null;
+    const series = snaps.map(s => s.ratings[id]).filter(x => x != null);
+    if(series.length < 2) return {name: v.name, series, run: 0};
+    let run = 0; for(let i = series.length-1; i > 0; i--){ const d = series[i] - series[i-1]; if(run === 0) run = d < 0 ? -1 : d > 0 ? 1 : 0; else if((d < 0 && run < 0) || (d > 0 && run > 0)) run += Math.sign(d); else break; }
+    return {name: v.name, series, latest: series[series.length-1], first: series[0], run};
+  }).filter(Boolean);
+  const states = lastDays(days).map(d => dayState(d)).filter(v => v !== null);
+  const byWeekday = [0,1,2,3,4,5,6].map(i => { const vals = lastDays(days).filter(d => parseDay(d).getDay() === i).map(d => dayState(d)).filter(v => v !== null); return {day: DOW[i], n: vals.length, avg: vals.length ? Math.round(avg(vals)) : null}; });
+  const habitRates = S.habits.filter(h => !h.archived && !h.negative).map(h => { const r = habitWeekRates(h); const last = r[r.length-1]; return {name: h.name, recent: last ? Math.round(last.done/Math.max(last.due,1)*100) : 0, streak: habitStreak(h).cur}; });
+  const skillsCold = S.skills.filter(s => skillIsAtrophying(s)).map(s => ({name: s.name, days: daysSince(skillLastPracticed(s))})).sort((a,b)=>(b.days===Infinity?0:b.days)-(a.days===Infinity?0:a.days));
+  const people = {}; es.forEach(e => (e.people||[]).forEach(p => people[p] = (people[p]||0)+1));
+  const cadence = {};
+  es.forEach(e => { const wk = weekStart((e.createdAt||e.occurredAt||T).slice(0,10)); cadence[wk] = (cadence[wk]||0)+1; });
+  return {days, entryCount: es.length, byType: ENTRY_TYPES.map(([t,n]) => ({type:n, n: es.filter(e=>e.type===t).length})).filter(x=>x.n), topWords,
+    tags: Object.entries(tagCounts).sort((a,b)=>b[1]-a[1]).slice(0,12), valueTrends,
+    state: {n: states.length, avg: states.length ? Math.round(avg(states)) : null, first: states.length ? Math.round(avg(states.slice(0, Math.ceil(states.length/2)))) : null, second: states.length ? Math.round(avg(states.slice(Math.ceil(states.length/2)))) : null},
+    byWeekday, habitRates, skillsCold, people: Object.entries(people).sort((a,b)=>b[1]-a[1]).slice(0,8),
+    cadence: Object.entries(cadence).sort(), visions: S.visions.filter(v=>v.confidence!=='lived').map(v=>({name:v.name, vividness: vividness(v).score})).slice(0,10)};
+}
+/* the local report: statements that are simply true, phrased plainly */
+function localPatternReport(p){
+  const out = [];
+  out.push(`In the last ${p.days} days you wrote **${p.entryCount}** ${p.entryCount === 1 ? 'entry' : 'entries'}${p.byType.length ? ` — ${p.byType.sort((a,b)=>b.n-a.n).slice(0,2).map(t=>`${t.n} ${t.type.toLowerCase()}${t.n===1?'':'s'}`).join(', ')}` : ''}.`);
+  if(p.tags.length) out.push(`The tag you reach for most is **#${p.tags[0][0]}** (${p.tags[0][1]} entries)${p.tags[1] ? `, then #${p.tags[1][0]}` : ''}.`);
+  if(p.topWords.length > 2){ const w = p.topWords.slice(0,5).map(([x,n])=>`${x} (${n})`).join(', '); out.push(`Words that keep coming back: ${w}.`); }
+  const falling = p.valueTrends.filter(v => v.run <= -3);
+  falling.forEach(v => out.push(`**${v.name}** congruence has fallen ${Math.abs(v.run)} readings in a row, now at ${v.latest}.`));
+  const rising = p.valueTrends.filter(v => v.run >= 3);
+  rising.forEach(v => out.push(`**${v.name}** has risen ${v.run} readings in a row, now at ${v.latest}.`));
+  if(p.state.n > 6 && p.state.first !== null){ const d = p.state.second - p.state.first;
+    out.push(`Your overall state averaged **${p.state.avg}/100** across ${p.state.n} logged days, ${Math.abs(d) < 4 ? 'level across the period' : d > 0 ? `up ${d} points in the second half` : `down ${Math.abs(d)} points in the second half`}.`); }
+  const wd = p.byWeekday.filter(w => w.avg !== null && w.n >= 2);
+  if(wd.length >= 4){ const best = [...wd].sort((a,b)=>b.avg-a.avg)[0], worst = [...wd].sort((a,b)=>a.avg-b.avg)[0];
+    if(best.avg - worst.avg >= 12) out.push(`**${best.day}s** run brightest (${best.avg}) and **${worst.day}s** heaviest (${worst.avg}).`); }
+  p.skillsCold.slice(0,3).forEach(s => out.push(s.days === Infinity ? `**${s.name}** has never been practised — it is on the tree but not in your week.` : `**${s.name}** has not been practised in ${s.days} days.`));
+  const weak = p.habitRates.filter(h => h.recent < 40);
+  if(weak.length) out.push(`${weak.length === 1 ? 'One habit is' : `${weak.length} habits are`} under 40% this week: ${weak.slice(0,3).map(h=>h.name).join(', ')}.`);
+  if(p.people.length) out.push(`The people who appear most in what you write: ${p.people.slice(0,3).map(([n,c])=>`${n} (${c})`).join(', ')}.`);
+  if(out.length < 3) out.push('There is not much here yet. A few weeks of entries and check-ins and the patterns start to show.');
+  return out;
+}
+const REPORT_SYSTEM = `You are reading one person's private journal statistics and writing them a short monthly reflection. You are talking to them, not about them.
+Rules:
+- Ground every observation in the numbers you are given. Never invent an event, a person or a feeling.
+- Say what the pattern is, then what it might mean, then one concrete thing they could try. Be specific.
+- Notice tension between what they say matters and what the numbers show.
+- Warm, direct, unsentimental. No therapy-speak, no praise padding, no bullet-point listicles of advice.
+- 4 to 6 short paragraphs. Plain markdown. Address them as "you". Do not open with a greeting or a summary of your task.`;
+async function generatePatternReport({days = 90} = {}){
+  const p = gatherPatterns({days});
+  const local = localPatternReport(p);
+  if(!aiReady()) return {mode:'local', lines: local, data: p};
+  const text = await askClaude(REPORT_SYSTEM, `Here are the statistics from my last ${days} days. Write my reflection.\n\n${JSON.stringify(p, null, 1)}`, {maxTokens: 1600});
+  return {mode:'claude', text, lines: local, data: p};
 }
 /* ============================================================
    db.js — Dexie database schema and persistence layer
@@ -3362,7 +3583,7 @@ function migrateSkillFocus(){
 }
 const skillHorizon = s => SKILL_HORIZONS[s.horizon] ? s.horizon : 'active';
 function focusSkills(){ return S.skills.filter(s => skillHorizon(s) === 'focus'); }
-function skillIsAtrophying(s){ const d = daysSince(skillLastPracticed(s)); return skillHorizon(s) !== 'someday' && !s.planned && d > 90; }
+function skillIsAtrophying(s){ const h = skillHorizon(s); if(h === 'someday' || h === 'paused' || s.planned) return false; return daysSince(skillLastPracticed(s)) > 90; }
 /* every milestone across every skill, inside a window of days */
 function milestonesWithin(days){
   const T = today(); const lim = addDays(T, days); const out = [];
@@ -3994,14 +4215,16 @@ function openHabitModal(id){
   m.querySelectorAll('[data-lv],[data-lvi],[data-lsk]').forEach(c => c.onclick = () => c.classList.toggle('on'));
   m.querySelector('#hSave').onclick = () => { h.name = m.querySelector('#hName').value.trim(); if(!h.name) return; h.freq = {type:m.querySelector('#hFreq').value, days:[...m.querySelectorAll('[data-day].primary')].map(b=>+b.dataset.day), count:+m.querySelector('#hCountN').value||1}; h.timeOfDay = m.querySelector('#hTod').value; h.dimension = m.querySelector('#hDim').value; h.kind = m.querySelector('#hKind').value; h.min = m.querySelector('#hMin').value; h.ideal = m.querySelector('#hIdeal').value; h.stackAfter = m.querySelector('#hStack').value||null; h.prompt = m.querySelector('#hPrompt').value; h.negative = m.querySelector('#hNeg').classList.contains('on'); h.links = {values:[...m.querySelectorAll('[data-lv].on')].map(c=>c.dataset.lv), visions:[...m.querySelectorAll('[data-lvi].on')].map(c=>c.dataset.lvi), skills:[...m.querySelectorAll('[data-lsk].on')].map(c=>c.dataset.lsk)}; if(!id) S.habits.push(h); saveNow(); m.remove(); rerender(); sound('save'); };
 }
-routes.reviews = function(root){
+routes.reviews = function(root, params){
   registerPageEntry({pageName:'Reviews', addLabel:'Start a review', defaultEntryType:'reflection', prefilledFields:{}, options:[
     {icon:'◷', label:'Weekly review', desc:'Fifteen minutes, once a week.', run:()=>{ location.hash = '#/reviews'; setTimeout(()=>document.querySelector('#rWeekly')?.scrollIntoView({block:'center',behavior:'smooth'}),200); }},
     {icon:'✎', label:'Note from a review', desc:'Something the review turned up.', run:()=>EntryActions.quickNote()}]});
+  const tab = (params && params[0] === 'patterns') ? 'patterns' : 'guided';
   root.innerHTML = `<div class="page">
-    <div class="page-head"><h1>Reviews</h1><div class="sub">The rhythm above the daily one: a week, a season, a year. Each is a short set of questions and a date stamp, not a report.</div></div>
+    <div class="page-head"><h1>Reviews</h1><div class="sub">The rhythm above the daily one: a week, a season, a year — and, when you want it, a reading of the record itself.</div></div>
+    <div class="tabs"><button class="${tab==='guided'?'active':''}" data-go="#/reviews">Guided reviews</button><button class="${tab==='patterns'?'active':''}" data-go="#/reviews/patterns">Patterns in the record</button></div>
     <div id="revBody"></div></div>`;
-  renderReviews($('#revBody'));
+  if(tab === 'patterns') renderPatterns($('#revBody')); else renderReviews($('#revBody'));
 };
 function renderReviews(body){
   const gaps = valueGaps(); const g0 = gaps[0]; const vs = S.visions.filter(v=>v.confidence!=='lived'); const st = vs.map(v=>({v,t:structuralTension(v)})).sort((a,b)=>b.t-a.t)[0];
@@ -4059,6 +4282,67 @@ function renderReviews(body){
   body.querySelectorAll('[data-leaf]').forEach(b => b.onclick = () => openEntryModal({type:'progress', links:{visions:[b.dataset.leaf]}}));
   body.querySelectorAll('[data-letter]').forEach(b => b.onclick = () => openEntryModal({type:'letter', title:'To myself, one year from now', occurredAt:addDays(today(),365)}));
 }
+
+/* ---------- Patterns: what the record says, with or without Claude ---------- */
+function renderPatterns(body){
+  const days = S._patDays || 90;
+  const cached = S._patReport && S._patReport.days === days ? S._patReport : null;
+  const p = gatherPatterns({days});
+  const local = localPatternReport(p);
+  body.innerHTML = `
+    <div class="row between rv" style="margin:6px 0 16px;flex-wrap:wrap;gap:10px">
+      <div class="row">${[30,90,180,365].map(d=>`<button class="btn sm ${days===d?'primary':'ghost'}" data-patd="${d}">${d===365?'a year':d+' days'}</button>`).join('')}</div>
+      <div class="row">${aiReady()
+        ? `<button class="btn primary" id="patAsk">${cached && cached.mode==='claude' ? 'Ask again' : 'Ask Claude to read it'}</button>`
+        : `<a class="btn sm ghost" href="#/settings">connect Claude for a written reflection →</a>`}</div>
+    </div>
+
+    ${cached && cached.mode === 'claude' ? `<section class="reading-card rv" style="margin-bottom:22px">
+        <div class="row between"><div class="sc">Claude, reading ${days === 365 ? 'the year' : `the last ${days} days`}</div><span class="mono">${esc(cached.at||'')}</span></div>
+        <div class="reading-body prose">${md(cached.text)}</div>
+        <div class="faint" style="font-size:.74rem;margin-top:12px">Written from the statistics below, which were computed in your browser. Your entries are sent to the Anthropic API only when you press the button.</div>
+      </section>` : ''}
+
+    <section class="reading-card rv" style="margin-bottom:22px">
+      <div class="sc">What is simply true</div>
+      <div class="reading-body">${local.map(l => `<p>${mdInline(l)}</p>`).join('')}</div>
+      <div class="faint" style="font-size:.74rem;margin-top:12px">Computed here, from your own data. No key needed, nothing leaves the page.</div>
+    </section>
+
+    <div class="grid c2 section rv" style="align-items:start">
+      <div class="card"><span class="sc">Values, reading by reading</span>
+        ${p.valueTrends.length ? `<div class="stack" style="gap:10px;margin-top:12px">${p.valueTrends.map(v=>`<div class="row between"><span style="flex:1">${esc(v.name)}</span>${sparkline(v.series,{h:26,min:0,max:100,color:v.run<0?'#c25b5b':v.run>0?'var(--sage)':'var(--muted)'})}<span class="mono" style="min-width:5.5em;text-align:right">${v.latest ?? '—'}${v.run ? ` · ${v.run>0?'+':''}${v.run} in a row` : ''}</span></div>`).join('')}</div>` : '<div class="empty">Take a few congruence snapshots and the lines appear.</div>'}
+      </div>
+      <div class="card"><span class="sc">Where the words go</span>
+        ${p.topWords.length ? `<div class="tag-cloud" style="margin-top:12px">${p.topWords.map(([w,n])=>`<span class="tag" style="--n:${Math.min(n,5)}">${esc(w)}<span class="n">${n}</span></span>`).join('')}</div>` : '<div class="empty">Write a few entries first.</div>'}
+        ${p.tags.length ? `<div class="sc" style="margin-top:16px">Hashtags</div><div class="tag-cloud" style="margin-top:8px">${p.tags.map(([t,n])=>`<a class="tag" href="#/tag/${encodeURIComponent(t)}" style="--n:${Math.min(n,5)}">#${esc(t)}<span class="n">${n}</span></a>`).join('')}</div>` : ''}
+      </div>
+      <div class="card"><span class="sc">The week, by day</span>
+        <div class="stack" style="gap:6px;margin-top:12px">${p.byWeekday.map(w=>`<div class="row between"><span class="mono" style="min-width:5.5em">${w.day.slice(0,3)}</span><span class="bar" style="flex:1;--c:var(--page-accent)"><i style="width:${w.avg||0}%"></i></span><span class="mono" style="min-width:4em;text-align:right">${w.avg===null?'—':w.avg}</span></div>`).join('')}</div>
+        <div class="faint" style="font-size:.74rem;margin-top:8px">Average overall state on each weekday, across the window.</div>
+      </div>
+      <div class="card"><span class="sc">Going quiet</span>
+        ${p.skillsCold.length || p.habitRates.some(h=>h.recent<40) ? `<div class="stack" style="gap:6px;margin-top:12px">
+          ${p.skillsCold.map(s=>`<div class="row between"><span>${esc(s.name)}</span><span class="mono" style="color:#c9a05a">${s.days}d untouched</span></div>`).join('')}
+          ${p.habitRates.filter(h=>h.recent<40).map(h=>`<div class="row between"><span>${esc(h.name)}</span><span class="mono">${h.recent}% this week</span></div>`).join('')}</div>`
+        : '<div class="empty">Nothing is drifting. Unusual and worth noticing.</div>'}
+      </div>
+    </div>`;
+  reveal(body);
+  body.querySelectorAll('[data-patd]').forEach(b => b.onclick = () => { S._patDays = +b.dataset.patd; rerender(); });
+  const ask = body.querySelector('#patAsk');
+  if(ask) ask.onclick = async () => {
+    ask.disabled = true; const was = ask.textContent; ask.textContent = 'reading…';
+    try {
+      const r = await generatePatternReport({days});
+      if(r.mode === 'claude'){ S._patReport = {days, mode:'claude', text:r.text, at:`${fmtDate(today(),'med')}`}; sound('success'); rerender(); }
+      else { toast('No key set — showing the local reading only.'); }
+    } catch(e){ toast(e.message || 'Claude could not be reached.'); }
+    finally { ask.disabled = false; ask.textContent = was; }
+  };
+}
+/* the local report uses **bold**; render just that much inline */
+function mdInline(s){ return esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>'); }
 /* ============================================================
    CALENDAR — the year as a surface you can look across.
    A month of days, each carrying the colour of how that day
@@ -4197,13 +4481,28 @@ routes.settings = function(root){
       <p>Life Instrument is a house you are still building. Each section is a room. Some rooms look backward; some look forward; some hold tools; some hold artifacts. The hallway connecting them is a single data model that lets one entry live in many rooms at once.</p>
       <p>It is not a productivity app. Its job is to make the motifs of a life visible — recurring patterns, drifting values, dreams gaining or losing specificity — so you can interpret the past honestly and pull the future closer deliberately.</p>
       <p>It draws on Maltz (self-image and mental rehearsal), Fritz (structural tension), Hicks (the emotional guidance scale), Hill (auto-suggestion), Loehr &amp; Schwartz (four-dimensional energy and oscillation), Leonard (mastery and the plateau), and Newport (career capital). The Philosophical Integration is structural, not decorative: every mechanic embodies a teaching.</p>
+      <div class="field" style="margin:18px 0"><label>Voice &amp; Claude</label>
+        <p class="muted" style="font-size:.85rem;margin:2px 0 10px">Dictation uses your browser's own speech recogniser — ${dictationSupported() ? 'available here' : '<b>not available in this browser</b> (Chrome, Edge and Safari have one)'}. Nothing is recorded or uploaded; you speak, text appears.</p>
+        <p class="muted" style="font-size:.85rem;margin:0 0 10px">Tidying dictation and the pattern report work without a key, using rules and statistics computed in this page. Paste an <b>Anthropic API key</b> and both get a real language model instead. A Claude Pro or Max subscription cannot be used here — consumer subscriptions do not issue API credentials, and API usage is billed separately.</p>
+        <div class="row" style="gap:8px"><input class="inp mono" id="aiKey" type="password" placeholder="sk-ant-…" value="${esc(aiKey())}" autocomplete="off" style="flex:1"><button class="btn sm" id="aiSave">Save</button>${aiKey()?'<button class="btn sm ghost" id="aiClear">Remove</button>':''}</div>
+        <div class="faint" style="font-size:.74rem;margin-top:6px">Stored only in this browser's localStorage. It is never written into a backup file. <span id="aiState">${aiReady()?'Connected.':'Not connected — local mode.'}</span></div>
+        <div class="row" style="margin-top:8px"><button class="btn sm ghost" id="aiTest">Test the connection</button><a class="btn sm ghost" href="#/reviews/patterns">Open the pattern report →</a></div>
+      </div>
       <div class="field" style="margin:18px 0"><label>Atmosphere</label><div id="ambSettings">${ambientMenuHTML()}</div></div>
       <p class="mono">keyboard: N new entry · ⌘K or / search · ← → previous / next stage (Timeline) · Esc close</p>
     </div></div></div>`;
   storageInfo().then(i => { const line = $('#storageLine'); if(!line) return; const mode = usingRealDexie ? 'an IndexedDB database (Dexie)' : 'an IndexedDB database'; if(i && i.quota){ line.textContent = `Everything lives in this browser, in ${mode}. Using ${fmtBytes(i.usage)} of about ${fmtBytes(i.quota)} available to this site.`; $('#storageBar').style.width = Math.max(1, i.usage/i.quota*100).toFixed(1)+'%'; } else { line.textContent = `Everything lives in this browser, in ${mode}.`; } });
   $('#sPhotoMax').onchange = e => { S.settings.photoMax = +e.target.value; saveNow(); };
 
-  if($('#ambSettings')) bindAmbientMenu($('#ambSettings'));  $('#sTheme').onclick = function(){ S.settings.theme = S.settings.theme==='dark'?'light':'dark'; saveNow(); applyTheme(); this.classList.toggle('on', S.settings.theme==='light'); };
+  if($('#ambSettings')) bindAmbientMenu($('#ambSettings'));
+  if($('#aiSave')) $('#aiSave').onclick = () => { setAiKey($('#aiKey').value); toast(aiReady() ? 'Key saved in this browser.' : 'Key removed.'); rerender(); };
+  if($('#aiClear')) $('#aiClear').onclick = () => { setAiKey(''); $('#aiKey').value = ''; toast('Key removed. Local mode.'); rerender(); };
+  if($('#aiTest')) $('#aiTest').onclick = async () => {
+    const st = $('#aiState'); if(!aiReady()){ st.textContent = 'No key set — local mode works without one.'; return; }
+    st.textContent = 'checking…';
+    try { const r = await askClaude('Reply with exactly: ok', 'ping', {maxTokens:10}); st.textContent = r ? 'Connected. Claude answered.' : 'Connected, but the answer was empty.'; sound('success'); }
+    catch(e){ st.textContent = e.message; sound('error'); }
+  };  $('#sTheme').onclick = function(){ S.settings.theme = S.settings.theme==='dark'?'light':'dark'; saveNow(); applyTheme(); this.classList.toggle('on', S.settings.theme==='light'); };
   $('#sSound').onclick = function(){ SoundManager.toggleSound(); this.classList.toggle('on', SoundManager.state().soundEnabled); };
   $('#sAmbient').onclick = function(){ SoundManager.toggleAmbient(); this.classList.toggle('on', SoundManager.state().ambientEnabled); };
   $('#sFelt').onclick = function(){ S.settings.feltTime = !S.settings.feltTime; saveNow(); this.classList.toggle('on', S.settings.feltTime); };

@@ -22,13 +22,28 @@ routes.settings = function(root){
       <p>Life Instrument is a house you are still building. Each section is a room. Some rooms look backward; some look forward; some hold tools; some hold artifacts. The hallway connecting them is a single data model that lets one entry live in many rooms at once.</p>
       <p>It is not a productivity app. Its job is to make the motifs of a life visible — recurring patterns, drifting values, dreams gaining or losing specificity — so you can interpret the past honestly and pull the future closer deliberately.</p>
       <p>It draws on Maltz (self-image and mental rehearsal), Fritz (structural tension), Hicks (the emotional guidance scale), Hill (auto-suggestion), Loehr &amp; Schwartz (four-dimensional energy and oscillation), Leonard (mastery and the plateau), and Newport (career capital). The Philosophical Integration is structural, not decorative: every mechanic embodies a teaching.</p>
+      <div class="field" style="margin:18px 0"><label>Voice &amp; Claude</label>
+        <p class="muted" style="font-size:.85rem;margin:2px 0 10px">Dictation uses your browser's own speech recogniser — ${dictationSupported() ? 'available here' : '<b>not available in this browser</b> (Chrome, Edge and Safari have one)'}. Nothing is recorded or uploaded; you speak, text appears.</p>
+        <p class="muted" style="font-size:.85rem;margin:0 0 10px">Tidying dictation and the pattern report work without a key, using rules and statistics computed in this page. Paste an <b>Anthropic API key</b> and both get a real language model instead. A Claude Pro or Max subscription cannot be used here — consumer subscriptions do not issue API credentials, and API usage is billed separately.</p>
+        <div class="row" style="gap:8px"><input class="inp mono" id="aiKey" type="password" placeholder="sk-ant-…" value="${esc(aiKey())}" autocomplete="off" style="flex:1"><button class="btn sm" id="aiSave">Save</button>${aiKey()?'<button class="btn sm ghost" id="aiClear">Remove</button>':''}</div>
+        <div class="faint" style="font-size:.74rem;margin-top:6px">Stored only in this browser's localStorage. It is never written into a backup file. <span id="aiState">${aiReady()?'Connected.':'Not connected — local mode.'}</span></div>
+        <div class="row" style="margin-top:8px"><button class="btn sm ghost" id="aiTest">Test the connection</button><a class="btn sm ghost" href="#/reviews/patterns">Open the pattern report →</a></div>
+      </div>
       <div class="field" style="margin:18px 0"><label>Atmosphere</label><div id="ambSettings">${ambientMenuHTML()}</div></div>
       <p class="mono">keyboard: N new entry · ⌘K or / search · ← → previous / next stage (Timeline) · Esc close</p>
     </div></div></div>`;
   storageInfo().then(i => { const line = $('#storageLine'); if(!line) return; const mode = usingRealDexie ? 'an IndexedDB database (Dexie)' : 'an IndexedDB database'; if(i && i.quota){ line.textContent = `Everything lives in this browser, in ${mode}. Using ${fmtBytes(i.usage)} of about ${fmtBytes(i.quota)} available to this site.`; $('#storageBar').style.width = Math.max(1, i.usage/i.quota*100).toFixed(1)+'%'; } else { line.textContent = `Everything lives in this browser, in ${mode}.`; } });
   $('#sPhotoMax').onchange = e => { S.settings.photoMax = +e.target.value; saveNow(); };
 
-  if($('#ambSettings')) bindAmbientMenu($('#ambSettings'));  $('#sTheme').onclick = function(){ S.settings.theme = S.settings.theme==='dark'?'light':'dark'; saveNow(); applyTheme(); this.classList.toggle('on', S.settings.theme==='light'); };
+  if($('#ambSettings')) bindAmbientMenu($('#ambSettings'));
+  if($('#aiSave')) $('#aiSave').onclick = () => { setAiKey($('#aiKey').value); toast(aiReady() ? 'Key saved in this browser.' : 'Key removed.'); rerender(); };
+  if($('#aiClear')) $('#aiClear').onclick = () => { setAiKey(''); $('#aiKey').value = ''; toast('Key removed. Local mode.'); rerender(); };
+  if($('#aiTest')) $('#aiTest').onclick = async () => {
+    const st = $('#aiState'); if(!aiReady()){ st.textContent = 'No key set — local mode works without one.'; return; }
+    st.textContent = 'checking…';
+    try { const r = await askClaude('Reply with exactly: ok', 'ping', {maxTokens:10}); st.textContent = r ? 'Connected. Claude answered.' : 'Connected, but the answer was empty.'; sound('success'); }
+    catch(e){ st.textContent = e.message; sound('error'); }
+  };  $('#sTheme').onclick = function(){ S.settings.theme = S.settings.theme==='dark'?'light':'dark'; saveNow(); applyTheme(); this.classList.toggle('on', S.settings.theme==='light'); };
   $('#sSound').onclick = function(){ SoundManager.toggleSound(); this.classList.toggle('on', SoundManager.state().soundEnabled); };
   $('#sAmbient').onclick = function(){ SoundManager.toggleAmbient(); this.classList.toggle('on', SoundManager.state().ambientEnabled); };
   $('#sFelt').onclick = function(){ S.settings.feltTime = !S.settings.feltTime; saveNow(); this.classList.toggle('on', S.settings.feltTime); };

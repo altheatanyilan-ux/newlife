@@ -60,7 +60,7 @@ function migrateSkillFocus(){
 }
 const skillHorizon = s => SKILL_HORIZONS[s.horizon] ? s.horizon : 'active';
 function focusSkills(){ return S.skills.filter(s => skillHorizon(s) === 'focus'); }
-function skillIsAtrophying(s){ const d = daysSince(skillLastPracticed(s)); return skillHorizon(s) !== 'someday' && !s.planned && d > 90; }
+function skillIsAtrophying(s){ const h = skillHorizon(s); if(h === 'someday' || h === 'paused' || s.planned) return false; return daysSince(skillLastPracticed(s)) > 90; }
 /* every milestone across every skill, inside a window of days */
 function milestonesWithin(days){
   const T = today(); const lim = addDays(T, days); const out = [];

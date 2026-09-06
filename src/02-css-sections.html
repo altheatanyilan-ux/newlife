@@ -26,6 +26,18 @@
 .amb-opt.on{border-color:var(--page-accent);background:color-mix(in srgb,var(--page-accent) 12%,var(--surface-2))}
 .amb-name{font-family:var(--serif);font-size:1rem;color:var(--text)}
 .amb-desc{font-family:var(--quote);font-style:italic;font-size:.8rem;color:var(--muted)}
+/* ---------- dictation & AI ---------- */
+.dictate{display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap}
+.dict-btn{display:inline-flex;align-items:center;gap:5px;background:var(--surface-2);border:1px solid var(--line-2);color:var(--muted);border-radius:999px;padding:4px 12px;font-size:.72rem;font-family:var(--sans);cursor:pointer;transition:border-color .2s var(--ease),color .2s var(--ease),background .2s var(--ease)}
+.dict-btn:hover:not(:disabled){color:var(--text);border-color:var(--page-accent)}
+.dict-btn:disabled{opacity:.4;cursor:not-allowed}
+.dict-btn.rec{border-color:#c25b5b;color:#e08b8b;background:color-mix(in srgb,#c25b5b 14%,transparent);animation:recPulse 1.6s ease-in-out infinite}
+@keyframes recPulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,#c25b5b 45%,transparent)}50%{box-shadow:0 0 0 5px transparent}}
+.dict-state{color:var(--faint);font-size:.68rem}
+.linkish{background:none;border:none;color:var(--page-accent);cursor:pointer;font-family:var(--mono);font-size:.68rem;padding:0;text-decoration:underline}
+.dictate.compact .dict-btn span{display:none}
+.dictate.compact .dict-btn{padding:3px 8px}
+@media (prefers-reduced-motion:reduce){.dict-btn.rec{animation:none}}
 /* ---------- calendar ---------- */
 .cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
 .cal-dow{font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);text-align:center;padding-bottom:4px}

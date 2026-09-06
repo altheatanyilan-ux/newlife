@@ -63,14 +63,16 @@ function openHabitModal(id){
   m.querySelectorAll('[data-lv],[data-lvi],[data-lsk]').forEach(c => c.onclick = () => c.classList.toggle('on'));
   m.querySelector('#hSave').onclick = () => { h.name = m.querySelector('#hName').value.trim(); if(!h.name) return; h.freq = {type:m.querySelector('#hFreq').value, days:[...m.querySelectorAll('[data-day].primary')].map(b=>+b.dataset.day), count:+m.querySelector('#hCountN').value||1}; h.timeOfDay = m.querySelector('#hTod').value; h.dimension = m.querySelector('#hDim').value; h.kind = m.querySelector('#hKind').value; h.min = m.querySelector('#hMin').value; h.ideal = m.querySelector('#hIdeal').value; h.stackAfter = m.querySelector('#hStack').value||null; h.prompt = m.querySelector('#hPrompt').value; h.negative = m.querySelector('#hNeg').classList.contains('on'); h.links = {values:[...m.querySelectorAll('[data-lv].on')].map(c=>c.dataset.lv), visions:[...m.querySelectorAll('[data-lvi].on')].map(c=>c.dataset.lvi), skills:[...m.querySelectorAll('[data-lsk].on')].map(c=>c.dataset.lsk)}; if(!id) S.habits.push(h); saveNow(); m.remove(); rerender(); sound('save'); };
 }
-routes.reviews = function(root){
+routes.reviews = function(root, params){
   registerPageEntry({pageName:'Reviews', addLabel:'Start a review', defaultEntryType:'reflection', prefilledFields:{}, options:[
     {icon:'◷', label:'Weekly review', desc:'Fifteen minutes, once a week.', run:()=>{ location.hash = '#/reviews'; setTimeout(()=>document.querySelector('#rWeekly')?.scrollIntoView({block:'center',behavior:'smooth'}),200); }},
     {icon:'✎', label:'Note from a review', desc:'Something the review turned up.', run:()=>EntryActions.quickNote()}]});
+  const tab = (params && params[0] === 'patterns') ? 'patterns' : 'guided';
   root.innerHTML = `<div class="page">
-    <div class="page-head"><h1>Reviews</h1><div class="sub">The rhythm above the daily one: a week, a season, a year. Each is a short set of questions and a date stamp, not a report.</div></div>
+    <div class="page-head"><h1>Reviews</h1><div class="sub">The rhythm above the daily one: a week, a season, a year — and, when you want it, a reading of the record itself.</div></div>
+    <div class="tabs"><button class="${tab==='guided'?'active':''}" data-go="#/reviews">Guided reviews</button><button class="${tab==='patterns'?'active':''}" data-go="#/reviews/patterns">Patterns in the record</button></div>
     <div id="revBody"></div></div>`;
-  renderReviews($('#revBody'));
+  if(tab === 'patterns') renderPatterns($('#revBody')); else renderReviews($('#revBody'));
 };
 function renderReviews(body){
   const gaps = valueGaps(); const g0 = gaps[0]; const vs = S.visions.filter(v=>v.confidence!=='lived'); const st = vs.map(v=>({v,t:structuralTension(v)})).sort((a,b)=>b.t-a.t)[0];
@@ -128,3 +130,64 @@ function renderReviews(body){
   body.querySelectorAll('[data-leaf]').forEach(b => b.onclick = () => openEntryModal({type:'progress', links:{visions:[b.dataset.leaf]}}));
   body.querySelectorAll('[data-letter]').forEach(b => b.onclick = () => openEntryModal({type:'letter', title:'To myself, one year from now', occurredAt:addDays(today(),365)}));
 }
+
+/* ---------- Patterns: what the record says, with or without Claude ---------- */
+function renderPatterns(body){
+  const days = S._patDays || 90;
+  const cached = S._patReport && S._patReport.days === days ? S._patReport : null;
+  const p = gatherPatterns({days});
+  const local = localPatternReport(p);
+  body.innerHTML = `
+    <div class="row between rv" style="margin:6px 0 16px;flex-wrap:wrap;gap:10px">
+      <div class="row">${[30,90,180,365].map(d=>`<button class="btn sm ${days===d?'primary':'ghost'}" data-patd="${d}">${d===365?'a year':d+' days'}</button>`).join('')}</div>
+      <div class="row">${aiReady()
+        ? `<button class="btn primary" id="patAsk">${cached && cached.mode==='claude' ? 'Ask again' : 'Ask Claude to read it'}</button>`
+        : `<a class="btn sm ghost" href="#/settings">connect Claude for a written reflection →</a>`}</div>
+    </div>
+
+    ${cached && cached.mode === 'claude' ? `<section class="reading-card rv" style="margin-bottom:22px">
+        <div class="row between"><div class="sc">Claude, reading ${days === 365 ? 'the year' : `the last ${days} days`}</div><span class="mono">${esc(cached.at||'')}</span></div>
+        <div class="reading-body prose">${md(cached.text)}</div>
+        <div class="faint" style="font-size:.74rem;margin-top:12px">Written from the statistics below, which were computed in your browser. Your entries are sent to the Anthropic API only when you press the button.</div>
+      </section>` : ''}
+
+    <section class="reading-card rv" style="margin-bottom:22px">
+      <div class="sc">What is simply true</div>
+      <div class="reading-body">${local.map(l => `<p>${mdInline(l)}</p>`).join('')}</div>
+      <div class="faint" style="font-size:.74rem;margin-top:12px">Computed here, from your own data. No key needed, nothing leaves the page.</div>
+    </section>
+
+    <div class="grid c2 section rv" style="align-items:start">
+      <div class="card"><span class="sc">Values, reading by reading</span>
+        ${p.valueTrends.length ? `<div class="stack" style="gap:10px;margin-top:12px">${p.valueTrends.map(v=>`<div class="row between"><span style="flex:1">${esc(v.name)}</span>${sparkline(v.series,{h:26,min:0,max:100,color:v.run<0?'#c25b5b':v.run>0?'var(--sage)':'var(--muted)'})}<span class="mono" style="min-width:5.5em;text-align:right">${v.latest ?? '—'}${v.run ? ` · ${v.run>0?'+':''}${v.run} in a row` : ''}</span></div>`).join('')}</div>` : '<div class="empty">Take a few congruence snapshots and the lines appear.</div>'}
+      </div>
+      <div class="card"><span class="sc">Where the words go</span>
+        ${p.topWords.length ? `<div class="tag-cloud" style="margin-top:12px">${p.topWords.map(([w,n])=>`<span class="tag" style="--n:${Math.min(n,5)}">${esc(w)}<span class="n">${n}</span></span>`).join('')}</div>` : '<div class="empty">Write a few entries first.</div>'}
+        ${p.tags.length ? `<div class="sc" style="margin-top:16px">Hashtags</div><div class="tag-cloud" style="margin-top:8px">${p.tags.map(([t,n])=>`<a class="tag" href="#/tag/${encodeURIComponent(t)}" style="--n:${Math.min(n,5)}">#${esc(t)}<span class="n">${n}</span></a>`).join('')}</div>` : ''}
+      </div>
+      <div class="card"><span class="sc">The week, by day</span>
+        <div class="stack" style="gap:6px;margin-top:12px">${p.byWeekday.map(w=>`<div class="row between"><span class="mono" style="min-width:5.5em">${w.day.slice(0,3)}</span><span class="bar" style="flex:1;--c:var(--page-accent)"><i style="width:${w.avg||0}%"></i></span><span class="mono" style="min-width:4em;text-align:right">${w.avg===null?'—':w.avg}</span></div>`).join('')}</div>
+        <div class="faint" style="font-size:.74rem;margin-top:8px">Average overall state on each weekday, across the window.</div>
+      </div>
+      <div class="card"><span class="sc">Going quiet</span>
+        ${p.skillsCold.length || p.habitRates.some(h=>h.recent<40) ? `<div class="stack" style="gap:6px;margin-top:12px">
+          ${p.skillsCold.map(s=>`<div class="row between"><span>${esc(s.name)}</span><span class="mono" style="color:#c9a05a">${s.days}d untouched</span></div>`).join('')}
+          ${p.habitRates.filter(h=>h.recent<40).map(h=>`<div class="row between"><span>${esc(h.name)}</span><span class="mono">${h.recent}% this week</span></div>`).join('')}</div>`
+        : '<div class="empty">Nothing is drifting. Unusual and worth noticing.</div>'}
+      </div>
+    </div>`;
+  reveal(body);
+  body.querySelectorAll('[data-patd]').forEach(b => b.onclick = () => { S._patDays = +b.dataset.patd; rerender(); });
+  const ask = body.querySelector('#patAsk');
+  if(ask) ask.onclick = async () => {
+    ask.disabled = true; const was = ask.textContent; ask.textContent = 'reading…';
+    try {
+      const r = await generatePatternReport({days});
+      if(r.mode === 'claude'){ S._patReport = {days, mode:'claude', text:r.text, at:`${fmtDate(today(),'med')}`}; sound('success'); rerender(); }
+      else { toast('No key set — showing the local reading only.'); }
+    } catch(e){ toast(e.message || 'Claude could not be reached.'); }
+    finally { ask.disabled = false; ask.textContent = was; }
+  };
+}
+/* the local report uses **bold**; render just that much inline */
+function mdInline(s){ return esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>'); }
