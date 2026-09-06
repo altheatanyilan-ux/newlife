@@ -118,9 +118,9 @@ function seed(){
     snap(540,{'v-wisdom':58,'v-auth':66,'v-conn':62,'v-free':78,'v-creat':58,'v-exp':85,'v-health':50,'v-spirit':45,'v-awe':78,'v-indep':78}),
     snap(360,{'v-wisdom':62,'v-auth':70,'v-conn':80,'v-free':58,'v-creat':52,'v-exp':60,'v-health':52,'v-spirit':55,'v-awe':70,'v-indep':55},'First winter together. Freedom dropped, connection soared. Worth it.'),
     snap(180,{'v-wisdom':66,'v-auth':74,'v-conn':84,'v-free':52,'v-creat':60,'v-exp':55,'v-health':60,'v-spirit':62,'v-awe':72,'v-indep':52}),
-    snap(90,{'v-wisdom':68,'v-auth':76,'v-conn':82,'v-free':48,'v-creat':66,'v-exp':50,'v-health':64,'v-spirit':68,'v-awe':74,'v-indep':54},'Started the Morning Theatre. Spirituality climbing.'),
+    Object.assign(snap(90,{'v-wisdom':68,'v-auth':76,'v-conn':82,'v-free':48,'v-creat':66,'v-exp':50,'v-health':64,'v-spirit':68,'v-awe':74,'v-indep':54},'Started the Morning Theatre. Spirituality climbing.'),{notes:{'v-spirit':'Twelve mornings in a row at the screen. Something is moving.'}}),
     snap(30,{'v-wisdom':70,'v-auth':78,'v-conn':80,'v-free':42,'v-creat':71,'v-exp':48,'v-health':66,'v-spirit':72,'v-awe':75,'v-indep':56}),
-    snap(3,{'v-wisdom':71,'v-auth':79,'v-conn':81,'v-free':42,'v-creat':74,'v-exp':46,'v-health':68,'v-spirit':74,'v-awe':76,'v-indep':57},'Freedom is the gap. Everything else is climbing.'),
+    Object.assign(snap(3,{'v-wisdom':71,'v-auth':79,'v-conn':81,'v-free':42,'v-creat':74,'v-exp':46,'v-health':68,'v-spirit':74,'v-awe':76,'v-indep':57},'Freedom is the gap. Everything else is climbing.'),{notes:{'v-creat':'Three shipped things this week. The newsletter tier is real now.','v-exp':'Same three streets for a month. Chosen, but still.'}}),
   ];
 
   const eras = [{id:'20s',label:'20s',desc:'Exposure, escape, and the first real choices.'},{id:'30s',label:'30s',desc:'A base, a craft, a family. Depth over breadth.'},{id:'40s',label:'40s+',desc:'Mastery, stewardship, the long game.'}];

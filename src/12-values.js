@@ -20,6 +20,7 @@ routes.values = function(root){
         <div class="row" style="margin-top:8px"><label class="toggle" id="ghostToggle"><span class="sw"></span><span>ghost the earliest reading</span></label></div>
       </div>
     </div>
+    <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Snapshot history</span><button class="btn primary sm" id="takeSnap">Take snapshot</button></div><div id="snapHistory" style="margin-top:14px"><div class="empty">Loading…</div></div></section>
     <section class="section rv"><span class="sc">Per-value trend</span><div class="spark-grid">${S.valueOrder.map(id=>{ const v=byId(S.values,id); return `<div class="s" data-go="#/value/${id}" style="cursor:pointer"><div class="n" style="color:${v.color}">${esc(v.name)}</div>${sparkline(snaps.map(s=>s.ratings[id]??null),{h:34,min:0,max:100,color:v.color})}</div>`; }).join('')}</div></section>
     <section class="section rv"><span class="sc">Congruence weather</span><p class="muted" style="font-size:.85rem">Each stripe is a value across time; brightness is congruence. Drift is visible at a glance.</p>
       <div class="weather">${S.valueOrder.map(id=>{ const v=byId(S.values,id); return `<div class="lbl">${esc(v.name.split(' ')[0])}</div><div class="strip" style="--c:${v.color}">${snaps.map(s=>`<i style="--o:${((s.ratings[id]??0)/100*.9+.08).toFixed(2)}" title="${fmtDate(s.date,'med')}: ${s.ratings[id]??'–'}"></i>`).join('')}</div>`; }).join('')}<div></div><div class="row between mono"><span>${snaps[0]?fmtDate(snaps[0].date,'med'):''}</span><span>now</span></div></div></section>
@@ -35,13 +36,62 @@ routes.values = function(root){
   list.querySelectorAll('li').forEach(li => { li.addEventListener('dragstart', ()=>{ dragId = li.dataset.vid; li.classList.add('dragging'); }); li.addEventListener('dragend', ()=>li.classList.remove('dragging')); li.addEventListener('dragover', e=>{ e.preventDefault(); li.classList.add('over'); }); li.addEventListener('dragleave', ()=>li.classList.remove('over')); li.addEventListener('drop', e=>{ e.preventDefault(); li.classList.remove('over'); if(!dragId || dragId===li.dataset.vid) return; const o = S.valueOrder.filter(x=>x!==dragId); o.splice(o.indexOf(li.dataset.vid),0,dragId); S.valueOrderHistory.push({date:today(),order:[...S.valueOrder]}); S.valueOrder = o; saveNow(); rerender(); toast('Priorities re-ranked. The previous order is kept.'); }); });
   const ts = $('#timeSlider'); let ghost = false;
   const drawRadar = () => { const s = snaps[+ts.value]; const series = []; if(ghost && snaps[0] && +ts.value>0) series.push({vals:S.valueOrder.map(id=>snaps[0].ratings[id]??0),color:'var(--faint)',dashed:true}); series.push({vals:S.valueOrder.map(id=>s.ratings[id]??0),color:s.retro?(byId(S.stages,s.stageId)?.hue||'var(--terra)'):'var(--terra)'}); $('#radarBox').innerHTML = radar(axes,series,{size:360}); $('#tsLbl').textContent = fmtDate(s.date,'med'); $('#tsNote').textContent = s.note||''; };
+  $('#takeSnap').onclick = () => openSnapshotModal(() => rerender());
+  renderSnapshotHistory($('#snapHistory'));
   ts.oninput = drawRadar; $('#ghostToggle').onclick = () => { ghost=!ghost; $('#ghostToggle').classList.toggle('on',ghost); drawRadar(); };
 };
-function openSnapshotModal(after){
-  const last = latestSnapshot()?.ratings||{};
-  const m = openModal(`<h2>Congruence snapshot</h2><p class="muted">0–100 for each value. Not aspiration — where you actually are, this week.</p><div class="snapshot-form">${S.valueOrder.map(id=>{ const v=byId(S.values,id); return `<div class="r"><span class="n" style="color:${v.color}">${esc(v.name)}</span><input type="range" class="slider" min="0" max="100" value="${last[id]??50}" data-sv="${id}" style="--c:${v.color}"><span class="mono" data-svl="${id}">${last[id]??50}</span></div>`; }).join('')}</div><div class="field" style="margin-top:14px"><label>Note (optional)</label><textarea class="ta" id="snapNote" placeholder="Why these numbers, this week?"></textarea></div><div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary" id="snapSave">Log snapshot</button></div>`);
-  m.querySelectorAll('[data-sv]').forEach(r => r.oninput = () => m.querySelector(`[data-svl="${r.dataset.sv}"]`).textContent = r.value);
-  m.querySelector('#snapSave').onclick = e => { const ratings = {}; m.querySelectorAll('[data-sv]').forEach(r=>ratings[r.dataset.sv]=+r.value); S.valueSnapshots.push({id:uid(),date:today(),ratings,note:m.querySelector('#snapNote').value}); saveNow(); ripple(e.clientX,e.clientY,'var(--terra)'); sound('save'); m.remove(); toast('Snapshot logged.'); after ? after() : rerender(); };
+async function lastSnapshotFromDB(){
+  try { const rows = await db.valueSnapshots.toArray(); rows.sort((a,b)=>a.date<b.date?1:-1); return rows[0] || null; } catch(e){ return latestSnapshot() || null; }
+}
+function scoreBand(n){ return n < 40 ? 'low' : n <= 70 ? 'mid' : 'high'; }
+function deltaHTML(cur, prev){ if(prev === undefined || prev === null) return '<span class="delta none">·</span>'; const d = cur - prev; if(d > 0) return `<span class="delta up">↑+${d}</span>`; if(d < 0) return `<span class="delta down">↓−${Math.abs(d)}</span>`; return '<span class="delta same">→same</span>'; }
+async function openSnapshotModal(after){
+  const last = await lastSnapshotFromDB();                    // the last snapshot, read from the database
+  const base = {}; S.valueOrder.forEach(id => base[id] = last ? (last.ratings[id] ?? 50) : 50);
+  const m = openModal(`<h2>Congruence snapshot</h2><p class="muted">0–100 for each value. Not aspiration — where you actually are, this week.${last?` Sliders start where you left them on ${fmtDate(last.date,'med')}.`:''}</p>
+    <div class="snapshot-form">${S.valueOrder.map(id=>{ const v=byId(S.values,id); return `<div class="sv-block" data-svb="${id}"><div class="r"><span class="n" style="color:${v.color}">${esc(v.name)}</span><input type="range" class="slider" min="0" max="100" value="${base[id]}" data-sv="${id}" style="--c:${v.color}"><span class="mono" data-svl="${id}">${base[id]}</span></div>
+      <div class="sv-note" data-svn="${id}"><div class="sv-note-inner"><textarea class="ta" rows="2" data-svt="${id}" placeholder="What's driving this score today?" style="min-height:52px;border-color:${v.color}"></textarea></div></div></div>`; }).join('')}</div>
+    <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary" id="snapSave">Take snapshot</button></div>`);
+  m.querySelectorAll('[data-sv]').forEach(r => r.oninput = () => {
+    const id = r.dataset.sv; m.querySelector(`[data-svl="${id}"]`).textContent = r.value;
+    const note = m.querySelector(`[data-svn="${id}"]`); const changed = +r.value !== base[id];
+    if(changed && !note.classList.contains('open')){ note.classList.add('open'); }
+    else if(!changed && note.classList.contains('open')){ note.classList.remove('open'); note.querySelector('textarea').value = ''; }   // back to last time: collapse and discard
+  });
+  m.querySelector('#snapSave').onclick = e => {
+    const ratings = {}, notes = {};
+    m.querySelectorAll('[data-sv]').forEach(r => { const id = r.dataset.sv; ratings[id] = +r.value; if(+r.value !== base[id]){ const t = m.querySelector(`[data-svt="${id}"]`).value.trim(); if(t) notes[id] = t; } });
+    S.valueSnapshots.push({id:uid(), date:today(), ratings, notes, note:''}); saveNow();
+    ripple(e.clientX,e.clientY,'var(--terra)'); sound('success'); m.remove(); toast('Snapshot taken.'); after ? after() : rerender();
+  };
+}
+
+/* ---------- snapshot history: trend chart + newest-first timeline ---------- */
+function trendChartSVG(snaps, {w=720, h=220}={}){
+  if(snaps.length < 2) return `<div class="empty">Two snapshots make a trend. Take another next week.</div>`;
+  const padL = 34, padR = 12, padT = 12, padB = 26; const t0 = parseDay(snaps[0].date).getTime(), t1 = parseDay(snaps.slice(-1)[0].date).getTime(); const span = Math.max(t1 - t0, DAY);
+  const X = d => padL + ((parseDay(d).getTime() - t0)/span)*(w - padL - padR); const Y = v => padT + (1 - v/100)*(h - padT - padB);
+  let g = ''; [0,25,50,75,100].forEach(v => { g += `<line x1="${padL}" x2="${w-padR}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}" stroke="var(--line)"/><text x="${padL-6}" y="${(Y(v)+3).toFixed(1)}" text-anchor="end">${v}</text>`; });
+  const lastX = X(snaps.slice(-1)[0].date); let prevX = -Infinity; const MIN = 78;
+  snaps.forEach((s,i) => { const x = X(s.date); const isLast = i === snaps.length-1; if(!isLast && (x - prevX < MIN || lastX - x < MIN)) return; prevX = x; g += `<text x="${x.toFixed(1)}" y="${h-8}" text-anchor="${i===0?'start':isLast?'end':'middle'}">${fmtDate(s.date,'short')}${i===0||isLast?' '+s.date.slice(0,4):''}</text>`; });
+  S.valueOrder.forEach(id => { const v = byId(S.values,id); const pts = snaps.filter(s => s.ratings[id] != null).map(s => [X(s.date), Y(s.ratings[id]), s]); if(!pts.length) return;
+    g += `<polyline class="trend-line" data-v="${id}" points="${pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ')}" fill="none" stroke="${v.color}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>`;
+    g += pts.map(p => `<circle class="trend-dot" data-v="${id}" cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3" fill="${v.color}"><title>${esc(v.name)} · ${fmtDate(p[2].date,'med')} · ${p[2].ratings[id]}</title></circle>`).join(''); });
+  return `<svg class="trend" viewBox="0 0 ${w} ${h}" width="100%" style="display:block;overflow:visible">${g}</svg>`;
+}
+async function renderSnapshotHistory(container){
+  let rows = []; try { rows = await db.valueSnapshots.toArray(); } catch(e){ rows = S.valueSnapshots; }   // read from the database on mount
+  const asc = [...rows].sort((a,b)=>a.date<b.date?-1:1); const desc = [...asc].reverse();
+  const prevOf = s => { const i = asc.indexOf(s); return i > 0 ? asc[i-1] : null; };
+  container.innerHTML = `<div class="card" style="padding:18px 20px"><div class="row between" style="margin-bottom:8px"><span class="sc" style="margin:0">Trend — every value over time</span><div class="legend" id="trendLegend">${S.valueOrder.map(id=>{ const v=byId(S.values,id); return `<span style="--c:${v.color};cursor:pointer" data-tl="${id}">${esc(v.name.split(' ')[0])}</span>`; }).join('')}</div></div>${trendChartSVG(asc)}</div>
+    <div class="snap-list" id="snapList">${desc.length ? desc.map(s => { const prev = prevOf(s); const n = s.notes ? Object.keys(s.notes).length : 0; return `<div class="snap-row" data-snap="${s.id}">
+      <div class="snap-head"><span class="snap-date"><b class="serif">${fmtDate(s.date,'med')}</b><span class="mono">${relDays(daysSince(s.date))}${n?` · ${n} note${n>1?'s':''}`:''}${s.note?' · note':''}</span></span>
+        <div class="snap-bars">${S.valueOrder.map(id=>{ const v=byId(S.values,id); const sc = s.ratings[id] ?? 0; return `<div class="snap-bar" title="${esc(v.name)} ${sc}"><i class="${scoreBand(sc)}" style="height:${Math.max(2, sc*.28).toFixed(0)}px"></i>${deltaHTML(sc, prev?.ratings[id])}</div>`; }).join('')}</div>
+        <span class="mono snap-chev">›</span></div>
+      <div class="snap-detail"><div class="snap-detail-inner">${S.valueOrder.map(id=>{ const v=byId(S.values,id); const sc = s.ratings[id] ?? 0; const note = s.notes?.[id]; return `<div class="snap-val"><span style="color:${v.color}">${esc(v.name)}</span><div class="bar" style="--c:${v.color}"><i style="width:${sc}%"></i></div><span class="mono">${sc}</span>${deltaHTML(sc, prev?.ratings[id])}${note?`<div class="snap-note">“${esc(note)}”</div>`:''}</div>`; }).join('')}${s.note?`<div class="quote" style="margin-top:10px">${esc(s.note)}</div>`:''}</div></div>
+    </div>`; }).join('') : '<div class="empty">No snapshots yet. Take the first one.</div>'}</div>`;
+  container.querySelectorAll('.snap-head').forEach(h => h.onclick = () => h.parentElement.classList.toggle('open'));
+  container.querySelectorAll('[data-tl]').forEach(l => { l.onmouseenter = () => { container.querySelectorAll('.trend-line,.trend-dot').forEach(x => x.style.opacity = x.dataset.v === l.dataset.tl ? '1' : '.12'); }; l.onmouseleave = () => container.querySelectorAll('.trend-line,.trend-dot').forEach(x => x.style.opacity = ''); });
 }
 routes.value = function(root, params){
   const v = byId(S.values, params[0]); if(!v){ navigate('#/values'); return; }
