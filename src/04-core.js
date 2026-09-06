@@ -184,13 +184,32 @@ function renderRoute(){
   currentRoute = name; PageEntryConfig.clear();
   try { fn(main, params); } catch(err){ console.error(err); main.innerHTML = `<div class="page narrow"><h1>Something went wrong</h1><p class="muted">${esc(err.message)}</p></div>`; }
   decoratePageHead(main); mountContextAdd(main); reveal(main); tweenAll(main); backupBanner(); updateBackButton();
-  window.scrollTo({top:0, behavior:'instant'});
+  restoreScroll(location.hash);
 }
 function rerender(){ const y = window.scrollY; const main = $('#main'); const {name, params} = parseHash(); main.innerHTML=''; PageEntryConfig.clear(); (routes[name]||routes.home)(main, params); decoratePageHead(main); mountContextAdd(main); $$('.rv', main).forEach(n=>n.classList.add('in')); tweenAll(main); window.scrollTo({top:y}); }
-window.addEventListener('hashchange', () => { sound('page'); if(document.startViewTransition && !reduced() && document.visibilityState==='visible') document.startViewTransition(renderRoute); else renderRoute(); });
+/* where you were on each page, so Back returns you to the spot and not the top */
+try { history.scrollRestoration = 'manual'; } catch(e){}
+const scrollMem = new Map(); let wentBack = false, navSeq = 0, navIdx = -1;
+/* popstate is not a reliable "went back" signal for hash routes, so each history
+   entry is stamped with an increasing index and the direction read from it. */
+function markNavDirection(){
+  const st = history.state || {};
+  if(typeof st.liIdx === 'number'){ wentBack = st.liIdx < navIdx; navIdx = st.liIdx; }
+  else { navIdx = ++navSeq; wentBack = false; try { history.replaceState({...st, liIdx:navIdx}, ''); } catch(e){} }
+}
+function restoreScroll(hash){
+  const y = wentBack ? (scrollMem.get(hash) || 0) : 0; wentBack = false;
+  const go = () => window.scrollTo({top:y, behavior:'instant'});
+  go(); requestAnimationFrame(() => { go(); setTimeout(go, 60); setTimeout(go, 160); });   // let late layout settle
+}
+window.addEventListener('scroll', debounce(() => scrollMem.set(location.hash, window.scrollY || 0), 150), {passive:true});
+window.addEventListener('hashchange', () => {
+  sound('page'); markNavDirection();
+  if(document.startViewTransition && !reduced() && document.visibilityState==='visible') document.startViewTransition(renderRoute); else renderRoute();
+});
 
 /* ---------- side panel ---------- */
-function openPanel(html, cls=''){ closePanel({keep:true}); sound('open'); if(!history.state?.liPanel){ try { history.pushState({liPanel:true}, '', location.href); } catch(e){} } const ov = el(`<div class="panel-overlay" id="panelOv"></div>`); const p = el(`<div class="side-panel ${cls}" id="panel"><div class="panel-grip" title="drag to resize · double-click to reset"></div><button class="panel-wide" title="widen / narrow (focus)">⤢</button><button class="close" title="close">×</button>${html}</div>`); document.body.appendChild(ov); document.body.appendChild(p); ov.onclick = closePanel; p.querySelector('.close').onclick = closePanel; bindPanelResize(p); tweenAll(p); return p; }
+function openPanel(html, cls=''){ closePanel({keep:true}); sound('open'); if(!history.state?.liPanel){ try { history.pushState({liPanel:true, liIdx:navIdx}, '', location.href); } catch(e){} } const ov = el(`<div class="panel-overlay" id="panelOv"></div>`); const p = el(`<div class="side-panel ${cls}" id="panel"><div class="panel-grip" title="drag to resize · double-click to reset"></div><button class="panel-wide" title="widen / narrow (focus)">⤢</button><button class="close" title="close">×</button>${html}</div>`); document.body.appendChild(ov); document.body.appendChild(p); ov.onclick = closePanel; p.querySelector('.close').onclick = closePanel; bindPanelResize(p); tweenAll(p); return p; }
 /* panel width: drag the left edge, persisted; ⤢ toggles a wide "focus" width */
 function panelWidthDefault(){ return 560; }
 function applyPanelWidth(p){ const wide = lsGet('panelWide', false); const w = wide ? Math.min(1180, innerWidth*.94) : clamp(lsGet('panelWidth', panelWidthDefault()), 380, innerWidth*.94); p.style.setProperty('--panel-w', Math.round(w)+'px'); p.classList.toggle('wide', !!wide); }

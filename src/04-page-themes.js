@@ -55,6 +55,7 @@ function applyPageTheme(){
     const layers = [$('#pgA'), $('#pgB')]; if(layers[0] && layers[1]){ const next = 1 - _gradLayer; layers[next].style.backgroundImage = pageGradientCSS(t); layers[next].classList.add('on'); layers[_gradLayer].classList.remove('on'); _gradLayer = next; }
     _pageThemeKey = key;
   }
+  if(typeof applyPageScene === 'function') applyPageScene();
   const meta = document.querySelector('meta[name="theme-color"]'); if(meta) meta.content = light ? t.accent[1] : t.accent[0];
 }
 /* parallax for the banner glyph on calm pages */

@@ -161,6 +161,15 @@ function openNodModal(projectId, after, existing=null){
 
 /* ---------- Ideation: before anything is a project ---------- */
 const SPARK_KINDS = {spark:['◌','spark','#d4a44c'], question:['?','question','#6b7f8e'], inspiration:['✦','inspiration','#a0727e'], experiment:['⚗','experiment','#7f916a']};
+function addIdea(kind='spark', text=''){
+  const t = (text||'').trim();
+  if(t){ S.ideas.unshift({id:uid(), text:t, kind, note:'', createdAt:new Date().toISOString(), tags:parseTags(t)}); saveNow(); sound('success'); rerender(); return; }
+  const k = SPARK_KINDS[kind] || SPARK_KINDS.spark;
+  const m = openModal(`<h2>${k[0]} New ${esc(k[1])}</h2><input class="inp serif-lg" id="skText" placeholder="${kind==='question'?'What do you want to find out?':'What just occurred to you?'}" autofocus><div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn primary" id="skGo">Catch it</button></div>`, 'narrow');
+  const go = () => { const v = m.querySelector('#skText').value.trim(); if(!v) return; m.remove(); S.settings.projectMode = 'ideation'; addIdea(kind, v); };
+  m.querySelector('#skGo').onclick = go;
+  m.querySelector('#skText').onkeydown = e => { if(e.key === 'Enter') go(); };
+}
 function migrateIdeas(){ (S.ideas||[]).forEach(i => { i.kind = i.kind || 'spark'; i.note = i.note || ''; i.createdAt = i.createdAt || new Date().toISOString(); i.tags = normTags(i.tags||[]); }); }
 function renderIdeation(root){
   registerPageEntry({pageName:'Projects', addLabel:'New spark', defaultEntryType:'idea', prefilledFields:{}, options:[

@@ -5,41 +5,97 @@ routes.values = function(root){
   registerPageEntry({pageName:'Values', addLabel:'New snapshot', defaultEntryType:'snapshot', prefilledFields:{}, options:[
     {icon:'◔', label:'Congruence snapshot', desc:'Score each value 0–100 for this week.', run:()=>EntryActions.snapshot()},
     ...(S.values.length < 10 ? [{icon:'✦', label:'New value', desc:`The compass has ${S.values.length} of 10 points.`, run:()=>EntryActions.newValue()}] : [])]});
-  const snaps = allSnapshotsWithRetro(); const latest = snaps.slice(-1)[0]; const axes = S.valueOrder.map(id=>{ const v=byId(S.values,id); return {name:v.name, short:v.name.split(' ')[0], color:v.color}; });
-  const gaps = valueGaps();
+  const snaps = allSnapshotsWithRetro(); const latest = snaps.slice(-1)[0];
+  const axes = S.valueOrder.map(id=>{ const v=byId(S.values,id); return {name:v.name, short:v.name.split(' ')[0], color:v.color}; });
+  const gaps = valueGaps(); const rd = valuesReading();
   const servedBy = {}; S.valueOrder.forEach(id => servedBy[id] = S.visions.filter(v=>v.confidence!=='lived' && v.values.includes(id)));
+  const blind = S.valueOrder.filter(id => !servedBy[id].length);
+  const cur = latest ? avg(S.valueOrder.map(id => latest.ratings[id] ?? 0)) : null;
+  const prev = snaps.length > 1 ? avg(S.valueOrder.map(id => snaps[snaps.length-2].ratings[id] ?? 0)) : null;
+  const drift = (cur !== null && prev !== null) ? Math.round(cur - prev) : null;
+  const age = latest ? daysSince(latest.date) : null;
   root.innerHTML = `<div class="page">
-    <div class="page-head row between"><div><h1>Values</h1><div class="sub">Ten compass points. Priority is what you say; congruence is what your days say. The gap between them is where your life and your values disagree.</div></div></div>
-    <div class="grid c2" style="align-items:start">
-      <div class="card rv"><div class="row between"><h3>Priority order</h3><span class="mono">drag to re-rank · ${S.valueOrderHistory.length} re-rankings</span></div>
-        <ul class="values-list" id="valuesList">${S.valueOrder.map((id,i)=>{ const v = byId(S.values,id); const c = valueCurrent(id); return `<li draggable="true" data-vid="${id}"><span class="rank">${i+1}</span><span class="nm"><a href="#/value/${id}" style="color:${v.color}">${esc(v.name)}</a></span><div class="bar" style="--c:${v.color}"><i style="width:${c}%"></i></div><span class="pct" data-tween="${c}" data-suffix="%">0</span><span class="faint">⋮</span></li>`; }).join('')}</ul>
-        <details style="margin-top:10px"><summary><span class="mono">how the ranking has changed</span></summary><div class="body">${[...S.valueOrderHistory].reverse().map(h=>`<div class="mono" style="padding:6px 0;border-top:1px dashed var(--line)">${fmtDate(h.date,'med')} · ${h.order.map(id=>byId(S.values,id)?.name.split(' ')[0]).join(' › ')}</div>`).join('')}</div></details>
-      </div>
-      <div class="card rv"><h3>The shape of a life</h3><div id="radarBox">${radar(axes,[{vals:S.valueOrder.map(id=>latest?.ratings[id]??0),color:'var(--terra)'}],{size:360})}</div>
-        <div class="time-slider"><input type="range" class="slider" min="0" max="${snaps.length-1}" value="${snaps.length-1}" id="timeSlider"><div class="lbl"><span>${snaps[0]?fmtDate(snaps[0].date,'med'):''}</span><span id="tsLbl">${latest?fmtDate(latest.date,'med'):''}</span><span>now</span></div><div class="quote" id="tsNote" style="font-size:.9rem;margin-top:6px;min-height:1.5em">${esc(latest?.note||'')}</div></div>
-        <div class="row" style="margin-top:8px"><label class="toggle" id="ghostToggle"><span class="sw"></span><span>ghost the earliest reading</span></label></div>
-      </div>
-    </div>
-    <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Snapshot history</span><button class="btn primary sm" id="takeSnap">Take snapshot</button></div><div id="snapHistory" style="margin-top:14px"><div class="empty">Loading…</div></div></section>
-    <section class="section rv"><span class="sc">Per-value trend</span><div class="spark-grid">${S.valueOrder.map(id=>{ const v=byId(S.values,id); return `<div class="s" data-go="#/value/${id}" style="cursor:pointer"><div class="n" style="color:${v.color}">${esc(v.name)}</div>${sparkline(snaps.map(s=>s.ratings[id]??null),{h:34,min:0,max:100,color:v.color})}</div>`; }).join('')}</div></section>
-    <section class="section rv"><span class="sc">Congruence weather</span><p class="muted" style="font-size:.85rem">Each stripe is a value across time; brightness is congruence. Drift is visible at a glance.</p>
-      <div class="weather">${S.valueOrder.map(id=>{ const v=byId(S.values,id); return `<div class="lbl">${esc(v.name.split(' ')[0])}</div><div class="strip" style="--c:${v.color}">${snaps.map(s=>`<i style="--o:${((s.ratings[id]??0)/100*.9+.08).toFixed(2)}" title="${fmtDate(s.date,'med')}: ${s.ratings[id]??'–'}"></i>`).join('')}</div>`; }).join('')}<div></div><div class="row between mono"><span>${snaps[0]?fmtDate(snaps[0].date,'med'):''}</span><span>now</span></div></div></section>
-    <div class="grid c2 section">
-      <section class="rv"><span class="sc">Gap analysis</span><p class="muted" style="font-size:.85rem">Values sorted by (stated priority − current congruence). The top three are where your life and your values disagree most.</p>
-        <div class="gap-list">${gaps.map((g,i)=>`<div class="g" style="${i<3?'font-weight:600':''}"><span style="color:${g.color}">${esc(g.name)}</span><div class="bar" style="--c:${g.gap>0?g.color:'var(--sage)'}"><i style="width:${clamp(Math.abs(g.gap),0,100)}%"></i></div><span class="mono">${g.gap>0?'+':''}${g.gap}</span></div>`).join('')}</div></section>
-      <section class="rv"><span class="sc">Values ↔ Visions cross-light</span><p class="muted" style="font-size:.85rem">Which values does each vision serve? A value no vision serves is a structural blind spot.</p>
-        <div style="overflow-x:auto"><table class="matrix"><thead><tr><th></th>${S.visions.filter(v=>v.confidence!=='lived').map(v=>`<th class="rot">${esc(v.name)}</th>`).join('')}</tr></thead><tbody>${S.valueOrder.map(id=>{ const v=byId(S.values,id); const blind = !servedBy[id].length; return `<tr class="${blind?'blindrow':''}"><td style="text-align:left;color:${v.color}">${esc(v.name.split(' ')[0])}${blind?' <span class="mono">· blind spot</span>':''}</td>${S.visions.filter(x=>x.confidence!=='lived').map(x=>`<td class="${blind?'blind':''}">${x.values.includes(id)?'<i></i>':''}</td>`).join('')}</tr>`; }).join('')}</tbody></table></div></section>
-    </div>
+    <div class="page-head"><h1>Values</h1><div class="sub">Priority is what you say. Congruence is what your days say. This page exists to show you the difference and what to do about it.</div></div>
+
+    ${S.valueOrder.length ? `
+    <!-- 1. the conclusion, before the evidence -->
+    <section class="reading-card rv">
+      <div class="sc">What this is telling you</div>
+      <div class="reading-body">${rd.map(line => `<p>${line}</p>`).join('')}</div>
+      <div class="row" style="margin-top:14px;gap:8px;flex-wrap:wrap"><button class="btn sm primary" id="takeSnap">Take a snapshot</button>${gaps[0] ? `<a class="btn sm ghost" href="#/value/${gaps[0].id}">open ${esc(gaps[0].name)}</a>` : ''}${blind.length ? `<a class="btn sm ghost" href="#/vision">give ${esc(byId(S.values,blind[0]).name)} a vision</a>` : ''}</div>
+    </section>
+
+    <!-- 2. the four numbers worth knowing -->
+    <div class="card rv" style="margin:22px 0"><div class="income-strip">
+      <div><div class="k">congruence now</div><div class="num">${cur===null?'—':Math.round(cur)}</div><div class="mono">average across ${S.valueOrder.length} values</div></div>
+      <div><div class="k">since last reading</div><div class="num" style="color:${drift===null?'var(--muted)':drift>2?'var(--sage)':drift<-2?'#c25b5b':'var(--muted)'}">${drift===null?'—':(drift>0?'+':'')+drift}</div><div class="mono">${drift===null?'need two readings':drift>2?'rising':drift<-2?'slipping':'steady'}</div></div>
+      <div><div class="k">widest gap</div><div class="num" style="color:${gaps[0]?gaps[0].color:'var(--muted)'}">${gaps[0]?(gaps[0].gap>0?'+':'')+gaps[0].gap:'—'}</div><div class="mono">${gaps[0]?esc(gaps[0].name):''}</div></div>
+      <div><div class="k">last reading</div><div class="num">${age===null?'—':age===0?'today':age+'d'}</div><div class="mono">${age===null?'never taken':age>14?'going stale':'fresh enough'}</div></div>
+    </div></div>
+
+    <!-- 3. one table that is priority, congruence, gap and trend at once -->
+    <section class="section rv"><div class="row between"><span class="sc" style="margin:0">The compass</span><span class="mono">drag to re-rank · ${S.valueOrderHistory.length} re-rankings</span></div>
+      <p class="muted" style="font-size:.85rem">Ranked by what you say matters. The bar is where your days actually are; the number on the right is the distance between the two.</p>
+      <ul class="compass-list" id="valuesList">${S.valueOrder.map((id,i)=>{ const v = byId(S.values,id); const c = valueCurrent(id); const g = gaps.find(x=>x.id===id); const hist = snaps.map(s=>s.ratings[id]??null); const bl = !servedBy[id].length;
+        return `<li draggable="true" data-vid="${id}" style="--c:${v.color}">
+          <span class="rank">${i+1}</span>
+          <span class="nm"><a href="#/value/${id}">${esc(v.name)}</a>${bl?'<span class="mono blind-tag" title="no vision currently serves this value">blind spot</span>':''}</span>
+          <span class="spark">${sparkline(hist,{h:26,min:0,max:100,color:v.color})}</span>
+          <span class="bar"><i style="width:${c}%"></i></span>
+          <span class="pct" data-tween="${c}">0</span>
+          <span class="gapn ${g.gap>12?'wide':g.gap<-12?'over':''}" title="stated priority minus lived congruence">${g.gap>0?'+':''}${g.gap}</span>
+          <span class="faint grip">⋮</span></li>`; }).join('')}</ul>
+      <details style="margin-top:10px"><summary><span class="mono">how the ranking has changed</span></summary><div class="body">${[...S.valueOrderHistory].reverse().map(h=>`<div class="mono" style="padding:6px 0;border-top:1px dashed var(--line)">${fmtDate(h.date,'med')} · ${h.order.map(id=>byId(S.values,id)?.name.split(' ')[0]).join(' › ')}</div>`).join('')||'<div class="faint mono" style="padding:6px 0">No re-rankings yet.</div>'}</div></details>
+    </section>
+
+    <!-- 4. the one picture: the shape, over time -->
+    ${snaps.length ? `<section class="section rv"><div class="row between"><span class="sc" style="margin:0">The shape of a life</span><span class="mono">drag the slider to walk back through your readings</span></div>
+      <div class="grid c2" style="align-items:start;margin-top:12px">
+        <div class="card"><div id="radarBox">${radar(axes,[{vals:S.valueOrder.map(id=>latest?.ratings[id]??0),color:'var(--page-accent)'}],{size:340})}</div>
+          <div class="time-slider"><input type="range" class="slider" min="0" max="${snaps.length-1}" value="${snaps.length-1}" id="timeSlider"><div class="lbl"><span>${snaps[0]?fmtDate(snaps[0].date,'med'):''}</span><span id="tsLbl">${latest?fmtDate(latest.date,'med'):''}</span><span>now</span></div><div class="quote" id="tsNote" style="font-size:.9rem;margin-top:6px;min-height:1.5em">${esc(latest?.note||'')}</div></div></div>
+        <div><span class="sc">Readings</span><div id="snapHistory" style="margin-top:10px"><div class="empty">Loading…</div></div></div>
+      </div></section>` : ''}
+
+    <details class="section rv"><summary><span class="sc">Which visions serve which values</span></summary><div class="body">
+      <p class="muted" style="font-size:.85rem">A value that no vision serves is a structural blind spot: you say it matters, but nothing you are building is pointed at it.</p>
+      <div style="overflow-x:auto"><table class="matrix"><thead><tr><th></th>${S.visions.filter(v=>v.confidence!=='lived').map(v=>`<th class="rot">${esc(v.name)}</th>`).join('')}</tr></thead><tbody>${S.valueOrder.map(id=>{ const v=byId(S.values,id); const bl = !servedBy[id].length; return `<tr class="${bl?'blindrow':''}"><td style="text-align:left;color:${v.color}">${esc(v.name.split(' ')[0])}${bl?' <span class="mono">· blind spot</span>':''}</td>${S.visions.filter(x=>x.confidence!=='lived').map(x=>`<td class="${bl?'blind':''}">${x.values.includes(id)?'<i></i>':''}</td>`).join('')}</tr>`; }).join('')}</tbody></table></div></div></details>
+    ` : `<div class="empty rv">The compass has no points yet. Add the handful of words you would want said about how you lived — five is plenty to start.</div>`}
   </div>`;
-  // drag to reorder
+
+  if(!S.valueOrder.length) return;
   const list = $('#valuesList'); let dragId = null;
   list.querySelectorAll('li').forEach(li => { li.addEventListener('dragstart', ()=>{ dragId = li.dataset.vid; li.classList.add('dragging'); }); li.addEventListener('dragend', ()=>li.classList.remove('dragging')); li.addEventListener('dragover', e=>{ e.preventDefault(); li.classList.add('over'); }); li.addEventListener('dragleave', ()=>li.classList.remove('over')); li.addEventListener('drop', e=>{ e.preventDefault(); li.classList.remove('over'); if(!dragId || dragId===li.dataset.vid) return; const o = S.valueOrder.filter(x=>x!==dragId); o.splice(o.indexOf(li.dataset.vid),0,dragId); S.valueOrderHistory.push({date:today(),order:[...S.valueOrder]}); S.valueOrder = o; saveNow(); rerender(); toast('Priorities re-ranked. The previous order is kept.'); }); });
-  const ts = $('#timeSlider'); let ghost = false;
-  const drawRadar = () => { const s = snaps[+ts.value]; const series = []; if(ghost && snaps[0] && +ts.value>0) series.push({vals:S.valueOrder.map(id=>snaps[0].ratings[id]??0),color:'var(--faint)',dashed:true}); series.push({vals:S.valueOrder.map(id=>s.ratings[id]??0),color:s.retro?(byId(S.stages,s.stageId)?.hue||'var(--terra)'):'var(--terra)'}); $('#radarBox').innerHTML = radar(axes,series,{size:360}); $('#tsLbl').textContent = fmtDate(s.date,'med'); $('#tsNote').textContent = s.note||''; };
   $('#takeSnap').onclick = () => openSnapshotModal(() => rerender());
-  renderSnapshotHistory($('#snapHistory'));
-  ts.oninput = drawRadar; $('#ghostToggle').onclick = () => { ghost=!ghost; $('#ghostToggle').classList.toggle('on',ghost); drawRadar(); };
+  const ts = $('#timeSlider');
+  if(ts){ renderSnapshotHistory($('#snapHistory'));
+    ts.oninput = () => { const s = snaps[+ts.value]; $('#radarBox').innerHTML = radar(axes,[{vals:S.valueOrder.map(id=>s.ratings[id]??0),color:s.retro?(byId(S.stages,s.stageId)?.hue||'var(--page-accent)'):'var(--page-accent)'}],{size:340}); $('#tsLbl').textContent = fmtDate(s.date,'med'); $('#tsNote').textContent = s.note||''; };
+  }
 };
+/* ---------- the reading: what the numbers mean, in sentences ---------- */
+function valuesReading(){
+  const out = []; const snaps = allSnapshotsWithRetro(); const latest = snaps.slice(-1)[0]; const gaps = valueGaps();
+  if(!S.valueOrder.length) return ['Name a few values and this page will start telling you something.'];
+  if(!latest) return ['No reading yet. Score each value once — honestly, in about two minutes — and this space will tell you where your life and your values disagree.'];
+  const age = daysSince(latest.date);
+  const cur = avg(S.valueOrder.map(id => latest.ratings[id] ?? 0));
+  const prev = snaps.length > 1 ? avg(S.valueOrder.map(id => snaps[snaps.length-2].ratings[id] ?? 0)) : null;
+  const drift = prev === null ? null : cur - prev;
+  out.push(`Across ${S.valueOrder.length} values you are living at <b>${Math.round(cur)} out of 100</b>${drift===null ? ', your first reading — the number only starts meaning something on the second.' : drift > 2 ? `, up ${Math.round(drift)} since the last reading. Whatever you changed, keep doing it.` : drift < -2 ? `, down ${Math.round(Math.abs(drift))} since the last reading. Something is taking more than it gives.` : `, holding steady since the last reading.`}`);
+  const worst = gaps[0];
+  if(worst && worst.gap > 8) out.push(`The widest gap is <b>${esc(worst.name)}</b>: you rank it ${worst.rank}${['st','nd','rd'][worst.rank-1]||'th'} but live it at ${worst.congruence}. This is the one to spend a week on — not all of them.`);
+  else if(worst) out.push(`No value is badly out of step right now. That is rarer than it sounds; the work is to keep it that way rather than to fix something.`);
+  const low = [...gaps].sort((a,b)=>a.congruence-b.congruence)[0];
+  if(low && low.congruence < 35 && low.id !== worst?.id) out.push(`<b>${esc(low.name)}</b> is your lowest at ${low.congruence}, though you rank it ${low.rank}${['st','nd','rd'][low.rank-1]||'th'} — worth asking whether it is genuinely a lower priority, or just neglected.`);
+  if(snaps.length > 2){
+    const first = snaps[0]; const climbed = S.valueOrder.map(id => ({id, d:(latest.ratings[id]??0) - (first.ratings[id]??0)})).sort((a,b)=>b.d-a.d)[0];
+    if(climbed && climbed.d > 12) out.push(`Over the whole record, <b>${esc(byId(S.values,climbed.id).name)}</b> has climbed ${Math.round(climbed.d)} points. Something in how you arranged your life worked.`);
+  }
+  const blind = S.valueOrder.filter(id => !S.visions.some(v => v.confidence!=='lived' && v.values.includes(id)));
+  if(blind.length) out.push(`${blind.length === 1 ? 'One value has' : `${blind.length} values have`} nothing you are building pointed at ${blind.length===1?'it':'them'} — ${blind.slice(0,3).map(id=>esc(byId(S.values,id).name)).join(', ')}${blind.length>3?'…':''}. Either give ${blind.length===1?'it':'one of them'} a vision, or admit it ranks lower than you say.`);
+  if(age > 14) out.push(`Your last reading is <b>${age} days old</b>. Everything above is memory rather than measurement until you take a new one.`);
+  return out;
+}
+
 function deleteValue(v, node, after){
   requestDelete({label: v.name, node, after, remove: () => {
     const touched = S.entries.filter(e => (e.links?.values||[]).some(x => x.id === v.id)); const rl = snapshotLinks(touched); touched.forEach(e => e.links.values = e.links.values.filter(x => x.id !== v.id));

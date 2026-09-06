@@ -32,7 +32,7 @@
   --page-accent:var(--terra); --page-accent-ink:#1a1816;
   --page-gradient-start:#b08968; --page-gradient-end:#7f916a;
   --page-motion-speed:1; --page-ease:var(--ease); --page-lift:translateY(-2px); --page-glyph:"生"; --page-par:0;
-  --page-grad-op:.07;
+  --page-grad-op:.07; --scene-op:.17;
 }
 html[data-theme="light"]{
   --bg:#f5f0ea; --surface:#fffdf9; --surface-2:#f7f2ec; --surface-3:#efe8df;
@@ -41,7 +41,7 @@ html[data-theme="light"]{
   --phys:#b26a2a; --emo:#8e5f6b; --ment:#5b6f7f; --spir:#6b7d56;
   --shadow:0 10px 40px rgba(60,40,20,.12), 0 1px 3px rgba(60,40,20,.08);
   --blob-op:.06;
-  --page-grad-op:.09;
+  --page-grad-op:.09; --scene-op:.15;
 }
 *{box-sizing:border-box}
 html,body{height:100%}
@@ -80,6 +80,12 @@ kbd{font-family:var(--mono);font-size:.68rem;padding:2px 6px;border:1px solid va
 
 /* Ambient blobs */
 .ambient{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.page-scene{position:absolute;inset:0;opacity:0;transition:opacity .55s var(--ease);display:flex;align-items:flex-end;justify-content:center}
+.page-scene.on{opacity:var(--scene-op,.075)}
+.page-scene .scene-svg{width:100%;height:100%;display:block}
+.page-scene::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 62% 48% at 50% 38%,color-mix(in srgb,var(--bg) 82%,transparent) 0%,color-mix(in srgb,var(--bg) 40%,transparent) 52%,transparent 82%);pointer-events:none}
+@media (max-width:900px){.page-scene.on{opacity:calc(var(--scene-op,.075) * .7)}}
+@media (prefers-reduced-motion:reduce){.page-scene{transition:none}}
 .page-grad{position:absolute;inset:0;opacity:0;transition:opacity .35s var(--ease);background-image:linear-gradient(135deg,var(--page-gradient-start),var(--page-gradient-end))}
 .page-grad.on{opacity:var(--page-grad-op)}
 .blob{position:absolute;width:60vmax;height:60vmax;border-radius:50%;filter:blur(120px);opacity:var(--blob-op);will-change:transform}
@@ -380,6 +386,37 @@ html.reduce-motion *,html.reduce-motion *::before,html.reduce-motion *::after{an
 .setpoint .cur{font-family:var(--serif);font-size:1.15rem;margin-top:8px;display:flex;justify-content:space-between;align-items:baseline}
 .intention-card{margin-top:8px;padding:22px 26px;border-radius:var(--radius);border:1px solid color-mix(in srgb,var(--page-accent) 26%,var(--line));background:linear-gradient(135deg,color-mix(in srgb,var(--page-accent) 10%,var(--surface)),var(--surface));font-size:1.3rem;line-height:1.5}
 .intention-card .ed{display:block;min-height:1.4em}
+.amb-list{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.amb-opt{display:flex;flex-direction:column;align-items:flex-start;gap:2px;background:var(--surface-2);border:1px solid var(--line-2);border-radius:10px;padding:10px 14px;cursor:pointer;text-align:left;transition:border-color .2s var(--ease),background .2s var(--ease)}
+.amb-opt:hover{border-color:var(--page-accent)}
+.amb-opt.on{border-color:var(--page-accent);background:color-mix(in srgb,var(--page-accent) 12%,var(--surface-2))}
+.amb-name{font-family:var(--serif);font-size:1rem;color:var(--text)}
+.amb-desc{font-family:var(--quote);font-style:italic;font-size:.8rem;color:var(--muted)}
+/* ---------- values: the reading, then the evidence ---------- */
+.reading-card{padding:26px 30px;border-radius:var(--radius);border:1px solid color-mix(in srgb,var(--page-accent) 30%,var(--line));background:linear-gradient(135deg,color-mix(in srgb,var(--page-gradient-start) 12%,var(--surface)),var(--surface) 65%);position:relative;overflow:hidden}
+.reading-card::after{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--page-accent),transparent)}
+.reading-body{margin-top:10px;max-width:62ch}
+.reading-body p{margin:0 0 10px;font-family:var(--serif);font-size:1.08rem;line-height:1.72;color:var(--text)}
+.reading-body p:last-child{margin-bottom:0}
+.reading-body b{color:var(--page-accent);font-weight:600}
+.compass-list{list-style:none;padding:0;margin:14px 0 0;display:flex;flex-direction:column;gap:2px}
+.compass-list li{display:grid;grid-template-columns:26px minmax(120px,1.4fr) 80px minmax(90px,1fr) 44px 44px 16px;align-items:center;gap:12px;padding:9px 10px;border-radius:10px;border:1px solid transparent;cursor:grab;transition:background .2s var(--ease),border-color .2s var(--ease)}
+.compass-list li:hover{background:var(--surface-2);border-color:var(--line)}
+.compass-list li.dragging{opacity:.4}
+.compass-list li.over{border-top:2px solid var(--page-accent)}
+.compass-list .rank{font-family:var(--mono);font-size:.72rem;color:var(--faint);text-align:right}
+.compass-list .nm a{color:var(--c);text-decoration:none;font-family:var(--serif);font-size:1.02rem}
+.compass-list .nm a:hover{text-decoration:underline}
+.compass-list .blind-tag{display:block;font-size:.58rem;color:#c9a05a;letter-spacing:.1em;text-transform:uppercase}
+.compass-list .spark{opacity:.75}
+.compass-list .bar{height:6px;background:var(--surface-3);border-radius:3px;overflow:hidden}
+.compass-list .bar i{display:block;height:100%;background:var(--c);border-radius:3px}
+.compass-list .pct{font-family:var(--mono);font-size:.78rem;text-align:right}
+.compass-list .gapn{font-family:var(--mono);font-size:.78rem;text-align:right;color:var(--faint)}
+.compass-list .gapn.wide{color:#d08080;font-weight:600}
+.compass-list .gapn.over{color:var(--sage)}
+.compass-list .grip{text-align:center}
+@media (max-width:820px){.compass-list li{grid-template-columns:22px 1fr 44px 44px;row-gap:4px}.compass-list .spark,.compass-list .grip{display:none}.compass-list .bar{grid-column:2/-1}}
 /* ---------- projects: ideation vs tracking ---------- */
 .mode-switch{display:inline-flex;gap:2px;padding:3px;border-radius:12px;border:1px solid var(--line-2);background:var(--surface-2);margin-bottom:18px}
 .mode-switch button{background:none;border:none;color:var(--muted);font-family:var(--sans);font-size:.84rem;padding:7px 16px;border-radius:9px;cursor:pointer;transition:background .2s var(--ease),color .2s var(--ease)}
@@ -1088,7 +1125,7 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 </style>
 </head>
 <body>
-<div class="ambient"><div class="page-grad" id="pgA"></div><div class="page-grad" id="pgB"></div><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+<div class="ambient"><div class="page-scene" id="scA"></div><div class="page-scene" id="scB"></div><div class="page-grad" id="pgA"></div><div class="page-grad" id="pgB"></div><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
 <canvas class="dust" id="dust"></canvas>
 <div id="app">
   <aside class="sidebar" id="sidebar"></aside>
@@ -1291,13 +1328,32 @@ function renderRoute(){
   currentRoute = name; PageEntryConfig.clear();
   try { fn(main, params); } catch(err){ console.error(err); main.innerHTML = `<div class="page narrow"><h1>Something went wrong</h1><p class="muted">${esc(err.message)}</p></div>`; }
   decoratePageHead(main); mountContextAdd(main); reveal(main); tweenAll(main); backupBanner(); updateBackButton();
-  window.scrollTo({top:0, behavior:'instant'});
+  restoreScroll(location.hash);
 }
 function rerender(){ const y = window.scrollY; const main = $('#main'); const {name, params} = parseHash(); main.innerHTML=''; PageEntryConfig.clear(); (routes[name]||routes.home)(main, params); decoratePageHead(main); mountContextAdd(main); $$('.rv', main).forEach(n=>n.classList.add('in')); tweenAll(main); window.scrollTo({top:y}); }
-window.addEventListener('hashchange', () => { sound('page'); if(document.startViewTransition && !reduced() && document.visibilityState==='visible') document.startViewTransition(renderRoute); else renderRoute(); });
+/* where you were on each page, so Back returns you to the spot and not the top */
+try { history.scrollRestoration = 'manual'; } catch(e){}
+const scrollMem = new Map(); let wentBack = false, navSeq = 0, navIdx = -1;
+/* popstate is not a reliable "went back" signal for hash routes, so each history
+   entry is stamped with an increasing index and the direction read from it. */
+function markNavDirection(){
+  const st = history.state || {};
+  if(typeof st.liIdx === 'number'){ wentBack = st.liIdx < navIdx; navIdx = st.liIdx; }
+  else { navIdx = ++navSeq; wentBack = false; try { history.replaceState({...st, liIdx:navIdx}, ''); } catch(e){} }
+}
+function restoreScroll(hash){
+  const y = wentBack ? (scrollMem.get(hash) || 0) : 0; wentBack = false;
+  const go = () => window.scrollTo({top:y, behavior:'instant'});
+  go(); requestAnimationFrame(() => { go(); setTimeout(go, 60); setTimeout(go, 160); });   // let late layout settle
+}
+window.addEventListener('scroll', debounce(() => scrollMem.set(location.hash, window.scrollY || 0), 150), {passive:true});
+window.addEventListener('hashchange', () => {
+  sound('page'); markNavDirection();
+  if(document.startViewTransition && !reduced() && document.visibilityState==='visible') document.startViewTransition(renderRoute); else renderRoute();
+});
 
 /* ---------- side panel ---------- */
-function openPanel(html, cls=''){ closePanel({keep:true}); sound('open'); if(!history.state?.liPanel){ try { history.pushState({liPanel:true}, '', location.href); } catch(e){} } const ov = el(`<div class="panel-overlay" id="panelOv"></div>`); const p = el(`<div class="side-panel ${cls}" id="panel"><div class="panel-grip" title="drag to resize · double-click to reset"></div><button class="panel-wide" title="widen / narrow (focus)">⤢</button><button class="close" title="close">×</button>${html}</div>`); document.body.appendChild(ov); document.body.appendChild(p); ov.onclick = closePanel; p.querySelector('.close').onclick = closePanel; bindPanelResize(p); tweenAll(p); return p; }
+function openPanel(html, cls=''){ closePanel({keep:true}); sound('open'); if(!history.state?.liPanel){ try { history.pushState({liPanel:true, liIdx:navIdx}, '', location.href); } catch(e){} } const ov = el(`<div class="panel-overlay" id="panelOv"></div>`); const p = el(`<div class="side-panel ${cls}" id="panel"><div class="panel-grip" title="drag to resize · double-click to reset"></div><button class="panel-wide" title="widen / narrow (focus)">⤢</button><button class="close" title="close">×</button>${html}</div>`); document.body.appendChild(ov); document.body.appendChild(p); ov.onclick = closePanel; p.querySelector('.close').onclick = closePanel; bindPanelResize(p); tweenAll(p); return p; }
 /* panel width: drag the left edge, persisted; ⤢ toggles a wide "focus" width */
 function panelWidthDefault(){ return 560; }
 function applyPanelWidth(p){ const wide = lsGet('panelWide', false); const w = wide ? Math.min(1180, innerWidth*.94) : clamp(lsGet('panelWidth', panelWidthDefault()), 380, innerWidth*.94); p.style.setProperty('--panel-w', Math.round(w)+'px'); p.classList.toggle('wide', !!wide); }
@@ -1432,6 +1488,7 @@ function applyPageTheme(){
     const layers = [$('#pgA'), $('#pgB')]; if(layers[0] && layers[1]){ const next = 1 - _gradLayer; layers[next].style.backgroundImage = pageGradientCSS(t); layers[next].classList.add('on'); layers[_gradLayer].classList.remove('on'); _gradLayer = next; }
     _pageThemeKey = key;
   }
+  if(typeof applyPageScene === 'function') applyPageScene();
   const meta = document.querySelector('meta[name="theme-color"]'); if(meta) meta.content = light ? t.accent[1] : t.accent[0];
 }
 /* parallax for the banner glyph on calm pages */
@@ -1439,123 +1496,447 @@ window.addEventListener('scroll', () => { if(document.documentElement.dataset.mo
 /* page banners carry the room's glyph and colour; no descriptive line */
 function decoratePageHead(main){ /* intentionally empty — the banner speaks for itself */ }
 /* ============================================================
-   SOUND — two layers, all synthesised, nothing downloaded
-   Layer 1: interaction sounds.  Layer 2: opt-in brown-noise ambient.
-   The AudioContext is created lazily inside the first user gesture
-   (pointerdown / keydown) and reused for everything after.
+   SCENES — a vision board behind the glass.
+   Each room gets its own drawn scene in the ambient layer: Japan,
+   a bar at night, a piano in a quiet house, hills and rain. They
+   sit at a few per cent opacity in the page's own colours, so
+   they read as atmosphere rather than decoration.
+   Detail pages (one project, one skill, one stage) get a motif
+   generated from their own id, so no two look alike.
    ============================================================ */
+const SC_W = 1200, SC_H = 760;
+const scWrap = inner => `<svg viewBox="0 0 ${SC_W} ${SC_H}" preserveAspectRatio="xMidYMax slice" class="scene-svg">${inner}</svg>`;
+/* shared pieces */
+const hill = (y, amp, col, op) => `<path d="M0,${SC_H} L0,${y} ${Array.from({length:13},(_,i)=>{const x=i*100; return `Q${x+50},${(y - amp*Math.sin(i*1.1)).toFixed(0)} ${x+100},${(y - amp*.4*Math.sin(i*.7)).toFixed(0)}`;}).join(' ')} L${SC_W},${SC_H} Z" fill="${col}" opacity="${op}"/>`;
+const cloud = (x, y, s, col, op) => `<g opacity="${op}" fill="${col}" transform="translate(${x},${y}) scale(${s})"><ellipse cx="0" cy="0" rx="90" ry="16"/><ellipse cx="-45" cy="-9" rx="52" ry="13"/><ellipse cx="48" cy="-6" rx="60" ry="12"/></g>`;
+const moon = (x, y, r, col) => `<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="${col}" stroke-width="2" opacity=".55"/><circle cx="${x}" cy="${y}" r="${r}" fill="${col}" opacity=".1"/>`;
+const rays = (x, y, r, col, n=14) => Array.from({length:n},(_,i)=>{ const a = -Math.PI + i*Math.PI/(n-1); return `<line x1="${(x+Math.cos(a)*r*.55).toFixed(0)}" y1="${(y+Math.sin(a)*r*.55).toFixed(0)}" x2="${(x+Math.cos(a)*r*1.5).toFixed(0)}" y2="${(y+Math.sin(a)*r*1.5).toFixed(0)}" stroke="${col}" stroke-width="1.4" opacity=".3"/>`; }).join('');
+const A = 'var(--page-accent)', G1 = 'var(--page-gradient-start)', G2 = 'var(--page-gradient-end)';
+
+const PAGE_SCENES = {
+  /* a house, the hills behind it, smoke from the chimney */
+  home: () => scWrap(`${hill(470,42,G2,.28)}${hill(560,30,G1,.34)}
+    <g stroke="${A}" fill="none" stroke-width="2.4" opacity=".7">
+      <path d="M420,640 L600,520 L780,640"/><path d="M470,612 v128 h260 v-128"/>
+      <path d="M560,740 v-74 h80 v74"/><rect x="500" y="640" width="46" height="40"/><rect x="660" y="640" width="46" height="40"/>
+      <path d="M700,560 v-56 h30 v34"/></g>
+    <path d="M715,500 q-22,-34 4,-60 q26,-26 4,-58" stroke="${A}" fill="none" stroke-width="1.8" opacity=".35"/>
+    ${cloud(240,190,1,G2,.28)}${cloud(950,140,.8,G1,.24)}`),
+
+  /* morning: a low sun over still water, two birds */
+  today: () => scWrap(`${rays(600,470,150,A)}<circle cx="600" cy="470" r="98" fill="${A}" opacity=".16"/><circle cx="600" cy="470" r="98" fill="none" stroke="${A}" stroke-width="2" opacity=".5"/>
+    ${hill(540,26,G2,.26)}
+    <g stroke="${A}" opacity=".4" stroke-width="1.6" fill="none">${Array.from({length:9},(_,i)=>`<line x1="${380+i*8}" y1="${590+i*18}" x2="${820-i*8}" y2="${590+i*18}"/>`).join('')}</g>
+    <path d="M300,250 q22,-18 44,0 q22,-18 44,0" stroke="${A}" fill="none" stroke-width="2" opacity=".45"/>
+    <path d="M880,190 q16,-13 32,0 q16,-13 32,0" stroke="${A}" fill="none" stroke-width="1.8" opacity=".35"/>
+    ${cloud(880,320,.7,G1,.22)}`),
+
+  /* a week on squared paper, one corner turned up */
+  plan: () => scWrap(`<g stroke="${A}" opacity=".16" stroke-width="1">${Array.from({length:16},(_,i)=>`<line x1="0" y1="${i*52}" x2="${SC_W}" y2="${i*52}"/>`).join('')}${Array.from({length:24},(_,i)=>`<line x1="${i*52}" y1="0" x2="${i*52}" y2="${SC_H}"/>`).join('')}</g>
+    <g opacity=".5" stroke="${A}" fill="none" stroke-width="2.2">${Array.from({length:7},(_,i)=>`<rect x="${140+i*130}" y="330" width="106" height="240" rx="8"/>`).join('')}</g>
+    <g opacity=".3" stroke="${A}" stroke-width="2">${Array.from({length:7},(_,i)=>Array.from({length:2+(i%3)},(_,j)=>`<line x1="${160+i*130}" y1="${380+j*34}" x2="${226+i*130}" y2="${380+j*34}"/>`).join('')).join('')}</g>
+    <path d="M1060,0 L1200,0 L1200,140 Z" fill="${G2}" opacity=".25"/>`),
+
+  /* rain on the window, a ginkgo leaf caught on the glass */
+  journals: () => scWrap(`<g stroke="${A}" opacity=".3" stroke-width="1.6">${Array.from({length:34},(_,i)=>{const x=(i*77)%SC_W, y=(i*133)%520; return `<line x1="${x}" y1="${y}" x2="${x-14}" y2="${y+96}"/>`;}).join('')}</g>
+    <g opacity=".28" fill="${A}">${Array.from({length:18},(_,i)=>`<circle cx="${(i*211)%SC_W}" cy="${(i*97)%600+60}" r="${3+(i%4)}"/>`).join('')}</g>
+    <g transform="translate(880,470) rotate(24)" opacity=".4"><path d="M0,0 q-70,-16 -86,-84 q46,-40 86,-40 q40,0 86,40 q-16,68 -86,84 Z" fill="${G2}" opacity=".6"/><path d="M0,0 v-118" stroke="${A}" stroke-width="2" fill="none"/><path d="M0,0 v52" stroke="${A}" stroke-width="2.4"/></g>
+    <rect x="60" y="60" width="${SC_W-120}" height="${SC_H-40}" fill="none" stroke="${A}" stroke-width="3" opacity=".28"/>
+    <line x1="${SC_W/2}" y1="60" x2="${SC_W/2}" y2="${SC_H}" stroke="${A}" stroke-width="3" opacity=".22"/>`),
+
+  /* a stack of books and the lamp that keeps you up */
+  commonplace: () => scWrap(`<g stroke="${A}" fill="none" stroke-width="2.4" opacity=".6">
+      <rect x="380" y="620" width="290" height="34" rx="4"/><rect x="400" y="580" width="250" height="40" rx="4"/><rect x="366" y="536" width="300" height="44" rx="4"/><rect x="410" y="492" width="220" height="44" rx="4"/>
+      <path d="M760,654 v-150 M700,504 q60,-56 120,0" /><path d="M700,504 h120"/></g>
+    <circle cx="760" cy="470" r="120" fill="${A}" opacity=".12"/>
+    <g opacity=".45" stroke="${A}" stroke-width="1.6">${Array.from({length:5},(_,i)=>`<line x1="${396+i*4}" y1="${544+i*44}" x2="${640-i*6}" y2="${544+i*44}"/>`).join('')}</g>
+    ${cloud(220,200,.8,G2,.16)}`),
+
+  /* the desk at night: a window, a lamp, a cup still warm */
+  writing: () => scWrap(`<rect x="120" y="90" width="380" height="330" fill="none" stroke="${A}" stroke-width="2.6" opacity=".45"/>
+    <line x1="310" y1="90" x2="310" y2="420" stroke="${A}" stroke-width="2" opacity=".35"/><line x1="120" y1="255" x2="500" y2="255" stroke="${A}" stroke-width="2" opacity=".35"/>
+    ${moon(410,170,38,A)}
+    <line x1="60" y1="620" x2="1140" y2="620" stroke="${A}" stroke-width="3" opacity=".5"/>
+    <g stroke="${A}" fill="none" stroke-width="2.4" opacity=".55"><path d="M840,620 v-90 M800,530 q40,-46 80,0"/><path d="M800,530 h80"/>
+      <path d="M560,620 v-40 h70 v40 Z"/><path d="M630,592 q22,-12 22,-22 q0,-10 -22,-12"/></g>
+    <circle cx="840" cy="500" r="96" fill="${A}" opacity=".13"/>
+    <path d="M590,556 q-10,-22 2,-38 M612,556 q-10,-22 2,-38" stroke="${A}" fill="none" stroke-width="1.6" opacity=".35"/>
+    <g opacity=".4" stroke="${A}" stroke-width="1.6">${Array.from({length:5},(_,i)=>`<line x1="${300}" y1="${586+i*0}" x2="${520}" y2="${586}"/>`).join('')}</g>`),
+
+  /* a small bar at night: noren, lanterns, rooftops */
+  projects: () => scWrap(`<g opacity=".3" fill="${G2}">${Array.from({length:9},(_,i)=>`<rect x="${i*140}" y="${380+((i*53)%90)}" width="118" height="${SC_H}" />`).join('')}</g>
+    <path d="M300,470 h600 l-40,-60 h-520 Z" fill="${A}" opacity=".22"/>
+    <path d="M300,470 h600" stroke="${A}" stroke-width="3" opacity=".55" fill="none"/>
+    <g opacity=".5" fill="none" stroke="${A}" stroke-width="2.4"><rect x="340" y="470" width="520" height="90" rx="4"/>
+      ${Array.from({length:5},(_,i)=>`<line x1="${340+i*104}" y1="470" x2="${340+i*104}" y2="560"/>`).join('')}</g>
+    <g opacity=".55">${[420,600,780].map(x=>`<g><line x1="${x}" y1="380" x2="${x}" y2="410" stroke="${A}" stroke-width="2"/><ellipse cx="${x}" cy="435" rx="26" ry="32" fill="${A}" opacity=".28"/><ellipse cx="${x}" cy="435" rx="26" ry="32" fill="none" stroke="${A}" stroke-width="2"/><line x1="${x-26}" y1="435" x2="${x+26}" y2="435" stroke="${A}" stroke-width="1.2" opacity=".6"/></g>`).join('')}</g>
+    <g opacity=".4" stroke="${A}" stroke-width="2" fill="none">${Array.from({length:11},(_,i)=>`<line x1="${350+i*50}" y1="${560}" x2="${350+i*50}" y2="${640}"/>`).join('')}</g>`),
+
+  /* sun and moon on the same arc: the day, repeating */
+  rituals: () => scWrap(`<path d="M120,640 A480,480 0 0 1 1080,640" fill="none" stroke="${A}" stroke-width="2.4" opacity=".45" stroke-dasharray="10 12"/>
+    <circle cx="380" cy="300" r="52" fill="${A}" opacity=".18"/><circle cx="380" cy="300" r="52" fill="none" stroke="${A}" stroke-width="2.2" opacity=".55"/>${rays(380,300,72,A,10)}
+    ${moon(820,300,46,A)}
+    <g opacity=".35" stroke="${A}" stroke-width="2" fill="none">${Array.from({length:12},(_,i)=>`<circle cx="${140+i*80}" cy="690" r="${10+(i%3)*5}"/>`).join('')}</g>
+    ${hill(600,20,G1,.2)}`),
+
+  /* a still lake: everything above it, again below */
+  reviews: () => scWrap(`${hill(400,44,G2,.3)}
+    <line x1="0" y1="470" x2="${SC_W}" y2="470" stroke="${A}" stroke-width="2.5" opacity=".5"/>
+    <g transform="translate(0,940) scale(1,-1)" opacity=".4">${hill(400,44,G1,.3)}</g>
+    <g stroke="${A}" fill="none" stroke-width="2.6" opacity=".55"><path d="M520,470 v-96 M680,470 v-96"/><path d="M486,382 h228 M498,352 q102,-26 204,0"/><path d="M470,338 q130,-34 260,0"/></g>
+    <g stroke="${A}" opacity=".2" stroke-width="1.4">${Array.from({length:8},(_,i)=>`<line x1="${300-i*20}" y1="${520+i*26}" x2="${900+i*20}" y2="${520+i*26}"/>`).join('')}</g>
+    ${moon(940,220,40,A)}`),
+
+  /* a compass rose, and the needle that does not quite agree */
+  values: () => scWrap(`<g transform="translate(600,430)">
+      ${[240,180,120].map((r,i)=>`<circle r="${r}" fill="none" stroke="${A}" stroke-width="${i===0?2.6:1.6}" opacity="${.5-i*.1}"/>`).join('')}
+      <g opacity=".4" stroke="${A}" stroke-width="1.4">${Array.from({length:16},(_,i)=>{const a=i*Math.PI/8; return `<line x1="${(Math.cos(a)*120).toFixed(0)}" y1="${(Math.sin(a)*120).toFixed(0)}" x2="${(Math.cos(a)*240).toFixed(0)}" y2="${(Math.sin(a)*240).toFixed(0)}"/>`;}).join('')}</g>
+      <path d="M0,-210 L34,0 L0,210 L-34,0 Z" fill="${A}" opacity=".2"/>
+      <path d="M0,-210 L34,0 L0,210 L-34,0 Z" fill="none" stroke="${A}" stroke-width="2.4" opacity=".6"/>
+      <g transform="rotate(24)"><path d="M0,-180 L20,0 L0,60 L-20,0 Z" fill="${G2}" opacity=".5"/></g>
+      <circle r="9" fill="${A}" opacity=".7"/></g>`),
+
+  /* a bamboo grove */
+  skills: () => scWrap(`<g opacity=".45">${Array.from({length:11},(_,i)=>{ const x = 70+i*108, w = 12+(i%3)*5; return `<g stroke="${A}" fill="none" stroke-width="${w/5}"><line x1="${x}" y1="${SC_H}" x2="${x+((i%2)?14:-14)}" y2="${60+(i%4)*40}"/>${Array.from({length:6},(_,j)=>`<line x1="${x-w/2}" y1="${640-j*106}" x2="${x+w/2}" y2="${640-j*106}"/>`).join('')}</g>`; }).join('')}</g>
+    <g opacity=".3" fill="${G2}">${Array.from({length:14},(_,i)=>`<ellipse cx="${90+i*84}" cy="${140+((i*67)%260)}" rx="${34+(i%3)*8}" ry="7" transform="rotate(${-30+(i*23)%60} ${90+i*84} ${140+((i*67)%260)})"/>`).join('')}</g>`),
+
+  /* mountains, a moon, a path that keeps going */
+  vision: () => scWrap(`${cloud(300,150,1.1,G2,.24)}${cloud(900,220,.9,G1,.2)}${moon(940,140,54,A)}
+    <path d="M0,620 L240,360 L400,520 L560,300 L760,560 L900,430 L1200,660 L1200,${SC_H} L0,${SC_H} Z" fill="${G1}" opacity=".28"/>
+    <path d="M0,620 L240,360 L400,520 L560,300 L760,560 L900,430 L1200,660" fill="none" stroke="${A}" stroke-width="2.4" opacity=".5"/>
+    <path d="M520,340 L560,300 L604,346 q-44,20 -84,-6 Z" fill="${A}" opacity=".3"/>
+    <path d="M600,${SC_H} q40,-120 -20,-200 q-60,-80 10,-160" fill="none" stroke="${A}" stroke-width="2.6" opacity=".4" stroke-dasharray="14 16"/>`),
+
+  /* hills receding into the past, one behind another */
+  timeline: () => scWrap(`${[[560,.34],[470,.26],[380,.2],[300,.14]].map(([y,o],i)=>hill(y, 30+i*10, i%2?G1:G2, o)).join('')}
+    <g opacity=".45" stroke="${A}" stroke-width="2" fill="none">${Array.from({length:8},(_,i)=>`<line x1="${100+i*140}" y1="700" x2="${100+i*140}" y2="660"/><circle cx="${100+i*140}" cy="645" r="7"/>`).join('')}</g>
+    <line x1="60" y1="700" x2="1140" y2="700" stroke="${A}" stroke-width="2.4" opacity=".5"/>
+    ${moon(200,180,34,A)}`),
+
+  /* plain tools */
+  settings: () => scWrap(`<g opacity=".3" stroke="${A}" fill="none" stroke-width="2.4">
+      <circle cx="420" cy="420" r="120"/><circle cx="420" cy="420" r="52"/>
+      ${Array.from({length:12},(_,i)=>{const a=i*Math.PI/6; return `<line x1="${(420+Math.cos(a)*120).toFixed(0)}" y1="${(420+Math.sin(a)*120).toFixed(0)}" x2="${(420+Math.cos(a)*152).toFixed(0)}" y2="${(420+Math.sin(a)*152).toFixed(0)}" stroke-width="14"/>`;}).join('')}
+      <circle cx="790" cy="530" r="76"/><circle cx="790" cy="530" r="32"/>
+      ${Array.from({length:10},(_,i)=>{const a=i*Math.PI/5; return `<line x1="${(790+Math.cos(a)*76).toFixed(0)}" y1="${(530+Math.sin(a)*76).toFixed(0)}" x2="${(790+Math.cos(a)*98).toFixed(0)}" y2="${(530+Math.sin(a)*98).toFixed(0)}" stroke-width="10"/>`;}).join('')}</g>`),
+};
+PAGE_SCENES.tag = PAGE_SCENES.journals;
+
+/* ---------- a motif no other record has ---------- */
+function hashSeed(str){ let h = 2166136261; for(let i=0;i<String(str).length;i++){ h ^= String(str).charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+function mulberry32(a){ return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+/* an emblem built from the record's own id: arcs, strokes and points that
+   land the same way every time you open it, and differently for anything else */
+function recordMotifSVG(seedStr, color){
+  const r = mulberry32(hashSeed(seedStr)); const c = color || A;
+  const cx = 600 + (r()-.5)*160, cy = 380 + (r()-.5)*120;
+  let g = '';
+  const rings = 3 + Math.floor(r()*3);
+  for(let i=0;i<rings;i++){
+    const rad = 90 + i*(50 + r()*46); const a0 = r()*Math.PI*2, sweep = .8 + r()*4.2;
+    const x0 = cx + Math.cos(a0)*rad, y0 = cy + Math.sin(a0)*rad;
+    const x1 = cx + Math.cos(a0+sweep)*rad, y1 = cy + Math.sin(a0+sweep)*rad;
+    g += `<path d="M${x0.toFixed(0)},${y0.toFixed(0)} A${rad.toFixed(0)},${rad.toFixed(0)} 0 ${sweep>Math.PI?1:0} 1 ${x1.toFixed(0)},${y1.toFixed(0)}" fill="none" stroke="${c}" stroke-width="${(1.4+r()*2.6).toFixed(1)}" opacity="${(.28+r()*.34).toFixed(2)}" stroke-linecap="round"/>`;
+  }
+  const strokes = 3 + Math.floor(r()*4);
+  for(let i=0;i<strokes;i++){
+    const a = r()*Math.PI*2, len = 120 + r()*300;
+    const x0 = cx + Math.cos(a)*(60+r()*140), y0 = cy + Math.sin(a)*(60+r()*140);
+    g += `<path d="M${x0.toFixed(0)},${y0.toFixed(0)} q${(Math.cos(a+1)*len*.5).toFixed(0)},${(Math.sin(a+1)*len*.5).toFixed(0)} ${(Math.cos(a)*len).toFixed(0)},${(Math.sin(a)*len).toFixed(0)}" fill="none" stroke="${c}" stroke-width="${(1.2+r()*2).toFixed(1)}" opacity="${(.2+r()*.28).toFixed(2)}" stroke-linecap="round"/>`;
+  }
+  const dots = 5 + Math.floor(r()*9);
+  for(let i=0;i<dots;i++){
+    const a = r()*Math.PI*2, rad = 60 + r()*330;
+    g += `<circle cx="${(cx+Math.cos(a)*rad).toFixed(0)}" cy="${(cy+Math.sin(a)*rad).toFixed(0)}" r="${(2+r()*7).toFixed(1)}" fill="${c}" opacity="${(.2+r()*.35).toFixed(2)}"/>`;
+  }
+  const seal = 92 + r()*40;
+  g += `<rect x="${(cx-seal/2).toFixed(0)}" y="${(cy-seal/2).toFixed(0)}" width="${seal.toFixed(0)}" height="${seal.toFixed(0)}" rx="${(6+r()*12).toFixed(0)}" fill="none" stroke="${c}" stroke-width="3" opacity=".5" transform="rotate(${(r()*20-10).toFixed(1)} ${cx.toFixed(0)} ${cy.toFixed(0)})"/>`;
+  return scWrap(g);
+}
+/* which record, if any, this route is about */
+function routeRecord(){
+  const {name, params} = parseHash(); const id = params[0]; if(!id) return null;
+  const pick = (list, colorKey) => { const rec = byId(list||[], id); return rec ? {id, color: colorKey ? (rec[colorKey] || null) : null, name: rec.name || rec.title} : null; };
+  switch(name){
+    case 'stage':    return pick(S.stages, 'hue');
+    case 'value':    return pick(S.values, 'color');
+    case 'vision':   return pick(S.visions);
+    case 'skills':   { const s = byId(S.skills, id); return s ? {id, color: catColor(s.cat), name:s.name} : null; }
+    case 'projects': return pick(S.projects);
+    case 'writing':  { const w = byId(S.entries, id); return w ? {id, color:null, name:w.title} : null; }
+    case 'commonplace': { const m = byId(S.entries, id); return m ? {id, color:(MEDIA_KINDS[m.extra?.kind]||[])[2]||null, name:m.title} : null; }
+    case 'tag':      return {id:'tag:'+id, color:null, name:id};
+    default: return null;
+  }
+}
+let _sceneKey = null, _sceneLayer = 0;
+function applyPageScene(){
+  const layers = [document.getElementById('scA'), document.getElementById('scB')];
+  if(!layers[0] || !layers[1]) return;
+  const {name} = parseHash(); const rec = routeRecord();
+  const key = rec ? `rec:${rec.id}` : `page:${pageThemeKey()}`;
+  if(key === _sceneKey) return;
+  const svg = rec ? recordMotifSVG(rec.id, rec.color || A) : (PAGE_SCENES[pageThemeKey()] || PAGE_SCENES.home)();
+  const next = 1 - _sceneLayer;
+  layers[next].innerHTML = svg; layers[next].classList.add('on'); layers[_sceneLayer].classList.remove('on');
+  _sceneLayer = next; _sceneKey = key;
+}
+/* ============================================================
+   SOUND — two layers, all synthesised, nothing downloaded.
+   Layer 1: interaction sounds. Not beeps: struck wood, felt,
+            and a small bell, each with a short room around it.
+   Layer 2: an opt-in atmosphere — noise beds, or a slow
+            generative piano that never repeats itself.
+   The AudioContext is created lazily inside the first user
+   gesture (pointerdown / keydown) and reused for everything.
+   ============================================================ */
+const AMBIENT_KINDS = [
+  {id:'off',      name:'Off',            desc:'silence'},
+  {id:'brown',    name:'Brown noise',    desc:'a low, even hush'},
+  {id:'rain',     name:'Rain',           desc:'steady rain on a window'},
+  {id:'ocean',    name:'Ocean',          desc:'slow waves, long breaths'},
+  {id:'piano',    name:'Slow piano',     desc:'a quiet room, someone playing to themselves'},
+  {id:'musicbox', name:'Music box',      desc:'sparse bells, further away'},
+];
 const SoundManager = (() => {
-  const LS_SOUND = 'soundEnabled', LS_AMBIENT = 'ambientEnabled';
+  const LS_SOUND = 'soundEnabled', LS_AMBIENT = 'ambientEnabled', LS_KIND = 'ambientKind', LS_VOL = 'ambientVolume';
   const readFlag = (k, fallback=false) => { try { const v = localStorage.getItem(k); return v === null ? fallback : v === 'true'; } catch(e){ return fallback; } };
   const writeFlag = (k, v) => { try { localStorage.setItem(k, String(!!v)); } catch(e){} };
-  let ctx = null, master = null;
+  const readStr = (k, fallback) => { try { return localStorage.getItem(k) ?? fallback; } catch(e){ return fallback; } };
+  const writeStr = (k, v) => { try { localStorage.setItem(k, String(v)); } catch(e){} };
+  let ctx = null, master = null, verb = null, verbSend = null, dry = null;
   let soundOn = readFlag(LS_SOUND, false), ambientOn = readFlag(LS_AMBIENT, false);
-  let ambient = null;               // {source, filter, gain}
-  let pendingClick = null;          // generic click scheduled by the delegated listener
-  let lastPlay = 0;
+  let ambientKind = readStr(LS_KIND, 'brown'), ambientVol = parseFloat(readStr(LS_VOL, '0.5'));
+  let ambient = null;               // {nodes:[], gain, timer}
+  let pendingClick = null, lastPlay = 0;
   const listeners = new Set();
-  const AMBIENT_GAIN = .03, DUCK_GAIN = .015, DUCK_RECOVER = .8;
+  const BASE_GAIN = .05, DUCK_RATIO = .45, DUCK_RECOVER = .9;
+  const ambientGainValue = () => BASE_GAIN * clamp(ambientVol, 0, 1) * 2;
 
   /* ---- context lifecycle (gesture-gated) ---- */
+  function makeImpulse(seconds=1.6, decay=2.6){
+    const rate = ctx.sampleRate, len = Math.floor(rate*seconds);
+    const buf = ctx.createBuffer(2, len, rate);
+    for(let c=0;c<2;c++){ const d = buf.getChannelData(c);
+      for(let i=0;i<len;i++){ d[i] = (Math.random()*2-1) * Math.pow(1 - i/len, decay); } }
+    return buf;
+  }
   function ensureCtx(){
-    if(ctx) { if(ctx.state === 'suspended') ctx.resume().catch(()=>{}); return ctx; }
+    if(ctx){ if(ctx.state === 'suspended') ctx.resume().catch(()=>{}); return ctx; }
     const AC = window.AudioContext || window.webkitAudioContext; if(!AC) return null;
-    ctx = new AC(); master = ctx.createGain(); master.gain.value = 1; master.connect(ctx.destination);
+    ctx = new AC();
+    master = ctx.createGain(); master.gain.value = 1; master.connect(ctx.destination);
+    dry = ctx.createGain(); dry.gain.value = 1; dry.connect(master);
+    try {
+      verb = ctx.createConvolver(); verb.buffer = makeImpulse();
+      const wet = ctx.createGain(); wet.gain.value = .9; verb.connect(wet); wet.connect(master);
+      verbSend = ctx.createGain(); verbSend.gain.value = .3; verbSend.connect(verb);
+    } catch(e){ verb = verbSend = null; }
     return ctx;
   }
-  function onFirstGesture(){
-    if(!soundOn && !ambientOn) return;                 // nothing wants audio yet — stay silent, stay lazy
-    ensureCtx();
-    if(ambientOn && !ambient) startAmbient();
-  }
+  function onFirstGesture(){ if(!soundOn && !ambientOn) return; ensureCtx(); if(ambientOn && !ambient) startAmbient(); }
   document.addEventListener('pointerdown', onFirstGesture, {capture:true});
   document.addEventListener('keydown', onFirstGesture, {capture:true});
+  const out = () => dry || master;
+  const send = (node) => { if(verbSend) node.connect(verbSend); };
 
-  /* ---- tone primitive ---- */
-  function tone({freq, dur, gain=.08, type='sine', attack=.005, at=0, glide=null}){
+  /* ---- primitives ---- */
+  /* a struck body: a few decaying partials, slightly inharmonic, like something with mass */
+  function struck({freq, dur=.5, gain=.06, partials=[1,2.01,3.03], detune=0, at=0, wet=1}){
     if(!ctx) return; const t = ctx.currentTime + at;
-    const o = ctx.createOscillator(), g = ctx.createGain();
-    o.type = type; o.frequency.setValueAtTime(freq, t); if(glide) o.frequency.exponentialRampToValueAtTime(glide, t+dur);
-    g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(gain, t+attack); g.gain.exponentialRampToValueAtTime(.0001, t+dur);
-    o.connect(g); g.connect(master); o.start(t); o.stop(t+dur+.03);
+    const bus = ctx.createGain(); bus.gain.value = 1; bus.connect(out()); if(wet) send(bus);
+    partials.forEach((p, i) => {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = 'sine'; o.frequency.setValueAtTime(freq*p, t); if(detune) o.detune.setValueAtTime(detune, t);
+      const amp = gain / (i+1.6), d = dur / (1 + i*.55);
+      g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(amp, t+.004); g.gain.exponentialRampToValueAtTime(.0001, t+d);
+      o.connect(g); g.connect(bus); o.start(t); o.stop(t+d+.05);
+    });
+  }
+  /* a short filtered noise transient: the touch, the felt, the breath */
+  function noise({dur=.08, freq=1200, q=1.2, gain=.05, type='bandpass', at=0, sweep=null, wet=.5}){
+    if(!ctx) return; const t = ctx.currentTime + at;
+    const len = Math.max(1, Math.floor(ctx.sampleRate * (dur + .05)));
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate); const d = buf.getChannelData(0);
+    for(let i=0;i<len;i++) d[i] = Math.random()*2-1;
+    const src = ctx.createBufferSource(); src.buffer = buf;
+    const f = ctx.createBiquadFilter(); f.type = type; f.frequency.setValueAtTime(freq, t); f.Q.value = q;
+    if(sweep) f.frequency.exponentialRampToValueAtTime(sweep, t+dur);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(gain, t+.006); g.gain.exponentialRampToValueAtTime(.0001, t+dur);
+    src.connect(f); f.connect(g); g.connect(out()); if(wet && verbSend){ const w = ctx.createGain(); w.gain.value = wet; g.connect(w); w.connect(verbSend); }
+    src.start(t); src.stop(t+dur+.05);
   }
   const recipes = {
-    click:   () => { tone({freq:528, dur:.18, gain:.08}); tone({freq:660, dur:.12, gain:.08, at:.18}); },
-    nav:     () => tone({freq:432, dur:.3, gain:.06}),
-    success: () => { tone({freq:440, dur:.15, gain:.08}); tone({freq:880, dur:.15, gain:.08, at:.15}); },
-    error:   () => tone({freq:220, dur:.2, gain:.05}),
-    open:    () => tone({freq:396, dur:.3, gain:.07, attack:.05}),
-    leaf:    () => tone({freq:880, glide:660, dur:.25, gain:.02}),
+    /* fingertip on a wooden desk: a transient plus a low body */
+    click:   () => { noise({dur:.035, freq:2600, q:.9, gain:.035, wet:.25}); struck({freq:196, dur:.16, gain:.035, partials:[1,2.4], wet:.4}); },
+    /* a page turning: soft air, no pitch */
+    nav:     () => { noise({dur:.19, freq:1500, q:.6, gain:.028, sweep:520, wet:.6}); struck({freq:147, dur:.22, gain:.022, partials:[1,3.1], wet:.5}); },
+    /* a small struck bell, quiet and a little inharmonic */
+    success: () => { struck({freq:587.33, dur:1.5, gain:.05, partials:[1,2.76,5.4,8.9], wet:1}); struck({freq:880, dur:1.1, gain:.022, partials:[1,2.76], at:.055, wet:1}); },
+    /* a soft closed knock — noticed, never scolding */
+    error:   () => { noise({dur:.05, freq:420, q:1.4, gain:.05, wet:.3}); struck({freq:110, dur:.26, gain:.04, partials:[1,1.7], wet:.4}); },
+    /* a drawer sliding open */
+    open:    () => { noise({dur:.34, freq:400, q:.5, gain:.03, sweep:1400, wet:.8}); struck({freq:220, dur:.5, gain:.025, partials:[1,2.02,3.9], wet:1}); },
+    /* barely there: a leaf */
+    leaf:    () => noise({dur:.2, freq:5200, q:.7, gain:.014, sweep:2400, wet:.8}),
   };
 
   /* ---- layer 1 ---- */
   function play(kind){
-    if(kind !== 'click' && pendingClick){ clearTimeout(pendingClick); pendingClick = null; }   // a specific sound wins over the generic click
+    if(kind !== 'click' && pendingClick){ clearTimeout(pendingClick); pendingClick = null; }
     if(!soundOn || !recipes[kind]) return;
-    if(!ctx){ if(!ensureCtx()) return; }                 // play() is only ever called from inside a gesture handler
+    if(!ctx){ if(!ensureCtx()) return; }
     if(ctx.state === 'suspended'){ ctx.resume().catch(()=>{}); }
-    const now = performance.now(); if(now - lastPlay < 40) return; lastPlay = now;   // collapse doubled handlers
-    recipes[kind]();
-    duck();
+    const now = performance.now(); if(now - lastPlay < 40) return; lastPlay = now;
+    recipes[kind](); duck();
   }
   function scheduleClick(){ if(!soundOn) return; clearTimeout(pendingClick); pendingClick = setTimeout(() => { pendingClick = null; play('click'); }, 0); }
-  const CLICKABLE = 'button, .btn, a[href], .chip.click, .signal, .tile, .mood, .dots i, .tracker i, .ring-h, .values-list li, .node, .branch, .mnode, .medge, [data-go], .jnav button, .tabs button, .typerow button, .ladder button, .feeling button, .energy-pick button, .dur-pick button, .rubric li, .res, .toggle';
+  const CLICKABLE = 'button, .btn, a[href], .chip.click, .signal, .tile, .mood, .dots i, .tracker i, .ring-h, .values-list li, .compass-list li, .node, .branch, .mnode, .medge, [data-go], .jnav button, .tabs button, .typerow button, .ladder button, .feeling button, .entry, .work, .task-check, .mode-switch button';
   document.addEventListener('click', e => {
     const t = e.target.closest(CLICKABLE); if(!t) return;
     if(t.closest('.ed') || t.matches('[data-nosound], .close, #btnSound, #btnAmbient')) return;
     if(t.matches('.danger, .destructive, .del-x, [data-del], [data-pdel], [data-x="yes"], [data-tdel], [data-tndel], [data-idel], [data-artdel], [data-songdel], [data-evdel], [data-resdel], [data-mdel]')) { play('error'); return; }
-    if(t.matches('a[href^="#/"], [data-go]') && !t.matches('.chip')) return;   // navigation: the hashchange plays the nav tone instead
+    if(t.matches('a[href^="#/"], [data-go]') && !t.matches('.chip')) return;
     scheduleClick();
   }, true);
 
-  /* ---- layer 2: brown noise ---- */
-  const workletSrc = `class BrownNoise extends AudioWorkletProcessor{constructor(){super();this.last=0}process(inputs,outputs){const out=outputs[0];for(let c=0;c<out.length;c++){const ch=out[c];for(let i=0;i<ch.length;i++){const white=Math.random()*2-1;this.last=(this.last+.02*white)/1.02;ch[i]=this.last*3.5}}return true}}registerProcessor('brown-noise',BrownNoise);`;
+  /* ---- layer 2: atmospheres ---- */
+  const workletSrc = `class BrownNoise extends AudioWorkletProcessor{constructor(){super();this.last=0}process(inputs,outputs){const out=outputs[0];for(let c=0;c<out.length;c++){const ch=out[c];for(let i=0;i<ch.length;i++){const white=Math.random()*2-1;this.last=(this.last+.02*white)/1.02;ch[i]=this.last*3.5}}return true}}registerProcessor('brown-noise',BrownNoise)`;
   let workletReady = null;
   async function makeNoiseNode(){
     if(ctx.audioWorklet){
-      try { workletReady = workletReady || ctx.audioWorklet.addModule(URL.createObjectURL(new Blob([workletSrc],{type:'application/javascript'}))); await workletReady; return new AudioWorkletNode(ctx, 'brown-noise', {numberOfInputs:0, outputChannelCount:[2]}); } catch(e){ /* fall through */ }
+      try { workletReady = workletReady || ctx.audioWorklet.addModule(URL.createObjectURL(new Blob([workletSrc],{type:'application/javascript'}))); await workletReady; return new AudioWorkletNode(ctx, 'brown-noise', {numberOfInputs:0, outputChannelCount:[2]}); } catch(e){}
     }
     const sp = ctx.createScriptProcessor(4096, 1, 2); let last = 0;
     sp.onaudioprocess = ev => { const L = ev.outputBuffer.getChannelData(0), R = ev.outputBuffer.getChannelData(1); for(let i=0;i<L.length;i++){ const white = Math.random()*2-1; last = (last + .02*white)/1.02; L[i] = R[i] = last*3.5; } };
     return sp;
   }
+  /* a slow generative line: pentatonic over a drifting pair of chords, never the same twice */
+  const SCALE = [0,2,4,7,9];                                   // major pentatonic degrees
+  const ROOTS = [55, 58.27, 49, 65.41];                        // A1, Bb1, G1, C2 — slow harmonic drift
+  function noteHz(root, deg, oct){ return root * Math.pow(2, oct + SCALE[deg]/12); }
+  function startMusic(kind){
+    const bed = ctx.createGain(); bed.gain.setValueAtTime(.0001, ctx.currentTime);
+    bed.gain.linearRampToValueAtTime(ambientGainValue()*(kind==='musicbox'?1.1:1.4), ctx.currentTime + 3);
+    bed.connect(out()); if(verbSend){ const w = ctx.createGain(); w.gain.value = kind==='musicbox' ? 1.1 : .8; bed.connect(w); w.connect(verbSend); }
+    let chord = 0, step = 0;
+    const beat = kind === 'musicbox' ? 2400 : 1750;
+    const tick = () => {
+      if(!ambient) return;
+      const root = ROOTS[chord];
+      const play1 = (deg, oct, at, gain, dur) => {
+        const t = ctx.currentTime + at; const f = noteHz(root, deg, oct);
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = kind === 'musicbox' ? 'triangle' : 'sine'; o.frequency.setValueAtTime(f, t);
+        g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(gain, t + (kind==='musicbox'?.006:.03)); g.gain.exponentialRampToValueAtTime(.0001, t+dur);
+        o.connect(g); g.connect(bed); o.start(t); o.stop(t+dur+.05);
+        if(kind !== 'musicbox'){ const o2 = ctx.createOscillator(), g2 = ctx.createGain();  // a soft octave shimmer
+          o2.type='sine'; o2.frequency.setValueAtTime(f*2, t); g2.gain.setValueAtTime(.0001,t); g2.gain.linearRampToValueAtTime(gain*.22, t+.05); g2.gain.exponentialRampToValueAtTime(.0001, t+dur*.7);
+          o2.connect(g2); g2.connect(bed); o2.start(t); o2.stop(t+dur*.8); }
+      };
+      const deg = SCALE.length;
+      if(kind === 'musicbox'){
+        play1(Math.floor(Math.random()*deg), 3 + (Math.random()<.3?1:0), 0, .05, 3.2);
+        if(Math.random() < .45) play1(Math.floor(Math.random()*deg), 3, .55 + Math.random()*.5, .032, 2.6);
+      } else {
+        if(step % 4 === 0) play1(0, 1, 0, .05, 7);                                  // the low root, sustained
+        play1(Math.floor(Math.random()*deg), 2, .1, .045, 4.2);
+        if(Math.random() < .6) play1(Math.floor(Math.random()*deg), 3, .5 + Math.random()*.6, .03, 3.4);
+        if(Math.random() < .25) play1(Math.floor(Math.random()*deg), 2, 1.05, .022, 3);
+      }
+      step++; if(step % 4 === 0) chord = (chord + (Math.random()<.5?1:2)) % ROOTS.length;
+      ambient.timer = setTimeout(tick, beat + Math.random()*500);
+    };
+    ambient = {nodes:[], gain:bed, timer:null};
+    tick();
+  }
   async function startAmbient(){
-    if(!ensureCtx() || ambient) return;
-    const source = await makeNoiseNode(); if(ambient) { try{ source.disconnect(); }catch(e){} return; }
-    const filter = ctx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 200; filter.Q.value = .7;
-    const gain = ctx.createGain(); gain.gain.setValueAtTime(.0001, ctx.currentTime); gain.gain.linearRampToValueAtTime(AMBIENT_GAIN, ctx.currentTime + 1.5);
-    source.connect(filter); filter.connect(gain); gain.connect(master);
-    ambient = {source, filter, gain};
+    if(!ensureCtx() || ambient || ambientKind === 'off') return;
+    if(ambientKind === 'piano' || ambientKind === 'musicbox'){ startMusic(ambientKind); return; }
+    const source = await makeNoiseNode(); if(ambient){ try{ source.disconnect(); }catch(e){} return; }
+    const nodes = [source]; const gain = ctx.createGain();
+    const filter = ctx.createBiquadFilter(); nodes.push(filter);
+    let last = filter;
+    if(ambientKind === 'rain'){
+      filter.type = 'bandpass'; filter.frequency.value = 1100; filter.Q.value = .55;
+      const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 380; filter.connect(hp); nodes.push(hp); last = hp;
+    } else if(ambientKind === 'ocean'){
+      filter.type = 'lowpass'; filter.frequency.value = 380; filter.Q.value = .9;
+      const lfo = ctx.createOscillator(), lg = ctx.createGain();                   // waves: a slow cutoff swell
+      lfo.frequency.value = .07; lg.gain.value = 230; lfo.connect(lg); lg.connect(filter.frequency); lfo.start(); nodes.push(lfo, lg);
+    } else {
+      filter.type = 'lowpass'; filter.frequency.value = 200; filter.Q.value = .7;
+    }
+    const target = ambientGainValue() * (ambientKind === 'rain' ? 1.5 : ambientKind === 'ocean' ? 1.8 : 1);
+    gain.gain.setValueAtTime(.0001, ctx.currentTime); gain.gain.linearRampToValueAtTime(target, ctx.currentTime + 1.8);
+    source.connect(filter); last.connect(gain); gain.connect(out());
+    ambient = {nodes, gain, timer:null};
+    if(ambientKind === 'rain'){                                                     // occasional drops on the glass
+      const drop = () => { if(!ambient) return; if(Math.random() < .7) noise({dur:.05, freq:2200+Math.random()*2600, q:6, gain:.012, wet:1}); ambient.timer = setTimeout(drop, 400 + Math.random()*1800); };
+      ambient.timer = setTimeout(drop, 900);
+    }
     if(ctx.state === 'suspended') ctx.resume().catch(()=>{});
   }
   function stopAmbient(){
-    if(!ambient) return; const a = ambient; ambient = null; const t = ctx.currentTime;
-    a.gain.gain.cancelScheduledValues(t); a.gain.gain.setValueAtTime(a.gain.gain.value, t); a.gain.gain.linearRampToValueAtTime(.0001, t+.6);
-    setTimeout(() => { try { a.source.disconnect(); a.filter.disconnect(); a.gain.disconnect(); if(a.source.port) a.source.port.close?.(); } catch(e){} }, 700);
+    if(!ambient) return; const a = ambient; ambient = null; clearTimeout(a.timer);
+    const t = ctx.currentTime;
+    a.gain.gain.cancelScheduledValues(t); a.gain.gain.setValueAtTime(a.gain.gain.value, t); a.gain.gain.linearRampToValueAtTime(.0001, t+.8);
+    setTimeout(() => { try { a.nodes.forEach(n => { n.disconnect?.(); n.stop?.(); }); a.gain.disconnect(); } catch(e){} }, 1000);
   }
   function duck(){
     if(!ambient || !ambientOn) return; const g = ambient.gain.gain, t = ctx.currentTime;
-    g.cancelScheduledValues(t); g.setValueAtTime(DUCK_GAIN, t); g.linearRampToValueAtTime(AMBIENT_GAIN, t + DUCK_RECOVER);
+    const target = g.value; g.cancelScheduledValues(t); g.setValueAtTime(target*DUCK_RATIO, t); g.linearRampToValueAtTime(ambientGainValue()*1.4, t + DUCK_RECOVER);
   }
 
   /* ---- public state ---- */
   function notify(){ listeners.forEach(fn => { try { fn(state()); } catch(e){} }); }
-  function state(){ return {soundEnabled: soundOn, ambientEnabled: ambientOn, ready: !!ctx}; }
+  function state(){ return {soundEnabled: soundOn, ambientEnabled: ambientOn, ambientKind, ambientVolume: ambientVol, ready: !!ctx}; }
   function setSound(v){ soundOn = !!v; writeFlag(LS_SOUND, soundOn); if(soundOn){ ensureCtx(); play('click'); } notify(); }
-  function setAmbient(v){ ambientOn = !!v; writeFlag(LS_AMBIENT, ambientOn); if(ambientOn){ ensureCtx(); startAmbient(); } else stopAmbient(); notify(); }
-  return { play, state, setSound, setAmbient, toggleSound: () => setSound(!soundOn), toggleAmbient: () => setAmbient(!ambientOn), subscribe(fn){ listeners.add(fn); return () => listeners.delete(fn); }, get context(){ return ctx; }, get ambientGain(){ return ambient ? ambient.gain.gain : null; } };
+  function setAmbient(v){ ambientOn = !!v; writeFlag(LS_AMBIENT, ambientOn); if(ambientOn && ambientKind !== 'off'){ ensureCtx(); startAmbient(); } else stopAmbient(); notify(); }
+  function setAmbientKind(k){
+    ambientKind = k; writeStr(LS_KIND, k); stopAmbient();
+    if(k === 'off'){ ambientOn = false; writeFlag(LS_AMBIENT, false); }
+    else { ambientOn = true; writeFlag(LS_AMBIENT, true); ensureCtx(); setTimeout(startAmbient, 120); }
+    notify();
+  }
+  function setAmbientVolume(v){
+    ambientVol = clamp(+v || 0, 0, 1); writeStr(LS_VOL, ambientVol);
+    if(ambient){ const g = ambient.gain.gain, t = ctx.currentTime; g.cancelScheduledValues(t); g.linearRampToValueAtTime(Math.max(.0001, ambientGainValue()*1.4), t+.3); }
+    notify();
+  }
+  return { play, state, setSound, setAmbient, setAmbientKind, setAmbientVolume,
+    toggleSound: () => setSound(!soundOn), toggleAmbient: () => setAmbient(!ambientOn),
+    subscribe(fn){ listeners.add(fn); return () => listeners.delete(fn); },
+    get context(){ return ctx; } };
 })();
-/* hook-shaped accessor, for symmetry with component code: const {play, toggleSound} = useSoundManager(); */
 function useSoundManager(){ return SoundManager; }
-/* legacy names used across the site → new recipes */
 const SOUND_ALIASES = {save:'click', page:'nav', chime:'success', leaf:'leaf', click:'click', nav:'nav', success:'success', error:'error', open:'open'};
 function sound(kind){ SoundManager.play(SOUND_ALIASES[kind] || kind); }
 function syncSoundButtons(){
-  const {soundEnabled, ambientEnabled} = SoundManager.state();
+  const {soundEnabled, ambientEnabled, ambientKind} = SoundManager.state();
   const b = $('#btnSound'); if(b){ b.textContent = soundEnabled ? '🔔' : '🔕'; b.title = soundEnabled ? 'Interaction sounds on' : 'Interaction sounds off'; b.classList.toggle('on', soundEnabled); }
-  const a = $('#btnAmbient'); if(a){ a.textContent = '🌊'; a.title = ambientEnabled ? 'Ambient on' : 'Ambient off'; a.classList.toggle('on', ambientEnabled); a.style.opacity = ambientEnabled ? '1' : '.45'; }
+  const a = $('#btnAmbient'); if(a){ a.textContent = '🌊'; a.title = ambientEnabled ? `Atmosphere: ${(AMBIENT_KINDS.find(k=>k.id===ambientKind)||{}).name}` : 'Atmosphere off'; a.classList.toggle('on', ambientEnabled); a.style.opacity = ambientEnabled ? '1' : '.45'; }
 }
 SoundManager.subscribe(syncSoundButtons);
+/* the atmosphere picker, from the top bar or from Settings */
+function ambientMenuHTML(){
+  const {ambientKind, ambientVolume, ambientEnabled} = SoundManager.state();
+  const cur = ambientEnabled ? ambientKind : 'off';
+  return `<div class="amb-list">${AMBIENT_KINDS.map(k => `<button class="amb-opt ${cur===k.id?'on':''}" data-amb="${k.id}"><span class="amb-name">${esc(k.name)}</span><span class="amb-desc">${esc(k.desc)}</span></button>`).join('')}</div>
+    <div class="field" style="margin-top:12px"><label>Volume</label><input type="range" class="slider" min="0" max="1" step="0.05" value="${ambientVolume}" id="ambVol"></div>`;
+}
+function bindAmbientMenu(root){
+  root.querySelectorAll('[data-amb]').forEach(b => b.onclick = () => {
+    SoundManager.setAmbientKind(b.dataset.amb);
+    root.querySelectorAll('[data-amb]').forEach(x => x.classList.toggle('on', x === b));
+  });
+  const v = root.querySelector('#ambVol'); if(v) v.oninput = () => SoundManager.setAmbientVolume(v.value);
+}
+function openAmbientMenu(){
+  const m = openModal(`<h2>Atmosphere</h2><p class="muted" style="font-size:.86rem">A bed of sound under the room. All of it is made in the browser — nothing is downloaded, and the piano never plays the same phrase twice.</p>${ambientMenuHTML()}`, 'narrow');
+  bindAmbientMenu(m);
+}
 /* ============================================================
    db.js — Dexie database schema and persistence layer
    ------------------------------------------------------------
@@ -2122,6 +2503,7 @@ function mosaicHTML(s, n=9, hero=false){ const ph = s.photos||[]; let out=''; fo
 function catmull(pts, closed=false){ if(pts.length<2) return ''; let d = `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`; for(let i=0;i<pts.length-1;i++){ const p0=pts[i-1]||pts[i], p1=pts[i], p2=pts[i+1], p3=pts[i+2]||p2; const c1=[p1[0]+(p2[0]-p0[0])/6, p1[1]+(p2[1]-p0[1])/6], c2=[p2[0]-(p3[0]-p1[0])/6, p2[1]-(p3[1]-p1[1])/6]; d += ` C${c1[0].toFixed(1)},${c1[1].toFixed(1)} ${c2[0].toFixed(1)},${c2[1].toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`; } return d; }
 function ribbonsSVG(width){
   const threads = S.threads; const n = S.stages.length; const H = 200;
+  if(!n || !threads.length) return '';
   const counts = S.stages.map(s=>stageEntries(s).length); const total = sum(counts)||1;
   const felt = S.settings.feltTime;
   // x-centres mirror tile layout
@@ -2621,41 +3003,97 @@ routes.values = function(root){
   registerPageEntry({pageName:'Values', addLabel:'New snapshot', defaultEntryType:'snapshot', prefilledFields:{}, options:[
     {icon:'◔', label:'Congruence snapshot', desc:'Score each value 0–100 for this week.', run:()=>EntryActions.snapshot()},
     ...(S.values.length < 10 ? [{icon:'✦', label:'New value', desc:`The compass has ${S.values.length} of 10 points.`, run:()=>EntryActions.newValue()}] : [])]});
-  const snaps = allSnapshotsWithRetro(); const latest = snaps.slice(-1)[0]; const axes = S.valueOrder.map(id=>{ const v=byId(S.values,id); return {name:v.name, short:v.name.split(' ')[0], color:v.color}; });
-  const gaps = valueGaps();
+  const snaps = allSnapshotsWithRetro(); const latest = snaps.slice(-1)[0];
+  const axes = S.valueOrder.map(id=>{ const v=byId(S.values,id); return {name:v.name, short:v.name.split(' ')[0], color:v.color}; });
+  const gaps = valueGaps(); const rd = valuesReading();
   const servedBy = {}; S.valueOrder.forEach(id => servedBy[id] = S.visions.filter(v=>v.confidence!=='lived' && v.values.includes(id)));
+  const blind = S.valueOrder.filter(id => !servedBy[id].length);
+  const cur = latest ? avg(S.valueOrder.map(id => latest.ratings[id] ?? 0)) : null;
+  const prev = snaps.length > 1 ? avg(S.valueOrder.map(id => snaps[snaps.length-2].ratings[id] ?? 0)) : null;
+  const drift = (cur !== null && prev !== null) ? Math.round(cur - prev) : null;
+  const age = latest ? daysSince(latest.date) : null;
   root.innerHTML = `<div class="page">
-    <div class="page-head row between"><div><h1>Values</h1><div class="sub">Ten compass points. Priority is what you say; congruence is what your days say. The gap between them is where your life and your values disagree.</div></div></div>
-    <div class="grid c2" style="align-items:start">
-      <div class="card rv"><div class="row between"><h3>Priority order</h3><span class="mono">drag to re-rank · ${S.valueOrderHistory.length} re-rankings</span></div>
-        <ul class="values-list" id="valuesList">${S.valueOrder.map((id,i)=>{ const v = byId(S.values,id); const c = valueCurrent(id); return `<li draggable="true" data-vid="${id}"><span class="rank">${i+1}</span><span class="nm"><a href="#/value/${id}" style="color:${v.color}">${esc(v.name)}</a></span><div class="bar" style="--c:${v.color}"><i style="width:${c}%"></i></div><span class="pct" data-tween="${c}" data-suffix="%">0</span><span class="faint">⋮</span></li>`; }).join('')}</ul>
-        <details style="margin-top:10px"><summary><span class="mono">how the ranking has changed</span></summary><div class="body">${[...S.valueOrderHistory].reverse().map(h=>`<div class="mono" style="padding:6px 0;border-top:1px dashed var(--line)">${fmtDate(h.date,'med')} · ${h.order.map(id=>byId(S.values,id)?.name.split(' ')[0]).join(' › ')}</div>`).join('')}</div></details>
-      </div>
-      <div class="card rv"><h3>The shape of a life</h3><div id="radarBox">${radar(axes,[{vals:S.valueOrder.map(id=>latest?.ratings[id]??0),color:'var(--terra)'}],{size:360})}</div>
-        <div class="time-slider"><input type="range" class="slider" min="0" max="${snaps.length-1}" value="${snaps.length-1}" id="timeSlider"><div class="lbl"><span>${snaps[0]?fmtDate(snaps[0].date,'med'):''}</span><span id="tsLbl">${latest?fmtDate(latest.date,'med'):''}</span><span>now</span></div><div class="quote" id="tsNote" style="font-size:.9rem;margin-top:6px;min-height:1.5em">${esc(latest?.note||'')}</div></div>
-        <div class="row" style="margin-top:8px"><label class="toggle" id="ghostToggle"><span class="sw"></span><span>ghost the earliest reading</span></label></div>
-      </div>
-    </div>
-    <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Snapshot history</span><button class="btn primary sm" id="takeSnap">Take snapshot</button></div><div id="snapHistory" style="margin-top:14px"><div class="empty">Loading…</div></div></section>
-    <section class="section rv"><span class="sc">Per-value trend</span><div class="spark-grid">${S.valueOrder.map(id=>{ const v=byId(S.values,id); return `<div class="s" data-go="#/value/${id}" style="cursor:pointer"><div class="n" style="color:${v.color}">${esc(v.name)}</div>${sparkline(snaps.map(s=>s.ratings[id]??null),{h:34,min:0,max:100,color:v.color})}</div>`; }).join('')}</div></section>
-    <section class="section rv"><span class="sc">Congruence weather</span><p class="muted" style="font-size:.85rem">Each stripe is a value across time; brightness is congruence. Drift is visible at a glance.</p>
-      <div class="weather">${S.valueOrder.map(id=>{ const v=byId(S.values,id); return `<div class="lbl">${esc(v.name.split(' ')[0])}</div><div class="strip" style="--c:${v.color}">${snaps.map(s=>`<i style="--o:${((s.ratings[id]??0)/100*.9+.08).toFixed(2)}" title="${fmtDate(s.date,'med')}: ${s.ratings[id]??'–'}"></i>`).join('')}</div>`; }).join('')}<div></div><div class="row between mono"><span>${snaps[0]?fmtDate(snaps[0].date,'med'):''}</span><span>now</span></div></div></section>
-    <div class="grid c2 section">
-      <section class="rv"><span class="sc">Gap analysis</span><p class="muted" style="font-size:.85rem">Values sorted by (stated priority − current congruence). The top three are where your life and your values disagree most.</p>
-        <div class="gap-list">${gaps.map((g,i)=>`<div class="g" style="${i<3?'font-weight:600':''}"><span style="color:${g.color}">${esc(g.name)}</span><div class="bar" style="--c:${g.gap>0?g.color:'var(--sage)'}"><i style="width:${clamp(Math.abs(g.gap),0,100)}%"></i></div><span class="mono">${g.gap>0?'+':''}${g.gap}</span></div>`).join('')}</div></section>
-      <section class="rv"><span class="sc">Values ↔ Visions cross-light</span><p class="muted" style="font-size:.85rem">Which values does each vision serve? A value no vision serves is a structural blind spot.</p>
-        <div style="overflow-x:auto"><table class="matrix"><thead><tr><th></th>${S.visions.filter(v=>v.confidence!=='lived').map(v=>`<th class="rot">${esc(v.name)}</th>`).join('')}</tr></thead><tbody>${S.valueOrder.map(id=>{ const v=byId(S.values,id); const blind = !servedBy[id].length; return `<tr class="${blind?'blindrow':''}"><td style="text-align:left;color:${v.color}">${esc(v.name.split(' ')[0])}${blind?' <span class="mono">· blind spot</span>':''}</td>${S.visions.filter(x=>x.confidence!=='lived').map(x=>`<td class="${blind?'blind':''}">${x.values.includes(id)?'<i></i>':''}</td>`).join('')}</tr>`; }).join('')}</tbody></table></div></section>
-    </div>
+    <div class="page-head"><h1>Values</h1><div class="sub">Priority is what you say. Congruence is what your days say. This page exists to show you the difference and what to do about it.</div></div>
+
+    ${S.valueOrder.length ? `
+    <!-- 1. the conclusion, before the evidence -->
+    <section class="reading-card rv">
+      <div class="sc">What this is telling you</div>
+      <div class="reading-body">${rd.map(line => `<p>${line}</p>`).join('')}</div>
+      <div class="row" style="margin-top:14px;gap:8px;flex-wrap:wrap"><button class="btn sm primary" id="takeSnap">Take a snapshot</button>${gaps[0] ? `<a class="btn sm ghost" href="#/value/${gaps[0].id}">open ${esc(gaps[0].name)}</a>` : ''}${blind.length ? `<a class="btn sm ghost" href="#/vision">give ${esc(byId(S.values,blind[0]).name)} a vision</a>` : ''}</div>
+    </section>
+
+    <!-- 2. the four numbers worth knowing -->
+    <div class="card rv" style="margin:22px 0"><div class="income-strip">
+      <div><div class="k">congruence now</div><div class="num">${cur===null?'—':Math.round(cur)}</div><div class="mono">average across ${S.valueOrder.length} values</div></div>
+      <div><div class="k">since last reading</div><div class="num" style="color:${drift===null?'var(--muted)':drift>2?'var(--sage)':drift<-2?'#c25b5b':'var(--muted)'}">${drift===null?'—':(drift>0?'+':'')+drift}</div><div class="mono">${drift===null?'need two readings':drift>2?'rising':drift<-2?'slipping':'steady'}</div></div>
+      <div><div class="k">widest gap</div><div class="num" style="color:${gaps[0]?gaps[0].color:'var(--muted)'}">${gaps[0]?(gaps[0].gap>0?'+':'')+gaps[0].gap:'—'}</div><div class="mono">${gaps[0]?esc(gaps[0].name):''}</div></div>
+      <div><div class="k">last reading</div><div class="num">${age===null?'—':age===0?'today':age+'d'}</div><div class="mono">${age===null?'never taken':age>14?'going stale':'fresh enough'}</div></div>
+    </div></div>
+
+    <!-- 3. one table that is priority, congruence, gap and trend at once -->
+    <section class="section rv"><div class="row between"><span class="sc" style="margin:0">The compass</span><span class="mono">drag to re-rank · ${S.valueOrderHistory.length} re-rankings</span></div>
+      <p class="muted" style="font-size:.85rem">Ranked by what you say matters. The bar is where your days actually are; the number on the right is the distance between the two.</p>
+      <ul class="compass-list" id="valuesList">${S.valueOrder.map((id,i)=>{ const v = byId(S.values,id); const c = valueCurrent(id); const g = gaps.find(x=>x.id===id); const hist = snaps.map(s=>s.ratings[id]??null); const bl = !servedBy[id].length;
+        return `<li draggable="true" data-vid="${id}" style="--c:${v.color}">
+          <span class="rank">${i+1}</span>
+          <span class="nm"><a href="#/value/${id}">${esc(v.name)}</a>${bl?'<span class="mono blind-tag" title="no vision currently serves this value">blind spot</span>':''}</span>
+          <span class="spark">${sparkline(hist,{h:26,min:0,max:100,color:v.color})}</span>
+          <span class="bar"><i style="width:${c}%"></i></span>
+          <span class="pct" data-tween="${c}">0</span>
+          <span class="gapn ${g.gap>12?'wide':g.gap<-12?'over':''}" title="stated priority minus lived congruence">${g.gap>0?'+':''}${g.gap}</span>
+          <span class="faint grip">⋮</span></li>`; }).join('')}</ul>
+      <details style="margin-top:10px"><summary><span class="mono">how the ranking has changed</span></summary><div class="body">${[...S.valueOrderHistory].reverse().map(h=>`<div class="mono" style="padding:6px 0;border-top:1px dashed var(--line)">${fmtDate(h.date,'med')} · ${h.order.map(id=>byId(S.values,id)?.name.split(' ')[0]).join(' › ')}</div>`).join('')||'<div class="faint mono" style="padding:6px 0">No re-rankings yet.</div>'}</div></details>
+    </section>
+
+    <!-- 4. the one picture: the shape, over time -->
+    ${snaps.length ? `<section class="section rv"><div class="row between"><span class="sc" style="margin:0">The shape of a life</span><span class="mono">drag the slider to walk back through your readings</span></div>
+      <div class="grid c2" style="align-items:start;margin-top:12px">
+        <div class="card"><div id="radarBox">${radar(axes,[{vals:S.valueOrder.map(id=>latest?.ratings[id]??0),color:'var(--page-accent)'}],{size:340})}</div>
+          <div class="time-slider"><input type="range" class="slider" min="0" max="${snaps.length-1}" value="${snaps.length-1}" id="timeSlider"><div class="lbl"><span>${snaps[0]?fmtDate(snaps[0].date,'med'):''}</span><span id="tsLbl">${latest?fmtDate(latest.date,'med'):''}</span><span>now</span></div><div class="quote" id="tsNote" style="font-size:.9rem;margin-top:6px;min-height:1.5em">${esc(latest?.note||'')}</div></div></div>
+        <div><span class="sc">Readings</span><div id="snapHistory" style="margin-top:10px"><div class="empty">Loading…</div></div></div>
+      </div></section>` : ''}
+
+    <details class="section rv"><summary><span class="sc">Which visions serve which values</span></summary><div class="body">
+      <p class="muted" style="font-size:.85rem">A value that no vision serves is a structural blind spot: you say it matters, but nothing you are building is pointed at it.</p>
+      <div style="overflow-x:auto"><table class="matrix"><thead><tr><th></th>${S.visions.filter(v=>v.confidence!=='lived').map(v=>`<th class="rot">${esc(v.name)}</th>`).join('')}</tr></thead><tbody>${S.valueOrder.map(id=>{ const v=byId(S.values,id); const bl = !servedBy[id].length; return `<tr class="${bl?'blindrow':''}"><td style="text-align:left;color:${v.color}">${esc(v.name.split(' ')[0])}${bl?' <span class="mono">· blind spot</span>':''}</td>${S.visions.filter(x=>x.confidence!=='lived').map(x=>`<td class="${bl?'blind':''}">${x.values.includes(id)?'<i></i>':''}</td>`).join('')}</tr>`; }).join('')}</tbody></table></div></div></details>
+    ` : `<div class="empty rv">The compass has no points yet. Add the handful of words you would want said about how you lived — five is plenty to start.</div>`}
   </div>`;
-  // drag to reorder
+
+  if(!S.valueOrder.length) return;
   const list = $('#valuesList'); let dragId = null;
   list.querySelectorAll('li').forEach(li => { li.addEventListener('dragstart', ()=>{ dragId = li.dataset.vid; li.classList.add('dragging'); }); li.addEventListener('dragend', ()=>li.classList.remove('dragging')); li.addEventListener('dragover', e=>{ e.preventDefault(); li.classList.add('over'); }); li.addEventListener('dragleave', ()=>li.classList.remove('over')); li.addEventListener('drop', e=>{ e.preventDefault(); li.classList.remove('over'); if(!dragId || dragId===li.dataset.vid) return; const o = S.valueOrder.filter(x=>x!==dragId); o.splice(o.indexOf(li.dataset.vid),0,dragId); S.valueOrderHistory.push({date:today(),order:[...S.valueOrder]}); S.valueOrder = o; saveNow(); rerender(); toast('Priorities re-ranked. The previous order is kept.'); }); });
-  const ts = $('#timeSlider'); let ghost = false;
-  const drawRadar = () => { const s = snaps[+ts.value]; const series = []; if(ghost && snaps[0] && +ts.value>0) series.push({vals:S.valueOrder.map(id=>snaps[0].ratings[id]??0),color:'var(--faint)',dashed:true}); series.push({vals:S.valueOrder.map(id=>s.ratings[id]??0),color:s.retro?(byId(S.stages,s.stageId)?.hue||'var(--terra)'):'var(--terra)'}); $('#radarBox').innerHTML = radar(axes,series,{size:360}); $('#tsLbl').textContent = fmtDate(s.date,'med'); $('#tsNote').textContent = s.note||''; };
   $('#takeSnap').onclick = () => openSnapshotModal(() => rerender());
-  renderSnapshotHistory($('#snapHistory'));
-  ts.oninput = drawRadar; $('#ghostToggle').onclick = () => { ghost=!ghost; $('#ghostToggle').classList.toggle('on',ghost); drawRadar(); };
+  const ts = $('#timeSlider');
+  if(ts){ renderSnapshotHistory($('#snapHistory'));
+    ts.oninput = () => { const s = snaps[+ts.value]; $('#radarBox').innerHTML = radar(axes,[{vals:S.valueOrder.map(id=>s.ratings[id]??0),color:s.retro?(byId(S.stages,s.stageId)?.hue||'var(--page-accent)'):'var(--page-accent)'}],{size:340}); $('#tsLbl').textContent = fmtDate(s.date,'med'); $('#tsNote').textContent = s.note||''; };
+  }
 };
+/* ---------- the reading: what the numbers mean, in sentences ---------- */
+function valuesReading(){
+  const out = []; const snaps = allSnapshotsWithRetro(); const latest = snaps.slice(-1)[0]; const gaps = valueGaps();
+  if(!S.valueOrder.length) return ['Name a few values and this page will start telling you something.'];
+  if(!latest) return ['No reading yet. Score each value once — honestly, in about two minutes — and this space will tell you where your life and your values disagree.'];
+  const age = daysSince(latest.date);
+  const cur = avg(S.valueOrder.map(id => latest.ratings[id] ?? 0));
+  const prev = snaps.length > 1 ? avg(S.valueOrder.map(id => snaps[snaps.length-2].ratings[id] ?? 0)) : null;
+  const drift = prev === null ? null : cur - prev;
+  out.push(`Across ${S.valueOrder.length} values you are living at <b>${Math.round(cur)} out of 100</b>${drift===null ? ', your first reading — the number only starts meaning something on the second.' : drift > 2 ? `, up ${Math.round(drift)} since the last reading. Whatever you changed, keep doing it.` : drift < -2 ? `, down ${Math.round(Math.abs(drift))} since the last reading. Something is taking more than it gives.` : `, holding steady since the last reading.`}`);
+  const worst = gaps[0];
+  if(worst && worst.gap > 8) out.push(`The widest gap is <b>${esc(worst.name)}</b>: you rank it ${worst.rank}${['st','nd','rd'][worst.rank-1]||'th'} but live it at ${worst.congruence}. This is the one to spend a week on — not all of them.`);
+  else if(worst) out.push(`No value is badly out of step right now. That is rarer than it sounds; the work is to keep it that way rather than to fix something.`);
+  const low = [...gaps].sort((a,b)=>a.congruence-b.congruence)[0];
+  if(low && low.congruence < 35 && low.id !== worst?.id) out.push(`<b>${esc(low.name)}</b> is your lowest at ${low.congruence}, though you rank it ${low.rank}${['st','nd','rd'][low.rank-1]||'th'} — worth asking whether it is genuinely a lower priority, or just neglected.`);
+  if(snaps.length > 2){
+    const first = snaps[0]; const climbed = S.valueOrder.map(id => ({id, d:(latest.ratings[id]??0) - (first.ratings[id]??0)})).sort((a,b)=>b.d-a.d)[0];
+    if(climbed && climbed.d > 12) out.push(`Over the whole record, <b>${esc(byId(S.values,climbed.id).name)}</b> has climbed ${Math.round(climbed.d)} points. Something in how you arranged your life worked.`);
+  }
+  const blind = S.valueOrder.filter(id => !S.visions.some(v => v.confidence!=='lived' && v.values.includes(id)));
+  if(blind.length) out.push(`${blind.length === 1 ? 'One value has' : `${blind.length} values have`} nothing you are building pointed at ${blind.length===1?'it':'them'} — ${blind.slice(0,3).map(id=>esc(byId(S.values,id).name)).join(', ')}${blind.length>3?'…':''}. Either give ${blind.length===1?'it':'one of them'} a vision, or admit it ranks lower than you say.`);
+  if(age > 14) out.push(`Your last reading is <b>${age} days old</b>. Everything above is memory rather than measurement until you take a new one.`);
+  return out;
+}
+
 function deleteValue(v, node, after){
   requestDelete({label: v.name, node, after, remove: () => {
     const touched = S.entries.filter(e => (e.links?.values||[]).some(x => x.id === v.id)); const rl = snapshotLinks(touched); touched.forEach(e => e.links.values = e.links.values.filter(x => x.id !== v.id));
@@ -3247,6 +3685,15 @@ function openNodModal(projectId, after, existing=null){
 
 /* ---------- Ideation: before anything is a project ---------- */
 const SPARK_KINDS = {spark:['◌','spark','#d4a44c'], question:['?','question','#6b7f8e'], inspiration:['✦','inspiration','#a0727e'], experiment:['⚗','experiment','#7f916a']};
+function addIdea(kind='spark', text=''){
+  const t = (text||'').trim();
+  if(t){ S.ideas.unshift({id:uid(), text:t, kind, note:'', createdAt:new Date().toISOString(), tags:parseTags(t)}); saveNow(); sound('success'); rerender(); return; }
+  const k = SPARK_KINDS[kind] || SPARK_KINDS.spark;
+  const m = openModal(`<h2>${k[0]} New ${esc(k[1])}</h2><input class="inp serif-lg" id="skText" placeholder="${kind==='question'?'What do you want to find out?':'What just occurred to you?'}" autofocus><div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn primary" id="skGo">Catch it</button></div>`, 'narrow');
+  const go = () => { const v = m.querySelector('#skText').value.trim(); if(!v) return; m.remove(); S.settings.projectMode = 'ideation'; addIdea(kind, v); };
+  m.querySelector('#skGo').onclick = go;
+  m.querySelector('#skText').onkeydown = e => { if(e.key === 'Enter') go(); };
+}
 function migrateIdeas(){ (S.ideas||[]).forEach(i => { i.kind = i.kind || 'spark'; i.note = i.note || ''; i.createdAt = i.createdAt || new Date().toISOString(); i.tags = normTags(i.tags||[]); }); }
 function renderIdeation(root){
   registerPageEntry({pageName:'Projects', addLabel:'New spark', defaultEntryType:'idea', prefilledFields:{}, options:[
@@ -3433,11 +3880,13 @@ routes.settings = function(root){
       <p>Life Instrument is a house you are still building. Each section is a room. Some rooms look backward; some look forward; some hold tools; some hold artifacts. The hallway connecting them is a single data model that lets one entry live in many rooms at once.</p>
       <p>It is not a productivity app. Its job is to make the motifs of a life visible — recurring patterns, drifting values, dreams gaining or losing specificity — so you can interpret the past honestly and pull the future closer deliberately.</p>
       <p>It draws on Maltz (self-image and mental rehearsal), Fritz (structural tension), Hicks (the emotional guidance scale), Hill (auto-suggestion), Loehr &amp; Schwartz (four-dimensional energy and oscillation), Leonard (mastery and the plateau), and Newport (career capital). The Philosophical Integration is structural, not decorative: every mechanic embodies a teaching.</p>
+      <div class="field" style="margin:18px 0"><label>Atmosphere</label><div id="ambSettings">${ambientMenuHTML()}</div></div>
       <p class="mono">keyboard: N new entry · ⌘K or / search · ← → previous / next stage (Timeline) · Esc close</p>
     </div></div></div>`;
   storageInfo().then(i => { const line = $('#storageLine'); if(!line) return; const mode = usingRealDexie ? 'an IndexedDB database (Dexie)' : 'an IndexedDB database'; if(i && i.quota){ line.textContent = `Everything lives in this browser, in ${mode}. Using ${fmtBytes(i.usage)} of about ${fmtBytes(i.quota)} available to this site.`; $('#storageBar').style.width = Math.max(1, i.usage/i.quota*100).toFixed(1)+'%'; } else { line.textContent = `Everything lives in this browser, in ${mode}.`; } });
   $('#sPhotoMax').onchange = e => { S.settings.photoMax = +e.target.value; saveNow(); };
-  $('#sTheme').onclick = function(){ S.settings.theme = S.settings.theme==='dark'?'light':'dark'; saveNow(); applyTheme(); this.classList.toggle('on', S.settings.theme==='light'); };
+
+  if($('#ambSettings')) bindAmbientMenu($('#ambSettings'));  $('#sTheme').onclick = function(){ S.settings.theme = S.settings.theme==='dark'?'light':'dark'; saveNow(); applyTheme(); this.classList.toggle('on', S.settings.theme==='light'); };
   $('#sSound').onclick = function(){ SoundManager.toggleSound(); this.classList.toggle('on', SoundManager.state().soundEnabled); };
   $('#sAmbient').onclick = function(){ SoundManager.toggleAmbient(); this.classList.toggle('on', SoundManager.state().ambientEnabled); };
   $('#sFelt').onclick = function(){ S.settings.feltTime = !S.settings.feltTime; saveNow(); this.classList.toggle('on', S.settings.feltTime); };
@@ -4254,12 +4703,12 @@ async function init(){
   await load(); applyTheme();
   try { navigator.storage?.persist?.(); } catch(e){}
   $('#btnTheme').onclick = () => { S.settings.theme = S.settings.theme==='dark'?'light':'dark'; saveNow(); applyTheme(); };
-  $('#btnSound').onclick = () => SoundManager.toggleSound(); $('#btnAmbient').onclick = () => SoundManager.toggleAmbient(); syncSoundButtons();
+  $('#btnSound').onclick = () => SoundManager.toggleSound(); $('#btnAmbient').onclick = () => openAmbientMenu(); syncSoundButtons();
   $('#btnSearch').onclick = openSearch; $('#fab').onclick = e => { e.stopPropagation(); toggleSpeedDial(); };
   renderNav();
   if(navigator.platform.toUpperCase().indexOf('MAC')<0){ $$('kbd').forEach(k => k.textContent = k.textContent.replace('⌘','Ctrl+')); }
   if(!location.hash) location.hash = '#/' + homeRoute();
-  renderRoute(); startDust(); updateBackButton();
+  markNavDirection(); renderRoute(); startDust(); updateBackButton();
   window.addEventListener('beforeunload', () => { if(saving || savePending) saveNow(); });
   if(S.settings.firstOpen === today() && !S._welcomed){ S._welcomed = true; setTimeout(()=>toast('Welcome home. Every piece of text here is editable — click it. The placeholder life is yours to overwrite.', 7000), 800); }
 }

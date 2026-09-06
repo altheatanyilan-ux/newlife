@@ -20,6 +20,37 @@
 .setpoint .cur{font-family:var(--serif);font-size:1.15rem;margin-top:8px;display:flex;justify-content:space-between;align-items:baseline}
 .intention-card{margin-top:8px;padding:22px 26px;border-radius:var(--radius);border:1px solid color-mix(in srgb,var(--page-accent) 26%,var(--line));background:linear-gradient(135deg,color-mix(in srgb,var(--page-accent) 10%,var(--surface)),var(--surface));font-size:1.3rem;line-height:1.5}
 .intention-card .ed{display:block;min-height:1.4em}
+.amb-list{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.amb-opt{display:flex;flex-direction:column;align-items:flex-start;gap:2px;background:var(--surface-2);border:1px solid var(--line-2);border-radius:10px;padding:10px 14px;cursor:pointer;text-align:left;transition:border-color .2s var(--ease),background .2s var(--ease)}
+.amb-opt:hover{border-color:var(--page-accent)}
+.amb-opt.on{border-color:var(--page-accent);background:color-mix(in srgb,var(--page-accent) 12%,var(--surface-2))}
+.amb-name{font-family:var(--serif);font-size:1rem;color:var(--text)}
+.amb-desc{font-family:var(--quote);font-style:italic;font-size:.8rem;color:var(--muted)}
+/* ---------- values: the reading, then the evidence ---------- */
+.reading-card{padding:26px 30px;border-radius:var(--radius);border:1px solid color-mix(in srgb,var(--page-accent) 30%,var(--line));background:linear-gradient(135deg,color-mix(in srgb,var(--page-gradient-start) 12%,var(--surface)),var(--surface) 65%);position:relative;overflow:hidden}
+.reading-card::after{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--page-accent),transparent)}
+.reading-body{margin-top:10px;max-width:62ch}
+.reading-body p{margin:0 0 10px;font-family:var(--serif);font-size:1.08rem;line-height:1.72;color:var(--text)}
+.reading-body p:last-child{margin-bottom:0}
+.reading-body b{color:var(--page-accent);font-weight:600}
+.compass-list{list-style:none;padding:0;margin:14px 0 0;display:flex;flex-direction:column;gap:2px}
+.compass-list li{display:grid;grid-template-columns:26px minmax(120px,1.4fr) 80px minmax(90px,1fr) 44px 44px 16px;align-items:center;gap:12px;padding:9px 10px;border-radius:10px;border:1px solid transparent;cursor:grab;transition:background .2s var(--ease),border-color .2s var(--ease)}
+.compass-list li:hover{background:var(--surface-2);border-color:var(--line)}
+.compass-list li.dragging{opacity:.4}
+.compass-list li.over{border-top:2px solid var(--page-accent)}
+.compass-list .rank{font-family:var(--mono);font-size:.72rem;color:var(--faint);text-align:right}
+.compass-list .nm a{color:var(--c);text-decoration:none;font-family:var(--serif);font-size:1.02rem}
+.compass-list .nm a:hover{text-decoration:underline}
+.compass-list .blind-tag{display:block;font-size:.58rem;color:#c9a05a;letter-spacing:.1em;text-transform:uppercase}
+.compass-list .spark{opacity:.75}
+.compass-list .bar{height:6px;background:var(--surface-3);border-radius:3px;overflow:hidden}
+.compass-list .bar i{display:block;height:100%;background:var(--c);border-radius:3px}
+.compass-list .pct{font-family:var(--mono);font-size:.78rem;text-align:right}
+.compass-list .gapn{font-family:var(--mono);font-size:.78rem;text-align:right;color:var(--faint)}
+.compass-list .gapn.wide{color:#d08080;font-weight:600}
+.compass-list .gapn.over{color:var(--sage)}
+.compass-list .grip{text-align:center}
+@media (max-width:820px){.compass-list li{grid-template-columns:22px 1fr 44px 44px;row-gap:4px}.compass-list .spark,.compass-list .grip{display:none}.compass-list .bar{grid-column:2/-1}}
 /* ---------- projects: ideation vs tracking ---------- */
 .mode-switch{display:inline-flex;gap:2px;padding:3px;border-radius:12px;border:1px solid var(--line-2);background:var(--surface-2);margin-bottom:18px}
 .mode-switch button{background:none;border:none;color:var(--muted);font-family:var(--sans);font-size:.84rem;padding:7px 16px;border-radius:9px;cursor:pointer;transition:background .2s var(--ease),color .2s var(--ease)}
