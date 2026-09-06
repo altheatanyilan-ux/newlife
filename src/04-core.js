@@ -285,9 +285,10 @@ function readImages(files, cb){
    grammar as "Connect this entry" in the universal Add modal, factored out so
    other rooms (the Library, the Writing Studio) can offer the same mutual
    tagging without re-deriving it. */
-function linksEditorHTML(links, {legend=true}={}){
-  links.threads = links.threads||[]; links.values = links.values||[]; links.visions = links.visions||[]; links.skills = links.skills||[]; links.projects = links.projects||[];
+function linksEditorHTML(links, {legend=true, stages=false}={}){
+  links.threads = links.threads||[]; links.values = links.values||[]; links.visions = links.visions||[]; links.skills = links.skills||[]; links.projects = links.projects||[]; links.stages = links.stages||[];
   return `
+    ${stages ? `<div class="field"><label>Life stage ${legend?'— which chapter of the Timeline was this consumed during?':''}</label><div class="deps">${S.stages.filter(s=>!s.notyet).map(s=>`<span class="chip click" style="--c:${s.hue}" data-lk="stages" data-id="${s.id}">${s.char} ${esc(s.name)}</span>`).join('') || '<span class="faint">no stages yet</span>'}</div></div>` : ''}
     <div class="field"><label>Values ${legend?'— click to link, click again to flip polarity, third click to unlink':''}</label><div class="deps">${S.valueOrder.map(id=>{ const v=byId(S.values,id); return `<span class="chip click" style="--c:${v.color}" data-lk="values" data-id="${v.id}"><span class="pol"></span>${esc(v.name)}</span>`; }).join('') || '<span class="faint">no values yet</span>'}</div></div>
     <div class="field"><label>Threads</label><div class="deps">${S.threads.map(t=>`<span class="chip click" style="--c:${t.color}" data-lk="threads" data-id="${t.id}">${esc(t.name)}</span>`).join('') || '<span class="faint">no threads yet</span>'}</div></div>
     <div class="field"><label>Visions</label><div class="deps">${S.visions.map(v=>`<span class="chip click" style="--c:var(--sage)" data-lk="visions" data-id="${v.id}">🌿 ${esc(v.name)}</span>`).join('') || '<span class="faint">no visions yet</span>'}</div></div>

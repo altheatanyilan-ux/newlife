@@ -1938,9 +1938,10 @@ function readImages(files, cb){
    grammar as "Connect this entry" in the universal Add modal, factored out so
    other rooms (the Library, the Writing Studio) can offer the same mutual
    tagging without re-deriving it. */
-function linksEditorHTML(links, {legend=true}={}){
-  links.threads = links.threads||[]; links.values = links.values||[]; links.visions = links.visions||[]; links.skills = links.skills||[]; links.projects = links.projects||[];
+function linksEditorHTML(links, {legend=true, stages=false}={}){
+  links.threads = links.threads||[]; links.values = links.values||[]; links.visions = links.visions||[]; links.skills = links.skills||[]; links.projects = links.projects||[]; links.stages = links.stages||[];
   return `
+    ${stages ? `<div class="field"><label>Life stage ${legend?'— which chapter of the Timeline was this consumed during?':''}</label><div class="deps">${S.stages.filter(s=>!s.notyet).map(s=>`<span class="chip click" style="--c:${s.hue}" data-lk="stages" data-id="${s.id}">${s.char} ${esc(s.name)}</span>`).join('') || '<span class="faint">no stages yet</span>'}</div></div>` : ''}
     <div class="field"><label>Values ${legend?'— click to link, click again to flip polarity, third click to unlink':''}</label><div class="deps">${S.valueOrder.map(id=>{ const v=byId(S.values,id); return `<span class="chip click" style="--c:${v.color}" data-lk="values" data-id="${v.id}"><span class="pol"></span>${esc(v.name)}</span>`; }).join('') || '<span class="faint">no values yet</span>'}</div></div>
     <div class="field"><label>Threads</label><div class="deps">${S.threads.map(t=>`<span class="chip click" style="--c:${t.color}" data-lk="threads" data-id="${t.id}">${esc(t.name)}</span>`).join('') || '<span class="faint">no threads yet</span>'}</div></div>
     <div class="field"><label>Visions</label><div class="deps">${S.visions.map(v=>`<span class="chip click" style="--c:var(--sage)" data-lk="visions" data-id="${v.id}">🌿 ${esc(v.name)}</span>`).join('') || '<span class="faint">no visions yet</span>'}</div></div>
@@ -7755,7 +7756,7 @@ function migrateMedia(){
 function stageYearRange(s){ const m = (s.years||'').match(/(\d{4})\s*[–-]\s*(\d{4})?/); if(!m) return null; return [+m[1], m[2] ? +m[2] : new Date().getFullYear()]; }
 function stageForDate(dateStr){ const y = +String(dateStr||'').slice(0,4); if(!y) return null; return (S.stages||[]).find(s => { const r = stageYearRange(s); return r && y>=r[0] && y<=r[1]; }) || null; }
 function mediaDateConsumed(e){ const x = mediaX(e); return x.finishedAt || e.occurredAt || ''; }
-function mediaLifeStage(e){ return stageForDate(mediaDateConsumed(e)); }
+function mediaLifeStage(e){ const linked = (e.links?.stages||[])[0]; if(linked){ const s = byId(S.stages, linked); if(s) return s; } return stageForDate(mediaDateConsumed(e)); }
 
 /* ---------- quotes & marginalia: auto-feed into the Quotes journal ---------- */
 function syncMediaQuotes(e){
@@ -7874,7 +7875,7 @@ function renderLibraryTimeline(root){
       : `<div class="empty">What were you reading during ${esc(s.name)}? What films do you remember? <button class="tbtn" data-retro-add="${s.id}">log one</button></div>`}
     </div>`; }).join('') : '<div class="empty">Add life stages on the Timeline page first, and media can be mapped onto them.</div>';
   root.querySelectorAll('[data-mopen]').forEach(c=>c.onclick=()=>openMediaPanel(c.dataset.mopen));
-  root.querySelectorAll('[data-retro-add]').forEach(b=>b.onclick=()=>{ const s = byId(S.stages,b.dataset.retroAdd); const r = stageYearRange(s); openMediaModal({finishedAt: r ? `${r[0]}-06-15` : ''}); });
+  root.querySelectorAll('[data-retro-add]').forEach(b=>b.onclick=()=>{ const s = byId(S.stages,b.dataset.retroAdd); const r = stageYearRange(s); openMediaModal({finishedAt: r ? `${r[0]}-06-15` : '', stageId: s.id}); });
 }
 
 /* ---------- Lists & Queue view ---------- */
@@ -8008,14 +8009,15 @@ function openMediaModal(pre={}){
         <input class="inp" id="mYear" placeholder="Year">
         <select class="sel" id="mStat">${MEDIA_STATUS.map(s=>`<option value="${s}" ${(pre.status||'progress')===s?'selected':''}>${MEDIA_STATUS_LABEL[s]}</option>`).join('')}</select>
       </div>
+      <select class="sel" id="mStage"><option value="">life stage — leave to date consumed, or pick one now</option>${S.stages.filter(s=>!s.notyet).map(s=>`<option value="${s.id}" ${pre.stageId===s.id?'selected':''}>${s.char} ${esc(s.name)}${s.years?' · '+esc(s.years):''}</option>`).join('')}</select>
       <div class="row" style="justify-content:flex-end"><button class="btn primary" id="mSave">Add to the shelf</button></div>
     </div>`, 'narrow');
   let kind = pre.kind || 'book';
   m.querySelectorAll('[data-mk]').forEach(b => b.onclick = () => { kind = b.dataset.mk; m.querySelectorAll('[data-mk]').forEach(x=>x.classList.toggle('on', x===b)); });
   m.querySelector('#mSave').onclick = () => {
     const title = m.querySelector('#mTitle').value.trim(); if(!title){ toast('It needs a title, at least.'); return; }
-    const st = m.querySelector('#mStat').value;
-    const e = {id:uid(), type:'media', title, body:'', occurredAt:today(), createdAt:new Date().toISOString(), media:[], links:{stages:[],substages:[],threads:[],values:[],visions:[],skills:[],projects:[]}, people:[], places:[], emotions:[], tags:[], confidence:'',
+    const st = m.querySelector('#mStat').value; const stageId = m.querySelector('#mStage').value || '';
+    const e = {id:uid(), type:'media', title, body:'', occurredAt:today(), createdAt:new Date().toISOString(), media:[], links:{stages:stageId?[stageId]:[],substages:[],threads:[],values:[],visions:[],skills:[],projects:[]}, people:[], places:[], emotions:[], tags:[], confidence:'',
       extra:{kind, creator:m.querySelector('#mCreator').value.trim(), year:m.querySelector('#mYear').value.trim(), status:st, resonanceLevel:null, quotes:[], startedAt: st==='progress'?today():'', finishedAt: pre.finishedAt || (st==='finished'?today():''), oneLineCapture:'', installed:'', recommend:'', recommendWho:''}};
     S.entries.push(e); saveNow(); m.remove(); sound('success'); rerender(); openMediaPanel(e.id);
   };
@@ -8050,7 +8052,7 @@ function openMediaPanel(id){
       <p class="faint" style="font-size:.78rem">The lines worth carrying out. These auto-feed into the Quotes &amp; Marginalia journal.</p>
       ${(x.quotes||[]).map((qq,i)=>`<div class="passage"><div class="passage-q">${ed(`entries.#${e.id}.extra.quotes.${i}.text`,{multi:true,cls:'quote',ph:'the line itself',hook:'syncquote:'+e.id})}</div><div class="row between"><span class="mono">${ed(`entries.#${e.id}.extra.quotes.${i}.where`,{ph:'page / timestamp',cls:'mono',hook:'syncquote:'+e.id})}</span><button class="del-x inline" data-qdel="${i}" title="delete quote">×</button></div><div class="passage-note"><span class="k mono" style="font-size:.62rem">why this caught me</span>${ed(`entries.#${e.id}.extra.quotes.${i}.why`,{multi:true,ph:'required — what it caught in you',hook:'syncquote:'+e.id})}</div></div>`).join('') || '<div class="empty">No quotes yet.</div>'}</div>
 
-    <div class="vp-sec"><span class="sc">Linked dimensions</span><div class="faint" style="font-size:.78rem;margin-bottom:8px">Values touched (±), threads activated, visions fed, skills informed.</div>${linksEditorHTML(e.links)}</div>
+    <div class="vp-sec"><span class="sc">Linked dimensions</span><div class="faint" style="font-size:.78rem;margin-bottom:8px">Life stage (so the Timeline view can actually find this), values touched (±), threads activated, visions fed, skills informed.</div>${linksEditorHTML(e.links, {stages:true})}</div>
 
     <div class="vp-sec"><span class="sc">The conversation</span><div class="faint" style="font-size:.78rem;margin-bottom:6px">The full review, as long or short as you want. Markdown welcome.</div>${ed(`entries.#${e.id}.body`,{multi:true,mdr:true,cls:'prose serif-lg',ph:'Anything that does not fit the fields above.'})}</div>
 
@@ -8067,7 +8069,7 @@ function openMediaPanel(id){
   p.querySelectorAll('[data-res]').forEach(b => b.onclick = () => { x.resonanceLevel = (x.resonanceLevel===b.dataset.res) ? null : b.dataset.res; saveNow(); sound('click'); reopen(); });
   p.querySelector('#mpAddQ').onclick = () => { x.quotes.push({id:uid(), text:'', where:'', why:''}); saveNow(); reopen(); setTimeout(()=>{ const n = document.querySelectorAll('#panel .passage-q .ed'); n.length && beginEdit(n[n.length-1]); },60); };
   p.querySelectorAll('[data-qdel]').forEach(b => b.onclick = () => { const i = +b.dataset.qdel; requestDelete({label:'Quote', node:b.closest('.passage'), remove:()=>{ const gone = x.quotes.splice(i,1)[0]; if(gone.quoteEntryId){ const qe = byId(S.entries, gone.quoteEntryId); if(qe) S.entries.splice(S.entries.indexOf(qe),1); } return () => x.quotes.splice(i,0,gone); }, after:reopen}); });
-  bindLinksEditor(p, e.links, () => saveNow());
+  bindLinksEditor(p, e.links, reopen);
   p.querySelectorAll('[data-rec]').forEach(b => b.onclick = () => { x.recommend = (x.recommend===b.dataset.rec) ? '' : b.dataset.rec; saveNow(); reopen(); });
   const tagI = p.querySelector('#mpTags'); tagI.onchange = () => { e.tags = normTags(tagI.value.split(/[\s,]+/)); saveNow(); reopen(); };
   p.querySelector('#mpDel').onclick = () => requestDelete({label:e.title||'this entry', remove:()=>{ (x.quotes||[]).forEach(q=>{ if(q.quoteEntryId){ const qe = byId(S.entries,q.quoteEntryId); if(qe) S.entries.splice(S.entries.indexOf(qe),1); } }); return spliceOut(S.entries, y=>y.id===e.id); }, after:()=>{ closePanel(); rerender(); }});
