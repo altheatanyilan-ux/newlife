@@ -93,7 +93,37 @@ document.addEventListener('click', e => { const n = e.target.closest('.ed'); if(
 document.addEventListener('keydown', e => { if(e.key==='Enter' && e.target.classList?.contains('ed')) { e.preventDefault(); beginEdit(e.target); } });
 
 /* ---------- toast, ripple, tween ---------- */
-function toast(msg, ms=3200){ const t = el(`<div class="toast">${msg}</div>`); $('#toasts').appendChild(t); setTimeout(()=>{ t.style.opacity='0'; t.style.transition='opacity .4s'; setTimeout(()=>t.remove(),400); }, ms); }
+function toast(msg, ms=3200, action=null){ const t = el(`<div class="toast">${msg}${action?` <button class="toast-act">${esc(action.label)}</button>`:''}</div>`); $('#toasts').appendChild(t); const kill = () => { t.style.opacity='0'; t.style.transition='opacity .4s'; setTimeout(()=>t.remove(),400); }; if(action) t.querySelector('.toast-act').onclick = () => { action.fn(); kill(); }; setTimeout(kill, ms); return t; }
+
+/* ---------- universal delete: confirm → animate out → 5 s undo buffer → commit ---------- */
+const pendingDeletes = new Map();
+function confirmDelete(label, onConfirm){
+  const m = openModal(`<h2>Delete this entry?</h2><p class="muted">This cannot be undone.${label?`<br><span class="mono">${esc(label)}</span>`:''}</p><div class="row" style="justify-content:flex-end;margin-top:18px"><button class="btn" data-x="no">Cancel</button><button class="btn destructive" data-x="yes">Delete</button></div>`,'narrow');
+  m.querySelector('[data-x=no]').onclick = () => m.remove(); m.querySelector('[data-x=yes]').onclick = () => { m.remove(); onConfirm(); };
+}
+function animateOut(node, done){
+  if(!node || !node.isConnected || reduced()){ done(); return; }
+  const h = node.offsetHeight; node.style.height = h+'px'; node.style.overflow = 'hidden'; node.style.boxSizing = 'border-box';
+  node.style.transition = 'opacity .2s var(--ease), height .2s var(--ease), margin .2s var(--ease), padding .2s var(--ease)';
+  void node.offsetHeight;   // commit the start state so the transition runs without waiting for a frame
+  node.style.opacity = '0'; node.style.height = '0px'; node.style.marginTop = '0'; node.style.marginBottom = '0'; node.style.paddingTop = '0'; node.style.paddingBottom = '0';
+  setTimeout(done, 210);
+}
+/* remove(): mutate S and return a restore() closure. The object stays in memory for 5 s; Undo restores it before the store commits. */
+function requestDelete({label='Entry', node=null, remove, after=null, skipConfirm=false}){
+  const run = () => animateOut(node, () => {
+    const restore = remove(); const id = uid();
+    const timer = setTimeout(() => { pendingDeletes.delete(id); saveNow(); }, 5000);
+    pendingDeletes.set(id, {restore, timer});
+    (after || rerender)();
+    toast(`${esc(label)} deleted`, 5000, {label:'Undo', fn: () => { const p = pendingDeletes.get(id); if(!p) return; clearTimeout(p.timer); pendingDeletes.delete(id); p.restore(); saveNow(); rerender(); toast('Restored.'); }});
+  });
+  skipConfirm ? run() : confirmDelete(label, run);
+}
+function flushPendingDeletes(){ if(!pendingDeletes.size) return; pendingDeletes.forEach(p => clearTimeout(p.timer)); pendingDeletes.clear(); saveNow(); }
+window.addEventListener('beforeunload', flushPendingDeletes);
+function spliceOut(arr, pred){ const i = arr.findIndex(pred); if(i < 0) return () => {}; const [item] = arr.splice(i, 1); return () => { arr.splice(Math.min(i, arr.length), 0, item); }; }
+function snapshotLinks(list){ const saved = list.map(o => [o, JSON.stringify(o.links)]); return () => saved.forEach(([o, j]) => { o.links = JSON.parse(j); }); }
 function ripple(x, y, color){ if(reduced()) return; const r = el(`<div class="ripple"></div>`); r.style.left = x+'px'; r.style.top = y+'px'; r.style.setProperty('--c', color||'var(--terra)'); document.body.appendChild(r); setTimeout(()=>r.remove(), 1000); }
 function reduced(){ return matchMedia('(prefers-reduced-motion: reduce)').matches; }
 function tween(node, to, {dur=700, dec=0, suffix=''}={}){
@@ -199,6 +229,6 @@ const HICKS = ['Fear / Grief / Depression / Despair / Powerlessness','Insecurity
 const hicksName = n => HICKS[clamp(Math.round(n),1,22)-1];
 const DIMS = [{id:'physical',name:'Physical',c:'var(--phys)'},{id:'emotional',name:'Emotional',c:'var(--emo)'},{id:'mental',name:'Mental',c:'var(--ment)'},{id:'spiritual',name:'Spiritual',c:'var(--spir)'}];
 const CONF = ['hunch','exploring','plan','committed','in motion','lived'];
-const ENTRY_TYPES = [['memory','Memory','◌'],['reflection','Reflection','✎'],['synchronicity','Synchronicity','∞'],['manifestation','Manifestation','✦'],['gratitude','Gratitude','♡'],['dream','Dream','☾'],['progress','Progress','↗'],['nod','Nod','·'],['artifact','Artifact','▣'],['letter','Letter','✉'],['quote','Quote','“'],['question','Question','?'],['visualization','Visualization','◉']];
+const ENTRY_TYPES = [['uncategorized','Uncategorized','▫'],['memory','Memory','◌'],['reflection','Reflection','✎'],['synchronicity','Synchronicity','∞'],['manifestation','Manifestation','✦'],['gratitude','Gratitude','♡'],['dream','Dream','☾'],['progress','Progress','↗'],['nod','Nod','·'],['artifact','Artifact','▣'],['letter','Letter','✉'],['quote','Quote','“'],['question','Question','?'],['visualization','Visualization','◉']];
 const typeName = t => (ENTRY_TYPES.find(x=>x[0]===t)||[t,t])[1];
 const typeIcon = t => (ENTRY_TYPES.find(x=>x[0]===t)||['','','·'])[2];

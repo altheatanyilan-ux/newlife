@@ -142,7 +142,7 @@ function entryExtraHTML(e){
 function entryCard(e, {clamp:cl=true, tools=true}={}){
   const q = e.type==='quote';
   return `<article class="entry rv" data-entry="${e.id}">
-    <div class="meta"><span class="mono">${typeIcon(e.type)} ${typeName(e.type)}</span><span class="mono">${esc(fmtDate(e.occurredAt,'med'))}</span>${e.confidence?`<span class="status-pill">${esc(e.confidence)}</span>`:''}${tools?`<span class="tools"><button class="tbtn" data-edit="${e.id}">edit</button><button class="tbtn" data-del="${e.id}">delete</button></span>`:''}</div>
+    <div class="meta"><span class="mono">${typeIcon(e.type)} ${typeName(e.type)}</span><span class="mono">${esc(fmtDate(e.occurredAt,'med'))}</span>${e.confidence?`<span class="status-pill">${esc(e.confidence)}</span>`:''}${tools?`<span class="tools"><button class="tbtn" data-edit="${e.id}">edit</button></span>`:''}</div>${tools?`<button class="del-x" data-del="${e.id}" title="delete" aria-label="delete entry">×</button>`:''}
     ${e.title?`<div class="title">${esc(e.title)}</div>`:''}
     ${e.body?`<div class="body ${cl?'clamp':''} ${q?'quote':''}">${q?'“'+esc(e.body)+'”':md(e.body)}</div>`:''}
     ${e.media?.length?`<div class="thumbs">${e.media.map(m=>`<div class="photo" style="width:88px;height:88px;cursor:zoom-in" data-lb="${m.id}"><img src="${m.src}" alt="${esc(m.caption)}"></div>`).join('')}</div>`:''}
@@ -153,7 +153,7 @@ function entryCard(e, {clamp:cl=true, tools=true}={}){
 document.addEventListener('click', e => {
   const b = e.target.closest('.entry .body.clamp'); if(b){ b.classList.remove('clamp'); }
   const ed_ = e.target.closest('[data-edit]'); if(ed_){ openEntryModal({entryId: ed_.dataset.edit}); }
-  const del = e.target.closest('[data-del]'); if(del){ confirmDlg('This entry will be removed from every room it lives in.', ()=>{ S.entries = S.entries.filter(x=>x.id!==del.dataset.del); saveNow(); rerender(); toast('Entry removed.'); }); }
+  const del = e.target.closest('[data-del]'); if(del){ e.stopPropagation(); const ent = byId(S.entries, del.dataset.del); if(ent) requestDelete({label: ent.title || typeName(ent.type), node: del.closest('.entry, .formative'), remove: () => spliceOut(S.entries, x => x.id === ent.id)}); }
   const lb = e.target.closest('[data-lb]'); if(lb){ const img = lb.querySelector('img'); lightbox(img.src, img.alt); }
   const an = e.target.closest('[data-answer]'); if(an){ const ent = byId(S.entries, an.dataset.answer); const m = openModal(`<h2>An answer, for now</h2><p class="quote">${esc(ent.title)}</p><textarea class="ta" id="ansText" placeholder="It doesn't have to be final."></textarea><div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary" id="ansSave">Add answer</button></div>`,'narrow'); m.querySelector('#ansSave').onclick = () => { const t = m.querySelector('#ansText').value.trim(); if(!t) return; ent.extra.answers = ent.extra.answers||[]; ent.extra.answers.push({date:today(), text:t}); saveNow(); m.remove(); rerender(); sound('save'); }; }
 });

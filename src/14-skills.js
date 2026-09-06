@@ -25,16 +25,27 @@ routes.skills = function(root, params){
   root.innerHTML = `<div class="page">
     <div class="page-head row between"><div><h1>Skill Tree</h1><div class="sub">Career capital, built on the plateau. Size is proficiency; dashed nodes are buds; faded nodes are atrophying.</div></div></div>
     <div class="skill-wrap" id="skillWrap"></div>
-    <div class="grid c3 section">${S.skills.map(s=>{ const st = skillStreak(s); const last = skillLastPracticed(s); return `<div class="card rv" data-sopen="${s.id}" style="cursor:pointer;border-left:3px solid ${catColor(s.cat)}"><div class="row between"><h3 style="margin:0">${esc(s.name)}</h3><span class="mono">${esc(s.cat)}</span></div><div class="muted" style="font-size:.82rem;margin-top:6px">${s.planned?'planned — a bud not yet opened':`level ${s.level} of 5 · ${(s.rubric[s.level-1]||'').slice(0,60)}`}</div><div class="mono" style="margin-top:8px">last ${relDays(daysSince(last))} · streak ${st.cur}d (best ${st.best}) · ${skillHours(s).toFixed(1)}h</div></div>`; }).join('')}</div>
+    <div class="grid c3 section">${S.skills.map(s=>{ const st = skillStreak(s); const last = skillLastPracticed(s); return `<div class="card rv" data-sopen="${s.id}" style="cursor:pointer;border-left:3px solid ${catColor(s.cat)}"><button class="del-x" data-sdel="${s.id}" title="delete skill">×</button><div class="row between"><h3 style="margin:0">${esc(s.name)}</h3><span class="mono">${esc(s.cat)}</span></div><div class="muted" style="font-size:.82rem;margin-top:6px">${s.planned?'planned — a bud not yet opened':`level ${s.level} of 5 · ${(s.rubric[s.level-1]||'').slice(0,60)}`}</div><div class="mono" style="margin-top:8px">last ${relDays(daysSince(last))} · streak ${st.cur}d (best ${st.best}) · ${skillHours(s).toFixed(1)}h</div></div>`; }).join('')}</div>
   </div>`;
   const wrap = $('#skillWrap'); const draw = () => { const W = Math.max(wrap.clientWidth,600), H = wrap.clientHeight; wrap.innerHTML = skillSVG(W,H); const svg = wrap.querySelector('svg');
     svg.querySelectorAll('.node').forEach(n => { n.onclick = () => openSkillPanel(n.dataset.skill); n.onmouseenter = () => { const chain = new Set(); const walk = id => { const s = byId(S.skills,id); s?.prereqs.forEach(p=>{ chain.add(p); walk(p); }); }; walk(n.dataset.skill); svg.querySelectorAll('.edge').forEach(e => e.classList.toggle('hot', e.dataset.to===n.dataset.skill || chain.has(e.dataset.to))); svg.querySelectorAll('.node').forEach(x => x.classList.toggle('hot', chain.has(x.dataset.skill))); }; n.onmouseleave = () => { svg.querySelectorAll('.hot').forEach(x=>x.classList.remove('hot')); }; });
     // magnetic pull
     if(!reduced()){ const pt = svg.createSVGPoint(); svg.addEventListener('mousemove', e => { pt.x = e.clientX; pt.y = e.clientY; const p = pt.matrixTransform(svg.getScreenCTM().inverse()); svg.querySelectorAll('.node').forEach(n => { const m = n.getAttribute('transform').match(/translate\(([-\d.]+),([-\d.]+)\)/); const x=+m[1], y=+m[2]; const dx = p.x-x, dy = p.y-y; const d = Math.hypot(dx,dy); const c = n.querySelector('circle.c'); if(d<60){ const k = (1-d/60)*4; c.style.transform = `translate(${(dx/d*k).toFixed(1)}px,${(dy/d*k).toFixed(1)}px)`; } else c.style.transform=''; }); }); } };
   draw(); window.addEventListener('resize', debounce(()=>{ if(currentRoute==='skills') draw(); },250), {once:true});
-  $$('[data-sopen]',root).forEach(c => c.onclick = () => openSkillPanel(c.dataset.sopen));
+  $$('[data-sopen]',root).forEach(c => c.onclick = e => { if(e.target.closest('.del-x')) return; openSkillPanel(c.dataset.sopen); });
+  $$('[data-sdel]',root).forEach(b => b.onclick = e => { e.stopPropagation(); deleteSkill(byId(S.skills, b.dataset.sdel), b.closest('.card')); });
   if(params[0]) openSkillPanel(params[0]);
 };
+function deleteSkill(sk, node, after){
+  requestDelete({label: sk.name, node, after, remove: () => {
+    const pre = S.skills.filter(x => x.prereqs.includes(sk.id)); pre.forEach(x => x.prereqs = x.prereqs.filter(y => y !== sk.id));
+    const vis = S.visions.filter(v => v.preSkills.includes(sk.id)); vis.forEach(v => v.preSkills = v.preSkills.filter(y => y !== sk.id));
+    const touched = S.entries.filter(e => (e.links?.skills||[]).includes(sk.id)); const rl = snapshotLinks(touched); touched.forEach(e => e.links.skills = e.links.skills.filter(y => y !== sk.id));
+    const habits = S.habits.filter(h => (h.links?.skills||[]).includes(sk.id)); habits.forEach(h => h.links.skills = h.links.skills.filter(y => y !== sk.id));
+    const back = spliceOut(S.skills, x => x.id === sk.id);
+    return () => { back(); pre.forEach(x => x.prereqs.push(sk.id)); vis.forEach(v => v.preSkills.push(sk.id)); rl(); habits.forEach(h => h.links.skills.push(sk.id)); };
+  }});
+}
 function openSkillPanel(id){
   const s = byId(S.skills,id); if(!s) return; const es = sortEntries(entriesLinked('skills',s.id)); const st = skillStreak(s); const last = skillLastPracticed(s); const since = daysSince(last);
   const visions = S.visions.filter(v=>v.preSkills.includes(s.id)); const projects = S.projects.filter(p => es.some(e=>(e.links.projects||[]).includes(p.id))); const values = {}; es.forEach(e=>(e.links.values||[]).forEach(x=>values[x.id]=(values[x.id]||0)+1));
@@ -60,5 +71,5 @@ function openSkillPanel(id){
   p.querySelector('#skTarget').onchange = e => { s.target = +e.target.value; saveNow(); openSkillPanel(id); };
   p.querySelectorAll('[data-pre]').forEach(c => c.onclick = () => { const x = c.dataset.pre; s.prereqs = s.prereqs.includes(x) ? s.prereqs.filter(y=>y!==x) : [...s.prereqs,x]; saveNow(); c.classList.toggle('on'); rerender(); });
   p.querySelector('#skLog').onclick = () => openEntryModal({type:'progress', links:{skills:[s.id]}, after:()=>{ rerender(); openSkillPanel(id); }});
-  p.querySelector('#skDel').onclick = () => confirmDlg('Remove this skill?', ()=>{ S.skills = S.skills.filter(x=>x.id!==id); S.skills.forEach(x=>x.prereqs=x.prereqs.filter(y=>y!==id)); saveNow(); closePanel(); rerender(); });
+  p.querySelector('#skDel').onclick = () => deleteSkill(s, null, () => { closePanel(); rerender(); });
 }

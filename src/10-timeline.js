@@ -6,10 +6,10 @@ function threadStageCounts(t){ return S.stages.map(s => stageEntries(s).filter(e
 function photoTile(p, path){ return `<div class="photo" data-lb="${p.id}"><img src="${p.src}" alt="${esc(p.caption)}"><div class="pctl"><button data-pmeta="${path}" title="caption, date, people">✎</button><button data-pdel="${path}" title="remove photo">×</button></div>${p.caption||p.date?`<div class="pcap">${esc(p.caption)}${p.date?` · ${esc(p.date)}`:''}</div>`:''}</div>`; }
 function photoList(path){ return getPath(path); }
 document.addEventListener('click', e => {
-  const del = e.target.closest('[data-pdel]'); if(del){ e.stopPropagation(); const arr = photoList(del.dataset.pdel.replace(/\.\d+$/,'')); const i = +del.dataset.pdel.split('.').pop(); confirmDlg('Remove this photo? It cannot be recovered unless you exported.', ()=>{ arr.splice(i,1); saveNow(); rerender(); toast('Photo removed.'); }); return; }
+  const del = e.target.closest('[data-pdel]'); if(del){ e.stopPropagation(); const arr = photoList(del.dataset.pdel.replace(/\.\d+$/,'')); const i = +del.dataset.pdel.split('.').pop(); const p = arr[i]; requestDelete({label: p?.caption || 'Photo', node: del.closest('.photo'), remove: () => spliceOut(arr, x => x === p)}); return; }
   const meta = e.target.closest('[data-pmeta]'); if(meta){ e.stopPropagation(); const path = meta.dataset.pmeta; const p = getPath(path); const m = openModal(`<h2>This photo</h2><img src="${p.src}" style="width:100%;max-height:260px;object-fit:contain;border-radius:8px;margin-bottom:14px"><div class="stack"><div class="field"><label>Caption</label><input class="inp" id="pmCap" value="${esc(p.caption||'')}"></div><div class="field"><label>Date</label><input class="inp" id="pmDate" value="${esc(p.date||'')}" placeholder="2013-10 · or “that summer”"></div><div class="field"><label>People</label><input class="inp" id="pmPpl" value="${esc((p.people||[]).join(', '))}" placeholder="comma-separated"></div><div class="row between"><button class="btn sm ghost danger" id="pmDel">remove photo</button><button class="btn primary" id="pmSave">Save</button></div></div>`,'narrow');
     m.querySelector('#pmSave').onclick = () => { p.caption = m.querySelector('#pmCap').value.trim(); p.date = m.querySelector('#pmDate').value.trim(); p.people = m.querySelector('#pmPpl').value.split(',').map(s=>s.trim()).filter(Boolean); S.people = [...new Set([...(S.people||[]), ...p.people])]; saveNow(); m.remove(); rerender(); sound('save'); };
-    m.querySelector('#pmDel').onclick = () => { m.remove(); const arr = photoList(path.replace(/\.\d+$/,'')); arr.splice(+path.split('.').pop(),1); saveNow(); rerender(); toast('Photo removed.'); };
+    m.querySelector('#pmDel').onclick = () => { m.remove(); const arr = photoList(path.replace(/\.\d+$/,'')); requestDelete({label: p.caption || 'Photo', remove: () => spliceOut(arr, x => x === p)}); };
   }
 }, true);
 function mosaicHTML(s, n=9, hero=false){ const ph = s.photos||[]; let out=''; for(let i=0;i<n;i++){ const p = ph[i % Math.max(ph.length,1)]; const big = i===0 || (hero && i===7); out += ph.length ? `<img src="${p.src}" class="${big?'big':''}" alt="">` : `<div class="tex ${big?'big':''}"></div>`; } return out; }
@@ -33,6 +33,16 @@ function ribbonsSVG(width){
   });
   return `<svg viewBox="0 0 ${width} ${H}" preserveAspectRatio="none">${out}</svg>`;
 }
+function deleteStage(st, node, after){
+  requestDelete({label: `${st.char} ${st.name}`, node, after, remove: () => {
+    const subIds = new Set((st.substages||[]).map(x=>x.id));
+    const touched = S.entries.filter(e => (e.links?.stages||[]).includes(st.id) || (e.links?.substages||[]).some(id => subIds.has(id)));
+    const restoreLinks = snapshotLinks(touched);
+    touched.forEach(e => { e.links.stages = e.links.stages.filter(x => x !== st.id); e.links.substages = e.links.substages.filter(x => !subIds.has(x)); });
+    const back = spliceOut(S.stages, x => x.id === st.id); if(S._lastStage === st.id) S._lastStage = null;
+    return () => { back(); restoreLinks(); };
+  }});
+}
 routes.timeline = function(root, params){
   registerPageEntry({pageName:'Memory', addLabel:'New memory', defaultEntryType:'memory', prefilledFields:{}, hint:'Open a stage to file it there directly.', options:[{label:'New memory', run:()=>EntryActions.memory()}]});
   const tab = params[0]==='threads' ? 'threads' : 'stages';
@@ -47,7 +57,7 @@ routes.timeline = function(root, params){
     <div class="spine-wrap"><div class="spine" id="spine">
       <svg class="curve" viewBox="0 0 1000 120" preserveAspectRatio="none"><path d="M0,60 C250,20 750,100 1000,60" fill="none" stroke="var(--line-2)" stroke-width="1.5"/></svg>
       ${S.stages.map((s,i)=>`<div class="tile ${s.num===8?'notyet':''}" data-stage="${s.id}" style="--c:${s.hue};${S.settings.feltTime?`flex:${(.6 + counts[i]/maxc*1.4).toFixed(2)} 1 0`:''}" tabindex="0">
-        <div class="glow"></div><div class="bg">${mosaicHTML(s,9)}</div><div class="veil"></div>
+        <div class="glow"></div><div class="bg">${mosaicHTML(s,9)}</div><div class="veil"></div><button class="del-x" data-stagedel="${s.id}" title="delete stage" aria-label="delete stage">×</button>
         <div class="fg"><div class="han">${s.char}</div><div class="nm">${esc(s.name)}</div><div class="tg">${esc(s.tagline)}</div><div class="yr">${esc(s.years)} · ${counts[i]} entries</div></div>
       </div>`).join('')}
     </div></div>
@@ -58,6 +68,7 @@ routes.timeline = function(root, params){
   const spine = $('#spine');
   spine.addEventListener('mouseover', e => { if(e.target.closest('.tile')) spine.classList.add('hovering'); });
   spine.addEventListener('mouseleave', () => spine.classList.remove('hovering'));
+  $$('[data-stagedel]', root).forEach(b => b.onclick = e => { e.stopPropagation(); deleteStage(byId(S.stages, b.dataset.stagedel), b.closest('.tile')); });
   $$('.tile', root).forEach(t => { const go = () => { t.querySelector('.han').style.viewTransitionName = 'stage-char'; t.querySelector('.bg').style.viewTransitionName = 'stage-mosaic'; S._lastStage = t.dataset.stage; navigate('#/stage/'+t.dataset.stage); }; t.onclick = go; t.onkeydown = e => { if(e.key==='Enter') go(); }; });
   if(S._lastStage){ const t = root.querySelector(`.tile[data-stage="${S._lastStage}"]`); if(t){ t.querySelector('.han').style.viewTransitionName='stage-char'; t.querySelector('.bg').style.viewTransitionName='stage-mosaic'; } }
   const wrap = $('.spine-wrap', root); wrap.addEventListener('wheel', e => { if(Math.abs(e.deltaY) > Math.abs(e.deltaX) && wrap.scrollWidth > wrap.clientWidth){ wrap.scrollLeft += e.deltaY; e.preventDefault(); } }, {passive:false});
@@ -84,6 +95,7 @@ function renderThreadsTab(body){
         <input type="range" class="slider" min="0" max="100" value="${cur}" data-tension="${tn.id}" style="--c:${th?.color||'var(--terra)'}">
         <div class="row between" style="margin-top:6px"><span class="mono">${log.length} readings · latest ${log.length?fmtDate(log.slice(-1)[0].date,'med'):'—'}</span><span class="row"><select class="sel" style="width:auto;padding:2px 6px;font-size:.68rem" data-tlink="${tn.id}"><option value="">no thread</option>${S.threads.map(t=>`<option value="${t.id}" ${tn.threadId===t.id?'selected':''}>${esc(t.name)}</option>`).join('')}</select><button class="btn sm ghost" data-tlog="${tn.id}">log reading</button><button class="tbtn" data-tndel="${tn.id}">×</button></span></div>
         <div style="margin-top:8px">${sparkline(log.map(l=>l.pos),{h:36,min:0,max:100,color:th?.color||'var(--terra)',dots:true,labels:log.map(l=>`${fmtDate(l.date,'med')}: ${l.pos} ${l.note?'— '+l.note:''}`)})}<div class="row between mono"><span>← ${esc(tn.left)}</span><span>${esc(tn.right)} →</span></div></div>
+        ${log.length?`<details><summary><span class="mono">readings</span></summary><div class="body">${tn.log.map((l,i)=>`<div class="reading row between" style="padding:4px 0;font-size:.8rem"><span class="mono">${fmtDate(l.date,'med')} · ${l.pos}${l.note?' — '+esc(l.note):''}</span><button class="del-x inline" data-tn="${tn.id}" data-rdel="${i}" title="delete reading">×</button></div>`).join('')}</div></details>`:''}
       </div>`; }).join('')}
     </div>
   </div>`;
@@ -91,8 +103,9 @@ function renderThreadsTab(body){
   $('#addTension').onclick = () => { S.tensions.push({id:uid(),left:'Left pole',right:'Right pole',threadId:null,log:[{date:today(),pos:50,note:''}]}); saveNow(); rerender(); };
   $$('[data-tstatus]',body).forEach(s => s.onchange = () => { byId(S.threads,s.dataset.tstatus).status = s.value; saveNow(); rerender(); });
   $$('[data-tcolor]',body).forEach(s => s.onchange = () => { byId(S.threads,s.dataset.tcolor).color = s.value; saveNow(); rerender(); });
-  $$('[data-tdel]',body).forEach(b => b.onclick = () => confirmDlg('Remove this thread? Entries keep their other links.', ()=>{ S.threads = S.threads.filter(t=>t.id!==b.dataset.tdel); saveNow(); rerender(); }));
-  $$('[data-tndel]',body).forEach(b => b.onclick = () => confirmDlg('Remove this tension and its history?', ()=>{ S.tensions = S.tensions.filter(t=>t.id!==b.dataset.tndel); saveNow(); rerender(); }));
+  $$('[data-tdel]',body).forEach(b => b.onclick = () => { const t = byId(S.threads, b.dataset.tdel); requestDelete({label: t.name, node: b.closest('.th'), remove: () => { const touched = S.entries.filter(e => (e.links?.threads||[]).includes(t.id)); const rl = snapshotLinks(touched); touched.forEach(e => e.links.threads = e.links.threads.filter(x => x !== t.id)); const tens = S.tensions.filter(x => x.threadId === t.id); tens.forEach(x => x.threadId = null); const back = spliceOut(S.threads, x => x.id === t.id); return () => { back(); rl(); tens.forEach(x => x.threadId = t.id); }; }}); });
+  $$('[data-tndel]',body).forEach(b => b.onclick = () => { const tn = byId(S.tensions, b.dataset.tndel); requestDelete({label: `${tn.left} ↔ ${tn.right}`, node: b.closest('.tension'), remove: () => spliceOut(S.tensions, x => x.id === tn.id)}); });
+  $$('[data-rdel]',body).forEach(b => b.onclick = () => { const tn = byId(S.tensions, b.dataset.tn); const r = tn.log[+b.dataset.rdel]; requestDelete({label: `Reading ${fmtDate(r.date,'med')}`, node: b.closest('.reading'), remove: () => spliceOut(tn.log, x => x === r)}); });
   $$('[data-tn]',body).forEach(b => b.onclick = () => openThreadNarrative(b.dataset.tn));
   $$('[data-tlink]',body).forEach(s => s.onchange = () => { byId(S.tensions,s.dataset.tlink).threadId = s.value||null; saveNow(); rerender(); });
   $$('[data-tlog]',body).forEach(b => b.onclick = () => { const tn = byId(S.tensions,b.dataset.tlog); const pos = +body.querySelector(`[data-tension="${tn.id}"]`).value; const m = openModal(`<h2>Log a reading</h2><p class="muted">${esc(tn.left)} ${pos} / ${100-pos} ${esc(tn.right)}</p><input class="inp" id="tnNote" placeholder="optional note — what's pulling you this way?"><div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary" id="tnSave">Log</button></div>`,'narrow'); m.querySelector('#tnSave').onclick = () => { tn.log.push({date:today(),pos,note:m.querySelector('#tnNote').value}); saveNow(); m.remove(); rerender(); sound('save'); }; });
@@ -126,7 +139,7 @@ routes.stage = function(root, params){
     <section class="section rv"><span class="sc">The story I tell about this stage</span>
       ${ed(`stages.#${s.id}.narrative`,{multi:true,mdr:true,cls:'prose serif-lg',ph:'Your current interpretation of this era. It will change. That is the point.',hook:'stageNarrative:'+s.id})}
       <div class="row" style="margin-top:10px"><button class="btn sm ghost" id="saveVersion">keep this version</button></div>
-      <details style="margin-top:14px"><summary><span class="sc">The story I used to tell</span><span class="mono">${(s.narrativeHistory||[]).length} versions</span></summary><div class="body versions">${(s.narrativeHistory||[]).length ? [...s.narrativeHistory].reverse().map(v=>`<div class="v"><div class="mono" style="margin-bottom:6px">${fmtDate(v.date,'long')}</div>${md(v.text)}</div>`).join('') : '<div class="empty">No previous versions yet. Rewrite the story above and the old one will be kept here.</div>'}</div></details>
+      <details style="margin-top:14px"><summary><span class="sc">The story I used to tell</span><span class="mono">${(s.narrativeHistory||[]).length} versions</span></summary><div class="body versions">${(s.narrativeHistory||[]).length ? s.narrativeHistory.map((v,i)=>`<div class="v"><div class="mono" style="margin-bottom:6px">${fmtDate(v.date,'long')}</div>${md(v.text)}<button class="del-x" data-verdel="${i}" title="delete this version">×</button></div>`).reverse().join('') : '<div class="empty">No previous versions yet. Rewrite the story above and the old one will be kept here.</div>'}</div></details>
     </section>
 
     <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Sub-stages</span><button class="btn sm" id="addSub">+ sub-stage</button></div>
@@ -136,9 +149,9 @@ routes.stage = function(root, params){
         <div class="row" style="margin:8px 0"><button class="btn sm ghost" data-ssphoto="${i}">+ photos</button><button class="btn sm ghost" data-ssmem="${ss.id}">+ formative event</button></div>
         ${ss.photos?.length?`<div class="gallery">${ss.photos.map((p,j)=>photoTile(p,`stages.#${s.id}.substages.${i}.photos.${j}`)).join('')}</div>`:''}
         ${fe.length?`<div class="sc" style="margin-top:8px">Formative events</div>`:''}
-        ${fe.map(e=>`<div class="formative"><div class="row between"><b class="serif" style="font-size:1.1rem">${esc(e.title)}</b><span class="mono">${esc(fmtDate(e.occurredAt,'med'))} <button class="tbtn" data-edit="${e.id}">edit</button></span></div><div class="muted" style="margin-top:4px;line-height:1.7">${md(e.body)}</div>${e.media?.length?`<div class="thumbs">${e.media.map(m=>`<div class="photo" style="width:72px;height:72px" data-lb="${m.id}"><img src="${m.src}"></div>`).join('')}</div>`:''}<div class="installed"><div class="k">What this installed in me</div>${ed(`entries.#${e.id}.extra.installed`,{multi:true,ph:'The belief, fear, pattern, or capability this event left behind.'})}</div></div>`).join('')}
+        ${fe.map(e=>`<div class="formative"><div class="row between"><b class="serif" style="font-size:1.1rem">${esc(e.title)}</b><span class="mono">${esc(fmtDate(e.occurredAt,'med'))} <button class="tbtn" data-edit="${e.id}">edit</button></span></div><button class="del-x" data-del="${e.id}" title="delete">×</button><div class="muted" style="margin-top:4px;line-height:1.7">${md(e.body)}</div>${e.media?.length?`<div class="thumbs">${e.media.map(m=>`<div class="photo" style="width:72px;height:72px" data-lb="${m.id}"><img src="${m.src}"></div>`).join('')}</div>`:''}<div class="installed"><div class="k">What this installed in me</div>${ed(`entries.#${e.id}.extra.installed`,{multi:true,ph:'The belief, fear, pattern, or capability this event left behind.'})}</div></div>`).join('')}
       </div>`; }).join('')}
-      ${memories.filter(e=>!(e.links?.substages||[]).length).length?`<div class="substage"><div class="hd"><h3 class="muted">Formative events not tied to a sub-stage</h3></div>${memories.filter(e=>!(e.links?.substages||[]).length).map(e=>`<div class="formative"><div class="row between"><b class="serif" style="font-size:1.1rem">${esc(e.title)}</b><span class="mono">${esc(fmtDate(e.occurredAt,'med'))} <button class="tbtn" data-edit="${e.id}">edit</button></span></div><div class="muted" style="margin-top:4px;line-height:1.7">${md(e.body)}</div><div class="installed"><div class="k">What this installed in me</div>${ed(`entries.#${e.id}.extra.installed`,{multi:true,ph:'The belief, fear, pattern, or capability this event left behind.'})}</div></div>`).join('')}</div>`:''}
+      ${memories.filter(e=>!(e.links?.substages||[]).length).length?`<div class="substage"><div class="hd"><h3 class="muted">Formative events not tied to a sub-stage</h3></div>${memories.filter(e=>!(e.links?.substages||[]).length).map(e=>`<div class="formative"><div class="row between"><b class="serif" style="font-size:1.1rem">${esc(e.title)}</b><span class="mono">${esc(fmtDate(e.occurredAt,'med'))} <button class="tbtn" data-edit="${e.id}">edit</button></span></div><button class="del-x" data-del="${e.id}" title="delete">×</button><div class="muted" style="margin-top:4px;line-height:1.7">${md(e.body)}</div><div class="installed"><div class="k">What this installed in me</div>${ed(`entries.#${e.id}.extra.installed`,{multi:true,ph:'The belief, fear, pattern, or capability this event left behind.'})}</div></div>`).join('')}</div>`:''}
     </section>
 
     <section class="section rv"><span class="sc">Threads present in this stage</span>
@@ -166,12 +179,15 @@ routes.stage = function(root, params){
     <section class="section rv"><div class="row between"><span class="sc">Everything from this stage</span></div>
       ${es.filter(e=>e.type!=='memory').map(e=>entryCard(e)).join('') || '<div class="empty">Only memories so far. Add a reflection, a quote, a dream.</div>'}
     </section>
+    <div class="row" style="margin-top:40px;justify-content:flex-end"><button class="btn sm ghost danger" id="delStage">delete this stage</button></div>
   </div>`;
   $('#addPhotos').onclick = () => $('#photoFile').click();
   $('#photoFile').onchange = e => readImages(e.target.files, img => { s.photos = s.photos||[]; s.photos.push(img); saveNow(); rerender(); });
   $('#saveVersion').onclick = () => { s.narrativeHistory = s.narrativeHistory||[]; s.narrativeHistory.push({date:today(), text:s.narrative}); saveNow(); toast('Version kept.'); rerender(); };
   $('#addSub').onclick = () => { s.substages.push({id:uid(),name:'New chapter',desc:'',photos:[]}); saveNow(); rerender(); };
-  $$('[data-ssdel]',root).forEach(b => b.onclick = () => confirmDlg('Remove this sub-stage? Its formative events stay in the journal.', ()=>{ s.substages.splice(+b.dataset.ssdel,1); saveNow(); rerender(); }));
+  $$('[data-ssdel]',root).forEach(b => b.onclick = () => { const ss = s.substages[+b.dataset.ssdel]; requestDelete({label: ss.name, node: b.closest('.substage'), remove: () => { const touched = S.entries.filter(e => (e.links?.substages||[]).includes(ss.id)); const rl = snapshotLinks(touched); touched.forEach(e => e.links.substages = e.links.substages.filter(x => x !== ss.id)); const back = spliceOut(s.substages, x => x === ss); return () => { back(); rl(); }; }}); });
+  $$('[data-verdel]',root).forEach(b => b.onclick = () => { const v = s.narrativeHistory[+b.dataset.verdel]; requestDelete({label: `Version from ${fmtDate(v.date,'med')}`, node: b.closest('.v'), remove: () => spliceOut(s.narrativeHistory, x => x === v)}); });
+  $('#delStage').onclick = () => deleteStage(s, null, () => navigate('#/timeline'));
   $$('[data-ssup]',root).forEach(b => b.onclick = () => { const i=+b.dataset.ssup; if(i>0){ [s.substages[i-1],s.substages[i]]=[s.substages[i],s.substages[i-1]]; saveNow(); rerender(); } });
   $$('[data-ssdown]',root).forEach(b => b.onclick = () => { const i=+b.dataset.ssdown; if(i<s.substages.length-1){ [s.substages[i+1],s.substages[i]]=[s.substages[i],s.substages[i+1]]; saveNow(); rerender(); } });
   $$('[data-ssphoto]',root).forEach(b => b.onclick = () => { const inp = el('<input type="file" accept="image/*" multiple hidden>'); document.body.appendChild(inp); inp.onchange = e => { readImages(e.target.files, img => { const ss = s.substages[+b.dataset.ssphoto]; ss.photos = ss.photos||[]; ss.photos.push(img); saveNow(); rerender(); }); inp.remove(); }; inp.click(); });
@@ -179,9 +195,9 @@ routes.stage = function(root, params){
   $$('[data-thread-open]',root).forEach(c => c.onclick = () => openThreadNarrative(c.dataset.threadOpen));
   $$('[data-retro]',root).forEach(r => { r.oninput = () => { root.querySelector(`[data-retro-lbl="${r.dataset.retro}"]`).textContent = r.value; }; r.onchange = () => { s.retroValues = s.retroValues||{}; s.retroValues[r.dataset.retro] = +r.value; saveNow(); $('#retroRadar').innerHTML = radar(axes,[{vals:S.valueOrder.map(id=>cur[id]??0),color:'var(--faint)',dashed:true},{vals:S.valueOrder.map(id=>s.retroValues?.[id]??0),color:s.hue}],{size:320}) + `<div class="legend" style="justify-content:center"><span style="--c:${s.hue}">this stage</span><span style="--c:var(--faint)">today, ghosted</span></div>`; }; });
   $('#addSong').onclick = () => { s.soundtrack = s.soundtrack||[]; s.soundtrack.push({t:''}); saveNow(); rerender(); };
-  $$('[data-songdel]',root).forEach(b => b.onclick = () => { s.soundtrack.splice(+b.dataset.songdel,1); saveNow(); rerender(); });
+  $$('[data-songdel]',root).forEach(b => b.onclick = () => { const song = s.soundtrack[+b.dataset.songdel]; requestDelete({label: song.t || 'Song', node: b.closest('li'), remove: () => spliceOut(s.soundtrack, x => x === song)}); });
   $('#addArtifact').onclick = () => $('#artFile').click();
   $('#artFile').onchange = e => { if(!e.target.files.length){ s.artifacts.push({id:uid(),caption:'New artifact',date:'',src:''}); saveNow(); rerender(); return; } readImages(e.target.files, img => { s.artifacts = s.artifacts||[]; s.artifacts.push({id:img.id,caption:'',date:'',src:img.src}); saveNow(); rerender(); }); };
-  $$('[data-artdel]',root).forEach(b => b.onclick = () => { s.artifacts.splice(+b.dataset.artdel,1); saveNow(); rerender(); });
+  $$('[data-artdel]',root).forEach(b => b.onclick = () => { const a = s.artifacts[+b.dataset.artdel]; requestDelete({label: a.caption || 'Artifact', node: b.closest('.artifact'), remove: () => spliceOut(s.artifacts, x => x === a)}); });
   root.querySelectorAll('.artifact .paper[data-lb]').forEach(p => p.onclick = () => lightbox(p.querySelector('img').src, p.nextElementSibling?.textContent||''));
 };

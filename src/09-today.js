@@ -61,7 +61,7 @@ routes.today = function(root){
       <div class="prompt-card"><div class="quote" id="promptText">${gentlePrompt()}</div><div class="row" style="margin-top:14px;justify-content:space-between"><button class="btn sm ghost" id="anotherPrompt">another</button><button class="btn sm" data-quick="reflection">respond ✎</button></div></div>
     </section>
 
-    ${(S.reminders||[]).some(r=>!r.done && r.date<=T)?`<section class="section rv"><span class="sc">Reminders</span>${(S.reminders||[]).filter(r=>!r.done && r.date<=T).sort((a,b)=>a.date<b.date?-1:1).map(r=>`<label class="row" style="padding:8px 0;border-top:1px dashed var(--line);cursor:pointer"><input type="checkbox" data-rm="${r.id}"><span class="serif" style="font-size:1.05rem">${esc(r.text)}</span><span class="mono">${r.date<T?'since '+fmtDate(r.date,'short'):'today'}</span></label>`).join('')}</section>`:''}
+    ${(S.reminders||[]).some(r=>!r.done && r.date<=T)?`<section class="section rv"><span class="sc">Reminders</span>${(S.reminders||[]).filter(r=>!r.done && r.date<=T).sort((a,b)=>a.date<b.date?-1:1).map(r=>`<label class="row" style="padding:8px 0;border-top:1px dashed var(--line);cursor:pointer"><input type="checkbox" data-rm="${r.id}"><span class="serif" style="font-size:1.05rem">${esc(r.text)}</span><span class="mono">${r.date<T?'since '+fmtDate(r.date,'short'):'today'}</span><button class="del-x inline" data-rmdel="${r.id}" title="delete reminder" style="margin-left:auto">×</button></label>`).join('')}</section>`:''}
 
     <section class="section rv"><span class="sc">The last thirty days</span>
       <div class="charts3">
@@ -80,5 +80,6 @@ routes.today = function(root){
   root.querySelectorAll('.tracker i').forEach(i => i.onclick = () => { const d = i.dataset.td; if(d > T) return; const idx = S.theatre.days.indexOf(d); if(idx>=0) S.theatre.days.splice(idx,1); else S.theatre.days.push(d); saveNow(); rerender(); });
   $('#anotherPrompt').onclick = () => { S._promptShift = (S._promptShift||0)+1; $('#promptText').innerHTML = gentlePrompt(); };
   root.querySelectorAll('[data-quick]').forEach(b => b.onclick = () => { const t = b.dataset.quick; if(t==='nod') openNodModal(); else openEntryModal({type:t}); });
+  root.querySelectorAll('[data-rmdel]').forEach(b => b.onclick = e => { e.preventDefault(); e.stopPropagation(); const r = byId(S.reminders, b.dataset.rmdel); requestDelete({label: r.text, node: b.closest('label'), remove: () => spliceOut(S.reminders, x => x.id === r.id)}); });
   root.querySelectorAll('[data-rm]').forEach(c => c.onchange = () => { const r = byId(S.reminders, c.dataset.rm); if(r){ r.done = true; r.doneAt = today(); saveNow(); sound('success'); setTimeout(rerender, 300); } });
 };

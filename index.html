@@ -158,6 +158,16 @@ main{margin-left:var(--sidebar);flex:1;min-width:0;padding:48px 56px 120px;anima
 .btn.ghost{background:transparent;border-color:transparent;color:var(--muted)}
 .btn.ghost:hover{color:var(--text);border-color:var(--line-2);transform:none}
 .btn.danger:hover{border-color:#b05050;color:#d08080}
+.btn.destructive{background:#8e3b3b;color:#fff;border-color:transparent;font-weight:600}
+.btn.destructive:hover{background:#a54545}
+.toast-act{margin-left:12px;background:none;border:1px solid var(--line-2);color:var(--terra);border-radius:6px;padding:2px 10px;cursor:pointer;font-size:.78rem;font-weight:600}
+.toast-act:hover{border-color:var(--terra)}
+.del-x{position:absolute;top:8px;right:8px;width:24px;height:24px;border-radius:50%;border:1px solid var(--line-2);background:var(--surface);color:var(--faint);cursor:pointer;font-size:.95rem;line-height:1;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s var(--ease),color .2s,border-color .2s;z-index:3;padding:0}
+.del-x:hover{color:#d08080;border-color:#b05050}
+*:hover>.del-x,.del-x:focus{opacity:1}
+.del-x.inline{position:static;flex:none}
+@media (hover:none),(max-width:900px){.del-x{opacity:1}}
+.entry,.tile,.snap-row,.habit,.nod,.card,.values-list li,.versions .v,.jnav button,.formative,.value-field,.evidence-item,.tension,.thread-list .th,.ideas li,.songs li,.artifact{position:relative}
 .field{display:flex;flex-direction:column;gap:6px}
 .field label{font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:600}
 .inp,.ta,.sel{background:var(--surface-2);border:1px solid var(--line-2);border-radius:10px;padding:9px 12px;color:var(--text);width:100%;outline:none;transition:border-color .2s var(--ease),box-shadow .2s var(--ease)}
@@ -486,7 +496,7 @@ html[data-theme="light"] .stage-hero .veil{background:linear-gradient(180deg,rgb
 .snap-list{max-height:520px;overflow-y:auto;margin-top:14px;padding-right:4px;scrollbar-width:thin}
 .snap-row{border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:8px;transition:border-color .2s var(--ease)}
 .snap-row:hover{border-color:var(--line-2)}
-.snap-head{display:grid;grid-template-columns:150px 1fr 20px;gap:14px;align-items:center;padding:12px 16px;cursor:pointer}
+.snap-head{display:grid;grid-template-columns:150px 1fr 60px;gap:14px;align-items:center;padding:12px 16px;cursor:pointer}
 .snap-date{display:flex;flex-direction:column;gap:2px}
 .snap-bars{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap}
 .snap-bar{display:flex;flex-direction:column;align-items:center;gap:3px;width:34px}
@@ -780,7 +790,37 @@ document.addEventListener('click', e => { const n = e.target.closest('.ed'); if(
 document.addEventListener('keydown', e => { if(e.key==='Enter' && e.target.classList?.contains('ed')) { e.preventDefault(); beginEdit(e.target); } });
 
 /* ---------- toast, ripple, tween ---------- */
-function toast(msg, ms=3200){ const t = el(`<div class="toast">${msg}</div>`); $('#toasts').appendChild(t); setTimeout(()=>{ t.style.opacity='0'; t.style.transition='opacity .4s'; setTimeout(()=>t.remove(),400); }, ms); }
+function toast(msg, ms=3200, action=null){ const t = el(`<div class="toast">${msg}${action?` <button class="toast-act">${esc(action.label)}</button>`:''}</div>`); $('#toasts').appendChild(t); const kill = () => { t.style.opacity='0'; t.style.transition='opacity .4s'; setTimeout(()=>t.remove(),400); }; if(action) t.querySelector('.toast-act').onclick = () => { action.fn(); kill(); }; setTimeout(kill, ms); return t; }
+
+/* ---------- universal delete: confirm → animate out → 5 s undo buffer → commit ---------- */
+const pendingDeletes = new Map();
+function confirmDelete(label, onConfirm){
+  const m = openModal(`<h2>Delete this entry?</h2><p class="muted">This cannot be undone.${label?`<br><span class="mono">${esc(label)}</span>`:''}</p><div class="row" style="justify-content:flex-end;margin-top:18px"><button class="btn" data-x="no">Cancel</button><button class="btn destructive" data-x="yes">Delete</button></div>`,'narrow');
+  m.querySelector('[data-x=no]').onclick = () => m.remove(); m.querySelector('[data-x=yes]').onclick = () => { m.remove(); onConfirm(); };
+}
+function animateOut(node, done){
+  if(!node || !node.isConnected || reduced()){ done(); return; }
+  const h = node.offsetHeight; node.style.height = h+'px'; node.style.overflow = 'hidden'; node.style.boxSizing = 'border-box';
+  node.style.transition = 'opacity .2s var(--ease), height .2s var(--ease), margin .2s var(--ease), padding .2s var(--ease)';
+  void node.offsetHeight;   // commit the start state so the transition runs without waiting for a frame
+  node.style.opacity = '0'; node.style.height = '0px'; node.style.marginTop = '0'; node.style.marginBottom = '0'; node.style.paddingTop = '0'; node.style.paddingBottom = '0';
+  setTimeout(done, 210);
+}
+/* remove(): mutate S and return a restore() closure. The object stays in memory for 5 s; Undo restores it before the store commits. */
+function requestDelete({label='Entry', node=null, remove, after=null, skipConfirm=false}){
+  const run = () => animateOut(node, () => {
+    const restore = remove(); const id = uid();
+    const timer = setTimeout(() => { pendingDeletes.delete(id); saveNow(); }, 5000);
+    pendingDeletes.set(id, {restore, timer});
+    (after || rerender)();
+    toast(`${esc(label)} deleted`, 5000, {label:'Undo', fn: () => { const p = pendingDeletes.get(id); if(!p) return; clearTimeout(p.timer); pendingDeletes.delete(id); p.restore(); saveNow(); rerender(); toast('Restored.'); }});
+  });
+  skipConfirm ? run() : confirmDelete(label, run);
+}
+function flushPendingDeletes(){ if(!pendingDeletes.size) return; pendingDeletes.forEach(p => clearTimeout(p.timer)); pendingDeletes.clear(); saveNow(); }
+window.addEventListener('beforeunload', flushPendingDeletes);
+function spliceOut(arr, pred){ const i = arr.findIndex(pred); if(i < 0) return () => {}; const [item] = arr.splice(i, 1); return () => { arr.splice(Math.min(i, arr.length), 0, item); }; }
+function snapshotLinks(list){ const saved = list.map(o => [o, JSON.stringify(o.links)]); return () => saved.forEach(([o, j]) => { o.links = JSON.parse(j); }); }
 function ripple(x, y, color){ if(reduced()) return; const r = el(`<div class="ripple"></div>`); r.style.left = x+'px'; r.style.top = y+'px'; r.style.setProperty('--c', color||'var(--terra)'); document.body.appendChild(r); setTimeout(()=>r.remove(), 1000); }
 function reduced(){ return matchMedia('(prefers-reduced-motion: reduce)').matches; }
 function tween(node, to, {dur=700, dec=0, suffix=''}={}){
@@ -886,7 +926,7 @@ const HICKS = ['Fear / Grief / Depression / Despair / Powerlessness','Insecurity
 const hicksName = n => HICKS[clamp(Math.round(n),1,22)-1];
 const DIMS = [{id:'physical',name:'Physical',c:'var(--phys)'},{id:'emotional',name:'Emotional',c:'var(--emo)'},{id:'mental',name:'Mental',c:'var(--ment)'},{id:'spiritual',name:'Spiritual',c:'var(--spir)'}];
 const CONF = ['hunch','exploring','plan','committed','in motion','lived'];
-const ENTRY_TYPES = [['memory','Memory','◌'],['reflection','Reflection','✎'],['synchronicity','Synchronicity','∞'],['manifestation','Manifestation','✦'],['gratitude','Gratitude','♡'],['dream','Dream','☾'],['progress','Progress','↗'],['nod','Nod','·'],['artifact','Artifact','▣'],['letter','Letter','✉'],['quote','Quote','“'],['question','Question','?'],['visualization','Visualization','◉']];
+const ENTRY_TYPES = [['uncategorized','Uncategorized','▫'],['memory','Memory','◌'],['reflection','Reflection','✎'],['synchronicity','Synchronicity','∞'],['manifestation','Manifestation','✦'],['gratitude','Gratitude','♡'],['dream','Dream','☾'],['progress','Progress','↗'],['nod','Nod','·'],['artifact','Artifact','▣'],['letter','Letter','✉'],['quote','Quote','“'],['question','Question','?'],['visualization','Visualization','◉']];
 const typeName = t => (ENTRY_TYPES.find(x=>x[0]===t)||[t,t])[1];
 const typeIcon = t => (ENTRY_TYPES.find(x=>x[0]===t)||['','','·'])[2];
 /* ============================================================
@@ -954,7 +994,7 @@ const SoundManager = (() => {
   document.addEventListener('click', e => {
     const t = e.target.closest(CLICKABLE); if(!t) return;
     if(t.closest('.ed') || t.matches('[data-nosound], .close, #btnSound, #btnAmbient')) return;
-    if(t.matches('.danger, [data-del], [data-pdel], [data-x="yes"], [data-tdel], [data-tndel], [data-idel], [data-artdel], [data-songdel], [data-evdel], [data-resdel], [data-mdel]')) { play('error'); return; }
+    if(t.matches('.danger, .destructive, .del-x, [data-del], [data-pdel], [data-x="yes"], [data-tdel], [data-tndel], [data-idel], [data-artdel], [data-songdel], [data-evdel], [data-resdel], [data-mdel]')) { play('error'); return; }
     if(t.matches('a[href^="#/"], [data-go]') && !t.matches('.chip')) return;   // navigation: the hashchange plays the nav tone instead
     scheduleClick();
   }, true);
@@ -1657,7 +1697,7 @@ function entryExtraHTML(e){
 function entryCard(e, {clamp:cl=true, tools=true}={}){
   const q = e.type==='quote';
   return `<article class="entry rv" data-entry="${e.id}">
-    <div class="meta"><span class="mono">${typeIcon(e.type)} ${typeName(e.type)}</span><span class="mono">${esc(fmtDate(e.occurredAt,'med'))}</span>${e.confidence?`<span class="status-pill">${esc(e.confidence)}</span>`:''}${tools?`<span class="tools"><button class="tbtn" data-edit="${e.id}">edit</button><button class="tbtn" data-del="${e.id}">delete</button></span>`:''}</div>
+    <div class="meta"><span class="mono">${typeIcon(e.type)} ${typeName(e.type)}</span><span class="mono">${esc(fmtDate(e.occurredAt,'med'))}</span>${e.confidence?`<span class="status-pill">${esc(e.confidence)}</span>`:''}${tools?`<span class="tools"><button class="tbtn" data-edit="${e.id}">edit</button></span>`:''}</div>${tools?`<button class="del-x" data-del="${e.id}" title="delete" aria-label="delete entry">×</button>`:''}
     ${e.title?`<div class="title">${esc(e.title)}</div>`:''}
     ${e.body?`<div class="body ${cl?'clamp':''} ${q?'quote':''}">${q?'“'+esc(e.body)+'”':md(e.body)}</div>`:''}
     ${e.media?.length?`<div class="thumbs">${e.media.map(m=>`<div class="photo" style="width:88px;height:88px;cursor:zoom-in" data-lb="${m.id}"><img src="${m.src}" alt="${esc(m.caption)}"></div>`).join('')}</div>`:''}
@@ -1668,7 +1708,7 @@ function entryCard(e, {clamp:cl=true, tools=true}={}){
 document.addEventListener('click', e => {
   const b = e.target.closest('.entry .body.clamp'); if(b){ b.classList.remove('clamp'); }
   const ed_ = e.target.closest('[data-edit]'); if(ed_){ openEntryModal({entryId: ed_.dataset.edit}); }
-  const del = e.target.closest('[data-del]'); if(del){ confirmDlg('This entry will be removed from every room it lives in.', ()=>{ S.entries = S.entries.filter(x=>x.id!==del.dataset.del); saveNow(); rerender(); toast('Entry removed.'); }); }
+  const del = e.target.closest('[data-del]'); if(del){ e.stopPropagation(); const ent = byId(S.entries, del.dataset.del); if(ent) requestDelete({label: ent.title || typeName(ent.type), node: del.closest('.entry, .formative'), remove: () => spliceOut(S.entries, x => x.id === ent.id)}); }
   const lb = e.target.closest('[data-lb]'); if(lb){ const img = lb.querySelector('img'); lightbox(img.src, img.alt); }
   const an = e.target.closest('[data-answer]'); if(an){ const ent = byId(S.entries, an.dataset.answer); const m = openModal(`<h2>An answer, for now</h2><p class="quote">${esc(ent.title)}</p><textarea class="ta" id="ansText" placeholder="It doesn't have to be final."></textarea><div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary" id="ansSave">Add answer</button></div>`,'narrow'); m.querySelector('#ansSave').onclick = () => { const t = m.querySelector('#ansText').value.trim(); if(!t) return; ent.extra.answers = ent.extra.answers||[]; ent.extra.answers.push({date:today(), text:t}); saveNow(); m.remove(); rerender(); sound('save'); }; }
 });
@@ -1737,7 +1777,7 @@ routes.today = function(root){
       <div class="prompt-card"><div class="quote" id="promptText">${gentlePrompt()}</div><div class="row" style="margin-top:14px;justify-content:space-between"><button class="btn sm ghost" id="anotherPrompt">another</button><button class="btn sm" data-quick="reflection">respond ✎</button></div></div>
     </section>
 
-    ${(S.reminders||[]).some(r=>!r.done && r.date<=T)?`<section class="section rv"><span class="sc">Reminders</span>${(S.reminders||[]).filter(r=>!r.done && r.date<=T).sort((a,b)=>a.date<b.date?-1:1).map(r=>`<label class="row" style="padding:8px 0;border-top:1px dashed var(--line);cursor:pointer"><input type="checkbox" data-rm="${r.id}"><span class="serif" style="font-size:1.05rem">${esc(r.text)}</span><span class="mono">${r.date<T?'since '+fmtDate(r.date,'short'):'today'}</span></label>`).join('')}</section>`:''}
+    ${(S.reminders||[]).some(r=>!r.done && r.date<=T)?`<section class="section rv"><span class="sc">Reminders</span>${(S.reminders||[]).filter(r=>!r.done && r.date<=T).sort((a,b)=>a.date<b.date?-1:1).map(r=>`<label class="row" style="padding:8px 0;border-top:1px dashed var(--line);cursor:pointer"><input type="checkbox" data-rm="${r.id}"><span class="serif" style="font-size:1.05rem">${esc(r.text)}</span><span class="mono">${r.date<T?'since '+fmtDate(r.date,'short'):'today'}</span><button class="del-x inline" data-rmdel="${r.id}" title="delete reminder" style="margin-left:auto">×</button></label>`).join('')}</section>`:''}
 
     <section class="section rv"><span class="sc">The last thirty days</span>
       <div class="charts3">
@@ -1756,6 +1796,7 @@ routes.today = function(root){
   root.querySelectorAll('.tracker i').forEach(i => i.onclick = () => { const d = i.dataset.td; if(d > T) return; const idx = S.theatre.days.indexOf(d); if(idx>=0) S.theatre.days.splice(idx,1); else S.theatre.days.push(d); saveNow(); rerender(); });
   $('#anotherPrompt').onclick = () => { S._promptShift = (S._promptShift||0)+1; $('#promptText').innerHTML = gentlePrompt(); };
   root.querySelectorAll('[data-quick]').forEach(b => b.onclick = () => { const t = b.dataset.quick; if(t==='nod') openNodModal(); else openEntryModal({type:t}); });
+  root.querySelectorAll('[data-rmdel]').forEach(b => b.onclick = e => { e.preventDefault(); e.stopPropagation(); const r = byId(S.reminders, b.dataset.rmdel); requestDelete({label: r.text, node: b.closest('label'), remove: () => spliceOut(S.reminders, x => x.id === r.id)}); });
   root.querySelectorAll('[data-rm]').forEach(c => c.onchange = () => { const r = byId(S.reminders, c.dataset.rm); if(r){ r.done = true; r.doneAt = today(); saveNow(); sound('success'); setTimeout(rerender, 300); } });
 };
 /* ============================================================
@@ -1766,10 +1807,10 @@ function threadStageCounts(t){ return S.stages.map(s => stageEntries(s).filter(e
 function photoTile(p, path){ return `<div class="photo" data-lb="${p.id}"><img src="${p.src}" alt="${esc(p.caption)}"><div class="pctl"><button data-pmeta="${path}" title="caption, date, people">✎</button><button data-pdel="${path}" title="remove photo">×</button></div>${p.caption||p.date?`<div class="pcap">${esc(p.caption)}${p.date?` · ${esc(p.date)}`:''}</div>`:''}</div>`; }
 function photoList(path){ return getPath(path); }
 document.addEventListener('click', e => {
-  const del = e.target.closest('[data-pdel]'); if(del){ e.stopPropagation(); const arr = photoList(del.dataset.pdel.replace(/\.\d+$/,'')); const i = +del.dataset.pdel.split('.').pop(); confirmDlg('Remove this photo? It cannot be recovered unless you exported.', ()=>{ arr.splice(i,1); saveNow(); rerender(); toast('Photo removed.'); }); return; }
+  const del = e.target.closest('[data-pdel]'); if(del){ e.stopPropagation(); const arr = photoList(del.dataset.pdel.replace(/\.\d+$/,'')); const i = +del.dataset.pdel.split('.').pop(); const p = arr[i]; requestDelete({label: p?.caption || 'Photo', node: del.closest('.photo'), remove: () => spliceOut(arr, x => x === p)}); return; }
   const meta = e.target.closest('[data-pmeta]'); if(meta){ e.stopPropagation(); const path = meta.dataset.pmeta; const p = getPath(path); const m = openModal(`<h2>This photo</h2><img src="${p.src}" style="width:100%;max-height:260px;object-fit:contain;border-radius:8px;margin-bottom:14px"><div class="stack"><div class="field"><label>Caption</label><input class="inp" id="pmCap" value="${esc(p.caption||'')}"></div><div class="field"><label>Date</label><input class="inp" id="pmDate" value="${esc(p.date||'')}" placeholder="2013-10 · or “that summer”"></div><div class="field"><label>People</label><input class="inp" id="pmPpl" value="${esc((p.people||[]).join(', '))}" placeholder="comma-separated"></div><div class="row between"><button class="btn sm ghost danger" id="pmDel">remove photo</button><button class="btn primary" id="pmSave">Save</button></div></div>`,'narrow');
     m.querySelector('#pmSave').onclick = () => { p.caption = m.querySelector('#pmCap').value.trim(); p.date = m.querySelector('#pmDate').value.trim(); p.people = m.querySelector('#pmPpl').value.split(',').map(s=>s.trim()).filter(Boolean); S.people = [...new Set([...(S.people||[]), ...p.people])]; saveNow(); m.remove(); rerender(); sound('save'); };
-    m.querySelector('#pmDel').onclick = () => { m.remove(); const arr = photoList(path.replace(/\.\d+$/,'')); arr.splice(+path.split('.').pop(),1); saveNow(); rerender(); toast('Photo removed.'); };
+    m.querySelector('#pmDel').onclick = () => { m.remove(); const arr = photoList(path.replace(/\.\d+$/,'')); requestDelete({label: p.caption || 'Photo', remove: () => spliceOut(arr, x => x === p)}); };
   }
 }, true);
 function mosaicHTML(s, n=9, hero=false){ const ph = s.photos||[]; let out=''; for(let i=0;i<n;i++){ const p = ph[i % Math.max(ph.length,1)]; const big = i===0 || (hero && i===7); out += ph.length ? `<img src="${p.src}" class="${big?'big':''}" alt="">` : `<div class="tex ${big?'big':''}"></div>`; } return out; }
@@ -1793,6 +1834,16 @@ function ribbonsSVG(width){
   });
   return `<svg viewBox="0 0 ${width} ${H}" preserveAspectRatio="none">${out}</svg>`;
 }
+function deleteStage(st, node, after){
+  requestDelete({label: `${st.char} ${st.name}`, node, after, remove: () => {
+    const subIds = new Set((st.substages||[]).map(x=>x.id));
+    const touched = S.entries.filter(e => (e.links?.stages||[]).includes(st.id) || (e.links?.substages||[]).some(id => subIds.has(id)));
+    const restoreLinks = snapshotLinks(touched);
+    touched.forEach(e => { e.links.stages = e.links.stages.filter(x => x !== st.id); e.links.substages = e.links.substages.filter(x => !subIds.has(x)); });
+    const back = spliceOut(S.stages, x => x.id === st.id); if(S._lastStage === st.id) S._lastStage = null;
+    return () => { back(); restoreLinks(); };
+  }});
+}
 routes.timeline = function(root, params){
   registerPageEntry({pageName:'Memory', addLabel:'New memory', defaultEntryType:'memory', prefilledFields:{}, hint:'Open a stage to file it there directly.', options:[{label:'New memory', run:()=>EntryActions.memory()}]});
   const tab = params[0]==='threads' ? 'threads' : 'stages';
@@ -1807,7 +1858,7 @@ routes.timeline = function(root, params){
     <div class="spine-wrap"><div class="spine" id="spine">
       <svg class="curve" viewBox="0 0 1000 120" preserveAspectRatio="none"><path d="M0,60 C250,20 750,100 1000,60" fill="none" stroke="var(--line-2)" stroke-width="1.5"/></svg>
       ${S.stages.map((s,i)=>`<div class="tile ${s.num===8?'notyet':''}" data-stage="${s.id}" style="--c:${s.hue};${S.settings.feltTime?`flex:${(.6 + counts[i]/maxc*1.4).toFixed(2)} 1 0`:''}" tabindex="0">
-        <div class="glow"></div><div class="bg">${mosaicHTML(s,9)}</div><div class="veil"></div>
+        <div class="glow"></div><div class="bg">${mosaicHTML(s,9)}</div><div class="veil"></div><button class="del-x" data-stagedel="${s.id}" title="delete stage" aria-label="delete stage">×</button>
         <div class="fg"><div class="han">${s.char}</div><div class="nm">${esc(s.name)}</div><div class="tg">${esc(s.tagline)}</div><div class="yr">${esc(s.years)} · ${counts[i]} entries</div></div>
       </div>`).join('')}
     </div></div>
@@ -1818,6 +1869,7 @@ routes.timeline = function(root, params){
   const spine = $('#spine');
   spine.addEventListener('mouseover', e => { if(e.target.closest('.tile')) spine.classList.add('hovering'); });
   spine.addEventListener('mouseleave', () => spine.classList.remove('hovering'));
+  $$('[data-stagedel]', root).forEach(b => b.onclick = e => { e.stopPropagation(); deleteStage(byId(S.stages, b.dataset.stagedel), b.closest('.tile')); });
   $$('.tile', root).forEach(t => { const go = () => { t.querySelector('.han').style.viewTransitionName = 'stage-char'; t.querySelector('.bg').style.viewTransitionName = 'stage-mosaic'; S._lastStage = t.dataset.stage; navigate('#/stage/'+t.dataset.stage); }; t.onclick = go; t.onkeydown = e => { if(e.key==='Enter') go(); }; });
   if(S._lastStage){ const t = root.querySelector(`.tile[data-stage="${S._lastStage}"]`); if(t){ t.querySelector('.han').style.viewTransitionName='stage-char'; t.querySelector('.bg').style.viewTransitionName='stage-mosaic'; } }
   const wrap = $('.spine-wrap', root); wrap.addEventListener('wheel', e => { if(Math.abs(e.deltaY) > Math.abs(e.deltaX) && wrap.scrollWidth > wrap.clientWidth){ wrap.scrollLeft += e.deltaY; e.preventDefault(); } }, {passive:false});
@@ -1844,6 +1896,7 @@ function renderThreadsTab(body){
         <input type="range" class="slider" min="0" max="100" value="${cur}" data-tension="${tn.id}" style="--c:${th?.color||'var(--terra)'}">
         <div class="row between" style="margin-top:6px"><span class="mono">${log.length} readings · latest ${log.length?fmtDate(log.slice(-1)[0].date,'med'):'—'}</span><span class="row"><select class="sel" style="width:auto;padding:2px 6px;font-size:.68rem" data-tlink="${tn.id}"><option value="">no thread</option>${S.threads.map(t=>`<option value="${t.id}" ${tn.threadId===t.id?'selected':''}>${esc(t.name)}</option>`).join('')}</select><button class="btn sm ghost" data-tlog="${tn.id}">log reading</button><button class="tbtn" data-tndel="${tn.id}">×</button></span></div>
         <div style="margin-top:8px">${sparkline(log.map(l=>l.pos),{h:36,min:0,max:100,color:th?.color||'var(--terra)',dots:true,labels:log.map(l=>`${fmtDate(l.date,'med')}: ${l.pos} ${l.note?'— '+l.note:''}`)})}<div class="row between mono"><span>← ${esc(tn.left)}</span><span>${esc(tn.right)} →</span></div></div>
+        ${log.length?`<details><summary><span class="mono">readings</span></summary><div class="body">${tn.log.map((l,i)=>`<div class="reading row between" style="padding:4px 0;font-size:.8rem"><span class="mono">${fmtDate(l.date,'med')} · ${l.pos}${l.note?' — '+esc(l.note):''}</span><button class="del-x inline" data-tn="${tn.id}" data-rdel="${i}" title="delete reading">×</button></div>`).join('')}</div></details>`:''}
       </div>`; }).join('')}
     </div>
   </div>`;
@@ -1851,8 +1904,9 @@ function renderThreadsTab(body){
   $('#addTension').onclick = () => { S.tensions.push({id:uid(),left:'Left pole',right:'Right pole',threadId:null,log:[{date:today(),pos:50,note:''}]}); saveNow(); rerender(); };
   $$('[data-tstatus]',body).forEach(s => s.onchange = () => { byId(S.threads,s.dataset.tstatus).status = s.value; saveNow(); rerender(); });
   $$('[data-tcolor]',body).forEach(s => s.onchange = () => { byId(S.threads,s.dataset.tcolor).color = s.value; saveNow(); rerender(); });
-  $$('[data-tdel]',body).forEach(b => b.onclick = () => confirmDlg('Remove this thread? Entries keep their other links.', ()=>{ S.threads = S.threads.filter(t=>t.id!==b.dataset.tdel); saveNow(); rerender(); }));
-  $$('[data-tndel]',body).forEach(b => b.onclick = () => confirmDlg('Remove this tension and its history?', ()=>{ S.tensions = S.tensions.filter(t=>t.id!==b.dataset.tndel); saveNow(); rerender(); }));
+  $$('[data-tdel]',body).forEach(b => b.onclick = () => { const t = byId(S.threads, b.dataset.tdel); requestDelete({label: t.name, node: b.closest('.th'), remove: () => { const touched = S.entries.filter(e => (e.links?.threads||[]).includes(t.id)); const rl = snapshotLinks(touched); touched.forEach(e => e.links.threads = e.links.threads.filter(x => x !== t.id)); const tens = S.tensions.filter(x => x.threadId === t.id); tens.forEach(x => x.threadId = null); const back = spliceOut(S.threads, x => x.id === t.id); return () => { back(); rl(); tens.forEach(x => x.threadId = t.id); }; }}); });
+  $$('[data-tndel]',body).forEach(b => b.onclick = () => { const tn = byId(S.tensions, b.dataset.tndel); requestDelete({label: `${tn.left} ↔ ${tn.right}`, node: b.closest('.tension'), remove: () => spliceOut(S.tensions, x => x.id === tn.id)}); });
+  $$('[data-rdel]',body).forEach(b => b.onclick = () => { const tn = byId(S.tensions, b.dataset.tn); const r = tn.log[+b.dataset.rdel]; requestDelete({label: `Reading ${fmtDate(r.date,'med')}`, node: b.closest('.reading'), remove: () => spliceOut(tn.log, x => x === r)}); });
   $$('[data-tn]',body).forEach(b => b.onclick = () => openThreadNarrative(b.dataset.tn));
   $$('[data-tlink]',body).forEach(s => s.onchange = () => { byId(S.tensions,s.dataset.tlink).threadId = s.value||null; saveNow(); rerender(); });
   $$('[data-tlog]',body).forEach(b => b.onclick = () => { const tn = byId(S.tensions,b.dataset.tlog); const pos = +body.querySelector(`[data-tension="${tn.id}"]`).value; const m = openModal(`<h2>Log a reading</h2><p class="muted">${esc(tn.left)} ${pos} / ${100-pos} ${esc(tn.right)}</p><input class="inp" id="tnNote" placeholder="optional note — what's pulling you this way?"><div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary" id="tnSave">Log</button></div>`,'narrow'); m.querySelector('#tnSave').onclick = () => { tn.log.push({date:today(),pos,note:m.querySelector('#tnNote').value}); saveNow(); m.remove(); rerender(); sound('save'); }; });
@@ -1886,7 +1940,7 @@ routes.stage = function(root, params){
     <section class="section rv"><span class="sc">The story I tell about this stage</span>
       ${ed(`stages.#${s.id}.narrative`,{multi:true,mdr:true,cls:'prose serif-lg',ph:'Your current interpretation of this era. It will change. That is the point.',hook:'stageNarrative:'+s.id})}
       <div class="row" style="margin-top:10px"><button class="btn sm ghost" id="saveVersion">keep this version</button></div>
-      <details style="margin-top:14px"><summary><span class="sc">The story I used to tell</span><span class="mono">${(s.narrativeHistory||[]).length} versions</span></summary><div class="body versions">${(s.narrativeHistory||[]).length ? [...s.narrativeHistory].reverse().map(v=>`<div class="v"><div class="mono" style="margin-bottom:6px">${fmtDate(v.date,'long')}</div>${md(v.text)}</div>`).join('') : '<div class="empty">No previous versions yet. Rewrite the story above and the old one will be kept here.</div>'}</div></details>
+      <details style="margin-top:14px"><summary><span class="sc">The story I used to tell</span><span class="mono">${(s.narrativeHistory||[]).length} versions</span></summary><div class="body versions">${(s.narrativeHistory||[]).length ? s.narrativeHistory.map((v,i)=>`<div class="v"><div class="mono" style="margin-bottom:6px">${fmtDate(v.date,'long')}</div>${md(v.text)}<button class="del-x" data-verdel="${i}" title="delete this version">×</button></div>`).reverse().join('') : '<div class="empty">No previous versions yet. Rewrite the story above and the old one will be kept here.</div>'}</div></details>
     </section>
 
     <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Sub-stages</span><button class="btn sm" id="addSub">+ sub-stage</button></div>
@@ -1896,9 +1950,9 @@ routes.stage = function(root, params){
         <div class="row" style="margin:8px 0"><button class="btn sm ghost" data-ssphoto="${i}">+ photos</button><button class="btn sm ghost" data-ssmem="${ss.id}">+ formative event</button></div>
         ${ss.photos?.length?`<div class="gallery">${ss.photos.map((p,j)=>photoTile(p,`stages.#${s.id}.substages.${i}.photos.${j}`)).join('')}</div>`:''}
         ${fe.length?`<div class="sc" style="margin-top:8px">Formative events</div>`:''}
-        ${fe.map(e=>`<div class="formative"><div class="row between"><b class="serif" style="font-size:1.1rem">${esc(e.title)}</b><span class="mono">${esc(fmtDate(e.occurredAt,'med'))} <button class="tbtn" data-edit="${e.id}">edit</button></span></div><div class="muted" style="margin-top:4px;line-height:1.7">${md(e.body)}</div>${e.media?.length?`<div class="thumbs">${e.media.map(m=>`<div class="photo" style="width:72px;height:72px" data-lb="${m.id}"><img src="${m.src}"></div>`).join('')}</div>`:''}<div class="installed"><div class="k">What this installed in me</div>${ed(`entries.#${e.id}.extra.installed`,{multi:true,ph:'The belief, fear, pattern, or capability this event left behind.'})}</div></div>`).join('')}
+        ${fe.map(e=>`<div class="formative"><div class="row between"><b class="serif" style="font-size:1.1rem">${esc(e.title)}</b><span class="mono">${esc(fmtDate(e.occurredAt,'med'))} <button class="tbtn" data-edit="${e.id}">edit</button></span></div><button class="del-x" data-del="${e.id}" title="delete">×</button><div class="muted" style="margin-top:4px;line-height:1.7">${md(e.body)}</div>${e.media?.length?`<div class="thumbs">${e.media.map(m=>`<div class="photo" style="width:72px;height:72px" data-lb="${m.id}"><img src="${m.src}"></div>`).join('')}</div>`:''}<div class="installed"><div class="k">What this installed in me</div>${ed(`entries.#${e.id}.extra.installed`,{multi:true,ph:'The belief, fear, pattern, or capability this event left behind.'})}</div></div>`).join('')}
       </div>`; }).join('')}
-      ${memories.filter(e=>!(e.links?.substages||[]).length).length?`<div class="substage"><div class="hd"><h3 class="muted">Formative events not tied to a sub-stage</h3></div>${memories.filter(e=>!(e.links?.substages||[]).length).map(e=>`<div class="formative"><div class="row between"><b class="serif" style="font-size:1.1rem">${esc(e.title)}</b><span class="mono">${esc(fmtDate(e.occurredAt,'med'))} <button class="tbtn" data-edit="${e.id}">edit</button></span></div><div class="muted" style="margin-top:4px;line-height:1.7">${md(e.body)}</div><div class="installed"><div class="k">What this installed in me</div>${ed(`entries.#${e.id}.extra.installed`,{multi:true,ph:'The belief, fear, pattern, or capability this event left behind.'})}</div></div>`).join('')}</div>`:''}
+      ${memories.filter(e=>!(e.links?.substages||[]).length).length?`<div class="substage"><div class="hd"><h3 class="muted">Formative events not tied to a sub-stage</h3></div>${memories.filter(e=>!(e.links?.substages||[]).length).map(e=>`<div class="formative"><div class="row between"><b class="serif" style="font-size:1.1rem">${esc(e.title)}</b><span class="mono">${esc(fmtDate(e.occurredAt,'med'))} <button class="tbtn" data-edit="${e.id}">edit</button></span></div><button class="del-x" data-del="${e.id}" title="delete">×</button><div class="muted" style="margin-top:4px;line-height:1.7">${md(e.body)}</div><div class="installed"><div class="k">What this installed in me</div>${ed(`entries.#${e.id}.extra.installed`,{multi:true,ph:'The belief, fear, pattern, or capability this event left behind.'})}</div></div>`).join('')}</div>`:''}
     </section>
 
     <section class="section rv"><span class="sc">Threads present in this stage</span>
@@ -1926,12 +1980,15 @@ routes.stage = function(root, params){
     <section class="section rv"><div class="row between"><span class="sc">Everything from this stage</span></div>
       ${es.filter(e=>e.type!=='memory').map(e=>entryCard(e)).join('') || '<div class="empty">Only memories so far. Add a reflection, a quote, a dream.</div>'}
     </section>
+    <div class="row" style="margin-top:40px;justify-content:flex-end"><button class="btn sm ghost danger" id="delStage">delete this stage</button></div>
   </div>`;
   $('#addPhotos').onclick = () => $('#photoFile').click();
   $('#photoFile').onchange = e => readImages(e.target.files, img => { s.photos = s.photos||[]; s.photos.push(img); saveNow(); rerender(); });
   $('#saveVersion').onclick = () => { s.narrativeHistory = s.narrativeHistory||[]; s.narrativeHistory.push({date:today(), text:s.narrative}); saveNow(); toast('Version kept.'); rerender(); };
   $('#addSub').onclick = () => { s.substages.push({id:uid(),name:'New chapter',desc:'',photos:[]}); saveNow(); rerender(); };
-  $$('[data-ssdel]',root).forEach(b => b.onclick = () => confirmDlg('Remove this sub-stage? Its formative events stay in the journal.', ()=>{ s.substages.splice(+b.dataset.ssdel,1); saveNow(); rerender(); }));
+  $$('[data-ssdel]',root).forEach(b => b.onclick = () => { const ss = s.substages[+b.dataset.ssdel]; requestDelete({label: ss.name, node: b.closest('.substage'), remove: () => { const touched = S.entries.filter(e => (e.links?.substages||[]).includes(ss.id)); const rl = snapshotLinks(touched); touched.forEach(e => e.links.substages = e.links.substages.filter(x => x !== ss.id)); const back = spliceOut(s.substages, x => x === ss); return () => { back(); rl(); }; }}); });
+  $$('[data-verdel]',root).forEach(b => b.onclick = () => { const v = s.narrativeHistory[+b.dataset.verdel]; requestDelete({label: `Version from ${fmtDate(v.date,'med')}`, node: b.closest('.v'), remove: () => spliceOut(s.narrativeHistory, x => x === v)}); });
+  $('#delStage').onclick = () => deleteStage(s, null, () => navigate('#/timeline'));
   $$('[data-ssup]',root).forEach(b => b.onclick = () => { const i=+b.dataset.ssup; if(i>0){ [s.substages[i-1],s.substages[i]]=[s.substages[i],s.substages[i-1]]; saveNow(); rerender(); } });
   $$('[data-ssdown]',root).forEach(b => b.onclick = () => { const i=+b.dataset.ssdown; if(i<s.substages.length-1){ [s.substages[i+1],s.substages[i]]=[s.substages[i],s.substages[i+1]]; saveNow(); rerender(); } });
   $$('[data-ssphoto]',root).forEach(b => b.onclick = () => { const inp = el('<input type="file" accept="image/*" multiple hidden>'); document.body.appendChild(inp); inp.onchange = e => { readImages(e.target.files, img => { const ss = s.substages[+b.dataset.ssphoto]; ss.photos = ss.photos||[]; ss.photos.push(img); saveNow(); rerender(); }); inp.remove(); }; inp.click(); });
@@ -1939,10 +1996,10 @@ routes.stage = function(root, params){
   $$('[data-thread-open]',root).forEach(c => c.onclick = () => openThreadNarrative(c.dataset.threadOpen));
   $$('[data-retro]',root).forEach(r => { r.oninput = () => { root.querySelector(`[data-retro-lbl="${r.dataset.retro}"]`).textContent = r.value; }; r.onchange = () => { s.retroValues = s.retroValues||{}; s.retroValues[r.dataset.retro] = +r.value; saveNow(); $('#retroRadar').innerHTML = radar(axes,[{vals:S.valueOrder.map(id=>cur[id]??0),color:'var(--faint)',dashed:true},{vals:S.valueOrder.map(id=>s.retroValues?.[id]??0),color:s.hue}],{size:320}) + `<div class="legend" style="justify-content:center"><span style="--c:${s.hue}">this stage</span><span style="--c:var(--faint)">today, ghosted</span></div>`; }; });
   $('#addSong').onclick = () => { s.soundtrack = s.soundtrack||[]; s.soundtrack.push({t:''}); saveNow(); rerender(); };
-  $$('[data-songdel]',root).forEach(b => b.onclick = () => { s.soundtrack.splice(+b.dataset.songdel,1); saveNow(); rerender(); });
+  $$('[data-songdel]',root).forEach(b => b.onclick = () => { const song = s.soundtrack[+b.dataset.songdel]; requestDelete({label: song.t || 'Song', node: b.closest('li'), remove: () => spliceOut(s.soundtrack, x => x === song)}); });
   $('#addArtifact').onclick = () => $('#artFile').click();
   $('#artFile').onchange = e => { if(!e.target.files.length){ s.artifacts.push({id:uid(),caption:'New artifact',date:'',src:''}); saveNow(); rerender(); return; } readImages(e.target.files, img => { s.artifacts = s.artifacts||[]; s.artifacts.push({id:img.id,caption:'',date:'',src:img.src}); saveNow(); rerender(); }); };
-  $$('[data-artdel]',root).forEach(b => b.onclick = () => { s.artifacts.splice(+b.dataset.artdel,1); saveNow(); rerender(); });
+  $$('[data-artdel]',root).forEach(b => b.onclick = () => { const a = s.artifacts[+b.dataset.artdel]; requestDelete({label: a.caption || 'Artifact', node: b.closest('.artifact'), remove: () => spliceOut(s.artifacts, x => x === a)}); });
   root.querySelectorAll('.artifact .paper[data-lb]').forEach(p => p.onclick = () => lightbox(p.querySelector('img').src, p.nextElementSibling?.textContent||''));
 };
 /* ============================================================
@@ -2012,18 +2069,30 @@ routes.vision = function(root, params){
   root.innerHTML = `<div class="page">
     <div class="page-head row between"><div><h1>Vision Tree</h1><div class="sub">Every entry tagged to a vision grows a leaf. Vividness is the sap. Untended branches wither — honestly, reversibly.</div></div><div class="row"><select class="sel" style="width:auto" id="activeEra" title="active era for new goals">${S.eras.map(e=>`<option value="${e.id}" ${activeEra===e.id?'selected':''}>${esc(e.label)}</option>`).join('')}</select><button class="btn ghost" id="editEras">eras</button></div></div>
     <div class="tree-wrap" id="treeWrap"><div class="tree-tools"></div><div class="tree-legend"><span>bare twig 0–15</span><span>budding 16–30</span><span>leafing 31–50</span><span>canopy 51–70</span><span>flowering 71–85</span><span>fruiting 86–100</span><span>· hover a branch to trace its lineage</span></div></div>
-    <div class="grid c3 section">${S.visions.map(v => { const {score, lastTended} = vividness(v); return `<div class="card rv" data-vopen="${v.id}" style="cursor:pointer"><div class="row between"><h3 style="margin:0">${esc(v.name)}</h3><span class="mono">${v.era}</span></div><div class="row" style="margin:8px 0"><div class="bar" style="flex:1;--c:${v.confidence==='lived'?'var(--gold)':'var(--sage)'}"><i style="width:${score}%"></i></div><span class="mono" data-tween="${score}">0</span></div><div class="muted" style="font-size:.8rem">${esc(v.confidence)} · tended ${relDays(lastTended)}${v.nextAction?`<br><span style="color:var(--gold)">→</span> ${esc(v.nextAction)}`:''}</div></div>`; }).join('')}</div>
+    <div class="grid c3 section">${S.visions.map(v => { const {score, lastTended} = vividness(v); return `<div class="card rv" data-vopen="${v.id}" style="cursor:pointer"><button class="del-x" data-vdel="${v.id}" title="delete vision">×</button><div class="row between"><h3 style="margin:0">${esc(v.name)}</h3><span class="mono">${v.era}</span></div><div class="row" style="margin:8px 0"><div class="bar" style="flex:1;--c:${v.confidence==='lived'?'var(--gold)':'var(--sage)'}"><i style="width:${score}%"></i></div><span class="mono" data-tween="${score}">0</span></div><div class="muted" style="font-size:.8rem">${esc(v.confidence)} · tended ${relDays(lastTended)}${v.nextAction?`<br><span style="color:var(--gold)">→</span> ${esc(v.nextAction)}`:''}</div></div>`; }).join('')}</div>
   </div>`;
   drawTree();
   function drawTree(){ const wrap = $('#treeWrap'); const W = Math.max(wrap.clientWidth, 600), H = wrap.clientHeight; wrap.querySelector('svg')?.remove(); wrap.insertAdjacentHTML('afterbegin', treeSVG(W,H)); const svg = wrap.querySelector('svg');
     svg.querySelectorAll('.branch').forEach(b => { b.onclick = () => openVisionPanel(b.dataset.vision); b.onmouseenter = () => { const [sx,sy] = b.dataset.start.split(',').map(Number); const [tx,ty] = b.dataset.trunk.split(',').map(Number); const tr = $('#trace'); tr.setAttribute('d', `M${sx},${sy} L${tx},${sy} L${tx},${ty}`); tr.style.opacity = '.6'; sound('leaf'); }; b.onmouseleave = () => { $('#trace').style.opacity = '0'; }; });
     startSway(svg); }
   window.addEventListener('resize', debounce(()=>{ if(currentRoute==='vision') drawTree(); }, 250), {once:true});
-  $$('[data-vopen]',root).forEach(c => c.onclick = () => openVisionPanel(c.dataset.vopen));
+  $$('[data-vopen]',root).forEach(c => c.onclick = e => { if(e.target.closest('.del-x')) return; openVisionPanel(c.dataset.vopen); });
+  $$('[data-vdel]',root).forEach(b => b.onclick = e => { e.stopPropagation(); deleteVision(byId(S.visions, b.dataset.vdel), b.closest('.card')); });
   $('#activeEra').onchange = e => { S._activeEra = e.target.value; rerender(); };
-  $('#editEras').onclick = () => { openModal(`<h2>Trunk segments</h2><p class="muted">Life decades or eras. Edit the labels and descriptions.</p><div class="stack">${S.eras.map((e,i)=>`<div class="card" style="padding:14px 16px"><b class="serif">${ed(`eras.${i}.label`)}</b><div class="muted">${ed(`eras.${i}.desc`,{ph:'what this decade is for'})}</div></div>`).join('')}</div>`,'narrow'); };
+  $('#editEras').onclick = () => { openModal(`<h2>Trunk segments</h2><p class="muted">Life decades or eras. Edit the labels and descriptions.</p><div class="stack">${S.eras.map((e,i)=>`<div class="card" style="padding:14px 16px"><b class="serif">${ed(`eras.${i}.label`)}</b><div class="muted">${ed(`eras.${i}.desc`,{ph:'what this decade is for'})}</div>${S.eras.length>1?`<button class="del-x" data-eradel="${e.id}" title="delete era">×</button>`:''}</div>`).join('')}</div><div class="row" style="margin-top:12px"><button class="btn sm ghost" id="addEra">+ era</button></div>`,'narrow');
+    m.querySelector('#addEra').onclick = () => { S.eras.push({id:'era-'+uid(), label:'New era', desc:''}); saveNow(); m.remove(); rerender(); $('#editEras').click(); };
+    m.querySelectorAll('[data-eradel]').forEach(b => b.onclick = () => { const era = byId(S.eras, b.dataset.eradel); m.remove(); requestDelete({label: `Era ${era.label}`, remove: () => { const back = spliceOut(S.eras, x => x.id === era.id); const moved = S.visions.filter(v => v.era === era.id); const to = S.eras[0]?.id; moved.forEach(v => v.era = to); return () => { back(); moved.forEach(v => v.era = era.id); }; }}); }); };
   if(params[0]) openVisionPanel(params[0]);
 };
+function deleteVision(v, node, after){
+  requestDelete({label: v.name, node, after, remove: () => {
+    const kids = S.visions.filter(x => x.parentId === v.id); kids.forEach(x => x.parentId = null);
+    const touched = S.entries.filter(e => (e.links?.visions||[]).includes(v.id)); const rl = snapshotLinks(touched); touched.forEach(e => e.links.visions = e.links.visions.filter(x => x !== v.id));
+    const habits = S.habits.filter(h => (h.links?.visions||[]).includes(v.id)); habits.forEach(h => h.links.visions = h.links.visions.filter(x => x !== v.id));
+    const back = spliceOut(S.visions, x => x.id === v.id);
+    return () => { back(); kids.forEach(x => x.parentId = v.id); rl(); habits.forEach(h => h.links.visions.push(v.id)); };
+  }});
+}
 hooks.futureMemory = (vid, o, n) => { const v = byId(S.visions,vid); if(v && o.trim() && o!==n){ v.futureMemoryHistory.push({date:today(),text:o}); saveNow(); } };
 hooks.currentReality = (vid, o, n) => { const v = byId(S.visions,vid); if(v && o.trim() && o!==n){ v.currentRealityHistory.push({date:today(),text:o}); saveNow(); } };
 function openVisionPanel(id){
@@ -2063,15 +2132,15 @@ function openVisionPanel(id){
   p.querySelectorAll('[data-feel]').forEach(b => b.onclick = () => { v.feeling = +b.dataset.feel; saveNow(); rerender(); openVisionPanel(v.id); });
   p.querySelector('#addRes').onclick = () => { v.resistance.push({text:'',threadId:null}); saveNow(); openVisionPanel(v.id); };
   p.querySelectorAll('[data-resthread]').forEach(s => s.onchange = () => { v.resistance[+s.dataset.resthread].threadId = s.value||null; saveNow(); });
-  p.querySelectorAll('[data-resdel]').forEach(b => b.onclick = () => { v.resistance.splice(+b.dataset.resdel,1); saveNow(); openVisionPanel(v.id); });
+  p.querySelectorAll('[data-resdel]').forEach(b => b.onclick = () => { const r = v.resistance[+b.dataset.resdel]; requestDelete({label: r.text || 'Resistance', node: b.closest('.evidence-item'), remove: () => spliceOut(v.resistance, x => x === r), after: () => openVisionPanel(v.id)}); });
   p.querySelectorAll('[data-vlink]').forEach(c => c.onclick = () => openVisionPanel(c.dataset.vlink));
   p.querySelectorAll('[data-preskill]').forEach(c => c.onclick = () => { const id = c.dataset.preskill; v.preSkills = v.preSkills.includes(id) ? v.preSkills.filter(x=>x!==id) : [...v.preSkills,id]; saveNow(); c.classList.toggle('on'); });
   p.querySelector('#vParent').onchange = e => { v.parentId = e.target.value||null; saveNow(); rerender(); openVisionPanel(v.id); };
   p.querySelectorAll('[data-vval]').forEach(c => c.onclick = () => { const id = c.dataset.vval; v.values = v.values.includes(id) ? v.values.filter(x=>x!==id) : [...v.values,id]; saveNow(); c.classList.toggle('on'); });
   p.querySelector('#addEv').onclick = () => { v.evidence.push({date:today(),text:''}); saveNow(); openVisionPanel(v.id); setTimeout(()=>{ const last = $$('#panel .evidence-item .ed').slice(-1)[0]; last && beginEdit(last); },50); };
-  p.querySelectorAll('[data-evdel]').forEach(b => b.onclick = () => { v.evidence.splice(+b.dataset.evdel,1); saveNow(); openVisionPanel(v.id); });
+  p.querySelectorAll('[data-evdel]').forEach(b => b.onclick = () => { const ev = v.evidence[+b.dataset.evdel]; requestDelete({label: ev.text || 'Evidence', node: b.closest('.evidence-item'), remove: () => spliceOut(v.evidence, x => x === ev), after: () => openVisionPanel(v.id)}); });
   p.querySelector('#addLeaf').onclick = () => openEntryModal({type:'progress', links:{visions:[v.id]}, after:()=>{ rerender(); openVisionPanel(v.id); }});
-  p.querySelector('#delVision').onclick = () => confirmDlg('Remove this vision? Its entries remain in the journals.', ()=>{ S.visions = S.visions.filter(x=>x.id!==v.id); S.visions.forEach(x=>{ if(x.parentId===v.id) x.parentId=null; }); saveNow(); closePanel(); rerender(); });
+  p.querySelector('#delVision').onclick = () => deleteVision(v, null, () => { closePanel(); rerender(); });
 }
 function fruitCeremony(v){
   closePanel(); rerender();
@@ -2099,7 +2168,7 @@ routes.values = function(root){
     <div class="page-head row between"><div><h1>Values</h1><div class="sub">Ten compass points. Priority is what you say; congruence is what your days say. The gap between them is where your life and your values disagree.</div></div></div>
     <div class="grid c2" style="align-items:start">
       <div class="card rv"><div class="row between"><h3>Priority order</h3><span class="mono">drag to re-rank · ${S.valueOrderHistory.length} re-rankings</span></div>
-        <ul class="values-list" id="valuesList">${S.valueOrder.map((id,i)=>{ const v = byId(S.values,id); const c = valueCurrent(id); return `<li draggable="true" data-vid="${id}"><span class="rank">${i+1}</span><span class="nm"><a href="#/value/${id}" style="color:${v.color}">${esc(v.name)}</a></span><div class="bar" style="--c:${v.color}"><i style="width:${c}%"></i></div><span class="pct" data-tween="${c}" data-suffix="%">0</span><span class="faint">⋮</span></li>`; }).join('')}</ul>
+        <ul class="values-list" id="valuesList">${S.valueOrder.map((id,i)=>{ const v = byId(S.values,id); const c = valueCurrent(id); return `<li draggable="true" data-vid="${id}"><span class="rank">${i+1}</span><span class="nm"><a href="#/value/${id}" style="color:${v.color}">${esc(v.name)}</a></span><div class="bar" style="--c:${v.color}"><i style="width:${c}%"></i></div><span class="pct" data-tween="${c}" data-suffix="%">0</span><span class="row" style="gap:4px"><span class="faint">⋮</span><button class="del-x inline" data-valdel="${id}" title="delete value">×</button></span></li>`; }).join('')}</ul>
         <details style="margin-top:10px"><summary><span class="mono">how the ranking has changed</span></summary><div class="body">${[...S.valueOrderHistory].reverse().map(h=>`<div class="mono" style="padding:6px 0;border-top:1px dashed var(--line)">${fmtDate(h.date,'med')} · ${h.order.map(id=>byId(S.values,id)?.name.split(' ')[0]).join(' › ')}</div>`).join('')}</div></details>
       </div>
       <div class="card rv"><h3>The shape of a life</h3><div id="radarBox">${radar(axes,[{vals:S.valueOrder.map(id=>latest?.ratings[id]??0),color:'var(--terra)'}],{size:360})}</div>
@@ -2118,6 +2187,7 @@ routes.values = function(root){
         <div style="overflow-x:auto"><table class="matrix"><thead><tr><th></th>${S.visions.filter(v=>v.confidence!=='lived').map(v=>`<th class="rot">${esc(v.name)}</th>`).join('')}</tr></thead><tbody>${S.valueOrder.map(id=>{ const v=byId(S.values,id); const blind = !servedBy[id].length; return `<tr class="${blind?'blindrow':''}"><td style="text-align:left;color:${v.color}">${esc(v.name.split(' ')[0])}${blind?' <span class="mono">· blind spot</span>':''}</td>${S.visions.filter(x=>x.confidence!=='lived').map(x=>`<td class="${blind?'blind':''}">${x.values.includes(id)?'<i></i>':''}</td>`).join('')}</tr>`; }).join('')}</tbody></table></div></section>
     </div>
   </div>`;
+  $$('[data-valdel]',root).forEach(b => b.onclick = e => { e.stopPropagation(); deleteValue(byId(S.values, b.dataset.valdel), b.closest('li')); });
   // drag to reorder
   const list = $('#valuesList'); let dragId = null;
   list.querySelectorAll('li').forEach(li => { li.addEventListener('dragstart', ()=>{ dragId = li.dataset.vid; li.classList.add('dragging'); }); li.addEventListener('dragend', ()=>li.classList.remove('dragging')); li.addEventListener('dragover', e=>{ e.preventDefault(); li.classList.add('over'); }); li.addEventListener('dragleave', ()=>li.classList.remove('over')); li.addEventListener('drop', e=>{ e.preventDefault(); li.classList.remove('over'); if(!dragId || dragId===li.dataset.vid) return; const o = S.valueOrder.filter(x=>x!==dragId); o.splice(o.indexOf(li.dataset.vid),0,dragId); S.valueOrderHistory.push({date:today(),order:[...S.valueOrder]}); S.valueOrder = o; saveNow(); rerender(); toast('Priorities re-ranked. The previous order is kept.'); }); });
@@ -2127,6 +2197,16 @@ routes.values = function(root){
   renderSnapshotHistory($('#snapHistory'));
   ts.oninput = drawRadar; $('#ghostToggle').onclick = () => { ghost=!ghost; $('#ghostToggle').classList.toggle('on',ghost); drawRadar(); };
 };
+function deleteValue(v, node, after){
+  requestDelete({label: v.name, node, after, remove: () => {
+    const touched = S.entries.filter(e => (e.links?.values||[]).some(x => x.id === v.id)); const rl = snapshotLinks(touched); touched.forEach(e => e.links.values = e.links.values.filter(x => x.id !== v.id));
+    const vis = S.visions.filter(x => x.values.includes(v.id)); vis.forEach(x => x.values = x.values.filter(id => id !== v.id));
+    const habits = S.habits.filter(h => (h.links?.values||[]).includes(v.id)); habits.forEach(h => h.links.values = h.links.values.filter(id => id !== v.id));
+    const orderIdx = S.valueOrder.indexOf(v.id); S.valueOrderHistory.push({date: today(), order: [...S.valueOrder]}); S.valueOrder = S.valueOrder.filter(id => id !== v.id);
+    const back = spliceOut(S.values, x => x.id === v.id);
+    return () => { back(); rl(); vis.forEach(x => x.values.push(v.id)); habits.forEach(h => h.links.values.push(v.id)); S.valueOrder.splice(Math.min(orderIdx, S.valueOrder.length), 0, v.id); S.valueOrderHistory.pop(); };
+  }});
+}
 async function lastSnapshotFromDB(){
   try { const rows = await db.valueSnapshots.toArray(); rows.sort((a,b)=>a.date<b.date?1:-1); return rows[0] || null; } catch(e){ return latestSnapshot() || null; }
 }
@@ -2177,10 +2257,11 @@ async function renderSnapshotHistory(container){
     <div class="snap-list" id="snapList">${desc.length ? desc.map(s => { const prev = prevOf(s); const n = s.notes ? Object.keys(s.notes).length : 0; return `<div class="snap-row" data-snap="${s.id}">
       <div class="snap-head"><span class="snap-date"><b class="serif">${fmtDate(s.date,'med')}</b><span class="mono">${relDays(daysSince(s.date))}${n?` · ${n} note${n>1?'s':''}`:''}${s.note?' · note':''}</span></span>
         <div class="snap-bars">${S.valueOrder.map(id=>{ const v=byId(S.values,id); const sc = s.ratings[id] ?? 0; return `<div class="snap-bar" title="${esc(v.name)} ${sc}"><i class="${scoreBand(sc)}" style="height:${Math.max(2, sc*.28).toFixed(0)}px"></i>${deltaHTML(sc, prev?.ratings[id])}</div>`; }).join('')}</div>
-        <span class="mono snap-chev">›</span></div>
+        <span class="row" style="gap:6px;justify-content:flex-end"><button class="del-x inline" data-snapdel="${s.id}" title="delete snapshot">×</button><span class="mono snap-chev">›</span></span></div>
       <div class="snap-detail"><div class="snap-detail-inner">${S.valueOrder.map(id=>{ const v=byId(S.values,id); const sc = s.ratings[id] ?? 0; const note = s.notes?.[id]; return `<div class="snap-val"><span style="color:${v.color}">${esc(v.name)}</span><div class="bar" style="--c:${v.color}"><i style="width:${sc}%"></i></div><span class="mono">${sc}</span>${deltaHTML(sc, prev?.ratings[id])}${note?`<div class="snap-note">“${esc(note)}”</div>`:''}</div>`; }).join('')}${s.note?`<div class="quote" style="margin-top:10px">${esc(s.note)}</div>`:''}</div></div>
     </div>`; }).join('') : '<div class="empty">No snapshots yet. Take the first one.</div>'}</div>`;
-  container.querySelectorAll('.snap-head').forEach(h => h.onclick = () => h.parentElement.classList.toggle('open'));
+  container.querySelectorAll('.snap-head').forEach(h => h.onclick = e => { if(e.target.closest('.del-x')) return; h.parentElement.classList.toggle('open'); });
+  container.querySelectorAll('[data-snapdel]').forEach(b => b.onclick = e => { e.stopPropagation(); const snap = byId(S.valueSnapshots, b.dataset.snapdel); if(!snap) return; requestDelete({label: `Snapshot ${fmtDate(snap.date,'med')}`, node: b.closest('.snap-row'), remove: () => spliceOut(S.valueSnapshots, x => x.id === snap.id)}); });
   container.querySelectorAll('[data-tl]').forEach(l => { l.onmouseenter = () => { container.querySelectorAll('.trend-line,.trend-dot').forEach(x => x.style.opacity = x.dataset.v === l.dataset.tl ? '1' : '.12'); }; l.onmouseleave = () => container.querySelectorAll('.trend-line,.trend-dot').forEach(x => x.style.opacity = ''); });
 }
 routes.value = function(root, params){
@@ -2188,7 +2269,7 @@ routes.value = function(root, params){
   registerPageEntry({pageName:'Compass', addLabel:`Evidence for ${v.name}`, defaultEntryType:'reflection', prefilledFields:{links:{values:[{id:v.id,pol:'+'}]}}, options:[{label:'Evidence', run:(pre)=>openEntryModal({type:'reflection', allowedTypes:['reflection','memory','gratitude'], heading:`Evidence for ${v.name}`, links:pre.links, openLinks:true})}]});
   const snaps = allSnapshotsWithRetro(); const es = sortEntries(S.entries.filter(e=>(e.links?.values||[]).some(x=>x.id===v.id)));
   const rank = S.valueOrder.indexOf(v.id)+1; const cur = valueCurrent(v.id);
-  const F = (k, q, hint) => { const hist = v.fields[k]||[]; const latest = hist.slice(-1)[0]; return `<div class="value-field rv"><div class="q">${q}</div><div class="faint" style="font-size:.8rem;margin-bottom:8px">${hint}</div><div class="prose serif-lg">${latest?md(latest.text):'<span class="empty">Not yet written.</span>'}</div><div class="row" style="margin-top:8px"><button class="btn sm ghost" data-vf="${k}">${latest?'write a new version':'write'}</button>${hist.length>1?`<details style="border:none;flex:1"><summary><span class="mono">${hist.length-1} earlier versions</span></summary><div class="body versions">${hist.slice(0,-1).reverse().map(h=>`<div class="v"><div class="mono">${fmtDate(h.date,'med')}</div>${md(h.text)}</div>`).join('')}</div></details>`:latest?`<span class="mono">${fmtDate(latest.date,'med')}</span>`:''}</div></div>`; };
+  const F = (k, q, hint) => { const hist = v.fields[k]||[]; const latest = hist.slice(-1)[0]; return `<div class="value-field rv"><div class="q">${q}</div><div class="faint" style="font-size:.8rem;margin-bottom:8px">${hint}</div><div class="prose serif-lg">${latest?md(latest.text):'<span class="empty">Not yet written.</span>'}</div><div class="row" style="margin-top:8px"><button class="btn sm ghost" data-vf="${k}">${latest?'write a new version':'write'}</button>${hist.length>1?`<details style="border:none;flex:1"><summary><span class="mono">${hist.length-1} earlier versions</span></summary><div class="body versions">${hist.slice(0,-1).map((h,i)=>`<div class="v"><div class="mono">${fmtDate(h.date,'med')}</div>${md(h.text)}<button class="del-x" data-vfdel="${k}:${i}" title="delete this version">×</button></div>`).reverse().join('')}</div></details>`:latest?`<span class="mono">${fmtDate(latest.date,'med')}</span>`:''}</div></div>`; };
   root.innerHTML = `<div class="page narrow">
     <div class="page-head" style="margin-top:20px"><div class="mono">value · ranked #${rank} of ${S.valueOrder.length}</div><h1 style="color:${v.color}">${ed(`values.#${v.id}.name`)}</h1><div class="row" style="margin-top:12px"><div class="bar" style="flex:1;--c:${v.color}"><i style="width:${cur}%"></i></div><span class="num" data-tween="${cur}" data-suffix="%">0</span></div></div>
     <div class="card rv">${sparkline(snaps.map(s=>s.ratings[v.id]??null),{h:60,min:0,max:100,color:v.color,dots:true,labels:snaps.map(s=>`${fmtDate(s.date,'med')}: ${s.ratings[v.id]??'–'}${s.note?' — '+s.note:''}`)})}<div class="row between mono"><span>${snaps[0]?fmtDate(snaps[0].date,'med'):''}</span><span>congruence over a lifetime</span><span>now</span></div></div>
@@ -2199,7 +2280,10 @@ routes.value = function(root, params){
     <section class="section rv"><span class="sc">Served by visions</span><div class="row">${S.visions.filter(x=>x.values.includes(v.id)).map(x=>`<span class="chip on click" style="--c:var(--sage)" data-go="#/vision/${x.id}">🌿 ${esc(x.name)}</span>`).join('')||'<span class="empty">No vision serves this value — a structural blind spot.</span>'}</div></section>
     <section class="section rv"><div class="row between"><span class="sc">Evidence feed</span><span class="row"><button class="btn sm" data-pol="+">+ embodied</button><button class="btn sm" data-pol="-">− betrayed</button></span></div>
       ${es.map(e=>{ const pol = e.links.values.find(x=>x.id===v.id)?.pol||'+'; return `<div style="display:grid;grid-template-columns:28px 1fr;gap:8px"><span class="serif" style="font-size:1.5rem;color:${pol==='+'?'var(--sage)':'var(--rose)'};padding-top:14px">${pol==='+'?'+':'−'}</span>${entryCard(e)}</div>`; }).join('')||'<div class="empty">No entries tagged to this value yet.</div>'}</section>
+    <div class="row" style="margin-top:40px;justify-content:flex-end"><button class="btn sm ghost danger" id="delValue">delete this value</button></div>
   </div>`;
+  root.querySelectorAll('[data-vfdel]').forEach(b => b.onclick = () => { const [k,i] = b.dataset.vfdel.split(':'); const h = v.fields[k][+i]; requestDelete({label: `Version from ${fmtDate(h.date,'med')}`, node: b.closest('.v'), remove: () => spliceOut(v.fields[k], x => x === h)}); });
+  $('#delValue').onclick = () => deleteValue(v, null, () => navigate('#/values'));
   root.querySelectorAll('[data-vf]').forEach(b => b.onclick = () => { const k = b.dataset.vf; const latest = (v.fields[k]||[]).slice(-1)[0]; const m = openModal(`<h2>A new version</h2><textarea class="ta" id="vfText" style="min-height:160px">${esc(latest?.text||'')}</textarea><p class="faint" style="font-size:.78rem">The previous version is kept. Growth in self-understanding stays visible.</p><div class="row" style="justify-content:flex-end"><button class="btn primary" id="vfSave">Keep</button></div>`); m.querySelector('#vfSave').onclick = () => { const t = m.querySelector('#vfText').value.trim(); if(!t) return; v.fields[k] = v.fields[k]||[]; v.fields[k].push({date:today(),text:t}); saveNow(); m.remove(); rerender(); sound('save'); }; });
   root.querySelectorAll('[data-pol]').forEach(b => b.onclick = () => openEntryModal({type:'reflection', links:{values:[{id:v.id,pol:b.dataset.pol}]}}));
 };
@@ -2219,7 +2303,7 @@ routes.journals = function(root, params){
   root.innerHTML = `<div class="page">
     <div class="page-head"><h1>Commonplace Book</h1><div class="sub">Append-only. Every entry can live in many rooms at once — link it, and the house connects.</div></div>
     <div class="journal-layout">
-      <div class="jnav">${S.journals.map(x=>`<button class="${x.type===type?'active':''}" data-go="#/journals/${x.type}"><span>${typeIcon(x.type)} ${esc(x.name)}</span><span class="n">${S.entries.filter(e=>e.type===x.type).length}</span></button>`).join('')}<button id="jNew" style="color:var(--faint)">+ new journal type</button></div>
+      <div class="jnav">${S.journals.map(x=>`<button class="${x.type===type?'active':''}" data-go="#/journals/${x.type}"><span>${typeIcon(x.type)} ${esc(x.name)}</span><span class="n">${S.entries.filter(e=>e.type===x.type).length}</span><span class="del-x inline" role="button" tabindex="0" data-jdel="${x.type}" title="delete journal type">×</span></button>`).join('')}<button id="jNew" style="color:var(--faint)">+ new journal type</button></div>
       <div>
         ${otd.length?`<div class="otd rv"><div class="sc">On this day</div>${otd.slice(0,2).map(e=>`<div class="serif" style="font-size:1.05rem;margin-top:6px">${esc(fmtDate(e.occurredAt,'med'))} — ${esc(e.title||e.body.slice(0,120))}</div>`).join('')}</div>`:`<div class="otd rv"><div class="sc">On this day</div><div class="quote">No ${esc(j.name.toLowerCase())} from this day in earlier years. You're making them now.</div></div>`}
         <div class="jtools rv"><input class="inp" id="jq" placeholder="search title & body" value="${esc(S._jq||'')}"><input class="inp" type="date" id="jfrom" value="${from}" style="max-width:150px"><input class="inp" type="date" id="jto" value="${to}" style="max-width:150px"><select class="sel" id="jtag" style="max-width:200px"><option value="">any link</option>${dimOpts.map(([id,n])=>`<option value="${id}" ${tag===id?'selected':''}>${esc(n)}</option>`).join('')}</select><button class="btn sm ghost" id="jRandom" title="random entry">🎲</button><span class="mono">${filtered.length} of ${all.length}</span></div>
@@ -2232,9 +2316,27 @@ routes.journals = function(root, params){
   const refilter = debounce(()=>{ S._jq = $('#jq').value; S._jfrom = $('#jfrom').value; S._jto = $('#jto').value; S._jtag = $('#jtag').value; rerender(); $('#jq')?.focus(); }, 300);
   $('#jq').oninput = refilter; $('#jfrom').onchange = refilter; $('#jto').onchange = refilter; $('#jtag').onchange = refilter;
   $('#jRandom').onclick = () => { if(!all.length) return; const e = all[Math.floor(Math.random()*all.length)]; openPanel(`<div class="mono">a random ${esc(typeName(type).toLowerCase())}</div>${entryCard(e,{clamp:false})}`); $$('#panel .rv').forEach(n=>n.classList.add('in')); };
+  root.querySelectorAll('[data-jdel]').forEach(b => b.onclick = e => { e.stopPropagation(); e.preventDefault(); deleteJournalType(b.dataset.jdel); });
   $('#jNew').onclick = () => { const m = openModal(`<h2>A new journal</h2><div class="field"><label>Name</label><input class="inp" id="jnName" placeholder="e.g. Field Notes"></div><div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary" id="jnSave">Create</button></div>`,'narrow'); m.querySelector('#jnSave').onclick = () => { const n = m.querySelector('#jnName').value.trim(); if(!n) return; const t = n.toLowerCase().replace(/[^a-z0-9]+/g,'-'); if(!S.journals.find(x=>x.type===t)){ S.journals.push({type:t,name:n}); ENTRY_TYPES.push([t,n,'▫']); saveNow(); } m.remove(); navigate('#/journals/'+t); }; };
   root.querySelectorAll('[data-fruit]').forEach(b => b.onclick = () => { const e = byId(S.entries,b.dataset.fruit); const v = byId(S.visions,e.links.visions[0]); if(!v) return; v.evidence.push({date:today(),text:`Manifestation arrived: ${e.title}`}); saveNow(); toast(`Logged as evidence on <b>${esc(v.name)}</b>.`); navigate('#/vision/'+v.id); });
 };
+
+function deleteJournalType(t){
+  const j = S.journals.find(x => x.type === t); if(!j) return;
+  const count = S.entries.filter(e => e.type === t).length;
+  if(t === 'uncategorized' && count){ toast('Uncategorized holds entries moved from deleted types. Delete or re-type those first.'); return; }
+  const m = openModal(`<h2>Delete “${esc(j.name)}”?</h2><p class="muted">${count ? `This journal type holds ${count} entr${count===1?'y':'ies'}. Move entries of this type to 'Uncategorized' or delete them too?` : 'This journal type has no entries.'}</p><div class="row" style="justify-content:flex-end;margin-top:18px;flex-wrap:wrap"><button class="btn" data-x="no">Cancel</button>${count?`<button class="btn" data-x="move">Move to Uncategorized</button>`:''}<button class="btn destructive" data-x="del">${count?'Delete them too':'Delete'}</button></div>`,'narrow');
+  m.querySelector('[data-x=no]').onclick = () => m.remove();
+  const go = (deleteEntries) => { m.remove(); requestDelete({label: `Journal “${j.name}”`, skipConfirm: true, after: () => navigate('#/journals/' + (S.journals[0]?.type || 'reflection')), remove: () => {
+    const moved = S.entries.filter(e => e.type === t); let removedEntries = [];
+    if(deleteEntries){ removedEntries = moved.map(e => [S.entries.indexOf(e), e]); moved.forEach(e => S.entries.splice(S.entries.indexOf(e), 1)); }
+    else { if(!S.journals.find(x => x.type === 'uncategorized')) S.journals.push({type:'uncategorized', name:'Uncategorized'}); moved.forEach(e => e.type = 'uncategorized'); }
+    const back = spliceOut(S.journals, x => x.type === t);
+    return () => { back(); if(deleteEntries) removedEntries.forEach(([i,e]) => S.entries.splice(Math.min(i, S.entries.length), 0, e)); else moved.forEach(e => e.type = t); };
+  }}); };
+  m.querySelector('[data-x=move]')?.addEventListener('click', () => go(false));
+  m.querySelector('[data-x=del]').onclick = () => go(true);
+}
 /* ============================================================
    7. SKILL TREE — the architecture of becoming
    ============================================================ */
@@ -2262,16 +2364,27 @@ routes.skills = function(root, params){
   root.innerHTML = `<div class="page">
     <div class="page-head row between"><div><h1>Skill Tree</h1><div class="sub">Career capital, built on the plateau. Size is proficiency; dashed nodes are buds; faded nodes are atrophying.</div></div></div>
     <div class="skill-wrap" id="skillWrap"></div>
-    <div class="grid c3 section">${S.skills.map(s=>{ const st = skillStreak(s); const last = skillLastPracticed(s); return `<div class="card rv" data-sopen="${s.id}" style="cursor:pointer;border-left:3px solid ${catColor(s.cat)}"><div class="row between"><h3 style="margin:0">${esc(s.name)}</h3><span class="mono">${esc(s.cat)}</span></div><div class="muted" style="font-size:.82rem;margin-top:6px">${s.planned?'planned — a bud not yet opened':`level ${s.level} of 5 · ${(s.rubric[s.level-1]||'').slice(0,60)}`}</div><div class="mono" style="margin-top:8px">last ${relDays(daysSince(last))} · streak ${st.cur}d (best ${st.best}) · ${skillHours(s).toFixed(1)}h</div></div>`; }).join('')}</div>
+    <div class="grid c3 section">${S.skills.map(s=>{ const st = skillStreak(s); const last = skillLastPracticed(s); return `<div class="card rv" data-sopen="${s.id}" style="cursor:pointer;border-left:3px solid ${catColor(s.cat)}"><button class="del-x" data-sdel="${s.id}" title="delete skill">×</button><div class="row between"><h3 style="margin:0">${esc(s.name)}</h3><span class="mono">${esc(s.cat)}</span></div><div class="muted" style="font-size:.82rem;margin-top:6px">${s.planned?'planned — a bud not yet opened':`level ${s.level} of 5 · ${(s.rubric[s.level-1]||'').slice(0,60)}`}</div><div class="mono" style="margin-top:8px">last ${relDays(daysSince(last))} · streak ${st.cur}d (best ${st.best}) · ${skillHours(s).toFixed(1)}h</div></div>`; }).join('')}</div>
   </div>`;
   const wrap = $('#skillWrap'); const draw = () => { const W = Math.max(wrap.clientWidth,600), H = wrap.clientHeight; wrap.innerHTML = skillSVG(W,H); const svg = wrap.querySelector('svg');
     svg.querySelectorAll('.node').forEach(n => { n.onclick = () => openSkillPanel(n.dataset.skill); n.onmouseenter = () => { const chain = new Set(); const walk = id => { const s = byId(S.skills,id); s?.prereqs.forEach(p=>{ chain.add(p); walk(p); }); }; walk(n.dataset.skill); svg.querySelectorAll('.edge').forEach(e => e.classList.toggle('hot', e.dataset.to===n.dataset.skill || chain.has(e.dataset.to))); svg.querySelectorAll('.node').forEach(x => x.classList.toggle('hot', chain.has(x.dataset.skill))); }; n.onmouseleave = () => { svg.querySelectorAll('.hot').forEach(x=>x.classList.remove('hot')); }; });
     // magnetic pull
     if(!reduced()){ const pt = svg.createSVGPoint(); svg.addEventListener('mousemove', e => { pt.x = e.clientX; pt.y = e.clientY; const p = pt.matrixTransform(svg.getScreenCTM().inverse()); svg.querySelectorAll('.node').forEach(n => { const m = n.getAttribute('transform').match(/translate\(([-\d.]+),([-\d.]+)\)/); const x=+m[1], y=+m[2]; const dx = p.x-x, dy = p.y-y; const d = Math.hypot(dx,dy); const c = n.querySelector('circle.c'); if(d<60){ const k = (1-d/60)*4; c.style.transform = `translate(${(dx/d*k).toFixed(1)}px,${(dy/d*k).toFixed(1)}px)`; } else c.style.transform=''; }); }); } };
   draw(); window.addEventListener('resize', debounce(()=>{ if(currentRoute==='skills') draw(); },250), {once:true});
-  $$('[data-sopen]',root).forEach(c => c.onclick = () => openSkillPanel(c.dataset.sopen));
+  $$('[data-sopen]',root).forEach(c => c.onclick = e => { if(e.target.closest('.del-x')) return; openSkillPanel(c.dataset.sopen); });
+  $$('[data-sdel]',root).forEach(b => b.onclick = e => { e.stopPropagation(); deleteSkill(byId(S.skills, b.dataset.sdel), b.closest('.card')); });
   if(params[0]) openSkillPanel(params[0]);
 };
+function deleteSkill(sk, node, after){
+  requestDelete({label: sk.name, node, after, remove: () => {
+    const pre = S.skills.filter(x => x.prereqs.includes(sk.id)); pre.forEach(x => x.prereqs = x.prereqs.filter(y => y !== sk.id));
+    const vis = S.visions.filter(v => v.preSkills.includes(sk.id)); vis.forEach(v => v.preSkills = v.preSkills.filter(y => y !== sk.id));
+    const touched = S.entries.filter(e => (e.links?.skills||[]).includes(sk.id)); const rl = snapshotLinks(touched); touched.forEach(e => e.links.skills = e.links.skills.filter(y => y !== sk.id));
+    const habits = S.habits.filter(h => (h.links?.skills||[]).includes(sk.id)); habits.forEach(h => h.links.skills = h.links.skills.filter(y => y !== sk.id));
+    const back = spliceOut(S.skills, x => x.id === sk.id);
+    return () => { back(); pre.forEach(x => x.prereqs.push(sk.id)); vis.forEach(v => v.preSkills.push(sk.id)); rl(); habits.forEach(h => h.links.skills.push(sk.id)); };
+  }});
+}
 function openSkillPanel(id){
   const s = byId(S.skills,id); if(!s) return; const es = sortEntries(entriesLinked('skills',s.id)); const st = skillStreak(s); const last = skillLastPracticed(s); const since = daysSince(last);
   const visions = S.visions.filter(v=>v.preSkills.includes(s.id)); const projects = S.projects.filter(p => es.some(e=>(e.links.projects||[]).includes(p.id))); const values = {}; es.forEach(e=>(e.links.values||[]).forEach(x=>values[x.id]=(values[x.id]||0)+1));
@@ -2297,7 +2410,7 @@ function openSkillPanel(id){
   p.querySelector('#skTarget').onchange = e => { s.target = +e.target.value; saveNow(); openSkillPanel(id); };
   p.querySelectorAll('[data-pre]').forEach(c => c.onclick = () => { const x = c.dataset.pre; s.prereqs = s.prereqs.includes(x) ? s.prereqs.filter(y=>y!==x) : [...s.prereqs,x]; saveNow(); c.classList.toggle('on'); rerender(); });
   p.querySelector('#skLog').onclick = () => openEntryModal({type:'progress', links:{skills:[s.id]}, after:()=>{ rerender(); openSkillPanel(id); }});
-  p.querySelector('#skDel').onclick = () => confirmDlg('Remove this skill?', ()=>{ S.skills = S.skills.filter(x=>x.id!==id); S.skills.forEach(x=>x.prereqs=x.prereqs.filter(y=>y!==id)); saveNow(); closePanel(); rerender(); });
+  p.querySelector('#skDel').onclick = () => deleteSkill(s, null, () => { closePanel(); rerender(); });
 }
 /* ============================================================
    8. CREATIVE PROJECTS — the gardens you tend
@@ -2314,7 +2427,7 @@ routes.projects = function(root, params){
   root.innerHTML = `<div class="page">
     <button class="btn primary nod-fab" id="nodFab" title="quick nod">+ nod</button><div class="page-head row between"><div><h1>Creative Projects</h1><div class="sub">A nod is the atomic unit: “I showed up and did this.” Under five seconds, or the system dies.</div></div><div class="row"><select class="sel" style="width:auto" id="psort"><option value="activity" ${sort==='activity'?'selected':''}>by last activity</option><option value="status" ${sort==='status'?'selected':''}>by status</option><option value="name" ${sort==='name'?'selected':''}>by name</option></select><button class="btn primary" id="addNod">+ nod</button></div></div>
     <div class="card rv" style="margin-bottom:22px"><div class="income-strip"><div><div class="k">monthly income, all streams</div><div class="num">${fmtYen(total)}</div><div class="mono">per month</div></div><div><div class="k">active streams</div><div class="num">${income.length}</div></div><div><div class="k">diversification</div><div class="num">${diversified}</div><div class="mono">contribute &gt;10%</div></div><div><div class="k">target</div><div class="num">${fmtYen(sum(S.projects.map(p=>p.income?.target||0)))}</div></div></div></div>
-    <div class="grid c3">${ps.map(p => { const ns = projectNods(p); const st = PSTATUS[p.status]||PSTATUS.idea; return `<div class="card pcard rv" data-popen="${p.id}" style="cursor:pointer;--c:${st[2]}"><div class="hd"><h3>${esc(p.name)}</h3><span class="pstatus">${st[0]} ${st[1]}</span></div><div class="muted" style="font-size:.85rem">${esc(p.desc)}</div><div class="row">${(p.tags||[]).map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div>${nodHeat(p)}<div class="mono">${ns.length} nods · last ${relDays(daysSince(ns[0]?.date))}${p.income?.current?` · ${fmtYen(p.income.current)}/mo`:''}</div>${p.link&&p.status==='shipped'?`<a href="${esc(p.link)}" target="_blank" rel="noopener" class="mono" onclick="event.stopPropagation()">↗ ${esc(p.link)}</a>`:''}</div>`; }).join('')}</div>
+    <div class="grid c3">${ps.map(p => { const ns = projectNods(p); const st = PSTATUS[p.status]||PSTATUS.idea; return `<div class="card pcard rv" data-popen="${p.id}" style="cursor:pointer;--c:${st[2]}"><button class="del-x" data-prdel="${p.id}" title="delete project">×</button><div class="hd"><h3>${esc(p.name)}</h3><span class="pstatus">${st[0]} ${st[1]}</span></div><div class="muted" style="font-size:.85rem">${esc(p.desc)}</div><div class="row">${(p.tags||[]).map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div>${nodHeat(p)}<div class="mono">${ns.length} nods · last ${relDays(daysSince(ns[0]?.date))}${p.income?.current?` · ${fmtYen(p.income.current)}/mo`:''}</div>${p.link&&p.status==='shipped'?`<a href="${esc(p.link)}" target="_blank" rel="noopener" class="mono" onclick="event.stopPropagation()">↗ ${esc(p.link)}</a>`:''}</div>`; }).join('')}</div>
     <section class="section rv"><span class="sc">Energy vs. output</span><p class="muted" style="font-size:.85rem">X: average energy reading across nods. Y: volume of effort. Which interests deserve to become income streams, and which are taxes you pay for a self you've outgrown?</p>
       <div class="card scatter"><svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:${W}px;display:block;margin:0 auto;overflow:visible">
         <line x1="40" y1="${H-30}" x2="${W-10}" y2="${H-30}" stroke="var(--line-2)"/><line x1="40" y1="10" x2="40" y2="${H-30}" stroke="var(--line-2)"/><line x1="${40+(W-50)/2}" y1="10" x2="${40+(W-50)/2}" y2="${H-30}" stroke="var(--line)" stroke-dasharray="3 4"/><line x1="40" y1="${(H-20)/2}" x2="${W-10}" y2="${(H-20)/2}" stroke="var(--line)" stroke-dasharray="3 4"/>
@@ -2328,14 +2441,23 @@ routes.projects = function(root, params){
   </div>`;
   $('#psort').onchange = e => { S._psort = e.target.value; rerender(); };
   $('#addNod').onclick = () => openNodModal(); $('#nodFab').onclick = () => openNodModal();
-  $$('[data-popen]',root).forEach(c => c.onclick = () => openProjectPanel(c.dataset.popen));
+  $$('[data-popen]',root).forEach(c => c.onclick = e => { if(e.target.closest('.del-x')) return; openProjectPanel(c.dataset.popen); });
+  $$('[data-prdel]',root).forEach(b => b.onclick = e => { e.stopPropagation(); deleteProject(byId(S.projects, b.dataset.prdel), b.closest('.card')); });
   const addIdea = () => { const t = $('#ideaInp').value.trim(); if(!t) return; S.ideas.unshift({id:uid(),text:t}); saveNow(); rerender(); $('#ideaInp')?.focus(); };
   $('#ideaAdd').onclick = addIdea; $('#ideaInp').onkeydown = e => { if(e.key==='Enter') addIdea(); };
   $$('[data-promote]',root).forEach(b => b.onclick = () => { const i = byId(S.ideas,b.dataset.promote); S.ideas = S.ideas.filter(x=>x.id!==i.id); createProject(i.text); });
-  $$('[data-idel]',root).forEach(b => b.onclick = () => { S.ideas = S.ideas.filter(x=>x.id!==b.dataset.idel); saveNow(); rerender(); });
+  $$('[data-idel]',root).forEach(b => b.onclick = () => { const i = byId(S.ideas, b.dataset.idel); requestDelete({label: i.text, node: b.closest('li'), remove: () => spliceOut(S.ideas, x => x.id === i.id)}); });
   if(params[0]) openProjectPanel(params[0]);
 };
 function createProject(name=''){ const p = {id:uid(),name:name||'New project',desc:'',tags:[],status:'idea',link:'',income:{model:'',current:0,target:0,milestones:[]},createdAt:today()}; S.projects.push(p); saveNow(); rerender(); openProjectPanel(p.id); }
+function deleteProject(p, node, after){
+  requestDelete({label: p.name, node, after, remove: () => {
+    const nods = S.nods.filter(n => n.projectId === p.id).map(n => [S.nods.indexOf(n), n]); nods.forEach(([,n]) => S.nods.splice(S.nods.indexOf(n), 1));
+    const touched = S.entries.filter(e => (e.links?.projects||[]).includes(p.id)); const rl = snapshotLinks(touched); touched.forEach(e => e.links.projects = e.links.projects.filter(y => y !== p.id));
+    const back = spliceOut(S.projects, x => x.id === p.id);
+    return () => { back(); nods.forEach(([i,n]) => S.nods.splice(Math.min(i, S.nods.length), 0, n)); rl(); };
+  }});
+}
 function openProjectPanel(id){
   const p = byId(S.projects,id); if(!p) return; const ns = projectNods(p); const es = sortEntries(entriesLinked('projects',p.id)); const st = PSTATUS[p.status]||PSTATUS.idea;
   const pull = (kind) => { const m = {}; es.forEach(e => (e.links[kind]||[]).forEach(x => { const k = typeof x==='string'?x:x.id; m[k]=(m[k]||0)+1; })); return Object.keys(m); };
@@ -2352,7 +2474,7 @@ function openProjectPanel(id){
       <div>serves values: ${values.map(v=>`<span class="chip on click" style="--c:${v.color}" data-go="#/value/${v.id}">${esc(v.name)}</span>`).join(' ')||'<span class="faint">—</span>'}</div>
       <div>advances visions: ${visions.map(v=>`<span class="chip on click" style="--c:var(--sage)" data-go="#/vision/${v.id}">${esc(v.name)}</span>`).join(' ')||'<span class="faint">—</span>'}</div>
       <div class="faint" style="font-size:.78rem">Derived from entries tagged to this project. The varied interests become facets of one body of work.</div></div></div>
-    <div class="vp-sec"><span class="sc">Nods</span><div class="nodlist">${ns.slice(0,40).map(n=>`<div class="nod"><span class="mono">${fmtDate(n.date,'med')}</span><span>${esc(n.text)}${n.link?` <a href="${esc(n.link)}" target="_blank" rel="noopener" class="mono">↗</a>`:''}${n.image?`<div class="photo" style="width:60px;height:60px;margin-top:4px"><img src="${n.image}"></div>`:''}</span><span class="mono">${n.duration||''} · ${'●'.repeat(n.energy)}${'○'.repeat(5-n.energy)}</span></div>`).join('')||'<div class="empty">No nods yet. Show up once.</div>'}</div></div>
+    <div class="vp-sec"><span class="sc">Nods</span><div class="nodlist">${ns.slice(0,40).map(n=>`<div class="nod"><span class="mono">${fmtDate(n.date,'med')}</span><span>${esc(n.text)}${n.link?` <a href="${esc(n.link)}" target="_blank" rel="noopener" class="mono">↗</a>`:''}${n.image?`<div class="photo" style="width:60px;height:60px;margin-top:4px"><img src="${n.image}"></div>`:''}</span><span class="row" style="gap:6px"><span class="mono">${n.duration||''} · ${'●'.repeat(n.energy)}${'○'.repeat(5-n.energy)}</span><button class="del-x inline" data-noddel="${n.id}" title="delete nod">×</button></span></div>`).join('')||'<div class="empty">No nods yet. Show up once.</div>'}</div></div>
     ${es.length?`<div class="vp-sec"><span class="sc">Entries</span>${es.map(e=>entryCard(e)).join('')}</div>`:''}
     <div class="row" style="margin-top:30px;justify-content:flex-end"><button class="btn sm ghost danger" id="pDel">remove project</button></div>`);
   $$('#panel .rv').forEach(n=>n.classList.add('in'));
@@ -2360,8 +2482,9 @@ function openProjectPanel(id){
   pn.querySelector('#pStatus').onchange = e => { p.status = e.target.value; saveNow(); rerender(); openProjectPanel(id); };
   pn.querySelector('#pNod').onclick = () => openNodModal(p.id, ()=>{ rerender(); openProjectPanel(id); });
   pn.querySelector('#pMile').onclick = () => { p.income.milestones.push({date:today(),text:''}); saveNow(); openProjectPanel(id); };
-  pn.querySelectorAll('[data-mdel]').forEach(b => b.onclick = () => { p.income.milestones.splice(+b.dataset.mdel,1); saveNow(); openProjectPanel(id); });
-  pn.querySelector('#pDel').onclick = () => confirmDlg('Remove this project and its nods?', ()=>{ S.projects = S.projects.filter(x=>x.id!==id); S.nods = S.nods.filter(n=>n.projectId!==id); saveNow(); closePanel(); rerender(); });
+  pn.querySelectorAll('[data-mdel]').forEach(b => b.onclick = () => { const ms = p.income.milestones[+b.dataset.mdel]; requestDelete({label: ms.text || 'Milestone', node: b.closest('.evidence-item'), remove: () => spliceOut(p.income.milestones, x => x === ms), after: () => openProjectPanel(id)}); });
+  pn.querySelectorAll('[data-noddel]').forEach(b => b.onclick = () => { const n = byId(S.nods, b.dataset.noddel); requestDelete({label: n.text, node: b.closest('.nod'), remove: () => spliceOut(S.nods, x => x.id === n.id), after: () => { rerender(); openProjectPanel(id); }}); });
+  pn.querySelector('#pDel').onclick = () => deleteProject(p, null, () => { closePanel(); rerender(); });
 }
 hooks.ptags = (pid, o, n) => { const p = byId(S.projects,pid); if(p){ p.tags = n.split(',').map(s=>s.trim()).filter(Boolean); saveNow(); } };
 hooks.pnum = (pid) => { const p = byId(S.projects,pid); if(p){ p.income.current = parseFloat(String(p.income.current).replace(/[^\d.]/g,''))||0; p.income.target = parseFloat(String(p.income.target).replace(/[^\d.]/g,''))||0; saveNow(); } };
@@ -2413,15 +2536,17 @@ routes.rituals = function(root, params){
         <div><div class="nm">${esc(h.name)} ${h.negative?'<span class="status-pill">avoid</span>':''} ${h.kind==='recovery'?'<span class="status-pill">recovery</span>':'<span class="status-pill">expenditure</span>'}</div><div class="sub">${habitFreqLabel(h)} · ${h.timeOfDay}${h.stackAfter?` · after “${esc(byId(S.habits,h.stackAfter)?.name||'')}”`:''}${h.min?` · min: ${esc(h.min)}`:''}${h.ideal?` · ideal: ${esc(h.ideal)}`:''}</div><div class="row" style="margin-top:4px;gap:4px">${(h.links.values||[]).map(id=>{const v=byId(S.values,id);return v?`<span class="chip" style="font-size:.62rem">${esc(v.name.split(' ')[0])}</span>`:''}).join('')}${(h.links.visions||[]).map(id=>{const v=byId(S.visions,id);return v?`<span class="chip" style="font-size:.62rem">🌿 ${esc(v.name)}</span>`:''}).join('')}${(h.links.skills||[]).map(id=>{const v=byId(S.skills,id);return v?`<span class="chip" style="font-size:.62rem">🛠 ${esc(v.name)}</span>`:''}).join('')}</div></div>
         <div>${h.negative?'':`<div class="cal90">${days.map(x=>{ const l = habitDone(h,x); return `<i class="${l?(l.level==='min'?'min':'full'):''} ${x>T?'future':''}" title="${x}${l?.note?' — '+esc(l.note):''}"></i>`; }).join('')}</div>`}</div>
         <div>${h.negative?'':`<div class="trend">${rates.map(r=>`<span title="${r.done}/${r.due}"><i style="--w:${clamp(r.done/r.due,0,1)*100}%;--c:${d.c}"></i></span>`).join('')}</div><div class="mono" style="margin-top:4px">${rates.map(r=>`${r.done}/${r.due}`).join(' · ')}</div><div class="mono">streak ${st.cur}d · best ${st.best}d</div>`}</div>
-        <div class="row" style="gap:2px"><button class="tbtn" data-hedit="${h.id}">edit</button><button class="tbtn" data-harch="${h.id}">archive</button></div>
+        <div class="row" style="gap:2px"><button class="tbtn" data-hedit="${h.id}">edit</button><button class="tbtn" data-harch="${h.id}">archive</button><button class="del-x inline" data-hdel="${h.id}" title="delete habit">×</button></div>
       </div>`; }).join('')||'<div class="empty">No habits in this dimension yet.</div>'}</div></details>`; }).join('')}
-    ${S.habits.some(h=>h.archived)?`<details class="rv" style="margin-top:18px"><summary><span class="sc">Archived</span></summary><div class="body">${S.habits.filter(h=>h.archived).map(h=>`<div class="row between" style="padding:6px 0"><span class="muted">${esc(h.name)}</span><button class="btn sm ghost" data-hun="${h.id}">restore</button></div>`).join('')}</div></details>`:''}`;
+    ${S.habits.some(h=>h.archived)?`<details class="rv" style="margin-top:18px"><summary><span class="sc">Archived</span></summary><div class="body">${S.habits.filter(h=>h.archived).map(h=>`<div class="row between archived-row" style="padding:6px 0"><span class="muted">${esc(h.name)}</span><span class="row"><button class="btn sm ghost" data-hun="${h.id}">restore</button><button class="del-x inline" data-hdel2="${h.id}" title="delete habit">×</button></span></div>`).join('')}</div></details>`:''}`;
   reveal(body); tweenAll(body);
   body.querySelectorAll('[data-hring]').forEach(r => r.onclick = e => { const h = byId(S.habits,r.dataset.hring); const cur = habitDone(h,T); const level = e.shiftKey ? (cur?.level==='min'?null:'min') : (cur?.level==='full'?null:'full'); if(level && h.prompt){ const m = openModal(`<h2>${esc(h.prompt)}</h2><input class="inp" id="hNote" placeholder="one line, optional"><div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary" id="hNoteSave">Done</button></div>`,'narrow'); const fin = () => { markHabit(h, level, m.querySelector('#hNote').value); m.remove(); sound('success'); r.classList.add('bloom'); setTimeout(rerender, 400); }; m.querySelector('#hNoteSave').onclick = fin; m.querySelector('#hNote').onkeydown = ev => { if(ev.key==='Enter') fin(); }; setTimeout(()=>m.querySelector('#hNote').focus(),50); } else { markHabit(h, level); if(level){ sound('success'); r.classList.add('bloom'); } setTimeout(rerender, level?400:0); } });
   body.querySelectorAll('[data-relapse]').forEach(b => b.onclick = () => { S.negLast = S.negLast||{}; S.negLast[b.dataset.relapse] = T; saveNow(); rerender(); toast('Reset, without punishment. The master stays on the mat.'); });
   body.querySelectorAll('[data-hedit]').forEach(b => b.onclick = () => openHabitModal(b.dataset.hedit));
   body.querySelectorAll('[data-harch]').forEach(b => b.onclick = () => { byId(S.habits,b.dataset.harch).archived = true; saveNow(); rerender(); });
   body.querySelectorAll('[data-hun]').forEach(b => b.onclick = () => { byId(S.habits,b.dataset.hun).archived = false; saveNow(); rerender(); });
+  body.querySelectorAll('[data-hdel]').forEach(b => b.onclick = () => { const h = byId(S.habits, b.dataset.hdel); requestDelete({label: h.name, node: b.closest('.habit'), remove: () => { const logs = []; Object.entries(S.habitLog).forEach(([day, l]) => { if(l[h.id]){ logs.push([day, l[h.id]]); delete l[h.id]; } }); const neg = S.negLast?.[h.id]; if(S.negLast) delete S.negLast[h.id]; const stacked = S.habits.filter(x => x.stackAfter === h.id); stacked.forEach(x => x.stackAfter = null); const back = spliceOut(S.habits, x => x.id === h.id); return () => { back(); logs.forEach(([day, v]) => { S.habitLog[day] = S.habitLog[day] || {}; S.habitLog[day][h.id] = v; }); if(neg){ S.negLast = S.negLast || {}; S.negLast[h.id] = neg; } stacked.forEach(x => x.stackAfter = h.id); }; }}); });
+  body.querySelectorAll('.archived-row [data-hdel2]').forEach(b => b.onclick = () => { const h = byId(S.habits, b.dataset.hdel2); requestDelete({label: h.name, node: b.closest('.archived-row'), remove: () => spliceOut(S.habits, x => x.id === h.id)}); });
   let drag = null; body.querySelectorAll('.habit').forEach(hb => { hb.addEventListener('dragstart', ()=>{ drag = hb.dataset.hid; hb.classList.add('dragging'); }); hb.addEventListener('dragend', ()=>hb.classList.remove('dragging')); hb.addEventListener('dragover', e=>e.preventDefault()); hb.addEventListener('drop', e => { e.preventDefault(); if(!drag||drag===hb.dataset.hid) return; const a = byId(S.habits,drag), b = byId(S.habits,hb.dataset.hid); if(a.dimension!==b.dimension) return; const list = S.habits.filter(h=>h.dimension===a.dimension).sort((x,y)=>x.order-y.order).map(h=>h.id); list.splice(list.indexOf(a.id),1); list.splice(list.indexOf(b.id),0,a.id); list.forEach((id,i)=>byId(S.habits,id).order=i); saveNow(); rerender(); }); });
 };
 function openHabitModal(id){

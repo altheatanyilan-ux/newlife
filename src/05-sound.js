@@ -63,7 +63,7 @@ const SoundManager = (() => {
   document.addEventListener('click', e => {
     const t = e.target.closest(CLICKABLE); if(!t) return;
     if(t.closest('.ed') || t.matches('[data-nosound], .close, #btnSound, #btnAmbient')) return;
-    if(t.matches('.danger, [data-del], [data-pdel], [data-x="yes"], [data-tdel], [data-tndel], [data-idel], [data-artdel], [data-songdel], [data-evdel], [data-resdel], [data-mdel]')) { play('error'); return; }
+    if(t.matches('.danger, .destructive, .del-x, [data-del], [data-pdel], [data-x="yes"], [data-tdel], [data-tndel], [data-idel], [data-artdel], [data-songdel], [data-evdel], [data-resdel], [data-mdel]')) { play('error'); return; }
     if(t.matches('a[href^="#/"], [data-go]') && !t.matches('.chip')) return;   // navigation: the hashchange plays the nav tone instead
     scheduleClick();
   }, true);

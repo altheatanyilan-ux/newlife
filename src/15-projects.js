@@ -13,7 +13,7 @@ routes.projects = function(root, params){
   root.innerHTML = `<div class="page">
     <button class="btn primary nod-fab" id="nodFab" title="quick nod">+ nod</button><div class="page-head row between"><div><h1>Creative Projects</h1><div class="sub">A nod is the atomic unit: “I showed up and did this.” Under five seconds, or the system dies.</div></div><div class="row"><select class="sel" style="width:auto" id="psort"><option value="activity" ${sort==='activity'?'selected':''}>by last activity</option><option value="status" ${sort==='status'?'selected':''}>by status</option><option value="name" ${sort==='name'?'selected':''}>by name</option></select><button class="btn primary" id="addNod">+ nod</button></div></div>
     <div class="card rv" style="margin-bottom:22px"><div class="income-strip"><div><div class="k">monthly income, all streams</div><div class="num">${fmtYen(total)}</div><div class="mono">per month</div></div><div><div class="k">active streams</div><div class="num">${income.length}</div></div><div><div class="k">diversification</div><div class="num">${diversified}</div><div class="mono">contribute &gt;10%</div></div><div><div class="k">target</div><div class="num">${fmtYen(sum(S.projects.map(p=>p.income?.target||0)))}</div></div></div></div>
-    <div class="grid c3">${ps.map(p => { const ns = projectNods(p); const st = PSTATUS[p.status]||PSTATUS.idea; return `<div class="card pcard rv" data-popen="${p.id}" style="cursor:pointer;--c:${st[2]}"><div class="hd"><h3>${esc(p.name)}</h3><span class="pstatus">${st[0]} ${st[1]}</span></div><div class="muted" style="font-size:.85rem">${esc(p.desc)}</div><div class="row">${(p.tags||[]).map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div>${nodHeat(p)}<div class="mono">${ns.length} nods · last ${relDays(daysSince(ns[0]?.date))}${p.income?.current?` · ${fmtYen(p.income.current)}/mo`:''}</div>${p.link&&p.status==='shipped'?`<a href="${esc(p.link)}" target="_blank" rel="noopener" class="mono" onclick="event.stopPropagation()">↗ ${esc(p.link)}</a>`:''}</div>`; }).join('')}</div>
+    <div class="grid c3">${ps.map(p => { const ns = projectNods(p); const st = PSTATUS[p.status]||PSTATUS.idea; return `<div class="card pcard rv" data-popen="${p.id}" style="cursor:pointer;--c:${st[2]}"><button class="del-x" data-prdel="${p.id}" title="delete project">×</button><div class="hd"><h3>${esc(p.name)}</h3><span class="pstatus">${st[0]} ${st[1]}</span></div><div class="muted" style="font-size:.85rem">${esc(p.desc)}</div><div class="row">${(p.tags||[]).map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div>${nodHeat(p)}<div class="mono">${ns.length} nods · last ${relDays(daysSince(ns[0]?.date))}${p.income?.current?` · ${fmtYen(p.income.current)}/mo`:''}</div>${p.link&&p.status==='shipped'?`<a href="${esc(p.link)}" target="_blank" rel="noopener" class="mono" onclick="event.stopPropagation()">↗ ${esc(p.link)}</a>`:''}</div>`; }).join('')}</div>
     <section class="section rv"><span class="sc">Energy vs. output</span><p class="muted" style="font-size:.85rem">X: average energy reading across nods. Y: volume of effort. Which interests deserve to become income streams, and which are taxes you pay for a self you've outgrown?</p>
       <div class="card scatter"><svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:${W}px;display:block;margin:0 auto;overflow:visible">
         <line x1="40" y1="${H-30}" x2="${W-10}" y2="${H-30}" stroke="var(--line-2)"/><line x1="40" y1="10" x2="40" y2="${H-30}" stroke="var(--line-2)"/><line x1="${40+(W-50)/2}" y1="10" x2="${40+(W-50)/2}" y2="${H-30}" stroke="var(--line)" stroke-dasharray="3 4"/><line x1="40" y1="${(H-20)/2}" x2="${W-10}" y2="${(H-20)/2}" stroke="var(--line)" stroke-dasharray="3 4"/>
@@ -27,14 +27,23 @@ routes.projects = function(root, params){
   </div>`;
   $('#psort').onchange = e => { S._psort = e.target.value; rerender(); };
   $('#addNod').onclick = () => openNodModal(); $('#nodFab').onclick = () => openNodModal();
-  $$('[data-popen]',root).forEach(c => c.onclick = () => openProjectPanel(c.dataset.popen));
+  $$('[data-popen]',root).forEach(c => c.onclick = e => { if(e.target.closest('.del-x')) return; openProjectPanel(c.dataset.popen); });
+  $$('[data-prdel]',root).forEach(b => b.onclick = e => { e.stopPropagation(); deleteProject(byId(S.projects, b.dataset.prdel), b.closest('.card')); });
   const addIdea = () => { const t = $('#ideaInp').value.trim(); if(!t) return; S.ideas.unshift({id:uid(),text:t}); saveNow(); rerender(); $('#ideaInp')?.focus(); };
   $('#ideaAdd').onclick = addIdea; $('#ideaInp').onkeydown = e => { if(e.key==='Enter') addIdea(); };
   $$('[data-promote]',root).forEach(b => b.onclick = () => { const i = byId(S.ideas,b.dataset.promote); S.ideas = S.ideas.filter(x=>x.id!==i.id); createProject(i.text); });
-  $$('[data-idel]',root).forEach(b => b.onclick = () => { S.ideas = S.ideas.filter(x=>x.id!==b.dataset.idel); saveNow(); rerender(); });
+  $$('[data-idel]',root).forEach(b => b.onclick = () => { const i = byId(S.ideas, b.dataset.idel); requestDelete({label: i.text, node: b.closest('li'), remove: () => spliceOut(S.ideas, x => x.id === i.id)}); });
   if(params[0]) openProjectPanel(params[0]);
 };
 function createProject(name=''){ const p = {id:uid(),name:name||'New project',desc:'',tags:[],status:'idea',link:'',income:{model:'',current:0,target:0,milestones:[]},createdAt:today()}; S.projects.push(p); saveNow(); rerender(); openProjectPanel(p.id); }
+function deleteProject(p, node, after){
+  requestDelete({label: p.name, node, after, remove: () => {
+    const nods = S.nods.filter(n => n.projectId === p.id).map(n => [S.nods.indexOf(n), n]); nods.forEach(([,n]) => S.nods.splice(S.nods.indexOf(n), 1));
+    const touched = S.entries.filter(e => (e.links?.projects||[]).includes(p.id)); const rl = snapshotLinks(touched); touched.forEach(e => e.links.projects = e.links.projects.filter(y => y !== p.id));
+    const back = spliceOut(S.projects, x => x.id === p.id);
+    return () => { back(); nods.forEach(([i,n]) => S.nods.splice(Math.min(i, S.nods.length), 0, n)); rl(); };
+  }});
+}
 function openProjectPanel(id){
   const p = byId(S.projects,id); if(!p) return; const ns = projectNods(p); const es = sortEntries(entriesLinked('projects',p.id)); const st = PSTATUS[p.status]||PSTATUS.idea;
   const pull = (kind) => { const m = {}; es.forEach(e => (e.links[kind]||[]).forEach(x => { const k = typeof x==='string'?x:x.id; m[k]=(m[k]||0)+1; })); return Object.keys(m); };
@@ -51,7 +60,7 @@ function openProjectPanel(id){
       <div>serves values: ${values.map(v=>`<span class="chip on click" style="--c:${v.color}" data-go="#/value/${v.id}">${esc(v.name)}</span>`).join(' ')||'<span class="faint">—</span>'}</div>
       <div>advances visions: ${visions.map(v=>`<span class="chip on click" style="--c:var(--sage)" data-go="#/vision/${v.id}">${esc(v.name)}</span>`).join(' ')||'<span class="faint">—</span>'}</div>
       <div class="faint" style="font-size:.78rem">Derived from entries tagged to this project. The varied interests become facets of one body of work.</div></div></div>
-    <div class="vp-sec"><span class="sc">Nods</span><div class="nodlist">${ns.slice(0,40).map(n=>`<div class="nod"><span class="mono">${fmtDate(n.date,'med')}</span><span>${esc(n.text)}${n.link?` <a href="${esc(n.link)}" target="_blank" rel="noopener" class="mono">↗</a>`:''}${n.image?`<div class="photo" style="width:60px;height:60px;margin-top:4px"><img src="${n.image}"></div>`:''}</span><span class="mono">${n.duration||''} · ${'●'.repeat(n.energy)}${'○'.repeat(5-n.energy)}</span></div>`).join('')||'<div class="empty">No nods yet. Show up once.</div>'}</div></div>
+    <div class="vp-sec"><span class="sc">Nods</span><div class="nodlist">${ns.slice(0,40).map(n=>`<div class="nod"><span class="mono">${fmtDate(n.date,'med')}</span><span>${esc(n.text)}${n.link?` <a href="${esc(n.link)}" target="_blank" rel="noopener" class="mono">↗</a>`:''}${n.image?`<div class="photo" style="width:60px;height:60px;margin-top:4px"><img src="${n.image}"></div>`:''}</span><span class="row" style="gap:6px"><span class="mono">${n.duration||''} · ${'●'.repeat(n.energy)}${'○'.repeat(5-n.energy)}</span><button class="del-x inline" data-noddel="${n.id}" title="delete nod">×</button></span></div>`).join('')||'<div class="empty">No nods yet. Show up once.</div>'}</div></div>
     ${es.length?`<div class="vp-sec"><span class="sc">Entries</span>${es.map(e=>entryCard(e)).join('')}</div>`:''}
     <div class="row" style="margin-top:30px;justify-content:flex-end"><button class="btn sm ghost danger" id="pDel">remove project</button></div>`);
   $$('#panel .rv').forEach(n=>n.classList.add('in'));
@@ -59,8 +68,9 @@ function openProjectPanel(id){
   pn.querySelector('#pStatus').onchange = e => { p.status = e.target.value; saveNow(); rerender(); openProjectPanel(id); };
   pn.querySelector('#pNod').onclick = () => openNodModal(p.id, ()=>{ rerender(); openProjectPanel(id); });
   pn.querySelector('#pMile').onclick = () => { p.income.milestones.push({date:today(),text:''}); saveNow(); openProjectPanel(id); };
-  pn.querySelectorAll('[data-mdel]').forEach(b => b.onclick = () => { p.income.milestones.splice(+b.dataset.mdel,1); saveNow(); openProjectPanel(id); });
-  pn.querySelector('#pDel').onclick = () => confirmDlg('Remove this project and its nods?', ()=>{ S.projects = S.projects.filter(x=>x.id!==id); S.nods = S.nods.filter(n=>n.projectId!==id); saveNow(); closePanel(); rerender(); });
+  pn.querySelectorAll('[data-mdel]').forEach(b => b.onclick = () => { const ms = p.income.milestones[+b.dataset.mdel]; requestDelete({label: ms.text || 'Milestone', node: b.closest('.evidence-item'), remove: () => spliceOut(p.income.milestones, x => x === ms), after: () => openProjectPanel(id)}); });
+  pn.querySelectorAll('[data-noddel]').forEach(b => b.onclick = () => { const n = byId(S.nods, b.dataset.noddel); requestDelete({label: n.text, node: b.closest('.nod'), remove: () => spliceOut(S.nods, x => x.id === n.id), after: () => { rerender(); openProjectPanel(id); }}); });
+  pn.querySelector('#pDel').onclick = () => deleteProject(p, null, () => { closePanel(); rerender(); });
 }
 hooks.ptags = (pid, o, n) => { const p = byId(S.projects,pid); if(p){ p.tags = n.split(',').map(s=>s.trim()).filter(Boolean); saveNow(); } };
 hooks.pnum = (pid) => { const p = byId(S.projects,pid); if(p){ p.income.current = parseFloat(String(p.income.current).replace(/[^\d.]/g,''))||0; p.income.target = parseFloat(String(p.income.target).replace(/[^\d.]/g,''))||0; saveNow(); } };
