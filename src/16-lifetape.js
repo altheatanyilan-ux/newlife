@@ -17,7 +17,7 @@ const TAPE_KINDS = {
   manifestation:['Journals',  '#b98aa6',      '✦'],
   question:     ['Journals',  '#8fa9c4',      '?'],
   uncategorized:['Journals',  'var(--muted)', '▫'],
-  quote:        ['Library',   'var(--gold)',  '“'],
+  quote:        ['Library',   'var(--gold)',  '"'],
   media:        ['Library',   '#c9a05a',      '▤'],
   memory:       ['Timeline',  '#cba85a',      '◌'],
   lifeevent:    ['Timeline',  '#cba85a',      '◆'],
@@ -172,18 +172,69 @@ function tapePeriodSummaryHTML(from, to, items){
   const habits = S.habits.filter(h => !h.archived && !h.negative);
   const due = sum(days.map(d => habits.filter(h => habitDue(h,d)).length));
   const held = sum(days.map(d => habits.filter(h => habitDue(h,d) && habitDone(h,d)).length));
-  const tally = {}; items.forEach(x => { const sec = tapeKind(x.kind)[0]; tally[sec] = (tally[sec]||0)+1; });
-  const top = Object.entries(tally).sort((a,b)=>b[1]-a[1]).slice(0,4);
   const busiest = Object.entries(byDay).sort((a,b)=>b[1].length-a[1].length)[0];
-  return `<div class="card rv" style="margin-bottom:14px"><div class="income-strip">
+
+  /* section tally (Journals, Skills…) */
+  const secTally = {}; items.forEach(x => { const s = tapeKind(x.kind)[0]; secTally[s] = (secTally[s]||0)+1; });
+  const topSecs = Object.entries(secTally).sort((a,b)=>b[1]-a[1]).slice(0,4);
+
+  /* individual type tally (reflection, gratitude, dream…) */
+  const kindTally = {}; items.forEach(x => { kindTally[x.kind] = (kindTally[x.kind]||0)+1; });
+  const topKinds = Object.entries(kindTally).sort((a,b)=>b[1]-a[1]).slice(0,8);
+
+  /* most-linked values */
+  const valCount = {};
+  items.forEach(x => { if(x.entry) (x.entry.links?.values||[]).forEach(vid => { valCount[vid] = (valCount[vid]||0)+1; }); });
+  const topVals = Object.entries(valCount).sort((a,b)=>b[1]-a[1]).slice(0,5)
+    .map(([id,n]) => { const v = byId(S.values, id); return v ? {v, n} : null; }).filter(Boolean);
+
+  /* most-linked visions */
+  const visCount = {};
+  items.forEach(x => { if(x.entry) (x.entry.links?.visions||[]).forEach(vid => { visCount[vid] = (visCount[vid]||0)+1; }); });
+  const topVis = Object.entries(visCount).sort((a,b)=>b[1]-a[1]).slice(0,5)
+    .map(([id,n]) => { const v = byId(S.visions, id); return v ? {v, n} : null; }).filter(Boolean);
+
+  /* set-point distribution bands */
+  const spBands = [{lo:19,hi:22,label:'Thriving',c:'var(--gold)'},{lo:14,hi:18,label:'Positive',c:'var(--sage)'},{lo:8,hi:13,label:'Neutral',c:'var(--muted)'},{lo:1,hi:7,label:'Struggling',c:'var(--rose)'}];
+  const spDist = spBands.map(b => ({...b, n: sps.filter(v => v >= b.lo && v <= b.hi).length})).filter(b => b.n);
+
+  return `<div class="card rv" style="margin-bottom:14px">
+    <div class="income-strip">
       <div><div class="k">logged</div><div class="num" data-tween="${items.length}">0</div></div>
-      <div><div class="k">days with something</div><div class="num">${live}<span class="mono"> / ${days.length}</span></div></div>
+      <div><div class="k">active days</div><div class="num">${live}<span class="mono"> / ${days.length}</span></div></div>
       <div><div class="k">habits held</div><div class="num">${due?Math.round(held/due*100):0}<span class="mono">%</span></div></div>
-      <div><div class="k">average set-point</div><div class="num">${sps.length?avg(sps).toFixed(1):'—'}<span class="mono"> / 22</span></div></div>
+      <div><div class="k">avg set-point</div><div class="num">${sps.length?avg(sps).toFixed(1):'—'}<span class="mono"> / 22</span></div></div>
     </div>
-    ${top.length ? `<div class="row" style="gap:6px;flex-wrap:wrap;margin-top:12px">${top.map(([sec,n]) => { const k = Object.entries(TAPE_KINDS).find(([,v]) => v[0] === sec);
-      return `<span class="chip on" style="--c:${k?k[1][1]:'var(--muted)'}">${esc(sec)} · ${n}</span>`; }).join('')}
-      ${busiest ? `<span class="mono" style="margin-left:auto">fullest day <button class="tbtn" data-tapeday="${busiest[0]}">${esc(fmtDate(busiest[0],'med'))} · ${busiest[1].length}</button></span>` : ''}</div>` : ''}
+    ${topSecs.length ? `<div class="row" style="gap:6px;flex-wrap:wrap;margin-top:12px">
+      ${topSecs.map(([sec,n]) => { const k = Object.entries(TAPE_KINDS).find(([,v]) => v[0] === sec);
+        return `<span class="chip on" style="--c:${k?k[1][1]:'var(--muted)'}">${esc(sec)} · ${n}</span>`; }).join('')}
+      ${busiest ? `<span class="mono" style="margin-left:auto">fullest day <button class="tbtn" data-tapeday="${busiest[0]}">${esc(fmtDate(busiest[0],'med'))} · ${busiest[1].length}</button></span>` : ''}
+    </div>` : ''}
+    ${topKinds.length ? `<div class="row" style="gap:5px;flex-wrap:wrap;margin-top:8px">
+      <span class="sc" style="align-self:center;width:100%;margin-bottom:2px">By type</span>
+      ${topKinds.map(([k,n]) => { const [,color,icon] = tapeKind(k);
+        return `<span class="chip" style="border:1px solid color-mix(in srgb,${color} 40%,var(--line));color:${color}">${icon} ${esc(k)} <span class="mono" style="color:var(--muted);margin-left:3px">${n}</span></span>`; }).join('')}
+    </div>` : ''}
+    ${spDist.length ? `<div class="tape-sp-dist rv" style="margin-top:10px">
+      <span class="sc" style="display:block;margin-bottom:6px">Set-point distribution</span>
+      <div class="row" style="gap:4px;flex-wrap:wrap;align-items:center">
+        ${spDist.map(b => `<span class="chip" style="border:1px solid color-mix(in srgb,${b.c} 40%,var(--line));color:${b.c}">${esc(b.label)} <span class="mono" style="color:var(--muted)">${b.n}d</span></span>`).join('')}
+      </div>
+    </div>` : ''}
+    ${topVals.length || topVis.length ? `<div class="tape-links-summary rv" style="margin-top:10px">
+      ${topVals.length ? `<div style="margin-bottom:6px">
+        <span class="sc" style="display:block;margin-bottom:4px">Top linked values</span>
+        <div class="row" style="gap:5px;flex-wrap:wrap">
+          ${topVals.map(({v,n}) => `<span class="chip on" style="--c:${v.color||'var(--muted)'}">${esc(v.name)} <span class="mono">×${n}</span></span>`).join('')}
+        </div>
+      </div>` : ''}
+      ${topVis.length ? `<div>
+        <span class="sc" style="display:block;margin-bottom:4px">Top linked visions</span>
+        <div class="row" style="gap:5px;flex-wrap:wrap">
+          ${topVis.map(({v,n}) => `<span class="chip on" style="--c:var(--ment)">${esc(v.name)} <span class="mono">×${n}</span></span>`).join('')}
+        </div>
+      </div>` : ''}
+    </div>` : ''}
   </div>`;
 }
 function tapeMonthStripHTML(monthKeys, all){
@@ -192,13 +243,18 @@ function tapeMonthStripHTML(monthKeys, all){
     const pre = `${y}-${pad(m+1)}`;
     const its = all.filter(x => x.date.startsWith(pre));
     const sps = Object.entries(S.checkins||{}).filter(([d,c]) => d.startsWith(pre) && c.setpoint).map(([,c]) => c.setpoint);
-    const tally = {}; its.forEach(x => { const sec = tapeKind(x.kind)[0]; tally[sec] = (tally[sec]||0)+1; });
-    const top = Object.entries(tally).sort((a,b)=>b[1]-a[1])[0];
+    /* top individual type for this month */
+    const kt = {}; its.forEach(x => { kt[x.kind] = (kt[x.kind]||0)+1; });
+    const topKind = Object.entries(kt).sort((a,b)=>b[1]-a[1])[0];
+    const [,topColor,topIcon] = topKind ? tapeKind(topKind[0]) : [];
+    /* set-point micro-indicator */
+    const spAvgN = sps.length ? Math.round(avg(sps)) : null;
+    const spColor = spAvgN ? (spAvgN >= 19 ? 'var(--gold)' : spAvgN >= 14 ? 'var(--sage)' : spAvgN >= 8 ? 'var(--muted)' : 'var(--rose)') : null;
     return `<button class="tm-cell ${its.length?'':'quiet'}" data-tapemonth="${y}-${pad(m+1)}-01">
-      <div class="mono">${MONTHS[m].slice(0,3)}${monthKeys.length>12?` ’${String(y).slice(2)}`:''}</div>
+      <div class="mono">${MONTHS[m].slice(0,3)}${monthKeys.length>12?` '${String(y).slice(2)}`:''}</div>
       <div class="serif" style="font-size:1.1rem">${its.length||'—'}</div>
-      ${sps.length?`<div class="mono">set-pt ${avg(sps).toFixed(0)}</div>`:''}
-      ${top?`<div class="mono" style="color:var(--muted)">${esc(top[0])}</div>`:''}</button>`; }).join('')}</div>`;
+      ${spAvgN?`<div class="mono" style="color:${spColor}">${spAvgN}/22</div>`:''}
+      ${topKind?`<div class="mono" style="color:${topColor}">${topIcon} ${esc(topKind[0])}</div>`:''}</button>`; }).join('')}</div>`;
 }
 function tapeModeBarHTML(){
   const t = tapeState();
