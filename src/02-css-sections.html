@@ -1368,18 +1368,51 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
    15. THE WRITING STUDIO (Writing redesign)
    ============================================================ */
 .wstudio-board{display:flex;flex-direction:column;gap:10px}
-.wkanban{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px}
-.wkcol{flex:0 0 230px;background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--c);border-radius:12px;min-height:160px;display:flex;flex-direction:column}
-.wkcol.over{border-color:var(--c);background:color-mix(in srgb,var(--c) 8%,var(--surface))}
-.wkcol-h{padding:10px 12px;font-family:var(--serif);font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--c);display:flex;justify-content:space-between}
-.wkcol-body{display:flex;flex-direction:column;gap:8px;padding:0 10px 10px;flex:1}
-.wkcard{background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:9px 10px;cursor:pointer}
-.wkcard:hover{border-color:var(--c)}
+.wkanban{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;padding-bottom:8px;align-items:start}
+.wkcol{background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--c);border-radius:12px;min-height:150px;display:flex;flex-direction:column;transition:border-color .2s var(--ease),background .2s var(--ease),transform .2s var(--ease)}
+.wkcol.over{border-color:var(--c);background:color-mix(in srgb,var(--c) 9%,var(--surface));transform:translateY(-2px)}
+.wkcol.over .wkcol-h{color:var(--c)}
+.wkcol.quiet{opacity:.62}
+.wkcol.quiet:hover{opacity:1}
+.wkcol-h{padding:10px 12px;font-family:var(--serif);font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between;align-items:center;gap:6px;transition:color .2s var(--ease)}
+.wkcol-h .n{font-family:var(--mono);font-size:.66rem;min-width:1.5em;height:1.5em;display:inline-flex;align-items:center;justify-content:center;border-radius:99px;background:color-mix(in srgb,var(--c) 14%,transparent);transition:transform .22s var(--ease),background .22s var(--ease)}
+.wkcol.over .wkcol-h .n{transform:scale(1.22);background:color-mix(in srgb,var(--c) 30%,transparent)}
+.wkcol-body{display:flex;flex-direction:column;gap:8px;padding:0 10px 10px;flex:1;min-height:44px}
+.wkcol-drop{border:1px dashed color-mix(in srgb,var(--c) 40%,var(--line));border-radius:9px;height:0;opacity:0;transition:height .2s var(--ease),opacity .2s var(--ease)}
+.wkcol.over .wkcol-drop{height:38px;opacity:1}
+.wkcard{background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:9px 10px;cursor:pointer;transition:transform .18s var(--ease),box-shadow .18s var(--ease),border-color .18s var(--ease),opacity .18s var(--ease)}
+.wkcard:hover{border-color:var(--c);transform:translateY(-2px);box-shadow:0 6px 16px -8px rgba(0,0,0,.45)}
+.wkcard:active{transform:translateY(0) scale(.985)}
+.wkcard.dragging{opacity:.4;transform:scale(.97) rotate(-1.2deg);box-shadow:0 12px 26px -10px rgba(0,0,0,.5)}
+.wkcard .premise{font-size:.78rem;color:var(--muted);margin-top:3px;line-height:1.45}
+.wkcard .wk-bar{height:2px;border-radius:2px;background:var(--line);margin-top:7px;overflow:hidden}
+.wkcard .wk-bar i{display:block;height:100%;background:var(--c);border-radius:2px;transition:width .5s var(--ease)}
+@media (prefers-reduced-motion:reduce){.wkcard,.wkcol,.wkcol-drop,.wkcol-h .n{transition:none}.wkcard.dragging{transform:none}}
 .wproject-card{cursor:pointer}
 .wproject-card .premise{font-family:var(--quote);font-style:italic;color:var(--muted);font-size:.88rem;margin-top:6px}
-.wstudio-layout{display:grid;grid-template-columns:280px minmax(0,1fr) 300px;gap:20px;align-items:start}
-.wstudio-focus .drawer,.wstudio-focus .structure-board{opacity:.08;pointer-events:none;transition:opacity .25s var(--ease)}
-.wstudio-focus .drawer:hover,.wstudio-focus .structure-board:hover{opacity:1;pointer-events:auto}
+.wstudio-layout{display:grid;grid-template-columns:var(--ws-l,280px) minmax(0,1fr) var(--ws-r,300px);gap:20px;align-items:start;transition:grid-template-columns .28s var(--ease)}
+.wstudio-layout.no-l{grid-template-columns:0 minmax(0,1fr) var(--ws-r,300px)}
+.wstudio-layout.no-r{grid-template-columns:var(--ws-l,280px) minmax(0,1fr) 0}
+.wstudio-layout.no-l.no-r{grid-template-columns:0 minmax(0,1fr) 0}
+.wstudio-layout.no-l > .drawer,.wstudio-layout.no-r > .structure-board{opacity:0;pointer-events:none;overflow:hidden;padding:0;border-width:0;min-width:0}
+/* focus hides both outright — the editor takes the whole width, which is the point */
+.wstudio-focus .wstudio-layout{grid-template-columns:0 minmax(0,1fr) 0}
+.wstudio-focus .drawer,.wstudio-focus .structure-board{opacity:0;pointer-events:none;overflow:hidden;padding:0;border-width:0;min-width:0}
+.wstudio-focus .write-page{max-width:none}
+.wstudio-focus .writing-head .field,.wstudio-focus .wstudio-layout > div > details{display:none}
+.ws-grip{position:relative}
+.ws-grip::after{content:'';position:absolute;top:0;bottom:0;width:9px;cursor:col-resize;z-index:5}
+.ws-grip.l::after{right:-14px}
+.ws-grip.r::after{left:-14px}
+.ws-grip::before{content:'';position:absolute;top:50%;width:3px;height:38px;margin-top:-19px;border-radius:3px;background:var(--line-2);opacity:0;transition:opacity .18s var(--ease),background .18s var(--ease);z-index:6}
+.ws-grip.l::before{right:-11px}
+.ws-grip.r::before{left:-11px}
+.wstudio-layout:hover .ws-grip::before{opacity:.55}
+.ws-grip:hover::before,.ws-resizing .ws-grip::before{opacity:1;background:var(--page-accent)}
+body.ws-resizing{cursor:col-resize;user-select:none}
+.ws-panes{display:flex;gap:4px;align-items:center}
+.ws-pane-btn{font-size:.66rem;letter-spacing:.04em}
+.ws-pane-btn.on{color:var(--page-accent)}
 .drawer,.structure-board{position:sticky;top:20px;max-height:calc(100vh - 60px);overflow-y:auto;padding-right:4px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
 .drawer-search{margin-bottom:10px}
 .drawer-item{background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:8px 10px;margin-bottom:8px;cursor:grab}

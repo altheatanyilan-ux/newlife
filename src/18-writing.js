@@ -84,28 +84,53 @@ function researchPool(proj){
     if(tags.length && entryTags(e).some(t=>tags.includes(t))) return true;
     for(const k of ['values','threads','visions','skills','projects']){ const a = (dims[k]||[]).map(v=>typeof v==='string'?v:v.id); if(!a.length) continue; const b = (e.links?.[k]||[]).map(v=>typeof v==='string'?v:v.id); if(a.some(id=>b.includes(id))) return true; }
     return false; };
-  const entries = sortEntries(S.entries.filter(overlaps));
+  const matched = sortEntries(S.entries.filter(overlaps));
+  /* The Library is where reflection about what you read and watch already
+     lives, so it belongs in the drawer as its own shelf — and the quotes kept
+     inside a media entry are the part you actually pull into an essay. */
+  const media = matched.filter(e => e.type === 'media');
+  const entries = matched.filter(e => e.type !== 'media');
+  const quotes = [];
+  media.forEach(m => (m.extra?.quotes || []).forEach(q => { if(q.text) quotes.push({mediaId:m.id, media:m, q}); }));
   const compost = S.compost.filter(f => (f.tags||[]).some(t=>tags.includes(t)) || f.projectId === proj.id);
-  return {entries, compost};
+  return {entries, media, quotes, compost};
 }
 function researchSearch(q){
-  const s = q.trim().toLowerCase(); if(!s) return {entries:[], compost:[]};
-  const entries = sortEntries(S.entries.filter(e => `${e.title} ${e.body}`.toLowerCase().includes(s) || entryTags(e).some(t=>t.includes(s)))).slice(0,40);
+  const s = q.trim().toLowerCase(); if(!s) return {entries:[], compost:[], quotes:[]};
+  const entries = sortEntries(S.entries.filter(e => `${e.title} ${e.body} ${e.extra?.oneLineCapture||''} ${e.extra?.creator||''}`.toLowerCase().includes(s) || entryTags(e).some(t=>t.includes(s)))).slice(0,40);
   const compost = S.compost.filter(f => f.text.toLowerCase().includes(s)).slice(0,20);
-  return {entries, compost};
+  const quotes = [];
+  S.entries.filter(e => e.type === 'media').forEach(m => (m.extra?.quotes||[]).forEach(qq => {
+    if(qq.text && `${qq.text} ${qq.why||''}`.toLowerCase().includes(s)) quotes.push({mediaId:m.id, q:qq}); }));
+  return {entries, compost, quotes: quotes.slice(0,20)};
 }
 function pinnedMeta(pn){
   if(pn.kind === 'raw') return {title:'Raw snippet', body:pn.text||'', dateLabel:fmtDate(pn.addedAt,'short'), go:null};
   if(pn.kind === 'compost'){ const f = byId(S.compost, pn.sourceId); return f ? {title:'Compost fragment', body:f.text, dateLabel:fmtDate(f.date,'short'), go:null} : null; }
+  if(pn.kind === 'quote'){
+    const [mid, qid] = String(pn.sourceId).split(':');
+    const m = byId(S.entries, mid); if(!m) return null;
+    const q = (m.extra?.quotes || []).find(x => x.id === qid); if(!q) return null;
+    const who = m.extra?.creator ? ` — ${m.extra.creator}` : '';
+    return {title: m.title, body: `“${q.text}”`, dateLabel: q.where || fmtDate(m.occurredAt,'short'),
+      typeLabel: `${esc(m.title)}${who}`, go: '#/commonplace/' + m.id};
+  }
   const e = byId(S.entries, pn.sourceId); if(!e) return null;
-  return {title: e.title || typeName(e.type), body: e.body||'', dateLabel: fmtDate(e.occurredAt,'short'), typeLabel: typeName(e.type), go: e.type==='media' ? '#/commonplace/'+e.id : e.type==='writing' ? '#/writing/'+e.id : null};
+  if(e.type === 'media'){
+    const x = e.extra || {};
+    const body = [x.oneLineCapture, x.installed].filter(Boolean).join(' · ') || e.body || '';
+    const kindLabel = (typeof MEDIA_KINDS !== 'undefined' && MEDIA_KINDS[x.kind]) ? MEDIA_KINDS[x.kind][1] : 'Media';
+    return {title: e.title, body, dateLabel: fmtDate(e.occurredAt,'short'),
+      typeLabel: `${kindLabel}${x.creator ? ' · ' + x.creator : ''}`, go: '#/commonplace/' + e.id};
+  }
+  return {title: e.title || typeName(e.type), body: e.body||'', dateLabel: fmtDate(e.occurredAt,'short'), typeLabel: typeName(e.type), go: e.type==='writing' ? '#/writing/'+e.id : null};
 }
 function attribution(pn){
   const m = pinnedMeta(pn); if(!m) return '';
   return `[From: ${m.typeLabel||m.title}, ${m.dateLabel}]`;
 }
 function drawerItemHTML(kind, sourceId, {pinnedId=null, note=''}={}){
-  const meta = kind==='entry' ? pinnedMeta({kind,sourceId}) : kind==='compost' ? pinnedMeta({kind,sourceId}) : null;
+  const meta = pinnedMeta({kind, sourceId});
   if(!meta) return '';
   return `<div class="drawer-item" draggable="true" data-dkind="${kind}" data-dsrc="${sourceId}" ${pinnedId?`data-pinned="${pinnedId}"`:''}>
     <div class="meta">${esc(meta.typeLabel||'fragment')} · ${esc(meta.dateLabel)}</div>
@@ -115,7 +140,7 @@ function drawerItemHTML(kind, sourceId, {pinnedId=null, note=''}={}){
   </div>`;
 }
 function researchDrawerHTML(proj){
-  const {entries, compost} = researchPool(proj);
+  const {entries, media, quotes, compost} = researchPool(proj);
   const pinnedIds = new Set(proj.extra.pinned.map(p=>p.kind+':'+p.sourceId));
   const pulled = entries.filter(e => !pinnedIds.has('entry:'+e.id)).slice(0,20);
   const pulledCompost = compost.filter(f => !pinnedIds.has('compost:'+f.id));
@@ -127,6 +152,11 @@ function researchDrawerHTML(proj){
     <div id="drawerSearchResults"></div>
     <details open><summary><span class="mono">pinned to this project (${proj.extra.pinned.length})</span></summary><div class="body" id="drawerPinned">${proj.extra.pinned.length ? proj.extra.pinned.map(pn => drawerItemHTML(pn.kind, pn.sourceId, {pinnedId:pn.id, note:pn.note})).join('') : '<div class="faint" style="font-size:.78rem;padding:4px 0">Nothing pinned yet. Pull from your tags below, or search above.</div>'}</div></details>
     <details open style="margin-top:10px"><summary><span class="mono">from your tags &amp; dimensions (${pulled.length+pulledCompost.length})</span></summary><div class="body">${pulled.map(e=>drawerItemHTML('entry',e.id)).join('') + pulledCompost.map(f=>drawerItemHTML('compost',f.id)).join('') || '<div class="faint" style="font-size:.78rem;padding:4px 0">Link this piece to a value, thread, vision, skill or project, and everything tagged to it shows up here.</div>'}</div></details>
+    ${(media.length || quotes.length) ? `<details open style="margin-top:10px"><summary><span class="mono">from the Library (${media.length} · ${quotes.length} quote${quotes.length===1?'':'s'})</span></summary><div class="body">
+      ${media.filter(m=>!pinnedIds.has('entry:'+m.id)).map(m=>drawerItemHTML('entry',m.id)).join('')}
+      ${quotes.filter(({mediaId,q})=>!pinnedIds.has('quote:'+mediaId+':'+q.id)).slice(0,24).map(({mediaId,q})=>drawerItemHTML('quote', mediaId+':'+q.id)).join('')}
+      ${!media.length && !quotes.length ? '<div class="faint" style="font-size:.78rem;padding:4px 0">Nothing from the Library shares a tag or dimension with this piece yet.</div>' : ''}
+    </div></details>` : ''}
     ${suggestions.length ? `<details style="margin-top:10px"><summary><span class="mono">you might not have considered (${suggestions.length})</span></summary><div class="body">${suggestions.map(e=>drawerItemHTML('entry',e.id)).join('')}</div></details>` : ''}
   </div>`;
 }
@@ -135,13 +165,14 @@ function bindResearchDrawer(root, proj, redraw){
   const ta = root.querySelector('#wBody');
   const insertText = (text) => { if(!ta) return; const pos = ta.selectionStart ?? ta.value.length; ta.setRangeText(text, pos, ta.selectionEnd ?? pos, 'end'); ta.dispatchEvent(new Event('input')); ta.focus(); };
   drawer.querySelector('#drawerSearch').oninput = debounce(e => {
-    const {entries, compost} = researchSearch(e.target.value);
+    const {entries, compost, quotes} = researchSearch(e.target.value);
     const box = drawer.querySelector('#drawerSearchResults');
-    box.innerHTML = (entries.length||compost.length) ? `<div class="faint mono" style="font-size:.68rem;margin:8px 0 4px">search results</div>${entries.map(x=>drawerItemHTML('entry',x.id)).join('')}${compost.map(x=>drawerItemHTML('compost',x.id)).join('')}` : (e.target.value.trim() ? '<div class="faint" style="font-size:.78rem;padding:4px 0">Nothing matches.</div>' : '');
+    box.innerHTML = (entries.length||compost.length||quotes.length) ? `<div class="faint mono" style="font-size:.68rem;margin:8px 0 4px">search results</div>${entries.map(x=>drawerItemHTML('entry',x.id)).join('')}${quotes.map(({mediaId,q})=>drawerItemHTML('quote', mediaId+':'+q.id)).join('')}${compost.map(x=>drawerItemHTML('compost',x.id)).join('')}` : (e.target.value.trim() ? '<div class="faint" style="font-size:.78rem;padding:4px 0">Nothing matches.</div>' : '');
     bind(box);
   }, 300);
   const bind = (scope) => {
-    scope.querySelectorAll('[data-pin]').forEach(b => b.onclick = () => { const [kind,sourceId] = b.dataset.pin.split(':'); proj.extra.pinned.push({id:uid(), kind, sourceId, note:'', addedAt:today()}); saveNow(); preserveScroll(['#drawer'], redraw); });
+    scope.querySelectorAll('[data-pin]').forEach(b => b.onclick = () => { const raw = b.dataset.pin, c = raw.indexOf(':');
+      proj.extra.pinned.push({id:uid(), kind:raw.slice(0,c), sourceId:raw.slice(c+1), note:'', addedAt:today()}); saveNow(); preserveScroll(['#drawer'], redraw); });
     scope.querySelectorAll('[data-unpin]').forEach(b => b.onclick = () => { proj.extra.pinned = proj.extra.pinned.filter(p=>p.id!==b.dataset.unpin); saveNow(); preserveScroll(['#drawer'], redraw); });
     scope.querySelectorAll('[data-insert]').forEach(b => b.onclick = () => { const pn = byId(proj.extra.pinned, b.dataset.insert); insertText(`\n\n> ${(pinnedMeta(pn)?.body||'').trim().replace(/\n/g,'\n> ')}\n> ${attribution(pn)}\n\n`); });
     scope.querySelectorAll('[data-dkind]').forEach(it => { it.addEventListener('dragstart', ev => { ev.dataTransfer.setData('text/plain', pinnedMeta({kind:it.dataset.dkind, sourceId:it.dataset.dsrc})?.body || ''); }); });
@@ -220,7 +251,10 @@ routes.writing = function(root, params){
   root.innerHTML = `<div class="page">
     <div class="page-head"><h1>The Writing Studio</h1><div class="sub">Material accumulates while you live the rest of the site; this is where it gets shaped into something.</div></div>
     <div class="row rv" style="gap:8px;margin-bottom:16px"><a class="btn sm ghost" href="#/writing/compost">🌱 Compost Heap (${S.compost.length})</a><button class="btn sm ghost" id="wHabit">+ a writing habit</button><div class="view-toggle">${[['board','▥ Board'],['list','☰ List']].map(([k,l])=>`<button class="${view===k?'on':''}" data-wv="${k}">${l}</button>`).join('')}</div></div>
-    ${ws.length ? (view==='board' ? `<div class="wkanban rv" id="wkanban">${WRITING_STATUSES.map(st => `<div class="wkcol" data-wcol="${esc(st)}" style="--c:var(--page-accent)"><div class="wkcol-h"><span>${esc(st)}</span><span>${ws.filter(e=>e.extra.status===st).length}</span></div><div class="wkcol-body">${ws.filter(e=>e.extra.status===st).map(e=>`<div class="wkcard" draggable="true" data-wdrag="${e.id}" data-wopen="${e.id}"><b class="serif" style="font-size:.92rem">${esc(e.title||'Untitled piece')}</b>${e.extra.premise?`<div class="premise">${esc(e.extra.premise)}</div>`:''}<div class="mono faint" style="margin-top:4px">${esc(e.extra.kind)} · ${wordCount(e.body)}w</div></div>`).join('')}</div>`).join('')}</div>`
+    ${ws.length ? (view==='board' ? `<div class="wkanban rv" id="wkanban">${WRITING_STATUSES.map((st, si) => { const inCol = ws.filter(e=>e.extra.status===st);
+        const hue = ['var(--muted)','var(--sage)','var(--ment)','var(--page-accent)','var(--gold)','var(--terra)','#7f916a','var(--faint)'][si] || 'var(--page-accent)';
+        return `<div class="wkcol ${inCol.length?'':'quiet'}" data-wcol="${esc(st)}" style="--c:${hue}"><div class="wkcol-h"><span>${esc(st)}</span><span class="n">${inCol.length}</span></div><div class="wkcol-body">${inCol.map(e=>{ const n = wordCount(e.body); const tgt = e.extra.target?.wordTarget||0;
+          return `<div class="wkcard" draggable="true" data-wdrag="${e.id}" data-wopen="${e.id}"><b class="serif" style="font-size:.92rem">${esc(e.title||'Untitled piece')}</b>${e.extra.premise?`<div class="premise">${esc(e.extra.premise)}</div>`:''}<div class="mono faint" style="margin-top:4px">${esc(e.extra.kind)} · ${n}w${tgt?` / ${tgt}`:''}</div>${tgt?`<div class="wk-bar"><i style="width:${clamp(Math.round(n/tgt*100),0,100)}%"></i></div>`:''}</div>`; }).join('')}<div class="wkcol-drop"></div></div>`; }).join('')}</div>`
       : `<div class="stack" style="gap:8px">${ws.map(e=>`<div class="card rv wproject-card" data-wopen="${e.id}"><div class="row between"><b class="serif">${esc(e.title||'Untitled piece')}</b><span class="status-pill">${esc(e.extra.status)}</span></div>${e.extra.premise?`<div class="premise">${esc(e.extra.premise)}</div>`:''}<div class="row between" style="margin-top:8px"><span class="mono">${esc(e.extra.kind)} · ${wordCount(e.body)} words${e.extra.target?.wordTarget?` of ${e.extra.target.wordTarget}`:''}</span><span class="mono">${fmtDate((e.createdAt||'').slice(0,10),'med')}</span></div></div>`).join('')}</div>`)
     : `<div class="empty rv">Nothing here yet. A piece starts with one sentence about what it's really about.</div>`}
 
@@ -252,18 +286,69 @@ function crossPollinationHTML(){
 
 /* ---------- Inside a project: the three-panel workspace ---------- */
 let _wSession = {id:null, base:0};
+/* Panel widths and which panels are showing, kept per person rather than per
+   piece — it is a preference about how you like to work, not about the draft. */
+function wsPanes(){
+  const w = S.settings.wstudio = S.settings.wstudio || {};
+  w.lw = clamp(+w.lw || 280, 150, 560);
+  w.rw = clamp(+w.rw || 300, 150, 560);
+  if(typeof w.drawer !== 'boolean') w.drawer = true;
+  if(typeof w.board !== 'boolean') w.board = true;
+  return w;
+}
+/* Drag either inner edge to set how much room the draft gets. The width is
+   written to a CSS variable while dragging so the grid tracks the pointer,
+   and only saved on release. */
+function bindWsResize(root, ws){
+  const layout = root.querySelector('#wsLayout'); if(!layout) return;
+  [['drawer','l','lw'], ['structure-board','r','rw']].forEach(([cls, side, key]) => {
+    const pane = layout.querySelector('.' + cls); if(!pane) return;
+    pane.classList.add('ws-grip', side);
+    let drag = null;
+    pane.addEventListener('pointerdown', ev => {
+      const r = pane.getBoundingClientRect();
+      const onEdge = side === 'l' ? ev.clientX > r.right - 14 : ev.clientX < r.left + 14;
+      if(!onEdge) return;
+      ev.preventDefault();
+      drag = {x: ev.clientX, w: r.width};
+      try { pane.setPointerCapture(ev.pointerId); } catch(err){}
+      document.body.classList.add('ws-resizing'); layout.classList.add('ws-resizing');
+    });
+    pane.addEventListener('pointermove', ev => {
+      if(!drag) return;
+      const dx = ev.clientX - drag.x;
+      const w = clamp(drag.w + (side === 'l' ? dx : -dx), 150, 560);
+      layout.style.setProperty(side === 'l' ? '--ws-l' : '--ws-r', Math.round(w) + 'px');
+    });
+    const end = () => { if(!drag) return; drag = null;
+      document.body.classList.remove('ws-resizing'); layout.classList.remove('ws-resizing');
+      ws[key] = parseInt(getComputedStyle(layout).getPropertyValue(side === 'l' ? '--ws-l' : '--ws-r'), 10) || ws[key];
+      saveNow(); };
+    pane.addEventListener('pointerup', end); pane.addEventListener('pointercancel', end);
+    pane.addEventListener('dblclick', ev => {
+      const r = pane.getBoundingClientRect();
+      const onEdge = side === 'l' ? ev.clientX > r.right - 14 : ev.clientX < r.left + 14;
+      if(!onEdge) return;
+      ws[key] = side === 'l' ? 280 : 300; saveNow(); rerender();
+    });
+  });
+}
 function renderWritingDesk(root, id){
   const e = byId(S.entries, id); if(!e || e.type !== 'writing'){ navigate('#/writing'); return; }
   const x = e.extra = e.extra || {}; migrateWriting();
   if(_wSession.id !== id){ _wSession = {id, base: wordCount(e.body)}; }
-  const n = wordCount(e.body); const focus = !!S._writeFocus;
+  const n = wordCount(e.body); const focus = !!S._writeFocus; const ws = wsPanes();
   const redraw = () => rerender();
   root.innerHTML = `<div class="page ${focus?'wstudio-focus':''}">
     <div class="row between rv" style="margin-bottom:16px"><a class="btn sm ghost" href="#/writing">‹ the desk</a>
       <div class="row" style="gap:8px;flex-wrap:wrap">
         <select class="sel" style="width:auto" id="wKind">${WRITING_KINDS.map(k=>`<option ${x.kind===k?'selected':''}>${k}</option>`).join('')}</select>
         <select class="sel" style="width:auto" id="wStatus">${WRITING_STATUSES.map(s=>`<option ${x.status===s?'selected':''}>${s}</option>`).join('')}</select>
-        <button class="btn sm ${focus?'primary':'ghost'}" id="wFocus" title="hide the drawer and the board">${focus?'✓ focus':'focus'}</button>
+        <span class="ws-panes">
+          <button class="btn sm ghost ws-pane-btn ${ws.drawer?'on':''}" id="wPaneL" title="show or hide the research drawer">${ws.drawer?'◧':'◫'} drawer</button>
+          <button class="btn sm ghost ws-pane-btn ${ws.board?'on':''}" id="wPaneR" title="show or hide the structure board">${ws.board?'◨':'◫'} board</button>
+        </span>
+        <button class="btn sm ${focus?'primary':'ghost'}" id="wFocus" title="hide both panels and give the page to the draft">${focus?'✓ focus':'focus'}</button>
         <div class="row" style="gap:4px"><button class="btn sm ghost" id="expMd">↓ .md</button><button class="btn sm ghost" id="expTxt">↓ .txt</button><button class="btn sm ghost" id="expHtml">↓ .html</button></div>
       </div></div>
 
@@ -277,7 +362,7 @@ function renderWritingDesk(root, id){
       </div>
     </div>
 
-    <div class="wstudio-layout">
+    <div class="wstudio-layout${ws.drawer?'':' no-l'}${ws.board?'':' no-r'}" id="wsLayout" style="--ws-l:${ws.lw}px;--ws-r:${ws.rw}px">
       ${researchDrawerHTML(e)}
       <div>
         <div class="write-page rv"><textarea class="ta write-area" id="wBody" placeholder="Begin anywhere. You can fix the beginning last.">${esc(e.body)}</textarea></div>
@@ -304,6 +389,9 @@ function renderWritingDesk(root, id){
   const save = debounce(() => { e.body = ta.value; e.updatedAt = new Date().toISOString(); saveNow(); const w = document.querySelector('.write-page + .row .mono'); const nn = wordCount(ta.value); if(w) w.textContent = `${nn} word${nn===1?'':'s'}${x.target.wordTarget?` · ${clamp(Math.round(nn/x.target.wordTarget*100),0,999)}% of ${x.target.wordTarget}`:''}`; const sc = document.querySelector('.session-count'); if(sc) sc.textContent = `${Math.max(0,nn-_wSession.base)} written this session`; }, 500);
   ta.addEventListener('input', () => { e.body = ta.value; grow(); save(); });
   $('#wFocus').onclick = () => { S._writeFocus = !S._writeFocus; redraw(); setTimeout(()=>$('#wBody')?.focus(),60); };
+  $('#wPaneL') && ($('#wPaneL').onclick = () => { ws.drawer = !ws.drawer; saveNow(); redraw(); });
+  $('#wPaneR') && ($('#wPaneR').onclick = () => { ws.board = !ws.board; saveNow(); redraw(); });
+  bindWsResize(root, ws);
   $('#wKind').onchange = ev => { x.kind = ev.target.value; saveNow(); };
   $('#wStatus').onchange = ev => { x.status = ev.target.value; saveNow(); };
   $('#wTarget').onchange = ev => { x.target.wordTarget = +ev.target.value||0; saveNow(); redraw(); };
