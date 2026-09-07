@@ -331,7 +331,7 @@ function openMediaPanel(id){
   const e = byId(S.entries, id); if(!e || e.type !== 'media') return;
   const x = mediaX(e); const k = MEDIA_KINDS[x.kind] || MEDIA_KINDS.book; const stage = mediaLifeStage(e);
   const reopen = () => reopenPanel(() => { rerender(); openMediaPanel(id); });
-  const p = openPanel(`<div class="mono">${k[0]} ${k[1].toLowerCase()} · ${MEDIA_STATUS_LABEL[x.status]}${stage?` · consumed during ${stage.char} ${esc(stage.name)}`:''}</div>
+  const p = openPanel(`${vmToggleHTML('media')}<div class="mono row between"><span>${k[0]} ${k[1].toLowerCase()} · ${MEDIA_STATUS_LABEL[x.status]}${stage?` · consumed during ${stage.char} ${esc(stage.name)}`:''}</span><span class="wv-badge"></span></div>
     <div class="row between" style="align-items:flex-start"><h2 style="flex:1">${ed(`entries.#${e.id}.title`,{ph:'Title'})}</h2><button class="snip-btn" data-snip="${e.id}" title="save this review to the Writing Studio">✂ save to writing</button></div>
     <div class="row" style="gap:14px;margin:6px 0 18px;flex-wrap:wrap">
       <span class="mono">by</span><span style="flex:1;min-width:8em">${ed(`entries.#${e.id}.extra.creator`,{ph:'who made it'})}</span>
@@ -378,4 +378,5 @@ function openMediaPanel(id){
   p.querySelectorAll('[data-rec]').forEach(b => b.onclick = () => { x.recommend = (x.recommend===b.dataset.rec) ? '' : b.dataset.rec; saveNow(); reopen(); });
   const tagI = p.querySelector('#mpTags'); tagI.onchange = () => { e.tags = normTags(tagI.value.split(/[\s,]+/)); saveNow(); reopen(); };
   p.querySelector('#mpDel').onclick = () => requestDelete({label:e.title||'this entry', remove:()=>{ (x.quotes||[]).forEach(q=>{ if(q.quoteEntryId){ const qe = byId(S.entries,q.quoteEntryId); if(qe) S.entries.splice(S.entries.indexOf(qe),1); } }); return spliceOut(S.entries, y=>y.id===e.id); }, after:()=>{ closePanel(); rerender(); }});
+  bindVmToggle(p, 'media');
 }

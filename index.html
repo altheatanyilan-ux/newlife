@@ -403,6 +403,17 @@ html.reduce-motion *,html.reduce-motion *::before,html.reduce-motion *::after{an
 .today-date{font-family:var(--serif);font-size:2.3rem;letter-spacing:.01em}
 .moon{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:.85rem;margin-top:6px}
 .moon svg{width:22px;height:22px}
+.today-head{padding-bottom:12px;border-bottom:1px solid var(--line);margin-bottom:6px}
+.ready-letters .ready-letter{border-left:3px solid var(--gold);padding:12px 16px;border-radius:var(--radius);background:color-mix(in srgb,var(--gold) 8%,var(--surface))}
+.today-checkin summary,.today-planner summary{display:flex;align-items:center;justify-content:space-between;cursor:pointer;list-style:none;padding:8px 0}
+.today-checkin summary::-webkit-details-marker,.today-planner summary::-webkit-details-marker{display:none}
+.today-checkin .body,.today-planner .body{padding:10px 0 16px}
+.mood-shapes{gap:10px;flex-wrap:wrap}
+.mood-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 14px;border-radius:10px;border:1.5px solid var(--line-2);background:var(--surface-2);cursor:pointer;transition:border-color .18s var(--ease),background .18s var(--ease)}
+.mood-btn:hover{border-color:var(--page-accent)}
+.mood-btn.on{border-color:var(--page-accent);background:color-mix(in srgb,var(--page-accent) 12%,var(--surface-2))}
+.mood-icon{font-size:1.3rem;line-height:1}
+.today-planner .rhy-cal{margin-top:12px}
 .moods{display:flex;gap:14px;align-items:center}
 .mood{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--line-2);cursor:pointer;position:relative;transition:transform .25s var(--ease),border-color .25s;background:radial-gradient(circle at 50% 50%,var(--page-accent) var(--fill),transparent calc(var(--fill) + 1%))}
 .mood:hover{transform:scale(1.1)}
@@ -1838,6 +1849,23 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 .snip-btn{background:none;border:none;cursor:pointer;color:var(--faint);font-size:.8rem;padding:2px 4px}
 .snip-btn:hover{color:var(--page-accent)}
 @media (max-width:1150px){.wstudio-layout{grid-template-columns:1fr}.drawer,.structure-board{position:static;max-height:none}}
+
+/* ============================================================
+   LIVING VIEW / WORKSHOP VIEW
+   ============================================================ */
+/* living view: hide sections whose ed() children are all empty */
+.lv-mode .lv-empty{display:none!important}
+/* workshop view: empty ed() slots get a subtle dashed frame */
+.wv-mode .ed:has(>.ph){border:1px dashed var(--line-2);border-radius:4px;padding:2px 6px;background:color-mix(in srgb,var(--muted) 4%,transparent)}
+/* wv prompt text (Lora italic) shown only in workshop mode */
+.lv-mode .wv-prompt{display:none}
+.wv-prompt{font-family:var(--serif);font-style:italic;color:var(--muted);font-size:.82rem;margin:2px 0 4px}
+/* the toggle button row */
+.vm-toggle-row{display:flex;justify-content:flex-end;gap:6px;margin-bottom:8px}
+.vm-btn{font-size:.7rem;letter-spacing:.05em}
+.vm-btn.lv-active{color:var(--page-accent)}
+/* completion badge in workshop view */
+.wv-badge{font-family:var(--mono);font-size:.62rem;color:var(--muted);letter-spacing:.08em}
 </style>
 </head>
 <body>
@@ -2102,6 +2130,54 @@ function preserveScroll(selectors, fn){
   before.forEach(([sel,y]) => { const n = document.querySelector(sel); if(n) n.scrollTop = y; });
 }
 function closePanel({keep=false}={}){ const had = !!$('#panel'); $('#panelOv')?.remove(); $('#panel')?.remove(); if(had && !keep && history.state?.liPanel){ history.back(); } else updateBackButton(); }
+
+/* ============================================================
+   LIVING VIEW / WORKSHOP VIEW
+   ============================================================ */
+function vmGet(key){ return lsGet('vm:'+key, 'lv'); }
+function vmSet(key, mode){ lsSet('vm:'+key, mode); }
+function vmToggleHTML(key){
+  const m = vmGet(key);
+  return `<div class="vm-toggle-row"><button class="btn sm ghost vm-btn ${m==='lv'?'lv-active':''}" data-vmkey="${esc(key)}" title="${m==='lv'?'Workshop View: shows every field with prompts (E)':'Living View: shows only what you\'ve filled (E)'}">
+    ${m==='lv'?'◉ living':'⚙ workshop'}</button></div>`;
+}
+function applyLivingView(container){
+  const isEmpty = e => !!e.querySelector(':scope > .ph');
+  // per-item: individual .q wrappers (sensory fields, spec grids)
+  container.querySelectorAll('.q').forEach(q => {
+    const eds = q.querySelectorAll('.ed');
+    q.classList.toggle('lv-empty', eds.length > 0 && [...eds].every(isEmpty));
+  });
+  // per-section: .vp-sec, .next-action, and other field blocks
+  container.querySelectorAll('.vp-sec, .next-action').forEach(sec => {
+    const eds = [...sec.querySelectorAll('.ed')].filter(e => !e.closest('.editing'));
+    if(!eds.length) return;
+    sec.classList.toggle('lv-empty', eds.every(isEmpty));
+  });
+  // completion count for workshop header
+  const allEds = [...container.querySelectorAll('.ed')].filter(e => !e.closest('.editing'));
+  const filled = allEds.filter(e => !isEmpty(e)).length;
+  const badge = container.querySelector('.wv-badge');
+  if(badge) badge.textContent = `${filled} / ${allEds.length} fields`;
+}
+function bindVmToggle(container, key){
+  const btn = container.querySelector('[data-vmkey]');
+  if(!btn) return;
+  const apply = mode => {
+    container.classList.toggle('lv-mode', mode === 'lv');
+    container.classList.toggle('wv-mode', mode === 'wv');
+    btn.classList.toggle('lv-active', mode === 'lv');
+    btn.textContent = mode === 'lv' ? '◉ living' : '⚙ workshop';
+    btn.title = mode === 'lv' ? 'Workshop View: shows every field with prompts (E)' : 'Living View: shows only what you\'ve filled (E)';
+    if(mode === 'lv') applyLivingView(container);
+    else container.querySelectorAll('.lv-empty').forEach(n => n.classList.remove('lv-empty'));
+  };
+  btn.onclick = () => { const newMode = container.classList.contains('lv-mode') ? 'wv' : 'lv'; vmSet(key, newMode); apply(newMode); };
+  container.addEventListener('keydown', e => {
+    if((e.key==='e'||e.key==='E') && !['INPUT','TEXTAREA'].includes(e.target.tagName) && !e.target.isContentEditable) btn.click();
+  });
+  apply(vmGet(key));
+}
 window.addEventListener('popstate', e => { if($('#panel') && !e.state?.liPanel) closePanel({keep:true}); updateBackButton(); });
 /* ---------- persistent Back button: history.back() only, never a link ---------- */
 function homeRoute(){ const h = S?.settings?.home; return (h && h !== 'map' && routes[h]) ? h : 'home'; }
@@ -3912,35 +3988,82 @@ document.addEventListener('click', e => {
 function sortEntries(arr){ return [...arr].sort((a,b)=>occurredSort(b)-occurredSort(a) || (b.createdAt<a.createdAt?-1:1)); }
 function stageChip(s){ return `<span class="chip on click" style="--c:${s.hue}" data-go="#/stage/${s.id}"><span class="dot"></span>${s.char} ${esc(s.name)}</span>`; }
 /* ============================================================
-   1. TODAY — the entryway
+   1. TODAY — the entryway (lean ritual space, ≤640px column)
    ============================================================ */
 function checkin(day=today()){ if(!S.checkins[day]) S.checkins[day] = {mood:0, sentence:'', energy:{}, setpoint:0, intention:''}; return S.checkins[day]; }
 routes.today = function(root){
   const T = today(); const c = checkin(T); const moon = moonPhase();
+  const yesterday = addDays(T, -1); const cyest = S.checkins?.[yesterday];
+  const cycleDay = S.rehearsal.cycleStart ? daysBetween(S.rehearsal.cycleStart, T) : 0;
+  const rows = tasksForDay(T); const carried = allTaskRefs().filter(r => r.day && !r.done && r.day < T);
+  const doneN = rows.filter(r=>r.done).length; const evening = new Date().getHours() >= 17;
+  const ready = lettersOpeningNow();
+  const due = decisionsDue();
+  const milestones = milestonesDueSoon(30);
+  const pr = practicesDueToday();
+  const seenPlan = S._todayPlanOpen ?? false;
+
   registerPageEntry({pageName:'Today', addLabel:'New note', defaultEntryType:'reflection', prefilledFields:{}, options:[
     {icon:'▫', label:'Task for today', desc:'Something to finish before the day closes.', run:()=>openTaskPicker(T, rerender)},
     {icon:'✎', label:'Note', desc:'One honest line, kept as a reflection.', run:()=>EntryActions.quickNote()},
     {icon:'◎', label:'Intention', desc:'The one thing to give attention to today.', run:()=>EntryActions.dailyIntention()}]});
-  const otd = onThisDay(); const cycleDay = S.rehearsal.cycleStart ? daysBetween(S.rehearsal.cycleStart, T) : 0;
-  const sig = signals(); const rows = tasksForDay(T); const carried = allTaskRefs().filter(r => r.day && !r.done && r.day < T);
-  const doneN = rows.filter(r=>r.done).length; const evening = new Date().getHours() >= 17;
-  const trend = lastDays(30).map(d => dayState(d));
-  const hasState = trend.some(v => v !== null);
-  root.innerHTML = `<div class="page narrow">
-    <header class="rv page-head">
-      <div class="today-date">${fmtDate(T)}</div>
-      <div class="moon">${moonSVG(moon.p)} <span>${moon.name}</span><span class="mono" style="margin-left:6px">· day ${Math.round(moon.age)} of the cycle</span></div>
+
+  const MOODS = [
+    {v:'open',    icon:'◯', label:'Open'},
+    {v:'tender',  icon:'◌', label:'Tender'},
+    {v:'charged', icon:'◉', label:'Charged'},
+    {v:'settled', icon:'●', label:'Settled'},
+    {v:'flat',    icon:'—', label:'Flat'},
+  ];
+
+  const seasonName = (()=>{ if(typeof season === 'function'){ const s = season(parseDay(T)); return {winter:'Winter',spring:'Spring',summer:'Summer',autumn:'Autumn'}[s]||''; } return ''; })();
+
+  root.innerHTML = `<div class="page narrow today-page">
+
+    <!-- header -->
+    <header class="rv today-head">
+      <div class="row between" style="align-items:flex-start;gap:12px">
+        <div>
+          <div class="today-date">${fmtDate(T)}</div>
+          ${seasonName?`<div class="mono faint" style="font-size:.72rem;margin-top:2px">${seasonName} · day ${Math.round(moon.age)} of the lunar cycle</div>`:''}
+        </div>
+        <div class="moon row" style="gap:6px;align-items:center">${moonSVG(moon.p)} <span class="mono faint">${moon.name}</span></div>
+      </div>
+      ${cyest?.intention ? `<div class="mono faint" style="margin-top:8px;font-size:.78rem">Yesterday you set out to: <em>${esc(cyest.intention)}</em></div>` : ''}
     </header>
 
-    <!-- 1. morning: what today is for -->
-    <section class="section rv intention-block">
-      <span class="sc">The one thing</span>
-      <div class="intention-card">${ed(`checkins.${T}.intention`, {ph:'One thing to give attention to today. Click to set it.', cls:'serif-lg'})}</div>
-    </section>
+    <!-- sealed letters (prominent) -->
+    ${ready.length ? `<section class="section rv ready-letters">
+      <div class="sc">A letter from you has come due</div>
+      ${ready.map(e=>`<div class="card ready-letter" style="margin-top:8px"><div class="row between"><span><b class="serif">${esc(e.title||'To myself')}</b><div class="mono faint">${daysBetween((e.createdAt||'').slice(0,10), T)} days ago</div></span><button class="btn sm primary" data-lopen="${e.id}">Open it</button></div></div>`).join('')}
+    </section>` : ''}
 
-    <!-- 2. morning: the rehearsal -->
+    <!-- daily check-in (intention + mood + energy + setpoint) -->
+    <details class="rv today-checkin" ${!c.intention||(!c.setpoint && !c.mood) ? 'open' : ''}>
+      <summary><span class="sc lg">Daily check-in</span><span class="mono">${c.intention ? esc(c.intention.slice(0,40)) : 'not yet set'}</span></summary>
+      <div class="body stack" style="gap:20px">
+        <div class="field"><label>Today's intention</label>
+          ${ed(`checkins.${T}.intention`, {ph:'One thing to give attention to today.', cls:'serif-lg'})}</div>
+        <div class="field"><label>Mood right now</label>
+          <div class="mood-shapes row" style="gap:10px;flex-wrap:wrap">
+            ${MOODS.map(m=>`<button class="mood-btn ${c.mood===m.v?'on':''}" data-mood="${m.v}" style="flex-direction:column;gap:3px"><span class="mood-icon">${m.icon}</span><span class="mono" style="font-size:.65rem">${m.label}</span></button>`).join('')}
+          </div>
+        </div>
+        <div class="field"><label>In one sentence, how is today going?</label>
+          ${ed(`checkins.${T}.sentence`, {ph:'One honest sentence.', cls:'serif-lg'})}</div>
+        <div class="field"><label>Energy — four dimensions</label>
+          <div class="energy-row">${DIMS.map(d=>`<div class="energy-dim" style="--c:${d.c}"><div class="lbl"><span>${d.name}</span><span class="mono">${c.energy?.[d.id]||'–'}/5</span></div><div class="dots">${[1,2,3,4,5].map(n=>`<i class="${(c.energy?.[d.id]||0)>=n?'on':''}" data-dim="${d.id}" data-n="${n}"></i>`).join('')}</div></div>`).join('')}</div></div>
+        <div class="field setpoint"><label>Emotional set-point (Hicks' guidance scale)</label>
+          <input type="range" class="slider" min="1" max="22" value="${c.setpoint||14}" id="setpoint" style="--c:var(--rose)">
+          <div class="lbls"><span>1 · Fear / Despair</span><span>11 · Disappointment</span><span>22 · Joy / Freedom / Love</span></div>
+          <div class="cur"><span id="spName">${c.setpoint?hicksName(c.setpoint):'<span class="faint">place yourself on the scale</span>'}</span><span class="mono" id="spNum">${c.setpoint||''}</span></div>
+        </div>
+      </div>
+    </details>
+
+    <!-- morning rehearsal (Maltz) -->
     <details class="rv rehearsal-wrap" ${rehearsalDoneToday()?'':'open'} style="margin-top:8px">
-      <summary><span class="sc lg">Morning Rehearsal</span><span class="mono">${rehearsalDoneToday()?'practised today':'30 minutes'}</span></summary>
+      <summary><span class="sc lg">Morning Theatre</span><span class="mono">${rehearsalDoneToday()?'practised today':'30 minutes · Maltz'}</span></summary>
       <div class="body rehearsal stack" style="gap:24px">
         <blockquote class="rehearsal-epigraph">Close your eyes for thirty minutes. See yourself on a mental screen — sights, sounds, smells. See yourself acting, feeling and being as you want to be. The nervous system cannot tell a real experience from one vividly imagined.<cite>Maxwell Maltz</cite></blockquote>
         <div class="field"><label>Self-image script</label>${ed('rehearsal.script',{multi:true,mdr:true,cls:'prose serif-lg',ph:'First person, present tense. Who you are becoming — vivid, sensory, felt as already real.'})}</div>
@@ -3953,73 +4076,100 @@ routes.today = function(root){
       </div>
     </details>
 
-    ${(()=>{ const ready = lettersOpeningNow(); return ready.length ? `<section class="section rv"><div class="card ready-letter"><div class="sc">A letter from you has come due</div>${ready.map(e=>`<div class="row between" style="margin-top:8px"><span><b class="serif">${esc(e.title||'To myself')}</b><div class="mono">sealed ${fmtDate((e.createdAt||'').slice(0,10),'med')} · ${daysBetween((e.createdAt||'').slice(0,10), today())} days ago</div></span><button class="btn sm primary" data-lopen="${e.id}">Open it</button></div>`).join('')}</div></section>` : ''; })()}
-    ${(()=>{ const due = decisionsDue(); return due.length ? `<section class="section rv"><div class="card"><div class="row between"><span class="sc" style="margin:0">Decisions ready to grade</span><a class="mono" href="#/journals/decision">all decisions →</a></div>${due.map(e=>`<div class="row between" style="margin-top:8px"><span><b class="serif">${esc(e.title)}</b><div class="mono">decided ${fmtDate((e.createdAt||'').slice(0,10),'med')} · you were ${esc(e.extra.confidence||'unsure')}</div></span><button class="btn sm" data-dopen="${e.id}">Look back</button></div>`).join('')}</div></section>` : ''; })()}
+    <!-- habit rings -->
+    <section class="section rv" style="margin-top:8px">
+      <span class="sc lg">Today's habits</span>
+      <div id="todayRings" style="margin-top:10px"></div>
+    </section>
 
-    <!-- 3. the day's work -->
+    <!-- today's tasks -->
     <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Today's tasks</span><span class="mono">${rows.length?`${doneN} of ${rows.length} done`:'nothing parked yet'}</span></div>
       <div class="card" data-daydrop="${T}" style="margin-top:10px">
         <div class="stack" style="gap:2px">${rows.map(r=>taskRowHTML(r)).join('')||`<div class="empty">Park work here from a project, or write one below.</div>`}</div>
-        <div class="row" style="margin-top:10px;gap:8px">${quickTaskInput(T)}<button class="btn sm ghost" id="pullTask">pull in ↓</button><a class="btn sm ghost" href="#/plan">plan the week →</a></div>
+        <div class="row" style="margin-top:10px;gap:8px">${quickTaskInput(T)}<button class="btn sm ghost" id="pullTask">pull in ↓</button></div>
         ${carried.length?`<div class="row" style="margin-top:10px"><span class="mono" style="color:#d08080">${carried.length} carried over from earlier days</span><button class="btn sm ghost" id="carryAll">bring to today</button></div>`:''}
       </div></section>
 
-    ${(()=>{ const pr = practicesDueToday(); return pr.length ? `<section class="section rv"><div class="row between"><span class="sc" style="margin:0">Today's practices</span><a class="mono" href="#/values">the compass →</a></div>
-      <div class="card" style="margin-top:10px"><div class="prac-today">${pr.map(({v,p,done,doneThisWeek})=>`<button class="prac-chip ${done?'on':''}" data-practoday="${v.id}:${p.id}" style="--c:${v.color}"><span class="pc-tick">${done?'✓':'○'}</span><span class="pc-text">${esc(p.text)}</span><span class="pc-val mono">${esc(v.name)} · ${doneThisWeek}/${p.perWeek}</span></button>`).join('')}</div></div></section>` : ''; })()}
+    ${due.length ? `<section class="section rv"><div class="card"><div class="row between"><span class="sc" style="margin:0">Decisions ready to grade</span><a class="mono" href="#/journals/decision">all →</a></div>${due.map(e=>`<div class="row between" style="margin-top:8px"><span><b class="serif">${esc(e.title)}</b><div class="mono">${fmtDate((e.createdAt||'').slice(0,10),'med')}</div></span><button class="btn sm" data-dopen="${e.id}">Look back</button></div>`).join('')}</div></section>` : ''}
+    ${pr.length ? `<section class="section rv"><div class="row between"><span class="sc" style="margin:0">Today's practices</span><a class="mono" href="#/values">compass →</a></div>
+      <div class="card" style="margin-top:10px"><div class="prac-today">${pr.map(({v,p,done,doneThisWeek})=>`<button class="prac-chip ${done?'on':''}" data-practoday="${v.id}:${p.id}" style="--c:${v.color}"><span class="pc-tick">${done?'✓':'○'}</span><span class="pc-text">${esc(p.text)}</span><span class="pc-val mono">${esc(v.name)} · ${doneThisWeek}/${p.perWeek}</span></button>`).join('')}</div></div></section>` : ''}
+    ${milestones.length ? `<section class="section rv"><span class="sc">Skill milestones within 30 days</span><div class="card" style="border-left:3px solid var(--ment)">${milestones.map(({skill,m,days})=>`<a href="#/skills/${skill.id}" class="row between" style="text-decoration:none;color:inherit;padding:8px 0;border-top:1px dashed var(--line);gap:12px"><span><b class="serif">${esc(skill.name)}</b> <span class="muted">→ ${esc(skillLevelLabel(skill,m.levelTarget))}</span></span><span class="status-pill ${days<0?'due':'ahead'}">${days<0?`⚠ ${-days}d overdue`:days===0?'today':`in ${days}d`}</span></a>`).join('')}</div></section>` : ''}
 
-    ${(()=>{ const due = milestonesDueSoon(30); return due.length ? `<section class="section rv"><span class="sc">Skill milestones within 30 days</span><div class="card" style="border-left:3px solid var(--ment)">${due.map(({skill,m,days})=>`<a href="#/skills/${skill.id}" class="row between" style="text-decoration:none;color:inherit;padding:8px 0;border-top:1px dashed var(--line);gap:12px"><span><b class="serif">${esc(skill.name)}</b> <span class="muted">→ ${esc(skillLevelLabel(skill,m.levelTarget))} (L${m.levelTarget})</span>${m.note?`<div class="quote" style="font-size:.85rem">${esc(m.note)}</div>`:''}</span><span class="status-pill ${days<0?'due':'ahead'}">${days<0?`⚠ ${-days}d overdue`:days===0?'today':`in ${days}d`}</span></a>`).join('')}</div></section>` : ''; })()}
-
-    <!-- 4. evening: how it actually went -->
-    <details class="rv" ${evening && !c.setpoint ? 'open' : ''} style="margin-top:8px">
-      <summary><span class="sc lg">Evening check-in</span><span class="mono">${c.setpoint||Object.keys(c.energy||{}).length?'logged':'at the end of the day'}</span></summary>
-      <div class="body stack" style="gap:22px">
-        <div class="field"><label>In one sentence, how was today?</label>${ed(`checkins.${T}.sentence`, {ph:'One honest sentence.', cls:'serif-lg'})}</div>
-        <div class="field"><label>Energy — four dimensions</label><div class="energy-row">${DIMS.map(d=>`<div class="energy-dim" style="--c:${d.c}"><div class="lbl"><span>${d.name}</span><span class="mono">${c.energy?.[d.id]||'–'}/5</span></div><div class="dots">${[1,2,3,4,5].map(n=>`<i class="${(c.energy?.[d.id]||0)>=n?'on':''}" data-dim="${d.id}" data-n="${n}"></i>`).join('')}</div></div>`).join('')}</div></div>
-        <div class="field setpoint"><label>Emotional set-point (Hicks' guidance scale)</label>
-          <input type="range" class="slider" min="1" max="22" value="${c.setpoint||14}" id="setpoint" style="--c:var(--rose)">
-          <div class="lbls"><span>1 · Fear / Despair</span><span>11 · Disappointment</span><span>22 · Joy / Freedom / Love</span></div>
-          <div class="cur"><span id="spName">${c.setpoint?hicksName(c.setpoint):'<span class="faint">place yourself on the scale</span>'}</span><span class="mono" id="spNum">${c.setpoint||''}</span></div>
-        </div>
-      </div>
-    </details>
-
-    <section class="section rv"><span class="sc">Signals</span>
-      <div class="signals">${sig.map(s=>`<div class="signal" data-go="${s.go}"><div class="k">${s.k}</div><div class="v">${esc(s.v)}</div><div class="d">${esc(s.d)}</div></div>`).join('')}
-        <div class="signal" data-go="#/reviews"><div class="k">Days since weekly review</div><div class="v">${daysSince(S.reviews.lastWeekly)}</div><div class="d">${daysSince(S.reviews.lastWeekly)>7?'a review is due':'on rhythm'}</div></div>
-        <div class="signal" data-go="#/today"><div class="k">Morning Rehearsal streak</div><div class="v">${rehearsalStreak()} days</div><div class="d">of the current 21-day cycle</div></div>
-      </div>
-    </section>
-
-    <section class="section rv"><span class="sc">This day, in the years behind it</span>
-      ${onThisDayHTML()}
-    </section>
-
+    <!-- gentle prompt -->
     <section class="section rv"><span class="sc">A gentle prompt</span>
       <div class="prompt-card"><div class="quote" id="promptText">${gentlePrompt()}</div><div class="row" style="margin-top:14px;justify-content:space-between"><button class="btn sm ghost" id="anotherPrompt">another</button><button class="btn sm" data-quick="reflection">respond ✎</button></div></div>
     </section>
 
-    <section class="section rv"><span class="sc">How you have been, these thirty days</span>
-      <div class="card">${hasState ? `${sparkline(trend,{h:74,min:0,max:100,color:'var(--page-accent)',dots:true,labels:lastDays(30).map(d=>`${fmtDate(d,'short')}: ${dayState(d)===null?'—':dayState(d)+'/100'}${S.checkins[d]?.sentence?' · '+S.checkins[d].sentence:''}`)})}
-        <div class="row between" style="margin-top:10px"><span class="mono">${stateBlurb(trend)}</span><span class="mono">one line: energy and set-point together</span></div>`
-        : `<div class="empty">Check in for a few evenings and one honest line will appear here — your overall state, not five charts to decode.</div>`}</div>
+    <!-- quick add row -->
+    <section class="section rv">
+      <span class="sc">Quick add</span>
+      <div class="row" style="gap:6px;flex-wrap:wrap;margin-top:10px">
+        ${[['reflection','✎','Reflection'],['gratitude','♡','Gratitude'],['synchronicity','∞','Synchronicity'],['visualization','◉','Vision'],['memory','◌','Memory'],['nod','·','Nod'],['interaction','☺','Interaction'],['dream','☾','Dream']].map(([t,ic,lb]) =>
+          `<button class="btn sm ghost" data-quick="${t}">${ic} ${lb}</button>`).join('')}
+        <button class="btn sm ghost" data-quick="snippet">✐ Snippet</button>
+      </div>
     </section>
+
+    <!-- today's schedule (collapsible planner) -->
+    <details class="rv today-planner" id="todayPlannerWrap" ${seenPlan?'open':''} style="margin-top:8px">
+      <summary><span class="sc lg">Today's schedule</span><span class="mono">plan · calendar · running log</span></summary>
+      <div class="body" id="todayPlanBody"></div>
+    </details>
+
   </div>`;
 
+  /* habits rings */
+  const ringsBox = root.querySelector('#todayRings');
+  if(ringsBox && typeof habitRingRow === 'function') ringsBox.innerHTML = habitRingRow(T);
+  if(ringsBox && typeof bindHabitRings === 'function') bindHabitRings(ringsBox);
+
+  /* check-in bindings */
   root.querySelectorAll('.dots i').forEach(i => i.onclick = () => { c.energy = c.energy||{}; c.energy[i.dataset.dim] = +i.dataset.n; saveNow(); const dim = i.closest('.energy-dim'); dim.querySelectorAll('i').forEach(x=>x.classList.toggle('on', +x.dataset.n <= +i.dataset.n)); dim.querySelector('.lbl .mono').textContent = i.dataset.n+'/5'; });
-  const sp = $('#setpoint'); sp.oninput = () => { $('#spName').textContent = hicksName(+sp.value); $('#spNum').textContent = sp.value; }; sp.onchange = () => { c.setpoint = +sp.value; saveNow(); sound('save'); };
+  root.querySelectorAll('[data-mood]').forEach(b => b.onclick = () => { c.mood = b.dataset.mood; saveNow(); root.querySelectorAll('[data-mood]').forEach(x => x.classList.toggle('on', x === b)); });
+  const sp = $('#setpoint'); if(sp){ sp.oninput = () => { $('#spName').textContent = hicksName(+sp.value); $('#spNum').textContent = sp.value; }; sp.onchange = () => { c.setpoint = +sp.value; saveNow(); sound('save'); }; }
+
+  /* morning theatre */
   $('#markTheatre').onclick = () => { if(!S.rehearsal.days.includes(T)){ S.rehearsal.days.push(T); if(!S.rehearsal.cycleStart) S.rehearsal.cycleStart = T; saveNow(); sound('chime'); toast('Practice marked. The nervous system takes care of the rest, in time.'); rerender(); } };
   $('#newCycle').onclick = () => confirmDlg('Start a fresh 21-day cycle from today? Past days stay in your history.', () => { S.rehearsal.cycleStart = T; saveNow(); rerender(); });
   root.querySelectorAll('.tracker i').forEach(i => i.onclick = () => { const d = i.dataset.td; if(d > T) return; const idx = S.rehearsal.days.indexOf(d); if(idx>=0) S.rehearsal.days.splice(idx,1); else S.rehearsal.days.push(d); saveNow(); rerender(); });
+
+  /* gentle prompt */
   $('#anotherPrompt').onclick = () => { S._promptShift = (S._promptShift||0)+1; $('#promptText').innerHTML = gentlePrompt(); };
-  root.querySelectorAll('[data-quick]').forEach(b => b.onclick = () => { const t = b.dataset.quick; if(t==='nod') openNodModal(); else openEntryModal({type:t}); });
+
+  /* quick add */
+  root.querySelectorAll('[data-quick]').forEach(b => b.onclick = () => { const t = b.dataset.quick; if(t==='nod') openNodModal(); else if(t==='snippet') { if(typeof openWritingModal==='function') openWritingModal({type:'snippet'}); } else openEntryModal({type:t}); });
+
+  /* tasks */
   $('#pullTask').onclick = () => openTaskPicker(T, rerender);
   if($('#carryAll')) $('#carryAll').onclick = () => { carried.forEach(r => r.task.day = T); saveNow(); sound('success'); rerender(); };
   bindTaskRows(root); bindDayDrop(root); bindQuickTask(root);
-  bindSealedLetters(root); bindOnThisDay(root);
-  $$('[data-dopen]',root).forEach(b => b.onclick = () => openDecisionPanel(b.dataset.dopen));
-  $$('[data-practoday]',root).forEach(b => b.onclick = () => { const [vid,pid] = b.dataset.practoday.split(':'); const v = byId(S.values,vid); const p = byId(v.practices,pid); togglePractice(v,p); sound(practiceDone(p)?'success':'click'); rerender(); });
-};
 
+  /* letters & decisions */
+  bindSealedLetters(root);
+  $$('[data-dopen]',root).forEach(b => b.onclick = () => openDecisionPanel(b.dataset.dopen));
+
+  /* practices */
+  $$('[data-practoday]',root).forEach(b => b.onclick = () => { const [vid,pid] = b.dataset.practoday.split(':'); const v = byId(S.values,vid); const p = byId(v.practices,pid); togglePractice(v,p); sound(practiceDone(p)?'success':'click'); rerender(); });
+
+  /* planner (lazy-render when opened) */
+  const planWrap = root.querySelector('#todayPlannerWrap');
+  const planBody = root.querySelector('#todayPlanBody');
+  function openPlanner(){
+    S._todayPlanOpen = true;
+    if(!planBody.children.length && typeof drawRhythmCalendar === 'function'){
+      const calBox = document.createElement('div'); calBox.className = 'rhy-cal'; planBody.appendChild(calBox);
+      drawRhythmCalendar(calBox, 'day', T);
+      const sideBox = document.createElement('div'); planBody.appendChild(sideBox);
+      if(typeof renderPlanPanel === 'function') renderPlanPanel(sideBox, T);
+    }
+  }
+  if(planWrap){
+    if(planWrap.open) openPlanner();
+    planWrap.addEventListener('toggle', () => { if(planWrap.open) openPlanner(); });
+  }
+
+  reveal(root);
+};
 /* ============================================================
    2. TIMELINE — the museum of the past (with Threads woven in)
    ============================================================ */
@@ -4360,7 +4510,7 @@ function openVisionPanel(id){
   const kids = S.visions.filter(k=>k.parentId===v.id); const parent = byId(S.visions, v.parentId);
   v.peopleNeeded = Array.isArray(v.peopleNeeded) ? v.peopleNeeded : [];
   const p = openPanel(`<div class="vision-panel">
-    <div class="mono">vision · <select class="sel" id="vEra" style="width:auto;padding:1px 6px;font-size:.7rem;display:inline-block">${erasList().map(e=>`<option value="${e.id}" ${v.era===e.id?'selected':''}>${esc(e.name)}</option>`).join('')}</select> · planted ${fmtDate(v.createdAt,'med')} · tended ${relDays(lastTended)}</div>
+    ${vmToggleHTML('vision')}<div class="mono row between"><span>vision · <select class="sel" id="vEra" style="width:auto;padding:1px 6px;font-size:.7rem;display:inline-block">${erasList().map(e=>`<option value="${e.id}" ${v.era===e.id?'selected':''}>${esc(e.name)}</option>`).join('')}</select> · planted ${fmtDate(v.createdAt,'med')} · tended ${relDays(lastTended)}</span><span class="wv-badge"></span></div>
     <h2>${ed(`visions.#${v.id}.name`)}</h2>
     <div class="score"><div class="bar" style="flex:1;--c:${lived?'var(--gold)':'var(--sage)'}"><i style="width:${score}%"></i></div><span class="num" data-tween="${score}">0</span><span class="mono">vividness</span></div>
     <details><summary><span class="mono">how the score is made</span></summary><div class="body mono" style="line-height:1.9">${Object.entries(parts).map(([k,x])=>`${k} ${x.toFixed(1)}`).join(' · ')}<br>volume 20 · recency 20 (half-life 30d) · specificity 15 · sensory 15 · evidence 10 · resonance 10 · structural tension 10</div></details>
@@ -4403,6 +4553,7 @@ function openVisionPanel(id){
     ${moreSection(`<div class="danger-zone"><span>Visions are meant to be tended, not pruned casually. Its entries stay in the journals.</span><button class="btn sm ghost danger" id="delVision">Delete this vision</button></div>`)}
   </div>`,'vision-panel');
   $$('#panel .rv').forEach(n=>n.classList.add('in'));
+  bindVmToggle(p, 'vision');
   p.querySelectorAll('[data-conf]').forEach(b => b.onclick = () => { const was = v.confidence; v.confidence = b.dataset.conf; if(v.confidence==='lived'){ v.status='completed'; v.completedAt = v.completedAt || today(); v.progress = 100; } else if(was==='lived'){ v.status='pending'; } saveNow(); if(v.confidence==='lived' && was!=='lived') fruitCeremony(v); else { reopenPanel(() => { rerender(); openVisionPanel(v.id); }); } });
   p.querySelectorAll('[data-feel]').forEach(b => b.onclick = () => { v.feeling = +b.dataset.feel; saveNow(); reopenPanel(() => { rerender(); openVisionPanel(v.id); }); });
   bindBoardStrip(document.querySelector('#panel'), () => byId(S.visions,id)?.name || 'Vision');
@@ -6137,7 +6288,7 @@ function openSkillPanel(id){
   const s = byId(S.skills,id); if(!s) return; const es = sortEntries(entriesLinked('skills',s.id)); const st = skillStreak(s); const last = skillLastPracticed(s); const since = daysSince(last);
   const values = {}; es.forEach(e=>(e.links.values||[]).forEach(x=>values[x.id]=(values[x.id]||0)+1));
   const arche = s.planned ? 'A bud. Nothing to judge yet.' : since>90 ? 'The Dabbler? Enthusiasm, then a plateau, then silence. Or perhaps a deliberate surrender — some competencies are meant to be let go.' : st.best>=14 && st.cur===0 ? 'The Obsessive? A long hard streak, then a break. Watch for burnout; oscillation is the rhythm, not a failure.' : s.currentLevel>=3 && !skillTargetLevel(s) && s.currentLevel < skillLevelCount(s) ? 'The Hacker? Good enough, and stopped. Is this the level you chose, or the one you settled for?' : 'On the path. Loving the plateau. The master stays on the mat five minutes longer.';
-  const p = openPanel(`<div class="mono">${esc(s.cat)} · ${s.planned?'planned':'level '+s.currentLevel+' of '+skillLevelCount(s)}</div><h2>${ed(`skills.#${s.id}.name`)}</h2>
+  const p = openPanel(`${vmToggleHTML('skill')}<div class="mono row between"><span>${esc(s.cat)} · ${s.planned?'planned':'level '+s.currentLevel+' of '+skillLevelCount(s)}</span><span class="wv-badge"></span></div><h2>${ed(`skills.#${s.id}.name`)}</h2>
     <div class="row" style="margin:8px 0 10px;gap:8px;flex-wrap:wrap">
       <select class="sel" style="width:auto" id="skCatSel">${SKILL_CATS.map(c=>`<option ${s.cat===c?'selected':''}>${c}</option>`).join('')}</select>
       <select class="sel" style="width:auto" id="skHzSel" title="how near this skill is">${Object.entries(SKILL_HORIZONS).map(([k,v])=>`<option value="${k}" ${skillHorizon(s)===k?'selected':''}>${v[0]} ${v[1]}</option>`).join('')}</select>
@@ -6159,6 +6310,7 @@ function openSkillPanel(id){
     <div class="vp-sec"><div class="row between"><span class="sc">Progress log</span><button class="btn sm" id="skLog">+ practice</button></div>${es.map(e=>entryCard(e)).join('')||'<div class="empty">No practice logged yet.</div>'}</div>
     ${moreSection(`<div class="danger-zone"><span>Skills accrue slowly. Consider marking it planned or lowering the level before deleting.</span><button class="btn sm ghost danger" id="skDel">Delete this skill</button></div>`)}`);
   $$('#panel .rv').forEach(n=>n.classList.add('in'));
+  bindVmToggle(p, 'skill');
   p.querySelector('#skCatSel').onchange = e => { s.cat = e.target.value; saveNow(); reopenPanel(() => { rerender(); openSkillPanel(id); }); };
   bindBoardStrip(p, () => s.name);
   p.querySelector('#skHzSel').onchange = e => { s.horizon = e.target.value; s.planned = s.horizon === 'someday'; if(!s.planned && s.currentLevel===0) s.currentLevel = 1; saveNow(); reopenPanel(() => { rerender(); openSkillPanel(id); }); };
@@ -6963,7 +7115,8 @@ function tapePeriodSummaryHTML(from, to, items){
   </div>`;
 }
 function tapeMonthStripHTML(monthKeys, all){
-  return `<div class="tape-months rv">${monthKeys.map(({y,m}) => {
+  const cols = monthKeys.length >= 12 ? 4 : monthKeys.length >= 6 ? 3 : monthKeys.length;
+  return `<div class="tape-months rv" style="grid-template-columns:repeat(${cols},1fr)">${monthKeys.map(({y,m}) => {
     const pre = `${y}-${pad(m+1)}`;
     const its = all.filter(x => x.date.startsWith(pre));
     const sps = Object.entries(S.checkins||{}).filter(([d,c]) => d.startsWith(pre) && c.setpoint).map(([,c]) => c.setpoint);
@@ -7016,7 +7169,7 @@ function tapeSpanHTML(anchor, monthCount, label){
     </div>
     ${tapeModeBarHTML()}
     ${tapePeriodSummaryHTML(from, to, all)}
-    <div class="tape-span rv">${months.map(({y:yy,m}) => tapeMonthBlock(yy, m, byDay, t.mode, true)).join('')}</div>
+    <div class="tape-span rv" style="grid-template-columns:repeat(3,1fr)">${months.map(({y:yy,m}) => tapeMonthBlock(yy, m, byDay, t.mode, true)).join('')}</div>
     ${tapeMonthStripHTML(months, all)}`;
 }
 
@@ -7087,24 +7240,56 @@ function tapeFilterHTML(){
 }
 function bindTapeFilters(box){
   const t = tapeState();
-  const upd = debounce(() => { t.q = box.querySelector('#ltq').value; rerender(); const n = document.querySelector('#ltq'); if(n){ n.focus(); n.setSelectionRange(n.value.length, n.value.length); } }, 350);
+  const upd = debounce(() => { t.q = box.querySelector('#ltq')?.value ?? t.q; refreshLtBody(); const n = document.querySelector('#ltq'); if(n){ n.focus(); n.setSelectionRange(n.value.length, n.value.length); } }, 350);
   box.querySelector('#ltq')?.addEventListener('input', upd);
-  box.querySelector('#lttag')?.addEventListener('change', e => { t.tag = e.target.value; rerender(); });
-  box.querySelector('#ltfrom')?.addEventListener('change', e => { t.from = e.target.value; rerender(); });
-  box.querySelector('#ltto')?.addEventListener('change', e => { t.to = e.target.value; rerender(); });
+  box.querySelector('#lttag')?.addEventListener('change', e => { t.tag = e.target.value; refreshLtBody(); });
+  box.querySelector('#ltfrom')?.addEventListener('change', e => { t.from = e.target.value; refreshLtBody(); });
+  box.querySelector('#ltto')?.addEventListener('change', e => { t.to = e.target.value; refreshLtBody(); });
   box.querySelectorAll('[data-ltsection]').forEach(c => c.onclick = () => { const s = c.dataset.ltsection;
-    t.sections = t.sections.includes(s) ? t.sections.filter(x=>x!==s) : [...t.sections, s]; rerender(); });
+    t.sections = t.sections.includes(s) ? t.sections.filter(x=>x!==s) : [...t.sections, s]; refreshLtBody(); });
   box.querySelectorAll('[data-lttype]').forEach(c => c.onclick = () => { const k = c.dataset.lttype;
-    t.types = t.types.includes(k) ? t.types.filter(x=>x!==k) : [...t.types, k]; rerender(); });
+    t.types = t.types.includes(k) ? t.types.filter(x=>x!==k) : [...t.types, k]; refreshLtBody(); });
   box.querySelectorAll('[data-ltrange]').forEach(b => b.onclick = () => {
     const T = today(); const l = b.dataset.ltrange;
     if(l === 'this week'){ t.from = weekStart(T); t.to = addDays(weekStart(T), 6); }
     else if(l === 'this month'){ t.from = T.slice(0,8)+'01'; t.to = T; }
     else if(l === 'last 90 days'){ t.from = addDays(T, -89); t.to = T; }
     else { t.from = T.slice(0,4)+'-01-01'; t.to = T; }
-    rerender();
+    refreshLtBody();
   });
-  box.querySelector('#ltClear')?.addEventListener('click', () => { Object.assign(t, {types:[], sections:[], q:'', tag:'', from:'', to:''}); rerender(); });
+  box.querySelector('#ltClear')?.addEventListener('click', () => { Object.assign(t, {types:[], sections:[], q:'', tag:'', from:'', to:''}); refreshLtBody(); });
+}
+
+/* replace just #ltBody, keeping the tab bar and filter bar in place */
+function refreshLtBody(){
+  const t = tapeState();
+  const body = document.getElementById('ltBody');
+  if(!body){ rerender(); return; }
+  body.innerHTML = t.view === 'day'     ? tapeDayHTML(t.day)
+    : t.view === 'week'    ? tapeWeekHTML(t.day)
+    : t.view === 'month'   ? tapeMonthHTML(t.day)
+    : t.view === 'quarter' ? tapeSpanHTML(t.day, 3, 'quarter')
+    : t.view === 'half'    ? tapeSpanHTML(t.day, 6, 'half')
+    :                        tapeYearHTML(+t.day.slice(0,4));
+  document.querySelectorAll('[data-ltview]').forEach(b => b.classList.toggle('active', b.dataset.ltview === t.view));
+  _bindLtBody(body);
+  reveal(body);
+}
+
+function _bindLtBody(body){
+  const t = tapeState();
+  body.querySelectorAll('[data-tapeday]').forEach(n => n.onclick = e => {
+    if(e.target.closest('.entry,a,button:not([data-tapeday])')) return;
+    t.day = n.dataset.tapeday; t.view = 'day'; refreshLtBody();
+  });
+  body.querySelectorAll('[data-tapeweek]').forEach(b => b.onclick = () => { t.day = b.dataset.tapeweek; t.view = 'week'; refreshLtBody(); });
+  body.querySelectorAll('[data-tapeyear]').forEach(b => b.onclick = () => { t.day = b.dataset.tapeyear + t.day.slice(4); t.view = 'year'; refreshLtBody(); });
+  body.querySelectorAll('[data-tapemonth]').forEach(b => b.onclick = e => { e.stopPropagation(); t.day = b.dataset.tapemonth; t.view = 'month'; refreshLtBody(); });
+  body.querySelectorAll('[data-tapespan]').forEach(b => b.onclick = () => { t.day = b.dataset.tapespan; refreshLtBody(); });
+  body.querySelectorAll('[data-tapemode]').forEach(b => b.onclick = () => { t.mode = b.dataset.tapemode; refreshLtBody(); });
+  body.querySelectorAll('[data-tapego]').forEach(n => n.onclick = () => navigate(n.dataset.tapego));
+  bindTapeFilters(body);
+  if(typeof bindHabitRings === 'function') bindHabitRings(body);
 }
 
 /* ---------- the panel ---------- */
@@ -7123,17 +7308,9 @@ function renderLifeTape(box){
       : t.view === 'quarter' ? tapeSpanHTML(t.day, 3, 'quarter')
       : t.view === 'half'    ? tapeSpanHTML(t.day, 6, 'half')
       :                        tapeYearHTML(+t.day.slice(0,4))}</div>`;
-  box.querySelectorAll('[data-ltview]').forEach(b => b.onclick = () => { t.view = b.dataset.ltview; rerender(); });
-  box.querySelectorAll('[data-tapeday]').forEach(n => n.onclick = e => { if(e.target.closest('.entry,a,button:not([data-tapeday])')) return;
-    t.day = n.dataset.tapeday; t.view = 'day'; rerender(); });
-  box.querySelectorAll('[data-tapeweek]').forEach(b => b.onclick = () => { t.day = b.dataset.tapeweek; t.view = 'week'; rerender(); });
-  box.querySelectorAll('[data-tapeyear]').forEach(b => b.onclick = () => { t.day = b.dataset.tapeyear + t.day.slice(4); t.view = 'year'; rerender(); });
-  box.querySelectorAll('[data-tapemonth]').forEach(b => b.onclick = e => { e.stopPropagation(); t.day = b.dataset.tapemonth; t.view = 'month'; rerender(); });
-  box.querySelectorAll('[data-tapespan]').forEach(b => b.onclick = () => { t.day = b.dataset.tapespan; rerender(); });
-  box.querySelectorAll('[data-tapemode]').forEach(b => b.onclick = () => { t.mode = b.dataset.tapemode; rerender(); });
-  box.querySelectorAll('[data-tapego]').forEach(n => n.onclick = () => navigate(n.dataset.tapego));
+  box.querySelectorAll('[data-ltview]').forEach(b => b.onclick = () => { t.view = b.dataset.ltview; refreshLtBody(); });
   bindTapeFilters(box);
-  if(typeof bindHabitRings === 'function') bindHabitRings(box);
+  _bindLtBody(box.querySelector('#ltBody') || box);
   reveal(box);
 }
 /* ============================================================
@@ -7206,11 +7383,6 @@ function flowEvening(){
   guidedFlow('Evening review', [
     {title:'The rings, before the day closes.', hint:'Anything unfilled? Fill it, or let it stand as a miss — both are honest.',
      body: () => habitRingRow(T), bind: b => bindHabitRings(b)},
-    {title:'What the day actually held.', hint:'Does this reflect the day you intended, or the day that happened to you?',
-     body: () => { const items = tapeFilter(tapeItems(T, T));
-       const tally = {}; items.forEach(x => { const s = tapeKind(x.kind)[0]; tally[s] = (tally[s]||0)+1; });
-       return `<div class="rev-summary">${items.length ? `<b>${items.length}</b> things landed on today — ${Object.entries(tally).sort((a,b)=>b[1]-a[1]).map(([s,n])=>`${n} ${s.toLowerCase()}`).join(', ')}.` : 'Nothing logged today. That is also a reading.'}</div>
-         <div class="row" style="margin-top:10px"><button class="btn sm ghost" data-flowgo="#/rhythm/tape">open the day in the Life Tape</button></div>`; }},
     {title:'Tonight, in four dimensions.', hint:'Where the energy actually ended up.',
      body: () => `<div class="energy-row">${DIMS.map(x => `<div class="energy-dim" style="--c:${x.c}"><div class="lbl"><span>${x.name}</span></div><div class="feeling">${[1,2,3,4,5].map(n=>`<button data-fwen="${x.id}:${n}" class="${(c.energy?.[x.id]||0)===n?'on':''}">${n}</button>`).join('')}</div></div>`).join('')}</div>`,
      bind: b => b.querySelectorAll('[data-fwen]').forEach(btn => btn.onclick = () => { const [id,n] = btn.dataset.fwen.split(':'); c.energy = c.energy || {}; c.energy[id] = +n; saveNow();
@@ -7227,6 +7399,9 @@ function flowEvening(){
     {title:"Tomorrow's intention.", hint:'Set it now, while today is still in the room.',
      body: () => { const p = dayPlan(addDays(T,1)); return `<input class="inp serif-lg" id="fwTom" value="${esc(p.intentions?.[0] || '')}" placeholder="Tomorrow I give my attention to…">`; },
      next: b => { const p = dayPlan(addDays(T,1)); p.intentions = p.intentions || ['','','']; p.intentions[0] = b.querySelector('#fwTom').value.trim(); saveNow(); }},
+    {title:'See your full day.', hint:'The whole of today, assembled. Close the book when you are ready.',
+     body: () => `<div class="row" style="justify-content:center;margin-top:8px"><a class="btn primary" href="#/rhythm/tape" data-flowgo="#/rhythm/tape">Open today in Life Tape →</a></div>`,
+     bind: b => b.querySelector('[data-flowgo]')?.addEventListener('click', () => { const t = tapeState(); t.view = 'day'; t.day = T; })},
   ], () => { reviewDone('lastEvening'); toast('Day closed.'); });
 }
 
@@ -7603,38 +7778,21 @@ function moveBlock(kind, id, day, start){
 routes.rhythm = function(root, params){
   migrateRhythm();
   const T = today();
-  const TABS = [['tape','Life Tape'],['habits','Habits'],['reviews','Reviews'],['plan','Day plan'],['patterns','Patterns']];
+  const TABS = [['tape','Life Tape'],['habits','Habits'],['reviews','Reviews'],['patterns','Patterns']];
   let tab = params[0] === 'review' ? 'reviews' : params[0];
   tab = TABS.some(([k]) => k === tab) ? tab : (S._rhyTab || 'tape');
   S._rhyTab = tab;
-  const view = S._rhyView || 'week';
   const focus = S._rhyDay && /^\d{4}-\d{2}-\d{2}$/.test(S._rhyDay) ? S._rhyDay : T;
   registerPageEntry({pageName:'Rhythm', addLabel:'Add to the day', defaultEntryType:'event', prefilledFields:{}, options:[
     {icon:'◍', label:'Habit', desc:'Something you mean to keep doing.', run:()=>openHabitModal()},
     {icon:'▦', label:'Event', desc:'A block of time with a name.', run:()=>openEventModal({day:focus})},
-    {icon:'▫', label:'Task for today', desc:'Something to finish before the day closes.', run:()=>openTaskPicker(focus, rerender)},
-    {icon:'◎', label:'Plan my day', desc:'The three-step morning ritual.', run:()=>planMyDay(focus)},
     {icon:'⤓', label:'Import a calendar (.ics)', desc:'A one-time upload from Google Calendar or another app — daily/weekly repeats only, no live sync.', run:()=>openICSImport()}]});
-  const planTab = tab === 'plan';
   root.innerHTML = `<div class="page rhythm-page">
     <div class="page-head"><h1>${esc(S.settings.rhythmName || 'Rhythm')}</h1><div class="sub">Your calendar holds what you meant to do. This holds what you actually lived — the tape of it, the habits that made it, and the reviews that keep the whole instrument honest.</div></div>
     <div class="tabs">${TABS.map(([k,l]) => `<button class="${tab===k?'active':''}" data-rtab="${k}">${l}</button>`).join('')}</div>
-    ${planTab ? `<div class="row between" style="margin:12px 0">
-        <div class="view-toggle">${[['day','Day'],['week','Week'],['month','Month']].map(([k,l])=>`<button class="${view===k?'on':''}" data-rview="${k}">${l}</button>`).join('')}</div>
-        <div class="row"><button class="btn sm ghost" id="rhyPrev">‹</button><button class="btn sm ghost" id="rhyToday">today</button><button class="btn sm ghost" id="rhyNext">›</button></div></div>
-      <div class="rhythm-grid">
-        <div class="rhy-cal" id="rhyCal"></div>
-        <aside class="rhy-side"><div id="rhySide"></div></aside>
-      </div>` : `<div id="rhyBody" style="margin-top:14px"></div>`}
+    <div id="rhyBody" style="margin-top:14px"></div>
   </div>`;
-  if(planTab){
-    drawRhythmCalendar($('#rhyCal'), view, focus);
-    renderPlanPanel($('#rhySide'), focus);
-    const step = n => { S._rhyDay = addDays(focus, view === 'day' ? n : view === 'week' ? n*7 : n*30); rerender(); };
-    $('#rhyPrev').onclick = () => step(-1); $('#rhyNext').onclick = () => step(1);
-    $('#rhyToday').onclick = () => { S._rhyDay = T; rerender(); };
-    $$('[data-rview]',root).forEach(b => b.onclick = () => { S._rhyView = b.dataset.rview; rerender(); });
-  } else {
+  {
     const body = $('#rhyBody');
     if(tab === 'tape') renderLifeTape(body);
     else if(tab === 'habits') renderHabitsPanel(body, focus);
@@ -9642,7 +9800,7 @@ function openMediaPanel(id){
   const e = byId(S.entries, id); if(!e || e.type !== 'media') return;
   const x = mediaX(e); const k = MEDIA_KINDS[x.kind] || MEDIA_KINDS.book; const stage = mediaLifeStage(e);
   const reopen = () => reopenPanel(() => { rerender(); openMediaPanel(id); });
-  const p = openPanel(`<div class="mono">${k[0]} ${k[1].toLowerCase()} · ${MEDIA_STATUS_LABEL[x.status]}${stage?` · consumed during ${stage.char} ${esc(stage.name)}`:''}</div>
+  const p = openPanel(`${vmToggleHTML('media')}<div class="mono row between"><span>${k[0]} ${k[1].toLowerCase()} · ${MEDIA_STATUS_LABEL[x.status]}${stage?` · consumed during ${stage.char} ${esc(stage.name)}`:''}</span><span class="wv-badge"></span></div>
     <div class="row between" style="align-items:flex-start"><h2 style="flex:1">${ed(`entries.#${e.id}.title`,{ph:'Title'})}</h2><button class="snip-btn" data-snip="${e.id}" title="save this review to the Writing Studio">✂ save to writing</button></div>
     <div class="row" style="gap:14px;margin:6px 0 18px;flex-wrap:wrap">
       <span class="mono">by</span><span style="flex:1;min-width:8em">${ed(`entries.#${e.id}.extra.creator`,{ph:'who made it'})}</span>
@@ -9689,6 +9847,7 @@ function openMediaPanel(id){
   p.querySelectorAll('[data-rec]').forEach(b => b.onclick = () => { x.recommend = (x.recommend===b.dataset.rec) ? '' : b.dataset.rec; saveNow(); reopen(); });
   const tagI = p.querySelector('#mpTags'); tagI.onchange = () => { e.tags = normTags(tagI.value.split(/[\s,]+/)); saveNow(); reopen(); };
   p.querySelector('#mpDel').onclick = () => requestDelete({label:e.title||'this entry', remove:()=>{ (x.quotes||[]).forEach(q=>{ if(q.quoteEntryId){ const qe = byId(S.entries,q.quoteEntryId); if(qe) S.entries.splice(S.entries.indexOf(qe),1); } }); return spliceOut(S.entries, y=>y.id===e.id); }, after:()=>{ closePanel(); rerender(); }});
+  bindVmToggle(p, 'media');
 }
 /* ============================================================
    THE WRITING STUDIO (formerly Writing) — a desk, a research

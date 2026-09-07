@@ -146,38 +146,21 @@ function moveBlock(kind, id, day, start){
 routes.rhythm = function(root, params){
   migrateRhythm();
   const T = today();
-  const TABS = [['tape','Life Tape'],['habits','Habits'],['reviews','Reviews'],['plan','Day plan'],['patterns','Patterns']];
+  const TABS = [['tape','Life Tape'],['habits','Habits'],['reviews','Reviews'],['patterns','Patterns']];
   let tab = params[0] === 'review' ? 'reviews' : params[0];
   tab = TABS.some(([k]) => k === tab) ? tab : (S._rhyTab || 'tape');
   S._rhyTab = tab;
-  const view = S._rhyView || 'week';
   const focus = S._rhyDay && /^\d{4}-\d{2}-\d{2}$/.test(S._rhyDay) ? S._rhyDay : T;
   registerPageEntry({pageName:'Rhythm', addLabel:'Add to the day', defaultEntryType:'event', prefilledFields:{}, options:[
     {icon:'◍', label:'Habit', desc:'Something you mean to keep doing.', run:()=>openHabitModal()},
     {icon:'▦', label:'Event', desc:'A block of time with a name.', run:()=>openEventModal({day:focus})},
-    {icon:'▫', label:'Task for today', desc:'Something to finish before the day closes.', run:()=>openTaskPicker(focus, rerender)},
-    {icon:'◎', label:'Plan my day', desc:'The three-step morning ritual.', run:()=>planMyDay(focus)},
     {icon:'⤓', label:'Import a calendar (.ics)', desc:'A one-time upload from Google Calendar or another app — daily/weekly repeats only, no live sync.', run:()=>openICSImport()}]});
-  const planTab = tab === 'plan';
   root.innerHTML = `<div class="page rhythm-page">
     <div class="page-head"><h1>${esc(S.settings.rhythmName || 'Rhythm')}</h1><div class="sub">Your calendar holds what you meant to do. This holds what you actually lived — the tape of it, the habits that made it, and the reviews that keep the whole instrument honest.</div></div>
     <div class="tabs">${TABS.map(([k,l]) => `<button class="${tab===k?'active':''}" data-rtab="${k}">${l}</button>`).join('')}</div>
-    ${planTab ? `<div class="row between" style="margin:12px 0">
-        <div class="view-toggle">${[['day','Day'],['week','Week'],['month','Month']].map(([k,l])=>`<button class="${view===k?'on':''}" data-rview="${k}">${l}</button>`).join('')}</div>
-        <div class="row"><button class="btn sm ghost" id="rhyPrev">‹</button><button class="btn sm ghost" id="rhyToday">today</button><button class="btn sm ghost" id="rhyNext">›</button></div></div>
-      <div class="rhythm-grid">
-        <div class="rhy-cal" id="rhyCal"></div>
-        <aside class="rhy-side"><div id="rhySide"></div></aside>
-      </div>` : `<div id="rhyBody" style="margin-top:14px"></div>`}
+    <div id="rhyBody" style="margin-top:14px"></div>
   </div>`;
-  if(planTab){
-    drawRhythmCalendar($('#rhyCal'), view, focus);
-    renderPlanPanel($('#rhySide'), focus);
-    const step = n => { S._rhyDay = addDays(focus, view === 'day' ? n : view === 'week' ? n*7 : n*30); rerender(); };
-    $('#rhyPrev').onclick = () => step(-1); $('#rhyNext').onclick = () => step(1);
-    $('#rhyToday').onclick = () => { S._rhyDay = T; rerender(); };
-    $$('[data-rview]',root).forEach(b => b.onclick = () => { S._rhyView = b.dataset.rview; rerender(); });
-  } else {
+  {
     const body = $('#rhyBody');
     if(tab === 'tape') renderLifeTape(body);
     else if(tab === 'habits') renderHabitsPanel(body, focus);

@@ -1,33 +1,80 @@
 /* ============================================================
-   1. TODAY — the entryway
+   1. TODAY — the entryway (lean ritual space, ≤640px column)
    ============================================================ */
 function checkin(day=today()){ if(!S.checkins[day]) S.checkins[day] = {mood:0, sentence:'', energy:{}, setpoint:0, intention:''}; return S.checkins[day]; }
 routes.today = function(root){
   const T = today(); const c = checkin(T); const moon = moonPhase();
+  const yesterday = addDays(T, -1); const cyest = S.checkins?.[yesterday];
+  const cycleDay = S.rehearsal.cycleStart ? daysBetween(S.rehearsal.cycleStart, T) : 0;
+  const rows = tasksForDay(T); const carried = allTaskRefs().filter(r => r.day && !r.done && r.day < T);
+  const doneN = rows.filter(r=>r.done).length; const evening = new Date().getHours() >= 17;
+  const ready = lettersOpeningNow();
+  const due = decisionsDue();
+  const milestones = milestonesDueSoon(30);
+  const pr = practicesDueToday();
+  const seenPlan = S._todayPlanOpen ?? false;
+
   registerPageEntry({pageName:'Today', addLabel:'New note', defaultEntryType:'reflection', prefilledFields:{}, options:[
     {icon:'▫', label:'Task for today', desc:'Something to finish before the day closes.', run:()=>openTaskPicker(T, rerender)},
     {icon:'✎', label:'Note', desc:'One honest line, kept as a reflection.', run:()=>EntryActions.quickNote()},
     {icon:'◎', label:'Intention', desc:'The one thing to give attention to today.', run:()=>EntryActions.dailyIntention()}]});
-  const otd = onThisDay(); const cycleDay = S.rehearsal.cycleStart ? daysBetween(S.rehearsal.cycleStart, T) : 0;
-  const sig = signals(); const rows = tasksForDay(T); const carried = allTaskRefs().filter(r => r.day && !r.done && r.day < T);
-  const doneN = rows.filter(r=>r.done).length; const evening = new Date().getHours() >= 17;
-  const trend = lastDays(30).map(d => dayState(d));
-  const hasState = trend.some(v => v !== null);
-  root.innerHTML = `<div class="page narrow">
-    <header class="rv page-head">
-      <div class="today-date">${fmtDate(T)}</div>
-      <div class="moon">${moonSVG(moon.p)} <span>${moon.name}</span><span class="mono" style="margin-left:6px">· day ${Math.round(moon.age)} of the cycle</span></div>
+
+  const MOODS = [
+    {v:'open',    icon:'◯', label:'Open'},
+    {v:'tender',  icon:'◌', label:'Tender'},
+    {v:'charged', icon:'◉', label:'Charged'},
+    {v:'settled', icon:'●', label:'Settled'},
+    {v:'flat',    icon:'—', label:'Flat'},
+  ];
+
+  const seasonName = (()=>{ if(typeof season === 'function'){ const s = season(parseDay(T)); return {winter:'Winter',spring:'Spring',summer:'Summer',autumn:'Autumn'}[s]||''; } return ''; })();
+
+  root.innerHTML = `<div class="page narrow today-page">
+
+    <!-- header -->
+    <header class="rv today-head">
+      <div class="row between" style="align-items:flex-start;gap:12px">
+        <div>
+          <div class="today-date">${fmtDate(T)}</div>
+          ${seasonName?`<div class="mono faint" style="font-size:.72rem;margin-top:2px">${seasonName} · day ${Math.round(moon.age)} of the lunar cycle</div>`:''}
+        </div>
+        <div class="moon row" style="gap:6px;align-items:center">${moonSVG(moon.p)} <span class="mono faint">${moon.name}</span></div>
+      </div>
+      ${cyest?.intention ? `<div class="mono faint" style="margin-top:8px;font-size:.78rem">Yesterday you set out to: <em>${esc(cyest.intention)}</em></div>` : ''}
     </header>
 
-    <!-- 1. morning: what today is for -->
-    <section class="section rv intention-block">
-      <span class="sc">The one thing</span>
-      <div class="intention-card">${ed(`checkins.${T}.intention`, {ph:'One thing to give attention to today. Click to set it.', cls:'serif-lg'})}</div>
-    </section>
+    <!-- sealed letters (prominent) -->
+    ${ready.length ? `<section class="section rv ready-letters">
+      <div class="sc">A letter from you has come due</div>
+      ${ready.map(e=>`<div class="card ready-letter" style="margin-top:8px"><div class="row between"><span><b class="serif">${esc(e.title||'To myself')}</b><div class="mono faint">${daysBetween((e.createdAt||'').slice(0,10), T)} days ago</div></span><button class="btn sm primary" data-lopen="${e.id}">Open it</button></div></div>`).join('')}
+    </section>` : ''}
 
-    <!-- 2. morning: the rehearsal -->
+    <!-- daily check-in (intention + mood + energy + setpoint) -->
+    <details class="rv today-checkin" ${!c.intention||(!c.setpoint && !c.mood) ? 'open' : ''}>
+      <summary><span class="sc lg">Daily check-in</span><span class="mono">${c.intention ? esc(c.intention.slice(0,40)) : 'not yet set'}</span></summary>
+      <div class="body stack" style="gap:20px">
+        <div class="field"><label>Today's intention</label>
+          ${ed(`checkins.${T}.intention`, {ph:'One thing to give attention to today.', cls:'serif-lg'})}</div>
+        <div class="field"><label>Mood right now</label>
+          <div class="mood-shapes row" style="gap:10px;flex-wrap:wrap">
+            ${MOODS.map(m=>`<button class="mood-btn ${c.mood===m.v?'on':''}" data-mood="${m.v}" style="flex-direction:column;gap:3px"><span class="mood-icon">${m.icon}</span><span class="mono" style="font-size:.65rem">${m.label}</span></button>`).join('')}
+          </div>
+        </div>
+        <div class="field"><label>In one sentence, how is today going?</label>
+          ${ed(`checkins.${T}.sentence`, {ph:'One honest sentence.', cls:'serif-lg'})}</div>
+        <div class="field"><label>Energy — four dimensions</label>
+          <div class="energy-row">${DIMS.map(d=>`<div class="energy-dim" style="--c:${d.c}"><div class="lbl"><span>${d.name}</span><span class="mono">${c.energy?.[d.id]||'–'}/5</span></div><div class="dots">${[1,2,3,4,5].map(n=>`<i class="${(c.energy?.[d.id]||0)>=n?'on':''}" data-dim="${d.id}" data-n="${n}"></i>`).join('')}</div></div>`).join('')}</div></div>
+        <div class="field setpoint"><label>Emotional set-point (Hicks' guidance scale)</label>
+          <input type="range" class="slider" min="1" max="22" value="${c.setpoint||14}" id="setpoint" style="--c:var(--rose)">
+          <div class="lbls"><span>1 · Fear / Despair</span><span>11 · Disappointment</span><span>22 · Joy / Freedom / Love</span></div>
+          <div class="cur"><span id="spName">${c.setpoint?hicksName(c.setpoint):'<span class="faint">place yourself on the scale</span>'}</span><span class="mono" id="spNum">${c.setpoint||''}</span></div>
+        </div>
+      </div>
+    </details>
+
+    <!-- morning rehearsal (Maltz) -->
     <details class="rv rehearsal-wrap" ${rehearsalDoneToday()?'':'open'} style="margin-top:8px">
-      <summary><span class="sc lg">Morning Rehearsal</span><span class="mono">${rehearsalDoneToday()?'practised today':'30 minutes'}</span></summary>
+      <summary><span class="sc lg">Morning Theatre</span><span class="mono">${rehearsalDoneToday()?'practised today':'30 minutes · Maltz'}</span></summary>
       <div class="body rehearsal stack" style="gap:24px">
         <blockquote class="rehearsal-epigraph">Close your eyes for thirty minutes. See yourself on a mental screen — sights, sounds, smells. See yourself acting, feeling and being as you want to be. The nervous system cannot tell a real experience from one vividly imagined.<cite>Maxwell Maltz</cite></blockquote>
         <div class="field"><label>Self-image script</label>${ed('rehearsal.script',{multi:true,mdr:true,cls:'prose serif-lg',ph:'First person, present tense. Who you are becoming — vivid, sensory, felt as already real.'})}</div>
@@ -40,70 +87,97 @@ routes.today = function(root){
       </div>
     </details>
 
-    ${(()=>{ const ready = lettersOpeningNow(); return ready.length ? `<section class="section rv"><div class="card ready-letter"><div class="sc">A letter from you has come due</div>${ready.map(e=>`<div class="row between" style="margin-top:8px"><span><b class="serif">${esc(e.title||'To myself')}</b><div class="mono">sealed ${fmtDate((e.createdAt||'').slice(0,10),'med')} · ${daysBetween((e.createdAt||'').slice(0,10), today())} days ago</div></span><button class="btn sm primary" data-lopen="${e.id}">Open it</button></div>`).join('')}</div></section>` : ''; })()}
-    ${(()=>{ const due = decisionsDue(); return due.length ? `<section class="section rv"><div class="card"><div class="row between"><span class="sc" style="margin:0">Decisions ready to grade</span><a class="mono" href="#/journals/decision">all decisions →</a></div>${due.map(e=>`<div class="row between" style="margin-top:8px"><span><b class="serif">${esc(e.title)}</b><div class="mono">decided ${fmtDate((e.createdAt||'').slice(0,10),'med')} · you were ${esc(e.extra.confidence||'unsure')}</div></span><button class="btn sm" data-dopen="${e.id}">Look back</button></div>`).join('')}</div></section>` : ''; })()}
+    <!-- habit rings -->
+    <section class="section rv" style="margin-top:8px">
+      <span class="sc lg">Today's habits</span>
+      <div id="todayRings" style="margin-top:10px"></div>
+    </section>
 
-    <!-- 3. the day's work -->
+    <!-- today's tasks -->
     <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Today's tasks</span><span class="mono">${rows.length?`${doneN} of ${rows.length} done`:'nothing parked yet'}</span></div>
       <div class="card" data-daydrop="${T}" style="margin-top:10px">
         <div class="stack" style="gap:2px">${rows.map(r=>taskRowHTML(r)).join('')||`<div class="empty">Park work here from a project, or write one below.</div>`}</div>
-        <div class="row" style="margin-top:10px;gap:8px">${quickTaskInput(T)}<button class="btn sm ghost" id="pullTask">pull in ↓</button><a class="btn sm ghost" href="#/plan">plan the week →</a></div>
+        <div class="row" style="margin-top:10px;gap:8px">${quickTaskInput(T)}<button class="btn sm ghost" id="pullTask">pull in ↓</button></div>
         ${carried.length?`<div class="row" style="margin-top:10px"><span class="mono" style="color:#d08080">${carried.length} carried over from earlier days</span><button class="btn sm ghost" id="carryAll">bring to today</button></div>`:''}
       </div></section>
 
-    ${(()=>{ const pr = practicesDueToday(); return pr.length ? `<section class="section rv"><div class="row between"><span class="sc" style="margin:0">Today's practices</span><a class="mono" href="#/values">the compass →</a></div>
-      <div class="card" style="margin-top:10px"><div class="prac-today">${pr.map(({v,p,done,doneThisWeek})=>`<button class="prac-chip ${done?'on':''}" data-practoday="${v.id}:${p.id}" style="--c:${v.color}"><span class="pc-tick">${done?'✓':'○'}</span><span class="pc-text">${esc(p.text)}</span><span class="pc-val mono">${esc(v.name)} · ${doneThisWeek}/${p.perWeek}</span></button>`).join('')}</div></div></section>` : ''; })()}
+    ${due.length ? `<section class="section rv"><div class="card"><div class="row between"><span class="sc" style="margin:0">Decisions ready to grade</span><a class="mono" href="#/journals/decision">all →</a></div>${due.map(e=>`<div class="row between" style="margin-top:8px"><span><b class="serif">${esc(e.title)}</b><div class="mono">${fmtDate((e.createdAt||'').slice(0,10),'med')}</div></span><button class="btn sm" data-dopen="${e.id}">Look back</button></div>`).join('')}</div></section>` : ''}
+    ${pr.length ? `<section class="section rv"><div class="row between"><span class="sc" style="margin:0">Today's practices</span><a class="mono" href="#/values">compass →</a></div>
+      <div class="card" style="margin-top:10px"><div class="prac-today">${pr.map(({v,p,done,doneThisWeek})=>`<button class="prac-chip ${done?'on':''}" data-practoday="${v.id}:${p.id}" style="--c:${v.color}"><span class="pc-tick">${done?'✓':'○'}</span><span class="pc-text">${esc(p.text)}</span><span class="pc-val mono">${esc(v.name)} · ${doneThisWeek}/${p.perWeek}</span></button>`).join('')}</div></div></section>` : ''}
+    ${milestones.length ? `<section class="section rv"><span class="sc">Skill milestones within 30 days</span><div class="card" style="border-left:3px solid var(--ment)">${milestones.map(({skill,m,days})=>`<a href="#/skills/${skill.id}" class="row between" style="text-decoration:none;color:inherit;padding:8px 0;border-top:1px dashed var(--line);gap:12px"><span><b class="serif">${esc(skill.name)}</b> <span class="muted">→ ${esc(skillLevelLabel(skill,m.levelTarget))}</span></span><span class="status-pill ${days<0?'due':'ahead'}">${days<0?`⚠ ${-days}d overdue`:days===0?'today':`in ${days}d`}</span></a>`).join('')}</div></section>` : ''}
 
-    ${(()=>{ const due = milestonesDueSoon(30); return due.length ? `<section class="section rv"><span class="sc">Skill milestones within 30 days</span><div class="card" style="border-left:3px solid var(--ment)">${due.map(({skill,m,days})=>`<a href="#/skills/${skill.id}" class="row between" style="text-decoration:none;color:inherit;padding:8px 0;border-top:1px dashed var(--line);gap:12px"><span><b class="serif">${esc(skill.name)}</b> <span class="muted">→ ${esc(skillLevelLabel(skill,m.levelTarget))} (L${m.levelTarget})</span>${m.note?`<div class="quote" style="font-size:.85rem">${esc(m.note)}</div>`:''}</span><span class="status-pill ${days<0?'due':'ahead'}">${days<0?`⚠ ${-days}d overdue`:days===0?'today':`in ${days}d`}</span></a>`).join('')}</div></section>` : ''; })()}
-
-    <!-- 4. evening: how it actually went -->
-    <details class="rv" ${evening && !c.setpoint ? 'open' : ''} style="margin-top:8px">
-      <summary><span class="sc lg">Evening check-in</span><span class="mono">${c.setpoint||Object.keys(c.energy||{}).length?'logged':'at the end of the day'}</span></summary>
-      <div class="body stack" style="gap:22px">
-        <div class="field"><label>In one sentence, how was today?</label>${ed(`checkins.${T}.sentence`, {ph:'One honest sentence.', cls:'serif-lg'})}</div>
-        <div class="field"><label>Energy — four dimensions</label><div class="energy-row">${DIMS.map(d=>`<div class="energy-dim" style="--c:${d.c}"><div class="lbl"><span>${d.name}</span><span class="mono">${c.energy?.[d.id]||'–'}/5</span></div><div class="dots">${[1,2,3,4,5].map(n=>`<i class="${(c.energy?.[d.id]||0)>=n?'on':''}" data-dim="${d.id}" data-n="${n}"></i>`).join('')}</div></div>`).join('')}</div></div>
-        <div class="field setpoint"><label>Emotional set-point (Hicks' guidance scale)</label>
-          <input type="range" class="slider" min="1" max="22" value="${c.setpoint||14}" id="setpoint" style="--c:var(--rose)">
-          <div class="lbls"><span>1 · Fear / Despair</span><span>11 · Disappointment</span><span>22 · Joy / Freedom / Love</span></div>
-          <div class="cur"><span id="spName">${c.setpoint?hicksName(c.setpoint):'<span class="faint">place yourself on the scale</span>'}</span><span class="mono" id="spNum">${c.setpoint||''}</span></div>
-        </div>
-      </div>
-    </details>
-
-    <section class="section rv"><span class="sc">Signals</span>
-      <div class="signals">${sig.map(s=>`<div class="signal" data-go="${s.go}"><div class="k">${s.k}</div><div class="v">${esc(s.v)}</div><div class="d">${esc(s.d)}</div></div>`).join('')}
-        <div class="signal" data-go="#/reviews"><div class="k">Days since weekly review</div><div class="v">${daysSince(S.reviews.lastWeekly)}</div><div class="d">${daysSince(S.reviews.lastWeekly)>7?'a review is due':'on rhythm'}</div></div>
-        <div class="signal" data-go="#/today"><div class="k">Morning Rehearsal streak</div><div class="v">${rehearsalStreak()} days</div><div class="d">of the current 21-day cycle</div></div>
-      </div>
-    </section>
-
-    <section class="section rv"><span class="sc">This day, in the years behind it</span>
-      ${onThisDayHTML()}
-    </section>
-
+    <!-- gentle prompt -->
     <section class="section rv"><span class="sc">A gentle prompt</span>
       <div class="prompt-card"><div class="quote" id="promptText">${gentlePrompt()}</div><div class="row" style="margin-top:14px;justify-content:space-between"><button class="btn sm ghost" id="anotherPrompt">another</button><button class="btn sm" data-quick="reflection">respond ✎</button></div></div>
     </section>
 
-    <section class="section rv"><span class="sc">How you have been, these thirty days</span>
-      <div class="card">${hasState ? `${sparkline(trend,{h:74,min:0,max:100,color:'var(--page-accent)',dots:true,labels:lastDays(30).map(d=>`${fmtDate(d,'short')}: ${dayState(d)===null?'—':dayState(d)+'/100'}${S.checkins[d]?.sentence?' · '+S.checkins[d].sentence:''}`)})}
-        <div class="row between" style="margin-top:10px"><span class="mono">${stateBlurb(trend)}</span><span class="mono">one line: energy and set-point together</span></div>`
-        : `<div class="empty">Check in for a few evenings and one honest line will appear here — your overall state, not five charts to decode.</div>`}</div>
+    <!-- quick add row -->
+    <section class="section rv">
+      <span class="sc">Quick add</span>
+      <div class="row" style="gap:6px;flex-wrap:wrap;margin-top:10px">
+        ${[['reflection','✎','Reflection'],['gratitude','♡','Gratitude'],['synchronicity','∞','Synchronicity'],['visualization','◉','Vision'],['memory','◌','Memory'],['nod','·','Nod'],['interaction','☺','Interaction'],['dream','☾','Dream']].map(([t,ic,lb]) =>
+          `<button class="btn sm ghost" data-quick="${t}">${ic} ${lb}</button>`).join('')}
+        <button class="btn sm ghost" data-quick="snippet">✐ Snippet</button>
+      </div>
     </section>
+
+    <!-- today's schedule (collapsible planner) -->
+    <details class="rv today-planner" id="todayPlannerWrap" ${seenPlan?'open':''} style="margin-top:8px">
+      <summary><span class="sc lg">Today's schedule</span><span class="mono">plan · calendar · running log</span></summary>
+      <div class="body" id="todayPlanBody"></div>
+    </details>
+
   </div>`;
 
+  /* habits rings */
+  const ringsBox = root.querySelector('#todayRings');
+  if(ringsBox && typeof habitRingRow === 'function') ringsBox.innerHTML = habitRingRow(T);
+  if(ringsBox && typeof bindHabitRings === 'function') bindHabitRings(ringsBox);
+
+  /* check-in bindings */
   root.querySelectorAll('.dots i').forEach(i => i.onclick = () => { c.energy = c.energy||{}; c.energy[i.dataset.dim] = +i.dataset.n; saveNow(); const dim = i.closest('.energy-dim'); dim.querySelectorAll('i').forEach(x=>x.classList.toggle('on', +x.dataset.n <= +i.dataset.n)); dim.querySelector('.lbl .mono').textContent = i.dataset.n+'/5'; });
-  const sp = $('#setpoint'); sp.oninput = () => { $('#spName').textContent = hicksName(+sp.value); $('#spNum').textContent = sp.value; }; sp.onchange = () => { c.setpoint = +sp.value; saveNow(); sound('save'); };
+  root.querySelectorAll('[data-mood]').forEach(b => b.onclick = () => { c.mood = b.dataset.mood; saveNow(); root.querySelectorAll('[data-mood]').forEach(x => x.classList.toggle('on', x === b)); });
+  const sp = $('#setpoint'); if(sp){ sp.oninput = () => { $('#spName').textContent = hicksName(+sp.value); $('#spNum').textContent = sp.value; }; sp.onchange = () => { c.setpoint = +sp.value; saveNow(); sound('save'); }; }
+
+  /* morning theatre */
   $('#markTheatre').onclick = () => { if(!S.rehearsal.days.includes(T)){ S.rehearsal.days.push(T); if(!S.rehearsal.cycleStart) S.rehearsal.cycleStart = T; saveNow(); sound('chime'); toast('Practice marked. The nervous system takes care of the rest, in time.'); rerender(); } };
   $('#newCycle').onclick = () => confirmDlg('Start a fresh 21-day cycle from today? Past days stay in your history.', () => { S.rehearsal.cycleStart = T; saveNow(); rerender(); });
   root.querySelectorAll('.tracker i').forEach(i => i.onclick = () => { const d = i.dataset.td; if(d > T) return; const idx = S.rehearsal.days.indexOf(d); if(idx>=0) S.rehearsal.days.splice(idx,1); else S.rehearsal.days.push(d); saveNow(); rerender(); });
+
+  /* gentle prompt */
   $('#anotherPrompt').onclick = () => { S._promptShift = (S._promptShift||0)+1; $('#promptText').innerHTML = gentlePrompt(); };
-  root.querySelectorAll('[data-quick]').forEach(b => b.onclick = () => { const t = b.dataset.quick; if(t==='nod') openNodModal(); else openEntryModal({type:t}); });
+
+  /* quick add */
+  root.querySelectorAll('[data-quick]').forEach(b => b.onclick = () => { const t = b.dataset.quick; if(t==='nod') openNodModal(); else if(t==='snippet') { if(typeof openWritingModal==='function') openWritingModal({type:'snippet'}); } else openEntryModal({type:t}); });
+
+  /* tasks */
   $('#pullTask').onclick = () => openTaskPicker(T, rerender);
   if($('#carryAll')) $('#carryAll').onclick = () => { carried.forEach(r => r.task.day = T); saveNow(); sound('success'); rerender(); };
   bindTaskRows(root); bindDayDrop(root); bindQuickTask(root);
-  bindSealedLetters(root); bindOnThisDay(root);
-  $$('[data-dopen]',root).forEach(b => b.onclick = () => openDecisionPanel(b.dataset.dopen));
-  $$('[data-practoday]',root).forEach(b => b.onclick = () => { const [vid,pid] = b.dataset.practoday.split(':'); const v = byId(S.values,vid); const p = byId(v.practices,pid); togglePractice(v,p); sound(practiceDone(p)?'success':'click'); rerender(); });
-};
 
+  /* letters & decisions */
+  bindSealedLetters(root);
+  $$('[data-dopen]',root).forEach(b => b.onclick = () => openDecisionPanel(b.dataset.dopen));
+
+  /* practices */
+  $$('[data-practoday]',root).forEach(b => b.onclick = () => { const [vid,pid] = b.dataset.practoday.split(':'); const v = byId(S.values,vid); const p = byId(v.practices,pid); togglePractice(v,p); sound(practiceDone(p)?'success':'click'); rerender(); });
+
+  /* planner (lazy-render when opened) */
+  const planWrap = root.querySelector('#todayPlannerWrap');
+  const planBody = root.querySelector('#todayPlanBody');
+  function openPlanner(){
+    S._todayPlanOpen = true;
+    if(!planBody.children.length && typeof drawRhythmCalendar === 'function'){
+      const calBox = document.createElement('div'); calBox.className = 'rhy-cal'; planBody.appendChild(calBox);
+      drawRhythmCalendar(calBox, 'day', T);
+      const sideBox = document.createElement('div'); planBody.appendChild(sideBox);
+      if(typeof renderPlanPanel === 'function') renderPlanPanel(sideBox, T);
+    }
+  }
+  if(planWrap){
+    if(planWrap.open) openPlanner();
+    planWrap.addEventListener('toggle', () => { if(planWrap.open) openPlanner(); });
+  }
+
+  reveal(root);
+};

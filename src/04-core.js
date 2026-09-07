@@ -242,6 +242,54 @@ function preserveScroll(selectors, fn){
   before.forEach(([sel,y]) => { const n = document.querySelector(sel); if(n) n.scrollTop = y; });
 }
 function closePanel({keep=false}={}){ const had = !!$('#panel'); $('#panelOv')?.remove(); $('#panel')?.remove(); if(had && !keep && history.state?.liPanel){ history.back(); } else updateBackButton(); }
+
+/* ============================================================
+   LIVING VIEW / WORKSHOP VIEW
+   ============================================================ */
+function vmGet(key){ return lsGet('vm:'+key, 'lv'); }
+function vmSet(key, mode){ lsSet('vm:'+key, mode); }
+function vmToggleHTML(key){
+  const m = vmGet(key);
+  return `<div class="vm-toggle-row"><button class="btn sm ghost vm-btn ${m==='lv'?'lv-active':''}" data-vmkey="${esc(key)}" title="${m==='lv'?'Workshop View: shows every field with prompts (E)':'Living View: shows only what you\'ve filled (E)'}">
+    ${m==='lv'?'◉ living':'⚙ workshop'}</button></div>`;
+}
+function applyLivingView(container){
+  const isEmpty = e => !!e.querySelector(':scope > .ph');
+  // per-item: individual .q wrappers (sensory fields, spec grids)
+  container.querySelectorAll('.q').forEach(q => {
+    const eds = q.querySelectorAll('.ed');
+    q.classList.toggle('lv-empty', eds.length > 0 && [...eds].every(isEmpty));
+  });
+  // per-section: .vp-sec, .next-action, and other field blocks
+  container.querySelectorAll('.vp-sec, .next-action').forEach(sec => {
+    const eds = [...sec.querySelectorAll('.ed')].filter(e => !e.closest('.editing'));
+    if(!eds.length) return;
+    sec.classList.toggle('lv-empty', eds.every(isEmpty));
+  });
+  // completion count for workshop header
+  const allEds = [...container.querySelectorAll('.ed')].filter(e => !e.closest('.editing'));
+  const filled = allEds.filter(e => !isEmpty(e)).length;
+  const badge = container.querySelector('.wv-badge');
+  if(badge) badge.textContent = `${filled} / ${allEds.length} fields`;
+}
+function bindVmToggle(container, key){
+  const btn = container.querySelector('[data-vmkey]');
+  if(!btn) return;
+  const apply = mode => {
+    container.classList.toggle('lv-mode', mode === 'lv');
+    container.classList.toggle('wv-mode', mode === 'wv');
+    btn.classList.toggle('lv-active', mode === 'lv');
+    btn.textContent = mode === 'lv' ? '◉ living' : '⚙ workshop';
+    btn.title = mode === 'lv' ? 'Workshop View: shows every field with prompts (E)' : 'Living View: shows only what you\'ve filled (E)';
+    if(mode === 'lv') applyLivingView(container);
+    else container.querySelectorAll('.lv-empty').forEach(n => n.classList.remove('lv-empty'));
+  };
+  btn.onclick = () => { const newMode = container.classList.contains('lv-mode') ? 'wv' : 'lv'; vmSet(key, newMode); apply(newMode); };
+  container.addEventListener('keydown', e => {
+    if((e.key==='e'||e.key==='E') && !['INPUT','TEXTAREA'].includes(e.target.tagName) && !e.target.isContentEditable) btn.click();
+  });
+  apply(vmGet(key));
+}
 window.addEventListener('popstate', e => { if($('#panel') && !e.state?.liPanel) closePanel({keep:true}); updateBackButton(); });
 /* ---------- persistent Back button: history.back() only, never a link ---------- */
 function homeRoute(){ const h = S?.settings?.home; return (h && h !== 'map' && routes[h]) ? h : 'home'; }

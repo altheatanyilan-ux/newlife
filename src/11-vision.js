@@ -107,7 +107,7 @@ function openVisionPanel(id){
   const kids = S.visions.filter(k=>k.parentId===v.id); const parent = byId(S.visions, v.parentId);
   v.peopleNeeded = Array.isArray(v.peopleNeeded) ? v.peopleNeeded : [];
   const p = openPanel(`<div class="vision-panel">
-    <div class="mono">vision · <select class="sel" id="vEra" style="width:auto;padding:1px 6px;font-size:.7rem;display:inline-block">${erasList().map(e=>`<option value="${e.id}" ${v.era===e.id?'selected':''}>${esc(e.name)}</option>`).join('')}</select> · planted ${fmtDate(v.createdAt,'med')} · tended ${relDays(lastTended)}</div>
+    ${vmToggleHTML('vision')}<div class="mono row between"><span>vision · <select class="sel" id="vEra" style="width:auto;padding:1px 6px;font-size:.7rem;display:inline-block">${erasList().map(e=>`<option value="${e.id}" ${v.era===e.id?'selected':''}>${esc(e.name)}</option>`).join('')}</select> · planted ${fmtDate(v.createdAt,'med')} · tended ${relDays(lastTended)}</span><span class="wv-badge"></span></div>
     <h2>${ed(`visions.#${v.id}.name`)}</h2>
     <div class="score"><div class="bar" style="flex:1;--c:${lived?'var(--gold)':'var(--sage)'}"><i style="width:${score}%"></i></div><span class="num" data-tween="${score}">0</span><span class="mono">vividness</span></div>
     <details><summary><span class="mono">how the score is made</span></summary><div class="body mono" style="line-height:1.9">${Object.entries(parts).map(([k,x])=>`${k} ${x.toFixed(1)}`).join(' · ')}<br>volume 20 · recency 20 (half-life 30d) · specificity 15 · sensory 15 · evidence 10 · resonance 10 · structural tension 10</div></details>
@@ -150,6 +150,7 @@ function openVisionPanel(id){
     ${moreSection(`<div class="danger-zone"><span>Visions are meant to be tended, not pruned casually. Its entries stay in the journals.</span><button class="btn sm ghost danger" id="delVision">Delete this vision</button></div>`)}
   </div>`,'vision-panel');
   $$('#panel .rv').forEach(n=>n.classList.add('in'));
+  bindVmToggle(p, 'vision');
   p.querySelectorAll('[data-conf]').forEach(b => b.onclick = () => { const was = v.confidence; v.confidence = b.dataset.conf; if(v.confidence==='lived'){ v.status='completed'; v.completedAt = v.completedAt || today(); v.progress = 100; } else if(was==='lived'){ v.status='pending'; } saveNow(); if(v.confidence==='lived' && was!=='lived') fruitCeremony(v); else { reopenPanel(() => { rerender(); openVisionPanel(v.id); }); } });
   p.querySelectorAll('[data-feel]').forEach(b => b.onclick = () => { v.feeling = +b.dataset.feel; saveNow(); reopenPanel(() => { rerender(); openVisionPanel(v.id); }); });
   bindBoardStrip(document.querySelector('#panel'), () => byId(S.visions,id)?.name || 'Vision');

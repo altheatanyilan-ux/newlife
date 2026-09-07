@@ -68,11 +68,6 @@ function flowEvening(){
   guidedFlow('Evening review', [
     {title:'The rings, before the day closes.', hint:'Anything unfilled? Fill it, or let it stand as a miss — both are honest.',
      body: () => habitRingRow(T), bind: b => bindHabitRings(b)},
-    {title:'What the day actually held.', hint:'Does this reflect the day you intended, or the day that happened to you?',
-     body: () => { const items = tapeFilter(tapeItems(T, T));
-       const tally = {}; items.forEach(x => { const s = tapeKind(x.kind)[0]; tally[s] = (tally[s]||0)+1; });
-       return `<div class="rev-summary">${items.length ? `<b>${items.length}</b> things landed on today — ${Object.entries(tally).sort((a,b)=>b[1]-a[1]).map(([s,n])=>`${n} ${s.toLowerCase()}`).join(', ')}.` : 'Nothing logged today. That is also a reading.'}</div>
-         <div class="row" style="margin-top:10px"><button class="btn sm ghost" data-flowgo="#/rhythm/tape">open the day in the Life Tape</button></div>`; }},
     {title:'Tonight, in four dimensions.', hint:'Where the energy actually ended up.',
      body: () => `<div class="energy-row">${DIMS.map(x => `<div class="energy-dim" style="--c:${x.c}"><div class="lbl"><span>${x.name}</span></div><div class="feeling">${[1,2,3,4,5].map(n=>`<button data-fwen="${x.id}:${n}" class="${(c.energy?.[x.id]||0)===n?'on':''}">${n}</button>`).join('')}</div></div>`).join('')}</div>`,
      bind: b => b.querySelectorAll('[data-fwen]').forEach(btn => btn.onclick = () => { const [id,n] = btn.dataset.fwen.split(':'); c.energy = c.energy || {}; c.energy[id] = +n; saveNow();
@@ -89,6 +84,9 @@ function flowEvening(){
     {title:"Tomorrow's intention.", hint:'Set it now, while today is still in the room.',
      body: () => { const p = dayPlan(addDays(T,1)); return `<input class="inp serif-lg" id="fwTom" value="${esc(p.intentions?.[0] || '')}" placeholder="Tomorrow I give my attention to…">`; },
      next: b => { const p = dayPlan(addDays(T,1)); p.intentions = p.intentions || ['','','']; p.intentions[0] = b.querySelector('#fwTom').value.trim(); saveNow(); }},
+    {title:'See your full day.', hint:'The whole of today, assembled. Close the book when you are ready.',
+     body: () => `<div class="row" style="justify-content:center;margin-top:8px"><a class="btn primary" href="#/rhythm/tape" data-flowgo="#/rhythm/tape">Open today in Life Tape →</a></div>`,
+     bind: b => b.querySelector('[data-flowgo]')?.addEventListener('click', () => { const t = tapeState(); t.view = 'day'; t.day = T; })},
   ], () => { reviewDone('lastEvening'); toast('Day closed.'); });
 }
 

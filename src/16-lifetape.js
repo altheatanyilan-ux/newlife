@@ -187,7 +187,8 @@ function tapePeriodSummaryHTML(from, to, items){
   </div>`;
 }
 function tapeMonthStripHTML(monthKeys, all){
-  return `<div class="tape-months rv">${monthKeys.map(({y,m}) => {
+  const cols = monthKeys.length >= 12 ? 4 : monthKeys.length >= 6 ? 3 : monthKeys.length;
+  return `<div class="tape-months rv" style="grid-template-columns:repeat(${cols},1fr)">${monthKeys.map(({y,m}) => {
     const pre = `${y}-${pad(m+1)}`;
     const its = all.filter(x => x.date.startsWith(pre));
     const sps = Object.entries(S.checkins||{}).filter(([d,c]) => d.startsWith(pre) && c.setpoint).map(([,c]) => c.setpoint);
@@ -240,7 +241,7 @@ function tapeSpanHTML(anchor, monthCount, label){
     </div>
     ${tapeModeBarHTML()}
     ${tapePeriodSummaryHTML(from, to, all)}
-    <div class="tape-span rv">${months.map(({y:yy,m}) => tapeMonthBlock(yy, m, byDay, t.mode, true)).join('')}</div>
+    <div class="tape-span rv" style="grid-template-columns:repeat(3,1fr)">${months.map(({y:yy,m}) => tapeMonthBlock(yy, m, byDay, t.mode, true)).join('')}</div>
     ${tapeMonthStripHTML(months, all)}`;
 }
 
@@ -311,24 +312,56 @@ function tapeFilterHTML(){
 }
 function bindTapeFilters(box){
   const t = tapeState();
-  const upd = debounce(() => { t.q = box.querySelector('#ltq').value; rerender(); const n = document.querySelector('#ltq'); if(n){ n.focus(); n.setSelectionRange(n.value.length, n.value.length); } }, 350);
+  const upd = debounce(() => { t.q = box.querySelector('#ltq')?.value ?? t.q; refreshLtBody(); const n = document.querySelector('#ltq'); if(n){ n.focus(); n.setSelectionRange(n.value.length, n.value.length); } }, 350);
   box.querySelector('#ltq')?.addEventListener('input', upd);
-  box.querySelector('#lttag')?.addEventListener('change', e => { t.tag = e.target.value; rerender(); });
-  box.querySelector('#ltfrom')?.addEventListener('change', e => { t.from = e.target.value; rerender(); });
-  box.querySelector('#ltto')?.addEventListener('change', e => { t.to = e.target.value; rerender(); });
+  box.querySelector('#lttag')?.addEventListener('change', e => { t.tag = e.target.value; refreshLtBody(); });
+  box.querySelector('#ltfrom')?.addEventListener('change', e => { t.from = e.target.value; refreshLtBody(); });
+  box.querySelector('#ltto')?.addEventListener('change', e => { t.to = e.target.value; refreshLtBody(); });
   box.querySelectorAll('[data-ltsection]').forEach(c => c.onclick = () => { const s = c.dataset.ltsection;
-    t.sections = t.sections.includes(s) ? t.sections.filter(x=>x!==s) : [...t.sections, s]; rerender(); });
+    t.sections = t.sections.includes(s) ? t.sections.filter(x=>x!==s) : [...t.sections, s]; refreshLtBody(); });
   box.querySelectorAll('[data-lttype]').forEach(c => c.onclick = () => { const k = c.dataset.lttype;
-    t.types = t.types.includes(k) ? t.types.filter(x=>x!==k) : [...t.types, k]; rerender(); });
+    t.types = t.types.includes(k) ? t.types.filter(x=>x!==k) : [...t.types, k]; refreshLtBody(); });
   box.querySelectorAll('[data-ltrange]').forEach(b => b.onclick = () => {
     const T = today(); const l = b.dataset.ltrange;
     if(l === 'this week'){ t.from = weekStart(T); t.to = addDays(weekStart(T), 6); }
     else if(l === 'this month'){ t.from = T.slice(0,8)+'01'; t.to = T; }
     else if(l === 'last 90 days'){ t.from = addDays(T, -89); t.to = T; }
     else { t.from = T.slice(0,4)+'-01-01'; t.to = T; }
-    rerender();
+    refreshLtBody();
   });
-  box.querySelector('#ltClear')?.addEventListener('click', () => { Object.assign(t, {types:[], sections:[], q:'', tag:'', from:'', to:''}); rerender(); });
+  box.querySelector('#ltClear')?.addEventListener('click', () => { Object.assign(t, {types:[], sections:[], q:'', tag:'', from:'', to:''}); refreshLtBody(); });
+}
+
+/* replace just #ltBody, keeping the tab bar and filter bar in place */
+function refreshLtBody(){
+  const t = tapeState();
+  const body = document.getElementById('ltBody');
+  if(!body){ rerender(); return; }
+  body.innerHTML = t.view === 'day'     ? tapeDayHTML(t.day)
+    : t.view === 'week'    ? tapeWeekHTML(t.day)
+    : t.view === 'month'   ? tapeMonthHTML(t.day)
+    : t.view === 'quarter' ? tapeSpanHTML(t.day, 3, 'quarter')
+    : t.view === 'half'    ? tapeSpanHTML(t.day, 6, 'half')
+    :                        tapeYearHTML(+t.day.slice(0,4));
+  document.querySelectorAll('[data-ltview]').forEach(b => b.classList.toggle('active', b.dataset.ltview === t.view));
+  _bindLtBody(body);
+  reveal(body);
+}
+
+function _bindLtBody(body){
+  const t = tapeState();
+  body.querySelectorAll('[data-tapeday]').forEach(n => n.onclick = e => {
+    if(e.target.closest('.entry,a,button:not([data-tapeday])')) return;
+    t.day = n.dataset.tapeday; t.view = 'day'; refreshLtBody();
+  });
+  body.querySelectorAll('[data-tapeweek]').forEach(b => b.onclick = () => { t.day = b.dataset.tapeweek; t.view = 'week'; refreshLtBody(); });
+  body.querySelectorAll('[data-tapeyear]').forEach(b => b.onclick = () => { t.day = b.dataset.tapeyear + t.day.slice(4); t.view = 'year'; refreshLtBody(); });
+  body.querySelectorAll('[data-tapemonth]').forEach(b => b.onclick = e => { e.stopPropagation(); t.day = b.dataset.tapemonth; t.view = 'month'; refreshLtBody(); });
+  body.querySelectorAll('[data-tapespan]').forEach(b => b.onclick = () => { t.day = b.dataset.tapespan; refreshLtBody(); });
+  body.querySelectorAll('[data-tapemode]').forEach(b => b.onclick = () => { t.mode = b.dataset.tapemode; refreshLtBody(); });
+  body.querySelectorAll('[data-tapego]').forEach(n => n.onclick = () => navigate(n.dataset.tapego));
+  bindTapeFilters(body);
+  if(typeof bindHabitRings === 'function') bindHabitRings(body);
 }
 
 /* ---------- the panel ---------- */
@@ -347,16 +380,8 @@ function renderLifeTape(box){
       : t.view === 'quarter' ? tapeSpanHTML(t.day, 3, 'quarter')
       : t.view === 'half'    ? tapeSpanHTML(t.day, 6, 'half')
       :                        tapeYearHTML(+t.day.slice(0,4))}</div>`;
-  box.querySelectorAll('[data-ltview]').forEach(b => b.onclick = () => { t.view = b.dataset.ltview; rerender(); });
-  box.querySelectorAll('[data-tapeday]').forEach(n => n.onclick = e => { if(e.target.closest('.entry,a,button:not([data-tapeday])')) return;
-    t.day = n.dataset.tapeday; t.view = 'day'; rerender(); });
-  box.querySelectorAll('[data-tapeweek]').forEach(b => b.onclick = () => { t.day = b.dataset.tapeweek; t.view = 'week'; rerender(); });
-  box.querySelectorAll('[data-tapeyear]').forEach(b => b.onclick = () => { t.day = b.dataset.tapeyear + t.day.slice(4); t.view = 'year'; rerender(); });
-  box.querySelectorAll('[data-tapemonth]').forEach(b => b.onclick = e => { e.stopPropagation(); t.day = b.dataset.tapemonth; t.view = 'month'; rerender(); });
-  box.querySelectorAll('[data-tapespan]').forEach(b => b.onclick = () => { t.day = b.dataset.tapespan; rerender(); });
-  box.querySelectorAll('[data-tapemode]').forEach(b => b.onclick = () => { t.mode = b.dataset.tapemode; rerender(); });
-  box.querySelectorAll('[data-tapego]').forEach(n => n.onclick = () => navigate(n.dataset.tapego));
+  box.querySelectorAll('[data-ltview]').forEach(b => b.onclick = () => { t.view = b.dataset.ltview; refreshLtBody(); });
   bindTapeFilters(box);
-  if(typeof bindHabitRings === 'function') bindHabitRings(box);
+  _bindLtBody(box.querySelector('#ltBody') || box);
   reveal(box);
 }
