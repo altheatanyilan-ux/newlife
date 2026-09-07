@@ -164,6 +164,22 @@ routes.today = function(root){
       </div>
     </section>
 
+    <!-- how the day was actually spent — the other half of the day-shape graph -->
+    <section class="section rv day-shape-in ${evening ? 'is-evening' : ''}">
+      <div class="row between" style="align-items:baseline">
+        <span class="sc" style="margin:0">How today went</span>
+        <span class="mono faint">woke ${c.wakeAt ? _ft(c.wakeAt) : '—'}${c.closeAt ? ` · closed ${_ft(c.closeAt)}` : ''}</span>
+      </div>
+      <div class="card" style="margin-top:10px">
+        <div class="row" style="gap:14px;flex-wrap:wrap;align-items:flex-end">
+          <div><div class="k">hours used well</div><input class="inp mono ds-num" id="dsUsed" inputmode="decimal" placeholder="0" value="${c.hoursUsed ?? ''}" style="width:74px"></div>
+          <div><div class="k">hours wasted</div><input class="inp mono ds-num" id="dsWasted" inputmode="decimal" placeholder="0" value="${c.hoursWasted ?? ''}" style="width:74px"></div>
+          <button class="btn sm ${c.closeAt ? 'ghost' : 'primary'}" id="dsClose">${c.closeAt ? '↻ Re-stamp close' : '◐ Close the day'}</button>
+        </div>
+        ${c.wakeAt && c.closeAt ? `<div class="mono faint" style="margin-top:8px;font-size:.72rem">${_dur(c.wakeAt, c.closeAt)} awake · ${(+c.hoursUsed||0)+(+c.hoursWasted||0) ? `${(+c.hoursUsed||0).toFixed(1)}h used, ${(+c.hoursWasted||0).toFixed(1)}h wasted, ${Math.max(0, (new Date(c.closeAt)-new Date(c.wakeAt))/3600000 - (+c.hoursUsed||0) - (+c.hoursWasted||0)).toFixed(1)}h unaccounted` : 'no split logged yet'}</div>` : ''}
+      </div>
+    </section>
+
     <!-- before you sleep: the day after this one gets decided here -->
     <section class="section rv tomorrow-block ${evening ? 'is-evening' : ''}">
       <div class="row between" style="align-items:baseline">
@@ -210,6 +226,12 @@ routes.today = function(root){
   $('#markTheatre').onclick = () => { if(!S.rehearsal.days.includes(T)){ S.rehearsal.days.push(T); if(!S.rehearsal.cycleStart) S.rehearsal.cycleStart = T; saveNow(); sound('chime'); toast('Practice marked. The nervous system takes care of the rest, in time.'); rerender(); } };
   $('#newCycle').onclick = () => confirmDlg('Start a fresh 21-day cycle from today? Past days stay in your history.', () => { S.rehearsal.cycleStart = T; saveNow(); rerender(); });
   root.querySelectorAll('.tracker i').forEach(i => i.onclick = () => { const d = i.dataset.td; if(d > T) return; const idx = S.rehearsal.days.indexOf(d); if(idx>=0) S.rehearsal.days.splice(idx,1); else S.rehearsal.days.push(d); saveNow(); rerender(); });
+
+  /* the day's shape: closing stamp and the used/wasted split */
+  $('#dsClose') && ($('#dsClose').onclick = () => { c.closeAt = new Date().toISOString(); saveNow(); sound('chime'); rerender(); });
+  ['dsUsed','dsWasted'].forEach(id => { const n = $('#'+id); if(!n) return;
+    n.onchange = () => { const v = parseFloat(String(n.value).replace(/[^\d.]/g,''));
+      c[id === 'dsUsed' ? 'hoursUsed' : 'hoursWasted'] = isNaN(v) ? null : clamp(v, 0, 24); saveNow(); rerender(); }; });
 
   /* the night before */
   $('#planTomorrow') && ($('#planTomorrow').onclick = () => { if(typeof planMyDay === 'function') planMyDay(tomorrow); });
