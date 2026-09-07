@@ -167,7 +167,9 @@ function reveal(root=document){ let i=0; const sp = parseFloat(getComputedStyle(
 
 /* ---------- theme ---------- */
 function applyTheme(){ document.documentElement.dataset.theme = S.settings.theme; $('#btnTheme').textContent = S.settings.theme==='dark' ? '☾' : '☀'; applySeason(); if(typeof applyPageTheme === 'function') applyPageTheme(); }
-function applySeason(){ const m = new Date().getMonth(); const hue = [200,200,120,110,100,60,40,35,30,25,20,210][m]; const b3=$('.blob.b3'); if(b3) b3.style.filter = `blur(120px) hue-rotate(${(hue-30)/6}deg)`; }
+/* the season is a data attribute; the ink layer reads it for how heavy the mist
+   hangs, and paints the margin sprig to match */
+function applySeason(){ if(typeof season === 'function') document.documentElement.dataset.season = season(); }
 
 /* ---------- router ---------- */
 const routes = {};

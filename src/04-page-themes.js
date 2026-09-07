@@ -61,6 +61,7 @@ function applyPageTheme(){
     _pageThemeKey = key;
   }
   if(typeof applyPageScene === 'function') applyPageScene();
+  if(typeof applyInk === 'function') applyInk();
   const meta = document.querySelector('meta[name="theme-color"]'); if(meta) meta.content = light ? t.accent[1] : t.accent[0];
 }
 /* parallax for the banner glyph on calm pages */
