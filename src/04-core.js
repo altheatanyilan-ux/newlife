@@ -103,10 +103,15 @@ function beginEdit(node){
   const autosize = () => { if(multi){ inp.style.height = 'auto'; inp.style.height = inp.scrollHeight + 'px'; } };
   autosize(); inp.focus();
   if(multi && typeof attachDictation === 'function') attachDictation(inp, {compact:true});
-  const commit = debounce(() => { setPath(path, inp.value); save(); }, 500);
+  /* The mid-typing save is debounced, but it must not outlive the blur: if it
+     lands afterwards it writes the raw string back over whatever the field's
+     hook normalised (a number, a split tag list, a captured revision). */
+  let commitT = null;
+  const commit = () => { clearTimeout(commitT); commitT = setTimeout(() => { setPath(path, inp.value); save(); }, 500); };
   inp.addEventListener('input', () => { autosize(); commit(); });
   inp.addEventListener('keydown', e => { if(e.key==='Enter' && !multi){ e.preventDefault(); inp.blur(); } if(e.key==='Escape'){ inp.blur(); } e.stopPropagation(); });
   inp.addEventListener('blur', () => {
+    clearTimeout(commitT);
     const v = inp.value; setPath(path, v); saveNow();
     node.classList.remove('editing');
     node.innerHTML = v.trim() ? (node.dataset.md==='1' ? md(v) : esc(v)) : `<span class="ph">${esc(node.dataset.ph)}</span>`;
@@ -335,6 +340,22 @@ function readImages(files, cb){
    grammar as "Connect this entry" in the universal Add modal, factored out so
    other rooms (the Library, the Writing Studio) can offer the same mutual
    tagging without re-deriving it. */
+const LINK_KINDS = ['stages','substages','threads','values','visions','skills','projects','people'];
+function emptyLinks(){ const o = {}; LINK_KINDS.forEach(k => o[k] = []); return o; }
+/* Makes any object safe for linksEditorHTML, whatever shape it arrived in. */
+function normLinks(links){ const o = links && typeof links === 'object' ? links : {}; LINK_KINDS.forEach(k => { if(!Array.isArray(o[k])) o[k] = []; }); return o; }
+/* The chips a linked object shows when it is not being edited — Living View
+   reads these, so an object with nothing linked renders nothing at all. */
+function linkedChipsHTML(links){
+  const L = normLinks(links); const out = [];
+  L.values.forEach(v => { const id = typeof v==='string'?v:v.id; const o = byId(S.values,id); if(o) out.push(`<span class="chip on" style="--c:${o.color}">${typeof v==='object'&&v.pol==='−'?'− ':''}${esc(o.name)}</span>`); });
+  L.threads.forEach(id => { const o = byId(S.threads,id); if(o) out.push(`<span class="chip on" style="--c:${o.color}">${esc(o.name)}</span>`); });
+  L.visions.forEach(id => { const o = byId(S.visions,id); if(o) out.push(`<span class="chip on" style="--c:var(--sage)">🌿 ${esc(o.name)}</span>`); });
+  L.skills.forEach(id => { const o = byId(S.skills,id); if(o) out.push(`<span class="chip on" style="--c:var(--ment)">${esc(o.name)}</span>`); });
+  L.projects.forEach(id => { const o = byId(S.projects,id); if(o) out.push(`<span class="chip on" style="--c:var(--terra)">🎨 ${esc(o.name)}</span>`); });
+  L.people.forEach(id => { const o = byId(S.people,id); if(o) out.push(`<span class="chip on" style="--c:var(--rose)">${esc(o.name)}</span>`); });
+  return out.join('');
+}
 function linksEditorHTML(links, {legend=true, stages=false}={}){
   links.threads = links.threads||[]; links.values = links.values||[]; links.visions = links.visions||[]; links.skills = links.skills||[]; links.projects = links.projects||[]; links.stages = links.stages||[];
   return `

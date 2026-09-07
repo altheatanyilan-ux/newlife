@@ -16,7 +16,7 @@ const SPEND_CATEGORY_TEMPLATE = [
   'Housing','Food','Transport','Health','Learning','Creative','Relationships','Experiences','Savings & Investment','Giving','Miscellaneous'
 ];
 function newSpendScenario(name, currency){
-  return {id:uid(), name, currency: currency || S.finance.currency, active:false,
+  return {id:uid(), name, currency: currency || S.finance.currency, active:false, links: emptyLinks(),
     categories: SPEND_CATEGORY_TEMPLATE.map(name_ => ({id:uid(), name:name_, items:[]}))};
 }
 function migrateIncomeShape(obj){
@@ -28,6 +28,11 @@ function migrateIncomeShape(obj){
   obj.visionId = obj.visionId || null;
   obj.peopleIds = Array.isArray(obj.peopleIds) ? obj.peopleIds : [];
   obj.revenueLog = Array.isArray(obj.revenueLog) ? obj.revenueLog : [];
+  obj.links = normLinks(obj.links);
+  /* the older single-vision and people fields fold into the general links,
+     so a stream tagged before this change keeps what it had */
+  if(obj.visionId && !obj.links.visions.includes(obj.visionId)) obj.links.visions.push(obj.visionId);
+  obj.peopleIds.forEach(pid => { if(!obj.links.people.includes(pid)) obj.links.people.push(pid); });
 }
 function migrateFinance(){
   S.finance = Object.assign({}, FIN_DEFAULT, S.finance || {});
@@ -51,6 +56,7 @@ function migrateFinance(){
   }
   S.finance.scenarios.forEach(sc => {
     sc.currency = CURRENCIES.includes(sc.currency) ? sc.currency : S.finance.currency;
+    sc.links = normLinks(sc.links);
     sc.categories = Array.isArray(sc.categories) ? sc.categories : [];
     sc.categories.forEach(c => { c.items = Array.isArray(c.items) ? c.items : []; c.items.forEach(i => { i.amount = +i.amount || 0; i.currency = CURRENCIES.includes(i.currency) ? i.currency : sc.currency; i.notes = i.notes || ''; }); });
   });
@@ -67,10 +73,22 @@ function currenciesInUse(){
   set.delete(S.finance.currency);
   return [...set];
 }
-hooks.snum = (sid) => { const s = byId(S.incomeStreams, sid); if(s){ ['current','target','hoursPerWeek'].forEach(k => { s[k] = parseFloat(String(s[k]).replace(/[^\d.]/g,''))||0; }); saveNow(); } };
-hooks.spendnum = (path) => { const i = getPath(path); if(i) i.amount = parseFloat(String(i.amount).replace(/[^\d.]/g,''))||0; saveNow(); };
-hooks.savingsnum = () => { S.finance.savings = parseFloat(String(S.finance.savings).replace(/[^\d.]/g,''))||0; saveNow(); };
-hooks.hourslimit = () => { S.finance.hoursLimit = parseFloat(String(S.finance.hoursLimit).replace(/[^\d.]/g,''))||50; saveNow(); };
+/* Every money figure on this page is derived — eff. rate, portfolio totals,
+   the gap, the runway. They are drawn as static text, so after an edit they
+   have to be redrawn or they sit stale until a refresh. A rerender mid-edit
+   would tear out the field the cursor just moved into, so this waits until
+   nothing is being edited, then redraws once. */
+function finLiveRecalc(){
+  clearTimeout(finLiveRecalc._t);
+  finLiveRecalc._t = setTimeout(() => {
+    if(document.querySelector('.ed.editing')){ finLiveRecalc(); return; }
+    if(document.querySelector('.stream-card, .scenario-card, .gap-panel')) rerender();
+  }, 220);
+}
+hooks.snum = (sid) => { const s = byId(S.incomeStreams, sid); if(s){ ['current','target','hoursPerWeek'].forEach(k => { s[k] = parseFloat(String(s[k]).replace(/[^\d.]/g,''))||0; }); saveNow(); finLiveRecalc(); } };
+hooks.spendnum = (path) => { const i = getPath(path); if(i) i.amount = parseFloat(String(i.amount).replace(/[^\d.]/g,''))||0; saveNow(); finLiveRecalc(); };
+hooks.savingsnum = () => { S.finance.savings = parseFloat(String(S.finance.savings).replace(/[^\d.]/g,''))||0; saveNow(); finLiveRecalc(); };
+hooks.hourslimit = () => { S.finance.hoursLimit = parseFloat(String(S.finance.hoursLimit).replace(/[^\d.]/g,''))||50; saveNow(); finLiveRecalc(); };
 
 /* every way money comes in, or could — a project's own income section, or a
    standalone stream that isn't tied to any Creative Project */
@@ -79,7 +97,9 @@ function incomeStreamList(){
   const standalone = S.incomeStreams.map(s => ({id:'stream:'+s.id, name:s.name, kind:'standalone', stream:s, income:s}));
   return [...projectStreams, ...standalone];
 }
-function effHourlyRate(income){ const h = +income.hoursPerWeek || 0; if(!h) return null; return (+income.current || 0) / (h * 4.33); }
+/* An hourly rate needs both halves. With hours but no income it is not
+   "0/hr", it is not yet answerable — say so rather than print a zero. */
+function effHourlyRate(income){ const h = +income.hoursPerWeek || 0; const c = +income.current || 0; if(!h || !c) return null; return c / (h * 4.33); }
 function portfolioTotals(){
   const streams = incomeStreamList().filter(s => s.income.status !== 'retired');
   const totalCurrentBase = sum(streams.map(s => toBase(s.income.current, s.income.currency)));
@@ -121,10 +141,12 @@ function streamCardHTML(s){
     </div>
     ${spark.length>1 ? `<div style="margin:8px 0 4px">${sparkline(spark,{h:26,color:'var(--gold)'})}</div>` : ''}
     <div class="row" style="gap:6px;flex-wrap:wrap;margin:6px 0">
-      <select class="sel" style="width:auto;font-size:.78rem" data-streamvision="${path}"><option value="">no linked vision</option>${S.visions.map(v=>`<option value="${v.id}" ${inc.visionId===v.id?'selected':''}>🌿 ${esc(v.name)}</option>`).join('')}</select>
       <button class="btn sm ghost" data-streamlog="${path}">📈 log this month</button>
     </div>
-    ${S.people.length ? `<div class="row" style="gap:4px;flex-wrap:wrap;margin-bottom:6px">${S.people.map(p=>`<span class="chip click ${(inc.peopleIds||[]).includes(p.id)?'on':''}" style="--c:${personNodeColor(p)}" data-streamperson="${path}:${p.id}">${esc(p.name)}</span>`).join('')}</div>` : ''}
+    ${linkedChipsHTML(inc.links) ? `<div class="row" style="gap:4px;flex-wrap:wrap;margin-bottom:6px">${linkedChipsHTML(inc.links)}</div>` : ''}
+    <details class="fin-links"><summary class="mono">what this stream is for</summary>
+      <div class="body" data-finlinks="${path}">${linksEditorHTML(inc.links, {legend:false})}</div>
+    </details>
     <div class="row between" style="margin-top:6px;align-items:center">
       <span class="k mono">milestones</span>
       <select class="sel" style="width:auto;font-size:.76rem" data-streammspreset="${path}"><option value="">＋ milestone…</option>${MILESTONE_KINDS.map(k=>`<option>${esc(k)}</option>`).join('')}<option value="__custom">other…</option></select>
@@ -191,10 +213,22 @@ function scenarioHTML(sc){
       <span class="row" style="gap:6px"><select class="sel" style="width:auto;font-size:.8rem" data-scenariocur="${sc.id}">${CURRENCIES.map(c=>`<option ${sc.currency===c?'selected':''}>${c}</option>`).join('')}</select>${S.finance.scenarios.length>1?`<button class="del-x inline" data-scenariodel="${sc.id}">×</button>`:''}</span>
     </div>
     <div class="row between" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line)"><span class="mono">total, per year</span><b class="serif" style="font-size:1.15rem">${money(sum(sc.categories.flatMap(c=>c.items.map(i=>i.amount))), sc.currency)}</b></div>
-    ${sc.categories.map(c => `<details class="spend-cat" data-cat="${c.id}" ${(c.items.length || S._finOpenCats?.[c.id]) ? 'open' : ''}><summary><span class="sc">${esc(c.name)}</span><span class="mono">${money(sum(c.items.map(i=>i.amount)), sc.currency)}</span></summary><div class="body">
+    ${sc.categories.map((c, ci) => `<details class="spend-cat" data-cat="${c.id}" ${(c.items.length || S._finOpenCats?.[c.id]) ? 'open' : ''}><summary>
+      <span class="sc cat-name" style="flex:1">${ed(`finance.scenarios.#${sc.id}.categories.#${c.id}.name`,{ph:'category'})}</span>
+      <span class="mono">${money(sum(c.items.map(i=>i.amount)), sc.currency)}</span>
+      <span class="cat-tools row" style="gap:2px">
+        <button class="tbtn" data-catmove="${sc.id}:${c.id}:-1" title="move up" ${ci===0?'disabled':''}>↑</button>
+        <button class="tbtn" data-catmove="${sc.id}:${c.id}:1" title="move down" ${ci===sc.categories.length-1?'disabled':''}>↓</button>
+        <button class="del-x inline" data-catdel="${sc.id}:${c.id}" title="delete category">×</button>
+      </span></summary><div class="body">
       <div class="spend-list">${c.items.length ? c.items.map(i=>spendItemRowHTML(sc,c,i)).join('') : '<div class="empty" style="font-size:.8rem">Nothing here yet.</div>'}</div>
       <button class="btn sm ghost" data-spendadd="${sc.id}:${c.id}" style="margin-top:6px">＋ line item</button>
     </div></details>`).join('')}
+    <button class="btn sm ghost" data-catadd="${sc.id}" style="margin-top:8px">＋ category</button>
+    ${linkedChipsHTML(sc.links) ? `<div class="row" style="gap:4px;flex-wrap:wrap;margin-top:10px">${linkedChipsHTML(sc.links)}</div>` : ''}
+    <details class="fin-links"><summary class="mono">what this life is for</summary>
+      <div class="body" data-finlinks="finance.scenarios.#${sc.id}">${linksEditorHTML(sc.links, {legend:false})}</div>
+    </details>
   </div>`;
 }
 function openScenarioModal(){
@@ -321,10 +355,24 @@ routes.finance = function(root){
   root.querySelectorAll('[data-streammsdel]').forEach(b => b.onclick = () => { const [path, i] = b.dataset.streammsdel.split(':'); const arr = getPath(path+'.milestones'); requestDelete({label:arr[+i].text||'milestone', remove:()=>spliceOut(arr, x=>x===arr[+i])}); });
   root.querySelectorAll('[data-streamstatus]').forEach(s => s.onchange = () => { getPath(s.dataset.streamstatus).status = s.value; saveNow(); rerender(); });
   root.querySelectorAll('[data-streamcur]').forEach(s => s.onchange = () => { getPath(s.dataset.streamcur).currency = s.value; saveNow(); rerender(); });
-  root.querySelectorAll('[data-streamvision]').forEach(s => s.onchange = () => { getPath(s.dataset.streamvision).visionId = s.value || null; saveNow(); rerender(); });
   root.querySelectorAll('[data-streamlog]').forEach(b => b.onclick = () => openRevenueLogModal(b.dataset.streamlog));
-  root.querySelectorAll('[data-streamperson]').forEach(c => c.onclick = () => { const [path, pid] = c.dataset.streamperson.split(':'); const inc = getPath(path); inc.peopleIds = inc.peopleIds||[];
-    inc.peopleIds = inc.peopleIds.includes(pid) ? inc.peopleIds.filter(x=>x!==pid) : [...inc.peopleIds, pid]; saveNow(); c.classList.toggle('on'); });
+  /* cross-tagging on both streams and scenarios — this is also how a project
+     gets attached to a stream that was created standalone */
+  root.querySelectorAll('[data-finlinks]').forEach(box => {
+    const owner = getPath(box.dataset.finlinks); if(!owner) return;
+    owner.links = normLinks(owner.links);
+    bindLinksEditor(box, owner.links, () => finLiveRecalc());
+  });
+  /* editable categories: renaming happens in the summary, so a click on the
+     name must not also toggle the section open or shut */
+  root.querySelectorAll('.spend-cat > summary').forEach(sm => sm.addEventListener('click', e => { if(e.target.closest('.ed, .cat-tools')) e.preventDefault(); }));
+  root.querySelectorAll('[data-catadd]').forEach(b => b.onclick = () => { const sc = byId(S.finance.scenarios, b.dataset.catadd); const c = {id:uid(), name:'', items:[]}; sc.categories.push(c); S._finOpenCats = S._finOpenCats||{}; S._finOpenCats[c.id] = true; saveNow(); sound('success'); rerender();
+    setTimeout(()=>{ const n = document.querySelector(`.spend-cat[data-cat="${c.id}"] .ed`); n && beginEdit(n); }, 60); });
+  root.querySelectorAll('[data-catmove]').forEach(b => b.onclick = () => { const [scId, cId, dir] = b.dataset.catmove.split(':'); const sc = byId(S.finance.scenarios, scId);
+    const i = sc.categories.findIndex(c => c.id === cId); const j = i + (+dir); if(i<0 || j<0 || j>=sc.categories.length) return;
+    [sc.categories[i], sc.categories[j]] = [sc.categories[j], sc.categories[i]]; saveNow(); sound('click'); rerender(); });
+  root.querySelectorAll('[data-catdel]').forEach(b => b.onclick = () => { const [scId, cId] = b.dataset.catdel.split(':'); const sc = byId(S.finance.scenarios, scId); const c = byId(sc.categories, cId);
+    requestDelete({label:`${c.name||'category'}${c.items.length?` and its ${c.items.length} line item${c.items.length>1?'s':''}`:''}`, node:b.closest('.spend-cat'), remove:()=>spliceOut(sc.categories, x=>x.id===cId)}); });
   root.querySelectorAll('[data-scenariopick]').forEach(b => b.onclick = () => { S.finance.scenarios.forEach(sc => sc.active = sc.id === b.dataset.scenariopick); saveNow(); sound('click'); rerender(); });
   root.querySelectorAll('[data-scenariocur]').forEach(s => s.onchange = () => { byId(S.finance.scenarios, s.dataset.scenariocur).currency = s.value; saveNow(); rerender(); });
   root.querySelectorAll('[data-scenariodel]').forEach(b => b.onclick = () => { const sc = byId(S.finance.scenarios, b.dataset.scenariodel); requestDelete({label:sc.name, node:b.closest('.scenario-card'), remove:()=>{ const wasActive = sc.active; const undo = spliceOut(S.finance.scenarios, x=>x.id===sc.id); if(wasActive && S.finance.scenarios.length) S.finance.scenarios[0].active = true; return undo; }}); });
