@@ -349,7 +349,7 @@ function renderWritingDesk(root, id){
           <button class="btn sm ghost ws-pane-btn ${ws.board?'on':''}" id="wPaneR" title="show or hide the structure board">${ws.board?'◨':'◫'} board</button>
         </span>
         <button class="btn sm ${focus?'primary':'ghost'}" id="wFocus" title="hide both panels and give the page to the draft">${focus?'✓ focus':'focus'}</button>
-        <div class="row" style="gap:4px"><button class="btn sm ghost" id="expMd">↓ .md</button><button class="btn sm ghost" id="expTxt">↓ .txt</button><button class="btn sm ghost" id="expHtml">↓ .html</button></div>
+        <div class="row" style="gap:4px"><button class="btn sm ghost" id="wsCompileBtn">⇩ compile</button><button class="btn sm ghost" id="expMd">↓ .md</button><button class="btn sm ghost" id="expTxt">↓ .txt</button><button class="btn sm ghost" id="expHtml">↓ .html</button></div>
       </div></div>
 
     <div class="writing-head rv">
@@ -363,10 +363,10 @@ function renderWritingDesk(root, id){
     </div>
 
     <div class="wstudio-layout${ws.drawer?'':' no-l'}${ws.board?'':' no-r'}" id="wsLayout" style="--ws-l:${ws.lw}px;--ws-r:${ws.rw}px">
-      ${researchDrawerHTML(e)}
+      <div class="ws-left">${wsBinderHTML(e)}${researchDrawerHTML(e)}</div>
       <div>
-        <div class="write-page rv"><textarea class="ta write-area" id="wBody" placeholder="Begin anywhere. You can fix the beginning last.">${esc(e.body)}</textarea></div>
-        <div class="row between" style="margin-top:8px"><span class="mono">${n} word${n===1?'':'s'}${x.target.wordTarget?` · ${clamp(Math.round(n/x.target.wordTarget*100),0,999)}% of ${x.target.wordTarget}`:''}</span><span class="session-count">${Math.max(0,n-_wSession.base)} written this session</span></div>
+        ${wsViewBarHTML(e)}
+        <div class="ws-stage rv" id="wsStage">${wsBodyHTML(e)}</div>
         <details style="margin-top:14px"><summary><span class="sc">Scratchpad</span></summary><div class="body"><textarea class="ta" id="wScratch" placeholder="Rough notes, fragments, sentence attempts.">${esc(x.scratchpad)}</textarea></div></details>
         <details style="margin-top:10px"><summary><span class="sc">Comments — private revision notes (${x.comments.length})</span></summary><div class="body">
           <button class="btn sm ghost" id="cAdd">+ comment on selection</button>
@@ -381,17 +381,18 @@ function renderWritingDesk(root, id){
         </div></details>
         ${moreSection(`<div class="danger-zone"><span>This deletes the piece, its research pins, and its version history.</span><button class="btn sm ghost danger" id="wDel">Delete this piece</button></div>`)}
       </div>
-      ${structureBoardHTML(e)}
+      <div class="ws-right">${wsInspectorHTML(e)}${structureBoardHTML(e)}</div>
     </div>
   </div>`;
-  const ta = $('#wBody');
-  const grow = () => { ta.style.height = 'auto'; ta.style.height = Math.max(420, ta.scrollHeight) + 'px'; }; grow();
-  const save = debounce(() => { e.body = ta.value; e.updatedAt = new Date().toISOString(); saveNow(); const w = document.querySelector('.write-page + .row .mono'); const nn = wordCount(ta.value); if(w) w.textContent = `${nn} word${nn===1?'':'s'}${x.target.wordTarget?` · ${clamp(Math.round(nn/x.target.wordTarget*100),0,999)}% of ${x.target.wordTarget}`:''}`; const sc = document.querySelector('.session-count'); if(sc) sc.textContent = `${Math.max(0,nn-_wSession.base)} written this session`; }, 500);
-  ta.addEventListener('input', () => { e.body = ta.value; grow(); save(); });
+  /* The draft now lives in the binder's documents, not on the project body —
+     bindWsStudio owns #wBody. Binding it here too would write every keystroke
+     to both places, and #wBody does not exist at all in the other three views. */
   $('#wFocus').onclick = () => { S._writeFocus = !S._writeFocus; redraw(); setTimeout(()=>$('#wBody')?.focus(),60); };
   $('#wPaneL') && ($('#wPaneL').onclick = () => { ws.drawer = !ws.drawer; saveNow(); redraw(); });
   $('#wPaneR') && ($('#wPaneR').onclick = () => { ws.board = !ws.board; saveNow(); redraw(); });
   bindWsResize(root, ws);
+  bindWsStudio(root, e, redraw);
+  $('#wsCompileBtn') && ($('#wsCompileBtn').onclick = () => wsOpenCompile(e));
   $('#wKind').onchange = ev => { x.kind = ev.target.value; saveNow(); };
   $('#wStatus').onchange = ev => { x.status = ev.target.value; saveNow(); };
   $('#wTarget').onchange = ev => { x.target.wordTarget = +ev.target.value||0; saveNow(); redraw(); };
