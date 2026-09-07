@@ -20,6 +20,11 @@ function guidedFlow(title, steps, onDone){
         <button class="btn primary" id="fwNext">${i === steps.length-1 ? 'Close the review' : 'Next'}</button></div>`;
     m.querySelector('.close').onclick = () => m.remove();
     const body = m.querySelector('#flowBody');
+    /* Steps that embed page HTML (the Life Tape views, mostly) bring `.rv`
+       reveal wrappers with them. Those sit at opacity 0 until something adds
+       `.in`, and only rerender() does that — scoped to #main, never a modal.
+       Without this the first step of every periodic review draws blank. */
+    body.querySelectorAll('.rv').forEach(n => n.classList.add('in'));
     st.bind && st.bind(body, m);
     body.querySelectorAll('[data-flowgo]').forEach(b => b.onclick = () => { const go = b.dataset.flowgo; m.remove(); navigate(go); });
     body.querySelectorAll('[data-flowquick]').forEach(b => b.onclick = () => openEntryModal({type:b.dataset.flowquick, after:()=>{}}));

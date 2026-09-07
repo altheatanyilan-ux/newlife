@@ -1959,6 +1959,8 @@ function beginEdit(node){
     node.classList.remove('editing');
     node.innerHTML = v.trim() ? (node.dataset.md==='1' ? md(v) : esc(v)) : `<span class="ph">${esc(node.dataset.ph)}</span>`;
     if(v !== orig){ const p = el('<span class="saved-pulse">saved</span>'); node.appendChild(p); setTimeout(()=>p.remove(), 1200); sound('save'); const h = node.dataset.hook; if(h){ const [name, arg] = h.split(':'); hooks[name]?.(arg, orig, v, node); } }
+    /* a field emptied or filled changes what Living View should be showing */
+    const lv = node.closest('.lv-mode'); if(lv) applyLivingView(lv);
   });
 }
 document.addEventListener('click', e => { const n = e.target.closest('.ed'); if(n && !e.target.closest('a')) beginEdit(n); });
@@ -2101,24 +2103,33 @@ function vmToggleHTML(key){
   return `<div class="vm-toggle-row"><button class="btn sm ghost vm-btn ${m==='lv'?'lv-active':''}" data-vmkey="${esc(key)}" title="${m==='lv'?'Workshop View: shows every field with prompts (E)':'Living View: shows only what you\'ve filled (E)'}">
     ${m==='lv'?'◉ living':'⚙ workshop'}</button></div>`;
 }
+/* Living View means an unanswered field is not there at all — not its value,
+   not its placeholder, and not its label. A thing with no start date should
+   show no trace of the words "start date". */
+const LV_WRAPPERS = '.field, .q, .vp-sec, .next-action, .evidence-item, [data-lv]';
 function applyLivingView(container){
   const isEmpty = e => !!e.querySelector(':scope > .ph');
-  // per-item: individual .q wrappers (sensory fields, spec grids)
-  container.querySelectorAll('.q').forEach(q => {
-    const eds = q.querySelectorAll('.ed');
-    q.classList.toggle('lv-empty', eds.length > 0 && [...eds].every(isEmpty));
+  const live = [...container.querySelectorAll('.ed')].filter(e => !e.closest('.editing'));
+  /* A wrapper may hold more than its ed()s — a select, a chip that is on, a
+     bar. Those carry real state, so the label stays even when the text is
+     blank. Controls belonging to an ed() being edited do not count. */
+  const hasOtherContent = w => [...w.querySelectorAll('select, input, textarea, .chip.on, .bar, svg, img, .status-pill, .tagrow')].some(n => !n.closest('.ed'));
+
+  /* the field itself, so a bare ed() with no wrapper hides its placeholder */
+  live.forEach(e => e.classList.toggle('lv-empty', isEmpty(e)));
+
+  /* the wrapper, so the label goes with it — innermost first, so that a
+     section whose fields have all just been hidden is judged on the result */
+  const wrappers = [...container.querySelectorAll(LV_WRAPPERS)].reverse();
+  wrappers.forEach(w => {
+    const inner = [...w.querySelectorAll('.ed')].filter(e => !e.closest('.editing'));
+    w.classList.toggle('lv-empty', inner.length > 0 && inner.every(isEmpty) && !hasOtherContent(w));
   });
-  // per-section: .vp-sec, .next-action, and other field blocks
-  container.querySelectorAll('.vp-sec, .next-action').forEach(sec => {
-    const eds = [...sec.querySelectorAll('.ed')].filter(e => !e.closest('.editing'));
-    if(!eds.length) return;
-    sec.classList.toggle('lv-empty', eds.every(isEmpty));
-  });
+
   // completion count for workshop header
-  const allEds = [...container.querySelectorAll('.ed')].filter(e => !e.closest('.editing'));
-  const filled = allEds.filter(e => !isEmpty(e)).length;
+  const filled = live.filter(e => !isEmpty(e)).length;
   const badge = container.querySelector('.wv-badge');
-  if(badge) badge.textContent = `${filled} / ${allEds.length} fields`;
+  if(badge) badge.textContent = `${filled} / ${live.length} fields`;
 }
 function bindVmToggle(container, key){
   const btn = container.querySelector('[data-vmkey]');
@@ -7930,6 +7941,11 @@ function guidedFlow(title, steps, onDone){
         <button class="btn primary" id="fwNext">${i === steps.length-1 ? 'Close the review' : 'Next'}</button></div>`;
     m.querySelector('.close').onclick = () => m.remove();
     const body = m.querySelector('#flowBody');
+    /* Steps that embed page HTML (the Life Tape views, mostly) bring `.rv`
+       reveal wrappers with them. Those sit at opacity 0 until something adds
+       `.in`, and only rerender() does that — scoped to #main, never a modal.
+       Without this the first step of every periodic review draws blank. */
+    body.querySelectorAll('.rv').forEach(n => n.classList.add('in'));
     st.bind && st.bind(body, m);
     body.querySelectorAll('[data-flowgo]').forEach(b => b.onclick = () => { const go = b.dataset.flowgo; m.remove(); navigate(go); });
     body.querySelectorAll('[data-flowquick]').forEach(b => b.onclick = () => openEntryModal({type:b.dataset.flowquick, after:()=>{}}));
