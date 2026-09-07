@@ -404,16 +404,17 @@ html.reduce-motion *,html.reduce-motion *::before,html.reduce-motion *::after{an
 .moon{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:.85rem;margin-top:6px}
 .moon svg{width:22px;height:22px}
 .today-head{padding-bottom:12px;border-bottom:1px solid var(--line);margin-bottom:6px}
+.morning-flow .card{padding:10px 14px}
+.mf-check{width:16px;height:16px;accent-color:var(--sage);cursor:pointer}
 .ready-letters .ready-letter{border-left:3px solid var(--gold);padding:12px 16px;border-radius:var(--radius);background:color-mix(in srgb,var(--gold) 8%,var(--surface))}
-.today-checkin summary,.today-planner summary{display:flex;align-items:center;justify-content:space-between;cursor:pointer;list-style:none;padding:8px 0}
-.today-checkin summary::-webkit-details-marker,.today-planner summary::-webkit-details-marker{display:none}
-.today-checkin .body,.today-planner .body{padding:10px 0 16px}
+.today-checkin summary{display:flex;align-items:center;justify-content:space-between;cursor:pointer;list-style:none;padding:8px 0}
+.today-checkin summary::-webkit-details-marker{display:none}
+.today-checkin .body{padding:10px 0 16px}
 .mood-shapes{gap:10px;flex-wrap:wrap}
 .mood-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 14px;border-radius:10px;border:1.5px solid var(--line-2);background:var(--surface-2);cursor:pointer;transition:border-color .18s var(--ease),background .18s var(--ease)}
 .mood-btn:hover{border-color:var(--page-accent)}
 .mood-btn.on{border-color:var(--page-accent);background:color-mix(in srgb,var(--page-accent) 12%,var(--surface-2))}
 .mood-icon{font-size:1.3rem;line-height:1}
-.today-planner .rhy-cal{margin-top:12px}
 .moods{display:flex;gap:14px;align-items:center}
 .mood{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--line-2);cursor:pointer;position:relative;transition:transform .25s var(--ease),border-color .25s;background:radial-gradient(circle at 50% 50%,var(--page-accent) var(--fill),transparent calc(var(--fill) + 1%))}
 .mood:hover{transform:scale(1.1)}
@@ -4020,12 +4021,25 @@ routes.today = function(root){
   const yesterday = addDays(T, -1); const cyest = S.checkins?.[yesterday];
   const cycleDay = S.rehearsal.cycleStart ? daysBetween(S.rehearsal.cycleStart, T) : 0;
   const rows = tasksForDay(T); const carried = allTaskRefs().filter(r => r.day && !r.done && r.day < T);
-  const doneN = rows.filter(r=>r.done).length; const evening = new Date().getHours() >= 17;
+  const doneN = rows.filter(r=>r.done).length;
   const ready = lettersOpeningNow();
   const due = decisionsDue();
   const milestones = milestonesDueSoon(30);
   const pr = practicesDueToday();
-  const seenPlan = S._todayPlanOpen ?? false;
+
+  if(!c.wakeAt){ c.wakeAt = new Date().toISOString(); saveNow(); }
+
+  const _ft = iso => { if(!iso) return ''; const d = new Date(iso); let h = d.getHours(), m = d.getMinutes(); const ap = h >= 12 ? 'pm' : 'am'; h = h % 12 || 12; return h + ':' + String(m).padStart(2,'0') + ap; };
+  const _dur = (a, b) => { if(!a||!b) return ''; const mins = Math.round((new Date(b) - new Date(a)) / 60000); if(mins < 1) return '<1m'; if(mins < 60) return mins + 'm'; return Math.floor(mins/60) + 'h ' + (mins%60) + 'm'; };
+
+  const flowSteps = [
+    {key:'checkinAt', label:'Check-in'},
+    {key:'theatreAt', label:'Morning Theatre'},
+    {key:'tasksAt',   label:'Tasks reviewed'},
+  ];
+  const allFlowDone = flowSteps.every(s => c[s.key]);
+  const lastFlowTime = flowSteps.map(s => c[s.key]).filter(Boolean).pop();
+  const totalDur = allFlowDone && c.wakeAt ? _dur(c.wakeAt, lastFlowTime) : '';
 
   registerPageEntry({pageName:'Today', addLabel:'New note', defaultEntryType:'reflection', prefilledFields:{}, options:[
     {icon:'▫', label:'Task for today', desc:'Something to finish before the day closes.', run:()=>openTaskPicker(T, rerender)},
@@ -4056,25 +4070,45 @@ routes.today = function(root){
       ${cyest?.intention ? `<div class="mono faint" style="margin-top:8px;font-size:.78rem">Yesterday you set out to: <em>${esc(cyest.intention)}</em></div>` : ''}
     </header>
 
+    <!-- morning flow tracker -->
+    <section class="section rv morning-flow">
+      <div class="row between"><span class="sc lg">Morning flow</span><span class="mono">${c.wakeAt ? 'woke ' + _ft(c.wakeAt) : ''}</span></div>
+      <div class="card" style="margin-top:8px">
+        ${flowSteps.map((s, i) => `<div class="row between" style="padding:7px 0;${i < flowSteps.length - 1 ? 'border-bottom:1px dashed var(--line)' : ''}">
+          <label class="row" style="gap:8px;cursor:pointer"><input type="checkbox" class="mf-check" data-mfkey="${s.key}" ${c[s.key] ? 'checked' : ''}><span>${s.label}</span></label>
+          <span class="mono">${c[s.key] ? _ft(c[s.key]) + ' <span class="faint">+' + _dur(c.wakeAt, c[s.key]) + '</span>' : '—'}</span>
+        </div>`).join('')}
+        ${totalDur ? `<div class="mono" style="margin-top:8px;text-align:right;color:var(--sage)">total morning routine: ${totalDur}</div>` : ''}
+      </div>
+    </section>
+
     <!-- sealed letters (prominent) -->
     ${ready.length ? `<section class="section rv ready-letters">
       <div class="sc">A letter from you has come due</div>
       ${ready.map(e=>`<div class="card ready-letter" style="margin-top:8px"><div class="row between"><span><b class="serif">${esc(e.title||'To myself')}</b><div class="mono faint">${daysBetween((e.createdAt||'').slice(0,10), T)} days ago</div></span><button class="btn sm primary" data-lopen="${e.id}">Open it</button></div></div>`).join('')}
     </section>` : ''}
 
+    <!-- today's tasks (up front) -->
+    <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Today's tasks</span><span class="mono">${rows.length?`${doneN} of ${rows.length} done`:'nothing parked yet'}</span></div>
+      <div class="card" data-daydrop="${T}" style="margin-top:10px">
+        <div class="stack" style="gap:2px">${rows.map(r=>taskRowHTML(r)).join('')||`<div class="empty">Park work here from a project, or write one below.</div>`}</div>
+        <div class="row" style="margin-top:10px;gap:8px">${quickTaskInput(T)}<button class="btn sm ghost" id="pullTask">pull in ↓</button></div>
+        ${carried.length?`<div class="row" style="margin-top:10px"><span class="mono" style="color:#d08080">${carried.length} carried over from earlier days</span><button class="btn sm ghost" id="carryAll">bring to today</button></div>`:''}
+      </div></section>
+
     <!-- daily check-in (intention + mood + energy + setpoint) -->
     <details class="rv today-checkin" ${!c.intention||(!c.setpoint && !c.mood) ? 'open' : ''}>
       <summary><span class="sc lg">Daily check-in</span><span class="mono">${c.intention ? esc(c.intention.slice(0,40)) : 'not yet set'}</span></summary>
       <div class="body stack" style="gap:20px">
         <div class="field"><label>Today's intention</label>
-          ${ed(`checkins.${T}.intention`, {ph:'One thing to give attention to today.', cls:'serif-lg'})}</div>
+          ${ed('checkins.' + T + '.intention', {ph:'One thing to give attention to today.', cls:'serif-lg'})}</div>
         <div class="field"><label>Mood right now</label>
           <div class="mood-shapes row" style="gap:10px;flex-wrap:wrap">
             ${MOODS.map(m=>`<button class="mood-btn ${c.mood===m.v?'on':''}" data-mood="${m.v}" style="flex-direction:column;gap:3px"><span class="mood-icon">${m.icon}</span><span class="mono" style="font-size:.65rem">${m.label}</span></button>`).join('')}
           </div>
         </div>
         <div class="field"><label>In one sentence, how is today going?</label>
-          ${ed(`checkins.${T}.sentence`, {ph:'One honest sentence.', cls:'serif-lg'})}</div>
+          ${ed('checkins.' + T + '.sentence', {ph:'One honest sentence.', cls:'serif-lg'})}</div>
         <div class="field"><label>Energy — four dimensions</label>
           <div class="energy-row">${DIMS.map(d=>`<div class="energy-dim" style="--c:${d.c}"><div class="lbl"><span>${d.name}</span><span class="mono">${c.energy?.[d.id]||'–'}/5</span></div><div class="dots">${[1,2,3,4,5].map(n=>`<i class="${(c.energy?.[d.id]||0)>=n?'on':''}" data-dim="${d.id}" data-n="${n}"></i>`).join('')}</div></div>`).join('')}</div></div>
         <div class="field setpoint"><label>Emotional set-point (Hicks' guidance scale)</label>
@@ -4106,18 +4140,10 @@ routes.today = function(root){
       <div id="todayRings" style="margin-top:10px"></div>
     </section>
 
-    <!-- today's tasks -->
-    <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Today's tasks</span><span class="mono">${rows.length?`${doneN} of ${rows.length} done`:'nothing parked yet'}</span></div>
-      <div class="card" data-daydrop="${T}" style="margin-top:10px">
-        <div class="stack" style="gap:2px">${rows.map(r=>taskRowHTML(r)).join('')||`<div class="empty">Park work here from a project, or write one below.</div>`}</div>
-        <div class="row" style="margin-top:10px;gap:8px">${quickTaskInput(T)}<button class="btn sm ghost" id="pullTask">pull in ↓</button></div>
-        ${carried.length?`<div class="row" style="margin-top:10px"><span class="mono" style="color:#d08080">${carried.length} carried over from earlier days</span><button class="btn sm ghost" id="carryAll">bring to today</button></div>`:''}
-      </div></section>
-
     ${due.length ? `<section class="section rv"><div class="card"><div class="row between"><span class="sc" style="margin:0">Decisions ready to grade</span><a class="mono" href="#/journals/decision">all →</a></div>${due.map(e=>`<div class="row between" style="margin-top:8px"><span><b class="serif">${esc(e.title)}</b><div class="mono">${fmtDate((e.createdAt||'').slice(0,10),'med')}</div></span><button class="btn sm" data-dopen="${e.id}">Look back</button></div>`).join('')}</div></section>` : ''}
     ${pr.length ? `<section class="section rv"><div class="row between"><span class="sc" style="margin:0">Today's practices</span><a class="mono" href="#/values">compass →</a></div>
       <div class="card" style="margin-top:10px"><div class="prac-today">${pr.map(({v,p,done,doneThisWeek})=>`<button class="prac-chip ${done?'on':''}" data-practoday="${v.id}:${p.id}" style="--c:${v.color}"><span class="pc-tick">${done?'✓':'○'}</span><span class="pc-text">${esc(p.text)}</span><span class="pc-val mono">${esc(v.name)} · ${doneThisWeek}/${p.perWeek}</span></button>`).join('')}</div></div></section>` : ''}
-    ${milestones.length ? `<section class="section rv"><span class="sc">Skill milestones within 30 days</span><div class="card" style="border-left:3px solid var(--ment)">${milestones.map(({skill,m,days})=>`<a href="#/skills/${skill.id}" class="row between" style="text-decoration:none;color:inherit;padding:8px 0;border-top:1px dashed var(--line);gap:12px"><span><b class="serif">${esc(skill.name)}</b> <span class="muted">→ ${esc(skillLevelLabel(skill,m.levelTarget))}</span></span><span class="status-pill ${days<0?'due':'ahead'}">${days<0?`⚠ ${-days}d overdue`:days===0?'today':`in ${days}d`}</span></a>`).join('')}</div></section>` : ''}
+    ${milestones.length ? `<section class="section rv"><span class="sc">Skill milestones within 30 days</span><div class="card" style="border-left:3px solid var(--ment)">${milestones.map(({skill,m,days})=>`<a href="#/skills/${skill.id}" class="row between" style="text-decoration:none;color:inherit;padding:8px 0;border-top:1px dashed var(--line);gap:12px"><span><b class="serif">${esc(skill.name)}</b> <span class="muted">→ ${esc(skillLevelLabel(skill,m.levelTarget))}</span></span><span class="status-pill ${days<0?'due':'ahead'}">${days<0?'⚠ ' + (-days) + 'd overdue':days===0?'today':'in ' + days + 'd'}</span></a>`).join('')}</div></section>` : ''}
 
     <!-- gentle prompt -->
     <section class="section rv"><span class="sc">A gentle prompt</span>
@@ -4134,18 +4160,25 @@ routes.today = function(root){
       </div>
     </section>
 
-    <!-- today's schedule (collapsible planner) -->
-    <details class="rv today-planner" id="todayPlannerWrap" ${seenPlan?'open':''} style="margin-top:8px">
-      <summary><span class="sc lg">Today's schedule</span><span class="mono">plan · calendar · running log</span></summary>
-      <div class="body" id="todayPlanBody"></div>
-    </details>
-
   </div>`;
 
   /* habits rings */
   const ringsBox = root.querySelector('#todayRings');
   if(ringsBox && typeof habitRingRow === 'function') ringsBox.innerHTML = habitRingRow(T);
   if(ringsBox && typeof bindHabitRings === 'function') bindHabitRings(ringsBox);
+
+  /* morning flow tracker */
+  root.querySelectorAll('.mf-check').forEach(cb => cb.onchange = () => {
+    const key = cb.dataset.mfkey;
+    if(cb.checked){
+      c[key] = new Date().toISOString();
+      if(key === 'theatreAt' && !S.rehearsal.days.includes(T)){
+        S.rehearsal.days.push(T);
+        if(!S.rehearsal.cycleStart) S.rehearsal.cycleStart = T;
+      }
+    } else { c[key] = null; }
+    saveNow(); rerender();
+  });
 
   /* check-in bindings */
   root.querySelectorAll('.dots i').forEach(i => i.onclick = () => { c.energy = c.energy||{}; c.energy[i.dataset.dim] = +i.dataset.n; saveNow(); const dim = i.closest('.energy-dim'); dim.querySelectorAll('i').forEach(x=>x.classList.toggle('on', +x.dataset.n <= +i.dataset.n)); dim.querySelector('.lbl .mono').textContent = i.dataset.n+'/5'; });
@@ -4174,23 +4207,6 @@ routes.today = function(root){
 
   /* practices */
   $$('[data-practoday]',root).forEach(b => b.onclick = () => { const [vid,pid] = b.dataset.practoday.split(':'); const v = byId(S.values,vid); const p = byId(v.practices,pid); togglePractice(v,p); sound(practiceDone(p)?'success':'click'); rerender(); });
-
-  /* planner (lazy-render when opened) */
-  const planWrap = root.querySelector('#todayPlannerWrap');
-  const planBody = root.querySelector('#todayPlanBody');
-  function openPlanner(){
-    S._todayPlanOpen = true;
-    if(!planBody.children.length && typeof drawRhythmCalendar === 'function'){
-      const calBox = document.createElement('div'); calBox.className = 'rhy-cal'; planBody.appendChild(calBox);
-      drawRhythmCalendar(calBox, 'day', T);
-      const sideBox = document.createElement('div'); planBody.appendChild(sideBox);
-      if(typeof renderPlanPanel === 'function') renderPlanPanel(sideBox, T);
-    }
-  }
-  if(planWrap){
-    if(planWrap.open) openPlanner();
-    planWrap.addEventListener('toggle', () => { if(planWrap.open) openPlanner(); });
-  }
 
   reveal(root);
 };
