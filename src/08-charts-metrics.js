@@ -147,11 +147,31 @@ function linkChips(e, {click=true}={}){
 document.addEventListener('click', e => { const c = e.target.closest('[data-go]'); if(c && !e.target.closest('.ed')){ e.preventDefault(); closeModals(); navigate(c.dataset.go); } });
 function entryExtraHTML(e){
   const x = e.extra||{}; const rows = [];
-  if(e.type==='synchronicity'){ if(x.preceded) rows.push(`<div><span class="mono">what preceded it</span><br>${esc(x.preceded)}</div>`); if(x.read) rows.push(`<div><span class="mono">what I read into it</span><br>${esc(x.read)}</div>`); if(x.revisit) rows.push(`<span class="status-pill">revisit later</span>`); }
-  if(e.type==='manifestation'){ rows.push(`<span class="status-pill">${esc(x.status||'held')}</span>`); (x.evidence||[]).forEach(ev => rows.push(`<div class="evidence-item"><span class="mono">${fmtDate(ev.date,'med')}</span><span>${esc(ev.text)}</span></div>`)); }
-  if(e.type==='dream'){ rows.push(`<span class="status-pill">vividness ${'●'.repeat(x.vivid||0)}${'○'.repeat(5-(x.vivid||0))}</span> ${x.recurring?'<span class="status-pill">recurring</span>':''} ${(x.symbols||[]).map(s=>`<span class="chip">${esc(s)}</span>`).join(' ')}`); }
-  if(e.type==='quote'){ rows.push(`<div class="mono">— ${esc(x.author||'')}${x.source?', <em>'+esc(x.source)+'</em>':''}${x.page?' · '+esc(x.page):''}${x.link?` · <a href="${esc(x.link)}" target="_blank" rel="noopener">↗ link</a>`:''}</div>`); if(x.why) rows.push(`<div><span class="mono">why this caught me</span><br>${esc(x.why)}</div>`); }
-  if(e.type==='question'){ const ans = x.answers||[]; rows.push(`<div class="answer-log">${ans.length? ans.map(a=>`<div class="a"><span class="mono">${fmtDate(a.date,'med')}</span> · ${esc(a.text)}</div>`).join('') : '<div class="a faint">no answer yet — still living with it</div>'}<button class="tbtn" data-answer="${e.id}">+ add an answer</button></div>`); }
+  const versions = (hist, label) => (hist||[]).length ? `<details class="versions-fold"><summary><span class="mono">${(hist||[]).length} earlier ${label}${hist.length===1?'':'s'}</span></summary><div class="body">${hist.map(h=>`<div class="v"><span class="mono">${fmtDate(h.date,'med')}</span> ${esc(h.text)}</div>`).join('')}</div></details>` : '';
+  if(e.type==='reflection'){ const bits = [x.mood?`<span class="status-pill">${esc(x.mood)}</span>`:'', x.depth?`<span class="status-pill">${esc(x.depth === 'sitting' ? 'sitting with it' : x.depth)}</span>`:''].filter(Boolean).join(' ');
+    if(bits) rows.push(bits); if(x.trigger) rows.push(`<div class="mono">prompted by ${esc(x.trigger)}</div>`); }
+  if(e.type==='gratitude'){ if(x.gratWhy) rows.push(`<div><span class="mono">why this matters</span><br>${esc(x.gratWhy)}</div>`);
+    if(x.novelty) rows.push(`<span class="status-pill">${x.novelty === 'new' ? 'something new' : 'something ongoing'}</span>`); }
+  if(e.type==='synchronicity'){ if(x.conf) rows.push(`<span class="status-pill">${esc(x.conf)}</span>`);
+    if(x.preceded) rows.push(`<div><span class="mono">what preceded it</span><br>${esc(x.preceded)}</div>`);
+    if(x.read) rows.push(`<div><span class="mono">what I read into it</span><br>${esc(x.read)}${versions(x.readHistory,'reading')}</div>`);
+    if(x.revisit) rows.push(`<span class="status-pill">revisit later</span>`); }
+  if(e.type==='manifestation'){ rows.push(`<span class="status-pill">${esc(x.status||'held')}</span>${x.setpointAt?` <span class="mono">set from ${esc(hicksName(+x.setpointAt).split(' / ')[0])} (${x.setpointAt}/22)</span>`:''}`);
+    if(x.resistance) rows.push(`<div><span class="mono">resistance</span><br>${esc(x.resistance)}</div>`);
+    (x.evidence||[]).forEach(ev => rows.push(`<div class="evidence-item"><span class="mono">${fmtDate(ev.date,'med')}</span><span>${esc(ev.text)}</span></div>`)); }
+  if(e.type==='dream'){ rows.push(`<span class="status-pill">vividness ${'●'.repeat(x.vivid||0)}${'○'.repeat(5-(x.vivid||0))}</span> ${x.recurring?'<span class="status-pill">recurring</span>':''} ${x.capturedAt?`<span class="mono">caught ${esc(x.capturedAt)}</span>`:''}`);
+    if((x.tone||[]).length) rows.push(`<div>${(x.tone||[]).map(t=>`<span class="chip">${esc(t)}</span>`).join(' ')}</div>`);
+    if((x.symbols||[]).length) rows.push(`<div>${(x.symbols||[]).map(sm=>`<span class="chip click" data-symbol="${esc(sm)}">${esc(sm)}</span>`).join(' ')}</div>`);
+    if(x.waking) rows.push(`<div><span class="mono">waking interpretation</span><br>${esc(x.waking)}${versions(x.wakingHistory,'interpretation')}</div>`); }
+  if(e.type==='quote'){ rows.push(`<div class="mono">— ${esc(x.author||'')}${x.source?', <em>'+esc(x.source)+'</em>':''}${x.page?' · '+esc(x.page):''}${x.link?` · <a href="${esc(x.link)}" target="_blank" rel="noopener">↗ link</a>`:''}${x.category?` · ${esc(x.category)}`:''}</div>`);
+    if(x.why) rows.push(`<div><span class="mono">why this caught me</span><br>${esc(x.why)}</div>`); }
+  if(e.type==='question'){ const ans = x.answers||[]; const age = daysSince((e.occurredAt||e.createdAt||'').slice(0,10));
+    const st = x.status || 'open';
+    rows.push(`<div class="row" style="gap:6px;flex-wrap:wrap"><span class="status-pill q-${esc(st)}">${esc(st)}</span><span class="mono">${age===Infinity?'':`open ${relDays(age)}`}</span>${ans.length?`<span class="mono">${ans.length} answer${ans.length===1?'':'s'}</span>`:''}</div>`);
+    if(x.why) rows.push(`<div><span class="mono">why I am asking</span><br>${esc(x.why)}</div>`);
+    rows.push(`<div class="answer-log">${ans.length ? ans.map(a=>`<div class="a"><span class="mono">${fmtDate(a.date,'med')}</span>${a.conf?` <span class="status-pill">${esc(a.conf)}</span>`:''} · ${esc(a.text)}</div>`).join('') : '<div class="a faint">no answer yet — still living with it</div>'}
+      <div class="row" style="gap:6px;margin-top:6px;flex-wrap:wrap"><button class="tbtn" data-answer="${e.id}">+ add an answer</button>${st!=='settled'&&st!=='dissolved'?`<button class="tbtn" data-qsettle="${e.id}">settle it</button><button class="tbtn" data-qdissolve="${e.id}">it dissolved</button>`:''}</div></div>`); }
+  if(e.type==='letter' && x.direction) rows.push(`<span class="status-pill">${x.direction==='future'?'to my future self':x.direction==='past'?'to my past self':'from my past self, to now'}</span>`);
   if(e.type==='progress' && x.duration) rows.push(`<span class="status-pill">${x.duration} min</span>`);
   if(e.type==='media'){ const r = typeof resonanceMeta==='function' ? resonanceMeta(x.resonanceLevel) : null; rows.push(`<span class="status-pill">${(typeof MEDIA_STATUS_LABEL!=='undefined'&&MEDIA_STATUS_LABEL[x.status])||x.status||''}</span>${r?` <span class="resonance-pill" style="--c:${r[2]}">${r[1]}</span>`:''}`); if(x.oneLineCapture) rows.push(`<div class="quote" style="font-size:.85rem">${esc(x.oneLineCapture)}</div>`); }
   if(x.installed) rows.push(`<div class="installed"><div class="k" style="font-family:var(--mono);font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;color:var(--terra)">what this installed in me</div>${esc(x.installed)}</div>`);
@@ -180,7 +200,22 @@ document.addEventListener('click', e => {
   const pr = e.target.closest('[data-promote-turn]'); if(pr){ e.stopPropagation(); promoteToTurningPoint(pr.dataset.promoteTurn); }
   const del = e.target.closest('[data-del]'); if(del){ e.stopPropagation(); const ent = byId(S.entries, del.dataset.del); if(ent) requestDelete({label: ent.title || typeName(ent.type), node: del.closest('.entry, .formative'), remove: () => spliceOut(S.entries, x => x.id === ent.id)}); }
   const lb = e.target.closest('[data-lb]'); if(lb){ const img = lb.querySelector('img'); lightbox(img.src, img.alt); }
-  const an = e.target.closest('[data-answer]'); if(an){ const ent = byId(S.entries, an.dataset.answer); const m = openModal(`<h2>An answer, for now</h2><p class="quote">${esc(ent.title)}</p><textarea class="ta" id="ansText" placeholder="It doesn't have to be final."></textarea><div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary" id="ansSave">Add answer</button></div>`,'narrow'); m.querySelector('#ansSave').onclick = () => { const t = m.querySelector('#ansText').value.trim(); if(!t) return; ent.extra.answers = ent.extra.answers||[]; ent.extra.answers.push({date:today(), text:t}); saveNow(); m.remove(); rerender(); sound('save'); }; }
+  const an = e.target.closest('[data-answer]'); if(an){ const ent = byId(S.entries, an.dataset.answer);
+    const m = openModal(`<h2>An answer, for now</h2><p class="quote">${esc(ent.title)}</p>
+      <textarea class="ta" id="ansText" placeholder="It doesn't have to be final."></textarea>
+      <div class="field" style="margin-top:10px"><label>How settled is this answer?</label><div class="chip-row">${['tentative','evolving','settled'].map((c,i)=>`<button type="button" class="chip click ${i===0?'on':''}" data-ansconf="${c}">${c}</button>`).join('')}</div></div>
+      <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary" id="ansSave">Add answer</button></div>`,'narrow');
+    let conf = 'tentative';
+    m.querySelectorAll('[data-ansconf]').forEach(b => b.onclick = () => { conf = b.dataset.ansconf; m.querySelectorAll('[data-ansconf]').forEach(y=>y.classList.toggle('on', y===b)); });
+    m.querySelector('#ansSave').onclick = () => { const t = m.querySelector('#ansText').value.trim(); if(!t) return;
+      ent.extra.answers = ent.extra.answers||[]; ent.extra.answers.push({date:today(), text:t, conf});
+      if(conf === 'settled' && (ent.extra.status||'open') === 'open') ent.extra.status = 'evolving';
+      saveNow(); m.remove(); rerender(); sound('save'); }; }
+  const qs = e.target.closest('[data-qsettle]'); if(qs){ const ent = byId(S.entries, qs.dataset.qsettle); ent.extra.status = 'settled'; saveNow(); rerender(); sound('success');
+    toast('Settled. Worth a reflection on the journey from question to answer?', 7000, {label:'write it', fn:()=>openEntryModal({type:'reflection', title:`On “${ent.title}”`, heading:'From question to answer'})}); }
+  const qd = e.target.closest('[data-qdissolve]'); if(qd){ const ent = byId(S.entries, qd.dataset.qdissolve); ent.extra.status = 'dissolved'; saveNow(); rerender(); sound('click');
+    toast('Dissolved. Some questions go not because they were answered but because the framing was wrong.', 6000); }
+  const sym = e.target.closest('[data-symbol]'); if(sym){ S._jq = sym.dataset.symbol; navigate('#/journals/dream'); }
 });
 function sortEntries(arr){ return [...arr].sort((a,b)=>occurredSort(b)-occurredSort(a) || (b.createdAt<a.createdAt?-1:1)); }
 function stageChip(s){ return `<span class="chip on click" style="--c:${s.hue}" data-go="#/stage/${s.id}"><span class="dot"></span>${s.char} ${esc(s.name)}</span>`; }

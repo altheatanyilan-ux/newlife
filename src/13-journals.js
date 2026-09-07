@@ -21,7 +21,8 @@ routes.journals = function(root, params){
       <div>
         ${otd.length?`<div class="otd rv"><div class="sc">On this day</div>${otd.slice(0,2).map(e=>`<div class="serif" style="font-size:1.05rem;margin-top:6px">${esc(fmtDate(e.occurredAt,'med'))} — ${esc(e.title||e.body.slice(0,120))}</div>`).join('')}</div>`:`<div class="otd rv"><div class="sc">On this day</div><div class="quote">No ${esc(j.name.toLowerCase())} from this day in earlier years. You're making them now.</div></div>`}
         <div class="jtools rv"><input class="inp" id="jq" placeholder="search title & body" value="${esc(S._jq||'')}"><input class="inp" type="date" id="jfrom" value="${from}" style="max-width:150px"><input class="inp" type="date" id="jto" value="${to}" style="max-width:150px"><select class="sel" id="jtag" style="max-width:200px"><option value="">any link</option>${dimOpts.map(([id,n])=>`<option value="${id}" ${tag===id?'selected':''}>${esc(n)}</option>`).join('')}</select><button class="btn sm ghost" id="jRandom" title="random entry">🎲</button><span class="mono">${filtered.length} of ${all.length}</span></div>
-        ${type==='question'?'<p class="quote">Questions you are living with. They don\'t get archived; they sit open until an answer accumulates.</p>':''}
+        ${type==='question'?'<p class="quote">Questions you are living with. They don\'t get archived; they sit open until an answer accumulates, or the framing turns out to have been wrong.</p>':''}
+        ${type==='dream'?dreamDictionaryHTML():''}
         ${type==='synchronicity'?'<p class="quote">Entries flagged “revisit later” resurface in the Today page prompts. Synchronicities often only make sense in retrospect.</p>':''}
         ${type==='manifestation'?'<p class="quote">Ask → It Is Given → Allow. When an intention arrives, offer it to the Vision Tree as fruit.</p>':''}
         <div id="jSpecial">${special === 'letters' ? sealedLettersHTML() : special === 'decisions' ? decisionListHTML() : ''}</div>
@@ -36,6 +37,7 @@ routes.journals = function(root, params){
   $('#jRandom').onclick = () => { if(!all.length) return; const e = all[Math.floor(Math.random()*all.length)]; openPanel(`<div class="mono">a random ${esc(typeName(type).toLowerCase())}</div>${entryCard(e,{clamp:false})}`); $$('#panel .rv').forEach(n=>n.classList.add('in')); };
   $('#jManage').onclick = () => manageJournalsModal();
   $('#jNew').onclick = () => { const m = openModal(`<h2>A new journal</h2><div class="field"><label>Name</label><input class="inp" id="jnName" placeholder="e.g. Field Notes"></div><div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary" id="jnSave">Create</button></div>`,'narrow'); m.querySelector('#jnSave').onclick = () => { const n = m.querySelector('#jnName').value.trim(); if(!n) return; const t = n.toLowerCase().replace(/[^a-z0-9]+/g,'-'); if(!S.journals.find(x=>x.type===t)){ S.journals.push({type:t,name:n}); ENTRY_TYPES.push([t,n,'▫']); saveNow(); } m.remove(); navigate('#/journals/'+t); }; };
+  root.querySelectorAll('[data-dictsym]').forEach(b => b.onclick = () => { S._jq = b.dataset.dictsym; rerender(); });
   root.querySelectorAll('[data-fruit]').forEach(b => b.onclick = () => { const e = byId(S.entries,b.dataset.fruit); const v = byId(S.visions,e.links.visions[0]); if(!v) return; v.evidence.push({date:today(),text:`Manifestation arrived: ${e.title}`}); saveNow(); toast(`Logged as evidence on <b>${esc(v.name)}</b>.`); navigate('#/vision/'+v.id); });
 };
 
@@ -61,4 +63,20 @@ function manageJournalsModal(){
   m.querySelectorAll('[data-jup]').forEach(b => b.onclick = () => { const i=+b.dataset.jup; if(i>0){ [S.journals[i-1],S.journals[i]]=[S.journals[i],S.journals[i-1]]; saveNow(); m.remove(); rerender(); manageJournalsModal(); } });
   m.querySelectorAll('[data-jdown]').forEach(b => b.onclick = () => { const i=+b.dataset.jdown; if(i<S.journals.length-1){ [S.journals[i+1],S.journals[i]]=[S.journals[i],S.journals[i+1]]; saveNow(); m.remove(); rerender(); manageJournalsModal(); } });
   m.querySelectorAll('[data-jdel]').forEach(b => b.onclick = () => { m.remove(); deleteJournalType(b.dataset.jdel); });
+}
+
+/* ---------- the dream dictionary ----------
+   Every symbol you have written down, counted. A personal dictionary nobody
+   else could write, assembled from the dreams themselves. */
+function dreamDictionaryHTML(){
+  const tally = {};
+  S.entries.filter(e => e.type === 'dream').forEach(e => (e.extra?.symbols || []).forEach(sm => {
+    const k = String(sm).trim().toLowerCase(); if(k) tally[k] = (tally[k] || 0) + 1; }));
+  const list = Object.entries(tally).sort((a,b) => b[1]-a[1] || a[0].localeCompare(b[0])).slice(0, 24);
+  const recurring = S.entries.filter(e => e.type === 'dream' && e.extra?.recurring).length;
+  if(!list.length) return `<div class="otd rv"><div class="sc">Your dream dictionary</div><div class="quote">Tag a few dreams with their symbols — water, flying, a particular room — and the dictionary writes itself.</div></div>`;
+  const max = list[0][1];
+  return `<div class="otd rv"><div class="row between"><div class="sc">Your dream dictionary</div><span class="mono">${list.length} symbol${list.length===1?'':'s'}${recurring?` · ${recurring} recurring`:''}</span></div>
+    <div class="tag-cloud" style="margin-top:8px">${list.map(([sm,n]) => `<button class="tag" data-dictsym="${esc(sm)}" style="--n:${Math.min(5, Math.ceil(n/max*5))}">${esc(sm)}<span class="n">${n}</span></button>`).join('')}</div>
+    <div class="faint" style="font-size:.76rem;margin-top:6px">Click a symbol to read every dream that carried it.</div></div>`;
 }

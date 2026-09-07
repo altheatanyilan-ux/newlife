@@ -28,21 +28,67 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
       <div class="row between"><span class="faint" style="font-size:.78rem" id="linkNudge"></span><button class="btn primary" id="eSave" style="padding:12px 28px;font-size:1rem">${existing?'Save changes':'Save entry'}</button></div>
     </div>`, 'wide');
   const x = () => e.extra;
-  const renderExtra = () => { const t = e.type; const box = m.querySelector('#extraFields'); const f = (k,label,ph,multi) => `<div class="field"><label>${label}</label>${multi?`<textarea class="ta" data-x="${k}" style="min-height:60px" placeholder="${esc(ph)}">${esc(x()[k]||'')}</textarea>`:`<input class="inp" data-x="${k}" value="${esc(x()[k]||'')}" placeholder="${esc(ph)}">`}</div>`;
+  /* type-specific fields. Anything with data-x saves itself on the way out;
+     the pickers below write straight into extra so a click is a save. */
+  const MOOD_SCALE = [['heavy','heavy'],['low','low'],['level','level'],['light','light'],['luminous','luminous']];
+  const BODY_PROMPTS = {
+    gratitude:'What am I grateful for?',
+    reflection:'Thinking on paper. Nobody is reading this but you, later.',
+    dream:'What happened, before it fades. Present tense helps.',
+    question:'Put the question in the title. This is the room around it.',
+    synchronicity:'What happened, as plainly as you can put it.',
+  };
+  const renderExtra = () => { const t = e.type; const box = m.querySelector('#extraFields');
+    const f = (k,label,ph,multi) => `<div class="field"><label>${label}</label>${multi?`<textarea class="ta" data-x="${k}" style="min-height:60px" placeholder="${esc(ph)}">${esc(x()[k]||'')}</textarea>`:`<input class="inp" data-x="${k}" value="${esc(x()[k]||'')}" placeholder="${esc(ph)}">`}</div>`;
+    const pick = (k,label,opts,hint) => `<div class="field"><label>${label}</label>${hint?`<div class="faint" style="font-size:.76rem;margin-bottom:5px">${esc(hint)}</div>`:''}<div class="chip-row">${opts.map(o => { const [v,l] = Array.isArray(o)?o:[o,o];
+      return `<button type="button" class="chip click ${x()[k]===v?'on':''}" data-xset="${esc(k)}" data-xval="${esc(v)}">${esc(l)}</button>`; }).join('')}</div></div>`;
+    const picks = (k,label,opts,hint) => `<div class="field"><label>${label}</label>${hint?`<div class="faint" style="font-size:.76rem;margin-bottom:5px">${esc(hint)}</div>`:''}<div class="chip-row">${opts.map(v =>
+      `<button type="button" class="chip click ${(x()[k]||[]).includes(v)?'on':''}" data-xmulti="${esc(k)}" data-xval="${esc(v)}">${esc(v)}</button>`).join('')}</div></div>`;
     let html = '';
-    if(t==='synchronicity') html = f('preceded','What preceded it','What were you thinking about, doing, asking?',true) + f('read','What I read into it','',true) + `<label class="toggle ${x().revisit?'on':''}" id="xRevisit"><span class="sw"></span><span>revisit later — resurface this in Today's prompts</span></label>`;
-    if(t==='manifestation') html = `<div class="field"><label>Status</label><select class="sel" data-x="status">${['held','evidence appearing','arrived','released'].map(s=>`<option ${x().status===s?'selected':''}>${s}</option>`).join('')}</select></div>` + `<div class="field"><label>Evidence log</label><textarea class="ta" data-xlist="evidence" style="min-height:60px" placeholder="one piece of evidence per line">${esc((x().evidence||[]).map(v=>v.text).join('\n'))}</textarea></div>`;
-    if(t==='dream') html = `<div class="field"><label>Vividness</label><div class="feeling">${[1,2,3,4,5].map(n=>`<button data-vivid="${n}" class="${x().vivid===n?'on':''}">${n}</button>`).join('')}</div></div><label class="toggle ${x().recurring?'on':''}" id="xRec"><span class="sw"></span><span>recurring</span></label>` + f('symbols_','Symbols / motifs','comma-separated');
-    if(t==='quote') html = f('author','Author','') + f('source','Source','book, film, a person') + f('link','Saved link (optional)','https://…') + f('page','Page / location','') + f('why','Why this caught me (required)','',true);
-    if(t==='question') html = `<div class="faint" style="font-size:.8rem">Put the question in the title. Answers accumulate over time from the journal view.</div>`;
+    if(t==='reflection') html = pick('mood','How you were when you wrote it', MOOD_SCALE, 'Not the subject of the reflection — the state you were in.')
+      + f('trigger','What prompted this','a conversation, a book, a memory, nothing in particular')
+      + pick('depth','How deep did you go', [['surface','surface'],['sitting','sitting with it'],['breakthrough','breakthrough']]);
+    if(t==='gratitude') html = f('gratWhy','Why does this matter to me? (required)','“My health” becomes “I could run with my dog this morning without pain.”',true)
+      + pick('novelty','New, or ongoing', [['new','something new'],['ongoing','something ongoing']], 'Over time this shows whether the practice is deepening or running on autopilot.')
+      + `<div class="faint" style="font-size:.78rem">Who contributed to this? Tag them under “Connect this entry” — gratitude becomes relational.</div>`;
+    if(t==='synchronicity') html = f('preceded','What preceded it','What were you thinking about, doing, asking?',true) + f('read','What I read into it','',true)
+      + pick('conf','How convinced are you', [['noise','noise'],['curious','curious'],['significant','significant'],['unmistakable','unmistakable']])
+      + `<label class="toggle ${x().revisit?'on':''}" id="xRevisit"><span class="sw"></span><span>revisit later — resurface this in Today's prompts</span></label>`;
+    if(t==='manifestation') html = `<div class="field"><label>Status</label><select class="sel" data-x="status">${['held','evidence appearing','arrived','released'].map(s=>`<option ${x().status===s?'selected':''}>${s}</option>`).join('')}</select></div>`
+      + `<div class="field"><label>Where you were when you set it</label><div class="faint" style="font-size:.76rem;margin-bottom:4px">Abraham's point: an intention set from alignment behaves differently from one set from desperation.</div>
+         <input class="rng" type="range" min="1" max="22" data-x="setpointAt" value="${x().setpointAt || checkin().setpoint || 11}" style="width:100%"><div class="mono" id="xSpName">${esc(hicksName(x().setpointAt || checkin().setpoint || 11))}</div></div>`
+      + f('resistance','Resistance notes','What doubts or fears arrived after you set it?',true)
+      + `<div class="field"><label>Evidence log</label><textarea class="ta" data-xlist="evidence" style="min-height:60px" placeholder="one piece of evidence per line">${esc((x().evidence||[]).map(v=>v.text).join('\n'))}</textarea></div>`;
+    if(t==='dream') html = `<div class="field"><label>Vividness</label><div class="feeling">${[1,2,3,4,5].map(n=>`<button data-vivid="${n}" class="${x().vivid===n?'on':''}">${n}</button>`).join('')}</div></div>`
+      + picks('tone','Emotional tone', ['anxious','joyful','surreal','mundane','prophetic','nightmare','lucid'])
+      + `<label class="toggle ${x().recurring?'on':''}" id="xRec"><span class="sw"></span><span>recurring — links to earlier occurrences</span></label>`
+      + f('symbols_','Symbols / motifs','comma-separated: water, flying, teeth, a particular room')
+      + f('waking','Waking interpretation','What you think it meant, written now. Kept as versions if you revise it.',true)
+      + `<div class="faint" style="font-size:.76rem">Captured ${esc(x().capturedAt || new Date().toTimeString().slice(0,5))} — the closer to waking, the truer the record.</div>`;
+    if(t==='quote') html = f('author','Author / speaker','') + f('source','Source','book, film, a person') + f('link','Saved link (optional)','https://…') + f('page','Page / timestamp / location','')
+      + f('why','Why this caught me (required)','A quote without this is a bookmark, not knowledge.',true)
+      + pick('category','What kind of words', [['wisdom','wisdom'],['craft','craft'],['beauty','beauty'],['provocation','provocation'],['comfort','comfort'],['challenge','challenge']]);
+    if(t==='question') html = f('why','Why I am asking','What prompted this question?',true)
+      + pick('status','Status', [['open','open'],['evolving','evolving'],['settled','settled'],['dissolved','dissolved']], 'Some questions dissolve rather than resolve — the framing was wrong.')
+      + `<div class="faint" style="font-size:.8rem">Put the question itself in the title. Answers accumulate over time, from the journal.</div>`;
     if(t==='progress'||t==='nod') html = f('duration','Duration (minutes)','45') + f('resources','Resources used','');
     if(t==='memory') html = f('installed','What this installed in me','The belief, fear, pattern, or capability this event left behind.',true);
-    if(t==='letter') html = `<div class="faint" style="font-size:.8rem">A letter to a past self, a future self, or from one of them to now. Date it accordingly — a letter to next year sits at next year's date.</div>`;
+    if(t==='letter') html = pick('direction','Direction', [['future','to my future self'],['past','to my past self'],['frompast','from my past self, to now']])
+      + `<div class="faint" style="font-size:.8rem">A letter to next year sits at next year's date. To seal one properly — hidden until its day — use “Seal a letter” from the Letters journal.</div>`;
     box.innerHTML = html;
-    if(t==='dream') x().symbols_ = (x().symbols||[]).join(', '), box.querySelector('[data-x=symbols_]') && (box.querySelector('[data-x=symbols_]').value = x().symbols_);
+    if(t==='dream'){ x().symbols_ = (x().symbols||[]).join(', '); const si = box.querySelector('[data-x=symbols_]'); if(si) si.value = x().symbols_;
+      x().capturedAt = x().capturedAt || new Date().toTimeString().slice(0,5); }
+    const bp = BODY_PROMPTS[t]; const bodyEl = m.querySelector('#eBody'); if(bodyEl) bodyEl.placeholder = bp || 'Body — markdown welcome. **bold**, *italic*, > quote, - list';
     box.querySelector('#xRevisit')?.addEventListener('click', function(){ this.classList.toggle('on'); });
     box.querySelector('#xRec')?.addEventListener('click', function(){ this.classList.toggle('on'); });
     box.querySelectorAll('[data-vivid]').forEach(b => b.onclick = () => { x().vivid = +b.dataset.vivid; box.querySelectorAll('[data-vivid]').forEach(y=>y.classList.toggle('on', y===b)); });
+    box.querySelectorAll('[data-xset]').forEach(b => b.onclick = () => { const k = b.dataset.xset, v = b.dataset.xval;
+      x()[k] = x()[k] === v ? '' : v; box.querySelectorAll(`[data-xset="${k}"]`).forEach(y => y.classList.toggle('on', y.dataset.xval === x()[k])); });
+    box.querySelectorAll('[data-xmulti]').forEach(b => b.onclick = () => { const k = b.dataset.xmulti, v = b.dataset.xval;
+      const arr = x()[k] = Array.isArray(x()[k]) ? x()[k] : [];
+      x()[k] = arr.includes(v) ? arr.filter(y=>y!==v) : [...arr, v]; b.classList.toggle('on'); });
+    const sp = box.querySelector('[data-x=setpointAt]');
+    if(sp) sp.oninput = () => { const n = box.querySelector('#xSpName'); if(n) n.textContent = hicksName(+sp.value); };
   };
   renderExtra();
   m.querySelectorAll('#typeRow button').forEach(b => b.onclick = () => { e.type = b.dataset.t; m.querySelectorAll('#typeRow button').forEach(y=>y.classList.toggle('on', y===b)); if(e.type==='nod'){ m.remove(); openNodModal(); return; } renderExtra(); m.querySelector('#tagField').hidden = !TAGGABLE.includes(e.type); });
@@ -68,6 +114,10 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
     if(e.type==='quote' && !m.querySelector('[data-x=why]')?.value.trim()){ toast('“Why this caught me” is required for a quote.'); return; }
     e.tags = normTags((m.querySelector('#eTags')?.value || '').split(/[\s,]+/));
     m.querySelectorAll('[data-x]').forEach(i => e.extra[i.dataset.x] = i.value);
+    /* the readings that deepen are versioned, not overwritten */
+    [['read','readHistory'],['waking','wakingHistory']].forEach(([k, hk]) => { const prev = existing?.extra?.[k];
+      if(prev && e.extra[k] && prev !== e.extra[k]) e.extra[hk] = [...(existing.extra[hk]||[]), {date:today(), text:prev}]; });
+    if(e.extra.setpointAt) e.extra.setpointAt = +e.extra.setpointAt;
     m.querySelectorAll('[data-xlist]').forEach(i => { const old = e.extra[i.dataset.xlist]||[]; e.extra[i.dataset.xlist] = i.value.split('\n').map(s=>s.trim()).filter(Boolean).map(t => old.find(o=>o.text===t) || {date:today(),text:t}); });
     if(e.type==='synchronicity') e.extra.revisit = !!m.querySelector('#xRevisit')?.classList.contains('on');
     if(e.type==='dream'){ e.extra.recurring = !!m.querySelector('#xRec')?.classList.contains('on'); e.extra.symbols = (e.extra.symbols_||'').split(',').map(s=>s.trim()).filter(Boolean); delete e.extra.symbols_; }
