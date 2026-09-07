@@ -364,10 +364,65 @@ function _bindLtBody(body){
   if(typeof bindHabitRings === 'function') bindHabitRings(body);
 }
 
+/* ---------- persistent header strip ---------- */
+function ltSparkSVG(vals, color, lo, hi){
+  const W = 100, H = 28;
+  const indexed = vals.map((v,i) => v != null ? {x: i / Math.max(vals.length - 1, 1) * W, y: H - ((v - lo) / (hi - lo || 1)) * H} : null);
+  const pts = indexed.filter(Boolean);
+  if(pts.length < 2) return `<svg class="lt-hs-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><text x="${W/2}" y="${H/2+4}" text-anchor="middle" font-size="8" fill="var(--muted)">—</text></svg>`;
+  const line = 'M' + pts.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' L');
+  const area = line + ` L${pts[pts.length-1].x.toFixed(1)},${H} L${pts[0].x.toFixed(1)},${H} Z`;
+  const last = pts[pts.length-1];
+  return `<svg class="lt-hs-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+    <defs><linearGradient id="ltg${color.replace(/[^a-z]/gi,'')}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${color}" stop-opacity=".3"/><stop offset="100%" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>
+    <path d="${area}" fill="url(#ltg${color.replace(/[^a-z]/gi,'')})" />
+    <path d="${line}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="${last.x.toFixed(1)}" cy="${last.y.toFixed(1)}" r="2.5" fill="${color}"/>
+  </svg>`;
+}
+function ltHeaderStripHTML(){
+  const T = today();
+  const days30 = [];
+  for(let i = 29; i >= 0; i--) days30.push(addDays(T, -i));
+
+  const spVals  = days30.map(d => S.checkins?.[d]?.setpoint ?? null);
+  const spData  = spVals.filter(Boolean);
+  const spAvg   = spData.length ? avg(spData) : null;
+  const spNow   = spData.length ? spData[spData.length - 1] : null;
+  const spTrend = spData.length >= 7
+    ? (spData.slice(-7).reduce((a,b)=>a+b,0)/7) - (spData.slice(0,Math.min(7,spData.length)).reduce((a,b)=>a+b,0)/Math.min(7,spData.length))
+    : 0;
+  const tIco = spTrend > 0.5 ? '↗' : spTrend < -0.5 ? '↘' : '→';
+  const spLabel = spNow ? hicksName(spNow).split(' / ')[0] : '—';
+
+  const cells = DIMS.map(dim => {
+    const vals = days30.map(d => S.checkins?.[d]?.energy?.[dim.id] ?? null);
+    const data = vals.filter(Boolean);
+    const av   = data.length ? avg(data) : null;
+    const now  = data.length ? data[data.length - 1] : null;
+    return {dim, vals, av, now};
+  });
+
+  return `<div class="lt-header-strip">
+    <div class="lt-hs-cell lt-hs-cell-main">
+      <div class="lt-hs-row"><span class="lt-hs-name mono">Set-point · 30d</span><span class="lt-hs-val">${spNow ? spNow : '—'}<span class="mono" style="font-weight:400">/22</span></span></div>
+      ${ltSparkSVG(spVals, 'var(--gold)', 1, 22)}
+      <div class="lt-hs-sub">${spAvg ? `avg ${spAvg.toFixed(1)} · ${spLabel} · ${tIco}` : 'no check-ins in 30 days'}</div>
+    </div>
+    ${cells.map(({dim, vals, av, now}) => `
+    <div class="lt-hs-cell">
+      <div class="lt-hs-row"><span class="lt-hs-name mono" style="color:${dim.c}">${dim.name.slice(0,4)}.</span><span class="lt-hs-val" style="color:${dim.c}">${now ?? '—'}<span class="mono" style="font-weight:400;color:var(--muted)">/5</span></span></div>
+      ${ltSparkSVG(vals, dim.c, 0, 5)}
+      <div class="lt-hs-sub">${av ? `avg ${av.toFixed(1)}/5` : '—'}</div>
+    </div>`).join('')}
+  </div>`;
+}
+
 /* ---------- the panel ---------- */
 function renderLifeTape(box){
   const t = tapeState();
   box.innerHTML = `
+    ${ltHeaderStripHTML()}
     <div class="row between" style="align-items:center;flex-wrap:wrap;gap:8px">
       <div class="lib-tabs">${[['day','Day'],['week','Week'],['month','Month'],['quarter','Quarter'],['half','Half-year'],['year','Year']].map(([k,l])=>`<button class="${t.view===k?'active':''}" data-ltview="${k}">${l}</button>`).join('')}</div>
       <span class="mono faint">what you actually lived</span>
