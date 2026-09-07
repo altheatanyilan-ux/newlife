@@ -1422,7 +1422,20 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 .import-ta{min-height:180px;resize:vertical;font-size:.88rem;line-height:1.6}
 .import-queue-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;margin-bottom:12px;gap:10px;flex-wrap:wrap;position:sticky;top:0;z-index:10}
 .import-queue{display:flex;flex-direction:column;gap:10px;max-width:900px;margin:0 auto 40px}
-.iq-card{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface-2);transition:opacity .18s}
+.iq-card{border:1px solid var(--line);border-left:3px solid var(--c,var(--line));border-radius:8px;overflow:hidden;background:var(--surface-2);transition:opacity .18s,border-color .18s}
+.iq-dest-sel{width:auto;font-size:.76rem;font-weight:600;padding:3px 6px}
+.iq-why{padding:4px 10px 0;font-size:.68rem;color:var(--muted);font-style:italic;opacity:.85}
+.iq-tags{padding:0 10px 6px;display:flex;gap:5px;flex-wrap:wrap}
+.iq-extra{border-top:1px dashed var(--line);margin:0 10px 8px}
+.iq-extra > summary{cursor:pointer;list-style:none;font-size:.66rem;color:var(--muted);padding:6px 0;letter-spacing:.04em}
+.iq-extra > summary::-webkit-details-marker{display:none}
+.iq-extra > summary::before{content:'＋ ';opacity:.6}
+.iq-extra[open] > summary::before{content:'− ';opacity:.6}
+.iq-extra > summary:hover{color:var(--c,var(--page-accent))}
+.iq-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;padding-bottom:8px}
+.iq-field label{display:block;font-size:.6rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin-bottom:3px}
+.iq-field .inp,.iq-field .sel{width:100%;font-size:.82rem;padding:5px 7px}
+.iq-f-ta{width:100%;font-size:.82rem;padding:5px 7px;min-height:44px;resize:vertical}
 .iq-card.iq-discarded{opacity:.35}
 .iq-head{display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid var(--line);flex-wrap:wrap;background:color-mix(in srgb,var(--surface-2) 60%,var(--surface))}
 .iq-type-sel{flex-shrink:0;font-size:.74rem;padding:3px 8px;color:var(--c,var(--ment));border-color:color-mix(in srgb,var(--c,var(--ment)) 40%,var(--line))}
