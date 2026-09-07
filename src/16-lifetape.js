@@ -3,8 +3,10 @@
    Your calendar holds what you meant to do. This holds what
    happened: every entry, nod, interaction, habit and leaf that
    carries a date, assembled onto that date without anyone
-   logging anything twice. Three zooms — a day you can read, a
-   week you can see the shape of, a year you can see at once.
+   logging anything twice. Six zooms — a day you can read, a week
+   you can see the shape of, and a month, a quarter, a half and a
+   year you can see whole, each with the summary that turns a zoom
+   level into a review.
    ============================================================ */
 /* kind → [section, colour, icon] */
 const TAPE_KINDS = {
@@ -34,7 +36,7 @@ const TAPE_SECTIONS = [...new Set(Object.values(TAPE_KINDS).map(v => v[0]))];
 
 function tapeState(){
   const t = S._lt = S._lt || {};
-  t.view = ['day','week','year'].includes(t.view) ? t.view : 'week';
+  t.view = ['day','week','month','quarter','half','year'].includes(t.view) ? t.view : 'week';
   t.day = /^\d{4}-\d{2}-\d{2}$/.test(t.day) ? t.day : today();
   t.mode = ['total','setpoint','energy','section','streak'].includes(t.mode) ? t.mode : 'total';
   t.types = Array.isArray(t.types) ? t.types : [];
@@ -142,6 +144,106 @@ function tapeWeekHTML(anchor){
       return `<span><i style="background:${k[1][1]}"></i>${esc(s)}</span>`; }).join('')}<span class="faint">bar height is the day's weight · click a day to read it</span></div>`;
 }
 
+/* ---------- Month, Quarter and Half-year — the same grid at three zooms ----------
+   One month block, drawn compactly or full size, is all three views need. The
+   summary above it is what turns a zoom level into a review. */
+function shiftMonths(day, n){ const a = parseDay(day); return isoDay(new Date(a.getFullYear(), a.getMonth()+n, 1)); }
+function monthRange(y, m){ return {from:`${y}-${pad(m+1)}-01`, to:isoDay(new Date(y, m+1, 0))}; }
+const cellStyle = lv => lv ? `background:color-mix(in srgb, ${lv.color} ${Math.round(lv.op*100)}%, transparent)` : '';
+
+function tapeMonthBlock(y, m, byDay, mode, compact){
+  const T = today(); const cells = monthDays(y, m);
+  return `<div class="tape-month ${compact?'compact':''}">
+    <button class="tm-title mono" data-tapemonth="${y}-${pad(m+1)}-01">${MONTHS[m]}${compact?'':` ${y}`}</button>
+    <div class="tm-grid">
+      ${['M','T','W','T','F','S','S'].map(d => `<span class="tm-dow">${d}</span>`).join('')}
+      ${cells.map(c => { if(c.out) return `<i class="tm-day out"></i>`;
+        const lv = tapeCellLevel(c.d, mode, byDay); const n = (byDay[c.d]||[]).length;
+        return `<i class="tm-day ${c.d===T?'today':''} ${c.d>T?'ahead':''}" data-tapeday="${c.d}" style="${cellStyle(lv)}" title="${esc(fmtDate(c.d,'med'))} · ${n} logged">${compact?'':`<span>${parseDay(c.d).getDate()}</span>`}</i>`; }).join('')}
+    </div></div>`;
+}
+/* what a stretch of time added up to — the reason to zoom out at all */
+function tapePeriodSummaryHTML(from, to, items){
+  const T = today(); const upto = to > T ? T : to;
+  const days = []; { let d = from; let guard = 0; while(d <= upto && guard++ < 800){ days.push(d); d = addDays(d,1); } }
+  const byDay = {}; items.forEach(x => (byDay[x.date] = byDay[x.date] || []).push(x));
+  const live = days.filter(d => (byDay[d]||[]).length).length;
+  const sps = days.map(d => S.checkins?.[d]?.setpoint).filter(Boolean);
+  const habits = S.habits.filter(h => !h.archived && !h.negative);
+  const due = sum(days.map(d => habits.filter(h => habitDue(h,d)).length));
+  const held = sum(days.map(d => habits.filter(h => habitDue(h,d) && habitDone(h,d)).length));
+  const tally = {}; items.forEach(x => { const sec = tapeKind(x.kind)[0]; tally[sec] = (tally[sec]||0)+1; });
+  const top = Object.entries(tally).sort((a,b)=>b[1]-a[1]).slice(0,4);
+  const busiest = Object.entries(byDay).sort((a,b)=>b[1].length-a[1].length)[0];
+  return `<div class="card rv" style="margin-bottom:14px"><div class="income-strip">
+      <div><div class="k">logged</div><div class="num" data-tween="${items.length}">0</div></div>
+      <div><div class="k">days with something</div><div class="num">${live}<span class="mono"> / ${days.length}</span></div></div>
+      <div><div class="k">habits held</div><div class="num">${due?Math.round(held/due*100):0}<span class="mono">%</span></div></div>
+      <div><div class="k">average set-point</div><div class="num">${sps.length?avg(sps).toFixed(1):'—'}<span class="mono"> / 22</span></div></div>
+    </div>
+    ${top.length ? `<div class="row" style="gap:6px;flex-wrap:wrap;margin-top:12px">${top.map(([sec,n]) => { const k = Object.entries(TAPE_KINDS).find(([,v]) => v[0] === sec);
+      return `<span class="chip on" style="--c:${k?k[1][1]:'var(--muted)'}">${esc(sec)} · ${n}</span>`; }).join('')}
+      ${busiest ? `<span class="mono" style="margin-left:auto">fullest day <button class="tbtn" data-tapeday="${busiest[0]}">${esc(fmtDate(busiest[0],'med'))} · ${busiest[1].length}</button></span>` : ''}</div>` : ''}
+  </div>`;
+}
+function tapeMonthStripHTML(monthKeys, all){
+  return `<div class="tape-months rv">${monthKeys.map(({y,m}) => {
+    const pre = `${y}-${pad(m+1)}`;
+    const its = all.filter(x => x.date.startsWith(pre));
+    const sps = Object.entries(S.checkins||{}).filter(([d,c]) => d.startsWith(pre) && c.setpoint).map(([,c]) => c.setpoint);
+    const tally = {}; its.forEach(x => { const sec = tapeKind(x.kind)[0]; tally[sec] = (tally[sec]||0)+1; });
+    const top = Object.entries(tally).sort((a,b)=>b[1]-a[1])[0];
+    return `<button class="tm-cell ${its.length?'':'quiet'}" data-tapemonth="${y}-${pad(m+1)}-01">
+      <div class="mono">${MONTHS[m].slice(0,3)}${monthKeys.length>12?` ’${String(y).slice(2)}`:''}</div>
+      <div class="serif" style="font-size:1.1rem">${its.length||'—'}</div>
+      ${sps.length?`<div class="mono">set-pt ${avg(sps).toFixed(0)}</div>`:''}
+      ${top?`<div class="mono" style="color:var(--muted)">${esc(top[0])}</div>`:''}</button>`; }).join('')}</div>`;
+}
+function tapeModeBarHTML(){
+  const t = tapeState();
+  return `<div class="row rv" style="gap:6px;flex-wrap:wrap;margin-bottom:12px">${TAPE_MODES.map(([k,l]) => `<button class="btn sm ${t.mode===k?'primary':'ghost'}" data-tapemode="${k}">${l}</button>`).join('')}</div>`;
+}
+/* one month, big enough to read the dates */
+function tapeMonthHTML(anchor){
+  const t = tapeState(); const a = parseDay(anchor); const y = a.getFullYear(), m = a.getMonth();
+  const {from, to} = monthRange(y, m);
+  const all = tapeFiltered(from, to);
+  const byDay = {}; all.forEach(x => (byDay[x.date] = byDay[x.date] || []).push(x));
+  return `
+    <div class="row between rv" style="margin-bottom:10px;flex-wrap:wrap;gap:8px">
+      <b class="serif" style="font-size:1.15rem">${MONTHS[m]} ${y}</b>
+      <span class="row" style="gap:6px"><button class="btn sm ghost" data-tapemonth="${shiftMonths(anchor,-1)}">‹</button><button class="btn sm ghost" data-tapemonth="${today().slice(0,8)}01">this month</button><button class="btn sm ghost" data-tapemonth="${shiftMonths(anchor,1)}">›</button></span>
+    </div>
+    ${tapeModeBarHTML()}
+    ${tapePeriodSummaryHTML(from, to, all)}
+    <div class="rv">${tapeMonthBlock(y, m, byDay, t.mode, false)}</div>
+    <details class="section rv" style="margin-top:14px"><summary><span class="sc">Everything in this month, in order</span><span class="mono"> ${all.length}</span></summary>
+      <div class="stack" style="gap:6px;margin-top:10px">${all.length ? all.slice(-220).reverse().map(tapeItemHTML).join('') : '<div class="empty">Nothing logged this month.</div>'}
+      ${all.length > 220 ? `<div class="faint" style="font-size:.78rem">Showing the most recent 220 of ${all.length}. Narrow it with the filters above.</div>` : ''}</div></details>`;
+}
+/* three months, or six — the same block, compact, side by side */
+function tapeSpanHTML(anchor, monthCount, label){
+  const t = tapeState(); const a = parseDay(anchor);
+  const startM = monthCount === 3 ? Math.floor(a.getMonth()/3)*3 : a.getMonth() < 6 ? 0 : 6;
+  const y = a.getFullYear();
+  const months = Array.from({length:monthCount}, (_,i) => { const d = new Date(y, startM+i, 1); return {y:d.getFullYear(), m:d.getMonth()}; });
+  const from = `${months[0].y}-${pad(months[0].m+1)}-01`;
+  const last = months[months.length-1]; const to = isoDay(new Date(last.y, last.m+1, 0));
+  const all = tapeFiltered(from, to);
+  const byDay = {}; all.forEach(x => (byDay[x.date] = byDay[x.date] || []).push(x));
+  const name = monthCount === 3 ? `Q${Math.floor(startM/3)+1} ${y}` : `${startM === 0 ? 'January–June' : 'July–December'} ${y}`;
+  const prev = isoDay(new Date(y, startM - monthCount, 1)), next = isoDay(new Date(y, startM + monthCount, 1));
+  return `
+    <div class="row between rv" style="margin-bottom:10px;flex-wrap:wrap;gap:8px">
+      <b class="serif" style="font-size:1.15rem">${esc(name)}</b>
+      <span class="row" style="gap:6px"><button class="btn sm ghost" data-tapespan="${prev}">‹</button><button class="btn sm ghost" data-tapespan="${today()}">this ${esc(label)}</button><button class="btn sm ghost" data-tapespan="${next}">›</button></span>
+    </div>
+    ${tapeModeBarHTML()}
+    ${tapePeriodSummaryHTML(from, to, all)}
+    <div class="tape-span rv">${months.map(({y:yy,m}) => tapeMonthBlock(yy, m, byDay, t.mode, true)).join('')}</div>
+    ${tapeMonthStripHTML(months, all)}`;
+}
+
 /* ---------- Year View — the whole year at once ---------- */
 const TAPE_MODES = [['total','Activity'],['setpoint','Set-point'],['energy','Energy'],['section','By section'],['streak','Habit streaks']];
 function tapeYearDays(year){
@@ -172,31 +274,20 @@ function tapeYearHTML(year){
   const t = tapeState(); const days = tapeYearDays(year).filter(d => d <= today());
   const all = tapeFiltered(`${year}-01-01`, `${year}-12-31`);
   const byDay = {}; all.forEach(x => (byDay[x.date] = byDay[x.date] || []).push(x));
-  const months = Array.from({length:12}, (_,m) => {
-    const pre = `${year}-${String(m+1).padStart(2,'0')}`;
-    const its = all.filter(x => x.date.startsWith(pre));
-    const sps = Object.entries(S.checkins||{}).filter(([d,c]) => d.startsWith(pre) && c.setpoint).map(([,c]) => c.setpoint);
-    const tally = {}; its.forEach(x => { const s = tapeKind(x.kind)[0]; tally[s] = (tally[s]||0)+1; });
-    const top = Object.entries(tally).sort((a,b)=>b[1]-a[1])[0];
-    return {m, n:its.length, sp: sps.length ? avg(sps) : null, top: top ? top[0] : null};
-  });
+  const months = Array.from({length:12}, (_,m) => ({y:year, m}));
   return `
     <div class="row between rv" style="margin-bottom:10px;flex-wrap:wrap;gap:8px">
       <b class="serif" style="font-size:1.15rem">${year}</b>
       <span class="row" style="gap:6px"><button class="btn sm ghost" data-tapeyear="${year-1}">‹</button><button class="btn sm ghost" data-tapeyear="${new Date().getFullYear()}">this year</button><button class="btn sm ghost" data-tapeyear="${year+1}">›</button></span>
     </div>
-    <div class="row rv" style="gap:6px;flex-wrap:wrap;margin-bottom:12px">${TAPE_MODES.map(([k,l]) => `<button class="btn sm ${t.mode===k?'primary':'ghost'}" data-tapemode="${k}">${l}</button>`).join('')}</div>
+    ${tapeModeBarHTML()}
     ${t.mode === 'energy'
       ? `<div class="stack rv" style="gap:14px">${DIMS.map(dim => { const bd = {};
             days.forEach(d => { const v = S.checkins?.[d]?.energy?.[dim.id]; if(v) bd[d] = Array.from({length:Math.max(1,Math.round(v*1.6))}); });
             return `<div><div class="sc" style="color:${dim.c}">${dim.name}</div>${tapeGrid(days, 'total', bd).replace(/var\(--page-accent\)/g, dim.c)}</div>`; }).join('')}</div>`
       : `<div class="rv">${tapeGrid(days, t.mode, byDay)}</div>`}
-    <div class="tape-months rv">${months.map(mo => `<div class="tm-cell ${mo.n?'':'quiet'}">
-      <div class="mono">${MONTHS[mo.m].slice(0,3)}</div>
-      <div class="serif" style="font-size:1.1rem">${mo.n||'—'}</div>
-      ${mo.sp!==null?`<div class="mono">set-pt ${mo.sp.toFixed(0)}</div>`:''}
-      ${mo.top?`<div class="mono" style="color:var(--muted)">${esc(mo.top)}</div>`:''}
-    </div>`).join('')}</div>`;
+    ${tapePeriodSummaryHTML(`${year}-01-01`, `${year}-12-31`, all)}
+    ${tapeMonthStripHTML(months, all)}`;
 }
 
 /* ---------- the filter bar ---------- */
@@ -245,17 +336,24 @@ function renderLifeTape(box){
   const t = tapeState();
   box.innerHTML = `
     <div class="row between" style="align-items:center;flex-wrap:wrap;gap:8px">
-      <div class="lib-tabs">${[['day','Day'],['week','Week'],['year','Year']].map(([k,l])=>`<button class="${t.view===k?'active':''}" data-ltview="${k}">${l}</button>`).join('')}</div>
+      <div class="lib-tabs">${[['day','Day'],['week','Week'],['month','Month'],['quarter','Quarter'],['half','Half-year'],['year','Year']].map(([k,l])=>`<button class="${t.view===k?'active':''}" data-ltview="${k}">${l}</button>`).join('')}</div>
       <span class="mono faint">what you actually lived</span>
     </div>
     ${tapeFilterHTML()}
     <div id="ltBody" style="margin-top:12px">${
-      t.view === 'day' ? tapeDayHTML(t.day) : t.view === 'week' ? tapeWeekHTML(t.day) : tapeYearHTML(+t.day.slice(0,4))}</div>`;
+        t.view === 'day'     ? tapeDayHTML(t.day)
+      : t.view === 'week'    ? tapeWeekHTML(t.day)
+      : t.view === 'month'   ? tapeMonthHTML(t.day)
+      : t.view === 'quarter' ? tapeSpanHTML(t.day, 3, 'quarter')
+      : t.view === 'half'    ? tapeSpanHTML(t.day, 6, 'half')
+      :                        tapeYearHTML(+t.day.slice(0,4))}</div>`;
   box.querySelectorAll('[data-ltview]').forEach(b => b.onclick = () => { t.view = b.dataset.ltview; rerender(); });
   box.querySelectorAll('[data-tapeday]').forEach(n => n.onclick = e => { if(e.target.closest('.entry,a,button:not([data-tapeday])')) return;
     t.day = n.dataset.tapeday; t.view = 'day'; rerender(); });
   box.querySelectorAll('[data-tapeweek]').forEach(b => b.onclick = () => { t.day = b.dataset.tapeweek; t.view = 'week'; rerender(); });
   box.querySelectorAll('[data-tapeyear]').forEach(b => b.onclick = () => { t.day = b.dataset.tapeyear + t.day.slice(4); t.view = 'year'; rerender(); });
+  box.querySelectorAll('[data-tapemonth]').forEach(b => b.onclick = e => { e.stopPropagation(); t.day = b.dataset.tapemonth; t.view = 'month'; rerender(); });
+  box.querySelectorAll('[data-tapespan]').forEach(b => b.onclick = () => { t.day = b.dataset.tapespan; rerender(); });
   box.querySelectorAll('[data-tapemode]').forEach(b => b.onclick = () => { t.mode = b.dataset.tapemode; rerender(); });
   box.querySelectorAll('[data-tapego]').forEach(n => n.onclick = () => navigate(n.dataset.tapego));
   bindTapeFilters(box);

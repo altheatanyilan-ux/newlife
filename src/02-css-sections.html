@@ -473,6 +473,23 @@ button.tag{cursor:pointer;font-family:inherit}
 .tape-grid i{aspect-ratio:1;border-radius:2px;background:var(--surface-3);cursor:pointer;transition:transform .12s var(--ease)}
 .tape-grid i:hover{transform:scale(1.5);z-index:2}
 .tape-grid .tg-pad{background:none;cursor:default}
+/* month blocks — one component at two sizes, used by month / quarter / half-year */
+.tape-month{display:flex;flex-direction:column;gap:5px}
+.tm-title{background:none;border:none;padding:0;text-align:left;cursor:pointer;font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.tm-title:hover{color:var(--page-accent)}
+.tm-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.tm-dow{font-family:var(--mono);font-size:.54rem;color:var(--faint);text-align:center}
+.tm-day{aspect-ratio:1;border-radius:4px;background:var(--surface-2);border:1px solid transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .14s var(--ease)}
+.tm-day span{font-family:var(--mono);font-size:.6rem;color:var(--muted)}
+.tm-day:hover{border-color:var(--page-accent)}
+.tm-day.today{border-color:var(--page-accent)}
+.tm-day.out,.tm-day.ahead{background:none;cursor:default;pointer-events:none}
+.tm-day.out{opacity:0}
+.tm-day.ahead{opacity:.3}
+.tape-month.compact .tm-day{border-radius:2px}
+.tape-span{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px;margin-bottom:16px}
+button.tm-cell{cursor:pointer;font-family:inherit;color:inherit}
+button.tm-cell:hover{border-color:var(--page-accent)}
 .tape-months{display:grid;grid-template-columns:repeat(auto-fit,minmax(78px,1fr));gap:8px;margin-top:16px}
 .tm-cell{padding:8px 6px;border-radius:9px;border:1px solid var(--line);background:var(--surface);text-align:center}
 .tm-cell.quiet{opacity:.45}

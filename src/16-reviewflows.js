@@ -1,6 +1,7 @@
 /* ============================================================
    GUIDED REVIEWS — the flows that keep the system alive
-   Five rituals at five cadences. Each is a sequence of steps,
+   Seven rituals, from the morning to the year. Each is a sequence
+   of steps,
    every step pre-filled with what the instrument already knows,
    so the work is noticing rather than remembering.
    ============================================================ */
@@ -137,7 +138,7 @@ function flowWeekly(){
 
 /* ---------- 4. the seasonal review ---------- */
 function flowSeasonal(){
-  guidedFlow('Seasonal review', [
+  guidedFlow('Quarterly review', [
     {title:'Ninety days, at once.', hint:'Dry spells, surges, the weeks you cannot remember. Look before you interpret.',
      body: () => { const t = tapeState(); t.mode = 'total'; return tapeYearHTML(new Date().getFullYear()); }},
     {title:'Re-rank what matters.', hint:'The order changes. The previous ranking is kept.',
@@ -203,19 +204,105 @@ function flowAnnual(){
   ], () => { reviewDone('lastAnnual'); toast('The rite is complete.'); });
 }
 
+
+/* ---------- the monthly review ---------- */
+function flowMonthly(){
+  const T = today(); const mk = monthKey(T); const mp = monthPlan(mk); const mr = monthReview(mk);
+  const a = parseDay(T); const {from, to} = monthRange(a.getFullYear(), a.getMonth());
+  const items = () => tapeFilter(tapeItems(from, to));
+  guidedFlow('Monthly review', [
+    {title:'The month, at once.', hint:'Before you interpret it, look at it.',
+     body: () => { const t = tapeState(); t.day = T; return tapeMonthHTML(T); }},
+    {title:'The milestones you named.', hint:'Tick what landed. An unticked milestone is information, not a failure.',
+     body: () => { const named = mp.milestones.map((ms,i) => ({...ms, i})).filter(ms => ms.text);
+       return named.length ? `<div class="stack" style="gap:4px">${named.map(ms => `<label class="pick-row ${ms.done?'on':''}"><input type="checkbox" data-mrms="${ms.i}" ${ms.done?'checked':''}><span>${esc(ms.text)}${ms.visionId?`<span class="d">${esc(byId(S.visions,ms.visionId)?.name||'')}</span>`:''}</span></label>`).join('')}</div>`
+         : '<div class="empty">No milestones were set for this month. The Plan tab takes them for next month.</div>'; },
+     bind: b => b.querySelectorAll('[data-mrms]').forEach(c => c.onchange = () => { mp.milestones[+c.dataset.mrms].done = c.checked; saveNow(); c.closest('.pick-row').classList.toggle('on', c.checked); })},
+    {title:'The habits, across the whole month.',
+     body: () => { const days = []; let d = from; while(d <= (to > T ? T : to)){ days.push(d); d = addDays(d,1); }
+       const rows = S.habits.filter(h => !h.archived && !h.negative).map(h => ({h, rate: habitMonthRate(h, days)})).filter(o => o.rate !== null);
+       return rows.length ? `<div class="stack" style="gap:5px">${rows.map(({h,rate}) => `<div class="row between"><span style="min-width:7em">${esc(h.name)}</span><span class="bar" style="flex:1;--c:${(DIMS.find(x=>x.id===h.dimension)||{}).c||'var(--page-accent)'}"><i style="width:${rate}%"></i></span><span class="mono">${rate}%</span></div>`).join('')}</div>${habitOscillationHTML(30)}` : '<div class="empty">No habits tracked this month.</div>'; }},
+    {title:'What the month was made of.', hint:'Which rooms of the house got used, and which stayed shut?',
+     body: () => { const tally = {}; items().forEach(x => { const sec = tapeKind(x.kind)[0]; tally[sec] = (tally[sec]||0)+1; });
+       const list = Object.entries(tally).sort((a,b)=>b[1]-a[1]); const max = Math.max(1, ...list.map(x=>x[1]));
+       const quiet = TAPE_SECTIONS.filter(sec => !tally[sec]);
+       return `${list.length ? `<div class="stack" style="gap:5px">${list.map(([sec,n]) => `<div class="row between"><span style="min-width:7em">${esc(sec)}</span><span class="bar" style="flex:1;--c:var(--page-accent)"><i style="width:${Math.round(n/max*100)}%"></i></span><span class="mono">${n}</span></div>`).join('')}</div>` : '<div class="empty">Nothing logged this month.</div>'}
+         ${quiet.length ? `<div class="faint" style="font-size:.8rem;margin-top:8px">Untouched: ${quiet.map(esc).join(', ')}.</div>` : ''}`; }},
+    {title:'Energy and mood, over thirty days.',
+     body: () => { const days = []; let d = from; while(d <= (to > T ? T : to)){ days.push(d); d = addDays(d,1); }
+       const sps = days.map(d2 => S.checkins?.[d2]?.setpoint || null);
+       const revs = days.map(d2 => S.reviewLog?.[d2]).filter(r => r && r.energy);
+       const moods = {}; days.forEach(d2 => (S.reviewLog?.[d2]?.moods||[]).forEach(mm => moods[mm] = (moods[mm]||0)+1));
+       return `${sps.filter(Boolean).length > 2 ? sparkline(sps, {h:44, color:'var(--gold)', min:1, max:22}) : ''}
+         <div class="row between mono" style="margin-top:6px"><span>average set-point</span><span>${sps.filter(Boolean).length ? avg(sps.filter(Boolean)).toFixed(1) : '—'} / 22</span></div>
+         <div class="row between mono"><span>average evening energy</span><span>${revs.length ? avg(revs.map(r=>r.energy)).toFixed(1) : '—'} / 5</span></div>
+         ${Object.keys(moods).length ? `<div class="row" style="gap:6px;flex-wrap:wrap;margin-top:8px">${Object.entries(moods).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([mm,n])=>`<span class="chip on">${esc(mm)} · ${n}</span>`).join('')}</div>` : ''}`; }},
+    {title:'What carries into next month.',
+     body: () => `<textarea class="ta" id="fwMr" placeholder="What this month was, and what it hands over.">${esc(mr.note || '')}</textarea>`,
+     next: b => { mr.note = b.querySelector('#fwMr').value.trim(); mr.closedAt = today(); saveNow(); }},
+  ], () => { reviewDone('lastMonthly'); toast('Month reviewed.'); });
+}
+
+/* ---------- the half-year review ---------- */
+function halfKey(d = today()){ const a = parseDay(d); return `${a.getFullYear()}-H${a.getMonth() < 6 ? 1 : 2}`; }
+function halfNote(k){ S.reviews.halfNotes = S.reviews.halfNotes || {}; if(!S.reviews.halfNotes[k]) S.reviews.halfNotes[k] = {note:'', closedAt:''}; return S.reviews.halfNotes[k]; }
+function flowHalf(){
+  const T = today(); const a = parseDay(T); const y = a.getFullYear(); const firstHalf = a.getMonth() < 6;
+  const from = `${y}-${firstHalf?'01':'07'}-01`, to = firstHalf ? `${y}-06-30` : `${y}-12-31`;
+  const hn = halfNote(halfKey(T));
+  guidedFlow('Half-year review', [
+    {title:'Six months, side by side.', hint:'Long enough to see a season change, short enough to remember it.',
+     body: () => tapeSpanHTML(T, 6, 'half')},
+    {title:'Which visions actually moved?', hint:'Movement is evidence and confidence, not enthusiasm.',
+     body: () => { const vs = S.visions.filter(v => !v.archived).map(v => ({v, n:(v.evidence||[]).filter(e => (e.date||'') >= from && (e.date||'') <= to).length})).sort((x,z)=>z.n-x.n);
+       return vs.length ? `<div class="stack" style="gap:5px">${vs.slice(0,8).map(({v,n}) => `<div class="row between"><span>${esc(v.name)}</span><span class="mono">${n ? `${n} leaf${n===1?'':'s'}` : 'nothing added'} · ${esc(v.confidence||'hunch')}</span></div>`).join('')}</div>
+         ${vs.filter(o=>!o.n).length ? `<div class="faint" style="font-size:.8rem;margin-top:8px">${vs.filter(o=>!o.n).length} vision${vs.filter(o=>!o.n).length===1?'':'s'} got nothing in six months. Water one, or let it go honestly.</div>` : ''}` : '<div class="empty">No visions yet.</div>'; }},
+    {title:'The compass, half a year on.', hint:'Has the order changed? Is anything going unpaid?',
+     body: () => { const gaps = typeof valueGaps === 'function' ? valueGaps() : [];
+       return `${gaps.length ? `<div class="stack" style="gap:5px">${gaps.slice(0,5).map(g => `<div class="row between"><span>${esc(g.name)}</span><span class="mono" style="color:${g.gap < -10 ? '#c9a05a' : 'inherit'}">${g.gap>0?'+':''}${g.gap}</span></div>`).join('')}</div>` : ''}
+         <div class="row" style="margin-top:8px"><button class="btn sm ghost" data-flowgo="#/values">open the compass</button></div>`; }},
+    {title:'Who moved.', hint:'Six months is long enough for a ring to change without anyone saying so.',
+     body: () => { const ints = (S.interactions||[]).filter(i => (i.date||'') >= from && (i.date||'') <= to);
+       const tally = {}; ints.forEach(i => tally[i.personId] = (tally[i.personId]||0)+1);
+       const rows = Object.entries(tally).sort((x,z)=>z[1]-x[1]).slice(0,6);
+       const cold = (S.people||[]).filter(p => ['core','close'].includes(p.circle) && !tally[p.id]);
+       return `${rows.length ? `<div class="stack" style="gap:5px">${rows.map(([pid,n]) => `<div class="row between"><span>${esc(byId(S.people,pid)?.name||'someone')}</span><span class="mono">${n} logged</span></div>`).join('')}</div>` : '<div class="empty">No interactions logged in this half.</div>'}
+         ${cold.length ? `<div class="faint" style="font-size:.8rem;margin-top:8px">In your inner rings with nothing logged: ${cold.map(p=>esc(p.name)).join(', ')}.</div>` : ''}
+         <div class="row" style="margin-top:8px"><button class="btn sm ghost" data-flowgo="#/people">open the constellation</button></div>`; }},
+    {title:'Skills and work, six months of it.',
+     body: () => { const prog = S.entries.filter(e => e.type === 'progress' && (e.occurredAt||'') >= from && (e.occurredAt||'') <= to).length;
+       const nods = (S.nods||[]).filter(n => (n.date||'') >= from && (n.date||'') <= to).length;
+       const active = S.projects.filter(p => p.status === 'active').length;
+       return `<div class="income-strip"><div><div class="k">practice logged</div><div class="num">${prog}</div></div>
+         <div><div class="k">nods</div><div class="num">${nods}</div></div>
+         <div><div class="k">projects active</div><div class="num">${active}</div></div></div>`; }},
+    {title:'The money, half a year on.',
+     body: () => { if(typeof portfolioTotals !== 'function') return '';
+       const {totalCurrentBase, totalTargetBase, streams} = portfolioTotals(); const rw = typeof runway === 'function' ? runway() : null;
+       return `<div class="rev-summary">${money(totalCurrentBase)}/mo across ${streams.length} stream${streams.length===1?'':'s'}, against ${money(totalTargetBase)}/mo at target${rw ? (rw.sustainable ? ` · sustainable, +${money(rw.surplus)}/mo` : ` · ${Math.round(rw.months)} months of runway`) : ''}.</div>
+         <div class="row" style="margin-top:8px"><button class="btn sm ghost" data-flowgo="#/finance">open Finance</button></div>`; }},
+    {title:'What the next six months are for.', hint:'One paragraph. It is the thing you will read back in January or July.',
+     body: () => `<textarea class="ta" id="fwHalf" style="min-height:120px" placeholder="The next six months are for…">${esc(hn.note || '')}</textarea>`,
+     next: b => { hn.note = b.querySelector('#fwHalf').value.trim(); hn.closedAt = today(); saveNow(); }},
+  ], () => { reviewDone('lastHalf'); toast('Half-year reviewed.'); });
+}
+
 /* ---------- the hub ---------- */
 const REVIEW_FLOWS = [
   ['lastMorning',  'Morning practice',  '30 minutes', 'Maltz, Hill and Hicks, in the order they work: script, visualise, aim, set-point, intention, mark.', flowMorning],
   ['lastEvening',  'Evening review',    '5 minutes',  'Close the day honestly: the rings, what actually happened, the energy it ended on, one line.', flowEvening],
   ['lastWeekly',   'Weekly review',     '15 minutes', "The week's shape, the habits, a congruence snapshot, current reality on the tension that carries most.", flowWeekly],
-  ['lastSeasonal', 'Seasonal review',   '30 minutes', 'Ninety days at once: values re-ranked, confidence rungs, what is going quiet, the five closest, the money.', flowSeasonal],
+  ['lastMonthly',  'Monthly review',    '15 minutes', 'The month at once: the milestones you named, the habits across thirty days, which rooms got used, and what carries over.', flowMonthly],
+  ['lastSeasonal', 'Quarterly review',  '30 minutes', 'A season: values re-ranked, confidence rungs, what is going quiet, the five closest, the money.', flowSeasonal],
+  ['lastHalf',     'Half-year review',  '45 minutes', 'Six months side by side: which visions actually moved, who moved rings, the compass, and what the next six are for.', flowHalf],
   ['lastAnnual',   'Annual rite',       '1–2 hours',  'The whole year on one screen, then the narrative, the letter, and three visions for the next one.', flowAnnual],
 ];
+const REVIEW_DUE = {lastMorning:1, lastEvening:1, lastWeekly:7, lastMonthly:30, lastSeasonal:90, lastHalf:182, lastAnnual:365};
 function renderReviewsHub(box){
   const T = today();
-  box.innerHTML = `<p class="muted" style="font-size:.88rem;max-width:640px">Five rituals at five cadences. Each one is pre-filled with what the instrument already knows, so the work is noticing rather than remembering.</p>
+  box.innerHTML = `<p class="muted" style="font-size:.88rem;max-width:640px">Seven rituals, from the morning to the year. Each one is pre-filled with what the instrument already knows, so the work is noticing rather than remembering.</p>
     <div class="review-cards">${REVIEW_FLOWS.map(([key, name, len, desc]) => { const age = reviewAge(key);
-      const due = key === 'lastMorning' ? age >= 1 : key === 'lastEvening' ? age >= 1 : key === 'lastWeekly' ? age >= 7 : key === 'lastSeasonal' ? age >= 90 : age >= 365;
+      const due = age >= (REVIEW_DUE[key] || 365);
       return `<div class="review-card ${due?'due':''}" data-flow="${key}">
         <div class="row between"><b class="serif" style="font-size:1.1rem">${esc(name)}</b><span class="mono">${esc(len)}</span></div>
         <p class="muted" style="font-size:.85rem;margin:6px 0 10px">${esc(desc)}</p>
