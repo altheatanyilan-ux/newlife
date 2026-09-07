@@ -26,6 +26,7 @@ const NAV_ICONS = {
   finance:  '<svg viewBox="0 0 24 24"><path d="M4 19V9M9.3 19V5.5M14.7 19v-8M20 19V7.5"/><path d="M3 21h18"/></svg>',
   chronicle:'<svg viewBox="0 0 24 24"><path d="M5.5 4.5h9a2 2 0 0 1 2 2V20H7.5a2 2 0 0 1-2-2Z"/><path d="M16.5 6.5h2V20H7.5"/><path d="M8.5 8.5h5M8.5 11.5h5M8.5 14.5h3"/></svg>',
   commonplace:'<svg viewBox="0 0 24 24"><path d="M5 4.5h9a2.5 2.5 0 0 1 2.5 2.5v12.5H7.5A2.5 2.5 0 0 1 5 17Z"/><path d="M16.5 7H19v12.5H7.5"/><path d="M8 8.5h5.5M8 11.5h5.5"/></svg>',
+  import:     '<svg viewBox="0 0 24 24"><rect x="3.5" y="13" width="17" height="7.5" rx="2"/><path d="M3.5 16h4l1.5 2h6l1.5-2h4"/><path d="M12 3.5v9M9.5 10l2.5 2.5L14.5 10"/></svg>',
 };
 /* labels match the h1 of the page they open; `short` is for the mobile bar only */
 const NAV_PAGES = {
@@ -38,6 +39,7 @@ const NAV_PAGES = {
   finance:  {label:'Finance',          short:'Money',    ico:NAV_ICONS.finance,  route:'#/finance'},
   chronicle:{label:'Chronicle',        short:'Book',     ico:NAV_ICONS.chronicle,route:'#/chronicle'},
   commonplace:{label:'The Library',    short:'Library',  ico:NAV_ICONS.commonplace, route:'#/commonplace'},
+  import:   {label:'Import Station',   short:'Import',   ico:NAV_ICONS.import,   route:'#/import'},
   values:   {label:'Values',           short:'Values',   ico:NAV_ICONS.values,   route:'#/values'},
   skills:   {label:'Skill Tree',       short:'Skills',   ico:NAV_ICONS.skills,   route:'#/skills'},
   vision:   {label:'Vision',           short:'Vision',   ico:NAV_ICONS.vision,   route:'#/vision'},
@@ -47,7 +49,7 @@ const NAV_DEFAULT = {
   present:   ['today','rhythm','projects'],
   becoming:  ['values','skills','vision'],
   story:     ['people','timeline','chronicle','journals'],
-  standalone:['commonplace','writing','finance'],
+  standalone:['commonplace','writing','finance','import'],
 };
 const NAV_ZONES = [
   {id:'present',  label:'Present',  hint:"what is happening now",            accent:'var(--sage)'},
