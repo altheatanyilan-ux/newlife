@@ -152,9 +152,7 @@ routes.rhythm = function(root, params){
   S._rhyTab = tab;
   const focus = S._rhyDay && /^\d{4}-\d{2}-\d{2}$/.test(S._rhyDay) ? S._rhyDay : T;
   registerPageEntry({pageName:'Rhythm', addLabel:'Add to the day', defaultEntryType:'event', prefilledFields:{}, options:[
-    {icon:'◍', label:'Habit', desc:'Something you mean to keep doing.', run:()=>openHabitModal()},
-    {icon:'▦', label:'Event', desc:'A block of time with a name.', run:()=>openEventModal({day:focus})},
-    {icon:'⤓', label:'Import a calendar (.ics)', desc:'A one-time upload from Google Calendar or another app — daily/weekly repeats only, no live sync.', run:()=>openICSImport()}]});
+    {icon:'◍', label:'Habit', desc:'Something you mean to keep doing.', run:()=>openHabitModal()},]});
   root.innerHTML = `<div class="page rhythm-page">
     <div class="page-head"><h1>${esc(S.settings.rhythmName || 'Rhythm')}</h1><div class="sub">Your calendar holds what you meant to do. This holds what you actually lived — the tape of it, the habits that made it, and the reviews that keep the whole instrument honest.</div></div>
     <div class="tabs">${TABS.map(([k,l]) => `<button class="${tab===k?'active':''}" data-rtab="${k}">${l}</button>`).join('')}</div>
@@ -256,7 +254,6 @@ function bindCalendar(box, days){
       const cur = HOUR0 + Math.ceil((ev.clientY - r.top) / HOUR_PX * 2) / 2;
       const start = Math.min(anchor, cur), dur = Math.max(.5, Math.abs(cur - anchor));
       ghost.remove(); ghost = null; anchor = null;
-      openEventModal({day: col.dataset.calday, start, dur, inline: true});
     };
     col.addEventListener('pointerup', finish); col.addEventListener('pointercancel', () => { ghost?.remove(); ghost = null; anchor = null; });
   });
@@ -337,99 +334,6 @@ function openDomainsModal(){
   m.querySelector('#domDone').onclick = () => { m.remove(); rerender(); };
 }
 
-/* ---------- .ics import — a one-time client-side read, not a live sync ----------
-   Google Calendar's own feed URLs are blocked from the browser by CORS, so this
-   deliberately stays a file upload: export a calendar to .ics, drop it here, done.
-   Only DAILY and WEEKLY RRULEs are expanded (a fixed 120-day horizon); anything
-   fancier (BYDAY lists, MONTHLY, exceptions) is imported as its first occurrence only. */
-function icsUnfold(text){
-  return text.replace(/\r\n/g,'\n').split('\n').reduce((lines, line) => {
-    if(/^[ \t]/.test(line) && lines.length) lines[lines.length-1] += line.slice(1);
-    else lines.push(line);
-    return lines;
-  }, []);
-}
-function icsUnescape(v){ return (v||'').replace(/\\n/gi,' ').replace(/\\,/g,',').replace(/\\;/g,';').replace(/\\\\/g,'\\'); }
-function icsParseDT(raw){
-  const m = (raw||'').match(/^(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(\d{2})(Z)?)?$/);
-  if(!m) return null;
-  const [,y,mo,da,hh,mi,ss,z] = m;
-  if(hh === undefined) return {day:`${y}-${mo}-${da}`, allDay:true, hour:9};
-  if(z){ const dt = new Date(Date.UTC(+y,+mo-1,+da,+hh,+mi,+ss||0)); return {day:isoDay(dt), allDay:false, hour: dt.getHours() + dt.getMinutes()/60}; }
-  return {day:`${y}-${mo}-${da}`, allDay:false, hour: +hh + (+mi)/60};
-}
-function parseICSEvents(text){
-  const lines = icsUnfold(text);
-  const events = []; let cur = null;
-  lines.forEach(line => {
-    if(line.startsWith('BEGIN:VEVENT')){ cur = {}; return; }
-    if(line.startsWith('END:VEVENT')){ if(cur) events.push(cur); cur = null; return; }
-    if(!cur) return;
-    const ci = line.indexOf(':'); if(ci < 0) return;
-    let key = line.slice(0, ci); const value = line.slice(ci+1);
-    const semi = key.indexOf(';'); key = semi >= 0 ? key.slice(0, semi) : key;
-    if(key === 'DTSTART') cur.dtstart = value;
-    else if(key === 'DTEND') cur.dtend = value;
-    else if(key === 'SUMMARY') cur.summary = icsUnescape(value);
-    else if(key === 'DESCRIPTION') cur.description = icsUnescape(value);
-    else if(key === 'RRULE') cur.rrule = value;
-  });
-  return events;
-}
-function expandRecurrence(startDay, rrule, horizonDays){
-  const days = [startDay];
-  if(!rrule) return days;
-  const parts = {}; rrule.split(';').forEach(p => { const [k,v] = p.split('='); parts[k] = v; });
-  const freq = parts.FREQ; if(freq !== 'DAILY' && freq !== 'WEEKLY') return days;
-  const interval = +(parts.INTERVAL || 1) || 1;
-  const count = parts.COUNT ? +parts.COUNT : null;
-  const until = parts.UNTIL ? icsParseDT(parts.UNTIL)?.day : null;
-  const horizon = addDays(today(), horizonDays);
-  const step = freq === 'DAILY' ? interval : interval * 7;
-  let d = startDay, n = 1;
-  while(days.length < 200){
-    d = addDays(d, step); n++;
-    if(count && n > count) break;
-    if(until && d > until) break;
-    if(!count && !until && d > horizon) break;
-    days.push(d);
-  }
-  return days;
-}
-function importICSText(text){
-  const raw = parseICSEvents(text);
-  let added = 0, skipped = 0;
-  raw.forEach(ev => {
-    if(!ev.dtstart) return;
-    const start = icsParseDT(ev.dtstart); if(!start) return;
-    const end = ev.dtend ? icsParseDT(ev.dtend) : null;
-    const dur = (end && !start.allDay && end.day === start.day && end.hour > start.hour) ? Math.round((end.hour-start.hour)*4)/4 : 1;
-    const title = (ev.summary || 'Imported event').trim() + (start.allDay ? ' (all day)' : '');
-    expandRecurrence(start.day, ev.rrule, 120).forEach(day => {
-      if(S.events.find(x => x.imported && x.title === title && x.day === day && x.start === start.hour)){ skipped++; return; }
-      S.events.push({id:uid(), title, day, start:start.hour, dur, domain:'', note:(ev.description||'').slice(0,300),
-        intention:'', reflectionEntryId:null, energyBefore:0, energyAfter:0, moodBefore:'', moodAfter:'', imported:true});
-      added++;
-    });
-  });
-  saveNow();
-  return {added, skipped};
-}
-function openICSImport(){
-  const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.ics,text/calendar';
-  inp.onchange = () => {
-    const f = inp.files[0]; if(!f) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const {added, skipped} = importICSText(String(reader.result||''));
-      if(!added && !skipped){ toast('No events found in that file.'); return; }
-      toast(`Imported ${added} event${added===1?'':'s'}${skipped ? ` · ${skipped} already here` : ''}. Daily/weekly repeats only, no live sync.`, 7000);
-      rerender();
-    };
-    reader.readAsText(f);
-  };
-  inp.click();
-}
 function openTaskSidePanel(r){
   const p = openPanel(`<div class="mono">task${r.where?` · ${esc(r.where)}`:''}</div><h2>${esc(r.text)}</h2>
     <div class="row" style="gap:10px;margin:10px 0 18px;flex-wrap:wrap">
@@ -546,7 +450,6 @@ function renderPlanPanel(box, d){
     <input class="inp quick-task" id="planQuick" placeholder="＋ add to the plan and press Enter">
     <div class="row" style="gap:6px;margin-top:8px;flex-wrap:wrap">
       <button class="btn sm ghost" id="planPull">pull from projects</button>
-      <button class="btn sm ghost" id="planEvent">＋ event</button>
       ${p.planned ? `<button class="btn sm ghost" id="planRedo">re-plan</button>` : ''}
     </div>
     <div class="row" style="gap:6px;margin-top:6px;flex-wrap:wrap">
@@ -558,7 +461,6 @@ function renderPlanPanel(box, d){
   $('#planStart') && ($('#planStart').onclick = () => planMyDay(d));
   $('#planRedo') && ($('#planRedo').onclick = () => planMyDay(d));
   $('#planPull').onclick = () => openTaskPicker(d, rerender);
-  $('#planEvent').onclick = () => openEventModal({day:d});
   $('#planWeekly').onclick = () => openWeeklyPlan(d);
   $('#planMonthly').onclick = () => openMonthlyPlan(d);
   $('#planCarry') && ($('#planCarry').onclick = () => { carried.forEach(r => r.task.day = d); saveNow(); sound('success'); rerender(); });

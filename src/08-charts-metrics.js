@@ -185,7 +185,7 @@ function entryCard(e, {clamp:cl=true, tools=true}={}){
   </article>`;
   const q = e.type==='quote'; const xc = e.extra||{};
   return `<article class="entry rv" data-entry="${e.id}">
-    <div class="meta"><span class="mono">${typeIcon(e.type)} ${typeName(e.type)}</span><span class="mono">${esc(fmtDate(e.occurredAt,'med'))}</span>${e.confidence?`<span class="status-pill">${esc(e.confidence)}</span>`:''}${tools?`<span class="tools"><button class="tbtn" data-edit="${e.id}">edit</button>${xc.turningPoint?`<span class="status-pill" title="a turning point in the Chronicle">◆ turning point</span>`:['memory','lifeevent','reflection','decision'].includes(e.type)?`<button class="tbtn" data-promote-turn="${e.id}" title="mark as a turning point in the Chronicle">→ turning point</button>`:''}<button class="snip-btn" data-snip="${e.id}" title="save to the Writing Studio">✂</button></span>`:''}</div>${tools?`<button class="del-x" data-del="${e.id}" title="delete" aria-label="delete entry">×</button>`:''}
+    <div class="meta"><span class="mono">${typeIcon(e.type)} ${typeName(e.type)}</span><span class="mono">${esc(fmtDate(e.occurredAt,'med'))}</span>${e.confidence?`<span class="status-pill">${esc(e.confidence)}</span>`:''}${tools?`<span class="tools"><button class="tbtn" data-edit="${e.id}">edit</button><button class="snip-btn" data-snip="${e.id}" title="save to the Writing Studio">✂</button></span>`:''}</div>${tools?`<button class="del-x" data-del="${e.id}" title="delete" aria-label="delete entry">×</button>`:''}
     ${e.title?`<div class="title">${esc(e.title)}</div>`:''}
     ${e.body?`<div class="body ${cl?'clamp':''} ${q?'quote':''}">${q?'“'+esc(e.body)+'”':md(e.body)}</div>`:''}
     ${e.media?.length?`<div class="thumbs">${e.media.map(m=>`<div class="photo" style="width:88px;height:88px;cursor:zoom-in" data-lb="${m.id}"><img src="${m.src}" alt="${esc(m.caption)}"></div>`).join('')}</div>`:''}
@@ -197,7 +197,6 @@ function entryCard(e, {clamp:cl=true, tools=true}={}){
 document.addEventListener('click', e => {
   const b = e.target.closest('.entry .body.clamp'); if(b){ b.classList.remove('clamp'); }
   const ed_ = e.target.closest('[data-edit]'); if(ed_){ openEntryModal({entryId: ed_.dataset.edit}); }
-  const pr = e.target.closest('[data-promote-turn]'); if(pr){ e.stopPropagation(); promoteToTurningPoint(pr.dataset.promoteTurn); }
   const del = e.target.closest('[data-del]'); if(del){ e.stopPropagation(); const ent = byId(S.entries, del.dataset.del); if(ent) requestDelete({label: ent.title || typeName(ent.type), node: del.closest('.entry, .formative'), remove: () => spliceOut(S.entries, x => x.id === ent.id)}); }
   const lb = e.target.closest('[data-lb]'); if(lb){ const img = lb.querySelector('img'); lightbox(img.src, img.alt); }
   const an = e.target.closest('[data-answer]'); if(an){ const ent = byId(S.entries, an.dataset.answer);

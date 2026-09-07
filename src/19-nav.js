@@ -24,7 +24,6 @@ const NAV_ICONS = {
   people:   '<svg viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19.5c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/><circle cx="16.8" cy="9.5" r="2.4"/><path d="M15 14.9c3 .2 5.5 1.9 5.5 4.6"/></svg>',
   board:    '<svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="7" height="9" rx="1.5"/><rect x="13.5" y="4.5" width="7" height="5.5" rx="1.5"/><rect x="3.5" y="16" width="7" height="3.5" rx="1.5"/><rect x="13.5" y="12.5" width="7" height="7" rx="1.5"/></svg>',
   finance:  '<svg viewBox="0 0 24 24"><path d="M4 19V9M9.3 19V5.5M14.7 19v-8M20 19V7.5"/><path d="M3 21h18"/></svg>',
-  chronicle:'<svg viewBox="0 0 24 24"><path d="M5.5 4.5h9a2 2 0 0 1 2 2V20H7.5a2 2 0 0 1-2-2Z"/><path d="M16.5 6.5h2V20H7.5"/><path d="M8.5 8.5h5M8.5 11.5h5M8.5 14.5h3"/></svg>',
   commonplace:'<svg viewBox="0 0 24 24"><path d="M5 4.5h9a2.5 2.5 0 0 1 2.5 2.5v12.5H7.5A2.5 2.5 0 0 1 5 17Z"/><path d="M16.5 7H19v12.5H7.5"/><path d="M8 8.5h5.5M8 11.5h5.5"/></svg>',
   import:     '<svg viewBox="0 0 24 24"><rect x="3.5" y="13" width="17" height="7.5" rx="2"/><path d="M3.5 16h4l1.5 2h6l1.5-2h4"/><path d="M12 3.5v9M9.5 10l2.5 2.5L14.5 10"/></svg>',
 };
@@ -37,7 +36,6 @@ const NAV_PAGES = {
   writing:  {label:'The Writing Studio', short:'Writing', ico:NAV_ICONS.writing,  route:'#/writing'},
   people:   {label:'People',           short:'People',   ico:NAV_ICONS.people,   route:'#/people'},
   finance:  {label:'Finance',          short:'Money',    ico:NAV_ICONS.finance,  route:'#/finance'},
-  chronicle:{label:'Chronicle',        short:'Book',     ico:NAV_ICONS.chronicle,route:'#/chronicle'},
   commonplace:{label:'The Library',    short:'Library',  ico:NAV_ICONS.commonplace, route:'#/commonplace'},
   import:   {label:'Import Station',   short:'Import',   ico:NAV_ICONS.import,   route:'#/import'},
   values:   {label:'Values',           short:'Values',   ico:NAV_ICONS.values,   route:'#/values'},
@@ -48,7 +46,7 @@ const NAV_PAGES = {
 const NAV_DEFAULT = {
   present:   ['today','rhythm','projects'],
   becoming:  ['values','skills','vision'],
-  story:     ['people','timeline','chronicle','journals'],
+  story:     ['people','timeline','journals'],
   standalone:['commonplace','writing','finance','import'],
 };
 const NAV_ZONES = [
@@ -124,7 +122,6 @@ function houseStats(){
       return {line:`${(S.people||[]).length} people${od.length?` · ${od.length} overdue`:''}`, ok:!od.length, cadence:'weekly', tip:'A life is mostly other people.'}; })(),
     finance:  (()=>{ const streams = typeof incomeStreamList==='function' ? incomeStreamList() : []; const tc = sum(streams.map(s=>s.income.current||0));
       return {line: streams.length ? `${money(tc)}/mo across ${streams.length} stream${streams.length===1?'':'s'}` : 'no income streams yet', ok:true, cadence:'monthly', tip:'Building ways to make money, and what enough looks like.'}; })(),
-    chronicle:{line:'the record as a book', ok:true, cadence:'annual', tip:'Print it, or save it as a PDF.'},
   };
   return {stat, due, done, vs, wither, last, snapDays, gaps, atro, hrs30, active, nods7, j7, quotes, memories, c, rem, zonesOf: k => n.present.includes(k)?'present':n.becoming.includes(k)?'becoming':'always'};
 }
@@ -183,8 +180,7 @@ function zoneSummaries(){
     lines:[
       overdue.length ? [`${overdue.length} ${overdue.length === 1 ? 'person is' : 'people are'} overdue for contact`, 'var(--gold)'] : ['everyone is within their cadence', 'var(--sage)'],
       jrnAge === null ? ['nothing written yet', 'var(--faint)'] : [`last journal ${relDays(jrnAge)}`, jrnAge > 7 ? 'var(--gold)' : ''],
-      bdays.length ? [`${esc(bdays[0].p.name)}&#39;s birthday in ${bdays[0].days} day${bdays[0].days === 1 ? '' : 's'}`, 'var(--terra)']
-                   : [`${turningPointEntries().length} turning point${turningPointEntries().length === 1 ? '' : 's'} in the Chronicle`, ''],
+      bdays.length ? [`${esc(bdays[0].p.name)}&#39;s birthday in ${bdays[0].days} day${bdays[0].days === 1 ? '' : 's'}`, 'var(--terra)'] : null,
     ]});
 
   const m = T.slice(0,7);
@@ -202,7 +198,7 @@ function zoneSummaries(){
 function zoneCardsHTML(){
   return `<section class="zone-cards rv">${zoneSummaries().map(c => `<a class="zone-card" href="${c.route}" style="--z:${c.accent}">
     <div class="zc-h"><span class="zc-label">${esc(c.label)}</span><span class="zc-hint mono">${esc(c.hint)}</span></div>
-    <div class="zc-lines">${c.lines.map(([t, col]) => `<div class="zc-line"${col ? ` style="color:${col}"` : ''}>${t}</div>`).join('')}</div>
+    <div class="zc-lines">${c.lines.filter(Boolean).map(([t, col]) => `<div class="zc-line"${col ? ` style="color:${col}"` : ''}>${t}</div>`).join('')}</div>
     <span class="zc-go mono">open →</span></a>`).join('')}</section>`;
 }
 routes.home = function(root){

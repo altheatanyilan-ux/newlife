@@ -500,87 +500,6 @@ html.reduce-motion *,html.reduce-motion *::before,html.reduce-motion *::after{an
 .m-out{color:var(--muted)}
 .m-net.pos{color:var(--sage)}.m-net.neg{color:#d08080}
 @media (max-width:820px){.txn{grid-template-columns:56px 10px 1fr auto auto}.tx-acct{display:none}}
-/* ---------- chronicle ---------- */
-/* ---- Chronicle: the narrative timeline ---- */
-.chron-scroll{overflow-x:auto;overflow-y:hidden;padding:6px 0 2px;margin-top:14px}
-.chron-svg{display:block;max-width:100%;height:auto;min-width:640px}
-.ch-block{cursor:pointer}
-.ch-block rect{transition:fill-opacity .25s var(--page-ease,ease),stroke-opacity .25s}
-.ch-block:hover rect{fill-opacity:.3;stroke-opacity:1}
-.ch-block.sel rect{fill-opacity:.34;stroke-opacity:1;stroke-width:1.6}
-.ch-blk-t{font-family:var(--serif);font-size:14px;fill:var(--text)}
-.ch-blk-s{font-family:var(--mono);font-size:9.5px;fill:var(--muted);letter-spacing:.04em}
-.ch-blk-d{font-family:var(--mono);font-size:9px;fill:var(--faint);letter-spacing:.1em;text-transform:uppercase}
-.turn-node{cursor:pointer}
-.turn-node circle{transition:r .2s var(--page-ease,ease)}
-.turn-node:hover circle{r:13}
-.turn-glyph{font-size:9px;fill:#fff;pointer-events:none;opacity:.92}
-.th-line{pointer-events:none}
-/* ---- Chronicle: the chapter, opened ---- */
-.chapter-detail{margin-top:22px;padding:20px 22px;border:1px solid var(--line);border-left:3px solid var(--c);border-radius:12px;background:var(--surface)}
-.turn-list{display:flex;flex-direction:column;gap:6px;margin-top:14px}
-.turn-row{display:flex;gap:11px;align-items:flex-start;width:100%;text-align:left;padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:transparent;cursor:pointer;transition:border-color .2s,background .2s}
-.turn-row:hover{border-color:color-mix(in srgb,var(--c) 55%,var(--line));background:color-mix(in srgb,var(--c) 6%,transparent)}
-.tr-ico{flex:none;width:24px;height:24px;border-radius:50%;background:color-mix(in srgb,var(--c) 22%,transparent);color:var(--c);display:flex;align-items:center;justify-content:center;font-size:.8rem}
-.tr-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
-.tr-body b{font-family:var(--serif);font-weight:400;font-size:1rem;color:var(--text)}
-.tr-desc{font-size:.8rem;color:var(--muted);line-height:1.45;display:block;overflow:hidden}
-.turn-panel .vp-sec{margin-bottom:18px}
-.chronicle-page{max-width:100%}
-.chron-picks{display:flex;flex-direction:column;gap:4px;margin-top:10px}
-.chron-pick{display:flex;gap:9px;align-items:flex-start;padding:7px 10px;border-radius:9px;border:1px solid var(--line);cursor:pointer;transition:border-color .2s var(--ease),background .2s var(--ease)}
-.chron-pick.on{border-color:var(--page-accent);background:color-mix(in srgb,var(--page-accent) 8%,transparent)}
-.chron-pick b{font-size:.9rem;font-weight:500}
-.chron-pick .d{display:block;font-size:.74rem;color:var(--muted)}
-.chronicle{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:48px 56px;max-width:840px;margin:0 auto;font-family:var(--serif)}
-.ch-cover{text-align:center;padding:80px 0 96px}
-.ch-mark{font-family:var(--han);font-size:3.4rem;color:var(--page-accent);opacity:.75}
-.ch-title{font-size:2.9rem;margin-top:26px;line-height:1.15}
-.ch-sub{font-family:var(--quote);font-style:italic;color:var(--muted);font-size:1.1rem;margin-top:10px}
-.ch-rule{width:74px;height:1px;background:var(--page-accent);margin:30px auto;opacity:.6}
-.ch-author{font-size:1.1rem}
-.ch-date,.ch-counts{font-family:var(--mono);font-size:.7rem;color:var(--faint);margin-top:6px}
-.ch-section{padding:28px 0;border-top:1px solid var(--line)}
-.ch-h{font-size:1.7rem;margin-bottom:20px;letter-spacing:.02em}
-.ch-stage{margin-bottom:30px}
-.ch-stage-head{display:flex;gap:16px;align-items:baseline;margin-bottom:10px}
-.ch-han{font-family:var(--han);font-size:2.2rem;color:var(--page-accent)}
-.ch-stage-head h3{font-size:1.28rem}
-.ch-prose{line-height:1.8;color:var(--text);font-size:1.02rem}
-.ch-prose p{margin:0 0 .8em}
-.ch-empty{color:var(--faint);font-style:italic;font-size:.92rem}
-.ch-sub-list{margin-top:10px;padding-left:14px;border-left:2px solid var(--line)}
-.ch-substage{font-size:.92rem;color:var(--muted);margin-bottom:5px}
-.ch-photos{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-.ch-photos img{width:150px;height:110px;object-fit:cover;border-radius:6px}
-.ch-entry{display:grid;grid-template-columns:120px 1fr;gap:18px;padding:14px 0;border-top:1px dashed var(--line)}
-.ch-when{color:var(--faint);padding-top:3px}
-.ch-entry-title{font-size:1.1rem;margin-bottom:4px}
-.ch-thread,.ch-era,.ch-person,.ch-letter{margin-bottom:22px}
-.ch-era-sub{font-family:var(--quote);font-style:italic;color:var(--muted);margin:2px 0 8px}
-.ch-goals,.ch-values{padding-left:20px;line-height:1.9}
-.ch-reply{margin-top:10px;padding-left:16px;border-left:2px solid var(--page-accent);color:var(--muted)}
-.ch-closing{text-align:center;padding:60px 0}
-.ch-closing-line{font-family:var(--quote);font-style:italic;color:var(--muted);font-size:1.15rem}
-.ch-blank{height:220px}
-@media print{
-  .sidebar,.mobile-nav,.topbar,.back-btn,.fab-wrap,.ambient,#toasts,#modals,.no-print,.ctx-add,#dust,.side-panel,.panel-overlay{display:none!important}
-  html,body{background:#fff!important;color:#111!important}
-  main{margin:0!important;padding:0!important;animation:none!important}
-  .page{max-width:none}
-  .chronicle{border:none;border-radius:0;padding:0;max-width:none;background:#fff;color:#111}
-  .ch-break{break-before:page;page-break-before:always}
-  .ch-cover{break-before:auto;page-break-before:auto;padding:120px 0}
-  .ch-section{border-top:none}
-  .ch-stage,.ch-entry,.ch-person,.ch-letter,.ch-thread,.ch-era{break-inside:avoid;page-break-inside:avoid}
-  .ch-h{border-bottom:1px solid #ccc;padding-bottom:6px}
-  .ch-han,.ch-mark,.ch-rule{color:#8a6a3a!important;background:#8a6a3a}
-  .ch-mark,.ch-han{background:none}
-  .ch-when,.ch-date,.ch-counts,.ch-empty{color:#666!important}
-  .ch-prose{color:#111!important}
-  a{color:#111!important;text-decoration:none}
-  @page{margin:20mm 18mm}
-}
 /* ---------- boards ---------- */
 .board{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));grid-auto-rows:118px;gap:12px;margin-top:12px}
 .board.compact{grid-auto-rows:96px;gap:9px}
@@ -1987,7 +1906,7 @@ function tagChips(e, {link=true}={}){ const t = entryTags(e); return t.length ? 
 const KEY = 'lifeinstrument.v1';
 let S = null;
 /* persistence lives in db.js (Dexie schema + load/save/backup) */
-function migrate(){ if(S.settings && S.settings.home === 'map') S.settings.home = 'home'; wipeDemoData(); if(S.rehearsal && !S.rehearsal){ S.rehearsal = S.rehearsal; } delete S.rehearsal; if(typeof migrateEras === 'function') migrateEras(); const d = seed(); for(const k of Object.keys(d)) if(S[k]===undefined) S[k] = d[k]; if(typeof migrateLifeline === 'function') migrateLifeline(); if(typeof migrateSkillLevels === 'function') migrateSkillLevels(); if(typeof migrateProjects === 'function') migrateProjects(); if(typeof migrateStages === 'function') migrateStages(); if(typeof migrateTasks === 'function') migrateTasks(); if(typeof migrateIdeas === 'function') migrateIdeas(); if(typeof migrateMedia === 'function') migrateMedia(); if(typeof migrateSkillFocus === 'function') migrateSkillFocus(); if(typeof migratePeople === 'function') migratePeople(); if(typeof migrateValuePractices === 'function') migrateValuePractices(); if(typeof migrateFinance === 'function') migrateFinance(); if(typeof migrateRhythm === 'function') migrateRhythm(); if(typeof migrateChronicle === 'function') migrateChronicle(); S.boards = Array.isArray(S.boards) ? S.boards : []; }
+function migrate(){ if(S.settings && S.settings.home === 'map') S.settings.home = 'home'; wipeDemoData(); if(S.rehearsal && !S.rehearsal){ S.rehearsal = S.rehearsal; } delete S.rehearsal; if(typeof migrateEras === 'function') migrateEras(); const d = seed(); for(const k of Object.keys(d)) if(S[k]===undefined) S[k] = d[k]; if(typeof migrateLifeline === 'function') migrateLifeline(); if(typeof migrateSkillLevels === 'function') migrateSkillLevels(); if(typeof migrateProjects === 'function') migrateProjects(); if(typeof migrateStages === 'function') migrateStages(); if(typeof migrateTasks === 'function') migrateTasks(); if(typeof migrateIdeas === 'function') migrateIdeas(); if(typeof migrateMedia === 'function') migrateMedia(); if(typeof migrateSkillFocus === 'function') migrateSkillFocus(); if(typeof migratePeople === 'function') migratePeople(); if(typeof migrateValuePractices === 'function') migrateValuePractices(); if(typeof migrateFinance === 'function') migrateFinance(); if(typeof migrateRhythm === 'function') migrateRhythm(); S.boards = Array.isArray(S.boards) ? S.boards : []; }
 
 /* One-time: the house used to open furnished with a demonstration life. If that
    demonstration is still here, clear it so the rooms start empty. */
@@ -2479,7 +2398,6 @@ const PAGE_THEMES = {
   rhythm:   {name:'Rhythm',        accent:['#d99a6a','#a8623a'], ink:'#1a1816', gradient:['#c98a5e','#e3bf94'], mood:'present, ordered',       motion:'snappy',    glyph:'律', icon:'◷'},
   calendar: {name:'Calendar',      accent:['#8fa9c4','#4f7093'], ink:'#1a1816', gradient:['#7d97b3','#c2cfdb'], mood:'wide, seasonal',         motion:'calm',      glyph:'暦', icon:'▦'},
   finance:  {name:'Finance',       accent:['#8fae86','#4d7a4a'], ink:'#1a1816', gradient:['#6f9a68','#c3cf9f'], mood:'plain, countable',       motion:'crisp',     glyph:'財', icon:'▤'},
-  chronicle:{name:'Chronicle',     accent:['#b8a68c','#7a6547'], ink:'#1a1816', gradient:['#a69070','#d8cab0'], mood:'bound, finished',        motion:'calm',      glyph:'伝', icon:'⎙'},
   people:   {name:'People',        accent:['#d99a9a','#a5605f'], ink:'#1a1816', gradient:['#c98a8a','#e6c3b4'], mood:'warm, particular',       motion:'calm',      glyph:'人', icon:'☺'},
   plan:     {name:'Plan',          accent:['#d98f6a','#a8613e'], ink:'#1a1816', gradient:['#c97f5e','#e0b48a'], mood:'ordered, near',          motion:'crisp',     glyph:'週', icon:'▤'},
   reviews:  {name:'Reviews',       accent:['#8fb0a8','#4f7d73'], ink:'#1a1816', gradient:['#6f9a91','#a9bfa2'], mood:'measured, honest',       motion:'calm',      glyph:'省', icon:'◷'},
@@ -2961,17 +2879,6 @@ const PAGE_SCENES = {
     ${inscription(1084, 190, '積', 30)}${seal(1064, 260, 38, '財')}`),
 
   /* a hand scroll, half unrolled, with the mountains painted inside it */
-  chronicle: scene((u,r) => `<g stroke="${A}" fill="none" stroke-width="2.4" opacity=".4">
-      <rect x="150" y="230" width="900" height="330" rx="3"/>
-      <path d="M150,230 q-32,165 0,330 M1050,230 q32,165 0,330"/>
-      <line x1="118" y1="214" x2="118" y2="576"/><line x1="1082" y1="214" x2="1082" y2="576"/></g>
-    <g opacity=".8">${mountain(u, 480, 540, 420, 210, 'ch-1')}${mountain(u, 800, 540, 380, 170, 'ch-2', {far:true})}
-      ${pine(300, 548, .58, 'ch-p')}${boat(660, 548, .5)}</g>
-    ${mistBand(u, 470, 60)}
-    ${inscription(1000, 290, '前塵', 22)}${seal(196, 470, 34, '史')}
-    ${water(636, 220, 980, 3, 'ch-w')}`),
-
-  /* 文房四寶 — brush, ink, paper, inkstone */
   settings: scene((u,r) => `<g stroke="${A}" fill="none" stroke-width="2.2" opacity=".42">
       <path d="M330,240 v250 M312,490 q18,80 18,150 q0,-70 18,-150 Z" fill="${A}" fill-opacity=".12"/>
       <rect x="306" y="222" width="48" height="26" rx="4"/>
@@ -4010,7 +3917,7 @@ function entryCard(e, {clamp:cl=true, tools=true}={}){
   </article>`;
   const q = e.type==='quote'; const xc = e.extra||{};
   return `<article class="entry rv" data-entry="${e.id}">
-    <div class="meta"><span class="mono">${typeIcon(e.type)} ${typeName(e.type)}</span><span class="mono">${esc(fmtDate(e.occurredAt,'med'))}</span>${e.confidence?`<span class="status-pill">${esc(e.confidence)}</span>`:''}${tools?`<span class="tools"><button class="tbtn" data-edit="${e.id}">edit</button>${xc.turningPoint?`<span class="status-pill" title="a turning point in the Chronicle">◆ turning point</span>`:['memory','lifeevent','reflection','decision'].includes(e.type)?`<button class="tbtn" data-promote-turn="${e.id}" title="mark as a turning point in the Chronicle">→ turning point</button>`:''}<button class="snip-btn" data-snip="${e.id}" title="save to the Writing Studio">✂</button></span>`:''}</div>${tools?`<button class="del-x" data-del="${e.id}" title="delete" aria-label="delete entry">×</button>`:''}
+    <div class="meta"><span class="mono">${typeIcon(e.type)} ${typeName(e.type)}</span><span class="mono">${esc(fmtDate(e.occurredAt,'med'))}</span>${e.confidence?`<span class="status-pill">${esc(e.confidence)}</span>`:''}${tools?`<span class="tools"><button class="tbtn" data-edit="${e.id}">edit</button><button class="snip-btn" data-snip="${e.id}" title="save to the Writing Studio">✂</button></span>`:''}</div>${tools?`<button class="del-x" data-del="${e.id}" title="delete" aria-label="delete entry">×</button>`:''}
     ${e.title?`<div class="title">${esc(e.title)}</div>`:''}
     ${e.body?`<div class="body ${cl?'clamp':''} ${q?'quote':''}">${q?'“'+esc(e.body)+'”':md(e.body)}</div>`:''}
     ${e.media?.length?`<div class="thumbs">${e.media.map(m=>`<div class="photo" style="width:88px;height:88px;cursor:zoom-in" data-lb="${m.id}"><img src="${m.src}" alt="${esc(m.caption)}"></div>`).join('')}</div>`:''}
@@ -4022,7 +3929,6 @@ function entryCard(e, {clamp:cl=true, tools=true}={}){
 document.addEventListener('click', e => {
   const b = e.target.closest('.entry .body.clamp'); if(b){ b.classList.remove('clamp'); }
   const ed_ = e.target.closest('[data-edit]'); if(ed_){ openEntryModal({entryId: ed_.dataset.edit}); }
-  const pr = e.target.closest('[data-promote-turn]'); if(pr){ e.stopPropagation(); promoteToTurningPoint(pr.dataset.promoteTurn); }
   const del = e.target.closest('[data-del]'); if(del){ e.stopPropagation(); const ent = byId(S.entries, del.dataset.del); if(ent) requestDelete({label: ent.title || typeName(ent.type), node: del.closest('.entry, .formative'), remove: () => spliceOut(S.entries, x => x.id === ent.id)}); }
   const lb = e.target.closest('[data-lb]'); if(lb){ const img = lb.querySelector('img'); lightbox(img.src, img.alt); }
   const an = e.target.closest('[data-answer]'); if(an){ const ent = byId(S.entries, an.dataset.answer);
@@ -4692,7 +4598,7 @@ function eraColumnHTML(e){
       <div class="era-sub">${ed(`visionEras.#${e.id}.subtitle`,{ph:'what this chapter is for'})}</div>
       <div class="era-years mono">${ed(`visionEras.#${e.id}.startYear`,{ph:'from',cls:'mono',hook:'erayear:'+e.id})} – ${ed(`visionEras.#${e.id}.endYear`,{ph:e.type==='present'?'now':'to',cls:'mono',hook:'erayear:'+e.id})}${done.length?` · <span class="done-badge">${done.length} completed</span>`:''}</div>
       ${S.projects.some(p=>p.linkedVisionEra===e.id)?`<div class="row" style="gap:4px;flex-wrap:wrap">${S.projects.filter(p=>p.linkedVisionEra===e.id).map(p=>`<a href="#/projects/${p.id}" class="chip on click" style="--c:var(--terra);font-size:.62rem;text-decoration:none">🎨 ${esc(p.name)}</a>`).join('')}</div>`:''}
-      <div class="era-stage">${stage?`<a href="#/stage/${stage.id}" class="chip on click" style="--c:${stage.hue};font-size:.62rem"><span class="han-sm">${stage.char}</span> ${esc(stage.name)}</a>`:''}<select class="sel stage-link" data-stageref="${e.id}" title="link to a chapter of the chronicle"><option value="">${stage?'change chapter…':'link a chronicle chapter…'}</option>${S.stages.map(s=>`<option value="${s.id}" ${e.stageRef===s.id?'selected':''}>${s.char} ${esc(s.name)}</option>`).join('')}<option value="-">— unlink —</option></select></div>
+      <div class="era-stage">${stage?`<a href="#/stage/${stage.id}" class="chip on click" style="--c:${stage.hue};font-size:.62rem"><span class="han-sm">${stage.char}</span> ${esc(stage.name)}</a>`:''}<select class="sel stage-link" data-stageref="${e.id}" title="link to a chapter of the Timeline"><option value="">${stage?'change chapter…':'link a Timeline chapter…'}</option>${S.stages.map(s=>`<option value="${s.id}" ${e.stageRef===s.id?'selected':''}>${s.char} ${esc(s.name)}</option>`).join('')}<option value="-">— unlink —</option></select></div>
     </header>
     <div class="era-goals">${pending.length ? pending.map(v=>goalCardHTML(v,e)).join('') : `<div class="faint" style="font-size:.78rem;padding:6px 2px">${e.type==='past'?'no open goals':'nothing planned yet'}</div>`}</div>
     ${e.type!=='future' ? `<div class="era-events"><div class="era-divider">What happened <span class="mono">· life events</span></div>${events.map(x=>lifeEventHTML(x,e)).join('')||'<div class="faint" style="font-size:.76rem;padding:4px 2px;font-style:italic">nothing recorded yet</div>'}<button class="btn sm ghost" data-addevent="${e.id}">+ life event</button></div>` : ''}
@@ -7557,7 +7463,7 @@ function tapeState(){
   const t = S._lt = S._lt || {};
   t.view = ['day','week','month','quarter','half','year'].includes(t.view) ? t.view : 'week';
   t.day = /^\d{4}-\d{2}-\d{2}$/.test(t.day) ? t.day : today();
-  t.mode = ['total','setpoint','energy','section','streak'].includes(t.mode) ? t.mode : 'total';
+  t.mode = 'total';
   t.types = Array.isArray(t.types) ? t.types : [];
   t.sections = Array.isArray(t.sections) ? t.sections : [];
   t.q = t.q || ''; t.tag = t.tag || ''; t.from = t.from || ''; t.to = t.to || '';
@@ -7775,10 +7681,6 @@ function tapeMonthStripHTML(monthKeys, all){
       ${spAvgN?`<div class="mono" style="color:${spColor}">${spAvgN}/22</div>`:''}
       ${topKind?`<div class="mono" style="color:${topColor}">${topIcon} ${esc(topKind[0])}</div>`:''}</button>`; }).join('')}</div>`;
 }
-function tapeModeBarHTML(){
-  const t = tapeState();
-  return `<div class="row rv" style="gap:6px;flex-wrap:wrap;margin-bottom:12px">${TAPE_MODES.map(([k,l]) => `<button class="btn sm ${t.mode===k?'primary':'ghost'}" data-tapemode="${k}">${l}</button>`).join('')}</div>`;
-}
 /* one month, big enough to read the dates */
 function tapeMonthHTML(anchor){
   const t = tapeState(); const a = parseDay(anchor); const y = a.getFullYear(), m = a.getMonth();
@@ -7790,7 +7692,6 @@ function tapeMonthHTML(anchor){
       <b class="serif" style="font-size:1.15rem">${MONTHS[m]} ${y}</b>
       <span class="row" style="gap:6px"><button class="btn sm ghost" data-tapemonth="${shiftMonths(anchor,-1)}">‹</button><button class="btn sm ghost" data-tapemonth="${today().slice(0,8)}01">this month</button><button class="btn sm ghost" data-tapemonth="${shiftMonths(anchor,1)}">›</button></span>
     </div>
-    ${tapeModeBarHTML()}
     ${tapePeriodSummaryHTML(from, to, all)}
     <div class="rv">${tapeMonthBlock(y, m, byDay, t.mode, false)}</div>
     <details class="section rv" style="margin-top:14px"><summary><span class="sc">Everything in this month, in order</span><span class="mono"> ${all.length}</span></summary>
@@ -7814,14 +7715,12 @@ function tapeSpanHTML(anchor, monthCount, label){
       <b class="serif" style="font-size:1.15rem">${esc(name)}</b>
       <span class="row" style="gap:6px"><button class="btn sm ghost" data-tapespan="${prev}">‹</button><button class="btn sm ghost" data-tapespan="${today()}">this ${esc(label)}</button><button class="btn sm ghost" data-tapespan="${next}">›</button></span>
     </div>
-    ${tapeModeBarHTML()}
     ${tapePeriodSummaryHTML(from, to, all)}
     <div class="tape-span rv" style="grid-template-columns:repeat(3,1fr)">${months.map(({y:yy,m}) => tapeMonthBlock(yy, m, byDay, t.mode, true)).join('')}</div>
     ${tapeMonthStripHTML(months, all)}`;
 }
 
 /* ---------- Year View — the whole year at once ---------- */
-const TAPE_MODES = [['total','Activity'],['setpoint','Set-point'],['energy','Energy'],['section','By section'],['streak','Habit streaks']];
 function tapeYearDays(year){
   const out = []; let d = `${year}-01-01`; const end = `${year}-12-31`;
   while(d <= end){ out.push(d); d = addDays(d, 1); }
@@ -7856,12 +7755,7 @@ function tapeYearHTML(year){
       <b class="serif" style="font-size:1.15rem">${year}</b>
       <span class="row" style="gap:6px"><button class="btn sm ghost" data-tapeyear="${year-1}">‹</button><button class="btn sm ghost" data-tapeyear="${new Date().getFullYear()}">this year</button><button class="btn sm ghost" data-tapeyear="${year+1}">›</button></span>
     </div>
-    ${tapeModeBarHTML()}
-    ${t.mode === 'energy'
-      ? `<div class="stack rv" style="gap:14px">${DIMS.map(dim => { const bd = {};
-            days.forEach(d => { const v = S.checkins?.[d]?.energy?.[dim.id]; if(v) bd[d] = Array.from({length:Math.max(1,Math.round(v*1.6))}); });
-            return `<div><div class="sc" style="color:${dim.c}">${dim.name}</div>${tapeGrid(days, 'total', bd).replace(/var\(--page-accent\)/g, dim.c)}</div>`; }).join('')}</div>`
-      : `<div class="rv">${tapeGrid(days, t.mode, byDay)}</div>`}
+    <div class="rv">${tapeGrid(days, t.mode, byDay)}</div>
     ${tapePeriodSummaryHTML(`${year}-01-01`, `${year}-12-31`, all)}
     ${tapeMonthStripHTML(months, all)}`;
 }
@@ -7933,7 +7827,6 @@ function _bindLtBody(body){
   body.querySelectorAll('[data-tapeyear]').forEach(b => b.onclick = () => { t.day = b.dataset.tapeyear + t.day.slice(4); t.view = 'year'; refreshLtBody(); });
   body.querySelectorAll('[data-tapemonth]').forEach(b => b.onclick = e => { e.stopPropagation(); t.day = b.dataset.tapemonth; t.view = 'month'; refreshLtBody(); });
   body.querySelectorAll('[data-tapespan]').forEach(b => b.onclick = () => { t.day = b.dataset.tapespan; refreshLtBody(); });
-  body.querySelectorAll('[data-tapemode]').forEach(b => b.onclick = () => { t.mode = b.dataset.tapemode; refreshLtBody(); });
   body.querySelectorAll('[data-tapego]').forEach(n => n.onclick = () => navigate(n.dataset.tapego));
   bindTapeFilters(body);
   if(typeof bindHabitRings === 'function') bindHabitRings(body);
@@ -8486,9 +8379,7 @@ routes.rhythm = function(root, params){
   S._rhyTab = tab;
   const focus = S._rhyDay && /^\d{4}-\d{2}-\d{2}$/.test(S._rhyDay) ? S._rhyDay : T;
   registerPageEntry({pageName:'Rhythm', addLabel:'Add to the day', defaultEntryType:'event', prefilledFields:{}, options:[
-    {icon:'◍', label:'Habit', desc:'Something you mean to keep doing.', run:()=>openHabitModal()},
-    {icon:'▦', label:'Event', desc:'A block of time with a name.', run:()=>openEventModal({day:focus})},
-    {icon:'⤓', label:'Import a calendar (.ics)', desc:'A one-time upload from Google Calendar or another app — daily/weekly repeats only, no live sync.', run:()=>openICSImport()}]});
+    {icon:'◍', label:'Habit', desc:'Something you mean to keep doing.', run:()=>openHabitModal()},]});
   root.innerHTML = `<div class="page rhythm-page">
     <div class="page-head"><h1>${esc(S.settings.rhythmName || 'Rhythm')}</h1><div class="sub">Your calendar holds what you meant to do. This holds what you actually lived — the tape of it, the habits that made it, and the reviews that keep the whole instrument honest.</div></div>
     <div class="tabs">${TABS.map(([k,l]) => `<button class="${tab===k?'active':''}" data-rtab="${k}">${l}</button>`).join('')}</div>
@@ -8590,7 +8481,6 @@ function bindCalendar(box, days){
       const cur = HOUR0 + Math.ceil((ev.clientY - r.top) / HOUR_PX * 2) / 2;
       const start = Math.min(anchor, cur), dur = Math.max(.5, Math.abs(cur - anchor));
       ghost.remove(); ghost = null; anchor = null;
-      openEventModal({day: col.dataset.calday, start, dur, inline: true});
     };
     col.addEventListener('pointerup', finish); col.addEventListener('pointercancel', () => { ghost?.remove(); ghost = null; anchor = null; });
   });
@@ -8671,99 +8561,6 @@ function openDomainsModal(){
   m.querySelector('#domDone').onclick = () => { m.remove(); rerender(); };
 }
 
-/* ---------- .ics import — a one-time client-side read, not a live sync ----------
-   Google Calendar's own feed URLs are blocked from the browser by CORS, so this
-   deliberately stays a file upload: export a calendar to .ics, drop it here, done.
-   Only DAILY and WEEKLY RRULEs are expanded (a fixed 120-day horizon); anything
-   fancier (BYDAY lists, MONTHLY, exceptions) is imported as its first occurrence only. */
-function icsUnfold(text){
-  return text.replace(/\r\n/g,'\n').split('\n').reduce((lines, line) => {
-    if(/^[ \t]/.test(line) && lines.length) lines[lines.length-1] += line.slice(1);
-    else lines.push(line);
-    return lines;
-  }, []);
-}
-function icsUnescape(v){ return (v||'').replace(/\\n/gi,' ').replace(/\\,/g,',').replace(/\\;/g,';').replace(/\\\\/g,'\\'); }
-function icsParseDT(raw){
-  const m = (raw||'').match(/^(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(\d{2})(Z)?)?$/);
-  if(!m) return null;
-  const [,y,mo,da,hh,mi,ss,z] = m;
-  if(hh === undefined) return {day:`${y}-${mo}-${da}`, allDay:true, hour:9};
-  if(z){ const dt = new Date(Date.UTC(+y,+mo-1,+da,+hh,+mi,+ss||0)); return {day:isoDay(dt), allDay:false, hour: dt.getHours() + dt.getMinutes()/60}; }
-  return {day:`${y}-${mo}-${da}`, allDay:false, hour: +hh + (+mi)/60};
-}
-function parseICSEvents(text){
-  const lines = icsUnfold(text);
-  const events = []; let cur = null;
-  lines.forEach(line => {
-    if(line.startsWith('BEGIN:VEVENT')){ cur = {}; return; }
-    if(line.startsWith('END:VEVENT')){ if(cur) events.push(cur); cur = null; return; }
-    if(!cur) return;
-    const ci = line.indexOf(':'); if(ci < 0) return;
-    let key = line.slice(0, ci); const value = line.slice(ci+1);
-    const semi = key.indexOf(';'); key = semi >= 0 ? key.slice(0, semi) : key;
-    if(key === 'DTSTART') cur.dtstart = value;
-    else if(key === 'DTEND') cur.dtend = value;
-    else if(key === 'SUMMARY') cur.summary = icsUnescape(value);
-    else if(key === 'DESCRIPTION') cur.description = icsUnescape(value);
-    else if(key === 'RRULE') cur.rrule = value;
-  });
-  return events;
-}
-function expandRecurrence(startDay, rrule, horizonDays){
-  const days = [startDay];
-  if(!rrule) return days;
-  const parts = {}; rrule.split(';').forEach(p => { const [k,v] = p.split('='); parts[k] = v; });
-  const freq = parts.FREQ; if(freq !== 'DAILY' && freq !== 'WEEKLY') return days;
-  const interval = +(parts.INTERVAL || 1) || 1;
-  const count = parts.COUNT ? +parts.COUNT : null;
-  const until = parts.UNTIL ? icsParseDT(parts.UNTIL)?.day : null;
-  const horizon = addDays(today(), horizonDays);
-  const step = freq === 'DAILY' ? interval : interval * 7;
-  let d = startDay, n = 1;
-  while(days.length < 200){
-    d = addDays(d, step); n++;
-    if(count && n > count) break;
-    if(until && d > until) break;
-    if(!count && !until && d > horizon) break;
-    days.push(d);
-  }
-  return days;
-}
-function importICSText(text){
-  const raw = parseICSEvents(text);
-  let added = 0, skipped = 0;
-  raw.forEach(ev => {
-    if(!ev.dtstart) return;
-    const start = icsParseDT(ev.dtstart); if(!start) return;
-    const end = ev.dtend ? icsParseDT(ev.dtend) : null;
-    const dur = (end && !start.allDay && end.day === start.day && end.hour > start.hour) ? Math.round((end.hour-start.hour)*4)/4 : 1;
-    const title = (ev.summary || 'Imported event').trim() + (start.allDay ? ' (all day)' : '');
-    expandRecurrence(start.day, ev.rrule, 120).forEach(day => {
-      if(S.events.find(x => x.imported && x.title === title && x.day === day && x.start === start.hour)){ skipped++; return; }
-      S.events.push({id:uid(), title, day, start:start.hour, dur, domain:'', note:(ev.description||'').slice(0,300),
-        intention:'', reflectionEntryId:null, energyBefore:0, energyAfter:0, moodBefore:'', moodAfter:'', imported:true});
-      added++;
-    });
-  });
-  saveNow();
-  return {added, skipped};
-}
-function openICSImport(){
-  const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.ics,text/calendar';
-  inp.onchange = () => {
-    const f = inp.files[0]; if(!f) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const {added, skipped} = importICSText(String(reader.result||''));
-      if(!added && !skipped){ toast('No events found in that file.'); return; }
-      toast(`Imported ${added} event${added===1?'':'s'}${skipped ? ` · ${skipped} already here` : ''}. Daily/weekly repeats only, no live sync.`, 7000);
-      rerender();
-    };
-    reader.readAsText(f);
-  };
-  inp.click();
-}
 function openTaskSidePanel(r){
   const p = openPanel(`<div class="mono">task${r.where?` · ${esc(r.where)}`:''}</div><h2>${esc(r.text)}</h2>
     <div class="row" style="gap:10px;margin:10px 0 18px;flex-wrap:wrap">
@@ -8880,7 +8677,6 @@ function renderPlanPanel(box, d){
     <input class="inp quick-task" id="planQuick" placeholder="＋ add to the plan and press Enter">
     <div class="row" style="gap:6px;margin-top:8px;flex-wrap:wrap">
       <button class="btn sm ghost" id="planPull">pull from projects</button>
-      <button class="btn sm ghost" id="planEvent">＋ event</button>
       ${p.planned ? `<button class="btn sm ghost" id="planRedo">re-plan</button>` : ''}
     </div>
     <div class="row" style="gap:6px;margin-top:6px;flex-wrap:wrap">
@@ -8892,7 +8688,6 @@ function renderPlanPanel(box, d){
   $('#planStart') && ($('#planStart').onclick = () => planMyDay(d));
   $('#planRedo') && ($('#planRedo').onclick = () => planMyDay(d));
   $('#planPull').onclick = () => openTaskPicker(d, rerender);
-  $('#planEvent').onclick = () => openEventModal({day:d});
   $('#planWeekly').onclick = () => openWeeklyPlan(d);
   $('#planMonthly').onclick = () => openMonthlyPlan(d);
   $('#planCarry') && ($('#planCarry').onclick = () => { carried.forEach(r => r.task.day = d); saveNow(); sound('success'); rerender(); });
@@ -9467,402 +9262,6 @@ function renderPatterns(body){
 }
 /* the local report uses **bold**; render just that much inline */
 function mdInline(s){ return esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>'); }
-/* ============================================================
-   CHRONICLE — the story layer, as a periodic summary.
-   Journal keeps your days; Timeline keeps the rooms of a whole
-   life. This used to keep a second, hand-maintained copy of
-   both (chapters that duplicated stages, a thread list that
-   duplicated Timeline's threads, turning points as their own
-   object). It now does the opposite: pick a stretch of time —
-   a week, a month, a year, or a chapter you name by hand — and
-   everything already dated inside it assembles itself. Write
-   the hindsight narrative once you've seen the shape of it.
-   ============================================================ */
-const TURN_TYPES = {
-  decision:    ['⚖','Decision',    'you chose, and the choosing mattered',      '#c25b5b'],
-  event:       ['◆','Event',       'something happened to you',                 '#6b7f8e'],
-  realisation: ['✦','Realisation', 'you saw something you could not unsee',     '#d4a44c'],
-  loss:        ['◌','Loss',        'something ended',                           '#8e5f6b'],
-  achievement: ['▲','Achievement', 'you got there',                             '#7f916a'],
-  encounter:   ['☺','Encounter',   'someone walked in and the trajectory bent', '#a0727e'],
-};
-const CHAPTER_KINDS = {week:'week', month:'month', year:'year', custom:'custom'};
-const STAR_ICONS = ['☆','★','★★'];
-function migrateChapterShape(c){
-  c.kind = CHAPTER_KINDS[c.kind] ? c.kind : 'custom';
-  c.narrative = c.narrative || '';
-  c.narrativeHistory = Array.isArray(c.narrativeHistory) ? c.narrativeHistory : (c.narrative ? [{date:c.startDate||today(), text:c.narrative}] : []);
-  c.color = c.color || '#b08968';
-  c.starred = [0,1,2].includes(c.starred) ? c.starred : 0;
-  c.promotedToStageId = c.promotedToStageId || null;
-  c.status = ['open','closed','abandoned'].includes(c.status) ? c.status : 'open';
-  c.linkedThreadIds = Array.isArray(c.linkedThreadIds) ? c.linkedThreadIds : [];
-  c.linkedPeopleIds = Array.isArray(c.linkedPeopleIds) ? c.linkedPeopleIds : [];
-}
-/* one-time migration: fold the old chapters/turns/threadsN into entries + the real thread list */
-function migrateChronicle(){
-  S.chapters = Array.isArray(S.chapters) ? S.chapters : [];
-  S.turns = Array.isArray(S.turns) ? S.turns : [];
-  S.threadsN = Array.isArray(S.threadsN) ? S.threadsN : [];
-  if(S.settings.chronicleV2){ S.chapters.forEach(migrateChapterShape); return; }
-  const threadMap = {};
-  S.threadsN.forEach(tn => { let t = S.threads.find(x => x.name.toLowerCase() === (tn.name||'').toLowerCase());
-    if(!t){ t = {id:uid(), name:tn.name||'Untitled thread', desc:tn.description||'', color:tn.color||'#7f916a', status:'active'}; S.threads.push(t); }
-    threadMap[tn.id] = t.id; });
-  S.turns.forEach(t => {
-    let entry = (t.linkedMemoryIds||[])[0] ? byId(S.entries, t.linkedMemoryIds[0]) : (t.linkedJournalIds||[])[0] ? byId(S.entries, t.linkedJournalIds[0]) : null;
-    if(!entry){
-      entry = {id:uid(), type: t.type==='decision' ? 'decision' : 'lifeevent', title:t.title||'', occurredAt:t.date||today(), createdAt:new Date().toISOString(), media:[],
-        body:[t.description, t.impact?`\n\nHow it changed things: ${t.impact}`:'', t.lesson?`\n\nWhat it taught me: ${t.lesson}`:''].filter(Boolean).join(''),
-        links:{stages:[],substages:[],threads:[],values:[],visions:[],skills:[],projects:[],people:[]}, people:[], places:[], emotions:[], tags:[], confidence:'', extra:{}};
-      S.entries.push(entry);
-    }
-    entry.extra = entry.extra || {}; entry.extra.turningPoint = true; entry.extra.tpType = TURN_TYPES[t.type] ? t.type : 'event';
-    if(t.impact && !entry.extra.tpImpact) entry.extra.tpImpact = t.impact;
-    if(t.lesson && !entry.extra.tpLesson) entry.extra.tpLesson = t.lesson;
-    entry.links = entry.links || {}; entry.links.threads = entry.links.threads || [];
-    (t.threadIds||[]).forEach(tnid => { const rid = threadMap[tnid]; if(rid && !entry.links.threads.includes(rid)) entry.links.threads.push(rid); });
-    entry.links.people = entry.links.people || []; entry.people = entry.people || [];
-    (t.linkedPeopleIds||[]).forEach(pid => { if(!entry.links.people.includes(pid)) entry.links.people.push(pid); const nm = byId(S.people,pid)?.name; if(nm && !entry.people.includes(nm)) entry.people.push(nm); });
-  });
-  S.chapters.forEach(c => { c.kind = 'custom'; migrateChapterShape(c); });
-  S.turns = []; S.threadsN = [];
-  S.settings.chronicleV2 = true;
-}
-function turningPointEntries(){ return sortEntries(S.entries.filter(e => e.extra?.turningPoint)); }
-function promoteToTurningPoint(entryId){
-  const e = byId(S.entries, entryId); if(!e) return;
-  e.extra = e.extra || {};
-  if(e.extra.turningPoint){ toast('Already marked.'); return; }
-  e.extra.turningPoint = true; e.extra.tpType = e.type === 'decision' ? 'decision' : e.type === 'lifeevent' ? 'event' : 'realisation';
-  saveNow(); sound('success'); rerender();
-  toast('Marked as a turning point.', 5000, {label:'open Chronicle', fn:()=>navigate('#/chronicle')});
-}
-
-/* ---------- periods: week / month / year are computed; a chapter record is
-   created (or found) only once you look at one, so its narrative has somewhere
-   to live. A custom chapter is the same record, just hand-dated. ---------- */
-function periodRange(kind, anchor){
-  const a = parseDay(anchor);
-  if(kind === 'week'){ const start = weekStart(anchor); return {start, end:addDays(start,6), title:`Week of ${fmtDate(start,'med')}`}; }
-  if(kind === 'month'){ const y=a.getFullYear(), m=a.getMonth(); return {start:`${y}-${pad(m+1)}-01`, end:isoDay(new Date(y,m+1,0)), title:`${MONTHS[m]} ${y}`}; }
-  return {start:`${a.getFullYear()}-01-01`, end:`${a.getFullYear()}-12-31`, title:String(a.getFullYear())};
-}
-function findOrCreatePeriodChapter(kind, anchor){
-  const r = periodRange(kind, anchor); const id = `auto-${kind}-${r.start}`;
-  let c = byId(S.chapters, id);
-  if(!c){ c = {id, title:r.title, subtitle:'', startDate:r.start, endDate:r.end, kind, color:'#b08968', narrative:'', linkedEraId:null}; migrateChapterShape(c); S.chapters.push(c); saveNow(); }
-  return c;
-}
-function shiftAnchor(kind, anchor, n){
-  if(kind === 'week') return addDays(anchor, n*7);
-  const a = parseDay(anchor);
-  if(kind === 'month') return isoDay(new Date(a.getFullYear(), a.getMonth()+n, 1));
-  return isoDay(new Date(a.getFullYear()+n, 0, 1));
-}
-function entriesInRange(start, end){ return sortEntries(S.entries.filter(e => { const d = (e.occurredAt||'').slice(0,10); return /^\d{4}-\d{2}-\d{2}$/.test(d) && d >= start && d <= (end||today()); })); }
-function periodDigest(start, end){
-  const es = entriesInRange(start, end); const endD = end || today();
-  const tps = es.filter(e => e.extra?.turningPoint);
-  const media = es.filter(e => e.type === 'media' && typeof mediaX==='function' && mediaX(e).status === 'finished');
-  const snaps = (S.valueSnapshots||[]).filter(s => s.date >= start && s.date <= endD);
-  const days = []; { let d = start; let guard = 0; while(d <= endD && guard++ < 380){ days.push(d); d = addDays(d,1); } }
-  const states = days.map(d => dayState(d)).filter(v => v != null);
-  const threadTally = {}; es.forEach(e => (e.links.threads||[]).forEach(id => threadTally[id] = (threadTally[id]||0)+1));
-  const topThreads = Object.entries(threadTally).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([id,n]) => ({t:byId(S.threads,id), n})).filter(x=>x.t);
-  return {es, tps, media, snaps, avgState: states.length ? Math.round(avg(states)) : null, dayCount: days.length, topThreads};
-}
-function openChapterModal(){
-  const m = openModal(`<h2>A custom chapter</h2><p class="muted" style="font-size:.86rem">For a stretch of time that doesn't line up with a calendar month — “the Singapore years”, “after the diagnosis”.</p><div class="stack">
-    <input class="inp serif-lg" id="chTitle" placeholder="The Singapore years" autofocus>
-    <div class="grid c2" style="gap:10px"><div class="field"><label>From</label><input class="inp" type="date" id="chFrom" value="${today()}"></div><div class="field"><label>To</label><input class="inp" type="date" id="chTo"></div></div>
-    <div class="field"><label>Colour</label><input type="color" id="chColor" value="#b08968" style="width:100%;height:34px;border:none;background:none;padding:0;cursor:pointer"></div>
-  </div><div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn primary" id="chSave">Add the chapter</button></div>`,'narrow');
-  m.querySelector('#chSave').onclick = () => {
-    const title = m.querySelector('#chTitle').value.trim(); if(!title){ toast('Name it, even roughly.'); return; }
-    const c = {id:uid(), title, subtitle:'', startDate:m.querySelector('#chFrom').value||today(), endDate:m.querySelector('#chTo').value||null, kind:'custom', color:m.querySelector('#chColor').value, narrative:'', linkedEraId:null};
-    migrateChapterShape(c);
-    S.chapters.push(c); saveNow(); m.remove(); sound('success');
-    S._chKind = 'custom'; S._chCustomId = c.id; navigate('#/chronicle');
-  };
-}
-
-routes.chronicle = function(root, params){
-  migrateChronicle();
-  const view = ['chapters','patterns','print'].includes(params[0]) ? params[0] : 'summary';
-  registerPageEntry({pageName:'Chronicle', addLabel:'Name a custom chapter', defaultEntryType:'chapter', prefilledFields:{}, options:[
-    {icon:'▤', label:'Custom chapter', desc:'A stretch of time worth naming by hand.', run:()=>openChapterModal()},
-    {icon:'◆', label:'Mark a turning point', desc:'Pick an entry you\'ve already written and flag it.', run:()=>openTurningPointPicker()}]});
-  root.innerHTML = `<div class="page">
-    <div class="page-head"><h1>Chronicle</h1><div class="sub">Not a second Timeline — a periodic summary. Pick a stretch of time; everything already dated inside it assembles itself. Write the hindsight narrative once you've seen the shape of it.</div></div>
-    <div class="tabs">${[['summary','Summary'],['chapters','Chapters'],['patterns','Patterns'],['print','Print the book']].map(([k,l])=>`<button class="${view===k?'active':''}" data-chv="${k}">${l}</button>`).join('')}</div>
-    <div id="chBody"></div></div>`;
-  ({summary:chronSummary, chapters:chronChapters, patterns:chronAnalysis, print:chronPrint}[view])($('#chBody'));
-  $$('[data-chv]',root).forEach(b => b.onclick = () => navigate('#/chronicle' + (b.dataset.chv === 'summary' ? '' : '/' + b.dataset.chv)));
-  reveal(root);
-};
-function openTurningPointPicker(){
-  const pool = sortEntries(S.entries.filter(e => !e.extra?.turningPoint && ['memory','lifeevent','reflection','decision'].includes(e.type))).slice(0,200);
-  const m = openModal(`<h2>Which moment bent the trajectory?</h2><input class="inp" id="tpQ" placeholder="search"><div class="stack" id="tpList" style="gap:5px;margin-top:10px;max-height:50vh;overflow:auto"></div>`,'narrow');
-  const draw = q => { const list = pool.filter(e => !q || `${e.title} ${e.body}`.toLowerCase().includes(q.toLowerCase())).slice(0,60);
-    m.querySelector('#tpList').innerHTML = list.map(e => `<button class="choice" data-tp="${e.id}"><span class="ico">${typeIcon(e.type)}</span><span><b>${esc(e.title||(e.body||'').slice(0,60))}</b><div class="d">${esc(fmtDate(e.occurredAt,'med'))}</div></span></button>`).join('') || '<div class="empty">Nothing matches.</div>';
-    m.querySelectorAll('[data-tp]').forEach(b => b.onclick = () => { m.remove(); promoteToTurningPoint(b.dataset.tp); }); };
-  draw(''); m.querySelector('#tpQ').oninput = e => draw(e.target.value);
-}
-
-/* the period's narrative, versioned like a value or person's deep fields — hindsight kept, not overwritten */
-function chapterNarrativeF(chapter){
-  const hist = chapter.narrativeHistory || []; const latest = hist.slice(-1)[0];
-  return `<div class="value-field rv"><div class="q">The narrative</div><div class="faint" style="font-size:.8rem;margin-bottom:8px">Write it once you've seen the shape below — hindsight is the point, not a running log.</div>
-    <div class="prose serif-lg">${latest?md(latest.text):'<span class="empty">Not yet written.</span>'}</div>
-    <div class="row" style="margin-top:8px"><button class="btn sm ghost" data-chnarr="${chapter.id}">${latest?'write a new version':'write it'}</button>${hist.length>1?`<details style="border:none;flex:1"><summary><span class="mono">${hist.length-1} earlier version${hist.length-1===1?'':'s'}</span></summary><div class="body versions">${hist.slice(0,-1).map(h=>`<div class="v"><div class="mono">${fmtDate(h.date,'med')}</div>${md(h.text)}</div>`).reverse().join('')}</div></details>`:latest?`<span class="mono">${fmtDate(latest.date,'med')}</span>`:''}</div></div>`;
-}
-/* a double-starred, narrated period earns its way into the permanent record */
-function promoteChapterToTimeline(chapterId){
-  const c = byId(S.chapters, chapterId); if(!c) return;
-  const stage = stageForDate(c.startDate) || S.stages.find(s => !s.notyet);
-  if(!stage){ toast('No life stage to add it to yet.'); return; }
-  const text = (c.narrativeHistory||[]).slice(-1)[0]?.text || c.narrative || '';
-  stage.substages = stage.substages || [];
-  stage.substages.push({id:uid(), name:c.title, desc:text, photos:[], fromChapter:c.id});
-  c.promotedToStageId = stage.id; saveNow(); sound('success'); rerender();
-  toast(`Added as a sub-stage of ${esc(stage.name)}.`, 6000, {label:'open', fn:()=>navigate('#/stage/'+stage.id)});
-}
-/* ---------- Summary: the periodic digest ---------- */
-function chronSummary(box){
-  let kind = S._chKind || 'month';
-  let chapter;
-  if(kind === 'custom' && S._chCustomId) chapter = byId(S.chapters, S._chCustomId);
-  if(!chapter){ kind = ['week','month','year'].includes(kind) ? kind : 'month'; chapter = findOrCreatePeriodChapter(kind, S._chAnchor || today()); }
-  const d = periodDigest(chapter.startDate, chapter.endDate);
-  const canPromote = chapter.starred === 2 && (chapter.narrativeHistory||[]).length && !chapter.promotedToStageId;
-  box.innerHTML = `
-    <div class="row rv" style="gap:10px;margin:14px 0;flex-wrap:wrap;align-items:center">
-      <div class="lib-tabs">${[['week','Week'],['month','Month'],['year','Year']].map(([k,l])=>`<button class="${kind===k?'active':''}" data-chkind="${k}">${l}</button>`).join('')}${kind==='custom'?`<button class="active">${esc(chapter.title)}</button>`:''}</div>
-      ${kind!=='custom'?`<button class="btn sm ghost" id="chPrev">‹</button>`:''}<b class="serif" style="font-size:1.15rem">${esc(chapter.title)}</b>${kind!=='custom'?`<button class="btn sm ghost" id="chNext">›</button>`:''}
-      <span class="mono faint">${esc(chapter.startDate)}${chapter.endDate?` – ${esc(chapter.endDate)}`:' – now'}</span>
-      <button class="btn sm ghost" id="chStar" title="star this period — starred periods stay visible in Chapters">${STAR_ICONS[chapter.starred]}</button>
-    </div>
-    ${chapter.kind==='custom' ? `<div class="row rv" style="gap:10px;margin-bottom:14px;align-items:center">
-      <select class="sel" style="width:auto" id="chStatus"><option value="open" ${chapter.status==='open'?'selected':''}>open</option><option value="closed" ${chapter.status==='closed'?'selected':''}>closed</option><option value="abandoned" ${chapter.status==='abandoned'?'selected':''}>abandoned</option></select>
-    </div>
-    <div class="field rv"><label>Threads active in this chapter</label><div class="deps">${S.threads.map(t=>`<span class="chip click ${(chapter.linkedThreadIds||[]).includes(t.id)?'on':''}" style="--c:${t.color}" data-chthread="${t.id}">${esc(t.name)}</span>`).join('')||'<span class="faint">No threads named yet on Timeline.</span>'}</div></div>
-    <div class="field rv" style="margin-bottom:14px"><label>The cast — people in this chapter</label><div class="deps">${(S.people||[]).map(p=>`<span class="chip click ${(chapter.linkedPeopleIds||[]).includes(p.id)?'on':''}" style="--c:${personNodeColor(p)}" data-chperson="${p.id}">${esc(p.name)}</span>`).join('')||'<span class="faint">No one added yet.</span>'}</div></div>` : ''}
-    <div class="card rv" style="margin-bottom:18px"><div class="income-strip">
-      <div><div class="k">entries</div><div class="num" data-tween="${d.es.length}">0</div></div>
-      <div><div class="k">turning points</div><div class="num" data-tween="${d.tps.length}">0</div></div>
-      <div><div class="k">average state</div><div class="num">${d.avgState===null?'—':d.avgState}</div><div class="mono">of 100, across ${d.dayCount} day${d.dayCount===1?'':'s'}</div></div>
-      <div><div class="k">media finished</div><div class="num" data-tween="${d.media.length}">0</div></div>
-    </div></div>
-    ${d.topThreads.length ? `<div class="row rv" style="gap:6px;flex-wrap:wrap;margin-bottom:16px">${d.topThreads.map(({t,n})=>`<span class="chip on" style="--c:${t.color}">${esc(t.name)} · ${n}</span>`).join('')}</div>` : ''}
-    ${chapterNarrativeF(chapter)}
-    ${canPromote ? `<div class="nudges" style="margin:0 0 18px"><a class="nudge" href="javascript:void(0)" id="chPromote"><span class="nu-ico">★★</span><span>This looks like a significant period. Would you like to add it as a sub-stage in your Timeline?</span></a></div>` : ''}
-    ${d.tps.length ? `<section class="section rv"><span class="sc">Turning points</span>${d.tps.map(e=>entryCard(e)).join('')}</section>` : ''}
-    <section class="section rv"><span class="sc">Everything, in order</span>${d.es.length ? d.es.map(e=>entryCard(e)).join('') : '<div class="empty">Nothing dated in this stretch yet.</div>'}</section>
-  `;
-  box.querySelectorAll('[data-chkind]').forEach(b => b.onclick = () => { S._chKind = b.dataset.chkind; S._chCustomId = null; S._chAnchor = today(); rerender(); });
-  box.querySelector('#chPrev')?.addEventListener('click', () => { S._chAnchor = shiftAnchor(kind, S._chAnchor||today(), -1); rerender(); });
-  box.querySelector('#chStar').onclick = () => { chapter.starred = (chapter.starred+1)%3; saveNow(); sound('click'); rerender(); };
-  box.querySelector('#chStatus')?.addEventListener('change', function(){ chapter.status = this.value; saveNow(); });
-  box.querySelectorAll('[data-chthread]').forEach(c => c.onclick = () => { chapter.linkedThreadIds = chapter.linkedThreadIds||[]; const id = c.dataset.chthread;
-    chapter.linkedThreadIds = chapter.linkedThreadIds.includes(id) ? chapter.linkedThreadIds.filter(x=>x!==id) : [...chapter.linkedThreadIds, id]; saveNow(); c.classList.toggle('on'); });
-  box.querySelectorAll('[data-chperson]').forEach(c => c.onclick = () => { chapter.linkedPeopleIds = chapter.linkedPeopleIds||[]; const id = c.dataset.chperson;
-    chapter.linkedPeopleIds = chapter.linkedPeopleIds.includes(id) ? chapter.linkedPeopleIds.filter(x=>x!==id) : [...chapter.linkedPeopleIds, id]; saveNow(); c.classList.toggle('on'); });
-  box.querySelectorAll('[data-chnarr]').forEach(b => b.onclick = () => {
-    const latest = (chapter.narrativeHistory||[]).slice(-1)[0];
-    const m = openModal(`<h2>A new version</h2><textarea class="ta" id="cnText" style="min-height:200px">${esc(latest?.text||chapter.narrative||'')}</textarea><p class="faint" style="font-size:.78rem">The previous version is kept.</p><div class="row" style="justify-content:flex-end"><button class="btn primary" id="cnSave">Keep</button></div>`);
-    m.querySelector('#cnSave').onclick = () => { const t = m.querySelector('#cnText').value.trim(); if(!t) return;
-      chapter.narrativeHistory = chapter.narrativeHistory||[]; chapter.narrativeHistory.push({date:today(), text:t}); chapter.narrative = t; saveNow(); m.remove(); rerender(); sound('save'); };
-  });
-  box.querySelector('#chPromote')?.addEventListener('click', () => promoteChapterToTimeline(chapter.id));
-  box.querySelector('#chNext')?.addEventListener('click', () => { S._chAnchor = shiftAnchor(kind, S._chAnchor||today(), 1); rerender(); });
-}
-
-/* ---------- overlapping arcs across custom chapters — life as several stories at once ---------- */
-function chapterBarsHTML(chapters){
-  const T = today(); const withDates = chapters.filter(c => c.startDate);
-  if(withDates.length < 1) return '';
-  const min = withDates.map(c => c.startDate).reduce((a,b) => a<b?a:b);
-  const max = withDates.map(c => c.endDate || T).reduce((a,b) => a>b?a:b);
-  const totalDays = Math.max(1, daysBetween(min, max));
-  const pct = dd => clamp(daysBetween(min, dd)/totalDays*100, 0, 100);
-  const overlaps = (a,b) => !((a.endDate||T) < b.startDate || (b.endDate||T) < a.startDate);
-  const sorted = [...withDates].sort((a,b) => a.startDate.localeCompare(b.startDate));
-  const rows = [];
-  sorted.forEach(c => { let row = rows.find(r => !r.some(x => overlaps(x,c))); if(!row){ row = []; rows.push(row); } row.push(c); });
-  const stagesInRange = S.stages.filter(s => !s.notyet && stageYearRange(s));
-  return `<div class="chapter-bars rv" style="margin:14px 0">
-    ${rows.map(row => `<div class="cb-row">${row.map(c => `<div class="cb-bar click" data-chopen="${c.id}" style="left:${pct(c.startDate).toFixed(2)}%;width:${Math.max(1.2,pct(c.endDate||T)-pct(c.startDate)).toFixed(2)}%;--c:${c.color}" title="${esc(c.title)}">${esc(c.title)}</div>`).join('')}</div>`).join('')}
-    <div class="cb-stages">${stagesInRange.map(s => { const r = stageYearRange(s); let sStart = `${r[0]}-01-01`, sEnd = `${r[1]}-12-31`; if(sEnd<min||sStart>max) return '';
-      if(sStart<min) sStart=min; if(sEnd>max) sEnd=max; const left = pct(sStart), right = pct(sEnd);
-      return `<div class="cb-stage" style="left:${left}%;width:${Math.max(1,right-left)}%" title="${esc(s.name)}">${esc(s.char||'')}</div>`; }).join('')}</div>
-    <div class="cb-scale mono"><span>${esc(fmtDate(min,'med'))}</span><span>${esc(fmtDate(max,'med'))}</span></div>
-  </div>`;
-}
-/* ---------- Chapters: every period you've ever looked at or named, browsable ---------- */
-function chronChapters(box){
-  const showAll = !!S._chShowAll;
-  const chsAll = [...S.chapters].sort((a,b) => (b.startDate||'').localeCompare(a.startDate||''));
-  const chs = showAll ? chsAll : chsAll.filter(c => (c.starred||0) > 0);
-  const hidden = chsAll.length - chs.length;
-  box.innerHTML = `<div class="row rv" style="margin:14px 0;gap:8px;flex-wrap:wrap"><button class="btn sm ghost" id="chNewCustom">＋ name a custom chapter</button>${hidden?`<button class="btn sm ghost" id="chShowAll">${showAll?'hide unstarred':`show all ${chsAll.length} periods (${hidden} unstarred)`}</button>`:''}</div>
-    ${chapterBarsHTML(S.chapters.filter(c => c.kind === 'custom'))}
-    <div class="stack rv" style="gap:8px">${chs.length ? chs.map(c => { const d = periodDigest(c.startDate, c.endDate); const star = STAR_ICONS[c.starred||0];
-      return `<div class="card click" data-chopen="${c.id}" style="border-left:3px solid ${c.color}"><div class="row between"><b class="serif">${star!=='☆'?`${star} `:''}${esc(c.title)}${c.status && c.status!=='open'?` <span class="mono faint">· ${esc(c.status)}</span>`:''}</b><span class="mono">${esc(c.startDate)}${c.endDate?` – ${esc(c.endDate)}`:' – now'}</span></div>
-        ${c.narrative?`<div class="quote" style="font-size:.85rem;margin-top:4px">${esc(c.narrative.slice(0,160))}${c.narrative.length>160?'…':''}</div>`:''}
-        <div class="mono" style="margin-top:6px">${d.es.length} entries · ${d.tps.length} turning point${d.tps.length===1?'':'s'}</div></div>`; }).join('')
-      : `<div class="empty">${showAll?'Nothing yet — open a week, month or year from Summary and it appears here, or name a custom chapter by hand.':'No starred periods yet — star one from Summary, or show all periods above.'}</div>`}</div>`;
-  box.querySelectorAll('[data-chopen]').forEach(c => c.onclick = () => { const ch = byId(S.chapters, c.dataset.chopen); if(ch.kind==='custom'){ S._chKind='custom'; S._chCustomId=ch.id; } else { S._chKind=ch.kind; S._chAnchor=ch.startDate; S._chCustomId=null; } navigate('#/chronicle'); });
-  $('#chNewCustom').onclick = () => openChapterModal();
-  $('#chShowAll') && ($('#chShowAll').onclick = () => { S._chShowAll = !showAll; rerender(); });
-}
-
-/* ---------- Patterns ---------- */
-function chronAnalysis(box){
-  const tps = turningPointEntries();
-  const counts = {}; tps.forEach(e => { const k = TURN_TYPES[e.extra.tpType] ? e.extra.tpType : 'event'; counts[k] = (counts[k]||0)+1; });
-  const total = tps.length;
-  let a0 = -Math.PI/2; const C = 100, R = 78, r0 = 46;
-  const arcs = Object.entries(counts).map(([k,v]) => { const frac = v/Math.max(total,1); const a1 = a0 + frac*Math.PI*2;
-    const p = (ang, rad) => `${(C+Math.cos(ang)*rad).toFixed(2)},${(C+Math.sin(ang)*rad).toFixed(2)}`;
-    const big = frac > .5 ? 1 : 0;
-    const dd = `M${p(a0,R)} A${R},${R} 0 ${big} 1 ${p(a1,R)} L${p(a1,r0)} A${r0},${r0} 0 ${big} 0 ${p(a0,r0)} Z`;
-    a0 = a1; return `<path d="${dd}" fill="${TURN_TYPES[k][3]}" opacity=".85"><title>${esc(TURN_TYPES[k][1])}: ${v}</title></path>`; }).join('');
-  const dominant = Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
-  const thTally = {}; tps.forEach(e => (e.links.threads||[]).forEach(id => thTally[id] = (thTally[id]||0)+1));
-  const maxTh = Math.max(1,...Object.values(thTally),0);
-  box.innerHTML = `
-    ${total ? `<section class="reading-card rv" style="margin-bottom:20px"><div class="sc">What the shape says</div>
-      <div class="reading-body"><p>You have marked <b>${total}</b> turning point${total===1?'':'s'}.</p>
-      ${dominant && dominant[1] > 1 && Object.values(counts).filter(v=>v===dominant[1]).length===1 ? `<p>Most of them are <b>${esc(TURN_TYPES[dominant[0]][1].toLowerCase())}s</b> (${dominant[1]} of ${total}).${dominant[0]==='decision'?' You read your own life as something you shaped rather than something that happened to you.':dominant[0]==='event'?' Your story is told mostly as things that happened to you — worth asking where the decisions were.':''}</p>` : ''}
-      ${S.threads.length ? '' : '<p>No threads named yet on Timeline. A thread is what turns a list of moments into a story — name one there and it will show up here.</p>'}</div></section>` : ''}
-    <div class="grid c2 rv" style="align-items:start">
-      <div class="card"><span class="sc">Kinds of moment</span>
-        ${total ? `<div class="row" style="gap:18px;margin-top:12px;align-items:center;flex-wrap:wrap">
-          <svg viewBox="0 0 200 200" width="170" height="170" style="flex:none">${arcs}<text x="100" y="104" text-anchor="middle" style="fill:var(--text);font-family:var(--serif);font-size:22px">${total}</text></svg>
-          <div class="stack" style="gap:5px;flex:1;min-width:150px">${Object.entries(counts).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="row between"><span class="row" style="gap:7px"><i style="width:9px;height:9px;border-radius:2px;background:${TURN_TYPES[k][3]};display:inline-block"></i>${esc(TURN_TYPES[k][1])}</span><span class="mono">${v} · ${Math.round(v/total*100)}%</span></div>`).join('')}</div></div>`
-          : '<div class="empty">No turning points marked yet — flag one from any entry\'s card, or from the Chronicle\'s add button.</div>'}</div>
-      <div class="card"><span class="sc">Threads through your turning points</span>
-        ${Object.keys(thTally).length ? Object.entries(thTally).sort((a,b)=>b[1]-a[1]).map(([id,n]) => { const t = byId(S.threads,id); return t ? `<div class="influence-bar"><span style="width:120px;flex:none">${esc(t.name)}</span><span class="track"><i style="width:${Math.round(n/maxTh*100)}%;--c:${t.color}"></i></span><span class="mono" style="width:20px;text-align:right">${n}</span></div>` : ''; }).join('') : '<div class="empty">Tag a turning point\'s entry with a thread and it shows up here.</div>'}</div>
-    </div>`;
-}
-
-/* ---------- Print the book ---------- */
-const CHRONICLE_SECTIONS = [
-  ['cover',    'Title page',        'Your name, the date, one line.'],
-  ['chapters', 'The chapters, as I tell them','Named periods with their narratives and turning points.'],
-  ['stages',   'The stages lived',  'Each life stage from the Timeline, with its narrative.'],
-  ['memories', 'Memories',          'Formative events and the entries you marked as memories.'],
-  ['threads',  'Threads',           'The motifs that run through more than one period.'],
-  ['vision',   'What comes next',   'The chapters ahead and the goals inside them.'],
-  ['values',   'The compass',       'Your values, their order, and where they stand.'],
-  ['people',   'The people',        'Who is in the inner rings, and what they gave you.'],
-  ['letters',  'Letters',           'Letters to yourself that have been opened.'],
-  ['closing',  'A closing page',    'One page left blank for a hand-written line.'],
-];
-function chronicleConfig(){
-  const c = S.settings.chronicle = Object.assign({sections:CHRONICLE_SECTIONS.map(s=>s[0]), images:true, title:'', subtitle:'', author:''}, S.settings.chronicle || {});
-  return c;
-}
-function chronPrint(box){
-  const c = chronicleConfig();
-  const on = k => c.sections.includes(k);
-  const stages = S.stages.filter(s => !s.notyet);
-  const memories = sortEntries(S.entries.filter(e => ['memory','lifeevent','artifact'].includes(e.type) && !letterIsSealed(e)));
-  const eras = typeof erasList === 'function' ? erasList() : [];
-  const openedLetters = S.entries.filter(e => e.type === 'letter' && e.extra?.openedAt);
-  const namedChapters = [...S.chapters].filter(ch => ch.kind === 'custom' || ch.narrative).sort((a,b)=>(a.startDate||'').localeCompare(b.startDate||''));
-  box.innerHTML = `<div class="chronicle-page">
-    <div class="card rv no-print" style="margin-bottom:24px">
-      <div class="grid c2" style="gap:14px;align-items:start">
-        <div><span class="sc">What to include</span>
-          <div class="chron-picks">${CHRONICLE_SECTIONS.map(([k,label,desc])=>`<label class="chron-pick ${on(k)?'on':''}"><input type="checkbox" data-cs="${k}" ${on(k)?'checked':''}><span><b>${esc(label)}</b><span class="d">${esc(desc)}</span></span></label>`).join('')}</div>
-          <label class="toggle ${c.images?'on':''}" id="chImages" style="margin-top:10px"><span class="sw"></span><span>include photographs</span></label>
-        </div>
-        <div><span class="sc">The title page</span>
-          <div class="stack" style="gap:8px;margin-top:8px">
-            <input class="inp serif-lg" id="bkTitle" value="${esc(c.title)}" placeholder="A Life, So Far">
-            <input class="inp" id="bkSub" value="${esc(c.subtitle)}" placeholder="a subtitle, if you want one">
-            <input class="inp" id="bkAuthor" value="${esc(c.author)}" placeholder="your name">
-          </div>
-          <div class="row" style="margin-top:14px;gap:8px"><button class="btn primary" id="chPrint">⎙ Print · Save as PDF</button></div>
-          <div class="faint" style="font-size:.76rem;margin-top:8px">Everything below is what will print. In the dialogue, choose “Save as PDF” as the destination; turn on background graphics for the coloured pieces.</div>
-        </div>
-      </div>
-    </div>
-
-    <article class="chronicle" id="chronicle">
-      ${on('cover') ? `<section class="ch-cover ch-break">
-        <div class="ch-mark">生</div>
-        <h1 class="ch-title">${esc(c.title || 'A Life, So Far')}</h1>
-        ${c.subtitle ? `<div class="ch-sub">${esc(c.subtitle)}</div>` : ''}
-        <div class="ch-rule"></div>
-        <div class="ch-author">${esc(c.author || '')}</div>
-        <div class="ch-date">${esc(fmtDate(today()))}</div>
-        <div class="ch-counts mono">${stages.length} chapters · ${S.entries.length} entries · ${S.values.length} values · ${(S.people||[]).length} people</div>
-      </section>` : ''}
-
-      ${on('chapters') && namedChapters.length ? `<section class="ch-section ch-break"><h2 class="ch-h">The chapters, as I tell them</h2>
-        ${namedChapters.map(ch => { const tps = entriesInRange(ch.startDate, ch.endDate).filter(e=>e.extra?.turningPoint);
-          return `<div class="ch-stage">
-          <div class="ch-stage-head"><span class="ch-han" style="color:${esc(ch.color)}">§</span><div><h3>${esc(ch.title)}</h3><div class="mono">${esc(ch.startDate||'')}${ch.endDate?` – ${esc(ch.endDate)}`:' – now'}</div></div></div>
-          ${ch.narrative ? `<div class="ch-prose">${md(ch.narrative)}</div>` : '<div class="ch-empty">Narrative not written.</div>'}
-          ${tps.length ? `<div class="ch-sub-list">${tps.map(t=>`<div class="ch-substage"><b>${esc(fmtDate(t.occurredAt,'med'))} — ${esc(t.title||typeName(t.type))}</b>${t.body?`<div class="ch-prose">${md(t.body)}</div>`:''}</div>`).join('')}</div>` : ''}
-        </div>`; }).join('')}</section>` : ''}
-
-      ${on('stages') && stages.length ? `<section class="ch-section ch-break"><h2 class="ch-h">The chapters lived</h2>
-        ${stages.map(s => `<div class="ch-stage">
-          <div class="ch-stage-head"><span class="ch-han">${esc(s.char||'')}</span><div><h3>${esc(s.name)}</h3><div class="mono">${esc(s.years||'')}${s.tagline?` · ${esc(s.tagline)}`:''}</div></div></div>
-          ${s.narrative ? `<div class="ch-prose">${md(s.narrative)}</div>` : '<div class="ch-empty">Not yet written.</div>'}
-          ${(s.substages||[]).filter(x=>x.desc).length ? `<div class="ch-sub-list">${s.substages.filter(x=>x.desc).map(x=>`<div class="ch-substage"><b>${esc(x.name)}</b> — ${esc(x.desc)}</div>`).join('')}</div>` : ''}
-          ${c.images && (s.photos||[]).length ? `<div class="ch-photos">${s.photos.slice(0,6).map(p=>`<img src="${esc(p.src)}" alt="">`).join('')}</div>` : ''}
-        </div>`).join('')}</section>` : ''}
-
-      ${on('memories') && memories.length ? `<section class="ch-section ch-break"><h2 class="ch-h">Memories</h2>
-        ${memories.slice(0,60).map(e => `<div class="ch-entry"><div class="ch-when mono">${esc(fmtDate(e.occurredAt,'med'))}</div>
-          <div>${e.title?`<div class="ch-entry-title">${esc(e.title)}</div>`:''}<div class="ch-prose">${md(e.body||'')}</div>
-          ${c.images && (e.media||[]).length ? `<div class="ch-photos">${e.media.slice(0,3).map(m=>`<img src="${esc(m.src)}" alt="">`).join('')}</div>` : ''}</div></div>`).join('')}</section>` : ''}
-
-      ${on('threads') && S.threads.length ? `<section class="ch-section ch-break"><h2 class="ch-h">Threads</h2>
-        ${S.threads.map(t => { const tt = turningPointEntries().filter(e=>(e.links.threads||[]).includes(t.id));
-          return `<div class="ch-thread"><h3 style="color:${esc(t.color||'inherit')}">${esc(t.name)}</h3>${t.desc?`<div class="ch-prose">${md(t.desc)}</div>`:''}
-          ${tt.length?`<ul class="ch-goals">${tt.map(x=>`<li><span class="mono">${esc(fmtDate(x.occurredAt,'med'))}</span> — ${esc(x.title||typeName(x.type))}</li>`).join('')}</ul>`:''}</div>`; }).join('')}</section>` : ''}
-
-      ${on('vision') && eras.length ? `<section class="ch-section ch-break"><h2 class="ch-h">What comes next</h2>
-        ${eras.map(era => { const goals = S.visions.filter(v => v.era === era.id && !v.archived);
-          return `<div class="ch-era"><h3>${esc(era.name)}${era.startYear||era.endYear?` <span class="mono">${esc(era.startYear||'')}–${esc(era.endYear||'')}</span>`:''}</h3>
-          ${era.subtitle?`<div class="ch-era-sub">${esc(era.subtitle)}</div>`:''}
-          ${goals.length ? `<ul class="ch-goals">${goals.map(v=>`<li><b>${esc(v.name)}</b>${v.successCriteria?` — ${esc(v.successCriteria)}`:''}</li>`).join('')}</ul>` : '<div class="ch-empty">Nothing written for this chapter yet.</div>'}</div>`; }).join('')}</section>` : ''}
-
-      ${on('values') && S.valueOrder.length ? `<section class="ch-section ch-break"><h2 class="ch-h">The compass</h2>
-        <ol class="ch-values">${S.valueOrder.map(id => { const v = byId(S.values,id); if(!v) return ''; const cur = valueCurrent(id);
-          return `<li><b style="color:${esc(v.color)}">${esc(v.name)}</b> <span class="mono">${cur}/100</span>${(v.fields?.embody||[]).slice(-1)[0]?.text ? `<div class="ch-prose">${esc((v.fields.embody||[]).slice(-1)[0].text)}</div>` : ''}</li>`; }).join('')}</ol></section>` : ''}
-
-      ${on('people') && (S.people||[]).length ? `<section class="ch-section ch-break"><h2 class="ch-h">The people</h2>
-        ${(S.people||[]).filter(p => ['inner','middle'].includes(p.circle)).map(p => `<div class="ch-person"><h3>${esc(p.name)}${p.relationship?` <span class="mono">${esc(p.relationship)}</span>`:''}</h3>
-          ${p.details?.notes?`<div class="ch-prose">${md(p.details.notes)}</div>`:''}
-          ${p.details?.lifeUpdates?`<div class="ch-prose">${md(p.details.lifeUpdates)}</div>`:''}</div>`).join('') || '<div class="ch-empty">No one in the inner rings yet.</div>'}</section>` : ''}
-
-      ${on('letters') && openedLetters.length ? `<section class="ch-section ch-break"><h2 class="ch-h">Letters</h2>
-        ${openedLetters.map(e => `<div class="ch-letter"><div class="mono">written ${esc(fmtDate((e.createdAt||'').slice(0,10),'med'))} · opened ${esc(fmtDate(e.extra.openedAt,'med'))}</div>
-          ${e.title?`<h3>${esc(e.title)}</h3>`:''}<div class="ch-prose">${md(e.body)}</div>
-          ${e.extra.reply?`<div class="ch-reply"><em>Reading it back.</em> ${md(e.extra.reply)}</div>`:''}</div>`).join('')}</section>` : ''}
-
-      ${on('closing') ? `<section class="ch-closing ch-break"><div class="ch-rule"></div><p class="ch-closing-line">The rest is not written yet.</p><div class="ch-blank"></div></section>` : ''}
-    </article>
-  </div>`;
-  $('#chPrint') && ($('#chPrint').onclick = () => { sound('open'); setTimeout(() => window.print(), 120); });
-  $$('[data-cs]',box).forEach(cb => cb.onchange = () => {
-    const k = cb.dataset.cs;
-    c.sections = cb.checked ? [...new Set([...c.sections, k])] : c.sections.filter(x => x !== k);
-    saveNow(); rerender();
-  });
-  $('#chImages').onclick = () => { c.images = !c.images; saveNow(); rerender(); };
-  ['bkTitle:title','bkSub:subtitle','bkAuthor:author'].forEach(pair => {
-    const [id, key] = pair.split(':'); const el_ = $('#'+id);
-    el_.addEventListener('input', debounce(() => { c[key] = el_.value; saveNow(); const t = document.querySelector('.ch-title'); if(key==='title' && t) t.textContent = c.title || 'A Life, So Far'; }, 400));
-  });
-};
 /* ============================================================
    13. SETTINGS
    ============================================================ */
@@ -11152,7 +10551,6 @@ const NAV_ICONS = {
   people:   '<svg viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19.5c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/><circle cx="16.8" cy="9.5" r="2.4"/><path d="M15 14.9c3 .2 5.5 1.9 5.5 4.6"/></svg>',
   board:    '<svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="7" height="9" rx="1.5"/><rect x="13.5" y="4.5" width="7" height="5.5" rx="1.5"/><rect x="3.5" y="16" width="7" height="3.5" rx="1.5"/><rect x="13.5" y="12.5" width="7" height="7" rx="1.5"/></svg>',
   finance:  '<svg viewBox="0 0 24 24"><path d="M4 19V9M9.3 19V5.5M14.7 19v-8M20 19V7.5"/><path d="M3 21h18"/></svg>',
-  chronicle:'<svg viewBox="0 0 24 24"><path d="M5.5 4.5h9a2 2 0 0 1 2 2V20H7.5a2 2 0 0 1-2-2Z"/><path d="M16.5 6.5h2V20H7.5"/><path d="M8.5 8.5h5M8.5 11.5h5M8.5 14.5h3"/></svg>',
   commonplace:'<svg viewBox="0 0 24 24"><path d="M5 4.5h9a2.5 2.5 0 0 1 2.5 2.5v12.5H7.5A2.5 2.5 0 0 1 5 17Z"/><path d="M16.5 7H19v12.5H7.5"/><path d="M8 8.5h5.5M8 11.5h5.5"/></svg>',
   import:     '<svg viewBox="0 0 24 24"><rect x="3.5" y="13" width="17" height="7.5" rx="2"/><path d="M3.5 16h4l1.5 2h6l1.5-2h4"/><path d="M12 3.5v9M9.5 10l2.5 2.5L14.5 10"/></svg>',
 };
@@ -11165,7 +10563,6 @@ const NAV_PAGES = {
   writing:  {label:'The Writing Studio', short:'Writing', ico:NAV_ICONS.writing,  route:'#/writing'},
   people:   {label:'People',           short:'People',   ico:NAV_ICONS.people,   route:'#/people'},
   finance:  {label:'Finance',          short:'Money',    ico:NAV_ICONS.finance,  route:'#/finance'},
-  chronicle:{label:'Chronicle',        short:'Book',     ico:NAV_ICONS.chronicle,route:'#/chronicle'},
   commonplace:{label:'The Library',    short:'Library',  ico:NAV_ICONS.commonplace, route:'#/commonplace'},
   import:   {label:'Import Station',   short:'Import',   ico:NAV_ICONS.import,   route:'#/import'},
   values:   {label:'Values',           short:'Values',   ico:NAV_ICONS.values,   route:'#/values'},
@@ -11176,7 +10573,7 @@ const NAV_PAGES = {
 const NAV_DEFAULT = {
   present:   ['today','rhythm','projects'],
   becoming:  ['values','skills','vision'],
-  story:     ['people','timeline','chronicle','journals'],
+  story:     ['people','timeline','journals'],
   standalone:['commonplace','writing','finance','import'],
 };
 const NAV_ZONES = [
@@ -11252,7 +10649,6 @@ function houseStats(){
       return {line:`${(S.people||[]).length} people${od.length?` · ${od.length} overdue`:''}`, ok:!od.length, cadence:'weekly', tip:'A life is mostly other people.'}; })(),
     finance:  (()=>{ const streams = typeof incomeStreamList==='function' ? incomeStreamList() : []; const tc = sum(streams.map(s=>s.income.current||0));
       return {line: streams.length ? `${money(tc)}/mo across ${streams.length} stream${streams.length===1?'':'s'}` : 'no income streams yet', ok:true, cadence:'monthly', tip:'Building ways to make money, and what enough looks like.'}; })(),
-    chronicle:{line:'the record as a book', ok:true, cadence:'annual', tip:'Print it, or save it as a PDF.'},
   };
   return {stat, due, done, vs, wither, last, snapDays, gaps, atro, hrs30, active, nods7, j7, quotes, memories, c, rem, zonesOf: k => n.present.includes(k)?'present':n.becoming.includes(k)?'becoming':'always'};
 }
@@ -11311,8 +10707,7 @@ function zoneSummaries(){
     lines:[
       overdue.length ? [`${overdue.length} ${overdue.length === 1 ? 'person is' : 'people are'} overdue for contact`, 'var(--gold)'] : ['everyone is within their cadence', 'var(--sage)'],
       jrnAge === null ? ['nothing written yet', 'var(--faint)'] : [`last journal ${relDays(jrnAge)}`, jrnAge > 7 ? 'var(--gold)' : ''],
-      bdays.length ? [`${esc(bdays[0].p.name)}&#39;s birthday in ${bdays[0].days} day${bdays[0].days === 1 ? '' : 's'}`, 'var(--terra)']
-                   : [`${turningPointEntries().length} turning point${turningPointEntries().length === 1 ? '' : 's'} in the Chronicle`, ''],
+      bdays.length ? [`${esc(bdays[0].p.name)}&#39;s birthday in ${bdays[0].days} day${bdays[0].days === 1 ? '' : 's'}`, 'var(--terra)'] : null,
     ]});
 
   const m = T.slice(0,7);
@@ -11330,7 +10725,7 @@ function zoneSummaries(){
 function zoneCardsHTML(){
   return `<section class="zone-cards rv">${zoneSummaries().map(c => `<a class="zone-card" href="${c.route}" style="--z:${c.accent}">
     <div class="zc-h"><span class="zc-label">${esc(c.label)}</span><span class="zc-hint mono">${esc(c.hint)}</span></div>
-    <div class="zc-lines">${c.lines.map(([t, col]) => `<div class="zc-line"${col ? ` style="color:${col}"` : ''}>${t}</div>`).join('')}</div>
+    <div class="zc-lines">${c.lines.filter(Boolean).map(([t, col]) => `<div class="zc-line"${col ? ` style="color:${col}"` : ''}>${t}</div>`).join('')}</div>
     <span class="zc-go mono">open →</span></a>`).join('')}</section>`;
 }
 routes.home = function(root){
@@ -11469,7 +10864,7 @@ const STARTER = {
      why:'This instrument exists because of it, and the next thing will too.',
      levels:['Making it work','Making it readable','Making it fast','Making it something other people can use'], current:2},
     {key:'sk-write', name:'Writing', cat:'Creative', horizon:'active', priority:'P3',
-     why:'Everything here — the journals, the chronicle, the Writing room — is downstream of being able to say what I mean.',
+     why:'Everything here — the journals, the Timeline, the Writing room — is downstream of being able to say what I mean.',
      levels:['Getting it down','Getting it clear','Getting it good','Getting it read'], current:2},
     {key:'sk-hosp', name:'Running a room', cat:'Social', horizon:'someday', priority:'P3',
      why:'The bar is not a drinks problem. It is a hospitality problem.',
@@ -11485,7 +10880,7 @@ const STARTER = {
      description:'This. A single-file personal instrument for keeping a life legible to the person living it.',
      tags:['craft'], skills:['sk-build','sk-write'],
      phases:[
-       {name:'Build the rooms', tasks:[['Rhythm, Finance, People, Chronicle', true], ['Three-zone navigation', true], ['Backgrounds and sound', true]]},
+       {name:'Build the rooms', tasks:[['Rhythm, Finance, People', true], ['Three-zone navigation', true], ['Backgrounds and sound', true]]},
        {name:'Live in it for a week', tasks:[['Open it every morning without a reminder', false], ['Write one journal entry a day', false], ['Log every practice session', false], ['Note every place it gets in the way', false]]},
        {name:'Then, and only then, change it', tasks:[['Fix the three worst frictions from the week', false]]},
      ]},
@@ -11596,19 +10991,13 @@ const STARTER = {
      }},
   ],
 
-  /* ---- Chronicle: the one thing we can honestly date, because it is
-     happening right now — no invented past, just the record starting ---- */
-  chapters: [
-    {key:'ch-instrument', title:'Building the instrument', color:'#7f916a', status:'open',
-     narrative:'Building a way of keeping track, before anything else got tracked. Everything before this chapter is real; this is just where the record starts.'},
-  ],
 };
 
 /* ---------- applying it ---------- */
 function starterCount(){
   const n = a => (a||[]).filter(x => x && x.seeded === STARTER_TAG).length;
   return n(S.visions) + n(S.skills) + n(S.projects) + n(S.values) + n(S.entries) + n(S.ideas) + n(S.threads) + n(S.stages)
-    + n(S.incomeStreams) + n(S.chapters) + n(S.finance?.scenarios);
+    + n(S.incomeStreams) + n(S.finance?.scenarios);
 }
 function houseIsEmpty(){
   return !(S.visions||[]).length && !(S.skills||[]).length && !(S.projects||[]).length
@@ -11682,23 +11071,6 @@ function applyStarter(){
       items.forEach(([name, amount]) => cat.items.push({id:uid(), name, amount, currency:fs.currency, notes:''})); });
     S.finance.scenarios.push(sc);
   });
-
-  /* Chronicle: the one thing datable without inventing a past — the record starting */
-  if(typeof migrateChronicle === 'function') migrateChronicle();
-  STARTER.chapters.forEach(ch => { if(has(S.chapters, ch.key)) return;
-    const c = {id:uid(), seeded:STARTER_TAG, seedKey:ch.key, title:ch.title, subtitle:'', startDate:T, endDate:null,
-      kind:'custom', color:ch.color, narrative:ch.narrative, narrativeHistory:[{date:T, text:ch.narrative}], linkedEraId:null};
-    if(typeof migrateChapterShape === 'function') migrateChapterShape(c);
-    c.status = ch.status || c.status;
-    S.chapters.push(c); });
-  if(typeof findOrCreatePeriodChapter === 'function'){
-    const monthCh = findOrCreatePeriodChapter('month', T);
-    if(!(monthCh.narrativeHistory||[]).length){
-      monthCh.seeded = STARTER_TAG; monthCh.starred = 1;
-      monthCh.narrativeHistory = [{date:T, text:'Starting to use the Life Instrument. Nothing dramatic yet — just the record beginning.'}];
-      monthCh.narrative = monthCh.narrativeHistory[0].text;
-    }
-  }
 
   const blank = (type, title, body, extra, tags) => ({id:uid(), seeded:STARTER_TAG, type, title, body:body||'',
     occurredAt:T, createdAt:stamp, media:[],

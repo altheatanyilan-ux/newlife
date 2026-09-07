@@ -441,17 +441,6 @@ const PAGE_SCENES = {
     ${inscription(1084, 190, '積', 30)}${seal(1064, 260, 38, '財')}`),
 
   /* a hand scroll, half unrolled, with the mountains painted inside it */
-  chronicle: scene((u,r) => `<g stroke="${A}" fill="none" stroke-width="2.4" opacity=".4">
-      <rect x="150" y="230" width="900" height="330" rx="3"/>
-      <path d="M150,230 q-32,165 0,330 M1050,230 q32,165 0,330"/>
-      <line x1="118" y1="214" x2="118" y2="576"/><line x1="1082" y1="214" x2="1082" y2="576"/></g>
-    <g opacity=".8">${mountain(u, 480, 540, 420, 210, 'ch-1')}${mountain(u, 800, 540, 380, 170, 'ch-2', {far:true})}
-      ${pine(300, 548, .58, 'ch-p')}${boat(660, 548, .5)}</g>
-    ${mistBand(u, 470, 60)}
-    ${inscription(1000, 290, '前塵', 22)}${seal(196, 470, 34, '史')}
-    ${water(636, 220, 980, 3, 'ch-w')}`),
-
-  /* 文房四寶 — brush, ink, paper, inkstone */
   settings: scene((u,r) => `<g stroke="${A}" fill="none" stroke-width="2.2" opacity=".42">
       <path d="M330,240 v250 M312,490 q18,80 18,150 q0,-70 18,-150 Z" fill="${A}" fill-opacity=".12"/>
       <rect x="306" y="222" width="48" height="26" rx="4"/>

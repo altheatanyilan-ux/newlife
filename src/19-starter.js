@@ -71,7 +71,7 @@ const STARTER = {
      why:'This instrument exists because of it, and the next thing will too.',
      levels:['Making it work','Making it readable','Making it fast','Making it something other people can use'], current:2},
     {key:'sk-write', name:'Writing', cat:'Creative', horizon:'active', priority:'P3',
-     why:'Everything here — the journals, the chronicle, the Writing room — is downstream of being able to say what I mean.',
+     why:'Everything here — the journals, the Timeline, the Writing room — is downstream of being able to say what I mean.',
      levels:['Getting it down','Getting it clear','Getting it good','Getting it read'], current:2},
     {key:'sk-hosp', name:'Running a room', cat:'Social', horizon:'someday', priority:'P3',
      why:'The bar is not a drinks problem. It is a hospitality problem.',
@@ -87,7 +87,7 @@ const STARTER = {
      description:'This. A single-file personal instrument for keeping a life legible to the person living it.',
      tags:['craft'], skills:['sk-build','sk-write'],
      phases:[
-       {name:'Build the rooms', tasks:[['Rhythm, Finance, People, Chronicle', true], ['Three-zone navigation', true], ['Backgrounds and sound', true]]},
+       {name:'Build the rooms', tasks:[['Rhythm, Finance, People', true], ['Three-zone navigation', true], ['Backgrounds and sound', true]]},
        {name:'Live in it for a week', tasks:[['Open it every morning without a reminder', false], ['Write one journal entry a day', false], ['Log every practice session', false], ['Note every place it gets in the way', false]]},
        {name:'Then, and only then, change it', tasks:[['Fix the three worst frictions from the week', false]]},
      ]},
@@ -198,19 +198,13 @@ const STARTER = {
      }},
   ],
 
-  /* ---- Chronicle: the one thing we can honestly date, because it is
-     happening right now — no invented past, just the record starting ---- */
-  chapters: [
-    {key:'ch-instrument', title:'Building the instrument', color:'#7f916a', status:'open',
-     narrative:'Building a way of keeping track, before anything else got tracked. Everything before this chapter is real; this is just where the record starts.'},
-  ],
 };
 
 /* ---------- applying it ---------- */
 function starterCount(){
   const n = a => (a||[]).filter(x => x && x.seeded === STARTER_TAG).length;
   return n(S.visions) + n(S.skills) + n(S.projects) + n(S.values) + n(S.entries) + n(S.ideas) + n(S.threads) + n(S.stages)
-    + n(S.incomeStreams) + n(S.chapters) + n(S.finance?.scenarios);
+    + n(S.incomeStreams) + n(S.finance?.scenarios);
 }
 function houseIsEmpty(){
   return !(S.visions||[]).length && !(S.skills||[]).length && !(S.projects||[]).length
@@ -284,23 +278,6 @@ function applyStarter(){
       items.forEach(([name, amount]) => cat.items.push({id:uid(), name, amount, currency:fs.currency, notes:''})); });
     S.finance.scenarios.push(sc);
   });
-
-  /* Chronicle: the one thing datable without inventing a past — the record starting */
-  if(typeof migrateChronicle === 'function') migrateChronicle();
-  STARTER.chapters.forEach(ch => { if(has(S.chapters, ch.key)) return;
-    const c = {id:uid(), seeded:STARTER_TAG, seedKey:ch.key, title:ch.title, subtitle:'', startDate:T, endDate:null,
-      kind:'custom', color:ch.color, narrative:ch.narrative, narrativeHistory:[{date:T, text:ch.narrative}], linkedEraId:null};
-    if(typeof migrateChapterShape === 'function') migrateChapterShape(c);
-    c.status = ch.status || c.status;
-    S.chapters.push(c); });
-  if(typeof findOrCreatePeriodChapter === 'function'){
-    const monthCh = findOrCreatePeriodChapter('month', T);
-    if(!(monthCh.narrativeHistory||[]).length){
-      monthCh.seeded = STARTER_TAG; monthCh.starred = 1;
-      monthCh.narrativeHistory = [{date:T, text:'Starting to use the Life Instrument. Nothing dramatic yet — just the record beginning.'}];
-      monthCh.narrative = monthCh.narrativeHistory[0].text;
-    }
-  }
 
   const blank = (type, title, body, extra, tags) => ({id:uid(), seeded:STARTER_TAG, type, title, body:body||'',
     occurredAt:T, createdAt:stamp, media:[],

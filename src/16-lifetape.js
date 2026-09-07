@@ -38,7 +38,7 @@ function tapeState(){
   const t = S._lt = S._lt || {};
   t.view = ['day','week','month','quarter','half','year'].includes(t.view) ? t.view : 'week';
   t.day = /^\d{4}-\d{2}-\d{2}$/.test(t.day) ? t.day : today();
-  t.mode = ['total','setpoint','energy','section','streak'].includes(t.mode) ? t.mode : 'total';
+  t.mode = 'total';
   t.types = Array.isArray(t.types) ? t.types : [];
   t.sections = Array.isArray(t.sections) ? t.sections : [];
   t.q = t.q || ''; t.tag = t.tag || ''; t.from = t.from || ''; t.to = t.to || '';
@@ -256,10 +256,6 @@ function tapeMonthStripHTML(monthKeys, all){
       ${spAvgN?`<div class="mono" style="color:${spColor}">${spAvgN}/22</div>`:''}
       ${topKind?`<div class="mono" style="color:${topColor}">${topIcon} ${esc(topKind[0])}</div>`:''}</button>`; }).join('')}</div>`;
 }
-function tapeModeBarHTML(){
-  const t = tapeState();
-  return `<div class="row rv" style="gap:6px;flex-wrap:wrap;margin-bottom:12px">${TAPE_MODES.map(([k,l]) => `<button class="btn sm ${t.mode===k?'primary':'ghost'}" data-tapemode="${k}">${l}</button>`).join('')}</div>`;
-}
 /* one month, big enough to read the dates */
 function tapeMonthHTML(anchor){
   const t = tapeState(); const a = parseDay(anchor); const y = a.getFullYear(), m = a.getMonth();
@@ -271,7 +267,6 @@ function tapeMonthHTML(anchor){
       <b class="serif" style="font-size:1.15rem">${MONTHS[m]} ${y}</b>
       <span class="row" style="gap:6px"><button class="btn sm ghost" data-tapemonth="${shiftMonths(anchor,-1)}">‹</button><button class="btn sm ghost" data-tapemonth="${today().slice(0,8)}01">this month</button><button class="btn sm ghost" data-tapemonth="${shiftMonths(anchor,1)}">›</button></span>
     </div>
-    ${tapeModeBarHTML()}
     ${tapePeriodSummaryHTML(from, to, all)}
     <div class="rv">${tapeMonthBlock(y, m, byDay, t.mode, false)}</div>
     <details class="section rv" style="margin-top:14px"><summary><span class="sc">Everything in this month, in order</span><span class="mono"> ${all.length}</span></summary>
@@ -295,14 +290,12 @@ function tapeSpanHTML(anchor, monthCount, label){
       <b class="serif" style="font-size:1.15rem">${esc(name)}</b>
       <span class="row" style="gap:6px"><button class="btn sm ghost" data-tapespan="${prev}">‹</button><button class="btn sm ghost" data-tapespan="${today()}">this ${esc(label)}</button><button class="btn sm ghost" data-tapespan="${next}">›</button></span>
     </div>
-    ${tapeModeBarHTML()}
     ${tapePeriodSummaryHTML(from, to, all)}
     <div class="tape-span rv" style="grid-template-columns:repeat(3,1fr)">${months.map(({y:yy,m}) => tapeMonthBlock(yy, m, byDay, t.mode, true)).join('')}</div>
     ${tapeMonthStripHTML(months, all)}`;
 }
 
 /* ---------- Year View — the whole year at once ---------- */
-const TAPE_MODES = [['total','Activity'],['setpoint','Set-point'],['energy','Energy'],['section','By section'],['streak','Habit streaks']];
 function tapeYearDays(year){
   const out = []; let d = `${year}-01-01`; const end = `${year}-12-31`;
   while(d <= end){ out.push(d); d = addDays(d, 1); }
@@ -337,12 +330,7 @@ function tapeYearHTML(year){
       <b class="serif" style="font-size:1.15rem">${year}</b>
       <span class="row" style="gap:6px"><button class="btn sm ghost" data-tapeyear="${year-1}">‹</button><button class="btn sm ghost" data-tapeyear="${new Date().getFullYear()}">this year</button><button class="btn sm ghost" data-tapeyear="${year+1}">›</button></span>
     </div>
-    ${tapeModeBarHTML()}
-    ${t.mode === 'energy'
-      ? `<div class="stack rv" style="gap:14px">${DIMS.map(dim => { const bd = {};
-            days.forEach(d => { const v = S.checkins?.[d]?.energy?.[dim.id]; if(v) bd[d] = Array.from({length:Math.max(1,Math.round(v*1.6))}); });
-            return `<div><div class="sc" style="color:${dim.c}">${dim.name}</div>${tapeGrid(days, 'total', bd).replace(/var\(--page-accent\)/g, dim.c)}</div>`; }).join('')}</div>`
-      : `<div class="rv">${tapeGrid(days, t.mode, byDay)}</div>`}
+    <div class="rv">${tapeGrid(days, t.mode, byDay)}</div>
     ${tapePeriodSummaryHTML(`${year}-01-01`, `${year}-12-31`, all)}
     ${tapeMonthStripHTML(months, all)}`;
 }
@@ -414,7 +402,6 @@ function _bindLtBody(body){
   body.querySelectorAll('[data-tapeyear]').forEach(b => b.onclick = () => { t.day = b.dataset.tapeyear + t.day.slice(4); t.view = 'year'; refreshLtBody(); });
   body.querySelectorAll('[data-tapemonth]').forEach(b => b.onclick = e => { e.stopPropagation(); t.day = b.dataset.tapemonth; t.view = 'month'; refreshLtBody(); });
   body.querySelectorAll('[data-tapespan]').forEach(b => b.onclick = () => { t.day = b.dataset.tapespan; refreshLtBody(); });
-  body.querySelectorAll('[data-tapemode]').forEach(b => b.onclick = () => { t.mode = b.dataset.tapemode; refreshLtBody(); });
   body.querySelectorAll('[data-tapego]').forEach(n => n.onclick = () => navigate(n.dataset.tapego));
   bindTapeFilters(body);
   if(typeof bindHabitRings === 'function') bindHabitRings(body);
