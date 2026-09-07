@@ -267,9 +267,14 @@ function wsViewBarHTML(proj){
   const x = proj.extra; const sel = wsFind(x.binder, x.openDoc);
   return `<div class="ws-viewbar">
     <span class="ws-crumb mono">${esc(wsCrumb(x, x.openDoc))}</span>
-    <span class="ws-vtabs">${WS_VIEWS.map(([k,ic,l]) =>
-      `<button class="${x.viewMode===k?'on':''}" data-wsview="${k}" title="${l}">${ic}<span>${l}</span></button>`).join('')}</span>
-  </div>`;
+    <span class="row" style="gap:6px;align-items:center">
+      <button class="btn sm ghost ws-tw ${x._typewriter?'on':''}" id="wsTypewriter" title="typewriter scrolling (⌘T) — keeps the line you are writing at eye level">⌶</button>
+      <button class="btn sm ghost" id="wsCollNew" title="save a collection">⧉</button>
+      <span class="ws-vtabs">${WS_VIEWS.map(([k,ic,l]) =>
+        `<button class="${x.viewMode===k?'on':''}" data-wsview="${k}" title="${l}">${ic}<span>${l}</span></button>`).join('')}</span>
+    </span>
+  </div>
+  ${wsCollectionsHTML(proj)}`;
 }
 function wsCrumb(x, id){
   const parts = []; let cur = wsFind(x.binder, id);
@@ -277,7 +282,12 @@ function wsCrumb(x, id){
   return parts.join('  ›  ') || '—';
 }
 /* which nodes a view is showing: a folder shows its children, a document its siblings */
-function wsScope(x){
+function wsScope(x, proj){
+  /* an active collection replaces the tree scope with its own flat list */
+  if(x._activeColl && proj){
+    const c = x.collections.find(y => y.id === x._activeColl);
+    if(c) return {parent:null, list: wsCollectionDocs(proj, c), collection:c};
+  }
   const sel = wsFind(x.binder, x.openDoc);
   if(!sel) return {parent:null, list:x.binder};
   if(sel.type === 'folder') return {parent:sel, list:sel.children || []};
@@ -316,10 +326,10 @@ function wsCardHTML(n){
   </div>`;
 }
 function wsCorkboardHTML(proj){
-  const x = proj.extra; const {parent, list} = wsScope(x);
+  const x = proj.extra; const {parent, list, collection} = wsScope(x, proj);
   return `<div class="ws-corkboard" id="wsCork">
-    ${list.length ? list.map(wsCardHTML).join('') : '<div class="empty">This folder is empty.</div>'}
-    <button class="ws-card ws-card-new" id="wsCardNew">＋ new card</button>
+    ${list.length ? list.map(wsCardHTML).join('') : `<div class="empty">${collection ? 'Nothing matches this collection.' : 'This folder is empty.'}</div>`}
+    ${collection ? '' : '<button class="ws-card ws-card-new" id="wsCardNew">＋ new card</button>'}
   </div>`;
 }
 
@@ -332,7 +342,7 @@ const WS_COLS = [
   ['target',  'Target'],
 ];
 function wsOutlinerHTML(proj){
-  const x = proj.extra; const {list} = wsScope(x);
+  const x = proj.extra; const {list} = wsScope(x, proj);
   const sort = x._outSort || {key:null, dir:1};
   const rows = [];
   const walk = (nodes, depth) => nodes.forEach(n => { rows.push({n, depth}); if(n.children?.length) walk(n.children, depth+1); });
@@ -452,6 +462,20 @@ function bindWsStudio(root, proj, redraw){
   bindWsBinder(root, proj, redraw);
 
   root.querySelectorAll('[data-wsview]').forEach(b => b.onclick = () => { x.viewMode = b.dataset.wsview; save(); redraw(); });
+  root.querySelector('#wsTypewriter') && (root.querySelector('#wsTypewriter').onclick = () => { x._typewriter = !x._typewriter; save(); redraw(); });
+  root.querySelector('#wsCollNew') && (root.querySelector('#wsCollNew').onclick = () => wsOpenCollectionModal(proj, redraw));
+  root.querySelectorAll('[data-wscoll]').forEach(b => b.onclick = ev => {
+    if(ev.target.closest('[data-wscolldel]')) return;
+    const opening = x._activeColl !== b.dataset.wscoll;
+    x._activeColl = opening ? b.dataset.wscoll : null;
+    /* a collection is a list of documents, so show it as one rather than
+       leaving the reader in an editor that is not part of it */
+    if(opening && x.viewMode === 'editor') x.viewMode = 'corkboard';
+    save(); redraw(); });
+  root.querySelectorAll('[data-wscolldel]').forEach(b => b.onclick = ev => { ev.stopPropagation();
+    x.collections = x.collections.filter(c => c.id !== b.dataset.wscolldel);
+    if(x._activeColl === b.dataset.wscolldel) x._activeColl = null; save(); redraw(); });
+  bindWsKeys(proj, redraw);
 
   /* --- editor --- */
   const ta = root.querySelector('#wBody');
@@ -463,6 +487,7 @@ function bindWsStudio(root, proj, redraw){
         foot.textContent = `${n.toLocaleString()} word${n===1?'':'s'}${tgt?` · ${clamp(Math.round(n/tgt*100),0,999)}% of ${tgt}`:''} · ${Math.max(1,Math.round(n/250))} min read`; }
       const bc = root.querySelector(`[data-wsnode="${d.id}"] .ws-bcount`);
       if(bc) bc.textContent = wordCount(d.body) || '';
+      wsRecordWords(proj); save();
     }, 400));
     const grow = () => { ta.style.height = 'auto'; ta.style.height = Math.max(420, ta.scrollHeight) + 'px'; };
     grow(); ta.addEventListener('input', grow);
@@ -501,7 +526,7 @@ function bindWsStudio(root, proj, redraw){
       arr.splice(to, 0, arr.splice(from, 1)[0]); save(); sound('click'); redraw(); });
   });
   root.querySelector('#wsCardNew') && (root.querySelector('#wsCardNew').onclick = () => {
-    const {parent} = wsScope(x); wsAddNode(x, 'doc', redraw, parent ? parent.id : null); });
+    const {parent} = wsScope(x, proj); wsAddNode(x, 'doc', redraw, parent ? parent.id : null); });
 
   /* --- outliner --- */
   root.querySelectorAll('[data-wssort]').forEach(th => th.onclick = () => {
@@ -615,4 +640,110 @@ function wsOpenCompile(proj){
     a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 2000); toast('Downloaded.');
   };
   refresh();
+}
+
+/* ---------- writing history ----------
+   Rather than trying to catch the end of a session, each day stores the
+   project's total word count. What you wrote on a day is that day's total
+   minus the previous one — which survives reloads, crashes and closed tabs,
+   and needs no unload hook to be honest. */
+function wsRecordWords(proj){
+  const T = today();
+  S.wsDaily = S.wsDaily || {};
+  S.wsDaily[T] = S.wsDaily[T] || {};
+  S.wsDaily[T][proj.id] = wsProjectWords(proj);
+}
+function wsWrittenOn(day, projectId = null){
+  const d = S.wsDaily?.[day]; if(!d) return 0;
+  let prevDay = null;
+  for(const k of Object.keys(S.wsDaily).sort()){ if(k < day) prevDay = k; }
+  const prev = prevDay ? S.wsDaily[prevDay] : {};
+  const ids = projectId ? [projectId] : Object.keys(d);
+  return ids.reduce((a, id) => a + Math.max(0, (d[id] || 0) - (prev[id] || 0)), 0);
+}
+function wsHistoryHTML(){
+  const days = []; for(let i = 90; i >= 0; i--) days.push(addDays(today(), -i));
+  const vals = days.map(d => wsWrittenOn(d));
+  const max = Math.max(200, ...vals);
+  const total = sum(vals);
+  let streak = 0; for(let i = vals.length - 1; i >= 0 && vals[i] > 0; i--) streak++;
+  const active = vals.filter(v => v > 0).length;
+  return `<section class="section rv"><div class="row between" style="align-items:baseline">
+      <span class="sc" style="margin:0">Writing history</span>
+      <span class="mono faint">${total.toLocaleString()} words over 90 days · ${active} day${active===1?'':'s'} written${streak?` · ${streak}-day streak`:''}</span></div>
+    <div class="ws-hist">${days.map((d, i) => {
+      const v = vals[i];
+      return `<i style="--o:${v ? (0.18 + 0.82 * Math.min(1, v / max)).toFixed(2) : 0}" title="${esc(fmtDate(d,'med'))} · ${v} word${v===1?'':'s'}"></i>`; }).join('')}</div>
+  </section>`;
+}
+
+/* ---------- collections: a saved way of looking at the binder ---------- */
+function wsCollectionsHTML(proj){
+  const x = proj.extra;
+  if(!x.collections.length) return '';
+  return `<div class="ws-colls"><div class="sc" style="margin:0 0 6px">Collections</div>
+    ${x.collections.map(c => `<button class="ws-coll ${x._activeColl===c.id?'on':''}" data-wscoll="${c.id}">
+      ${esc(c.name)} <span class="mono">${wsCollectionDocs(proj, c).length}</span>
+      <span class="del-x inline" data-wscolldel="${c.id}">×</span></button>`).join('')}</div>`;
+}
+function wsCollectionDocs(proj, coll){
+  const x = proj.extra; const all = wsFlatDocs(x.binder);
+  if(coll.type === 'smart'){
+    const f = coll.filter || {};
+    return all.filter(d =>
+      (!f.status || d.status === f.status) &&
+      (!f.label  || d.label === f.label) &&
+      (!f.q      || `${d.name} ${d.synopsis} ${d.body}`.toLowerCase().includes(f.q.toLowerCase())));
+  }
+  return all.filter(d => (coll.docs || []).includes(d.id));
+}
+function wsOpenCollectionModal(proj, redraw){
+  const x = proj.extra;
+  const m = openModal(`<h2>A collection</h2><p class="muted" style="font-size:.86rem">A saved way of looking at the binder — either a list you pick by hand, or a filter that keeps itself up to date.</p>
+    <div class="stack">
+      <input class="inp serif-lg" id="wsCName" placeholder="e.g. Needs a better example" autofocus>
+      <select class="sel" id="wsCType"><option value="smart">smart — filtered, updates itself</option><option value="standard">standard — a list I choose</option></select>
+      <div id="wsCSmart" class="stack" style="gap:8px">
+        <select class="sel" id="wsCStatus"><option value="">any status</option>${WS_DOC_STATUS.map(s=>`<option>${s}</option>`).join('')}</select>
+        <select class="sel" id="wsCLabel"><option value="">any label</option>${WS_LABELS.filter(l=>l[0]!=='none').map(([k,l])=>`<option value="${k}">${l}</option>`).join('')}</select>
+        <input class="inp" id="wsCQ" placeholder="containing the words…">
+      </div>
+      <div class="row" style="justify-content:flex-end"><button class="btn primary" id="wsCOk">Save it</button></div>
+    </div>`, 'narrow');
+  m.querySelector('#wsCType').onchange = e => { m.querySelector('#wsCSmart').style.display = e.target.value === 'smart' ? '' : 'none'; };
+  m.querySelector('#wsCOk').onclick = () => {
+    const name = m.querySelector('#wsCName').value.trim(); if(!name){ toast('Name it first.'); return; }
+    const type = m.querySelector('#wsCType').value;
+    x.collections.push({id:uid(), name, type,
+      filter: type === 'smart' ? {status:m.querySelector('#wsCStatus').value, label:m.querySelector('#wsCLabel').value, q:m.querySelector('#wsCQ').value.trim()} : null,
+      docs: type === 'standard' ? wsFlatDocs(x.binder).map(d => d.id) : []});
+    saveNow(); m.remove(); sound('success'); redraw();
+  };
+}
+
+/* ---------- keyboard ----------
+   Only while the studio is on screen, and never while a field has focus,
+   so typing an N into a draft does not create a document. */
+function bindWsKeys(proj, redraw){
+  if(window._wsKeyHandler) document.removeEventListener('keydown', window._wsKeyHandler);
+  const x = proj.extra;
+  const h = ev => {
+    if(!document.querySelector('#wsBinder')) return;
+    const t = ev.target;
+    const typing = ['INPUT','TEXTAREA','SELECT'].includes(t.tagName) || t.isContentEditable;
+    const mod = ev.metaKey || ev.ctrlKey;
+    if(!mod) return;
+    const k = ev.key.toLowerCase();
+    const views = {'1':null,'2':'corkboard','3':null};
+    if(k === 'n' && !ev.shiftKey){ ev.preventDefault(); wsAddNode(x, 'doc', redraw); return; }
+    if(k === 'n' && ev.shiftKey){ ev.preventDefault(); wsAddNode(x, 'folder', redraw); return; }
+    if(k === 'm'){ ev.preventDefault(); x.viewMode = x.viewMode === 'manuscript' ? 'editor' : 'manuscript'; saveNow(); redraw(); return; }
+    if(k === 'e' && ev.shiftKey){ ev.preventDefault(); wsOpenCompile(proj); return; }
+    if(k === '5'){ ev.preventDefault(); const d = wsFind(x.binder, x.openDoc); if(d){ wsSnapshot(d); saveNow(); toast('Snapshot kept.'); redraw(); } return; }
+    if(k === 't' && !typing){ ev.preventDefault(); x._typewriter = !x._typewriter; saveNow(); toast(x._typewriter ? 'Typewriter on.' : 'Typewriter off.'); redraw(); return; }
+    if(k === '1'){ ev.preventDefault(); const w = wsPanes(); w.drawer = !w.drawer; saveNow(); redraw(); return; }
+    if(k === '3'){ ev.preventDefault(); const w = wsPanes(); w.board = !w.board; saveNow(); redraw(); return; }
+  };
+  window._wsKeyHandler = h;
+  document.addEventListener('keydown', h);
 }

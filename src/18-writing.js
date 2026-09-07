@@ -260,6 +260,8 @@ routes.writing = function(root, params){
 
     ${published.length ? `<section class="section rv"><span class="sc">Published archive</span>${published.map(e=>`<div class="pub-row"><span><b>${esc(e.title)}</b> <span class="mono">${esc(e.extra.kind)}</span></span><span>${e.extra.publication.where?`<a href="${esc(e.extra.publication.where)}" target="_blank" rel="noopener">↗ where it lives</a>`:''}</span></div>`).join('')}</section>` : ''}
 
+    ${typeof wsHistoryHTML === 'function' ? wsHistoryHTML() : ''}
+
     <section class="section rv"><details><summary><span class="sc">Cross-pollination</span></summary><div class="body" style="padding-top:10px">${crossPollinationHTML()}</div></details></section>
   </div>`;
   $$('[data-wv]',root).forEach(b=>b.onclick=()=>{ S._wView = b.dataset.wv; rerender(); });
