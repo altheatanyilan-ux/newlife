@@ -8,6 +8,12 @@
 .today-head{padding-bottom:12px;border-bottom:1px solid var(--line);margin-bottom:6px}
 .morning-flow .card{padding:10px 14px}
 .mf-check{width:16px;height:16px;accent-color:var(--sage);cursor:pointer}
+.today-three{margin:10px 0 0;padding-left:0;list-style:none;counter-reset:t3}
+.today-three li{counter-increment:t3;position:relative;padding:5px 0 5px 30px;font-family:var(--serif);font-size:1.02rem;line-height:1.5}
+.today-three li::before{content:counter(t3);position:absolute;left:0;top:6px;width:19px;height:19px;border-radius:50%;border:1px solid var(--line-2);color:var(--muted);font-family:var(--mono);font-size:.64rem;display:flex;align-items:center;justify-content:center}
+.today-three li:first-child::before{border-color:var(--page-accent);color:var(--page-accent)}
+.tomorrow-block{margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
+.tomorrow-block.is-evening .card{border-color:color-mix(in srgb,var(--page-accent) 35%,var(--line));background:color-mix(in srgb,var(--page-accent) 4%,var(--surface))}
 .ready-letters .ready-letter{border-left:3px solid var(--gold);padding:12px 16px;border-radius:var(--radius);background:color-mix(in srgb,var(--gold) 8%,var(--surface))}
 .today-checkin summary{display:flex;align-items:center;justify-content:space-between;cursor:pointer;list-style:none;padding:8px 0}
 .today-checkin summary::-webkit-details-marker{display:none}

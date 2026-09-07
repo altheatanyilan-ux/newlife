@@ -23,6 +23,16 @@ routes.today = function(root){
     {key:'theatreAt', label:'Morning Theatre'},
     {key:'tasksAt',   label:'Tasks reviewed'},
   ];
+
+  /* A day is planned the night before. Today shows what was decided then;
+     the planning itself happens at the foot of the page, for tomorrow. */
+  const tomorrow = addDays(T, 1);
+  const planT = typeof dayPlan === 'function' ? dayPlan(T) : {intentions:[], planned:false};
+  const planTom = typeof dayPlan === 'function' ? dayPlan(tomorrow) : {intentions:[], planned:false};
+  const three = (planT.intentions || []).filter(Boolean);
+  const threeTom = (planTom.intentions || []).filter(Boolean);
+  const isSunday = parseDay(T).getDay() === 0;
+  const evening = new Date().getHours() >= 17;
   const allFlowDone = flowSteps.every(s => c[s.key]);
   const lastFlowTime = flowSteps.map(s => c[s.key]).filter(Boolean).pop();
   const totalDur = allFlowDone && c.wakeAt ? _dur(c.wakeAt, lastFlowTime) : '';
@@ -74,6 +84,14 @@ routes.today = function(root){
       ${ready.map(e=>`<div class="card ready-letter" style="margin-top:8px"><div class="row between"><span><b class="serif">${esc(e.title||'To myself')}</b><div class="mono faint">${daysBetween((e.createdAt||'').slice(0,10), T)} days ago</div></span><button class="btn sm primary" data-lopen="${e.id}">Open it</button></div></div>`).join('')}
     </section>` : ''}
 
+    <!-- the plan, made last night -->
+    <section class="section rv today-plan">
+      <div class="row between"><span class="sc" style="margin:0">Today's plan</span>
+        <span class="mono faint">${planT.planned ? 'set last night' : 'not planned in advance'}</span></div>
+      ${three.length ? `<ol class="today-three">${three.map(t => `<li>${esc(t)}</li>`).join('')}</ol>`
+        : `<div class="empty" style="margin-top:8px">Nothing was named for today. Plan tomorrow at the foot of this page — a day decided the night before starts already moving.</div>`}
+    </section>
+
     <!-- today's tasks (up front) -->
     <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Today's tasks</span><span class="mono">${rows.length?`${doneN} of ${rows.length} done`:'nothing parked yet'}</span></div>
       <div class="card" data-daydrop="${T}" style="margin-top:10px">
@@ -86,7 +104,7 @@ routes.today = function(root){
     <details class="rv today-checkin" ${!c.intention||(!c.setpoint && !c.mood) ? 'open' : ''}>
       <summary><span class="sc lg">Daily check-in</span><span class="mono">${c.intention ? esc(c.intention.slice(0,40)) : 'not yet set'}</span></summary>
       <div class="body stack" style="gap:20px">
-        <div class="field"><label>Today's intention</label>
+        <div class="field"><label>Today's intention ${planT.planned && c.intention ? '<span class="mono faint" style="text-transform:none;letter-spacing:0">· set last night</span>' : ''}</label>
           ${ed('checkins.' + T + '.intention', {ph:'One thing to give attention to today.', cls:'serif-lg'})}</div>
         <div class="field"><label>Mood right now</label>
           <div class="mood-shapes row" style="gap:10px;flex-wrap:wrap">
@@ -146,6 +164,23 @@ routes.today = function(root){
       </div>
     </section>
 
+    <!-- before you sleep: the day after this one gets decided here -->
+    <section class="section rv tomorrow-block ${evening ? 'is-evening' : ''}">
+      <div class="row between" style="align-items:baseline">
+        <span class="sc" style="margin:0">Before you sleep</span>
+        <span class="mono faint">${esc(fmtDate(tomorrow, 'med'))}</span>
+      </div>
+      <div class="card" style="margin-top:10px">
+        <p class="muted" style="font-size:.86rem;margin:0 0 10px">A day decided the night before starts already moving. Name tomorrow's three now, while today is still fresh enough to judge it.</p>
+        ${threeTom.length ? `<ol class="today-three" style="margin-bottom:10px">${threeTom.map(t => `<li>${esc(t)}</li>`).join('')}</ol>` : ''}
+        <div class="row" style="gap:8px;flex-wrap:wrap">
+          <button class="btn sm ${threeTom.length ? 'ghost' : 'primary'}" id="planTomorrow">${threeTom.length ? '↻ Replan tomorrow' : '◑ Plan tomorrow'}</button>
+          ${isSunday ? `<button class="btn sm ${evening ? 'primary' : 'ghost'}" id="planNextWeek">🗓 Plan next week</button>` : ''}
+          <button class="btn sm ghost" id="eveningReview">☾ Evening review</button>
+        </div>
+      </div>
+    </section>
+
   </div>`;
 
   /* habits rings */
@@ -175,6 +210,11 @@ routes.today = function(root){
   $('#markTheatre').onclick = () => { if(!S.rehearsal.days.includes(T)){ S.rehearsal.days.push(T); if(!S.rehearsal.cycleStart) S.rehearsal.cycleStart = T; saveNow(); sound('chime'); toast('Practice marked. The nervous system takes care of the rest, in time.'); rerender(); } };
   $('#newCycle').onclick = () => confirmDlg('Start a fresh 21-day cycle from today? Past days stay in your history.', () => { S.rehearsal.cycleStart = T; saveNow(); rerender(); });
   root.querySelectorAll('.tracker i').forEach(i => i.onclick = () => { const d = i.dataset.td; if(d > T) return; const idx = S.rehearsal.days.indexOf(d); if(idx>=0) S.rehearsal.days.splice(idx,1); else S.rehearsal.days.push(d); saveNow(); rerender(); });
+
+  /* the night before */
+  $('#planTomorrow') && ($('#planTomorrow').onclick = () => { if(typeof planMyDay === 'function') planMyDay(tomorrow); });
+  $('#planNextWeek') && ($('#planNextWeek').onclick = () => { if(typeof openWeeklyPlan === 'function') openWeeklyPlan(addDays(T, 1)); });
+  $('#eveningReview') && ($('#eveningReview').onclick = () => { if(typeof flowEvening === 'function') flowEvening(); });
 
   /* gentle prompt */
   $('#anotherPrompt').onclick = () => { S._promptShift = (S._promptShift||0)+1; $('#promptText').innerHTML = gentlePrompt(); };

@@ -476,6 +476,11 @@ function renderPlanPanel(box, d){
 /* the morning ritual, in three steps */
 function planMyDay(d = today()){
   const p = dayPlan(d); let step = 0;
+  /* A day is meant to be planned the night before, so this flow is usually
+     talking about tomorrow, not today. */
+  const ahead = d > today();
+  const dayWord = ahead ? (daysBetween(today(), d) === 1 ? 'tomorrow' : fmtDate(d,'short')) : 'today';
+  const dayPoss = ahead ? (daysBetween(today(), d) === 1 ? "tomorrow's" : `${fmtDate(d,'short')}'s`) : "today's";
   const overdue = allTaskRefs().filter(r => !r.done && r.day && r.day <= d);
   const unscheduled = unscheduledTasks();
   const pool = [...overdue, ...unscheduled.slice(0, 20)];
@@ -485,16 +490,16 @@ function planMyDay(d = today()){
   const m = openModal('', 'narrow');
   const draw = () => {
     const body = [
-      `<h2>What are today's three?</h2><p class="muted" style="font-size:.88rem">Not a task list — the three things that would make today count. One is allowed to be empty.</p>
+      `<h2>What are ${dayPoss} three?</h2><p class="muted" style="font-size:.88rem">Not a task list — the three things that would make ${dayWord} count. One is allowed to be empty.</p>
        <div class="stack" style="gap:8px">${[0,1,2].map(i=>`<div class="row" style="gap:8px"><span class="in-n">${i+1}</span><input class="inp serif-lg" data-int="${i}" value="${esc(p.intentions[i]||'')}" placeholder="${['the one that matters most','the one you keep postponing','the small one'][i]}"></div>`).join('')}</div>`,
-      `<h2>Anything waiting?</h2><p class="muted" style="font-size:.88rem">Tasks from your projects and your own list. Tick what belongs to today; the rest keeps waiting without nagging.</p>
+      `<h2>Anything waiting?</h2><p class="muted" style="font-size:.88rem">Tasks from your projects and your own list. Tick what belongs to ${dayWord}; the rest keeps waiting without nagging.</p>
        <div class="stack" style="gap:4px;max-height:44vh;overflow:auto">${pool.length ? pool.map(r=>`<label class="pick-row ${chosen.has(r.id)?'on':''}"><input type="checkbox" data-pick2="${r.id}" ${chosen.has(r.id)?'checked':''}><span><b>${esc(r.text)}</b>${r.where?`<span class="d">${esc(r.where)}</span>`:''}${r.day && r.day < d ?'<span class="d" style="color:#d08080">carried over</span>':''}</span></label>`).join('') : '<div class="empty">Nothing waiting. Add work as you go.</div>'}</div>`,
-      `<h2>And the habits?</h2><p class="muted" style="font-size:.88rem">The ones due today. Ticking one puts it on the calendar at the time you choose.</p>
-       <div class="stack" style="gap:4px;max-height:44vh;overflow:auto">${habits.length ? habits.map(h=>`<label class="pick-row ${chosenH.has(h.id)?'on':''}"><input type="checkbox" data-pickh="${h.id}" ${chosenH.has(h.id)?'checked':''}><span><b>${h.icon||''} ${esc(h.name)}</b><span class="d">${esc(habitFreqLabel(h))} · ${esc(h.timeOfDay)}</span></span><select class="sel" data-hat="${h.id}" style="width:auto"><option value="">no time</option>${Array.from({length:(HOUR1-HOUR0)*2},(_,i)=>HOUR0+i/2).map(x=>`<option value="${x}" ${+h.at===x?'selected':''}>${fmtHour(x)}</option>`).join('')}</select></label>`).join('') : '<div class="empty">No habits due today.</div>'}</div>`,
+      `<h2>And the habits?</h2><p class="muted" style="font-size:.88rem">The ones due ${dayWord}. Give one a time if it helps you keep it.</p>
+       <div class="stack" style="gap:4px;max-height:44vh;overflow:auto">${habits.length ? habits.map(h=>`<label class="pick-row ${chosenH.has(h.id)?'on':''}"><input type="checkbox" data-pickh="${h.id}" ${chosenH.has(h.id)?'checked':''}><span><b>${h.icon||''} ${esc(h.name)}</b><span class="d">${esc(habitFreqLabel(h))} · ${esc(h.timeOfDay)}</span></span><select class="sel" data-hat="${h.id}" style="width:auto"><option value="">no time</option>${Array.from({length:(HOUR1-HOUR0)*2},(_,i)=>HOUR0+i/2).map(x=>`<option value="${x}" ${+h.at===x?'selected':''}>${fmtHour(x)}</option>`).join('')}</select></label>`).join('') : '<div class="empty">No habits due ${dayWord}.</div>'}</div>`,
     ][step];
     m.querySelector('.modal').innerHTML = `<button class="close">×</button>${body}
       <div class="row between" style="margin-top:18px"><span class="mono">step ${step+1} of 3</span>
-      <span class="row">${step?'<button class="btn sm ghost" id="pmBack">back</button>':''}<button class="btn primary" id="pmNext">${step===2?'Start the day':'Next'}</button></span></div>`;
+      <span class="row">${step?'<button class="btn sm ghost" id="pmBack">back</button>':''}<button class="btn primary" id="pmNext">${step===2?(ahead?'Ready for '+dayWord:'Start the day'):'Next'}</button></span></div>`;
     m.querySelector('.close').onclick = () => m.remove();
     m.querySelectorAll('[data-int]').forEach(i => i.onchange = () => p.intentions[+i.dataset.int] = i.value.trim());
     m.querySelectorAll('[data-pick2]').forEach(c => c.onchange = () => { c.checked ? chosen.add(c.dataset.pick2) : chosen.delete(c.dataset.pick2); c.closest('.pick-row').classList.toggle('on', c.checked); });
@@ -506,8 +511,11 @@ function planMyDay(d = today()){
       if(step < 2){ step++; draw(); return; }
       pool.forEach(r => { if(chosen.has(r.id)) r.task.day = d; });
       habits.forEach(h => { if(!chosenH.has(h.id)) h.at = null; });
-      p.planned = true; saveNow(); m.remove(); sound('success');
-      toast(`${p.intentions.filter(Boolean).length ? 'Three named. ' : ''}${chosen.size} task${chosen.size===1?'':'s'} on the day.`);
+      p.planned = true;
+      const first = p.intentions.filter(Boolean)[0];
+      if(first && typeof checkin === 'function' && !checkin(d).intention) checkin(d).intention = first;
+      saveNow(); m.remove(); sound('success');
+      toast(`${p.intentions.filter(Boolean).length ? 'Three named. ' : ''}${chosen.size} task${chosen.size===1?'':'s'} on ${ahead?dayWord:'the day'}.`);
       rerender();
     };
   };
