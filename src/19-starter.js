@@ -174,12 +174,43 @@ const STARTER = {
     {key:'st-now',    char:'今', name:'Now',         hue:'#7f916a', years:'',
      tagline:'the chapter I am actually in',           narrative:''},
   ],
+
+  /* ---- money: a named, empty room for the one thing that already pays the
+     bills, plus the two ventures already on the board — no current figures
+     invented, since that would be a claim about your actual life, not a
+     placeholder ---- */
+  incomeStreams: [
+    {key:'is-current', name:'Current work', status:'earning', currency:'',
+     model:'Whatever already pays the bills — worth naming here, even before the numbers are filled in.'},
+    {key:'is-write', name:'Freelance writing', status:'exploring', currency:'', target:500,
+     model:'Building a portfolio from whatever comes out of the Writing Studio.'},
+  ],
+
+  /* ---- a life not yet lived can be priced without lying about the one you're in ---- */
+  financeScenarios: [
+    {key:'fs-tokyo', name:'Tokyo life', currency:'JPY',
+     items:{
+       'Housing':      [['Rent — a small one-room apartment', 90000]],
+       'Food':         [['Groceries and the odd meal out', 45000]],
+       'Transport':    [['Trains, mostly', 8000]],
+       'Learning':     [['Language school', 60000]],
+       'Experiences':  [['Somewhere new most weekends, modestly', 15000]],
+     }},
+  ],
+
+  /* ---- Chronicle: the one thing we can honestly date, because it is
+     happening right now — no invented past, just the record starting ---- */
+  chapters: [
+    {key:'ch-instrument', title:'Building the instrument', color:'#7f916a', status:'open',
+     narrative:'Building a way of keeping track, before anything else got tracked. Everything before this chapter is real; this is just where the record starts.'},
+  ],
 };
 
 /* ---------- applying it ---------- */
 function starterCount(){
   const n = a => (a||[]).filter(x => x && x.seeded === STARTER_TAG).length;
-  return n(S.visions) + n(S.skills) + n(S.projects) + n(S.values) + n(S.entries) + n(S.ideas) + n(S.threads) + n(S.stages);
+  return n(S.visions) + n(S.skills) + n(S.projects) + n(S.values) + n(S.entries) + n(S.ideas) + n(S.threads) + n(S.stages)
+    + n(S.incomeStreams) + n(S.chapters) + n(S.finance?.scenarios);
 }
 function houseIsEmpty(){
   return !(S.visions||[]).length && !(S.skills||[]).length && !(S.projects||[]).length
@@ -232,6 +263,45 @@ function applyStarter(){
     S.threads = S.threads || [];
     S.threads.push({id:uid(), seeded:STARTER_TAG, seedKey:th.key, name:th.name, desc:th.description, color:th.color, status:'active'}); });
 
+  /* money: a named, empty "current work" room plus the two ventures already
+     on the board — never a fabricated current-earnings figure */
+  if(typeof migrateFinance === 'function') migrateFinance();
+  STARTER.incomeStreams.forEach(is => { if(has(S.incomeStreams, is.key)) return;
+    const income = {model:is.model||'', current:0, target:+is.target||0, milestones:[]};
+    if(typeof migrateIncomeShape === 'function') migrateIncomeShape(income);
+    income.status = is.status || income.status;
+    S.incomeStreams.push(Object.assign({id:uid(), seeded:STARTER_TAG, seedKey:is.key, name:is.name}, income)); });
+  const barProject = (S.projects||[]).find(p => p.seedKey === 'pr-bar');
+  if(barProject && !barProject.income.model){
+    if(typeof migrateIncomeShape === 'function') migrateIncomeShape(barProject.income);
+    barProject.income.model = 'Twelve seats, one idea — no revenue yet, just the shape of one.';
+    barProject.income.status = 'idea'; barProject.income.target = 8000;
+  }
+  if(typeof newSpendScenario === 'function') STARTER.financeScenarios.forEach(fs => {
+    if((S.finance.scenarios||[]).some(sc => sc.seedKey === fs.key)) return;
+    const sc = newSpendScenario(fs.name, fs.currency); sc.seeded = STARTER_TAG; sc.seedKey = fs.key;
+    Object.entries(fs.items).forEach(([catName, items]) => { const cat = sc.categories.find(c => c.name === catName); if(!cat) return;
+      items.forEach(([name, amount]) => cat.items.push({id:uid(), name, amount, currency:fs.currency, notes:''})); });
+    S.finance.scenarios.push(sc);
+  });
+
+  /* Chronicle: the one thing datable without inventing a past — the record starting */
+  if(typeof migrateChronicle === 'function') migrateChronicle();
+  STARTER.chapters.forEach(ch => { if(has(S.chapters, ch.key)) return;
+    const c = {id:uid(), seeded:STARTER_TAG, seedKey:ch.key, title:ch.title, subtitle:'', startDate:T, endDate:null,
+      kind:'custom', color:ch.color, narrative:ch.narrative, narrativeHistory:[{date:T, text:ch.narrative}], linkedEraId:null};
+    if(typeof migrateChapterShape === 'function') migrateChapterShape(c);
+    c.status = ch.status || c.status;
+    S.chapters.push(c); });
+  if(typeof findOrCreatePeriodChapter === 'function'){
+    const monthCh = findOrCreatePeriodChapter('month', T);
+    if(!(monthCh.narrativeHistory||[]).length){
+      monthCh.seeded = STARTER_TAG; monthCh.starred = 1;
+      monthCh.narrativeHistory = [{date:T, text:'Starting to use the Life Instrument. Nothing dramatic yet — just the record beginning.'}];
+      monthCh.narrative = monthCh.narrativeHistory[0].text;
+    }
+  }
+
   const blank = (type, title, body, extra, tags) => ({id:uid(), seeded:STARTER_TAG, type, title, body:body||'',
     occurredAt:T, createdAt:stamp, media:[],
     links:{stages:[],substages:[],threads:[],values:[],visions:[],skills:[],projects:[],people:[]},
@@ -254,8 +324,13 @@ function applyStarter(){
 function removeStarter(){
   const strip = name => { const arr = S[name]; if(!Array.isArray(arr)) return; S[name] = arr.filter(x => !(x && x.seeded === STARTER_TAG)); };
   const goneValues = (S.values||[]).filter(v => v.seeded === STARTER_TAG).map(v => v.id);
-  ['stages','values','visions','skills','projects','threads','entries','ideas'].forEach(strip);
+  ['stages','values','visions','skills','projects','threads','entries','ideas','incomeStreams','chapters'].forEach(strip);
   S.valueOrder = (S.valueOrder||[]).filter(id => !goneValues.includes(id));
+  if(S.finance && Array.isArray(S.finance.scenarios)){
+    const hadActive = S.finance.scenarios.some(sc => sc.seeded === STARTER_TAG && sc.active);
+    S.finance.scenarios = S.finance.scenarios.filter(sc => sc.seeded !== STARTER_TAG);
+    if(hadActive && S.finance.scenarios.length && !S.finance.scenarios.some(sc => sc.active)) S.finance.scenarios[0].active = true;
+  }
   if(typeof renumberStages === 'function') renumberStages();
   S.settings.starterApplied = null;
   saveNow();
