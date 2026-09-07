@@ -432,6 +432,86 @@
 .hg-cell.miss{background:color-mix(in srgb,#b0616a 22%,transparent);border-color:color-mix(in srgb,#b0616a 45%,transparent)}
 .hg-cell.off{opacity:.25;cursor:default}
 .hg-cell.future{opacity:.35;cursor:not-allowed}
+/* ============================================================
+   THE LIFE TAPE
+   ============================================================ */
+.tape-filters{border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-top:12px;background:var(--surface)}
+.tape-filters summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center}
+.tape-filters summary::-webkit-details-marker{display:none}
+.tape-filters .body{padding-top:10px}
+.tape-item{display:flex;gap:9px;align-items:baseline;padding:8px 11px;border-radius:9px;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--c);cursor:pointer;transition:border-color .18s var(--ease)}
+.tape-item:hover{border-color:var(--c)}
+.ti-ico{color:var(--c);flex:none}
+.ti-body{flex:1;min-width:0}
+.ti-text{font-size:.84rem;color:var(--muted);line-height:1.5;margin-top:2px}
+/* week */
+.tape-week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.tw-col{display:flex;flex-direction:column;gap:6px;padding:8px 4px;border-radius:10px;border:1px solid var(--line);background:var(--surface);cursor:pointer;min-height:190px;transition:border-color .18s var(--ease)}
+.tw-col:hover{border-color:var(--page-accent)}
+.tw-col.today{border-color:color-mix(in srgb,var(--page-accent) 55%,var(--line));background:color-mix(in srgb,var(--page-accent) 5%,var(--surface))}
+.tw-head{display:flex;flex-direction:column;align-items:center;line-height:1.1}
+.tw-head .dn{font-family:var(--mono);font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+.tw-head .dd{font-family:var(--serif);font-size:1.05rem}
+.tw-rings{display:flex;flex-direction:column;align-items:center;gap:1px;min-height:34px}
+.tw-rings .mono{font-size:.55rem}
+.tw-stack{flex:1;display:flex;flex-direction:column-reverse;gap:2px;justify-content:flex-start;padding:0 6px}
+.tw-stack i{height:7px;border-radius:2px;opacity:.85}
+.tw-quiet{display:block;height:1px;background:var(--line-2);margin-top:auto}
+.tw-foot{display:flex;align-items:center;justify-content:center;gap:5px;min-height:14px}
+.tw-dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+/* year */
+.tape-grid{display:grid;grid-template-rows:repeat(7,1fr);grid-auto-flow:column;grid-auto-columns:1fr;gap:3px;margin:6px 0}
+.tape-grid i{aspect-ratio:1;border-radius:2px;background:var(--surface-3);cursor:pointer;transition:transform .12s var(--ease)}
+.tape-grid i:hover{transform:scale(1.5);z-index:2}
+.tape-grid .tg-pad{background:none;cursor:default}
+.tape-months{display:grid;grid-template-columns:repeat(auto-fit,minmax(78px,1fr));gap:8px;margin-top:16px}
+.tm-cell{padding:8px 6px;border-radius:9px;border:1px solid var(--line);background:var(--surface);text-align:center}
+.tm-cell.quiet{opacity:.45}
+@media (max-width:720px){.tape-week{grid-template-columns:repeat(4,1fr)}}
+/* guided review flows */
+.flow-body{min-height:120px}
+.flow-dots{display:flex;gap:5px;justify-content:center;margin-top:16px}
+.flow-dots i{width:6px;height:6px;border-radius:50%;background:var(--line-2)}
+.flow-dots i.past{background:color-mix(in srgb,var(--page-accent) 45%,transparent)}
+.flow-dots i.on{background:var(--page-accent);transform:scale(1.35)}
+.review-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(268px,1fr));gap:12px;margin-top:14px}
+.review-card{padding:14px 16px;border-radius:var(--radius);border:1px solid var(--line);background:var(--surface)}
+.review-card.due{border-color:color-mix(in srgb,var(--page-accent) 45%,var(--line));background:color-mix(in srgb,var(--page-accent) 6%,var(--surface))}
+.tk-dot{width:12px;height:12px;border-radius:3px;background:var(--surface-3);display:inline-block}
+.tk-dot.on{background:var(--page-accent)}
+/* the ring row for one day — morning left, evening right */
+.habit-row{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start;margin:12px 0}
+.hr-group{display:flex;flex-direction:column;gap:6px}
+.hr-group > .mono{font-size:.58rem;letter-spacing:.12em;text-transform:uppercase}
+.hr-rings{display:flex;gap:12px;flex-wrap:wrap}
+.hring-btn .hring-name{display:block;font-size:.66rem;color:var(--muted);max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;margin-top:2px}
+.hring-btn .hring-streak{inset:auto;top:38%;left:0;right:0}
+.habit-row.all-done .hring-btn{animation:allDone 2s var(--ease)}
+@keyframes allDone{0%,100%{filter:none}45%{filter:drop-shadow(0 0 7px color-mix(in srgb,var(--gold) 60%,transparent))}}
+/* per-habit detail */
+.habit-detail{border-top:1px dashed var(--line);padding:4px 0}
+.habit-detail summary{display:flex;align-items:center;gap:10px;cursor:pointer;list-style:none;padding:4px 0}
+.habit-detail summary::-webkit-details-marker{display:none}
+.habit-detail .body{padding:6px 0 12px}
+.h90{display:grid;grid-template-columns:repeat(30,1fr);gap:2px;margin-top:4px}
+.h90 i{aspect-ratio:1;border-radius:2px;background:var(--surface-3)}
+.h90 i.full{background:var(--c)}
+.h90 i.half{background:color-mix(in srgb,var(--c) 45%,transparent)}
+.h90 i.miss{background:color-mix(in srgb,#b0616a 22%,transparent)}
+.h90 i.off{opacity:.3}
+.h8w{display:flex;gap:5px;align-items:flex-end;height:44px;margin-top:4px}
+.h8-bar{flex:1;height:100%;display:flex;align-items:flex-end;background:var(--surface-2);border-radius:3px;overflow:hidden}
+.h8-bar i{display:block;width:100%;background:var(--c);border-radius:3px}
+/* chains */
+.chain{display:flex;align-items:center;flex-wrap:wrap;gap:0;margin-top:8px}
+.chain-node{padding:4px 10px;border-radius:999px;border:1px solid color-mix(in srgb,var(--c) 40%,var(--line));background:color-mix(in srgb,var(--c) 10%,transparent);font-size:.8rem;cursor:pointer}
+.chain-link{width:18px;height:1px;background:var(--line-2);position:relative}
+.chain-link::after{content:"›";position:absolute;top:-10px;left:5px;color:var(--faint);font-size:.7rem}
+/* oscillation */
+.osc{margin-top:14px;padding:10px 12px;border-radius:10px;background:var(--surface-2);border:1px solid var(--line)}
+.osc-bar{display:flex;height:8px;border-radius:4px;overflow:hidden;margin:6px 0}
+.osc-bar .exp{background:var(--terra)}
+.osc-bar .rec{background:var(--sage)}
 .hab-stats{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
 .hs-n{min-width:6em;font-size:.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* review */

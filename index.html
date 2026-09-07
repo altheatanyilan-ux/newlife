@@ -830,6 +830,86 @@ html.reduce-motion *,html.reduce-motion *::before,html.reduce-motion *::after{an
 .hg-cell.miss{background:color-mix(in srgb,#b0616a 22%,transparent);border-color:color-mix(in srgb,#b0616a 45%,transparent)}
 .hg-cell.off{opacity:.25;cursor:default}
 .hg-cell.future{opacity:.35;cursor:not-allowed}
+/* ============================================================
+   THE LIFE TAPE
+   ============================================================ */
+.tape-filters{border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-top:12px;background:var(--surface)}
+.tape-filters summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center}
+.tape-filters summary::-webkit-details-marker{display:none}
+.tape-filters .body{padding-top:10px}
+.tape-item{display:flex;gap:9px;align-items:baseline;padding:8px 11px;border-radius:9px;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--c);cursor:pointer;transition:border-color .18s var(--ease)}
+.tape-item:hover{border-color:var(--c)}
+.ti-ico{color:var(--c);flex:none}
+.ti-body{flex:1;min-width:0}
+.ti-text{font-size:.84rem;color:var(--muted);line-height:1.5;margin-top:2px}
+/* week */
+.tape-week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.tw-col{display:flex;flex-direction:column;gap:6px;padding:8px 4px;border-radius:10px;border:1px solid var(--line);background:var(--surface);cursor:pointer;min-height:190px;transition:border-color .18s var(--ease)}
+.tw-col:hover{border-color:var(--page-accent)}
+.tw-col.today{border-color:color-mix(in srgb,var(--page-accent) 55%,var(--line));background:color-mix(in srgb,var(--page-accent) 5%,var(--surface))}
+.tw-head{display:flex;flex-direction:column;align-items:center;line-height:1.1}
+.tw-head .dn{font-family:var(--mono);font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+.tw-head .dd{font-family:var(--serif);font-size:1.05rem}
+.tw-rings{display:flex;flex-direction:column;align-items:center;gap:1px;min-height:34px}
+.tw-rings .mono{font-size:.55rem}
+.tw-stack{flex:1;display:flex;flex-direction:column-reverse;gap:2px;justify-content:flex-start;padding:0 6px}
+.tw-stack i{height:7px;border-radius:2px;opacity:.85}
+.tw-quiet{display:block;height:1px;background:var(--line-2);margin-top:auto}
+.tw-foot{display:flex;align-items:center;justify-content:center;gap:5px;min-height:14px}
+.tw-dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+/* year */
+.tape-grid{display:grid;grid-template-rows:repeat(7,1fr);grid-auto-flow:column;grid-auto-columns:1fr;gap:3px;margin:6px 0}
+.tape-grid i{aspect-ratio:1;border-radius:2px;background:var(--surface-3);cursor:pointer;transition:transform .12s var(--ease)}
+.tape-grid i:hover{transform:scale(1.5);z-index:2}
+.tape-grid .tg-pad{background:none;cursor:default}
+.tape-months{display:grid;grid-template-columns:repeat(auto-fit,minmax(78px,1fr));gap:8px;margin-top:16px}
+.tm-cell{padding:8px 6px;border-radius:9px;border:1px solid var(--line);background:var(--surface);text-align:center}
+.tm-cell.quiet{opacity:.45}
+@media (max-width:720px){.tape-week{grid-template-columns:repeat(4,1fr)}}
+/* guided review flows */
+.flow-body{min-height:120px}
+.flow-dots{display:flex;gap:5px;justify-content:center;margin-top:16px}
+.flow-dots i{width:6px;height:6px;border-radius:50%;background:var(--line-2)}
+.flow-dots i.past{background:color-mix(in srgb,var(--page-accent) 45%,transparent)}
+.flow-dots i.on{background:var(--page-accent);transform:scale(1.35)}
+.review-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(268px,1fr));gap:12px;margin-top:14px}
+.review-card{padding:14px 16px;border-radius:var(--radius);border:1px solid var(--line);background:var(--surface)}
+.review-card.due{border-color:color-mix(in srgb,var(--page-accent) 45%,var(--line));background:color-mix(in srgb,var(--page-accent) 6%,var(--surface))}
+.tk-dot{width:12px;height:12px;border-radius:3px;background:var(--surface-3);display:inline-block}
+.tk-dot.on{background:var(--page-accent)}
+/* the ring row for one day — morning left, evening right */
+.habit-row{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start;margin:12px 0}
+.hr-group{display:flex;flex-direction:column;gap:6px}
+.hr-group > .mono{font-size:.58rem;letter-spacing:.12em;text-transform:uppercase}
+.hr-rings{display:flex;gap:12px;flex-wrap:wrap}
+.hring-btn .hring-name{display:block;font-size:.66rem;color:var(--muted);max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;margin-top:2px}
+.hring-btn .hring-streak{inset:auto;top:38%;left:0;right:0}
+.habit-row.all-done .hring-btn{animation:allDone 2s var(--ease)}
+@keyframes allDone{0%,100%{filter:none}45%{filter:drop-shadow(0 0 7px color-mix(in srgb,var(--gold) 60%,transparent))}}
+/* per-habit detail */
+.habit-detail{border-top:1px dashed var(--line);padding:4px 0}
+.habit-detail summary{display:flex;align-items:center;gap:10px;cursor:pointer;list-style:none;padding:4px 0}
+.habit-detail summary::-webkit-details-marker{display:none}
+.habit-detail .body{padding:6px 0 12px}
+.h90{display:grid;grid-template-columns:repeat(30,1fr);gap:2px;margin-top:4px}
+.h90 i{aspect-ratio:1;border-radius:2px;background:var(--surface-3)}
+.h90 i.full{background:var(--c)}
+.h90 i.half{background:color-mix(in srgb,var(--c) 45%,transparent)}
+.h90 i.miss{background:color-mix(in srgb,#b0616a 22%,transparent)}
+.h90 i.off{opacity:.3}
+.h8w{display:flex;gap:5px;align-items:flex-end;height:44px;margin-top:4px}
+.h8-bar{flex:1;height:100%;display:flex;align-items:flex-end;background:var(--surface-2);border-radius:3px;overflow:hidden}
+.h8-bar i{display:block;width:100%;background:var(--c);border-radius:3px}
+/* chains */
+.chain{display:flex;align-items:center;flex-wrap:wrap;gap:0;margin-top:8px}
+.chain-node{padding:4px 10px;border-radius:999px;border:1px solid color-mix(in srgb,var(--c) 40%,var(--line));background:color-mix(in srgb,var(--c) 10%,transparent);font-size:.8rem;cursor:pointer}
+.chain-link{width:18px;height:1px;background:var(--line-2);position:relative}
+.chain-link::after{content:"›";position:absolute;top:-10px;left:5px;color:var(--faint);font-size:.7rem}
+/* oscillation */
+.osc{margin-top:14px;padding:10px 12px;border-radius:10px;background:var(--surface-2);border:1px solid var(--line)}
+.osc-bar{display:flex;height:8px;border-radius:4px;overflow:hidden;margin:6px 0}
+.osc-bar .exp{background:var(--terra)}
+.osc-bar .rec{background:var(--sage)}
 .hab-stats{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
 .hs-n{min-width:6em;font-size:.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* review */
@@ -6616,6 +6696,502 @@ routes.finance = function(root){
   reveal(root);
 };
 /* ============================================================
+   THE LIFE TAPE — what you actually lived
+   Your calendar holds what you meant to do. This holds what
+   happened: every entry, nod, interaction, habit and leaf that
+   carries a date, assembled onto that date without anyone
+   logging anything twice. Three zooms — a day you can read, a
+   week you can see the shape of, a year you can see at once.
+   ============================================================ */
+/* kind → [section, colour, icon] */
+const TAPE_KINDS = {
+  reflection:   ['Journals',  'var(--rose)',  '✎'],
+  gratitude:    ['Journals',  '#c98a8a',      '♡'],
+  dream:        ['Journals',  '#8a7fb8',      '☾'],
+  synchronicity:['Journals',  'var(--gold)',  '∞'],
+  manifestation:['Journals',  '#b98aa6',      '✦'],
+  question:     ['Journals',  '#8fa9c4',      '?'],
+  uncategorized:['Journals',  'var(--muted)', '▫'],
+  quote:        ['Library',   'var(--gold)',  '“'],
+  media:        ['Library',   '#c9a05a',      '▤'],
+  memory:       ['Timeline',  '#cba85a',      '◌'],
+  lifeevent:    ['Timeline',  '#cba85a',      '◆'],
+  artifact:     ['Timeline',  '#a3978a',      '▣'],
+  letter:       ['Letters',   '#b8a68c',      '✉'],
+  decision:     ['Decisions', '#c25b5b',      '⚖'],
+  progress:     ['Skills',    '#3fae7a',      '↗'],
+  visualization:['Morning',   '#7b7de3',      '◉'],
+  nod:          ['Projects',  'var(--sage)',  '·'],
+  habit:        ['Habits',    'var(--terra)', '◍'],
+  interaction:  ['People',    '#6b7f8e',      '☺'],
+  evidence:     ['Vision',    '#7b7de3',      '❦'],
+};
+const tapeKind = k => TAPE_KINDS[k] || ['Journals', 'var(--muted)', '▫'];
+const TAPE_SECTIONS = [...new Set(Object.values(TAPE_KINDS).map(v => v[0]))];
+
+function tapeState(){
+  const t = S._lt = S._lt || {};
+  t.view = ['day','week','year'].includes(t.view) ? t.view : 'week';
+  t.day = /^\d{4}-\d{2}-\d{2}$/.test(t.day) ? t.day : today();
+  t.mode = ['total','setpoint','energy','section','streak'].includes(t.mode) ? t.mode : 'total';
+  t.types = Array.isArray(t.types) ? t.types : [];
+  t.sections = Array.isArray(t.sections) ? t.sections : [];
+  t.q = t.q || ''; t.tag = t.tag || ''; t.from = t.from || ''; t.to = t.to || '';
+  return t;
+}
+const dayOf = e => String(e.occurredAt || e.createdAt || '').slice(0,10);
+
+/* ---------- everything that carries a date, normalised ---------- */
+function tapeItems(from, to){
+  const inRange = d => /^\d{4}-\d{2}-\d{2}$/.test(d) && d >= from && d <= to;
+  const out = [];
+  S.entries.forEach(e => {
+    const d = dayOf(e); if(!inRange(d)) return;
+    if(typeof letterIsSealed === 'function' && letterIsSealed(e)) return;
+    const kind = e.type === 'media' || e.extra?.kind ? (e.type === 'media' ? 'media' : e.type) : e.type;
+    out.push({date:d, kind, title:e.title || '', body:e.body || '', entry:e, id:e.id});
+  });
+  (S.nods || []).forEach(n => { const d = String(n.date||'').slice(0,10); if(!inRange(d)) return;
+    out.push({date:d, kind:'nod', title:byId(S.projects, n.projectId)?.name || 'A nod', body:n.text || '', go:'#/projects/'+n.projectId, id:n.id}); });
+  (S.interactions || []).forEach(i => { const d = String(i.date||'').slice(0,10); if(!inRange(d)) return;
+    out.push({date:d, kind:'interaction', title:byId(S.people, i.personId)?.name || 'Someone', body:i.description || '', go:'#/people/'+i.personId, id:i.id}); });
+  Object.entries(S.habitLog || {}).forEach(([d, log]) => { if(!inRange(d)) return;
+    Object.entries(log || {}).forEach(([hid, v]) => { const h = byId(S.habits, hid); if(!h) return;
+      out.push({date:d, kind:'habit', title:`${h.icon||''} ${h.name}`.trim(), body:v?.note || (v?.level === 'min' ? 'the minimum version' : ''), habit:h, level:v?.level, id:hid+':'+d}); }); });
+  (S.visions || []).forEach(v => (v.evidence || []).forEach((ev, i) => { const d = String(ev.date||'').slice(0,10); if(!inRange(d)) return;
+    out.push({date:d, kind:'evidence', title:v.name, body:ev.text || '', go:'#/vision/'+v.id, id:v.id+':ev'+i}); }));
+  return out.sort((a,b) => a.date.localeCompare(b.date));
+}
+/* the filter bar, applied */
+function tapeFilter(items){
+  const t = tapeState(); const q = t.q.trim().toLowerCase();
+  return items.filter(it => {
+    if(t.types.length && !t.types.includes(it.kind)) return false;
+    if(t.sections.length && !t.sections.includes(tapeKind(it.kind)[0])) return false;
+    if(t.from && it.date < t.from) return false;
+    if(t.to && it.date > t.to) return false;
+    if(q && !`${it.title} ${it.body}`.toLowerCase().includes(q)) return false;
+    if(t.tag && !(it.entry && JSON.stringify(it.entry.links || {}).includes(t.tag))) return false;
+    return true;
+  });
+}
+const tapeFiltered = (from, to) => tapeFilter(tapeItems(from, to));
+function tapeActive(){ const t = tapeState(); return !!(t.types.length || t.sections.length || t.q || t.tag || t.from || t.to); }
+
+/* ---------- a small card for the things that are not journal entries ---------- */
+function tapeItemHTML(it){
+  if(it.entry) return entryCard(it.entry);
+  const [section, color, icon] = tapeKind(it.kind);
+  return `<div class="tape-item" style="--c:${color}" ${it.go?`data-tapego="${esc(it.go)}"`:''}>
+    <span class="ti-ico">${icon}</span>
+    <span class="ti-body"><b>${esc(it.title)}</b>${it.body?`<div class="ti-text">${esc(it.body)}</div>`:''}</span>
+    <span class="chip on" style="--c:${color}">${esc(section)}</span></div>`;
+}
+
+/* ---------- Day View — the daily newspaper of your life ---------- */
+function tapeDayHTML(d){
+  const T = today(); const c = S.checkins?.[d]; const items = tapeFiltered(d, d);
+  const entries = items.filter(x => x.entry), others = items.filter(x => !x.entry);
+  const letters = (S.entries || []).filter(e => e.type === 'letter' && e.extra?.openedAt && String(e.extra.openedAt).slice(0,10) === d);
+  const energyRow = c?.energy && Object.keys(c.energy).length
+    ? `<div class="energy-row">${DIMS.map(x => `<div class="energy-dim" style="--c:${x.c}"><div class="lbl"><span>${x.name}</span><span class="mono">${c.energy[x.id]||'–'}/5</span></div><div class="dots">${[1,2,3,4,5].map(n=>`<i class="${(c.energy[x.id]||0)>=n?'on':''}"></i>`).join('')}</div></div>`).join('')}</div>` : '';
+  return `
+    <div class="row between rv" style="align-items:baseline;flex-wrap:wrap;gap:10px">
+      <h2 style="margin:0">${esc(fmtDate(d))}</h2>
+      <span class="row" style="gap:6px"><button class="btn sm ghost" data-tapeday="${addDays(d,-1)}">‹ ${esc(fmtDate(addDays(d,-1),'short'))}</button>
+        ${d!==T?`<button class="btn sm ghost" data-tapeday="${T}">today</button>`:''}
+        <button class="btn sm ghost" data-tapeday="${addDays(d,1)}">${esc(fmtDate(addDays(d,1),'short'))} ›</button></span>
+    </div>
+    ${c && (c.intention || c.setpoint || energyRow || c.mood) ? `<section class="section rv"><span class="sc">The morning</span>
+      ${c.intention?`<div class="intention-card" style="font-size:1.1rem;margin-bottom:10px">${esc(c.intention)}</div>`:''}
+      ${energyRow}
+      ${c.setpoint?`<div class="mono" style="margin-top:8px">set-point ${c.setpoint}/22 · ${esc(hicksName(c.setpoint))}</div>`:''}
+    </section>` : ''}
+    ${typeof habitRingRow === 'function' ? `<section class="section rv"><span class="sc">The habits</span>${habitRingRow(d)}</section>` : ''}
+    ${others.length ? `<section class="section rv"><span class="sc">Logged elsewhere</span><div class="stack" style="gap:6px">${others.map(tapeItemHTML).join('')}</div></section>` : ''}
+    <section class="section rv"><span class="sc">Written${entries.length?` · ${entries.length}`:''}</span>
+      ${entries.length ? entries.map(x => entryCard(x.entry, {clamp:false})).join('') : '<div class="empty">Nothing written on this day.</div>'}</section>
+    ${letters.length ? `<section class="section rv"><span class="sc">Letters opened</span>${letters.map(e=>entryCard(e,{clamp:false})).join('')}</section>` : ''}
+    ${c?.sentence ? `<section class="section rv"><span class="sc">The evening</span><blockquote class="rehearsal-epigraph" style="font-size:1rem">${esc(c.sentence)}<cite>how the day was, in one line</cite></blockquote></section>` : ''}
+    ${d === T && typeof onThisDayHTML === 'function' ? `<section class="section rv"><span class="sc">On this day, in other years</span>${onThisDayHTML()}</section>` : ''}`;
+}
+
+/* ---------- Week View — the shape of seven days ---------- */
+function tapeWeekHTML(anchor){
+  const days = planDaysFrom(anchor); const T = today();
+  const counts = days.map(d => tapeFiltered(d, d));
+  const max = Math.max(4, ...counts.map(c => c.length));
+  return `
+    <div class="row between rv" style="margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <b class="serif" style="font-size:1.15rem">Week of ${esc(fmtDate(days[0],'med'))}</b>
+      <span class="row" style="gap:6px"><button class="btn sm ghost" data-tapeweek="${addDays(anchor,-7)}">‹</button><button class="btn sm ghost" data-tapeweek="${T}">this week</button><button class="btn sm ghost" data-tapeweek="${addDays(anchor,7)}">›</button></span>
+    </div>
+    <div class="tape-week rv">${days.map((d, i) => { const its = counts[i]; const st = dayState(d);
+      const due = (S.habits||[]).filter(h => !h.archived && !h.negative && habitDue(h,d));
+      const doneN = due.filter(h => habitDone(h,d)).length;
+      return `<div class="tw-col ${d===T?'today':''}" data-tapeday="${d}">
+        <div class="tw-head"><span class="dn">${DOW[parseDay(d).getDay()].slice(0,3)}</span><span class="dd">${parseDay(d).getDate()}</span></div>
+        ${due.length ? `<div class="tw-rings">${ringSVG(doneN/due.length, {size:26, stroke:3, color:'var(--terra)'})}<span class="mono">${doneN}/${due.length}</span></div>` : '<div class="tw-rings"></div>'}
+        <div class="tw-stack">${its.slice(0,26).map(x => `<i style="background:${tapeKind(x.kind)[1]}" title="${esc(tapeKind(x.kind)[0])} · ${esc(x.title||x.body.slice(0,50))}"></i>`).join('') || '<span class="tw-quiet"></span>'}</div>
+        <div class="tw-foot"><span class="mono">${its.length||''}</span>${st!==null?`<i class="tw-dot" style="background:${stateColor(st)}" title="state ${st}/100"></i>`:''}</div>
+      </div>`; }).join('')}</div>
+    <div class="cal-legend rv" style="margin-top:12px">${TAPE_SECTIONS.map(s => { const k = Object.entries(TAPE_KINDS).find(([,v]) => v[0] === s);
+      return `<span><i style="background:${k[1][1]}"></i>${esc(s)}</span>`; }).join('')}<span class="faint">bar height is the day's weight · click a day to read it</span></div>`;
+}
+
+/* ---------- Year View — the whole year at once ---------- */
+const TAPE_MODES = [['total','Activity'],['setpoint','Set-point'],['energy','Energy'],['section','By section'],['streak','Habit streaks']];
+function tapeYearDays(year){
+  const out = []; let d = `${year}-01-01`; const end = `${year}-12-31`;
+  while(d <= end){ out.push(d); d = addDays(d, 1); }
+  return out;
+}
+function tapeCellLevel(d, mode, byDay){
+  if(mode === 'setpoint'){ const sp = S.checkins?.[d]?.setpoint; return sp ? {op:.18 + (sp/22)*.82, color: sp >= 16 ? 'var(--gold)' : sp >= 11 ? 'var(--sage)' : '#6b7f8e'} : null; }
+  if(mode === 'streak'){ const due = (S.habits||[]).filter(h => !h.archived && !h.negative && habitDue(h,d));
+    if(!due.length) return null; const all = due.every(h => habitDone(h,d));
+    return all ? {op:1, color:'var(--terra)'} : {op:.22, color:'var(--muted)'}; }
+  const n = (byDay[d] || []).length;
+  if(!n) return null;
+  if(mode === 'section'){ const top = {}; (byDay[d]||[]).forEach(x => { const s = tapeKind(x.kind)[0]; top[s] = (top[s]||0)+1; });
+    const win = Object.entries(top).sort((a,b)=>b[1]-a[1])[0][0];
+    const k = Object.entries(TAPE_KINDS).find(([,v]) => v[0] === win);
+    return {op:Math.min(1, .3 + n/8), color:k ? k[1][1] : 'var(--page-accent)'}; }
+  return {op:Math.min(1, .22 + n/9), color:'var(--page-accent)'};
+}
+function tapeGrid(days, mode, byDay){
+  const lead = (parseDay(days[0]).getDay()+6)%7;
+  return `<div class="tape-grid">${Array.from({length:lead}, ()=>'<i class="tg-pad"></i>').join('')}
+    ${days.map(d => { const lv = tapeCellLevel(d, mode, byDay);
+      return `<i class="tg-cell" data-tapeday="${d}" style="${lv?`background:${lv.color};opacity:${lv.op.toFixed(2)}`:''}" title="${esc(fmtDate(d,'med'))} · ${(byDay[d]||[]).length} logged"></i>`; }).join('')}</div>`;
+}
+function tapeYearHTML(year){
+  const t = tapeState(); const days = tapeYearDays(year).filter(d => d <= today());
+  const all = tapeFiltered(`${year}-01-01`, `${year}-12-31`);
+  const byDay = {}; all.forEach(x => (byDay[x.date] = byDay[x.date] || []).push(x));
+  const months = Array.from({length:12}, (_,m) => {
+    const pre = `${year}-${String(m+1).padStart(2,'0')}`;
+    const its = all.filter(x => x.date.startsWith(pre));
+    const sps = Object.entries(S.checkins||{}).filter(([d,c]) => d.startsWith(pre) && c.setpoint).map(([,c]) => c.setpoint);
+    const tally = {}; its.forEach(x => { const s = tapeKind(x.kind)[0]; tally[s] = (tally[s]||0)+1; });
+    const top = Object.entries(tally).sort((a,b)=>b[1]-a[1])[0];
+    return {m, n:its.length, sp: sps.length ? avg(sps) : null, top: top ? top[0] : null};
+  });
+  return `
+    <div class="row between rv" style="margin-bottom:10px;flex-wrap:wrap;gap:8px">
+      <b class="serif" style="font-size:1.15rem">${year}</b>
+      <span class="row" style="gap:6px"><button class="btn sm ghost" data-tapeyear="${year-1}">‹</button><button class="btn sm ghost" data-tapeyear="${new Date().getFullYear()}">this year</button><button class="btn sm ghost" data-tapeyear="${year+1}">›</button></span>
+    </div>
+    <div class="row rv" style="gap:6px;flex-wrap:wrap;margin-bottom:12px">${TAPE_MODES.map(([k,l]) => `<button class="btn sm ${t.mode===k?'primary':'ghost'}" data-tapemode="${k}">${l}</button>`).join('')}</div>
+    ${t.mode === 'energy'
+      ? `<div class="stack rv" style="gap:14px">${DIMS.map(dim => { const bd = {};
+            days.forEach(d => { const v = S.checkins?.[d]?.energy?.[dim.id]; if(v) bd[d] = Array.from({length:Math.max(1,Math.round(v*1.6))}); });
+            return `<div><div class="sc" style="color:${dim.c}">${dim.name}</div>${tapeGrid(days, 'total', bd).replace(/var\(--page-accent\)/g, dim.c)}</div>`; }).join('')}</div>`
+      : `<div class="rv">${tapeGrid(days, t.mode, byDay)}</div>`}
+    <div class="tape-months rv">${months.map(mo => `<div class="tm-cell ${mo.n?'':'quiet'}">
+      <div class="mono">${MONTHS[mo.m].slice(0,3)}</div>
+      <div class="serif" style="font-size:1.1rem">${mo.n||'—'}</div>
+      ${mo.sp!==null?`<div class="mono">set-pt ${mo.sp.toFixed(0)}</div>`:''}
+      ${mo.top?`<div class="mono" style="color:var(--muted)">${esc(mo.top)}</div>`:''}
+    </div>`).join('')}</div>`;
+}
+
+/* ---------- the filter bar ---------- */
+function tapeFilterHTML(){
+  const t = tapeState();
+  const dims = [...S.stages.map(s=>[s.id,s.char+' '+s.name]), ...S.threads.map(x=>[x.id,'thread · '+x.name]), ...S.values.map(v=>[v.id,'value · '+v.name]),
+                ...S.visions.map(v=>[v.id,'vision · '+v.name]), ...S.skills.map(s=>[s.id,'skill · '+s.name]), ...S.projects.map(p=>[p.id,'project · '+p.name]), ...(S.people||[]).map(p=>[p.id,'person · '+p.name])];
+  return `<details class="tape-filters rv" ${tapeActive()?'open':''}><summary><span class="sc">Filter the tape</span>${tapeActive()?`<span class="mono">filtered</span>`:''}</summary><div class="body">
+    <div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:8px">
+      <input class="inp" id="ltq" placeholder="search everything written" value="${esc(t.q)}" style="flex:1;min-width:180px">
+      <select class="sel" id="lttag" style="width:auto;max-width:210px"><option value="">any link</option>${dims.map(([id,n])=>`<option value="${id}" ${t.tag===id?'selected':''}>${esc(n)}</option>`).join('')}</select>
+      <input class="inp" type="date" id="ltfrom" value="${t.from}" style="width:auto"><input class="inp" type="date" id="ltto" value="${t.to}" style="width:auto">
+    </div>
+    <div class="row" style="gap:5px;flex-wrap:wrap;margin-bottom:6px">${TAPE_SECTIONS.map(s => `<span class="chip click ${t.sections.includes(s)?'on':''}" data-ltsection="${esc(s)}">${esc(s)}</span>`).join('')}</div>
+    <div class="row" style="gap:5px;flex-wrap:wrap">${Object.keys(TAPE_KINDS).map(k => `<span class="chip click ${t.types.includes(k)?'on':''}" style="--c:${tapeKind(k)[1]}" data-lttype="${k}">${tapeKind(k)[2]} ${esc(typeof typeName==='function'&&TAPE_KINDS[k]?(k==='habit'?'Habit':k==='nod'?'Nod':k==='interaction'?'Interaction':k==='evidence'?'Leaf':typeName(k)):k)}</span>`).join('')}</div>
+    <div class="row" style="gap:6px;margin-top:10px;flex-wrap:wrap">
+      ${[['this week',()=>0],['this month',0],['last 90 days',0],['this year',0]].map(([l]) => `<button class="btn sm ghost" data-ltrange="${esc(l)}">${l}</button>`).join('')}
+      ${tapeActive()?`<button class="btn sm ghost" id="ltClear">clear</button>`:''}
+    </div>
+  </div></details>`;
+}
+function bindTapeFilters(box){
+  const t = tapeState();
+  const upd = debounce(() => { t.q = box.querySelector('#ltq').value; rerender(); const n = document.querySelector('#ltq'); if(n){ n.focus(); n.setSelectionRange(n.value.length, n.value.length); } }, 350);
+  box.querySelector('#ltq')?.addEventListener('input', upd);
+  box.querySelector('#lttag')?.addEventListener('change', e => { t.tag = e.target.value; rerender(); });
+  box.querySelector('#ltfrom')?.addEventListener('change', e => { t.from = e.target.value; rerender(); });
+  box.querySelector('#ltto')?.addEventListener('change', e => { t.to = e.target.value; rerender(); });
+  box.querySelectorAll('[data-ltsection]').forEach(c => c.onclick = () => { const s = c.dataset.ltsection;
+    t.sections = t.sections.includes(s) ? t.sections.filter(x=>x!==s) : [...t.sections, s]; rerender(); });
+  box.querySelectorAll('[data-lttype]').forEach(c => c.onclick = () => { const k = c.dataset.lttype;
+    t.types = t.types.includes(k) ? t.types.filter(x=>x!==k) : [...t.types, k]; rerender(); });
+  box.querySelectorAll('[data-ltrange]').forEach(b => b.onclick = () => {
+    const T = today(); const l = b.dataset.ltrange;
+    if(l === 'this week'){ t.from = weekStart(T); t.to = addDays(weekStart(T), 6); }
+    else if(l === 'this month'){ t.from = T.slice(0,8)+'01'; t.to = T; }
+    else if(l === 'last 90 days'){ t.from = addDays(T, -89); t.to = T; }
+    else { t.from = T.slice(0,4)+'-01-01'; t.to = T; }
+    rerender();
+  });
+  box.querySelector('#ltClear')?.addEventListener('click', () => { Object.assign(t, {types:[], sections:[], q:'', tag:'', from:'', to:''}); rerender(); });
+}
+
+/* ---------- the panel ---------- */
+function renderLifeTape(box){
+  const t = tapeState();
+  box.innerHTML = `
+    <div class="row between" style="align-items:center;flex-wrap:wrap;gap:8px">
+      <div class="lib-tabs">${[['day','Day'],['week','Week'],['year','Year']].map(([k,l])=>`<button class="${t.view===k?'active':''}" data-ltview="${k}">${l}</button>`).join('')}</div>
+      <span class="mono faint">what you actually lived</span>
+    </div>
+    ${tapeFilterHTML()}
+    <div id="ltBody" style="margin-top:12px">${
+      t.view === 'day' ? tapeDayHTML(t.day) : t.view === 'week' ? tapeWeekHTML(t.day) : tapeYearHTML(+t.day.slice(0,4))}</div>`;
+  box.querySelectorAll('[data-ltview]').forEach(b => b.onclick = () => { t.view = b.dataset.ltview; rerender(); });
+  box.querySelectorAll('[data-tapeday]').forEach(n => n.onclick = e => { if(e.target.closest('.entry,a,button:not([data-tapeday])')) return;
+    t.day = n.dataset.tapeday; t.view = 'day'; rerender(); });
+  box.querySelectorAll('[data-tapeweek]').forEach(b => b.onclick = () => { t.day = b.dataset.tapeweek; t.view = 'week'; rerender(); });
+  box.querySelectorAll('[data-tapeyear]').forEach(b => b.onclick = () => { t.day = b.dataset.tapeyear + t.day.slice(4); t.view = 'year'; rerender(); });
+  box.querySelectorAll('[data-tapemode]').forEach(b => b.onclick = () => { t.mode = b.dataset.tapemode; rerender(); });
+  box.querySelectorAll('[data-tapego]').forEach(n => n.onclick = () => navigate(n.dataset.tapego));
+  bindTapeFilters(box);
+  if(typeof bindHabitRings === 'function') bindHabitRings(box);
+  reveal(box);
+}
+/* ============================================================
+   GUIDED REVIEWS — the flows that keep the system alive
+   Five rituals at five cadences. Each is a sequence of steps,
+   every step pre-filled with what the instrument already knows,
+   so the work is noticing rather than remembering.
+   ============================================================ */
+function guidedFlow(title, steps, onDone){
+  let i = 0; const m = openModal('', 'wide');
+  const draw = () => {
+    const st = steps[i];
+    m.querySelector('.modal').innerHTML = `<button class="close">×</button>
+      <div class="mono">${esc(title)} · step ${i+1} of ${steps.length}</div>
+      <h2 style="margin:4px 0 6px">${esc(st.title)}</h2>
+      ${st.hint ? `<p class="muted" style="font-size:.88rem;margin:0 0 12px">${st.hint}</p>` : ''}
+      <div class="flow-body" id="flowBody">${typeof st.body === 'function' ? (st.body() || '') : (st.body || '')}</div>
+      <div class="flow-dots">${steps.map((_,k) => `<i class="${k===i?'on':k<i?'past':''}"></i>`).join('')}</div>
+      <div class="row between" style="margin-top:14px">
+        <span class="row" style="gap:6px">${i ? '<button class="btn sm ghost" id="fwBack">back</button>' : ''}</span>
+        <button class="btn primary" id="fwNext">${i === steps.length-1 ? 'Close the review' : 'Next'}</button></div>`;
+    m.querySelector('.close').onclick = () => m.remove();
+    const body = m.querySelector('#flowBody');
+    st.bind && st.bind(body, m);
+    body.querySelectorAll('[data-flowgo]').forEach(b => b.onclick = () => { const go = b.dataset.flowgo; m.remove(); navigate(go); });
+    body.querySelectorAll('[data-flowquick]').forEach(b => b.onclick = () => openEntryModal({type:b.dataset.flowquick, after:()=>{}}));
+    m.querySelector('#fwBack') && (m.querySelector('#fwBack').onclick = () => { i--; draw(); });
+    m.querySelector('#fwNext').onclick = () => { st.next && st.next(body); if(i === steps.length-1){ m.remove(); onDone && onDone(); return; } i++; draw(); };
+    attachDictationIn(m);
+  };
+  draw();
+  return m;
+}
+const REVIEW_LOG = () => (S.reviews = S.reviews || {});
+function reviewDone(key){ REVIEW_LOG()[key] = today(); saveNow(); sound('success'); rerender(); }
+const reviewAge = key => daysSince(REVIEW_LOG()[key]);
+
+/* ---------- 1. the morning practice ---------- */
+function flowMorning(){
+  const T = today(); const c = checkin(T);
+  guidedFlow('Morning practice', [
+    {title:'Sit quietly. Close your eyes.', hint:'Thirty minutes, in the order Maltz taught it. Nothing here needs typing yet.',
+     body: () => `<blockquote class="rehearsal-epigraph">${esc((S.rehearsal.script || '').slice(0, 400) || 'Your self-image script is not written yet. Write it on Today and this step will read it back to you.')}<cite>the self-image script</cite></blockquote>
+       <div class="row" style="margin-top:10px"><button class="btn sm ghost" data-flowgo="#/today">open the Morning Theatre</button></div>`},
+    {title:'Visualise for fifteen to twenty minutes.', hint:'See yourself acting, feeling and being as you want to be. Sensory detail is the whole technique — your nervous system cannot tell a vividly imagined experience from a real one.',
+     body: () => { const v = S.visions.filter(x => !x.archived && x.confidence !== 'lived')[0];
+       return v ? `<div class="card"><b class="serif">${esc(v.name)}</b>${v.sensory?.see?`<div class="quote" style="margin-top:6px">${esc(v.sensory.see)}</div>`:''}${v.sensory?.firstHour?`<div class="faint" style="font-size:.84rem;margin-top:6px">${esc(v.sensory.firstHour)}</div>`:''}</div>
+         <div class="row" style="margin-top:10px"><button class="btn sm ghost" data-flowquick="visualization">log what you saw</button></div>` : '<div class="empty">No vision to rehearse yet. Plant one on the Vision Tree.</div>'; }},
+    {title:'Read your Definite Chief Aim aloud.', hint:'With emotion, twice a day. Hill was specific about the emotion.',
+     body: () => `<div class="intention-card serif-lg">${esc(S.rehearsal.aim || 'Not written yet — Today has the field, and Finance can draft the number for you.')}</div>`},
+    {title:'Where are you on the scale?', hint:'Honestly, not aspirationally. You cannot leap the scale; you can only reach for the rung above.',
+     body: () => `<input class="rng" type="range" min="1" max="22" value="${c.setpoint || 11}" id="fwSp" style="width:100%">
+       <div class="row between"><span id="fwSpName" class="serif">${esc(hicksName(c.setpoint || 11))}</span><span class="mono" id="fwSpNum">${c.setpoint || 11}</span></div>`,
+     bind: b => { const r = b.querySelector('#fwSp'); r.oninput = () => { b.querySelector('#fwSpName').textContent = hicksName(+r.value); b.querySelector('#fwSpNum').textContent = r.value; }; },
+     next: b => { c.setpoint = +b.querySelector('#fwSp').value; saveNow(); }},
+    {title: "Today's one intention.", hint:'One thing to give attention to. Not a list.',
+     body: () => `<input class="inp serif-lg" id="fwInt" value="${esc(c.intention || '')}" placeholder="Today I give my attention to…">`,
+     next: b => { c.intention = b.querySelector('#fwInt').value.trim(); saveNow(); }},
+    {title:'Mark the practice.', hint:'Consistency, quietly. The tracker is the only scoreboard here.',
+     body: () => { const done = (S.rehearsal.days || []).includes(T);
+       return `<div class="rev-summary">${done ? 'Marked for today already.' : 'This marks today on the twenty-one-day tracker.'}${(S.rehearsal.days||[]).length?` <span class="mono">${S.rehearsal.days.length} days logged</span>`:''}</div>`; },
+     next: () => { S.rehearsal.days = S.rehearsal.days || []; if(!S.rehearsal.days.includes(T)){ S.rehearsal.days.push(T); S.rehearsal.cycleStart = S.rehearsal.cycleStart || T; } }},
+  ], () => { reviewDone('lastMorning'); toast('The practice is marked.'); });
+}
+
+/* ---------- 2. the evening review ---------- */
+function flowEvening(){
+  const T = today(); const c = checkin(T); const r = dayReview(T);
+  guidedFlow('Evening review', [
+    {title:'The rings, before the day closes.', hint:'Anything unfilled? Fill it, or let it stand as a miss — both are honest.',
+     body: () => habitRingRow(T), bind: b => bindHabitRings(b)},
+    {title:'What the day actually held.', hint:'Does this reflect the day you intended, or the day that happened to you?',
+     body: () => { const items = tapeFilter(tapeItems(T, T));
+       const tally = {}; items.forEach(x => { const s = tapeKind(x.kind)[0]; tally[s] = (tally[s]||0)+1; });
+       return `<div class="rev-summary">${items.length ? `<b>${items.length}</b> things landed on today — ${Object.entries(tally).sort((a,b)=>b[1]-a[1]).map(([s,n])=>`${n} ${s.toLowerCase()}`).join(', ')}.` : 'Nothing logged today. That is also a reading.'}</div>
+         <div class="row" style="margin-top:10px"><button class="btn sm ghost" data-flowgo="#/rhythm/tape">open the day in the Life Tape</button></div>`; }},
+    {title:'Tonight, in four dimensions.', hint:'Where the energy actually ended up.',
+     body: () => `<div class="energy-row">${DIMS.map(x => `<div class="energy-dim" style="--c:${x.c}"><div class="lbl"><span>${x.name}</span></div><div class="feeling">${[1,2,3,4,5].map(n=>`<button data-fwen="${x.id}:${n}" class="${(c.energy?.[x.id]||0)===n?'on':''}">${n}</button>`).join('')}</div></div>`).join('')}</div>`,
+     bind: b => b.querySelectorAll('[data-fwen]').forEach(btn => btn.onclick = () => { const [id,n] = btn.dataset.fwen.split(':'); c.energy = c.energy || {}; c.energy[id] = +n; saveNow();
+       b.querySelectorAll(`[data-fwen^="${id}:"]`).forEach(x => x.classList.toggle('on', x === btn)); })},
+    {title:'And the set-point — where did it land?', hint:`This morning you were ${c.setpoint ? hicksName(c.setpoint).split(' / ')[0] : 'not on the scale yet'}.`,
+     body: () => `<div class="energy-faces">${[1,2,3,4,5].map(n=>`<button class="ef ${r.energy===n?'on':''}" data-fwef="${n}" title="${['drained','low','level','good','full'][n-1]}">${n}</button>`).join('')}</div>`,
+     bind: b => b.querySelectorAll('[data-fwef]').forEach(btn => btn.onclick = () => { r.energy = +btn.dataset.fwef; saveNow(); b.querySelectorAll('[data-fwef]').forEach(x => x.classList.toggle('on', x === btn)); })},
+    {title:'One line.', hint:'One thing you learned, noticed, or are grateful for. It saves as a reflection.',
+     body: () => `<textarea class="ta" id="fwLine" placeholder="Today I noticed…">${esc(r.note || '')}</textarea>`,
+     next: b => { const v = b.querySelector('#fwLine').value.trim(); r.note = v; if(!c.sentence && v) c.sentence = v.split('\n')[0].slice(0,160);
+       if(v) S.entries.push({id:uid(), type:'reflection', title:'', body:v, occurredAt:T, createdAt:new Date().toISOString(), media:[],
+         links:{stages:[],substages:[],threads:[],values:[],visions:[],skills:[],projects:[],people:[]}, people:[], places:[], emotions:[], tags:[], confidence:'', extra:{}});
+       r.closedAt = new Date().toTimeString().slice(0,5); saveNow(); }},
+    {title:"Tomorrow's intention.", hint:'Set it now, while today is still in the room.',
+     body: () => { const p = dayPlan(addDays(T,1)); return `<input class="inp serif-lg" id="fwTom" value="${esc(p.intentions?.[0] || '')}" placeholder="Tomorrow I give my attention to…">`; },
+     next: b => { const p = dayPlan(addDays(T,1)); p.intentions = p.intentions || ['','','']; p.intentions[0] = b.querySelector('#fwTom').value.trim(); saveNow(); }},
+  ], () => { reviewDone('lastEvening'); toast('Day closed.'); });
+}
+
+/* ---------- 3. the weekly review ---------- */
+function flowWeekly(){
+  const T = today(); const days = planDaysFrom(T);
+  guidedFlow('Weekly review', [
+    {title:'The week, in shape.', hint:'Which days were full? Which were quiet? Is there a pattern you did not choose?',
+     body: () => tapeWeekHTML(T)},
+    {title:'The habits held, or they did not.',
+     body: () => { const list = S.habits.filter(h => !h.archived && !h.negative);
+       const due = sum(days.map(d => list.filter(h => habitDue(h,d)).length));
+       const done = sum(days.map(d => list.filter(h => habitDue(h,d) && habitDone(h,d)).length));
+       return `<div class="rev-summary">${due ? `<b>${Math.round(done/due*100)}%</b> of what was due — ${done} of ${due}.` : 'No habits were due this week.'}</div>${habitOscillationHTML(7)}`; }},
+    {title:'A congruence snapshot.', hint:'Sliders pre-filled with last week — move only what actually moved.',
+     body: () => `<div class="row"><button class="btn sm primary" id="fwSnap">log a snapshot</button></div>`,
+     bind: b => b.querySelector('#fwSnap').onclick = () => openSnapshotModal(() => {})},
+    {title:'Which dimension did you overtrain?', hint:'And which one went unpaid this week?',
+     body: () => { const bal = energyBalance(true);
+       return `<div class="stack" style="gap:6px">${DIMS.map(d => { const b2 = bal[d.id] || {exp:0,rec:0}; const t = b2.exp + b2.rec;
+         return `<div class="row between"><span style="color:${d.c};min-width:6em">${d.name}</span><span class="bar" style="flex:1;--c:${d.c}"><i style="width:${Math.min(100,t*12)}%"></i></span><span class="mono">${t} logged</span></div>`; }).join('')}</div>`; }},
+    {title:'Current reality, on the tension that carries most.', hint:"Fritz's pivotal technique: describe where you actually are, describe where you want to be, choose the result, and let the structure pull.",
+     body: () => { const v = S.visions.filter(x => !x.archived && x.confidence !== 'lived').map(x => ({x, t: typeof structuralTension === 'function' ? structuralTension(x) : 0})).sort((a,b)=>b.t-a.t)[0];
+       if(!v) return '<div class="empty">No open visions yet.</div>';
+       return `<div class="card"><b class="serif">${esc(v.x.name)}</b><div class="faint" style="font-size:.84rem;margin-top:4px">current reality, as last written</div><div class="quote">${esc(v.x.currentReality || 'not yet described')}</div>
+         <textarea class="ta" id="fwCr" style="margin-top:8px" placeholder="And where it actually stands now…"></textarea></div>`;
+       },
+     next: b => { const ta = b.querySelector('#fwCr'); if(!ta || !ta.value.trim()) return;
+       const v = S.visions.filter(x => !x.archived && x.confidence !== 'lived').map(x => ({x, t: typeof structuralTension === 'function' ? structuralTension(x) : 0})).sort((a,b)=>b.t-a.t)[0];
+       if(!v) return; v.x.currentRealityHistory = v.x.currentRealityHistory || [];
+       if(v.x.currentReality) v.x.currentRealityHistory.push({date:today(), text:v.x.currentReality});
+       v.x.currentReality = ta.value.trim(); saveNow(); }},
+    {title:'Water one vision.', hint:'Even a small leaf. A vision nobody touches is a wish.',
+     body: () => { const v = S.visions.filter(x => !x.archived).map(x => ({x, n:(x.evidence||[]).length})).sort((a,b)=>a.n-b.n)[0];
+       return v ? `<div class="row" style="gap:8px;flex-wrap:wrap"><span>Most neglected: <b>${esc(v.x.name)}</b></span><button class="btn sm ghost" data-flowgo="#/vision/${v.x.id}">open it</button></div>
+         <input class="inp" id="fwLeaf" placeholder="one piece of evidence, however small" style="margin-top:8px">` : '<div class="empty">No visions yet.</div>'; },
+     next: b => { const inp = b.querySelector('#fwLeaf'); if(!inp || !inp.value.trim()) return;
+       const v = S.visions.filter(x => !x.archived).map(x => ({x, n:(x.evidence||[]).length})).sort((a,b)=>a.n-b.n)[0];
+       if(v){ v.x.evidence = v.x.evidence || []; v.x.evidence.push({date:today(), text:inp.value.trim()}); saveNow(); } }},
+    {title:'One synchronicity, gratitude, or reflection.',
+     body: () => `<div class="row" style="gap:6px;flex-wrap:wrap"><button class="btn sm ghost" data-flowquick="synchronicity">＋ synchronicity</button><button class="btn sm ghost" data-flowquick="gratitude">＋ gratitude</button><button class="btn sm ghost" data-flowquick="reflection">＋ reflection</button></div>`},
+    {title:"Next week's one intention.",
+     body: () => `<textarea class="ta" id="fwWk" placeholder="One sentence. It is the first thing you will see on Monday.">${esc(S.reviews.nextWeekFocus || '')}</textarea>`,
+     next: b => { S.reviews.nextWeekFocus = b.querySelector('#fwWk').value.trim(); saveNow(); }},
+  ], () => { reviewDone('lastWeekly'); toast('Week reviewed.'); });
+}
+
+/* ---------- 4. the seasonal review ---------- */
+function flowSeasonal(){
+  guidedFlow('Seasonal review', [
+    {title:'Ninety days, at once.', hint:'Dry spells, surges, the weeks you cannot remember. Look before you interpret.',
+     body: () => { const t = tapeState(); t.mode = 'total'; return tapeYearHTML(new Date().getFullYear()); }},
+    {title:'Re-rank what matters.', hint:'The order changes. The previous ranking is kept.',
+     body: () => `<div class="row"><button class="btn sm ghost" data-flowgo="#/values">open the compass</button></div>`},
+    {title:'Update the confidence rungs.', hint:'hunch → exploring → plan → committed → in motion → lived',
+     body: () => `<div class="stack" style="gap:4px">${S.visions.filter(v=>!v.archived).slice(0,8).map(v=>`<div class="row between"><span>${esc(v.name)}</span><span class="mono">${esc(v.confidence||'hunch')}</span></div>`).join('')||'<div class="empty">No visions yet.</div>'}</div>
+       <div class="row" style="margin-top:8px"><button class="btn sm ghost" data-flowgo="#/vision">open the tree</button></div>`},
+    {title:'Re-read one past stage. Does it still feel true?',
+     body: () => { const s = S.stages.filter(x=>!x.notyet && x.narrative)[Math.floor(Math.random()*Math.max(1,S.stages.filter(x=>!x.notyet && x.narrative).length))];
+       return s ? `<div class="card"><b class="serif">${esc(s.char||'')} ${esc(s.name)}</b><div class="quote" style="margin-top:6px">${esc((s.narrative||'').slice(0,320))}…</div><div class="row" style="margin-top:8px"><button class="btn sm ghost" data-flowgo="#/stage/${s.id}">open it</button></div></div>` : '<div class="empty">No stage narratives written yet.</div>'; }},
+    {title:'Revisit the flagged synchronicities.', hint:'They often only make sense from here.',
+     body: () => { const f = S.entries.filter(e => e.type === 'synchronicity' && e.extra?.revisit);
+       return f.length ? f.slice(0,4).map(e=>entryCard(e)).join('') : '<div class="empty">None flagged.</div>'; }},
+    {title:'What is going quiet?', hint:'Skills untouched for three months, and habits below half.',
+     body: () => { const atro = S.skills.filter(s => !s.planned && typeof skillLastPracticed === 'function' && daysSince(skillLastPracticed(s)) > 90);
+       const cold = S.habits.filter(h => !h.archived && !h.negative).map(h => ({h, r:habitWeekRates(h,4)})).filter(o => sum(o.r.map(x=>x.done)) / Math.max(1,sum(o.r.map(x=>x.due))) < .5);
+       return `${atro.length?`<div class="rev-summary">Atrophying: ${atro.map(s=>`<b>${esc(s.name)}</b>`).join(', ')}.</div>`:''}
+         ${cold.length?`<div class="rev-summary">Below half: ${cold.map(o=>`<b>${esc(o.h.name)}</b>`).join(', ')}.</div>`:''}
+         ${!atro.length&&!cold.length?'<div class="empty">Nothing drifting. Unusual, and worth noticing.</div>':''}`; }},
+    {title:'The five closest.', hint:'Update the energy readings. Who has moved without you deciding it?',
+     body: () => `<div class="row"><button class="btn sm ghost" data-flowgo="#/people">open the constellation</button></div>`},
+    {title:'The money, honestly.', hint:'Update the stream figures and see what the runway says now.',
+     body: () => { if(typeof portfolioTotals !== 'function') return '';
+       const {totalCurrentBase, streams} = portfolioTotals(); const rw = typeof runway === 'function' ? runway() : null;
+       return `<div class="rev-summary">${money(totalCurrentBase)}/mo across ${streams.length} stream${streams.length===1?'':'s'}${rw ? (rw.sustainable ? ` · sustainable, +${money(rw.surplus)}/mo` : ` · ${Math.round(rw.months)} months of runway`) : ''}.</div>
+         <div class="row" style="margin-top:8px"><button class="btn sm ghost" data-flowgo="#/finance">open Finance</button></div>`; }},
+  ], () => { reviewDone('lastSeasonal'); toast('Season reviewed.'); });
+}
+
+/* ---------- 5. the annual rite ---------- */
+function flowAnnual(){
+  const year = new Date().getFullYear();
+  guidedFlow('Annual rite', [
+    {title:'The year, all of it.', hint:'Toggle the modes. What do you see that you did not live through consciously?',
+     body: () => tapeYearHTML(year)},
+    {title:"Write the year's narrative.", hint:'It saves as a reflection you can tag to the stage it belongs to.',
+     body: () => `<div class="row"><button class="btn sm primary" data-flowquick="reflection">write it</button></div>`},
+    {title:'Mint the year into the Timeline.', hint:'A sub-stage for what this year was.',
+     body: () => `<div class="row"><button class="btn sm ghost" data-flowgo="#/timeline">open the Timeline</button></div>`},
+    {title:"Re-read last year's future memories.", hint:'Which came closer? Which drifted, and did you choose that?',
+     body: () => { const vs = S.visions.filter(v => v.futureMemory).slice(0,3);
+       return vs.length ? vs.map(v=>`<div class="card" style="margin-bottom:8px"><b class="serif">${esc(v.name)}</b><div class="quote" style="margin-top:4px">${esc(v.futureMemory.slice(0,220))}</div><div class="mono" style="margin-top:4px">${esc(v.confidence||'')}${v.currentReality?` · now: ${esc(v.currentReality.slice(0,80))}`:''}</div></div>`).join('') : '<div class="empty">No future memories written yet.</div>'; }},
+    {title:'The compass, January to December.',
+     body: () => `<div class="row"><button class="btn sm ghost" data-flowgo="#/values">open the radar</button></div>`},
+    {title:"The year's set-point trend.", hint:'Did you climb the scale, or hold?',
+     body: () => { const sps = Object.entries(S.checkins||{}).filter(([d,c]) => d.startsWith(String(year)) && c.setpoint).sort((a,b)=>a[0].localeCompare(b[0])).map(([,c])=>c.setpoint);
+       return sps.length > 2 ? `${sparkline(sps, {h:44, color:'var(--gold)', min:1, max:22})}<div class="mono">from ${hicksName(sps[0]).split(' / ')[0]} to ${hicksName(sps[sps.length-1]).split(' / ')[0]} · average ${avg(sps).toFixed(1)}/22</div>` : '<div class="empty">Not enough set-point readings this year to draw a line.</div>'; }},
+    {title:'Who did you become this year?', hint:'Read the self-image script back, and rewrite it if it has gone out of date.',
+     body: () => `<blockquote class="rehearsal-epigraph">${esc((S.rehearsal.script||'').slice(0,320) || 'Not written yet.')}</blockquote><div class="row" style="margin-top:8px"><button class="btn sm ghost" data-flowgo="#/today">open the Theatre</button></div>`},
+    {title:'The constellation, a year on.', hint:'Who entered, who left, and who moved ring without either of you saying so?',
+     body: () => { const core = (S.people||[]).filter(p => ['core','close'].includes(p.circle));
+       return `<div class="row" style="gap:6px;flex-wrap:wrap">${core.map(p=>`<span class="chip on">${esc(p.name)}</span>`).join('') || '<span class="faint">No one in the inner rings yet.</span>'}</div>
+         <div class="row" style="margin-top:8px"><button class="btn sm ghost" data-flowgo="#/people">open it</button></div>`; }},
+    {title:'The year in money.',
+     body: () => { if(typeof portfolioTotals !== 'function') return '';
+       const {totalCurrentBase, totalTargetBase} = portfolioTotals();
+       return `<div class="rev-summary">${money(totalCurrentBase)}/mo now, against a target of ${money(totalTargetBase)}/mo.</div><div class="row" style="margin-top:8px"><button class="btn sm ghost" data-flowgo="#/finance">open Finance</button></div>`; }},
+    {title:'Three visions for the coming year.',
+     body: () => `<div class="row"><button class="btn sm ghost" data-flowgo="#/vision">open the tree</button></div>`},
+    {title:"A letter to next year's self.", hint:'Sealed until this date, next year.',
+     body: () => `<div class="row"><button class="btn sm primary" id="fwLetter">seal a letter</button></div>`,
+     bind: b => b.querySelector('#fwLetter').onclick = () => { if(typeof openLetterModal === 'function') openLetterModal(); }},
+  ], () => { reviewDone('lastAnnual'); toast('The rite is complete.'); });
+}
+
+/* ---------- the hub ---------- */
+const REVIEW_FLOWS = [
+  ['lastMorning',  'Morning practice',  '30 minutes', 'Maltz, Hill and Hicks, in the order they work: script, visualise, aim, set-point, intention, mark.', flowMorning],
+  ['lastEvening',  'Evening review',    '5 minutes',  'Close the day honestly: the rings, what actually happened, the energy it ended on, one line.', flowEvening],
+  ['lastWeekly',   'Weekly review',     '15 minutes', "The week's shape, the habits, a congruence snapshot, current reality on the tension that carries most.", flowWeekly],
+  ['lastSeasonal', 'Seasonal review',   '30 minutes', 'Ninety days at once: values re-ranked, confidence rungs, what is going quiet, the five closest, the money.', flowSeasonal],
+  ['lastAnnual',   'Annual rite',       '1–2 hours',  'The whole year on one screen, then the narrative, the letter, and three visions for the next one.', flowAnnual],
+];
+function renderReviewsHub(box){
+  const T = today();
+  box.innerHTML = `<p class="muted" style="font-size:.88rem;max-width:640px">Five rituals at five cadences. Each one is pre-filled with what the instrument already knows, so the work is noticing rather than remembering.</p>
+    <div class="review-cards">${REVIEW_FLOWS.map(([key, name, len, desc]) => { const age = reviewAge(key);
+      const due = key === 'lastMorning' ? age >= 1 : key === 'lastEvening' ? age >= 1 : key === 'lastWeekly' ? age >= 7 : key === 'lastSeasonal' ? age >= 90 : age >= 365;
+      return `<div class="review-card ${due?'due':''}" data-flow="${key}">
+        <div class="row between"><b class="serif" style="font-size:1.1rem">${esc(name)}</b><span class="mono">${esc(len)}</span></div>
+        <p class="muted" style="font-size:.85rem;margin:6px 0 10px">${esc(desc)}</p>
+        <div class="row between"><span class="mono">${age === Infinity ? 'never done' : `last ${relDays(age)}`}</span><button class="btn sm ${due?'primary':'ghost'}" data-flowstart="${key}">${age === Infinity ? 'Begin' : due ? 'Begin — due' : 'Begin'}</button></div>
+      </div>`; }).join('')}</div>
+    <div class="hab-stats" style="margin-top:18px"><div class="sc">The twenty-one day tracker</div>
+      <div class="row" style="gap:3px;flex-wrap:wrap;margin-top:8px">${Array.from({length:21}, (_,i) => { const d = addDays(S.rehearsal.cycleStart || T, i);
+        const on = (S.rehearsal.days||[]).includes(d); return `<i class="tk-dot ${on?'on':''}" title="${esc(fmtDate(d,'med'))}"></i>`; }).join('')}</div>
+      <div class="faint" style="font-size:.78rem;margin-top:6px">${(S.rehearsal.days||[]).length} mornings logged${S.rehearsal.cycleStart?` since ${fmtDate(S.rehearsal.cycleStart,'med')}`:''}.</div></div>`;
+  box.querySelectorAll('[data-flowstart]').forEach(b => b.onclick = () => {
+    const fn = (REVIEW_FLOWS.find(f => f[0] === b.dataset.flowstart) || [])[4]; if(fn) fn();
+  });
+  reveal(box);
+}
+/* ============================================================
    RHYTHM — one surface for the day.
    Calendar, the day's plan, the habits, and the review that
    closes it. They were four rooms; they are one cognitive mode,
@@ -6763,39 +7339,48 @@ function moveBlock(kind, id, day, start){
 routes.rhythm = function(root, params){
   migrateRhythm();
   const T = today();
-  const tab = ['plan','habits','review','patterns'].includes(params[0]) ? params[0] : (S._rhyTab || 'plan');
+  const TABS = [['tape','Life Tape'],['habits','Habits'],['reviews','Reviews'],['plan','Day plan'],['patterns','Patterns']];
+  let tab = params[0] === 'review' ? 'reviews' : params[0];
+  tab = TABS.some(([k]) => k === tab) ? tab : (S._rhyTab || 'tape');
   S._rhyTab = tab;
   const view = S._rhyView || 'week';
   const focus = S._rhyDay && /^\d{4}-\d{2}-\d{2}$/.test(S._rhyDay) ? S._rhyDay : T;
   registerPageEntry({pageName:'Rhythm', addLabel:'Add to the day', defaultEntryType:'event', prefilledFields:{}, options:[
+    {icon:'◍', label:'Habit', desc:'Something you mean to keep doing.', run:()=>openHabitModal()},
     {icon:'▦', label:'Event', desc:'A block of time with a name.', run:()=>openEventModal({day:focus})},
     {icon:'▫', label:'Task for today', desc:'Something to finish before the day closes.', run:()=>openTaskPicker(focus, rerender)},
     {icon:'◎', label:'Plan my day', desc:'The three-step morning ritual.', run:()=>planMyDay(focus)},
     {icon:'⤓', label:'Import a calendar (.ics)', desc:'A one-time upload from Google Calendar or another app — daily/weekly repeats only, no live sync.', run:()=>openICSImport()}]});
+  const planTab = tab === 'plan';
   root.innerHTML = `<div class="page rhythm-page">
-    <div class="page-head row between"><div><h1>${esc(S.settings.rhythmName || 'Rhythm')}</h1><div class="sub">The day in one place: what is on it, what you meant to do, what you keep doing, and how it actually went.</div></div>
-      <div class="row"><div class="view-toggle">${[['day','Day'],['week','Week'],['month','Month']].map(([k,l])=>`<button class="${view===k?'on':''}" data-rview="${k}">${l}</button>`).join('')}</div>
-        <button class="btn sm ghost" id="rhyPrev">‹</button><button class="btn sm ghost" id="rhyToday">today</button><button class="btn sm ghost" id="rhyNext">›</button></div></div>
-    <div class="rhythm-grid">
-      <div class="rhy-cal" id="rhyCal"></div>
-      <aside class="rhy-side">
-        <div class="seg">${[['plan','Plan'],['habits','Habits'],['review','Review'],['patterns','Patterns']].map(([k,l])=>`<button class="${tab===k?'on':''}" data-rtab="${k}">${l}</button>`).join('')}</div>
-        <div id="rhySide"></div>
-      </aside>
-    </div>
+    <div class="page-head"><h1>${esc(S.settings.rhythmName || 'Rhythm')}</h1><div class="sub">Your calendar holds what you meant to do. This holds what you actually lived — the tape of it, the habits that made it, and the reviews that keep the whole instrument honest.</div></div>
+    <div class="tabs">${TABS.map(([k,l]) => `<button class="${tab===k?'active':''}" data-rtab="${k}">${l}</button>`).join('')}</div>
+    ${planTab ? `<div class="row between" style="margin:12px 0">
+        <div class="view-toggle">${[['day','Day'],['week','Week'],['month','Month']].map(([k,l])=>`<button class="${view===k?'on':''}" data-rview="${k}">${l}</button>`).join('')}</div>
+        <div class="row"><button class="btn sm ghost" id="rhyPrev">‹</button><button class="btn sm ghost" id="rhyToday">today</button><button class="btn sm ghost" id="rhyNext">›</button></div></div>
+      <div class="rhythm-grid">
+        <div class="rhy-cal" id="rhyCal"></div>
+        <aside class="rhy-side"><div id="rhySide"></div></aside>
+      </div>` : `<div id="rhyBody" style="margin-top:14px"></div>`}
   </div>`;
-  drawRhythmCalendar($('#rhyCal'), view, focus);
-  const side = $('#rhySide');
-  if(tab === 'plan') renderPlanPanel(side, focus);
-  else if(tab === 'habits') renderHabitsPanel(side, focus);
-  else if(tab === 'patterns') renderPatterns(side);
-  else renderReviewPanel(side, focus);
+  if(planTab){
+    drawRhythmCalendar($('#rhyCal'), view, focus);
+    renderPlanPanel($('#rhySide'), focus);
+    const step = n => { S._rhyDay = addDays(focus, view === 'day' ? n : view === 'week' ? n*7 : n*30); rerender(); };
+    $('#rhyPrev').onclick = () => step(-1); $('#rhyNext').onclick = () => step(1);
+    $('#rhyToday').onclick = () => { S._rhyDay = T; rerender(); };
+    $$('[data-rview]',root).forEach(b => b.onclick = () => { S._rhyView = b.dataset.rview; rerender(); });
+  } else {
+    const body = $('#rhyBody');
+    if(tab === 'tape') renderLifeTape(body);
+    else if(tab === 'habits') renderHabitsPanel(body, focus);
+    else if(tab === 'reviews'){ renderReviewsHub(body);
+      body.appendChild(el('<section class="section rv"><span class="sc">Or close the day as a form</span><p class="muted" style="font-size:.84rem">The same data as the evening flow, all on one screen — and the way through to the weekly and monthly summaries.</p><div id="rhyDayClose"></div></section>'));
+      renderReviewPanel($('#rhyDayClose'), focus); }
+    else renderPatterns(body);
+  }
   window._bloomHabit = null; window._pulseHabitId = null;
   $$('[data-rtab]',root).forEach(b => b.onclick = () => { S._rhyTab = b.dataset.rtab; navigate('#/rhythm/' + b.dataset.rtab); if(location.hash === '#/rhythm/' + b.dataset.rtab) rerender(); });
-  $$('[data-rview]',root).forEach(b => b.onclick = () => { S._rhyView = b.dataset.rview; rerender(); });
-  const step = n => { S._rhyDay = addDays(focus, view === 'day' ? n : view === 'week' ? n*7 : n*30); rerender(); };
-  $('#rhyPrev').onclick = () => step(-1); $('#rhyNext').onclick = () => step(1);
-  $('#rhyToday').onclick = () => { S._rhyDay = T; rerender(); };
   reveal(root);
 };
 
@@ -7315,6 +7900,30 @@ function energyBalanceArcsHTML(d){
     return `<div class="earc">${ringSVG(n/hs.length, {size:48, stroke:5, color:dim.c})}<span class="mono">${dim.name}</span></div>`; }).filter(Boolean);
   return arcs.length ? `<div class="energy-arcs">${arcs.join('')}</div>` : '';
 }
+/* ---------- the ring row for one day ----------
+   Morning on the left, evening on the right, anytime in the middle, each ring
+   in its dimension's colour. This is the face of the habits on Today and in
+   the Life Tape; the grid below is for reading the record. */
+function habitRingHTML(h, d, size = 46){
+  const done = habitDone(h, d); const pct = done ? (done.level === 'min' ? .5 : 1) : 0;
+  const dim = DIMS.find(x => x.id === h.dimension); const st = habitStreak(h);
+  const future = d > today();
+  const cls = [future?'future':'', window._bloomHabit === `${h.id}:${d}` ? 'bloom' : '', (window._pulseHabitId === h.id && d === today()) ? 'pulse-once' : ''].filter(Boolean).join(' ');
+  return `<button class="hring-btn ${cls}" data-hring="${h.id}:${d}" ${future?'disabled':''} title="${esc(h.name)}${st.cur?` · ${st.cur}d streak`:''}${future?' · not yet':' · right-click for the minimum version'}">
+    ${ringSVG(pct, {size, color: dim ? dim.c : 'var(--sage)', stroke: Math.max(3, Math.round(size/9))})}
+    ${st.cur ? `<span class="hring-streak mono">${st.cur}</span>` : ''}
+    <span class="hring-name">${esc(h.name)}</span></button>`;
+}
+function habitRingRow(d = today()){
+  const due = S.habits.filter(h => !h.archived && !h.negative && habitDue(h, d));
+  if(!due.length) return '<div class="empty" style="font-size:.82rem">No habits due on this day.</div>';
+  const at = k => due.filter(h => (h.timeOfDay || 'anytime') === k);
+  const cols = [['morning', at('morning')], ['anytime', [...at('anytime'), ...at('afternoon')]], ['evening', at('evening')]];
+  const allDone = due.every(h => habitDone(h, d));
+  return `<div class="habit-row ${allDone ? 'all-done' : ''}">
+    ${cols.map(([label, hs]) => hs.length ? `<div class="hr-group"><span class="mono">${label}</span><div class="hr-rings">${hs.map(h => habitRingHTML(h, d)).join('')}</div></div>` : '').join('')}
+  </div>${energyBalanceArcsHTML(d)}`;
+}
 /* the rings row that sits above the calendar body — a lighter, prettier face on the same log as the grid */
 function habitRingsRow(days, size){
   const bloomKey = window._bloomHabit, pulseId = window._pulseHabitId;
@@ -7333,15 +7942,75 @@ function habitRingsRow(days, size){
   });
   return `<div class="cal-rings-row"><div class="cal-gutter"></div>${cols.join('')}</div>`;
 }
-function bindHabitRings(box){
-  $$('[data-hring]', box).forEach(b => b.onclick = () => {
-    const [id, d] = b.dataset.hring.split(':'); const h = byId(S.habits, id);
-    const stacked = S.habits.find(x => x.stackAfter === h.id && !x.archived && habitDue(x,d) && !habitDone(x,d));
-    const res = habitDayToggle(h, d);
-    if(res.justCompleted){ window._bloomHabit = `${id}:${d}`; if(stacked) window._pulseHabitId = stacked.id; checkAllHabitsDone(d); }
+/* right-click or hold a ring: the minimum version, a note, or take it back —
+   the all-or-nothing版 of a habit tracker is the one people quit */
+function habitPartialMenu(h, d){
+  const cur = habitDone(h, d);
+  const m = openModal(`<h2>${esc(h.icon||'')} ${esc(h.name)}</h2>
+    <p class="muted" style="font-size:.86rem">${esc(fmtDate(d,'med'))}${h.min?` · the minimum is “${esc(h.min)}”`:''}${h.ideal?`, the ideal is “${esc(h.ideal)}”`:''}</p>
+    <div class="stack" style="gap:6px">
+      <button class="btn ${cur&&cur.level==='full'?'primary':'ghost'}" data-hlev="full">✓ the full version</button>
+      <button class="btn ${cur&&cur.level==='min'?'primary':'ghost'}" data-hlev="min">½ the minimum version${h.min?` — ${esc(h.min)}`:''}</button>
+      ${cur?`<button class="btn ghost" data-hlev="">○ take it back</button>`:''}
+      ${h.prompt?`<button class="btn sm ghost" id="hNote">✎ ${esc(h.prompt)}</button>`:''}
+    </div>`, 'narrow');
+  m.querySelectorAll('[data-hlev]').forEach(b => b.onclick = () => {
+    const lev = b.dataset.hlev;
+    S.habitLog[d] = S.habitLog[d] || {};
+    if(lev) S.habitLog[d][h.id] = {level:lev, note: cur?.note || ''}; else delete S.habitLog[d][h.id];
+    saveNow(); sound(lev ? 'success' : 'click'); m.remove();
+    if(lev) { window._bloomHabit = `${h.id}:${d}`; checkAllHabitsDone(d); }
     rerender();
-    if(res.justCompleted && h.prompt) microJournalPrompt(h, d);
   });
+  m.querySelector('#hNote')?.addEventListener('click', () => { m.remove(); microJournalPrompt(h, d); });
+}
+function bindHabitRings(box){
+  $$('[data-hring]', box).forEach(b => {
+    const open = () => { const [id, d] = b.dataset.hring.split(':'); const h = byId(S.habits, id); if(h && d <= today()) habitPartialMenu(h, d); };
+    b.onclick = () => {
+      if(b._held){ b._held = false; return; }
+      const [id, d] = b.dataset.hring.split(':'); const h = byId(S.habits, id);
+      const stacked = S.habits.find(x => x.stackAfter === h.id && !x.archived && habitDue(x,d) && !habitDone(x,d));
+      const res = habitDayToggle(h, d);
+      if(res.justCompleted){ window._bloomHabit = `${id}:${d}`; if(stacked) window._pulseHabitId = stacked.id; checkAllHabitsDone(d); }
+      rerender();
+      if(res.justCompleted && h.prompt) microJournalPrompt(h, d);
+    };
+    b.oncontextmenu = e => { e.preventDefault(); open(); };
+    let timer = null;
+    b.addEventListener('pointerdown', () => { timer = setTimeout(() => { b._held = true; timer = null; open(); }, 480); });
+    ['pointerup','pointerleave','pointercancel'].forEach(ev => b.addEventListener(ev, () => { if(timer){ clearTimeout(timer); timer = null; } }));
+  });
+}
+/* expenditure against recovery — a flat line in either direction is the problem */
+function habitOscillationHTML(days = 14){
+  const ds = lastDays(days); const tally = {exp:0, rec:0};
+  S.habits.filter(h => !h.archived && !h.negative).forEach(h => ds.forEach(d => { if(habitDone(h,d)) tally[h.kind === 'recovery' ? 'rec' : 'exp']++; }));
+  const total = tally.exp + tally.rec; if(!total) return '';
+  const pct = Math.round(tally.exp/total*100);
+  const verdict = pct > 72 ? 'Almost all output. Nothing here is putting anything back.'
+    : pct < 28 ? 'Almost all recovery. Rest is the point — until nothing is being spent.'
+    : 'Spending and renewing, roughly in turn. That is the shape you want.';
+  return `<div class="osc"><div class="row between"><span class="sc" style="margin:0">Oscillation · ${days} days</span><span class="mono">${pct}% expenditure</span></div>
+    <div class="osc-bar"><i class="exp" style="width:${pct}%"></i><i class="rec" style="width:${100-pct}%"></i></div>
+    <div class="faint" style="font-size:.78rem;margin-top:4px">${verdict}</div></div>`;
+}
+function habit90HTML(h){
+  return `<div class="h90">${lastDays(90).map(d => { const done = habitDone(h,d), due = habitDue(h,d);
+    return `<i class="${done ? (done.level === 'min' ? 'half' : 'full') : due ? 'miss' : 'off'}" title="${fmtDate(d,'med')}"></i>`; }).join('')}</div>`;
+}
+function habit8wHTML(h){
+  return `<div class="h8w">${habitWeekRates(h, 8).map(r => { const pct = Math.round(r.done/Math.max(r.due,1)*100);
+    return `<span class="h8-bar" title="${pct}% · ${r.done} of ${r.due}"><i style="height:${Math.max(4, Math.min(100,pct))}%"></i></span>`; }).join('')}</div>`;
+}
+/* habits linked into sequences, drawn as a chain */
+function habitChainsHTML(list){
+  const after = {}; list.forEach(h => { if(h.stackAfter) (after[h.stackAfter] = after[h.stackAfter] || []).push(h); });
+  const walk = (h, acc) => { acc.push(h); (after[h.id] || []).forEach(n => walk(n, acc)); return acc; };
+  const chains = list.filter(h => !h.stackAfter && after[h.id]).map(r => walk(r, []));
+  if(!chains.length) return '';
+  return `<div class="hab-stats"><div class="sc">Chains</div>
+    ${chains.map(c => `<div class="chain">${c.map(h => `<span class="chain-node" style="--c:${(DIMS.find(x=>x.id===h.dimension)||{}).c||'var(--page-accent)'}" data-hopen="${h.id}">${h.icon||'○'} ${esc(h.name)}</span>`).join('<span class="chain-link"></span>')}</div>`).join('')}</div>`;
 }
 function renderHabitsPanel(box, focus){
   const T = today(); const week = planDaysFrom(focus);
@@ -7353,8 +8022,9 @@ function renderHabitsPanel(box, focus){
   const best = list.reduce((b,h) => habitStreak(h).best > (b ? habitStreak(b).best : 0) ? h : b, null);
   const bloomKey = window._bloomHabit;
   box.innerHTML = `
-    <div class="row between"><span class="sc" style="margin:0">The grid</span><span class="mono">${weekRate === null ? '' : `${weekRate}% this week`}</span></div>
-    ${energyBalanceArcsHTML(T)}
+    ${list.length ? `<section class="section"><span class="sc">Today</span>${habitRingRow(T)}</section>` : ''}
+    ${habitOscillationHTML()}
+    <div class="row between" style="margin-top:16px"><span class="sc" style="margin:0">The grid</span><span class="mono">${weekRate === null ? '' : `${weekRate}% this week`}</span></div>
     ${list.length ? `<div class="habit-grid" style="--cols:${week.length}">
       <div class="hg-corner"></div>${week.map(d=>`<div class="hg-dow ${d===T?'today':''}">${DOW[parseDay(d).getDay()][0]}<span class="mono">${parseDay(d).getDate()}</span></div>`).join('')}
       ${list.map(h => { const st = habitStreak(h); const dim = DIMS.find(x=>x.id===h.dimension);
@@ -7364,9 +8034,18 @@ function renderHabitsPanel(box, focus){
     </div>` : `<div class="empty">No habits yet. One is enough to start — the grid is more persuasive than any argument.</div>`}
     <div class="row" style="gap:6px;margin-top:10px"><button class="btn sm primary" id="hNew">＋ Habit</button>${S.habits.some(h=>h.archived)?'<button class="btn sm ghost" id="hArch">archived</button>':''}</div>
 
+    ${habitChainsHTML(list)}
     ${list.length ? `<div class="hab-stats">
-      <div class="sc">This week</div>
-      <div class="stack" style="gap:5px;margin-top:8px">${list.map((h,i)=>`<div class="row between"><span class="hs-n">${esc(h.name)}</span><span class="bar" style="flex:1;--c:${(DIMS.find(x=>x.id===h.dimension)||{}).c||'var(--page-accent)'}"><i style="width:${Math.round(rates[i]*100)}%"></i></span><span class="mono">${Math.round(rates[i]*100)}%</span></div>`).join('')}</div>
+      <div class="sc">Habit by habit</div>
+      <div class="stack" style="gap:4px;margin-top:8px">${list.map((h,i) => { const st = habitStreak(h); const c = (DIMS.find(x=>x.id===h.dimension)||{}).c||'var(--page-accent)';
+        return `<details class="habit-detail" style="--c:${c}"><summary><span class="hs-n">${h.icon||'○'} ${esc(h.name)}</span><span class="bar" style="flex:1;--c:${c}"><i style="width:${Math.round(rates[i]*100)}%"></i></span><span class="mono">${Math.round(rates[i]*100)}%</span></summary>
+          <div class="body">
+            <div class="row between mono" style="margin-bottom:6px"><span>${st.cur?`${st.cur}-day streak`:'not running'}${st.best?` · best ${st.best}`:''}</span><span>${esc(habitFreqLabel(h))} · ${esc(h.timeOfDay)} · ${esc(h.kind)}</span></div>
+            <div class="mono" style="font-size:.6rem;color:var(--faint)">last 90 days</div>${habit90HTML(h)}
+            <div class="mono" style="font-size:.6rem;color:var(--faint);margin-top:8px">last 8 weeks</div>${habit8wHTML(h)}
+            ${h.min||h.ideal?`<div class="faint" style="font-size:.78rem;margin-top:8px">${h.min?`minimum: ${esc(h.min)}`:''}${h.min&&h.ideal?' · ':''}${h.ideal?`ideal: ${esc(h.ideal)}`:''}</div>`:''}
+            <div class="row" style="margin-top:8px"><button class="btn sm ghost" data-hopen="${h.id}">edit this habit</button></div>
+          </div></details>`; }).join('')}</div>
       <div class="row between mono" style="margin-top:10px"><span>${best?`best streak · ${esc(best.name)} ${habitStreak(best).best}d`:''}</span><span>${worst && Math.min(...rates) < .6 ? `most missed · ${esc(worst.name)}` : ''}</span></div>
     </div>` : ''}
 
@@ -7375,6 +8054,7 @@ function renderHabitsPanel(box, focus){
   $('#hArch') && ($('#hArch').onclick = () => openArchivedHabits());
   $$('[data-hopen]',box).forEach(b => b.onclick = () => openHabitModal(b.dataset.hopen));
   $$('[data-relapse]',box).forEach(b => b.onclick = () => { S.negLast = S.negLast||{}; S.negLast[b.dataset.relapse] = today(); saveNow(); sound('error'); rerender(); });
+  bindHabitRings(box);
   $$('[data-hcell]',box).forEach(c => c.onclick = () => {
     const [id, d] = c.dataset.hcell.split(':'); const h = byId(S.habits, id);
     const stacked = S.habits.find(x => x.stackAfter === h.id && !x.archived && habitDue(x,d) && !habitDone(x,d));
@@ -7600,62 +8280,8 @@ function openHabitModal(id){
   m.querySelectorAll('[data-lv],[data-lvi],[data-lsk]').forEach(c => c.onclick = () => c.classList.toggle('on'));
   m.querySelector('#hSave').onclick = () => { h.name = m.querySelector('#hName').value.trim(); if(!h.name) return; h.freq = {type:m.querySelector('#hFreq').value, days:[...m.querySelectorAll('[data-day].primary')].map(b=>+b.dataset.day), count:+m.querySelector('#hCountN').value||1}; h.timeOfDay = m.querySelector('#hTod').value; h.dimension = m.querySelector('#hDim').value; h.kind = m.querySelector('#hKind').value; h.min = m.querySelector('#hMin').value; h.ideal = m.querySelector('#hIdeal').value; h.stackAfter = m.querySelector('#hStack').value||null; h.prompt = m.querySelector('#hPrompt').value; h.relational = m.querySelector('#hRelational').value; h.negative = m.querySelector('#hNeg').classList.contains('on'); h.links = {values:[...m.querySelectorAll('[data-lv].on')].map(c=>c.dataset.lv), visions:[...m.querySelectorAll('[data-lvi].on')].map(c=>c.dataset.lvi), skills:[...m.querySelectorAll('[data-lsk].on')].map(c=>c.dataset.lsk)}; if(!id) S.habits.push(h); saveNow(); m.remove(); rerender(); sound('save'); };
 }
-function renderReviews(body){
-  const gaps = valueGaps(); const g0 = gaps[0]; const vs = S.visions.filter(v=>v.confidence!=='lived'); const st = vs.map(v=>({v,t:structuralTension(v)})).sort((a,b)=>b.t-a.t)[0];
-  const cold = S.projects.filter(p=>p.status==='active').sort((a,b)=>daysSince(projectNods(b)[0]?.date)-daysSince(projectNods(a)[0]?.date))[0];
-  const neglected = vs.map(v=>({v,...vividness(v)})).sort((a,b)=>a.score-b.score)[0];
-  const revisit = S.entries.filter(e=>e.type==='synchronicity'&&e.extra?.revisit);
-  const atro = S.skills.filter(s=>!s.planned && daysSince(skillLastPracticed(s))>90);
-  const step = (t,d,act='') => `<div class="step"><div><div class="t">${t}</div><div class="d">${d}</div>${act?`<div class="act row">${act}</div>`:''}</div></div>`;
-  body.innerHTML = `<div class="grid c2" style="align-items:start">
-    <div class="card rv"><h3>Daily Morning Practice</h3><div class="mono">30 minutes · Maltz + Hill + Hicks · last: ${rehearsalDoneToday()?'today':rehearsalStreak()?'yesterday':'—'}</div><div class="flow">
-      ${step('Sit quietly. Close your eyes.','Review your Self-Image Script in the Morning Rehearsal.','<button class="btn sm" data-go="#/today">open the Rehearsal</button>')}
-      ${step('Visualize for 15–20 minutes.','See yourself acting, feeling, being as you want to be. Sensory details. “Your nervous system will take care of the rest in time — if you continue to practice.”','<button class="btn sm ghost" data-quick="visualization">log what you saw</button>')}
-      ${step('Read your Definite Chief Aim aloud.','With emotion. Twice daily.',`<span class="quote" style="font-size:.9rem">${esc((S.rehearsal.aim||'').slice(0,160))}…</span>`)}
-      ${step('Log your emotional set-point.','Where on the Hicks scale are you, honestly?','<button class="btn sm ghost" data-go="#/today">set-point slider</button>')}
-      ${step("Set today's one intention.",'One thing to give attention to.')}
-      ${step('Mark the 21-day tracker.','Consistency, quietly.','<button class="btn sm primary" id="rMark">mark practice done</button>')}
-    </div></div>
-    <div class="card rv"><h3>Weekly Review</h3><div class="mono">15 minutes · last ${relDays(daysSince(S.reviews.lastWeekly))}</div><div class="flow">
-      ${step('Log a values congruence snapshot.','Sliders pre-filled with last week\'s values.','<button class="btn sm" id="rSnap">log snapshot</button>')}
-      ${step('Review your four-dimensional energy balance.','Which dimension did you overtrain? Which did you undertrain?','<button class="btn sm ghost" data-go="#/rituals">oscillation check</button>')}
-      ${step('Add at least one nod to an active project.',cold?`Coldest: <b>${esc(cold.name)}</b>, last nod ${relDays(daysSince(projectNods(cold)[0]?.date))}.`:'','<button class="btn sm ghost" data-nod="1">+ nod</button>')}
-      ${step('Water one vision.',neglected?`Most neglected: <b>${esc(neglected.v.name)}</b> (vividness ${neglected.score}). Even a small leaf.`:'',neglected?`<button class="btn sm ghost" data-leaf="${neglected.v.id}">+ leaf</button>`:'')}
-      ${step('Update current reality on your top structural tension.',st?`<b>${esc(st.v.name)}</b> carries the most energy. Describe where you are; describe where you want to be; formally choose the result; move on.`:'',st?`<button class="btn sm ghost" data-go="#/vision/${st.v.id}">open vision</button>`:'')}
-      ${step('Note one synchronicity, gratitude, or reflection.','','<button class="btn sm ghost" data-quick="synchronicity">+ synchronicity</button><button class="btn sm ghost" data-quick="gratitude">+ gratitude</button>')}
-      ${step("Set next week's one intention.",'','<button class="btn sm ghost" data-go="#/today">intention</button>')}
-      ${step('Review.',g0?`Your biggest values gap this week was <b>${esc(g0.name)}</b> (${g0.gap>0?'+':''}${g0.gap}). One thing you could do about it: <span class="ed" data-path="reviews.weeklyNote" data-multi="0" data-md="0" data-ph="___" data-hook="">${esc(S.reviews.weeklyNote||'')||'<span class="ph">___</span>'}</span>`:'','<button class="btn sm primary" id="rWeekly">mark weekly review done</button>')}
-    </div></div>
-    <div class="card rv"><h3>Seasonal / Quarterly Review</h3><div class="mono">30 minutes · last ${relDays(daysSince(S.reviews.lastSeasonal))}</div><div class="flow">
-      ${step('Re-rank value priorities.','Drag to reorder. The previous ranking is kept.','<button class="btn sm ghost" data-go="#/values">values</button>')}
-      ${step('Update vision confidence rungs.','hunch → exploring → plan → committed → in motion → lived','<button class="btn sm ghost" data-go="#/vision">vision tree</button>')}
-      ${step('Re-read one past stage narrative.','Does it still feel true? If not, rewrite it — the old version is kept.',S.stages.length ? `<button class="btn sm ghost" data-go="#/stage/${S.stages[Math.floor(Math.random()*S.stages.length)].id}">a random stage</button>` : '')}
-      ${step('Revisit flagged synchronicities.',revisit.length?`${revisit.length} flagged: ${revisit.map(e=>'<em>'+esc(e.title)+'</em>').join(', ')}. Do any make more sense now?`:'None flagged.','<button class="btn sm ghost" data-go="#/journals/synchronicity">synchronicities</button>')}
-      ${step('Review skill atrophy.',atro.length?`Atrophying: ${atro.map(s=>'<b>'+esc(s.name)+'</b>').join(', ')}. Worth reviving, or worth surrendering?`:'Nothing atrophying.','<button class="btn sm ghost" data-go="#/skills">skill tree</button>')}
-      ${step('Review the project energy chart.','Any projects to pause or promote?','<button class="btn sm ghost" data-go="#/projects">energy vs. output</button>')}
-      ${step('Update tension sliders.','','<button class="btn sm ghost" data-go="#/timeline/threads">tensions</button><button class="btn sm primary" id="rSeasonal">mark seasonal review done</button>')}
-    </div></div>
-    <div class="card rv"><h3>Annual Rite</h3><div class="mono">1–2 hours · last ${relDays(daysSince(S.reviews.lastAnnual))}</div><div class="flow">
-      ${step("Write the year's narrative.",'A reflection tagged to the relevant stage.','<button class="btn sm ghost" data-quick="reflection">+ reflection</button>')}
-      ${step('Mint the year into the Timeline.','Create or update sub-stage entries.','<button class="btn sm ghost" data-go="#/stage/s7">current stage</button>')}
-      ${step("Re-read last year's Future Memories.",'Which visions came closer? Which drifted? Compare with current-reality assessments.','<button class="btn sm ghost" data-go="#/vision">vision tree</button>')}
-      ${step('Watch the Values radar from January to December.','What shifted?','<button class="btn sm ghost" data-go="#/values">time slider</button>')}
-      ${step("Review the year's emotional set-point trend.",'Did you climb the scale? Where are you stuck?','<button class="btn sm ghost" data-go="#/today">set-point history</button>')}
-      ${step('Review your self-image script.','Who did you become this year? How is that different from who you were at the start?','<button class="btn sm ghost" data-go="#/today">Morning Rehearsal</button>')}
-      ${step('Set three visions for the coming year.','','<button class="btn sm ghost" data-go="#/vision">+ vision</button>')}
-      ${step("Write a letter to next year's self.",'Dated one year forward.','<button class="btn sm ghost" data-letter="1">+ letter</button><button class="btn sm primary" id="rAnnual">mark annual rite done</button>')}
-    </div></div></div>`;
-  reveal(body);
-  $('#rMark').onclick = () => { if(!S.rehearsal.days.includes(today())){ S.rehearsal.days.push(today()); S.rehearsal.cycleStart = S.rehearsal.cycleStart||today(); saveNow(); sound('chime'); } toast('Marked.'); rerender(); };
-  $('#rSnap').onclick = () => openSnapshotModal(()=>rerender());
-  $('#rWeekly').onclick = () => { S.reviews.lastWeekly = today(); saveNow(); toast('Weekly review done. See you next week.'); rerender(); };
-  $('#rSeasonal').onclick = () => { S.reviews.lastSeasonal = today(); saveNow(); toast('Seasonal review done.'); rerender(); };
-  $('#rAnnual').onclick = () => { S.reviews.lastAnnual = today(); saveNow(); toast('The annual rite is complete.'); rerender(); };
-  body.querySelectorAll('[data-quick]').forEach(b => b.onclick = () => openEntryModal({type:b.dataset.quick}));
-  body.querySelectorAll('[data-nod]').forEach(b => b.onclick = () => openNodModal());
-  body.querySelectorAll('[data-leaf]').forEach(b => b.onclick = () => openEntryModal({type:'progress', links:{visions:[b.dataset.leaf]}}));
-  body.querySelectorAll('[data-letter]').forEach(b => b.onclick = () => openEntryModal({type:'letter', title:'To myself, one year from now', occurredAt:addDays(today(),365)}));
-}
+/* The guided review flows now live in reviewflows.js — step-by-step rather
+   than a wall of cards, and reachable from Rhythm's Reviews tab. */
 
 /* ---------- Patterns: what the record says, with or without Claude ---------- */
 function renderPatterns(body){

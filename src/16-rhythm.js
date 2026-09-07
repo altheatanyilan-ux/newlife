@@ -146,39 +146,48 @@ function moveBlock(kind, id, day, start){
 routes.rhythm = function(root, params){
   migrateRhythm();
   const T = today();
-  const tab = ['plan','habits','review','patterns'].includes(params[0]) ? params[0] : (S._rhyTab || 'plan');
+  const TABS = [['tape','Life Tape'],['habits','Habits'],['reviews','Reviews'],['plan','Day plan'],['patterns','Patterns']];
+  let tab = params[0] === 'review' ? 'reviews' : params[0];
+  tab = TABS.some(([k]) => k === tab) ? tab : (S._rhyTab || 'tape');
   S._rhyTab = tab;
   const view = S._rhyView || 'week';
   const focus = S._rhyDay && /^\d{4}-\d{2}-\d{2}$/.test(S._rhyDay) ? S._rhyDay : T;
   registerPageEntry({pageName:'Rhythm', addLabel:'Add to the day', defaultEntryType:'event', prefilledFields:{}, options:[
+    {icon:'◍', label:'Habit', desc:'Something you mean to keep doing.', run:()=>openHabitModal()},
     {icon:'▦', label:'Event', desc:'A block of time with a name.', run:()=>openEventModal({day:focus})},
     {icon:'▫', label:'Task for today', desc:'Something to finish before the day closes.', run:()=>openTaskPicker(focus, rerender)},
     {icon:'◎', label:'Plan my day', desc:'The three-step morning ritual.', run:()=>planMyDay(focus)},
     {icon:'⤓', label:'Import a calendar (.ics)', desc:'A one-time upload from Google Calendar or another app — daily/weekly repeats only, no live sync.', run:()=>openICSImport()}]});
+  const planTab = tab === 'plan';
   root.innerHTML = `<div class="page rhythm-page">
-    <div class="page-head row between"><div><h1>${esc(S.settings.rhythmName || 'Rhythm')}</h1><div class="sub">The day in one place: what is on it, what you meant to do, what you keep doing, and how it actually went.</div></div>
-      <div class="row"><div class="view-toggle">${[['day','Day'],['week','Week'],['month','Month']].map(([k,l])=>`<button class="${view===k?'on':''}" data-rview="${k}">${l}</button>`).join('')}</div>
-        <button class="btn sm ghost" id="rhyPrev">‹</button><button class="btn sm ghost" id="rhyToday">today</button><button class="btn sm ghost" id="rhyNext">›</button></div></div>
-    <div class="rhythm-grid">
-      <div class="rhy-cal" id="rhyCal"></div>
-      <aside class="rhy-side">
-        <div class="seg">${[['plan','Plan'],['habits','Habits'],['review','Review'],['patterns','Patterns']].map(([k,l])=>`<button class="${tab===k?'on':''}" data-rtab="${k}">${l}</button>`).join('')}</div>
-        <div id="rhySide"></div>
-      </aside>
-    </div>
+    <div class="page-head"><h1>${esc(S.settings.rhythmName || 'Rhythm')}</h1><div class="sub">Your calendar holds what you meant to do. This holds what you actually lived — the tape of it, the habits that made it, and the reviews that keep the whole instrument honest.</div></div>
+    <div class="tabs">${TABS.map(([k,l]) => `<button class="${tab===k?'active':''}" data-rtab="${k}">${l}</button>`).join('')}</div>
+    ${planTab ? `<div class="row between" style="margin:12px 0">
+        <div class="view-toggle">${[['day','Day'],['week','Week'],['month','Month']].map(([k,l])=>`<button class="${view===k?'on':''}" data-rview="${k}">${l}</button>`).join('')}</div>
+        <div class="row"><button class="btn sm ghost" id="rhyPrev">‹</button><button class="btn sm ghost" id="rhyToday">today</button><button class="btn sm ghost" id="rhyNext">›</button></div></div>
+      <div class="rhythm-grid">
+        <div class="rhy-cal" id="rhyCal"></div>
+        <aside class="rhy-side"><div id="rhySide"></div></aside>
+      </div>` : `<div id="rhyBody" style="margin-top:14px"></div>`}
   </div>`;
-  drawRhythmCalendar($('#rhyCal'), view, focus);
-  const side = $('#rhySide');
-  if(tab === 'plan') renderPlanPanel(side, focus);
-  else if(tab === 'habits') renderHabitsPanel(side, focus);
-  else if(tab === 'patterns') renderPatterns(side);
-  else renderReviewPanel(side, focus);
+  if(planTab){
+    drawRhythmCalendar($('#rhyCal'), view, focus);
+    renderPlanPanel($('#rhySide'), focus);
+    const step = n => { S._rhyDay = addDays(focus, view === 'day' ? n : view === 'week' ? n*7 : n*30); rerender(); };
+    $('#rhyPrev').onclick = () => step(-1); $('#rhyNext').onclick = () => step(1);
+    $('#rhyToday').onclick = () => { S._rhyDay = T; rerender(); };
+    $$('[data-rview]',root).forEach(b => b.onclick = () => { S._rhyView = b.dataset.rview; rerender(); });
+  } else {
+    const body = $('#rhyBody');
+    if(tab === 'tape') renderLifeTape(body);
+    else if(tab === 'habits') renderHabitsPanel(body, focus);
+    else if(tab === 'reviews'){ renderReviewsHub(body);
+      body.appendChild(el('<section class="section rv"><span class="sc">Or close the day as a form</span><p class="muted" style="font-size:.84rem">The same data as the evening flow, all on one screen — and the way through to the weekly and monthly summaries.</p><div id="rhyDayClose"></div></section>'));
+      renderReviewPanel($('#rhyDayClose'), focus); }
+    else renderPatterns(body);
+  }
   window._bloomHabit = null; window._pulseHabitId = null;
   $$('[data-rtab]',root).forEach(b => b.onclick = () => { S._rhyTab = b.dataset.rtab; navigate('#/rhythm/' + b.dataset.rtab); if(location.hash === '#/rhythm/' + b.dataset.rtab) rerender(); });
-  $$('[data-rview]',root).forEach(b => b.onclick = () => { S._rhyView = b.dataset.rview; rerender(); });
-  const step = n => { S._rhyDay = addDays(focus, view === 'day' ? n : view === 'week' ? n*7 : n*30); rerender(); };
-  $('#rhyPrev').onclick = () => step(-1); $('#rhyNext').onclick = () => step(1);
-  $('#rhyToday').onclick = () => { S._rhyDay = T; rerender(); };
   reveal(root);
 };
 
@@ -698,6 +707,30 @@ function energyBalanceArcsHTML(d){
     return `<div class="earc">${ringSVG(n/hs.length, {size:48, stroke:5, color:dim.c})}<span class="mono">${dim.name}</span></div>`; }).filter(Boolean);
   return arcs.length ? `<div class="energy-arcs">${arcs.join('')}</div>` : '';
 }
+/* ---------- the ring row for one day ----------
+   Morning on the left, evening on the right, anytime in the middle, each ring
+   in its dimension's colour. This is the face of the habits on Today and in
+   the Life Tape; the grid below is for reading the record. */
+function habitRingHTML(h, d, size = 46){
+  const done = habitDone(h, d); const pct = done ? (done.level === 'min' ? .5 : 1) : 0;
+  const dim = DIMS.find(x => x.id === h.dimension); const st = habitStreak(h);
+  const future = d > today();
+  const cls = [future?'future':'', window._bloomHabit === `${h.id}:${d}` ? 'bloom' : '', (window._pulseHabitId === h.id && d === today()) ? 'pulse-once' : ''].filter(Boolean).join(' ');
+  return `<button class="hring-btn ${cls}" data-hring="${h.id}:${d}" ${future?'disabled':''} title="${esc(h.name)}${st.cur?` · ${st.cur}d streak`:''}${future?' · not yet':' · right-click for the minimum version'}">
+    ${ringSVG(pct, {size, color: dim ? dim.c : 'var(--sage)', stroke: Math.max(3, Math.round(size/9))})}
+    ${st.cur ? `<span class="hring-streak mono">${st.cur}</span>` : ''}
+    <span class="hring-name">${esc(h.name)}</span></button>`;
+}
+function habitRingRow(d = today()){
+  const due = S.habits.filter(h => !h.archived && !h.negative && habitDue(h, d));
+  if(!due.length) return '<div class="empty" style="font-size:.82rem">No habits due on this day.</div>';
+  const at = k => due.filter(h => (h.timeOfDay || 'anytime') === k);
+  const cols = [['morning', at('morning')], ['anytime', [...at('anytime'), ...at('afternoon')]], ['evening', at('evening')]];
+  const allDone = due.every(h => habitDone(h, d));
+  return `<div class="habit-row ${allDone ? 'all-done' : ''}">
+    ${cols.map(([label, hs]) => hs.length ? `<div class="hr-group"><span class="mono">${label}</span><div class="hr-rings">${hs.map(h => habitRingHTML(h, d)).join('')}</div></div>` : '').join('')}
+  </div>${energyBalanceArcsHTML(d)}`;
+}
 /* the rings row that sits above the calendar body — a lighter, prettier face on the same log as the grid */
 function habitRingsRow(days, size){
   const bloomKey = window._bloomHabit, pulseId = window._pulseHabitId;
@@ -716,15 +749,75 @@ function habitRingsRow(days, size){
   });
   return `<div class="cal-rings-row"><div class="cal-gutter"></div>${cols.join('')}</div>`;
 }
-function bindHabitRings(box){
-  $$('[data-hring]', box).forEach(b => b.onclick = () => {
-    const [id, d] = b.dataset.hring.split(':'); const h = byId(S.habits, id);
-    const stacked = S.habits.find(x => x.stackAfter === h.id && !x.archived && habitDue(x,d) && !habitDone(x,d));
-    const res = habitDayToggle(h, d);
-    if(res.justCompleted){ window._bloomHabit = `${id}:${d}`; if(stacked) window._pulseHabitId = stacked.id; checkAllHabitsDone(d); }
+/* right-click or hold a ring: the minimum version, a note, or take it back —
+   the all-or-nothing版 of a habit tracker is the one people quit */
+function habitPartialMenu(h, d){
+  const cur = habitDone(h, d);
+  const m = openModal(`<h2>${esc(h.icon||'')} ${esc(h.name)}</h2>
+    <p class="muted" style="font-size:.86rem">${esc(fmtDate(d,'med'))}${h.min?` · the minimum is “${esc(h.min)}”`:''}${h.ideal?`, the ideal is “${esc(h.ideal)}”`:''}</p>
+    <div class="stack" style="gap:6px">
+      <button class="btn ${cur&&cur.level==='full'?'primary':'ghost'}" data-hlev="full">✓ the full version</button>
+      <button class="btn ${cur&&cur.level==='min'?'primary':'ghost'}" data-hlev="min">½ the minimum version${h.min?` — ${esc(h.min)}`:''}</button>
+      ${cur?`<button class="btn ghost" data-hlev="">○ take it back</button>`:''}
+      ${h.prompt?`<button class="btn sm ghost" id="hNote">✎ ${esc(h.prompt)}</button>`:''}
+    </div>`, 'narrow');
+  m.querySelectorAll('[data-hlev]').forEach(b => b.onclick = () => {
+    const lev = b.dataset.hlev;
+    S.habitLog[d] = S.habitLog[d] || {};
+    if(lev) S.habitLog[d][h.id] = {level:lev, note: cur?.note || ''}; else delete S.habitLog[d][h.id];
+    saveNow(); sound(lev ? 'success' : 'click'); m.remove();
+    if(lev) { window._bloomHabit = `${h.id}:${d}`; checkAllHabitsDone(d); }
     rerender();
-    if(res.justCompleted && h.prompt) microJournalPrompt(h, d);
   });
+  m.querySelector('#hNote')?.addEventListener('click', () => { m.remove(); microJournalPrompt(h, d); });
+}
+function bindHabitRings(box){
+  $$('[data-hring]', box).forEach(b => {
+    const open = () => { const [id, d] = b.dataset.hring.split(':'); const h = byId(S.habits, id); if(h && d <= today()) habitPartialMenu(h, d); };
+    b.onclick = () => {
+      if(b._held){ b._held = false; return; }
+      const [id, d] = b.dataset.hring.split(':'); const h = byId(S.habits, id);
+      const stacked = S.habits.find(x => x.stackAfter === h.id && !x.archived && habitDue(x,d) && !habitDone(x,d));
+      const res = habitDayToggle(h, d);
+      if(res.justCompleted){ window._bloomHabit = `${id}:${d}`; if(stacked) window._pulseHabitId = stacked.id; checkAllHabitsDone(d); }
+      rerender();
+      if(res.justCompleted && h.prompt) microJournalPrompt(h, d);
+    };
+    b.oncontextmenu = e => { e.preventDefault(); open(); };
+    let timer = null;
+    b.addEventListener('pointerdown', () => { timer = setTimeout(() => { b._held = true; timer = null; open(); }, 480); });
+    ['pointerup','pointerleave','pointercancel'].forEach(ev => b.addEventListener(ev, () => { if(timer){ clearTimeout(timer); timer = null; } }));
+  });
+}
+/* expenditure against recovery — a flat line in either direction is the problem */
+function habitOscillationHTML(days = 14){
+  const ds = lastDays(days); const tally = {exp:0, rec:0};
+  S.habits.filter(h => !h.archived && !h.negative).forEach(h => ds.forEach(d => { if(habitDone(h,d)) tally[h.kind === 'recovery' ? 'rec' : 'exp']++; }));
+  const total = tally.exp + tally.rec; if(!total) return '';
+  const pct = Math.round(tally.exp/total*100);
+  const verdict = pct > 72 ? 'Almost all output. Nothing here is putting anything back.'
+    : pct < 28 ? 'Almost all recovery. Rest is the point — until nothing is being spent.'
+    : 'Spending and renewing, roughly in turn. That is the shape you want.';
+  return `<div class="osc"><div class="row between"><span class="sc" style="margin:0">Oscillation · ${days} days</span><span class="mono">${pct}% expenditure</span></div>
+    <div class="osc-bar"><i class="exp" style="width:${pct}%"></i><i class="rec" style="width:${100-pct}%"></i></div>
+    <div class="faint" style="font-size:.78rem;margin-top:4px">${verdict}</div></div>`;
+}
+function habit90HTML(h){
+  return `<div class="h90">${lastDays(90).map(d => { const done = habitDone(h,d), due = habitDue(h,d);
+    return `<i class="${done ? (done.level === 'min' ? 'half' : 'full') : due ? 'miss' : 'off'}" title="${fmtDate(d,'med')}"></i>`; }).join('')}</div>`;
+}
+function habit8wHTML(h){
+  return `<div class="h8w">${habitWeekRates(h, 8).map(r => { const pct = Math.round(r.done/Math.max(r.due,1)*100);
+    return `<span class="h8-bar" title="${pct}% · ${r.done} of ${r.due}"><i style="height:${Math.max(4, Math.min(100,pct))}%"></i></span>`; }).join('')}</div>`;
+}
+/* habits linked into sequences, drawn as a chain */
+function habitChainsHTML(list){
+  const after = {}; list.forEach(h => { if(h.stackAfter) (after[h.stackAfter] = after[h.stackAfter] || []).push(h); });
+  const walk = (h, acc) => { acc.push(h); (after[h.id] || []).forEach(n => walk(n, acc)); return acc; };
+  const chains = list.filter(h => !h.stackAfter && after[h.id]).map(r => walk(r, []));
+  if(!chains.length) return '';
+  return `<div class="hab-stats"><div class="sc">Chains</div>
+    ${chains.map(c => `<div class="chain">${c.map(h => `<span class="chain-node" style="--c:${(DIMS.find(x=>x.id===h.dimension)||{}).c||'var(--page-accent)'}" data-hopen="${h.id}">${h.icon||'○'} ${esc(h.name)}</span>`).join('<span class="chain-link"></span>')}</div>`).join('')}</div>`;
 }
 function renderHabitsPanel(box, focus){
   const T = today(); const week = planDaysFrom(focus);
@@ -736,8 +829,9 @@ function renderHabitsPanel(box, focus){
   const best = list.reduce((b,h) => habitStreak(h).best > (b ? habitStreak(b).best : 0) ? h : b, null);
   const bloomKey = window._bloomHabit;
   box.innerHTML = `
-    <div class="row between"><span class="sc" style="margin:0">The grid</span><span class="mono">${weekRate === null ? '' : `${weekRate}% this week`}</span></div>
-    ${energyBalanceArcsHTML(T)}
+    ${list.length ? `<section class="section"><span class="sc">Today</span>${habitRingRow(T)}</section>` : ''}
+    ${habitOscillationHTML()}
+    <div class="row between" style="margin-top:16px"><span class="sc" style="margin:0">The grid</span><span class="mono">${weekRate === null ? '' : `${weekRate}% this week`}</span></div>
     ${list.length ? `<div class="habit-grid" style="--cols:${week.length}">
       <div class="hg-corner"></div>${week.map(d=>`<div class="hg-dow ${d===T?'today':''}">${DOW[parseDay(d).getDay()][0]}<span class="mono">${parseDay(d).getDate()}</span></div>`).join('')}
       ${list.map(h => { const st = habitStreak(h); const dim = DIMS.find(x=>x.id===h.dimension);
@@ -747,9 +841,18 @@ function renderHabitsPanel(box, focus){
     </div>` : `<div class="empty">No habits yet. One is enough to start — the grid is more persuasive than any argument.</div>`}
     <div class="row" style="gap:6px;margin-top:10px"><button class="btn sm primary" id="hNew">＋ Habit</button>${S.habits.some(h=>h.archived)?'<button class="btn sm ghost" id="hArch">archived</button>':''}</div>
 
+    ${habitChainsHTML(list)}
     ${list.length ? `<div class="hab-stats">
-      <div class="sc">This week</div>
-      <div class="stack" style="gap:5px;margin-top:8px">${list.map((h,i)=>`<div class="row between"><span class="hs-n">${esc(h.name)}</span><span class="bar" style="flex:1;--c:${(DIMS.find(x=>x.id===h.dimension)||{}).c||'var(--page-accent)'}"><i style="width:${Math.round(rates[i]*100)}%"></i></span><span class="mono">${Math.round(rates[i]*100)}%</span></div>`).join('')}</div>
+      <div class="sc">Habit by habit</div>
+      <div class="stack" style="gap:4px;margin-top:8px">${list.map((h,i) => { const st = habitStreak(h); const c = (DIMS.find(x=>x.id===h.dimension)||{}).c||'var(--page-accent)';
+        return `<details class="habit-detail" style="--c:${c}"><summary><span class="hs-n">${h.icon||'○'} ${esc(h.name)}</span><span class="bar" style="flex:1;--c:${c}"><i style="width:${Math.round(rates[i]*100)}%"></i></span><span class="mono">${Math.round(rates[i]*100)}%</span></summary>
+          <div class="body">
+            <div class="row between mono" style="margin-bottom:6px"><span>${st.cur?`${st.cur}-day streak`:'not running'}${st.best?` · best ${st.best}`:''}</span><span>${esc(habitFreqLabel(h))} · ${esc(h.timeOfDay)} · ${esc(h.kind)}</span></div>
+            <div class="mono" style="font-size:.6rem;color:var(--faint)">last 90 days</div>${habit90HTML(h)}
+            <div class="mono" style="font-size:.6rem;color:var(--faint);margin-top:8px">last 8 weeks</div>${habit8wHTML(h)}
+            ${h.min||h.ideal?`<div class="faint" style="font-size:.78rem;margin-top:8px">${h.min?`minimum: ${esc(h.min)}`:''}${h.min&&h.ideal?' · ':''}${h.ideal?`ideal: ${esc(h.ideal)}`:''}</div>`:''}
+            <div class="row" style="margin-top:8px"><button class="btn sm ghost" data-hopen="${h.id}">edit this habit</button></div>
+          </div></details>`; }).join('')}</div>
       <div class="row between mono" style="margin-top:10px"><span>${best?`best streak · ${esc(best.name)} ${habitStreak(best).best}d`:''}</span><span>${worst && Math.min(...rates) < .6 ? `most missed · ${esc(worst.name)}` : ''}</span></div>
     </div>` : ''}
 
@@ -758,6 +861,7 @@ function renderHabitsPanel(box, focus){
   $('#hArch') && ($('#hArch').onclick = () => openArchivedHabits());
   $$('[data-hopen]',box).forEach(b => b.onclick = () => openHabitModal(b.dataset.hopen));
   $$('[data-relapse]',box).forEach(b => b.onclick = () => { S.negLast = S.negLast||{}; S.negLast[b.dataset.relapse] = today(); saveNow(); sound('error'); rerender(); });
+  bindHabitRings(box);
   $$('[data-hcell]',box).forEach(c => c.onclick = () => {
     const [id, d] = c.dataset.hcell.split(':'); const h = byId(S.habits, id);
     const stacked = S.habits.find(x => x.stackAfter === h.id && !x.archived && habitDue(x,d) && !habitDone(x,d));

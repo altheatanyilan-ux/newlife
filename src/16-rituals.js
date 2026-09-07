@@ -32,62 +32,8 @@ function openHabitModal(id){
   m.querySelectorAll('[data-lv],[data-lvi],[data-lsk]').forEach(c => c.onclick = () => c.classList.toggle('on'));
   m.querySelector('#hSave').onclick = () => { h.name = m.querySelector('#hName').value.trim(); if(!h.name) return; h.freq = {type:m.querySelector('#hFreq').value, days:[...m.querySelectorAll('[data-day].primary')].map(b=>+b.dataset.day), count:+m.querySelector('#hCountN').value||1}; h.timeOfDay = m.querySelector('#hTod').value; h.dimension = m.querySelector('#hDim').value; h.kind = m.querySelector('#hKind').value; h.min = m.querySelector('#hMin').value; h.ideal = m.querySelector('#hIdeal').value; h.stackAfter = m.querySelector('#hStack').value||null; h.prompt = m.querySelector('#hPrompt').value; h.relational = m.querySelector('#hRelational').value; h.negative = m.querySelector('#hNeg').classList.contains('on'); h.links = {values:[...m.querySelectorAll('[data-lv].on')].map(c=>c.dataset.lv), visions:[...m.querySelectorAll('[data-lvi].on')].map(c=>c.dataset.lvi), skills:[...m.querySelectorAll('[data-lsk].on')].map(c=>c.dataset.lsk)}; if(!id) S.habits.push(h); saveNow(); m.remove(); rerender(); sound('save'); };
 }
-function renderReviews(body){
-  const gaps = valueGaps(); const g0 = gaps[0]; const vs = S.visions.filter(v=>v.confidence!=='lived'); const st = vs.map(v=>({v,t:structuralTension(v)})).sort((a,b)=>b.t-a.t)[0];
-  const cold = S.projects.filter(p=>p.status==='active').sort((a,b)=>daysSince(projectNods(b)[0]?.date)-daysSince(projectNods(a)[0]?.date))[0];
-  const neglected = vs.map(v=>({v,...vividness(v)})).sort((a,b)=>a.score-b.score)[0];
-  const revisit = S.entries.filter(e=>e.type==='synchronicity'&&e.extra?.revisit);
-  const atro = S.skills.filter(s=>!s.planned && daysSince(skillLastPracticed(s))>90);
-  const step = (t,d,act='') => `<div class="step"><div><div class="t">${t}</div><div class="d">${d}</div>${act?`<div class="act row">${act}</div>`:''}</div></div>`;
-  body.innerHTML = `<div class="grid c2" style="align-items:start">
-    <div class="card rv"><h3>Daily Morning Practice</h3><div class="mono">30 minutes · Maltz + Hill + Hicks · last: ${rehearsalDoneToday()?'today':rehearsalStreak()?'yesterday':'—'}</div><div class="flow">
-      ${step('Sit quietly. Close your eyes.','Review your Self-Image Script in the Morning Rehearsal.','<button class="btn sm" data-go="#/today">open the Rehearsal</button>')}
-      ${step('Visualize for 15–20 minutes.','See yourself acting, feeling, being as you want to be. Sensory details. “Your nervous system will take care of the rest in time — if you continue to practice.”','<button class="btn sm ghost" data-quick="visualization">log what you saw</button>')}
-      ${step('Read your Definite Chief Aim aloud.','With emotion. Twice daily.',`<span class="quote" style="font-size:.9rem">${esc((S.rehearsal.aim||'').slice(0,160))}…</span>`)}
-      ${step('Log your emotional set-point.','Where on the Hicks scale are you, honestly?','<button class="btn sm ghost" data-go="#/today">set-point slider</button>')}
-      ${step("Set today's one intention.",'One thing to give attention to.')}
-      ${step('Mark the 21-day tracker.','Consistency, quietly.','<button class="btn sm primary" id="rMark">mark practice done</button>')}
-    </div></div>
-    <div class="card rv"><h3>Weekly Review</h3><div class="mono">15 minutes · last ${relDays(daysSince(S.reviews.lastWeekly))}</div><div class="flow">
-      ${step('Log a values congruence snapshot.','Sliders pre-filled with last week\'s values.','<button class="btn sm" id="rSnap">log snapshot</button>')}
-      ${step('Review your four-dimensional energy balance.','Which dimension did you overtrain? Which did you undertrain?','<button class="btn sm ghost" data-go="#/rituals">oscillation check</button>')}
-      ${step('Add at least one nod to an active project.',cold?`Coldest: <b>${esc(cold.name)}</b>, last nod ${relDays(daysSince(projectNods(cold)[0]?.date))}.`:'','<button class="btn sm ghost" data-nod="1">+ nod</button>')}
-      ${step('Water one vision.',neglected?`Most neglected: <b>${esc(neglected.v.name)}</b> (vividness ${neglected.score}). Even a small leaf.`:'',neglected?`<button class="btn sm ghost" data-leaf="${neglected.v.id}">+ leaf</button>`:'')}
-      ${step('Update current reality on your top structural tension.',st?`<b>${esc(st.v.name)}</b> carries the most energy. Describe where you are; describe where you want to be; formally choose the result; move on.`:'',st?`<button class="btn sm ghost" data-go="#/vision/${st.v.id}">open vision</button>`:'')}
-      ${step('Note one synchronicity, gratitude, or reflection.','','<button class="btn sm ghost" data-quick="synchronicity">+ synchronicity</button><button class="btn sm ghost" data-quick="gratitude">+ gratitude</button>')}
-      ${step("Set next week's one intention.",'','<button class="btn sm ghost" data-go="#/today">intention</button>')}
-      ${step('Review.',g0?`Your biggest values gap this week was <b>${esc(g0.name)}</b> (${g0.gap>0?'+':''}${g0.gap}). One thing you could do about it: <span class="ed" data-path="reviews.weeklyNote" data-multi="0" data-md="0" data-ph="___" data-hook="">${esc(S.reviews.weeklyNote||'')||'<span class="ph">___</span>'}</span>`:'','<button class="btn sm primary" id="rWeekly">mark weekly review done</button>')}
-    </div></div>
-    <div class="card rv"><h3>Seasonal / Quarterly Review</h3><div class="mono">30 minutes · last ${relDays(daysSince(S.reviews.lastSeasonal))}</div><div class="flow">
-      ${step('Re-rank value priorities.','Drag to reorder. The previous ranking is kept.','<button class="btn sm ghost" data-go="#/values">values</button>')}
-      ${step('Update vision confidence rungs.','hunch → exploring → plan → committed → in motion → lived','<button class="btn sm ghost" data-go="#/vision">vision tree</button>')}
-      ${step('Re-read one past stage narrative.','Does it still feel true? If not, rewrite it — the old version is kept.',S.stages.length ? `<button class="btn sm ghost" data-go="#/stage/${S.stages[Math.floor(Math.random()*S.stages.length)].id}">a random stage</button>` : '')}
-      ${step('Revisit flagged synchronicities.',revisit.length?`${revisit.length} flagged: ${revisit.map(e=>'<em>'+esc(e.title)+'</em>').join(', ')}. Do any make more sense now?`:'None flagged.','<button class="btn sm ghost" data-go="#/journals/synchronicity">synchronicities</button>')}
-      ${step('Review skill atrophy.',atro.length?`Atrophying: ${atro.map(s=>'<b>'+esc(s.name)+'</b>').join(', ')}. Worth reviving, or worth surrendering?`:'Nothing atrophying.','<button class="btn sm ghost" data-go="#/skills">skill tree</button>')}
-      ${step('Review the project energy chart.','Any projects to pause or promote?','<button class="btn sm ghost" data-go="#/projects">energy vs. output</button>')}
-      ${step('Update tension sliders.','','<button class="btn sm ghost" data-go="#/timeline/threads">tensions</button><button class="btn sm primary" id="rSeasonal">mark seasonal review done</button>')}
-    </div></div>
-    <div class="card rv"><h3>Annual Rite</h3><div class="mono">1–2 hours · last ${relDays(daysSince(S.reviews.lastAnnual))}</div><div class="flow">
-      ${step("Write the year's narrative.",'A reflection tagged to the relevant stage.','<button class="btn sm ghost" data-quick="reflection">+ reflection</button>')}
-      ${step('Mint the year into the Timeline.','Create or update sub-stage entries.','<button class="btn sm ghost" data-go="#/stage/s7">current stage</button>')}
-      ${step("Re-read last year's Future Memories.",'Which visions came closer? Which drifted? Compare with current-reality assessments.','<button class="btn sm ghost" data-go="#/vision">vision tree</button>')}
-      ${step('Watch the Values radar from January to December.','What shifted?','<button class="btn sm ghost" data-go="#/values">time slider</button>')}
-      ${step("Review the year's emotional set-point trend.",'Did you climb the scale? Where are you stuck?','<button class="btn sm ghost" data-go="#/today">set-point history</button>')}
-      ${step('Review your self-image script.','Who did you become this year? How is that different from who you were at the start?','<button class="btn sm ghost" data-go="#/today">Morning Rehearsal</button>')}
-      ${step('Set three visions for the coming year.','','<button class="btn sm ghost" data-go="#/vision">+ vision</button>')}
-      ${step("Write a letter to next year's self.",'Dated one year forward.','<button class="btn sm ghost" data-letter="1">+ letter</button><button class="btn sm primary" id="rAnnual">mark annual rite done</button>')}
-    </div></div></div>`;
-  reveal(body);
-  $('#rMark').onclick = () => { if(!S.rehearsal.days.includes(today())){ S.rehearsal.days.push(today()); S.rehearsal.cycleStart = S.rehearsal.cycleStart||today(); saveNow(); sound('chime'); } toast('Marked.'); rerender(); };
-  $('#rSnap').onclick = () => openSnapshotModal(()=>rerender());
-  $('#rWeekly').onclick = () => { S.reviews.lastWeekly = today(); saveNow(); toast('Weekly review done. See you next week.'); rerender(); };
-  $('#rSeasonal').onclick = () => { S.reviews.lastSeasonal = today(); saveNow(); toast('Seasonal review done.'); rerender(); };
-  $('#rAnnual').onclick = () => { S.reviews.lastAnnual = today(); saveNow(); toast('The annual rite is complete.'); rerender(); };
-  body.querySelectorAll('[data-quick]').forEach(b => b.onclick = () => openEntryModal({type:b.dataset.quick}));
-  body.querySelectorAll('[data-nod]').forEach(b => b.onclick = () => openNodModal());
-  body.querySelectorAll('[data-leaf]').forEach(b => b.onclick = () => openEntryModal({type:'progress', links:{visions:[b.dataset.leaf]}}));
-  body.querySelectorAll('[data-letter]').forEach(b => b.onclick = () => openEntryModal({type:'letter', title:'To myself, one year from now', occurredAt:addDays(today(),365)}));
-}
+/* The guided review flows now live in reviewflows.js — step-by-step rather
+   than a wall of cards, and reachable from Rhythm's Reviews tab. */
 
 /* ---------- Patterns: what the record says, with or without Claude ---------- */
 function renderPatterns(body){
