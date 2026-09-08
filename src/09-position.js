@@ -448,134 +448,10 @@ function openTimeBlockModal(r, seed, save, redraw){
     spliceOut(r.blocks, x => x.id === seed.id); save(); m.remove(); redraw(); });
 }
 
-/* ============================================================
-   THE STATS, LAID OUT AS THE PYRAMID
-   Each Maslow level becomes a row of evidence cards. Only levels
-   and cards with something to say appear; the weakest level is
-   lifted to the top, because that is where to start.
-   ============================================================ */
-function statCard({icon, label, value, detail, go, spark}){
-  return `<button class="mstat" ${go?`data-go="${esc(go)}"`:''}>
-    <span class="mstat-h"><i>${icon}</i>${esc(label)}</span>
-    <span class="mstat-v">${value}</span>
-    ${detail ? `<span class="mstat-d">${detail}</span>` : ''}
-    ${spark || ''}</button>`;
-}
-const miniBar = (v, c='var(--page-accent)') => `<span class="mstat-bar"><i style="width:${clamp(Math.round(v),0,100)}%;background:${c}"></i></span>`;
-
-function maslowCards(key){
-  const out = []; const T = today();
-  const add = o => { if(o) out.push(o); };
-  if(key === 'body'){
-    const r = rhythmDay(); const sl = r.computed.totalAwakeMinutes != null ? 1440 - r.computed.totalAwakeMinutes : null;
-    if(sl != null) add({icon:'☾', label:'SLEEP', value:fmtDur(sl), detail:`woke ${esc(r.wakeTime)}`, go:'#/lifetape'});
-    const pe = S.checkins?.[T]?.energy?.physical;
-    if(pe) add({icon:'◍', label:'BODY ENERGY', value:`${pe}<small>/5</small>`, detail:'today', spark:miniBar(pct(pe,1,5),'var(--phys)')});
-    const hr = mHabitRate(h => h.dimension === 'physical');
-    if(hr != null) add({icon:'▲', label:'MOVEMENT', value:`${hr}<small>%</small>`, detail:'physical habits, 7 days', go:'#/lifetape', spark:miniBar(hr,'var(--phys)')});
-  }
-  if(key === 'safety'){
-    if(typeof runway === 'function' && S.finance?.scenarios?.length && (incomeStreamList().length || S.finance.savings)){
-      const rw = runway();
-      add({icon:'⌛', label:'RUNWAY', value: rw.sustainable ? 'covered' : `${rw.months.toFixed(1)}<small>mo</small>`,
-           detail: rw.sustainable ? `+${money(rw.surplus)} a month` : 'savings ÷ burn', go:'#/finance'});
-      const b = monthlyBurn();
-      add({icon:'△', label:'GAP', value: b <= 0 ? `+${money(-b)}` : `−${money(b)}`, detail:'income vs. the life you want', go:'#/finance'});
-    }
-    const c = rhythmDay().computed;
-    if(c.ratio != null) add({icon:'◷', label:"TODAY'S TIME", value:`${c.ratio}<small>%</small>`, detail:`${fmtDur(c.intentionalMinutes)} claimed well`, spark:miniBar(c.ratio,'var(--sage)')});
-  }
-  if(key === 'belonging'){
-    const core = S.people.filter(p => ['core','close'].includes(p.circle));
-    if(core.length){
-      const since = addDays(T,-30);
-      const n = (S.interactions||[]).filter(i => i.date >= since && core.some(p=>p.id===i.personId)).length;
-      const stale = core.map(p => ({p, last:(S.interactions||[]).filter(i=>i.personId===p.id).map(i=>i.date).sort().slice(-1)[0]}))
-        .sort((a,b) => (a.last||'').localeCompare(b.last||''))[0];
-      add({icon:'☺', label:'INNER CIRCLE', value:n, detail: stale ? `longest quiet: ${esc(stale.p.name)}` : 'this month', go:'#/people'});
-    }
-    const rr = mHabitRate(h => !!h.relational);
-    if(rr != null) add({icon:'♡', label:'CONNECTIONS', value:`${rr}<small>%</small>`, detail:'relational habits', go:'#/lifetape', spark:miniBar(rr,'var(--rose)')});
-    const last = [...(S.interactions||[])].sort((a,b)=>a.date<b.date?1:-1)[0];
-    if(last){ const who = byId(S.people, last.personId);
-      add({icon:'◌', label:'LAST SEEN', value:esc((who?.name||'someone').split(' ')[0]), detail:relDays(daysSince(last.date)), go:'#/people'}); }
-  }
-  if(key === 'esteem'){
-    const sp = mSkillPractice();
-    if(sp != null){ const live = S.skills.filter(s=>!s.archived && s.horizon!=='someday');
-      const top = live.map(s=>({s,l:skillLastPracticed(s)})).filter(x=>x.l).sort((a,b)=>b.l.localeCompare(a.l))[0];
-      add({icon:'◈', label:'CRAFT', value:live.filter(s=>{const l=skillLastPracticed(s); return l&&l>=addDays(T,-30);}).length,
-           detail: top ? `latest: ${esc(top.s.name)}` : 'practised this month', go:'#/skills'}); }
-    const alive = S.projects.filter(p => !['archived','abandoned','completed'].includes(p.status));
-    if(alive.length){ const since = addDays(T,-14);
-      const warm = alive.filter(p => (S.nods||[]).some(n => n.projectId===p.id && n.date>=since));
-      const cold = alive.filter(p => !warm.includes(p))[0];
-      add({icon:'🎨', label:'PROJECTS', value:`${warm.length} <small>alive</small>`, detail: cold ? `coldest: ${esc(cold.name)}` : 'all warm', go:'#/projects'}); }
-    if(S.wsDaily && Object.keys(S.wsDaily).length){
-      const w = sum(lastDays(7).map(d => typeof wsWrittenOn === 'function' ? wsWrittenOn(d) : 0));
-      add({icon:'✒', label:'WORDS', value:w.toLocaleString(), detail:'this week', go:'#/writing'});
-    }
-  }
-  if(key === 'mind'){
-    const since = addDays(T,-30);
-    const ms = (typeof mediaEntries === 'function' ? mediaEntries() : []).filter(e => (e.occurredAt||e.createdAt||'').slice(0,10) >= since);
-    if(ms.length){ const best = ms.find(e => ['lives','changed'].includes(e.extra?.resonanceLevel)) || ms[0];
-      add({icon:'▤', label:'LEARNING', value:ms.length, detail: best ? esc(best.title) : 'this month', go:'#/commonplace'}); }
-    const js = S.entries.filter(e => ['reflection','question','synchronicity'].includes(e.type) && (e.occurredAt||e.createdAt||'').slice(0,10) >= addDays(T,-7));
-    if(js.length) add({icon:'✎', label:'THINKING', value:js.length, detail:esc((js[js.length-1].title||'').slice(0,26)) || 'this week', go:'#/journals'});
-    const me = S.checkins?.[T]?.energy?.mental;
-    if(me) add({icon:'◉', label:'MIND ENERGY', value:`${me}<small>/5</small>`, detail:'today', spark:miniBar(pct(me,1,5),'var(--ment)')});
-  }
-  if(key === 'beauty'){
-    const cr = mNodRate(p => !(p.income?.current || p.income?.target));
-    if(cr != null){ const since = addDays(T,-30);
-      const n = (S.nods||[]).filter(x => x.date>=since && S.projects.some(p=>p.id===x.projectId && !(p.income?.current||p.income?.target))).length;
-      add({icon:'✦', label:'CREATING', value:n, detail:'nods on work that is not for money', go:'#/projects'}); }
-    const art = (typeof mediaEntries === 'function' ? mediaEntries() : []).filter(e =>
-      ['film','album','exhibition','documentary'].includes(e.extra?.kind) && (e.occurredAt||e.createdAt||'').slice(0,10) >= addDays(T,-30));
-    if(art.length) add({icon:'◐', label:'BEAUTY', value:art.length, detail:esc(art[0].title), go:'#/commonplace'});
-    const awe = mValueCongruence(['awe','creativ','beauty']);
-    if(awe != null) add({icon:'❦', label:'AWE', value:`${Math.round(awe)}<small>%</small>`, detail:'congruence', go:'#/values', spark:miniBar(awe,'var(--gold)')});
-  }
-  if(key === 'becoming'){
-    const vv = mVisionVividness();
-    if(vv != null) add({icon:'🌿', label:'VISIONS', value:Math.round(vv), detail:`${S.visions.filter(v=>!v.archived).length} tended · avg vividness`, go:'#/vision', spark:miniBar(vv,'var(--sage)')});
-    if(S.rehearsal?.days?.length || S.rehearsal?.cycleStart){
-      const day = S.rehearsal.cycleStart ? clamp(daysBetween(S.rehearsal.cycleStart, T)+1, 1, 21) : 0;
-      add({icon:'◉', label:'PRACTICE', value:`Day ${day}<small>/21</small>`, detail: (S.rehearsal.days||[]).includes(T) ? '✓ today' : 'not yet today'});
-    }
-    const cg = mValueCongruence();
-    if(cg != null){ const worst = valueGaps()[0];
-      add({icon:'⚖', label:'CONGRUENCE', value:`${Math.round(cg)}<small>%</small>`, detail: worst ? `widest gap: ${esc(worst.name)}` : '', go:'#/values', spark:miniBar(cg)}); }
-    const sp = S.checkins?.[T]?.setpoint;
-    if(sp) add({icon:'≈', label:'SET-POINT', value:`${sp}<small>/22</small>`, detail:esc(hicksName(sp).split(' / ')[0])});
-  }
-  return out.slice(0, 3);
-}
-
-function maslowRowsHTML(){
-  const levels = maslowScores().map(m => ({...m, cards: maslowCards(m.key)})).filter(m => m.cards.length);
-  if(!levels.length) return '';
-  const scored = levels.filter(m => m.effectiveScore != null);
-  const weakest = scored.length ? scored.reduce((a,b) => b.effectiveScore < a.effectiveScore ? b : a) : null;
-  const rest = levels.filter(m => m !== weakest);
-  const showAll = !!S._maslowAll;
-  const shown = showAll ? rest : rest.slice(0, 3);
-  const row = (m, flag) => `<div class="mrow ${m.effectiveScore != null && m.effectiveScore < 40 ? 'low' : m.effectiveScore > 80 ? 'settled' : ''}">
-    <div class="mrow-h">
-      <span class="mrow-l">L${m.level} · ${esc(m.short)}</span>
-      ${m.effectiveScore != null ? `<span class="mrow-bar"><i style="width:${m.effectiveScore}%"></i></span><span class="mono mrow-n">${m.effectiveScore}</span>` : '<span class="mono faint">—</span>'}
-      ${flag ? `<span class="mrow-flag">${flag}</span>` : ''}
-    </div>
-    <div class="mrow-cards">${m.cards.map(statCard).join('')}</div>
-  </div>`;
-  return `<section class="section rv maslow-rows">
-    ${weakest ? row(weakest, 'needs attention') : ''}
-    ${shown.length ? `<div class="mrow-div"><span>your foundation → your summit</span></div>` : ''}
-    ${shown.map(m => row(m)).join('')}
-    ${rest.length > 3 ? `<button class="btn sm ghost" id="maslowAll" style="margin-top:10px">${showAll ? 'show fewer' : `show all ${levels.length} levels`}</button>` : ''}
-  </section>`;
-}
+/* The stats used to be a grid of little cards, one row per level. They are
+   now prose — see ledgerStanzasHTML() in the Needs room, which reads the same
+   scores and says them in sentences. A number in a card is a number; a number
+   in a sentence is a claim you can disagree with. */
 
 /* ============================================================
    THE LIFE POSITION CHECK-IN
@@ -648,7 +524,7 @@ function positionHTML(){
       </div>
 
       <div class="pos-spi">
-        <div class="sc" style="margin:0 0 8px">Stage resonance</div>
+        <div class="row between" style="align-items:baseline"><span class="sc" style="margin:0 0 8px">Stage resonance</span><a class="mono faint" href="#/spiral" style="text-decoration:none">the spiral room →</a></div>
         ${spiralBarsHTML(read)}
         <p class="spi-read">${esc(read.line)}</p>
         <div class="row" style="gap:6px;align-items:center;flex-wrap:wrap">

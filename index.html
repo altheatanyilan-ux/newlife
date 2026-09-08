@@ -1161,6 +1161,19 @@ html[data-theme="light"] .stage-hero .veil{background:linear-gradient(180deg,rgb
 .stage-hero .meta h1{font-size:2.6rem;text-transform:uppercase;letter-spacing:.15em}
 .stage-hero .addphoto{position:absolute;right:20px;top:20px;z-index:3}
 .substage{border-top:1px solid var(--line);padding:20px 0}
+/* a sub-stage that carries images is printed on them, the way a vision
+   chapter is — the pictures are the ground, not a grid stapled underneath */
+.substage.plated{position:relative;border-top:0;margin:20px 0;padding:28px 30px;border-radius:10px;overflow:hidden}
+.substage .ss-body{position:relative;z-index:2}
+.ss-plate{position:absolute;inset:0;z-index:0;pointer-events:none}
+.ss-plate-img{position:absolute;inset:0;background-size:cover;background-position:center;
+  filter:saturate(.6) contrast(.95);opacity:.44;transform:scale(1.02);
+  transition:opacity .6s var(--ease),transform 1.2s var(--ease)}
+.substage.plated:hover .ss-plate-img{opacity:.56;transform:scale(1.04)}
+.ss-plate-wash{position:absolute;inset:0;
+  background:linear-gradient(105deg,var(--bg) 0%,color-mix(in srgb,var(--bg) 88%,transparent) 42%,color-mix(in srgb,var(--bg) 60%,transparent) 78%,color-mix(in srgb,var(--bg) 44%,transparent) 100%)}
+@media (max-width:800px){.substage.plated{padding:22px 18px}}
+@media (prefers-reduced-motion:reduce){.ss-plate-img{transition:none}}
 .substage .hd{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
 .substage .hd h3{font-size:1.35rem}
 .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin:10px 0}
@@ -2017,28 +2030,6 @@ body.ws-resizing{cursor:col-resize;user-select:none}
 .tu-cat{flex:1}
 
 .maslow-rows{display:flex;flex-direction:column;gap:12px}
-.mrow-h{display:flex;align-items:center;gap:8px;margin-bottom:6px}
-.mrow-l{font-size:.6rem;text-transform:uppercase;letter-spacing:.13em;color:var(--muted)}
-.mrow-bar{flex:0 0 74px;height:4px;border-radius:2px;background:var(--surface-2);overflow:hidden}
-.mrow-bar i{display:block;height:100%;background:var(--page-accent);border-radius:2px;transition:width .5s var(--ease)}
-.mrow-n{font-size:.6rem;color:var(--muted)}
-.mrow-flag{font-family:var(--mono);font-size:.56rem;text-transform:uppercase;letter-spacing:.1em;color:var(--gold);margin-left:auto}
-.mrow-cards{display:flex;gap:9px;overflow-x:auto;padding-bottom:3px;scroll-snap-type:x proximity}
-.mrow.settled .mrow-cards{opacity:.68}
-.mrow.settled:hover .mrow-cards{opacity:1}
-.mrow.low .mstat{border-color:color-mix(in srgb,var(--gold) 45%,var(--line))}
-.mrow-div{display:flex;align-items:center;gap:9px;margin:4px 0 2px;color:var(--muted)}
-.mrow-div::before,.mrow-div::after{content:'';flex:1;height:1px;background:var(--line)}
-.mrow-div span{font-family:var(--mono);font-size:.55rem;text-transform:uppercase;letter-spacing:.13em;opacity:.7}
-.mstat{flex:0 0 158px;scroll-snap-align:start;background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:9px 11px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:2px;transition:transform .18s var(--ease),box-shadow .18s var(--ease),border-color .18s var(--ease)}
-.mstat:hover{transform:translateY(-2px);box-shadow:0 6px 16px -9px rgba(0,0,0,.45);border-color:var(--page-accent)}
-.mstat-h{display:flex;align-items:center;gap:5px;font-size:.56rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
-.mstat-h i{font-style:normal;font-size:.72rem;opacity:.85}
-.mstat-v{font-family:var(--mono);font-size:1.25rem;color:var(--text);line-height:1.15}
-.mstat-v small{font-size:.62rem;color:var(--muted);margin-left:1px}
-.mstat-d{font-size:.62rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.mstat-bar{display:block;height:3px;border-radius:2px;background:var(--surface-2);overflow:hidden;margin-top:3px}
-.mstat-bar i{display:block;height:100%;border-radius:2px}
 
 .pos-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;margin-top:14px;align-items:start}
 @media (max-width:800px){.pos-grid{grid-template-columns:minmax(0,1fr)}}
@@ -2074,7 +2065,7 @@ body.ws-resizing{cursor:col-resize;user-select:none}
 .spi-read{font-family:var(--serif);font-style:italic;color:var(--muted);font-size:.9rem;margin:12px 0 10px;line-height:1.55}
 .spi-timeline{display:flex;gap:3px;flex-wrap:wrap;margin-top:12px}
 .spi-timeline i{width:9px;height:9px;border-radius:50%;opacity:.85}
-@media (prefers-reduced-motion:reduce){.mas-tier.weak polygon{animation:none}.mstat,.mrow-bar i,.spi-track i,.tu-block{transition:none}.mstat:hover{transform:none}}
+@media (prefers-reduced-motion:reduce){.mas-tier.weak polygon{animation:none}.spi-track i,.tu-block{transition:none}}
 
 /* ── The Lifeline, as a manuscript ──────────────────────────────
    No cards, no borders, no shadows. Structure is typography and
@@ -2241,6 +2232,200 @@ html.vision-deep .page-scene.on{opacity:var(--scene-op)}
   color:var(--page-accent);font-weight:400;margin:14px 0 4px}
 .cyc-reading h4:first-child{margin-top:0}
 @media (prefers-reduced-motion:reduce){.today-jump button,.jump-lit{transition:none;animation:none}}
+
+/* ---------- Finance: scenarios as columns ----------
+   A scenario is only comparable if you can see two of them at once. Each is a
+   narrow column in a rail that scrolls sideways, rather than a full-width
+   block you have to scroll past to reach the next one. */
+.scenario-rail{display:flex;gap:14px;align-items:flex-start;overflow-x:auto;
+  padding-bottom:10px;scroll-snap-type:x proximity}
+.scenario-rail > .scenario-card{flex:0 0 322px;max-width:322px;scroll-snap-align:start;margin:0}
+.scenario-rail > .scenario-card.active{box-shadow:0 0 0 1px color-mix(in srgb,var(--page-accent) 40%,transparent)}
+.scenario-card .spend-row .row{gap:6px}
+.scenario-card .cat-name{min-width:0}
+@media (max-width:620px){.scenario-rail > .scenario-card{flex-basis:min(322px,86vw);max-width:86vw}}
+
+/* ---------- Finance: how a stream earns ---------- */
+.earn-switch{display:inline-flex;gap:2px;margin-top:8px;padding:2px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2)}
+.earn-switch button{background:none;border:0;border-radius:6px;padding:3px 10px;cursor:pointer;
+  font-family:var(--mono);font-size:.64rem;letter-spacing:.06em;color:var(--muted);
+  transition:color .2s var(--ease),background .2s var(--ease)}
+.earn-switch button:hover{color:var(--text)}
+.earn-switch button.on{color:var(--page-accent);background:var(--surface)}
+.stream-card.passive{border-left:2px solid color-mix(in srgb,var(--sage) 60%,transparent)}
+.stream-card.active-inc{border-left:2px solid color-mix(in srgb,var(--gold) 55%,transparent)}
+.stream-derived{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:8px;margin:2px 0 6px}
+.stream-derived span{display:flex;flex-direction:column;gap:1px;font-family:var(--mono);font-size:.8rem;color:var(--text)}
+.stream-derived i{font-style:normal;font-size:.56rem;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);opacity:.8}
+.stream-derived small{font-size:.6rem;color:var(--muted);margin-left:2px}
+.stream-derived .warn{color:#c9a05a;font-size:.66rem;line-height:1.35;align-self:end}
+.stream-note{font-family:var(--serif);font-style:italic;font-size:.78rem;color:var(--muted);opacity:.75;margin:0 0 8px}
+.split-bar{display:flex;height:8px;border-radius:4px;overflow:hidden;background:var(--surface-2)}
+.split-bar i{display:block;height:100%}
+.split-bar .a{background:var(--gold);opacity:.75}
+.split-bar .p{background:var(--sage);opacity:.85}
+@media (prefers-reduced-motion:reduce){.earn-switch button{transition:none}}
+
+/* ============================================================
+   THE SPIRAL — direction made visible. Left cools and recedes,
+   right warms and arrives; the page must read that way before a
+   single word of it is read.
+   ============================================================ */
+.spiral-page .page-head{align-items:flex-start}
+.spi-pair-grid{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:18px;
+  padding:20px 0 6px}
+.spi-end{display:flex;flex-direction:column;gap:2px}
+.spi-end.rel{text-align:right;border-right:2px solid color-mix(in srgb,var(--rel) 40%,transparent);padding-right:18px;opacity:.82}
+.spi-end.emb{text-align:left;border-left:2px solid var(--emb);padding-left:18px}
+.spi-end-k{font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.spi-end.rel .spi-end-n{color:var(--rel)}
+.spi-end.emb .spi-end-n{color:var(--emb)}
+.spi-end-n{font-size:1.45rem;line-height:1.15}
+.spi-end-g{font-size:.8rem;color:var(--muted)}
+.spi-arrow{display:flex;align-items:center;gap:0;color:var(--emb)}
+.spi-arrow-line{display:block;width:clamp(40px,9vw,110px);height:1px;
+  background:linear-gradient(to right,color-mix(in srgb,var(--rel) 70%,transparent),var(--emb))}
+.spi-arrow-head{font-size:.6rem;margin-left:-2px}
+.spi-warn{font-family:var(--serif);font-style:italic;font-size:.84rem;color:var(--rose);margin:0 0 6px}
+.spi-change > summary,.spi-traces > summary{font-size:.66rem;letter-spacing:.1em;color:var(--muted);cursor:pointer;padding:6px 0}
+.spi-change > summary:hover,.spi-traces > summary:hover{color:var(--page-accent)}
+.spi-sel{width:auto;font-size:.8rem}
+.spi-sel.sm{font-size:.72rem;padding:2px 6px}
+.spi-trace{gap:8px;flex-wrap:wrap;border-left:2px solid var(--c)}
+
+.spi-track{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;margin:14px 0 10px}
+.spi-track-end{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase}
+.spi-track-end.left{color:var(--rel);opacity:.85}
+.spi-track-end.right{color:var(--emb)}
+.spi-track-bar{position:relative;height:6px;border-radius:3px;
+  background:linear-gradient(to right,color-mix(in srgb,var(--rel) 45%,transparent),color-mix(in srgb,var(--emb) 70%,transparent))}
+.spi-marker{position:absolute;top:50%;width:13px;height:13px;border-radius:50%;background:var(--emb);
+  transform:translate(-50%,-50%);box-shadow:0 0 0 3px var(--bg);transition:left .5s var(--ease)}
+.spi-reading{font-family:var(--serif);font-style:italic;font-size:.95rem;line-height:1.65;color:var(--text);
+  opacity:.88;margin:0;max-width:62ch}
+
+.spi-cols{display:grid;grid-template-columns:1fr 1fr;gap:26px;align-items:start}
+@media (max-width:860px){.spi-cols{grid-template-columns:1fr;gap:34px}.spi-pair-grid{grid-template-columns:1fr;gap:14px}
+  .spi-end.rel{text-align:left;border-right:0;padding-right:0;border-left:2px solid color-mix(in srgb,var(--rel) 40%,transparent);padding-left:18px}
+  .spi-arrow{transform:rotate(90deg);justify-content:center}}
+.spi-col{border-left:2px solid var(--c);padding-left:16px}
+.spi-col.releasing{opacity:.92}
+.spi-col-h{display:flex;flex-direction:column;gap:1px;margin-bottom:2px}
+.spi-col-h .mono{font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.spi-col-h b{font-size:1.12rem;color:var(--c)}
+.spi-col-h .faint{font-size:.78rem}
+.spi-col-scale{font-size:.6rem;color:var(--muted);opacity:.7;margin:2px 0 14px;line-height:1.5}
+.spi-add{margin-top:10px}
+
+.spi-ind{padding:12px 0;border-top:1px dashed var(--line);cursor:grab;
+  transition:opacity .3s var(--ease),background .2s var(--ease)}
+.spi-ind:first-of-type{border-top:0}
+.spi-ind.dragging{opacity:.4}
+.spi-ind.over{background:color-mix(in srgb,var(--c) 8%,transparent)}
+.spi-ind-top{display:flex;align-items:flex-start;gap:8px}
+.spi-ind-text{flex:1;font-size:.92rem;line-height:1.55}
+.spi-x{opacity:0;transition:opacity .2s var(--ease)}
+.spi-ind:hover .spi-x{opacity:.6}
+.spi-x:hover{opacity:1}
+.spi-ind-scale{display:flex;align-items:center;gap:10px;margin-top:7px;flex-wrap:wrap}
+.spi-dots{display:inline-flex;gap:6px}
+.spi-dots button{width:11px;height:11px;padding:0;border-radius:50%;cursor:pointer;
+  border:1px solid color-mix(in srgb,var(--c) 55%,transparent);background:none;
+  transition:background .2s var(--ease),transform .2s var(--ease)}
+.spi-dots button:hover{transform:scale(1.25)}
+.spi-dots button.on{background:var(--c)}
+.spi-ind-word{font-size:.72rem;color:var(--muted)}
+.spi-ind-when{font-size:.58rem;color:var(--muted);opacity:.6;margin-left:auto}
+.spi-ind-note{margin-top:6px}
+.spi-ind-note .ed{font-size:.82rem;line-height:1.55;opacity:.82}
+/* the ends of each journey, said in opacity and colour rather than words */
+.spi-ind.receded{opacity:.6}
+.spi-ind.arrived .spi-ind-text,.spi-ind.arrived .spi-ind-word{color:var(--terra)}
+
+.spi-ev-group{margin-top:14px;border-left:2px solid var(--c);padding-left:12px}
+.spi-ev-h{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+.spi-sign{font-family:var(--mono);font-weight:700}
+.spi-sign.embodying{color:var(--sage)}
+.spi-sign.releasing{color:var(--rose)}
+.spi-ev{display:flex;align-items:baseline;gap:10px;padding:3px 0;cursor:pointer;border-radius:4px}
+.spi-ev:hover{background:color-mix(in srgb,var(--text) 3%,transparent)}
+.spi-ev .mono{font-size:.6rem;color:var(--muted);min-width:5.4em}
+.spi-ev-t{flex:1;font-size:.85rem}
+.spi-hist-svg{display:block;width:100%;height:56px;margin-top:12px;overflow:visible}
+.spi-hist-row{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding:5px 0;border-top:1px dashed var(--line)}
+.spi-hist-row .mono{font-size:.64rem;color:var(--muted)}
+.spi-hist-note{flex:1;min-width:12em;font-size:.84rem}
+.spiral-page .center{text-align:center}
+@media (prefers-reduced-motion:reduce){.spi-marker,.spi-dots button,.spi-ind,.spi-x{transition:none}}
+
+/* ============================================================
+   THE LIFE LEDGER — the stats as prose. Not a card grid: a page
+   of a ledger, where the numbers sit inside sentences and a level
+   that is doing fine says it quietly.
+   ============================================================ */
+.life-ledger{margin-top:8px}
+.lg-stanza{padding:14px 0 16px;cursor:pointer;transition:background .2s var(--ease)}
+.lg-stanza:hover{background:color-mix(in srgb,var(--text) 2%,transparent)}
+.lg-h{display:flex;align-items:center;gap:9px;padding-bottom:5px;
+  border-bottom:1px solid color-mix(in srgb,var(--terra) 22%,transparent)}
+.lg-pie{width:15px;height:15px;flex:0 0 15px;display:block}
+.lg-pie svg{width:100%;height:100%;display:block}
+.lg-name{font-family:var(--serif);font-size:.88rem;font-variant:small-caps;letter-spacing:.09em;color:var(--text)}
+.lg-flag{font-family:var(--quote);font-style:italic;font-size:.76rem;color:var(--gold);opacity:.9}
+.lg-score{margin-left:auto;font-size:.72rem;color:var(--muted)}
+.lg-body{font-size:.86rem;line-height:1.62;color:var(--text);margin-top:8px;max-width:62ch}
+.lg-n{font-family:var(--mono);font-size:.84rem;font-weight:400;color:color-mix(in srgb,var(--terra) 70%,var(--text))}
+.lg-spark{display:inline-block;vertical-align:baseline;margin:0 2px -2px}
+.lg-none{font-family:var(--quote);font-style:italic;color:var(--muted)}
+.lg-none a{color:var(--page-accent);text-decoration:none}
+/* a level that is doing well whispers; one that is thin speaks clearly */
+.lg-stanza.whisper .lg-body{color:var(--muted)}
+.lg-stanza.whisper .lg-n{color:var(--muted);opacity:.85}
+.lg-stanza.speaks .lg-body{color:var(--text)}
+.lg-stanza.speaks .lg-n{color:var(--terra)}
+.lg-title{font-size:.72rem}
+
+/* ---------- the Needs room ---------- */
+.needs-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start;margin-top:14px}
+@media (max-width:900px){.needs-grid{grid-template-columns:1fr}}
+.needs-pyr .mas-svg{max-width:420px}
+.needs-page .mas-tier{cursor:pointer;transition:opacity .2s var(--ease)}
+.needs-pyr:hover .mas-tier{opacity:.62}
+.needs-pyr .mas-tier:hover{opacity:1}
+.needs-side{display:flex;flex-direction:column;gap:2px}
+.needs-diag{padding:9px 11px;border-left:2px solid transparent;border-radius:6px;cursor:pointer;
+  transition:background .2s var(--ease),border-color .2s var(--ease)}
+.needs-diag:hover{background:color-mix(in srgb,var(--text) 3%,transparent);border-left-color:var(--page-accent)}
+.nd-h{display:flex;align-items:baseline;gap:8px}
+.nd-h b{font-size:.98rem}
+.nd-h .mono{margin-left:auto;font-size:.68rem;color:var(--muted)}
+.nd-inputs{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:3px}
+.nd-inputs span{font-size:.68rem;color:var(--muted)}
+.nd-inputs b{color:var(--text);opacity:.85}
+.nd-ov{font-size:.62rem;color:var(--gold);margin-top:3px}
+.nd-note{font-family:var(--quote);font-style:italic;font-size:.78rem;color:var(--muted);margin-top:3px}
+.nd-ask{font-family:var(--quote);font-style:italic;font-size:.82rem;color:var(--muted);opacity:0;height:0;overflow:hidden;
+  margin:0;transition:opacity .25s var(--ease)}
+.nd-go{font-size:.64rem;color:var(--page-accent);text-decoration:none;opacity:0;height:0;overflow:hidden;display:block;
+  transition:opacity .25s var(--ease)}
+.needs-diag:hover .nd-ask,.needs-diag:focus-within .nd-ask{opacity:1;height:auto;margin:6px 0 2px}
+.needs-diag:hover .nd-go,.needs-diag:focus-within .nd-go{opacity:1;height:auto}
+.needs-hist-svg{display:block;width:100%;height:130px;margin-top:12px;overflow:visible}
+.needs-hist-key{display:flex;flex-wrap:wrap;gap:4px 12px;margin:6px 0 4px}
+.needs-hist-key span{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:.58rem;color:var(--muted)}
+.needs-hist-key i{width:9px;height:2px;border-radius:1px;display:inline-block}
+/* the auto score stays visible on the override track, as a faint tick */
+.ov-slider{position:relative}
+.ov-slider::before{content:'';position:absolute;left:var(--tick,50%);top:50%;width:1px;height:13px;
+  background:var(--muted);opacity:.5;transform:translate(-50%,-50%);pointer-events:none}
+.needs-page .center{text-align:center}
+@media (prefers-reduced-motion:reduce){.lg-stanza,.needs-diag,.nd-ask,.nd-go{transition:none}}
+.ll-foundation{font-family:var(--quote);font-style:italic;font-size:.8rem;color:var(--gold);opacity:.85;
+  text-align:right;margin:8px 0 0;max-width:52ch;margin-left:auto}
+.spi-crosscheck{font-size:.8rem;color:var(--muted);margin:8px 0 0;max-width:62ch}
+.spi-crosscheck a{color:var(--page-accent);text-decoration:none}
+.val-stage-note{font-family:var(--quote);font-style:italic;font-size:.82rem;color:var(--muted);margin:10px 0 0}
+.val-stage-note a{color:var(--page-accent);text-decoration:none;font-style:normal;font-family:var(--mono);font-size:.66rem}
 </style>
 </head>
 <body>
@@ -2326,7 +2511,7 @@ function tagChips(e, {link=true}={}){ const t = entryTags(e); return t.length ? 
 const KEY = 'lifeinstrument.v1';
 let S = null;
 /* persistence lives in db.js (Dexie schema + load/save/backup) */
-function migrate(){ if(S.settings && (S.settings.home === 'map' || S.settings.home === 'home')) S.settings.home = 'compass'; wipeDemoData(); if(S.rehearsal && !S.rehearsal){ S.rehearsal = S.rehearsal; } delete S.rehearsal; if(typeof migrateEras === 'function') migrateEras(); const d = seed(); for(const k of Object.keys(d)) if(S[k]===undefined) S[k] = d[k]; if(typeof migrateLifeline === 'function') migrateLifeline(); if(typeof migrateSkillLevels === 'function') migrateSkillLevels(); if(typeof migrateProjects === 'function') migrateProjects(); if(typeof migrateStages === 'function') migrateStages(); if(typeof migrateTasks === 'function') migrateTasks(); if(typeof migrateIdeas === 'function') migrateIdeas(); if(typeof migrateMedia === 'function') migrateMedia(); if(typeof migrateSkillFocus === 'function') migrateSkillFocus(); if(typeof migratePeople === 'function') migratePeople(); if(typeof migrateValuePractices === 'function') migrateValuePractices(); if(typeof migrateFinance === 'function') migrateFinance(); if(typeof migrateRhythm === 'function') migrateRhythm(); S.boards = Array.isArray(S.boards) ? S.boards : []; }
+function migrate(){ if(S.settings && (S.settings.home === 'map' || S.settings.home === 'home')) S.settings.home = 'compass'; wipeDemoData(); if(S.rehearsal && !S.rehearsal){ S.rehearsal = S.rehearsal; } delete S.rehearsal; if(typeof migrateEras === 'function') migrateEras(); const d = seed(); for(const k of Object.keys(d)) if(S[k]===undefined) S[k] = d[k]; if(typeof migrateLifeline === 'function') migrateLifeline(); if(typeof migrateSkillLevels === 'function') migrateSkillLevels(); if(typeof migrateProjects === 'function') migrateProjects(); if(typeof migrateStages === 'function') migrateStages(); if(typeof migrateTasks === 'function') migrateTasks(); if(typeof migrateIdeas === 'function') migrateIdeas(); if(typeof migrateMedia === 'function') migrateMedia(); if(typeof migrateSkillFocus === 'function') migrateSkillFocus(); if(typeof migratePeople === 'function') migratePeople(); if(typeof migrateValuePractices === 'function') migrateValuePractices(); if(typeof migrateFinance === 'function') migrateFinance(); if(typeof migrateRhythm === 'function') migrateRhythm(); if(typeof migrateSpiral === 'function') migrateSpiral(); S.boards = Array.isArray(S.boards) ? S.boards : []; }
 
 /* One-time: the house used to open furnished with a demonstration life. If that
    demonstration is still here, clear it so the rooms start empty. */
@@ -2827,6 +3012,8 @@ const PAGE_THEMES = {
   projects: {name:'Projects',     accent:['#7f97c9','#4d68a3'], ink:'#1a1816', gradient:['#6b7fa8','#8ec5e8'], mood:'structured, focused',    motion:'crisp',     glyph:'作', icon:'🎨'},
   rituals:  {name:'Rituals & Habits',      accent:['#6fa39a','#457d74'], ink:'#1a1816', gradient:['#5f968d','#b7c9a0'], mood:'steady, rhythmic',       motion:'calm',      glyph:'儀', icon:'✨'},
   values:   {name:'Values',      accent:['#ab93cf','#7a60a8'], ink:'#1a1816', gradient:['#b7a2d8','#a3798f'], mood:'introspective, calm',    motion:'calm',      glyph:'心', icon:'🧭'},
+  spiral:   {name:'Spiral',       accent:['#c58a4e','#8a5a24'], ink:'#1a1816', gradient:['#b8763c','#7f916a'], mood:'directional, honest', motion:'calm',      glyph:'旋', icon:'🌀'},
+  needs:    {name:'Needs',        accent:['#c9806a','#9a4f3a'], ink:'#1a1816', gradient:['#b96a54','#d9a98f'], mood:'structural, plain',  motion:'calm',      glyph:'需', icon:'🔺'},
   skills:   {name:'Skill Tree',   accent:['#3fae7a','#25835a'], ink:'#1a1816', gradient:['#2f9e6e','#2aa7a0'], mood:'growth, energy',         motion:'energetic', glyph:'技', icon:'🛠'},
   vision:   {name:'Vision',  accent:['#7b7de3','#4d50b6'], ink:'#f6f4ff', gradient:['#4b4fb0','#8a5fc9'], mood:'expansive, dreamy',      motion:'calm',      glyph:'夢', icon:'🌳'},
   timeline: {name:'Timeline',       accent:['#cba85a','#96762a'], ink:'#1a1816', gradient:['#c9a55a','#8a6a4a'], mood:'nostalgic, warm',        motion:'calm',      glyph:'憶', icon:'⏳'},
@@ -3325,6 +3512,8 @@ const PAGE_SCENES = {
     ${seal(1090, 130, 40, '具')}`),
 };
 PAGE_SCENES.lifetape = PAGE_SCENES.rhythm;
+PAGE_SCENES.spiral   = PAGE_SCENES.values;
+PAGE_SCENES.needs    = PAGE_SCENES.values;
 PAGE_SCENES.compass  = PAGE_SCENES.home;
 PAGE_SCENES.plan     = PAGE_SCENES.rhythm;
 PAGE_SCENES.board    = PAGE_SCENES.vision;
@@ -4167,7 +4356,7 @@ function seed(){
     ],
     rehearsal:{script:'', winning:'', aim:'', cycleStart:'', days:[]},
     reviews:{lastWeekly:null,lastSeasonal:null,lastAnnual:null},
-    people:[], places:[], boards:[], events:[], plans:{}, reviewLog:{}, accounts:[], txns:[], budgets:[], finGoals:[], chapters:[], turns:[], threadsN:[], interactions:[], dailyRhythm:{}, position:{overrides:{},history:[],spiral:{}}, wsDaily:{},
+    people:[], places:[], boards:[], events:[], plans:{}, reviewLog:{}, accounts:[], txns:[], budgets:[], finGoals:[], chapters:[], turns:[], threadsN:[], interactions:[], dailyRhythm:{}, position:{overrides:{},history:[],spiral:{}}, spiral:{currentPair:{releasing:'orange',embodying:'green'},traces:[],indicators:[],history:[]}, wsDaily:{},
     finance:{currency:'SGD', categories:[], netWorthLog:[], principles:[], note:'', assigned:{}},
     mediaQueue:[], mediaLists:[], mediaRecs:[], compost:[],
     incomeStreams:[], spendCategories:[],
@@ -4297,6 +4486,22 @@ function gentlePrompt(){
   const sps = lastDays(14).map(d=>S.checkins[d]?.setpoint).filter(Boolean); if(sps.length>5){ const m = avg(sps); if(m<15) ps.push(`Your emotional set-point has been around <em>${hicksName(m).split(' / ')[0]}</em> for two weeks. Abraham says: you can't jump to Joy, but can you reach for <em>${hicksName(m+2).split(' / ')[0]}</em> today?`); }
   const revisit = S.entries.filter(e=>e.type==='synchronicity' && e.extra?.revisit); if(revisit.length) ps.push(`A synchronicity you flagged to revisit: <em>${esc(revisit[Math.floor(Math.random()*revisit.length)].title)}</em>. Does it make more sense now?`);
   const q = S.entries.filter(e=>e.type==='question' && !(e.extra?.answers||[]).length); if(q.length) ps.push(`An open question you're living with: <em>${esc(q[Math.floor(Math.random()*q.length)].title)}</em>`);
+  /* a foundation under 40 is the most useful thing the instrument can say */
+  if(typeof maslowScores === 'function'){
+    const weak = maslowScores().filter(m => m.effectiveScore != null && m.effectiveScore < 40)
+      .sort((a,b) => a.effectiveScore - b.effectiveScore)[0];
+    if(weak){
+      const p = S.position?.history || [];
+      const twice = p.slice(-2).length === 2 && p.slice(-2).every(h => ((h.levels||[]).find(l => l.key === weak.key)||{}).effectiveScore < 40);
+      ps.push(`Your ${weak.name} level ${twice ? 'has been below 40 for two check-ins' : `is at ${weak.effectiveScore}`}. Fritz says structural tension needs an accurate picture of current reality — so: ${weak.ask}`);
+    }
+  }
+  /* a pattern you said you were releasing, still showing up */
+  if(S.spiral?.indicators?.length){
+    const held = S.spiral.indicators.filter(x => x.direction === 'releasing' && x.strength >= 4 && x.text.trim());
+    if(held.length){ const x = held[Math.floor(Math.random()*held.length)];
+      ps.push(`You flagged <em>${esc(x.text)}</em> as a pattern you are releasing, and rated it ${x.strength}/5. Is that still true today, or is that just this week?`); }
+  }
   const generic = ["What are you afraid to want?","What did you learn this week that surprised you?","What is one thing you're avoiding?","What self-image are you acting out today — and is it the one you chose?","Maltz says: <em>“If you can remember, worry, or tie your shoe, you can succeed.”</em> What are you worrying about that could be redirected into positive visualization?","Fritz asks: What result do you want to create? And what is the current reality? Hold both. The tension will resolve.","Loehr asks: which energy dimension did you not renew today?","Leonard asks: where is your plateau right now, and can you love it?","Which value did today's choices actually serve?"];
   const pool = ps.length ? ps.concat(generic.slice(0,2)) : generic;
   const idx = (parseInt(today().replace(/-/g,''),10) + (S._promptShift||0)) % pool.length;
@@ -4843,134 +5048,10 @@ function openTimeBlockModal(r, seed, save, redraw){
     spliceOut(r.blocks, x => x.id === seed.id); save(); m.remove(); redraw(); });
 }
 
-/* ============================================================
-   THE STATS, LAID OUT AS THE PYRAMID
-   Each Maslow level becomes a row of evidence cards. Only levels
-   and cards with something to say appear; the weakest level is
-   lifted to the top, because that is where to start.
-   ============================================================ */
-function statCard({icon, label, value, detail, go, spark}){
-  return `<button class="mstat" ${go?`data-go="${esc(go)}"`:''}>
-    <span class="mstat-h"><i>${icon}</i>${esc(label)}</span>
-    <span class="mstat-v">${value}</span>
-    ${detail ? `<span class="mstat-d">${detail}</span>` : ''}
-    ${spark || ''}</button>`;
-}
-const miniBar = (v, c='var(--page-accent)') => `<span class="mstat-bar"><i style="width:${clamp(Math.round(v),0,100)}%;background:${c}"></i></span>`;
-
-function maslowCards(key){
-  const out = []; const T = today();
-  const add = o => { if(o) out.push(o); };
-  if(key === 'body'){
-    const r = rhythmDay(); const sl = r.computed.totalAwakeMinutes != null ? 1440 - r.computed.totalAwakeMinutes : null;
-    if(sl != null) add({icon:'☾', label:'SLEEP', value:fmtDur(sl), detail:`woke ${esc(r.wakeTime)}`, go:'#/lifetape'});
-    const pe = S.checkins?.[T]?.energy?.physical;
-    if(pe) add({icon:'◍', label:'BODY ENERGY', value:`${pe}<small>/5</small>`, detail:'today', spark:miniBar(pct(pe,1,5),'var(--phys)')});
-    const hr = mHabitRate(h => h.dimension === 'physical');
-    if(hr != null) add({icon:'▲', label:'MOVEMENT', value:`${hr}<small>%</small>`, detail:'physical habits, 7 days', go:'#/lifetape', spark:miniBar(hr,'var(--phys)')});
-  }
-  if(key === 'safety'){
-    if(typeof runway === 'function' && S.finance?.scenarios?.length && (incomeStreamList().length || S.finance.savings)){
-      const rw = runway();
-      add({icon:'⌛', label:'RUNWAY', value: rw.sustainable ? 'covered' : `${rw.months.toFixed(1)}<small>mo</small>`,
-           detail: rw.sustainable ? `+${money(rw.surplus)} a month` : 'savings ÷ burn', go:'#/finance'});
-      const b = monthlyBurn();
-      add({icon:'△', label:'GAP', value: b <= 0 ? `+${money(-b)}` : `−${money(b)}`, detail:'income vs. the life you want', go:'#/finance'});
-    }
-    const c = rhythmDay().computed;
-    if(c.ratio != null) add({icon:'◷', label:"TODAY'S TIME", value:`${c.ratio}<small>%</small>`, detail:`${fmtDur(c.intentionalMinutes)} claimed well`, spark:miniBar(c.ratio,'var(--sage)')});
-  }
-  if(key === 'belonging'){
-    const core = S.people.filter(p => ['core','close'].includes(p.circle));
-    if(core.length){
-      const since = addDays(T,-30);
-      const n = (S.interactions||[]).filter(i => i.date >= since && core.some(p=>p.id===i.personId)).length;
-      const stale = core.map(p => ({p, last:(S.interactions||[]).filter(i=>i.personId===p.id).map(i=>i.date).sort().slice(-1)[0]}))
-        .sort((a,b) => (a.last||'').localeCompare(b.last||''))[0];
-      add({icon:'☺', label:'INNER CIRCLE', value:n, detail: stale ? `longest quiet: ${esc(stale.p.name)}` : 'this month', go:'#/people'});
-    }
-    const rr = mHabitRate(h => !!h.relational);
-    if(rr != null) add({icon:'♡', label:'CONNECTIONS', value:`${rr}<small>%</small>`, detail:'relational habits', go:'#/lifetape', spark:miniBar(rr,'var(--rose)')});
-    const last = [...(S.interactions||[])].sort((a,b)=>a.date<b.date?1:-1)[0];
-    if(last){ const who = byId(S.people, last.personId);
-      add({icon:'◌', label:'LAST SEEN', value:esc((who?.name||'someone').split(' ')[0]), detail:relDays(daysSince(last.date)), go:'#/people'}); }
-  }
-  if(key === 'esteem'){
-    const sp = mSkillPractice();
-    if(sp != null){ const live = S.skills.filter(s=>!s.archived && s.horizon!=='someday');
-      const top = live.map(s=>({s,l:skillLastPracticed(s)})).filter(x=>x.l).sort((a,b)=>b.l.localeCompare(a.l))[0];
-      add({icon:'◈', label:'CRAFT', value:live.filter(s=>{const l=skillLastPracticed(s); return l&&l>=addDays(T,-30);}).length,
-           detail: top ? `latest: ${esc(top.s.name)}` : 'practised this month', go:'#/skills'}); }
-    const alive = S.projects.filter(p => !['archived','abandoned','completed'].includes(p.status));
-    if(alive.length){ const since = addDays(T,-14);
-      const warm = alive.filter(p => (S.nods||[]).some(n => n.projectId===p.id && n.date>=since));
-      const cold = alive.filter(p => !warm.includes(p))[0];
-      add({icon:'🎨', label:'PROJECTS', value:`${warm.length} <small>alive</small>`, detail: cold ? `coldest: ${esc(cold.name)}` : 'all warm', go:'#/projects'}); }
-    if(S.wsDaily && Object.keys(S.wsDaily).length){
-      const w = sum(lastDays(7).map(d => typeof wsWrittenOn === 'function' ? wsWrittenOn(d) : 0));
-      add({icon:'✒', label:'WORDS', value:w.toLocaleString(), detail:'this week', go:'#/writing'});
-    }
-  }
-  if(key === 'mind'){
-    const since = addDays(T,-30);
-    const ms = (typeof mediaEntries === 'function' ? mediaEntries() : []).filter(e => (e.occurredAt||e.createdAt||'').slice(0,10) >= since);
-    if(ms.length){ const best = ms.find(e => ['lives','changed'].includes(e.extra?.resonanceLevel)) || ms[0];
-      add({icon:'▤', label:'LEARNING', value:ms.length, detail: best ? esc(best.title) : 'this month', go:'#/commonplace'}); }
-    const js = S.entries.filter(e => ['reflection','question','synchronicity'].includes(e.type) && (e.occurredAt||e.createdAt||'').slice(0,10) >= addDays(T,-7));
-    if(js.length) add({icon:'✎', label:'THINKING', value:js.length, detail:esc((js[js.length-1].title||'').slice(0,26)) || 'this week', go:'#/journals'});
-    const me = S.checkins?.[T]?.energy?.mental;
-    if(me) add({icon:'◉', label:'MIND ENERGY', value:`${me}<small>/5</small>`, detail:'today', spark:miniBar(pct(me,1,5),'var(--ment)')});
-  }
-  if(key === 'beauty'){
-    const cr = mNodRate(p => !(p.income?.current || p.income?.target));
-    if(cr != null){ const since = addDays(T,-30);
-      const n = (S.nods||[]).filter(x => x.date>=since && S.projects.some(p=>p.id===x.projectId && !(p.income?.current||p.income?.target))).length;
-      add({icon:'✦', label:'CREATING', value:n, detail:'nods on work that is not for money', go:'#/projects'}); }
-    const art = (typeof mediaEntries === 'function' ? mediaEntries() : []).filter(e =>
-      ['film','album','exhibition','documentary'].includes(e.extra?.kind) && (e.occurredAt||e.createdAt||'').slice(0,10) >= addDays(T,-30));
-    if(art.length) add({icon:'◐', label:'BEAUTY', value:art.length, detail:esc(art[0].title), go:'#/commonplace'});
-    const awe = mValueCongruence(['awe','creativ','beauty']);
-    if(awe != null) add({icon:'❦', label:'AWE', value:`${Math.round(awe)}<small>%</small>`, detail:'congruence', go:'#/values', spark:miniBar(awe,'var(--gold)')});
-  }
-  if(key === 'becoming'){
-    const vv = mVisionVividness();
-    if(vv != null) add({icon:'🌿', label:'VISIONS', value:Math.round(vv), detail:`${S.visions.filter(v=>!v.archived).length} tended · avg vividness`, go:'#/vision', spark:miniBar(vv,'var(--sage)')});
-    if(S.rehearsal?.days?.length || S.rehearsal?.cycleStart){
-      const day = S.rehearsal.cycleStart ? clamp(daysBetween(S.rehearsal.cycleStart, T)+1, 1, 21) : 0;
-      add({icon:'◉', label:'PRACTICE', value:`Day ${day}<small>/21</small>`, detail: (S.rehearsal.days||[]).includes(T) ? '✓ today' : 'not yet today'});
-    }
-    const cg = mValueCongruence();
-    if(cg != null){ const worst = valueGaps()[0];
-      add({icon:'⚖', label:'CONGRUENCE', value:`${Math.round(cg)}<small>%</small>`, detail: worst ? `widest gap: ${esc(worst.name)}` : '', go:'#/values', spark:miniBar(cg)}); }
-    const sp = S.checkins?.[T]?.setpoint;
-    if(sp) add({icon:'≈', label:'SET-POINT', value:`${sp}<small>/22</small>`, detail:esc(hicksName(sp).split(' / ')[0])});
-  }
-  return out.slice(0, 3);
-}
-
-function maslowRowsHTML(){
-  const levels = maslowScores().map(m => ({...m, cards: maslowCards(m.key)})).filter(m => m.cards.length);
-  if(!levels.length) return '';
-  const scored = levels.filter(m => m.effectiveScore != null);
-  const weakest = scored.length ? scored.reduce((a,b) => b.effectiveScore < a.effectiveScore ? b : a) : null;
-  const rest = levels.filter(m => m !== weakest);
-  const showAll = !!S._maslowAll;
-  const shown = showAll ? rest : rest.slice(0, 3);
-  const row = (m, flag) => `<div class="mrow ${m.effectiveScore != null && m.effectiveScore < 40 ? 'low' : m.effectiveScore > 80 ? 'settled' : ''}">
-    <div class="mrow-h">
-      <span class="mrow-l">L${m.level} · ${esc(m.short)}</span>
-      ${m.effectiveScore != null ? `<span class="mrow-bar"><i style="width:${m.effectiveScore}%"></i></span><span class="mono mrow-n">${m.effectiveScore}</span>` : '<span class="mono faint">—</span>'}
-      ${flag ? `<span class="mrow-flag">${flag}</span>` : ''}
-    </div>
-    <div class="mrow-cards">${m.cards.map(statCard).join('')}</div>
-  </div>`;
-  return `<section class="section rv maslow-rows">
-    ${weakest ? row(weakest, 'needs attention') : ''}
-    ${shown.length ? `<div class="mrow-div"><span>your foundation → your summit</span></div>` : ''}
-    ${shown.map(m => row(m)).join('')}
-    ${rest.length > 3 ? `<button class="btn sm ghost" id="maslowAll" style="margin-top:10px">${showAll ? 'show fewer' : `show all ${levels.length} levels`}</button>` : ''}
-  </section>`;
-}
+/* The stats used to be a grid of little cards, one row per level. They are
+   now prose — see ledgerStanzasHTML() in the Needs room, which reads the same
+   scores and says them in sentences. A number in a card is a number; a number
+   in a sentence is a claim you can disagree with. */
 
 /* ============================================================
    THE LIFE POSITION CHECK-IN
@@ -5043,7 +5124,7 @@ function positionHTML(){
       </div>
 
       <div class="pos-spi">
-        <div class="sc" style="margin:0 0 8px">Stage resonance</div>
+        <div class="row between" style="align-items:baseline"><span class="sc" style="margin:0 0 8px">Stage resonance</span><a class="mono faint" href="#/spiral" style="text-decoration:none">the spiral room →</a></div>
         ${spiralBarsHTML(read)}
         <p class="spi-read">${esc(read.line)}</p>
         <div class="row" style="gap:6px;align-items:center;flex-wrap:wrap">
@@ -5182,7 +5263,7 @@ routes.today = function(root){
     ['t-theatre', 'theatre',  true],
     ['t-habits',  'habits',   true],
     ['t-reviews', 'reviews',  typeof reviewsDue === 'function' && reviewsDue(T).length > 0],
-    ['t-position','position', true],
+    ['t-ledger',  'ledger',   typeof ledgerStanzasHTML === 'function' && !!ledgerStanzasHTML({limit:4})],
     ['t-prompt',  'prompt',   true],
     ['t-add',     'quick add',true],
     ['t-tonight', 'tonight',  true],
@@ -5207,7 +5288,6 @@ routes.today = function(root){
     </nav>
 
     ${timeUseHTML(S._tuDay || T)}
-    ${maslowRowsHTML()}
 
     <!-- morning flow tracker -->
     <section class="section rv morning-flow" id="t-flow">
@@ -5300,7 +5380,8 @@ routes.today = function(root){
       <div class="card" style="margin-top:10px"><div class="prac-today">${pr.map(({v,p,done,doneThisWeek})=>`<button class="prac-chip ${done?'on':''}" data-practoday="${v.id}:${p.id}" style="--c:${v.color}"><span class="pc-tick">${done?'✓':'○'}</span><span class="pc-text">${esc(p.text)}</span><span class="pc-val mono">${esc(v.name)} · ${doneThisWeek}/${p.perWeek}</span></button>`).join('')}</div></div></section>` : ''}
     ${milestones.length ? `<section class="section rv"><span class="sc">Skill milestones within 30 days</span><div class="card" style="border-left:3px solid var(--ment)">${milestones.map(({skill,m,days})=>`<a href="#/skills/${skill.id}" class="row between" style="text-decoration:none;color:inherit;padding:8px 0;border-top:1px dashed var(--line);gap:12px"><span><b class="serif">${esc(skill.name)}</b> <span class="muted">→ ${esc(skillLevelLabel(skill,m.levelTarget))}</span></span><span class="status-pill ${days<0?'due':'ahead'}">${days<0?'⚠ ' + (-days) + 'd overdue':days===0?'today':'in ' + days + 'd'}</span></a>`).join('')}</div></section>` : ''}
 
-    <div id="t-position">${positionHTML()}</div>
+
+    ${typeof ledgerStanzasHTML === 'function' ? ledgerStanzasHTML({limit:4, title:'The life ledger'}) : ''}
 
     <!-- gentle prompt -->
     <section class="section rv" id="t-prompt"><span class="sc">A gentle prompt</span>
@@ -5379,8 +5460,7 @@ routes.today = function(root){
 
   const redraw = () => rerender();
   bindTimeUse(root, redraw);
-  bindPosition(root, redraw);
-  $('#maslowAll') && ($('#maslowAll').onclick = () => { S._maslowAll = !S._maslowAll; rerender(); });
+  if(typeof bindLedger === 'function') bindLedger(root);
 
   /* the night before */
   $('#planTomorrow') && ($('#planTomorrow').onclick = () => { if(typeof planMyDay === 'function') planMyDay(tomorrow); });
@@ -5555,13 +5635,16 @@ routes.stage = function(root, params){
     </section>
 
     <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Sub-stages</span><button class="btn sm" id="addSub">+ sub-stage</button></div>
-      ${(s.substages||[]).map((ss,i)=>{ const fe = memories.filter(e=>(e.links?.substages||[]).includes(ss.id)); return `<div class="substage" data-ss="${ss.id}">
+      ${(s.substages||[]).map((ss,i)=>{ const fe = memories.filter(e=>(e.links?.substages||[]).includes(ss.id)); const ph = ss.photos||[]; return `<div class="substage ${ph.length?'plated':''}" data-ss="${ss.id}">
+        ${ph.length ? `<div class="ss-plate" aria-hidden="true"><div class="ss-plate-img" style="background-image:url(&quot;${esc(ph[0].src)}&quot;)"></div><div class="ss-plate-wash"></div></div>` : ''}
+        <div class="ss-body">
         <div class="hd"><h3>${ed(`stages.#${s.id}.substages.${i}.name`,{ph:'name this chapter'})}</h3><span class="row" style="margin-left:auto"><button class="tbtn" data-ssup="${i}">↑</button><button class="tbtn" data-ssdown="${i}">↓</button><button class="tbtn" data-ssdel="${i}">×</button></span></div>
         <div class="muted" style="max-width:var(--content)">${ed(`stages.#${s.id}.substages.${i}.desc`,{multi:true,mdr:true,ph:'What happened here? Markdown welcome.'})}</div>
-        <div class="row" style="margin:8px 0"><button class="btn sm ghost" data-ssphoto="${i}">+ photos</button><button class="btn sm ghost" data-ssmem="${ss.id}">+ formative event</button></div>
-        ${ss.photos?.length?`<div class="gallery">${ss.photos.map((p,j)=>photoTile(p,`stages.#${s.id}.substages.${i}.photos.${j}`)).join('')}</div>`:''}
+        <div class="row" style="margin:8px 0"><button class="btn sm ghost" data-ssphoto="${i}">+ images</button><button class="btn sm ghost" data-ssmem="${ss.id}">+ formative event</button>${ph.length>1?`<button class="btn sm ghost" data-ssgal="${i}">${ph.length} images</button>`:''}</div>
+        ${ph.length && S._ssGalOpen?.[ss.id] ? `<div class="gallery">${ph.map((p,j)=>photoTile(p,`stages.#${s.id}.substages.${i}.photos.${j}`)).join('')}</div>` : ''}
         ${fe.length?`<div class="sc" style="margin-top:8px">Formative events</div>`:''}
         ${fe.map(e=>`<div class="formative"><div class="row between"><b class="serif" style="font-size:1.1rem">${esc(e.title)}</b><span class="mono">${esc(fmtDate(e.occurredAt,'med'))} <button class="tbtn" data-edit="${e.id}">edit</button></span></div><button class="del-x" data-del="${e.id}" title="delete">×</button><div class="muted" style="margin-top:4px;line-height:1.7">${md(e.body)}</div>${e.media?.length?`<div class="thumbs">${e.media.map(m=>`<div class="photo" style="width:72px;height:72px" data-lb="${m.id}"><img src="${m.src}"></div>`).join('')}</div>`:''}<div class="installed"><div class="k">What this installed in me</div>${ed(`entries.#${e.id}.extra.installed`,{multi:true,ph:'The belief, fear, pattern, or capability this event left behind.'})}</div></div>`).join('')}
+        </div>
       </div>`; }).join('')}
       ${memories.filter(e=>!(e.links?.substages||[]).length).length?`<div class="substage"><div class="hd"><h3 class="muted">Formative events not tied to a sub-stage</h3></div>${memories.filter(e=>!(e.links?.substages||[]).length).map(e=>`<div class="formative"><div class="row between"><b class="serif" style="font-size:1.1rem">${esc(e.title)}</b><span class="mono">${esc(fmtDate(e.occurredAt,'med'))} <button class="tbtn" data-edit="${e.id}">edit</button></span></div><button class="del-x" data-del="${e.id}" title="delete">×</button><div class="muted" style="margin-top:4px;line-height:1.7">${md(e.body)}</div><div class="installed"><div class="k">What this installed in me</div>${ed(`entries.#${e.id}.extra.installed`,{multi:true,ph:'The belief, fear, pattern, or capability this event left behind.'})}</div></div>`).join('')}</div>`:''}
     </section>
@@ -5591,7 +5674,6 @@ routes.stage = function(root, params){
     <section class="section rv"><div class="row between"><span class="sc">Everything from this stage</span></div>
       ${es.filter(e=>e.type!=='memory').map(e=>entryCard(e)).join('') || '<div class="empty">Only memories so far. Add a reflection, a quote, a dream.</div>'}
     </section>
-    <section class="section rv">${boardHTML(boardId('stage', s.id), {title:'Board for this chapter', hint:'Photographs, objects, a colour you associate with these years.', compact:true})}</section>
     ${moreSection(`<div class="row" style="gap:20px;flex-wrap:wrap"><div class="field"><label>Character</label>${ed(`stages.#${s.id}.char`,{cls:'serif',ph:'一'})}</div><div class="field"><label>Accent colour</label><input type="color" id="stageHue" value="${s.hue}" style="width:40px;height:28px;border:none;background:none;padding:0;cursor:pointer"></div><div class="field"><label>Order</label><span class="mono">stage ${s.num} of ${S.stages.length}</span> <button class="btn sm ghost" id="stageUp">↑</button><button class="btn sm ghost" id="stageDown">↓</button></div></div>
       <div class="danger-zone"><span>Stages are the load-bearing walls of the house. Deleting one keeps its entries but unlinks them.</span><button class="btn sm ghost danger" id="delStage">Delete this stage</button></div>`, 'More about this stage')}
   </div>`;
@@ -5601,7 +5683,6 @@ routes.stage = function(root, params){
   $('#addSub').onclick = () => { s.substages.push({id:uid(),name:'New chapter',desc:'',photos:[]}); saveNow(); rerender(); };
   $$('[data-ssdel]',root).forEach(b => b.onclick = () => { const ss = s.substages[+b.dataset.ssdel]; requestDelete({label: ss.name, node: b.closest('.substage'), remove: () => { const touched = S.entries.filter(e => (e.links?.substages||[]).includes(ss.id)); const rl = snapshotLinks(touched); touched.forEach(e => e.links.substages = e.links.substages.filter(x => x !== ss.id)); const back = spliceOut(s.substages, x => x === ss); return () => { back(); rl(); }; }}); });
   $$('[data-verdel]',root).forEach(b => b.onclick = () => { const v = s.narrativeHistory[+b.dataset.verdel]; requestDelete({label: `Version from ${fmtDate(v.date,'med')}`, node: b.closest('.v'), remove: () => spliceOut(s.narrativeHistory, x => x === v)}); });
-  bindBoard(root);
   $('#charEdit') && ($('#charEdit').onclick = () => { const n = root.querySelector('.han .ed'); if(n) beginEdit(n); });
   $('#delStage').onclick = () => deleteStage(s, null, () => navigate('#/timeline'));
   $('#stageHue').onchange = e => { s.hue = e.target.value; saveNow(); rerender(); };
@@ -5611,6 +5692,10 @@ routes.stage = function(root, params){
   $$('[data-ssdown]',root).forEach(b => b.onclick = () => { const i=+b.dataset.ssdown; if(i<s.substages.length-1){ [s.substages[i+1],s.substages[i]]=[s.substages[i],s.substages[i+1]]; saveNow(); rerender(); } });
   $$('[data-ssphoto]',root).forEach(b => b.onclick = () => { const inp = el('<input type="file" accept="image/*" multiple hidden>'); document.body.appendChild(inp); inp.onchange = e => { readImages(e.target.files, img => { const ss = s.substages[+b.dataset.ssphoto]; ss.photos = ss.photos||[]; ss.photos.push(img); saveNow(); rerender(); }); inp.remove(); }; inp.click(); });
   $$('[data-ssmem]',root).forEach(b => b.onclick = () => openEntryModal({type:'memory', links:{stages:[s.id], substages:[b.dataset.ssmem]}}));
+  /* the images are the ground the chapter is printed on; the grid of tiles is
+     only for arranging them, so it stays folded until asked for */
+  $$('[data-ssgal]',root).forEach(b => b.onclick = () => { const ss = s.substages[+b.dataset.ssgal];
+    S._ssGalOpen = S._ssGalOpen || {}; S._ssGalOpen[ss.id] = !S._ssGalOpen[ss.id]; rerender(); });
   $$('[data-thread-open]',root).forEach(c => c.onclick = () => openThreadNarrative(c.dataset.threadOpen));
   $$('[data-retro]',root).forEach(r => { r.oninput = () => { root.querySelector(`[data-retro-lbl="${r.dataset.retro}"]`).textContent = r.value; }; r.onchange = () => { s.retroValues = s.retroValues||{}; s.retroValues[r.dataset.retro] = +r.value; saveNow(); $('#retroRadar').innerHTML = radar(axes,[{vals:S.valueOrder.map(id=>cur[id]??0),color:'var(--faint)',dashed:true},{vals:S.valueOrder.map(id=>s.retroValues?.[id]??0),color:s.hue}],{size:320}) + `<div class="legend" style="justify-content:center"><span style="--c:${s.hue}">this stage</span><span style="--c:var(--faint)">today, ghosted</span></div>`; }; });
   $('#addSong').onclick = () => { s.soundtrack = s.soundtrack||[]; s.soundtrack.push({t:''}); saveNow(); rerender(); };
@@ -5953,6 +6038,7 @@ function llPassageHTML(v, era){
       ${wv ? `<span>fields</span><b>${llFilled(v)} of 12</b>` : ''}
     </div>
     ${vals.length ? `<div class="ll-values">${vals.map(x => esc(x.name.toLowerCase())).join(' · ')}</div>` : ''}
+    ${(() => { const n = typeof visionFoundationNote === 'function' ? visionFoundationNote(v) : ''; return n ? `<p class="ll-foundation">${esc(n)}</p>` : ''; })()}
     ${withered ? `<button class="ll-annot" data-llopen="${v.id}">Untended for ${lastTended} days. Resting, or released?</button>` : ''}
 
     <div class="ll-more">
@@ -6280,6 +6366,361 @@ function boardTitle(key){
     person:() => byId(S.people,id)?.name}[kind];
   const n = name ? name() : null;
   return n ? `${n} — board` : 'Board';
+}
+/* ============================================================
+   NEEDS — Maslow as a diagnostic layer, not an ornament.
+
+   The seven levels are read off the rest of the instrument, held
+   in their structural order, and reported as prose. The point of
+   the hierarchy is the claim underneath it: a thin foundation
+   constrains everything built on top of it, so the weakest level
+   speaks first and says so.
+   ============================================================ */
+
+/* the tiny figure that sits on the baseline inside a sentence */
+function ledgerSpark(vals, color = 'var(--page-accent)'){
+  const v = vals.filter(x => x != null);
+  if(v.length < 2) return '';
+  const lo = Math.min(...v), hi = Math.max(...v), rng = (hi - lo) || 1;
+  const W = 48, H = 14;
+  const pts = vals.map((x, i) => x == null ? null : `${((i/(vals.length-1))*W).toFixed(1)},${(H-2 - ((x-lo)/rng)*(H-4)).toFixed(1)}`).filter(Boolean);
+  return `<svg class="lg-spark" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" aria-hidden="true"><polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round" opacity=".8" vector-effect="non-scaling-stroke"/></svg>`;
+}
+const lgNum = t => `<b class="lg-n">${t}</b>`;
+
+/* ---------- the sentences ----------
+   Each level writes its own paragraph out of live data, and drops any clause
+   whose data is missing. A stanza with nothing to say returns nothing, rather
+   than a sentence full of dashes. */
+function ledgerProse(key){
+  const T = today(); const c = S.checkins?.[T] || {}; const bits = [];
+  const week = lastDays(7);
+
+  if(key === 'body'){
+    const r = typeof rhythmDay === 'function' ? rhythmDay() : null;
+    const sl = r && r.computed.totalAwakeMinutes != null ? 1440 - r.computed.totalAwakeMinutes : null;
+    if(sl != null) bits.push(`You slept ${lgNum(fmtDur(sl))} last night.`);
+    const pe = week.map(d => S.checkins?.[d]?.energy?.physical ?? null);
+    const pea = avgDefined(pe.map(x => x == null ? null : x));
+    if(pea != null) bits.push(`Your body has been around ${lgNum(pea.toFixed(1) + '/5')} this week ${ledgerSpark(pe, 'var(--phys)')}`.trim() + (bits.length ? '' : ''));
+    const ph = S.habits.filter(h => !h.archived && !h.negative && h.dimension === 'physical');
+    if(ph.length){ const due = ph.filter(h => habitDue(h, T)), done = due.filter(h => habitDone(h, T));
+      bits.push(`and you have hit ${lgNum(`${done.length} of ${due.length}`)} physical habit${due.length===1?'':'s'} today.`); }
+  }
+
+  if(key === 'safety'){
+    if(typeof runway === 'function' && S.finance?.scenarios?.length && (incomeStreamList().length || S.finance.savings)){
+      const rw = runway(), sc = activeScenario(), b = monthlyBurn();
+      bits.push(`Your runway is ${lgNum(rw.sustainable ? 'open-ended' : `${rw.months.toFixed(1)} months`)}.`);
+      bits.push(`The gap is ${lgNum(b <= 0 ? `covered, +${money(-b)}` : `${money(b)}/mo`)} against your ${esc(sc.name)} scenario.`);
+      const {passiveShare} = portfolioTotals();
+      if(passiveShare > 0) bits.push(`${lgNum(Math.round(passiveShare*100) + '%')} of it does not need your hours.`);
+    }
+    const ratio = typeof rhythmDay === 'function' ? rhythmDay().computed.ratio : null;
+    if(ratio != null) bits.push(`You used ${lgNum(ratio + '%')} of today's claimed hours intentionally.`);
+  }
+
+  if(key === 'belonging'){
+    const inner = S.people.filter(p => ['core','close'].includes(p.circle));
+    if(inner.length){
+      const since = addDays(T, -30);
+      const n = (S.interactions||[]).filter(i => i.date >= since && inner.some(p => p.id === i.personId)).length;
+      bits.push(`You have had ${lgNum(n)} interaction${n===1?'':'s'} with your inner circle this month.`);
+      const stale = inner.map(p => ({p, last:(S.interactions||[]).filter(i => i.personId === p.id).map(i => i.date).sort().slice(-1)[0]}))
+        .sort((a,b) => String(a.last||'').localeCompare(String(b.last||'')))[0];
+      if(stale && stale.last) bits.push(`You have not reached out to ${lgNum(esc(stale.p.name))} in ${lgNum(daysSince(stale.last) + ' days')}.`);
+      else if(stale) bits.push(`${lgNum(esc(stale.p.name))} has no interaction logged at all.`);
+    }
+    const rr = mHabitRate(h => !!h.relational);
+    if(rr != null) bits.push(`Relational rituals: ${lgNum(rr + '%')} this week.`);
+  }
+
+  if(key === 'esteem'){
+    const live = S.skills.filter(s => !s.archived && s.horizon !== 'someday');
+    if(live.length){
+      const since = addDays(T, -30);
+      const practised = live.filter(s => { const l = skillLastPracticed(s); return l && l >= since; });
+      const top = practised.map(s => ({s, l:skillLastPracticed(s)})).sort((a,b) => String(b.l).localeCompare(String(a.l)))[0];
+      bits.push(`You have practised ${lgNum(practised.length)} skill${practised.length===1?'':'s'} this month${top ? ` (most recent: ${lgNum(esc(top.s.name))})` : ''}.`);
+    }
+    const alive = S.projects.filter(p => !['archived','abandoned','completed'].includes(p.status));
+    if(alive.length){
+      const coldest = alive.map(p => ({p, d: daysSince((S.nods||[]).filter(n => n.projectId === p.id).map(n => n.date).sort().slice(-1)[0])}))
+        .sort((a,b) => b.d - a.d)[0];
+      bits.push(`${lgNum(alive.length)} project${alive.length===1?' is':'s are'} alive${coldest && coldest.d > 7 ? `; the coldest is ${lgNum(esc(coldest.p.name))}` : ''}.`);
+    }
+    if(S.wsDaily && Object.keys(S.wsDaily).length){
+      const w = sum(week.map(d => typeof wsWrittenOn === 'function' ? wsWrittenOn(d) : 0));
+      const sess = week.filter(d => (typeof wsWrittenOn === 'function' ? wsWrittenOn(d) : 0) > 0).length;
+      if(w) bits.push(`You wrote ${lgNum(w.toLocaleString())} words this week across ${lgNum(sess)} session${sess===1?'':'s'}.`);
+    }
+  }
+
+  if(key === 'mind'){
+    const since = addDays(T, -30);
+    const ms = (typeof mediaEntries === 'function' ? mediaEntries() : []).filter(e => (e.occurredAt||e.createdAt||'').slice(0,10) >= since);
+    if(ms.length){
+      const best = ms.find(e => ['lives','changed'].includes(e.extra?.resonanceLevel));
+      bits.push(`You took in ${lgNum(ms.length)} work${ms.length===1?'':'s'} this month${best ? `; ${lgNum(esc(best.title))} ${best.extra.resonanceLevel === 'lives' ? 'is still living in you' : 'changed something'}` : ''}.`);
+    }
+    const js = S.entries.filter(e => ['reflection','question','synchronicity'].includes(e.type) && (e.occurredAt||e.createdAt||'').slice(0,10) >= addDays(T,-7));
+    if(js.length) bits.push(`You wrote ${lgNum(js.length)} journal entr${js.length===1?'y':'ies'} this week.`);
+    const me = week.map(d => S.checkins?.[d]?.energy?.mental ?? null);
+    if(c.energy?.mental) bits.push(`Mental energy: ${lgNum(c.energy.mental + '/5')} today ${ledgerSpark(me, 'var(--ment)')}`);
+  }
+
+  if(key === 'beauty'){
+    const since = addDays(T, -30);
+    const creative = S.projects.filter(p => !(p.income?.current || p.income?.target) && !['archived','abandoned'].includes(p.status));
+    if(creative.length){
+      const n = (S.nods||[]).filter(x => x.date >= since && creative.some(p => p.id === x.projectId)).length;
+      bits.push(`Your creative projects have been ${lgNum(n >= 8 ? 'busy' : n >= 3 ? 'ticking over' : n ? 'quiet' : 'silent')} — ${lgNum(n)} nod${n===1?'':'s'} this month.`);
+    }
+    const art = (typeof mediaEntries === 'function' ? mediaEntries() : []).filter(e =>
+      ['film','album','exhibition','documentary'].includes(e.extra?.kind) && (e.occurredAt||e.createdAt||'').slice(0,10) >= since);
+    if(art.length) bits.push(`You saw or heard ${lgNum(art.length)} thing${art.length===1?'':'s'} made to be beautiful.`);
+    const awe = mValueCongruence(['awe','creativ','beauty']);
+    if(awe != null) bits.push(`Awe and creativity sit at ${lgNum(Math.round(awe) + '%')} congruence.`);
+  }
+
+  if(key === 'becoming'){
+    const vv = mVisionVividness();
+    const nv = S.visions.filter(v => !v.archived && v.confidence !== 'lived').length;
+    if(vv != null) bits.push(`Your visions average ${lgNum(Math.round(vv))} vividness across ${lgNum(nv)} live branch${nv===1?'':'es'}.`);
+    if(S.rehearsal?.cycleStart){
+      const day = clamp(daysBetween(S.rehearsal.cycleStart, T) + 1, 1, 21);
+      bits.push(`You are on day ${lgNum(day + ' of 21')} in the Morning Theatre (${(S.rehearsal.days||[]).includes(T) ? 'practised today' : 'not yet today'}).`);
+    }
+    const cg = mValueCongruence();
+    if(cg != null){ const worst = valueGaps()[0];
+      bits.push(`Overall values alignment: ${lgNum(Math.round(cg) + '%')}${worst ? ` — biggest gap: ${lgNum(esc(worst.name))}` : ''}.`); }
+    const sps = week.map(d => S.checkins?.[d]?.setpoint ?? null);
+    if(c.setpoint) bits.push(`Set-point: ${lgNum(esc(hicksName(c.setpoint).split(' / ')[0]))} ${ledgerSpark(sps, 'var(--rose)')}`);
+  }
+
+  return bits.join(' ').trim();
+}
+
+/* ---------- a stanza ---------- */
+function ledgerStanzaHTML(m, {flag = ''} = {}){
+  const prose = ledgerProse(m.key);
+  const s = m.effectiveScore;
+  const weight = s == null ? '' : s > 80 ? 'whisper' : s < 40 ? 'speaks' : '';
+  const hue = m.level <= 2 ? 'var(--gold)' : m.level <= 4 ? 'var(--page-accent)' : m.level <= 6 ? 'var(--sage)' : 'var(--ment)';
+  const dash = s == null ? 0 : s;
+  return `<article class="lg-stanza ${weight}" style="--c:${hue}" data-ledger="${m.key}">
+    <div class="lg-h">
+      <span class="lg-pie" aria-hidden="true"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="none" stroke="var(--line-2)" stroke-width="3"/>
+        <circle cx="10" cy="10" r="8" fill="none" stroke="${hue}" stroke-width="3" stroke-dasharray="${(dash/100*50.3).toFixed(1)} 50.3" transform="rotate(-90 10 10)" stroke-linecap="round"/></svg></span>
+      <span class="lg-name">${esc(m.short)}</span>
+      ${flag ? `<span class="lg-flag">${esc(flag)}</span>` : ''}
+      <span class="lg-score mono">${s == null ? '—' : s}${m.override != null ? ' ↕' : ''}</span>
+    </div>
+    <div class="lg-body">${prose || `<span class="lg-none">No data yet. ${esc(m.ask)} <a href="${m.go}">Start here →</a></span>`}</div>
+  </article>`;
+}
+
+/* The weakest level first, and named as such — that ordering is the whole
+   argument. Everything after it runs in Maslow's own order. */
+function ledgerStanzasHTML({limit = 0, title = 'The life ledger', hint = '', showEmpty = false, link = true} = {}){
+  const levels = maslowScores();
+  /* A level with nothing feeding it is still a level. In the full ledger it
+     keeps its place and says what would fill it; in the short one on Today it
+     stands aside for a level that has something to report. */
+  const withProse = showEmpty ? levels : levels.filter(m => ledgerProse(m.key) || m.effectiveScore != null);
+  if(!withProse.length) return '';
+  const scored = withProse.filter(m => m.effectiveScore != null);
+  const weakest = scored.length ? scored.reduce((a,b) => b.effectiveScore < a.effectiveScore ? b : a) : null;
+  const rest = withProse.filter(m => m !== weakest);
+  const showAll = !!S._ledgerAll || !limit;
+  const shown = showAll ? rest : rest.slice(0, Math.max(0, limit - 1));
+  const hidden = rest.length - shown.length;
+  return `<section class="section rv life-ledger" id="lifeLedger"><a id="t-ledger"></a>
+    <div class="row between" style="align-items:baseline"><span class="sc lg-title" style="margin:0">${esc(title)}</span>
+      ${link ? '<a class="mono faint" href="#/needs" style="text-decoration:none">all seven levels →</a>' : ''}</div>
+    ${hint ? `<p class="muted" style="font-size:.85rem;margin:4px 0 0">${esc(hint)}</p>` : ''}
+    ${weakest ? ledgerStanzaHTML(weakest, {flag:'this is where your foundation is thinnest'}) : ''}
+    ${shown.map(m => ledgerStanzaHTML(m)).join('')}
+    ${hidden > 0 ? `<button class="btn sm ghost" id="ledgerAll" style="margin-top:8px">Read all seven levels…</button>` : ''}
+    ${showAll && limit ? `<button class="btn sm ghost" id="ledgerAll" style="margin-top:8px">show fewer</button>` : ''}
+  </section>`;
+}
+function bindLedger(root){
+  const box = root.querySelector('#lifeLedger'); if(!box) return;
+  const b = box.querySelector('#ledgerAll');
+  if(b) b.onclick = () => { S._ledgerAll = !S._ledgerAll; rerender(); };
+  box.querySelectorAll('[data-ledger]').forEach(st => st.addEventListener('click', ev => {
+    if(ev.target.closest('a, button')) return;
+    const m = maslowMeta(st.dataset.ledger); if(m) navigate(m.go);
+  }));
+}
+
+/* ---------- history: one line per level ---------- */
+function needsHistoryHTML(){
+  const p = maslowStore();
+  const h = p.history.filter(x => Array.isArray(x.levels)).slice(-36);
+  if(h.length < 2) return `<div class="empty" style="margin-top:10px">${h.length ? 'One check-in logged. A second one makes a line.' : 'No check-ins yet — the button above freezes today’s seven scores so they can be compared later.'}</div>`;
+  const W = 320, H = 130, pad = 4;
+  const x = i => (i/(h.length-1)) * W;
+  const y = v => H - pad - (v/100) * (H - pad*2);
+  return `<div class="needs-hist">
+    <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" class="needs-hist-svg">
+      ${[0,50,100].map(v => `<line x1="0" y1="${y(v).toFixed(1)}" x2="${W}" y2="${y(v).toFixed(1)}" stroke="var(--line)" stroke-width="1" vector-effect="non-scaling-stroke" opacity=".6"/>`).join('')}
+      ${MASLOW.map(m => {
+        const col = m.level <= 2 ? 'var(--gold)' : m.level <= 4 ? 'var(--page-accent)' : m.level <= 6 ? 'var(--sage)' : 'var(--ment)';
+        const pts = h.map((r, i) => { const v = (r.levels.find(l => l.key === m.key)||{}).effectiveScore; return v == null ? null : `${x(i).toFixed(1)},${y(v).toFixed(1)}`; }).filter(Boolean);
+        return pts.length > 1 ? `<polyline points="${pts.join(' ')}" fill="none" stroke="${col}" stroke-width="1.4" vector-effect="non-scaling-stroke" opacity=".8"><title>${esc(m.name)}</title></polyline>` : '';
+      }).join('')}
+    </svg>
+    <div class="needs-hist-key">${MASLOW.map(m => { const col = m.level <= 2 ? 'var(--gold)' : m.level <= 4 ? 'var(--page-accent)' : m.level <= 6 ? 'var(--sage)' : 'var(--ment)';
+      return `<span><i style="background:${col}"></i>${esc(m.short)}</span>`; }).join('')}</div>
+    <div class="row between mono faint" style="font-size:.6rem"><span>${esc(fmtDate(String(h[0].timestamp).slice(0,10),'short'))}</span><span>${esc(fmtDate(String(h[h.length-1].timestamp).slice(0,10),'short'))}</span></div>
+  </div>`;
+}
+
+/* ---------- a diagnostic card, on hover or focus ---------- */
+function needsDiagnosticHTML(m){
+  const known = Object.entries(m.inputs).filter(([, v]) => v != null);
+  return `<div class="needs-diag" data-diag="${m.key}">
+    <div class="nd-h"><b class="serif">${esc(m.name)}</b><span class="mono">${m.effectiveScore == null ? 'no data' : m.effectiveScore}</span></div>
+    <div class="nd-inputs">${known.length ? known.map(([k, v]) => `<span>${esc(k)} <b class="mono">${Math.round(v)}</b></span>`).join('')
+      : '<span class="faint">Nothing feeding this level yet.</span>'}</div>
+    ${m.override != null ? `<div class="nd-ov mono">auto ${m.autoScore == null ? '—' : m.autoScore} → you ${m.override}</div>` : ''}
+    ${m.note ? `<div class="nd-note">${esc(m.note)}</div>` : ''}
+    <p class="nd-ask">${esc(m.ask)}</p>
+    <a class="nd-go mono" href="${m.go}">→ go deeper</a>
+  </div>`;
+}
+
+routes.needs = function(root){
+  const levels = maslowScores();
+  const scored = levels.filter(m => m.effectiveScore != null);
+  const weakest = scored.length ? scored.reduce((a,b) => b.effectiveScore < a.effectiveScore ? b : a) : null;
+  const sel = S._mTier ? levels.find(l => l.key === S._mTier) : null;
+  const p = maslowStore();
+  const last = p.history[p.history.length-1];
+  registerPageEntry({pageName:'Needs', addLabel:'Log a check-in', defaultEntryType:'reflection', prefilledFields:{}, options:[
+    {icon:'🔺', label:'Needs check-in', desc:'Freeze all seven scores as they stand.', run:()=>logNeedsCheckin()}]});
+  root.innerHTML = `<div class="page needs-page">
+    <div class="page-head"><h1>Needs</h1></div>
+    <p class="muted" style="font-size:.88rem;max-width:640px;margin-top:-6px">Seven levels, read off everything else you log, held in their structural order. Deficit at a lower level constrains what can be built above it — so this page is arranged to make a thin foundation impossible to miss.</p>
+
+    <div class="needs-grid">
+      <div class="needs-pyr">
+        ${maslowPyramidSVG(levels)}
+        <p class="faint center" style="font-size:.76rem;margin-top:6px">${weakest ? `${esc(weakest.short)} is pulsing because it is the thinnest. Tap any tier.` : 'Tap any tier to see what feeds it.'}</p>
+      </div>
+      <div class="needs-side">
+        ${levels.map(needsDiagnosticHTML).join('')}
+      </div>
+    </div>
+
+    ${sel ? `<div class="mas-detail">
+      <div class="row between" style="align-items:baseline">
+        <b class="serif">${esc(sel.name)}</b>
+        <button class="tbtn" id="mClose">close</button>
+      </div>
+      <p class="mas-ask">${esc(sel.ask)}</p>
+      <div class="mas-inputs">${Object.entries(sel.inputs).filter(([,v])=>v!=null)
+        .map(([k,v]) => `<span class="chip">${esc(k)} <b class="mono">${Math.round(v)}</b></span>`).join('') || '<span class="faint">Nothing logged for this level yet.</span>'}</div>
+      <div class="field" style="margin-top:10px"><label>How it actually feels ${sel.autoScore != null ? `<span class="mono faint" style="text-transform:none;letter-spacing:0">· the data says ${sel.autoScore}</span>` : ''}</label>
+        <input type="range" class="slider ov-slider" min="0" max="100" id="mOverride" value="${sel.effectiveScore ?? 50}" style="--c:var(--page-accent);${sel.autoScore != null ? `--tick:${sel.autoScore}%` : ''}">
+        <div class="row between mono"><span class="faint">0</span><span id="mOverrideV">${sel.effectiveScore ?? 50}</span><span class="faint">100</span></div>
+        ${sel.override != null && sel.autoScore != null ? `<div class="mono faint" style="margin-top:4px">Auto: ${sel.autoScore} → You: ${sel.override}</div>` : ''}
+      </div>
+      <textarea class="ta" id="mNote" rows="2" placeholder="Why does this feel different from what the numbers say?">${esc(sel.note)}</textarea>
+      <div class="row" style="gap:8px;margin-top:8px">
+        <a class="btn sm ghost" href="${sel.go}">→ go deeper</a>
+        ${sel.override != null ? `<button class="btn sm ghost" id="mClearOv">use the data's number</button>` : ''}
+      </div>
+    </div>` : ''}
+
+    ${ledgerStanzasHTML({title:'The life ledger', showEmpty:true, link:false, hint:'The same seven levels, said in sentences rather than numbers. Click a stanza to go where its data lives.'})}
+
+    <section class="section rv"><div class="row between" style="align-items:center">
+        <span class="sc" style="margin:0">Check-ins</span>
+        <span class="row" style="gap:8px;align-items:baseline"><span class="mono faint">${last ? `last ${esc(fmtDate(String(last.timestamp).slice(0,10),'med'))}` : 'never'}</span>
+        <button class="btn sm primary" id="needsLog">Log a check-in</button></span></div>
+      ${needsHistoryHTML()}
+    </section>
+  </div>`;
+
+  const redraw = () => rerender();
+  root.querySelectorAll('[data-mtier]').forEach(g => g.onclick = () => {
+    S._mTier = S._mTier === g.dataset.mtier ? null : g.dataset.mtier; redraw(); });
+  root.querySelectorAll('[data-diag]').forEach(d => d.addEventListener('click', ev => {
+    if(ev.target.closest('a')) return; S._mTier = d.dataset.diag; redraw(); }));
+
+  const ov = root.querySelector('#mOverride');
+  if(ov){ const key = S._mTier;
+    ov.oninput = () => { root.querySelector('#mOverrideV').textContent = ov.value; };
+    ov.onchange = () => { p.overrides[key] = Object.assign({}, p.overrides[key], {score:+ov.value}); saveNow(); redraw(); }; }
+  const nt = root.querySelector('#mNote');
+  if(nt) nt.onchange = () => { const key = S._mTier; p.overrides[key] = Object.assign({}, p.overrides[key], {note:nt.value.trim()}); saveNow(); };
+  root.querySelector('#mClearOv') && (root.querySelector('#mClearOv').onclick = () => {
+    const key = S._mTier; if(p.overrides[key]) delete p.overrides[key].score; saveNow(); redraw(); });
+  root.querySelector('#mClose') && (root.querySelector('#mClose').onclick = () => { S._mTier = null; redraw(); });
+  root.querySelector('#needsLog').onclick = () => logNeedsCheckin();
+  bindLedger(root);
+  reveal(root);
+};
+
+function logNeedsCheckin(){
+  const p = maslowStore();
+  const levels = maslowScores().map(m => ({key:m.key, level:m.level, name:m.name,
+    autoScore:m.autoScore, override:m.override, effectiveScore:m.effectiveScore, note:m.note, inputs:m.inputs}));
+  const read = typeof spiralReading === 'function' ? spiralReading() : null;
+  p.history.push(Object.assign({timestamp:new Date().toISOString(), levels},
+    read ? {resonance:read.resonance, primaryStage:read.primary, emergingStage:read.emerging, userConfirmed:read.confirmed, userNote:read.note} : {}));
+  saveNow(); sound('success'); toast(`Seven levels frozen for ${fmtDate(today(),'med')}.`);
+  if(currentRoute) rerender();
+}
+
+/* ---------- what a thin foundation is allowed to say elsewhere ----------
+   A vision resting on a level scoring under 40 gets one line, on the vision,
+   naming the constraint. It is a note, not a veto. */
+const VALUE_LEVEL_HINTS = {
+  safety:    ['secur','money','financ','stabil','safe','independ'],
+  belonging: ['connect','love','family','communit','belong','friend'],
+  esteem:    ['master','craft','recogni','respect','achiev','excellen'],
+  mind:      ['learn','curios','knowledge','understand','truth'],
+  beauty:    ['beauty','awe','creativ','art','wonder'],
+  body:      ['health','vital','energy','body','rest'],
+};
+function visionFoundationNote(v){
+  const scores = {}; maslowScores().forEach(m => scores[m.key] = m.effectiveScore);
+  const names = (v.values || []).map(id => byId(S.values, id)?.name || '').join(' ').toLowerCase();
+  const text = `${v.name} ${v.futureMemory || ''}`.toLowerCase();
+  for(const [key, words] of Object.entries(VALUE_LEVEL_HINTS)){
+    if(scores[key] == null || scores[key] >= 40) continue;
+    if(words.some(w => names.includes(w)) || words.some(w => text.includes(w))){
+      const m = maslowMeta(key);
+      return `This vision asks for ${m.name.toLowerCase()}, which is your weakest foundation right now (${scores[key]}).`;
+    }
+  }
+  return '';
+}
+
+/* ---------- where a value sits on the spiral ----------
+   Not a classification of the person — a note that this particular value has
+   a natural home in the model, offered where the value is being thought about. */
+const SPIRAL_VALUE_HINTS = {
+  purple:    ['tradition','family','belong','roots','ancestor','loyal'],
+  red:       ['power','freedom','courage','autonom','strength','boldness'],
+  blue:      ['disciplin','duty','integrity','order','honour','faith','responsib'],
+  orange:    ['achiev','master','excellen','success','growth','ambition','independ'],
+  green:     ['connect','empath','communit','compassion','authentic','equal','care'],
+  yellow:    ['systems','understand','curios','truth','complexity','competence'],
+  turquoise: ['wholeness','awe','sacred','unity','service','stewardship'],
+};
+function valueStageNote(v){
+  const n = String(v?.name || '').toLowerCase(); if(!n) return '';
+  const hits = Object.entries(SPIRAL_VALUE_HINTS).filter(([, ws]) => ws.some(w => n.includes(w))).map(([k]) => k);
+  if(!hits.length) return '';
+  const names = hits.map(k => spiralMeta(k)?.[1]).filter(Boolean);
+  const pair = typeof spiralPair === 'function' ? spiralPair() : null;
+  const onPath = pair && hits.some(k => k === pair.embodying || k === pair.releasing);
+  return `In Spiral terms this value sits ${names.length > 1 ? `on the ${names.join('/')} boundary` : `with ${names[0]}`}${onPath ? ' — one of the two stages you are moving between' : ''}.`;
 }
 /* ============================================================
    PEOPLE — a relationship garden, not a CRM.
@@ -6842,6 +7283,408 @@ function openInteractionModal(ex, personId){
   if(ex) m.querySelector('#inDel').onclick = () => { m.remove(); requestDelete({label:i.description || 'this interaction', remove:()=>spliceOut(S.interactions, x=>x.id===i.id)}); };
 }
 /* ============================================================
+   THE SPIRAL — a directional instrument, not a diagnosis.
+
+   A centre of gravity sits between two stages. This room holds
+   the two named ends of that movement and the concrete patterns
+   on each side: what is being released, and what is being taken
+   on. Every indicator is written by the person doing the moving —
+   the stages come with the model, the evidence does not.
+   ============================================================ */
+const SPIRAL_DIRECTIONS = ['releasing', 'embodying'];
+/* the two scales run in opposite directions, and saying so is half the point */
+const SPIRAL_SCALE = {
+  releasing: ["I've mostly let this go", 'rarely', 'sometimes', 'often', 'This still runs me'],
+  embodying: ['Not yet part of me', 'a beginning', 'sometimes', 'often', 'This is becoming natural'],
+};
+const SPIRAL_SEED = {
+  releasing: [
+    ['Measuring my worth by what I produce', 4],
+    ['Treating relationships as networking opportunities', 2],
+    ["Skipping rest because I haven't earned it", 3],
+    ['Optimising everything, including things that should just be experienced', 4],
+  ],
+  embodying: [
+    ['Asking what someone needs before asking what I need from them', 2],
+    ['Sitting with uncomfortable emotions instead of fixing them', 1],
+    ['Choosing one deep conversation over three efficient ones', 2],
+    ['Questioning whether the career ladder matters as much as I assumed', 3],
+  ],
+  trace: ['red', 'work — competitive instinct when threatened', 'Flares up in high-stakes situations'],
+};
+
+function migrateSpiral(){
+  const keys = SPIRAL.map(s => s[0]);
+  const sp = S.spiral = Object.assign({currentPair:{releasing:'orange', embodying:'green'}, traces:[], indicators:[], history:[]}, S.spiral || {});
+  sp.currentPair = sp.currentPair || {};
+  if(!keys.includes(sp.currentPair.releasing)) sp.currentPair.releasing = 'orange';
+  if(!keys.includes(sp.currentPair.embodying)) sp.currentPair.embodying = 'green';
+  sp.traces = Array.isArray(sp.traces) ? sp.traces : [];
+  sp.traces.forEach(t => { t.id = t.id || uid(); t.stage = keys.includes(t.stage) ? t.stage : 'red'; t.domain = t.domain || ''; t.note = t.note || ''; });
+  sp.indicators = Array.isArray(sp.indicators) ? sp.indicators : [];
+  sp.indicators.forEach((x, i) => {
+    x.id = x.id || uid();
+    x.direction = SPIRAL_DIRECTIONS.includes(x.direction) ? x.direction : 'releasing';
+    x.stage = keys.includes(x.stage) ? x.stage : sp.currentPair[x.direction];
+    x.text = x.text || ''; x.note = x.note || '';
+    x.strength = clamp(Math.round(+x.strength || 0), 0, 5);
+    x.lastChecked = x.lastChecked || '';
+    x.order = typeof x.order === 'number' ? x.order : i;
+  });
+  sp.history = Array.isArray(sp.history) ? sp.history : [];
+}
+function spiralPair(){ migrateSpiral(); return S.spiral.currentPair; }
+function spiralIndicators(dir){
+  return S.spiral.indicators.filter(x => x.direction === dir).sort((a,b) => a.order - b.order);
+}
+/* How far into the higher stage: the embodying side, averaged, as a fraction.
+   The releasing side is deliberately not in this number — letting go of the
+   old stage is not the same achievement as living the new one, and averaging
+   them together would let one flatter the other. */
+function spiralProgress(){
+  const emb = spiralIndicators('embodying').filter(x => x.strength > 0);
+  if(!emb.length) return null;
+  return avg(emb.map(x => x.strength)) / 5;
+}
+function spiralReadingLine(){
+  const pair = spiralPair();
+  const embName = spiralMeta(pair.embodying)?.[1] || pair.embodying;
+  const p = spiralProgress();
+  if(p == null) return 'Nothing rated yet. Name a few patterns on each side and the movement becomes measurable.';
+  const emb = spiralIndicators('embodying').filter(x => x.strength > 0).sort((a,b) => b.strength - a.strength);
+  const rel = spiralIndicators('releasing').filter(x => x.strength > 0).sort((a,b) => b.strength - a.strength);
+  const bits = [`You're about ${Math.round(p*100)}% into ${embName}.`];
+  if(emb[0] && emb[0].strength >= 3) bits.push(`The strongest signal: ${lowerFirst(emb[0].text)}.`);
+  else if(emb[0]) bits.push(`Nothing on the ${embName} side has taken hold yet — the nearest is ${lowerFirst(emb[0].text)}.`);
+  if(rel[0] && rel[0].strength >= 4) bits.push(`The strongest hold: ${lowerFirst(rel[0].text)}.`);
+  if(!rel.length) bits.push('Nothing is rated on the releasing side, so this reading only knows half of the movement.');
+  return bits.join(' ');
+}
+const lowerFirst = t => { const s = String(t || '').trim(); return s ? s[0].toLowerCase() + s.slice(1).replace(/\.$/, '') : s; };
+
+/* ---------- evidence: entries tagged to a stage, with a polarity ---------- */
+function spiralTag(e){ const t = e.extra?.spiral; return t && t.stage ? t : null; }
+function spiralEvidence(stage, polarity){
+  return S.entries.filter(e => { const t = spiralTag(e); return t && t.stage === stage && (!polarity || t.polarity === polarity); })
+    .sort((a,b) => String(b.occurredAt||b.createdAt).localeCompare(String(a.occurredAt||a.createdAt)));
+}
+
+/* ---------- pieces ---------- */
+function spiralStageSelect(dir, value){
+  return `<select class="sel spi-sel" data-spistage="${dir}">${SPIRAL.map(([k, name, gloss]) =>
+    `<option value="${k}" ${value===k?'selected':''}>${esc(name)} — ${esc(gloss)}</option>`).join('')}</select>`;
+}
+function spiralPairHTML(){
+  const pair = spiralPair();
+  const [rk, rName, rGloss, rCol] = spiralMeta(pair.releasing);
+  const [ek, eName, eGloss, eCol] = spiralMeta(pair.embodying);
+  const same = rk === ek;
+  return `<section class="section rv spi-pair" style="--rel:${rCol};--emb:${eCol}">
+    <div class="spi-pair-grid">
+      <div class="spi-end rel">
+        <div class="spi-end-k mono">releasing</div>
+        <div class="spi-end-n serif">${esc(rName)}</div>
+        <div class="spi-end-g">${esc(rGloss)}</div>
+      </div>
+      <div class="spi-arrow" aria-hidden="true"><span class="spi-arrow-line"></span><span class="spi-arrow-head">▶</span></div>
+      <div class="spi-end emb">
+        <div class="spi-end-k mono">embodying</div>
+        <div class="spi-end-n serif">${esc(eName)}</div>
+        <div class="spi-end-g">${esc(eGloss)}</div>
+      </div>
+    </div>
+    ${same ? `<p class="spi-warn">Both ends are the same stage. A direction needs somewhere to leave and somewhere to arrive.</p>` : ''}
+    <details class="spi-change"><summary class="mono">change the pair</summary><div class="body">
+      <div class="grid c2" style="gap:10px">
+        <div class="field"><label>Releasing — moving away from</label>${spiralStageSelect('releasing', pair.releasing)}</div>
+        <div class="field"><label>Embodying — moving toward</label>${spiralStageSelect('embodying', pair.embodying)}</div>
+      </div>
+      <p class="faint" style="font-size:.78rem;margin:8px 0 0">They do not have to be adjacent. Blue to Green is a real movement, so is Red to Yellow.</p>
+    </div></details>
+    ${spiralTracesHTML()}
+  </section>`;
+}
+function spiralTracesHTML(){
+  const tr = S.spiral.traces;
+  return `<details class="spi-traces" ${tr.length && S._spiTraces ? 'open' : ''}><summary class="mono">traces of other stages${tr.length ? ` · ${tr.length}` : ''}</summary>
+    <div class="body">
+      <p class="faint" style="font-size:.8rem;margin:0 0 8px">No one lives at one altitude. Where does another stage still show up, and in what part of life?</p>
+      ${tr.map((t, i) => { const m = spiralMeta(t.stage) || SPIRAL[2];
+        return `<div class="evidence-item spi-trace" style="--c:${m[3]}">
+          <select class="sel spi-sel sm" data-spitracestage="${t.id}">${SPIRAL.map(([k,name]) => `<option value="${k}" ${t.stage===k?'selected':''}>${esc(name)}</option>`).join('')}</select>
+          <span style="flex:1">${ed(`spiral.traces.${i}.domain`, {ph:'in what part of life — work, family, money…'})}</span>
+          <span style="flex:1">${ed(`spiral.traces.${i}.note`, {ph:'when it shows up'})}</span>
+          <button class="tbtn" data-spitracedel="${t.id}">×</button>
+        </div>`; }).join('')}
+      <button class="btn sm ghost" id="spiTraceAdd" style="margin-top:6px">＋ a trace</button>
+    </div></details>`;
+}
+function spiralProgressHTML(){
+  const pair = spiralPair();
+  const [, rName, , rCol] = spiralMeta(pair.releasing);
+  const [, eName, , eCol] = spiralMeta(pair.embodying);
+  const p = spiralProgress();
+  return `<section class="section rv spi-progress" style="--rel:${rCol};--emb:${eCol}">
+    <div class="row between" style="align-items:baseline"><span class="sc" style="margin:0">Where the centre of gravity sits</span>
+      <span class="mono faint">${p == null ? 'not yet measurable' : `${Math.round(p*100)}% into ${esc(eName)}`}</span></div>
+    <div class="spi-track">
+      <span class="spi-track-end left mono">${esc(rName)}</span>
+      <span class="spi-track-bar">${p == null ? '' : `<i class="spi-marker" style="left:${clamp(p*100, 1, 99)}%"></i>`}</span>
+      <span class="spi-track-end right mono">${esc(eName)}</span>
+    </div>
+    <p class="spi-reading">${esc(spiralReadingLine())}</p>
+    ${typeof spiralReading === 'function' ? (() => { const r = spiralReading(); const m = spiralMeta(r.primary);
+      return r.primary ? `<p class="spi-crosscheck">Read off your behaviour rather than your intention, the instrument currently resonates most with <b style="color:${m[3]}">${esc(m[1])}</b>. <a href="#/compass">See the full resonance →</a></p>` : ''; })() : ''}
+  </section>`;
+}
+function spiralDotsHTML(x){
+  const scale = SPIRAL_SCALE[x.direction];
+  return `<span class="spi-dots" role="group" aria-label="strength">${[1,2,3,4,5].map(n =>
+    `<button class="${x.strength >= n ? 'on' : ''}" data-spistr="${x.id}:${n}" title="${esc(scale[n-1])}" aria-label="${esc(scale[n-1])}"></button>`).join('')}</span>`;
+}
+function spiralIndicatorHTML(x, i){
+  const idx = S.spiral.indicators.indexOf(x);
+  const scale = SPIRAL_SCALE[x.direction];
+  const arrived = x.direction === 'embodying' && x.strength === 5;
+  const receded = x.direction === 'releasing' && x.strength === 1;
+  const age = x.lastChecked ? daysSince(x.lastChecked.slice(0,10)) : Infinity;
+  return `<article class="spi-ind ${arrived ? 'arrived' : ''} ${receded ? 'receded' : ''}" draggable="true" data-spiind="${x.id}">
+    <div class="spi-ind-top">
+      <span class="spi-ind-text">${ed(`spiral.indicators.${idx}.text`, {ph:'a specific behaviour or pattern'})}</span>
+      <button class="tbtn spi-x" data-spidel="${x.id}" title="remove">×</button>
+    </div>
+    <div class="spi-ind-scale">
+      ${spiralDotsHTML(x)}
+      <span class="spi-ind-word">${x.strength ? esc(scale[x.strength-1]) : 'not rated'}</span>
+      <span class="spi-ind-when mono">${x.lastChecked ? esc(relDays(age)) : ''}</span>
+    </div>
+    <div class="field spi-ind-note">${ed(`spiral.indicators.${idx}.note`, {multi:true, ph:'when this shows up, what sets it off, what you notice'})}</div>
+  </article>`;
+}
+function spiralColumnHTML(dir){
+  const pair = spiralPair();
+  const stage = pair[dir];
+  const [, name, gloss, col] = spiralMeta(stage);
+  const list = spiralIndicators(dir);
+  const scale = SPIRAL_SCALE[dir];
+  return `<div class="spi-col ${dir}" style="--c:${col}" data-spicol="${dir}">
+    <div class="spi-col-h">
+      <span class="mono">${dir}</span>
+      <b class="serif">${esc(name)}</b>
+      <span class="faint">${esc(gloss)}</span>
+    </div>
+    <p class="spi-col-scale mono">1 · ${esc(scale[0])} → 5 · ${esc(scale[4])}</p>
+    ${list.length ? list.map(spiralIndicatorHTML).join('')
+      : `<div class="empty">${dir === 'releasing'
+          ? 'Nothing named yet. What does the stage you are leaving actually make you do — on a Tuesday, not in theory?'
+          : 'Nothing named yet. What would somebody living the next stage do this week that you would not?'}</div>`}
+    <button class="btn sm ghost spi-add" data-spiadd="${dir}">＋ indicator</button>
+  </div>`;
+}
+function spiralEvidenceHTML(){
+  const pair = spiralPair();
+  const rows = [[pair.embodying, 'embodying', '+'], [pair.releasing, 'releasing', '−']];
+  const any = rows.some(([st, pol]) => spiralEvidence(st, pol).length);
+  return `<section class="section rv"><div class="row between" style="align-items:center">
+      <span class="sc" style="margin:0">Evidence</span>
+      <button class="btn sm ghost" id="spiTagEntry">＋ tag an entry</button></div>
+    <p class="muted" style="font-size:.85rem;margin:4px 0 0">Entries from anywhere in the instrument, marked as evidence of one stage or the other. A pattern you claim and a pattern you can point at are different things.</p>
+    ${any ? rows.map(([st, pol, sign]) => { const es = spiralEvidence(st, pol); if(!es.length) return '';
+      const m = spiralMeta(st);
+      return `<div class="spi-ev-group" style="--c:${m[3]}">
+        <div class="spi-ev-h mono"><span class="spi-sign ${pol}">${sign}</span> ${esc(pol)} · ${esc(m[1])} <span class="faint">${es.length}</span></div>
+        ${es.slice(0, 8).map(e => `<div class="spi-ev" data-spievopen="${e.id}">
+          <span class="mono">${esc(fmtDate((e.occurredAt||e.createdAt||'').slice(0,10), 'short'))}</span>
+          <span class="spi-ev-t">${esc(e.title || (e.body||'').slice(0,70) || e.type)}</span>
+          <button class="tbtn" data-spievdel="${e.id}" title="untag">×</button>
+        </div>`).join('')}
+        ${es.length > 8 ? `<div class="faint mono" style="font-size:.66rem">and ${es.length-8} more</div>` : ''}
+      </div>`; }).join('')
+      : '<div class="empty" style="margin-top:10px">Nothing tagged yet.</div>'}
+  </section>`;
+}
+function spiralHistoryHTML(){
+  const h = S.spiral.history;
+  const W = 100, H = 46;
+  const pts = h.map((r, i) => [h.length === 1 ? 50 : (i/(h.length-1))*W, H - (r.progressPosition||0)*H]);
+  return `<section class="section rv"><div class="row between" style="align-items:center">
+      <span class="sc" style="margin:0">Check-ins</span>
+      <button class="btn sm primary" id="spiCheckin">Log a check-in</button></div>
+    <p class="muted" style="font-size:.85rem;margin:4px 0 0">A month is about the shortest interval at which this moves. Each check-in freezes every strength, so the line below is history and not a re-reading of today.</p>
+    ${h.length ? `<div class="spi-hist">
+      <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" class="spi-hist-svg">
+        ${pts.length > 1 ? `<polyline points="${pts.map(p => p.map(n => n.toFixed(1)).join(',')).join(' ')}" fill="none" stroke="var(--emb,var(--page-accent))" stroke-width="1.2" vector-effect="non-scaling-stroke"/>` : ''}
+        ${pts.map(p => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="1.6" fill="var(--emb,var(--page-accent))" vector-effect="non-scaling-stroke"/>`).join('')}
+      </svg>
+      <div class="stack" style="gap:6px;margin-top:10px">${[...h].reverse().map((r, ri) => { const i = h.length-1-ri;
+        return `<div class="spi-hist-row"><span class="mono">${esc(fmtDate(String(r.timestamp).slice(0,10), 'med'))}</span>
+          <span class="mono">${Math.round((r.progressPosition||0)*100)}% into ${esc(spiralMeta(r.embodyingStage)?.[1] || r.embodyingStage)}</span>
+          <span class="spi-hist-note">${ed(`spiral.history.${i}.note`, {ph:'what shifted, what is still holding'})}</span>
+          <button class="tbtn" data-spihistdel="${i}">×</button></div>`; }).join('')}</div>
+    </div>` : '<div class="empty" style="margin-top:10px">No check-ins yet.</div>'}
+  </section>`;
+}
+
+routes.spiral = function(root){
+  migrateSpiral();
+  const pair = spiralPair();
+  const [, , , rCol] = spiralMeta(pair.releasing);
+  const [, , , eCol] = spiralMeta(pair.embodying);
+  registerPageEntry({pageName:'Spiral', addLabel:'Add an indicator', defaultEntryType:'reflection', prefilledFields:{}, options:[
+    {icon:'◇', label:'Embodying indicator', desc:'Something the next stage would have you do.', run:()=>addSpiralIndicator('embodying')},
+    {icon:'◈', label:'Releasing indicator', desc:'A pattern belonging to the stage you are leaving.', run:()=>addSpiralIndicator('releasing')}]});
+  const empty = !S.spiral.indicators.length;
+  root.innerHTML = `<div class="page spiral-page" style="--rel:${rCol};--emb:${eCol}">
+    <div class="page-head row between"><div><h1>Spiral</h1></div>${vmToggleHTML('spiral')}</div>
+    <p class="muted" style="font-size:.88rem;max-width:640px;margin-top:-6px">A centre of gravity sits between two stages. This is the movement between them, written in behaviour you can actually check.</p>
+
+    ${spiralPairHTML()}
+    ${spiralProgressHTML()}
+
+    <section class="section rv">
+      <div class="spi-cols">
+        ${spiralColumnHTML('releasing')}
+        ${spiralColumnHTML('embodying')}
+      </div>
+      ${empty ? `<div class="row" style="justify-content:center;margin-top:14px"><button class="btn sm ghost" id="spiSeed">start from the Orange → Green example</button></div>
+        <p class="faint center" style="font-size:.76rem;margin-top:6px">Eight patterns to react to rather than a blank page. Every one is editable, and none of it is a claim about you.</p>` : ''}
+    </section>
+
+    ${spiralEvidenceHTML()}
+    ${spiralHistoryHTML()}
+  </div>`;
+
+  bindVmToggle(root, 'spiral');
+  const btn = root.querySelector('[data-vmkey]'); if(btn) btn.addEventListener('click', () => setTimeout(rerender, 0));
+
+  root.querySelectorAll('[data-spistage]').forEach(s => s.onchange = () => {
+    S.spiral.currentPair[s.dataset.spistage] = s.value;
+    /* the indicators belong to the stage they were written about, so moving
+       the pair re-points the ones that were following it */
+    S.spiral.indicators.forEach(x => { if(x.direction === s.dataset.spistage) x.stage = s.value; });
+    saveNow(); sound('click'); rerender();
+  });
+  root.querySelectorAll('[data-spitracestage]').forEach(s => s.onchange = () => {
+    const t = byId(S.spiral.traces, s.dataset.spitracestage); if(t){ t.stage = s.value; saveNow(); rerender(); } });
+  $('#spiTraceAdd') && ($('#spiTraceAdd').onclick = () => {
+    S._spiTraces = true; S.spiral.traces.push({id:uid(), stage:'red', domain:'', note:''}); saveNow(); rerender();
+    setTimeout(() => { const n = document.querySelectorAll('.spi-trace .ed'); n.length && beginEdit(n[n.length-2]); }, 60); });
+  root.querySelectorAll('[data-spitracedel]').forEach(b => b.onclick = () => {
+    const t = byId(S.spiral.traces, b.dataset.spitracedel);
+    requestDelete({label:t.domain || 'this trace', node:b.closest('.spi-trace'), remove:() => spliceOut(S.spiral.traces, x => x.id === t.id)}); });
+
+  root.querySelectorAll('[data-spiadd]').forEach(b => b.onclick = () => addSpiralIndicator(b.dataset.spiadd));
+  root.querySelectorAll('[data-spidel]').forEach(b => b.onclick = () => {
+    const x = byId(S.spiral.indicators, b.dataset.spidel);
+    requestDelete({label:x.text || 'this indicator', node:b.closest('.spi-ind'), remove:() => spliceOut(S.spiral.indicators, y => y.id === x.id)}); });
+  root.querySelectorAll('[data-spistr]').forEach(b => b.onclick = () => {
+    const [id, n] = b.dataset.spistr.split(':');
+    const x = byId(S.spiral.indicators, id); if(!x) return;
+    x.strength = x.strength === +n ? 0 : +n;          // clicking the current value clears it
+    x.lastChecked = new Date().toISOString();
+    saveNow(); sound('click'); rerender(); });
+
+  $('#spiSeed') && ($('#spiSeed').onclick = () => seedSpiral());
+  $('#spiTagEntry') && ($('#spiTagEntry').onclick = () => openSpiralTagPicker());
+  root.querySelectorAll('[data-spievopen]').forEach(r => r.onclick = ev => {
+    if(ev.target.closest('[data-spievdel]')) return;
+    const e = byId(S.entries, r.dataset.spievopen); if(e && typeof openEntryModal === 'function') openEntryModal({edit:e}); });
+  root.querySelectorAll('[data-spievdel]').forEach(b => b.onclick = ev => { ev.stopPropagation();
+    const e = byId(S.entries, b.dataset.spievdel); if(!e) return;
+    requestDelete({label:`the spiral tag on “${e.title || 'this entry'}”`, node:b.closest('.spi-ev'),
+      remove:() => { const was = e.extra.spiral; delete e.extra.spiral; return () => { e.extra.spiral = was; }; }}); });
+
+  $('#spiCheckin') && ($('#spiCheckin').onclick = () => openSpiralCheckin());
+  root.querySelectorAll('[data-spihistdel]').forEach(b => b.onclick = () => {
+    const i = +b.dataset.spihistdel; const r = S.spiral.history[i];
+    requestDelete({label:`the check-in from ${fmtDate(String(r.timestamp).slice(0,10),'med')}`, node:b.closest('.spi-hist-row'),
+      remove:() => { const g = S.spiral.history.splice(i,1)[0]; return () => S.spiral.history.splice(i,0,g); }}); });
+
+  bindSpiralDrag(root);
+  reveal(root);
+};
+
+function addSpiralIndicator(dir){
+  migrateSpiral();
+  const order = Math.max(-1, ...S.spiral.indicators.filter(x => x.direction === dir).map(x => x.order)) + 1;
+  const x = {id:uid(), stage:S.spiral.currentPair[dir], direction:dir, text:'', strength:0, lastChecked:'', note:'', order};
+  S.spiral.indicators.push(x); saveNow(); sound('click'); rerender();
+  setTimeout(() => { const n = document.querySelector(`[data-spiind="${x.id}"] .spi-ind-text .ed`); n && beginEdit(n); }, 60);
+}
+/* Offered, never applied on its own: the seed is somebody else's Orange, and
+   this room only works if the words in it are the user's own. */
+function seedSpiral(){
+  migrateSpiral();
+  S.spiral.currentPair = {releasing:'orange', embodying:'green'};
+  SPIRAL_DIRECTIONS.forEach(dir => SPIRAL_SEED[dir].forEach(([text, strength], i) => {
+    S.spiral.indicators.push({id:uid(), stage:S.spiral.currentPair[dir], direction:dir, text, strength,
+      lastChecked:new Date().toISOString(), note:'', order:i});
+  }));
+  const [st, domain, note] = SPIRAL_SEED.trace;
+  S.spiral.traces.push({id:uid(), stage:st, domain, note});
+  saveNow(); sound('success'); toast('Eight patterns to argue with. Rewrite anything that is not yours.', 6000); rerender();
+}
+function openSpiralTagPicker(){
+  const pair = spiralPair();
+  const recent = [...S.entries].sort((a,b) => String(b.occurredAt||b.createdAt).localeCompare(String(a.occurredAt||a.createdAt))).slice(0, 60);
+  if(!recent.length){ toast('Nothing written yet to tag.'); return; }
+  let stage = pair.embodying, polarity = 'embodying';
+  const m = openModal(`<h2>Tag an entry as evidence</h2>
+    <p class="muted" style="font-size:.86rem">Which stage does this entry show, and is it the pattern arriving or the pattern still running?</p>
+    <div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:10px">
+      <select class="sel" id="spiTagStage" style="width:auto">${SPIRAL.map(([k,n,g]) => `<option value="${k}" ${k===stage?'selected':''}>${esc(n)} — ${esc(g)}</option>`).join('')}</select>
+      <div class="chip-row" id="spiTagPol">${[['embodying','(+) embodying'],['releasing','(−) releasing']].map(([k,l]) =>
+        `<button class="chip click ${k===polarity?'on':''}" data-pol="${k}">${l}</button>`).join('')}</div>
+    </div>
+    <div class="stack" style="gap:4px;max-height:46vh;overflow:auto">${recent.map(e => `<button class="choice" data-spipick="${e.id}">
+      <span class="ico">${esc((e.type||'·').slice(0,1).toUpperCase())}</span>
+      <span><b>${esc(e.title || (e.body||'').slice(0,60) || e.type)}</b><div class="d mono">${esc(fmtDate((e.occurredAt||e.createdAt||'').slice(0,10),'med'))} · ${esc(e.type)}${spiralTag(e) ? ` · already tagged ${esc(spiralTag(e).stage)}` : ''}</div></span></button>`).join('')}</div>`);
+  m.querySelector('#spiTagStage').onchange = e => { stage = e.target.value; };
+  m.querySelectorAll('#spiTagPol [data-pol]').forEach(b => b.onclick = () => {
+    polarity = b.dataset.pol; m.querySelectorAll('#spiTagPol [data-pol]').forEach(x => x.classList.toggle('on', x === b)); });
+  m.querySelectorAll('[data-spipick]').forEach(b => b.onclick = () => {
+    const e = byId(S.entries, b.dataset.spipick); if(!e) return;
+    e.extra = e.extra || {}; e.extra.spiral = {stage, polarity};
+    saveNow(); m.remove(); sound('success'); rerender(); });
+}
+function openSpiralCheckin(){
+  migrateSpiral();
+  const pair = spiralPair();
+  const p = spiralProgress();
+  const m = openModal(`<h2>Spiral check-in</h2>
+    <p class="muted" style="font-size:.86rem">This freezes every indicator strength as it stands now, so the history below stays a record rather than a re-reading.</p>
+    <div class="card" style="margin:10px 0"><div class="row between"><span class="mono">position</span><b class="serif">${p == null ? 'not measurable' : `${Math.round(p*100)}% into ${esc(spiralMeta(pair.embodying)?.[1])}`}</b></div>
+      <div class="row between"><span class="mono">indicators rated</span><span class="mono">${S.spiral.indicators.filter(x => x.strength > 0).length} of ${S.spiral.indicators.length}</span></div></div>
+    <div class="field"><label>What shifted this month? What is still holding?</label><textarea class="ta" id="spiNote" placeholder="Optional, and the most useful part."></textarea></div>
+    <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn primary" id="spiSave">Log it</button></div>`, 'narrow');
+  m.querySelector('#spiSave').onclick = () => {
+    S.spiral.history.push({timestamp:new Date().toISOString(), releasingStage:pair.releasing, embodyingStage:pair.embodying,
+      indicators:S.spiral.indicators.map(x => ({id:x.id, text:x.text, direction:x.direction, strength:x.strength})),
+      progressPosition: p == null ? 0 : +p.toFixed(3), note:m.querySelector('#spiNote').value.trim()});
+    saveNow(); m.remove(); sound('chime'); toast('Check-in logged.'); rerender();
+  };
+}
+/* drag to reorder, within a column only — an indicator belongs to its side */
+function bindSpiralDrag(root){
+  let drag = null;
+  root.querySelectorAll('[data-spiind]').forEach(node => {
+    node.addEventListener('dragstart', ev => { if(ev.target.closest('.ed')){ ev.preventDefault(); return; }
+      drag = node.dataset.spiind; node.classList.add('dragging'); ev.dataTransfer.effectAllowed = 'move'; });
+    node.addEventListener('dragend', () => { node.classList.remove('dragging'); drag = null;
+      root.querySelectorAll('.spi-ind.over').forEach(n => n.classList.remove('over')); });
+    node.addEventListener('dragover', ev => { ev.preventDefault(); if(drag && drag !== node.dataset.spiind) node.classList.add('over'); });
+    node.addEventListener('dragleave', () => node.classList.remove('over'));
+    node.addEventListener('drop', ev => { ev.preventDefault(); node.classList.remove('over');
+      const a = byId(S.spiral.indicators, drag), b = byId(S.spiral.indicators, node.dataset.spiind);
+      if(!a || !b || a === b || a.direction !== b.direction) return;
+      const list = spiralIndicators(a.direction);
+      const from = list.indexOf(a), to = list.indexOf(b);
+      list.splice(to, 0, list.splice(from, 1)[0]);
+      list.forEach((x, i) => x.order = i);
+      saveNow(); rerender(); });
+  });
+}
+/* ============================================================
    5. VALUES CONGRUENCE — the compass beneath the floorboards
    ============================================================ */
 routes.values = function(root){
@@ -7024,6 +7867,7 @@ routes.value = function(root, params){
   root.innerHTML = `<div class="page narrow">
     <div class="page-head" style="margin-top:20px"><div class="mono">value · ranked #${rank} of ${S.valueOrder.length}</div><h1 style="color:${v.color}">${ed(`values.#${v.id}.name`)}</h1><div class="row" style="margin-top:12px"><div class="bar" style="flex:1;--c:${v.color}"><i style="width:${cur}%"></i></div><span class="num" data-tween="${cur}" data-suffix="%">0</span></div></div>
     <div class="card rv">${sparkline(snaps.map(s=>s.ratings[v.id]??null),{h:60,min:0,max:100,color:v.color,dots:true,labels:snaps.map(s=>`${fmtDate(s.date,'med')}: ${s.ratings[v.id]??'–'}${s.note?' — '+s.note:''}`)})}<div class="row between mono"><span>${snaps[0]?fmtDate(snaps[0].date,'med'):''}</span><span>congruence over a lifetime</span><span>now</span></div></div>
+    ${(() => { const n = typeof valueStageNote === 'function' ? valueStageNote(v) : ''; return n ? `<p class="val-stage-note">${esc(n)} <a href="#/spiral">the spiral →</a></p>` : ''; })()}
     <section class="section rv" id="pracBox">${practicesHTML(v)}</section>
     <section class="section rv">${boardHTML(boardId('value', v.id), {title:'Board', hint:'What this value looks like, before you can argue for it.', compact:true})}</section>
     ${F('embody','How would I know if I embody this value?','Observable, behavioural indicators. Not aspirations — evidence.')}
@@ -8534,6 +9378,11 @@ function migrateIncomeShape(obj){
   obj.status = STREAM_STATUS[obj.status] ? obj.status : (obj.current > 0 ? 'earning' : 'idea');
   obj.currency = CURRENCIES.includes(obj.currency) ? obj.currency : S.finance.currency;
   obj.hoursPerWeek = +obj.hoursPerWeek || 0;
+  /* active income is bought with hours; passive income is bought once, with
+     capital or a build, and then only maintained. They are not the same kind
+     of money and must not be reasoned about with the same arithmetic. */
+  obj.earning = obj.earning === 'passive' ? 'passive' : 'active';
+  obj.capital = +obj.capital || 0;
   obj.visionId = obj.visionId || null;
   obj.peopleIds = Array.isArray(obj.peopleIds) ? obj.peopleIds : [];
   obj.revenueLog = Array.isArray(obj.revenueLog) ? obj.revenueLog : [];
@@ -8609,13 +9458,34 @@ function incomeStreamList(){
 /* An hourly rate needs both halves. With hours but no income it is not
    "0/hr", it is not yet answerable — say so rather than print a zero. */
 function effHourlyRate(income){ const h = +income.hoursPerWeek || 0; const c = +income.current || 0; if(!h || !c) return null; return c / (h * 4.33); }
+const isPassive = inc => inc.earning === 'passive';
+/* what a passive stream returns each year on what was put into it */
+function streamYield(inc){ const cap = +inc.capital || 0, c = +inc.current || 0; if(!cap || !c) return null; return c * 12 / cap * 100; }
+/* how long until it has given back what it cost to build */
+function streamPayback(inc){ const cap = +inc.capital || 0, c = +inc.current || 0; if(!cap || !c) return null; return cap / c; }
+/* an active stream can only earn as many hours as you have: this is its
+   ceiling at today's rate, and the honest reason a rate has to rise */
+function streamCeiling(inc, limitHours){ const r = effHourlyRate(inc); if(r == null) return null; return r * (limitHours || 50) * 4.33; }
+/* hours the stream would need at today's rate to reach its own target —
+   meaningless for a passive stream, which does not scale with hours */
+function streamHoursForTarget(inc){ if(isPassive(inc)) return null; const r = effHourlyRate(inc); const t = +inc.target || 0; if(r == null || !t) return null; return t / (r * 4.33); }
 function portfolioTotals(){
   const streams = incomeStreamList().filter(s => s.income.status !== 'retired');
   const totalCurrentBase = sum(streams.map(s => toBase(s.income.current, s.income.currency)));
   const totalTargetBase = sum(streams.map(s => toBase(s.income.target, s.income.currency)));
   const totalHours = sum(streams.map(s => +s.income.hoursPerWeek || 0));
+  const act = streams.filter(s => !isPassive(s.income)), pas = streams.filter(s => isPassive(s.income));
+  const activeBase  = sum(act.map(s => toBase(s.income.current, s.income.currency)));
+  const passiveBase = sum(pas.map(s => toBase(s.income.current, s.income.currency)));
+  const activeTargetBase  = sum(act.map(s => toBase(s.income.target, s.income.currency)));
+  const passiveTargetBase = sum(pas.map(s => toBase(s.income.target, s.income.currency)));
+  const activeHours  = sum(act.map(s => +s.income.hoursPerWeek || 0));
+  const passiveHours = sum(pas.map(s => +s.income.hoursPerWeek || 0));
+  const capitalBase  = sum(pas.map(s => toBase(s.income.capital, s.income.currency)));
   const diversified = totalCurrentBase ? streams.filter(s => toBase(s.income.current, s.income.currency)/totalCurrentBase > .1).length : 0;
-  return {streams, totalCurrentBase, totalTargetBase, totalHours, diversified};
+  return {streams, totalCurrentBase, totalTargetBase, totalHours, diversified,
+    activeBase, passiveBase, activeTargetBase, passiveTargetBase, activeHours, passiveHours, capitalBase,
+    passiveShare: totalCurrentBase ? passiveBase / totalCurrentBase : 0};
 }
 function activeScenario(){ return S.finance.scenarios.find(sc => sc.active) || S.finance.scenarios[0]; }
 function scenarioAnnualTotal(sc){ return sum(sc.categories.flatMap(c => c.items.map(i => toBase(i.amount, i.currency)))); }
@@ -8629,7 +9499,11 @@ function streamCardHTML(s){
   const inc = s.income; const pct = (inc.target||0) ? clamp((inc.current||0)/inc.target*100, 0, 100) : 0;
   const rate = effHourlyRate(inc); const st = STREAM_STATUS[inc.status] || STREAM_STATUS.idea;
   const spark = (inc.revenueLog||[]).slice(-12).map(r => r.amount);
-  return `<div class="card stream-card">
+  const passive = isPassive(inc); const limit = S.finance.hoursLimit || 50;
+  const yld = streamYield(inc), payback = streamPayback(inc);
+  const ceiling = streamCeiling(inc, limit), hoursTgt = streamHoursForTarget(inc);
+  const ceilingShort = ceiling != null && (inc.target||0) > ceiling;
+  return `<div class="card stream-card ${passive ? 'passive' : 'active-inc'}">
     <div class="row between">
       <b class="serif" style="font-size:1.05rem">${esc(s.name)}</b>
       <span class="row" style="gap:6px">
@@ -8637,17 +9511,40 @@ function streamCardHTML(s){
         ${s.kind==='project'?`<a class="chip on click" style="--c:var(--terra);text-decoration:none" href="#/projects/${s.project.id}">🎨 project</a>`:`<button class="del-x inline" data-streamdel="${s.stream.id}" title="delete this stream">×</button>`}
       </span>
     </div>
-    <div style="margin-top:8px">${ed(`${path}.model`,{ph:'revenue model — freelance / product / subscriptions / patronage'})}</div>
+    <div class="earn-switch" role="group" aria-label="how this money is earned">
+      ${[['active','⟳ active','money bought with your hours'],['passive','◇ passive','money from something already built']].map(([k,l,t]) =>
+        `<button class="${(passive?'passive':'active')===k?'on':''}" data-streamearn="${path}:${k}" title="${t}">${l}</button>`).join('')}
+    </div>
+    <div style="margin-top:8px">${ed(`${path}.model`,{ph: passive ? 'what generates it — dividends / royalties / a product that sells itself / rent' : 'revenue model — freelance / retainer / consulting / commissions'})}</div>
     <div class="grid c2" style="gap:10px;margin-top:8px">
       <div><div class="k">current / month</div>${ed(`${path}.current`,{ph:'0',cls:'mono',hook})}</div>
       <div><div class="k">target / month</div>${ed(`${path}.target`,{ph:'0',cls:'mono',hook})}</div>
     </div>
     <div class="bar" style="--c:var(--gold);margin:8px 0"><i style="width:${pct}%"></i></div>
+    ${passive ? `
+    <div class="grid c3" style="gap:8px;margin:8px 0;align-items:end">
+      <div><div class="k">upkeep hrs / wk</div>${ed(`${path}.hoursPerWeek`,{ph:'0',cls:'mono',hook})}</div>
+      <div><div class="k">capital in</div>${ed(`${path}.capital`,{ph:'0',cls:'mono',hook})}</div>
+      <div><div class="k">currency</div><select class="sel" style="padding:5px 6px;font-size:.8rem" data-streamcur="${path}">${CURRENCIES.map(c=>`<option ${inc.currency===c?'selected':''}>${c}</option>`).join('')}</select></div>
+    </div>
+    <div class="stream-derived">
+      <span><i>yield</i>${yld != null ? `${yld.toFixed(yld < 10 ? 1 : 0)}%<small>/yr on capital</small>` : '—'}</span>
+      <span><i>payback</i>${payback != null ? `${payback < 24 ? Math.round(payback) + ' mo' : (payback/12).toFixed(1) + ' yr'}` : '—'}</span>
+      <span><i>per upkeep hour</i>${rate != null ? `${cur(inc.currency)}${rate.toFixed(rate<10?1:0)}` : '—'}</span>
+    </div>
+    <p class="stream-note">Passive money does not scale with your hours — it scales with what has been built. The figure to watch is yield, not rate.</p>
+    ` : `
     <div class="grid c3" style="gap:8px;margin:8px 0;align-items:end">
       <div><div class="k">hrs / week</div>${ed(`${path}.hoursPerWeek`,{ph:'0',cls:'mono',hook})}</div>
       <div><div class="k">eff. rate</div><div class="mono" style="padding:6px 0;font-size:.86rem">${rate!=null?`${cur(inc.currency)}${rate.toFixed(rate<10?1:0)}/hr`:'—'}</div></div>
       <div><div class="k">currency</div><select class="sel" style="padding:5px 6px;font-size:.8rem" data-streamcur="${path}">${CURRENCIES.map(c=>`<option ${inc.currency===c?'selected':''}>${c}</option>`).join('')}</select></div>
     </div>
+    <div class="stream-derived">
+      <span><i>hours to hit target</i>${hoursTgt != null ? `${hoursTgt.toFixed(hoursTgt < 10 ? 1 : 0)}<small>h/wk</small>` : '—'}</span>
+      <span><i>ceiling at ${limit}h/wk</i>${ceiling != null ? money(ceiling, inc.currency) : '—'}</span>
+      <span class="${ceilingShort ? 'warn' : ''}">${ceiling != null && (inc.target||0) ? (ceilingShort ? 'the target is above the ceiling — the rate has to rise' : 'the target fits inside your hours') : '&nbsp;'}</span>
+    </div>
+    `}
     ${spark.length>1 ? `<div style="margin:8px 0 4px">${sparkline(spark,{h:26,color:'var(--gold)'})}</div>` : ''}
     <div class="row" style="gap:6px;flex-wrap:wrap;margin:6px 0">
       <button class="btn sm ghost" data-streamlog="${path}">📈 log this month</button>
@@ -8667,6 +9564,7 @@ function openStreamModal(){
   const m = openModal(`<h2>An income stream</h2><p class="muted" style="font-size:.86rem">A way you make money, or are building toward making money.</p><div class="stack">
     <select class="sel" id="stProj"><option value="">standalone — not tied to a project</option>${S.projects.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select>
     <input class="inp serif-lg" id="stName" placeholder="Name — only needed if standalone" autofocus>
+    <select class="sel" id="stEarn"><option value="active">⟳ active — money bought with your hours</option><option value="passive">◇ passive — money from something already built</option></select>
     <input class="inp" id="stModel" placeholder="revenue model — freelance / product / subscriptions / patronage">
     <div class="grid c3" style="gap:10px"><input class="inp mono" id="stCurrent" placeholder="current / month" inputmode="decimal"><input class="inp mono" id="stTarget" placeholder="target / month" inputmode="decimal"><select class="sel" id="stCur">${CURRENCIES.map(c=>`<option ${S.finance.currency===c?'selected':''}>${c}</option>`).join('')}</select></div>
     <div class="row" style="justify-content:flex-end"><button class="btn primary" id="stSave">Add</button></div>
@@ -8678,9 +9576,10 @@ function openStreamModal(){
     if(projId){ const p = byId(S.projects, projId); p.income = p.income || {model:'',current:0,target:0,milestones:[]}; migrateIncomeShape(p.income);
       const model = m.querySelector('#stModel').value.trim();
       if(model) p.income.model = model; if(c0) p.income.current = c0; if(t0) p.income.target = t0; p.income.currency = curr;
+      p.income.earning = m.querySelector('#stEarn').value;
       saveNow(); m.remove(); sound('success'); rerender(); return; }
     const name = m.querySelector('#stName').value.trim(); if(!name){ toast('Name it, or link it to a project.'); return; }
-    const income = {model:m.querySelector('#stModel').value.trim(), current:c0, target:t0}; migrateIncomeShape(income); income.currency = curr;
+    const income = {model:m.querySelector('#stModel').value.trim(), current:c0, target:t0, earning:m.querySelector('#stEarn').value}; migrateIncomeShape(income); income.currency = curr;
     S.incomeStreams.push(Object.assign({id:uid(), name}, income));
     saveNow(); m.remove(); sound('success'); rerender();
   };
@@ -8752,12 +9651,15 @@ function openScenarioModal(){
 
 /* ---------- Gap analysis: the structural tension, made visible ---------- */
 function gapAnalysisHTML(){
-  const {streams, totalCurrentBase, totalTargetBase, totalHours, diversified} = portfolioTotals();
+  const {streams, totalCurrentBase, totalTargetBase, totalHours, diversified,
+         activeBase, passiveBase, activeTargetBase, activeHours, passiveHours, capitalBase, passiveShare} = portfolioTotals();
   const sc = activeScenario(); const annualCostBase = scenarioAnnualTotal(sc); const monthlyCostBase = annualCostBase/12;
   const gap = monthlyCostBase - totalCurrentBase; const gapAtTarget = monthlyCostBase - totalTargetBase;
   const rw = runway();
   const hoursOver = totalHours > (S.finance.hoursLimit||50);
-  const hoursForTarget = totalTargetBase > 0 && totalCurrentBase > 0 ? totalHours * (totalTargetBase/Math.max(totalCurrentBase,1)) : null;
+  /* only active income buys more of itself with hours; scaling the whole
+     portfolio by hours would silently claim that passive income does too */
+  const hoursForTarget = activeTargetBase > 0 && activeBase > 0 ? activeHours * (activeTargetBase/activeBase) : null;
   const contribs = streams.filter(s => s.income.current > 0).map(s => ({s, base: toBase(s.income.current, s.income.currency)})).sort((a,b)=>b.base-a.base);
   const maxContrib = Math.max(1, ...contribs.map(c=>c.base));
   return `
@@ -8778,9 +9680,16 @@ function gapAnalysisHTML(){
       <div class="card"><span class="sc">Hours reality check</span>
         <div class="row between" style="margin-top:10px"><span class="mono">hours / week, all streams</span><span class="mono" style="color:${hoursOver?'#c9a05a':'inherit'}">${totalHours.toFixed(1)}${hoursOver?' · over limit':''}</span></div>
         <div class="bar" style="--c:${hoursOver?'#c9a05a':'var(--sage)'};margin:4px 0"><i style="width:${clamp(totalHours/(S.finance.hoursLimit||50)*100,0,100)}%"></i></div>
-        <div class="faint" style="font-size:.76rem">sustainable limit: ${ed('finance.hoursLimit',{ph:'50',cls:'mono',hook:'hourslimit'})} h/week</div>
-        ${hoursForTarget!=null ? `<div class="mono faint" style="margin-top:8px">at target income, roughly ${hoursForTarget.toFixed(0)}h/week would be needed at today's rates${hoursForTarget > (S.finance.hoursLimit||50) ? ' — over the limit; the rate has to rise, not just the hours' : ''}</div>` : ''}
+        <div class="mono faint" style="font-size:.7rem">${activeHours.toFixed(1)}h earning actively${passiveHours ? ` · ${passiveHours.toFixed(1)}h maintaining what is passive` : ''}</div>
+        <div class="faint" style="font-size:.76rem;margin-top:4px">sustainable limit: ${ed('finance.hoursLimit',{ph:'50',cls:'mono',hook:'hourslimit'})} h/week</div>
+        ${hoursForTarget!=null ? `<div class="mono faint" style="margin-top:8px">reaching the <b>active</b> target at today's rates needs roughly ${hoursForTarget.toFixed(0)}h/week${hoursForTarget > (S.finance.hoursLimit||50) - passiveHours ? ' — past what is left after upkeep; the rate has to rise, not just the hours' : ''}. Passive targets are not on this clock.</div>` : ''}
       </div>
+    </div>
+    <div class="card" style="margin-bottom:14px"><span class="sc">Active and passive</span>
+      <div class="row between" style="margin-top:10px"><span class="mono">income that does not need your hours</span><span class="mono">${Math.round(passiveShare*100)}%</span></div>
+      <div class="split-bar" style="margin:6px 0"><i class="a" style="width:${totalCurrentBase?Math.round(activeBase/totalCurrentBase*100):0}%"></i><i class="p" style="width:${totalCurrentBase?Math.round(passiveBase/totalCurrentBase*100):0}%"></i></div>
+      <div class="row between mono faint" style="font-size:.68rem"><span>⟳ active ${money(activeBase)}/mo</span><span>◇ passive ${money(passiveBase)}/mo</span></div>
+      <div class="faint" style="font-size:.76rem;margin-top:8px">${passiveBase ? `Passive income covers ${monthlyCostBase?Math.round(passiveBase/monthlyCostBase*100):0}% of ${esc(sc.name)}${capitalBase?`, on ${money(capitalBase)} of capital`:''}. That is the part of the life that keeps running when you stop.` : 'Nothing passive yet. Every hour you stop working, this whole figure stops with you.'}</div>
     </div>
     <div class="card" style="margin-bottom:14px"><span class="sc">Runway</span>
       <div class="row between" style="margin-top:10px;align-items:center">
@@ -8817,7 +9726,7 @@ routes.finance = function(root){
   registerPageEntry({pageName:'Finance', addLabel:'Add an income stream', defaultEntryType:'stream', prefilledFields:{}, options:[
     {icon:'💰', label:'Income stream', desc:'A way you make, or could make, money.', run:()=>openStreamModal()},
     {icon:'🎯', label:'Life-cost scenario', desc:'A whole possible life, priced.', run:()=>openScenarioModal()}]});
-  const {streams, totalCurrentBase, totalTargetBase, totalHours, diversified} = portfolioTotals();
+  const {streams, totalCurrentBase, totalTargetBase, totalHours, diversified, activeBase, passiveBase, passiveShare} = portfolioTotals();
   const annualCurrent = totalCurrentBase*12, annualTarget = totalTargetBase*12;
   const blendedRate = totalHours ? totalCurrentBase/(totalHours*4.33) : null;
   root.innerHTML = `<div class="page">
@@ -8830,6 +9739,7 @@ routes.finance = function(root){
         <div><div class="k">target, monthly</div><div class="num">${money(totalTargetBase)}</div><div class="mono">${money(annualTarget)} / year</div></div>
         <div><div class="k">streams</div><div class="num">${streams.length}</div></div>
         <div><div class="k">diversification</div><div class="num">${diversified}</div><div class="mono">contribute &gt;10%</div></div>
+        <div><div class="k">passive share</div><div class="num">${Math.round(passiveShare*100)}<small>%</small></div><div class="mono">${money(passiveBase)} of ${money(totalCurrentBase)}</div></div>
         <div><div class="k">hours / week</div><div class="num">${totalHours.toFixed(0)}</div>${blendedRate!=null?`<div class="mono">${money(blendedRate)}/hr blended</div>`:''}</div>
       </div></div>
       ${streams.length ? `<div class="grid c2" style="align-items:start">${streams.map(streamCardHTML).join('')}</div>` : '<div class="empty">Nothing yet. What is the first way you could make money doing something you already do?</div>'}
@@ -8840,8 +9750,8 @@ routes.finance = function(root){
     </section>
 
     <section class="section rv"><div class="row between" style="align-items:center"><span class="sc" style="margin:0">The life you want to fund</span><button class="btn sm primary" id="scenarioAdd">＋ scenario</button></div>
-      <p class="muted" style="font-size:.85rem">Not what you spent — what you want to be able to spend. Build as many possible lives as you want; pick one as the active target for the gap above.</p>
-      <div class="stack" style="gap:14px;margin-top:12px">${S.finance.scenarios.map(scenarioHTML).join('')}</div>
+      <p class="muted" style="font-size:.85rem">Not what you spent — what you want to be able to spend. Each life is a column, so several can be held up against each other at once; pick one as the active target for the gap above.</p>
+      <div class="scenario-rail" style="margin-top:12px">${S.finance.scenarios.map(scenarioHTML).join('')}</div>
     </section>
 
     <details class="section rv"><summary><span class="sc">Money, in your own words</span></summary><div class="body stack" style="gap:16px;padding-top:10px">
@@ -8864,6 +9774,10 @@ routes.finance = function(root){
   root.querySelectorAll('[data-streammsdel]').forEach(b => b.onclick = () => { const [path, i] = b.dataset.streammsdel.split(':'); const arr = getPath(path+'.milestones'); requestDelete({label:arr[+i].text||'milestone', remove:()=>spliceOut(arr, x=>x===arr[+i])}); });
   root.querySelectorAll('[data-streamstatus]').forEach(s => s.onchange = () => { getPath(s.dataset.streamstatus).status = s.value; saveNow(); rerender(); });
   root.querySelectorAll('[data-streamcur]').forEach(s => s.onchange = () => { getPath(s.dataset.streamcur).currency = s.value; saveNow(); rerender(); });
+  root.querySelectorAll('[data-streamearn]').forEach(b => b.onclick = () => {
+    const i = b.dataset.streamearn.lastIndexOf(':');
+    getPath(b.dataset.streamearn.slice(0, i)).earning = b.dataset.streamearn.slice(i+1);
+    saveNow(); sound('click'); rerender(); });
   root.querySelectorAll('[data-streamlog]').forEach(b => b.onclick = () => openRevenueLogModal(b.dataset.streamlog));
   /* cross-tagging on both streams and scenarios — this is also how a project
      gets attached to a stream that was created standalone */
@@ -13348,6 +14262,8 @@ const NAV_ICONS = {
   vision:   '<svg viewBox="0 0 24 24"><path d="M12 21v-6"/><path d="M12 15c-3.9 0-6.5-2.3-6.5-5.4 0-1.6.8-3 2.1-3.8C8 3.6 9.8 2.5 12 2.5s4 1.1 4.4 3.3c1.3.8 2.1 2.2 2.1 3.8 0 3.1-2.6 5.4-6.5 5.4Z"/></svg>',
   timeline: '<svg viewBox="0 0 24 24"><path d="M7 3.5h10M7 20.5h10"/><path d="M8.5 3.5v2.8c0 2.3 3.5 3.6 3.5 5.7s-3.5 3.4-3.5 5.7v2.8M15.5 3.5v2.8c0 2.3-3.5 3.6-3.5 5.7s3.5 3.4 3.5 5.7v2.8"/></svg>',
   settings: '<svg viewBox="0 0 24 24"><path d="M4 7.5h9M17 7.5h3M4 16.5h3M11 16.5h9"/><circle cx="15" cy="7.5" r="2"/><circle cx="9" cy="16.5" r="2"/></svg>',
+  spiral:   '<svg viewBox="0 0 24 24"><path d="M12 12a2.4 2.4 0 1 1 2.4 2.4A4.4 4.4 0 0 1 10 10a6.4 6.4 0 0 1 6.4-6.4"/><path d="M12 12a3.6 3.6 0 0 0-3.6 3.6A6.6 6.6 0 0 0 15 22.2"/></svg>',
+  needs:    '<svg viewBox="0 0 24 24"><path d="M12 3.5 21 20H3Z"/><path d="M7.6 12.5h8.8M9.5 8.5h5"/></svg>',
   more:     '<svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg>',
   reviews:  '<svg viewBox="0 0 24 24"><path d="M12 4.5a7.5 7.5 0 1 1-7.3 9.2"/><path d="M4.5 8.2 4.7 13l4.6-1.1"/><path d="M12 8.5v4l2.8 1.6"/></svg>',
   rhythm:   '<svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/><path d="M7.5 13h3.5v4H7.5z"/><path d="M13.5 13h3"/></svg>',
@@ -13372,13 +14288,15 @@ const NAV_PAGES = {
   commonplace:{label:'The Library',    short:'Library',  ico:NAV_ICONS.commonplace, route:'#/commonplace'},
   import:   {label:'Import Station',   short:'Import',   ico:NAV_ICONS.import,   route:'#/import'},
   values:   {label:'Values',           short:'Values',   ico:NAV_ICONS.values,   route:'#/values'},
+  needs:    {label:'Needs',            short:'Needs',    ico:NAV_ICONS.needs,    route:'#/needs'},
+  spiral:   {label:'Spiral',           short:'Spiral',   ico:NAV_ICONS.spiral,   route:'#/spiral'},
   skills:   {label:'Skill Tree',       short:'Skills',   ico:NAV_ICONS.skills,   route:'#/skills'},
   vision:   {label:'Vision',           short:'Vision',   ico:NAV_ICONS.vision,   route:'#/vision'},
   timeline: {label:'Timeline',         short:'Timeline', ico:NAV_ICONS.timeline, route:'#/timeline'},
 };
 const NAV_DEFAULT = {
   present:   ['today','lifetape','projects'],
-  becoming:  ['values','skills','vision'],
+  becoming:  ['values','needs','spiral','skills','vision'],
   story:     ['people','timeline','journals'],
   standalone:['commonplace','writing','finance','import'],
 };
@@ -13430,6 +14348,9 @@ function openNavOverlay(){
 NAV_PAGES.compass = {label:'Compass', short:'Compass', ico:NAV_ICONS.home, route:'#/compass'};
 
 /* ---------- Compass: life at a glance — today's focus, the living house, long-term panels ---------- */
+/* which level of the hierarchy each room mostly feeds — the annotation the
+   house carries, so the map and the pyramid are reading the same building */
+const HOUSE_LEVEL = {today:1, lifetape:1, finance:2, people:3, skills:4, projects:6, commonplace:5, journals:5, writing:4, values:7, needs:7, spiral:7, vision:7, timeline:5, import:5};
 const HOUSE_EDGES = [['vision','skills','visions require skills; skills serve visions'],['vision','values','visions serve values; unserved values are blind spots'],['timeline','values','retrospective readings fill the values history'],['timeline','vision','formative events inform what you now want'],['projects','skills','projects exercise skills'],['projects','vision','income streams advance financial visions'],['journals','timeline','memories become formative events'],['journals','vision','entries grow leaves'],['rituals','today','rituals fill today\'s rings'],['today','vision','signals surface neglected visions'],['today','values','the biggest values gap is a daily signal'],['library','journals','quotes are journal entries with a source']];
 function houseStats(){
   const T = today(); const n = navConfig();
@@ -13446,6 +14367,14 @@ function houseStats(){
     journals: {line:`${j7} entr${j7===1?'y':'ies'} this week`, ok:j7>0, cadence:'daily', tip:`${S.entries.length} entries across ${S.journals.length} journals`},
     projects: {line:`${active.length} active · ${nods7} nods / 7d`, ok:cold===0, cadence:'daily', tip:cold?`${cold} active project${cold>1?'s':''} without a nod this week`:'every active project nodded this week'},
     values:   {line:`snapshot ${snapDays===null?'never':snapDays===0?'today':snapDays+'d ago'}`, ok:snapDays!==null&&snapDays<=7, cadence:'weekly', tip:gaps[0]?`Biggest gap: ${gaps[0].name} (${gaps[0].gap>0?'+':''}${gaps[0].gap})`:''},
+    needs:    (()=>{ const ls = typeof maslowScores==='function' ? maslowScores().filter(m=>m.effectiveScore!=null) : [];
+      const weak = ls.length ? ls.reduce((a,b)=>b.effectiveScore<a.effectiveScore?b:a) : null;
+      return {line: weak ? `thinnest: ${weak.short.toLowerCase()} ${weak.effectiveScore}` : 'nothing read yet', ok: !weak || weak.effectiveScore>=40, cadence:'weekly',
+        tip: weak ? `Seven levels read off the rest of the house. ${weak.name} is the constraint on everything above it.` : 'Seven levels, read off everything else you log.'}; })(),
+    spiral:   (()=>{ const n = S.spiral?.indicators?.length || 0; const p = typeof spiralProgress==='function' ? spiralProgress() : null;
+      const pair = S.spiral?.currentPair;
+      return {line: n ? (p==null ? `${n} indicators, none rated` : `${Math.round(p*100)}% into ${(spiralMeta(pair.embodying)||[])[1]||''}`) : 'no indicators yet', ok:n>0, cadence:'monthly',
+        tip: pair ? `Releasing ${(spiralMeta(pair.releasing)||[])[1]}, embodying ${(spiralMeta(pair.embodying)||[])[1]}.` : ''}; })(),
     skills:   {line:`${hrs30.toFixed(0)}h / 30d${atro?` · ${atro} atrophying`:''}`, ok:atro===0, cadence:'monthly', tip:`${S.skills.filter(s=>!s.planned).length} skills held, ${S.skills.filter(s=>s.planned).length} planned${milestonesDueSoon(30).length?` · ${milestonesDueSoon(30).length} milestone${milestonesDueSoon(30).length>1?'s':''} within 30 days`:''}`},
     vision:   {line:`${vs.length} growing${wither?` · ${wither} withering`:''}`, ok:wither===0, cadence:'weekly', tip:vs.length?`Most vivid: ${[...vs].sort((a,b)=>b.score-a.score)[0].v.name}`:''},
     timeline: {line:`${memories} memories · ${S.stages.length} stages`, ok:true, cadence:'archival', tip:'The museum of the past. Formative events and the story you tell.'},
@@ -13466,7 +14395,7 @@ function houseSVG(st){
   HOUSE_EDGES.forEach(([a,b,label],i) => { if(!pos[a]||!pos[b]) return; const [x1,y1]=pos[a],[x2,y2]=pos[b]; const mx=(x1+x2)/2+(cx-(x1+x2)/2)*.25, my=(y1+y2)/2+(cy-(y1+y2)/2)*.25; g += `<path class="hedge" d="M${x1},${y1} Q${mx},${my} ${x2},${y2}" data-a="${a}" data-b="${b}" data-label="${esc(label)}"/>`; });
   g += `<circle cx="${cx}" cy="${cy}" r="30" fill="var(--surface-2)" stroke="var(--terra)" stroke-width="1.2"/><text x="${cx}" y="${cy-4}" text-anchor="middle" style="font-family:var(--han);font-size:22px;fill:var(--terra)">生</text><text x="${cx}" y="${cy+14}" text-anchor="middle" style="font-family:var(--mono);font-size:8px;fill:var(--faint)">${fmtDate(today(),'short').toUpperCase()}</text>`;
   keys.forEach(k => { const [x,y] = pos[k]; const s = st.stat[k]; const p = NAV_PAGES[k]; const r = s.cadence==='daily'?34:s.cadence==='weekly'?31:27;
-    g += `<g class="hnode ${s.cadence}" data-node="${k}" data-go="${p.route}" style="--zc:${zoneColor(k)}"><circle class="body" cx="${x}" cy="${y}" r="${r}" fill="color-mix(in srgb,${zoneColor(k)} ${s.cadence==='daily'?22:s.cadence==='weekly'?14:8}%,var(--surface))" stroke="${zoneColor(k)}" stroke-width="1.4" ${s.cadence==='monthly'||s.cadence==='archival'?'stroke-dasharray="4 3"':''} opacity="${s.cadence==='archival'?.7:1}"/><text x="${x}" y="${y+6}" text-anchor="middle" style="font-size:${r*.6}px">${p.ico}</text><circle cx="${x+r*.7}" cy="${y-r*.7}" r="5" fill="${s.ok?'var(--sage)':'var(--gold)'}" stroke="var(--surface)" stroke-width="1.5"/><text class="hl" x="${x}" y="${y+r+16}" text-anchor="middle">${esc(p.label)}</text><text class="hs" x="${x}" y="${y+r+28}" text-anchor="middle">${esc(s.line)}</text></g>`; });
+    g += `<g class="hnode ${s.cadence}" data-node="${k}" data-go="${p.route}" style="--zc:${zoneColor(k)}"><circle class="body" cx="${x}" cy="${y}" r="${r}" fill="color-mix(in srgb,${zoneColor(k)} ${s.cadence==='daily'?22:s.cadence==='weekly'?14:8}%,var(--surface))" stroke="${zoneColor(k)}" stroke-width="1.4" ${s.cadence==='monthly'||s.cadence==='archival'?'stroke-dasharray="4 3"':''} opacity="${s.cadence==='archival'?.7:1}"/><text x="${x}" y="${y+6}" text-anchor="middle" style="font-size:${r*.6}px">${p.ico}</text><circle cx="${x+r*.7}" cy="${y-r*.7}" r="5" fill="${s.ok?'var(--sage)':'var(--gold)'}" stroke="var(--surface)" stroke-width="1.5"/><text class="hl" x="${x}" y="${y+r+16}" text-anchor="middle">${esc(p.label)}</text><text class="hs" x="${x}" y="${y+r+28}" text-anchor="middle">${esc(s.line)}</text>${HOUSE_LEVEL[k]?`<text class="hs" x="${x}" y="${y+r+38}" text-anchor="middle" opacity=".55">L${HOUSE_LEVEL[k]} ${esc((MASLOW.find(m=>m.level===HOUSE_LEVEL[k])||{}).short||'')}</text>`:''}</g>`; });
   return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">${g}</svg>`;
 }
 /* ---------- the four zone cards on the Compass ----------
@@ -13568,6 +14497,8 @@ routes.compass = function(root){
 
     ${zoneCardsHTML()}
 
+    ${typeof positionHTML === 'function' ? positionHTML() : ''}
+
     <section class="section rv" style="margin-top:22px"><div class="row between"><span class="sc" style="margin:0">The house</span><span class="mono">● green tended · ● amber needs you · solid rings daily, dashed seasonal · hover to see what feeds what</span></div>
       <div class="house-wrap" id="houseWrap" style="margin-top:10px">${houseSVG(st)}<div class="htip" id="htip"></div></div></section>
 
@@ -13586,6 +14517,7 @@ routes.compass = function(root){
   const wrap = $('#houseWrap'), tip = $('#htip'); const showTip = (e, html) => { tip.innerHTML = html; tip.style.display='block'; const r = wrap.getBoundingClientRect(); tip.style.left = Math.min(e.clientX-r.left+14, r.width-290)+'px'; tip.style.top = (e.clientY-r.top+14)+'px'; };
   wrap.querySelectorAll('.hnode').forEach(nd => { nd.onmouseenter = e => { wrap.classList.add('hov'); nd.classList.add('hot'); wrap.querySelectorAll('.hedge').forEach(ed_ => { if(ed_.dataset.a===nd.dataset.node||ed_.dataset.b===nd.dataset.node){ ed_.classList.add('hot'); wrap.querySelector(`[data-node="${ed_.dataset.a}"]`)?.classList.add('hot'); wrap.querySelector(`[data-node="${ed_.dataset.b}"]`)?.classList.add('hot'); } }); const s = st.stat[nd.dataset.node]; showTip(e, `<b class="serif">${esc(NAV_PAGES[nd.dataset.node].label)}</b> · <span class="mono">${s.cadence}</span><br>${esc(s.line)}${s.tip?'<br>'+esc(s.tip):''}<br><span class="mono">click to open</span>`); }; nd.onmousemove = e => showTip(e, tip.innerHTML); nd.onmouseleave = () => { wrap.classList.remove('hov'); wrap.querySelectorAll('.hot').forEach(x=>x.classList.remove('hot')); tip.style.display='none'; }; });
   wrap.querySelectorAll('.hedge').forEach(ed_ => { ed_.onmouseenter = e => { ed_.classList.add('hot'); showTip(e, `<span class="mono">${esc(NAV_PAGES[ed_.dataset.a].label)} ↔ ${esc(NAV_PAGES[ed_.dataset.b].label)}</span><br>${esc(ed_.dataset.label)}`); }; ed_.onmousemove = e => showTip(e, tip.innerHTML); ed_.onmouseleave = () => { ed_.classList.remove('hot'); tip.style.display='none'; }; });
+  if(typeof bindPosition === 'function') bindPosition(root, () => rerender());
 };
 
 /* ---------- Settings: drag-and-drop zone editor ---------- */

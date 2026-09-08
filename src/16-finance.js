@@ -25,6 +25,11 @@ function migrateIncomeShape(obj){
   obj.status = STREAM_STATUS[obj.status] ? obj.status : (obj.current > 0 ? 'earning' : 'idea');
   obj.currency = CURRENCIES.includes(obj.currency) ? obj.currency : S.finance.currency;
   obj.hoursPerWeek = +obj.hoursPerWeek || 0;
+  /* active income is bought with hours; passive income is bought once, with
+     capital or a build, and then only maintained. They are not the same kind
+     of money and must not be reasoned about with the same arithmetic. */
+  obj.earning = obj.earning === 'passive' ? 'passive' : 'active';
+  obj.capital = +obj.capital || 0;
   obj.visionId = obj.visionId || null;
   obj.peopleIds = Array.isArray(obj.peopleIds) ? obj.peopleIds : [];
   obj.revenueLog = Array.isArray(obj.revenueLog) ? obj.revenueLog : [];
@@ -100,13 +105,34 @@ function incomeStreamList(){
 /* An hourly rate needs both halves. With hours but no income it is not
    "0/hr", it is not yet answerable — say so rather than print a zero. */
 function effHourlyRate(income){ const h = +income.hoursPerWeek || 0; const c = +income.current || 0; if(!h || !c) return null; return c / (h * 4.33); }
+const isPassive = inc => inc.earning === 'passive';
+/* what a passive stream returns each year on what was put into it */
+function streamYield(inc){ const cap = +inc.capital || 0, c = +inc.current || 0; if(!cap || !c) return null; return c * 12 / cap * 100; }
+/* how long until it has given back what it cost to build */
+function streamPayback(inc){ const cap = +inc.capital || 0, c = +inc.current || 0; if(!cap || !c) return null; return cap / c; }
+/* an active stream can only earn as many hours as you have: this is its
+   ceiling at today's rate, and the honest reason a rate has to rise */
+function streamCeiling(inc, limitHours){ const r = effHourlyRate(inc); if(r == null) return null; return r * (limitHours || 50) * 4.33; }
+/* hours the stream would need at today's rate to reach its own target —
+   meaningless for a passive stream, which does not scale with hours */
+function streamHoursForTarget(inc){ if(isPassive(inc)) return null; const r = effHourlyRate(inc); const t = +inc.target || 0; if(r == null || !t) return null; return t / (r * 4.33); }
 function portfolioTotals(){
   const streams = incomeStreamList().filter(s => s.income.status !== 'retired');
   const totalCurrentBase = sum(streams.map(s => toBase(s.income.current, s.income.currency)));
   const totalTargetBase = sum(streams.map(s => toBase(s.income.target, s.income.currency)));
   const totalHours = sum(streams.map(s => +s.income.hoursPerWeek || 0));
+  const act = streams.filter(s => !isPassive(s.income)), pas = streams.filter(s => isPassive(s.income));
+  const activeBase  = sum(act.map(s => toBase(s.income.current, s.income.currency)));
+  const passiveBase = sum(pas.map(s => toBase(s.income.current, s.income.currency)));
+  const activeTargetBase  = sum(act.map(s => toBase(s.income.target, s.income.currency)));
+  const passiveTargetBase = sum(pas.map(s => toBase(s.income.target, s.income.currency)));
+  const activeHours  = sum(act.map(s => +s.income.hoursPerWeek || 0));
+  const passiveHours = sum(pas.map(s => +s.income.hoursPerWeek || 0));
+  const capitalBase  = sum(pas.map(s => toBase(s.income.capital, s.income.currency)));
   const diversified = totalCurrentBase ? streams.filter(s => toBase(s.income.current, s.income.currency)/totalCurrentBase > .1).length : 0;
-  return {streams, totalCurrentBase, totalTargetBase, totalHours, diversified};
+  return {streams, totalCurrentBase, totalTargetBase, totalHours, diversified,
+    activeBase, passiveBase, activeTargetBase, passiveTargetBase, activeHours, passiveHours, capitalBase,
+    passiveShare: totalCurrentBase ? passiveBase / totalCurrentBase : 0};
 }
 function activeScenario(){ return S.finance.scenarios.find(sc => sc.active) || S.finance.scenarios[0]; }
 function scenarioAnnualTotal(sc){ return sum(sc.categories.flatMap(c => c.items.map(i => toBase(i.amount, i.currency)))); }
@@ -120,7 +146,11 @@ function streamCardHTML(s){
   const inc = s.income; const pct = (inc.target||0) ? clamp((inc.current||0)/inc.target*100, 0, 100) : 0;
   const rate = effHourlyRate(inc); const st = STREAM_STATUS[inc.status] || STREAM_STATUS.idea;
   const spark = (inc.revenueLog||[]).slice(-12).map(r => r.amount);
-  return `<div class="card stream-card">
+  const passive = isPassive(inc); const limit = S.finance.hoursLimit || 50;
+  const yld = streamYield(inc), payback = streamPayback(inc);
+  const ceiling = streamCeiling(inc, limit), hoursTgt = streamHoursForTarget(inc);
+  const ceilingShort = ceiling != null && (inc.target||0) > ceiling;
+  return `<div class="card stream-card ${passive ? 'passive' : 'active-inc'}">
     <div class="row between">
       <b class="serif" style="font-size:1.05rem">${esc(s.name)}</b>
       <span class="row" style="gap:6px">
@@ -128,17 +158,40 @@ function streamCardHTML(s){
         ${s.kind==='project'?`<a class="chip on click" style="--c:var(--terra);text-decoration:none" href="#/projects/${s.project.id}">🎨 project</a>`:`<button class="del-x inline" data-streamdel="${s.stream.id}" title="delete this stream">×</button>`}
       </span>
     </div>
-    <div style="margin-top:8px">${ed(`${path}.model`,{ph:'revenue model — freelance / product / subscriptions / patronage'})}</div>
+    <div class="earn-switch" role="group" aria-label="how this money is earned">
+      ${[['active','⟳ active','money bought with your hours'],['passive','◇ passive','money from something already built']].map(([k,l,t]) =>
+        `<button class="${(passive?'passive':'active')===k?'on':''}" data-streamearn="${path}:${k}" title="${t}">${l}</button>`).join('')}
+    </div>
+    <div style="margin-top:8px">${ed(`${path}.model`,{ph: passive ? 'what generates it — dividends / royalties / a product that sells itself / rent' : 'revenue model — freelance / retainer / consulting / commissions'})}</div>
     <div class="grid c2" style="gap:10px;margin-top:8px">
       <div><div class="k">current / month</div>${ed(`${path}.current`,{ph:'0',cls:'mono',hook})}</div>
       <div><div class="k">target / month</div>${ed(`${path}.target`,{ph:'0',cls:'mono',hook})}</div>
     </div>
     <div class="bar" style="--c:var(--gold);margin:8px 0"><i style="width:${pct}%"></i></div>
+    ${passive ? `
+    <div class="grid c3" style="gap:8px;margin:8px 0;align-items:end">
+      <div><div class="k">upkeep hrs / wk</div>${ed(`${path}.hoursPerWeek`,{ph:'0',cls:'mono',hook})}</div>
+      <div><div class="k">capital in</div>${ed(`${path}.capital`,{ph:'0',cls:'mono',hook})}</div>
+      <div><div class="k">currency</div><select class="sel" style="padding:5px 6px;font-size:.8rem" data-streamcur="${path}">${CURRENCIES.map(c=>`<option ${inc.currency===c?'selected':''}>${c}</option>`).join('')}</select></div>
+    </div>
+    <div class="stream-derived">
+      <span><i>yield</i>${yld != null ? `${yld.toFixed(yld < 10 ? 1 : 0)}%<small>/yr on capital</small>` : '—'}</span>
+      <span><i>payback</i>${payback != null ? `${payback < 24 ? Math.round(payback) + ' mo' : (payback/12).toFixed(1) + ' yr'}` : '—'}</span>
+      <span><i>per upkeep hour</i>${rate != null ? `${cur(inc.currency)}${rate.toFixed(rate<10?1:0)}` : '—'}</span>
+    </div>
+    <p class="stream-note">Passive money does not scale with your hours — it scales with what has been built. The figure to watch is yield, not rate.</p>
+    ` : `
     <div class="grid c3" style="gap:8px;margin:8px 0;align-items:end">
       <div><div class="k">hrs / week</div>${ed(`${path}.hoursPerWeek`,{ph:'0',cls:'mono',hook})}</div>
       <div><div class="k">eff. rate</div><div class="mono" style="padding:6px 0;font-size:.86rem">${rate!=null?`${cur(inc.currency)}${rate.toFixed(rate<10?1:0)}/hr`:'—'}</div></div>
       <div><div class="k">currency</div><select class="sel" style="padding:5px 6px;font-size:.8rem" data-streamcur="${path}">${CURRENCIES.map(c=>`<option ${inc.currency===c?'selected':''}>${c}</option>`).join('')}</select></div>
     </div>
+    <div class="stream-derived">
+      <span><i>hours to hit target</i>${hoursTgt != null ? `${hoursTgt.toFixed(hoursTgt < 10 ? 1 : 0)}<small>h/wk</small>` : '—'}</span>
+      <span><i>ceiling at ${limit}h/wk</i>${ceiling != null ? money(ceiling, inc.currency) : '—'}</span>
+      <span class="${ceilingShort ? 'warn' : ''}">${ceiling != null && (inc.target||0) ? (ceilingShort ? 'the target is above the ceiling — the rate has to rise' : 'the target fits inside your hours') : '&nbsp;'}</span>
+    </div>
+    `}
     ${spark.length>1 ? `<div style="margin:8px 0 4px">${sparkline(spark,{h:26,color:'var(--gold)'})}</div>` : ''}
     <div class="row" style="gap:6px;flex-wrap:wrap;margin:6px 0">
       <button class="btn sm ghost" data-streamlog="${path}">📈 log this month</button>
@@ -158,6 +211,7 @@ function openStreamModal(){
   const m = openModal(`<h2>An income stream</h2><p class="muted" style="font-size:.86rem">A way you make money, or are building toward making money.</p><div class="stack">
     <select class="sel" id="stProj"><option value="">standalone — not tied to a project</option>${S.projects.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select>
     <input class="inp serif-lg" id="stName" placeholder="Name — only needed if standalone" autofocus>
+    <select class="sel" id="stEarn"><option value="active">⟳ active — money bought with your hours</option><option value="passive">◇ passive — money from something already built</option></select>
     <input class="inp" id="stModel" placeholder="revenue model — freelance / product / subscriptions / patronage">
     <div class="grid c3" style="gap:10px"><input class="inp mono" id="stCurrent" placeholder="current / month" inputmode="decimal"><input class="inp mono" id="stTarget" placeholder="target / month" inputmode="decimal"><select class="sel" id="stCur">${CURRENCIES.map(c=>`<option ${S.finance.currency===c?'selected':''}>${c}</option>`).join('')}</select></div>
     <div class="row" style="justify-content:flex-end"><button class="btn primary" id="stSave">Add</button></div>
@@ -169,9 +223,10 @@ function openStreamModal(){
     if(projId){ const p = byId(S.projects, projId); p.income = p.income || {model:'',current:0,target:0,milestones:[]}; migrateIncomeShape(p.income);
       const model = m.querySelector('#stModel').value.trim();
       if(model) p.income.model = model; if(c0) p.income.current = c0; if(t0) p.income.target = t0; p.income.currency = curr;
+      p.income.earning = m.querySelector('#stEarn').value;
       saveNow(); m.remove(); sound('success'); rerender(); return; }
     const name = m.querySelector('#stName').value.trim(); if(!name){ toast('Name it, or link it to a project.'); return; }
-    const income = {model:m.querySelector('#stModel').value.trim(), current:c0, target:t0}; migrateIncomeShape(income); income.currency = curr;
+    const income = {model:m.querySelector('#stModel').value.trim(), current:c0, target:t0, earning:m.querySelector('#stEarn').value}; migrateIncomeShape(income); income.currency = curr;
     S.incomeStreams.push(Object.assign({id:uid(), name}, income));
     saveNow(); m.remove(); sound('success'); rerender();
   };
@@ -243,12 +298,15 @@ function openScenarioModal(){
 
 /* ---------- Gap analysis: the structural tension, made visible ---------- */
 function gapAnalysisHTML(){
-  const {streams, totalCurrentBase, totalTargetBase, totalHours, diversified} = portfolioTotals();
+  const {streams, totalCurrentBase, totalTargetBase, totalHours, diversified,
+         activeBase, passiveBase, activeTargetBase, activeHours, passiveHours, capitalBase, passiveShare} = portfolioTotals();
   const sc = activeScenario(); const annualCostBase = scenarioAnnualTotal(sc); const monthlyCostBase = annualCostBase/12;
   const gap = monthlyCostBase - totalCurrentBase; const gapAtTarget = monthlyCostBase - totalTargetBase;
   const rw = runway();
   const hoursOver = totalHours > (S.finance.hoursLimit||50);
-  const hoursForTarget = totalTargetBase > 0 && totalCurrentBase > 0 ? totalHours * (totalTargetBase/Math.max(totalCurrentBase,1)) : null;
+  /* only active income buys more of itself with hours; scaling the whole
+     portfolio by hours would silently claim that passive income does too */
+  const hoursForTarget = activeTargetBase > 0 && activeBase > 0 ? activeHours * (activeTargetBase/activeBase) : null;
   const contribs = streams.filter(s => s.income.current > 0).map(s => ({s, base: toBase(s.income.current, s.income.currency)})).sort((a,b)=>b.base-a.base);
   const maxContrib = Math.max(1, ...contribs.map(c=>c.base));
   return `
@@ -269,9 +327,16 @@ function gapAnalysisHTML(){
       <div class="card"><span class="sc">Hours reality check</span>
         <div class="row between" style="margin-top:10px"><span class="mono">hours / week, all streams</span><span class="mono" style="color:${hoursOver?'#c9a05a':'inherit'}">${totalHours.toFixed(1)}${hoursOver?' · over limit':''}</span></div>
         <div class="bar" style="--c:${hoursOver?'#c9a05a':'var(--sage)'};margin:4px 0"><i style="width:${clamp(totalHours/(S.finance.hoursLimit||50)*100,0,100)}%"></i></div>
-        <div class="faint" style="font-size:.76rem">sustainable limit: ${ed('finance.hoursLimit',{ph:'50',cls:'mono',hook:'hourslimit'})} h/week</div>
-        ${hoursForTarget!=null ? `<div class="mono faint" style="margin-top:8px">at target income, roughly ${hoursForTarget.toFixed(0)}h/week would be needed at today's rates${hoursForTarget > (S.finance.hoursLimit||50) ? ' — over the limit; the rate has to rise, not just the hours' : ''}</div>` : ''}
+        <div class="mono faint" style="font-size:.7rem">${activeHours.toFixed(1)}h earning actively${passiveHours ? ` · ${passiveHours.toFixed(1)}h maintaining what is passive` : ''}</div>
+        <div class="faint" style="font-size:.76rem;margin-top:4px">sustainable limit: ${ed('finance.hoursLimit',{ph:'50',cls:'mono',hook:'hourslimit'})} h/week</div>
+        ${hoursForTarget!=null ? `<div class="mono faint" style="margin-top:8px">reaching the <b>active</b> target at today's rates needs roughly ${hoursForTarget.toFixed(0)}h/week${hoursForTarget > (S.finance.hoursLimit||50) - passiveHours ? ' — past what is left after upkeep; the rate has to rise, not just the hours' : ''}. Passive targets are not on this clock.</div>` : ''}
       </div>
+    </div>
+    <div class="card" style="margin-bottom:14px"><span class="sc">Active and passive</span>
+      <div class="row between" style="margin-top:10px"><span class="mono">income that does not need your hours</span><span class="mono">${Math.round(passiveShare*100)}%</span></div>
+      <div class="split-bar" style="margin:6px 0"><i class="a" style="width:${totalCurrentBase?Math.round(activeBase/totalCurrentBase*100):0}%"></i><i class="p" style="width:${totalCurrentBase?Math.round(passiveBase/totalCurrentBase*100):0}%"></i></div>
+      <div class="row between mono faint" style="font-size:.68rem"><span>⟳ active ${money(activeBase)}/mo</span><span>◇ passive ${money(passiveBase)}/mo</span></div>
+      <div class="faint" style="font-size:.76rem;margin-top:8px">${passiveBase ? `Passive income covers ${monthlyCostBase?Math.round(passiveBase/monthlyCostBase*100):0}% of ${esc(sc.name)}${capitalBase?`, on ${money(capitalBase)} of capital`:''}. That is the part of the life that keeps running when you stop.` : 'Nothing passive yet. Every hour you stop working, this whole figure stops with you.'}</div>
     </div>
     <div class="card" style="margin-bottom:14px"><span class="sc">Runway</span>
       <div class="row between" style="margin-top:10px;align-items:center">
@@ -308,7 +373,7 @@ routes.finance = function(root){
   registerPageEntry({pageName:'Finance', addLabel:'Add an income stream', defaultEntryType:'stream', prefilledFields:{}, options:[
     {icon:'💰', label:'Income stream', desc:'A way you make, or could make, money.', run:()=>openStreamModal()},
     {icon:'🎯', label:'Life-cost scenario', desc:'A whole possible life, priced.', run:()=>openScenarioModal()}]});
-  const {streams, totalCurrentBase, totalTargetBase, totalHours, diversified} = portfolioTotals();
+  const {streams, totalCurrentBase, totalTargetBase, totalHours, diversified, activeBase, passiveBase, passiveShare} = portfolioTotals();
   const annualCurrent = totalCurrentBase*12, annualTarget = totalTargetBase*12;
   const blendedRate = totalHours ? totalCurrentBase/(totalHours*4.33) : null;
   root.innerHTML = `<div class="page">
@@ -321,6 +386,7 @@ routes.finance = function(root){
         <div><div class="k">target, monthly</div><div class="num">${money(totalTargetBase)}</div><div class="mono">${money(annualTarget)} / year</div></div>
         <div><div class="k">streams</div><div class="num">${streams.length}</div></div>
         <div><div class="k">diversification</div><div class="num">${diversified}</div><div class="mono">contribute &gt;10%</div></div>
+        <div><div class="k">passive share</div><div class="num">${Math.round(passiveShare*100)}<small>%</small></div><div class="mono">${money(passiveBase)} of ${money(totalCurrentBase)}</div></div>
         <div><div class="k">hours / week</div><div class="num">${totalHours.toFixed(0)}</div>${blendedRate!=null?`<div class="mono">${money(blendedRate)}/hr blended</div>`:''}</div>
       </div></div>
       ${streams.length ? `<div class="grid c2" style="align-items:start">${streams.map(streamCardHTML).join('')}</div>` : '<div class="empty">Nothing yet. What is the first way you could make money doing something you already do?</div>'}
@@ -331,8 +397,8 @@ routes.finance = function(root){
     </section>
 
     <section class="section rv"><div class="row between" style="align-items:center"><span class="sc" style="margin:0">The life you want to fund</span><button class="btn sm primary" id="scenarioAdd">＋ scenario</button></div>
-      <p class="muted" style="font-size:.85rem">Not what you spent — what you want to be able to spend. Build as many possible lives as you want; pick one as the active target for the gap above.</p>
-      <div class="stack" style="gap:14px;margin-top:12px">${S.finance.scenarios.map(scenarioHTML).join('')}</div>
+      <p class="muted" style="font-size:.85rem">Not what you spent — what you want to be able to spend. Each life is a column, so several can be held up against each other at once; pick one as the active target for the gap above.</p>
+      <div class="scenario-rail" style="margin-top:12px">${S.finance.scenarios.map(scenarioHTML).join('')}</div>
     </section>
 
     <details class="section rv"><summary><span class="sc">Money, in your own words</span></summary><div class="body stack" style="gap:16px;padding-top:10px">
@@ -355,6 +421,10 @@ routes.finance = function(root){
   root.querySelectorAll('[data-streammsdel]').forEach(b => b.onclick = () => { const [path, i] = b.dataset.streammsdel.split(':'); const arr = getPath(path+'.milestones'); requestDelete({label:arr[+i].text||'milestone', remove:()=>spliceOut(arr, x=>x===arr[+i])}); });
   root.querySelectorAll('[data-streamstatus]').forEach(s => s.onchange = () => { getPath(s.dataset.streamstatus).status = s.value; saveNow(); rerender(); });
   root.querySelectorAll('[data-streamcur]').forEach(s => s.onchange = () => { getPath(s.dataset.streamcur).currency = s.value; saveNow(); rerender(); });
+  root.querySelectorAll('[data-streamearn]').forEach(b => b.onclick = () => {
+    const i = b.dataset.streamearn.lastIndexOf(':');
+    getPath(b.dataset.streamearn.slice(0, i)).earning = b.dataset.streamearn.slice(i+1);
+    saveNow(); sound('click'); rerender(); });
   root.querySelectorAll('[data-streamlog]').forEach(b => b.onclick = () => openRevenueLogModal(b.dataset.streamlog));
   /* cross-tagging on both streams and scenarios — this is also how a project
      gets attached to a stream that was created standalone */

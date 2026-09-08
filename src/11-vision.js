@@ -313,6 +313,7 @@ function llPassageHTML(v, era){
       ${wv ? `<span>fields</span><b>${llFilled(v)} of 12</b>` : ''}
     </div>
     ${vals.length ? `<div class="ll-values">${vals.map(x => esc(x.name.toLowerCase())).join(' · ')}</div>` : ''}
+    ${(() => { const n = typeof visionFoundationNote === 'function' ? visionFoundationNote(v) : ''; return n ? `<p class="ll-foundation">${esc(n)}</p>` : ''; })()}
     ${withered ? `<button class="ll-annot" data-llopen="${v.id}">Untended for ${lastTended} days. Resting, or released?</button>` : ''}
 
     <div class="ll-more">

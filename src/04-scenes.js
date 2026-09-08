@@ -451,6 +451,8 @@ const PAGE_SCENES = {
     ${seal(1090, 130, 40, '具')}`),
 };
 PAGE_SCENES.lifetape = PAGE_SCENES.rhythm;
+PAGE_SCENES.spiral   = PAGE_SCENES.values;
+PAGE_SCENES.needs    = PAGE_SCENES.values;
 PAGE_SCENES.compass  = PAGE_SCENES.home;
 PAGE_SCENES.plan     = PAGE_SCENES.rhythm;
 PAGE_SCENES.board    = PAGE_SCENES.vision;

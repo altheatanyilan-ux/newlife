@@ -181,6 +181,7 @@ routes.value = function(root, params){
   root.innerHTML = `<div class="page narrow">
     <div class="page-head" style="margin-top:20px"><div class="mono">value · ranked #${rank} of ${S.valueOrder.length}</div><h1 style="color:${v.color}">${ed(`values.#${v.id}.name`)}</h1><div class="row" style="margin-top:12px"><div class="bar" style="flex:1;--c:${v.color}"><i style="width:${cur}%"></i></div><span class="num" data-tween="${cur}" data-suffix="%">0</span></div></div>
     <div class="card rv">${sparkline(snaps.map(s=>s.ratings[v.id]??null),{h:60,min:0,max:100,color:v.color,dots:true,labels:snaps.map(s=>`${fmtDate(s.date,'med')}: ${s.ratings[v.id]??'–'}${s.note?' — '+s.note:''}`)})}<div class="row between mono"><span>${snaps[0]?fmtDate(snaps[0].date,'med'):''}</span><span>congruence over a lifetime</span><span>now</span></div></div>
+    ${(() => { const n = typeof valueStageNote === 'function' ? valueStageNote(v) : ''; return n ? `<p class="val-stage-note">${esc(n)} <a href="#/spiral">the spiral →</a></p>` : ''; })()}
     <section class="section rv" id="pracBox">${practicesHTML(v)}</section>
     <section class="section rv">${boardHTML(boardId('value', v.id), {title:'Board', hint:'What this value looks like, before you can argue for it.', compact:true})}</section>
     ${F('embody','How would I know if I embody this value?','Observable, behavioural indicators. Not aspirations — evidence.')}

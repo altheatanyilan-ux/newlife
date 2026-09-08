@@ -146,13 +146,16 @@ routes.stage = function(root, params){
     </section>
 
     <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Sub-stages</span><button class="btn sm" id="addSub">+ sub-stage</button></div>
-      ${(s.substages||[]).map((ss,i)=>{ const fe = memories.filter(e=>(e.links?.substages||[]).includes(ss.id)); return `<div class="substage" data-ss="${ss.id}">
+      ${(s.substages||[]).map((ss,i)=>{ const fe = memories.filter(e=>(e.links?.substages||[]).includes(ss.id)); const ph = ss.photos||[]; return `<div class="substage ${ph.length?'plated':''}" data-ss="${ss.id}">
+        ${ph.length ? `<div class="ss-plate" aria-hidden="true"><div class="ss-plate-img" style="background-image:url(&quot;${esc(ph[0].src)}&quot;)"></div><div class="ss-plate-wash"></div></div>` : ''}
+        <div class="ss-body">
         <div class="hd"><h3>${ed(`stages.#${s.id}.substages.${i}.name`,{ph:'name this chapter'})}</h3><span class="row" style="margin-left:auto"><button class="tbtn" data-ssup="${i}">↑</button><button class="tbtn" data-ssdown="${i}">↓</button><button class="tbtn" data-ssdel="${i}">×</button></span></div>
         <div class="muted" style="max-width:var(--content)">${ed(`stages.#${s.id}.substages.${i}.desc`,{multi:true,mdr:true,ph:'What happened here? Markdown welcome.'})}</div>
-        <div class="row" style="margin:8px 0"><button class="btn sm ghost" data-ssphoto="${i}">+ photos</button><button class="btn sm ghost" data-ssmem="${ss.id}">+ formative event</button></div>
-        ${ss.photos?.length?`<div class="gallery">${ss.photos.map((p,j)=>photoTile(p,`stages.#${s.id}.substages.${i}.photos.${j}`)).join('')}</div>`:''}
+        <div class="row" style="margin:8px 0"><button class="btn sm ghost" data-ssphoto="${i}">+ images</button><button class="btn sm ghost" data-ssmem="${ss.id}">+ formative event</button>${ph.length>1?`<button class="btn sm ghost" data-ssgal="${i}">${ph.length} images</button>`:''}</div>
+        ${ph.length && S._ssGalOpen?.[ss.id] ? `<div class="gallery">${ph.map((p,j)=>photoTile(p,`stages.#${s.id}.substages.${i}.photos.${j}`)).join('')}</div>` : ''}
         ${fe.length?`<div class="sc" style="margin-top:8px">Formative events</div>`:''}
         ${fe.map(e=>`<div class="formative"><div class="row between"><b class="serif" style="font-size:1.1rem">${esc(e.title)}</b><span class="mono">${esc(fmtDate(e.occurredAt,'med'))} <button class="tbtn" data-edit="${e.id}">edit</button></span></div><button class="del-x" data-del="${e.id}" title="delete">×</button><div class="muted" style="margin-top:4px;line-height:1.7">${md(e.body)}</div>${e.media?.length?`<div class="thumbs">${e.media.map(m=>`<div class="photo" style="width:72px;height:72px" data-lb="${m.id}"><img src="${m.src}"></div>`).join('')}</div>`:''}<div class="installed"><div class="k">What this installed in me</div>${ed(`entries.#${e.id}.extra.installed`,{multi:true,ph:'The belief, fear, pattern, or capability this event left behind.'})}</div></div>`).join('')}
+        </div>
       </div>`; }).join('')}
       ${memories.filter(e=>!(e.links?.substages||[]).length).length?`<div class="substage"><div class="hd"><h3 class="muted">Formative events not tied to a sub-stage</h3></div>${memories.filter(e=>!(e.links?.substages||[]).length).map(e=>`<div class="formative"><div class="row between"><b class="serif" style="font-size:1.1rem">${esc(e.title)}</b><span class="mono">${esc(fmtDate(e.occurredAt,'med'))} <button class="tbtn" data-edit="${e.id}">edit</button></span></div><button class="del-x" data-del="${e.id}" title="delete">×</button><div class="muted" style="margin-top:4px;line-height:1.7">${md(e.body)}</div><div class="installed"><div class="k">What this installed in me</div>${ed(`entries.#${e.id}.extra.installed`,{multi:true,ph:'The belief, fear, pattern, or capability this event left behind.'})}</div></div>`).join('')}</div>`:''}
     </section>
@@ -182,7 +185,6 @@ routes.stage = function(root, params){
     <section class="section rv"><div class="row between"><span class="sc">Everything from this stage</span></div>
       ${es.filter(e=>e.type!=='memory').map(e=>entryCard(e)).join('') || '<div class="empty">Only memories so far. Add a reflection, a quote, a dream.</div>'}
     </section>
-    <section class="section rv">${boardHTML(boardId('stage', s.id), {title:'Board for this chapter', hint:'Photographs, objects, a colour you associate with these years.', compact:true})}</section>
     ${moreSection(`<div class="row" style="gap:20px;flex-wrap:wrap"><div class="field"><label>Character</label>${ed(`stages.#${s.id}.char`,{cls:'serif',ph:'一'})}</div><div class="field"><label>Accent colour</label><input type="color" id="stageHue" value="${s.hue}" style="width:40px;height:28px;border:none;background:none;padding:0;cursor:pointer"></div><div class="field"><label>Order</label><span class="mono">stage ${s.num} of ${S.stages.length}</span> <button class="btn sm ghost" id="stageUp">↑</button><button class="btn sm ghost" id="stageDown">↓</button></div></div>
       <div class="danger-zone"><span>Stages are the load-bearing walls of the house. Deleting one keeps its entries but unlinks them.</span><button class="btn sm ghost danger" id="delStage">Delete this stage</button></div>`, 'More about this stage')}
   </div>`;
@@ -192,7 +194,6 @@ routes.stage = function(root, params){
   $('#addSub').onclick = () => { s.substages.push({id:uid(),name:'New chapter',desc:'',photos:[]}); saveNow(); rerender(); };
   $$('[data-ssdel]',root).forEach(b => b.onclick = () => { const ss = s.substages[+b.dataset.ssdel]; requestDelete({label: ss.name, node: b.closest('.substage'), remove: () => { const touched = S.entries.filter(e => (e.links?.substages||[]).includes(ss.id)); const rl = snapshotLinks(touched); touched.forEach(e => e.links.substages = e.links.substages.filter(x => x !== ss.id)); const back = spliceOut(s.substages, x => x === ss); return () => { back(); rl(); }; }}); });
   $$('[data-verdel]',root).forEach(b => b.onclick = () => { const v = s.narrativeHistory[+b.dataset.verdel]; requestDelete({label: `Version from ${fmtDate(v.date,'med')}`, node: b.closest('.v'), remove: () => spliceOut(s.narrativeHistory, x => x === v)}); });
-  bindBoard(root);
   $('#charEdit') && ($('#charEdit').onclick = () => { const n = root.querySelector('.han .ed'); if(n) beginEdit(n); });
   $('#delStage').onclick = () => deleteStage(s, null, () => navigate('#/timeline'));
   $('#stageHue').onchange = e => { s.hue = e.target.value; saveNow(); rerender(); };
@@ -202,6 +203,10 @@ routes.stage = function(root, params){
   $$('[data-ssdown]',root).forEach(b => b.onclick = () => { const i=+b.dataset.ssdown; if(i<s.substages.length-1){ [s.substages[i+1],s.substages[i]]=[s.substages[i],s.substages[i+1]]; saveNow(); rerender(); } });
   $$('[data-ssphoto]',root).forEach(b => b.onclick = () => { const inp = el('<input type="file" accept="image/*" multiple hidden>'); document.body.appendChild(inp); inp.onchange = e => { readImages(e.target.files, img => { const ss = s.substages[+b.dataset.ssphoto]; ss.photos = ss.photos||[]; ss.photos.push(img); saveNow(); rerender(); }); inp.remove(); }; inp.click(); });
   $$('[data-ssmem]',root).forEach(b => b.onclick = () => openEntryModal({type:'memory', links:{stages:[s.id], substages:[b.dataset.ssmem]}}));
+  /* the images are the ground the chapter is printed on; the grid of tiles is
+     only for arranging them, so it stays folded until asked for */
+  $$('[data-ssgal]',root).forEach(b => b.onclick = () => { const ss = s.substages[+b.dataset.ssgal];
+    S._ssGalOpen = S._ssGalOpen || {}; S._ssGalOpen[ss.id] = !S._ssGalOpen[ss.id]; rerender(); });
   $$('[data-thread-open]',root).forEach(c => c.onclick = () => openThreadNarrative(c.dataset.threadOpen));
   $$('[data-retro]',root).forEach(r => { r.oninput = () => { root.querySelector(`[data-retro-lbl="${r.dataset.retro}"]`).textContent = r.value; }; r.onchange = () => { s.retroValues = s.retroValues||{}; s.retroValues[r.dataset.retro] = +r.value; saveNow(); $('#retroRadar').innerHTML = radar(axes,[{vals:S.valueOrder.map(id=>cur[id]??0),color:'var(--faint)',dashed:true},{vals:S.valueOrder.map(id=>s.retroValues?.[id]??0),color:s.hue}],{size:320}) + `<div class="legend" style="justify-content:center"><span style="--c:${s.hue}">this stage</span><span style="--c:var(--faint)">today, ghosted</span></div>`; }; });
   $('#addSong').onclick = () => { s.soundtrack = s.soundtrack||[]; s.soundtrack.push({t:''}); saveNow(); rerender(); };

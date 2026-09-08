@@ -122,6 +122,22 @@ function gentlePrompt(){
   const sps = lastDays(14).map(d=>S.checkins[d]?.setpoint).filter(Boolean); if(sps.length>5){ const m = avg(sps); if(m<15) ps.push(`Your emotional set-point has been around <em>${hicksName(m).split(' / ')[0]}</em> for two weeks. Abraham says: you can't jump to Joy, but can you reach for <em>${hicksName(m+2).split(' / ')[0]}</em> today?`); }
   const revisit = S.entries.filter(e=>e.type==='synchronicity' && e.extra?.revisit); if(revisit.length) ps.push(`A synchronicity you flagged to revisit: <em>${esc(revisit[Math.floor(Math.random()*revisit.length)].title)}</em>. Does it make more sense now?`);
   const q = S.entries.filter(e=>e.type==='question' && !(e.extra?.answers||[]).length); if(q.length) ps.push(`An open question you're living with: <em>${esc(q[Math.floor(Math.random()*q.length)].title)}</em>`);
+  /* a foundation under 40 is the most useful thing the instrument can say */
+  if(typeof maslowScores === 'function'){
+    const weak = maslowScores().filter(m => m.effectiveScore != null && m.effectiveScore < 40)
+      .sort((a,b) => a.effectiveScore - b.effectiveScore)[0];
+    if(weak){
+      const p = S.position?.history || [];
+      const twice = p.slice(-2).length === 2 && p.slice(-2).every(h => ((h.levels||[]).find(l => l.key === weak.key)||{}).effectiveScore < 40);
+      ps.push(`Your ${weak.name} level ${twice ? 'has been below 40 for two check-ins' : `is at ${weak.effectiveScore}`}. Fritz says structural tension needs an accurate picture of current reality — so: ${weak.ask}`);
+    }
+  }
+  /* a pattern you said you were releasing, still showing up */
+  if(S.spiral?.indicators?.length){
+    const held = S.spiral.indicators.filter(x => x.direction === 'releasing' && x.strength >= 4 && x.text.trim());
+    if(held.length){ const x = held[Math.floor(Math.random()*held.length)];
+      ps.push(`You flagged <em>${esc(x.text)}</em> as a pattern you are releasing, and rated it ${x.strength}/5. Is that still true today, or is that just this week?`); }
+  }
   const generic = ["What are you afraid to want?","What did you learn this week that surprised you?","What is one thing you're avoiding?","What self-image are you acting out today — and is it the one you chose?","Maltz says: <em>“If you can remember, worry, or tie your shoe, you can succeed.”</em> What are you worrying about that could be redirected into positive visualization?","Fritz asks: What result do you want to create? And what is the current reality? Hold both. The tension will resolve.","Loehr asks: which energy dimension did you not renew today?","Leonard asks: where is your plateau right now, and can you love it?","Which value did today's choices actually serve?"];
   const pool = ps.length ? ps.concat(generic.slice(0,2)) : generic;
   const idx = (parseInt(today().replace(/-/g,''),10) + (S._promptShift||0)) % pool.length;

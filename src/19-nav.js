@@ -15,6 +15,8 @@ const NAV_ICONS = {
   vision:   '<svg viewBox="0 0 24 24"><path d="M12 21v-6"/><path d="M12 15c-3.9 0-6.5-2.3-6.5-5.4 0-1.6.8-3 2.1-3.8C8 3.6 9.8 2.5 12 2.5s4 1.1 4.4 3.3c1.3.8 2.1 2.2 2.1 3.8 0 3.1-2.6 5.4-6.5 5.4Z"/></svg>',
   timeline: '<svg viewBox="0 0 24 24"><path d="M7 3.5h10M7 20.5h10"/><path d="M8.5 3.5v2.8c0 2.3 3.5 3.6 3.5 5.7s-3.5 3.4-3.5 5.7v2.8M15.5 3.5v2.8c0 2.3-3.5 3.6-3.5 5.7s3.5 3.4 3.5 5.7v2.8"/></svg>',
   settings: '<svg viewBox="0 0 24 24"><path d="M4 7.5h9M17 7.5h3M4 16.5h3M11 16.5h9"/><circle cx="15" cy="7.5" r="2"/><circle cx="9" cy="16.5" r="2"/></svg>',
+  spiral:   '<svg viewBox="0 0 24 24"><path d="M12 12a2.4 2.4 0 1 1 2.4 2.4A4.4 4.4 0 0 1 10 10a6.4 6.4 0 0 1 6.4-6.4"/><path d="M12 12a3.6 3.6 0 0 0-3.6 3.6A6.6 6.6 0 0 0 15 22.2"/></svg>',
+  needs:    '<svg viewBox="0 0 24 24"><path d="M12 3.5 21 20H3Z"/><path d="M7.6 12.5h8.8M9.5 8.5h5"/></svg>',
   more:     '<svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg>',
   reviews:  '<svg viewBox="0 0 24 24"><path d="M12 4.5a7.5 7.5 0 1 1-7.3 9.2"/><path d="M4.5 8.2 4.7 13l4.6-1.1"/><path d="M12 8.5v4l2.8 1.6"/></svg>',
   rhythm:   '<svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/><path d="M7.5 13h3.5v4H7.5z"/><path d="M13.5 13h3"/></svg>',
@@ -39,13 +41,15 @@ const NAV_PAGES = {
   commonplace:{label:'The Library',    short:'Library',  ico:NAV_ICONS.commonplace, route:'#/commonplace'},
   import:   {label:'Import Station',   short:'Import',   ico:NAV_ICONS.import,   route:'#/import'},
   values:   {label:'Values',           short:'Values',   ico:NAV_ICONS.values,   route:'#/values'},
+  needs:    {label:'Needs',            short:'Needs',    ico:NAV_ICONS.needs,    route:'#/needs'},
+  spiral:   {label:'Spiral',           short:'Spiral',   ico:NAV_ICONS.spiral,   route:'#/spiral'},
   skills:   {label:'Skill Tree',       short:'Skills',   ico:NAV_ICONS.skills,   route:'#/skills'},
   vision:   {label:'Vision',           short:'Vision',   ico:NAV_ICONS.vision,   route:'#/vision'},
   timeline: {label:'Timeline',         short:'Timeline', ico:NAV_ICONS.timeline, route:'#/timeline'},
 };
 const NAV_DEFAULT = {
   present:   ['today','lifetape','projects'],
-  becoming:  ['values','skills','vision'],
+  becoming:  ['values','needs','spiral','skills','vision'],
   story:     ['people','timeline','journals'],
   standalone:['commonplace','writing','finance','import'],
 };
@@ -97,6 +101,9 @@ function openNavOverlay(){
 NAV_PAGES.compass = {label:'Compass', short:'Compass', ico:NAV_ICONS.home, route:'#/compass'};
 
 /* ---------- Compass: life at a glance — today's focus, the living house, long-term panels ---------- */
+/* which level of the hierarchy each room mostly feeds — the annotation the
+   house carries, so the map and the pyramid are reading the same building */
+const HOUSE_LEVEL = {today:1, lifetape:1, finance:2, people:3, skills:4, projects:6, commonplace:5, journals:5, writing:4, values:7, needs:7, spiral:7, vision:7, timeline:5, import:5};
 const HOUSE_EDGES = [['vision','skills','visions require skills; skills serve visions'],['vision','values','visions serve values; unserved values are blind spots'],['timeline','values','retrospective readings fill the values history'],['timeline','vision','formative events inform what you now want'],['projects','skills','projects exercise skills'],['projects','vision','income streams advance financial visions'],['journals','timeline','memories become formative events'],['journals','vision','entries grow leaves'],['rituals','today','rituals fill today\'s rings'],['today','vision','signals surface neglected visions'],['today','values','the biggest values gap is a daily signal'],['library','journals','quotes are journal entries with a source']];
 function houseStats(){
   const T = today(); const n = navConfig();
@@ -113,6 +120,14 @@ function houseStats(){
     journals: {line:`${j7} entr${j7===1?'y':'ies'} this week`, ok:j7>0, cadence:'daily', tip:`${S.entries.length} entries across ${S.journals.length} journals`},
     projects: {line:`${active.length} active · ${nods7} nods / 7d`, ok:cold===0, cadence:'daily', tip:cold?`${cold} active project${cold>1?'s':''} without a nod this week`:'every active project nodded this week'},
     values:   {line:`snapshot ${snapDays===null?'never':snapDays===0?'today':snapDays+'d ago'}`, ok:snapDays!==null&&snapDays<=7, cadence:'weekly', tip:gaps[0]?`Biggest gap: ${gaps[0].name} (${gaps[0].gap>0?'+':''}${gaps[0].gap})`:''},
+    needs:    (()=>{ const ls = typeof maslowScores==='function' ? maslowScores().filter(m=>m.effectiveScore!=null) : [];
+      const weak = ls.length ? ls.reduce((a,b)=>b.effectiveScore<a.effectiveScore?b:a) : null;
+      return {line: weak ? `thinnest: ${weak.short.toLowerCase()} ${weak.effectiveScore}` : 'nothing read yet', ok: !weak || weak.effectiveScore>=40, cadence:'weekly',
+        tip: weak ? `Seven levels read off the rest of the house. ${weak.name} is the constraint on everything above it.` : 'Seven levels, read off everything else you log.'}; })(),
+    spiral:   (()=>{ const n = S.spiral?.indicators?.length || 0; const p = typeof spiralProgress==='function' ? spiralProgress() : null;
+      const pair = S.spiral?.currentPair;
+      return {line: n ? (p==null ? `${n} indicators, none rated` : `${Math.round(p*100)}% into ${(spiralMeta(pair.embodying)||[])[1]||''}`) : 'no indicators yet', ok:n>0, cadence:'monthly',
+        tip: pair ? `Releasing ${(spiralMeta(pair.releasing)||[])[1]}, embodying ${(spiralMeta(pair.embodying)||[])[1]}.` : ''}; })(),
     skills:   {line:`${hrs30.toFixed(0)}h / 30d${atro?` · ${atro} atrophying`:''}`, ok:atro===0, cadence:'monthly', tip:`${S.skills.filter(s=>!s.planned).length} skills held, ${S.skills.filter(s=>s.planned).length} planned${milestonesDueSoon(30).length?` · ${milestonesDueSoon(30).length} milestone${milestonesDueSoon(30).length>1?'s':''} within 30 days`:''}`},
     vision:   {line:`${vs.length} growing${wither?` · ${wither} withering`:''}`, ok:wither===0, cadence:'weekly', tip:vs.length?`Most vivid: ${[...vs].sort((a,b)=>b.score-a.score)[0].v.name}`:''},
     timeline: {line:`${memories} memories · ${S.stages.length} stages`, ok:true, cadence:'archival', tip:'The museum of the past. Formative events and the story you tell.'},
@@ -133,7 +148,7 @@ function houseSVG(st){
   HOUSE_EDGES.forEach(([a,b,label],i) => { if(!pos[a]||!pos[b]) return; const [x1,y1]=pos[a],[x2,y2]=pos[b]; const mx=(x1+x2)/2+(cx-(x1+x2)/2)*.25, my=(y1+y2)/2+(cy-(y1+y2)/2)*.25; g += `<path class="hedge" d="M${x1},${y1} Q${mx},${my} ${x2},${y2}" data-a="${a}" data-b="${b}" data-label="${esc(label)}"/>`; });
   g += `<circle cx="${cx}" cy="${cy}" r="30" fill="var(--surface-2)" stroke="var(--terra)" stroke-width="1.2"/><text x="${cx}" y="${cy-4}" text-anchor="middle" style="font-family:var(--han);font-size:22px;fill:var(--terra)">生</text><text x="${cx}" y="${cy+14}" text-anchor="middle" style="font-family:var(--mono);font-size:8px;fill:var(--faint)">${fmtDate(today(),'short').toUpperCase()}</text>`;
   keys.forEach(k => { const [x,y] = pos[k]; const s = st.stat[k]; const p = NAV_PAGES[k]; const r = s.cadence==='daily'?34:s.cadence==='weekly'?31:27;
-    g += `<g class="hnode ${s.cadence}" data-node="${k}" data-go="${p.route}" style="--zc:${zoneColor(k)}"><circle class="body" cx="${x}" cy="${y}" r="${r}" fill="color-mix(in srgb,${zoneColor(k)} ${s.cadence==='daily'?22:s.cadence==='weekly'?14:8}%,var(--surface))" stroke="${zoneColor(k)}" stroke-width="1.4" ${s.cadence==='monthly'||s.cadence==='archival'?'stroke-dasharray="4 3"':''} opacity="${s.cadence==='archival'?.7:1}"/><text x="${x}" y="${y+6}" text-anchor="middle" style="font-size:${r*.6}px">${p.ico}</text><circle cx="${x+r*.7}" cy="${y-r*.7}" r="5" fill="${s.ok?'var(--sage)':'var(--gold)'}" stroke="var(--surface)" stroke-width="1.5"/><text class="hl" x="${x}" y="${y+r+16}" text-anchor="middle">${esc(p.label)}</text><text class="hs" x="${x}" y="${y+r+28}" text-anchor="middle">${esc(s.line)}</text></g>`; });
+    g += `<g class="hnode ${s.cadence}" data-node="${k}" data-go="${p.route}" style="--zc:${zoneColor(k)}"><circle class="body" cx="${x}" cy="${y}" r="${r}" fill="color-mix(in srgb,${zoneColor(k)} ${s.cadence==='daily'?22:s.cadence==='weekly'?14:8}%,var(--surface))" stroke="${zoneColor(k)}" stroke-width="1.4" ${s.cadence==='monthly'||s.cadence==='archival'?'stroke-dasharray="4 3"':''} opacity="${s.cadence==='archival'?.7:1}"/><text x="${x}" y="${y+6}" text-anchor="middle" style="font-size:${r*.6}px">${p.ico}</text><circle cx="${x+r*.7}" cy="${y-r*.7}" r="5" fill="${s.ok?'var(--sage)':'var(--gold)'}" stroke="var(--surface)" stroke-width="1.5"/><text class="hl" x="${x}" y="${y+r+16}" text-anchor="middle">${esc(p.label)}</text><text class="hs" x="${x}" y="${y+r+28}" text-anchor="middle">${esc(s.line)}</text>${HOUSE_LEVEL[k]?`<text class="hs" x="${x}" y="${y+r+38}" text-anchor="middle" opacity=".55">L${HOUSE_LEVEL[k]} ${esc((MASLOW.find(m=>m.level===HOUSE_LEVEL[k])||{}).short||'')}</text>`:''}</g>`; });
   return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">${g}</svg>`;
 }
 /* ---------- the four zone cards on the Compass ----------
@@ -235,6 +250,8 @@ routes.compass = function(root){
 
     ${zoneCardsHTML()}
 
+    ${typeof positionHTML === 'function' ? positionHTML() : ''}
+
     <section class="section rv" style="margin-top:22px"><div class="row between"><span class="sc" style="margin:0">The house</span><span class="mono">● green tended · ● amber needs you · solid rings daily, dashed seasonal · hover to see what feeds what</span></div>
       <div class="house-wrap" id="houseWrap" style="margin-top:10px">${houseSVG(st)}<div class="htip" id="htip"></div></div></section>
 
@@ -253,6 +270,7 @@ routes.compass = function(root){
   const wrap = $('#houseWrap'), tip = $('#htip'); const showTip = (e, html) => { tip.innerHTML = html; tip.style.display='block'; const r = wrap.getBoundingClientRect(); tip.style.left = Math.min(e.clientX-r.left+14, r.width-290)+'px'; tip.style.top = (e.clientY-r.top+14)+'px'; };
   wrap.querySelectorAll('.hnode').forEach(nd => { nd.onmouseenter = e => { wrap.classList.add('hov'); nd.classList.add('hot'); wrap.querySelectorAll('.hedge').forEach(ed_ => { if(ed_.dataset.a===nd.dataset.node||ed_.dataset.b===nd.dataset.node){ ed_.classList.add('hot'); wrap.querySelector(`[data-node="${ed_.dataset.a}"]`)?.classList.add('hot'); wrap.querySelector(`[data-node="${ed_.dataset.b}"]`)?.classList.add('hot'); } }); const s = st.stat[nd.dataset.node]; showTip(e, `<b class="serif">${esc(NAV_PAGES[nd.dataset.node].label)}</b> · <span class="mono">${s.cadence}</span><br>${esc(s.line)}${s.tip?'<br>'+esc(s.tip):''}<br><span class="mono">click to open</span>`); }; nd.onmousemove = e => showTip(e, tip.innerHTML); nd.onmouseleave = () => { wrap.classList.remove('hov'); wrap.querySelectorAll('.hot').forEach(x=>x.classList.remove('hot')); tip.style.display='none'; }; });
   wrap.querySelectorAll('.hedge').forEach(ed_ => { ed_.onmouseenter = e => { ed_.classList.add('hot'); showTip(e, `<span class="mono">${esc(NAV_PAGES[ed_.dataset.a].label)} ↔ ${esc(NAV_PAGES[ed_.dataset.b].label)}</span><br>${esc(ed_.dataset.label)}`); }; ed_.onmousemove = e => showTip(e, tip.innerHTML); ed_.onmouseleave = () => { ed_.classList.remove('hot'); tip.style.display='none'; }; });
+  if(typeof bindPosition === 'function') bindPosition(root, () => rerender());
 };
 
 /* ---------- Settings: drag-and-drop zone editor ---------- */

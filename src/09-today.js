@@ -66,7 +66,7 @@ routes.today = function(root){
     ['t-theatre', 'theatre',  true],
     ['t-habits',  'habits',   true],
     ['t-reviews', 'reviews',  typeof reviewsDue === 'function' && reviewsDue(T).length > 0],
-    ['t-position','position', true],
+    ['t-ledger',  'ledger',   typeof ledgerStanzasHTML === 'function' && !!ledgerStanzasHTML({limit:4})],
     ['t-prompt',  'prompt',   true],
     ['t-add',     'quick add',true],
     ['t-tonight', 'tonight',  true],
@@ -91,7 +91,6 @@ routes.today = function(root){
     </nav>
 
     ${timeUseHTML(S._tuDay || T)}
-    ${maslowRowsHTML()}
 
     <!-- morning flow tracker -->
     <section class="section rv morning-flow" id="t-flow">
@@ -184,7 +183,8 @@ routes.today = function(root){
       <div class="card" style="margin-top:10px"><div class="prac-today">${pr.map(({v,p,done,doneThisWeek})=>`<button class="prac-chip ${done?'on':''}" data-practoday="${v.id}:${p.id}" style="--c:${v.color}"><span class="pc-tick">${done?'✓':'○'}</span><span class="pc-text">${esc(p.text)}</span><span class="pc-val mono">${esc(v.name)} · ${doneThisWeek}/${p.perWeek}</span></button>`).join('')}</div></div></section>` : ''}
     ${milestones.length ? `<section class="section rv"><span class="sc">Skill milestones within 30 days</span><div class="card" style="border-left:3px solid var(--ment)">${milestones.map(({skill,m,days})=>`<a href="#/skills/${skill.id}" class="row between" style="text-decoration:none;color:inherit;padding:8px 0;border-top:1px dashed var(--line);gap:12px"><span><b class="serif">${esc(skill.name)}</b> <span class="muted">→ ${esc(skillLevelLabel(skill,m.levelTarget))}</span></span><span class="status-pill ${days<0?'due':'ahead'}">${days<0?'⚠ ' + (-days) + 'd overdue':days===0?'today':'in ' + days + 'd'}</span></a>`).join('')}</div></section>` : ''}
 
-    <div id="t-position">${positionHTML()}</div>
+
+    ${typeof ledgerStanzasHTML === 'function' ? ledgerStanzasHTML({limit:4, title:'The life ledger'}) : ''}
 
     <!-- gentle prompt -->
     <section class="section rv" id="t-prompt"><span class="sc">A gentle prompt</span>
@@ -263,8 +263,7 @@ routes.today = function(root){
 
   const redraw = () => rerender();
   bindTimeUse(root, redraw);
-  bindPosition(root, redraw);
-  $('#maslowAll') && ($('#maslowAll').onclick = () => { S._maslowAll = !S._maslowAll; rerender(); });
+  if(typeof bindLedger === 'function') bindLedger(root);
 
   /* the night before */
   $('#planTomorrow') && ($('#planTomorrow').onclick = () => { if(typeof planMyDay === 'function') planMyDay(tomorrow); });
