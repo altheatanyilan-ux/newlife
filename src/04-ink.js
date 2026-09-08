@@ -97,3 +97,76 @@ function applyInk(){
     requestAnimationFrame(() => { document.documentElement.style.setProperty('--ink-par', String(Math.min(1600, window.scrollY))); ticking = false; });
   }, {passive:true});
 })();
+
+/* ============================================================
+   ONE PAINTING PER KIND OF ENTRY
+
+   Writing something down is not filing a record, and the box you
+   write it in should not look like a form. Every kind of entry
+   opens on a small painting of its own — drawn from the same
+   brush the rooms are drawn with, in the same monochrome — so a
+   dream and a decision do not arrive looking identical.
+
+   The vignettes are wide and short (a band across the top of the
+   modal), and they draw themselves in when the modal opens.
+   ============================================================ */
+const EI_W = 1200, EI_H = 300;
+/* each is a function of (u, r) exactly as a room's scene is, so every
+   primitive in 04-scenes.js is available to it */
+const ENTRY_INK = {
+  /* 憶 — what is behind you: ridges receding, geese leaving */
+  memory:        (u,r) => `${mountain(u, 300, 262, 620, 210, 'm1', {far:true})}${mountain(u, 760, 268, 520, 150, 'm2', {far:true})}
+    ${mistBand(u, 176, 46)}${geese(880, 74, 6, .9, 'yi')}${water(276, 60, 1140, 5, 'mem')}`,
+  lifeevent:     (u,r) => `${mountain(u, 600, 268, 660, 236, 'le')}${mistBand(u, 190, 42)}
+    ${pine(300, 268, .74, 'le-p')}${figure(880, 266, .82)}`,
+  /* 思 — thinking on paper: a table by the water, nobody at it yet */
+  reflection:    (u,r) => `${mistBand(u, 150, 54)}${mountain(u, 880, 258, 560, 150, 'rf', {far:true})}
+    ${pavilion(300, 262, .8)}${water(272, 60, 1140, 6, 'rf')}${bamboo(1040, 266, .7, 'rf-b')}`,
+  /* 夢 — the moon, and mist where the ground should be */
+  dream:         (u,r) => `${moonDisc(940, 92, 40)}${mistBand(u, 150, 66)}${mistBand(u, 214, 58, .8)}
+    ${mountain(u, 340, 268, 540, 176, 'dr', {far:true})}${water(278, 60, 1140, 4, 'dr')}`,
+  /* 謝 — a plum branch in flower, which is the whole of it */
+  gratitude:     (u,r) => `${mistBand(u, 176, 44)}${plumBranch(210, 250, 1.08, 'gr')}
+    ${mountain(u, 900, 268, 520, 132, 'gr2', {far:true})}`,
+  /* 緣 — two ridges meeting over one bridge */
+  synchronicity: (u,r) => `${mountain(u, 250, 268, 520, 198, 'sy1')}${mountain(u, 950, 268, 520, 198, 'sy2')}
+    ${mistBand(u, 196, 52)}${bridge(490, 244, 220, .9)}`,
+  /* 願 — the sun over an empty road */
+  manifestation: (u,r) => `${sunDisc(920, 96, 42)}${mountain(u, 420, 268, 620, 210, 'mf', {far:true})}
+    ${mistBand(u, 190, 46)}${ruyiCloud(260, 96, .9, 4)}`,
+  visualization: (u,r) => `${sunDisc(300, 92, 36)}${mistBand(u, 168, 58)}
+    ${mountain(u, 820, 268, 640, 214, 'vz')}${figure(300, 266, .9)}`,
+  /* 決 — one figure at a fork, the two ways drawn as ridges */
+  decision:      (u,r) => `${mountain(u, 330, 268, 470, 214, 'dc1')}${mountain(u, 900, 268, 470, 190, 'dc2')}
+    ${mistBand(u, 200, 44)}${figure(614, 266, .95, true)}`,
+  /* 問 — a lone pine on rock, and a great deal of unpainted paper */
+  question:      (u,r) => `${mistBand(u, 158, 62)}${pine(240, 266, .95, 'qn')}
+    ${mountain(u, 980, 268, 460, 120, 'qn2', {far:true})}`,
+  /* 進 — the road going up, and someone a long way along it */
+  progress:      (u,r) => `${mountain(u, 700, 268, 760, 246, 'pg')}${mistBand(u, 184, 44)}
+    <path d="M400,${EI_H} q40,-96 -14,-160" fill="none" stroke="${A}" stroke-width="2" opacity=".3" stroke-dasharray="10 13"/>
+    ${figure(392, 262, .8)}`,
+  nod:           (u,r) => `${mistBand(u, 178, 40)}${hut(320, 266, .78)}${bamboo(980, 266, .82, 'nd')}${water(276, 60, 1140, 4, 'nd')}`,
+  /* 書 — a letter is a boat you push out for someone later to catch */
+  letter:        (u,r) => `${mistBand(u, 162, 56)}${mountain(u, 880, 260, 560, 140, 'lt', {far:true})}
+    ${water(258, 60, 1140, 7, 'lt')}${boat(420, 250, .95)}`,
+  /* 言 — the scholar's table, borrowed for somebody else's words */
+  quote:         (u,r) => `${mistBand(u, 170, 46)}${pavilion(880, 264, .72)}${plumBranch(250, 246, .8, 'qt')}`,
+  artifact:      (u,r) => `${mistBand(u, 172, 48)}${hut(600, 266, .95)}${pine(220, 266, .7, 'af')}${pine(980, 266, .62, 'af2')}`,
+  uncategorized: (u,r) => `${mistBand(u, 170, 52)}${mountain(u, 600, 268, 700, 200, 'un', {far:true})}${water(276, 60, 1140, 5, 'un')}`,
+};
+const ENTRY_SEALS = {
+  memory:'憶', lifeevent:'事', reflection:'思', dream:'夢', gratitude:'謝', synchronicity:'緣',
+  manifestation:'願', visualization:'觀', decision:'決', question:'問', progress:'進',
+  nod:'點', letter:'書', quote:'言', artifact:'物', uncategorized:'記',
+};
+/* the band itself. `_scId` keeps the gradient ids unique, exactly as the rooms do. */
+function entryInkSVG(type){
+  const build = ENTRY_INK[type] || ENTRY_INK.uncategorized;
+  const u = 'e' + (++_scId) + '_';
+  const seal_ = ENTRY_SEALS[type] || ENTRY_SEALS.uncategorized;
+  return `<svg viewBox="0 0 ${EI_W} ${EI_H}" preserveAspectRatio="xMidYMax slice" class="entry-ink-svg" aria-hidden="true">
+    ${scDefs(u, A)}${build(u, mulberry32(hashSeed('entryink:' + type)))}
+    <text class="entry-ink-seal" x="${Math.round(EI_W * .855)}" y="76">${seal_}</text>
+  </svg>`;
+}

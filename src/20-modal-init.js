@@ -5,7 +5,11 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
   const existing = entryId ? byId(S.entries, entryId) : null;
   const e = existing ? JSON.parse(JSON.stringify(existing)) : {id:uid(),type,title,body:'',occurredAt:occurredAt||today(),createdAt:new Date().toISOString(),media:[],links:Object.assign({stages:[],substages:[],threads:[],values:[],visions:[],skills:[],projects:[],people:[]}, links),people:[],places:[],emotions:[],tags:[],confidence:'',extra:{}};
   const types = (allowedTypes && !existing) ? ENTRY_TYPES.filter(([t]) => allowedTypes.includes(t)) : ENTRY_TYPES;
-  const m = openModal(`<h2>${existing?'Edit entry':esc(heading || 'New '+typeName(e.type).toLowerCase())}</h2>
+  /* Writing something down is not filing a record. Every kind of entry opens
+     on a painting of its own, in the same brush the rooms are drawn with, so a
+     dream and a decision do not arrive looking identical. */
+  const m = openModal(`<div class="entry-ink" id="entryInk">${typeof entryInkSVG === 'function' ? entryInkSVG(e.type) : ''}</div>
+    <h2 class="entry-h">${existing?'Edit entry':esc(heading || 'New '+typeName(e.type).toLowerCase())}</h2>
     <div class="typerow" id="typeRow" ${types.length<=1?'hidden':''}>${types.map(([t,n,i])=>`<button class="${e.type===t?'on':''}" data-t="${t}">${i} ${n}</button>`).join('')}</div>
     <div class="stack">
       <input class="inp serif-lg" id="eTitle" placeholder="Title (optional)" value="${esc(e.title)}">
@@ -90,7 +94,13 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
     if(sp) sp.oninput = () => { const n = box.querySelector('#xSpName'); if(n) n.textContent = hicksName(+sp.value); };
   };
   renderExtra();
-  m.querySelectorAll('#typeRow button').forEach(b => b.onclick = () => { e.type = b.dataset.t; m.querySelectorAll('#typeRow button').forEach(y=>y.classList.toggle('on', y===b)); if(e.type==='nod'){ m.remove(); openNodModal(); return; } renderExtra(); m.querySelector('#tagField').hidden = !TAGGABLE.includes(e.type); });
+  /* the painting changes with the kind — it is the fastest way to see that the
+     click landed, and it re-draws itself rather than cutting */
+  const paintInk = () => { const box = m.querySelector('#entryInk'); if(!box || typeof entryInkSVG !== 'function') return;
+    box.classList.remove('drawn'); box.innerHTML = entryInkSVG(e.type);
+    requestAnimationFrame(() => box.classList.add('drawn')); };
+  paintInk();
+  m.querySelectorAll('#typeRow button').forEach(b => b.onclick = () => { e.type = b.dataset.t; m.querySelectorAll('#typeRow button').forEach(y=>y.classList.toggle('on', y===b)); if(e.type==='nod'){ m.remove(); openNodModal(); return; } renderExtra(); paintInk(); m.querySelector('#tagField').hidden = !TAGGABLE.includes(e.type); });
   const npBtn = m.querySelector('#eNewPerson');
   if(npBtn) npBtn.onclick = () => {
     const name = prompt('Who?'); if(!name || !name.trim()) return;

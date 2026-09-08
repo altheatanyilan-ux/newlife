@@ -164,6 +164,31 @@ const { chromium } = require('playwright');
   console.log('milestone rows are rows:', await page.evaluate(() => {
     const r = document.querySelector('.ms-line'); return !r || getComputedStyle(r).position !== 'absolute'; }));
 
+  /* 11. the entry modal: a painting per kind, and fields that are not boxes */
+  await page.evaluate(() => { location.hash='#/journals'; }); await page.waitForTimeout(700);
+  await page.mouse.move(4, 4);                       // hover reveals a field, so look at one nothing is over
+  await page.evaluate(() => openEntryModal({type:'dream'})); await page.waitForTimeout(700);
+  const modal = await page.evaluate(async () => {
+    const seals = {}, sizes = new Set();
+    for(const [t] of ENTRY_TYPES){ if(t === 'nod') continue;
+      const btn = document.querySelector(`#typeRow [data-t="${t}"]`); if(!btn) continue;
+      btn.click(); await new Promise(r => setTimeout(r, 40));
+      seals[t] = document.querySelector('.entry-ink-seal')?.textContent;
+      sizes.add(document.querySelector('.entry-ink-svg')?.innerHTML.length); }
+    document.activeElement && document.activeElement.blur();
+    await new Promise(r => setTimeout(r, 500));
+    const rest = getComputedStyle(document.querySelector('#eTitle'));
+    document.querySelector('#eBody').focus();
+    await new Promise(r => setTimeout(r, 500));
+    const lit = getComputedStyle(document.querySelector('#eBody'));
+    return {kinds: Object.keys(seals).length, seals: Object.values(seals).filter(Boolean).length,
+      distinctPaintings: sizes.size,
+      restInvisible: rest.backgroundColor === 'rgba(0, 0, 0, 0)' && rest.borderTopColor === 'rgba(0, 0, 0, 0)',
+      focusVisible: lit.backgroundColor !== 'rgba(0, 0, 0, 0)' && lit.borderTopColor !== 'rgba(0, 0, 0, 0)'};
+  });
+  console.log('entry modal:', JSON.stringify(modal));
+  await page.evaluate(() => document.querySelectorAll('.overlay').forEach(o => o.remove()));
+
   console.log('ERRORS:', errors.length); errors.slice(0,8).forEach(e => console.log('  ' + e));
   await browser.close();
 })();

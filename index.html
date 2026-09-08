@@ -306,10 +306,36 @@ html[data-motion="calm"] .rv{transform:translateY(12px)}
 .entry,.tile,.snap-row,.habit,.nod,.card,.values-list li,.versions .v,.jnav button,.formative,.value-field,.evidence-item,.tension,.thread-list .th,.ideas li,.songs li,.artifact{position:relative}
 .field{display:flex;flex-direction:column;gap:6px}
 .field label{font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:600}
-.inp,.ta,.sel{background:var(--surface-2);border:1px solid var(--line-2);border-radius:10px;padding:9px 12px;color:var(--text);width:100%;outline:none;transition:border-color .2s var(--ease),box-shadow .2s var(--ease)}
-.inp:focus,.ta:focus,.sel:focus{border-color:var(--page-accent);box-shadow:inset 0 1px 4px rgba(0,0,0,.25)}
+/* ---------- fields ----------
+   A field you are not editing is not a box. At rest an input is just its own
+   text on the page; the ground and the rule appear when you go near it, and
+   the accent lands when you are actually in it. This is the same idiom the
+   inline .ed editors already use, applied to every plain field in the house
+   so nothing reads as a form.
+
+   A field that is empty keeps a faint rule, because an empty invisible field
+   is a field nobody can find. */
+.inp,.ta,.sel{background:transparent;border:1px solid transparent;border-radius:10px;
+  padding:9px 12px;color:var(--text);width:100%;outline:none;
+  transition:background .22s cubic-bezier(.4,0,.2,1),border-color .22s cubic-bezier(.4,0,.2,1),box-shadow .22s cubic-bezier(.4,0,.2,1)}
+.inp:hover,.ta:hover,.sel:hover{background:color-mix(in srgb,var(--text) 4%,transparent);
+  border-color:color-mix(in srgb,var(--line-2) 70%,transparent)}
+.inp:placeholder-shown,.ta:placeholder-shown{border-bottom-color:color-mix(in srgb,var(--line-2) 55%,transparent)}
+.inp:focus,.ta:focus,.sel:focus{background:var(--surface-2);border-color:var(--page-accent);
+  box-shadow:inset 0 1px 4px rgba(0,0,0,.25)}
 .ta{min-height:96px;resize:vertical;line-height:1.6}
-.sel{appearance:none;cursor:pointer}
+/* a select has to keep saying it is a select, so it keeps a chevron at rest */
+.sel{appearance:none;cursor:pointer;padding-right:26px;
+  background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);
+  background-position:calc(100% - 14px) 50%,calc(100% - 9px) 50%;
+  background-size:5px 5px,5px 5px;background-repeat:no-repeat}
+.sel:hover,.sel:focus{background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%),
+  linear-gradient(color-mix(in srgb,var(--text) 4%,transparent),color-mix(in srgb,var(--text) 4%,transparent));
+  background-position:calc(100% - 14px) 50%,calc(100% - 9px) 50%,0 0;
+  background-size:5px 5px,5px 5px,100% 100%}
+.sel:focus{background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%),
+  linear-gradient(var(--surface-2),var(--surface-2))}
+@media (prefers-reduced-motion:reduce){.inp,.ta,.sel{transition:none}}
 .divider{height:1px;background:var(--line);margin:28px 0}
 .section{margin-top:44px}
 .section > .sc{margin-bottom:14px;display:block}
@@ -347,7 +373,8 @@ details .body{padding:4px 0 18px}
 /* Modal */
 .overlay{position:fixed;inset:0;background:rgba(10,8,6,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:100;display:flex;align-items:flex-start;justify-content:center;padding:6vh 20px;overflow-y:auto;animation:fadein .25s var(--ease)}
 @keyframes fadein{from{opacity:0}to{opacity:1}}
-.modal{background:var(--surface);border:1px solid var(--line-2);border-radius:18px;width:100%;max-width:560px;padding:28px 30px;box-shadow:var(--shadow);animation:rise .3s var(--ease);position:relative}
+.modal{background:var(--surface);border:1px solid var(--line-2);border-radius:18px;width:100%;max-width:560px;padding:28px 30px;box-shadow:var(--shadow);animation:modalIn .34s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden}
+@keyframes modalIn{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
 .modal.wide{max-width:760px}
 .modal.narrow{max-width:420px}
 @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
@@ -2602,6 +2629,40 @@ input[type="date"].dp-active{border-color:var(--page-accent);box-shadow:0 0 0 2p
 .plan-in::placeholder{font-family:var(--quote);font-style:italic;opacity:.5}
 .plan-in:focus{border-color:var(--page-accent)}
 @media (prefers-reduced-motion:reduce){.plan-in{transition:none}}
+
+/* ---------- the painting on an entry modal ----------
+   A band across the top, bleeding to the modal's own edges, that draws itself
+   in when the modal opens and again whenever the kind of entry changes. */
+.entry-ink{position:relative;height:150px;margin:-28px -30px 6px;overflow:hidden;
+  border-radius:18px 18px 0 0;background:color-mix(in srgb,var(--page-accent) 4%,transparent);
+  /* the painting fades out at the bottom and at both ends, so it is a wash
+     behind the words rather than a picture competing with them */
+  -webkit-mask-image:linear-gradient(180deg,#000 0%,#000 46%,rgba(0,0,0,.5) 80%,rgba(0,0,0,0) 100%),
+    linear-gradient(90deg,rgba(0,0,0,0) 0%,#000 12%,#000 88%,rgba(0,0,0,0) 100%);
+  -webkit-mask-composite:source-in;
+  mask-image:linear-gradient(180deg,#000 0%,#000 46%,rgba(0,0,0,.5) 80%,rgba(0,0,0,0) 100%),
+    linear-gradient(90deg,rgba(0,0,0,0) 0%,#000 12%,#000 88%,rgba(0,0,0,0) 100%);
+  mask-composite:intersect}
+.entry-ink-svg{display:block;width:100%;height:100%;opacity:0;
+  transition:opacity .55s cubic-bezier(.4,0,.2,1),transform .8s cubic-bezier(.4,0,.2,1);
+  transform:translateY(8px) scale(1.03)}
+.entry-ink.drawn .entry-ink-svg{opacity:.62;transform:none}
+/* the brushwork arrives stroke by stroke rather than all at once */
+.entry-ink-svg path{stroke-linecap:round}
+.entry-ink.drawn .entry-ink-svg > *{animation:inkIn .9s cubic-bezier(.4,0,.2,1) backwards}
+.entry-ink.drawn .entry-ink-svg > *:nth-child(2){animation-delay:.05s}
+.entry-ink.drawn .entry-ink-svg > *:nth-child(3){animation-delay:.12s}
+.entry-ink.drawn .entry-ink-svg > *:nth-child(4){animation-delay:.2s}
+.entry-ink.drawn .entry-ink-svg > *:nth-child(n+5){animation-delay:.28s}
+@keyframes inkIn{from{opacity:0}to{opacity:1}}
+.entry-ink-seal{font-family:var(--han);font-size:46px;fill:var(--page-accent);opacity:.4;
+  letter-spacing:.04em;text-anchor:middle}
+.entry-h{position:relative;margin-top:0}
+@media (max-width:600px){.entry-ink{height:104px;margin:-28px -22px 6px}}
+@media (prefers-reduced-motion:reduce){
+  .entry-ink-svg{transition:none;opacity:.62;transform:none}
+  .entry-ink.drawn .entry-ink-svg > *{animation:none}
+  .modal{animation:none}}
 </style>
 </head>
 <body>
@@ -3293,6 +3354,79 @@ function applyInk(){
     requestAnimationFrame(() => { document.documentElement.style.setProperty('--ink-par', String(Math.min(1600, window.scrollY))); ticking = false; });
   }, {passive:true});
 })();
+
+/* ============================================================
+   ONE PAINTING PER KIND OF ENTRY
+
+   Writing something down is not filing a record, and the box you
+   write it in should not look like a form. Every kind of entry
+   opens on a small painting of its own — drawn from the same
+   brush the rooms are drawn with, in the same monochrome — so a
+   dream and a decision do not arrive looking identical.
+
+   The vignettes are wide and short (a band across the top of the
+   modal), and they draw themselves in when the modal opens.
+   ============================================================ */
+const EI_W = 1200, EI_H = 300;
+/* each is a function of (u, r) exactly as a room's scene is, so every
+   primitive in 04-scenes.js is available to it */
+const ENTRY_INK = {
+  /* 憶 — what is behind you: ridges receding, geese leaving */
+  memory:        (u,r) => `${mountain(u, 300, 262, 620, 210, 'm1', {far:true})}${mountain(u, 760, 268, 520, 150, 'm2', {far:true})}
+    ${mistBand(u, 176, 46)}${geese(880, 74, 6, .9, 'yi')}${water(276, 60, 1140, 5, 'mem')}`,
+  lifeevent:     (u,r) => `${mountain(u, 600, 268, 660, 236, 'le')}${mistBand(u, 190, 42)}
+    ${pine(300, 268, .74, 'le-p')}${figure(880, 266, .82)}`,
+  /* 思 — thinking on paper: a table by the water, nobody at it yet */
+  reflection:    (u,r) => `${mistBand(u, 150, 54)}${mountain(u, 880, 258, 560, 150, 'rf', {far:true})}
+    ${pavilion(300, 262, .8)}${water(272, 60, 1140, 6, 'rf')}${bamboo(1040, 266, .7, 'rf-b')}`,
+  /* 夢 — the moon, and mist where the ground should be */
+  dream:         (u,r) => `${moonDisc(940, 92, 40)}${mistBand(u, 150, 66)}${mistBand(u, 214, 58, .8)}
+    ${mountain(u, 340, 268, 540, 176, 'dr', {far:true})}${water(278, 60, 1140, 4, 'dr')}`,
+  /* 謝 — a plum branch in flower, which is the whole of it */
+  gratitude:     (u,r) => `${mistBand(u, 176, 44)}${plumBranch(210, 250, 1.08, 'gr')}
+    ${mountain(u, 900, 268, 520, 132, 'gr2', {far:true})}`,
+  /* 緣 — two ridges meeting over one bridge */
+  synchronicity: (u,r) => `${mountain(u, 250, 268, 520, 198, 'sy1')}${mountain(u, 950, 268, 520, 198, 'sy2')}
+    ${mistBand(u, 196, 52)}${bridge(490, 244, 220, .9)}`,
+  /* 願 — the sun over an empty road */
+  manifestation: (u,r) => `${sunDisc(920, 96, 42)}${mountain(u, 420, 268, 620, 210, 'mf', {far:true})}
+    ${mistBand(u, 190, 46)}${ruyiCloud(260, 96, .9, 4)}`,
+  visualization: (u,r) => `${sunDisc(300, 92, 36)}${mistBand(u, 168, 58)}
+    ${mountain(u, 820, 268, 640, 214, 'vz')}${figure(300, 266, .9)}`,
+  /* 決 — one figure at a fork, the two ways drawn as ridges */
+  decision:      (u,r) => `${mountain(u, 330, 268, 470, 214, 'dc1')}${mountain(u, 900, 268, 470, 190, 'dc2')}
+    ${mistBand(u, 200, 44)}${figure(614, 266, .95, true)}`,
+  /* 問 — a lone pine on rock, and a great deal of unpainted paper */
+  question:      (u,r) => `${mistBand(u, 158, 62)}${pine(240, 266, .95, 'qn')}
+    ${mountain(u, 980, 268, 460, 120, 'qn2', {far:true})}`,
+  /* 進 — the road going up, and someone a long way along it */
+  progress:      (u,r) => `${mountain(u, 700, 268, 760, 246, 'pg')}${mistBand(u, 184, 44)}
+    <path d="M400,${EI_H} q40,-96 -14,-160" fill="none" stroke="${A}" stroke-width="2" opacity=".3" stroke-dasharray="10 13"/>
+    ${figure(392, 262, .8)}`,
+  nod:           (u,r) => `${mistBand(u, 178, 40)}${hut(320, 266, .78)}${bamboo(980, 266, .82, 'nd')}${water(276, 60, 1140, 4, 'nd')}`,
+  /* 書 — a letter is a boat you push out for someone later to catch */
+  letter:        (u,r) => `${mistBand(u, 162, 56)}${mountain(u, 880, 260, 560, 140, 'lt', {far:true})}
+    ${water(258, 60, 1140, 7, 'lt')}${boat(420, 250, .95)}`,
+  /* 言 — the scholar's table, borrowed for somebody else's words */
+  quote:         (u,r) => `${mistBand(u, 170, 46)}${pavilion(880, 264, .72)}${plumBranch(250, 246, .8, 'qt')}`,
+  artifact:      (u,r) => `${mistBand(u, 172, 48)}${hut(600, 266, .95)}${pine(220, 266, .7, 'af')}${pine(980, 266, .62, 'af2')}`,
+  uncategorized: (u,r) => `${mistBand(u, 170, 52)}${mountain(u, 600, 268, 700, 200, 'un', {far:true})}${water(276, 60, 1140, 5, 'un')}`,
+};
+const ENTRY_SEALS = {
+  memory:'憶', lifeevent:'事', reflection:'思', dream:'夢', gratitude:'謝', synchronicity:'緣',
+  manifestation:'願', visualization:'觀', decision:'決', question:'問', progress:'進',
+  nod:'點', letter:'書', quote:'言', artifact:'物', uncategorized:'記',
+};
+/* the band itself. `_scId` keeps the gradient ids unique, exactly as the rooms do. */
+function entryInkSVG(type){
+  const build = ENTRY_INK[type] || ENTRY_INK.uncategorized;
+  const u = 'e' + (++_scId) + '_';
+  const seal_ = ENTRY_SEALS[type] || ENTRY_SEALS.uncategorized;
+  return `<svg viewBox="0 0 ${EI_W} ${EI_H}" preserveAspectRatio="xMidYMax slice" class="entry-ink-svg" aria-hidden="true">
+    ${scDefs(u, A)}${build(u, mulberry32(hashSeed('entryink:' + type)))}
+    <text class="entry-ink-seal" x="${Math.round(EI_W * .855)}" y="76">${seal_}</text>
+  </svg>`;
+}
 
 /* ============================================================
    PAGE THEMES — cohesive but distinct
@@ -14318,7 +14452,11 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
   const existing = entryId ? byId(S.entries, entryId) : null;
   const e = existing ? JSON.parse(JSON.stringify(existing)) : {id:uid(),type,title,body:'',occurredAt:occurredAt||today(),createdAt:new Date().toISOString(),media:[],links:Object.assign({stages:[],substages:[],threads:[],values:[],visions:[],skills:[],projects:[],people:[]}, links),people:[],places:[],emotions:[],tags:[],confidence:'',extra:{}};
   const types = (allowedTypes && !existing) ? ENTRY_TYPES.filter(([t]) => allowedTypes.includes(t)) : ENTRY_TYPES;
-  const m = openModal(`<h2>${existing?'Edit entry':esc(heading || 'New '+typeName(e.type).toLowerCase())}</h2>
+  /* Writing something down is not filing a record. Every kind of entry opens
+     on a painting of its own, in the same brush the rooms are drawn with, so a
+     dream and a decision do not arrive looking identical. */
+  const m = openModal(`<div class="entry-ink" id="entryInk">${typeof entryInkSVG === 'function' ? entryInkSVG(e.type) : ''}</div>
+    <h2 class="entry-h">${existing?'Edit entry':esc(heading || 'New '+typeName(e.type).toLowerCase())}</h2>
     <div class="typerow" id="typeRow" ${types.length<=1?'hidden':''}>${types.map(([t,n,i])=>`<button class="${e.type===t?'on':''}" data-t="${t}">${i} ${n}</button>`).join('')}</div>
     <div class="stack">
       <input class="inp serif-lg" id="eTitle" placeholder="Title (optional)" value="${esc(e.title)}">
@@ -14403,7 +14541,13 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
     if(sp) sp.oninput = () => { const n = box.querySelector('#xSpName'); if(n) n.textContent = hicksName(+sp.value); };
   };
   renderExtra();
-  m.querySelectorAll('#typeRow button').forEach(b => b.onclick = () => { e.type = b.dataset.t; m.querySelectorAll('#typeRow button').forEach(y=>y.classList.toggle('on', y===b)); if(e.type==='nod'){ m.remove(); openNodModal(); return; } renderExtra(); m.querySelector('#tagField').hidden = !TAGGABLE.includes(e.type); });
+  /* the painting changes with the kind — it is the fastest way to see that the
+     click landed, and it re-draws itself rather than cutting */
+  const paintInk = () => { const box = m.querySelector('#entryInk'); if(!box || typeof entryInkSVG !== 'function') return;
+    box.classList.remove('drawn'); box.innerHTML = entryInkSVG(e.type);
+    requestAnimationFrame(() => box.classList.add('drawn')); };
+  paintInk();
+  m.querySelectorAll('#typeRow button').forEach(b => b.onclick = () => { e.type = b.dataset.t; m.querySelectorAll('#typeRow button').forEach(y=>y.classList.toggle('on', y===b)); if(e.type==='nod'){ m.remove(); openNodModal(); return; } renderExtra(); paintInk(); m.querySelector('#tagField').hidden = !TAGGABLE.includes(e.type); });
   const npBtn = m.querySelector('#eNewPerson');
   if(npBtn) npBtn.onclick = () => {
     const name = prompt('Who?'); if(!name || !name.trim()) return;
