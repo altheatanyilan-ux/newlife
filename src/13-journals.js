@@ -38,7 +38,6 @@ routes.journals = function(root, params){
   $('#jManage').onclick = () => manageJournalsModal();
   $('#jNew').onclick = () => { const m = openModal(`<h2>A new journal</h2><div class="field"><label>Name</label><input class="inp" id="jnName" placeholder="e.g. Field Notes"></div><div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary" id="jnSave">Create</button></div>`,'narrow'); m.querySelector('#jnSave').onclick = () => { const n = m.querySelector('#jnName').value.trim(); if(!n) return; const t = n.toLowerCase().replace(/[^a-z0-9]+/g,'-'); if(!S.journals.find(x=>x.type===t)){ S.journals.push({type:t,name:n}); ENTRY_TYPES.push([t,n,'▫']); saveNow(); } m.remove(); navigate('#/journals/'+t); }; };
   root.querySelectorAll('[data-dictsym]').forEach(b => b.onclick = () => { S._jq = b.dataset.dictsym; rerender(); });
-  root.querySelectorAll('[data-fruit]').forEach(b => b.onclick = () => { const e = byId(S.entries,b.dataset.fruit); const v = byId(S.visions,e.links.visions[0]); if(!v) return; v.evidence.push({date:today(),text:`Manifestation arrived: ${e.title}`}); saveNow(); toast(`Logged as evidence on <b>${esc(v.name)}</b>.`); navigate('#/vision/'+v.id); });
 };
 
 function deleteJournalType(t){

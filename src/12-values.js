@@ -7,9 +7,7 @@ routes.values = function(root){
     ...(S.values.length < 10 ? [{icon:'✦', label:'New value', desc:`The compass has ${S.values.length} of 10 points.`, run:()=>EntryActions.newValue()}] : [])]});
   const snaps = allSnapshotsWithRetro(); const latest = snaps.slice(-1)[0];
   const axes = S.valueOrder.map(id=>{ const v=byId(S.values,id); return {name:v.name, short:v.name.split(' ')[0], color:v.color}; });
-  const gaps = valueGaps(); const rd = valuesReading();
-  const servedBy = {}; S.valueOrder.forEach(id => servedBy[id] = S.visions.filter(v=>v.confidence!=='lived' && v.values.includes(id)));
-  const blind = S.valueOrder.filter(id => !servedBy[id].length);
+  const gaps = valueGaps();
   const cur = latest ? avg(S.valueOrder.map(id => latest.ratings[id] ?? 0)) : null;
   const prev = snaps.length > 1 ? avg(S.valueOrder.map(id => snaps[snaps.length-2].ratings[id] ?? 0)) : null;
   const drift = (cur !== null && prev !== null) ? Math.round(cur - prev) : null;
@@ -18,28 +16,22 @@ routes.values = function(root){
     <div class="page-head"><h1>Values</h1></div>
 
     ${S.valueOrder.length ? `
-    <!-- 1. the conclusion, before the evidence -->
-    <section class="reading-card rv">
-      <div class="sc">What this is telling you</div>
-      <div class="reading-body">${rd.map(line => `<p>${line}</p>`).join('')}</div>
-      <div class="row" style="margin-top:14px;gap:8px;flex-wrap:wrap"><button class="btn sm primary" id="takeSnap">Take a snapshot</button>${gaps[0] ? `<a class="btn sm ghost" href="#/value/${gaps[0].id}">open ${esc(gaps[0].name)}</a>` : ''}${blind.length ? `<a class="btn sm ghost" href="#/vision">give ${esc(byId(S.values,blind[0]).name)} a vision</a>` : ''}</div>
-    </section>
-
     <!-- 2. the four numbers worth knowing -->
     <div class="card rv" style="margin:22px 0"><div class="income-strip">
       <div><div class="k">congruence now</div><div class="num">${cur===null?'—':Math.round(cur)}</div><div class="mono">average across ${S.valueOrder.length} values</div></div>
       <div><div class="k">since last reading</div><div class="num" style="color:${drift===null?'var(--muted)':drift>2?'var(--sage)':drift<-2?'#c25b5b':'var(--muted)'}">${drift===null?'—':(drift>0?'+':'')+drift}</div><div class="mono">${drift===null?'need two readings':drift>2?'rising':drift<-2?'slipping':'steady'}</div></div>
       <div><div class="k">widest gap</div><div class="num" style="color:${gaps[0]?gaps[0].color:'var(--muted)'}">${gaps[0]?(gaps[0].gap>0?'+':'')+gaps[0].gap:'—'}</div><div class="mono">${gaps[0]?esc(gaps[0].name):''}</div></div>
       <div><div class="k">last reading</div><div class="num">${age===null?'—':age===0?'today':age+'d'}</div><div class="mono">${age===null?'never taken':age>14?'going stale':'fresh enough'}</div></div>
-    </div></div>
+    </div>
+    <div class="row" style="margin-top:14px;gap:8px;flex-wrap:wrap"><button class="btn sm primary" id="takeSnap">Take a snapshot</button>${gaps[0] ? `<a class="btn sm ghost" href="#/value/${gaps[0].id}">open ${esc(gaps[0].name)}</a>` : ''}</div></div>
 
     <!-- 3. one table that is priority, congruence, gap and trend at once -->
     <section class="section rv"><div class="row between"><span class="sc" style="margin:0">The compass</span><span class="mono">drag to re-rank · ${S.valueOrderHistory.length} re-rankings</span></div>
       <p class="muted" style="font-size:.85rem">Ranked by what you say matters. The bar is where your days actually are; the number on the right is the distance between the two.</p>
-      <ul class="compass-list" id="valuesList">${S.valueOrder.map((id,i)=>{ const v = byId(S.values,id); const c = valueCurrent(id); const g = gaps.find(x=>x.id===id); const hist = snaps.map(s=>s.ratings[id]??null); const bl = !servedBy[id].length;
+      <ul class="compass-list" id="valuesList">${S.valueOrder.map((id,i)=>{ const v = byId(S.values,id); const c = valueCurrent(id); const g = gaps.find(x=>x.id===id); const hist = snaps.map(s=>s.ratings[id]??null);
         return `<li draggable="true" data-vid="${id}" style="--c:${v.color}">
           <span class="rank">${i+1}</span>
-          <span class="nm"><a href="#/value/${id}">${esc(v.name)}</a>${bl?'<span class="mono blind-tag" title="no vision currently serves this value">blind spot</span>':''}</span>
+          <span class="nm"><a href="#/value/${id}">${esc(v.name)}</a></span>
           <span class="spark">${sparkline(hist,{h:26,min:0,max:100,color:v.color})}</span>
           <span class="bar"><i style="width:${c}%"></i></span>
           <span class="pct" data-tween="${c}">0</span>
@@ -56,9 +48,6 @@ routes.values = function(root){
         <div><span class="sc">Readings</span><div id="snapHistory" style="margin-top:10px"><div class="empty">Loading…</div></div></div>
       </div></section>` : ''}
 
-    <details class="section rv"><summary><span class="sc">Which visions serve which values</span></summary><div class="body">
-      <p class="muted" style="font-size:.85rem">A value that no vision serves is a structural blind spot: you say it matters, but nothing you are building is pointed at it.</p>
-      <div style="overflow-x:auto"><table class="matrix"><thead><tr><th></th>${S.visions.filter(v=>v.confidence!=='lived').map(v=>`<th class="rot">${esc(v.name)}</th>`).join('')}</tr></thead><tbody>${S.valueOrder.map(id=>{ const v=byId(S.values,id); const bl = !servedBy[id].length; return `<tr class="${bl?'blindrow':''}"><td style="text-align:left;color:${v.color}">${esc(v.name.split(' ')[0])}${bl?' <span class="mono">· blind spot</span>':''}</td>${S.visions.filter(x=>x.confidence!=='lived').map(x=>`<td class="${bl?'blind':''}">${x.values.includes(id)?'<i></i>':''}</td>`).join('')}</tr>`; }).join('')}</tbody></table></div></div></details>
     ` : `<div class="empty rv">The compass has no points yet. Add the handful of words you would want said about how you lived — five is plenty to start.</div>`}
   </div>`;
 
@@ -72,34 +61,9 @@ routes.values = function(root){
   }
 };
 /* ---------- the reading: what the numbers mean, in sentences ---------- */
-function valuesReading(){
-  const out = []; const snaps = allSnapshotsWithRetro(); const latest = snaps.slice(-1)[0]; const gaps = valueGaps();
-  if(!S.valueOrder.length) return ['Name a few values and this page will start telling you something.'];
-  if(!latest) return ['No reading yet. Score each value once — honestly, in about two minutes — and this space will tell you where your life and your values disagree.'];
-  const age = daysSince(latest.date);
-  const cur = avg(S.valueOrder.map(id => latest.ratings[id] ?? 0));
-  const prev = snaps.length > 1 ? avg(S.valueOrder.map(id => snaps[snaps.length-2].ratings[id] ?? 0)) : null;
-  const drift = prev === null ? null : cur - prev;
-  out.push(`Across ${S.valueOrder.length} values you are living at <b>${Math.round(cur)} out of 100</b>${drift===null ? ', your first reading — the number only starts meaning something on the second.' : drift > 2 ? `, up ${Math.round(drift)} since the last reading. Whatever you changed, keep doing it.` : drift < -2 ? `, down ${Math.round(Math.abs(drift))} since the last reading. Something is taking more than it gives.` : `, holding steady since the last reading.`}`);
-  const worst = gaps[0];
-  if(worst && worst.gap > 8) out.push(`The widest gap is <b>${esc(worst.name)}</b>: you rank it ${worst.rank}${['st','nd','rd'][worst.rank-1]||'th'} but live it at ${worst.congruence}. This is the one to spend a week on — not all of them.`);
-  else if(worst) out.push(`No value is badly out of step right now. That is rarer than it sounds; the work is to keep it that way rather than to fix something.`);
-  const low = [...gaps].sort((a,b)=>a.congruence-b.congruence)[0];
-  if(low && low.congruence < 35 && low.id !== worst?.id) out.push(`<b>${esc(low.name)}</b> is your lowest at ${low.congruence}, though you rank it ${low.rank}${['st','nd','rd'][low.rank-1]||'th'} — worth asking whether it is genuinely a lower priority, or just neglected.`);
-  if(snaps.length > 2){
-    const first = snaps[0]; const climbed = S.valueOrder.map(id => ({id, d:(latest.ratings[id]??0) - (first.ratings[id]??0)})).sort((a,b)=>b.d-a.d)[0];
-    if(climbed && climbed.d > 12) out.push(`Over the whole record, <b>${esc(byId(S.values,climbed.id).name)}</b> has climbed ${Math.round(climbed.d)} points. Something in how you arranged your life worked.`);
-  }
-  const blind = S.valueOrder.filter(id => !S.visions.some(v => v.confidence!=='lived' && v.values.includes(id)));
-  if(blind.length) out.push(`${blind.length === 1 ? 'One value has' : `${blind.length} values have`} nothing you are building pointed at ${blind.length===1?'it':'them'} — ${blind.slice(0,3).map(id=>esc(byId(S.values,id).name)).join(', ')}${blind.length>3?'…':''}. Either give ${blind.length===1?'it':'one of them'} a vision, or admit it ranks lower than you say.`);
-  if(age > 14) out.push(`Your last reading is <b>${age} days old</b>. Everything above is memory rather than measurement until you take a new one.`);
-  return out;
-}
-
 function deleteValue(v, node, after){
   requestDelete({label: v.name, node, after, remove: () => {
     const touched = S.entries.filter(e => (e.links?.values||[]).some(x => x.id === v.id)); const rl = snapshotLinks(touched); touched.forEach(e => e.links.values = e.links.values.filter(x => x.id !== v.id));
-    const vis = S.visions.filter(x => x.values.includes(v.id)); vis.forEach(x => x.values = x.values.filter(id => id !== v.id));
     const habits = S.habits.filter(h => (h.links?.values||[]).includes(v.id)); habits.forEach(h => h.links.values = h.links.values.filter(id => id !== v.id));
     const orderIdx = S.valueOrder.indexOf(v.id); S.valueOrderHistory.push({date: today(), order: [...S.valueOrder]}); S.valueOrder = S.valueOrder.filter(id => id !== v.id);
     const back = spliceOut(S.values, x => x.id === v.id);
@@ -114,15 +78,10 @@ function deltaHTML(cur, prev){ if(prev === undefined || prev === null) return '<
 async function openSnapshotModal(after, existing=null){
   let last = null; try { last = await lastSnapshotFromDB(); } catch(e){ last = latestSnapshot() || null; }   // the last snapshot, read from the database
   const ref = existing || last;
-  const base = {}, evidence = {};
-  S.valueOrder.forEach(id => {
-    const sug = existing ? null : suggestedCongruence(id);
-    evidence[id] = sug;
-    base[id] = sug ? sug.suggested : (ref ? (ref.ratings[id] ?? 50) : 50);
-  });
-  const anyEvidence = Object.values(evidence).some(Boolean);
-  const m = openModal(`<h2>${existing?'Edit snapshot':'Congruence snapshot'}</h2><p class="muted">${existing?`Taken ${fmtDate(existing.date,'med')}. Adjust a value to change it; notes stay editable below.`:`0–100 for each value. Not aspiration — where you actually are, this week.${last?` Sliders start where you left them on ${fmtDate(last.date,'med')}; move one and a note opens beneath it.`:''}${!existing && anyEvidence ? ' Where a value has weekly practices, the slider starts from what those weeks actually contained.' : ''}`}</p>${existing?`<div class="field" style="margin-bottom:10px"><label>Date</label><input class="inp" type="date" id="snapDate" value="${existing.date}"></div>`:''}
-    <div class="snapshot-form">${S.valueOrder.map(id=>{ const v=byId(S.values,id); return `<div class="sv-block" data-svb="${id}" style="--c:${v.color}"><div class="r"><span class="n" style="color:${v.color}">${esc(v.name)}</span><input type="range" class="slider" min="0" max="100" value="${base[id]}" data-sv="${id}" style="--c:${v.color}"><span class="mono" data-svl="${id}">${base[id]}</span></div>${evidence[id] ? `<div class="sv-evidence mono">practices say ${evidence[id].behavioural} · you last said ${evidence[id].previous} · starting at ${evidence[id].suggested}</div>` : ''}
+  const base = {};
+  S.valueOrder.forEach(id => { base[id] = ref ? (ref.ratings[id] ?? 50) : 50; });
+  const m = openModal(`<h2>${existing?'Edit snapshot':'Congruence snapshot'}</h2><p class="muted">${existing?`Taken ${fmtDate(existing.date,'med')}. Adjust a value to change it; notes stay editable below.`:`0–100 for each value. Not aspiration — where you actually are, this week.${last?` Sliders start where you left them on ${fmtDate(last.date,'med')}; move one and a note opens beneath it.`:''}`}</p>${existing?`<div class="field" style="margin-bottom:10px"><label>Date</label><input class="inp" type="date" id="snapDate" value="${existing.date}"></div>`:''}
+    <div class="snapshot-form">${S.valueOrder.map(id=>{ const v=byId(S.values,id); return `<div class="sv-block" data-svb="${id}" style="--c:${v.color}"><div class="r"><span class="n" style="color:${v.color}">${esc(v.name)}</span><input type="range" class="slider" min="0" max="100" value="${base[id]}" data-sv="${id}" style="--c:${v.color}"><span class="mono" data-svl="${id}">${base[id]}</span></div>
       <div class="sv-note" data-svn="${id}" style="height:0" aria-hidden="true"><textarea class="ta" rows="2" data-svt="${id}" placeholder="What's driving this score today?" disabled tabindex="-1">${esc(existing?.notes?.[id]||'')}</textarea></div></div>`; }).join('')}</div>
     <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary" id="snapSave">${existing?'Save changes':'Take snapshot'}</button></div>`);
   if(existing) Object.keys(existing.notes||{}).forEach(id => { const note = m.querySelector(`[data-svn="${id}"]`); if(note){ note.classList.add('open'); note.style.height='auto'; note.setAttribute('aria-hidden','false'); const ta = note.querySelector('textarea'); ta.disabled=false; ta.tabIndex=0; } });
@@ -182,27 +141,21 @@ routes.value = function(root, params){
     <div class="page-head" style="margin-top:20px"><div class="mono">value · ranked #${rank} of ${S.valueOrder.length}</div><h1 style="color:${v.color}">${ed(`values.#${v.id}.name`)}</h1><div class="row" style="margin-top:12px"><div class="bar" style="flex:1;--c:${v.color}"><i style="width:${cur}%"></i></div><span class="num" data-tween="${cur}" data-suffix="%">0</span></div></div>
     <div class="card rv">${sparkline(snaps.map(s=>s.ratings[v.id]??null),{h:60,min:0,max:100,color:v.color,dots:true,labels:snaps.map(s=>`${fmtDate(s.date,'med')}: ${s.ratings[v.id]??'–'}${s.note?' — '+s.note:''}`)})}<div class="row between mono"><span>${snaps[0]?fmtDate(snaps[0].date,'med'):''}</span><span>congruence over a lifetime</span><span>now</span></div></div>
     ${(() => { const n = typeof valueStageNote === 'function' ? valueStageNote(v) : ''; return n ? `<p class="val-stage-note">${esc(n)} <a href="#/spiral">the spiral →</a></p>` : ''; })()}
-    <section class="section rv" id="pracBox">${practicesHTML(v)}</section>
-    <section class="section rv"><div class="row between" style="align-items:center"><span class="sc" style="margin:0">What this looks like</span>${imageAddHTML('value', v.id)}</div>
-      <p class="muted" style="font-size:.85rem">Before you can argue for it. The first image becomes the ground this value's card is printed on.</p>
-      ${imageStripHTML('value', v.id)}</section>
     ${F('embody','How would I know if I embody this value?','Observable, behavioural indicators. Not aspirations — evidence.')}
     ${F('hundred','What takes me to 100%?','What does full congruence actually look like, day to day?')}
     ${F('motivation','How do I increase my positive motivation for this value?','Strategies, reminders, environments, people.')}
     ${F('counterfeit','What counterfeits this value?','The cheap imitation that feels like the value but isn\'t. This field prevents self-deception.')}
-    <section class="section rv"><span class="sc">Served by visions</span><p class="muted" style="font-size:.85rem">Click a vision to link or unlink it — this is the same list a vision's own page uses, so tagging works from either side.</p><div class="row deps">${S.visions.length ? S.visions.map(x=>`<span class="chip click ${x.values.includes(v.id)?'on':''}" style="--c:var(--sage)" data-valvision="${x.id}">🌿 ${esc(x.name)}</span>`).join('') : '<span class="empty">No visions yet — a structural blind spot.</span>'}</div></section>
     <section class="section rv"><div class="row between"><span class="sc">Evidence feed</span><span class="row"><button class="btn sm" data-pol="+">+ embodied</button><button class="btn sm" data-pol="-">− betrayed</button></span></div>
       ${es.map(e=>{ const pol = e.links.values.find(x=>x.id===v.id)?.pol||'+'; return `<div style="display:grid;grid-template-columns:28px 1fr;gap:8px"><span class="serif" style="font-size:1.5rem;color:${pol==='+'?'var(--sage)':'var(--rose)'};padding-top:14px">${pol==='+'?'+':'−'}</span>${entryCard(e)}</div>`; }).join('')||'<div class="empty">No entries tagged to this value yet.</div>'}</section>
     ${moreSection(`<div class="row" style="gap:20px"><div class="field"><label>Colour</label><input type="color" id="valColor" value="${v.color}" style="width:40px;height:28px;border:none;background:none;padding:0;cursor:pointer"></div></div>
-      <div class="danger-zone"><span>A compass point, not a tag. Deleting it unlinks entries, visions, and habits from it.</span><button class="btn sm ghost danger" id="delValue">Delete this value</button></div>`, 'More about this value')}
+      <div class="danger-zone"><span>A compass point, not a tag. Deleting it unlinks entries and habits from it.</span><button class="btn sm ghost danger" id="delValue">Delete this value</button></div>`, 'More about this value')}
   </div>`;
   root.querySelectorAll('[data-vfdel]').forEach(b => b.onclick = () => { const [k,i] = b.dataset.vfdel.split(':'); const h = v.fields[k][+i]; requestDelete({label: `Version from ${fmtDate(h.date,'med')}`, node: b.closest('.v'), remove: () => spliceOut(v.fields[k], x => x === h)}); });
   $('#delValue').onclick = () => deleteValue(v, null, () => navigate('#/values'));
   $('#valColor').onchange = e => { v.color = e.target.value; saveNow(); rerender(); };
   root.querySelectorAll('[data-vf]').forEach(b => b.onclick = () => { const k = b.dataset.vf; const latest = (v.fields[k]||[]).slice(-1)[0]; const m = openModal(`<h2>A new version</h2><textarea class="ta" id="vfText" style="min-height:160px">${esc(latest?.text||'')}</textarea><p class="faint" style="font-size:.78rem">The previous version is kept. Growth in self-understanding stays visible.</p><div class="row" style="justify-content:flex-end"><button class="btn primary" id="vfSave">Keep</button></div>`); m.querySelector('#vfSave').onclick = () => { const t = m.querySelector('#vfText').value.trim(); if(!t) return; v.fields[k] = v.fields[k]||[]; v.fields[k].push({date:today(),text:t}); saveNow(); m.remove(); rerender(); sound('save'); }; });
   root.querySelectorAll('[data-pol]').forEach(b => b.onclick = () => openEntryModal({type:'reflection', links:{values:[{id:v.id,pol:b.dataset.pol}]}}));
-  root.querySelectorAll('[data-valvision]').forEach(c => c.onclick = () => { const x = byId(S.visions, c.dataset.valvision); x.values = x.values.includes(v.id) ? x.values.filter(y=>y!==v.id) : [...x.values, v.id]; saveNow(); c.classList.toggle('on'); });
-  bindPractices(root); bindRecImages(root);
+
 };
 
 /* ============================================================
@@ -210,80 +163,6 @@ routes.value = function(root, params){
    A congruence score you invent from memory drifts. These are
    things you either did or did not do, and they give the score
    something to stand on: the snapshot arrives pre-filled with
-   what your weeks actually contained, and you adjust from there.
+   what you last said, and you adjust from there.
    ============================================================ */
-function migrateValuePractices(){
-  (S.values||[]).forEach(v => {
-    v.practices = Array.isArray(v.practices) ? v.practices : [];
-    v.practices.forEach(p => { p.log = Array.isArray(p.log) ? p.log : []; p.perWeek = +p.perWeek || 1; });
-  });
-}
 function isoWeek(d = today()){ const x = parseDay(d); const day = (x.getDay()+6)%7; x.setDate(x.getDate()-day+3); const first = new Date(x.getFullYear(),0,4); const n = 1 + Math.round(((x - first)/DAY - 3 + ((first.getDay()+6)%7))/7); return `${x.getFullYear()}-W${pad(n)}`; }
-function practiceDone(p, d = today()){ return (p.log||[]).includes(d); }
-function togglePractice(v, p, d = today()){ const i = (p.log||[]).indexOf(d); if(i >= 0) p.log.splice(i,1); else p.log.push(d); saveNow(); }
-function practiceWeekCount(p, weeksAgo = 0){
-  const start = addDays(weekStart(), -weeksAgo*7), end = addDays(start, 6);
-  return (p.log||[]).filter(d => d >= start && d <= end).length;
-}
-/* what the last four weeks actually contained, 0–100 */
-function behaviouralCongruence(v){
-  const ps = v.practices || []; if(!ps.length) return null;
-  const rates = [];
-  for(let w = 0; w < 4; w++){
-    const wanted = sum(ps.map(p => p.perWeek || 1));
-    const got = sum(ps.map(p => Math.min(practiceWeekCount(p, w), p.perWeek || 1)));
-    if(wanted) rates.push(got / wanted);
-  }
-  return rates.length ? Math.round(avg(rates) * 100) : null;
-}
-/* the number the snapshot starts from: evidence where there is some,
-   the last thing you said where there is not */
-function suggestedCongruence(id){
-  const v = byId(S.values, id); if(!v) return null;
-  const beh = behaviouralCongruence(v);
-  const last = valueCurrent(id);
-  if(beh === null) return null;
-  return {suggested: Math.round(beh * 0.65 + last * 0.35), behavioural: beh, previous: last};
-}
-function practicesHTML(v){
-  const T = today(); const week = lastDays(7).slice().reverse();
-  const beh = behaviouralCongruence(v);
-  return `<div class="row between"><span class="sc" style="margin:0">Weekly practices</span><button class="btn sm ghost" data-pracadd="${v.id}">＋ practice</button></div>
-    <p class="muted" style="font-size:.85rem">One to three small things that would make this value true in an ordinary week. Tick them as you go; the congruence score starts from what you actually did rather than from memory.</p>
-    ${beh !== null ? `<div class="row between prac-summary"><span>Your last four weeks say <b style="color:${v.color}">${beh}</b> out of 100.</span><span class="mono">you last said ${valueCurrent(v.id)}</span></div>` : ''}
-    ${(v.practices||[]).length ? `<div class="prac-list">${v.practices.map((p,i)=>`<div class="prac" data-prac="${p.id}">
-        <div class="prac-head"><span class="prac-text">${ed(`values.#${v.id}.practices.${i}.text`, {ph:'make something small'})}</span>
-          <span class="row" style="gap:6px"><span class="mono">${practiceWeekCount(p)}/${p.perWeek} this week</span>
-          <select class="sel prac-freq" data-pracfreq="${v.id}:${p.id}">${[1,2,3,4,5,6,7].map(n=>`<option value="${n}" ${p.perWeek===n?'selected':''}>${n}× / week</option>`).join('')}</select>
-          <button class="del-x inline" data-pracdel="${v.id}:${p.id}" title="remove practice">×</button></span></div>
-        <div class="prac-week">${week.map(d=>`<button class="pw ${practiceDone(p,d)?'on':''} ${d===T?'today':''}" data-practick="${v.id}:${p.id}:${d}" title="${fmtDate(d,'med')}"><span>${DOW[parseDay(d).getDay()][0]}</span></button>`).join('')}</div>
-      </div>`).join('')}</div>`
-      : `<div class="empty">No practices yet. “Make something small”, “call one person”, “walk without the phone” — the plainer the better.</div>`}`;
-}
-function bindPractices(root, after){
-  const redraw = after || rerender;
-  $$('[data-pracadd]', root).forEach(b => b.onclick = () => {
-    const v = byId(S.values, b.dataset.pracadd); v.practices = v.practices || [];
-    if(v.practices.length >= 3){ toast('Three is the ceiling on purpose. Replace one instead.'); return; }
-    v.practices.push({id:uid(), text:'', perWeek:1, log:[]}); saveNow(); redraw();
-    setTimeout(()=>{ const n = document.querySelectorAll('.prac-text .ed'); n.length && beginEdit(n[n.length-1]); }, 60);
-  });
-  $$('[data-practick]', root).forEach(b => b.onclick = () => {
-    const [vid, pid, d] = b.dataset.practick.split(':'); const v = byId(S.values, vid); const p = byId(v.practices, pid);
-    togglePractice(v, p, d); sound(practiceDone(p,d) ? 'success' : 'click'); redraw();
-  });
-  $$('[data-pracfreq]', root).forEach(sel => sel.onchange = () => { const [vid,pid] = sel.dataset.pracfreq.split(':'); byId(byId(S.values,vid).practices, pid).perWeek = +sel.value; saveNow(); redraw(); });
-  $$('[data-pracdel]', root).forEach(b => b.onclick = () => { const [vid,pid] = b.dataset.pracdel.split(':'); const v = byId(S.values, vid); const p = byId(v.practices, pid);
-    requestDelete({label:p.text || 'this practice', node:b.closest('.prac'), remove:()=>spliceOut(v.practices, x=>x.id===pid), after:redraw}); });
-}
-/* today's practices across every value, for the Today page */
-function practicesDueToday(){
-  const T = today(); const out = [];
-  (S.values||[]).forEach(v => (v.practices||[]).forEach(p => {
-    if(!p.text) return;
-    const doneThisWeek = practiceWeekCount(p);
-    if(doneThisWeek >= (p.perWeek||1) && !practiceDone(p,T)) return;   // already satisfied this week
-    out.push({v, p, done: practiceDone(p,T), doneThisWeek});
-  }));
-  return out;
-}

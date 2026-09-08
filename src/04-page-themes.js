@@ -25,7 +25,6 @@ const PAGE_THEMES = {
   spiral:   {name:'Spiral',       accent:['#c58a4e','#8a5a24'], ink:'#1a1816', gradient:['#b8763c','#7f916a'], mood:'directional, honest', motion:'calm',      glyph:'旋', icon:'🌀'},
   needs:    {name:'Needs',        accent:['#c9806a','#9a4f3a'], ink:'#1a1816', gradient:['#b96a54','#d9a98f'], mood:'structural, plain',  motion:'calm',      glyph:'需', icon:'🔺'},
   skills:   {name:'Skill Tree',   accent:['#3fae7a','#25835a'], ink:'#1a1816', gradient:['#2f9e6e','#2aa7a0'], mood:'growth, energy',         motion:'energetic', glyph:'技', icon:'🛠'},
-  vision:   {name:'Vision',  accent:['#7b7de3','#4d50b6'], ink:'#f6f4ff', gradient:['#4b4fb0','#8a5fc9'], mood:'expansive, dreamy',      motion:'calm',      glyph:'夢', icon:'🌳'},
   timeline: {name:'Timeline',       accent:['#cba85a','#96762a'], ink:'#1a1816', gradient:['#c9a55a','#8a6a4a'], mood:'nostalgic, warm',        motion:'calm',      glyph:'憶', icon:'⏳'},
   compass:  {name:'Compass',      accent:['#94a6b5','#5b7082'], ink:'#1a1816', gradient:['#8a9aa6','#6c8299'], mood:'analytical, clear',      motion:'calm',      glyph:'家', icon:'⌂'},
   lifetape: {name:'Life Tape',     accent:['#d99a6a','#a8623a'], ink:'#1a1816', gradient:['#c98a5e','#e3bf94'], mood:'present, ordered',       motion:'snappy',    glyph:'律', icon:'◷'},

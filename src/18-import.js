@@ -68,7 +68,6 @@ function impTitle(text, max = 80) {
    considered guess, so what lands is a whole record rather than a stub. */
 const IMP_DESTS = {
   entry:   ['Journal entry',    '✎',  'var(--rose)'],
-  vision:  ['Vision',           '🌿', 'var(--sage)'],
   skill:   ['Skill',            '◈',  'var(--ment)'],
   person:  ['Person',           '☺',  '#6b7f8e'],
   project: ['Project',          '🎨', 'var(--terra)'],
@@ -81,10 +80,6 @@ const IMP_DESTS = {
 /* [key, label, control, options-or-placeholder] */
 const IMP_FIELDS = {
   entry:   [],
-  vision:  [['futureMemory','The future memory','ta','Written as though it already happened.'],
-            ['firstHour','The first hour of having it','ta','What the senses meet.'],
-            ['nextAction','Nearest next action','txt','The smallest real move.'],
-            ['confidence','Confidence','sel','hunch,seeding,growing,living']],
   skill:   [['cat','Category','txt','craft, language, body…'],
             ['why','Why this one','ta',''],
             ['horizon','Horizon','sel','focus,active,next,someday,paused'],
@@ -114,7 +109,6 @@ const impDestMeta = d => IMP_DESTS[d] || IMP_DESTS.entry;
 /* Without a key there is no rewriting, but the routing guess is still worth
    making — it saves the reclassifying by hand that the queue is there for. */
 const IMP_DEST_RULES = [
-  [/\b(i want to be|i want to have|one day i|my dream is|i see myself|by \d{4} i|i will have|someday i(?:'ll| will))\b/i, 'vision'],
   [/\b(learn(?:ing)?|practis|practice|get better at|master|study|become fluent|teach myself)\b/i, 'skill'],
   [/\b(read|reading|re-?read|watch(?:ed|ing)?|listen(?:ed|ing) to|finished the book|the film|podcast|album|documentary)\b/i, 'media'],
   [/\b(need to|have to|must|remember to|don'?t forget|todo|to-do|by (?:monday|tuesday|wednesday|thursday|friday|tomorrow|next week))\b/i, 'task'],
@@ -140,7 +134,6 @@ const IMP_SYSTEM = `You are the intake for someone's personal life-tracking inst
 
 The rooms:
 · entry   — a journal entry. Anything reflective, remembered, felt or noticed. Sub-types: reflection, gratitude, dream, memory, synchronicity, visualization, question, progress, interaction, snippet.
-· vision  — something they want to create or become; a wanted future.
 · skill   — a capability they are building or want to build.
 · person  — a human being who matters to them.
 · project — a concrete piece of work with an end.
@@ -160,7 +153,6 @@ REWRITING THE BODY — the part that matters:
 - Never make it more literary than they are. No moralising, no summarising back at them.
 
 The "fields" object, by room. Infer each as a considered best guess from the text; leave a value as "" only when you genuinely have nothing to go on:
-· vision:  {"futureMemory":<written as though it already happened>,"firstHour":<what the senses meet in the first hour of having it>,"nextAction":<the smallest real move>,"confidence":"hunch"|"seeding"|"growing"|"living"}
 · skill:   {"cat":<one category word>,"why":<why this one matters to them>,"horizon":"focus"|"active"|"next"|"someday"|"paused","beginnerDesc":<what the beginner level looks like>}
 · person:  {"relationship":<friend|mentor|sister|colleague|…>,"circle":"core"|"close"|"warm"|"orbit"|"aspirational","notes":<what matters about them>}
 · project: {"description":<what it is>,"nextAction":<the next move>}
@@ -242,19 +234,6 @@ const IMP_COMMIT = {
       links: emptyLinks(), people: [], places: [], emotions: [], tags: it.tags,
       confidence: '', extra: {}});
     return 'Journals';
-  },
-  vision(it){
-    S.visions.push({id: uid(), name: it.title, era: (typeof erasList === 'function' ? erasList()[0]?.id : '') || '',
-      parentId: null, status: 'pending', phase: 'in-progress', progress: 0, startedAt: today(), completedAt: '',
-      successCriteria: '', reflection: '', archived: false,
-      confidence: ['hunch','seeding','growing','living'].includes(impF(it,'confidence')) ? impF(it,'confidence') : 'hunch',
-      nextAction: impF(it, 'nextAction'),
-      sensory: {see:'', hear:'', smell:'', firstHour: impF(it,'firstHour'), who:'', noLonger:''},
-      futureMemory: impF(it, 'futureMemory') || it.body, futureMemoryHistory: [], costs: '',
-      currentReality: '', currentRealityHistory: [], resistance: [], preSkills: [], peopleNeeded: [],
-      selfImage: '', values: [], obituary: [], evidence: [], feeling: 0, targetDate: '', location: '',
-      money: '', createdAt: today()});
-    return 'the Vision Tree';
   },
   skill(it){
     const hz = ['focus','active','next','someday','paused'].includes(impF(it,'horizon')) ? impF(it,'horizon') : 'active';

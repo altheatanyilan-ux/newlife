@@ -63,8 +63,6 @@ function tapeItems(from, to){
   Object.entries(S.habitLog || {}).forEach(([d, log]) => { if(!inRange(d)) return;
     Object.entries(log || {}).forEach(([hid, v]) => { const h = byId(S.habits, hid); if(!h) return;
       out.push({date:d, kind:'habit', title:`${h.icon||''} ${h.name}`.trim(), body:v?.note || (v?.level === 'min' ? 'the minimum version' : ''), habit:h, level:v?.level, id:hid+':'+d}); }); });
-  (S.visions || []).forEach(v => (v.evidence || []).forEach((ev, i) => { const d = String(ev.date||'').slice(0,10); if(!inRange(d)) return;
-    out.push({date:d, kind:'evidence', title:v.name, body:ev.text || '', go:'#/vision/'+v.id, id:v.id+':ev'+i}); }));
   return out.sort((a,b) => a.date.localeCompare(b.date));
 }
 /* the filter bar, applied */
@@ -188,11 +186,6 @@ function tapePeriodSummaryHTML(from, to, items){
   const topVals = Object.entries(valCount).sort((a,b)=>b[1]-a[1]).slice(0,5)
     .map(([id,n]) => { const v = byId(S.values, id); return v ? {v, n} : null; }).filter(Boolean);
 
-  /* most-linked visions */
-  const visCount = {};
-  items.forEach(x => { if(x.entry) (x.entry.links?.visions||[]).forEach(vid => { visCount[vid] = (visCount[vid]||0)+1; }); });
-  const topVis = Object.entries(visCount).sort((a,b)=>b[1]-a[1]).slice(0,5)
-    .map(([id,n]) => { const v = byId(S.visions, id); return v ? {v, n} : null; }).filter(Boolean);
 
   /* set-point distribution bands */
   const spBands = [{lo:19,hi:22,label:'Thriving',c:'var(--gold)'},{lo:14,hi:18,label:'Positive',c:'var(--sage)'},{lo:8,hi:13,label:'Neutral',c:'var(--muted)'},{lo:1,hi:7,label:'Struggling',c:'var(--rose)'}];
@@ -221,17 +214,11 @@ function tapePeriodSummaryHTML(from, to, items){
         ${spDist.map(b => `<span class="chip" style="border:1px solid color-mix(in srgb,${b.c} 40%,var(--line));color:${b.c}">${esc(b.label)} <span class="mono" style="color:var(--muted)">${b.n}d</span></span>`).join('')}
       </div>
     </div>` : ''}
-    ${topVals.length || topVis.length ? `<div class="tape-links-summary rv" style="margin-top:10px">
+    ${topVals.length ? `<div class="tape-links-summary rv" style="margin-top:10px">
       ${topVals.length ? `<div style="margin-bottom:6px">
         <span class="sc" style="display:block;margin-bottom:4px">Top linked values</span>
         <div class="row" style="gap:5px;flex-wrap:wrap">
           ${topVals.map(({v,n}) => `<span class="chip on" style="--c:${v.color||'var(--muted)'}">${esc(v.name)} <span class="mono">×${n}</span></span>`).join('')}
-        </div>
-      </div>` : ''}
-      ${topVis.length ? `<div>
-        <span class="sc" style="display:block;margin-bottom:4px">Top linked visions</span>
-        <div class="row" style="gap:5px;flex-wrap:wrap">
-          ${topVis.map(({v,n}) => `<span class="chip on" style="--c:var(--ment)">${esc(v.name)} <span class="mono">×${n}</span></span>`).join('')}
         </div>
       </div>` : ''}
     </div>` : ''}
@@ -339,7 +326,7 @@ function tapeYearHTML(year){
 function tapeFilterHTML(){
   const t = tapeState();
   const dims = [...S.stages.map(s=>[s.id,s.char+' '+s.name]), ...S.threads.map(x=>[x.id,'thread · '+x.name]), ...S.values.map(v=>[v.id,'value · '+v.name]),
-                ...S.visions.map(v=>[v.id,'vision · '+v.name]), ...S.skills.map(s=>[s.id,'skill · '+s.name]), ...S.projects.map(p=>[p.id,'project · '+p.name]), ...(S.people||[]).map(p=>[p.id,'person · '+p.name])];
+                ...S.skills.map(s=>[s.id,'skill · '+s.name]), ...S.projects.map(p=>[p.id,'project · '+p.name]), ...(S.people||[]).map(p=>[p.id,'person · '+p.name])];
   return `<details class="tape-filters rv" ${tapeActive()?'open':''}><summary><span class="sc">Filter the tape</span>${tapeActive()?`<span class="mono">filtered</span>`:''}</summary><div class="body">
     <div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:8px">
       <input class="inp" id="ltq" placeholder="search everything written" value="${esc(t.q)}" style="flex:1;min-width:180px">

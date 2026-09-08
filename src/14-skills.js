@@ -357,7 +357,6 @@ function openSkillPanel(id){
       ${imageStripHTML('skill', s.id) || '<p class="faint" style="font-size:.8rem;margin:6px 0 0">Add an image and this skill\'s card is printed on it.</p>'}</div>
     <div class="vp-sec"><span class="sc">Prerequisites</span><div class="deps">${S.skills.filter(x=>x.id!==s.id).map(x=>`<span class="chip click ${s.prereqs.includes(x.id)?'on':''}" style="--c:${catColor(x.cat)}" data-pre="${x.id}">${esc(x.name)}</span>`).join('')}</div></div>
     <div class="vp-sec"><span class="sc">Cross-mappings</span>
-      <div class="k mono" style="margin:6px 0 4px">load-bearing for visions — what do I need to become to live that life? click to link</div><div class="deps">${S.visions.map(v=>`<span class="chip click ${v.preSkills.includes(s.id)?'on':''}" style="--c:var(--sage)" data-skvision="${v.id}">🌿 ${esc(v.name)}</span>`).join('')||'<span class="faint">no visions yet</span>'}</div>
       <div class="k mono" style="margin:10px 0 4px">linked projects — am I practising what I claim to build? click to link</div><div class="deps">${S.projects.map(pr=>`<span class="chip click ${(pr.linkedSkills||[]).includes(s.id)?'on':''}" style="--c:var(--terra)" data-skproj="${pr.id}">🎨 ${esc(pr.name)}</span>`).join('')||'<span class="faint">no projects yet</span>'}</div>
       <div class="k mono" style="margin:10px 0 4px">serves values</div><div class="deps">${Object.entries(values).map(([id,n])=>{ const v=byId(S.values,id); return v?`<span class="chip on click" style="--c:${v.color}" data-go="#/value/${id}">${esc(v.name)} · ${n}</span>`:''; }).join('')||'<span class="faint">tag values on progress entries</span>'}</div></div>
     <div class="vp-sec"><div class="row between"><span class="sc">Progress log</span><button class="btn sm" id="skLog">+ practice</button></div>${es.map(e=>entryCard(e)).join('')||'<div class="empty">No practice logged yet.</div>'}</div>
@@ -371,7 +370,6 @@ function openSkillPanel(id){
   bindLevelTrack(p, s);
   bindMilestones(p, s);
   p.querySelectorAll('[data-pre]').forEach(c => c.onclick = () => { const x = c.dataset.pre; s.prereqs = s.prereqs.includes(x) ? s.prereqs.filter(y=>y!==x) : [...s.prereqs,x]; saveNow(); c.classList.toggle('on'); rerender(); });
-  p.querySelectorAll('[data-skvision]').forEach(c => c.onclick = () => { const v = byId(S.visions, c.dataset.skvision); v.preSkills = v.preSkills.includes(s.id) ? v.preSkills.filter(x=>x!==s.id) : [...v.preSkills, s.id]; saveNow(); c.classList.toggle('on'); });
   p.querySelectorAll('[data-skproj]').forEach(c => c.onclick = () => { const pr = byId(S.projects, c.dataset.skproj); pr.linkedSkills = (pr.linkedSkills||[]).includes(s.id) ? pr.linkedSkills.filter(x=>x!==s.id) : [...(pr.linkedSkills||[]), s.id]; saveNow(); c.classList.toggle('on'); });
   p.querySelector('#skLog').onclick = () => openEntryModal({type:'progress', links:{skills:[s.id]}, after:()=>{ reopenPanel(() => { rerender(); openSkillPanel(id); }); }});
   p.querySelector('#skDel').onclick = () => deleteSkill(s, null, () => { closePanel(); rerender(); });

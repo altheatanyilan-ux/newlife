@@ -10,7 +10,12 @@ routes.settings = function(root){
       <div class="opt"><div><b>Felt time</b><div class="d">Default timeline mode: stretch dense stages, compress thin ones.</div></div><label class="toggle ${S.settings.feltTime?'on':''}" id="sFelt"><span>clock</span><span class="sw"></span><span>felt</span></label></div>
       <div class="opt"><div><b>Landing page</b><div class="d">Where the site opens.</div></div><select class="sel" style="width:auto" id="sHome">${[['compass','Compass'],['today','Today']].map(([v,l])=>`<option value="${v}" ${(S.settings.home||'compass')===v?'selected':''}>${l}</option>`).join('')}</select></div>
     </div>
-    <div class="card rv"><h3>Navigation zones</h3><p class="muted" style="font-size:.85rem">Drag pages between Present, Becoming, and Always. The sidebar and the mobile menu follow.</p>${zoneEditorHTML()}
+    <div class="card rv"><h3>Navigation zones</h3><p class="muted" style="font-size:.85rem">Drag pages between Becoming, Story and Always. Compass, Today and Journals sit above the zones, and the Writing Studio below them; those four stay where they are.</p>${zoneEditorHTML()}
+    </div>
+
+    <div class="card rv"><h3>Import station</h3>
+      <p class="muted" style="font-size:.85rem">Paste anything — a note, a voice memo transcript, a list — and it is read apart into entries, tasks, skills, projects and habits, each one shown to you before it is kept. It used to be its own room; it is a thing you do occasionally, so it lives here.</p>
+      <div class="row" style="gap:8px;flex-wrap:wrap"><a class="btn primary" href="#/import">Open the import station →</a></div>
     </div>
     <div class="card rv"><h3>Starter set</h3>
       <p class="muted" style="font-size:.85rem">A first draft of the house — goals, skills, projects, a compass, threads and open questions, written from the vision board you described rather than invented. It is stamped, so it comes out cleanly and takes nothing you have written with it. Where knowing your history would have been required, it leaves an empty room instead of a story.</p>
@@ -32,7 +37,7 @@ routes.settings = function(root){
         <p class="muted" style="font-size:.85rem;margin:0 0 10px">Tidying dictation and the pattern report work without a key, using rules and statistics computed in this page. Paste an <b>Anthropic API key</b> and both get a real language model instead. A Claude Pro or Max subscription cannot be used here — consumer subscriptions do not issue API credentials, and API usage is billed separately.</p>
         <div class="row" style="gap:8px"><input class="inp mono" id="aiKey" type="password" placeholder="sk-ant-…" value="${esc(aiKey())}" autocomplete="off" style="flex:1"><button class="btn sm" id="aiSave">Save</button>${aiKey()?'<button class="btn sm ghost" id="aiClear">Remove</button>':''}</div>
         <div class="faint" style="font-size:.74rem;margin-top:6px">Stored only in this browser's localStorage. It is never written into a backup file. <span id="aiState">${aiReady()?'Connected.':'Not connected — local mode.'}</span></div>
-        <div class="row" style="margin-top:8px"><button class="btn sm ghost" id="aiTest">Test the connection</button><a class="btn sm ghost" href="#/lifetape/patterns">Open the pattern report →</a></div>
+        <div class="row" style="margin-top:8px"><button class="btn sm ghost" id="aiTest">Test the connection</button><button class="btn sm ghost" id="openPatterns">Open the pattern report →</button></div>
       </div>
       <div class="field" style="margin:18px 0"><label>Atmosphere</label><div id="ambSettings">${ambientMenuHTML()}</div></div>
       <p class="mono">keyboard: N new entry · ⌘K or / search · ← → previous / next stage (Timeline) · Esc close</p>
@@ -59,6 +64,10 @@ routes.settings = function(root){
   if($('#ambSettings')) bindAmbientMenu($('#ambSettings'));
   if($('#aiSave')) $('#aiSave').onclick = () => { setAiKey($('#aiKey').value); toast(aiReady() ? 'Key saved in this browser.' : 'Key removed.'); rerender(); };
   if($('#aiClear')) $('#aiClear').onclick = () => { setAiKey(''); $('#aiKey').value = ''; toast('Key removed. Local mode.'); rerender(); };
+  if($('#openPatterns')) $('#openPatterns').onclick = () => {
+    const p = openPanel(`<div class="mono">patterns</div><h2>Patterns in the record</h2><div id="patBody"></div>`, 'patterns-panel');
+    renderPatterns(p.querySelector('#patBody'));
+  };
   if($('#aiTest')) $('#aiTest').onclick = async () => {
     const st = $('#aiState'); if(!aiReady()){ st.textContent = 'No key set — local mode works without one.'; return; }
     st.textContent = 'checking…';

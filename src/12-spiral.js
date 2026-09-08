@@ -400,3 +400,25 @@ function bindSpiralDrag(root){
       saveNow(); rerender(); });
   });
 }
+
+/* ---------- where a value sits on the spiral ----------
+   Not a classification of the person — a note that this particular value has
+   a natural home in the model, offered where the value is being thought about. */
+const SPIRAL_VALUE_HINTS = {
+  purple:    ['tradition','family','belong','roots','ancestor','loyal'],
+  red:       ['power','freedom','courage','autonom','strength','boldness'],
+  blue:      ['disciplin','duty','integrity','order','honour','faith','responsib'],
+  orange:    ['achiev','master','excellen','success','growth','ambition','independ'],
+  green:     ['connect','empath','communit','compassion','authentic','equal','care'],
+  yellow:    ['systems','understand','curios','truth','complexity','competence'],
+  turquoise: ['wholeness','awe','sacred','unity','service','stewardship'],
+};
+function valueStageNote(v){
+  const n = String(v?.name || '').toLowerCase(); if(!n) return '';
+  const hits = Object.entries(SPIRAL_VALUE_HINTS).filter(([, ws]) => ws.some(w => n.includes(w))).map(([k]) => k);
+  if(!hits.length) return '';
+  const names = hits.map(k => spiralMeta(k)?.[1]).filter(Boolean);
+  const pair = typeof spiralPair === 'function' ? spiralPair() : null;
+  const onPath = pair && hits.some(k => k === pair.embodying || k === pair.releasing);
+  return `In Spiral terms this value sits ${names.length > 1 ? `on the ${names.join('/')} boundary` : `with ${names[0]}`}${onPath ? ' — one of the two stages you are moving between' : ''}.`;
+}

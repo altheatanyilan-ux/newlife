@@ -6,95 +6,6 @@
    present — a silent no-op otherwise.
    ============================================================ */
 
-/* ---------- 1. New Vision — 5 steps ---------- */
-function guidedNewVision(pre = {}){
-  const _gd = {
-    name: pre.name || '', era: pre.era || (erasList()[0]?.id || ''), parentId: pre.parentId || null,
-    futureMemory: '', sensoryFirstHour: '', confidence: 'hunch', nextAction: '',
-  };
-  guidedFlow('New vision', [
-    {
-      title: 'What do you want to create or become?',
-      hint: 'A branch on your vision tree. Name it so the future you recognises it immediately.',
-      body: () => `
-        <div class="stack">
-          <input class="inp serif-lg" id="gvName" placeholder="e.g. Writing that earns — consistently" value="${esc(_gd.name)}">
-          <div class="grid c2" style="gap:10px">
-            <div class="field"><label>Era</label>
-              <select class="sel" id="gvEra">${erasList().map(e=>`<option value="${e.id}"${_gd.era===e.id?' selected':''}>${esc(e.name)}${e.subtitle?' — '+esc(e.subtitle):''}</option>`).join('')}</select>
-            </div>
-            <div class="field"><label>Forks from (optional)</label>
-              <select class="sel" id="gvParent"><option value="">the trunk</option>${S.visions.map(v=>`<option value="${v.id}"${_gd.parentId===v.id?' selected':''}>${esc(v.name)}</option>`).join('')}</select>
-            </div>
-          </div>
-        </div>`,
-      bind: body => setTimeout(() => body.querySelector('#gvName')?.focus(), 40),
-      next: body => {
-        _gd.name = body.querySelector('#gvName').value.trim();
-        _gd.era = body.querySelector('#gvEra').value;
-        _gd.parentId = body.querySelector('#gvParent').value || null;
-      },
-    },
-    {
-      title: 'The future memory.',
-      hint: 'Write it as if it already happened — past tense, fully lived. What does it feel like to have arrived?',
-      body: () => `<textarea class="ta" id="gvFm" rows="5" placeholder="I remember the morning I finished the manuscript and sent it off…">${esc(_gd.futureMemory)}</textarea>`,
-      bind: body => setTimeout(() => body.querySelector('#gvFm')?.focus(), 40),
-      next: body => { _gd.futureMemory = body.querySelector('#gvFm').value.trim(); },
-    },
-    {
-      title: 'The sensory field.',
-      hint: 'What does your first hour of that day feel like? Sight, sound, sensation. The nervous system is literal.',
-      body: () => `<textarea class="ta" id="gvSns" rows="4" placeholder="I wake up in the study at 6 am. The light is low gold…">${esc(_gd.sensoryFirstHour)}</textarea>`,
-      bind: body => setTimeout(() => body.querySelector('#gvSns')?.focus(), 40),
-      next: body => { _gd.sensoryFirstHour = body.querySelector('#gvSns').value.trim(); },
-    },
-    {
-      title: 'Confidence — how real does this feel?',
-      hint: 'Not aspiration. The honest gut reading, right now.',
-      body: () => `
-        <div class="row" style="gap:8px;flex-wrap:wrap">
-          ${[['hunch','💭','Hunch','a feeling, not a plan'],['seeding','🌱','Seeding','planted and tending it'],['growing','🌿','Growing','evidence is accumulating'],['living','🌳','Living',"it's happening"]].map(([k,ico,l,d])=>`
-          <button class="choice ${_gd.confidence===k?'on':''}" data-gvc="${k}" style="flex:1;min-width:120px">
-            <span class="ico">${ico}</span>
-            <span><b>${esc(l)}</b><div class="d">${esc(d)}</div></span>
-          </button>`).join('')}
-        </div>`,
-      bind: body => {
-        body.querySelectorAll('[data-gvc]').forEach(b => b.onclick = () => {
-          _gd.confidence = b.dataset.gvc;
-          body.querySelectorAll('[data-gvc]').forEach(x => x.classList.toggle('on', x === b));
-        });
-      },
-    },
-    {
-      title: 'The nearest next action.',
-      hint: 'One thing. Physical, specific, doable in under two hours.',
-      body: () => `<input class="inp" id="gvNxt" placeholder="e.g. Write the first 200 words of chapter one" value="${esc(_gd.nextAction)}">`,
-      bind: body => setTimeout(() => body.querySelector('#gvNxt')?.focus(), 40),
-      next: body => { _gd.nextAction = body.querySelector('#gvNxt').value.trim(); },
-    },
-  ], () => {
-    if(!_gd.name){ toast('A vision needs a name.'); return; }
-    const v = {
-      id: uid(), name: _gd.name, era: _gd.era, parentId: _gd.parentId || null,
-      status: 'pending', phase: 'in-progress', progress: 0, startedAt: today(), completedAt: '',
-      successCriteria: '', reflection: '', archived: false, confidence: _gd.confidence,
-      nextAction: _gd.nextAction,
-      sensory: {see:'', hear:'', smell:'', firstHour: _gd.sensoryFirstHour, who:'', noLonger:''},
-      futureMemory: _gd.futureMemory, futureMemoryHistory: [],
-      costs: '', currentReality: '', currentRealityHistory: [], resistance: [],
-      preSkills: [], peopleNeeded: [], selfImage: '', values: [], obituary: '', evidence: [],
-      feeling: 0, targetDate: '', location: '', money: '', createdAt: today(),
-    };
-    S.visions.push(v); saveNow(); sound('success');
-    if(currentRoute !== 'vision') navigate('#/vision'); else rerender();
-    setTimeout(() => openVisionPanel(v.id), currentRoute === 'vision' ? 0 : 400);
-    toast(`"${v.name}" planted on the Vision Tree.`);
-  });
-}
-
-/* ---------- 2. New Skill — 4 steps ---------- */
 function guidedNewSkill(pre = {}){
   const _gd = { name: pre.name || '', cat: SKILL_CATS[0], horizon: pre.horizon || 'active', why: '', beginnerDesc: '' };
   guidedFlow('New skill', [
@@ -350,22 +261,12 @@ function guidedNewStream(){
         _gd.currency = body.querySelector('#gnCur').value;
       },
     },
-    {
-      title: 'Which vision does this serve?',
-      hint: 'Optional — links this stream to a goal on the Vision Tree.',
-      body: () => `
-        <select class="sel" style="width:100%" id="gnVision">
-          <option value="">None for now</option>
-          ${S.visions.filter(v=>!v.archived).map(v=>`<option value="${v.id}">${esc(v.name)}</option>`).join('')}
-        </select>`,
-      next: body => { _gd.visionId = body.querySelector('#gnVision').value || null; },
-    },
   ], () => {
     if(!_gd.name){ toast('Give it a name.'); return; }
     const income = {
       model: '', current: _gd.current, target: 0, currency: _gd.currency,
       milestones: [], status: _gd.current > 0 ? 'earning' : 'idea',
-      hoursPerWeek: 0, visionId: _gd.visionId, peopleIds: [], revenueLog: [],
+      hoursPerWeek: 0, peopleIds: [], revenueLog: [],
     };
     S.incomeStreams.push({id: uid(), name: _gd.name, ...income});
     saveNow(); sound('success');

@@ -44,25 +44,6 @@ const { chromium } = require('playwright');
   }));
   console.log('sway:', JSON.stringify(moving));
 
-  await page.evaluate(() => { location.hash='#/vision'; });
-  await page.waitForTimeout(700);
-  await page.evaluate(() => { S._visionView='tree'; rerender(); });
-  await page.waitForTimeout(1400);
-  const vt = await page.evaluate(() => {
-    const w = document.querySelector('.tree-wrap'); const cs = getComputedStyle(w);
-    return { bgColor: cs.backgroundColor, border: cs.borderTopWidth,
-      leaves: document.querySelectorAll('.tree-wrap .leaf').length,
-      motes: document.querySelectorAll('.tree-wrap .tree-motes i').length };
-  });
-  console.log('vision tree:', JSON.stringify(vt));
-  const moving2 = await page.evaluate(() => new Promise(res => {
-    const ls = [...document.querySelectorAll('.tree-wrap .leaf')].slice(0, 6);
-    const a = ls.map(l => l.style.transform);
-    setTimeout(() => { const b = ls.map(l => l.style.transform);
-      res({changed: a.filter((x,i)=>x!==b[i]).length, distinct: new Set(b).size}); }, 700);
-  }));
-  console.log('vision sway:', JSON.stringify(moving2));
-
   // leaving the page must stop the loop
   await page.evaluate(() => { location.hash='#/today'; });
   await page.waitForTimeout(800);

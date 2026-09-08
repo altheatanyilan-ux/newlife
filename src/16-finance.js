@@ -30,13 +30,10 @@ function migrateIncomeShape(obj){
      of money and must not be reasoned about with the same arithmetic. */
   obj.earning = obj.earning === 'passive' ? 'passive' : 'active';
   obj.capital = +obj.capital || 0;
-  obj.visionId = obj.visionId || null;
   obj.peopleIds = Array.isArray(obj.peopleIds) ? obj.peopleIds : [];
   obj.revenueLog = Array.isArray(obj.revenueLog) ? obj.revenueLog : [];
   obj.links = normLinks(obj.links);
-  /* the older single-vision and people fields fold into the general links,
-     so a stream tagged before this change keeps what it had */
-  if(obj.visionId && !obj.links.visions.includes(obj.visionId)) obj.links.visions.push(obj.visionId);
+  /* the older single-person field folds into the general links */
   obj.peopleIds.forEach(pid => { if(!obj.links.people.includes(pid)) obj.links.people.push(pid); });
 }
 function migrateFinance(){

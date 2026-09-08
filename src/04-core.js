@@ -191,12 +191,17 @@ function consumeHashParam(bare){
 }
 function parseHash(){ const h = (location.hash||'').replace(/^#\/?/,''); const [name, ...rest] = h.split('/'); return {name: name || homeRoute(), params: rest.map(decodeURIComponent)}; }
 /* rooms that no longer exist, pointed at where their work went */
-const ROUTE_ALIASES = {home:'compass', rhythm:'lifetape', calendar:'lifetape', plan:'today', rituals:'lifetape/habits', reviews:'today', board:'vision'};
+/* rooms that no longer exist, pointed at where their work went */
+const ROUTE_ALIASES = {home:'compass', rhythm:'today', lifetape:'today', calendar:'today', plan:'today',
+  rituals:'today', reviews:'today', board:'compass', vision:'compass', needs:'compass'};
 function renderRoute(){
   /* page-scoped atmosphere flags do not survive a navigation */
-  document.documentElement.classList.remove('vision-deep');
+  
   let {name, params} = parseHash();
-  if(ROUTE_ALIASES[name] && !routes[name]){ const t = ROUTE_ALIASES[name]; navigate('#/' + t + (params[0] && !t.includes('/') ? '/' + params[0] : '')); return; }
+  /* An alias points a retired address at a room that still exists. The id in
+     the old address belonged to the retired room, so it is dropped rather than
+     handed to a page that would not know what to do with it. */
+  if(ROUTE_ALIASES[name] && !routes[name]){ navigate('#/' + ROUTE_ALIASES[name]); return; }
   markActiveNav(); applyPageTheme();
   const main = $('#main');
   const fn = routes[name] || routes.compass;
@@ -376,12 +381,15 @@ function readImages(files, cb){
   });
 }
 
-/* ---------- shared cross-tagging editor: values (±) / threads / visions / skills / projects ----------
+/* ---------- shared cross-tagging editor: values (±) / threads / skills / projects ----------
    Any object with a `.links` shape like an entry's can use this — the same chip
    grammar as "Connect this entry" in the universal Add modal, factored out so
    other rooms (the Library, the Writing Studio) can offer the same mutual
    tagging without re-deriving it. */
-const LINK_KINDS = ['stages','substages','threads','values','visions','skills','projects','people'];
+/* 'visions' is deliberately absent: the room is gone, so nothing new can be
+   tagged to one. normLinks only ever adds missing arrays, so a links object
+   written before this still carries its visions list untouched. */
+const LINK_KINDS = ['stages','substages','threads','values','skills','projects','people'];
 function emptyLinks(){ const o = {}; LINK_KINDS.forEach(k => o[k] = []); return o; }
 /* Makes any object safe for linksEditorHTML, whatever shape it arrived in. */
 function normLinks(links){ const o = links && typeof links === 'object' ? links : {}; LINK_KINDS.forEach(k => { if(!Array.isArray(o[k])) o[k] = []; }); return o; }
@@ -391,7 +399,6 @@ function linkedChipsHTML(links){
   const L = normLinks(links); const out = [];
   L.values.forEach(v => { const id = typeof v==='string'?v:v.id; const o = byId(S.values,id); if(o) out.push(`<span class="chip on" style="--c:${o.color}">${typeof v==='object'&&v.pol==='−'?'− ':''}${esc(o.name)}</span>`); });
   L.threads.forEach(id => { const o = byId(S.threads,id); if(o) out.push(`<span class="chip on" style="--c:${o.color}">${esc(o.name)}</span>`); });
-  L.visions.forEach(id => { const o = byId(S.visions,id); if(o) out.push(`<span class="chip on" style="--c:var(--sage)">🌿 ${esc(o.name)}</span>`); });
   L.skills.forEach(id => { const o = byId(S.skills,id); if(o) out.push(`<span class="chip on" style="--c:var(--ment)">${esc(o.name)}</span>`); });
   L.projects.forEach(id => { const o = byId(S.projects,id); if(o) out.push(`<span class="chip on" style="--c:var(--terra)">🎨 ${esc(o.name)}</span>`); });
   L.people.forEach(id => { const o = byId(S.people,id); if(o) out.push(`<span class="chip on" style="--c:var(--rose)">${esc(o.name)}</span>`); });
@@ -403,7 +410,6 @@ function linksEditorHTML(links, {legend=true, stages=false}={}){
     ${stages ? `<div class="field"><label>Life stage ${legend?'— which chapter of the Timeline was this consumed during?':''}</label><div class="deps">${S.stages.filter(s=>!s.notyet).map(s=>`<span class="chip click" style="--c:${s.hue}" data-lk="stages" data-id="${s.id}">${s.char} ${esc(s.name)}</span>`).join('') || '<span class="faint">no stages yet</span>'}</div></div>` : ''}
     <div class="field"><label>Values ${legend?'— click to link, click again to flip polarity, third click to unlink':''}</label><div class="deps">${S.valueOrder.map(id=>{ const v=byId(S.values,id); return `<span class="chip click" style="--c:${v.color}" data-lk="values" data-id="${v.id}"><span class="pol"></span>${esc(v.name)}</span>`; }).join('') || '<span class="faint">no values yet</span>'}</div></div>
     <div class="field"><label>Threads</label><div class="deps">${S.threads.map(t=>`<span class="chip click" style="--c:${t.color}" data-lk="threads" data-id="${t.id}">${esc(t.name)}</span>`).join('') || '<span class="faint">no threads yet</span>'}</div></div>
-    <div class="field"><label>Visions</label><div class="deps">${S.visions.map(v=>`<span class="chip click" style="--c:var(--sage)" data-lk="visions" data-id="${v.id}">🌿 ${esc(v.name)}</span>`).join('') || '<span class="faint">no visions yet</span>'}</div></div>
     <div class="field"><label>Skills</label><div class="deps">${S.skills.map(s=>`<span class="chip click" style="--c:var(--ment)" data-lk="skills" data-id="${s.id}">${esc(s.name)}</span>`).join('') || '<span class="faint">no skills yet</span>'}</div></div>
     <div class="field"><label>Projects</label><div class="deps">${S.projects.map(p=>`<span class="chip click" style="--c:var(--terra)" data-lk="projects" data-id="${p.id}">${esc(p.name)}</span>`).join('') || '<span class="faint">no projects yet</span>'}</div></div>`;
 }

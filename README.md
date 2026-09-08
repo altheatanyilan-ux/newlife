@@ -35,22 +35,19 @@ To restore your data on a new device: open this website in the same browser, go 
 
 ## Rooms
 
-The sidebar groups the rooms into three zones, by what each is for rather than by feature:
+The sidebar opens with the three rooms you are in daily — **Compass**, **Today**, **Journals** — and groups the rest by what each is for rather than by feature:
 
-- **Present** — what is happening now: Today, Life Tape, Projects
-- **Becoming** — long-term growth and identity: Values, Needs, Spiral, Skill Tree, Vision
-- **Story** — relationships, memory and meaning: People, Timeline, Journals
+- **Becoming** — long-term growth and identity: Values, Skill Tree, Projects, Finance, The Library, Spiral
+- **Story** — relationships and memory: People, Timeline
 
-Below a separator sit the utilities that belong to no zone: The Library, The Writing Studio, Finance, Import Station. Sidebar labels are the same names the pages carry as their titles, drawn with thin line icons. Zones collapse, the sidebar collapses to icons, and both states persist. On narrow screens a bottom bar shows the five most-used rooms and a More button opens the full grouped menu. Pages can be moved between zones by drag-and-drop in Settings.
+At the foot, always present, sit **The Writing Studio** and **Settings**. The Import Station has no room of its own; it is a section inside Settings. Sidebar labels are the same names the pages carry as their titles, drawn with thin line icons. Zones collapse, the sidebar collapses to icons, and both states persist. On narrow screens a bottom bar shows the five most-used rooms and a More button opens the full grouped menu. Pages can be moved between zones by drag-and-drop in Settings.
 
 The Compass opens with one summary card per zone — items still planned today and habits done, the next skill milestone and how long since a congruence reading, who is overdue for contact and when you last wrote, net worth and what is left in this month's envelopes — each card opening the room where you would act on it.
 
 | Route | Room |
 |---|---|
-| `#/compass` | Life at a glance: the week's shape (when each day opened and closed, and how the hours between split into claimed and wasted), the Life Ledger, the Life Position check-in (Maslow pyramid and stage resonance), the living house diagram of rooms with health dots, flows and the need each one feeds, and long-term panels with charts |
+| `#/compass` | Life at a glance: the week's shape (when each day opened and closed, and how the hours between split into claimed and wasted), the twelve-week habit trend, the Life Position check-in (Maslow pyramid and stage resonance), the living house diagram of rooms with health dots, flows and the need each one feeds, and long-term panels with charts |
 | `#/today` | The whole day, bracketed by its two ends — *I woke up at* under the date, *I went to sleep at* at the foot, both editable. Between them, every section folds and remembers whether it was open: the plan made last night, tasks, the check-in, the Morning Theatre, the habit checklist with **＋ add habit**, and any review whose cycle closes tonight. The three morning steps are ticks in the headers of the sections they belong to, each printing its own timestamp on that line. A sticky index at the top jumps to any of them |
-| `#/lifetape` | The record itself, in three tabs — **The tape** (everything dated, at day / week / month / year zoom, with filters), **Habits** (the grid, streaks, chains, 90-day heat and per-habit detail), **Patterns** (the true numbers first, then an optional reading of exactly those numbers) |
-| `#/needs` | Maslow as a diagnostic: seven levels in structural order, each scored from data logged elsewhere, the thinnest tier pulsing, per-input breakdowns, an override slider that keeps the auto score visible as a tick, a multi-line history, and the Life Ledger in full |
 | `#/spiral` | The movement between two stages: a releasing end and an embodying end, hand-written indicators rated on scales that run in opposite directions, a computed position with an interpretive line, traces of other stages, tagged evidence by polarity, and check-ins that freeze every strength |
 | `#/people` | A relationship garden: three concentric circles (Inner, Middle, Outer, with Dunbar-ish sizes) you can drag faces between, a contact cadence per person and who has drifted past it, interactions logged by kind, birthdays and follow-ups, and everything you have written about them |
 | `#/finance` | Not a ledger: the ways you make money (each active or passive, with the arithmetic that kind deserves — effective rate, hours to target and the ceiling those hours impose, or yield on capital, payback and money per upkeep hour), the gap against a life-cost scenario, what share of the life keeps running when you stop, runway, and life-cost scenarios as columns you can compare side by side |
@@ -59,12 +56,11 @@ The Compass opens with one summary card per zone — items still planned today a
 | `#/tag/:name` | Every entry carrying one hashtag |
 | `#/timeline` | Life stages on a spine (add a stage from the dashed tile at the end of the spine), felt-time toggle, thread ribbons, tensions |
 | `#/stage/:id` | Stage detail: versioned narrative, sub-stages (each printed on its own uploaded images), formative events, retrospective values, soundtrack, artifacts, letters |
-| `#/vision` | The lifeline read as a manuscript: decade chapters, each vision a passage with a confidence ladder and marginalia; a vision that carries images becomes a full-width chapter printed on them. A toggle swaps the manuscript for the tree, where every goal is a branch and vividness is the sap |
-| `#/values` | A written reading of what the numbers mean first, then four figures, one table that is priority, congruence, gap and trend at once, and the radar over time. Each value carries weekly practices; a snapshot starts from what those weeks contained |
+| `#/values` | Four figures, one table that is priority, congruence, gap and trend at once, and the radar over time. Each value opens onto what you embody, what a hundred-percent day looks like, what moves you and what counterfeits it, with the evidence feed underneath |
 | `#/journals` | Synchronicity, manifestation, reflections, gratitude, dreams, quotes, open questions, sealed letters and decisions |
 | `#/skills` | What you are practising now, milestones inside a window you choose, then the living tree: trunk, one branch per category, a twig per skill whose leaves grow with each level, gold fruit for mastery, blossoms when a milestone is near, brown falling leaves for atrophy, sap flowing on recently practised twigs, a sun by day and a moon at night; customisable levels (labels, descriptions, criteria, typed resources, estimated time), multi-target milestones on a timeline, atrophy, cross-mappings |
-| `#/projects` | Ideation mode — sparks and open questions, two columns of equal width — and Tracking mode. Tracking has three views: cards (priority, status, task ratio, target date), a kanban board with drag between status columns, and a Gantt timeline of phases; each project has phases with task checklists and quick capture, resources, linked skills and vision chapter, notes, nod heatmaps, income streams, and an idea inbox |
-| `#/settings` | Theme, ambient sound, felt time, landing page, export/import/clear |
+| `#/projects` | Ideation mode — sparks and open questions, two columns of equal width — and Tracking mode. Tracking has three views: cards (priority, status, task ratio, target date), a kanban board with drag between status columns, and a Gantt timeline of phases; each project has phases with task checklists and quick capture, resources, linked skills, notes, nod heatmaps, income streams, and an idea inbox |
+| `#/settings` | Theme, ambient sound, felt time, landing page, sidebar zones, the Import Station, export/import/clear |
 
 ## Page themes
 
@@ -75,16 +71,13 @@ Every room shares one design language but carries its own personality. The confi
 | Today | warm coral | coral → peach | snappy |
 | Journals | warm amber | amber → rose | calm |
 | Projects | slate blue | slate → sky | crisp |
-| Life Tape | sea teal | teal → sage | calm |
 | Writing | parchment | sand → oat | calm |
 | The Library | mulberry | plum → rose | calm |
 | People | dusty rose | rose → clay | calm |
 | Finance | moss | moss → sage | crisp |
-| Needs | clay | clay → sand | calm |
 | Spiral | ochre | ochre → sage | calm |
 | Values | soft purple | lavender → mauve | calm |
 | Skill Tree | emerald | emerald → teal | energetic (springy) |
-| Vision | deep indigo | indigo → violet | calm (floats, parallax) |
 | Timeline | dusty gold | gold → sepia | calm |
 | Compass | cool gray | gray → blue-gray | calm |
 
@@ -102,7 +95,7 @@ Two synthesised layers, nothing downloaded. Both are off by default and remember
 
 Every room has an ink landscape in the ambient layer, built from the vocabulary of the old shan shui (山水) painters: peaks that are shoulders and saddles rather than triangles, hemp-fibre texture strokes (皴) raked down the shaded face, mist that is simply the ink running out at the foot of the mountain, and the empty space (留白) doing as much work as the marks. Pines, bamboo, a plum branch in blossom, a pavilion with upswept eaves, a thatched hut, a plank bridge, one boat with one figure in it, a line of geese, a vertical inscription in the empty half of the picture, and a red seal in the corner.
 
-Each room gets its own composition: a hut under pines for the Compass, a boat on the river at first light for Today, rain over bamboo for Journals, the scholar's table for the Library, a pavilion by the water with the poem unwritten for Writing, a village stepping up the slope for Projects, sun and moon on the same arc for Habits, a still lake with the mountain in it twice for Reviews, one pine on a bare rock for Values (松柏 — what integrity looks like in this tradition), the grove for the Skill Tree, the road into the mountains for the Vision, ridge behind ridge for the Timeline, a plum-blossom calendar (九九消寒圖) for the Life Tape, the elegant gathering for People, terraced fields for Finance. They are drawn in each page's own accent at low opacity, with a soft vignette so text stays readable.
+Each room gets its own composition: a hut under pines for the Compass, a boat on the river at first light for Today, rain over bamboo for Journals, the scholar's table for the Library, a pavilion by the water with the poem unwritten for Writing, a village stepping up the slope for Projects, sun and moon on the same arc for Habits, a still lake with the mountain in it twice for Reviews, one pine on a bare rock for Values (松柏 — what integrity looks like in this tradition), the grove for the Skill Tree, ridge behind ridge for the Timeline, the elegant gathering for People, terraced fields for Finance. They are drawn in each page's own accent at low opacity, with a soft vignette so text stays readable.
 
 Pages about one record — a project, a skill, a stage, a value, a person, a media entry, a piece of writing — get a landscape generated from that record's id instead: how many ridges, where the summit falls, whether there is a boat on the water or a moon over it. No two look alike, and each looks the same every time you open it.
 
@@ -114,7 +107,7 @@ Tidy and the pattern report work in two modes. Without a key everything runs loc
 
 A Claude Pro or Max subscription — or a ChatGPT one — cannot be used for this. Consumer subscriptions do not issue API credentials; API access is a separate, pay-as-you-go product. The key is kept only in this browser's `localStorage` and is never written into a backup file.
 
-**Patterns in the record** (Life Tape → Patterns) always shows the true numbers first: entry cadence, recurring words and hashtags, values that have fallen or risen several readings in a row, overall state by half-period and by weekday, skills going cold, habits under 40%, and the people who recur. With a key, Claude is asked to interpret exactly those numbers and nothing else.
+**Patterns in the record** always shows the true numbers first: entry cadence, recurring words and hashtags, values that have fallen or risen several readings in a row, overall state by half-period and by weekday, skills going cold, habits under 40%, and the people who recur. With a key, Claude is asked to interpret exactly those numbers and nothing else.
 
 ## Letters, decisions and people
 
@@ -134,23 +127,23 @@ Substantive entries carry hashtags: type `#something` in the body, or use the fi
 
 There is no reviews hub to remember to visit. On the last day of each cycle — daily, weekly, monthly, quarterly, half-year, annual — the review surfaces on Today, carrying that period's own numbers with it: habits kept, tasks finished, entries written, and one figure showing entries a day as bars with habit completion drawn over them. Beside it, **ask Claude** builds a reading from the entries dated inside that period and nothing else, so a weekly review cannot quietly become a reading of the whole life. A cycle that ends unanswered stays visible for three days; *not tonight* is remembered against that period and not the next one.
 
-## Needs and the Spiral
+## Maslow and the Spiral
 
 Two developmental frames, kept honest by being read off things already logged rather than asked about in a quiz.
 
-**Needs** holds Maslow's seven levels in their structural order — not a ranking, a sequence. Each level's score is averaged from live readings elsewhere (sleep and physical habits, runway and the gap, contact recency, skill practice and writing, media resonance and reflection, creative nods and awe congruence, vividness and congruence and the Morning Theatre). A missing input is excluded, never zeroed. The thinnest tier pulses. Any level can be overridden with how it actually feels, and the divergence between the number and the feeling is kept, with a note. Below the pyramid the same seven levels are said as prose — the **Life Ledger** — weakest first and named as such, numbers inside sentences, sparklines on the baseline; a level scoring well whispers, one under 40 speaks. Four stanzas ride on Today.
+**Maslow's seven levels** are read in their structural order — not a ranking, a sequence — inside the Life Position panel on the Compass. Each level's score is averaged from live readings elsewhere (sleep and physical habits, runway and the gap, contact recency, skill practice and writing, media resonance and reflection, creative nods and awe congruence). A missing input is excluded, never zeroed. The thinnest tier is the one to act on, and each level points at the room where you would act on it.
 
-**Spiral** is directional. It holds two stages — one being released, one being embodied — and the concrete patterns on each side, written by hand and rated 1–5 on scales that deliberately run in opposite directions. The position is computed from the embodying side alone: letting go of the old stage is not the same achievement as living the new one. Traces record where another stage still shows up, and any entry can be tagged to a stage with a polarity to serve as evidence. Neither room seeds itself — the worked example is offered behind a button, because a room like this only works if the words in it are yours.
+**Spiral** is directional. It holds two stages — one being released, one being embodied — and the concrete patterns on each side, written by hand and rated 1–5 on scales that deliberately run in opposite directions. The position is computed from the embodying side alone: letting go of the old stage is not the same achievement as living the new one. Traces record where another stage still shows up, and any entry can be tagged to a stage with a polarity to serve as evidence. Spiral does not seed itself — the worked example is offered behind a button, because a room like this only works if the words in it are yours.
 
 ## The starter set
 
-The house opens with a first draft in it: four goals, seven skills, four projects with real phase checklists, a five-point compass, three narrative threads, a shelf of things to get to, some open questions and a handful of sparks. It is written from things the owner actually said — the vision board, the work in progress — rather than invented, and where writing it would have meant inventing a biography (life stages, people, memories, money) it leaves a named, empty room instead. **No habits and no habit log**, because a logged day is the one thing in here you cannot cleanly take back.
+The house opens with a first draft in it: seven skills, four projects with real phase checklists, a five-point compass, three narrative threads, a shelf of things to get to, some open questions and a handful of sparks. It is written from things the owner actually said — the work in progress — rather than invented, and where writing it would have meant inventing a biography (life stages, people, memories, money) it leaves a named, empty room instead. **No habits and no habit log**, because a logged day is the one thing in here you cannot cleanly take back.
 
 Every record it adds carries `seeded:'starter'`, so **Settings → Starter set → Take it out** removes all of it in one action and touches nothing you wrote yourself. It is offered only into a house that is still empty; if you have written anything, the button in Settings is the only way in. Applying it twice is a no-op — records are matched on a stable key.
 
 ## Starting empty
 
-Underneath the starter set the house is unfurnished: nothing is seeded except the journal categories and three neutral chapters on the Vision. Take the starter set out and every stage, value, skill, project and habit is yours from the first one.
+Underneath the starter set the house is unfurnished: nothing is seeded except the journal categories. Take the starter set out and every stage, value, skill, project and habit is yours from the first one.
 
 ## Keyboard
 

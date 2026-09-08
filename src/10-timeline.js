@@ -63,7 +63,6 @@ routes.timeline = function(root, params){
       </div>`).join('')}
       <div class="tile add-stage" id="addStage" tabindex="0" title="Add a life stage"><div class="fg"><div class="han">＋</div><div class="nm">add a stage</div><div class="tg">a chapter that spans years</div></div></div>
     </div></div>
-    <div class="tendril"><span>the seam between the past and the</span><span class="line"></span><a href="#/vision" style="color:var(--terra);text-decoration:none">Vision Tree →</a></div>
     <div class="ribbons" id="ribbons" ${S.settings.ribbons?'':'hidden'}></div><div class="ribbon-tip" id="ribTip"></div>
     <div id="tlBody"></div>
   </div>`;

@@ -281,7 +281,6 @@ function crossPollinationHTML(){
   return `<div class="stack" style="gap:14px">
     <div><span class="k mono">threads you write about most</span><div class="row" style="gap:6px;flex-wrap:wrap;margin-top:6px">${top(thTally, id=>byId(S.threads,id)?.name)}</div></div>
     <div><span class="k mono">values most present in your writing</span><div class="row" style="gap:6px;flex-wrap:wrap;margin-top:6px">${top(valTally, id=>byId(S.values,id)?.name)}</div></div>
-    <div><span class="k mono">visions your writing feeds</span><div class="row" style="gap:6px;flex-wrap:wrap;margin-top:6px">${top(visTally, id=>byId(S.visions,id)?.name)}</div></div>
     <div><span class="k mono">media that generated the most writing</span><div class="row" style="gap:6px;flex-wrap:wrap;margin-top:6px">${top(mediaTally, id=>byId(S.entries,id)?.title)}</div></div>
   </div>`;
 }

@@ -24,7 +24,6 @@ routes.today = function(root){
   const ready = lettersOpeningNow();
   const due = decisionsDue();
   const milestones = milestonesDueSoon(30);
-  const pr = practicesDueToday();
 
   /* opening the page is the wake signal; the daily rhythm owns the time now */
   if(!c.wakeAt){ c.wakeAt = new Date().toISOString(); saveNow(); }
@@ -191,15 +190,13 @@ routes.today = function(root){
       <div class="row" style="gap:6px;margin-top:12px;flex-wrap:wrap">
         <button class="btn sm primary" id="todayAddHabit">＋ add habit</button>
         ${S.habits.some(h => h.archived) ? '<button class="btn sm ghost" id="todayArchHabit">archived</button>' : ''}
-        <a class="btn sm ghost" href="#/lifetape/habits">the whole grid →</a>
+        <button class="btn sm ghost" id="todayHabitGrid">the whole grid →</button>
       </div>
     </div></details>
 
     ${typeof reviewsDueHTML === 'function' ? reviewsDueHTML(T) : ''}
 
     ${due.length ? `<section class="section rv"><div class="card"><div class="row between"><span class="sc" style="margin:0">Decisions ready to grade</span><a class="mono" href="#/journals/decision">all →</a></div>${due.map(e=>`<div class="row between" style="margin-top:8px"><span><b class="serif">${esc(e.title)}</b><div class="mono">${fmtDate((e.createdAt||'').slice(0,10),'med')}</div></span><button class="btn sm" data-dopen="${e.id}">Look back</button></div>`).join('')}</div></section>` : ''}
-    ${pr.length ? `<section class="section rv"><div class="row between"><span class="sc" style="margin:0">Today's practices</span><a class="mono" href="#/values">compass →</a></div>
-      <div class="card" style="margin-top:10px"><div class="prac-today">${pr.map(({v,p,done,doneThisWeek})=>`<button class="prac-chip ${done?'on':''}" data-practoday="${v.id}:${p.id}" style="--c:${v.color}"><span class="pc-tick">${done?'✓':'○'}</span><span class="pc-text">${esc(p.text)}</span><span class="pc-val mono">${esc(v.name)} · ${doneThisWeek}/${p.perWeek}</span></button>`).join('')}</div></div></section>` : ''}
     ${milestones.length ? `<section class="section rv"><span class="sc">Skill milestones within 30 days</span><div class="card" style="border-left:3px solid var(--ment)">${milestones.map(({skill,m,days})=>`<a href="#/skills/${skill.id}" class="row between" style="text-decoration:none;color:inherit;padding:8px 0;border-top:1px dashed var(--line);gap:12px"><span><b class="serif">${esc(skill.name)}</b> <span class="muted">→ ${esc(skillLevelLabel(skill,m.levelTarget))}</span></span><span class="status-pill ${days<0?'due':'ahead'}">${days<0?'⚠ ' + (-days) + 'd overdue':days===0?'today':'in ' + days + 'd'}</span></a>`).join('')}</div></section>` : ''}
 
 
@@ -259,6 +256,7 @@ routes.today = function(root){
   /* habits */
   $('#todayAddHabit') && ($('#todayAddHabit').onclick = () => openHabitModal());
   $('#todayArchHabit') && ($('#todayArchHabit').onclick = () => openArchivedHabits());
+  $('#todayHabitGrid') && ($('#todayHabitGrid').onclick = () => openHabitsPanel());
   if(typeof bindReviewsDue === 'function') bindReviewsDue(root);
 
   /* habits rings */
@@ -306,8 +304,6 @@ routes.today = function(root){
   bindSealedLetters(root);
   $$('[data-dopen]',root).forEach(b => b.onclick = () => openDecisionPanel(b.dataset.dopen));
 
-  /* practices */
-  $$('[data-practoday]',root).forEach(b => b.onclick = () => { const [vid,pid] = b.dataset.practoday.split(':'); const v = byId(S.values,vid); const p = byId(v.practices,pid); togglePractice(v,p); sound(practiceDone(p)?'success':'click'); rerender(); });
 
   reveal(root);
 };

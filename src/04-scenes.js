@@ -390,7 +390,7 @@ const PAGE_SCENES = {
     ${seal(1076, 132, 42, '藝')}`),
 
   /* the road into the mountains, and one traveller a long way up it */
-  vision: scene((u,r) => `${mountain(u, 640, 520, 900, 460, 'vs-peak')}
+  spiral: scene((u,r) => `${mountain(u, 640, 520, 900, 460, 'vs-peak')}
     ${mountain(u, 200, 600, 620, 300, 'vs-left', {far:true})}
     ${mountain(u, 1080, 620, 560, 340, 'vs-right', {far:true})}
     ${mistBand(u, 440, 90)}${mistBand(u, 570, 80, .8)}
@@ -451,11 +451,10 @@ const PAGE_SCENES = {
     ${seal(1090, 130, 40, '具')}`),
 };
 PAGE_SCENES.lifetape = PAGE_SCENES.rhythm;
-PAGE_SCENES.spiral   = PAGE_SCENES.values;
 PAGE_SCENES.needs    = PAGE_SCENES.values;
 PAGE_SCENES.compass  = PAGE_SCENES.home;
 PAGE_SCENES.plan     = PAGE_SCENES.rhythm;
-PAGE_SCENES.board    = PAGE_SCENES.vision;
+PAGE_SCENES.board    = PAGE_SCENES.compass;
 PAGE_SCENES.tag      = PAGE_SCENES.journals;
 PAGE_SCENES.habits   = PAGE_SCENES.rituals;
 PAGE_SCENES.review   = PAGE_SCENES.reviews;
@@ -495,7 +494,6 @@ function routeRecord(){
   switch(name){
     case 'stage':    return pick(S.stages, 'hue');
     case 'value':    return pick(S.values, 'color');
-    case 'vision':   return pick(S.visions);
     case 'skills':   { const s = byId(S.skills, id); return s ? {id, color: catColor(s.cat), name:s.name} : null; }
     case 'projects': return pick(S.projects);
     case 'writing':  { const w = byId(S.entries, id); return w ? {id, color:null, name:w.title} : null; }

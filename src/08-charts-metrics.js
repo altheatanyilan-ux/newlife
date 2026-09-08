@@ -43,6 +43,8 @@ const lastDays = n => Array.from({length:n},(_,i)=>addDays(today(), -(n-1-i)));
    METRICS — vividness, values, signals
    ============================================================ */
 function entriesLinked(kind, id){ return S.entries.filter(e => (e.links?.[kind]||[]).some(x => (typeof x==='string'?x:x.id)===id)); }
+/* used by the skill tree to blend a limb's colour along its length */
+function lerpColor(a,b,t){ const pa = a.match(/\w\w/g).map(x=>parseInt(x,16)), pb = b.match(/\w\w/g).map(x=>parseInt(x,16)); return '#' + pa.map((x,i)=>Math.round(x+(pb[i]-x)*t).toString(16).padStart(2,'0')).join(''); }
 function vividness(v){
   const leaves = entriesLinked('visions', v.id);
   const volume = clamp(leaves.length/12, 0, 1);
@@ -96,11 +98,7 @@ function rehearsalDoneToday(){ return S.rehearsal.days.includes(today()); }
 function rehearsalStreak(){ let n=0, d=today(); if(!S.rehearsal.days.includes(d)) d=addDays(d,-1); while(S.rehearsal.days.includes(d)){n++; d=addDays(d,-1);} return n; }
 function signals(){
   const out = [];
-  const vs = S.visions.filter(v=>v.confidence!=='lived').map(v=>({v, ...vividness(v)}));
-  if(vs.length){ const neg = [...vs].sort((a,b)=>a.score-b.score || b.lastTended-a.lastTended)[0]; out.push({k:'Most neglected vision', v:neg.v.name, d:`vividness ${neg.score} · last tended ${relDays(neg.lastTended)}`, go:'#/vision/'+neg.v.id}); }
   const gaps = valueGaps(); if(gaps.length) out.push({k:'Biggest values gap', v:gaps[0].name, d:`ranked #${gaps[0].rank}, congruence ${gaps[0].congruence}%`, go:'#/value/'+gaps[0].id});
-  const st = vs.map(x=>({v:x.v, t:structuralTension(x.v)})).filter(x=>x.t>0).sort((a,b)=>b.t-a.t).slice(0,3);
-  if(st.length) out.push({k:'Structural tension', v:st.map(x=>x.v.name).join(' · '), d:'greatest vision / reality discrepancy — the most creative energy available', go:'#/vision/'+st[0].v.id});
   const sk = S.skills.filter(s=>!s.planned).map(s=>({s, d:skillLastPracticed(s)})).sort((a,b)=>daysSince(b.d)-daysSince(a.d))[0];
   if(sk) out.push({k:'Longest-untouched skill', v:sk.s.name, d:`last practiced ${relDays(daysSince(sk.d))}`, go:'#/skills/'+sk.s.id});
   const pr = S.projects.filter(p=>p.status==='active').map(p=>({p, last:projectNods(p)[0]?.date})).sort((a,b)=>daysSince(b.last)-daysSince(a.last))[0];
@@ -117,7 +115,6 @@ function gentlePrompt(){
   const syncDays = sync.length ? daysSince(sync[0].createdAt.slice(0,10)) : 999;
   if(syncDays > 21) ps.push(`Your Synchronicity journal has been quiet for ${Math.round(syncDays/7)} weeks — noticed anything strange lately?`);
   const g = valueGaps()[0]; if(g) ps.push(`Your ${g.name} value is at ${g.congruence}%. What would 5% more ${g.name.toLowerCase()} look like this week?`);
-  S.visions.filter(v=>v.confidence!=='lived').forEach(v => { const {lastTended} = vividness(v); if(lastTended > 40) ps.push(`You haven't tended <em>${esc(v.name)}</em> in ${lastTended} days. Is it resting, or have you let it go?`); });
   const otd = onThisDay()[0]; if(otd) ps.push(`Last year on this day, you wrote: <em>“${esc((otd.body||otd.title).slice(0,120))}…”</em> Does it still feel true?`);
   const sps = lastDays(14).map(d=>S.checkins[d]?.setpoint).filter(Boolean); if(sps.length>5){ const m = avg(sps); if(m<15) ps.push(`Your emotional set-point has been around <em>${hicksName(m).split(' / ')[0]}</em> for two weeks. Abraham says: you can't jump to Joy, but can you reach for <em>${hicksName(m+2).split(' / ')[0]}</em> today?`); }
   const revisit = S.entries.filter(e=>e.type==='synchronicity' && e.extra?.revisit); if(revisit.length) ps.push(`A synchronicity you flagged to revisit: <em>${esc(revisit[Math.floor(Math.random()*revisit.length)].title)}</em>. Does it make more sense now?`);
@@ -152,7 +149,6 @@ function linkChips(e, {click=true}={}){
   (e.links?.stages||[]).forEach(id => { const s = byId(S.stages,id); if(s) out.push(`<span class="chip on ${click?'click':''}" style="--c:${s.hue}" data-go="#/stage/${s.id}"><span class="dot"></span>${s.char} ${esc(s.name)}</span>`); });
   (e.links?.threads||[]).forEach(id => { const t = byId(S.threads,id); if(t) out.push(`<span class="chip on ${click?'click':''}" style="--c:${t.color}" data-go="#/timeline/threads"><span class="dot"></span>${esc(t.name)}</span>`); });
   (e.links?.values||[]).forEach(x => { const v = byId(S.values,x.id); if(v) out.push(`<span class="chip on ${click?'click':''}" style="--c:${v.color}" data-go="#/value/${v.id}"><span class="pol">${x.pol||'+'}</span>${esc(v.name)}</span>`); });
-  (e.links?.visions||[]).forEach(id => { const v = byId(S.visions,id); if(v) out.push(`<span class="chip on ${click?'click':''}" style="--c:var(--sage)" data-go="#/vision/${v.id}">🌿 ${esc(v.name)}</span>`); });
   (e.links?.skills||[]).forEach(id => { const s = byId(S.skills,id); if(s) out.push(`<span class="chip on ${click?'click':''}" style="--c:var(--ment)" data-go="#/skills/${s.id}">🛠 ${esc(s.name)}</span>`); });
   (e.links?.projects||[]).forEach(id => { const p = byId(S.projects,id); if(p) out.push(`<span class="chip on ${click?'click':''}" style="--c:var(--terra)" data-go="#/projects/${p.id}">🎨 ${esc(p.name)}</span>`); });
   (e.people||[]).forEach(p => out.push(`<span class="chip">@ ${esc(p)}</span>`));

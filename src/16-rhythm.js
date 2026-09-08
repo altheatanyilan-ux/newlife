@@ -147,36 +147,21 @@ function moveBlock(kind, id, day, start){
   saveNow();
 }
 
-/* ---------- the page ---------- */
-/* ---------- The Life Tape ----------
-   The Rhythm room is gone: a day is planned and closed on Today, and the
-   reviews come to you the night a cycle ends. What is left here is the record
-   itself — the tape of what happened, the habits that made it, and the
-   patterns underneath. */
-routes.lifetape = function(root, params){
+/* The Life Tape room is gone too. The habit grid it held is not — it opens as
+   a panel from the Today page, where habits are actually kept, so the depth
+   survives without a room you have to remember to visit. */
+function openHabitsPanel(){
   migrateRhythm();
-  const T = today();
-  const TABS = [['tape','The tape'],['habits','Habits'],['patterns','Patterns']];
-  let tab = TABS.some(([k]) => k === params[0]) ? params[0] : (S._rhyTab || 'tape');
-  S._rhyTab = tab;
-  const focus = S._rhyDay && /^\d{4}-\d{2}-\d{2}$/.test(S._rhyDay) ? S._rhyDay : T;
-  registerPageEntry({pageName:'Life Tape', addLabel:'Add to the day', defaultEntryType:'event', prefilledFields:{}, options:[
-    {icon:'◍', label:'Habit', desc:'Something you mean to keep doing.', run:()=>openHabitModal()},]});
-  root.innerHTML = `<div class="page rhythm-page">
-    <div class="page-head"><h1>Life Tape</h1></div>
-    <div class="tabs">${TABS.map(([k,l]) => `<button class="${tab===k?'active':''}" data-rtab="${k}">${l}</button>`).join('')}</div>
-    <div id="rhyBody" style="margin-top:14px"></div>
-  </div>`;
-  {
-    const body = $('#rhyBody');
-    if(tab === 'habits') renderHabitsPanel(body, focus);
-    else if(tab === 'patterns') renderPatterns(body);
-    else renderLifeTape(body);
-  }
-  window._bloomHabit = null; window._pulseHabitId = null;
-  $$('[data-rtab]',root).forEach(b => b.onclick = () => { S._rhyTab = b.dataset.rtab; navigate('#/lifetape/' + b.dataset.rtab); if(location.hash === '#/lifetape/' + b.dataset.rtab) rerender(); });
-  reveal(root);
-};
+  const p = openPanel(`<div class="mono">habits</div><h2>The whole grid</h2>
+    <p class="muted" style="font-size:.86rem">Every habit, every day, and what each one has actually been doing.</p>
+    <div id="habGrid"></div>`, 'habits-panel');
+  const redraw = () => { const y = p.scrollTop; openHabitsPanel(); const np = $('#panel'); if(np) np.scrollTop = y; };
+  const box = p.querySelector('#habGrid');
+  renderHabitsPanel(box, today());
+  /* the panel owns its own redraw: rerender() would rebuild the page behind it
+     and leave this panel showing numbers from before the click */
+  box.querySelectorAll('[data-hcell],[data-hopen],[data-relapse]').forEach(n => n.addEventListener('click', () => setTimeout(redraw, 30)));
+}
 
 /* ---------- panel 1: the time grid ---------- */
 const HOUR0 = 6, HOUR1 = 24, HOUR_PX = 34;
@@ -912,7 +897,6 @@ function openWeeklyPlan(d = today()){
     <div class="field"><label>Up to three key outcomes</label><div class="stack" style="gap:8px">${p.outcomes.slice(0,3).map((o,i) => `
       <div class="row" style="gap:6px"><span class="in-n">${i+1}</span><input class="inp" data-wpout="${i}" value="${esc(o.text)}" placeholder="what would make this week a win">
         <select class="sel" data-wplink="${i}" style="width:auto"><option value="">—</option>
-          ${S.visions.map(v => `<option value="vision:${v.id}" ${o.linkType==='vision'&&o.linkId===v.id?'selected':''}>🌿 ${esc(v.name)}</option>`).join('')}
           ${S.projects.map(pr => `<option value="project:${pr.id}" ${o.linkType==='project'&&o.linkId===pr.id?'selected':''}>${esc(pr.name)}</option>`).join('')}</select></div>`).join('')}</div></div>
     <div class="field"><label>Energy budget by dimension</label><div class="grid c2" style="gap:8px">${DIMS.map(dm => `<div class="row between"><span style="color:${dm.c}">${dm.name}</span><input class="inp mono" type="number" min="0" max="60" style="width:70px" data-wpenergy="${dm.id}" value="${p.energyBudget[dm.id]||0}"></div>`).join('')}</div><div class="faint" style="font-size:.74rem">Hours you mean to give each, roughly — not a ledger, a leaning.</div></div>
     <div class="row between" style="margin-top:14px"><span class="faint" style="font-size:.78rem">${p.setAt ? `set ${relDays(daysSince(p.setAt))}` : 'not yet set this week'}</span><button class="btn primary" id="wpSave">Save the week's plan</button></div>`, 'wide');
@@ -927,18 +911,15 @@ function openWeeklyPlan(d = today()){
 }
 function openMonthlyPlan(d = today()){
   const mk = monthKey(d); const p = monthPlan(mk); const x = parseDay(d);
-  while(p.milestones.length < 5) p.milestones.push({id:uid(), text:'', visionId:null, done:false});
+  while(p.milestones.length < 5) p.milestones.push({id:uid(), text:'', done:false});
   const m = openModal(`<h2>${MONTHS[x.getMonth()]} ${x.getFullYear()} — the month ahead</h2>
     <div class="field"><label>Theme for the month</label><input class="inp serif-lg" id="mpTheme" value="${esc(p.theme)}" placeholder="What is this month building toward?" autofocus></div>
     <div class="field"><label>Up to five milestones</label><div class="stack" style="gap:8px">${p.milestones.slice(0,5).map((ms,i) => `
-      <div class="row" style="gap:6px"><span class="in-n">${i+1}</span><input class="inp" data-mpm="${i}" value="${esc(ms.text)}" placeholder="a milestone worth naming">
-        <select class="sel" data-mpv="${i}" style="width:auto"><option value="">—</option>${S.visions.map(v => `<option value="${v.id}" ${ms.visionId===v.id?'selected':''}>🌿 ${esc(v.name)}</option>`).join('')}</select></div>`).join('')}</div>
-      <div class="faint" style="font-size:.74rem">Link to the vision each milestone is structural tension for — the gap between now and there is what pulls the month along.</div></div>
+      <div class="row" style="gap:6px"><span class="in-n">${i+1}</span><input class="inp" data-mpm="${i}" value="${esc(ms.text)}" placeholder="a milestone worth naming"></div>`).join('')}</div></div>
     <div class="row between" style="margin-top:14px"><span class="faint" style="font-size:.78rem">${p.setAt ? `set ${relDays(daysSince(p.setAt))}` : 'not yet set this month'}</span><button class="btn primary" id="mpSave">Save the month's plan</button></div>`, 'wide');
   m.querySelector('#mpSave').onclick = () => {
     p.theme = m.querySelector('#mpTheme').value.trim();
     m.querySelectorAll('[data-mpm]').forEach(i => p.milestones[+i.dataset.mpm].text = i.value.trim());
-    m.querySelectorAll('[data-mpv]').forEach(s => p.milestones[+s.dataset.mpv].visionId = s.value || null);
     p.setAt = today(); saveNow(); m.remove(); sound('success'); toast('The month has a shape.'); rerender();
   };
   attachDictationIn(m);

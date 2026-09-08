@@ -28,13 +28,10 @@ const EntryActions = {
   newSkill:       (pre={}) => newSkillDialog(pre),
   guidedSkill:    (pre={}) => guidedNewSkill(pre),
   skillProgress:  (pre={}) => openEntryModal({type:'progress', allowedTypes:['progress'], heading:'Add a level to a skill — log practice', links: pre.links, openLinks:true}),
-  newVision:      (pre={}) => newVisionDialog(pre),
-  guidedVision:   (pre={}) => guidedNewVision(pre),
   guidedPerson:   ()       => guidedNewPerson(),
   guidedMedia:    ()       => guidedNewMedia(),
   guidedStream:   ()       => guidedNewStream(),
   guidedStage:    ()       => guidedNewStage(),
-  lifeEvent:      (pre={}) => openLifeEventModal(pre.era || presentEra()?.id),
   newProject:     ()       => createProject(),
   newHabit:       ()       => openHabitModal(),
 };
@@ -69,8 +66,6 @@ const SPEED_DIAL = [
   {zone:'Values',   icon:'🧭', label:'Congruence snapshot',  run: ()=>EntryActions.snapshot()},
   {zone:'Skill Tree', icon:'🌿', label:'Skill node — guided',  run: ()=>EntryActions.guidedSkill()},
   {zone:'Skill Tree', icon:'🌱', label:'Skill node — quick',   run: ()=>EntryActions.newSkill()},
-  {zone:'Vision Tree', icon:'🔮', label:'Vision — guided',     run: ()=>EntryActions.guidedVision()},
-  {zone:'Vision Tree', icon:'◆',  label:'Life event',          run: ()=>EntryActions.lifeEvent()},
   {zone:'People', icon:'☺',       label:'Person — guided',     run: ()=>EntryActions.guidedPerson()},
   {zone:'Library', icon:'📚',     label:'Library entry — guided', run: ()=>EntryActions.guidedMedia()},
   {zone:'Finance', icon:'💰',     label:'Income stream — guided', run: ()=>EntryActions.guidedStream()},
@@ -107,11 +102,6 @@ function newValueDialog(){
   if(S.values.length >= 10){ toast('The compass holds ten values. Rename one instead of adding an eleventh.'); return; }
   const m = openModal(`<h2>A new value</h2><div class="stack"><div class="field"><label>Name</label><input class="inp" id="nvName" placeholder="e.g. Generosity"></div><div class="field"><label>Colour</label><input type="color" id="nvColor" value="#b08968" style="width:48px;height:32px;border:none;background:none;padding:0"></div><div class="row" style="justify-content:flex-end"><button class="btn primary" id="nvSave">Add value</button></div></div>`, 'narrow');
   m.querySelector('#nvSave').onclick = () => { const name = m.querySelector('#nvName').value.trim(); if(!name) return; const v = {id:'v-'+uid(), name, color:m.querySelector('#nvColor').value, fields:{embody:[],hundred:[],motivation:[],counterfeit:[]}, practices:[]}; S.values.push(v); S.valueOrderHistory.push({date:today(), order:[...S.valueOrder]}); S.valueOrder.push(v.id); saveNow(); m.remove(); rerender(); navigate('#/value/'+v.id); };
-}
-function newVisionDialog(pre={}){
-  const m = openModal(`<h2>A new branch</h2><div class="stack"><div class="field"><label>Name</label><input class="inp" id="vnName" placeholder="What do you want to create?"></div><div class="field"><label>Era</label><select class="sel" id="vnEra">${erasList().map(e=>`<option value="${e.id}" ${pre.era===e.id?'selected':''}>${esc(e.name)}${e.subtitle?' — '+esc(e.subtitle):''}</option>`).join('')}</select></div><div class="field"><label>Forks from (optional)</label><select class="sel" id="vnParent"><option value="">the trunk</option>${S.visions.map(v=>`<option value="${v.id}">${esc(v.name)}</option>`).join('')}</select></div></div><div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn primary" id="vnSave">Plant it</button></div>`,'narrow');
-  m.querySelector('#vnSave').onclick = () => { const name = m.querySelector('#vnName').value.trim(); if(!name) return; const v = {id:uid(),name,era:m.querySelector('#vnEra').value,parentId:m.querySelector('#vnParent').value||null,status:'pending',phase:'in-progress',progress:0,startedAt:today(),completedAt:'',successCriteria:'',reflection:'',archived:false,confidence:'hunch',nextAction:'',sensory:{see:'',hear:'',smell:'',firstHour:'',who:'',noLonger:''},futureMemory:'',futureMemoryHistory:[],costs:'',currentReality:'',currentRealityHistory:[],resistance:[],preSkills:[],peopleNeeded:[],selfImage:'',values:[],obituary:'',evidence:[],feeling:0,targetDate:'',location:'',money:'',createdAt:today()}; S.visions.push(v); saveNow(); m.remove(); if(currentRoute !== 'vision') navigate('#/vision'); else rerender(); setTimeout(() => openVisionPanel(v.id), currentRoute==='vision' ? 0 : 400); };
-  setTimeout(() => m.querySelector('#vnName').focus(), 50);
 }
 function newSkillDialog(pre={}){
   const hz = pre.horizon || 'active';

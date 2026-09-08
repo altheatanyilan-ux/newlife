@@ -13,48 +13,6 @@ const STARTER_TAG = 'starter';
 const STARTER_NOTE = 'Added as part of the starter set. Overwrite it — that is what it is for.';
 
 const STARTER = {
-  /* ---- the three things on the vision board, written as goals ---- */
-  visions: [
-    {key:'v-japan', name:'A year in Japan', era:'ahead', confidence:'exploring',
-     successCriteria:'Not a trip. An address, a routine, a regular place, and enough language to be a person there rather than a guest.',
-     nextAction:'Work out which visa is actually open to me, and what it costs.',
-     sensory:{see:'A narrow street in the early evening. Wet asphalt, a vending machine, the light from a place that seats eight.',
-              hear:'Rain, a train two streets away, someone practising an instrument badly and happily.',
-              smell:'Dashi and cigarette smoke and cold air.',
-              firstHour:'Wake somewhere quiet, walk to a coffee I have already made a habit of, sit down and write for an hour before anyone needs me.',
-              who:'A handful of regulars whose names I know. One person I can call.',
-              noLonger:'The version of me that keeps this as a daydream because a daydream cannot be got wrong.'},
-     costs:'A year of savings, and being far from people who will not wait forever.',
-     currentReality:'It has been on the board for a while. Nothing has been booked, applied for or priced.'},
-    {key:'v-piano', name:'Play jazz piano well enough to sit in', era:'ahead', confidence:'plan',
-     successCriteria:'Walk into a jam, call a standard, comp behind someone else without apologising, take a chorus, and want to do it again next week.',
-     nextAction:'Pick one standard and learn it properly, in all twelve keys eventually but in two by the end of the month.',
-     sensory:{see:'A room with the lights low and nobody watching very hard.',
-              hear:'My own left hand not rushing.',
-              smell:'',
-              firstHour:'Sitting down without the sheet music and finding the tune is still there.',
-              who:'Whoever else showed up. That is the point of a jam.',
-              noLonger:'Practising the same eight bars I am already comfortable with.'},
-     costs:'The hours. There is no version of this that is not hours.',
-     currentReality:'Somewhere between wanting it and doing it.'},
-    {key:'v-bar', name:'Open the bar', era:'ahead', confidence:'hunch',
-     successCriteria:'A small room I chose everything in, open on a schedule I set, that pays for itself inside two years.',
-     nextAction:'Write down what it is actually for — twelve seats and one idea — before anything else.',
-     sensory:{see:'Warm light, dark wood, a back bar that is edited rather than stocked. Twelve seats, maybe fourteen.',
-              hear:'A record, not a playlist. Conversation at a level where you can hear the person next to you.',
-              smell:'Citrus peel and ice.',
-              firstHour:'Cutting fruit before anyone arrives, with the door still locked and the music already on.',
-              who:'Regulars. That is the whole business model.',
-              noLonger:'Talking about it as a thing I would do one day.'},
-     costs:'Capital, a licence, and the years where it is the only thing you do.',
-     currentReality:'An idea I keep coming back to, which is itself information.'},
-    {key:'v-instrument', name:'Life Instrument, finished enough to live in', era:'now', confidence:'in motion',
-     successCriteria:'I open it every morning without being reminded to, and it tells me something I did not already know.',
-     nextAction:'Use it for a full week before adding anything else to it.',
-     sensory:{see:'', hear:'', smell:'', firstHour:'', who:'', noLonger:'Building the tool instead of living the life it is for.'},
-     costs:'Every hour spent on the instrument is an hour not spent on the three above.',
-     currentReality:'Built and running. Barely used.'},
-  ],
 
   /* ---- the skills those goals actually require ---- */
   skills: [
@@ -226,14 +184,6 @@ function applyStarter(){
       fields:{embody:[{date:T, text:v.embody}], hundred:[], motivation:[], counterfeit:[]}};
     S.values.push(rec); S.valueOrder.push(rec.id); });
 
-  STARTER.visions.forEach(v => { if(has(S.visions, v.key)) return;
-    S.visions.push({id:uid(), seeded:STARTER_TAG, seedKey:v.key, name:v.name, era:v.era, parentId:null,
-      status:'pending', phase:'in-progress', progress:0, startedAt:T, completedAt:'',
-      successCriteria:v.successCriteria||'', reflection:'', archived:false, confidence:v.confidence||'hunch',
-      nextAction:v.nextAction||'', sensory:Object.assign({see:'',hear:'',smell:'',firstHour:'',who:'',noLonger:''}, v.sensory||{}),
-      futureMemory:'', futureMemoryHistory:[], costs:v.costs||'', currentReality:v.currentReality||'',
-      currentRealityHistory:[], resistance:[], preSkills:[], selfImage:'', values:[], obituary:'', evidence:[],
-      feeling:0, targetDate:'', location:'', money:'', createdAt:T}); });
 
   STARTER.skills.forEach(sk => {
     const existing = (S.skills||[]).find(x => x.seedKey === sk.key);

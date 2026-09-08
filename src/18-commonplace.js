@@ -80,11 +80,10 @@ hooks.syncquote = (mediaId) => { const e = byId(S.entries, mediaId); if(e) syncM
 
 /* ---------- the Personal Queue — a single ordered "up next" list ---------- */
 function openQueueItemModal(existing){
-  const it = existing || {id:uid(), title:'', medium:'book', why:'', visionId:'', valueId:'', createdAt:today()};
+  const it = existing || {id:uid(), title:'', medium:'book', why:'', valueId:'', createdAt:today()};
   const m = openModal(`<h2>${existing?'Edit queue item':'Add to the queue'}</h2><div class="stack">
     <input class="inp serif-lg" id="qiTitle" placeholder="Title" value="${esc(it.title)}" autofocus>
-    <div class="grid c2" style="gap:8px"><select class="sel" id="qiMedium">${Object.entries(MEDIA_KINDS).map(([k,v])=>`<option value="${k}" ${it.medium===k?'selected':''}>${v[0]} ${v[1]}</option>`).join('')}</select>
-    <select class="sel" id="qiVision"><option value="">no vision</option>${S.visions.map(v=>`<option value="${v.id}" ${it.visionId===v.id?'selected':''}>🌿 ${esc(v.name)}</option>`).join('')}</select></div>
+    <div class="grid c2" style="gap:8px"><select class="sel" id="qiMedium">${Object.entries(MEDIA_KINDS).map(([k,v])=>`<option value="${k}" ${it.medium===k?'selected':''}>${v[0]} ${v[1]}</option>`).join('')}</select></div>
     <input class="inp" id="qiWhy" placeholder="Why it's here — one line" value="${esc(it.why)}">
     <select class="sel" id="qiValue"><option value="">no value</option>${S.valueOrder.map(id=>{ const v=byId(S.values,id); return `<option value="${id}" ${it.valueId===id?'selected':''}>${esc(v.name)}</option>`; }).join('')}</select>
     <div class="row" style="justify-content:flex-end"><button class="btn primary" id="qiSave">${existing?'Save':'Add to queue'}</button></div></div>`,'narrow');

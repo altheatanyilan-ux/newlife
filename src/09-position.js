@@ -70,13 +70,13 @@ function rhythmTags(){ const set = new Set();
    THE MASLOW ENGINE
    ============================================================ */
 const MASLOW = [
-  {level:1, key:'body',      name:'Physiological',      short:'BODY',     ask:'Is your body getting what it needs?',                  go:'#/lifetape'},
+  {level:1, key:'body',      name:'Physiological',      short:'BODY',     ask:'Is your body getting what it needs?',                  go:'#/today'},
   {level:2, key:'safety',    name:'Safety & Security',  short:'SAFETY',   ask:'Do you feel safe — financially, physically, emotionally?', go:'#/finance'},
   {level:3, key:'belonging', name:'Love & Belonging',   short:'BELONGING',ask:'Who do you belong to? Who belongs to you?',             go:'#/people'},
   {level:4, key:'esteem',    name:'Esteem',             short:'ESTEEM',   ask:'Do you respect yourself? Does your work feel like it matters?', go:'#/skills'},
   {level:5, key:'mind',      name:'Cognitive',          short:'MIND',     ask:'Is your mind alive? Are you learning, exploring, questioning?', go:'#/commonplace'},
   {level:6, key:'beauty',    name:'Aesthetic',          short:'BEAUTY',   ask:'Is there beauty in your daily life?',                   go:'#/projects'},
-  {level:7, key:'becoming',  name:'Self-Actualization', short:'BECOMING', ask:'Are you becoming who you are capable of becoming?',     go:'#/vision'},
+  {level:7, key:'becoming',  name:'Self-Actualization', short:'BECOMING', ask:'Are you becoming who you are capable of becoming?',     go:'#/values'},
 ];
 const maslowMeta = k => MASLOW.find(m => m.key === k) || MASLOW[0];
 
@@ -156,10 +156,6 @@ function mValueCongruence(names = null){
   const picked = names ? gaps.filter(g => names.some(n => g.name.toLowerCase().includes(n))) : gaps;
   return picked.length ? avgDefined(picked.map(g => g.congruence)) : null;
 }
-function mVisionVividness(){
-  const vs = S.visions.filter(v => !v.archived && v.confidence !== 'lived');
-  return vs.length ? avgDefined(vs.map(v => vividness(v).score)) : null;
-}
 function mRehearsalRate(days = 21){
   if(!S.rehearsal?.days?.length && !S.rehearsal?.cycleStart) return null;
   const start = S.rehearsal.cycleStart || addDays(today(), -days);
@@ -170,12 +166,6 @@ function mRehearsalRate(days = 21){
 function mSetpointScore(days = 7){
   return avgDefined(lastDays(days).map(d => { const sp = S.checkins?.[d]?.setpoint; return sp ? pct(sp, 1, 22) : null; }));
 }
-function mTensionScore(){
-  const vs = S.visions.filter(v => !v.archived && v.confidence !== 'lived');
-  if(!vs.length || typeof structuralTension !== 'function') return null;
-  return avgDefined(vs.map(v => structuralTension(v)).sort((a,b)=>b-a).slice(0,3));
-}
-
 /* --- the seven levels --- */
 function maslowScores(){
   const store = maslowStore();
@@ -215,11 +205,9 @@ function maslowScores(){
       'awe & creativity': mValueCongruence(['awe','creativ','beauty']),
     },
     becoming: {
-      'vision vividness': mVisionVividness(),
       'congruence':       mValueCongruence(),
       'morning practice': mRehearsalRate(),
       'set-point':        mSetpointScore(),
-      'structural tension': mTensionScore(),
     },
   };
   return MASLOW.map(m => {
@@ -449,9 +437,8 @@ function openTimeBlockModal(r, seed, save, redraw){
 }
 
 /* The stats used to be a grid of little cards, one row per level. They are
-   now prose — see ledgerStanzasHTML() in the Needs room, which reads the same
-   scores and says them in sentences. A number in a card is a number; a number
-   in a sentence is a claim you can disagree with. */
+   gone entirely: the pyramid below says the same thing in less space, and a
+   grid of little cards restating it was noise. */
 
 /* ============================================================
    THE LIFE POSITION CHECK-IN

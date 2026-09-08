@@ -50,9 +50,8 @@ function flowMorning(){
      body: () => `<blockquote class="rehearsal-epigraph">${esc((S.rehearsal.script || '').slice(0, 400) || 'Your self-image script is not written yet. Write it on Today and this step will read it back to you.')}<cite>the self-image script</cite></blockquote>
        <div class="row" style="margin-top:10px"><button class="btn sm ghost" data-flowgo="#/today">open the Morning Theatre</button></div>`},
     {title:'Visualise for fifteen to twenty minutes.', hint:'See yourself acting, feeling and being as you want to be. Sensory detail is the whole technique — your nervous system cannot tell a vividly imagined experience from a real one.',
-     body: () => { const v = S.visions.filter(x => !x.archived && x.confidence !== 'lived')[0];
-       return v ? `<div class="card"><b class="serif">${esc(v.name)}</b>${v.sensory?.see?`<div class="quote" style="margin-top:6px">${esc(v.sensory.see)}</div>`:''}${v.sensory?.firstHour?`<div class="faint" style="font-size:.84rem;margin-top:6px">${esc(v.sensory.firstHour)}</div>`:''}</div>
-         <div class="row" style="margin-top:10px"><button class="btn sm ghost" data-flowquick="visualization">log what you saw</button></div>` : '<div class="empty">No vision to rehearse yet. Plant one on the Vision Tree.</div>'; }},
+     body: () => `<div class="card"><div class="quote">${esc((S.rehearsal.winning || '').slice(0, 300) || 'The winning feeling is not written yet. Today has the field.')}</div></div>
+       <div class="row" style="margin-top:10px"><button class="btn sm ghost" data-flowquick="visualization">log what you saw</button></div>`},
     {title:'Read your Definite Chief Aim aloud.', hint:'With emotion, twice a day. Hill was specific about the emotion.',
      body: () => `<div class="intention-card serif-lg">${esc(S.rehearsal.aim || 'Not written yet — Today has the field, and Finance can draft the number for you.')}</div>`},
     {title:'Where are you on the scale?', hint:'Honestly, not aspirationally. You cannot leap the scale; you can only reach for the rung above.',
@@ -96,9 +95,6 @@ function flowEvening(){
     {title:"Tomorrow's intention.", hint:'Set it now, while today is still in the room.',
      body: () => { const p = dayPlan(addDays(T,1)); return `<input class="inp serif-lg" id="fwTom" value="${esc(p.intentions?.[0] || '')}" placeholder="Tomorrow I give my attention to…">`; },
      next: b => { const p = dayPlan(addDays(T,1)); p.intentions = p.intentions || ['','','']; p.intentions[0] = b.querySelector('#fwTom').value.trim(); saveNow(); }},
-    {title:'See your full day.', hint:'The whole of today, assembled. Close the book when you are ready.',
-     body: () => `<div class="row" style="justify-content:center;margin-top:8px"><a class="btn primary" href="#/lifetape/tape" data-flowgo="#/lifetape/tape">Open today in Life Tape →</a></div>`,
-     bind: b => b.querySelector('[data-flowgo]')?.addEventListener('click', () => { const t = tapeState(); t.view = 'day'; t.day = T; })},
   ], () => { reviewDone('lastEvening'); toast('Day closed.'); });
 }
 
@@ -120,24 +116,6 @@ function flowWeekly(){
      body: () => { const bal = energyBalance(true);
        return `<div class="stack" style="gap:6px">${DIMS.map(d => { const b2 = bal[d.id] || {exp:0,rec:0}; const t = b2.exp + b2.rec;
          return `<div class="row between"><span style="color:${d.c};min-width:6em">${d.name}</span><span class="bar" style="flex:1;--c:${d.c}"><i style="width:${Math.min(100,t*12)}%"></i></span><span class="mono">${t} logged</span></div>`; }).join('')}</div>`; }},
-    {title:'Current reality, on the tension that carries most.', hint:"Fritz's pivotal technique: describe where you actually are, describe where you want to be, choose the result, and let the structure pull.",
-     body: () => { const v = S.visions.filter(x => !x.archived && x.confidence !== 'lived').map(x => ({x, t: typeof structuralTension === 'function' ? structuralTension(x) : 0})).sort((a,b)=>b.t-a.t)[0];
-       if(!v) return '<div class="empty">No open visions yet.</div>';
-       return `<div class="card"><b class="serif">${esc(v.x.name)}</b><div class="faint" style="font-size:.84rem;margin-top:4px">current reality, as last written</div><div class="quote">${esc(v.x.currentReality || 'not yet described')}</div>
-         <textarea class="ta" id="fwCr" style="margin-top:8px" placeholder="And where it actually stands now…"></textarea></div>`;
-       },
-     next: b => { const ta = b.querySelector('#fwCr'); if(!ta || !ta.value.trim()) return;
-       const v = S.visions.filter(x => !x.archived && x.confidence !== 'lived').map(x => ({x, t: typeof structuralTension === 'function' ? structuralTension(x) : 0})).sort((a,b)=>b.t-a.t)[0];
-       if(!v) return; v.x.currentRealityHistory = v.x.currentRealityHistory || [];
-       if(v.x.currentReality) v.x.currentRealityHistory.push({date:today(), text:v.x.currentReality});
-       v.x.currentReality = ta.value.trim(); saveNow(); }},
-    {title:'Water one vision.', hint:'Even a small leaf. A vision nobody touches is a wish.',
-     body: () => { const v = S.visions.filter(x => !x.archived).map(x => ({x, n:(x.evidence||[]).length})).sort((a,b)=>a.n-b.n)[0];
-       return v ? `<div class="row" style="gap:8px;flex-wrap:wrap"><span>Most neglected: <b>${esc(v.x.name)}</b></span><button class="btn sm ghost" data-flowgo="#/vision/${v.x.id}">open it</button></div>
-         <input class="inp" id="fwLeaf" placeholder="one piece of evidence, however small" style="margin-top:8px">` : '<div class="empty">No visions yet.</div>'; },
-     next: b => { const inp = b.querySelector('#fwLeaf'); if(!inp || !inp.value.trim()) return;
-       const v = S.visions.filter(x => !x.archived).map(x => ({x, n:(x.evidence||[]).length})).sort((a,b)=>a.n-b.n)[0];
-       if(v){ v.x.evidence = v.x.evidence || []; v.x.evidence.push({date:today(), text:inp.value.trim()}); saveNow(); } }},
     {title:'The week against the lists you made.', hint:'Seven days of intentions, against seven days of evidence.',
      body: () => tasksReviewHTML(days[0], days[6])},
     {title:'Anything else from this week?', hint:'Anything that happened and never got written down. Add it here and the review stays where it is.',
@@ -155,9 +133,6 @@ function flowSeasonal(){
      body: () => { const t = tapeState(); t.mode = 'total'; return tapeYearHTML(new Date().getFullYear()); }},
     {title:'Re-rank what matters.', hint:'The order changes. The previous ranking is kept.',
      body: () => `<div class="row"><button class="btn sm ghost" data-flowgo="#/values">open the compass</button></div>`},
-    {title:'Update the confidence rungs.', hint:'hunch → exploring → plan → committed → in motion → lived',
-     body: () => `<div class="stack" style="gap:4px">${S.visions.filter(v=>!v.archived).slice(0,8).map(v=>`<div class="row between"><span>${esc(v.name)}</span><span class="mono">${esc(v.confidence||'hunch')}</span></div>`).join('')||'<div class="empty">No visions yet.</div>'}</div>
-       <div class="row" style="margin-top:8px"><button class="btn sm ghost" data-flowgo="#/vision">open the tree</button></div>`},
     {title:'Re-read one past stage. Does it still feel true?',
      body: () => { const s = S.stages.filter(x=>!x.notyet && x.narrative)[Math.floor(Math.random()*Math.max(1,S.stages.filter(x=>!x.notyet && x.narrative).length))];
        return s ? `<div class="card"><b class="serif">${esc(s.char||'')} ${esc(s.name)}</b><div class="quote" style="margin-top:6px">${esc((s.narrative||'').slice(0,320))}…</div><div class="row" style="margin-top:8px"><button class="btn sm ghost" data-flowgo="#/stage/${s.id}">open it</button></div></div>` : '<div class="empty">No stage narratives written yet.</div>'; }},
@@ -190,9 +165,10 @@ function flowAnnual(){
      body: () => `<div class="row"><button class="btn sm primary" data-flowquick="reflection">write it</button></div>`},
     {title:'Mint the year into the Timeline.', hint:'A sub-stage for what this year was.',
      body: () => `<div class="row"><button class="btn sm ghost" data-flowgo="#/timeline">open the Timeline</button></div>`},
-    {title:"Re-read last year's future memories.", hint:'Which came closer? Which drifted, and did you choose that?',
-     body: () => { const vs = S.visions.filter(v => v.futureMemory).slice(0,3);
-       return vs.length ? vs.map(v=>`<div class="card" style="margin-bottom:8px"><b class="serif">${esc(v.name)}</b><div class="quote" style="margin-top:4px">${esc(v.futureMemory.slice(0,220))}</div><div class="mono" style="margin-top:4px">${esc(v.confidence||'')}${v.currentReality?` · now: ${esc(v.currentReality.slice(0,80))}`:''}</div></div>`).join('') : '<div class="empty">No future memories written yet.</div>'; }},
+    {title:"Re-read what you wrote a year ago.", hint:'Which came closer? Which drifted, and did you choose that?',
+     body: () => { const y = addDays(today(), -365);
+       const es = S.entries.filter(e => { const d = (e.occurredAt||e.createdAt||'').slice(0,10); return d >= addDays(y,-14) && d <= addDays(y,14) && (e.body||'').length > 60; }).slice(0,3);
+       return es.length ? es.map(e=>`<div class="card" style="margin-bottom:8px"><b class="serif">${esc(e.title||e.type)}</b><div class="quote" style="margin-top:4px">${esc((e.body||'').slice(0,220))}</div><div class="mono" style="margin-top:4px">${esc(fmtDate((e.occurredAt||e.createdAt||'').slice(0,10),'med'))}</div></div>`).join('') : '<div class="empty">Nothing written around this time last year.</div>'; }},
     {title:'The compass, January to December.',
      body: () => `<div class="row"><button class="btn sm ghost" data-flowgo="#/values">open the radar</button></div>`},
     {title:"The year's set-point trend.", hint:'Did you climb the scale, or hold?',
@@ -208,8 +184,9 @@ function flowAnnual(){
      body: () => { if(typeof portfolioTotals !== 'function') return '';
        const {totalCurrentBase, totalTargetBase} = portfolioTotals();
        return `<div class="rev-summary">${money(totalCurrentBase)}/mo now, against a target of ${money(totalTargetBase)}/mo.</div><div class="row" style="margin-top:8px"><button class="btn sm ghost" data-flowgo="#/finance">open Finance</button></div>`; }},
-    {title:'Three visions for the coming year.',
-     body: () => `<div class="row"><button class="btn sm ghost" data-flowgo="#/vision">open the tree</button></div>`},
+    {title:'Three things the coming year is for.',
+     body: () => `<textarea class="ta serif-lg" id="fwYear" placeholder="Three lines. Not resolutions — the shape you want the year to have.">${esc(S.reviews.nextYearFocus || '')}</textarea>`,
+     next: b => { S.reviews.nextYearFocus = b.querySelector('#fwYear').value.trim(); saveNow(); }},
     {title:"A letter to next year's self.", hint:'Sealed until this date, next year.',
      body: () => `<div class="row"><button class="btn sm primary" id="fwLetter">seal a letter</button></div>`,
      bind: b => b.querySelector('#fwLetter').onclick = () => { if(typeof openLetterModal === 'function') openLetterModal(); }},
@@ -227,7 +204,7 @@ function flowMonthly(){
      body: () => { const t = tapeState(); t.day = T; return tapeMonthHTML(T); }},
     {title:'The milestones you named.', hint:'Tick what landed. An unticked milestone is information, not a failure.',
      body: () => { const named = mp.milestones.map((ms,i) => ({...ms, i})).filter(ms => ms.text);
-       return named.length ? `<div class="stack" style="gap:4px">${named.map(ms => `<label class="pick-row ${ms.done?'on':''}"><input type="checkbox" data-mrms="${ms.i}" ${ms.done?'checked':''}><span>${esc(ms.text)}${ms.visionId?`<span class="d">${esc(byId(S.visions,ms.visionId)?.name||'')}</span>`:''}</span></label>`).join('')}</div>`
+       return named.length ? `<div class="stack" style="gap:4px">${named.map(ms => `<label class="pick-row ${ms.done?'on':''}"><input type="checkbox" data-mrms="${ms.i}" ${ms.done?'checked':''}><span>${esc(ms.text)}</span></label>`).join('')}</div>`
          : '<div class="empty">No milestones were set for this month. The Plan tab takes them for next month.</div>'; },
      bind: b => b.querySelectorAll('[data-mrms]').forEach(c => c.onchange = () => { mp.milestones[+c.dataset.mrms].done = c.checked; saveNow(); c.closest('.pick-row').classList.toggle('on', c.checked); })},
     {title:'The habits, across the whole month.',
@@ -265,10 +242,14 @@ function flowHalf(){
   guidedFlow('Half-year review', [
     {title:'Six months, side by side.', hint:'Long enough to see a season change, short enough to remember it.',
      body: () => tapeSpanHTML(T, 6, 'half')},
-    {title:'Which visions actually moved?', hint:'Movement is evidence and confidence, not enthusiasm.',
-     body: () => { const vs = S.visions.filter(v => !v.archived).map(v => ({v, n:(v.evidence||[]).filter(e => (e.date||'') >= from && (e.date||'') <= to).length})).sort((x,z)=>z.n-x.n);
-       return vs.length ? `<div class="stack" style="gap:5px">${vs.slice(0,8).map(({v,n}) => `<div class="row between"><span>${esc(v.name)}</span><span class="mono">${n ? `${n} leaf${n===1?'':'s'}` : 'nothing added'} · ${esc(v.confidence||'hunch')}</span></div>`).join('')}</div>
-         ${vs.filter(o=>!o.n).length ? `<div class="faint" style="font-size:.8rem;margin-top:8px">${vs.filter(o=>!o.n).length} vision${vs.filter(o=>!o.n).length===1?'':'s'} got nothing in six months. Water one, or let it go honestly.</div>` : ''}` : '<div class="empty">No visions yet.</div>'; }},
+    {title:'What actually moved?', hint:'Movement is evidence, not enthusiasm.',
+     body: () => { const done = S.projects.filter(p => p.status === 'completed');
+       const skills = S.skills.filter(x => !x.archived && (x.currentLevel||0) > 0);
+       return `<div class="stack" style="gap:5px">
+         <div class="row between"><span>projects finished</span><span class="mono">${done.length}</span></div>
+         <div class="row between"><span>skills carrying a level</span><span class="mono">${skills.length}</span></div>
+         <div class="row between"><span>entries written</span><span class="mono">${S.entries.filter(e => { const d=(e.occurredAt||e.createdAt||'').slice(0,10); return d>=from && d<=to; }).length}</span></div>
+       </div>`; }},
     {title:'The compass, half a year on.', hint:'Has the order changed? Is anything going unpaid?',
      body: () => { const gaps = typeof valueGaps === 'function' ? valueGaps() : [];
        return `${gaps.length ? `<div class="stack" style="gap:5px">${gaps.slice(0,5).map(g => `<div class="row between"><span>${esc(g.name)}</span><span class="mono" style="color:${g.gap < -10 ? '#c9a05a' : 'inherit'}">${g.gap>0?'+':''}${g.gap}</span></div>`).join('')}</div>` : ''}
@@ -306,8 +287,8 @@ const REVIEW_FLOWS = [
   ['lastWeekly',   'Weekly review',     '15 minutes', "The week's shape, the habits, a congruence snapshot, current reality on the tension that carries most.", flowWeekly],
   ['lastMonthly',  'Monthly review',    '15 minutes', 'The month at once: the milestones you named, the habits across thirty days, which rooms got used, and what carries over.', flowMonthly],
   ['lastSeasonal', 'Quarterly review',  '30 minutes', 'A season: values re-ranked, confidence rungs, what is going quiet, the five closest, the money.', flowSeasonal],
-  ['lastHalf',     'Half-year review',  '45 minutes', 'Six months side by side: which visions actually moved, who moved rings, the compass, and what the next six are for.', flowHalf],
-  ['lastAnnual',   'Annual rite',       '1–2 hours',  'The whole year on one screen, then the narrative, the letter, and three visions for the next one.', flowAnnual],
+  ['lastHalf',     'Half-year review',  '45 minutes', 'Six months side by side: what actually moved, who moved rings, the compass, and what the next six are for.', flowHalf],
+  ['lastAnnual',   'Annual rite',       '1–2 hours',  'The whole year on one screen, then the narrative, the letter, and what the next one is for.', flowAnnual],
 ];
 const REVIEW_DUE = {lastMorning:1, lastEvening:1, lastWeekly:7, lastMonthly:30, lastSeasonal:90, lastHalf:182, lastAnnual:365};
 /* The hub is gone: a review is not something you go and look for. Each one now

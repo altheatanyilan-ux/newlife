@@ -34,39 +34,62 @@ const NAV_PAGES = {
   today:    {label:'Today',            short:'Today',    ico:NAV_ICONS.today,    route:'#/today'},
   journals: {label:'Journals',         short:'Journal',  ico:NAV_ICONS.journals, route:'#/journals'},
   projects: {label:'Projects',         short:'Projects', ico:NAV_ICONS.projects, route:'#/projects'},
-  lifetape: {label:'Life Tape',        short:'Tape',     ico:NAV_ICONS.rhythm,   route:'#/lifetape'},
   writing:  {label:'The Writing Studio', short:'Writing', ico:NAV_ICONS.writing,  route:'#/writing'},
   people:   {label:'People',           short:'People',   ico:NAV_ICONS.people,   route:'#/people'},
   finance:  {label:'Finance',          short:'Money',    ico:NAV_ICONS.finance,  route:'#/finance'},
   commonplace:{label:'The Library',    short:'Library',  ico:NAV_ICONS.commonplace, route:'#/commonplace'},
-  import:   {label:'Import Station',   short:'Import',   ico:NAV_ICONS.import,   route:'#/import'},
   values:   {label:'Values',           short:'Values',   ico:NAV_ICONS.values,   route:'#/values'},
-  needs:    {label:'Needs',            short:'Needs',    ico:NAV_ICONS.needs,    route:'#/needs'},
   spiral:   {label:'Spiral',           short:'Spiral',   ico:NAV_ICONS.spiral,   route:'#/spiral'},
   skills:   {label:'Skill Tree',       short:'Skills',   ico:NAV_ICONS.skills,   route:'#/skills'},
-  vision:   {label:'Vision',           short:'Vision',   ico:NAV_ICONS.vision,   route:'#/vision'},
   timeline: {label:'Timeline',         short:'Timeline', ico:NAV_ICONS.timeline, route:'#/timeline'},
 };
+/* The daily rooms sit above the zones, unlabelled — you do not need a heading
+   to tell you what Today is for. The Writing Studio sits below everything,
+   always, because it is where you go when the rest of the house is noise. */
+const NAV_TOP = ['compass','today','journals'];
+const NAV_PINNED = ['writing'];
 const NAV_DEFAULT = {
-  present:   ['today','lifetape','projects'],
-  becoming:  ['values','needs','spiral','skills','vision'],
-  story:     ['people','timeline','journals'],
-  standalone:['commonplace','writing','finance','import'],
+  becoming:  ['values','skills','projects','finance','commonplace','spiral'],
+  story:     ['people','timeline'],
+  standalone:[],
 };
 const NAV_ZONES = [
-  {id:'present',  label:'Present',  hint:"what is happening now",            accent:'var(--sage)'},
   {id:'becoming', label:'Becoming', hint:'long-term growth, identity',       accent:'var(--ment)'},
   {id:'story',    label:'Story',    hint:'relationships, memory, meaning',   accent:'var(--rose)'},
 ];
 const NAV_ZONE_IDS = [...NAV_ZONES.map(z => z.id), 'standalone'];
-const MOBILE_PRIMARY = ['today','lifetape','projects','journals','skills'];
-function navConfig(){ if(!S.settings.nav) S.settings.nav = JSON.parse(JSON.stringify(NAV_DEFAULT)); const n = S.settings.nav; // a nav laid out before the Story zone existed: lift its pages out of wherever they sat
-  if(!Array.isArray(n.story)){ n.story = []; NAV_DEFAULT.story.forEach(k => { NAV_ZONE_IDS.forEach(z => { if(Array.isArray(n[z])) n[z] = n[z].filter(x => x !== k); }); n.story.push(k); }); }
-  NAV_ZONE_IDS.forEach(z => { if(!Array.isArray(n[z])) n[z] = [...(NAV_DEFAULT[z]||[])]; });
-  { const seen = new Set(); NAV_ZONE_IDS.forEach(z => n[z] = n[z].filter(k => !seen.has(k) && seen.add(k))); } NAV_ZONE_IDS.forEach(z => { n[z] = (n[z]||[]).filter(k => NAV_PAGES[k]); }); const placed = new Set(NAV_ZONE_IDS.flatMap(z => n[z])); Object.keys(NAV_PAGES).forEach(k => { if(k !== 'compass' && !placed.has(k)) n.standalone.push(k); }); NAV_ZONE_IDS.forEach(z => n[z] = n[z].filter(k => NAV_PAGES[k] && k !== 'compass')); return n; }
+/* reachable by route, but never a sidebar entry: the Import Station is
+   reached from inside Settings, not from a room of its own */
+const NAV_UNLISTED = ['import'];
+/* pages that are placed by hand and must never be swept into a zone */
+const NAV_FIXED = new Set([...NAV_TOP, ...NAV_PINNED, ...NAV_UNLISTED]);
+const MOBILE_PRIMARY = ['today','journals','projects','values','skills'];
+function navConfig(){
+  if(!S.settings.nav) S.settings.nav = JSON.parse(JSON.stringify(NAV_DEFAULT));
+  const n = S.settings.nav;
+  /* A nav saved under an older shape carries zones and pages that no longer
+     exist. Rebuild it against the current one rather than trying to patch it:
+     the arrangement is a preference, not data anybody would mourn. */
+  const known = new Set(Object.keys(NAV_PAGES));
+  const legacy = Object.keys(n).some(z => !NAV_ZONE_IDS.includes(z));
+  if(legacy){ const keep = {}; NAV_ZONE_IDS.forEach(z => keep[z] = []);
+    Object.entries(n).forEach(([z, list]) => { if(!Array.isArray(list)) return;
+      const target = NAV_ZONE_IDS.includes(z) ? z : 'standalone';
+      list.forEach(k => { if(known.has(k) && !NAV_FIXED.has(k)) keep[target].push(k); }); });
+    NAV_ZONE_IDS.forEach(z => n[z] = keep[z]);
+    Object.keys(n).forEach(z => { if(!NAV_ZONE_IDS.includes(z)) delete n[z]; });
+  }
+  NAV_ZONE_IDS.forEach(z => { if(!Array.isArray(n[z])) n[z] = [...(NAV_DEFAULT[z] || [])]; });
+  /* drop anything unknown or hand-placed, and de-duplicate across zones */
+  const seen = new Set();
+  NAV_ZONE_IDS.forEach(z => { n[z] = n[z].filter(k => known.has(k) && !NAV_FIXED.has(k) && !seen.has(k) && seen.add(k)); });
+  /* a page nobody placed still has to be reachable */
+  Object.keys(NAV_PAGES).forEach(k => { if(!NAV_FIXED.has(k) && !seen.has(k)){ n.standalone.push(k); seen.add(k); } });
+  return n;
+}
 const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch(e){ return d; } };
 const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} };
-function activePageKey(){ const {name} = parseHash(); return {stage:'timeline', value:'values', home:'compass', rhythm:'lifetape'}[name] || name; }
+function activePageKey(){ const {name} = parseHash(); return {stage:'timeline', value:'values', home:'compass', rhythm:'today', lifetape:'today'}[name] || name; }
 function navLink(key, zoneAccent){ const p = NAV_PAGES[key]; return `<a href="${p.route}" data-page="${key}" data-tip="${esc(p.label)}" style="--z:${zoneAccent||'var(--terra)'}"><span class="ico">${p.ico}</span><span class="lbl">${esc(p.label)}</span></a>`; }
 function renderNav(){
   const n = navConfig(); const collapsedZones = lsGet('navZoneCollapsed', {}); const sbCollapsed = lsGet('sidebarCollapsed', false);
@@ -74,12 +97,14 @@ function renderNav(){
   const sb = $('#sidebar');
   sb.innerHTML = `<div class="brand"><a href="#/compass" class="mark" data-tip="Compass" title="Compass">生</a><a href="#/compass" class="name">Life Instrument</a><button class="sb-toggle" id="sbToggle" title="${sbCollapsed?'Expand sidebar':'Collapse sidebar'}">${sbCollapsed?'»':'«'}</button></div>
     <nav class="nav" id="nav">
-      ${navLink('compass','var(--terra)')}
+      <div class="nav-top">${NAV_TOP.filter(k => NAV_PAGES[k]).map(k => navLink(k, 'var(--terra)')).join('')}</div>
       ${NAV_ZONES.map(z => `<div class="zone ${collapsedZones[z.id]?'collapsed':''}" data-zone="${z.id}" style="--z:${z.accent}"><button class="zone-h" data-zoneh="${z.id}" title="${esc(z.hint)}"><span class="zone-lbl">${esc(z.label)}</span><span class="zone-chev">›</span></button><div class="zone-pages">${n[z.id].map(k => navLink(k, z.accent)).join('')}</div></div>`).join('')}
-      <div class="nav-sep"></div>
-      ${n.standalone.map(k => navLink(k, 'var(--terra)')).join('')}
+      ${n.standalone.length ? `<div class="nav-sep"></div>${n.standalone.map(k => navLink(k, 'var(--terra)')).join('')}` : ''}
     </nav>
-    <nav class="nav settings-link"><a href="#/settings" data-page="settings" data-tip="Settings" style="--z:var(--terra)"><span class="ico">${NAV_ICONS.settings}</span><span class="lbl">Settings</span></a></nav>`;
+    <nav class="nav nav-foot">
+      ${NAV_PINNED.filter(k => NAV_PAGES[k]).map(k => navLink(k, 'var(--terra)')).join('')}
+      <a href="#/settings" data-page="settings" data-tip="Settings" style="--z:var(--terra)"><span class="ico">${NAV_ICONS.settings}</span><span class="lbl">Settings</span></a>
+    </nav>`;
   sb.querySelector('#sbToggle').onclick = () => { lsSet('sidebarCollapsed', !lsGet('sidebarCollapsed', false)); renderNav(); };
   sb.querySelectorAll('[data-zoneh]').forEach(b => b.onclick = () => { const c = lsGet('navZoneCollapsed', {}); c[b.dataset.zoneh] = !c[b.dataset.zoneh]; lsSet('navZoneCollapsed', c); renderNav(); });
   // mobile bottom bar
@@ -92,23 +117,23 @@ function markActiveNav(){ const key = activePageKey(); $$('#sidebar a[data-page]
 function openNavOverlay(){
   const n = navConfig(); const key = activePageKey();
   const ov = el(`<div class="nav-overlay" id="navOverlay"><button class="close" aria-label="close">×</button><div class="nav-overlay-inner">
-    <a href="#/compass" class="ov-link ${key==='compass'?'active':''}" style="--z:var(--terra)"><span class="ico">${NAV_PAGES.compass?.ico||'⌂'}</span>Compass</a>
+    ${NAV_TOP.filter(k => NAV_PAGES[k]).map(k => `<a href="${NAV_PAGES[k].route}" class="ov-link ${key===k?'active':''}" style="--z:var(--terra)"><span class="ico">${NAV_PAGES[k].ico}</span>${esc(NAV_PAGES[k].label)}</a>`).join('')}
     ${NAV_ZONES.map(z => `<div class="ov-zone" style="--z:${z.accent}"><div class="ov-zone-h">${esc(z.label)} <span class="mono">${esc(z.hint)}</span></div>${n[z.id].map(k => `<a href="${NAV_PAGES[k].route}" class="ov-link ${key===k?'active':''}"><span class="ico">${NAV_PAGES[k].ico}</span>${esc(NAV_PAGES[k].label)}</a>`).join('')}</div>`).join('')}
-    <div class="ov-zone" style="--z:var(--terra)"><div class="ov-zone-h">Always</div>${n.standalone.map(k => `<a href="${NAV_PAGES[k].route}" class="ov-link ${key===k?'active':''}"><span class="ico">${NAV_PAGES[k].ico}</span>${esc(NAV_PAGES[k].label)}</a>`).join('')}<a href="#/settings" class="ov-link ${key==='settings'?'active':''}"><span class="ico">${NAV_ICONS.settings}</span>Settings</a></div>
+    <div class="ov-zone" style="--z:var(--terra)"><div class="ov-zone-h">Always</div>${[...n.standalone, ...NAV_PINNED].filter(k => NAV_PAGES[k]).map(k => `<a href="${NAV_PAGES[k].route}" class="ov-link ${key===k?'active':''}"><span class="ico">${NAV_PAGES[k].ico}</span>${esc(NAV_PAGES[k].label)}</a>`).join('')}<a href="#/settings" class="ov-link ${key==='settings'?'active':''}"><span class="ico">${NAV_ICONS.settings}</span>Settings</a></div>
   </div></div>`);
   document.body.appendChild(ov); ov.querySelector('.close').onclick = () => ov.remove(); ov.querySelectorAll('a').forEach(a => a.addEventListener('click', () => ov.remove()));
 }
 NAV_PAGES.compass = {label:'Compass', short:'Compass', ico:NAV_ICONS.home, route:'#/compass'};
+NAV_PAGES.import = {label:'Import Station', short:'Import', ico:NAV_ICONS.import, route:'#/import'};   // reachable, but lives inside Settings now
 
 /* ---------- Compass: life at a glance — today's focus, the living house, long-term panels ---------- */
 /* which level of the hierarchy each room mostly feeds — the annotation the
    house carries, so the map and the pyramid are reading the same building */
-const HOUSE_LEVEL = {today:1, lifetape:1, finance:2, people:3, skills:4, projects:6, commonplace:5, journals:5, writing:4, values:7, needs:7, spiral:7, vision:7, timeline:5, import:5};
-const HOUSE_EDGES = [['vision','skills','visions require skills; skills serve visions'],['vision','values','visions serve values; unserved values are blind spots'],['timeline','values','retrospective readings fill the values history'],['timeline','vision','formative events inform what you now want'],['projects','skills','projects exercise skills'],['projects','vision','income streams advance financial visions'],['journals','timeline','memories become formative events'],['journals','vision','entries grow leaves'],['rituals','today','rituals fill today\'s rings'],['today','vision','signals surface neglected visions'],['today','values','the biggest values gap is a daily signal'],['library','journals','quotes are journal entries with a source']];
+const HOUSE_LEVEL = {today:1, finance:2, people:3, skills:4, projects:6, commonplace:5, journals:5, writing:4, values:7, spiral:7, timeline:5};
+const HOUSE_EDGES = [['timeline','values','retrospective readings fill the values history'],['projects','skills','projects exercise skills'],['journals','timeline','memories become formative events'],['today','values','the biggest values gap is a daily signal'],['today','journals','the day is where most entries start'],['commonplace','journals','quotes are journal entries with a source'],['values','spiral','a value usually has a home on the spiral'],['finance','projects','a project that earns is an income stream'],['people','timeline','the people in a chapter are part of it']];
 function houseStats(){
   const T = today(); const n = navConfig();
   const due = S.habits.filter(h=>!h.archived&&!h.negative&&habitDue(h,T)); const done = due.filter(h=>habitDone(h,T)).length;
-  const vs = S.visions.filter(v=>v.confidence!=='lived').map(v=>({v,...vividness(v)})); const wither = vs.filter(x=>x.lastTended>60).length;
   const last = latestSnapshot(); const snapDays = last ? daysSince(last.date) : null; const gaps = valueGaps();
   const atro = S.skills.filter(s=>!s.planned && daysSince(skillLastPracticed(s))>90).length; const hrs30 = S.skills.reduce((n,s)=>n+entriesLinked('skills',s.id).filter(e=>daysSince(e.createdAt.slice(0,10))<=30).reduce((m,e)=>m+((+e.extra?.duration||0)/60),0),0);
   const active = S.projects.filter(p=>p.status==='active'); const nods7 = S.nods.filter(x=>daysSince(x.date)<=7).length; const cold = active.filter(p=>daysSince(projectNods(p)[0]?.date)>7).length;
@@ -129,7 +154,6 @@ function houseStats(){
       return {line: n ? (p==null ? `${n} indicators, none rated` : `${Math.round(p*100)}% into ${(spiralMeta(pair.embodying)||[])[1]||''}`) : 'no indicators yet', ok:n>0, cadence:'monthly',
         tip: pair ? `Releasing ${(spiralMeta(pair.releasing)||[])[1]}, embodying ${(spiralMeta(pair.embodying)||[])[1]}.` : ''}; })(),
     skills:   {line:`${hrs30.toFixed(0)}h / 30d${atro?` · ${atro} atrophying`:''}`, ok:atro===0, cadence:'monthly', tip:`${S.skills.filter(s=>!s.planned).length} skills held, ${S.skills.filter(s=>s.planned).length} planned${milestonesDueSoon(30).length?` · ${milestonesDueSoon(30).length} milestone${milestonesDueSoon(30).length>1?'s':''} within 30 days`:''}`},
-    vision:   {line:`${vs.length} growing${wither?` · ${wither} withering`:''}`, ok:wither===0, cadence:'weekly', tip:vs.length?`Most vivid: ${[...vs].sort((a,b)=>b.score-a.score)[0].v.name}`:''},
     timeline: {line:`${memories} memories · ${S.stages.length} stages`, ok:true, cadence:'archival', tip:'The museum of the past. Formative events and the story you tell.'},
     writing:  {line:`${S.entries.filter(e=>e.type==='writing').length} pieces`, ok:true, cadence:'weekly', tip:'A room for contemplation, fed by your own hashtags.'},
     commonplace:{line:`${S.entries.filter(e=>e.type==='media').length} works logged`, ok:true, cadence:'archival', tip:'What you read, watched and listened to — and what it changed.'},
@@ -138,11 +162,13 @@ function houseStats(){
     finance:  (()=>{ const streams = typeof incomeStreamList==='function' ? incomeStreamList() : []; const tc = sum(streams.map(s=>s.income.current||0));
       return {line: streams.length ? `${money(tc)}/mo across ${streams.length} stream${streams.length===1?'':'s'}` : 'no income streams yet', ok:true, cadence:'monthly', tip:'Building ways to make money, and what enough looks like.'}; })(),
   };
-  return {stat, due, done, vs, wither, last, snapDays, gaps, atro, hrs30, active, nods7, j7, quotes, memories, c, rem, zonesOf: k => n.present.includes(k)?'present':n.becoming.includes(k)?'becoming':'always'};
+  return {stat, due, done, last, snapDays, gaps, atro, hrs30, active, nods7, j7, quotes, memories, c, rem, /* the house colours its nodes by the zone each room sits in; the daily rooms
+   at the top of the sidebar belong to no zone, so they answer 'present' */
+    zonesOf: k => NAV_TOP.includes(k) ? 'present' : NAV_ZONE_IDS.find(z => (n[z]||[]).includes(k)) || 'always'};
 }
 function houseSVG(st){
   const n = navConfig(); const keys = NAV_ZONE_IDS.flatMap(z => n[z]).filter(k => NAV_PAGES[k] && st.stat[k]);
-  const W = 760, H = 460, cx = W/2, cy = H/2, R = 170; const pos = {}; const zoneColor = k => st.zonesOf(k)==='present' ? 'var(--sage)' : st.zonesOf(k)==='becoming' ? 'var(--ment)' : 'var(--terra)';
+  const W = 760, H = 460, cx = W/2, cy = H/2, R = 170; const pos = {}; const zoneColor = k => { const z = st.zonesOf(k); return z==='present' ? 'var(--sage)' : z==='becoming' ? 'var(--ment)' : z==='story' ? 'var(--rose)' : 'var(--terra)'; };
   keys.forEach((k,i) => { const a = -Math.PI/2 + i*2*Math.PI/keys.length; pos[k] = [cx + Math.cos(a)*R, cy + Math.sin(a)*R]; });
   let g = '';
   HOUSE_EDGES.forEach(([a,b,label],i) => { if(!pos[a]||!pos[b]) return; const [x1,y1]=pos[a],[x2,y2]=pos[b]; const mx=(x1+x2)/2+(cx-(x1+x2)/2)*.25, my=(y1+y2)/2+(cy-(y1+y2)/2)*.25; g += `<path class="hedge" d="M${x1},${y1} Q${mx},${my} ${x2},${y2}" data-a="${a}" data-b="${b}" data-label="${esc(label)}"/>`; });
@@ -168,7 +194,7 @@ function zoneSummaries(){
   const tasks = typeof tasksForDay === 'function' ? tasksForDay(T) : [];
   const openTasks = tasks.filter(t => !t.done);
   const [revLine, revC] = nextReviewLine();
-  cards.push({label:'Present', hint:'what is happening now', accent:'var(--sage)', route:'#/lifetape',
+  cards.push({label:'Present', hint:'what is happening now', accent:'var(--sage)', route:'#/today',
     lines:[
       [openTasks.length ? `${openTasks.length} item${openTasks.length === 1 ? '' : 's'} still planned today` : (tasks.length ? 'everything planned today is done' : 'nothing planned today'), openTasks.length ? '' : (tasks.length ? 'var(--sage)' : 'var(--faint)')],
       [st.due.length ? `${st.done} of ${st.due.length} habit${st.due.length === 1 ? '' : 's'} done` : 'no habits due today', st.due.length ? (st.done === st.due.length ? 'var(--sage)' : '') : 'var(--faint)'],
@@ -184,7 +210,6 @@ function zoneSummaries(){
       nextMs ? [nextMs.days < 0 ? `${esc(nextMs.skill.name)} milestone ${-nextMs.days}d overdue` : `${esc(nextMs.skill.name)} milestone in ${nextMs.days} day${nextMs.days === 1 ? '' : 's'}`, nextMs.days < 0 ? 'var(--gold)' : '']
               : ['no skill milestone dated', 'var(--faint)'],
       snapAge === null ? ['no congruence snapshot yet', 'var(--gold)'] : [`congruence read ${relDays(snapAge)}`, snapAge > 45 ? 'var(--gold)' : ''],
-      [`${st.vs.length} vision${st.vs.length === 1 ? '' : 's'} growing${st.wither ? ` · ${st.wither} withering` : ''}`, st.wither ? 'var(--gold)' : ''],
     ]});
 
   const overdue = typeof peopleNeedingAttention === 'function' ? peopleNeedingAttention() : [];
@@ -224,7 +249,6 @@ routes.compass = function(root){
   const habitRate = weeks12.map(days => { let due=0, done=0; days.forEach(d => S.habits.forEach(h => { if(!h.archived&&!h.negative&&habitDue(h,d)){ due++; if(habitDone(h,d)) done++; } })); return due ? Math.round(done/due*100) : null; });
   const nodsW = weeks12.map(days => S.nods.filter(x => days.includes(x.date)).length);
   const entriesW = weeks12.map(days => S.entries.filter(e => days.includes(e.createdAt.slice(0,10))).length);
-  const topV = [...st.vs].sort((a,b)=>b.score-a.score).slice(0,5); const nextActs = [...st.vs].filter(x=>x.v.nextAction).sort((a,b)=>b.score-a.score).slice(0,3);
   const stageCounts = S.stages.map(s => ({s, n: stageEntries(s).length})); const maxStage = Math.max(...stageCounts.map(x=>x.n),1);
   const skillHrs = S.skills.filter(s=>!s.planned).map(s=>({s,h:skillHours(s)})).sort((a,b)=>b.h-a.h).slice(0,4);
   const income = sum(S.projects.map(p=>p.income?.current||0));
@@ -241,7 +265,6 @@ routes.compass = function(root){
           <span class="mono">${rehearsalDoneToday()?'rehearsal ✓':'rehearsal ·'}</span>
           ${st.rem?`<span class="mono" style="color:var(--gold)">${st.rem} reminder${st.rem>1?'s':''}</span>`:''}
         </div>
-        ${nextActs.length?`<div class="next-actions"><div class="k mono" style="font-size:.6rem;text-transform:uppercase;letter-spacing:.12em;color:var(--gold)">Nearest next actions</div>${nextActs.map(x=>`<div><span class="mono">🌿</span><span style="flex:1">${esc(x.v.nextAction)}</span><a class="mono" href="#/vision/${x.v.id}" style="text-decoration:none">${esc(x.v.name)}</a></div>`).join('')}</div>`:''}
       </div>
       <div class="card rv" style="padding:18px 20px"><div class="k mono" style="text-transform:uppercase;letter-spacing:.12em;font-size:.62rem">Gentle prompt</div><div class="quote" style="margin-top:8px;font-size:1.1rem;color:var(--text)">${gentlePrompt()}</div>
         <div class="k mono" style="text-transform:uppercase;letter-spacing:.12em;font-size:.62rem;margin-top:18px">Signals</div>
@@ -251,8 +274,6 @@ routes.compass = function(root){
     ${zoneCardsHTML()}
 
     ${typeof weekShapeHTML === 'function' ? weekShapeHTML() : ''}
-
-    ${typeof ledgerStanzasHTML === 'function' ? ledgerStanzasHTML({limit:4, title:'The life ledger'}) : ''}
 
     ${typeof positionHTML === 'function' ? positionHTML() : ''}
 
@@ -264,8 +285,7 @@ routes.compass = function(root){
       <div class="card span2"><div class="k">Compass <a href="#/values">→</a></div>${radar(axes,[{vals:S.valueOrder.map(id=>st.last?.ratings[id]??0),color:'var(--terra)'}],{size:230})}<div class="sub">${st.gaps[0]?`Widest gap: <b style="color:${st.gaps[0].color}">${esc(st.gaps[0].name)}</b> — ranked #${st.gaps[0].rank}, congruence ${st.gaps[0].congruence}%`:''}</div></div>
       <div class="card span2"><div class="k">Congruence over a lifetime</div><div class="big" data-tween="${avgCong.slice(-1)[0]||0}" data-suffix="%">0</div>${sparkline(avgCong,{h:56,min:0,max:100,color:'var(--terra)'})}<div class="sub">average across ten values · ${snaps.length} readings from ${snaps[0]?fmtDate(snaps[0].date,'med'):'—'}</div></div>
       <div class="card span2"><div class="k">Energy, 30 days <a href="#/today">→</a></div>${multiSpark(DIMS.map(d=>({vals:days30.map(x=>S.checkins[x]?.energy?.[d.id]||null),color:d.c})),{h:56})}<div class="legend">${DIMS.map(d=>`<span style="--c:${d.c}">${d.name}</span>`).join('')}</div>${sparkline(days30.map(d=>S.checkins[d]?.setpoint||null),{h:34,min:1,max:22,color:'var(--rose)'})}<div class="sub">emotional set-point · avg ${avg(days30.map(d=>S.checkins[d]?.setpoint).filter(Boolean)).toFixed(1)} — ${hicksName(avg(days30.map(d=>S.checkins[d]?.setpoint).filter(Boolean))||14).split(' / ')[0]}</div></div>
-      <div class="card span3"><div class="k">Visions <a href="#/vision">→</a></div><div class="sub">${st.vs.length} growing${st.wither?`, <span style="color:var(--gold)">${st.wither} withering</span>`:''} · average vividness ${Math.round(avg(st.vs.map(x=>x.score)))}</div>${topV.map(x=>`<div class="vbar"><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(x.v.name)}</span><div class="bar" style="--c:${x.lastTended>60?'var(--gold)':'var(--sage)'}"><i style="width:${x.score}%"></i></div><span class="mono">${x.score}</span></div>`).join('')}</div>
-      <div class="card span3"><div class="k">Habits, 12 weeks <a href="#/lifetape/habits">→</a></div><div class="big" data-tween="${habitRate.slice(-1)[0]||0}" data-suffix="%">0<small>this week</small></div>${sparkline(habitRate,{h:56,min:0,max:100,color:'var(--sage)'})}<div class="sub">weekly completion · best streak ${Math.max(0,...S.habits.filter(h=>!h.archived&&!h.negative).map(h=>habitStreak(h).best))} days · weekly review ${relDays(daysSince(S.reviews.lastWeekly))}</div></div>
+      <div class="card span3"><div class="k">Habits, 12 weeks <a href="#/today">→</a></div><div class="big" data-tween="${habitRate.slice(-1)[0]||0}" data-suffix="%">0<small>this week</small></div>${sparkline(habitRate,{h:56,min:0,max:100,color:'var(--sage)'})}<div class="sub">weekly completion · best streak ${Math.max(0,...S.habits.filter(h=>!h.archived&&!h.negative).map(h=>habitStreak(h).best))} days · weekly review ${relDays(daysSince(S.reviews.lastWeekly))}</div></div>
       <div class="card span2"><div class="k">Projects <a href="#/projects">→</a></div><div class="big" data-tween="${st.nods7}">0<small>nods this week</small></div>${sparkline(nodsW,{h:44,min:0,color:'var(--terra)'})}<div class="sub">${st.active.length} active · ${fmtYen(income)}/mo across ${S.projects.filter(p=>p.income?.current>0).length} stream${S.projects.filter(p=>p.income?.current>0).length===1?'':'s'}</div></div>
       <div class="card span2"><div class="k">Skills <a href="#/skills">→</a></div><div class="big" data-tween="${st.hrs30}" data-dec="1">0<small>hours / 30d</small></div>${skillHrs.map(x=>`<div class="vbar"><span>${esc(x.s.name)}</span><div class="bar" style="--c:var(--ment)"><i style="width:${Math.min(100,x.h/Math.max(skillHrs[0].h,1)*100)}%"></i></div><span class="mono">${x.h.toFixed(0)}h</span></div>`).join('')}<div class="sub">${st.atro?`<span style="color:var(--gold)">${st.atro} atrophying</span> · `:''}${S.skills.filter(s=>s.planned).length} buds planned</div></div>
       <div class="card span2"><div class="k">Journal &amp; memory <a href="#/journals">→</a></div><div class="big" data-tween="${S.entries.length}">0<small>entries</small></div>${sparkline(entriesW,{h:40,min:0,color:'var(--rose)'})}<div class="sub">${st.j7} this week · ${st.memories} memories · ${st.quotes} quotes</div><div class="stagebars" title="entries per stage">${stageCounts.map(x=>`<i style="--c:${x.s.hue};height:${Math.max(4,x.n/maxStage*44)}px" title="${esc(x.s.name)} · ${x.n}"></i>`).join('')}</div></div>
@@ -276,7 +296,6 @@ routes.compass = function(root){
   wrap.querySelectorAll('.hedge').forEach(ed_ => { ed_.onmouseenter = e => { ed_.classList.add('hot'); showTip(e, `<span class="mono">${esc(NAV_PAGES[ed_.dataset.a].label)} ↔ ${esc(NAV_PAGES[ed_.dataset.b].label)}</span><br>${esc(ed_.dataset.label)}`); }; ed_.onmousemove = e => showTip(e, tip.innerHTML); ed_.onmouseleave = () => { ed_.classList.remove('hot'); tip.style.display='none'; }; });
   if(typeof bindPosition === 'function') bindPosition(root, () => rerender());
   if(typeof bindWeekShape === 'function') bindWeekShape(root, () => rerender());
-  if(typeof bindLedger === 'function') bindLedger(root);
 };
 
 /* ---------- Settings: drag-and-drop zone editor ---------- */

@@ -357,7 +357,6 @@ function pplAudit(box){
   const closest = [...S.people].map(p=>({p,n:recentInteractions(p.id).length})).filter(x=>x.n>0).sort((a,b)=>b.n-a.n).slice(0,5);
   const modeledBy = id => S.people.filter(p=>['core','close'].includes(p.circle) && (p.valuesEmbodied||[]).includes(id));
   const unmodeled = S.valueOrder.filter(id => !modeledBy(id).length);
-  const emptyWho = S.visions.filter(v=>!v.archived && v.confidence!=='lived' && !(v.sensory?.who||'').trim());
   const threadless = S.threads.filter(t => !S.people.some(p=>(p.threadsLinked||[]).includes(t.id)));
 
   box.innerHTML = `
@@ -374,9 +373,8 @@ function pplAudit(box){
     <section class="section rv"><span class="sc">Relational blind spots</span>
       <div class="stack" style="gap:8px">
         ${unmodeled.length ? `<div class="quiet-row"><span>You value <b>${unmodeled.map(id=>esc(byId(S.values,id).name)).join(', ')}</b>, but no one in your Core ring models ${unmodeled.length===1?'it':'them'}.</span></div>` : ''}
-        ${emptyWho.map(v=>`<a class="quiet-row" href="#/vision/${v.id}"><span>Your <b>${esc(v.name)}</b> vision doesn't have anyone in it yet. Who do you want to share that life with?</span></a>`).join('')}
         ${threadless.map(t=>`<div class="quiet-row"><span>Your <b>${esc(t.name)}</b> thread has no people tagged to it. Who was involved?</span></div>`).join('')}
-        ${!unmodeled.length && !emptyWho.length && !threadless.length ? '<div class="empty">Nothing obviously missing right now.</div>' : ''}
+        ${!unmodeled.length && !threadless.length ? '<div class="empty">Nothing obviously missing right now.</div>' : ''}
       </div></section>`;
   box.querySelectorAll('[data-audopen]').forEach(g => g.onclick = () => navigate('#/people/'+g.dataset.audopen));
 }
@@ -389,7 +387,6 @@ function renderPersonPage(root, id){
   const streak = (() => { let n = 0; let cursor = today();
     for(let w = 0; w < 52; w++){ const from = addDays(cursor, -7), has = ints.some(i => i.date > from && i.date <= cursor); if(!has) break; n++; cursor = from; } return n; })();
   const entries = sortEntries(S.entries.filter(e => (e.links?.people||[]).includes(id)));
-  const visionsNeeding = S.visions.filter(v => (v.peopleNeeded||[]).some(r => r.personId === id));
   const F = (key, q, hint) => { const hist = p[key]||[]; const latest = hist.slice(-1)[0]; return `<div class="value-field rv"><div class="q">${q}</div><div class="faint" style="font-size:.8rem;margin-bottom:8px">${hint}</div><div class="prose serif-lg">${latest?md(latest.text):'<span class="empty">Not yet written.</span>'}</div><div class="row" style="margin-top:8px"><button class="btn sm ghost" data-pf="${key}">${latest?'write a new version':'write'}</button>${hist.length>1?`<details style="border:none;flex:1"><summary><span class="mono">${hist.length-1} earlier versions</span></summary><div class="body versions">${hist.slice(0,-1).map(h=>`<div class="v"><div class="mono">${fmtDate(h.date,'med')}</div>${md(h.text)}</div>`).reverse().join('')}</div></details>`:latest?`<span class="mono">${fmtDate(latest.date,'med')}</span>`:''}</div></div>`; };
   root.innerHTML = `<div class="page narrow" style="--c:${c[4]}">
     <div class="person-hero rv">
@@ -428,7 +425,6 @@ function renderPersonPage(root, id){
     <section class="section rv"><span class="sc">Values embodied</span><p class="muted" style="font-size:.85rem">Who shows you what this actually looks like in practice — different from which values you embody around them.</p><div class="deps">${S.valueOrder.map(vid=>{ const v=byId(S.values,vid); return `<span class="chip click ${(p.valuesEmbodied||[]).includes(vid)?'on':''}" style="--c:${v.color}" data-ppvalue="${vid}">${esc(v.name)}</span>`; }).join('')}</div></section>
     <section class="section rv"><span class="sc">Energy reading — standing assessment</span><div class="resonance-scale" id="ppEnergy">${Object.entries(ENERGY_READINGS).map(([k,x])=>`<button class="${p.energyStanding===k?'on':''}" style="--c:${x[2]}" data-ppenergy="${k}">${x[0]} ${x[1]}</button>`).join('')}</div></section>
 
-    ${visionsNeeding.length ? `<section class="section rv"><span class="sc">The future this person is part of</span><div class="deps">${visionsNeeding.map(v=>`<a class="chip on click" style="--c:var(--sage);text-decoration:none" href="#/vision/${v.id}">🌿 ${esc(v.name)} — ${esc((v.peopleNeeded.find(r=>r.personId===id)||{}).role||'')}</a>`).join('')}</div></section>` : ''}
 
     <section class="section rv"><span class="sc">Remember</span>
       <div class="grid c2" style="align-items:start;margin-top:10px">
