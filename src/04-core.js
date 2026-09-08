@@ -185,12 +185,18 @@ function navigate(hash){ location.hash = hash; }
 function parseHash(){ const h = (location.hash||'').replace(/^#\/?/,''); const [name, ...rest] = h.split('/'); return {name: name || homeRoute(), params: rest.map(decodeURIComponent)}; }
 const ROUTE_ALIASES = {calendar:'rhythm', plan:'rhythm/plan', rituals:'rhythm/habits', reviews:'rhythm/review', board:'vision'};
 function renderRoute(){
+  /* page-scoped atmosphere flags do not survive a navigation */
+  document.documentElement.classList.remove('vision-deep');
   let {name, params} = parseHash();
   if(ROUTE_ALIASES[name] && !routes[name]){ const t = ROUTE_ALIASES[name]; navigate('#/' + t + (params[0] && !t.includes('/') ? '/' + params[0] : '')); return; }
   markActiveNav(); applyPageTheme();
   const main = $('#main');
   const fn = routes[name] || routes.home;
   closePanel({keep:true});
+  /* a modal belongs to the page that opened it — carrying one across a
+     navigation leaves it stranded on top of a page it knows nothing about */
+  if(typeof closeModals === 'function') closeModals();
+  if(typeof stopSway === 'function') stopSway();
   main.innerHTML = '';
   main.style.animation = 'none'; void main.offsetWidth; main.style.animation = '';
   currentRoute = name; PageEntryConfig.clear();
@@ -216,10 +222,26 @@ function restoreScroll(hash){
   go(); requestAnimationFrame(() => { go(); setTimeout(go, 60); setTimeout(go, 160); });   // let late layout settle
 }
 window.addEventListener('scroll', debounce(() => scrollMem.set(location.hash, window.scrollY || 0), 150), {passive:true});
-window.addEventListener('hashchange', () => {
-  sound('page'); markNavDirection();
-  if(document.startViewTransition && !reduced() && document.visibilityState==='visible') document.startViewTransition(renderRoute); else renderRoute();
-});
+/* The crossfade between pages is a nicety; arriving at the page you asked for
+   is not. A view transition can fail to invoke its callback — repeated
+   re-renders of a page seem to wedge it for one cycle — and the navigation is
+   then silently swallowed. So: stop decorative animation loops first, skip any
+   transition still in flight, and keep a timer that renders regardless if the
+   callback has not fired. Navigation cannot be lost, only un-animated. */
+let activeVT = null;
+function navigateNow(){
+  if(typeof stopSway === 'function') stopSway();
+  if(!(document.startViewTransition && !reduced() && document.visibilityState === 'visible')){ renderRoute(); return; }
+  if(activeVT){ try { activeVT.skipTransition(); } catch(e){} activeVT = null; }
+  let ran = false;
+  const run = () => { ran = true; renderRoute(); };
+  let vt;
+  try { vt = document.startViewTransition(run); } catch(e){ run(); return; }
+  activeVT = vt;
+  vt.finished?.catch(() => {}).finally?.(() => { if(activeVT === vt) activeVT = null; });
+  setTimeout(() => { if(!ran){ try { vt.skipTransition(); } catch(e){} if(!ran) run(); } }, 260);
+}
+window.addEventListener('hashchange', () => { sound('page'); markNavDirection(); navigateNow(); });
 
 /* ---------- side panel ---------- */
 function openPanel(html, cls=''){ closePanel({keep:true}); sound('open'); if(!history.state?.liPanel){ try { history.pushState({liPanel:true, liIdx:navIdx}, '', location.href); } catch(e){} } const ov = el(`<div class="panel-overlay" id="panelOv"></div>`); const p = el(`<div class="side-panel ${cls}" id="panel"><div class="panel-grip" title="drag to resize · double-click to reset"></div><button class="panel-wide" title="widen / narrow (focus)">⤢</button><button class="close" title="close">×</button>${html}</div>`); document.body.appendChild(ov); document.body.appendChild(p); ov.onclick = closePanel; p.querySelector('.close').onclick = closePanel; bindPanelResize(p); tweenAll(p); if(typeof attachDictationIn === 'function') attachDictationIn(p); return p; }

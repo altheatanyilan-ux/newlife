@@ -1686,5 +1686,95 @@ body.ws-resizing{cursor:col-resize;user-select:none}
 .spi-timeline{display:flex;gap:3px;flex-wrap:wrap;margin-top:12px}
 .spi-timeline i{width:9px;height:9px;border-radius:50%;opacity:.85}
 @media (prefers-reduced-motion:reduce){.mas-tier.weak polygon{animation:none}.mstat,.mrow-bar i,.spi-track i,.tu-block{transition:none}.mstat:hover{transform:none}}
+
+/* ── The Lifeline, as a manuscript ──────────────────────────────
+   No cards, no borders, no shadows. Structure is typography and
+   whitespace only. */
+html.vision-deep{--scene-op:.42}
+html.vision-deep .page-scene.on{opacity:var(--scene-op)}
+.vw-switch{position:absolute;top:0;right:0;display:flex;gap:2px;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:2px;z-index:3}
+.vw-switch button{background:none;border:0;color:var(--muted);cursor:pointer;padding:4px 9px;border-radius:6px;font-size:.82rem;transition:color .2s var(--ease),background .2s var(--ease)}
+.vw-switch button:hover{color:var(--text)}
+.vw-switch button.on{color:var(--page-accent);background:var(--surface)}
+.vw-stage{position:relative;animation:vwFade .4s var(--ease)}
+@keyframes vwFade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+.lifeline-ms{max-width:560px;margin:0 auto;padding:64px 80px 0;position:relative}
+@media (max-width:800px){.lifeline-ms{padding:40px 24px 0}html.vision-deep{--scene-op:.26}}
+.lifeline-ms .ll-top{position:absolute;top:8px;right:80px}
+@media (max-width:800px){.lifeline-ms .ll-top{right:24px}}
+.ll-invocation{font-family:var(--serif);font-style:italic;font-size:1.12rem;color:var(--muted);text-align:center;margin:0 0 48px}
+
+/* chapter headings — printer's ornaments, not banners */
+.ll-rule-ch{width:120px;margin:0 auto;border:0;border-top:1px solid color-mix(in srgb,var(--page-accent) 15%,transparent)}
+.ll-chapter{margin-bottom:80px}
+.ll-chapter > .ll-rule-ch:first-child{margin-bottom:48px}
+.ll-era{font-family:var(--serif);font-size:.82rem;font-variant:small-caps;letter-spacing:.15em;color:var(--muted);text-align:center;font-weight:400;margin:24px 0 0}
+.ll-epi{font-family:var(--serif);font-style:italic;font-size:.88rem;color:var(--muted);text-align:center;margin:14px auto 0;max-width:420px;line-height:1.6}
+.ll-years{text-align:center;font-size:.6rem;color:var(--muted);opacity:.6;margin:10px 0 24px}
+.ll-chapter.far .ll-rule-ch{border-top-style:dashed;border-top-width:1px}
+.ll-chapter.far .ll-era,.ll-chapter.far .ll-epi,.ll-chapter.far .ll-vision{opacity:.8}
+
+/* a vision is a passage */
+.ll-vision{margin:0 0 56px;padding:6px 0;border-radius:4px;transition:background .3s var(--ease)}
+.ll-vision:hover{background:color-mix(in srgb,var(--text) 2%,transparent)}
+.ll-next{margin-bottom:22px}
+.ll-next .ed{font-size:.88rem;line-height:1.6}
+.ll-rule-full{margin:10px 0 0;border:0;border-top:1px solid color-mix(in srgb,var(--page-accent) 10%,transparent)}
+.ll-name{font-family:var(--serif);font-size:1.38rem;font-weight:400;letter-spacing:.02em;color:var(--text);margin:0;cursor:pointer;transition:color .3s var(--ease)}
+.ll-vision:hover .ll-name{color:var(--page-accent)}
+.ll-rule-short{width:40px;margin:12px 0 0;border:0;border-top:1px solid color-mix(in srgb,var(--page-accent) 12%,transparent)}
+.ll-prose{margin-top:18px}
+.ll-prose .ed,.ll-prose p{font-family:var(--serif);font-size:1rem;line-height:1.8;color:var(--text)}
+.ll-prose.empty .ed{font-family:var(--serif);font-style:italic;opacity:.6}
+.ll-prompt{font-family:var(--serif);font-style:italic;color:var(--muted);opacity:.6;font-size:.92rem;margin:16px 0 0}
+.ll-prompt.center{text-align:center}
+
+/* the confidence ladder: dots and a word */
+.ll-conf{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:20px;font-family:var(--mono);font-size:.62rem;color:var(--muted);flex-wrap:wrap}
+.ll-conf-end{opacity:.55}
+.ll-conf-track{display:flex;align-items:center;gap:9px}
+.ll-conf-track i{width:5px;height:5px;border-radius:50%;background:var(--muted);opacity:.35;cursor:pointer;transition:transform .3s var(--ease),opacity .3s var(--ease),background .3s var(--ease)}
+.ll-conf-track i:hover{opacity:.8;transform:scale(1.4)}
+.ll-conf-track i.on{background:var(--page-accent);opacity:1;transform:scale(1.9)}
+.ll-conf-now{flex-basis:100%;text-align:right;opacity:.7;margin-top:2px}
+
+/* marginalia — pencilled in the border of a book */
+.ll-margin{display:grid;grid-template-columns:1fr auto;gap:1px 12px;justify-content:end;text-align:right;margin-top:14px;font-family:var(--mono);font-size:.62rem;color:var(--muted);opacity:.7;transition:opacity .2s var(--ease);cursor:help}
+.ll-margin:hover{opacity:1}
+.ll-margin b{font-weight:400;color:var(--text);opacity:.85}
+.ll-values{text-align:right;font-family:var(--mono);font-size:.6rem;color:var(--muted);opacity:.6;margin-top:6px;letter-spacing:.04em}
+.ll-annot{display:block;margin:12px 0 0 auto;background:none;border:0;font-family:var(--serif);font-style:italic;font-size:.82rem;color:var(--muted);opacity:.75;cursor:pointer;text-align:right;padding:0}
+.ll-annot:hover{opacity:1;color:var(--page-accent)}
+
+/* the withered and the not-yet */
+.ll-vision.withered .ll-name{color:var(--muted)}
+.ll-vision.withered .ll-prose{opacity:.6}
+.ll-vision.withered .ll-next{opacity:1}
+.ll-vision.notyet .ll-name{opacity:.75}
+.ll-vision.notyet{border-left:2px dashed color-mix(in srgb,var(--page-accent) 8%,transparent);padding-left:16px;margin-left:-18px}
+
+/* expansion: the space opens, then the ink arrives */
+.ll-more{max-height:0;overflow:hidden;opacity:0;transition:max-height .4s ease-out,opacity .2s ease .2s}
+.ll-vision.open .ll-more{max-height:1800px;opacity:1}
+.ll-more-in{padding-top:24px}
+.ll-field{margin-bottom:18px}
+.ll-field em{display:block;font-family:var(--serif);font-style:italic;font-size:.82rem;color:var(--muted);opacity:.7;margin-bottom:5px}
+.ll-field .ed{font-size:.88rem;line-height:1.65;opacity:.85}
+.ll-res{font-size:.86rem;opacity:.85;margin-bottom:3px}
+.ll-tools{margin-top:14px;font-size:.7rem;color:var(--muted)}
+.ll-link{background:none;border:0;padding:0;font-family:var(--serif);font-style:italic;font-size:.84rem;color:var(--muted);cursor:pointer;text-decoration:none;transition:color .2s var(--ease)}
+.ll-link:hover{color:var(--page-accent)}
+.ll-link.quiet{opacity:.5}
+.ll-more-link{display:block;margin:0 auto;background:none;border:0;font-family:var(--serif);font-style:italic;font-size:.86rem;color:var(--muted);cursor:pointer;padding:4px}
+.ll-more-link:hover{color:var(--page-accent)}
+.ll-erakit{margin-top:26px;justify-content:center;opacity:.75}
+.ll-closing{text-align:center;margin:0 0 80px}
+.ll-closing p{font-family:var(--serif);font-style:italic;font-size:.88rem;color:var(--muted);margin:24px 0}
+.lifeline-ms .center{text-align:center}
+@media (prefers-reduced-motion:reduce){
+  .ll-vision,.ll-name,.ll-conf-track i,.ll-margin,.vw-stage{transition:none;animation:none}
+  .ll-more{transition:none}
+}
 </style>
 </head>
