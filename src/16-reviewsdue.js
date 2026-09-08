@@ -47,20 +47,62 @@ function cyclePeriodId(c, d){ return `${c.key}:${d}`; }
 function cycleDismissed(c, d){ return !!(S.reviews?.dismissed || {})[cyclePeriodId(c, d)]; }
 function dismissCycle(c, d){ S.reviews = S.reviews || {}; S.reviews.dismissed = S.reviews.dismissed || {};
   S.reviews.dismissed[cyclePeriodId(c, d)] = new Date().toISOString(); saveNow(); }
-function cycleAnswered(c, d){ const last = (S.reviews || {})[c.flow]; return !!last && last.slice(0,10) >= c.from(d); }
 
-/* What is due tonight — plus anything whose cycle ended in the last few days
-   and was never answered, because a review missed is not a review cancelled. */
-function reviewsDue(d = today(), {grace = 3} = {}){
+/* Which period a completed review belongs to is recorded explicitly. Reading it
+   off the flow's "last run" date cannot tell a review of last week done late
+   from a review of this week done on time — and would quietly mark the missed
+   one as answered. The date is still consulted for reviews logged before this
+   was recorded, so old history is not suddenly all overdue. */
+function cycleAnsweredMap(){ S.reviews = S.reviews || {}; return S.reviews.done = S.reviews.done || {}; }
+function cycleAnswered(c, d){
+  if(cycleAnsweredMap()[cyclePeriodId(c, d)]) return true;
+  const last = (S.reviews || {})[c.flow];
+  if(!last) return false;
+  /* the legacy fallback: a run dated inside the period, or within a week after
+     it closed, counts as that period's review */
+  const on = last.slice(0,10);
+  return on >= c.from(d) && on <= addDays(d, 7);
+}
+/* the period a "Begin" click is answering, so its completion lands on the
+   right one even when two of the same kind are open at once */
+let pendingCycle = null;
+function beginCycleReview(c, end){
+  pendingCycle = {key: c.key, end};
+  const fn = (REVIEW_FLOWS.find(f => f[0] === c.flow) || [])[4];
+  if(fn) fn(); else { pendingCycle = null; toast('That review is not wired up.'); }
+}
+function markCycleAnswered(flowKey){
+  const c = CYCLES.find(x => x.flow === flowKey); if(!c) return;
+  const end = pendingCycle && pendingCycle.key === c.key ? pendingCycle.end : null;
+  pendingCycle = null;
+  if(end) cycleAnsweredMap()[cyclePeriodId(c, end)] = new Date().toISOString();
+}
+
+/* How many period boundaries back to look at all. Two for the short cycles, so
+   a weekly missed last Sunday is still on the page this Sunday; one for the
+   long ones, because a quarter you never reviewed is not tonight's business
+   and stacking it here would only make the page easier to ignore. */
+const CYCLE_DEPTH = {daily: 2, weekly: 2, monthly: 2, quarterly: 1, half: 1, annual: 1};
+/* a generous day-window to walk, sized so the depth above is always reachable */
+const CYCLE_SCAN = {daily: 3, weekly: 16, monthly: 70, quarterly: 100, half: 200, annual: 380};
+
+/* Not merely the nearest one: if last week's review was never done and this
+   week's has now come due, both are on the page, oldest first, because the
+   older one is the one at risk of never happening at all. */
+function reviewsDue(d = today()){
   const out = [];
   CYCLES.forEach(c => {
-    for(let back = 0; back <= (c.key === 'daily' ? 0 : grace); back++){
-      const end = addDays(d, -back);
+    const found = []; let boundaries = 0;
+    const depth = CYCLE_DEPTH[c.key] || 1, scan = CYCLE_SCAN[c.key] || 30;
+    for(let i = 0; i <= scan && boundaries < depth; i++){
+      const end = addDays(d, -i);
       if(!c.isEnd(end)) continue;
-      if(cycleAnswered(c, end) || cycleDismissed(c, end)) break;
-      out.push({c, end, from: c.from(end), late: back});
-      break;
+      boundaries++;                       /* a period boundary, answered or not */
+      if(cycleAnswered(c, end) || cycleDismissed(c, end)) continue;
+      found.push({c, end, from: c.from(end), late: i});
     }
+    /* oldest first within a kind, so the overdue one is read before the fresh */
+    found.reverse().forEach(x => out.push(x));
   });
   return out;
 }
@@ -151,8 +193,7 @@ function bindReviewsDue(root){
   const find = v => { const [key, end] = v.split(':'); const c = CYCLES.find(x => x.key === key); return c ? {c, end, from: c.from(end)} : null; };
   box.querySelectorAll('[data-cycstart]').forEach(b => b.onclick = () => {
     const d = find(b.dataset.cycstart); if(!d) return;
-    const fn = (REVIEW_FLOWS.find(f => f[0] === d.c.flow) || [])[4];
-    if(fn) fn(); else toast('That review is not wired up.');
+    beginCycleReview(d.c, d.end);
   });
   box.querySelectorAll('[data-cycskip]').forEach(b => b.onclick = () => {
     const d = find(b.dataset.cycskip); if(!d) return;
@@ -250,4 +291,69 @@ function mdInline(t){
     if(line.length < 60 && !/[.!?]$/.test(line) && !/^[-*]/.test(line)) return `<h4>${esc(line)}</h4>`;
     return `<p>${esc(line).replace(/\n/g, '<br>')}</p>`;
   }).join('');
+}
+
+
+/* ============================================================
+   THE CAPTURE STEP
+   Every review ends up somewhere near the same thought: "there
+   was something else, and I have not written it down." So one
+   step of the daily and weekly flows is that thought, made
+   actionable — the kinds of entry offered by name, added without
+   leaving the review, and the review still open behind it.
+   ============================================================ */
+const CAPTURE_KINDS = [
+  {t:'reflection',    ic:'✎', label:'A reflection',    d:'Something you noticed, or worked out.'},
+  {t:'gratitude',     ic:'♡', label:'Gratitude',       d:'One thing that was good, named.'},
+  {t:'memory',        ic:'◌', label:'A memory',        d:'Something worth keeping, not just recording.'},
+  {t:'synchronicity', ic:'∞', label:'A synchronicity', d:'A coincidence that did not feel like one.'},
+  {t:'dream',         ic:'☾', label:'A dream',         d:'While it is still legible.'},
+  {t:'question',      ic:'?', label:'An open question',d:'Something you are living with, unanswered.'},
+  {t:'interaction',   ic:'☺', label:'Someone',         d:'A conversation worth logging against a person.'},
+  {t:'nod',           ic:'·', label:'A nod',           d:'A moment of work on a project.'},
+];
+function captureStepHTML(from, to){
+  const n = (typeof tapeItems === 'function' ? tapeItems(from, to) : []).filter(it => it.kind !== 'habit').length;
+  return `<div class="cap-step">
+    <p class="cap-count mono">${n} entr${n === 1 ? 'y' : 'ies'} already written for this stretch.</p>
+    <div class="cap-grid">${CAPTURE_KINDS.map(k => `<button class="choice cap-choice" data-cap="${k.t}">
+      <span class="ico">${k.ic}</span><span><b>${esc(k.label)}</b><div class="d">${esc(k.d)}</div></span></button>`).join('')}</div>
+    <p class="cap-back faint">Anything you add here is kept straight away; this review stays open behind it.</p>
+  </div>`;
+}
+/* The review modal must survive the entry modal opening on top of it, and the
+   count must be right again when you come back — so the step redraws itself in
+   place rather than the flow restarting. */
+function bindCaptureStep(box, from, to){
+  box.querySelectorAll('[data-cap]').forEach(b => b.onclick = () => {
+    const t = b.dataset.cap;
+    const after = () => { const host = box.querySelector('.cap-count');
+      if(host){ const n = (typeof tapeItems === 'function' ? tapeItems(from, to) : []).filter(it => it.kind !== 'habit').length;
+        host.textContent = `${n} entr${n === 1 ? 'y' : 'ies'} already written for this stretch.`;
+        host.classList.add('just-added'); setTimeout(() => host.classList.remove('just-added'), 1200); } };
+    if(t === 'nod' && typeof openNodModal === 'function') openNodModal(null, after);
+    else openEntryModal({type:t, occurredAt:to, after});
+  });
+}
+
+/* what actually got finished in a stretch — the half of a review that the
+   flows never showed, and the first thing anybody wants to know */
+function tasksInPeriod(from, to){
+  const days = []; { let d = from, g = 0; while(d <= to && g++ < 400){ days.push(d); d = addDays(d, 1); } }
+  const rows = days.flatMap(d => (typeof tasksForDay === 'function' ? tasksForDay(d).map(r => ({...r, day:d})) : []));
+  return {rows, done: rows.filter(r => r.done), open: rows.filter(r => !r.done)};
+}
+function tasksReviewHTML(from, to){
+  const {rows, done, open} = tasksInPeriod(from, to);
+  if(!rows.length) return `<div class="empty">Nothing was parked for these days.</div>`;
+  return `<div class="tsk-review">
+    <div class="row between"><span class="mono">${done.length} of ${rows.length} finished</span>
+      <span class="mono">${Math.round(done.length / rows.length * 100)}%</span></div>
+    <div class="bar" style="--c:var(--sage);margin:6px 0 12px"><i style="width:${Math.round(done.length / rows.length * 100)}%"></i></div>
+    ${done.length ? `<div class="sc" style="margin:0 0 4px">Finished</div>
+      <ul class="tsk-list done">${done.slice(0, 12).map(r => `<li>${esc(r.text)}</li>`).join('')}</ul>` : ''}
+    ${open.length ? `<div class="sc" style="margin:10px 0 4px">Still open</div>
+      <ul class="tsk-list">${open.slice(0, 12).map(r => `<li>${esc(r.text)}<span class="mono">${esc(fmtDate(r.day,'short'))}</span></li>`).join('')}</ul>
+      <p class="faint" style="font-size:.78rem;margin-top:6px">Unfinished is information, not a verdict. What kept getting pushed?</p>` : ''}
+  </div>`;
 }

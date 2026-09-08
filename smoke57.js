@@ -28,8 +28,17 @@ const { chromium } = require('playwright');
   const step1 = await page.evaluate(() => ({
     heading: document.querySelector('.modal h2')?.textContent,
     btn: document.querySelector('#pmNext')?.textContent,
+    steps: document.querySelector('.modal .mono')?.textContent,
   }));
-  console.log('planMyDay step 1 (should say tomorrow):', JSON.stringify(step1));
+  console.log('planMyDay step 1 (the reason, and it says tomorrow):', JSON.stringify(step1));
+
+  // step 1 is now "What is tomorrow for?" — the three come next
+  await page.evaluate(() => {
+    const why = document.querySelector('[data-planwhy]');
+    if(why) why.value = 'getting the release out';
+    document.querySelector('#pmNext').click();
+  });
+  await page.waitForTimeout(250);
 
   await page.evaluate(() => {
     const ins = [...document.querySelectorAll('[data-int]')];
@@ -38,10 +47,17 @@ const { chromium } = require('playwright');
     document.querySelector('#pmNext').click();
   });
   await page.waitForTimeout(250);
-  await page.evaluate(() => document.querySelector('#pmNext').click());
-  await page.waitForTimeout(250);
-  const lastBtn = await page.evaluate(() => document.querySelector('#pmNext')?.textContent);
-  await page.evaluate(() => document.querySelector('#pmNext').click());
+  // walk the rest of the flow to its end, whatever length it is
+  const lastBtn = await page.evaluate(async () => {
+    let label = null;
+    for(let i = 0; i < 8; i++){
+      const fm = document.querySelector('[data-planfirst]'); if(fm) fm.value = 'open the editor';
+      const nx = document.querySelector('#pmNext'); if(!nx) break;
+      label = nx.textContent; nx.click();
+      await new Promise(r => setTimeout(r, 260));
+    }
+    return label;
+  });
   await page.waitForTimeout(700);
   console.log('final button read:', JSON.stringify(lastBtn));
 
@@ -49,6 +65,8 @@ const { chromium } = require('playwright');
     const tm = addDays(today(), 1);
     return {
       tomorrowIntentions: (S.plans[tm]?.intentions||[]).filter(Boolean),
+      tomorrowWhy: S.plans[tm]?.why || null,
+      tomorrowFirstMove: S.plans[tm]?.firstMove || null,
       tomorrowPlanned: !!S.plans[tm]?.planned,
       tomorrowCheckinIntention: S.checkins[tm]?.intention || null,
       todayUntouched: (S.plans[today()]?.intentions||[]).filter(Boolean).length,

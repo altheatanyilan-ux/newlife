@@ -186,7 +186,11 @@ main{margin-left:var(--sidebar);flex:1;min-width:0;padding:48px 56px 120px;anima
 @keyframes pagein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .page{max-width:1180px;margin:0 auto}
 .page.narrow{max-width:var(--content)}
-.page-head{margin-bottom:34px;position:relative;padding:26px 30px 24px;border-radius:var(--radius);overflow:hidden;isolation:isolate;border:1px solid color-mix(in srgb,var(--page-accent) 24%,var(--line));background:linear-gradient(120deg,color-mix(in srgb,var(--page-gradient-start) 20%,var(--surface)) 0%,color-mix(in srgb,var(--page-gradient-end) 10%,var(--surface)) 70%,var(--surface) 100%);transition:background .4s var(--ease),border-color .4s var(--ease)}
+/* The banner and the page under it must begin on the same vertical line. The
+   banner has inner padding and the sections below it do not, so the title used
+   to hang ~30px right of everything it introduced. The panel now bleeds
+   outward by exactly its own padding: the box is wider, the words line up. */
+.page-head{--ph-bleed:30px;margin:0 calc((var(--ph-bleed) + 1px) * -1) 34px;position:relative;padding:26px var(--ph-bleed) 24px;border-radius:var(--radius);overflow:hidden;isolation:isolate;border:1px solid color-mix(in srgb,var(--page-accent) 24%,var(--line));background:linear-gradient(120deg,color-mix(in srgb,var(--page-gradient-start) 20%,var(--surface)) 0%,color-mix(in srgb,var(--page-gradient-end) 10%,var(--surface)) 70%,var(--surface) 100%);transition:background .4s var(--ease),border-color .4s var(--ease)}
 .page-head::before{content:var(--page-glyph);position:absolute;right:26px;top:-14px;z-index:-1;font-family:var(--han);font-size:6.4rem;line-height:1;color:var(--page-accent);opacity:.13;pointer-events:none;user-select:none;transform:translateY(calc(var(--page-par) * -.18px))}
 .page-head::after{content:"";position:absolute;left:0;top:0;right:0;height:3px;background:linear-gradient(90deg,var(--page-accent),color-mix(in srgb,var(--page-gradient-end) 70%,transparent) 60%,transparent)}
 .page-head h1{font-size:2.4rem}
@@ -382,7 +386,7 @@ svg text{font-family:var(--mono);fill:var(--faint);font-size:10px}
   .mobile-nav .ico svg{width:21px;height:21px}
   .mobile-nav a.active{color:var(--text);border-top-color:var(--page-accent)}
   main{margin-left:0;padding:28px 18px 120px}
-  .page-head{padding:18px 18px 16px}
+  .page-head{--ph-bleed:18px;padding:18px var(--ph-bleed) 16px;margin-left:calc((var(--ph-bleed) + 1px) * -1);margin-right:calc((var(--ph-bleed) + 1px) * -1)}
   .page-head::before{font-size:4.4rem;right:12px}
   .fab-wrap{bottom:74px}
   .toast-wrap{bottom:74px;left:16px;right:96px}

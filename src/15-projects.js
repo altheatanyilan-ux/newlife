@@ -10,12 +10,12 @@ const fmtYen = n => '¥' + Math.round(n||0).toLocaleString();
 function nodHeat(p){ const days = lastDays(84); const counts = {}; S.nods.filter(n=>n.projectId===p.id).forEach(n => counts[n.date] = (counts[n.date]||0)+1); return heatGrid(days, 12, d => counts[d] ? (counts[d]>=3?'l3':counts[d]===2?'l2':'l1') : ''); }
 function projectCardHTML(p){
   const ns = projectNods(p); const st = PSTATUS[p.status]||PSTATUS.idea; const r = projectTaskRatio(p); const pct = r.total ? Math.round(r.done/r.total*100) : 0; const due = p.targetDate ? daysBetween(today(), p.targetDate.slice(0,10)) : null;
-  return `<div class="card pcard rv" data-popen="${p.id}" draggable="true" data-kdrag="${p.id}" style="cursor:pointer;--c:${st[2]}"><div class="hd"><h3>${esc(p.name)}</h3><span class="row" style="gap:6px">${prBadge(p)}${stBadge(p)}</span></div><div class="muted" style="font-size:.85rem">${esc(p.description||'')}</div><div class="row">${(p.tags||[]).map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div>
+  return `<div class="card pcard rv ${hasImages(p) ? 'plated' : ''}" data-popen="${p.id}" draggable="true" data-kdrag="${p.id}" style="cursor:pointer;--c:${st[2]}">${imageBackdropHTML(p)}<div class="hd"><h3>${esc(p.name)}</h3><span class="row" style="gap:6px">${prBadge(p)}${stBadge(p)}</span></div><div class="muted" style="font-size:.85rem">${esc(p.description||'')}</div><div class="row">${(p.tags||[]).map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div>
     <div class="ptask"><div class="row between"><span class="mono">${(p.phases||[]).length} phase${(p.phases||[]).length===1?'':'s'} · ${r.done}/${r.total} tasks done</span><span class="mono ${due!==null&&due<0&&p.status!=='completed'?'due':''}">${p.targetDate?`🎯 ${fmtDate(p.targetDate,'med')}${due!==null&&p.status!=='completed'?(due<0?` · ${-due}d over`:` · ${due}d`):''}`:''}</span></div><div class="bar" style="--c:${st[2]}"><i style="width:${pct}%"></i></div></div>
     ${nodHeat(p)}<div class="mono">${ns.length} nods · last ${relDays(daysSince(ns[0]?.date))}${p.income?.current?` · ${fmtYen(p.income.current)}/mo`:''}</div>${p.link&&p.status==='completed'?`<a href="${esc(p.link)}" target="_blank" rel="noopener" class="mono" onclick="event.stopPropagation()">↗ ${esc(p.link)}</a>`:''}</div>`;
 }
 function kanbanHTML(ps){
-  return `<div class="kanban">${KANBAN.map(([k,label]) => { const cards = ps.filter(p => p.status===k || (k==='archived' && p.status==='abandoned')); const st = PSTATUS[k]; return `<div class="kcol" data-kcol="${k}" style="--c:${st[2]}"><div class="kcol-h"><span>${label}</span><span class="mono">${cards.length}</span></div><div class="kcol-body">${cards.map(p => { const r = projectTaskRatio(p); return `<div class="kcard" draggable="true" data-kdrag="${p.id}" data-popen="${p.id}"><div class="row between"><b class="serif" style="font-size:1rem">${esc(p.name)}</b>${prBadge(p)}</div><div class="mono" style="margin-top:4px">${r.done}/${r.total} tasks${p.targetDate?` · 🎯 ${fmtDate(p.targetDate,'short')}`:''}${p.status==='abandoned'?' · abandoned':''}</div><div class="bar" style="--c:${(PSTATUS[p.status]||st)[2]};margin-top:6px"><i style="width:${r.total?Math.round(r.done/r.total*100):0}%"></i></div></div>`; }).join('')||'<div class="faint" style="font-size:.75rem;padding:8px">drop here</div>'}</div></div>`; }).join('')}</div>`;
+  return `<div class="kanban">${KANBAN.map(([k,label]) => { const cards = ps.filter(p => p.status===k || (k==='archived' && p.status==='abandoned')); const st = PSTATUS[k]; return `<div class="kcol" data-kcol="${k}" style="--c:${st[2]}"><div class="kcol-h"><span>${label}</span><span class="mono">${cards.length}</span></div><div class="kcol-body">${cards.map(p => { const r = projectTaskRatio(p); return `<div class="kcard ${hasImages(p) ? 'plated' : ''}" draggable="true" data-kdrag="${p.id}" data-popen="${p.id}">${imageBackdropHTML(p)}<div class="row between"><b class="serif" style="font-size:1rem">${esc(p.name)}</b>${prBadge(p)}</div><div class="mono" style="margin-top:4px">${r.done}/${r.total} tasks${p.targetDate?` · 🎯 ${fmtDate(p.targetDate,'short')}`:''}${p.status==='abandoned'?' · abandoned':''}</div><div class="bar" style="--c:${(PSTATUS[p.status]||st)[2]};margin-top:6px"><i style="width:${r.total?Math.round(r.done/r.total*100):0}%"></i></div></div>`; }).join('')||'<div class="faint" style="font-size:.75rem;padding:8px">drop here</div>'}</div></div>`; }).join('')}</div>`;
 }
 function ganttHTML(ps){
   const T = today(); const rows = ps.filter(p => (p.phases||[]).some(ph => ph.startDate || ph.endDate) || p.startDate || p.targetDate);
@@ -45,7 +45,7 @@ routes.projects = function(root, params){
   if(mode === 'ideation'){ renderIdeation(root); return; }
   root.innerHTML = `<div class="page">
     <button class="btn primary nod-fab" id="nodFab" title="quick nod">+ nod</button>
-    <div class="mode-switch rv">${[['ideation','◌ Ideation','sparks, inspiration, brainstorming'],['tracking','◉ Tracking','the work already under way']].map(([k,l,d])=>`<button class="${mode===k?'on':''}" data-pmode="${k}" title="${d}">${l}</button>`).join('')}</div>
+    <div class="mode-switch rv">${[['ideation','◌ Ideation','sparks and open questions'],['tracking','◉ Tracking','the work already under way']].map(([k,l,d])=>`<button class="${mode===k?'on':''}" data-pmode="${k}" title="${d}">${l}</button>`).join('')}</div>
     <div class="page-head row between"><div><h1>Projects</h1></div><div class="row"><div class="view-toggle">${[['cards','▦ Cards'],['kanban','▥ Board'],['timeline','▬ Timeline']].map(([k,l])=>`<button class="${view===k?'on':''}" data-pview="${k}">${l}</button>`).join('')}</div><select class="sel" style="width:auto" id="psort"><option value="activity" ${sort==='activity'?'selected':''}>by last activity</option><option value="priority" ${sort==='priority'?'selected':''}>by priority</option><option value="status" ${sort==='status'?'selected':''}>by status</option><option value="name" ${sort==='name'?'selected':''}>by name</option></select><button class="btn primary" id="addNod">+ nod</button></div></div>
     <div class="card rv" style="margin-bottom:22px"><div class="income-strip"><div><div class="k">monthly income, all streams</div><div class="num">${fmtYen(total)}</div><div class="mono">per month</div></div><div><div class="k">active streams</div><div class="num">${income.length}</div></div><div><div class="k">diversification</div><div class="num">${diversified}</div><div class="mono">contribute &gt;10%</div></div><div><div class="k">open tasks</div><div class="num">${sum(S.projects.filter(p=>!['completed','archived','abandoned'].includes(p.status)).map(p=>{ const r = projectTaskRatio(p); return r.total-r.done; }))}</div></div></div></div>
     ${view==='cards' ? `<div class="grid c3" id="pcards">${ps.map(projectCardHTML).join('')}</div>` : view==='kanban' ? kanbanHTML(ps) : `<div class="card rv"><div class="row between" style="margin-bottom:8px"><span class="sc" style="margin:0">Phases over time</span><span class="mono">bars are phases · lighter fill is tasks done · click a bar to open</span></div>${ganttHTML(ps)}</div>`}
@@ -98,7 +98,8 @@ function openProjectPanel(id){
     <div class="vp-sec"><div class="row between"><span class="sc">Activity, twelve weeks</span><button class="btn sm primary" id="pNod">+ nod</button></div>${nodHeat(p)}</div>
     <div class="vp-sec"><span class="sc">Income stream</span><div class="spec-grid"><div><div class="k">revenue model</div>${ed(`projects.#${p.id}.income.model`,{ph:'freelance / product / subscriptions / patronage'})}</div><div><div class="k">current monthly (¥)</div>${ed(`projects.#${p.id}.income.current`,{ph:'0',cls:'mono',hook:'pnum:'+p.id})}</div><div><div class="k">target monthly (¥)</div>${ed(`projects.#${p.id}.income.target`,{ph:'0',cls:'mono',hook:'pnum:'+p.id})}</div></div>
       <div class="row between" style="margin-top:10px"><span class="k mono">milestones</span><button class="btn sm ghost" id="pMile">+ milestone</button></div>${(p.income.milestones||[]).map((m,i)=>`<div class="evidence-item"><span class="mono">${ed(`projects.#${p.id}.income.milestones.${i}.date`,{ph:'date',cls:'mono'})}</span><span style="flex:1">${ed(`projects.#${p.id}.income.milestones.${i}.text`,{ph:'first user, first dollar, first referral…'})}</span><button class="tbtn" data-mdel="${i}">×</button></div>`).join('')||'<div class="empty">Small wins, recorded. None yet.</div>'}</div>
-    ${boardStrip(boardId('project', p.id), 'Board')}
+    <div class="vp-sec"><div class="row between" style="align-items:center"><span class="sc">What this looks like</span>${imageAddHTML('project', p.id)}</div>
+      ${imageStripHTML('project', p.id) || '<p class="faint" style="font-size:.8rem;margin:6px 0 0">Add an image and this project\'s card is printed on it.</p>'}</div>
     <div class="vp-sec"><span class="sc">Cross-pollination</span><div class="stack" style="gap:6px;font-size:.88rem">
       <div>draws on threads: ${threads.map(t=>`<span class="chip on" style="--c:${t.color}">${esc(t.name)}</span>`).join(' ')||'<span class="faint">—</span>'}</div>
       <div>exercises skills: ${skills.map(s=>`<span class="chip on click" style="--c:var(--ment)" data-go="#/skills/${s.id}">${esc(s.name)}</span>`).join(' ')||'<span class="faint">—</span>'}</div>
@@ -125,7 +126,7 @@ function openProjectPanel(id){
   pn.querySelector('#resAdd').onclick = () => { p.resources.push({title:'', url:'', type:'link'}); saveNow(); reopen(); setTimeout(()=>{ const last = $$('#panel .res-row').slice(-1)[0]; const e = last?.querySelector('.ed'); if(e){ last.querySelector('.res-edit').style.display='flex'; beginEdit(e); } },60); };
   pn.querySelectorAll('[data-prestype]').forEach(sel => sel.onchange = () => { p.resources[+sel.dataset.prestype].type = sel.value; saveNow(); reopen(); });
   pn.querySelectorAll('[data-presdel]').forEach(b => b.onclick = () => { const rs = p.resources[+b.dataset.presdel]; requestDelete({label:rs.title||'Resource', remove:()=>spliceOut(p.resources, x=>x===rs), after:reopen}); });
-  bindBoardStrip(pn, () => p.name);
+  bindRecImages(pn, () => openProjectPanel(p.id));
   pn.querySelector('#pNod').onclick = () => openNodModal(p.id, ()=>{ reopenPanel(() => { rerender(); openProjectPanel(id); }); });
   pn.querySelector('#pMile').onclick = () => { p.income.milestones.push({date:today(),text:''}); saveNow(); openProjectPanel(id); };
   pn.querySelectorAll('[data-mdel]').forEach(b => b.onclick = () => { const ms = p.income.milestones[+b.dataset.mdel]; requestDelete({label: ms.text || 'Milestone', node: b.closest('.evidence-item'), remove: () => spliceOut(p.income.milestones, x => x === ms), after: () => openProjectPanel(id)}); });
@@ -155,7 +156,12 @@ function openNodModal(projectId, after, existing=null){
 }
 
 /* ---------- Ideation: before anything is a project ---------- */
-const SPARK_KINDS = {spark:['◌','spark','#d4a44c'], question:['?','question','#6b7f8e'], inspiration:['✦','inspiration','#a0727e'], experiment:['⚗','experiment','#7f916a']};
+/* Two kinds, not four. "Inspiration" and "experiment" were shades of the same
+   two things — something that struck you, and something you do not know — and
+   a picker with four options where two would do is a decision tax on the way
+   into a thought. Anything filed under the old kinds becomes a spark. */
+const SPARK_KINDS = {spark:['◌','spark','#d4a44c'], question:['?','question','#6b7f8e']};
+const SPARK_FOLD = {inspiration:'spark', experiment:'spark'};
 function addIdea(kind='spark', text=''){
   const t = (text||'').trim();
   if(t){ S.ideas.unshift({id:uid(), text:t, kind, note:'', createdAt:new Date().toISOString(), tags:parseTags(t)}); saveNow(); sound('success'); rerender(); return; }
@@ -165,30 +171,29 @@ function addIdea(kind='spark', text=''){
   m.querySelector('#skGo').onclick = go;
   m.querySelector('#skText').onkeydown = e => { if(e.key === 'Enter') go(); };
 }
-function migrateIdeas(){ (S.ideas||[]).forEach(i => { i.kind = i.kind || 'spark'; i.note = i.note || ''; i.createdAt = i.createdAt || new Date().toISOString(); i.tags = normTags(i.tags||[]); }); }
+function migrateIdeas(){ (S.ideas||[]).forEach(i => {
+  i.kind = SPARK_FOLD[i.kind] || i.kind || 'spark';
+  if(!SPARK_KINDS[i.kind]) i.kind = 'spark';
+  i.note = i.note || ''; i.createdAt = i.createdAt || new Date().toISOString(); i.tags = normTags(i.tags||[]); }); }
 function renderIdeation(root){
   registerPageEntry({pageName:'Projects', addLabel:'New spark', defaultEntryType:'idea', prefilledFields:{}, options:[
     {icon:'◌', label:'Spark', desc:'A half-thought worth keeping.', run:()=>addIdea('spark')},
     {icon:'?', label:'Question', desc:'Something you want to find out.', run:()=>addIdea('question')},
-    {icon:'✦', label:'Inspiration', desc:'Something that lit you up — and where it came from.', run:()=>addIdea('inspiration')},
-    {icon:'⚗', label:'Experiment', desc:'A small test you could actually run.', run:()=>addIdea('experiment')}]});
+    ]});
   const ideas = [...(S.ideas||[])];
   const byKind = k => ideas.filter(i => (i.kind||'spark') === k);
   root.innerHTML = `<div class="page">
-    <div class="mode-switch rv">${[['ideation','◌ Ideation','sparks, inspiration, brainstorming'],['tracking','◉ Tracking','the work already under way']].map(([k,l,d])=>`<button class="${k==='ideation'?'on':''}" data-pmode="${k}" title="${d}">${l}</button>`).join('')}</div>
+    <div class="mode-switch rv">${[['ideation','◌ Ideation','sparks and open questions'],['tracking','◉ Tracking','the work already under way']].map(([k,l,d])=>`<button class="${k==='ideation'?'on':''}" data-pmode="${k}" title="${d}">${l}</button>`).join('')}</div>
     <div class="page-head"><h1>Projects</h1></div>
     <div class="card rv" style="margin-bottom:20px"><div class="row" style="gap:8px;flex-wrap:wrap">
       <input class="inp" id="ideaInp" placeholder="What just occurred to you?" style="flex:1;min-width:240px">
       <select class="sel" id="ideaKind" style="width:auto">${Object.entries(SPARK_KINDS).map(([k,v])=>`<option value="${k}">${v[0]} ${v[1]}</option>`).join('')}</select>
       <button class="btn primary" id="ideaAdd">Catch it</button></div>
       <div class="faint" style="font-size:.78rem;margin-top:8px">Hashtags work here too — #kyoto, #bar, #jazz.</div></div>
-    <div class="grid c2 spark-grid-wrap">${Object.entries(SPARK_KINDS).map(([k,[ico,label,col]]) => { const list = byKind(k); return `<section class="rv"><div class="row between"><span class="sc" style="margin:0;color:${col}">${ico} ${label}s</span><span class="mono">${list.length}</span></div>
+    <div class="spark-cols">${Object.entries(SPARK_KINDS).map(([k,[ico,label,col]]) => { const list = byKind(k); return `<section class="rv spark-col"><div class="row between"><span class="sc" style="margin:0;color:${col}">${ico} ${label}s</span><span class="mono">${list.length}</span></div>
       <div class="card" style="margin-top:8px;border-left:3px solid ${col}">${list.length ? list.map(i=>`<div class="spark" data-spark="${i.id}"><div class="row between"><span style="flex:1">${ed(`ideas.#${i.id}.text`,{ph:'a spark'})}</span><span class="row" style="gap:4px"><button class="tbtn" data-promote="${i.id}" title="make this a project">promote →</button><button class="del-x inline" data-idel="${i.id}" title="delete">×</button></span></div>
         <div class="spark-note">${ed(`ideas.#${i.id}.note`,{multi:true,ph:'why it caught you, or what it might become'})}</div>
         <div class="row between"><span class="mono">${i.createdAt?fmtDate(i.createdAt.slice(0,10),'med'):''}</span><select class="sel spark-kind" data-ikind="${i.id}">${Object.entries(SPARK_KINDS).map(([kk,vv])=>`<option value="${kk}" ${(i.kind||'spark')===kk?'selected':''}>${vv[0]} ${vv[1]}</option>`).join('')}</select></div></div>`).join('') : `<div class="empty">Nothing yet. ${label==='question'?'What do you not know?':'Catch the next one above.'}</div>`}</div></section>`; }).join('')}</div>
-    <section class="section rv" style="max-width:var(--content)"><span class="sc">Brainstorm</span>
-      <p class="muted" style="font-size:.85rem">A scratch page that is never graded. Nothing here is saved as an entry until you promote it.</p>
-      <div class="card">${ed('settings.brainstorm',{multi:true,mdr:true,cls:'prose',ph:'Write badly and quickly. Ten bad ideas beat one careful one at this stage.'})}</div></section>
   </div>`;
   $$('[data-pmode]',root).forEach(b => b.onclick = () => { S.settings.projectMode = b.dataset.pmode; saveNow(); rerender(); });
   const add = () => { const t = $('#ideaInp').value.trim(); if(!t) return; S.ideas.unshift({id:uid(), text:t, kind:$('#ideaKind').value, note:'', createdAt:new Date().toISOString(), tags:parseTags(t)}); saveNow(); sound('success'); rerender(); setTimeout(()=>$('#ideaInp')?.focus(),50); };

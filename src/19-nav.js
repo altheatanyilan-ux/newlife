@@ -250,6 +250,10 @@ routes.compass = function(root){
 
     ${zoneCardsHTML()}
 
+    ${typeof weekShapeHTML === 'function' ? weekShapeHTML() : ''}
+
+    ${typeof ledgerStanzasHTML === 'function' ? ledgerStanzasHTML({limit:4, title:'The life ledger'}) : ''}
+
     ${typeof positionHTML === 'function' ? positionHTML() : ''}
 
     <section class="section rv" style="margin-top:22px"><div class="row between"><span class="sc" style="margin:0">The house</span><span class="mono">● green tended · ● amber needs you · solid rings daily, dashed seasonal · hover to see what feeds what</span></div>
@@ -271,6 +275,8 @@ routes.compass = function(root){
   wrap.querySelectorAll('.hnode').forEach(nd => { nd.onmouseenter = e => { wrap.classList.add('hov'); nd.classList.add('hot'); wrap.querySelectorAll('.hedge').forEach(ed_ => { if(ed_.dataset.a===nd.dataset.node||ed_.dataset.b===nd.dataset.node){ ed_.classList.add('hot'); wrap.querySelector(`[data-node="${ed_.dataset.a}"]`)?.classList.add('hot'); wrap.querySelector(`[data-node="${ed_.dataset.b}"]`)?.classList.add('hot'); } }); const s = st.stat[nd.dataset.node]; showTip(e, `<b class="serif">${esc(NAV_PAGES[nd.dataset.node].label)}</b> · <span class="mono">${s.cadence}</span><br>${esc(s.line)}${s.tip?'<br>'+esc(s.tip):''}<br><span class="mono">click to open</span>`); }; nd.onmousemove = e => showTip(e, tip.innerHTML); nd.onmouseleave = () => { wrap.classList.remove('hov'); wrap.querySelectorAll('.hot').forEach(x=>x.classList.remove('hot')); tip.style.display='none'; }; });
   wrap.querySelectorAll('.hedge').forEach(ed_ => { ed_.onmouseenter = e => { ed_.classList.add('hot'); showTip(e, `<span class="mono">${esc(NAV_PAGES[ed_.dataset.a].label)} ↔ ${esc(NAV_PAGES[ed_.dataset.b].label)}</span><br>${esc(ed_.dataset.label)}`); }; ed_.onmousemove = e => showTip(e, tip.innerHTML); ed_.onmouseleave = () => { ed_.classList.remove('hot'); tip.style.display='none'; }; });
   if(typeof bindPosition === 'function') bindPosition(root, () => rerender());
+  if(typeof bindWeekShape === 'function') bindWeekShape(root, () => rerender());
+  if(typeof bindLedger === 'function') bindLedger(root);
 };
 
 /* ---------- Settings: drag-and-drop zone editor ---------- */

@@ -36,7 +36,10 @@ function guidedFlow(title, steps, onDone){
   return m;
 }
 const REVIEW_LOG = () => (S.reviews = S.reviews || {});
-function reviewDone(key){ REVIEW_LOG()[key] = today(); saveNow(); sound('success'); rerender(); }
+function reviewDone(key){ REVIEW_LOG()[key] = today();
+  /* record which period this answered, not just that it happened today */
+  if(typeof markCycleAnswered === 'function') markCycleAnswered(key);
+  saveNow(); sound('success'); rerender(); }
 const reviewAge = key => daysSince(REVIEW_LOG()[key]);
 
 /* ---------- 1. the morning practice ---------- */
@@ -80,6 +83,10 @@ function flowEvening(){
     {title:'And the set-point — where did it land?', hint:`This morning you were ${c.setpoint ? hicksName(c.setpoint).split(' / ')[0] : 'not on the scale yet'}.`,
      body: () => `<div class="energy-faces">${[1,2,3,4,5].map(n=>`<button class="ef ${r.energy===n?'on':''}" data-fwef="${n}" title="${['drained','low','level','good','full'][n-1]}">${n}</button>`).join('')}</div>`,
      bind: b => b.querySelectorAll('[data-fwef]').forEach(btn => btn.onclick = () => { r.energy = +btn.dataset.fwef; saveNow(); b.querySelectorAll('[data-fwef]').forEach(x => x.classList.toggle('on', x === btn)); })},
+    {title:'What actually got done.', hint:'The list you made this morning, against the day you had.',
+     body: () => tasksReviewHTML(T, T)},
+    {title:'Anything else from today?', hint:'Before the day closes — anything that happened and has not been written down anywhere.',
+     body: () => captureStepHTML(T, T), bind: b => bindCaptureStep(b, T, T)},
     {title:'One line.', hint:'One thing you learned, noticed, or are grateful for. It saves as a reflection.',
      body: () => `<textarea class="ta" id="fwLine" placeholder="Today I noticed…">${esc(r.note || '')}</textarea>`,
      next: b => { const v = b.querySelector('#fwLine').value.trim(); r.note = v; if(!c.sentence && v) c.sentence = v.split('\n')[0].slice(0,160);
@@ -131,8 +138,10 @@ function flowWeekly(){
      next: b => { const inp = b.querySelector('#fwLeaf'); if(!inp || !inp.value.trim()) return;
        const v = S.visions.filter(x => !x.archived).map(x => ({x, n:(x.evidence||[]).length})).sort((a,b)=>a.n-b.n)[0];
        if(v){ v.x.evidence = v.x.evidence || []; v.x.evidence.push({date:today(), text:inp.value.trim()}); saveNow(); } }},
-    {title:'One synchronicity, gratitude, or reflection.',
-     body: () => `<div class="row" style="gap:6px;flex-wrap:wrap"><button class="btn sm ghost" data-flowquick="synchronicity">＋ synchronicity</button><button class="btn sm ghost" data-flowquick="gratitude">＋ gratitude</button><button class="btn sm ghost" data-flowquick="reflection">＋ reflection</button></div>`},
+    {title:'The week against the lists you made.', hint:'Seven days of intentions, against seven days of evidence.',
+     body: () => tasksReviewHTML(days[0], days[6])},
+    {title:'Anything else from this week?', hint:'Anything that happened and never got written down. Add it here and the review stays where it is.',
+     body: () => captureStepHTML(days[0], days[6]), bind: b => bindCaptureStep(b, days[0], days[6])},
     {title:"Next week's one intention.",
      body: () => `<textarea class="ta" id="fwWk" placeholder="One sentence. It is the first thing you will see on Monday.">${esc(S.reviews.nextWeekFocus || '')}</textarea>`,
      next: b => { S.reviews.nextWeekFocus = b.querySelector('#fwWk').value.trim(); saveNow(); }},

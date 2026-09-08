@@ -289,7 +289,7 @@ function organicSVG(W, H){
     const sub = s.planned ? 'planned' : locked ? 'locked' : mastered ? 'mastered' : `lvl ${lvl}/${lc}${active?' · active':wither?' · withering':!last?' · not yet practised':''}`;
     const name = (locked?'🔒 ':'') + s.name; const fs = it.depth===2 ? 11.5 : 10.5;
     lblItems.push({id:s.id, ex:X(it.end[0]), ey:Y(it.end[1]), x:X(it.end[0]) + outward*8, y:Y(it.end[1]), anchor:outward>0?'start':'end', w:Math.max(name.length*fs*.56, sub.length*8.5*.62) + 6, h:24, name, sub, fs, col});
-    g += `<g class="sk-twig ${locked?'locked':''} ${active?'active':''} ${mastered?'mastered':''}" data-skill="${s.id}" data-parent="${it.parent}" data-x="${X(it.end[0]).toFixed(1)}" data-y="${Y(it.end[1]).toFixed(1)}" style="--nc:${col}"><title>${esc(s.name)} · ${esc(sub)}${since<Infinity?` · last practised ${relDays(since)}`:''}</title>${inner}<g class="sk-leaves">${lf}</g><g class="sk-lblslot" data-for="${s.id}"></g></g>`;
+    g += `<g class="sk-twig ${locked?'locked':''} ${active?'active':''} ${mastered?'mastered':''} ${since <= 7 ? 'fresh' : ''}" data-skill="${s.id}" data-parent="${it.parent}" data-x="${X(it.end[0]).toFixed(1)}" data-y="${Y(it.end[1]).toFixed(1)}" style="--nc:${col}"><title>${esc(s.name)} · ${esc(sub)}${since<Infinity?` · last practised ${relDays(since)}`:''}</title>${inner}<g class="sk-leaves">${lf}</g><g class="sk-lblslot" data-for="${s.id}"></g></g>`;
   });
   // relax labels so they never sit on top of each other; a faint leader joins a moved label to its twig
   const boxOf = l => ({left: l.anchor==='start' ? l.x : l.x - l.w, right: l.anchor==='start' ? l.x + l.w : l.x, top: l.y - 13, bottom: l.y + 13});
@@ -301,6 +301,9 @@ function organicSVG(W, H){
 function drawOrganicTree(root){
   const wrap = $('#skillWrap'); if(!wrap) return; wrap.querySelector('svg')?.remove(); const mm = $('#minimap'); if(mm) mm.hidden = true; const hint = wrap.querySelector('.sk-hint'); if(hint) hint.textContent = 'leaves grow with each level · gold fruit is mastery · blossoms mean a milestone is near · brown leaves are withering';
   const W = Math.max(wrap.clientWidth, 600), H = wrap.clientHeight || 640; const svg = el(organicSVG(W, H)); wrap.insertBefore(svg, wrap.firstChild);
+  /* the tree arrives by growing, then keeps moving — see 04-foliage.js */
+  growTree(svg); startSway(svg);
+  if(!wrap.querySelector('.tree-motes')) wrap.insertAdjacentHTML('beforeend', motesHTML(11, 'skill-motes'));
   const chain = id => { const out = new Set(); let cur = svg.querySelector(`.sk-twig[data-skill="${id}"]`); while(cur){ out.add(cur.dataset.skill); const p = cur.dataset.parent; cur = p && !p.startsWith('cat:') ? svg.querySelector(`.sk-twig[data-skill="${p}"]`) : null; if(p && p.startsWith('cat:')) out.add(p); } return out; };
   svg.querySelectorAll('.sk-twig').forEach(t => {
     t.addEventListener('mouseenter', () => { const ids = chain(t.dataset.skill); svg.classList.add('hov'); svg.querySelectorAll('.sk-twig,.sk-branch').forEach(x => x.classList.toggle('hot', ids.has(x.dataset.skill || x.dataset.node))); });
@@ -309,7 +312,6 @@ function drawOrganicTree(root){
   });
   svg.querySelectorAll('.sk-branch').forEach(b => b.addEventListener('click', () => { const cat = b.dataset.node.slice(4); const first = S.skills.find(s => s.cat===cat); if(first) openSkillPanel(first.id); }));
   root._skView = { reset: () => drawOrganicTree(root), burst: (id) => { const t = svg.querySelector(`.sk-twig[data-skill="${id}"]`); if(!t) return; const pt = svg.createSVGPoint(); pt.x = +t.dataset.x; pt.y = +t.dataset.y; const sp = pt.matrixTransform(svg.getScreenCTM()); levelUpBurst(sp.x, sp.y, catColor(byId(S.skills,id)?.cat)); } };
-  if(typeof startSway === 'function') startSway(wrap);
 }
 let skillSelected = null;
 function drawSkillTree(root){ drawOrganicTree(root); }
@@ -351,7 +353,8 @@ function openSkillPanel(id){
     <div class="archetype">${arche}</div>
     ${levelTrackHTML(s)}
     ${milestoneTimelineHTML(s)}
-    ${boardStrip(boardId('skill', s.id), 'Board')}
+    <div class="vp-sec"><div class="row between" style="align-items:center"><span class="sc">What this looks like</span>${imageAddHTML('skill', s.id)}</div>
+      ${imageStripHTML('skill', s.id) || '<p class="faint" style="font-size:.8rem;margin:6px 0 0">Add an image and this skill\'s card is printed on it.</p>'}</div>
     <div class="vp-sec"><span class="sc">Prerequisites</span><div class="deps">${S.skills.filter(x=>x.id!==s.id).map(x=>`<span class="chip click ${s.prereqs.includes(x.id)?'on':''}" style="--c:${catColor(x.cat)}" data-pre="${x.id}">${esc(x.name)}</span>`).join('')}</div></div>
     <div class="vp-sec"><span class="sc">Cross-mappings</span>
       <div class="k mono" style="margin:6px 0 4px">load-bearing for visions — what do I need to become to live that life? click to link</div><div class="deps">${S.visions.map(v=>`<span class="chip click ${v.preSkills.includes(s.id)?'on':''}" style="--c:var(--sage)" data-skvision="${v.id}">🌿 ${esc(v.name)}</span>`).join('')||'<span class="faint">no visions yet</span>'}</div>
@@ -362,7 +365,7 @@ function openSkillPanel(id){
   $$('#panel .rv').forEach(n=>n.classList.add('in'));
   bindVmToggle(p, 'skill');
   p.querySelector('#skCatSel').onchange = e => { s.cat = e.target.value; saveNow(); reopenPanel(() => { rerender(); openSkillPanel(id); }); };
-  bindBoardStrip(p, () => s.name);
+  bindRecImages(p, () => openSkillPanel(s.id));
   p.querySelector('#skHzSel').onchange = e => { s.horizon = e.target.value; s.planned = s.horizon === 'someday'; if(!s.planned && s.currentLevel===0) s.currentLevel = 1; saveNow(); reopenPanel(() => { rerender(); openSkillPanel(id); }); };
   p.querySelector('#skPrioSel').onchange = e => { s.priority = e.target.value; saveNow(); reopenPanel(() => { rerender(); openSkillPanel(id); }); };
   bindLevelTrack(p, s);

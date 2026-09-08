@@ -23,7 +23,7 @@ If `dexie` is installed, the build inlines its UMD bundle so the database layer 
 
 ## Data
 
-All data lives in an IndexedDB database named `lifeinstrument-db`, declared in `src/06-db.js` with one object store per data structure: `meta`, `stages`, `threads`, `tensions`, `values`, `valueSnapshots`, `visions`, `skills`, `projects`, `nods`, `ideas`, `habits`, `habitLog`, `checkins`, `entries`, `tasks`, `events`, `boards`, `people`, `interactions`, `accounts`, `txns`, `budgets`, `finGoals`, `chapters`, `turns`, `threadsN`. Photos are resized on upload and stored inline as base64. On first load the app migrates any data found under the old `localStorage` key or the interim single-blob database, then removes the old copy.
+All data lives in an IndexedDB database named `lifeinstrument-db`, declared in `src/06-db.js` with one object store per data structure: `meta`, `stages`, `threads`, `tensions`, `values`, `valueSnapshots`, `visions`, `skills`, `projects`, `nods`, `ideas`, `habits`, `habitLog`, `checkins`, `entries`, `tasks`, `events`, `people`, `interactions`, `accounts`, `txns`, `budgets`, `finGoals`, `chapters`, `turns`, `threadsN`. Photos are resized on upload and stored inline as base64. On first load the app migrates any data found under the old `localStorage` key or the interim single-blob database, then removes the old copy.
 
 Three small preferences stay in `localStorage`: `soundEnabled`, `ambientEnabled`, and `lastBackupDate`.
 
@@ -47,8 +47,8 @@ The Compass opens with one summary card per zone — items still planned today a
 
 | Route | Room |
 |---|---|
-| `#/compass` | Life at a glance: the Life Position check-in (Maslow pyramid and stage resonance), the living house diagram of rooms with health dots, flows and the need each one feeds, and long-term panels with charts |
-| `#/today` | The whole day, with its own index at the top: the wake time and 24-hour time-use bar, the morning flow with timestamps, the plan made last night, tasks, the check-in, the Morning Theatre, the habit checklist with **＋ add habit**, any review whose cycle closes tonight, four stanzas of the Life Ledger, the gentle prompt, quick add, and the night-before block for planning tomorrow |
+| `#/compass` | Life at a glance: the week's shape (when each day opened and closed, and how the hours between split into claimed and wasted), the Life Ledger, the Life Position check-in (Maslow pyramid and stage resonance), the living house diagram of rooms with health dots, flows and the need each one feeds, and long-term panels with charts |
+| `#/today` | The whole day, bracketed by its two ends — *I woke up at* under the date, *I went to sleep at* at the foot, both editable. Between them, every section folds and remembers whether it was open: the plan made last night, tasks, the check-in, the Morning Theatre, the habit checklist with **＋ add habit**, and any review whose cycle closes tonight. The three morning steps are ticks in the headers of the sections they belong to, each printing its own timestamp on that line. A sticky index at the top jumps to any of them |
 | `#/lifetape` | The record itself, in three tabs — **The tape** (everything dated, at day / week / month / year zoom, with filters), **Habits** (the grid, streaks, chains, 90-day heat and per-habit detail), **Patterns** (the true numbers first, then an optional reading of exactly those numbers) |
 | `#/needs` | Maslow as a diagnostic: seven levels in structural order, each scored from data logged elsewhere, the thinnest tier pulsing, per-input breakdowns, an override slider that keeps the auto score visible as a tick, a multi-line history, and the Life Ledger in full |
 | `#/spiral` | The movement between two stages: a releasing end and an embodying end, hand-written indicators rated on scales that run in opposite directions, a computed position with an interpretive line, traces of other stages, tagged evidence by polarity, and check-ins that freeze every strength |
@@ -63,7 +63,7 @@ The Compass opens with one summary card per zone — items still planned today a
 | `#/values` | A written reading of what the numbers mean first, then four figures, one table that is priority, congruence, gap and trend at once, and the radar over time. Each value carries weekly practices; a snapshot starts from what those weeks contained |
 | `#/journals` | Synchronicity, manifestation, reflections, gratitude, dreams, quotes, open questions, sealed letters and decisions |
 | `#/skills` | What you are practising now, milestones inside a window you choose, then the living tree: trunk, one branch per category, a twig per skill whose leaves grow with each level, gold fruit for mastery, blossoms when a milestone is near, brown falling leaves for atrophy, sap flowing on recently practised twigs, a sun by day and a moon at night; customisable levels (labels, descriptions, criteria, typed resources, estimated time), multi-target milestones on a timeline, atrophy, cross-mappings |
-| `#/projects` | Ideation mode (sparks, questions, inspirations, experiments and a brainstorm page) and Tracking mode. Tracking has three views: cards (priority, status, task ratio, target date), a kanban board with drag between status columns, and a Gantt timeline of phases; each project has phases with task checklists and quick capture, resources, linked skills and vision chapter, notes, nod heatmaps, income streams, and an idea inbox |
+| `#/projects` | Ideation mode — sparks and open questions, two columns of equal width — and Tracking mode. Tracking has three views: cards (priority, status, task ratio, target date), a kanban board with drag between status columns, and a Gantt timeline of phases; each project has phases with task checklists and quick capture, resources, linked skills and vision chapter, notes, nod heatmaps, income streams, and an idea inbox |
 | `#/settings` | Theme, ambient sound, felt time, landing page, export/import/clear |
 
 ## Page themes
@@ -121,6 +121,10 @@ A Claude Pro or Max subscription — or a ChatGPT one — cannot be used for thi
 - **Sealed letters** (Journals → Letters): write to a future self and seal it until a date. It is hidden from cards, lists and search until then, and surfaces on Today when it comes due, with room to answer the person who wrote it.
 - **Decision journal** (Journals → Decisions): the situation, the options, the real reasoning, what you expect and what would make it a mistake — then a review date that returns on Today, with what actually happened and a verdict.
 - **People**: tag anyone in an entry and the People room fills itself — every mention becomes a logged interaction, and anyone you have not been in touch with inside their cadence surfaces as overdue. Relationship types are a list you extend: pick **＋ name another…** in any relationship dropdown and whatever you type is added, kept, and available everywhere from then on.
+
+## Imagery
+
+Pictures belong to the record, not to a separate board. Any project, skill, value, person or vision can carry images; the first of them becomes the ground its own card is printed on — a wash at low opacity under a scrim heavy enough to keep every word readable on any photograph, in either theme, and visible in the list before anything is opened. Drag to reorder; whichever image leads decides what the card looks like. Sub-stages on the Timeline work the same way. The boards that used to hold pins are gone, and everything that was pinned to one has been folded into the record it belonged to.
 
 ## Hashtags
 

@@ -186,7 +186,11 @@ main{margin-left:var(--sidebar);flex:1;min-width:0;padding:48px 56px 120px;anima
 @keyframes pagein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .page{max-width:1180px;margin:0 auto}
 .page.narrow{max-width:var(--content)}
-.page-head{margin-bottom:34px;position:relative;padding:26px 30px 24px;border-radius:var(--radius);overflow:hidden;isolation:isolate;border:1px solid color-mix(in srgb,var(--page-accent) 24%,var(--line));background:linear-gradient(120deg,color-mix(in srgb,var(--page-gradient-start) 20%,var(--surface)) 0%,color-mix(in srgb,var(--page-gradient-end) 10%,var(--surface)) 70%,var(--surface) 100%);transition:background .4s var(--ease),border-color .4s var(--ease)}
+/* The banner and the page under it must begin on the same vertical line. The
+   banner has inner padding and the sections below it do not, so the title used
+   to hang ~30px right of everything it introduced. The panel now bleeds
+   outward by exactly its own padding: the box is wider, the words line up. */
+.page-head{--ph-bleed:30px;margin:0 calc((var(--ph-bleed) + 1px) * -1) 34px;position:relative;padding:26px var(--ph-bleed) 24px;border-radius:var(--radius);overflow:hidden;isolation:isolate;border:1px solid color-mix(in srgb,var(--page-accent) 24%,var(--line));background:linear-gradient(120deg,color-mix(in srgb,var(--page-gradient-start) 20%,var(--surface)) 0%,color-mix(in srgb,var(--page-gradient-end) 10%,var(--surface)) 70%,var(--surface) 100%);transition:background .4s var(--ease),border-color .4s var(--ease)}
 .page-head::before{content:var(--page-glyph);position:absolute;right:26px;top:-14px;z-index:-1;font-family:var(--han);font-size:6.4rem;line-height:1;color:var(--page-accent);opacity:.13;pointer-events:none;user-select:none;transform:translateY(calc(var(--page-par) * -.18px))}
 .page-head::after{content:"";position:absolute;left:0;top:0;right:0;height:3px;background:linear-gradient(90deg,var(--page-accent),color-mix(in srgb,var(--page-gradient-end) 70%,transparent) 60%,transparent)}
 .page-head h1{font-size:2.4rem}
@@ -382,7 +386,7 @@ svg text{font-family:var(--mono);fill:var(--faint);font-size:10px}
   .mobile-nav .ico svg{width:21px;height:21px}
   .mobile-nav a.active{color:var(--text);border-top-color:var(--page-accent)}
   main{margin-left:0;padding:28px 18px 120px}
-  .page-head{padding:18px 18px 16px}
+  .page-head{--ph-bleed:18px;padding:18px var(--ph-bleed) 16px;margin-left:calc((var(--ph-bleed) + 1px) * -1);margin-right:calc((var(--ph-bleed) + 1px) * -1)}
   .page-head::before{font-size:4.4rem;right:12px}
   .fab-wrap{bottom:74px}
   .toast-wrap{bottom:74px;left:16px;right:96px}
@@ -509,31 +513,6 @@ html.reduce-motion *,html.reduce-motion *::before,html.reduce-motion *::after{an
 .m-net.pos{color:var(--sage)}.m-net.neg{color:#d08080}
 @media (max-width:820px){.txn{grid-template-columns:56px 10px 1fr auto auto}.tx-acct{display:none}}
 /* ---------- boards ---------- */
-.board{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));grid-auto-rows:118px;gap:12px;margin-top:12px}
-.board.compact{grid-auto-rows:96px;gap:9px}
-.pin{position:relative;margin:0;border-radius:12px;overflow:hidden;background:var(--surface-2);border:1px solid var(--line);cursor:grab;transform:rotate(var(--rot,0deg));transition:transform .25s var(--page-ease),box-shadow .25s var(--ease),border-color .2s var(--ease)}
-.pin:hover{transform:rotate(0deg) scale(1.02);box-shadow:var(--shadow);z-index:2;border-color:var(--page-accent)}
-.pin.dragging{opacity:.4}
-.pin.over{border-color:var(--page-accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--page-accent) 40%,transparent)}
-.pin.sp-s{grid-column:span 1;grid-row:span 1}
-.pin.sp-m{grid-column:span 1;grid-row:span 2}
-.pin.sp-l{grid-column:span 2;grid-row:span 2}
-.pin.sp-w{grid-column:span 2;grid-row:span 1}
-.pin img{width:100%;height:100%;object-fit:cover;display:block;cursor:zoom-in}
-.pin.word{display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,color-mix(in srgb,var(--page-gradient-start) 20%,var(--surface-2)),var(--surface-2))}
-.pin-word{font-family:var(--serif);font-size:1.3rem;text-align:center;padding:10px;line-height:1.25;color:var(--text)}
-.pin figcaption{position:absolute;left:0;right:0;bottom:0;padding:14px 8px 6px;background:linear-gradient(180deg,transparent,rgba(10,8,6,.82));font-size:.72rem;color:#e8e0d4;opacity:0;transition:opacity .2s var(--ease)}
-.pin.word figcaption{position:static;background:none;padding:0 8px 8px;color:var(--muted);text-align:center}
-.pin:hover figcaption,.pin:focus-within figcaption{opacity:1}
-.pin-ctl{position:absolute;top:5px;right:5px;display:flex;gap:4px;opacity:0;transition:opacity .2s var(--ease)}
-.pin:hover .pin-ctl{opacity:1}
-.pin-btn{width:22px;height:22px;border-radius:50%;border:none;background:rgba(20,17,14,.72);color:#e8e0d4;font-size:.72rem;cursor:pointer;backdrop-filter:blur(4px)}
-.pin-btn:hover{background:var(--page-accent);color:var(--page-accent-ink)}
-.board-empty{grid-column:1/-1}
-.board-strip{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;align-items:center}
-.board-strip img{width:54px;height:54px;object-fit:cover;border-radius:8px;border:1px solid var(--line)}
-.strip-word{font-family:var(--serif);font-size:.82rem;padding:6px 10px;border-radius:8px;background:var(--surface-2);border:1px solid var(--line)}
-.strip-more{font-family:var(--mono);font-size:.7rem;color:var(--faint)}
 /* ---------- people ---------- */
 .circle-map{position:relative;width:100%;max-width:640px;margin:8px auto 0;aspect-ratio:1}
 .cm-rings{position:absolute;inset:0;width:100%;height:100%}
@@ -597,8 +576,6 @@ html.reduce-motion *,html.reduce-motion *::before,html.reduce-motion *::after{an
 .int-src{font-size:.58rem;color:var(--faint);flex:none}
 .year-block{margin-top:18px}
 .year-label{font-size:.72rem;letter-spacing:.16em;color:var(--faint);border-bottom:1px solid var(--line);padding-bottom:4px;margin-bottom:6px}
-.pin.goalcard{background:linear-gradient(135deg,color-mix(in srgb,var(--sage) 18%,var(--surface-2)),var(--surface-2))}
-.pin-goal{display:flex;flex-direction:column;gap:6px;justify-content:center;height:100%;padding:12px 14px;text-decoration:none;color:inherit}
 .pg-name{font-family:var(--serif);font-size:1.02rem}
 @media (max-width:900px){.ppl-row{grid-template-columns:34px 1fr auto;row-gap:4px}.ppl-rel,.ppl-row .tagrow{display:none}}
 /* ---------- sealed letters & decisions ---------- */
@@ -847,7 +824,14 @@ button.tm-cell:hover{border-color:var(--page-accent)}
 .hr-group{display:flex;flex-direction:column;gap:6px}
 .hr-group > .mono{font-size:.58rem;letter-spacing:.12em;text-transform:uppercase}
 .hr-rings{display:flex;gap:12px;flex-wrap:wrap}
-.hring-btn .hring-name{display:block;font-size:.66rem;color:var(--muted);max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;margin-top:2px}
+/* the ring and its name are a column, not a row: a long habit name was being
+   squeezed to 64px beside the ring and cut off mid-word. It now sits under the
+   ring and is allowed two lines. */
+.hring-btn{flex-direction:column;gap:2px}
+.hring-btn .hring-name{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
+  font-size:.66rem;line-height:1.28;color:var(--muted);width:98px;text-align:center;margin-top:3px;overflow-wrap:anywhere;hyphens:auto}
+.hring-btn:hover .hring-name{-webkit-line-clamp:unset;overflow:visible}
+.hr-rings{align-items:flex-start}
 .hring-btn .hring-streak{inset:auto;top:38%;left:0;right:0}
 .habit-row.all-done .hring-btn{animation:allDone 2s var(--ease)}
 @keyframes allDone{0%,100%{filter:none}45%{filter:drop-shadow(0 0 7px color-mix(in srgb,var(--gold) 60%,transparent))}}
@@ -1205,7 +1189,13 @@ html[data-theme="light"] .stage-hero .veil{background:linear-gradient(180deg,rgb
 /* ============================================================
    4. VISION TREE
    ============================================================ */
-.tree-wrap{position:relative;height:calc(100vh - 150px);min-height:560px;border-radius:20px;overflow:hidden;background:radial-gradient(ellipse at 50% 100%,color-mix(in srgb,var(--sage) 8%,transparent),transparent 60%),var(--surface);border:1px solid var(--line)}
+/* A tree is not a diagram in a box. The canvas is the page itself — the ink
+   wash and the room's own scene show through it — with only light gathering at
+   the canopy and the ground darkening under the trunk. No panel, no fill. */
+.tree-wrap{position:relative;height:calc(100vh - 150px);min-height:560px;border-radius:20px;overflow:hidden;border:0;
+  background:
+    radial-gradient(ellipse 70% 40% at 50% 8%,color-mix(in srgb,var(--gold) 7%,transparent),transparent 70%),
+    radial-gradient(ellipse 80% 30% at 50% 100%,color-mix(in srgb,var(--sage) 11%,transparent),transparent 70%)}
 .tree-wrap svg{width:100%;height:100%;display:block}
 .tree-wrap .branch{cursor:pointer}
 .tree-wrap .branch path.limb{transition:stroke-width .8s var(--ease),stroke .8s var(--ease),opacity .8s;stroke-linecap:round;fill:none}
@@ -1396,7 +1386,10 @@ details.era-lived[open] > summary::before{transform:rotate(90deg)}
    7. SKILLS
    ============================================================ */
 /* ---- skill tree (hierarchical, zoomable) ---- */
-.skill-wrap{position:relative;height:640px;border-radius:20px;overflow:hidden;background:radial-gradient(ellipse at 50% 0%,color-mix(in srgb,var(--page-accent) 6%,transparent),transparent 60%),var(--surface);border:1px solid var(--line);touch-action:none}
+.skill-wrap{position:relative;height:640px;border-radius:20px;overflow:hidden;border:0;touch-action:none;
+  background:
+    radial-gradient(ellipse 70% 45% at 50% 4%,color-mix(in srgb,var(--page-accent) 8%,transparent),transparent 72%),
+    radial-gradient(ellipse 80% 28% at 50% 100%,color-mix(in srgb,var(--sage) 10%,transparent),transparent 70%)}
 .skill-wrap svg.sk-svg{width:100%;height:100%;display:block;cursor:grab}
 .skill-wrap svg.sk-svg.panning{cursor:grabbing}
 .sk-hint{position:absolute;left:14px;bottom:10px;font-size:.6rem;color:var(--faint);pointer-events:none}
@@ -1439,10 +1432,10 @@ details.era-lived[open] > summary::before{transform:rotate(90deg)}
 .sk-organic.hov .sk-branch:not(.hot) .limb-tint{opacity:.1}
 .sk-organic .sk-twig.hot .limb{filter:drop-shadow(0 0 4px color-mix(in srgb,var(--nc) 60%,transparent))}
 .sk-organic .sk-twig.hot .sk-lbl{fill:var(--text);font-weight:600}
-.sk-organic .sk-lbl{fill:var(--text);font-family:var(--serif);letter-spacing:.02em;pointer-events:none;paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-linejoin:round}
-.sk-organic .sk-sublbl{fill:var(--muted);font-family:var(--mono);font-size:8.5px;pointer-events:none;paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-linejoin:round}
-.sk-organic .sk-catlbl{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;pointer-events:none;paint-order:stroke;stroke:var(--surface);stroke-width:3px}
-.sk-organic .sk-catsub{fill:var(--faint);font-family:var(--mono);font-size:8px;pointer-events:none;paint-order:stroke;stroke:var(--surface);stroke-width:3px}
+.sk-organic .sk-lbl{fill:var(--text);font-family:var(--serif);letter-spacing:.02em;pointer-events:none;paint-order:stroke;stroke:var(--bg);stroke-width:3px;stroke-linejoin:round}
+.sk-organic .sk-sublbl{fill:var(--muted);font-family:var(--mono);font-size:8.5px;pointer-events:none;paint-order:stroke;stroke:var(--bg);stroke-width:3px;stroke-linejoin:round}
+.sk-organic .sk-catlbl{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;pointer-events:none;paint-order:stroke;stroke:var(--bg);stroke-width:3px}
+.sk-organic .sk-catsub{fill:var(--faint);font-family:var(--mono);font-size:8px;pointer-events:none;paint-order:stroke;stroke:var(--bg);stroke-width:3px}
 .sk-organic .sk-twig.locked{cursor:not-allowed}
 .sk-organic .sk-leader{stroke:var(--line-2);stroke-width:1;stroke-dasharray:2 2}
 .sk-organic .sk-canopy{transition:opacity .3s var(--ease)}
@@ -2426,6 +2419,146 @@ html.vision-deep .page-scene.on{opacity:var(--scene-op)}
 .spi-crosscheck a{color:var(--page-accent);text-decoration:none}
 .val-stage-note{font-family:var(--quote);font-style:italic;font-size:.82rem;color:var(--muted);margin:10px 0 0}
 .val-stage-note a{color:var(--page-accent);text-decoration:none;font-style:normal;font-family:var(--mono);font-size:.66rem}
+
+/* ---------- imagery on a record ----------
+   The card is printed on the first image: a wash at low opacity under a scrim
+   heavy enough that every word on top stays readable on any photograph, in
+   either theme. The picture is the ground, never the content. */
+.rec-plate{position:absolute;inset:0;z-index:0;pointer-events:none;border-radius:inherit;overflow:hidden}
+.rec-plate-img{position:absolute;inset:0;background-size:cover;background-position:center;
+  filter:saturate(.6) contrast(.95);opacity:.34;transform:scale(1.02);
+  transition:opacity .5s var(--ease),transform 1s var(--ease)}
+.plated:hover .rec-plate-img{opacity:.46;transform:scale(1.05)}
+.rec-plate-wash{position:absolute;inset:0;
+  background:linear-gradient(160deg,color-mix(in srgb,var(--surface) 92%,transparent) 0%,color-mix(in srgb,var(--surface) 72%,transparent) 55%,color-mix(in srgb,var(--surface) 52%,transparent) 100%)}
+.card.plated,.kcard.plated{position:relative;overflow:hidden}
+.card.plated > *:not(.rec-plate),.kcard.plated > *:not(.rec-plate){position:relative;z-index:1}
+
+/* the strip where imagery is arranged */
+.rec-img-tools{display:inline-flex;gap:6px;align-items:center}
+.rec-img-strip{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.rec-img{position:relative;margin:0;width:112px;border-radius:9px;overflow:hidden;
+  background:var(--surface-2);border:1px solid var(--line);cursor:grab;
+  transition:box-shadow .25s var(--ease),border-color .2s var(--ease),transform .25s var(--page-ease)}
+.rec-img:hover{box-shadow:var(--shadow);border-color:var(--page-accent);transform:translateY(-2px)}
+.rec-img.dragging{opacity:.4}
+.rec-img.over{border-color:var(--page-accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--page-accent) 40%,transparent)}
+.rec-img img{width:112px;height:82px;object-fit:cover;display:block;cursor:zoom-in}
+.rec-img figcaption{padding:5px 7px;font-size:.7rem;color:var(--muted);min-height:1.6em}
+.rec-img-x{position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;border:none;
+  background:rgba(20,17,14,.7);color:#e8e0d4;font-size:.72rem;cursor:pointer;opacity:0;
+  backdrop-filter:blur(4px);transition:opacity .2s var(--ease)}
+.rec-img:hover .rec-img-x{opacity:1}
+.rec-img-x:hover{background:var(--rose)}
+.rec-img.lead{border-color:color-mix(in srgb,var(--page-accent) 55%,var(--line))}
+.rec-img-lead{position:absolute;left:0;bottom:24px;padding:1px 6px;font-size:.52rem;letter-spacing:.1em;
+  text-transform:uppercase;background:color-mix(in srgb,var(--page-accent) 82%,transparent);color:var(--page-accent-ink)}
+@media (prefers-reduced-motion:reduce){.rec-plate-img,.rec-img,.rec-img-x{transition:none}}
+
+/* ---------- a tree that is alive ----------
+   The sway itself is JS (04-foliage.js) because it needs per-leaf phase and a
+   gust that crosses the canopy. Everything here is what CSS can do better:
+   the growth on arrival, the motes in the air, and the slow breath of the
+   canopy behind it all. */
+@keyframes limbDraw{to{stroke-dashoffset:0}}
+@keyframes leafOpen{from{opacity:0;transform:scale(.2) rotate(-18deg)}to{opacity:1;transform:none}}
+.growing .leaf,.growing .fruit,.growing .blossom{transform-box:fill-box;transform-origin:0% 50%}
+.tree-wrap .leaf,.sk-organic .leaf{transform-box:fill-box;transform-origin:0% 50%;will-change:transform}
+
+/* the canopy breathes — a slow swell, out of step between categories */
+.sk-organic .sk-canopy{animation:canopyBreathe 13s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+.sk-organic .sk-canopy:nth-of-type(2n){animation-duration:17s;animation-delay:-4s}
+.sk-organic .sk-canopy:nth-of-type(3n){animation-duration:21s;animation-delay:-9s}
+@keyframes canopyBreathe{0%,100%{transform:scale(1);opacity:.07}50%{transform:scale(1.05);opacity:.11}}
+
+/* whatever is in the air under a canopy */
+.tree-motes{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.tree-motes i{position:absolute;width:var(--sz);height:var(--sz);border-radius:50%;
+  background:color-mix(in srgb,var(--gold) 70%,transparent);opacity:0;
+  animation:moteDrift var(--dur) linear infinite;animation-delay:var(--delay)}
+@keyframes moteDrift{
+  0%{opacity:0;transform:translate(0,0)}
+  12%{opacity:.5}
+  70%{opacity:.35}
+  100%{opacity:0;transform:translate(var(--dx),var(--dy))}}
+
+/* sap: a travelling light along a limb that has been practised lately */
+.sk-organic .sk-twig.fresh .limb{stroke-dasharray:5 190;animation:sapRun 4.5s linear infinite}
+@keyframes sapRun{from{stroke-dashoffset:195}to{stroke-dashoffset:0}}
+
+@media (prefers-reduced-motion:reduce){
+  .tree-motes{display:none}
+  .sk-organic .sk-canopy,.sk-organic .sk-twig.fresh .limb{animation:none}
+  .tree-wrap .leaf,.sk-organic .leaf{transform:none!important}
+}
+
+/* ---------- the two ends of the day ---------- */
+.day-edge{font-family:var(--serif);font-size:1.02rem;color:var(--muted);margin:14px 0 0;letter-spacing:.01em}
+.day-edge.sleeping{margin:26px 0 40px;text-align:right}
+.day-edge-t{background:none;border:0;border-bottom:1px dashed color-mix(in srgb,var(--page-accent) 45%,transparent);
+  padding:0 2px;font-family:var(--mono);font-size:.95rem;color:var(--page-accent);cursor:pointer;
+  transition:border-color .2s var(--ease),color .2s var(--ease)}
+.day-edge-t:hover{color:var(--text);border-bottom-style:solid}
+
+/* ---------- a tick that lives in a section header ---------- */
+.t-sec > summary{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.hd-tick{display:inline-flex;align-items:center;gap:6px;margin-left:auto;cursor:pointer;padding:2px 4px;border-radius:6px}
+.hd-tick input{position:absolute;opacity:0;width:0;height:0}
+.hd-tick-box{width:15px;height:15px;border-radius:4px;border:1.5px solid color-mix(in srgb,var(--page-accent) 45%,var(--line));
+  display:inline-block;position:relative;transition:background .2s var(--ease),border-color .2s var(--ease)}
+.hd-tick-box::after{content:"";position:absolute;left:4px;top:1px;width:4px;height:8px;
+  border:solid var(--page-accent-ink);border-width:0 2px 2px 0;transform:rotate(42deg) scale(0);
+  transition:transform .18s var(--ease)}
+.hd-tick.on .hd-tick-box{background:var(--page-accent);border-color:var(--page-accent)}
+.hd-tick.on .hd-tick-box::after{transform:rotate(42deg) scale(1)}
+.hd-tick:hover .hd-tick-box{border-color:var(--page-accent)}
+.hd-tick-t{font-size:.62rem;color:var(--muted);min-width:0}
+
+/* every section on Today folds, and looks the same doing it */
+.t-sec{border:0;padding:0;background:none}
+.t-sec > summary{list-style:none;cursor:pointer;padding:6px 0;border-bottom:1px solid var(--line)}
+.t-sec > summary::-webkit-details-marker{display:none}
+.t-sec > summary::before{content:"›";font-family:var(--mono);color:var(--muted);opacity:.7;
+  transition:transform .2s var(--ease);display:inline-block}
+.t-sec[open] > summary::before{transform:rotate(90deg)}
+.t-sec > .body{padding-top:12px}
+@media (prefers-reduced-motion:reduce){.t-sec > summary::before,.hd-tick-box,.hd-tick-box::after,.day-edge-t{transition:none}}
+
+/* ---------- the week's shape ---------- */
+.wk-scroll{overflow-x:auto;overflow-y:hidden;margin-top:6px;padding-bottom:4px}
+.wk-svg{display:block;min-width:100%}
+.wk-tick{fill:var(--muted);font-family:var(--mono);font-size:8.5px;opacity:.75}
+.wk-day{fill:var(--muted);font-family:var(--mono);font-size:9px;opacity:.75}
+.wk-day.now{fill:var(--page-accent);opacity:1}
+.wk-bar{transition:opacity .16s var(--ease)}
+.wk-scroll:hover .wk-bar{opacity:.55}
+.wk-scroll .wk-bar:hover{opacity:1}
+.wk-key{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:.66rem;color:var(--muted)}
+.wk-key i{width:9px;height:9px;border-radius:2px;display:inline-block}
+@media (prefers-reduced-motion:reduce){.wk-bar{transition:none}}
+
+/* ---------- the plan, said in more than a list ---------- */
+.plan-why{font-family:var(--serif);font-style:italic;font-size:1rem;line-height:1.6;color:var(--text);opacity:.9;margin:8px 0 10px}
+.plan-line{font-size:.86rem;color:var(--muted);margin:8px 0 0;display:flex;gap:8px;align-items:baseline}
+.plan-line .mono{font-size:.56rem;letter-spacing:.12em;text-transform:uppercase;opacity:.75;flex:0 0 auto}
+.plan-line.risk{color:color-mix(in srgb,var(--gold) 70%,var(--muted))}
+.plan-yest,.plan-recap{border-top:1px dashed var(--line);margin-top:14px;padding-top:4px}
+
+/* ---------- the capture step ---------- */
+.cap-count{font-size:.66rem;color:var(--muted);margin:0 0 10px;transition:color .3s var(--ease)}
+.cap-count.just-added{color:var(--sage)}
+.cap-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px}
+.cap-choice{text-align:left}
+.cap-back{font-size:.78rem;margin:12px 0 0}
+.tsk-review .tsk-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:3px}
+.tsk-review .tsk-list li{display:flex;justify-content:space-between;gap:10px;font-size:.86rem;padding:2px 0}
+.tsk-review .tsk-list li .mono{font-size:.62rem;color:var(--muted)}
+.tsk-review .tsk-list.done li{color:var(--muted);text-decoration:line-through;text-decoration-color:color-mix(in srgb,var(--sage) 60%,transparent)}
+
+/* ---------- ideation: two kinds, two columns ---------- */
+.spark-cols{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+@media (max-width:820px){.spark-cols{grid-template-columns:1fr}}
+.spark-col > .card{margin-top:8px}
 </style>
 </head>
 <body>
@@ -2511,7 +2644,7 @@ function tagChips(e, {link=true}={}){ const t = entryTags(e); return t.length ? 
 const KEY = 'lifeinstrument.v1';
 let S = null;
 /* persistence lives in db.js (Dexie schema + load/save/backup) */
-function migrate(){ if(S.settings && (S.settings.home === 'map' || S.settings.home === 'home')) S.settings.home = 'compass'; wipeDemoData(); if(S.rehearsal && !S.rehearsal){ S.rehearsal = S.rehearsal; } delete S.rehearsal; if(typeof migrateEras === 'function') migrateEras(); const d = seed(); for(const k of Object.keys(d)) if(S[k]===undefined) S[k] = d[k]; if(typeof migrateLifeline === 'function') migrateLifeline(); if(typeof migrateSkillLevels === 'function') migrateSkillLevels(); if(typeof migrateProjects === 'function') migrateProjects(); if(typeof migrateStages === 'function') migrateStages(); if(typeof migrateTasks === 'function') migrateTasks(); if(typeof migrateIdeas === 'function') migrateIdeas(); if(typeof migrateMedia === 'function') migrateMedia(); if(typeof migrateSkillFocus === 'function') migrateSkillFocus(); if(typeof migratePeople === 'function') migratePeople(); if(typeof migrateValuePractices === 'function') migrateValuePractices(); if(typeof migrateFinance === 'function') migrateFinance(); if(typeof migrateRhythm === 'function') migrateRhythm(); if(typeof migrateSpiral === 'function') migrateSpiral(); S.boards = Array.isArray(S.boards) ? S.boards : []; }
+function migrate(){ if(S.settings && (S.settings.home === 'map' || S.settings.home === 'home')) S.settings.home = 'compass'; wipeDemoData(); if(S.rehearsal && !S.rehearsal){ S.rehearsal = S.rehearsal; } delete S.rehearsal; if(typeof migrateEras === 'function') migrateEras(); const d = seed(); for(const k of Object.keys(d)) if(S[k]===undefined) S[k] = d[k]; if(typeof migrateLifeline === 'function') migrateLifeline(); if(typeof migrateSkillLevels === 'function') migrateSkillLevels(); if(typeof migrateProjects === 'function') migrateProjects(); if(typeof migrateStages === 'function') migrateStages(); if(typeof migrateTasks === 'function') migrateTasks(); if(typeof migrateIdeas === 'function') migrateIdeas(); if(typeof migrateMedia === 'function') migrateMedia(); if(typeof migrateSkillFocus === 'function') migrateSkillFocus(); if(typeof migratePeople === 'function') migratePeople(); if(typeof migrateValuePractices === 'function') migrateValuePractices(); if(typeof migrateFinance === 'function') migrateFinance(); if(typeof migrateRhythm === 'function') migrateRhythm(); if(typeof migrateSpiral === 'function') migrateSpiral(); S.boards = Array.isArray(S.boards) ? S.boards : []; if(typeof migrateBoards === 'function') migrateBoards(); }
 
 /* One-time: the house used to open furnished with a demonstration life. If that
    demonstration is still here, clear it so the rooms start empty. */
@@ -2889,6 +3022,120 @@ const CONF = ['hunch','exploring','plan','committed','in motion','lived'];
 const ENTRY_TYPES = [['uncategorized','Uncategorized','▫'],['decision','Decision','⚖'],['lifeevent','Life event','◆'],['memory','Memory','◌'],['reflection','Reflection','✎'],['synchronicity','Synchronicity','∞'],['manifestation','Manifestation','✦'],['gratitude','Gratitude','♡'],['dream','Dream','☾'],['progress','Progress','↗'],['nod','Nod','·'],['artifact','Artifact','▣'],['letter','Letter','✉'],['quote','Quote','“'],['question','Question','?'],['visualization','Visualization','◉']];
 const typeName = t => (ENTRY_TYPES.find(x=>x[0]===t)||[t,t])[1];
 const typeIcon = t => (ENTRY_TYPES.find(x=>x[0]===t)||['','','·'])[2];
+/* ============================================================
+   FOLIAGE — what makes a drawn tree look alive.
+
+   A leaf on a real tree does not rotate about a fixed point at a
+   fixed rate. It hangs off a stem, so it swings and bobs at once;
+   it is lighter than the branch, so it flutters faster than the
+   limb it sits on; and the wind that moves it arrives as a gust
+   that crosses the tree rather than as a metronome. All three of
+   those are cheap to model, and together they are the difference
+   between a diagram and a thing growing.
+
+   One loop drives every tree in the house.
+   ============================================================ */
+let swayRAF = 0, swayLeaves = null, swayRoot = null;
+
+/* The sway must be stoppable from outside: a navigation that leaves a tree
+   running mid-flight stalls the view transition, and the page never changes. */
+function stopSway(){ if(swayRAF) cancelAnimationFrame(swayRAF); swayRAF = 0; swayLeaves = null; swayRoot = null; }
+
+function startSway(root){
+  stopSway();
+  if(!root || reduced()) return;
+  const nodes = $$('.leaf', root);
+  if(!nodes.length) return;
+
+  /* One layout read at the start, never per frame: where each leaf sits across
+     the width of the tree, so a gust can arrive at the left before the right. */
+  const box = root.getBoundingClientRect();
+  const width = Math.max(1, box.width);
+  swayLeaves = nodes.map((el, i) => {
+    const r = el.getBoundingClientRect();
+    const across = clamp((r.left + r.width / 2 - box.left) / width, 0, 1);
+    const up = 1 - clamp((r.top + r.height / 2 - box.top) / Math.max(1, box.height), 0, 1);
+    const ph = +el.dataset.phase || (i * 1.7) % 6.28;
+    const per = +el.dataset.period || 3;
+    return {
+      el, across, ph,
+      /* the slow swing of the twig it hangs from */
+      w1: (2 * Math.PI) / per,
+      /* the faster flutter of the blade itself, never a whole multiple of the
+         swing — a rational ratio would make the two lock and look mechanical */
+      w2: (2 * Math.PI) / (per * 0.37 + 0.6),
+      /* higher leaves are further out on thinner wood, so they move more */
+      gain: 0.55 + up * 0.85 + ((i * 37) % 11) / 22,
+    };
+  });
+  swayRoot = root;
+
+  const t0 = performance.now();
+  const tick = t => {
+    if(!swayRoot || !document.contains(swayRoot)){ stopSway(); return; }
+    const s = (t - t0) / 1000;
+    /* the gust: a slow swell that crosses the canopy, so the whole tree leans
+       together for a moment and then lets go, instead of shimmering forever */
+    const gustPhase = s * 0.34;
+    for(let i = 0; i < swayLeaves.length; i++){
+      const L = swayLeaves[i];
+      const gust = 0.55 + 0.45 * Math.sin(gustPhase - L.across * 1.9);
+      const swing = Math.sin(s * L.w1 + L.ph);
+      const flutter = Math.sin(s * L.w2 + L.ph * 1.7);
+      const deg = (swing * 3.4 + flutter * 1.5) * L.gain * gust;
+      /* a leaf on a stem also lifts as it swings — pure rotation reads as a
+         windscreen wiper, the small bob is what sells it */
+      const lift = flutter * 0.5 * L.gain;
+      L.el.style.transform = `translate(${(swing * .7 * L.gain).toFixed(2)}px,${lift.toFixed(2)}px) rotate(${deg.toFixed(2)}deg)`;
+    }
+    swayRAF = requestAnimationFrame(tick);
+  };
+  swayRAF = requestAnimationFrame(tick);
+}
+
+/* ---------- the reveal ----------
+   A tree should arrive by growing, not by appearing. Limbs draw themselves
+   from the trunk outward, then the leaves open behind them. Pure CSS once the
+   lengths are stamped on, so it costs nothing after the first frame. */
+function growTree(svg){
+  if(!svg || reduced()) return;
+  svg.classList.add('growing');
+  const limbs = [...svg.querySelectorAll('path.limb, path.sk-limb, .limb-tint')];
+  limbs.forEach(p => {
+    let len = 0;
+    try { len = p.getTotalLength(); } catch(e){ return; }
+    if(!len || !isFinite(len)) return;
+    p.style.strokeDasharray = `${len}`;
+    p.style.strokeDashoffset = `${len}`;
+    /* nearer the trunk first: shorter paths are the outer twigs, so order by
+       distance from the root instead of by document order */
+    p.style.animation = `limbDraw .9s var(--ease) forwards`;
+    p.style.animationDelay = `${Math.min(.75, len / 900).toFixed(2)}s`;
+  });
+  const late = [...svg.querySelectorAll('.leaf, .fruit, .blossom, .sk-canopy')];
+  late.forEach((n, i) => {
+    n.style.animation = `leafOpen .7s var(--ease) both`;
+    n.style.animationDelay = `${(0.5 + (i % 40) * 0.012).toFixed(2)}s`;
+  });
+  /* the inline animation has done its job once it has played; leaving it on
+     would fight the sway loop for the transform property */
+  setTimeout(() => {
+    limbs.forEach(p => { p.style.animation = ''; p.style.strokeDasharray = ''; p.style.strokeDashoffset = ''; });
+    late.forEach(n => { n.style.animation = ''; });
+    svg.classList.remove('growing');
+  }, 1700);
+}
+
+/* ---------- motes ----------
+   Whatever is in the air under a canopy: pollen, dust, the light itself.
+   A handful, drifting slowly, seeded so they do not all start together. */
+function motesHTML(n = 9, seed = 'motes'){
+  const r = mulberry32(hashSeed(seed));
+  return `<div class="tree-motes" aria-hidden="true">${Array.from({length: n}, () => {
+    const dur = 22 + r() * 26;
+    return `<i style="left:${(4 + r() * 92).toFixed(1)}%;top:${(12 + r() * 70).toFixed(1)}%;--dur:${dur.toFixed(0)}s;--delay:${(-r() * dur).toFixed(0)}s;--dx:${(18 + r() * 46).toFixed(0)}px;--dy:${(-26 - r() * 40).toFixed(0)}px;--sz:${(2 + r() * 2.4).toFixed(1)}px"></i>`;
+  }).join('')}</div>`;
+}
 /* ============================================================
    THE INK LAYER — 水墨画, the paper the rooms are painted on
    The rooms each have their own painting (see scenes.js). This
@@ -5195,10 +5442,128 @@ function bindPosition(root, redraw){
     saveNow(); sound('success'); toast(`Check-in logged for ${fmtDate(today(),'med')}.`); redraw();
   });
 }
+
+/* ============================================================
+   THE WEEK'S SHAPE
+   One figure, four things: when the day opened, when it closed,
+   and how the hours between them split into claimed and wasted.
+   A day on its own says nothing; seven of them side by side is
+   where a rhythm — or its absence — becomes visible.
+   ============================================================ */
+const WK_LO = 4, WK_HI = 28;    /* 4am to 4am — the window a waking day can occupy */
+function weekShapeDays(anchor = today(), n = 7){
+  const out = []; for(let i = n - 1; i >= 0; i--) out.push(addDays(anchor, -i));
+  return out;
+}
+function weekShapeRow(d){
+  const r = rhythmDay(d); const c = r.computed;
+  let wake = hm2min(r.wakeTime), close = hm2min(r.sleepTime);
+  if(wake != null) wake /= 60;
+  if(close != null){ close /= 60; if(wake != null && close <= wake) close += 24; }
+  const used = (c.intentionalMinutes || 0) / 60, wasted = (c.wastedMinutes || 0) / 60;
+  return {d, wake, close, used, wasted, ratio: c.ratio,
+          empty: wake == null && close == null && !used && !wasted};
+}
+const wkClock = h => { const hh = Math.floor(h) % 24, mm = Math.round((h % 1) * 60);
+  const ap = hh >= 12 ? 'pm' : 'am', h12 = hh % 12 || 12;
+  return mm ? `${h12}:${pad(mm)}${ap}` : `${h12}${ap}`; };
+
+function weekShapeHTML(anchor = today()){
+  const days = weekShapeDays(anchor);
+  const rows = days.map(weekShapeRow);
+  const filled = rows.filter(r => !r.empty);
+  const H = 210, W = Math.max(320, days.length * 64), padL = 34, padB = 26;
+  const y = h => (H - padB) - ((h - WK_LO) / (WK_HI - WK_LO)) * (H - padB - 8);
+  const colW = (W - padL) / days.length;
+  const x = i => padL + (i + .5) * colW;
+  const barW = Math.min(26, colW * .46);
+  const ticks = [6, 9, 12, 15, 18, 21, 24];
+
+  const bars = rows.map((r, i) => {
+    if(r.empty) return '';
+    const cx = x(i) - barW / 2;
+    /* no clock times logged, only a split: draw it as a free column so the
+       hours claimed are still visible rather than silently dropped */
+    if(r.wake == null && r.close == null){
+      const tot = r.used + r.wasted; if(!tot) return '';
+      const top = y(WK_LO + tot);
+      return `<g class="wk-bar"><rect x="${cx.toFixed(1)}" y="${top.toFixed(1)}" width="${barW.toFixed(1)}" height="${(y(WK_LO) - top).toFixed(1)}" rx="3" fill="var(--sage)" opacity=".3"/>
+        <title>${esc(fmtDate(r.d,'med'))} · ${r.used.toFixed(1)}h used, ${r.wasted.toFixed(1)}h wasted · no clock times</title></g>`;
+    }
+    const hi = y(r.close ?? (r.wake + 16)), lo = y(r.wake ?? ((r.close ?? 22) - 16));
+    const barH = Math.max(3, lo - hi);
+    const awake = (r.close != null && r.wake != null) ? (r.close - r.wake) : null;
+    const usedH = awake ? barH * Math.min(1, r.used / awake) : 0;
+    const wastedH = awake ? barH * Math.min(1, r.wasted / awake) : 0;
+    return `<g class="wk-bar" data-wkday="${r.d}">
+      <rect x="${cx.toFixed(1)}" y="${hi.toFixed(1)}" width="${barW.toFixed(1)}" height="${barH.toFixed(1)}" rx="3" fill="var(--page-accent)" opacity=".15"/>
+      ${usedH > .5 ? `<rect x="${cx.toFixed(1)}" y="${(lo - usedH).toFixed(1)}" width="${barW.toFixed(1)}" height="${usedH.toFixed(1)}" rx="3" fill="var(--sage)" opacity=".85"/>` : ''}
+      ${wastedH > .5 ? `<rect x="${cx.toFixed(1)}" y="${(lo - usedH - wastedH).toFixed(1)}" width="${barW.toFixed(1)}" height="${wastedH.toFixed(1)}" rx="3" fill="var(--rose)" opacity=".7"/>` : ''}
+      <title>${esc(fmtDate(r.d,'med'))}${r.wake!=null?` · woke ${wkClock(r.wake)}`:''}${r.close!=null?` · closed ${wkClock(r.close)}`:''}${(r.used||r.wasted)?` · ${r.used.toFixed(1)}h used, ${r.wasted.toFixed(1)}h wasted`:''}</title>
+    </g>`;
+  }).join('');
+
+  const line = (key, color) => { const pts = rows.map((r, i) => r.empty || r[key] == null ? null : `${x(i).toFixed(1)},${y(r[key]).toFixed(1)}`).filter(Boolean);
+    return pts.length > 1 ? `<polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" opacity=".75"/>` : ''; };
+  const dots = (key, color) => rows.map((r, i) => r.empty || r[key] == null ? '' :
+    `<circle cx="${x(i).toFixed(1)}" cy="${y(r[key]).toFixed(1)}" r="2.6" fill="${color}"/>`).join('');
+
+  const avgOf = k => { const v = filled.map(r => r[k]).filter(z => z != null); return v.length ? avg(v) : null; };
+  const aw = avgOf('wake'), ac = avgOf('close'), au = avgOf('used'), awa = avgOf('wasted');
+  const T = today();
+
+  return `<section class="section rv week-shape">
+    <div class="row between" style="align-items:baseline;flex-wrap:wrap;gap:8px">
+      <span class="sc" style="margin:0">The week's shape</span>
+      <span class="mono faint">${filled.length} of ${days.length} days logged</span>
+    </div>
+    <p class="muted" style="font-size:.85rem;margin:4px 0 0">When the day opened, when it closed, and what the hours between them were spent on.</p>
+    <div class="wk-legend row" style="gap:14px;flex-wrap:wrap;margin:10px 0 2px">
+      <span class="wk-key"><i style="background:var(--gold)"></i>woke${aw!=null?` · avg ${wkClock(aw)}`:''}</span>
+      <span class="wk-key"><i style="background:var(--ment)"></i>closed${ac!=null?` · avg ${wkClock(ac)}`:''}</span>
+      <span class="wk-key"><i style="background:var(--sage)"></i>used well${au!=null?` · avg ${au.toFixed(1)}h`:''}</span>
+      <span class="wk-key"><i style="background:var(--rose)"></i>wasted${awa!=null?` · avg ${awa.toFixed(1)}h`:''}</span>
+    </div>
+    ${filled.length ? `<div class="wk-scroll"><svg class="wk-svg" viewBox="0 0 ${W} ${H}" width="100%" height="${H}" preserveAspectRatio="xMidYMid meet">
+      ${ticks.map(h => `<g><line x1="${padL}" y1="${y(h).toFixed(1)}" x2="${W}" y2="${y(h).toFixed(1)}" stroke="var(--line)" stroke-width="1" opacity=".5"/>
+        <text x="2" y="${(y(h)+3).toFixed(1)}" class="wk-tick">${wkClock(h)}</text></g>`).join('')}
+      ${bars}
+      ${line('wake','var(--gold)')}${dots('wake','var(--gold)')}
+      ${line('close','var(--ment)')}${dots('close','var(--ment)')}
+      ${rows.map((r, i) => `<text x="${x(i).toFixed(1)}" y="${H - 8}" class="wk-day ${r.d === T ? 'now' : ''}" text-anchor="middle">${DOW[parseDay(r.d).getDay()][0]}</text>`).join('')}
+    </svg></div>`
+      : `<div class="empty" style="margin-top:10px">Nothing logged this week yet. The two ends of each day are set on the Today page — "I woke up at" and "I went to sleep at" — and the hours between them are claimed there too.</div>`}
+    <div class="row" style="gap:8px;margin-top:10px;flex-wrap:wrap">
+      <button class="btn sm ghost" id="wkClaim">claim today's hours</button>
+      <a class="btn sm ghost" href="#/today">the day itself →</a>
+    </div>
+  </section>`;
+}
+function bindWeekShape(root, redraw){
+  const box = root.querySelector('.week-shape'); if(!box) return;
+  box.querySelector('#wkClaim') && (box.querySelector('#wkClaim').onclick = () => {
+    const r = rhythmDay(today());
+    openTimeBlockModal(r, {startTime:'09:00', endTime:'10:00'}, () => { rhythmCompute(r); saveNow(); }, redraw || rerender);
+  });
+  box.querySelectorAll('[data-wkday]').forEach(g => g.style.cursor = 'default');
+}
 /* ============================================================
    1. TODAY — the entryway (lean ritual space, ≤640px column)
    ============================================================ */
 function checkin(day=today()){ if(!S.checkins[day]) S.checkins[day] = {mood:0, sentence:'', energy:{}, setpoint:0, intention:''}; return S.checkins[day]; }
+function rememberFold(id, open){ if(!id) return; S.settings.todayOpen = S.settings.todayOpen || {}; S.settings.todayOpen[id] = !!open; saveNow(); }
+/* one small dialog for the two ends of the day */
+function askClock(title, value, onSet){
+  const m = openModal(`<h2>${esc(title)}</h2>
+    <input class="inp mono serif-lg" type="time" id="clkV" value="${esc(value || '')}" autofocus>
+    <div class="row" style="justify-content:space-between;margin-top:16px">
+      <button class="btn sm ghost" id="clkNow">now</button>
+      <button class="btn primary" id="clkOk">Set</button></div>`, 'narrow');
+  const go = () => { const v = m.querySelector('#clkV').value; if(!/^\d{2}:\d{2}$/.test(v)) { m.remove(); return; } m.remove(); onSet(v); sound('click'); };
+  m.querySelector('#clkOk').onclick = go;
+  m.querySelector('#clkNow').onclick = () => { const d = new Date(); m.querySelector('#clkV').value = `${pad(d.getHours())}:${pad(d.getMinutes())}`; go(); };
+  m.querySelector('#clkV').onkeydown = e => { if(e.key === 'Enter') go(); };
+}
 routes.today = function(root){
   const T = today(); const c = checkin(T); const moon = moonPhase();
   const yesterday = addDays(T, -1); const cyest = S.checkins?.[yesterday];
@@ -5217,11 +5582,25 @@ routes.today = function(root){
   const _ft = iso => { if(!iso) return ''; const d = new Date(iso); let h = d.getHours(), m = d.getMinutes(); const ap = h >= 12 ? 'pm' : 'am'; h = h % 12 || 12; return h + ':' + String(m).padStart(2,'0') + ap; };
   const _dur = (a, b) => { if(!a||!b) return ''; const mins = Math.round((new Date(b) - new Date(a)) / 60000); if(mins < 1) return '<1m'; if(mins < 60) return mins + 'm'; return Math.floor(mins/60) + 'h ' + (mins%60) + 'm'; };
 
+  /* The three morning steps are no longer a separate checklist: each one is a
+     tick in the header of the section it belongs to, and its timestamp is
+     printed on that same line. A step is where the step happens. */
   const flowSteps = [
-    {key:'checkinAt', label:'Check-in'},
-    {key:'theatreAt', label:'Morning Theatre'},
-    {key:'tasksAt',   label:'Tasks reviewed'},
+    {key:'checkinAt', label:'Check-in',        sec:'t-checkin'},
+    {key:'theatreAt', label:'Morning Theatre', sec:'t-theatre'},
+    {key:'tasksAt',   label:'Tasks reviewed',  sec:'t-tasks'},
   ];
+  const flowTick = key => {
+    const at = c[key];
+    return `<label class="hd-tick ${at ? 'on' : ''}" title="${at ? 'done ' + _ft(at) : 'mark this done'}">
+      <input type="checkbox" class="mf-check" data-mfkey="${key}" ${at ? 'checked' : ''}>
+      <span class="hd-tick-box" aria-hidden="true"></span>
+      <span class="hd-tick-t mono">${at ? _ft(at) + (c.wakeAt ? ` <span class="faint">+${_dur(c.wakeAt, at)}</span>` : '') : ''}</span>
+    </label>`;
+  };
+  /* every section folds; what is open is remembered per section, not per day */
+  const fold = (id, def = true) => { const m = S.settings.todayOpen = S.settings.todayOpen || {};
+    return (m[id] === undefined ? def : m[id]) ? ' open' : ''; };
 
   /* A day is planned the night before. Today shows what was decided then;
      the planning itself happens at the foot of the page, for tomorrow. */
@@ -5255,7 +5634,6 @@ routes.today = function(root){
      carries its own index. Sections that are not on the page today (a letter
      due, a review closing tonight) drop out of the index with them. */
   const jumps = [
-    ['t-flow',    'flow',     true],
     ['t-letters', 'letters',  ready.length > 0],
     ['t-plan',    'plan',     true],
     ['t-tasks',   'tasks',    true],
@@ -5263,9 +5641,6 @@ routes.today = function(root){
     ['t-theatre', 'theatre',  true],
     ['t-habits',  'habits',   true],
     ['t-reviews', 'reviews',  typeof reviewsDue === 'function' && reviewsDue(T).length > 0],
-    ['t-ledger',  'ledger',   typeof ledgerStanzasHTML === 'function' && !!ledgerStanzasHTML({limit:4})],
-    ['t-prompt',  'prompt',   true],
-    ['t-add',     'quick add',true],
     ['t-tonight', 'tonight',  true],
   ].filter(x => x[2]);
 
@@ -5281,51 +5656,46 @@ routes.today = function(root){
         <div class="moon row" style="gap:6px;align-items:center">${moonSVG(moon.p)} <span class="mono faint">${moon.name}</span></div>
       </div>
       ${cyest?.intention ? `<div class="mono faint" style="margin-top:8px;font-size:.78rem">Yesterday you set out to: <em>${esc(cyest.intention)}</em></div>` : ''}
+      <p class="day-edge waking">I woke up at <button class="day-edge-t" id="wokeAt">${c.wakeAt ? esc(_ft(c.wakeAt)) : '—'}</button></p>
     </header>
 
     <nav class="today-jump rv" aria-label="jump to a section">
       ${jumps.map(([id, label]) => `<button data-jump="${id}">${esc(label)}</button>`).join('')}
     </nav>
 
-    ${timeUseHTML(S._tuDay || T)}
-
-    <!-- morning flow tracker -->
-    <section class="section rv morning-flow" id="t-flow">
-      <div class="row between"><span class="sc lg">Morning flow</span><span class="mono">${c.wakeAt ? 'woke ' + _ft(c.wakeAt) : ''}</span></div>
-      <div class="card" style="margin-top:8px">
-        ${flowSteps.map((s, i) => `<div class="row between" style="padding:7px 0;${i < flowSteps.length - 1 ? 'border-bottom:1px dashed var(--line)' : ''}">
-          <label class="row" style="gap:8px;cursor:pointer"><input type="checkbox" class="mf-check" data-mfkey="${s.key}" ${c[s.key] ? 'checked' : ''}><span>${s.label}</span></label>
-          <span class="mono">${c[s.key] ? _ft(c[s.key]) + ' <span class="faint">+' + _dur(c.wakeAt, c[s.key]) + '</span>' : '—'}</span>
-        </div>`).join('')}
-        ${totalDur ? `<div class="mono" style="margin-top:8px;text-align:right;color:var(--sage)">total morning routine: ${totalDur}</div>` : ''}
-      </div>
-    </section>
-
+    <!-- the day's shape now lives on the Compass, across a whole week; here
+         the two ends of the day are simply stated, at the two ends of the page -->
     <!-- sealed letters (prominent) -->
-    ${ready.length ? `<section class="section rv ready-letters" id="t-letters">
-      <div class="sc">A letter from you has come due</div>
+    ${ready.length ? `<details class="section rv ready-letters t-sec" id="t-letters"${fold('t-letters')}>
+      <summary><span class="sc">A letter from you has come due</span><span class="mono">${ready.length}</span></summary><div class="body">
       ${ready.map(e=>`<div class="card ready-letter" style="margin-top:8px"><div class="row between"><span><b class="serif">${esc(e.title||'To myself')}</b><div class="mono faint">${daysBetween((e.createdAt||'').slice(0,10), T)} days ago</div></span><button class="btn sm primary" data-lopen="${e.id}">Open it</button></div></div>`).join('')}
-    </section>` : ''}
+    </div></details>` : ''}
 
     <!-- the plan, made last night -->
-    <section class="section rv today-plan" id="t-plan">
-      <div class="row between"><span class="sc" style="margin:0">Today's plan</span>
-        <span class="mono faint">${planT.planned ? 'set last night' : 'not planned in advance'}</span></div>
+    <details class="section rv today-plan t-sec" id="t-plan"${fold('t-plan')}>
+      <summary><span class="sc" style="margin:0">Today's plan</span>
+        <span class="mono faint">${planT.planned ? 'set last night' : 'not planned in advance'}</span></summary>
+      <div class="body">
+      ${planT.why ? `<p class="plan-why">${esc(planT.why)}</p>` : ''}
       ${three.length ? `<ol class="today-three">${three.map(t => `<li>${esc(t)}</li>`).join('')}</ol>`
         : `<div class="empty" style="margin-top:8px">Nothing was named for today. Plan tomorrow at the foot of this page — a day decided the night before starts already moving.</div>`}
-    </section>
+      ${planT.firstMove ? `<p class="plan-line"><span class="mono">first move</span> ${esc(planT.firstMove)}</p>` : ''}
+      ${planT.risk ? `<p class="plan-line risk"><span class="mono">in the way</span> ${esc(planT.risk)}</p>` : ''}
+      </div></details>
 
     <!-- today's tasks (up front) -->
-    <section class="section rv" id="t-tasks"><div class="row between"><span class="sc" style="margin:0">Today's tasks</span><span class="mono">${rows.length?`${doneN} of ${rows.length} done`:'nothing parked yet'}</span></div>
+    <details class="section rv t-sec" id="t-tasks"${fold('t-tasks')}>
+      <summary><span class="sc" style="margin:0">Today's tasks</span><span class="mono">${rows.length?`${doneN} of ${rows.length} done`:'nothing parked yet'}</span>${flowTick('tasksAt')}</summary>
+      <div class="body">
       <div class="card" data-daydrop="${T}" style="margin-top:10px">
         <div class="stack" style="gap:2px">${rows.map(r=>taskRowHTML(r)).join('')||`<div class="empty">Park work here from a project, or write one below.</div>`}</div>
         <div class="row" style="margin-top:10px;gap:8px">${quickTaskInput(T)}<button class="btn sm ghost" id="pullTask">pull in ↓</button></div>
         ${carried.length?`<div class="row" style="margin-top:10px"><span class="mono" style="color:#d08080">${carried.length} carried over from earlier days</span><button class="btn sm ghost" id="carryAll">bring to today</button></div>`:''}
-      </div></section>
+      </div></div></details>
 
     <!-- daily check-in (intention + mood + energy + setpoint) -->
-    <details class="rv today-checkin" id="t-checkin" ${!c.intention||(!c.setpoint && !c.mood) ? 'open' : ''}>
-      <summary><span class="sc lg">Daily check-in</span><span class="mono">${c.intention ? esc(c.intention.slice(0,40)) : 'not yet set'}</span></summary>
+    <details class="section rv today-checkin t-sec" id="t-checkin"${fold('t-checkin', !c.intention || (!c.setpoint && !c.mood))}>
+      <summary><span class="sc lg">Daily check-in</span><span class="mono">${c.intention ? esc(c.intention.slice(0,40)) : 'not yet set'}</span>${flowTick('checkinAt')}</summary>
       <div class="body stack" style="gap:20px">
         <div class="field"><label>Today's intention ${planT.planned && c.intention ? '<span class="mono faint" style="text-transform:none;letter-spacing:0">· set last night</span>' : ''}</label>
           ${ed('checkins.' + T + '.intention', {ph:'One thing to give attention to today.', cls:'serif-lg'})}</div>
@@ -5347,8 +5717,8 @@ routes.today = function(root){
     </details>
 
     <!-- morning rehearsal (Maltz) -->
-    <details class="rv rehearsal-wrap" id="t-theatre" ${rehearsalDoneToday()?'':'open'} style="margin-top:8px">
-      <summary><span class="sc lg">Morning Theatre</span><span class="mono">${rehearsalDoneToday()?'practised today':'30 minutes · Maltz'}</span></summary>
+    <details class="section rv rehearsal-wrap t-sec" id="t-theatre"${fold('t-theatre', !rehearsalDoneToday())} style="margin-top:8px">
+      <summary><span class="sc lg">Morning Theatre</span><span class="mono">${rehearsalDoneToday()?'practised today':'30 minutes · Maltz'}</span>${flowTick('theatreAt')}</summary>
       <div class="body rehearsal stack" style="gap:24px">
         <blockquote class="rehearsal-epigraph">Close your eyes for thirty minutes. See yourself on a mental screen — sights, sounds, smells. See yourself acting, feeling and being as you want to be. The nervous system cannot tell a real experience from one vividly imagined.<cite>Maxwell Maltz</cite></blockquote>
         <div class="field"><label>Self-image script</label>${ed('rehearsal.script',{multi:true,mdr:true,cls:'prose serif-lg',ph:'First person, present tense. Who you are becoming — vivid, sensory, felt as already real.'})}</div>
@@ -5362,16 +5732,17 @@ routes.today = function(root){
     </details>
 
     <!-- the habit checklist: the whole of habit-keeping now lives here -->
-    <section class="section rv" style="margin-top:8px" id="t-habits">
-      <div class="row between" style="align-items:baseline"><span class="sc lg" style="margin:0">Today's habits</span>
-        <span class="mono faint">${(() => { const due = S.habits.filter(h => !h.archived && !h.negative && habitDue(h, T)); const dn = due.filter(h => habitDone(h, T)).length; return due.length ? `${dn} of ${due.length} kept` : 'nothing due'; })()}</span></div>
+    <details class="section rv t-sec" style="margin-top:8px" id="t-habits"${fold('t-habits')}>
+      <summary><span class="sc lg" style="margin:0">Today's habits</span>
+        <span class="mono faint">${(() => { const due = S.habits.filter(h => !h.archived && !h.negative && habitDue(h, T)); const dn = due.filter(h => habitDone(h, T)).length; return due.length ? `${dn} of ${due.length} kept` : 'nothing due'; })()}</span></summary>
+      <div class="body">
       <div id="todayRings" style="margin-top:10px"></div>
       <div class="row" style="gap:6px;margin-top:12px;flex-wrap:wrap">
         <button class="btn sm primary" id="todayAddHabit">＋ add habit</button>
         ${S.habits.some(h => h.archived) ? '<button class="btn sm ghost" id="todayArchHabit">archived</button>' : ''}
         <a class="btn sm ghost" href="#/lifetape/habits">the whole grid →</a>
       </div>
-    </section>
+    </div></details>
 
     ${typeof reviewsDueHTML === 'function' ? reviewsDueHTML(T) : ''}
 
@@ -5381,49 +5752,58 @@ routes.today = function(root){
     ${milestones.length ? `<section class="section rv"><span class="sc">Skill milestones within 30 days</span><div class="card" style="border-left:3px solid var(--ment)">${milestones.map(({skill,m,days})=>`<a href="#/skills/${skill.id}" class="row between" style="text-decoration:none;color:inherit;padding:8px 0;border-top:1px dashed var(--line);gap:12px"><span><b class="serif">${esc(skill.name)}</b> <span class="muted">→ ${esc(skillLevelLabel(skill,m.levelTarget))}</span></span><span class="status-pill ${days<0?'due':'ahead'}">${days<0?'⚠ ' + (-days) + 'd overdue':days===0?'today':'in ' + days + 'd'}</span></a>`).join('')}</div></section>` : ''}
 
 
-    ${typeof ledgerStanzasHTML === 'function' ? ledgerStanzasHTML({limit:4, title:'The life ledger'}) : ''}
-
-    <!-- gentle prompt -->
-    <section class="section rv" id="t-prompt"><span class="sc">A gentle prompt</span>
-      <div class="prompt-card"><div class="quote" id="promptText">${gentlePrompt()}</div><div class="row" style="margin-top:14px;justify-content:space-between"><button class="btn sm ghost" id="anotherPrompt">another</button><button class="btn sm" data-quick="reflection">respond ✎</button></div></div>
-    </section>
-
-    <!-- quick add row -->
-    <section class="section rv" id="t-add">
-      <span class="sc">Quick add</span>
-      <div class="row" style="gap:6px;flex-wrap:wrap;margin-top:10px">
-        ${[['reflection','✎','Reflection'],['gratitude','♡','Gratitude'],['synchronicity','∞','Synchronicity'],['visualization','◉','Vision'],['memory','◌','Memory'],['nod','·','Nod'],['interaction','☺','Interaction'],['dream','☾','Dream']].map(([t,ic,lb]) =>
-          `<button class="btn sm ghost" data-quick="${t}">${ic} ${lb}</button>`).join('')}
-        <button class="btn sm ghost" data-quick="snippet">✐ Snippet</button>
-      </div>
-    </section>
+    <!-- the ledger reads the whole instrument, so it belongs to the Compass;
+         the gentle prompt and the quick-add row are gone by request -->
 
     <!-- before you sleep: the day after this one gets decided here -->
-    <section class="section rv tomorrow-block ${evening ? 'is-evening' : ''}" id="t-tonight">
-      <div class="row between" style="align-items:baseline">
+    <details class="section rv tomorrow-block t-sec ${evening ? 'is-evening' : ''}" id="t-tonight"${fold('t-tonight')}>
+      <summary>
         <span class="sc" style="margin:0">Before you sleep</span>
         <span class="mono faint">${esc(fmtDate(tomorrow, 'med'))}</span>
-      </div>
-      <div class="card" style="margin-top:10px">
+      </summary>
+      <div class="body"><div class="card" style="margin-top:10px">
         <p class="muted" style="font-size:.86rem;margin:0 0 10px">A day decided the night before starts already moving. Name tomorrow's three now, while today is still fresh enough to judge it.</p>
+        ${planTom.why ? `<p class="plan-why">${esc(planTom.why)}</p>` : ''}
         ${threeTom.length ? `<ol class="today-three" style="margin-bottom:10px">${threeTom.map(t => `<li>${esc(t)}</li>`).join('')}</ol>` : ''}
+        ${planTom.firstMove ? `<p class="plan-line"><span class="mono">first move</span> ${esc(planTom.firstMove)}</p>` : ''}
         <div class="row" style="gap:8px;flex-wrap:wrap">
           <button class="btn sm ${threeTom.length ? 'ghost' : 'primary'}" id="planTomorrow">${threeTom.length ? '↻ Replan tomorrow' : '◑ Plan tomorrow'}</button>
           ${isSunday ? `<button class="btn sm ${evening ? 'primary' : 'ghost'}" id="planNextWeek">🗓 Plan next week</button>` : ''}
           <button class="btn sm ghost" id="eveningReview">☾ Evening review</button>
         </div>
-      </div>
-    </section>
+      </div></div>
+    </details>
+
+    <p class="day-edge sleeping">I went to sleep at <button class="day-edge-t" id="sleptAt">${(() => { const r = rhythmDay(T); return r.sleepTime ? esc(r.sleepTime) : '—'; })()}</button></p>
 
   </div>`;
 
   /* the index */
+  /* The index is sticky, so scrolling a section to the top of the window puts
+     it underneath the index. Scroll to the section's own top minus the height
+     of the bar that would otherwise be standing on it. */
   root.querySelectorAll('[data-jump]').forEach(b => b.onclick = () => {
     const t = root.querySelector('#' + b.dataset.jump); if(!t) return;
-    if(t.tagName === 'DETAILS') t.open = true;
-    t.scrollIntoView({behavior: reduced() ? 'auto' : 'smooth', block:'start'});
+    if(t.tagName === 'DETAILS' && !t.open){ t.open = true; rememberFold(t.id, true); }
+    const bar = root.querySelector('.today-jump');
+    const pad = (bar ? bar.getBoundingClientRect().height : 0) + 14;
+    const y = t.getBoundingClientRect().top + window.scrollY - pad;
+    window.scrollTo({top: Math.max(0, y), behavior: reduced() ? 'auto' : 'smooth'});
     t.classList.add('jump-lit'); setTimeout(() => t.classList.remove('jump-lit'), 1200);
   });
+
+  /* what is folded shut is a preference, not a fact about today */
+  root.querySelectorAll('details.t-sec').forEach(d => d.addEventListener('toggle', () => rememberFold(d.id, d.open)));
+
+  /* the two ends of the day — stated plainly, corrected by clicking them */
+  $('#wokeAt') && ($('#wokeAt').onclick = () => askClock('What time did you wake?', isoToHM(c.wakeAt), v => {
+    const [h, m] = v.split(':').map(Number);
+    const d = parseDay(T); d.setHours(h, m, 0, 0);
+    c.wakeAt = d.toISOString();
+    const r = rhythmDay(T); r.wakeTime = v; rhythmCompute(r); saveNow(); rerender();
+  }));
+  $('#sleptAt') && ($('#sleptAt').onclick = () => { const r = rhythmDay(T);
+    askClock('What time did you close the day?', r.sleepTime, v => { r.sleepTime = v; rhythmCompute(r); saveNow(); rerender(); }); });
 
   /* habits */
   $('#todayAddHabit') && ($('#todayAddHabit').onclick = () => openHabitModal());
@@ -5460,18 +5840,11 @@ routes.today = function(root){
 
   const redraw = () => rerender();
   bindTimeUse(root, redraw);
-  if(typeof bindLedger === 'function') bindLedger(root);
 
   /* the night before */
   $('#planTomorrow') && ($('#planTomorrow').onclick = () => { if(typeof planMyDay === 'function') planMyDay(tomorrow); });
   $('#planNextWeek') && ($('#planNextWeek').onclick = () => { if(typeof openWeeklyPlan === 'function') openWeeklyPlan(addDays(T, 1)); });
   $('#eveningReview') && ($('#eveningReview').onclick = () => { if(typeof flowEvening === 'function') flowEvening(); });
-
-  /* gentle prompt */
-  $('#anotherPrompt').onclick = () => { S._promptShift = (S._promptShift||0)+1; $('#promptText').innerHTML = gentlePrompt(); };
-
-  /* quick add */
-  root.querySelectorAll('[data-quick]').forEach(b => b.onclick = () => { const t = b.dataset.quick; if(t==='nod') openNodModal(); else if(t==='snippet') { if(typeof openWritingModal==='function') openWritingModal({type:'snippet'}); } else openEntryModal({type:t}); });
 
   /* tasks */
   $('#pullTask').onclick = () => openTaskPicker(T, rerender);
@@ -5781,11 +6154,7 @@ function treeSVG(W, H){
   });
   return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMax meet" style="filter:hue-rotate(${season}deg)">${g}</svg>`;
 }
-let swayRAF = null;
-/* The sway must be stoppable from outside: a navigation that leaves the tree
-   running mid-flight stalls the view transition, and the page never changes. */
-function stopSway(){ cancelAnimationFrame(swayRAF); swayRAF = 0; }
-function startSway(root){ cancelAnimationFrame(swayRAF); if(reduced()) return; const leaves = $$('.leaf', root); const t0 = performance.now(); const tick = t => { if(!document.contains(root)){ cancelAnimationFrame(swayRAF); return; } const s = (t-t0)/1000; leaves.forEach(l => { const ph = +l.dataset.phase, per = +l.dataset.period; l.style.transform = `rotate(${(Math.sin(s*2*Math.PI/per + ph)*3).toFixed(2)}deg)`; }); swayRAF = requestAnimationFrame(tick); }; swayRAF = requestAnimationFrame(tick); }
+/* sway, growth and motes are shared with the skill tree — see 04-foliage.js */
 routes.vision = function(root, params){
   const eras = erasList(); const activeEra = eras.some(e=>e.id===S._activeEra) ? S._activeEra : (eras[0]?.id || null);
   registerPageEntry({pageName:'Vision', addLabel:'Add a goal or life event', defaultEntryType:'progress', prefilledFields:{era:activeEra}, options:[
@@ -5808,7 +6177,8 @@ routes.vision = function(root, params){
   if(view === 'tree') drawTree();
   function drawTree(){ const wrap = $('#treeWrap'); if(!wrap) return; const W = Math.max(wrap.clientWidth, 600), H = wrap.clientHeight; wrap.querySelector('svg')?.remove(); wrap.insertAdjacentHTML('afterbegin', treeSVG(W,H)); const svg = wrap.querySelector('svg');
     svg.querySelectorAll('.branch').forEach(b => { b.onclick = () => openVisionPanel(b.dataset.vision); b.onmouseenter = () => { const [sx,sy] = b.dataset.start.split(',').map(Number); const [tx,ty] = b.dataset.trunk.split(',').map(Number); const tr = $('#trace'); tr.setAttribute('d', `M${sx},${sy} L${tx},${sy} L${tx},${ty}`); tr.style.opacity = '.6'; sound('leaf'); }; b.onmouseleave = () => { $('#trace').style.opacity = '0'; }; });
-    startSway(svg); }
+    growTree(svg); startSway(svg);
+    if(!wrap.querySelector('.tree-motes')) wrap.insertAdjacentHTML('beforeend', motesHTML(9, 'vision-motes')); }
   window.addEventListener('resize', debounce(()=>{ if(currentRoute==='vision' && S._visionView === 'tree') drawTree(); }, 250), {once:true});
   bindLifeline(root, drawTree);
   if(!S.settings.chapterNamed) setTimeout(promptChapterName, 400);
@@ -5869,7 +6239,8 @@ function openVisionPanel(id){
     <div class="vp-sec"><span class="sc">Self-image required (Maltz)</span><p class="faint" style="font-size:.8rem;margin:0 0 6px">What kind of person would I need to be for this to feel natural?</p>${ed(`visions.#${v.id}.selfImage`,{multi:true,ph:'Someone who…'})}</div>
     <div class="vp-sec"><span class="sc">Linked values</span><div class="deps">${S.valueOrder.map(id=>{ const val = byId(S.values,id); return `<span class="chip click ${v.values.includes(id)?'on':''}" style="--c:${val.color}" data-vval="${id}">${esc(val.name)}</span>`; }).join('')}</div></div>
     <div class="vp-sec"><span class="sc">The 80-year-old check</span><p class="faint" style="font-size:.8rem;margin:0 0 6px">Why does this matter when I look back from the end?</p>${ed(`visions.#${v.id}.obituary`,{multi:true,ph:'If the answer is thin, the vision may be vanity.'})}</div>
-    ${boardStrip(boardId('vision', id), 'Board')}
+    <div class="vp-sec"><div class="row between" style="align-items:center"><span class="sc">What this looks like</span>${imageAddHTML('vision', id)}</div>
+      ${imageStripHTML('vision', id) || '<p class="faint" style="font-size:.8rem;margin:6px 0 0">The written half is above. This is the half you can only feel — add an image and the passage is printed on it.</p>'}</div>
     <div class="vp-sec"><div class="row between"><span class="sc">Manifestation evidence log</span><button class="btn sm ghost" id="addEv">+ evidence</button></div><p class="faint" style="font-size:.8rem;margin:0 0 6px">Coincidences, doors, people who appeared. Evidence of alignment arrives before full manifestation.</p>${v.evidence.map((e,i)=>`<div class="evidence-item"><span class="mono">${ed(`visions.#${v.id}.evidence.${i}.date`,{ph:'date',cls:'mono'})}</span><span style="flex:1">${ed(`visions.#${v.id}.evidence.${i}.text`,{multi:true})}</span><button class="tbtn" data-evdel="${i}">×</button></div>`).join('')||'<div class="empty">Nothing logged yet. Watch for it.</div>'}</div>
     ${(typeof mediaEntries==='function' ? mediaEntries().filter(m=>(m.links.visions||[]).includes(v.id)) : []).length ? `<div class="vp-sec"><span class="sc">Media feeding this vision</span><div class="row" style="gap:8px;flex-wrap:wrap">${mediaEntries().filter(m=>(m.links.visions||[]).includes(v.id)).map(m=>{ const mx=mediaX(m); const k=MEDIA_KINDS[mx.kind]||MEDIA_KINDS.book; return `<span class="chip on click" style="--c:${k[2]}" data-go="#/commonplace/${m.id}">${k[0]} ${esc(m.title)}</span>`; }).join('')}</div></div>` : ''}
     <div class="vp-sec"><div class="row between"><span class="sc">Leaves — progress entries (${leaves.length})</span><button class="btn sm" id="addLeaf">+ water this vision</button></div>${sortEntries(leaves).map(e=>entryCard(e)).join('')||'<div class="empty">No leaves yet. Every tagged entry grows one.</div>'}</div>
@@ -5880,7 +6251,7 @@ function openVisionPanel(id){
   bindVmToggle(p, 'vision');
   p.querySelectorAll('[data-conf]').forEach(b => b.onclick = () => { const was = v.confidence; v.confidence = b.dataset.conf; if(v.confidence==='lived'){ v.status='completed'; v.completedAt = v.completedAt || today(); v.progress = 100; } else if(was==='lived'){ v.status='pending'; } saveNow(); if(v.confidence==='lived' && was!=='lived') fruitCeremony(v); else { reopenPanel(() => { rerender(); openVisionPanel(v.id); }); } });
   p.querySelectorAll('[data-feel]').forEach(b => b.onclick = () => { v.feeling = +b.dataset.feel; saveNow(); reopenPanel(() => { rerender(); openVisionPanel(v.id); }); });
-  bindBoardStrip(document.querySelector('#panel'), () => byId(S.visions,id)?.name || 'Vision');
+  bindRecImages(document.querySelector('#panel'), () => openVisionPanel(id));
   p.querySelector('#addRes').onclick = () => { v.resistance.push({text:'',threadId:null}); saveNow(); openVisionPanel(v.id); };
   p.querySelectorAll('[data-resthread]').forEach(s => s.onchange = () => { v.resistance[+s.dataset.resthread].threadId = s.value||null; saveNow(); });
   p.querySelectorAll('[data-resdel]').forEach(b => b.onclick = () => { const r = v.resistance[+b.dataset.resdel]; requestDelete({label: r.text || 'Resistance', node: b.closest('.evidence-item'), remove: () => spliceOut(v.resistance, x => x === r), after: () => openVisionPanel(v.id)}); });
@@ -5998,7 +6369,7 @@ function llProse(v){
    passage breaks out of the manuscript column, the images become the ground it
    is printed on, and the text sits on a scrim so it stays readable. Without
    images nothing changes — the column is the default, not the exception. */
-function visionImages(v){ return getBoard(boardId('vision', v.id)).items.filter(it => it.kind === 'image' && it.src); }
+function visionImages(v){ return recImages(v).filter(it => it.src); }
 function llPlateHTML(v){
   const imgs = visionImages(v); if(!imgs.length) return '';
   const rest = imgs.slice(1, 5);
@@ -6057,9 +6428,9 @@ function llPassageHTML(v, era){
     </div>
 
     <div class="ll-plate-tools">
-      <button class="ll-link" data-llimgadd="${v.id}">${imgs.length ? `images · ${imgs.length}` : '＋ image'}</button>
-      ${imgs.length ? `<button class="ll-link quiet" data-llimgman="${v.id}">arrange</button>` : ''}
-      <input type="file" accept="image/*" multiple hidden data-llimgfile="${v.id}">
+      <button class="ll-link" data-imgadd="vision:${v.id}">${imgs.length ? `images · ${imgs.length}` : '＋ image'}</button>
+      ${imgs.length ? `<button class="ll-link quiet" data-imgman="vision:${v.id}">arrange</button>` : ''}
+      <input type="file" accept="image/*" multiple hidden data-imgfile="vision:${v.id}">
     </div>
     </div>
   </article>`;
@@ -6191,17 +6562,7 @@ function bindLifeline(root, drawTree){
   line.querySelectorAll('[data-llfull]').forEach(b => b.onclick = () => openVisionPanel(b.dataset.llfull));
 
   /* imagery belongs to the vision, not to a shared board at the top of the page */
-  line.querySelectorAll('[data-llimgadd]').forEach(b => b.onclick = () =>
-    line.querySelector(`[data-llimgfile="${CSS.escape(b.dataset.llimgadd)}"]`)?.click());
-  line.querySelectorAll('[data-llimgfile]').forEach(inp => inp.onchange = ev => {
-    const key = boardId('vision', inp.dataset.llimgfile), files = ev.target.files; ev.target.value = '';
-    if(!files?.length) return;
-    readImages(files, src => { getBoard(key).items.push({id:uid(), kind:'image', src, caption:'', span:'m'}); saveNow(); sound('success'); redraw(); });
-  });
-  line.querySelectorAll('[data-llimgman]').forEach(b => b.onclick = () => {
-    const v = byId(S.visions, b.dataset.llimgman); if(!v) return;
-    openBoardPanel(boardId('vision', v.id), v.name);
-  });
+  bindRecImages(line, redraw);
   line.querySelectorAll('[data-llimglb]').forEach(img => img.onclick = () => lightbox(img.dataset.llimglb, img.alt));
 
   /* chapter tools, which only Workshop View shows */
@@ -6248,124 +6609,154 @@ function bindLifeline(root, drawTree){
     S.visionEras.push(e); saveNow(); redraw(); };
 }
 /* ============================================================
-   BOARDS — the sensory half of a vision.
-   The Vision page holds what you can argue about; a board holds
-   what you can only feel. Any record can have one: a value, a
-   skill, a project, a goal, a chapter, a person — and there is a
-   main board that belongs to no one thing.
+   IMAGERY — pictures belong to the thing, not to a board.
+
+   A board was a separate room you had to go and visit, and it
+   answered a question nobody asks ("where are my pins?"). What
+   people actually want is for the record itself to look like
+   the thing it is about. So every record can carry images, and
+   the first of them becomes the ground its own card is printed
+   on — visible in the list, before anything is opened.
    ============================================================ */
-function boardId(kind, id){ return id ? `${kind}:${id}` : kind; }
-function getBoard(key){
-  S.boards = Array.isArray(S.boards) ? S.boards : [];
-  let b = S.boards.find(x => x.id === key);
-  if(!b){ b = {id:key, items:[], note:''}; S.boards.push(b); }
-  b.items = Array.isArray(b.items) ? b.items : [];
-  return b;
+
+/* every record type that can carry imagery, and where its records live */
+const IMG_OWNERS = {
+  project: () => S.projects,
+  skill:   () => S.skills,
+  value:   () => S.values,
+  person:  () => S.people,
+  vision:  () => S.visions,
+};
+function imgOwner(kind, id){ const list = IMG_OWNERS[kind]; return list ? byId(list(), id) : null; }
+function recImages(rec){
+  if(!rec) return [];
+  if(!Array.isArray(rec.images)) rec.images = [];
+  return rec.images;
 }
-function boardCount(key){ return (S.boards||[]).find(x => x.id === key)?.items.length || 0; }
-const PIN_SPANS = [['s','small'],['m','medium'],['l','large'],['w','wide']];
-function boardHTML(key, {title = 'Board', hint = '', compact = false} = {}){
-  const b = getBoard(key);
-  return `<div class="board-wrap" data-board="${esc(key)}">
-    <div class="row between"><span class="sc" style="margin:0">${esc(title)}</span><span class="mono">${b.items.length} pinned</span></div>
-    ${hint ? `<p class="muted" style="font-size:.85rem;margin:4px 0 0">${esc(hint)}</p>` : ''}
-    <div class="row" style="gap:8px;margin:12px 0">
-      <button class="btn sm primary" data-bupload="${esc(key)}">＋ Upload images</button>
-      <button class="btn sm ghost" data-blink="${esc(key)}">＋ From a link</button>
-      <button class="btn sm ghost" data-bword="${esc(key)}">＋ A word</button>
-      <input type="file" accept="image/*" multiple hidden data-bfile="${esc(key)}">
-    </div>
-    <div class="board ${compact ? 'compact' : ''}" data-bgrid="${esc(key)}">
-      ${b.items.length ? b.items.map((it,i) => `<figure class="pin sp-${it.span || 'm'} ${it.kind === 'word' ? 'word' : ''} ${it.kind === 'goal' ? 'goalcard' : ''}" draggable="true" data-pin="${it.id}" style="--rot:${((it.id.charCodeAt(0) % 5) - 2) * .55}deg">
-          ${it.kind === 'word'
-            ? `<div class="pin-word">${esc(it.caption || '')}</div>`
-            : it.kind === 'goal'
-            ? (() => { const g = byId(S.visions, it.goalId); const sc = g ? (typeof vividness === 'function' ? vividness(g).score : 0) : 0;
-                return `<a class="pin-goal" href="#/vision/${it.goalId}"><span class="pg-name">🌿 ${esc(g ? g.name : it.caption)}</span>${g?`<span class="bar" style="--c:var(--sage)"><i style="width:${sc}%"></i></span><span class="mono">${esc(g.confidence||'')} · vividness ${sc}</span>`:'<span class="mono">this goal is gone</span>'}</a>`; })()
-            : `<img src="${esc(it.src)}" alt="${esc(it.caption || '')}" loading="lazy" data-blb="${it.id}">`}
-          <figcaption>${ed(`boards.#${key}.items.${i}.caption`, {ph:'a word about it'})}</figcaption>
-          <div class="pin-ctl">
-            <button class="pin-btn" data-bspan="${it.id}" title="change size">⤢</button>
-            <button class="pin-btn" data-bdel="${it.id}" title="remove">×</button>
-          </div>
-        </figure>`).join('')
-        : `<div class="empty board-empty">Nothing pinned yet. Photographs, a room, a face, a colour, a single word — whatever makes the thing feel real before you can argue for it.</div>`}
-    </div>
+
+/* ---------- the one-time fold-in ----------
+   Boards are gone, but what was pinned to them is not: every image on a
+   record's old board becomes an image on the record itself, in order. Words
+   and goal cards had no home on a card, so they are dropped rather than
+   silently turned into something they were not. */
+function migrateBoards(){
+  if(!Array.isArray(S.boards) || !S.boards.length){ S.boards = []; return; }
+  S.boards.forEach(b => {
+    const [kind, id] = String(b.id || '').split(':');
+    const rec = id ? imgOwner(kind, id) : null;
+    if(!rec) return;
+    const have = new Set(recImages(rec).map(x => x.src));
+    (b.items || []).forEach(it => {
+      const src = typeof it.src === 'string' ? it.src : '';
+      if(it.kind !== 'image' || !src || have.has(src)) return;
+      rec.images.push({id: it.id || uid(), src, caption: it.caption || ''});
+      have.add(src);
+    });
+  });
+  S.boards = [];
+}
+
+/* ---------- the backdrop ----------
+   Behind the card, not in it: the first image at low opacity under a scrim
+   that keeps every word on top of it readable in either theme. */
+function imageBackdropHTML(rec){
+  const imgs = recImages(rec);
+  if(!imgs.length) return '';
+  return `<div class="rec-plate" aria-hidden="true">
+    <div class="rec-plate-img" style="background-image:url(&quot;${esc(imgs[0].src)}&quot;)"></div>
+    <div class="rec-plate-wash"></div>
   </div>`;
 }
-function bindBoard(root, after){
+const hasImages = rec => recImages(rec).length > 0;
+
+/* ---------- the control ----------
+   One button and a hidden input, wherever a record is being edited. */
+function imageAddHTML(kind, id, {label = null} = {}){
+  const rec = imgOwner(kind, id); const n = recImages(rec).length;
+  return `<span class="rec-img-tools">
+    <button class="btn sm ghost" data-imgadd="${kind}:${id}">${label || (n ? `▣ images · ${n}` : '▣ add an image')}</button>
+    ${n ? `<button class="btn sm ghost" data-imgman="${kind}:${id}">arrange</button>` : ''}
+    <input type="file" accept="image/*" multiple hidden data-imgfile="${kind}:${id}">
+  </span>`;
+}
+/* the strip that lets you caption, reorder and remove what is there */
+function imageStripHTML(kind, id){
+  const rec = imgOwner(kind, id); const imgs = recImages(rec);
+  if(!imgs.length) return '';
+  const path = {project:'projects', skill:'skills', value:'values', person:'people', vision:'visions'}[kind];
+  return `<div class="rec-img-strip" data-imgstrip="${kind}:${id}">
+    ${imgs.map((it, i) => `<figure class="rec-img ${i === 0 ? 'lead' : ''}" draggable="true" data-imgid="${it.id}">
+      <img src="${esc(it.src)}" alt="${esc(it.caption || '')}" loading="lazy" data-imglb="${it.id}">
+      <figcaption>${ed(`${path}.#${id}.images.${i}.caption`, {ph:'a word about it'})}</figcaption>
+      <button class="rec-img-x" data-imgdel="${kind}:${id}:${it.id}" title="remove">×</button>
+      ${i === 0 ? '<span class="rec-img-lead mono">the ground</span>' : ''}
+    </figure>`).join('')}
+  </div>
+  <p class="faint" style="font-size:.76rem;margin:6px 0 0">The first image is the one the card is printed on. Drag to reorder.</p>`;
+}
+
+/* ---------- one binder for all of it ---------- */
+function bindRecImages(root, after){
   const redraw = after || rerender;
-  $$('[data-bupload]', root).forEach(b => b.onclick = () => root.querySelector(`[data-bfile="${CSS.escape(b.dataset.bupload)}"]`)?.click());
-  $$('[data-bfile]', root).forEach(inp => inp.onchange = e => {
-    const key = inp.dataset.bfile, files = e.target.files; e.target.value = '';
-    if(!files?.length) return;
-    readImages(files, src => { getBoard(key).items.push({id:uid(), kind:'image', src, caption:'', span:'m'}); saveNow(); sound('success'); redraw(); });
+  const parse = v => { const i = v.indexOf(':'); return [v.slice(0, i), v.slice(i + 1)]; };
+
+  $$('[data-imgadd]', root).forEach(b => b.onclick = ev => { ev.stopPropagation();
+    root.querySelector(`[data-imgfile="${CSS.escape(b.dataset.imgadd)}"]`)?.click(); });
+
+  $$('[data-imgfile]', root).forEach(inp => inp.onchange = ev => {
+    const [kind, id] = parse(inp.dataset.imgfile);
+    /* FileList is live: resetting the input to allow re-picking the same file
+       empties the very list just read from it. Copy first, then reset. */
+    const files = Array.from(ev.target.files || []); ev.target.value = '';
+    if(!files.length) return;
+    const rec = imgOwner(kind, id); if(!rec) return;
+    /* readImages yields a photo record, not a string — reading it as a src is
+       how every uploaded image used to arrive as "[object Object]" */
+    readImages(files, photo => { recImages(rec).push({id: photo.id || uid(), src: photo.src, caption: ''});
+      saveNow(); sound('success'); redraw(); });
   });
-  $$('[data-blink]', root).forEach(b => b.onclick = () => {
-    const key = b.dataset.blink;
-    const m = openModal(`<h2>Pin from a link</h2><div class="stack"><div class="field"><label>Image address</label><input class="inp mono" id="bUrl" placeholder="https://…/photograph.jpg" autofocus></div><div class="field"><label>Caption</label><input class="inp" id="bCap" placeholder="optional"></div><p class="faint" style="font-size:.76rem">Linked images are fetched from wherever they live, so they can disappear if that page does. Uploading keeps a copy in your own database.</p></div><div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn primary" id="bAdd">Pin it</button></div>`, 'narrow');
-    const go = () => { const u = m.querySelector('#bUrl').value.trim(); if(!u) return; getBoard(key).items.push({id:uid(), kind:'image', src:u, caption:m.querySelector('#bCap').value.trim(), span:'m'}); saveNow(); m.remove(); sound('success'); redraw(); };
-    m.querySelector('#bAdd').onclick = go; m.querySelector('#bUrl').onkeydown = e => { if(e.key === 'Enter') go(); };
-  });
-  $$('[data-bword]', root).forEach(b => b.onclick = () => {
-    const key = b.dataset.bword;
-    const m = openModal(`<h2>Pin a word</h2><input class="inp serif-lg" id="bWord" placeholder="quiet · eleven seats · rain" autofocus><div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn primary" id="bwAdd">Pin it</button></div>`, 'narrow');
-    const go = () => { const w = m.querySelector('#bWord').value.trim(); if(!w) return; getBoard(key).items.push({id:uid(), kind:'word', src:'', caption:w, span:'s'}); saveNow(); m.remove(); sound('success'); redraw(); };
-    m.querySelector('#bwAdd').onclick = go; m.querySelector('#bWord').onkeydown = e => { if(e.key === 'Enter') go(); };
-  });
-  $$('[data-bspan]', root).forEach(b => b.onclick = e => { e.stopPropagation();
-    const key = b.closest('[data-board]').dataset.board, it = getBoard(key).items.find(x => x.id === b.dataset.bspan);
-    const order = PIN_SPANS.map(s => s[0]); it.span = order[(order.indexOf(it.span || 'm') + 1) % order.length]; saveNow(); redraw(); });
-  $$('[data-bdel]', root).forEach(b => b.onclick = e => { e.stopPropagation();
-    const key = b.closest('[data-board]').dataset.board, bd = getBoard(key), it = bd.items.find(x => x.id === b.dataset.bdel);
-    requestDelete({label: it.caption || 'this pin', node: b.closest('.pin'), remove: () => spliceOut(bd.items, x => x.id === it.id), after: redraw}); });
-  $$('[data-blb]', root).forEach(img => img.onclick = () => lightbox(img.src, img.alt));
-  // drag to rearrange
+
+  $$('[data-imgman]', root).forEach(b => b.onclick = ev => { ev.stopPropagation();
+    const [kind, id] = parse(b.dataset.imgman); openImagePanel(kind, id); });
+
+  $$('[data-imgdel]', root).forEach(b => b.onclick = ev => { ev.stopPropagation();
+    const s = b.dataset.imgdel; const i = s.indexOf(':'), j = s.lastIndexOf(':');
+    const kind = s.slice(0, i), id = s.slice(i + 1, j), imgId = s.slice(j + 1);
+    const rec = imgOwner(kind, id); if(!rec) return;
+    const it = recImages(rec).find(x => x.id === imgId); if(!it) return;
+    requestDelete({label: it.caption || 'this image', node: b.closest('.rec-img'),
+      remove: () => spliceOut(rec.images, x => x.id === imgId), after: redraw}); });
+
+  $$('[data-imglb]', root).forEach(img => img.onclick = ev => { ev.stopPropagation(); lightbox(img.src, img.alt); });
+
+  /* drag to reorder — which image leads decides what the card looks like */
   let drag = null;
-  $$('.pin', root).forEach(pin => {
-    pin.addEventListener('dragstart', ev => { if(ev.target.closest('.ed')){ ev.preventDefault(); return; } drag = pin.dataset.pin; pin.classList.add('dragging'); ev.dataTransfer.effectAllowed = 'move'; });
-    pin.addEventListener('dragend', () => { pin.classList.remove('dragging'); drag = null; $$('.pin.over', root).forEach(p => p.classList.remove('over')); });
-    pin.addEventListener('dragover', ev => { ev.preventDefault(); if(drag && drag !== pin.dataset.pin) pin.classList.add('over'); });
-    pin.addEventListener('dragleave', () => pin.classList.remove('over'));
-    pin.addEventListener('drop', ev => { ev.preventDefault(); pin.classList.remove('over'); if(!drag || drag === pin.dataset.pin) return;
-      const key = pin.closest('[data-board]').dataset.board, items = getBoard(key).items;
-      const from = items.findIndex(x => x.id === drag), to = items.findIndex(x => x.id === pin.dataset.pin);
-      if(from < 0 || to < 0) return; items.splice(to, 0, items.splice(from, 1)[0]); saveNow(); redraw(); });
+  $$('.rec-img', root).forEach(fig => {
+    fig.addEventListener('dragstart', ev => { if(ev.target.closest('.ed')){ ev.preventDefault(); return; }
+      drag = fig.dataset.imgid; fig.classList.add('dragging'); ev.dataTransfer.effectAllowed = 'move'; });
+    fig.addEventListener('dragend', () => { fig.classList.remove('dragging'); drag = null;
+      $$('.rec-img.over', root).forEach(x => x.classList.remove('over')); });
+    fig.addEventListener('dragover', ev => { ev.preventDefault(); if(drag && drag !== fig.dataset.imgid) fig.classList.add('over'); });
+    fig.addEventListener('dragleave', () => fig.classList.remove('over'));
+    fig.addEventListener('drop', ev => { ev.preventDefault(); fig.classList.remove('over');
+      if(!drag || drag === fig.dataset.imgid) return;
+      const [kind, id] = parse(fig.closest('[data-imgstrip]').dataset.imgstrip);
+      const arr = recImages(imgOwner(kind, id));
+      const from = arr.findIndex(x => x.id === drag), to = arr.findIndex(x => x.id === fig.dataset.imgid);
+      if(from < 0 || to < 0) return;
+      arr.splice(to, 0, arr.splice(from, 1)[0]); saveNow(); redraw(); });
   });
 }
-/* a small strip for panels: shows what is pinned and opens the full board */
-function boardStrip(key, label){
-  const b = getBoard(key); const n = b.items.length;
-  return `<div class="vp-sec"><div class="row between"><span class="sc">${esc(label || 'Board')}</span><button class="btn sm ghost" data-bopen="${esc(key)}">${n ? 'open the board' : 'start a board'}</button></div>
-    ${n ? `<div class="board-strip">${b.items.slice(0,8).map(it => it.kind === 'word' ? `<span class="strip-word">${esc(it.caption)}</span>` : `<img src="${esc(it.src)}" alt="${esc(it.caption||'')}" loading="lazy">`).join('')}${n > 8 ? `<span class="strip-more">+${n-8}</span>` : ''}</div>`
-      : `<p class="faint" style="font-size:.8rem;margin:6px 0 0">The written half is above. This is the half you can only feel — pin images, a colour, a single word.</p>`}</div>`;
-}
-function bindBoardStrip(root, titleFor){
-  $$('[data-bopen]', root).forEach(b => b.onclick = () => openBoardPanel(b.dataset.bopen, titleFor ? titleFor(b.dataset.bopen) : 'Board'));
-}
-function openBoardPanel(key, title){
-  const p = openPanel(`<div class="mono">board</div><h2>${esc(title || 'Board')}</h2>${boardHTML(key, {title:'Pinned', hint:'Drag to rearrange. Click a pin to see it large, ⤢ to resize it.'})}`, 'board-panel');
-  const redraw = () => { const scroll = p.scrollTop; openBoardPanel(key, title); const np = $('#panel'); if(np) np.scrollTop = scroll; };
-  bindBoard(p, redraw);
-}
-function pinGoalCard(key){
-  const goals = S.visions.filter(v => !v.archived);
-  if(!goals.length){ toast('No goals yet — the timeline tab is where they start.'); return; }
-  const m = openModal(`<h2>Pin a goal</h2><div class="stack" style="gap:6px;max-height:50vh;overflow:auto">${goals.map(v=>`<button class="choice" data-pg="${v.id}"><span class="ico">🌿</span><span><b>${esc(v.name)}</b><div class="d">${esc(v.confidence||'')}${v.progress?` · ${v.progress}%`:''}</div></span></button>`).join('')}</div>`, 'narrow');
-  m.querySelectorAll('[data-pg]').forEach(b => b.onclick = () => {
-    const v = byId(S.visions, b.dataset.pg);
-    getBoard(key).items.push({id:uid(), kind:'goal', src:'', caption:v.name, span:'w', goalId:v.id});
-    saveNow(); m.remove(); sound('success'); rerender();
-  });
-}
-function boardTitle(key){
-  if(key === 'main') return 'The Board';
-  const [kind, id] = key.split(':');
-  const name = {value:() => byId(S.values,id)?.name, skill:() => byId(S.skills,id)?.name, project:() => byId(S.projects,id)?.name,
-    vision:() => byId(S.visions,id)?.name, era:() => byId(S.visionEras,id)?.name, stage:() => byId(S.stages,id)?.name,
-    person:() => byId(S.people,id)?.name}[kind];
-  const n = name ? name() : null;
-  return n ? `${n} — board` : 'Board';
+
+/* a panel for arranging what a record carries, when the strip is not on screen */
+function openImagePanel(kind, id){
+  const rec = imgOwner(kind, id); if(!rec) return;
+  const p = openPanel(`<div class="mono">images</div><h2>${esc(rec.name || 'This record')}</h2>
+    <p class="muted" style="font-size:.86rem">What this looks like. The first one becomes the ground its card is printed on.</p>
+    <div class="row" style="gap:8px;margin:12px 0">${imageAddHTML(kind, id, {label:'▣ add an image'})}</div>
+    ${imageStripHTML(kind, id) || '<div class="empty">Nothing here yet.</div>'}`, 'img-panel');
+  const redraw = () => { const y = p.scrollTop; openImagePanel(kind, id); const np = $('#panel'); if(np) np.scrollTop = y; };
+  bindRecImages(p, redraw);
 }
 /* ============================================================
    NEEDS — Maslow as a diagnostic layer, not an ornament.
@@ -7174,7 +7565,9 @@ function renderPersonPage(root, id){
     <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Gifts given &amp; received</span><button class="btn sm ghost" id="ppGiftLog">＋ gift</button></div>
       ${(p.giftsLog||[]).length ? `<div class="stack" style="gap:5px;margin-top:8px">${p.giftsLog.map((g,i)=>`<div class="row between"><span class="status-pill">${g.direction==='given'?'gave':'received'}</span><span style="flex:1">${ed(`people.#${p.id}.giftsLog.${i}.what`,{ph:'what'})}</span><span class="mono">${ed(`people.#${p.id}.giftsLog.${i}.date`,{ph:'date',cls:'mono'})}</span><button class="del-x inline" data-glogdel="${i}">×</button></div>`).join('')}</div>` : '<div class="empty">Nothing logged.</div>'}</section>
 
-    <section class="section rv">${boardHTML(boardId('person', p.id), {title:'Their board', hint:'A face, a place, their handwriting.', compact:true})}</section>
+    <section class="section rv"><div class="row between" style="align-items:center"><span class="sc" style="margin:0">Pictures of them</span>${imageAddHTML('person', p.id)}</div>
+      <p class="muted" style="font-size:.85rem">A face, a place, their handwriting. The first becomes the ground their card is printed on.</p>
+      ${imageStripHTML('person', p.id)}</section>
 
     <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Interactions</span><span class="mono">${ints.length}</span></div>
       ${ints.length ? `<div class="stack" style="gap:2px;margin-top:10px">${ints.map(i => { const t = INTERACTION_TYPES[i.type] || INTERACTION_TYPES.other; const en = ENERGY_READINGS[i.energy];
@@ -7198,7 +7591,7 @@ function renderPersonPage(root, id){
   if($('#ppRemind')) $('#ppRemind').onclick = () => { S.tasks.push(newTask(`Reach out to ${p.name}`, today())); saveNow(); sound('success'); toast('Added to today\'s plan.'); };
   $('#ppWrite').onclick = () => openEntryModal({type:'reflection', allowedTypes:['reflection','memory','gratitude','letter'], heading:`About ${p.name}`, links:{people:[p.id]}, openLinks:true});
   $('#ppPhoto').onclick = () => $('#ppFile').click();
-  $('#ppFile').onchange = e => { const f = e.target.files; e.target.value = ''; if(f?.length) readImages(f, src => { p.photo = src; saveNow(); rerender(); }); };
+  $('#ppFile').onchange = e => { const f = Array.from(e.target.files || []); e.target.value = ''; if(f.length) readImages(f, photo => { p.photo = photo.src; saveNow(); rerender(); }); };
   $('#ppDate').onclick = () => { p.details.importantDates = p.details.importantDates || []; p.details.importantDates.push({label:'', date:''}); saveNow(); rerender(); };
   $$('[data-dtdel]',root).forEach(b => b.onclick = () => { const i = +b.dataset.dtdel; requestDelete({label:p.details.importantDates[i].label||'this date', node:b.closest('.row'), remove:()=>{ const g = p.details.importantDates.splice(i,1)[0]; return () => p.details.importantDates.splice(i,0,g); }}); });
   const tg = $('#ppTags'); tg.onchange = () => { p.tags = normTags(tg.value.split(/[\s,]+/)); saveNow(); };
@@ -7220,7 +7613,7 @@ function renderPersonPage(root, id){
     const back = spliceOut(S.people, x => x.id === p.id);
     return () => { back(); S.interactions.push(...ints2); touched.forEach(e => e.links.people.push(p.id)); };
   }, after: () => navigate('#/people')});
-  bindBoard(root);
+  bindRecImages(root);
 }
 hooks.pint = (id, oldV, v) => { const p = byId(S.people, id); if(p){ p.details.interests = v.split(',').map(x=>x.trim()).filter(Boolean); saveNow(); } };
 function openPersonModal(ex){
@@ -7869,7 +8262,9 @@ routes.value = function(root, params){
     <div class="card rv">${sparkline(snaps.map(s=>s.ratings[v.id]??null),{h:60,min:0,max:100,color:v.color,dots:true,labels:snaps.map(s=>`${fmtDate(s.date,'med')}: ${s.ratings[v.id]??'–'}${s.note?' — '+s.note:''}`)})}<div class="row between mono"><span>${snaps[0]?fmtDate(snaps[0].date,'med'):''}</span><span>congruence over a lifetime</span><span>now</span></div></div>
     ${(() => { const n = typeof valueStageNote === 'function' ? valueStageNote(v) : ''; return n ? `<p class="val-stage-note">${esc(n)} <a href="#/spiral">the spiral →</a></p>` : ''; })()}
     <section class="section rv" id="pracBox">${practicesHTML(v)}</section>
-    <section class="section rv">${boardHTML(boardId('value', v.id), {title:'Board', hint:'What this value looks like, before you can argue for it.', compact:true})}</section>
+    <section class="section rv"><div class="row between" style="align-items:center"><span class="sc" style="margin:0">What this looks like</span>${imageAddHTML('value', v.id)}</div>
+      <p class="muted" style="font-size:.85rem">Before you can argue for it. The first image becomes the ground this value's card is printed on.</p>
+      ${imageStripHTML('value', v.id)}</section>
     ${F('embody','How would I know if I embody this value?','Observable, behavioural indicators. Not aspirations — evidence.')}
     ${F('hundred','What takes me to 100%?','What does full congruence actually look like, day to day?')}
     ${F('motivation','How do I increase my positive motivation for this value?','Strategies, reminders, environments, people.')}
@@ -7886,7 +8281,7 @@ routes.value = function(root, params){
   root.querySelectorAll('[data-vf]').forEach(b => b.onclick = () => { const k = b.dataset.vf; const latest = (v.fields[k]||[]).slice(-1)[0]; const m = openModal(`<h2>A new version</h2><textarea class="ta" id="vfText" style="min-height:160px">${esc(latest?.text||'')}</textarea><p class="faint" style="font-size:.78rem">The previous version is kept. Growth in self-understanding stays visible.</p><div class="row" style="justify-content:flex-end"><button class="btn primary" id="vfSave">Keep</button></div>`); m.querySelector('#vfSave').onclick = () => { const t = m.querySelector('#vfText').value.trim(); if(!t) return; v.fields[k] = v.fields[k]||[]; v.fields[k].push({date:today(),text:t}); saveNow(); m.remove(); rerender(); sound('save'); }; });
   root.querySelectorAll('[data-pol]').forEach(b => b.onclick = () => openEntryModal({type:'reflection', links:{values:[{id:v.id,pol:b.dataset.pol}]}}));
   root.querySelectorAll('[data-valvision]').forEach(c => c.onclick = () => { const x = byId(S.visions, c.dataset.valvision); x.values = x.values.includes(v.id) ? x.values.filter(y=>y!==v.id) : [...x.values, v.id]; saveNow(); c.classList.toggle('on'); });
-  bindPractices(root); bindBoard(root);
+  bindPractices(root); bindRecImages(root);
 };
 
 /* ============================================================
@@ -8536,7 +8931,7 @@ function organicSVG(W, H){
     const sub = s.planned ? 'planned' : locked ? 'locked' : mastered ? 'mastered' : `lvl ${lvl}/${lc}${active?' · active':wither?' · withering':!last?' · not yet practised':''}`;
     const name = (locked?'🔒 ':'') + s.name; const fs = it.depth===2 ? 11.5 : 10.5;
     lblItems.push({id:s.id, ex:X(it.end[0]), ey:Y(it.end[1]), x:X(it.end[0]) + outward*8, y:Y(it.end[1]), anchor:outward>0?'start':'end', w:Math.max(name.length*fs*.56, sub.length*8.5*.62) + 6, h:24, name, sub, fs, col});
-    g += `<g class="sk-twig ${locked?'locked':''} ${active?'active':''} ${mastered?'mastered':''}" data-skill="${s.id}" data-parent="${it.parent}" data-x="${X(it.end[0]).toFixed(1)}" data-y="${Y(it.end[1]).toFixed(1)}" style="--nc:${col}"><title>${esc(s.name)} · ${esc(sub)}${since<Infinity?` · last practised ${relDays(since)}`:''}</title>${inner}<g class="sk-leaves">${lf}</g><g class="sk-lblslot" data-for="${s.id}"></g></g>`;
+    g += `<g class="sk-twig ${locked?'locked':''} ${active?'active':''} ${mastered?'mastered':''} ${since <= 7 ? 'fresh' : ''}" data-skill="${s.id}" data-parent="${it.parent}" data-x="${X(it.end[0]).toFixed(1)}" data-y="${Y(it.end[1]).toFixed(1)}" style="--nc:${col}"><title>${esc(s.name)} · ${esc(sub)}${since<Infinity?` · last practised ${relDays(since)}`:''}</title>${inner}<g class="sk-leaves">${lf}</g><g class="sk-lblslot" data-for="${s.id}"></g></g>`;
   });
   // relax labels so they never sit on top of each other; a faint leader joins a moved label to its twig
   const boxOf = l => ({left: l.anchor==='start' ? l.x : l.x - l.w, right: l.anchor==='start' ? l.x + l.w : l.x, top: l.y - 13, bottom: l.y + 13});
@@ -8548,6 +8943,9 @@ function organicSVG(W, H){
 function drawOrganicTree(root){
   const wrap = $('#skillWrap'); if(!wrap) return; wrap.querySelector('svg')?.remove(); const mm = $('#minimap'); if(mm) mm.hidden = true; const hint = wrap.querySelector('.sk-hint'); if(hint) hint.textContent = 'leaves grow with each level · gold fruit is mastery · blossoms mean a milestone is near · brown leaves are withering';
   const W = Math.max(wrap.clientWidth, 600), H = wrap.clientHeight || 640; const svg = el(organicSVG(W, H)); wrap.insertBefore(svg, wrap.firstChild);
+  /* the tree arrives by growing, then keeps moving — see 04-foliage.js */
+  growTree(svg); startSway(svg);
+  if(!wrap.querySelector('.tree-motes')) wrap.insertAdjacentHTML('beforeend', motesHTML(11, 'skill-motes'));
   const chain = id => { const out = new Set(); let cur = svg.querySelector(`.sk-twig[data-skill="${id}"]`); while(cur){ out.add(cur.dataset.skill); const p = cur.dataset.parent; cur = p && !p.startsWith('cat:') ? svg.querySelector(`.sk-twig[data-skill="${p}"]`) : null; if(p && p.startsWith('cat:')) out.add(p); } return out; };
   svg.querySelectorAll('.sk-twig').forEach(t => {
     t.addEventListener('mouseenter', () => { const ids = chain(t.dataset.skill); svg.classList.add('hov'); svg.querySelectorAll('.sk-twig,.sk-branch').forEach(x => x.classList.toggle('hot', ids.has(x.dataset.skill || x.dataset.node))); });
@@ -8556,7 +8954,6 @@ function drawOrganicTree(root){
   });
   svg.querySelectorAll('.sk-branch').forEach(b => b.addEventListener('click', () => { const cat = b.dataset.node.slice(4); const first = S.skills.find(s => s.cat===cat); if(first) openSkillPanel(first.id); }));
   root._skView = { reset: () => drawOrganicTree(root), burst: (id) => { const t = svg.querySelector(`.sk-twig[data-skill="${id}"]`); if(!t) return; const pt = svg.createSVGPoint(); pt.x = +t.dataset.x; pt.y = +t.dataset.y; const sp = pt.matrixTransform(svg.getScreenCTM()); levelUpBurst(sp.x, sp.y, catColor(byId(S.skills,id)?.cat)); } };
-  if(typeof startSway === 'function') startSway(wrap);
 }
 let skillSelected = null;
 function drawSkillTree(root){ drawOrganicTree(root); }
@@ -8598,7 +8995,8 @@ function openSkillPanel(id){
     <div class="archetype">${arche}</div>
     ${levelTrackHTML(s)}
     ${milestoneTimelineHTML(s)}
-    ${boardStrip(boardId('skill', s.id), 'Board')}
+    <div class="vp-sec"><div class="row between" style="align-items:center"><span class="sc">What this looks like</span>${imageAddHTML('skill', s.id)}</div>
+      ${imageStripHTML('skill', s.id) || '<p class="faint" style="font-size:.8rem;margin:6px 0 0">Add an image and this skill\'s card is printed on it.</p>'}</div>
     <div class="vp-sec"><span class="sc">Prerequisites</span><div class="deps">${S.skills.filter(x=>x.id!==s.id).map(x=>`<span class="chip click ${s.prereqs.includes(x.id)?'on':''}" style="--c:${catColor(x.cat)}" data-pre="${x.id}">${esc(x.name)}</span>`).join('')}</div></div>
     <div class="vp-sec"><span class="sc">Cross-mappings</span>
       <div class="k mono" style="margin:6px 0 4px">load-bearing for visions — what do I need to become to live that life? click to link</div><div class="deps">${S.visions.map(v=>`<span class="chip click ${v.preSkills.includes(s.id)?'on':''}" style="--c:var(--sage)" data-skvision="${v.id}">🌿 ${esc(v.name)}</span>`).join('')||'<span class="faint">no visions yet</span>'}</div>
@@ -8609,7 +9007,7 @@ function openSkillPanel(id){
   $$('#panel .rv').forEach(n=>n.classList.add('in'));
   bindVmToggle(p, 'skill');
   p.querySelector('#skCatSel').onchange = e => { s.cat = e.target.value; saveNow(); reopenPanel(() => { rerender(); openSkillPanel(id); }); };
-  bindBoardStrip(p, () => s.name);
+  bindRecImages(p, () => openSkillPanel(s.id));
   p.querySelector('#skHzSel').onchange = e => { s.horizon = e.target.value; s.planned = s.horizon === 'someday'; if(!s.planned && s.currentLevel===0) s.currentLevel = 1; saveNow(); reopenPanel(() => { rerender(); openSkillPanel(id); }); };
   p.querySelector('#skPrioSel').onchange = e => { s.priority = e.target.value; saveNow(); reopenPanel(() => { rerender(); openSkillPanel(id); }); };
   bindLevelTrack(p, s);
@@ -8693,12 +9091,12 @@ const fmtYen = n => '¥' + Math.round(n||0).toLocaleString();
 function nodHeat(p){ const days = lastDays(84); const counts = {}; S.nods.filter(n=>n.projectId===p.id).forEach(n => counts[n.date] = (counts[n.date]||0)+1); return heatGrid(days, 12, d => counts[d] ? (counts[d]>=3?'l3':counts[d]===2?'l2':'l1') : ''); }
 function projectCardHTML(p){
   const ns = projectNods(p); const st = PSTATUS[p.status]||PSTATUS.idea; const r = projectTaskRatio(p); const pct = r.total ? Math.round(r.done/r.total*100) : 0; const due = p.targetDate ? daysBetween(today(), p.targetDate.slice(0,10)) : null;
-  return `<div class="card pcard rv" data-popen="${p.id}" draggable="true" data-kdrag="${p.id}" style="cursor:pointer;--c:${st[2]}"><div class="hd"><h3>${esc(p.name)}</h3><span class="row" style="gap:6px">${prBadge(p)}${stBadge(p)}</span></div><div class="muted" style="font-size:.85rem">${esc(p.description||'')}</div><div class="row">${(p.tags||[]).map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div>
+  return `<div class="card pcard rv ${hasImages(p) ? 'plated' : ''}" data-popen="${p.id}" draggable="true" data-kdrag="${p.id}" style="cursor:pointer;--c:${st[2]}">${imageBackdropHTML(p)}<div class="hd"><h3>${esc(p.name)}</h3><span class="row" style="gap:6px">${prBadge(p)}${stBadge(p)}</span></div><div class="muted" style="font-size:.85rem">${esc(p.description||'')}</div><div class="row">${(p.tags||[]).map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div>
     <div class="ptask"><div class="row between"><span class="mono">${(p.phases||[]).length} phase${(p.phases||[]).length===1?'':'s'} · ${r.done}/${r.total} tasks done</span><span class="mono ${due!==null&&due<0&&p.status!=='completed'?'due':''}">${p.targetDate?`🎯 ${fmtDate(p.targetDate,'med')}${due!==null&&p.status!=='completed'?(due<0?` · ${-due}d over`:` · ${due}d`):''}`:''}</span></div><div class="bar" style="--c:${st[2]}"><i style="width:${pct}%"></i></div></div>
     ${nodHeat(p)}<div class="mono">${ns.length} nods · last ${relDays(daysSince(ns[0]?.date))}${p.income?.current?` · ${fmtYen(p.income.current)}/mo`:''}</div>${p.link&&p.status==='completed'?`<a href="${esc(p.link)}" target="_blank" rel="noopener" class="mono" onclick="event.stopPropagation()">↗ ${esc(p.link)}</a>`:''}</div>`;
 }
 function kanbanHTML(ps){
-  return `<div class="kanban">${KANBAN.map(([k,label]) => { const cards = ps.filter(p => p.status===k || (k==='archived' && p.status==='abandoned')); const st = PSTATUS[k]; return `<div class="kcol" data-kcol="${k}" style="--c:${st[2]}"><div class="kcol-h"><span>${label}</span><span class="mono">${cards.length}</span></div><div class="kcol-body">${cards.map(p => { const r = projectTaskRatio(p); return `<div class="kcard" draggable="true" data-kdrag="${p.id}" data-popen="${p.id}"><div class="row between"><b class="serif" style="font-size:1rem">${esc(p.name)}</b>${prBadge(p)}</div><div class="mono" style="margin-top:4px">${r.done}/${r.total} tasks${p.targetDate?` · 🎯 ${fmtDate(p.targetDate,'short')}`:''}${p.status==='abandoned'?' · abandoned':''}</div><div class="bar" style="--c:${(PSTATUS[p.status]||st)[2]};margin-top:6px"><i style="width:${r.total?Math.round(r.done/r.total*100):0}%"></i></div></div>`; }).join('')||'<div class="faint" style="font-size:.75rem;padding:8px">drop here</div>'}</div></div>`; }).join('')}</div>`;
+  return `<div class="kanban">${KANBAN.map(([k,label]) => { const cards = ps.filter(p => p.status===k || (k==='archived' && p.status==='abandoned')); const st = PSTATUS[k]; return `<div class="kcol" data-kcol="${k}" style="--c:${st[2]}"><div class="kcol-h"><span>${label}</span><span class="mono">${cards.length}</span></div><div class="kcol-body">${cards.map(p => { const r = projectTaskRatio(p); return `<div class="kcard ${hasImages(p) ? 'plated' : ''}" draggable="true" data-kdrag="${p.id}" data-popen="${p.id}">${imageBackdropHTML(p)}<div class="row between"><b class="serif" style="font-size:1rem">${esc(p.name)}</b>${prBadge(p)}</div><div class="mono" style="margin-top:4px">${r.done}/${r.total} tasks${p.targetDate?` · 🎯 ${fmtDate(p.targetDate,'short')}`:''}${p.status==='abandoned'?' · abandoned':''}</div><div class="bar" style="--c:${(PSTATUS[p.status]||st)[2]};margin-top:6px"><i style="width:${r.total?Math.round(r.done/r.total*100):0}%"></i></div></div>`; }).join('')||'<div class="faint" style="font-size:.75rem;padding:8px">drop here</div>'}</div></div>`; }).join('')}</div>`;
 }
 function ganttHTML(ps){
   const T = today(); const rows = ps.filter(p => (p.phases||[]).some(ph => ph.startDate || ph.endDate) || p.startDate || p.targetDate);
@@ -8728,7 +9126,7 @@ routes.projects = function(root, params){
   if(mode === 'ideation'){ renderIdeation(root); return; }
   root.innerHTML = `<div class="page">
     <button class="btn primary nod-fab" id="nodFab" title="quick nod">+ nod</button>
-    <div class="mode-switch rv">${[['ideation','◌ Ideation','sparks, inspiration, brainstorming'],['tracking','◉ Tracking','the work already under way']].map(([k,l,d])=>`<button class="${mode===k?'on':''}" data-pmode="${k}" title="${d}">${l}</button>`).join('')}</div>
+    <div class="mode-switch rv">${[['ideation','◌ Ideation','sparks and open questions'],['tracking','◉ Tracking','the work already under way']].map(([k,l,d])=>`<button class="${mode===k?'on':''}" data-pmode="${k}" title="${d}">${l}</button>`).join('')}</div>
     <div class="page-head row between"><div><h1>Projects</h1></div><div class="row"><div class="view-toggle">${[['cards','▦ Cards'],['kanban','▥ Board'],['timeline','▬ Timeline']].map(([k,l])=>`<button class="${view===k?'on':''}" data-pview="${k}">${l}</button>`).join('')}</div><select class="sel" style="width:auto" id="psort"><option value="activity" ${sort==='activity'?'selected':''}>by last activity</option><option value="priority" ${sort==='priority'?'selected':''}>by priority</option><option value="status" ${sort==='status'?'selected':''}>by status</option><option value="name" ${sort==='name'?'selected':''}>by name</option></select><button class="btn primary" id="addNod">+ nod</button></div></div>
     <div class="card rv" style="margin-bottom:22px"><div class="income-strip"><div><div class="k">monthly income, all streams</div><div class="num">${fmtYen(total)}</div><div class="mono">per month</div></div><div><div class="k">active streams</div><div class="num">${income.length}</div></div><div><div class="k">diversification</div><div class="num">${diversified}</div><div class="mono">contribute &gt;10%</div></div><div><div class="k">open tasks</div><div class="num">${sum(S.projects.filter(p=>!['completed','archived','abandoned'].includes(p.status)).map(p=>{ const r = projectTaskRatio(p); return r.total-r.done; }))}</div></div></div></div>
     ${view==='cards' ? `<div class="grid c3" id="pcards">${ps.map(projectCardHTML).join('')}</div>` : view==='kanban' ? kanbanHTML(ps) : `<div class="card rv"><div class="row between" style="margin-bottom:8px"><span class="sc" style="margin:0">Phases over time</span><span class="mono">bars are phases · lighter fill is tasks done · click a bar to open</span></div>${ganttHTML(ps)}</div>`}
@@ -8781,7 +9179,8 @@ function openProjectPanel(id){
     <div class="vp-sec"><div class="row between"><span class="sc">Activity, twelve weeks</span><button class="btn sm primary" id="pNod">+ nod</button></div>${nodHeat(p)}</div>
     <div class="vp-sec"><span class="sc">Income stream</span><div class="spec-grid"><div><div class="k">revenue model</div>${ed(`projects.#${p.id}.income.model`,{ph:'freelance / product / subscriptions / patronage'})}</div><div><div class="k">current monthly (¥)</div>${ed(`projects.#${p.id}.income.current`,{ph:'0',cls:'mono',hook:'pnum:'+p.id})}</div><div><div class="k">target monthly (¥)</div>${ed(`projects.#${p.id}.income.target`,{ph:'0',cls:'mono',hook:'pnum:'+p.id})}</div></div>
       <div class="row between" style="margin-top:10px"><span class="k mono">milestones</span><button class="btn sm ghost" id="pMile">+ milestone</button></div>${(p.income.milestones||[]).map((m,i)=>`<div class="evidence-item"><span class="mono">${ed(`projects.#${p.id}.income.milestones.${i}.date`,{ph:'date',cls:'mono'})}</span><span style="flex:1">${ed(`projects.#${p.id}.income.milestones.${i}.text`,{ph:'first user, first dollar, first referral…'})}</span><button class="tbtn" data-mdel="${i}">×</button></div>`).join('')||'<div class="empty">Small wins, recorded. None yet.</div>'}</div>
-    ${boardStrip(boardId('project', p.id), 'Board')}
+    <div class="vp-sec"><div class="row between" style="align-items:center"><span class="sc">What this looks like</span>${imageAddHTML('project', p.id)}</div>
+      ${imageStripHTML('project', p.id) || '<p class="faint" style="font-size:.8rem;margin:6px 0 0">Add an image and this project\'s card is printed on it.</p>'}</div>
     <div class="vp-sec"><span class="sc">Cross-pollination</span><div class="stack" style="gap:6px;font-size:.88rem">
       <div>draws on threads: ${threads.map(t=>`<span class="chip on" style="--c:${t.color}">${esc(t.name)}</span>`).join(' ')||'<span class="faint">—</span>'}</div>
       <div>exercises skills: ${skills.map(s=>`<span class="chip on click" style="--c:var(--ment)" data-go="#/skills/${s.id}">${esc(s.name)}</span>`).join(' ')||'<span class="faint">—</span>'}</div>
@@ -8808,7 +9207,7 @@ function openProjectPanel(id){
   pn.querySelector('#resAdd').onclick = () => { p.resources.push({title:'', url:'', type:'link'}); saveNow(); reopen(); setTimeout(()=>{ const last = $$('#panel .res-row').slice(-1)[0]; const e = last?.querySelector('.ed'); if(e){ last.querySelector('.res-edit').style.display='flex'; beginEdit(e); } },60); };
   pn.querySelectorAll('[data-prestype]').forEach(sel => sel.onchange = () => { p.resources[+sel.dataset.prestype].type = sel.value; saveNow(); reopen(); });
   pn.querySelectorAll('[data-presdel]').forEach(b => b.onclick = () => { const rs = p.resources[+b.dataset.presdel]; requestDelete({label:rs.title||'Resource', remove:()=>spliceOut(p.resources, x=>x===rs), after:reopen}); });
-  bindBoardStrip(pn, () => p.name);
+  bindRecImages(pn, () => openProjectPanel(p.id));
   pn.querySelector('#pNod').onclick = () => openNodModal(p.id, ()=>{ reopenPanel(() => { rerender(); openProjectPanel(id); }); });
   pn.querySelector('#pMile').onclick = () => { p.income.milestones.push({date:today(),text:''}); saveNow(); openProjectPanel(id); };
   pn.querySelectorAll('[data-mdel]').forEach(b => b.onclick = () => { const ms = p.income.milestones[+b.dataset.mdel]; requestDelete({label: ms.text || 'Milestone', node: b.closest('.evidence-item'), remove: () => spliceOut(p.income.milestones, x => x === ms), after: () => openProjectPanel(id)}); });
@@ -8838,7 +9237,12 @@ function openNodModal(projectId, after, existing=null){
 }
 
 /* ---------- Ideation: before anything is a project ---------- */
-const SPARK_KINDS = {spark:['◌','spark','#d4a44c'], question:['?','question','#6b7f8e'], inspiration:['✦','inspiration','#a0727e'], experiment:['⚗','experiment','#7f916a']};
+/* Two kinds, not four. "Inspiration" and "experiment" were shades of the same
+   two things — something that struck you, and something you do not know — and
+   a picker with four options where two would do is a decision tax on the way
+   into a thought. Anything filed under the old kinds becomes a spark. */
+const SPARK_KINDS = {spark:['◌','spark','#d4a44c'], question:['?','question','#6b7f8e']};
+const SPARK_FOLD = {inspiration:'spark', experiment:'spark'};
 function addIdea(kind='spark', text=''){
   const t = (text||'').trim();
   if(t){ S.ideas.unshift({id:uid(), text:t, kind, note:'', createdAt:new Date().toISOString(), tags:parseTags(t)}); saveNow(); sound('success'); rerender(); return; }
@@ -8848,30 +9252,29 @@ function addIdea(kind='spark', text=''){
   m.querySelector('#skGo').onclick = go;
   m.querySelector('#skText').onkeydown = e => { if(e.key === 'Enter') go(); };
 }
-function migrateIdeas(){ (S.ideas||[]).forEach(i => { i.kind = i.kind || 'spark'; i.note = i.note || ''; i.createdAt = i.createdAt || new Date().toISOString(); i.tags = normTags(i.tags||[]); }); }
+function migrateIdeas(){ (S.ideas||[]).forEach(i => {
+  i.kind = SPARK_FOLD[i.kind] || i.kind || 'spark';
+  if(!SPARK_KINDS[i.kind]) i.kind = 'spark';
+  i.note = i.note || ''; i.createdAt = i.createdAt || new Date().toISOString(); i.tags = normTags(i.tags||[]); }); }
 function renderIdeation(root){
   registerPageEntry({pageName:'Projects', addLabel:'New spark', defaultEntryType:'idea', prefilledFields:{}, options:[
     {icon:'◌', label:'Spark', desc:'A half-thought worth keeping.', run:()=>addIdea('spark')},
     {icon:'?', label:'Question', desc:'Something you want to find out.', run:()=>addIdea('question')},
-    {icon:'✦', label:'Inspiration', desc:'Something that lit you up — and where it came from.', run:()=>addIdea('inspiration')},
-    {icon:'⚗', label:'Experiment', desc:'A small test you could actually run.', run:()=>addIdea('experiment')}]});
+    ]});
   const ideas = [...(S.ideas||[])];
   const byKind = k => ideas.filter(i => (i.kind||'spark') === k);
   root.innerHTML = `<div class="page">
-    <div class="mode-switch rv">${[['ideation','◌ Ideation','sparks, inspiration, brainstorming'],['tracking','◉ Tracking','the work already under way']].map(([k,l,d])=>`<button class="${k==='ideation'?'on':''}" data-pmode="${k}" title="${d}">${l}</button>`).join('')}</div>
+    <div class="mode-switch rv">${[['ideation','◌ Ideation','sparks and open questions'],['tracking','◉ Tracking','the work already under way']].map(([k,l,d])=>`<button class="${k==='ideation'?'on':''}" data-pmode="${k}" title="${d}">${l}</button>`).join('')}</div>
     <div class="page-head"><h1>Projects</h1></div>
     <div class="card rv" style="margin-bottom:20px"><div class="row" style="gap:8px;flex-wrap:wrap">
       <input class="inp" id="ideaInp" placeholder="What just occurred to you?" style="flex:1;min-width:240px">
       <select class="sel" id="ideaKind" style="width:auto">${Object.entries(SPARK_KINDS).map(([k,v])=>`<option value="${k}">${v[0]} ${v[1]}</option>`).join('')}</select>
       <button class="btn primary" id="ideaAdd">Catch it</button></div>
       <div class="faint" style="font-size:.78rem;margin-top:8px">Hashtags work here too — #kyoto, #bar, #jazz.</div></div>
-    <div class="grid c2 spark-grid-wrap">${Object.entries(SPARK_KINDS).map(([k,[ico,label,col]]) => { const list = byKind(k); return `<section class="rv"><div class="row between"><span class="sc" style="margin:0;color:${col}">${ico} ${label}s</span><span class="mono">${list.length}</span></div>
+    <div class="spark-cols">${Object.entries(SPARK_KINDS).map(([k,[ico,label,col]]) => { const list = byKind(k); return `<section class="rv spark-col"><div class="row between"><span class="sc" style="margin:0;color:${col}">${ico} ${label}s</span><span class="mono">${list.length}</span></div>
       <div class="card" style="margin-top:8px;border-left:3px solid ${col}">${list.length ? list.map(i=>`<div class="spark" data-spark="${i.id}"><div class="row between"><span style="flex:1">${ed(`ideas.#${i.id}.text`,{ph:'a spark'})}</span><span class="row" style="gap:4px"><button class="tbtn" data-promote="${i.id}" title="make this a project">promote →</button><button class="del-x inline" data-idel="${i.id}" title="delete">×</button></span></div>
         <div class="spark-note">${ed(`ideas.#${i.id}.note`,{multi:true,ph:'why it caught you, or what it might become'})}</div>
         <div class="row between"><span class="mono">${i.createdAt?fmtDate(i.createdAt.slice(0,10),'med'):''}</span><select class="sel spark-kind" data-ikind="${i.id}">${Object.entries(SPARK_KINDS).map(([kk,vv])=>`<option value="${kk}" ${(i.kind||'spark')===kk?'selected':''}>${vv[0]} ${vv[1]}</option>`).join('')}</select></div></div>`).join('') : `<div class="empty">Nothing yet. ${label==='question'?'What do you not know?':'Catch the next one above.'}</div>`}</div></section>`; }).join('')}</div>
-    <section class="section rv" style="max-width:var(--content)"><span class="sc">Brainstorm</span>
-      <p class="muted" style="font-size:.85rem">A scratch page that is never graded. Nothing here is saved as an entry until you promote it.</p>
-      <div class="card">${ed('settings.brainstorm',{multi:true,mdr:true,cls:'prose',ph:'Write badly and quickly. Ten bad ideas beat one careful one at this stage.'})}</div></section>
   </div>`;
   $$('[data-pmode]',root).forEach(b => b.onclick = () => { S.settings.projectMode = b.dataset.pmode; saveNow(); rerender(); });
   const add = () => { const t = $('#ideaInp').value.trim(); if(!t) return; S.ideas.unshift({id:uid(), text:t, kind:$('#ideaKind').value, note:'', createdAt:new Date().toISOString(), tags:parseTags(t)}); saveNow(); sound('success'); rerender(); setTimeout(()=>$('#ideaInp')?.focus(),50); };
@@ -10328,7 +10731,10 @@ function guidedFlow(title, steps, onDone){
   return m;
 }
 const REVIEW_LOG = () => (S.reviews = S.reviews || {});
-function reviewDone(key){ REVIEW_LOG()[key] = today(); saveNow(); sound('success'); rerender(); }
+function reviewDone(key){ REVIEW_LOG()[key] = today();
+  /* record which period this answered, not just that it happened today */
+  if(typeof markCycleAnswered === 'function') markCycleAnswered(key);
+  saveNow(); sound('success'); rerender(); }
 const reviewAge = key => daysSince(REVIEW_LOG()[key]);
 
 /* ---------- 1. the morning practice ---------- */
@@ -10372,6 +10778,10 @@ function flowEvening(){
     {title:'And the set-point — where did it land?', hint:`This morning you were ${c.setpoint ? hicksName(c.setpoint).split(' / ')[0] : 'not on the scale yet'}.`,
      body: () => `<div class="energy-faces">${[1,2,3,4,5].map(n=>`<button class="ef ${r.energy===n?'on':''}" data-fwef="${n}" title="${['drained','low','level','good','full'][n-1]}">${n}</button>`).join('')}</div>`,
      bind: b => b.querySelectorAll('[data-fwef]').forEach(btn => btn.onclick = () => { r.energy = +btn.dataset.fwef; saveNow(); b.querySelectorAll('[data-fwef]').forEach(x => x.classList.toggle('on', x === btn)); })},
+    {title:'What actually got done.', hint:'The list you made this morning, against the day you had.',
+     body: () => tasksReviewHTML(T, T)},
+    {title:'Anything else from today?', hint:'Before the day closes — anything that happened and has not been written down anywhere.',
+     body: () => captureStepHTML(T, T), bind: b => bindCaptureStep(b, T, T)},
     {title:'One line.', hint:'One thing you learned, noticed, or are grateful for. It saves as a reflection.',
      body: () => `<textarea class="ta" id="fwLine" placeholder="Today I noticed…">${esc(r.note || '')}</textarea>`,
      next: b => { const v = b.querySelector('#fwLine').value.trim(); r.note = v; if(!c.sentence && v) c.sentence = v.split('\n')[0].slice(0,160);
@@ -10423,8 +10833,10 @@ function flowWeekly(){
      next: b => { const inp = b.querySelector('#fwLeaf'); if(!inp || !inp.value.trim()) return;
        const v = S.visions.filter(x => !x.archived).map(x => ({x, n:(x.evidence||[]).length})).sort((a,b)=>a.n-b.n)[0];
        if(v){ v.x.evidence = v.x.evidence || []; v.x.evidence.push({date:today(), text:inp.value.trim()}); saveNow(); } }},
-    {title:'One synchronicity, gratitude, or reflection.',
-     body: () => `<div class="row" style="gap:6px;flex-wrap:wrap"><button class="btn sm ghost" data-flowquick="synchronicity">＋ synchronicity</button><button class="btn sm ghost" data-flowquick="gratitude">＋ gratitude</button><button class="btn sm ghost" data-flowquick="reflection">＋ reflection</button></div>`},
+    {title:'The week against the lists you made.', hint:'Seven days of intentions, against seven days of evidence.',
+     body: () => tasksReviewHTML(days[0], days[6])},
+    {title:'Anything else from this week?', hint:'Anything that happened and never got written down. Add it here and the review stays where it is.',
+     body: () => captureStepHTML(days[0], days[6]), bind: b => bindCaptureStep(b, days[0], days[6])},
     {title:"Next week's one intention.",
      body: () => `<textarea class="ta" id="fwWk" placeholder="One sentence. It is the first thing you will see on Monday.">${esc(S.reviews.nextWeekFocus || '')}</textarea>`,
      next: b => { S.reviews.nextWeekFocus = b.querySelector('#fwWk').value.trim(); saveNow(); }},
@@ -10644,20 +11056,62 @@ function cyclePeriodId(c, d){ return `${c.key}:${d}`; }
 function cycleDismissed(c, d){ return !!(S.reviews?.dismissed || {})[cyclePeriodId(c, d)]; }
 function dismissCycle(c, d){ S.reviews = S.reviews || {}; S.reviews.dismissed = S.reviews.dismissed || {};
   S.reviews.dismissed[cyclePeriodId(c, d)] = new Date().toISOString(); saveNow(); }
-function cycleAnswered(c, d){ const last = (S.reviews || {})[c.flow]; return !!last && last.slice(0,10) >= c.from(d); }
 
-/* What is due tonight — plus anything whose cycle ended in the last few days
-   and was never answered, because a review missed is not a review cancelled. */
-function reviewsDue(d = today(), {grace = 3} = {}){
+/* Which period a completed review belongs to is recorded explicitly. Reading it
+   off the flow's "last run" date cannot tell a review of last week done late
+   from a review of this week done on time — and would quietly mark the missed
+   one as answered. The date is still consulted for reviews logged before this
+   was recorded, so old history is not suddenly all overdue. */
+function cycleAnsweredMap(){ S.reviews = S.reviews || {}; return S.reviews.done = S.reviews.done || {}; }
+function cycleAnswered(c, d){
+  if(cycleAnsweredMap()[cyclePeriodId(c, d)]) return true;
+  const last = (S.reviews || {})[c.flow];
+  if(!last) return false;
+  /* the legacy fallback: a run dated inside the period, or within a week after
+     it closed, counts as that period's review */
+  const on = last.slice(0,10);
+  return on >= c.from(d) && on <= addDays(d, 7);
+}
+/* the period a "Begin" click is answering, so its completion lands on the
+   right one even when two of the same kind are open at once */
+let pendingCycle = null;
+function beginCycleReview(c, end){
+  pendingCycle = {key: c.key, end};
+  const fn = (REVIEW_FLOWS.find(f => f[0] === c.flow) || [])[4];
+  if(fn) fn(); else { pendingCycle = null; toast('That review is not wired up.'); }
+}
+function markCycleAnswered(flowKey){
+  const c = CYCLES.find(x => x.flow === flowKey); if(!c) return;
+  const end = pendingCycle && pendingCycle.key === c.key ? pendingCycle.end : null;
+  pendingCycle = null;
+  if(end) cycleAnsweredMap()[cyclePeriodId(c, end)] = new Date().toISOString();
+}
+
+/* How many period boundaries back to look at all. Two for the short cycles, so
+   a weekly missed last Sunday is still on the page this Sunday; one for the
+   long ones, because a quarter you never reviewed is not tonight's business
+   and stacking it here would only make the page easier to ignore. */
+const CYCLE_DEPTH = {daily: 2, weekly: 2, monthly: 2, quarterly: 1, half: 1, annual: 1};
+/* a generous day-window to walk, sized so the depth above is always reachable */
+const CYCLE_SCAN = {daily: 3, weekly: 16, monthly: 70, quarterly: 100, half: 200, annual: 380};
+
+/* Not merely the nearest one: if last week's review was never done and this
+   week's has now come due, both are on the page, oldest first, because the
+   older one is the one at risk of never happening at all. */
+function reviewsDue(d = today()){
   const out = [];
   CYCLES.forEach(c => {
-    for(let back = 0; back <= (c.key === 'daily' ? 0 : grace); back++){
-      const end = addDays(d, -back);
+    const found = []; let boundaries = 0;
+    const depth = CYCLE_DEPTH[c.key] || 1, scan = CYCLE_SCAN[c.key] || 30;
+    for(let i = 0; i <= scan && boundaries < depth; i++){
+      const end = addDays(d, -i);
       if(!c.isEnd(end)) continue;
-      if(cycleAnswered(c, end) || cycleDismissed(c, end)) break;
-      out.push({c, end, from: c.from(end), late: back});
-      break;
+      boundaries++;                       /* a period boundary, answered or not */
+      if(cycleAnswered(c, end) || cycleDismissed(c, end)) continue;
+      found.push({c, end, from: c.from(end), late: i});
     }
+    /* oldest first within a kind, so the overdue one is read before the fresh */
+    found.reverse().forEach(x => out.push(x));
   });
   return out;
 }
@@ -10748,8 +11202,7 @@ function bindReviewsDue(root){
   const find = v => { const [key, end] = v.split(':'); const c = CYCLES.find(x => x.key === key); return c ? {c, end, from: c.from(end)} : null; };
   box.querySelectorAll('[data-cycstart]').forEach(b => b.onclick = () => {
     const d = find(b.dataset.cycstart); if(!d) return;
-    const fn = (REVIEW_FLOWS.find(f => f[0] === d.c.flow) || [])[4];
-    if(fn) fn(); else toast('That review is not wired up.');
+    beginCycleReview(d.c, d.end);
   });
   box.querySelectorAll('[data-cycskip]').forEach(b => b.onclick = () => {
     const d = find(b.dataset.cycskip); if(!d) return;
@@ -10847,6 +11300,71 @@ function mdInline(t){
     if(line.length < 60 && !/[.!?]$/.test(line) && !/^[-*]/.test(line)) return `<h4>${esc(line)}</h4>`;
     return `<p>${esc(line).replace(/\n/g, '<br>')}</p>`;
   }).join('');
+}
+
+
+/* ============================================================
+   THE CAPTURE STEP
+   Every review ends up somewhere near the same thought: "there
+   was something else, and I have not written it down." So one
+   step of the daily and weekly flows is that thought, made
+   actionable — the kinds of entry offered by name, added without
+   leaving the review, and the review still open behind it.
+   ============================================================ */
+const CAPTURE_KINDS = [
+  {t:'reflection',    ic:'✎', label:'A reflection',    d:'Something you noticed, or worked out.'},
+  {t:'gratitude',     ic:'♡', label:'Gratitude',       d:'One thing that was good, named.'},
+  {t:'memory',        ic:'◌', label:'A memory',        d:'Something worth keeping, not just recording.'},
+  {t:'synchronicity', ic:'∞', label:'A synchronicity', d:'A coincidence that did not feel like one.'},
+  {t:'dream',         ic:'☾', label:'A dream',         d:'While it is still legible.'},
+  {t:'question',      ic:'?', label:'An open question',d:'Something you are living with, unanswered.'},
+  {t:'interaction',   ic:'☺', label:'Someone',         d:'A conversation worth logging against a person.'},
+  {t:'nod',           ic:'·', label:'A nod',           d:'A moment of work on a project.'},
+];
+function captureStepHTML(from, to){
+  const n = (typeof tapeItems === 'function' ? tapeItems(from, to) : []).filter(it => it.kind !== 'habit').length;
+  return `<div class="cap-step">
+    <p class="cap-count mono">${n} entr${n === 1 ? 'y' : 'ies'} already written for this stretch.</p>
+    <div class="cap-grid">${CAPTURE_KINDS.map(k => `<button class="choice cap-choice" data-cap="${k.t}">
+      <span class="ico">${k.ic}</span><span><b>${esc(k.label)}</b><div class="d">${esc(k.d)}</div></span></button>`).join('')}</div>
+    <p class="cap-back faint">Anything you add here is kept straight away; this review stays open behind it.</p>
+  </div>`;
+}
+/* The review modal must survive the entry modal opening on top of it, and the
+   count must be right again when you come back — so the step redraws itself in
+   place rather than the flow restarting. */
+function bindCaptureStep(box, from, to){
+  box.querySelectorAll('[data-cap]').forEach(b => b.onclick = () => {
+    const t = b.dataset.cap;
+    const after = () => { const host = box.querySelector('.cap-count');
+      if(host){ const n = (typeof tapeItems === 'function' ? tapeItems(from, to) : []).filter(it => it.kind !== 'habit').length;
+        host.textContent = `${n} entr${n === 1 ? 'y' : 'ies'} already written for this stretch.`;
+        host.classList.add('just-added'); setTimeout(() => host.classList.remove('just-added'), 1200); } };
+    if(t === 'nod' && typeof openNodModal === 'function') openNodModal(null, after);
+    else openEntryModal({type:t, occurredAt:to, after});
+  });
+}
+
+/* what actually got finished in a stretch — the half of a review that the
+   flows never showed, and the first thing anybody wants to know */
+function tasksInPeriod(from, to){
+  const days = []; { let d = from, g = 0; while(d <= to && g++ < 400){ days.push(d); d = addDays(d, 1); } }
+  const rows = days.flatMap(d => (typeof tasksForDay === 'function' ? tasksForDay(d).map(r => ({...r, day:d})) : []));
+  return {rows, done: rows.filter(r => r.done), open: rows.filter(r => !r.done)};
+}
+function tasksReviewHTML(from, to){
+  const {rows, done, open} = tasksInPeriod(from, to);
+  if(!rows.length) return `<div class="empty">Nothing was parked for these days.</div>`;
+  return `<div class="tsk-review">
+    <div class="row between"><span class="mono">${done.length} of ${rows.length} finished</span>
+      <span class="mono">${Math.round(done.length / rows.length * 100)}%</span></div>
+    <div class="bar" style="--c:var(--sage);margin:6px 0 12px"><i style="width:${Math.round(done.length / rows.length * 100)}%"></i></div>
+    ${done.length ? `<div class="sc" style="margin:0 0 4px">Finished</div>
+      <ul class="tsk-list done">${done.slice(0, 12).map(r => `<li>${esc(r.text)}</li>`).join('')}</ul>` : ''}
+    ${open.length ? `<div class="sc" style="margin:10px 0 4px">Still open</div>
+      <ul class="tsk-list">${open.slice(0, 12).map(r => `<li>${esc(r.text)}<span class="mono">${esc(fmtDate(r.day,'short'))}</span></li>`).join('')}</ul>
+      <p class="faint" style="font-size:.78rem;margin-top:6px">Unfinished is information, not a verdict. What kept getting pushed?</p>` : ''}
+  </div>`;
 }
 /* ============================================================
    RHYTHM — one surface for the day.
@@ -10962,6 +11480,11 @@ function dayPlan(d = today()){
   migrateRhythm();
   if(!S.plans[d]) S.plans[d] = {intentions:['','',''], items:[], planned:false, capacity:8};
   const p = S.plans[d]; p.intentions = p.intentions || ['','','']; p.items = p.items || []; p.capacity = p.capacity || 8;
+  /* a plan is more than a list: why the day exists, how it starts, and what
+     is already known to be in its way */
+  if(p.why === undefined) p.why = '';
+  if(p.firstMove === undefined) p.firstMove = '';
+  if(p.risk === undefined) p.risk = '';
   return p;
 }
 function dayReview(d = today()){
@@ -11338,19 +11861,41 @@ function planMyDay(d = today()){
   const habits = S.habits.filter(h => !h.archived && !h.negative && habitDue(h,d));
   const chosen = new Set(overdue.filter(r => r.day === d).map(r => r.id));
   const chosenH = new Set(habits.filter(h => h.at != null).map(h => h.id));
-  const m = openModal('', 'narrow');
+  const yest = addDays(d, -1);
+  const yPlan = dayPlan(yest), yThree = (yPlan.intentions || []).filter(Boolean);
+  const yTasks = typeof tasksInPeriod === 'function' ? tasksInPeriod(yest, yest) : {rows:[],done:[],open:[]};
+  const m = openModal('', 'wide');
+  const STEPS = 5;
   const draw = () => {
     const body = [
+      `<h2>What is ${dayWord} for?</h2><p class="muted" style="font-size:.88rem">One sentence, before the list. A day with three tasks and no reason is still a day you will drift through.</p>
+       <textarea class="ta serif-lg" data-planwhy placeholder="${ahead ? 'Tomorrow is for…' : 'Today is for…'}">${esc(p.why || '')}</textarea>
+       ${yThree.length || yTasks.rows.length ? `<div class="plan-yest">
+         <div class="sc" style="margin:14px 0 6px">Yesterday, for reference</div>
+         ${yThree.length ? `<ol class="today-three">${yThree.map(t => `<li>${esc(t)}</li>`).join('')}</ol>` : ''}
+         ${yTasks.rows.length ? `<p class="mono faint">${yTasks.done.length} of ${yTasks.rows.length} finished${yTasks.open.length ? ` · ${yTasks.open.length} still open` : ''}</p>` : ''}
+         ${yTasks.open.length ? `<ul class="tsk-list">${yTasks.open.slice(0,5).map(r => `<li>${esc(r.text)}</li>`).join('')}</ul>
+           <p class="faint" style="font-size:.78rem">These are still waiting. Pull the ones that matter into ${dayWord} on the next step.</p>` : ''}
+       </div>` : ''}`,
       `<h2>What are ${dayPoss} three?</h2><p class="muted" style="font-size:.88rem">Not a task list — the three things that would make ${dayWord} count. One is allowed to be empty.</p>
        <div class="stack" style="gap:8px">${[0,1,2].map(i=>`<div class="row" style="gap:8px"><span class="in-n">${i+1}</span><input class="inp serif-lg" data-int="${i}" value="${esc(p.intentions[i]||'')}" placeholder="${['the one that matters most','the one you keep postponing','the small one'][i]}"></div>`).join('')}</div>`,
       `<h2>Anything waiting?</h2><p class="muted" style="font-size:.88rem">Tasks from your projects and your own list. Tick what belongs to ${dayWord}; the rest keeps waiting without nagging.</p>
        <div class="stack" style="gap:4px;max-height:44vh;overflow:auto">${pool.length ? pool.map(r=>`<label class="pick-row ${chosen.has(r.id)?'on':''}"><input type="checkbox" data-pick2="${r.id}" ${chosen.has(r.id)?'checked':''}><span><b>${esc(r.text)}</b>${r.where?`<span class="d">${esc(r.where)}</span>`:''}${r.day && r.day < d ?'<span class="d" style="color:#d08080">carried over</span>':''}</span></label>`).join('') : '<div class="empty">Nothing waiting. Add work as you go.</div>'}</div>`,
       `<h2>And the habits?</h2><p class="muted" style="font-size:.88rem">The ones due ${dayWord}. Give one a time if it helps you keep it.</p>
        <div class="stack" style="gap:4px;max-height:44vh;overflow:auto">${habits.length ? habits.map(h=>`<label class="pick-row ${chosenH.has(h.id)?'on':''}"><input type="checkbox" data-pickh="${h.id}" ${chosenH.has(h.id)?'checked':''}><span><b>${h.icon||''} ${esc(h.name)}</b><span class="d">${esc(habitFreqLabel(h))} · ${esc(h.timeOfDay)}</span></span><select class="sel" data-hat="${h.id}" style="width:auto"><option value="">no time</option>${Array.from({length:(HOUR1-HOUR0)*2},(_,i)=>HOUR0+i/2).map(x=>`<option value="${x}" ${+h.at===x?'selected':''}>${fmtHour(x)}</option>`).join('')}</select></label>`).join('') : '<div class="empty">No habits due ${dayWord}.</div>'}</div>`,
+      `<h2>What does ${dayWord} start with?</h2><p class="muted" style="font-size:.88rem">The first move, decided now, so the morning is not a negotiation.</p>
+       <input class="inp serif-lg" data-planfirst value="${esc(p.firstMove || '')}" placeholder="The first thing I do after I wake.">
+       <div class="field" style="margin-top:16px"><label>What might get in the way?</label>
+         <textarea class="ta" data-planrisk placeholder="The meeting that overruns, the phone, the tiredness you already know about.">${esc(p.risk || '')}</textarea></div>
+       ${p.intentions.filter(Boolean).length ? `<div class="plan-recap">
+         <div class="sc" style="margin:16px 0 6px">So ${dayWord} is</div>
+         <ol class="today-three">${p.intentions.filter(Boolean).map(t => `<li>${esc(t)}</li>`).join('')}</ol>
+         ${chosen.size ? `<p class="mono faint">${chosen.size} task${chosen.size===1?'':'s'} pulled in · ${chosenH.size} habit${chosenH.size===1?'':'s'} timed</p>` : ''}
+       </div>` : ''}`,
     ][step];
     m.querySelector('.modal').innerHTML = `<button class="close">×</button>${body}
-      <div class="row between" style="margin-top:18px"><span class="mono">step ${step+1} of 3</span>
-      <span class="row">${step?'<button class="btn sm ghost" id="pmBack">back</button>':''}<button class="btn primary" id="pmNext">${step===2?(ahead?'Ready for '+dayWord:'Start the day'):'Next'}</button></span></div>`;
+      <div class="row between" style="margin-top:18px"><span class="mono">step ${step+1} of ${STEPS}</span>
+      <span class="row">${step?'<button class="btn sm ghost" id="pmBack">back</button>':''}<button class="btn primary" id="pmNext">${step===STEPS-1?(ahead?'Ready for '+dayWord:'Start the day'):'Next'}</button></span></div>`;
     m.querySelector('.close').onclick = () => m.remove();
     m.querySelectorAll('[data-int]').forEach(i => i.onchange = () => p.intentions[+i.dataset.int] = i.value.trim());
     m.querySelectorAll('[data-pick2]').forEach(c => c.onchange = () => { c.checked ? chosen.add(c.dataset.pick2) : chosen.delete(c.dataset.pick2); c.closest('.pick-row').classList.toggle('on', c.checked); });
@@ -11359,7 +11904,10 @@ function planMyDay(d = today()){
     if(m.querySelector('#pmBack')) m.querySelector('#pmBack').onclick = () => { step--; draw(); };
     m.querySelector('#pmNext').onclick = () => {
       if(step === 0) m.querySelectorAll('[data-int]').forEach(i => p.intentions[+i.dataset.int] = i.value.trim());
-      if(step < 2){ step++; draw(); return; }
+      const why = m.querySelector('[data-planwhy]'); if(why) p.why = why.value.trim();
+      const fm = m.querySelector('[data-planfirst]'); if(fm) p.firstMove = fm.value.trim();
+      const rk = m.querySelector('[data-planrisk]'); if(rk) p.risk = rk.value.trim();
+      if(step < STEPS - 1){ step++; draw(); return; }
       pool.forEach(r => { if(chosen.has(r.id)) r.task.day = d; });
       habits.forEach(h => { if(!chosenH.has(h.id)) h.at = null; });
       p.planned = true;
@@ -11970,7 +12518,7 @@ routes.settings = function(root){
   $('#sExport').onclick = () => exportToJSON().then(() => { toast('Backup exported.'); rerender(); });
   $('#sRestoreInfo').onclick = showRecoveryInfo;
   $('#sImport').onclick = () => $('#sFile').click();
-  $('#sFile').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if(!f) return; const r = new FileReader(); r.onload = () => { let obj; try { obj = normaliseBackup(JSON.parse(r.result)); } catch(err){ toast('That file could not be read as JSON.'); return; } const problem = validateBackup(obj); if(problem){ toast(problem, 6000); return; } const counts = ['entries','stages','visions','habits'].map(k => `${obj.data[k].length} ${k}`).join(' · '); confirmDlg(`This will overwrite all current data. Are you sure?<br><span class="mono">backup from ${esc((obj.exportedAt||'').slice(0,10) || 'unknown date')} · ${counts}</span>`, async () => { try { await importBackup(obj); applyTheme(); toast('Backup imported. The house has been refurnished.'); rerender(); } catch(err){ console.error(err); toast('Import failed: ' + err.message, 6000); } }); }; r.readAsText(f); };
+  $('#sFile').onchange = e => { const f = e.target.files[0]; setTimeout(() => { e.target.value = ''; }, 0); if(!f) return; const r = new FileReader(); r.onload = () => { let obj; try { obj = normaliseBackup(JSON.parse(r.result)); } catch(err){ toast('That file could not be read as JSON.'); return; } const problem = validateBackup(obj); if(problem){ toast(problem, 6000); return; } const counts = ['entries','stages','visions','habits'].map(k => `${obj.data[k].length} ${k}`).join(' · '); confirmDlg(`This will overwrite all current data. Are you sure?<br><span class="mono">backup from ${esc((obj.exportedAt||'').slice(0,10) || 'unknown date')} · ${counts}</span>`, async () => { try { await importBackup(obj); applyTheme(); toast('Backup imported. The house has been refurnished.'); rerender(); } catch(err){ console.error(err); toast('Import failed: ' + err.message, 6000); } }); }; r.readAsText(f); };
   $('#sClear').onclick = () => confirmDlg('This erases everything in this browser and re-seeds the placeholder content. Export first if in doubt.', async ()=>{ await resetAll(); applyTheme(); toast('Cleared. Seed content restored.'); navigate('#/today'); rerender(); });
 };
 /* ============================================================
@@ -14497,6 +15045,10 @@ routes.compass = function(root){
 
     ${zoneCardsHTML()}
 
+    ${typeof weekShapeHTML === 'function' ? weekShapeHTML() : ''}
+
+    ${typeof ledgerStanzasHTML === 'function' ? ledgerStanzasHTML({limit:4, title:'The life ledger'}) : ''}
+
     ${typeof positionHTML === 'function' ? positionHTML() : ''}
 
     <section class="section rv" style="margin-top:22px"><div class="row between"><span class="sc" style="margin:0">The house</span><span class="mono">● green tended · ● amber needs you · solid rings daily, dashed seasonal · hover to see what feeds what</span></div>
@@ -14518,6 +15070,8 @@ routes.compass = function(root){
   wrap.querySelectorAll('.hnode').forEach(nd => { nd.onmouseenter = e => { wrap.classList.add('hov'); nd.classList.add('hot'); wrap.querySelectorAll('.hedge').forEach(ed_ => { if(ed_.dataset.a===nd.dataset.node||ed_.dataset.b===nd.dataset.node){ ed_.classList.add('hot'); wrap.querySelector(`[data-node="${ed_.dataset.a}"]`)?.classList.add('hot'); wrap.querySelector(`[data-node="${ed_.dataset.b}"]`)?.classList.add('hot'); } }); const s = st.stat[nd.dataset.node]; showTip(e, `<b class="serif">${esc(NAV_PAGES[nd.dataset.node].label)}</b> · <span class="mono">${s.cadence}</span><br>${esc(s.line)}${s.tip?'<br>'+esc(s.tip):''}<br><span class="mono">click to open</span>`); }; nd.onmousemove = e => showTip(e, tip.innerHTML); nd.onmouseleave = () => { wrap.classList.remove('hov'); wrap.querySelectorAll('.hot').forEach(x=>x.classList.remove('hot')); tip.style.display='none'; }; });
   wrap.querySelectorAll('.hedge').forEach(ed_ => { ed_.onmouseenter = e => { ed_.classList.add('hot'); showTip(e, `<span class="mono">${esc(NAV_PAGES[ed_.dataset.a].label)} ↔ ${esc(NAV_PAGES[ed_.dataset.b].label)}</span><br>${esc(ed_.dataset.label)}`); }; ed_.onmousemove = e => showTip(e, tip.innerHTML); ed_.onmouseleave = () => { ed_.classList.remove('hot'); tip.style.display='none'; }; });
   if(typeof bindPosition === 'function') bindPosition(root, () => rerender());
+  if(typeof bindWeekShape === 'function') bindWeekShape(root, () => rerender());
+  if(typeof bindLedger === 'function') bindLedger(root);
 };
 
 /* ---------- Settings: drag-and-drop zone editor ---------- */

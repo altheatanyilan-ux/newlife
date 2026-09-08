@@ -450,7 +450,9 @@ function renderPersonPage(root, id){
     <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Gifts given &amp; received</span><button class="btn sm ghost" id="ppGiftLog">＋ gift</button></div>
       ${(p.giftsLog||[]).length ? `<div class="stack" style="gap:5px;margin-top:8px">${p.giftsLog.map((g,i)=>`<div class="row between"><span class="status-pill">${g.direction==='given'?'gave':'received'}</span><span style="flex:1">${ed(`people.#${p.id}.giftsLog.${i}.what`,{ph:'what'})}</span><span class="mono">${ed(`people.#${p.id}.giftsLog.${i}.date`,{ph:'date',cls:'mono'})}</span><button class="del-x inline" data-glogdel="${i}">×</button></div>`).join('')}</div>` : '<div class="empty">Nothing logged.</div>'}</section>
 
-    <section class="section rv">${boardHTML(boardId('person', p.id), {title:'Their board', hint:'A face, a place, their handwriting.', compact:true})}</section>
+    <section class="section rv"><div class="row between" style="align-items:center"><span class="sc" style="margin:0">Pictures of them</span>${imageAddHTML('person', p.id)}</div>
+      <p class="muted" style="font-size:.85rem">A face, a place, their handwriting. The first becomes the ground their card is printed on.</p>
+      ${imageStripHTML('person', p.id)}</section>
 
     <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Interactions</span><span class="mono">${ints.length}</span></div>
       ${ints.length ? `<div class="stack" style="gap:2px;margin-top:10px">${ints.map(i => { const t = INTERACTION_TYPES[i.type] || INTERACTION_TYPES.other; const en = ENERGY_READINGS[i.energy];
@@ -474,7 +476,7 @@ function renderPersonPage(root, id){
   if($('#ppRemind')) $('#ppRemind').onclick = () => { S.tasks.push(newTask(`Reach out to ${p.name}`, today())); saveNow(); sound('success'); toast('Added to today\'s plan.'); };
   $('#ppWrite').onclick = () => openEntryModal({type:'reflection', allowedTypes:['reflection','memory','gratitude','letter'], heading:`About ${p.name}`, links:{people:[p.id]}, openLinks:true});
   $('#ppPhoto').onclick = () => $('#ppFile').click();
-  $('#ppFile').onchange = e => { const f = e.target.files; e.target.value = ''; if(f?.length) readImages(f, src => { p.photo = src; saveNow(); rerender(); }); };
+  $('#ppFile').onchange = e => { const f = Array.from(e.target.files || []); e.target.value = ''; if(f.length) readImages(f, photo => { p.photo = photo.src; saveNow(); rerender(); }); };
   $('#ppDate').onclick = () => { p.details.importantDates = p.details.importantDates || []; p.details.importantDates.push({label:'', date:''}); saveNow(); rerender(); };
   $$('[data-dtdel]',root).forEach(b => b.onclick = () => { const i = +b.dataset.dtdel; requestDelete({label:p.details.importantDates[i].label||'this date', node:b.closest('.row'), remove:()=>{ const g = p.details.importantDates.splice(i,1)[0]; return () => p.details.importantDates.splice(i,0,g); }}); });
   const tg = $('#ppTags'); tg.onchange = () => { p.tags = normTags(tg.value.split(/[\s,]+/)); saveNow(); };
@@ -496,7 +498,7 @@ function renderPersonPage(root, id){
     const back = spliceOut(S.people, x => x.id === p.id);
     return () => { back(); S.interactions.push(...ints2); touched.forEach(e => e.links.people.push(p.id)); };
   }, after: () => navigate('#/people')});
-  bindBoard(root);
+  bindRecImages(root);
 }
 hooks.pint = (id, oldV, v) => { const p = byId(S.people, id); if(p){ p.details.interests = v.split(',').map(x=>x.trim()).filter(Boolean); saveNow(); } };
 function openPersonModal(ex){

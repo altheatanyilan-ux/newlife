@@ -58,17 +58,22 @@ const { chromium } = require('playwright');
   await page.waitForTimeout(700);
   console.log('history chart lines:', await page.evaluate(() => document.querySelectorAll('.needs-hist-svg polyline').length));
 
-  // the ledger on Today, limited to 4
-  await page.evaluate(() => { location.hash='#/today'; });
-  await page.waitForTimeout(1000);
-  console.log('today ledger:', await page.evaluate(() => ({
+  // the ledger reads the whole instrument, so it lives on the Compass now
+  await page.evaluate(() => { location.hash='#/compass'; });
+  await page.waitForTimeout(1100);
+  console.log('compass ledger:', await page.evaluate(() => ({
     stanzas: document.querySelectorAll('#lifeLedger .lg-stanza').length,
     readAll: !!document.querySelector('#ledgerAll'),
-    jump: [...document.querySelectorAll('[data-jump]')].map(b=>b.textContent).includes('ledger'),
+    weekShape: !!document.querySelector('.week-shape'),
     oldCards: document.querySelectorAll('.mrow').length })));
-  await page.evaluate(() => document.querySelector('#ledgerAll').click());
+  await page.evaluate(() => document.querySelector('#ledgerAll')?.click());
   await page.waitForTimeout(700);
   console.log('after expand:', await page.evaluate(() => document.querySelectorAll('#lifeLedger .lg-stanza').length));
+
+  // and it is no longer on Today
+  await page.evaluate(() => { location.hash='#/today'; });
+  await page.waitForTimeout(900);
+  console.log('today has no ledger:', await page.evaluate(() => !document.querySelector('#lifeLedger')));
 
   // maslow-aware gentle prompt is in the pool
   console.log('maslow prompt reachable:', await page.evaluate(() => {

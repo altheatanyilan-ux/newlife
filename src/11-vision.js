@@ -56,11 +56,7 @@ function treeSVG(W, H){
   });
   return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMax meet" style="filter:hue-rotate(${season}deg)">${g}</svg>`;
 }
-let swayRAF = null;
-/* The sway must be stoppable from outside: a navigation that leaves the tree
-   running mid-flight stalls the view transition, and the page never changes. */
-function stopSway(){ cancelAnimationFrame(swayRAF); swayRAF = 0; }
-function startSway(root){ cancelAnimationFrame(swayRAF); if(reduced()) return; const leaves = $$('.leaf', root); const t0 = performance.now(); const tick = t => { if(!document.contains(root)){ cancelAnimationFrame(swayRAF); return; } const s = (t-t0)/1000; leaves.forEach(l => { const ph = +l.dataset.phase, per = +l.dataset.period; l.style.transform = `rotate(${(Math.sin(s*2*Math.PI/per + ph)*3).toFixed(2)}deg)`; }); swayRAF = requestAnimationFrame(tick); }; swayRAF = requestAnimationFrame(tick); }
+/* sway, growth and motes are shared with the skill tree — see 04-foliage.js */
 routes.vision = function(root, params){
   const eras = erasList(); const activeEra = eras.some(e=>e.id===S._activeEra) ? S._activeEra : (eras[0]?.id || null);
   registerPageEntry({pageName:'Vision', addLabel:'Add a goal or life event', defaultEntryType:'progress', prefilledFields:{era:activeEra}, options:[
@@ -83,7 +79,8 @@ routes.vision = function(root, params){
   if(view === 'tree') drawTree();
   function drawTree(){ const wrap = $('#treeWrap'); if(!wrap) return; const W = Math.max(wrap.clientWidth, 600), H = wrap.clientHeight; wrap.querySelector('svg')?.remove(); wrap.insertAdjacentHTML('afterbegin', treeSVG(W,H)); const svg = wrap.querySelector('svg');
     svg.querySelectorAll('.branch').forEach(b => { b.onclick = () => openVisionPanel(b.dataset.vision); b.onmouseenter = () => { const [sx,sy] = b.dataset.start.split(',').map(Number); const [tx,ty] = b.dataset.trunk.split(',').map(Number); const tr = $('#trace'); tr.setAttribute('d', `M${sx},${sy} L${tx},${sy} L${tx},${ty}`); tr.style.opacity = '.6'; sound('leaf'); }; b.onmouseleave = () => { $('#trace').style.opacity = '0'; }; });
-    startSway(svg); }
+    growTree(svg); startSway(svg);
+    if(!wrap.querySelector('.tree-motes')) wrap.insertAdjacentHTML('beforeend', motesHTML(9, 'vision-motes')); }
   window.addEventListener('resize', debounce(()=>{ if(currentRoute==='vision' && S._visionView === 'tree') drawTree(); }, 250), {once:true});
   bindLifeline(root, drawTree);
   if(!S.settings.chapterNamed) setTimeout(promptChapterName, 400);
@@ -144,7 +141,8 @@ function openVisionPanel(id){
     <div class="vp-sec"><span class="sc">Self-image required (Maltz)</span><p class="faint" style="font-size:.8rem;margin:0 0 6px">What kind of person would I need to be for this to feel natural?</p>${ed(`visions.#${v.id}.selfImage`,{multi:true,ph:'Someone who…'})}</div>
     <div class="vp-sec"><span class="sc">Linked values</span><div class="deps">${S.valueOrder.map(id=>{ const val = byId(S.values,id); return `<span class="chip click ${v.values.includes(id)?'on':''}" style="--c:${val.color}" data-vval="${id}">${esc(val.name)}</span>`; }).join('')}</div></div>
     <div class="vp-sec"><span class="sc">The 80-year-old check</span><p class="faint" style="font-size:.8rem;margin:0 0 6px">Why does this matter when I look back from the end?</p>${ed(`visions.#${v.id}.obituary`,{multi:true,ph:'If the answer is thin, the vision may be vanity.'})}</div>
-    ${boardStrip(boardId('vision', id), 'Board')}
+    <div class="vp-sec"><div class="row between" style="align-items:center"><span class="sc">What this looks like</span>${imageAddHTML('vision', id)}</div>
+      ${imageStripHTML('vision', id) || '<p class="faint" style="font-size:.8rem;margin:6px 0 0">The written half is above. This is the half you can only feel — add an image and the passage is printed on it.</p>'}</div>
     <div class="vp-sec"><div class="row between"><span class="sc">Manifestation evidence log</span><button class="btn sm ghost" id="addEv">+ evidence</button></div><p class="faint" style="font-size:.8rem;margin:0 0 6px">Coincidences, doors, people who appeared. Evidence of alignment arrives before full manifestation.</p>${v.evidence.map((e,i)=>`<div class="evidence-item"><span class="mono">${ed(`visions.#${v.id}.evidence.${i}.date`,{ph:'date',cls:'mono'})}</span><span style="flex:1">${ed(`visions.#${v.id}.evidence.${i}.text`,{multi:true})}</span><button class="tbtn" data-evdel="${i}">×</button></div>`).join('')||'<div class="empty">Nothing logged yet. Watch for it.</div>'}</div>
     ${(typeof mediaEntries==='function' ? mediaEntries().filter(m=>(m.links.visions||[]).includes(v.id)) : []).length ? `<div class="vp-sec"><span class="sc">Media feeding this vision</span><div class="row" style="gap:8px;flex-wrap:wrap">${mediaEntries().filter(m=>(m.links.visions||[]).includes(v.id)).map(m=>{ const mx=mediaX(m); const k=MEDIA_KINDS[mx.kind]||MEDIA_KINDS.book; return `<span class="chip on click" style="--c:${k[2]}" data-go="#/commonplace/${m.id}">${k[0]} ${esc(m.title)}</span>`; }).join('')}</div></div>` : ''}
     <div class="vp-sec"><div class="row between"><span class="sc">Leaves — progress entries (${leaves.length})</span><button class="btn sm" id="addLeaf">+ water this vision</button></div>${sortEntries(leaves).map(e=>entryCard(e)).join('')||'<div class="empty">No leaves yet. Every tagged entry grows one.</div>'}</div>
@@ -155,7 +153,7 @@ function openVisionPanel(id){
   bindVmToggle(p, 'vision');
   p.querySelectorAll('[data-conf]').forEach(b => b.onclick = () => { const was = v.confidence; v.confidence = b.dataset.conf; if(v.confidence==='lived'){ v.status='completed'; v.completedAt = v.completedAt || today(); v.progress = 100; } else if(was==='lived'){ v.status='pending'; } saveNow(); if(v.confidence==='lived' && was!=='lived') fruitCeremony(v); else { reopenPanel(() => { rerender(); openVisionPanel(v.id); }); } });
   p.querySelectorAll('[data-feel]').forEach(b => b.onclick = () => { v.feeling = +b.dataset.feel; saveNow(); reopenPanel(() => { rerender(); openVisionPanel(v.id); }); });
-  bindBoardStrip(document.querySelector('#panel'), () => byId(S.visions,id)?.name || 'Vision');
+  bindRecImages(document.querySelector('#panel'), () => openVisionPanel(id));
   p.querySelector('#addRes').onclick = () => { v.resistance.push({text:'',threadId:null}); saveNow(); openVisionPanel(v.id); };
   p.querySelectorAll('[data-resthread]').forEach(s => s.onchange = () => { v.resistance[+s.dataset.resthread].threadId = s.value||null; saveNow(); });
   p.querySelectorAll('[data-resdel]').forEach(b => b.onclick = () => { const r = v.resistance[+b.dataset.resdel]; requestDelete({label: r.text || 'Resistance', node: b.closest('.evidence-item'), remove: () => spliceOut(v.resistance, x => x === r), after: () => openVisionPanel(v.id)}); });
@@ -273,7 +271,7 @@ function llProse(v){
    passage breaks out of the manuscript column, the images become the ground it
    is printed on, and the text sits on a scrim so it stays readable. Without
    images nothing changes — the column is the default, not the exception. */
-function visionImages(v){ return getBoard(boardId('vision', v.id)).items.filter(it => it.kind === 'image' && it.src); }
+function visionImages(v){ return recImages(v).filter(it => it.src); }
 function llPlateHTML(v){
   const imgs = visionImages(v); if(!imgs.length) return '';
   const rest = imgs.slice(1, 5);
@@ -332,9 +330,9 @@ function llPassageHTML(v, era){
     </div>
 
     <div class="ll-plate-tools">
-      <button class="ll-link" data-llimgadd="${v.id}">${imgs.length ? `images · ${imgs.length}` : '＋ image'}</button>
-      ${imgs.length ? `<button class="ll-link quiet" data-llimgman="${v.id}">arrange</button>` : ''}
-      <input type="file" accept="image/*" multiple hidden data-llimgfile="${v.id}">
+      <button class="ll-link" data-imgadd="vision:${v.id}">${imgs.length ? `images · ${imgs.length}` : '＋ image'}</button>
+      ${imgs.length ? `<button class="ll-link quiet" data-imgman="vision:${v.id}">arrange</button>` : ''}
+      <input type="file" accept="image/*" multiple hidden data-imgfile="vision:${v.id}">
     </div>
     </div>
   </article>`;
@@ -466,17 +464,7 @@ function bindLifeline(root, drawTree){
   line.querySelectorAll('[data-llfull]').forEach(b => b.onclick = () => openVisionPanel(b.dataset.llfull));
 
   /* imagery belongs to the vision, not to a shared board at the top of the page */
-  line.querySelectorAll('[data-llimgadd]').forEach(b => b.onclick = () =>
-    line.querySelector(`[data-llimgfile="${CSS.escape(b.dataset.llimgadd)}"]`)?.click());
-  line.querySelectorAll('[data-llimgfile]').forEach(inp => inp.onchange = ev => {
-    const key = boardId('vision', inp.dataset.llimgfile), files = ev.target.files; ev.target.value = '';
-    if(!files?.length) return;
-    readImages(files, src => { getBoard(key).items.push({id:uid(), kind:'image', src, caption:'', span:'m'}); saveNow(); sound('success'); redraw(); });
-  });
-  line.querySelectorAll('[data-llimgman]').forEach(b => b.onclick = () => {
-    const v = byId(S.visions, b.dataset.llimgman); if(!v) return;
-    openBoardPanel(boardId('vision', v.id), v.name);
-  });
+  bindRecImages(line, redraw);
   line.querySelectorAll('[data-llimglb]').forEach(img => img.onclick = () => lightbox(img.dataset.llimglb, img.alt));
 
   /* chapter tools, which only Workshop View shows */

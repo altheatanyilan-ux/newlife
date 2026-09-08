@@ -183,7 +183,9 @@ routes.value = function(root, params){
     <div class="card rv">${sparkline(snaps.map(s=>s.ratings[v.id]??null),{h:60,min:0,max:100,color:v.color,dots:true,labels:snaps.map(s=>`${fmtDate(s.date,'med')}: ${s.ratings[v.id]??'–'}${s.note?' — '+s.note:''}`)})}<div class="row between mono"><span>${snaps[0]?fmtDate(snaps[0].date,'med'):''}</span><span>congruence over a lifetime</span><span>now</span></div></div>
     ${(() => { const n = typeof valueStageNote === 'function' ? valueStageNote(v) : ''; return n ? `<p class="val-stage-note">${esc(n)} <a href="#/spiral">the spiral →</a></p>` : ''; })()}
     <section class="section rv" id="pracBox">${practicesHTML(v)}</section>
-    <section class="section rv">${boardHTML(boardId('value', v.id), {title:'Board', hint:'What this value looks like, before you can argue for it.', compact:true})}</section>
+    <section class="section rv"><div class="row between" style="align-items:center"><span class="sc" style="margin:0">What this looks like</span>${imageAddHTML('value', v.id)}</div>
+      <p class="muted" style="font-size:.85rem">Before you can argue for it. The first image becomes the ground this value's card is printed on.</p>
+      ${imageStripHTML('value', v.id)}</section>
     ${F('embody','How would I know if I embody this value?','Observable, behavioural indicators. Not aspirations — evidence.')}
     ${F('hundred','What takes me to 100%?','What does full congruence actually look like, day to day?')}
     ${F('motivation','How do I increase my positive motivation for this value?','Strategies, reminders, environments, people.')}
@@ -200,7 +202,7 @@ routes.value = function(root, params){
   root.querySelectorAll('[data-vf]').forEach(b => b.onclick = () => { const k = b.dataset.vf; const latest = (v.fields[k]||[]).slice(-1)[0]; const m = openModal(`<h2>A new version</h2><textarea class="ta" id="vfText" style="min-height:160px">${esc(latest?.text||'')}</textarea><p class="faint" style="font-size:.78rem">The previous version is kept. Growth in self-understanding stays visible.</p><div class="row" style="justify-content:flex-end"><button class="btn primary" id="vfSave">Keep</button></div>`); m.querySelector('#vfSave').onclick = () => { const t = m.querySelector('#vfText').value.trim(); if(!t) return; v.fields[k] = v.fields[k]||[]; v.fields[k].push({date:today(),text:t}); saveNow(); m.remove(); rerender(); sound('save'); }; });
   root.querySelectorAll('[data-pol]').forEach(b => b.onclick = () => openEntryModal({type:'reflection', links:{values:[{id:v.id,pol:b.dataset.pol}]}}));
   root.querySelectorAll('[data-valvision]').forEach(c => c.onclick = () => { const x = byId(S.visions, c.dataset.valvision); x.values = x.values.includes(v.id) ? x.values.filter(y=>y!==v.id) : [...x.values, v.id]; saveNow(); c.classList.toggle('on'); });
-  bindPractices(root); bindBoard(root);
+  bindPractices(root); bindRecImages(root);
 };
 
 /* ============================================================
