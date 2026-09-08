@@ -42,10 +42,18 @@ routes.values = function(root){
 
     <!-- 4. the one picture: the shape, over time -->
     ${snaps.length ? `<section class="section rv"><div class="row between"><span class="sc" style="margin:0">The shape of a life</span><span class="mono">drag the slider to walk back through your readings</span></div>
-      <div class="grid c2" style="align-items:start;margin-top:12px">
-        <div class="card"><div id="radarBox">${radar(axes,[{vals:S.valueOrder.map(id=>latest?.ratings[id]??0),color:'var(--page-accent)'}],{size:340})}</div>
-          <div class="time-slider"><input type="range" class="slider" min="0" max="${snaps.length-1}" value="${snaps.length-1}" id="timeSlider"><div class="lbl"><span>${snaps[0]?fmtDate(snaps[0].date,'med'):''}</span><span id="tsLbl">${latest?fmtDate(latest.date,'med'):''}</span><span>now</span></div><div class="quote" id="tsNote" style="font-size:.9rem;margin-top:6px;min-height:1.5em">${esc(latest?.note||'')}</div></div></div>
-        <div><span class="sc">Readings</span><div id="snapHistory" style="margin-top:10px"><div class="empty">Loading…</div></div></div>
+      <div class="shape-grid">
+        <div class="card shape-card"><div id="radarBox">${radar(axes,[{vals:S.valueOrder.map(id=>latest?.ratings[id]??0),color:'var(--page-accent)'}],{size:340})}</div>
+          <div class="time-slider">
+            <input type="range" class="slider" min="0" max="${snaps.length-1}" value="${snaps.length-1}" id="timeSlider">
+            <!-- the moving label rides the handle; the two fixed ends are the
+                 first and last readings. A separate "now" beside a date that
+                 already is now read as two different moments. -->
+            <div class="ts-track"><span class="ts-float mono" id="tsLbl">${latest?fmtDate(latest.date,'med'):''}</span></div>
+            <div class="lbl"><span>${snaps[0]?fmtDate(snaps[0].date,'med'):''}</span><span>${latest?fmtDate(latest.date,'med'):''}</span></div>
+            <div class="quote" id="tsNote" style="font-size:.9rem;margin-top:6px;min-height:1.5em">${esc(latest?.note||'')}</div>
+          </div></div>
+        <div class="card shape-card"><span class="sc">Readings</span><div id="snapHistory" class="shape-scroll"><div class="empty">Loading…</div></div></div>
       </div></section>` : ''}
 
     ` : `<div class="empty rv">The compass has no points yet. Add the handful of words you would want said about how you lived — five is plenty to start.</div>`}
@@ -57,7 +65,12 @@ routes.values = function(root){
   $('#takeSnap').onclick = () => openSnapshotModal(() => rerender());
   const ts = $('#timeSlider');
   if(ts){ renderSnapshotHistory($('#snapHistory'));
-    ts.oninput = () => { const s = snaps[+ts.value]; $('#radarBox').innerHTML = radar(axes,[{vals:S.valueOrder.map(id=>s.ratings[id]??0),color:s.retro?(byId(S.stages,s.stageId)?.hue||'var(--page-accent)'):'var(--page-accent)'}],{size:340}); $('#tsLbl').textContent = fmtDate(s.date,'med'); $('#tsNote').textContent = s.note||''; };
+    /* put the floating label where the handle actually is, allowing for the
+       handle's own width so it does not drift past the ends of the track */
+    const placeTs = () => { const max = +ts.max || 1; const f = (+ts.value) / max;
+      $('#tsLbl').style.left = `calc(${(f * 100).toFixed(2)}% + ${(8 - f * 16).toFixed(1)}px)`; };
+    placeTs();
+    ts.oninput = () => { const s = snaps[+ts.value]; $('#radarBox').innerHTML = radar(axes,[{vals:S.valueOrder.map(id=>s.ratings[id]??0),color:s.retro?(byId(S.stages,s.stageId)?.hue||'var(--page-accent)'):'var(--page-accent)'}],{size:340}); $('#tsLbl').textContent = fmtDate(s.date,'med'); $('#tsNote').textContent = s.note||''; placeTs(); };
   }
 };
 /* ---------- the reading: what the numbers mean, in sentences ---------- */
@@ -135,16 +148,59 @@ routes.value = function(root, params){
   registerPageEntry({pageName:'Values', addLabel:`Evidence for ${v.name}`, defaultEntryType:'reflection', prefilledFields:{links:{values:[{id:v.id,pol:'+'}]}}, options:[{label:'Evidence', run:(pre)=>openEntryModal({type:'reflection', allowedTypes:['reflection','memory','gratitude'], heading:`Evidence for ${v.name}`, links:pre.links, openLinks:true})}]});
   const snaps = allSnapshotsWithRetro(); const es = sortEntries(S.entries.filter(e=>(e.links?.values||[]).some(x=>x.id===v.id)));
   const rank = S.valueOrder.indexOf(v.id)+1; const cur = valueCurrent(v.id);
-  const F = (k, q, hint) => { const hist = v.fields[k]||[]; const latest = hist.slice(-1)[0]; return `<div class="value-field rv"><div class="q">${q}</div><div class="faint" style="font-size:.8rem;margin-bottom:8px">${hint}</div><div class="prose serif-lg">${latest?md(latest.text):'<span class="empty">Not yet written.</span>'}</div><div class="row" style="margin-top:8px"><button class="btn sm ghost" data-vf="${k}">${latest?'write a new version':'write'}</button>${hist.length>1?`<details style="border:none;flex:1"><summary><span class="mono">${hist.length-1} earlier versions</span></summary><div class="body versions">${hist.slice(0,-1).map((h,i)=>`<div class="v"><div class="mono">${fmtDate(h.date,'med')}</div>${md(h.text)}<button class="del-x" data-vfdel="${k}:${i}" title="delete this version">×</button></div>`).reverse().join('')}</div></details>`:latest?`<span class="mono">${fmtDate(latest.date,'med')}</span>`:''}</div></div>`; };
-  root.innerHTML = `<div class="page narrow">
-    <div class="page-head" style="margin-top:20px"><div class="mono">value · ranked #${rank} of ${S.valueOrder.length}</div><h1 style="color:${v.color}">${ed(`values.#${v.id}.name`)}</h1><div class="row" style="margin-top:12px"><div class="bar" style="flex:1;--c:${v.color}"><i style="width:${cur}%"></i></div><span class="num" data-tween="${cur}" data-suffix="%">0</span></div></div>
-    <div class="card rv">${sparkline(snaps.map(s=>s.ratings[v.id]??null),{h:60,min:0,max:100,color:v.color,dots:true,labels:snaps.map(s=>`${fmtDate(s.date,'med')}: ${s.ratings[v.id]??'–'}${s.note?' — '+s.note:''}`)})}<div class="row between mono"><span>${snaps[0]?fmtDate(snaps[0].date,'med'):''}</span><span>congruence over a lifetime</span><span>now</span></div></div>
-    ${F('embody','How would I know if I embody this value?','Observable, behavioural indicators. Not aspirations — evidence.')}
-    ${F('hundred','What takes me to 100%?','What does full congruence actually look like, day to day?')}
-    ${F('motivation','How do I increase my positive motivation for this value?','Strategies, reminders, environments, people.')}
-    ${F('counterfeit','What counterfeits this value?','The cheap imitation that feels like the value but isn\'t. This field prevents self-deception.')}
+  /* The four questions are four different kinds of question, so they are four
+     different things to look at rather than four paragraphs in a document:
+     each carries its own numeral, its own character, and its own tint struck
+     off the value's colour. The last one is the negative — what impersonates
+     the value — so it is inverted, and reads as a warning rather than a field. */
+  const FACETS = {
+    embody:      {n:'i',   glyph:'證', tint:0,   kind:'proof',  lede:'the test'},
+    hundred:     {n:'ii',  glyph:'極', tint:26,  kind:'summit', lede:'the ceiling'},
+    motivation:  {n:'iii', glyph:'引', tint:-28, kind:'fuel',   lede:'the pull'},
+    counterfeit: {n:'iv',  glyph:'偽', tint:0,   kind:'warn',   lede:'the forgery'},
+  };
+  const F = (k, q, hint) => {
+    const f = FACETS[k]; const hist = v.fields[k]||[]; const latest = hist.slice(-1)[0];
+    return `<article class="vfacet rv ${f.kind}" data-facet="${k}"
+        style="--c:${v.color};--tilt:${f.tint}">
+      <span class="vf-glyph" aria-hidden="true">${f.glyph}</span>
+      <header class="vf-head"><span class="vf-n">${f.n}</span><span class="vf-lede">${f.lede}</span></header>
+      <h3 class="vf-q">${q}</h3>
+      <p class="vf-hint">${hint}</p>
+      <div class="vf-prose">${latest?md(latest.text):'<span class="vf-empty">Not yet written.</span>'}</div>
+      <footer class="vf-foot">
+        <button class="btn sm ghost" data-vf="${k}">${latest?'write a new version':'write'}</button>
+        ${hist.length>1
+          ? `<details class="vf-vers"><summary><span class="mono">${hist.length-1} earlier version${hist.length>2?'s':''}</span></summary><div class="body versions">${hist.slice(0,-1).map((h,i)=>`<div class="v"><div class="mono">${fmtDate(h.date,'med')}</div>${md(h.text)}<button class="del-x" data-vfdel="${k}:${i}" title="delete this version">×</button></div>`).reverse().join('')}</div></details>`
+          : latest ? `<span class="mono vf-when">${fmtDate(latest.date,'med')}</span>` : ''}
+      </footer>
+    </article>`; };
+  /* the lifetime line belongs to the banner, not to a card beneath it: it is
+     the same fact as the name and the number, said as a shape */
+  const lifeline = snaps.length ? `<div class="vhead-chart">
+      ${sparkline(snaps.map(s=>s.ratings[v.id]??null),{h:56,min:0,max:100,color:v.color,dots:true,labels:snaps.map(s=>`${fmtDate(s.date,'med')}: ${s.ratings[v.id]??'–'}${s.note?' — '+s.note:''}`)})}
+      <div class="row between mono vhead-scale"><span>${snaps[0]?fmtDate(snaps[0].date,'med'):''}</span><span>congruence over a lifetime</span><span>${snaps.slice(-1)[0]?fmtDate(snaps.slice(-1)[0].date,'med'):''}</span></div>
+    </div>` : '';
+  root.innerHTML = `<div class="page narrow value-page" style="--val:${v.color}">
+    <div class="page-head vhead" style="--page-accent:${v.color}">
+      <div class="mono">value · ranked #${rank} of ${S.valueOrder.length}</div>
+      <h1 style="color:${v.color}">${ed(`values.#${v.id}.name`)}</h1>
+      <div class="row" style="margin-top:12px"><div class="bar" style="flex:1;--c:${v.color}"><i style="width:${cur}%"></i></div><span class="num" data-tween="${cur}" data-suffix="%">0</span></div>
+      ${lifeline}
+    </div>
+
+    <!-- the living record first: what actually happened, before what you said -->
     <section class="section rv"><div class="row between"><span class="sc">Evidence feed</span><span class="row"><button class="btn sm" data-pol="+">+ embodied</button><button class="btn sm" data-pol="-">− betrayed</button></span></div>
-      ${es.map(e=>{ const pol = e.links.values.find(x=>x.id===v.id)?.pol||'+'; return `<div style="display:grid;grid-template-columns:28px 1fr;gap:8px"><span class="serif" style="font-size:1.5rem;color:${pol==='+'?'var(--sage)':'var(--rose)'};padding-top:14px">${pol==='+'?'+':'−'}</span>${entryCard(e)}</div>`; }).join('')||'<div class="empty">No entries tagged to this value yet.</div>'}</section>
+      ${es.map(e=>{ const pol = e.links.values.find(x=>x.id===v.id)?.pol||'+'; return `<div class="vev ${pol==='+'?'pos':'neg'}"><span class="vev-mark">${pol==='+'?'+':'−'}</span>${entryCard(e)}</div>`; }).join('')||'<div class="empty">No entries tagged to this value yet.</div>'}</section>
+
+    <section class="section rv"><span class="sc">Four questions</span>
+      <div class="vfacets">
+        ${F('embody','How would I know if I embody this value?','Observable, behavioural indicators. Not aspirations — evidence.')}
+        ${F('hundred','What takes me to 100%?','What does full congruence actually look like, day to day?')}
+        ${F('motivation','How do I increase my positive motivation for this value?','Strategies, reminders, environments, people.')}
+        ${F('counterfeit','What counterfeits this value?','The cheap imitation that feels like the value but isn\'t. This field prevents self-deception.')}
+      </div>
+    </section>
     ${moreSection(`<div class="row" style="gap:20px"><div class="field"><label>Colour</label><input type="color" id="valColor" value="${v.color}" style="width:40px;height:28px;border:none;background:none;padding:0;cursor:pointer"></div></div>
       <div class="danger-zone"><span>A compass point, not a tag. Deleting it unlinks entries and habits from it.</span><button class="btn sm ghost danger" id="delValue">Delete this value</button></div>`, 'More about this value')}
   </div>`;

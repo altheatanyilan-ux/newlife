@@ -190,11 +190,17 @@ function entryCard(e, {clamp:cl=true, tools=true}={}){
     <div class="body muted">Sealed until ${esc(fmtDate(e.extra.sealedUntil,'med'))} — ${daysBetween(today(), e.extra.sealedUntil)} days from now. Whatever is in here was written for someone you have not become yet.</div>
   </article>`;
   const q = e.type==='quote'; const xc = e.extra||{};
-  return `<article class="entry rv" data-entry="${e.id}">
+  /* an entry carrying pictures is printed on the first of them — the card in
+     the list already looks like the thing, before anything is opened. Any
+     others stay as thumbnails underneath. */
+  const pics = Array.isArray(e.media) ? e.media : [];
+  const rest = pics.slice(1);
+  return `<article class="entry rv ${pics.length?'plated':''}" data-entry="${e.id}">
+    ${pics.length ? imageBackdropHTML(e) : ''}
     <div class="meta"><span class="mono">${typeIcon(e.type)} ${typeName(e.type)}</span><span class="mono">${esc(fmtDate(e.occurredAt,'med'))}</span>${e.confidence?`<span class="status-pill">${esc(e.confidence)}</span>`:''}${tools?`<span class="tools"><button class="tbtn" data-edit="${e.id}">edit</button><button class="snip-btn" data-snip="${e.id}" title="save to the Writing Studio">✂</button></span>`:''}</div>${tools?`<button class="del-x" data-del="${e.id}" title="delete" aria-label="delete entry">×</button>`:''}
     ${e.title?`<div class="title">${esc(e.title)}</div>`:''}
     ${e.body?`<div class="body ${cl?'clamp':''} ${q?'quote':''}">${q?'“'+esc(e.body)+'”':md(e.body)}</div>`:''}
-    ${e.media?.length?`<div class="thumbs">${e.media.map(m=>`<div class="photo" style="width:88px;height:88px;cursor:zoom-in" data-lb="${m.id}"><img src="${m.src}" alt="${esc(m.caption)}"></div>`).join('')}</div>`:''}
+    ${rest.length?`<div class="thumbs">${rest.map(m=>`<div class="photo" style="width:88px;height:88px;cursor:zoom-in" data-lb="${m.id}"><img src="${m.src}" alt="${esc(m.caption)}"></div>`).join('')}</div>`:''}
     ${entryExtraHTML(e)}
     ${tagChips(e)}
     <div class="links">${linkChips(e)}</div>

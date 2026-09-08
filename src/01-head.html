@@ -190,15 +190,46 @@ main{margin-left:var(--sidebar);flex:1;min-width:0;padding:48px 56px 120px;anima
    banner has inner padding and the sections below it do not, so the title used
    to hang ~30px right of everything it introduced. The panel now bleeds
    outward by exactly its own padding: the box is wider, the words line up. */
-.page-head{--ph-bleed:30px;margin:0 calc((var(--ph-bleed) + 1px) * -1) 34px;position:relative;padding:26px var(--ph-bleed) 24px;border-radius:var(--radius);overflow:hidden;isolation:isolate;border:1px solid color-mix(in srgb,var(--page-accent) 24%,var(--line));background:linear-gradient(120deg,color-mix(in srgb,var(--page-gradient-start) 20%,var(--surface)) 0%,color-mix(in srgb,var(--page-gradient-end) 10%,var(--surface)) 70%,var(--surface) 100%);transition:background .4s var(--ease),border-color .4s var(--ease)}
-.page-head::before{content:var(--page-glyph);position:absolute;right:26px;top:-14px;z-index:-1;font-family:var(--han);font-size:6.4rem;line-height:1;color:var(--page-accent);opacity:.13;pointer-events:none;user-select:none;transform:translateY(calc(var(--page-par) * -.18px))}
-.page-head::after{content:"";position:absolute;left:0;top:0;right:0;height:3px;background:linear-gradient(90deg,var(--page-accent),color-mix(in srgb,var(--page-gradient-end) 70%,transparent) 60%,transparent)}
+/* The banner sits inside the page, exactly as wide as everything under it —
+   no bleed, or it reads as a different column from its own content. It is a
+   pane of tinted glass rather than a filled rectangle: the page shows through
+   it, the bottom edge dissolves instead of terminating, and two slow washes
+   drift behind the words. */
+.page-head{--ph-pad:26px;margin:0 0 34px;position:relative;padding:26px var(--ph-pad) 26px;
+  border-radius:var(--radius);overflow:hidden;isolation:isolate;
+  border:1px solid color-mix(in srgb,var(--page-accent) 20%,transparent);border-bottom-color:transparent;
+  background:linear-gradient(118deg,color-mix(in srgb,var(--page-gradient-start) 15%,transparent) 0%,color-mix(in srgb,var(--page-gradient-end) 8%,transparent) 62%,transparent 100%),
+             color-mix(in srgb,var(--surface) 46%,transparent);
+  backdrop-filter:blur(13px) saturate(1.12);-webkit-backdrop-filter:blur(13px) saturate(1.12);
+  -webkit-mask-image:linear-gradient(180deg,#000 0%,#000 74%,rgba(0,0,0,.72) 90%,rgba(0,0,0,0) 100%);
+  mask-image:linear-gradient(180deg,#000 0%,#000 74%,rgba(0,0,0,.72) 90%,rgba(0,0,0,0) 100%);
+  transition:background .4s var(--ease),border-color .4s var(--ease)}
+.page-head > *{position:relative;z-index:1}
+/* the drifting wash: two soft lights that never quite line up */
+.page-head::before{content:"";position:absolute;inset:-40% -10%;z-index:0;pointer-events:none;
+  background:radial-gradient(42% 58% at 18% 30%,color-mix(in srgb,var(--page-accent) 20%,transparent) 0%,transparent 68%),
+             radial-gradient(38% 52% at 82% 66%,color-mix(in srgb,var(--page-gradient-end) 22%,transparent) 0%,transparent 70%);
+  opacity:.75}
+/* the page's own character, floating behind everything */
+.page-head::after{content:var(--page-glyph);position:absolute;right:24px;top:-16px;z-index:0;
+  font-family:var(--han);font-size:6.4rem;line-height:1;color:var(--page-accent);opacity:.11;
+  pointer-events:none;user-select:none;transform:translateY(calc(var(--page-par) * -.18px))}
+/* one hairline, drawn on arrival rather than simply present */
+.ph-rule{position:absolute;left:0;top:0;height:2px;width:100%;transform-origin:left;
+  background:linear-gradient(90deg,var(--page-accent),color-mix(in srgb,var(--page-gradient-end) 70%,transparent) 55%,transparent);
+  animation:phRule calc(.9s * var(--page-motion-speed)) var(--page-ease) both}
+@keyframes phRule{from{transform:scaleX(0);opacity:0}to{transform:scaleX(1);opacity:1}}
+@keyframes phDrift{0%{transform:translate3d(0,0,0) scale(1)}
+  50%{transform:translate3d(3%,-2.5%,0) scale(1.08)}
+  100%{transform:translate3d(0,0,0) scale(1)}}
 .page-head h1{font-size:2.4rem}
 .page-head .sub{font-family:var(--quote);font-style:italic;color:var(--muted);margin-top:6px}
 .page-head .ph-mood{font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--page-accent);margin-bottom:8px;display:inline-flex;align-items:center;gap:8px}
 .page-head .ph-mood::before{content:"";width:18px;height:1px;background:var(--page-accent)}
-html[data-motion="calm"] .page-head::before{animation:glyphFloat calc(9s * var(--page-motion-speed)) ease-in-out infinite alternate}
+html[data-motion="calm"] .page-head::after{animation:glyphFloat calc(9s * var(--page-motion-speed)) ease-in-out infinite alternate}
+.page-head::before{animation:phDrift calc(26s * var(--page-motion-speed)) ease-in-out infinite}
 @keyframes glyphFloat{from{translate:0 0}to{translate:0 6px}}
+@media (prefers-reduced-motion:reduce){.page-head::before,.page-head::after,.ph-rule{animation:none}}
 html[data-motion="energetic"] .card:hover,html[data-motion="energetic"] .btn:hover{transform:var(--page-lift)}
 html[data-motion="crisp"] .rv{transform:translateX(-14px)}
 html[data-motion="snappy"] .rv{transform:translateY(8px)}
@@ -386,8 +417,8 @@ svg text{font-family:var(--mono);fill:var(--faint);font-size:10px}
   .mobile-nav .ico svg{width:21px;height:21px}
   .mobile-nav a.active{color:var(--text);border-top-color:var(--page-accent)}
   main{margin-left:0;padding:28px 18px 120px}
-  .page-head{--ph-bleed:18px;padding:18px var(--ph-bleed) 16px;margin-left:calc((var(--ph-bleed) + 1px) * -1);margin-right:calc((var(--ph-bleed) + 1px) * -1)}
-  .page-head::before{font-size:4.4rem;right:12px}
+  .page-head{--ph-pad:18px;padding:18px var(--ph-pad) 18px;margin-left:0;margin-right:0}
+  .page-head::after{font-size:4.4rem;right:12px}
   .fab-wrap{bottom:74px}
   .toast-wrap{bottom:74px;left:16px;right:96px}
   .topbar{top:8px;right:12px}

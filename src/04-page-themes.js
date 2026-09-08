@@ -66,4 +66,11 @@ function applyPageTheme(){
 /* parallax for the banner glyph on calm pages */
 window.addEventListener('scroll', () => { if(document.documentElement.dataset.motion === 'calm') document.documentElement.style.setProperty('--page-par', String(Math.min(240, window.scrollY))); }, {passive:true});
 /* page banners carry the room's glyph and colour; no descriptive line */
-function decoratePageHead(main){ /* intentionally empty — the banner speaks for itself */ }
+/* the banner's hairline is an element rather than a pseudo-element so it can
+   redraw itself on each arrival; every page gets one without knowing about it */
+function decoratePageHead(main){
+  $$('.page-head', main).forEach(h => {
+    if(h.querySelector(':scope > .ph-rule')) return;
+    h.insertBefore(el('<i class="ph-rule" aria-hidden="true"></i>'), h.firstChild);
+  });
+}

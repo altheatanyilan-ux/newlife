@@ -167,7 +167,7 @@ function gatherPatterns({days = 90} = {}){
     tags: Object.entries(tagCounts).sort((a,b)=>b[1]-a[1]).slice(0,12), valueTrends,
     state: {n: states.length, avg: states.length ? Math.round(avg(states)) : null, first: states.length ? Math.round(avg(states.slice(0, Math.ceil(states.length/2)))) : null, second: states.length ? Math.round(avg(states.slice(Math.ceil(states.length/2)))) : null},
     byWeekday, habitRates, skillsCold, people: Object.entries(people).sort((a,b)=>b[1]-a[1]).slice(0,8),
-    cadence: Object.entries(cadence).sort(), visions: S.visions.filter(v=>v.confidence!=='lived').map(v=>({name:v.name, vividness: vividness(v).score})).slice(0,10)};
+    cadence: Object.entries(cadence).sort()};
 }
 /* the local report: statements that are simply true, phrased plainly */
 function localPatternReport(p){

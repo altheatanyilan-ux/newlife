@@ -329,11 +329,10 @@ function levelUpBurst(x, y, color){
 function deleteSkill(sk, node, after){
   requestDelete({label: sk.name, node, after, remove: () => {
     const pre = S.skills.filter(x => x.prereqs.includes(sk.id)); pre.forEach(x => x.prereqs = x.prereqs.filter(y => y !== sk.id));
-    const vis = S.visions.filter(v => v.preSkills.includes(sk.id)); vis.forEach(v => v.preSkills = v.preSkills.filter(y => y !== sk.id));
     const touched = S.entries.filter(e => (e.links?.skills||[]).includes(sk.id)); const rl = snapshotLinks(touched); touched.forEach(e => e.links.skills = e.links.skills.filter(y => y !== sk.id));
     const habits = S.habits.filter(h => (h.links?.skills||[]).includes(sk.id)); habits.forEach(h => h.links.skills = h.links.skills.filter(y => y !== sk.id));
     const back = spliceOut(S.skills, x => x.id === sk.id);
-    return () => { back(); pre.forEach(x => x.prereqs.push(sk.id)); vis.forEach(v => v.preSkills.push(sk.id)); rl(); habits.forEach(h => h.links.skills.push(sk.id)); };
+    return () => { back(); pre.forEach(x => x.prereqs.push(sk.id)); rl(); habits.forEach(h => h.links.skills.push(sk.id)); };
   }});
 }
 function openSkillPanel(id){

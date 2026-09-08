@@ -190,15 +190,46 @@ main{margin-left:var(--sidebar);flex:1;min-width:0;padding:48px 56px 120px;anima
    banner has inner padding and the sections below it do not, so the title used
    to hang ~30px right of everything it introduced. The panel now bleeds
    outward by exactly its own padding: the box is wider, the words line up. */
-.page-head{--ph-bleed:30px;margin:0 calc((var(--ph-bleed) + 1px) * -1) 34px;position:relative;padding:26px var(--ph-bleed) 24px;border-radius:var(--radius);overflow:hidden;isolation:isolate;border:1px solid color-mix(in srgb,var(--page-accent) 24%,var(--line));background:linear-gradient(120deg,color-mix(in srgb,var(--page-gradient-start) 20%,var(--surface)) 0%,color-mix(in srgb,var(--page-gradient-end) 10%,var(--surface)) 70%,var(--surface) 100%);transition:background .4s var(--ease),border-color .4s var(--ease)}
-.page-head::before{content:var(--page-glyph);position:absolute;right:26px;top:-14px;z-index:-1;font-family:var(--han);font-size:6.4rem;line-height:1;color:var(--page-accent);opacity:.13;pointer-events:none;user-select:none;transform:translateY(calc(var(--page-par) * -.18px))}
-.page-head::after{content:"";position:absolute;left:0;top:0;right:0;height:3px;background:linear-gradient(90deg,var(--page-accent),color-mix(in srgb,var(--page-gradient-end) 70%,transparent) 60%,transparent)}
+/* The banner sits inside the page, exactly as wide as everything under it —
+   no bleed, or it reads as a different column from its own content. It is a
+   pane of tinted glass rather than a filled rectangle: the page shows through
+   it, the bottom edge dissolves instead of terminating, and two slow washes
+   drift behind the words. */
+.page-head{--ph-pad:26px;margin:0 0 34px;position:relative;padding:26px var(--ph-pad) 26px;
+  border-radius:var(--radius);overflow:hidden;isolation:isolate;
+  border:1px solid color-mix(in srgb,var(--page-accent) 20%,transparent);border-bottom-color:transparent;
+  background:linear-gradient(118deg,color-mix(in srgb,var(--page-gradient-start) 15%,transparent) 0%,color-mix(in srgb,var(--page-gradient-end) 8%,transparent) 62%,transparent 100%),
+             color-mix(in srgb,var(--surface) 46%,transparent);
+  backdrop-filter:blur(13px) saturate(1.12);-webkit-backdrop-filter:blur(13px) saturate(1.12);
+  -webkit-mask-image:linear-gradient(180deg,#000 0%,#000 74%,rgba(0,0,0,.72) 90%,rgba(0,0,0,0) 100%);
+  mask-image:linear-gradient(180deg,#000 0%,#000 74%,rgba(0,0,0,.72) 90%,rgba(0,0,0,0) 100%);
+  transition:background .4s var(--ease),border-color .4s var(--ease)}
+.page-head > *{position:relative;z-index:1}
+/* the drifting wash: two soft lights that never quite line up */
+.page-head::before{content:"";position:absolute;inset:-40% -10%;z-index:0;pointer-events:none;
+  background:radial-gradient(42% 58% at 18% 30%,color-mix(in srgb,var(--page-accent) 20%,transparent) 0%,transparent 68%),
+             radial-gradient(38% 52% at 82% 66%,color-mix(in srgb,var(--page-gradient-end) 22%,transparent) 0%,transparent 70%);
+  opacity:.75}
+/* the page's own character, floating behind everything */
+.page-head::after{content:var(--page-glyph);position:absolute;right:24px;top:-16px;z-index:0;
+  font-family:var(--han);font-size:6.4rem;line-height:1;color:var(--page-accent);opacity:.11;
+  pointer-events:none;user-select:none;transform:translateY(calc(var(--page-par) * -.18px))}
+/* one hairline, drawn on arrival rather than simply present */
+.ph-rule{position:absolute;left:0;top:0;height:2px;width:100%;transform-origin:left;
+  background:linear-gradient(90deg,var(--page-accent),color-mix(in srgb,var(--page-gradient-end) 70%,transparent) 55%,transparent);
+  animation:phRule calc(.9s * var(--page-motion-speed)) var(--page-ease) both}
+@keyframes phRule{from{transform:scaleX(0);opacity:0}to{transform:scaleX(1);opacity:1}}
+@keyframes phDrift{0%{transform:translate3d(0,0,0) scale(1)}
+  50%{transform:translate3d(3%,-2.5%,0) scale(1.08)}
+  100%{transform:translate3d(0,0,0) scale(1)}}
 .page-head h1{font-size:2.4rem}
 .page-head .sub{font-family:var(--quote);font-style:italic;color:var(--muted);margin-top:6px}
 .page-head .ph-mood{font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--page-accent);margin-bottom:8px;display:inline-flex;align-items:center;gap:8px}
 .page-head .ph-mood::before{content:"";width:18px;height:1px;background:var(--page-accent)}
-html[data-motion="calm"] .page-head::before{animation:glyphFloat calc(9s * var(--page-motion-speed)) ease-in-out infinite alternate}
+html[data-motion="calm"] .page-head::after{animation:glyphFloat calc(9s * var(--page-motion-speed)) ease-in-out infinite alternate}
+.page-head::before{animation:phDrift calc(26s * var(--page-motion-speed)) ease-in-out infinite}
 @keyframes glyphFloat{from{translate:0 0}to{translate:0 6px}}
+@media (prefers-reduced-motion:reduce){.page-head::before,.page-head::after,.ph-rule{animation:none}}
 html[data-motion="energetic"] .card:hover,html[data-motion="energetic"] .btn:hover{transform:var(--page-lift)}
 html[data-motion="crisp"] .rv{transform:translateX(-14px)}
 html[data-motion="snappy"] .rv{transform:translateY(8px)}
@@ -386,8 +417,8 @@ svg text{font-family:var(--mono);fill:var(--faint);font-size:10px}
   .mobile-nav .ico svg{width:21px;height:21px}
   .mobile-nav a.active{color:var(--text);border-top-color:var(--page-accent)}
   main{margin-left:0;padding:28px 18px 120px}
-  .page-head{--ph-bleed:18px;padding:18px var(--ph-bleed) 16px;margin-left:calc((var(--ph-bleed) + 1px) * -1);margin-right:calc((var(--ph-bleed) + 1px) * -1)}
-  .page-head::before{font-size:4.4rem;right:12px}
+  .page-head{--ph-pad:18px;padding:18px var(--ph-pad) 18px;margin-left:0;margin-right:0}
+  .page-head::after{font-size:4.4rem;right:12px}
   .fab-wrap{bottom:74px}
   .toast-wrap{bottom:74px;left:16px;right:96px}
   .topbar{top:8px;right:12px}
@@ -1328,9 +1359,68 @@ details.era-lived[open] > summary::before{transform:rotate(90deg)}
 .matrix td i{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--sage)}
 .matrix td.blind{background:color-mix(in srgb,var(--rose) 15%,transparent)}
 .matrix tr.blindrow td:first-child{color:var(--rose)}
-.value-field{margin-top:24px}
-.value-field .q{font-family:var(--serif);font-size:1.25rem;margin-bottom:8px}
-.value-field .hist{margin-top:8px}
+/* ---------- a value's page ----------
+   The lifetime line lives inside the banner, so the name, the number and the
+   shape of the thing are one object rather than three stacked ones. */
+.vhead-chart{margin-top:16px;padding-top:12px;border-top:1px dashed color-mix(in srgb,var(--page-accent) 30%,transparent)}
+.vhead-chart svg{display:block;width:100%}
+.vhead-scale{font-size:.6rem;color:var(--faint);margin-top:2px}
+.vhead-scale span:nth-child(2){letter-spacing:.1em;text-transform:uppercase}
+.vhead{padding-bottom:20px}
+
+/* the evidence feed: polarity in the margin, not inside the card */
+.vev{display:grid;grid-template-columns:26px 1fr;gap:8px;align-items:start}
+.vev-mark{font-family:var(--serif);font-size:1.5rem;padding-top:14px;line-height:1;text-align:center}
+.vev.pos .vev-mark{color:var(--sage)}
+.vev.neg .vev-mark{color:var(--rose)}
+
+/* ---------- the four questions ----------
+   Four kinds of question, so four things to look at. Each carries a numeral,
+   a character and a tint struck off the value's own colour; the fourth is the
+   negative one and is inverted, so the eye reads it as a warning. */
+.vfacets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:14px;align-items:stretch}
+@media (max-width:860px){.vfacets{grid-template-columns:1fr}}
+.vfacet{--fc:hsl(from var(--c) calc(h + var(--tilt)) s l);
+  position:relative;display:flex;flex-direction:column;overflow:hidden;isolation:isolate;
+  padding:18px 20px 16px;border-radius:16px;
+  border:1px solid color-mix(in srgb,var(--fc) 42%,transparent);
+  border-left:3px solid var(--fc);
+  background:linear-gradient(150deg,color-mix(in srgb,var(--fc) 15%,transparent) 0%,transparent 60%),
+             color-mix(in srgb,var(--text) 5%,var(--surface));
+  box-shadow:0 1px 3px rgba(10,8,6,.10);
+  transition:border-color .25s var(--ease),transform .25s var(--page-ease),box-shadow .25s var(--ease)}
+.vfacet:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(10,8,6,.16);
+  border-color:color-mix(in srgb,var(--fc) 60%,transparent)}
+/* In relative colour syntax `h` is a plain number, so the shift must be one
+   too — `calc(h + 22deg)` is a number plus an angle, which is invalid, and an
+   invalid --fc silently takes every rule that references it down with it. */
+@supports not (color:hsl(from red h s l)){.vfacet{--fc:var(--c)}
+  .vfacet.summit{--fc:var(--gold)}.vfacet.fuel{--fc:var(--sage)}}
+.vf-glyph{position:absolute;right:8px;bottom:-14px;z-index:0;font-family:var(--han);
+  font-size:4.6rem;line-height:1;color:var(--fc);opacity:.13;pointer-events:none;user-select:none}
+.vfacet > *:not(.vf-glyph){position:relative;z-index:1}
+.vf-head{display:flex;align-items:baseline;gap:9px;margin-bottom:5px}
+.vf-n{font-family:var(--serif);font-size:.86rem;font-style:italic;color:var(--fc);
+  min-width:1.4em;letter-spacing:.05em}
+.vf-lede{font-family:var(--mono);font-size:.56rem;letter-spacing:.17em;text-transform:uppercase;color:var(--faint)}
+.vf-q{font-family:var(--serif);font-size:1.12rem;line-height:1.35;margin:0 0 5px;font-weight:400}
+.vf-hint{font-family:var(--quote);font-style:italic;font-size:.78rem;color:var(--muted);
+  margin:0 0 11px;line-height:1.5;max-width:42ch}
+.vf-prose{flex:1;font-size:.92rem;line-height:1.68;min-height:2.6em}
+.vf-prose p{margin:0 0 .6em}
+.vf-empty{font-family:var(--quote);font-style:italic;color:var(--faint)}
+.vf-foot{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;
+  padding-top:9px;border-top:1px dashed color-mix(in srgb,var(--fc) 20%,var(--line))}
+.vf-vers{border:none;flex:1;min-width:0}
+.vf-vers summary{padding:0}
+.vf-when{font-size:.6rem;color:var(--faint)}
+/* the forgery is the one negative among four positives; it says so */
+.vfacet.warn{--fc:var(--rose);
+  background:linear-gradient(150deg,color-mix(in srgb,var(--rose) 14%,transparent) 0%,transparent 55%),
+             color-mix(in srgb,var(--text) 6%,var(--surface));
+  border-style:dashed;border-left-style:solid}
+.vfacet.warn .vf-q{font-style:italic}
+@media (prefers-reduced-motion:reduce){.vfacet{transition:none}}
 .snapshot-form .r{display:grid;grid-template-columns:1fr 1fr 44px;gap:12px;align-items:center;padding:6px 0}
 .snapshot-form .r .n{font-family:var(--serif)}
 .sv-block{border-top:1px dashed var(--line);padding-left:10px;margin-left:-10px;border-left:2px solid transparent;transition:border-color .2s var(--ease),background .2s var(--ease)}
@@ -1355,8 +1445,24 @@ details.era-lived[open] > summary::before{transform:rotate(90deg)}
 .snap-val .snap-note{grid-column:1 / -1;font-family:var(--quote);font-style:italic;color:var(--muted);padding:2px 0 6px 12px;border-left:2px solid var(--line-2)}
 .trend-line,.trend-dot{transition:opacity .2s var(--ease)}
 @media (max-width:900px){.snap-head{grid-template-columns:1fr 20px}.snap-val{grid-template-columns:1fr 34px 58px}.snap-val>span:first-child{grid-column:1 / -1}}
+/* the two panels are one object, so they are the same height and scroll
+   inside themselves rather than one running past the other */
+.shape-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;
+  align-items:stretch;margin-top:12px}
+@media (max-width:900px){.shape-grid{grid-template-columns:1fr}}
+.shape-card{display:flex;flex-direction:column;min-height:0}
+.shape-card #radarBox{display:flex;justify-content:center}
+.shape-scroll{flex:1;min-height:0;overflow-y:auto;margin-top:10px;padding-right:4px;scrollbar-width:thin}
+.shape-scroll .snap-list{max-height:none;margin-top:0;overflow:visible;padding-right:0}
+
 .time-slider{margin-top:16px}
-.time-slider .lbl{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.65rem;color:var(--faint);margin-top:4px}
+/* the label rides the handle; the fixed pair underneath are the first and the
+   last reading, so no two marks on this axis can mean the same day */
+.ts-track{position:relative;height:1.1em;margin-top:2px}
+.ts-float{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap;
+  font-size:.66rem;color:var(--page-accent);transition:left .08s linear}
+.time-slider .lbl{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.62rem;color:var(--faint);margin-top:2px}
+@media (prefers-reduced-motion:reduce){.ts-float{transition:none}}
 .spark-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px}
 .spark-grid .s{background:var(--surface-2);border-radius:10px;padding:8px 10px}
 .spark-grid .s .n{font-size:.68rem;color:var(--muted);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -2279,8 +2385,13 @@ html.vision-deep .page-scene.on{opacity:var(--scene-op)}
 .plated:hover .rec-plate-img{opacity:.46;transform:scale(1.05)}
 .rec-plate-wash{position:absolute;inset:0;
   background:linear-gradient(160deg,color-mix(in srgb,var(--surface) 92%,transparent) 0%,color-mix(in srgb,var(--surface) 72%,transparent) 55%,color-mix(in srgb,var(--surface) 52%,transparent) 100%)}
-.card.plated,.kcard.plated{position:relative;overflow:hidden}
-.card.plated > *:not(.rec-plate),.kcard.plated > *:not(.rec-plate){position:relative;z-index:1}
+.card.plated,.kcard.plated,.entry.plated{position:relative;overflow:hidden}
+.card.plated > *:not(.rec-plate),.kcard.plated > *:not(.rec-plate),
+.entry.plated > *:not(.rec-plate){position:relative;z-index:1}
+/* an entry is a borderless row until it carries a picture; then it has to
+   become a surface, or the wash has no shape to sit inside */
+.entry.plated{border-top:none;border-radius:14px;padding:16px 18px;margin:10px 0;
+  border:1px solid color-mix(in srgb,var(--line) 70%,transparent)}
 
 /* the strip where imagery is arranged */
 .rec-img-tools{display:inline-flex;gap:6px;align-items:center}
@@ -2413,6 +2524,50 @@ html.vision-deep .page-scene.on{opacity:var(--scene-op)}
    at the foot with Settings, always reachable however the middle is arranged. */
 .nav-top{display:flex;flex-direction:column;margin-bottom:6px}
 .nav-foot{margin-top:auto;display:flex;flex-direction:column}
+
+/* ============================================================
+   THE DATE PICKER — one calendar for every date in the house.
+   The field itself stays a real date input; only what opens on
+   top of it is ours.
+   ============================================================ */
+input[type="date"]{position:relative;cursor:pointer;font-family:var(--mono);font-size:.8rem}
+input[type="date"]::-webkit-calendar-picker-indicator{display:none;-webkit-appearance:none}
+input[type="date"]::-webkit-inner-spin-button,input[type="date"]::-webkit-clear-button{display:none;-webkit-appearance:none}
+input[type="date"].dp-active{border-color:var(--page-accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--page-accent) 18%,transparent)}
+
+.dp-pop{position:fixed;z-index:400;width:262px;padding:10px;border-radius:14px;
+  background:color-mix(in srgb,var(--surface) 94%,transparent);border:1px solid var(--line-2);
+  backdrop-filter:blur(14px) saturate(1.15);-webkit-backdrop-filter:blur(14px) saturate(1.15);
+  box-shadow:0 14px 40px rgba(10,8,6,.28);animation:dpIn .16s var(--ease)}
+@keyframes dpIn{from{opacity:0;transform:translateY(-4px) scale(.985)}to{opacity:1;transform:none}}
+.dp-head{display:flex;align-items:center;gap:4px;margin-bottom:8px}
+.dp-nav{width:22px;height:24px;flex:0 0 auto;border:none;background:none;color:var(--muted);
+  font-size:1rem;line-height:1;cursor:pointer;border-radius:6px;transition:background .15s var(--ease),color .15s}
+.dp-nav:hover{background:color-mix(in srgb,var(--text) 6%,transparent);color:var(--text)}
+.dp-nav.sm{width:16px;font-size:.8rem}
+.dp-month{flex:1 1 auto;min-width:0;border:none;background:none;color:var(--text);cursor:pointer;
+  font-family:var(--serif);font-size:.86rem;padding:2px 2px;border-radius:6px}
+.dp-month:focus-visible{outline:1px solid var(--page-accent)}
+.dp-yearwrap{display:flex;align-items:center;flex:0 0 auto}
+.dp-year{width:46px;border:none;background:none;color:var(--text);text-align:center;
+  font-family:var(--mono);font-size:.8rem;padding:2px 0;border-radius:6px}
+.dp-year::-webkit-inner-spin-button,.dp-year::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.dp-year:focus{outline:none;background:color-mix(in srgb,var(--text) 6%,transparent)}
+.dp-dow,.dp-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.dp-dow span{text-align:center;font-family:var(--mono);font-size:.56rem;letter-spacing:.06em;
+  color:var(--faint);padding-bottom:3px}
+.dp-cell{height:29px;border:none;background:none;border-radius:8px;cursor:pointer;color:var(--text);
+  font-family:var(--mono);font-size:.76rem;transition:background .14s var(--ease),color .14s var(--ease)}
+.dp-cell.blank{pointer-events:none}
+.dp-cell:hover:not(.off){background:color-mix(in srgb,var(--page-accent) 16%,transparent)}
+.dp-cell.now{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--page-accent) 45%,transparent)}
+.dp-cell.on{background:var(--page-accent);color:var(--page-accent-ink)}
+.dp-cell.off{opacity:.28;cursor:default}
+.dp-foot{display:flex;justify-content:space-between;margin-top:8px;padding-top:7px;border-top:1px dashed var(--line)}
+.dp-lnk{border:none;background:none;cursor:pointer;color:var(--muted);font-family:var(--mono);
+  font-size:.62rem;letter-spacing:.05em;padding:2px 4px;border-radius:5px;transition:color .15s var(--ease)}
+.dp-lnk:hover{color:var(--page-accent)}
+@media (prefers-reduced-motion:reduce){.dp-pop{animation:none}.dp-cell,.dp-nav,.dp-lnk{transition:none}}
 </style>
 </head>
 <body>
@@ -3170,7 +3325,14 @@ function applyPageTheme(){
 /* parallax for the banner glyph on calm pages */
 window.addEventListener('scroll', () => { if(document.documentElement.dataset.motion === 'calm') document.documentElement.style.setProperty('--page-par', String(Math.min(240, window.scrollY))); }, {passive:true});
 /* page banners carry the room's glyph and colour; no descriptive line */
-function decoratePageHead(main){ /* intentionally empty — the banner speaks for itself */ }
+/* the banner's hairline is an element rather than a pseudo-element so it can
+   redraw itself on each arrival; every page gets one without knowing about it */
+function decoratePageHead(main){
+  $$('.page-head', main).forEach(h => {
+    if(h.querySelector(':scope > .ph-rule')) return;
+    h.insertBefore(el('<i class="ph-rule" aria-hidden="true"></i>'), h.firstChild);
+  });
+}
 /* ============================================================
    SCENES — shan shui behind the glass.
    Every room gets an ink painting in the ambient layer, built
@@ -3677,6 +3839,175 @@ function applyPageScene(){
   _sceneLayer = next; _sceneKey = key;
 }
 /* ============================================================
+   THE DATE PICKER — one calendar, everywhere a date is asked.
+
+   Every date field in the house is still a real <input type="date">,
+   so every existing read of .value and every change handler keeps
+   working exactly as it did. What changes is what opens when you
+   touch one: the browser's own picker is suppressed and this
+   calendar opens in its place, so a date looks and behaves the same
+   whether you are setting a birthday, a deadline or a snapshot.
+
+   The year is both typeable and steppable, because a life has dates
+   in it that are forty years from the month you happen to be on.
+   ============================================================ */
+
+const DP_DOW = ['Mo','Tu','We','Th','Fr','Sa','Su'];
+let dpOpen = null;            // {pop, input, cursor} while a calendar is up
+
+const dpValid = s => /^\d{4}-\d{2}-\d{2}$/.test(s || '');
+/* the month a freshly opened calendar should land on */
+function dpCursorFor(input){
+  const v = input.value;
+  if(dpValid(v)) return parseDay(v);
+  const min = input.min, max = input.max;
+  if(dpValid(min) && today() < min) return parseDay(min);
+  if(dpValid(max) && today() > max) return parseDay(max);
+  return new Date();
+}
+
+function dpGridHTML(cursor, selected, input){
+  const y = cursor.getFullYear(), m = cursor.getMonth();
+  const first = new Date(y, m, 1);
+  const lead = (first.getDay() + 6) % 7;                    // weeks start on Monday
+  const days = new Date(y, m + 1, 0).getDate();
+  const min = dpValid(input.min) ? input.min : null, max = dpValid(input.max) ? input.max : null;
+  const cells = [];
+  for(let i = 0; i < lead; i++) cells.push('<span class="dp-cell blank"></span>');
+  for(let d = 1; d <= days; d++){
+    const iso = `${y}-${pad(m + 1)}-${pad(d)}`;
+    const off = (min && iso < min) || (max && iso > max);
+    const cls = [iso === selected ? 'on' : '', iso === today() ? 'now' : '', off ? 'off' : ''].filter(Boolean).join(' ');
+    cells.push(`<button type="button" class="dp-cell ${cls}" data-dpd="${iso}" ${off ? 'disabled' : ''}>${d}</button>`);
+  }
+  return cells.join('');
+}
+
+function dpRender(){
+  if(!dpOpen) return;
+  const {pop, input, cursor} = dpOpen;
+  const sel = dpValid(input.value) ? input.value : null;
+  pop.querySelector('.dp-grid').innerHTML = dpGridHTML(cursor, sel, input);
+  pop.querySelector('[data-dpmonth]').value = cursor.getMonth();
+  const yr = pop.querySelector('[data-dpyear]');
+  if(document.activeElement !== yr) yr.value = cursor.getFullYear();
+  dpBindCells();
+}
+
+function dpBindCells(){
+  const {pop, input} = dpOpen;
+  $$('[data-dpd]', pop).forEach(b => b.onclick = () => dpCommit(input, b.dataset.dpd));
+}
+
+/* write the value the way a user typing into the field would, so every
+   existing oninput / onchange handler in the house fires unchanged */
+function dpCommit(input, iso){
+  input.value = iso;
+  input.dispatchEvent(new Event('input', {bubbles: true}));
+  input.dispatchEvent(new Event('change', {bubbles: true}));
+  if(typeof sound === 'function') sound('click');
+  dpClose();
+}
+
+function dpClose(){
+  if(!dpOpen) return;
+  const {pop, input} = dpOpen;
+  dpOpen = null;
+  pop.remove();
+  input.classList.remove('dp-active');
+}
+
+function dpPlace(pop, input){
+  const r = input.getBoundingClientRect();
+  const w = pop.offsetWidth, h = pop.offsetHeight;
+  let left = r.left, top = r.bottom + 6;
+  if(left + w > innerWidth - 10) left = Math.max(10, innerWidth - w - 10);
+  if(top + h > innerHeight - 10) top = Math.max(10, r.top - h - 6);   // flip above
+  pop.style.left = Math.round(left) + 'px';
+  pop.style.top = Math.round(top) + 'px';
+}
+
+function dpShiftMonth(n){
+  if(!dpOpen) return;
+  const c = dpOpen.cursor;
+  dpOpen.cursor = new Date(c.getFullYear(), c.getMonth() + n, 1);
+  dpRender();
+}
+
+function openDatePicker(input){
+  if(dpOpen && dpOpen.input === input){ dpClose(); return; }
+  dpClose();
+  const cursor = dpCursorFor(input);
+  cursor.setDate(1);
+  const pop = el(`<div class="dp-pop" role="dialog" aria-label="Choose a date">
+    <div class="dp-head">
+      <button type="button" class="dp-nav" data-dpprev aria-label="Previous month">‹</button>
+      <select class="dp-month" data-dpmonth aria-label="Month">${MONTHS.map((n, i) => `<option value="${i}">${n}</option>`).join('')}</select>
+      <span class="dp-yearwrap">
+        <button type="button" class="dp-nav sm" data-dpyprev aria-label="Previous year">‹</button>
+        <input type="number" class="dp-year" data-dpyear inputmode="numeric" step="1" aria-label="Year">
+        <button type="button" class="dp-nav sm" data-dpynext aria-label="Next year">›</button>
+      </span>
+      <button type="button" class="dp-nav" data-dpnext aria-label="Next month">›</button>
+    </div>
+    <div class="dp-dow">${DP_DOW.map(d => `<span>${d}</span>`).join('')}</div>
+    <div class="dp-grid"></div>
+    <div class="dp-foot">
+      <button type="button" class="dp-lnk" data-dptoday>today</button>
+      <button type="button" class="dp-lnk" data-dpclear>clear</button>
+    </div>
+  </div>`);
+  document.body.appendChild(pop);
+  input.classList.add('dp-active');
+  dpOpen = {pop, input, cursor};
+  dpRender();
+  dpPlace(pop, input);
+
+  pop.querySelector('[data-dpprev]').onclick = () => dpShiftMonth(-1);
+  pop.querySelector('[data-dpnext]').onclick = () => dpShiftMonth(1);
+  pop.querySelector('[data-dpyprev]').onclick = () => dpShiftMonth(-12);
+  pop.querySelector('[data-dpynext]').onclick = () => dpShiftMonth(12);
+  pop.querySelector('[data-dpmonth]').onchange = ev => {
+    dpOpen.cursor = new Date(dpOpen.cursor.getFullYear(), +ev.target.value, 1); dpRender(); };
+  /* the year is typed, not only stepped — four digits and the calendar moves */
+  const yr = pop.querySelector('[data-dpyear]');
+  yr.oninput = () => { const y = parseInt(yr.value, 10);
+    if(y >= 1000 && y <= 9999){ dpOpen.cursor = new Date(y, dpOpen.cursor.getMonth(), 1); dpRender(); } };
+  yr.onkeydown = ev => { if(ev.key === 'Enter'){ ev.preventDefault(); yr.blur(); } };
+  pop.querySelector('[data-dptoday]').onclick = () => dpCommit(input, today());
+  pop.querySelector('[data-dpclear]').onclick = () => dpCommit(input, '');
+  pop.addEventListener('mousedown', ev => ev.stopPropagation());
+}
+
+/* ---------- wiring ----------
+   The native picker is suppressed on mousedown (before it can open) and on
+   the keyboard shortcut browsers give it, so there is exactly one calendar. */
+document.addEventListener('mousedown', ev => {
+  const input = ev.target.closest && ev.target.closest('input[type="date"]');
+  if(input){
+    if(input.readOnly || input.disabled) return;
+    ev.preventDefault();            // stops the browser's own picker
+    input.focus({preventScroll: true});
+    openDatePicker(input);
+    return;
+  }
+  if(dpOpen && !ev.target.closest('.dp-pop')) dpClose();
+}, true);
+
+document.addEventListener('keydown', ev => {
+  /* Escape belongs to the calendar while one is up. stopPropagation alone is
+     not enough: the modal's own Escape handler sits on document too, and only
+     stopImmediatePropagation keeps a dismissed calendar from also dismissing
+     the modal it was opened from. */
+  if(ev.key === 'Escape' && dpOpen){ ev.stopImmediatePropagation(); ev.preventDefault(); dpClose(); return; }
+  const input = ev.target.closest && ev.target.closest('input[type="date"]');
+  if(input && (ev.key === 'Enter' || ev.key === ' ') && !dpOpen){ ev.preventDefault(); openDatePicker(input); }
+}, true);
+
+/* a scroll or resize under an open calendar would leave it stranded */
+addEventListener('scroll', () => { if(dpOpen) dpPlace(dpOpen.pop, dpOpen.input); }, true);
+addEventListener('resize', () => { if(dpOpen) dpClose(); });
+/* ============================================================
    SOUND — two layers, all synthesised, nothing downloaded.
    Layer 1: interaction sounds. Every one of them is a singing
             bowl — a rin gong struck with a padded mallet, in
@@ -4131,7 +4462,7 @@ function gatherPatterns({days = 90} = {}){
     tags: Object.entries(tagCounts).sort((a,b)=>b[1]-a[1]).slice(0,12), valueTrends,
     state: {n: states.length, avg: states.length ? Math.round(avg(states)) : null, first: states.length ? Math.round(avg(states.slice(0, Math.ceil(states.length/2)))) : null, second: states.length ? Math.round(avg(states.slice(Math.ceil(states.length/2)))) : null},
     byWeekday, habitRates, skillsCold, people: Object.entries(people).sort((a,b)=>b[1]-a[1]).slice(0,8),
-    cadence: Object.entries(cadence).sort(), visions: S.visions.filter(v=>v.confidence!=='lived').map(v=>({name:v.name, vividness: vividness(v).score})).slice(0,10)};
+    cadence: Object.entries(cadence).sort()};
 }
 /* the local report: statements that are simply true, phrased plainly */
 function localPatternReport(p){
@@ -4652,11 +4983,17 @@ function entryCard(e, {clamp:cl=true, tools=true}={}){
     <div class="body muted">Sealed until ${esc(fmtDate(e.extra.sealedUntil,'med'))} — ${daysBetween(today(), e.extra.sealedUntil)} days from now. Whatever is in here was written for someone you have not become yet.</div>
   </article>`;
   const q = e.type==='quote'; const xc = e.extra||{};
-  return `<article class="entry rv" data-entry="${e.id}">
+  /* an entry carrying pictures is printed on the first of them — the card in
+     the list already looks like the thing, before anything is opened. Any
+     others stay as thumbnails underneath. */
+  const pics = Array.isArray(e.media) ? e.media : [];
+  const rest = pics.slice(1);
+  return `<article class="entry rv ${pics.length?'plated':''}" data-entry="${e.id}">
+    ${pics.length ? imageBackdropHTML(e) : ''}
     <div class="meta"><span class="mono">${typeIcon(e.type)} ${typeName(e.type)}</span><span class="mono">${esc(fmtDate(e.occurredAt,'med'))}</span>${e.confidence?`<span class="status-pill">${esc(e.confidence)}</span>`:''}${tools?`<span class="tools"><button class="tbtn" data-edit="${e.id}">edit</button><button class="snip-btn" data-snip="${e.id}" title="save to the Writing Studio">✂</button></span>`:''}</div>${tools?`<button class="del-x" data-del="${e.id}" title="delete" aria-label="delete entry">×</button>`:''}
     ${e.title?`<div class="title">${esc(e.title)}</div>`:''}
     ${e.body?`<div class="body ${cl?'clamp':''} ${q?'quote':''}">${q?'“'+esc(e.body)+'”':md(e.body)}</div>`:''}
-    ${e.media?.length?`<div class="thumbs">${e.media.map(m=>`<div class="photo" style="width:88px;height:88px;cursor:zoom-in" data-lb="${m.id}"><img src="${m.src}" alt="${esc(m.caption)}"></div>`).join('')}</div>`:''}
+    ${rest.length?`<div class="thumbs">${rest.map(m=>`<div class="photo" style="width:88px;height:88px;cursor:zoom-in" data-lb="${m.id}"><img src="${m.src}" alt="${esc(m.caption)}"></div>`).join('')}</div>`:''}
     ${entryExtraHTML(e)}
     ${tagChips(e)}
     <div class="links">${linkChips(e)}</div>
@@ -5930,19 +6267,29 @@ function stepTimeline(dir){
    on — visible in the list, before anything is opened.
    ============================================================ */
 
-/* every record type that can carry imagery, and where its records live */
+/* Every record type that can carry imagery, where its records live, and the
+   field they keep pictures in. An entry has always had `media`; the rest keep
+   `images`. Naming the field here is what lets one set of controls serve both. */
 const IMG_OWNERS = {
-  project: () => S.projects,
-  skill:   () => S.skills,
-  value:   () => S.values,
-  person:  () => S.people,
-  vision:  () => S.visions,
+  project: {list: () => S.projects, field: 'images', path: 'projects'},
+  skill:   {list: () => S.skills,   field: 'images', path: 'skills'},
+  value:   {list: () => S.values,   field: 'images', path: 'values'},
+  person:  {list: () => S.people,   field: 'images', path: 'people'},
+  entry:   {list: () => S.entries,  field: 'media',  path: 'entries'},
 };
-function imgOwner(kind, id){ const list = IMG_OWNERS[kind]; return list ? byId(list(), id) : null; }
-function recImages(rec){
+function imgOwner(kind, id){ const o = IMG_OWNERS[kind]; return o ? byId(o.list(), id) : null; }
+/* which field a record keeps its pictures in — found by looking for the record
+   rather than being told, so callers that only hold the object still work */
+function imgField(rec){
+  if(!rec) return 'images';
+  for(const o of Object.values(IMG_OWNERS)) if(o.list().includes(rec)) return o.field;
+  return Array.isArray(rec.media) && !Array.isArray(rec.images) ? 'media' : 'images';
+}
+function recImages(rec, kind){
   if(!rec) return [];
-  if(!Array.isArray(rec.images)) rec.images = [];
-  return rec.images;
+  const f = kind && IMG_OWNERS[kind] ? IMG_OWNERS[kind].field : imgField(rec);
+  if(!Array.isArray(rec[f])) rec[f] = [];
+  return rec[f];
 }
 
 /* ---------- the one-time fold-in ----------
@@ -5960,7 +6307,7 @@ function migrateBoards(){
     (b.items || []).forEach(it => {
       const src = typeof it.src === 'string' ? it.src : '';
       if(it.kind !== 'image' || !src || have.has(src)) return;
-      rec.images.push({id: it.id || uid(), src, caption: it.caption || ''});
+      recImages(rec).push({id: it.id || uid(), src, caption: it.caption || ''});
       have.add(src);
     });
   });
@@ -5983,7 +6330,7 @@ const hasImages = rec => recImages(rec).length > 0;
 /* ---------- the control ----------
    One button and a hidden input, wherever a record is being edited. */
 function imageAddHTML(kind, id, {label = null} = {}){
-  const rec = imgOwner(kind, id); const n = recImages(rec).length;
+  const rec = imgOwner(kind, id); const n = recImages(rec, kind).length;
   return `<span class="rec-img-tools">
     <button class="btn sm ghost" data-imgadd="${kind}:${id}">${label || (n ? `▣ images · ${n}` : '▣ add an image')}</button>
     ${n ? `<button class="btn sm ghost" data-imgman="${kind}:${id}">arrange</button>` : ''}
@@ -5992,13 +6339,13 @@ function imageAddHTML(kind, id, {label = null} = {}){
 }
 /* the strip that lets you caption, reorder and remove what is there */
 function imageStripHTML(kind, id){
-  const rec = imgOwner(kind, id); const imgs = recImages(rec);
+  const rec = imgOwner(kind, id); const imgs = recImages(rec, kind);
   if(!imgs.length) return '';
-  const path = {project:'projects', skill:'skills', value:'values', person:'people', vision:'visions'}[kind];
+  const path = IMG_OWNERS[kind].path, field = IMG_OWNERS[kind].field;
   return `<div class="rec-img-strip" data-imgstrip="${kind}:${id}">
     ${imgs.map((it, i) => `<figure class="rec-img ${i === 0 ? 'lead' : ''}" draggable="true" data-imgid="${it.id}">
       <img src="${esc(it.src)}" alt="${esc(it.caption || '')}" loading="lazy" data-imglb="${it.id}">
-      <figcaption>${ed(`${path}.#${id}.images.${i}.caption`, {ph:'a word about it'})}</figcaption>
+      <figcaption>${ed(`${path}.#${id}.${field}.${i}.caption`, {ph:'a word about it'})}</figcaption>
       <button class="rec-img-x" data-imgdel="${kind}:${id}:${it.id}" title="remove">×</button>
       ${i === 0 ? '<span class="rec-img-lead mono">the ground</span>' : ''}
     </figure>`).join('')}
@@ -6023,7 +6370,7 @@ function bindRecImages(root, after){
     const rec = imgOwner(kind, id); if(!rec) return;
     /* readImages yields a photo record, not a string — reading it as a src is
        how every uploaded image used to arrive as "[object Object]" */
-    readImages(files, photo => { recImages(rec).push({id: photo.id || uid(), src: photo.src, caption: ''});
+    readImages(files, photo => { recImages(rec, kind).push(Object.assign({}, photo, {id: photo.id || uid(), caption: photo.caption || ''}));
       saveNow(); sound('success'); redraw(); });
   });
 
@@ -6034,9 +6381,9 @@ function bindRecImages(root, after){
     const s = b.dataset.imgdel; const i = s.indexOf(':'), j = s.lastIndexOf(':');
     const kind = s.slice(0, i), id = s.slice(i + 1, j), imgId = s.slice(j + 1);
     const rec = imgOwner(kind, id); if(!rec) return;
-    const it = recImages(rec).find(x => x.id === imgId); if(!it) return;
+    const it = recImages(rec, kind).find(x => x.id === imgId); if(!it) return;
     requestDelete({label: it.caption || 'this image', node: b.closest('.rec-img'),
-      remove: () => spliceOut(rec.images, x => x.id === imgId), after: redraw}); });
+      remove: () => spliceOut(recImages(rec, kind), x => x.id === imgId), after: redraw}); });
 
   $$('[data-imglb]', root).forEach(img => img.onclick = ev => { ev.stopPropagation(); lightbox(img.src, img.alt); });
 
@@ -6052,7 +6399,7 @@ function bindRecImages(root, after){
     fig.addEventListener('drop', ev => { ev.preventDefault(); fig.classList.remove('over');
       if(!drag || drag === fig.dataset.imgid) return;
       const [kind, id] = parse(fig.closest('[data-imgstrip]').dataset.imgstrip);
-      const arr = recImages(imgOwner(kind, id));
+      const arr = recImages(imgOwner(kind, id), kind);
       const from = arr.findIndex(x => x.id === drag), to = arr.findIndex(x => x.id === fig.dataset.imgid);
       if(from < 0 || to < 0) return;
       arr.splice(to, 0, arr.splice(from, 1)[0]); saveNow(); redraw(); });
@@ -6680,10 +7027,18 @@ routes.values = function(root){
 
     <!-- 4. the one picture: the shape, over time -->
     ${snaps.length ? `<section class="section rv"><div class="row between"><span class="sc" style="margin:0">The shape of a life</span><span class="mono">drag the slider to walk back through your readings</span></div>
-      <div class="grid c2" style="align-items:start;margin-top:12px">
-        <div class="card"><div id="radarBox">${radar(axes,[{vals:S.valueOrder.map(id=>latest?.ratings[id]??0),color:'var(--page-accent)'}],{size:340})}</div>
-          <div class="time-slider"><input type="range" class="slider" min="0" max="${snaps.length-1}" value="${snaps.length-1}" id="timeSlider"><div class="lbl"><span>${snaps[0]?fmtDate(snaps[0].date,'med'):''}</span><span id="tsLbl">${latest?fmtDate(latest.date,'med'):''}</span><span>now</span></div><div class="quote" id="tsNote" style="font-size:.9rem;margin-top:6px;min-height:1.5em">${esc(latest?.note||'')}</div></div></div>
-        <div><span class="sc">Readings</span><div id="snapHistory" style="margin-top:10px"><div class="empty">Loading…</div></div></div>
+      <div class="shape-grid">
+        <div class="card shape-card"><div id="radarBox">${radar(axes,[{vals:S.valueOrder.map(id=>latest?.ratings[id]??0),color:'var(--page-accent)'}],{size:340})}</div>
+          <div class="time-slider">
+            <input type="range" class="slider" min="0" max="${snaps.length-1}" value="${snaps.length-1}" id="timeSlider">
+            <!-- the moving label rides the handle; the two fixed ends are the
+                 first and last readings. A separate "now" beside a date that
+                 already is now read as two different moments. -->
+            <div class="ts-track"><span class="ts-float mono" id="tsLbl">${latest?fmtDate(latest.date,'med'):''}</span></div>
+            <div class="lbl"><span>${snaps[0]?fmtDate(snaps[0].date,'med'):''}</span><span>${latest?fmtDate(latest.date,'med'):''}</span></div>
+            <div class="quote" id="tsNote" style="font-size:.9rem;margin-top:6px;min-height:1.5em">${esc(latest?.note||'')}</div>
+          </div></div>
+        <div class="card shape-card"><span class="sc">Readings</span><div id="snapHistory" class="shape-scroll"><div class="empty">Loading…</div></div></div>
       </div></section>` : ''}
 
     ` : `<div class="empty rv">The compass has no points yet. Add the handful of words you would want said about how you lived — five is plenty to start.</div>`}
@@ -6695,7 +7050,12 @@ routes.values = function(root){
   $('#takeSnap').onclick = () => openSnapshotModal(() => rerender());
   const ts = $('#timeSlider');
   if(ts){ renderSnapshotHistory($('#snapHistory'));
-    ts.oninput = () => { const s = snaps[+ts.value]; $('#radarBox').innerHTML = radar(axes,[{vals:S.valueOrder.map(id=>s.ratings[id]??0),color:s.retro?(byId(S.stages,s.stageId)?.hue||'var(--page-accent)'):'var(--page-accent)'}],{size:340}); $('#tsLbl').textContent = fmtDate(s.date,'med'); $('#tsNote').textContent = s.note||''; };
+    /* put the floating label where the handle actually is, allowing for the
+       handle's own width so it does not drift past the ends of the track */
+    const placeTs = () => { const max = +ts.max || 1; const f = (+ts.value) / max;
+      $('#tsLbl').style.left = `calc(${(f * 100).toFixed(2)}% + ${(8 - f * 16).toFixed(1)}px)`; };
+    placeTs();
+    ts.oninput = () => { const s = snaps[+ts.value]; $('#radarBox').innerHTML = radar(axes,[{vals:S.valueOrder.map(id=>s.ratings[id]??0),color:s.retro?(byId(S.stages,s.stageId)?.hue||'var(--page-accent)'):'var(--page-accent)'}],{size:340}); $('#tsLbl').textContent = fmtDate(s.date,'med'); $('#tsNote').textContent = s.note||''; placeTs(); };
   }
 };
 /* ---------- the reading: what the numbers mean, in sentences ---------- */
@@ -6773,16 +7133,59 @@ routes.value = function(root, params){
   registerPageEntry({pageName:'Values', addLabel:`Evidence for ${v.name}`, defaultEntryType:'reflection', prefilledFields:{links:{values:[{id:v.id,pol:'+'}]}}, options:[{label:'Evidence', run:(pre)=>openEntryModal({type:'reflection', allowedTypes:['reflection','memory','gratitude'], heading:`Evidence for ${v.name}`, links:pre.links, openLinks:true})}]});
   const snaps = allSnapshotsWithRetro(); const es = sortEntries(S.entries.filter(e=>(e.links?.values||[]).some(x=>x.id===v.id)));
   const rank = S.valueOrder.indexOf(v.id)+1; const cur = valueCurrent(v.id);
-  const F = (k, q, hint) => { const hist = v.fields[k]||[]; const latest = hist.slice(-1)[0]; return `<div class="value-field rv"><div class="q">${q}</div><div class="faint" style="font-size:.8rem;margin-bottom:8px">${hint}</div><div class="prose serif-lg">${latest?md(latest.text):'<span class="empty">Not yet written.</span>'}</div><div class="row" style="margin-top:8px"><button class="btn sm ghost" data-vf="${k}">${latest?'write a new version':'write'}</button>${hist.length>1?`<details style="border:none;flex:1"><summary><span class="mono">${hist.length-1} earlier versions</span></summary><div class="body versions">${hist.slice(0,-1).map((h,i)=>`<div class="v"><div class="mono">${fmtDate(h.date,'med')}</div>${md(h.text)}<button class="del-x" data-vfdel="${k}:${i}" title="delete this version">×</button></div>`).reverse().join('')}</div></details>`:latest?`<span class="mono">${fmtDate(latest.date,'med')}</span>`:''}</div></div>`; };
-  root.innerHTML = `<div class="page narrow">
-    <div class="page-head" style="margin-top:20px"><div class="mono">value · ranked #${rank} of ${S.valueOrder.length}</div><h1 style="color:${v.color}">${ed(`values.#${v.id}.name`)}</h1><div class="row" style="margin-top:12px"><div class="bar" style="flex:1;--c:${v.color}"><i style="width:${cur}%"></i></div><span class="num" data-tween="${cur}" data-suffix="%">0</span></div></div>
-    <div class="card rv">${sparkline(snaps.map(s=>s.ratings[v.id]??null),{h:60,min:0,max:100,color:v.color,dots:true,labels:snaps.map(s=>`${fmtDate(s.date,'med')}: ${s.ratings[v.id]??'–'}${s.note?' — '+s.note:''}`)})}<div class="row between mono"><span>${snaps[0]?fmtDate(snaps[0].date,'med'):''}</span><span>congruence over a lifetime</span><span>now</span></div></div>
-    ${F('embody','How would I know if I embody this value?','Observable, behavioural indicators. Not aspirations — evidence.')}
-    ${F('hundred','What takes me to 100%?','What does full congruence actually look like, day to day?')}
-    ${F('motivation','How do I increase my positive motivation for this value?','Strategies, reminders, environments, people.')}
-    ${F('counterfeit','What counterfeits this value?','The cheap imitation that feels like the value but isn\'t. This field prevents self-deception.')}
+  /* The four questions are four different kinds of question, so they are four
+     different things to look at rather than four paragraphs in a document:
+     each carries its own numeral, its own character, and its own tint struck
+     off the value's colour. The last one is the negative — what impersonates
+     the value — so it is inverted, and reads as a warning rather than a field. */
+  const FACETS = {
+    embody:      {n:'i',   glyph:'證', tint:0,   kind:'proof',  lede:'the test'},
+    hundred:     {n:'ii',  glyph:'極', tint:26,  kind:'summit', lede:'the ceiling'},
+    motivation:  {n:'iii', glyph:'引', tint:-28, kind:'fuel',   lede:'the pull'},
+    counterfeit: {n:'iv',  glyph:'偽', tint:0,   kind:'warn',   lede:'the forgery'},
+  };
+  const F = (k, q, hint) => {
+    const f = FACETS[k]; const hist = v.fields[k]||[]; const latest = hist.slice(-1)[0];
+    return `<article class="vfacet rv ${f.kind}" data-facet="${k}"
+        style="--c:${v.color};--tilt:${f.tint}">
+      <span class="vf-glyph" aria-hidden="true">${f.glyph}</span>
+      <header class="vf-head"><span class="vf-n">${f.n}</span><span class="vf-lede">${f.lede}</span></header>
+      <h3 class="vf-q">${q}</h3>
+      <p class="vf-hint">${hint}</p>
+      <div class="vf-prose">${latest?md(latest.text):'<span class="vf-empty">Not yet written.</span>'}</div>
+      <footer class="vf-foot">
+        <button class="btn sm ghost" data-vf="${k}">${latest?'write a new version':'write'}</button>
+        ${hist.length>1
+          ? `<details class="vf-vers"><summary><span class="mono">${hist.length-1} earlier version${hist.length>2?'s':''}</span></summary><div class="body versions">${hist.slice(0,-1).map((h,i)=>`<div class="v"><div class="mono">${fmtDate(h.date,'med')}</div>${md(h.text)}<button class="del-x" data-vfdel="${k}:${i}" title="delete this version">×</button></div>`).reverse().join('')}</div></details>`
+          : latest ? `<span class="mono vf-when">${fmtDate(latest.date,'med')}</span>` : ''}
+      </footer>
+    </article>`; };
+  /* the lifetime line belongs to the banner, not to a card beneath it: it is
+     the same fact as the name and the number, said as a shape */
+  const lifeline = snaps.length ? `<div class="vhead-chart">
+      ${sparkline(snaps.map(s=>s.ratings[v.id]??null),{h:56,min:0,max:100,color:v.color,dots:true,labels:snaps.map(s=>`${fmtDate(s.date,'med')}: ${s.ratings[v.id]??'–'}${s.note?' — '+s.note:''}`)})}
+      <div class="row between mono vhead-scale"><span>${snaps[0]?fmtDate(snaps[0].date,'med'):''}</span><span>congruence over a lifetime</span><span>${snaps.slice(-1)[0]?fmtDate(snaps.slice(-1)[0].date,'med'):''}</span></div>
+    </div>` : '';
+  root.innerHTML = `<div class="page narrow value-page" style="--val:${v.color}">
+    <div class="page-head vhead" style="--page-accent:${v.color}">
+      <div class="mono">value · ranked #${rank} of ${S.valueOrder.length}</div>
+      <h1 style="color:${v.color}">${ed(`values.#${v.id}.name`)}</h1>
+      <div class="row" style="margin-top:12px"><div class="bar" style="flex:1;--c:${v.color}"><i style="width:${cur}%"></i></div><span class="num" data-tween="${cur}" data-suffix="%">0</span></div>
+      ${lifeline}
+    </div>
+
+    <!-- the living record first: what actually happened, before what you said -->
     <section class="section rv"><div class="row between"><span class="sc">Evidence feed</span><span class="row"><button class="btn sm" data-pol="+">+ embodied</button><button class="btn sm" data-pol="-">− betrayed</button></span></div>
-      ${es.map(e=>{ const pol = e.links.values.find(x=>x.id===v.id)?.pol||'+'; return `<div style="display:grid;grid-template-columns:28px 1fr;gap:8px"><span class="serif" style="font-size:1.5rem;color:${pol==='+'?'var(--sage)':'var(--rose)'};padding-top:14px">${pol==='+'?'+':'−'}</span>${entryCard(e)}</div>`; }).join('')||'<div class="empty">No entries tagged to this value yet.</div>'}</section>
+      ${es.map(e=>{ const pol = e.links.values.find(x=>x.id===v.id)?.pol||'+'; return `<div class="vev ${pol==='+'?'pos':'neg'}"><span class="vev-mark">${pol==='+'?'+':'−'}</span>${entryCard(e)}</div>`; }).join('')||'<div class="empty">No entries tagged to this value yet.</div>'}</section>
+
+    <section class="section rv"><span class="sc">Four questions</span>
+      <div class="vfacets">
+        ${F('embody','How would I know if I embody this value?','Observable, behavioural indicators. Not aspirations — evidence.')}
+        ${F('hundred','What takes me to 100%?','What does full congruence actually look like, day to day?')}
+        ${F('motivation','How do I increase my positive motivation for this value?','Strategies, reminders, environments, people.')}
+        ${F('counterfeit','What counterfeits this value?','The cheap imitation that feels like the value but isn\'t. This field prevents self-deception.')}
+      </div>
+    </section>
     ${moreSection(`<div class="row" style="gap:20px"><div class="field"><label>Colour</label><input type="color" id="valColor" value="${v.color}" style="width:40px;height:28px;border:none;background:none;padding:0;cursor:pointer"></div></div>
       <div class="danger-zone"><span>A compass point, not a tag. Deleting it unlinks entries and habits from it.</span><button class="btn sm ghost danger" id="delValue">Delete this value</button></div>`, 'More about this value')}
   </div>`;
@@ -6817,7 +7220,7 @@ routes.journals = function(root, params){
   const q = (S._jq||'').toLowerCase(); const from = S._jfrom||'', to = S._jto||''; const tag = S._jtag||'';
   const filtered = all.filter(e => (!q || (e.title+' '+e.body).toLowerCase().includes(q)) && (!from || (e.occurredAt||'') >= from) && (!to || (e.occurredAt||'').slice(0,10) <= to) && (!tag || JSON.stringify(e.links).includes(tag)));
   const otd = onThisDay().filter(e=>e.type===type);
-  const dimOpts = [...S.stages.map(s=>[s.id,s.char+' '+s.name]),...S.threads.map(t=>[t.id,'thread · '+t.name]),...S.values.map(v=>[v.id,'value · '+v.name]),...S.visions.map(v=>[v.id,'vision · '+v.name]),...S.skills.map(s=>[s.id,'skill · '+s.name]),...S.projects.map(p=>[p.id,'project · '+p.name])];
+  const dimOpts = [...S.stages.map(s=>[s.id,s.char+' '+s.name]),...S.threads.map(t=>[t.id,'thread · '+t.name]),...S.values.map(v=>[v.id,'value · '+v.name]),...S.skills.map(s=>[s.id,'skill · '+s.name]),...S.projects.map(p=>[p.id,'project · '+p.name])];
   root.innerHTML = `<div class="page">
     <div class="page-head"><h1>Journals</h1></div>
     <div class="journal-layout">
@@ -6830,7 +7233,7 @@ routes.journals = function(root, params){
         ${type==='synchronicity'?'<p class="quote">Entries flagged “revisit later” resurface in the Today page prompts. Synchronicities often only make sense in retrospect.</p>':''}
         ${type==='manifestation'?'<p class="quote">Ask → It Is Given → Allow. When an intention arrives, offer it to the Vision Tree as fruit.</p>':''}
         <div id="jSpecial">${special === 'letters' ? sealedLettersHTML() : special === 'decisions' ? decisionListHTML() : ''}</div>
-        <div id="jList">${special ? '' : filtered.map(e=>entryCard(e)+(type==='manifestation'&&e.extra?.status==='arrived'&&e.links.visions.length?`<div class="row" style="margin:-8px 0 12px"><button class="btn sm ghost" data-fruit="${e.id}">offer as fruit to ${esc(byId(S.visions,e.links.visions[0])?.name||'its vision')} →</button></div>`:'')).join('')||'<div class="empty">Nothing here matches. Loosen the filters, or write something.</div>'}</div>
+        <div id="jList">${special ? '' : filtered.map(e=>entryCard(e)).join('')||'<div class="empty">Nothing here matches. Loosen the filters, or write something.</div>'}</div>
       </div>
     </div></div>`;
   const refilter = debounce(()=>{ S._jq = $('#jq').value; S._jfrom = $('#jfrom').value; S._jto = $('#jto').value; S._jtag = $('#jtag').value; rerender(); $('#jq')?.focus(); }, 300);
@@ -7406,11 +7809,10 @@ function levelUpBurst(x, y, color){
 function deleteSkill(sk, node, after){
   requestDelete({label: sk.name, node, after, remove: () => {
     const pre = S.skills.filter(x => x.prereqs.includes(sk.id)); pre.forEach(x => x.prereqs = x.prereqs.filter(y => y !== sk.id));
-    const vis = S.visions.filter(v => v.preSkills.includes(sk.id)); vis.forEach(v => v.preSkills = v.preSkills.filter(y => y !== sk.id));
     const touched = S.entries.filter(e => (e.links?.skills||[]).includes(sk.id)); const rl = snapshotLinks(touched); touched.forEach(e => e.links.skills = e.links.skills.filter(y => y !== sk.id));
     const habits = S.habits.filter(h => (h.links?.skills||[]).includes(sk.id)); habits.forEach(h => h.links.skills = h.links.skills.filter(y => y !== sk.id));
     const back = spliceOut(S.skills, x => x.id === sk.id);
-    return () => { back(); pre.forEach(x => x.prereqs.push(sk.id)); vis.forEach(v => v.preSkills.push(sk.id)); rl(); habits.forEach(h => h.links.skills.push(sk.id)); };
+    return () => { back(); pre.forEach(x => x.prereqs.push(sk.id)); rl(); habits.forEach(h => h.links.skills.push(sk.id)); };
   }});
 }
 function openSkillPanel(id){
@@ -7590,7 +7992,7 @@ function deleteProject(p, node, after){
 function openProjectPanel(id){
   const p = byId(S.projects,id); if(!p) return; const ns = projectNods(p); const es = sortEntries(entriesLinked('projects',p.id)); const st = PSTATUS[p.status]||PSTATUS.idea;
   const pull = (kind) => { const m = {}; es.forEach(e => (e.links[kind]||[]).forEach(x => { const k = typeof x==='string'?x:x.id; m[k]=(m[k]||0)+1; })); return Object.keys(m); };
-  const threads = pull('threads').map(i=>byId(S.threads,i)).filter(Boolean), skills = pull('skills').map(i=>byId(S.skills,i)).filter(Boolean), values = pull('values').map(i=>byId(S.values,i)).filter(Boolean), visions = pull('visions').map(i=>byId(S.visions,i)).filter(Boolean);
+  const threads = pull('threads').map(i=>byId(S.threads,i)).filter(Boolean), skills = pull('skills').map(i=>byId(S.skills,i)).filter(Boolean), values = pull('values').map(i=>byId(S.values,i)).filter(Boolean);
   const r = projectTaskRatio(p); const openPh = S._openPhase?.[p.id];
   const pn = openPanel(`<div class="mono">project · ${ns.length} nods · avg energy ${ns.length?avg(ns.map(n=>n.energy)).toFixed(1):'–'} · ${r.done}/${r.total} tasks</div><h2>${ed(`projects.#${p.id}.name`)}</h2><div class="muted">${ed(`projects.#${p.id}.description`,{multi:true,ph:'one or two sentences'})}</div>
     <div class="row" style="margin:12px 0;gap:8px"><select class="sel" style="width:auto" id="pStatus">${Object.entries(PSTATUS).map(([k,v])=>`<option value="${k}" ${p.status===k?'selected':''}>${v[0]} ${v[1]}</option>`).join('')}</select><select class="sel" style="width:auto" id="pPri">${Object.keys(PRIORITY).map(k=>`<option ${p.priority===k?'selected':''}>${k}</option>`).join('')}</select><span class="mono">tags</span>${ed(`projects.#${p.id}._tags`,{ph:'writing, code, music',cls:'mono',hook:'ptags:'+p.id})}</div>
@@ -10604,7 +11006,7 @@ function openMonthlyReview(d = today()){
     ${mp.theme ? `<div class="intention-card" style="margin-bottom:14px">${esc(mp.theme)}</div>` : ''}
     <div class="grid c2" style="gap:14px;align-items:start">
       <div><span class="sc">Milestones</span>
-        <div class="stack" style="gap:4px;margin-top:8px">${namedMilestones.length ? namedMilestones.map(ms => `<label class="pick-row ${ms.done?'on':''}"><input type="checkbox" data-mrms="${ms.i}" ${ms.done?'checked':''}><span>${esc(ms.text)}${ms.visionId?`<span class="d">${esc(byId(S.visions,ms.visionId)?.name||'')}</span>`:''}</span></label>`).join('') : '<div class="empty">No milestones were set this month.</div>'}</div></div>
+        <div class="stack" style="gap:4px;margin-top:8px">${namedMilestones.length ? namedMilestones.map(ms => `<label class="pick-row ${ms.done?'on':''}"><input type="checkbox" data-mrms="${ms.i}" ${ms.done?'checked':''}><span>${esc(ms.text)}</span></label>`).join('') : '<div class="empty">No milestones were set this month.</div>'}</div></div>
       <div><span class="sc">Habits, across the month</span>
         <div class="stack" style="gap:5px;margin-top:8px">${habitRates.length ? habitRates.map(({h,rate}) => `<div class="row between"><span>${esc(h.name)}</span><span class="bar" style="flex:1;--c:${(DIMS.find(x=>x.id===h.dimension)||{}).c||'var(--page-accent)'}"><i style="width:${rate}%"></i></span><span class="mono">${rate}%</span></div>`).join('') : '<div class="empty">No habits tracked.</div>'}</div></div>
     </div>
@@ -10631,7 +11033,7 @@ const TOD = ['morning','afternoon','evening','anytime'];
 function habitFreqLabel(h){ const f = h.freq; if(f.type==='daily') return 'daily'; if(f.type==='days') return f.days.map(d=>DOW[d].slice(0,3)).join(' '); if(f.type==='perWeek') return `${f.count}× / week`; if(f.type==='perMonth') return `${f.count}× / month`; return ''; }
 function markHabit(h, level, note=''){ const T = today(); S.habitLog[T] = S.habitLog[T]||{}; if(level) S.habitLog[T][h.id] = {level, note}; else delete S.habitLog[T][h.id]; saveNow(); }
 function openHabitModal(id){
-  const h = id ? byId(S.habits,id) : {id:uid(),name:'',freq:{type:'daily',days:[],count:3},timeOfDay:'morning',dimension:'physical',kind:'expenditure',links:{values:[],visions:[],skills:[]},min:'',ideal:'',prompt:'',negative:false,archived:false,stackAfter:null,relational:'',order:S.habits.length};
+  const h = id ? byId(S.habits,id) : {id:uid(),name:'',freq:{type:'daily',days:[],count:3},timeOfDay:'morning',dimension:'physical',kind:'expenditure',links:{values:[],skills:[]},min:'',ideal:'',prompt:'',negative:false,archived:false,stackAfter:null,relational:'',order:S.habits.length};
   if(h.relational === undefined) h.relational = '';
   const m = openModal(`<h2>${id?'Edit habit':'A new habit'}</h2><div class="stack">
     <div class="field"><label>Name</label><input class="inp" id="hName" value="${esc(h.name)}"></div>
@@ -10645,7 +11047,6 @@ function openHabitModal(id){
     <div class="field"><label>Relational ritual (optional)</label><select class="sel" id="hRelational"><option value="">not relational</option><option value="reachout" ${h.relational==='reachout'?'selected':''}>reach out to one person</option><option value="gratitude" ${h.relational==='gratitude'?'selected':''}>gratitude for a person</option><option value="ringreview" ${h.relational==='ringreview'?'selected':''}>ring review — open the constellation</option></select></div>
     <label class="toggle ${h.negative?'on':''}" id="hNeg"><span class="sw"></span><span>negative habit — track as “days since”</span></label>
     <div class="field"><label>Linked values</label><div class="deps">${S.values.map(v=>`<span class="chip click ${h.links.values.includes(v.id)?'on':''}" style="--c:${v.color}" data-lv="${v.id}">${esc(v.name.split(' ')[0])}</span>`).join('')}</div></div>
-    <div class="field"><label>Linked visions</label><div class="deps">${S.visions.map(v=>`<span class="chip click ${h.links.visions.includes(v.id)?'on':''}" style="--c:var(--sage)" data-lvi="${v.id}">${esc(v.name)}</span>`).join('')}</div></div>
     <div class="field"><label>Linked skills</label><div class="deps">${S.skills.map(v=>`<span class="chip click ${h.links.skills.includes(v.id)?'on':''}" style="--c:var(--ment)" data-lsk="${v.id}">${esc(v.name)}</span>`).join('')}</div></div>
     <div class="row" style="justify-content:flex-end"><button class="btn primary" id="hSave">${id?'Save':'Add habit'}</button></div>
     ${id?moreSection(`<div class="danger-zone"><span>Archiving keeps the history. Deleting removes ${Object.values(S.habitLog).filter(l=>l[id]).length} logged days.</span><button class="btn sm ghost danger" id="hDelete">Delete this habit</button></div>`):''}</div>`);
@@ -10653,8 +11054,8 @@ function openHabitModal(id){
   const upd = () => { const t = m.querySelector('#hFreq').value; m.querySelector('#hDays').style.display = t==='days'?'':'none'; m.querySelector('#hCount').style.display = (t==='perWeek'||t==='perMonth')?'':'none'; }; upd(); m.querySelector('#hFreq').onchange = upd;
   m.querySelectorAll('[data-day]').forEach(b => b.onclick = () => b.classList.toggle('primary'));
   m.querySelector('#hNeg').onclick = function(){ this.classList.toggle('on'); };
-  m.querySelectorAll('[data-lv],[data-lvi],[data-lsk]').forEach(c => c.onclick = () => c.classList.toggle('on'));
-  m.querySelector('#hSave').onclick = () => { h.name = m.querySelector('#hName').value.trim(); if(!h.name) return; h.freq = {type:m.querySelector('#hFreq').value, days:[...m.querySelectorAll('[data-day].primary')].map(b=>+b.dataset.day), count:+m.querySelector('#hCountN').value||1}; h.timeOfDay = m.querySelector('#hTod').value; h.dimension = m.querySelector('#hDim').value; h.kind = m.querySelector('#hKind').value; h.min = m.querySelector('#hMin').value; h.ideal = m.querySelector('#hIdeal').value; h.stackAfter = m.querySelector('#hStack').value||null; h.prompt = m.querySelector('#hPrompt').value; h.relational = m.querySelector('#hRelational').value; h.negative = m.querySelector('#hNeg').classList.contains('on'); h.links = {values:[...m.querySelectorAll('[data-lv].on')].map(c=>c.dataset.lv), visions:[...m.querySelectorAll('[data-lvi].on')].map(c=>c.dataset.lvi), skills:[...m.querySelectorAll('[data-lsk].on')].map(c=>c.dataset.lsk)}; if(!id) S.habits.push(h); saveNow(); m.remove(); rerender(); sound('save'); };
+  m.querySelectorAll('[data-lv],[data-lsk]').forEach(c => c.onclick = () => c.classList.toggle('on'));
+  m.querySelector('#hSave').onclick = () => { h.name = m.querySelector('#hName').value.trim(); if(!h.name) return; h.freq = {type:m.querySelector('#hFreq').value, days:[...m.querySelectorAll('[data-day].primary')].map(b=>+b.dataset.day), count:+m.querySelector('#hCountN').value||1}; h.timeOfDay = m.querySelector('#hTod').value; h.dimension = m.querySelector('#hDim').value; h.kind = m.querySelector('#hKind').value; h.min = m.querySelector('#hMin').value; h.ideal = m.querySelector('#hIdeal').value; h.stackAfter = m.querySelector('#hStack').value||null; h.prompt = m.querySelector('#hPrompt').value; h.relational = m.querySelector('#hRelational').value; h.negative = m.querySelector('#hNeg').classList.contains('on'); h.links = {values:[...m.querySelectorAll('[data-lv].on')].map(c=>c.dataset.lv), skills:[...m.querySelectorAll('[data-lsk].on')].map(c=>c.dataset.lsk)}; if(!id) S.habits.push(h); saveNow(); m.remove(); rerender(); sound('save'); };
 }
 /* The guided review flows now live in reviewflows.js — step-by-step rather
    than a wall of cards, and reachable from Rhythm's Reviews tab. */
@@ -11226,8 +11627,8 @@ function renderLibraryLists(root){
   root.innerHTML = `
     <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Personal queue — up next</span><button class="btn sm ghost" id="qAdd">＋ add to queue</button></div>
       <p class="muted" style="font-size:.85rem">What you want to encounter next. Drag to reorder; the top of the list is what you'll actually pick up.</p>
-      <div class="queue-list" id="queueList">${S.mediaQueue.map((it,i) => { const k = MEDIA_KINDS[it.medium]||MEDIA_KINDS.book; const vis = it.visionId?byId(S.visions,it.visionId):null; const val = it.valueId?byId(S.values,it.valueId):null;
-        return `<div class="queue-item" draggable="true" data-qid="${it.id}"><span class="grip">⠿</span><span class="body"><div class="row between"><b class="serif">${k[0]} ${esc(it.title)}</b><span class="row" style="gap:4px"><button class="tbtn" data-qstart="${it.id}">mark started →</button><button class="tbtn" data-qedit="${it.id}">edit</button><button class="del-x inline" data-qdel="${it.id}">×</button></span></div>${it.why?`<div class="quote" style="font-size:.85rem">${esc(it.why)}</div>`:''}${vis||val?`<div class="row" style="gap:4px;margin-top:4px">${vis?`<span class="chip on" style="--c:var(--sage)">🌿 ${esc(vis.name)}</span>`:''}${val?`<span class="chip on" style="--c:${val.color}">${esc(val.name)}</span>`:''}</div>`:''}</span></div>`; }).join('') || '<div class="empty">Nothing queued. What do you want to encounter next?</div>'}</div></section>
+      <div class="queue-list" id="queueList">${S.mediaQueue.map((it,i) => { const k = MEDIA_KINDS[it.medium]||MEDIA_KINDS.book; const val = it.valueId?byId(S.values,it.valueId):null;
+        return `<div class="queue-item" draggable="true" data-qid="${it.id}"><span class="grip">⠿</span><span class="body"><div class="row between"><b class="serif">${k[0]} ${esc(it.title)}</b><span class="row" style="gap:4px"><button class="tbtn" data-qstart="${it.id}">mark started →</button><button class="tbtn" data-qedit="${it.id}">edit</button><button class="del-x inline" data-qdel="${it.id}">×</button></span></div>${it.why?`<div class="quote" style="font-size:.85rem">${esc(it.why)}</div>`:''}${val?`<div class="row" style="gap:4px;margin-top:4px"><span class="chip on" style="--c:${val.color}">${esc(val.name)}</span></div>`:''}</span></div>`; }).join('') || '<div class="empty">Nothing queued. What do you want to encounter next?</div>'}</div></section>
 
     <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Curated lists</span><button class="btn sm ghost" id="mlAdd">＋ new list</button></div>
       ${!S.mediaLists.length ? `<p class="muted" style="font-size:.85rem">Themed collections — what you'd give to someone you care about, or the distilled canon. A few to start with:</p><div class="row" style="gap:6px;flex-wrap:wrap;margin-bottom:14px">${SUGGESTED_LISTS.map(([t,d])=>`<button class="btn sm ghost" data-suggest="${esc(t)}" data-suggestd="${esc(d)}">＋ ${esc(t)}</button>`).join('')}</div>` : ''}
@@ -13751,7 +14152,12 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
     S.places = [...new Set([...(S.places||[]), ...e.places])];
     if(existing) Object.assign(existing, e); else S.entries.push(e);
     saveNow();
-    const primary = e.links.values[0] ? byId(S.values,e.links.values[0].id)?.color : e.links.stages[0] ? byId(S.stages,e.links.stages[0])?.hue : e.links.visions[0] ? 'var(--sage)' : 'var(--terra)';
+    /* the ripple takes its colour from whatever the entry is tagged to; every
+       lookup is optional because an entry may carry no links at all */
+    const L = e.links || {};
+    const primary = L.values?.[0] ? byId(S.values, L.values[0].id)?.color
+                  : L.stages?.[0] ? byId(S.stages, L.stages[0])?.hue
+                  : 'var(--terra)';
     ripple(ev.clientX, ev.clientY, primary); sound('success'); m.remove();
     toast(existing ? 'Entry updated.' : `${typeName(e.type)} saved${Object.values(e.links).some(a=>a.length)?' and connected.':'.'}`);
     if(after) after(); else rerender();

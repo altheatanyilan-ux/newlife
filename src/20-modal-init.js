@@ -126,7 +126,12 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
     S.places = [...new Set([...(S.places||[]), ...e.places])];
     if(existing) Object.assign(existing, e); else S.entries.push(e);
     saveNow();
-    const primary = e.links.values[0] ? byId(S.values,e.links.values[0].id)?.color : e.links.stages[0] ? byId(S.stages,e.links.stages[0])?.hue : e.links.visions[0] ? 'var(--sage)' : 'var(--terra)';
+    /* the ripple takes its colour from whatever the entry is tagged to; every
+       lookup is optional because an entry may carry no links at all */
+    const L = e.links || {};
+    const primary = L.values?.[0] ? byId(S.values, L.values[0].id)?.color
+                  : L.stages?.[0] ? byId(S.stages, L.stages[0])?.hue
+                  : 'var(--terra)';
     ripple(ev.clientX, ev.clientY, primary); sound('success'); m.remove();
     toast(existing ? 'Entry updated.' : `${typeName(e.type)} saved${Object.values(e.links).some(a=>a.length)?' and connected.':'.'}`);
     if(after) after(); else rerender();

@@ -9,19 +9,29 @@
    on — visible in the list, before anything is opened.
    ============================================================ */
 
-/* every record type that can carry imagery, and where its records live */
+/* Every record type that can carry imagery, where its records live, and the
+   field they keep pictures in. An entry has always had `media`; the rest keep
+   `images`. Naming the field here is what lets one set of controls serve both. */
 const IMG_OWNERS = {
-  project: () => S.projects,
-  skill:   () => S.skills,
-  value:   () => S.values,
-  person:  () => S.people,
-  vision:  () => S.visions,
+  project: {list: () => S.projects, field: 'images', path: 'projects'},
+  skill:   {list: () => S.skills,   field: 'images', path: 'skills'},
+  value:   {list: () => S.values,   field: 'images', path: 'values'},
+  person:  {list: () => S.people,   field: 'images', path: 'people'},
+  entry:   {list: () => S.entries,  field: 'media',  path: 'entries'},
 };
-function imgOwner(kind, id){ const list = IMG_OWNERS[kind]; return list ? byId(list(), id) : null; }
-function recImages(rec){
+function imgOwner(kind, id){ const o = IMG_OWNERS[kind]; return o ? byId(o.list(), id) : null; }
+/* which field a record keeps its pictures in — found by looking for the record
+   rather than being told, so callers that only hold the object still work */
+function imgField(rec){
+  if(!rec) return 'images';
+  for(const o of Object.values(IMG_OWNERS)) if(o.list().includes(rec)) return o.field;
+  return Array.isArray(rec.media) && !Array.isArray(rec.images) ? 'media' : 'images';
+}
+function recImages(rec, kind){
   if(!rec) return [];
-  if(!Array.isArray(rec.images)) rec.images = [];
-  return rec.images;
+  const f = kind && IMG_OWNERS[kind] ? IMG_OWNERS[kind].field : imgField(rec);
+  if(!Array.isArray(rec[f])) rec[f] = [];
+  return rec[f];
 }
 
 /* ---------- the one-time fold-in ----------
@@ -39,7 +49,7 @@ function migrateBoards(){
     (b.items || []).forEach(it => {
       const src = typeof it.src === 'string' ? it.src : '';
       if(it.kind !== 'image' || !src || have.has(src)) return;
-      rec.images.push({id: it.id || uid(), src, caption: it.caption || ''});
+      recImages(rec).push({id: it.id || uid(), src, caption: it.caption || ''});
       have.add(src);
     });
   });
@@ -62,7 +72,7 @@ const hasImages = rec => recImages(rec).length > 0;
 /* ---------- the control ----------
    One button and a hidden input, wherever a record is being edited. */
 function imageAddHTML(kind, id, {label = null} = {}){
-  const rec = imgOwner(kind, id); const n = recImages(rec).length;
+  const rec = imgOwner(kind, id); const n = recImages(rec, kind).length;
   return `<span class="rec-img-tools">
     <button class="btn sm ghost" data-imgadd="${kind}:${id}">${label || (n ? `▣ images · ${n}` : '▣ add an image')}</button>
     ${n ? `<button class="btn sm ghost" data-imgman="${kind}:${id}">arrange</button>` : ''}
@@ -71,13 +81,13 @@ function imageAddHTML(kind, id, {label = null} = {}){
 }
 /* the strip that lets you caption, reorder and remove what is there */
 function imageStripHTML(kind, id){
-  const rec = imgOwner(kind, id); const imgs = recImages(rec);
+  const rec = imgOwner(kind, id); const imgs = recImages(rec, kind);
   if(!imgs.length) return '';
-  const path = {project:'projects', skill:'skills', value:'values', person:'people', vision:'visions'}[kind];
+  const path = IMG_OWNERS[kind].path, field = IMG_OWNERS[kind].field;
   return `<div class="rec-img-strip" data-imgstrip="${kind}:${id}">
     ${imgs.map((it, i) => `<figure class="rec-img ${i === 0 ? 'lead' : ''}" draggable="true" data-imgid="${it.id}">
       <img src="${esc(it.src)}" alt="${esc(it.caption || '')}" loading="lazy" data-imglb="${it.id}">
-      <figcaption>${ed(`${path}.#${id}.images.${i}.caption`, {ph:'a word about it'})}</figcaption>
+      <figcaption>${ed(`${path}.#${id}.${field}.${i}.caption`, {ph:'a word about it'})}</figcaption>
       <button class="rec-img-x" data-imgdel="${kind}:${id}:${it.id}" title="remove">×</button>
       ${i === 0 ? '<span class="rec-img-lead mono">the ground</span>' : ''}
     </figure>`).join('')}
@@ -102,7 +112,7 @@ function bindRecImages(root, after){
     const rec = imgOwner(kind, id); if(!rec) return;
     /* readImages yields a photo record, not a string — reading it as a src is
        how every uploaded image used to arrive as "[object Object]" */
-    readImages(files, photo => { recImages(rec).push({id: photo.id || uid(), src: photo.src, caption: ''});
+    readImages(files, photo => { recImages(rec, kind).push(Object.assign({}, photo, {id: photo.id || uid(), caption: photo.caption || ''}));
       saveNow(); sound('success'); redraw(); });
   });
 
@@ -113,9 +123,9 @@ function bindRecImages(root, after){
     const s = b.dataset.imgdel; const i = s.indexOf(':'), j = s.lastIndexOf(':');
     const kind = s.slice(0, i), id = s.slice(i + 1, j), imgId = s.slice(j + 1);
     const rec = imgOwner(kind, id); if(!rec) return;
-    const it = recImages(rec).find(x => x.id === imgId); if(!it) return;
+    const it = recImages(rec, kind).find(x => x.id === imgId); if(!it) return;
     requestDelete({label: it.caption || 'this image', node: b.closest('.rec-img'),
-      remove: () => spliceOut(rec.images, x => x.id === imgId), after: redraw}); });
+      remove: () => spliceOut(recImages(rec, kind), x => x.id === imgId), after: redraw}); });
 
   $$('[data-imglb]', root).forEach(img => img.onclick = ev => { ev.stopPropagation(); lightbox(img.src, img.alt); });
 
@@ -131,7 +141,7 @@ function bindRecImages(root, after){
     fig.addEventListener('drop', ev => { ev.preventDefault(); fig.classList.remove('over');
       if(!drag || drag === fig.dataset.imgid) return;
       const [kind, id] = parse(fig.closest('[data-imgstrip]').dataset.imgstrip);
-      const arr = recImages(imgOwner(kind, id));
+      const arr = recImages(imgOwner(kind, id), kind);
       const from = arr.findIndex(x => x.id === drag), to = arr.findIndex(x => x.id === fig.dataset.imgid);
       if(from < 0 || to < 0) return;
       arr.splice(to, 0, arr.splice(from, 1)[0]); saveNow(); redraw(); });

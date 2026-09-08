@@ -940,7 +940,7 @@ function openMonthlyReview(d = today()){
     ${mp.theme ? `<div class="intention-card" style="margin-bottom:14px">${esc(mp.theme)}</div>` : ''}
     <div class="grid c2" style="gap:14px;align-items:start">
       <div><span class="sc">Milestones</span>
-        <div class="stack" style="gap:4px;margin-top:8px">${namedMilestones.length ? namedMilestones.map(ms => `<label class="pick-row ${ms.done?'on':''}"><input type="checkbox" data-mrms="${ms.i}" ${ms.done?'checked':''}><span>${esc(ms.text)}${ms.visionId?`<span class="d">${esc(byId(S.visions,ms.visionId)?.name||'')}</span>`:''}</span></label>`).join('') : '<div class="empty">No milestones were set this month.</div>'}</div></div>
+        <div class="stack" style="gap:4px;margin-top:8px">${namedMilestones.length ? namedMilestones.map(ms => `<label class="pick-row ${ms.done?'on':''}"><input type="checkbox" data-mrms="${ms.i}" ${ms.done?'checked':''}><span>${esc(ms.text)}</span></label>`).join('') : '<div class="empty">No milestones were set this month.</div>'}</div></div>
       <div><span class="sc">Habits, across the month</span>
         <div class="stack" style="gap:5px;margin-top:8px">${habitRates.length ? habitRates.map(({h,rate}) => `<div class="row between"><span>${esc(h.name)}</span><span class="bar" style="flex:1;--c:${(DIMS.find(x=>x.id===h.dimension)||{}).c||'var(--page-accent)'}"><i style="width:${rate}%"></i></span><span class="mono">${rate}%</span></div>`).join('') : '<div class="empty">No habits tracked.</div>'}</div></div>
     </div>
