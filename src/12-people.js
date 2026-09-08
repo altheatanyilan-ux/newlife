@@ -72,7 +72,12 @@ const CIRCLE_RENAME = {inner:'core', middle:'close', outer:'orbit'};
 function migratePeople(){
   if(!Array.isArray(S.people)) S.people = [];
   S.interactions = Array.isArray(S.interactions) ? S.interactions : [];
-  S.people = S.people.map(p => {
+  /* Normalise IN PLACE. This runs on every render of the People room, so
+     replacing the array (or the person objects in it) would invalidate every
+     reference held elsewhere — including the closure a pending Undo uses to
+     put a deleted person back, which would then splice into a dead array. */
+  S.people.forEach((orig, idx) => {
+    let p = orig;
     if(typeof p === 'string' || !p || !p.id) p = Object.assign(newPerson(typeof p === 'string' ? p : (p?.name || '')), {});
     const out = Object.assign(newPerson(p.name || ''), p);
     // the earlier tier model becomes a circle; "past" people go to the outer ring with no cadence
@@ -102,8 +107,12 @@ function migratePeople(){
     if(out.becomeAround === undefined) out.becomeAround = '';
     if(out.energyStanding === undefined) out.energyStanding = '';
     delete out.tier; delete out.relation; delete out.met; delete out.gave; delete out.owe; delete out.notes; delete out.aka;
-    return out;
-  }).filter(p => p.name || p.id);
+    if(p === orig && orig && typeof orig === 'object'){
+      Object.assign(orig, out);
+      ['tier','relation','met','gave','owe','notes','aka'].forEach(k => { delete orig[k]; });
+    } else S.people[idx] = out;
+  });
+  for(let i = S.people.length - 1; i >= 0; i--) if(!S.people[i].name && !S.people[i].id) S.people.splice(i, 1);
   // entries that mention a person count as a light interaction
   S.entries.forEach(e => {
     e.links = e.links || {}; e.links.people = Array.isArray(e.links.people) ? e.links.people : [];

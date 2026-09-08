@@ -511,7 +511,7 @@ function positionHTML(){
       </div>
 
       <div class="pos-spi">
-        <div class="row between" style="align-items:baseline"><span class="sc" style="margin:0 0 8px">Stage resonance</span><a class="mono faint" href="#/spiral" style="text-decoration:none">the spiral room →</a></div>
+        <span class="sc" style="margin:0 0 8px">Stage resonance</span>
         ${spiralBarsHTML(read)}
         <p class="spi-read">${esc(read.line)}</p>
         <div class="row" style="gap:6px;align-items:center;flex-wrap:wrap">

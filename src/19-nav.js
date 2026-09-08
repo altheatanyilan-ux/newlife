@@ -15,7 +15,6 @@ const NAV_ICONS = {
   vision:   '<svg viewBox="0 0 24 24"><path d="M12 21v-6"/><path d="M12 15c-3.9 0-6.5-2.3-6.5-5.4 0-1.6.8-3 2.1-3.8C8 3.6 9.8 2.5 12 2.5s4 1.1 4.4 3.3c1.3.8 2.1 2.2 2.1 3.8 0 3.1-2.6 5.4-6.5 5.4Z"/></svg>',
   timeline: '<svg viewBox="0 0 24 24"><path d="M7 3.5h10M7 20.5h10"/><path d="M8.5 3.5v2.8c0 2.3 3.5 3.6 3.5 5.7s-3.5 3.4-3.5 5.7v2.8M15.5 3.5v2.8c0 2.3-3.5 3.6-3.5 5.7s3.5 3.4 3.5 5.7v2.8"/></svg>',
   settings: '<svg viewBox="0 0 24 24"><path d="M4 7.5h9M17 7.5h3M4 16.5h3M11 16.5h9"/><circle cx="15" cy="7.5" r="2"/><circle cx="9" cy="16.5" r="2"/></svg>',
-  spiral:   '<svg viewBox="0 0 24 24"><path d="M12 12a2.4 2.4 0 1 1 2.4 2.4A4.4 4.4 0 0 1 10 10a6.4 6.4 0 0 1 6.4-6.4"/><path d="M12 12a3.6 3.6 0 0 0-3.6 3.6A6.6 6.6 0 0 0 15 22.2"/></svg>',
   needs:    '<svg viewBox="0 0 24 24"><path d="M12 3.5 21 20H3Z"/><path d="M7.6 12.5h8.8M9.5 8.5h5"/></svg>',
   more:     '<svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg>',
   reviews:  '<svg viewBox="0 0 24 24"><path d="M12 4.5a7.5 7.5 0 1 1-7.3 9.2"/><path d="M4.5 8.2 4.7 13l4.6-1.1"/><path d="M12 8.5v4l2.8 1.6"/></svg>',
@@ -39,7 +38,6 @@ const NAV_PAGES = {
   finance:  {label:'Finance',          short:'Money',    ico:NAV_ICONS.finance,  route:'#/finance'},
   commonplace:{label:'The Library',    short:'Library',  ico:NAV_ICONS.commonplace, route:'#/commonplace'},
   values:   {label:'Values',           short:'Values',   ico:NAV_ICONS.values,   route:'#/values'},
-  spiral:   {label:'Spiral',           short:'Spiral',   ico:NAV_ICONS.spiral,   route:'#/spiral'},
   skills:   {label:'Skill Tree',       short:'Skills',   ico:NAV_ICONS.skills,   route:'#/skills'},
   timeline: {label:'Timeline',         short:'Timeline', ico:NAV_ICONS.timeline, route:'#/timeline'},
 };
@@ -49,7 +47,7 @@ const NAV_PAGES = {
 const NAV_TOP = ['compass','today','journals'];
 const NAV_PINNED = ['writing'];
 const NAV_DEFAULT = {
-  becoming:  ['values','skills','projects','finance','commonplace','spiral'],
+  becoming:  ['values','skills','projects','finance','commonplace'],
   story:     ['people','timeline'],
   standalone:[],
 };
@@ -129,8 +127,8 @@ NAV_PAGES.import = {label:'Import Station', short:'Import', ico:NAV_ICONS.import
 /* ---------- Compass: life at a glance — today's focus, the living house, long-term panels ---------- */
 /* which level of the hierarchy each room mostly feeds — the annotation the
    house carries, so the map and the pyramid are reading the same building */
-const HOUSE_LEVEL = {today:1, finance:2, people:3, skills:4, projects:6, commonplace:5, journals:5, writing:4, values:7, spiral:7, timeline:5};
-const HOUSE_EDGES = [['timeline','values','retrospective readings fill the values history'],['projects','skills','projects exercise skills'],['journals','timeline','memories become formative events'],['today','values','the biggest values gap is a daily signal'],['today','journals','the day is where most entries start'],['commonplace','journals','quotes are journal entries with a source'],['values','spiral','a value usually has a home on the spiral'],['finance','projects','a project that earns is an income stream'],['people','timeline','the people in a chapter are part of it']];
+const HOUSE_LEVEL = {today:1, finance:2, people:3, skills:4, projects:6, commonplace:5, journals:5, writing:4, values:7, timeline:5};
+const HOUSE_EDGES = [['timeline','values','retrospective readings fill the values history'],['projects','skills','projects exercise skills'],['journals','timeline','memories become formative events'],['today','values','the biggest values gap is a daily signal'],['today','journals','the day is where most entries start'],['commonplace','journals','quotes are journal entries with a source'],['finance','projects','a project that earns is an income stream'],['people','timeline','the people in a chapter are part of it']];
 function houseStats(){
   const T = today(); const n = navConfig();
   const due = S.habits.filter(h=>!h.archived&&!h.negative&&habitDue(h,T)); const done = due.filter(h=>habitDone(h,T)).length;
@@ -145,14 +143,6 @@ function houseStats(){
     journals: {line:`${j7} entr${j7===1?'y':'ies'} this week`, ok:j7>0, cadence:'daily', tip:`${S.entries.length} entries across ${S.journals.length} journals`},
     projects: {line:`${active.length} active · ${nods7} nods / 7d`, ok:cold===0, cadence:'daily', tip:cold?`${cold} active project${cold>1?'s':''} without a nod this week`:'every active project nodded this week'},
     values:   {line:`snapshot ${snapDays===null?'never':snapDays===0?'today':snapDays+'d ago'}`, ok:snapDays!==null&&snapDays<=7, cadence:'weekly', tip:gaps[0]?`Biggest gap: ${gaps[0].name} (${gaps[0].gap>0?'+':''}${gaps[0].gap})`:''},
-    needs:    (()=>{ const ls = typeof maslowScores==='function' ? maslowScores().filter(m=>m.effectiveScore!=null) : [];
-      const weak = ls.length ? ls.reduce((a,b)=>b.effectiveScore<a.effectiveScore?b:a) : null;
-      return {line: weak ? `thinnest: ${weak.short.toLowerCase()} ${weak.effectiveScore}` : 'nothing read yet', ok: !weak || weak.effectiveScore>=40, cadence:'weekly',
-        tip: weak ? `Seven levels read off the rest of the house. ${weak.name} is the constraint on everything above it.` : 'Seven levels, read off everything else you log.'}; })(),
-    spiral:   (()=>{ const n = S.spiral?.indicators?.length || 0; const p = typeof spiralProgress==='function' ? spiralProgress() : null;
-      const pair = S.spiral?.currentPair;
-      return {line: n ? (p==null ? `${n} indicators, none rated` : `${Math.round(p*100)}% into ${(spiralMeta(pair.embodying)||[])[1]||''}`) : 'no indicators yet', ok:n>0, cadence:'monthly',
-        tip: pair ? `Releasing ${(spiralMeta(pair.releasing)||[])[1]}, embodying ${(spiralMeta(pair.embodying)||[])[1]}.` : ''}; })(),
     skills:   {line:`${hrs30.toFixed(0)}h / 30d${atro?` · ${atro} atrophying`:''}`, ok:atro===0, cadence:'monthly', tip:`${S.skills.filter(s=>!s.planned).length} skills held, ${S.skills.filter(s=>s.planned).length} planned${milestonesDueSoon(30).length?` · ${milestonesDueSoon(30).length} milestone${milestonesDueSoon(30).length>1?'s':''} within 30 days`:''}`},
     timeline: {line:`${memories} memories · ${S.stages.length} stages`, ok:true, cadence:'archival', tip:'The museum of the past. Formative events and the story you tell.'},
     writing:  {line:`${S.entries.filter(e=>e.type==='writing').length} pieces`, ok:true, cadence:'weekly', tip:'A room for contemplation, fed by your own hashtags.'},

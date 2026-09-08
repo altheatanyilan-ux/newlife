@@ -389,18 +389,6 @@ const PAGE_SCENES = {
     <g stroke="${A}" fill="none" stroke-width="1.4" opacity=".2">${Array.from({length:5},(_,i)=>`<path d="M60,${560+i*40} q560,${-16-i*6} 1080,${8+i*4}"/>`).join('')}</g>
     ${seal(1076, 132, 42, '藝')}`),
 
-  /* the road into the mountains, and one traveller a long way up it */
-  spiral: scene((u,r) => `${mountain(u, 640, 520, 900, 460, 'vs-peak')}
-    ${mountain(u, 200, 600, 620, 300, 'vs-left', {far:true})}
-    ${mountain(u, 1080, 620, 560, 340, 'vs-right', {far:true})}
-    ${mistBand(u, 440, 90)}${mistBand(u, 570, 80, .8)}
-    <path d="M600,${SC_H} q60,-130 -20,-216 q-76,-84 24,-172" fill="none" stroke="${A}" stroke-width="2.2" opacity=".34" stroke-dasharray="12 15"/>
-    ${figure(590, 690, 1)}
-    ${ruyiCloud(200, 210, 1, 4)}
-    ${moonDisc(1000, 160, 52)}
-    ${inscription(126, 420, '行到水窮處', 24)}${seal(104, 610, 40, '志')}`),
-
-  /* ridge behind ridge behind ridge, each one paler than the last */
   timeline: scene((u,r) => `${mountain(u, 300, 380, 700, 210, 'tl-4', {far:true, texture:false})}
     ${mountain(u, 820, 440, 760, 250, 'tl-3', {far:true, texture:false})}
     ${mountain(u, 420, 520, 720, 260, 'tl-2', {far:true})}

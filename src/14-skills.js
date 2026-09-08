@@ -45,7 +45,7 @@ const SKILL_HORIZONS = {
   focus:   ['◉','In focus',  'the handful you are actually practising now', '#7f916a'],
   active:  ['○','Active',    'held and kept warm, but not the priority',    '#6b7f8e'],
   next:    ['↗','Up next',   'starting soon — weeks or a few months away',  '#d4a44c'],
-  someday: ['◌','Someday',   'written down so it stops taking up room in your head', '#8a8d8f'],
+  someday: ['◌','Future',    'written down so it stops taking up room in your head', '#8a8d8f'],
   paused:  ['⏸','Resting',   'deliberately set down, not neglected',        '#a89f94'],
 };
 const SKILL_PRIOS = {P1:['P1','#c25b5b'],P2:['P2','#d4a44c'],P3:['P3','#7f916a'],P4:['P4','#8a8d8f']};
@@ -152,7 +152,7 @@ routes.skills = function(root, params){
     <!-- 4. the inventory, with the add button right above it -->
     <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Inventory</span><span class="mono">${list.length} of ${S.skills.length} shown</span></div>
       <p class="muted" style="font-size:.85rem">Everything you have written down, including the skills for a life you have not started yet.</p>
-      <div class="row" style="gap:8px;margin:12px 0"><button class="btn primary" id="skNew">＋ New skill</button><button class="btn ghost" id="skSomeday">＋ Someday skill</button></div>
+      <div class="row" style="gap:8px;margin:12px 0"><button class="btn primary" id="skNew">＋ Developing skill</button><button class="btn ghost" id="skSomeday">＋ Future skill</button></div>
       <div class="filter-bar">
         <input class="inp" id="skq" placeholder="search name, category, reason, tag" value="${esc(f.q)}">
         <select class="sel" id="skHorizon"><option value="all">every horizon</option>${Object.entries(SKILL_HORIZONS).map(([k,v])=>`<option value="${k}" ${f.horizon===k?'selected':''}>${v[0]} ${v[1]} (${counts[k]})</option>`).join('')}</select>

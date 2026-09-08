@@ -942,12 +942,8 @@ details.era-lived[open] > summary::before{transform:rotate(90deg)}
 .snap-list{max-height:520px;overflow-y:auto;margin-top:14px;padding-right:4px;scrollbar-width:thin}
 .snap-row{border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:8px;transition:border-color .2s var(--ease)}
 .snap-row:hover{border-color:var(--line-2)}
-.snap-head{display:grid;grid-template-columns:150px 1fr 60px;gap:14px;align-items:center;padding:12px 16px;cursor:pointer}
+.snap-head{display:grid;grid-template-columns:1fr 60px;gap:14px;align-items:center;padding:12px 16px;cursor:pointer}
 .snap-date{display:flex;flex-direction:column;gap:2px}
-.snap-bars{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap}
-.snap-bar{display:flex;flex-direction:column;align-items:center;gap:3px;width:34px}
-.snap-bar i{display:block;width:12px;border-radius:3px 3px 1px 1px;background:var(--surface-3)}
-.snap-bar i.low{background:var(--rose)}.snap-bar i.mid{background:var(--gold)}.snap-bar i.high{background:var(--sage)}
 .snap-chev{transition:transform .25s var(--ease);font-size:1.1rem;text-align:center}
 .snap-row.open .snap-chev{transform:rotate(90deg)}
 .snap-detail{display:grid;grid-template-rows:0fr;transition:grid-template-rows .25s var(--ease)}
@@ -957,7 +953,7 @@ details.era-lived[open] > summary::before{transform:rotate(90deg)}
 .snap-val{display:grid;grid-template-columns:150px 1fr 34px 58px;gap:10px;align-items:center;padding:5px 0;font-size:.85rem}
 .snap-val .snap-note{grid-column:1 / -1;font-family:var(--quote);font-style:italic;color:var(--muted);padding:2px 0 6px 12px;border-left:2px solid var(--line-2)}
 .trend-line,.trend-dot{transition:opacity .2s var(--ease)}
-@media (max-width:900px){.snap-head{grid-template-columns:1fr 20px}.snap-bars{grid-column:1 / -1}.snap-val{grid-template-columns:1fr 34px 58px}.snap-val>span:first-child{grid-column:1 / -1}}
+@media (max-width:900px){.snap-head{grid-template-columns:1fr 20px}.snap-val{grid-template-columns:1fr 34px 58px}.snap-val>span:first-child{grid-column:1 / -1}}
 .time-slider{margin-top:16px}
 .time-slider .lbl{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.65rem;color:var(--faint);margin-top:4px}
 .spark-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px}
@@ -1328,13 +1324,24 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 /* ============================================================
    14. THE LIBRARY (Commonplace Book redesign)
    ============================================================ */
-.media-kind-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;margin-bottom:16px}
-.media-kind-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 6px;border-radius:12px;border:1px solid var(--line);background:var(--surface);cursor:pointer;transition:border-color .18s var(--ease),background .18s var(--ease),transform .18s var(--page-ease);color:var(--text)}
-.media-kind-btn:hover{transform:var(--page-lift)}
-.media-kind-btn .ico{font-size:1.3rem}
-.media-kind-btn .lbl{font-size:.7rem;font-family:var(--mono)}
-.media-kind-btn .n{font-size:.62rem;color:var(--faint)}
-.media-kind-btn.on{border-color:var(--c);background:color-mix(in srgb,var(--c) 14%,var(--surface))}
+/* ten media, one line. The shelf reads as a single strip of glass with the
+   page showing through it, not as ten separate boxes. */
+.media-kind-row{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:2px;margin-bottom:16px;
+  padding:5px;border-radius:14px;border:1px solid color-mix(in srgb,var(--line) 60%,transparent);
+  background:color-mix(in srgb,var(--surface) 42%,transparent);backdrop-filter:blur(9px) saturate(1.1);
+  -webkit-backdrop-filter:blur(9px) saturate(1.1);box-shadow:inset 0 1px 0 color-mix(in srgb,#fff 22%,transparent)}
+@media (max-width:820px){.media-kind-row{grid-template-columns:repeat(5,minmax(0,1fr))}}
+.media-kind-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 2px 8px;min-width:0;
+  border-radius:10px;border:1px solid transparent;background:transparent;cursor:pointer;color:var(--text);
+  transition:background .2s var(--ease),border-color .2s var(--ease),transform .2s var(--page-ease)}
+.media-kind-btn:hover{background:color-mix(in srgb,var(--c) 10%,transparent);transform:translateY(-1px)}
+.media-kind-btn .ico{font-size:1.15rem;line-height:1}
+.media-kind-btn .lbl{font-size:.6rem;font-family:var(--mono);letter-spacing:.02em;max-width:100%;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.media-kind-btn .n{font-size:.58rem;color:var(--faint)}
+.media-kind-btn.on{border-color:color-mix(in srgb,var(--c) 55%,transparent);
+  background:color-mix(in srgb,var(--c) 18%,transparent)}
+@media (prefers-reduced-motion:reduce){.media-kind-btn{transition:none}}
 .lib-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0}
 .lib-tabs button{padding:6px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-size:.78rem;font-family:var(--mono);cursor:pointer;color:var(--muted)}
 .lib-tabs button.active{background:var(--page-accent);color:var(--page-accent-ink);border-color:var(--page-accent)}
@@ -1858,166 +1865,7 @@ html.vision-deep .page-scene.on{opacity:var(--scene-op)}
 .split-bar .p{background:var(--sage);opacity:.85}
 @media (prefers-reduced-motion:reduce){.earn-switch button{transition:none}}
 
-/* ============================================================
-   THE SPIRAL — direction made visible. Left cools and recedes,
-   right warms and arrives; the page must read that way before a
-   single word of it is read.
-   ============================================================ */
-.spiral-page .page-head{align-items:flex-start}
-.spi-pair-grid{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:18px;
-  padding:20px 0 6px}
-.spi-end{display:flex;flex-direction:column;gap:2px}
-.spi-end.rel{text-align:right;border-right:2px solid color-mix(in srgb,var(--rel) 40%,transparent);padding-right:18px;opacity:.82}
-.spi-end.emb{text-align:left;border-left:2px solid var(--emb);padding-left:18px}
-.spi-end-k{font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
-.spi-end.rel .spi-end-n{color:var(--rel)}
-.spi-end.emb .spi-end-n{color:var(--emb)}
-.spi-end-n{font-size:1.45rem;line-height:1.15}
-.spi-end-g{font-size:.8rem;color:var(--muted)}
-.spi-arrow{display:flex;align-items:center;gap:0;color:var(--emb)}
-.spi-arrow-line{display:block;width:clamp(40px,9vw,110px);height:1px;
-  background:linear-gradient(to right,color-mix(in srgb,var(--rel) 70%,transparent),var(--emb))}
-.spi-arrow-head{font-size:.6rem;margin-left:-2px}
-.spi-warn{font-family:var(--serif);font-style:italic;font-size:.84rem;color:var(--rose);margin:0 0 6px}
-.spi-change > summary,.spi-traces > summary{font-size:.66rem;letter-spacing:.1em;color:var(--muted);cursor:pointer;padding:6px 0}
-.spi-change > summary:hover,.spi-traces > summary:hover{color:var(--page-accent)}
-.spi-sel{width:auto;font-size:.8rem}
-.spi-sel.sm{font-size:.72rem;padding:2px 6px}
-.spi-trace{gap:8px;flex-wrap:wrap;border-left:2px solid var(--c)}
 
-.spi-track{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;margin:14px 0 10px}
-.spi-track-end{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase}
-.spi-track-end.left{color:var(--rel);opacity:.85}
-.spi-track-end.right{color:var(--emb)}
-.spi-track-bar{position:relative;height:6px;border-radius:3px;
-  background:linear-gradient(to right,color-mix(in srgb,var(--rel) 45%,transparent),color-mix(in srgb,var(--emb) 70%,transparent))}
-.spi-marker{position:absolute;top:50%;width:13px;height:13px;border-radius:50%;background:var(--emb);
-  transform:translate(-50%,-50%);box-shadow:0 0 0 3px var(--bg);transition:left .5s var(--ease)}
-.spi-reading{font-family:var(--serif);font-style:italic;font-size:.95rem;line-height:1.65;color:var(--text);
-  opacity:.88;margin:0;max-width:62ch}
-
-.spi-cols{display:grid;grid-template-columns:1fr 1fr;gap:26px;align-items:start}
-@media (max-width:860px){.spi-cols{grid-template-columns:1fr;gap:34px}.spi-pair-grid{grid-template-columns:1fr;gap:14px}
-  .spi-end.rel{text-align:left;border-right:0;padding-right:0;border-left:2px solid color-mix(in srgb,var(--rel) 40%,transparent);padding-left:18px}
-  .spi-arrow{transform:rotate(90deg);justify-content:center}}
-.spi-col{border-left:2px solid var(--c);padding-left:16px}
-.spi-col.releasing{opacity:.92}
-.spi-col-h{display:flex;flex-direction:column;gap:1px;margin-bottom:2px}
-.spi-col-h .mono{font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
-.spi-col-h b{font-size:1.12rem;color:var(--c)}
-.spi-col-h .faint{font-size:.78rem}
-.spi-col-scale{font-size:.6rem;color:var(--muted);opacity:.7;margin:2px 0 14px;line-height:1.5}
-.spi-add{margin-top:10px}
-
-.spi-ind{padding:12px 0;border-top:1px dashed var(--line);cursor:grab;
-  transition:opacity .3s var(--ease),background .2s var(--ease)}
-.spi-ind:first-of-type{border-top:0}
-.spi-ind.dragging{opacity:.4}
-.spi-ind.over{background:color-mix(in srgb,var(--c) 8%,transparent)}
-.spi-ind-top{display:flex;align-items:flex-start;gap:8px}
-.spi-ind-text{flex:1;font-size:.92rem;line-height:1.55}
-.spi-x{opacity:0;transition:opacity .2s var(--ease)}
-.spi-ind:hover .spi-x{opacity:.6}
-.spi-x:hover{opacity:1}
-.spi-ind-scale{display:flex;align-items:center;gap:10px;margin-top:7px;flex-wrap:wrap}
-.spi-dots{display:inline-flex;gap:6px}
-.spi-dots button{width:11px;height:11px;padding:0;border-radius:50%;cursor:pointer;
-  border:1px solid color-mix(in srgb,var(--c) 55%,transparent);background:none;
-  transition:background .2s var(--ease),transform .2s var(--ease)}
-.spi-dots button:hover{transform:scale(1.25)}
-.spi-dots button.on{background:var(--c)}
-.spi-ind-word{font-size:.72rem;color:var(--muted)}
-.spi-ind-when{font-size:.58rem;color:var(--muted);opacity:.6;margin-left:auto}
-.spi-ind-note{margin-top:6px}
-.spi-ind-note .ed{font-size:.82rem;line-height:1.55;opacity:.82}
-/* the ends of each journey, said in opacity and colour rather than words */
-.spi-ind.receded{opacity:.6}
-.spi-ind.arrived .spi-ind-text,.spi-ind.arrived .spi-ind-word{color:var(--terra)}
-
-.spi-ev-group{margin-top:14px;border-left:2px solid var(--c);padding-left:12px}
-.spi-ev-h{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
-.spi-sign{font-family:var(--mono);font-weight:700}
-.spi-sign.embodying{color:var(--sage)}
-.spi-sign.releasing{color:var(--rose)}
-.spi-ev{display:flex;align-items:baseline;gap:10px;padding:3px 0;cursor:pointer;border-radius:4px}
-.spi-ev:hover{background:color-mix(in srgb,var(--text) 3%,transparent)}
-.spi-ev .mono{font-size:.6rem;color:var(--muted);min-width:5.4em}
-.spi-ev-t{flex:1;font-size:.85rem}
-.spi-hist-svg{display:block;width:100%;height:56px;margin-top:12px;overflow:visible}
-.spi-hist-row{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding:5px 0;border-top:1px dashed var(--line)}
-.spi-hist-row .mono{font-size:.64rem;color:var(--muted)}
-.spi-hist-note{flex:1;min-width:12em;font-size:.84rem}
-.spiral-page .center{text-align:center}
-@media (prefers-reduced-motion:reduce){.spi-marker,.spi-dots button,.spi-ind,.spi-x{transition:none}}
-
-/* ============================================================
-   THE LIFE LEDGER — the stats as prose. Not a card grid: a page
-   of a ledger, where the numbers sit inside sentences and a level
-   that is doing fine says it quietly.
-   ============================================================ */
-.life-ledger{margin-top:8px}
-.lg-stanza{padding:14px 0 16px;cursor:pointer;transition:background .2s var(--ease)}
-.lg-stanza:hover{background:color-mix(in srgb,var(--text) 2%,transparent)}
-.lg-h{display:flex;align-items:center;gap:9px;padding-bottom:5px;
-  border-bottom:1px solid color-mix(in srgb,var(--terra) 22%,transparent)}
-.lg-pie{width:15px;height:15px;flex:0 0 15px;display:block}
-.lg-pie svg{width:100%;height:100%;display:block}
-.lg-name{font-family:var(--serif);font-size:.88rem;font-variant:small-caps;letter-spacing:.09em;color:var(--text)}
-.lg-flag{font-family:var(--quote);font-style:italic;font-size:.76rem;color:var(--gold);opacity:.9}
-.lg-score{margin-left:auto;font-size:.72rem;color:var(--muted)}
-.lg-body{font-size:.86rem;line-height:1.62;color:var(--text);margin-top:8px;max-width:62ch}
-.lg-n{font-family:var(--mono);font-size:.84rem;font-weight:400;color:color-mix(in srgb,var(--terra) 70%,var(--text))}
-.lg-spark{display:inline-block;vertical-align:baseline;margin:0 2px -2px}
-.lg-none{font-family:var(--quote);font-style:italic;color:var(--muted)}
-.lg-none a{color:var(--page-accent);text-decoration:none}
-/* a level that is doing well whispers; one that is thin speaks clearly */
-.lg-stanza.whisper .lg-body{color:var(--muted)}
-.lg-stanza.whisper .lg-n{color:var(--muted);opacity:.85}
-.lg-stanza.speaks .lg-body{color:var(--text)}
-.lg-stanza.speaks .lg-n{color:var(--terra)}
-.lg-title{font-size:.72rem}
-
-/* ---------- the Needs room ---------- */
-.needs-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start;margin-top:14px}
-@media (max-width:900px){.needs-grid{grid-template-columns:1fr}}
-.needs-pyr .mas-svg{max-width:420px}
-.needs-page .mas-tier{cursor:pointer;transition:opacity .2s var(--ease)}
-.needs-pyr:hover .mas-tier{opacity:.62}
-.needs-pyr .mas-tier:hover{opacity:1}
-.needs-side{display:flex;flex-direction:column;gap:2px}
-.needs-diag{padding:9px 11px;border-left:2px solid transparent;border-radius:6px;cursor:pointer;
-  transition:background .2s var(--ease),border-color .2s var(--ease)}
-.needs-diag:hover{background:color-mix(in srgb,var(--text) 3%,transparent);border-left-color:var(--page-accent)}
-.nd-h{display:flex;align-items:baseline;gap:8px}
-.nd-h b{font-size:.98rem}
-.nd-h .mono{margin-left:auto;font-size:.68rem;color:var(--muted)}
-.nd-inputs{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:3px}
-.nd-inputs span{font-size:.68rem;color:var(--muted)}
-.nd-inputs b{color:var(--text);opacity:.85}
-.nd-ov{font-size:.62rem;color:var(--gold);margin-top:3px}
-.nd-note{font-family:var(--quote);font-style:italic;font-size:.78rem;color:var(--muted);margin-top:3px}
-.nd-ask{font-family:var(--quote);font-style:italic;font-size:.82rem;color:var(--muted);opacity:0;height:0;overflow:hidden;
-  margin:0;transition:opacity .25s var(--ease)}
-.nd-go{font-size:.64rem;color:var(--page-accent);text-decoration:none;opacity:0;height:0;overflow:hidden;display:block;
-  transition:opacity .25s var(--ease)}
-.needs-diag:hover .nd-ask,.needs-diag:focus-within .nd-ask{opacity:1;height:auto;margin:6px 0 2px}
-.needs-diag:hover .nd-go,.needs-diag:focus-within .nd-go{opacity:1;height:auto}
-.needs-hist-svg{display:block;width:100%;height:130px;margin-top:12px;overflow:visible}
-.needs-hist-key{display:flex;flex-wrap:wrap;gap:4px 12px;margin:6px 0 4px}
-.needs-hist-key span{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:.58rem;color:var(--muted)}
-.needs-hist-key i{width:9px;height:2px;border-radius:1px;display:inline-block}
-/* the auto score stays visible on the override track, as a faint tick */
-.ov-slider{position:relative}
-.ov-slider::before{content:'';position:absolute;left:var(--tick,50%);top:50%;width:1px;height:13px;
-  background:var(--muted);opacity:.5;transform:translate(-50%,-50%);pointer-events:none}
-.needs-page .center{text-align:center}
-@media (prefers-reduced-motion:reduce){.lg-stanza,.needs-diag,.nd-ask,.nd-go{transition:none}}
-.ll-foundation{font-family:var(--quote);font-style:italic;font-size:.8rem;color:var(--gold);opacity:.85;
-  text-align:right;margin:8px 0 0;max-width:52ch;margin-left:auto}
-.spi-crosscheck{font-size:.8rem;color:var(--muted);margin:8px 0 0;max-width:62ch}
-.spi-crosscheck a{color:var(--page-accent);text-decoration:none}
-.val-stage-note{font-family:var(--quote);font-style:italic;font-size:.82rem;color:var(--muted);margin:10px 0 0}
-.val-stage-note a{color:var(--page-accent);text-decoration:none;font-style:normal;font-family:var(--mono);font-size:.66rem}
 
 /* ---------- imagery on a record ----------
    The card is printed on the first image: a wash at low opacity under a scrim

@@ -1343,12 +1343,8 @@ details.era-lived[open] > summary::before{transform:rotate(90deg)}
 .snap-list{max-height:520px;overflow-y:auto;margin-top:14px;padding-right:4px;scrollbar-width:thin}
 .snap-row{border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:8px;transition:border-color .2s var(--ease)}
 .snap-row:hover{border-color:var(--line-2)}
-.snap-head{display:grid;grid-template-columns:150px 1fr 60px;gap:14px;align-items:center;padding:12px 16px;cursor:pointer}
+.snap-head{display:grid;grid-template-columns:1fr 60px;gap:14px;align-items:center;padding:12px 16px;cursor:pointer}
 .snap-date{display:flex;flex-direction:column;gap:2px}
-.snap-bars{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap}
-.snap-bar{display:flex;flex-direction:column;align-items:center;gap:3px;width:34px}
-.snap-bar i{display:block;width:12px;border-radius:3px 3px 1px 1px;background:var(--surface-3)}
-.snap-bar i.low{background:var(--rose)}.snap-bar i.mid{background:var(--gold)}.snap-bar i.high{background:var(--sage)}
 .snap-chev{transition:transform .25s var(--ease);font-size:1.1rem;text-align:center}
 .snap-row.open .snap-chev{transform:rotate(90deg)}
 .snap-detail{display:grid;grid-template-rows:0fr;transition:grid-template-rows .25s var(--ease)}
@@ -1358,7 +1354,7 @@ details.era-lived[open] > summary::before{transform:rotate(90deg)}
 .snap-val{display:grid;grid-template-columns:150px 1fr 34px 58px;gap:10px;align-items:center;padding:5px 0;font-size:.85rem}
 .snap-val .snap-note{grid-column:1 / -1;font-family:var(--quote);font-style:italic;color:var(--muted);padding:2px 0 6px 12px;border-left:2px solid var(--line-2)}
 .trend-line,.trend-dot{transition:opacity .2s var(--ease)}
-@media (max-width:900px){.snap-head{grid-template-columns:1fr 20px}.snap-bars{grid-column:1 / -1}.snap-val{grid-template-columns:1fr 34px 58px}.snap-val>span:first-child{grid-column:1 / -1}}
+@media (max-width:900px){.snap-head{grid-template-columns:1fr 20px}.snap-val{grid-template-columns:1fr 34px 58px}.snap-val>span:first-child{grid-column:1 / -1}}
 .time-slider{margin-top:16px}
 .time-slider .lbl{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.65rem;color:var(--faint);margin-top:4px}
 .spark-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px}
@@ -1729,13 +1725,24 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 /* ============================================================
    14. THE LIBRARY (Commonplace Book redesign)
    ============================================================ */
-.media-kind-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;margin-bottom:16px}
-.media-kind-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 6px;border-radius:12px;border:1px solid var(--line);background:var(--surface);cursor:pointer;transition:border-color .18s var(--ease),background .18s var(--ease),transform .18s var(--page-ease);color:var(--text)}
-.media-kind-btn:hover{transform:var(--page-lift)}
-.media-kind-btn .ico{font-size:1.3rem}
-.media-kind-btn .lbl{font-size:.7rem;font-family:var(--mono)}
-.media-kind-btn .n{font-size:.62rem;color:var(--faint)}
-.media-kind-btn.on{border-color:var(--c);background:color-mix(in srgb,var(--c) 14%,var(--surface))}
+/* ten media, one line. The shelf reads as a single strip of glass with the
+   page showing through it, not as ten separate boxes. */
+.media-kind-row{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:2px;margin-bottom:16px;
+  padding:5px;border-radius:14px;border:1px solid color-mix(in srgb,var(--line) 60%,transparent);
+  background:color-mix(in srgb,var(--surface) 42%,transparent);backdrop-filter:blur(9px) saturate(1.1);
+  -webkit-backdrop-filter:blur(9px) saturate(1.1);box-shadow:inset 0 1px 0 color-mix(in srgb,#fff 22%,transparent)}
+@media (max-width:820px){.media-kind-row{grid-template-columns:repeat(5,minmax(0,1fr))}}
+.media-kind-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 2px 8px;min-width:0;
+  border-radius:10px;border:1px solid transparent;background:transparent;cursor:pointer;color:var(--text);
+  transition:background .2s var(--ease),border-color .2s var(--ease),transform .2s var(--page-ease)}
+.media-kind-btn:hover{background:color-mix(in srgb,var(--c) 10%,transparent);transform:translateY(-1px)}
+.media-kind-btn .ico{font-size:1.15rem;line-height:1}
+.media-kind-btn .lbl{font-size:.6rem;font-family:var(--mono);letter-spacing:.02em;max-width:100%;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.media-kind-btn .n{font-size:.58rem;color:var(--faint)}
+.media-kind-btn.on{border-color:color-mix(in srgb,var(--c) 55%,transparent);
+  background:color-mix(in srgb,var(--c) 18%,transparent)}
+@media (prefers-reduced-motion:reduce){.media-kind-btn{transition:none}}
 .lib-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0}
 .lib-tabs button{padding:6px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-size:.78rem;font-family:var(--mono);cursor:pointer;color:var(--muted)}
 .lib-tabs button.active{background:var(--page-accent);color:var(--page-accent-ink);border-color:var(--page-accent)}
@@ -2259,166 +2266,7 @@ html.vision-deep .page-scene.on{opacity:var(--scene-op)}
 .split-bar .p{background:var(--sage);opacity:.85}
 @media (prefers-reduced-motion:reduce){.earn-switch button{transition:none}}
 
-/* ============================================================
-   THE SPIRAL — direction made visible. Left cools and recedes,
-   right warms and arrives; the page must read that way before a
-   single word of it is read.
-   ============================================================ */
-.spiral-page .page-head{align-items:flex-start}
-.spi-pair-grid{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:18px;
-  padding:20px 0 6px}
-.spi-end{display:flex;flex-direction:column;gap:2px}
-.spi-end.rel{text-align:right;border-right:2px solid color-mix(in srgb,var(--rel) 40%,transparent);padding-right:18px;opacity:.82}
-.spi-end.emb{text-align:left;border-left:2px solid var(--emb);padding-left:18px}
-.spi-end-k{font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
-.spi-end.rel .spi-end-n{color:var(--rel)}
-.spi-end.emb .spi-end-n{color:var(--emb)}
-.spi-end-n{font-size:1.45rem;line-height:1.15}
-.spi-end-g{font-size:.8rem;color:var(--muted)}
-.spi-arrow{display:flex;align-items:center;gap:0;color:var(--emb)}
-.spi-arrow-line{display:block;width:clamp(40px,9vw,110px);height:1px;
-  background:linear-gradient(to right,color-mix(in srgb,var(--rel) 70%,transparent),var(--emb))}
-.spi-arrow-head{font-size:.6rem;margin-left:-2px}
-.spi-warn{font-family:var(--serif);font-style:italic;font-size:.84rem;color:var(--rose);margin:0 0 6px}
-.spi-change > summary,.spi-traces > summary{font-size:.66rem;letter-spacing:.1em;color:var(--muted);cursor:pointer;padding:6px 0}
-.spi-change > summary:hover,.spi-traces > summary:hover{color:var(--page-accent)}
-.spi-sel{width:auto;font-size:.8rem}
-.spi-sel.sm{font-size:.72rem;padding:2px 6px}
-.spi-trace{gap:8px;flex-wrap:wrap;border-left:2px solid var(--c)}
 
-.spi-track{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;margin:14px 0 10px}
-.spi-track-end{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase}
-.spi-track-end.left{color:var(--rel);opacity:.85}
-.spi-track-end.right{color:var(--emb)}
-.spi-track-bar{position:relative;height:6px;border-radius:3px;
-  background:linear-gradient(to right,color-mix(in srgb,var(--rel) 45%,transparent),color-mix(in srgb,var(--emb) 70%,transparent))}
-.spi-marker{position:absolute;top:50%;width:13px;height:13px;border-radius:50%;background:var(--emb);
-  transform:translate(-50%,-50%);box-shadow:0 0 0 3px var(--bg);transition:left .5s var(--ease)}
-.spi-reading{font-family:var(--serif);font-style:italic;font-size:.95rem;line-height:1.65;color:var(--text);
-  opacity:.88;margin:0;max-width:62ch}
-
-.spi-cols{display:grid;grid-template-columns:1fr 1fr;gap:26px;align-items:start}
-@media (max-width:860px){.spi-cols{grid-template-columns:1fr;gap:34px}.spi-pair-grid{grid-template-columns:1fr;gap:14px}
-  .spi-end.rel{text-align:left;border-right:0;padding-right:0;border-left:2px solid color-mix(in srgb,var(--rel) 40%,transparent);padding-left:18px}
-  .spi-arrow{transform:rotate(90deg);justify-content:center}}
-.spi-col{border-left:2px solid var(--c);padding-left:16px}
-.spi-col.releasing{opacity:.92}
-.spi-col-h{display:flex;flex-direction:column;gap:1px;margin-bottom:2px}
-.spi-col-h .mono{font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
-.spi-col-h b{font-size:1.12rem;color:var(--c)}
-.spi-col-h .faint{font-size:.78rem}
-.spi-col-scale{font-size:.6rem;color:var(--muted);opacity:.7;margin:2px 0 14px;line-height:1.5}
-.spi-add{margin-top:10px}
-
-.spi-ind{padding:12px 0;border-top:1px dashed var(--line);cursor:grab;
-  transition:opacity .3s var(--ease),background .2s var(--ease)}
-.spi-ind:first-of-type{border-top:0}
-.spi-ind.dragging{opacity:.4}
-.spi-ind.over{background:color-mix(in srgb,var(--c) 8%,transparent)}
-.spi-ind-top{display:flex;align-items:flex-start;gap:8px}
-.spi-ind-text{flex:1;font-size:.92rem;line-height:1.55}
-.spi-x{opacity:0;transition:opacity .2s var(--ease)}
-.spi-ind:hover .spi-x{opacity:.6}
-.spi-x:hover{opacity:1}
-.spi-ind-scale{display:flex;align-items:center;gap:10px;margin-top:7px;flex-wrap:wrap}
-.spi-dots{display:inline-flex;gap:6px}
-.spi-dots button{width:11px;height:11px;padding:0;border-radius:50%;cursor:pointer;
-  border:1px solid color-mix(in srgb,var(--c) 55%,transparent);background:none;
-  transition:background .2s var(--ease),transform .2s var(--ease)}
-.spi-dots button:hover{transform:scale(1.25)}
-.spi-dots button.on{background:var(--c)}
-.spi-ind-word{font-size:.72rem;color:var(--muted)}
-.spi-ind-when{font-size:.58rem;color:var(--muted);opacity:.6;margin-left:auto}
-.spi-ind-note{margin-top:6px}
-.spi-ind-note .ed{font-size:.82rem;line-height:1.55;opacity:.82}
-/* the ends of each journey, said in opacity and colour rather than words */
-.spi-ind.receded{opacity:.6}
-.spi-ind.arrived .spi-ind-text,.spi-ind.arrived .spi-ind-word{color:var(--terra)}
-
-.spi-ev-group{margin-top:14px;border-left:2px solid var(--c);padding-left:12px}
-.spi-ev-h{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
-.spi-sign{font-family:var(--mono);font-weight:700}
-.spi-sign.embodying{color:var(--sage)}
-.spi-sign.releasing{color:var(--rose)}
-.spi-ev{display:flex;align-items:baseline;gap:10px;padding:3px 0;cursor:pointer;border-radius:4px}
-.spi-ev:hover{background:color-mix(in srgb,var(--text) 3%,transparent)}
-.spi-ev .mono{font-size:.6rem;color:var(--muted);min-width:5.4em}
-.spi-ev-t{flex:1;font-size:.85rem}
-.spi-hist-svg{display:block;width:100%;height:56px;margin-top:12px;overflow:visible}
-.spi-hist-row{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding:5px 0;border-top:1px dashed var(--line)}
-.spi-hist-row .mono{font-size:.64rem;color:var(--muted)}
-.spi-hist-note{flex:1;min-width:12em;font-size:.84rem}
-.spiral-page .center{text-align:center}
-@media (prefers-reduced-motion:reduce){.spi-marker,.spi-dots button,.spi-ind,.spi-x{transition:none}}
-
-/* ============================================================
-   THE LIFE LEDGER — the stats as prose. Not a card grid: a page
-   of a ledger, where the numbers sit inside sentences and a level
-   that is doing fine says it quietly.
-   ============================================================ */
-.life-ledger{margin-top:8px}
-.lg-stanza{padding:14px 0 16px;cursor:pointer;transition:background .2s var(--ease)}
-.lg-stanza:hover{background:color-mix(in srgb,var(--text) 2%,transparent)}
-.lg-h{display:flex;align-items:center;gap:9px;padding-bottom:5px;
-  border-bottom:1px solid color-mix(in srgb,var(--terra) 22%,transparent)}
-.lg-pie{width:15px;height:15px;flex:0 0 15px;display:block}
-.lg-pie svg{width:100%;height:100%;display:block}
-.lg-name{font-family:var(--serif);font-size:.88rem;font-variant:small-caps;letter-spacing:.09em;color:var(--text)}
-.lg-flag{font-family:var(--quote);font-style:italic;font-size:.76rem;color:var(--gold);opacity:.9}
-.lg-score{margin-left:auto;font-size:.72rem;color:var(--muted)}
-.lg-body{font-size:.86rem;line-height:1.62;color:var(--text);margin-top:8px;max-width:62ch}
-.lg-n{font-family:var(--mono);font-size:.84rem;font-weight:400;color:color-mix(in srgb,var(--terra) 70%,var(--text))}
-.lg-spark{display:inline-block;vertical-align:baseline;margin:0 2px -2px}
-.lg-none{font-family:var(--quote);font-style:italic;color:var(--muted)}
-.lg-none a{color:var(--page-accent);text-decoration:none}
-/* a level that is doing well whispers; one that is thin speaks clearly */
-.lg-stanza.whisper .lg-body{color:var(--muted)}
-.lg-stanza.whisper .lg-n{color:var(--muted);opacity:.85}
-.lg-stanza.speaks .lg-body{color:var(--text)}
-.lg-stanza.speaks .lg-n{color:var(--terra)}
-.lg-title{font-size:.72rem}
-
-/* ---------- the Needs room ---------- */
-.needs-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start;margin-top:14px}
-@media (max-width:900px){.needs-grid{grid-template-columns:1fr}}
-.needs-pyr .mas-svg{max-width:420px}
-.needs-page .mas-tier{cursor:pointer;transition:opacity .2s var(--ease)}
-.needs-pyr:hover .mas-tier{opacity:.62}
-.needs-pyr .mas-tier:hover{opacity:1}
-.needs-side{display:flex;flex-direction:column;gap:2px}
-.needs-diag{padding:9px 11px;border-left:2px solid transparent;border-radius:6px;cursor:pointer;
-  transition:background .2s var(--ease),border-color .2s var(--ease)}
-.needs-diag:hover{background:color-mix(in srgb,var(--text) 3%,transparent);border-left-color:var(--page-accent)}
-.nd-h{display:flex;align-items:baseline;gap:8px}
-.nd-h b{font-size:.98rem}
-.nd-h .mono{margin-left:auto;font-size:.68rem;color:var(--muted)}
-.nd-inputs{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:3px}
-.nd-inputs span{font-size:.68rem;color:var(--muted)}
-.nd-inputs b{color:var(--text);opacity:.85}
-.nd-ov{font-size:.62rem;color:var(--gold);margin-top:3px}
-.nd-note{font-family:var(--quote);font-style:italic;font-size:.78rem;color:var(--muted);margin-top:3px}
-.nd-ask{font-family:var(--quote);font-style:italic;font-size:.82rem;color:var(--muted);opacity:0;height:0;overflow:hidden;
-  margin:0;transition:opacity .25s var(--ease)}
-.nd-go{font-size:.64rem;color:var(--page-accent);text-decoration:none;opacity:0;height:0;overflow:hidden;display:block;
-  transition:opacity .25s var(--ease)}
-.needs-diag:hover .nd-ask,.needs-diag:focus-within .nd-ask{opacity:1;height:auto;margin:6px 0 2px}
-.needs-diag:hover .nd-go,.needs-diag:focus-within .nd-go{opacity:1;height:auto}
-.needs-hist-svg{display:block;width:100%;height:130px;margin-top:12px;overflow:visible}
-.needs-hist-key{display:flex;flex-wrap:wrap;gap:4px 12px;margin:6px 0 4px}
-.needs-hist-key span{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:.58rem;color:var(--muted)}
-.needs-hist-key i{width:9px;height:2px;border-radius:1px;display:inline-block}
-/* the auto score stays visible on the override track, as a faint tick */
-.ov-slider{position:relative}
-.ov-slider::before{content:'';position:absolute;left:var(--tick,50%);top:50%;width:1px;height:13px;
-  background:var(--muted);opacity:.5;transform:translate(-50%,-50%);pointer-events:none}
-.needs-page .center{text-align:center}
-@media (prefers-reduced-motion:reduce){.lg-stanza,.needs-diag,.nd-ask,.nd-go{transition:none}}
-.ll-foundation{font-family:var(--quote);font-style:italic;font-size:.8rem;color:var(--gold);opacity:.85;
-  text-align:right;margin:8px 0 0;max-width:52ch;margin-left:auto}
-.spi-crosscheck{font-size:.8rem;color:var(--muted);margin:8px 0 0;max-width:62ch}
-.spi-crosscheck a{color:var(--page-accent);text-decoration:none}
-.val-stage-note{font-family:var(--quote);font-style:italic;font-size:.82rem;color:var(--muted);margin:10px 0 0}
-.val-stage-note a{color:var(--page-accent);text-decoration:none;font-style:normal;font-family:var(--mono);font-size:.66rem}
 
 /* ---------- imagery on a record ----------
    The card is printed on the first image: a wash at low opacity under a scrim
@@ -2650,7 +2498,7 @@ function tagChips(e, {link=true}={}){ const t = entryTags(e); return t.length ? 
 const KEY = 'lifeinstrument.v1';
 let S = null;
 /* persistence lives in db.js (Dexie schema + load/save/backup) */
-function migrate(){ if(S.settings && (S.settings.home === 'map' || S.settings.home === 'home')) S.settings.home = 'compass'; wipeDemoData(); if(S.rehearsal && !S.rehearsal){ S.rehearsal = S.rehearsal; } delete S.rehearsal; if(typeof migrateEras === 'function') migrateEras(); const d = seed(); for(const k of Object.keys(d)) if(S[k]===undefined) S[k] = d[k]; if(typeof migrateLifeline === 'function') migrateLifeline(); if(typeof migrateSkillLevels === 'function') migrateSkillLevels(); if(typeof migrateProjects === 'function') migrateProjects(); if(typeof migrateStages === 'function') migrateStages(); if(typeof migrateTasks === 'function') migrateTasks(); if(typeof migrateIdeas === 'function') migrateIdeas(); if(typeof migrateMedia === 'function') migrateMedia(); if(typeof migrateSkillFocus === 'function') migrateSkillFocus(); if(typeof migratePeople === 'function') migratePeople(); if(typeof migrateValuePractices === 'function') migrateValuePractices(); if(typeof migrateFinance === 'function') migrateFinance(); if(typeof migrateRhythm === 'function') migrateRhythm(); if(typeof migrateSpiral === 'function') migrateSpiral(); S.boards = Array.isArray(S.boards) ? S.boards : []; if(typeof migrateBoards === 'function') migrateBoards(); }
+function migrate(){ if(S.settings && (S.settings.home === 'map' || S.settings.home === 'home')) S.settings.home = 'compass'; wipeDemoData(); if(S.rehearsal && !S.rehearsal){ S.rehearsal = S.rehearsal; } delete S.rehearsal; if(typeof migrateEras === 'function') migrateEras(); const d = seed(); for(const k of Object.keys(d)) if(S[k]===undefined) S[k] = d[k]; if(typeof migrateLifeline === 'function') migrateLifeline(); if(typeof migrateSkillLevels === 'function') migrateSkillLevels(); if(typeof migrateProjects === 'function') migrateProjects(); if(typeof migrateStages === 'function') migrateStages(); if(typeof migrateTasks === 'function') migrateTasks(); if(typeof migrateIdeas === 'function') migrateIdeas(); if(typeof migrateMedia === 'function') migrateMedia(); if(typeof migrateSkillFocus === 'function') migrateSkillFocus(); if(typeof migratePeople === 'function') migratePeople(); if(typeof migrateValuePractices === 'function') migrateValuePractices(); if(typeof migrateFinance === 'function') migrateFinance(); if(typeof migrateRhythm === 'function') migrateRhythm(); S.boards = Array.isArray(S.boards) ? S.boards : []; if(typeof migrateBoards === 'function') migrateBoards(); }
 
 /* One-time: the house used to open furnished with a demonstration life. If that
    demonstration is still here, clear it so the rooms start empty. */
@@ -2728,15 +2576,22 @@ function animateOut(node, done){
   setTimeout(done, 210);
 }
 /* remove(): mutate S and return a restore() closure. The object stays in memory for 5 s; Undo restores it before the store commits. */
+const UNDO_MS = 8000;
 function requestDelete({label='Entry', node=null, remove, after=null, skipConfirm=false}){
   const run = () => animateOut(node, () => {
     const restore = remove(); const id = uid();
-    const timer = setTimeout(() => { pendingDeletes.delete(id); saveNow(); }, 5000);
+    /* the buffer outlives the toast, so a click on the last visible frame of
+       the toast can never land after the delete has already been committed */
+    const timer = setTimeout(() => { pendingDeletes.delete(id); saveNow(); }, UNDO_MS + 1500);
     pendingDeletes.set(id, {restore, timer});
     (after || rerender)();
-    toast(`${esc(label)} deleted`, 5000, {label:'Undo', fn: () => { const p = pendingDeletes.get(id); if(!p) return; clearTimeout(p.timer); pendingDeletes.delete(id); p.restore(); saveNow(); rerender(); toast('Restored.'); }});
+    toast(`${esc(label)} deleted`, UNDO_MS, {label:'Undo', fn: () => {
+      const p = pendingDeletes.get(id);
+      if(!p){ toast('That one has already been written away.'); return; }
+      clearTimeout(p.timer); pendingDeletes.delete(id);
+      p.restore(); saveNow(); rerender(); toast('Restored.'); }});
   });
-  run(); // no confirmation step — the five-second Undo in the toast is the safety net
+  run(); // no confirmation step — the Undo in the toast is the safety net
 }
 function flushPendingDeletes(){ if(!pendingDeletes.size) return; pendingDeletes.forEach(p => clearTimeout(p.timer)); pendingDeletes.clear(); saveNow(); }
 window.addEventListener('beforeunload', flushPendingDeletes);
@@ -2780,7 +2635,7 @@ function parseHash(){ const h = (location.hash||'').replace(/^#\/?/,''); const [
 /* rooms that no longer exist, pointed at where their work went */
 /* rooms that no longer exist, pointed at where their work went */
 const ROUTE_ALIASES = {home:'compass', rhythm:'today', lifetape:'today', calendar:'today', plan:'today',
-  rituals:'today', reviews:'today', board:'compass', vision:'compass', needs:'compass'};
+  rituals:'today', reviews:'today', board:'compass', vision:'compass', needs:'compass', spiral:'compass'};
 function renderRoute(){
   /* page-scoped atmosphere flags do not survive a navigation */
   
@@ -3161,7 +3016,7 @@ function motesHTML(n = 9, seed = 'motes'){
    on the paper one — because the colour in this house belongs
    to the rooms, and a shan shui painting has never needed any.
    ============================================================ */
-const INK_CONTEMPLATIVE = ['today','journals','spiral'];   // where a margin illustration belongs
+const INK_CONTEMPLATIVE = ['today','journals'];   // where a margin illustration belongs
 const INK_WATER = ['skills','compass'];              // the wide canvases that float on water
 
 /* one seed for the life of the install, so the same painting greets you */
@@ -3271,7 +3126,6 @@ const PAGE_THEMES = {
   projects: {name:'Projects',     accent:['#7f97c9','#4d68a3'], ink:'#1a1816', gradient:['#6b7fa8','#8ec5e8'], mood:'structured, focused',    motion:'crisp',     glyph:'作', icon:'🎨'},
   rituals:  {name:'Rituals & Habits',      accent:['#6fa39a','#457d74'], ink:'#1a1816', gradient:['#5f968d','#b7c9a0'], mood:'steady, rhythmic',       motion:'calm',      glyph:'儀', icon:'✨'},
   values:   {name:'Values',      accent:['#ab93cf','#7a60a8'], ink:'#1a1816', gradient:['#b7a2d8','#a3798f'], mood:'introspective, calm',    motion:'calm',      glyph:'心', icon:'🧭'},
-  spiral:   {name:'Spiral',       accent:['#c58a4e','#8a5a24'], ink:'#1a1816', gradient:['#b8763c','#7f916a'], mood:'directional, honest', motion:'calm',      glyph:'旋', icon:'🌀'},
   needs:    {name:'Needs',        accent:['#c9806a','#9a4f3a'], ink:'#1a1816', gradient:['#b96a54','#d9a98f'], mood:'structural, plain',  motion:'calm',      glyph:'需', icon:'🔺'},
   skills:   {name:'Skill Tree',   accent:['#3fae7a','#25835a'], ink:'#1a1816', gradient:['#2f9e6e','#2aa7a0'], mood:'growth, energy',         motion:'energetic', glyph:'技', icon:'🛠'},
   timeline: {name:'Timeline',       accent:['#cba85a','#96762a'], ink:'#1a1816', gradient:['#c9a55a','#8a6a4a'], mood:'nostalgic, warm',        motion:'calm',      glyph:'憶', icon:'⏳'},
@@ -3708,18 +3562,6 @@ const PAGE_SCENES = {
     <g stroke="${A}" fill="none" stroke-width="1.4" opacity=".2">${Array.from({length:5},(_,i)=>`<path d="M60,${560+i*40} q560,${-16-i*6} 1080,${8+i*4}"/>`).join('')}</g>
     ${seal(1076, 132, 42, '藝')}`),
 
-  /* the road into the mountains, and one traveller a long way up it */
-  spiral: scene((u,r) => `${mountain(u, 640, 520, 900, 460, 'vs-peak')}
-    ${mountain(u, 200, 600, 620, 300, 'vs-left', {far:true})}
-    ${mountain(u, 1080, 620, 560, 340, 'vs-right', {far:true})}
-    ${mistBand(u, 440, 90)}${mistBand(u, 570, 80, .8)}
-    <path d="M600,${SC_H} q60,-130 -20,-216 q-76,-84 24,-172" fill="none" stroke="${A}" stroke-width="2.2" opacity=".34" stroke-dasharray="12 15"/>
-    ${figure(590, 690, 1)}
-    ${ruyiCloud(200, 210, 1, 4)}
-    ${moonDisc(1000, 160, 52)}
-    ${inscription(126, 420, '行到水窮處', 24)}${seal(104, 610, 40, '志')}`),
-
-  /* ridge behind ridge behind ridge, each one paler than the last */
   timeline: scene((u,r) => `${mountain(u, 300, 380, 700, 210, 'tl-4', {far:true, texture:false})}
     ${mountain(u, 820, 440, 760, 250, 'tl-3', {far:true, texture:false})}
     ${mountain(u, 420, 520, 720, 260, 'tl-2', {far:true})}
@@ -4612,7 +4454,7 @@ function seed(){
     ],
     rehearsal:{script:'', winning:'', aim:'', cycleStart:'', days:[]},
     reviews:{lastWeekly:null,lastSeasonal:null,lastAnnual:null},
-    people:[], places:[], boards:[], events:[], plans:{}, reviewLog:{}, accounts:[], txns:[], budgets:[], finGoals:[], chapters:[], turns:[], threadsN:[], interactions:[], dailyRhythm:{}, position:{overrides:{},history:[],spiral:{}}, spiral:{currentPair:{releasing:'orange',embodying:'green'},traces:[],indicators:[],history:[]}, wsDaily:{},
+    people:[], places:[], boards:[], events:[], plans:{}, reviewLog:{}, accounts:[], txns:[], budgets:[], finGoals:[], chapters:[], turns:[], threadsN:[], interactions:[], dailyRhythm:{}, position:{overrides:{},history:[],spiral:{}}, wsDaily:{},
     finance:{currency:'SGD', categories:[], netWorthLog:[], principles:[], note:'', assigned:{}},
     mediaQueue:[], mediaLists:[], mediaRecs:[], compost:[],
     incomeStreams:[], spendCategories:[],
@@ -4748,12 +4590,6 @@ function gentlePrompt(){
       const twice = p.slice(-2).length === 2 && p.slice(-2).every(h => ((h.levels||[]).find(l => l.key === weak.key)||{}).effectiveScore < 40);
       ps.push(`Your ${weak.name} level ${twice ? 'has been below 40 for two check-ins' : `is at ${weak.effectiveScore}`}. Fritz says structural tension needs an accurate picture of current reality — so: ${weak.ask}`);
     }
-  }
-  /* a pattern you said you were releasing, still showing up */
-  if(S.spiral?.indicators?.length){
-    const held = S.spiral.indicators.filter(x => x.direction === 'releasing' && x.strength >= 4 && x.text.trim());
-    if(held.length){ const x = held[Math.floor(Math.random()*held.length)];
-      ps.push(`You flagged <em>${esc(x.text)}</em> as a pattern you are releasing, and rated it ${x.strength}/5. Is that still true today, or is that just this week?`); }
   }
   const generic = ["What are you afraid to want?","What did you learn this week that surprised you?","What is one thing you're avoiding?","What self-image are you acting out today — and is it the one you chose?","Maltz says: <em>“If you can remember, worry, or tie your shoe, you can succeed.”</em> What are you worrying about that could be redirected into positive visualization?","Fritz asks: What result do you want to create? And what is the current reality? Hold both. The tension will resolve.","Loehr asks: which energy dimension did you not renew today?","Leonard asks: where is your plateau right now, and can you love it?","Which value did today's choices actually serve?"];
   const pool = ps.length ? ps.concat(generic.slice(0,2)) : generic;
@@ -5363,7 +5199,7 @@ function positionHTML(){
       </div>
 
       <div class="pos-spi">
-        <div class="row between" style="align-items:baseline"><span class="sc" style="margin:0 0 8px">Stage resonance</span><a class="mono faint" href="#/spiral" style="text-decoration:none">the spiral room →</a></div>
+        <span class="sc" style="margin:0 0 8px">Stage resonance</span>
         ${spiralBarsHTML(read)}
         <p class="spi-read">${esc(read.line)}</p>
         <div class="row" style="gap:6px;align-items:center;flex-wrap:wrap">
@@ -6307,7 +6143,12 @@ const CIRCLE_RENAME = {inner:'core', middle:'close', outer:'orbit'};
 function migratePeople(){
   if(!Array.isArray(S.people)) S.people = [];
   S.interactions = Array.isArray(S.interactions) ? S.interactions : [];
-  S.people = S.people.map(p => {
+  /* Normalise IN PLACE. This runs on every render of the People room, so
+     replacing the array (or the person objects in it) would invalidate every
+     reference held elsewhere — including the closure a pending Undo uses to
+     put a deleted person back, which would then splice into a dead array. */
+  S.people.forEach((orig, idx) => {
+    let p = orig;
     if(typeof p === 'string' || !p || !p.id) p = Object.assign(newPerson(typeof p === 'string' ? p : (p?.name || '')), {});
     const out = Object.assign(newPerson(p.name || ''), p);
     // the earlier tier model becomes a circle; "past" people go to the outer ring with no cadence
@@ -6337,8 +6178,12 @@ function migratePeople(){
     if(out.becomeAround === undefined) out.becomeAround = '';
     if(out.energyStanding === undefined) out.energyStanding = '';
     delete out.tier; delete out.relation; delete out.met; delete out.gave; delete out.owe; delete out.notes; delete out.aka;
-    return out;
-  }).filter(p => p.name || p.id);
+    if(p === orig && orig && typeof orig === 'object'){
+      Object.assign(orig, out);
+      ['tier','relation','met','gave','owe','notes','aka'].forEach(k => { delete orig[k]; });
+    } else S.people[idx] = out;
+  });
+  for(let i = S.people.length - 1; i >= 0; i--) if(!S.people[i].name && !S.people[i].id) S.people.splice(i, 1);
   // entries that mention a person count as a light interaction
   S.entries.forEach(e => {
     e.links = e.links || {}; e.links.people = Array.isArray(e.links.people) ? e.links.people : [];
@@ -6792,430 +6637,6 @@ function openInteractionModal(ex, personId){
   if(ex) m.querySelector('#inDel').onclick = () => { m.remove(); requestDelete({label:i.description || 'this interaction', remove:()=>spliceOut(S.interactions, x=>x.id===i.id)}); };
 }
 /* ============================================================
-   THE SPIRAL — a directional instrument, not a diagnosis.
-
-   A centre of gravity sits between two stages. This room holds
-   the two named ends of that movement and the concrete patterns
-   on each side: what is being released, and what is being taken
-   on. Every indicator is written by the person doing the moving —
-   the stages come with the model, the evidence does not.
-   ============================================================ */
-const SPIRAL_DIRECTIONS = ['releasing', 'embodying'];
-/* the two scales run in opposite directions, and saying so is half the point */
-const SPIRAL_SCALE = {
-  releasing: ["I've mostly let this go", 'rarely', 'sometimes', 'often', 'This still runs me'],
-  embodying: ['Not yet part of me', 'a beginning', 'sometimes', 'often', 'This is becoming natural'],
-};
-const SPIRAL_SEED = {
-  releasing: [
-    ['Measuring my worth by what I produce', 4],
-    ['Treating relationships as networking opportunities', 2],
-    ["Skipping rest because I haven't earned it", 3],
-    ['Optimising everything, including things that should just be experienced', 4],
-  ],
-  embodying: [
-    ['Asking what someone needs before asking what I need from them', 2],
-    ['Sitting with uncomfortable emotions instead of fixing them', 1],
-    ['Choosing one deep conversation over three efficient ones', 2],
-    ['Questioning whether the career ladder matters as much as I assumed', 3],
-  ],
-  trace: ['red', 'work — competitive instinct when threatened', 'Flares up in high-stakes situations'],
-};
-
-function migrateSpiral(){
-  const keys = SPIRAL.map(s => s[0]);
-  const sp = S.spiral = Object.assign({currentPair:{releasing:'orange', embodying:'green'}, traces:[], indicators:[], history:[]}, S.spiral || {});
-  sp.currentPair = sp.currentPair || {};
-  if(!keys.includes(sp.currentPair.releasing)) sp.currentPair.releasing = 'orange';
-  if(!keys.includes(sp.currentPair.embodying)) sp.currentPair.embodying = 'green';
-  sp.traces = Array.isArray(sp.traces) ? sp.traces : [];
-  sp.traces.forEach(t => { t.id = t.id || uid(); t.stage = keys.includes(t.stage) ? t.stage : 'red'; t.domain = t.domain || ''; t.note = t.note || ''; });
-  sp.indicators = Array.isArray(sp.indicators) ? sp.indicators : [];
-  sp.indicators.forEach((x, i) => {
-    x.id = x.id || uid();
-    x.direction = SPIRAL_DIRECTIONS.includes(x.direction) ? x.direction : 'releasing';
-    x.stage = keys.includes(x.stage) ? x.stage : sp.currentPair[x.direction];
-    x.text = x.text || ''; x.note = x.note || '';
-    x.strength = clamp(Math.round(+x.strength || 0), 0, 5);
-    x.lastChecked = x.lastChecked || '';
-    x.order = typeof x.order === 'number' ? x.order : i;
-  });
-  sp.history = Array.isArray(sp.history) ? sp.history : [];
-}
-function spiralPair(){ migrateSpiral(); return S.spiral.currentPair; }
-function spiralIndicators(dir){
-  return S.spiral.indicators.filter(x => x.direction === dir).sort((a,b) => a.order - b.order);
-}
-/* How far into the higher stage: the embodying side, averaged, as a fraction.
-   The releasing side is deliberately not in this number — letting go of the
-   old stage is not the same achievement as living the new one, and averaging
-   them together would let one flatter the other. */
-function spiralProgress(){
-  const emb = spiralIndicators('embodying').filter(x => x.strength > 0);
-  if(!emb.length) return null;
-  return avg(emb.map(x => x.strength)) / 5;
-}
-function spiralReadingLine(){
-  const pair = spiralPair();
-  const embName = spiralMeta(pair.embodying)?.[1] || pair.embodying;
-  const p = spiralProgress();
-  if(p == null) return 'Nothing rated yet. Name a few patterns on each side and the movement becomes measurable.';
-  const emb = spiralIndicators('embodying').filter(x => x.strength > 0).sort((a,b) => b.strength - a.strength);
-  const rel = spiralIndicators('releasing').filter(x => x.strength > 0).sort((a,b) => b.strength - a.strength);
-  const bits = [`You're about ${Math.round(p*100)}% into ${embName}.`];
-  if(emb[0] && emb[0].strength >= 3) bits.push(`The strongest signal: ${lowerFirst(emb[0].text)}.`);
-  else if(emb[0]) bits.push(`Nothing on the ${embName} side has taken hold yet — the nearest is ${lowerFirst(emb[0].text)}.`);
-  if(rel[0] && rel[0].strength >= 4) bits.push(`The strongest hold: ${lowerFirst(rel[0].text)}.`);
-  if(!rel.length) bits.push('Nothing is rated on the releasing side, so this reading only knows half of the movement.');
-  return bits.join(' ');
-}
-const lowerFirst = t => { const s = String(t || '').trim(); return s ? s[0].toLowerCase() + s.slice(1).replace(/\.$/, '') : s; };
-
-/* ---------- evidence: entries tagged to a stage, with a polarity ---------- */
-function spiralTag(e){ const t = e.extra?.spiral; return t && t.stage ? t : null; }
-function spiralEvidence(stage, polarity){
-  return S.entries.filter(e => { const t = spiralTag(e); return t && t.stage === stage && (!polarity || t.polarity === polarity); })
-    .sort((a,b) => String(b.occurredAt||b.createdAt).localeCompare(String(a.occurredAt||a.createdAt)));
-}
-
-/* ---------- pieces ---------- */
-function spiralStageSelect(dir, value){
-  return `<select class="sel spi-sel" data-spistage="${dir}">${SPIRAL.map(([k, name, gloss]) =>
-    `<option value="${k}" ${value===k?'selected':''}>${esc(name)} — ${esc(gloss)}</option>`).join('')}</select>`;
-}
-function spiralPairHTML(){
-  const pair = spiralPair();
-  const [rk, rName, rGloss, rCol] = spiralMeta(pair.releasing);
-  const [ek, eName, eGloss, eCol] = spiralMeta(pair.embodying);
-  const same = rk === ek;
-  return `<section class="section rv spi-pair" style="--rel:${rCol};--emb:${eCol}">
-    <div class="spi-pair-grid">
-      <div class="spi-end rel">
-        <div class="spi-end-k mono">releasing</div>
-        <div class="spi-end-n serif">${esc(rName)}</div>
-        <div class="spi-end-g">${esc(rGloss)}</div>
-      </div>
-      <div class="spi-arrow" aria-hidden="true"><span class="spi-arrow-line"></span><span class="spi-arrow-head">▶</span></div>
-      <div class="spi-end emb">
-        <div class="spi-end-k mono">embodying</div>
-        <div class="spi-end-n serif">${esc(eName)}</div>
-        <div class="spi-end-g">${esc(eGloss)}</div>
-      </div>
-    </div>
-    ${same ? `<p class="spi-warn">Both ends are the same stage. A direction needs somewhere to leave and somewhere to arrive.</p>` : ''}
-    <details class="spi-change"><summary class="mono">change the pair</summary><div class="body">
-      <div class="grid c2" style="gap:10px">
-        <div class="field"><label>Releasing — moving away from</label>${spiralStageSelect('releasing', pair.releasing)}</div>
-        <div class="field"><label>Embodying — moving toward</label>${spiralStageSelect('embodying', pair.embodying)}</div>
-      </div>
-      <p class="faint" style="font-size:.78rem;margin:8px 0 0">They do not have to be adjacent. Blue to Green is a real movement, so is Red to Yellow.</p>
-    </div></details>
-    ${spiralTracesHTML()}
-  </section>`;
-}
-function spiralTracesHTML(){
-  const tr = S.spiral.traces;
-  return `<details class="spi-traces" ${tr.length && S._spiTraces ? 'open' : ''}><summary class="mono">traces of other stages${tr.length ? ` · ${tr.length}` : ''}</summary>
-    <div class="body">
-      <p class="faint" style="font-size:.8rem;margin:0 0 8px">No one lives at one altitude. Where does another stage still show up, and in what part of life?</p>
-      ${tr.map((t, i) => { const m = spiralMeta(t.stage) || SPIRAL[2];
-        return `<div class="evidence-item spi-trace" style="--c:${m[3]}">
-          <select class="sel spi-sel sm" data-spitracestage="${t.id}">${SPIRAL.map(([k,name]) => `<option value="${k}" ${t.stage===k?'selected':''}>${esc(name)}</option>`).join('')}</select>
-          <span style="flex:1">${ed(`spiral.traces.${i}.domain`, {ph:'in what part of life — work, family, money…'})}</span>
-          <span style="flex:1">${ed(`spiral.traces.${i}.note`, {ph:'when it shows up'})}</span>
-          <button class="tbtn" data-spitracedel="${t.id}">×</button>
-        </div>`; }).join('')}
-      <button class="btn sm ghost" id="spiTraceAdd" style="margin-top:6px">＋ a trace</button>
-    </div></details>`;
-}
-function spiralProgressHTML(){
-  const pair = spiralPair();
-  const [, rName, , rCol] = spiralMeta(pair.releasing);
-  const [, eName, , eCol] = spiralMeta(pair.embodying);
-  const p = spiralProgress();
-  return `<section class="section rv spi-progress" style="--rel:${rCol};--emb:${eCol}">
-    <div class="row between" style="align-items:baseline"><span class="sc" style="margin:0">Where the centre of gravity sits</span>
-      <span class="mono faint">${p == null ? 'not yet measurable' : `${Math.round(p*100)}% into ${esc(eName)}`}</span></div>
-    <div class="spi-track">
-      <span class="spi-track-end left mono">${esc(rName)}</span>
-      <span class="spi-track-bar">${p == null ? '' : `<i class="spi-marker" style="left:${clamp(p*100, 1, 99)}%"></i>`}</span>
-      <span class="spi-track-end right mono">${esc(eName)}</span>
-    </div>
-    <p class="spi-reading">${esc(spiralReadingLine())}</p>
-    ${typeof spiralReading === 'function' ? (() => { const r = spiralReading(); const m = spiralMeta(r.primary);
-      return r.primary ? `<p class="spi-crosscheck">Read off your behaviour rather than your intention, the instrument currently resonates most with <b style="color:${m[3]}">${esc(m[1])}</b>. <a href="#/compass">See the full resonance →</a></p>` : ''; })() : ''}
-  </section>`;
-}
-function spiralDotsHTML(x){
-  const scale = SPIRAL_SCALE[x.direction];
-  return `<span class="spi-dots" role="group" aria-label="strength">${[1,2,3,4,5].map(n =>
-    `<button class="${x.strength >= n ? 'on' : ''}" data-spistr="${x.id}:${n}" title="${esc(scale[n-1])}" aria-label="${esc(scale[n-1])}"></button>`).join('')}</span>`;
-}
-function spiralIndicatorHTML(x, i){
-  const idx = S.spiral.indicators.indexOf(x);
-  const scale = SPIRAL_SCALE[x.direction];
-  const arrived = x.direction === 'embodying' && x.strength === 5;
-  const receded = x.direction === 'releasing' && x.strength === 1;
-  const age = x.lastChecked ? daysSince(x.lastChecked.slice(0,10)) : Infinity;
-  return `<article class="spi-ind ${arrived ? 'arrived' : ''} ${receded ? 'receded' : ''}" draggable="true" data-spiind="${x.id}">
-    <div class="spi-ind-top">
-      <span class="spi-ind-text">${ed(`spiral.indicators.${idx}.text`, {ph:'a specific behaviour or pattern'})}</span>
-      <button class="tbtn spi-x" data-spidel="${x.id}" title="remove">×</button>
-    </div>
-    <div class="spi-ind-scale">
-      ${spiralDotsHTML(x)}
-      <span class="spi-ind-word">${x.strength ? esc(scale[x.strength-1]) : 'not rated'}</span>
-      <span class="spi-ind-when mono">${x.lastChecked ? esc(relDays(age)) : ''}</span>
-    </div>
-    <div class="field spi-ind-note">${ed(`spiral.indicators.${idx}.note`, {multi:true, ph:'when this shows up, what sets it off, what you notice'})}</div>
-  </article>`;
-}
-function spiralColumnHTML(dir){
-  const pair = spiralPair();
-  const stage = pair[dir];
-  const [, name, gloss, col] = spiralMeta(stage);
-  const list = spiralIndicators(dir);
-  const scale = SPIRAL_SCALE[dir];
-  return `<div class="spi-col ${dir}" style="--c:${col}" data-spicol="${dir}">
-    <div class="spi-col-h">
-      <span class="mono">${dir}</span>
-      <b class="serif">${esc(name)}</b>
-      <span class="faint">${esc(gloss)}</span>
-    </div>
-    <p class="spi-col-scale mono">1 · ${esc(scale[0])} → 5 · ${esc(scale[4])}</p>
-    ${list.length ? list.map(spiralIndicatorHTML).join('')
-      : `<div class="empty">${dir === 'releasing'
-          ? 'Nothing named yet. What does the stage you are leaving actually make you do — on a Tuesday, not in theory?'
-          : 'Nothing named yet. What would somebody living the next stage do this week that you would not?'}</div>`}
-    <button class="btn sm ghost spi-add" data-spiadd="${dir}">＋ indicator</button>
-  </div>`;
-}
-function spiralEvidenceHTML(){
-  const pair = spiralPair();
-  const rows = [[pair.embodying, 'embodying', '+'], [pair.releasing, 'releasing', '−']];
-  const any = rows.some(([st, pol]) => spiralEvidence(st, pol).length);
-  return `<section class="section rv"><div class="row between" style="align-items:center">
-      <span class="sc" style="margin:0">Evidence</span>
-      <button class="btn sm ghost" id="spiTagEntry">＋ tag an entry</button></div>
-    <p class="muted" style="font-size:.85rem;margin:4px 0 0">Entries from anywhere in the instrument, marked as evidence of one stage or the other. A pattern you claim and a pattern you can point at are different things.</p>
-    ${any ? rows.map(([st, pol, sign]) => { const es = spiralEvidence(st, pol); if(!es.length) return '';
-      const m = spiralMeta(st);
-      return `<div class="spi-ev-group" style="--c:${m[3]}">
-        <div class="spi-ev-h mono"><span class="spi-sign ${pol}">${sign}</span> ${esc(pol)} · ${esc(m[1])} <span class="faint">${es.length}</span></div>
-        ${es.slice(0, 8).map(e => `<div class="spi-ev" data-spievopen="${e.id}">
-          <span class="mono">${esc(fmtDate((e.occurredAt||e.createdAt||'').slice(0,10), 'short'))}</span>
-          <span class="spi-ev-t">${esc(e.title || (e.body||'').slice(0,70) || e.type)}</span>
-          <button class="tbtn" data-spievdel="${e.id}" title="untag">×</button>
-        </div>`).join('')}
-        ${es.length > 8 ? `<div class="faint mono" style="font-size:.66rem">and ${es.length-8} more</div>` : ''}
-      </div>`; }).join('')
-      : '<div class="empty" style="margin-top:10px">Nothing tagged yet.</div>'}
-  </section>`;
-}
-function spiralHistoryHTML(){
-  const h = S.spiral.history;
-  const W = 100, H = 46;
-  const pts = h.map((r, i) => [h.length === 1 ? 50 : (i/(h.length-1))*W, H - (r.progressPosition||0)*H]);
-  return `<section class="section rv"><div class="row between" style="align-items:center">
-      <span class="sc" style="margin:0">Check-ins</span>
-      <button class="btn sm primary" id="spiCheckin">Log a check-in</button></div>
-    <p class="muted" style="font-size:.85rem;margin:4px 0 0">A month is about the shortest interval at which this moves. Each check-in freezes every strength, so the line below is history and not a re-reading of today.</p>
-    ${h.length ? `<div class="spi-hist">
-      <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" class="spi-hist-svg">
-        ${pts.length > 1 ? `<polyline points="${pts.map(p => p.map(n => n.toFixed(1)).join(',')).join(' ')}" fill="none" stroke="var(--emb,var(--page-accent))" stroke-width="1.2" vector-effect="non-scaling-stroke"/>` : ''}
-        ${pts.map(p => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="1.6" fill="var(--emb,var(--page-accent))" vector-effect="non-scaling-stroke"/>`).join('')}
-      </svg>
-      <div class="stack" style="gap:6px;margin-top:10px">${[...h].reverse().map((r, ri) => { const i = h.length-1-ri;
-        return `<div class="spi-hist-row"><span class="mono">${esc(fmtDate(String(r.timestamp).slice(0,10), 'med'))}</span>
-          <span class="mono">${Math.round((r.progressPosition||0)*100)}% into ${esc(spiralMeta(r.embodyingStage)?.[1] || r.embodyingStage)}</span>
-          <span class="spi-hist-note">${ed(`spiral.history.${i}.note`, {ph:'what shifted, what is still holding'})}</span>
-          <button class="tbtn" data-spihistdel="${i}">×</button></div>`; }).join('')}</div>
-    </div>` : '<div class="empty" style="margin-top:10px">No check-ins yet.</div>'}
-  </section>`;
-}
-
-routes.spiral = function(root){
-  migrateSpiral();
-  const pair = spiralPair();
-  const [, , , rCol] = spiralMeta(pair.releasing);
-  const [, , , eCol] = spiralMeta(pair.embodying);
-  registerPageEntry({pageName:'Spiral', addLabel:'Add an indicator', defaultEntryType:'reflection', prefilledFields:{}, options:[
-    {icon:'◇', label:'Embodying indicator', desc:'Something the next stage would have you do.', run:()=>addSpiralIndicator('embodying')},
-    {icon:'◈', label:'Releasing indicator', desc:'A pattern belonging to the stage you are leaving.', run:()=>addSpiralIndicator('releasing')}]});
-  const empty = !S.spiral.indicators.length;
-  root.innerHTML = `<div class="page spiral-page" style="--rel:${rCol};--emb:${eCol}">
-    <div class="page-head row between"><div><h1>Spiral</h1></div>${vmToggleHTML('spiral')}</div>
-    <p class="muted" style="font-size:.88rem;max-width:640px;margin-top:-6px">A centre of gravity sits between two stages. This is the movement between them, written in behaviour you can actually check.</p>
-
-    ${spiralPairHTML()}
-    ${spiralProgressHTML()}
-
-    <section class="section rv">
-      <div class="spi-cols">
-        ${spiralColumnHTML('releasing')}
-        ${spiralColumnHTML('embodying')}
-      </div>
-      ${empty ? `<div class="row" style="justify-content:center;margin-top:14px"><button class="btn sm ghost" id="spiSeed">start from the Orange → Green example</button></div>
-        <p class="faint center" style="font-size:.76rem;margin-top:6px">Eight patterns to react to rather than a blank page. Every one is editable, and none of it is a claim about you.</p>` : ''}
-    </section>
-
-    ${spiralEvidenceHTML()}
-    ${spiralHistoryHTML()}
-  </div>`;
-
-  bindVmToggle(root, 'spiral');
-  const btn = root.querySelector('[data-vmkey]'); if(btn) btn.addEventListener('click', () => setTimeout(rerender, 0));
-
-  root.querySelectorAll('[data-spistage]').forEach(s => s.onchange = () => {
-    S.spiral.currentPair[s.dataset.spistage] = s.value;
-    /* the indicators belong to the stage they were written about, so moving
-       the pair re-points the ones that were following it */
-    S.spiral.indicators.forEach(x => { if(x.direction === s.dataset.spistage) x.stage = s.value; });
-    saveNow(); sound('click'); rerender();
-  });
-  root.querySelectorAll('[data-spitracestage]').forEach(s => s.onchange = () => {
-    const t = byId(S.spiral.traces, s.dataset.spitracestage); if(t){ t.stage = s.value; saveNow(); rerender(); } });
-  $('#spiTraceAdd') && ($('#spiTraceAdd').onclick = () => {
-    S._spiTraces = true; S.spiral.traces.push({id:uid(), stage:'red', domain:'', note:''}); saveNow(); rerender();
-    setTimeout(() => { const n = document.querySelectorAll('.spi-trace .ed'); n.length && beginEdit(n[n.length-2]); }, 60); });
-  root.querySelectorAll('[data-spitracedel]').forEach(b => b.onclick = () => {
-    const t = byId(S.spiral.traces, b.dataset.spitracedel);
-    requestDelete({label:t.domain || 'this trace', node:b.closest('.spi-trace'), remove:() => spliceOut(S.spiral.traces, x => x.id === t.id)}); });
-
-  root.querySelectorAll('[data-spiadd]').forEach(b => b.onclick = () => addSpiralIndicator(b.dataset.spiadd));
-  root.querySelectorAll('[data-spidel]').forEach(b => b.onclick = () => {
-    const x = byId(S.spiral.indicators, b.dataset.spidel);
-    requestDelete({label:x.text || 'this indicator', node:b.closest('.spi-ind'), remove:() => spliceOut(S.spiral.indicators, y => y.id === x.id)}); });
-  root.querySelectorAll('[data-spistr]').forEach(b => b.onclick = () => {
-    const [id, n] = b.dataset.spistr.split(':');
-    const x = byId(S.spiral.indicators, id); if(!x) return;
-    x.strength = x.strength === +n ? 0 : +n;          // clicking the current value clears it
-    x.lastChecked = new Date().toISOString();
-    saveNow(); sound('click'); rerender(); });
-
-  $('#spiSeed') && ($('#spiSeed').onclick = () => seedSpiral());
-  $('#spiTagEntry') && ($('#spiTagEntry').onclick = () => openSpiralTagPicker());
-  root.querySelectorAll('[data-spievopen]').forEach(r => r.onclick = ev => {
-    if(ev.target.closest('[data-spievdel]')) return;
-    const e = byId(S.entries, r.dataset.spievopen); if(e && typeof openEntryModal === 'function') openEntryModal({edit:e}); });
-  root.querySelectorAll('[data-spievdel]').forEach(b => b.onclick = ev => { ev.stopPropagation();
-    const e = byId(S.entries, b.dataset.spievdel); if(!e) return;
-    requestDelete({label:`the spiral tag on “${e.title || 'this entry'}”`, node:b.closest('.spi-ev'),
-      remove:() => { const was = e.extra.spiral; delete e.extra.spiral; return () => { e.extra.spiral = was; }; }}); });
-
-  $('#spiCheckin') && ($('#spiCheckin').onclick = () => openSpiralCheckin());
-  root.querySelectorAll('[data-spihistdel]').forEach(b => b.onclick = () => {
-    const i = +b.dataset.spihistdel; const r = S.spiral.history[i];
-    requestDelete({label:`the check-in from ${fmtDate(String(r.timestamp).slice(0,10),'med')}`, node:b.closest('.spi-hist-row'),
-      remove:() => { const g = S.spiral.history.splice(i,1)[0]; return () => S.spiral.history.splice(i,0,g); }}); });
-
-  bindSpiralDrag(root);
-  reveal(root);
-};
-
-function addSpiralIndicator(dir){
-  migrateSpiral();
-  const order = Math.max(-1, ...S.spiral.indicators.filter(x => x.direction === dir).map(x => x.order)) + 1;
-  const x = {id:uid(), stage:S.spiral.currentPair[dir], direction:dir, text:'', strength:0, lastChecked:'', note:'', order};
-  S.spiral.indicators.push(x); saveNow(); sound('click'); rerender();
-  setTimeout(() => { const n = document.querySelector(`[data-spiind="${x.id}"] .spi-ind-text .ed`); n && beginEdit(n); }, 60);
-}
-/* Offered, never applied on its own: the seed is somebody else's Orange, and
-   this room only works if the words in it are the user's own. */
-function seedSpiral(){
-  migrateSpiral();
-  S.spiral.currentPair = {releasing:'orange', embodying:'green'};
-  SPIRAL_DIRECTIONS.forEach(dir => SPIRAL_SEED[dir].forEach(([text, strength], i) => {
-    S.spiral.indicators.push({id:uid(), stage:S.spiral.currentPair[dir], direction:dir, text, strength,
-      lastChecked:new Date().toISOString(), note:'', order:i});
-  }));
-  const [st, domain, note] = SPIRAL_SEED.trace;
-  S.spiral.traces.push({id:uid(), stage:st, domain, note});
-  saveNow(); sound('success'); toast('Eight patterns to argue with. Rewrite anything that is not yours.', 6000); rerender();
-}
-function openSpiralTagPicker(){
-  const pair = spiralPair();
-  const recent = [...S.entries].sort((a,b) => String(b.occurredAt||b.createdAt).localeCompare(String(a.occurredAt||a.createdAt))).slice(0, 60);
-  if(!recent.length){ toast('Nothing written yet to tag.'); return; }
-  let stage = pair.embodying, polarity = 'embodying';
-  const m = openModal(`<h2>Tag an entry as evidence</h2>
-    <p class="muted" style="font-size:.86rem">Which stage does this entry show, and is it the pattern arriving or the pattern still running?</p>
-    <div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:10px">
-      <select class="sel" id="spiTagStage" style="width:auto">${SPIRAL.map(([k,n,g]) => `<option value="${k}" ${k===stage?'selected':''}>${esc(n)} — ${esc(g)}</option>`).join('')}</select>
-      <div class="chip-row" id="spiTagPol">${[['embodying','(+) embodying'],['releasing','(−) releasing']].map(([k,l]) =>
-        `<button class="chip click ${k===polarity?'on':''}" data-pol="${k}">${l}</button>`).join('')}</div>
-    </div>
-    <div class="stack" style="gap:4px;max-height:46vh;overflow:auto">${recent.map(e => `<button class="choice" data-spipick="${e.id}">
-      <span class="ico">${esc((e.type||'·').slice(0,1).toUpperCase())}</span>
-      <span><b>${esc(e.title || (e.body||'').slice(0,60) || e.type)}</b><div class="d mono">${esc(fmtDate((e.occurredAt||e.createdAt||'').slice(0,10),'med'))} · ${esc(e.type)}${spiralTag(e) ? ` · already tagged ${esc(spiralTag(e).stage)}` : ''}</div></span></button>`).join('')}</div>`);
-  m.querySelector('#spiTagStage').onchange = e => { stage = e.target.value; };
-  m.querySelectorAll('#spiTagPol [data-pol]').forEach(b => b.onclick = () => {
-    polarity = b.dataset.pol; m.querySelectorAll('#spiTagPol [data-pol]').forEach(x => x.classList.toggle('on', x === b)); });
-  m.querySelectorAll('[data-spipick]').forEach(b => b.onclick = () => {
-    const e = byId(S.entries, b.dataset.spipick); if(!e) return;
-    e.extra = e.extra || {}; e.extra.spiral = {stage, polarity};
-    saveNow(); m.remove(); sound('success'); rerender(); });
-}
-function openSpiralCheckin(){
-  migrateSpiral();
-  const pair = spiralPair();
-  const p = spiralProgress();
-  const m = openModal(`<h2>Spiral check-in</h2>
-    <p class="muted" style="font-size:.86rem">This freezes every indicator strength as it stands now, so the history below stays a record rather than a re-reading.</p>
-    <div class="card" style="margin:10px 0"><div class="row between"><span class="mono">position</span><b class="serif">${p == null ? 'not measurable' : `${Math.round(p*100)}% into ${esc(spiralMeta(pair.embodying)?.[1])}`}</b></div>
-      <div class="row between"><span class="mono">indicators rated</span><span class="mono">${S.spiral.indicators.filter(x => x.strength > 0).length} of ${S.spiral.indicators.length}</span></div></div>
-    <div class="field"><label>What shifted this month? What is still holding?</label><textarea class="ta" id="spiNote" placeholder="Optional, and the most useful part."></textarea></div>
-    <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn primary" id="spiSave">Log it</button></div>`, 'narrow');
-  m.querySelector('#spiSave').onclick = () => {
-    S.spiral.history.push({timestamp:new Date().toISOString(), releasingStage:pair.releasing, embodyingStage:pair.embodying,
-      indicators:S.spiral.indicators.map(x => ({id:x.id, text:x.text, direction:x.direction, strength:x.strength})),
-      progressPosition: p == null ? 0 : +p.toFixed(3), note:m.querySelector('#spiNote').value.trim()});
-    saveNow(); m.remove(); sound('chime'); toast('Check-in logged.'); rerender();
-  };
-}
-/* drag to reorder, within a column only — an indicator belongs to its side */
-function bindSpiralDrag(root){
-  let drag = null;
-  root.querySelectorAll('[data-spiind]').forEach(node => {
-    node.addEventListener('dragstart', ev => { if(ev.target.closest('.ed')){ ev.preventDefault(); return; }
-      drag = node.dataset.spiind; node.classList.add('dragging'); ev.dataTransfer.effectAllowed = 'move'; });
-    node.addEventListener('dragend', () => { node.classList.remove('dragging'); drag = null;
-      root.querySelectorAll('.spi-ind.over').forEach(n => n.classList.remove('over')); });
-    node.addEventListener('dragover', ev => { ev.preventDefault(); if(drag && drag !== node.dataset.spiind) node.classList.add('over'); });
-    node.addEventListener('dragleave', () => node.classList.remove('over'));
-    node.addEventListener('drop', ev => { ev.preventDefault(); node.classList.remove('over');
-      const a = byId(S.spiral.indicators, drag), b = byId(S.spiral.indicators, node.dataset.spiind);
-      if(!a || !b || a === b || a.direction !== b.direction) return;
-      const list = spiralIndicators(a.direction);
-      const from = list.indexOf(a), to = list.indexOf(b);
-      list.splice(to, 0, list.splice(from, 1)[0]);
-      list.forEach((x, i) => x.order = i);
-      saveNow(); rerender(); });
-  });
-}
-
-/* ---------- where a value sits on the spiral ----------
-   Not a classification of the person — a note that this particular value has
-   a natural home in the model, offered where the value is being thought about. */
-const SPIRAL_VALUE_HINTS = {
-  purple:    ['tradition','family','belong','roots','ancestor','loyal'],
-  red:       ['power','freedom','courage','autonom','strength','boldness'],
-  blue:      ['disciplin','duty','integrity','order','honour','faith','responsib'],
-  orange:    ['achiev','master','excellen','success','growth','ambition','independ'],
-  green:     ['connect','empath','communit','compassion','authentic','equal','care'],
-  yellow:    ['systems','understand','curios','truth','complexity','competence'],
-  turquoise: ['wholeness','awe','sacred','unity','service','stewardship'],
-};
-function valueStageNote(v){
-  const n = String(v?.name || '').toLowerCase(); if(!n) return '';
-  const hits = Object.entries(SPIRAL_VALUE_HINTS).filter(([, ws]) => ws.some(w => n.includes(w))).map(([k]) => k);
-  if(!hits.length) return '';
-  const names = hits.map(k => spiralMeta(k)?.[1]).filter(Boolean);
-  const pair = typeof spiralPair === 'function' ? spiralPair() : null;
-  const onPath = pair && hits.some(k => k === pair.embodying || k === pair.releasing);
-  return `In Spiral terms this value sits ${names.length > 1 ? `on the ${names.join('/')} boundary` : `with ${names[0]}`}${onPath ? ' — one of the two stages you are moving between' : ''}.`;
-}
-/* ============================================================
    5. VALUES CONGRUENCE — the compass beneath the floorboards
    ============================================================ */
 routes.values = function(root){
@@ -7339,7 +6760,6 @@ async function renderSnapshotHistory(container){
   container.innerHTML = `<div class="card" style="padding:18px 20px"><div class="row between" style="margin-bottom:8px"><span class="sc" style="margin:0">Trend — every value over time</span><div class="legend" id="trendLegend">${S.valueOrder.map(id=>{ const v=byId(S.values,id); return `<span style="--c:${v.color};cursor:pointer" data-tl="${id}">${esc(v.name.split(' ')[0])}</span>`; }).join('')}</div></div>${trendChartSVG(asc)}</div>
     <div class="snap-list" id="snapList">${desc.length ? desc.map(s => { const prev = prevOf(s); const n = s.notes ? Object.keys(s.notes).length : 0; return `<div class="snap-row" data-snap="${s.id}">
       <div class="snap-head"><span class="snap-date"><b class="serif">${fmtDate(s.date,'med')}</b><span class="mono">${relDays(daysSince(s.date))}${n?` · ${n} note${n>1?'s':''}`:''}${s.note?' · note':''}</span></span>
-        <div class="snap-bars">${S.valueOrder.map(id=>{ const v=byId(S.values,id); const sc = s.ratings[id] ?? 0; return `<div class="snap-bar" title="${esc(v.name)} ${sc}"><i class="${scoreBand(sc)}" style="height:${Math.max(2, sc*.28).toFixed(0)}px"></i>${deltaHTML(sc, prev?.ratings[id])}</div>`; }).join('')}</div>
         <span class="row" style="gap:6px;justify-content:flex-end"><button class="del-x inline" data-snapdel="${s.id}" title="delete snapshot">×</button><span class="mono snap-chev">›</span></span></div>
       <div class="snap-detail"><div class="snap-detail-inner"><div class="row" style="justify-content:flex-end"><button class="tbtn" data-snapedit="${s.id}">edit this snapshot</button></div>${S.valueOrder.map(id=>{ const v=byId(S.values,id); const sc = s.ratings[id] ?? 0; const note = s.notes?.[id]; return `<div class="snap-val"><span style="color:${v.color}">${esc(v.name)}</span><div class="bar" style="--c:${v.color}"><i style="width:${sc}%"></i></div><span class="mono">${sc}</span>${deltaHTML(sc, prev?.ratings[id])}${note?`<div class="snap-note">“${esc(note)}”</div>`:''}</div>`; }).join('')}${s.note?`<div class="quote" style="margin-top:10px">${esc(s.note)}</div>`:''}</div></div>
     </div>`; }).join('') : '<div class="empty">No snapshots yet. Take the first one.</div>'}</div>`;
@@ -7357,7 +6777,6 @@ routes.value = function(root, params){
   root.innerHTML = `<div class="page narrow">
     <div class="page-head" style="margin-top:20px"><div class="mono">value · ranked #${rank} of ${S.valueOrder.length}</div><h1 style="color:${v.color}">${ed(`values.#${v.id}.name`)}</h1><div class="row" style="margin-top:12px"><div class="bar" style="flex:1;--c:${v.color}"><i style="width:${cur}%"></i></div><span class="num" data-tween="${cur}" data-suffix="%">0</span></div></div>
     <div class="card rv">${sparkline(snaps.map(s=>s.ratings[v.id]??null),{h:60,min:0,max:100,color:v.color,dots:true,labels:snaps.map(s=>`${fmtDate(s.date,'med')}: ${s.ratings[v.id]??'–'}${s.note?' — '+s.note:''}`)})}<div class="row between mono"><span>${snaps[0]?fmtDate(snaps[0].date,'med'):''}</span><span>congruence over a lifetime</span><span>now</span></div></div>
-    ${(() => { const n = typeof valueStageNote === 'function' ? valueStageNote(v) : ''; return n ? `<p class="val-stage-note">${esc(n)} <a href="#/spiral">the spiral →</a></p>` : ''; })()}
     ${F('embody','How would I know if I embody this value?','Observable, behavioural indicators. Not aspirations — evidence.')}
     ${F('hundred','What takes me to 100%?','What does full congruence actually look like, day to day?')}
     ${F('motivation','How do I increase my positive motivation for this value?','Strategies, reminders, environments, people.')}
@@ -7703,7 +7122,7 @@ const SKILL_HORIZONS = {
   focus:   ['◉','In focus',  'the handful you are actually practising now', '#7f916a'],
   active:  ['○','Active',    'held and kept warm, but not the priority',    '#6b7f8e'],
   next:    ['↗','Up next',   'starting soon — weeks or a few months away',  '#d4a44c'],
-  someday: ['◌','Someday',   'written down so it stops taking up room in your head', '#8a8d8f'],
+  someday: ['◌','Future',    'written down so it stops taking up room in your head', '#8a8d8f'],
   paused:  ['⏸','Resting',   'deliberately set down, not neglected',        '#a89f94'],
 };
 const SKILL_PRIOS = {P1:['P1','#c25b5b'],P2:['P2','#d4a44c'],P3:['P3','#7f916a'],P4:['P4','#8a8d8f']};
@@ -7810,7 +7229,7 @@ routes.skills = function(root, params){
     <!-- 4. the inventory, with the add button right above it -->
     <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Inventory</span><span class="mono">${list.length} of ${S.skills.length} shown</span></div>
       <p class="muted" style="font-size:.85rem">Everything you have written down, including the skills for a life you have not started yet.</p>
-      <div class="row" style="gap:8px;margin:12px 0"><button class="btn primary" id="skNew">＋ New skill</button><button class="btn ghost" id="skSomeday">＋ Someday skill</button></div>
+      <div class="row" style="gap:8px;margin:12px 0"><button class="btn primary" id="skNew">＋ Developing skill</button><button class="btn ghost" id="skSomeday">＋ Future skill</button></div>
       <div class="filter-bar">
         <input class="inp" id="skq" placeholder="search name, category, reason, tag" value="${esc(f.q)}">
         <select class="sel" id="skHorizon"><option value="all">every horizon</option>${Object.entries(SKILL_HORIZONS).map(([k,v])=>`<option value="${k}" ${f.horizon===k?'selected':''}>${v[0]} ${v[1]} (${counts[k]})</option>`).join('')}</select>
@@ -11626,15 +11045,14 @@ function newSkillDialog(pre={}){
 const MEDIA_KINDS = {
   book:       ['📗','Book',        '#7f916a'],
   film:       ['🎞','Film',        '#a0727e'],
-  documentary:['🎥','Documentary', '#5c7c8a'],
+  documentary:['🎥','Doc',         '#5c7c8a'],
   podcast:    ['🎙','Podcast',     '#c9975c'],
   article:    ['📄','Article',     '#8a8d8f'],
   series:     ['📺','Series',      '#6b7f8e'],
-  album:      ['🎵','Music Album', '#b08968'],
+  album:      ['🎵','Album',       '#b08968'],
   lecture:    ['🎤','Lecture',     '#c47832'],
   exhibition: ['🖼','Exhibition',  '#9a8fb8'],
   game:       ['🎮','Game',        '#6fa39a'],
-  other:      ['✦','Other',       '#a89f94'],
 };
 const MEDIA_STATUS = ['want','progress','finished','abandoned','reexperiencing'];
 const MEDIA_STATUS_LABEL = {want:'Want', progress:'In Progress', finished:'Finished', abandoned:'Abandoned', reexperiencing:'Re-experiencing'};
@@ -11691,7 +11109,10 @@ function syncMediaQuotes(e){
     else { qe.body = q.text; qe.extra.page = q.where||''; qe.extra.why = q.why||''; qe.extra.author = mediaX(e).creator||''; qe.extra.source = e.title; }
   });
   const keep = new Set((x.quotes||[]).map(q=>q.quoteEntryId).filter(Boolean));
-  S.entries = S.entries.filter(en => !(en.type==='quote' && en.extra?.fromMedia===e.id && !keep.has(en.id)));
+  /* splice rather than reassign: S.entries is held by reference in every
+     pending-Undo closure, and swapping the array would strand them */
+  for(let i = S.entries.length - 1; i >= 0; i--){ const en = S.entries[i];
+    if(en.type==='quote' && en.extra?.fromMedia===e.id && !keep.has(en.id)) S.entries.splice(i, 1); }
   saveNow();
 }
 hooks.syncquote = (mediaId) => { const e = byId(S.entries, mediaId); if(e) syncMediaQuotes(e); };
@@ -11779,7 +11200,7 @@ function influenceMapHTML(){
       <div><span class="sc">Threads that keep appearing</span>${Object.keys(thTally).length ? Object.entries(thTally).sort((a,b)=>b[1]-a[1]).map(([id,n])=>{ const t=byId(S.threads,id); return t?bar(t.name,n,maxTh,t.color):''; }).join('') : '<div class="empty">No threads tagged yet.</div>'}</div>
     </div>
     <div class="grid c2" style="align-items:start;gap:24px;margin-top:20px">
-      <div><span class="sc">Medium balance</span>${Object.entries(kindTally).sort((a,b)=>b[1]-a[1]).map(([k,n])=>bar((MEDIA_KINDS[k]||MEDIA_KINDS.other)[1],n,maxKind,(MEDIA_KINDS[k]||MEDIA_KINDS.other)[2])).join('')}</div>
+      <div><span class="sc">Medium balance</span>${Object.entries(kindTally).sort((a,b)=>b[1]-a[1]).map(([k,n])=>bar((MEDIA_KINDS[k]||MEDIA_KINDS.book)[1],n,maxKind,(MEDIA_KINDS[k]||MEDIA_KINDS.book)[2])).join('')}</div>
       <div><span class="sc">Resonance distribution</span>${RESONANCE_LEVELS.map(([k,label,color])=>bar(label,resTally[k],maxRes,color)).join('')}
         ${all.length && resTally.passed > all.length*.6 ? '<p class="faint" style="font-size:.78rem;margin-top:8px">Most of what you log only passes through you. Maybe that\'s fine — or maybe you are consuming faster than you absorb.</p>' : ''}</div>
     </div>
@@ -12462,16 +11883,19 @@ routes.import = function(root) {
    S.compost, independent of any project until assigned.
    ============================================================ */
 const WRITING_KINDS = ['Essay','Article','Short Story','Poetry','Newsletter','Script','Speech','Book Chapter','Journal Piece','Pitch','Other'];
-const WRITING_STATUSES = ['Seed','Gathering','Outlining','Drafting','Revising','Polished','Published','Shelved'];
+const WRITING_STATUSES = ['Outlining','Drafting','Polished','Published'];
 const PUB_STATUSES = ['drafted','submitted','accepted','rejected','published','withdrawn'];
 function writings(){ return S.entries.filter(e => e.type === 'writing'); }
 function wordCount(s){ const t = (s||'').trim(); return t ? t.split(/\s+/).length : 0; }
 function migrateWriting(){
-  const STATUS_MAP = {drafting:'Drafting', resting:'Gathering', revising:'Revising', finished:'Polished'};
+  /* four columns came out; a piece sitting in one of them is folded into the
+     nearest column that is still standing rather than losing its place. */
+  const STATUS_MAP = {drafting:'Drafting', resting:'Outlining', revising:'Drafting', finished:'Polished',
+                      Seed:'Outlining', Gathering:'Outlining', Revising:'Drafting', Shelved:'Outlining'};
   writings().forEach(e => {
     const x = e.extra = e.extra || {};
     if(!WRITING_KINDS.includes(x.kind)) x.kind = 'Essay';
-    if(!WRITING_STATUSES.includes(x.status)) x.status = STATUS_MAP[x.status] || 'Seed';
+    if(!WRITING_STATUSES.includes(x.status)) x.status = STATUS_MAP[x.status] || 'Outlining';
     if(x.premise === undefined) x.premise = x.intention || '';
     x.target = x.target || {}; if(x.target.dest === undefined) x.target.dest = ''; if(x.target.wordTarget === undefined) x.target.wordTarget = x.wordTarget||0; if(x.target.deadline === undefined) x.target.deadline = '';
     x.pinned = Array.isArray(x.pinned) ? x.pinned : [];
@@ -12490,7 +11914,7 @@ function migrateWriting(){
 function newWriting(){
   const e = {id:uid(), type:'writing', title:'', body:'', occurredAt:today(), createdAt:new Date().toISOString(), media:[],
     links:{stages:[],substages:[],threads:[],values:[],visions:[],skills:[],projects:[]}, people:[], places:[], emotions:[], tags:[], confidence:'',
-    extra:{kind:'Essay', status:'Seed', premise:'', target:{dest:'',wordTarget:0,deadline:''}, pinned:[], outline:[], beats:[], comments:[], versions:[], scratchpad:'', publication:{status:'drafted',where:'',when:'',notes:''}}};
+    extra:{kind:'Essay', status:'Outlining', premise:'', target:{dest:'',wordTarget:0,deadline:''}, pinned:[], outline:[], beats:[], comments:[], versions:[], scratchpad:'', publication:{status:'drafted',where:'',when:'',notes:''}}};
   S.entries.push(e); saveNow(); return e;
 }
 
@@ -12706,7 +12130,7 @@ routes.writing = function(root, params){
   const published = ws.filter(e => e.extra.publication?.status === 'published');
   root.innerHTML = `<div class="page">
     <div class="page-head"><h1>The Writing Studio</h1></div>
-    <div class="row rv" style="gap:8px;margin-bottom:16px"><a class="btn sm ghost" href="#/writing/compost">🌱 Compost Heap (${S.compost.length})</a><button class="btn sm ghost" id="wHabit">+ a writing habit</button><div class="view-toggle">${[['board','▥ Board'],['list','☰ List']].map(([k,l])=>`<button class="${view===k?'on':''}" data-wv="${k}">${l}</button>`).join('')}</div></div>
+    <div class="row rv" style="gap:8px;margin-bottom:16px"><a class="btn sm ghost" href="#/writing/compost">🌱 Compost Heap (${S.compost.length})</a><div class="view-toggle">${[['board','▥ Board'],['list','☰ List']].map(([k,l])=>`<button class="${view===k?'on':''}" data-wv="${k}">${l}</button>`).join('')}</div></div>
     ${ws.length ? (view==='board' ? `<div class="wkanban rv" id="wkanban">${WRITING_STATUSES.map((st, si) => { const inCol = ws.filter(e=>e.extra.status===st);
         const hue = ['var(--muted)','var(--sage)','var(--ment)','var(--page-accent)','var(--gold)','var(--terra)','#7f916a','var(--faint)'][si] || 'var(--page-accent)';
         return `<div class="wkcol ${inCol.length?'':'quiet'}" data-wcol="${esc(st)}" style="--c:${hue}"><div class="wkcol-h"><span>${esc(st)}</span><span class="n">${inCol.length}</span></div><div class="wkcol-body">${inCol.map(e=>{ const n = wordCount(e.body); const tgt = e.extra.target?.wordTarget||0;
@@ -12721,7 +12145,6 @@ routes.writing = function(root, params){
     <section class="section rv"><details><summary><span class="sc">Cross-pollination</span></summary><div class="body" style="padding-top:10px">${crossPollinationHTML()}</div></details></section>
   </div>`;
   $$('[data-wv]',root).forEach(b=>b.onclick=()=>{ S._wView = b.dataset.wv; rerender(); });
-  $('#wHabit').onclick = () => openHabitModal();
   $$('[data-wopen]',root).forEach(c => c.onclick = () => { location.hash = '#/writing/'+c.dataset.wopen; });
   // drag between kanban status columns
   let wdrag = null;
@@ -13644,7 +13067,6 @@ const NAV_ICONS = {
   vision:   '<svg viewBox="0 0 24 24"><path d="M12 21v-6"/><path d="M12 15c-3.9 0-6.5-2.3-6.5-5.4 0-1.6.8-3 2.1-3.8C8 3.6 9.8 2.5 12 2.5s4 1.1 4.4 3.3c1.3.8 2.1 2.2 2.1 3.8 0 3.1-2.6 5.4-6.5 5.4Z"/></svg>',
   timeline: '<svg viewBox="0 0 24 24"><path d="M7 3.5h10M7 20.5h10"/><path d="M8.5 3.5v2.8c0 2.3 3.5 3.6 3.5 5.7s-3.5 3.4-3.5 5.7v2.8M15.5 3.5v2.8c0 2.3-3.5 3.6-3.5 5.7s3.5 3.4 3.5 5.7v2.8"/></svg>',
   settings: '<svg viewBox="0 0 24 24"><path d="M4 7.5h9M17 7.5h3M4 16.5h3M11 16.5h9"/><circle cx="15" cy="7.5" r="2"/><circle cx="9" cy="16.5" r="2"/></svg>',
-  spiral:   '<svg viewBox="0 0 24 24"><path d="M12 12a2.4 2.4 0 1 1 2.4 2.4A4.4 4.4 0 0 1 10 10a6.4 6.4 0 0 1 6.4-6.4"/><path d="M12 12a3.6 3.6 0 0 0-3.6 3.6A6.6 6.6 0 0 0 15 22.2"/></svg>',
   needs:    '<svg viewBox="0 0 24 24"><path d="M12 3.5 21 20H3Z"/><path d="M7.6 12.5h8.8M9.5 8.5h5"/></svg>',
   more:     '<svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg>',
   reviews:  '<svg viewBox="0 0 24 24"><path d="M12 4.5a7.5 7.5 0 1 1-7.3 9.2"/><path d="M4.5 8.2 4.7 13l4.6-1.1"/><path d="M12 8.5v4l2.8 1.6"/></svg>',
@@ -13668,7 +13090,6 @@ const NAV_PAGES = {
   finance:  {label:'Finance',          short:'Money',    ico:NAV_ICONS.finance,  route:'#/finance'},
   commonplace:{label:'The Library',    short:'Library',  ico:NAV_ICONS.commonplace, route:'#/commonplace'},
   values:   {label:'Values',           short:'Values',   ico:NAV_ICONS.values,   route:'#/values'},
-  spiral:   {label:'Spiral',           short:'Spiral',   ico:NAV_ICONS.spiral,   route:'#/spiral'},
   skills:   {label:'Skill Tree',       short:'Skills',   ico:NAV_ICONS.skills,   route:'#/skills'},
   timeline: {label:'Timeline',         short:'Timeline', ico:NAV_ICONS.timeline, route:'#/timeline'},
 };
@@ -13678,7 +13099,7 @@ const NAV_PAGES = {
 const NAV_TOP = ['compass','today','journals'];
 const NAV_PINNED = ['writing'];
 const NAV_DEFAULT = {
-  becoming:  ['values','skills','projects','finance','commonplace','spiral'],
+  becoming:  ['values','skills','projects','finance','commonplace'],
   story:     ['people','timeline'],
   standalone:[],
 };
@@ -13758,8 +13179,8 @@ NAV_PAGES.import = {label:'Import Station', short:'Import', ico:NAV_ICONS.import
 /* ---------- Compass: life at a glance — today's focus, the living house, long-term panels ---------- */
 /* which level of the hierarchy each room mostly feeds — the annotation the
    house carries, so the map and the pyramid are reading the same building */
-const HOUSE_LEVEL = {today:1, finance:2, people:3, skills:4, projects:6, commonplace:5, journals:5, writing:4, values:7, spiral:7, timeline:5};
-const HOUSE_EDGES = [['timeline','values','retrospective readings fill the values history'],['projects','skills','projects exercise skills'],['journals','timeline','memories become formative events'],['today','values','the biggest values gap is a daily signal'],['today','journals','the day is where most entries start'],['commonplace','journals','quotes are journal entries with a source'],['values','spiral','a value usually has a home on the spiral'],['finance','projects','a project that earns is an income stream'],['people','timeline','the people in a chapter are part of it']];
+const HOUSE_LEVEL = {today:1, finance:2, people:3, skills:4, projects:6, commonplace:5, journals:5, writing:4, values:7, timeline:5};
+const HOUSE_EDGES = [['timeline','values','retrospective readings fill the values history'],['projects','skills','projects exercise skills'],['journals','timeline','memories become formative events'],['today','values','the biggest values gap is a daily signal'],['today','journals','the day is where most entries start'],['commonplace','journals','quotes are journal entries with a source'],['finance','projects','a project that earns is an income stream'],['people','timeline','the people in a chapter are part of it']];
 function houseStats(){
   const T = today(); const n = navConfig();
   const due = S.habits.filter(h=>!h.archived&&!h.negative&&habitDue(h,T)); const done = due.filter(h=>habitDone(h,T)).length;
@@ -13774,14 +13195,6 @@ function houseStats(){
     journals: {line:`${j7} entr${j7===1?'y':'ies'} this week`, ok:j7>0, cadence:'daily', tip:`${S.entries.length} entries across ${S.journals.length} journals`},
     projects: {line:`${active.length} active · ${nods7} nods / 7d`, ok:cold===0, cadence:'daily', tip:cold?`${cold} active project${cold>1?'s':''} without a nod this week`:'every active project nodded this week'},
     values:   {line:`snapshot ${snapDays===null?'never':snapDays===0?'today':snapDays+'d ago'}`, ok:snapDays!==null&&snapDays<=7, cadence:'weekly', tip:gaps[0]?`Biggest gap: ${gaps[0].name} (${gaps[0].gap>0?'+':''}${gaps[0].gap})`:''},
-    needs:    (()=>{ const ls = typeof maslowScores==='function' ? maslowScores().filter(m=>m.effectiveScore!=null) : [];
-      const weak = ls.length ? ls.reduce((a,b)=>b.effectiveScore<a.effectiveScore?b:a) : null;
-      return {line: weak ? `thinnest: ${weak.short.toLowerCase()} ${weak.effectiveScore}` : 'nothing read yet', ok: !weak || weak.effectiveScore>=40, cadence:'weekly',
-        tip: weak ? `Seven levels read off the rest of the house. ${weak.name} is the constraint on everything above it.` : 'Seven levels, read off everything else you log.'}; })(),
-    spiral:   (()=>{ const n = S.spiral?.indicators?.length || 0; const p = typeof spiralProgress==='function' ? spiralProgress() : null;
-      const pair = S.spiral?.currentPair;
-      return {line: n ? (p==null ? `${n} indicators, none rated` : `${Math.round(p*100)}% into ${(spiralMeta(pair.embodying)||[])[1]||''}`) : 'no indicators yet', ok:n>0, cadence:'monthly',
-        tip: pair ? `Releasing ${(spiralMeta(pair.releasing)||[])[1]}, embodying ${(spiralMeta(pair.embodying)||[])[1]}.` : ''}; })(),
     skills:   {line:`${hrs30.toFixed(0)}h / 30d${atro?` · ${atro} atrophying`:''}`, ok:atro===0, cadence:'monthly', tip:`${S.skills.filter(s=>!s.planned).length} skills held, ${S.skills.filter(s=>s.planned).length} planned${milestonesDueSoon(30).length?` · ${milestonesDueSoon(30).length} milestone${milestonesDueSoon(30).length>1?'s':''} within 30 days`:''}`},
     timeline: {line:`${memories} memories · ${S.stages.length} stages`, ok:true, cadence:'archival', tip:'The museum of the past. Formative events and the story you tell.'},
     writing:  {line:`${S.entries.filter(e=>e.type==='writing').length} pieces`, ok:true, cadence:'weekly', tip:'A room for contemplation, fed by your own hashtags.'},

@@ -6,16 +6,19 @@
    S.compost, independent of any project until assigned.
    ============================================================ */
 const WRITING_KINDS = ['Essay','Article','Short Story','Poetry','Newsletter','Script','Speech','Book Chapter','Journal Piece','Pitch','Other'];
-const WRITING_STATUSES = ['Seed','Gathering','Outlining','Drafting','Revising','Polished','Published','Shelved'];
+const WRITING_STATUSES = ['Outlining','Drafting','Polished','Published'];
 const PUB_STATUSES = ['drafted','submitted','accepted','rejected','published','withdrawn'];
 function writings(){ return S.entries.filter(e => e.type === 'writing'); }
 function wordCount(s){ const t = (s||'').trim(); return t ? t.split(/\s+/).length : 0; }
 function migrateWriting(){
-  const STATUS_MAP = {drafting:'Drafting', resting:'Gathering', revising:'Revising', finished:'Polished'};
+  /* four columns came out; a piece sitting in one of them is folded into the
+     nearest column that is still standing rather than losing its place. */
+  const STATUS_MAP = {drafting:'Drafting', resting:'Outlining', revising:'Drafting', finished:'Polished',
+                      Seed:'Outlining', Gathering:'Outlining', Revising:'Drafting', Shelved:'Outlining'};
   writings().forEach(e => {
     const x = e.extra = e.extra || {};
     if(!WRITING_KINDS.includes(x.kind)) x.kind = 'Essay';
-    if(!WRITING_STATUSES.includes(x.status)) x.status = STATUS_MAP[x.status] || 'Seed';
+    if(!WRITING_STATUSES.includes(x.status)) x.status = STATUS_MAP[x.status] || 'Outlining';
     if(x.premise === undefined) x.premise = x.intention || '';
     x.target = x.target || {}; if(x.target.dest === undefined) x.target.dest = ''; if(x.target.wordTarget === undefined) x.target.wordTarget = x.wordTarget||0; if(x.target.deadline === undefined) x.target.deadline = '';
     x.pinned = Array.isArray(x.pinned) ? x.pinned : [];
@@ -34,7 +37,7 @@ function migrateWriting(){
 function newWriting(){
   const e = {id:uid(), type:'writing', title:'', body:'', occurredAt:today(), createdAt:new Date().toISOString(), media:[],
     links:{stages:[],substages:[],threads:[],values:[],visions:[],skills:[],projects:[]}, people:[], places:[], emotions:[], tags:[], confidence:'',
-    extra:{kind:'Essay', status:'Seed', premise:'', target:{dest:'',wordTarget:0,deadline:''}, pinned:[], outline:[], beats:[], comments:[], versions:[], scratchpad:'', publication:{status:'drafted',where:'',when:'',notes:''}}};
+    extra:{kind:'Essay', status:'Outlining', premise:'', target:{dest:'',wordTarget:0,deadline:''}, pinned:[], outline:[], beats:[], comments:[], versions:[], scratchpad:'', publication:{status:'drafted',where:'',when:'',notes:''}}};
   S.entries.push(e); saveNow(); return e;
 }
 
@@ -250,7 +253,7 @@ routes.writing = function(root, params){
   const published = ws.filter(e => e.extra.publication?.status === 'published');
   root.innerHTML = `<div class="page">
     <div class="page-head"><h1>The Writing Studio</h1></div>
-    <div class="row rv" style="gap:8px;margin-bottom:16px"><a class="btn sm ghost" href="#/writing/compost">🌱 Compost Heap (${S.compost.length})</a><button class="btn sm ghost" id="wHabit">+ a writing habit</button><div class="view-toggle">${[['board','▥ Board'],['list','☰ List']].map(([k,l])=>`<button class="${view===k?'on':''}" data-wv="${k}">${l}</button>`).join('')}</div></div>
+    <div class="row rv" style="gap:8px;margin-bottom:16px"><a class="btn sm ghost" href="#/writing/compost">🌱 Compost Heap (${S.compost.length})</a><div class="view-toggle">${[['board','▥ Board'],['list','☰ List']].map(([k,l])=>`<button class="${view===k?'on':''}" data-wv="${k}">${l}</button>`).join('')}</div></div>
     ${ws.length ? (view==='board' ? `<div class="wkanban rv" id="wkanban">${WRITING_STATUSES.map((st, si) => { const inCol = ws.filter(e=>e.extra.status===st);
         const hue = ['var(--muted)','var(--sage)','var(--ment)','var(--page-accent)','var(--gold)','var(--terra)','#7f916a','var(--faint)'][si] || 'var(--page-accent)';
         return `<div class="wkcol ${inCol.length?'':'quiet'}" data-wcol="${esc(st)}" style="--c:${hue}"><div class="wkcol-h"><span>${esc(st)}</span><span class="n">${inCol.length}</span></div><div class="wkcol-body">${inCol.map(e=>{ const n = wordCount(e.body); const tgt = e.extra.target?.wordTarget||0;
@@ -265,7 +268,6 @@ routes.writing = function(root, params){
     <section class="section rv"><details><summary><span class="sc">Cross-pollination</span></summary><div class="body" style="padding-top:10px">${crossPollinationHTML()}</div></details></section>
   </div>`;
   $$('[data-wv]',root).forEach(b=>b.onclick=()=>{ S._wView = b.dataset.wv; rerender(); });
-  $('#wHabit').onclick = () => openHabitModal();
   $$('[data-wopen]',root).forEach(c => c.onclick = () => { location.hash = '#/writing/'+c.dataset.wopen; });
   // drag between kanban status columns
   let wdrag = null;

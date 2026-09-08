@@ -37,7 +37,7 @@ To restore your data on a new device: open this website in the same browser, go 
 
 The sidebar opens with the three rooms you are in daily — **Compass**, **Today**, **Journals** — and groups the rest by what each is for rather than by feature:
 
-- **Becoming** — long-term growth and identity: Values, Skill Tree, Projects, Finance, The Library, Spiral
+- **Becoming** — long-term growth and identity: Values, Skill Tree, Projects, Finance, The Library
 - **Story** — relationships and memory: People, Timeline
 
 At the foot, always present, sit **The Writing Studio** and **Settings**. The Import Station has no room of its own; it is a section inside Settings. Sidebar labels are the same names the pages carry as their titles, drawn with thin line icons. Zones collapse, the sidebar collapses to icons, and both states persist. On narrow screens a bottom bar shows the five most-used rooms and a More button opens the full grouped menu. Pages can be moved between zones by drag-and-drop in Settings.
@@ -48,7 +48,6 @@ The Compass opens with one summary card per zone — items still planned today a
 |---|---|
 | `#/compass` | Life at a glance: the week's shape (when each day opened and closed, and how the hours between split into claimed and wasted), the twelve-week habit trend, the Life Position check-in (Maslow pyramid and stage resonance), the living house diagram of rooms with health dots, flows and the need each one feeds, and long-term panels with charts |
 | `#/today` | The whole day, bracketed by its two ends — *I woke up at* under the date, *I went to sleep at* at the foot, both editable. Between them, every section folds and remembers whether it was open: the plan made last night, tasks, the check-in, the Morning Theatre, the habit checklist with **＋ add habit**, and any review whose cycle closes tonight. The three morning steps are ticks in the headers of the sections they belong to, each printing its own timestamp on that line. A sticky index at the top jumps to any of them |
-| `#/spiral` | The movement between two stages: a releasing end and an embodying end, hand-written indicators rated on scales that run in opposite directions, a computed position with an interpretive line, traces of other stages, tagged evidence by polarity, and check-ins that freeze every strength |
 | `#/people` | A relationship garden: three concentric circles (Inner, Middle, Outer, with Dunbar-ish sizes) you can drag faces between, a contact cadence per person and who has drifted past it, interactions logged by kind, birthdays and follow-ups, and everything you have written about them |
 | `#/finance` | Not a ledger: the ways you make money (each active or passive, with the arithmetic that kind deserves — effective rate, hours to target and the ceiling those hours impose, or yield on capital, payback and money per upkeep hour), the gap against a life-cost scenario, what share of the life keeps running when you stop, runway, and life-cost scenarios as columns you can compare side by side |
 | `#/writing` | Pieces with an intention and source hashtags; the entries carrying those tags line up beside the page and can be quoted straight in |
@@ -75,7 +74,6 @@ Every room shares one design language but carries its own personality. The confi
 | The Library | mulberry | plum → rose | calm |
 | People | dusty rose | rose → clay | calm |
 | Finance | moss | moss → sage | crisp |
-| Spiral | ochre | ochre → sage | calm |
 | Values | soft purple | lavender → mauve | calm |
 | Skill Tree | emerald | emerald → teal | energetic (springy) |
 | Timeline | dusty gold | gold → sepia | calm |
@@ -127,13 +125,12 @@ Substantive entries carry hashtags: type `#something` in the body, or use the fi
 
 There is no reviews hub to remember to visit. On the last day of each cycle — daily, weekly, monthly, quarterly, half-year, annual — the review surfaces on Today, carrying that period's own numbers with it: habits kept, tasks finished, entries written, and one figure showing entries a day as bars with habit completion drawn over them. Beside it, **ask Claude** builds a reading from the entries dated inside that period and nothing else, so a weekly review cannot quietly become a reading of the whole life. A cycle that ends unanswered stays visible for three days; *not tonight* is remembered against that period and not the next one.
 
-## Maslow and the Spiral
+## Maslow
 
-Two developmental frames, kept honest by being read off things already logged rather than asked about in a quiz.
+A developmental frame, kept honest by being read off things already logged rather than asked about in a quiz.
 
 **Maslow's seven levels** are read in their structural order — not a ranking, a sequence — inside the Life Position panel on the Compass. Each level's score is averaged from live readings elsewhere (sleep and physical habits, runway and the gap, contact recency, skill practice and writing, media resonance and reflection, creative nods and awe congruence). A missing input is excluded, never zeroed. The thinnest tier is the one to act on, and each level points at the room where you would act on it.
 
-**Spiral** is directional. It holds two stages — one being released, one being embodied — and the concrete patterns on each side, written by hand and rated 1–5 on scales that deliberately run in opposite directions. The position is computed from the embodying side alone: letting go of the old stage is not the same achievement as living the new one. Traces record where another stage still shows up, and any entry can be tagged to a stage with a polarity to serve as evidence. Spiral does not seed itself — the worked example is offered behind a button, because a room like this only works if the words in it are yours.
 
 ## The starter set
 

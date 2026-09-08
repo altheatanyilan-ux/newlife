@@ -36,7 +36,7 @@ function seed(){
     ],
     rehearsal:{script:'', winning:'', aim:'', cycleStart:'', days:[]},
     reviews:{lastWeekly:null,lastSeasonal:null,lastAnnual:null},
-    people:[], places:[], boards:[], events:[], plans:{}, reviewLog:{}, accounts:[], txns:[], budgets:[], finGoals:[], chapters:[], turns:[], threadsN:[], interactions:[], dailyRhythm:{}, position:{overrides:{},history:[],spiral:{}}, spiral:{currentPair:{releasing:'orange',embodying:'green'},traces:[],indicators:[],history:[]}, wsDaily:{},
+    people:[], places:[], boards:[], events:[], plans:{}, reviewLog:{}, accounts:[], txns:[], budgets:[], finGoals:[], chapters:[], turns:[], threadsN:[], interactions:[], dailyRhythm:{}, position:{overrides:{},history:[],spiral:{}}, wsDaily:{},
     finance:{currency:'SGD', categories:[], netWorthLog:[], principles:[], note:'', assigned:{}},
     mediaQueue:[], mediaLists:[], mediaRecs:[], compost:[],
     incomeStreams:[], spendCategories:[],

@@ -8,15 +8,14 @@
 const MEDIA_KINDS = {
   book:       ['📗','Book',        '#7f916a'],
   film:       ['🎞','Film',        '#a0727e'],
-  documentary:['🎥','Documentary', '#5c7c8a'],
+  documentary:['🎥','Doc',         '#5c7c8a'],
   podcast:    ['🎙','Podcast',     '#c9975c'],
   article:    ['📄','Article',     '#8a8d8f'],
   series:     ['📺','Series',      '#6b7f8e'],
-  album:      ['🎵','Music Album', '#b08968'],
+  album:      ['🎵','Album',       '#b08968'],
   lecture:    ['🎤','Lecture',     '#c47832'],
   exhibition: ['🖼','Exhibition',  '#9a8fb8'],
   game:       ['🎮','Game',        '#6fa39a'],
-  other:      ['✦','Other',       '#a89f94'],
 };
 const MEDIA_STATUS = ['want','progress','finished','abandoned','reexperiencing'];
 const MEDIA_STATUS_LABEL = {want:'Want', progress:'In Progress', finished:'Finished', abandoned:'Abandoned', reexperiencing:'Re-experiencing'};
@@ -73,7 +72,10 @@ function syncMediaQuotes(e){
     else { qe.body = q.text; qe.extra.page = q.where||''; qe.extra.why = q.why||''; qe.extra.author = mediaX(e).creator||''; qe.extra.source = e.title; }
   });
   const keep = new Set((x.quotes||[]).map(q=>q.quoteEntryId).filter(Boolean));
-  S.entries = S.entries.filter(en => !(en.type==='quote' && en.extra?.fromMedia===e.id && !keep.has(en.id)));
+  /* splice rather than reassign: S.entries is held by reference in every
+     pending-Undo closure, and swapping the array would strand them */
+  for(let i = S.entries.length - 1; i >= 0; i--){ const en = S.entries[i];
+    if(en.type==='quote' && en.extra?.fromMedia===e.id && !keep.has(en.id)) S.entries.splice(i, 1); }
   saveNow();
 }
 hooks.syncquote = (mediaId) => { const e = byId(S.entries, mediaId); if(e) syncMediaQuotes(e); };
@@ -161,7 +163,7 @@ function influenceMapHTML(){
       <div><span class="sc">Threads that keep appearing</span>${Object.keys(thTally).length ? Object.entries(thTally).sort((a,b)=>b[1]-a[1]).map(([id,n])=>{ const t=byId(S.threads,id); return t?bar(t.name,n,maxTh,t.color):''; }).join('') : '<div class="empty">No threads tagged yet.</div>'}</div>
     </div>
     <div class="grid c2" style="align-items:start;gap:24px;margin-top:20px">
-      <div><span class="sc">Medium balance</span>${Object.entries(kindTally).sort((a,b)=>b[1]-a[1]).map(([k,n])=>bar((MEDIA_KINDS[k]||MEDIA_KINDS.other)[1],n,maxKind,(MEDIA_KINDS[k]||MEDIA_KINDS.other)[2])).join('')}</div>
+      <div><span class="sc">Medium balance</span>${Object.entries(kindTally).sort((a,b)=>b[1]-a[1]).map(([k,n])=>bar((MEDIA_KINDS[k]||MEDIA_KINDS.book)[1],n,maxKind,(MEDIA_KINDS[k]||MEDIA_KINDS.book)[2])).join('')}</div>
       <div><span class="sc">Resonance distribution</span>${RESONANCE_LEVELS.map(([k,label,color])=>bar(label,resTally[k],maxRes,color)).join('')}
         ${all.length && resTally.passed > all.length*.6 ? '<p class="faint" style="font-size:.78rem;margin-top:8px">Most of what you log only passes through you. Maybe that\'s fine — or maybe you are consuming faster than you absorb.</p>' : ''}</div>
     </div>

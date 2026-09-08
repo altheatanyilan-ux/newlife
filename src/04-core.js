@@ -63,7 +63,7 @@ function tagChips(e, {link=true}={}){ const t = entryTags(e); return t.length ? 
 const KEY = 'lifeinstrument.v1';
 let S = null;
 /* persistence lives in db.js (Dexie schema + load/save/backup) */
-function migrate(){ if(S.settings && (S.settings.home === 'map' || S.settings.home === 'home')) S.settings.home = 'compass'; wipeDemoData(); if(S.rehearsal && !S.rehearsal){ S.rehearsal = S.rehearsal; } delete S.rehearsal; if(typeof migrateEras === 'function') migrateEras(); const d = seed(); for(const k of Object.keys(d)) if(S[k]===undefined) S[k] = d[k]; if(typeof migrateLifeline === 'function') migrateLifeline(); if(typeof migrateSkillLevels === 'function') migrateSkillLevels(); if(typeof migrateProjects === 'function') migrateProjects(); if(typeof migrateStages === 'function') migrateStages(); if(typeof migrateTasks === 'function') migrateTasks(); if(typeof migrateIdeas === 'function') migrateIdeas(); if(typeof migrateMedia === 'function') migrateMedia(); if(typeof migrateSkillFocus === 'function') migrateSkillFocus(); if(typeof migratePeople === 'function') migratePeople(); if(typeof migrateValuePractices === 'function') migrateValuePractices(); if(typeof migrateFinance === 'function') migrateFinance(); if(typeof migrateRhythm === 'function') migrateRhythm(); if(typeof migrateSpiral === 'function') migrateSpiral(); S.boards = Array.isArray(S.boards) ? S.boards : []; if(typeof migrateBoards === 'function') migrateBoards(); }
+function migrate(){ if(S.settings && (S.settings.home === 'map' || S.settings.home === 'home')) S.settings.home = 'compass'; wipeDemoData(); if(S.rehearsal && !S.rehearsal){ S.rehearsal = S.rehearsal; } delete S.rehearsal; if(typeof migrateEras === 'function') migrateEras(); const d = seed(); for(const k of Object.keys(d)) if(S[k]===undefined) S[k] = d[k]; if(typeof migrateLifeline === 'function') migrateLifeline(); if(typeof migrateSkillLevels === 'function') migrateSkillLevels(); if(typeof migrateProjects === 'function') migrateProjects(); if(typeof migrateStages === 'function') migrateStages(); if(typeof migrateTasks === 'function') migrateTasks(); if(typeof migrateIdeas === 'function') migrateIdeas(); if(typeof migrateMedia === 'function') migrateMedia(); if(typeof migrateSkillFocus === 'function') migrateSkillFocus(); if(typeof migratePeople === 'function') migratePeople(); if(typeof migrateValuePractices === 'function') migrateValuePractices(); if(typeof migrateFinance === 'function') migrateFinance(); if(typeof migrateRhythm === 'function') migrateRhythm(); S.boards = Array.isArray(S.boards) ? S.boards : []; if(typeof migrateBoards === 'function') migrateBoards(); }
 
 /* One-time: the house used to open furnished with a demonstration life. If that
    demonstration is still here, clear it so the rooms start empty. */
@@ -141,15 +141,22 @@ function animateOut(node, done){
   setTimeout(done, 210);
 }
 /* remove(): mutate S and return a restore() closure. The object stays in memory for 5 s; Undo restores it before the store commits. */
+const UNDO_MS = 8000;
 function requestDelete({label='Entry', node=null, remove, after=null, skipConfirm=false}){
   const run = () => animateOut(node, () => {
     const restore = remove(); const id = uid();
-    const timer = setTimeout(() => { pendingDeletes.delete(id); saveNow(); }, 5000);
+    /* the buffer outlives the toast, so a click on the last visible frame of
+       the toast can never land after the delete has already been committed */
+    const timer = setTimeout(() => { pendingDeletes.delete(id); saveNow(); }, UNDO_MS + 1500);
     pendingDeletes.set(id, {restore, timer});
     (after || rerender)();
-    toast(`${esc(label)} deleted`, 5000, {label:'Undo', fn: () => { const p = pendingDeletes.get(id); if(!p) return; clearTimeout(p.timer); pendingDeletes.delete(id); p.restore(); saveNow(); rerender(); toast('Restored.'); }});
+    toast(`${esc(label)} deleted`, UNDO_MS, {label:'Undo', fn: () => {
+      const p = pendingDeletes.get(id);
+      if(!p){ toast('That one has already been written away.'); return; }
+      clearTimeout(p.timer); pendingDeletes.delete(id);
+      p.restore(); saveNow(); rerender(); toast('Restored.'); }});
   });
-  run(); // no confirmation step — the five-second Undo in the toast is the safety net
+  run(); // no confirmation step — the Undo in the toast is the safety net
 }
 function flushPendingDeletes(){ if(!pendingDeletes.size) return; pendingDeletes.forEach(p => clearTimeout(p.timer)); pendingDeletes.clear(); saveNow(); }
 window.addEventListener('beforeunload', flushPendingDeletes);
@@ -193,7 +200,7 @@ function parseHash(){ const h = (location.hash||'').replace(/^#\/?/,''); const [
 /* rooms that no longer exist, pointed at where their work went */
 /* rooms that no longer exist, pointed at where their work went */
 const ROUTE_ALIASES = {home:'compass', rhythm:'today', lifetape:'today', calendar:'today', plan:'today',
-  rituals:'today', reviews:'today', board:'compass', vision:'compass', needs:'compass'};
+  rituals:'today', reviews:'today', board:'compass', vision:'compass', needs:'compass', spiral:'compass'};
 function renderRoute(){
   /* page-scoped atmosphere flags do not survive a navigation */
   

@@ -11,7 +11,7 @@
    on the paper one — because the colour in this house belongs
    to the rooms, and a shan shui painting has never needed any.
    ============================================================ */
-const INK_CONTEMPLATIVE = ['today','journals','spiral'];   // where a margin illustration belongs
+const INK_CONTEMPLATIVE = ['today','journals'];   // where a margin illustration belongs
 const INK_WATER = ['skills','compass'];              // the wide canvases that float on water
 
 /* one seed for the life of the install, so the same painting greets you */
