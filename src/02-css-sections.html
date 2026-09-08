@@ -785,28 +785,6 @@ html[data-theme="light"] .stage-hero .veil{background:linear-gradient(180deg,rgb
 .songs li{padding:6px 0;border-top:1px dashed var(--line);font-family:var(--serif);font-size:1.05rem}
 .songs{list-style:none;padding:0;margin:0}
 
-/* ============================================================
-   4. VISION TREE
-   ============================================================ */
-/* A tree is not a diagram in a box. The canvas is the page itself — the ink
-   wash and the room's own scene show through it — with only light gathering at
-   the canopy and the ground darkening under the trunk. No panel, no fill. */
-.tree-wrap{position:relative;height:calc(100vh - 150px);min-height:560px;border-radius:20px;overflow:hidden;border:0;
-  background:
-    radial-gradient(ellipse 70% 40% at 50% 8%,color-mix(in srgb,var(--gold) 7%,transparent),transparent 70%),
-    radial-gradient(ellipse 80% 30% at 50% 100%,color-mix(in srgb,var(--sage) 11%,transparent),transparent 70%)}
-.tree-wrap svg{width:100%;height:100%;display:block}
-.tree-wrap .branch{cursor:pointer}
-.tree-wrap .branch path.limb{transition:stroke-width .8s var(--ease),stroke .8s var(--ease),opacity .8s;stroke-linecap:round;fill:none}
-.tree-wrap .branch:hover path.limb{filter:drop-shadow(0 0 6px color-mix(in srgb,var(--sage) 60%,transparent))}
-.tree-wrap .branch .lbl{font-family:var(--serif);font-size:13px;fill:var(--text);letter-spacing:.03em;pointer-events:none}
-.tree-wrap .branch .sc{font-family:var(--mono);font-size:9px;fill:var(--muted)}
-.tree-wrap .leaf{transform-box:fill-box;transform-origin:0% 50%}
-.tree-wrap .trace{pointer-events:none;fill:none;stroke:var(--gold);stroke-width:2;opacity:0;transition:opacity .3s}
-.tree-wrap .era-lbl{font-family:var(--serif);font-size:12px;letter-spacing:.2em;fill:var(--faint);text-transform:uppercase}
-.tree-legend{position:absolute;left:18px;bottom:16px;display:flex;gap:14px;font-family:var(--mono);font-size:.62rem;color:var(--faint);flex-wrap:wrap;max-width:60%}
-.tree-tools{position:absolute;right:18px;top:16px;display:flex;gap:8px;z-index:3}
-.vision-panel .score{display:flex;align-items:center;gap:14px;margin:10px 0 18px}
 .ladder{display:flex;gap:4px;flex-wrap:wrap}
 .ladder button{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:5px 10px;font-size:.72rem;color:var(--muted);cursor:pointer;transition:all .2s var(--ease)}
 .ladder button.on{background:color-mix(in srgb,var(--sage) 25%,transparent);border-color:var(--sage);color:var(--text)}
@@ -1114,14 +1092,21 @@ details.era-lived[open] > summary::before{transform:rotate(90deg)}
 .sk-organic .halo{animation:haloPulse 2.6s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
 @keyframes haloPulse{0%,100%{opacity:.12;transform:scale(1)}50%{opacity:.26;transform:scale(1.25)}}
 .sk-organic .fruit{filter:drop-shadow(0 1px 2px rgba(0,0,0,.35))}
-.sk-organic .blossom{animation:blossomPulse 3.2s ease-in-out infinite}
-@keyframes blossomPulse{0%,100%{opacity:.75}50%{opacity:1}}
+/* A flower opens once, when the tree is drawn, and then sits still — the
+   canopy is what moves. A flower on a twig whose milestone is close by keeps
+   breathing, so a near deadline is something you can see across the page. */
+.sk-organic .blossom{transform-box:fill-box;transform-origin:center;
+  animation:blossomOpen .7s var(--page-ease) backwards;animation-delay:var(--d,0s)}
+@keyframes blossomOpen{from{opacity:0;transform:scale(.15) rotate(-40deg)}to{opacity:1;transform:none}}
+.sk-organic .blossom.soon{animation:blossomOpen .7s var(--page-ease) backwards,
+  blossomBreathe 3.2s ease-in-out infinite;animation-delay:var(--d,0s), calc(var(--d,0s) + .7s)}
+@keyframes blossomBreathe{0%,100%{opacity:.78;transform:scale(1)}50%{opacity:1;transform:scale(1.14)}}
 .sk-organic .fall{animation:leafFall 7s linear infinite;transform-box:fill-box;transform-origin:center}
 @keyframes leafFall{0%{opacity:0;transform:translate(0,0) rotate(0)}10%{opacity:.8}100%{opacity:0;transform:translate(14px,70px) rotate(220deg)}}
 .sk-organic .sk-sun{animation:sunBreathe 9s ease-in-out infinite alternate}
 @keyframes sunBreathe{from{opacity:.7}to{opacity:1}}
 html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
-@media (prefers-reduced-motion:reduce){.sk-organic .halo,.sk-organic .blossom,.sk-organic .fall,.sk-organic .sk-sun{animation:none}}
+@media (prefers-reduced-motion:reduce){.sk-organic .halo,.sk-organic .blossom,.sk-organic .blossom.soon,.sk-organic .fall,.sk-organic .sk-sun{animation:none;opacity:1}}
 .lvl-track{display:flex;flex-direction:column;position:relative;padding-left:4px}
 .lvl-track::before{content:"";position:absolute;left:33px;top:14px;bottom:44px;width:2px;background:var(--line-2)}
 .lvl{display:grid;grid-template-columns:44px 1fr;gap:10px;padding:6px 0;position:relative;transition:opacity .2s}
@@ -1991,8 +1976,8 @@ html.vision-deep .page-scene.on{opacity:var(--scene-op)}
    canopy behind it all. */
 @keyframes limbDraw{to{stroke-dashoffset:0}}
 @keyframes leafOpen{from{opacity:0;transform:scale(.2) rotate(-18deg)}to{opacity:1;transform:none}}
-.growing .leaf,.growing .fruit,.growing .blossom{transform-box:fill-box;transform-origin:0% 50%}
-.tree-wrap .leaf,.sk-organic .leaf{transform-box:fill-box;transform-origin:0% 50%;will-change:transform}
+.growing .leaf,.growing .fruit{transform-box:fill-box;transform-origin:0% 50%}
+.sk-organic .leaf{transform-box:fill-box;transform-origin:0% 50%;will-change:transform}
 
 /* the canopy breathes — a slow swell, out of step between categories */
 .sk-organic .sk-canopy{animation:canopyBreathe 13s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
@@ -2018,7 +2003,7 @@ html.vision-deep .page-scene.on{opacity:var(--scene-op)}
 @media (prefers-reduced-motion:reduce){
   .tree-motes{display:none}
   .sk-organic .sk-canopy,.sk-organic .sk-twig.fresh .limb{animation:none}
-  .tree-wrap .leaf,.sk-organic .leaf{transform:none!important}
+  .sk-organic .leaf{transform:none!important}
 }
 
 /* ---------- the two ends of the day ---------- */
@@ -2172,5 +2157,18 @@ input[type="date"].dp-active{border-color:var(--page-accent);box-shadow:0 0 0 2p
 .rvw-late{font-family:var(--mono);font-size:.56rem;letter-spacing:.06em;
   padding:1px 5px;border-radius:99px;background:color-mix(in srgb,var(--rose) 20%,transparent)}
 .cyc-panel .cyc-card{border:none;padding:0;margin:0;background:none}
+
+/* ---------- planning the next day ----------
+   Prompts in Lora italic at reduced weight while a field is empty; the
+   person's own words replace the prompt as soon as there are any. */
+.plan-step{display:flex;flex-direction:column;gap:16px}
+.plan-field{display:flex;flex-direction:column;gap:3px}
+.plan-lbl{font-family:var(--serif);font-size:1rem;color:var(--text);letter-spacing:.01em}
+.plan-hint{font-family:var(--quote);font-style:italic;font-size:.82rem;color:var(--muted);
+  margin:0 0 5px;line-height:1.5;max-width:52ch}
+.plan-in{transition:border-color .3s cubic-bezier(.4,0,.2,1),background .3s cubic-bezier(.4,0,.2,1)}
+.plan-in::placeholder{font-family:var(--quote);font-style:italic;opacity:.5}
+.plan-in:focus{border-color:var(--page-accent)}
+@media (prefers-reduced-motion:reduce){.plan-in{transition:none}}
 </style>
 </head>

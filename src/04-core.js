@@ -222,6 +222,8 @@ function renderRoute(){
   currentRoute = name; PageEntryConfig.clear();
   try { fn(main, params); } catch(err){ console.error(err); main.innerHTML = `<div class="page narrow"><h1>Something went wrong</h1><p class="muted">${esc(err.message)}</p></div>`; }
   decoratePageHead(main); mountContextAdd(main); reveal(main); tweenAll(main); backupBanner(); updateBackButton();
+  /* a review the user stepped out of to write an entry comes back, same step */
+  if(typeof resumeReviewIfPending === 'function') resumeReviewIfPending();
   if(typeof attachDictationIn === 'function') attachDictationIn(main);
   restoreScroll(location.hash);
 }

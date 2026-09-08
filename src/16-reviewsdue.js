@@ -347,7 +347,7 @@ function captureStepHTML(from, to){
   const n = (typeof tapeItems === 'function' ? tapeItems(from, to) : []).filter(it => it.kind !== 'habit').length;
   return `<div class="cap-step">
     <p class="cap-count mono">${n} entr${n === 1 ? 'y' : 'ies'} already written for this stretch.</p>
-    <div class="cap-grid">${CAPTURE_KINDS.map(k => `<button class="choice cap-choice" data-cap="${k.t}">
+    <div class="cap-grid">${CAPTURE_KINDS.map(k => `<button class="choice cap-choice" data-cap="${k.t}" data-capreturn>
       <span class="ico">${k.ic}</span><span><b>${esc(k.label)}</b><div class="d">${esc(k.d)}</div></span></button>`).join('')}</div>
     <p class="cap-back faint">Anything you add here is kept straight away; this review stays open behind it.</p>
   </div>`;
@@ -387,4 +387,95 @@ function tasksReviewHTML(from, to){
       <ul class="tsk-list">${open.slice(0, 12).map(r => `<li>${esc(r.text)}<span class="mono">${esc(fmtDate(r.day,'short'))}</span></li>`).join('')}</ul>
       <p class="faint" style="font-size:.78rem;margin-top:6px">Unfinished is information, not a verdict. What kept getting pushed?</p>` : ''}
   </div>`;
+}
+
+
+/* ============================================================
+   PLANNING THE NEXT DAY — the same five prompts wherever it is
+   asked. A day is not only what you intend to do: it is what you
+   intend to defend, when you expect to have the energy for it,
+   what you already know is in the way and what you will do about
+   that, and the one thing from today you are not carrying over.
+   ============================================================ */
+const PLAN_PROMPTS = [
+  {k:'protect',    label:'One thing to protect',  hint:'A commitment, a boundary, or a block of time that does not get surrendered.',
+   ph:'The hour before anyone needs me.', multi:false},
+  {k:'energyHigh', label:'When the energy is high', hint:'And what deserves to be there.',
+   ph:'Early. The writing goes here.', multi:false},
+  {k:'energyLow',  label:'When it drops',          hint:'And what can be done anyway.',
+   ph:'After lunch. Errands, replies, the tidying.', multi:false},
+  {k:'ifThen',     label:'If it goes wrong',       hint:'One obstacle you can already name, and what you do instead.',
+   ph:'If the meeting overruns, then I write on the train.', multi:true},
+  {k:'letGo',      label:'One thing to let go of from today', hint:'So it does not bleed into tomorrow.',
+   ph:'The reply I did not get. It can wait.', multi:true},
+];
+function planStepHTML(d, {three = true} = {}){
+  const p = dayPlan(d);
+  const field = pr => `<div class="plan-field">
+    <label class="plan-lbl">${esc(pr.label)}</label>
+    <p class="plan-hint">${esc(pr.hint)}</p>
+    ${pr.multi
+      ? `<textarea class="ta plan-in" rows="2" data-plan="${pr.k}" placeholder="${esc(pr.ph)}">${esc(p[pr.k] || '')}</textarea>`
+      : `<input class="inp plan-in" data-plan="${pr.k}" value="${esc(p[pr.k] || '')}" placeholder="${esc(pr.ph)}">`}
+  </div>`;
+  return `<div class="plan-step">
+    ${three ? `<div class="plan-field">
+      <label class="plan-lbl">The three that matter</label>
+      <p class="plan-hint">Not a task list — what would make ${esc(fmtDate(d,'short'))} count. One is allowed to stay empty.</p>
+      <div class="stack" style="gap:7px">${[0,1,2].map(i => `<div class="row" style="gap:8px"><span class="in-n">${i+1}</span><input class="inp plan-in serif-lg" data-planint="${i}" value="${esc((p.intentions||[])[i] || '')}" placeholder="${['the one that matters most','the one you keep postponing','the small one'][i]}"></div>`).join('')}</div>
+    </div>` : ''}
+    ${PLAN_PROMPTS.map(field).join('')}
+  </div>`;
+}
+/* every field writes through as it is typed — a plan half-written is still a
+   plan, and closing the review is not meant to be the thing that saves it */
+function bindPlanStep(box, d){
+  const p = dayPlan(d);
+  box.querySelectorAll('[data-plan]').forEach(el2 => {
+    const commit = () => { p[el2.dataset.plan] = el2.value.trim(); saveNow(); };
+    el2.oninput = commit; el2.onchange = commit;
+  });
+  box.querySelectorAll('[data-planint]').forEach(el2 => {
+    const commit = () => { p.intentions = p.intentions || ['','','']; p.intentions[+el2.dataset.planint] = el2.value.trim(); saveNow(); };
+    el2.oninput = commit; el2.onchange = commit;
+  });
+}
+
+/* ---------- coming back to a review you stepped out of ----------
+   Adding an entry from the "anything else?" step normally opens on top of the
+   review and the review is still there behind it. But an entry kind that
+   navigates would lose the review entirely, so the flow leaves a marker first
+   and the next render puts it back — same review, same step, same scroll. */
+const REVIEW_RETURN_KEY = 'lifeInstrument_reviewReturn';
+function stashReviewReturn(rec){ try { localStorage.setItem(REVIEW_RETURN_KEY, JSON.stringify(rec)); } catch(e){} }
+function clearReviewReturn(){ try { localStorage.removeItem(REVIEW_RETURN_KEY); } catch(e){} }
+function peekReviewReturn(){
+  try { const raw = localStorage.getItem(REVIEW_RETURN_KEY); return raw ? JSON.parse(raw) : null; } catch(e){ return null; }
+}
+/* Reopened by name, so the marker survives a full page reload. Registered
+   here rather than beside the flows themselves: 16-reviewflows.js is
+   concatenated before this file, so a top-level assignment there would run
+   while this const is still in its temporal dead zone. The flows are function
+   declarations, so naming them from here is safe. */
+const RESUMABLE_FLOWS = {
+  get evening(){ return typeof flowEvening === 'function' ? flowEvening : null; },
+  get weekly(){  return typeof flowWeekly  === 'function' ? flowWeekly  : null; },
+};
+let reviewResumeTimer = null;
+function resumeReviewIfPending(){
+  /* Peek, never take, until the review is actually on screen: a marker
+     consumed by a render that then failed to reopen is a review lost.
+
+     One navigation can render more than once, and every render closes the
+     modals — so the reopen waits for the burst to settle. Each render pushes
+     the timer out, and the last one wins. */
+  const rec = peekReviewReturn(); if(!rec) return;
+  const fn = RESUMABLE_FLOWS[rec.flow]; if(!fn){ clearReviewReturn(); return; }
+  clearTimeout(reviewResumeTimer);
+  reviewResumeTimer = setTimeout(() => {
+    if(!peekReviewReturn()) return;
+    if($('#flowBody')){ clearReviewReturn(); return; }   // already open
+    fn({startAt: rec.step, scroll: rec.scroll});
+    if($('#flowBody')) clearReviewReturn();
+  }, 140);
 }

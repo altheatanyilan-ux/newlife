@@ -117,6 +117,15 @@ function dayPlan(d = today()){
   if(p.why === undefined) p.why = '';
   if(p.firstMove === undefined) p.firstMove = '';
   if(p.risk === undefined) p.risk = '';
+  /* a plan is not only what you intend to do. It is also what you intend to
+     defend, when you expect to have the energy for it, what you already know
+     will get in the way and what you will do about that — and the one thing
+     from today you are deliberately not carrying into tomorrow. */
+  if(p.protect === undefined) p.protect = '';
+  if(p.energyHigh === undefined) p.energyHigh = '';
+  if(p.energyLow === undefined) p.energyLow = '';
+  if(p.ifThen === undefined) p.ifThen = '';
+  if(p.letGo === undefined) p.letGo = '';
   return p;
 }
 function dayReview(d = today()){

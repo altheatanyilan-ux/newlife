@@ -5,8 +5,11 @@
    every step pre-filled with what the instrument already knows,
    so the work is noticing rather than remembering.
    ============================================================ */
-function guidedFlow(title, steps, onDone){
-  let i = 0; const m = openModal('', 'wide');
+function guidedFlow(title, steps, onDone, opts = {}){
+  /* `flow` names this review so it can be reopened at the same step after the
+     user steps out of it to write an entry; `startAt` is where to reopen. */
+  let i = clamp(opts.startAt | 0, 0, steps.length - 1);
+  const m = openModal('', 'wide');
   const draw = () => {
     const st = steps[i];
     m.querySelector('.modal').innerHTML = `<button class="close">×</button>
@@ -18,7 +21,8 @@ function guidedFlow(title, steps, onDone){
       <div class="row between" style="margin-top:14px">
         <span class="row" style="gap:6px">${i ? '<button class="btn sm ghost" id="fwBack">back</button>' : ''}</span>
         <button class="btn primary" id="fwNext">${i === steps.length-1 ? 'Close the review' : 'Next'}</button></div>`;
-    m.querySelector('.close').onclick = () => m.remove();
+    /* closing the review on purpose means it is not waiting to be resumed */
+    m.querySelector('.close').onclick = () => { clearReviewReturn(); m.remove(); };
     const body = m.querySelector('#flowBody');
     /* Steps that embed page HTML (the Life Tape views, mostly) bring `.rv`
        reveal wrappers with them. Those sit at opacity 0 until something adds
@@ -29,10 +33,16 @@ function guidedFlow(title, steps, onDone){
     body.querySelectorAll('[data-flowgo]').forEach(b => b.onclick = () => { const go = b.dataset.flowgo; m.remove(); navigate(go); });
     body.querySelectorAll('[data-flowquick]').forEach(b => b.onclick = () => openEntryModal({type:b.dataset.flowquick, after:()=>{}}));
     m.querySelector('#fwBack') && (m.querySelector('#fwBack').onclick = () => { i--; draw(); });
-    m.querySelector('#fwNext').onclick = () => { st.next && st.next(body); if(i === steps.length-1){ m.remove(); onDone && onDone(); return; } i++; draw(); };
+    m.querySelector('#fwNext').onclick = () => { st.next && st.next(body); if(i === steps.length-1){ m.remove(); clearReviewReturn(); onDone && onDone(); return; } i++; draw(); };
+    /* anything in this step that leaves the review records where to come back to */
+    body.querySelectorAll('[data-capreturn]').forEach(b => b.addEventListener('click', () => {
+      if(opts.flow) stashReviewReturn({flow: opts.flow, step: i, scroll: m.scrollTop || 0});
+    }, true));
     attachDictationIn(m);
+    if(opts.scroll) requestAnimationFrame(() => { m.scrollTop = opts.scroll; });
   };
   draw();
+  m.addEventListener('mousedown', ev => { if(ev.target === m) clearReviewReturn(); });   // dismissed on the backdrop
   return m;
 }
 const REVIEW_LOG = () => (S.reviews = S.reviews || {});
@@ -70,8 +80,8 @@ function flowMorning(){
 }
 
 /* ---------- 2. the evening review ---------- */
-function flowEvening(){
-  const T = today(); const c = checkin(T); const r = dayReview(T);
+function flowEvening(opts = {}){
+  const T = today(); const c = checkin(T); const r = dayReview(T); const TOM = addDays(T, 1);
   guidedFlow('Evening review', [
     {title:'The rings, before the day closes.', hint:'Anything unfilled? Fill it, or let it stand as a miss — both are honest.',
      body: () => habitRingRow(T), bind: b => bindHabitRings(b)},
@@ -92,14 +102,17 @@ function flowEvening(){
        if(v) S.entries.push({id:uid(), type:'reflection', title:'', body:v, occurredAt:T, createdAt:new Date().toISOString(), media:[],
          links:{stages:[],substages:[],threads:[],values:[],visions:[],skills:[],projects:[],people:[]}, people:[], places:[], emotions:[], tags:[], confidence:'', extra:{}});
        r.closedAt = new Date().toTimeString().slice(0,5); saveNow(); }},
-    {title:"Tomorrow's intention.", hint:'Set it now, while today is still in the room.',
-     body: () => { const p = dayPlan(addDays(T,1)); return `<input class="inp serif-lg" id="fwTom" value="${esc(p.intentions?.[0] || '')}" placeholder="Tomorrow I give my attention to…">`; },
-     next: b => { const p = dayPlan(addDays(T,1)); p.intentions = p.intentions || ['','','']; p.intentions[0] = b.querySelector('#fwTom').value.trim(); saveNow(); }},
-  ], () => { reviewDone('lastEvening'); toast('Day closed.'); });
+    {title:'Plan tomorrow.', hint:'While today is still in the room, and you can still judge it honestly. Everything here saves as you type.',
+     body: () => planStepHTML(TOM), bind: b => bindPlanStep(b, TOM),
+     next: () => { const p = dayPlan(TOM); p.planned = true;
+       const first = (p.intentions || []).filter(Boolean)[0];
+       if(first && typeof checkin === 'function' && !checkin(TOM).intention) checkin(TOM).intention = first;
+       saveNow(); }},
+  ], () => { reviewDone('lastEvening'); toast('Day closed.'); }, {flow:'evening', startAt: opts.startAt, scroll: opts.scroll});
 }
 
 /* ---------- 3. the weekly review ---------- */
-function flowWeekly(){
+function flowWeekly(opts = {}){
   const T = today(); const days = planDaysFrom(T);
   guidedFlow('Weekly review', [
     {title:'The week, in shape.', hint:'Which days were full? Which were quiet? Is there a pattern you did not choose?',
@@ -123,7 +136,7 @@ function flowWeekly(){
     {title:"Next week's one intention.",
      body: () => `<textarea class="ta" id="fwWk" placeholder="One sentence. It is the first thing you will see on Monday.">${esc(S.reviews.nextWeekFocus || '')}</textarea>`,
      next: b => { S.reviews.nextWeekFocus = b.querySelector('#fwWk').value.trim(); saveNow(); }},
-  ], () => { reviewDone('lastWeekly'); toast('Week reviewed.'); });
+  ], () => { reviewDone('lastWeekly'); toast('Week reviewed.'); }, {flow:'weekly', startAt: opts.startAt, scroll: opts.scroll});
 }
 
 /* ---------- 4. the seasonal review ---------- */

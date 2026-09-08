@@ -123,7 +123,9 @@ Substantive entries carry hashtags: type `#something` in the body, or use the fi
 
 ## Reviews
 
-There is no reviews hub to remember to visit. On the last day of each cycle — daily, weekly, monthly, quarterly, half-year, annual — the review surfaces on Today, carrying that period's own numbers with it: habits kept, tasks finished, entries written, and one figure showing entries a day as bars with habit completion drawn over them. Beside it, **ask Claude** builds a reading from the entries dated inside that period and nothing else, so a weekly review cannot quietly become a reading of the whole life. A cycle that ends unanswered stays visible for three days; *not tonight* is remembered against that period and not the next one.
+There is no reviews hub to remember to visit. On the last day of each cycle — daily, weekly, monthly, quarterly, half-year, annual — the review appears as a small button beside the evening review at the foot of Today. Opening one gives that period's own numbers: habits kept, tasks finished, entries written, and one figure showing entries a day as bars with habit completion drawn over them. Beside it, **ask Claude** builds a reading from the entries dated inside that period and nothing else, so a weekly review cannot quietly become a reading of the whole life. A cycle that ends unanswered stays listed until it is done or dismissed; *not tonight* is remembered against that period and not the next one. A period that closed with nothing logged in it is not listed at all — there is nothing in it to read.
+
+The daily and weekly reviews both surface what actually got finished, plainly, and both end with **is there anything else worth capturing?** — a step of its own, with a link for each kind of entry. Adding one keeps the review open behind it; if adding one ever navigates away, the review comes back at the same step. The daily review closes by planning tomorrow: the three that matter, one thing to protect, when the energy will be high and when it drops, one obstacle with an *if — then*, and one thing from today to let go of. Every field saves as it is typed.
 
 ## Maslow
 

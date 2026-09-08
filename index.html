@@ -1217,28 +1217,6 @@ html[data-theme="light"] .stage-hero .veil{background:linear-gradient(180deg,rgb
 .songs li{padding:6px 0;border-top:1px dashed var(--line);font-family:var(--serif);font-size:1.05rem}
 .songs{list-style:none;padding:0;margin:0}
 
-/* ============================================================
-   4. VISION TREE
-   ============================================================ */
-/* A tree is not a diagram in a box. The canvas is the page itself — the ink
-   wash and the room's own scene show through it — with only light gathering at
-   the canopy and the ground darkening under the trunk. No panel, no fill. */
-.tree-wrap{position:relative;height:calc(100vh - 150px);min-height:560px;border-radius:20px;overflow:hidden;border:0;
-  background:
-    radial-gradient(ellipse 70% 40% at 50% 8%,color-mix(in srgb,var(--gold) 7%,transparent),transparent 70%),
-    radial-gradient(ellipse 80% 30% at 50% 100%,color-mix(in srgb,var(--sage) 11%,transparent),transparent 70%)}
-.tree-wrap svg{width:100%;height:100%;display:block}
-.tree-wrap .branch{cursor:pointer}
-.tree-wrap .branch path.limb{transition:stroke-width .8s var(--ease),stroke .8s var(--ease),opacity .8s;stroke-linecap:round;fill:none}
-.tree-wrap .branch:hover path.limb{filter:drop-shadow(0 0 6px color-mix(in srgb,var(--sage) 60%,transparent))}
-.tree-wrap .branch .lbl{font-family:var(--serif);font-size:13px;fill:var(--text);letter-spacing:.03em;pointer-events:none}
-.tree-wrap .branch .sc{font-family:var(--mono);font-size:9px;fill:var(--muted)}
-.tree-wrap .leaf{transform-box:fill-box;transform-origin:0% 50%}
-.tree-wrap .trace{pointer-events:none;fill:none;stroke:var(--gold);stroke-width:2;opacity:0;transition:opacity .3s}
-.tree-wrap .era-lbl{font-family:var(--serif);font-size:12px;letter-spacing:.2em;fill:var(--faint);text-transform:uppercase}
-.tree-legend{position:absolute;left:18px;bottom:16px;display:flex;gap:14px;font-family:var(--mono);font-size:.62rem;color:var(--faint);flex-wrap:wrap;max-width:60%}
-.tree-tools{position:absolute;right:18px;top:16px;display:flex;gap:8px;z-index:3}
-.vision-panel .score{display:flex;align-items:center;gap:14px;margin:10px 0 18px}
 .ladder{display:flex;gap:4px;flex-wrap:wrap}
 .ladder button{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:5px 10px;font-size:.72rem;color:var(--muted);cursor:pointer;transition:all .2s var(--ease)}
 .ladder button.on{background:color-mix(in srgb,var(--sage) 25%,transparent);border-color:var(--sage);color:var(--text)}
@@ -1546,14 +1524,21 @@ details.era-lived[open] > summary::before{transform:rotate(90deg)}
 .sk-organic .halo{animation:haloPulse 2.6s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
 @keyframes haloPulse{0%,100%{opacity:.12;transform:scale(1)}50%{opacity:.26;transform:scale(1.25)}}
 .sk-organic .fruit{filter:drop-shadow(0 1px 2px rgba(0,0,0,.35))}
-.sk-organic .blossom{animation:blossomPulse 3.2s ease-in-out infinite}
-@keyframes blossomPulse{0%,100%{opacity:.75}50%{opacity:1}}
+/* A flower opens once, when the tree is drawn, and then sits still — the
+   canopy is what moves. A flower on a twig whose milestone is close by keeps
+   breathing, so a near deadline is something you can see across the page. */
+.sk-organic .blossom{transform-box:fill-box;transform-origin:center;
+  animation:blossomOpen .7s var(--page-ease) backwards;animation-delay:var(--d,0s)}
+@keyframes blossomOpen{from{opacity:0;transform:scale(.15) rotate(-40deg)}to{opacity:1;transform:none}}
+.sk-organic .blossom.soon{animation:blossomOpen .7s var(--page-ease) backwards,
+  blossomBreathe 3.2s ease-in-out infinite;animation-delay:var(--d,0s), calc(var(--d,0s) + .7s)}
+@keyframes blossomBreathe{0%,100%{opacity:.78;transform:scale(1)}50%{opacity:1;transform:scale(1.14)}}
 .sk-organic .fall{animation:leafFall 7s linear infinite;transform-box:fill-box;transform-origin:center}
 @keyframes leafFall{0%{opacity:0;transform:translate(0,0) rotate(0)}10%{opacity:.8}100%{opacity:0;transform:translate(14px,70px) rotate(220deg)}}
 .sk-organic .sk-sun{animation:sunBreathe 9s ease-in-out infinite alternate}
 @keyframes sunBreathe{from{opacity:.7}to{opacity:1}}
 html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
-@media (prefers-reduced-motion:reduce){.sk-organic .halo,.sk-organic .blossom,.sk-organic .fall,.sk-organic .sk-sun{animation:none}}
+@media (prefers-reduced-motion:reduce){.sk-organic .halo,.sk-organic .blossom,.sk-organic .blossom.soon,.sk-organic .fall,.sk-organic .sk-sun{animation:none;opacity:1}}
 .lvl-track{display:flex;flex-direction:column;position:relative;padding-left:4px}
 .lvl-track::before{content:"";position:absolute;left:33px;top:14px;bottom:44px;width:2px;background:var(--line-2)}
 .lvl{display:grid;grid-template-columns:44px 1fr;gap:10px;padding:6px 0;position:relative;transition:opacity .2s}
@@ -2423,8 +2408,8 @@ html.vision-deep .page-scene.on{opacity:var(--scene-op)}
    canopy behind it all. */
 @keyframes limbDraw{to{stroke-dashoffset:0}}
 @keyframes leafOpen{from{opacity:0;transform:scale(.2) rotate(-18deg)}to{opacity:1;transform:none}}
-.growing .leaf,.growing .fruit,.growing .blossom{transform-box:fill-box;transform-origin:0% 50%}
-.tree-wrap .leaf,.sk-organic .leaf{transform-box:fill-box;transform-origin:0% 50%;will-change:transform}
+.growing .leaf,.growing .fruit{transform-box:fill-box;transform-origin:0% 50%}
+.sk-organic .leaf{transform-box:fill-box;transform-origin:0% 50%;will-change:transform}
 
 /* the canopy breathes — a slow swell, out of step between categories */
 .sk-organic .sk-canopy{animation:canopyBreathe 13s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
@@ -2450,7 +2435,7 @@ html.vision-deep .page-scene.on{opacity:var(--scene-op)}
 @media (prefers-reduced-motion:reduce){
   .tree-motes{display:none}
   .sk-organic .sk-canopy,.sk-organic .sk-twig.fresh .limb{animation:none}
-  .tree-wrap .leaf,.sk-organic .leaf{transform:none!important}
+  .sk-organic .leaf{transform:none!important}
 }
 
 /* ---------- the two ends of the day ---------- */
@@ -2604,6 +2589,19 @@ input[type="date"].dp-active{border-color:var(--page-accent);box-shadow:0 0 0 2p
 .rvw-late{font-family:var(--mono);font-size:.56rem;letter-spacing:.06em;
   padding:1px 5px;border-radius:99px;background:color-mix(in srgb,var(--rose) 20%,transparent)}
 .cyc-panel .cyc-card{border:none;padding:0;margin:0;background:none}
+
+/* ---------- planning the next day ----------
+   Prompts in Lora italic at reduced weight while a field is empty; the
+   person's own words replace the prompt as soon as there are any. */
+.plan-step{display:flex;flex-direction:column;gap:16px}
+.plan-field{display:flex;flex-direction:column;gap:3px}
+.plan-lbl{font-family:var(--serif);font-size:1rem;color:var(--text);letter-spacing:.01em}
+.plan-hint{font-family:var(--quote);font-style:italic;font-size:.82rem;color:var(--muted);
+  margin:0 0 5px;line-height:1.5;max-width:52ch}
+.plan-in{transition:border-color .3s cubic-bezier(.4,0,.2,1),background .3s cubic-bezier(.4,0,.2,1)}
+.plan-in::placeholder{font-family:var(--quote);font-style:italic;opacity:.5}
+.plan-in:focus{border-color:var(--page-accent)}
+@media (prefers-reduced-motion:reduce){.plan-in{transition:none}}
 </style>
 </head>
 <body>
@@ -2848,6 +2846,8 @@ function renderRoute(){
   currentRoute = name; PageEntryConfig.clear();
   try { fn(main, params); } catch(err){ console.error(err); main.innerHTML = `<div class="page narrow"><h1>Something went wrong</h1><p class="muted">${esc(err.message)}</p></div>`; }
   decoratePageHead(main); mountContextAdd(main); reveal(main); tweenAll(main); backupBanner(); updateBackButton();
+  /* a review the user stepped out of to write an entry comes back, same step */
+  if(typeof resumeReviewIfPending === 'function') resumeReviewIfPending();
   if(typeof attachDictationIn === 'function') attachDictationIn(main);
   restoreScroll(location.hash);
 }
@@ -7746,7 +7746,7 @@ routes.skills = function(root, params){
 
     <!-- 3. the tree -->
     <div class="row between" style="margin:30px 0 8px"><span class="sc" style="margin:0">The tree</span><button class="btn sm ghost" id="skReset" title="redraw the tree">⟳ redraw</button></div>
-    <div class="skill-wrap" id="skillWrap"><div class="minimap" id="minimap" hidden></div><div class="sk-hint mono">leaves grow with each level · gold fruit is mastery · click a twig to open it</div></div>
+    <div class="skill-wrap" id="skillWrap"><div class="minimap" id="minimap" hidden></div><div class="sk-hint mono">every living twig is leaved · flowers open as a skill grows · gold fruit is mastery · click a twig to open it</div></div>
 
     <!-- 4. the inventory, with the add button right above it -->
     <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Inventory</span><span class="mono">${list.length} of ${S.skills.length} shown</span></div>
@@ -7871,16 +7871,40 @@ function organicSVG(W, H){
     const leafBase = lerpColor(col, '#6f9a58', .25 + .45*prog); const leafCol = lerpColor(leafBase, '#8a6a3a', wither);
     const pid = `tw-${s.id}`; let inner = `<path class="limb" id="${pid}" d="M${P(it.start)} Q${P(it.ctrl)} ${P(it.end)}" stroke="${limbCol}" stroke-width="${limbW.toFixed(1)}" stroke-linecap="round" fill="none" ${locked?'stroke-dasharray="4 4"':''}/>`;
     if(active && !reduced()) inner += `<circle class="sap" r="${(2.2*k).toFixed(1)}" fill="#fff6dc" opacity=".9"><animateMotion dur="${(2.6 + (s.id.length%3)*.5).toFixed(1)}s" repeatCount="indefinite"><mpath href="#${pid}"/></animateMotion></circle>`;
-    const twigLen = Math.hypot(it.end[0]-it.start[0], it.end[1]-it.start[1]); const n = s.planned || locked ? 0 : Math.min(2 + lvl*2 + Math.round(prog*2), 13, Math.round(twigLen/7));
+    /* ---- foliage and flower ----
+       A twig that is alive is fully leaved, whatever level it is on: leaves
+       are the fact that the thing exists at all, so they do not carry the
+       score. Progress is carried by the blossom — how many flowers open on
+       the twig, and how big they are. A skill at level zero is a green twig
+       with nothing on it; one at mastery is covered. */
+    const twigLen = Math.hypot(it.end[0]-it.start[0], it.end[1]-it.start[1]);
+    const n = s.planned || locked ? 0 : clamp(Math.round(twigLen/6), 6, 13);
     let lf = '';
     for(let i=0;i<n;i++){
-      const t = .3 + (i/Math.max(n-1,1))*.68; const p = qp(it.start, it.ctrl, it.end, t); const tan = -qt(it.start, it.ctrl, it.end, t)*180/Math.PI; const sd = i%2 ? 1 : -1;
-      const size = (4.2 + lvl*1.1) * k * (1 - wither*.3) * (.8 + ((i*7)%5)/10); const rot = tan + sd*(40 + ((i*13)%20)); const curl = wither ? ` Q${(size*.6).toFixed(1)},${(size*.35*sd).toFixed(1)} ${(size*.8).toFixed(1)},${(size*.5).toFixed(1)}` : '';
+      const t = .26 + (i/Math.max(n-1,1))*.72; const p = qp(it.start, it.ctrl, it.end, t); const tan = -qt(it.start, it.ctrl, it.end, t)*180/Math.PI; const sd = i%2 ? 1 : -1;
+      /* size varies leaf to leaf so the canopy is not a stencil, but never with level */
+      const size = 5.2 * k * (1 - wither*.3) * (.78 + ((i*7)%6)/12); const rot = tan + sd*(40 + ((i*13)%20)); const curl = wither ? ` Q${(size*.6).toFixed(1)},${(size*.35*sd).toFixed(1)} ${(size*.8).toFixed(1)},${(size*.5).toFixed(1)}` : '';
       lf += `<g transform="translate(${P(p)}) rotate(${rot.toFixed(1)})"><g class="leaf" data-phase="${(i*1.7)%6.28}" data-period="${(2.8 + (i*.37)%2).toFixed(2)}"><path d="M0,0 Q${size},${-size*.7} ${size*2},0 Q${size},${size*.7} 0,0${curl}" fill="${leafCol}" opacity="${(.9 - wither*.35).toFixed(2)}"/><path d="M0,0 L${(size*1.7).toFixed(1)},0" stroke="#1a1816" stroke-opacity=".18" stroke-width=".6"/></g></g>`;
     }
     if(s.planned || locked){ for(let i=0;i<3;i++){ const p = qp(it.start, it.ctrl, it.end, .55 + i*.2); lf += `<circle class="bud" cx="${X(p[0]).toFixed(1)}" cy="${Y(p[1]).toFixed(1)}" r="${(2.4*k).toFixed(1)}" fill="${locked?'#5a554f':col}" opacity=".7"/>`; } }
+    /* the flowers: this is where the progress lives */
+    const flowers = (s.planned || locked) ? 0 : Math.round(prog * 6);
+    if(flowers){
+      const petalR = (2.1 + prog * 3.6) * k;
+      const heart = lerpColor('#e8c7a0', '#d4a44c', prog);
+      for(let i=0;i<flowers;i++){
+        const t = .34 + (i/Math.max(flowers-1,1))*.58; const p = qp(it.start, it.ctrl, it.end, t);
+        const sd = i%2 ? 1 : -1; const cx = X(p[0]) + sd*(5.5*k), cy = Y(p[1]) - (3.5*k);
+        /* five petals, turned a little differently on each flower */
+        const spin = (i*37)%72;
+        const petals = [0,1,2,3,4].map(q => {
+          const a = (q*72 + spin) * Math.PI/180;
+          return `<ellipse cx="${(Math.cos(a)*petalR*.62).toFixed(2)}" cy="${(Math.sin(a)*petalR*.62).toFixed(2)}" rx="${(petalR*.62).toFixed(2)}" ry="${(petalR*.42).toFixed(2)}" transform="rotate(${(q*72+spin).toFixed(0)})" fill="#e6b8c4" opacity=".92"/>`;
+        }).join('');
+        lf += `<g class="blossom ${blossom ? 'soon' : ''}" style="--d:${(i*.31).toFixed(2)}s" transform="translate(${cx.toFixed(1)},${cy.toFixed(1)})">${petals}<circle r="${(petalR*.3).toFixed(2)}" fill="${heart}"/></g>`;
+      }
+    }
     if(mastered){ for(let i=0;i<3;i++){ const p = qp(it.start, it.ctrl, it.end, .6 + i*.16); const sd = i%2?1:-1; lf += `<circle class="fruit" cx="${(X(p[0])+sd*7*k).toFixed(1)}" cy="${(Y(p[1])+5*k).toFixed(1)}" r="${(4.6*k).toFixed(1)}" fill="#d4a44c" stroke="#7a5a3c" stroke-width=".8"/>`; } }
-    if(blossom){ for(let i=0;i<3;i++){ const p = qp(it.start, it.ctrl, it.end, .7 + i*.12); const sd = i%2?1:-1; lf += `<circle class="blossom" cx="${(X(p[0])+sd*6*k).toFixed(1)}" cy="${(Y(p[1])-5*k).toFixed(1)}" r="${(2.8*k).toFixed(1)}" fill="#e6b8c4" opacity=".95"/>`; } }
     if(wither > .3){ for(let i=0;i<2;i++){ const p = qp(it.start, it.ctrl, it.end, .5 + i*.3); lf += `<g class="fall" style="animation-delay:${(i*2.1).toFixed(1)}s;animation-duration:${(6 + i*1.5).toFixed(1)}s" transform="translate(${P(p)})"><path d="M0,0 Q4,-3 8,0 Q4,3 0,0" fill="${leafCol}" opacity=".8"/></g>`; } }
     if(active){ lf = `<circle class="halo" cx="${X(it.end[0]).toFixed(1)}" cy="${Y(it.end[1]).toFixed(1)}" r="${(15*k).toFixed(1)}" fill="${col}" opacity=".16"/>` + lf; }
     if(overdue){ lf += `<circle cx="${X(it.end[0]).toFixed(1)}" cy="${Y(it.end[1]).toFixed(1)}" r="${(3*k).toFixed(1)}" fill="#c25b5b"/>`; }
@@ -7898,7 +7922,7 @@ function organicSVG(W, H){
   return `<svg class="sk-organic" viewBox="0 0 ${W} ${H}" style="filter:hue-rotate(${season}deg)">${g}${labels}</svg>`;
 }
 function drawOrganicTree(root){
-  const wrap = $('#skillWrap'); if(!wrap) return; wrap.querySelector('svg')?.remove(); const mm = $('#minimap'); if(mm) mm.hidden = true; const hint = wrap.querySelector('.sk-hint'); if(hint) hint.textContent = 'leaves grow with each level · gold fruit is mastery · blossoms mean a milestone is near · brown leaves are withering';
+  const wrap = $('#skillWrap'); if(!wrap) return; wrap.querySelector('svg')?.remove(); const mm = $('#minimap'); if(mm) mm.hidden = true; const hint = wrap.querySelector('.sk-hint'); if(hint) hint.textContent = 'every living twig is leaved · the flowers are the progress · gold fruit is mastery · a flower breathing means a milestone is near · brown leaves are withering';
   const W = Math.max(wrap.clientWidth, 600), H = wrap.clientHeight || 640; const svg = el(organicSVG(W, H)); wrap.insertBefore(svg, wrap.firstChild);
   /* the tree arrives by growing, then keeps moving — see 04-foliage.js */
   growTree(svg); startSway(svg);
@@ -9536,8 +9560,11 @@ function renderLifeTape(box){
    every step pre-filled with what the instrument already knows,
    so the work is noticing rather than remembering.
    ============================================================ */
-function guidedFlow(title, steps, onDone){
-  let i = 0; const m = openModal('', 'wide');
+function guidedFlow(title, steps, onDone, opts = {}){
+  /* `flow` names this review so it can be reopened at the same step after the
+     user steps out of it to write an entry; `startAt` is where to reopen. */
+  let i = clamp(opts.startAt | 0, 0, steps.length - 1);
+  const m = openModal('', 'wide');
   const draw = () => {
     const st = steps[i];
     m.querySelector('.modal').innerHTML = `<button class="close">×</button>
@@ -9549,7 +9576,8 @@ function guidedFlow(title, steps, onDone){
       <div class="row between" style="margin-top:14px">
         <span class="row" style="gap:6px">${i ? '<button class="btn sm ghost" id="fwBack">back</button>' : ''}</span>
         <button class="btn primary" id="fwNext">${i === steps.length-1 ? 'Close the review' : 'Next'}</button></div>`;
-    m.querySelector('.close').onclick = () => m.remove();
+    /* closing the review on purpose means it is not waiting to be resumed */
+    m.querySelector('.close').onclick = () => { clearReviewReturn(); m.remove(); };
     const body = m.querySelector('#flowBody');
     /* Steps that embed page HTML (the Life Tape views, mostly) bring `.rv`
        reveal wrappers with them. Those sit at opacity 0 until something adds
@@ -9560,10 +9588,16 @@ function guidedFlow(title, steps, onDone){
     body.querySelectorAll('[data-flowgo]').forEach(b => b.onclick = () => { const go = b.dataset.flowgo; m.remove(); navigate(go); });
     body.querySelectorAll('[data-flowquick]').forEach(b => b.onclick = () => openEntryModal({type:b.dataset.flowquick, after:()=>{}}));
     m.querySelector('#fwBack') && (m.querySelector('#fwBack').onclick = () => { i--; draw(); });
-    m.querySelector('#fwNext').onclick = () => { st.next && st.next(body); if(i === steps.length-1){ m.remove(); onDone && onDone(); return; } i++; draw(); };
+    m.querySelector('#fwNext').onclick = () => { st.next && st.next(body); if(i === steps.length-1){ m.remove(); clearReviewReturn(); onDone && onDone(); return; } i++; draw(); };
+    /* anything in this step that leaves the review records where to come back to */
+    body.querySelectorAll('[data-capreturn]').forEach(b => b.addEventListener('click', () => {
+      if(opts.flow) stashReviewReturn({flow: opts.flow, step: i, scroll: m.scrollTop || 0});
+    }, true));
     attachDictationIn(m);
+    if(opts.scroll) requestAnimationFrame(() => { m.scrollTop = opts.scroll; });
   };
   draw();
+  m.addEventListener('mousedown', ev => { if(ev.target === m) clearReviewReturn(); });   // dismissed on the backdrop
   return m;
 }
 const REVIEW_LOG = () => (S.reviews = S.reviews || {});
@@ -9601,8 +9635,8 @@ function flowMorning(){
 }
 
 /* ---------- 2. the evening review ---------- */
-function flowEvening(){
-  const T = today(); const c = checkin(T); const r = dayReview(T);
+function flowEvening(opts = {}){
+  const T = today(); const c = checkin(T); const r = dayReview(T); const TOM = addDays(T, 1);
   guidedFlow('Evening review', [
     {title:'The rings, before the day closes.', hint:'Anything unfilled? Fill it, or let it stand as a miss — both are honest.',
      body: () => habitRingRow(T), bind: b => bindHabitRings(b)},
@@ -9623,14 +9657,17 @@ function flowEvening(){
        if(v) S.entries.push({id:uid(), type:'reflection', title:'', body:v, occurredAt:T, createdAt:new Date().toISOString(), media:[],
          links:{stages:[],substages:[],threads:[],values:[],visions:[],skills:[],projects:[],people:[]}, people:[], places:[], emotions:[], tags:[], confidence:'', extra:{}});
        r.closedAt = new Date().toTimeString().slice(0,5); saveNow(); }},
-    {title:"Tomorrow's intention.", hint:'Set it now, while today is still in the room.',
-     body: () => { const p = dayPlan(addDays(T,1)); return `<input class="inp serif-lg" id="fwTom" value="${esc(p.intentions?.[0] || '')}" placeholder="Tomorrow I give my attention to…">`; },
-     next: b => { const p = dayPlan(addDays(T,1)); p.intentions = p.intentions || ['','','']; p.intentions[0] = b.querySelector('#fwTom').value.trim(); saveNow(); }},
-  ], () => { reviewDone('lastEvening'); toast('Day closed.'); });
+    {title:'Plan tomorrow.', hint:'While today is still in the room, and you can still judge it honestly. Everything here saves as you type.',
+     body: () => planStepHTML(TOM), bind: b => bindPlanStep(b, TOM),
+     next: () => { const p = dayPlan(TOM); p.planned = true;
+       const first = (p.intentions || []).filter(Boolean)[0];
+       if(first && typeof checkin === 'function' && !checkin(TOM).intention) checkin(TOM).intention = first;
+       saveNow(); }},
+  ], () => { reviewDone('lastEvening'); toast('Day closed.'); }, {flow:'evening', startAt: opts.startAt, scroll: opts.scroll});
 }
 
 /* ---------- 3. the weekly review ---------- */
-function flowWeekly(){
+function flowWeekly(opts = {}){
   const T = today(); const days = planDaysFrom(T);
   guidedFlow('Weekly review', [
     {title:'The week, in shape.', hint:'Which days were full? Which were quiet? Is there a pattern you did not choose?',
@@ -9654,7 +9691,7 @@ function flowWeekly(){
     {title:"Next week's one intention.",
      body: () => `<textarea class="ta" id="fwWk" placeholder="One sentence. It is the first thing you will see on Monday.">${esc(S.reviews.nextWeekFocus || '')}</textarea>`,
      next: b => { S.reviews.nextWeekFocus = b.querySelector('#fwWk').value.trim(); saveNow(); }},
-  ], () => { reviewDone('lastWeekly'); toast('Week reviewed.'); });
+  ], () => { reviewDone('lastWeekly'); toast('Week reviewed.'); }, {flow:'weekly', startAt: opts.startAt, scroll: opts.scroll});
 }
 
 /* ---------- 4. the seasonal review ---------- */
@@ -10173,7 +10210,7 @@ function captureStepHTML(from, to){
   const n = (typeof tapeItems === 'function' ? tapeItems(from, to) : []).filter(it => it.kind !== 'habit').length;
   return `<div class="cap-step">
     <p class="cap-count mono">${n} entr${n === 1 ? 'y' : 'ies'} already written for this stretch.</p>
-    <div class="cap-grid">${CAPTURE_KINDS.map(k => `<button class="choice cap-choice" data-cap="${k.t}">
+    <div class="cap-grid">${CAPTURE_KINDS.map(k => `<button class="choice cap-choice" data-cap="${k.t}" data-capreturn>
       <span class="ico">${k.ic}</span><span><b>${esc(k.label)}</b><div class="d">${esc(k.d)}</div></span></button>`).join('')}</div>
     <p class="cap-back faint">Anything you add here is kept straight away; this review stays open behind it.</p>
   </div>`;
@@ -10213,6 +10250,97 @@ function tasksReviewHTML(from, to){
       <ul class="tsk-list">${open.slice(0, 12).map(r => `<li>${esc(r.text)}<span class="mono">${esc(fmtDate(r.day,'short'))}</span></li>`).join('')}</ul>
       <p class="faint" style="font-size:.78rem;margin-top:6px">Unfinished is information, not a verdict. What kept getting pushed?</p>` : ''}
   </div>`;
+}
+
+
+/* ============================================================
+   PLANNING THE NEXT DAY — the same five prompts wherever it is
+   asked. A day is not only what you intend to do: it is what you
+   intend to defend, when you expect to have the energy for it,
+   what you already know is in the way and what you will do about
+   that, and the one thing from today you are not carrying over.
+   ============================================================ */
+const PLAN_PROMPTS = [
+  {k:'protect',    label:'One thing to protect',  hint:'A commitment, a boundary, or a block of time that does not get surrendered.',
+   ph:'The hour before anyone needs me.', multi:false},
+  {k:'energyHigh', label:'When the energy is high', hint:'And what deserves to be there.',
+   ph:'Early. The writing goes here.', multi:false},
+  {k:'energyLow',  label:'When it drops',          hint:'And what can be done anyway.',
+   ph:'After lunch. Errands, replies, the tidying.', multi:false},
+  {k:'ifThen',     label:'If it goes wrong',       hint:'One obstacle you can already name, and what you do instead.',
+   ph:'If the meeting overruns, then I write on the train.', multi:true},
+  {k:'letGo',      label:'One thing to let go of from today', hint:'So it does not bleed into tomorrow.',
+   ph:'The reply I did not get. It can wait.', multi:true},
+];
+function planStepHTML(d, {three = true} = {}){
+  const p = dayPlan(d);
+  const field = pr => `<div class="plan-field">
+    <label class="plan-lbl">${esc(pr.label)}</label>
+    <p class="plan-hint">${esc(pr.hint)}</p>
+    ${pr.multi
+      ? `<textarea class="ta plan-in" rows="2" data-plan="${pr.k}" placeholder="${esc(pr.ph)}">${esc(p[pr.k] || '')}</textarea>`
+      : `<input class="inp plan-in" data-plan="${pr.k}" value="${esc(p[pr.k] || '')}" placeholder="${esc(pr.ph)}">`}
+  </div>`;
+  return `<div class="plan-step">
+    ${three ? `<div class="plan-field">
+      <label class="plan-lbl">The three that matter</label>
+      <p class="plan-hint">Not a task list — what would make ${esc(fmtDate(d,'short'))} count. One is allowed to stay empty.</p>
+      <div class="stack" style="gap:7px">${[0,1,2].map(i => `<div class="row" style="gap:8px"><span class="in-n">${i+1}</span><input class="inp plan-in serif-lg" data-planint="${i}" value="${esc((p.intentions||[])[i] || '')}" placeholder="${['the one that matters most','the one you keep postponing','the small one'][i]}"></div>`).join('')}</div>
+    </div>` : ''}
+    ${PLAN_PROMPTS.map(field).join('')}
+  </div>`;
+}
+/* every field writes through as it is typed — a plan half-written is still a
+   plan, and closing the review is not meant to be the thing that saves it */
+function bindPlanStep(box, d){
+  const p = dayPlan(d);
+  box.querySelectorAll('[data-plan]').forEach(el2 => {
+    const commit = () => { p[el2.dataset.plan] = el2.value.trim(); saveNow(); };
+    el2.oninput = commit; el2.onchange = commit;
+  });
+  box.querySelectorAll('[data-planint]').forEach(el2 => {
+    const commit = () => { p.intentions = p.intentions || ['','','']; p.intentions[+el2.dataset.planint] = el2.value.trim(); saveNow(); };
+    el2.oninput = commit; el2.onchange = commit;
+  });
+}
+
+/* ---------- coming back to a review you stepped out of ----------
+   Adding an entry from the "anything else?" step normally opens on top of the
+   review and the review is still there behind it. But an entry kind that
+   navigates would lose the review entirely, so the flow leaves a marker first
+   and the next render puts it back — same review, same step, same scroll. */
+const REVIEW_RETURN_KEY = 'lifeInstrument_reviewReturn';
+function stashReviewReturn(rec){ try { localStorage.setItem(REVIEW_RETURN_KEY, JSON.stringify(rec)); } catch(e){} }
+function clearReviewReturn(){ try { localStorage.removeItem(REVIEW_RETURN_KEY); } catch(e){} }
+function peekReviewReturn(){
+  try { const raw = localStorage.getItem(REVIEW_RETURN_KEY); return raw ? JSON.parse(raw) : null; } catch(e){ return null; }
+}
+/* Reopened by name, so the marker survives a full page reload. Registered
+   here rather than beside the flows themselves: 16-reviewflows.js is
+   concatenated before this file, so a top-level assignment there would run
+   while this const is still in its temporal dead zone. The flows are function
+   declarations, so naming them from here is safe. */
+const RESUMABLE_FLOWS = {
+  get evening(){ return typeof flowEvening === 'function' ? flowEvening : null; },
+  get weekly(){  return typeof flowWeekly  === 'function' ? flowWeekly  : null; },
+};
+let reviewResumeTimer = null;
+function resumeReviewIfPending(){
+  /* Peek, never take, until the review is actually on screen: a marker
+     consumed by a render that then failed to reopen is a review lost.
+
+     One navigation can render more than once, and every render closes the
+     modals — so the reopen waits for the burst to settle. Each render pushes
+     the timer out, and the last one wins. */
+  const rec = peekReviewReturn(); if(!rec) return;
+  const fn = RESUMABLE_FLOWS[rec.flow]; if(!fn){ clearReviewReturn(); return; }
+  clearTimeout(reviewResumeTimer);
+  reviewResumeTimer = setTimeout(() => {
+    if(!peekReviewReturn()) return;
+    if($('#flowBody')){ clearReviewReturn(); return; }   // already open
+    fn({startAt: rec.step, scroll: rec.scroll});
+    if($('#flowBody')) clearReviewReturn();
+  }, 140);
 }
 /* ============================================================
    RHYTHM — one surface for the day.
@@ -10333,6 +10461,15 @@ function dayPlan(d = today()){
   if(p.why === undefined) p.why = '';
   if(p.firstMove === undefined) p.firstMove = '';
   if(p.risk === undefined) p.risk = '';
+  /* a plan is not only what you intend to do. It is also what you intend to
+     defend, when you expect to have the energy for it, what you already know
+     will get in the way and what you will do about that — and the one thing
+     from today you are deliberately not carrying into tomorrow. */
+  if(p.protect === undefined) p.protect = '';
+  if(p.energyHigh === undefined) p.energyHigh = '';
+  if(p.energyLow === undefined) p.energyLow = '';
+  if(p.ifThen === undefined) p.ifThen = '';
+  if(p.letGo === undefined) p.letGo = '';
   return p;
 }
 function dayReview(d = today()){

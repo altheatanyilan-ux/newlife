@@ -147,7 +147,7 @@ routes.skills = function(root, params){
 
     <!-- 3. the tree -->
     <div class="row between" style="margin:30px 0 8px"><span class="sc" style="margin:0">The tree</span><button class="btn sm ghost" id="skReset" title="redraw the tree">⟳ redraw</button></div>
-    <div class="skill-wrap" id="skillWrap"><div class="minimap" id="minimap" hidden></div><div class="sk-hint mono">leaves grow with each level · gold fruit is mastery · click a twig to open it</div></div>
+    <div class="skill-wrap" id="skillWrap"><div class="minimap" id="minimap" hidden></div><div class="sk-hint mono">every living twig is leaved · flowers open as a skill grows · gold fruit is mastery · click a twig to open it</div></div>
 
     <!-- 4. the inventory, with the add button right above it -->
     <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Inventory</span><span class="mono">${list.length} of ${S.skills.length} shown</span></div>
@@ -272,16 +272,40 @@ function organicSVG(W, H){
     const leafBase = lerpColor(col, '#6f9a58', .25 + .45*prog); const leafCol = lerpColor(leafBase, '#8a6a3a', wither);
     const pid = `tw-${s.id}`; let inner = `<path class="limb" id="${pid}" d="M${P(it.start)} Q${P(it.ctrl)} ${P(it.end)}" stroke="${limbCol}" stroke-width="${limbW.toFixed(1)}" stroke-linecap="round" fill="none" ${locked?'stroke-dasharray="4 4"':''}/>`;
     if(active && !reduced()) inner += `<circle class="sap" r="${(2.2*k).toFixed(1)}" fill="#fff6dc" opacity=".9"><animateMotion dur="${(2.6 + (s.id.length%3)*.5).toFixed(1)}s" repeatCount="indefinite"><mpath href="#${pid}"/></animateMotion></circle>`;
-    const twigLen = Math.hypot(it.end[0]-it.start[0], it.end[1]-it.start[1]); const n = s.planned || locked ? 0 : Math.min(2 + lvl*2 + Math.round(prog*2), 13, Math.round(twigLen/7));
+    /* ---- foliage and flower ----
+       A twig that is alive is fully leaved, whatever level it is on: leaves
+       are the fact that the thing exists at all, so they do not carry the
+       score. Progress is carried by the blossom — how many flowers open on
+       the twig, and how big they are. A skill at level zero is a green twig
+       with nothing on it; one at mastery is covered. */
+    const twigLen = Math.hypot(it.end[0]-it.start[0], it.end[1]-it.start[1]);
+    const n = s.planned || locked ? 0 : clamp(Math.round(twigLen/6), 6, 13);
     let lf = '';
     for(let i=0;i<n;i++){
-      const t = .3 + (i/Math.max(n-1,1))*.68; const p = qp(it.start, it.ctrl, it.end, t); const tan = -qt(it.start, it.ctrl, it.end, t)*180/Math.PI; const sd = i%2 ? 1 : -1;
-      const size = (4.2 + lvl*1.1) * k * (1 - wither*.3) * (.8 + ((i*7)%5)/10); const rot = tan + sd*(40 + ((i*13)%20)); const curl = wither ? ` Q${(size*.6).toFixed(1)},${(size*.35*sd).toFixed(1)} ${(size*.8).toFixed(1)},${(size*.5).toFixed(1)}` : '';
+      const t = .26 + (i/Math.max(n-1,1))*.72; const p = qp(it.start, it.ctrl, it.end, t); const tan = -qt(it.start, it.ctrl, it.end, t)*180/Math.PI; const sd = i%2 ? 1 : -1;
+      /* size varies leaf to leaf so the canopy is not a stencil, but never with level */
+      const size = 5.2 * k * (1 - wither*.3) * (.78 + ((i*7)%6)/12); const rot = tan + sd*(40 + ((i*13)%20)); const curl = wither ? ` Q${(size*.6).toFixed(1)},${(size*.35*sd).toFixed(1)} ${(size*.8).toFixed(1)},${(size*.5).toFixed(1)}` : '';
       lf += `<g transform="translate(${P(p)}) rotate(${rot.toFixed(1)})"><g class="leaf" data-phase="${(i*1.7)%6.28}" data-period="${(2.8 + (i*.37)%2).toFixed(2)}"><path d="M0,0 Q${size},${-size*.7} ${size*2},0 Q${size},${size*.7} 0,0${curl}" fill="${leafCol}" opacity="${(.9 - wither*.35).toFixed(2)}"/><path d="M0,0 L${(size*1.7).toFixed(1)},0" stroke="#1a1816" stroke-opacity=".18" stroke-width=".6"/></g></g>`;
     }
     if(s.planned || locked){ for(let i=0;i<3;i++){ const p = qp(it.start, it.ctrl, it.end, .55 + i*.2); lf += `<circle class="bud" cx="${X(p[0]).toFixed(1)}" cy="${Y(p[1]).toFixed(1)}" r="${(2.4*k).toFixed(1)}" fill="${locked?'#5a554f':col}" opacity=".7"/>`; } }
+    /* the flowers: this is where the progress lives */
+    const flowers = (s.planned || locked) ? 0 : Math.round(prog * 6);
+    if(flowers){
+      const petalR = (2.1 + prog * 3.6) * k;
+      const heart = lerpColor('#e8c7a0', '#d4a44c', prog);
+      for(let i=0;i<flowers;i++){
+        const t = .34 + (i/Math.max(flowers-1,1))*.58; const p = qp(it.start, it.ctrl, it.end, t);
+        const sd = i%2 ? 1 : -1; const cx = X(p[0]) + sd*(5.5*k), cy = Y(p[1]) - (3.5*k);
+        /* five petals, turned a little differently on each flower */
+        const spin = (i*37)%72;
+        const petals = [0,1,2,3,4].map(q => {
+          const a = (q*72 + spin) * Math.PI/180;
+          return `<ellipse cx="${(Math.cos(a)*petalR*.62).toFixed(2)}" cy="${(Math.sin(a)*petalR*.62).toFixed(2)}" rx="${(petalR*.62).toFixed(2)}" ry="${(petalR*.42).toFixed(2)}" transform="rotate(${(q*72+spin).toFixed(0)})" fill="#e6b8c4" opacity=".92"/>`;
+        }).join('');
+        lf += `<g class="blossom ${blossom ? 'soon' : ''}" style="--d:${(i*.31).toFixed(2)}s" transform="translate(${cx.toFixed(1)},${cy.toFixed(1)})">${petals}<circle r="${(petalR*.3).toFixed(2)}" fill="${heart}"/></g>`;
+      }
+    }
     if(mastered){ for(let i=0;i<3;i++){ const p = qp(it.start, it.ctrl, it.end, .6 + i*.16); const sd = i%2?1:-1; lf += `<circle class="fruit" cx="${(X(p[0])+sd*7*k).toFixed(1)}" cy="${(Y(p[1])+5*k).toFixed(1)}" r="${(4.6*k).toFixed(1)}" fill="#d4a44c" stroke="#7a5a3c" stroke-width=".8"/>`; } }
-    if(blossom){ for(let i=0;i<3;i++){ const p = qp(it.start, it.ctrl, it.end, .7 + i*.12); const sd = i%2?1:-1; lf += `<circle class="blossom" cx="${(X(p[0])+sd*6*k).toFixed(1)}" cy="${(Y(p[1])-5*k).toFixed(1)}" r="${(2.8*k).toFixed(1)}" fill="#e6b8c4" opacity=".95"/>`; } }
     if(wither > .3){ for(let i=0;i<2;i++){ const p = qp(it.start, it.ctrl, it.end, .5 + i*.3); lf += `<g class="fall" style="animation-delay:${(i*2.1).toFixed(1)}s;animation-duration:${(6 + i*1.5).toFixed(1)}s" transform="translate(${P(p)})"><path d="M0,0 Q4,-3 8,0 Q4,3 0,0" fill="${leafCol}" opacity=".8"/></g>`; } }
     if(active){ lf = `<circle class="halo" cx="${X(it.end[0]).toFixed(1)}" cy="${Y(it.end[1]).toFixed(1)}" r="${(15*k).toFixed(1)}" fill="${col}" opacity=".16"/>` + lf; }
     if(overdue){ lf += `<circle cx="${X(it.end[0]).toFixed(1)}" cy="${Y(it.end[1]).toFixed(1)}" r="${(3*k).toFixed(1)}" fill="#c25b5b"/>`; }
@@ -299,7 +323,7 @@ function organicSVG(W, H){
   return `<svg class="sk-organic" viewBox="0 0 ${W} ${H}" style="filter:hue-rotate(${season}deg)">${g}${labels}</svg>`;
 }
 function drawOrganicTree(root){
-  const wrap = $('#skillWrap'); if(!wrap) return; wrap.querySelector('svg')?.remove(); const mm = $('#minimap'); if(mm) mm.hidden = true; const hint = wrap.querySelector('.sk-hint'); if(hint) hint.textContent = 'leaves grow with each level · gold fruit is mastery · blossoms mean a milestone is near · brown leaves are withering';
+  const wrap = $('#skillWrap'); if(!wrap) return; wrap.querySelector('svg')?.remove(); const mm = $('#minimap'); if(mm) mm.hidden = true; const hint = wrap.querySelector('.sk-hint'); if(hint) hint.textContent = 'every living twig is leaved · the flowers are the progress · gold fruit is mastery · a flower breathing means a milestone is near · brown leaves are withering';
   const W = Math.max(wrap.clientWidth, 600), H = wrap.clientHeight || 640; const svg = el(organicSVG(W, H)); wrap.insertBefore(svg, wrap.firstChild);
   /* the tree arrives by growing, then keeps moving — see 04-foliage.js */
   growTree(svg); startSway(svg);
