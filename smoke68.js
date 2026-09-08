@@ -35,7 +35,7 @@ const { chromium } = require('playwright');
 
   const layout = await page.evaluate(() => {
     const order = [...document.querySelectorAll('.today-page > *')].map(n =>
-      n.className.split(' ').find(c => ['today-head','time-use','maslow-rows','morning-flow','today-plan','today-checkin','rehearsal-wrap','position','tomorrow-block'].includes(c)) || n.tagName.toLowerCase());
+      n.className.split(' ').find(c => ['today-head','today-jump','time-use','life-ledger','morning-flow','today-plan','today-checkin','rehearsal-wrap','cyc-block','tomorrow-block'].includes(c)) || n.tagName.toLowerCase());
     return { order: order.filter(Boolean) };
   });
   console.log('page order:', layout.order.join(' → '));
@@ -65,15 +65,22 @@ const { chromium } = require('playwright');
   }));
   console.log('rendered:', JSON.stringify(rendered));
 
+  // the stats are prose now, not a card grid, and four of them ride on Today
   const maslow = await page.evaluate(() => {
     const L = maslowScores();
     return { levels: L.map(m => `${m.short}:${m.autoScore ?? '—'}`).join(' '),
              withData: L.filter(m=>m.hasData).length,
-             rows: document.querySelectorAll('.mrow').length,
-             cards: document.querySelectorAll('.mstat').length,
-             weakestFlagged: document.querySelector('.mrow-flag')?.textContent?.trim() };
+             stanzas: document.querySelectorAll('#lifeLedger .lg-stanza').length,
+             oldCards: document.querySelectorAll('.mrow, .mstat').length,
+             weakestFlagged: document.querySelector('.lg-flag')?.textContent?.trim(),
+             prose: document.querySelector('.lg-stanza .lg-body')?.textContent?.trim().slice(0,90) };
   });
   console.log('maslow:', JSON.stringify(maslow, null, 1));
+
+  // the Life Position panel now lives on the Compass, not on Today
+  console.log('position off Today:', await page.evaluate(() => !document.querySelector('.position')));
+  await page.evaluate(() => { location.hash = '#/compass'; });
+  await page.waitForTimeout(900);
 
   const spiral = await page.evaluate(() => {
     const r = spiralReading();
@@ -91,7 +98,7 @@ const { chromium } = require('playwright');
   console.log('pyramid:', JSON.stringify(pyr));
 
   // tier click → detail + override
-  await page.evaluate(() => document.querySelector('[data-mtier="body"]').dispatchEvent(new MouseEvent('click',{bubbles:true})));
+  await page.evaluate(() => document.querySelector('.position [data-mtier="body"]').dispatchEvent(new MouseEvent('click',{bubbles:true})));
   await page.waitForTimeout(400);
   const detail = await page.evaluate(() => {
     const sl = document.querySelector('#mOverride'); if(!sl) return {noDetail:true};
