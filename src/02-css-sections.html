@@ -1163,7 +1163,9 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 .res-row:hover .res-edit,.res-row:focus-within .res-edit{display:flex}
 .res-edit .ed-wrap{min-width:120px;font-size:.72rem}
 .ms-axis{position:relative;height:74px;margin:14px 4px 6px}
-.ms-line{position:absolute;left:0;right:0;top:18px;height:2px;background:var(--line-2)}
+/* the axis rule, not the milestone row — these two shared a class name, and
+   the later one turned every row in Milestones ahead into a 2px grey bar */
+.ms-axis-rule{position:absolute;left:0;right:0;top:18px;height:2px;background:var(--line-2)}
 .ms-now{position:absolute;top:8px;transform:translateX(-50%);text-align:center;font-family:var(--mono);font-size:.58rem;color:var(--gold)}
 .ms-now i{display:block;width:2px;height:22px;background:var(--gold);margin:0 auto 2px}
 .ms-mark{position:absolute;top:12px;transform:translateX(-50%);text-align:center;font-size:.68rem;line-height:1.25}
@@ -2060,8 +2062,27 @@ html.vision-deep .page-scene.on{opacity:var(--scene-op)}
 .wk-bar{transition:opacity .16s var(--ease)}
 .wk-scroll:hover .wk-bar{opacity:.55}
 .wk-scroll .wk-bar:hover{opacity:1}
-.wk-key{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:.66rem;color:var(--muted)}
+.wk-key{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:.66rem;color:var(--muted)}
 .wk-key i{width:9px;height:9px;border-radius:2px;display:inline-block}
+/* the key must look like the thing it explains: a line for a line, a band for a band */
+.wk-key i.ln{width:16px;height:2px;border-radius:2px}
+.wk-key i.bnd{width:16px;height:10px;border-radius:2px;
+  background:color-mix(in srgb,var(--page-accent) 22%,transparent);
+  border:1px solid color-mix(in srgb,var(--page-accent) 35%,transparent)}
+
+/* ---------- hours claimed ---------- */
+.tp-body{display:flex;align-items:center;gap:26px;flex-wrap:wrap;margin-top:12px}
+.tp-svg{flex:0 0 auto}
+.tp-big{fill:var(--text);font-family:var(--serif);font-size:22px}
+.tp-sub{fill:var(--muted);font-family:var(--mono);font-size:7.5px;letter-spacing:.12em;text-transform:uppercase}
+.tp-keys{display:flex;flex-direction:column;gap:9px;min-width:0}
+.tp-key{display:flex;align-items:baseline;gap:9px}
+.tp-key i{width:10px;height:10px;border-radius:3px;flex:0 0 auto;align-self:center}
+.tp-key.quiet i{background:none;border:1px dashed var(--line-2)}
+.tp-key .n{font-family:var(--mono);font-size:1rem;color:var(--text);min-width:3.4em}
+.tp-key .l{font-size:.8rem;color:var(--muted)}
+.tp-key.quiet .n,.tp-key.quiet .l{color:var(--faint)}
+.tp-span{font-size:.72rem}
 @media (prefers-reduced-motion:reduce){.wk-bar{transition:none}}
 
 /* ---------- the plan, said in more than a list ---------- */
@@ -2136,5 +2157,20 @@ input[type="date"].dp-active{border-color:var(--page-accent);box-shadow:0 0 0 2p
   font-size:.62rem;letter-spacing:.05em;padding:2px 4px;border-radius:5px;transition:color .15s var(--ease)}
 .dp-lnk:hover{color:var(--page-accent)}
 @media (prefers-reduced-motion:reduce){.dp-pop{animation:none}.dp-cell,.dp-nav,.dp-lnk{transition:none}}
+
+/* one size for every section header on Today — the page had three, because
+   some headers carried .sc and others .sc.lg */
+.today-page .sc{font-size:.76rem;letter-spacing:.14em}
+
+/* ---------- review chips ----------
+   A review that is due is a small button beside the evening review, not a
+   card. Six cards make Today a page you scroll past; six chips are a row. */
+.rvw-chip{display:inline-flex;align-items:center;gap:6px;
+  border-color:color-mix(in srgb,var(--page-accent) 40%,var(--line))}
+.rvw-chip.late{border-color:color-mix(in srgb,var(--rose) 55%,transparent);
+  color:color-mix(in srgb,var(--rose) 80%,var(--text))}
+.rvw-late{font-family:var(--mono);font-size:.56rem;letter-spacing:.06em;
+  padding:1px 5px;border-radius:99px;background:color-mix(in srgb,var(--rose) 20%,transparent)}
+.cyc-panel .cyc-card{border:none;padding:0;margin:0;background:none}
 </style>
 </head>

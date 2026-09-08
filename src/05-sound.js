@@ -1,15 +1,14 @@
 /* ============================================================
    SOUND — two layers, all synthesised, nothing downloaded.
-   Layer 1: interaction sounds. Every one of them is a singing
-            bowl — a rin gong struck with a padded mallet, in
-            a range of sizes. What makes a bowl a bowl and not
-            a bell is two things: its overtones are not whole
-            multiples of the fundamental (roughly 1 : 2.75 :
-            5.18 : 8.16 : 11.9, the modes of a thin metal
-            shell), and each of those modes is really a pair
-            split a few cents apart, so the note breathes in
-            and out a few times a second. Both are modelled
-            here, then put in a stone room.
+   Layer 1: interaction sounds. There is one voice and only
+            one: a sine and its octave, eased in rather than
+            struck, each note split three cents so it breathes
+            about once a second, in a stone room. Every sound
+            in the house is that voice at a different pitch,
+            and every one is two notes — a rolled interval,
+            the second a few milliseconds behind the first.
+            All pitches come from A major pentatonic, so no
+            two sounds can land badly against each other.
    Layer 2: an opt-in atmosphere — noise beds, or a slow
             generative piano that never repeats itself.
    The AudioContext is created lazily inside the first user
@@ -66,12 +65,12 @@ const SoundManager = (() => {
   const send = (node) => { if(verbSend) node.connect(verbSend); };
 
   /* ---- primitives ---- */
-  /* the modes of a bowl: inharmonic, and each one a doublet a few cents apart */
+  /* the partial ladder a note is built from. The interaction voice uses only
+     [1, 2] — a fundamental and its octave — but the primitive stays general. */
   const BOWL_MODES = [1, 2.75, 5.18, 8.16, 11.9];
-  /* a struck bowl. `size` stretches the decay of the higher partials — a big
-     bowl keeps its shimmer, a small one loses it almost at once. `beat` is how
-     far apart the two halves of each mode sit, in cents: that split is the slow
-     wobble you hear in the tail. */
+  /* `size` stretches the decay of the higher partials. `beat` is how far apart
+     the two halves of each partial sit, in cents: that split is the slow wobble
+     you hear in the tail, and it is what makes the note breathe. */
   function bowl({freq, dur=1.2, gain=.05, beat=7, modes=BOWL_MODES, size=1, at=0, wet=1, attack=0}){
     if(!ctx) return; const t = ctx.currentTime + at;
     const bus = ctx.createGain(); bus.gain.value = 1; bus.connect(out()); if(wet) send(bus);
@@ -91,8 +90,6 @@ const SoundManager = (() => {
       });
     });
   }
-  /* the mallet itself: leather on metal, felt for the softer ones. Almost subliminal. */
-  function mallet({freq=900, dur=.05, gain=.02, q=.8, at=0}){ noise({dur, freq, q, gain, sweep:freq*.45, wet:.35, at}); }
   /* a short filtered noise transient: the touch, the felt, the breath */
   function noise({dur=.08, freq=1200, q=1.2, gain=.05, type='bandpass', at=0, sweep=null, wet=.5}){
     if(!ctx) return; const t = ctx.currentTime + at;
@@ -107,26 +104,57 @@ const SoundManager = (() => {
     src.connect(f); f.connect(g); g.connect(out()); if(wet && verbSend){ const w = ctx.createGain(); w.gain.value = wet; g.connect(w); w.connect(verbSend); }
     src.start(t); src.stop(t+dur+.05);
   }
+  /* ---------- the interaction voice ----------
+     One timbre for everything now: the sound the sound-toggle makes. It is not
+     struck — there is no mallet and so no noise transient to hear as a click —
+     just a sine and its octave, eased in over ~10ms, the two halves three cents
+     apart so the note breathes about once a second, and a long wet tail.
+
+     Every sound is that timbre at a different pitch, and every one of them is
+     two notes rather than one: the second follows a few milliseconds behind and
+     softer, the way the two notes of a rolled interval do under one finger.
+     Both notes are always drawn from A major pentatonic, so no two sounds in
+     the house can land against each other badly, whatever order they arrive in. */
+  const A = 440;
+  const P = {                                        // A major pentatonic, A4 upward
+    A4: A, B4: A*1.12246, Cs5: A*1.25992, E5: A*1.49831, Fs5: A*1.68179,
+    A5: A*2, B5: A*2.24492, Cs6: A*2.51984, E6: A*2.99661,
+  };
+  function tone({freq, dur=.9, gain=.026, beat=3, at=0, attack=.01}){
+    bowl({freq, dur, gain, beat, size:1, modes:[1, 2], attack, wet:1, at});
+  }
+  /* two pitches, the second rolled in behind the first and quieter */
+  function dyad(a, b, {dur=.9, gain=.026, roll=.042}={}){
+    tone({freq:a, dur, gain});
+    tone({freq:b, dur:dur*.86, gain:gain*.7, at:roll});
+  }
+  /* Consecutive clicks walk this ladder instead of repeating one note, so a run
+     of them reads as a quiet line rather than a beep pressed over and over. */
+  const CLICK_DYADS = [
+    [P.A4,  P.E5],    // a fifth
+    [P.B4,  P.Fs5],   // a fifth, one step up
+    [P.Cs5, P.A5],    // a major sixth
+    [P.E5,  P.B5],    // a fifth, higher
+    [P.B4,  P.E5],    // a fourth, coming back down
+  ];
+  let clickStep = 0;
   const recipes = {
-    /* Not struck — sounded. No mallet, so there is no noise transient and
-       nothing to hear as a "click"; just a sine and its octave, which is as
-       pure as this synth gets. The onset is eased over ~16ms so the tone
-       arrives rather than hits, the two halves sit 3 cents apart so it
-       breathes about once a second instead of warbling, and the tail is long
-       and wet enough to feel like a room rather than a UI. */
-    click:   () => bowl({freq:440, dur:.9, gain:.026, beat:3, size:1, modes:[1, 2], attack:.01, wet:1}),
-    /* the same bowl, lower and softer — a page turning in a quiet room */
-    nav:     () => { mallet({freq:900, dur:.05, gain:.012, q:.5}); bowl({freq:392, dur:.9, gain:.034, beat:6, size:.75, wet:1}); },
-    /* a full bowl, struck properly and allowed to ring out */
-    success: () => { mallet({freq:2000, dur:.035, gain:.02}); bowl({freq:261.63, dur:2.8, gain:.05, beat:5, size:1, wet:1});
-                     bowl({freq:392, dur:1.9, gain:.02, beat:8, size:.8, at:.09, wet:1}); },
-    /* struck, then a palm on the rim: it stops before it can bloom */
-    error:   () => { mallet({freq:520, dur:.05, gain:.024, q:1.2}); bowl({freq:174.61, dur:.42, gain:.05, beat:11, size:.4, modes:[1,2.75,5.18], wet:.5}); },
-    /* not struck at all — the rim rubbed, so the note arrives instead of starting */
-    open:    () => { bowl({freq:196, dur:1.6, gain:.03, beat:4, size:1, modes:[1,2.75,5.18], attack:.26, wet:1});
-                     noise({dur:.5, freq:700, q:.4, gain:.012, sweep:2200, wet:.9}); },
-    /* the smallest bowl there is, barely touched */
-    leaf:    () => bowl({freq:1046.5, dur:.42, gain:.014, beat:12, size:.45, modes:[1,2.75,5.18], wet:1}),
+    click:   () => { const [a, b] = CLICK_DYADS[clickStep++ % CLICK_DYADS.length]; dyad(a, b); },
+    /* a page turning: the same voice, one interval higher and shorter */
+    nav:     () => dyad(P.Cs5, P.Fs5, {dur:.78, gain:.024}),
+    /* something opening: a sixth, arriving rather than starting */
+    open:    () => { tone({freq:P.Cs5, dur:1.5, gain:.024, attack:.16});
+                     tone({freq:P.A5,  dur:1.2, gain:.015, attack:.16, at:.07}); },
+    /* the brightest thing in the house: a full chord, high and allowed to ring */
+    success: () => { tone({freq:P.E5,  dur:1.9, gain:.03});
+                     tone({freq:P.Cs6, dur:1.5, gain:.02,  at:.05});
+                     tone({freq:P.A5,  dur:2.4, gain:.016, at:.11}); },
+    /* the one that has to read as different: a major second, still in key, and
+       stopped early instead of allowed to bloom */
+    error:   () => { tone({freq:P.A5, dur:.4, gain:.026, beat:8});
+                     tone({freq:P.B5, dur:.34, gain:.02, beat:8, at:.03}); },
+    /* the smallest sound there is */
+    leaf:    () => dyad(P.A5, P.E6, {dur:.5, gain:.013, roll:.03}),
   };
 
   /* ---- layer 1 ---- */

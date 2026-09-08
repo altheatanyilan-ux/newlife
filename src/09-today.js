@@ -90,7 +90,6 @@ routes.today = function(root){
     ['t-checkin', 'check-in', true],
     ['t-theatre', 'theatre',  true],
     ['t-habits',  'habits',   true],
-    ['t-reviews', 'reviews',  typeof reviewsDue === 'function' && reviewsDue(T).length > 0],
     ['t-tonight', 'tonight',  true],
   ].filter(x => x[2]);
 
@@ -145,7 +144,7 @@ routes.today = function(root){
 
     <!-- daily check-in (intention + mood + energy + setpoint) -->
     <details class="section rv today-checkin t-sec" id="t-checkin"${fold('t-checkin', !c.intention || (!c.setpoint && !c.mood))}>
-      <summary><span class="sc lg">Daily check-in</span><span class="mono">${c.intention ? esc(c.intention.slice(0,40)) : 'not yet set'}</span>${flowTick('checkinAt')}</summary>
+      <summary><span class="sc">Daily check-in</span><span class="mono">${c.intention ? esc(c.intention.slice(0,40)) : 'not yet set'}</span>${flowTick('checkinAt')}</summary>
       <div class="body stack" style="gap:20px">
         <div class="field"><label>Today's intention ${planT.planned && c.intention ? '<span class="mono faint" style="text-transform:none;letter-spacing:0">· set last night</span>' : ''}</label>
           ${ed('checkins.' + T + '.intention', {ph:'One thing to give attention to today.', cls:'serif-lg'})}</div>
@@ -168,7 +167,7 @@ routes.today = function(root){
 
     <!-- morning rehearsal (Maltz) -->
     <details class="section rv rehearsal-wrap t-sec" id="t-theatre"${fold('t-theatre', !rehearsalDoneToday())} style="margin-top:8px">
-      <summary><span class="sc lg">Morning Theatre</span><span class="mono">${rehearsalDoneToday()?'practised today':'30 minutes · Maltz'}</span>${flowTick('theatreAt')}</summary>
+      <summary><span class="sc">Morning Theatre</span><span class="mono">${rehearsalDoneToday()?'practised today':'30 minutes · Maltz'}</span>${flowTick('theatreAt')}</summary>
       <div class="body rehearsal stack" style="gap:24px">
         <blockquote class="rehearsal-epigraph">Close your eyes for thirty minutes. See yourself on a mental screen — sights, sounds, smells. See yourself acting, feeling and being as you want to be. The nervous system cannot tell a real experience from one vividly imagined.<cite>Maxwell Maltz</cite></blockquote>
         <div class="field"><label>Self-image script</label>${ed('rehearsal.script',{multi:true,mdr:true,cls:'prose serif-lg',ph:'First person, present tense. Who you are becoming — vivid, sensory, felt as already real.'})}</div>
@@ -183,7 +182,7 @@ routes.today = function(root){
 
     <!-- the habit checklist: the whole of habit-keeping now lives here -->
     <details class="section rv t-sec" style="margin-top:8px" id="t-habits"${fold('t-habits')}>
-      <summary><span class="sc lg" style="margin:0">Today's habits</span>
+      <summary><span class="sc" style="margin:0">Today's habits</span>
         <span class="mono faint">${(() => { const due = S.habits.filter(h => !h.archived && !h.negative && habitDue(h, T)); const dn = due.filter(h => habitDone(h, T)).length; return due.length ? `${dn} of ${due.length} kept` : 'nothing due'; })()}</span></summary>
       <div class="body">
       <div id="todayRings" style="margin-top:10px"></div>
@@ -194,7 +193,6 @@ routes.today = function(root){
       </div>
     </div></details>
 
-    ${typeof reviewsDueHTML === 'function' ? reviewsDueHTML(T) : ''}
 
     ${due.length ? `<section class="section rv"><div class="card"><div class="row between"><span class="sc" style="margin:0">Decisions ready to grade</span><a class="mono" href="#/journals/decision">all →</a></div>${due.map(e=>`<div class="row between" style="margin-top:8px"><span><b class="serif">${esc(e.title)}</b><div class="mono">${fmtDate((e.createdAt||'').slice(0,10),'med')}</div></span><button class="btn sm" data-dopen="${e.id}">Look back</button></div>`).join('')}</div></section>` : ''}
     ${milestones.length ? `<section class="section rv"><span class="sc">Skill milestones within 30 days</span><div class="card" style="border-left:3px solid var(--ment)">${milestones.map(({skill,m,days})=>`<a href="#/skills/${skill.id}" class="row between" style="text-decoration:none;color:inherit;padding:8px 0;border-top:1px dashed var(--line);gap:12px"><span><b class="serif">${esc(skill.name)}</b> <span class="muted">→ ${esc(skillLevelLabel(skill,m.levelTarget))}</span></span><span class="status-pill ${days<0?'due':'ahead'}">${days<0?'⚠ ' + (-days) + 'd overdue':days===0?'today':'in ' + days + 'd'}</span></a>`).join('')}</div></section>` : ''}
@@ -218,6 +216,7 @@ routes.today = function(root){
           <button class="btn sm ${threeTom.length ? 'ghost' : 'primary'}" id="planTomorrow">${threeTom.length ? '↻ Replan tomorrow' : '◑ Plan tomorrow'}</button>
           ${isSunday ? `<button class="btn sm ${evening ? 'primary' : 'ghost'}" id="planNextWeek">🗓 Plan next week</button>` : ''}
           <button class="btn sm ghost" id="eveningReview">☾ Evening review</button>
+          ${typeof reviewChipsHTML === 'function' ? reviewChipsHTML(T) : ''}
         </div>
       </div></div>
     </details>

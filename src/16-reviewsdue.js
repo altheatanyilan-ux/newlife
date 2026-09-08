@@ -89,6 +89,18 @@ const CYCLE_SCAN = {daily: 3, weekly: 16, monthly: 70, quarterly: 100, half: 200
 /* Not merely the nearest one: if last week's review was never done and this
    week's has now come due, both are on the page, oldest first, because the
    older one is the one at risk of never happening at all. */
+/* Did anything at all happen in this stretch? A quarter that closed while the
+   house was empty is not a review somebody is behind on — there is nothing in
+   it to read — and listing it only buries the reviews that do have something
+   in them. Tonight's own boundary is exempt: it is still being lived. */
+function periodHasSubstance(from, to){
+  if(S.entries.some(e => { const on = (e.occurredAt || e.createdAt || '').slice(0,10); return on >= from && on <= to; })) return true;
+  if(Object.keys(S.habitLog || {}).some(d => d >= from && d <= to && Object.keys(S.habitLog[d] || {}).length)) return true;
+  if(Object.keys(S.checkins || {}).some(d => d >= from && d <= to)) return true;
+  if((S.tasks || []).some(t => { const on = (t.day || t.date || '').slice(0,10); return on >= from && on <= to; })) return true;
+  return false;
+}
+
 function reviewsDue(d = today()){
   const out = [];
   CYCLES.forEach(c => {
@@ -99,7 +111,9 @@ function reviewsDue(d = today()){
       if(!c.isEnd(end)) continue;
       boundaries++;                       /* a period boundary, answered or not */
       if(cycleAnswered(c, end) || cycleDismissed(c, end)) continue;
-      found.push({c, end, from: c.from(end), late: i});
+      const from = c.from(end);
+      if(i > 0 && !periodHasSubstance(from, end)) continue;
+      found.push({c, end, from, late: i});
     }
     /* oldest first within a kind, so the overdue one is read before the fresh */
     found.reverse().forEach(x => out.push(x));
@@ -176,19 +190,36 @@ function cycleCardHTML(due){
   </article>`;
 }
 
-function reviewsDueHTML(d = today()){
-  const due = reviewsDue(d); if(!due.length) return '';
-  return `<section class="section rv cyc-block" id="t-reviews">
-    <div class="row between" style="align-items:baseline">
-      <span class="sc lg" style="margin:0">${due.length === 1 ? 'A cycle closes tonight' : 'Cycles close tonight'}</span>
-      <span class="mono faint">${due.length} review${due.length===1?'':'s'} waiting</span>
-    </div>
-    <p class="muted" style="font-size:.85rem;margin:6px 0 0">A review lands the night the period ends, while it is still in the room.</p>
-    ${due.map(cycleCardHTML).join('')}
-  </section>`;
+/* ---------- the chips ----------
+   A review is a small button beside the evening review, not a card the size
+   of the page. Six open cards turn Today into a to-do list you scroll past;
+   six chips are a row you can read at a glance and open one at a time.
+
+   The daily review IS the evening review, so tonight's daily is not repeated
+   as a chip — only a daily left over from an earlier day, which is genuinely
+   a second thing to do. */
+function reviewChipsHTML(d = today()){
+  const due = reviewsDue(d).filter(x => !(x.c.key === 'daily' && x.end === d));
+  if(!due.length) return '';
+  return due.map(({c, end, late}) => `<button class="btn sm rvw-chip ${late ? 'late' : ''}"
+      data-cycopen="${c.key}:${end}" title="${esc(c.blurb)}">
+    ${esc(c.name)}${late ? `<span class="rvw-late">${late}d late</span>` : ''}
+  </button>`).join('');
+}
+
+/* the whole of what used to be the card, in a panel, opened from a chip */
+function openCycleReview(key, end){
+  const c = CYCLES.find(x => x.key === key); if(!c) return;
+  const from = c.from(end);
+  const late = Math.max(0, daysBetween(end, today()));
+  const p = openPanel(`<div class="mono">review</div><h2>${esc(c.name)}</h2>
+    <div class="cyc-block">${cycleCardHTML({c, end, from, late})}</div>`, 'cyc-panel');
+  bindReviewsDue(p);
 }
 
 function bindReviewsDue(root){
+  root.querySelectorAll('[data-cycopen]').forEach(b => b.onclick = () => {
+    const [key, end] = b.dataset.cycopen.split(':'); openCycleReview(key, end); });
   const box = root.querySelector('.cyc-block'); if(!box) return;
   const find = v => { const [key, end] = v.split(':'); const c = CYCLES.find(x => x.key === key); return c ? {c, end, from: c.from(end)} : null; };
   box.querySelectorAll('[data-cycstart]').forEach(b => b.onclick = () => {

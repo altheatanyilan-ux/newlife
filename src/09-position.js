@@ -608,82 +608,138 @@ const wkClock = h => { const hh = Math.floor(h) % 24, mm = Math.round((h % 1) * 
   const ap = hh >= 12 ? 'pm' : 'am', h12 = hh % 12 || 12;
   return mm ? `${h12}:${pad(mm)}${ap}` : `${h12}${ap}`; };
 
-function weekShapeHTML(anchor = today()){
+/* ---------- 1. when the day opened and when it closed ----------
+   Two quantities, two lines, and the band between them is the time you were
+   awake. Nothing is stacked and nothing is inferred: each line is one clock
+   reading a day, which is the only way a line here can mean anything. */
+function sleepWakeHTML(anchor = today()){
   const days = weekShapeDays(anchor);
   const rows = days.map(weekShapeRow);
-  const filled = rows.filter(r => !r.empty);
-  const H = 210, W = Math.max(320, days.length * 64), padL = 34, padB = 26;
+  const filled = rows.filter(r => r.wake != null || r.close != null);
+  const H = 200, W = Math.max(320, days.length * 64), padL = 40, padB = 26;
   const y = h => (H - padB) - ((h - WK_LO) / (WK_HI - WK_LO)) * (H - padB - 8);
   const colW = (W - padL) / days.length;
   const x = i => padL + (i + .5) * colW;
-  const barW = Math.min(26, colW * .46);
   const ticks = [6, 9, 12, 15, 18, 21, 24];
-
-  const bars = rows.map((r, i) => {
-    if(r.empty) return '';
-    const cx = x(i) - barW / 2;
-    /* no clock times logged, only a split: draw it as a free column so the
-       hours claimed are still visible rather than silently dropped */
-    if(r.wake == null && r.close == null){
-      const tot = r.used + r.wasted; if(!tot) return '';
-      const top = y(WK_LO + tot);
-      return `<g class="wk-bar"><rect x="${cx.toFixed(1)}" y="${top.toFixed(1)}" width="${barW.toFixed(1)}" height="${(y(WK_LO) - top).toFixed(1)}" rx="3" fill="var(--sage)" opacity=".3"/>
-        <title>${esc(fmtDate(r.d,'med'))} · ${r.used.toFixed(1)}h used, ${r.wasted.toFixed(1)}h wasted · no clock times</title></g>`;
-    }
-    const hi = y(r.close ?? (r.wake + 16)), lo = y(r.wake ?? ((r.close ?? 22) - 16));
-    const barH = Math.max(3, lo - hi);
-    const awake = (r.close != null && r.wake != null) ? (r.close - r.wake) : null;
-    const usedH = awake ? barH * Math.min(1, r.used / awake) : 0;
-    const wastedH = awake ? barH * Math.min(1, r.wasted / awake) : 0;
-    return `<g class="wk-bar" data-wkday="${r.d}">
-      <rect x="${cx.toFixed(1)}" y="${hi.toFixed(1)}" width="${barW.toFixed(1)}" height="${barH.toFixed(1)}" rx="3" fill="var(--page-accent)" opacity=".15"/>
-      ${usedH > .5 ? `<rect x="${cx.toFixed(1)}" y="${(lo - usedH).toFixed(1)}" width="${barW.toFixed(1)}" height="${usedH.toFixed(1)}" rx="3" fill="var(--sage)" opacity=".85"/>` : ''}
-      ${wastedH > .5 ? `<rect x="${cx.toFixed(1)}" y="${(lo - usedH - wastedH).toFixed(1)}" width="${barW.toFixed(1)}" height="${wastedH.toFixed(1)}" rx="3" fill="var(--rose)" opacity=".7"/>` : ''}
-      <title>${esc(fmtDate(r.d,'med'))}${r.wake!=null?` · woke ${wkClock(r.wake)}`:''}${r.close!=null?` · closed ${wkClock(r.close)}`:''}${(r.used||r.wasted)?` · ${r.used.toFixed(1)}h used, ${r.wasted.toFixed(1)}h wasted`:''}</title>
-    </g>`;
-  }).join('');
-
-  const line = (key, color) => { const pts = rows.map((r, i) => r.empty || r[key] == null ? null : `${x(i).toFixed(1)},${y(r[key]).toFixed(1)}`).filter(Boolean);
-    return pts.length > 1 ? `<polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" opacity=".75"/>` : ''; };
-  const dots = (key, color) => rows.map((r, i) => r.empty || r[key] == null ? '' :
-    `<circle cx="${x(i).toFixed(1)}" cy="${y(r[key]).toFixed(1)}" r="2.6" fill="${color}"/>`).join('');
-
-  const avgOf = k => { const v = filled.map(r => r[k]).filter(z => z != null); return v.length ? avg(v) : null; };
-  const aw = avgOf('wake'), ac = avgOf('close'), au = avgOf('used'), awa = avgOf('wasted');
   const T = today();
+
+  /* the shaded band is only drawn across runs of days that have both ends —
+     a gap in the record must read as a gap, not as a straight line through it */
+  const bands = [];
+  let run = [];
+  const flush = () => {
+    if(run.length > 1){
+      const top = run.map(i => `${x(i).toFixed(1)},${y(rows[i].close).toFixed(1)}`);
+      const bot = run.slice().reverse().map(i => `${x(i).toFixed(1)},${y(rows[i].wake).toFixed(1)}`);
+      bands.push(`<polygon points="${top.concat(bot).join(' ')}" fill="var(--page-accent)" opacity=".12"/>`);
+    } else if(run.length === 1){
+      const i = run[0];
+      bands.push(`<rect x="${(x(i)-7).toFixed(1)}" y="${y(rows[i].close).toFixed(1)}" width="14" height="${Math.max(2, y(rows[i].wake)-y(rows[i].close)).toFixed(1)}" rx="3" fill="var(--page-accent)" opacity=".12"/>`);
+    }
+    run = [];
+  };
+  rows.forEach((r, i) => { if(r.wake != null && r.close != null) run.push(i); else flush(); });
+  flush();
+
+  const series = (key, color) => {
+    /* break the line wherever a day has no reading, for the same reason */
+    const segs = []; let cur = [];
+    rows.forEach((r, i) => { if(r[key] == null){ if(cur.length > 1) segs.push(cur); cur = []; }
+      else cur.push(`${x(i).toFixed(1)},${y(r[key]).toFixed(1)}`); });
+    if(cur.length > 1) segs.push(cur);
+    const lines = segs.map(pts => `<polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" opacity=".85"/>`).join('');
+    const dots = rows.map((r, i) => r[key] == null ? '' :
+      `<g><circle cx="${x(i).toFixed(1)}" cy="${y(r[key]).toFixed(1)}" r="3.2" fill="${color}"/>
+       <title>${esc(fmtDate(r.d,'med'))} · ${key === 'wake' ? 'woke' : 'went to sleep'} ${wkClock(r[key])}</title></g>`).join('');
+    return lines + dots;
+  };
+
+  const avgOf = k => { const v = rows.map(r => r[k]).filter(z => z != null); return v.length ? avg(v) : null; };
+  const aw = avgOf('wake'), ac = avgOf('close');
 
   return `<section class="section rv week-shape">
     <div class="row between" style="align-items:baseline;flex-wrap:wrap;gap:8px">
-      <span class="sc" style="margin:0">The week's shape</span>
+      <span class="sc" style="margin:0">Sleep and waking</span>
       <span class="mono faint">${filled.length} of ${days.length} days logged</span>
     </div>
-    <p class="muted" style="font-size:.85rem;margin:4px 0 0">When the day opened, when it closed, and what the hours between them were spent on.</p>
-    <div class="wk-legend row" style="gap:14px;flex-wrap:wrap;margin:10px 0 2px">
-      <span class="wk-key"><i style="background:var(--gold)"></i>woke${aw!=null?` · avg ${wkClock(aw)}`:''}</span>
-      <span class="wk-key"><i style="background:var(--ment)"></i>closed${ac!=null?` · avg ${wkClock(ac)}`:''}</span>
-      <span class="wk-key"><i style="background:var(--sage)"></i>used well${au!=null?` · avg ${au.toFixed(1)}h`:''}</span>
-      <span class="wk-key"><i style="background:var(--rose)"></i>wasted${awa!=null?` · avg ${awa.toFixed(1)}h`:''}</span>
+    <p class="muted" style="font-size:.85rem;margin:4px 0 0">The top line is when each day ended, the bottom line is when it began. The band between them is how long you were up.</p>
+    <div class="wk-legend row" style="gap:16px;flex-wrap:wrap;margin:10px 0 2px">
+      <span class="wk-key"><i class="ln" style="background:var(--gold)"></i>I woke up${aw!=null?` · usually ${wkClock(aw)}`:''}</span>
+      <span class="wk-key"><i class="ln" style="background:var(--ment)"></i>I went to sleep${ac!=null?` · usually ${wkClock(ac)}`:''}</span>
+      <span class="wk-key"><i class="bnd"></i>awake${(aw!=null&&ac!=null)?` · ${(ac-aw).toFixed(1)}h a day`:''}</span>
     </div>
     ${filled.length ? `<div class="wk-scroll"><svg class="wk-svg" viewBox="0 0 ${W} ${H}" width="100%" height="${H}" preserveAspectRatio="xMidYMid meet">
       ${ticks.map(h => `<g><line x1="${padL}" y1="${y(h).toFixed(1)}" x2="${W}" y2="${y(h).toFixed(1)}" stroke="var(--line)" stroke-width="1" opacity=".5"/>
         <text x="2" y="${(y(h)+3).toFixed(1)}" class="wk-tick">${wkClock(h)}</text></g>`).join('')}
-      ${bars}
-      ${line('wake','var(--gold)')}${dots('wake','var(--gold)')}
-      ${line('close','var(--ment)')}${dots('close','var(--ment)')}
+      ${bands.join('')}
+      ${series('close','var(--ment)')}
+      ${series('wake','var(--gold)')}
       ${rows.map((r, i) => `<text x="${x(i).toFixed(1)}" y="${H - 8}" class="wk-day ${r.d === T ? 'now' : ''}" text-anchor="middle">${DOW[parseDay(r.d).getDay()][0]}</text>`).join('')}
     </svg></div>`
-      : `<div class="empty" style="margin-top:10px">Nothing logged this week yet. The two ends of each day are set on the Today page — "I woke up at" and "I went to sleep at" — and the hours between them are claimed there too.</div>`}
+      : `<div class="empty" style="margin-top:10px">Nothing logged this week yet. The two ends of each day are set on the Today page — "I woke up at" and "I went to sleep at".</div>`}
+  </section>`;
+}
+
+/* ---------- 2. what the hours went on ----------
+   A single question — how much of the time you were awake did you claim —
+   asked over whatever stretch you choose. */
+const TIME_SPANS = [['1','the past day'],['7','the past week'],['30','the past month'],['90','the past three months'],['365','the past year']];
+function timeSpanDays(){ const v = S.settings?.timeSpan; return TIME_SPANS.some(x => x[0] === v) ? +v : 7; }
+function timeSplit(n){
+  let used = 0, wasted = 0, days = 0;
+  for(let i = 0; i < n; i++){
+    const c = rhythmDay(addDays(today(), -i)).computed;
+    const u = (c.intentionalMinutes || 0) / 60, w = (c.wastedMinutes || 0) / 60;
+    if(u || w) days++;
+    used += u; wasted += w;
+  }
+  return {used, wasted, days, total: used + wasted};
+}
+/* one arc of a donut, drawn from a fraction of the circle */
+function donutArc(frac, from, r, R, color, op){
+  if(frac <= 0) return '';
+  const τ = Math.PI * 2, a0 = from * τ - Math.PI / 2, a1 = (from + Math.min(frac, .9999)) * τ - Math.PI / 2;
+  const pt = (a, rad) => `${(60 + Math.cos(a) * rad).toFixed(2)},${(60 + Math.sin(a) * rad).toFixed(2)}`;
+  const big = frac > .5 ? 1 : 0;
+  return `<path d="M ${pt(a0, R)} A ${R} ${R} 0 ${big} 1 ${pt(a1, R)} L ${pt(a1, r)} A ${r} ${r} 0 ${big} 0 ${pt(a0, r)} Z" fill="${color}" opacity="${op}"/>`;
+}
+function timePieHTML(){
+  const n = timeSpanDays(), sp = timeSplit(n);
+  const pct = sp.total ? Math.round(sp.used / sp.total * 100) : null;
+  const label = (TIME_SPANS.find(x => +x[0] === n) || [])[1] || '';
+  return `<section class="section rv time-pie">
+    <div class="row between" style="align-items:baseline;flex-wrap:wrap;gap:8px">
+      <span class="sc" style="margin:0">Hours claimed</span>
+      <select class="sel tp-span" id="tpSpan" style="width:auto">${TIME_SPANS.map(([v, l]) => `<option value="${v}" ${n === +v ? 'selected' : ''}>${l}</option>`).join('')}</select>
+    </div>
+    <p class="muted" style="font-size:.85rem;margin:4px 0 0">Of the hours you accounted for over ${esc(label)}, how many you would claim as well spent.</p>
+    ${sp.total ? `<div class="tp-body">
+      <svg class="tp-svg" viewBox="0 0 120 120" width="150" height="150" role="img" aria-label="${pct}% of accounted hours well used">
+        ${donutArc(sp.used / sp.total, 0, 34, 54, 'var(--sage)', '.9')}
+        ${donutArc(sp.wasted / sp.total, sp.used / sp.total, 34, 54, 'var(--rose)', '.75')}
+        <text x="60" y="58" class="tp-big" text-anchor="middle">${pct}%</text>
+        <text x="60" y="73" class="tp-sub" text-anchor="middle">well used</text>
+      </svg>
+      <div class="tp-keys">
+        <div class="tp-key"><i style="background:var(--sage)"></i><span class="n">${sp.used.toFixed(1)}h</span><span class="l">used well</span></div>
+        <div class="tp-key"><i style="background:var(--rose)"></i><span class="n">${sp.wasted.toFixed(1)}h</span><span class="l">wasted</span></div>
+        <div class="tp-key quiet"><i></i><span class="n">${sp.days}</span><span class="l">day${sp.days===1?'':'s'} with hours claimed</span></div>
+      </div>
+    </div>` : `<div class="empty" style="margin-top:10px">No hours claimed over ${esc(label)}. Claim a block on Today and this fills in.</div>`}
     <div class="row" style="gap:8px;margin-top:10px;flex-wrap:wrap">
       <button class="btn sm ghost" id="wkClaim">claim today's hours</button>
       <a class="btn sm ghost" href="#/today">the day itself →</a>
     </div>
   </section>`;
 }
+/* the pair, in the order they are read */
+function weekShapeHTML(anchor = today()){ return sleepWakeHTML(anchor) + timePieHTML(); }
 function bindWeekShape(root, redraw){
-  const box = root.querySelector('.week-shape'); if(!box) return;
-  box.querySelector('#wkClaim') && (box.querySelector('#wkClaim').onclick = () => {
+  const claim = root.querySelector('#wkClaim');
+  if(claim) claim.onclick = () => {
     const r = rhythmDay(today());
     openTimeBlockModal(r, {startTime:'09:00', endTime:'10:00'}, () => { rhythmCompute(r); saveNow(); }, redraw || rerender);
-  });
-  box.querySelectorAll('[data-wkday]').forEach(g => g.style.cursor = 'default');
+  };
+  const span = root.querySelector('#tpSpan');
+  if(span) span.onchange = () => { S.settings.timeSpan = span.value; saveNow(); (redraw || rerender)(); };
 }

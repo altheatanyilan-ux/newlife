@@ -1595,7 +1595,9 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 .res-row:hover .res-edit,.res-row:focus-within .res-edit{display:flex}
 .res-edit .ed-wrap{min-width:120px;font-size:.72rem}
 .ms-axis{position:relative;height:74px;margin:14px 4px 6px}
-.ms-line{position:absolute;left:0;right:0;top:18px;height:2px;background:var(--line-2)}
+/* the axis rule, not the milestone row — these two shared a class name, and
+   the later one turned every row in Milestones ahead into a 2px grey bar */
+.ms-axis-rule{position:absolute;left:0;right:0;top:18px;height:2px;background:var(--line-2)}
 .ms-now{position:absolute;top:8px;transform:translateX(-50%);text-align:center;font-family:var(--mono);font-size:.58rem;color:var(--gold)}
 .ms-now i{display:block;width:2px;height:22px;background:var(--gold);margin:0 auto 2px}
 .ms-mark{position:absolute;top:12px;transform:translateX(-50%);text-align:center;font-size:.68rem;line-height:1.25}
@@ -2492,8 +2494,27 @@ html.vision-deep .page-scene.on{opacity:var(--scene-op)}
 .wk-bar{transition:opacity .16s var(--ease)}
 .wk-scroll:hover .wk-bar{opacity:.55}
 .wk-scroll .wk-bar:hover{opacity:1}
-.wk-key{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:.66rem;color:var(--muted)}
+.wk-key{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:.66rem;color:var(--muted)}
 .wk-key i{width:9px;height:9px;border-radius:2px;display:inline-block}
+/* the key must look like the thing it explains: a line for a line, a band for a band */
+.wk-key i.ln{width:16px;height:2px;border-radius:2px}
+.wk-key i.bnd{width:16px;height:10px;border-radius:2px;
+  background:color-mix(in srgb,var(--page-accent) 22%,transparent);
+  border:1px solid color-mix(in srgb,var(--page-accent) 35%,transparent)}
+
+/* ---------- hours claimed ---------- */
+.tp-body{display:flex;align-items:center;gap:26px;flex-wrap:wrap;margin-top:12px}
+.tp-svg{flex:0 0 auto}
+.tp-big{fill:var(--text);font-family:var(--serif);font-size:22px}
+.tp-sub{fill:var(--muted);font-family:var(--mono);font-size:7.5px;letter-spacing:.12em;text-transform:uppercase}
+.tp-keys{display:flex;flex-direction:column;gap:9px;min-width:0}
+.tp-key{display:flex;align-items:baseline;gap:9px}
+.tp-key i{width:10px;height:10px;border-radius:3px;flex:0 0 auto;align-self:center}
+.tp-key.quiet i{background:none;border:1px dashed var(--line-2)}
+.tp-key .n{font-family:var(--mono);font-size:1rem;color:var(--text);min-width:3.4em}
+.tp-key .l{font-size:.8rem;color:var(--muted)}
+.tp-key.quiet .n,.tp-key.quiet .l{color:var(--faint)}
+.tp-span{font-size:.72rem}
 @media (prefers-reduced-motion:reduce){.wk-bar{transition:none}}
 
 /* ---------- the plan, said in more than a list ---------- */
@@ -2568,6 +2589,21 @@ input[type="date"].dp-active{border-color:var(--page-accent);box-shadow:0 0 0 2p
   font-size:.62rem;letter-spacing:.05em;padding:2px 4px;border-radius:5px;transition:color .15s var(--ease)}
 .dp-lnk:hover{color:var(--page-accent)}
 @media (prefers-reduced-motion:reduce){.dp-pop{animation:none}.dp-cell,.dp-nav,.dp-lnk{transition:none}}
+
+/* one size for every section header on Today — the page had three, because
+   some headers carried .sc and others .sc.lg */
+.today-page .sc{font-size:.76rem;letter-spacing:.14em}
+
+/* ---------- review chips ----------
+   A review that is due is a small button beside the evening review, not a
+   card. Six cards make Today a page you scroll past; six chips are a row. */
+.rvw-chip{display:inline-flex;align-items:center;gap:6px;
+  border-color:color-mix(in srgb,var(--page-accent) 40%,var(--line))}
+.rvw-chip.late{border-color:color-mix(in srgb,var(--rose) 55%,transparent);
+  color:color-mix(in srgb,var(--rose) 80%,var(--text))}
+.rvw-late{font-family:var(--mono);font-size:.56rem;letter-spacing:.06em;
+  padding:1px 5px;border-radius:99px;background:color-mix(in srgb,var(--rose) 20%,transparent)}
+.cyc-panel .cyc-card{border:none;padding:0;margin:0;background:none}
 </style>
 </head>
 <body>
@@ -4009,16 +4045,15 @@ addEventListener('scroll', () => { if(dpOpen) dpPlace(dpOpen.pop, dpOpen.input);
 addEventListener('resize', () => { if(dpOpen) dpClose(); });
 /* ============================================================
    SOUND — two layers, all synthesised, nothing downloaded.
-   Layer 1: interaction sounds. Every one of them is a singing
-            bowl — a rin gong struck with a padded mallet, in
-            a range of sizes. What makes a bowl a bowl and not
-            a bell is two things: its overtones are not whole
-            multiples of the fundamental (roughly 1 : 2.75 :
-            5.18 : 8.16 : 11.9, the modes of a thin metal
-            shell), and each of those modes is really a pair
-            split a few cents apart, so the note breathes in
-            and out a few times a second. Both are modelled
-            here, then put in a stone room.
+   Layer 1: interaction sounds. There is one voice and only
+            one: a sine and its octave, eased in rather than
+            struck, each note split three cents so it breathes
+            about once a second, in a stone room. Every sound
+            in the house is that voice at a different pitch,
+            and every one is two notes — a rolled interval,
+            the second a few milliseconds behind the first.
+            All pitches come from A major pentatonic, so no
+            two sounds can land badly against each other.
    Layer 2: an opt-in atmosphere — noise beds, or a slow
             generative piano that never repeats itself.
    The AudioContext is created lazily inside the first user
@@ -4075,12 +4110,12 @@ const SoundManager = (() => {
   const send = (node) => { if(verbSend) node.connect(verbSend); };
 
   /* ---- primitives ---- */
-  /* the modes of a bowl: inharmonic, and each one a doublet a few cents apart */
+  /* the partial ladder a note is built from. The interaction voice uses only
+     [1, 2] — a fundamental and its octave — but the primitive stays general. */
   const BOWL_MODES = [1, 2.75, 5.18, 8.16, 11.9];
-  /* a struck bowl. `size` stretches the decay of the higher partials — a big
-     bowl keeps its shimmer, a small one loses it almost at once. `beat` is how
-     far apart the two halves of each mode sit, in cents: that split is the slow
-     wobble you hear in the tail. */
+  /* `size` stretches the decay of the higher partials. `beat` is how far apart
+     the two halves of each partial sit, in cents: that split is the slow wobble
+     you hear in the tail, and it is what makes the note breathe. */
   function bowl({freq, dur=1.2, gain=.05, beat=7, modes=BOWL_MODES, size=1, at=0, wet=1, attack=0}){
     if(!ctx) return; const t = ctx.currentTime + at;
     const bus = ctx.createGain(); bus.gain.value = 1; bus.connect(out()); if(wet) send(bus);
@@ -4100,8 +4135,6 @@ const SoundManager = (() => {
       });
     });
   }
-  /* the mallet itself: leather on metal, felt for the softer ones. Almost subliminal. */
-  function mallet({freq=900, dur=.05, gain=.02, q=.8, at=0}){ noise({dur, freq, q, gain, sweep:freq*.45, wet:.35, at}); }
   /* a short filtered noise transient: the touch, the felt, the breath */
   function noise({dur=.08, freq=1200, q=1.2, gain=.05, type='bandpass', at=0, sweep=null, wet=.5}){
     if(!ctx) return; const t = ctx.currentTime + at;
@@ -4116,26 +4149,57 @@ const SoundManager = (() => {
     src.connect(f); f.connect(g); g.connect(out()); if(wet && verbSend){ const w = ctx.createGain(); w.gain.value = wet; g.connect(w); w.connect(verbSend); }
     src.start(t); src.stop(t+dur+.05);
   }
+  /* ---------- the interaction voice ----------
+     One timbre for everything now: the sound the sound-toggle makes. It is not
+     struck — there is no mallet and so no noise transient to hear as a click —
+     just a sine and its octave, eased in over ~10ms, the two halves three cents
+     apart so the note breathes about once a second, and a long wet tail.
+
+     Every sound is that timbre at a different pitch, and every one of them is
+     two notes rather than one: the second follows a few milliseconds behind and
+     softer, the way the two notes of a rolled interval do under one finger.
+     Both notes are always drawn from A major pentatonic, so no two sounds in
+     the house can land against each other badly, whatever order they arrive in. */
+  const A = 440;
+  const P = {                                        // A major pentatonic, A4 upward
+    A4: A, B4: A*1.12246, Cs5: A*1.25992, E5: A*1.49831, Fs5: A*1.68179,
+    A5: A*2, B5: A*2.24492, Cs6: A*2.51984, E6: A*2.99661,
+  };
+  function tone({freq, dur=.9, gain=.026, beat=3, at=0, attack=.01}){
+    bowl({freq, dur, gain, beat, size:1, modes:[1, 2], attack, wet:1, at});
+  }
+  /* two pitches, the second rolled in behind the first and quieter */
+  function dyad(a, b, {dur=.9, gain=.026, roll=.042}={}){
+    tone({freq:a, dur, gain});
+    tone({freq:b, dur:dur*.86, gain:gain*.7, at:roll});
+  }
+  /* Consecutive clicks walk this ladder instead of repeating one note, so a run
+     of them reads as a quiet line rather than a beep pressed over and over. */
+  const CLICK_DYADS = [
+    [P.A4,  P.E5],    // a fifth
+    [P.B4,  P.Fs5],   // a fifth, one step up
+    [P.Cs5, P.A5],    // a major sixth
+    [P.E5,  P.B5],    // a fifth, higher
+    [P.B4,  P.E5],    // a fourth, coming back down
+  ];
+  let clickStep = 0;
   const recipes = {
-    /* Not struck — sounded. No mallet, so there is no noise transient and
-       nothing to hear as a "click"; just a sine and its octave, which is as
-       pure as this synth gets. The onset is eased over ~16ms so the tone
-       arrives rather than hits, the two halves sit 3 cents apart so it
-       breathes about once a second instead of warbling, and the tail is long
-       and wet enough to feel like a room rather than a UI. */
-    click:   () => bowl({freq:440, dur:.9, gain:.026, beat:3, size:1, modes:[1, 2], attack:.01, wet:1}),
-    /* the same bowl, lower and softer — a page turning in a quiet room */
-    nav:     () => { mallet({freq:900, dur:.05, gain:.012, q:.5}); bowl({freq:392, dur:.9, gain:.034, beat:6, size:.75, wet:1}); },
-    /* a full bowl, struck properly and allowed to ring out */
-    success: () => { mallet({freq:2000, dur:.035, gain:.02}); bowl({freq:261.63, dur:2.8, gain:.05, beat:5, size:1, wet:1});
-                     bowl({freq:392, dur:1.9, gain:.02, beat:8, size:.8, at:.09, wet:1}); },
-    /* struck, then a palm on the rim: it stops before it can bloom */
-    error:   () => { mallet({freq:520, dur:.05, gain:.024, q:1.2}); bowl({freq:174.61, dur:.42, gain:.05, beat:11, size:.4, modes:[1,2.75,5.18], wet:.5}); },
-    /* not struck at all — the rim rubbed, so the note arrives instead of starting */
-    open:    () => { bowl({freq:196, dur:1.6, gain:.03, beat:4, size:1, modes:[1,2.75,5.18], attack:.26, wet:1});
-                     noise({dur:.5, freq:700, q:.4, gain:.012, sweep:2200, wet:.9}); },
-    /* the smallest bowl there is, barely touched */
-    leaf:    () => bowl({freq:1046.5, dur:.42, gain:.014, beat:12, size:.45, modes:[1,2.75,5.18], wet:1}),
+    click:   () => { const [a, b] = CLICK_DYADS[clickStep++ % CLICK_DYADS.length]; dyad(a, b); },
+    /* a page turning: the same voice, one interval higher and shorter */
+    nav:     () => dyad(P.Cs5, P.Fs5, {dur:.78, gain:.024}),
+    /* something opening: a sixth, arriving rather than starting */
+    open:    () => { tone({freq:P.Cs5, dur:1.5, gain:.024, attack:.16});
+                     tone({freq:P.A5,  dur:1.2, gain:.015, attack:.16, at:.07}); },
+    /* the brightest thing in the house: a full chord, high and allowed to ring */
+    success: () => { tone({freq:P.E5,  dur:1.9, gain:.03});
+                     tone({freq:P.Cs6, dur:1.5, gain:.02,  at:.05});
+                     tone({freq:P.A5,  dur:2.4, gain:.016, at:.11}); },
+    /* the one that has to read as different: a major second, still in key, and
+       stopped early instead of allowed to bloom */
+    error:   () => { tone({freq:P.A5, dur:.4, gain:.026, beat:8});
+                     tone({freq:P.B5, dur:.34, gain:.02, beat:8, at:.03}); },
+    /* the smallest sound there is */
+    leaf:    () => dyad(P.A5, P.E6, {dur:.5, gain:.013, roll:.03}),
   };
 
   /* ---- layer 1 ---- */
@@ -5633,84 +5697,140 @@ const wkClock = h => { const hh = Math.floor(h) % 24, mm = Math.round((h % 1) * 
   const ap = hh >= 12 ? 'pm' : 'am', h12 = hh % 12 || 12;
   return mm ? `${h12}:${pad(mm)}${ap}` : `${h12}${ap}`; };
 
-function weekShapeHTML(anchor = today()){
+/* ---------- 1. when the day opened and when it closed ----------
+   Two quantities, two lines, and the band between them is the time you were
+   awake. Nothing is stacked and nothing is inferred: each line is one clock
+   reading a day, which is the only way a line here can mean anything. */
+function sleepWakeHTML(anchor = today()){
   const days = weekShapeDays(anchor);
   const rows = days.map(weekShapeRow);
-  const filled = rows.filter(r => !r.empty);
-  const H = 210, W = Math.max(320, days.length * 64), padL = 34, padB = 26;
+  const filled = rows.filter(r => r.wake != null || r.close != null);
+  const H = 200, W = Math.max(320, days.length * 64), padL = 40, padB = 26;
   const y = h => (H - padB) - ((h - WK_LO) / (WK_HI - WK_LO)) * (H - padB - 8);
   const colW = (W - padL) / days.length;
   const x = i => padL + (i + .5) * colW;
-  const barW = Math.min(26, colW * .46);
   const ticks = [6, 9, 12, 15, 18, 21, 24];
-
-  const bars = rows.map((r, i) => {
-    if(r.empty) return '';
-    const cx = x(i) - barW / 2;
-    /* no clock times logged, only a split: draw it as a free column so the
-       hours claimed are still visible rather than silently dropped */
-    if(r.wake == null && r.close == null){
-      const tot = r.used + r.wasted; if(!tot) return '';
-      const top = y(WK_LO + tot);
-      return `<g class="wk-bar"><rect x="${cx.toFixed(1)}" y="${top.toFixed(1)}" width="${barW.toFixed(1)}" height="${(y(WK_LO) - top).toFixed(1)}" rx="3" fill="var(--sage)" opacity=".3"/>
-        <title>${esc(fmtDate(r.d,'med'))} · ${r.used.toFixed(1)}h used, ${r.wasted.toFixed(1)}h wasted · no clock times</title></g>`;
-    }
-    const hi = y(r.close ?? (r.wake + 16)), lo = y(r.wake ?? ((r.close ?? 22) - 16));
-    const barH = Math.max(3, lo - hi);
-    const awake = (r.close != null && r.wake != null) ? (r.close - r.wake) : null;
-    const usedH = awake ? barH * Math.min(1, r.used / awake) : 0;
-    const wastedH = awake ? barH * Math.min(1, r.wasted / awake) : 0;
-    return `<g class="wk-bar" data-wkday="${r.d}">
-      <rect x="${cx.toFixed(1)}" y="${hi.toFixed(1)}" width="${barW.toFixed(1)}" height="${barH.toFixed(1)}" rx="3" fill="var(--page-accent)" opacity=".15"/>
-      ${usedH > .5 ? `<rect x="${cx.toFixed(1)}" y="${(lo - usedH).toFixed(1)}" width="${barW.toFixed(1)}" height="${usedH.toFixed(1)}" rx="3" fill="var(--sage)" opacity=".85"/>` : ''}
-      ${wastedH > .5 ? `<rect x="${cx.toFixed(1)}" y="${(lo - usedH - wastedH).toFixed(1)}" width="${barW.toFixed(1)}" height="${wastedH.toFixed(1)}" rx="3" fill="var(--rose)" opacity=".7"/>` : ''}
-      <title>${esc(fmtDate(r.d,'med'))}${r.wake!=null?` · woke ${wkClock(r.wake)}`:''}${r.close!=null?` · closed ${wkClock(r.close)}`:''}${(r.used||r.wasted)?` · ${r.used.toFixed(1)}h used, ${r.wasted.toFixed(1)}h wasted`:''}</title>
-    </g>`;
-  }).join('');
-
-  const line = (key, color) => { const pts = rows.map((r, i) => r.empty || r[key] == null ? null : `${x(i).toFixed(1)},${y(r[key]).toFixed(1)}`).filter(Boolean);
-    return pts.length > 1 ? `<polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" opacity=".75"/>` : ''; };
-  const dots = (key, color) => rows.map((r, i) => r.empty || r[key] == null ? '' :
-    `<circle cx="${x(i).toFixed(1)}" cy="${y(r[key]).toFixed(1)}" r="2.6" fill="${color}"/>`).join('');
-
-  const avgOf = k => { const v = filled.map(r => r[k]).filter(z => z != null); return v.length ? avg(v) : null; };
-  const aw = avgOf('wake'), ac = avgOf('close'), au = avgOf('used'), awa = avgOf('wasted');
   const T = today();
+
+  /* the shaded band is only drawn across runs of days that have both ends —
+     a gap in the record must read as a gap, not as a straight line through it */
+  const bands = [];
+  let run = [];
+  const flush = () => {
+    if(run.length > 1){
+      const top = run.map(i => `${x(i).toFixed(1)},${y(rows[i].close).toFixed(1)}`);
+      const bot = run.slice().reverse().map(i => `${x(i).toFixed(1)},${y(rows[i].wake).toFixed(1)}`);
+      bands.push(`<polygon points="${top.concat(bot).join(' ')}" fill="var(--page-accent)" opacity=".12"/>`);
+    } else if(run.length === 1){
+      const i = run[0];
+      bands.push(`<rect x="${(x(i)-7).toFixed(1)}" y="${y(rows[i].close).toFixed(1)}" width="14" height="${Math.max(2, y(rows[i].wake)-y(rows[i].close)).toFixed(1)}" rx="3" fill="var(--page-accent)" opacity=".12"/>`);
+    }
+    run = [];
+  };
+  rows.forEach((r, i) => { if(r.wake != null && r.close != null) run.push(i); else flush(); });
+  flush();
+
+  const series = (key, color) => {
+    /* break the line wherever a day has no reading, for the same reason */
+    const segs = []; let cur = [];
+    rows.forEach((r, i) => { if(r[key] == null){ if(cur.length > 1) segs.push(cur); cur = []; }
+      else cur.push(`${x(i).toFixed(1)},${y(r[key]).toFixed(1)}`); });
+    if(cur.length > 1) segs.push(cur);
+    const lines = segs.map(pts => `<polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" opacity=".85"/>`).join('');
+    const dots = rows.map((r, i) => r[key] == null ? '' :
+      `<g><circle cx="${x(i).toFixed(1)}" cy="${y(r[key]).toFixed(1)}" r="3.2" fill="${color}"/>
+       <title>${esc(fmtDate(r.d,'med'))} · ${key === 'wake' ? 'woke' : 'went to sleep'} ${wkClock(r[key])}</title></g>`).join('');
+    return lines + dots;
+  };
+
+  const avgOf = k => { const v = rows.map(r => r[k]).filter(z => z != null); return v.length ? avg(v) : null; };
+  const aw = avgOf('wake'), ac = avgOf('close');
 
   return `<section class="section rv week-shape">
     <div class="row between" style="align-items:baseline;flex-wrap:wrap;gap:8px">
-      <span class="sc" style="margin:0">The week's shape</span>
+      <span class="sc" style="margin:0">Sleep and waking</span>
       <span class="mono faint">${filled.length} of ${days.length} days logged</span>
     </div>
-    <p class="muted" style="font-size:.85rem;margin:4px 0 0">When the day opened, when it closed, and what the hours between them were spent on.</p>
-    <div class="wk-legend row" style="gap:14px;flex-wrap:wrap;margin:10px 0 2px">
-      <span class="wk-key"><i style="background:var(--gold)"></i>woke${aw!=null?` · avg ${wkClock(aw)}`:''}</span>
-      <span class="wk-key"><i style="background:var(--ment)"></i>closed${ac!=null?` · avg ${wkClock(ac)}`:''}</span>
-      <span class="wk-key"><i style="background:var(--sage)"></i>used well${au!=null?` · avg ${au.toFixed(1)}h`:''}</span>
-      <span class="wk-key"><i style="background:var(--rose)"></i>wasted${awa!=null?` · avg ${awa.toFixed(1)}h`:''}</span>
+    <p class="muted" style="font-size:.85rem;margin:4px 0 0">The top line is when each day ended, the bottom line is when it began. The band between them is how long you were up.</p>
+    <div class="wk-legend row" style="gap:16px;flex-wrap:wrap;margin:10px 0 2px">
+      <span class="wk-key"><i class="ln" style="background:var(--gold)"></i>I woke up${aw!=null?` · usually ${wkClock(aw)}`:''}</span>
+      <span class="wk-key"><i class="ln" style="background:var(--ment)"></i>I went to sleep${ac!=null?` · usually ${wkClock(ac)}`:''}</span>
+      <span class="wk-key"><i class="bnd"></i>awake${(aw!=null&&ac!=null)?` · ${(ac-aw).toFixed(1)}h a day`:''}</span>
     </div>
     ${filled.length ? `<div class="wk-scroll"><svg class="wk-svg" viewBox="0 0 ${W} ${H}" width="100%" height="${H}" preserveAspectRatio="xMidYMid meet">
       ${ticks.map(h => `<g><line x1="${padL}" y1="${y(h).toFixed(1)}" x2="${W}" y2="${y(h).toFixed(1)}" stroke="var(--line)" stroke-width="1" opacity=".5"/>
         <text x="2" y="${(y(h)+3).toFixed(1)}" class="wk-tick">${wkClock(h)}</text></g>`).join('')}
-      ${bars}
-      ${line('wake','var(--gold)')}${dots('wake','var(--gold)')}
-      ${line('close','var(--ment)')}${dots('close','var(--ment)')}
+      ${bands.join('')}
+      ${series('close','var(--ment)')}
+      ${series('wake','var(--gold)')}
       ${rows.map((r, i) => `<text x="${x(i).toFixed(1)}" y="${H - 8}" class="wk-day ${r.d === T ? 'now' : ''}" text-anchor="middle">${DOW[parseDay(r.d).getDay()][0]}</text>`).join('')}
     </svg></div>`
-      : `<div class="empty" style="margin-top:10px">Nothing logged this week yet. The two ends of each day are set on the Today page — "I woke up at" and "I went to sleep at" — and the hours between them are claimed there too.</div>`}
+      : `<div class="empty" style="margin-top:10px">Nothing logged this week yet. The two ends of each day are set on the Today page — "I woke up at" and "I went to sleep at".</div>`}
+  </section>`;
+}
+
+/* ---------- 2. what the hours went on ----------
+   A single question — how much of the time you were awake did you claim —
+   asked over whatever stretch you choose. */
+const TIME_SPANS = [['1','the past day'],['7','the past week'],['30','the past month'],['90','the past three months'],['365','the past year']];
+function timeSpanDays(){ const v = S.settings?.timeSpan; return TIME_SPANS.some(x => x[0] === v) ? +v : 7; }
+function timeSplit(n){
+  let used = 0, wasted = 0, days = 0;
+  for(let i = 0; i < n; i++){
+    const c = rhythmDay(addDays(today(), -i)).computed;
+    const u = (c.intentionalMinutes || 0) / 60, w = (c.wastedMinutes || 0) / 60;
+    if(u || w) days++;
+    used += u; wasted += w;
+  }
+  return {used, wasted, days, total: used + wasted};
+}
+/* one arc of a donut, drawn from a fraction of the circle */
+function donutArc(frac, from, r, R, color, op){
+  if(frac <= 0) return '';
+  const τ = Math.PI * 2, a0 = from * τ - Math.PI / 2, a1 = (from + Math.min(frac, .9999)) * τ - Math.PI / 2;
+  const pt = (a, rad) => `${(60 + Math.cos(a) * rad).toFixed(2)},${(60 + Math.sin(a) * rad).toFixed(2)}`;
+  const big = frac > .5 ? 1 : 0;
+  return `<path d="M ${pt(a0, R)} A ${R} ${R} 0 ${big} 1 ${pt(a1, R)} L ${pt(a1, r)} A ${r} ${r} 0 ${big} 0 ${pt(a0, r)} Z" fill="${color}" opacity="${op}"/>`;
+}
+function timePieHTML(){
+  const n = timeSpanDays(), sp = timeSplit(n);
+  const pct = sp.total ? Math.round(sp.used / sp.total * 100) : null;
+  const label = (TIME_SPANS.find(x => +x[0] === n) || [])[1] || '';
+  return `<section class="section rv time-pie">
+    <div class="row between" style="align-items:baseline;flex-wrap:wrap;gap:8px">
+      <span class="sc" style="margin:0">Hours claimed</span>
+      <select class="sel tp-span" id="tpSpan" style="width:auto">${TIME_SPANS.map(([v, l]) => `<option value="${v}" ${n === +v ? 'selected' : ''}>${l}</option>`).join('')}</select>
+    </div>
+    <p class="muted" style="font-size:.85rem;margin:4px 0 0">Of the hours you accounted for over ${esc(label)}, how many you would claim as well spent.</p>
+    ${sp.total ? `<div class="tp-body">
+      <svg class="tp-svg" viewBox="0 0 120 120" width="150" height="150" role="img" aria-label="${pct}% of accounted hours well used">
+        ${donutArc(sp.used / sp.total, 0, 34, 54, 'var(--sage)', '.9')}
+        ${donutArc(sp.wasted / sp.total, sp.used / sp.total, 34, 54, 'var(--rose)', '.75')}
+        <text x="60" y="58" class="tp-big" text-anchor="middle">${pct}%</text>
+        <text x="60" y="73" class="tp-sub" text-anchor="middle">well used</text>
+      </svg>
+      <div class="tp-keys">
+        <div class="tp-key"><i style="background:var(--sage)"></i><span class="n">${sp.used.toFixed(1)}h</span><span class="l">used well</span></div>
+        <div class="tp-key"><i style="background:var(--rose)"></i><span class="n">${sp.wasted.toFixed(1)}h</span><span class="l">wasted</span></div>
+        <div class="tp-key quiet"><i></i><span class="n">${sp.days}</span><span class="l">day${sp.days===1?'':'s'} with hours claimed</span></div>
+      </div>
+    </div>` : `<div class="empty" style="margin-top:10px">No hours claimed over ${esc(label)}. Claim a block on Today and this fills in.</div>`}
     <div class="row" style="gap:8px;margin-top:10px;flex-wrap:wrap">
       <button class="btn sm ghost" id="wkClaim">claim today's hours</button>
       <a class="btn sm ghost" href="#/today">the day itself →</a>
     </div>
   </section>`;
 }
+/* the pair, in the order they are read */
+function weekShapeHTML(anchor = today()){ return sleepWakeHTML(anchor) + timePieHTML(); }
 function bindWeekShape(root, redraw){
-  const box = root.querySelector('.week-shape'); if(!box) return;
-  box.querySelector('#wkClaim') && (box.querySelector('#wkClaim').onclick = () => {
+  const claim = root.querySelector('#wkClaim');
+  if(claim) claim.onclick = () => {
     const r = rhythmDay(today());
     openTimeBlockModal(r, {startTime:'09:00', endTime:'10:00'}, () => { rhythmCompute(r); saveNow(); }, redraw || rerender);
-  });
-  box.querySelectorAll('[data-wkday]').forEach(g => g.style.cursor = 'default');
+  };
+  const span = root.querySelector('#tpSpan');
+  if(span) span.onchange = () => { S.settings.timeSpan = span.value; saveNow(); (redraw || rerender)(); };
 }
 /* ============================================================
    1. TODAY — the entryway (lean ritual space, ≤640px column)
@@ -5804,7 +5924,6 @@ routes.today = function(root){
     ['t-checkin', 'check-in', true],
     ['t-theatre', 'theatre',  true],
     ['t-habits',  'habits',   true],
-    ['t-reviews', 'reviews',  typeof reviewsDue === 'function' && reviewsDue(T).length > 0],
     ['t-tonight', 'tonight',  true],
   ].filter(x => x[2]);
 
@@ -5859,7 +5978,7 @@ routes.today = function(root){
 
     <!-- daily check-in (intention + mood + energy + setpoint) -->
     <details class="section rv today-checkin t-sec" id="t-checkin"${fold('t-checkin', !c.intention || (!c.setpoint && !c.mood))}>
-      <summary><span class="sc lg">Daily check-in</span><span class="mono">${c.intention ? esc(c.intention.slice(0,40)) : 'not yet set'}</span>${flowTick('checkinAt')}</summary>
+      <summary><span class="sc">Daily check-in</span><span class="mono">${c.intention ? esc(c.intention.slice(0,40)) : 'not yet set'}</span>${flowTick('checkinAt')}</summary>
       <div class="body stack" style="gap:20px">
         <div class="field"><label>Today's intention ${planT.planned && c.intention ? '<span class="mono faint" style="text-transform:none;letter-spacing:0">· set last night</span>' : ''}</label>
           ${ed('checkins.' + T + '.intention', {ph:'One thing to give attention to today.', cls:'serif-lg'})}</div>
@@ -5882,7 +6001,7 @@ routes.today = function(root){
 
     <!-- morning rehearsal (Maltz) -->
     <details class="section rv rehearsal-wrap t-sec" id="t-theatre"${fold('t-theatre', !rehearsalDoneToday())} style="margin-top:8px">
-      <summary><span class="sc lg">Morning Theatre</span><span class="mono">${rehearsalDoneToday()?'practised today':'30 minutes · Maltz'}</span>${flowTick('theatreAt')}</summary>
+      <summary><span class="sc">Morning Theatre</span><span class="mono">${rehearsalDoneToday()?'practised today':'30 minutes · Maltz'}</span>${flowTick('theatreAt')}</summary>
       <div class="body rehearsal stack" style="gap:24px">
         <blockquote class="rehearsal-epigraph">Close your eyes for thirty minutes. See yourself on a mental screen — sights, sounds, smells. See yourself acting, feeling and being as you want to be. The nervous system cannot tell a real experience from one vividly imagined.<cite>Maxwell Maltz</cite></blockquote>
         <div class="field"><label>Self-image script</label>${ed('rehearsal.script',{multi:true,mdr:true,cls:'prose serif-lg',ph:'First person, present tense. Who you are becoming — vivid, sensory, felt as already real.'})}</div>
@@ -5897,7 +6016,7 @@ routes.today = function(root){
 
     <!-- the habit checklist: the whole of habit-keeping now lives here -->
     <details class="section rv t-sec" style="margin-top:8px" id="t-habits"${fold('t-habits')}>
-      <summary><span class="sc lg" style="margin:0">Today's habits</span>
+      <summary><span class="sc" style="margin:0">Today's habits</span>
         <span class="mono faint">${(() => { const due = S.habits.filter(h => !h.archived && !h.negative && habitDue(h, T)); const dn = due.filter(h => habitDone(h, T)).length; return due.length ? `${dn} of ${due.length} kept` : 'nothing due'; })()}</span></summary>
       <div class="body">
       <div id="todayRings" style="margin-top:10px"></div>
@@ -5908,7 +6027,6 @@ routes.today = function(root){
       </div>
     </div></details>
 
-    ${typeof reviewsDueHTML === 'function' ? reviewsDueHTML(T) : ''}
 
     ${due.length ? `<section class="section rv"><div class="card"><div class="row between"><span class="sc" style="margin:0">Decisions ready to grade</span><a class="mono" href="#/journals/decision">all →</a></div>${due.map(e=>`<div class="row between" style="margin-top:8px"><span><b class="serif">${esc(e.title)}</b><div class="mono">${fmtDate((e.createdAt||'').slice(0,10),'med')}</div></span><button class="btn sm" data-dopen="${e.id}">Look back</button></div>`).join('')}</div></section>` : ''}
     ${milestones.length ? `<section class="section rv"><span class="sc">Skill milestones within 30 days</span><div class="card" style="border-left:3px solid var(--ment)">${milestones.map(({skill,m,days})=>`<a href="#/skills/${skill.id}" class="row between" style="text-decoration:none;color:inherit;padding:8px 0;border-top:1px dashed var(--line);gap:12px"><span><b class="serif">${esc(skill.name)}</b> <span class="muted">→ ${esc(skillLevelLabel(skill,m.levelTarget))}</span></span><span class="status-pill ${days<0?'due':'ahead'}">${days<0?'⚠ ' + (-days) + 'd overdue':days===0?'today':'in ' + days + 'd'}</span></a>`).join('')}</div></section>` : ''}
@@ -5932,6 +6050,7 @@ routes.today = function(root){
           <button class="btn sm ${threeTom.length ? 'ghost' : 'primary'}" id="planTomorrow">${threeTom.length ? '↻ Replan tomorrow' : '◑ Plan tomorrow'}</button>
           ${isSunday ? `<button class="btn sm ${evening ? 'primary' : 'ghost'}" id="planNextWeek">🗓 Plan next week</button>` : ''}
           <button class="btn sm ghost" id="eveningReview">☾ Evening review</button>
+          ${typeof reviewChipsHTML === 'function' ? reviewChipsHTML(T) : ''}
         </div>
       </div></div>
     </details>
@@ -7901,7 +8020,7 @@ function milestoneTimelineHTML(s){
   const ms = skillMilestones(s); const T = today(); const color = catColor(s.cat);
   const dated = ms.filter(m => m.by); let axis = '';
   if(dated.length){ const t0 = Math.min(parseDay(T).getTime(), ...dated.map(m=>parseDay(m.by.slice(0,10)).getTime())); const t1 = Math.max(parseDay(T).getTime()+DAY*30, ...dated.map(m=>parseDay(m.by.slice(0,10)).getTime())); const X = d => 4 + ((parseDay(d.slice(0,10)).getTime()-t0)/Math.max(t1-t0,1))*92;
-    axis = `<div class="ms-axis" style="--c:${color}"><div class="ms-line"></div><div class="ms-now" style="left:${X(T).toFixed(1)}%" title="today"><i></i><span>now</span></div>${dated.map((m,i)=>{ const d = daysBetween(T, m.by.slice(0,10)); const reached = s.currentLevel >= m.levelTarget; return `<div class="ms-mark ${reached?'reached':d<0?'due':'ahead'}" style="left:${X(m.by).toFixed(1)}%" title="${esc(m.note||'')}"><i></i><span class="ms-lbl">L${m.levelTarget}${reached?' ✓':d<0?' ⚠':''}<br><span class="mono">${fmtDate(m.by,'short')} ${m.by.slice(0,4)}</span></span></div>`; }).join('')}</div>`; }
+    axis = `<div class="ms-axis" style="--c:${color}"><div class="ms-axis-rule"></div><div class="ms-now" style="left:${X(T).toFixed(1)}%" title="today"><i></i><span>now</span></div>${dated.map((m,i)=>{ const d = daysBetween(T, m.by.slice(0,10)); const reached = s.currentLevel >= m.levelTarget; return `<div class="ms-mark ${reached?'reached':d<0?'due':'ahead'}" style="left:${X(m.by).toFixed(1)}%" title="${esc(m.note||'')}"><i></i><span class="ms-lbl">L${m.levelTarget}${reached?' ✓':d<0?' ⚠':''}<br><span class="mono">${fmtDate(m.by,'short')} ${m.by.slice(0,4)}</span></span></div>`; }).join('')}</div>`; }
   return `<div class="vp-sec"><div class="row between"><span class="sc">Milestones — ${ms.length||'no'} target${ms.length===1?'':'s'}</span><button class="btn sm ghost" id="msAdd">+ milestone</button></div>
     ${axis || '<div class="faint" style="font-size:.8rem;padding:4px 0">Set a level and a date. They appear as markers here, as chips on the tree, and on Today when they are close.</div>'}
     <div class="ms-list">${ms.map(m => { const idx = (s.milestones||[]).indexOf(m); const d = m.by ? daysBetween(T, m.by.slice(0,10)) : null; const reached = s.currentLevel >= m.levelTarget; const badge = reached ? '<span class="status-pill" style="color:var(--sage)">reached</span>' : d===null ? '<span class="status-pill">no date</span>' : d<0 ? `<span class="status-pill due">⚠ ${-d}d overdue</span>` : `<span class="status-pill ahead">in ${d}d</span>`;
@@ -9796,6 +9915,18 @@ const CYCLE_SCAN = {daily: 3, weekly: 16, monthly: 70, quarterly: 100, half: 200
 /* Not merely the nearest one: if last week's review was never done and this
    week's has now come due, both are on the page, oldest first, because the
    older one is the one at risk of never happening at all. */
+/* Did anything at all happen in this stretch? A quarter that closed while the
+   house was empty is not a review somebody is behind on — there is nothing in
+   it to read — and listing it only buries the reviews that do have something
+   in them. Tonight's own boundary is exempt: it is still being lived. */
+function periodHasSubstance(from, to){
+  if(S.entries.some(e => { const on = (e.occurredAt || e.createdAt || '').slice(0,10); return on >= from && on <= to; })) return true;
+  if(Object.keys(S.habitLog || {}).some(d => d >= from && d <= to && Object.keys(S.habitLog[d] || {}).length)) return true;
+  if(Object.keys(S.checkins || {}).some(d => d >= from && d <= to)) return true;
+  if((S.tasks || []).some(t => { const on = (t.day || t.date || '').slice(0,10); return on >= from && on <= to; })) return true;
+  return false;
+}
+
 function reviewsDue(d = today()){
   const out = [];
   CYCLES.forEach(c => {
@@ -9806,7 +9937,9 @@ function reviewsDue(d = today()){
       if(!c.isEnd(end)) continue;
       boundaries++;                       /* a period boundary, answered or not */
       if(cycleAnswered(c, end) || cycleDismissed(c, end)) continue;
-      found.push({c, end, from: c.from(end), late: i});
+      const from = c.from(end);
+      if(i > 0 && !periodHasSubstance(from, end)) continue;
+      found.push({c, end, from, late: i});
     }
     /* oldest first within a kind, so the overdue one is read before the fresh */
     found.reverse().forEach(x => out.push(x));
@@ -9883,19 +10016,36 @@ function cycleCardHTML(due){
   </article>`;
 }
 
-function reviewsDueHTML(d = today()){
-  const due = reviewsDue(d); if(!due.length) return '';
-  return `<section class="section rv cyc-block" id="t-reviews">
-    <div class="row between" style="align-items:baseline">
-      <span class="sc lg" style="margin:0">${due.length === 1 ? 'A cycle closes tonight' : 'Cycles close tonight'}</span>
-      <span class="mono faint">${due.length} review${due.length===1?'':'s'} waiting</span>
-    </div>
-    <p class="muted" style="font-size:.85rem;margin:6px 0 0">A review lands the night the period ends, while it is still in the room.</p>
-    ${due.map(cycleCardHTML).join('')}
-  </section>`;
+/* ---------- the chips ----------
+   A review is a small button beside the evening review, not a card the size
+   of the page. Six open cards turn Today into a to-do list you scroll past;
+   six chips are a row you can read at a glance and open one at a time.
+
+   The daily review IS the evening review, so tonight's daily is not repeated
+   as a chip — only a daily left over from an earlier day, which is genuinely
+   a second thing to do. */
+function reviewChipsHTML(d = today()){
+  const due = reviewsDue(d).filter(x => !(x.c.key === 'daily' && x.end === d));
+  if(!due.length) return '';
+  return due.map(({c, end, late}) => `<button class="btn sm rvw-chip ${late ? 'late' : ''}"
+      data-cycopen="${c.key}:${end}" title="${esc(c.blurb)}">
+    ${esc(c.name)}${late ? `<span class="rvw-late">${late}d late</span>` : ''}
+  </button>`).join('');
+}
+
+/* the whole of what used to be the card, in a panel, opened from a chip */
+function openCycleReview(key, end){
+  const c = CYCLES.find(x => x.key === key); if(!c) return;
+  const from = c.from(end);
+  const late = Math.max(0, daysBetween(end, today()));
+  const p = openPanel(`<div class="mono">review</div><h2>${esc(c.name)}</h2>
+    <div class="cyc-block">${cycleCardHTML({c, end, from, late})}</div>`, 'cyc-panel');
+  bindReviewsDue(p);
 }
 
 function bindReviewsDue(root){
+  root.querySelectorAll('[data-cycopen]').forEach(b => b.onclick = () => {
+    const [key, end] = b.dataset.cycopen.split(':'); openCycleReview(key, end); });
   const box = root.querySelector('.cyc-block'); if(!box) return;
   const find = v => { const [key, end] = v.split(':'); const c = CYCLES.find(x => x.key === key); return c ? {c, end, from: c.from(end)} : null; };
   box.querySelectorAll('[data-cycstart]').forEach(b => b.onclick = () => {
