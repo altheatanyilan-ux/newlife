@@ -42,7 +42,6 @@ function boardHTML(key, {title = 'Board', hint = '', compact = false} = {}){
         </figure>`).join('')
         : `<div class="empty board-empty">Nothing pinned yet. Photographs, a room, a face, a colour, a single word — whatever makes the thing feel real before you can argue for it.</div>`}
     </div>
-    <div class="field" style="margin-top:14px"><label>What this board is about</label>${ed(`boards.#${key}.note`, {multi:true, ph:'One or two lines, for the day the images stop speaking for themselves.'})}</div>
   </div>`;
 }
 function bindBoard(root, after){

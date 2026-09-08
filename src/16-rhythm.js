@@ -143,32 +143,33 @@ function moveBlock(kind, id, day, start){
 }
 
 /* ---------- the page ---------- */
-routes.rhythm = function(root, params){
+/* ---------- The Life Tape ----------
+   The Rhythm room is gone: a day is planned and closed on Today, and the
+   reviews come to you the night a cycle ends. What is left here is the record
+   itself — the tape of what happened, the habits that made it, and the
+   patterns underneath. */
+routes.lifetape = function(root, params){
   migrateRhythm();
   const T = today();
-  const TABS = [['tape','Life Tape'],['habits','Habits'],['reviews','Reviews'],['patterns','Patterns']];
-  let tab = params[0] === 'review' ? 'reviews' : params[0];
-  tab = TABS.some(([k]) => k === tab) ? tab : (S._rhyTab || 'tape');
+  const TABS = [['tape','The tape'],['habits','Habits'],['patterns','Patterns']];
+  let tab = TABS.some(([k]) => k === params[0]) ? params[0] : (S._rhyTab || 'tape');
   S._rhyTab = tab;
   const focus = S._rhyDay && /^\d{4}-\d{2}-\d{2}$/.test(S._rhyDay) ? S._rhyDay : T;
-  registerPageEntry({pageName:'Rhythm', addLabel:'Add to the day', defaultEntryType:'event', prefilledFields:{}, options:[
+  registerPageEntry({pageName:'Life Tape', addLabel:'Add to the day', defaultEntryType:'event', prefilledFields:{}, options:[
     {icon:'◍', label:'Habit', desc:'Something you mean to keep doing.', run:()=>openHabitModal()},]});
   root.innerHTML = `<div class="page rhythm-page">
-    <div class="page-head"><h1>${esc(S.settings.rhythmName || 'Rhythm')}</h1></div>
+    <div class="page-head"><h1>Life Tape</h1></div>
     <div class="tabs">${TABS.map(([k,l]) => `<button class="${tab===k?'active':''}" data-rtab="${k}">${l}</button>`).join('')}</div>
     <div id="rhyBody" style="margin-top:14px"></div>
   </div>`;
   {
     const body = $('#rhyBody');
-    if(tab === 'tape') renderLifeTape(body);
-    else if(tab === 'habits') renderHabitsPanel(body, focus);
-    else if(tab === 'reviews'){ renderReviewsHub(body);
-      body.appendChild(el('<section class="section rv"><span class="sc">Or close the day as a form</span><p class="muted" style="font-size:.84rem">The same data as the evening flow, all on one screen — and the way through to the weekly and monthly summaries.</p><div id="rhyDayClose"></div></section>'));
-      renderReviewPanel($('#rhyDayClose'), focus); }
-    else renderPatterns(body);
+    if(tab === 'habits') renderHabitsPanel(body, focus);
+    else if(tab === 'patterns') renderPatterns(body);
+    else renderLifeTape(body);
   }
   window._bloomHabit = null; window._pulseHabitId = null;
-  $$('[data-rtab]',root).forEach(b => b.onclick = () => { S._rhyTab = b.dataset.rtab; navigate('#/rhythm/' + b.dataset.rtab); if(location.hash === '#/rhythm/' + b.dataset.rtab) rerender(); });
+  $$('[data-rtab]',root).forEach(b => b.onclick = () => { S._rhyTab = b.dataset.rtab; navigate('#/lifetape/' + b.dataset.rtab); if(location.hash === '#/lifetape/' + b.dataset.rtab) rerender(); });
   reveal(root);
 };
 

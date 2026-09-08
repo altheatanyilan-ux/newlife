@@ -54,6 +54,24 @@ routes.today = function(root){
 
   const seasonName = (()=>{ if(typeof season === 'function'){ const s = season(parseDay(T)); return {winter:'Winter',spring:'Spring',summer:'Summer',autumn:'Autumn'}[s]||''; } return ''; })();
 
+  /* the page is long by design — everything a day needs is on it — so it
+     carries its own index. Sections that are not on the page today (a letter
+     due, a review closing tonight) drop out of the index with them. */
+  const jumps = [
+    ['t-flow',    'flow',     true],
+    ['t-letters', 'letters',  ready.length > 0],
+    ['t-plan',    'plan',     true],
+    ['t-tasks',   'tasks',    true],
+    ['t-checkin', 'check-in', true],
+    ['t-theatre', 'theatre',  true],
+    ['t-habits',  'habits',   true],
+    ['t-reviews', 'reviews',  typeof reviewsDue === 'function' && reviewsDue(T).length > 0],
+    ['t-position','position', true],
+    ['t-prompt',  'prompt',   true],
+    ['t-add',     'quick add',true],
+    ['t-tonight', 'tonight',  true],
+  ].filter(x => x[2]);
+
   root.innerHTML = `<div class="page narrow today-page">
 
     <!-- header -->
@@ -68,11 +86,15 @@ routes.today = function(root){
       ${cyest?.intention ? `<div class="mono faint" style="margin-top:8px;font-size:.78rem">Yesterday you set out to: <em>${esc(cyest.intention)}</em></div>` : ''}
     </header>
 
+    <nav class="today-jump rv" aria-label="jump to a section">
+      ${jumps.map(([id, label]) => `<button data-jump="${id}">${esc(label)}</button>`).join('')}
+    </nav>
+
     ${timeUseHTML(S._tuDay || T)}
     ${maslowRowsHTML()}
 
     <!-- morning flow tracker -->
-    <section class="section rv morning-flow">
+    <section class="section rv morning-flow" id="t-flow">
       <div class="row between"><span class="sc lg">Morning flow</span><span class="mono">${c.wakeAt ? 'woke ' + _ft(c.wakeAt) : ''}</span></div>
       <div class="card" style="margin-top:8px">
         ${flowSteps.map((s, i) => `<div class="row between" style="padding:7px 0;${i < flowSteps.length - 1 ? 'border-bottom:1px dashed var(--line)' : ''}">
@@ -84,13 +106,13 @@ routes.today = function(root){
     </section>
 
     <!-- sealed letters (prominent) -->
-    ${ready.length ? `<section class="section rv ready-letters">
+    ${ready.length ? `<section class="section rv ready-letters" id="t-letters">
       <div class="sc">A letter from you has come due</div>
       ${ready.map(e=>`<div class="card ready-letter" style="margin-top:8px"><div class="row between"><span><b class="serif">${esc(e.title||'To myself')}</b><div class="mono faint">${daysBetween((e.createdAt||'').slice(0,10), T)} days ago</div></span><button class="btn sm primary" data-lopen="${e.id}">Open it</button></div></div>`).join('')}
     </section>` : ''}
 
     <!-- the plan, made last night -->
-    <section class="section rv today-plan">
+    <section class="section rv today-plan" id="t-plan">
       <div class="row between"><span class="sc" style="margin:0">Today's plan</span>
         <span class="mono faint">${planT.planned ? 'set last night' : 'not planned in advance'}</span></div>
       ${three.length ? `<ol class="today-three">${three.map(t => `<li>${esc(t)}</li>`).join('')}</ol>`
@@ -98,7 +120,7 @@ routes.today = function(root){
     </section>
 
     <!-- today's tasks (up front) -->
-    <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Today's tasks</span><span class="mono">${rows.length?`${doneN} of ${rows.length} done`:'nothing parked yet'}</span></div>
+    <section class="section rv" id="t-tasks"><div class="row between"><span class="sc" style="margin:0">Today's tasks</span><span class="mono">${rows.length?`${doneN} of ${rows.length} done`:'nothing parked yet'}</span></div>
       <div class="card" data-daydrop="${T}" style="margin-top:10px">
         <div class="stack" style="gap:2px">${rows.map(r=>taskRowHTML(r)).join('')||`<div class="empty">Park work here from a project, or write one below.</div>`}</div>
         <div class="row" style="margin-top:10px;gap:8px">${quickTaskInput(T)}<button class="btn sm ghost" id="pullTask">pull in ↓</button></div>
@@ -106,7 +128,7 @@ routes.today = function(root){
       </div></section>
 
     <!-- daily check-in (intention + mood + energy + setpoint) -->
-    <details class="rv today-checkin" ${!c.intention||(!c.setpoint && !c.mood) ? 'open' : ''}>
+    <details class="rv today-checkin" id="t-checkin" ${!c.intention||(!c.setpoint && !c.mood) ? 'open' : ''}>
       <summary><span class="sc lg">Daily check-in</span><span class="mono">${c.intention ? esc(c.intention.slice(0,40)) : 'not yet set'}</span></summary>
       <div class="body stack" style="gap:20px">
         <div class="field"><label>Today's intention ${planT.planned && c.intention ? '<span class="mono faint" style="text-transform:none;letter-spacing:0">· set last night</span>' : ''}</label>
@@ -129,7 +151,7 @@ routes.today = function(root){
     </details>
 
     <!-- morning rehearsal (Maltz) -->
-    <details class="rv rehearsal-wrap" ${rehearsalDoneToday()?'':'open'} style="margin-top:8px">
+    <details class="rv rehearsal-wrap" id="t-theatre" ${rehearsalDoneToday()?'':'open'} style="margin-top:8px">
       <summary><span class="sc lg">Morning Theatre</span><span class="mono">${rehearsalDoneToday()?'practised today':'30 minutes · Maltz'}</span></summary>
       <div class="body rehearsal stack" style="gap:24px">
         <blockquote class="rehearsal-epigraph">Close your eyes for thirty minutes. See yourself on a mental screen — sights, sounds, smells. See yourself acting, feeling and being as you want to be. The nervous system cannot tell a real experience from one vividly imagined.<cite>Maxwell Maltz</cite></blockquote>
@@ -143,26 +165,34 @@ routes.today = function(root){
       </div>
     </details>
 
-    <!-- habit rings -->
-    <section class="section rv" style="margin-top:8px">
-      <span class="sc lg">Today's habits</span>
+    <!-- the habit checklist: the whole of habit-keeping now lives here -->
+    <section class="section rv" style="margin-top:8px" id="t-habits">
+      <div class="row between" style="align-items:baseline"><span class="sc lg" style="margin:0">Today's habits</span>
+        <span class="mono faint">${(() => { const due = S.habits.filter(h => !h.archived && !h.negative && habitDue(h, T)); const dn = due.filter(h => habitDone(h, T)).length; return due.length ? `${dn} of ${due.length} kept` : 'nothing due'; })()}</span></div>
       <div id="todayRings" style="margin-top:10px"></div>
+      <div class="row" style="gap:6px;margin-top:12px;flex-wrap:wrap">
+        <button class="btn sm primary" id="todayAddHabit">＋ add habit</button>
+        ${S.habits.some(h => h.archived) ? '<button class="btn sm ghost" id="todayArchHabit">archived</button>' : ''}
+        <a class="btn sm ghost" href="#/lifetape/habits">the whole grid →</a>
+      </div>
     </section>
+
+    ${typeof reviewsDueHTML === 'function' ? reviewsDueHTML(T) : ''}
 
     ${due.length ? `<section class="section rv"><div class="card"><div class="row between"><span class="sc" style="margin:0">Decisions ready to grade</span><a class="mono" href="#/journals/decision">all →</a></div>${due.map(e=>`<div class="row between" style="margin-top:8px"><span><b class="serif">${esc(e.title)}</b><div class="mono">${fmtDate((e.createdAt||'').slice(0,10),'med')}</div></span><button class="btn sm" data-dopen="${e.id}">Look back</button></div>`).join('')}</div></section>` : ''}
     ${pr.length ? `<section class="section rv"><div class="row between"><span class="sc" style="margin:0">Today's practices</span><a class="mono" href="#/values">compass →</a></div>
       <div class="card" style="margin-top:10px"><div class="prac-today">${pr.map(({v,p,done,doneThisWeek})=>`<button class="prac-chip ${done?'on':''}" data-practoday="${v.id}:${p.id}" style="--c:${v.color}"><span class="pc-tick">${done?'✓':'○'}</span><span class="pc-text">${esc(p.text)}</span><span class="pc-val mono">${esc(v.name)} · ${doneThisWeek}/${p.perWeek}</span></button>`).join('')}</div></div></section>` : ''}
     ${milestones.length ? `<section class="section rv"><span class="sc">Skill milestones within 30 days</span><div class="card" style="border-left:3px solid var(--ment)">${milestones.map(({skill,m,days})=>`<a href="#/skills/${skill.id}" class="row between" style="text-decoration:none;color:inherit;padding:8px 0;border-top:1px dashed var(--line);gap:12px"><span><b class="serif">${esc(skill.name)}</b> <span class="muted">→ ${esc(skillLevelLabel(skill,m.levelTarget))}</span></span><span class="status-pill ${days<0?'due':'ahead'}">${days<0?'⚠ ' + (-days) + 'd overdue':days===0?'today':'in ' + days + 'd'}</span></a>`).join('')}</div></section>` : ''}
 
-    ${positionHTML()}
+    <div id="t-position">${positionHTML()}</div>
 
     <!-- gentle prompt -->
-    <section class="section rv"><span class="sc">A gentle prompt</span>
+    <section class="section rv" id="t-prompt"><span class="sc">A gentle prompt</span>
       <div class="prompt-card"><div class="quote" id="promptText">${gentlePrompt()}</div><div class="row" style="margin-top:14px;justify-content:space-between"><button class="btn sm ghost" id="anotherPrompt">another</button><button class="btn sm" data-quick="reflection">respond ✎</button></div></div>
     </section>
 
     <!-- quick add row -->
-    <section class="section rv">
+    <section class="section rv" id="t-add">
       <span class="sc">Quick add</span>
       <div class="row" style="gap:6px;flex-wrap:wrap;margin-top:10px">
         ${[['reflection','✎','Reflection'],['gratitude','♡','Gratitude'],['synchronicity','∞','Synchronicity'],['visualization','◉','Vision'],['memory','◌','Memory'],['nod','·','Nod'],['interaction','☺','Interaction'],['dream','☾','Dream']].map(([t,ic,lb]) =>
@@ -172,7 +202,7 @@ routes.today = function(root){
     </section>
 
     <!-- before you sleep: the day after this one gets decided here -->
-    <section class="section rv tomorrow-block ${evening ? 'is-evening' : ''}">
+    <section class="section rv tomorrow-block ${evening ? 'is-evening' : ''}" id="t-tonight">
       <div class="row between" style="align-items:baseline">
         <span class="sc" style="margin:0">Before you sleep</span>
         <span class="mono faint">${esc(fmtDate(tomorrow, 'med'))}</span>
@@ -189,6 +219,19 @@ routes.today = function(root){
     </section>
 
   </div>`;
+
+  /* the index */
+  root.querySelectorAll('[data-jump]').forEach(b => b.onclick = () => {
+    const t = root.querySelector('#' + b.dataset.jump); if(!t) return;
+    if(t.tagName === 'DETAILS') t.open = true;
+    t.scrollIntoView({behavior: reduced() ? 'auto' : 'smooth', block:'start'});
+    t.classList.add('jump-lit'); setTimeout(() => t.classList.remove('jump-lit'), 1200);
+  });
+
+  /* habits */
+  $('#todayAddHabit') && ($('#todayAddHabit').onclick = () => openHabitModal());
+  $('#todayArchHabit') && ($('#todayArchHabit').onclick = () => openArchivedHabits());
+  if(typeof bindReviewsDue === 'function') bindReviewsDue(root);
 
   /* habits rings */
   const ringsBox = root.querySelector('#todayRings');

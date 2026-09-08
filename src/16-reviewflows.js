@@ -90,7 +90,7 @@ function flowEvening(){
      body: () => { const p = dayPlan(addDays(T,1)); return `<input class="inp serif-lg" id="fwTom" value="${esc(p.intentions?.[0] || '')}" placeholder="Tomorrow I give my attention to…">`; },
      next: b => { const p = dayPlan(addDays(T,1)); p.intentions = p.intentions || ['','','']; p.intentions[0] = b.querySelector('#fwTom').value.trim(); saveNow(); }},
     {title:'See your full day.', hint:'The whole of today, assembled. Close the book when you are ready.',
-     body: () => `<div class="row" style="justify-content:center;margin-top:8px"><a class="btn primary" href="#/rhythm/tape" data-flowgo="#/rhythm/tape">Open today in Life Tape →</a></div>`,
+     body: () => `<div class="row" style="justify-content:center;margin-top:8px"><a class="btn primary" href="#/lifetape/tape" data-flowgo="#/lifetape/tape">Open today in Life Tape →</a></div>`,
      bind: b => b.querySelector('[data-flowgo]')?.addEventListener('click', () => { const t = tapeState(); t.view = 'day'; t.day = T; })},
   ], () => { reviewDone('lastEvening'); toast('Day closed.'); });
 }
@@ -301,22 +301,5 @@ const REVIEW_FLOWS = [
   ['lastAnnual',   'Annual rite',       '1–2 hours',  'The whole year on one screen, then the narrative, the letter, and three visions for the next one.', flowAnnual],
 ];
 const REVIEW_DUE = {lastMorning:1, lastEvening:1, lastWeekly:7, lastMonthly:30, lastSeasonal:90, lastHalf:182, lastAnnual:365};
-function renderReviewsHub(box){
-  const T = today();
-  box.innerHTML = `<p class="muted" style="font-size:.88rem;max-width:640px">Seven rituals, from the morning to the year. Each one is pre-filled with what the instrument already knows, so the work is noticing rather than remembering.</p>
-    <div class="review-cards">${REVIEW_FLOWS.map(([key, name, len, desc]) => { const age = reviewAge(key);
-      const due = age >= (REVIEW_DUE[key] || 365);
-      return `<div class="review-card ${due?'due':''}" data-flow="${key}">
-        <div class="row between"><b class="serif" style="font-size:1.1rem">${esc(name)}</b><span class="mono">${esc(len)}</span></div>
-        <p class="muted" style="font-size:.85rem;margin:6px 0 10px">${esc(desc)}</p>
-        <div class="row between"><span class="mono">${age === Infinity ? 'never done' : `last ${relDays(age)}`}</span><button class="btn sm ${due?'primary':'ghost'}" data-flowstart="${key}">${age === Infinity ? 'Begin' : due ? 'Begin — due' : 'Begin'}</button></div>
-      </div>`; }).join('')}</div>
-    <div class="hab-stats" style="margin-top:18px"><div class="sc">The twenty-one day tracker</div>
-      <div class="row" style="gap:3px;flex-wrap:wrap;margin-top:8px">${Array.from({length:21}, (_,i) => { const d = addDays(S.rehearsal.cycleStart || T, i);
-        const on = (S.rehearsal.days||[]).includes(d); return `<i class="tk-dot ${on?'on':''}" title="${esc(fmtDate(d,'med'))}"></i>`; }).join('')}</div>
-      <div class="faint" style="font-size:.78rem;margin-top:6px">${(S.rehearsal.days||[]).length} mornings logged${S.rehearsal.cycleStart?` since ${fmtDate(S.rehearsal.cycleStart,'med')}`:''}.</div></div>`;
-  box.querySelectorAll('[data-flowstart]').forEach(b => b.onclick = () => {
-    const fn = (REVIEW_FLOWS.find(f => f[0] === b.dataset.flowstart) || [])[4]; if(fn) fn();
-  });
-  reveal(box);
-}
+/* The hub is gone: a review is not something you go and look for. Each one now
+   surfaces on Today the night its cycle closes — see reviewsDue(). */

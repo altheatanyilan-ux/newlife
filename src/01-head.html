@@ -25,7 +25,7 @@
   --mono:'IBM Plex Mono','SF Mono',Menlo,monospace;
   --ease:cubic-bezier(.4,0,.2,1);
   /* the ink: warm cream on the dark ground — an old scroll by candlelight */
-  --ink:#e8e0d4; --splat-op:.05; --mist-op:.09; --ripple-op:.022; --season-op:.07;
+  --ink:#e8e0d4;  --mist-op:.09; --ripple-op:.022; --season-op:.07;
   --leaf:#c9a05a; --leaf-op:.10;
   --radius:14px;
   --sidebar:220px;
@@ -43,7 +43,7 @@ html[data-theme="light"]{
   --phys:#b26a2a; --emo:#8e5f6b; --ment:#5b6f7f; --spir:#6b7d56;
   --shadow:0 10px 40px rgba(60,40,20,.12), 0 1px 3px rgba(60,40,20,.08);
   /* the ink: traditional black-grey on rice paper */
-  --ink:#2c2520; --splat-op:.07; --mist-op:.12; --ripple-op:.03; --season-op:.10;
+  --ink:#2c2520;  --mist-op:.12; --ripple-op:.03; --season-op:.10;
   --leaf:#b58a33; --leaf-op:.14;
   --page-grad-op:.09; --scene-op:.26;
 }
@@ -98,7 +98,6 @@ kbd{font-family:var(--mono);font-size:.68rem;padding:2px 6px;border:1px solid va
 .page-scene{transform:translate3d(0,calc(var(--ink-par,0) * .03px),0)}
 .ink-layer{position:absolute;inset:0;overflow:hidden}
 .ink-layer svg{position:absolute;inset:0;width:100%;height:100%;display:block}
-#inkSplat{opacity:var(--splat-op);transform:translate3d(0,calc(var(--ink-par,0) * .015px),0);will-change:transform}
 #inkMist{opacity:var(--mist-op);transform:translate3d(0,calc(var(--ink-par,0) * .05px),0);will-change:transform}
 .mist-band{will-change:transform}
 .mb1{animation:mistA 96s ease-in-out infinite alternate}
@@ -392,7 +391,7 @@ svg text{font-family:var(--mono);fill:var(--faint);font-size:10px}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
   .dust,.ink-leaf,#inkRipple{display:none}
-  .page-scene,#inkSplat,#inkMist{transform:none}
+  .page-scene,#inkMist{transform:none}
   .rv{opacity:1;transform:none}
 }
 html.reduce-motion *,html.reduce-motion *::before,html.reduce-motion *::after{animation-duration:.001ms!important;transition-duration:.001ms!important}

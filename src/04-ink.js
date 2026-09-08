@@ -1,47 +1,22 @@
 /* ============================================================
    THE INK LAYER — 水墨画, the paper the rooms are painted on
    The rooms each have their own painting (see scenes.js). This
-   is what sits behind all of them: the splatter that was
-   already on the sheet before anyone started, the mist that
-   moves across it, whatever the season is doing at the margin,
-   and the water everything floats above.
+   is what sits behind all of them: the mist that moves across
+   it, whatever the season is doing at the margin, and the water
+   everything floats above. There is deliberately no splatter —
+   one fixed blob repeated on every page reads as a stain, not
+   as a painting.
 
    Monochrome by rule — warm cream on the dark ground, ink black
    on the paper one — because the colour in this house belongs
    to the rooms, and a shan shui painting has never needed any.
    ============================================================ */
 const INK_CONTEMPLATIVE = ['today','journals','vision'];   // where a margin illustration belongs
-const INK_WATER = ['vision','skills','home'];              // the wide canvases that float on water
+const INK_WATER = ['vision','skills','compass'];              // the wide canvases that float on water
 
 /* one seed for the life of the install, so the same painting greets you */
 function inkSeed(){ return hashSeed('ink:' + ((typeof S !== 'undefined' && S?.settings?.firstOpen) || 'first-light')); }
 function season(d = new Date()){ const m = d.getMonth(); return (m === 11 || m <= 1) ? 'winter' : m <= 4 ? 'spring' : m <= 7 ? 'summer' : 'autumn'; }
-
-/* ---------- splatter: the accidents already on the paper ----------
-   Ink does not land in a circle. The radius is thrown around hard, and the
-   satellites are what came off the brush on the way down. */
-function inkBlobPath(cx, cy, rad, r, n = 15){
-  const pts = [];
-  for(let i = 0; i < n; i++){
-    const a = (i/n)*Math.PI*2, rr = rad*(.48 + r()*.85);
-    pts.push([cx + Math.cos(a)*rr, cy + Math.sin(a)*rr*(.66 + r()*.5)]);
-  }
-  pts.push(pts[0]);
-  return smoothClosed(pts);
-}
-function inkSplatterSVG(){
-  const r = mulberry32(inkSeed()); const W = 1200, H = 800;
-  let g = '';
-  for(let i = 0, n = 2 + Math.floor(r()*2); i < n; i++){
-    const cx = 110 + r()*(W-220), cy = 80 + r()*(H-160), rad = 84 + r()*130;
-    g += `<path d="${inkBlobPath(cx, cy, rad, r)}" fill="var(--ink)" opacity="${(.62 + r()*.38).toFixed(2)}"/>`;
-    for(let k = 0, drops = 3 + Math.floor(r()*5); k < drops; k++){
-      const a = r()*Math.PI*2, dist = rad*(1.05 + r()*1.4);
-      g += `<path d="${inkBlobPath(cx + Math.cos(a)*dist, cy + Math.sin(a)*dist, 5 + r()*20, r, 9)}" fill="var(--ink)" opacity="${(.35 + r()*.5).toFixed(2)}"/>`;
-    }
-  }
-  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice">${g}</svg>`;
-}
 
 /* ---------- mist: three breaths of wash, none of them with an edge ---------- */
 function mistRibbon(y, h, seed){
@@ -87,7 +62,7 @@ function fallingLeavesHTML(r){
   }).join('');
 }
 function inkSeasonHTML(){
-  const s = season(), key = typeof pageThemeKey === 'function' ? pageThemeKey() : 'home';
+  const s = season(), key = typeof pageThemeKey === 'function' ? pageThemeKey() : 'compass';
   const r = mulberry32(inkSeed() ^ 0x5eed5eed);
   let art = '';
   if(INK_CONTEMPLATIVE.includes(key)){
@@ -101,17 +76,17 @@ function inkSeasonHTML(){
 }
 
 /* ---------- painting it ----------
-   The splatter, the mist and the water are the paper: painted once and left
-   alone. Only the margin sprig changes as you move between rooms. */
+   The mist and the water are the paper: painted once and left alone. Only
+   the margin sprig changes as you move between rooms. */
 let _inkPainted = false, _inkKey = null;
 function applyInk(){
-  const splat = document.getElementById('inkSplat'), mist = document.getElementById('inkMist'),
-        seas  = document.getElementById('inkSeason'), rip = document.getElementById('inkRipple');
-  if(!splat || !mist || !seas || !rip) return;
-  if(!_inkPainted){ splat.innerHTML = inkSplatterSVG(); mist.innerHTML = inkMistSVG(); rip.innerHTML = inkRippleSVG(); _inkPainted = true; }
-  const key = (typeof pageThemeKey === 'function' ? pageThemeKey() : 'home') + ':' + season();
+  const mist = document.getElementById('inkMist'),
+        seas = document.getElementById('inkSeason'), rip = document.getElementById('inkRipple');
+  if(!mist || !seas || !rip) return;
+  if(!_inkPainted){ mist.innerHTML = inkMistSVG(); rip.innerHTML = inkRippleSVG(); _inkPainted = true; }
+  const key = (typeof pageThemeKey === 'function' ? pageThemeKey() : 'compass') + ':' + season();
   if(key !== _inkKey){ seas.innerHTML = inkSeasonHTML(); _inkKey = key; }
-  rip.classList.toggle('on', INK_WATER.includes(typeof pageThemeKey === 'function' ? pageThemeKey() : 'home'));
+  rip.classList.toggle('on', INK_WATER.includes(typeof pageThemeKey === 'function' ? pageThemeKey() : 'compass'));
 }
 /* parallax: the ridges answer the scroll a little, the mist a little more */
 (() => {

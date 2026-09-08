@@ -32,7 +32,7 @@ const NAV_PAGES = {
   today:    {label:'Today',            short:'Today',    ico:NAV_ICONS.today,    route:'#/today'},
   journals: {label:'Journals',         short:'Journal',  ico:NAV_ICONS.journals, route:'#/journals'},
   projects: {label:'Projects',         short:'Projects', ico:NAV_ICONS.projects, route:'#/projects'},
-  rhythm:   {label:'Rhythm',           short:'Rhythm',   ico:NAV_ICONS.rhythm,   route:'#/rhythm'},
+  lifetape: {label:'Life Tape',        short:'Tape',     ico:NAV_ICONS.rhythm,   route:'#/lifetape'},
   writing:  {label:'The Writing Studio', short:'Writing', ico:NAV_ICONS.writing,  route:'#/writing'},
   people:   {label:'People',           short:'People',   ico:NAV_ICONS.people,   route:'#/people'},
   finance:  {label:'Finance',          short:'Money',    ico:NAV_ICONS.finance,  route:'#/finance'},
@@ -44,7 +44,7 @@ const NAV_PAGES = {
   timeline: {label:'Timeline',         short:'Timeline', ico:NAV_ICONS.timeline, route:'#/timeline'},
 };
 const NAV_DEFAULT = {
-  present:   ['today','rhythm','projects'],
+  present:   ['today','lifetape','projects'],
   becoming:  ['values','skills','vision'],
   story:     ['people','timeline','journals'],
   standalone:['commonplace','writing','finance','import'],
@@ -55,22 +55,22 @@ const NAV_ZONES = [
   {id:'story',    label:'Story',    hint:'relationships, memory, meaning',   accent:'var(--rose)'},
 ];
 const NAV_ZONE_IDS = [...NAV_ZONES.map(z => z.id), 'standalone'];
-const MOBILE_PRIMARY = ['today','rhythm','projects','journals','skills'];
+const MOBILE_PRIMARY = ['today','lifetape','projects','journals','skills'];
 function navConfig(){ if(!S.settings.nav) S.settings.nav = JSON.parse(JSON.stringify(NAV_DEFAULT)); const n = S.settings.nav; // a nav laid out before the Story zone existed: lift its pages out of wherever they sat
   if(!Array.isArray(n.story)){ n.story = []; NAV_DEFAULT.story.forEach(k => { NAV_ZONE_IDS.forEach(z => { if(Array.isArray(n[z])) n[z] = n[z].filter(x => x !== k); }); n.story.push(k); }); }
   NAV_ZONE_IDS.forEach(z => { if(!Array.isArray(n[z])) n[z] = [...(NAV_DEFAULT[z]||[])]; });
-  { const seen = new Set(); NAV_ZONE_IDS.forEach(z => n[z] = n[z].filter(k => !seen.has(k) && seen.add(k))); } NAV_ZONE_IDS.forEach(z => { n[z] = (n[z]||[]).filter(k => NAV_PAGES[k]); }); const placed = new Set(NAV_ZONE_IDS.flatMap(z => n[z])); Object.keys(NAV_PAGES).forEach(k => { if(k !== 'home' && !placed.has(k)) n.standalone.push(k); }); NAV_ZONE_IDS.forEach(z => n[z] = n[z].filter(k => NAV_PAGES[k] && k !== 'home')); return n; }
+  { const seen = new Set(); NAV_ZONE_IDS.forEach(z => n[z] = n[z].filter(k => !seen.has(k) && seen.add(k))); } NAV_ZONE_IDS.forEach(z => { n[z] = (n[z]||[]).filter(k => NAV_PAGES[k]); }); const placed = new Set(NAV_ZONE_IDS.flatMap(z => n[z])); Object.keys(NAV_PAGES).forEach(k => { if(k !== 'compass' && !placed.has(k)) n.standalone.push(k); }); NAV_ZONE_IDS.forEach(z => n[z] = n[z].filter(k => NAV_PAGES[k] && k !== 'compass')); return n; }
 const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch(e){ return d; } };
 const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} };
-function activePageKey(){ const {name} = parseHash(); return {stage:'timeline', value:'values', home:'home'}[name] || name; }
+function activePageKey(){ const {name} = parseHash(); return {stage:'timeline', value:'values', home:'compass', rhythm:'lifetape'}[name] || name; }
 function navLink(key, zoneAccent){ const p = NAV_PAGES[key]; return `<a href="${p.route}" data-page="${key}" data-tip="${esc(p.label)}" style="--z:${zoneAccent||'var(--terra)'}"><span class="ico">${p.ico}</span><span class="lbl">${esc(p.label)}</span></a>`; }
 function renderNav(){
   const n = navConfig(); const collapsedZones = lsGet('navZoneCollapsed', {}); const sbCollapsed = lsGet('sidebarCollapsed', false);
   document.documentElement.classList.toggle('sb-collapsed', !!sbCollapsed);
   const sb = $('#sidebar');
-  sb.innerHTML = `<div class="brand"><a href="#/home" class="mark" data-tip="Home" title="Home">生</a><a href="#/home" class="name">Life Instrument</a><button class="sb-toggle" id="sbToggle" title="${sbCollapsed?'Expand sidebar':'Collapse sidebar'}">${sbCollapsed?'»':'«'}</button></div>
+  sb.innerHTML = `<div class="brand"><a href="#/compass" class="mark" data-tip="Compass" title="Compass">生</a><a href="#/compass" class="name">Life Instrument</a><button class="sb-toggle" id="sbToggle" title="${sbCollapsed?'Expand sidebar':'Collapse sidebar'}">${sbCollapsed?'»':'«'}</button></div>
     <nav class="nav" id="nav">
-      ${navLink('home','var(--terra)').replace('data-page="home"','data-page="home"')}
+      ${navLink('compass','var(--terra)')}
       ${NAV_ZONES.map(z => `<div class="zone ${collapsedZones[z.id]?'collapsed':''}" data-zone="${z.id}" style="--z:${z.accent}"><button class="zone-h" data-zoneh="${z.id}" title="${esc(z.hint)}"><span class="zone-lbl">${esc(z.label)}</span><span class="zone-chev">›</span></button><div class="zone-pages">${n[z.id].map(k => navLink(k, z.accent)).join('')}</div></div>`).join('')}
       <div class="nav-sep"></div>
       ${n.standalone.map(k => navLink(k, 'var(--terra)')).join('')}
@@ -88,15 +88,15 @@ function markActiveNav(){ const key = activePageKey(); $$('#sidebar a[data-page]
 function openNavOverlay(){
   const n = navConfig(); const key = activePageKey();
   const ov = el(`<div class="nav-overlay" id="navOverlay"><button class="close" aria-label="close">×</button><div class="nav-overlay-inner">
-    <a href="#/home" class="ov-link ${key==='home'?'active':''}" style="--z:var(--terra)"><span class="ico">${NAV_PAGES.home?.ico||'⌂'}</span>Home</a>
+    <a href="#/compass" class="ov-link ${key==='compass'?'active':''}" style="--z:var(--terra)"><span class="ico">${NAV_PAGES.compass?.ico||'⌂'}</span>Compass</a>
     ${NAV_ZONES.map(z => `<div class="ov-zone" style="--z:${z.accent}"><div class="ov-zone-h">${esc(z.label)} <span class="mono">${esc(z.hint)}</span></div>${n[z.id].map(k => `<a href="${NAV_PAGES[k].route}" class="ov-link ${key===k?'active':''}"><span class="ico">${NAV_PAGES[k].ico}</span>${esc(NAV_PAGES[k].label)}</a>`).join('')}</div>`).join('')}
     <div class="ov-zone" style="--z:var(--terra)"><div class="ov-zone-h">Always</div>${n.standalone.map(k => `<a href="${NAV_PAGES[k].route}" class="ov-link ${key===k?'active':''}"><span class="ico">${NAV_PAGES[k].ico}</span>${esc(NAV_PAGES[k].label)}</a>`).join('')}<a href="#/settings" class="ov-link ${key==='settings'?'active':''}"><span class="ico">${NAV_ICONS.settings}</span>Settings</a></div>
   </div></div>`);
   document.body.appendChild(ov); ov.querySelector('.close').onclick = () => ov.remove(); ov.querySelectorAll('a').forEach(a => a.addEventListener('click', () => ov.remove()));
 }
-NAV_PAGES.home = {label:'Home', short:'Home', ico:NAV_ICONS.home, route:'#/home'};
+NAV_PAGES.compass = {label:'Compass', short:'Compass', ico:NAV_ICONS.home, route:'#/compass'};
 
-/* ---------- Home: life at a glance — today's focus, the living house, long-term panels ---------- */
+/* ---------- Compass: life at a glance — today's focus, the living house, long-term panels ---------- */
 const HOUSE_EDGES = [['vision','skills','visions require skills; skills serve visions'],['vision','values','visions serve values; unserved values are blind spots'],['timeline','values','retrospective readings fill the values history'],['timeline','vision','formative events inform what you now want'],['projects','skills','projects exercise skills'],['projects','vision','income streams advance financial visions'],['journals','timeline','memories become formative events'],['journals','vision','entries grow leaves'],['rituals','today','rituals fill today\'s rings'],['today','vision','signals surface neglected visions'],['today','values','the biggest values gap is a daily signal'],['library','journals','quotes are journal entries with a source']];
 function houseStats(){
   const T = today(); const n = navConfig();
@@ -109,7 +109,7 @@ function houseStats(){
   const c = S.checkins[T]; const rem = (S.reminders||[]).filter(r=>!r.done&&r.date<=T).length;
   const stat = {
     today:    {line:`${c?.mood?'checked in':'not checked in'} · rings ${done}/${due.length}`, ok:!!c?.mood, cadence:'daily', tip:`${c?.intention?'Intention: '+c.intention:'No intention set yet'}${rem?` · ${rem} reminder${rem>1?'s':''} waiting`:''}`},
-    rhythm:   {line:`${done}/${due.length} rings today`, ok:due.length>0&&done===due.length, cadence:'daily', tip:`${rehearsalDoneToday()?'Morning Theatre practised':'Morning Theatre not yet practised'} · weekly review ${relDays(daysSince(S.reviews.lastWeekly))}`},
+    lifetape: {line:`${done}/${due.length} rings today`, ok:due.length>0&&done===due.length, cadence:'daily', tip:`${rehearsalDoneToday()?'Morning Theatre practised':'Morning Theatre not yet practised'} · weekly review ${relDays(daysSince(S.reviews.lastWeekly))}`},
     journals: {line:`${j7} entr${j7===1?'y':'ies'} this week`, ok:j7>0, cadence:'daily', tip:`${S.entries.length} entries across ${S.journals.length} journals`},
     projects: {line:`${active.length} active · ${nods7} nods / 7d`, ok:cold===0, cadence:'daily', tip:cold?`${cold} active project${cold>1?'s':''} without a nod this week`:'every active project nodded this week'},
     values:   {line:`snapshot ${snapDays===null?'never':snapDays===0?'today':snapDays+'d ago'}`, ok:snapDays!==null&&snapDays<=7, cadence:'weekly', tip:gaps[0]?`Biggest gap: ${gaps[0].name} (${gaps[0].gap>0?'+':''}${gaps[0].gap})`:''},
@@ -136,7 +136,7 @@ function houseSVG(st){
     g += `<g class="hnode ${s.cadence}" data-node="${k}" data-go="${p.route}" style="--zc:${zoneColor(k)}"><circle class="body" cx="${x}" cy="${y}" r="${r}" fill="color-mix(in srgb,${zoneColor(k)} ${s.cadence==='daily'?22:s.cadence==='weekly'?14:8}%,var(--surface))" stroke="${zoneColor(k)}" stroke-width="1.4" ${s.cadence==='monthly'||s.cadence==='archival'?'stroke-dasharray="4 3"':''} opacity="${s.cadence==='archival'?.7:1}"/><text x="${x}" y="${y+6}" text-anchor="middle" style="font-size:${r*.6}px">${p.ico}</text><circle cx="${x+r*.7}" cy="${y-r*.7}" r="5" fill="${s.ok?'var(--sage)':'var(--gold)'}" stroke="var(--surface)" stroke-width="1.5"/><text class="hl" x="${x}" y="${y+r+16}" text-anchor="middle">${esc(p.label)}</text><text class="hs" x="${x}" y="${y+r+28}" text-anchor="middle">${esc(s.line)}</text></g>`; });
   return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">${g}</svg>`;
 }
-/* ---------- the four zone cards on Home ----------
+/* ---------- the four zone cards on the Compass ----------
    One card per navigation zone, answering the question that zone exists
    for. Each line is a live count, and each card opens the room where you
    would act on it. */
@@ -153,7 +153,7 @@ function zoneSummaries(){
   const tasks = typeof tasksForDay === 'function' ? tasksForDay(T) : [];
   const openTasks = tasks.filter(t => !t.done);
   const [revLine, revC] = nextReviewLine();
-  cards.push({label:'Present', hint:'what is happening now', accent:'var(--sage)', route:'#/rhythm',
+  cards.push({label:'Present', hint:'what is happening now', accent:'var(--sage)', route:'#/lifetape',
     lines:[
       [openTasks.length ? `${openTasks.length} item${openTasks.length === 1 ? '' : 's'} still planned today` : (tasks.length ? 'everything planned today is done' : 'nothing planned today'), openTasks.length ? '' : (tasks.length ? 'var(--sage)' : 'var(--faint)')],
       [st.due.length ? `${st.done} of ${st.due.length} habit${st.due.length === 1 ? '' : 's'} done` : 'no habits due today', st.due.length ? (st.done === st.due.length ? 'var(--sage)' : '') : 'var(--faint)'],
@@ -201,7 +201,7 @@ function zoneCardsHTML(){
     <div class="zc-lines">${c.lines.filter(Boolean).map(([t, col]) => `<div class="zc-line"${col ? ` style="color:${col}"` : ''}>${t}</div>`).join('')}</div>
     <span class="zc-go mono">open →</span></a>`).join('')}</section>`;
 }
-routes.home = function(root){
+routes.compass = function(root){
   const T = today(); const st = houseStats(); const moon = moonPhase(); const c = checkin(T);
   const days30 = lastDays(30); const weeks12 = Array.from({length:12},(_,w)=>w).map(w => lastDays(84).slice(w*7, w*7+7));
   const axes = S.valueOrder.map(id=>{ const v=byId(S.values,id); return {name:v.name, short:v.name.split(' ')[0], color:v.color}; });
@@ -214,7 +214,7 @@ routes.home = function(root){
   const skillHrs = S.skills.filter(s=>!s.planned).map(s=>({s,h:skillHours(s)})).sort((a,b)=>b.h-a.h).slice(0,4);
   const income = sum(S.projects.map(p=>p.income?.current||0));
   root.innerHTML = `<div class="page">
-    <div class="page-head" style="margin-bottom:22px"><div><h1>${fmtDate(T)}</h1><div class="moon">${moonSVG(moon.p)} <span>${moon.name}</span><span class="mono" style="margin-left:6px">· your life at a glance</span></div></div></div>
+    <div class="page-head" style="margin-bottom:22px"><div><h1>${fmtDate(T)}</h1><div class="moon">${moonSVG(moon.p)} <span>${moon.name}</span><span class="mono" style="margin-left:6px">· the compass — your life at a glance</span></div></div></div>
 
     <div class="home-hero">
       <div class="focus-card rv"><div class="row between"><span class="k mono" style="text-transform:uppercase;letter-spacing:.12em;font-size:.62rem;color:var(--terra)">Today's focus</span><a class="btn sm ghost" href="#/today">open Today →</a></div>
@@ -244,7 +244,7 @@ routes.home = function(root){
       <div class="card span2"><div class="k">Congruence over a lifetime</div><div class="big" data-tween="${avgCong.slice(-1)[0]||0}" data-suffix="%">0</div>${sparkline(avgCong,{h:56,min:0,max:100,color:'var(--terra)'})}<div class="sub">average across ten values · ${snaps.length} readings from ${snaps[0]?fmtDate(snaps[0].date,'med'):'—'}</div></div>
       <div class="card span2"><div class="k">Energy, 30 days <a href="#/today">→</a></div>${multiSpark(DIMS.map(d=>({vals:days30.map(x=>S.checkins[x]?.energy?.[d.id]||null),color:d.c})),{h:56})}<div class="legend">${DIMS.map(d=>`<span style="--c:${d.c}">${d.name}</span>`).join('')}</div>${sparkline(days30.map(d=>S.checkins[d]?.setpoint||null),{h:34,min:1,max:22,color:'var(--rose)'})}<div class="sub">emotional set-point · avg ${avg(days30.map(d=>S.checkins[d]?.setpoint).filter(Boolean)).toFixed(1)} — ${hicksName(avg(days30.map(d=>S.checkins[d]?.setpoint).filter(Boolean))||14).split(' / ')[0]}</div></div>
       <div class="card span3"><div class="k">Visions <a href="#/vision">→</a></div><div class="sub">${st.vs.length} growing${st.wither?`, <span style="color:var(--gold)">${st.wither} withering</span>`:''} · average vividness ${Math.round(avg(st.vs.map(x=>x.score)))}</div>${topV.map(x=>`<div class="vbar"><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(x.v.name)}</span><div class="bar" style="--c:${x.lastTended>60?'var(--gold)':'var(--sage)'}"><i style="width:${x.score}%"></i></div><span class="mono">${x.score}</span></div>`).join('')}</div>
-      <div class="card span3"><div class="k">Habits, 12 weeks <a href="#/rhythm/habits">→</a></div><div class="big" data-tween="${habitRate.slice(-1)[0]||0}" data-suffix="%">0<small>this week</small></div>${sparkline(habitRate,{h:56,min:0,max:100,color:'var(--sage)'})}<div class="sub">weekly completion · best streak ${Math.max(0,...S.habits.filter(h=>!h.archived&&!h.negative).map(h=>habitStreak(h).best))} days · weekly review ${relDays(daysSince(S.reviews.lastWeekly))}</div></div>
+      <div class="card span3"><div class="k">Habits, 12 weeks <a href="#/lifetape/habits">→</a></div><div class="big" data-tween="${habitRate.slice(-1)[0]||0}" data-suffix="%">0<small>this week</small></div>${sparkline(habitRate,{h:56,min:0,max:100,color:'var(--sage)'})}<div class="sub">weekly completion · best streak ${Math.max(0,...S.habits.filter(h=>!h.archived&&!h.negative).map(h=>habitStreak(h).best))} days · weekly review ${relDays(daysSince(S.reviews.lastWeekly))}</div></div>
       <div class="card span2"><div class="k">Projects <a href="#/projects">→</a></div><div class="big" data-tween="${st.nods7}">0<small>nods this week</small></div>${sparkline(nodsW,{h:44,min:0,color:'var(--terra)'})}<div class="sub">${st.active.length} active · ${fmtYen(income)}/mo across ${S.projects.filter(p=>p.income?.current>0).length} stream${S.projects.filter(p=>p.income?.current>0).length===1?'':'s'}</div></div>
       <div class="card span2"><div class="k">Skills <a href="#/skills">→</a></div><div class="big" data-tween="${st.hrs30}" data-dec="1">0<small>hours / 30d</small></div>${skillHrs.map(x=>`<div class="vbar"><span>${esc(x.s.name)}</span><div class="bar" style="--c:var(--ment)"><i style="width:${Math.min(100,x.h/Math.max(skillHrs[0].h,1)*100)}%"></i></div><span class="mono">${x.h.toFixed(0)}h</span></div>`).join('')}<div class="sub">${st.atro?`<span style="color:var(--gold)">${st.atro} atrophying</span> · `:''}${S.skills.filter(s=>s.planned).length} buds planned</div></div>
       <div class="card span2"><div class="k">Journal &amp; memory <a href="#/journals">→</a></div><div class="big" data-tween="${S.entries.length}">0<small>entries</small></div>${sparkline(entriesW,{h:40,min:0,color:'var(--rose)'})}<div class="sub">${st.j7} this week · ${st.memories} memories · ${st.quotes} quotes</div><div class="stagebars" title="entries per stage">${stageCounts.map(x=>`<i style="--c:${x.s.hue};height:${Math.max(4,x.n/maxStage*44)}px" title="${esc(x.s.name)} · ${x.n}"></i>`).join('')}</div></div>

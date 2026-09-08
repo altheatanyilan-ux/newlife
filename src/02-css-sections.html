@@ -15,14 +15,6 @@
 .day-shape-in .k{font-size:.62rem}
 .day-shape-in.is-evening .card{border-color:color-mix(in srgb,var(--page-accent) 30%,var(--line))}
 .ds-num{padding:5px 8px;font-size:.9rem}
-.ds-scroll{overflow-x:auto;overflow-y:hidden;margin-top:6px;padding-bottom:4px}
-.ds-svg{display:block;min-width:100%;height:190px}
-.ds-tick{fill:var(--muted);font-family:var(--mono);font-size:8px;opacity:.75}
-.ds-bar{transition:opacity .16s var(--ease)}
-.ds-scroll:hover .ds-bar{opacity:.55}
-.ds-scroll .ds-bar:hover{opacity:1}
-.ds-key{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:.66rem;color:var(--muted)}
-.ds-key i{width:9px;height:9px;border-radius:2px;display:inline-block}
 .tomorrow-block{margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
 .tomorrow-block.is-evening .card{border-color:color-mix(in srgb,var(--page-accent) 35%,var(--line));background:color-mix(in srgb,var(--page-accent) 4%,var(--surface))}
 .ready-letters .ready-letter{border-left:3px solid var(--gold);padding:12px 16px;border-radius:var(--radius);background:color-mix(in srgb,var(--gold) 8%,var(--surface))}
@@ -1772,9 +1764,85 @@ html.vision-deep .page-scene.on{opacity:var(--scene-op)}
 .ll-closing{text-align:center;margin:0 0 80px}
 .ll-closing p{font-family:var(--serif);font-style:italic;font-size:.88rem;color:var(--muted);margin:24px 0}
 .lifeline-ms .center{text-align:center}
+/* ---------- the plate: a vision that carries its own images ----------
+   Without images a vision is a passage in a 560px column. With them it becomes
+   a chapter: the article breaks the column and runs the full width of the
+   window, the first image is the ground, and a scrim keeps the type legible on
+   any photograph — light or dark, busy or empty. */
+.ll-vision.plated{
+  position:relative;
+  width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);
+  padding:76px max(80px,calc(50vw - 280px)) 68px;
+  margin-bottom:96px;border-radius:0;overflow:hidden;
+}
+.ll-vision.plated:hover{background:none}
+.ll-vision .ll-body{position:relative;z-index:2}
+.ll-plate{position:absolute;inset:0;z-index:0;pointer-events:none}
+.ll-plate-img{position:absolute;inset:0;background-size:cover;background-position:center;
+  filter:saturate(.62) contrast(.94);opacity:.5;transform:scale(1.03);
+  transition:opacity .6s var(--ease),transform 1.2s var(--ease)}
+.ll-vision.plated:hover .ll-plate-img{opacity:.62;transform:scale(1.05)}
+/* the scrim: heavier where the type starts, thinning towards the far edge */
+.ll-plate-wash{position:absolute;inset:0;
+  background:linear-gradient(100deg,var(--bg) 0%,color-mix(in srgb,var(--bg) 86%,transparent) 38%,color-mix(in srgb,var(--bg) 58%,transparent) 72%,color-mix(in srgb,var(--bg) 40%,transparent) 100%),
+             linear-gradient(to bottom,var(--bg) 0%,transparent 14%,transparent 86%,var(--bg) 100%)}
+.ll-plate-strip{position:absolute;right:clamp(16px,4vw,64px);bottom:26px;z-index:2;display:flex;gap:8px}
+.ll-plate-strip img{width:52px;height:52px;object-fit:cover;border-radius:3px;cursor:zoom-in;
+  opacity:.62;filter:saturate(.7);border:1px solid color-mix(in srgb,var(--text) 12%,transparent);
+  transition:opacity .3s var(--ease),transform .3s var(--ease)}
+.ll-plate-strip img:hover{opacity:1;transform:translateY(-3px)}
+@media (max-width:800px){
+  .ll-vision.plated{padding:52px 24px 56px}
+  .ll-plate-strip{display:none}
+}
+/* the images control lives with the passage, quiet until you look for it */
+.ll-plate-tools{margin-top:18px;display:flex;gap:14px;align-items:center;opacity:0;transition:opacity .3s var(--ease)}
+.ll-vision:hover .ll-plate-tools,.ll-vision.open .ll-plate-tools,.ll-vision.plated .ll-plate-tools{opacity:.6}
+.ll-plate-tools:hover{opacity:1}
+@media (hover:none){.ll-plate-tools{opacity:.6}}
+
 @media (prefers-reduced-motion:reduce){
   .ll-vision,.ll-name,.ll-conf-track i,.ll-margin,.vw-stage{transition:none;animation:none}
   .ll-more{transition:none}
+  .ll-plate-img,.ll-plate-strip img,.ll-plate-tools{transition:none}
 }
+
+/* ---------- Today's index ----------
+   The page is long on purpose; the index is how you get to the one thing you
+   opened it for. It sticks under the header and stays out of the way. */
+.today-jump{position:sticky;top:0;z-index:6;display:flex;gap:4px;flex-wrap:wrap;
+  margin:0 0 18px;padding:8px 0;background:linear-gradient(to bottom,var(--bg) 72%,transparent);
+  backdrop-filter:blur(6px)}
+.today-jump button{background:none;border:1px solid transparent;border-radius:999px;
+  padding:3px 10px;font-family:var(--mono);font-size:.62rem;letter-spacing:.08em;
+  text-transform:lowercase;color:var(--muted);cursor:pointer;
+  transition:color .2s var(--ease),border-color .2s var(--ease),background .2s var(--ease)}
+.today-jump button:hover{color:var(--page-accent);border-color:color-mix(in srgb,var(--page-accent) 35%,transparent);
+  background:color-mix(in srgb,var(--page-accent) 7%,transparent)}
+.jump-lit{animation:jumpLit 1.2s var(--ease)}
+@keyframes jumpLit{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--page-accent) 34%,transparent)}
+  100%{box-shadow:0 0 0 14px transparent}}
+@media (max-width:700px){.today-jump{gap:2px}.today-jump button{padding:3px 7px;font-size:.58rem}}
+
+/* ---------- a cycle closing tonight ---------- */
+.cyc-block{margin-top:8px}
+.cyc-card{border:1px solid var(--line);border-left:3px solid var(--page-accent);border-radius:10px;
+  background:var(--surface);padding:14px 16px;margin-top:12px}
+.cyc-card.late{border-left-color:var(--rose)}
+.cyc-figs{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:10px;margin:2px 0 10px}
+.cyc-figs > div{display:flex;flex-direction:column;gap:1px}
+.cyc-figs .k{font-family:var(--mono);font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);opacity:.8}
+.cyc-figs b{font-family:var(--serif);font-size:1.32rem;font-weight:400;line-height:1.1}
+.cyc-figs .mono{font-size:.62rem;color:var(--muted);opacity:.8}
+.cyc-graph{margin-top:4px}
+.cyc-graph svg{display:block;width:100%;overflow:visible}
+.cyc-legend{display:flex;gap:14px;margin-top:4px;font-size:.6rem;color:var(--muted);opacity:.75}
+.cyc-legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px}
+.cyc-answer{margin-top:12px;border-top:1px dashed var(--line);padding-top:12px}
+.cyc-answer p{font-size:.88rem;line-height:1.65;margin:0 0 8px}
+.cyc-reading h4{font-family:var(--serif);font-size:.82rem;font-variant:small-caps;letter-spacing:.1em;
+  color:var(--page-accent);font-weight:400;margin:14px 0 4px}
+.cyc-reading h4:first-child{margin-top:0}
+@media (prefers-reduced-motion:reduce){.today-jump button,.jump-lit{transition:none;animation:none}}
 </style>
 </head>

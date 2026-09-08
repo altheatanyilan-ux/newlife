@@ -66,19 +66,11 @@ routes.vision = function(root, params){
   registerPageEntry({pageName:'Vision', addLabel:'Add a goal or life event', defaultEntryType:'progress', prefilledFields:{era:activeEra}, options:[
     {icon:'🌿', label:'New goal', desc:'A branch on the tree — something you are moving toward.', run:(pre)=>EntryActions.newVision(pre)},
     {icon:'◆', label:'New life event', desc:'Something that happened — a memory for the current chapter, not a task.', run:(pre)=>openLifeEventModal(byId(erasList().filter(e=>e.type!=='future'),activeEra)?activeEra:(erasList().find(e=>e.type==='present')?.id))}]});
-  const boardScope = S._boardEra && eras.some(e => e.id === S._boardEra) ? S._boardEra : 'all';
   /* the tree is spatial, the lifeline is sequential — one at a time */
   const view = S._visionView === 'tree' ? 'tree' : 'line';
   document.documentElement.classList.add('vision-deep');
-  const boardKey = boardScope === 'all' ? 'main' : boardId('era', boardScope);
   root.innerHTML = `<div class="page" style="position:relative">
     <div class="page-head"><h1>Vision</h1></div>
-
-    <section class="vision-board-top rv">
-      ${eras.length ? `<div class="chip-row" style="margin-bottom:10px">${[['all','the whole life']].concat(eras.map(e=>[e.id,e.name])).map(([id,name])=>`<button class="chip click ${boardScope===id?'on':''}" ${id!=='all'?`style="--c:${byId(eras,id).color}"`:''} data-bscope="${id}">${esc(name)}${id!=='all'?` <span class="mono">${boardCount(boardId('era',id))}</span>`:''}</button>`).join('')}</div>` : ''}
-      ${boardHTML(boardKey, {title: boardScope === 'all' ? 'Vision board' : `Vision board — ${esc(byId(eras, boardScope)?.name || 'this chapter')}`, hint:'What you can only feel, before you can argue for it. Looking at this changes what you do — it stays at the top on purpose.'})}
-      <button class="btn sm ghost" id="pinGoal" style="margin-top:8px">🌿 pin a goal card</button>
-    </section>
 
     <div class="vw-switch"><button class="${view==='line'?'on':''}" data-vview="line" title="the lifeline — read it as a manuscript">▤</button><button class="${view==='tree'?'on':''}" data-vview="tree" title="the tree — every goal at once">🌲</button></div>
     <div class="vw-stage ${view}">
@@ -87,9 +79,6 @@ routes.vision = function(root, params){
       <div class="tree-wrap" id="treeWrap" style="height:${Math.max(560, 150*eras.length + 120)}px;max-height:${eras.length>5?'none':'calc(100vh - 150px)'}"><div class="tree-tools"></div><div class="tree-legend"><span>bare twig 0–15</span><span>budding 16–30</span><span>leafing 31–50</span><span>canopy 51–70</span><span>flowering 71–85</span><span>fruiting 86–100</span><span>· hover a branch to trace its lineage</span></div></div>`}
     </div>
   </div>`;
-  $$('[data-bscope]',root).forEach(b => b.onclick = () => { S._boardEra = b.dataset.bscope === 'all' ? null : b.dataset.bscope; rerender(); });
-  $('#pinGoal').onclick = () => pinGoalCard(boardKey);
-  bindBoard(root);
   $$('[data-vview]',root).forEach(b => b.onclick = () => { S._visionView = b.dataset.vview; saveNow(); rerender(); });
   if(view === 'tree') drawTree();
   function drawTree(){ const wrap = $('#treeWrap'); if(!wrap) return; const W = Math.max(wrap.clientWidth, 600), H = wrap.clientHeight; wrap.querySelector('svg')?.remove(); wrap.insertAdjacentHTML('afterbegin', treeSVG(W,H)); const svg = wrap.querySelector('svg');
@@ -98,7 +87,11 @@ routes.vision = function(root, params){
   window.addEventListener('resize', debounce(()=>{ if(currentRoute==='vision' && S._visionView === 'tree') drawTree(); }, 250), {once:true});
   bindLifeline(root, drawTree);
   if(!S.settings.chapterNamed) setTimeout(promptChapterName, 400);
-  if(params[0]) openVisionPanel(params[0]);
+  /* A deep link opens one vision — once. The id must not stay in the address,
+     because every re-render of this page reads the address again, and the panel
+     would then reappear on top of whatever you clicked: a view toggle, another
+     vision, a chapter. Consume it, then rewrite the hash to the bare page. */
+  if(params[0]){ const id = params[0]; consumeHashParam('#/vision'); setTimeout(() => openVisionPanel(id), 0); }
 };
 function deleteVision(v, node, after){
   requestDelete({label: v.name, node, after, remove: () => {
@@ -275,6 +268,19 @@ function llProse(v){
   return null;
 }
 
+/* ---------- the plate ----------
+   A vision that has images stops being a paragraph and becomes a chapter: the
+   passage breaks out of the manuscript column, the images become the ground it
+   is printed on, and the text sits on a scrim so it stays readable. Without
+   images nothing changes — the column is the default, not the exception. */
+function visionImages(v){ return getBoard(boardId('vision', v.id)).items.filter(it => it.kind === 'image' && it.src); }
+function llPlateHTML(v){
+  const imgs = visionImages(v); if(!imgs.length) return '';
+  const rest = imgs.slice(1, 5);
+  return `<div class="ll-plate" aria-hidden="true"><div class="ll-plate-img" style="background-image:url(&quot;${esc(imgs[0].src)}&quot;)"></div><div class="ll-plate-wash"></div></div>
+    ${rest.length ? `<div class="ll-plate-strip">${rest.map(it => `<img src="${esc(it.src)}" alt="${esc(it.caption || '')}" loading="lazy" data-llimglb="${esc(it.src)}">`).join('')}</div>` : ''}`;
+}
+
 function llPassageHTML(v, era){
   const {score, lastTended, parts} = vividness(v);
   const withered = lastTended > LL_WITHER && v.confidence !== 'lived';
@@ -284,7 +290,10 @@ function llPassageHTML(v, era){
   const vals = (v.values || []).map(id => byId(S.values, id)).filter(Boolean);
   const open = S._llOpen === v.id;
   const breakdown = Object.entries(parts).map(([k, n]) => `${k}: ${Math.round(n)}`).join(' · ');
-  return `<article class="ll-vision ${withered ? 'withered' : ''} ${notYet ? 'notyet' : ''} ${open ? 'open' : ''}" data-llvision="${v.id}">
+  const imgs = visionImages(v);
+  return `<article class="ll-vision ${withered ? 'withered' : ''} ${notYet ? 'notyet' : ''} ${open ? 'open' : ''} ${imgs.length ? 'plated' : ''}" data-llvision="${v.id}">
+    ${llPlateHTML(v)}
+    <div class="ll-body">
     ${v.nextAction || wv ? `<div class="ll-next">
       ${ed(`visions.#${v.id}.nextAction`, {ph:'The nearest next action.'})}
       <hr class="ll-rule-full"></div>` : ''}
@@ -315,10 +324,17 @@ function llPassageHTML(v, era){
         <div class="ll-tools row" style="gap:8px;flex-wrap:wrap">
           <label class="mono"><input type="checkbox" data-lldone="${v.id}" ${v.status === 'completed' ? 'checked' : ''}> lived</label>
           <span class="mono">target ${ed(`visions.#${v.id}.targetDate`, {ph:'when', cls:'mono'})}</span>
-          <a class="ll-link" href="#/vision/${v.id}">open the full entry →</a>
+          <button class="ll-link" data-llfull="${v.id}">open the full entry →</button>
           ${wv ? `<button class="ll-link" data-llguide="${v.id}">Sit with this vision for ten minutes…</button>` : ''}
         </div>
       </div>
+    </div>
+
+    <div class="ll-plate-tools">
+      <button class="ll-link" data-llimgadd="${v.id}">${imgs.length ? `images · ${imgs.length}` : '＋ image'}</button>
+      ${imgs.length ? `<button class="ll-link quiet" data-llimgman="${v.id}">arrange</button>` : ''}
+      <input type="file" accept="image/*" multiple hidden data-llimgfile="${v.id}">
+    </div>
     </div>
   </article>`;
 }
@@ -444,6 +460,23 @@ function bindLifeline(root, drawTree){
     const v = byId(S.visions, c.dataset.lldone); setGoalStatus(v, c.checked ? 'completed' : 'pending');
     sound(c.checked ? 'success' : 'click'); redraw(); }));
   line.querySelectorAll('[data-llguide]').forEach(b => b.onclick = () => openVisionPanel(b.dataset.llguide));
+  /* opening a vision is a panel, not a navigation: a navigation would re-render
+     the manuscript and lose your place in it */
+  line.querySelectorAll('[data-llfull]').forEach(b => b.onclick = () => openVisionPanel(b.dataset.llfull));
+
+  /* imagery belongs to the vision, not to a shared board at the top of the page */
+  line.querySelectorAll('[data-llimgadd]').forEach(b => b.onclick = () =>
+    line.querySelector(`[data-llimgfile="${CSS.escape(b.dataset.llimgadd)}"]`)?.click());
+  line.querySelectorAll('[data-llimgfile]').forEach(inp => inp.onchange = ev => {
+    const key = boardId('vision', inp.dataset.llimgfile), files = ev.target.files; ev.target.value = '';
+    if(!files?.length) return;
+    readImages(files, src => { getBoard(key).items.push({id:uid(), kind:'image', src, caption:'', span:'m'}); saveNow(); sound('success'); redraw(); });
+  });
+  line.querySelectorAll('[data-llimgman]').forEach(b => b.onclick = () => {
+    const v = byId(S.visions, b.dataset.llimgman); if(!v) return;
+    openBoardPanel(boardId('vision', v.id), v.name);
+  });
+  line.querySelectorAll('[data-llimglb]').forEach(img => img.onclick = () => lightbox(img.dataset.llimglb, img.alt));
 
   /* chapter tools, which only Workshop View shows */
   line.querySelectorAll('[data-addgoal]').forEach(b => b.onclick = () => newVisionDialog({era:b.dataset.addgoal}));

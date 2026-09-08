@@ -25,7 +25,7 @@
   --mono:'IBM Plex Mono','SF Mono',Menlo,monospace;
   --ease:cubic-bezier(.4,0,.2,1);
   /* the ink: warm cream on the dark ground — an old scroll by candlelight */
-  --ink:#e8e0d4; --splat-op:.05; --mist-op:.09; --ripple-op:.022; --season-op:.07;
+  --ink:#e8e0d4;  --mist-op:.09; --ripple-op:.022; --season-op:.07;
   --leaf:#c9a05a; --leaf-op:.10;
   --radius:14px;
   --sidebar:220px;
@@ -43,7 +43,7 @@ html[data-theme="light"]{
   --phys:#b26a2a; --emo:#8e5f6b; --ment:#5b6f7f; --spir:#6b7d56;
   --shadow:0 10px 40px rgba(60,40,20,.12), 0 1px 3px rgba(60,40,20,.08);
   /* the ink: traditional black-grey on rice paper */
-  --ink:#2c2520; --splat-op:.07; --mist-op:.12; --ripple-op:.03; --season-op:.10;
+  --ink:#2c2520;  --mist-op:.12; --ripple-op:.03; --season-op:.10;
   --leaf:#b58a33; --leaf-op:.14;
   --page-grad-op:.09; --scene-op:.26;
 }
@@ -98,7 +98,6 @@ kbd{font-family:var(--mono);font-size:.68rem;padding:2px 6px;border:1px solid va
 .page-scene{transform:translate3d(0,calc(var(--ink-par,0) * .03px),0)}
 .ink-layer{position:absolute;inset:0;overflow:hidden}
 .ink-layer svg{position:absolute;inset:0;width:100%;height:100%;display:block}
-#inkSplat{opacity:var(--splat-op);transform:translate3d(0,calc(var(--ink-par,0) * .015px),0);will-change:transform}
 #inkMist{opacity:var(--mist-op);transform:translate3d(0,calc(var(--ink-par,0) * .05px),0);will-change:transform}
 .mist-band{will-change:transform}
 .mb1{animation:mistA 96s ease-in-out infinite alternate}
@@ -392,7 +391,7 @@ svg text{font-family:var(--mono);fill:var(--faint);font-size:10px}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
   .dust,.ink-leaf,#inkRipple{display:none}
-  .page-scene,#inkSplat,#inkMist{transform:none}
+  .page-scene,#inkMist{transform:none}
   .rv{opacity:1;transform:none}
 }
 html.reduce-motion *,html.reduce-motion *::before,html.reduce-motion *::after{animation-duration:.001ms!important;transition-duration:.001ms!important}
@@ -413,14 +412,6 @@ html.reduce-motion *,html.reduce-motion *::before,html.reduce-motion *::after{an
 .day-shape-in .k{font-size:.62rem}
 .day-shape-in.is-evening .card{border-color:color-mix(in srgb,var(--page-accent) 30%,var(--line))}
 .ds-num{padding:5px 8px;font-size:.9rem}
-.ds-scroll{overflow-x:auto;overflow-y:hidden;margin-top:6px;padding-bottom:4px}
-.ds-svg{display:block;min-width:100%;height:190px}
-.ds-tick{fill:var(--muted);font-family:var(--mono);font-size:8px;opacity:.75}
-.ds-bar{transition:opacity .16s var(--ease)}
-.ds-scroll:hover .ds-bar{opacity:.55}
-.ds-scroll .ds-bar:hover{opacity:1}
-.ds-key{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:.66rem;color:var(--muted)}
-.ds-key i{width:9px;height:9px;border-radius:2px;display:inline-block}
 .tomorrow-block{margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
 .tomorrow-block.is-evening .card{border-color:color-mix(in srgb,var(--page-accent) 35%,var(--line));background:color-mix(in srgb,var(--page-accent) 4%,var(--surface))}
 .ready-letters .ready-letter{border-left:3px solid var(--gold);padding:12px 16px;border-radius:var(--radius);background:color-mix(in srgb,var(--gold) 8%,var(--surface))}
@@ -2170,14 +2161,90 @@ html.vision-deep .page-scene.on{opacity:var(--scene-op)}
 .ll-closing{text-align:center;margin:0 0 80px}
 .ll-closing p{font-family:var(--serif);font-style:italic;font-size:.88rem;color:var(--muted);margin:24px 0}
 .lifeline-ms .center{text-align:center}
+/* ---------- the plate: a vision that carries its own images ----------
+   Without images a vision is a passage in a 560px column. With them it becomes
+   a chapter: the article breaks the column and runs the full width of the
+   window, the first image is the ground, and a scrim keeps the type legible on
+   any photograph — light or dark, busy or empty. */
+.ll-vision.plated{
+  position:relative;
+  width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);
+  padding:76px max(80px,calc(50vw - 280px)) 68px;
+  margin-bottom:96px;border-radius:0;overflow:hidden;
+}
+.ll-vision.plated:hover{background:none}
+.ll-vision .ll-body{position:relative;z-index:2}
+.ll-plate{position:absolute;inset:0;z-index:0;pointer-events:none}
+.ll-plate-img{position:absolute;inset:0;background-size:cover;background-position:center;
+  filter:saturate(.62) contrast(.94);opacity:.5;transform:scale(1.03);
+  transition:opacity .6s var(--ease),transform 1.2s var(--ease)}
+.ll-vision.plated:hover .ll-plate-img{opacity:.62;transform:scale(1.05)}
+/* the scrim: heavier where the type starts, thinning towards the far edge */
+.ll-plate-wash{position:absolute;inset:0;
+  background:linear-gradient(100deg,var(--bg) 0%,color-mix(in srgb,var(--bg) 86%,transparent) 38%,color-mix(in srgb,var(--bg) 58%,transparent) 72%,color-mix(in srgb,var(--bg) 40%,transparent) 100%),
+             linear-gradient(to bottom,var(--bg) 0%,transparent 14%,transparent 86%,var(--bg) 100%)}
+.ll-plate-strip{position:absolute;right:clamp(16px,4vw,64px);bottom:26px;z-index:2;display:flex;gap:8px}
+.ll-plate-strip img{width:52px;height:52px;object-fit:cover;border-radius:3px;cursor:zoom-in;
+  opacity:.62;filter:saturate(.7);border:1px solid color-mix(in srgb,var(--text) 12%,transparent);
+  transition:opacity .3s var(--ease),transform .3s var(--ease)}
+.ll-plate-strip img:hover{opacity:1;transform:translateY(-3px)}
+@media (max-width:800px){
+  .ll-vision.plated{padding:52px 24px 56px}
+  .ll-plate-strip{display:none}
+}
+/* the images control lives with the passage, quiet until you look for it */
+.ll-plate-tools{margin-top:18px;display:flex;gap:14px;align-items:center;opacity:0;transition:opacity .3s var(--ease)}
+.ll-vision:hover .ll-plate-tools,.ll-vision.open .ll-plate-tools,.ll-vision.plated .ll-plate-tools{opacity:.6}
+.ll-plate-tools:hover{opacity:1}
+@media (hover:none){.ll-plate-tools{opacity:.6}}
+
 @media (prefers-reduced-motion:reduce){
   .ll-vision,.ll-name,.ll-conf-track i,.ll-margin,.vw-stage{transition:none;animation:none}
   .ll-more{transition:none}
+  .ll-plate-img,.ll-plate-strip img,.ll-plate-tools{transition:none}
 }
+
+/* ---------- Today's index ----------
+   The page is long on purpose; the index is how you get to the one thing you
+   opened it for. It sticks under the header and stays out of the way. */
+.today-jump{position:sticky;top:0;z-index:6;display:flex;gap:4px;flex-wrap:wrap;
+  margin:0 0 18px;padding:8px 0;background:linear-gradient(to bottom,var(--bg) 72%,transparent);
+  backdrop-filter:blur(6px)}
+.today-jump button{background:none;border:1px solid transparent;border-radius:999px;
+  padding:3px 10px;font-family:var(--mono);font-size:.62rem;letter-spacing:.08em;
+  text-transform:lowercase;color:var(--muted);cursor:pointer;
+  transition:color .2s var(--ease),border-color .2s var(--ease),background .2s var(--ease)}
+.today-jump button:hover{color:var(--page-accent);border-color:color-mix(in srgb,var(--page-accent) 35%,transparent);
+  background:color-mix(in srgb,var(--page-accent) 7%,transparent)}
+.jump-lit{animation:jumpLit 1.2s var(--ease)}
+@keyframes jumpLit{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--page-accent) 34%,transparent)}
+  100%{box-shadow:0 0 0 14px transparent}}
+@media (max-width:700px){.today-jump{gap:2px}.today-jump button{padding:3px 7px;font-size:.58rem}}
+
+/* ---------- a cycle closing tonight ---------- */
+.cyc-block{margin-top:8px}
+.cyc-card{border:1px solid var(--line);border-left:3px solid var(--page-accent);border-radius:10px;
+  background:var(--surface);padding:14px 16px;margin-top:12px}
+.cyc-card.late{border-left-color:var(--rose)}
+.cyc-figs{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:10px;margin:2px 0 10px}
+.cyc-figs > div{display:flex;flex-direction:column;gap:1px}
+.cyc-figs .k{font-family:var(--mono);font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);opacity:.8}
+.cyc-figs b{font-family:var(--serif);font-size:1.32rem;font-weight:400;line-height:1.1}
+.cyc-figs .mono{font-size:.62rem;color:var(--muted);opacity:.8}
+.cyc-graph{margin-top:4px}
+.cyc-graph svg{display:block;width:100%;overflow:visible}
+.cyc-legend{display:flex;gap:14px;margin-top:4px;font-size:.6rem;color:var(--muted);opacity:.75}
+.cyc-legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px}
+.cyc-answer{margin-top:12px;border-top:1px dashed var(--line);padding-top:12px}
+.cyc-answer p{font-size:.88rem;line-height:1.65;margin:0 0 8px}
+.cyc-reading h4{font-family:var(--serif);font-size:.82rem;font-variant:small-caps;letter-spacing:.1em;
+  color:var(--page-accent);font-weight:400;margin:14px 0 4px}
+.cyc-reading h4:first-child{margin-top:0}
+@media (prefers-reduced-motion:reduce){.today-jump button,.jump-lit{transition:none;animation:none}}
 </style>
 </head>
 <body>
-<div class="ambient"><div class="ink-layer" id="inkSplat"></div><div class="page-scene" id="scA"></div><div class="page-scene" id="scB"></div><div class="ink-layer" id="inkMist"></div><div class="page-grad" id="pgA"></div><div class="page-grad" id="pgB"></div><div class="ink-layer" id="inkSeason"></div><div class="ink-layer" id="inkRipple"></div></div>
+<div class="ambient"><div class="page-scene" id="scA"></div><div class="page-scene" id="scB"></div><div class="ink-layer" id="inkMist"></div><div class="page-grad" id="pgA"></div><div class="page-grad" id="pgB"></div><div class="ink-layer" id="inkSeason"></div><div class="ink-layer" id="inkRipple"></div></div>
 <canvas class="dust" id="dust"></canvas>
 <div id="app">
   <aside class="sidebar" id="sidebar"></aside>
@@ -2259,7 +2326,7 @@ function tagChips(e, {link=true}={}){ const t = entryTags(e); return t.length ? 
 const KEY = 'lifeinstrument.v1';
 let S = null;
 /* persistence lives in db.js (Dexie schema + load/save/backup) */
-function migrate(){ if(S.settings && S.settings.home === 'map') S.settings.home = 'home'; wipeDemoData(); if(S.rehearsal && !S.rehearsal){ S.rehearsal = S.rehearsal; } delete S.rehearsal; if(typeof migrateEras === 'function') migrateEras(); const d = seed(); for(const k of Object.keys(d)) if(S[k]===undefined) S[k] = d[k]; if(typeof migrateLifeline === 'function') migrateLifeline(); if(typeof migrateSkillLevels === 'function') migrateSkillLevels(); if(typeof migrateProjects === 'function') migrateProjects(); if(typeof migrateStages === 'function') migrateStages(); if(typeof migrateTasks === 'function') migrateTasks(); if(typeof migrateIdeas === 'function') migrateIdeas(); if(typeof migrateMedia === 'function') migrateMedia(); if(typeof migrateSkillFocus === 'function') migrateSkillFocus(); if(typeof migratePeople === 'function') migratePeople(); if(typeof migrateValuePractices === 'function') migrateValuePractices(); if(typeof migrateFinance === 'function') migrateFinance(); if(typeof migrateRhythm === 'function') migrateRhythm(); S.boards = Array.isArray(S.boards) ? S.boards : []; }
+function migrate(){ if(S.settings && (S.settings.home === 'map' || S.settings.home === 'home')) S.settings.home = 'compass'; wipeDemoData(); if(S.rehearsal && !S.rehearsal){ S.rehearsal = S.rehearsal; } delete S.rehearsal; if(typeof migrateEras === 'function') migrateEras(); const d = seed(); for(const k of Object.keys(d)) if(S[k]===undefined) S[k] = d[k]; if(typeof migrateLifeline === 'function') migrateLifeline(); if(typeof migrateSkillLevels === 'function') migrateSkillLevels(); if(typeof migrateProjects === 'function') migrateProjects(); if(typeof migrateStages === 'function') migrateStages(); if(typeof migrateTasks === 'function') migrateTasks(); if(typeof migrateIdeas === 'function') migrateIdeas(); if(typeof migrateMedia === 'function') migrateMedia(); if(typeof migrateSkillFocus === 'function') migrateSkillFocus(); if(typeof migratePeople === 'function') migratePeople(); if(typeof migrateValuePractices === 'function') migrateValuePractices(); if(typeof migrateFinance === 'function') migrateFinance(); if(typeof migrateRhythm === 'function') migrateRhythm(); S.boards = Array.isArray(S.boards) ? S.boards : []; }
 
 /* One-time: the house used to open furnished with a demonstration life. If that
    demonstration is still here, clear it so the rooms start empty. */
@@ -2269,7 +2336,7 @@ function wipeDemoData(){
   const keep = S.settings || {};
   const fresh = seed();
   for(const k of Object.keys(fresh)) if(demo || S[k] === undefined) S[k] = fresh[k];
-  if(demo) S.settings = Object.assign(fresh.settings, {theme:keep.theme||'dark', sound:keep.sound, feltTime:keep.feltTime, home:keep.home||'home', nav:keep.nav, projectView:keep.projectView, firstOpen:keep.firstOpen||today()});
+  if(demo) S.settings = Object.assign(fresh.settings, {theme:keep.theme||'dark', sound:keep.sound, feltTime:keep.feltTime, home:keep.home||'compass', nav:keep.nav, projectView:keep.projectView, firstOpen:keep.firstOpen||today()});
   S.settings.demoWiped = true;
 }
 
@@ -2378,8 +2445,16 @@ function applySeason(){ if(typeof season === 'function') document.documentElemen
 const routes = {};
 let currentRoute = null;
 function navigate(hash){ location.hash = hash; }
+/* A deep link is an instruction, not a place. Once a page has acted on the id
+   in its address, the id has to leave the address — otherwise every re-render
+   of that page acts on it again. replaceState does not fire hashchange, so the
+   page is not re-entered; only the address is corrected. */
+function consumeHashParam(bare){
+  try { history.replaceState(history.state, '', location.pathname + location.search + bare); } catch(e){}
+}
 function parseHash(){ const h = (location.hash||'').replace(/^#\/?/,''); const [name, ...rest] = h.split('/'); return {name: name || homeRoute(), params: rest.map(decodeURIComponent)}; }
-const ROUTE_ALIASES = {calendar:'rhythm', plan:'rhythm/plan', rituals:'rhythm/habits', reviews:'rhythm/review', board:'vision'};
+/* rooms that no longer exist, pointed at where their work went */
+const ROUTE_ALIASES = {home:'compass', rhythm:'lifetape', calendar:'lifetape', plan:'today', rituals:'lifetape/habits', reviews:'today', board:'vision'};
 function renderRoute(){
   /* page-scoped atmosphere flags do not survive a navigation */
   document.documentElement.classList.remove('vision-deep');
@@ -2387,7 +2462,7 @@ function renderRoute(){
   if(ROUTE_ALIASES[name] && !routes[name]){ const t = ROUTE_ALIASES[name]; navigate('#/' + t + (params[0] && !t.includes('/') ? '/' + params[0] : '')); return; }
   markActiveNav(); applyPageTheme();
   const main = $('#main');
-  const fn = routes[name] || routes.home;
+  const fn = routes[name] || routes.compass;
   closePanel({keep:true});
   /* a modal belongs to the page that opened it — carrying one across a
      navigation leaves it stranded on top of a page it knows nothing about */
@@ -2401,7 +2476,7 @@ function renderRoute(){
   if(typeof attachDictationIn === 'function') attachDictationIn(main);
   restoreScroll(location.hash);
 }
-function rerender(){ const y = window.scrollY; const main = $('#main'); const {name, params} = parseHash(); main.innerHTML=''; PageEntryConfig.clear(); (routes[name]||routes.home)(main, params); decoratePageHead(main); mountContextAdd(main); if(typeof attachDictationIn === 'function') attachDictationIn(main); $$('.rv', main).forEach(n=>n.classList.add('in')); tweenAll(main); window.scrollTo({top:y}); }
+function rerender(){ const y = window.scrollY; const main = $('#main'); const {name, params} = parseHash(); main.innerHTML=''; PageEntryConfig.clear(); (routes[name]||routes.compass)(main, params); decoratePageHead(main); mountContextAdd(main); if(typeof attachDictationIn === 'function') attachDictationIn(main); $$('.rv', main).forEach(n=>n.classList.add('in')); tweenAll(main); window.scrollTo({top:y}); }
 /* where you were on each page, so Back returns you to the spot and not the top */
 try { history.scrollRestoration = 'manual'; } catch(e){}
 const scrollMem = new Map(); let wentBack = false, navSeq = 0, navIdx = -1;
@@ -2526,7 +2601,7 @@ function bindVmToggle(container, key){
 }
 window.addEventListener('popstate', e => { if($('#panel') && !e.state?.liPanel) closePanel({keep:true}); updateBackButton(); });
 /* ---------- persistent Back button: history.back() only, never a link ---------- */
-function homeRoute(){ const h = S?.settings?.home; return (h && h !== 'map' && routes[h]) ? h : 'home'; }
+function homeRoute(){ const h = S?.settings?.home; return (h && h !== 'map' && routes[h]) ? h : 'compass'; }
 function updateBackButton(){
   const b = $('#backBtn'); if(!b) return;
   const {name} = parseHash();
@@ -2632,47 +2707,22 @@ const typeIcon = t => (ENTRY_TYPES.find(x=>x[0]===t)||['','','·'])[2];
 /* ============================================================
    THE INK LAYER — 水墨画, the paper the rooms are painted on
    The rooms each have their own painting (see scenes.js). This
-   is what sits behind all of them: the splatter that was
-   already on the sheet before anyone started, the mist that
-   moves across it, whatever the season is doing at the margin,
-   and the water everything floats above.
+   is what sits behind all of them: the mist that moves across
+   it, whatever the season is doing at the margin, and the water
+   everything floats above. There is deliberately no splatter —
+   one fixed blob repeated on every page reads as a stain, not
+   as a painting.
 
    Monochrome by rule — warm cream on the dark ground, ink black
    on the paper one — because the colour in this house belongs
    to the rooms, and a shan shui painting has never needed any.
    ============================================================ */
 const INK_CONTEMPLATIVE = ['today','journals','vision'];   // where a margin illustration belongs
-const INK_WATER = ['vision','skills','home'];              // the wide canvases that float on water
+const INK_WATER = ['vision','skills','compass'];              // the wide canvases that float on water
 
 /* one seed for the life of the install, so the same painting greets you */
 function inkSeed(){ return hashSeed('ink:' + ((typeof S !== 'undefined' && S?.settings?.firstOpen) || 'first-light')); }
 function season(d = new Date()){ const m = d.getMonth(); return (m === 11 || m <= 1) ? 'winter' : m <= 4 ? 'spring' : m <= 7 ? 'summer' : 'autumn'; }
-
-/* ---------- splatter: the accidents already on the paper ----------
-   Ink does not land in a circle. The radius is thrown around hard, and the
-   satellites are what came off the brush on the way down. */
-function inkBlobPath(cx, cy, rad, r, n = 15){
-  const pts = [];
-  for(let i = 0; i < n; i++){
-    const a = (i/n)*Math.PI*2, rr = rad*(.48 + r()*.85);
-    pts.push([cx + Math.cos(a)*rr, cy + Math.sin(a)*rr*(.66 + r()*.5)]);
-  }
-  pts.push(pts[0]);
-  return smoothClosed(pts);
-}
-function inkSplatterSVG(){
-  const r = mulberry32(inkSeed()); const W = 1200, H = 800;
-  let g = '';
-  for(let i = 0, n = 2 + Math.floor(r()*2); i < n; i++){
-    const cx = 110 + r()*(W-220), cy = 80 + r()*(H-160), rad = 84 + r()*130;
-    g += `<path d="${inkBlobPath(cx, cy, rad, r)}" fill="var(--ink)" opacity="${(.62 + r()*.38).toFixed(2)}"/>`;
-    for(let k = 0, drops = 3 + Math.floor(r()*5); k < drops; k++){
-      const a = r()*Math.PI*2, dist = rad*(1.05 + r()*1.4);
-      g += `<path d="${inkBlobPath(cx + Math.cos(a)*dist, cy + Math.sin(a)*dist, 5 + r()*20, r, 9)}" fill="var(--ink)" opacity="${(.35 + r()*.5).toFixed(2)}"/>`;
-    }
-  }
-  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice">${g}</svg>`;
-}
 
 /* ---------- mist: three breaths of wash, none of them with an edge ---------- */
 function mistRibbon(y, h, seed){
@@ -2718,7 +2768,7 @@ function fallingLeavesHTML(r){
   }).join('');
 }
 function inkSeasonHTML(){
-  const s = season(), key = typeof pageThemeKey === 'function' ? pageThemeKey() : 'home';
+  const s = season(), key = typeof pageThemeKey === 'function' ? pageThemeKey() : 'compass';
   const r = mulberry32(inkSeed() ^ 0x5eed5eed);
   let art = '';
   if(INK_CONTEMPLATIVE.includes(key)){
@@ -2732,17 +2782,17 @@ function inkSeasonHTML(){
 }
 
 /* ---------- painting it ----------
-   The splatter, the mist and the water are the paper: painted once and left
-   alone. Only the margin sprig changes as you move between rooms. */
+   The mist and the water are the paper: painted once and left alone. Only
+   the margin sprig changes as you move between rooms. */
 let _inkPainted = false, _inkKey = null;
 function applyInk(){
-  const splat = document.getElementById('inkSplat'), mist = document.getElementById('inkMist'),
-        seas  = document.getElementById('inkSeason'), rip = document.getElementById('inkRipple');
-  if(!splat || !mist || !seas || !rip) return;
-  if(!_inkPainted){ splat.innerHTML = inkSplatterSVG(); mist.innerHTML = inkMistSVG(); rip.innerHTML = inkRippleSVG(); _inkPainted = true; }
-  const key = (typeof pageThemeKey === 'function' ? pageThemeKey() : 'home') + ':' + season();
+  const mist = document.getElementById('inkMist'),
+        seas = document.getElementById('inkSeason'), rip = document.getElementById('inkRipple');
+  if(!mist || !seas || !rip) return;
+  if(!_inkPainted){ mist.innerHTML = inkMistSVG(); rip.innerHTML = inkRippleSVG(); _inkPainted = true; }
+  const key = (typeof pageThemeKey === 'function' ? pageThemeKey() : 'compass') + ':' + season();
   if(key !== _inkKey){ seas.innerHTML = inkSeasonHTML(); _inkKey = key; }
-  rip.classList.toggle('on', INK_WATER.includes(typeof pageThemeKey === 'function' ? pageThemeKey() : 'home'));
+  rip.classList.toggle('on', INK_WATER.includes(typeof pageThemeKey === 'function' ? pageThemeKey() : 'compass'));
 }
 /* parallax: the ridges answer the scroll a little, the mist a little more */
 (() => {
@@ -2780,8 +2830,8 @@ const PAGE_THEMES = {
   skills:   {name:'Skill Tree',   accent:['#3fae7a','#25835a'], ink:'#1a1816', gradient:['#2f9e6e','#2aa7a0'], mood:'growth, energy',         motion:'energetic', glyph:'技', icon:'🛠'},
   vision:   {name:'Vision',  accent:['#7b7de3','#4d50b6'], ink:'#f6f4ff', gradient:['#4b4fb0','#8a5fc9'], mood:'expansive, dreamy',      motion:'calm',      glyph:'夢', icon:'🌳'},
   timeline: {name:'Timeline',       accent:['#cba85a','#96762a'], ink:'#1a1816', gradient:['#c9a55a','#8a6a4a'], mood:'nostalgic, warm',        motion:'calm',      glyph:'憶', icon:'⏳'},
-  home:     {name:'Home',         accent:['#94a6b5','#5b7082'], ink:'#1a1816', gradient:['#8a9aa6','#6c8299'], mood:'analytical, clear',      motion:'calm',      glyph:'家', icon:'⌂'},
-  rhythm:   {name:'Rhythm',        accent:['#d99a6a','#a8623a'], ink:'#1a1816', gradient:['#c98a5e','#e3bf94'], mood:'present, ordered',       motion:'snappy',    glyph:'律', icon:'◷'},
+  compass:  {name:'Compass',      accent:['#94a6b5','#5b7082'], ink:'#1a1816', gradient:['#8a9aa6','#6c8299'], mood:'analytical, clear',      motion:'calm',      glyph:'家', icon:'⌂'},
+  lifetape: {name:'Life Tape',     accent:['#d99a6a','#a8623a'], ink:'#1a1816', gradient:['#c98a5e','#e3bf94'], mood:'present, ordered',       motion:'snappy',    glyph:'律', icon:'◷'},
   calendar: {name:'Calendar',      accent:['#8fa9c4','#4f7093'], ink:'#1a1816', gradient:['#7d97b3','#c2cfdb'], mood:'wide, seasonal',         motion:'calm',      glyph:'暦', icon:'▦'},
   finance:  {name:'Finance',       accent:['#8fae86','#4d7a4a'], ink:'#1a1816', gradient:['#6f9a68','#c3cf9f'], mood:'plain, countable',       motion:'crisp',     glyph:'財', icon:'▤'},
   people:   {name:'People',        accent:['#d99a9a','#a5605f'], ink:'#1a1816', gradient:['#c98a8a','#e6c3b4'], mood:'warm, particular',       motion:'calm',      glyph:'人', icon:'☺'},
@@ -2792,9 +2842,9 @@ const PAGE_THEMES = {
   settings: {name:'Settings',     accent:['#a3978a','#776a5c'], ink:'#1a1816', gradient:['#a3978a','#c9b8a4'], mood:'quiet, practical',       motion:'crisp',     glyph:'設', icon:'⚙'},
 };
 /* routes that live inside another room's theme */
-const PAGE_THEME_ALIASES = {stage:'timeline', value:'values'};
-function pageThemeKey(){ const {name} = parseHash(); const k = PAGE_THEME_ALIASES[name] || name; return PAGE_THEMES[k] ? k : 'home'; }
-function pageTheme(key){ return PAGE_THEMES[key] || PAGE_THEMES.home; }
+const PAGE_THEME_ALIASES = {stage:'timeline', value:'values', home:'compass', rhythm:'lifetape'};
+function pageThemeKey(){ const {name} = parseHash(); const k = PAGE_THEME_ALIASES[name] || name; return PAGE_THEMES[k] ? k : 'compass'; }
+function pageTheme(key){ return PAGE_THEMES[key] || PAGE_THEMES.compass; }
 function pageGradientCSS(t){ return `linear-gradient(135deg, ${t.gradient[0]} 0%, ${t.gradient[1]} 100%)`; }
 let _pageThemeKey = null, _gradLayer = 0;
 function applyPageTheme(){
@@ -3274,6 +3324,8 @@ const PAGE_SCENES = {
     ${mistBand(u, 300, 90, .6)}
     ${seal(1090, 130, 40, '具')}`),
 };
+PAGE_SCENES.lifetape = PAGE_SCENES.rhythm;
+PAGE_SCENES.compass  = PAGE_SCENES.home;
 PAGE_SCENES.plan     = PAGE_SCENES.rhythm;
 PAGE_SCENES.board    = PAGE_SCENES.vision;
 PAGE_SCENES.tag      = PAGE_SCENES.journals;
@@ -3332,7 +3384,7 @@ function applyPageScene(){
   const rec = routeRecord();
   const key = rec ? `rec:${rec.id}` : `page:${pageThemeKey()}`;
   if(key === _sceneKey) return;
-  const svg = rec ? recordMotifSVG(rec.id, rec.color || A) : (PAGE_SCENES[pageThemeKey()] || PAGE_SCENES.home)();
+  const svg = rec ? recordMotifSVG(rec.id, rec.color || A) : (PAGE_SCENES[pageThemeKey()] || PAGE_SCENES.compass || PAGE_SCENES.home)();
   const next = 1 - _sceneLayer;
   layers[next].innerHTML = svg; layers[next].classList.add('on'); layers[_sceneLayer].classList.remove('on');
   _sceneLayer = next; _sceneKey = key;
@@ -4086,7 +4138,7 @@ function seed(){
   const T = today();
   return {
     version:1,
-    settings:{theme:'dark',sound:false,feltTime:false,home:'home',chapterNamed:false,ribbons:true,firstOpen:T,relationships:[]},
+    settings:{theme:'dark',sound:false,feltTime:false,home:'compass',chapterNamed:false,ribbons:true,firstOpen:T,relationships:[]},
     reminders:[], tasks:[],
     stages:[], threads:[], tensions:[],
     values:[], valueOrder:[], valueOrderHistory:[], valueSnapshots:[],
@@ -4413,7 +4465,7 @@ function rhythmTags(){ const set = new Set();
    THE MASLOW ENGINE
    ============================================================ */
 const MASLOW = [
-  {level:1, key:'body',      name:'Physiological',      short:'BODY',     ask:'Is your body getting what it needs?',                  go:'#/rhythm'},
+  {level:1, key:'body',      name:'Physiological',      short:'BODY',     ask:'Is your body getting what it needs?',                  go:'#/lifetape'},
   {level:2, key:'safety',    name:'Safety & Security',  short:'SAFETY',   ask:'Do you feel safe — financially, physically, emotionally?', go:'#/finance'},
   {level:3, key:'belonging', name:'Love & Belonging',   short:'BELONGING',ask:'Who do you belong to? Who belongs to you?',             go:'#/people'},
   {level:4, key:'esteem',    name:'Esteem',             short:'ESTEEM',   ask:'Do you respect yourself? Does your work feel like it matters?', go:'#/skills'},
@@ -4663,7 +4715,7 @@ function timeUseHTML(d = today()){
   const ratioCls = ratio == null ? '' : ratio >= 80 ? 'good' : ratio < 50 ? 'poor' : '';
   return `<section class="section rv time-use" data-tuday="${d}">
     <div class="row between" style="align-items:baseline;flex-wrap:wrap;gap:8px">
-      <span class="sc" style="margin:0">The shape of the day</span>
+      <span class="sc" style="margin:0">Sleep &amp; time use</span>
       <span class="row" style="gap:5px;align-items:center">
         <button class="tbtn" data-tunav="${addDays(d,-1)}" title="previous day">‹</button>
         <span class="mono faint">${d === T ? 'today' : esc(fmtDate(d,'med'))}</span>
@@ -4811,11 +4863,11 @@ function maslowCards(key){
   const add = o => { if(o) out.push(o); };
   if(key === 'body'){
     const r = rhythmDay(); const sl = r.computed.totalAwakeMinutes != null ? 1440 - r.computed.totalAwakeMinutes : null;
-    if(sl != null) add({icon:'☾', label:'SLEEP', value:fmtDur(sl), detail:`woke ${esc(r.wakeTime)}`, go:'#/rhythm'});
+    if(sl != null) add({icon:'☾', label:'SLEEP', value:fmtDur(sl), detail:`woke ${esc(r.wakeTime)}`, go:'#/lifetape'});
     const pe = S.checkins?.[T]?.energy?.physical;
     if(pe) add({icon:'◍', label:'BODY ENERGY', value:`${pe}<small>/5</small>`, detail:'today', spark:miniBar(pct(pe,1,5),'var(--phys)')});
     const hr = mHabitRate(h => h.dimension === 'physical');
-    if(hr != null) add({icon:'▲', label:'MOVEMENT', value:`${hr}<small>%</small>`, detail:'physical habits, 7 days', go:'#/rhythm', spark:miniBar(hr,'var(--phys)')});
+    if(hr != null) add({icon:'▲', label:'MOVEMENT', value:`${hr}<small>%</small>`, detail:'physical habits, 7 days', go:'#/lifetape', spark:miniBar(hr,'var(--phys)')});
   }
   if(key === 'safety'){
     if(typeof runway === 'function' && S.finance?.scenarios?.length && (incomeStreamList().length || S.finance.savings)){
@@ -4838,7 +4890,7 @@ function maslowCards(key){
       add({icon:'☺', label:'INNER CIRCLE', value:n, detail: stale ? `longest quiet: ${esc(stale.p.name)}` : 'this month', go:'#/people'});
     }
     const rr = mHabitRate(h => !!h.relational);
-    if(rr != null) add({icon:'♡', label:'CONNECTIONS', value:`${rr}<small>%</small>`, detail:'relational habits', go:'#/rhythm', spark:miniBar(rr,'var(--rose)')});
+    if(rr != null) add({icon:'♡', label:'CONNECTIONS', value:`${rr}<small>%</small>`, detail:'relational habits', go:'#/lifetape', spark:miniBar(rr,'var(--rose)')});
     const last = [...(S.interactions||[])].sort((a,b)=>a.date<b.date?1:-1)[0];
     if(last){ const who = byId(S.people, last.personId);
       add({icon:'◌', label:'LAST SEEN', value:esc((who?.name||'someone').split(' ')[0]), detail:relDays(daysSince(last.date)), go:'#/people'}); }
@@ -5118,6 +5170,24 @@ routes.today = function(root){
 
   const seasonName = (()=>{ if(typeof season === 'function'){ const s = season(parseDay(T)); return {winter:'Winter',spring:'Spring',summer:'Summer',autumn:'Autumn'}[s]||''; } return ''; })();
 
+  /* the page is long by design — everything a day needs is on it — so it
+     carries its own index. Sections that are not on the page today (a letter
+     due, a review closing tonight) drop out of the index with them. */
+  const jumps = [
+    ['t-flow',    'flow',     true],
+    ['t-letters', 'letters',  ready.length > 0],
+    ['t-plan',    'plan',     true],
+    ['t-tasks',   'tasks',    true],
+    ['t-checkin', 'check-in', true],
+    ['t-theatre', 'theatre',  true],
+    ['t-habits',  'habits',   true],
+    ['t-reviews', 'reviews',  typeof reviewsDue === 'function' && reviewsDue(T).length > 0],
+    ['t-position','position', true],
+    ['t-prompt',  'prompt',   true],
+    ['t-add',     'quick add',true],
+    ['t-tonight', 'tonight',  true],
+  ].filter(x => x[2]);
+
   root.innerHTML = `<div class="page narrow today-page">
 
     <!-- header -->
@@ -5132,11 +5202,15 @@ routes.today = function(root){
       ${cyest?.intention ? `<div class="mono faint" style="margin-top:8px;font-size:.78rem">Yesterday you set out to: <em>${esc(cyest.intention)}</em></div>` : ''}
     </header>
 
+    <nav class="today-jump rv" aria-label="jump to a section">
+      ${jumps.map(([id, label]) => `<button data-jump="${id}">${esc(label)}</button>`).join('')}
+    </nav>
+
     ${timeUseHTML(S._tuDay || T)}
     ${maslowRowsHTML()}
 
     <!-- morning flow tracker -->
-    <section class="section rv morning-flow">
+    <section class="section rv morning-flow" id="t-flow">
       <div class="row between"><span class="sc lg">Morning flow</span><span class="mono">${c.wakeAt ? 'woke ' + _ft(c.wakeAt) : ''}</span></div>
       <div class="card" style="margin-top:8px">
         ${flowSteps.map((s, i) => `<div class="row between" style="padding:7px 0;${i < flowSteps.length - 1 ? 'border-bottom:1px dashed var(--line)' : ''}">
@@ -5148,13 +5222,13 @@ routes.today = function(root){
     </section>
 
     <!-- sealed letters (prominent) -->
-    ${ready.length ? `<section class="section rv ready-letters">
+    ${ready.length ? `<section class="section rv ready-letters" id="t-letters">
       <div class="sc">A letter from you has come due</div>
       ${ready.map(e=>`<div class="card ready-letter" style="margin-top:8px"><div class="row between"><span><b class="serif">${esc(e.title||'To myself')}</b><div class="mono faint">${daysBetween((e.createdAt||'').slice(0,10), T)} days ago</div></span><button class="btn sm primary" data-lopen="${e.id}">Open it</button></div></div>`).join('')}
     </section>` : ''}
 
     <!-- the plan, made last night -->
-    <section class="section rv today-plan">
+    <section class="section rv today-plan" id="t-plan">
       <div class="row between"><span class="sc" style="margin:0">Today's plan</span>
         <span class="mono faint">${planT.planned ? 'set last night' : 'not planned in advance'}</span></div>
       ${three.length ? `<ol class="today-three">${three.map(t => `<li>${esc(t)}</li>`).join('')}</ol>`
@@ -5162,7 +5236,7 @@ routes.today = function(root){
     </section>
 
     <!-- today's tasks (up front) -->
-    <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Today's tasks</span><span class="mono">${rows.length?`${doneN} of ${rows.length} done`:'nothing parked yet'}</span></div>
+    <section class="section rv" id="t-tasks"><div class="row between"><span class="sc" style="margin:0">Today's tasks</span><span class="mono">${rows.length?`${doneN} of ${rows.length} done`:'nothing parked yet'}</span></div>
       <div class="card" data-daydrop="${T}" style="margin-top:10px">
         <div class="stack" style="gap:2px">${rows.map(r=>taskRowHTML(r)).join('')||`<div class="empty">Park work here from a project, or write one below.</div>`}</div>
         <div class="row" style="margin-top:10px;gap:8px">${quickTaskInput(T)}<button class="btn sm ghost" id="pullTask">pull in ↓</button></div>
@@ -5170,7 +5244,7 @@ routes.today = function(root){
       </div></section>
 
     <!-- daily check-in (intention + mood + energy + setpoint) -->
-    <details class="rv today-checkin" ${!c.intention||(!c.setpoint && !c.mood) ? 'open' : ''}>
+    <details class="rv today-checkin" id="t-checkin" ${!c.intention||(!c.setpoint && !c.mood) ? 'open' : ''}>
       <summary><span class="sc lg">Daily check-in</span><span class="mono">${c.intention ? esc(c.intention.slice(0,40)) : 'not yet set'}</span></summary>
       <div class="body stack" style="gap:20px">
         <div class="field"><label>Today's intention ${planT.planned && c.intention ? '<span class="mono faint" style="text-transform:none;letter-spacing:0">· set last night</span>' : ''}</label>
@@ -5193,7 +5267,7 @@ routes.today = function(root){
     </details>
 
     <!-- morning rehearsal (Maltz) -->
-    <details class="rv rehearsal-wrap" ${rehearsalDoneToday()?'':'open'} style="margin-top:8px">
+    <details class="rv rehearsal-wrap" id="t-theatre" ${rehearsalDoneToday()?'':'open'} style="margin-top:8px">
       <summary><span class="sc lg">Morning Theatre</span><span class="mono">${rehearsalDoneToday()?'practised today':'30 minutes · Maltz'}</span></summary>
       <div class="body rehearsal stack" style="gap:24px">
         <blockquote class="rehearsal-epigraph">Close your eyes for thirty minutes. See yourself on a mental screen — sights, sounds, smells. See yourself acting, feeling and being as you want to be. The nervous system cannot tell a real experience from one vividly imagined.<cite>Maxwell Maltz</cite></blockquote>
@@ -5207,26 +5281,34 @@ routes.today = function(root){
       </div>
     </details>
 
-    <!-- habit rings -->
-    <section class="section rv" style="margin-top:8px">
-      <span class="sc lg">Today's habits</span>
+    <!-- the habit checklist: the whole of habit-keeping now lives here -->
+    <section class="section rv" style="margin-top:8px" id="t-habits">
+      <div class="row between" style="align-items:baseline"><span class="sc lg" style="margin:0">Today's habits</span>
+        <span class="mono faint">${(() => { const due = S.habits.filter(h => !h.archived && !h.negative && habitDue(h, T)); const dn = due.filter(h => habitDone(h, T)).length; return due.length ? `${dn} of ${due.length} kept` : 'nothing due'; })()}</span></div>
       <div id="todayRings" style="margin-top:10px"></div>
+      <div class="row" style="gap:6px;margin-top:12px;flex-wrap:wrap">
+        <button class="btn sm primary" id="todayAddHabit">＋ add habit</button>
+        ${S.habits.some(h => h.archived) ? '<button class="btn sm ghost" id="todayArchHabit">archived</button>' : ''}
+        <a class="btn sm ghost" href="#/lifetape/habits">the whole grid →</a>
+      </div>
     </section>
+
+    ${typeof reviewsDueHTML === 'function' ? reviewsDueHTML(T) : ''}
 
     ${due.length ? `<section class="section rv"><div class="card"><div class="row between"><span class="sc" style="margin:0">Decisions ready to grade</span><a class="mono" href="#/journals/decision">all →</a></div>${due.map(e=>`<div class="row between" style="margin-top:8px"><span><b class="serif">${esc(e.title)}</b><div class="mono">${fmtDate((e.createdAt||'').slice(0,10),'med')}</div></span><button class="btn sm" data-dopen="${e.id}">Look back</button></div>`).join('')}</div></section>` : ''}
     ${pr.length ? `<section class="section rv"><div class="row between"><span class="sc" style="margin:0">Today's practices</span><a class="mono" href="#/values">compass →</a></div>
       <div class="card" style="margin-top:10px"><div class="prac-today">${pr.map(({v,p,done,doneThisWeek})=>`<button class="prac-chip ${done?'on':''}" data-practoday="${v.id}:${p.id}" style="--c:${v.color}"><span class="pc-tick">${done?'✓':'○'}</span><span class="pc-text">${esc(p.text)}</span><span class="pc-val mono">${esc(v.name)} · ${doneThisWeek}/${p.perWeek}</span></button>`).join('')}</div></div></section>` : ''}
     ${milestones.length ? `<section class="section rv"><span class="sc">Skill milestones within 30 days</span><div class="card" style="border-left:3px solid var(--ment)">${milestones.map(({skill,m,days})=>`<a href="#/skills/${skill.id}" class="row between" style="text-decoration:none;color:inherit;padding:8px 0;border-top:1px dashed var(--line);gap:12px"><span><b class="serif">${esc(skill.name)}</b> <span class="muted">→ ${esc(skillLevelLabel(skill,m.levelTarget))}</span></span><span class="status-pill ${days<0?'due':'ahead'}">${days<0?'⚠ ' + (-days) + 'd overdue':days===0?'today':'in ' + days + 'd'}</span></a>`).join('')}</div></section>` : ''}
 
-    ${positionHTML()}
+    <div id="t-position">${positionHTML()}</div>
 
     <!-- gentle prompt -->
-    <section class="section rv"><span class="sc">A gentle prompt</span>
+    <section class="section rv" id="t-prompt"><span class="sc">A gentle prompt</span>
       <div class="prompt-card"><div class="quote" id="promptText">${gentlePrompt()}</div><div class="row" style="margin-top:14px;justify-content:space-between"><button class="btn sm ghost" id="anotherPrompt">another</button><button class="btn sm" data-quick="reflection">respond ✎</button></div></div>
     </section>
 
     <!-- quick add row -->
-    <section class="section rv">
+    <section class="section rv" id="t-add">
       <span class="sc">Quick add</span>
       <div class="row" style="gap:6px;flex-wrap:wrap;margin-top:10px">
         ${[['reflection','✎','Reflection'],['gratitude','♡','Gratitude'],['synchronicity','∞','Synchronicity'],['visualization','◉','Vision'],['memory','◌','Memory'],['nod','·','Nod'],['interaction','☺','Interaction'],['dream','☾','Dream']].map(([t,ic,lb]) =>
@@ -5236,7 +5318,7 @@ routes.today = function(root){
     </section>
 
     <!-- before you sleep: the day after this one gets decided here -->
-    <section class="section rv tomorrow-block ${evening ? 'is-evening' : ''}">
+    <section class="section rv tomorrow-block ${evening ? 'is-evening' : ''}" id="t-tonight">
       <div class="row between" style="align-items:baseline">
         <span class="sc" style="margin:0">Before you sleep</span>
         <span class="mono faint">${esc(fmtDate(tomorrow, 'med'))}</span>
@@ -5253,6 +5335,19 @@ routes.today = function(root){
     </section>
 
   </div>`;
+
+  /* the index */
+  root.querySelectorAll('[data-jump]').forEach(b => b.onclick = () => {
+    const t = root.querySelector('#' + b.dataset.jump); if(!t) return;
+    if(t.tagName === 'DETAILS') t.open = true;
+    t.scrollIntoView({behavior: reduced() ? 'auto' : 'smooth', block:'start'});
+    t.classList.add('jump-lit'); setTimeout(() => t.classList.remove('jump-lit'), 1200);
+  });
+
+  /* habits */
+  $('#todayAddHabit') && ($('#todayAddHabit').onclick = () => openHabitModal());
+  $('#todayArchHabit') && ($('#todayArchHabit').onclick = () => openArchivedHabits());
+  if(typeof bindReviewsDue === 'function') bindReviewsDue(root);
 
   /* habits rings */
   const ringsBox = root.querySelector('#todayRings');
@@ -5611,19 +5706,11 @@ routes.vision = function(root, params){
   registerPageEntry({pageName:'Vision', addLabel:'Add a goal or life event', defaultEntryType:'progress', prefilledFields:{era:activeEra}, options:[
     {icon:'🌿', label:'New goal', desc:'A branch on the tree — something you are moving toward.', run:(pre)=>EntryActions.newVision(pre)},
     {icon:'◆', label:'New life event', desc:'Something that happened — a memory for the current chapter, not a task.', run:(pre)=>openLifeEventModal(byId(erasList().filter(e=>e.type!=='future'),activeEra)?activeEra:(erasList().find(e=>e.type==='present')?.id))}]});
-  const boardScope = S._boardEra && eras.some(e => e.id === S._boardEra) ? S._boardEra : 'all';
   /* the tree is spatial, the lifeline is sequential — one at a time */
   const view = S._visionView === 'tree' ? 'tree' : 'line';
   document.documentElement.classList.add('vision-deep');
-  const boardKey = boardScope === 'all' ? 'main' : boardId('era', boardScope);
   root.innerHTML = `<div class="page" style="position:relative">
     <div class="page-head"><h1>Vision</h1></div>
-
-    <section class="vision-board-top rv">
-      ${eras.length ? `<div class="chip-row" style="margin-bottom:10px">${[['all','the whole life']].concat(eras.map(e=>[e.id,e.name])).map(([id,name])=>`<button class="chip click ${boardScope===id?'on':''}" ${id!=='all'?`style="--c:${byId(eras,id).color}"`:''} data-bscope="${id}">${esc(name)}${id!=='all'?` <span class="mono">${boardCount(boardId('era',id))}</span>`:''}</button>`).join('')}</div>` : ''}
-      ${boardHTML(boardKey, {title: boardScope === 'all' ? 'Vision board' : `Vision board — ${esc(byId(eras, boardScope)?.name || 'this chapter')}`, hint:'What you can only feel, before you can argue for it. Looking at this changes what you do — it stays at the top on purpose.'})}
-      <button class="btn sm ghost" id="pinGoal" style="margin-top:8px">🌿 pin a goal card</button>
-    </section>
 
     <div class="vw-switch"><button class="${view==='line'?'on':''}" data-vview="line" title="the lifeline — read it as a manuscript">▤</button><button class="${view==='tree'?'on':''}" data-vview="tree" title="the tree — every goal at once">🌲</button></div>
     <div class="vw-stage ${view}">
@@ -5632,9 +5719,6 @@ routes.vision = function(root, params){
       <div class="tree-wrap" id="treeWrap" style="height:${Math.max(560, 150*eras.length + 120)}px;max-height:${eras.length>5?'none':'calc(100vh - 150px)'}"><div class="tree-tools"></div><div class="tree-legend"><span>bare twig 0–15</span><span>budding 16–30</span><span>leafing 31–50</span><span>canopy 51–70</span><span>flowering 71–85</span><span>fruiting 86–100</span><span>· hover a branch to trace its lineage</span></div></div>`}
     </div>
   </div>`;
-  $$('[data-bscope]',root).forEach(b => b.onclick = () => { S._boardEra = b.dataset.bscope === 'all' ? null : b.dataset.bscope; rerender(); });
-  $('#pinGoal').onclick = () => pinGoalCard(boardKey);
-  bindBoard(root);
   $$('[data-vview]',root).forEach(b => b.onclick = () => { S._visionView = b.dataset.vview; saveNow(); rerender(); });
   if(view === 'tree') drawTree();
   function drawTree(){ const wrap = $('#treeWrap'); if(!wrap) return; const W = Math.max(wrap.clientWidth, 600), H = wrap.clientHeight; wrap.querySelector('svg')?.remove(); wrap.insertAdjacentHTML('afterbegin', treeSVG(W,H)); const svg = wrap.querySelector('svg');
@@ -5643,7 +5727,11 @@ routes.vision = function(root, params){
   window.addEventListener('resize', debounce(()=>{ if(currentRoute==='vision' && S._visionView === 'tree') drawTree(); }, 250), {once:true});
   bindLifeline(root, drawTree);
   if(!S.settings.chapterNamed) setTimeout(promptChapterName, 400);
-  if(params[0]) openVisionPanel(params[0]);
+  /* A deep link opens one vision — once. The id must not stay in the address,
+     because every re-render of this page reads the address again, and the panel
+     would then reappear on top of whatever you clicked: a view toggle, another
+     vision, a chapter. Consume it, then rewrite the hash to the bare page. */
+  if(params[0]){ const id = params[0]; consumeHashParam('#/vision'); setTimeout(() => openVisionPanel(id), 0); }
 };
 function deleteVision(v, node, after){
   requestDelete({label: v.name, node, after, remove: () => {
@@ -5820,6 +5908,19 @@ function llProse(v){
   return null;
 }
 
+/* ---------- the plate ----------
+   A vision that has images stops being a paragraph and becomes a chapter: the
+   passage breaks out of the manuscript column, the images become the ground it
+   is printed on, and the text sits on a scrim so it stays readable. Without
+   images nothing changes — the column is the default, not the exception. */
+function visionImages(v){ return getBoard(boardId('vision', v.id)).items.filter(it => it.kind === 'image' && it.src); }
+function llPlateHTML(v){
+  const imgs = visionImages(v); if(!imgs.length) return '';
+  const rest = imgs.slice(1, 5);
+  return `<div class="ll-plate" aria-hidden="true"><div class="ll-plate-img" style="background-image:url(&quot;${esc(imgs[0].src)}&quot;)"></div><div class="ll-plate-wash"></div></div>
+    ${rest.length ? `<div class="ll-plate-strip">${rest.map(it => `<img src="${esc(it.src)}" alt="${esc(it.caption || '')}" loading="lazy" data-llimglb="${esc(it.src)}">`).join('')}</div>` : ''}`;
+}
+
 function llPassageHTML(v, era){
   const {score, lastTended, parts} = vividness(v);
   const withered = lastTended > LL_WITHER && v.confidence !== 'lived';
@@ -5829,7 +5930,10 @@ function llPassageHTML(v, era){
   const vals = (v.values || []).map(id => byId(S.values, id)).filter(Boolean);
   const open = S._llOpen === v.id;
   const breakdown = Object.entries(parts).map(([k, n]) => `${k}: ${Math.round(n)}`).join(' · ');
-  return `<article class="ll-vision ${withered ? 'withered' : ''} ${notYet ? 'notyet' : ''} ${open ? 'open' : ''}" data-llvision="${v.id}">
+  const imgs = visionImages(v);
+  return `<article class="ll-vision ${withered ? 'withered' : ''} ${notYet ? 'notyet' : ''} ${open ? 'open' : ''} ${imgs.length ? 'plated' : ''}" data-llvision="${v.id}">
+    ${llPlateHTML(v)}
+    <div class="ll-body">
     ${v.nextAction || wv ? `<div class="ll-next">
       ${ed(`visions.#${v.id}.nextAction`, {ph:'The nearest next action.'})}
       <hr class="ll-rule-full"></div>` : ''}
@@ -5860,10 +5964,17 @@ function llPassageHTML(v, era){
         <div class="ll-tools row" style="gap:8px;flex-wrap:wrap">
           <label class="mono"><input type="checkbox" data-lldone="${v.id}" ${v.status === 'completed' ? 'checked' : ''}> lived</label>
           <span class="mono">target ${ed(`visions.#${v.id}.targetDate`, {ph:'when', cls:'mono'})}</span>
-          <a class="ll-link" href="#/vision/${v.id}">open the full entry →</a>
+          <button class="ll-link" data-llfull="${v.id}">open the full entry →</button>
           ${wv ? `<button class="ll-link" data-llguide="${v.id}">Sit with this vision for ten minutes…</button>` : ''}
         </div>
       </div>
+    </div>
+
+    <div class="ll-plate-tools">
+      <button class="ll-link" data-llimgadd="${v.id}">${imgs.length ? `images · ${imgs.length}` : '＋ image'}</button>
+      ${imgs.length ? `<button class="ll-link quiet" data-llimgman="${v.id}">arrange</button>` : ''}
+      <input type="file" accept="image/*" multiple hidden data-llimgfile="${v.id}">
+    </div>
     </div>
   </article>`;
 }
@@ -5989,6 +6100,23 @@ function bindLifeline(root, drawTree){
     const v = byId(S.visions, c.dataset.lldone); setGoalStatus(v, c.checked ? 'completed' : 'pending');
     sound(c.checked ? 'success' : 'click'); redraw(); }));
   line.querySelectorAll('[data-llguide]').forEach(b => b.onclick = () => openVisionPanel(b.dataset.llguide));
+  /* opening a vision is a panel, not a navigation: a navigation would re-render
+     the manuscript and lose your place in it */
+  line.querySelectorAll('[data-llfull]').forEach(b => b.onclick = () => openVisionPanel(b.dataset.llfull));
+
+  /* imagery belongs to the vision, not to a shared board at the top of the page */
+  line.querySelectorAll('[data-llimgadd]').forEach(b => b.onclick = () =>
+    line.querySelector(`[data-llimgfile="${CSS.escape(b.dataset.llimgadd)}"]`)?.click());
+  line.querySelectorAll('[data-llimgfile]').forEach(inp => inp.onchange = ev => {
+    const key = boardId('vision', inp.dataset.llimgfile), files = ev.target.files; ev.target.value = '';
+    if(!files?.length) return;
+    readImages(files, src => { getBoard(key).items.push({id:uid(), kind:'image', src, caption:'', span:'m'}); saveNow(); sound('success'); redraw(); });
+  });
+  line.querySelectorAll('[data-llimgman]').forEach(b => b.onclick = () => {
+    const v = byId(S.visions, b.dataset.llimgman); if(!v) return;
+    openBoardPanel(boardId('vision', v.id), v.name);
+  });
+  line.querySelectorAll('[data-llimglb]').forEach(img => img.onclick = () => lightbox(img.dataset.llimglb, img.alt));
 
   /* chapter tools, which only Workshop View shows */
   line.querySelectorAll('[data-addgoal]').forEach(b => b.onclick = () => newVisionDialog({era:b.dataset.addgoal}));
@@ -6077,7 +6205,6 @@ function boardHTML(key, {title = 'Board', hint = '', compact = false} = {}){
         </figure>`).join('')
         : `<div class="empty board-empty">Nothing pinned yet. Photographs, a room, a face, a colour, a single word — whatever makes the thing feel real before you can argue for it.</div>`}
     </div>
-    <div class="field" style="margin-top:14px"><label>What this board is about</label>${ed(`boards.#${key}.note`, {multi:true, ph:'One or two lines, for the day the images stop speaking for themselves.'})}</div>
   </div>`;
 }
 function bindBoard(root, after){
@@ -7466,7 +7593,8 @@ routes.skills = function(root, params){
   const q = $('#skq'); if(q) q.addEventListener('input', debounce(() => { f.q = q.value; rerender(); const i = $('#skq'); if(i){ i.focus(); i.setSelectionRange(i.value.length,i.value.length); } }, 350));
   bindF('skHorizon','horizon'); bindF('skCat','cat'); bindF('skLevel','level'); bindF('skPrio','prio'); bindF('skSort','sort');
   if($('#skClearF')) $('#skClearF').onclick = () => { S._skf = {q:'', horizon:'all', cat:'all', level:'all', prio:'all', sort:'horizon'}; rerender(); };
-  if(params[0]) openSkillPanel(params[0]);
+  /* the id is consumed, not kept: a re-render must not reopen the panel */
+  if(params[0]){ const _id = params[0]; consumeHashParam('#/skills'); setTimeout(() => openSkillPanel(_id), 0); }
 };
 /* pick a skill, then jump straight to the thing you meant to do */
 function openLevelUpPicker(){
@@ -7752,7 +7880,6 @@ routes.projects = function(root, params){
   const sort = S._psort || 'activity'; const view = S.settings.projectView || 'cards';
   const ps = [...S.projects].sort((a,b) => sort==='name' ? a.name.localeCompare(b.name) : sort==='status' ? Object.keys(PSTATUS).indexOf(a.status)-Object.keys(PSTATUS).indexOf(b.status) : sort==='priority' ? (a.priority||'P3').localeCompare(b.priority||'P3') : daysSince(projectNods(a)[0]?.date) - daysSince(projectNods(b)[0]?.date));
   const income = S.projects.filter(p=>p.income?.current>0); const total = sum(income.map(p=>p.income.current)); const diversified = income.filter(p=>p.income.current/total > .1).length;
-  const W=520,H=300; const pts = S.projects.filter(p=>projectNods(p).length).map(p => { const ns = projectNods(p); return {p, x:avg(ns.map(n=>n.energy)), y:ns.length}; }); const maxY = Math.max(...pts.map(x=>x.y),1);
   const mode = S.settings.projectMode || 'tracking';
   if(mode === 'ideation'){ renderIdeation(root); return; }
   root.innerHTML = `<div class="page">
@@ -7761,13 +7888,6 @@ routes.projects = function(root, params){
     <div class="page-head row between"><div><h1>Projects</h1></div><div class="row"><div class="view-toggle">${[['cards','▦ Cards'],['kanban','▥ Board'],['timeline','▬ Timeline']].map(([k,l])=>`<button class="${view===k?'on':''}" data-pview="${k}">${l}</button>`).join('')}</div><select class="sel" style="width:auto" id="psort"><option value="activity" ${sort==='activity'?'selected':''}>by last activity</option><option value="priority" ${sort==='priority'?'selected':''}>by priority</option><option value="status" ${sort==='status'?'selected':''}>by status</option><option value="name" ${sort==='name'?'selected':''}>by name</option></select><button class="btn primary" id="addNod">+ nod</button></div></div>
     <div class="card rv" style="margin-bottom:22px"><div class="income-strip"><div><div class="k">monthly income, all streams</div><div class="num">${fmtYen(total)}</div><div class="mono">per month</div></div><div><div class="k">active streams</div><div class="num">${income.length}</div></div><div><div class="k">diversification</div><div class="num">${diversified}</div><div class="mono">contribute &gt;10%</div></div><div><div class="k">open tasks</div><div class="num">${sum(S.projects.filter(p=>!['completed','archived','abandoned'].includes(p.status)).map(p=>{ const r = projectTaskRatio(p); return r.total-r.done; }))}</div></div></div></div>
     ${view==='cards' ? `<div class="grid c3" id="pcards">${ps.map(projectCardHTML).join('')}</div>` : view==='kanban' ? kanbanHTML(ps) : `<div class="card rv"><div class="row between" style="margin-bottom:8px"><span class="sc" style="margin:0">Phases over time</span><span class="mono">bars are phases · lighter fill is tasks done · click a bar to open</span></div>${ganttHTML(ps)}</div>`}
-    <section class="section rv"><span class="sc">Energy vs. output</span><p class="muted" style="font-size:.85rem">X: average energy reading across nods. Y: volume of effort. Which interests deserve to become income streams, and which are taxes you pay for a self you've outgrown?</p>
-      <div class="card scatter"><svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:${W}px;display:block;margin:0 auto;overflow:visible">
-        <line x1="40" y1="${H-30}" x2="${W-10}" y2="${H-30}" stroke="var(--line-2)"/><line x1="40" y1="10" x2="40" y2="${H-30}" stroke="var(--line-2)"/><line x1="${40+(W-50)/2}" y1="10" x2="${40+(W-50)/2}" y2="${H-30}" stroke="var(--line)" stroke-dasharray="3 4"/><line x1="40" y1="${(H-20)/2}" x2="${W-10}" y2="${(H-20)/2}" stroke="var(--line)" stroke-dasharray="3 4"/>
-        <text class="q" x="${W-14}" y="22" text-anchor="end">your calling — protect these</text><text class="q" x="${W-14}" y="${H-40}" text-anchor="end">hidden potential — give these time</text><text class="q" x="46" y="22">discipline — worth it?</text><text class="q" x="46" y="${H-40}">let go, or transform</text>
-        <text x="${W/2}" y="${H-8}" text-anchor="middle">drained ← energy → energized</text><text x="14" y="${H/2}" text-anchor="middle" transform="rotate(-90 14 ${H/2})">nods</text>
-        ${pts.map(({p,x,y}) => { const px = 40 + ((x-1)/4)*(W-50), py = (H-30) - (y/maxY)*(H-50); const st = PSTATUS[p.status]||PSTATUS.idea; return `<g data-popen="${p.id}" style="cursor:pointer"><circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="${(6+Math.sqrt(y)).toFixed(1)}" fill="${st[2]}" fill-opacity=".7" stroke="${st[2]}"/><text x="${(px+12).toFixed(1)}" y="${(py+4).toFixed(1)}" style="fill:var(--text);font-family:var(--sans);font-size:11px">${esc(p.name)}</text></g>`; }).join('')}
-      </svg></div></section>
     
   </div>`;
   $('#psort').onchange = e => { S._psort = e.target.value; rerender(); };
@@ -7780,7 +7900,8 @@ routes.projects = function(root, params){
   let kdrag = null;
   $$('[data-kdrag]',root).forEach(card => { card.addEventListener('dragstart', ev => { if(ev.target.closest('.ed')){ ev.preventDefault(); return; } kdrag = card.dataset.kdrag; card.classList.add('dragging'); ev.dataTransfer.effectAllowed='move'; try { ev.dataTransfer.setData('text/plain', kdrag); } catch(e){} }); card.addEventListener('dragend', () => { card.classList.remove('dragging'); $$('.kcol.over',root).forEach(c=>c.classList.remove('over')); }); });
   $$('.kcol',root).forEach(col => { col.addEventListener('dragover', ev => { ev.preventDefault(); col.classList.add('over'); }); col.addEventListener('dragleave', () => col.classList.remove('over')); col.addEventListener('drop', ev => { ev.preventDefault(); col.classList.remove('over'); const id = kdrag || ev.dataTransfer.getData('text/plain'); const p = byId(S.projects,id); if(!p) return; const to = col.dataset.kcol; if(p.status === to || (to==='archived' && p.status==='abandoned')) return; p.status = to; saveNow(); sound('success'); rerender(); }); });
-  if(params[0]) openProjectPanel(params[0]);
+  /* the id is consumed, not kept: a re-render must not reopen the panel */
+  if(params[0]){ const _id = params[0]; consumeHashParam('#/projects'); setTimeout(() => openProjectPanel(_id), 0); }
 };
 function createProject(name=''){ const p = {id:uid(),name:name||'New project',description:'',tags:[],status:'idea',priority:'P3',startDate:today(),targetDate:'',phases:[],resources:[],linkedSkills:[],linkedVisionEra:null,notes:'',link:'',income:{model:'',current:0,target:0,milestones:[]},createdAt:today()}; S.projects.push(p); saveNow(); rerender(); openProjectPanel(p.id); }
 function deleteProject(p, node, after){
@@ -8913,8 +9034,7 @@ function tapeWeekHTML(anchor){
         <div class="tw-foot"><span class="mono">${its.length||''}</span>${st!==null?`<i class="tw-dot" style="background:${stateColor(st)}" title="state ${st}/100"></i>`:''}</div>
       </div>`; }).join('')}</div>
     <div class="cal-legend rv" style="margin-top:12px">${TAPE_SECTIONS.map(s => { const k = Object.entries(TAPE_KINDS).find(([,v]) => v[0] === s);
-      return `<span><i style="background:${k[1][1]}"></i>${esc(s)}</span>`; }).join('')}<span class="faint">bar height is the day's weight · click a day to read it</span></div>
-    ${dayShapeHTML(days[0], days[6])}`;
+      return `<span><i style="background:${k[1][1]}"></i>${esc(s)}</span>`; }).join('')}<span class="faint">bar height is the day's weight · click a day to read it</span></div>`;
 }
 
 /* ---------- Month, Quarter and Half-year — the same grid at three zooms ----------
@@ -9029,111 +9149,6 @@ function tapeMonthStripHTML(monthKeys, all){
       ${spAvgN?`<div class="mono" style="color:${spColor}">${spAvgN}/22</div>`:''}
       ${topKind?`<div class="mono" style="color:${topColor}">${topIcon} ${esc(topKind[0])}</div>`:''}</button>`; }).join('')}</div>`;
 }
-/* ---------- The shape of the day ----------
-   Four things at once, on one clock axis: what time you woke, what time you
-   closed the day, and how the hours between them split into used and wasted.
-   The bar is the waking window; the fill inside it is the split, with what
-   was neither claimed nor confessed left hollow. Over a long span the days
-   are averaged into weeks or months so the bars stay readable. */
-const DS_LO = 4, DS_HI = 26;   /* 4am to 2am — the window a day can occupy */
-const dsHour = iso => { if(!iso) return null; const d = new Date(iso); return d.getHours() + d.getMinutes()/60; };
-/* The Today page's 24-hour bar is the source of truth for a day's shape; this
-   view just reads it back at a coarser zoom. */
-function dsDayRecord(d){
-  if(typeof rhythmDay !== 'function') return null;
-  if(!S.dailyRhythm?.[d] && !S.checkins?.[d]) return null;
-  const r = rhythmDay(d); const c = r.computed;
-  let wake = hm2min(r.wakeTime), close = hm2min(r.sleepTime);
-  if(wake == null && close == null && !c.intentionalMinutes && !c.wastedMinutes) return null;
-  if(wake != null) wake /= 60;
-  if(close != null){ close /= 60; if(wake != null && close < wake) close += 24; }
-  return {d, wake, close, used:(c.intentionalMinutes||0)/60, wasted:(c.wastedMinutes||0)/60};
-}
-function dsBucket(days, label){
-  const recs = days.map(dsDayRecord).filter(Boolean);
-  if(!recs.length) return {label, empty:true, days:days.length};
-  const m = k => { const v = recs.map(r => r[k]).filter(x => x != null); return v.length ? avg(v) : null; };
-  return {label, empty:false, n:recs.length, days:days.length,
-    wake:m('wake'), close:m('close'), used:m('used'), wasted:m('wasted')};
-}
-function dayShapeHTML(from, to, {title='The shape of the day'} = {}){
-  const days = []; { let d = from; let g = 0; const stop = to > today() ? today() : to;
-    while(d <= stop && g++ < 800){ days.push(d); d = addDays(d,1); } }
-  if(!days.length) return '';
-  /* keep the bars legible: past ~40 days group into weeks, past ~200 into months */
-  let buckets;
-  if(days.length <= 40) buckets = days.map(d => dsBucket([d], fmtDate(d,'short')));
-  else if(days.length <= 200){
-    const w = []; for(let i=0;i<days.length;i+=7) w.push(days.slice(i,i+7));
-    buckets = w.map(g => dsBucket(g, fmtDate(g[0],'short')));
-  } else {
-    const byM = {}; days.forEach(d => (byM[d.slice(0,7)] = byM[d.slice(0,7)] || []).push(d));
-    buckets = Object.entries(byM).map(([k,g]) => dsBucket(g, MONTHS[+k.slice(5,7)-1].slice(0,3)));
-  }
-  const filled = buckets.filter(b => !b.empty);
-  if(!filled.length) return `<section class="section rv day-shape"><span class="sc">${esc(title)}</span>
-    <div class="empty" style="margin-top:8px">No waking or closing times logged yet. They are recorded on the Today page — the wake time when you open it, the closing time when you finish the day.</div></section>`;
-
-  const H = 190, W = Math.max(320, buckets.length * (buckets.length > 60 ? 9 : buckets.length > 24 ? 16 : 30));
-  const barW = Math.max(3, (W / buckets.length) * 0.6);
-  const y = h => H - ((h - DS_LO) / (DS_HI - DS_LO)) * H;
-  const xs = i => (i + 0.5) * (W / buckets.length);
-  const ticks = [6, 9, 12, 15, 18, 21, 24];
-
-  const bars = buckets.map((b, i) => {
-    if(b.empty) return '';
-    const x = xs(i) - barW/2;
-    const w0 = b.wake, c0 = b.close;
-    if(w0 == null && c0 == null){
-      /* only a split was logged — draw it as a free-floating column */
-      const tot = b.used + b.wasted; if(!tot) return '';
-      const top = y(DS_LO + tot);
-      return `<rect x="${x.toFixed(1)}" y="${top.toFixed(1)}" width="${barW.toFixed(1)}" height="${(H-top).toFixed(1)}" rx="2" fill="var(--sage)" opacity=".28"/>`;
-    }
-    const hi = y(c0 ?? (w0 + 16)), lo = y(w0 ?? ((c0 ?? 22) - 16));
-    const barH = Math.max(2, lo - hi);
-    const awake = (c0 != null && w0 != null) ? (c0 - w0) : null;
-    const acc = b.used + b.wasted;
-    /* the split fills upward from the wake end, in proportion to the window */
-    const scale = awake && acc ? Math.min(1, acc / awake) : 0;
-    const usedH = awake ? barH * (b.used / awake) : 0;
-    const wastedH = awake ? barH * (b.wasted / awake) : 0;
-    return `<g class="ds-bar" data-dslabel="${esc(b.label)}">
-      <rect x="${x.toFixed(1)}" y="${hi.toFixed(1)}" width="${barW.toFixed(1)}" height="${barH.toFixed(1)}" rx="2" fill="var(--page-accent)" opacity=".14"/>
-      ${usedH > .5 ? `<rect x="${x.toFixed(1)}" y="${(lo-usedH).toFixed(1)}" width="${barW.toFixed(1)}" height="${usedH.toFixed(1)}" rx="2" fill="var(--sage)" opacity=".85"/>` : ''}
-      ${wastedH > .5 ? `<rect x="${x.toFixed(1)}" y="${(lo-usedH-wastedH).toFixed(1)}" width="${barW.toFixed(1)}" height="${wastedH.toFixed(1)}" rx="2" fill="var(--rose)" opacity=".7"/>` : ''}
-      <title>${esc(b.label)}${w0!=null?` · woke ${fmtClock(w0)}`:''}${c0!=null?` · closed ${fmtClock(c0)}`:''}${acc?` · ${b.used.toFixed(1)}h used, ${b.wasted.toFixed(1)}h wasted`:''}${b.n>1?` · ${b.n} day${b.n>1?'s':''} averaged`:''}</title>
-    </g>`;
-  }).join('');
-
-  const line = (key, color) => { const pts = buckets.map((b,i) => b.empty || b[key]==null ? null : `${xs(i).toFixed(1)},${y(b[key]).toFixed(1)}`).filter(Boolean);
-    return pts.length > 1 ? `<polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" opacity=".8"/>` : ''; };
-
-  const avgOf = k => { const v = filled.map(b => b[k]).filter(x => x != null); return v.length ? avg(v) : null; };
-  const aw = avgOf('wake'), ac = avgOf('close'), au = avgOf('used'), awa = avgOf('wasted');
-
-  return `<section class="section rv day-shape">
-    <div class="row between" style="align-items:baseline;flex-wrap:wrap;gap:8px">
-      <span class="sc" style="margin:0">${esc(title)}</span>
-      <span class="mono faint">${filled.length} of ${buckets.length} ${days.length<=40?'days':days.length<=200?'weeks':'months'} logged</span>
-    </div>
-    <div class="ds-legend row" style="gap:12px;flex-wrap:wrap;margin:8px 0 4px">
-      <span class="ds-key"><i style="background:var(--gold)"></i>woke${aw!=null?` · avg ${fmtClock(aw)}`:''}</span>
-      <span class="ds-key"><i style="background:var(--ment)"></i>closed${ac!=null?` · avg ${fmtClock(ac)}`:''}</span>
-      <span class="ds-key"><i style="background:var(--sage)"></i>used well${au!=null?` · avg ${au.toFixed(1)}h`:''}</span>
-      <span class="ds-key"><i style="background:var(--rose)"></i>wasted${awa!=null?` · avg ${awa.toFixed(1)}h`:''}</span>
-    </div>
-    <div class="ds-scroll"><svg class="ds-svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" preserveAspectRatio="none">
-      ${ticks.map(h => `<g><line x1="0" y1="${y(h).toFixed(1)}" x2="${W}" y2="${y(h).toFixed(1)}" stroke="var(--line)" stroke-width="1" opacity=".5"/>
-        <text x="2" y="${(y(h)-3).toFixed(1)}" class="ds-tick">${fmtClock(h)}</text></g>`).join('')}
-      ${bars}
-      ${line('wake','var(--gold)')}
-      ${line('close','var(--ment)')}
-    </svg></div>
-  </section>`;
-}
-const fmtClock = h => { const hh = Math.floor(h) % 24, mm = Math.round((h % 1) * 60); const ap = hh >= 12 ? 'pm' : 'am'; const h12 = hh % 12 || 12; return mm ? `${h12}:${String(mm).padStart(2,'0')}${ap}` : `${h12}${ap}`; };
-
 /* one month, big enough to read the dates */
 function tapeMonthHTML(anchor){
   const t = tapeState(); const a = parseDay(anchor); const y = a.getFullYear(), m = a.getMonth();
@@ -9146,7 +9161,6 @@ function tapeMonthHTML(anchor){
       <span class="row" style="gap:6px"><button class="btn sm ghost" data-tapemonth="${shiftMonths(anchor,-1)}">‹</button><button class="btn sm ghost" data-tapemonth="${today().slice(0,8)}01">this month</button><button class="btn sm ghost" data-tapemonth="${shiftMonths(anchor,1)}">›</button></span>
     </div>
     ${tapePeriodSummaryHTML(from, to, all)}
-    ${dayShapeHTML(from, to)}
     <div class="rv">${tapeMonthBlock(y, m, byDay, t.mode, false)}</div>
     <details class="section rv" style="margin-top:14px"><summary><span class="sc">Everything in this month, in order</span><span class="mono"> ${all.length}</span></summary>
       <div class="stack" style="gap:6px;margin-top:10px">${all.length ? all.slice(-220).reverse().map(tapeItemHTML).join('') : '<div class="empty">Nothing logged this month.</div>'}
@@ -9170,7 +9184,6 @@ function tapeSpanHTML(anchor, monthCount, label){
       <span class="row" style="gap:6px"><button class="btn sm ghost" data-tapespan="${prev}">‹</button><button class="btn sm ghost" data-tapespan="${today()}">this ${esc(label)}</button><button class="btn sm ghost" data-tapespan="${next}">›</button></span>
     </div>
     ${tapePeriodSummaryHTML(from, to, all)}
-    ${dayShapeHTML(from, to)}
     <div class="tape-span rv" style="grid-template-columns:repeat(3,1fr)">${months.map(({y:yy,m}) => tapeMonthBlock(yy, m, byDay, t.mode, true)).join('')}</div>
     ${tapeMonthStripHTML(months, all)}`;
 }
@@ -9212,7 +9225,6 @@ function tapeYearHTML(year){
     </div>
     <div class="rv">${tapeGrid(days, t.mode, byDay)}</div>
     ${tapePeriodSummaryHTML(`${year}-01-01`, `${year}-12-31`, all)}
-    ${dayShapeHTML(`${year}-01-01`, `${year}-12-31`)}
     ${tapeMonthStripHTML(months, all)}`;
 }
 
@@ -9456,7 +9468,7 @@ function flowEvening(){
      body: () => { const p = dayPlan(addDays(T,1)); return `<input class="inp serif-lg" id="fwTom" value="${esc(p.intentions?.[0] || '')}" placeholder="Tomorrow I give my attention to…">`; },
      next: b => { const p = dayPlan(addDays(T,1)); p.intentions = p.intentions || ['','','']; p.intentions[0] = b.querySelector('#fwTom').value.trim(); saveNow(); }},
     {title:'See your full day.', hint:'The whole of today, assembled. Close the book when you are ready.',
-     body: () => `<div class="row" style="justify-content:center;margin-top:8px"><a class="btn primary" href="#/rhythm/tape" data-flowgo="#/rhythm/tape">Open today in Life Tape →</a></div>`,
+     body: () => `<div class="row" style="justify-content:center;margin-top:8px"><a class="btn primary" href="#/lifetape/tape" data-flowgo="#/lifetape/tape">Open today in Life Tape →</a></div>`,
      bind: b => b.querySelector('[data-flowgo]')?.addEventListener('click', () => { const t = tapeState(); t.view = 'day'; t.day = T; })},
   ], () => { reviewDone('lastEvening'); toast('Day closed.'); });
 }
@@ -9667,24 +9679,260 @@ const REVIEW_FLOWS = [
   ['lastAnnual',   'Annual rite',       '1–2 hours',  'The whole year on one screen, then the narrative, the letter, and three visions for the next one.', flowAnnual],
 ];
 const REVIEW_DUE = {lastMorning:1, lastEvening:1, lastWeekly:7, lastMonthly:30, lastSeasonal:90, lastHalf:182, lastAnnual:365};
-function renderReviewsHub(box){
-  const T = today();
-  box.innerHTML = `<p class="muted" style="font-size:.88rem;max-width:640px">Seven rituals, from the morning to the year. Each one is pre-filled with what the instrument already knows, so the work is noticing rather than remembering.</p>
-    <div class="review-cards">${REVIEW_FLOWS.map(([key, name, len, desc]) => { const age = reviewAge(key);
-      const due = age >= (REVIEW_DUE[key] || 365);
-      return `<div class="review-card ${due?'due':''}" data-flow="${key}">
-        <div class="row between"><b class="serif" style="font-size:1.1rem">${esc(name)}</b><span class="mono">${esc(len)}</span></div>
-        <p class="muted" style="font-size:.85rem;margin:6px 0 10px">${esc(desc)}</p>
-        <div class="row between"><span class="mono">${age === Infinity ? 'never done' : `last ${relDays(age)}`}</span><button class="btn sm ${due?'primary':'ghost'}" data-flowstart="${key}">${age === Infinity ? 'Begin' : due ? 'Begin — due' : 'Begin'}</button></div>
-      </div>`; }).join('')}</div>
-    <div class="hab-stats" style="margin-top:18px"><div class="sc">The twenty-one day tracker</div>
-      <div class="row" style="gap:3px;flex-wrap:wrap;margin-top:8px">${Array.from({length:21}, (_,i) => { const d = addDays(S.rehearsal.cycleStart || T, i);
-        const on = (S.rehearsal.days||[]).includes(d); return `<i class="tk-dot ${on?'on':''}" title="${esc(fmtDate(d,'med'))}"></i>`; }).join('')}</div>
-      <div class="faint" style="font-size:.78rem;margin-top:6px">${(S.rehearsal.days||[]).length} mornings logged${S.rehearsal.cycleStart?` since ${fmtDate(S.rehearsal.cycleStart,'med')}`:''}.</div></div>`;
-  box.querySelectorAll('[data-flowstart]').forEach(b => b.onclick = () => {
-    const fn = (REVIEW_FLOWS.find(f => f[0] === b.dataset.flowstart) || [])[4]; if(fn) fn();
+/* The hub is gone: a review is not something you go and look for. Each one now
+   surfaces on Today the night its cycle closes — see reviewsDue(). */
+/* ============================================================
+   REVIEWS THAT COME TO YOU
+   A review is useful the night a cycle ends, while the period is
+   still in the room. So the instrument stops keeping a hub of
+   rituals you have to remember to visit: on the last day of each
+   cycle the review surfaces on Today, carrying the period's own
+   numbers with it, and a reading of that period's entries — and
+   only that period's entries.
+   ============================================================ */
+
+const monthEnd = d => { const x = parseDay(d); return x.getDate() === new Date(x.getFullYear(), x.getMonth()+1, 0).getDate(); };
+const monthOf  = d => parseDay(d).getMonth();          /* 0–11 */
+
+/* Each cycle names the last day it occupies. That day's evening is when the
+   review appears — the night before the next one starts. */
+const CYCLES = [
+  {key:'daily',     flow:'lastEvening',  name:'Daily review',     len:'5 minutes',
+   isEnd: () => true,
+   from:  d => d,
+   blurb: 'The day you are closing — what happened in it, and what it cost.'},
+  {key:'weekly',    flow:'lastWeekly',   name:'Weekly review',    len:'15 minutes',
+   isEnd: d => parseDay(d).getDay() === 0,
+   from:  d => addDays(d, -6),
+   blurb: 'Seven days, before Monday takes them.'},
+  {key:'monthly',   flow:'lastMonthly',  name:'Monthly review',   len:'15 minutes',
+   isEnd: d => monthEnd(d),
+   from:  d => d.slice(0,8) + '01',
+   blurb: 'The month at once: what moved, what went quiet.'},
+  {key:'quarterly', flow:'lastSeasonal', name:'Quarterly review', len:'30 minutes',
+   isEnd: d => monthEnd(d) && [2,5,8,11].includes(monthOf(d)),
+   from:  d => { const x = parseDay(d); return isoDay(new Date(x.getFullYear(), x.getMonth()-2, 1)); },
+   blurb: 'A season. Long enough that the shape is visible.'},
+  {key:'half',      flow:'lastHalf',     name:'Half-year review', len:'45 minutes',
+   isEnd: d => monthEnd(d) && [5,11].includes(monthOf(d)),
+   from:  d => { const x = parseDay(d); return isoDay(new Date(x.getFullYear(), x.getMonth()-5, 1)); },
+   blurb: 'Six months side by side.'},
+  {key:'annual',    flow:'lastAnnual',   name:'Annual rite',      len:'1–2 hours',
+   isEnd: d => monthEnd(d) && monthOf(d) === 11,
+   from:  d => d.slice(0,4) + '-01-01',
+   blurb: 'The whole year on one screen, then the narrative.'},
+];
+
+/* A review is answered for its period if the flow was last run inside it. A
+   dismissal is remembered against the same period, so "not tonight" is not
+   forgotten by the next re-render — and is not carried into the next cycle. */
+function cyclePeriodId(c, d){ return `${c.key}:${d}`; }
+function cycleDismissed(c, d){ return !!(S.reviews?.dismissed || {})[cyclePeriodId(c, d)]; }
+function dismissCycle(c, d){ S.reviews = S.reviews || {}; S.reviews.dismissed = S.reviews.dismissed || {};
+  S.reviews.dismissed[cyclePeriodId(c, d)] = new Date().toISOString(); saveNow(); }
+function cycleAnswered(c, d){ const last = (S.reviews || {})[c.flow]; return !!last && last.slice(0,10) >= c.from(d); }
+
+/* What is due tonight — plus anything whose cycle ended in the last few days
+   and was never answered, because a review missed is not a review cancelled. */
+function reviewsDue(d = today(), {grace = 3} = {}){
+  const out = [];
+  CYCLES.forEach(c => {
+    for(let back = 0; back <= (c.key === 'daily' ? 0 : grace); back++){
+      const end = addDays(d, -back);
+      if(!c.isEnd(end)) continue;
+      if(cycleAnswered(c, end) || cycleDismissed(c, end)) break;
+      out.push({c, end, from: c.from(end), late: back});
+      break;
+    }
   });
-  reveal(box);
+  return out;
+}
+
+/* ---------- the period's own numbers ---------- */
+function cycleStats(from, to){
+  const days = []; { let d = from, g = 0; while(d <= to && g++ < 400){ days.push(d); d = addDays(d, 1); } }
+  const habits = S.habits.filter(h => !h.archived && !h.negative);
+  const perDay = days.map(d => {
+    const due = habits.filter(h => habitDue(h, d));
+    const done = due.filter(h => habitDone(h, d));
+    return {d, due: due.length, done: done.length, rate: due.length ? done.length / due.length : null};
+  });
+  const habDue = sum(perDay.map(x => x.due)), habDone = sum(perDay.map(x => x.done));
+  const tasks = days.flatMap(d => tasksForDay(d));
+  const items = typeof tapeItems === 'function' ? tapeItems(from, to) : [];
+  const entries = items.filter(it => it.kind !== 'habit');
+  const byKind = {}; entries.forEach(it => byKind[it.kind] = (byKind[it.kind] || 0) + 1);
+  const entriesPerDay = days.map(d => entries.filter(it => it.date === d).length);
+  const setpoints = days.map(d => S.checkins?.[d]?.setpoint).filter(x => x > 0);
+  return {days, perDay, entriesPerDay, items, entries, byKind,
+    habits: {due: habDue, done: habDone, rate: habDue ? Math.round(habDone / habDue * 100) : null},
+    tasks: {total: tasks.length, done: tasks.filter(t => t.done).length},
+    setpoint: setpoints.length ? Math.round(avg(setpoints)) : null};
+}
+
+/* one figure, two series: the entries written each day as bars, the habit
+   completion of each day as a line over them */
+function cycleGraphHTML(st){
+  const n = st.days.length; if(!n) return '';
+  const W = Math.max(160, n * (n > 60 ? 5 : n > 14 ? 12 : 26)), H = 56, pad = 6;
+  const maxE = Math.max(1, ...st.entriesPerDay);
+  const bw = Math.max(2, (W / n) * .62);
+  const x = i => (i + .5) * (W / n);
+  const bars = st.entriesPerDay.map((v, i) => {
+    if(!v) return '';
+    const h = (v / maxE) * (H - pad * 2);
+    return `<rect x="${(x(i) - bw/2).toFixed(1)}" y="${(H - pad - h).toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="1.5" fill="var(--page-accent)" opacity=".42"><title>${esc(fmtDate(st.days[i],'short'))} · ${v} entr${v===1?'y':'ies'}</title></rect>`;
+  }).join('');
+  const pts = st.perDay.map((r, i) => r.rate == null ? null : `${x(i).toFixed(1)},${(H - pad - r.rate * (H - pad*2)).toFixed(1)}`).filter(Boolean);
+  const line = pts.length > 1 ? `<polyline points="${pts.join(' ')}" fill="none" stroke="var(--sage)" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" opacity=".85"/>` : '';
+  const dots = st.perDay.map((r, i) => r.rate == null ? '' : `<circle cx="${x(i).toFixed(1)}" cy="${(H - pad - r.rate*(H-pad*2)).toFixed(1)}" r="${n > 40 ? 1.2 : 2}" fill="var(--sage)"><title>${esc(fmtDate(r.d,'short'))} · ${r.done}/${r.due} habits</title></circle>`).join('');
+  return `<div class="cyc-graph"><svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" preserveAspectRatio="none">${bars}${line}${dots}</svg>
+    <div class="cyc-legend mono"><span><i style="background:var(--page-accent);opacity:.5"></i>entries a day</span><span><i style="background:var(--sage)"></i>habits kept</span></div></div>`;
+}
+
+function cycleCardHTML(due){
+  const {c, end, from, late} = due;
+  const st = cycleStats(from, end);
+  const span = from === end ? fmtDate(end, 'med') : `${fmtDate(from,'short')} – ${fmtDate(end,'short')}`;
+  const kinds = Object.entries(st.byKind).sort((a,b) => b[1]-a[1]).slice(0,4);
+  return `<article class="cyc-card ${late ? 'late' : ''}" data-cyc="${c.key}" data-cycend="${end}">
+    <div class="row between" style="align-items:baseline;gap:10px;flex-wrap:wrap">
+      <b class="serif" style="font-size:1.08rem">${esc(c.name)}</b>
+      <span class="mono faint">${esc(span)}${late ? ` · ${late} day${late===1?'':'s'} late` : ''} · ${esc(c.len)}</span>
+    </div>
+    <p class="muted" style="font-size:.85rem;margin:5px 0 10px">${esc(c.blurb)}</p>
+    <div class="cyc-figs">
+      <div><span class="k">habits</span><b>${st.habits.rate === null ? '—' : st.habits.rate + '%'}</b><span class="mono">${st.habits.done}/${st.habits.due}</span></div>
+      <div><span class="k">tasks</span><b>${st.tasks.total ? Math.round(st.tasks.done/st.tasks.total*100) + '%' : '—'}</b><span class="mono">${st.tasks.done}/${st.tasks.total}</span></div>
+      <div><span class="k">entries</span><b>${st.entries.length}</b><span class="mono">${kinds.map(([k,v]) => `${esc(k)} ${v}`).join(' · ') || 'nothing written'}</span></div>
+      ${st.setpoint ? `<div><span class="k">set-point</span><b>${st.setpoint}</b><span class="mono">${esc(hicksName(st.setpoint))}</span></div>` : ''}
+    </div>
+    ${cycleGraphHTML(st)}
+    <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:12px">
+      <button class="btn sm primary" data-cycstart="${c.key}:${end}">Begin the review</button>
+      <button class="btn sm ghost" data-cycask="${c.key}:${end}">✦ Ask Claude about this ${esc(c.key === 'daily' ? 'day' : c.key === 'annual' ? 'year' : c.key.replace('ly',''))}</button>
+      <button class="btn sm ghost" data-cycskip="${c.key}:${end}">not tonight</button>
+    </div>
+    <div class="cyc-answer" hidden></div>
+  </article>`;
+}
+
+function reviewsDueHTML(d = today()){
+  const due = reviewsDue(d); if(!due.length) return '';
+  return `<section class="section rv cyc-block" id="t-reviews">
+    <div class="row between" style="align-items:baseline">
+      <span class="sc lg" style="margin:0">${due.length === 1 ? 'A cycle closes tonight' : 'Cycles close tonight'}</span>
+      <span class="mono faint">${due.length} review${due.length===1?'':'s'} waiting</span>
+    </div>
+    <p class="muted" style="font-size:.85rem;margin:6px 0 0">A review lands the night the period ends, while it is still in the room.</p>
+    ${due.map(cycleCardHTML).join('')}
+  </section>`;
+}
+
+function bindReviewsDue(root){
+  const box = root.querySelector('.cyc-block'); if(!box) return;
+  const find = v => { const [key, end] = v.split(':'); const c = CYCLES.find(x => x.key === key); return c ? {c, end, from: c.from(end)} : null; };
+  box.querySelectorAll('[data-cycstart]').forEach(b => b.onclick = () => {
+    const d = find(b.dataset.cycstart); if(!d) return;
+    const fn = (REVIEW_FLOWS.find(f => f[0] === d.c.flow) || [])[4];
+    if(fn) fn(); else toast('That review is not wired up.');
+  });
+  box.querySelectorAll('[data-cycskip]').forEach(b => b.onclick = () => {
+    const d = find(b.dataset.cycskip); if(!d) return;
+    dismissCycle(d.c, d.end); sound('click'); rerender();
+  });
+  box.querySelectorAll('[data-cycask]').forEach(b => b.onclick = () => {
+    const d = find(b.dataset.cycask); if(!d) return;
+    askAboutPeriod(d.c, d.from, d.end, b.closest('.cyc-card').querySelector('.cyc-answer'), b);
+  });
+}
+
+/* ---------- the reading ----------
+   Claude is given this period and nothing else: the entries written between
+   the two dates, the habits kept in them, the tasks. No other window of the
+   life is in the prompt, so the reading cannot quietly become a reading of
+   the whole instrument. */
+const PERIOD_SYSTEM = `You are reading one bounded stretch of somebody's own journal, on their request, so they can review that period.
+
+Absolute rules:
+- Only the material given is in scope. It is one time period. Never generalise to their whole life, their character, or periods you were not shown.
+- Do not invent events, feelings, people or causes. If the material is thin, say it is thin.
+- Speak to them as "you". Plain, warm, unsentimental. No therapy voice, no cheerleading, no advice they did not ask for.
+- Notice what is actually repeated: themes, the language they reach for, what appears and then stops appearing, tension between what they planned and what they wrote.
+
+Return four short parts, each as a heading followed by two or three sentences:
+What this period was actually about
+What repeated
+What is missing that you would expect
+One question worth sitting with`;
+
+function periodDigest(from, to, st){
+  const lines = [];
+  lines.push(`Period: ${from} to ${to} (${st.days.length} day${st.days.length===1?'':'s'}).`);
+  lines.push(`Habits: ${st.habits.done} of ${st.habits.due} kept${st.habits.rate === null ? '' : ` (${st.habits.rate}%)`}. Tasks: ${st.tasks.done} of ${st.tasks.total} done.`);
+  if(st.setpoint) lines.push(`Average emotional set-point: ${st.setpoint} — ${hicksName(st.setpoint)}.`);
+  lines.push('');
+  lines.push('ENTRIES IN THIS PERIOD (nothing outside it is included):');
+  if(!st.entries.length) lines.push('(none — the period was not written in)');
+  st.entries.forEach(it => {
+    const body = String(it.body || '').replace(/\s+/g, ' ').trim().slice(0, 700);
+    lines.push(`- [${it.date}] (${it.kind}) ${String(it.title || '').trim()}${body ? ': ' + body : ''}`);
+  });
+  const intentions = st.days.map(d => [d, (typeof dayPlan === 'function' ? dayPlan(d).intentions : []) || []])
+    .filter(([, xs]) => xs.filter(Boolean).length);
+  if(intentions.length){
+    lines.push('', 'WHAT WAS PLANNED, DAY BY DAY:');
+    intentions.forEach(([d, xs]) => lines.push(`- [${d}] ${xs.filter(Boolean).join(' / ')}`));
+  }
+  return lines.join('\n');
+}
+
+/* a reading without a key: real counts, no invented interpretation */
+function localPeriodReading(from, to, st){
+  const kinds = Object.entries(st.byKind).sort((a,b) => b[1]-a[1]);
+  const busiest = st.days[st.entriesPerDay.indexOf(Math.max(...st.entriesPerDay))];
+  const silent = st.days.filter((d,i) => !st.entriesPerDay[i]).length;
+  const bits = [];
+  bits.push(`<b>${st.entries.length}</b> entr${st.entries.length===1?'y':'ies'} across <b>${st.days.length}</b> day${st.days.length===1?'':'s'}${kinds.length ? `, mostly ${esc(kinds[0][0])} (${kinds[0][1]})` : ''}.`);
+  if(silent) bits.push(`<b>${silent}</b> day${silent===1?'':'s'} went unwritten.`);
+  if(st.entries.length && busiest) bits.push(`The fullest day was ${esc(fmtDate(busiest,'med'))}.`);
+  if(st.habits.rate !== null) bits.push(`Habits held at <b>${st.habits.rate}%</b>.`);
+  if(st.tasks.total) bits.push(`You finished <b>${st.tasks.done}</b> of <b>${st.tasks.total}</b> planned task${st.tasks.total===1?'':'s'}.`);
+  return `<p>${bits.join(' ')}</p><p class="faint" style="font-size:.82rem">These are counts, not a reading. A reading needs an Anthropic API key — Settings has the field, and only this period's entries are ever sent.</p>`;
+}
+
+async function askAboutPeriod(c, from, to, out, btn){
+  const st = cycleStats(from, to);
+  out.hidden = false;
+  if(!aiReady()){ out.innerHTML = localPeriodReading(from, to, st); return; }
+  const was = btn.textContent; btn.disabled = true; btn.textContent = 'reading…';
+  out.innerHTML = `<p class="faint">Reading ${st.entries.length} entr${st.entries.length===1?'y':'ies'} from ${esc(fmtDate(from,'short'))} to ${esc(fmtDate(to,'short'))} — and nothing else.</p>`;
+  try {
+    const text = await askClaude(PERIOD_SYSTEM, periodDigest(from, to, st), {maxTokens: 1400});
+    out.innerHTML = `<div class="cyc-reading">${mdInline(text)}</div>
+      <div class="row" style="gap:8px;margin-top:10px"><button class="btn sm ghost" data-cyckeep>keep this as a reflection</button></div>`;
+    out.querySelector('[data-cyckeep]').onclick = () => {
+      S.entries.push({id:uid(), type:'reflection', title:`${c.name} — ${fmtDate(from,'short')} to ${fmtDate(to,'short')}`, body:text,
+        occurredAt:to, createdAt:new Date().toISOString(), media:[],
+        links:{stages:[],substages:[],threads:[],values:[],visions:[],skills:[],projects:[]},
+        people:[], places:[], emotions:[], confidence:'', extra:{}});
+      saveNow(); sound('success'); toast('Kept in Journals.');
+    };
+    sound('chime');
+  } catch(e){
+    out.innerHTML = `<p class="muted">${esc(e.message)}</p>` + localPeriodReading(from, to, st);
+  }
+  btn.disabled = false; btn.textContent = was;
+}
+
+/* a very small markdown: headings and paragraphs, nothing else */
+function mdInline(t){
+  return String(t || '').split(/\n{2,}/).map(p => {
+    const line = p.trim(); if(!line) return '';
+    if(/^#{1,4}\s/.test(line)) return `<h4>${esc(line.replace(/^#{1,4}\s*/, ''))}</h4>`;
+    if(line.length < 60 && !/[.!?]$/.test(line) && !/^[-*]/.test(line)) return `<h4>${esc(line)}</h4>`;
+    return `<p>${esc(line).replace(/\n/g, '<br>')}</p>`;
+  }).join('');
 }
 /* ============================================================
    RHYTHM — one surface for the day.
@@ -9831,32 +10079,33 @@ function moveBlock(kind, id, day, start){
 }
 
 /* ---------- the page ---------- */
-routes.rhythm = function(root, params){
+/* ---------- The Life Tape ----------
+   The Rhythm room is gone: a day is planned and closed on Today, and the
+   reviews come to you the night a cycle ends. What is left here is the record
+   itself — the tape of what happened, the habits that made it, and the
+   patterns underneath. */
+routes.lifetape = function(root, params){
   migrateRhythm();
   const T = today();
-  const TABS = [['tape','Life Tape'],['habits','Habits'],['reviews','Reviews'],['patterns','Patterns']];
-  let tab = params[0] === 'review' ? 'reviews' : params[0];
-  tab = TABS.some(([k]) => k === tab) ? tab : (S._rhyTab || 'tape');
+  const TABS = [['tape','The tape'],['habits','Habits'],['patterns','Patterns']];
+  let tab = TABS.some(([k]) => k === params[0]) ? params[0] : (S._rhyTab || 'tape');
   S._rhyTab = tab;
   const focus = S._rhyDay && /^\d{4}-\d{2}-\d{2}$/.test(S._rhyDay) ? S._rhyDay : T;
-  registerPageEntry({pageName:'Rhythm', addLabel:'Add to the day', defaultEntryType:'event', prefilledFields:{}, options:[
+  registerPageEntry({pageName:'Life Tape', addLabel:'Add to the day', defaultEntryType:'event', prefilledFields:{}, options:[
     {icon:'◍', label:'Habit', desc:'Something you mean to keep doing.', run:()=>openHabitModal()},]});
   root.innerHTML = `<div class="page rhythm-page">
-    <div class="page-head"><h1>${esc(S.settings.rhythmName || 'Rhythm')}</h1></div>
+    <div class="page-head"><h1>Life Tape</h1></div>
     <div class="tabs">${TABS.map(([k,l]) => `<button class="${tab===k?'active':''}" data-rtab="${k}">${l}</button>`).join('')}</div>
     <div id="rhyBody" style="margin-top:14px"></div>
   </div>`;
   {
     const body = $('#rhyBody');
-    if(tab === 'tape') renderLifeTape(body);
-    else if(tab === 'habits') renderHabitsPanel(body, focus);
-    else if(tab === 'reviews'){ renderReviewsHub(body);
-      body.appendChild(el('<section class="section rv"><span class="sc">Or close the day as a form</span><p class="muted" style="font-size:.84rem">The same data as the evening flow, all on one screen — and the way through to the weekly and monthly summaries.</p><div id="rhyDayClose"></div></section>'));
-      renderReviewPanel($('#rhyDayClose'), focus); }
-    else renderPatterns(body);
+    if(tab === 'habits') renderHabitsPanel(body, focus);
+    else if(tab === 'patterns') renderPatterns(body);
+    else renderLifeTape(body);
   }
   window._bloomHabit = null; window._pulseHabitId = null;
-  $$('[data-rtab]',root).forEach(b => b.onclick = () => { S._rhyTab = b.dataset.rtab; navigate('#/rhythm/' + b.dataset.rtab); if(location.hash === '#/rhythm/' + b.dataset.rtab) rerender(); });
+  $$('[data-rtab]',root).forEach(b => b.onclick = () => { S._rhyTab = b.dataset.rtab; navigate('#/lifetape/' + b.dataset.rtab); if(location.hash === '#/lifetape/' + b.dataset.rtab) rerender(); });
   reveal(root);
 };
 
@@ -10741,7 +10990,7 @@ routes.settings = function(root){
       <div class="opt"><div><b>Interaction sounds 🔔</b><div class="d">Soft chimes on clicks, a low note on navigation, a rising pair when something is completed. Synthesised in the browser; nothing is downloaded.</div></div><label class="toggle ${SoundManager.state().soundEnabled?'on':''}" id="sSound"><span class="sw"></span></label></div>
       <div class="opt"><div><b>Ambient background 🌊</b><div class="d">A barely-audible brown-noise wash, low-passed at 200 Hz. Ducks briefly under each click. Off by default.</div></div><label class="toggle ${SoundManager.state().ambientEnabled?'on':''}" id="sAmbient"><span class="sw"></span></label></div>
       <div class="opt"><div><b>Felt time</b><div class="d">Default timeline mode: stretch dense stages, compress thin ones.</div></div><label class="toggle ${S.settings.feltTime?'on':''}" id="sFelt"><span>clock</span><span class="sw"></span><span>felt</span></label></div>
-      <div class="opt"><div><b>Landing page</b><div class="d">Where the site opens.</div></div><select class="sel" style="width:auto" id="sHome">${[['home','Home'],['today','Today']].map(([v,l])=>`<option value="${v}" ${(S.settings.home||'home')===v?'selected':''}>${l}</option>`).join('')}</select></div>
+      <div class="opt"><div><b>Landing page</b><div class="d">Where the site opens.</div></div><select class="sel" style="width:auto" id="sHome">${[['compass','Compass'],['today','Today']].map(([v,l])=>`<option value="${v}" ${(S.settings.home||'compass')===v?'selected':''}>${l}</option>`).join('')}</select></div>
     </div>
     <div class="card rv"><h3>Navigation zones</h3><p class="muted" style="font-size:.85rem">Drag pages between Present, Becoming, and Always. The sidebar and the mobile menu follow.</p>${zoneEditorHTML()}
     </div>
@@ -10765,7 +11014,7 @@ routes.settings = function(root){
         <p class="muted" style="font-size:.85rem;margin:0 0 10px">Tidying dictation and the pattern report work without a key, using rules and statistics computed in this page. Paste an <b>Anthropic API key</b> and both get a real language model instead. A Claude Pro or Max subscription cannot be used here — consumer subscriptions do not issue API credentials, and API usage is billed separately.</p>
         <div class="row" style="gap:8px"><input class="inp mono" id="aiKey" type="password" placeholder="sk-ant-…" value="${esc(aiKey())}" autocomplete="off" style="flex:1"><button class="btn sm" id="aiSave">Save</button>${aiKey()?'<button class="btn sm ghost" id="aiClear">Remove</button>':''}</div>
         <div class="faint" style="font-size:.74rem;margin-top:6px">Stored only in this browser's localStorage. It is never written into a backup file. <span id="aiState">${aiReady()?'Connected.':'Not connected — local mode.'}</span></div>
-        <div class="row" style="margin-top:8px"><button class="btn sm ghost" id="aiTest">Test the connection</button><a class="btn sm ghost" href="#/rhythm/patterns">Open the pattern report →</a></div>
+        <div class="row" style="margin-top:8px"><button class="btn sm ghost" id="aiTest">Test the connection</button><a class="btn sm ghost" href="#/lifetape/patterns">Open the pattern report →</a></div>
       </div>
       <div class="field" style="margin:18px 0"><label>Atmosphere</label><div id="ambSettings">${ambientMenuHTML()}</div></div>
       <p class="mono">keyboard: N new entry · ⌘K or / search · ← → previous / next stage (Timeline) · Esc close</p>
@@ -13116,7 +13365,7 @@ const NAV_PAGES = {
   today:    {label:'Today',            short:'Today',    ico:NAV_ICONS.today,    route:'#/today'},
   journals: {label:'Journals',         short:'Journal',  ico:NAV_ICONS.journals, route:'#/journals'},
   projects: {label:'Projects',         short:'Projects', ico:NAV_ICONS.projects, route:'#/projects'},
-  rhythm:   {label:'Rhythm',           short:'Rhythm',   ico:NAV_ICONS.rhythm,   route:'#/rhythm'},
+  lifetape: {label:'Life Tape',        short:'Tape',     ico:NAV_ICONS.rhythm,   route:'#/lifetape'},
   writing:  {label:'The Writing Studio', short:'Writing', ico:NAV_ICONS.writing,  route:'#/writing'},
   people:   {label:'People',           short:'People',   ico:NAV_ICONS.people,   route:'#/people'},
   finance:  {label:'Finance',          short:'Money',    ico:NAV_ICONS.finance,  route:'#/finance'},
@@ -13128,7 +13377,7 @@ const NAV_PAGES = {
   timeline: {label:'Timeline',         short:'Timeline', ico:NAV_ICONS.timeline, route:'#/timeline'},
 };
 const NAV_DEFAULT = {
-  present:   ['today','rhythm','projects'],
+  present:   ['today','lifetape','projects'],
   becoming:  ['values','skills','vision'],
   story:     ['people','timeline','journals'],
   standalone:['commonplace','writing','finance','import'],
@@ -13139,22 +13388,22 @@ const NAV_ZONES = [
   {id:'story',    label:'Story',    hint:'relationships, memory, meaning',   accent:'var(--rose)'},
 ];
 const NAV_ZONE_IDS = [...NAV_ZONES.map(z => z.id), 'standalone'];
-const MOBILE_PRIMARY = ['today','rhythm','projects','journals','skills'];
+const MOBILE_PRIMARY = ['today','lifetape','projects','journals','skills'];
 function navConfig(){ if(!S.settings.nav) S.settings.nav = JSON.parse(JSON.stringify(NAV_DEFAULT)); const n = S.settings.nav; // a nav laid out before the Story zone existed: lift its pages out of wherever they sat
   if(!Array.isArray(n.story)){ n.story = []; NAV_DEFAULT.story.forEach(k => { NAV_ZONE_IDS.forEach(z => { if(Array.isArray(n[z])) n[z] = n[z].filter(x => x !== k); }); n.story.push(k); }); }
   NAV_ZONE_IDS.forEach(z => { if(!Array.isArray(n[z])) n[z] = [...(NAV_DEFAULT[z]||[])]; });
-  { const seen = new Set(); NAV_ZONE_IDS.forEach(z => n[z] = n[z].filter(k => !seen.has(k) && seen.add(k))); } NAV_ZONE_IDS.forEach(z => { n[z] = (n[z]||[]).filter(k => NAV_PAGES[k]); }); const placed = new Set(NAV_ZONE_IDS.flatMap(z => n[z])); Object.keys(NAV_PAGES).forEach(k => { if(k !== 'home' && !placed.has(k)) n.standalone.push(k); }); NAV_ZONE_IDS.forEach(z => n[z] = n[z].filter(k => NAV_PAGES[k] && k !== 'home')); return n; }
+  { const seen = new Set(); NAV_ZONE_IDS.forEach(z => n[z] = n[z].filter(k => !seen.has(k) && seen.add(k))); } NAV_ZONE_IDS.forEach(z => { n[z] = (n[z]||[]).filter(k => NAV_PAGES[k]); }); const placed = new Set(NAV_ZONE_IDS.flatMap(z => n[z])); Object.keys(NAV_PAGES).forEach(k => { if(k !== 'compass' && !placed.has(k)) n.standalone.push(k); }); NAV_ZONE_IDS.forEach(z => n[z] = n[z].filter(k => NAV_PAGES[k] && k !== 'compass')); return n; }
 const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch(e){ return d; } };
 const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} };
-function activePageKey(){ const {name} = parseHash(); return {stage:'timeline', value:'values', home:'home'}[name] || name; }
+function activePageKey(){ const {name} = parseHash(); return {stage:'timeline', value:'values', home:'compass', rhythm:'lifetape'}[name] || name; }
 function navLink(key, zoneAccent){ const p = NAV_PAGES[key]; return `<a href="${p.route}" data-page="${key}" data-tip="${esc(p.label)}" style="--z:${zoneAccent||'var(--terra)'}"><span class="ico">${p.ico}</span><span class="lbl">${esc(p.label)}</span></a>`; }
 function renderNav(){
   const n = navConfig(); const collapsedZones = lsGet('navZoneCollapsed', {}); const sbCollapsed = lsGet('sidebarCollapsed', false);
   document.documentElement.classList.toggle('sb-collapsed', !!sbCollapsed);
   const sb = $('#sidebar');
-  sb.innerHTML = `<div class="brand"><a href="#/home" class="mark" data-tip="Home" title="Home">生</a><a href="#/home" class="name">Life Instrument</a><button class="sb-toggle" id="sbToggle" title="${sbCollapsed?'Expand sidebar':'Collapse sidebar'}">${sbCollapsed?'»':'«'}</button></div>
+  sb.innerHTML = `<div class="brand"><a href="#/compass" class="mark" data-tip="Compass" title="Compass">生</a><a href="#/compass" class="name">Life Instrument</a><button class="sb-toggle" id="sbToggle" title="${sbCollapsed?'Expand sidebar':'Collapse sidebar'}">${sbCollapsed?'»':'«'}</button></div>
     <nav class="nav" id="nav">
-      ${navLink('home','var(--terra)').replace('data-page="home"','data-page="home"')}
+      ${navLink('compass','var(--terra)')}
       ${NAV_ZONES.map(z => `<div class="zone ${collapsedZones[z.id]?'collapsed':''}" data-zone="${z.id}" style="--z:${z.accent}"><button class="zone-h" data-zoneh="${z.id}" title="${esc(z.hint)}"><span class="zone-lbl">${esc(z.label)}</span><span class="zone-chev">›</span></button><div class="zone-pages">${n[z.id].map(k => navLink(k, z.accent)).join('')}</div></div>`).join('')}
       <div class="nav-sep"></div>
       ${n.standalone.map(k => navLink(k, 'var(--terra)')).join('')}
@@ -13172,15 +13421,15 @@ function markActiveNav(){ const key = activePageKey(); $$('#sidebar a[data-page]
 function openNavOverlay(){
   const n = navConfig(); const key = activePageKey();
   const ov = el(`<div class="nav-overlay" id="navOverlay"><button class="close" aria-label="close">×</button><div class="nav-overlay-inner">
-    <a href="#/home" class="ov-link ${key==='home'?'active':''}" style="--z:var(--terra)"><span class="ico">${NAV_PAGES.home?.ico||'⌂'}</span>Home</a>
+    <a href="#/compass" class="ov-link ${key==='compass'?'active':''}" style="--z:var(--terra)"><span class="ico">${NAV_PAGES.compass?.ico||'⌂'}</span>Compass</a>
     ${NAV_ZONES.map(z => `<div class="ov-zone" style="--z:${z.accent}"><div class="ov-zone-h">${esc(z.label)} <span class="mono">${esc(z.hint)}</span></div>${n[z.id].map(k => `<a href="${NAV_PAGES[k].route}" class="ov-link ${key===k?'active':''}"><span class="ico">${NAV_PAGES[k].ico}</span>${esc(NAV_PAGES[k].label)}</a>`).join('')}</div>`).join('')}
     <div class="ov-zone" style="--z:var(--terra)"><div class="ov-zone-h">Always</div>${n.standalone.map(k => `<a href="${NAV_PAGES[k].route}" class="ov-link ${key===k?'active':''}"><span class="ico">${NAV_PAGES[k].ico}</span>${esc(NAV_PAGES[k].label)}</a>`).join('')}<a href="#/settings" class="ov-link ${key==='settings'?'active':''}"><span class="ico">${NAV_ICONS.settings}</span>Settings</a></div>
   </div></div>`);
   document.body.appendChild(ov); ov.querySelector('.close').onclick = () => ov.remove(); ov.querySelectorAll('a').forEach(a => a.addEventListener('click', () => ov.remove()));
 }
-NAV_PAGES.home = {label:'Home', short:'Home', ico:NAV_ICONS.home, route:'#/home'};
+NAV_PAGES.compass = {label:'Compass', short:'Compass', ico:NAV_ICONS.home, route:'#/compass'};
 
-/* ---------- Home: life at a glance — today's focus, the living house, long-term panels ---------- */
+/* ---------- Compass: life at a glance — today's focus, the living house, long-term panels ---------- */
 const HOUSE_EDGES = [['vision','skills','visions require skills; skills serve visions'],['vision','values','visions serve values; unserved values are blind spots'],['timeline','values','retrospective readings fill the values history'],['timeline','vision','formative events inform what you now want'],['projects','skills','projects exercise skills'],['projects','vision','income streams advance financial visions'],['journals','timeline','memories become formative events'],['journals','vision','entries grow leaves'],['rituals','today','rituals fill today\'s rings'],['today','vision','signals surface neglected visions'],['today','values','the biggest values gap is a daily signal'],['library','journals','quotes are journal entries with a source']];
 function houseStats(){
   const T = today(); const n = navConfig();
@@ -13193,7 +13442,7 @@ function houseStats(){
   const c = S.checkins[T]; const rem = (S.reminders||[]).filter(r=>!r.done&&r.date<=T).length;
   const stat = {
     today:    {line:`${c?.mood?'checked in':'not checked in'} · rings ${done}/${due.length}`, ok:!!c?.mood, cadence:'daily', tip:`${c?.intention?'Intention: '+c.intention:'No intention set yet'}${rem?` · ${rem} reminder${rem>1?'s':''} waiting`:''}`},
-    rhythm:   {line:`${done}/${due.length} rings today`, ok:due.length>0&&done===due.length, cadence:'daily', tip:`${rehearsalDoneToday()?'Morning Theatre practised':'Morning Theatre not yet practised'} · weekly review ${relDays(daysSince(S.reviews.lastWeekly))}`},
+    lifetape: {line:`${done}/${due.length} rings today`, ok:due.length>0&&done===due.length, cadence:'daily', tip:`${rehearsalDoneToday()?'Morning Theatre practised':'Morning Theatre not yet practised'} · weekly review ${relDays(daysSince(S.reviews.lastWeekly))}`},
     journals: {line:`${j7} entr${j7===1?'y':'ies'} this week`, ok:j7>0, cadence:'daily', tip:`${S.entries.length} entries across ${S.journals.length} journals`},
     projects: {line:`${active.length} active · ${nods7} nods / 7d`, ok:cold===0, cadence:'daily', tip:cold?`${cold} active project${cold>1?'s':''} without a nod this week`:'every active project nodded this week'},
     values:   {line:`snapshot ${snapDays===null?'never':snapDays===0?'today':snapDays+'d ago'}`, ok:snapDays!==null&&snapDays<=7, cadence:'weekly', tip:gaps[0]?`Biggest gap: ${gaps[0].name} (${gaps[0].gap>0?'+':''}${gaps[0].gap})`:''},
@@ -13220,7 +13469,7 @@ function houseSVG(st){
     g += `<g class="hnode ${s.cadence}" data-node="${k}" data-go="${p.route}" style="--zc:${zoneColor(k)}"><circle class="body" cx="${x}" cy="${y}" r="${r}" fill="color-mix(in srgb,${zoneColor(k)} ${s.cadence==='daily'?22:s.cadence==='weekly'?14:8}%,var(--surface))" stroke="${zoneColor(k)}" stroke-width="1.4" ${s.cadence==='monthly'||s.cadence==='archival'?'stroke-dasharray="4 3"':''} opacity="${s.cadence==='archival'?.7:1}"/><text x="${x}" y="${y+6}" text-anchor="middle" style="font-size:${r*.6}px">${p.ico}</text><circle cx="${x+r*.7}" cy="${y-r*.7}" r="5" fill="${s.ok?'var(--sage)':'var(--gold)'}" stroke="var(--surface)" stroke-width="1.5"/><text class="hl" x="${x}" y="${y+r+16}" text-anchor="middle">${esc(p.label)}</text><text class="hs" x="${x}" y="${y+r+28}" text-anchor="middle">${esc(s.line)}</text></g>`; });
   return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">${g}</svg>`;
 }
-/* ---------- the four zone cards on Home ----------
+/* ---------- the four zone cards on the Compass ----------
    One card per navigation zone, answering the question that zone exists
    for. Each line is a live count, and each card opens the room where you
    would act on it. */
@@ -13237,7 +13486,7 @@ function zoneSummaries(){
   const tasks = typeof tasksForDay === 'function' ? tasksForDay(T) : [];
   const openTasks = tasks.filter(t => !t.done);
   const [revLine, revC] = nextReviewLine();
-  cards.push({label:'Present', hint:'what is happening now', accent:'var(--sage)', route:'#/rhythm',
+  cards.push({label:'Present', hint:'what is happening now', accent:'var(--sage)', route:'#/lifetape',
     lines:[
       [openTasks.length ? `${openTasks.length} item${openTasks.length === 1 ? '' : 's'} still planned today` : (tasks.length ? 'everything planned today is done' : 'nothing planned today'), openTasks.length ? '' : (tasks.length ? 'var(--sage)' : 'var(--faint)')],
       [st.due.length ? `${st.done} of ${st.due.length} habit${st.due.length === 1 ? '' : 's'} done` : 'no habits due today', st.due.length ? (st.done === st.due.length ? 'var(--sage)' : '') : 'var(--faint)'],
@@ -13285,7 +13534,7 @@ function zoneCardsHTML(){
     <div class="zc-lines">${c.lines.filter(Boolean).map(([t, col]) => `<div class="zc-line"${col ? ` style="color:${col}"` : ''}>${t}</div>`).join('')}</div>
     <span class="zc-go mono">open →</span></a>`).join('')}</section>`;
 }
-routes.home = function(root){
+routes.compass = function(root){
   const T = today(); const st = houseStats(); const moon = moonPhase(); const c = checkin(T);
   const days30 = lastDays(30); const weeks12 = Array.from({length:12},(_,w)=>w).map(w => lastDays(84).slice(w*7, w*7+7));
   const axes = S.valueOrder.map(id=>{ const v=byId(S.values,id); return {name:v.name, short:v.name.split(' ')[0], color:v.color}; });
@@ -13298,7 +13547,7 @@ routes.home = function(root){
   const skillHrs = S.skills.filter(s=>!s.planned).map(s=>({s,h:skillHours(s)})).sort((a,b)=>b.h-a.h).slice(0,4);
   const income = sum(S.projects.map(p=>p.income?.current||0));
   root.innerHTML = `<div class="page">
-    <div class="page-head" style="margin-bottom:22px"><div><h1>${fmtDate(T)}</h1><div class="moon">${moonSVG(moon.p)} <span>${moon.name}</span><span class="mono" style="margin-left:6px">· your life at a glance</span></div></div></div>
+    <div class="page-head" style="margin-bottom:22px"><div><h1>${fmtDate(T)}</h1><div class="moon">${moonSVG(moon.p)} <span>${moon.name}</span><span class="mono" style="margin-left:6px">· the compass — your life at a glance</span></div></div></div>
 
     <div class="home-hero">
       <div class="focus-card rv"><div class="row between"><span class="k mono" style="text-transform:uppercase;letter-spacing:.12em;font-size:.62rem;color:var(--terra)">Today's focus</span><a class="btn sm ghost" href="#/today">open Today →</a></div>
@@ -13328,7 +13577,7 @@ routes.home = function(root){
       <div class="card span2"><div class="k">Congruence over a lifetime</div><div class="big" data-tween="${avgCong.slice(-1)[0]||0}" data-suffix="%">0</div>${sparkline(avgCong,{h:56,min:0,max:100,color:'var(--terra)'})}<div class="sub">average across ten values · ${snaps.length} readings from ${snaps[0]?fmtDate(snaps[0].date,'med'):'—'}</div></div>
       <div class="card span2"><div class="k">Energy, 30 days <a href="#/today">→</a></div>${multiSpark(DIMS.map(d=>({vals:days30.map(x=>S.checkins[x]?.energy?.[d.id]||null),color:d.c})),{h:56})}<div class="legend">${DIMS.map(d=>`<span style="--c:${d.c}">${d.name}</span>`).join('')}</div>${sparkline(days30.map(d=>S.checkins[d]?.setpoint||null),{h:34,min:1,max:22,color:'var(--rose)'})}<div class="sub">emotional set-point · avg ${avg(days30.map(d=>S.checkins[d]?.setpoint).filter(Boolean)).toFixed(1)} — ${hicksName(avg(days30.map(d=>S.checkins[d]?.setpoint).filter(Boolean))||14).split(' / ')[0]}</div></div>
       <div class="card span3"><div class="k">Visions <a href="#/vision">→</a></div><div class="sub">${st.vs.length} growing${st.wither?`, <span style="color:var(--gold)">${st.wither} withering</span>`:''} · average vividness ${Math.round(avg(st.vs.map(x=>x.score)))}</div>${topV.map(x=>`<div class="vbar"><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(x.v.name)}</span><div class="bar" style="--c:${x.lastTended>60?'var(--gold)':'var(--sage)'}"><i style="width:${x.score}%"></i></div><span class="mono">${x.score}</span></div>`).join('')}</div>
-      <div class="card span3"><div class="k">Habits, 12 weeks <a href="#/rhythm/habits">→</a></div><div class="big" data-tween="${habitRate.slice(-1)[0]||0}" data-suffix="%">0<small>this week</small></div>${sparkline(habitRate,{h:56,min:0,max:100,color:'var(--sage)'})}<div class="sub">weekly completion · best streak ${Math.max(0,...S.habits.filter(h=>!h.archived&&!h.negative).map(h=>habitStreak(h).best))} days · weekly review ${relDays(daysSince(S.reviews.lastWeekly))}</div></div>
+      <div class="card span3"><div class="k">Habits, 12 weeks <a href="#/lifetape/habits">→</a></div><div class="big" data-tween="${habitRate.slice(-1)[0]||0}" data-suffix="%">0<small>this week</small></div>${sparkline(habitRate,{h:56,min:0,max:100,color:'var(--sage)'})}<div class="sub">weekly completion · best streak ${Math.max(0,...S.habits.filter(h=>!h.archived&&!h.negative).map(h=>habitStreak(h).best))} days · weekly review ${relDays(daysSince(S.reviews.lastWeekly))}</div></div>
       <div class="card span2"><div class="k">Projects <a href="#/projects">→</a></div><div class="big" data-tween="${st.nods7}">0<small>nods this week</small></div>${sparkline(nodsW,{h:44,min:0,color:'var(--terra)'})}<div class="sub">${st.active.length} active · ${fmtYen(income)}/mo across ${S.projects.filter(p=>p.income?.current>0).length} stream${S.projects.filter(p=>p.income?.current>0).length===1?'':'s'}</div></div>
       <div class="card span2"><div class="k">Skills <a href="#/skills">→</a></div><div class="big" data-tween="${st.hrs30}" data-dec="1">0<small>hours / 30d</small></div>${skillHrs.map(x=>`<div class="vbar"><span>${esc(x.s.name)}</span><div class="bar" style="--c:var(--ment)"><i style="width:${Math.min(100,x.h/Math.max(skillHrs[0].h,1)*100)}%"></i></div><span class="mono">${x.h.toFixed(0)}h</span></div>`).join('')}<div class="sub">${st.atro?`<span style="color:var(--gold)">${st.atro} atrophying</span> · `:''}${S.skills.filter(s=>s.planned).length} buds planned</div></div>
       <div class="card span2"><div class="k">Journal &amp; memory <a href="#/journals">→</a></div><div class="big" data-tween="${S.entries.length}">0<small>entries</small></div>${sparkline(entriesW,{h:40,min:0,color:'var(--rose)'})}<div class="sub">${st.j7} this week · ${st.memories} memories · ${st.quotes} quotes</div><div class="stagebars" title="entries per stage">${stageCounts.map(x=>`<i style="--c:${x.s.hue};height:${Math.max(4,x.n/maxStage*44)}px" title="${esc(x.s.name)} · ${x.n}"></i>`).join('')}</div></div>
@@ -13815,7 +14064,7 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
 function openSearch(){
   const m = openModal(`<input id="palQ" placeholder="Search entries, visions, values, skills, projects, habits, sections…" autofocus><div class="results" id="palRes"></div>`, 'palette');
   const q = m.querySelector('#palQ'), res = m.querySelector('#palRes'); let sel = 0, items = [];
-  const sections = [['Home','#/home'],['Today','#/today'],['Timeline','#/timeline'],['Threads & Tensions','#/timeline/threads'],['Vision Tree','#/vision'],['Values','#/values'],['Journals','#/journals'],['Skill Tree','#/skills'],['Creative Projects','#/projects'],['Rituals & Habits','#/rituals'],['Guided Reviews','#/rituals/reviews'],['Settings','#/settings']];
+  const sections = [['Compass','#/compass'],['Today','#/today'],['Life Tape','#/lifetape'],['Habits','#/lifetape/habits'],['Patterns','#/lifetape/patterns'],['Timeline','#/timeline'],['Threads & Tensions','#/timeline/threads'],['Vision Tree','#/vision'],['Values','#/values'],['Journals','#/journals'],['Skill Tree','#/skills'],['Creative Projects','#/projects'],['Settings','#/settings']];
   const run = () => { const s = q.value.trim().toLowerCase(); const hit = t => !s || String(t).toLowerCase().includes(s); items = [];
     const grp = (name, arr) => { if(arr.length){ items.push({grp:name}); arr.slice(0,8).forEach(x=>items.push(x)); } };
     grp('Add', SPEED_DIAL.flatMap(it => it.actions ? it.actions.map(([l,fn]) => ({t:`${it.icon} ${it.zone} — ${l}`, m:'add', run:fn, key:it.zone+' '+l+' '+it.label})) : [{t:`${it.icon} ${it.label}`, m:'add', run:it.run, key:it.zone+' '+it.label}]).filter(x=>hit(x.key)));
@@ -13839,7 +14088,7 @@ function openSearch(){
    Ambient dust (canvas views only), shortcuts, init
    ============================================================ */
 function startDust(){ const c = $('#dust'); if(!c || reduced()) return; const ctx = c.getContext('2d'); let ps = []; const resize = () => { c.width = innerWidth; c.height = innerHeight; }; resize(); window.addEventListener('resize', resize); for(let i=0;i<40;i++) ps.push({x:Math.random()*innerWidth, y:Math.random()*innerHeight, r:.6+Math.random()*1.6, vx:(Math.random()-.5)*.15, vy:-.05-Math.random()*.12, a:Math.random()*Math.PI*2});
-  const tick = () => { const on = ['vision','home','skills'].includes(currentRoute); ctx.clearRect(0,0,c.width,c.height); if(on){ ctx.fillStyle = S.settings.theme==='dark' ? 'rgba(232,224,212,.05)' : 'rgba(120,90,60,.06)'; ps.forEach(p => { p.a += .01; p.x += p.vx + Math.sin(p.a)*.1; p.y += p.vy; if(p.y < -5){ p.y = innerHeight+5; p.x = Math.random()*innerWidth; } if(p.x<-5) p.x = innerWidth+5; if(p.x>innerWidth+5) p.x=-5; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); }); } requestAnimationFrame(tick); }; requestAnimationFrame(tick); }
+  const tick = () => { const on = ['vision','compass','skills'].includes(currentRoute); ctx.clearRect(0,0,c.width,c.height); if(on){ ctx.fillStyle = S.settings.theme==='dark' ? 'rgba(232,224,212,.05)' : 'rgba(120,90,60,.06)'; ps.forEach(p => { p.a += .01; p.x += p.vx + Math.sin(p.a)*.1; p.y += p.vy; if(p.y < -5){ p.y = innerHeight+5; p.x = Math.random()*innerWidth; } if(p.x<-5) p.x = innerWidth+5; if(p.x>innerWidth+5) p.x=-5; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); }); } requestAnimationFrame(tick); }; requestAnimationFrame(tick); }
 /* Shortcuts. Browsers reserve ⌘N / Ctrl+N (new window) and cannot be overridden, so
    the app uses single keys when you are not typing: N new entry, / search, ← → stages, Esc close. */
 function isTyping(){ const a = document.activeElement; return !!a && (/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) || a.isContentEditable); }

@@ -25,8 +25,8 @@ const PAGE_THEMES = {
   skills:   {name:'Skill Tree',   accent:['#3fae7a','#25835a'], ink:'#1a1816', gradient:['#2f9e6e','#2aa7a0'], mood:'growth, energy',         motion:'energetic', glyph:'技', icon:'🛠'},
   vision:   {name:'Vision',  accent:['#7b7de3','#4d50b6'], ink:'#f6f4ff', gradient:['#4b4fb0','#8a5fc9'], mood:'expansive, dreamy',      motion:'calm',      glyph:'夢', icon:'🌳'},
   timeline: {name:'Timeline',       accent:['#cba85a','#96762a'], ink:'#1a1816', gradient:['#c9a55a','#8a6a4a'], mood:'nostalgic, warm',        motion:'calm',      glyph:'憶', icon:'⏳'},
-  home:     {name:'Home',         accent:['#94a6b5','#5b7082'], ink:'#1a1816', gradient:['#8a9aa6','#6c8299'], mood:'analytical, clear',      motion:'calm',      glyph:'家', icon:'⌂'},
-  rhythm:   {name:'Rhythm',        accent:['#d99a6a','#a8623a'], ink:'#1a1816', gradient:['#c98a5e','#e3bf94'], mood:'present, ordered',       motion:'snappy',    glyph:'律', icon:'◷'},
+  compass:  {name:'Compass',      accent:['#94a6b5','#5b7082'], ink:'#1a1816', gradient:['#8a9aa6','#6c8299'], mood:'analytical, clear',      motion:'calm',      glyph:'家', icon:'⌂'},
+  lifetape: {name:'Life Tape',     accent:['#d99a6a','#a8623a'], ink:'#1a1816', gradient:['#c98a5e','#e3bf94'], mood:'present, ordered',       motion:'snappy',    glyph:'律', icon:'◷'},
   calendar: {name:'Calendar',      accent:['#8fa9c4','#4f7093'], ink:'#1a1816', gradient:['#7d97b3','#c2cfdb'], mood:'wide, seasonal',         motion:'calm',      glyph:'暦', icon:'▦'},
   finance:  {name:'Finance',       accent:['#8fae86','#4d7a4a'], ink:'#1a1816', gradient:['#6f9a68','#c3cf9f'], mood:'plain, countable',       motion:'crisp',     glyph:'財', icon:'▤'},
   people:   {name:'People',        accent:['#d99a9a','#a5605f'], ink:'#1a1816', gradient:['#c98a8a','#e6c3b4'], mood:'warm, particular',       motion:'calm',      glyph:'人', icon:'☺'},
@@ -37,9 +37,9 @@ const PAGE_THEMES = {
   settings: {name:'Settings',     accent:['#a3978a','#776a5c'], ink:'#1a1816', gradient:['#a3978a','#c9b8a4'], mood:'quiet, practical',       motion:'crisp',     glyph:'設', icon:'⚙'},
 };
 /* routes that live inside another room's theme */
-const PAGE_THEME_ALIASES = {stage:'timeline', value:'values'};
-function pageThemeKey(){ const {name} = parseHash(); const k = PAGE_THEME_ALIASES[name] || name; return PAGE_THEMES[k] ? k : 'home'; }
-function pageTheme(key){ return PAGE_THEMES[key] || PAGE_THEMES.home; }
+const PAGE_THEME_ALIASES = {stage:'timeline', value:'values', home:'compass', rhythm:'lifetape'};
+function pageThemeKey(){ const {name} = parseHash(); const k = PAGE_THEME_ALIASES[name] || name; return PAGE_THEMES[k] ? k : 'compass'; }
+function pageTheme(key){ return PAGE_THEMES[key] || PAGE_THEMES.compass; }
 function pageGradientCSS(t){ return `linear-gradient(135deg, ${t.gradient[0]} 0%, ${t.gradient[1]} 100%)`; }
 let _pageThemeKey = null, _gradLayer = 0;
 function applyPageTheme(){

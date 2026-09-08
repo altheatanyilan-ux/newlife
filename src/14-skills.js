@@ -190,7 +190,8 @@ routes.skills = function(root, params){
   const q = $('#skq'); if(q) q.addEventListener('input', debounce(() => { f.q = q.value; rerender(); const i = $('#skq'); if(i){ i.focus(); i.setSelectionRange(i.value.length,i.value.length); } }, 350));
   bindF('skHorizon','horizon'); bindF('skCat','cat'); bindF('skLevel','level'); bindF('skPrio','prio'); bindF('skSort','sort');
   if($('#skClearF')) $('#skClearF').onclick = () => { S._skf = {q:'', horizon:'all', cat:'all', level:'all', prio:'all', sort:'horizon'}; rerender(); };
-  if(params[0]) openSkillPanel(params[0]);
+  /* the id is consumed, not kept: a re-render must not reopen the panel */
+  if(params[0]){ const _id = params[0]; consumeHashParam('#/skills'); setTimeout(() => openSkillPanel(_id), 0); }
 };
 /* pick a skill, then jump straight to the thing you meant to do */
 function openLevelUpPicker(){

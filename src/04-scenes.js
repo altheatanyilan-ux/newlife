@@ -450,6 +450,8 @@ const PAGE_SCENES = {
     ${mistBand(u, 300, 90, .6)}
     ${seal(1090, 130, 40, '具')}`),
 };
+PAGE_SCENES.lifetape = PAGE_SCENES.rhythm;
+PAGE_SCENES.compass  = PAGE_SCENES.home;
 PAGE_SCENES.plan     = PAGE_SCENES.rhythm;
 PAGE_SCENES.board    = PAGE_SCENES.vision;
 PAGE_SCENES.tag      = PAGE_SCENES.journals;
@@ -508,7 +510,7 @@ function applyPageScene(){
   const rec = routeRecord();
   const key = rec ? `rec:${rec.id}` : `page:${pageThemeKey()}`;
   if(key === _sceneKey) return;
-  const svg = rec ? recordMotifSVG(rec.id, rec.color || A) : (PAGE_SCENES[pageThemeKey()] || PAGE_SCENES.home)();
+  const svg = rec ? recordMotifSVG(rec.id, rec.color || A) : (PAGE_SCENES[pageThemeKey()] || PAGE_SCENES.compass || PAGE_SCENES.home)();
   const next = 1 - _sceneLayer;
   layers[next].innerHTML = svg; layers[next].classList.add('on'); layers[_sceneLayer].classList.remove('on');
   _sceneLayer = next; _sceneKey = key;

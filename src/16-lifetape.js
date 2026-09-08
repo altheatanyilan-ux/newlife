@@ -141,8 +141,7 @@ function tapeWeekHTML(anchor){
         <div class="tw-foot"><span class="mono">${its.length||''}</span>${st!==null?`<i class="tw-dot" style="background:${stateColor(st)}" title="state ${st}/100"></i>`:''}</div>
       </div>`; }).join('')}</div>
     <div class="cal-legend rv" style="margin-top:12px">${TAPE_SECTIONS.map(s => { const k = Object.entries(TAPE_KINDS).find(([,v]) => v[0] === s);
-      return `<span><i style="background:${k[1][1]}"></i>${esc(s)}</span>`; }).join('')}<span class="faint">bar height is the day's weight · click a day to read it</span></div>
-    ${dayShapeHTML(days[0], days[6])}`;
+      return `<span><i style="background:${k[1][1]}"></i>${esc(s)}</span>`; }).join('')}<span class="faint">bar height is the day's weight · click a day to read it</span></div>`;
 }
 
 /* ---------- Month, Quarter and Half-year — the same grid at three zooms ----------
@@ -257,111 +256,6 @@ function tapeMonthStripHTML(monthKeys, all){
       ${spAvgN?`<div class="mono" style="color:${spColor}">${spAvgN}/22</div>`:''}
       ${topKind?`<div class="mono" style="color:${topColor}">${topIcon} ${esc(topKind[0])}</div>`:''}</button>`; }).join('')}</div>`;
 }
-/* ---------- The shape of the day ----------
-   Four things at once, on one clock axis: what time you woke, what time you
-   closed the day, and how the hours between them split into used and wasted.
-   The bar is the waking window; the fill inside it is the split, with what
-   was neither claimed nor confessed left hollow. Over a long span the days
-   are averaged into weeks or months so the bars stay readable. */
-const DS_LO = 4, DS_HI = 26;   /* 4am to 2am — the window a day can occupy */
-const dsHour = iso => { if(!iso) return null; const d = new Date(iso); return d.getHours() + d.getMinutes()/60; };
-/* The Today page's 24-hour bar is the source of truth for a day's shape; this
-   view just reads it back at a coarser zoom. */
-function dsDayRecord(d){
-  if(typeof rhythmDay !== 'function') return null;
-  if(!S.dailyRhythm?.[d] && !S.checkins?.[d]) return null;
-  const r = rhythmDay(d); const c = r.computed;
-  let wake = hm2min(r.wakeTime), close = hm2min(r.sleepTime);
-  if(wake == null && close == null && !c.intentionalMinutes && !c.wastedMinutes) return null;
-  if(wake != null) wake /= 60;
-  if(close != null){ close /= 60; if(wake != null && close < wake) close += 24; }
-  return {d, wake, close, used:(c.intentionalMinutes||0)/60, wasted:(c.wastedMinutes||0)/60};
-}
-function dsBucket(days, label){
-  const recs = days.map(dsDayRecord).filter(Boolean);
-  if(!recs.length) return {label, empty:true, days:days.length};
-  const m = k => { const v = recs.map(r => r[k]).filter(x => x != null); return v.length ? avg(v) : null; };
-  return {label, empty:false, n:recs.length, days:days.length,
-    wake:m('wake'), close:m('close'), used:m('used'), wasted:m('wasted')};
-}
-function dayShapeHTML(from, to, {title='The shape of the day'} = {}){
-  const days = []; { let d = from; let g = 0; const stop = to > today() ? today() : to;
-    while(d <= stop && g++ < 800){ days.push(d); d = addDays(d,1); } }
-  if(!days.length) return '';
-  /* keep the bars legible: past ~40 days group into weeks, past ~200 into months */
-  let buckets;
-  if(days.length <= 40) buckets = days.map(d => dsBucket([d], fmtDate(d,'short')));
-  else if(days.length <= 200){
-    const w = []; for(let i=0;i<days.length;i+=7) w.push(days.slice(i,i+7));
-    buckets = w.map(g => dsBucket(g, fmtDate(g[0],'short')));
-  } else {
-    const byM = {}; days.forEach(d => (byM[d.slice(0,7)] = byM[d.slice(0,7)] || []).push(d));
-    buckets = Object.entries(byM).map(([k,g]) => dsBucket(g, MONTHS[+k.slice(5,7)-1].slice(0,3)));
-  }
-  const filled = buckets.filter(b => !b.empty);
-  if(!filled.length) return `<section class="section rv day-shape"><span class="sc">${esc(title)}</span>
-    <div class="empty" style="margin-top:8px">No waking or closing times logged yet. They are recorded on the Today page — the wake time when you open it, the closing time when you finish the day.</div></section>`;
-
-  const H = 190, W = Math.max(320, buckets.length * (buckets.length > 60 ? 9 : buckets.length > 24 ? 16 : 30));
-  const barW = Math.max(3, (W / buckets.length) * 0.6);
-  const y = h => H - ((h - DS_LO) / (DS_HI - DS_LO)) * H;
-  const xs = i => (i + 0.5) * (W / buckets.length);
-  const ticks = [6, 9, 12, 15, 18, 21, 24];
-
-  const bars = buckets.map((b, i) => {
-    if(b.empty) return '';
-    const x = xs(i) - barW/2;
-    const w0 = b.wake, c0 = b.close;
-    if(w0 == null && c0 == null){
-      /* only a split was logged — draw it as a free-floating column */
-      const tot = b.used + b.wasted; if(!tot) return '';
-      const top = y(DS_LO + tot);
-      return `<rect x="${x.toFixed(1)}" y="${top.toFixed(1)}" width="${barW.toFixed(1)}" height="${(H-top).toFixed(1)}" rx="2" fill="var(--sage)" opacity=".28"/>`;
-    }
-    const hi = y(c0 ?? (w0 + 16)), lo = y(w0 ?? ((c0 ?? 22) - 16));
-    const barH = Math.max(2, lo - hi);
-    const awake = (c0 != null && w0 != null) ? (c0 - w0) : null;
-    const acc = b.used + b.wasted;
-    /* the split fills upward from the wake end, in proportion to the window */
-    const scale = awake && acc ? Math.min(1, acc / awake) : 0;
-    const usedH = awake ? barH * (b.used / awake) : 0;
-    const wastedH = awake ? barH * (b.wasted / awake) : 0;
-    return `<g class="ds-bar" data-dslabel="${esc(b.label)}">
-      <rect x="${x.toFixed(1)}" y="${hi.toFixed(1)}" width="${barW.toFixed(1)}" height="${barH.toFixed(1)}" rx="2" fill="var(--page-accent)" opacity=".14"/>
-      ${usedH > .5 ? `<rect x="${x.toFixed(1)}" y="${(lo-usedH).toFixed(1)}" width="${barW.toFixed(1)}" height="${usedH.toFixed(1)}" rx="2" fill="var(--sage)" opacity=".85"/>` : ''}
-      ${wastedH > .5 ? `<rect x="${x.toFixed(1)}" y="${(lo-usedH-wastedH).toFixed(1)}" width="${barW.toFixed(1)}" height="${wastedH.toFixed(1)}" rx="2" fill="var(--rose)" opacity=".7"/>` : ''}
-      <title>${esc(b.label)}${w0!=null?` · woke ${fmtClock(w0)}`:''}${c0!=null?` · closed ${fmtClock(c0)}`:''}${acc?` · ${b.used.toFixed(1)}h used, ${b.wasted.toFixed(1)}h wasted`:''}${b.n>1?` · ${b.n} day${b.n>1?'s':''} averaged`:''}</title>
-    </g>`;
-  }).join('');
-
-  const line = (key, color) => { const pts = buckets.map((b,i) => b.empty || b[key]==null ? null : `${xs(i).toFixed(1)},${y(b[key]).toFixed(1)}`).filter(Boolean);
-    return pts.length > 1 ? `<polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" opacity=".8"/>` : ''; };
-
-  const avgOf = k => { const v = filled.map(b => b[k]).filter(x => x != null); return v.length ? avg(v) : null; };
-  const aw = avgOf('wake'), ac = avgOf('close'), au = avgOf('used'), awa = avgOf('wasted');
-
-  return `<section class="section rv day-shape">
-    <div class="row between" style="align-items:baseline;flex-wrap:wrap;gap:8px">
-      <span class="sc" style="margin:0">${esc(title)}</span>
-      <span class="mono faint">${filled.length} of ${buckets.length} ${days.length<=40?'days':days.length<=200?'weeks':'months'} logged</span>
-    </div>
-    <div class="ds-legend row" style="gap:12px;flex-wrap:wrap;margin:8px 0 4px">
-      <span class="ds-key"><i style="background:var(--gold)"></i>woke${aw!=null?` · avg ${fmtClock(aw)}`:''}</span>
-      <span class="ds-key"><i style="background:var(--ment)"></i>closed${ac!=null?` · avg ${fmtClock(ac)}`:''}</span>
-      <span class="ds-key"><i style="background:var(--sage)"></i>used well${au!=null?` · avg ${au.toFixed(1)}h`:''}</span>
-      <span class="ds-key"><i style="background:var(--rose)"></i>wasted${awa!=null?` · avg ${awa.toFixed(1)}h`:''}</span>
-    </div>
-    <div class="ds-scroll"><svg class="ds-svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" preserveAspectRatio="none">
-      ${ticks.map(h => `<g><line x1="0" y1="${y(h).toFixed(1)}" x2="${W}" y2="${y(h).toFixed(1)}" stroke="var(--line)" stroke-width="1" opacity=".5"/>
-        <text x="2" y="${(y(h)-3).toFixed(1)}" class="ds-tick">${fmtClock(h)}</text></g>`).join('')}
-      ${bars}
-      ${line('wake','var(--gold)')}
-      ${line('close','var(--ment)')}
-    </svg></div>
-  </section>`;
-}
-const fmtClock = h => { const hh = Math.floor(h) % 24, mm = Math.round((h % 1) * 60); const ap = hh >= 12 ? 'pm' : 'am'; const h12 = hh % 12 || 12; return mm ? `${h12}:${String(mm).padStart(2,'0')}${ap}` : `${h12}${ap}`; };
-
 /* one month, big enough to read the dates */
 function tapeMonthHTML(anchor){
   const t = tapeState(); const a = parseDay(anchor); const y = a.getFullYear(), m = a.getMonth();
@@ -374,7 +268,6 @@ function tapeMonthHTML(anchor){
       <span class="row" style="gap:6px"><button class="btn sm ghost" data-tapemonth="${shiftMonths(anchor,-1)}">‹</button><button class="btn sm ghost" data-tapemonth="${today().slice(0,8)}01">this month</button><button class="btn sm ghost" data-tapemonth="${shiftMonths(anchor,1)}">›</button></span>
     </div>
     ${tapePeriodSummaryHTML(from, to, all)}
-    ${dayShapeHTML(from, to)}
     <div class="rv">${tapeMonthBlock(y, m, byDay, t.mode, false)}</div>
     <details class="section rv" style="margin-top:14px"><summary><span class="sc">Everything in this month, in order</span><span class="mono"> ${all.length}</span></summary>
       <div class="stack" style="gap:6px;margin-top:10px">${all.length ? all.slice(-220).reverse().map(tapeItemHTML).join('') : '<div class="empty">Nothing logged this month.</div>'}
@@ -398,7 +291,6 @@ function tapeSpanHTML(anchor, monthCount, label){
       <span class="row" style="gap:6px"><button class="btn sm ghost" data-tapespan="${prev}">‹</button><button class="btn sm ghost" data-tapespan="${today()}">this ${esc(label)}</button><button class="btn sm ghost" data-tapespan="${next}">›</button></span>
     </div>
     ${tapePeriodSummaryHTML(from, to, all)}
-    ${dayShapeHTML(from, to)}
     <div class="tape-span rv" style="grid-template-columns:repeat(3,1fr)">${months.map(({y:yy,m}) => tapeMonthBlock(yy, m, byDay, t.mode, true)).join('')}</div>
     ${tapeMonthStripHTML(months, all)}`;
 }
@@ -440,7 +332,6 @@ function tapeYearHTML(year){
     </div>
     <div class="rv">${tapeGrid(days, t.mode, byDay)}</div>
     ${tapePeriodSummaryHTML(`${year}-01-01`, `${year}-12-31`, all)}
-    ${dayShapeHTML(`${year}-01-01`, `${year}-12-31`)}
     ${tapeMonthStripHTML(months, all)}`;
 }
 

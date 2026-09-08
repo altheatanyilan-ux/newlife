@@ -70,7 +70,7 @@ function rhythmTags(){ const set = new Set();
    THE MASLOW ENGINE
    ============================================================ */
 const MASLOW = [
-  {level:1, key:'body',      name:'Physiological',      short:'BODY',     ask:'Is your body getting what it needs?',                  go:'#/rhythm'},
+  {level:1, key:'body',      name:'Physiological',      short:'BODY',     ask:'Is your body getting what it needs?',                  go:'#/lifetape'},
   {level:2, key:'safety',    name:'Safety & Security',  short:'SAFETY',   ask:'Do you feel safe — financially, physically, emotionally?', go:'#/finance'},
   {level:3, key:'belonging', name:'Love & Belonging',   short:'BELONGING',ask:'Who do you belong to? Who belongs to you?',             go:'#/people'},
   {level:4, key:'esteem',    name:'Esteem',             short:'ESTEEM',   ask:'Do you respect yourself? Does your work feel like it matters?', go:'#/skills'},
@@ -320,7 +320,7 @@ function timeUseHTML(d = today()){
   const ratioCls = ratio == null ? '' : ratio >= 80 ? 'good' : ratio < 50 ? 'poor' : '';
   return `<section class="section rv time-use" data-tuday="${d}">
     <div class="row between" style="align-items:baseline;flex-wrap:wrap;gap:8px">
-      <span class="sc" style="margin:0">The shape of the day</span>
+      <span class="sc" style="margin:0">Sleep &amp; time use</span>
       <span class="row" style="gap:5px;align-items:center">
         <button class="tbtn" data-tunav="${addDays(d,-1)}" title="previous day">‹</button>
         <span class="mono faint">${d === T ? 'today' : esc(fmtDate(d,'med'))}</span>
@@ -468,11 +468,11 @@ function maslowCards(key){
   const add = o => { if(o) out.push(o); };
   if(key === 'body'){
     const r = rhythmDay(); const sl = r.computed.totalAwakeMinutes != null ? 1440 - r.computed.totalAwakeMinutes : null;
-    if(sl != null) add({icon:'☾', label:'SLEEP', value:fmtDur(sl), detail:`woke ${esc(r.wakeTime)}`, go:'#/rhythm'});
+    if(sl != null) add({icon:'☾', label:'SLEEP', value:fmtDur(sl), detail:`woke ${esc(r.wakeTime)}`, go:'#/lifetape'});
     const pe = S.checkins?.[T]?.energy?.physical;
     if(pe) add({icon:'◍', label:'BODY ENERGY', value:`${pe}<small>/5</small>`, detail:'today', spark:miniBar(pct(pe,1,5),'var(--phys)')});
     const hr = mHabitRate(h => h.dimension === 'physical');
-    if(hr != null) add({icon:'▲', label:'MOVEMENT', value:`${hr}<small>%</small>`, detail:'physical habits, 7 days', go:'#/rhythm', spark:miniBar(hr,'var(--phys)')});
+    if(hr != null) add({icon:'▲', label:'MOVEMENT', value:`${hr}<small>%</small>`, detail:'physical habits, 7 days', go:'#/lifetape', spark:miniBar(hr,'var(--phys)')});
   }
   if(key === 'safety'){
     if(typeof runway === 'function' && S.finance?.scenarios?.length && (incomeStreamList().length || S.finance.savings)){
@@ -495,7 +495,7 @@ function maslowCards(key){
       add({icon:'☺', label:'INNER CIRCLE', value:n, detail: stale ? `longest quiet: ${esc(stale.p.name)}` : 'this month', go:'#/people'});
     }
     const rr = mHabitRate(h => !!h.relational);
-    if(rr != null) add({icon:'♡', label:'CONNECTIONS', value:`${rr}<small>%</small>`, detail:'relational habits', go:'#/rhythm', spark:miniBar(rr,'var(--rose)')});
+    if(rr != null) add({icon:'♡', label:'CONNECTIONS', value:`${rr}<small>%</small>`, detail:'relational habits', go:'#/lifetape', spark:miniBar(rr,'var(--rose)')});
     const last = [...(S.interactions||[])].sort((a,b)=>a.date<b.date?1:-1)[0];
     if(last){ const who = byId(S.people, last.personId);
       add({icon:'◌', label:'LAST SEEN', value:esc((who?.name||'someone').split(' ')[0]), detail:relDays(daysSince(last.date)), go:'#/people'}); }
