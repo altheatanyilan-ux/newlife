@@ -108,8 +108,13 @@ const SoundManager = (() => {
     src.start(t); src.stop(t+dur+.05);
   }
   const recipes = {
-    /* a small bowl, tapped once with a padded mallet and let go */
-    click:   () => { mallet({freq:1500, dur:.028, gain:.014}); bowl({freq:523.25, dur:.55, gain:.034, beat:9, size:.6, wet:.9}); },
+    /* Not struck — sounded. No mallet, so there is no noise transient and
+       nothing to hear as a "click"; just a sine and its octave, which is as
+       pure as this synth gets. The onset is eased over ~16ms so the tone
+       arrives rather than hits, the two halves sit 3 cents apart so it
+       breathes about once a second instead of warbling, and the tail is long
+       and wet enough to feel like a room rather than a UI. */
+    click:   () => bowl({freq:440, dur:.9, gain:.026, beat:3, size:1, modes:[1, 2], attack:.01, wet:1}),
     /* the same bowl, lower and softer — a page turning in a quiet room */
     nav:     () => { mallet({freq:900, dur:.05, gain:.012, q:.5}); bowl({freq:392, dur:.9, gain:.034, beat:6, size:.75, wet:1}); },
     /* a full bowl, struck properly and allowed to ring out */
