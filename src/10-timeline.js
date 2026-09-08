@@ -49,7 +49,7 @@ routes.timeline = function(root, params){
   const tab = params[0]==='threads' ? 'threads' : 'stages';
   const counts = S.stages.map(s=>stageEntries(s).length); const maxc = Math.max(...counts,1);
   root.innerHTML = `<div class="page">
-    <div class="page-head tl-head"><div><h1>Timeline</h1><div class="sub">${S.stages.length} rooms. The story you tell about each one changes — and that change is the insight.</div></div>
+    <div class="page-head tl-head"><div><h1>Timeline</h1></div>
       <div class="row">
         <label class="toggle ${S.settings.feltTime?'on':''}" id="feltToggle"><span>clock time</span><span class="sw"></span><span>felt time</span></label>
         <label class="toggle ${S.settings.ribbons?'on':''}" id="ribToggle"><span class="sw"></span><span>threads</span></label>

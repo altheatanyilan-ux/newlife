@@ -120,7 +120,7 @@ routes.skills = function(root, params){
   const list = filteredSkills(); const cats = [...new Set(S.skills.map(s=>s.cat))].sort();
   const counts = {}; Object.keys(SKILL_HORIZONS).forEach(k => counts[k] = S.skills.filter(s => skillHorizon(s) === k).length);
   root.innerHTML = `<div class="page">
-    <div class="page-head"><h1>Skill Tree</h1><div class="sub">Write every one of them down — even the ones for a life you have not started yet. Then put four or five in focus and let the rest wait without nagging you.</div></div>
+    <div class="page-head"><h1>Skill Tree</h1></div>
 
     <!-- 1. what you are actually doing now -->
     <section class="section rv"><div class="row between"><span class="sc" style="margin:0">In focus now</span><span class="mono">${foc.length ? `${foc.length} skill${foc.length===1?'':'s'} · everything else is waiting patiently` : 'nothing in focus'}</span></div>

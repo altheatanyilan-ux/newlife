@@ -413,7 +413,7 @@ function bindImpQueue(root) {
 routes.import = function(root) {
   const raw = S._impRaw || '';
   root.innerHTML = `<div class="page-head"><h1>Import Station</h1>
-    <p class="subtitle">Pour anything in — notes, brain dumps, old journals, bullet lists. Each piece gets read, routed to the room it belongs in, written up properly, and its fields drafted for you.${aiReady() ? '' : ' <span class="faint">Without an API key in Settings the routing is guessed locally and nothing is rewritten.</span>'}</p></div>
+    ${aiReady() ? '' : '<p class="subtitle faint">Without an API key in Settings the routing is guessed locally and nothing is rewritten.</p>'}</div>
   <div class="import-intake">
     <textarea class="ta import-ta" id="impRaw" placeholder="Paste text here… Supports plain text, Markdown, bullet lists, separated sections." rows="10">${esc(raw)}</textarea>
     <div class="row between" style="margin-top:8px;flex-wrap:wrap;gap:8px">

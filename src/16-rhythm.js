@@ -154,7 +154,7 @@ routes.rhythm = function(root, params){
   registerPageEntry({pageName:'Rhythm', addLabel:'Add to the day', defaultEntryType:'event', prefilledFields:{}, options:[
     {icon:'◍', label:'Habit', desc:'Something you mean to keep doing.', run:()=>openHabitModal()},]});
   root.innerHTML = `<div class="page rhythm-page">
-    <div class="page-head"><h1>${esc(S.settings.rhythmName || 'Rhythm')}</h1><div class="sub">Your calendar holds what you meant to do. This holds what you actually lived — the tape of it, the habits that made it, and the reviews that keep the whole instrument honest.</div></div>
+    <div class="page-head"><h1>${esc(S.settings.rhythmName || 'Rhythm')}</h1></div>
     <div class="tabs">${TABS.map(([k,l]) => `<button class="${tab===k?'active':''}" data-rtab="${k}">${l}</button>`).join('')}</div>
     <div id="rhyBody" style="margin-top:14px"></div>
   </div>`;

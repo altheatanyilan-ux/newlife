@@ -4426,7 +4426,7 @@ routes.timeline = function(root, params){
   const tab = params[0]==='threads' ? 'threads' : 'stages';
   const counts = S.stages.map(s=>stageEntries(s).length); const maxc = Math.max(...counts,1);
   root.innerHTML = `<div class="page">
-    <div class="page-head tl-head"><div><h1>Timeline</h1><div class="sub">${S.stages.length} rooms. The story you tell about each one changes — and that change is the insight.</div></div>
+    <div class="page-head tl-head"><div><h1>Timeline</h1></div>
       <div class="row">
         <label class="toggle ${S.settings.feltTime?'on':''}" id="feltToggle"><span>clock time</span><span class="sw"></span><span>felt time</span></label>
         <label class="toggle ${S.settings.ribbons?'on':''}" id="ribToggle"><span class="sw"></span><span>threads</span></label>
@@ -4674,7 +4674,7 @@ routes.vision = function(root, params){
   const boardScope = S._boardEra && eras.some(e => e.id === S._boardEra) ? S._boardEra : 'all';
   const boardKey = boardScope === 'all' ? 'main' : boardId('era', boardScope);
   root.innerHTML = `<div class="page">
-    <div class="page-head"><h1>Vision</h1><div class="sub">What you can only feel, then the chapters of a life side by side — what happened, what is happening, what you are moving toward. Every entry tagged to a goal grows a leaf.</div></div>
+    <div class="page-head"><h1>Vision</h1></div>
 
     <section class="vision-board-top rv">
       ${eras.length ? `<div class="chip-row" style="margin-bottom:10px">${[['all','the whole life']].concat(eras.map(e=>[e.id,e.name])).map(([id,name])=>`<button class="chip click ${boardScope===id?'on':''}" ${id!=='all'?`style="--c:${byId(eras,id).color}"`:''} data-bscope="${id}">${esc(name)}${id!=='all'?` <span class="mono">${boardCount(boardId('era',id))}</span>`:''}</button>`).join('')}</div>` : ''}
@@ -5208,7 +5208,7 @@ routes.people = function(root, params){
   const view = S._pplView || 'circles';
   const overdue = peopleNeedingAttention(); const bdays = birthdaysSoon(30); const follow = openFollowUps();
   root.innerHTML = `<div class="page">
-    <div class="page-head row between"><div><h1>People</h1><div class="sub">Not a contact list. A record of who you are actually in touch with, what they told you, and where you have quietly drifted.</div></div>
+    <div class="page-head row between"><div><h1>People</h1></div>
       <div class="view-toggle">${[['circles','◎ Circles'],['list','▤ List'],['log','◷ Log'],['eras','▬ Life stages'],['audit','◈ Audit']].map(([k,l])=>`<button class="${view===k?'on':''}" data-pplview="${k}">${l}</button>`).join('')}</div></div>
 
     ${overdue.length || bdays.length || follow.length ? `<div class="grid c3 rv" style="margin-bottom:20px;align-items:start">
@@ -5611,7 +5611,7 @@ routes.values = function(root){
   const drift = (cur !== null && prev !== null) ? Math.round(cur - prev) : null;
   const age = latest ? daysSince(latest.date) : null;
   root.innerHTML = `<div class="page">
-    <div class="page-head"><h1>Values</h1><div class="sub">Priority is what you say. Congruence is what your days say. This page exists to show you the difference and what to do about it.</div></div>
+    <div class="page-head"><h1>Values</h1></div>
 
     ${S.valueOrder.length ? `
     <!-- 1. the conclusion, before the evidence -->
@@ -5897,7 +5897,7 @@ routes.journals = function(root, params){
   const otd = onThisDay().filter(e=>e.type===type);
   const dimOpts = [...S.stages.map(s=>[s.id,s.char+' '+s.name]),...S.threads.map(t=>[t.id,'thread · '+t.name]),...S.values.map(v=>[v.id,'value · '+v.name]),...S.visions.map(v=>[v.id,'vision · '+v.name]),...S.skills.map(s=>[s.id,'skill · '+s.name]),...S.projects.map(p=>[p.id,'project · '+p.name])];
   root.innerHTML = `<div class="page">
-    <div class="page-head"><h1>Journals</h1><div class="sub">Append-only. Every entry can live in many rooms at once — link it, and the house connects.</div></div>
+    <div class="page-head"><h1>Journals</h1></div>
     <div class="journal-layout">
       <div class="jnav">${S.journals.map(x=>`<button class="${x.type===type?'active':''}" data-go="#/journals/${x.type}"><span>${typeIcon(x.type)} ${esc(x.name)}</span><span class="n">${S.entries.filter(e=>e.type===x.type).length}</span></button>`).join('')}<button id="jNew" style="color:var(--faint)">+ new journal type</button><button id="jManage" style="color:var(--faint);font-size:.75rem">manage journals…</button></div>
       <div>
@@ -6276,7 +6276,7 @@ routes.skills = function(root, params){
   const list = filteredSkills(); const cats = [...new Set(S.skills.map(s=>s.cat))].sort();
   const counts = {}; Object.keys(SKILL_HORIZONS).forEach(k => counts[k] = S.skills.filter(s => skillHorizon(s) === k).length);
   root.innerHTML = `<div class="page">
-    <div class="page-head"><h1>Skill Tree</h1><div class="sub">Write every one of them down — even the ones for a life you have not started yet. Then put four or five in focus and let the rest wait without nagging you.</div></div>
+    <div class="page-head"><h1>Skill Tree</h1></div>
 
     <!-- 1. what you are actually doing now -->
     <section class="section rv"><div class="row between"><span class="sc" style="margin:0">In focus now</span><span class="mono">${foc.length ? `${foc.length} skill${foc.length===1?'':'s'} · everything else is waiting patiently` : 'nothing in focus'}</span></div>
@@ -6638,7 +6638,7 @@ routes.projects = function(root, params){
   root.innerHTML = `<div class="page">
     <button class="btn primary nod-fab" id="nodFab" title="quick nod">+ nod</button>
     <div class="mode-switch rv">${[['ideation','◌ Ideation','sparks, inspiration, brainstorming'],['tracking','◉ Tracking','the work already under way']].map(([k,l,d])=>`<button class="${mode===k?'on':''}" data-pmode="${k}" title="${d}">${l}</button>`).join('')}</div>
-    <div class="page-head row between"><div><h1>Projects</h1><div class="sub">A nod is the atomic unit: “I showed up and did this.” Under five seconds, or the system dies.</div></div><div class="row"><div class="view-toggle">${[['cards','▦ Cards'],['kanban','▥ Board'],['timeline','▬ Timeline']].map(([k,l])=>`<button class="${view===k?'on':''}" data-pview="${k}">${l}</button>`).join('')}</div><select class="sel" style="width:auto" id="psort"><option value="activity" ${sort==='activity'?'selected':''}>by last activity</option><option value="priority" ${sort==='priority'?'selected':''}>by priority</option><option value="status" ${sort==='status'?'selected':''}>by status</option><option value="name" ${sort==='name'?'selected':''}>by name</option></select><button class="btn primary" id="addNod">+ nod</button></div></div>
+    <div class="page-head row between"><div><h1>Projects</h1></div><div class="row"><div class="view-toggle">${[['cards','▦ Cards'],['kanban','▥ Board'],['timeline','▬ Timeline']].map(([k,l])=>`<button class="${view===k?'on':''}" data-pview="${k}">${l}</button>`).join('')}</div><select class="sel" style="width:auto" id="psort"><option value="activity" ${sort==='activity'?'selected':''}>by last activity</option><option value="priority" ${sort==='priority'?'selected':''}>by priority</option><option value="status" ${sort==='status'?'selected':''}>by status</option><option value="name" ${sort==='name'?'selected':''}>by name</option></select><button class="btn primary" id="addNod">+ nod</button></div></div>
     <div class="card rv" style="margin-bottom:22px"><div class="income-strip"><div><div class="k">monthly income, all streams</div><div class="num">${fmtYen(total)}</div><div class="mono">per month</div></div><div><div class="k">active streams</div><div class="num">${income.length}</div></div><div><div class="k">diversification</div><div class="num">${diversified}</div><div class="mono">contribute &gt;10%</div></div><div><div class="k">open tasks</div><div class="num">${sum(S.projects.filter(p=>!['completed','archived','abandoned'].includes(p.status)).map(p=>{ const r = projectTaskRatio(p); return r.total-r.done; }))}</div></div></div></div>
     ${view==='cards' ? `<div class="grid c3" id="pcards">${ps.map(projectCardHTML).join('')}</div>` : view==='kanban' ? kanbanHTML(ps) : `<div class="card rv"><div class="row between" style="margin-bottom:8px"><span class="sc" style="margin:0">Phases over time</span><span class="mono">bars are phases · lighter fill is tasks done · click a bar to open</span></div>${ganttHTML(ps)}</div>`}
     <section class="section rv"><span class="sc">Energy vs. output</span><p class="muted" style="font-size:.85rem">X: average energy reading across nods. Y: volume of effort. Which interests deserve to become income streams, and which are taxes you pay for a self you've outgrown?</p>
@@ -6774,7 +6774,7 @@ function renderIdeation(root){
   const byKind = k => ideas.filter(i => (i.kind||'spark') === k);
   root.innerHTML = `<div class="page">
     <div class="mode-switch rv">${[['ideation','◌ Ideation','sparks, inspiration, brainstorming'],['tracking','◉ Tracking','the work already under way']].map(([k,l,d])=>`<button class="${k==='ideation'?'on':''}" data-pmode="${k}" title="${d}">${l}</button>`).join('')}</div>
-    <div class="page-head"><h1>Projects</h1><div class="sub">Nothing here has to become anything. Catch it first; decide later. Promote a spark when it starts asking for your hands.</div></div>
+    <div class="page-head"><h1>Projects</h1></div>
     <div class="card rv" style="margin-bottom:20px"><div class="row" style="gap:8px;flex-wrap:wrap">
       <input class="inp" id="ideaInp" placeholder="What just occurred to you?" style="flex:1;min-width:240px">
       <select class="sel" id="ideaKind" style="width:auto">${Object.entries(SPARK_KINDS).map(([k,v])=>`<option value="${k}">${v[0]} ${v[1]}</option>`).join('')}</select>
@@ -7580,7 +7580,7 @@ routes.finance = function(root){
   const annualCurrent = totalCurrentBase*12, annualTarget = totalTargetBase*12;
   const blendedRate = totalHours ? totalCurrentBase/(totalHours*4.33) : null;
   root.innerHTML = `<div class="page">
-    <div class="page-head"><h1>Finance</h1><div class="sub">Not a ledger — that's what your phone app is for. This page builds the ways you make money, prices the life you want to fund, and names the gap between them.</div></div>
+    <div class="page-head"><h1>Finance</h1></div>
 
     <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Income streams</span><button class="btn sm primary" id="streamAdd">＋ stream</button></div>
       <p class="muted" style="font-size:.85rem">Every way you make money, or are building toward making money. Link one to a Creative Project and the numbers live there, in sync — edit them from either page.</p>
@@ -8718,7 +8718,7 @@ routes.rhythm = function(root, params){
   registerPageEntry({pageName:'Rhythm', addLabel:'Add to the day', defaultEntryType:'event', prefilledFields:{}, options:[
     {icon:'◍', label:'Habit', desc:'Something you mean to keep doing.', run:()=>openHabitModal()},]});
   root.innerHTML = `<div class="page rhythm-page">
-    <div class="page-head"><h1>${esc(S.settings.rhythmName || 'Rhythm')}</h1><div class="sub">Your calendar holds what you meant to do. This holds what you actually lived — the tape of it, the habits that made it, and the reviews that keep the whole instrument honest.</div></div>
+    <div class="page-head"><h1>${esc(S.settings.rhythmName || 'Rhythm')}</h1></div>
     <div class="tabs">${TABS.map(([k,l]) => `<button class="${tab===k?'active':''}" data-rtab="${k}">${l}</button>`).join('')}</div>
     <div id="rhyBody" style="margin-top:14px"></div>
   </div>`;
@@ -9611,7 +9611,7 @@ function mdInline(s){ return esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>'); }
    13. SETTINGS
    ============================================================ */
 routes.settings = function(root){
-  root.innerHTML = `<div class="page narrow settings"><div class="page-head"><h1>Settings</h1><div class="sub">The house remembers.</div></div>
+  root.innerHTML = `<div class="page narrow settings"><div class="page-head"><h1>Settings</h1></div>
     <div class="card rv"><h3>Atmosphere</h3>
       <div class="opt"><div><b>Theme</b><div class="d">Dark: rich soil and old leather. Light: warm paper.</div></div><label class="toggle ${S.settings.theme==='light'?'on':''}" id="sTheme"><span>dark</span><span class="sw"></span><span>light</span></label></div>
       <div class="opt"><div><b>Interaction sounds 🔔</b><div class="d">Soft chimes on clicks, a low note on navigation, a rising pair when something is completed. Synthesised in the browser; nothing is downloaded.</div></div><label class="toggle ${SoundManager.state().soundEnabled?'on':''}" id="sSound"><span class="sw"></span></label></div>
@@ -10167,7 +10167,7 @@ routes.commonplace = function(root, params){
   const counts = {}; all.forEach(e => { const k = mediaX(e).kind; counts[k] = (counts[k]||0)+1; });
 
   root.innerHTML = `<div class="page">
-    <div class="page-head"><h1>The Library</h1><div class="sub">Everything that went in, and what it did once it was there. Media is a theory base — for the life already lived, and the hopeful one ahead.</div></div>
+    <div class="page-head"><h1>The Library</h1></div>
 
     <div class="media-kind-row rv">${Object.entries(MEDIA_KINDS).map(([k,v])=>`<button class="media-kind-btn ${kind===k?'on':''}" style="--c:${v[2]}" data-mkind="${k}"><span class="ico">${v[0]}</span><span class="lbl">${v[1]}</span><span class="n">${counts[k]||0}</span></button>`).join('')}</div>
 
@@ -10721,7 +10721,7 @@ function bindImpQueue(root) {
 routes.import = function(root) {
   const raw = S._impRaw || '';
   root.innerHTML = `<div class="page-head"><h1>Import Station</h1>
-    <p class="subtitle">Pour anything in — notes, brain dumps, old journals, bullet lists. Each piece gets read, routed to the room it belongs in, written up properly, and its fields drafted for you.${aiReady() ? '' : ' <span class="faint">Without an API key in Settings the routing is guessed locally and nothing is rewritten.</span>'}</p></div>
+    ${aiReady() ? '' : '<p class="subtitle faint">Without an API key in Settings the routing is guessed locally and nothing is rewritten.</p>'}</div>
   <div class="import-intake">
     <textarea class="ta import-ta" id="impRaw" placeholder="Paste text here… Supports plain text, Markdown, bullet lists, separated sections." rows="10">${esc(raw)}</textarea>
     <div class="row between" style="margin-top:8px;flex-wrap:wrap;gap:8px">
@@ -10832,7 +10832,7 @@ function renderCompostPage(root){
   const list = S.compost.filter(f => !q || f.text.toLowerCase().includes(q) || (f.tags||[]).some(t=>t.includes(q)));
   root.innerHTML = `<div class="page">
     <div class="row between rv" style="margin-bottom:16px"><a class="btn sm ghost" href="#/writing">‹ the desk</a><h1 style="margin:0">The Compost Heap</h1><span></span></div>
-    <div class="sub" style="max-width:var(--content);margin-bottom:16px">Sentences that came to you in the shower, one-line observations, overheard dialogue, half-formed essay ideas. Nothing here has to become anything yet.</div>
+    
     <div class="row rv" style="gap:8px;margin-bottom:16px"><input class="inp" id="compIn" placeholder="Catch it before it's gone…" style="flex:1"><button class="btn primary" id="compAdd">Catch it</button></div>
     <input class="inp rv" id="compQ" placeholder="search fragments" value="${esc(S._compQ||'')}" style="max-width:320px;margin-bottom:16px">
     <div class="compost-grid rv">${list.length ? list.map(f => `<div class="compost-frag" data-cid="${f.id}"><div>${esc(f.text)}</div><div class="row between" style="margin-top:8px"><span class="mono faint">${fmtDate(f.date,'short')}${f.projectId?` · ${esc(byId(S.entries,f.projectId)?.title||'assigned')}`:''}</span><span class="row" style="gap:4px"><select class="sel" style="width:auto;padding:2px 6px;font-size:.68rem" data-cassign="${f.id}"><option value="">unassigned</option>${writings().map(p=>`<option value="${p.id}" ${f.projectId===p.id?'selected':''}>${esc(p.title||'Untitled')}</option>`).join('')}</select><button class="del-x inline" data-cdel="${f.id}">×</button></span></div></div>`).join('') : '<div class="empty">Nothing composting yet.</div>'}</div>
@@ -11035,7 +11035,7 @@ routes.writing = function(root, params){
   const ws = writings();
   const published = ws.filter(e => e.extra.publication?.status === 'published');
   root.innerHTML = `<div class="page">
-    <div class="page-head"><h1>The Writing Studio</h1><div class="sub">Material accumulates while you live the rest of the site; this is where it gets shaped into something.</div></div>
+    <div class="page-head"><h1>The Writing Studio</h1></div>
     <div class="row rv" style="gap:8px;margin-bottom:16px"><a class="btn sm ghost" href="#/writing/compost">🌱 Compost Heap (${S.compost.length})</a><button class="btn sm ghost" id="wHabit">+ a writing habit</button><div class="view-toggle">${[['board','▥ Board'],['list','☰ List']].map(([k,l])=>`<button class="${view===k?'on':''}" data-wv="${k}">${l}</button>`).join('')}</div></div>
     ${ws.length ? (view==='board' ? `<div class="wkanban rv" id="wkanban">${WRITING_STATUSES.map((st, si) => { const inCol = ws.filter(e=>e.extra.status===st);
         const hue = ['var(--muted)','var(--sage)','var(--ment)','var(--page-accent)','var(--gold)','var(--terra)','#7f916a','var(--faint)'][si] || 'var(--page-accent)';

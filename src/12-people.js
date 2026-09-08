@@ -172,7 +172,7 @@ routes.people = function(root, params){
   const view = S._pplView || 'circles';
   const overdue = peopleNeedingAttention(); const bdays = birthdaysSoon(30); const follow = openFollowUps();
   root.innerHTML = `<div class="page">
-    <div class="page-head row between"><div><h1>People</h1><div class="sub">Not a contact list. A record of who you are actually in touch with, what they told you, and where you have quietly drifted.</div></div>
+    <div class="page-head row between"><div><h1>People</h1></div>
       <div class="view-toggle">${[['circles','◎ Circles'],['list','▤ List'],['log','◷ Log'],['eras','▬ Life stages'],['audit','◈ Audit']].map(([k,l])=>`<button class="${view===k?'on':''}" data-pplview="${k}">${l}</button>`).join('')}</div></div>
 
     ${overdue.length || bdays.length || follow.length ? `<div class="grid c3 rv" style="margin-bottom:20px;align-items:start">

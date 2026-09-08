@@ -2,7 +2,7 @@
    13. SETTINGS
    ============================================================ */
 routes.settings = function(root){
-  root.innerHTML = `<div class="page narrow settings"><div class="page-head"><h1>Settings</h1><div class="sub">The house remembers.</div></div>
+  root.innerHTML = `<div class="page narrow settings"><div class="page-head"><h1>Settings</h1></div>
     <div class="card rv"><h3>Atmosphere</h3>
       <div class="opt"><div><b>Theme</b><div class="d">Dark: rich soil and old leather. Light: warm paper.</div></div><label class="toggle ${S.settings.theme==='light'?'on':''}" id="sTheme"><span>dark</span><span class="sw"></span><span>light</span></label></div>
       <div class="opt"><div><b>Interaction sounds 🔔</b><div class="d">Soft chimes on clicks, a low note on navigation, a rising pair when something is completed. Synthesised in the browser; nothing is downloaded.</div></div><label class="toggle ${SoundManager.state().soundEnabled?'on':''}" id="sSound"><span class="sw"></span></label></div>

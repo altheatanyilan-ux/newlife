@@ -66,7 +66,7 @@ routes.vision = function(root, params){
   const boardScope = S._boardEra && eras.some(e => e.id === S._boardEra) ? S._boardEra : 'all';
   const boardKey = boardScope === 'all' ? 'main' : boardId('era', boardScope);
   root.innerHTML = `<div class="page">
-    <div class="page-head"><h1>Vision</h1><div class="sub">What you can only feel, then the chapters of a life side by side — what happened, what is happening, what you are moving toward. Every entry tagged to a goal grows a leaf.</div></div>
+    <div class="page-head"><h1>Vision</h1></div>
 
     <section class="vision-board-top rv">
       ${eras.length ? `<div class="chip-row" style="margin-bottom:10px">${[['all','the whole life']].concat(eras.map(e=>[e.id,e.name])).map(([id,name])=>`<button class="chip click ${boardScope===id?'on':''}" ${id!=='all'?`style="--c:${byId(eras,id).color}"`:''} data-bscope="${id}">${esc(name)}${id!=='all'?` <span class="mono">${boardCount(boardId('era',id))}</span>`:''}</button>`).join('')}</div>` : ''}

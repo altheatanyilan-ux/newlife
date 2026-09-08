@@ -312,7 +312,7 @@ routes.finance = function(root){
   const annualCurrent = totalCurrentBase*12, annualTarget = totalTargetBase*12;
   const blendedRate = totalHours ? totalCurrentBase/(totalHours*4.33) : null;
   root.innerHTML = `<div class="page">
-    <div class="page-head"><h1>Finance</h1><div class="sub">Not a ledger — that's what your phone app is for. This page builds the ways you make money, prices the life you want to fund, and names the gap between them.</div></div>
+    <div class="page-head"><h1>Finance</h1></div>
 
     <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Income streams</span><button class="btn sm primary" id="streamAdd">＋ stream</button></div>
       <p class="muted" style="font-size:.85rem">Every way you make money, or are building toward making money. Link one to a Creative Project and the numbers live there, in sync — edit them from either page.</p>

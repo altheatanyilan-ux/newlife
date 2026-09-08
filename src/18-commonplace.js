@@ -241,7 +241,7 @@ routes.commonplace = function(root, params){
   const counts = {}; all.forEach(e => { const k = mediaX(e).kind; counts[k] = (counts[k]||0)+1; });
 
   root.innerHTML = `<div class="page">
-    <div class="page-head"><h1>The Library</h1><div class="sub">Everything that went in, and what it did once it was there. Media is a theory base — for the life already lived, and the hopeful one ahead.</div></div>
+    <div class="page-head"><h1>The Library</h1></div>
 
     <div class="media-kind-row rv">${Object.entries(MEDIA_KINDS).map(([k,v])=>`<button class="media-kind-btn ${kind===k?'on':''}" style="--c:${v[2]}" data-mkind="${k}"><span class="ico">${v[0]}</span><span class="lbl">${v[1]}</span><span class="n">${counts[k]||0}</span></button>`).join('')}</div>
 

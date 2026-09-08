@@ -46,7 +46,7 @@ function renderCompostPage(root){
   const list = S.compost.filter(f => !q || f.text.toLowerCase().includes(q) || (f.tags||[]).some(t=>t.includes(q)));
   root.innerHTML = `<div class="page">
     <div class="row between rv" style="margin-bottom:16px"><a class="btn sm ghost" href="#/writing">‹ the desk</a><h1 style="margin:0">The Compost Heap</h1><span></span></div>
-    <div class="sub" style="max-width:var(--content);margin-bottom:16px">Sentences that came to you in the shower, one-line observations, overheard dialogue, half-formed essay ideas. Nothing here has to become anything yet.</div>
+    
     <div class="row rv" style="gap:8px;margin-bottom:16px"><input class="inp" id="compIn" placeholder="Catch it before it's gone…" style="flex:1"><button class="btn primary" id="compAdd">Catch it</button></div>
     <input class="inp rv" id="compQ" placeholder="search fragments" value="${esc(S._compQ||'')}" style="max-width:320px;margin-bottom:16px">
     <div class="compost-grid rv">${list.length ? list.map(f => `<div class="compost-frag" data-cid="${f.id}"><div>${esc(f.text)}</div><div class="row between" style="margin-top:8px"><span class="mono faint">${fmtDate(f.date,'short')}${f.projectId?` · ${esc(byId(S.entries,f.projectId)?.title||'assigned')}`:''}</span><span class="row" style="gap:4px"><select class="sel" style="width:auto;padding:2px 6px;font-size:.68rem" data-cassign="${f.id}"><option value="">unassigned</option>${writings().map(p=>`<option value="${p.id}" ${f.projectId===p.id?'selected':''}>${esc(p.title||'Untitled')}</option>`).join('')}</select><button class="del-x inline" data-cdel="${f.id}">×</button></span></div></div>`).join('') : '<div class="empty">Nothing composting yet.</div>'}</div>
@@ -249,7 +249,7 @@ routes.writing = function(root, params){
   const ws = writings();
   const published = ws.filter(e => e.extra.publication?.status === 'published');
   root.innerHTML = `<div class="page">
-    <div class="page-head"><h1>The Writing Studio</h1><div class="sub">Material accumulates while you live the rest of the site; this is where it gets shaped into something.</div></div>
+    <div class="page-head"><h1>The Writing Studio</h1></div>
     <div class="row rv" style="gap:8px;margin-bottom:16px"><a class="btn sm ghost" href="#/writing/compost">🌱 Compost Heap (${S.compost.length})</a><button class="btn sm ghost" id="wHabit">+ a writing habit</button><div class="view-toggle">${[['board','▥ Board'],['list','☰ List']].map(([k,l])=>`<button class="${view===k?'on':''}" data-wv="${k}">${l}</button>`).join('')}</div></div>
     ${ws.length ? (view==='board' ? `<div class="wkanban rv" id="wkanban">${WRITING_STATUSES.map((st, si) => { const inCol = ws.filter(e=>e.extra.status===st);
         const hue = ['var(--muted)','var(--sage)','var(--ment)','var(--page-accent)','var(--gold)','var(--terra)','#7f916a','var(--faint)'][si] || 'var(--page-accent)';

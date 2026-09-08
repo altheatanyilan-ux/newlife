@@ -15,7 +15,7 @@ routes.values = function(root){
   const drift = (cur !== null && prev !== null) ? Math.round(cur - prev) : null;
   const age = latest ? daysSince(latest.date) : null;
   root.innerHTML = `<div class="page">
-    <div class="page-head"><h1>Values</h1><div class="sub">Priority is what you say. Congruence is what your days say. This page exists to show you the difference and what to do about it.</div></div>
+    <div class="page-head"><h1>Values</h1></div>
 
     ${S.valueOrder.length ? `
     <!-- 1. the conclusion, before the evidence -->
