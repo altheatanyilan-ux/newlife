@@ -365,8 +365,10 @@ function renderWritingDesk(root, id){
     </div>
 
     <div class="wstudio-layout${ws.drawer?'':' no-l'}${ws.board?'':' no-r'}" id="wsLayout" style="--ws-l:${ws.lw}px;--ws-r:${ws.rw}px">
-      <div class="ws-left">${wsBinderHTML(e)}${researchDrawerHTML(e)}</div>
-      <div>
+      <div class="ws-left${ws.drawer?'':' folded'}">
+        <button class="ws-rail" id="wsRailL" title="show the binder and research drawer"><span class="chev">›</span><span class="lbl">binder</span></button>
+        ${wsBinderHTML(e)}${researchDrawerHTML(e)}</div>
+      <div class="ws-mid">
         ${wsViewBarHTML(e)}
         <div class="ws-stage rv" id="wsStage">${wsBodyHTML(e)}</div>
         <details style="margin-top:14px"><summary><span class="sc">Scratchpad</span></summary><div class="body"><textarea class="ta" id="wScratch" placeholder="Rough notes, fragments, sentence attempts.">${esc(x.scratchpad)}</textarea></div></details>
@@ -383,15 +385,21 @@ function renderWritingDesk(root, id){
         </div></details>
         ${moreSection(`<div class="danger-zone"><span>This deletes the piece, its research pins, and its version history.</span><button class="btn sm ghost danger" id="wDel">Delete this piece</button></div>`)}
       </div>
-      <div class="ws-right">${wsInspectorHTML(e)}${structureBoardHTML(e)}</div>
+      <div class="ws-right${ws.board?'':' folded'}">
+        <button class="ws-rail" id="wsRailR" title="show the inspector and structure board"><span class="chev">‹</span><span class="lbl">inspector</span></button>
+        ${wsInspectorHTML(e)}${structureBoardHTML(e)}</div>
     </div>
   </div>`;
   /* The draft now lives in the binder's documents, not on the project body —
      bindWsStudio owns #wBody. Binding it here too would write every keystroke
      to both places, and #wBody does not exist at all in the other three views. */
   $('#wFocus').onclick = () => { S._writeFocus = !S._writeFocus; redraw(); setTimeout(()=>$('#wBody')?.focus(),60); };
-  $('#wPaneL') && ($('#wPaneL').onclick = () => { ws.drawer = !ws.drawer; saveNow(); redraw(); });
-  $('#wPaneR') && ($('#wPaneR').onclick = () => { ws.board = !ws.board; saveNow(); redraw(); });
+  /* the toolbar toggles, the fold button on each panel, and the rail that a
+     folded panel leaves behind all drive the same two flags */
+  const foldL = () => { ws.drawer = !ws.drawer; saveNow(); sound('click'); redraw(); };
+  const foldR = () => { ws.board  = !ws.board;  saveNow(); sound('click'); redraw(); };
+  ['#wPaneL','#wsRailL','#wsFoldL'].forEach(sel => { const n = $(sel); if(n) n.onclick = foldL; });
+  ['#wPaneR','#wsRailR','#wsFoldR'].forEach(sel => { const n = $(sel); if(n) n.onclick = foldR; });
   bindWsResize(root, ws);
   bindWsStudio(root, e, redraw);
   $('#wsCompileBtn') && ($('#wsCompileBtn').onclick = () => wsOpenCompile(e));

@@ -140,6 +140,7 @@ function wsBinderHTML(proj){
     <div class="ws-bhead">
       <span class="sc" style="margin:0">Binder</span>
       <span class="row" style="gap:2px">
+        <button class="ws-fold" id="wsFoldL" title="fold the binder away (⌘1)">⟨</button>
         <button class="tbtn" id="wsNewDoc" title="new document (⌘N)">＋</button>
         <button class="tbtn" id="wsNewFolder" title="new folder">📁</button>
       </span>
@@ -423,7 +424,8 @@ function wsInspectorHTML(proj){
       <div class="stack" style="gap:6px;margin-top:8px">${(x.comments||[]).map(c=>`<div class="rail-item"><div class="quote" style="font-size:.8rem">“${esc(c.quote)}”</div><div style="margin-top:4px;font-size:.82rem">${esc(c.note)}</div></div>`).join('') || ''}</div>`,
   }[tab]();
   return `<div class="ws-inspector" id="wsInspector">
-    <div class="ws-itabs">${WS_INSP_TABS.map(([k,ic,l]) => `<button class="${tab===k?'on':''}" data-wsitab="${k}" title="${esc(l)}">${ic}</button>`).join('')}</div>
+    <div class="ws-itabs">${WS_INSP_TABS.map(([k,ic,l]) => `<button class="${tab===k?'on':''}" data-wsitab="${k}" title="${esc(l)}">${ic}</button>`).join('')}
+      <button class="ws-fold" id="wsFoldR" style="margin-left:auto" title="fold the inspector away (⌘3)">⟩</button></div>
     <div class="ws-ibody">${body}</div>
   </div>`;
 }

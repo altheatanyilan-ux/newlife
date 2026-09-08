@@ -1789,13 +1789,23 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 .wproject-card{cursor:pointer}
 .wproject-card .premise{font-family:var(--quote);font-style:italic;color:var(--muted);font-size:.88rem;margin-top:6px}
 .wstudio-layout{display:grid;grid-template-columns:var(--ws-l,280px) minmax(0,1fr) var(--ws-r,300px);gap:20px;align-items:start;transition:grid-template-columns .28s var(--ease)}
-.wstudio-layout.no-l{grid-template-columns:0 minmax(0,1fr) var(--ws-r,300px)}
-.wstudio-layout.no-r{grid-template-columns:var(--ws-l,280px) minmax(0,1fr) 0}
-.wstudio-layout.no-l.no-r{grid-template-columns:0 minmax(0,1fr) 0}
-.wstudio-layout.no-l > .drawer,.wstudio-layout.no-r > .structure-board{opacity:0;pointer-events:none;overflow:hidden;padding:0;border-width:0;min-width:0}
+/* A folded side keeps a 26px track holding nothing but its reopen rail. A
+   zero track does not work: the panel inside has padding, a border and a
+   min-content width, so it spills out and lands on top of the editor. */
+.wstudio-layout.no-l{grid-template-columns:26px minmax(0,1fr) var(--ws-r,300px)}
+.wstudio-layout.no-r{grid-template-columns:var(--ws-l,280px) minmax(0,1fr) 26px}
+.wstudio-layout.no-l.no-r{grid-template-columns:26px minmax(0,1fr) 26px}
+.ws-left.folded > :not(.ws-rail),.ws-right.folded > :not(.ws-rail){display:none}
 /* focus hides both outright — the editor takes the whole width, which is the point */
+/* Each column is pinned to its own track. Without this, hiding a side with
+   display:none removes it from the grid and the editor slides left into a
+   collapsed track, ending up zero-width. */
+.ws-left{grid-column:1}
+.ws-mid{grid-column:2;min-width:0}
+.ws-right{grid-column:3}
+/* focus takes the whole page — not even the rails survive */
 .wstudio-focus .wstudio-layout{grid-template-columns:0 minmax(0,1fr) 0}
-.wstudio-focus .drawer,.wstudio-focus .structure-board{opacity:0;pointer-events:none;overflow:hidden;padding:0;border-width:0;min-width:0}
+.wstudio-focus .ws-left,.wstudio-focus .ws-right{display:none}
 .wstudio-focus .write-page{max-width:none}
 .wstudio-focus .writing-head .field,.wstudio-focus .wstudio-layout > div > details{display:none}
 .ws-grip{position:relative}
@@ -1829,7 +1839,14 @@ body.ws-resizing{cursor:col-resize;user-select:none}
 .pub-row{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px dashed var(--line);font-size:.85rem}
 .snip-btn{background:none;border:none;cursor:pointer;color:var(--faint);font-size:.8rem;padding:2px 4px}
 .snip-btn:hover{color:var(--page-accent)}
-@media (max-width:1150px){.wstudio-layout{grid-template-columns:1fr}.drawer,.structure-board{position:static;max-height:none}}
+/* Stacked on narrow screens. The fold rules carry two classes, so they must be
+   restated here or they outrank the single-column template and the editor gets
+   crammed into a 26px rail track. */
+@media (max-width:1150px){
+  .wstudio-layout,.wstudio-layout.no-l,.wstudio-layout.no-r,.wstudio-layout.no-l.no-r{grid-template-columns:minmax(0,1fr)}
+  .ws-left,.ws-mid,.ws-right{grid-column:1}
+  .drawer,.structure-board{position:static;max-height:none}
+}
 
 /* ============================================================
    LIVING VIEW / WORKSHOP VIEW
@@ -1886,6 +1903,16 @@ body.ws-resizing{cursor:col-resize;user-select:none}
 @media(max-width:540px){.lt-hs-cell{min-width:64px}}
 /* ── The Writing Studio: binder, view modes, inspector ── */
 .ws-left,.ws-right{display:flex;flex-direction:column;gap:14px;min-width:0}
+/* the reopen rail: a slim strip that is all a folded side leaves behind */
+.ws-rail{display:none;width:26px;align-self:stretch;min-height:190px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);color:var(--muted);cursor:pointer;padding:10px 0;align-items:center;justify-content:flex-start;gap:9px;flex-direction:column;transition:color .18s var(--ease),border-color .18s var(--ease),background .18s var(--ease)}
+.ws-left.folded > .ws-rail,.ws-right.folded > .ws-rail{display:flex}
+.ws-rail:hover{color:var(--page-accent);border-color:var(--page-accent);background:color-mix(in srgb,var(--page-accent) 7%,var(--surface))}
+.ws-rail .chev{font-size:.7rem;line-height:1}
+.ws-rail .lbl{writing-mode:vertical-rl;text-orientation:mixed;font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;opacity:.85}
+/* the fold control that lives on the panel itself */
+.ws-fold{background:none;border:0;color:var(--muted);cursor:pointer;padding:0 3px;font-size:.78rem;line-height:1;border-radius:4px;transition:color .16s var(--ease),background .16s var(--ease)}
+.ws-fold:hover{color:var(--page-accent);background:var(--surface-2)}
+@media (max-width:1150px){.ws-rail{display:none!important}.ws-left.folded > :not(.ws-rail),.ws-right.folded > :not(.ws-rail){display:revert}}
 .ws-binder,.ws-inspector{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:12px}
 .ws-bhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
 .ws-btarget{font-size:.7rem;color:var(--muted);padding-bottom:8px;margin-bottom:6px;border-bottom:1px dashed var(--line)}
@@ -11155,8 +11182,10 @@ function renderWritingDesk(root, id){
     </div>
 
     <div class="wstudio-layout${ws.drawer?'':' no-l'}${ws.board?'':' no-r'}" id="wsLayout" style="--ws-l:${ws.lw}px;--ws-r:${ws.rw}px">
-      <div class="ws-left">${wsBinderHTML(e)}${researchDrawerHTML(e)}</div>
-      <div>
+      <div class="ws-left${ws.drawer?'':' folded'}">
+        <button class="ws-rail" id="wsRailL" title="show the binder and research drawer"><span class="chev">›</span><span class="lbl">binder</span></button>
+        ${wsBinderHTML(e)}${researchDrawerHTML(e)}</div>
+      <div class="ws-mid">
         ${wsViewBarHTML(e)}
         <div class="ws-stage rv" id="wsStage">${wsBodyHTML(e)}</div>
         <details style="margin-top:14px"><summary><span class="sc">Scratchpad</span></summary><div class="body"><textarea class="ta" id="wScratch" placeholder="Rough notes, fragments, sentence attempts.">${esc(x.scratchpad)}</textarea></div></details>
@@ -11173,15 +11202,21 @@ function renderWritingDesk(root, id){
         </div></details>
         ${moreSection(`<div class="danger-zone"><span>This deletes the piece, its research pins, and its version history.</span><button class="btn sm ghost danger" id="wDel">Delete this piece</button></div>`)}
       </div>
-      <div class="ws-right">${wsInspectorHTML(e)}${structureBoardHTML(e)}</div>
+      <div class="ws-right${ws.board?'':' folded'}">
+        <button class="ws-rail" id="wsRailR" title="show the inspector and structure board"><span class="chev">‹</span><span class="lbl">inspector</span></button>
+        ${wsInspectorHTML(e)}${structureBoardHTML(e)}</div>
     </div>
   </div>`;
   /* The draft now lives in the binder's documents, not on the project body —
      bindWsStudio owns #wBody. Binding it here too would write every keystroke
      to both places, and #wBody does not exist at all in the other three views. */
   $('#wFocus').onclick = () => { S._writeFocus = !S._writeFocus; redraw(); setTimeout(()=>$('#wBody')?.focus(),60); };
-  $('#wPaneL') && ($('#wPaneL').onclick = () => { ws.drawer = !ws.drawer; saveNow(); redraw(); });
-  $('#wPaneR') && ($('#wPaneR').onclick = () => { ws.board = !ws.board; saveNow(); redraw(); });
+  /* the toolbar toggles, the fold button on each panel, and the rail that a
+     folded panel leaves behind all drive the same two flags */
+  const foldL = () => { ws.drawer = !ws.drawer; saveNow(); sound('click'); redraw(); };
+  const foldR = () => { ws.board  = !ws.board;  saveNow(); sound('click'); redraw(); };
+  ['#wPaneL','#wsRailL','#wsFoldL'].forEach(sel => { const n = $(sel); if(n) n.onclick = foldL; });
+  ['#wPaneR','#wsRailR','#wsFoldR'].forEach(sel => { const n = $(sel); if(n) n.onclick = foldR; });
   bindWsResize(root, ws);
   bindWsStudio(root, e, redraw);
   $('#wsCompileBtn') && ($('#wsCompileBtn').onclick = () => wsOpenCompile(e));
@@ -11345,6 +11380,7 @@ function wsBinderHTML(proj){
     <div class="ws-bhead">
       <span class="sc" style="margin:0">Binder</span>
       <span class="row" style="gap:2px">
+        <button class="ws-fold" id="wsFoldL" title="fold the binder away (⌘1)">⟨</button>
         <button class="tbtn" id="wsNewDoc" title="new document (⌘N)">＋</button>
         <button class="tbtn" id="wsNewFolder" title="new folder">📁</button>
       </span>
@@ -11628,7 +11664,8 @@ function wsInspectorHTML(proj){
       <div class="stack" style="gap:6px;margin-top:8px">${(x.comments||[]).map(c=>`<div class="rail-item"><div class="quote" style="font-size:.8rem">“${esc(c.quote)}”</div><div style="margin-top:4px;font-size:.82rem">${esc(c.note)}</div></div>`).join('') || ''}</div>`,
   }[tab]();
   return `<div class="ws-inspector" id="wsInspector">
-    <div class="ws-itabs">${WS_INSP_TABS.map(([k,ic,l]) => `<button class="${tab===k?'on':''}" data-wsitab="${k}" title="${esc(l)}">${ic}</button>`).join('')}</div>
+    <div class="ws-itabs">${WS_INSP_TABS.map(([k,ic,l]) => `<button class="${tab===k?'on':''}" data-wsitab="${k}" title="${esc(l)}">${ic}</button>`).join('')}
+      <button class="ws-fold" id="wsFoldR" style="margin-left:auto" title="fold the inspector away (⌘3)">⟩</button></div>
     <div class="ws-ibody">${body}</div>
   </div>`;
 }
