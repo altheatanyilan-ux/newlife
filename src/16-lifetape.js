@@ -265,13 +265,17 @@ function tapeMonthStripHTML(monthKeys, all){
    are averaged into weeks or months so the bars stay readable. */
 const DS_LO = 4, DS_HI = 26;   /* 4am to 2am — the window a day can occupy */
 const dsHour = iso => { if(!iso) return null; const d = new Date(iso); return d.getHours() + d.getMinutes()/60; };
+/* The Today page's 24-hour bar is the source of truth for a day's shape; this
+   view just reads it back at a coarser zoom. */
 function dsDayRecord(d){
-  const c = S.checkins?.[d]; if(!c) return null;
-  let wake = dsHour(c.wakeAt), close = dsHour(c.closeAt);
-  if(wake == null && close == null && c.hoursUsed == null && c.hoursWasted == null) return null;
-  /* a close after midnight belongs to the same waking day, so it sits past 24 */
-  if(wake != null && close != null && close < wake) close += 24;
-  return {d, wake, close, used:+c.hoursUsed || 0, wasted:+c.hoursWasted || 0};
+  if(typeof rhythmDay !== 'function') return null;
+  if(!S.dailyRhythm?.[d] && !S.checkins?.[d]) return null;
+  const r = rhythmDay(d); const c = r.computed;
+  let wake = hm2min(r.wakeTime), close = hm2min(r.sleepTime);
+  if(wake == null && close == null && !c.intentionalMinutes && !c.wastedMinutes) return null;
+  if(wake != null) wake /= 60;
+  if(close != null){ close /= 60; if(wake != null && close < wake) close += 24; }
+  return {d, wake, close, used:(c.intentionalMinutes||0)/60, wasted:(c.wastedMinutes||0)/60};
 }
 function dsBucket(days, label){
   const recs = days.map(dsDayRecord).filter(Boolean);

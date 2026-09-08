@@ -53,7 +53,7 @@ const { chromium } = require('playwright');
   }
 
   // empty state
-  await page.evaluate(() => { S.checkins = {}; saveNow(); rerender(); });
+  await page.evaluate(() => { S.checkins = {}; S.dailyRhythm = {}; saveNow(); rerender(); });
   await page.waitForTimeout(300);
   await page.evaluate(() => {
     const tabs=[...document.querySelectorAll('[data-rytab]')];

@@ -13,7 +13,9 @@ routes.today = function(root){
   const milestones = milestonesDueSoon(30);
   const pr = practicesDueToday();
 
+  /* opening the page is the wake signal; the daily rhythm owns the time now */
   if(!c.wakeAt){ c.wakeAt = new Date().toISOString(); saveNow(); }
+  { const r = rhythmDay(T); if(!r.wakeTime){ r.wakeTime = isoToHM(c.wakeAt); rhythmCompute(r); saveNow(); } }
 
   const _ft = iso => { if(!iso) return ''; const d = new Date(iso); let h = d.getHours(), m = d.getMinutes(); const ap = h >= 12 ? 'pm' : 'am'; h = h % 12 || 12; return h + ':' + String(m).padStart(2,'0') + ap; };
   const _dur = (a, b) => { if(!a||!b) return ''; const mins = Math.round((new Date(b) - new Date(a)) / 60000); if(mins < 1) return '<1m'; if(mins < 60) return mins + 'm'; return Math.floor(mins/60) + 'h ' + (mins%60) + 'm'; };
@@ -65,6 +67,9 @@ routes.today = function(root){
       </div>
       ${cyest?.intention ? `<div class="mono faint" style="margin-top:8px;font-size:.78rem">Yesterday you set out to: <em>${esc(cyest.intention)}</em></div>` : ''}
     </header>
+
+    ${timeUseHTML(S._tuDay || T)}
+    ${maslowRowsHTML()}
 
     <!-- morning flow tracker -->
     <section class="section rv morning-flow">
@@ -149,6 +154,8 @@ routes.today = function(root){
       <div class="card" style="margin-top:10px"><div class="prac-today">${pr.map(({v,p,done,doneThisWeek})=>`<button class="prac-chip ${done?'on':''}" data-practoday="${v.id}:${p.id}" style="--c:${v.color}"><span class="pc-tick">${done?'✓':'○'}</span><span class="pc-text">${esc(p.text)}</span><span class="pc-val mono">${esc(v.name)} · ${doneThisWeek}/${p.perWeek}</span></button>`).join('')}</div></div></section>` : ''}
     ${milestones.length ? `<section class="section rv"><span class="sc">Skill milestones within 30 days</span><div class="card" style="border-left:3px solid var(--ment)">${milestones.map(({skill,m,days})=>`<a href="#/skills/${skill.id}" class="row between" style="text-decoration:none;color:inherit;padding:8px 0;border-top:1px dashed var(--line);gap:12px"><span><b class="serif">${esc(skill.name)}</b> <span class="muted">→ ${esc(skillLevelLabel(skill,m.levelTarget))}</span></span><span class="status-pill ${days<0?'due':'ahead'}">${days<0?'⚠ ' + (-days) + 'd overdue':days===0?'today':'in ' + days + 'd'}</span></a>`).join('')}</div></section>` : ''}
 
+    ${positionHTML()}
+
     <!-- gentle prompt -->
     <section class="section rv"><span class="sc">A gentle prompt</span>
       <div class="prompt-card"><div class="quote" id="promptText">${gentlePrompt()}</div><div class="row" style="margin-top:14px;justify-content:space-between"><button class="btn sm ghost" id="anotherPrompt">another</button><button class="btn sm" data-quick="reflection">respond ✎</button></div></div>
@@ -161,22 +168,6 @@ routes.today = function(root){
         ${[['reflection','✎','Reflection'],['gratitude','♡','Gratitude'],['synchronicity','∞','Synchronicity'],['visualization','◉','Vision'],['memory','◌','Memory'],['nod','·','Nod'],['interaction','☺','Interaction'],['dream','☾','Dream']].map(([t,ic,lb]) =>
           `<button class="btn sm ghost" data-quick="${t}">${ic} ${lb}</button>`).join('')}
         <button class="btn sm ghost" data-quick="snippet">✐ Snippet</button>
-      </div>
-    </section>
-
-    <!-- how the day was actually spent — the other half of the day-shape graph -->
-    <section class="section rv day-shape-in ${evening ? 'is-evening' : ''}">
-      <div class="row between" style="align-items:baseline">
-        <span class="sc" style="margin:0">How today went</span>
-        <span class="mono faint">woke ${c.wakeAt ? _ft(c.wakeAt) : '—'}${c.closeAt ? ` · closed ${_ft(c.closeAt)}` : ''}</span>
-      </div>
-      <div class="card" style="margin-top:10px">
-        <div class="row" style="gap:14px;flex-wrap:wrap;align-items:flex-end">
-          <div><div class="k">hours used well</div><input class="inp mono ds-num" id="dsUsed" inputmode="decimal" placeholder="0" value="${c.hoursUsed ?? ''}" style="width:74px"></div>
-          <div><div class="k">hours wasted</div><input class="inp mono ds-num" id="dsWasted" inputmode="decimal" placeholder="0" value="${c.hoursWasted ?? ''}" style="width:74px"></div>
-          <button class="btn sm ${c.closeAt ? 'ghost' : 'primary'}" id="dsClose">${c.closeAt ? '↻ Re-stamp close' : '◐ Close the day'}</button>
-        </div>
-        ${c.wakeAt && c.closeAt ? `<div class="mono faint" style="margin-top:8px;font-size:.72rem">${_dur(c.wakeAt, c.closeAt)} awake · ${(+c.hoursUsed||0)+(+c.hoursWasted||0) ? `${(+c.hoursUsed||0).toFixed(1)}h used, ${(+c.hoursWasted||0).toFixed(1)}h wasted, ${Math.max(0, (new Date(c.closeAt)-new Date(c.wakeAt))/3600000 - (+c.hoursUsed||0) - (+c.hoursWasted||0)).toFixed(1)}h unaccounted` : 'no split logged yet'}</div>` : ''}
       </div>
     </section>
 
@@ -227,11 +218,10 @@ routes.today = function(root){
   $('#newCycle').onclick = () => confirmDlg('Start a fresh 21-day cycle from today? Past days stay in your history.', () => { S.rehearsal.cycleStart = T; saveNow(); rerender(); });
   root.querySelectorAll('.tracker i').forEach(i => i.onclick = () => { const d = i.dataset.td; if(d > T) return; const idx = S.rehearsal.days.indexOf(d); if(idx>=0) S.rehearsal.days.splice(idx,1); else S.rehearsal.days.push(d); saveNow(); rerender(); });
 
-  /* the day's shape: closing stamp and the used/wasted split */
-  $('#dsClose') && ($('#dsClose').onclick = () => { c.closeAt = new Date().toISOString(); saveNow(); sound('chime'); rerender(); });
-  ['dsUsed','dsWasted'].forEach(id => { const n = $('#'+id); if(!n) return;
-    n.onchange = () => { const v = parseFloat(String(n.value).replace(/[^\d.]/g,''));
-      c[id === 'dsUsed' ? 'hoursUsed' : 'hoursWasted'] = isNaN(v) ? null : clamp(v, 0, 24); saveNow(); rerender(); }; });
+  const redraw = () => rerender();
+  bindTimeUse(root, redraw);
+  bindPosition(root, redraw);
+  $('#maslowAll') && ($('#maslowAll').onclick = () => { S._maslowAll = !S._maslowAll; rerender(); });
 
   /* the night before */
   $('#planTomorrow') && ($('#planTomorrow').onclick = () => { if(typeof planMyDay === 'function') planMyDay(tomorrow); });
