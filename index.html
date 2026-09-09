@@ -2880,6 +2880,178 @@ select.sm-active{border-color:var(--page-accent);
 .mas-spark .mono{flex:0 0 74px;font-size:.56rem;color:var(--faint);letter-spacing:.08em}
 .mas-spark svg{flex:1;min-width:0}
 @media (prefers-reduced-motion:reduce){.mas-tier polygon,.mas-leg{transition:none}.mas-tier.weak polygon{animation:none}}
+
+/* ---------- Planning ----------
+   A workspace, not a contemplative room: the ink behind it stays quiet and
+   the furniture is plain. A sidebar of where work lives, and one panel that
+   can be read five different ways. */
+.plan-page{max-width:none}
+.plan-shell{display:grid;grid-template-columns:264px 1fr;gap:22px;align-items:start}
+.pl-side{position:sticky;top:14px;display:flex;flex-direction:column;gap:6px;max-height:calc(100vh - 40px)}
+.pl-side.collapsed{width:44px;overflow:hidden}
+.pl-side.collapsed .pl-name,.pl-side.collapsed .pl-n,.pl-side.collapsed .pl-head,
+.pl-side.collapsed .pl-search,.pl-side.collapsed .pl-mini-row{display:none}
+.pl-collapse{align-self:flex-end;background:none;border:none;color:var(--faint);cursor:pointer;font-size:1rem;padding:2px 6px}
+.pl-collapse:hover{color:var(--text)}
+.pl-scroll{overflow-y:auto;flex:1;min-height:0;scrollbar-width:thin;padding-right:4px}
+.pl-search{font-size:.78rem;padding:7px 10px;margin-bottom:10px}
+.pl-group{display:flex;flex-direction:column;gap:1px;margin-bottom:6px}
+.pl-item{display:flex;align-items:center;gap:9px;width:100%;padding:6px 9px;border:none;border-radius:8px;
+  background:transparent;color:var(--muted);font-size:.84rem;text-align:left;cursor:pointer;
+  transition:background .18s var(--ease),color .18s var(--ease)}
+.pl-item:hover{background:color-mix(in srgb,var(--text) 5%,transparent);color:var(--text)}
+.pl-item.on{background:color-mix(in srgb,var(--page-accent) 15%,transparent);color:var(--text)}
+.pl-item.over{background:color-mix(in srgb,var(--page-accent) 26%,transparent);color:var(--text)}
+.pl-ico{width:15px;text-align:center;color:var(--faint);font-size:.9rem;flex:none}
+.pl-item.on .pl-ico{color:var(--page-accent)}
+.pl-dot{width:8px;height:8px;border-radius:50%;flex:none}
+.pl-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pl-n{font-size:.68rem;color:var(--faint);flex:none}
+.pl-head{display:flex;align-items:center;justify-content:space-between;font-family:var(--mono);font-size:.6rem;
+  text-transform:uppercase;letter-spacing:.13em;color:var(--faint);margin:14px 0 4px;padding:0 9px}
+.pl-mini{background:none;border:none;color:var(--faint);cursor:pointer;font-size:.85rem;padding:0 4px;line-height:1}
+.pl-mini:hover{color:var(--text)}
+.pl-mini-row{background:none;border:none;color:var(--faint);cursor:pointer;font-size:.75rem;
+  font-family:var(--mono);text-align:left;padding:4px 9px}
+.pl-mini-row:hover{color:var(--text)}
+.pl-empty{padding:5px 9px;font-size:.7rem;color:var(--faint)}
+.pl-folder.shut .pl-fkids{display:none}
+.pl-fkids{padding-left:13px;border-left:1px solid var(--line);margin-left:14px}
+.pl-folder.over > .pl-fhead{background:color-mix(in srgb,var(--page-accent) 26%,transparent)}
+.pl-foot{border-top:1px solid var(--line);padding-top:8px;display:flex;flex-direction:column;gap:1px}
+.pl-swatches{display:flex;flex-wrap:wrap;gap:6px}
+.pl-sw{width:24px;height:24px;border-radius:50%;border:2px solid transparent;cursor:pointer}
+.pl-sw.on{border-color:var(--text);transform:scale(1.12)}
+
+.pl-main{min-width:0}
+.pl-header{border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:14px}
+.pl-title{font-family:var(--serif);font-size:1.35rem;margin:0}
+.pl-viewsw{display:flex;gap:2px}
+.pl-viewsw button{background:none;border:1px solid transparent;border-radius:7px;color:var(--faint);
+  cursor:pointer;font-size:.92rem;padding:4px 9px;transition:all .18s var(--ease)}
+.pl-viewsw button:hover{color:var(--text);background:color-mix(in srgb,var(--text) 5%,transparent)}
+.pl-viewsw button.on{color:var(--page-accent);border-color:color-mix(in srgb,var(--page-accent) 40%,transparent)}
+.pl-bar{display:flex;align-items:center;gap:10px;margin-top:9px;flex-wrap:wrap}
+.pf-chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.pf-chip{background:none;border:1px solid var(--line-2);border-radius:999px;color:var(--muted);
+  cursor:pointer;font-size:.72rem;padding:3px 10px;display:inline-flex;gap:5px;align-items:center}
+.pf-chip:hover{color:var(--text);border-color:var(--page-accent)}
+.pf-chip.on{background:color-mix(in srgb,var(--page-accent) 18%,transparent);color:var(--text);border-color:transparent}
+.pf-chip i{font-style:normal;opacity:.6}
+.pl-count{margin-left:auto;font-size:.7rem;color:var(--faint)}
+
+.pt-row{display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid var(--line);
+  cursor:pointer;position:relative;transition:background .18s var(--ease),opacity .3s var(--ease),transform .3s var(--ease)}
+.pt-row:hover{background:color-mix(in srgb,var(--text) 3%,transparent)}
+.pt-row.picked{background:color-mix(in srgb,var(--page-accent) 13%,transparent)}
+.pt-row.dragging{opacity:.4}
+.pt-row[data-prio="3"]{box-shadow:inset 2px 0 0 var(--terra)}
+.pt-row.done .pt-text{color:var(--faint)}
+.pt-row.leaving{opacity:0;transform:translateY(6px)}
+.pt-box{background:none;border:none;padding:0;cursor:pointer;width:21px;height:21px;flex:none;--pc:var(--page-accent)}
+.pt-box.sm{width:17px;height:17px}
+.pt-box.lg{width:26px;height:26px}
+.pt-box svg{width:100%;height:100%;display:block;overflow:visible}
+.pt-ring{fill:none;stroke:var(--line-2);stroke-width:1.5;transition:stroke .2s var(--ease),fill .2s var(--ease)}
+.pt-box:hover .pt-ring{stroke:var(--pc);fill:color-mix(in srgb,var(--pc) 15%,transparent)}
+.pt-tick{fill:none;stroke:var(--page-accent-ink,#fff);stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:16;stroke-dashoffset:16;transition:stroke-dashoffset .16s var(--ease)}
+.pt-row.done .pt-ring,.pd-sub.done .pt-ring,.pt-box.on .pt-ring{fill:var(--pc);stroke:var(--pc)}
+.pt-row.done .pt-tick,.pd-sub.done .pt-tick,.pt-box.on .pt-tick{stroke-dashoffset:0}
+.pt-prio{width:6px;height:6px;border-radius:50%;flex:none}
+.pt-text{flex:1;min-width:0;font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;position:relative}
+/* the line draws itself through the title rather than simply appearing */
+.pt-text::after{content:"";position:absolute;left:0;top:50%;height:1px;width:0;background:currentColor;opacity:.6;
+  transition:width .2s var(--ease)}
+.pt-row.done .pt-text::after{width:100%}
+.pt-meta{display:flex;align-items:center;gap:6px;flex:none;flex-wrap:wrap;justify-content:flex-end}
+.pt-sub,.pt-dur,.pt-day{font-size:.68rem;color:var(--faint)}
+.pt-day.late{color:var(--gold)}
+.pt-rep{font-size:.75rem;color:var(--faint)}
+.pt-tag,.pt-list{font-size:.66rem;padding:1px 7px;border-radius:999px;color:var(--c,var(--muted));
+  border:1px solid color-mix(in srgb,var(--c,var(--line-2)) 45%,transparent);white-space:nowrap}
+.pt-group{margin-bottom:18px}
+.pt-ghead{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--serif);
+  font-size:.9rem;letter-spacing:.04em;color:var(--muted);padding:4px 0;border-bottom:1px solid var(--line-2);margin-bottom:2px}
+.pt-ghead .mono{font-size:.66rem;color:var(--faint)}
+.pt-section{margin-top:16px}
+.pt-section.over{background:color-mix(in srgb,var(--page-accent) 8%,transparent);border-radius:10px}
+.pt-shead{display:flex;align-items:center;gap:7px;padding:4px 0;border-bottom:1px solid var(--line-2)}
+.pt-stog{background:none;border:none;color:var(--faint);cursor:pointer;padding:0}
+.pt-sname{font-family:var(--serif);font-size:.82rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+.pt-shead .mono{font-size:.66rem;color:var(--faint);margin-left:auto}
+.pt-section.shut .pt-sbody{display:none}
+.pt-done{margin-top:22px;border-top:1px dashed var(--line)}
+.pt-done summary{display:flex;gap:10px;align-items:baseline;padding:10px 0;cursor:pointer}
+.pt-done .pt-row{opacity:.55}
+
+.pq-wrap{margin-bottom:8px}
+.pq-input{font-size:.88rem;padding:9px 12px}
+.pq-preview:empty{display:none}
+.qp-preview{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 12px;margin-top:5px;
+  background:color-mix(in srgb,var(--surface-2) 70%,transparent);border-radius:9px;
+  animation:qpIn .2s var(--ease)}
+@keyframes qpIn{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
+.qp-title{font-size:.86rem;color:var(--text)}
+.qp-chip{font-size:.66rem;padding:2px 8px;border-radius:999px;color:var(--c,var(--muted));
+  border:1px solid color-mix(in srgb,var(--c,var(--line-2)) 45%,transparent)}
+
+.pl-batch{position:sticky;bottom:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:18px;
+  padding:10px 14px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line-2);
+  box-shadow:var(--shadow);animation:qpIn .22s var(--ease);z-index:6}
+.pl-batch .mono{font-size:.72rem;color:var(--muted);margin-right:4px}
+
+.pl-remind{display:flex;align-items:center;gap:12px;padding:9px 14px;margin-bottom:14px;border-radius:11px;
+  background:color-mix(in srgb,var(--gold) 12%,transparent);border:1px solid color-mix(in srgb,var(--gold) 35%,transparent)}
+.pl-remind > .mono{font-size:.7rem;color:var(--gold);text-transform:uppercase;letter-spacing:.1em;flex:none}
+.pl-remlist{display:flex;gap:8px;flex-wrap:wrap;flex:1}
+.pl-rem{background:none;border:1px solid var(--line-2);border-radius:8px;cursor:pointer;padding:4px 10px;
+  color:var(--text);font-size:.8rem;display:flex;gap:8px;align-items:baseline}
+.pl-rem:hover{border-color:var(--gold)}
+.pl-rem .mono{font-size:.66rem;color:var(--faint)}
+
+.side-panel.plan-detail{--panel-w:440px}
+.pd-head{display:flex;gap:11px;align-items:flex-start;margin-bottom:10px}
+.pd-title{font-size:1.02rem;font-weight:600;padding:2px 6px}
+.pd-title.struck{text-decoration:line-through;color:var(--faint)}
+.pd-prios{display:flex;gap:7px;align-items:center;margin-bottom:16px;padding-left:37px}
+.pd-prio{width:15px;height:15px;border-radius:50%;border:1.5px solid var(--c);background:transparent;cursor:pointer;
+  transition:background .18s var(--ease),transform .18s var(--ease)}
+.pd-prio:hover{transform:scale(1.15)}
+.pd-prio.on{background:var(--c)}
+.pd-prios .mono{font-size:.66rem;margin-left:2px}
+.pd-quick{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.pd-q{display:flex;flex-direction:column;gap:2px}
+.pd-q .k{font-family:var(--mono);font-size:.6rem;text-transform:uppercase;letter-spacing:.11em;color:var(--faint)}
+.pd-q .inp,.pd-q .sel{font-size:.8rem;padding:6px 8px}
+.pd-q .sel{padding-right:22px}
+.pd-sec{margin-bottom:16px;padding-top:12px;border-top:1px solid var(--line)}
+.pd-sec .k{font-family:var(--mono);font-size:.6rem;text-transform:uppercase;letter-spacing:.11em;color:var(--faint);margin-bottom:6px;display:block}
+.pd-bar{height:3px;border-radius:2px;background:var(--surface-3);overflow:hidden;margin:6px 0 9px}
+.pd-bar i{display:block;height:100%;background:var(--page-accent);transition:width .3s var(--ease)}
+.pd-subs{display:flex;flex-direction:column;gap:3px}
+.pd-sub{display:flex;align-items:center;gap:8px}
+.pd-sub .inp{font-size:.84rem;padding:4px 7px}
+.pd-sub.done .inp{text-decoration:line-through;color:var(--faint)}
+.pd-subadd{font-size:.82rem;padding:6px 8px;margin-top:6px}
+.pd-fsess{margin-top:8px;display:flex;flex-direction:column;gap:2px}
+.pd-fsess .mono{display:flex;justify-content:space-between;font-size:.68rem;color:var(--faint)}
+.pd-meta{margin-top:18px;padding-top:12px;border-top:1px solid var(--line);font-size:.66rem;color:var(--faint);
+  display:flex;flex-direction:column;gap:2px}
+
+@media (max-width:1000px){
+  .plan-shell{grid-template-columns:1fr}
+  .pl-side{position:static;max-height:none;flex-direction:row;flex-wrap:wrap;gap:4px}
+  .pl-side .pl-scroll{overflow:visible;display:flex;flex-wrap:wrap;gap:4px;width:100%}
+  .pl-side .pl-group{flex-direction:row;flex-wrap:wrap}
+  .pl-collapse,.pl-head{display:none}
+  .pl-item{width:auto}
+  .pl-foot{flex-direction:row;border-top:none;padding-top:0}
+  .pd-quick{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){
+  .pt-row,.pt-text::after,.pt-tick,.qp-preview,.pl-batch{transition:none;animation:none}
+}
 </style>
 </head>
 <body>
@@ -12277,6 +12449,1312 @@ routes.settings = function(root){
   $('#sClear').onclick = () => confirmDlg('This erases everything in this browser and re-seeds the placeholder content. Export first if in doubt.', async ()=>{ await resetAll(); applyTheme(); toast('Cleared. Seed content restored.'); navigate('#/today'); rerender(); });
 };
 /* ============================================================
+   PLANNING — everything the page does when it is touched.
+   ============================================================ */
+
+function planTaskById(id){ return (S.tasks || []).find(t => t.id === id) || null; }
+function planRedraw(){ rerender(); }
+
+/* completing a task is a small ceremony: the box fills, the line draws itself
+   through the title, and only then does the row leave */
+function planCompleteRow(row, t, done){
+  const rolled = planSetDone(t, done);
+  sound(done ? 'success' : 'click');
+  if(!row){ planRedraw(); return; }
+  row.classList.toggle('done', done);
+  if(done){
+    row.classList.add('leaving');
+    setTimeout(() => { planRedraw(); if(rolled) toast(`Repeats — next one ${fmtDate(rolled.day, 'med')}.`); }, 420);
+  } else planRedraw();
+  if(done && typeof planOfferReflection === 'function') planOfferReflection(t);
+}
+
+function bindPlanning(root, sel, tasks){
+  const p = planState();
+
+  /* --- sidebar --- */
+  $$('[data-plsel]', root).forEach(b => b.onclick = () => {
+    const [k, ...rest] = b.dataset.plsel.split(':'); planSetSel(k, rest.join(':')); });
+  $$('[data-plfold]', root).forEach(b => b.onclick = () => {
+    const f = p.folders.find(x => x.id === b.dataset.plfold); if(!f) return;
+    f.isCollapsed = !f.isCollapsed; saveNow(); rerender(); });
+  const collapse = $('#plCollapse'); if(collapse) collapse.onclick = () => {
+    p.prefs.sidebarCollapsed = !p.prefs.sidebarCollapsed; saveNow(); rerender(); };
+  const nl = $('#plNewList'); if(nl) nl.onclick = () => openPlanListModal(null);
+  const nf = $('#plNewFolder'); if(nf) nf.onclick = () => {
+    const f = planNewFolder('New folder'); saveNow(); rerender();
+    setTimeout(() => openPlanFolderRename(f.id), 60); };
+  const nfil = $('#plNewFilter'); if(nfil) nfil.onclick = () => openPlanFilterModal(null);
+  $$('[data-plfolder] .pl-fhead', root).forEach(h => h.addEventListener('contextmenu', ev => {
+    ev.preventDefault(); openPlanFolderRename(h.closest('[data-plfolder]').dataset.plfolder); }));
+  $$('[data-pldrag]', root).forEach(b => {
+    b.addEventListener('dragstart', ev => { ev.stopPropagation(); window._plListDrag = b.dataset.pldrag; ev.dataTransfer.effectAllowed = 'move'; });
+    b.addEventListener('contextmenu', ev => { ev.preventDefault(); openPlanListModal(b.dataset.pldrag); });
+  });
+  $$('[data-plfolder]', root).forEach(fd => {
+    fd.addEventListener('dragover', ev => { if(window._plListDrag){ ev.preventDefault(); fd.classList.add('over'); } });
+    fd.addEventListener('dragleave', () => fd.classList.remove('over'));
+    fd.addEventListener('drop', ev => { ev.preventDefault(); fd.classList.remove('over');
+      const l = planList(window._plListDrag); window._plListDrag = null; if(!l) return;
+      l.folderId = fd.dataset.plfolder; saveNow(); sound('click'); rerender(); });
+  });
+
+  const search = $('#plSearch');
+  if(search) search.oninput = debounce(() => { S._planQ = search.value.trim(); rerender();
+    requestAnimationFrame(() => { const s = $('#plSearch'); if(s){ s.focus(); s.setSelectionRange(s.value.length, s.value.length); } }); }, 280);
+
+  /* --- header --- */
+  $$('[data-plview]', root).forEach(b => b.onclick = () => planSetView(b.dataset.plview));
+  const sort = $('#plSort'); if(sort) sort.onchange = () => { p.prefs.sort = sort.value; saveNow(); rerender(); };
+  const showDone = $('#plShowDone'); if(showDone) showDone.onclick = () => { p.prefs.showCompleted = !p.prefs.showCompleted; saveNow(); rerender(); };
+  const fbtn = $('#plFilterBtn'); if(fbtn) fbtn.onclick = () => openPlanQuickFilter();
+  $$('[data-pfclear]', root).forEach(c => c.onclick = () => {
+    S._planFilter = Object.assign({}, S._planFilter); delete S._planFilter[c.dataset.pfclear]; rerender(); });
+
+  /* --- rows --- */
+  $$('[data-ptdone]', root).forEach(b => b.onclick = ev => { ev.stopPropagation();
+    const t = planTaskById(b.dataset.ptdone); if(!t) return;
+    planCompleteRow(b.closest('.pt-row, .pk-card'), t, !t.done); });
+  $$('[data-ptdel]', root).forEach(b => b.onclick = ev => { ev.stopPropagation();
+    const t = planTaskById(b.dataset.ptdel); if(!t) return;
+    requestDelete({label:t.text || 'Task', node:b.closest('.pt-row, .pk-card'),
+      remove: () => spliceOut(S.tasks, x => x.id === t.id), after: planRedraw}); });
+  $$('[data-ptrow], [data-ptcard]', root).forEach(row => {
+    const id = row.dataset.ptrow || row.dataset.ptcard;
+    row.addEventListener('click', ev => {
+      if(ev.target.closest('button, a, input')) return;
+      if(ev.shiftKey || ev.metaKey || ev.ctrlKey){ planTogglePick(id); return; }
+      openPlanTask(id);
+    });
+    row.addEventListener('contextmenu', ev => { ev.preventDefault(); openPlanRowMenu(ev, id); });
+    row.addEventListener('dragstart', ev => { window._plTaskDrag = id; row.classList.add('dragging');
+      ev.dataTransfer.effectAllowed = 'move'; try { ev.dataTransfer.setData('text/plain', id); } catch(e){} });
+    row.addEventListener('dragend', () => { row.classList.remove('dragging'); window._plTaskDrag = null; });
+  });
+
+  /* --- sections --- */
+  $$('[data-plsectog]', root).forEach(b => b.onclick = () => {
+    const l = planList(sel.id); const sc = l?.sections.find(s => s.id === b.dataset.plsectog);
+    if(!sc) return; sc.isCollapsed = !sc.isCollapsed; saveNow(); rerender(); });
+  $$('[data-plsecdel]', root).forEach(b => b.onclick = () => {
+    const l = planList(sel.id); const sc = l?.sections.find(s => s.id === b.dataset.plsecdel); if(!sc) return;
+    requestDelete({label:sc.name || 'Section', node:b.closest('.pt-section'), after:planRedraw,
+      remove: () => { const back = spliceOut(l.sections, x => x.id === sc.id);
+        const moved = (S.tasks || []).filter(t => t.sectionId === sc.id);
+        moved.forEach(t => t.sectionId = null);
+        return () => { back(); moved.forEach(t => t.sectionId = sc.id); }; }}); });
+  const ns = $('#plNewSection'); if(ns) ns.onclick = () => {
+    const l = planList(sel.id); if(!l) return;
+    const name = prompt('Name this section'); if(!name || !name.trim()) return;
+    l.sections.push({id:uid(), name:name.trim(), sortOrder:l.sections.length, isCollapsed:false});
+    saveNow(); sound('click'); rerender(); };
+  /* a row dropped on a section header joins that section */
+  $$('[data-plsec]', root).forEach(sc => {
+    sc.addEventListener('dragover', ev => { if(window._plTaskDrag){ ev.preventDefault(); sc.classList.add('over'); } });
+    sc.addEventListener('dragleave', () => sc.classList.remove('over'));
+    sc.addEventListener('drop', ev => { ev.preventDefault(); sc.classList.remove('over');
+      const t = planTaskById(window._plTaskDrag); window._plTaskDrag = null; if(!t) return;
+      t.sectionId = sc.dataset.plsec; t.updatedAt = new Date().toISOString(); saveNow(); sound('click'); rerender(); });
+  });
+  /* dropping a task on a list in the sidebar moves it there */
+  $$('[data-plsel^="list:"]', root).forEach(b => {
+    b.addEventListener('dragover', ev => { if(window._plTaskDrag){ ev.preventDefault(); b.classList.add('over'); } });
+    b.addEventListener('dragleave', () => b.classList.remove('over'));
+    b.addEventListener('drop', ev => { ev.preventDefault(); b.classList.remove('over');
+      const t = planTaskById(window._plTaskDrag); window._plTaskDrag = null; if(!t) return;
+      t.listId = b.dataset.plsel.split(':')[1]; t.sectionId = null; saveNow(); sound('click'); rerender(); });
+  });
+
+  /* --- quick add, with the parse shown before it is committed --- */
+  $$('[data-pqadd]', root).forEach(inp => {
+    let ctx = {}; try { ctx = JSON.parse(inp.dataset.pqadd); } catch(e){}
+    const prev = inp.parentElement.querySelector('.pq-preview');
+    const draw = () => { const v = inp.value.trim();
+      prev.innerHTML = v ? quickParsePreviewHTML(parseQuickTask(v)) : ''; };
+    inp.addEventListener('input', draw);
+    inp.addEventListener('keydown', ev => {
+      if(ev.key !== 'Enter') return; ev.preventDefault();
+      const v = inp.value.trim(); if(!v) return;
+      const merged = Object.assign({}, ctx);
+      if(sel.kind === 'list') merged.listId = merged.listId || sel.id;
+      if(sel.kind === 'tag')  merged.tag = sel.id;
+      if(sel.kind === 'smart' && sel.id === 'today')    merged.day = today();
+      if(sel.kind === 'smart' && sel.id === 'tomorrow') merged.day = addDays(today(), 1);
+      const t = commitQuickTask(v, merged);
+      if(!t) return;
+      if(merged.tag && !t.tags.includes(merged.tag)){ t.tags.push(merged.tag); planEnsureTag(merged.tag); saveNow(); }
+      sound('success');
+      const mark = inp.dataset.pqadd;
+      rerender();
+      /* the redraw replaces this input, so the caret goes to its replacement */
+      requestAnimationFrame(() => { const next = document.querySelector(`[data-pqadd='${CSS.escape(mark)}']`);
+        if(next){ next.value = ''; next.focus(); } });
+    });
+  });
+
+  if(typeof bindPlanViews === 'function') bindPlanViews(root, sel, tasks);
+  if(typeof bindPlanHabits === 'function') bindPlanHabits(root);
+  if(typeof bindPlanBatch === 'function') bindPlanBatch(root);
+  const fb = $('#plFocusBtn'); if(fb) fb.onclick = () => openFocusTimer(null);
+  if(typeof bindPlanReminderBanner === 'function') bindPlanReminderBanner(root);
+}
+
+/* ---------- multi-select ---------- */
+function planTogglePick(id){
+  S._planPick = S._planPick || new Set();
+  S._planPick.has(id) ? S._planPick.delete(id) : S._planPick.add(id);
+  if(!S._planPick.size) S._planPick = null;
+  rerender();
+}
+function planBatchBarHTML(){
+  const n = S._planPick?.size || 0; if(!n) return '';
+  return `<div class="pl-batch"><span class="mono">${n} selected</span>
+    <button class="btn sm" data-pb="done">complete</button>
+    <button class="btn sm ghost" data-pb="move">move…</button>
+    <button class="btn sm ghost" data-pb="prio">priority…</button>
+    <button class="btn sm ghost" data-pb="day">due date…</button>
+    <button class="btn sm ghost" data-pb="tag">tag…</button>
+    <button class="btn sm ghost" data-pb="quad">matrix…</button>
+    <button class="btn sm ghost danger" data-pb="del">delete</button>
+    <button class="pl-mini" data-pb="clear" title="clear selection">×</button></div>`;
+}
+function bindPlanBatch(root){
+  const picked = () => [...(S._planPick || [])].map(planTaskById).filter(Boolean);
+  $$('[data-pb]', root).forEach(b => b.onclick = () => {
+    const ts = picked(); const k = b.dataset.pb;
+    if(k === 'clear'){ S._planPick = null; rerender(); return; }
+    if(!ts.length) return;
+    if(k === 'done'){ ts.forEach(t => planSetDone(t, true)); S._planPick = null; sound('success'); rerender(); return; }
+    if(k === 'del'){ requestDelete({label:`${ts.length} tasks`, after:planRedraw,
+      remove: () => { const ids = new Set(ts.map(t => t.id)); const kept = S.tasks.filter(t => !ids.has(t.id));
+        const gone = S.tasks.filter(t => ids.has(t.id)); S.tasks = kept; S._planPick = null;
+        return () => { S.tasks.push(...gone); }; }}); return; }
+    if(k === 'move'){ planChoose('Move to list', planLists().map(l => [l.id, l.name]),
+      v => { ts.forEach(t => { t.listId = v; t.sectionId = null; }); done(); }); return; }
+    if(k === 'prio'){ planChoose('Set priority', PLAN_PRIORITY.map(x => [String(x.n), x.name]),
+      v => { ts.forEach(t => t.priority = +v); done(); }); return; }
+    if(k === 'quad'){ planChoose('Move to quadrant', [...PLAN_QUADRANTS.map(q => [String(q.n), `${q.name} — ${q.act}`]), ['0','Unassigned']],
+      v => { ts.forEach(t => t.quadrant = +v || null); done(); }); return; }
+    if(k === 'tag'){ planChoose('Add tag', planState().tags.map(t => [t.name, t.name]),
+      v => { planEnsureTag(v); ts.forEach(t => { if(!t.tags.includes(v)) t.tags.push(v); }); done(); }, true); return; }
+    if(k === 'day'){ planChoose('Due date', [['', 'No date'], [today(), 'Today'], [addDays(today(),1), 'Tomorrow'],
+      [addDays(today(),7), 'In a week']], v => { ts.forEach(t => { t.day = v; planSyncReminders(t); }); done(); }); return; }
+    function done(){ S._planPick = null; saveNow(); sound('click'); rerender(); }
+  });
+}
+/* one small chooser, used by every batch action */
+function planChoose(title, opts, fn, allowNew){
+  const m = openModal(`<h2>${esc(title)}</h2>
+    ${allowNew ? `<input class="inp" id="pcNew" placeholder="or write a new one"><div class="row" style="justify-content:flex-end;margin:8px 0"><button class="btn sm" id="pcAdd">use it</button></div>` : ''}
+    <div class="stack" style="gap:6px;max-height:50vh;overflow:auto">
+      ${opts.map(([v, n]) => `<button class="choice" data-pc="${esc(v)}"><span><b>${esc(n)}</b></span></button>`).join('')
+        || '<div class="empty">Nothing to choose from yet.</div>'}</div>`, 'narrow');
+  m.querySelectorAll('[data-pc]').forEach(b => b.onclick = () => { m.remove(); fn(b.dataset.pc); });
+  const add = m.querySelector('#pcAdd');
+  if(add) add.onclick = () => { const v = m.querySelector('#pcNew').value.trim(); if(!v) return; m.remove(); fn(v); };
+}
+
+/* ---------- right-click on a row ---------- */
+function openPlanRowMenu(ev, id){
+  const t = planTaskById(id); if(!t) return;
+  const m = openModal(`<h2>${esc(t.text || 'Task')}</h2><div class="stack" style="gap:6px">
+    <button class="choice" data-rm="open"><span class="ico">▤</span><span><b>Open</b></span></button>
+    <button class="choice" data-rm="today"><span class="ico">◉</span><span><b>Due today</b></span></button>
+    <button class="choice" data-rm="tomorrow"><span class="ico">◐</span><span><b>Due tomorrow</b></span></button>
+    <button class="choice" data-rm="week"><span class="ico">◇</span><span><b>Due in a week</b></span></button>
+    <button class="choice" data-rm="nodate"><span class="ico">○</span><span><b>No date</b></span></button>
+    <button class="choice" data-rm="prio"><span class="ico">◆</span><span><b>Priority…</b></span></button>
+    <button class="choice" data-rm="move"><span class="ico">▸</span><span><b>Move to list…</b></span></button>
+    <button class="choice" data-rm="dup"><span class="ico">⧉</span><span><b>Duplicate</b></span></button>
+    <button class="choice" data-rm="del"><span class="ico">×</span><span><b>Delete</b></span></button>
+  </div>`, 'narrow');
+  m.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => {
+    const k = b.dataset.rm; m.remove();
+    if(k === 'open') return openPlanTask(id);
+    if(k === 'prio') return planChoose('Priority', PLAN_PRIORITY.map(x => [String(x.n), x.name]),
+      v => { t.priority = +v; saveNow(); rerender(); });
+    if(k === 'move') return planChoose('Move to list', planLists().map(l => [l.id, l.name]),
+      v => { t.listId = v; t.sectionId = null; saveNow(); rerender(); });
+    if(k === 'del') return requestDelete({label:t.text || 'Task', after:planRedraw,
+      remove: () => spliceOut(S.tasks, x => x.id === t.id)});
+    if(k === 'dup'){ const c = newPlanTask(t.text + ' (copy)', t.day, JSON.parse(JSON.stringify(
+      {listId:t.listId, sectionId:t.sectionId, priority:t.priority, dueTime:t.dueTime, duration:t.duration,
+       desc:t.desc, tags:t.tags, subtasks:t.subtasks, quadrant:t.quadrant, kanbanColumn:t.kanbanColumn})));
+      c.subtasks.forEach(s => { s.id = uid(); s.isCompleted = false; }); S.tasks.push(c); }
+    else t.day = k === 'today' ? today() : k === 'tomorrow' ? addDays(today(), 1)
+      : k === 'week' ? addDays(today(), 7) : '';
+    if(k !== 'dup') planSyncReminders(t);
+    saveNow(); sound('click'); rerender();
+  });
+}
+
+/* ---------- list / folder / filter editing ---------- */
+function openPlanListModal(id){
+  const p = planState(), l = id ? planList(id) : null;
+  const m = openModal(`<h2>${l ? 'Edit list' : 'New list'}</h2><div class="stack">
+    <div class="field"><label>Name</label><input class="inp" id="plnName" value="${esc(l?.name || '')}" placeholder="Work, Health, Japan…"></div>
+    <div class="field"><label>Colour</label><div class="pl-swatches" id="plnColors">
+      ${PLAN_COLORS.map(c => `<button class="pl-sw${(l?.color || PLAN_COLORS[0]) === c ? ' on' : ''}" data-plc="${c}" style="background:${c}"></button>`).join('')}</div></div>
+    <div class="field"><label>Folder</label><select class="sel" id="plnFolder">
+      <option value="">— none —</option>${p.folders.map(f => `<option value="${f.id}" ${l?.folderId === f.id ? 'selected' : ''}>${esc(f.name)}</option>`).join('')}</select></div>
+    <div class="field"><label>Opens as</label><select class="sel" id="plnView">
+      ${PLAN_VIEWS.map(v => `<option value="${v.id}" ${(l?.defaultView || 'list') === v.id ? 'selected' : ''}>${v.name}</option>`).join('')}</select></div>
+    <div class="row between" style="margin-top:8px">
+      ${l && !l.isDefault ? `<button class="btn sm ghost danger" id="plnDel">delete list</button>` : '<span></span>'}
+      <button class="btn primary" id="plnSave">${l ? 'Save' : 'Create'}</button></div></div>`, 'narrow');
+  let color = l?.color || PLAN_COLORS[p.lists.length % PLAN_COLORS.length];
+  m.querySelectorAll('[data-plc]').forEach(b => b.onclick = () => { color = b.dataset.plc;
+    m.querySelectorAll('[data-plc]').forEach(x => x.classList.toggle('on', x === b)); });
+  m.querySelector('#plnSave').onclick = () => {
+    const name = m.querySelector('#plnName').value.trim() || 'New list';
+    const folderId = m.querySelector('#plnFolder').value || null;
+    const view = m.querySelector('#plnView').value;
+    if(l){ l.name = name; l.color = color; l.folderId = folderId; l.defaultView = view; }
+    else { const nl = planNewList(name, {folderId, color}); nl.defaultView = view; S._planSel = {kind:'list', id:nl.id}; }
+    saveNow(); m.remove(); sound('success'); rerender();
+  };
+  const del = m.querySelector('#plnDel');
+  if(del) del.onclick = () => { m.remove();
+    requestDelete({label:l.name, after:planRedraw, remove: () => {
+      const moved = (S.tasks || []).filter(t => t.listId === l.id);
+      moved.forEach(t => t.listId = 'inbox');
+      const back = spliceOut(p.lists, x => x.id === l.id);
+      if(planSel().id === l.id) S._planSel = {kind:'smart', id:'today'};
+      return () => { back(); moved.forEach(t => t.listId = l.id); }; }}); };
+}
+function openPlanFolderRename(id){
+  const f = planState().folders.find(x => x.id === id); if(!f) return;
+  const m = openModal(`<h2>Folder</h2><div class="stack">
+    <div class="field"><label>Name</label><input class="inp" id="pfName" value="${esc(f.name)}"></div>
+    <div class="row between"><button class="btn sm ghost danger" id="pfDel">delete folder</button>
+      <button class="btn primary" id="pfSave">Save</button></div></div>`, 'narrow');
+  m.querySelector('#pfSave').onclick = () => { f.name = m.querySelector('#pfName').value.trim() || 'Folder';
+    saveNow(); m.remove(); rerender(); };
+  m.querySelector('#pfDel').onclick = () => { m.remove();
+    requestDelete({label:f.name, after:planRedraw, remove: () => {
+      const kids = planLists().filter(l => l.folderId === f.id); kids.forEach(l => l.folderId = null);
+      const back = spliceOut(planState().folders, x => x.id === f.id);
+      return () => { back(); kids.forEach(l => l.folderId = f.id); }; }}); };
+}
+function openPlanQuickFilter(){
+  const p = planState();
+  const m = openModal(`<h2>Filter</h2><div class="stack">
+    <div class="field"><label>Priority</label><div class="chip-row">
+      ${PLAN_PRIORITY.map(x => `<button class="chip click" data-fp="${x.n}">${esc(x.name)}</button>`).join('')}</div></div>
+    <div class="field"><label>Tag</label><div class="chip-row">
+      ${p.tags.map(t => `<button class="chip click" data-ft="${esc(t.name)}" style="--c:${t.color}">${esc(t.name)}</button>`).join('') || '<span class="faint">no tags yet</span>'}</div></div>
+    <div class="field"><label>When</label><div class="chip-row">
+      <button class="chip click" data-fr="overdue">overdue</button><button class="chip click" data-fr="no date">no date</button></div></div>
+    <div class="row" style="justify-content:flex-end;gap:8px"><button class="btn sm ghost" id="pfClear">clear all</button></div></div>`, 'narrow');
+  const set = (k, v) => { S._planFilter = Object.assign({}, S._planFilter, {[k]: v}); m.remove(); rerender(); };
+  m.querySelectorAll('[data-fp]').forEach(b => b.onclick = () => set('priority', +b.dataset.fp));
+  m.querySelectorAll('[data-ft]').forEach(b => b.onclick = () => set('tag', b.dataset.ft));
+  m.querySelectorAll('[data-fr]').forEach(b => b.onclick = () => set('range', b.dataset.fr));
+  m.querySelector('#pfClear').onclick = () => { S._planFilter = {}; m.remove(); rerender(); };
+}
+function openPlanFilterModal(id){
+  const p = planState(), sl = id ? p.smartLists.find(x => x.id === id) : null;
+  const f = sl?.filters || {lists:[], tags:[], priorities:[], dateRange:null, completion:'active', hasSubtasks:null, search:''};
+  const m = openModal(`<h2>${sl ? 'Edit filter' : 'New saved filter'}</h2>
+    <p class="muted" style="font-size:.85rem">A filter is a question you keep asking. It stays in the sidebar and answers itself as things change.</p>
+    <div class="stack">
+      <div class="field"><label>Name</label><input class="inp" id="sfName" value="${esc(sl?.name || '')}" placeholder="This week, high only…"></div>
+      <div class="field"><label>Lists</label><div class="chip-row">${planLists().map(l =>
+        `<button class="chip click${f.lists?.includes(l.id) ? ' on' : ''}" data-sfl="${l.id}" style="--c:${l.color}">${esc(l.name)}</button>`).join('')}</div></div>
+      <div class="field"><label>Tags</label><div class="chip-row">${p.tags.map(t =>
+        `<button class="chip click${f.tags?.includes(t.name) ? ' on' : ''}" data-sft="${esc(t.name)}" style="--c:${t.color}">${esc(t.name)}</button>`).join('') || '<span class="faint">no tags yet</span>'}</div></div>
+      <div class="field"><label>Priority</label><div class="chip-row">${PLAN_PRIORITY.map(x =>
+        `<button class="chip click${f.priorities?.includes(x.n) ? ' on' : ''}" data-sfp="${x.n}">${esc(x.name)}</button>`).join('')}</div></div>
+      <div class="field"><label>When</label><select class="sel" id="sfRange">
+        ${[['','any time'],['overdue','overdue'],['today','today'],['tomorrow','tomorrow'],['next7days','next 7 days'],['noDate','no date']]
+          .map(([v, n]) => `<option value="${v}" ${f.dateRange === v ? 'selected' : ''}>${n}</option>`).join('')}</select></div>
+      <div class="field"><label>Show</label><select class="sel" id="sfDone">
+        ${[['active','unfinished'],['completed','finished'],['all','both']].map(([v, n]) =>
+          `<option value="${v}" ${f.completion === v ? 'selected' : ''}>${n}</option>`).join('')}</select></div>
+      <div class="row between" style="margin-top:8px">
+        ${sl ? '<button class="btn sm ghost danger" id="sfDel">delete</button>' : '<span></span>'}
+        <button class="btn primary" id="sfSave">${sl ? 'Save' : 'Create'}</button></div>
+    </div>`, 'narrow');
+  const pick = (attr, arr, cast = x => x) => m.querySelectorAll(`[${attr}]`).forEach(b => b.onclick = () => {
+    const v = cast(b.getAttribute(attr)); const i = arr.indexOf(v);
+    i < 0 ? arr.push(v) : arr.splice(i, 1); b.classList.toggle('on'); });
+  const lists = (f.lists || []).slice(), tags = (f.tags || []).slice(), prios = (f.priorities || []).slice();
+  pick('data-sfl', lists); pick('data-sft', tags); pick('data-sfp', prios, Number);
+  m.querySelector('#sfSave').onclick = () => {
+    const filters = {lists, tags, priorities:prios, dateRange:m.querySelector('#sfRange').value || null,
+      completion:m.querySelector('#sfDone').value, hasSubtasks:null, search:''};
+    const name = m.querySelector('#sfName').value.trim() || 'Filter';
+    if(sl){ sl.name = name; sl.filters = filters; }
+    else { const n = {id:uid(), name, icon:'⌗', filters, sortBy:'dueDate', sortOrder:'asc', defaultView:'list'};
+      p.smartLists.push(n); S._planSel = {kind:'smartlist', id:n.id}; }
+    saveNow(); m.remove(); sound('success'); rerender();
+  };
+  const d = m.querySelector('#sfDel');
+  if(d) d.onclick = () => { m.remove(); requestDelete({label:sl.name, after:planRedraw,
+    remove: () => { if(planSel().id === sl.id) S._planSel = {kind:'smart', id:'today'};
+      return spliceOut(p.smartLists, x => x.id === sl.id); }}); };
+}
+/* ============================================================
+   PLANNING — the execution room.
+
+   Today is where the day is set down and reflected on. Planning is
+   where the work of it is actually moved. They are neighbours in the
+   sidebar because a person moves between them all day.
+
+   On sharing rather than duplicating
+   ----------------------------------
+   The house already had tasks (S.tasks, plus the tasks that live inside
+   a project phase) and habits (S.habits, S.habitLog). None of that is
+   replaced here. A task grows the fields this room needs and keeps the
+   three it already had — text, day, done — so every existing reader
+   (Today, Projects, People, Import) keeps working untouched. Habits are
+   read and written where they already live, so ticking one here ticks
+   the ring on Today, and the reverse.
+
+   Everything new lives in S.planning rather than a localStorage key of
+   its own, because S is what the export and the import carry: a key
+   outside it would quietly not be in anybody's backup.
+   ============================================================ */
+
+const PLAN_PRIORITY = [
+  {n:0, key:'none',   name:'None',   color:'',              short:''},
+  {n:1, key:'low',    name:'Low',    color:'var(--sage)',   short:'low'},
+  {n:2, key:'medium', name:'Medium', color:'var(--gold)',   short:'med'},
+  {n:3, key:'high',   name:'High',   color:'var(--terra)',  short:'high'},
+];
+const planPriority = n => PLAN_PRIORITY[clamp(+n || 0, 0, 3)];
+
+/* twelve warm colours that sit inside the house's own range */
+const PLAN_COLORS = ['#b08968','#a0727e','#7f916a','#d4a44c','#6b7f8e','#8a7f9e',
+                     '#c2452d','#4f9e70','#9a63ab','#d1743a','#4a8fa8','#a89f94'];
+
+const PLAN_SMART_VIEWS = [
+  {id:'inbox',    icon:'▫', name:'Inbox',       hint:'anything not yet filed'},
+  {id:'today',    icon:'◉', name:'Today',       hint:'due today, and anything late'},
+  {id:'tomorrow', icon:'◐', name:'Tomorrow',    hint:'what the next day already holds'},
+  {id:'next7',    icon:'◇', name:'Next 7 days', hint:'the week in front of you'},
+  {id:'all',      icon:'≡', name:'All',         hint:'every task, every list'},
+  {id:'done',     icon:'✓', name:'Completed',   hint:'the last thirty days of finished work'},
+];
+const PLAN_VIEWS = [
+  {id:'list',       icon:'☰', name:'List'},
+  {id:'calendar',   icon:'▦', name:'Calendar'},
+  {id:'kanban',     icon:'▥', name:'Board'},
+  {id:'eisenhower', icon:'⊞', name:'Matrix'},
+  {id:'timeline',   icon:'▬', name:'Timeline'},
+];
+const PLAN_QUADRANTS = [
+  {n:1, name:'Urgent & important', act:'Do first',  color:'var(--terra)'},
+  {n:2, name:'Important',          act:'Schedule',  color:'var(--sage)'},
+  {n:3, name:'Urgent',             act:'Delegate',  color:'var(--gold)'},
+  {n:4, name:'Neither',            act:'Let go',    color:'var(--faint)'},
+];
+const DEFAULT_KANBAN = () => [
+  {id:'todo',        name:'To do',       color:'#a89f94', wipLimit:null, sortOrder:0},
+  {id:'in_progress', name:'In progress', color:'#d4a44c', wipLimit:5,    sortOrder:1},
+  {id:'done',        name:'Done',        color:'#7f916a', wipLimit:null, sortOrder:2},
+];
+
+/* ---------- the task, grown ----------
+   `text`, `day` and `done` are the old names and stay the canonical ones:
+   renaming them would break four other rooms for no gain a reader could see. */
+function planTaskDefaults(t){
+  t.links   = t.links || {}; t.links.projects = t.links.projects || []; t.links.skills = t.links.skills || [];
+  t.listId  = t.listId || 'inbox';
+  t.sectionId = t.sectionId === undefined ? null : t.sectionId;
+  t.priority  = clamp(+t.priority || 0, 0, 3);
+  t.dueTime   = t.dueTime || '';
+  t.startDate = t.startDate || '';
+  t.duration  = t.duration == null ? null : +t.duration;
+  t.desc      = t.desc || '';
+  t.notes     = t.notes || '';
+  t.tags      = Array.isArray(t.tags) ? t.tags : [];
+  t.subtasks  = Array.isArray(t.subtasks) ? t.subtasks : [];
+  t.reminders = Array.isArray(t.reminders) ? t.reminders : [];
+  t.recurrence = t.recurrence || null;
+  t.kanbanColumn = t.kanbanColumn || (t.done ? 'done' : 'todo');
+  t.quadrant  = t.quadrant == null ? null : clamp(+t.quadrant, 1, 4);
+  t.focusTime = +t.focusTime || 0;
+  t.streamId  = t.streamId || null;
+  t.updatedAt = t.updatedAt || t.createdAt || new Date().toISOString();
+  if(t.order == null) t.order = Date.now();
+  return t;
+}
+function newPlanTask(text = '', day = '', extra = {}){
+  return planTaskDefaults(Object.assign(newTask(text, day), extra));
+}
+
+function planState(){
+  if(!S.planning) S.planning = {};
+  const p = S.planning;
+  p.lists      = Array.isArray(p.lists) ? p.lists : [];
+  p.folders    = Array.isArray(p.folders) ? p.folders : [];
+  p.tags       = Array.isArray(p.tags) ? p.tags : [];
+  p.smartLists = Array.isArray(p.smartLists) ? p.smartLists : [];
+  p.focusSessions = Array.isArray(p.focusSessions) ? p.focusSessions : [];
+  p.reminders  = Array.isArray(p.reminders) ? p.reminders : [];
+  p.timer = Object.assign({focusDuration:25, shortBreak:5, longBreak:15, longBreakAfter:4,
+    autoStartBreaks:true, autoStartFocus:false}, p.timer || {});
+  p.prefs = Object.assign({view:'list', sort:'dueDate', sortDir:'asc', showCompleted:false,
+    group:'auto', sidebarCollapsed:false, lastView:'today', calMode:'month', tlScale:'week'}, p.prefs || {});
+  if(!p.lists.some(l => l.id === 'inbox'))
+    p.lists.unshift({id:'inbox', name:'Inbox', color:'#a89f94', folderId:null, sortOrder:-1,
+      defaultView:'list', kanbanColumns:DEFAULT_KANBAN(), sections:[], isDefault:true, createdAt:new Date().toISOString()});
+  p.lists.forEach((l, i) => {
+    l.kanbanColumns = Array.isArray(l.kanbanColumns) && l.kanbanColumns.length ? l.kanbanColumns : DEFAULT_KANBAN();
+    l.sections = Array.isArray(l.sections) ? l.sections : [];
+    l.defaultView = l.defaultView || 'list';
+    if(l.sortOrder == null) l.sortOrder = i;
+  });
+  return p;
+}
+function migratePlanning(){
+  migrateTasks();
+  const p = planState();
+  (S.tasks || []).forEach(planTaskDefaults);
+  /* a task pointing at a list that has since been deleted belongs in the Inbox,
+     not in a list nobody can navigate to */
+  const ids = new Set(p.lists.map(l => l.id));
+  (S.tasks || []).forEach(t => { if(!ids.has(t.listId)) t.listId = 'inbox'; });
+  /* habits gained a face and a colour for the Planning view; the ones already
+     written down get one assigned rather than rendering blank */
+  (S.habits || []).forEach((h, i) => {
+    if(!h.icon)  h.icon  = ['◉','◐','◇','○','◈','◍','●','◎'][i % 8];
+    if(!h.color) h.color = PLAN_COLORS[i % PLAN_COLORS.length];
+  });
+}
+
+/* ---------- lists, folders, sections, tags ---------- */
+function planLists(){ return planState().lists.slice().sort((a,b) => a.sortOrder - b.sortOrder); }
+function planList(id){ return planState().lists.find(l => l.id === id) || null; }
+function planListName(id){ return planList(id)?.name || 'Inbox'; }
+function planListColor(id){ return planList(id)?.color || 'var(--faint)'; }
+function planNewList(name, {folderId = null, color = null} = {}){
+  const p = planState();
+  const l = {id:uid(), name: name || 'New list', color: color || PLAN_COLORS[p.lists.length % PLAN_COLORS.length],
+    folderId, sortOrder: p.lists.length, defaultView:'list', kanbanColumns:DEFAULT_KANBAN(), sections:[],
+    isDefault:false, createdAt:new Date().toISOString()};
+  p.lists.push(l); return l;
+}
+function planNewFolder(name){
+  const p = planState();
+  const f = {id:uid(), name: name || 'New folder', sortOrder:p.folders.length, isCollapsed:false};
+  p.folders.push(f); return f;
+}
+function planTag(name){ return planState().tags.find(t => t.name.toLowerCase() === String(name).toLowerCase()) || null; }
+function planTagColor(name){ return planTag(name)?.color || 'var(--faint)'; }
+function planEnsureTag(name){
+  const n = String(name || '').trim().replace(/^#/, ''); if(!n) return null;
+  const found = planTag(n); if(found) return found;
+  const p = planState();
+  const t = {id:uid(), name:n, color:PLAN_COLORS[p.tags.length % PLAN_COLORS.length]};
+  p.tags.push(t); return t;
+}
+
+/* ---------- reading the task list ----------
+   Project-phase tasks are visible here too, read-only in the ways that would
+   not survive a round trip: they keep their day and their done flag, which is
+   all a phase task has. */
+function planOwnTasks(){ return (S.tasks || []).map(planTaskDefaults); }
+function planIsLate(t){ return t.day && !t.done && t.day < today(); }
+function planDueWithin(t, from, to){ return t.day && t.day >= from && t.day <= to; }
+
+function planSmartFilter(id){
+  const T = today(), all = planOwnTasks();
+  if(id === 'inbox')    return all.filter(t => !t.done && t.listId === 'inbox');
+  if(id === 'today')    return all.filter(t => !t.done && t.day && t.day <= T);
+  if(id === 'tomorrow') return all.filter(t => !t.done && t.day === addDays(T, 1));
+  if(id === 'next7')    return all.filter(t => !t.done && planDueWithin(t, T, addDays(T, 7)));
+  if(id === 'all')      return all.filter(t => !t.done);
+  if(id === 'done')     return all.filter(t => t.done && (t.doneAt || '') >= addDays(T, -30));
+  return all;
+}
+function planSmartCount(id){ return planSmartFilter(id).length; }
+function planListCount(id){ return planOwnTasks().filter(t => !t.done && t.listId === id).length; }
+function planTagCount(name){ return planOwnTasks().filter(t => !t.done && t.tags.includes(name)).length; }
+
+/* one place decides what a selection means, so every view shows the same set */
+function planSelectionTasks(sel){
+  if(!sel) return [];
+  if(sel.kind === 'smart') return planSmartFilter(sel.id);
+  if(sel.kind === 'list')  return planOwnTasks().filter(t => t.listId === sel.id && (!t.done || planState().prefs.showCompleted));
+  if(sel.kind === 'tag')   return planOwnTasks().filter(t => t.tags.includes(sel.id) && !t.done);
+  if(sel.kind === 'smartlist'){
+    const sl = planState().smartLists.find(x => x.id === sel.id);
+    return sl ? planApplySmartList(sl) : [];
+  }
+  return planSmartFilter('today');
+}
+function planSelectionTitle(sel){
+  if(!sel) return 'Today';
+  if(sel.kind === 'smart') return (PLAN_SMART_VIEWS.find(v => v.id === sel.id) || {}).name || 'Tasks';
+  if(sel.kind === 'list')  return planListName(sel.id);
+  if(sel.kind === 'tag')   return '#' + sel.id;
+  if(sel.kind === 'smartlist') return (planState().smartLists.find(x => x.id === sel.id) || {}).name || 'Filter';
+  return 'Tasks';
+}
+function planApplySmartList(sl){
+  const f = sl.filters || {}, T = today();
+  return planOwnTasks().filter(t => {
+    if(f.completion === 'active' && t.done) return false;
+    if(f.completion === 'completed' && !t.done) return false;
+    if(f.lists?.length && !f.lists.includes(t.listId)) return false;
+    if(f.tags?.length && !f.tags.some(x => t.tags.includes(x))) return false;
+    if(f.priorities?.length && !f.priorities.includes(t.priority)) return false;
+    if(f.hasSubtasks === true && !t.subtasks.length) return false;
+    if(f.hasSubtasks === false && t.subtasks.length) return false;
+    if(f.search && !(t.text + ' ' + t.desc).toLowerCase().includes(f.search.toLowerCase())) return false;
+    const d = f.dateRange;
+    if(d === 'overdue'  && !planIsLate(t)) return false;
+    if(d === 'today'    && t.day !== T) return false;
+    if(d === 'tomorrow' && t.day !== addDays(T,1)) return false;
+    if(d === 'next7days'&& !planDueWithin(t, T, addDays(T,7))) return false;
+    if(d === 'noDate'   && t.day) return false;
+    if(d && typeof d === 'object' && d.start && !planDueWithin(t, d.start, d.end || '9999-12-31')) return false;
+    return true;
+  });
+}
+
+/* ---------- sorting ---------- */
+const PLAN_SORTS = [['dueDate','Due date'],['priority','Priority'],['title','Title'],['createdAt','Date added'],['custom','Manual']];
+function planSortTasks(list, by, dir = 'asc'){
+  const sign = dir === 'desc' ? -1 : 1;
+  const far = '9999-12-31';                       // no date sorts last, whichever way
+  const out = list.slice().sort((a, b) => {
+    if(by === 'priority') return (b.priority - a.priority) * sign || (a.day || far).localeCompare(b.day || far);
+    if(by === 'title')    return a.text.localeCompare(b.text) * sign;
+    if(by === 'createdAt')return (a.createdAt || '').localeCompare(b.createdAt || '') * sign;
+    if(by === 'custom')   return ((a.order || 0) - (b.order || 0)) * sign;
+    const d = (a.day || far).localeCompare(b.day || far);
+    return (d || (a.day && b.day ? (a.dueTime || '99:99').localeCompare(b.dueTime || '99:99') : 0)
+             || b.priority - a.priority) * sign;
+  });
+  /* whatever the order, finished work sinks */
+  return out.sort((a, b) => (a.done ? 1 : 0) - (b.done ? 1 : 0));
+}
+
+/* ---------- recurrence ----------
+   "after_completion" counts from the day it was actually done, which is the
+   whole point for a task like getting a haircut: the clock starts when you
+   sat in the chair, not when you meant to. */
+function planNextDue(t){
+  const r = t.recurrence; if(!r || !r.pattern) return null;
+  const base = r.pattern === 'after_completion' ? today() : (t.day || today());
+  const n = Math.max(1, +r.interval || 1);
+  let next;
+  if(r.pattern === 'daily' || r.pattern === 'after_completion') next = addDays(base, n);
+  else if(r.pattern === 'weekly'){
+    if(r.daysOfWeek?.length){
+      let d = addDays(base, 1);
+      for(let i = 0; i < 14; i++){ if(r.daysOfWeek.includes(parseDay(d).getDay())) break; d = addDays(d, 1); }
+      next = d;
+    } else next = addDays(base, 7 * n);
+  }
+  else if(r.pattern === 'monthly'){ const d = parseDay(base); d.setMonth(d.getMonth() + n); next = isoDay(d); }
+  else if(r.pattern === 'yearly'){ const d = parseDay(base); d.setFullYear(d.getFullYear() + n); next = isoDay(d); }
+  else next = addDays(base, n);
+  if(r.endDate && next > r.endDate) return null;
+  return next;
+}
+/* completing a repeat does not end it: it books the next one */
+function planRollRecurrence(t){
+  const next = planNextDue(t); if(!next) return null;
+  const r = t.recurrence;
+  if(r.endAfter != null){ r.endAfter -= 1; if(r.endAfter <= 0) return null; }
+  const copy = newPlanTask(t.text, next, {
+    listId:t.listId, sectionId:t.sectionId, priority:t.priority, dueTime:t.dueTime,
+    duration:t.duration, desc:t.desc, tags:t.tags.slice(),
+    subtasks:t.subtasks.map(s => ({...s, id:uid(), isCompleted:false, completedAt:null})),
+    reminders:t.reminders.map(x => ({...x})), recurrence:JSON.parse(JSON.stringify(r)),
+    kanbanColumn:'todo', quadrant:t.quadrant, links:JSON.parse(JSON.stringify(t.links)), streamId:t.streamId,
+  });
+  t.recurrence = null;                             // the finished one is no longer the repeater
+  S.tasks.push(copy);
+  return copy;
+}
+function planSetDone(t, done){
+  t.done = !!done; t.doneAt = done ? today() : null; t.updatedAt = new Date().toISOString();
+  if(done) t.kanbanColumn = 'done';
+  else if(t.kanbanColumn === 'done') t.kanbanColumn = 'todo';
+  const rolled = done ? planRollRecurrence(t) : null;
+  saveNow();
+  return rolled;
+}
+function planSubProgress(t){
+  const n = t.subtasks.length; if(!n) return null;
+  return {done: t.subtasks.filter(s => s.isCompleted).length, total: n};
+}
+/* ============================================================
+   PLANNING — one task, opened.
+   Everything here writes on change. There is no save button, the
+   way there is none anywhere else in the house.
+   ============================================================ */
+
+const PLAN_REMINDER_OFFSETS = [
+  ['at_time', 'at the time'], ['5min','5 min before'], ['15min','15 min before'], ['30min','30 min before'],
+  ['1hr','1 hour before'], ['1day','1 day before'], ['2days','2 days before'], ['1week','1 week before'],
+];
+const PLAN_DURATIONS = [[15,'15m'],[30,'30m'],[45,'45m'],[60,'1h'],[120,'2h'],[240,'4h'],[480,'a day']];
+
+function openPlanTask(id){
+  const t = id ? planTaskById(id) : null;
+  if(id && !t) return;
+  if(!t){                                          // a brand new one, made where you are
+    const sel = planSel();
+    const fresh = newPlanTask('', sel.kind === 'smart' && sel.id === 'today' ? today() : '',
+      {listId: sel.kind === 'list' ? sel.id : 'inbox', tags: sel.kind === 'tag' ? [sel.id] : []});
+    S.tasks.push(fresh); saveNow();
+    return openPlanTask(fresh.id);
+  }
+  const p = openPanel(planDetailHTML(t), 'plan-detail');
+  bindPlanDetail(p, t);
+  setTimeout(() => { const ti = p.querySelector('#pdTitle'); if(ti && !t.text) ti.focus(); }, 120);
+  return p;
+}
+
+function planDetailHTML(t){
+  const pr = planPriority(t.priority), sub = planSubProgress(t);
+  const sessions = planState().focusSessions.filter(s => s.taskId === t.id && s.type === 'focus');
+  return `<div class="pd">
+    <div class="pd-head">
+      <button class="pt-box lg${t.done ? ' on' : ''}" id="pdDone" role="checkbox" aria-checked="${t.done}"
+        style="${pr.color ? `--pc:${pr.color}` : ''}"><svg viewBox="0 0 20 20" aria-hidden="true">
+        <circle cx="10" cy="10" r="8.2" class="pt-ring"/><path d="M5.6 10.3 L8.7 13.3 L14.4 6.9" class="pt-tick"/></svg></button>
+      <input class="inp pd-title${t.done ? ' struck' : ''}" id="pdTitle" value="${esc(t.text)}" placeholder="What needs doing?">
+    </div>
+    <div class="pd-prios">${PLAN_PRIORITY.map(x => `<button class="pd-prio${t.priority === x.n ? ' on' : ''}"
+      data-pdprio="${x.n}" title="${esc(x.name)} priority" style="${x.color ? `--c:${x.color}` : '--c:var(--line-2)'}"></button>`).join('')}
+      <span class="mono faint">${esc(pr.name.toLowerCase())}</span></div>
+
+    <div class="pd-quick">
+      <label class="pd-q"><span class="k">due</span><input type="date" class="inp" id="pdDay" value="${esc(t.day || '')}"></label>
+      <label class="pd-q"><span class="k">at</span><input type="time" class="inp" id="pdTime" value="${esc(t.dueTime || '')}"></label>
+      <label class="pd-q"><span class="k">starts</span><input type="date" class="inp" id="pdStart" value="${esc(t.startDate || '')}"></label>
+      <label class="pd-q"><span class="k">list</span><select class="sel" id="pdList">
+        ${planLists().map(l => `<option value="${l.id}" ${t.listId === l.id ? 'selected' : ''}>${esc(l.name)}</option>`).join('')}</select></label>
+    </div>
+
+    <div class="pd-sec"><div class="k mono">how long</div><div class="chip-row">
+      ${PLAN_DURATIONS.map(([v, n]) => `<button class="chip click${t.duration === v ? ' on' : ''}" data-pddur="${v}">${n}</button>`).join('')}
+      ${t.duration ? `<button class="chip click" data-pddur="0">clear</button>` : ''}</div></div>
+
+    <div class="pd-sec"><div class="k mono">tags</div><div class="chip-row" id="pdTags">
+      ${planState().tags.map(x => `<button class="chip click${t.tags.includes(x.name) ? ' on' : ''}" data-pdtag="${esc(x.name)}" style="--c:${x.color}">${esc(x.name)}</button>`).join('')}
+      <button class="chip click" id="pdNewTag" style="--c:var(--page-accent)">＋ tag</button></div></div>
+
+    <div class="pd-sec"><div class="k mono">notes</div>
+      <textarea class="ta" id="pdDesc" placeholder="Anything the title does not carry. Markdown welcome.">${esc(t.desc)}</textarea></div>
+
+    <div class="pd-sec"><div class="row between"><span class="k mono">subtasks</span>
+      <span class="mono faint">${sub ? `${sub.done}/${sub.total}` : ''}</span></div>
+      ${sub ? `<div class="pd-bar"><i style="width:${Math.round(sub.done / sub.total * 100)}%"></i></div>` : ''}
+      <div class="pd-subs" id="pdSubs">${t.subtasks.map((s, i) => `<div class="pd-sub${s.isCompleted ? ' done' : ''}" data-pdsub="${s.id}" draggable="true">
+        <button class="pt-box sm" data-pdsubdone="${s.id}" role="checkbox" aria-checked="${s.isCompleted}"><svg viewBox="0 0 20 20" aria-hidden="true">
+          <circle cx="10" cy="10" r="8.2" class="pt-ring"/><path d="M5.6 10.3 L8.7 13.3 L14.4 6.9" class="pt-tick"/></svg></button>
+        <input class="inp" data-pdsubtext="${s.id}" value="${esc(s.title)}" placeholder="a step">
+        <button class="del-x inline" data-pdsubdel="${s.id}">×</button></div>`).join('')}</div>
+      <input class="inp pd-subadd" id="pdSubAdd" placeholder="＋ add a step, Enter for another"></div>
+
+    <div class="pd-sec"><div class="k mono">repeats</div>
+      <div class="chip-row">${[['','never'],['daily','daily'],['weekly','weekly'],['monthly','monthly'],['yearly','yearly'],['after_completion','after it is done']]
+        .map(([v, n]) => `<button class="chip click${(t.recurrence?.pattern || '') === v ? ' on' : ''}" data-pdrec="${v}">${n}</button>`).join('')}</div>
+      ${t.recurrence ? `<div class="row" style="gap:8px;margin-top:8px;align-items:center">
+        <span class="mono faint">every</span><input class="inp mono" id="pdRecN" style="width:64px" value="${t.recurrence.interval || 1}">
+        <span class="mono faint">${t.recurrence.pattern === 'after_completion' ? 'days after it is done' : t.recurrence.pattern.replace(/ly$/, '') + 's'}</span>
+        <span class="mono faint" style="margin-left:auto">next: ${planNextDue(t) ? esc(fmtDate(planNextDue(t), 'med')) : '—'}</span></div>` : ''}</div>
+
+    <div class="pd-sec"><div class="k mono">reminders</div>
+      <div class="chip-row">${PLAN_REMINDER_OFFSETS.map(([v, n]) =>
+        `<button class="chip click${t.reminders.some(r => r.type === v) ? ' on' : ''}" data-pdrem="${v}">${n}</button>`).join('')}</div>
+      ${!t.day ? '<div class="faint" style="font-size:.74rem;margin-top:5px">A reminder needs a due date to count from.</div>' : ''}</div>
+
+    <div class="pd-sec"><div class="row between"><span class="k mono">focus</span>
+      <span class="mono">${t.focusTime ? `${Math.floor(t.focusTime / 60)}h ${t.focusTime % 60}m logged` : 'nothing logged'}</span></div>
+      <button class="btn sm" id="pdFocus">◔ start a focus session</button>
+      ${sessions.length ? `<div class="pd-fsess">${sessions.slice(-6).reverse().map(s =>
+        `<div class="mono"><span>${esc(fmtDate(s.startedAt.slice(0, 10), 'short'))}</span><span>${s.duration}m</span></div>`).join('')}</div>` : ''}</div>
+
+    <div class="pd-sec"><div class="k mono">connects to</div>
+      <div class="chip-row">${(S.projects || []).map(x => `<button class="chip click${t.links.projects.includes(x.id) ? ' on' : ''}" data-pdlk="projects:${x.id}" style="--c:var(--terra)">${esc(x.name)}</button>`).join('')}</div>
+      <div class="chip-row" style="margin-top:6px">${(S.skills || []).filter(s => !s.planned).map(x => `<button class="chip click${t.links.skills.includes(x.id) ? ' on' : ''}" data-pdlk="skills:${x.id}" style="--c:var(--ment)">${esc(x.name)}</button>`).join('')}</div>
+      ${typeof incomeStreamList === 'function' && incomeStreamList().length ? `<div class="chip-row" style="margin-top:6px">${incomeStreamList().map(s =>
+        `<button class="chip click${t.streamId === s.id ? ' on' : ''}" data-pdstream="${esc(s.id)}" style="--c:var(--gold)">${esc(s.name)}</button>`).join('')}</div>` : ''}</div>
+
+    <div class="pd-meta mono">
+      <div>added ${esc(fmtDate((t.createdAt || '').slice(0, 10), 'med'))}</div>
+      ${t.doneAt ? `<div>finished ${esc(fmtDate(t.doneAt, 'med'))}</div>` : ''}
+      <div>in ${esc(planListName(t.listId))}</div></div>
+    <div class="row" style="gap:8px;margin-top:14px">
+      <button class="btn sm ghost" id="pdDup">duplicate</button>
+      <button class="btn sm ghost danger" id="pdDel">delete</button></div>
+  </div>`;
+}
+
+function bindPlanDetail(p, t){
+  const touch = () => { t.updatedAt = new Date().toISOString(); saveNow(); };
+  const redraw = () => { const np = openPanel(planDetailHTML(planTaskById(t.id)), 'plan-detail');
+    bindPlanDetail(np, planTaskById(t.id)); rerenderPlanBody(); };
+
+  p.querySelector('#pdTitle').oninput = debounce(function(){ t.text = this.value; touch(); rerenderPlanBody(); }, 350);
+  p.querySelector('#pdDone').onclick = () => { planSetDone(t, !t.done); sound(t.done ? 'success' : 'click'); redraw(); };
+  p.querySelectorAll('[data-pdprio]').forEach(b => b.onclick = () => { t.priority = +b.dataset.pdprio; touch(); redraw(); });
+  p.querySelector('#pdDay').onchange = function(){ t.day = this.value; planSyncReminders(t); touch(); rerenderPlanBody(); };
+  p.querySelector('#pdTime').onchange = function(){ t.dueTime = this.value; planSyncReminders(t); touch(); rerenderPlanBody(); };
+  p.querySelector('#pdStart').onchange = function(){ t.startDate = this.value; touch(); };
+  p.querySelector('#pdList').onchange = function(){ t.listId = this.value; t.sectionId = null; touch(); rerenderPlanBody(); };
+  p.querySelectorAll('[data-pddur]').forEach(b => b.onclick = () => { const v = +b.dataset.pddur;
+    t.duration = v || null; touch(); redraw(); });
+  p.querySelectorAll('[data-pdtag]').forEach(b => b.onclick = () => { const n = b.dataset.pdtag;
+    const i = t.tags.indexOf(n); i < 0 ? t.tags.push(n) : t.tags.splice(i, 1);
+    b.classList.toggle('on'); touch(); rerenderPlanBody(); });
+  p.querySelector('#pdNewTag').onclick = () => { const n = prompt('Tag name'); if(!n || !n.trim()) return;
+    const tag = planEnsureTag(n); if(tag && !t.tags.includes(tag.name)) t.tags.push(tag.name); touch(); redraw(); };
+  p.querySelector('#pdDesc').oninput = debounce(function(){ t.desc = this.value; touch(); }, 400);
+
+  /* subtasks */
+  p.querySelectorAll('[data-pdsubdone]').forEach(b => b.onclick = () => {
+    const s = t.subtasks.find(x => x.id === b.dataset.pdsubdone); if(!s) return;
+    s.isCompleted = !s.isCompleted; s.completedAt = s.isCompleted ? new Date().toISOString() : null;
+    sound(s.isCompleted ? 'click' : 'nav'); touch(); redraw(); });
+  p.querySelectorAll('[data-pdsubtext]').forEach(i => i.oninput = debounce(function(){
+    const s = t.subtasks.find(x => x.id === i.dataset.pdsubtext); if(s){ s.title = this.value; touch(); } }, 350));
+  p.querySelectorAll('[data-pdsubdel]').forEach(b => b.onclick = () => {
+    spliceOut(t.subtasks, x => x.id === b.dataset.pdsubdel); touch(); redraw(); });
+  const sa = p.querySelector('#pdSubAdd');
+  sa.onkeydown = ev => { if(ev.key !== 'Enter') return; ev.preventDefault();
+    const v = sa.value.trim(); if(!v) return;
+    t.subtasks.push({id:uid(), title:v, isCompleted:false, completedAt:null, sortOrder:t.subtasks.length});
+    touch(); sound('click'); sa.value = '';
+    const np = openPanel(planDetailHTML(t), 'plan-detail'); bindPlanDetail(np, t); rerenderPlanBody();
+    setTimeout(() => np.querySelector('#pdSubAdd')?.focus(), 60); };
+
+  /* recurrence */
+  p.querySelectorAll('[data-pdrec]').forEach(b => b.onclick = () => {
+    const v = b.dataset.pdrec;
+    t.recurrence = v ? Object.assign({pattern:v, interval:1, daysOfWeek:[], dayOfMonth:null,
+      monthOfYear:null, endDate:null, endAfter:null}, t.recurrence?.pattern === v ? t.recurrence : {}) : null;
+    if(t.recurrence) t.recurrence.pattern = v;
+    touch(); redraw(); });
+  const rn = p.querySelector('#pdRecN');
+  if(rn) rn.oninput = debounce(function(){ if(t.recurrence) t.recurrence.interval = Math.max(1, parseInt(this.value, 10) || 1); touch(); }, 400);
+
+  /* reminders */
+  p.querySelectorAll('[data-pdrem]').forEach(b => b.onclick = () => {
+    const v = b.dataset.pdrem, i = t.reminders.findIndex(r => r.type === v);
+    i < 0 ? t.reminders.push({type:v}) : t.reminders.splice(i, 1);
+    planSyncReminders(t); touch(); b.classList.toggle('on');
+    if(i < 0 && typeof planAskNotifyPermission === 'function') planAskNotifyPermission(); });
+
+  /* links */
+  p.querySelectorAll('[data-pdlk]').forEach(b => b.onclick = () => {
+    const [k, id] = b.dataset.pdlk.split(':'); const arr = t.links[k];
+    const i = arr.indexOf(id); i < 0 ? arr.push(id) : arr.splice(i, 1);
+    b.classList.toggle('on'); touch(); });
+  p.querySelectorAll('[data-pdstream]').forEach(b => b.onclick = () => {
+    t.streamId = t.streamId === b.dataset.pdstream ? null : b.dataset.pdstream;
+    p.querySelectorAll('[data-pdstream]').forEach(x => x.classList.toggle('on', x.dataset.pdstream === t.streamId));
+    touch(); });
+
+  p.querySelector('#pdFocus').onclick = () => { closePanel(); openFocusTimer(t.id); };
+  p.querySelector('#pdDup').onclick = () => {
+    const c = newPlanTask(t.text + ' (copy)', t.day, JSON.parse(JSON.stringify({listId:t.listId, sectionId:t.sectionId,
+      priority:t.priority, dueTime:t.dueTime, duration:t.duration, desc:t.desc, tags:t.tags,
+      subtasks:t.subtasks, quadrant:t.quadrant, kanbanColumn:t.kanbanColumn, links:t.links})));
+    c.subtasks.forEach(s => { s.id = uid(); s.isCompleted = false; s.completedAt = null; });
+    S.tasks.push(c); saveNow(); closePanel(); sound('success'); rerender(); };
+  p.querySelector('#pdDel').onclick = () => { closePanel();
+    requestDelete({label:t.text || 'Task', after:planRedraw, remove: () => spliceOut(S.tasks, x => x.id === t.id)}); };
+}
+
+/* Repainting the whole page would close this panel. Only the workspace needs
+   to change while a task is being edited, so only the workspace is redrawn. */
+function rerenderPlanBody(){
+  if(parseHash().name !== 'planning') return;
+  const main = $('#main'); if(!main) return;
+  const keep = $('#panel');
+  const y = window.scrollY;
+  const body = $('#plBody'); if(!body) return;
+  const sel = planSel();
+  let tasks = planSelectionTasks(sel);
+  const p = planState();
+  tasks = planSortTasks(tasks, p.prefs.sort, p.prefs.sortDir);
+  const v = planView();
+  const special = sel.kind === 'smart' && (sel.id === 'habits' || sel.id === 'stats');
+  body.innerHTML = special ? (sel.id === 'habits' ? planHabitsHTML() : planStatsHTML())
+    : v === 'calendar' ? planCalendarHTML(tasks) : v === 'kanban' ? planKanbanHTML(sel, tasks)
+    : v === 'eisenhower' ? planMatrixHTML(tasks) : v === 'timeline' ? planTimelineHTML(tasks)
+    : planListViewHTML(sel, tasks);
+  bindPlanning(main, sel, tasks);
+  if(keep && !$('#panel')) document.body.appendChild(keep);
+  window.scrollTo({top:y});
+}
+/* ============================================================
+   PLANNING — the page: a sidebar of where work lives, and one
+   workspace that can be read five different ways.
+   ============================================================ */
+
+function planSel(){ return S._planSel || (S._planSel = {kind:'smart', id:'today'}); }
+function planSetSel(kind, id){
+  S._planSel = {kind, id};
+  planState().prefs.lastView = `${kind}:${id}`;
+  /* a list that prefers a board opens as a board */
+  if(kind === 'list'){ const l = planList(id); if(l?.defaultView) S._planView = l.defaultView; }
+  saveNow(); rerender();
+}
+function planView(){ return S._planView || planState().prefs.view || 'list'; }
+function planSetView(v){ S._planView = v; planState().prefs.view = v; saveNow(); rerender(); }
+
+/* ---------- sidebar ---------- */
+function planSidebarHTML(){
+  const p = planState(), sel = planSel();
+  const on = (k, i) => sel.kind === k && sel.id === i ? ' on' : '';
+  const listRow = l => `<button class="pl-item${on('list', l.id)}" data-plsel="list:${l.id}" draggable="true" data-pldrag="${l.id}">
+    <span class="pl-dot" style="background:${esc(l.color)}"></span><span class="pl-name">${esc(l.name)}</span>
+    <span class="pl-n mono">${planListCount(l.id) || ''}</span></button>`;
+  const loose = planLists().filter(l => !l.folderId);
+  return `<aside class="pl-side${p.prefs.sidebarCollapsed ? ' collapsed' : ''}" id="plSide">
+    <button class="pl-collapse" id="plCollapse" title="collapse the sidebar">${p.prefs.sidebarCollapsed ? '›' : '‹'}</button>
+    <div class="pl-scroll">
+      <input class="inp mono pl-search" id="plSearch" placeholder="search tasks…" value="${esc(S._planQ || '')}">
+      <div class="pl-group">
+        ${PLAN_SMART_VIEWS.map(v => `<button class="pl-item${on('smart', v.id)}" data-plsel="smart:${v.id}" title="${esc(v.hint)}">
+          <span class="pl-ico">${v.icon}</span><span class="pl-name">${esc(v.name)}</span>
+          <span class="pl-n mono">${planSmartCount(v.id) || ''}</span></button>`).join('')}
+      </div>
+      <button class="pl-item${on('smart','habits')}" data-plsel="smart:habits"><span class="pl-ico">◍</span><span class="pl-name">Habits</span>
+        <span class="pl-n mono">${(S.habits || []).filter(h => !h.archived && !h.negative && habitDue(h, today()) && !habitDone(h, today())).length || ''}</span></button>
+
+      <div class="pl-head"><span>Lists</span><button class="pl-mini" id="plNewList" title="new list">＋</button></div>
+      <div class="pl-group" id="plLists">
+        ${p.folders.slice().sort((a,b)=>a.sortOrder-b.sortOrder).map(f => {
+          const kids = planLists().filter(l => l.folderId === f.id);
+          return `<div class="pl-folder${f.isCollapsed ? ' shut' : ''}" data-plfolder="${f.id}">
+            <button class="pl-item pl-fhead" data-plfold="${f.id}"><span class="pl-ico">${f.isCollapsed ? '▸' : '▾'}</span>
+              <span class="pl-name">${esc(f.name)}</span><span class="pl-n mono">${kids.length}</span></button>
+            <div class="pl-fkids">${kids.map(listRow).join('') || '<div class="pl-empty mono">drop a list here</div>'}</div></div>`;
+        }).join('')}
+        ${loose.map(listRow).join('')}
+      </div>
+      <button class="pl-mini-row" id="plNewFolder">＋ folder</button>
+
+      ${p.tags.length ? `<div class="pl-head"><span>Tags</span></div>
+      <div class="pl-group pl-tags">${p.tags.map(t => `<button class="pl-item${on('tag', t.name)}" data-plsel="tag:${t.name}">
+        <span class="pl-dot" style="background:${esc(t.color)}"></span><span class="pl-name">${esc(t.name)}</span>
+        <span class="pl-n mono">${planTagCount(t.name) || ''}</span></button>`).join('')}</div>` : ''}
+
+      <div class="pl-head"><span>Filters</span><button class="pl-mini" id="plNewFilter" title="new saved filter">＋</button></div>
+      <div class="pl-group">${p.smartLists.map(sl => `<button class="pl-item${on('smartlist', sl.id)}" data-plsel="smartlist:${sl.id}">
+        <span class="pl-ico">${esc(sl.icon || '⌗')}</span><span class="pl-name">${esc(sl.name)}</span>
+        <span class="pl-n mono">${planApplySmartList(sl).length || ''}</span></button>`).join('')
+        || '<div class="pl-empty mono">no saved filters yet</div>'}</div>
+    </div>
+    <div class="pl-foot">
+      <button class="pl-item" id="plFocusBtn"><span class="pl-ico">◔</span><span class="pl-name">Focus timer</span></button>
+      <button class="pl-item${on('smart','stats')}" data-plsel="smart:stats"><span class="pl-ico">◫</span><span class="pl-name">Statistics</span></button>
+    </div>
+  </aside>`;
+}
+
+/* ---------- the header over the workspace ---------- */
+function planHeaderHTML(sel){
+  const p = planState(), v = planView();
+  const f = S._planFilter || {};
+  const chips = [];
+  if(f.priority != null) chips.push(`<span class="pf-chip on" data-pfclear="priority">${planPriority(f.priority).name}<i>×</i></span>`);
+  if(f.tag) chips.push(`<span class="pf-chip on" data-pfclear="tag">#${esc(f.tag)}<i>×</i></span>`);
+  if(f.range) chips.push(`<span class="pf-chip on" data-pfclear="range">${esc(f.range)}<i>×</i></span>`);
+  const special = sel.kind === 'smart' && (sel.id === 'habits' || sel.id === 'stats');
+  return `<div class="pl-header">
+    <div class="row between" style="align-items:baseline;gap:12px">
+      <h2 class="pl-title">${esc(planSelectionTitle(sel))}</h2>
+      ${special ? '' : `<div class="pl-viewsw">${PLAN_VIEWS.map(x => `<button class="${v === x.id ? 'on' : ''}" data-plview="${x.id}" title="${esc(x.name)} view">${x.icon}</button>`).join('')}</div>`}
+    </div>
+    ${special ? '' : `<div class="pl-bar">
+      <div class="pl-sortwrap"><select class="sel" id="plSort" style="width:auto;padding-right:22px;font-size:.78rem">
+        ${PLAN_SORTS.map(([k, n]) => `<option value="${k}" ${p.prefs.sort === k ? 'selected' : ''}>${n}</option>`).join('')}</select></div>
+      <div class="pf-chips">
+        ${chips.join('')}
+        <button class="pf-chip" id="plFilterBtn">filter…</button>
+        <button class="pf-chip${p.prefs.showCompleted ? ' on' : ''}" id="plShowDone">done</button>
+      </div>
+      <span class="pl-count mono" id="plCount"></span>
+    </div>`}
+  </div>`;
+}
+
+/* ---------- one task row ---------- */
+function planRowHTML(t, {showList = false, showDate = true} = {}){
+  const pr = planPriority(t.priority), sub = planSubProgress(t), late = planIsLate(t);
+  return `<div class="pt-row${t.done ? ' done' : ''}${late ? ' late' : ''}${S._planPick?.has(t.id) ? ' picked' : ''}"
+      data-ptrow="${t.id}" data-prio="${t.priority}" draggable="true">
+    <button class="pt-box" data-ptdone="${t.id}" role="checkbox" aria-checked="${t.done}"
+      style="${pr.color ? `--pc:${pr.color}` : ''}" title="${t.done ? 'not done after all' : 'done'}">
+      <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.2" class="pt-ring"/>
+        <path d="M5.6 10.3 L8.7 13.3 L14.4 6.9" class="pt-tick"/></svg></button>
+    ${t.priority ? `<span class="pt-prio" style="background:${pr.color}" title="${pr.name} priority"></span>` : ''}
+    <span class="pt-text">${esc(t.text || 'Untitled task')}</span>
+    <span class="pt-meta">
+      ${sub ? `<span class="pt-sub mono" title="subtasks">${sub.done}/${sub.total}</span>` : ''}
+      ${t.recurrence ? `<span class="pt-rep" title="repeats ${esc(t.recurrence.pattern)}">↻</span>` : ''}
+      ${t.duration ? `<span class="pt-dur mono">${t.duration >= 60 ? (t.duration / 60).toFixed(t.duration % 60 ? 1 : 0) + 'h' : t.duration + 'm'}</span>` : ''}
+      ${t.tags.map(x => `<span class="pt-tag" style="--c:${planTagColor(x)}">${esc(x)}</span>`).join('')}
+      ${showList && t.listId !== 'inbox' ? `<span class="pt-list" style="--c:${planListColor(t.listId)}">${esc(planListName(t.listId))}</span>` : ''}
+      ${showDate && t.day ? `<span class="pt-day mono${late ? ' late' : ''}">${late ? '⚠ ' : ''}${esc(fmtDate(t.day, 'short'))}${t.dueTime ? ' ' + esc(t.dueTime) : ''}</span>` : ''}
+    </span>
+    <button class="del-x inline" data-ptdel="${t.id}" title="delete">×</button>
+  </div>`;
+}
+
+/* ---------- list view ---------- */
+function planGroupTasks(tasks, sel){
+  const p = planState(), T = today();
+  const mode = p.prefs.group === 'auto'
+    ? (sel.kind === 'smart' && ['today','next7','all','tomorrow'].includes(sel.id) ? 'date' : 'section')
+    : p.prefs.group;
+  if(mode === 'date'){
+    const g = new Map();
+    tasks.forEach(t => {
+      const k = !t.day ? 'No date' : t.day < T ? 'Overdue' : t.day === T ? 'Today'
+        : t.day === addDays(T, 1) ? 'Tomorrow' : fmtDate(t.day, 'med');
+      if(!g.has(k)) g.set(k, []); g.get(k).push(t);
+    });
+    const order = ['Overdue','Today','Tomorrow'];
+    return [...g.entries()].sort((a, b) => {
+      const ai = order.indexOf(a[0]), bi = order.indexOf(b[0]);
+      if(ai > -1 || bi > -1) return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi);
+      if(a[0] === 'No date') return 1; if(b[0] === 'No date') return -1;
+      return (a[1][0].day || '').localeCompare(b[1][0].day || '');
+    });
+  }
+  if(mode === 'list'){
+    const g = new Map();
+    tasks.forEach(t => { const k = planListName(t.listId); if(!g.has(k)) g.set(k, []); g.get(k).push(t); });
+    return [...g.entries()];
+  }
+  if(mode === 'priority'){
+    const g = new Map();
+    [3,2,1,0].forEach(n => { const ts = tasks.filter(t => t.priority === n); if(ts.length) g.set(planPriority(n).name, ts); });
+    return [...g.entries()];
+  }
+  return null;                                   // section mode is handled by the list view itself
+}
+function planListViewHTML(sel, tasks){
+  const p = planState();
+  const grouped = planGroupTasks(tasks, sel);
+  const live = tasks.filter(t => !t.done), doneT = tasks.filter(t => t.done);
+  const quick = ctx => `<div class="pq-wrap"><input class="inp pq-input" data-pqadd="${esc(JSON.stringify(ctx))}"
+      placeholder="＋ add a task — try “report friday 2pm #work !high ~1h”"><div class="pq-preview"></div></div>`;
+
+  if(grouped){
+    return `${quick({})}
+      ${grouped.map(([name, ts]) => `<div class="pt-group"><div class="pt-ghead">${esc(name)}<span class="mono">${ts.length}</span></div>
+        ${ts.map(t => planRowHTML(t, {showList: true})).join('')}</div>`).join('')
+      || `<div class="empty">${esc(planEmptyLine(sel))}</div>`}`;
+  }
+  /* a real list: its own sections, each of them a place to add to */
+  const l = sel.kind === 'list' ? planList(sel.id) : null;
+  const secs = l ? l.sections.slice().sort((a, b) => a.sortOrder - b.sortOrder) : [];
+  const loose = live.filter(t => !t.sectionId || !secs.some(s => s.id === t.sectionId));
+  return `${quick({listId: l?.id})}
+    ${loose.map(t => planRowHTML(t)).join('')}
+    ${secs.map(sc => { const ts = live.filter(t => t.sectionId === sc.id);
+      return `<div class="pt-section${sc.isCollapsed ? ' shut' : ''}" data-plsec="${sc.id}">
+        <div class="pt-shead"><button class="pt-stog" data-plsectog="${sc.id}">${sc.isCollapsed ? '▸' : '▾'}</button>
+          <span class="pt-sname">${esc(sc.name)}</span><span class="mono">${ts.length}</span>
+          <button class="pl-mini" data-plsecdel="${sc.id}" title="remove section">×</button></div>
+        <div class="pt-sbody">${ts.map(t => planRowHTML(t)).join('') || '<div class="pl-empty mono">nothing in this section</div>'}
+          ${quick({listId: l?.id, sectionId: sc.id})}</div></div>`; }).join('')}
+    ${l ? `<button class="pl-mini-row" id="plNewSection">＋ section</button>` : ''}
+    ${!live.length && !doneT.length ? `<div class="empty">${esc(planEmptyLine(sel))}</div>` : ''}
+    ${doneT.length ? `<details class="pt-done"${p.prefs.showCompleted ? ' open' : ''}><summary><span class="sc">Completed</span><span class="mono">${doneT.length}</span></summary>
+      <div>${doneT.map(t => planRowHTML(t)).join('')}</div></details>` : ''}`;
+}
+function planEmptyLine(sel){
+  if(sel.kind === 'smart'){
+    if(sel.id === 'inbox')  return 'Nothing unprocessed. A clear inbox is a clear mind.';
+    if(sel.id === 'today')  return 'Nothing due today. A day with no obligations is either very good or very avoidant.';
+    if(sel.id === 'done')   return 'Nothing finished in the last month. That is either rest or drift — you know which.';
+    if(sel.id === 'next7')  return 'The week ahead is empty. Either it is genuinely clear, or it has not been thought about yet.';
+  }
+  if(sel.kind === 'tag') return 'Nothing carries this tag right now.';
+  return 'This list is waiting for its first task.';
+}
+
+/* ---------- the page ---------- */
+routes.planning = function(root, params){
+  migratePlanning();
+  if(params[0]) S._planSel = {kind:'smart', id:params[0]};
+  const sel = planSel();
+  registerPageEntry({pageName:'Planning', addLabel:'New task', defaultEntryType:'task', prefilledFields:{},
+    hint:'or type it in the line at the top of the list', options:[{label:'New task', run:() => openPlanTask(null)}]});
+
+  let tasks = planSelectionTasks(sel);
+  const f = S._planFilter || {};
+  if(f.priority != null) tasks = tasks.filter(t => t.priority === f.priority);
+  if(f.tag)   tasks = tasks.filter(t => t.tags.includes(f.tag));
+  if(f.range === 'overdue') tasks = tasks.filter(planIsLate);
+  if(f.range === 'no date') tasks = tasks.filter(t => !t.day);
+  if(S._planQ) { const q = S._planQ.toLowerCase();
+    tasks = tasks.filter(t => (t.text + ' ' + t.desc + ' ' + t.tags.join(' ') + ' ' +
+      t.subtasks.map(s => s.title).join(' ')).toLowerCase().includes(q)); }
+  const p = planState();
+  tasks = planSortTasks(tasks, p.prefs.sort, p.prefs.sortDir);
+
+  const v = planView();
+  const special = sel.kind === 'smart' && (sel.id === 'habits' || sel.id === 'stats');
+  const body = special
+    ? (sel.id === 'habits' ? planHabitsHTML() : planStatsHTML())
+    : v === 'calendar'   ? planCalendarHTML(tasks)
+    : v === 'kanban'     ? planKanbanHTML(sel, tasks)
+    : v === 'eisenhower' ? planMatrixHTML(tasks)
+    : v === 'timeline'   ? planTimelineHTML(tasks)
+    : planListViewHTML(sel, tasks);
+
+  root.innerHTML = `<div class="page plan-page">
+    <div class="page-head"><h1>Planning</h1></div>
+    ${planReminderBannerHTML()}
+    <div class="plan-shell">
+      ${planSidebarHTML()}
+      <section class="pl-main" id="plMain">
+        ${planHeaderHTML(sel)}
+        <div class="pl-body" id="plBody">${body}</div>
+        ${planBatchBarHTML()}
+      </section>
+    </div>
+  </div>`;
+  const count = $('#plCount'); if(count) count.textContent = `${tasks.filter(t => !t.done).length} open`;
+  bindPlanning(root, sel, tasks);
+};
+ROUTE_ALIASES.plan = 'planning';
+/* ============================================================
+   QUICK ADD — a sentence, read as a task.
+
+   "Prepare contract review tomorrow at 2pm #work !high ^Work ~2h"
+
+   Everything is done with regexes and a word list. No model, no
+   network: it has to work on a plane, and it has to be the same
+   answer every time. The tokens it removes are removed from the
+   title, so what is left reads as a title and nothing else.
+   ============================================================ */
+
+const NLP_DOW = {sunday:0, sun:0, monday:1, mon:1, tuesday:2, tue:2, tues:2, wednesday:3, wed:3,
+  thursday:4, thu:4, thur:4, thurs:4, friday:5, fri:5, saturday:6, sat:6};
+const NLP_MONTHS = {jan:0, january:0, feb:1, february:1, mar:2, march:2, apr:3, april:3, may:4,
+  jun:5, june:5, jul:6, july:6, aug:7, august:7, sep:8, sept:8, september:8, oct:9, october:9,
+  nov:10, november:10, dec:11, december:11};
+const NLP_TIME_WORDS = {morning:'09:00', noon:'12:00', midday:'12:00', afternoon:'14:00',
+  evening:'18:00', night:'21:00', midnight:'23:59'};
+
+/* the next date on or after tomorrow whose weekday is `dow` */
+function nlpNextDow(dow, fromToday = false){
+  let d = addDays(today(), fromToday ? 0 : 1);
+  for(let i = 0; i < 8; i++){ if(parseDay(d).getDay() === dow) return d; d = addDays(d, 1); }
+  return d;
+}
+const nlpPad = n => String(n).padStart(2, '0');
+
+function parseQuickTask(raw){
+  let s = ' ' + String(raw || '') + ' ';
+  const out = {text:'', day:'', dueTime:'', priority:0, tags:[], listId:null, listName:null,
+    duration:null, recurrence:null, desc:'', matched:[]};
+  const eat = (re, fn) => { s = s.replace(re, (...m) => { const keep = fn(...m); out.matched.push(m[0].trim()); return keep === undefined ? ' ' : keep; }); };
+
+  /* description after a slash — taken first, so nothing inside it is parsed */
+  const slash = s.indexOf(' / ');
+  if(slash > -1){ out.desc = s.slice(slash + 3).trim(); s = s.slice(0, slash) + ' '; }
+
+  /* !priority */
+  eat(/\s!(high|h|med|medium|m|low|l|none|0|1|2|3)\b/i, (_, w) => {
+    const k = w.toLowerCase();
+    out.priority = /^(high|h|3)$/.test(k) ? 3 : /^(med|medium|m|2)$/.test(k) ? 2 : /^(low|l|1)$/.test(k) ? 1 : 0;
+  });
+  /* ^list — quoted for names with a space */
+  eat(/\s\^"([^"]+)"/, (_, n) => { out.listName = n.trim(); });
+  eat(/\s\^([\w-]+)/, (_, n) => { out.listName = n.trim(); });
+  /* #tag */
+  eat(/\s#([\w-]+)/g, (_, n) => { out.tags.push(n); });
+  /* ~duration */
+  eat(/\s~(\d+(?:\.\d+)?)\s*(h|hr|hrs|hour|hours|m|min|mins|minute|minutes)?\b/i, (_, n, u) => {
+    const v = parseFloat(n); const hours = /^h/i.test(u || 'm');
+    out.duration = Math.round(hours ? v * 60 : v);
+  });
+  /* *recurrence */
+  eat(/\s\*every\s+(\d+)\s*(day|days|week|weeks|month|months|year|years)\b/i, (_, n, u) => {
+    out.recurrence = {pattern: u.replace(/s$/, '') + 'ly', interval:+n, daysOfWeek:[], endDate:null, endAfter:null};
+    if(out.recurrence.pattern === 'dayly') out.recurrence.pattern = 'daily';
+  });
+  eat(/\s\*(daily|weekly|monthly|yearly|weekdays)\b/i, (_, w) => {
+    const k = w.toLowerCase();
+    out.recurrence = k === 'weekdays'
+      ? {pattern:'weekly', interval:1, daysOfWeek:[1,2,3,4,5], endDate:null, endAfter:null}
+      : {pattern:k, interval:1, daysOfWeek:[], endDate:null, endAfter:null};
+  });
+
+  /* --- time, before dates, so "at 3" is not eaten as a day number --- */
+  eat(/\s(?:at\s+)?(\d{1,2})(?::(\d{2}))?\s*(am|pm)\b/i, (_, h, m, ap) => {
+    let hh = +h % 12; if(/pm/i.test(ap)) hh += 12;
+    out.dueTime = `${nlpPad(hh)}:${m || '00'}`;
+  });
+  if(!out.dueTime) eat(/\sat\s+(\d{1,2}):(\d{2})\b/, (_, h, m) => { out.dueTime = `${nlpPad(+h)}:${m}`; });
+  if(!out.dueTime) eat(new RegExp(`\\s(${Object.keys(NLP_TIME_WORDS).join('|')})\\b`, 'i'),
+    (_, w) => { out.dueTime = NLP_TIME_WORDS[w.toLowerCase()]; });
+
+  /* --- dates --- */
+  const setDay = d => { if(!out.day) out.day = d; };
+  eat(/\s(today|tonight)\b/i,      () => setDay(today()));
+  eat(/\s(tomorrow|tmr|tmw)\b/i,   () => setDay(addDays(today(), 1)));
+  eat(/\sday\s+after\s+tomorrow\b/i, () => setDay(addDays(today(), 2)));
+  eat(/\snext\s+week\b/i,          () => setDay(addDays(today(), 7)));
+  eat(/\snext\s+month\b/i,         () => { const d = parseDay(today()); d.setMonth(d.getMonth() + 1); setDay(isoDay(d)); });
+  eat(/\sin\s+(\d+)\s*(day|days|week|weeks|month|months)\b/i, (_, n, u) => {
+    const k = +n; if(/^d/i.test(u)) setDay(addDays(today(), k));
+    else if(/^w/i.test(u)) setDay(addDays(today(), k * 7));
+    else { const d = parseDay(today()); d.setMonth(d.getMonth() + k); setDay(isoDay(d)); }
+  });
+  eat(new RegExp(`\\s(?:on\\s+)?(next\\s+|this\\s+)?(${Object.keys(NLP_DOW).join('|')})\\b`, 'i'),
+    (_, mod, w) => setDay(nlpNextDow(NLP_DOW[w.toLowerCase()], /this/i.test(mod || ''))));
+  /* an explicit date: 2026-01-15, 15/1, Jan 15, 15 Jan */
+  eat(/\s(\d{4})-(\d{2})-(\d{2})\b/, (_, y, m, d) => setDay(`${y}-${m}-${d}`));
+  eat(new RegExp(`\\s(${Object.keys(NLP_MONTHS).join('|')})\\.?\\s+(\\d{1,2})(?:st|nd|rd|th)?\\b`, 'i'),
+    (_, mo, d) => setDay(nlpYmd(NLP_MONTHS[mo.toLowerCase()], +d)));
+  eat(new RegExp(`\\s(\\d{1,2})(?:st|nd|rd|th)?\\s+(${Object.keys(NLP_MONTHS).join('|')})\\.?\\b`, 'i'),
+    (_, d, mo) => setDay(nlpYmd(NLP_MONTHS[mo.toLowerCase()], +d)));
+
+  out.text = s.replace(/\s+/g, ' ').trim();
+  /* a sentence that was nothing but tokens still needs a name */
+  if(!out.text && out.matched.length) out.text = 'Untitled task';
+  if(out.dueTime && !out.day) out.day = today();   // a time without a day means today
+  return out;
+}
+/* a bare month and day means the next time that date comes round */
+function nlpYmd(monthIdx, dayNum){
+  const now = parseDay(today());
+  let y = now.getFullYear();
+  let d = new Date(y, monthIdx, dayNum);
+  if(isoDay(d) < today()) d = new Date(y + 1, monthIdx, dayNum);
+  return isoDay(d);
+}
+
+/* what the parser understood, shown back before it is committed */
+function quickParsePreviewHTML(p){
+  if(!p || (!p.text && !p.matched.length)) return '';
+  const bits = [];
+  bits.push(`<span class="qp-title">${esc(p.text || 'Untitled task')}</span>`);
+  if(p.day) bits.push(`<span class="qp-chip" style="--c:var(--terra)">${esc(fmtDate(p.day,'med'))}${p.dueTime ? ' · ' + esc(p.dueTime) : ''}</span>`);
+  if(p.priority) bits.push(`<span class="qp-chip" style="--c:${planPriority(p.priority).color}">${planPriority(p.priority).name.toLowerCase()}</span>`);
+  if(p.listName) bits.push(`<span class="qp-chip" style="--c:var(--sage)">${esc(p.listName)}</span>`);
+  p.tags.forEach(t => bits.push(`<span class="qp-chip" style="--c:${planTagColor(t)}">#${esc(t)}</span>`));
+  if(p.duration) bits.push(`<span class="qp-chip mono">${p.duration >= 60 ? (p.duration/60).toFixed(p.duration%60?1:0)+'h' : p.duration+'m'}</span>`);
+  if(p.recurrence) bits.push(`<span class="qp-chip" style="--c:var(--ment)">repeats ${esc(p.recurrence.pattern)}</span>`);
+  if(p.desc) bits.push(`<span class="qp-chip faint">+ note</span>`);
+  return `<div class="qp-preview">${bits.join('')}</div>`;
+}
+
+/* turn a parsed sentence into a real task in the right place */
+function commitQuickTask(raw, ctx = {}){
+  const p = parseQuickTask(raw);
+  if(!p.text) return null;
+  let listId = ctx.listId || 'inbox';
+  if(p.listName){
+    const hit = planLists().find(l => l.name.toLowerCase() === p.listName.toLowerCase())
+             || planLists().find(l => l.name.toLowerCase().startsWith(p.listName.toLowerCase()));
+    listId = hit ? hit.id : planNewList(p.listName).id;
+  }
+  p.tags.forEach(planEnsureTag);
+  const t = newPlanTask(p.text, p.day || ctx.day || '', {
+    listId, sectionId: ctx.sectionId || null, priority:p.priority, dueTime:p.dueTime,
+    duration:p.duration, desc:p.desc, tags:p.tags, recurrence:p.recurrence,
+    quadrant: ctx.quadrant || null, kanbanColumn: ctx.kanbanColumn || 'todo',
+  });
+  S.tasks.push(t); planSyncReminders(t); saveNow();
+  return t;
+}
+/* ============================================================
+   PLANNING — reminders.
+   A reminder is stored as an absolute moment, recomputed whenever the
+   task's due date moves, so nothing has to be recalculated at ring time.
+   Delivery is a browser notification where permission was given, and
+   always a banner on the page — the banner is the one that cannot fail.
+   ============================================================ */
+const PLAN_REM_MS = {at_time:0, '5min':5, '15min':15, '30min':30, '1hr':60, '1day':1440, '2days':2880, '1week':10080};
+
+function planSyncReminders(t){
+  const p = planState();
+  p.reminders = p.reminders.filter(r => r.taskId !== t.id);
+  if(!t.day || t.done) return;
+  const base = new Date(`${t.day}T${t.dueTime || '09:00'}:00`);
+  if(isNaN(base)) return;
+  t.reminders.forEach(r => {
+    const mins = PLAN_REM_MS[r.type]; if(mins == null) return;
+    const at = new Date(base.getTime() - mins * 60000);
+    p.reminders.push({id:uid(), taskId:t.id, triggerAt:at.toISOString(), dismissed:false, type:r.type});
+  });
+}
+function planDueReminders(){
+  const now = new Date().toISOString();
+  return planState().reminders.filter(r => !r.dismissed && r.triggerAt <= now)
+    .map(r => ({r, t: planTaskById(r.taskId)})).filter(x => x.t && !x.t.done);
+}
+function planReminderBannerHTML(){
+  const due = planDueReminders(); if(!due.length) return '';
+  return `<div class="pl-remind" id="plRemind">
+    <span class="mono">${due.length === 1 ? 'a reminder' : due.length + ' reminders'}</span>
+    <div class="pl-remlist">${due.slice(0, 4).map(({r, t}) => `<button class="pl-rem" data-plremgo="${t.id}" data-plremid="${r.id}">
+      <b>${esc(t.text || 'Task')}</b><span class="mono">${t.day ? esc(fmtDate(t.day, 'short')) : ''}${t.dueTime ? ' ' + esc(t.dueTime) : ''}</span></button>`).join('')}</div>
+    <button class="pl-mini" id="plRemClear" title="dismiss">×</button></div>`;
+}
+function bindPlanReminderBanner(root){
+  $$('[data-plremgo]', root).forEach(b => b.onclick = () => {
+    const r = planState().reminders.find(x => x.id === b.dataset.plremid);
+    if(r) r.dismissed = true; saveNow(); openPlanTask(b.dataset.plremgo); });
+  const c = $('#plRemClear'); if(c) c.onclick = () => {
+    planDueReminders().forEach(({r}) => r.dismissed = true); saveNow(); rerender(); };
+}
+function planAskNotifyPermission(){
+  if(!('Notification' in window) || Notification.permission !== 'default') return;
+  try { Notification.requestPermission(); } catch(e){}
+}
+/* checked on load and once a minute after; the badge is on the nav whether or
+   not the browser ever agreed to show anything */
+let _planRemSeen = new Set();
+function planCheckReminders(){
+  if(!S.planning) return;
+  const due = planDueReminders();
+  const badge = document.querySelector('[data-page="planning"] .nav-badge');
+  if(badge){ badge.textContent = due.length || ''; badge.hidden = !due.length; }
+  due.forEach(({r, t}) => {
+    if(_planRemSeen.has(r.id)) return; _planRemSeen.add(r.id);
+    if('Notification' in window && Notification.permission === 'granted'){
+      try { const n = new Notification(t.text || 'Task due', {body: t.day ? fmtDate(t.day, 'med') + (t.dueTime ? ' · ' + t.dueTime : '') : '', tag:r.id});
+        n.onclick = () => { window.focus(); navigate('#/planning'); setTimeout(() => openPlanTask(t.id), 400); };
+      } catch(e){}
+    }
+    if(parseHash().name === 'planning') rerender();
+  });
+}
+addEventListener('load', () => { setTimeout(planCheckReminders, 1500); setInterval(planCheckReminders, 60000); });
+
+/* completing a task can be a small door into the journal, if there is
+   something worth saying. It asks once, quietly, and never insists. */
+function planOfferReflection(t){
+  if(!t || !(t.desc || '').trim() && !t.subtasks.length && t.priority < 3) return;
+  toast(`Finished “${t.text}”. Anything worth writing down?`, 7000, {label:'write it', fn: () => {
+    openEntryModal({type:'reflection', title:t.text,
+      links:{projects:(t.links.projects || []).slice(), skills:(t.links.skills || []).slice(),
+        stages:[], substages:[], threads:[], values:[], people:[]}});
+  }});
+}
+/* placeholder — replaced in the next commit */
+function planCalendarHTML(){ return '<div class="empty">Calendar view, next.</div>'; }
+function planKanbanHTML(){ return '<div class="empty">Board view, next.</div>'; }
+function planMatrixHTML(){ return '<div class="empty">Matrix view, next.</div>'; }
+function planTimelineHTML(){ return '<div class="empty">Timeline view, next.</div>'; }
+function bindPlanViews(){}
+function planHabitsHTML(){ return '<div class="empty">Habits, next.</div>'; }
+function bindPlanHabits(){}
+function planStatsHTML(){ return '<div class="empty">Statistics, next.</div>'; }
+function openFocusTimer(){ toast('The focus timer arrives in the next pass.'); }
+/* ============================================================
    TASKS — one list, many sources.
    A task is either its own thing (S.tasks) or a task that already
    lives inside a project phase. Both can be given a day, which is
@@ -14725,6 +16203,9 @@ const NAV_ICONS = {
      four long points to the cardinals, four short ones between, and the north
      point left open so the eye knows which way is up. */
   compass:  '<svg viewBox="0 0 24 24"><path d="M12 2.5 13.6 10.4 21.5 12 13.6 13.6 12 21.5 10.4 13.6 2.5 12 10.4 10.4Z"/><path d="m6.6 6.6 3.2 3.2M17.4 6.6l-3.2 3.2M17.4 17.4l-3.2-3.2M6.6 17.4l3.2-3.2"/><path d="M12 2.5 10.4 10.4"/></svg>',
+  /* a board with a line ticked off it: the room where work is moved, not
+     where it is reflected on — flat where Today is radiant */
+  planning: '<svg viewBox="0 0 24 24"><rect x="4" y="3.5" width="16" height="17" rx="2.5"/><path d="M9 3.5V6h6V3.5"/><path d="m8.2 11.4 1.9 1.9 4-4.2"/><path d="M8.2 16.6h7.6"/></svg>',
   home:     '<svg viewBox="0 0 24 24"><path d="M4 11.5 12 5l8 6.5"/><path d="M6.5 10.5V19h11v-8.5"/><path d="M10.5 19v-4.5h3V19"/></svg>',
   today:    '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4"/></svg>',
   journals: '<svg viewBox="0 0 24 24"><path d="M12 6.5c-1.6-1.4-3.8-1.8-7-1.5v13c3.2-.3 5.4.1 7 1.5 1.6-1.4 3.8-1.8 7-1.5V5c-3.2-.3-5.4.1-7 1.5Z"/><path d="M12 6.5v13"/></svg>',
@@ -14752,6 +16233,7 @@ const NAV_ICONS = {
 };
 /* labels match the h1 of the page they open; `short` is for the mobile bar only */
 const NAV_PAGES = {
+  planning: {label:'Planning',         short:'Plan',     ico:NAV_ICONS.planning, route:'#/planning'},
   today:    {label:'Today',            short:'Today',    ico:NAV_ICONS.today,    route:'#/today'},
   journals: {label:'Journals',         short:'Journal',  ico:NAV_ICONS.journals, route:'#/journals'},
   projects: {label:'Projects',         short:'Projects', ico:NAV_ICONS.projects, route:'#/projects'},
@@ -14766,7 +16248,7 @@ const NAV_PAGES = {
 /* The daily rooms sit above the zones, unlabelled — you do not need a heading
    to tell you what Today is for. Writing Studio sits below everything,
    always, because it is where you go when the rest of the house is noise. */
-const NAV_TOP = ['compass','today','journals'];
+const NAV_TOP = ['compass','today','planning','journals'];
 const NAV_PINNED = ['writing'];
 const NAV_DEFAULT = {
   becoming:  ['values','skills','projects','finance','commonplace'],
@@ -14783,7 +16265,7 @@ const NAV_ZONE_IDS = [...NAV_ZONES.map(z => z.id), 'standalone'];
 const NAV_UNLISTED = ['import'];
 /* pages that are placed by hand and must never be swept into a zone */
 const NAV_FIXED = new Set([...NAV_TOP, ...NAV_PINNED, ...NAV_UNLISTED]);
-const MOBILE_PRIMARY = ['today','journals','projects','values','skills'];
+const MOBILE_PRIMARY = ['today','planning','journals','projects','values'];
 function navConfig(){
   if(!S.settings.nav) S.settings.nav = JSON.parse(JSON.stringify(NAV_DEFAULT));
   const n = S.settings.nav;
@@ -14810,7 +16292,7 @@ function navConfig(){
 const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch(e){ return d; } };
 const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} };
 function activePageKey(){ const {name} = parseHash(); return {stage:'timeline', value:'values', home:'compass', rhythm:'today', lifetape:'today'}[name] || name; }
-function navLink(key, zoneAccent){ const p = NAV_PAGES[key]; return `<a href="${p.route}" data-page="${key}" data-tip="${esc(p.label)}" style="--z:${zoneAccent||'var(--terra)'}"><span class="ico">${p.ico}</span><span class="lbl">${esc(p.label)}</span></a>`; }
+function navLink(key, zoneAccent){ const p = NAV_PAGES[key]; return `<a href="${p.route}" data-page="${key}" data-tip="${esc(p.label)}" style="--z:${zoneAccent||'var(--terra)'}"><span class="ico">${p.ico}</span><span class="lbl">${esc(p.label)}</span>${key === 'planning' ? '<span class="nav-badge" hidden></span>' : ''}</a>`; }
 function renderNav(){
   const n = navConfig(); const collapsedZones = lsGet('navZoneCollapsed', {}); const sbCollapsed = lsGet('sidebarCollapsed', false);
   document.documentElement.classList.toggle('sb-collapsed', !!sbCollapsed);
@@ -15021,6 +16503,87 @@ function bindZoneEditor(root){
   root.querySelectorAll('.zone-item').forEach(it => { it.addEventListener('dragstart', () => { dragKey = it.dataset.zitem; it.classList.add('dragging'); }); it.addEventListener('dragend', () => it.classList.remove('dragging')); });
   root.querySelectorAll('.zone-col').forEach(col => { col.addEventListener('dragover', e => { e.preventDefault(); col.classList.add('over'); }); col.addEventListener('dragleave', () => col.classList.remove('over')); col.addEventListener('drop', e => { e.preventDefault(); col.classList.remove('over'); if(!dragKey) return; NAV_ZONE_IDS.forEach(z => n[z] = n[z].filter(k => k !== dragKey)); const target = col.dataset.zcol; const after = e.target.closest('.zone-item')?.dataset.zitem; const arr = n[target]; const i = after ? arr.indexOf(after) : -1; if(i >= 0) arr.splice(i, 0, dragKey); else arr.push(dragKey); dragKey = null; saveNow(); renderNav(); rerender(); }); });
   root.querySelector('#zoneReset').onclick = () => { S.settings.nav = JSON.parse(JSON.stringify(NAV_DEFAULT)); saveNow(); renderNav(); rerender(); };
+}
+/* ============================================================
+   PLANNING — the room, already furnished.
+
+   A planning app opened on nothing teaches nobody anything: you cannot
+   see what a board is for until there are cards on it. So the room
+   arrives with lists, folders, tags and a fortnight of plausible work
+   in it — all of it ordinary and all of it deletable, like the rest of
+   the starter set.
+   ============================================================ */
+const PLAN_SEEDED = 'starter';
+
+function planSeedIfEmpty(){
+  const p = planState();
+  if(p.seeded) return;
+  if((S.tasks || []).length > 3) { p.seeded = PLAN_SEEDED; return; }   // never on top of real work
+  const T = today(), inD = n => addDays(T, n);
+
+  [['Life', 0], ['Work & learning', 1]].forEach(([n, o]) => {
+    const f = planNewFolder(n); f.sortOrder = o; });
+  const [fLife, fWork] = p.folders;
+  const mk = (name, color, folder, sections = []) => {
+    const l = planNewList(name, {folderId: folder ? folder.id : null, color});
+    sections.forEach((sn, i) => l.sections.push({id:uid(), name:sn, sortOrder:i, isCollapsed:false}));
+    return l;
+  };
+  const work  = mk('Work',        '#6b7f8e', fWork, ['Active matters', 'Admin', 'Follow-ups']);
+  const learn = mk('Learning',    '#4f9e70', fWork, ['Japanese', 'Reading']);
+  const home  = mk('Personal',    '#b08968', fLife);
+  const body  = mk('Health',      '#a0727e', fLife);
+  const japan = mk('Japan',       '#9a63ab', fLife);
+
+  [['urgent','#c2452d'], ['idea','#d4a44c'], ['waiting','#a89f94'], ['goal','#7f916a'], ['call','#6b7f8e']]
+    .forEach(([n, c]) => { const t = planEnsureTag(n); if(t) t.color = c; });
+
+  const add = (text, o = {}) => { const t = newPlanTask(text, o.day || '', o); S.tasks.push(t); return t; };
+  const sec = (l, name) => (l.sections.find(s => s.name === name) || {}).id || null;
+
+  add('Sort the old notes into this house', {listId:'inbox', priority:2});
+  add('Find the JET Programme deadlines', {listId:'inbox', day:inD(12), priority:3, tags:['goal']});
+
+  add('Review the Smith amendments', {listId:work.id, sectionId:sec(work,'Active matters'), day:inD(1), priority:3, duration:120});
+  add('Reply to opposing counsel', {listId:work.id, sectionId:sec(work,'Follow-ups'), day:T, priority:2, duration:20, tags:['waiting']});
+  add('File the quarterly compliance report', {listId:work.id, sectionId:sec(work,'Admin'), day:inD(6), priority:1, duration:45});
+  const brief = add('Brief for Monday’s hearing', {listId:work.id, sectionId:sec(work,'Active matters'), day:inD(3), priority:3, duration:240, quadrant:1});
+  ['Read the precedents', 'Outline the argument', 'Take it to the supervisor', 'File the final'].forEach((s, i) =>
+    brief.subtasks.push({id:uid(), title:s, isCompleted:i === 0, completedAt:i === 0 ? new Date().toISOString() : null, sortOrder:i}));
+
+  add('Genki chapter 12', {listId:learn.id, sectionId:sec(learn,'Japanese'), day:T, priority:2, duration:45,
+    recurrence:{pattern:'daily', interval:1, daysOfWeek:[], endDate:null, endAfter:null}, quadrant:2});
+  add('Thirty pages', {listId:learn.id, sectionId:sec(learn,'Reading'), day:T, priority:1, duration:30,
+    recurrence:{pattern:'daily', interval:1, daysOfWeek:[], endDate:null, endAfter:null}});
+  add('One drama episode, no subtitles', {listId:learn.id, sectionId:sec(learn,'Japanese'), day:inD(4), priority:1, duration:45,
+    recurrence:{pattern:'weekly', interval:1, daysOfWeek:[6], endDate:null, endAfter:null}});
+
+  add('Call home', {listId:home.id, day:inD((7 - parseDay(T).getDay()) % 7 || 7), priority:2, duration:30, tags:['call'],
+    recurrence:{pattern:'weekly', interval:1, daysOfWeek:[0], endDate:null, endAfter:null}, quadrant:2});
+  add('Cook for the week', {listId:home.id, day:inD((6 - parseDay(T).getDay() + 7) % 7 || 7), priority:1, duration:90});
+  add('Clear the desk, and the desktop', {listId:home.id, priority:1, quadrant:4});
+
+  add('Run — five kilometres', {listId:body.id, day:T, priority:2, duration:35,
+    recurrence:{pattern:'weekly', interval:1, daysOfWeek:[1,2,3,4,5], endDate:null, endAfter:null}, quadrant:2});
+  add('Book the dentist', {listId:body.id, day:inD(24), priority:1, tags:['call'], quadrant:3});
+
+  add('Price a Tokyo flat, by neighbourhood', {listId:japan.id, priority:2, tags:['goal'], quadrant:2});
+  add('Gather the N2 materials', {listId:japan.id, day:inD(30), priority:3, tags:['goal'], duration:60});
+  const stmt = add('Outline the JET statement', {listId:japan.id, day:inD(14), priority:3, tags:['goal'], quadrant:2, duration:120});
+  ['Find the through-line', 'A first draft, badly', 'Show it to someone', 'Rewrite it properly'].forEach((s, i) =>
+    stmt.subtasks.push({id:uid(), title:s, isCompleted:false, completedAt:null, sortOrder:i}));
+
+  /* one finished yesterday, so the statistics have something to stand on */
+  const done = add('Set this house up', {listId:'inbox', day:addDays(T, -1), priority:3, focusTime:75});
+  done.done = true; done.doneAt = addDays(T, -1); done.kanbanColumn = 'done';
+  [25, 25, 25].forEach((d, i) => p.focusSessions.push({id:uid(), taskId:done.id,
+    startedAt:new Date(Date.parse(addDays(T, -1) + 'T09:00:00') + i * 1800000).toISOString(),
+    endedAt:new Date(Date.parse(addDays(T, -1) + 'T09:25:00') + i * 1800000).toISOString(),
+    duration:d, type:'focus', completed:true}));
+
+  (S.tasks || []).forEach(planSyncReminders);
+  p.seeded = PLAN_SEEDED;
+  saveNow();
 }
 /* ============================================================
    STARTER SET — a first draft of the house, not a biography.
@@ -15531,7 +17094,8 @@ async function init(){
   markNavDirection(); renderRoute(); startDust(); updateBackButton();
   window.addEventListener('beforeunload', () => { if(saving || savePending) saveNow(); });
   if(S.settings.firstOpen === today() && !S._welcomed){ S._welcomed = true; setTimeout(()=>toast('Welcome home. Every piece of text here is editable — click it. The placeholder life is yours to overwrite.', 7000), 800); }
-  setTimeout(() => { try { maybeOfferStarter(); } catch(e){ console.warn('starter set skipped', e); } }, 1200);
+  setTimeout(() => { try { maybeOfferStarter(); } catch(e){ console.warn('starter set skipped', e); }
+    try { migratePlanning(); planSeedIfEmpty(); } catch(e){ console.warn('planning seed skipped', e); } }, 1200);
 }
 document.readyState==='loading' ? document.addEventListener('DOMContentLoaded', init) : init();
 </script>

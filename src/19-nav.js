@@ -10,6 +10,9 @@ const NAV_ICONS = {
      four long points to the cardinals, four short ones between, and the north
      point left open so the eye knows which way is up. */
   compass:  '<svg viewBox="0 0 24 24"><path d="M12 2.5 13.6 10.4 21.5 12 13.6 13.6 12 21.5 10.4 13.6 2.5 12 10.4 10.4Z"/><path d="m6.6 6.6 3.2 3.2M17.4 6.6l-3.2 3.2M17.4 17.4l-3.2-3.2M6.6 17.4l3.2-3.2"/><path d="M12 2.5 10.4 10.4"/></svg>',
+  /* a board with a line ticked off it: the room where work is moved, not
+     where it is reflected on — flat where Today is radiant */
+  planning: '<svg viewBox="0 0 24 24"><rect x="4" y="3.5" width="16" height="17" rx="2.5"/><path d="M9 3.5V6h6V3.5"/><path d="m8.2 11.4 1.9 1.9 4-4.2"/><path d="M8.2 16.6h7.6"/></svg>',
   home:     '<svg viewBox="0 0 24 24"><path d="M4 11.5 12 5l8 6.5"/><path d="M6.5 10.5V19h11v-8.5"/><path d="M10.5 19v-4.5h3V19"/></svg>',
   today:    '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4"/></svg>',
   journals: '<svg viewBox="0 0 24 24"><path d="M12 6.5c-1.6-1.4-3.8-1.8-7-1.5v13c3.2-.3 5.4.1 7 1.5 1.6-1.4 3.8-1.8 7-1.5V5c-3.2-.3-5.4.1-7 1.5Z"/><path d="M12 6.5v13"/></svg>',
@@ -37,6 +40,7 @@ const NAV_ICONS = {
 };
 /* labels match the h1 of the page they open; `short` is for the mobile bar only */
 const NAV_PAGES = {
+  planning: {label:'Planning',         short:'Plan',     ico:NAV_ICONS.planning, route:'#/planning'},
   today:    {label:'Today',            short:'Today',    ico:NAV_ICONS.today,    route:'#/today'},
   journals: {label:'Journals',         short:'Journal',  ico:NAV_ICONS.journals, route:'#/journals'},
   projects: {label:'Projects',         short:'Projects', ico:NAV_ICONS.projects, route:'#/projects'},
@@ -51,7 +55,7 @@ const NAV_PAGES = {
 /* The daily rooms sit above the zones, unlabelled — you do not need a heading
    to tell you what Today is for. Writing Studio sits below everything,
    always, because it is where you go when the rest of the house is noise. */
-const NAV_TOP = ['compass','today','journals'];
+const NAV_TOP = ['compass','today','planning','journals'];
 const NAV_PINNED = ['writing'];
 const NAV_DEFAULT = {
   becoming:  ['values','skills','projects','finance','commonplace'],
@@ -68,7 +72,7 @@ const NAV_ZONE_IDS = [...NAV_ZONES.map(z => z.id), 'standalone'];
 const NAV_UNLISTED = ['import'];
 /* pages that are placed by hand and must never be swept into a zone */
 const NAV_FIXED = new Set([...NAV_TOP, ...NAV_PINNED, ...NAV_UNLISTED]);
-const MOBILE_PRIMARY = ['today','journals','projects','values','skills'];
+const MOBILE_PRIMARY = ['today','planning','journals','projects','values'];
 function navConfig(){
   if(!S.settings.nav) S.settings.nav = JSON.parse(JSON.stringify(NAV_DEFAULT));
   const n = S.settings.nav;
@@ -95,7 +99,7 @@ function navConfig(){
 const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch(e){ return d; } };
 const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} };
 function activePageKey(){ const {name} = parseHash(); return {stage:'timeline', value:'values', home:'compass', rhythm:'today', lifetape:'today'}[name] || name; }
-function navLink(key, zoneAccent){ const p = NAV_PAGES[key]; return `<a href="${p.route}" data-page="${key}" data-tip="${esc(p.label)}" style="--z:${zoneAccent||'var(--terra)'}"><span class="ico">${p.ico}</span><span class="lbl">${esc(p.label)}</span></a>`; }
+function navLink(key, zoneAccent){ const p = NAV_PAGES[key]; return `<a href="${p.route}" data-page="${key}" data-tip="${esc(p.label)}" style="--z:${zoneAccent||'var(--terra)'}"><span class="ico">${p.ico}</span><span class="lbl">${esc(p.label)}</span>${key === 'planning' ? '<span class="nav-badge" hidden></span>' : ''}</a>`; }
 function renderNav(){
   const n = navConfig(); const collapsedZones = lsGet('navZoneCollapsed', {}); const sbCollapsed = lsGet('sidebarCollapsed', false);
   document.documentElement.classList.toggle('sb-collapsed', !!sbCollapsed);
