@@ -6119,7 +6119,17 @@ const DB_SCHEMA = {          // primary key first, then indexes — Dexie syntax
   spendCategories:'id',
 };
 /* keys of S that are single objects/arrays without their own identity — kept as rows in `meta` */
-const META_KEYS = ['settings','rehearsal','reviews','valueOrder','valueOrderHistory','places','journals','negLast','finance','plans','reviewLog'];
+/* Every top-level key of S that is an object rather than an array has to be
+   named here, or it is simply never written: persist() serialises exactly
+   META_KEYS plus ARRAY_STORES plus the two day-keyed stores, and anything
+   outside that list is rebuilt from defaults on the next load. Several
+   rooms had grown state that nobody had added — the Planning lists and
+   folders, the Content pipeline and its vault, the writing history behind
+   the streak, the running log, the week and month plans, the position
+   history and the day's rhythm — all of it discarded on every reload. A new
+   object on S is not saved until its name appears in this line. */
+const META_KEYS = ['settings','rehearsal','reviews','valueOrder','valueOrderHistory','places','journals','negLast','finance','plans','reviewLog',
+  'planning','content','contentVault','wsDaily','wsRead','runLog','weekPlans','monthPlans','monthReviews','position','dailyRhythm'];
 const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders','visionEras','tasks','boards','people','events','accounts','txns','budgets','finGoals','chapters','turns','threadsN','interactions','mediaQueue','mediaLists','mediaRecs','compost','incomeStreams','spendCategories'];
 
 /* ---------- MiniDexie: Dexie-compatible subset over IndexedDB ---------- */
