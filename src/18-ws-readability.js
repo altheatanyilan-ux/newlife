@@ -243,15 +243,16 @@ function bindWsReadControls(root, proj, redraw){
     r.distil = +b.dataset.wsdistil; saveNow(); sound('click'); redraw(); });
 }
 
-/* Marking a passage and toggling readability — the same ⌥ grammar the rest
-   of the desk uses, with ⇧ meaning "one layer deeper".
+/* The two things you do while the caret is still in the text, and so the
+   only two chords in the house. ⌥R and ⌥⇧1/2/3/0 — ⌥ with shift or with R
+   is claimed by nothing on any platform I can name, where ⌥ with a bare
+   digit switches tabs on Linux and ⌥D, ⌥E, ⌥B, ⌥T, ⌥S are menu keys on
+   Windows and Linux. Both also answer to a bare key when you are not
+   typing, and both have a button in the toolbar.
 
-   Two traps sat here, both of which had this silently doing nothing. ev.key
-   is the character a key would type, and ⇧ turns the number row into !"£$
-   while ⌥ turns letters into ˜ˆ¨ on a Mac — so a handler reading ev.key
-   never sees '1'. ev.code names the physical key regardless. And ⌘⇧R, which
-   the specification asked for, is the browser's own hard reload on every
-   platform: pressing it reloaded the page rather than toggling anything. */
+   ev.code, not ev.key: ⇧ turns the number row into !"£$ and ⌥ turns
+   letters into ˜ˆ¨ on a Mac, and none of that says which key was pressed.
+   Reading ev.key was why none of this fired at all. */
 const WS_MARK_CODES = {Digit0:0, Digit1:1, Digit2:2, Digit3:3,
                        Numpad0:0, Numpad1:1, Numpad2:2, Numpad3:3};
 document.addEventListener('keydown', ev => {
@@ -262,7 +263,7 @@ document.addEventListener('keydown', ev => {
     ev.preventDefault(); r.on = !r.on; if(r.on) r.distil = 0;
     saveNow(); sound('click'); rerender(); return;
   }
-  if(!ev.shiftKey) return;                       // ⌥ alone belongs to the desk's own keys
+  if(!ev.shiftKey) return;
   const layer = WS_MARK_CODES[ev.code];
   if(layer === undefined) return;
   const ta = document.querySelector('#wBody'); if(!ta) return;

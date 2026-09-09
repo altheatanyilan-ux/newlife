@@ -11,7 +11,7 @@ routes.settings = function(root){
       <div class="opt"><div><b>Landing page</b><div class="d">Where the site opens.</div></div><select class="sel" style="width:auto" id="sHome">${[['compass','Compass'],['today','Today']].map(([v,l])=>`<option value="${v}" ${(S.settings.home||'compass')===v?'selected':''}>${l}</option>`).join('')}</select></div>
     </div>
     <div class="card rv"><h3>The keyboard</h3>
-      <p class="muted" style="font-size:.85rem">Press the key. In the Writing Studio, hold ⌥ as well, because you are always inside the text there. Nothing fires while you are typing into something.</p>
+      <p class="muted" style="font-size:.85rem">Press the key. Nothing fires while you are typing into something — which is why the two things you do with the caret still in a draft take ⌥, and nothing else does.</p>
       ${typeof shortcutsHTML === 'function' ? `<div class="kb-inline">${shortcutsHTML('').replace(/^[\s\S]*?<div class="kb-grid">/, '<div class="kb-grid">')}</div>` : ''}
     </div>
 

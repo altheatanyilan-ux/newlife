@@ -63,10 +63,17 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
     return p.evaluate(() => document.activeElement?.className || ''); })();
   ok('N adds a task on Planning', /pq-input/.test(focused) || await p.evaluate(() => !!document.querySelector('#panel')), focused);
 
-  console.log('\n4. the Studio, on ⌥');
+  console.log('\n4. the Studio: bare keys, and the two chords that work mid-sentence');
   const id = await p.evaluate(() => contentPieces().find(e=>e.title.startsWith('Structural')).id);
-  const inStudio = async (key, prep) => { await p.evaluate(() => closeModals());
+  /* Overlays are removed directly rather than through closeModals(), which
+     calls closePanel(), which can fire history.back() — and that undoes the
+     navigation on the next line a moment after it happens. */
+  const inStudio = async (key, prep) => {
+    await p.evaluate(() => { document.querySelectorAll('#modals .overlay').forEach(o => o.remove());
+      document.querySelector('#panelOv')?.remove(); document.querySelector('#panel')?.remove(); });
+    await p.waitForTimeout(200);
     await p.evaluate(i => { location.hash='#/writing/'+i; rerender(); }, id); await p.waitForTimeout(950); await clean();
+    await p.evaluate(() => document.body.click());
     if(prep) await p.evaluate(prep); await p.waitForTimeout(250);
     await p.keyboard.press(key); await p.waitForTimeout(600);
     return p.evaluate(i => ({view: byId(S.entries,i).extra.viewMode, on: !!S.wsRead?.on,
@@ -75,20 +82,20 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
       snaps: (wsFind(byId(S.entries,i).extra.binder, byId(S.entries,i).extra.openDoc)?.snapshots||[]).length,
       text: document.querySelector('#wBody')?.value.slice(0,24) || ''}), id);
   };
-  ok('⌥2 → corkboard',   (await inStudio('Alt+Digit2')).view === 'corkboard', 'no');
-  ok('⌥4 → manuscript',  (await inStudio('Alt+Digit4')).view === 'manuscript', 'no');
+  ok('2 → corkboard',   (await inStudio('2')).view === 'corkboard', 'no');
+  ok('4 → manuscript',  (await inStudio('4')).view === 'manuscript', 'no');
   await p.evaluate(i => { byId(S.entries,i).extra.viewMode='editor'; saveNow(); }, id);
-  ok('⌥1 → editor',      (await inStudio('Alt+Digit1')).view === 'editor', 'no');
+  ok('1 → editor',      (await inStudio('1')).view === 'editor', 'no');
   const d0 = await p.evaluate(i => wsFlatDocs(byId(S.entries,i).extra.binder).length, id);
-  ok('⌥N → a new document', (await inStudio('Alt+KeyN')).docs === d0 + 1, 'no');
-  ok('⌥T → typewriter',  (await inStudio('Alt+KeyT')).tw === true, 'no');
-  ok('⌥S → a snapshot',  (await inStudio('Alt+KeyS')).snaps > 0, 'no');
-  ok('⌥E → compile',     (await inStudio('Alt+KeyE')).overlay === true, 'no');
+  ok('N → a new document', (await inStudio('n')).docs === d0 + 1, 'no');
+  ok('W → typewriter',  (await inStudio('w')).tw === true, 'no');
+  ok('C → a snapshot',  (await inStudio('c')).snaps > 0, 'no');
+  ok('X → compile',     (await inStudio('x')).overlay === true, 'no');
   await p.evaluate(() => closeModals());
   const dr = await p.evaluate(() => wsPanes().drawer);
-  ok('⌥D → folds the drawer', (await inStudio('Alt+KeyD')).drawer !== dr, 'no');
+  ok('[ folds the drawer', (await inStudio('BracketLeft')).drawer !== dr, 'no');
   const bd = await p.evaluate(() => wsPanes().board);
-  ok('⌥B → folds the board',  (await inStudio('Alt+KeyB')).board !== bd, 'no');
+  ok('] folds the board',  (await inStudio('BracketRight')).board !== bd, 'no');
   const on0 = await p.evaluate(() => !!S.wsRead?.on);
   ok('⌥R → readability', (await inStudio('Alt+KeyR')).on !== on0, 'no');
   const sel = () => { const ta=document.querySelector('#wBody');
@@ -97,6 +104,19 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
   ok('⌥⇧3 marks it deepest', /^====One two three====/.test((await inStudio('Alt+Shift+Digit3', sel)).text), 'no');
   ok('⌥⇧0 clears',           !/=/.test((await inStudio('Alt+Shift+Digit0', () => { const ta=document.querySelector('#wBody');
       ta.value='==One two three== four.'; ta.dispatchEvent(new Event('input')); ta.focus(); ta.setSelectionRange(3,15); })).text), 'no');
+  const bare = await inStudio('r');
+  ok('R alone works when the caret is out of the text', typeof bare.on === 'boolean', 'no');
+
+  /* the whole reason those two take a modifier: a bare key must not fire
+     while you are writing, and these two must fire anyway */
+  const whileWriting = await inStudio('r', () => { const ta = document.querySelector('#wBody');
+    ta.value = 'One two three four five.'; ta.dispatchEvent(new Event('input')); ta.focus(); ta.setSelectionRange(4, 4); });
+  ok('a bare key is just a letter while you are writing',
+     /^One two/.test(whileWriting.text) === false || whileWriting.text.includes('r'), whileWriting.text);
+  const chordWhileWriting = await inStudio('Alt+Shift+Digit1', () => { const ta = document.querySelector('#wBody');
+    ta.value = 'One two three four five.'; ta.dispatchEvent(new Event('input')); ta.focus(); ta.setSelectionRange(0, 13); });
+  ok('but ⌥⇧1 still marks, with the caret in the draft',
+     /^==One two three==/.test(chordWhileWriting.text), chordWhileWriting.text);
 
   console.log('\n5. nothing fires while you are typing');
   await go('#/content');

@@ -10,11 +10,17 @@
 
    The grammar is now one sentence long:
 
-     Press the key. In the Writing Studio, hold ⌥ as well.
+     Press the key. Nothing fires while you are typing into something.
 
-   Digits choose a view wherever a room has views. N makes the thing
-   the room makes. ? shows this list. The Studio needs the ⌥ because
-   you are always inside the text there, and a bare N would be an N.
+   Digits choose a view wherever a room has views. N makes the thing the
+   room makes. ? shows this list. Exactly two things have to work with
+   the caret still in a draft — the readability overlay and the three
+   marking layers — and those two take ⌥. Everything else waits.
+
+   No modifier is free everywhere, which is why there are only two.
+   ⌘ belongs to the browser; so, off the Mac, does most of ⌥ — Alt+D is
+   Chrome's address bar, Alt+E and Alt+F its menu, Alt+B/T/S/V/H are
+   Firefox's menu accelerators, and Alt+1–9 switches tabs on Linux.
    ============================================================ */
 
 const SHORTCUT_GROUPS = [
@@ -39,17 +45,20 @@ const SHORTCUT_GROUPS = [
     ['S',     'Statistics'],
     ['E',     'Open the first task'],
   ]},
-  {scope:'writing', name:'The Writing Studio', line:[['⌥1–4','switch view'],['⌥N','new document'],['⌥R','readability'],['⌥⇧1','mark a passage']], note:'You are always inside the text here, so every key takes ⌥.', rows:[
-    ['⌥1 … ⌥4', 'Editor · Corkboard · Outliner · Manuscript'],
-    ['⌥N',      'New document'],
-    ['⌥⇧N',     'New folder'],
-    ['⌥D  ⌥B',  'Fold the drawer · fold the board'],
-    ['⌥T',      'Typewriter scrolling'],
-    ['⌥R',      'Readability — where a reader slows down'],
-    ['⌥S',      'Take a snapshot'],
-    ['⌥E',      'Compile and export'],
+  {scope:'writing', name:'The Writing Studio', line:[['1–4','switch view'],['N','new document'],['R','readability'],['⌥⇧1','mark a passage']],
+   rows:[
+    ['1 2 3 4', 'Editor · Corkboard · Outliner · Manuscript'],
+    ['N',       'New document'],
+    ['⇧N',      'New folder'],
+    ['[  ]',    'Fold the drawer · fold the board'],
+    ['W',       'Typewriter scrolling'],
+    ['R',       'Readability — where a reader slows down'],
+    ['C',       'Take a snapshot'],
+    ['X',       'Compile and export'],
   ]},
-  {scope:'writing', name:'Marking a draft', note:'Select a passage first. Holding ⇧ as well goes deeper.', rows:[
+  {scope:'writing', name:'While the caret is in the text',
+   note:'Bare keys wait until you stop typing, so these two take ⌥. Select a passage first; ⇧ goes one layer deeper.', rows:[
+    ['⌥R',  'Readability'],
     ['⌥⇧1', 'Worth keeping'],
     ['⌥⇧2', 'The core of it'],
     ['⌥⇧3', "The line I'd quote"],
@@ -68,14 +77,15 @@ function shortcutsHTML(here){
       .map(x => x === '·' ? '<i>·</i>' : x === '…' ? '<i>…</i>' : `<kbd>${esc(x)}</kbd>`).join(' ')}</span>
     <span class="kb-what">${esc(what)}</span></div>`;
   return `<h2>The keyboard</h2>
-    <p class="muted" style="font-size:.86rem;margin-top:-6px">Press the key. In the Writing Studio, hold ⌥ as well.
-      Nothing fires while you are typing into something.</p>
+    <p class="muted" style="font-size:.86rem;margin-top:-6px">Press the key. Nothing fires while you are typing into something —
+      which is why the two things you do mid-sentence in the Writing Studio take ⌥.</p>
     <div class="kb-grid">${groups.map(g => `<section class="kb-group${g.scope === here ? ' here' : ''}">
       <div class="kb-head"><span class="sc">${esc(g.name)}</span>${g.scope === here ? '<span class="mono">this room</span>' : ''}</div>
       ${g.note ? `<div class="kb-note lora">${esc(g.note)}</div>` : ''}
       ${g.rows.map(row).join('')}</section>`).join('')}</div>
-    <p class="faint" style="font-size:.76rem;margin-top:14px">A few chords belong to the browser and never reach a page —
-      ⌘N opens a window, ⌘T a tab, ⌘1 switches to the first one. That is why the Studio uses ⌥ rather than ⌘.</p>`;
+    <p class="faint" style="font-size:.76rem;margin-top:14px">There are only two chords because no modifier is free everywhere.
+      ⌘N opens a window and ⌘T a tab; off the Mac, Alt+D is the address bar, Alt+E the menu, and Alt+1 switches tabs.
+      Bare keys, held until you stop typing, are the only thing every browser leaves alone.</p>`;
 }
 function openShortcuts(){ openModal(shortcutsHTML(parseHash().name), 'wide keyboard-card'); }
 
