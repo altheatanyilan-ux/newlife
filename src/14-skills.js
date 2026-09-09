@@ -147,7 +147,7 @@ routes.skills = function(root, params){
 
     <!-- 3. the tree -->
     <div class="row between" style="margin:30px 0 8px"><span class="sc" style="margin:0">The tree</span><button class="btn sm ghost" id="skReset" title="redraw the tree">⟳ redraw</button></div>
-    <div class="skill-wrap" id="skillWrap"><div class="minimap" id="minimap" hidden></div><div class="sk-hint mono">every living twig is leaved · flowers open as a skill grows · gold fruit is mastery · click a twig to open it</div></div>
+    <div class="skill-wrap" id="skillWrap"><div class="minimap" id="minimap" hidden></div><div class="sk-hint mono">every living twig is leaved · flowers open as a skill grows · an apple is mastery · click a twig to open it</div></div>
 
     <!-- 4. the inventory, with the add button right above it -->
     <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Inventory</span><span class="mono">${list.length} of ${S.skills.length} shown</span></div>
@@ -305,7 +305,26 @@ function organicSVG(W, H){
         lf += `<g class="blossom ${blossom ? 'soon' : ''}" style="--d:${(i*.31).toFixed(2)}s" transform="translate(${cx.toFixed(1)},${cy.toFixed(1)})">${petals}<circle r="${(petalR*.3).toFixed(2)}" fill="${heart}"/></g>`;
       }
     }
-    if(mastered){ for(let i=0;i<3;i++){ const p = qp(it.start, it.ctrl, it.end, .6 + i*.16); const sd = i%2?1:-1; lf += `<circle class="fruit" cx="${(X(p[0])+sd*7*k).toFixed(1)}" cy="${(Y(p[1])+5*k).toFixed(1)}" r="${(4.6*k).toFixed(1)}" fill="#d4a44c" stroke="#7a5a3c" stroke-width=".8"/>`; } }
+    /* mastery hangs an apple, not a disc: two lobes with a dip at the top, a
+       stem going back into the twig, one leaf, and a highlight where the light
+       is coming from — a plain circle read as a smudge at this size */
+    if(mastered){ for(let i=0;i<3;i++){
+      const p = qp(it.start, it.ctrl, it.end, .6 + i*.16); const sd = i%2?1:-1;
+      const cx = X(p[0]) + sd*7*k, cy = Y(p[1]) + 6*k, r = 5.2*k;
+      lf += `<g class="fruit" style="--d:${(i*.22).toFixed(2)}s" transform="translate(${cx.toFixed(1)},${cy.toFixed(1)})">
+        <path class="fruit-stem" d="M0,${(-r*.92).toFixed(2)} q${(r*.16).toFixed(2)},${(-r*.5).toFixed(2)} ${(r*.5).toFixed(2)},${(-r*.72).toFixed(2)}"
+          fill="none" stroke="#6b4a2e" stroke-width="${(r*.17).toFixed(2)}" stroke-linecap="round"/>
+        <path class="fruit-leaf" d="M${(r*.16).toFixed(2)},${(-r*1.1).toFixed(2)} q${(r*.62).toFixed(2)},${(-r*.42).toFixed(2)} ${(r*.98).toFixed(2)},${(-r*.06).toFixed(2)} q${(-r*.58).toFixed(2)},${(r*.34).toFixed(2)} ${(-r*.98).toFixed(2)},${(r*.06).toFixed(2)}z"
+          fill="#6f9a58" opacity=".92"/>
+        <path class="fruit-body" d="M0,${(-r*.86).toFixed(2)}
+          C${(-r*.42).toFixed(2)},${(-r*1.22).toFixed(2)} ${(-r*1.14).toFixed(2)},${(-r*.86).toFixed(2)} ${(-r*1.06).toFixed(2)},${(-r*.06).toFixed(2)}
+          C${(-r*1.0).toFixed(2)},${(r*.78).toFixed(2)} ${(-r*.44).toFixed(2)},${(r*1.16).toFixed(2)} 0,${(r*.92).toFixed(2)}
+          C${(r*.44).toFixed(2)},${(r*1.16).toFixed(2)} ${(r*1.0).toFixed(2)},${(r*.78).toFixed(2)} ${(r*1.06).toFixed(2)},${(-r*.06).toFixed(2)}
+          C${(r*1.14).toFixed(2)},${(-r*.86).toFixed(2)} ${(r*.42).toFixed(2)},${(-r*1.22).toFixed(2)} 0,${(-r*.86).toFixed(2)}z"
+          fill="#b4462f" stroke="#6d2a1c" stroke-width=".7"/>
+        <ellipse class="fruit-shine" cx="${(-r*.38).toFixed(2)}" cy="${(-r*.3).toFixed(2)}" rx="${(r*.24).toFixed(2)}" ry="${(r*.36).toFixed(2)}"
+          fill="#ffd9c2" opacity=".42" transform="rotate(-22 ${(-r*.38).toFixed(2)} ${(-r*.3).toFixed(2)})"/>
+      </g>`; } }
     if(wither > .3){ for(let i=0;i<2;i++){ const p = qp(it.start, it.ctrl, it.end, .5 + i*.3); lf += `<g class="fall" style="animation-delay:${(i*2.1).toFixed(1)}s;animation-duration:${(6 + i*1.5).toFixed(1)}s" transform="translate(${P(p)})"><path d="M0,0 Q4,-3 8,0 Q4,3 0,0" fill="${leafCol}" opacity=".8"/></g>`; } }
     if(active){ lf = `<circle class="halo" cx="${X(it.end[0]).toFixed(1)}" cy="${Y(it.end[1]).toFixed(1)}" r="${(15*k).toFixed(1)}" fill="${col}" opacity=".16"/>` + lf; }
     if(overdue){ lf += `<circle cx="${X(it.end[0]).toFixed(1)}" cy="${Y(it.end[1]).toFixed(1)}" r="${(3*k).toFixed(1)}" fill="#c25b5b"/>`; }
@@ -323,7 +342,7 @@ function organicSVG(W, H){
   return `<svg class="sk-organic" viewBox="0 0 ${W} ${H}" style="filter:hue-rotate(${season}deg)">${g}${labels}</svg>`;
 }
 function drawOrganicTree(root){
-  const wrap = $('#skillWrap'); if(!wrap) return; wrap.querySelector('svg')?.remove(); const mm = $('#minimap'); if(mm) mm.hidden = true; const hint = wrap.querySelector('.sk-hint'); if(hint) hint.textContent = 'every living twig is leaved · the flowers are the progress · gold fruit is mastery · a flower breathing means a milestone is near · brown leaves are withering';
+  const wrap = $('#skillWrap'); if(!wrap) return; wrap.querySelector('svg')?.remove(); const mm = $('#minimap'); if(mm) mm.hidden = true; const hint = wrap.querySelector('.sk-hint'); if(hint) hint.textContent = 'every living twig is leaved · the flowers are the progress · an apple is mastery · a flower breathing means a milestone is near · brown leaves are withering';
   const W = Math.max(wrap.clientWidth, 600), H = wrap.clientHeight || 640; const svg = el(organicSVG(W, H)); wrap.insertBefore(svg, wrap.firstChild);
   /* the tree arrives by growing, then keeps moving — see 04-foliage.js */
   growTree(svg); startSway(svg);

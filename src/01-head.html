@@ -324,6 +324,12 @@ html[data-motion="calm"] .rv{transform:translateY(12px)}
 .inp:focus,.ta:focus,.sel:focus{background:var(--surface-2);border-color:var(--page-accent);
   box-shadow:inset 0 1px 4px rgba(0,0,0,.25)}
 .ta{min-height:96px;resize:vertical;line-height:1.6}
+/* The native dropdown is painted by the browser from the option's own colours,
+   and an option inherits them from the select. Once the select went
+   transparent at rest, every dropdown in the house opened as a near-black
+   rectangle — so the options carry their own solid ground, explicitly. */
+option,optgroup{background-color:var(--surface);color:var(--text)}
+option:checked,option:hover{background-color:var(--surface-2)}
 /* a select has to keep saying it is a select, so it keeps a chevron at rest */
 .sel{appearance:none;cursor:pointer;padding-right:26px;
   background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);
@@ -379,8 +385,15 @@ details .body{padding:4px 0 18px}
 .modal.narrow{max-width:420px}
 @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 .modal h2{margin-bottom:18px}
-.modal .close{position:absolute;right:16px;top:14px;background:none;border:none;color:var(--faint);font-size:1.3rem;cursor:pointer}
-.modal .close:hover{color:var(--text)}
+/* The close button is the first child of the modal, so anything positioned
+   after it paints on top — which is what a full-bleed header (the entry
+   painting) does. It sits above everything in the modal, always. */
+.modal .close{position:absolute;right:16px;top:14px;z-index:5;background:none;border:none;
+  color:var(--faint);font-size:1.3rem;cursor:pointer;width:28px;height:28px;line-height:1;
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  transition:color .2s var(--ease),background .2s var(--ease)}
+.modal .close:hover{color:var(--text);background:color-mix(in srgb,var(--text) 10%,transparent)}
+@media (prefers-reduced-motion:reduce){.modal .close{transition:none}}
 .typerow{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
 .typerow button{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:6px 10px;cursor:pointer;font-size:.74rem;color:var(--muted);display:flex;align-items:center;gap:6px;transition:all .2s var(--ease)}
 .typerow button.on{border-color:var(--page-accent);color:var(--text);background:color-mix(in srgb,var(--page-accent) 16%,transparent)}

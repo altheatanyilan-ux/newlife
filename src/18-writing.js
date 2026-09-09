@@ -365,7 +365,7 @@ function renderWritingDesk(root, id){
       </div>
     </div>
 
-    <div class="wstudio-layout${ws.drawer?'':' no-l'}${ws.board?'':' no-r'}" id="wsLayout" style="--ws-l:${ws.lw}px;--ws-r:${ws.rw}px">
+    <div class="wstudio-layout${ws.drawer?'':' no-l'}${ws.board?'':' no-r'}" id="wsLayout" style="--ws-l:${ws.lw}px;--ws-r:${ws.rw}px;${typeof wsTypeVars === 'function' ? wsTypeVars() : ''}">
       <div class="ws-left${ws.drawer?'':' folded'}">
         <button class="ws-rail" id="wsRailL" title="show the binder and research drawer"><span class="chev">›</span><span class="lbl">binder</span></button>
         ${wsBinderHTML(e)}${researchDrawerHTML(e)}</div>

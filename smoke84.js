@@ -189,6 +189,72 @@ const { chromium } = require('playwright');
   console.log('entry modal:', JSON.stringify(modal));
   await page.evaluate(() => document.querySelectorAll('.overlay').forEach(o => o.remove()));
 
+  /* 12. the close cross works on every modal and panel */
+  const crosses = await page.evaluate(async () => {
+    const out = {};
+    const openers = {entry:"openEntryModal({type:'reflection'})", snapshot:"openSnapshotModal(()=>{})",
+      ambient:"openAmbientMenu()", panel:"openPanel('<h2>x</h2>')", type:"openTypeMenu(()=>{})"};
+    for(const [name, call] of Object.entries(openers)){
+      document.querySelectorAll('.overlay,#panel,#panelOv').forEach(o => o.remove());
+      try { eval(call); } catch(e){ out[name] = 'threw'; continue; }
+      await new Promise(r => setTimeout(r, 600));   // a side panel slides in over 350ms
+      const x = document.querySelector('.overlay .modal > .close') || document.querySelector('#panel > .close');
+      if(!x){ out[name] = 'no cross'; continue; }
+      const b = x.getBoundingClientRect();
+      const hit = document.elementFromPoint(b.x + b.width/2, b.y + b.height/2);
+      if(hit !== x){ out[name] = 'covered by ' + (hit && (hit.className.baseVal ?? hit.className)); continue; }
+      x.click(); await new Promise(r => setTimeout(r, 200));
+      out[name] = (!document.querySelector('.overlay') && !document.querySelector('#panel')) ? 'ok' : 'did not close';
+    }
+    document.querySelectorAll('.overlay,#panel,#panelOv').forEach(o => o.remove());
+    return out; });
+  console.log('close crosses:', JSON.stringify(crosses));
+
+  /* 13. every dropdown has a ground of its own */
+  console.log('options grounded:', await page.evaluate(() =>
+    [...document.querySelectorAll('select')].every(s => { const o = s.querySelector('option');
+      return !o || getComputedStyle(o).backgroundColor !== 'rgba(0, 0, 0, 0)'; })));
+
+  /* 14. mastery hangs an apple */
+  await page.evaluate(() => { S.skills.forEach(s => s.currentLevel = 3); saveNow(); location.hash='#/skills'; rerender(); });
+  await page.waitForTimeout(1500);
+  console.log('apples:', JSON.stringify({
+    groups: await page.evaluate(() => document.querySelectorAll('g.fruit').length),
+    noBareCircles: await page.evaluate(() => !document.querySelector('circle.fruit')),
+    parts: await page.evaluate(() => { const f = document.querySelector('g.fruit');
+      return f ? [...f.children].map(c => c.getAttribute('class')) : []; }) }));
+
+  /* 15. the Compass keeps every section, with the two charts first */
+  await page.evaluate(() => { location.hash='#/compass'; rerender(); }); await page.waitForTimeout(1200);
+  console.log('compass:', JSON.stringify({
+    order: await page.evaluate(() => [...document.querySelectorAll('#main .page > *')].map(n => {
+      const sc = n.querySelector('.sc'); return sc ? sc.textContent.trim() : n.className.split(' ')[0]; }).slice(0, 4)),
+    keptFocus: await page.evaluate(() => document.body.textContent.includes("Today's focus")),
+    keptPrompt: await page.evaluate(() => document.body.textContent.includes('Gentle prompt')),
+    keptPosition: await page.evaluate(() => document.body.textContent.includes('Where am I right now')),
+    keptHouse: await page.evaluate(() => !!document.querySelector('.house-wrap')),
+    keptLongView: await page.evaluate(() => !!document.querySelector('.bento')) }));
+
+  /* 16. planning a day takes more than one task */
+  const multi = await page.evaluate(async () => {
+    openTaskPicker(today()); await new Promise(r => setTimeout(r, 250));
+    for(const t of ['alpha','beta','gamma']){
+      const i = document.querySelector('#tpNew'); if(!i) return {closedAfter: t};
+      i.value = t; i.dispatchEvent(new KeyboardEvent('keydown', {key:'Enter', bubbles:true}));
+      await new Promise(r => setTimeout(r, 200)); }
+    const out = {stillOpen: !!document.querySelector('#tpNew'),
+      focused: document.activeElement?.id, listed: document.querySelectorAll('#tpAdded li').length,
+      saved: S.tasks.filter(t => ['alpha','beta','gamma'].includes(t.text)).length};
+    document.querySelector('#tpDone')?.click();
+    out.doneCloses = !document.querySelector('#tpNew');
+    return out; });
+  console.log('adding several tasks:', JSON.stringify(multi));
+
+  /* 17. the Writing Studio sets its own type */
+  console.log('studio type:', JSON.stringify(await page.evaluate(() => ({
+    faces: WS_FACES.length, defaults: WS_TYPE_DEFAULT.face + ' ' + WS_TYPE_DEFAULT.size,
+    varsEmitted: /--ws-face/.test(wsTypeVars()) && /--ws-size/.test(wsTypeVars()) }))));
+
   console.log('ERRORS:', errors.length); errors.slice(0,8).forEach(e => console.log('  ' + e));
   await browser.close();
 })();

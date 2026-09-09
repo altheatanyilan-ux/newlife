@@ -585,7 +585,11 @@ button.tm-cell:hover{border-color:var(--page-accent)}
 .tag-cloud button.tag.on{background:var(--page-accent);border-color:var(--page-accent);color:var(--page-accent-ink)}
 .write-layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:26px;align-items:start}
 .write-page{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:26px 30px}
-.write-area{border:none;background:none;padding:0;font-family:var(--serif);font-size:1.16rem;line-height:1.85;resize:none;min-height:420px;width:100%;outline:none;box-shadow:none}
+/* the writing surface takes its face, size and leading from the studio, which
+   holds one choice for everything you open */
+.write-area{border:none;background:none;padding:0;font-family:var(--ws-face,var(--serif));
+  font-size:var(--ws-size,1.16rem);line-height:var(--ws-lead,1.85);
+  resize:none;min-height:420px;width:100%;outline:none;box-shadow:none}
 .write-area:focus{box-shadow:none}
 .write-rail{position:sticky;top:20px;max-height:calc(100vh - 60px);overflow-y:auto;padding-right:4px}
 .rail-list{margin-top:10px;display:flex;flex-direction:column;gap:10px}
@@ -718,7 +722,11 @@ html[data-theme="light"] .tile .veil{background:linear-gradient(180deg,rgba(245,
 .panel-overlay{position:fixed;inset:0;z-index:90;background:rgba(10,8,6,.4);backdrop-filter:blur(3px);animation:fadein .25s var(--ease)}
 .side-panel{position:fixed;top:0;right:0;bottom:0;width:min(var(--panel-w,560px),100%);transition:width .25s var(--ease);background:var(--surface);border-left:1px solid var(--line-2);z-index:95;overflow-y:auto;padding:36px 34px 80px;box-shadow:var(--shadow);animation:slidein .35s var(--ease)}
 @keyframes slidein{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}
-.side-panel .close{position:absolute;right:16px;top:14px;background:none;border:none;color:var(--faint);font-size:1.3rem;cursor:pointer}
+.side-panel .close{position:absolute;right:16px;top:14px;z-index:5;background:none;border:none;
+  color:var(--faint);font-size:1.3rem;cursor:pointer;width:28px;height:28px;line-height:1;
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  transition:color .2s var(--ease),background .2s var(--ease)}
+.side-panel .close:hover{color:var(--text);background:color-mix(in srgb,var(--text) 10%,transparent)}
 .side-panel.resizing{transition:none}
 .side-panel .panel-wide{position:absolute;right:46px;top:18px;background:none;border:none;color:var(--faint);font-size:1rem;cursor:pointer;line-height:1}
 .side-panel .panel-wide:hover,.side-panel .close:hover{color:var(--text)}
@@ -1091,7 +1099,11 @@ details.era-lived[open] > summary::before{transform:rotate(90deg)}
 .sk-organic .leaf{transform-box:fill-box;transform-origin:0 50%}
 .sk-organic .halo{animation:haloPulse 2.6s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
 @keyframes haloPulse{0%,100%{opacity:.12;transform:scale(1)}50%{opacity:.26;transform:scale(1.25)}}
-.sk-organic .fruit{filter:drop-shadow(0 1px 2px rgba(0,0,0,.35))}
+.sk-organic .fruit{filter:drop-shadow(0 1px 2px rgba(0,0,0,.35));transform-box:fill-box;transform-origin:50% 8%;
+  animation:fruitHang 5.4s ease-in-out infinite;animation-delay:var(--d,0s)}
+/* an apple hangs off its stem, so it swings from the top rather than the middle */
+@keyframes fruitHang{0%,100%{rotate:-2.6deg}50%{rotate:2.6deg}}
+@media (prefers-reduced-motion:reduce){.sk-organic .fruit{animation:none}}
 /* A flower opens once, when the tree is drawn, and then sits still — the
    canopy is what moves. A flower on a twig whose milestone is close by keeps
    breathing, so a near deadline is something you can see across the page. */
@@ -1976,7 +1988,7 @@ html.vision-deep .page-scene.on{opacity:var(--scene-op)}
    canopy behind it all. */
 @keyframes limbDraw{to{stroke-dashoffset:0}}
 @keyframes leafOpen{from{opacity:0;transform:scale(.2) rotate(-18deg)}to{opacity:1;transform:none}}
-.growing .leaf,.growing .fruit{transform-box:fill-box;transform-origin:0% 50%}
+.growing .leaf{transform-box:fill-box;transform-origin:0% 50%}
 .sk-organic .leaf{transform-box:fill-box;transform-origin:0% 50%;will-change:transform}
 
 /* the canopy breathes — a slow swell, out of step between categories */
@@ -2174,7 +2186,7 @@ input[type="date"].dp-active{border-color:var(--page-accent);box-shadow:0 0 0 2p
 /* ---------- the painting on an entry modal ----------
    A band across the top, bleeding to the modal's own edges, that draws itself
    in when the modal opens and again whenever the kind of entry changes. */
-.entry-ink{position:relative;height:150px;margin:-28px -30px 6px;overflow:hidden;
+.entry-ink{position:relative;z-index:0;height:150px;margin:-28px -30px 6px;overflow:hidden;
   border-radius:18px 18px 0 0;background:color-mix(in srgb,var(--page-accent) 4%,transparent);
   /* the painting fades out at the bottom and at both ends, so it is a wash
      behind the words rather than a picture competing with them */
@@ -2204,5 +2216,27 @@ input[type="date"].dp-active{border-color:var(--page-accent);box-shadow:0 0 0 2p
   .entry-ink-svg{transition:none;opacity:.62;transform:none}
   .entry-ink.drawn .entry-ink-svg > *{animation:none}
   .modal{animation:none}}
+
+/* ---------- choosing the type ---------- */
+.ws-faces{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.ws-face{display:flex;flex-direction:column;gap:2px;align-items:flex-start;padding:11px 13px;
+  border-radius:11px;border:1px solid var(--line-2);background:var(--surface-2);color:var(--text);
+  cursor:pointer;text-align:left;transition:border-color .2s var(--ease),background .2s var(--ease)}
+.ws-face:hover{border-color:color-mix(in srgb,var(--page-accent) 50%,transparent)}
+.ws-face.on{border-color:var(--page-accent);background:color-mix(in srgb,var(--page-accent) 12%,var(--surface-2))}
+.ws-face .n{font-size:.94rem}
+.ws-face .s{font-size:.76rem;color:var(--muted)}
+.ws-type-sample{margin-top:18px;padding:18px 20px;border-radius:12px;border:1px dashed var(--line-2);
+  font-family:var(--ws-face,var(--serif));font-size:var(--ws-size,18.5px);line-height:var(--ws-lead,1.85);
+  color:var(--text)}
+/* the manuscript view and the synopses follow the same choice */
+.ws-manuscript,.ws-card-syn{font-family:var(--ws-face,var(--serif))}
+.ws-manuscript{font-size:var(--ws-size,1.05rem);line-height:var(--ws-lead,1.8)}
+
+/* what the planning dialog has taken in so far, so adding several in a row
+   shows its own progress instead of feeling like nothing happened */
+.tp-added .tsk-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:2px}
+.tp-added .tsk-list li{font-size:.84rem;color:var(--muted);padding:1px 0}
+.tp-added .tsk-list li::before{content:"✓ ";color:var(--sage)}
 </style>
 </head>

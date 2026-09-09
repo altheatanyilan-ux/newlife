@@ -73,17 +73,34 @@ function openTaskPicker(day, after){
     return pool.length ? pool.slice(0,60).map(r => `<button class="choice" data-pick="${r.id}"><span class="ico">${r.kind==='project'?'🎨':'▫'}</span><span><b>${esc(r.text||'Untitled task')}</b>${r.where?`<div class="d">${esc(r.where)}</div>`:''}${r.day?`<div class="d mono">currently ${fmtDate(r.day,'med')}</div>`:'<div class="d mono">unscheduled</div>'}</span></button>`).join('')
       : `<div class="empty">Nothing to pull in. Tasks made inside a project appear here, and so does anything you add below.</div>`;
   };
+  /* Planning a day is not one task, it is several. The dialog stays open and
+     keeps taking them — the field clears and holds focus, what you have added
+     so far is listed underneath, and the pull-in list drops whatever you just
+     took. Closing it is a deliberate act. */
   const m = openModal(`<h2>Plan work for ${fmtDate(day,'med')}</h2>
     <input class="inp" id="tpQ" placeholder="Search tasks from projects and your own list" autofocus>
-    <div class="stack" id="tpList" style="gap:8px;margin-top:12px;max-height:44vh;overflow:auto">${draw()}</div>
-    <div class="row" style="margin-top:16px;gap:8px"><input class="inp" id="tpNew" placeholder="…or write a new task for this day"><button class="btn primary" id="tpAdd">Add</button></div>`, 'narrow');
+    <div class="stack" id="tpList" style="gap:8px;margin-top:12px;max-height:36vh;overflow:auto">${draw()}</div>
+    <div class="row" style="margin-top:16px;gap:8px"><input class="inp" id="tpNew" placeholder="…or write a new task for this day"><button class="btn primary" id="tpAdd">Add</button></div>
+    <div class="tp-added" id="tpAdded"></div>
+    <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn sm ghost" id="tpDone">Done</button></div>`, 'narrow');
   const list = m.querySelector('#tpList');
-  const bind = () => list.querySelectorAll('[data-pick]').forEach(b => b.onclick = () => { setTaskDay(b.dataset.pick, day); m.remove(); sound('success'); redraw(); });
-  bind();
-  m.querySelector('#tpQ').oninput = e => { list.innerHTML = draw(e.target.value.trim()); bind(); };
-  const add = () => { const v = m.querySelector('#tpNew').value.trim(); if(!v) return; S.tasks.push(newTask(v, day)); saveNow(); m.remove(); sound('success'); redraw(); };
+  const added = [];
+  const note = () => { m.querySelector('#tpAdded').innerHTML = added.length
+    ? `<div class="sc" style="margin:14px 0 4px">On ${esc(fmtDate(day,'short'))} · ${added.length}</div>
+       <ul class="tsk-list">${added.map(t => `<li>${esc(t)}</li>`).join('')}</ul>` : ''; };
+  const refresh = () => { list.innerHTML = draw(m.querySelector('#tpQ').value.trim()); bind(); };
+  const bind = () => list.querySelectorAll('[data-pick]').forEach(b => b.onclick = () => {
+    const ref = allTaskRefs().find(r => r.id === b.dataset.pick);
+    setTaskDay(b.dataset.pick, day); added.push(ref?.text || 'a task');
+    sound('success'); note(); refresh(); redraw(); });
+  bind(); note();
+  m.querySelector('#tpQ').oninput = () => refresh();
+  const add = () => { const inp = m.querySelector('#tpNew'); const v = inp.value.trim(); if(!v) return;
+    S.tasks.push(newTask(v, day)); added.push(v); saveNow(); sound('success');
+    inp.value = ''; inp.focus(); note(); refresh(); redraw(); };
   m.querySelector('#tpAdd').onclick = add;
-  m.querySelector('#tpNew').onkeydown = e => { if(e.key === 'Enter') add(); };
+  m.querySelector('#tpNew').onkeydown = e => { if(e.key === 'Enter'){ e.preventDefault(); add(); } };
+  m.querySelector('#tpDone').onclick = () => m.remove();
 }
 /* quick capture: one input that makes a task for a given day */
 function quickTaskInput(day, id){ return `<input class="inp quick-task" data-qtask="${day}" id="${id||''}" placeholder="＋ add a task and press Enter">`; }
@@ -91,6 +108,14 @@ function bindQuickTask(root, after){
   const redraw = after || rerender;
   $$('[data-qtask]', root).forEach(inp => inp.addEventListener('keydown', e => {
     if(e.key !== 'Enter') return; const v = inp.value.trim(); if(!v) return;
-    S.tasks.push(newTask(v, inp.dataset.qtask)); saveNow(); sound('click'); redraw();
+    S.tasks.push(newTask(v, inp.dataset.qtask)); saveNow(); sound('click');
+    const id = inp.id, day = inp.dataset.qtask;
+    redraw();
+    /* the redraw replaces this very input, so the caret has to be put back on
+       its replacement — otherwise a second task means reaching for the mouse */
+    requestAnimationFrame(() => {
+      const next = (id && document.getElementById(id)) || document.querySelector(`[data-qtask="${day}"]`);
+      if(next){ next.value = ''; next.focus(); }
+    });
   }));
 }

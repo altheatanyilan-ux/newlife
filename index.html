@@ -324,6 +324,12 @@ html[data-motion="calm"] .rv{transform:translateY(12px)}
 .inp:focus,.ta:focus,.sel:focus{background:var(--surface-2);border-color:var(--page-accent);
   box-shadow:inset 0 1px 4px rgba(0,0,0,.25)}
 .ta{min-height:96px;resize:vertical;line-height:1.6}
+/* The native dropdown is painted by the browser from the option's own colours,
+   and an option inherits them from the select. Once the select went
+   transparent at rest, every dropdown in the house opened as a near-black
+   rectangle — so the options carry their own solid ground, explicitly. */
+option,optgroup{background-color:var(--surface);color:var(--text)}
+option:checked,option:hover{background-color:var(--surface-2)}
 /* a select has to keep saying it is a select, so it keeps a chevron at rest */
 .sel{appearance:none;cursor:pointer;padding-right:26px;
   background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);
@@ -379,8 +385,15 @@ details .body{padding:4px 0 18px}
 .modal.narrow{max-width:420px}
 @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 .modal h2{margin-bottom:18px}
-.modal .close{position:absolute;right:16px;top:14px;background:none;border:none;color:var(--faint);font-size:1.3rem;cursor:pointer}
-.modal .close:hover{color:var(--text)}
+/* The close button is the first child of the modal, so anything positioned
+   after it paints on top — which is what a full-bleed header (the entry
+   painting) does. It sits above everything in the modal, always. */
+.modal .close{position:absolute;right:16px;top:14px;z-index:5;background:none;border:none;
+  color:var(--faint);font-size:1.3rem;cursor:pointer;width:28px;height:28px;line-height:1;
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  transition:color .2s var(--ease),background .2s var(--ease)}
+.modal .close:hover{color:var(--text);background:color-mix(in srgb,var(--text) 10%,transparent)}
+@media (prefers-reduced-motion:reduce){.modal .close{transition:none}}
 .typerow{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
 .typerow button{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:6px 10px;cursor:pointer;font-size:.74rem;color:var(--muted);display:flex;align-items:center;gap:6px;transition:all .2s var(--ease)}
 .typerow button.on{border-color:var(--page-accent);color:var(--text);background:color-mix(in srgb,var(--page-accent) 16%,transparent)}
@@ -1044,7 +1057,11 @@ button.tm-cell:hover{border-color:var(--page-accent)}
 .tag-cloud button.tag.on{background:var(--page-accent);border-color:var(--page-accent);color:var(--page-accent-ink)}
 .write-layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:26px;align-items:start}
 .write-page{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:26px 30px}
-.write-area{border:none;background:none;padding:0;font-family:var(--serif);font-size:1.16rem;line-height:1.85;resize:none;min-height:420px;width:100%;outline:none;box-shadow:none}
+/* the writing surface takes its face, size and leading from the studio, which
+   holds one choice for everything you open */
+.write-area{border:none;background:none;padding:0;font-family:var(--ws-face,var(--serif));
+  font-size:var(--ws-size,1.16rem);line-height:var(--ws-lead,1.85);
+  resize:none;min-height:420px;width:100%;outline:none;box-shadow:none}
 .write-area:focus{box-shadow:none}
 .write-rail{position:sticky;top:20px;max-height:calc(100vh - 60px);overflow-y:auto;padding-right:4px}
 .rail-list{margin-top:10px;display:flex;flex-direction:column;gap:10px}
@@ -1177,7 +1194,11 @@ html[data-theme="light"] .tile .veil{background:linear-gradient(180deg,rgba(245,
 .panel-overlay{position:fixed;inset:0;z-index:90;background:rgba(10,8,6,.4);backdrop-filter:blur(3px);animation:fadein .25s var(--ease)}
 .side-panel{position:fixed;top:0;right:0;bottom:0;width:min(var(--panel-w,560px),100%);transition:width .25s var(--ease);background:var(--surface);border-left:1px solid var(--line-2);z-index:95;overflow-y:auto;padding:36px 34px 80px;box-shadow:var(--shadow);animation:slidein .35s var(--ease)}
 @keyframes slidein{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}
-.side-panel .close{position:absolute;right:16px;top:14px;background:none;border:none;color:var(--faint);font-size:1.3rem;cursor:pointer}
+.side-panel .close{position:absolute;right:16px;top:14px;z-index:5;background:none;border:none;
+  color:var(--faint);font-size:1.3rem;cursor:pointer;width:28px;height:28px;line-height:1;
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  transition:color .2s var(--ease),background .2s var(--ease)}
+.side-panel .close:hover{color:var(--text);background:color-mix(in srgb,var(--text) 10%,transparent)}
 .side-panel.resizing{transition:none}
 .side-panel .panel-wide{position:absolute;right:46px;top:18px;background:none;border:none;color:var(--faint);font-size:1rem;cursor:pointer;line-height:1}
 .side-panel .panel-wide:hover,.side-panel .close:hover{color:var(--text)}
@@ -1550,7 +1571,11 @@ details.era-lived[open] > summary::before{transform:rotate(90deg)}
 .sk-organic .leaf{transform-box:fill-box;transform-origin:0 50%}
 .sk-organic .halo{animation:haloPulse 2.6s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
 @keyframes haloPulse{0%,100%{opacity:.12;transform:scale(1)}50%{opacity:.26;transform:scale(1.25)}}
-.sk-organic .fruit{filter:drop-shadow(0 1px 2px rgba(0,0,0,.35))}
+.sk-organic .fruit{filter:drop-shadow(0 1px 2px rgba(0,0,0,.35));transform-box:fill-box;transform-origin:50% 8%;
+  animation:fruitHang 5.4s ease-in-out infinite;animation-delay:var(--d,0s)}
+/* an apple hangs off its stem, so it swings from the top rather than the middle */
+@keyframes fruitHang{0%,100%{rotate:-2.6deg}50%{rotate:2.6deg}}
+@media (prefers-reduced-motion:reduce){.sk-organic .fruit{animation:none}}
 /* A flower opens once, when the tree is drawn, and then sits still — the
    canopy is what moves. A flower on a twig whose milestone is close by keeps
    breathing, so a near deadline is something you can see across the page. */
@@ -2435,7 +2460,7 @@ html.vision-deep .page-scene.on{opacity:var(--scene-op)}
    canopy behind it all. */
 @keyframes limbDraw{to{stroke-dashoffset:0}}
 @keyframes leafOpen{from{opacity:0;transform:scale(.2) rotate(-18deg)}to{opacity:1;transform:none}}
-.growing .leaf,.growing .fruit{transform-box:fill-box;transform-origin:0% 50%}
+.growing .leaf{transform-box:fill-box;transform-origin:0% 50%}
 .sk-organic .leaf{transform-box:fill-box;transform-origin:0% 50%;will-change:transform}
 
 /* the canopy breathes — a slow swell, out of step between categories */
@@ -2633,7 +2658,7 @@ input[type="date"].dp-active{border-color:var(--page-accent);box-shadow:0 0 0 2p
 /* ---------- the painting on an entry modal ----------
    A band across the top, bleeding to the modal's own edges, that draws itself
    in when the modal opens and again whenever the kind of entry changes. */
-.entry-ink{position:relative;height:150px;margin:-28px -30px 6px;overflow:hidden;
+.entry-ink{position:relative;z-index:0;height:150px;margin:-28px -30px 6px;overflow:hidden;
   border-radius:18px 18px 0 0;background:color-mix(in srgb,var(--page-accent) 4%,transparent);
   /* the painting fades out at the bottom and at both ends, so it is a wash
      behind the words rather than a picture competing with them */
@@ -2663,6 +2688,28 @@ input[type="date"].dp-active{border-color:var(--page-accent);box-shadow:0 0 0 2p
   .entry-ink-svg{transition:none;opacity:.62;transform:none}
   .entry-ink.drawn .entry-ink-svg > *{animation:none}
   .modal{animation:none}}
+
+/* ---------- choosing the type ---------- */
+.ws-faces{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.ws-face{display:flex;flex-direction:column;gap:2px;align-items:flex-start;padding:11px 13px;
+  border-radius:11px;border:1px solid var(--line-2);background:var(--surface-2);color:var(--text);
+  cursor:pointer;text-align:left;transition:border-color .2s var(--ease),background .2s var(--ease)}
+.ws-face:hover{border-color:color-mix(in srgb,var(--page-accent) 50%,transparent)}
+.ws-face.on{border-color:var(--page-accent);background:color-mix(in srgb,var(--page-accent) 12%,var(--surface-2))}
+.ws-face .n{font-size:.94rem}
+.ws-face .s{font-size:.76rem;color:var(--muted)}
+.ws-type-sample{margin-top:18px;padding:18px 20px;border-radius:12px;border:1px dashed var(--line-2);
+  font-family:var(--ws-face,var(--serif));font-size:var(--ws-size,18.5px);line-height:var(--ws-lead,1.85);
+  color:var(--text)}
+/* the manuscript view and the synopses follow the same choice */
+.ws-manuscript,.ws-card-syn{font-family:var(--ws-face,var(--serif))}
+.ws-manuscript{font-size:var(--ws-size,1.05rem);line-height:var(--ws-lead,1.8)}
+
+/* what the planning dialog has taken in so far, so adding several in a row
+   shows its own progress instead of feeling like nothing happened */
+.tp-added .tsk-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:2px}
+.tp-added .tsk-list li{font-size:.84rem;color:var(--muted);padding:1px 0}
+.tp-added .tsk-list li::before{content:"✓ ";color:var(--sage)}
 </style>
 </head>
 <body>
@@ -7880,7 +7927,7 @@ routes.skills = function(root, params){
 
     <!-- 3. the tree -->
     <div class="row between" style="margin:30px 0 8px"><span class="sc" style="margin:0">The tree</span><button class="btn sm ghost" id="skReset" title="redraw the tree">⟳ redraw</button></div>
-    <div class="skill-wrap" id="skillWrap"><div class="minimap" id="minimap" hidden></div><div class="sk-hint mono">every living twig is leaved · flowers open as a skill grows · gold fruit is mastery · click a twig to open it</div></div>
+    <div class="skill-wrap" id="skillWrap"><div class="minimap" id="minimap" hidden></div><div class="sk-hint mono">every living twig is leaved · flowers open as a skill grows · an apple is mastery · click a twig to open it</div></div>
 
     <!-- 4. the inventory, with the add button right above it -->
     <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Inventory</span><span class="mono">${list.length} of ${S.skills.length} shown</span></div>
@@ -8038,7 +8085,26 @@ function organicSVG(W, H){
         lf += `<g class="blossom ${blossom ? 'soon' : ''}" style="--d:${(i*.31).toFixed(2)}s" transform="translate(${cx.toFixed(1)},${cy.toFixed(1)})">${petals}<circle r="${(petalR*.3).toFixed(2)}" fill="${heart}"/></g>`;
       }
     }
-    if(mastered){ for(let i=0;i<3;i++){ const p = qp(it.start, it.ctrl, it.end, .6 + i*.16); const sd = i%2?1:-1; lf += `<circle class="fruit" cx="${(X(p[0])+sd*7*k).toFixed(1)}" cy="${(Y(p[1])+5*k).toFixed(1)}" r="${(4.6*k).toFixed(1)}" fill="#d4a44c" stroke="#7a5a3c" stroke-width=".8"/>`; } }
+    /* mastery hangs an apple, not a disc: two lobes with a dip at the top, a
+       stem going back into the twig, one leaf, and a highlight where the light
+       is coming from — a plain circle read as a smudge at this size */
+    if(mastered){ for(let i=0;i<3;i++){
+      const p = qp(it.start, it.ctrl, it.end, .6 + i*.16); const sd = i%2?1:-1;
+      const cx = X(p[0]) + sd*7*k, cy = Y(p[1]) + 6*k, r = 5.2*k;
+      lf += `<g class="fruit" style="--d:${(i*.22).toFixed(2)}s" transform="translate(${cx.toFixed(1)},${cy.toFixed(1)})">
+        <path class="fruit-stem" d="M0,${(-r*.92).toFixed(2)} q${(r*.16).toFixed(2)},${(-r*.5).toFixed(2)} ${(r*.5).toFixed(2)},${(-r*.72).toFixed(2)}"
+          fill="none" stroke="#6b4a2e" stroke-width="${(r*.17).toFixed(2)}" stroke-linecap="round"/>
+        <path class="fruit-leaf" d="M${(r*.16).toFixed(2)},${(-r*1.1).toFixed(2)} q${(r*.62).toFixed(2)},${(-r*.42).toFixed(2)} ${(r*.98).toFixed(2)},${(-r*.06).toFixed(2)} q${(-r*.58).toFixed(2)},${(r*.34).toFixed(2)} ${(-r*.98).toFixed(2)},${(r*.06).toFixed(2)}z"
+          fill="#6f9a58" opacity=".92"/>
+        <path class="fruit-body" d="M0,${(-r*.86).toFixed(2)}
+          C${(-r*.42).toFixed(2)},${(-r*1.22).toFixed(2)} ${(-r*1.14).toFixed(2)},${(-r*.86).toFixed(2)} ${(-r*1.06).toFixed(2)},${(-r*.06).toFixed(2)}
+          C${(-r*1.0).toFixed(2)},${(r*.78).toFixed(2)} ${(-r*.44).toFixed(2)},${(r*1.16).toFixed(2)} 0,${(r*.92).toFixed(2)}
+          C${(r*.44).toFixed(2)},${(r*1.16).toFixed(2)} ${(r*1.0).toFixed(2)},${(r*.78).toFixed(2)} ${(r*1.06).toFixed(2)},${(-r*.06).toFixed(2)}
+          C${(r*1.14).toFixed(2)},${(-r*.86).toFixed(2)} ${(r*.42).toFixed(2)},${(-r*1.22).toFixed(2)} 0,${(-r*.86).toFixed(2)}z"
+          fill="#b4462f" stroke="#6d2a1c" stroke-width=".7"/>
+        <ellipse class="fruit-shine" cx="${(-r*.38).toFixed(2)}" cy="${(-r*.3).toFixed(2)}" rx="${(r*.24).toFixed(2)}" ry="${(r*.36).toFixed(2)}"
+          fill="#ffd9c2" opacity=".42" transform="rotate(-22 ${(-r*.38).toFixed(2)} ${(-r*.3).toFixed(2)})"/>
+      </g>`; } }
     if(wither > .3){ for(let i=0;i<2;i++){ const p = qp(it.start, it.ctrl, it.end, .5 + i*.3); lf += `<g class="fall" style="animation-delay:${(i*2.1).toFixed(1)}s;animation-duration:${(6 + i*1.5).toFixed(1)}s" transform="translate(${P(p)})"><path d="M0,0 Q4,-3 8,0 Q4,3 0,0" fill="${leafCol}" opacity=".8"/></g>`; } }
     if(active){ lf = `<circle class="halo" cx="${X(it.end[0]).toFixed(1)}" cy="${Y(it.end[1]).toFixed(1)}" r="${(15*k).toFixed(1)}" fill="${col}" opacity=".16"/>` + lf; }
     if(overdue){ lf += `<circle cx="${X(it.end[0]).toFixed(1)}" cy="${Y(it.end[1]).toFixed(1)}" r="${(3*k).toFixed(1)}" fill="#c25b5b"/>`; }
@@ -8056,7 +8122,7 @@ function organicSVG(W, H){
   return `<svg class="sk-organic" viewBox="0 0 ${W} ${H}" style="filter:hue-rotate(${season}deg)">${g}${labels}</svg>`;
 }
 function drawOrganicTree(root){
-  const wrap = $('#skillWrap'); if(!wrap) return; wrap.querySelector('svg')?.remove(); const mm = $('#minimap'); if(mm) mm.hidden = true; const hint = wrap.querySelector('.sk-hint'); if(hint) hint.textContent = 'every living twig is leaved · the flowers are the progress · gold fruit is mastery · a flower breathing means a milestone is near · brown leaves are withering';
+  const wrap = $('#skillWrap'); if(!wrap) return; wrap.querySelector('svg')?.remove(); const mm = $('#minimap'); if(mm) mm.hidden = true; const hint = wrap.querySelector('.sk-hint'); if(hint) hint.textContent = 'every living twig is leaved · the flowers are the progress · an apple is mastery · a flower breathing means a milestone is near · brown leaves are withering';
   const W = Math.max(wrap.clientWidth, 600), H = wrap.clientHeight || 640; const svg = el(organicSVG(W, H)); wrap.insertBefore(svg, wrap.firstChild);
   /* the tree arrives by growing, then keeps moving — see 04-foliage.js */
   growTree(svg); startSway(svg);
@@ -11704,17 +11770,34 @@ function openTaskPicker(day, after){
     return pool.length ? pool.slice(0,60).map(r => `<button class="choice" data-pick="${r.id}"><span class="ico">${r.kind==='project'?'🎨':'▫'}</span><span><b>${esc(r.text||'Untitled task')}</b>${r.where?`<div class="d">${esc(r.where)}</div>`:''}${r.day?`<div class="d mono">currently ${fmtDate(r.day,'med')}</div>`:'<div class="d mono">unscheduled</div>'}</span></button>`).join('')
       : `<div class="empty">Nothing to pull in. Tasks made inside a project appear here, and so does anything you add below.</div>`;
   };
+  /* Planning a day is not one task, it is several. The dialog stays open and
+     keeps taking them — the field clears and holds focus, what you have added
+     so far is listed underneath, and the pull-in list drops whatever you just
+     took. Closing it is a deliberate act. */
   const m = openModal(`<h2>Plan work for ${fmtDate(day,'med')}</h2>
     <input class="inp" id="tpQ" placeholder="Search tasks from projects and your own list" autofocus>
-    <div class="stack" id="tpList" style="gap:8px;margin-top:12px;max-height:44vh;overflow:auto">${draw()}</div>
-    <div class="row" style="margin-top:16px;gap:8px"><input class="inp" id="tpNew" placeholder="…or write a new task for this day"><button class="btn primary" id="tpAdd">Add</button></div>`, 'narrow');
+    <div class="stack" id="tpList" style="gap:8px;margin-top:12px;max-height:36vh;overflow:auto">${draw()}</div>
+    <div class="row" style="margin-top:16px;gap:8px"><input class="inp" id="tpNew" placeholder="…or write a new task for this day"><button class="btn primary" id="tpAdd">Add</button></div>
+    <div class="tp-added" id="tpAdded"></div>
+    <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn sm ghost" id="tpDone">Done</button></div>`, 'narrow');
   const list = m.querySelector('#tpList');
-  const bind = () => list.querySelectorAll('[data-pick]').forEach(b => b.onclick = () => { setTaskDay(b.dataset.pick, day); m.remove(); sound('success'); redraw(); });
-  bind();
-  m.querySelector('#tpQ').oninput = e => { list.innerHTML = draw(e.target.value.trim()); bind(); };
-  const add = () => { const v = m.querySelector('#tpNew').value.trim(); if(!v) return; S.tasks.push(newTask(v, day)); saveNow(); m.remove(); sound('success'); redraw(); };
+  const added = [];
+  const note = () => { m.querySelector('#tpAdded').innerHTML = added.length
+    ? `<div class="sc" style="margin:14px 0 4px">On ${esc(fmtDate(day,'short'))} · ${added.length}</div>
+       <ul class="tsk-list">${added.map(t => `<li>${esc(t)}</li>`).join('')}</ul>` : ''; };
+  const refresh = () => { list.innerHTML = draw(m.querySelector('#tpQ').value.trim()); bind(); };
+  const bind = () => list.querySelectorAll('[data-pick]').forEach(b => b.onclick = () => {
+    const ref = allTaskRefs().find(r => r.id === b.dataset.pick);
+    setTaskDay(b.dataset.pick, day); added.push(ref?.text || 'a task');
+    sound('success'); note(); refresh(); redraw(); });
+  bind(); note();
+  m.querySelector('#tpQ').oninput = () => refresh();
+  const add = () => { const inp = m.querySelector('#tpNew'); const v = inp.value.trim(); if(!v) return;
+    S.tasks.push(newTask(v, day)); added.push(v); saveNow(); sound('success');
+    inp.value = ''; inp.focus(); note(); refresh(); redraw(); };
   m.querySelector('#tpAdd').onclick = add;
-  m.querySelector('#tpNew').onkeydown = e => { if(e.key === 'Enter') add(); };
+  m.querySelector('#tpNew').onkeydown = e => { if(e.key === 'Enter'){ e.preventDefault(); add(); } };
+  m.querySelector('#tpDone').onclick = () => m.remove();
 }
 /* quick capture: one input that makes a task for a given day */
 function quickTaskInput(day, id){ return `<input class="inp quick-task" data-qtask="${day}" id="${id||''}" placeholder="＋ add a task and press Enter">`; }
@@ -11722,7 +11805,15 @@ function bindQuickTask(root, after){
   const redraw = after || rerender;
   $$('[data-qtask]', root).forEach(inp => inp.addEventListener('keydown', e => {
     if(e.key !== 'Enter') return; const v = inp.value.trim(); if(!v) return;
-    S.tasks.push(newTask(v, inp.dataset.qtask)); saveNow(); sound('click'); redraw();
+    S.tasks.push(newTask(v, inp.dataset.qtask)); saveNow(); sound('click');
+    const id = inp.id, day = inp.dataset.qtask;
+    redraw();
+    /* the redraw replaces this very input, so the caret has to be put back on
+       its replacement — otherwise a second task means reaching for the mouse */
+    requestAnimationFrame(() => {
+      const next = (id && document.getElementById(id)) || document.querySelector(`[data-qtask="${day}"]`);
+      if(next){ next.value = ''; next.focus(); }
+    });
   }));
 }
 /* ============================================================
@@ -13064,7 +13155,7 @@ function renderWritingDesk(root, id){
       </div>
     </div>
 
-    <div class="wstudio-layout${ws.drawer?'':' no-l'}${ws.board?'':' no-r'}" id="wsLayout" style="--ws-l:${ws.lw}px;--ws-r:${ws.rw}px">
+    <div class="wstudio-layout${ws.drawer?'':' no-l'}${ws.board?'':' no-r'}" id="wsLayout" style="--ws-l:${ws.lw}px;--ws-r:${ws.rw}px;${typeof wsTypeVars === 'function' ? wsTypeVars() : ''}">
       <div class="ws-left${ws.drawer?'':' folded'}">
         <button class="ws-rail" id="wsRailL" title="show the binder and research drawer"><span class="chev">›</span><span class="lbl">binder</span></button>
         ${wsBinderHTML(e)}${researchDrawerHTML(e)}</div>
@@ -13393,6 +13484,7 @@ function wsViewBarHTML(proj){
     <span class="ws-crumb mono">${esc(wsCrumb(x, x.openDoc))}</span>
     <span class="row" style="gap:6px;align-items:center">
       <button class="btn sm ghost ws-tw ${x._typewriter?'on':''}" id="wsTypewriter" title="typewriter scrolling (⌘T) — keeps the line you are writing at eye level">⌶</button>
+      <button class="btn sm ghost" id="wsType" title="typeface and size">Aa</button>
       <button class="btn sm ghost" id="wsCollNew" title="save a collection">⧉</button>
       <span class="ws-vtabs">${WS_VIEWS.map(([k,ic,l]) =>
         `<button class="${x.viewMode===k?'on':''}" data-wsview="${k}" title="${l}">${ic}<span>${l}</span></button>`).join('')}</span>
@@ -13588,6 +13680,7 @@ function bindWsStudio(root, proj, redraw){
 
   root.querySelectorAll('[data-wsview]').forEach(b => b.onclick = () => { x.viewMode = b.dataset.wsview; save(); redraw(); });
   root.querySelector('#wsTypewriter') && (root.querySelector('#wsTypewriter').onclick = () => { x._typewriter = !x._typewriter; save(); redraw(); });
+  root.querySelector('#wsType') && (root.querySelector('#wsType').onclick = () => openTypeMenu(redraw));
   root.querySelector('#wsCollNew') && (root.querySelector('#wsCollNew').onclick = () => wsOpenCollectionModal(proj, redraw));
   root.querySelectorAll('[data-wscoll]').forEach(b => b.onclick = ev => {
     if(ev.target.closest('[data-wscolldel]')) return;
@@ -13872,6 +13965,73 @@ function bindWsKeys(proj, redraw){
   window._wsKeyHandler = h;
   document.addEventListener('keydown', h);
 }
+
+/* ============================================================
+   TYPE — what the page you are writing on is set in.
+
+   A choice about the writing surface, not about a piece, so it is
+   kept once and follows you into everything you open. Applied as
+   variables on the studio root so the editor, the manuscript view
+   and the corkboard synopses all move together.
+   ============================================================ */
+const WS_FACES = [
+  ['serif', 'Garamond',   "'EB Garamond',Georgia,'Times New Roman',serif"],
+  ['quote', 'Lora',       "'Lora',Georgia,serif"],
+  ['sans',  'Nunito Sans',"'Nunito Sans','Helvetica Neue',Arial,sans-serif"],
+  ['mono',  'Plex Mono',  "'IBM Plex Mono','SF Mono',Menlo,monospace"],
+];
+const WS_TYPE_DEFAULT = {face:'serif', size:18.5, leading:1.85};
+function wsType(){
+  const t = S.settings.wsType = Object.assign({}, WS_TYPE_DEFAULT, S.settings.wsType || {});
+  if(!WS_FACES.some(f => f[0] === t.face)) t.face = WS_TYPE_DEFAULT.face;
+  t.size = clamp(+t.size || WS_TYPE_DEFAULT.size, 13, 30);
+  t.leading = clamp(+t.leading || WS_TYPE_DEFAULT.leading, 1.3, 2.4);
+  return t;
+}
+const wsFaceStack = key => (WS_FACES.find(f => f[0] === key) || WS_FACES[0])[2];
+/* the studio reads these three variables and nothing else */
+function wsTypeVars(){
+  const t = wsType();
+  return `--ws-face:${wsFaceStack(t.face)};--ws-size:${t.size}px;--ws-lead:${t.leading}`;
+}
+function applyWsType(root){
+  const host = (root || document).querySelector('.wstudio-layout') || document.querySelector('.wstudio-layout');
+  if(host) host.setAttribute('style', (host.getAttribute('style') || '').replace(/--ws-[a-z]+:[^;]*;?/g, '') + ';' + wsTypeVars());
+}
+function openTypeMenu(redraw){
+  const t = wsType();
+  const p = openPanel(`<div class="mono">the page</div><h2>Type</h2>
+    <p class="muted" style="font-size:.86rem">How the writing surface is set. Kept once, for everything you open.</p>
+    <div class="field" style="margin-top:16px"><label>Typeface</label>
+      <div class="ws-faces">${WS_FACES.map(([k, name, stack]) => `<button class="ws-face ${t.face===k?'on':''}" data-wsface="${k}" style="font-family:${stack}">
+        <span class="n">${esc(name)}</span><span class="s">Begin anywhere.</span></button>`).join('')}</div></div>
+    <div class="field"><label>Size <span class="mono" id="wsSizeN">${t.size}px</span></label>
+      <input type="range" class="slider" id="wsSize" min="13" max="30" step="0.5" value="${t.size}"></div>
+    <div class="field"><label>Leading <span class="mono" id="wsLeadN">${t.leading.toFixed(2)}</span></label>
+      <input type="range" class="slider" id="wsLead" min="1.3" max="2.4" step="0.05" value="${t.leading}"></div>
+    <div class="ws-type-sample" style="${wsTypeVars()}" id="wsSample">The page is not the writing. But a page you like being on is a page you come back to.</div>
+    <div class="row" style="justify-content:space-between;margin-top:16px">
+      <button class="btn sm ghost" id="wsTypeReset">reset</button>
+      <span class="mono faint">changes apply as you make them</span>
+    </div>`, 'narrow');
+
+  /* live, on the real page as well as the sample — a typeface you cannot see
+     against your own words is a typeface you cannot judge */
+  const paint = () => { const tt = wsType();
+    p.querySelector('#wsSizeN').textContent = tt.size + 'px';
+    p.querySelector('#wsLeadN').textContent = tt.leading.toFixed(2);
+    p.querySelector('#wsSample').setAttribute('style', wsTypeVars());
+    p.querySelectorAll('[data-wsface]').forEach(b => b.classList.toggle('on', b.dataset.wsface === tt.face));
+    applyWsType(); saveNow(); };
+  p.querySelectorAll('[data-wsface]').forEach(b => b.onclick = () => { wsType().face = b.dataset.wsface; sound('click'); paint(); });
+  p.querySelector('#wsSize').oninput = e => { wsType().size = +e.target.value; paint(); };
+  p.querySelector('#wsLead').oninput = e => { wsType().leading = +e.target.value; paint(); };
+  p.querySelector('#wsTypeReset').onclick = () => {
+    S.settings.wsType = Object.assign({}, WS_TYPE_DEFAULT);
+    p.querySelector('#wsSize').value = WS_TYPE_DEFAULT.size;
+    p.querySelector('#wsLead').value = WS_TYPE_DEFAULT.leading;
+    paint(); };
+}
 /* ============================================================
    NAVIGATION — two zones (Present / Becoming) + standalone pages
    Rendered from S.settings.nav so the user can move pages between
@@ -14119,6 +14279,8 @@ routes.compass = function(root){
   root.innerHTML = `<div class="page">
     <div class="page-head" style="margin-bottom:22px"><div><h1>${fmtDate(T)}</h1><div class="moon">${moonSVG(moon.p)} <span>${moon.name}</span><span class="mono" style="margin-left:6px">· the compass — your life at a glance</span></div></div></div>
 
+    ${typeof weekShapeHTML === 'function' ? weekShapeHTML() : ''}
+
     <div class="home-hero">
       <div class="focus-card rv"><div class="row between"><span class="k mono" style="text-transform:uppercase;letter-spacing:.12em;font-size:.62rem;color:var(--terra)">Today's focus</span><a class="btn sm ghost" href="#/today">open Today →</a></div>
         <div class="intent">${ed(`checkins.${T}.intention`,{ph:'One thing to give attention to today. Click to set it.'})}</div>
@@ -14136,8 +14298,6 @@ routes.compass = function(root){
     </div>
 
     ${zoneCardsHTML()}
-
-    ${typeof weekShapeHTML === 'function' ? weekShapeHTML() : ''}
 
     ${typeof positionHTML === 'function' ? positionHTML() : ''}
 

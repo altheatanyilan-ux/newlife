@@ -270,6 +270,7 @@ function wsViewBarHTML(proj){
     <span class="ws-crumb mono">${esc(wsCrumb(x, x.openDoc))}</span>
     <span class="row" style="gap:6px;align-items:center">
       <button class="btn sm ghost ws-tw ${x._typewriter?'on':''}" id="wsTypewriter" title="typewriter scrolling (⌘T) — keeps the line you are writing at eye level">⌶</button>
+      <button class="btn sm ghost" id="wsType" title="typeface and size">Aa</button>
       <button class="btn sm ghost" id="wsCollNew" title="save a collection">⧉</button>
       <span class="ws-vtabs">${WS_VIEWS.map(([k,ic,l]) =>
         `<button class="${x.viewMode===k?'on':''}" data-wsview="${k}" title="${l}">${ic}<span>${l}</span></button>`).join('')}</span>
@@ -465,6 +466,7 @@ function bindWsStudio(root, proj, redraw){
 
   root.querySelectorAll('[data-wsview]').forEach(b => b.onclick = () => { x.viewMode = b.dataset.wsview; save(); redraw(); });
   root.querySelector('#wsTypewriter') && (root.querySelector('#wsTypewriter').onclick = () => { x._typewriter = !x._typewriter; save(); redraw(); });
+  root.querySelector('#wsType') && (root.querySelector('#wsType').onclick = () => openTypeMenu(redraw));
   root.querySelector('#wsCollNew') && (root.querySelector('#wsCollNew').onclick = () => wsOpenCollectionModal(proj, redraw));
   root.querySelectorAll('[data-wscoll]').forEach(b => b.onclick = ev => {
     if(ev.target.closest('[data-wscolldel]')) return;
@@ -748,4 +750,71 @@ function bindWsKeys(proj, redraw){
   };
   window._wsKeyHandler = h;
   document.addEventListener('keydown', h);
+}
+
+/* ============================================================
+   TYPE — what the page you are writing on is set in.
+
+   A choice about the writing surface, not about a piece, so it is
+   kept once and follows you into everything you open. Applied as
+   variables on the studio root so the editor, the manuscript view
+   and the corkboard synopses all move together.
+   ============================================================ */
+const WS_FACES = [
+  ['serif', 'Garamond',   "'EB Garamond',Georgia,'Times New Roman',serif"],
+  ['quote', 'Lora',       "'Lora',Georgia,serif"],
+  ['sans',  'Nunito Sans',"'Nunito Sans','Helvetica Neue',Arial,sans-serif"],
+  ['mono',  'Plex Mono',  "'IBM Plex Mono','SF Mono',Menlo,monospace"],
+];
+const WS_TYPE_DEFAULT = {face:'serif', size:18.5, leading:1.85};
+function wsType(){
+  const t = S.settings.wsType = Object.assign({}, WS_TYPE_DEFAULT, S.settings.wsType || {});
+  if(!WS_FACES.some(f => f[0] === t.face)) t.face = WS_TYPE_DEFAULT.face;
+  t.size = clamp(+t.size || WS_TYPE_DEFAULT.size, 13, 30);
+  t.leading = clamp(+t.leading || WS_TYPE_DEFAULT.leading, 1.3, 2.4);
+  return t;
+}
+const wsFaceStack = key => (WS_FACES.find(f => f[0] === key) || WS_FACES[0])[2];
+/* the studio reads these three variables and nothing else */
+function wsTypeVars(){
+  const t = wsType();
+  return `--ws-face:${wsFaceStack(t.face)};--ws-size:${t.size}px;--ws-lead:${t.leading}`;
+}
+function applyWsType(root){
+  const host = (root || document).querySelector('.wstudio-layout') || document.querySelector('.wstudio-layout');
+  if(host) host.setAttribute('style', (host.getAttribute('style') || '').replace(/--ws-[a-z]+:[^;]*;?/g, '') + ';' + wsTypeVars());
+}
+function openTypeMenu(redraw){
+  const t = wsType();
+  const p = openPanel(`<div class="mono">the page</div><h2>Type</h2>
+    <p class="muted" style="font-size:.86rem">How the writing surface is set. Kept once, for everything you open.</p>
+    <div class="field" style="margin-top:16px"><label>Typeface</label>
+      <div class="ws-faces">${WS_FACES.map(([k, name, stack]) => `<button class="ws-face ${t.face===k?'on':''}" data-wsface="${k}" style="font-family:${stack}">
+        <span class="n">${esc(name)}</span><span class="s">Begin anywhere.</span></button>`).join('')}</div></div>
+    <div class="field"><label>Size <span class="mono" id="wsSizeN">${t.size}px</span></label>
+      <input type="range" class="slider" id="wsSize" min="13" max="30" step="0.5" value="${t.size}"></div>
+    <div class="field"><label>Leading <span class="mono" id="wsLeadN">${t.leading.toFixed(2)}</span></label>
+      <input type="range" class="slider" id="wsLead" min="1.3" max="2.4" step="0.05" value="${t.leading}"></div>
+    <div class="ws-type-sample" style="${wsTypeVars()}" id="wsSample">The page is not the writing. But a page you like being on is a page you come back to.</div>
+    <div class="row" style="justify-content:space-between;margin-top:16px">
+      <button class="btn sm ghost" id="wsTypeReset">reset</button>
+      <span class="mono faint">changes apply as you make them</span>
+    </div>`, 'narrow');
+
+  /* live, on the real page as well as the sample — a typeface you cannot see
+     against your own words is a typeface you cannot judge */
+  const paint = () => { const tt = wsType();
+    p.querySelector('#wsSizeN').textContent = tt.size + 'px';
+    p.querySelector('#wsLeadN').textContent = tt.leading.toFixed(2);
+    p.querySelector('#wsSample').setAttribute('style', wsTypeVars());
+    p.querySelectorAll('[data-wsface]').forEach(b => b.classList.toggle('on', b.dataset.wsface === tt.face));
+    applyWsType(); saveNow(); };
+  p.querySelectorAll('[data-wsface]').forEach(b => b.onclick = () => { wsType().face = b.dataset.wsface; sound('click'); paint(); });
+  p.querySelector('#wsSize').oninput = e => { wsType().size = +e.target.value; paint(); };
+  p.querySelector('#wsLead').oninput = e => { wsType().leading = +e.target.value; paint(); };
+  p.querySelector('#wsTypeReset').onclick = () => {
+    S.settings.wsType = Object.assign({}, WS_TYPE_DEFAULT);
+    p.querySelector('#wsSize').value = WS_TYPE_DEFAULT.size;
+    p.querySelector('#wsLead').value = WS_TYPE_DEFAULT.leading;
+    paint(); };
 }

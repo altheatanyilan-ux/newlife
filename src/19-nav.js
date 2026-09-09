@@ -245,6 +245,8 @@ routes.compass = function(root){
   root.innerHTML = `<div class="page">
     <div class="page-head" style="margin-bottom:22px"><div><h1>${fmtDate(T)}</h1><div class="moon">${moonSVG(moon.p)} <span>${moon.name}</span><span class="mono" style="margin-left:6px">· the compass — your life at a glance</span></div></div></div>
 
+    ${typeof weekShapeHTML === 'function' ? weekShapeHTML() : ''}
+
     <div class="home-hero">
       <div class="focus-card rv"><div class="row between"><span class="k mono" style="text-transform:uppercase;letter-spacing:.12em;font-size:.62rem;color:var(--terra)">Today's focus</span><a class="btn sm ghost" href="#/today">open Today →</a></div>
         <div class="intent">${ed(`checkins.${T}.intention`,{ph:'One thing to give attention to today. Click to set it.'})}</div>
@@ -262,8 +264,6 @@ routes.compass = function(root){
     </div>
 
     ${zoneCardsHTML()}
-
-    ${typeof weekShapeHTML === 'function' ? weekShapeHTML() : ''}
 
     ${typeof positionHTML === 'function' ? positionHTML() : ''}
 
