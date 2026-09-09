@@ -132,16 +132,99 @@ function exportListAsPage(l){
   const blob = new Blob([html], {type:'text/html'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `${l.title.replace(/[^\w-]+/g,'-')||'list'}.html`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),2000);
 }
 
+/* ---------- putting a work into a curated list ----------
+   A list is not limited to what is already on the shelf: half the point of
+   making one is naming something you have not logged yet. So the dialog does
+   both — pick from the shelf, or name a new work and say what kind of thing
+   it is, and it lands on the shelf and in the list at once. It stays open
+   either way, because a list is several works, not one. */
+function openListAddModal(l){
+  if(!l) return;
+  const added = [];
+  const m = openModal(`<h2>Add to “${esc(l.title)}”</h2>
+    <div class="stack" style="gap:14px">
+      <div>
+        <span class="sc">From the shelf</span>
+        <input class="inp" id="mlQ" placeholder="search what you have logged" autofocus style="margin-top:6px">
+        <div class="stack" id="mlPick" style="gap:4px;margin-top:8px;max-height:34vh;overflow:auto"></div>
+      </div>
+      <div>
+        <span class="sc">Or something not logged yet</span>
+        <div class="typerow" id="mlKind" style="margin-top:6px">${Object.entries(MEDIA_KINDS).map(([k,v],i)=>`<button class="${i===0?'on':''}" data-mlk="${k}">${v[0]} ${v[1]}</button>`).join('')}</div>
+        <div class="row" style="gap:8px;margin-top:8px">
+          <input class="inp" id="mlNew" placeholder="Title">
+          <input class="inp" id="mlWho" placeholder="Who made it" style="max-width:170px">
+          <button class="btn primary" id="mlAddNew">Add</button>
+        </div>
+      </div>
+      <div id="mlAdded"></div>
+      <div class="row" style="justify-content:flex-end"><button class="btn sm ghost" id="mlDone">Done</button></div>
+    </div>`,'narrow');
+
+  let kind = Object.keys(MEDIA_KINDS)[0];
+  m.querySelectorAll('[data-mlk]').forEach(b => b.onclick = () => { kind = b.dataset.mlk;
+    m.querySelectorAll('[data-mlk]').forEach(y => y.classList.toggle('on', y === b)); });
+
+  const note = () => { m.querySelector('#mlAdded').innerHTML = added.length
+    ? `<span class="sc">In the list · ${added.length}</span><ul class="tsk-list">${added.map(t=>`<li>${esc(t)}</li>`).join('')}</ul>` : ''; };
+  const draw = () => {
+    const q = (m.querySelector('#mlQ').value || '').toLowerCase();
+    const pool = mediaEntries().filter(e => !(l.entries||[]).includes(e.id) && (!q || e.title.toLowerCase().includes(q)));
+    m.querySelector('#mlPick').innerHTML = pool.slice(0,60).map(e =>
+      `<button class="choice" data-pick="${e.id}"><span class="ico">${(MEDIA_KINDS[mediaX(e).kind]||MEDIA_KINDS.book)[0]}</span><span><b>${esc(e.title)}</b></span></button>`).join('')
+      || `<div class="empty">Nothing on the shelf matches. Name it below instead.</div>`;
+    m.querySelectorAll('[data-pick]').forEach(x => x.onclick = () => {
+      const e = byId(S.entries, x.dataset.pick);
+      l.entries.push(x.dataset.pick); added.push(e?.title || 'a work');
+      saveNow(); sound('success'); note(); draw(); });
+  };
+  draw(); note();
+  m.querySelector('#mlQ').oninput = draw;
+
+  const addNew = () => {
+    const inp = m.querySelector('#mlNew'); const title = inp.value.trim();
+    if(!title){ toast('Give it a title.'); return; }
+    const who = m.querySelector('#mlWho');
+    const e = newMediaEntry(title, kind, who.value.trim());
+    l.entries.push(e.id); added.push(title);
+    saveNow(); sound('success');
+    inp.value = ''; who.value = ''; inp.focus(); note(); draw();
+  };
+  m.querySelector('#mlAddNew').onclick = addNew;
+  m.querySelector('#mlNew').onkeydown = ev => { if(ev.key === 'Enter'){ ev.preventDefault(); addNew(); } };
+  m.querySelector('#mlWho').onkeydown = ev => { if(ev.key === 'Enter'){ ev.preventDefault(); addNew(); } };
+  m.querySelector('#mlDone').onclick = () => { m.remove(); rerender(); };
+}
+/* a work named from somewhere else in the house — it goes on the shelf as
+   something you have not started, which is exactly what it is */
+function newMediaEntry(title, kind, creator = ''){
+  const e = {id:uid(), type:'media', title, body:'', occurredAt:today(), createdAt:new Date().toISOString(), media:[],
+    links:{stages:[],substages:[],threads:[],values:[],skills:[],projects:[],people:[]},
+    people:[], places:[], emotions:[], tags:[], confidence:'',
+    extra:{kind: MEDIA_KINDS[kind] ? kind : 'book', creator, year:'', status:'want', resonanceLevel:null,
+      quotes:[], startedAt:'', finishedAt:'', oneLineCapture:'', installed:'', recommend:'', recommendWho:''}};
+  S.entries.push(e);
+  return e;
+}
+
 /* ---------- Received Recommendations ---------- */
 function openRecModal(existing){
-  const r = existing || {id:uid(), title:'', from:'', why:'', status:'queued', addedAt:today()};
-  const m = openModal(`<h2>${existing?'Edit recommendation':'Someone recommended something'}</h2><div class="stack">
+  const r = existing || {id:uid(), title:'', from:'', why:'', medium:'book', status:'queued', addedAt:today()};
+  if(!MEDIA_KINDS[r.medium]) r.medium = 'book';
+  /* what kind of thing it is belongs here, not later: it is the first thing
+     you know about a recommendation and the thing you filter the inbox by */
+  const m = openModal(`<h2>${existing?'Edit recommendation':'Someone recommended something'}</h2>
+    <div class="typerow" id="rcKind">${Object.entries(MEDIA_KINDS).map(([k,v])=>`<button class="${r.medium===k?'on':''}" data-rck="${k}">${v[0]} ${v[1]}</button>`).join('')}</div>
+    <div class="stack">
     <input class="inp serif-lg" id="rcTitle" placeholder="Title" value="${esc(r.title)}" autofocus>
     <input class="inp" id="rcFrom" placeholder="Who recommended it?" value="${esc(r.from)}">
     <textarea class="ta" id="rcWhy" placeholder="Why they said to consume it">${esc(r.why)}</textarea>
     <div class="row" style="justify-content:flex-end"><button class="btn primary" id="rcSave">${existing?'Save':'Add to inbox'}</button></div></div>`,'narrow');
+  let kind = r.medium;
+  m.querySelectorAll('[data-rck]').forEach(b => b.onclick = () => { kind = b.dataset.rck;
+    m.querySelectorAll('[data-rck]').forEach(y => y.classList.toggle('on', y === b)); });
   m.querySelector('#rcSave').onclick = () => { const title = m.querySelector('#rcTitle').value.trim(); if(!title){ toast('Give it a title.'); return; }
-    Object.assign(r, {title, from:m.querySelector('#rcFrom').value.trim(), why:m.querySelector('#rcWhy').value.trim()});
+    Object.assign(r, {title, medium:kind, from:m.querySelector('#rcFrom').value.trim(), why:m.querySelector('#rcWhy').value.trim()});
     if(!existing) S.mediaRecs.push(r); saveNow(); m.remove(); rerender(); };
 }
 
@@ -203,7 +286,7 @@ function renderLibraryLists(root){
 
     <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Received recommendations</span><button class="btn sm ghost" id="rcAdd">＋ someone told me to</button></div>
       <p class="muted" style="font-size:.85rem">So you stop forgetting who told you to read what.</p>
-      ${S.mediaRecs.length ? S.mediaRecs.map(r=>`<div class="rec-row"><span><b class="serif">${esc(r.title)}</b><div class="mono">from ${esc(r.from||'someone')}</div>${r.why?`<div class="quote" style="font-size:.85rem">${esc(r.why)}</div>`:''}</span><span class="row" style="gap:6px"><select class="sel" style="width:auto" data-rcstatus="${r.id}">${['queued','consumed','declined'].map(s=>`<option value="${s}" ${r.status===s?'selected':''}>${s}</option>`).join('')}</select><button class="tbtn" data-rclog="${r.id}">log it →</button><button class="del-x inline" data-rcdel="${r.id}">×</button></span></div>`).join('') : '<div class="empty">Nobody\'s told you to read anything yet — or you\'ve forgotten already.</div>'}</section>`;
+      ${S.mediaRecs.length ? S.mediaRecs.map(r=>`<div class="rec-row"><span><b class="serif">${(MEDIA_KINDS[r.medium]||MEDIA_KINDS.book)[0]} ${esc(r.title)}</b><div class="mono">from ${esc(r.from||'someone')}</div>${r.why?`<div class="quote" style="font-size:.85rem">${esc(r.why)}</div>`:''}</span><span class="row" style="gap:6px"><select class="sel" style="width:auto" data-rcstatus="${r.id}">${['queued','consumed','declined'].map(s=>`<option value="${s}" ${r.status===s?'selected':''}>${s}</option>`).join('')}</select><button class="tbtn" data-rclog="${r.id}">log it →</button><button class="del-x inline" data-rcdel="${r.id}">×</button></span></div>`).join('') : '<div class="empty">Nobody\'s told you to read anything yet — or you\'ve forgotten already.</div>'}</section>`;
 
   $('#qAdd').onclick = () => openQueueItemModal();
   root.querySelectorAll('[data-qedit]').forEach(b=>b.onclick=()=>openQueueItemModal(byId(S.mediaQueue,b.dataset.qedit)));
@@ -216,14 +299,11 @@ function renderLibraryLists(root){
   root.querySelectorAll('[data-mlexport]').forEach(b=>b.onclick=()=>exportListAsPage(byId(S.mediaLists,b.dataset.mlexport)));
   root.querySelectorAll('[data-mldel]').forEach(b=>b.onclick=()=>{ const l = byId(S.mediaLists,b.dataset.mldel); requestDelete({label:l.title, remove:()=>spliceOut(S.mediaLists,x=>x.id===l.id)}); });
   root.querySelectorAll('[data-mlrm]').forEach(b=>b.onclick=()=>{ const [lid,eid] = b.dataset.mlrm.split(':'); const l = byId(S.mediaLists,lid); l.entries = l.entries.filter(x=>x!==eid); saveNow(); rerender(); });
-  root.querySelectorAll('[data-mladdwork]').forEach(b=>b.onclick=()=>{ const l = byId(S.mediaLists,b.dataset.mladdwork); const pool = mediaEntries().filter(e=>!(l.entries||[]).includes(e.id));
-    const m = openModal(`<h2>Add a work to “${esc(l.title)}”</h2><input class="inp" id="mlQ" placeholder="search the shelf" autofocus><div class="stack" id="mlPick" style="gap:4px;margin-top:10px;max-height:50vh;overflow:auto"></div>`,'narrow');
-    const draw = q => { const list = pool.filter(e=>!q||e.title.toLowerCase().includes(q.toLowerCase())).slice(0,60); m.querySelector('#mlPick').innerHTML = list.map(e=>`<button class="choice" data-pick="${e.id}"><span class="ico">${(MEDIA_KINDS[mediaX(e).kind]||MEDIA_KINDS.book)[0]}</span><span><b>${esc(e.title)}</b></span></button>`).join('') || '<div class="empty">Nothing on the shelf matches — or it\'s already in this list.</div>'; m.querySelectorAll('[data-pick]').forEach(x=>x.onclick=()=>{ l.entries.push(x.dataset.pick); saveNow(); m.remove(); rerender(); }); };
-    draw(''); m.querySelector('#mlQ').oninput = e => draw(e.target.value); });
+  root.querySelectorAll('[data-mladdwork]').forEach(b=>b.onclick=()=> openListAddModal(byId(S.mediaLists, b.dataset.mladdwork)));
   $('#rcAdd').onclick = () => openRecModal();
   root.querySelectorAll('[data-rcstatus]').forEach(s=>s.onchange=()=>{ byId(S.mediaRecs,s.dataset.rcstatus).status = s.value; saveNow(); });
   root.querySelectorAll('[data-rcdel]').forEach(b=>b.onclick=()=>{ const r = byId(S.mediaRecs,b.dataset.rcdel); requestDelete({label:r.title, node:b.closest('.rec-row'), remove:()=>spliceOut(S.mediaRecs,x=>x.id===r.id)}); });
-  root.querySelectorAll('[data-rclog]').forEach(b=>b.onclick=()=>{ const r = byId(S.mediaRecs,b.dataset.rclog); r.status = 'consumed'; saveNow(); openMediaModal({title:r.title, status:'want'}); });
+  root.querySelectorAll('[data-rclog]').forEach(b=>b.onclick=()=>{ const r = byId(S.mediaRecs,b.dataset.rclog); r.status = 'consumed'; saveNow(); openMediaModal({title:r.title, kind:r.medium || 'book', status:'want'}); });
 }
 
 /* ---------- the Shelf & the Review ---------- */

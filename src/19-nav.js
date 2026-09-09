@@ -5,10 +5,17 @@
    ============================================================ */
 /* thin line icons, 24×24, drawn in currentColor */
 const NAV_ICONS = {
+  /* A rose, not a ring: Values is already a needle inside a circle, and at
+     24px the two would read as the same object. This one is the star alone —
+     four long points to the cardinals, four short ones between, and the north
+     point left open so the eye knows which way is up. */
+  compass:  '<svg viewBox="0 0 24 24"><path d="M12 2.5 13.6 10.4 21.5 12 13.6 13.6 12 21.5 10.4 13.6 2.5 12 10.4 10.4Z"/><path d="m6.6 6.6 3.2 3.2M17.4 6.6l-3.2 3.2M17.4 17.4l-3.2-3.2M6.6 17.4l3.2-3.2"/><path d="M12 2.5 10.4 10.4"/></svg>',
   home:     '<svg viewBox="0 0 24 24"><path d="M4 11.5 12 5l8 6.5"/><path d="M6.5 10.5V19h11v-8.5"/><path d="M10.5 19v-4.5h3V19"/></svg>',
   today:    '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4"/></svg>',
   journals: '<svg viewBox="0 0 24 24"><path d="M12 6.5c-1.6-1.4-3.8-1.8-7-1.5v13c3.2-.3 5.4.1 7 1.5 1.6-1.4 3.8-1.8 7-1.5V5c-3.2-.3-5.4.1-7 1.5Z"/><path d="M12 6.5v13"/></svg>',
-  projects: '<svg viewBox="0 0 24 24"><path d="M19 4.5c-3.5 1-8.5 5-10.5 9.5"/><path d="M8.5 14c1.8-.4 3.2.9 3 2.7-.2 1.9-2 3-4.5 2.8-1.2-.1-2.2-.6-3-1.4 1.1-.3 1.7-1 1.8-2 .2-1.3 1.1-2 2.7-2.1Z"/></svg>',
+  /* the village stepping up the slope, which is what the Projects room is
+     painted as — three roofs rising, each one a thing being built */
+  projects: '<svg viewBox="0 0 24 24"><path d="M2.5 20.5h19"/><path d="M3 17.5v-3l3-2.4 3 2.4v3"/><path d="M9.5 17.5v-4.6l3.2-2.6 3.2 2.6v4.6"/><path d="M16.4 17.5v-6.3L19 9.2l2.3 1.9v6.4"/><path d="M6 17.5v-2.2M12.7 17.5v-2.6M19 17.5v-2.8"/></svg>',
   rituals:  '<svg viewBox="0 0 24 24"><path d="M12 3.5c1.4 2.2 4.5 4.6 4.5 8.4a4.5 4.5 0 0 1-9 0c0-1.6.6-2.9 1.4-4 .3 1 .9 1.8 1.6 2.2.6-2.6.4-4.8 1.5-6.6Z"/><path d="M7 20.5h10"/></svg>',
   values:   '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="m15.5 8.5-2.2 5.2-4.8 1.8 2.2-5.2z"/><path d="M12 3.5v1.5M12 19v1.5M3.5 12H5M19 12h1.5"/></svg>',
   skills:   '<svg viewBox="0 0 24 24"><path d="M12 20.5V9"/><path d="M12 13c-2.8 0-4.6-1.6-5-4 2.8-.2 4.6 1.2 5 4Z"/><path d="M12 10c.4-2.8 2.2-4.2 5-4-.4 2.4-2.2 4-5 4Z"/><path d="M12 16.5c-2.2 0-3.8-1.2-4.2-3.3 2.2-.2 3.8.9 4.2 3.3Z"/></svg>',
@@ -121,7 +128,7 @@ function openNavOverlay(){
   </div></div>`);
   document.body.appendChild(ov); ov.querySelector('.close').onclick = () => ov.remove(); ov.querySelectorAll('a').forEach(a => a.addEventListener('click', () => ov.remove()));
 }
-NAV_PAGES.compass = {label:'Compass', short:'Compass', ico:NAV_ICONS.home, route:'#/compass'};
+NAV_PAGES.compass = {label:'Compass', short:'Compass', ico:NAV_ICONS.compass, route:'#/compass'};
 NAV_PAGES.import = {label:'Import Station', short:'Import', ico:NAV_ICONS.import, route:'#/import'};   // reachable, but lives inside Settings now
 
 /* ---------- Compass: life at a glance — today's focus, the living house, long-term panels ---------- */

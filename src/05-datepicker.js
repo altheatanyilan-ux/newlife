@@ -151,7 +151,7 @@ document.addEventListener('mousedown', ev => {
     openDatePicker(input);
     return;
   }
-  if(dpOpen && !ev.target.closest('.dp-pop')) dpClose();
+  if(dpOpen && !ev.target.closest('.dp-pop') && !ev.target.closest('.sm-pop')) dpClose();
 }, true);
 
 document.addEventListener('keydown', ev => {

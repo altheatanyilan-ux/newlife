@@ -255,6 +255,66 @@ const { chromium } = require('playwright');
     faces: WS_FACES.length, defaults: WS_TYPE_DEFAULT.face + ' ' + WS_TYPE_DEFAULT.size,
     varsEmitted: /--ws-face/.test(wsTypeVars()) && /--ws-size/.test(wsTypeVars()) }))));
 
+  /* 18. no select anywhere still opens the browser's own popup */
+  const sweep = await page.evaluate(async () => {
+    const out = {checked: 0, native: []};
+    for(const r of ['journals','finance','settings','skills','commonplace','people','projects','timeline','today']){
+      location.hash = '#/' + r; await new Promise(x => setTimeout(x, 420));
+      document.querySelectorAll('#main details').forEach(d => d.open = true);
+      await new Promise(x => setTimeout(x, 180));
+      const sels = [...document.querySelectorAll('#main select')];
+      for(const s of sels){
+        out.checked++;
+        s.dispatchEvent(new MouseEvent('mousedown', {bubbles: true, cancelable: true}));
+        await new Promise(x => setTimeout(x, 90));
+        if(!document.querySelector('.sm-pop')) out.native.push(r + ':' + (s.id || s.className));
+        document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape', bubbles: true}));
+        await new Promise(x => setTimeout(x, 40));
+      }
+    }
+    return out; });
+  console.log('select sweep:', JSON.stringify(sweep));
+
+  /* 19. a picture actually shows through the card it is printed on */
+  console.log('plate balance:', JSON.stringify(await page.evaluate(() => {
+    const img = document.createElement('div'); img.className = 'rec-plate-img';
+    const wash = document.createElement('div'); wash.className = 'rec-plate-wash';
+    document.body.append(img, wash);
+    const io = +getComputedStyle(img).opacity;
+    const first = getComputedStyle(wash).backgroundImage.match(/0?\.\d+\)/);
+    img.remove(); wash.remove();
+    return {imageOpacity: io, imageVisibleEnough: io >= .5, washStart: first && first[0]};
+  })));
+
+  /* 20. the two icons say what their pages are, and are not each other */
+  console.log('icons:', JSON.stringify(await page.evaluate(() => ({
+    compassIsARose: /M12 2\.5 13\.6 10\.4/.test(NAV_ICONS.compass),
+    compassUsedByCompass: NAV_PAGES.compass.ico === NAV_ICONS.compass,
+    compassNotValues: NAV_ICONS.compass !== NAV_ICONS.values,
+    projectsIsRoofs: /17\.5v-3/.test(NAV_ICONS.projects) }))));
+
+  /* 21. the Library takes works it has never seen, and recommendations have a kind */
+  console.log('library:', JSON.stringify(await page.evaluate(async () => {
+    S.mediaLists = [{id:'lx', title:'A list', description:'', forWhom:'myself', personName:'', private:true, entries:[]}];
+    openListAddModal(byId(S.mediaLists, 'lx')); await new Promise(r => setTimeout(r, 220));
+    const kinds = document.querySelectorAll('[data-mlk]').length;
+    document.querySelector('[data-mlk="film"]').click();
+    document.querySelector('#mlNew').value = 'A film nobody logged';
+    document.querySelector('#mlAddNew').click(); await new Promise(r => setTimeout(r, 180));
+    const stayed = !!document.querySelector('#mlNew');
+    const made = S.entries.filter(e => e.title === 'A film nobody logged').map(e => e.extra.kind)[0];
+    document.querySelector('#mlDone').click(); await new Promise(r => setTimeout(r, 220));
+    openRecModal(); await new Promise(r => setTimeout(r, 220));
+    const recKinds = document.querySelectorAll('[data-rck]').length;
+    document.querySelector('[data-rck="podcast"]').click();
+    document.querySelector('#rcTitle').value = 'Something heard about';
+    document.querySelector('#rcSave').click(); await new Promise(r => setTimeout(r, 220));
+    const rec = S.mediaRecs.find(x => x.title === 'Something heard about');
+    document.querySelectorAll('.overlay').forEach(o => o.remove());
+    return {kindsOffered: kinds, dialogStayedOpen: stayed, newWorkKind: made,
+      inList: byId(S.mediaLists, 'lx').entries.length, recKinds, recMedium: rec && rec.medium};
+  })));
+
   console.log('ERRORS:', errors.length); errors.slice(0,8).forEach(e => console.log('  ' + e));
   await browser.close();
 })();

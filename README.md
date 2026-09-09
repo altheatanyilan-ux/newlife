@@ -115,7 +115,7 @@ A Claude Pro or Max subscription — or a ChatGPT one — cannot be used for thi
 
 ## Imagery
 
-Pictures belong to the record, not to a separate board. Any project, skill, value, person or vision can carry images; the first of them becomes the ground its own card is printed on — a wash at low opacity under a scrim heavy enough to keep every word readable on any photograph, in either theme, and visible in the list before anything is opened. Drag to reorder; whichever image leads decides what the card looks like. Sub-stages on the Timeline work the same way. The boards that used to hold pins are gone, and everything that was pinned to one has been folded into the record it belonged to.
+Pictures belong to the record, not to a separate board. Any project, skill, value, person or entry can carry images; the first of them becomes the ground its own card is printed on. The picture is genuinely visible — the scrim is heavy only where the words are and clears toward the far edge, where there are none, with a text shadow as the last guarantee of legibility on a photograph that happens to be bright exactly where a line falls. Drag to reorder; whichever image leads decides what the card looks like. Sub-stages on the Timeline work the same way. The boards that used to hold pins are gone, and everything that was pinned to one has been folded into the record it belonged to.
 
 ## Hashtags
 
@@ -143,6 +143,8 @@ Every record it adds carries `seeded:'starter'`, so **Settings → Starter set �
 ## Starting empty
 
 Underneath the starter set the house is unfurnished: nothing is seeded except the journal categories. Take the starter set out and every stage, value, skill, project and habit is yours from the first one.
+
+Every dropdown is the app's own, not the browser's. A native `<select>` popup is drawn by the browser from the option's own colours, cannot be styled reliably, and cannot be checked; this one is a listbox like the calendar, keyboard-driven, in the page's palette.
 
 ## Editing
 

@@ -35,8 +35,11 @@
   --page-gradient-start:#b08968; --page-gradient-end:#7f916a;
   --page-motion-speed:1; --page-ease:var(--ease); --page-lift:translateY(-2px); --page-glyph:"生"; --page-par:0;
   --page-grad-op:.07; --scene-op:.22;
+  /* so scrollbars and any native control we do not wrap come up dark, not light */
+  color-scheme:dark;
 }
 html[data-theme="light"]{
+  color-scheme:light;
   --bg:#f5f0ea; --surface:#fffdf9; --surface-2:#f7f2ec; --surface-3:#efe8df;
   --text:#2c2520; --muted:#6b5e53; --faint:#a3968a; --line:rgba(44,37,32,.08); --line-2:rgba(44,37,32,.16);
   --terra:#9c7452; --sage:#6b7d56; --rose:#8e5f6b; --gold:#b58a33;
@@ -335,12 +338,15 @@ option:checked,option:hover{background-color:var(--surface-2)}
   background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);
   background-position:calc(100% - 14px) 50%,calc(100% - 9px) 50%;
   background-size:5px 5px,5px 5px;background-repeat:no-repeat}
+/* background-repeat has to be restated on every one of these: the `background`
+   shorthand in the shared :focus rule above resets it to `repeat`, and a 5px
+   chevron gradient set to repeat tiles into a hatch across the whole control. */
 .sel:hover,.sel:focus{background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%),
   linear-gradient(color-mix(in srgb,var(--text) 4%,transparent),color-mix(in srgb,var(--text) 4%,transparent));
   background-position:calc(100% - 14px) 50%,calc(100% - 9px) 50%,0 0;
-  background-size:5px 5px,5px 5px,100% 100%}
+  background-size:5px 5px,5px 5px,100% 100%;background-repeat:no-repeat}
 .sel:focus{background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%),
-  linear-gradient(var(--surface-2),var(--surface-2))}
+  linear-gradient(var(--surface-2),var(--surface-2));background-repeat:no-repeat}
 @media (prefers-reduced-motion:reduce){.inp,.ta,.sel{transition:none}}
 .divider{height:1px;background:var(--line);margin:28px 0}
 .section{margin-top:44px}
