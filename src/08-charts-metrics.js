@@ -204,6 +204,7 @@ function entryCard(e, {clamp:cl=true, tools=true}={}){
     ${entryExtraHTML(e)}
     ${tagChips(e)}
     <div class="links">${linkChips(e)}</div>
+    ${tools && typeof ctJournalBridge === 'function' ? ctJournalBridge(e) : ''}
   </article>`;
 }
 document.addEventListener('click', e => {

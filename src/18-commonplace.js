@@ -428,7 +428,8 @@ function openMediaPanel(id){
     </div>
 
     <div class="vp-sec"><span class="sc">Resonance — not "was it good?", but "what did it do to me?"</span>
-      <div class="resonance-scale" id="mpRes">${RESONANCE_LEVELS.map(([kk,label,color])=>`<button class="${x.resonanceLevel===kk?'on':''}" style="--c:${color}" data-res="${kk}">${label}</button>`).join('')}</div></div>
+      <div class="resonance-scale" id="mpRes">${RESONANCE_LEVELS.map(([kk,label,color])=>`<button class="${x.resonanceLevel===kk?'on':''}" style="--c:${color}" data-res="${kk}">${label}</button>`).join('')}</div>
+      ${typeof ctMediaBridge === 'function' ? ctMediaBridge(e) : ''}</div>
 
     <div class="vp-sec"><span class="sc">One-line capture</span><div class="faint" style="font-size:.78rem;margin-bottom:6px">In one sentence, what is this about at its deepest level?</div>${ed(`entries.#${e.id}.extra.oneLineCapture`,{cls:'quote',ph:'Force the distillation.'})}</div>
 

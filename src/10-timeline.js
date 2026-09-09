@@ -149,6 +149,7 @@ function formativeCardHTML(e){
     ${formativePeopleHTML(e)}
     <div class="row" style="margin-top:6px"><button class="btn sm ghost" data-fmppl="${e.id}">${(e.links?.people||[]).length ? 'who was there' : '＋ who was there'}</button></div>
     <div class="installed"><div class="k">What this installed in me</div>${ed(`entries.#${e.id}.extra.installed`,{multi:true,ph:'The belief, fear, pattern, or capability this event left behind.'})}</div>
+    ${typeof ctFormativeBridge === 'function' ? ctFormativeBridge(e) : ''}
   </div>`;
 }
 

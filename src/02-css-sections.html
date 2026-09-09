@@ -3026,5 +3026,20 @@ select.sm-active{border-color:var(--page-accent);
 .ll-list{display:flex;flex-direction:column;gap:4px;max-height:min(56vh,500px);overflow-y:auto;padding-right:4px}
 .ll-row.on{border-color:var(--sage)}
 .ll-row.on .ico{color:var(--sage)}
+
+/* --- the bridges from the other rooms --- */
+.ct-bridge{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:10px;padding:7px 11px;
+  border:1px dashed var(--line-2);border-radius:9px;background:color-mix(in srgb,var(--terra) 5%,transparent);
+  position:relative;transition:border-color .25s var(--ease),background .25s var(--ease)}
+.ct-bridge:hover{border-color:var(--terra);background:color-mix(in srgb,var(--terra) 9%,transparent)}
+.ct-bridge .lora{font-family:var(--lora,var(--serif));font-style:italic;font-size:.83rem;color:var(--muted);flex:1;min-width:140px}
+.ct-bridge .btn{flex:none}
+.ct-bx{background:none;border:0;color:var(--faint);font-size:1rem;line-height:1;cursor:pointer;
+  padding:2px 4px;border-radius:5px;flex:none;transition:color .2s var(--ease)}
+.ct-bx:hover{color:var(--terra)}
+.ct-bridge.used{border-style:solid;border-color:var(--line);background:none;font-size:.66rem;
+  color:var(--faint);letter-spacing:.04em;padding:5px 10px}
+.ct-bridge.used a{color:var(--terra);cursor:pointer}
+.vp-sec .ct-bridge{margin-top:12px}
 </style>
 </head>

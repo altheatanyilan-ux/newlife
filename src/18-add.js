@@ -38,6 +38,8 @@ const EntryActions = {
   planTask:       ()       => { if(typeof migratePlanning === 'function') migratePlanning();
                                 const t = newPlanTask('', '', {listId:'inbox'}); S.tasks.push(t); saveNow();
                                 navigate('#/planning/inbox'); setTimeout(() => openPlanTask(t.id), 320); },
+  /* a thought caught from anywhere lands in the Content room's Idea column */
+  contentIdea:    ()       => { if(typeof openContentCapture === 'function') openContentCapture(); },
 };
 
 /* ---------- Tier 1: contextual Add (inline, top of the page content) ---------- */
@@ -82,6 +84,7 @@ const SPEED_DIAL = [
   {zone:'Finance', icon:'💰',     label:'Income stream — guided', run: ()=>EntryActions.guidedStream()},
   {zone:'Timeline', icon:'🕰',    label:'Timeline chapter — guided', run: ()=>EntryActions.guidedStage()},
   {zone:'Creative Projects', icon:'📋', label:'Project',    run: ()=>EntryActions.newProject()},
+  {zone:'Content', icon:'✍',      label:'Content idea',        run: ()=>EntryActions.contentIdea()},
 ];
 function buildSpeedDial(){
   const dial = $('#speedDial'); if(!dial) return;

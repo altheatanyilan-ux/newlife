@@ -3514,6 +3514,21 @@ select.sm-active{border-color:var(--page-accent);
 .ll-list{display:flex;flex-direction:column;gap:4px;max-height:min(56vh,500px);overflow-y:auto;padding-right:4px}
 .ll-row.on{border-color:var(--sage)}
 .ll-row.on .ico{color:var(--sage)}
+
+/* --- the bridges from the other rooms --- */
+.ct-bridge{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:10px;padding:7px 11px;
+  border:1px dashed var(--line-2);border-radius:9px;background:color-mix(in srgb,var(--terra) 5%,transparent);
+  position:relative;transition:border-color .25s var(--ease),background .25s var(--ease)}
+.ct-bridge:hover{border-color:var(--terra);background:color-mix(in srgb,var(--terra) 9%,transparent)}
+.ct-bridge .lora{font-family:var(--lora,var(--serif));font-style:italic;font-size:.83rem;color:var(--muted);flex:1;min-width:140px}
+.ct-bridge .btn{flex:none}
+.ct-bx{background:none;border:0;color:var(--faint);font-size:1rem;line-height:1;cursor:pointer;
+  padding:2px 4px;border-radius:5px;flex:none;transition:color .2s var(--ease)}
+.ct-bx:hover{color:var(--terra)}
+.ct-bridge.used{border-style:solid;border-color:var(--line);background:none;font-size:.66rem;
+  color:var(--faint);letter-spacing:.04em;padding:5px 10px}
+.ct-bridge.used a{color:var(--terra);cursor:pointer}
+.vp-sec .ct-bridge{margin-top:12px}
 </style>
 </head>
 <body>
@@ -6467,6 +6482,7 @@ function entryCard(e, {clamp:cl=true, tools=true}={}){
     ${entryExtraHTML(e)}
     ${tagChips(e)}
     <div class="links">${linkChips(e)}</div>
+    ${tools && typeof ctJournalBridge === 'function' ? ctJournalBridge(e) : ''}
   </article>`;
 }
 document.addEventListener('click', e => {
@@ -7710,6 +7726,7 @@ function formativeCardHTML(e){
     ${formativePeopleHTML(e)}
     <div class="row" style="margin-top:6px"><button class="btn sm ghost" data-fmppl="${e.id}">${(e.links?.people||[]).length ? 'who was there' : '＋ who was there'}</button></div>
     <div class="installed"><div class="k">What this installed in me</div>${ed(`entries.#${e.id}.extra.installed`,{multi:true,ph:'The belief, fear, pattern, or capability this event left behind.'})}</div>
+    ${typeof ctFormativeBridge === 'function' ? ctFormativeBridge(e) : ''}
   </div>`;
 }
 
@@ -15163,6 +15180,8 @@ const EntryActions = {
   planTask:       ()       => { if(typeof migratePlanning === 'function') migratePlanning();
                                 const t = newPlanTask('', '', {listId:'inbox'}); S.tasks.push(t); saveNow();
                                 navigate('#/planning/inbox'); setTimeout(() => openPlanTask(t.id), 320); },
+  /* a thought caught from anywhere lands in the Content room's Idea column */
+  contentIdea:    ()       => { if(typeof openContentCapture === 'function') openContentCapture(); },
 };
 
 /* ---------- Tier 1: contextual Add (inline, top of the page content) ---------- */
@@ -15207,6 +15226,7 @@ const SPEED_DIAL = [
   {zone:'Finance', icon:'💰',     label:'Income stream — guided', run: ()=>EntryActions.guidedStream()},
   {zone:'Timeline', icon:'🕰',    label:'Timeline chapter — guided', run: ()=>EntryActions.guidedStage()},
   {zone:'Creative Projects', icon:'📋', label:'Project',    run: ()=>EntryActions.newProject()},
+  {zone:'Content', icon:'✍',      label:'Content idea',        run: ()=>EntryActions.contentIdea()},
 ];
 function buildSpeedDial(){
   const dial = $('#speedDial'); if(!dial) return;
@@ -15710,7 +15730,8 @@ function openMediaPanel(id){
     </div>
 
     <div class="vp-sec"><span class="sc">Resonance — not "was it good?", but "what did it do to me?"</span>
-      <div class="resonance-scale" id="mpRes">${RESONANCE_LEVELS.map(([kk,label,color])=>`<button class="${x.resonanceLevel===kk?'on':''}" style="--c:${color}" data-res="${kk}">${label}</button>`).join('')}</div></div>
+      <div class="resonance-scale" id="mpRes">${RESONANCE_LEVELS.map(([kk,label,color])=>`<button class="${x.resonanceLevel===kk?'on':''}" style="--c:${color}" data-res="${kk}">${label}</button>`).join('')}</div>
+      ${typeof ctMediaBridge === 'function' ? ctMediaBridge(e) : ''}</div>
 
     <div class="vp-sec"><span class="sc">One-line capture</span><div class="faint" style="font-size:.78rem;margin-bottom:6px">In one sentence, what is this about at its deepest level?</div>${ed(`entries.#${e.id}.extra.oneLineCapture`,{cls:'quote',ph:'Force the distillation.'})}</div>
 
@@ -15856,6 +15877,98 @@ document.addEventListener('keydown', ev => {
   }
   contentSetView(act);
 }, true);
+/* ============================================================
+   CONTENT — the bridges from the rest of the house.
+
+   The pipeline is only worth having if things get onto it without
+   being retyped. So the rooms that hold raw material offer a way over:
+   a journal entry that has grown long enough to be about something, a
+   book that changed you, a formative event with something installed in
+   it. One button, one seed, the source linked both ways.
+
+   The prompt is deliberately quiet and permanently dismissible. A
+   suggestion you cannot turn off is not a suggestion.
+   ============================================================ */
+
+/* the journal types that are ever about something at length. Gratitude
+   and quick notes are not invitations to write an essay. */
+const CT_BRIDGE_TYPES = ['reflection','synchronicity','manifestation','question','dream','lifeevent','memory'];
+const CT_BRIDGE_MIN_WORDS = 50;
+
+function ctPromptDismissed(id){ return contentState().dismissedPrompts.includes(id); }
+function ctDismissPrompt(id){ const c = contentState(); if(!c.dismissedPrompts.includes(id)) c.dismissedPrompts.push(id); saveNow(); }
+/* an entry already made into something never asks again */
+function ctAlreadyUsed(sourceId){ return contentReferencing_any(sourceId).length > 0; }
+function contentReferencing_any(sourceId){
+  return contentPieces().filter(e => (e.extra.content.linked || []).some(l => l.sourceId === sourceId));
+}
+
+/* An entry already made into something shows what it became, and never
+   asks again. Otherwise it asks once, quietly, and takes no for an answer. */
+function ctBridgeHTML(sourceId, line, {sourceType, raw = '', spark = '', title = ''}){
+  const back = contentReferencing_any(sourceId);
+  if(back.length) return `<div class="ct-bridge used mono">used in ${back.map(e =>
+    `<a href="#/content" data-ctgo="${e.id}">${esc(e.title || 'an untitled piece')}</a>`).join(', ')}</div>`;
+  if(!line || ctPromptDismissed(sourceId)) return '';
+  return `<div class="ct-bridge" data-ctbridge="${sourceId}"
+      data-ctsrc="${esc(sourceType)}" data-ctraw="${esc(raw)}" data-ctspark="${esc(spark)}" data-cttitle="${esc(title)}">
+    <span class="lora">${esc(line)}</span>
+    <button class="btn sm ghost" data-ctseed="${sourceId}">✍ add as a seed</button>
+    <button class="ct-bx" data-ctdismiss="${sourceId}" title="not this one">×</button></div>`;
+}
+
+/* --- Journals --- */
+function ctJournalBridge(e){
+  const ask = CT_BRIDGE_TYPES.includes(e.type)
+    && wordCount(e.body) >= CT_BRIDGE_MIN_WORDS
+    && contentState().prefs.journalPrompts;
+  return ctBridgeHTML(e.id, ask ? 'This feels like something worth writing about.' : '',
+    {sourceType:'journal_entry', raw:e.body.slice(0, 600), title:e.title || '',
+     spark:`Promoted from ${typeName(e.type).toLowerCase()}${e.occurredAt ? ' dated ' + fmtDate(e.occurredAt, 'med') : ''}`});
+}
+/* --- the Library --- */
+function ctMediaBridge(e){
+  const x = e.extra || {};
+  const ask = ['changed','lives'].includes(x.resonanceLevel) && contentState().prefs.libraryPrompts;
+  return ctBridgeHTML(e.id, ask ? 'This changed you. Is there an essay in that?' : '',
+    {sourceType:'library_media', raw:(x.installed || x.oneLineCapture || '').slice(0, 600),
+     title:'', spark:`Sparked by ${e.title}${x.creator ? ', ' + x.creator : ''}`});
+}
+/* --- the Timeline --- */
+function ctFormativeBridge(e){
+  const inst = (e.extra?.installed || '').trim();
+  const ask = (!!inst || wordCount(e.body) >= CT_BRIDGE_MIN_WORDS) && contentState().prefs.journalPrompts;
+  return ctBridgeHTML(e.id, ask ? 'There is writing in this one.' : '',
+    {sourceType:'timeline_event', raw:(inst || e.body).slice(0, 600), title:'',
+     spark:`Emerged from ${e.title || 'a formative event'}`});
+}
+
+/* one delegated handler for every bridge on the site */
+document.addEventListener('click', ev => {
+  const dis = ev.target.closest('[data-ctdismiss]');
+  if(dis){ ev.preventDefault(); ev.stopPropagation();
+    ctDismissPrompt(dis.dataset.ctdismiss);
+    dis.closest('.ct-bridge')?.remove(); sound('click'); return; }
+  const go = ev.target.closest('[data-ctgo]');
+  if(go){ ev.preventDefault(); navigate('#/content');
+    setTimeout(() => openPieceDetail(go.dataset.ctgo), 320); return; }
+  const seed = ev.target.closest('[data-ctseed]');
+  if(!seed) return;
+  ev.preventDefault(); ev.stopPropagation();
+  const box = seed.closest('.ct-bridge'); if(!box) return;
+  const entry = byId(S.entries, box.dataset.ctbridge);
+  openContentCapture({
+    raw: box.dataset.ctraw, title: box.dataset.cttitle, spark: box.dataset.ctspark,
+    trailType: box.dataset.ctsrc,
+    linked: entry ? {sourceType:box.dataset.ctsrc, sourceId:entry.id,
+      title: entry.title || (entry.body || '').slice(0, 60) || typeName(entry.type)} : null,
+  });
+}, true);
+
+/* ---------- the global add modal ----------
+   "Catch an idea" belongs beside Task and Memory, not only on this page. */
+if(typeof EntryActions === 'object' && EntryActions)
+  EntryActions.contentIdea = () => openContentCapture();
 /* ============================================================
    CONTENT — the pipeline from a thought to a published thing.
 
