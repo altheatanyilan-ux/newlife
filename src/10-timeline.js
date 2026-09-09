@@ -129,6 +129,29 @@ function openThreadNarrative(tid){
 
 /* ---------- Stage detail ---------- */
 hooks.stageNarrative = (sid, oldV, newV) => { const s = byId(S.stages,sid); if(!s || !oldV.trim() || oldV===newV) return; const a = new Set(oldV.toLowerCase().split(/\W+/)), b = new Set(newV.toLowerCase().split(/\W+/)); let shared=0; a.forEach(w=>{ if(b.has(w)) shared++; }); const sim = shared/Math.max(a.size,1); if(sim < .85 || Math.abs(oldV.length-newV.length) > oldV.length*.2){ s.narrativeHistory = s.narrativeHistory||[]; s.narrativeHistory.push({date:today(), text:oldV}); saveNow(); toast('The story you used to tell has been kept.'); } };
+/* One formative event, wherever it is shown — filed under a sub-stage or
+   loose in the stage. The people it involved are part of the record, so they
+   are on the card, and each one opens that person. */
+function formativePeopleHTML(e){
+  const ids = (e.links?.people || []).map(x => typeof x === 'string' ? x : x.id);
+  const list = ids.map(id => byId(S.people, id)).filter(Boolean);
+  if(!list.length) return '';
+  return `<div class="fm-people">${list.map(p => { const c = CIRCLES[p.circle] || CIRCLES.orbit;
+    return `<a class="chip on" href="#/people/${p.id}" style="--c:${c[4]}" title="${esc(c[1])}">${c[0]} ${esc(p.name)}</a>`; }).join('')}</div>`;
+}
+function formativeCardHTML(e){
+  return `<div class="formative">
+    <div class="row between"><b class="serif" style="font-size:1.1rem">${esc(e.title)}</b>
+      <span class="mono">${esc(fmtDate(e.occurredAt,'med'))} <button class="tbtn" data-edit="${e.id}">edit</button></span></div>
+    <button class="del-x" data-del="${e.id}" title="delete">×</button>
+    <div class="muted" style="margin-top:4px;line-height:1.7">${md(e.body)}</div>
+    ${e.media?.length?`<div class="thumbs">${e.media.map(m=>`<div class="photo" style="width:72px;height:72px" data-lb="${m.id}"><img src="${m.src}"></div>`).join('')}</div>`:''}
+    ${formativePeopleHTML(e)}
+    <div class="row" style="margin-top:6px"><button class="btn sm ghost" data-fmppl="${e.id}">${(e.links?.people||[]).length ? 'who was there' : '＋ who was there'}</button></div>
+    <div class="installed"><div class="k">What this installed in me</div>${ed(`entries.#${e.id}.extra.installed`,{multi:true,ph:'The belief, fear, pattern, or capability this event left behind.'})}</div>
+  </div>`;
+}
+
 routes.stage = function(root, params){
   const s = byId(S.stages, params[0]); if(!s){ navigate('#/timeline'); return; }
   S._lastStage = s.id;
@@ -159,10 +182,10 @@ routes.stage = function(root, params){
         <div class="row" style="margin:8px 0"><button class="btn sm ghost" data-ssphoto="${i}">+ images</button><button class="btn sm ghost" data-ssmem="${ss.id}">+ formative event</button>${ph.length>1?`<button class="btn sm ghost" data-ssgal="${i}">${ph.length} images</button>`:''}</div>
         ${ph.length && S._ssGalOpen?.[ss.id] ? `<div class="gallery">${ph.map((p,j)=>photoTile(p,`stages.#${s.id}.substages.${i}.photos.${j}`)).join('')}</div>` : ''}
         ${fe.length?`<div class="sc" style="margin-top:8px">Formative events</div>`:''}
-        ${fe.map(e=>`<div class="formative"><div class="row between"><b class="serif" style="font-size:1.1rem">${esc(e.title)}</b><span class="mono">${esc(fmtDate(e.occurredAt,'med'))} <button class="tbtn" data-edit="${e.id}">edit</button></span></div><button class="del-x" data-del="${e.id}" title="delete">×</button><div class="muted" style="margin-top:4px;line-height:1.7">${md(e.body)}</div>${e.media?.length?`<div class="thumbs">${e.media.map(m=>`<div class="photo" style="width:72px;height:72px" data-lb="${m.id}"><img src="${m.src}"></div>`).join('')}</div>`:''}<div class="installed"><div class="k">What this installed in me</div>${ed(`entries.#${e.id}.extra.installed`,{multi:true,ph:'The belief, fear, pattern, or capability this event left behind.'})}</div></div>`).join('')}
+        ${fe.map(e=>`${formativeCardHTML(e)}`).join('')}
         </div>
       </div>`; }).join('')}
-      ${memories.filter(e=>!(e.links?.substages||[]).length).length?`<div class="substage"><div class="hd"><h3 class="muted">Formative events not tied to a sub-stage</h3></div>${memories.filter(e=>!(e.links?.substages||[]).length).map(e=>`<div class="formative"><div class="row between"><b class="serif" style="font-size:1.1rem">${esc(e.title)}</b><span class="mono">${esc(fmtDate(e.occurredAt,'med'))} <button class="tbtn" data-edit="${e.id}">edit</button></span></div><button class="del-x" data-del="${e.id}" title="delete">×</button><div class="muted" style="margin-top:4px;line-height:1.7">${md(e.body)}</div><div class="installed"><div class="k">What this installed in me</div>${ed(`entries.#${e.id}.extra.installed`,{multi:true,ph:'The belief, fear, pattern, or capability this event left behind.'})}</div></div>`).join('')}</div>`:''}
+      ${memories.filter(e=>!(e.links?.substages||[]).length).length?`<div class="substage"><div class="hd"><h3 class="muted">Formative events not tied to a sub-stage</h3></div>${memories.filter(e=>!(e.links?.substages||[]).length).map(e=>`${formativeCardHTML(e)}`).join('')}</div>`:''}
     </section>
 
     <section class="section rv"><span class="sc">Threads present in this stage</span>
@@ -208,6 +231,8 @@ routes.stage = function(root, params){
   $$('[data-ssdown]',root).forEach(b => b.onclick = () => { const i=+b.dataset.ssdown; if(i<s.substages.length-1){ [s.substages[i+1],s.substages[i]]=[s.substages[i],s.substages[i+1]]; saveNow(); rerender(); } });
   $$('[data-ssphoto]',root).forEach(b => b.onclick = () => { const inp = el('<input type="file" accept="image/*" multiple hidden>'); document.body.appendChild(inp); inp.onchange = e => { readImages(e.target.files, img => { const ss = s.substages[+b.dataset.ssphoto]; ss.photos = ss.photos||[]; ss.photos.push(img); saveNow(); rerender(); }); inp.remove(); }; inp.click(); });
   $$('[data-ssmem]',root).forEach(b => b.onclick = () => openEntryModal({type:'memory', links:{stages:[s.id], substages:[b.dataset.ssmem]}}));
+  /* straight to the question, on an event already written down */
+  $$('[data-fmppl]',root).forEach(b => b.onclick = () => openEntryModal({entryId: b.dataset.fmppl, focusPeople: true}));
   /* the images are the ground the chapter is printed on; the grid of tiles is
      only for arranging them, so it stays folded until asked for */
   $$('[data-ssgal]',root).forEach(b => b.onclick = () => { const ss = s.substages[+b.dataset.ssgal];

@@ -96,23 +96,51 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
   ok('no select paints its text under the arrow', tight.length === 0, tight.join(' ; '));
 
   console.log('\n6. every page settles on one left edge');
-  let off = [];
+  /* Measured on layout, not on painted position. A section still below the
+     fold is legitimately holding its reveal offset — that is the animation
+     waiting to run, not a misalignment — so `offsetLeft` is the honest
+     question here, and the settling of a reveal that HAS run is asked
+     separately below. */
+  let off = [], stuck = [];
   for(const r of ROUTES){
     await go(r);
     const bad = await page.evaluate(() => {
       const pg = document.querySelector('.page'); if(!pg) return ['NO PAGE'];
       const head = pg.querySelector('.page-head'); if(!head) return [];
-      const base = Math.round(head.getBoundingClientRect().left);
+      const base = head.offsetLeft;
       return Array.from(pg.children).filter(c => {
         const b = c.getBoundingClientRect();
         if(b.width < 4 || b.height < 4) return false;
         if(getComputedStyle(c).position === 'fixed') return false;
-        return Math.abs(Math.round(b.left) - base) > 1;
-      }).map(c => (c.className||c.tagName).toString().slice(0,32) + '@' + Math.round(c.getBoundingClientRect().left) + ' vs ' + base);
+        return Math.abs(c.offsetLeft - base) > 1;
+      }).map(c => (c.className||c.tagName).toString().slice(0,32) + '@' + c.offsetLeft + ' vs ' + base);
     });
     if(bad.length) off.push(r + ' → ' + bad.join(', '));
+    /* the regression this replaced: a revealed section whose reveal transform
+       never came off, because the per-motion start state out-specified it */
+    /* Sampled twice. A transition still finishing has moved between the two
+       samples; the bug this guards against — a start-state that out-specified
+       `.rv.in{transform:none}` — never moved at all, and parked whole sections
+       fourteen pixels left for the life of the page. */
+    const held = await page.evaluate(async () => {
+      const off = n => { const t = getComputedStyle(n).transform;
+        if(t === 'none' || n.style.transform) return null;
+        const m = t.match(/matrix\(([^)]+)\)/); if(!m) return null;
+        const v = m[1].split(',').map(Number); return [v[4] || 0, v[5] || 0]; };
+      const nodes = Array.from(document.querySelectorAll('.rv.in'));
+      const first = nodes.map(off);
+      await new Promise(r => setTimeout(r, 400));
+      return nodes.map((n, i) => { const a = first[i], b = off(n);
+        if(!a || !b) return null;
+        if(Math.abs(b[0]) < 1 && Math.abs(b[1]) < 1) return null;          // effectively home
+        if(Math.abs(a[0] - b[0]) > .01 || Math.abs(a[1] - b[1]) > .01) return null;   // still moving
+        return (n.className||'').toString().slice(0,28) + ' stuck at ' + b.map(x=>x.toFixed(1)).join(',');
+      }).filter(Boolean);
+    });
+    if(held.length) stuck.push(r + ' → ' + held.join(', '));
   }
   ok('no section drifts from its own page head', off.length === 0, off.join(' ; '));
+  ok('a revealed section lets go of its reveal offset', stuck.length === 0, stuck.join(' ; '));
 
   console.log('\n7. Threads & Tensions is its own room');
   await go('#/timeline');

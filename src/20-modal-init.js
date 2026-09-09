@@ -1,7 +1,7 @@
 /* ============================================================
    11. GLOBAL ADD ENTRY MODAL
    ============================================================ */
-function openEntryModal({type='reflection', links={}, entryId=null, after=null, title='', occurredAt='', allowedTypes=null, heading='', openLinks=false}={}){
+function openEntryModal({type='reflection', links={}, entryId=null, after=null, title='', occurredAt='', allowedTypes=null, heading='', openLinks=false, focusPeople=false}={}){
   const existing = entryId ? byId(S.entries, entryId) : null;
   const e = existing ? JSON.parse(JSON.stringify(existing)) : {id:uid(),type,title,body:'',occurredAt:occurredAt||today(),createdAt:new Date().toISOString(),media:[],links:Object.assign({stages:[],substages:[],threads:[],values:[],visions:[],skills:[],projects:[],people:[]}, links),people:[],places:[],emotions:[],tags:[],confidence:'',extra:{}};
   const types = (allowedTypes && !existing) ? ENTRY_TYPES.filter(([t]) => allowedTypes.includes(t)) : ENTRY_TYPES;
@@ -15,6 +15,14 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
       <input class="inp serif-lg" id="eTitle" placeholder="Title (optional)" value="${esc(e.title)}">
       <textarea class="ta" id="eBody" placeholder="Body — markdown welcome. **bold**, *italic*, > quote, - list" style="min-height:120px">${esc(e.body)}</textarea>
       <div id="extraFields"></div>
+      <!-- Who was there is part of a memory, not an afterthought filed under
+           "connect this entry" — a formative event without its people is half
+           the record. It sits in the body of every entry now, and the label
+           says what the question means for this kind of entry. -->
+      <div class="field people-field" id="peopleField"><label id="peopleLabel">${esc(peopleLabel(e.type))}</label>
+        <input class="inp mono people-filter" id="ePplFilter" placeholder="find a name…" ${(S.people||[]).length > 8 ? '' : 'hidden'}>
+        <div class="deps people-deps" id="peopleChips">${(S.people||[]).map(p=>`<span class="chip click" style="--c:${(CIRCLES[p.circle]||CIRCLES.outer)[4]}" data-lk="people" data-id="${p.id}" data-pname="${esc(p.name.toLowerCase())}">${(CIRCLES[p.circle]||CIRCLES.outer)[0]} ${esc(p.name)}</span>`).join('')}<button type="button" class="chip click" id="eNewPerson" style="--c:var(--page-accent)">＋ someone new</button></div>
+        <div class="faint" style="font-size:.74rem" id="peopleHint"></div></div>
       <div class="field" id="tagField" ${TAGGABLE.includes(e.type)?'':'hidden'}><label>Hashtags — one thread through many entries</label><input class="inp mono" id="eTags" value="${esc((e.tags||[]).map(t=>'#'+t).join(' '))}" placeholder="#kyoto #jazz #beginnings" list="tagList"><datalist id="tagList">${allTags().map(([t,n])=>`<option value="#${esc(t)}">${n}</option>`).join('')}</datalist><div class="faint" style="font-size:.74rem">Typing #something in the body works too.</div></div>
       <div class="field"><label>Occurred at</label><input class="inp" id="eWhen" value="${esc(e.occurredAt)}" placeholder="2024-09-14 · or “Summer 2019” · or “age 15”"><div class="faint" style="font-size:.74rem">Exact dates sort precisely; approximate ones sort by year. Memories can be logged today about decades ago.</div></div>
       <div class="field"><label>Media</label><div class="dropzone" id="eDrop">drop images here, or click to choose</div><input type="file" id="eFile" accept="image/*" multiple hidden><div class="thumbs" id="eThumbs"></div></div>
@@ -25,7 +33,7 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
         <div class="field"><label>Values — click to link, click again to flip polarity, third click to unlink</label><div class="deps">${S.valueOrder.map(id=>{ const v=byId(S.values,id); return `<span class="chip click" style="--c:${v.color}" data-lk="values" data-id="${v.id}"><span class="pol"></span>${esc(v.name)}</span>`; }).join('')}</div></div>
         <div class="field"><label>Skills</label><div class="deps">${S.skills.map(s=>`<span class="chip click" style="--c:var(--ment)" data-lk="skills" data-id="${s.id}">${esc(s.name)}</span>`).join('')}</div></div>
         <div class="field"><label>Projects</label><div class="deps">${S.projects.map(p=>`<span class="chip click" style="--c:var(--terra)" data-lk="projects" data-id="${p.id}">${esc(p.name)}</span>`).join('')}</div></div>
-        <div class="grid c2" style="gap:8px"><div class="field" style="grid-column:1/-1"><label>People — tag anyone this involves</label><div class="deps" id="peopleChips">${(S.people||[]).map(p=>`<span class="chip click" style="--c:${(CIRCLES[p.circle]||CIRCLES.outer)[4]}" data-lk="people" data-id="${p.id}">${(CIRCLES[p.circle]||CIRCLES.outer)[0]} ${esc(p.name)}</span>`).join('')}<button type="button" class="chip click" id="eNewPerson" style="--c:var(--page-accent)">＋ someone new</button></div></div><div class="field"><label>Places</label><input class="inp" id="ePlaces" value="${esc(e.places.join(', '))}" list="placeList"><datalist id="placeList">${(S.places||[]).map(p=>`<option value="${esc(p)}">`).join('')}</datalist></div><div class="field"><label>Emotions</label><input class="inp" id="eEmo" value="${esc(e.emotions.join(', '))}"></div></div>
+        <div class="grid c2" style="gap:8px"><div class="field"><label>Places</label><input class="inp" id="ePlaces" value="${esc(e.places.join(', '))}" list="placeList"><datalist id="placeList">${(S.places||[]).map(p=>`<option value="${esc(p)}">`).join('')}</datalist></div><div class="field"><label>Emotions</label><input class="inp" id="eEmo" value="${esc(e.emotions.join(', '))}"></div></div>
         <div class="field"><label>Confidence (for future-facing entries)</label><div class="ladder">${CONF.map(c=>`<button data-conf="${c}" class="${e.confidence===c?'on':''}">${c}</button>`).join('')}</div></div>
       </div></details>
       <div class="row between"><span class="faint" style="font-size:.78rem" id="linkNudge"></span><button class="btn primary" id="eSave" style="padding:12px 28px;font-size:1rem">${existing?'Save changes':'Save entry'}</button></div>
@@ -53,7 +61,7 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
       + pick('depth','How deep did you go', [['surface','surface'],['sitting','sitting with it'],['breakthrough','breakthrough']]);
     if(t==='gratitude') html = f('gratWhy','Why does this matter to me? (required)','“My health” becomes “I could run with my dog this morning without pain.”',true)
       + pick('novelty','New, or ongoing', [['new','something new'],['ongoing','something ongoing']], 'Over time this shows whether the practice is deepening or running on autopilot.')
-      + `<div class="faint" style="font-size:.78rem">Who contributed to this? Tag them under “Connect this entry” — gratitude becomes relational.</div>`;
+      + `<div class="faint" style="font-size:.78rem">Tag whoever contributed, just below — gratitude becomes relational.</div>`;
     if(t==='synchronicity') html = f('preceded','What preceded it','What were you thinking about, doing, asking?',true) + f('read','What I read into it','',true)
       + pick('conf','How convinced are you', [['noise','noise'],['curious','curious'],['significant','significant'],['unmistakable','unmistakable']])
       + `<label class="toggle ${x().revisit?'on':''}" id="xRevisit"><span class="sw"></span><span>revisit later — resurface this in Today's prompts</span></label>`;
@@ -100,20 +108,35 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
     box.classList.remove('drawn'); box.innerHTML = entryInkSVG(e.type);
     requestAnimationFrame(() => box.classList.add('drawn')); };
   paintInk();
-  m.querySelectorAll('#typeRow button').forEach(b => b.onclick = () => { e.type = b.dataset.t; m.querySelectorAll('#typeRow button').forEach(y=>y.classList.toggle('on', y===b)); if(e.type==='nod'){ m.remove(); openNodModal(); return; } renderExtra(); paintInk(); m.querySelector('#tagField').hidden = !TAGGABLE.includes(e.type); });
+  m.querySelectorAll('#typeRow button').forEach(b => b.onclick = () => { e.type = b.dataset.t; m.querySelectorAll('#typeRow button').forEach(y=>y.classList.toggle('on', y===b)); if(e.type==='nod'){ m.remove(); openNodModal(); return; } renderExtra(); paintInk(); m.querySelector('#tagField').hidden = !TAGGABLE.includes(e.type); relabelPeople(); });
+  /* the question the field is asking depends on what is being written */
+  const relabelPeople = () => { const l = m.querySelector('#peopleLabel'); if(l) l.textContent = peopleLabel(e.type); };
+  const pplFilter = m.querySelector('#ePplFilter');
+  if(pplFilter) pplFilter.oninput = () => { const q = pplFilter.value.trim().toLowerCase();
+    m.querySelectorAll('#peopleChips [data-pname]').forEach(c => {
+      c.hidden = !!q && !c.dataset.pname.includes(q) && !c.classList.contains('on'); }); };
   const npBtn = m.querySelector('#eNewPerson');
   if(npBtn) npBtn.onclick = () => {
     const name = prompt('Who?'); if(!name || !name.trim()) return;
     const p = newPerson(name.trim()); S.people.push(p); saveNow();
     e.links.people = e.links.people || []; e.links.people.push(p.id);
     const chips = m.querySelector('#peopleChips');
-    chips.insertAdjacentHTML('afterbegin', `<span class="chip click on" style="--c:${(CIRCLES[p.circle]||CIRCLES.outer)[4]}" data-lk="people" data-id="${p.id}">${(CIRCLES[p.circle]||CIRCLES.outer)[0]} ${esc(p.name)}</span>`);
+    chips.insertAdjacentHTML('afterbegin', `<span class="chip click on" style="--c:${(CIRCLES[p.circle]||CIRCLES.outer)[4]}" data-lk="people" data-id="${p.id}" data-pname="${esc(p.name.toLowerCase())}">${(CIRCLES[p.circle]||CIRCLES.outer)[0]} ${esc(p.name)}</span>`);
     bindLk(chips.firstElementChild);
   };
-  const syncChips = () => { m.querySelectorAll('[data-lk]').forEach(c => { const k = c.dataset.lk, id = c.dataset.id; const arr = e.links[k]; const hit = arr.find(v => (typeof v==='string'?v:v.id)===id); c.classList.toggle('on', !!hit); if(k==='values') c.querySelector('.pol').textContent = hit ? hit.pol : ''; }); const n = Object.values(e.links).reduce((a,b)=>a+b.length,0); m.querySelector('#linkCount').textContent = n ? `${n} linked` : ''; m.querySelector('#linkNudge').textContent = n ? '' : 'Consider linking this to a stage, a value, or a vision — that is how the house connects.'; const subs = e.links.stages.flatMap(sid => (byId(S.stages,sid)?.substages||[]).map(ss=>({...ss, hue:byId(S.stages,sid).hue}))); m.querySelector('#subField').style.display = subs.length?'':'none'; m.querySelector('#subChips').innerHTML = subs.map(ss=>`<span class="chip click ${e.links.substages.includes(ss.id)?'on':''}" style="--c:${ss.hue}" data-sub="${ss.id}">${esc(ss.name)}</span>`).join(''); m.querySelectorAll('[data-sub]').forEach(c => c.onclick = () => { const id = c.dataset.sub; e.links.substages = e.links.substages.includes(id) ? e.links.substages.filter(y=>y!==id) : [...e.links.substages,id]; syncChips(); }); };
+  const syncChips = () => { m.querySelectorAll('[data-lk]').forEach(c => { const k = c.dataset.lk, id = c.dataset.id; const arr = e.links[k]; const hit = arr.find(v => (typeof v==='string'?v:v.id)===id); c.classList.toggle('on', !!hit); if(k==='values') c.querySelector('.pol').textContent = hit ? hit.pol : ''; }); const n = Object.values(e.links).reduce((a,b)=>a+b.length,0); m.querySelector('#linkCount').textContent = n ? `${n} linked` : '';
+    const np = e.links.people.length; const ph_ = m.querySelector('#peopleHint');
+    if(ph_) ph_.textContent = np ? `${np} tagged — they will show on this entry, and it will show on theirs`
+      : ((S.people||[]).length ? 'Nobody tagged yet.' : 'No one in People yet — “＋ someone new” adds them here.'); m.querySelector('#linkNudge').textContent = n ? '' : 'Consider linking this to a stage, a value, or a vision — that is how the house connects.'; const subs = e.links.stages.flatMap(sid => (byId(S.stages,sid)?.substages||[]).map(ss=>({...ss, hue:byId(S.stages,sid).hue}))); m.querySelector('#subField').style.display = subs.length?'':'none'; m.querySelector('#subChips').innerHTML = subs.map(ss=>`<span class="chip click ${e.links.substages.includes(ss.id)?'on':''}" style="--c:${ss.hue}" data-sub="${ss.id}">${esc(ss.name)}</span>`).join(''); m.querySelectorAll('[data-sub]').forEach(c => c.onclick = () => { const id = c.dataset.sub; e.links.substages = e.links.substages.includes(id) ? e.links.substages.filter(y=>y!==id) : [...e.links.substages,id]; syncChips(); }); };
   const bindLk = c => { c.onclick = () => { const k = c.dataset.lk, id = c.dataset.id; const arr = e.links[k]; if(k==='values'){ const i = arr.findIndex(v=>v.id===id); if(i<0) arr.push({id,pol:'+'}); else if(arr[i].pol==='+') arr[i].pol='−'; else arr.splice(i,1); } else { const i = arr.indexOf(id); if(i<0) arr.push(id); else arr.splice(i,1); } syncChips(); }; };
   m.querySelectorAll('[data-lk]').forEach(bindLk);
   syncChips();
+  /* opened from "who was there": put the reader in front of the question */
+  if(focusPeople) requestAnimationFrame(() => {
+    const f = m.querySelector('#peopleField');
+    if(f){ f.scrollIntoView({block:'center', behavior:'smooth'}); f.classList.add('flash'); }
+    m.querySelector('#ePplFilter')?.focus({preventScroll:true});
+  });
   m.querySelectorAll('[data-conf]').forEach(b => b.onclick = () => { e.confidence = e.confidence===b.dataset.conf ? '' : b.dataset.conf; m.querySelectorAll('[data-conf]').forEach(y=>y.classList.toggle('on', y.dataset.conf===e.confidence)); });
   const thumbs = m.querySelector('#eThumbs'); const drawThumbs = () => { thumbs.innerHTML = e.media.map(md_=>`<div style="display:flex;flex-direction:column;gap:4px;width:120px"><img src="${md_.src}" style="width:120px;height:80px"><input class="inp" style="padding:3px 6px;font-size:.7rem" placeholder="caption" value="${esc(md_.caption)}" data-cap="${md_.id}"><input class="inp" style="padding:3px 6px;font-size:.7rem" placeholder="people" value="${esc((md_.people||[]).join(', '))}" data-ppl="${md_.id}"><button class="tbtn" data-rm="${md_.id}">remove</button></div>`).join(''); thumbs.querySelectorAll('[data-cap]').forEach(i=>i.oninput=()=>byId(e.media,i.dataset.cap).caption=i.value); thumbs.querySelectorAll('[data-ppl]').forEach(i=>i.oninput=()=>byId(e.media,i.dataset.ppl).people=i.value.split(',').map(s=>s.trim()).filter(Boolean)); thumbs.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{ e.media = e.media.filter(y=>y.id!==b.dataset.rm); drawThumbs(); }); }; drawThumbs();
   const dz = m.querySelector('#eDrop'); dz.onclick = () => m.querySelector('#eFile').click(); m.querySelector('#eFile').onchange = ev => readImages(ev.target.files, img => { e.media.push(img); drawThumbs(); }); dz.ondragover = ev => { ev.preventDefault(); dz.classList.add('over'); }; dz.ondragleave = () => dz.classList.remove('over'); dz.ondrop = ev => { ev.preventDefault(); dz.classList.remove('over'); readImages(ev.dataTransfer.files, img => { e.media.push(img); drawThumbs(); }); };

@@ -263,6 +263,10 @@ html[data-motion] .rv.in{transform:none}
 .ctx-add{display:flex;align-items:center;gap:14px;margin:34px 0 22px}
 @media (max-width:900px){.ctx-add{margin-top:38px}}
 .ctx-add .hint{font-family:var(--quote);font-style:italic;color:var(--faint);font-size:.85rem}
+/* the same bar, sitting in a row of controls rather than above the page */
+.ctx-add.inline{margin:0;gap:8px}
+.ctx-add.inline .btn{padding:7px 14px;font-size:.82rem}
+.ctx-add.inline .hint{display:none}
 .choice{display:flex;gap:12px;align-items:flex-start;text-align:left;width:100%;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer;transition:border-color .2s var(--ease)}
 .choice:hover{border-color:var(--page-accent)}
 .choice .ico{font-family:var(--serif);font-size:1.2rem;color:var(--page-accent);min-width:20px}
@@ -1514,8 +1518,18 @@ details.era-lived[open] > summary::before{transform:rotate(90deg)}
 .jnav button:hover{color:var(--text);background:var(--surface-2)}
 .jnav button.active{color:var(--text);background:var(--surface);border-left:2px solid var(--page-accent)}
 .jnav button .n{font-family:var(--mono);font-size:.62rem;color:var(--faint)}
-.jtools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;align-items:center}
+/* One line: search, the two dates, the link filter, the dice, the count, and
+   the add button at the far end. The search takes whatever room is left rather
+   than holding a fixed width and pushing the button onto a second row. */
+.jtools{display:flex;gap:8px;flex-wrap:nowrap;margin-bottom:18px;align-items:center}
 .jtools .inp{max-width:260px}
+.jtools #jq{flex:1 1 220px;min-width:150px}
+.jtools .mono{flex:none;white-space:nowrap;font-size:.72rem}
+/* the add button rides at the end of the row, pushed right so it reads as the
+   one action among the filters rather than another filter */
+.jt-add{margin-left:auto;display:flex;align-items:center;flex:none}
+@media (max-width:1000px){.jtools{flex-wrap:wrap}}
+@media (max-width:620px){.jt-add{margin-left:0;width:100%}}
 .otd{background:linear-gradient(135deg,color-mix(in srgb,var(--gold) 8%,transparent),transparent);border:1px solid var(--line);border-radius:12px;padding:16px 20px;margin-bottom:22px}
 .answer-log{margin-top:10px;padding-left:12px;border-left:2px solid var(--line-2)}
 .answer-log .a{padding:6px 0;font-size:.9rem}
@@ -2810,6 +2824,23 @@ select.sm-active{border-color:var(--page-accent);
 @media (max-width:760px){.ph-plant{opacity:.66}}
 @media (prefers-reduced-motion:reduce){
   .ph-bloom{animation:none}.ph-bloom svg{animation:none}}
+
+/* ---------- who was there ----------
+   The people on an entry used to live at the bottom of "connect this entry",
+   folded shut. On a memory that is the wrong place for them: who was there is
+   part of the event, not a cross-reference to it. */
+.people-field .people-deps{display:flex;flex-wrap:wrap;gap:6px;max-height:132px;overflow-y:auto;
+  padding:2px;scrollbar-width:thin}
+.people-field .people-filter{margin-bottom:7px;font-size:.78rem;padding:6px 10px;
+  border-color:color-mix(in srgb,var(--line-2) 70%,transparent)}
+.people-field.flash{animation:pplFlash 1.5s var(--ease)}
+@keyframes pplFlash{
+  0%,100%{box-shadow:none}
+  22%{box-shadow:0 0 0 3px color-mix(in srgb,var(--page-accent) 32%,transparent);border-radius:10px}}
+/* the people on a formative event, on the card itself */
+.fm-people{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.fm-people .chip{text-decoration:none;font-size:.76rem}
+@media (prefers-reduced-motion:reduce){.people-field.flash{animation:none}}
 
 /* ---------- the hierarchy of needs ----------
    Eight tiers to a point. Each carries its own hue so a level is told apart
@@ -6971,6 +7002,29 @@ function openThreadNarrative(tid){
 
 /* ---------- Stage detail ---------- */
 hooks.stageNarrative = (sid, oldV, newV) => { const s = byId(S.stages,sid); if(!s || !oldV.trim() || oldV===newV) return; const a = new Set(oldV.toLowerCase().split(/\W+/)), b = new Set(newV.toLowerCase().split(/\W+/)); let shared=0; a.forEach(w=>{ if(b.has(w)) shared++; }); const sim = shared/Math.max(a.size,1); if(sim < .85 || Math.abs(oldV.length-newV.length) > oldV.length*.2){ s.narrativeHistory = s.narrativeHistory||[]; s.narrativeHistory.push({date:today(), text:oldV}); saveNow(); toast('The story you used to tell has been kept.'); } };
+/* One formative event, wherever it is shown — filed under a sub-stage or
+   loose in the stage. The people it involved are part of the record, so they
+   are on the card, and each one opens that person. */
+function formativePeopleHTML(e){
+  const ids = (e.links?.people || []).map(x => typeof x === 'string' ? x : x.id);
+  const list = ids.map(id => byId(S.people, id)).filter(Boolean);
+  if(!list.length) return '';
+  return `<div class="fm-people">${list.map(p => { const c = CIRCLES[p.circle] || CIRCLES.orbit;
+    return `<a class="chip on" href="#/people/${p.id}" style="--c:${c[4]}" title="${esc(c[1])}">${c[0]} ${esc(p.name)}</a>`; }).join('')}</div>`;
+}
+function formativeCardHTML(e){
+  return `<div class="formative">
+    <div class="row between"><b class="serif" style="font-size:1.1rem">${esc(e.title)}</b>
+      <span class="mono">${esc(fmtDate(e.occurredAt,'med'))} <button class="tbtn" data-edit="${e.id}">edit</button></span></div>
+    <button class="del-x" data-del="${e.id}" title="delete">×</button>
+    <div class="muted" style="margin-top:4px;line-height:1.7">${md(e.body)}</div>
+    ${e.media?.length?`<div class="thumbs">${e.media.map(m=>`<div class="photo" style="width:72px;height:72px" data-lb="${m.id}"><img src="${m.src}"></div>`).join('')}</div>`:''}
+    ${formativePeopleHTML(e)}
+    <div class="row" style="margin-top:6px"><button class="btn sm ghost" data-fmppl="${e.id}">${(e.links?.people||[]).length ? 'who was there' : '＋ who was there'}</button></div>
+    <div class="installed"><div class="k">What this installed in me</div>${ed(`entries.#${e.id}.extra.installed`,{multi:true,ph:'The belief, fear, pattern, or capability this event left behind.'})}</div>
+  </div>`;
+}
+
 routes.stage = function(root, params){
   const s = byId(S.stages, params[0]); if(!s){ navigate('#/timeline'); return; }
   S._lastStage = s.id;
@@ -7001,10 +7055,10 @@ routes.stage = function(root, params){
         <div class="row" style="margin:8px 0"><button class="btn sm ghost" data-ssphoto="${i}">+ images</button><button class="btn sm ghost" data-ssmem="${ss.id}">+ formative event</button>${ph.length>1?`<button class="btn sm ghost" data-ssgal="${i}">${ph.length} images</button>`:''}</div>
         ${ph.length && S._ssGalOpen?.[ss.id] ? `<div class="gallery">${ph.map((p,j)=>photoTile(p,`stages.#${s.id}.substages.${i}.photos.${j}`)).join('')}</div>` : ''}
         ${fe.length?`<div class="sc" style="margin-top:8px">Formative events</div>`:''}
-        ${fe.map(e=>`<div class="formative"><div class="row between"><b class="serif" style="font-size:1.1rem">${esc(e.title)}</b><span class="mono">${esc(fmtDate(e.occurredAt,'med'))} <button class="tbtn" data-edit="${e.id}">edit</button></span></div><button class="del-x" data-del="${e.id}" title="delete">×</button><div class="muted" style="margin-top:4px;line-height:1.7">${md(e.body)}</div>${e.media?.length?`<div class="thumbs">${e.media.map(m=>`<div class="photo" style="width:72px;height:72px" data-lb="${m.id}"><img src="${m.src}"></div>`).join('')}</div>`:''}<div class="installed"><div class="k">What this installed in me</div>${ed(`entries.#${e.id}.extra.installed`,{multi:true,ph:'The belief, fear, pattern, or capability this event left behind.'})}</div></div>`).join('')}
+        ${fe.map(e=>`${formativeCardHTML(e)}`).join('')}
         </div>
       </div>`; }).join('')}
-      ${memories.filter(e=>!(e.links?.substages||[]).length).length?`<div class="substage"><div class="hd"><h3 class="muted">Formative events not tied to a sub-stage</h3></div>${memories.filter(e=>!(e.links?.substages||[]).length).map(e=>`<div class="formative"><div class="row between"><b class="serif" style="font-size:1.1rem">${esc(e.title)}</b><span class="mono">${esc(fmtDate(e.occurredAt,'med'))} <button class="tbtn" data-edit="${e.id}">edit</button></span></div><button class="del-x" data-del="${e.id}" title="delete">×</button><div class="muted" style="margin-top:4px;line-height:1.7">${md(e.body)}</div><div class="installed"><div class="k">What this installed in me</div>${ed(`entries.#${e.id}.extra.installed`,{multi:true,ph:'The belief, fear, pattern, or capability this event left behind.'})}</div></div>`).join('')}</div>`:''}
+      ${memories.filter(e=>!(e.links?.substages||[]).length).length?`<div class="substage"><div class="hd"><h3 class="muted">Formative events not tied to a sub-stage</h3></div>${memories.filter(e=>!(e.links?.substages||[]).length).map(e=>`${formativeCardHTML(e)}`).join('')}</div>`:''}
     </section>
 
     <section class="section rv"><span class="sc">Threads present in this stage</span>
@@ -7050,6 +7104,8 @@ routes.stage = function(root, params){
   $$('[data-ssdown]',root).forEach(b => b.onclick = () => { const i=+b.dataset.ssdown; if(i<s.substages.length-1){ [s.substages[i+1],s.substages[i]]=[s.substages[i],s.substages[i+1]]; saveNow(); rerender(); } });
   $$('[data-ssphoto]',root).forEach(b => b.onclick = () => { const inp = el('<input type="file" accept="image/*" multiple hidden>'); document.body.appendChild(inp); inp.onchange = e => { readImages(e.target.files, img => { const ss = s.substages[+b.dataset.ssphoto]; ss.photos = ss.photos||[]; ss.photos.push(img); saveNow(); rerender(); }); inp.remove(); }; inp.click(); });
   $$('[data-ssmem]',root).forEach(b => b.onclick = () => openEntryModal({type:'memory', links:{stages:[s.id], substages:[b.dataset.ssmem]}}));
+  /* straight to the question, on an event already written down */
+  $$('[data-fmppl]',root).forEach(b => b.onclick = () => openEntryModal({entryId: b.dataset.fmppl, focusPeople: true}));
   /* the images are the ground the chapter is printed on; the grid of tiles is
      only for arranging them, so it stays folded until asked for */
   $$('[data-ssgal]',root).forEach(b => b.onclick = () => { const ss = s.substages[+b.dataset.ssgal];
@@ -8052,7 +8108,7 @@ routes.journals = function(root, params){
       <div class="jnav">${S.journals.map(x=>`<button class="${x.type===type?'active':''}" data-go="#/journals/${x.type}"><span>${typeIcon(x.type)} ${esc(x.name)}</span><span class="n">${S.entries.filter(e=>e.type===x.type).length}</span></button>`).join('')}<button id="jNew" style="color:var(--faint)">+ new journal type</button><button id="jManage" style="color:var(--faint);font-size:.75rem">manage journals…</button></div>
       <div>
         ${otd.length?`<div class="otd rv"><div class="sc">On this day</div>${otd.slice(0,2).map(e=>`<div class="serif" style="font-size:1.05rem;margin-top:6px">${esc(fmtDate(e.occurredAt,'med'))} — ${esc(e.title||e.body.slice(0,120))}</div>`).join('')}</div>`:`<div class="otd rv"><div class="sc">On this day</div><div class="quote">No ${esc(j.name.toLowerCase())} from this day in earlier years. You're making them now.</div></div>`}
-        <div class="jtools rv"><input class="inp" id="jq" placeholder="search title & body" value="${esc(S._jq||'')}"><input class="inp" type="date" id="jfrom" value="${from}" style="max-width:150px"><input class="inp" type="date" id="jto" value="${to}" style="max-width:150px"><select class="sel" id="jtag" style="max-width:200px"><option value="">any link</option>${dimOpts.map(([id,n])=>`<option value="${id}" ${tag===id?'selected':''}>${esc(n)}</option>`).join('')}</select><button class="btn sm ghost" id="jRandom" title="random entry">🎲</button><span class="mono">${filtered.length} of ${all.length}</span></div>
+        <div class="jtools rv"><input class="inp" id="jq" placeholder="search title & body" value="${esc(S._jq||'')}"><input class="inp" type="date" id="jfrom" value="${from}" style="max-width:126px"><input class="inp" type="date" id="jto" value="${to}" style="max-width:126px"><select class="sel" id="jtag" style="max-width:158px"><option value="">any link</option>${dimOpts.map(([id,n])=>`<option value="${id}" ${tag===id?'selected':''}>${esc(n)}</option>`).join('')}</select><button class="btn sm ghost" id="jRandom" title="random entry">🎲</button><span class="mono">${filtered.length} of ${all.length}</span><span class="jt-add" data-ctx-slot></span></div>
         ${type==='question'?'<p class="quote">Questions you are living with. They don\'t get archived; they sit open until an answer accumulates, or the framing turns out to have been wrong.</p>':''}
         ${type==='dream'?dreamDictionaryHTML():''}
         ${type==='synchronicity'?'<p class="quote">Entries flagged “revisit later” resurface in the Today page prompts. Synchronicities often only make sense in retrospect.</p>':''}
@@ -12389,7 +12445,13 @@ function mountContextAdd(main){
     ? opts.map((o,i) => `<button class="btn ${i?'':'primary'}" data-ctxopt="${i}" title="${esc(o.desc||'')}">＋ ${esc(o.label)}</button>`).join('')
     : `<button class="btn primary" id="ctxAddBtn" aria-label="${esc(cfg.addLabel)}">＋ ${esc(cfg.addLabel)}</button>`;
   const bar = el(`<div class="ctx-add" id="ctxAdd">${buttons}${cfg.hint ? `<span class="hint">${esc(cfg.hint)}</span>` : ''}</div>`);
-  page.insertBefore(bar, page.firstChild);
+  /* The add button belongs above the page by default. A page that has a better
+     place for it — Journals, where it reads as one control alongside the search
+     and the filters — marks that place with data-ctx-slot and gets it there
+     instead. Nothing else about the button changes. */
+  const slot = page.querySelector('[data-ctx-slot]');
+  if(slot){ bar.classList.add('inline'); slot.appendChild(bar); }
+  else page.insertBefore(bar, page.firstChild);
   bar.querySelector('#ctxAddBtn') && (bar.querySelector('#ctxAddBtn').onclick = () => runContextAdd(cfg));
   bar.querySelectorAll('[data-ctxopt]').forEach(b => b.onclick = () => opts[+b.dataset.ctxopt].run(cfg.prefilledFields || {}));
 }
@@ -12473,6 +12535,20 @@ function newSkillDialog(pre={}){
   };
   setTimeout(() => m.querySelector('#skName').focus(), 50);
 }
+
+/* What "who was there" means depends on what is being written down: a memory
+   asks who was present, a gratitude asks who to thank, a letter asks who it
+   concerns. Same field, same data — a different question. */
+const PEOPLE_LABEL = {
+  memory:        'Who was there — tag anyone this event involved',
+  lifeevent:     'Who was there — tag anyone this event involved',
+  artifact:      'Who this belonged to, or came from',
+  letter:        'Who this concerns',
+  gratitude:     'Who to thank for this',
+  synchronicity: 'Who else was part of it',
+  media:         'Who recommended it, or who you shared it with',
+};
+function peopleLabel(type){ return PEOPLE_LABEL[type] || 'People — tag anyone this involves'; }
 /* ============================================================
    THE LIBRARY (formerly the Commonplace Book) — media as a
    theory base for lived experience. Not a rating site: every
@@ -15223,7 +15299,7 @@ function maybeOfferStarter(){
 /* ============================================================
    11. GLOBAL ADD ENTRY MODAL
    ============================================================ */
-function openEntryModal({type='reflection', links={}, entryId=null, after=null, title='', occurredAt='', allowedTypes=null, heading='', openLinks=false}={}){
+function openEntryModal({type='reflection', links={}, entryId=null, after=null, title='', occurredAt='', allowedTypes=null, heading='', openLinks=false, focusPeople=false}={}){
   const existing = entryId ? byId(S.entries, entryId) : null;
   const e = existing ? JSON.parse(JSON.stringify(existing)) : {id:uid(),type,title,body:'',occurredAt:occurredAt||today(),createdAt:new Date().toISOString(),media:[],links:Object.assign({stages:[],substages:[],threads:[],values:[],visions:[],skills:[],projects:[],people:[]}, links),people:[],places:[],emotions:[],tags:[],confidence:'',extra:{}};
   const types = (allowedTypes && !existing) ? ENTRY_TYPES.filter(([t]) => allowedTypes.includes(t)) : ENTRY_TYPES;
@@ -15237,6 +15313,14 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
       <input class="inp serif-lg" id="eTitle" placeholder="Title (optional)" value="${esc(e.title)}">
       <textarea class="ta" id="eBody" placeholder="Body — markdown welcome. **bold**, *italic*, > quote, - list" style="min-height:120px">${esc(e.body)}</textarea>
       <div id="extraFields"></div>
+      <!-- Who was there is part of a memory, not an afterthought filed under
+           "connect this entry" — a formative event without its people is half
+           the record. It sits in the body of every entry now, and the label
+           says what the question means for this kind of entry. -->
+      <div class="field people-field" id="peopleField"><label id="peopleLabel">${esc(peopleLabel(e.type))}</label>
+        <input class="inp mono people-filter" id="ePplFilter" placeholder="find a name…" ${(S.people||[]).length > 8 ? '' : 'hidden'}>
+        <div class="deps people-deps" id="peopleChips">${(S.people||[]).map(p=>`<span class="chip click" style="--c:${(CIRCLES[p.circle]||CIRCLES.outer)[4]}" data-lk="people" data-id="${p.id}" data-pname="${esc(p.name.toLowerCase())}">${(CIRCLES[p.circle]||CIRCLES.outer)[0]} ${esc(p.name)}</span>`).join('')}<button type="button" class="chip click" id="eNewPerson" style="--c:var(--page-accent)">＋ someone new</button></div>
+        <div class="faint" style="font-size:.74rem" id="peopleHint"></div></div>
       <div class="field" id="tagField" ${TAGGABLE.includes(e.type)?'':'hidden'}><label>Hashtags — one thread through many entries</label><input class="inp mono" id="eTags" value="${esc((e.tags||[]).map(t=>'#'+t).join(' '))}" placeholder="#kyoto #jazz #beginnings" list="tagList"><datalist id="tagList">${allTags().map(([t,n])=>`<option value="#${esc(t)}">${n}</option>`).join('')}</datalist><div class="faint" style="font-size:.74rem">Typing #something in the body works too.</div></div>
       <div class="field"><label>Occurred at</label><input class="inp" id="eWhen" value="${esc(e.occurredAt)}" placeholder="2024-09-14 · or “Summer 2019” · or “age 15”"><div class="faint" style="font-size:.74rem">Exact dates sort precisely; approximate ones sort by year. Memories can be logged today about decades ago.</div></div>
       <div class="field"><label>Media</label><div class="dropzone" id="eDrop">drop images here, or click to choose</div><input type="file" id="eFile" accept="image/*" multiple hidden><div class="thumbs" id="eThumbs"></div></div>
@@ -15247,7 +15331,7 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
         <div class="field"><label>Values — click to link, click again to flip polarity, third click to unlink</label><div class="deps">${S.valueOrder.map(id=>{ const v=byId(S.values,id); return `<span class="chip click" style="--c:${v.color}" data-lk="values" data-id="${v.id}"><span class="pol"></span>${esc(v.name)}</span>`; }).join('')}</div></div>
         <div class="field"><label>Skills</label><div class="deps">${S.skills.map(s=>`<span class="chip click" style="--c:var(--ment)" data-lk="skills" data-id="${s.id}">${esc(s.name)}</span>`).join('')}</div></div>
         <div class="field"><label>Projects</label><div class="deps">${S.projects.map(p=>`<span class="chip click" style="--c:var(--terra)" data-lk="projects" data-id="${p.id}">${esc(p.name)}</span>`).join('')}</div></div>
-        <div class="grid c2" style="gap:8px"><div class="field" style="grid-column:1/-1"><label>People — tag anyone this involves</label><div class="deps" id="peopleChips">${(S.people||[]).map(p=>`<span class="chip click" style="--c:${(CIRCLES[p.circle]||CIRCLES.outer)[4]}" data-lk="people" data-id="${p.id}">${(CIRCLES[p.circle]||CIRCLES.outer)[0]} ${esc(p.name)}</span>`).join('')}<button type="button" class="chip click" id="eNewPerson" style="--c:var(--page-accent)">＋ someone new</button></div></div><div class="field"><label>Places</label><input class="inp" id="ePlaces" value="${esc(e.places.join(', '))}" list="placeList"><datalist id="placeList">${(S.places||[]).map(p=>`<option value="${esc(p)}">`).join('')}</datalist></div><div class="field"><label>Emotions</label><input class="inp" id="eEmo" value="${esc(e.emotions.join(', '))}"></div></div>
+        <div class="grid c2" style="gap:8px"><div class="field"><label>Places</label><input class="inp" id="ePlaces" value="${esc(e.places.join(', '))}" list="placeList"><datalist id="placeList">${(S.places||[]).map(p=>`<option value="${esc(p)}">`).join('')}</datalist></div><div class="field"><label>Emotions</label><input class="inp" id="eEmo" value="${esc(e.emotions.join(', '))}"></div></div>
         <div class="field"><label>Confidence (for future-facing entries)</label><div class="ladder">${CONF.map(c=>`<button data-conf="${c}" class="${e.confidence===c?'on':''}">${c}</button>`).join('')}</div></div>
       </div></details>
       <div class="row between"><span class="faint" style="font-size:.78rem" id="linkNudge"></span><button class="btn primary" id="eSave" style="padding:12px 28px;font-size:1rem">${existing?'Save changes':'Save entry'}</button></div>
@@ -15275,7 +15359,7 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
       + pick('depth','How deep did you go', [['surface','surface'],['sitting','sitting with it'],['breakthrough','breakthrough']]);
     if(t==='gratitude') html = f('gratWhy','Why does this matter to me? (required)','“My health” becomes “I could run with my dog this morning without pain.”',true)
       + pick('novelty','New, or ongoing', [['new','something new'],['ongoing','something ongoing']], 'Over time this shows whether the practice is deepening or running on autopilot.')
-      + `<div class="faint" style="font-size:.78rem">Who contributed to this? Tag them under “Connect this entry” — gratitude becomes relational.</div>`;
+      + `<div class="faint" style="font-size:.78rem">Tag whoever contributed, just below — gratitude becomes relational.</div>`;
     if(t==='synchronicity') html = f('preceded','What preceded it','What were you thinking about, doing, asking?',true) + f('read','What I read into it','',true)
       + pick('conf','How convinced are you', [['noise','noise'],['curious','curious'],['significant','significant'],['unmistakable','unmistakable']])
       + `<label class="toggle ${x().revisit?'on':''}" id="xRevisit"><span class="sw"></span><span>revisit later — resurface this in Today's prompts</span></label>`;
@@ -15322,20 +15406,35 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
     box.classList.remove('drawn'); box.innerHTML = entryInkSVG(e.type);
     requestAnimationFrame(() => box.classList.add('drawn')); };
   paintInk();
-  m.querySelectorAll('#typeRow button').forEach(b => b.onclick = () => { e.type = b.dataset.t; m.querySelectorAll('#typeRow button').forEach(y=>y.classList.toggle('on', y===b)); if(e.type==='nod'){ m.remove(); openNodModal(); return; } renderExtra(); paintInk(); m.querySelector('#tagField').hidden = !TAGGABLE.includes(e.type); });
+  m.querySelectorAll('#typeRow button').forEach(b => b.onclick = () => { e.type = b.dataset.t; m.querySelectorAll('#typeRow button').forEach(y=>y.classList.toggle('on', y===b)); if(e.type==='nod'){ m.remove(); openNodModal(); return; } renderExtra(); paintInk(); m.querySelector('#tagField').hidden = !TAGGABLE.includes(e.type); relabelPeople(); });
+  /* the question the field is asking depends on what is being written */
+  const relabelPeople = () => { const l = m.querySelector('#peopleLabel'); if(l) l.textContent = peopleLabel(e.type); };
+  const pplFilter = m.querySelector('#ePplFilter');
+  if(pplFilter) pplFilter.oninput = () => { const q = pplFilter.value.trim().toLowerCase();
+    m.querySelectorAll('#peopleChips [data-pname]').forEach(c => {
+      c.hidden = !!q && !c.dataset.pname.includes(q) && !c.classList.contains('on'); }); };
   const npBtn = m.querySelector('#eNewPerson');
   if(npBtn) npBtn.onclick = () => {
     const name = prompt('Who?'); if(!name || !name.trim()) return;
     const p = newPerson(name.trim()); S.people.push(p); saveNow();
     e.links.people = e.links.people || []; e.links.people.push(p.id);
     const chips = m.querySelector('#peopleChips');
-    chips.insertAdjacentHTML('afterbegin', `<span class="chip click on" style="--c:${(CIRCLES[p.circle]||CIRCLES.outer)[4]}" data-lk="people" data-id="${p.id}">${(CIRCLES[p.circle]||CIRCLES.outer)[0]} ${esc(p.name)}</span>`);
+    chips.insertAdjacentHTML('afterbegin', `<span class="chip click on" style="--c:${(CIRCLES[p.circle]||CIRCLES.outer)[4]}" data-lk="people" data-id="${p.id}" data-pname="${esc(p.name.toLowerCase())}">${(CIRCLES[p.circle]||CIRCLES.outer)[0]} ${esc(p.name)}</span>`);
     bindLk(chips.firstElementChild);
   };
-  const syncChips = () => { m.querySelectorAll('[data-lk]').forEach(c => { const k = c.dataset.lk, id = c.dataset.id; const arr = e.links[k]; const hit = arr.find(v => (typeof v==='string'?v:v.id)===id); c.classList.toggle('on', !!hit); if(k==='values') c.querySelector('.pol').textContent = hit ? hit.pol : ''; }); const n = Object.values(e.links).reduce((a,b)=>a+b.length,0); m.querySelector('#linkCount').textContent = n ? `${n} linked` : ''; m.querySelector('#linkNudge').textContent = n ? '' : 'Consider linking this to a stage, a value, or a vision — that is how the house connects.'; const subs = e.links.stages.flatMap(sid => (byId(S.stages,sid)?.substages||[]).map(ss=>({...ss, hue:byId(S.stages,sid).hue}))); m.querySelector('#subField').style.display = subs.length?'':'none'; m.querySelector('#subChips').innerHTML = subs.map(ss=>`<span class="chip click ${e.links.substages.includes(ss.id)?'on':''}" style="--c:${ss.hue}" data-sub="${ss.id}">${esc(ss.name)}</span>`).join(''); m.querySelectorAll('[data-sub]').forEach(c => c.onclick = () => { const id = c.dataset.sub; e.links.substages = e.links.substages.includes(id) ? e.links.substages.filter(y=>y!==id) : [...e.links.substages,id]; syncChips(); }); };
+  const syncChips = () => { m.querySelectorAll('[data-lk]').forEach(c => { const k = c.dataset.lk, id = c.dataset.id; const arr = e.links[k]; const hit = arr.find(v => (typeof v==='string'?v:v.id)===id); c.classList.toggle('on', !!hit); if(k==='values') c.querySelector('.pol').textContent = hit ? hit.pol : ''; }); const n = Object.values(e.links).reduce((a,b)=>a+b.length,0); m.querySelector('#linkCount').textContent = n ? `${n} linked` : '';
+    const np = e.links.people.length; const ph_ = m.querySelector('#peopleHint');
+    if(ph_) ph_.textContent = np ? `${np} tagged — they will show on this entry, and it will show on theirs`
+      : ((S.people||[]).length ? 'Nobody tagged yet.' : 'No one in People yet — “＋ someone new” adds them here.'); m.querySelector('#linkNudge').textContent = n ? '' : 'Consider linking this to a stage, a value, or a vision — that is how the house connects.'; const subs = e.links.stages.flatMap(sid => (byId(S.stages,sid)?.substages||[]).map(ss=>({...ss, hue:byId(S.stages,sid).hue}))); m.querySelector('#subField').style.display = subs.length?'':'none'; m.querySelector('#subChips').innerHTML = subs.map(ss=>`<span class="chip click ${e.links.substages.includes(ss.id)?'on':''}" style="--c:${ss.hue}" data-sub="${ss.id}">${esc(ss.name)}</span>`).join(''); m.querySelectorAll('[data-sub]').forEach(c => c.onclick = () => { const id = c.dataset.sub; e.links.substages = e.links.substages.includes(id) ? e.links.substages.filter(y=>y!==id) : [...e.links.substages,id]; syncChips(); }); };
   const bindLk = c => { c.onclick = () => { const k = c.dataset.lk, id = c.dataset.id; const arr = e.links[k]; if(k==='values'){ const i = arr.findIndex(v=>v.id===id); if(i<0) arr.push({id,pol:'+'}); else if(arr[i].pol==='+') arr[i].pol='−'; else arr.splice(i,1); } else { const i = arr.indexOf(id); if(i<0) arr.push(id); else arr.splice(i,1); } syncChips(); }; };
   m.querySelectorAll('[data-lk]').forEach(bindLk);
   syncChips();
+  /* opened from "who was there": put the reader in front of the question */
+  if(focusPeople) requestAnimationFrame(() => {
+    const f = m.querySelector('#peopleField');
+    if(f){ f.scrollIntoView({block:'center', behavior:'smooth'}); f.classList.add('flash'); }
+    m.querySelector('#ePplFilter')?.focus({preventScroll:true});
+  });
   m.querySelectorAll('[data-conf]').forEach(b => b.onclick = () => { e.confidence = e.confidence===b.dataset.conf ? '' : b.dataset.conf; m.querySelectorAll('[data-conf]').forEach(y=>y.classList.toggle('on', y.dataset.conf===e.confidence)); });
   const thumbs = m.querySelector('#eThumbs'); const drawThumbs = () => { thumbs.innerHTML = e.media.map(md_=>`<div style="display:flex;flex-direction:column;gap:4px;width:120px"><img src="${md_.src}" style="width:120px;height:80px"><input class="inp" style="padding:3px 6px;font-size:.7rem" placeholder="caption" value="${esc(md_.caption)}" data-cap="${md_.id}"><input class="inp" style="padding:3px 6px;font-size:.7rem" placeholder="people" value="${esc((md_.people||[]).join(', '))}" data-ppl="${md_.id}"><button class="tbtn" data-rm="${md_.id}">remove</button></div>`).join(''); thumbs.querySelectorAll('[data-cap]').forEach(i=>i.oninput=()=>byId(e.media,i.dataset.cap).caption=i.value); thumbs.querySelectorAll('[data-ppl]').forEach(i=>i.oninput=()=>byId(e.media,i.dataset.ppl).people=i.value.split(',').map(s=>s.trim()).filter(Boolean)); thumbs.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{ e.media = e.media.filter(y=>y.id!==b.dataset.rm); drawThumbs(); }); }; drawThumbs();
   const dz = m.querySelector('#eDrop'); dz.onclick = () => m.querySelector('#eFile').click(); m.querySelector('#eFile').onchange = ev => readImages(ev.target.files, img => { e.media.push(img); drawThumbs(); }); dz.ondragover = ev => { ev.preventDefault(); dz.classList.add('over'); }; dz.ondragleave = () => dz.classList.remove('over'); dz.ondrop = ev => { ev.preventDefault(); dz.classList.remove('over'); readImages(ev.dataTransfer.files, img => { e.media.push(img); drawThumbs(); }); };

@@ -263,6 +263,10 @@ html[data-motion] .rv.in{transform:none}
 .ctx-add{display:flex;align-items:center;gap:14px;margin:34px 0 22px}
 @media (max-width:900px){.ctx-add{margin-top:38px}}
 .ctx-add .hint{font-family:var(--quote);font-style:italic;color:var(--faint);font-size:.85rem}
+/* the same bar, sitting in a row of controls rather than above the page */
+.ctx-add.inline{margin:0;gap:8px}
+.ctx-add.inline .btn{padding:7px 14px;font-size:.82rem}
+.ctx-add.inline .hint{display:none}
 .choice{display:flex;gap:12px;align-items:flex-start;text-align:left;width:100%;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer;transition:border-color .2s var(--ease)}
 .choice:hover{border-color:var(--page-accent)}
 .choice .ico{font-family:var(--serif);font-size:1.2rem;color:var(--page-accent);min-width:20px}

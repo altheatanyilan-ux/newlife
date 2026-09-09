@@ -1030,8 +1030,18 @@ details.era-lived[open] > summary::before{transform:rotate(90deg)}
 .jnav button:hover{color:var(--text);background:var(--surface-2)}
 .jnav button.active{color:var(--text);background:var(--surface);border-left:2px solid var(--page-accent)}
 .jnav button .n{font-family:var(--mono);font-size:.62rem;color:var(--faint)}
-.jtools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;align-items:center}
+/* One line: search, the two dates, the link filter, the dice, the count, and
+   the add button at the far end. The search takes whatever room is left rather
+   than holding a fixed width and pushing the button onto a second row. */
+.jtools{display:flex;gap:8px;flex-wrap:nowrap;margin-bottom:18px;align-items:center}
 .jtools .inp{max-width:260px}
+.jtools #jq{flex:1 1 220px;min-width:150px}
+.jtools .mono{flex:none;white-space:nowrap;font-size:.72rem}
+/* the add button rides at the end of the row, pushed right so it reads as the
+   one action among the filters rather than another filter */
+.jt-add{margin-left:auto;display:flex;align-items:center;flex:none}
+@media (max-width:1000px){.jtools{flex-wrap:wrap}}
+@media (max-width:620px){.jt-add{margin-left:0;width:100%}}
 .otd{background:linear-gradient(135deg,color-mix(in srgb,var(--gold) 8%,transparent),transparent);border:1px solid var(--line);border-radius:12px;padding:16px 20px;margin-bottom:22px}
 .answer-log{margin-top:10px;padding-left:12px;border-left:2px solid var(--line-2)}
 .answer-log .a{padding:6px 0;font-size:.9rem}
@@ -2326,6 +2336,23 @@ select.sm-active{border-color:var(--page-accent);
 @media (max-width:760px){.ph-plant{opacity:.66}}
 @media (prefers-reduced-motion:reduce){
   .ph-bloom{animation:none}.ph-bloom svg{animation:none}}
+
+/* ---------- who was there ----------
+   The people on an entry used to live at the bottom of "connect this entry",
+   folded shut. On a memory that is the wrong place for them: who was there is
+   part of the event, not a cross-reference to it. */
+.people-field .people-deps{display:flex;flex-wrap:wrap;gap:6px;max-height:132px;overflow-y:auto;
+  padding:2px;scrollbar-width:thin}
+.people-field .people-filter{margin-bottom:7px;font-size:.78rem;padding:6px 10px;
+  border-color:color-mix(in srgb,var(--line-2) 70%,transparent)}
+.people-field.flash{animation:pplFlash 1.5s var(--ease)}
+@keyframes pplFlash{
+  0%,100%{box-shadow:none}
+  22%{box-shadow:0 0 0 3px color-mix(in srgb,var(--page-accent) 32%,transparent);border-radius:10px}}
+/* the people on a formative event, on the card itself */
+.fm-people{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.fm-people .chip{text-decoration:none;font-size:.76rem}
+@media (prefers-reduced-motion:reduce){.people-field.flash{animation:none}}
 
 /* ---------- the hierarchy of needs ----------
    Eight tiers to a point. Each carries its own hue so a level is told apart

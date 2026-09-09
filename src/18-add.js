@@ -46,7 +46,13 @@ function mountContextAdd(main){
     ? opts.map((o,i) => `<button class="btn ${i?'':'primary'}" data-ctxopt="${i}" title="${esc(o.desc||'')}">＋ ${esc(o.label)}</button>`).join('')
     : `<button class="btn primary" id="ctxAddBtn" aria-label="${esc(cfg.addLabel)}">＋ ${esc(cfg.addLabel)}</button>`;
   const bar = el(`<div class="ctx-add" id="ctxAdd">${buttons}${cfg.hint ? `<span class="hint">${esc(cfg.hint)}</span>` : ''}</div>`);
-  page.insertBefore(bar, page.firstChild);
+  /* The add button belongs above the page by default. A page that has a better
+     place for it — Journals, where it reads as one control alongside the search
+     and the filters — marks that place with data-ctx-slot and gets it there
+     instead. Nothing else about the button changes. */
+  const slot = page.querySelector('[data-ctx-slot]');
+  if(slot){ bar.classList.add('inline'); slot.appendChild(bar); }
+  else page.insertBefore(bar, page.firstChild);
   bar.querySelector('#ctxAddBtn') && (bar.querySelector('#ctxAddBtn').onclick = () => runContextAdd(cfg));
   bar.querySelectorAll('[data-ctxopt]').forEach(b => b.onclick = () => opts[+b.dataset.ctxopt].run(cfg.prefilledFields || {}));
 }
@@ -130,3 +136,17 @@ function newSkillDialog(pre={}){
   };
   setTimeout(() => m.querySelector('#skName').focus(), 50);
 }
+
+/* What "who was there" means depends on what is being written down: a memory
+   asks who was present, a gratitude asks who to thank, a letter asks who it
+   concerns. Same field, same data — a different question. */
+const PEOPLE_LABEL = {
+  memory:        'Who was there — tag anyone this event involved',
+  lifeevent:     'Who was there — tag anyone this event involved',
+  artifact:      'Who this belonged to, or came from',
+  letter:        'Who this concerns',
+  gratitude:     'Who to thank for this',
+  synchronicity: 'Who else was part of it',
+  media:         'Who recommended it, or who you shared it with',
+};
+function peopleLabel(type){ return PEOPLE_LABEL[type] || 'People — tag anyone this involves'; }
