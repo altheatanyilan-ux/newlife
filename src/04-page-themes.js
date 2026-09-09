@@ -73,13 +73,56 @@ function decoratePageHead(main){
   $$('.page-head', main).forEach(h => {
     if(h.querySelector(':scope > .ph-rule')) return;
     h.insertBefore(el('<i class="ph-rule" aria-hidden="true"></i>'), h.firstChild);
-    /* and whatever grows on this room's banner — pine for the Compass, bamboo
-       for Journals, plum in blossom for Values. One plant per room, drawn in
-       the room's own accent, behind the words. */
-    if(typeof bannerPlantSVG === 'function'){
+    /* and whatever blooms on this room's banner — plum for Values, buds for
+       Journals, a doubled peony for Writing. Flowers only, in the room's own
+       accent, and only in the gaps the words leave. */
+    if(typeof bannerBloomsHTML === 'function'){
       const w = el('<div class="ph-plant" aria-hidden="true"></div>');
-      w.innerHTML = bannerPlantSVG(key);
       h.insertBefore(w, h.firstChild);
+      plantBlooms(h, w, key);
     }
   });
+}
+
+/* ---------- keeping the flowers off the words ----------
+   Not a guess about where a title ends: the actual line boxes of every run of
+   text in the banner, plus every control in it, measured and handed to the
+   scatter as ground it may not use. A two-line title therefore pushes the
+   flowers out rather than getting flowers on top of it. */
+function phWordRects(h, plant){
+  const hb = h.getBoundingClientRect();
+  if(!hb.width || !hb.height) return null;
+  const rects = [];
+  const add = r => { if(r.width > 1 && r.height > 1) rects.push(r); };
+  const walk = document.createTreeWalker(h, NodeFilter.SHOW_TEXT, {
+    acceptNode: n => (n.nodeValue.trim() && !plant.contains(n))
+      ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT });
+  const range = document.createRange();
+  let n; while((n = walk.nextNode())){ range.selectNodeContents(n); Array.from(range.getClientRects()).forEach(add); }
+  /* a button or a chart in the head is as much "the words" as the title is */
+  h.querySelectorAll('button,input,select,textarea,a,svg,img,.toggle,.btn').forEach(e => {
+    if(!plant.contains(e)) add(e.getBoundingClientRect()); });
+  if(!rects.length) return {box:{w:hb.width, h:hb.height}, keep:[]};
+  /* wider clearance beside a word than above it: a banner is short, and the
+     shallow band under a one-line title is usable room a 14px cushion would
+     spend entirely on itself */
+  const mx = 16, my = 9;
+  return {box:{w: hb.width, h: hb.height}, keep: rects.map(r => ({
+    x0: (r.left  - hb.left - mx) / hb.width,  x1: (r.right  - hb.left + mx) / hb.width,
+    y0: (r.top   - hb.top  - my) / hb.height, y1: (r.bottom - hb.top  + my) / hb.height}))};
+}
+function plantBlooms(h, plant, key){
+  const m = phWordRects(h, plant);
+  if(!m) return;                                   // laid out to nothing yet; the observer will call back
+  const sig = Math.round(m.box.w) + 'x' + Math.round(m.box.h) + ':' + m.keep.length;
+  if(plant.dataset.sig === sig) return;            // same shape, same flowers — don't restart them
+  plant.dataset.sig = sig;
+  plant.innerHTML = bannerBloomsHTML(key, m.keep, m.box);
+  /* a banner reflows when the window does, or when its own content settles a
+     frame later; re-measure once rather than leaving flowers where the words
+     have since moved to */
+  if(!plant._ro && typeof ResizeObserver === 'function'){
+    plant._ro = new ResizeObserver(() => { if(h.isConnected) plantBlooms(h, plant, key); });
+    plant._ro.observe(h);
+  }
 }

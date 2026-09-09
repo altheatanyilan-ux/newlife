@@ -172,140 +172,171 @@ function entryInkSVG(type){
 }
 
 /* ============================================================
-   WHAT GROWS ON A BANNER
+   WHAT BLOOMS ON A BANNER
 
-   Each room gets a plant along the head of its page — not the same
-   ornament recoloured twelve times, but twelve different growths
-   from one set of brushes: a stem, a leaf shape, and something
-   that opens on it. Pine for the Compass, bamboo for Journals,
-   plum in blossom for Values, an orchid for Writing, wheat for
-   Finance, willow trailing over the Timeline.
+   Each room's banner carries flowers, and nothing else. There was a
+   climbing plant here once — stems drawing themselves across the head
+   of the page, leaves opening along them, the whole growth slowly
+   turning — and every one of those movements happened underneath the
+   title, which is precisely where a reader is looking. Growth is a
+   travelling animation; it cannot help crossing whatever it passes.
 
-   Drawn in the page's own accent at low opacity, behind the words,
-   growing in when the page arrives.
+   A blossom does not travel. It opens where it is and then only
+   breathes. So the ornament is now a scatter of flowers, each placed
+   in a gap the words do not occupy, sized to fit that gap, opening on
+   its own beat and afterwards barely moving at all.
+
+   Where the gaps are is not guessed. Before a banner is drawn, the
+   line boxes of its own text and controls are measured, and every
+   flower is tested against them — so a long title simply gets fewer
+   flowers, further out, rather than flowers over the top of it.
    ============================================================ */
-const BP_W = 900, BP_H = 170;
 
-/* a stem: a run of points, smoothed, thinning as it climbs */
-function bpStem(pts, w0 = 3.4, w1 = .7){
-  let d = `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
-  for(let i = 1; i < pts.length; i++){
-    const [px, py] = pts[i - 1], [x, y] = pts[i];
-    d += ` Q${px.toFixed(1)},${py.toFixed(1)} ${((px + x) / 2).toFixed(1)},${((py + y) / 2).toFixed(1)}`;
-  }
-  d += ` L${pts[pts.length-1][0].toFixed(1)},${pts[pts.length-1][1].toFixed(1)}`;
-  /* two strokes, the second thinner and shorter, so the line tapers the way a
-     loaded brush does as it runs out */
-  return `<path class="bp-stem" d="${d}" fill="none" stroke="currentColor" stroke-width="${w0}" stroke-linecap="round" opacity=".5"/>
-          <path class="bp-stem" d="${d}" fill="none" stroke="currentColor" stroke-width="${w1}" stroke-linecap="round" opacity=".8"/>`;
-}
-/* a point along a polyline, and the direction it is heading */
-function bpAt(pts, t){
-  const n = pts.length - 1, f = clamp(t, 0, .999) * n, i = Math.floor(f), k = f - i;
-  const [x0, y0] = pts[i], [x1, y1] = pts[Math.min(i + 1, n)];
-  return {x: x0 + (x1 - x0) * k, y: y0 + (y1 - y0) * k,
-          a: Math.atan2(y1 - y0, x1 - x0) * 180 / Math.PI};
-}
-const BP_LEAF = {
-  oval:   s => `M0,0 Q${s*.9},${-s*.6} ${s*1.9},0 Q${s*.9},${s*.6} 0,0Z`,
-  lance:  s => `M0,0 Q${s*1.1},${-s*.34} ${s*2.6},0 Q${s*1.1},${s*.34} 0,0Z`,
-  ivy:    s => `M0,0 Q${s*.5},${-s*.95} ${s*1.2},${-s*.5} Q${s*1.7},${-s*.1} ${s*2},0 Q${s*1.7},${s*.1} ${s*1.2},${s*.5} Q${s*.5},${s*.95} 0,0Z`,
-  needle: s => `M0,0 L${s*2.2},${-s*.12} L${s*2.2},${s*.12}Z`,
-  grain:  s => `M0,0 Q${s*.7},${-s*.5} ${s*1.3},${-s*.08} Q${s*.7},${s*.2} 0,0Z`,
-  blade:  s => `M0,0 Q${s*1.6},${-s*.5} ${s*3.2},${-s*.1} Q${s*1.6},${s*.25} 0,0Z`,
+/* five brushes, all of them a whole flower rather than something that
+   needs a branch under it to make sense */
+const BLOOM_FORMS = {
+  /* plum: five round petals, a few stamens — the ink painter's flower */
+  plum: (r, k) => {
+    const petals = [0,1,2,3,4].map(q => {
+      const a = q * 72 + (k * 17) % 40;
+      return `<circle cx="0" cy="${(-r*.56).toFixed(2)}" r="${(r*.46).toFixed(2)}"
+                transform="rotate(${a})" fill="currentColor" opacity=".55"/>`; }).join('');
+    const stamens = [0,1,2,3,4,5].map(q => { const a = q * 60 + 12;
+      return `<line x1="0" y1="0" x2="0" y2="${(-r*.44).toFixed(2)}" transform="rotate(${a})"
+                stroke="currentColor" stroke-width="${(r*.055).toFixed(2)}" opacity=".5"/>`; }).join('');
+    return `${petals}${stamens}<circle r="${(r*.15).toFixed(2)}" fill="currentColor" opacity=".8"/>`;
+  },
+  /* a wider, pointed five — apricot, or anything that opens flat */
+  open: (r, k) => {
+    const petals = [0,1,2,3,4].map(q => { const a = q * 72 + (k * 23) % 72;
+      return `<path d="M0,0 Q${(r*.42).toFixed(2)},${(-r*.5).toFixed(2)} 0,${(-r).toFixed(2)}
+                        Q${(-r*.42).toFixed(2)},${(-r*.5).toFixed(2)} 0,0Z"
+                transform="rotate(${a})" fill="currentColor" opacity=".52"/>`; }).join('');
+    return `${petals}<circle r="${(r*.17).toFixed(2)}" fill="currentColor" opacity=".78"/>`;
+  },
+  /* two rings of petals, offset — camellia, peony, anything doubled */
+  layered: (r, k) => {
+    const ring = (rad, op, n, off) => [...Array(n)].map((_, q) => {
+      const a = q * (360 / n) + off + (k * 11) % 30;
+      return `<ellipse cx="0" cy="${(-rad*.54).toFixed(2)}" rx="${(rad*.36).toFixed(2)}" ry="${(rad*.54).toFixed(2)}"
+                transform="rotate(${a})" fill="currentColor" opacity="${op}"/>`; }).join('');
+    return `${ring(r, '.4', 6, 0)}${ring(r*.66, '.6', 5, 30)}<circle r="${(r*.14).toFixed(2)}" fill="currentColor" opacity=".82"/>`;
+  },
+  /* not yet open: a tight teardrop with its sepals still around it */
+  bud: (r) => `<path d="M0,${(r*.62).toFixed(2)} q${(-r*.46).toFixed(2)},${(-r*.62).toFixed(2)} 0,${(-r*1.3).toFixed(2)}
+                        q${(r*.46).toFixed(2)},${(r*.62).toFixed(2)} 0,${(r*1.3).toFixed(2)}z"
+                 fill="currentColor" opacity=".58"/>
+               <path d="M${(-r*.3).toFixed(2)},${(r*.5).toFixed(2)} q${(r*.3).toFixed(2)},${(-r*.3).toFixed(2)} ${(r*.6).toFixed(2)},0"
+                 fill="none" stroke="currentColor" stroke-width="${(r*.09).toFixed(2)}" opacity=".5"/>`,
+  /* one petal, already loose — the thing that makes a scatter read as fallen */
+  petal: (r) => `<path d="M0,${(-r*.6).toFixed(2)} q${(r*.52).toFixed(2)},${(r*.4).toFixed(2)} 0,${(r*1.2).toFixed(2)}
+                          q${(-r*.52).toFixed(2)},${(-r*.8).toFixed(2)} 0,${(-r*1.2).toFixed(2)}z"
+                   fill="currentColor" opacity=".46"/>`,
 };
-function bpLeaf(x, y, ang, s, shape = 'oval', op = .34){
-  return `<g class="bp-leaf" transform="translate(${x.toFixed(1)},${y.toFixed(1)}) rotate(${ang.toFixed(1)})">
-    <path d="${(BP_LEAF[shape] || BP_LEAF.oval)(s)}" fill="currentColor" opacity="${op}"/></g>`;
-}
-/* the thing that opens: five petals, a tight bud, a berry, or an ear of grain */
-function bpBloom(x, y, r, kind, i = 0){
-  if(kind === 'none') return '';
-  if(kind === 'berry') return `<circle class="bp-bloom" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="currentColor" opacity=".66"/>`;
-  if(kind === 'bud')   return `<g class="bp-bloom" style="--d:${(i*.13).toFixed(2)}s"><path d="M${x.toFixed(1)},${(y+r*1.3).toFixed(1)} q${(-r*.8).toFixed(1)},${(-r*1.1).toFixed(1)} 0,${(-r*2.2).toFixed(1)} q${(r*.8).toFixed(1)},${(r*1.1).toFixed(1)} 0,${(r*2.2).toFixed(1)}z" fill="currentColor" opacity=".6"/></g>`;
-  if(kind === 'ear'){
-    let g = '';
-    for(let k = 0; k < 5; k++){ const yy = y - k * r * 1.15;
-      g += `<path d="M${x.toFixed(1)},${yy.toFixed(1)} q${(r*1.2).toFixed(1)},${(-r*.5).toFixed(1)} ${(r*1.9).toFixed(1)},${(-r*.15).toFixed(1)} q${(-r*1.1).toFixed(1)},${(r*.5).toFixed(1)} ${(-r*1.9).toFixed(1)},${(r*.15).toFixed(1)}z" fill="currentColor" opacity=".58"/>
-            <path d="M${x.toFixed(1)},${yy.toFixed(1)} q${(-r*1.2).toFixed(1)},${(-r*.5).toFixed(1)} ${(-r*1.9).toFixed(1)},${(-r*.15).toFixed(1)} q${(r*1.1).toFixed(1)},${(r*.5).toFixed(1)} ${(r*1.9).toFixed(1)},${(r*.15).toFixed(1)}z" fill="currentColor" opacity=".58"/>`; }
-    return `<g class="bp-bloom" style="--d:${(i*.13).toFixed(2)}s">${g}</g>`;
-  }
-  /* an open flower: five petals and a heart */
-  const petals = [0,1,2,3,4].map(q => { const a = q * 72 + (i * 23) % 72;
-    return `<ellipse cx="0" cy="${(-r*.62).toFixed(2)}" rx="${(r*.42).toFixed(2)}" ry="${(r*.62).toFixed(2)}" transform="rotate(${a})" fill="currentColor" opacity=".62"/>`; }).join('');
-  return `<g class="bp-bloom" style="--d:${(i*.13).toFixed(2)}s" transform="translate(${x.toFixed(1)},${y.toFixed(1)})">${petals}<circle r="${(r*.26).toFixed(2)}" fill="currentColor" opacity=".75"/></g>`;
-}
 
-/* one entry per room: the shape of the stem, what its leaves are, and what
-   opens on it. `climb` is how steeply it rises; `reach` how far it runs. */
-const BANNER_PLANTS = {
-  compass:    {leaf:'needle', bloom:'none',  n:18, reach:.30, climb:.86, size:20, arc:.30},
-  today:      {leaf:'ivy',    bloom:'open',  n:10, reach:.44, climb:.74, size:19, arc:.55, blooms:3},
-  journals:   {leaf:'lance',  bloom:'none',  n:11, reach:.20, climb:.94, size:24, arc:.06, culm:true},
-  values:     {leaf:'oval',   bloom:'plum',  n:7,  reach:.40, climb:.66, size:15, arc:.42, blooms:6},
-  skills:     {leaf:'oval',   bloom:'bud',   n:12, reach:.34, climb:.88, size:19, arc:.24, blooms:3},
-  projects:   {leaf:'ivy',    bloom:'berry', n:13, reach:.52, climb:.60, size:17, arc:.66, blooms:4, tendril:true},
-  finance:    {leaf:'lance',  bloom:'ear',   n:8,  reach:.28, climb:.90, size:21, arc:.10, blooms:3},
-  commonplace:{leaf:'ivy',    bloom:'none',  n:15, reach:.56, climb:.52, size:17, arc:.72, tendril:true},
-  people:     {leaf:'oval',   bloom:'open',  n:9,  reach:.42, climb:.70, size:17, arc:.46, blooms:5},
-  timeline:   {leaf:'blade',  bloom:'none',  n:14, reach:.48, climb:.40, size:20, arc:.80, weep:true},
-  writing:    {leaf:'blade',  bloom:'plum',  n:8,  reach:.34, climb:.78, size:26, arc:.34, blooms:2},
-  settings:   {leaf:'lance',  bloom:'none',  n:9,  reach:.22, climb:.84, size:19, arc:.14},
+/* one entry per room: which flowers, how many, how big, how loose the
+   scatter. No two rooms bloom the same. */
+const BANNER_BLOOMS = {
+  compass:    {forms:['plum','plum','bud'],      n:5, size:[22,40], drift:2},
+  today:      {forms:['open','plum'],            n:6, size:[22,42], drift:3},
+  journals:   {forms:['bud','plum'],             n:5, size:[20,36], drift:2},
+  values:     {forms:['plum','plum','layered'],  n:6, size:[24,44], drift:3},
+  skills:     {forms:['open','bud'],             n:5, size:[21,38], drift:2},
+  projects:   {forms:['layered','open'],         n:5, size:[24,42], drift:3},
+  finance:    {forms:['open','plum'],            n:5, size:[20,37], drift:2},
+  commonplace:{forms:['plum','open'],            n:6, size:[21,40], drift:3},
+  people:     {forms:['layered','plum'],         n:6, size:[22,42], drift:3},
+  timeline:   {forms:['plum','open'],            n:7, size:[19,38], drift:4},
+  writing:    {forms:['layered','plum'],         n:4, size:[26,46], drift:2},
+  settings:   {forms:['plum','bud'],             n:4, size:[19,34], drift:2},
 };
-function bannerPlant(key){ return BANNER_PLANTS[key] || BANNER_PLANTS.compass; }
+function bannerBloom(key){ return BANNER_BLOOMS[key] || BANNER_BLOOMS.compass; }
 
-function bannerPlantSVG(key){
-  const p = bannerPlant(key);
-  const r = mulberry32(hashSeed('banner:' + key));
+/* does a flower of radius (fw, fh) at (x, y) — all fractions of the banner —
+   land on anything the reader is reading? */
+function bloomClear(x, y, fw, fh, keep){
+  /* a flower whose disc crosses the banner's own edge is a half flower: the
+     head is clipped, and rounded at the corners besides */
+  if(x - fw < .012 || x + fw > .988 || y - fh < .04 || y + fh > .96) return false;
+  return !keep.some(k => x + fw > k.x0 && x - fw < k.x1 && y + fh > k.y0 && y - fh < k.y1);
+}
 
-  /* one growth: a stem from the bottom edge, its leaves, and what opens on it.
-     Each room gets a main climb plus a shorter companion shoot or two, because
-     a single stem reads as a stray twig rather than something growing. */
-  const growth = (x0, scale, reachMul, bloomN, phase) => {
-    const y0 = BP_H + 8;
-    const top = BP_H * (1 - p.climb * scale);
-    const far = BP_W * p.reach * reachMul;
-    const pts = [];
-    const STEPS = 7;
-    for(let i = 0; i <= STEPS; i++){
-      const t = i / STEPS;
-      const x = x0 + far * t + BP_W * p.arc * reachMul * t * t * .55;
-      let y = y0 - (y0 - top) * Math.pow(t, .78);
-      if(p.weep) y = top + (y0 - top) * Math.pow(t, 1.9) * .55;    // willow falls again
-      pts.push([x, y + (r() - .5) * 6]);
-    }
-    let g = bpStem(pts, (p.culm ? 7 : 5) * scale, (p.culm ? 2.6 : 1.2) * scale);
-    if(p.culm) for(let i = 1; i < STEPS; i++){ const q = bpAt(pts, i / STEPS);
-      g += `<path d="M${(q.x-9*scale).toFixed(1)},${q.y.toFixed(1)} h${(18*scale).toFixed(1)}" stroke="currentColor" stroke-width="${(2.6*scale).toFixed(1)}" opacity=".45"/>`; }
+/* `keep` is a list of rectangles, in fractions of the banner, that the words
+   and controls occupy. Passing none means the whole banner is free. */
+function bannerBloomsHTML(key, keep = [], box = {w: 900, h: 150}){
+  const p = bannerBloom(key);
+  const r = mulberry32(hashSeed('bloom:' + key));
+  const W = Math.max(box.w, 200), H = Math.max(box.h, 60);
 
-    const n = Math.max(3, Math.round(p.n * scale));
-    for(let i = 0; i < n; i++){
-      const t = .1 + (i / Math.max(n - 1, 1)) * .86;
-      const q = bpAt(pts, t);
-      const side = i % 2 ? 1 : -1;
-      const spread = p.leaf === 'needle' ? 26 : p.weep ? 62 : 44;
-      const ang = q.a + side * (spread + (r() - .5) * 26);
-      const sz = p.size * 1.45 * scale * (.74 + r() * .44) * (1 - t * .22);
-      g += bpLeaf(q.x, q.y, ang, sz, p.leaf, .5 + r() * .22);
-    }
-    if(p.tendril) for(let i = 0; i < 2; i++){ const q = bpAt(pts, .4 + i * .3);
-      g += `<path class="bp-stem" d="M${q.x.toFixed(1)},${q.y.toFixed(1)} q${(24*scale).toFixed(0)},${(-20*scale).toFixed(0)} ${(38*scale).toFixed(0)},4 q9,15 -7,17 q-12,-2 -5,-14" fill="none" stroke="currentColor" stroke-width="${(1.6*scale).toFixed(1)}" opacity=".5" stroke-linecap="round"/>`; }
+  /* Candidates on a jittered grid, ranked by how deep into free ground they
+     sit — distance from the nearest word, not distance from the banner's
+     edge. A banner is short and its free ground is the run beside the title,
+     so chasing the edges would only push flowers into the rounded corners and
+     under the bottom fade. Rows stop short of both edges for the same reason:
+     the head is clipped at the top and masked out at the bottom. */
+  const cand = [];
+  const COLS = 11, ROWS = 5;
+  const near = (x, y) => keep.length
+    ? Math.min(...keep.map(k => Math.hypot(
+        Math.max(k.x0 - x, 0, x - k.x1) * W, Math.max(k.y0 - y, 0, y - k.y1) * H)))
+    : 999;
+  for(let cx = 0; cx < COLS; cx++) for(let cy = 0; cy < ROWS; cy++){
+    const x = (cx + .5 + (r() - .5) * .7) / COLS;
+    const y = .12 + ((cy + .5 + (r() - .5) * .7) / ROWS) * .68;    // clear of clip and fade
+    cand.push({x, y, room: near(x, y), jitter: r()});
+  }
+  cand.sort((a, b) => (b.room + b.jitter * 26) - (a.room + a.jitter * 26));
 
-    for(let i = 0; i < bloomN; i++){
-      const t = .3 + (i / Math.max(bloomN - 1, 1)) * .62;
-      const q = bpAt(pts, t);
-      const off = (i % 2 ? 1 : -1) * (14 + r() * 12) * scale;
-      g += bpBloom(q.x + off, q.y - (10 + r() * 14) * scale,
-        (p.bloom === 'ear' ? 11 : 19) * scale * (.82 + r() * .4), p.bloom, i + phase);
-    }
-    return g;
+  /* Take the biggest flower that fits each spot, and never let two of them sit
+     on top of each other. */
+  const placed = [];
+  /* a flower is measured against the banner it is in, not against a nominal
+     one: a 100px head cannot carry a 46px blossom without looking crowded */
+  const k = clamp(H / 130, .62, 1.1);
+  const [lo, hi] = [p.size[0] * k, p.size[1] * k];
+  /* Two spacings, not one. Anchors keep well apart, so the sprays land across
+     the whole of the free ground instead of piling into the one corner that
+     happens to be furthest from the title; the small flowers of a spray keep
+     close, because that is what makes them read as one spray. */
+  const APART = Math.max(74, W * .07);
+  const fits = (x, y, size, anchor) => {
+    if(!bloomClear(x, y, (size / 2) / W, (size / 2) / H, keep)) return false;
+    return !placed.some(q => {
+      const d = Math.hypot((q.x - x) * W, (q.y - y) * H);
+      return d < (anchor && !q.spray ? APART : (q.size + size) * .42);
+    });
   };
+  const put = (x, y, size, spray) => { placed.push({x, y, size, spray}); };
 
-  /* the main climb at the corner, then companions further along the edge */
-  let g = growth(26, 1, 1, p.blooms || 0, 0);
-  g += growth(BP_W * (.16 + p.reach * .5), .62, .8, Math.max(0, Math.round((p.blooms || 0) * .5)), 4);
-  if(!p.culm) g += growth(BP_W * (.34 + p.reach * .6), .4, .6, Math.max(0, Math.round((p.blooms || 0) * .34)), 8);
+  /* `n` counts open flowers. Their buds and loose petals are extra, or a
+     banner ends up with two blossoms and four specks. */
+  let anchors = 0;
+  for(const c of cand){
+    if(anchors >= p.n) break;
+    let size = null;
+    for(const s of [hi, (lo + hi) / 2, lo, lo * .66, lo * .46]) if(fits(c.x, c.y, s, true)){ size = s; break; }
+    if(size == null) continue;
+    const anchor = size * (.86 + r() * .26);
+    put(c.x, c.y, anchor, false); anchors++;
+    /* One or two smaller flowers close in, so a blossom reads as a spray on a
+       branch you cannot see rather than as a dot dropped on the banner. */
+    const buds = 1 + Math.round(r());
+    for(let b = 0; b < buds; b++){
+      const a = r() * Math.PI * 2, d = anchor * (.62 + r() * .5);
+      const nx = c.x + Math.cos(a) * d / W, ny = c.y + Math.sin(a) * d / H;
+      const sz = anchor * (.42 + r() * .26);
+      if(fits(nx, ny, sz, false)) put(nx, ny, sz, true);
+    }
+  }
 
-  return `<svg class="ph-plant-svg" viewBox="0 0 ${BP_W} ${BP_H}" preserveAspectRatio="xMinYMax meet" aria-hidden="true">${g}</svg>`;
-
+  return placed.map((b, i) => {
+    /* a satellite is a bud or a loose petal; the anchors carry the room's flower */
+    const form = b.spray ? (r() < .55 ? 'bud' : 'petal') : p.forms[i % p.forms.length];
+    const spin = Math.round((r() - .5) * 70);
+    const dur = (7 + r() * 6).toFixed(1);
+    return `<span class="ph-bloom" style="left:${(b.x * 100).toFixed(2)}%;top:${(b.y * 100).toFixed(2)}%;
+      --sz:${b.size.toFixed(1)}px;--d:${(i * .09).toFixed(2)}s;--sp:${spin}deg;--br:${dur}s;--bd:${(r() * 4).toFixed(1)}s;
+      --op:${(b.spray ? .48 + r() * .26 : .74 + r() * .26).toFixed(2)};--dr:${p.drift}px">
+      <svg viewBox="-50 -50 100 100" aria-hidden="true">${(BLOOM_FORMS[form] || BLOOM_FORMS.plum)(42, i)}</svg></span>`;
+  }).join('');
 }

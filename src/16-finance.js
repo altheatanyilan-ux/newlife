@@ -376,6 +376,13 @@ routes.finance = function(root){
   root.innerHTML = `<div class="page">
     <div class="page-head"><h1>Finance</h1></div>
 
+    <details class="section rv" id="finWords"${S._finWordsOpen ? ' open' : ''}><summary><span class="sc">Money, in your own words</span></summary><div class="body stack" style="gap:16px;padding-top:10px">
+      <div><span class="k mono">principles</span><ul class="principles">${S.finance.principles.map((p,i)=>`<li><span>${ed(`finance.principles.${i}`,{ph:'a rule you want to keep'})}</span><button class="del-x inline" data-fpdel="${i}">×</button></li>`).join('')}</ul><button class="btn sm ghost" id="finPrin">＋ principle</button></div>
+      <div><span class="k mono">notes</span>${ed('finance.note',{multi:true,mdr:true,cls:'prose',ph:'What you are working out about money — fears, plans, the thing you have never said out loud about it.'})}</div>
+      <div class="field"><label>Base currency</label><select class="sel" style="width:auto" id="finCur">${CURRENCIES.map(c=>`<option ${S.finance.currency===c?'selected':''}>${c}</option>`).join('')}</select><div class="faint" style="font-size:.76rem;margin-top:4px">Portfolio totals and the gap convert every stream and scenario into this currency.</div></div>
+      ${currenciesInUse().length ? `<div class="field"><label>Exchange rates — 1 unit of each, in ${S.finance.currency}</label><div class="grid c2" style="gap:8px">${currenciesInUse().map(c=>`<div class="row between"><span class="mono">${c}</span><input class="inp mono" style="width:100px" data-fxrate="${c}" value="${S.finance.rates[c]||''}" placeholder="1.00"></div>`).join('')}</div><div class="faint" style="font-size:.76rem;margin-top:4px">Entered by hand, not fetched live — update them when they drift.</div></div>` : ''}
+    </div></details>
+
     <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Income streams</span><button class="btn sm primary" id="streamAdd">＋ stream</button></div>
       <p class="muted" style="font-size:.85rem">Every way you make money, or are building toward making money. Link one to a Creative Project and the numbers live there, in sync — edit them from either page.</p>
       <div class="card" style="margin:12px 0"><div class="income-strip one-line">
@@ -396,15 +403,8 @@ routes.finance = function(root){
     <section class="section rv"><span class="sc">The gap — structural tension, made visible</span>
       ${gapAnalysisHTML()}
     </section>
-
-
-    <details class="section rv"><summary><span class="sc">Money, in your own words</span></summary><div class="body stack" style="gap:16px;padding-top:10px">
-      <div><span class="k mono">principles</span><ul class="principles">${S.finance.principles.map((p,i)=>`<li><span>${ed(`finance.principles.${i}`,{ph:'a rule you want to keep'})}</span><button class="del-x inline" data-fpdel="${i}">×</button></li>`).join('')}</ul><button class="btn sm ghost" id="finPrin">＋ principle</button></div>
-      <div><span class="k mono">notes</span>${ed('finance.note',{multi:true,mdr:true,cls:'prose',ph:'What you are working out about money — fears, plans, the thing you have never said out loud about it.'})}</div>
-      <div class="field"><label>Base currency</label><select class="sel" style="width:auto" id="finCur">${CURRENCIES.map(c=>`<option ${S.finance.currency===c?'selected':''}>${c}</option>`).join('')}</select><div class="faint" style="font-size:.76rem;margin-top:4px">Portfolio totals and the gap convert every stream and scenario into this currency.</div></div>
-      ${currenciesInUse().length ? `<div class="field"><label>Exchange rates — 1 unit of each, in ${S.finance.currency}</label><div class="grid c2" style="gap:8px">${currenciesInUse().map(c=>`<div class="row between"><span class="mono">${c}</span><input class="inp mono" style="width:100px" data-fxrate="${c}" value="${S.finance.rates[c]||''}" placeholder="1.00"></div>`).join('')}</div><div class="faint" style="font-size:.76rem;margin-top:4px">Entered by hand, not fetched live — update them when they drift.</div></div>` : ''}
-    </div></details>
   </div>`;
+  $('#finWords').addEventListener('toggle', ev => { S._finWordsOpen = ev.target.open; });
   $('#streamAdd').onclick = () => openStreamModal();
   $('#scenarioAdd').onclick = () => openScenarioModal();
   $('#finToDCA').onclick = () => openDCAModal();

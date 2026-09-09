@@ -2299,35 +2299,33 @@ select.sm-active{border-color:var(--page-accent);
   box-shadow:0 0 0 2px color-mix(in srgb,var(--page-accent) 18%,transparent)}
 @media (prefers-reduced-motion:reduce){.sm-pop{animation:none}.sm-opt{transition:none}}
 
-/* ---------- what grows on a banner ----------
-   One plant per room, in the room's accent, behind the words. It grows in
-   when the page arrives: the stem draws itself, then the leaves open along
-   it, then whatever it flowers into. */
-.ph-plant{position:absolute;left:0;bottom:0;top:0;width:min(62%,560px);z-index:0;
-  pointer-events:none;color:var(--page-accent);overflow:hidden;
-  -webkit-mask-image:linear-gradient(90deg,#000 0%,#000 58%,rgba(0,0,0,0) 100%);
-  mask-image:linear-gradient(90deg,#000 0%,#000 58%,rgba(0,0,0,0) 100%)}
-.ph-plant-svg{display:block;width:100%;height:100%}
-.ph-plant .bp-stem{stroke-dasharray:1400;stroke-dashoffset:1400;
-  animation:bpDraw 1.5s var(--page-ease) forwards}
-@keyframes bpDraw{to{stroke-dashoffset:0}}
-.ph-plant .bp-leaf{transform-box:fill-box;transform-origin:0% 50%;
-  animation:bpOpen .7s var(--page-ease) backwards}
-@keyframes bpOpen{from{opacity:0;transform:scale(.15) rotate(-24deg)}to{opacity:1;transform:none}}
-.ph-plant .bp-leaf:nth-of-type(3n){animation-delay:.45s}
-.ph-plant .bp-leaf:nth-of-type(3n+1){animation-delay:.62s}
-.ph-plant .bp-leaf:nth-of-type(3n+2){animation-delay:.8s}
-.ph-plant .bp-bloom{transform-box:fill-box;transform-origin:center;
-  animation:bpBloom .8s var(--page-ease) backwards;animation-delay:calc(1s + var(--d,0s))}
-@keyframes bpBloom{from{opacity:0;transform:scale(.1)}to{opacity:1;transform:none}}
-/* the whole growth stirs, very slowly, the way a plant against a wall does */
-html[data-motion="calm"] .ph-plant-svg,html[data-motion="energetic"] .ph-plant-svg{
-  animation:bpStir 19s ease-in-out infinite alternate;transform-origin:0% 100%}
-@keyframes bpStir{from{transform:rotate(-.5deg)}to{transform:rotate(.7deg)}}
-@media (max-width:760px){.ph-plant{width:74%;opacity:.7}}
+/* ---------- what blooms on a banner ----------
+   Flowers in the room's accent, each in a gap the words don't occupy (the
+   gaps are measured, not assumed — see plantBlooms). A flower opens once
+   and then only breathes: nothing here travels across the title, which is
+   what the climbing plant that used to live here could not avoid doing. */
+.ph-plant{position:absolute;inset:0;z-index:0;pointer-events:none;
+  color:var(--page-accent);overflow:hidden}
+.ph-bloom{position:absolute;width:var(--sz);height:var(--sz);margin:calc(var(--sz) / -2) 0 0 calc(var(--sz) / -2);
+  opacity:var(--op,.8);
+  animation:phBloomOpen calc(1.1s * var(--page-motion-speed)) var(--page-ease) backwards;
+  animation-delay:var(--d,0s)}
+.ph-bloom svg{display:block;width:100%;height:100%;overflow:visible;
+  transform:rotate(var(--sp,0deg));
+  animation:phBloomBreathe var(--br,9s) ease-in-out infinite alternate;
+  animation-delay:var(--bd,0s)}
+@keyframes phBloomOpen{
+  from{opacity:0;transform:scale(.12) rotate(-26deg)}
+  60%{opacity:var(--op,.8);transform:scale(1.09) rotate(3deg)}
+  to{opacity:var(--op,.8);transform:none}}
+/* the whole breath is a couple of pixels: enough to be alive, not enough to
+   pull an eye off a word several inches away */
+@keyframes phBloomBreathe{
+  from{transform:rotate(var(--sp,0deg)) scale(1) translateY(0)}
+  to{transform:rotate(calc(var(--sp,0deg) + 3deg)) scale(1.05) translateY(calc(var(--dr,2px) * -.5))}}
+@media (max-width:760px){.ph-plant{opacity:.66}}
 @media (prefers-reduced-motion:reduce){
-  .ph-plant .bp-stem{stroke-dasharray:none;stroke-dashoffset:0;animation:none}
-  .ph-plant .bp-leaf,.ph-plant .bp-bloom,.ph-plant-svg{animation:none}}
+  .ph-bloom{animation:none}.ph-bloom svg{animation:none}}
 
 /* ---------- the hierarchy of needs ----------
    Eight tiers to a point. Each carries its own hue so a level is told apart
