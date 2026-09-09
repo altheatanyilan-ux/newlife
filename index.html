@@ -3260,6 +3260,15 @@ select.sm-active{border-color:var(--page-accent);
   .ph-stat > span:last-child{display:none}
 }
 @media (prefers-reduced-motion:reduce){.ft-arc{transition:none}}
+
+/* ---------- Planning, seen from the other rooms ---------- */
+.pl-linked{display:flex;flex-direction:column;gap:1px;margin-top:8px}
+.pl-lrow{display:flex;align-items:center;gap:9px;padding:6px 2px;border-bottom:1px solid var(--line);
+  text-decoration:none;color:inherit;font-size:.84rem}
+.pl-lrow:hover{background:color-mix(in srgb,var(--text) 3%,transparent)}
+.pl-ltext{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pl-lrow .mono{font-size:.66rem;color:var(--faint);flex:none}
+.pl-lrow .mono.late{color:var(--gold)}
 </style>
 </head>
 <body>
@@ -7135,7 +7144,7 @@ routes.today = function(root){
       <div class="body">
       <div class="card" data-daydrop="${T}" style="margin-top:10px">
         <div class="stack" style="gap:2px">${rows.map(r=>taskRowHTML(r)).join('')||`<div class="empty">Park work here from a project, or write one below.</div>`}</div>
-        <div class="row" style="margin-top:10px;gap:8px">${quickTaskInput(T)}<button class="btn sm ghost" id="pullTask">pull in ↓</button></div>
+        <div class="row" style="margin-top:10px;gap:8px">${quickTaskInput(T)}<button class="btn sm ghost" id="pullTask">pull in ↓</button><a class="btn sm ghost" href="#/planning/today">all of it →</a></div>
         ${carried.length?`<div class="row" style="margin-top:10px"><span class="mono" style="color:#d08080">${carried.length} carried over from earlier days</span><button class="btn sm ghost" id="carryAll">bring to today</button></div>`:''}
       </div></div></details>
 
@@ -9195,6 +9204,7 @@ function openSkillPanel(id){
       <div class="k mono" style="margin:10px 0 4px">linked projects — am I practising what I claim to build? click to link</div><div class="deps">${S.projects.map(pr=>`<span class="chip click ${(pr.linkedSkills||[]).includes(s.id)?'on':''}" style="--c:var(--terra)" data-skproj="${pr.id}">🎨 ${esc(pr.name)}</span>`).join('')||'<span class="faint">no projects yet</span>'}</div>
       <div class="k mono" style="margin:10px 0 4px">serves values</div><div class="deps">${Object.entries(values).map(([id,n])=>{ const v=byId(S.values,id); return v?`<span class="chip on click" style="--c:${v.color}" data-go="#/value/${id}">${esc(v.name)} · ${n}</span>`:''; }).join('')||'<span class="faint">tag values on progress entries</span>'}</div></div>
     <div class="vp-sec"><div class="row between"><span class="sc">Progress log</span><button class="btn sm" id="skLog">+ practice</button></div>${es.map(e=>entryCard(e)).join('')||'<div class="empty">No practice logged yet.</div>'}</div>
+    ${typeof planLinkedTasksHTML === 'function' ? planLinkedTasksHTML('skills', s.id, {heading:'Tasks in Planning'}) : ''}
     ${moreSection(`<div class="danger-zone"><span>Skills accrue slowly. Consider marking it planned or lowering the level before deleting.</span><button class="btn sm ghost danger" id="skDel">Delete this skill</button></div>`)}`);
   $$('#panel .rv').forEach(n=>n.classList.add('in'));
   bindVmToggle(p, 'skill');
@@ -9377,6 +9387,7 @@ function openProjectPanel(id){
       <div>serves values: ${values.map(v=>`<span class="chip on click" style="--c:${v.color}" data-go="#/value/${v.id}">${esc(v.name)}</span>`).join(' ')||'<span class="faint">—</span>'}</div>
       <div class="faint" style="font-size:.78rem">Derived from entries tagged to this project. The varied interests become facets of one body of work.</div></div></div>
     <div class="vp-sec"><span class="sc">Nods</span><div class="nodlist">${ns.slice(0,40).map(n=>`<div class="nod"><span class="mono">${fmtDate(n.date,'med')}</span><span>${esc(n.text)}${n.link?` <a href="${esc(n.link)}" target="_blank" rel="noopener" class="mono">↗</a>`:''}${n.image?`<div class="photo" style="width:60px;height:60px;margin-top:4px"><img src="${n.image}"></div>`:''}</span><span class="row" style="gap:6px"><span class="mono">${n.duration||''} · ${'●'.repeat(n.energy)}${'○'.repeat(5-n.energy)}</span><button class="tbtn" data-nodedit="${n.id}">edit</button><button class="del-x inline" data-noddel="${n.id}" title="delete nod">×</button></span></div>`).join('')||'<div class="empty">No nods yet. Show up once.</div>'}</div></div>
+    ${typeof planLinkedTasksHTML === 'function' ? planLinkedTasksHTML('projects', p.id, {heading:'Tasks in Planning'}) : ''}
     ${es.length?`<div class="vp-sec"><span class="sc">Entries</span>${es.map(e=>entryCard(e)).join('')}</div>`:''}
     ${moreSection(`<div class="danger-zone"><span>Projects carry their nods with them. Archive it instead if it may return.</span><button class="btn sm ghost danger" id="pDel">Delete this project</button></div>`)}`);
   $$('#panel .rv').forEach(n=>n.classList.add('in'));
@@ -10047,6 +10058,7 @@ function streamCardHTML(s){
       <select class="sel" style="width:auto;font-size:.76rem" data-streammspreset="${path}"><option value="">＋ milestone…</option>${MILESTONE_KINDS.map(k=>`<option>${esc(k)}</option>`).join('')}<option value="__custom">other…</option></select>
     </div>
     ${(inc.milestones||[]).length ? inc.milestones.map((ms,i)=>`<div class="evidence-item"><span class="mono">${ed(`${path}.milestones.${i}.date`,{ph:'date',cls:'mono'})}</span><span style="flex:1">${ed(`${path}.milestones.${i}.text`,{ph:'first user, first dollar, first referral…'})}</span><button class="tbtn" data-streammsdel="${path}:${i}">×</button></div>`).join('') : '<div class="faint" style="font-size:.78rem">None yet.</div>'}
+    ${typeof planLinkedTasksHTML === 'function' ? planLinkedTasksHTML('stream', s.id, {heading:'Tasks feeding this stream'}) : ''}
   </div>`;
 }
 function openStreamModal(){
@@ -13552,6 +13564,69 @@ function rerenderPlanBody(){
   window.scrollTo({top:y});
 }
 /* ============================================================
+   PLANNING — the keyboard, and the three rooms this one feeds.
+   ============================================================ */
+
+/* Shortcuts only bite on the Planning page, and never while something is
+   being typed into — a page that eats your "n" mid-sentence is worse than
+   a page with no shortcuts at all. */
+const PLAN_KEYS = {
+  n:'add', q:'add', f:'focus', t:'today', e:'edit', h:'habits', s:'stats',
+  1:'list', 2:'calendar', 3:'kanban', 4:'eisenhower', 5:'timeline',
+};
+function planTypingInto(el){
+  if(!el) return false;
+  if(el.isContentEditable) return true;
+  return /^(input|textarea|select)$/i.test(el.tagName);
+}
+document.addEventListener('keydown', ev => {
+  if(parseHash().name !== 'planning') return;
+  if(ev.metaKey || ev.ctrlKey || ev.altKey){
+    if((ev.metaKey || ev.ctrlKey) && ev.key.toLowerCase() === 'k' && !planTypingInto(ev.target)){
+      ev.preventDefault(); $('#plSearch')?.focus(); }
+    return;
+  }
+  if(planTypingInto(ev.target)) return;
+  if($('#panel') && ev.key !== 'Escape') return;                 // the panel has its own keys
+  const act = PLAN_KEYS[ev.key.toLowerCase()];
+  if(!act) return;
+  ev.preventDefault();
+  if(act === 'add'){ const i = document.querySelector('.pq-input'); if(i){ i.focus(); } else openPlanTask(null); return; }
+  if(act === 'focus')  return openFocusTimer(null);
+  if(act === 'today')  return planSetSel('smart', 'today');
+  if(act === 'habits') return planSetSel('smart', 'habits');
+  if(act === 'stats')  return planSetSel('smart', 'stats');
+  if(act === 'edit'){ const first = document.querySelector('.pt-row, .pk-card');
+    if(first) openPlanTask(first.dataset.ptrow || first.dataset.ptcard); return; }
+  planSetView(act);
+}, true);
+
+/* ---------- what the other rooms see ----------
+   A task linked to a skill, a project or an income stream should be visible
+   from there too, or the link is a one-way street and nobody trusts it. */
+function planTasksFor(kind, id){
+  return planOwnTasks().filter(t => kind === 'stream' ? t.streamId === id : (t.links?.[kind] || []).includes(id));
+}
+function planLinkedTasksHTML(kind, id, {heading = 'Tasks'} = {}){
+  const ts = planSortTasks(planTasksFor(kind, id).filter(t => !t.done), 'dueDate');
+  const done = planTasksFor(kind, id).filter(t => t.done).length;
+  if(!ts.length && !done) return '';
+  return `<section class="section rv"><div class="row between"><span class="sc" style="margin:0">${esc(heading)}</span>
+      <a class="mono" href="#/planning" style="color:var(--muted)">open Planning →</a></div>
+    <div class="pl-linked">${ts.map(t => `<a class="pl-lrow" href="#/planning">
+      ${t.priority ? `<span class="pt-prio" style="background:${planPriority(t.priority).color}"></span>` : '<span class="pt-prio" style="background:var(--line-2)"></span>'}
+      <span class="pl-ltext">${esc(t.text)}</span>
+      ${t.day ? `<span class="mono${planIsLate(t) ? ' late' : ''}">${planIsLate(t) ? '⚠ ' : ''}${esc(fmtDate(t.day, 'short'))}</span>` : ''}
+      ${t.focusTime ? `<span class="mono faint">${Math.round(t.focusTime / 60 * 10) / 10}h focused</span>` : ''}</a>`).join('')
+      || '<div class="pk-empty">Nothing open.</div>'}</div>
+    ${done ? `<div class="mono faint" style="margin-top:6px">${done} finished</div>` : ''}</section>`;
+}
+/* practice hours a skill earned from focus time logged on its tasks */
+function planSkillFocusHours(skillId){
+  const ids = new Set(planTasksFor('skills', skillId).map(t => t.id));
+  return sum(planState().focusSessions.filter(s => s.type === 'focus' && ids.has(s.taskId)).map(s => s.duration)) / 60;
+}
+/* ============================================================
    PLANNING — the page: a sidebar of where work lives, and one
    workspace that can be read five different ways.
    ============================================================ */
@@ -14834,6 +14909,10 @@ const EntryActions = {
   guidedStage:    ()       => guidedNewStage(),
   newProject:     ()       => createProject(),
   newHabit:       ()       => openHabitModal(),
+  /* a task written from anywhere lands in the Inbox, which is what an inbox is for */
+  planTask:       ()       => { if(typeof migratePlanning === 'function') migratePlanning();
+                                const t = newPlanTask('', '', {listId:'inbox'}); S.tasks.push(t); saveNow();
+                                navigate('#/planning/inbox'); setTimeout(() => openPlanTask(t.id), 320); },
 };
 
 /* ---------- Tier 1: contextual Add (inline, top of the page content) ---------- */
@@ -14865,6 +14944,7 @@ function runContextAdd(cfg){
 
 /* ---------- Tier 2: universal FAB speed dial (separate path) ---------- */
 const SPEED_DIAL = [
+  {zone:'Planning', icon:'▤', label:'Task',                run: ()=>EntryActions.planTask()},
   {zone:'Today',    icon:'📅', label:'Today — Quick note / Task', actions:[['Quick note', ()=>EntryActions.quickNote()], ['Task', ()=>EntryActions.taskReminder()]]},
   {zone:'Commonplace Book', icon:'📓', label:'Journal entry',  run: ()=>EntryActions.journalEntry()},
   {zone:'Timeline', icon:'💭', label:'Memory',               run: ()=>EntryActions.memory()},

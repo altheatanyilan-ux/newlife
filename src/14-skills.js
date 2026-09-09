@@ -402,6 +402,7 @@ function openSkillPanel(id){
       <div class="k mono" style="margin:10px 0 4px">linked projects — am I practising what I claim to build? click to link</div><div class="deps">${S.projects.map(pr=>`<span class="chip click ${(pr.linkedSkills||[]).includes(s.id)?'on':''}" style="--c:var(--terra)" data-skproj="${pr.id}">🎨 ${esc(pr.name)}</span>`).join('')||'<span class="faint">no projects yet</span>'}</div>
       <div class="k mono" style="margin:10px 0 4px">serves values</div><div class="deps">${Object.entries(values).map(([id,n])=>{ const v=byId(S.values,id); return v?`<span class="chip on click" style="--c:${v.color}" data-go="#/value/${id}">${esc(v.name)} · ${n}</span>`:''; }).join('')||'<span class="faint">tag values on progress entries</span>'}</div></div>
     <div class="vp-sec"><div class="row between"><span class="sc">Progress log</span><button class="btn sm" id="skLog">+ practice</button></div>${es.map(e=>entryCard(e)).join('')||'<div class="empty">No practice logged yet.</div>'}</div>
+    ${typeof planLinkedTasksHTML === 'function' ? planLinkedTasksHTML('skills', s.id, {heading:'Tasks in Planning'}) : ''}
     ${moreSection(`<div class="danger-zone"><span>Skills accrue slowly. Consider marking it planned or lowering the level before deleting.</span><button class="btn sm ghost danger" id="skDel">Delete this skill</button></div>`)}`);
   $$('#panel .rv').forEach(n=>n.classList.add('in'));
   bindVmToggle(p, 'skill');

@@ -34,6 +34,10 @@ const EntryActions = {
   guidedStage:    ()       => guidedNewStage(),
   newProject:     ()       => createProject(),
   newHabit:       ()       => openHabitModal(),
+  /* a task written from anywhere lands in the Inbox, which is what an inbox is for */
+  planTask:       ()       => { if(typeof migratePlanning === 'function') migratePlanning();
+                                const t = newPlanTask('', '', {listId:'inbox'}); S.tasks.push(t); saveNow();
+                                navigate('#/planning/inbox'); setTimeout(() => openPlanTask(t.id), 320); },
 };
 
 /* ---------- Tier 1: contextual Add (inline, top of the page content) ---------- */
@@ -65,6 +69,7 @@ function runContextAdd(cfg){
 
 /* ---------- Tier 2: universal FAB speed dial (separate path) ---------- */
 const SPEED_DIAL = [
+  {zone:'Planning', icon:'▤', label:'Task',                run: ()=>EntryActions.planTask()},
   {zone:'Today',    icon:'📅', label:'Today — Quick note / Task', actions:[['Quick note', ()=>EntryActions.quickNote()], ['Task', ()=>EntryActions.taskReminder()]]},
   {zone:'Commonplace Book', icon:'📓', label:'Journal entry',  run: ()=>EntryActions.journalEntry()},
   {zone:'Timeline', icon:'💭', label:'Memory',               run: ()=>EntryActions.memory()},

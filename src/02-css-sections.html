@@ -2772,5 +2772,14 @@ select.sm-active{border-color:var(--page-accent);
   .ph-stat > span:last-child{display:none}
 }
 @media (prefers-reduced-motion:reduce){.ft-arc{transition:none}}
+
+/* ---------- Planning, seen from the other rooms ---------- */
+.pl-linked{display:flex;flex-direction:column;gap:1px;margin-top:8px}
+.pl-lrow{display:flex;align-items:center;gap:9px;padding:6px 2px;border-bottom:1px solid var(--line);
+  text-decoration:none;color:inherit;font-size:.84rem}
+.pl-lrow:hover{background:color-mix(in srgb,var(--text) 3%,transparent)}
+.pl-ltext{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pl-lrow .mono{font-size:.66rem;color:var(--faint);flex:none}
+.pl-lrow .mono.late{color:var(--gold)}
 </style>
 </head>
