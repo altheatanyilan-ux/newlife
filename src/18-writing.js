@@ -237,7 +237,10 @@ function bindStructureBoard(root, proj, redraw){
 
 /* ---------- Publishing pipeline & exports ---------- */
 function exportWriting(proj, format){
-  const body = proj.body || '';
+  /* the text is the binder's — proj.body only holds anything for a project
+     written before the binder existed — and the summarization marks are
+     stripped on the way out, the same as they are by wsCompile */
+  const body = (typeof wsCompile === 'function' ? wsCompile(proj, {titles:false}) : '') || proj.body || '';
   let out = body, ext = 'md', mime = 'text/markdown';
   if(format === 'plain'){ out = body.replace(/^#+\s*/gm,'').replace(/\*\*(.+?)\*\*/g,'$1').replace(/\*(.+?)\*/g,'$1').replace(/^>\s*/gm,''); ext='txt'; mime='text/plain'; }
   if(format === 'html'){ out = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(proj.title)}</title><style>body{font-family:Georgia,serif;max-width:640px;margin:60px auto;line-height:1.8;color:#2a241d}blockquote{border-left:3px solid #ccc;padding-left:1em;color:#665e52}</style></head><body><h1>${esc(proj.title)}</h1>${md(body)}</body></html>`; ext='html'; mime='text/html'; }
@@ -345,7 +348,9 @@ function renderWritingDesk(root, id){
   const n = wordCount(e.body); const focus = !!S._writeFocus; const ws = wsPanes();
   const redraw = () => rerender();
   root.innerHTML = `<div class="page ${focus?'wstudio-focus':''}">
-    <div class="row between rv" style="margin-bottom:16px"><a class="btn sm ghost" href="#/writing">‹ the desk</a>
+    <div class="row between rv" style="margin-bottom:16px"><span class="row" style="gap:10px;align-items:center">
+        <a class="btn sm ghost" href="#/writing">‹ the desk</a>
+        ${typeof wsStreakHTML === 'function' ? wsStreakHTML() : ''}</span>
       <div class="row" style="gap:8px;flex-wrap:wrap">
         <select class="sel" style="width:auto" id="wKind">${WRITING_KINDS.map(k=>`<option ${x.kind===k?'selected':''}>${k}</option>`).join('')}</select>
         <select class="sel" style="width:auto" id="wStatus">${WRITING_STATUSES.map(s=>`<option ${x.status===s?'selected':''}>${s}</option>`).join('')}</select>

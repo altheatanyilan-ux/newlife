@@ -270,6 +270,9 @@ function wsViewBarHTML(proj){
     <span class="ws-crumb mono">${esc(wsCrumb(x, x.openDoc))}</span>
     <span class="row" style="gap:6px;align-items:center">
       <button class="btn sm ghost ws-tw ${x._typewriter?'on':''}" id="wsTypewriter" title="typewriter scrolling (⌘T) — keeps the line you are writing at eye level">⌶</button>
+      <button class="btn sm ghost ${typeof wsRead === 'function' && wsRead().on ? 'on' : ''}" id="wsReadBtn" title="readability — show where the reader will slow down (⌘⇧R)">◑</button>
+      <button class="btn sm ghost ${typeof wsRead === 'function' && wsRead().marks ? 'on' : ''}" id="wsMarkBtn" title="show what you have marked (⌘⇧1 · ⌘⇧2 · ⌘⇧3 to mark, ⌘⇧0 to clear)">▤</button>
+      <button class="btn sm ghost ${typeof wsRead === 'function' && wsRead().distil ? 'on' : ''}" id="wsDistilBtn" title="show only what you marked">⇊</button>
       <button class="btn sm ghost" id="wsType" title="typeface and size">Aa</button>
       <button class="btn sm ghost" id="wsCollNew" title="save a collection">⧉</button>
       <span class="ws-vtabs">${WS_VIEWS.map(([k,ic,l]) =>
@@ -304,7 +307,10 @@ function wsEditorHTML(proj){
   const n = wordCount(d.body); const tgt = +d.target || 0;
   return `<div class="ws-editor">
     <input class="inp ws-doctitle" id="wsDocTitle" value="${esc(d.name)}" placeholder="Untitled">
-    <div class="write-page"><textarea class="ta write-area" id="wBody" placeholder="Begin anywhere. You can fix the beginning last.">${esc(d.body)}</textarea></div>
+    ${typeof wsRead === 'function' && wsRead().distil ? wsDistilHTML(proj) : `
+    <div class="write-page${wsPaintOn() ? ' painted' : ''}">
+      ${wsPaintOn() ? `<div class="write-mirror" id="wMirror" aria-hidden="true">${wsOverlayHTML(d.body, {readability:wsRead().on, marks:wsRead().marks})}</div>` : ''}
+      <textarea class="ta write-area" id="wBody" placeholder="Begin anywhere. You can fix the beginning last.">${esc(d.body)}</textarea></div>`}
     <div class="ws-foot row between">
       <span class="mono">${n.toLocaleString()} word${n===1?'':'s'}${tgt?` · ${clamp(Math.round(n/tgt*100),0,999)}% of ${tgt}`:''} · ${Math.max(1,Math.round(n/250))} min read</span>
       <span class="mono session-count">${Math.max(0, wsProjectWords(proj) - _wSession.base)} written this session</span>
@@ -394,7 +400,7 @@ function wsBodyHTML(proj){
 }
 
 /* ---------- the Inspector ---------- */
-const WS_INSP_TABS = [['syn','✎','Synopsis & notes'],['meta','◈','Metadata'],['book','🔖','Bookmarks'],['snap','📸','Snapshots'],['comm','💬','Comments']];
+const WS_INSP_TABS = [['syn','✎','Synopsis & notes'],['meta','◈','Metadata'],['read','◑','Readability'],['book','🔖','Bookmarks'],['snap','📸','Snapshots'],['comm','💬','Comments']];
 function wsInspectorHTML(proj){
   const x = proj.extra; const d = wsFind(x.binder, x.openDoc);
   const tab = x._inspTab || 'syn';
@@ -421,6 +427,7 @@ function wsInspectorHTML(proj){
         <div class="rail-item"><div class="row between"><span class="mono">${esc(s.name || fmtDate(s.at.slice(0,10),'med'))} · ${s.words}w</span>
           <span class="row" style="gap:3px"><button class="tbtn" data-wsdiff="${s.id}">compare</button><button class="tbtn" data-wsroll="${s.id}">restore</button><button class="del-x inline" data-wssnapdel="${s.id}">×</button></span></div></div>`).join('')
         : '<div class="faint" style="font-size:.78rem">A snapshot freezes this document as it is now, so you can rewrite it without fear.</div>'}</div>`,
+    read: () => typeof wsReadPanelHTML === 'function' ? wsReadPanelHTML(proj) : '',
     comm: () => `<div class="faint" style="font-size:.78rem">Comments live with the whole piece.</div>
       <div class="stack" style="gap:6px;margin-top:8px">${(x.comments||[]).map(c=>`<div class="rail-item"><div class="quote" style="font-size:.8rem">“${esc(c.quote)}”</div><div style="margin-top:4px;font-size:.82rem">${esc(c.note)}</div></div>`).join('') || ''}</div>`,
   }[tab]();
@@ -496,7 +503,9 @@ function bindWsStudio(root, proj, redraw){
     const grow = () => { ta.style.height = 'auto'; ta.style.height = Math.max(420, ta.scrollHeight) + 'px'; };
     grow(); ta.addEventListener('input', grow);
     if(x._typewriter) wsTypewriter(ta);
+    if(typeof bindWsPaint === 'function') bindWsPaint(root, proj, redraw);
   }
+  if(typeof bindWsReadControls === 'function') bindWsReadControls(root, proj, redraw);
   const dt = root.querySelector('#wsDocTitle');
   if(dt) dt.onchange = () => { const d = cur(); if(!d) return; d.name = dt.value.trim() || 'Untitled'; wsTouch(d); save(); redraw(); };
 
@@ -612,7 +621,10 @@ function wsTypewriter(ta){
 /* ---------- compile ---------- */
 function wsCompile(proj, {ids = null, sep = '\n\n---\n\n', titles = true, synopses = false} = {}){
   const docs = wsFlatDocs(wsBinder(proj)).filter(d => !ids || ids.includes(d.id));
-  return docs.map(d => [titles ? `# ${d.name || 'Untitled'}` : '', synopses && d.synopsis ? `*${d.synopsis}*` : '', d.body || '']
+  /* the summarization marks are a reading aid, not part of the prose:
+     nothing compiled or exported carries them out of the studio */
+  const clean = t => typeof wsStripMarks === 'function' ? wsStripMarks(t) : t;
+  return docs.map(d => [titles ? `# ${d.name || 'Untitled'}` : '', synopses && d.synopsis ? `*${d.synopsis}*` : '', clean(d.body || '')]
     .filter(Boolean).join('\n\n')).join(sep);
 }
 function wsOpenCompile(proj){
@@ -817,4 +829,17 @@ function openTypeMenu(redraw){
     p.querySelector('#wsSize').value = WS_TYPE_DEFAULT.size;
     p.querySelector('#wsLead').value = WS_TYPE_DEFAULT.leading;
     paint(); };
+}
+
+/* the streak the writing history already counts, said where it is felt:
+   at the top of the desk, while you are deciding whether to write today */
+function wsStreak(){
+  let n = 0, d = today();
+  if(!wsWrittenOn(d)) d = addDays(d, -1);
+  while(wsWrittenOn(d) > 0){ n++; d = addDays(d, -1); }
+  return n;
+}
+function wsStreakHTML(){
+  const n = wsStreak(); if(!n) return '';
+  return `<span class="mono ws-streak" title="consecutive days with words written">✦ ${n} day${n === 1 ? '' : 's'}</span>`;
 }
