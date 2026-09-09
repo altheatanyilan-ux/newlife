@@ -69,8 +69,17 @@ window.addEventListener('scroll', () => { if(document.documentElement.dataset.mo
 /* the banner's hairline is an element rather than a pseudo-element so it can
    redraw itself on each arrival; every page gets one without knowing about it */
 function decoratePageHead(main){
+  const key = pageThemeKey();
   $$('.page-head', main).forEach(h => {
     if(h.querySelector(':scope > .ph-rule')) return;
     h.insertBefore(el('<i class="ph-rule" aria-hidden="true"></i>'), h.firstChild);
+    /* and whatever grows on this room's banner — pine for the Compass, bamboo
+       for Journals, plum in blossom for Values. One plant per room, drawn in
+       the room's own accent, behind the words. */
+    if(typeof bannerPlantSVG === 'function'){
+      const w = el('<div class="ph-plant" aria-hidden="true"></div>');
+      w.innerHTML = bannerPlantSVG(key);
+      h.insertBefore(w, h.firstChild);
+    }
   });
 }

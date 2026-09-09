@@ -44,7 +44,7 @@ function newWriting(){
 /* ---------- the Compost Heap — a frictionless parking lot for raw material ---------- */
 function addCompost(text, tags=[]){ if(!text.trim()) return; S.compost.unshift({id:uid(), text:text.trim(), date:today(), tags:normTags(tags), projectId:null}); saveNow(); }
 function renderCompostPage(root){
-  registerPageEntry({pageName:'The Writing Studio', addLabel:'Catch a fragment', defaultEntryType:'compost', prefilledFields:{}, options:[{icon:'🌱', label:'Catch a fragment', desc:'A sentence, an image, an overheard line.', run:()=>{ const t = prompt('What just occurred to you?'); if(t) addCompost(t); rerender(); }}]});
+  registerPageEntry({pageName:'Writing Studio', addLabel:'Catch a fragment', defaultEntryType:'compost', prefilledFields:{}, options:[{icon:'🌱', label:'Catch a fragment', desc:'A sentence, an image, an overheard line.', run:()=>{ const t = prompt('What just occurred to you?'); if(t) addCompost(t); rerender(); }}]});
   const q = (S._compQ||'').toLowerCase();
   const list = S.compost.filter(f => !q || f.text.toLowerCase().includes(q) || (f.tags||[]).some(t=>t.includes(q)));
   root.innerHTML = `<div class="page">
@@ -88,7 +88,7 @@ function researchPool(proj){
     for(const k of ['values','threads','visions','skills','projects']){ const a = (dims[k]||[]).map(v=>typeof v==='string'?v:v.id); if(!a.length) continue; const b = (e.links?.[k]||[]).map(v=>typeof v==='string'?v:v.id); if(a.some(id=>b.includes(id))) return true; }
     return false; };
   const matched = sortEntries(S.entries.filter(overlaps));
-  /* The Library is where reflection about what you read and watch already
+  /* Library is where reflection about what you read and watch already
      lives, so it belongs in the drawer as its own shelf — and the quotes kept
      inside a media entry are the part you actually pull into an essay. */
   const media = matched.filter(e => e.type === 'media');
@@ -245,14 +245,14 @@ function exportWriting(proj, format){
 /* ---------- The Desk — project board ---------- */
 routes.writing = function(root, params){
   migrateWriting();
-  registerPageEntry({pageName:'The Writing Studio', addLabel:'New project', defaultEntryType:'writing', prefilledFields:{}, options:[{icon:'✒', label:'New project', desc:'Name the premise; the drawer gathers the rest.', run:()=>{ const e = newWriting(); location.hash = '#/writing/'+e.id; }}]});
+  registerPageEntry({pageName:'Writing Studio', addLabel:'New project', defaultEntryType:'writing', prefilledFields:{}, options:[{icon:'✒', label:'New project', desc:'Name the premise; the drawer gathers the rest.', run:()=>{ const e = newWriting(); location.hash = '#/writing/'+e.id; }}]});
   if(params[0] === 'compost') return renderCompostPage(root);
   if(params[0]) return renderWritingDesk(root, params[0]);
   const view = S._wView || 'board';
   const ws = writings();
   const published = ws.filter(e => e.extra.publication?.status === 'published');
   root.innerHTML = `<div class="page">
-    <div class="page-head"><h1>The Writing Studio</h1></div>
+    <div class="page-head"><h1>Writing Studio</h1></div>
     <div class="row rv" style="gap:8px;margin-bottom:16px"><a class="btn sm ghost" href="#/writing/compost">🌱 Compost Heap (${S.compost.length})</a><div class="view-toggle">${[['board','▥ Board'],['list','☰ List']].map(([k,l])=>`<button class="${view===k?'on':''}" data-wv="${k}">${l}</button>`).join('')}</div></div>
     ${ws.length ? (view==='board' ? `<div class="wkanban rv" id="wkanban">${WRITING_STATUSES.map((st, si) => { const inCol = ws.filter(e=>e.extra.status===st);
         const hue = ['var(--muted)','var(--sage)','var(--ment)','var(--page-accent)','var(--gold)','var(--terra)','#7f916a','var(--faint)'][si] || 'var(--page-accent)';

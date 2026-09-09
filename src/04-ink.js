@@ -170,3 +170,142 @@ function entryInkSVG(type){
     <text class="entry-ink-seal" x="${Math.round(EI_W * .855)}" y="76">${seal_}</text>
   </svg>`;
 }
+
+/* ============================================================
+   WHAT GROWS ON A BANNER
+
+   Each room gets a plant along the head of its page — not the same
+   ornament recoloured twelve times, but twelve different growths
+   from one set of brushes: a stem, a leaf shape, and something
+   that opens on it. Pine for the Compass, bamboo for Journals,
+   plum in blossom for Values, an orchid for Writing, wheat for
+   Finance, willow trailing over the Timeline.
+
+   Drawn in the page's own accent at low opacity, behind the words,
+   growing in when the page arrives.
+   ============================================================ */
+const BP_W = 900, BP_H = 170;
+
+/* a stem: a run of points, smoothed, thinning as it climbs */
+function bpStem(pts, w0 = 3.4, w1 = .7){
+  let d = `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
+  for(let i = 1; i < pts.length; i++){
+    const [px, py] = pts[i - 1], [x, y] = pts[i];
+    d += ` Q${px.toFixed(1)},${py.toFixed(1)} ${((px + x) / 2).toFixed(1)},${((py + y) / 2).toFixed(1)}`;
+  }
+  d += ` L${pts[pts.length-1][0].toFixed(1)},${pts[pts.length-1][1].toFixed(1)}`;
+  /* two strokes, the second thinner and shorter, so the line tapers the way a
+     loaded brush does as it runs out */
+  return `<path class="bp-stem" d="${d}" fill="none" stroke="currentColor" stroke-width="${w0}" stroke-linecap="round" opacity=".5"/>
+          <path class="bp-stem" d="${d}" fill="none" stroke="currentColor" stroke-width="${w1}" stroke-linecap="round" opacity=".8"/>`;
+}
+/* a point along a polyline, and the direction it is heading */
+function bpAt(pts, t){
+  const n = pts.length - 1, f = clamp(t, 0, .999) * n, i = Math.floor(f), k = f - i;
+  const [x0, y0] = pts[i], [x1, y1] = pts[Math.min(i + 1, n)];
+  return {x: x0 + (x1 - x0) * k, y: y0 + (y1 - y0) * k,
+          a: Math.atan2(y1 - y0, x1 - x0) * 180 / Math.PI};
+}
+const BP_LEAF = {
+  oval:   s => `M0,0 Q${s*.9},${-s*.6} ${s*1.9},0 Q${s*.9},${s*.6} 0,0Z`,
+  lance:  s => `M0,0 Q${s*1.1},${-s*.34} ${s*2.6},0 Q${s*1.1},${s*.34} 0,0Z`,
+  ivy:    s => `M0,0 Q${s*.5},${-s*.95} ${s*1.2},${-s*.5} Q${s*1.7},${-s*.1} ${s*2},0 Q${s*1.7},${s*.1} ${s*1.2},${s*.5} Q${s*.5},${s*.95} 0,0Z`,
+  needle: s => `M0,0 L${s*2.2},${-s*.12} L${s*2.2},${s*.12}Z`,
+  grain:  s => `M0,0 Q${s*.7},${-s*.5} ${s*1.3},${-s*.08} Q${s*.7},${s*.2} 0,0Z`,
+  blade:  s => `M0,0 Q${s*1.6},${-s*.5} ${s*3.2},${-s*.1} Q${s*1.6},${s*.25} 0,0Z`,
+};
+function bpLeaf(x, y, ang, s, shape = 'oval', op = .34){
+  return `<g class="bp-leaf" transform="translate(${x.toFixed(1)},${y.toFixed(1)}) rotate(${ang.toFixed(1)})">
+    <path d="${(BP_LEAF[shape] || BP_LEAF.oval)(s)}" fill="currentColor" opacity="${op}"/></g>`;
+}
+/* the thing that opens: five petals, a tight bud, a berry, or an ear of grain */
+function bpBloom(x, y, r, kind, i = 0){
+  if(kind === 'none') return '';
+  if(kind === 'berry') return `<circle class="bp-bloom" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="currentColor" opacity=".66"/>`;
+  if(kind === 'bud')   return `<g class="bp-bloom" style="--d:${(i*.13).toFixed(2)}s"><path d="M${x.toFixed(1)},${(y+r*1.3).toFixed(1)} q${(-r*.8).toFixed(1)},${(-r*1.1).toFixed(1)} 0,${(-r*2.2).toFixed(1)} q${(r*.8).toFixed(1)},${(r*1.1).toFixed(1)} 0,${(r*2.2).toFixed(1)}z" fill="currentColor" opacity=".6"/></g>`;
+  if(kind === 'ear'){
+    let g = '';
+    for(let k = 0; k < 5; k++){ const yy = y - k * r * 1.15;
+      g += `<path d="M${x.toFixed(1)},${yy.toFixed(1)} q${(r*1.2).toFixed(1)},${(-r*.5).toFixed(1)} ${(r*1.9).toFixed(1)},${(-r*.15).toFixed(1)} q${(-r*1.1).toFixed(1)},${(r*.5).toFixed(1)} ${(-r*1.9).toFixed(1)},${(r*.15).toFixed(1)}z" fill="currentColor" opacity=".58"/>
+            <path d="M${x.toFixed(1)},${yy.toFixed(1)} q${(-r*1.2).toFixed(1)},${(-r*.5).toFixed(1)} ${(-r*1.9).toFixed(1)},${(-r*.15).toFixed(1)} q${(r*1.1).toFixed(1)},${(r*.5).toFixed(1)} ${(r*1.9).toFixed(1)},${(r*.15).toFixed(1)}z" fill="currentColor" opacity=".58"/>`; }
+    return `<g class="bp-bloom" style="--d:${(i*.13).toFixed(2)}s">${g}</g>`;
+  }
+  /* an open flower: five petals and a heart */
+  const petals = [0,1,2,3,4].map(q => { const a = q * 72 + (i * 23) % 72;
+    return `<ellipse cx="0" cy="${(-r*.62).toFixed(2)}" rx="${(r*.42).toFixed(2)}" ry="${(r*.62).toFixed(2)}" transform="rotate(${a})" fill="currentColor" opacity=".62"/>`; }).join('');
+  return `<g class="bp-bloom" style="--d:${(i*.13).toFixed(2)}s" transform="translate(${x.toFixed(1)},${y.toFixed(1)})">${petals}<circle r="${(r*.26).toFixed(2)}" fill="currentColor" opacity=".75"/></g>`;
+}
+
+/* one entry per room: the shape of the stem, what its leaves are, and what
+   opens on it. `climb` is how steeply it rises; `reach` how far it runs. */
+const BANNER_PLANTS = {
+  compass:    {leaf:'needle', bloom:'none',  n:18, reach:.30, climb:.86, size:20, arc:.30},
+  today:      {leaf:'ivy',    bloom:'open',  n:10, reach:.44, climb:.74, size:19, arc:.55, blooms:3},
+  journals:   {leaf:'lance',  bloom:'none',  n:11, reach:.20, climb:.94, size:24, arc:.06, culm:true},
+  values:     {leaf:'oval',   bloom:'plum',  n:7,  reach:.40, climb:.66, size:15, arc:.42, blooms:6},
+  skills:     {leaf:'oval',   bloom:'bud',   n:12, reach:.34, climb:.88, size:19, arc:.24, blooms:3},
+  projects:   {leaf:'ivy',    bloom:'berry', n:13, reach:.52, climb:.60, size:17, arc:.66, blooms:4, tendril:true},
+  finance:    {leaf:'lance',  bloom:'ear',   n:8,  reach:.28, climb:.90, size:21, arc:.10, blooms:3},
+  commonplace:{leaf:'ivy',    bloom:'none',  n:15, reach:.56, climb:.52, size:17, arc:.72, tendril:true},
+  people:     {leaf:'oval',   bloom:'open',  n:9,  reach:.42, climb:.70, size:17, arc:.46, blooms:5},
+  timeline:   {leaf:'blade',  bloom:'none',  n:14, reach:.48, climb:.40, size:20, arc:.80, weep:true},
+  writing:    {leaf:'blade',  bloom:'plum',  n:8,  reach:.34, climb:.78, size:26, arc:.34, blooms:2},
+  settings:   {leaf:'lance',  bloom:'none',  n:9,  reach:.22, climb:.84, size:19, arc:.14},
+};
+function bannerPlant(key){ return BANNER_PLANTS[key] || BANNER_PLANTS.compass; }
+
+function bannerPlantSVG(key){
+  const p = bannerPlant(key);
+  const r = mulberry32(hashSeed('banner:' + key));
+
+  /* one growth: a stem from the bottom edge, its leaves, and what opens on it.
+     Each room gets a main climb plus a shorter companion shoot or two, because
+     a single stem reads as a stray twig rather than something growing. */
+  const growth = (x0, scale, reachMul, bloomN, phase) => {
+    const y0 = BP_H + 8;
+    const top = BP_H * (1 - p.climb * scale);
+    const far = BP_W * p.reach * reachMul;
+    const pts = [];
+    const STEPS = 7;
+    for(let i = 0; i <= STEPS; i++){
+      const t = i / STEPS;
+      const x = x0 + far * t + BP_W * p.arc * reachMul * t * t * .55;
+      let y = y0 - (y0 - top) * Math.pow(t, .78);
+      if(p.weep) y = top + (y0 - top) * Math.pow(t, 1.9) * .55;    // willow falls again
+      pts.push([x, y + (r() - .5) * 6]);
+    }
+    let g = bpStem(pts, (p.culm ? 7 : 5) * scale, (p.culm ? 2.6 : 1.2) * scale);
+    if(p.culm) for(let i = 1; i < STEPS; i++){ const q = bpAt(pts, i / STEPS);
+      g += `<path d="M${(q.x-9*scale).toFixed(1)},${q.y.toFixed(1)} h${(18*scale).toFixed(1)}" stroke="currentColor" stroke-width="${(2.6*scale).toFixed(1)}" opacity=".45"/>`; }
+
+    const n = Math.max(3, Math.round(p.n * scale));
+    for(let i = 0; i < n; i++){
+      const t = .1 + (i / Math.max(n - 1, 1)) * .86;
+      const q = bpAt(pts, t);
+      const side = i % 2 ? 1 : -1;
+      const spread = p.leaf === 'needle' ? 26 : p.weep ? 62 : 44;
+      const ang = q.a + side * (spread + (r() - .5) * 26);
+      const sz = p.size * 1.45 * scale * (.74 + r() * .44) * (1 - t * .22);
+      g += bpLeaf(q.x, q.y, ang, sz, p.leaf, .5 + r() * .22);
+    }
+    if(p.tendril) for(let i = 0; i < 2; i++){ const q = bpAt(pts, .4 + i * .3);
+      g += `<path class="bp-stem" d="M${q.x.toFixed(1)},${q.y.toFixed(1)} q${(24*scale).toFixed(0)},${(-20*scale).toFixed(0)} ${(38*scale).toFixed(0)},4 q9,15 -7,17 q-12,-2 -5,-14" fill="none" stroke="currentColor" stroke-width="${(1.6*scale).toFixed(1)}" opacity=".5" stroke-linecap="round"/>`; }
+
+    for(let i = 0; i < bloomN; i++){
+      const t = .3 + (i / Math.max(bloomN - 1, 1)) * .62;
+      const q = bpAt(pts, t);
+      const off = (i % 2 ? 1 : -1) * (14 + r() * 12) * scale;
+      g += bpBloom(q.x + off, q.y - (10 + r() * 14) * scale,
+        (p.bloom === 'ear' ? 11 : 19) * scale * (.82 + r() * .4), p.bloom, i + phase);
+    }
+    return g;
+  };
+
+  /* the main climb at the corner, then companions further along the edge */
+  let g = growth(26, 1, 1, p.blooms || 0, 0);
+  g += growth(BP_W * (.16 + p.reach * .5), .62, .8, Math.max(0, Math.round((p.blooms || 0) * .5)), 4);
+  if(!p.culm) g += growth(BP_W * (.34 + p.reach * .6), .4, .6, Math.max(0, Math.round((p.blooms || 0) * .34)), 8);
+
+  return `<svg class="ph-plant-svg" viewBox="0 0 ${BP_W} ${BP_H}" preserveAspectRatio="xMinYMax meet" aria-hidden="true">${g}</svg>`;
+
+}

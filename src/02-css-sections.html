@@ -1241,6 +1241,15 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 .scatter{position:relative}
 .scatter .q{font-family:var(--quote);font-style:italic;font-size:10px;fill:var(--faint)}
 .income-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px}
+/* the six figures under Income streams belong on one line — they are one
+   reading of the same thing, and wrapping them made it look like two */
+.income-strip.one-line{grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+.income-strip.one-line > div{min-width:0}
+.income-strip.one-line .k{font-size:.56rem;letter-spacing:.07em;line-height:1.3}
+.income-strip.one-line .num{font-size:1.32rem}
+.income-strip.one-line .mono{font-size:.58rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (max-width:1080px){.income-strip.one-line{grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}}
+@media (max-width:640px){.income-strip.one-line{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .income-strip .k{font-family:var(--mono);font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;color:var(--faint)}
 .ideas li{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px dashed var(--line);gap:12px}
 .ideas{list-style:none;padding:0;margin:0}
@@ -2274,5 +2283,35 @@ input[type="date"].dp-active{border-color:var(--page-accent);box-shadow:0 0 0 2p
 select.sm-active{border-color:var(--page-accent);
   box-shadow:0 0 0 2px color-mix(in srgb,var(--page-accent) 18%,transparent)}
 @media (prefers-reduced-motion:reduce){.sm-pop{animation:none}.sm-opt{transition:none}}
+
+/* ---------- what grows on a banner ----------
+   One plant per room, in the room's accent, behind the words. It grows in
+   when the page arrives: the stem draws itself, then the leaves open along
+   it, then whatever it flowers into. */
+.ph-plant{position:absolute;left:0;bottom:0;top:0;width:min(62%,560px);z-index:0;
+  pointer-events:none;color:var(--page-accent);overflow:hidden;
+  -webkit-mask-image:linear-gradient(90deg,#000 0%,#000 58%,rgba(0,0,0,0) 100%);
+  mask-image:linear-gradient(90deg,#000 0%,#000 58%,rgba(0,0,0,0) 100%)}
+.ph-plant-svg{display:block;width:100%;height:100%}
+.ph-plant .bp-stem{stroke-dasharray:1400;stroke-dashoffset:1400;
+  animation:bpDraw 1.5s var(--page-ease) forwards}
+@keyframes bpDraw{to{stroke-dashoffset:0}}
+.ph-plant .bp-leaf{transform-box:fill-box;transform-origin:0% 50%;
+  animation:bpOpen .7s var(--page-ease) backwards}
+@keyframes bpOpen{from{opacity:0;transform:scale(.15) rotate(-24deg)}to{opacity:1;transform:none}}
+.ph-plant .bp-leaf:nth-of-type(3n){animation-delay:.45s}
+.ph-plant .bp-leaf:nth-of-type(3n+1){animation-delay:.62s}
+.ph-plant .bp-leaf:nth-of-type(3n+2){animation-delay:.8s}
+.ph-plant .bp-bloom{transform-box:fill-box;transform-origin:center;
+  animation:bpBloom .8s var(--page-ease) backwards;animation-delay:calc(1s + var(--d,0s))}
+@keyframes bpBloom{from{opacity:0;transform:scale(.1)}to{opacity:1;transform:none}}
+/* the whole growth stirs, very slowly, the way a plant against a wall does */
+html[data-motion="calm"] .ph-plant-svg,html[data-motion="energetic"] .ph-plant-svg{
+  animation:bpStir 19s ease-in-out infinite alternate;transform-origin:0% 100%}
+@keyframes bpStir{from{transform:rotate(-.5deg)}to{transform:rotate(.7deg)}}
+@media (max-width:760px){.ph-plant{width:74%;opacity:.7}}
+@media (prefers-reduced-motion:reduce){
+  .ph-plant .bp-stem{stroke-dasharray:none;stroke-dashoffset:0;animation:none}
+  .ph-plant .bp-leaf,.ph-plant .bp-bloom,.ph-plant-svg{animation:none}}
 </style>
 </head>

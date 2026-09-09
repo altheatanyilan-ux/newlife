@@ -308,7 +308,7 @@ function renderLibraryLists(root){
 
 /* ---------- the Shelf & the Review ---------- */
 routes.commonplace = function(root, params){
-  registerPageEntry({pageName:'The Library', addLabel:'Log a work', defaultEntryType:'media', prefilledFields:{}, options:[{icon:'📗', label:'Log a work', desc:'Pick the kind on the next screen.', run:()=>openMediaModal({})}]});
+  registerPageEntry({pageName:'Library', addLabel:'Log a work', defaultEntryType:'media', prefilledFields:{}, options:[{icon:'📗', label:'Log a work', desc:'Pick the kind on the next screen.', run:()=>openMediaModal({})}]});
   const tab = ['timeline','lists'].includes(params[0]) ? params[0] : 'shelf';
   const all = mediaEntries();
   const kind = S._mKind || 'all', status = S._mStatus || 'all', res = S._mRes || 'all', q = (S._mq||'').toLowerCase();
@@ -322,7 +322,7 @@ routes.commonplace = function(root, params){
   const counts = {}; all.forEach(e => { const k = mediaX(e).kind; counts[k] = (counts[k]||0)+1; });
 
   root.innerHTML = `<div class="page">
-    <div class="page-head"><h1>The Library</h1></div>
+    <div class="page-head"><h1>Library</h1></div>
 
     <div class="media-kind-row rv">${Object.entries(MEDIA_KINDS).map(([k,v])=>`<button class="media-kind-btn ${kind===k?'on':''}" style="--c:${v[2]}" data-mkind="${k}"><span class="ico">${v[0]}</span><span class="lbl">${v[1]}</span><span class="n">${counts[k]||0}</span></button>`).join('')}</div>
 
@@ -446,7 +446,7 @@ function openMediaPanel(id){
       <div class="row" style="gap:6px" id="mpRec">${['yes','conditionally','no'].map(v=>`<button class="btn sm ${x.recommend===v?'primary':'ghost'}" data-rec="${v}">${v}</button>`).join('')}</div>
       ${x.recommend && x.recommend!=='no' ? `<div class="field" style="margin-top:8px"><label>Who should read/watch this, and when?</label>${ed(`entries.#${e.id}.extra.recommendWho`,{ph:'…'})}</div>` : ''}</div>
 
-    <div class="vp-sec"><span class="sc">Hashtags</span><div class="faint" style="font-size:.78rem;margin-bottom:6px">The thread this work belongs to. The Writing Studio's research drawer can pull every entry that shares a tag.</div>
+    <div class="vp-sec"><span class="sc">Hashtags</span><div class="faint" style="font-size:.78rem;margin-bottom:6px">The thread this work belongs to. The research drawer in Writing Studio can pull every entry that shares a tag.</div>
       <input class="inp mono" id="mpTags" value="${esc((e.tags||[]).map(t=>'#'+t).join(' '))}" placeholder="#kyoto #jazz #craft" list="tagList2"><datalist id="tagList2">${allTags().map(([t])=>`<option value="#${esc(t)}">`).join('')}</datalist></div>
 
     ${moreSection(`<div class="danger-zone"><span>This removes the work, its quotes, and everything you wrote about it.</span><button class="btn sm ghost danger" id="mpDel">Delete this entry</button></div>`)}`, 'media-panel');

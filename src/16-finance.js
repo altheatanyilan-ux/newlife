@@ -378,7 +378,7 @@ routes.finance = function(root){
 
     <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Income streams</span><button class="btn sm primary" id="streamAdd">＋ stream</button></div>
       <p class="muted" style="font-size:.85rem">Every way you make money, or are building toward making money. Link one to a Creative Project and the numbers live there, in sync — edit them from either page.</p>
-      <div class="card" style="margin:12px 0"><div class="income-strip">
+      <div class="card" style="margin:12px 0"><div class="income-strip one-line">
         <div><div class="k">current, monthly (${S.finance.currency})</div><div class="num">${money(totalCurrentBase)}</div><div class="mono">${money(annualCurrent)} / year</div></div>
         <div><div class="k">target, monthly</div><div class="num">${money(totalTargetBase)}</div><div class="mono">${money(annualTarget)} / year</div></div>
         <div><div class="k">streams</div><div class="num">${streams.length}</div></div>
@@ -389,14 +389,14 @@ routes.finance = function(root){
       ${streams.length ? `<div class="grid c2" style="align-items:start">${streams.map(streamCardHTML).join('')}</div>` : '<div class="empty">Nothing yet. What is the first way you could make money doing something you already do?</div>'}
     </section>
 
+    <section class="section rv"><div class="row between" style="align-items:center"><span class="sc" style="margin:0">The life you want to fund</span><button class="btn sm primary" id="scenarioAdd">＋ scenario</button></div>
+      <p class="muted" style="font-size:.85rem">Not what you spent — what you want to be able to spend. Each life is a column, so several can be held up against each other at once; pick one as the active target for the gap below.</p>
+      <div class="scenario-rail" style="margin-top:12px">${S.finance.scenarios.map(scenarioHTML).join('')}</div>
+    </section>
     <section class="section rv"><span class="sc">The gap — structural tension, made visible</span>
       ${gapAnalysisHTML()}
     </section>
 
-    <section class="section rv"><div class="row between" style="align-items:center"><span class="sc" style="margin:0">The life you want to fund</span><button class="btn sm primary" id="scenarioAdd">＋ scenario</button></div>
-      <p class="muted" style="font-size:.85rem">Not what you spent — what you want to be able to spend. Each life is a column, so several can be held up against each other at once; pick one as the active target for the gap above.</p>
-      <div class="scenario-rail" style="margin-top:12px">${S.finance.scenarios.map(scenarioHTML).join('')}</div>
-    </section>
 
     <details class="section rv"><summary><span class="sc">Money, in your own words</span></summary><div class="body stack" style="gap:16px;padding-top:10px">
       <div><span class="k mono">principles</span><ul class="principles">${S.finance.principles.map((p,i)=>`<li><span>${ed(`finance.principles.${i}`,{ph:'a rule you want to keep'})}</span><button class="del-x inline" data-fpdel="${i}">×</button></li>`).join('')}</ul><button class="btn sm ghost" id="finPrin">＋ principle</button></div>

@@ -1719,6 +1719,15 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 .scatter{position:relative}
 .scatter .q{font-family:var(--quote);font-style:italic;font-size:10px;fill:var(--faint)}
 .income-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px}
+/* the six figures under Income streams belong on one line — they are one
+   reading of the same thing, and wrapping them made it look like two */
+.income-strip.one-line{grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+.income-strip.one-line > div{min-width:0}
+.income-strip.one-line .k{font-size:.56rem;letter-spacing:.07em;line-height:1.3}
+.income-strip.one-line .num{font-size:1.32rem}
+.income-strip.one-line .mono{font-size:.58rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (max-width:1080px){.income-strip.one-line{grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}}
+@media (max-width:640px){.income-strip.one-line{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .income-strip .k{font-family:var(--mono);font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;color:var(--faint)}
 .ideas li{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px dashed var(--line);gap:12px}
 .ideas{list-style:none;padding:0;margin:0}
@@ -2752,6 +2761,36 @@ input[type="date"].dp-active{border-color:var(--page-accent);box-shadow:0 0 0 2p
 select.sm-active{border-color:var(--page-accent);
   box-shadow:0 0 0 2px color-mix(in srgb,var(--page-accent) 18%,transparent)}
 @media (prefers-reduced-motion:reduce){.sm-pop{animation:none}.sm-opt{transition:none}}
+
+/* ---------- what grows on a banner ----------
+   One plant per room, in the room's accent, behind the words. It grows in
+   when the page arrives: the stem draws itself, then the leaves open along
+   it, then whatever it flowers into. */
+.ph-plant{position:absolute;left:0;bottom:0;top:0;width:min(62%,560px);z-index:0;
+  pointer-events:none;color:var(--page-accent);overflow:hidden;
+  -webkit-mask-image:linear-gradient(90deg,#000 0%,#000 58%,rgba(0,0,0,0) 100%);
+  mask-image:linear-gradient(90deg,#000 0%,#000 58%,rgba(0,0,0,0) 100%)}
+.ph-plant-svg{display:block;width:100%;height:100%}
+.ph-plant .bp-stem{stroke-dasharray:1400;stroke-dashoffset:1400;
+  animation:bpDraw 1.5s var(--page-ease) forwards}
+@keyframes bpDraw{to{stroke-dashoffset:0}}
+.ph-plant .bp-leaf{transform-box:fill-box;transform-origin:0% 50%;
+  animation:bpOpen .7s var(--page-ease) backwards}
+@keyframes bpOpen{from{opacity:0;transform:scale(.15) rotate(-24deg)}to{opacity:1;transform:none}}
+.ph-plant .bp-leaf:nth-of-type(3n){animation-delay:.45s}
+.ph-plant .bp-leaf:nth-of-type(3n+1){animation-delay:.62s}
+.ph-plant .bp-leaf:nth-of-type(3n+2){animation-delay:.8s}
+.ph-plant .bp-bloom{transform-box:fill-box;transform-origin:center;
+  animation:bpBloom .8s var(--page-ease) backwards;animation-delay:calc(1s + var(--d,0s))}
+@keyframes bpBloom{from{opacity:0;transform:scale(.1)}to{opacity:1;transform:none}}
+/* the whole growth stirs, very slowly, the way a plant against a wall does */
+html[data-motion="calm"] .ph-plant-svg,html[data-motion="energetic"] .ph-plant-svg{
+  animation:bpStir 19s ease-in-out infinite alternate;transform-origin:0% 100%}
+@keyframes bpStir{from{transform:rotate(-.5deg)}to{transform:rotate(.7deg)}}
+@media (max-width:760px){.ph-plant{width:74%;opacity:.7}}
+@media (prefers-reduced-motion:reduce){
+  .ph-plant .bp-stem{stroke-dasharray:none;stroke-dashoffset:0;animation:none}
+  .ph-plant .bp-leaf,.ph-plant .bp-bloom,.ph-plant-svg{animation:none}}
 </style>
 </head>
 <body>
@@ -3518,6 +3557,145 @@ function entryInkSVG(type){
 }
 
 /* ============================================================
+   WHAT GROWS ON A BANNER
+
+   Each room gets a plant along the head of its page — not the same
+   ornament recoloured twelve times, but twelve different growths
+   from one set of brushes: a stem, a leaf shape, and something
+   that opens on it. Pine for the Compass, bamboo for Journals,
+   plum in blossom for Values, an orchid for Writing, wheat for
+   Finance, willow trailing over the Timeline.
+
+   Drawn in the page's own accent at low opacity, behind the words,
+   growing in when the page arrives.
+   ============================================================ */
+const BP_W = 900, BP_H = 170;
+
+/* a stem: a run of points, smoothed, thinning as it climbs */
+function bpStem(pts, w0 = 3.4, w1 = .7){
+  let d = `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
+  for(let i = 1; i < pts.length; i++){
+    const [px, py] = pts[i - 1], [x, y] = pts[i];
+    d += ` Q${px.toFixed(1)},${py.toFixed(1)} ${((px + x) / 2).toFixed(1)},${((py + y) / 2).toFixed(1)}`;
+  }
+  d += ` L${pts[pts.length-1][0].toFixed(1)},${pts[pts.length-1][1].toFixed(1)}`;
+  /* two strokes, the second thinner and shorter, so the line tapers the way a
+     loaded brush does as it runs out */
+  return `<path class="bp-stem" d="${d}" fill="none" stroke="currentColor" stroke-width="${w0}" stroke-linecap="round" opacity=".5"/>
+          <path class="bp-stem" d="${d}" fill="none" stroke="currentColor" stroke-width="${w1}" stroke-linecap="round" opacity=".8"/>`;
+}
+/* a point along a polyline, and the direction it is heading */
+function bpAt(pts, t){
+  const n = pts.length - 1, f = clamp(t, 0, .999) * n, i = Math.floor(f), k = f - i;
+  const [x0, y0] = pts[i], [x1, y1] = pts[Math.min(i + 1, n)];
+  return {x: x0 + (x1 - x0) * k, y: y0 + (y1 - y0) * k,
+          a: Math.atan2(y1 - y0, x1 - x0) * 180 / Math.PI};
+}
+const BP_LEAF = {
+  oval:   s => `M0,0 Q${s*.9},${-s*.6} ${s*1.9},0 Q${s*.9},${s*.6} 0,0Z`,
+  lance:  s => `M0,0 Q${s*1.1},${-s*.34} ${s*2.6},0 Q${s*1.1},${s*.34} 0,0Z`,
+  ivy:    s => `M0,0 Q${s*.5},${-s*.95} ${s*1.2},${-s*.5} Q${s*1.7},${-s*.1} ${s*2},0 Q${s*1.7},${s*.1} ${s*1.2},${s*.5} Q${s*.5},${s*.95} 0,0Z`,
+  needle: s => `M0,0 L${s*2.2},${-s*.12} L${s*2.2},${s*.12}Z`,
+  grain:  s => `M0,0 Q${s*.7},${-s*.5} ${s*1.3},${-s*.08} Q${s*.7},${s*.2} 0,0Z`,
+  blade:  s => `M0,0 Q${s*1.6},${-s*.5} ${s*3.2},${-s*.1} Q${s*1.6},${s*.25} 0,0Z`,
+};
+function bpLeaf(x, y, ang, s, shape = 'oval', op = .34){
+  return `<g class="bp-leaf" transform="translate(${x.toFixed(1)},${y.toFixed(1)}) rotate(${ang.toFixed(1)})">
+    <path d="${(BP_LEAF[shape] || BP_LEAF.oval)(s)}" fill="currentColor" opacity="${op}"/></g>`;
+}
+/* the thing that opens: five petals, a tight bud, a berry, or an ear of grain */
+function bpBloom(x, y, r, kind, i = 0){
+  if(kind === 'none') return '';
+  if(kind === 'berry') return `<circle class="bp-bloom" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="currentColor" opacity=".66"/>`;
+  if(kind === 'bud')   return `<g class="bp-bloom" style="--d:${(i*.13).toFixed(2)}s"><path d="M${x.toFixed(1)},${(y+r*1.3).toFixed(1)} q${(-r*.8).toFixed(1)},${(-r*1.1).toFixed(1)} 0,${(-r*2.2).toFixed(1)} q${(r*.8).toFixed(1)},${(r*1.1).toFixed(1)} 0,${(r*2.2).toFixed(1)}z" fill="currentColor" opacity=".6"/></g>`;
+  if(kind === 'ear'){
+    let g = '';
+    for(let k = 0; k < 5; k++){ const yy = y - k * r * 1.15;
+      g += `<path d="M${x.toFixed(1)},${yy.toFixed(1)} q${(r*1.2).toFixed(1)},${(-r*.5).toFixed(1)} ${(r*1.9).toFixed(1)},${(-r*.15).toFixed(1)} q${(-r*1.1).toFixed(1)},${(r*.5).toFixed(1)} ${(-r*1.9).toFixed(1)},${(r*.15).toFixed(1)}z" fill="currentColor" opacity=".58"/>
+            <path d="M${x.toFixed(1)},${yy.toFixed(1)} q${(-r*1.2).toFixed(1)},${(-r*.5).toFixed(1)} ${(-r*1.9).toFixed(1)},${(-r*.15).toFixed(1)} q${(r*1.1).toFixed(1)},${(r*.5).toFixed(1)} ${(r*1.9).toFixed(1)},${(r*.15).toFixed(1)}z" fill="currentColor" opacity=".58"/>`; }
+    return `<g class="bp-bloom" style="--d:${(i*.13).toFixed(2)}s">${g}</g>`;
+  }
+  /* an open flower: five petals and a heart */
+  const petals = [0,1,2,3,4].map(q => { const a = q * 72 + (i * 23) % 72;
+    return `<ellipse cx="0" cy="${(-r*.62).toFixed(2)}" rx="${(r*.42).toFixed(2)}" ry="${(r*.62).toFixed(2)}" transform="rotate(${a})" fill="currentColor" opacity=".62"/>`; }).join('');
+  return `<g class="bp-bloom" style="--d:${(i*.13).toFixed(2)}s" transform="translate(${x.toFixed(1)},${y.toFixed(1)})">${petals}<circle r="${(r*.26).toFixed(2)}" fill="currentColor" opacity=".75"/></g>`;
+}
+
+/* one entry per room: the shape of the stem, what its leaves are, and what
+   opens on it. `climb` is how steeply it rises; `reach` how far it runs. */
+const BANNER_PLANTS = {
+  compass:    {leaf:'needle', bloom:'none',  n:18, reach:.30, climb:.86, size:20, arc:.30},
+  today:      {leaf:'ivy',    bloom:'open',  n:10, reach:.44, climb:.74, size:19, arc:.55, blooms:3},
+  journals:   {leaf:'lance',  bloom:'none',  n:11, reach:.20, climb:.94, size:24, arc:.06, culm:true},
+  values:     {leaf:'oval',   bloom:'plum',  n:7,  reach:.40, climb:.66, size:15, arc:.42, blooms:6},
+  skills:     {leaf:'oval',   bloom:'bud',   n:12, reach:.34, climb:.88, size:19, arc:.24, blooms:3},
+  projects:   {leaf:'ivy',    bloom:'berry', n:13, reach:.52, climb:.60, size:17, arc:.66, blooms:4, tendril:true},
+  finance:    {leaf:'lance',  bloom:'ear',   n:8,  reach:.28, climb:.90, size:21, arc:.10, blooms:3},
+  commonplace:{leaf:'ivy',    bloom:'none',  n:15, reach:.56, climb:.52, size:17, arc:.72, tendril:true},
+  people:     {leaf:'oval',   bloom:'open',  n:9,  reach:.42, climb:.70, size:17, arc:.46, blooms:5},
+  timeline:   {leaf:'blade',  bloom:'none',  n:14, reach:.48, climb:.40, size:20, arc:.80, weep:true},
+  writing:    {leaf:'blade',  bloom:'plum',  n:8,  reach:.34, climb:.78, size:26, arc:.34, blooms:2},
+  settings:   {leaf:'lance',  bloom:'none',  n:9,  reach:.22, climb:.84, size:19, arc:.14},
+};
+function bannerPlant(key){ return BANNER_PLANTS[key] || BANNER_PLANTS.compass; }
+
+function bannerPlantSVG(key){
+  const p = bannerPlant(key);
+  const r = mulberry32(hashSeed('banner:' + key));
+
+  /* one growth: a stem from the bottom edge, its leaves, and what opens on it.
+     Each room gets a main climb plus a shorter companion shoot or two, because
+     a single stem reads as a stray twig rather than something growing. */
+  const growth = (x0, scale, reachMul, bloomN, phase) => {
+    const y0 = BP_H + 8;
+    const top = BP_H * (1 - p.climb * scale);
+    const far = BP_W * p.reach * reachMul;
+    const pts = [];
+    const STEPS = 7;
+    for(let i = 0; i <= STEPS; i++){
+      const t = i / STEPS;
+      const x = x0 + far * t + BP_W * p.arc * reachMul * t * t * .55;
+      let y = y0 - (y0 - top) * Math.pow(t, .78);
+      if(p.weep) y = top + (y0 - top) * Math.pow(t, 1.9) * .55;    // willow falls again
+      pts.push([x, y + (r() - .5) * 6]);
+    }
+    let g = bpStem(pts, (p.culm ? 7 : 5) * scale, (p.culm ? 2.6 : 1.2) * scale);
+    if(p.culm) for(let i = 1; i < STEPS; i++){ const q = bpAt(pts, i / STEPS);
+      g += `<path d="M${(q.x-9*scale).toFixed(1)},${q.y.toFixed(1)} h${(18*scale).toFixed(1)}" stroke="currentColor" stroke-width="${(2.6*scale).toFixed(1)}" opacity=".45"/>`; }
+
+    const n = Math.max(3, Math.round(p.n * scale));
+    for(let i = 0; i < n; i++){
+      const t = .1 + (i / Math.max(n - 1, 1)) * .86;
+      const q = bpAt(pts, t);
+      const side = i % 2 ? 1 : -1;
+      const spread = p.leaf === 'needle' ? 26 : p.weep ? 62 : 44;
+      const ang = q.a + side * (spread + (r() - .5) * 26);
+      const sz = p.size * 1.45 * scale * (.74 + r() * .44) * (1 - t * .22);
+      g += bpLeaf(q.x, q.y, ang, sz, p.leaf, .5 + r() * .22);
+    }
+    if(p.tendril) for(let i = 0; i < 2; i++){ const q = bpAt(pts, .4 + i * .3);
+      g += `<path class="bp-stem" d="M${q.x.toFixed(1)},${q.y.toFixed(1)} q${(24*scale).toFixed(0)},${(-20*scale).toFixed(0)} ${(38*scale).toFixed(0)},4 q9,15 -7,17 q-12,-2 -5,-14" fill="none" stroke="currentColor" stroke-width="${(1.6*scale).toFixed(1)}" opacity=".5" stroke-linecap="round"/>`; }
+
+    for(let i = 0; i < bloomN; i++){
+      const t = .3 + (i / Math.max(bloomN - 1, 1)) * .62;
+      const q = bpAt(pts, t);
+      const off = (i % 2 ? 1 : -1) * (14 + r() * 12) * scale;
+      g += bpBloom(q.x + off, q.y - (10 + r() * 14) * scale,
+        (p.bloom === 'ear' ? 11 : 19) * scale * (.82 + r() * .4), p.bloom, i + phase);
+    }
+    return g;
+  };
+
+  /* the main climb at the corner, then companions further along the edge */
+  let g = growth(26, 1, 1, p.blooms || 0, 0);
+  g += growth(BP_W * (.16 + p.reach * .5), .62, .8, Math.max(0, Math.round((p.blooms || 0) * .5)), 4);
+  if(!p.culm) g += growth(BP_W * (.34 + p.reach * .6), .4, .6, Math.max(0, Math.round((p.blooms || 0) * .34)), 8);
+
+  return `<svg class="ph-plant-svg" viewBox="0 0 ${BP_W} ${BP_H}" preserveAspectRatio="xMinYMax meet" aria-hidden="true">${g}</svg>`;
+
+}
+
+/* ============================================================
    PAGE THEMES — cohesive but distinct
    One visual personality per room. Everything shared (buttons,
    inputs, chips, cards, toggles, bars) reads the CSS custom
@@ -3587,9 +3765,18 @@ window.addEventListener('scroll', () => { if(document.documentElement.dataset.mo
 /* the banner's hairline is an element rather than a pseudo-element so it can
    redraw itself on each arrival; every page gets one without knowing about it */
 function decoratePageHead(main){
+  const key = pageThemeKey();
   $$('.page-head', main).forEach(h => {
     if(h.querySelector(':scope > .ph-rule')) return;
     h.insertBefore(el('<i class="ph-rule" aria-hidden="true"></i>'), h.firstChild);
+    /* and whatever grows on this room's banner — pine for the Compass, bamboo
+       for Journals, plum in blossom for Values. One plant per room, drawn in
+       the room's own accent, behind the words. */
+    if(typeof bannerPlantSVG === 'function'){
+      const w = el('<div class="ph-plant" aria-hidden="true"></div>');
+      w.innerHTML = bannerPlantSVG(key);
+      h.insertBefore(w, h.firstChild);
+    }
   });
 }
 /* ============================================================
@@ -9397,7 +9584,7 @@ routes.finance = function(root){
 
     <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Income streams</span><button class="btn sm primary" id="streamAdd">＋ stream</button></div>
       <p class="muted" style="font-size:.85rem">Every way you make money, or are building toward making money. Link one to a Creative Project and the numbers live there, in sync — edit them from either page.</p>
-      <div class="card" style="margin:12px 0"><div class="income-strip">
+      <div class="card" style="margin:12px 0"><div class="income-strip one-line">
         <div><div class="k">current, monthly (${S.finance.currency})</div><div class="num">${money(totalCurrentBase)}</div><div class="mono">${money(annualCurrent)} / year</div></div>
         <div><div class="k">target, monthly</div><div class="num">${money(totalTargetBase)}</div><div class="mono">${money(annualTarget)} / year</div></div>
         <div><div class="k">streams</div><div class="num">${streams.length}</div></div>
@@ -9408,14 +9595,14 @@ routes.finance = function(root){
       ${streams.length ? `<div class="grid c2" style="align-items:start">${streams.map(streamCardHTML).join('')}</div>` : '<div class="empty">Nothing yet. What is the first way you could make money doing something you already do?</div>'}
     </section>
 
+    <section class="section rv"><div class="row between" style="align-items:center"><span class="sc" style="margin:0">The life you want to fund</span><button class="btn sm primary" id="scenarioAdd">＋ scenario</button></div>
+      <p class="muted" style="font-size:.85rem">Not what you spent — what you want to be able to spend. Each life is a column, so several can be held up against each other at once; pick one as the active target for the gap below.</p>
+      <div class="scenario-rail" style="margin-top:12px">${S.finance.scenarios.map(scenarioHTML).join('')}</div>
+    </section>
     <section class="section rv"><span class="sc">The gap — structural tension, made visible</span>
       ${gapAnalysisHTML()}
     </section>
 
-    <section class="section rv"><div class="row between" style="align-items:center"><span class="sc" style="margin:0">The life you want to fund</span><button class="btn sm primary" id="scenarioAdd">＋ scenario</button></div>
-      <p class="muted" style="font-size:.85rem">Not what you spent — what you want to be able to spend. Each life is a column, so several can be held up against each other at once; pick one as the active target for the gap above.</p>
-      <div class="scenario-rail" style="margin-top:12px">${S.finance.scenarios.map(scenarioHTML).join('')}</div>
-    </section>
 
     <details class="section rv"><summary><span class="sc">Money, in your own words</span></summary><div class="body stack" style="gap:16px;padding-top:10px">
       <div><span class="k mono">principles</span><ul class="principles">${S.finance.principles.map((p,i)=>`<li><span>${ed(`finance.principles.${i}`,{ph:'a rule you want to keep'})}</span><button class="del-x inline" data-fpdel="${i}">×</button></li>`).join('')}</ul><button class="btn sm ghost" id="finPrin">＋ principle</button></div>
@@ -12445,7 +12632,7 @@ function renderLibraryLists(root){
 
 /* ---------- the Shelf & the Review ---------- */
 routes.commonplace = function(root, params){
-  registerPageEntry({pageName:'The Library', addLabel:'Log a work', defaultEntryType:'media', prefilledFields:{}, options:[{icon:'📗', label:'Log a work', desc:'Pick the kind on the next screen.', run:()=>openMediaModal({})}]});
+  registerPageEntry({pageName:'Library', addLabel:'Log a work', defaultEntryType:'media', prefilledFields:{}, options:[{icon:'📗', label:'Log a work', desc:'Pick the kind on the next screen.', run:()=>openMediaModal({})}]});
   const tab = ['timeline','lists'].includes(params[0]) ? params[0] : 'shelf';
   const all = mediaEntries();
   const kind = S._mKind || 'all', status = S._mStatus || 'all', res = S._mRes || 'all', q = (S._mq||'').toLowerCase();
@@ -12459,7 +12646,7 @@ routes.commonplace = function(root, params){
   const counts = {}; all.forEach(e => { const k = mediaX(e).kind; counts[k] = (counts[k]||0)+1; });
 
   root.innerHTML = `<div class="page">
-    <div class="page-head"><h1>The Library</h1></div>
+    <div class="page-head"><h1>Library</h1></div>
 
     <div class="media-kind-row rv">${Object.entries(MEDIA_KINDS).map(([k,v])=>`<button class="media-kind-btn ${kind===k?'on':''}" style="--c:${v[2]}" data-mkind="${k}"><span class="ico">${v[0]}</span><span class="lbl">${v[1]}</span><span class="n">${counts[k]||0}</span></button>`).join('')}</div>
 
@@ -12583,7 +12770,7 @@ function openMediaPanel(id){
       <div class="row" style="gap:6px" id="mpRec">${['yes','conditionally','no'].map(v=>`<button class="btn sm ${x.recommend===v?'primary':'ghost'}" data-rec="${v}">${v}</button>`).join('')}</div>
       ${x.recommend && x.recommend!=='no' ? `<div class="field" style="margin-top:8px"><label>Who should read/watch this, and when?</label>${ed(`entries.#${e.id}.extra.recommendWho`,{ph:'…'})}</div>` : ''}</div>
 
-    <div class="vp-sec"><span class="sc">Hashtags</span><div class="faint" style="font-size:.78rem;margin-bottom:6px">The thread this work belongs to. The Writing Studio's research drawer can pull every entry that shares a tag.</div>
+    <div class="vp-sec"><span class="sc">Hashtags</span><div class="faint" style="font-size:.78rem;margin-bottom:6px">The thread this work belongs to. The research drawer in Writing Studio can pull every entry that shares a tag.</div>
       <input class="inp mono" id="mpTags" value="${esc((e.tags||[]).map(t=>'#'+t).join(' '))}" placeholder="#kyoto #jazz #craft" list="tagList2"><datalist id="tagList2">${allTags().map(([t])=>`<option value="#${esc(t)}">`).join('')}</datalist></div>
 
     ${moreSection(`<div class="danger-zone"><span>This removes the work, its quotes, and everything you wrote about it.</span><button class="btn sm ghost danger" id="mpDel">Delete this entry</button></div>`)}`, 'media-panel');
@@ -13101,7 +13288,7 @@ function newWriting(){
 /* ---------- the Compost Heap — a frictionless parking lot for raw material ---------- */
 function addCompost(text, tags=[]){ if(!text.trim()) return; S.compost.unshift({id:uid(), text:text.trim(), date:today(), tags:normTags(tags), projectId:null}); saveNow(); }
 function renderCompostPage(root){
-  registerPageEntry({pageName:'The Writing Studio', addLabel:'Catch a fragment', defaultEntryType:'compost', prefilledFields:{}, options:[{icon:'🌱', label:'Catch a fragment', desc:'A sentence, an image, an overheard line.', run:()=>{ const t = prompt('What just occurred to you?'); if(t) addCompost(t); rerender(); }}]});
+  registerPageEntry({pageName:'Writing Studio', addLabel:'Catch a fragment', defaultEntryType:'compost', prefilledFields:{}, options:[{icon:'🌱', label:'Catch a fragment', desc:'A sentence, an image, an overheard line.', run:()=>{ const t = prompt('What just occurred to you?'); if(t) addCompost(t); rerender(); }}]});
   const q = (S._compQ||'').toLowerCase();
   const list = S.compost.filter(f => !q || f.text.toLowerCase().includes(q) || (f.tags||[]).some(t=>t.includes(q)));
   root.innerHTML = `<div class="page">
@@ -13145,7 +13332,7 @@ function researchPool(proj){
     for(const k of ['values','threads','visions','skills','projects']){ const a = (dims[k]||[]).map(v=>typeof v==='string'?v:v.id); if(!a.length) continue; const b = (e.links?.[k]||[]).map(v=>typeof v==='string'?v:v.id); if(a.some(id=>b.includes(id))) return true; }
     return false; };
   const matched = sortEntries(S.entries.filter(overlaps));
-  /* The Library is where reflection about what you read and watch already
+  /* Library is where reflection about what you read and watch already
      lives, so it belongs in the drawer as its own shelf — and the quotes kept
      inside a media entry are the part you actually pull into an essay. */
   const media = matched.filter(e => e.type === 'media');
@@ -13302,14 +13489,14 @@ function exportWriting(proj, format){
 /* ---------- The Desk — project board ---------- */
 routes.writing = function(root, params){
   migrateWriting();
-  registerPageEntry({pageName:'The Writing Studio', addLabel:'New project', defaultEntryType:'writing', prefilledFields:{}, options:[{icon:'✒', label:'New project', desc:'Name the premise; the drawer gathers the rest.', run:()=>{ const e = newWriting(); location.hash = '#/writing/'+e.id; }}]});
+  registerPageEntry({pageName:'Writing Studio', addLabel:'New project', defaultEntryType:'writing', prefilledFields:{}, options:[{icon:'✒', label:'New project', desc:'Name the premise; the drawer gathers the rest.', run:()=>{ const e = newWriting(); location.hash = '#/writing/'+e.id; }}]});
   if(params[0] === 'compost') return renderCompostPage(root);
   if(params[0]) return renderWritingDesk(root, params[0]);
   const view = S._wView || 'board';
   const ws = writings();
   const published = ws.filter(e => e.extra.publication?.status === 'published');
   root.innerHTML = `<div class="page">
-    <div class="page-head"><h1>The Writing Studio</h1></div>
+    <div class="page-head"><h1>Writing Studio</h1></div>
     <div class="row rv" style="gap:8px;margin-bottom:16px"><a class="btn sm ghost" href="#/writing/compost">🌱 Compost Heap (${S.compost.length})</a><div class="view-toggle">${[['board','▥ Board'],['list','☰ List']].map(([k,l])=>`<button class="${view===k?'on':''}" data-wv="${k}">${l}</button>`).join('')}</div></div>
     ${ws.length ? (view==='board' ? `<div class="wkanban rv" id="wkanban">${WRITING_STATUSES.map((st, si) => { const inCol = ws.filter(e=>e.extra.status===st);
         const hue = ['var(--muted)','var(--sage)','var(--ment)','var(--page-accent)','var(--gold)','var(--terra)','#7f916a','var(--faint)'][si] || 'var(--page-accent)';
@@ -14341,16 +14528,16 @@ const NAV_PAGES = {
   today:    {label:'Today',            short:'Today',    ico:NAV_ICONS.today,    route:'#/today'},
   journals: {label:'Journals',         short:'Journal',  ico:NAV_ICONS.journals, route:'#/journals'},
   projects: {label:'Projects',         short:'Projects', ico:NAV_ICONS.projects, route:'#/projects'},
-  writing:  {label:'The Writing Studio', short:'Writing', ico:NAV_ICONS.writing,  route:'#/writing'},
+  writing:  {label:'Writing Studio',     short:'Writing', ico:NAV_ICONS.writing,  route:'#/writing'},
   people:   {label:'People',           short:'People',   ico:NAV_ICONS.people,   route:'#/people'},
   finance:  {label:'Finance',          short:'Money',    ico:NAV_ICONS.finance,  route:'#/finance'},
-  commonplace:{label:'The Library',    short:'Library',  ico:NAV_ICONS.commonplace, route:'#/commonplace'},
+  commonplace:{label:'Library',        short:'Library',  ico:NAV_ICONS.commonplace, route:'#/commonplace'},
   values:   {label:'Values',           short:'Values',   ico:NAV_ICONS.values,   route:'#/values'},
   skills:   {label:'Skill Tree',       short:'Skills',   ico:NAV_ICONS.skills,   route:'#/skills'},
   timeline: {label:'Timeline',         short:'Timeline', ico:NAV_ICONS.timeline, route:'#/timeline'},
 };
 /* The daily rooms sit above the zones, unlabelled — you do not need a heading
-   to tell you what Today is for. The Writing Studio sits below everything,
+   to tell you what Today is for. Writing Studio sits below everything,
    always, because it is where you go when the rest of the house is noise. */
 const NAV_TOP = ['compass','today','journals'];
 const NAV_PINNED = ['writing'];

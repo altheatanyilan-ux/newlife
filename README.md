@@ -37,10 +37,10 @@ To restore your data on a new device: open this website in the same browser, go 
 
 The sidebar opens with the three rooms you are in daily — **Compass**, **Today**, **Journals** — and groups the rest by what each is for rather than by feature:
 
-- **Becoming** — long-term growth and identity: Values, Skill Tree, Projects, Finance, The Library
+- **Becoming** — long-term growth and identity: Values, Skill Tree, Projects, Finance, Library
 - **Story** — relationships and memory: People, Timeline
 
-At the foot, always present, sit **The Writing Studio** and **Settings**. The Import Station has no room of its own; it is a section inside Settings. Sidebar labels are the same names the pages carry as their titles, drawn with thin line icons. Zones collapse, the sidebar collapses to icons, and both states persist. On narrow screens a bottom bar shows the five most-used rooms and a More button opens the full grouped menu. Pages can be moved between zones by drag-and-drop in Settings.
+At the foot, always present, sit **Writing Studio** and **Settings**. The Import Station has no room of its own; it is a section inside Settings. Sidebar labels are the same names the pages carry as their titles, drawn with thin line icons. Zones collapse, the sidebar collapses to icons, and both states persist. On narrow screens a bottom bar shows the five most-used rooms and a More button opens the full grouped menu. Pages can be moved between zones by drag-and-drop in Settings.
 
 The Compass opens with one summary card per zone — items still planned today and habits done, the next skill milestone and how long since a congruence reading, who is overdue for contact and when you last wrote, net worth and what is left in this month's envelopes — each card opening the room where you would act on it.
 
@@ -71,7 +71,7 @@ Every room shares one design language but carries its own personality. The confi
 | Journals | warm amber | amber → rose | calm |
 | Projects | slate blue | slate → sky | crisp |
 | Writing | parchment | sand → oat | calm |
-| The Library | mulberry | plum → rose | calm |
+| Library | mulberry | plum → rose | calm |
 | People | dusty rose | rose → clay | calm |
 | Finance | moss | moss → sage | crisp |
 | Values | soft purple | lavender → mauve | calm |
@@ -148,7 +148,7 @@ Every dropdown is the app's own, not the browser's. A native `<select>` popup is
 
 ## Editing
 
-The Writing Studio sets its own type: **Aa** in the view bar opens a typeface, size and leading control, applied live to the page you are writing on and kept once for everything you open.
+Writing Studio sets its own type: **Aa** in the view bar opens a typeface, size and leading control, applied live to the page you are writing on and kept once for everything you open.
 
 A field you are not editing is not a box. At rest, an input is its own text on the page; the ground and the rule appear when you go near it, and the accent lands when you are actually in it. It is the same idiom the inline editors have always used, applied to every plain field in the house, so nothing reads as a form. A select keeps its chevron at rest, because a select has to keep saying it is one.
 
