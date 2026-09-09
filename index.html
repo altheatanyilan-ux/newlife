@@ -3314,6 +3314,206 @@ select.sm-active{border-color:var(--page-accent);
 .pl-ltext{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pl-lrow .mono{font-size:.66rem;color:var(--faint);flex:none}
 .pl-lrow .mono.late{color:var(--gold)}
+
+/* ============================================================
+   CONTENT — the pipeline room
+   ============================================================ */
+.ct-page{max-width:1320px}
+.ct-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.ct-views{display:flex;gap:2px;background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:3px}
+.ct-views button{background:none;border:0;color:var(--faint);font-family:var(--serif);font-size:.86rem;
+  padding:5px 11px;border-radius:7px;cursor:pointer;transition:all .2s var(--ease);white-space:nowrap}
+.ct-views button:hover{color:var(--text)}
+.ct-views button.on{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.07)}
+.ct-search{width:min(240px,42vw)}
+
+.ct-next{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px;
+  padding:8px 12px;border:1px solid var(--line);border-radius:11px;background:var(--surface-2)}
+.ct-next>.mono{font-size:.64rem;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+.ct-nx{display:flex;flex-direction:column;align-items:flex-start;gap:1px;text-align:left;cursor:pointer;
+  background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--c);border-radius:8px;
+  padding:6px 11px;transition:transform .18s var(--ease),box-shadow .18s var(--ease)}
+.ct-nx:hover{transform:translateY(-1px);box-shadow:0 3px 9px rgba(0,0,0,.07)}
+.ct-nx b{font-size:.83rem;font-weight:600}
+.ct-nx .mono{font-size:.63rem;color:var(--faint)}
+
+/* --- the board --- */
+/* Eight columns is a lot of board. The six stages where work actually
+   happens share the width equally; Published and Archived are read, not
+   worked, so they take less — which is what lets the whole pipeline sit
+   on one screen instead of scrolling off the right edge. */
+.ct-board{display:grid;gap:10px;align-items:start;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin;
+  grid-template-columns:repeat(6,minmax(136px,1fr)) minmax(132px,.8fr) minmax(120px,.72fr)}
+@media(max-width:900px){.ct-board{grid-template-columns:repeat(8,minmax(158px,1fr))}}
+.ct-col{min-width:0;border:1px solid var(--line);border-radius:12px;padding:9px;
+  background:color-mix(in srgb, var(--c) calc(var(--tint) * 100%), var(--surface-2));
+  transition:box-shadow .2s var(--ease)}
+.ct-col.over{box-shadow:inset 0 0 0 2px var(--c)}
+.ct-colh{display:flex;align-items:center;gap:6px;margin-bottom:8px;padding:0 2px}
+.ct-cico{color:var(--c);font-size:.85rem;line-height:1}
+.ct-cname{font-family:var(--serif);font-size:.82rem;font-variant:small-caps;letter-spacing:.05em;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ct-colh .mono{font-size:.66rem;color:var(--faint);margin-left:auto}
+.ct-cards{display:flex;flex-direction:column;gap:7px;min-height:34px}
+.ct-empty{font-family:var(--lora,var(--serif));font-style:italic;font-size:.74rem;color:var(--faint);
+  padding:9px 4px;line-height:1.45}
+
+.ct-card{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--c);
+  border-radius:9px;padding:8px 10px;cursor:pointer;min-width:0;
+  transition:transform .2s var(--ease),box-shadow .2s var(--ease),opacity .3s var(--ease),border-color .3s var(--ease)}
+.ct-card:hover{transform:translateY(-1px);box-shadow:0 3px 10px rgba(0,0,0,.08)}
+.ct-card.dragging{opacity:.4}
+.ct-card.seed{border-style:dashed;border-left-style:solid}
+.ct-card.stale{opacity:.42}
+.ct-card.stale:hover{opacity:.85}
+.ct-card.soon{animation:ctSoon 2.6s var(--ease) infinite}
+@keyframes ctSoon{0%,100%{box-shadow:0 0 0 0 rgba(127,145,106,0)}50%{box-shadow:0 0 0 3px rgba(127,145,106,.22)}}
+.ct-ctop{display:flex;align-items:flex-start;gap:5px}
+.ct-pin{color:var(--terra);font-size:.68rem;line-height:1.5;flex:none}
+.ct-title{font-size:.84rem;line-height:1.34;font-weight:500;overflow-wrap:break-word;hyphens:auto}
+.ct-card.pinned .ct-title{font-weight:700}
+.ct-raw{font-size:.74rem;color:var(--faint);line-height:1.4;margin-top:4px;
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.ct-bar{height:3px;border-radius:2px;background:var(--surface-3);margin:7px 0 5px;overflow:hidden}
+.ct-bar i{display:block;height:100%;background:var(--c);border-radius:2px;transition:width .5s var(--ease)}
+.ct-cmeta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:5px}
+.ct-cmeta .mono{font-size:.63rem;color:var(--faint)}
+.ct-chip{font-size:.6rem;letter-spacing:.05em;text-transform:uppercase;padding:1px 6px;border-radius:5px;
+  background:var(--surface-3);color:var(--muted)}
+.ct-dest{margin-left:auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:52%}
+.ct-themes{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px}
+.ct-theme{font-size:.6rem;padding:1px 6px;border-radius:5px;border:1px solid var(--c);color:var(--c);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.ct-theme.more{border-color:var(--line-2);color:var(--faint)}
+.ct-cfoot{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:6px;font-size:.61rem;color:var(--faint)}
+.ct-sched.late{color:var(--gold)}
+
+/* --- calendar --- */
+.ct-cal-wrap{display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:16px;align-items:start}
+@media(max-width:980px){.ct-cal-wrap{grid-template-columns:minmax(0,1fr)}}
+.ct-nextpanel{border:1px solid var(--line);border-radius:12px;padding:11px;background:var(--surface-2);
+  display:flex;flex-direction:column;gap:7px;position:sticky;top:14px}
+.ct-nextpanel .k{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+.ct-nrow{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;cursor:pointer;
+  background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--c);border-radius:8px;
+  padding:7px 10px;width:100%;transition:transform .18s var(--ease)}
+.ct-nrow:hover{transform:translateX(2px)}
+.ct-nrow b{font-size:.82rem;font-weight:600;line-height:1.3;overflow-wrap:anywhere}
+.ct-nmeta{font-size:.62rem;color:var(--faint)}
+.pc-cell.over,.pc-col.over{box-shadow:inset 0 0 0 2px var(--terra)}
+.ct-pill.late{border-color:var(--gold)}
+
+/* --- the shelf --- */
+.ct-filters{display:flex;flex-direction:column;gap:6px;padding:10px 12px;border:1px solid var(--line);
+  border-radius:12px;background:var(--surface-2);margin-bottom:10px}
+.ct-frow{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.ct-frow>.k{font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);
+  min-width:52px;flex:none}
+.ct-none{font-family:var(--lora,var(--serif));font-style:italic;color:var(--faint);text-align:center;
+  padding:44px 20px;font-size:.9rem;line-height:1.6}
+.ct-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.ct-gcard{min-width:0;background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--c);
+  border-radius:11px;padding:12px 14px;cursor:pointer;
+  transition:transform .2s var(--ease),box-shadow .2s var(--ease)}
+.ct-gcard:hover{transform:translateY(-2px);box-shadow:0 5px 16px rgba(0,0,0,.09)}
+.ct-gcard.dragging{opacity:.4}
+.ct-gtop{display:flex;align-items:center;gap:6px;margin-bottom:5px}
+.ct-gtop .mono{font-size:.62rem;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+.ct-gtop .ct-pin{margin-left:auto}
+.ct-gcard h3{font-size:1.02rem;line-height:1.3;margin:0 0 3px;overflow-wrap:anywhere}
+.ct-gsub{font-size:.79rem;color:var(--muted);line-height:1.35;margin-bottom:5px}
+.ct-gprev{font-size:.78rem;line-height:1.5;color:var(--faint);margin:0 0 7px;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ct-rows{display:flex;flex-direction:column;gap:3px}
+.ct-row{display:grid;grid-template-columns:104px minmax(0,2.4fr) 84px 96px 74px minmax(0,1.1fr) 84px 66px;
+  gap:8px;align-items:center;padding:7px 11px;border:1px solid var(--line);border-radius:8px;
+  background:var(--surface);cursor:pointer;font-size:.78rem;
+  transition:transform .16s var(--ease),box-shadow .16s var(--ease)}
+.ct-row:hover{transform:translateX(2px);box-shadow:0 2px 7px rgba(0,0,0,.06)}
+.ct-row.head{background:none;border-color:transparent;cursor:default;font-size:.6rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--faint);padding-bottom:2px}
+.ct-row.head:hover{transform:none;box-shadow:none}
+.ct-row.dragging{opacity:.4}
+.ct-row>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ct-rst{display:flex;align-items:center;gap:5px;font-size:.7rem;color:var(--muted)}
+.ct-rst i{width:7px;height:7px;border-radius:50%;background:var(--c);flex:none}
+.ct-rtitle{font-weight:500}
+.ct-rth{display:flex;gap:3px}
+.ct-row .mono.late{color:var(--gold)}
+@media(max-width:900px){.ct-row{grid-template-columns:92px minmax(0,2fr) 70px 66px}
+  .ct-row>span:nth-child(n+5){display:none}}
+
+/* --- the numbers --- */
+.ct-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;align-items:start}
+.ct-scard{min-width:0;border:1px solid var(--line);border-radius:12px;padding:13px 15px;background:var(--surface-2)}
+.ct-scard.wide{grid-column:1/-1;display:flex;flex-direction:column;gap:6px}
+.ct-scard>.k{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);
+  display:block;margin-bottom:9px}
+.ct-brow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr) 34px;gap:8px;align-items:center;
+  font-size:.77rem;margin-bottom:4px}
+.ct-brow>span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ct-brow .mono{font-size:.68rem;color:var(--faint);text-align:right}
+.ct-btrack{height:6px;border-radius:3px;background:var(--surface-3);overflow:hidden}
+.ct-btrack i{display:block;height:100%;background:var(--terra);border-radius:3px;transition:width .6s var(--ease)}
+.ct-fig{display:grid;grid-template-columns:repeat(auto-fit,minmax(84px,1fr));gap:10px 14px;margin-top:9px}
+.ct-fig b{font-family:var(--serif);font-size:1.34rem;font-weight:400;line-height:1.1;grid-row:1}
+.ct-fig .mono{font-size:.6rem;color:var(--faint);line-height:1.3;grid-row:2}
+.ct-heat{margin-top:9px}
+
+/* --- the piece panel --- */
+.piece-detail .pcd-head{padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.piece-detail .pd-title{font-size:1.1rem;font-weight:600;border:0;background:none;padding:0;width:100%}
+.piece-detail .pcd-sub{font-size:.86rem;color:var(--muted);border:0;background:none;padding:2px 0 0;width:100%}
+.ct-stage{display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-size:.76rem;
+  border:1px solid var(--c);color:var(--c);background:color-mix(in srgb,var(--c) 12%,transparent);
+  border-radius:7px;padding:4px 10px;transition:background .25s var(--ease),border-color .3s var(--ease)}
+.ct-stage:hover{background:color-mix(in srgb,var(--c) 22%,transparent)}
+.pcd-words{display:flex;align-items:center;gap:9px;font-size:.7rem;color:var(--faint);margin:8px 0 4px}
+.pcd-trail,.pcd-links,.pcd-quotes{display:flex;flex-direction:column;gap:5px}
+.pcd-tstep,.pcd-link{display:flex;align-items:center;gap:7px;font-size:.79rem;padding:5px 8px;
+  border:1px solid var(--line);border-radius:7px;background:var(--surface)}
+.pcd-tico,.pcd-lico{flex:none;color:var(--terra)}
+.pcd-ttext,.pcd-ltext{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pcd-tstep .mono,.pcd-link .mono{font-size:.62rem;color:var(--faint);flex:none}
+.pcd-quote{position:relative;padding:9px 26px 9px 11px;border-left:2px solid var(--terra);
+  background:var(--surface);border-radius:0 7px 7px 0}
+.pcd-qtext{font-family:var(--serif);font-style:italic;font-size:.85rem;line-height:1.5}
+.pcd-qattr{font-size:.62rem;color:var(--faint);margin-top:4px}
+.pcd-qwhy{font-size:.74rem;color:var(--muted);margin-top:4px;line-height:1.4}
+.pcd-quote .del-x{position:absolute;top:5px;right:5px}
+.pcd-checks{display:flex;flex-direction:column;gap:3px}
+.pcd-check{display:flex;align-items:center;gap:8px;font-size:.8rem;cursor:pointer}
+.pcd-check.on span{color:var(--faint);text-decoration:line-through}
+.pcd-fold summary{display:flex;align-items:center;gap:9px;cursor:pointer;list-style:none;padding:3px 0}
+.pcd-fold summary::-webkit-details-marker{display:none}
+.pcd-fold summary::before{content:'›';color:var(--faint);transition:transform .22s var(--ease)}
+.pcd-fold[open] summary::before{transform:rotate(90deg)}
+.pcd-fold summary .mono:last-child{margin-left:auto}
+.pcd-preview{font-size:.81rem;line-height:1.62;color:var(--muted);padding:7px 0 0}
+.pcd-preview p{margin:0 0 .6em}
+.pcd-preview a.mono{font-size:.68rem;color:var(--terra)}
+.pcd-outline{margin:6px 0 0;padding-left:18px;font-size:.8rem;line-height:1.55;color:var(--muted)}
+.pcd-fold{border-bottom:1px solid var(--line);padding-bottom:7px}
+.ct-backref{font-size:.66rem;color:var(--faint);margin-top:6px}
+.ct-backref a{color:var(--terra)}
+
+/* --- the quote browser --- */
+.quote-browser .qb-list{display:flex;flex-direction:column;gap:8px;max-height:min(58vh,520px);overflow-y:auto;padding-right:4px}
+.qb-row{position:relative;border:1px solid var(--line);border-radius:9px;padding:11px 13px;background:var(--surface)}
+.qb-row.hit{border-left:3px solid var(--terra)}
+.qb-row.pinned{opacity:.55}
+.qb-text{font-size:.9rem;line-height:1.55}
+.qb-text.serif{font-family:var(--serif);font-style:italic}
+.qb-text.para{font-size:.84rem;color:var(--muted);line-height:1.5}
+.qb-attr{font-size:.64rem;color:var(--faint);margin-top:5px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.qb-para{border:1px dashed var(--line-2);border-radius:4px;padding:0 5px;color:var(--muted);font-style:normal}
+.qb-own{border:1px solid var(--sage);border-radius:4px;padding:0 5px;color:var(--sage)}
+.qb-why{font-size:.76rem;color:var(--muted);margin-top:5px;line-height:1.45}
+.qb-themes{font-size:.6rem;color:var(--faint);margin-top:4px;letter-spacing:.04em}
+.qb-pin{margin-top:8px}
+.ll-list{display:flex;flex-direction:column;gap:4px;max-height:min(56vh,500px);overflow-y:auto;padding-right:4px}
+.ll-row.on{border-color:var(--sage)}
+.ll-row.on .ico{color:var(--sage)}
 </style>
 </head>
 <body>
@@ -4156,6 +4356,7 @@ const BANNER_BLOOMS = {
   people:     {forms:['layered','plum'],         n:6, size:[22,42], drift:3},
   timeline:   {forms:['plum','open'],            n:7, size:[19,38], drift:4},
   writing:    {forms:['layered','plum'],         n:4, size:[26,46], drift:2},
+  content:    {forms:['bud','open','plum'],      n:6, size:[20,38], drift:3},
   settings:   {forms:['plum','bud'],             n:4, size:[19,34], drift:2},
 };
 function bannerBloom(key){ return BANNER_BLOOMS[key] || BANNER_BLOOMS.compass; }
@@ -4284,6 +4485,7 @@ const PAGE_THEMES = {
   reviews:  {name:'Reviews',       accent:['#8fb0a8','#4f7d73'], ink:'#1a1816', gradient:['#6f9a91','#a9bfa2'], mood:'measured, honest',       motion:'calm',      glyph:'省', icon:'◷'},
   writing:  {name:'Writing',       accent:['#c8b79a','#8a7452'], ink:'#1a1816', gradient:['#b6a184','#d9c9ae'], mood:'quiet, unhurried',   motion:'calm',      glyph:'文', icon:'✒'},
   commonplace:{name:'Commonplace Book', accent:['#b98aa6','#8a5476'], ink:'#1a1816', gradient:['#a3789a','#d0aebd'], mood:'curious, collected', motion:'calm',    glyph:'典', icon:'📖'},
+  content:  {name:'Content',      accent:['#c08a6a','#8f5c3e'], ink:'#1a1816', gradient:['#b57a5c','#e0b899'], mood:'making, unfinished',     motion:'crisp',     glyph:'創', icon:'✍'},
   settings: {name:'Settings',     accent:['#a3978a','#776a5c'], ink:'#1a1816', gradient:['#a3978a','#c9b8a4'], mood:'quiet, practical',       motion:'crisp',     glyph:'設', icon:'⚙'},
 };
 /* routes that live inside another room's theme */
@@ -15542,6 +15744,1400 @@ function openMediaPanel(id){
   bindVmToggle(p, 'media');
 }
 /* ============================================================
+   CONTENT — what the page does when it is touched.
+   ============================================================ */
+
+function rerenderContentBody(){
+  if(parseHash().name !== 'content') return;
+  const body = $('#ctBody'); if(!body) return;
+  const keep = $('#panel'); const y = window.scrollY;
+  const v = contentView();
+  body.innerHTML = v === 'calendar' ? contentCalendarHTML() : v === 'library' ? contentLibraryHTML()
+    : v === 'stats' ? contentStatsHTML() : contentPipelineHTML();
+  const strip = document.querySelector('.ct-next');
+  if(strip) strip.outerHTML = contentNextStripHTML() || '<span class="ct-next-gone" hidden></span>';
+  bindContent($('#main'));
+  if(keep && !$('#panel')) document.body.appendChild(keep);
+  window.scrollTo({top:y});
+}
+
+function bindContent(root){
+  $$('[data-ctview]', root).forEach(b => b.onclick = () => contentSetView(b.dataset.ctview));
+  const q = $('#ctSearch');
+  if(q) q.oninput = debounce(() => { S._ctQ = q.value.trim(); rerender();
+    requestAnimationFrame(() => { const n = $('#ctSearch'); if(n){ n.focus(); n.setSelectionRange(n.value.length, n.value.length); } }); }, 280);
+  const catch_ = $('#ctCatch'); if(catch_) catch_.onclick = () => openContentCapture();
+  $$('[data-ctopen]', root).forEach(b => b.onclick = () => openPieceDetail(b.dataset.ctopen));
+  $$('[data-ctadd]', root).forEach(b => b.onclick = () => {
+    const stage = b.dataset.ctadd;
+    if(stage === 'idea') return openContentCapture();
+    openPieceDetail(contentNewPiece({stage}).id); });
+
+  /* cards: click opens the panel, double-click goes straight to the desk */
+  $$('[data-ctcard]', root).forEach(card => {
+    const id = card.dataset.ctcard;
+    let clickT = null;
+    card.addEventListener('click', ev => {
+      if(ev.target.closest('button, a')) return;
+      clearTimeout(clickT); clickT = setTimeout(() => openPieceDetail(id), 190);
+    });
+    card.addEventListener('dblclick', ev => {
+      if(ev.target.closest('button, a')) return;
+      clearTimeout(clickT); navigate('#/writing/' + id);
+    });
+    card.addEventListener('contextmenu', ev => { ev.preventDefault(); openPieceMenu(id); });
+    card.addEventListener('dragstart', ev => { window._ctDrag = id; card.classList.add('dragging');
+      ev.dataTransfer.effectAllowed = 'move'; try { ev.dataTransfer.setData('text/plain', id); } catch(err){} });
+    card.addEventListener('dragend', () => { card.classList.remove('dragging'); window._ctDrag = null; });
+  });
+  /* a column takes a dropped card, and where it lands inside the column
+     becomes its order — dropping is both "what stage" and "how urgent" */
+  $$('[data-ctcol]', root).forEach(col => {
+    col.addEventListener('dragover', ev => { if(window._ctDrag){ ev.preventDefault(); col.classList.add('over'); } });
+    col.addEventListener('dragleave', () => col.classList.remove('over'));
+    col.addEventListener('drop', ev => { ev.preventDefault(); col.classList.remove('over');
+      const e = contentPiece(window._ctDrag); window._ctDrag = null; if(!e) return;
+      const before = ev.target.closest('[data-ctcard]');
+      pieceSetStage(e, col.dataset.ctcol);
+      if(before && before.dataset.ctcard !== e.id){
+        const other = contentPiece(before.dataset.ctcard);
+        if(other) e.extra.content.order = (other.extra.content.order || 0) - 1;
+      } else e.extra.content.order = Date.now();
+      saveNow(); sound('click'); rerenderContentBody(); });
+  });
+
+  if(typeof bindContentCalendar === 'function') bindContentCalendar(root);
+  if(typeof bindContentLibrary === 'function') bindContentLibrary(root);
+}
+
+function openPieceMenu(id){
+  const e = contentPiece(id); if(!e) return;
+  const m = openModal(`<h2>${esc(e.title || 'Untitled')}</h2><div class="stack" style="gap:6px">
+    <button class="choice" data-pm="detail"><span class="ico">▤</span><span><b>Open its details</b></span></button>
+    <button class="choice" data-pm="write"><span class="ico">✎</span><span><b>Open in the Writing Studio</b></span></button>
+    <button class="choice" data-pm="stage"><span class="ico">◇</span><span><b>Move it to…</b></span></button>
+    <button class="choice" data-pm="pin"><span class="ico">◆</span><span><b>${e.extra.content.pinned ? 'Unpin' : 'Pin to the top'}</b></span></button>
+    <button class="choice" data-pm="dup"><span class="ico">⧉</span><span><b>Duplicate</b></span></button>
+    <button class="choice" data-pm="arch"><span class="ico">▢</span><span><b>Archive</b></span></button>
+    <button class="choice" data-pm="del"><span class="ico">×</span><span><b>Delete</b></span></button></div>`, 'narrow');
+  m.querySelectorAll('[data-pm]').forEach(b => b.onclick = () => { const k = b.dataset.pm; m.remove();
+    if(k === 'detail') return openPieceDetail(id);
+    if(k === 'write')  return navigate('#/writing/' + id);
+    if(k === 'stage')  return planChoose('Move it to', CONTENT_STAGES.map(s => [s.id, `${s.icon}  ${s.name}`]),
+      v => { pieceSetStage(e, v); sound('click'); rerender(); });
+    if(k === 'pin'){ e.extra.content.pinned = !e.extra.content.pinned; }
+    if(k === 'arch') pieceSetStage(e, 'archived');
+    if(k === 'dup'){ const c = e.extra.content;
+      contentNewPiece({title:(e.title || 'Untitled') + ' (again)', stage:c.stage, type:c.type, dest:c.dest, themes:c.themes, raw:c.raw}); }
+    if(k === 'del') return requestDelete({label:e.title || 'this piece', after:() => rerender(),
+      remove: () => spliceOut(S.entries, x => x.id === e.id)});
+    saveNow(); sound('click'); rerender(); });
+}
+
+/* ---------- keyboard ---------- */
+const CONTENT_KEYS = {i:'catch', w:'write', 1:'pipeline', 2:'calendar', 3:'library', 4:'stats'};
+document.addEventListener('keydown', ev => {
+  if(parseHash().name !== 'content') return;
+  if(ev.metaKey || ev.ctrlKey || ev.altKey){
+    if((ev.metaKey || ev.ctrlKey) && ev.key.toLowerCase() === 'k' && !planTypingInto(ev.target)){
+      ev.preventDefault(); $('#ctSearch')?.focus(); }
+    return;
+  }
+  if(planTypingInto(ev.target)) return;
+  if($('#panel') && ev.key !== 'Escape') return;
+  const act = CONTENT_KEYS[ev.key.toLowerCase()]; if(!act) return;
+  ev.preventDefault();
+  if(act === 'catch') return openContentCapture();
+  if(act === 'write'){
+    const first = document.querySelector('[data-ctcard]');
+    const id = contentState().prefs.lastPiece || first?.dataset.ctcard;
+    if(id && contentPiece(id)) navigate('#/writing/' + id);
+    return;
+  }
+  contentSetView(act);
+}, true);
+/* ============================================================
+   CONTENT — the pipeline from a thought to a published thing.
+
+   On not building a second writing tool
+   -------------------------------------
+   The spec is emphatic that the piece's body, outline and notes must be
+   the same data the Writing Studio reads, not copies of it, and that
+   there must be one source of truth. The strongest way to honour that
+   is not to keep a `writingProjectId` pointing at a project — it is for
+   the piece to BE the project.
+
+   A Writing Studio project is already an entry of type 'writing' in
+   S.entries, carrying a Scrivener binder, an outline, a scratchpad and
+   a publication record. So a piece is one of those, with the pipeline's
+   own fields kept under extra.content. Nothing is copied and nothing
+   can drift: the word count is counted off the binder, the notes are
+   the scratchpad, "open in the Writing Studio" is a link to the entry
+   this room is already showing. Every piece written before today
+   becomes a piece here automatically, with its stage read off the
+   status it already had.
+   ============================================================ */
+
+const CONTENT_STAGES = [
+  {id:'idea',      name:'Idea',      icon:'○', color:'#7f916a', tint:.15, ws:'Outlining', hint:'a thought that will not leave'},
+  {id:'seed',      name:'Seed',      icon:'◍', color:'#a0727e', tint:.15, ws:'Outlining', hint:'worth keeping, not yet shaped'},
+  {id:'outline',   name:'Outline',   icon:'◇', color:'#d4a44c', tint:.15, ws:'Outlining', hint:'the bones are down'},
+  {id:'draft',     name:'Draft',     icon:'◈', color:'#c9a84c', tint:.15, ws:'Drafting',  hint:'being written'},
+  {id:'refining',  name:'Refining',  icon:'◆', color:'#b08968', tint:.15, ws:'Drafting',  hint:'being made better'},
+  {id:'ready',     name:'Ready',     icon:'●', color:'#7f916a', tint:.25, ws:'Polished',  hint:'finished, waiting to go out'},
+  {id:'published', name:'Published', icon:'▣', color:'#6b5e53', tint:.15, ws:'Published', hint:'out in the world'},
+  {id:'archived',  name:'Archived',  icon:'▢', color:'#a89f94', tint:.10, ws:'Polished',  hint:'put away, not thrown away'},
+];
+const contentStage = id => CONTENT_STAGES.find(s => s.id === id) || CONTENT_STAGES[0];
+const CONTENT_STAGE_IDS = CONTENT_STAGES.map(s => s.id);
+const CONTENT_ACTIVE_STAGES = ['outline','draft','refining'];
+
+const CONTENT_TYPES = [
+  ['essay','Essay'], ['newsletter','Newsletter'], ['thread','Thread'], ['short_story','Short story'],
+  ['poem','Poem'], ['reflection','Reflection'], ['guide','Guide'], ['note','Note'],
+];
+const CONTENT_DESTS = [
+  ['personal_blog','Personal blog'], ['substack','Substack'], ['twitter','Twitter'], ['linkedin','LinkedIn'],
+  ['medium','Medium'], ['private','Private'], ['multiple','Several places'],
+];
+const contentTypeName = k => (CONTENT_TYPES.find(t => t[0] === k) || ['', k])[1];
+const contentDestName = k => (CONTENT_DESTS.find(t => t[0] === k) || ['', k])[1];
+
+const CONTENT_TRAIL_KINDS = {
+  journal_entry:   ['✍', 'a journal entry'],
+  timeline_event:  ['◷', 'something that happened'],
+  library_media:   ['▤', 'something read or watched'],
+  library_quote:   ['❝', 'a quote from the Library'],
+  book_vault_quote:['❞', 'a quote from the vault'],
+  value_entry:     ['◈', 'a value'],
+  skill_milestone: ['⋔', 'a skill'],
+  project_update:  ['▲', 'a project'],
+  compost:         ['◍', 'a fragment from the compost heap'],
+  shower_thought:  ['○', 'a thought out of nowhere'],
+  reading:         ['▤', 'reading'],
+  conversation:    ['◑', 'a conversation'],
+  other:           ['·', 'something else'],
+};
+const CONTENT_CHECKS = [
+  ['proofread', 'Read through one last time'],
+  ['titled',    'Title and subtitle settled'],
+  ['dest',      'Destination confirmed'],
+  ['dated',     'A date set for it'],
+  ['url',       'The published address written down'],
+];
+
+/* ---------- the piece ---------- */
+function contentState(){
+  if(!S.content) S.content = {};
+  const c = S.content;
+  c.themes = Array.isArray(c.themes) ? c.themes : [];
+  c.prefs = Object.assign({view:'pipeline', libraryMode:'grid', sort:'edited',
+    journalPrompts:true, libraryPrompts:true, lastPiece:null}, c.prefs || {});
+  c.dismissedPrompts = Array.isArray(c.dismissedPrompts) ? c.dismissedPrompts : [];
+  return c;
+}
+/* Content fields hang off the writing entry the piece already is. */
+function pieceContent(e){
+  const x = e.extra = e.extra || {};
+  const c = x.content = x.content || {};
+  if(!CONTENT_STAGE_IDS.includes(c.stage)){
+    /* a piece written before this room existed gets the stage its Writing
+       Studio status already implies, rather than being dumped back at Idea */
+    const back = {Outlining:'outline', Drafting:'draft', Polished:'ready', Published:'published'};
+    c.stage = back[x.status] || 'idea';
+  }
+  c.stageAt   = c.stageAt || e.createdAt || new Date().toISOString();
+  c.subtitle  = c.subtitle || '';
+  c.type      = CONTENT_TYPES.some(t => t[0] === c.type) ? c.type : 'essay';
+  c.dest      = CONTENT_DESTS.some(t => t[0] === c.dest) ? c.dest : (x.target?.dest ? 'personal_blog' : 'private');
+  c.themes    = Array.isArray(c.themes) ? c.themes : [];
+  c.trail     = Array.isArray(c.trail) ? c.trail : [];
+  c.linked    = Array.isArray(c.linked) ? c.linked : [];
+  c.quotes    = Array.isArray(c.quotes) ? c.quotes : [];
+  c.checks    = c.checks || {};
+  c.scheduled = c.scheduled || '';
+  c.publishedOn = c.publishedOn || '';
+  c.url       = c.url || '';
+  c.pinned    = !!c.pinned;
+  c.order     = c.order == null ? Date.now() : c.order;
+  c.raw       = c.raw || '';                       // a seed's raw thought
+  return c;
+}
+function contentPieces(){ return (S.entries || []).filter(e => e.type === 'writing').map(e => { pieceContent(e); return e; }); }
+function contentPiece(id){ const e = byId(S.entries, id); return e && e.type === 'writing' ? (pieceContent(e), e) : null; }
+function contentByStage(stage){ return contentPieces().filter(e => e.extra.content.stage === stage); }
+
+/* The word count is the binder's, counted rather than stored, so it cannot
+   disagree with what is actually written. wsProjectWords already does this
+   for the Writing Studio; using it means both rooms report one number. */
+function pieceWords(e){
+  if(typeof wsProjectWords === 'function') { try { return wsProjectWords(e); } catch(err){} }
+  return (e.body || '').trim().split(/\s+/).filter(Boolean).length;
+}
+function pieceTarget(e){ return +e.extra?.target?.wordTarget || 0; }
+function pieceBody(e){
+  if(typeof wsFlatDocs === 'function' && e.extra?.binder){
+    const docs = wsFlatDocs(e.extra.binder).filter(n => (n.body || '').trim());
+    if(docs.length) return docs.map(n => n.body).join('\n\n');
+  }
+  return e.body || '';
+}
+function pieceEditedAt(e){
+  let t = e.extra?.content?.stageAt || e.createdAt || '';
+  if(e.extra?.binder && typeof wsFlatDocs === 'function')
+    wsFlatDocs(e.extra.binder).forEach(n => { if((n.updatedAt || '') > t) t = n.updatedAt; });
+  return t;
+}
+/* untouched for a month in a stage that is supposed to be moving */
+function pieceStale(e){
+  const c = e.extra.content;
+  if(!CONTENT_ACTIVE_STAGES.includes(c.stage)) return false;
+  return daysSince((pieceEditedAt(e) || '').slice(0, 10)) > 30;
+}
+function pieceSoon(e){
+  const c = e.extra.content;
+  if(!c.scheduled || c.stage === 'published') return false;
+  const d = daysBetween(today(), c.scheduled);
+  return d >= 0 && d <= 7;
+}
+function pieceOverdue(e){
+  const c = e.extra.content;
+  return !!c.scheduled && c.scheduled < today() && c.stage !== 'published' && c.stage !== 'archived';
+}
+
+/* The Writing Studio keeps four statuses and this room keeps eight. Moving a
+   stage sets the status it implies; moving the status only moves the stage
+   when the stage does not already sit inside that status, so the finer
+   distinction is never thrown away by a coarser control. */
+function pieceSetStage(e, stage){
+  const c = pieceContent(e);
+  if(!CONTENT_STAGE_IDS.includes(stage) || c.stage === stage) return;
+  c.stage = stage; c.stageAt = new Date().toISOString();
+  e.extra.status = contentStage(stage).ws;
+  if(stage === 'published' && !c.publishedOn) c.publishedOn = today();
+  saveNow();
+}
+function pieceSyncFromStudio(e){
+  const c = pieceContent(e);
+  const want = e.extra.status;
+  if(contentStage(c.stage).ws === want) return;
+  const first = CONTENT_STAGES.find(s => s.ws === want);
+  if(first){ c.stage = first.id; c.stageAt = new Date().toISOString(); }
+}
+
+/* ---------- themes ---------- */
+function contentTheme(id){ return contentState().themes.find(t => t.id === id || t.name.toLowerCase() === String(id).toLowerCase()) || null; }
+function contentThemeName(id){ return contentTheme(id)?.name || id; }
+function contentThemeColor(id){ return contentTheme(id)?.color || 'var(--faint)'; }
+function contentEnsureTheme(name){
+  const c = contentState(); const found = contentTheme(name); if(found) return found;
+  const t = {id:uid(), name:String(name).trim(), color:PLAN_COLORS[c.themes.length % PLAN_COLORS.length],
+    description:'', linkedValueIds:[], linkedThreadIds:[]};
+  c.themes.push(t); return t;
+}
+
+/* ---------- what to publish next ----------
+   Ready first; then a refining piece that has most of its words; then
+   anything drafted in the last three days. Within a tier, most recent. */
+function contentWhatsNext(n = 5){
+  const tier = e => {
+    const c = e.extra.content, w = pieceWords(e), t = pieceTarget(e);
+    if(c.stage === 'ready') return 0;
+    if(c.stage === 'refining' && t && w / t >= .8) return 1;
+    if(c.stage === 'refining') return 2;
+    if(c.stage === 'draft' && daysSince((pieceEditedAt(e) || '').slice(0, 10)) <= 3) return 3;
+    return 9;
+  };
+  return contentPieces().filter(e => !['published','archived'].includes(e.extra.content.stage))
+    .map(e => ({e, t: tier(e)})).filter(x => x.t < 9)
+    .sort((a, b) => a.t - b.t || (pieceEditedAt(b.e) || '').localeCompare(pieceEditedAt(a.e) || ''))
+    .slice(0, n).map(x => x.e);
+}
+
+function pieceAddTrail(e, type, description, sourceId = null){
+  pieceContent(e).trail.push({id:uid(), type, sourceId, description, addedAt:new Date().toISOString()});
+}
+function pieceLink(e, sourceType, sourceId, title){
+  const c = pieceContent(e);
+  if(c.linked.some(l => l.sourceType === sourceType && l.sourceId === sourceId)) return;
+  c.linked.push({id:uid(), sourceType, sourceId, title, addedAt:new Date().toISOString()});
+}
+/* every place a piece points at should be able to point back */
+function contentReferencing(sourceType, sourceId){
+  return contentPieces().filter(e => (e.extra.content.linked || [])
+    .some(l => l.sourceType === sourceType && l.sourceId === sourceId));
+}
+function contentBackrefHTML(sourceType, sourceId){
+  const used = contentReferencing(sourceType, sourceId);
+  if(!used.length) return '';
+  return `<div class="ct-backref mono">used in ${used.map(e =>
+    `<a href="#/content">${esc(e.title || 'an untitled piece')}</a>`).join(', ')}</div>`;
+}
+
+/* ---------- making one ---------- */
+function contentNewPiece({title = '', stage = 'idea', type = 'essay', dest = 'private',
+                          themes = [], raw = '', trail = null, linked = null} = {}){
+  const e = newWriting();                          // a Writing Studio project, which is what a piece is
+  e.title = title;
+  const c = pieceContent(e);
+  c.stage = stage; c.stageAt = new Date().toISOString();
+  c.type = type; c.dest = dest; c.themes = themes.slice(); c.raw = raw;
+  e.extra.status = contentStage(stage).ws;
+  if(raw) e.extra.scratchpad = raw;
+  if(trail) c.trail.push(Object.assign({id:uid(), sourceId:null, addedAt:new Date().toISOString()}, trail));
+  if(linked) pieceLink(e, linked.sourceType, linked.sourceId, linked.title);
+  saveNow();
+  return e;
+}
+
+/* ---------- migration ----------
+   Runs on every visit to the room and is cheap: the work is idempotent
+   and touches only writing entries, of which there are never many. */
+function migrateContent(){
+  const c = contentState();
+  if(!c.seededThemes){
+    CONTENT_SEED_THEMES.forEach(([name, color, description]) => {
+      if(!contentTheme(name)) c.themes.push({id:uid(), name, color, description, linkedValueIds:[], linkedThreadIds:[]});
+    });
+    c.seededThemes = true;
+  }
+  contentVault();
+  /* the Writing Studio may have moved a status while this room was closed */
+  contentPieces().forEach(pieceSyncFromStudio);
+  saveNow();
+}
+const CONTENT_SEED_THEMES = [
+  ['Identity',            '#b08968', "Who I am, who I'm becoming, self-image"],
+  ['Creativity',          '#a0727e', 'Making things, and what making does to the maker'],
+  ['Mastery',             '#7f916a', 'The long apprenticeship, plateaus, practice'],
+  ['Freedom',             '#d4a44c', 'Room to move, and what it costs'],
+  ['Japan',               '#6b7f8e', 'A place, and everything it stands in for'],
+  ['Career & Craft',      '#8a7f9e', 'Work worth doing and being good enough to do it'],
+  ['Consciousness',       '#9e8a6b', 'Attention, awareness, the inside of a mind'],
+  ['Relationships',       '#c98f7a', 'Other people, and being known by them'],
+  ['Money & Independence','#6f8f7a', 'What it buys, what it demands'],
+  ['Discipline',          '#8e6b6b', 'Doing it when it is dull'],
+  ['Reading & Learning',  '#7a8fa0', 'Taking things in, and what survives the taking'],
+  ['Storytelling',        '#a8916b', 'Shape, arc, the reason anyone keeps reading'],
+];
+/* ============================================================
+   CONTENT — one piece, opened. Management, not craft: the writing
+   itself happens in the Writing Studio, and the button that goes
+   there is the most prominent thing in the panel.
+   ============================================================ */
+
+function openPieceDetail(id){
+  const e = contentPiece(id); if(!e) return;
+  contentState().prefs.lastPiece = id; saveNow();
+  const p = openPanel(pieceDetailHTML(e), 'plan-detail piece-detail');
+  bindPieceDetail(p, e);
+  return p;
+}
+function pieceRedraw(e){
+  const p = openPanel(pieceDetailHTML(e), 'plan-detail piece-detail');
+  bindPieceDetail(p, e);
+  if(parseHash().name === 'content') rerenderContentBody();
+}
+
+function pieceDetailHTML(e){
+  const c = e.extra.content, st = contentStage(c.stage);
+  const w = pieceWords(e), t = pieceTarget(e);
+  const body = pieceBody(e), outline = e.extra.outline, notes = e.extra.scratchpad || '';
+  const tasks = (S.tasks || []).filter(x => (x.links?.content || []).includes(e.id));
+  return `<div class="pd pcd">
+    <div class="pcd-head">
+      <input class="inp pd-title" id="pcTitle" value="${esc(e.title)}" placeholder="What is it called?">
+      <input class="inp pcd-sub" id="pcSub" value="${esc(c.subtitle)}" placeholder="a subtitle, if it needs one">
+      <div class="row" style="gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap">
+        <button class="ct-stage" id="pcStage" style="--c:${st.color}">${st.icon} ${esc(st.name)} ▾</button>
+        <button class="btn sm primary" id="pcOpen">Open in the Writing Studio →</button>
+        <button class="pl-mini" id="pcPin" title="${c.pinned ? 'unpin' : 'pin to the top'}">${c.pinned ? '◆' : '◇'}</button>
+      </div>
+    </div>
+
+    <div class="pd-quick">
+      <label class="pd-q"><span class="k">kind</span><select class="sel" id="pcType">
+        ${CONTENT_TYPES.map(([k, n]) => `<option value="${k}" ${c.type === k ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
+      <label class="pd-q"><span class="k">where it goes</span><select class="sel" id="pcDest">
+        ${CONTENT_DESTS.map(([k, n]) => `<option value="${k}" ${c.dest === k ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
+      <label class="pd-q"><span class="k">planned for</span><input type="date" class="inp" id="pcSched" value="${esc(c.scheduled)}"></label>
+      <label class="pd-q"><span class="k">words wanted</span><input class="inp mono" id="pcTarget" value="${t || ''}" placeholder="—"></label>
+    </div>
+    <div class="pcd-words mono">${w.toLocaleString()} written${t ? ` of ${t.toLocaleString()}` : ''}
+      ${t ? `<span class="pd-bar" style="flex:1"><i style="width:${Math.min(100, Math.round(w / t * 100))}%"></i></span>` : ''}</div>
+
+    <div class="pd-sec"><div class="k mono">themes</div><div class="chip-row" id="pcThemes">
+      ${contentState().themes.map(x => `<button class="chip click${c.themes.includes(x.id) ? ' on' : ''}" data-pcth="${x.id}" style="--c:${x.color}">${esc(x.name)}</button>`).join('')}</div></div>
+
+    <div class="pd-sec"><div class="k mono">tags</div>
+      <input class="inp mono" id="pcTags" value="${esc((e.tags || []).map(x => '#' + x).join(' '))}" placeholder="#craft #japan"></div>
+
+    <div class="pd-sec"><div class="row between"><span class="k mono">what sparked it</span>
+      <button class="pl-mini" id="pcTrailAdd" title="add a step">＋</button></div>
+      <div class="pcd-trail">${c.trail.length ? c.trail.map(x => { const k = CONTENT_TRAIL_KINDS[x.type] || CONTENT_TRAIL_KINDS.other;
+        return `<div class="pcd-tstep"><span class="pcd-tico" title="${esc(k[1])}">${k[0]}</span>
+          <span class="pcd-ttext">${esc(x.description || k[1])}</span>
+          <span class="mono">${esc(fmtDate((x.addedAt || '').slice(0, 10), 'short'))}</span>
+          <button class="del-x inline" data-pctdel="${x.id}">×</button></div>`; }).join('')
+        : '<div class="pk-empty">Nothing recorded. Where did this come from?</div>'}</div></div>
+
+    <div class="pd-sec"><div class="row between"><span class="k mono">drawn from your own life</span>
+      <button class="pl-mini" id="pcLinkAdd" title="link something">＋</button></div>
+      <div class="pcd-links">${c.linked.length ? c.linked.map(l =>
+        `<div class="pcd-link"><span class="pcd-lico">${esc(CONTENT_SOURCE_ICON[l.sourceType] || '·')}</span>
+          <a href="${esc(contentSourceHref(l))}" class="pcd-ltext">${esc(l.title || 'an entry')}</a>
+          <button class="del-x inline" data-pcldel="${l.id}">×</button></div>`).join('')
+        : '<div class="pk-empty">Nothing linked yet. Your journals, your Library, your Timeline.</div>'}</div></div>
+
+    <div class="pd-sec"><div class="row between"><span class="k mono">quotes pinned to it</span>
+      <button class="pl-mini" id="pcQuoteAdd" title="find a quote">＋</button></div>
+      <div class="pcd-quotes">${c.quotes.length ? c.quotes.map(q => `<div class="pcd-quote">
+        <div class="pcd-qtext">${esc(q.text)}</div>
+        <div class="pcd-qattr mono">${esc(q.source)}${q.author ? ' · ' + esc(q.author) : ''}${q.pageOrLocation ? ' · ' + esc(q.pageOrLocation) : ''}</div>
+        ${q.whyCaught ? `<div class="pcd-qwhy">${esc(q.whyCaught)}</div>` : ''}
+        <button class="del-x inline" data-pcqdel="${q.id}">×</button></div>`).join('')
+        : '<div class="pk-empty">No quotes pinned. The vault and your Library are both searchable.</div>'}</div></div>
+
+    ${c.stage === 'ready' || c.stage === 'published' ? `<div class="pd-sec"><div class="k mono">before it goes out</div>
+      <div class="pcd-checks">${CONTENT_CHECKS.map(([k, label]) =>
+        `<label class="pcd-check${c.checks[k] ? ' on' : ''}"><button class="pt-box sm" data-pcchk="${k}" role="checkbox" aria-checked="${!!c.checks[k]}">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.2" class="pt-ring"/><path d="M5.6 10.3 L8.7 13.3 L14.4 6.9" class="pt-tick"/></svg></button>
+        <span>${esc(label)}</span></label>`).join('')}</div>
+      <input class="inp mono" id="pcUrl" value="${esc(c.url)}" placeholder="https://… once it is up" style="margin-top:8px"></div>` : ''}
+
+    <details class="pd-sec pcd-fold"><summary><span class="k mono">the draft so far</span>
+      <span class="mono faint">${w ? w.toLocaleString() + ' words' : 'nothing yet'}</span></summary>
+      <div class="pcd-preview">${body ? md(body.slice(0, 500)) + (body.length > 500 ? '<p class="faint">…</p>' : '') :
+        '<div class="pk-empty">Nothing written yet.</div>'}
+        <a class="mono" id="pcOpen2" href="#/writing/${e.id}">continue in the Writing Studio →</a></div></details>
+    ${outline && outline.length ? `<details class="pd-sec pcd-fold"><summary><span class="k mono">outline</span><span class="mono faint">${outline.length} points</span></summary>
+      <ul class="pcd-outline">${outline.slice(0, 12).map(o => `<li>${esc(typeof o === 'string' ? o : (o.text || ''))}</li>`).join('')}</ul></details>` : ''}
+    ${notes ? `<details class="pd-sec pcd-fold"><summary><span class="k mono">notes</span></summary>
+      <div class="pcd-preview">${md(notes.slice(0, 600))}</div></details>` : ''}
+
+    <div class="pd-sec"><div class="row between"><span class="k mono">work booked for it</span>
+      <button class="pl-mini" id="pcTaskAdd" title="add a task">＋</button></div>
+      ${tasks.length ? `<div class="pl-linked">${tasks.map(x => `<a class="pl-lrow" href="#/planning">
+        <span class="pt-prio" style="background:${x.done ? 'var(--sage)' : planPriority(x.priority).color || 'var(--line-2)'}"></span>
+        <span class="pl-ltext">${esc(x.text)}</span>${x.day ? `<span class="mono">${esc(fmtDate(x.day, 'short'))}</span>` : ''}</a>`).join('')}</div>`
+        : '<div class="pk-empty">Nothing booked. A piece with no time set aside rarely gets written.</div>'}</div>
+
+    <div class="pd-meta mono">
+      <div>started ${esc(fmtDate((e.createdAt || '').slice(0, 10), 'med'))}</div>
+      <div>last touched ${esc(fmtDate((pieceEditedAt(e) || '').slice(0, 10), 'med'))}</div>
+      <div>moved to ${esc(st.name.toLowerCase())} ${esc(relDays(daysSince((c.stageAt || '').slice(0, 10))))}</div>
+      ${c.url ? `<div><a href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.url)}</a></div>` : ''}</div>
+    <div class="row" style="gap:8px;margin-top:14px;flex-wrap:wrap">
+      ${c.stage === 'idea' ? '<button class="btn sm" id="pcPromote">give it a shape →</button>' : ''}
+      <button class="btn sm ghost" id="pcCompost">send to the compost heap</button>
+      <button class="btn sm ghost" id="pcDup">duplicate</button>
+      <button class="btn sm ghost" id="pcArch">archive</button>
+      <button class="btn sm ghost danger" id="pcDel">delete</button></div>
+  </div>`;
+}
+/* the same source names the trail uses, so one vocabulary covers both */
+const CONTENT_SOURCE_ICON = {journal_entry:'✍', timeline_event:'◷', library_media:'▤', library_quote:'❝',
+  library_note:'▤', value_entry:'◈', skill_milestone:'⋔', project_update:'▲', book_vault_quote:'❞'};
+const CONTENT_SOURCE_PAGE = {journal_entry:'#/journals', timeline_event:'#/timeline',
+  library_media:'#/commonplace', library_quote:'#/commonplace', library_note:'#/commonplace',
+  value_entry:'#/values', skill_milestone:'#/skills', project_update:'#/projects'};
+function contentSourceHref(l){ return CONTENT_SOURCE_PAGE[l.sourceType] || '#/content'; }
+
+function bindPieceDetail(p, e){
+  const c = e.extra.content;
+  const touch = () => { saveNow(); rerenderContentBody(); };
+  p.querySelector('#pcTitle').oninput = debounce(function(){ e.title = this.value; touch(); }, 350);
+  p.querySelector('#pcSub').oninput = debounce(function(){ c.subtitle = this.value; touch(); }, 350);
+  p.querySelector('#pcStage').onclick = () => planChoose('Where is it?',
+    CONTENT_STAGES.map(s => [s.id, `${s.icon}  ${s.name} — ${s.hint}`]),
+    v => { pieceSetStage(e, v); sound('click'); pieceRedraw(e); });
+  const go = () => { closePanel(); navigate('#/writing/' + e.id); };
+  p.querySelector('#pcOpen').onclick = go;
+  p.querySelector('#pcOpen2')?.addEventListener('click', ev => { ev.preventDefault(); go(); });
+  p.querySelector('#pcPin').onclick = () => { c.pinned = !c.pinned; touch(); pieceRedraw(e); };
+  p.querySelector('#pcType').onchange = function(){ c.type = this.value; touch(); };
+  p.querySelector('#pcDest').onchange = function(){ c.dest = this.value; touch(); };
+  p.querySelector('#pcSched').onchange = function(){ c.scheduled = this.value; touch(); };
+  p.querySelector('#pcTarget').oninput = debounce(function(){
+    e.extra.target = e.extra.target || {}; e.extra.target.wordTarget = parseInt(this.value, 10) || 0; touch(); }, 400);
+  p.querySelectorAll('[data-pcth]').forEach(b => b.onclick = () => {
+    const i = c.themes.indexOf(b.dataset.pcth); i < 0 ? c.themes.push(b.dataset.pcth) : c.themes.splice(i, 1);
+    b.classList.toggle('on'); touch(); });
+  p.querySelector('#pcTags').oninput = debounce(function(){
+    e.tags = normTags(this.value.split(/[\s,]+/).map(x => x.replace(/^#/, '')).filter(Boolean)); touch(); }, 400);
+
+  p.querySelector('#pcTrailAdd').onclick = () => openTrailAdd(e);
+  p.querySelectorAll('[data-pctdel]').forEach(b => b.onclick = () => {
+    spliceOut(c.trail, x => x.id === b.dataset.pctdel); touch(); pieceRedraw(e); });
+  p.querySelector('#pcLinkAdd').onclick = () => openLifeLinker(e);
+  p.querySelectorAll('[data-pcldel]').forEach(b => b.onclick = () => {
+    spliceOut(c.linked, x => x.id === b.dataset.pcldel); touch(); pieceRedraw(e); });
+  p.querySelector('#pcQuoteAdd').onclick = () => openQuoteBrowser(e);
+  p.querySelectorAll('[data-pcqdel]').forEach(b => b.onclick = () => {
+    spliceOut(c.quotes, x => x.id === b.dataset.pcqdel); touch(); pieceRedraw(e); });
+
+  p.querySelectorAll('[data-pcchk]').forEach(b => b.onclick = () => {
+    const k = b.dataset.pcchk; c.checks[k] = !c.checks[k]; saveNow();
+    /* every box ticked and an address written down means it is out */
+    if(CONTENT_CHECKS.every(([x]) => c.checks[x]) && c.url && c.stage !== 'published'){
+      pieceSetStage(e, 'published'); sound('success'); toast('Published. It is out of your hands now.', 5000);
+    }
+    pieceRedraw(e); });
+  const url = p.querySelector('#pcUrl');
+  if(url) url.oninput = debounce(function(){ c.url = this.value.trim(); c.checks.url = !!c.url; touch(); }, 400);
+
+  p.querySelector('#pcTaskAdd').onclick = () => {
+    if(typeof newPlanTask !== 'function') return;
+    const t = newPlanTask(`Write: ${e.title || 'untitled piece'}`, c.scheduled || '', {listId:'inbox', priority:2});
+    t.links.content = [e.id];
+    S.tasks.push(t); saveNow(); sound('success'); toast('Booked in Planning.'); pieceRedraw(e); };
+
+  p.querySelector('#pcPromote')?.addEventListener('click', () => { closePanel(); openPromoteSeed(e.id); });
+  p.querySelector('#pcCompost').onclick = () => {
+    const txt = c.raw || pieceBody(e).slice(0, 400) || e.title;
+    if(!txt) return toast('Nothing to compost yet.');
+    addCompost(txt, e.tags || []);
+    toast('On the heap. It can rot down and come back.', 5000);
+    sound('click'); };
+  p.querySelector('#pcDup').onclick = () => {
+    const copy = contentNewPiece({title:(e.title || 'Untitled') + ' (again)', stage:c.stage, type:c.type,
+      dest:c.dest, themes:c.themes, raw:c.raw});
+    copy.extra.content.trail = JSON.parse(JSON.stringify(c.trail));
+    copy.extra.content.quotes = JSON.parse(JSON.stringify(c.quotes));
+    saveNow(); closePanel(); sound('success'); rerender(); };
+  p.querySelector('#pcArch').onclick = () => { pieceSetStage(e, 'archived'); closePanel(); sound('click'); rerender(); };
+  p.querySelector('#pcDel').onclick = () => { closePanel();
+    requestDelete({label:e.title || 'this piece', after:() => rerender(),
+      remove: () => spliceOut(S.entries, x => x.id === e.id)}); };
+}
+
+function openTrailAdd(e){
+  const m = openModal(`<h2>What sparked it</h2><div class="stack">
+    <div class="field"><label>Kind</label><select class="sel" id="taKind">
+      ${Object.entries(CONTENT_TRAIL_KINDS).map(([k, v]) => `<option value="${k}">${v[0]}  ${v[1]}</option>`).join('')}</select></div>
+    <div class="field"><label>What happened</label><input class="inp" id="taWhat" placeholder="Reading Psycho-Cybernetics, chapter three"></div>
+    <div class="row" style="justify-content:flex-end"><button class="btn primary" id="taSave">Add it</button></div></div>`, 'narrow');
+  m.querySelector('#taSave').onclick = () => {
+    const what = m.querySelector('#taWhat').value.trim(); if(!what) return;
+    pieceAddTrail(e, m.querySelector('#taKind').value, what);
+    saveNow(); m.remove(); sound('click'); pieceRedraw(e); };
+}
+/* ============================================================
+   CONTENT — the page: a pipeline, a calendar, a shelf, and the
+   numbers underneath them.
+   ============================================================ */
+
+function contentView(){ return S._ctView || contentState().prefs.view || 'pipeline'; }
+function contentSetView(v){ S._ctView = v; contentState().prefs.view = v; saveNow(); rerender(); }
+
+function contentCardHTML(e){
+  const c = e.extra.content, st = contentStage(c.stage);
+  const w = pieceWords(e), t = pieceTarget(e);
+  const seed = c.stage === 'idea' || c.stage === 'seed';
+  return `<div class="ct-card${c.pinned ? ' pinned' : ''}${pieceStale(e) ? ' stale' : ''}${pieceSoon(e) ? ' soon' : ''}${seed ? ' seed' : ''}"
+      data-ctcard="${e.id}" draggable="true" style="--c:${st.color}">
+    <div class="ct-ctop">
+      ${c.pinned ? '<span class="ct-pin" title="pinned">◆</span>' : ''}
+      <span class="ct-title">${esc(e.title || (c.raw ? c.raw.slice(0, 60) : 'Untitled'))}</span></div>
+    ${c.raw && seed ? `<div class="ct-raw">${esc(c.raw.slice(0, 140))}</div>` : ''}
+    ${t ? `<div class="ct-bar" title="${w} of ${t} words"><i style="width:${Math.min(100, Math.round(w / t * 100))}%"></i></div>` : ''}
+    <div class="ct-cmeta">
+      <span class="ct-chip">${esc(contentTypeName(c.type))}</span>
+      <span class="mono">${t ? `${w}/${t}` : (w ? `${w} words` : '—')}</span>
+      <span class="mono ct-dest">${esc(contentDestName(c.dest))}</span>
+    </div>
+    ${c.themes.length ? `<div class="ct-themes">${c.themes.slice(0, 2).map(id =>
+      `<span class="ct-theme" style="--c:${contentThemeColor(id)}">${esc(contentThemeName(id))}</span>`).join('')}
+      ${c.themes.length > 2 ? `<span class="ct-theme more">+${c.themes.length - 2}</span>` : ''}</div>` : ''}
+    <div class="ct-cfoot mono">
+      <span>${esc(relDays(daysSince((pieceEditedAt(e) || '').slice(0, 10))))}</span>
+      ${c.scheduled ? `<span class="ct-sched${pieceOverdue(e) ? ' late' : ''}">◷ ${esc(fmtDate(c.scheduled, 'short'))}</span>` : ''}
+    </div></div>`;
+}
+
+/* ---------- pipeline ---------- */
+function contentPipelineHTML(){
+  return `<div class="ct-board">${CONTENT_STAGES.map(st => {
+    const list = contentByStage(st.id).sort((a, b) =>
+      (b.extra.content.pinned ? 1 : 0) - (a.extra.content.pinned ? 1 : 0)
+      || (a.extra.content.order || 0) - (b.extra.content.order || 0));
+    return `<div class="ct-col" data-ctcol="${st.id}" style="--c:${st.color};--tint:${st.tint}">
+      <div class="ct-colh"><span class="ct-cico">${st.icon}</span><span class="ct-cname">${esc(st.name)}</span>
+        <span class="mono">${list.length || ''}</span>
+        <button class="pl-mini" data-ctadd="${st.id}" title="start one here">＋</button></div>
+      <div class="ct-cards">${list.map(contentCardHTML).join('')
+        || `<div class="ct-empty">${esc(st.hint)}</div>`}</div>
+    </div>`; }).join('')}</div>`;
+}
+
+/* ---------- the page ---------- */
+routes.content = function(root, params){
+  migrateContent();
+  if(params[0] === 'stats') S._ctView = 'stats';
+  const v = contentView();
+  registerPageEntry({pageName:'Content', addLabel:'Catch an idea', defaultEntryType:'content',
+    hint:'or press I anywhere on this page', prefilledFields:{},
+    options:[{label:'Catch an idea', run:() => openContentCapture()},
+             {label:'Start a piece',  run:() => openPieceDetail(contentNewPiece({stage:'seed'}).id)}]});
+
+  const body = v === 'calendar' ? contentCalendarHTML()
+    : v === 'library' ? contentLibraryHTML()
+    : v === 'stats' ? contentStatsHTML()
+    : contentPipelineHTML();
+
+  root.innerHTML = `<div class="page ct-page">
+    <div class="page-head"><h1>Content</h1></div>
+    <div class="ct-head">
+      <div class="ct-views">
+        ${[['pipeline','Pipeline','▥'],['calendar','Calendar','▦'],['library','Shelf','▤'],['stats','Numbers','◫']].map(([k, n, i]) =>
+          `<button class="${v === k ? 'on' : ''}" data-ctview="${k}" title="${n}">${i} <span>${n}</span></button>`).join('')}
+      </div>
+      <div class="row" style="gap:8px;margin-left:auto">
+        <input class="inp mono ct-search" id="ctSearch" placeholder="search pieces…" value="${esc(S._ctQ || '')}">
+        <button class="btn sm" id="ctCatch">＋ catch an idea</button>
+      </div>
+    </div>
+    ${v === 'pipeline' || v === 'library' ? contentNextStripHTML() : ''}
+    <div class="ct-body" id="ctBody">${body}</div>
+  </div>`;
+  bindContent(root);
+};
+ROUTE_ALIASES.contents = 'content';
+
+/* ---------- what to publish next ---------- */
+function contentNextStripHTML(){
+  const list = contentWhatsNext(3);
+  if(!list.length) return '';
+  return `<div class="ct-next"><span class="mono">closest to done</span>
+    ${list.map(e => { const c = e.extra.content, st = contentStage(c.stage), w = pieceWords(e), t = pieceTarget(e);
+      return `<button class="ct-nx" data-ctopen="${e.id}" style="--c:${st.color}">
+        <b>${esc(e.title || 'Untitled')}</b><span class="mono">${esc(st.name)}${t ? ` · ${Math.round(w / t * 100)}%` : ''}</span></button>`; }).join('')}</div>`;
+}
+
+/* ---------- quick capture ---------- */
+function openContentCapture(prefill = {}){
+  const m = openModal(`<h2>Catch it</h2>
+    <p class="muted" style="font-size:.86rem">Before it goes. A title is optional — the thought is the point.</p>
+    <div class="stack">
+      <textarea class="ta" id="ccRaw" style="min-height:96px" placeholder="What just occurred to you?">${esc(prefill.raw || '')}</textarea>
+      <input class="inp" id="ccTitle" placeholder="a working title, if one has arrived" value="${esc(prefill.title || '')}">
+      <div class="field"><label>What sparked it</label>
+        <input class="inp" id="ccSpark" placeholder="reading, a conversation, nothing in particular" value="${esc(prefill.spark || '')}"></div>
+      <div class="field"><label>Themes</label><div class="chip-row" id="ccThemes">
+        ${contentState().themes.map(t => `<button type="button" class="chip click" data-cct="${t.id}" style="--c:${t.color}">${esc(t.name)}</button>`).join('')}</div></div>
+      <div class="row" style="justify-content:flex-end;gap:8px"><button class="btn primary" id="ccSave">Keep it</button></div>
+    </div>`, 'narrow');
+  const themes = [];
+  m.querySelectorAll('[data-cct]').forEach(b => b.onclick = () => {
+    const i = themes.indexOf(b.dataset.cct); i < 0 ? themes.push(b.dataset.cct) : themes.splice(i, 1);
+    b.classList.toggle('on'); });
+  setTimeout(() => m.querySelector('#ccRaw').focus(), 80);
+  const save = () => {
+    const raw = m.querySelector('#ccRaw').value.trim(), title = m.querySelector('#ccTitle').value.trim();
+    if(!raw && !title) return;
+    const spark = m.querySelector('#ccSpark').value.trim();
+    const e = contentNewPiece({title, stage:'idea', raw, themes,
+      trail: spark ? {type: prefill.trailType || 'shower_thought', description: spark} : null});
+    if(prefill.linked) pieceLink(e, prefill.linked.sourceType, prefill.linked.sourceId, prefill.linked.title);
+    if(prefill.trail) pieceAddTrail(e, prefill.trail.type, prefill.trail.description, prefill.trail.sourceId);
+    /* the board is redrawn before the flourishes: a thought that has been
+       caught should appear even if the sound or the toast cannot */
+    saveNow(); m.remove();
+    if(parseHash().name === 'content') rerender();
+    sound('success'); toast('Caught.', 3000);
+  };
+  m.querySelector('#ccSave').onclick = save;
+  m.querySelector('#ccRaw').onkeydown = ev => { if(ev.key === 'Enter' && (ev.metaKey || ev.ctrlKey)){ ev.preventDefault(); save(); } };
+}
+
+/* promoting a caught thought into something with a shape */
+function openPromoteSeed(id){
+  const e = contentPiece(id); if(!e) return;
+  const c = e.extra.content;
+  const m = openModal(`<h2>Give it a shape</h2>
+    <p class="muted" style="font-size:.86rem">${esc(c.raw ? c.raw.slice(0, 200) : 'What is this going to be?')}</p>
+    <div class="stack">
+      <div class="field"><label>Title</label><input class="inp" id="psTitle" value="${esc(e.title)}" placeholder="what it is called, for now"></div>
+      <div class="grid c2" style="gap:10px">
+        <div class="field"><label>What kind</label><select class="sel" id="psType">
+          ${CONTENT_TYPES.map(([k, n]) => `<option value="${k}" ${c.type === k ? 'selected' : ''}>${n}</option>`).join('')}</select></div>
+        <div class="field"><label>Where it goes</label><select class="sel" id="psDest">
+          ${CONTENT_DESTS.map(([k, n]) => `<option value="${k}" ${c.dest === k ? 'selected' : ''}>${n}</option>`).join('')}</select></div>
+      </div>
+      <div class="field"><label>Themes</label><div class="chip-row" id="psThemes">
+        ${contentState().themes.map(t => `<button type="button" class="chip click${c.themes.includes(t.id) ? ' on' : ''}" data-pst="${t.id}" style="--c:${t.color}">${esc(t.name)}</button>`).join('')}</div></div>
+      <div class="faint" style="font-size:.76rem">The raw thought stays, as the piece's notes. What sparked it comes with it.</div>
+      <div class="row" style="justify-content:flex-end;gap:8px"><button class="btn primary" id="psGo">Plant it</button></div>
+    </div>`, 'narrow');
+  m.querySelectorAll('[data-pst]').forEach(b => b.onclick = () => {
+    const i = c.themes.indexOf(b.dataset.pst); i < 0 ? c.themes.push(b.dataset.pst) : c.themes.splice(i, 1);
+    b.classList.toggle('on'); });
+  m.querySelector('#psGo').onclick = () => {
+    e.title = m.querySelector('#psTitle').value.trim() || e.title || 'Untitled';
+    c.type = m.querySelector('#psType').value; c.dest = m.querySelector('#psDest').value;
+    if(c.raw && !e.extra.scratchpad) e.extra.scratchpad = c.raw;
+    pieceSetStage(e, 'seed');
+    saveNow(); m.remove(); sound('success'); rerender();
+    setTimeout(() => openPieceDetail(e.id), 120);
+  };
+}
+/* ============================================================
+   THE BOOK VAULT — passages worth having to hand while writing,
+   indexed by theme, pinnable to a piece.
+
+   On what is in here
+   ------------------
+   The specification supplied twenty-five passages verbatim and then
+   said "continue the same pattern for the remaining books". Inventing
+   sentences and printing them inside quotation marks under a living
+   author's name is not something this file will do: a fabricated quote
+   that ends up in a published essay is the writer's problem, not the
+   app's. So the vault holds two kinds of row. A quotation is a passage
+   quoted as written. A paraphrase (paraphrase:true) is the book's idea
+   in plain words, and is drawn and labelled as a summary — never in
+   quotation marks, never presentable as something the author said. The
+   panel says which is which every time it draws one, and the pin
+   carries the label with it.
+   ============================================================ */
+
+const VAULT_THEMES = ['identity','mindset','visualization','creativity','mastery','vision',
+  'resilience','consciousness','focus','success','relationships','habits'];
+
+/* q(text, book, author, where, themes)  — quoted as written
+   p(text, …)                            — the idea, in summary */
+function contentVaultSeed(){
+  const rows = [];
+  const add = (paraphrase, text, bookTitle, author, pageOrChapter, themes) =>
+    rows.push({id:uid(), text, bookTitle, author, pageOrChapter, themes, paraphrase, addedAt:new Date().toISOString()});
+  const q = (...a) => add(false, ...a);
+  const p = (...a) => add(true, ...a);
+
+  /* --- supplied verbatim by the specification --- */
+  q('The self-image is the key to human personality and human behavior. Change the self-image and you change the personality and the behavior.',
+    'Psycho-Cybernetics', 'Maxwell Maltz', 'Ch. 1', ['identity','mindset']);
+  q("Your nervous system cannot tell the difference between an imagined experience and a 'real' experience.",
+    'Psycho-Cybernetics', 'Maxwell Maltz', 'Ch. 3', ['visualization','mindset']);
+  q('Within you right now is the power to do things you never dreamed possible.',
+    'Psycho-Cybernetics', 'Maxwell Maltz', '', ['success','identity']);
+  q('You act, and feel, not according to what things are really like, but according to the image your mind holds of what they are like.',
+    'Psycho-Cybernetics', 'Maxwell Maltz', 'Ch. 2', ['identity','consciousness']);
+  q('Close your eyes and see yourself on a mental motion picture screen… pay attention to small details.',
+    'Psycho-Cybernetics', 'Maxwell Maltz', 'Ch. 3', ['visualization','focus']);
+
+  q('Structure determines behavior. If you want to change behavior, change the underlying structure.',
+    'The Path of Least Resistance', 'Robert Fritz', '', ['mastery','habits']);
+  q('Hold the vision of what you want to create AND an accurate picture of current reality. The discrepancy generates energy.',
+    'The Path of Least Resistance', 'Robert Fritz', '', ['vision','creativity']);
+  q('The creative process has three stages: germination, assimilation, and completion.',
+    'The Path of Least Resistance', 'Robert Fritz', '', ['creativity','mastery']);
+  q('You do not solve problems; you create results.',
+    'The Path of Least Resistance', 'Robert Fritz', '', ['creativity','mindset']);
+  q('The path of least resistance is always determined by the underlying structure.',
+    'The Path of Least Resistance', 'Robert Fritz', '', ['habits','consciousness']);
+
+  q('Whatever the mind can conceive and believe, it can achieve.',
+    'Think and Grow Rich', 'Napoleon Hill', '', ['mindset','success']);
+  q('The starting point of all achievement is desire.',
+    'Think and Grow Rich', 'Napoleon Hill', '', ['vision','success']);
+  q('Every adversity, every failure, every heartache carries with it the seed of an equal or greater benefit.',
+    'Think and Grow Rich', 'Napoleon Hill', '', ['resilience','mindset']);
+  q('The majority of men meet with failure because of their lack of persistence in creating new plans to take the place of those which fail.',
+    'Think and Grow Rich', 'Napoleon Hill', '', ['mastery','resilience']);
+  q('Set your mind on a definite goal and observe how quickly the world stands aside to let you pass.',
+    'Think and Grow Rich', 'Napoleon Hill', '', ['focus','success']);
+
+  q('Every thought vibrates, every thought radiates a signal, and every thought attracts a matching signal back.',
+    'Ask and It Is Given', 'Esther & Jerry Hicks', '', ['consciousness','mindset']);
+  q('You cannot have a happy ending to an unhappy journey.',
+    'Ask and It Is Given', 'Esther & Jerry Hicks', '', ['mindset','habits']);
+  q('A belief is only a thought you continue to think.',
+    'Ask and It Is Given', 'Esther & Jerry Hicks', '', ['identity','consciousness']);
+  q('You are the only one who creates your reality.',
+    'Ask and It Is Given', 'Esther & Jerry Hicks', '', ['vision','consciousness']);
+  q("The standard of success in life isn't the things. It's the amount of joy you feel.",
+    'Ask and It Is Given', 'Esther & Jerry Hicks', '', ['success','consciousness']);
+
+  q('Energy, not time, is the fundamental currency of high performance.',
+    'The Power of Full Engagement', 'Loehr & Schwartz', '', ['focus','habits']);
+  q('The key to sustained high performance is the skillful management of energy across four dimensions.',
+    'The Power of Full Engagement', 'Loehr & Schwartz', '', ['mastery','habits']);
+  q('The opposite of a positive ritual is not a negative ritual, it is the absence of any ritual.',
+    'The Power of Full Engagement', 'Loehr & Schwartz', '', ['habits','mastery']);
+  q('To build capacity in any dimension, we must push beyond our normal limits and then recover.',
+    'The Power of Full Engagement', 'Loehr & Schwartz', '', ['resilience','mastery']);
+  q('Full engagement requires drawing on four separate but related sources of energy: physical, emotional, mental and spiritual.',
+    'The Power of Full Engagement', 'Loehr & Schwartz', '', ['focus','consciousness']);
+
+  /* --- the remaining books --- */
+  q('Mastery is not really a goal or a destination but rather a process, a journey.',
+    'Mastery', 'George Leonard', 'Introduction', ['mastery','identity']);
+  q('To love the plateau is to love the eternal now.',
+    'Mastery', 'George Leonard', 'The Master and the Plateau', ['mastery','habits']);
+  p('Progress in any skill comes in brief spurts followed by a decline to a plateau slightly higher than the last one. Most of the journey is spent on the plateau, and the person who cannot stay there does not get anywhere.',
+    'Mastery', 'George Leonard', 'The Master and the Plateau', ['mastery','resilience','habits']);
+  p('The master practises primarily for the sake of the practice itself, not for the reward waiting on the other side of it.',
+    'Mastery', 'George Leonard', '', ['mastery','focus']);
+  p('There are three reliable ways to fall off the path: the dabbler who loves the honeymoon, the obsessive who cannot bear the plateau, and the hacker who settles the moment it is good enough.',
+    'Mastery', 'George Leonard', 'Part One', ['mastery','habits','identity']);
+
+  q('The craftsman mindset focuses on what you can offer the world, the passion mindset focuses instead on what the world can offer you.',
+    "So Good They Can't Ignore You", 'Cal Newport', 'Rule #2', ['mastery','identity']);
+  q("Be so good they can't ignore you.",
+    "So Good They Can't Ignore You", 'Cal Newport', 'quoting Steve Martin', ['mastery','success']);
+  p('Rare and valuable skills are career capital, and they are what you trade for work worth doing. You have to have something to offer before you can ask for anything.',
+    "So Good They Can't Ignore You", 'Cal Newport', 'Rule #2', ['mastery','success','identity']);
+  p('"Follow your passion" is bad advice: passion tends to arrive after you have become excellent at something valuable, not before.',
+    "So Good They Can't Ignore You", 'Cal Newport', 'Rule #1', ['mastery','vision','identity']);
+  p('Control over your working life is the thing worth buying with career capital, and it is dangerous to reach for it before you have earned it.',
+    "So Good They Can't Ignore You", 'Cal Newport', 'Rule #3', ['success','mastery']);
+
+  q('Creative visualization is the technique of using your imagination to create what you want in your life.',
+    'Creative Visualization', 'Shakti Gawain', 'Ch. 1', ['visualization','creativity']);
+  p('Imagining a clear picture of what you want, holding it often and gently, and letting yourself feel that it is already so, is the whole of the practice.',
+    'Creative Visualization', 'Shakti Gawain', 'Ch. 2', ['visualization','vision']);
+  p('Relaxation comes first. A quiet body and an unhurried mind are the conditions any of this works in.',
+    'Creative Visualization', 'Shakti Gawain', 'Ch. 3', ['focus','consciousness']);
+  p('Hold the picture lightly. Wanting a thing desperately broadcasts the lack of it, not the having of it.',
+    'Creative Visualization', 'Shakti Gawain', '', ['mindset','consciousness']);
+
+  p('Thoughts are a real force, and the ones you return to most often are the ones that shape what you notice and what you do.',
+    'Mind Power into the 21st Century', 'John Kehoe', '', ['mindset','consciousness']);
+  p('The subconscious does not argue. It accepts what it is given repeatedly and goes to work on it.',
+    'Mind Power into the 21st Century', 'John Kehoe', '', ['habits','identity']);
+  p('Seeding: plant a clear image of what you want in a relaxed mind, briefly and often, and let attention do the rest.',
+    'Mind Power into the 21st Century', 'John Kehoe', '', ['visualization','focus']);
+
+  p('Like attracts like in the world of thought: the mood you hold habitually gathers more of itself.',
+    'Thought Vibration', 'William Walker Atkinson', 'Ch. 1', ['mindset','consciousness']);
+  p('Fear is a thought habit, and it can be replaced by a better one through deliberate repetition.',
+    'Thought Vibration', 'William Walker Atkinson', '', ['resilience','habits']);
+  p('We become what we think ourselves into being; character is thought, hardened by repetition.',
+    'Thought Vibration', 'William Walker Atkinson', '', ['identity','habits']);
+
+  q('There is a thinking stuff from which all things are made, and which, in its original state, permeates, penetrates, and fills the interspaces of the universe.',
+    'The Science of Getting Rich', 'Wallace D. Wattles', 'Ch. 4', ['consciousness','vision']);
+  q('A thought, in this substance, produces the thing that is imaged by the thought.',
+    'The Science of Getting Rich', 'Wallace D. Wattles', 'Ch. 4', ['visualization','creativity']);
+  q('You must get rid of the thought of competition. You are to create, not to compete for what is already created.',
+    'The Science of Getting Rich', 'Wallace D. Wattles', 'Ch. 5', ['creativity','success']);
+  q('By thought, the thing you want is brought to you; by action you receive it.',
+    'The Science of Getting Rich', 'Wallace D. Wattles', 'Ch. 9', ['success','habits']);
+  p('Gratitude keeps the mind on the abundance rather than the lack, and a mind on lack cannot form a clear picture of anything else.',
+    'The Science of Getting Rich', 'Wallace D. Wattles', 'Ch. 7', ['mindset','consciousness']);
+
+  return rows;
+}
+
+function contentVault(){
+  if(!S.contentVault) S.contentVault = {quotes:[]};
+  const v = S.contentVault;
+  if(!Array.isArray(v.quotes)) v.quotes = [];
+  if(!v.seeded){ v.quotes = contentVaultSeed().concat(v.quotes); v.seeded = true; }
+  return v;
+}
+/* the index is derived rather than stored — a stored index is one more
+   thing that can disagree with the quotes it is supposed to describe */
+function vaultThemesIndex(){
+  const idx = {};
+  contentVault().quotes.forEach(q => (q.themes || []).forEach(t => (idx[t] = idx[t] || []).push(q.id)));
+  return idx;
+}
+function vaultBooks(){
+  const m = new Map();
+  contentVault().quotes.forEach(q => { if(!m.has(q.bookTitle)) m.set(q.bookTitle, {title:q.bookTitle, author:q.author, n:0}); m.get(q.bookTitle).n++; });
+  return Array.from(m.values());
+}
+/* a piece's themes are the user's own names ("Identity", "Japan"); the
+   vault's are lowercase tags. Match on the word, not on the id. */
+function pieceVaultTerms(e){
+  const names = (e.extra.content.themes || []).map(id => contentThemeName(id).toLowerCase());
+  const tags = (e.tags || []).map(t => t.toLowerCase());
+  return names.concat(tags).flatMap(n => n.split(/[^a-z]+/).filter(w => w.length > 3));
+}
+function vaultRanked(e, q = ''){
+  const terms = pieceVaultTerms(e), needle = q.toLowerCase();
+  return contentVault().quotes.map(x => {
+    const hay = (x.themes || []).join(' ').toLowerCase();
+    const score = terms.reduce((a, t) => a + (hay.includes(t) || (x.text + ' ' + x.bookTitle).toLowerCase().includes(t) ? 1 : 0), 0);
+    return {x, score};
+  }).filter(({x}) => !needle || `${x.text} ${x.bookTitle} ${x.author} ${(x.themes || []).join(' ')}`.toLowerCase().includes(needle))
+    .sort((a, b) => b.score - a.score || a.x.bookTitle.localeCompare(b.x.bookTitle));
+}
+
+/* ---------- quotes the user collected themselves ---------- */
+function libraryQuoteRows(q = ''){
+  const needle = q.toLowerCase(), out = [];
+  (S.entries || []).filter(e => e.type === 'media').forEach(e => {
+    const x = e.extra || {};
+    (x.quotes || []).forEach(qq => { if(!(qq.text || '').trim()) return;
+      out.push({id:qq.id || uid(), text:qq.text, source:e.title, author:x.creator || '',
+        pageOrLocation:qq.where || '', whyCaught:qq.why || '', sourceType:'library_quote', sourceId:e.id,
+        resonance:x.resonanceLevel || ''}); });
+    if((x.installed || '').trim())
+      out.push({id:'inst-' + e.id, text:x.installed.trim(), source:e.title, author:x.creator || '',
+        pageOrLocation:'what it installed in me', whyCaught:'', sourceType:'library_note', sourceId:e.id,
+        resonance:x.resonanceLevel || '', own:true});
+  });
+  return out.filter(r => !needle || `${r.text} ${r.source} ${r.author}`.toLowerCase().includes(needle));
+}
+
+/* ---------- the browser ---------- */
+function openQuoteBrowser(e){
+  S._qbTab = S._qbTab || 'vault'; S._qbQ = '';
+  const m = openModal('<div id="qbHost"></div>', 'wide quote-browser');
+  const draw = () => {
+    const host = m.querySelector('#qbHost');
+    const tab = S._qbTab, q = S._qbQ;
+    const pinnedText = new Set((e.extra.content.quotes || []).map(x => x.text));
+    const rows = tab === 'vault'
+      ? vaultRanked(e, q).map(({x, score}) => ({
+          key:x.id, text:x.text, source:x.bookTitle, author:x.author, where:x.pageOrChapter,
+          why:'', themes:x.themes, score, paraphrase:x.paraphrase, sourceType:'book_vault_quote', sourceId:x.id}))
+      : libraryQuoteRows(q).map(x => ({
+          key:x.id, text:x.text, source:x.source, author:x.author, where:x.pageOrLocation,
+          why:x.whyCaught, themes:[], score:0, paraphrase:false, own:x.own,
+          sourceType:x.sourceType, sourceId:x.sourceId}));
+    host.innerHTML = `<h2>Find a quote</h2>
+      <div class="row" style="gap:8px;margin-bottom:10px;flex-wrap:wrap">
+        ${[['vault','The vault'],['library','Your Library']].map(([k, n]) =>
+          `<button class="pf-chip${tab === k ? ' on' : ''}" data-qbt="${k}">${n}</button>`).join('')}
+        <input class="inp mono" id="qbQ" placeholder="search…" value="${esc(q)}" style="flex:1;min-width:160px">
+      </div>
+      ${tab === 'vault' && !q ? `<div class="faint mono" style="margin-bottom:8px">${vaultBooks().length} books · ranked against this piece's themes</div>` : ''}
+      <div class="qb-list">${rows.length ? rows.map(r => `<div class="qb-row${pinnedText.has(r.text) ? ' pinned' : ''}${r.score ? ' hit' : ''}">
+        <div class="qb-text ${r.paraphrase ? 'para' : 'serif'}">${r.paraphrase ? esc(r.text) : '“' + esc(r.text) + '”'}</div>
+        <div class="qb-attr mono">${esc(r.source)}${r.author ? ' · ' + esc(r.author) : ''}${r.where ? ' · ' + esc(r.where) : ''}
+          ${r.paraphrase ? '<span class="qb-para">the idea, in summary — not a quotation</span>' : ''}
+          ${r.own ? '<span class="qb-own">your words</span>' : ''}</div>
+        ${r.why ? `<div class="qb-why">${esc(r.why)}</div>` : ''}
+        ${r.themes?.length ? `<div class="qb-themes mono">${r.themes.map(esc).join(' · ')}</div>` : ''}
+        <button class="btn sm ghost qb-pin" data-qbpin="${esc(r.key)}" ${pinnedText.has(r.text) ? 'disabled' : ''}>${pinnedText.has(r.text) ? 'pinned' : 'pin to this piece'}</button>
+      </div>`).join('') : '<div class="pk-empty lora">Nothing here matches.</div>'}</div>`;
+    host.querySelectorAll('[data-qbt]').forEach(b => b.onclick = () => { S._qbTab = b.dataset.qbt; draw(); });
+    const inp = host.querySelector('#qbQ');
+    inp.oninput = debounce(() => { S._qbQ = inp.value.trim(); draw();
+      requestAnimationFrame(() => { const n = m.querySelector('#qbQ'); if(n){ n.focus(); n.setSelectionRange(n.value.length, n.value.length); } }); }, 220);
+    host.querySelectorAll('[data-qbpin]').forEach(b => b.onclick = () => {
+      const r = rows.find(x => String(x.key) === b.dataset.qbpin); if(!r) return;
+      pieceContent(e).quotes.push({id:uid(), text:r.text, source:r.source, author:r.author,
+        pageOrLocation:r.where, whyCaught:r.why, sourceType:r.sourceType, sourceId:r.sourceId,
+        paraphrase:!!r.paraphrase, addedAt:new Date().toISOString()});
+      if(r.sourceType !== 'book_vault_quote') pieceLink(e, r.sourceType === 'library_note' ? 'library_media' : 'library_media', r.sourceId, r.source);
+      saveNow(); sound('success'); draw(); pieceRedraw(e); });
+  };
+  draw();
+  setTimeout(() => m.querySelector('#qbQ')?.focus(), 90);
+}
+
+/* ---------- linking a piece to your own life ---------- */
+const CONTENT_LINK_SOURCES = [
+  ['journal_entry',  'Journals',  e => e.type !== 'writing' && e.type !== 'media' && e.type !== 'skill' && e.type !== 'project' && !e.extra?.stage],
+  ['library_media',  'Library',   e => e.type === 'media'],
+  ['timeline_event', 'Timeline',  e => !!e.occurredAt && e.type !== 'media' && e.type !== 'writing'],
+];
+function openLifeLinker(e){
+  S._llTab = S._llTab || 'journal_entry'; S._llQ = '';
+  const m = openModal('<div id="llHost"></div>', 'wide');
+  const draw = () => {
+    const host = m.querySelector('#llHost');
+    const tab = S._llTab, q = (S._llQ || '').toLowerCase();
+    const linked = new Set((e.extra.content.linked || []).map(l => l.sourceId));
+    let rows = [];
+    if(tab === 'value')  rows = (S.values || []).map(v => ({id:v.id, title:v.name, meta:'a value', type:'value_entry'}));
+    else if(tab === 'skill')   rows = (S.skills || []).map(s => ({id:s.id, title:s.name, meta:'a skill', type:'skill_milestone'}));
+    else if(tab === 'project') rows = (S.projects || []).map(p => ({id:p.id, title:p.title || p.name, meta:'a project', type:'project_update'}));
+    else {
+      const pick = CONTENT_LINK_SOURCES.find(s => s[0] === tab);
+      rows = (S.entries || []).filter(x => x.id !== e.id && pick[2](x)).map(x => ({
+        id:x.id, title:x.title || (x.body || '').slice(0, 70) || typeName(x.type),
+        meta:`${typeName(x.type)}${x.occurredAt ? ' · ' + fmtDate(x.occurredAt, 'med') : ''}`, type:tab}));
+    }
+    rows = rows.filter(r => r.title && (!q || `${r.title} ${r.meta}`.toLowerCase().includes(q))).slice(0, 200);
+    host.innerHTML = `<h2>Link it to your own life</h2>
+      <p class="muted" style="font-size:.86rem">What in here is this piece actually made of?</p>
+      <div class="row" style="gap:8px;margin-bottom:10px;flex-wrap:wrap">
+        ${CONTENT_LINK_SOURCES.map(([k, n]) => `<button class="pf-chip${tab === k ? ' on' : ''}" data-llt="${k}">${n}</button>`).join('')}
+        ${[['value','Values'],['skill','Skills'],['project','Projects']].map(([k, n]) =>
+          `<button class="pf-chip${tab === k ? ' on' : ''}" data-llt="${k}">${n}</button>`).join('')}
+        <input class="inp mono" id="llQ" placeholder="search…" value="${esc(S._llQ || '')}" style="flex:1;min-width:150px">
+      </div>
+      <div class="ll-list">${rows.length ? rows.map(r => `<button class="choice ll-row${linked.has(r.id) ? ' on' : ''}" data-ll="${r.id}" data-lltype="${r.type}">
+        <span class="ico">${linked.has(r.id) ? '✓' : '+'}</span>
+        <span><b>${esc(r.title)}</b><i class="mono">${esc(r.meta)}</i></span></button>`).join('')
+        : '<div class="pk-empty lora">Nothing here yet.</div>'}</div>`;
+    host.querySelectorAll('[data-llt]').forEach(b => b.onclick = () => { S._llTab = b.dataset.llt; draw(); });
+    const inp = host.querySelector('#llQ');
+    inp.oninput = debounce(() => { S._llQ = inp.value.trim(); draw();
+      requestAnimationFrame(() => { const n = m.querySelector('#llQ'); if(n){ n.focus(); n.setSelectionRange(n.value.length, n.value.length); } }); }, 220);
+    host.querySelectorAll('[data-ll]').forEach(b => b.onclick = () => {
+      const id = b.dataset.ll, c = pieceContent(e);
+      const had = c.linked.findIndex(l => l.sourceId === id);
+      if(had >= 0) c.linked.splice(had, 1);
+      else { const r = rows.find(x => x.id === id); pieceLink(e, b.dataset.lltype, id, r?.title || ''); }
+      saveNow(); sound('click'); draw(); pieceRedraw(e); });
+  };
+  draw();
+}
+/* ============================================================
+   CONTENT — the other three views: a calendar of what is going out,
+   a shelf of everything, and the numbers underneath both.
+
+   The calendar borrows the Planning page's .pc-* shell rather than
+   growing a second one. That grid already had its widths fought over
+   (minmax(0,1fr) with a floor, inside a .pc-scroll) and inheriting
+   that fight is better than repeating it.
+   ============================================================ */
+
+/* ---------- calendar ---------- */
+function ctCalCursor(){ return S._ctCal || (S._ctCal = today()); }
+/* a piece sits on the day it is meant to go out, or the day it went */
+function pieceDay(e){ const c = e.extra.content; return c.stage === 'published' ? (c.publishedOn || c.scheduled || '') : (c.scheduled || ''); }
+
+function contentCalendarHTML(){
+  const mode = S._ctCalMode || 'month';
+  const cur = ctCalCursor();
+  const dated = contentPieces().filter(e => pieceDay(e));
+  return `<div class="ct-cal-wrap">
+    <div class="pc-wrap">
+      <div class="pc-head">
+        <button class="pl-mini" data-ctcnav="-1">‹</button>
+        <span class="pc-label serif">${esc(mode === 'month' ? planMonthLabel(cur) : `week of ${fmtDate(planWeekStart(cur), 'med')}`)}</span>
+        <button class="pl-mini" data-ctcnav="1">›</button>
+        <button class="pf-chip" data-ctcnav="0">today</button>
+        <span style="margin-left:auto"></span>
+        ${[['month','Month'],['week','Week']].map(([k, n]) =>
+          `<button class="pf-chip${mode === k ? ' on' : ''}" data-ctcmode="${k}">${n}</button>`).join('')}
+      </div>
+      <div class="pc-scroll">${mode === 'month' ? ctCalMonthHTML(cur, dated) : ctCalWeekHTML(cur, dated)}</div>
+    </div>
+    ${ctNextPanelHTML()}
+  </div>`;
+}
+function ctPillHTML(e){
+  const c = e.extra.content, st = contentStage(c.stage);
+  return `<button class="pc-pill ct-pill${pieceOverdue(e) ? ' late' : ''}" data-ctcard="${e.id}" draggable="true"
+    title="${esc(e.title || 'Untitled')} · ${esc(st.name)}" style="--c:${st.color}">${esc(e.title || 'Untitled')}</button>`;
+}
+function ctCalMonthHTML(cur, dated){
+  const c = parseDay(cur), y = c.getFullYear(), m = c.getMonth();
+  const lead = (new Date(y, m, 1).getDay() + 6) % 7, days = new Date(y, m + 1, 0).getDate();
+  const byDay = new Map();
+  dated.forEach(e => { const d = pieceDay(e); if(!byDay.has(d)) byDay.set(d, []); byDay.get(d).push(e); });
+  const cells = [];
+  for(let i = 0; i < lead; i++) cells.push('<div class="pc-cell blank"></div>');
+  for(let d = 1; d <= days; d++){
+    const iso = `${y}-${pad(m + 1)}-${pad(d)}`, list = byDay.get(iso) || [];
+    cells.push(`<div class="pc-cell${iso === today() ? ' now' : ''}${list.some(pieceOverdue) ? ' late' : ''}" data-ctday="${iso}">
+      <div class="pc-n"><span>${d}</span><button class="pc-add" data-ctdayadd="${iso}" title="plan something for this day">＋</button></div>
+      ${list.slice(0, 3).map(ctPillHTML).join('')}
+      ${list.length > 3 ? `<button class="pc-more" data-ctdayopen="${iso}">+${list.length - 3} more</button>` : ''}</div>`);
+  }
+  return `<div class="pc-dow">${['Mo','Tu','We','Th','Fr','Sa','Su'].map(x => `<span>${x}</span>`).join('')}</div>
+    <div class="pc-grid">${cells.join('')}</div>`;
+}
+function ctCalWeekHTML(cur, dated){
+  const start = planWeekStart(cur);
+  return `<div class="pc-week">${Array.from({length:7}, (_, i) => addDays(start, i)).map(d => {
+    const list = dated.filter(e => pieceDay(e) === d);
+    return `<div class="pc-col${d === today() ? ' now' : ''}" data-ctday="${d}">
+      <div class="pc-colh"><span class="mono">${['Mo','Tu','We','Th','Fr','Sa','Su'][(parseDay(d).getDay() + 6) % 7]}</span>
+        <span class="serif">${parseDay(d).getDate()}</span>
+        <button class="pc-add" data-ctdayadd="${d}">＋</button></div>
+      <div class="pc-allday">${list.map(ctPillHTML).join('')}</div></div>`; }).join('')}</div>`;
+}
+/* the standing answer to "what should I publish next?" */
+function ctNextPanelHTML(){
+  const list = contentWhatsNext(5);
+  return `<aside class="ct-nextpanel">
+    <div class="k mono">what to send out next</div>
+    ${list.length ? list.map(e => { const c = e.extra.content, st = contentStage(c.stage), w = pieceWords(e), t = pieceTarget(e);
+      return `<button class="ct-nrow" data-ctopen="${e.id}" style="--c:${st.color}">
+        <b>${esc(e.title || 'Untitled')}</b>
+        <span class="ct-nmeta mono">${esc(st.name)} · ${t ? `${w}/${t}` : `${w} words`}</span>
+        <span class="ct-nmeta mono">${esc(contentDestName(c.dest))}${c.scheduled ? ` · ${esc(fmtDate(c.scheduled, 'short'))}` : ''}</span>
+      </button>`; }).join('')
+      : `<div class="pk-empty lora">Nothing is close to done. That is allowed.</div>`}
+  </aside>`;
+}
+
+/* ---------- the shelf ---------- */
+function ctFilters(){
+  const f = S._ctF || (S._ctF = {stage:[], type:[], dest:[], theme:[], words:'', linked:''});
+  return f;
+}
+function ctToggleFilter(key, val){
+  const f = ctFilters(), i = f[key].indexOf(val);
+  i < 0 ? f[key].push(val) : f[key].splice(i, 1);
+}
+const CT_WORD_BANDS = [['s','< 500', 0, 499], ['m','500–1500', 500, 1500], ['l','1500–3000', 1501, 3000], ['xl','3000+', 3001, Infinity]];
+const CT_SORTS = [['edited','Last edited'], ['stage','Stage'], ['type','Kind'], ['words','Word count'], ['sched','Planned date'], ['title','Title']];
+
+function contentFiltered(){
+  const f = ctFilters(), q = (S._ctQ || '').toLowerCase();
+  return contentPieces().filter(e => {
+    const c = e.extra.content;
+    if(f.stage.length && !f.stage.includes(c.stage)) return false;
+    if(f.type.length  && !f.type.includes(c.type)) return false;
+    if(f.dest.length  && !f.dest.includes(c.dest)) return false;
+    if(f.theme.length && !c.themes.some(t => f.theme.includes(t))) return false;
+    if(f.linked === 'yes' && !c.linked.length) return false;
+    if(f.linked === 'no'  &&  c.linked.length) return false;
+    if(f.words){ const b = CT_WORD_BANDS.find(x => x[0] === f.words), w = pieceWords(e);
+      if(b && (w < b[2] || w > b[3])) return false; }
+    if(q){ const hay = `${e.title} ${c.subtitle} ${c.raw} ${(e.tags || []).join(' ')} ${c.themes.map(contentThemeName).join(' ')} ${pieceBody(e).slice(0, 4000)}`.toLowerCase();
+      if(!hay.includes(q)) return false; }
+    return true;
+  });
+}
+function contentSorted(list){
+  const s = S._ctSort || 'edited';
+  const by = {
+    edited: (a, b) => (pieceEditedAt(b) || '').localeCompare(pieceEditedAt(a) || ''),
+    stage:  (a, b) => CONTENT_STAGE_IDS.indexOf(a.extra.content.stage) - CONTENT_STAGE_IDS.indexOf(b.extra.content.stage),
+    type:   (a, b) => a.extra.content.type.localeCompare(b.extra.content.type),
+    words:  (a, b) => pieceWords(b) - pieceWords(a),
+    sched:  (a, b) => (a.extra.content.scheduled || '9999').localeCompare(b.extra.content.scheduled || '9999'),
+    title:  (a, b) => (a.title || '').localeCompare(b.title || ''),
+  };
+  return list.slice().sort(by[s] || by.edited);
+}
+
+function contentLibraryHTML(){
+  const f = ctFilters(), mode = contentState().prefs.libraryMode || 'grid';
+  const list = contentSorted(contentFiltered());
+  const chips = (key, opts) => opts.map(([k, n, col]) =>
+    `<button class="pf-chip${f[key].includes(k) ? ' on' : ''}" data-ctf="${key}:${k}"${col ? ` style="--c:${col}"` : ''}>${esc(n)}</button>`).join('');
+  return `<div class="ct-shelf">
+    <div class="ct-filters">
+      <div class="ct-frow"><span class="k mono">stage</span>${chips('stage', CONTENT_STAGES.map(s => [s.id, s.name, s.color]))}</div>
+      <div class="ct-frow"><span class="k mono">kind</span>${chips('type', CONTENT_TYPES)}</div>
+      <div class="ct-frow"><span class="k mono">where</span>${chips('dest', CONTENT_DESTS)}</div>
+      ${contentState().themes.length ? `<div class="ct-frow"><span class="k mono">theme</span>${chips('theme', contentState().themes.map(t => [t.id, t.name, t.color]))}</div>` : ''}
+      <div class="ct-frow"><span class="k mono">length</span>
+        ${CT_WORD_BANDS.map(([k, n]) => `<button class="pf-chip${f.words === k ? ' on' : ''}" data-ctfw="${k}">${n}</button>`).join('')}
+        <span class="k mono" style="margin-left:12px">drawn from life</span>
+        ${[['yes','yes'],['no','no']].map(([k, n]) => `<button class="pf-chip${f.linked === k ? ' on' : ''}" data-ctfl="${k}">${n}</button>`).join('')}
+        <span style="margin-left:auto"></span>
+        <select class="sel sm" id="ctSort" style="width:auto;padding-right:22px">${CT_SORTS.map(([k, n]) =>
+          `<option value="${k}" ${(S._ctSort || 'edited') === k ? 'selected' : ''}>${n}</option>`).join('')}</select>
+        ${[['grid','▦'],['list','▤']].map(([k, i]) => `<button class="pf-chip${mode === k ? ' on' : ''}" data-ctmode="${k}" title="${k}">${i}</button>`).join('')}
+        ${(f.stage.length || f.type.length || f.dest.length || f.theme.length || f.words || f.linked)
+          ? '<button class="pf-chip" id="ctClearF">clear</button>' : ''}
+      </div>
+    </div>
+    <div class="mono faint" style="margin:2px 0 8px">${list.length} of ${contentPieces().length}</div>
+    ${!list.length ? `<div class="ct-none lora">${contentPieces().length
+        ? 'Nothing matches that.'
+        : 'No pieces yet. Every essay starts as a thought you refused to let go.'}</div>`
+      : mode === 'list' ? ctListHTML(list) : ctGridHTML(list)}
+  </div>`;
+}
+function ctGridHTML(list){
+  return `<div class="ct-grid">${list.map(e => {
+    const c = e.extra.content, st = contentStage(c.stage), w = pieceWords(e), t = pieceTarget(e);
+    const prev = (c.raw || pieceBody(e)).replace(/[#*_>`]/g, '').trim().slice(0, 150);
+    return `<div class="ct-gcard" data-ctcard="${e.id}" draggable="true" style="--c:${st.color}">
+      <div class="ct-gtop"><span class="ct-cico">${st.icon}</span><span class="mono">${esc(st.name)}</span>
+        ${c.pinned ? '<span class="ct-pin">◆</span>' : ''}</div>
+      <h3 class="serif">${esc(e.title || 'Untitled')}</h3>
+      ${c.subtitle ? `<div class="ct-gsub">${esc(c.subtitle)}</div>` : ''}
+      ${prev ? `<p class="ct-gprev">${esc(prev)}${prev.length >= 150 ? '…' : ''}</p>` : ''}
+      ${t ? `<div class="ct-bar"><i style="width:${Math.min(100, Math.round(w / t * 100))}%"></i></div>` : ''}
+      <div class="ct-cmeta"><span class="ct-chip">${esc(contentTypeName(c.type))}</span>
+        <span class="mono">${t ? `${w}/${t}` : `${w} words`}</span>
+        <span class="mono ct-dest">${esc(contentDestName(c.dest))}</span></div>
+      ${c.themes.length ? `<div class="ct-themes">${c.themes.map(id =>
+        `<span class="ct-theme" style="--c:${contentThemeColor(id)}">${esc(contentThemeName(id))}</span>`).join('')}</div>` : ''}
+      <div class="ct-cfoot mono"><span>${esc(relDays(daysSince((pieceEditedAt(e) || '').slice(0, 10))))}</span>
+        ${c.scheduled ? `<span class="ct-sched${pieceOverdue(e) ? ' late' : ''}">◷ ${esc(fmtDate(c.scheduled, 'short'))}</span>` : ''}</div>
+    </div>`; }).join('')}</div>`;
+}
+function ctListHTML(list){
+  return `<div class="ct-rows"><div class="ct-row head mono">
+      <span>stage</span><span>title</span><span>kind</span><span>where</span><span>words</span><span>themes</span><span>edited</span><span>planned</span></div>
+    ${list.map(e => { const c = e.extra.content, st = contentStage(c.stage), w = pieceWords(e), t = pieceTarget(e);
+      return `<div class="ct-row" data-ctcard="${e.id}" draggable="true" style="--c:${st.color}">
+        <span class="ct-rst"><i></i>${esc(st.name)}</span>
+        <span class="ct-rtitle">${esc(e.title || 'Untitled')}</span>
+        <span class="mono">${esc(contentTypeName(c.type))}</span>
+        <span class="mono">${esc(contentDestName(c.dest))}</span>
+        <span class="mono">${t ? `${w}/${t}` : w}</span>
+        <span class="ct-rth">${c.themes.slice(0, 2).map(id => `<span class="ct-theme" style="--c:${contentThemeColor(id)}">${esc(contentThemeName(id))}</span>`).join('')}</span>
+        <span class="mono">${esc(relDays(daysSince((pieceEditedAt(e) || '').slice(0, 10))))}</span>
+        <span class="mono${pieceOverdue(e) ? ' late' : ''}">${c.scheduled ? esc(fmtDate(c.scheduled, 'short')) : '—'}</span>
+      </div>`; }).join('')}</div>`;
+}
+
+/* ---------- the numbers ---------- */
+/* a row of figures, each with its label beneath it rather than beside it */
+function ctFigHTML(pairs){
+  return `<div class="ct-fig">${pairs.map(([v]) => `<b>${v}</b>`).join('')}${
+    pairs.map(([, l]) => `<span class="mono">${esc(l)}</span>`).join('')}</div>`;
+}
+/* how long the pieces that left a stage spent sitting in it. Only the
+   pieces that moved on can say; a piece still in Draft has not finished
+   telling us how long Draft takes. */
+function ctStageDwell(){
+  const out = {};
+  CONTENT_STAGES.forEach(s => out[s.id] = []);
+  contentPieces().forEach(e => {
+    const c = e.extra.content, i = CONTENT_STAGE_IDS.indexOf(c.stage);
+    if(i < 0) return;
+    const d = daysSince((c.stageAt || '').slice(0, 10));
+    if(d !== Infinity) out[c.stage].push(d);
+  });
+  return out;
+}
+function ctWritingDays(){
+  const days = new Set();
+  contentPieces().forEach(e => { const d = (pieceEditedAt(e) || '').slice(0, 10); if(d) days.add(d);
+    if(e.extra?.binder && typeof wsFlatDocs === 'function')
+      wsFlatDocs(e.extra.binder).forEach(n => { if(n.updatedAt) days.add(n.updatedAt.slice(0, 10)); }); });
+  return days;
+}
+function ctStreak(days){
+  let cur = 0, d = today();
+  if(!days.has(d)) d = addDays(d, -1);
+  while(days.has(d)){ cur++; d = addDays(d, -1); }
+  let best = 0, run = 0;
+  const sorted = Array.from(days).sort();
+  sorted.forEach((x, i) => { run = (i && daysBetween(sorted[i - 1], x) === 1) ? run + 1 : 1; best = Math.max(best, run); });
+  return {cur, best};
+}
+function contentStatsHTML(){
+  const all = contentPieces();
+  if(!all.length) return `<div class="ct-none lora">Nothing to count yet.</div>`;
+  const published = all.filter(e => e.extra.content.stage === 'published');
+  const dwell = ctStageDwell();
+  const counts = CONTENT_STAGES.map(s => ({s, n: contentByStage(s.id).length}));
+  const peak = Math.max(1, ...counts.map(x => x.n));
+  const stale = all.filter(pieceStale).sort((a, b) => (pieceEditedAt(a) || '').localeCompare(pieceEditedAt(b) || ''));
+
+  /* throughput: pieces published in each of the last 26 weeks */
+  const weeks = Array.from({length:26}, (_, i) => planWeekStart(addDays(today(), -(25 - i) * 7)));
+  const thru = weeks.map(w => published.filter(e => { const d = e.extra.content.publishedOn || ''; return d >= w && d < addDays(w, 7); }).length);
+
+  const words = published.reduce((a, e) => a + pieceWords(e), 0);
+  const byKey = (getKey, names) => { const m = new Map();
+    all.forEach(e => { const k = getKey(e); if(!k) return; m.set(k, (m.get(k) || 0) + 1); });
+    const rows = Array.from(m.entries()).sort((a, b) => b[1] - a[1]);
+    const top = Math.max(1, ...rows.map(r => r[1]));
+    return rows.length ? rows.map(([k, n]) =>
+      `<div class="ct-brow"><span>${esc(names(k))}</span><span class="ct-btrack"><i style="width:${n / top * 100}%"></i></span><span class="mono">${n}</span></div>`).join('')
+      : '<div class="pk-empty">—</div>'; };
+
+  const days = ctWritingDays(), streak = ctStreak(days);
+  const thisMonth = published.filter(e => (e.extra.content.publishedOn || '').slice(0, 7) === today().slice(0, 7)).length;
+  const thisYear  = published.filter(e => (e.extra.content.publishedOn || '').slice(0, 4) === today().slice(0, 4)).length;
+
+  /* the themes with nothing in them are the point of this list */
+  const themeCount = new Map(contentState().themes.map(t => [t.id, 0]));
+  all.forEach(e => e.extra.content.themes.forEach(id => themeCount.has(id) && themeCount.set(id, themeCount.get(id) + 1)));
+  const themeRows = Array.from(themeCount.entries()).sort((a, b) => b[1] - a[1]);
+  const themeTop = Math.max(1, ...themeRows.map(r => r[1]));
+
+  return `<div class="ct-stats">
+    <div class="ct-scard"><div class="k mono">where everything is sitting</div>
+      ${counts.map(({s, n}) => `<div class="ct-brow"><span>${s.icon} ${esc(s.name)}</span>
+        <span class="ct-btrack"><i style="width:${n / peak * 100}%;background:${s.color}"></i></span>
+        <span class="mono">${n || ''}</span></div>`).join('')}
+      <div class="faint lora" style="font-size:.8rem;margin-top:8px">${esc(ctBottleneck(counts))}</div></div>
+
+    <div class="ct-scard"><div class="k mono">how long a piece waits, by stage</div>
+      ${CONTENT_ACTIVE_STAGES.concat('seed','ready').map(id => { const st = contentStage(id), v = dwell[id] || [];
+        return `<div class="ct-brow"><span>${esc(st.name)}</span>
+          <span class="ct-btrack"><i style="width:${Math.min(100, (v.length ? avg(v) : 0) / 60 * 100)}%;background:${st.color}"></i></span>
+          <span class="mono">${v.length ? Math.round(avg(v)) + 'd' : '—'}</span></div>`; }).join('')}
+      <div class="faint" style="font-size:.76rem;margin-top:6px">counted from when each piece last changed stage</div></div>
+
+    <div class="ct-scard"><div class="k mono">published, by week</div>
+      ${sparkline(thru, {h:56, color:'var(--sage)'})}
+      ${ctFigHTML([[published.length,'altogether'],[thisMonth,'this month'],[thisYear,'this year']])}</div>
+
+    <div class="ct-scard"><div class="k mono">words that made it out</div>
+      ${ctFigHTML([[words.toLocaleString(),'published words'],
+        [published.length ? Math.round(words / published.length).toLocaleString() : 0,'the average piece'],
+        [all.reduce((a, e) => a + pieceWords(e), 0).toLocaleString(),'written in total']])}</div>
+
+    <div class="ct-scard"><div class="k mono">what you make</div>${byKey(e => e.extra.content.type, contentTypeName)}</div>
+    <div class="ct-scard"><div class="k mono">where it goes</div>${byKey(e => e.extra.content.dest, contentDestName)}</div>
+
+    <div class="ct-scard"><div class="k mono">what you write about</div>
+      ${themeRows.length ? themeRows.map(([id, n]) => `<div class="ct-brow"><span>${esc(contentThemeName(id))}</span>
+        <span class="ct-btrack"><i style="width:${n / themeTop * 100}%;background:${contentThemeColor(id)}"></i></span>
+        <span class="mono">${n || ''}</span></div>`).join('') : '<div class="pk-empty">—</div>'}
+      ${themeRows.some(r => !r[1]) ? `<div class="faint lora" style="font-size:.8rem;margin-top:8px">Untouched: ${
+        esc(themeRows.filter(r => !r[1]).map(r => contentThemeName(r[0])).join(', '))}.</div>` : ''}</div>
+
+    <div class="ct-scard"><div class="k mono">days you touched something</div>
+      ${ctFigHTML([[streak.cur,'day streak'],[streak.best,'your best']])}
+      ${heatGrid(lastDays(182), 26, d => days.has(d) ? 'l3' : 'l0', 'heat ct-heat')}</div>
+
+    <div class="ct-scard wide"><div class="k mono">left alone too long</div>
+      ${stale.length ? stale.map(e => { const st = contentStage(e.extra.content.stage);
+        return `<button class="ct-nrow" data-ctopen="${e.id}" style="--c:${st.color}">
+          <b>${esc(e.title || 'Untitled')}</b>
+          <span class="ct-nmeta mono">${esc(st.name)} · untouched ${daysSince((pieceEditedAt(e) || '').slice(0, 10))} days</span></button>`; }).join('')
+        : '<div class="pk-empty lora">Nothing has been abandoned. Good.</div>'}</div>
+  </div>`;
+}
+/* the honest reading of the column heights */
+function ctBottleneck(counts){
+  const n = id => (counts.find(c => c.s.id === id) || {n:0}).n;
+  const ideas = n('idea') + n('seed'), drafts = n('draft') + n('refining'), out = n('published');
+  if(!ideas && !drafts && !out) return 'Nothing in the pipeline yet.';
+  if(ideas >= 6 && drafts <= 1) return `${ideas} ideas and ${drafts} being written. The gap is between catching and starting.`;
+  if(drafts >= 4 && n('ready') + out === 0) return `${drafts} pieces underway and none finished. The gap is between writing and letting go.`;
+  if(n('ready') >= 3) return `${n('ready')} pieces are finished and waiting. They are only waiting on you.`;
+  return `${ideas} caught, ${drafts} underway, ${out} out in the world.`;
+}
+
+/* ---------- binding ---------- */
+function bindContentCalendar(root){
+  $$('[data-ctcnav]', root).forEach(b => b.onclick = () => {
+    const d = +b.dataset.ctcnav, mode = S._ctCalMode || 'month';
+    if(!d) S._ctCal = today();
+    else if(mode === 'week') S._ctCal = addDays(ctCalCursor(), 7 * d);
+    else { const c = parseDay(ctCalCursor()); S._ctCal = isoDay(new Date(c.getFullYear(), c.getMonth() + d, 1)); }
+    sound('click'); rerenderContentBody(); });
+  $$('[data-ctcmode]', root).forEach(b => b.onclick = () => { S._ctCalMode = b.dataset.ctcmode; sound('click'); rerenderContentBody(); });
+  $$('[data-ctdayadd]', root).forEach(b => b.onclick = ev => { ev.stopPropagation();
+    const e = contentNewPiece({stage:'seed'});
+    e.extra.content.scheduled = b.dataset.ctdayadd; saveNow(); rerenderContentBody(); openPieceDetail(e.id); });
+  $$('[data-ctdayopen]', root).forEach(b => b.onclick = ev => { ev.stopPropagation(); openContentDay(b.dataset.ctdayopen); });
+  /* dropping a piece on a day is how it gets rescheduled */
+  $$('[data-ctday]', root).forEach(cell => {
+    cell.addEventListener('dragover', ev => { if(window._ctDrag){ ev.preventDefault(); cell.classList.add('over'); } });
+    cell.addEventListener('dragleave', () => cell.classList.remove('over'));
+    cell.addEventListener('drop', ev => { ev.preventDefault(); cell.classList.remove('over');
+      const e = contentPiece(window._ctDrag); window._ctDrag = null; if(!e) return;
+      const c = e.extra.content;
+      if(c.stage === 'published') c.publishedOn = cell.dataset.ctday; else c.scheduled = cell.dataset.ctday;
+      saveNow(); sound('click'); toast(`Planned for ${fmtDate(cell.dataset.ctday, 'med')}.`); rerenderContentBody(); });
+  });
+}
+function openContentDay(iso){
+  const list = contentPieces().filter(e => pieceDay(e) === iso);
+  const m = openModal(`<h2>${esc(fmtDate(iso, 'long'))}</h2><div class="stack" style="gap:6px">
+    ${list.map(e => { const st = contentStage(e.extra.content.stage);
+      return `<button class="choice" data-ctd="${e.id}"><span class="ico" style="color:${st.color}">${st.icon}</span>
+        <span><b>${esc(e.title || 'Untitled')}</b><i class="mono">${esc(st.name)} · ${esc(contentDestName(e.extra.content.dest))}</i></span></button>`; }).join('')}
+    </div>`, 'narrow');
+  m.querySelectorAll('[data-ctd]').forEach(b => b.onclick = () => { m.remove(); openPieceDetail(b.dataset.ctd); });
+}
+function bindContentLibrary(root){
+  $$('[data-ctf]', root).forEach(b => b.onclick = () => { const [k, v] = b.dataset.ctf.split(':');
+    ctToggleFilter(k, v); sound('click'); rerenderContentBody(); });
+  $$('[data-ctfw]', root).forEach(b => b.onclick = () => { const f = ctFilters();
+    f.words = f.words === b.dataset.ctfw ? '' : b.dataset.ctfw; sound('click'); rerenderContentBody(); });
+  $$('[data-ctfl]', root).forEach(b => b.onclick = () => { const f = ctFilters();
+    f.linked = f.linked === b.dataset.ctfl ? '' : b.dataset.ctfl; sound('click'); rerenderContentBody(); });
+  $$('[data-ctmode]', root).forEach(b => b.onclick = () => { contentState().prefs.libraryMode = b.dataset.ctmode;
+    saveNow(); sound('click'); rerenderContentBody(); });
+  const s = $('#ctSort'); if(s) s.onchange = () => { S._ctSort = s.value; rerenderContentBody(); };
+  const c = $('#ctClearF'); if(c) c.onclick = () => { S._ctF = null; ctFilters(); sound('click'); rerenderContentBody(); };
+}
+/* ============================================================
    IMPORT STATION — paste anything in, pull structure out
    Route: #/import
    ============================================================ */
@@ -17243,6 +18839,133 @@ function openTypeMenu(redraw){
     paint(); };
 }
 /* ============================================================
+   CONTENT — the room, already furnished.
+
+   Eight pieces spread across the pipeline, because a Kanban board with
+   nothing on it teaches nobody what it is for. They carry real word
+   counts (the binder is written into, not faked, so wsProjectWords
+   agrees with the progress bars), inspiration trails, pinned vault
+   quotes and one journal link — the whole shape of the thing, small.
+   All of it ordinary and all of it deletable, like the rest of the
+   starter set.
+   ============================================================ */
+const CONTENT_SEEDED = 'starter';
+
+/* filler that reads like prose so the word counts are honest and the
+   previews are not lorem ipsum. The point is the count, not the text. */
+function ctSeedProse(words){
+  const pool = ('It kept coming back and I could not put it down again so I wrote until the shape of it ' +
+    'showed itself and then I wrote past that too because the shape was not the point the point was what ' +
+    'stayed underneath it the whole time and would not move however long I looked at it ').trim().split(' ');
+  const out = [];
+  /* paragraph breaks are inserted between words rather than as words, so the
+     count the binder reports is exactly the count asked for */
+  for(let i = 0; i < words; i++) out.push(i && i % 34 === 0 ? '\n\n' + pool[i % pool.length] : pool[i % pool.length]);
+  return out.join(' ').replace(/ \n\n/g, '\n\n');
+}
+
+function contentSeedIfEmpty(){
+  const c = contentState();
+  if(c.seeded) return;
+  /* never on top of writing the person already did */
+  if((S.entries || []).filter(e => e.type === 'writing').length > 2){ c.seeded = CONTENT_SEEDED; saveNow(); return; }
+  migrateContent();
+  const T = today(), th = n => (contentTheme(n) || {}).id;
+  const vault = (S.contentVault?.quotes) || [];
+  const byBook = t => vault.filter(q => q.bookTitle === t);
+
+  const make = ({title, sub, stage, type, dest, themes, target, words, sched, pubOn, url,
+                 trail = [], quoteBooks = [], quoteN = 0, raw = '', outline = [], notes = '', pinned, ago = 0}) => {
+    const e = contentNewPiece({title, stage, type, dest, themes: themes.map(th).filter(Boolean), raw});
+    const c2 = e.extra.content;
+    e.createdAt = new Date(Date.parse(addDays(T, -Math.max(ago, 3)) + 'T10:00:00')).toISOString();
+    if(target) e.extra.target = Object.assign(e.extra.target || {}, {wordTarget:target});
+    if(sub) c2.subtitle = sub;
+    if(sched) c2.scheduled = sched;
+    if(pubOn) c2.publishedOn = pubOn;
+    if(url){ c2.url = url; c2.checks = {proofread:true, titled:true, dest:true, dated:true, url:true}; }
+    if(notes) e.extra.scratchpad = notes;
+    if(outline.length) e.extra.outline = outline.map(t => ({id:uid(), text:t}));
+    if(pinned) c2.pinned = true;
+    c2.stageAt = new Date(Date.parse(addDays(T, -ago) + 'T10:00:00')).toISOString();
+    /* the words go into the binder, so the count is counted rather than claimed */
+    if(words){
+      const binder = wsBinder(e), doc = wsFlatDocs(binder)[0];
+      if(doc){ doc.body = ctSeedProse(words);
+        doc.updatedAt = new Date(Date.parse(addDays(T, -ago) + 'T18:00:00')).toISOString(); }
+    }
+    trail.forEach(([kind, text]) => pieceAddTrail(e, kind, text));
+    quoteBooks.forEach(book => byBook(book).slice(0, quoteN).forEach(q =>
+      c2.quotes.push({id:uid(), text:q.text, source:q.bookTitle, author:q.author,
+        pageOrLocation:q.pageOrChapter, whyCaught:'', sourceType:'book_vault_quote', sourceId:q.id,
+        paraphrase:!!q.paraphrase, addedAt:new Date().toISOString()})));
+    return e;
+  };
+
+  make({title:"The Self-Image You Didn't Choose", stage:'draft', type:'essay', dest:'substack',
+    themes:['Identity','Consciousness'], target:2500, words:800, ago:4,
+    sub:'On inheriting a picture of yourself and calling it the truth',
+    trail:[['reading', 'Sparked by reading Psycho-Cybernetics, chapter two'],
+           ['timeline_event', 'Connected to the 独·Solitude stage']],
+    quoteBooks:['Psycho-Cybernetics'], quoteN:2, pinned:true});
+
+  make({title:'What Tokyo Taught Me Before I Got There', stage:'seed', type:'essay', dest:'personal_blog',
+    themes:['Japan','Freedom'], target:2000, ago:9,
+    raw:'A place can do most of its work on you from a distance. Years of it. What is that, exactly — a plan, or a hiding place?',
+    trail:[['timeline_event', 'Emerged from the 未·Not Yet stage narrative']]});
+
+  make({title:'The Reading–Writing Bridge: How Books Become Essays', stage:'outline', type:'guide', dest:'substack',
+    themes:['Reading & Learning','Creativity'], target:3000, words:450, ago:6,
+    outline:['The problem: a hundred highlights and nothing written',
+             'Why the note is not the idea',
+             'Three passes: catch, connect, commit',
+             'What to do with the quote that will not fit',
+             'A worked example, start to finish'],
+    trail:[['reading', 'Every book I finished this year and did not write about']],
+    quoteBooks:['The Path of Least Resistance','The Science of Getting Rich'], quoteN:2});
+
+  make({title:'Why I Track My Values (And What I Found)', stage:'idea', type:'reflection', dest:'personal_blog',
+    themes:['Identity','Discipline'], ago:14,
+    raw:'Two years of congruence scores. The surprise was not the gap — it was which value had the gap.',
+    trail:[['journal_entry', 'Promoted from a reflection a fortnight ago']]});
+
+  make({title:'Structural Tension: The Creative Force Nobody Talks About', stage:'refining', type:'essay',
+    dest:'substack', themes:['Creativity','Mastery'], target:2500, words:2100, ago:2,
+    sub:'Hold the vision and the truth at once, and something has to give',
+    trail:[['reading', 'Robert Fritz, read twice, understood on the second pass'],
+           ['conversation', 'An argument about whether goals are useful']],
+    quoteBooks:['The Path of Least Resistance'], quoteN:4});
+
+  make({title:'Thread: Learning to Be Seen', stage:'ready', type:'thread', dest:'twitter',
+    themes:['Identity','Relationships'], target:280, words:280, ago:1,
+    sched:addDays(T, ((8 - parseDay(T).getDay()) % 7) || 7),
+    trail:[['shower_thought', 'Occurred to me halfway through saying no to something']]});
+
+  make({title:'The Plateau Is the Practice', stage:'draft', type:'newsletter', dest:'substack',
+    themes:['Mastery','Discipline'], target:1800, words:1200, ago:5,
+    trail:[['reading', 'Leonard on the plateau, and Loehr on recovery, in the same week']],
+    quoteBooks:['Mastery','The Power of Full Engagement'], quoteN:1});
+
+  make({title:'My Financial Architect Blueprint', stage:'idea', type:'guide', dest:'personal_blog',
+    themes:['Money & Independence','Career & Craft'], ago:11,
+    raw:'The gap analysis said the number out loud. Writing it down for someone else would make me check my arithmetic.',
+    trail:[['other', 'Sparked by the Finance page gap analysis']]});
+
+  /* one already out in the world, so the statistics have something to stand on */
+  make({title:'On Keeping a Commonplace Book', stage:'published', type:'essay', dest:'personal_blog',
+    themes:['Reading & Learning','Storytelling'], target:1400, words:1460, ago:38,
+    pubOn:addDays(T, -38), url:'https://example.com/on-keeping-a-commonplace-book',
+    trail:[['reading', 'A footnote about Montaigne that took over an afternoon']]});
+
+  /* the first piece links to a real journal entry if there is one to link to */
+  const first = contentPieces().find(e => e.title.startsWith('The Self-Image'));
+  const journal = (S.entries || []).find(e => e.type === 'reflection' && e.title);
+  if(first && journal) pieceLink(first, 'journal_entry', journal.id, journal.title);
+
+  c.seeded = CONTENT_SEEDED;
+  saveNow();
+}
+/* ============================================================
    NAVIGATION — two zones (Present / Becoming) + standalone pages
    Rendered from S.settings.nav so the user can move pages between
    zones in Settings. Page content is untouched; routes are unchanged.
@@ -17280,6 +19003,7 @@ const NAV_ICONS = {
   board:    '<svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="7" height="9" rx="1.5"/><rect x="13.5" y="4.5" width="7" height="5.5" rx="1.5"/><rect x="3.5" y="16" width="7" height="3.5" rx="1.5"/><rect x="13.5" y="12.5" width="7" height="7" rx="1.5"/></svg>',
   finance:  '<svg viewBox="0 0 24 24"><path d="M4 19V9M9.3 19V5.5M14.7 19v-8M20 19V7.5"/><path d="M3 21h18"/></svg>',
   commonplace:'<svg viewBox="0 0 24 24"><path d="M5 4.5h9a2.5 2.5 0 0 1 2.5 2.5v12.5H7.5A2.5 2.5 0 0 1 5 17Z"/><path d="M16.5 7H19v12.5H7.5"/><path d="M8 8.5h5.5M8 11.5h5.5"/></svg>',
+  content:'<svg viewBox="0 0 24 24"><path d="M15.6 4.6 19.4 8.4 9.2 18.6l-4.6.8.8-4.6Z"/><path d="M13.4 6.8 17.2 10.6"/><path d="M5.4 14.8 9.2 18.6"/></svg>',
   import:     '<svg viewBox="0 0 24 24"><rect x="3.5" y="13" width="17" height="7.5" rx="2"/><path d="M3.5 16h4l1.5 2h6l1.5-2h4"/><path d="M12 3.5v9M9.5 10l2.5 2.5L14.5 10"/></svg>',
 };
 /* labels match the h1 of the page they open; `short` is for the mobile bar only */
@@ -17292,6 +19016,7 @@ const NAV_PAGES = {
   people:   {label:'People',           short:'People',   ico:NAV_ICONS.people,   route:'#/people'},
   finance:  {label:'Finance',          short:'Money',    ico:NAV_ICONS.finance,  route:'#/finance'},
   commonplace:{label:'Library',        short:'Library',  ico:NAV_ICONS.commonplace, route:'#/commonplace'},
+  content:  {label:'Content',          short:'Content',  ico:NAV_ICONS.content,  route:'#/content'},
   values:   {label:'Values',           short:'Values',   ico:NAV_ICONS.values,   route:'#/values'},
   skills:   {label:'Skill Tree',       short:'Skills',   ico:NAV_ICONS.skills,   route:'#/skills'},
   timeline: {label:'Timeline',         short:'Timeline', ico:NAV_ICONS.timeline, route:'#/timeline'},
@@ -17302,7 +19027,7 @@ const NAV_PAGES = {
 const NAV_TOP = ['compass','today','planning','journals'];
 const NAV_PINNED = ['writing'];
 const NAV_DEFAULT = {
-  becoming:  ['values','skills','projects','finance','commonplace'],
+  becoming:  ['values','skills','projects','finance','commonplace','content'],
   story:     ['people','timeline'],
   standalone:[],
 };
@@ -17382,8 +19107,8 @@ NAV_PAGES.import = {label:'Import Station', short:'Import', ico:NAV_ICONS.import
 /* ---------- Compass: life at a glance — today's focus, the living house, long-term panels ---------- */
 /* which level of the hierarchy each room mostly feeds — the annotation the
    house carries, so the map and the pyramid are reading the same building */
-const HOUSE_LEVEL = {today:1, finance:2, people:3, skills:4, projects:6, commonplace:5, journals:5, writing:4, values:7, timeline:5};
-const HOUSE_EDGES = [['timeline','values','retrospective readings fill the values history'],['projects','skills','projects exercise skills'],['journals','timeline','memories become formative events'],['today','values','the biggest values gap is a daily signal'],['today','journals','the day is where most entries start'],['commonplace','journals','quotes are journal entries with a source'],['finance','projects','a project that earns is an income stream'],['people','timeline','the people in a chapter are part of it']];
+const HOUSE_LEVEL = {today:1, finance:2, people:3, skills:4, projects:6, commonplace:5, journals:5, writing:4, values:7, timeline:5, content:6};
+const HOUSE_EDGES = [['timeline','values','retrospective readings fill the values history'],['projects','skills','projects exercise skills'],['journals','timeline','memories become formative events'],['today','values','the biggest values gap is a daily signal'],['today','journals','the day is where most entries start'],['commonplace','journals','quotes are journal entries with a source'],['finance','projects','a project that earns is an income stream'],['people','timeline','the people in a chapter are part of it'],['commonplace','content','what you read becomes what you write'],['journals','content','a journal entry can be promoted to a piece']];
 function houseStats(){
   const T = today(); const n = navConfig();
   const due = S.habits.filter(h=>!h.archived&&!h.negative&&habitDue(h,T)); const done = due.filter(h=>habitDone(h,T)).length;
@@ -17402,6 +19127,10 @@ function houseStats(){
     timeline: {line:`${memories} memories · ${S.stages.length} stages`, ok:true, cadence:'archival', tip:'The museum of the past. Formative events and the story you tell.'},
     writing:  {line:`${S.entries.filter(e=>e.type==='writing').length} pieces`, ok:true, cadence:'weekly', tip:'A room for contemplation, fed by your own hashtags.'},
     commonplace:{line:`${S.entries.filter(e=>e.type==='media').length} works logged`, ok:true, cadence:'archival', tip:'What you read, watched and listened to — and what it changed.'},
+    content:  (()=>{ const all = typeof contentPieces === 'function' ? contentPieces() : [];
+      const out = all.filter(e=>e.extra.content.stage==='published').length, ready = all.filter(e=>e.extra.content.stage==='ready').length;
+      return {line: all.length ? `${all.length} pieces · ${out} out` : 'nothing caught yet', ok:true, cadence:'weekly',
+        tip: ready ? `${ready} finished and waiting to go out.` : 'The pipeline from a thought to a published thing.'}; })(),
     people:   (()=>{ const od = typeof peopleNeedingAttention === 'function' ? peopleNeedingAttention() : [];
       return {line:`${(S.people||[]).length} people${od.length?` · ${od.length} overdue`:''}`, ok:!od.length, cadence:'weekly', tip:'A life is mostly other people.'}; })(),
     finance:  (()=>{ const streams = typeof incomeStreamList==='function' ? incomeStreamList() : []; const tc = sum(streams.map(s=>s.income.current||0));
@@ -18146,7 +19875,8 @@ async function init(){
   window.addEventListener('beforeunload', () => { if(saving || savePending) saveNow(); });
   if(S.settings.firstOpen === today() && !S._welcomed){ S._welcomed = true; setTimeout(()=>toast('Welcome home. Every piece of text here is editable — click it. The placeholder life is yours to overwrite.', 7000), 800); }
   setTimeout(() => { try { maybeOfferStarter(); } catch(e){ console.warn('starter set skipped', e); }
-    try { migratePlanning(); planSeedIfEmpty(); } catch(e){ console.warn('planning seed skipped', e); } }, 1200);
+    try { migratePlanning(); planSeedIfEmpty(); } catch(e){ console.warn('planning seed skipped', e); }
+    try { migrateContent(); contentSeedIfEmpty(); } catch(e){ console.warn('content seed skipped', e); } }, 1200);
 }
 document.readyState==='loading' ? document.addEventListener('DOMContentLoaded', init) : init();
 </script>

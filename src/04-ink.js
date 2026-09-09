@@ -248,6 +248,7 @@ const BANNER_BLOOMS = {
   people:     {forms:['layered','plum'],         n:6, size:[22,42], drift:3},
   timeline:   {forms:['plum','open'],            n:7, size:[19,38], drift:4},
   writing:    {forms:['layered','plum'],         n:4, size:[26,46], drift:2},
+  content:    {forms:['bud','open','plum'],      n:6, size:[20,38], drift:3},
   settings:   {forms:['plum','bud'],             n:4, size:[19,34], drift:2},
 };
 function bannerBloom(key){ return BANNER_BLOOMS[key] || BANNER_BLOOMS.compass; }

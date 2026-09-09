@@ -34,6 +34,7 @@ const PAGE_THEMES = {
   reviews:  {name:'Reviews',       accent:['#8fb0a8','#4f7d73'], ink:'#1a1816', gradient:['#6f9a91','#a9bfa2'], mood:'measured, honest',       motion:'calm',      glyph:'省', icon:'◷'},
   writing:  {name:'Writing',       accent:['#c8b79a','#8a7452'], ink:'#1a1816', gradient:['#b6a184','#d9c9ae'], mood:'quiet, unhurried',   motion:'calm',      glyph:'文', icon:'✒'},
   commonplace:{name:'Commonplace Book', accent:['#b98aa6','#8a5476'], ink:'#1a1816', gradient:['#a3789a','#d0aebd'], mood:'curious, collected', motion:'calm',    glyph:'典', icon:'📖'},
+  content:  {name:'Content',      accent:['#c08a6a','#8f5c3e'], ink:'#1a1816', gradient:['#b57a5c','#e0b899'], mood:'making, unfinished',     motion:'crisp',     glyph:'創', icon:'✍'},
   settings: {name:'Settings',     accent:['#a3978a','#776a5c'], ink:'#1a1816', gradient:['#a3978a','#c9b8a4'], mood:'quiet, practical',       motion:'crisp',     glyph:'設', icon:'⚙'},
 };
 /* routes that live inside another room's theme */

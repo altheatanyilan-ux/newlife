@@ -36,6 +36,7 @@ const NAV_ICONS = {
   board:    '<svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="7" height="9" rx="1.5"/><rect x="13.5" y="4.5" width="7" height="5.5" rx="1.5"/><rect x="3.5" y="16" width="7" height="3.5" rx="1.5"/><rect x="13.5" y="12.5" width="7" height="7" rx="1.5"/></svg>',
   finance:  '<svg viewBox="0 0 24 24"><path d="M4 19V9M9.3 19V5.5M14.7 19v-8M20 19V7.5"/><path d="M3 21h18"/></svg>',
   commonplace:'<svg viewBox="0 0 24 24"><path d="M5 4.5h9a2.5 2.5 0 0 1 2.5 2.5v12.5H7.5A2.5 2.5 0 0 1 5 17Z"/><path d="M16.5 7H19v12.5H7.5"/><path d="M8 8.5h5.5M8 11.5h5.5"/></svg>',
+  content:'<svg viewBox="0 0 24 24"><path d="M15.6 4.6 19.4 8.4 9.2 18.6l-4.6.8.8-4.6Z"/><path d="M13.4 6.8 17.2 10.6"/><path d="M5.4 14.8 9.2 18.6"/></svg>',
   import:     '<svg viewBox="0 0 24 24"><rect x="3.5" y="13" width="17" height="7.5" rx="2"/><path d="M3.5 16h4l1.5 2h6l1.5-2h4"/><path d="M12 3.5v9M9.5 10l2.5 2.5L14.5 10"/></svg>',
 };
 /* labels match the h1 of the page they open; `short` is for the mobile bar only */
@@ -48,6 +49,7 @@ const NAV_PAGES = {
   people:   {label:'People',           short:'People',   ico:NAV_ICONS.people,   route:'#/people'},
   finance:  {label:'Finance',          short:'Money',    ico:NAV_ICONS.finance,  route:'#/finance'},
   commonplace:{label:'Library',        short:'Library',  ico:NAV_ICONS.commonplace, route:'#/commonplace'},
+  content:  {label:'Content',          short:'Content',  ico:NAV_ICONS.content,  route:'#/content'},
   values:   {label:'Values',           short:'Values',   ico:NAV_ICONS.values,   route:'#/values'},
   skills:   {label:'Skill Tree',       short:'Skills',   ico:NAV_ICONS.skills,   route:'#/skills'},
   timeline: {label:'Timeline',         short:'Timeline', ico:NAV_ICONS.timeline, route:'#/timeline'},
@@ -58,7 +60,7 @@ const NAV_PAGES = {
 const NAV_TOP = ['compass','today','planning','journals'];
 const NAV_PINNED = ['writing'];
 const NAV_DEFAULT = {
-  becoming:  ['values','skills','projects','finance','commonplace'],
+  becoming:  ['values','skills','projects','finance','commonplace','content'],
   story:     ['people','timeline'],
   standalone:[],
 };
@@ -138,8 +140,8 @@ NAV_PAGES.import = {label:'Import Station', short:'Import', ico:NAV_ICONS.import
 /* ---------- Compass: life at a glance — today's focus, the living house, long-term panels ---------- */
 /* which level of the hierarchy each room mostly feeds — the annotation the
    house carries, so the map and the pyramid are reading the same building */
-const HOUSE_LEVEL = {today:1, finance:2, people:3, skills:4, projects:6, commonplace:5, journals:5, writing:4, values:7, timeline:5};
-const HOUSE_EDGES = [['timeline','values','retrospective readings fill the values history'],['projects','skills','projects exercise skills'],['journals','timeline','memories become formative events'],['today','values','the biggest values gap is a daily signal'],['today','journals','the day is where most entries start'],['commonplace','journals','quotes are journal entries with a source'],['finance','projects','a project that earns is an income stream'],['people','timeline','the people in a chapter are part of it']];
+const HOUSE_LEVEL = {today:1, finance:2, people:3, skills:4, projects:6, commonplace:5, journals:5, writing:4, values:7, timeline:5, content:6};
+const HOUSE_EDGES = [['timeline','values','retrospective readings fill the values history'],['projects','skills','projects exercise skills'],['journals','timeline','memories become formative events'],['today','values','the biggest values gap is a daily signal'],['today','journals','the day is where most entries start'],['commonplace','journals','quotes are journal entries with a source'],['finance','projects','a project that earns is an income stream'],['people','timeline','the people in a chapter are part of it'],['commonplace','content','what you read becomes what you write'],['journals','content','a journal entry can be promoted to a piece']];
 function houseStats(){
   const T = today(); const n = navConfig();
   const due = S.habits.filter(h=>!h.archived&&!h.negative&&habitDue(h,T)); const done = due.filter(h=>habitDone(h,T)).length;
@@ -158,6 +160,10 @@ function houseStats(){
     timeline: {line:`${memories} memories · ${S.stages.length} stages`, ok:true, cadence:'archival', tip:'The museum of the past. Formative events and the story you tell.'},
     writing:  {line:`${S.entries.filter(e=>e.type==='writing').length} pieces`, ok:true, cadence:'weekly', tip:'A room for contemplation, fed by your own hashtags.'},
     commonplace:{line:`${S.entries.filter(e=>e.type==='media').length} works logged`, ok:true, cadence:'archival', tip:'What you read, watched and listened to — and what it changed.'},
+    content:  (()=>{ const all = typeof contentPieces === 'function' ? contentPieces() : [];
+      const out = all.filter(e=>e.extra.content.stage==='published').length, ready = all.filter(e=>e.extra.content.stage==='ready').length;
+      return {line: all.length ? `${all.length} pieces · ${out} out` : 'nothing caught yet', ok:true, cadence:'weekly',
+        tip: ready ? `${ready} finished and waiting to go out.` : 'The pipeline from a thought to a published thing.'}; })(),
     people:   (()=>{ const od = typeof peopleNeedingAttention === 'function' ? peopleNeedingAttention() : [];
       return {line:`${(S.people||[]).length} people${od.length?` · ${od.length} overdue`:''}`, ok:!od.length, cadence:'weekly', tip:'A life is mostly other people.'}; })(),
     finance:  (()=>{ const streams = typeof incomeStreamList==='function' ? incomeStreamList() : []; const tc = sum(streams.map(s=>s.income.current||0));
