@@ -69,14 +69,19 @@ function rhythmTags(){ const set = new Set();
 /* ============================================================
    THE MASLOW ENGINE
    ============================================================ */
+/* Eight tiers, base to apex, each with its own hue: the pyramid runs warm at
+   the ground and cool at the point, so a level is told apart by colour before
+   its label is read. How embodied it is shows as density, not as a new colour —
+   a thin tier is the same hue barely present. */
 const MASLOW = [
-  {level:1, key:'body',      name:'Physiological',      short:'BODY',     ask:'Is your body getting what it needs?',                  go:'#/today'},
-  {level:2, key:'safety',    name:'Safety & Security',  short:'SAFETY',   ask:'Do you feel safe — financially, physically, emotionally?', go:'#/finance'},
-  {level:3, key:'belonging', name:'Love & Belonging',   short:'BELONGING',ask:'Who do you belong to? Who belongs to you?',             go:'#/people'},
-  {level:4, key:'esteem',    name:'Esteem',             short:'ESTEEM',   ask:'Do you respect yourself? Does your work feel like it matters?', go:'#/skills'},
-  {level:5, key:'mind',      name:'Cognitive',          short:'MIND',     ask:'Is your mind alive? Are you learning, exploring, questioning?', go:'#/commonplace'},
-  {level:6, key:'beauty',    name:'Aesthetic',          short:'BEAUTY',   ask:'Is there beauty in your daily life?',                   go:'#/projects'},
-  {level:7, key:'becoming',  name:'Self-Actualization', short:'BECOMING', ask:'Are you becoming who you are capable of becoming?',     go:'#/values'},
+  {level:1, key:'body',      name:'Physiological',       short:'BODY',       hue:'#c2452d', ask:'Is your body getting what it needs?',                  go:'#/today'},
+  {level:2, key:'safety',    name:'Safety & Security',   short:'SAFETY',     hue:'#d1743a', ask:'Do you feel safe — financially, physically, emotionally?', go:'#/finance'},
+  {level:3, key:'belonging', name:'Love & Belonging',    short:'BELONGING',  hue:'#d8a53c', ask:'Who do you belong to? Who belongs to you?',             go:'#/people'},
+  {level:4, key:'esteem',    name:'Esteem',              short:'ESTEEM',     hue:'#9fae4a', ask:'Do you respect yourself? Does your work feel like it matters?', go:'#/skills'},
+  {level:5, key:'mind',      name:'Cognitive',           short:'MIND',       hue:'#4f9e70', ask:'Is your mind alive? Are you learning, exploring, questioning?', go:'#/commonplace'},
+  {level:6, key:'beauty',    name:'Aesthetic',           short:'BEAUTY',     hue:'#4a8fa8', ask:'Is there beauty in your daily life?',                   go:'#/projects'},
+  {level:7, key:'becoming',  name:'Self-Actualization',  short:'BECOMING',   hue:'#6b6fb5', ask:'Are you becoming who you are capable of becoming?',     go:'#/values'},
+  {level:8, key:'beyond',    name:'Self-transcendence',  short:'BEYOND',     hue:'#9a63ab', ask:'What are you part of that is larger than you?',         go:'#/journals'},
 ];
 const maslowMeta = k => MASLOW.find(m => m.key === k) || MASLOW[0];
 
@@ -208,6 +213,14 @@ function maslowScores(){
       'congruence':       mValueCongruence(),
       'morning practice': mRehearsalRate(),
       'set-point':        mSetpointScore(),
+    },
+    /* the apex is read off what points away from the self: gratitude and awe
+       written down, service and stewardship as values, and the people you
+       give attention to without being asked */
+    beyond: {
+      'gratitude & awe':  mEntryRate(['gratitude','synchronicity']),
+      'beyond the self':  mValueCongruence(['service','steward','contribut','generos','sacred','unity','compassion']),
+      'given attention':  mCircleRecency(['warm','orbit'], 45),
     },
   };
   return MASLOW.map(m => {
@@ -444,30 +457,41 @@ function openTimeBlockModal(r, seed, save, redraw){
    THE LIFE POSITION CHECK-IN
    ============================================================ */
 function maslowPyramidSVG(levels){
-  const W = 400, H = 320, tier = H / 7, apex = 0.13;
+  const N = levels.length;                        // 8: seven courses and the point
+  const W = 400, H = 340, tier = H / N;
   const weakest = levels.filter(m => m.effectiveScore != null)
     .reduce((a,b) => !a || b.effectiveScore < a.effectiveScore ? b : a, null);
-  /* wide at the base, narrow at the apex — level 1 is drawn last, at the bottom */
-  const halfAt = y => (W/2) * (1 - (1-apex) * (1 - y/H));
-  return `<svg class="mas-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="Maslow pyramid">
-    <defs><radialGradient id="masGlow" cx="50%" cy="20%" r="60%">
-      <stop offset="0%" stop-color="var(--gold)" stop-opacity=".5"/><stop offset="100%" stop-color="var(--gold)" stop-opacity="0"/></radialGradient></defs>
-    ${levels.map(m => {
-      const i = 7 - m.level;                       // 0 = apex row
+  /* a true pyramid: the sides run all the way to a single point, so the top
+     tier is a triangle rather than another slab with its head cut off */
+  const halfAt = y => (W / 2) * (y / H);
+  const asc = [...levels].sort((a, b) => a.level - b.level);
+
+  return `<svg class="mas-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="The hierarchy of needs">
+    <defs><radialGradient id="masGlow" cx="50%" cy="30%" r="62%">
+      <stop offset="0%" stop-color="var(--gold)" stop-opacity=".45"/><stop offset="100%" stop-color="var(--gold)" stop-opacity="0"/></radialGradient></defs>
+    ${asc.map(m => {
+      const i = N - m.level;                      // 0 = the apex row
       const yTop = i * tier, yBot = yTop + tier - 1;
       const hT = halfAt(yTop), hB = halfAt(yBot);
       const s = m.effectiveScore;
-      const op = s == null ? 0 : (s/100);
-      const col = m.level <= 2 ? 'var(--gold)' : m.level <= 4 ? 'var(--page-accent)' : m.level <= 6 ? 'var(--sage)' : 'var(--ment)';
-      const wide = hB * 2 > 120;
-      return `<g class="mas-tier ${weakest && weakest.key === m.key ? 'weak' : ''}" data-mtier="${m.key}">
-        ${m.level === 7 && s > 70 ? `<ellipse cx="${W/2}" cy="${yTop+tier/2}" rx="90" ry="42" fill="url(#masGlow)"/>` : ''}
-        <polygon points="${W/2-hT},${yTop} ${W/2+hT},${yTop} ${W/2+hB},${yBot} ${W/2-hB},${yBot}"
-          fill="${col}" fill-opacity="${op.toFixed(3)}" stroke="var(--line-2)" stroke-width="1"/>
-        ${wide ? `<text class="mas-lbl" x="${W/2}" y="${yTop+tier/2+1}">${esc(m.short)}</text>
+      /* density carries the score: an unread level is a bare outline, a full
+         one is its own colour at full strength */
+      const op = s == null ? .07 : .1 + (s / 100) * .78;   // an unread level is a ghost, not a hole
+      const apexRow = i === 0;
+      const shape = apexRow
+        ? `<polygon points="${W/2},${yTop} ${(W/2+hB).toFixed(1)},${yBot} ${(W/2-hB).toFixed(1)},${yBot}"
+             fill="${m.hue}" fill-opacity="${op.toFixed(3)}" stroke="${m.hue}" stroke-opacity=".55" stroke-width="1.2" stroke-linejoin="round"/>`
+        : `<polygon points="${(W/2-hT).toFixed(1)},${yTop} ${(W/2+hT).toFixed(1)},${yTop} ${(W/2+hB).toFixed(1)},${yBot} ${(W/2-hB).toFixed(1)},${yBot}"
+             fill="${m.hue}" fill-opacity="${op.toFixed(3)}" stroke="${m.hue}" stroke-opacity=".5" stroke-width="1.1"/>`;
+      const room = hB * 2 > 132 && !apexRow;
+      return `<g class="mas-tier ${weakest && weakest.key === m.key ? 'weak' : ''} ${S._mTier === m.key ? 'on' : ''}"
+                 data-mtier="${m.key}" style="--mc:${m.hue}">
+        ${m.level === N && s > 70 ? `<ellipse cx="${W/2}" cy="${yTop + tier*.6}" rx="74" ry="34" fill="url(#masGlow)"/>` : ''}
+        ${shape}
+        ${room ? `<text class="mas-lbl" x="${W/2}" y="${yTop+tier/2+1}">${esc(m.short)}</text>
                   <text class="mas-num" x="${W/2}" y="${yTop+tier/2+14}">${s == null ? '—' : s}${m.override != null ? ' ↕' : ''}</text>`
-                : `<text class="mas-lbl out" x="${W/2+hB+8}" y="${yTop+tier/2+4}">${esc(m.short)} <tspan class="mas-num">${s == null ? '—' : s}</tspan></text>
-                   <line x1="${W/2+hB+1}" y1="${yTop+tier/2}" x2="${W/2+hB+6}" y2="${yTop+tier/2}" stroke="var(--line-2)" stroke-dasharray="1 2"/>`}
+                : `<text class="mas-lbl out" x="${(W/2+hB+9).toFixed(1)}" y="${yTop+tier/2+4}">${esc(m.short)} <tspan class="mas-num">${s == null ? '—' : s}</tspan></text>
+                   <line x1="${(W/2+hB+2).toFixed(1)}" y1="${yTop+tier/2}" x2="${(W/2+hB+7).toFixed(1)}" y2="${yTop+tier/2}" stroke="${m.hue}" stroke-opacity=".6" stroke-dasharray="1 2"/>`}
       </g>`; }).join('')}
   </svg>`;
 }
@@ -488,10 +512,46 @@ function spiralBarsHTML(read){
 function positionHTML(){
   const p = maslowStore();
   const levels = maslowScores();
-  const read = spiralReading();
   const last = p.history[p.history.length-1];
   const hist = p.history.slice(-12);
   const sel = S._mTier ? levels.find(l => l.key === S._mTier) : null;
+  /* the detail used to open underneath the pyramid, which pushed everything
+     below it down every time a tier was tapped. It sits beside it now, where
+     the stage bars were, and the column simply changes what it is showing. */
+  const beside = sel ? `
+    <div class="mas-detail">
+      <div class="row between" style="align-items:baseline">
+        <b class="serif" style="color:${sel.hue}">${esc(sel.name)}</b>
+        <button class="tbtn" id="mClose">close</button>
+      </div>
+      <p class="mas-ask">${esc(sel.ask)}</p>
+      <div class="mas-inputs">${Object.entries(sel.inputs).filter(([,v])=>v!=null)
+        .map(([k,v]) => `<span class="chip" style="--c:${sel.hue}">${esc(k)} <b class="mono">${Math.round(v)}</b></span>`).join('') || '<span class="faint">Nothing logged for this level yet.</span>'}</div>
+      <div class="field" style="margin-top:10px"><label>How it actually feels ${sel.autoScore != null ? `<span class="mono faint" style="text-transform:none;letter-spacing:0">· the data says ${sel.autoScore}</span>` : ''}</label>
+        <input type="range" class="slider" min="0" max="100" id="mOverride" value="${sel.effectiveScore ?? 50}" style="--c:${sel.hue}">
+        <div class="row between mono"><span class="faint">0</span><span id="mOverrideV">${sel.effectiveScore ?? 50}</span><span class="faint">100</span></div>
+      </div>
+      <textarea class="ta" id="mNote" rows="2" placeholder="Why does this feel different from what the numbers say?">${esc(sel.note)}</textarea>
+      <div class="row" style="gap:8px;margin-top:8px">
+        <a class="btn sm ghost" href="${sel.go}">→ go deeper</a>
+        ${sel.override != null ? `<button class="btn sm ghost" id="mClearOv">use the data's number</button>` : ''}
+      </div>
+    </div>`
+  : `
+    <div class="mas-side">
+      <p class="mas-hint faint">Every tier is its own colour, and how solid it is is how embodied it is. Tap one to see what fed its score, and to say how it actually feels.</p>
+      <div class="mas-legend">${[...levels].reverse().map(m => `
+        <button class="mas-leg" data-mtier="${m.key}" style="--mc:${m.hue}">
+          <i style="opacity:${m.effectiveScore == null ? .12 : (.14 + m.effectiveScore/100 * .86).toFixed(2)}"></i>
+          <span class="n">${esc(m.name)}</span>
+          <span class="v mono">${m.effectiveScore == null ? '—' : m.effectiveScore}</span>
+        </button>`).join('')}</div>
+      ${hist.length > 1 ? `<div class="mas-sparks">${levels.map(m => {
+        const vals = hist.map(h => (h.levels.find(x => x.key === m.key)||{}).effectiveScore ?? null);
+        return `<div class="mas-spark" data-mspark="${m.key}"><span class="mono">${esc(m.short)}</span>${sparkline(vals,{h:16,min:0,max:100,color:m.hue})}</div>`;
+      }).join('')}</div>` : ''}
+    </div>`;
+
   return `<section class="section rv position">
     <div class="row between" style="align-items:baseline;flex-wrap:wrap;gap:8px">
       <span class="sc lg" style="margin:0">Where am I right now?</span>
@@ -502,48 +562,9 @@ function positionHTML(){
     </div>
 
     <div class="pos-grid">
-      <div class="pos-pyr">
-        ${maslowPyramidSVG(levels)}
-        ${hist.length > 1 ? `<div class="mas-sparks">${levels.map(m => {
-          const vals = hist.map(h => (h.levels.find(x => x.key === m.key)||{}).effectiveScore ?? null);
-          return `<div class="mas-spark" data-mspark="${m.key}"><span class="mono">${esc(m.short)}</span>${sparkline(vals,{h:18,min:0,max:100,color:'var(--page-accent)'})}</div>`;
-        }).join('')}</div>` : ''}
-      </div>
-
-      <div class="pos-spi">
-        <span class="sc" style="margin:0 0 8px">Stage resonance</span>
-        ${spiralBarsHTML(read)}
-        <p class="spi-read">${esc(read.line)}</p>
-        <div class="row" style="gap:6px;align-items:center;flex-wrap:wrap">
-          <span class="mono faint">Does this feel right?</span>
-          <button class="btn sm ${read.confirmed === true ? 'primary' : 'ghost'}" data-spiok="1">👍</button>
-          <button class="btn sm ${read.confirmed === false ? 'primary' : 'ghost'}" data-spiok="0">👎</button>
-        </div>
-        ${read.confirmed !== null ? `<textarea class="ta" id="spiNote" rows="2" placeholder="Your own reading of it…">${esc(read.note)}</textarea>` : ''}
-        ${hist.length ? `<div class="spi-timeline">${p.history.slice(-24).map(h => {
-          const c = spiralMeta(h.primaryStage);
-          return `<i style="background:${c?c[3]:'var(--muted)'}" title="${esc(fmtDate(h.timestamp.slice(0,10),'med'))} · ${c?c[1]:'—'}"></i>`; }).join('')}</div>` : ''}
-      </div>
+      <div class="pos-pyr">${maslowPyramidSVG(levels)}</div>
+      <div class="pos-side">${beside}</div>
     </div>
-
-    ${sel ? `<div class="mas-detail">
-      <div class="row between" style="align-items:baseline">
-        <b class="serif">${esc(sel.name)}</b>
-        <button class="tbtn" id="mClose">close</button>
-      </div>
-      <p class="mas-ask">${esc(sel.ask)}</p>
-      <div class="mas-inputs">${Object.entries(sel.inputs).filter(([,v])=>v!=null)
-        .map(([k,v]) => `<span class="chip">${esc(k)} <b class="mono">${Math.round(v)}</b></span>`).join('') || '<span class="faint">Nothing logged for this level yet.</span>'}</div>
-      <div class="field" style="margin-top:10px"><label>How it actually feels ${sel.autoScore != null ? `<span class="mono faint" style="text-transform:none;letter-spacing:0">· the data says ${sel.autoScore}</span>` : ''}</label>
-        <input type="range" class="slider" min="0" max="100" id="mOverride" value="${sel.effectiveScore ?? 50}" style="--c:var(--page-accent)">
-        <div class="row between mono"><span class="faint">0</span><span id="mOverrideV">${sel.effectiveScore ?? 50}</span><span class="faint">100</span></div>
-      </div>
-      <textarea class="ta" id="mNote" rows="2" placeholder="Why does this feel different from what the numbers say?">${esc(sel.note)}</textarea>
-      <div class="row" style="gap:8px;margin-top:8px">
-        <a class="btn sm ghost" href="${sel.go}">→ go deeper</a>
-        ${sel.override != null ? `<button class="btn sm ghost" id="mClearOv">use the data's number</button>` : ''}
-      </div>
-    </div>` : '<div class="faint mas-hint">Tap any tier to see what fed its score, and to say how it actually feels.</div>'}
   </section>`;
 }
 
@@ -567,18 +588,10 @@ function bindPosition(root, redraw){
     const key = S._mTier; if(p.overrides[key]) delete p.overrides[key].score; saveNow(); redraw(); });
   sec.querySelector('#mClose') && (sec.querySelector('#mClose').onclick = () => { S._mTier = null; redraw(); });
 
-  sec.querySelectorAll('[data-spiok]').forEach(b => b.onclick = () => {
-    p.spiral.confirmed = b.dataset.spiok === '1'; saveNow(); redraw(); });
-  const sn = sec.querySelector('#spiNote');
-  if(sn) sn.onchange = () => { p.spiral.note = sn.value.trim(); saveNow(); };
-
   sec.querySelector('#posLog') && (sec.querySelector('#posLog').onclick = () => {
     const levels = maslowScores().map(m => ({key:m.key, level:m.level, name:m.name,
       autoScore:m.autoScore, override:m.override, effectiveScore:m.effectiveScore, note:m.note, inputs:m.inputs}));
-    const read = spiralReading();
-    p.history.push({timestamp:new Date().toISOString(), levels,
-      resonance:read.resonance, primaryStage:read.primary, emergingStage:read.emerging,
-      userConfirmed: read.confirmed, userNote: read.note});
+    p.history.push({timestamp:new Date().toISOString(), levels});
     saveNow(); sound('success'); toast(`Check-in logged for ${fmtDate(today(),'med')}.`); redraw();
   });
 }

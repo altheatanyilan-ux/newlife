@@ -151,7 +151,7 @@ function streamCardHTML(s){
     <div class="row between">
       <b class="serif" style="font-size:1.05rem">${esc(s.name)}</b>
       <span class="row" style="gap:6px">
-        <select class="sel" style="width:auto;padding:2px 6px;font-size:.74rem;--c:${STREAM_STATUS_COLOR[inc.status]};color:${STREAM_STATUS_COLOR[inc.status]}" data-streamstatus="${path}">${Object.entries(STREAM_STATUS).map(([k,[ic,l]])=>`<option value="${k}" ${inc.status===k?'selected':''}>${ic} ${l}</option>`).join('')}</select>
+        <select class="sel" style="width:auto;padding:2px 6px;font-size:.74rem;--c:${STREAM_STATUS_COLOR[inc.status]};color:${STREAM_STATUS_COLOR[inc.status]};padding-right:22px" data-streamstatus="${path}">${Object.entries(STREAM_STATUS).map(([k,[ic,l]])=>`<option value="${k}" ${inc.status===k?'selected':''}>${ic} ${l}</option>`).join('')}</select>
         ${s.kind==='project'?`<a class="chip on click" style="--c:var(--terra);text-decoration:none" href="#/projects/${s.project.id}">🎨 project</a>`:`<button class="del-x inline" data-streamdel="${s.stream.id}" title="delete this stream">×</button>`}
       </span>
     </div>
@@ -169,7 +169,7 @@ function streamCardHTML(s){
     <div class="grid c3" style="gap:8px;margin:8px 0;align-items:end">
       <div><div class="k">upkeep hrs / wk</div>${ed(`${path}.hoursPerWeek`,{ph:'0',cls:'mono',hook})}</div>
       <div><div class="k">capital in</div>${ed(`${path}.capital`,{ph:'0',cls:'mono',hook})}</div>
-      <div><div class="k">currency</div><select class="sel" style="padding:5px 6px;font-size:.8rem" data-streamcur="${path}">${CURRENCIES.map(c=>`<option ${inc.currency===c?'selected':''}>${c}</option>`).join('')}</select></div>
+      <div><div class="k">currency</div><select class="sel" style="padding:5px 6px;font-size:.8rem;padding-right:22px" data-streamcur="${path}">${CURRENCIES.map(c=>`<option ${inc.currency===c?'selected':''}>${c}</option>`).join('')}</select></div>
     </div>
     <div class="stream-derived">
       <span><i>yield</i>${yld != null ? `${yld.toFixed(yld < 10 ? 1 : 0)}%<small>/yr on capital</small>` : '—'}</span>
@@ -181,7 +181,7 @@ function streamCardHTML(s){
     <div class="grid c3" style="gap:8px;margin:8px 0;align-items:end">
       <div><div class="k">hrs / week</div>${ed(`${path}.hoursPerWeek`,{ph:'0',cls:'mono',hook})}</div>
       <div><div class="k">eff. rate</div><div class="mono" style="padding:6px 0;font-size:.86rem">${rate!=null?`${cur(inc.currency)}${rate.toFixed(rate<10?1:0)}/hr`:'—'}</div></div>
-      <div><div class="k">currency</div><select class="sel" style="padding:5px 6px;font-size:.8rem" data-streamcur="${path}">${CURRENCIES.map(c=>`<option ${inc.currency===c?'selected':''}>${c}</option>`).join('')}</select></div>
+      <div><div class="k">currency</div><select class="sel" style="padding:5px 6px;font-size:.8rem;padding-right:22px" data-streamcur="${path}">${CURRENCIES.map(c=>`<option ${inc.currency===c?'selected':''}>${c}</option>`).join('')}</select></div>
     </div>
     <div class="stream-derived">
       <span><i>hours to hit target</i>${hoursTgt != null ? `${hoursTgt.toFixed(hoursTgt < 10 ? 1 : 0)}<small>h/wk</small>` : '—'}</span>

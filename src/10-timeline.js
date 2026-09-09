@@ -47,15 +47,19 @@ function deleteStage(st, node, after){
 routes.timeline = function(root, params){
   registerPageEntry({pageName:'Timeline', addLabel:'New memory', defaultEntryType:'memory', prefilledFields:{}, hint:'Open a stage to file it there directly.', options:[{label:'New memory', run:()=>EntryActions.memory()}]});
   const tab = params[0]==='threads' ? 'threads' : 'stages';
+  /* Threads & Tensions is its own room. The stage spine, the ribbons beneath it
+     and the two toggles that govern them all belong to the stage view, so on
+     the other tab they are not merely inert — they are not drawn at all. */
+  const stageView = tab === 'stages';
   const counts = S.stages.map(s=>stageEntries(s).length); const maxc = Math.max(...counts,1);
   root.innerHTML = `<div class="page">
     <div class="page-head tl-head"><div><h1>Timeline</h1></div>
-      <div class="row">
+      ${stageView ? `<div class="row">
         <label class="toggle ${S.settings.feltTime?'on':''}" id="feltToggle"><span>clock time</span><span class="sw"></span><span>felt time</span></label>
         <label class="toggle ${S.settings.ribbons?'on':''}" id="ribToggle"><span class="sw"></span><span>threads</span></label>
-      </div></div>
+      </div>` : ''}</div>
     <div class="tabs"><button class="${tab==='stages'?'active':''}" data-go="#/timeline">Stages</button><button class="${tab==='threads'?'active':''}" data-go="#/timeline/threads">Threads &amp; Tensions</button></div>
-    <div class="spine-wrap"><div class="spine" id="spine">
+    ${stageView ? `<div class="spine-wrap"><div class="spine" id="spine">
       <svg class="curve" viewBox="0 0 1000 120" preserveAspectRatio="none"><path d="M0,60 C250,20 750,100 1000,60" fill="none" stroke="var(--line-2)" stroke-width="1.5"/></svg>
       ${S.stages.map((s,i)=>`<div class="tile ${s.notyet?'notyet':''}" data-stage="${s.id}" style="--c:${s.hue};${S.settings.feltTime?`flex:${(.6 + counts[i]/maxc*1.4).toFixed(2)} 1 0`:''}" tabindex="0">
         <div class="glow"></div><div class="bg">${mosaicHTML(s,9)}</div><div class="veil"></div>
@@ -63,9 +67,10 @@ routes.timeline = function(root, params){
       </div>`).join('')}
       <div class="tile add-stage" id="addStage" tabindex="0" title="Add a life stage"><div class="fg"><div class="han">＋</div><div class="nm">add a stage</div><div class="tg">a chapter that spans years</div></div></div>
     </div></div>
-    <div class="ribbons" id="ribbons" ${S.settings.ribbons?'':'hidden'}></div><div class="ribbon-tip" id="ribTip"></div>
+    <div class="ribbons" id="ribbons" ${S.settings.ribbons?'':'hidden'}></div><div class="ribbon-tip" id="ribTip"></div>` : ''}
     <div id="tlBody"></div>
   </div>`;
+  if(stageView){
   $('#addStage').onclick = () => createStage(); $('#addStage').onkeydown = e => { if(e.key==='Enter') createStage(); };
   const spine = $('#spine');
   spine.addEventListener('mouseover', e => { if(e.target.closest('.tile')) spine.classList.add('hovering'); });
@@ -77,6 +82,7 @@ routes.timeline = function(root, params){
   $('#ribToggle').onclick = () => { S.settings.ribbons = !S.settings.ribbons; saveNow(); $('#ribToggle').classList.toggle('on', S.settings.ribbons); $('#ribbons').hidden = !S.settings.ribbons; drawRibbons(); };
   function drawRibbons(){ const r = $('#ribbons'); if(!r || r.hidden) return; const w = r.clientWidth || 1000; r.innerHTML = ribbonsSVG(w); r.querySelectorAll('[data-thread]').forEach(p => { p.onmouseenter = e => { r.classList.add('hov'); r.querySelectorAll(`[data-thread="${p.dataset.thread}"]`).forEach(x=>x.classList.add('hot')); const t = byId(S.threads,p.dataset.thread); const cs = threadStageCounts(t); $('#ribTip').style.display='block'; $('#ribTip').innerHTML = `<b style="color:${t.color}">${esc(t.name)}</b> · ${t.status}<br><span class="mono">${S.stages.map((s,i)=>`${s.char}${cs[i]}`).join(' ')}</span>`; }; p.onmousemove = e => { const tip = $('#ribTip'); const rect = r.getBoundingClientRect(); tip.style.left = (e.clientX-rect.left+14)+'px'; tip.style.top = (e.clientY-rect.top-10)+'px'; }; p.onmouseleave = () => { r.classList.remove('hov'); r.querySelectorAll('.hot').forEach(x=>x.classList.remove('hot')); $('#ribTip').style.display='none'; }; p.onclick = () => openThreadNarrative(p.dataset.thread); }); }
   drawRibbons(); window.addEventListener('resize', debounce(drawRibbons, 200), {once:true});
+  }
   const body = $('#tlBody');
   if(tab==='threads') renderThreadsTab(body); else body.innerHTML = `<div class="section rv" style="max-width:var(--content)"><span class="sc">How to read this room</span><p class="muted">Hover a stage to feel it come forward. Click to walk in. The coloured ribbons beneath are your Threads — recurring motifs that run through many stages, thickening where they had many entries and thinning where they went quiet. Active threads continue, dashed, toward the Vision Tree. Toggle <em>felt time</em> to let dense stages stretch and thin ones compress.</p></div>`;
   reveal(body);
@@ -86,14 +92,14 @@ function renderThreadsTab(body){
   body.innerHTML = `<div class="grid c2" style="margin-top:24px;align-items:start">
     <div class="card rv"><div class="row between"><h3>Threads</h3><button class="btn sm" id="addThread">+ thread</button></div><p class="muted" style="font-size:.85rem">Recurring motifs, not contained in one stage but threading through many. Name them, colour them, and watch where they thicken.</p>
       <div class="thread-list">${S.threads.map(t=>{ const cs = threadStageCounts(t); return `<div class="th"><span class="sw" style="background:${t.color}"></span><div style="flex:1">
-        <div class="row between"><b class="serif" style="font-size:1.1rem">${ed(`threads.#${t.id}.name`,{ph:'thread name'})}</b><span class="row"><select class="sel" style="width:auto;padding:3px 8px;font-size:.72rem" data-tstatus="${t.id}">${['active','dormant','resolved','transmuted'].map(s=>`<option ${t.status===s?'selected':''}>${s}</option>`).join('')}</select><input type="color" value="${t.color}" data-tcolor="${t.id}" style="width:26px;height:26px;border:none;background:none;cursor:pointer;padding:0"><button class="tbtn" data-tdel="${t.id}" style="color:var(--faint)">remove…</button></span></div>
+        <div class="row between"><b class="serif" style="font-size:1.1rem">${ed(`threads.#${t.id}.name`,{ph:'thread name'})}</b><span class="row"><select class="sel" style="width:auto;padding:3px 8px;font-size:.72rem;padding-right:22px" data-tstatus="${t.id}">${['active','dormant','resolved','transmuted'].map(s=>`<option ${t.status===s?'selected':''}>${s}</option>`).join('')}</select><input type="color" value="${t.color}" data-tcolor="${t.id}" style="width:26px;height:26px;border:none;background:none;cursor:pointer;padding:0"><button class="tbtn" data-tdel="${t.id}" style="color:var(--faint)">remove…</button></span></div>
         <div class="muted" style="font-size:.85rem">${ed(`threads.#${t.id}.desc`,{multi:true,ph:'What is this pattern? When did you first notice it?'})}</div>
         <div class="row" style="margin-top:6px"><span class="mono">${sum(cs)} entries · ${S.stages.map((s,i)=>cs[i]?`<span style="color:${s.hue}">${s.char}${cs[i]}</span>`:'').join(' ')}</span><button class="btn sm ghost" data-tn="${t.id}">read the narrative →</button></div>
       </div></div>`; }).join('')}</div></div>
     <div class="card rv"><div class="row between"><h3>Tensions</h3><button class="btn sm" id="addTension">+ tension</button></div><p class="muted" style="font-size:.85rem">Dialectical pairs you live between. Log where you are; the history shows the oscillation.</p>
       ${S.tensions.map(tn => { const log = [...tn.log].sort((a,b)=>a.date<b.date?-1:1); const cur = log.slice(-1)[0]?.pos ?? 50; const th = byId(S.threads, tn.threadId); return `<div class="tension"><div class="poles"><span>${ed(`tensions.#${tn.id}.left`)}</span><span class="mono">${th?`↔ ${esc(th.name)}`:''}</span><span>${ed(`tensions.#${tn.id}.right`)}</span></div>
         <input type="range" class="slider" min="0" max="100" value="${cur}" data-tension="${tn.id}" style="--c:${th?.color||'var(--terra)'}">
-        <div class="row between" style="margin-top:6px"><span class="mono">${log.length} readings · latest ${log.length?fmtDate(log.slice(-1)[0].date,'med'):'—'}</span><span class="row"><select class="sel" style="width:auto;padding:2px 6px;font-size:.68rem" data-tlink="${tn.id}"><option value="">no thread</option>${S.threads.map(t=>`<option value="${t.id}" ${tn.threadId===t.id?'selected':''}>${esc(t.name)}</option>`).join('')}</select><button class="btn sm ghost" data-tlog="${tn.id}">log reading</button><button class="tbtn" data-tndel="${tn.id}" style="color:var(--faint)">remove…</button></span></div>
+        <div class="row between" style="margin-top:6px"><span class="mono">${log.length} readings · latest ${log.length?fmtDate(log.slice(-1)[0].date,'med'):'—'}</span><span class="row"><select class="sel" style="width:auto;padding:2px 6px;font-size:.68rem;padding-right:22px" data-tlink="${tn.id}"><option value="">no thread</option>${S.threads.map(t=>`<option value="${t.id}" ${tn.threadId===t.id?'selected':''}>${esc(t.name)}</option>`).join('')}</select><button class="btn sm ghost" data-tlog="${tn.id}">log reading</button><button class="tbtn" data-tndel="${tn.id}" style="color:var(--faint)">remove…</button></span></div>
         <div style="margin-top:8px">${sparkline(log.map(l=>l.pos),{h:36,min:0,max:100,color:th?.color||'var(--terra)',dots:true,labels:log.map(l=>`${fmtDate(l.date,'med')}: ${l.pos} ${l.note?'— '+l.note:''}`)})}<div class="row between mono"><span>← ${esc(tn.left)}</span><span>${esc(tn.right)} →</span></div></div>
         ${log.length?`<details><summary><span class="mono">readings</span></summary><div class="body">${tn.log.map((l,i)=>`<div class="reading row between" style="padding:4px 0;font-size:.8rem"><span class="mono">${fmtDate(l.date,'med')} · ${l.pos}${l.note?' — '+esc(l.note):''}</span><button class="del-x inline" data-tn="${tn.id}" data-rdel="${i}" title="delete reading">×</button></div>`).join('')}</div></details>`:''}
       </div>`; }).join('')}

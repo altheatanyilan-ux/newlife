@@ -237,6 +237,12 @@ html[data-motion="energetic"] .card:hover,html[data-motion="energetic"] .btn:hov
 html[data-motion="crisp"] .rv{transform:translateX(-14px)}
 html[data-motion="snappy"] .rv{transform:translateY(8px)}
 html[data-motion="calm"] .rv{transform:translateY(12px)}
+/* Each of those three is more specific than `.rv.in{transform:none}`, so once a
+   page carried a data-motion the offset a section reveals FROM never came off:
+   on a crisp page every section sat fourteen pixels left of its own page head
+   for good, and on the others eight or twelve pixels low. The settled state has
+   to out-specify the starting one. */
+html[data-motion] .rv.in{transform:none}
 .fab-wrap{position:fixed;right:24px;bottom:24px;z-index:100;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
 .fab{position:relative;right:auto;bottom:auto;width:54px;height:54px;border-radius:50%;background:var(--page-accent);color:var(--page-accent-ink);border:none;font-size:1.6rem;box-shadow:var(--shadow);cursor:pointer;z-index:45;display:flex;align-items:center;justify-content:center;transition:transform .25s var(--ease),background .25s}
 .fab:hover{transform:scale(1.06) rotate(90deg)}
@@ -997,7 +1003,7 @@ button.tm-cell:hover{border-color:var(--page-accent)}
 .inv-lv .lvl-dots{margin-top:0}
 .inv-lv .lvl-dots i{width:10px}
 .inv-last.atrophy{color:#c9a05a}
-.inv-set{width:auto;padding:2px 6px;font-size:.66rem;opacity:0;transition:opacity .2s var(--ease)}
+.inv-set{width:auto;padding:2px 22px 2px 6px;font-size:.66rem;opacity:0;transition:opacity .2s var(--ease)}
 .inv-row:hover .inv-set,.inv-set:focus{opacity:1}
 .inv-row > *{min-width:0}
 .inv-name{min-width:0}
@@ -1813,7 +1819,7 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 .next-actions .mono{flex:none}
 .next-actions a.mono{flex:0 1 auto;min-width:0;max-width:45%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media (max-width:560px){.next-actions div{flex-wrap:wrap}.next-actions a.mono{max-width:100%;margin-left:auto}}
-.house-wrap{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:18px;overflow:hidden;min-height:420px}
+.house-wrap{position:relative;background:transparent;border:none;border-radius:18px;overflow:hidden;min-height:420px}
 .house-wrap svg{width:100%;height:100%;display:block;min-height:420px}
 .hnode{cursor:pointer}
 .hnode circle.body{transition:r .35s var(--ease),stroke-width .3s var(--ease)}
@@ -1828,11 +1834,25 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 .house-wrap.hov .hnode:not(.hot){opacity:.35}
 .hedge.hot{stroke:var(--page-accent);stroke-width:2;filter:drop-shadow(0 0 4px color-mix(in srgb,var(--page-accent) 60%,transparent))}
 .htip{position:absolute;background:var(--surface-2);border:1px solid var(--line-2);padding:10px 14px;border-radius:10px;font-size:.78rem;max-width:280px;pointer-events:none;display:none;box-shadow:var(--shadow);z-index:5;line-height:1.5}
-.bento{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-top:18px}
-.bento .card{padding:18px 20px;display:flex;flex-direction:column;gap:8px}
-.bento .span2{grid-column:span 2}.bento .span3{grid-column:span 3}.bento .span4{grid-column:span 4}.bento .span6{grid-column:span 6}
-@media (max-width:1100px){.bento{grid-template-columns:repeat(2,1fr)}.bento .span2,.bento .span3,.bento .span4,.bento .span6{grid-column:span 2}}
-@media (max-width:640px){.bento{grid-template-columns:1fr}.bento .span2,.bento .span3,.bento .span4,.bento .span6{grid-column:span 1}}
+/* twelve columns, nine cards of four — three even rows and no ragged tail */
+.bento{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;margin-top:18px;align-items:stretch}
+/* transparent, and with no side padding, so every card's first character sits
+   on the same left edge as the section rule above it */
+.bento .card{padding:14px 0 4px;display:flex;flex-direction:column;gap:8px;background:transparent;backdrop-filter:none;border:none;border-top:1px solid var(--line);border-radius:0}
+.bento .card:hover{border-top-color:var(--line-2)}
+.bento .card > .sub:last-child{margin-top:auto}
+.bento .span2{grid-column:span 4}.bento .span3{grid-column:span 4}.bento .span4{grid-column:span 4}.bento .span6{grid-column:span 6}.bento .span8{grid-column:span 8}.bento .span12{grid-column:span 12}
+@media (max-width:1100px){.bento{grid-template-columns:repeat(2,1fr)}.bento .span2,.bento .span3,.bento .span4,.bento .span6,.bento .span8,.bento .span12{grid-column:span 2}}
+@media (max-width:640px){.bento{grid-template-columns:1fr}.bento .span2,.bento .span3,.bento .span4,.bento .span6,.bento .span8,.bento .span12{grid-column:span 1}}
+/* a chart takes the room the card has, rather than leaving a hole under it */
+.bento .chart-fill{flex:1 1 auto;min-height:74px;display:flex;align-items:stretch}
+.bento .chart-fill > svg{width:100%;height:100%}
+.bento .heat-fill{justify-content:flex-start}
+.bento .heat{max-width:min(100%,340px);width:100%;align-self:center}
+/* a ring reads at a glance where a line would need reading */
+.ring-row{display:flex;gap:14px;align-items:center}
+.ring-row svg{flex:none}
+.ring-lines{min-width:0;display:flex;flex-direction:column;gap:2px}
 .bento .k{font-family:var(--mono);font-size:.62rem;text-transform:uppercase;letter-spacing:.12em;color:var(--faint);display:flex;justify-content:space-between;align-items:center}
 .bento .k a{color:var(--muted);text-decoration:none}
 .bento .k a:hover{color:var(--text)}
@@ -2035,7 +2055,7 @@ body.ws-resizing{cursor:col-resize;user-select:none}
 .import-queue-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;margin-bottom:12px;gap:10px;flex-wrap:wrap;position:sticky;top:0;z-index:10}
 .import-queue{display:flex;flex-direction:column;gap:10px;max-width:900px;margin:0 auto 40px}
 .iq-card{border:1px solid var(--line);border-left:3px solid var(--c,var(--line));border-radius:8px;overflow:hidden;background:var(--surface-2);transition:opacity .18s,border-color .18s}
-.iq-dest-sel{width:auto;font-size:.76rem;font-weight:600;padding:3px 6px}
+.iq-dest-sel{width:auto;font-size:.76rem;font-weight:600;padding:3px 22px 3px 6px}
 .iq-why{padding:4px 10px 0;font-size:.68rem;color:var(--muted);font-style:italic;opacity:.85}
 .iq-tags{padding:0 10px 6px;display:flex;gap:5px;flex-wrap:wrap}
 .iq-extra{border-top:1px dashed var(--line);margin:0 10px 8px}
@@ -2046,7 +2066,8 @@ body.ws-resizing{cursor:col-resize;user-select:none}
 .iq-extra > summary:hover{color:var(--c,var(--page-accent))}
 .iq-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;padding-bottom:8px}
 .iq-field label{display:block;font-size:.6rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin-bottom:3px}
-.iq-field .inp,.iq-field .sel{width:100%;font-size:.82rem;padding:5px 7px}
+.iq-field .inp{width:100%;font-size:.82rem;padding:5px 7px}
+.iq-field .sel{width:100%;font-size:.82rem;padding:5px 22px 5px 7px}
 .iq-f-ta{width:100%;font-size:.82rem;padding:5px 7px;min-height:44px;resize:vertical}
 .iq-card.iq-discarded{opacity:.35}
 .iq-head{display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid var(--line);flex-wrap:wrap;background:color-mix(in srgb,var(--surface-2) 60%,var(--surface))}
@@ -2134,7 +2155,7 @@ body.ws-resizing{cursor:col-resize;user-select:none}
 .ws-table tr[data-wsrow]:hover{background:var(--surface-2)}
 .ws-table tr.on{background:color-mix(in srgb,var(--page-accent) 12%,transparent)}
 .ws-osyn{color:var(--muted);max-width:260px}
-.ws-osel{width:auto;font-size:.72rem;padding:2px 5px}
+.ws-osel{width:auto;font-size:.72rem;padding:2px 22px 2px 5px}
 .ws-otgt{width:66px;font-size:.72rem;padding:2px 5px}
 .ws-obar td{padding:0 8px 6px;border:0}
 .ws-manuscript{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:26px 30px}
@@ -2791,6 +2812,45 @@ html[data-motion="calm"] .ph-plant-svg,html[data-motion="energetic"] .ph-plant-s
 @media (prefers-reduced-motion:reduce){
   .ph-plant .bp-stem{stroke-dasharray:none;stroke-dashoffset:0;animation:none}
   .ph-plant .bp-leaf,.ph-plant .bp-bloom,.ph-plant-svg{animation:none}}
+
+/* ---------- the hierarchy of needs ----------
+   Eight tiers to a point. Each carries its own hue so a level is told apart
+   by colour before its label is read; how solid it is is how embodied it is. */
+.pos-grid{display:grid;grid-template-columns:minmax(0,360px) minmax(0,1fr);gap:26px;align-items:start;margin-top:14px}
+@media (max-width:900px){.pos-grid{grid-template-columns:1fr}}
+.pos-pyr .mas-svg{display:block;width:100%;max-width:400px;overflow:visible}
+.mas-tier{cursor:pointer}
+.mas-tier polygon{transition:fill-opacity .3s var(--ease),stroke-opacity .3s var(--ease)}
+.pos-pyr:hover .mas-tier polygon{fill-opacity:.16}
+.mas-tier:hover polygon,.mas-tier.on polygon{fill-opacity:.92!important;stroke-opacity:1}
+.mas-tier.weak polygon{animation:masWeak 2.8s ease-in-out infinite}
+@keyframes masWeak{0%,100%{stroke-opacity:.5}50%{stroke-opacity:1}}
+.mas-lbl{fill:var(--text);font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-anchor:middle}
+.mas-lbl.out{text-anchor:start;fill:var(--muted)}
+.mas-num{fill:var(--muted);font-family:var(--mono);font-size:9px;text-anchor:middle}
+.mas-lbl.out .mas-num{text-anchor:start}
+
+/* the column beside it: the key when nothing is chosen, the level when one is */
+.pos-side{min-width:0}
+.mas-side{display:flex;flex-direction:column;gap:12px}
+.mas-hint{font-family:var(--quote);font-style:italic;font-size:.84rem;line-height:1.55;margin:0;max-width:46ch}
+.mas-legend{display:flex;flex-direction:column;gap:1px}
+.mas-leg{display:flex;align-items:center;gap:10px;width:100%;padding:5px 8px;border:none;background:none;
+  border-radius:7px;cursor:pointer;color:var(--text);text-align:left;transition:background .18s var(--ease)}
+.mas-leg:hover{background:color-mix(in srgb,var(--mc) 14%,transparent)}
+.mas-leg i{width:13px;height:13px;flex:0 0 13px;border-radius:3px;background:var(--mc);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--mc) 70%,transparent)}
+.mas-leg .n{flex:1;min-width:0;font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mas-leg .v{font-size:.72rem;color:var(--muted)}
+.mas-detail{display:flex;flex-direction:column;gap:8px}
+.mas-detail .mas-ask{font-family:var(--quote);font-style:italic;color:var(--muted);font-size:.88rem;margin:0}
+.mas-inputs{display:flex;gap:6px;flex-wrap:wrap}
+.mas-sparks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 14px;margin-top:2px}
+.mas-spark{display:flex;align-items:center;gap:8px;cursor:pointer;border-radius:5px;padding:1px 4px}
+.mas-spark:hover{background:color-mix(in srgb,var(--text) 5%,transparent)}
+.mas-spark .mono{flex:0 0 74px;font-size:.56rem;color:var(--faint);letter-spacing:.08em}
+.mas-spark svg{flex:1;min-width:0}
+@media (prefers-reduced-motion:reduce){.mas-tier polygon,.mas-leg{transition:none}.mas-tier.weak polygon{animation:none}}
 </style>
 </head>
 <body>
@@ -5713,14 +5773,19 @@ function rhythmTags(){ const set = new Set();
 /* ============================================================
    THE MASLOW ENGINE
    ============================================================ */
+/* Eight tiers, base to apex, each with its own hue: the pyramid runs warm at
+   the ground and cool at the point, so a level is told apart by colour before
+   its label is read. How embodied it is shows as density, not as a new colour —
+   a thin tier is the same hue barely present. */
 const MASLOW = [
-  {level:1, key:'body',      name:'Physiological',      short:'BODY',     ask:'Is your body getting what it needs?',                  go:'#/today'},
-  {level:2, key:'safety',    name:'Safety & Security',  short:'SAFETY',   ask:'Do you feel safe — financially, physically, emotionally?', go:'#/finance'},
-  {level:3, key:'belonging', name:'Love & Belonging',   short:'BELONGING',ask:'Who do you belong to? Who belongs to you?',             go:'#/people'},
-  {level:4, key:'esteem',    name:'Esteem',             short:'ESTEEM',   ask:'Do you respect yourself? Does your work feel like it matters?', go:'#/skills'},
-  {level:5, key:'mind',      name:'Cognitive',          short:'MIND',     ask:'Is your mind alive? Are you learning, exploring, questioning?', go:'#/commonplace'},
-  {level:6, key:'beauty',    name:'Aesthetic',          short:'BEAUTY',   ask:'Is there beauty in your daily life?',                   go:'#/projects'},
-  {level:7, key:'becoming',  name:'Self-Actualization', short:'BECOMING', ask:'Are you becoming who you are capable of becoming?',     go:'#/values'},
+  {level:1, key:'body',      name:'Physiological',       short:'BODY',       hue:'#c2452d', ask:'Is your body getting what it needs?',                  go:'#/today'},
+  {level:2, key:'safety',    name:'Safety & Security',   short:'SAFETY',     hue:'#d1743a', ask:'Do you feel safe — financially, physically, emotionally?', go:'#/finance'},
+  {level:3, key:'belonging', name:'Love & Belonging',    short:'BELONGING',  hue:'#d8a53c', ask:'Who do you belong to? Who belongs to you?',             go:'#/people'},
+  {level:4, key:'esteem',    name:'Esteem',              short:'ESTEEM',     hue:'#9fae4a', ask:'Do you respect yourself? Does your work feel like it matters?', go:'#/skills'},
+  {level:5, key:'mind',      name:'Cognitive',           short:'MIND',       hue:'#4f9e70', ask:'Is your mind alive? Are you learning, exploring, questioning?', go:'#/commonplace'},
+  {level:6, key:'beauty',    name:'Aesthetic',           short:'BEAUTY',     hue:'#4a8fa8', ask:'Is there beauty in your daily life?',                   go:'#/projects'},
+  {level:7, key:'becoming',  name:'Self-Actualization',  short:'BECOMING',   hue:'#6b6fb5', ask:'Are you becoming who you are capable of becoming?',     go:'#/values'},
+  {level:8, key:'beyond',    name:'Self-transcendence',  short:'BEYOND',     hue:'#9a63ab', ask:'What are you part of that is larger than you?',         go:'#/journals'},
 ];
 const maslowMeta = k => MASLOW.find(m => m.key === k) || MASLOW[0];
 
@@ -5852,6 +5917,14 @@ function maslowScores(){
       'congruence':       mValueCongruence(),
       'morning practice': mRehearsalRate(),
       'set-point':        mSetpointScore(),
+    },
+    /* the apex is read off what points away from the self: gratitude and awe
+       written down, service and stewardship as values, and the people you
+       give attention to without being asked */
+    beyond: {
+      'gratitude & awe':  mEntryRate(['gratitude','synchronicity']),
+      'beyond the self':  mValueCongruence(['service','steward','contribut','generos','sacred','unity','compassion']),
+      'given attention':  mCircleRecency(['warm','orbit'], 45),
     },
   };
   return MASLOW.map(m => {
@@ -6088,30 +6161,41 @@ function openTimeBlockModal(r, seed, save, redraw){
    THE LIFE POSITION CHECK-IN
    ============================================================ */
 function maslowPyramidSVG(levels){
-  const W = 400, H = 320, tier = H / 7, apex = 0.13;
+  const N = levels.length;                        // 8: seven courses and the point
+  const W = 400, H = 340, tier = H / N;
   const weakest = levels.filter(m => m.effectiveScore != null)
     .reduce((a,b) => !a || b.effectiveScore < a.effectiveScore ? b : a, null);
-  /* wide at the base, narrow at the apex — level 1 is drawn last, at the bottom */
-  const halfAt = y => (W/2) * (1 - (1-apex) * (1 - y/H));
-  return `<svg class="mas-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="Maslow pyramid">
-    <defs><radialGradient id="masGlow" cx="50%" cy="20%" r="60%">
-      <stop offset="0%" stop-color="var(--gold)" stop-opacity=".5"/><stop offset="100%" stop-color="var(--gold)" stop-opacity="0"/></radialGradient></defs>
-    ${levels.map(m => {
-      const i = 7 - m.level;                       // 0 = apex row
+  /* a true pyramid: the sides run all the way to a single point, so the top
+     tier is a triangle rather than another slab with its head cut off */
+  const halfAt = y => (W / 2) * (y / H);
+  const asc = [...levels].sort((a, b) => a.level - b.level);
+
+  return `<svg class="mas-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="The hierarchy of needs">
+    <defs><radialGradient id="masGlow" cx="50%" cy="30%" r="62%">
+      <stop offset="0%" stop-color="var(--gold)" stop-opacity=".45"/><stop offset="100%" stop-color="var(--gold)" stop-opacity="0"/></radialGradient></defs>
+    ${asc.map(m => {
+      const i = N - m.level;                      // 0 = the apex row
       const yTop = i * tier, yBot = yTop + tier - 1;
       const hT = halfAt(yTop), hB = halfAt(yBot);
       const s = m.effectiveScore;
-      const op = s == null ? 0 : (s/100);
-      const col = m.level <= 2 ? 'var(--gold)' : m.level <= 4 ? 'var(--page-accent)' : m.level <= 6 ? 'var(--sage)' : 'var(--ment)';
-      const wide = hB * 2 > 120;
-      return `<g class="mas-tier ${weakest && weakest.key === m.key ? 'weak' : ''}" data-mtier="${m.key}">
-        ${m.level === 7 && s > 70 ? `<ellipse cx="${W/2}" cy="${yTop+tier/2}" rx="90" ry="42" fill="url(#masGlow)"/>` : ''}
-        <polygon points="${W/2-hT},${yTop} ${W/2+hT},${yTop} ${W/2+hB},${yBot} ${W/2-hB},${yBot}"
-          fill="${col}" fill-opacity="${op.toFixed(3)}" stroke="var(--line-2)" stroke-width="1"/>
-        ${wide ? `<text class="mas-lbl" x="${W/2}" y="${yTop+tier/2+1}">${esc(m.short)}</text>
+      /* density carries the score: an unread level is a bare outline, a full
+         one is its own colour at full strength */
+      const op = s == null ? .07 : .1 + (s / 100) * .78;   // an unread level is a ghost, not a hole
+      const apexRow = i === 0;
+      const shape = apexRow
+        ? `<polygon points="${W/2},${yTop} ${(W/2+hB).toFixed(1)},${yBot} ${(W/2-hB).toFixed(1)},${yBot}"
+             fill="${m.hue}" fill-opacity="${op.toFixed(3)}" stroke="${m.hue}" stroke-opacity=".55" stroke-width="1.2" stroke-linejoin="round"/>`
+        : `<polygon points="${(W/2-hT).toFixed(1)},${yTop} ${(W/2+hT).toFixed(1)},${yTop} ${(W/2+hB).toFixed(1)},${yBot} ${(W/2-hB).toFixed(1)},${yBot}"
+             fill="${m.hue}" fill-opacity="${op.toFixed(3)}" stroke="${m.hue}" stroke-opacity=".5" stroke-width="1.1"/>`;
+      const room = hB * 2 > 132 && !apexRow;
+      return `<g class="mas-tier ${weakest && weakest.key === m.key ? 'weak' : ''} ${S._mTier === m.key ? 'on' : ''}"
+                 data-mtier="${m.key}" style="--mc:${m.hue}">
+        ${m.level === N && s > 70 ? `<ellipse cx="${W/2}" cy="${yTop + tier*.6}" rx="74" ry="34" fill="url(#masGlow)"/>` : ''}
+        ${shape}
+        ${room ? `<text class="mas-lbl" x="${W/2}" y="${yTop+tier/2+1}">${esc(m.short)}</text>
                   <text class="mas-num" x="${W/2}" y="${yTop+tier/2+14}">${s == null ? '—' : s}${m.override != null ? ' ↕' : ''}</text>`
-                : `<text class="mas-lbl out" x="${W/2+hB+8}" y="${yTop+tier/2+4}">${esc(m.short)} <tspan class="mas-num">${s == null ? '—' : s}</tspan></text>
-                   <line x1="${W/2+hB+1}" y1="${yTop+tier/2}" x2="${W/2+hB+6}" y2="${yTop+tier/2}" stroke="var(--line-2)" stroke-dasharray="1 2"/>`}
+                : `<text class="mas-lbl out" x="${(W/2+hB+9).toFixed(1)}" y="${yTop+tier/2+4}">${esc(m.short)} <tspan class="mas-num">${s == null ? '—' : s}</tspan></text>
+                   <line x1="${(W/2+hB+2).toFixed(1)}" y1="${yTop+tier/2}" x2="${(W/2+hB+7).toFixed(1)}" y2="${yTop+tier/2}" stroke="${m.hue}" stroke-opacity=".6" stroke-dasharray="1 2"/>`}
       </g>`; }).join('')}
   </svg>`;
 }
@@ -6132,10 +6216,46 @@ function spiralBarsHTML(read){
 function positionHTML(){
   const p = maslowStore();
   const levels = maslowScores();
-  const read = spiralReading();
   const last = p.history[p.history.length-1];
   const hist = p.history.slice(-12);
   const sel = S._mTier ? levels.find(l => l.key === S._mTier) : null;
+  /* the detail used to open underneath the pyramid, which pushed everything
+     below it down every time a tier was tapped. It sits beside it now, where
+     the stage bars were, and the column simply changes what it is showing. */
+  const beside = sel ? `
+    <div class="mas-detail">
+      <div class="row between" style="align-items:baseline">
+        <b class="serif" style="color:${sel.hue}">${esc(sel.name)}</b>
+        <button class="tbtn" id="mClose">close</button>
+      </div>
+      <p class="mas-ask">${esc(sel.ask)}</p>
+      <div class="mas-inputs">${Object.entries(sel.inputs).filter(([,v])=>v!=null)
+        .map(([k,v]) => `<span class="chip" style="--c:${sel.hue}">${esc(k)} <b class="mono">${Math.round(v)}</b></span>`).join('') || '<span class="faint">Nothing logged for this level yet.</span>'}</div>
+      <div class="field" style="margin-top:10px"><label>How it actually feels ${sel.autoScore != null ? `<span class="mono faint" style="text-transform:none;letter-spacing:0">· the data says ${sel.autoScore}</span>` : ''}</label>
+        <input type="range" class="slider" min="0" max="100" id="mOverride" value="${sel.effectiveScore ?? 50}" style="--c:${sel.hue}">
+        <div class="row between mono"><span class="faint">0</span><span id="mOverrideV">${sel.effectiveScore ?? 50}</span><span class="faint">100</span></div>
+      </div>
+      <textarea class="ta" id="mNote" rows="2" placeholder="Why does this feel different from what the numbers say?">${esc(sel.note)}</textarea>
+      <div class="row" style="gap:8px;margin-top:8px">
+        <a class="btn sm ghost" href="${sel.go}">→ go deeper</a>
+        ${sel.override != null ? `<button class="btn sm ghost" id="mClearOv">use the data's number</button>` : ''}
+      </div>
+    </div>`
+  : `
+    <div class="mas-side">
+      <p class="mas-hint faint">Every tier is its own colour, and how solid it is is how embodied it is. Tap one to see what fed its score, and to say how it actually feels.</p>
+      <div class="mas-legend">${[...levels].reverse().map(m => `
+        <button class="mas-leg" data-mtier="${m.key}" style="--mc:${m.hue}">
+          <i style="opacity:${m.effectiveScore == null ? .12 : (.14 + m.effectiveScore/100 * .86).toFixed(2)}"></i>
+          <span class="n">${esc(m.name)}</span>
+          <span class="v mono">${m.effectiveScore == null ? '—' : m.effectiveScore}</span>
+        </button>`).join('')}</div>
+      ${hist.length > 1 ? `<div class="mas-sparks">${levels.map(m => {
+        const vals = hist.map(h => (h.levels.find(x => x.key === m.key)||{}).effectiveScore ?? null);
+        return `<div class="mas-spark" data-mspark="${m.key}"><span class="mono">${esc(m.short)}</span>${sparkline(vals,{h:16,min:0,max:100,color:m.hue})}</div>`;
+      }).join('')}</div>` : ''}
+    </div>`;
+
   return `<section class="section rv position">
     <div class="row between" style="align-items:baseline;flex-wrap:wrap;gap:8px">
       <span class="sc lg" style="margin:0">Where am I right now?</span>
@@ -6146,48 +6266,9 @@ function positionHTML(){
     </div>
 
     <div class="pos-grid">
-      <div class="pos-pyr">
-        ${maslowPyramidSVG(levels)}
-        ${hist.length > 1 ? `<div class="mas-sparks">${levels.map(m => {
-          const vals = hist.map(h => (h.levels.find(x => x.key === m.key)||{}).effectiveScore ?? null);
-          return `<div class="mas-spark" data-mspark="${m.key}"><span class="mono">${esc(m.short)}</span>${sparkline(vals,{h:18,min:0,max:100,color:'var(--page-accent)'})}</div>`;
-        }).join('')}</div>` : ''}
-      </div>
-
-      <div class="pos-spi">
-        <span class="sc" style="margin:0 0 8px">Stage resonance</span>
-        ${spiralBarsHTML(read)}
-        <p class="spi-read">${esc(read.line)}</p>
-        <div class="row" style="gap:6px;align-items:center;flex-wrap:wrap">
-          <span class="mono faint">Does this feel right?</span>
-          <button class="btn sm ${read.confirmed === true ? 'primary' : 'ghost'}" data-spiok="1">👍</button>
-          <button class="btn sm ${read.confirmed === false ? 'primary' : 'ghost'}" data-spiok="0">👎</button>
-        </div>
-        ${read.confirmed !== null ? `<textarea class="ta" id="spiNote" rows="2" placeholder="Your own reading of it…">${esc(read.note)}</textarea>` : ''}
-        ${hist.length ? `<div class="spi-timeline">${p.history.slice(-24).map(h => {
-          const c = spiralMeta(h.primaryStage);
-          return `<i style="background:${c?c[3]:'var(--muted)'}" title="${esc(fmtDate(h.timestamp.slice(0,10),'med'))} · ${c?c[1]:'—'}"></i>`; }).join('')}</div>` : ''}
-      </div>
+      <div class="pos-pyr">${maslowPyramidSVG(levels)}</div>
+      <div class="pos-side">${beside}</div>
     </div>
-
-    ${sel ? `<div class="mas-detail">
-      <div class="row between" style="align-items:baseline">
-        <b class="serif">${esc(sel.name)}</b>
-        <button class="tbtn" id="mClose">close</button>
-      </div>
-      <p class="mas-ask">${esc(sel.ask)}</p>
-      <div class="mas-inputs">${Object.entries(sel.inputs).filter(([,v])=>v!=null)
-        .map(([k,v]) => `<span class="chip">${esc(k)} <b class="mono">${Math.round(v)}</b></span>`).join('') || '<span class="faint">Nothing logged for this level yet.</span>'}</div>
-      <div class="field" style="margin-top:10px"><label>How it actually feels ${sel.autoScore != null ? `<span class="mono faint" style="text-transform:none;letter-spacing:0">· the data says ${sel.autoScore}</span>` : ''}</label>
-        <input type="range" class="slider" min="0" max="100" id="mOverride" value="${sel.effectiveScore ?? 50}" style="--c:var(--page-accent)">
-        <div class="row between mono"><span class="faint">0</span><span id="mOverrideV">${sel.effectiveScore ?? 50}</span><span class="faint">100</span></div>
-      </div>
-      <textarea class="ta" id="mNote" rows="2" placeholder="Why does this feel different from what the numbers say?">${esc(sel.note)}</textarea>
-      <div class="row" style="gap:8px;margin-top:8px">
-        <a class="btn sm ghost" href="${sel.go}">→ go deeper</a>
-        ${sel.override != null ? `<button class="btn sm ghost" id="mClearOv">use the data's number</button>` : ''}
-      </div>
-    </div>` : '<div class="faint mas-hint">Tap any tier to see what fed its score, and to say how it actually feels.</div>'}
   </section>`;
 }
 
@@ -6211,18 +6292,10 @@ function bindPosition(root, redraw){
     const key = S._mTier; if(p.overrides[key]) delete p.overrides[key].score; saveNow(); redraw(); });
   sec.querySelector('#mClose') && (sec.querySelector('#mClose').onclick = () => { S._mTier = null; redraw(); });
 
-  sec.querySelectorAll('[data-spiok]').forEach(b => b.onclick = () => {
-    p.spiral.confirmed = b.dataset.spiok === '1'; saveNow(); redraw(); });
-  const sn = sec.querySelector('#spiNote');
-  if(sn) sn.onchange = () => { p.spiral.note = sn.value.trim(); saveNow(); };
-
   sec.querySelector('#posLog') && (sec.querySelector('#posLog').onclick = () => {
     const levels = maslowScores().map(m => ({key:m.key, level:m.level, name:m.name,
       autoScore:m.autoScore, override:m.override, effectiveScore:m.effectiveScore, note:m.note, inputs:m.inputs}));
-    const read = spiralReading();
-    p.history.push({timestamp:new Date().toISOString(), levels,
-      resonance:read.resonance, primaryStage:read.primary, emergingStage:read.emerging,
-      userConfirmed: read.confirmed, userNote: read.note});
+    p.history.push({timestamp:new Date().toISOString(), levels});
     saveNow(); sound('success'); toast(`Check-in logged for ${fmtDate(today(),'med')}.`); redraw();
   });
 }
@@ -6744,15 +6817,19 @@ function deleteStage(st, node, after){
 routes.timeline = function(root, params){
   registerPageEntry({pageName:'Timeline', addLabel:'New memory', defaultEntryType:'memory', prefilledFields:{}, hint:'Open a stage to file it there directly.', options:[{label:'New memory', run:()=>EntryActions.memory()}]});
   const tab = params[0]==='threads' ? 'threads' : 'stages';
+  /* Threads & Tensions is its own room. The stage spine, the ribbons beneath it
+     and the two toggles that govern them all belong to the stage view, so on
+     the other tab they are not merely inert — they are not drawn at all. */
+  const stageView = tab === 'stages';
   const counts = S.stages.map(s=>stageEntries(s).length); const maxc = Math.max(...counts,1);
   root.innerHTML = `<div class="page">
     <div class="page-head tl-head"><div><h1>Timeline</h1></div>
-      <div class="row">
+      ${stageView ? `<div class="row">
         <label class="toggle ${S.settings.feltTime?'on':''}" id="feltToggle"><span>clock time</span><span class="sw"></span><span>felt time</span></label>
         <label class="toggle ${S.settings.ribbons?'on':''}" id="ribToggle"><span class="sw"></span><span>threads</span></label>
-      </div></div>
+      </div>` : ''}</div>
     <div class="tabs"><button class="${tab==='stages'?'active':''}" data-go="#/timeline">Stages</button><button class="${tab==='threads'?'active':''}" data-go="#/timeline/threads">Threads &amp; Tensions</button></div>
-    <div class="spine-wrap"><div class="spine" id="spine">
+    ${stageView ? `<div class="spine-wrap"><div class="spine" id="spine">
       <svg class="curve" viewBox="0 0 1000 120" preserveAspectRatio="none"><path d="M0,60 C250,20 750,100 1000,60" fill="none" stroke="var(--line-2)" stroke-width="1.5"/></svg>
       ${S.stages.map((s,i)=>`<div class="tile ${s.notyet?'notyet':''}" data-stage="${s.id}" style="--c:${s.hue};${S.settings.feltTime?`flex:${(.6 + counts[i]/maxc*1.4).toFixed(2)} 1 0`:''}" tabindex="0">
         <div class="glow"></div><div class="bg">${mosaicHTML(s,9)}</div><div class="veil"></div>
@@ -6760,9 +6837,10 @@ routes.timeline = function(root, params){
       </div>`).join('')}
       <div class="tile add-stage" id="addStage" tabindex="0" title="Add a life stage"><div class="fg"><div class="han">＋</div><div class="nm">add a stage</div><div class="tg">a chapter that spans years</div></div></div>
     </div></div>
-    <div class="ribbons" id="ribbons" ${S.settings.ribbons?'':'hidden'}></div><div class="ribbon-tip" id="ribTip"></div>
+    <div class="ribbons" id="ribbons" ${S.settings.ribbons?'':'hidden'}></div><div class="ribbon-tip" id="ribTip"></div>` : ''}
     <div id="tlBody"></div>
   </div>`;
+  if(stageView){
   $('#addStage').onclick = () => createStage(); $('#addStage').onkeydown = e => { if(e.key==='Enter') createStage(); };
   const spine = $('#spine');
   spine.addEventListener('mouseover', e => { if(e.target.closest('.tile')) spine.classList.add('hovering'); });
@@ -6774,6 +6852,7 @@ routes.timeline = function(root, params){
   $('#ribToggle').onclick = () => { S.settings.ribbons = !S.settings.ribbons; saveNow(); $('#ribToggle').classList.toggle('on', S.settings.ribbons); $('#ribbons').hidden = !S.settings.ribbons; drawRibbons(); };
   function drawRibbons(){ const r = $('#ribbons'); if(!r || r.hidden) return; const w = r.clientWidth || 1000; r.innerHTML = ribbonsSVG(w); r.querySelectorAll('[data-thread]').forEach(p => { p.onmouseenter = e => { r.classList.add('hov'); r.querySelectorAll(`[data-thread="${p.dataset.thread}"]`).forEach(x=>x.classList.add('hot')); const t = byId(S.threads,p.dataset.thread); const cs = threadStageCounts(t); $('#ribTip').style.display='block'; $('#ribTip').innerHTML = `<b style="color:${t.color}">${esc(t.name)}</b> · ${t.status}<br><span class="mono">${S.stages.map((s,i)=>`${s.char}${cs[i]}`).join(' ')}</span>`; }; p.onmousemove = e => { const tip = $('#ribTip'); const rect = r.getBoundingClientRect(); tip.style.left = (e.clientX-rect.left+14)+'px'; tip.style.top = (e.clientY-rect.top-10)+'px'; }; p.onmouseleave = () => { r.classList.remove('hov'); r.querySelectorAll('.hot').forEach(x=>x.classList.remove('hot')); $('#ribTip').style.display='none'; }; p.onclick = () => openThreadNarrative(p.dataset.thread); }); }
   drawRibbons(); window.addEventListener('resize', debounce(drawRibbons, 200), {once:true});
+  }
   const body = $('#tlBody');
   if(tab==='threads') renderThreadsTab(body); else body.innerHTML = `<div class="section rv" style="max-width:var(--content)"><span class="sc">How to read this room</span><p class="muted">Hover a stage to feel it come forward. Click to walk in. The coloured ribbons beneath are your Threads — recurring motifs that run through many stages, thickening where they had many entries and thinning where they went quiet. Active threads continue, dashed, toward the Vision Tree. Toggle <em>felt time</em> to let dense stages stretch and thin ones compress.</p></div>`;
   reveal(body);
@@ -6783,14 +6862,14 @@ function renderThreadsTab(body){
   body.innerHTML = `<div class="grid c2" style="margin-top:24px;align-items:start">
     <div class="card rv"><div class="row between"><h3>Threads</h3><button class="btn sm" id="addThread">+ thread</button></div><p class="muted" style="font-size:.85rem">Recurring motifs, not contained in one stage but threading through many. Name them, colour them, and watch where they thicken.</p>
       <div class="thread-list">${S.threads.map(t=>{ const cs = threadStageCounts(t); return `<div class="th"><span class="sw" style="background:${t.color}"></span><div style="flex:1">
-        <div class="row between"><b class="serif" style="font-size:1.1rem">${ed(`threads.#${t.id}.name`,{ph:'thread name'})}</b><span class="row"><select class="sel" style="width:auto;padding:3px 8px;font-size:.72rem" data-tstatus="${t.id}">${['active','dormant','resolved','transmuted'].map(s=>`<option ${t.status===s?'selected':''}>${s}</option>`).join('')}</select><input type="color" value="${t.color}" data-tcolor="${t.id}" style="width:26px;height:26px;border:none;background:none;cursor:pointer;padding:0"><button class="tbtn" data-tdel="${t.id}" style="color:var(--faint)">remove…</button></span></div>
+        <div class="row between"><b class="serif" style="font-size:1.1rem">${ed(`threads.#${t.id}.name`,{ph:'thread name'})}</b><span class="row"><select class="sel" style="width:auto;padding:3px 8px;font-size:.72rem;padding-right:22px" data-tstatus="${t.id}">${['active','dormant','resolved','transmuted'].map(s=>`<option ${t.status===s?'selected':''}>${s}</option>`).join('')}</select><input type="color" value="${t.color}" data-tcolor="${t.id}" style="width:26px;height:26px;border:none;background:none;cursor:pointer;padding:0"><button class="tbtn" data-tdel="${t.id}" style="color:var(--faint)">remove…</button></span></div>
         <div class="muted" style="font-size:.85rem">${ed(`threads.#${t.id}.desc`,{multi:true,ph:'What is this pattern? When did you first notice it?'})}</div>
         <div class="row" style="margin-top:6px"><span class="mono">${sum(cs)} entries · ${S.stages.map((s,i)=>cs[i]?`<span style="color:${s.hue}">${s.char}${cs[i]}</span>`:'').join(' ')}</span><button class="btn sm ghost" data-tn="${t.id}">read the narrative →</button></div>
       </div></div>`; }).join('')}</div></div>
     <div class="card rv"><div class="row between"><h3>Tensions</h3><button class="btn sm" id="addTension">+ tension</button></div><p class="muted" style="font-size:.85rem">Dialectical pairs you live between. Log where you are; the history shows the oscillation.</p>
       ${S.tensions.map(tn => { const log = [...tn.log].sort((a,b)=>a.date<b.date?-1:1); const cur = log.slice(-1)[0]?.pos ?? 50; const th = byId(S.threads, tn.threadId); return `<div class="tension"><div class="poles"><span>${ed(`tensions.#${tn.id}.left`)}</span><span class="mono">${th?`↔ ${esc(th.name)}`:''}</span><span>${ed(`tensions.#${tn.id}.right`)}</span></div>
         <input type="range" class="slider" min="0" max="100" value="${cur}" data-tension="${tn.id}" style="--c:${th?.color||'var(--terra)'}">
-        <div class="row between" style="margin-top:6px"><span class="mono">${log.length} readings · latest ${log.length?fmtDate(log.slice(-1)[0].date,'med'):'—'}</span><span class="row"><select class="sel" style="width:auto;padding:2px 6px;font-size:.68rem" data-tlink="${tn.id}"><option value="">no thread</option>${S.threads.map(t=>`<option value="${t.id}" ${tn.threadId===t.id?'selected':''}>${esc(t.name)}</option>`).join('')}</select><button class="btn sm ghost" data-tlog="${tn.id}">log reading</button><button class="tbtn" data-tndel="${tn.id}" style="color:var(--faint)">remove…</button></span></div>
+        <div class="row between" style="margin-top:6px"><span class="mono">${log.length} readings · latest ${log.length?fmtDate(log.slice(-1)[0].date,'med'):'—'}</span><span class="row"><select class="sel" style="width:auto;padding:2px 6px;font-size:.68rem;padding-right:22px" data-tlink="${tn.id}"><option value="">no thread</option>${S.threads.map(t=>`<option value="${t.id}" ${tn.threadId===t.id?'selected':''}>${esc(t.name)}</option>`).join('')}</select><button class="btn sm ghost" data-tlog="${tn.id}">log reading</button><button class="tbtn" data-tndel="${tn.id}" style="color:var(--faint)">remove…</button></span></div>
         <div style="margin-top:8px">${sparkline(log.map(l=>l.pos),{h:36,min:0,max:100,color:th?.color||'var(--terra)',dots:true,labels:log.map(l=>`${fmtDate(l.date,'med')}: ${l.pos} ${l.note?'— '+l.note:''}`)})}<div class="row between mono"><span>← ${esc(tn.left)}</span><span>${esc(tn.right)} →</span></div></div>
         ${log.length?`<details><summary><span class="mono">readings</span></summary><div class="body">${tn.log.map((l,i)=>`<div class="reading row between" style="padding:4px 0;font-size:.8rem"><span class="mono">${fmtDate(l.date,'med')} · ${l.pos}${l.note?' — '+esc(l.note):''}</span><button class="del-x inline" data-tn="${tn.id}" data-rdel="${i}" title="delete reading">×</button></div>`).join('')}</div></details>`:''}
       </div>`; }).join('')}
@@ -8586,7 +8665,7 @@ function levelTrackHTML(s){
         <div class="lvl-detail"><div class="lvl-detail-inner">
           <div class="k mono">what I can do at this level</div><div class="prose" style="font-size:.9rem">${ed(`skills.#${s.id}.levels.${i}.description`,{multi:true,mdr:true,ph:'Describe the capability. Markdown welcome.'})}</div>
           <div class="k mono" style="margin-top:10px">criteria — observable behaviours</div><ul class="lvl-criteria">${l.criteria.map((c,ci)=>`<li><span class="mono">▸</span>${ed(`skills.#${s.id}.levels.${i}.criteria.${ci}`,{ph:'something I can be seen doing'})}<button class="del-x inline" data-critdel="${i}:${ci}" title="remove">×</button></li>`).join('')}</ul><button class="tbtn" data-critadd="${i}">+ criterion</button>
-          <div class="k mono" style="margin-top:10px">resources</div><div class="lvl-res">${l.resources.map((r,ri)=>{ let host=''; try { host = new URL(r.url).hostname; } catch(e){} return `<div class="res-row"><span class="res-type" title="${esc(r.type)}">${RES_ICON[r.type]||'▫'}</span>${r.url?`<a class="res-link" href="${esc(r.url)}" target="_blank" rel="noopener">${host?`<img class="res-fav" src="https://www.google.com/s2/favicons?domain=${esc(host)}&sz=16" alt="" onerror="this.style.display='none'">`:''}${esc(r.title||r.url)}</a>`:`<span>${esc(r.title||'untitled resource')}</span>`}<span class="status-pill" style="font-size:.6rem">${esc(r.type)}</span><span class="res-edit"><span class="ed-wrap">${ed(`skills.#${s.id}.levels.${i}.resources.${ri}.title`,{ph:'title',cls:'mono'})}</span><span class="ed-wrap">${ed(`skills.#${s.id}.levels.${i}.resources.${ri}.url`,{ph:'https://…',cls:'mono'})}</span><select class="sel" data-restype="${i}:${ri}" style="width:auto;padding:1px 6px;font-size:.66rem">${RESOURCE_TYPES.map(t=>`<option ${r.type===t?'selected':''}>${t}</option>`).join('')}</select><button class="del-x inline" data-resdel="${i}:${ri}" title="remove">×</button></span></div>`; }).join('')}</div><button class="tbtn" data-resadd="${i}">+ resource</button>
+          <div class="k mono" style="margin-top:10px">resources</div><div class="lvl-res">${l.resources.map((r,ri)=>{ let host=''; try { host = new URL(r.url).hostname; } catch(e){} return `<div class="res-row"><span class="res-type" title="${esc(r.type)}">${RES_ICON[r.type]||'▫'}</span>${r.url?`<a class="res-link" href="${esc(r.url)}" target="_blank" rel="noopener">${host?`<img class="res-fav" src="https://www.google.com/s2/favicons?domain=${esc(host)}&sz=16" alt="" onerror="this.style.display='none'">`:''}${esc(r.title||r.url)}</a>`:`<span>${esc(r.title||'untitled resource')}</span>`}<span class="status-pill" style="font-size:.6rem">${esc(r.type)}</span><span class="res-edit"><span class="ed-wrap">${ed(`skills.#${s.id}.levels.${i}.resources.${ri}.title`,{ph:'title',cls:'mono'})}</span><span class="ed-wrap">${ed(`skills.#${s.id}.levels.${i}.resources.${ri}.url`,{ph:'https://…',cls:'mono'})}</span><select class="sel" data-restype="${i}:${ri}" style="width:auto;padding:1px 6px;font-size:.66rem;padding-right:22px">${RESOURCE_TYPES.map(t=>`<option ${r.type===t?'selected':''}>${t}</option>`).join('')}</select><button class="del-x inline" data-resdel="${i}:${ri}" title="remove">×</button></span></div>`; }).join('')}</div><button class="tbtn" data-resadd="${i}">+ resource</button>
           <div class="row" style="gap:16px;margin-top:10px;flex-wrap:wrap"><span><span class="k mono">estimated time</span> ${ed(`skills.#${s.id}.levels.${i}.estimatedTime`,{ph:'e.g. 3 months',cls:'mono'})}</span><span><span class="k mono">target date</span> ${ed(`skills.#${s.id}.levels.${i}.targetDate`,{ph:'YYYY-MM-DD',cls:'mono',hook:'lvldate:'+s.id+':'+i})}</span><button class="tbtn" data-lvldel="${i}" style="margin-left:auto;color:var(--faint)">remove level</button></div>
         </div></div>
       </div></div>`; }).join('')}
@@ -8622,7 +8701,7 @@ function milestoneTimelineHTML(s){
   return `<div class="vp-sec"><div class="row between"><span class="sc">Milestones — ${ms.length||'no'} target${ms.length===1?'':'s'}</span><button class="btn sm ghost" id="msAdd">+ milestone</button></div>
     ${axis || '<div class="faint" style="font-size:.8rem;padding:4px 0">Set a level and a date. They appear as markers here, as chips on the tree, and on Today when they are close.</div>'}
     <div class="ms-list">${ms.map(m => { const idx = (s.milestones||[]).indexOf(m); const d = m.by ? daysBetween(T, m.by.slice(0,10)) : null; const reached = s.currentLevel >= m.levelTarget; const badge = reached ? '<span class="status-pill" style="color:var(--sage)">reached</span>' : d===null ? '<span class="status-pill">no date</span>' : d<0 ? `<span class="status-pill due">⚠ ${-d}d overdue</span>` : `<span class="status-pill ahead">in ${d}d</span>`;
-      return `<div class="ms-row"><select class="sel" data-mslevel="${idx}" style="width:auto;padding:2px 6px;font-size:.7rem">${s.levels.map((l,li)=>`<option value="${li+1}" ${m.levelTarget===li+1?'selected':''}>L${li+1} · ${esc(l.label)}</option>`).join('')}</select><input type="date" class="inp" value="${m.by?m.by.slice(0,10):''}" data-msdate="${idx}" style="width:auto;padding:2px 6px;font-size:.7rem"><span class="ms-note">${ed(`skills.#${s.id}.milestones.${idx}.note`,{ph:'why this date?'})}</span>${badge}<button class="del-x inline" data-msdel="${idx}" title="remove">×</button></div>`; }).join('')}</div></div>`;
+      return `<div class="ms-row"><select class="sel" data-mslevel="${idx}" style="width:auto;padding:2px 6px;font-size:.7rem;padding-right:22px">${s.levels.map((l,li)=>`<option value="${li+1}" ${m.levelTarget===li+1?'selected':''}>L${li+1} · ${esc(l.label)}</option>`).join('')}</select><input type="date" class="inp" value="${m.by?m.by.slice(0,10):''}" data-msdate="${idx}" style="width:auto;padding:2px 6px;font-size:.7rem"><span class="ms-note">${ed(`skills.#${s.id}.milestones.${idx}.note`,{ph:'why this date?'})}</span>${badge}<button class="del-x inline" data-msdel="${idx}" title="remove">×</button></div>`; }).join('')}</div></div>`;
 }
 function bindMilestones(p, s){
   const id = s.id; const reopen = () => { reopenPanel(() => { rerender(); openSkillPanel(id); }); };
@@ -8724,7 +8803,7 @@ function openProjectPanel(id){
           <div class="tasks">${(ph.tasks||[]).map((t,ti) => { const due = t.dueDate ? daysBetween(today(), t.dueDate.slice(0,10)) : null; return `<div class="task ${t.done?'done':''}" data-task="${t.id}"><label><input type="checkbox" data-tdone="${ph.id}:${t.id}" ${t.done?'checked':''}></label><span class="task-text">${ed(`projects.#${p.id}.phases.${i}.tasks.${ti}.text`,{ph:'task'})}</span><input type="date" class="inp task-due ${due!==null&&due<0&&!t.done?'over':''}" value="${t.dueDate?t.dueDate.slice(0,10):''}" data-tdue="${ph.id}:${t.id}" title="due date">${due!==null&&!t.done?`<span class="mono ${due<0?'due':''}">${due<0?`${-due}d over`:due===0?'today':`${due}d`}</span>`:''}<button class="del-x inline" data-tdel="${ph.id}:${t.id}" title="delete task">×</button></div>`; }).join('')||'<div class="faint" style="font-size:.78rem;padding:4px 0">no tasks yet</div>'}</div>
         </div></div></div>`; }).join('')||'<div class="faint" style="font-size:.8rem">No phases yet. Add one to break the project into steps.</div>'}</div></div>
     <div class="vp-sec"><div class="row between"><span class="sc">Resources</span><button class="btn sm ghost" id="resAdd">+ resource</button></div>
-      <div class="lvl-res">${(p.resources||[]).map((rs,ri)=>`<div class="res-row"><span class="res-type">${{link:'🔗',file:'📎',note:'📝'}[rs.type]||'▫'}</span>${rs.url?`<a class="res-link" href="${esc(rs.url)}" target="_blank" rel="noopener">${esc(rs.title||rs.url)}</a>`:`<span>${esc(rs.title||'untitled')}</span>`}<span class="status-pill" style="font-size:.6rem">${esc(rs.type)}</span><span class="res-edit"><span class="ed-wrap">${ed(`projects.#${p.id}.resources.${ri}.title`,{ph:'title',cls:'mono'})}</span><span class="ed-wrap">${ed(`projects.#${p.id}.resources.${ri}.url`,{ph:'https://… (optional for notes)',cls:'mono'})}</span><select class="sel" data-prestype="${ri}" style="width:auto;padding:1px 6px;font-size:.66rem">${['link','file','note'].map(t=>`<option ${rs.type===t?'selected':''}>${t}</option>`).join('')}</select><button class="del-x inline" data-presdel="${ri}" title="remove">×</button></span></div>`).join('')||'<div class="faint" style="font-size:.8rem">Links, files, notes.</div>'}</div></div>
+      <div class="lvl-res">${(p.resources||[]).map((rs,ri)=>`<div class="res-row"><span class="res-type">${{link:'🔗',file:'📎',note:'📝'}[rs.type]||'▫'}</span>${rs.url?`<a class="res-link" href="${esc(rs.url)}" target="_blank" rel="noopener">${esc(rs.title||rs.url)}</a>`:`<span>${esc(rs.title||'untitled')}</span>`}<span class="status-pill" style="font-size:.6rem">${esc(rs.type)}</span><span class="res-edit"><span class="ed-wrap">${ed(`projects.#${p.id}.resources.${ri}.title`,{ph:'title',cls:'mono'})}</span><span class="ed-wrap">${ed(`projects.#${p.id}.resources.${ri}.url`,{ph:'https://… (optional for notes)',cls:'mono'})}</span><select class="sel" data-prestype="${ri}" style="width:auto;padding:1px 6px;font-size:.66rem;padding-right:22px">${['link','file','note'].map(t=>`<option ${rs.type===t?'selected':''}>${t}</option>`).join('')}</select><button class="del-x inline" data-presdel="${ri}" title="remove">×</button></span></div>`).join('')||'<div class="faint" style="font-size:.8rem">Links, files, notes.</div>'}</div></div>
     <div class="vp-sec"><span class="sc">Develops skills</span><div class="deps">${S.skills.map(sk=>`<span class="chip click ${(p.linkedSkills||[]).includes(sk.id)?'on':''}" style="--c:${catColor(sk.cat)}" data-plink="${sk.id}">${esc(sk.name)}</span>`).join('')}</div></div>
     <div class="vp-sec"><span class="sc">Notes</span>${ed(`projects.#${p.id}.notes`,{multi:true,mdr:true,cls:'prose',ph:'Working notes. Markdown welcome.'})}</div>
     <div class="vp-sec"><div class="row between"><span class="sc">Activity, twelve weeks</span><button class="btn sm primary" id="pNod">+ nod</button></div>${nodHeat(p)}</div>
@@ -9357,7 +9436,7 @@ function streamCardHTML(s){
     <div class="row between">
       <b class="serif" style="font-size:1.05rem">${esc(s.name)}</b>
       <span class="row" style="gap:6px">
-        <select class="sel" style="width:auto;padding:2px 6px;font-size:.74rem;--c:${STREAM_STATUS_COLOR[inc.status]};color:${STREAM_STATUS_COLOR[inc.status]}" data-streamstatus="${path}">${Object.entries(STREAM_STATUS).map(([k,[ic,l]])=>`<option value="${k}" ${inc.status===k?'selected':''}>${ic} ${l}</option>`).join('')}</select>
+        <select class="sel" style="width:auto;padding:2px 6px;font-size:.74rem;--c:${STREAM_STATUS_COLOR[inc.status]};color:${STREAM_STATUS_COLOR[inc.status]};padding-right:22px" data-streamstatus="${path}">${Object.entries(STREAM_STATUS).map(([k,[ic,l]])=>`<option value="${k}" ${inc.status===k?'selected':''}>${ic} ${l}</option>`).join('')}</select>
         ${s.kind==='project'?`<a class="chip on click" style="--c:var(--terra);text-decoration:none" href="#/projects/${s.project.id}">🎨 project</a>`:`<button class="del-x inline" data-streamdel="${s.stream.id}" title="delete this stream">×</button>`}
       </span>
     </div>
@@ -9375,7 +9454,7 @@ function streamCardHTML(s){
     <div class="grid c3" style="gap:8px;margin:8px 0;align-items:end">
       <div><div class="k">upkeep hrs / wk</div>${ed(`${path}.hoursPerWeek`,{ph:'0',cls:'mono',hook})}</div>
       <div><div class="k">capital in</div>${ed(`${path}.capital`,{ph:'0',cls:'mono',hook})}</div>
-      <div><div class="k">currency</div><select class="sel" style="padding:5px 6px;font-size:.8rem" data-streamcur="${path}">${CURRENCIES.map(c=>`<option ${inc.currency===c?'selected':''}>${c}</option>`).join('')}</select></div>
+      <div><div class="k">currency</div><select class="sel" style="padding:5px 6px;font-size:.8rem;padding-right:22px" data-streamcur="${path}">${CURRENCIES.map(c=>`<option ${inc.currency===c?'selected':''}>${c}</option>`).join('')}</select></div>
     </div>
     <div class="stream-derived">
       <span><i>yield</i>${yld != null ? `${yld.toFixed(yld < 10 ? 1 : 0)}%<small>/yr on capital</small>` : '—'}</span>
@@ -9387,7 +9466,7 @@ function streamCardHTML(s){
     <div class="grid c3" style="gap:8px;margin:8px 0;align-items:end">
       <div><div class="k">hrs / week</div>${ed(`${path}.hoursPerWeek`,{ph:'0',cls:'mono',hook})}</div>
       <div><div class="k">eff. rate</div><div class="mono" style="padding:6px 0;font-size:.86rem">${rate!=null?`${cur(inc.currency)}${rate.toFixed(rate<10?1:0)}/hr`:'—'}</div></div>
-      <div><div class="k">currency</div><select class="sel" style="padding:5px 6px;font-size:.8rem" data-streamcur="${path}">${CURRENCIES.map(c=>`<option ${inc.currency===c?'selected':''}>${c}</option>`).join('')}</select></div>
+      <div><div class="k">currency</div><select class="sel" style="padding:5px 6px;font-size:.8rem;padding-right:22px" data-streamcur="${path}">${CURRENCIES.map(c=>`<option ${inc.currency===c?'selected':''}>${c}</option>`).join('')}</select></div>
     </div>
     <div class="stream-derived">
       <span><i>hours to hit target</i>${hoursTgt != null ? `${hoursTgt.toFixed(hoursTgt < 10 ? 1 : 0)}<small>h/wk</small>` : '—'}</span>
@@ -13296,7 +13375,7 @@ function renderCompostPage(root){
     
     <div class="row rv" style="gap:8px;margin-bottom:16px"><input class="inp" id="compIn" placeholder="Catch it before it's gone…" style="flex:1"><button class="btn primary" id="compAdd">Catch it</button></div>
     <input class="inp rv" id="compQ" placeholder="search fragments" value="${esc(S._compQ||'')}" style="max-width:320px;margin-bottom:16px">
-    <div class="compost-grid rv">${list.length ? list.map(f => `<div class="compost-frag" data-cid="${f.id}"><div>${esc(f.text)}</div><div class="row between" style="margin-top:8px"><span class="mono faint">${fmtDate(f.date,'short')}${f.projectId?` · ${esc(byId(S.entries,f.projectId)?.title||'assigned')}`:''}</span><span class="row" style="gap:4px"><select class="sel" style="width:auto;padding:2px 6px;font-size:.68rem" data-cassign="${f.id}"><option value="">unassigned</option>${writings().map(p=>`<option value="${p.id}" ${f.projectId===p.id?'selected':''}>${esc(p.title||'Untitled')}</option>`).join('')}</select><button class="del-x inline" data-cdel="${f.id}">×</button></span></div></div>`).join('') : '<div class="empty">Nothing composting yet.</div>'}</div>
+    <div class="compost-grid rv">${list.length ? list.map(f => `<div class="compost-frag" data-cid="${f.id}"><div>${esc(f.text)}</div><div class="row between" style="margin-top:8px"><span class="mono faint">${fmtDate(f.date,'short')}${f.projectId?` · ${esc(byId(S.entries,f.projectId)?.title||'assigned')}`:''}</span><span class="row" style="gap:4px"><select class="sel" style="width:auto;padding:2px 6px;font-size:.68rem;padding-right:22px" data-cassign="${f.id}"><option value="">unassigned</option>${writings().map(p=>`<option value="${p.id}" ${f.projectId===p.id?'selected':''}>${esc(p.title||'Untitled')}</option>`).join('')}</select><button class="del-x inline" data-cdel="${f.id}">×</button></span></div></div>`).join('') : '<div class="empty">Nothing composting yet.</div>'}</div>
   </div>`;
   $('#compAdd').onclick = () => { addCompost($('#compIn').value); rerender(); };
   $('#compIn').onkeydown = e => { if(e.key==='Enter'){ addCompost($('#compIn').value); rerender(); } };
@@ -14737,26 +14816,25 @@ routes.compass = function(root){
   const stageCounts = S.stages.map(s => ({s, n: stageEntries(s).length})); const maxStage = Math.max(...stageCounts.map(x=>x.n),1);
   const skillHrs = S.skills.filter(s=>!s.planned).map(s=>({s,h:skillHours(s)})).sort((a,b)=>b.h-a.h).slice(0,4);
   const income = sum(S.projects.map(p=>p.income?.current||0));
+  const openTasks = sum(S.projects.filter(p=>!['completed','archived','abandoned'].includes(p.status)).map(p=>{ const r = projectTaskRatio(p); return r.total - r.done; }));
+  /* the drift between the last two readings — a number is only a bearing if you know which way it moved */
+  const congDrift = avgCong.length > 1 && avgCong.slice(-1)[0] != null && avgCong.slice(-2)[0] != null ? avgCong.slice(-1)[0] - avgCong.slice(-2)[0] : null;
+  const setVals = days30.map(d=>S.checkins[d]?.setpoint).filter(Boolean); const setAvg = setVals.length ? avg(setVals) : null;
+  /* one day of habits as a fraction kept — the grain the heat grid reads */
+  const habitDayRatio = d => { let due=0, done=0; S.habits.forEach(h => { if(!h.archived && !h.negative && habitDue(h,d)){ due++; if(habitDone(h,d)) done++; } }); return due ? done/due : null; };
+  const withCadence = S.people.filter(p => p.desiredFrequency);
+  const overduePpl = withCadence.map(p => { const o = personOverdue(p); return o ? {p, days:o.days} : null; }).filter(Boolean).sort((a,b)=>b.days-a.days);
+  const tended = withCadence.length - overduePpl.length;
+  const cadencePct = withCadence.length ? tended / withCadence.length : 0;
+  const bdays = typeof birthdaysSoon === 'function' ? birthdaysSoon(30) : [];
+  const pf = portfolioTotals(); const rw = runway();
+  /* what actually landed, month by month, across every stream that keeps a log */
+  const moneyMonths = Array.from({length:12},(_,k)=>{ const d = new Date(); d.setMonth(d.getMonth()-(11-k)); const key = `${d.getFullYear()}-${pad(d.getMonth()+1)}`;
+    return sum(pf.streams.map(s => sum((s.income.revenueLog||[]).filter(r => (r.month||r.date||'').startsWith(key)).map(r => toBase(r.amount, s.income.currency))))); });
   root.innerHTML = `<div class="page">
     <div class="page-head" style="margin-bottom:22px"><div><h1>${fmtDate(T)}</h1><div class="moon">${moonSVG(moon.p)} <span>${moon.name}</span><span class="mono" style="margin-left:6px">· the compass — your life at a glance</span></div></div></div>
 
     ${typeof weekShapeHTML === 'function' ? weekShapeHTML() : ''}
-
-    <div class="home-hero">
-      <div class="focus-card rv"><div class="row between"><span class="k mono" style="text-transform:uppercase;letter-spacing:.12em;font-size:.62rem;color:var(--terra)">Today's focus</span><a class="btn sm ghost" href="#/today">open Today →</a></div>
-        <div class="intent">${ed(`checkins.${T}.intention`,{ph:'One thing to give attention to today. Click to set it.'})}</div>
-        <div class="focus-row">
-          <div class="mini-rings" title="habit rings">${st.due.slice(0,10).map(h=>ringSVG(habitDone(h,T)?(habitDone(h,T).level==='min'?.5:1):0,{size:26,stroke:4,color:DIMS.find(d=>d.id===h.dimension).c})).join('')}<span class="mono">${st.done}/${st.due.length}</span></div>
-          <span class="mono">${c.mood?'mood '+['heavy','low','level','light','luminous'][c.mood-1]:'<span style="color:var(--gold)">not checked in</span>'}</span>
-          <span class="mono">${c.setpoint?hicksName(c.setpoint).split(' / ')[0]:''}</span>
-          <span class="mono">${rehearsalDoneToday()?'rehearsal ✓':'rehearsal ·'}</span>
-          ${st.rem?`<span class="mono" style="color:var(--gold)">${st.rem} reminder${st.rem>1?'s':''}</span>`:''}
-        </div>
-      </div>
-      <div class="card rv" style="padding:18px 20px"><div class="k mono" style="text-transform:uppercase;letter-spacing:.12em;font-size:.62rem">Gentle prompt</div><div class="quote" style="margin-top:8px;font-size:1.1rem;color:var(--text)">${gentlePrompt()}</div>
-        <div class="k mono" style="text-transform:uppercase;letter-spacing:.12em;font-size:.62rem;margin-top:18px">Signals</div>
-        <div class="stack" style="gap:6px;margin-top:6px">${signals().slice(0,4).map(s=>`<a href="${s.go}" class="row between" style="text-decoration:none;color:inherit;padding:6px 0;border-top:1px dashed var(--line);gap:12px"><span class="mono" style="flex:none">${esc(s.k)}</span><span style="text-align:right;font-size:.85rem">${esc(s.v)}</span></a>`).join('')}</div></div>
-    </div>
 
     ${zoneCardsHTML()}
 
@@ -14765,15 +14843,19 @@ routes.compass = function(root){
     <section class="section rv" style="margin-top:22px"><div class="row between"><span class="sc" style="margin:0">The house</span><span class="mono">● green tended · ● amber needs you · solid rings daily, dashed seasonal · hover to see what feeds what</span></div>
       <div class="house-wrap" id="houseWrap" style="margin-top:10px">${houseSVG(st)}<div class="htip" id="htip"></div></div></section>
 
-    <section class="section rv"><span class="sc">The long view</span>
+    <section class="section rv"><div class="row between"><span class="sc" style="margin:0">The long view</span><span class="mono">nine readings, three rows — where the house stands over months, not days</span></div>
     <div class="bento">
-      <div class="card span2"><div class="k">Compass <a href="#/values">→</a></div>${radar(axes,[{vals:S.valueOrder.map(id=>st.last?.ratings[id]??0),color:'var(--terra)'}],{size:230})}<div class="sub">${st.gaps[0]?`Widest gap: <b style="color:${st.gaps[0].color}">${esc(st.gaps[0].name)}</b> — ranked #${st.gaps[0].rank}, congruence ${st.gaps[0].congruence}%`:''}</div></div>
-      <div class="card span2"><div class="k">Congruence over a lifetime</div><div class="big" data-tween="${avgCong.slice(-1)[0]||0}" data-suffix="%">0</div>${sparkline(avgCong,{h:56,min:0,max:100,color:'var(--terra)'})}<div class="sub">average across ten values · ${snaps.length} readings from ${snaps[0]?fmtDate(snaps[0].date,'med'):'—'}</div></div>
-      <div class="card span2"><div class="k">Energy, 30 days <a href="#/today">→</a></div>${multiSpark(DIMS.map(d=>({vals:days30.map(x=>S.checkins[x]?.energy?.[d.id]||null),color:d.c})),{h:56})}<div class="legend">${DIMS.map(d=>`<span style="--c:${d.c}">${d.name}</span>`).join('')}</div>${sparkline(days30.map(d=>S.checkins[d]?.setpoint||null),{h:34,min:1,max:22,color:'var(--rose)'})}<div class="sub">emotional set-point · avg ${avg(days30.map(d=>S.checkins[d]?.setpoint).filter(Boolean)).toFixed(1)} — ${hicksName(avg(days30.map(d=>S.checkins[d]?.setpoint).filter(Boolean))||14).split(' / ')[0]}</div></div>
-      <div class="card span3"><div class="k">Habits, 12 weeks <a href="#/today">→</a></div><div class="big" data-tween="${habitRate.slice(-1)[0]||0}" data-suffix="%">0<small>this week</small></div>${sparkline(habitRate,{h:56,min:0,max:100,color:'var(--sage)'})}<div class="sub">weekly completion · best streak ${Math.max(0,...S.habits.filter(h=>!h.archived&&!h.negative).map(h=>habitStreak(h).best))} days · weekly review ${relDays(daysSince(S.reviews.lastWeekly))}</div></div>
-      <div class="card span2"><div class="k">Projects <a href="#/projects">→</a></div><div class="big" data-tween="${st.nods7}">0<small>nods this week</small></div>${sparkline(nodsW,{h:44,min:0,color:'var(--terra)'})}<div class="sub">${st.active.length} active · ${fmtYen(income)}/mo across ${S.projects.filter(p=>p.income?.current>0).length} stream${S.projects.filter(p=>p.income?.current>0).length===1?'':'s'}</div></div>
-      <div class="card span2"><div class="k">Skills <a href="#/skills">→</a></div><div class="big" data-tween="${st.hrs30}" data-dec="1">0<small>hours / 30d</small></div>${skillHrs.map(x=>`<div class="vbar"><span>${esc(x.s.name)}</span><div class="bar" style="--c:var(--ment)"><i style="width:${Math.min(100,x.h/Math.max(skillHrs[0].h,1)*100)}%"></i></div><span class="mono">${x.h.toFixed(0)}h</span></div>`).join('')}<div class="sub">${st.atro?`<span style="color:var(--gold)">${st.atro} atrophying</span> · `:''}${S.skills.filter(s=>s.planned).length} buds planned</div></div>
-      <div class="card span2"><div class="k">Journal &amp; memory <a href="#/journals">→</a></div><div class="big" data-tween="${S.entries.length}">0<small>entries</small></div>${sparkline(entriesW,{h:40,min:0,color:'var(--rose)'})}<div class="sub">${st.j7} this week · ${st.memories} memories · ${st.quotes} quotes</div><div class="stagebars" title="entries per stage">${stageCounts.map(x=>`<i style="--c:${x.s.hue};height:${Math.max(4,x.n/maxStage*44)}px" title="${esc(x.s.name)} · ${x.n}"></i>`).join('')}</div></div>
+      <div class="card span4"><div class="k">The ten values <a href="#/values">→</a></div>${radar(axes,[{vals:S.valueOrder.map(id=>st.last?.ratings[id]??0),color:'var(--terra)'}],{size:262})}<div class="sub">${st.gaps[0]?`Widest gap: <b style="color:${st.gaps[0].color}">${esc(st.gaps[0].name)}</b> — ranked #${st.gaps[0].rank}, congruence ${st.gaps[0].congruence}%`:'no reading taken yet'}</div></div>
+      <div class="card span4"><div class="k">Congruence over a lifetime <a href="#/values">→</a></div><div class="big" data-tween="${avgCong.slice(-1)[0]||0}" data-suffix="%">0<small>this reading</small></div><div class="chart-fill">${sparkline(avgCong,{h:74,min:0,max:100,color:'var(--terra)'})}</div><div class="sub">average across ten values · ${snaps.length} reading${snaps.length===1?'':'s'} from ${snaps[0]?fmtDate(snaps[0].date,'med'):'—'}${congDrift!=null?` · ${congDrift>=0?'+':'−'}${Math.abs(congDrift).toFixed(1)} pts since the reading before`:''}</div></div>
+      <div class="card span4"><div class="k">Energy &amp; set-point, 30 days <a href="#/today">→</a></div>${multiSpark(DIMS.map(d=>({vals:days30.map(x=>S.checkins[x]?.energy?.[d.id]||null),color:d.c})),{h:74})}<div class="legend">${DIMS.map(d=>`<span style="--c:${d.c}">${d.name}</span>`).join('')}</div>${sparkline(days30.map(d=>S.checkins[d]?.setpoint||null),{h:34,min:1,max:22,color:'var(--rose)'})}<div class="sub">emotional set-point · ${setAvg!=null?`avg ${setAvg.toFixed(1)} — ${hicksName(setAvg).split(' / ')[0]}`:'not yet logged'}</div></div>
+
+      <div class="card span4"><div class="k">Habits, 12 weeks <a href="#/today">→</a></div><div class="big" data-tween="${habitRate.slice(-1)[0]||0}" data-suffix="%">0<small>this week</small></div><div class="chart-fill heat-fill">${heatGrid(lastDays(84), 12, d => { const r = habitDayRatio(d); return r == null ? '' : r >= 1 ? 'l3' : r >= .5 ? 'l2' : r > 0 ? 'l1' : ''; })}</div><div class="sub">every day, twelve weeks · best streak ${Math.max(0,...S.habits.filter(h=>!h.archived&&!h.negative).map(h=>habitStreak(h).best))} days · weekly review ${relDays(daysSince(S.reviews.lastWeekly))}</div></div>
+      <div class="card span4"><div class="k">Skills <a href="#/skills">→</a></div><div class="big" data-tween="${st.hrs30}" data-dec="1">0<small>hours / 30d</small></div>${skillHrs.length?skillHrs.map(x=>`<div class="vbar"><span>${esc(x.s.name)}</span><div class="bar" style="--c:var(--ment)"><i style="width:${Math.min(100,x.h/Math.max(skillHrs[0].h,1)*100)}%"></i></div><span class="mono">${x.h.toFixed(0)}h</span></div>`).join(''):'<div class="sub">no practice logged yet</div>'}<div class="sub">${st.atro?`<span style="color:var(--gold)">${st.atro} atrophying</span> · `:''}${S.skills.filter(s=>s.planned).length} buds planned</div></div>
+      <div class="card span4"><div class="k">Projects <a href="#/projects">→</a></div><div class="big" data-tween="${st.nods7}">0<small>nods this week</small></div><div class="chart-fill">${sparkline(nodsW,{h:56,min:0,color:'var(--terra)'})}</div><div class="sub">${st.active.length} active · ${openTasks} open task${openTasks===1?'':'s'} · ${fmtYen(income)}/mo across ${S.projects.filter(p=>p.income?.current>0).length} stream${S.projects.filter(p=>p.income?.current>0).length===1?'':'s'}</div></div>
+
+      <div class="card span4"><div class="k">The record <a href="#/journals">→</a></div><div class="big" data-tween="${S.entries.length}">0<small>entries</small></div><div class="chart-fill">${sparkline(entriesW,{h:56,min:0,color:'var(--rose)'})}</div><div class="sub">${st.j7} this week · ${st.memories} memories · ${st.quotes} quotes</div><div class="stagebars" title="entries per stage">${stageCounts.map(x=>`<i style="--c:${x.s.hue};height:${Math.max(4,x.n/maxStage*44)}px" title="${esc(x.s.name)} · ${x.n}"></i>`).join('')}</div></div>
+      <div class="card span4"><div class="k">People, within cadence <a href="#/people">→</a></div><div class="ring-row">${ringSVG(cadencePct,{size:88,stroke:8,color:overduePpl.length?'var(--gold)':'var(--sage)',label:Math.round(cadencePct*100)+'%'})}<div class="ring-lines"><div class="sub">${tended} of ${withCadence.length} kept to the rhythm you chose${withCadence.length?'':' — no cadences set'}</div>${overduePpl.slice(0,3).map(o=>`<div class="sub" style="color:var(--gold)">${esc(o.p.name)} · ${o.days===Infinity?'never spoken':o.days+'d ago'}</div>`).join('')}</div></div><div class="sub">${bdays.length?`next: ${esc(bdays[0].p.name)}'s birthday in ${bdays[0].days} day${bdays[0].days===1?'':'s'}`:'no birthdays in the next month'}</div></div>
+      <div class="card span4"><div class="k">Money, current against target <a href="#/finance">→</a></div><div class="big">${money(pf.totalCurrentBase)}<small>per month</small></div><div class="vbar"><span>of target</span><div class="bar" style="--c:var(--sage)"><i style="width:${pf.totalTargetBase?Math.min(100,pf.totalCurrentBase/pf.totalTargetBase*100).toFixed(0):0}%"></i></div><span class="mono">${pf.totalTargetBase?Math.round(pf.totalCurrentBase/pf.totalTargetBase*100)+'%':'—'}</span></div><div class="vbar"><span>passive</span><div class="bar" style="--c:var(--ment)"><i style="width:${Math.round(pf.passiveShare*100)}%"></i></div><span class="mono">${Math.round(pf.passiveShare*100)}%</span></div><div class="chart-fill">${sparkline(moneyMonths,{h:56,min:0,color:'var(--sage)'})}</div><div class="sub">${!pf.totalCurrentBase ? 'nothing coming in yet' : rw.sustainable?`<span style="color:var(--sage)">covered</span> — ${money(rw.surplus)}/mo over what the life costs`:`<span style="color:var(--gold)">${rw.months===Infinity?'no savings to run on':`${rw.months.toFixed(1)} months of runway`}</span> — ${money(monthlyBurn())}/mo short`}</div></div>
     </div></section>
   </div>`;
   const wrap = $('#houseWrap'), tip = $('#htip'); const showTip = (e, html) => { tip.innerHTML = html; tip.style.display='block'; const r = wrap.getBoundingClientRect(); tip.style.left = Math.min(e.clientX-r.left+14, r.width-290)+'px'; tip.style.top = (e.clientY-r.top+14)+'px'; };

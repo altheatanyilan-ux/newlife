@@ -237,6 +237,12 @@ html[data-motion="energetic"] .card:hover,html[data-motion="energetic"] .btn:hov
 html[data-motion="crisp"] .rv{transform:translateX(-14px)}
 html[data-motion="snappy"] .rv{transform:translateY(8px)}
 html[data-motion="calm"] .rv{transform:translateY(12px)}
+/* Each of those three is more specific than `.rv.in{transform:none}`, so once a
+   page carried a data-motion the offset a section reveals FROM never came off:
+   on a crisp page every section sat fourteen pixels left of its own page head
+   for good, and on the others eight or twelve pixels low. The settled state has
+   to out-specify the starting one. */
+html[data-motion] .rv.in{transform:none}
 .fab-wrap{position:fixed;right:24px;bottom:24px;z-index:100;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
 .fab{position:relative;right:auto;bottom:auto;width:54px;height:54px;border-radius:50%;background:var(--page-accent);color:var(--page-accent-ink);border:none;font-size:1.6rem;box-shadow:var(--shadow);cursor:pointer;z-index:45;display:flex;align-items:center;justify-content:center;transition:transform .25s var(--ease),background .25s}
 .fab:hover{transform:scale(1.06) rotate(90deg)}

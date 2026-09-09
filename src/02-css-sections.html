@@ -519,7 +519,7 @@ button.tm-cell:hover{border-color:var(--page-accent)}
 .inv-lv .lvl-dots{margin-top:0}
 .inv-lv .lvl-dots i{width:10px}
 .inv-last.atrophy{color:#c9a05a}
-.inv-set{width:auto;padding:2px 6px;font-size:.66rem;opacity:0;transition:opacity .2s var(--ease)}
+.inv-set{width:auto;padding:2px 22px 2px 6px;font-size:.66rem;opacity:0;transition:opacity .2s var(--ease)}
 .inv-row:hover .inv-set,.inv-set:focus{opacity:1}
 .inv-row > *{min-width:0}
 .inv-name{min-width:0}
@@ -1335,7 +1335,7 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 .next-actions .mono{flex:none}
 .next-actions a.mono{flex:0 1 auto;min-width:0;max-width:45%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media (max-width:560px){.next-actions div{flex-wrap:wrap}.next-actions a.mono{max-width:100%;margin-left:auto}}
-.house-wrap{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:18px;overflow:hidden;min-height:420px}
+.house-wrap{position:relative;background:transparent;border:none;border-radius:18px;overflow:hidden;min-height:420px}
 .house-wrap svg{width:100%;height:100%;display:block;min-height:420px}
 .hnode{cursor:pointer}
 .hnode circle.body{transition:r .35s var(--ease),stroke-width .3s var(--ease)}
@@ -1350,11 +1350,25 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 .house-wrap.hov .hnode:not(.hot){opacity:.35}
 .hedge.hot{stroke:var(--page-accent);stroke-width:2;filter:drop-shadow(0 0 4px color-mix(in srgb,var(--page-accent) 60%,transparent))}
 .htip{position:absolute;background:var(--surface-2);border:1px solid var(--line-2);padding:10px 14px;border-radius:10px;font-size:.78rem;max-width:280px;pointer-events:none;display:none;box-shadow:var(--shadow);z-index:5;line-height:1.5}
-.bento{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-top:18px}
-.bento .card{padding:18px 20px;display:flex;flex-direction:column;gap:8px}
-.bento .span2{grid-column:span 2}.bento .span3{grid-column:span 3}.bento .span4{grid-column:span 4}.bento .span6{grid-column:span 6}
-@media (max-width:1100px){.bento{grid-template-columns:repeat(2,1fr)}.bento .span2,.bento .span3,.bento .span4,.bento .span6{grid-column:span 2}}
-@media (max-width:640px){.bento{grid-template-columns:1fr}.bento .span2,.bento .span3,.bento .span4,.bento .span6{grid-column:span 1}}
+/* twelve columns, nine cards of four — three even rows and no ragged tail */
+.bento{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;margin-top:18px;align-items:stretch}
+/* transparent, and with no side padding, so every card's first character sits
+   on the same left edge as the section rule above it */
+.bento .card{padding:14px 0 4px;display:flex;flex-direction:column;gap:8px;background:transparent;backdrop-filter:none;border:none;border-top:1px solid var(--line);border-radius:0}
+.bento .card:hover{border-top-color:var(--line-2)}
+.bento .card > .sub:last-child{margin-top:auto}
+.bento .span2{grid-column:span 4}.bento .span3{grid-column:span 4}.bento .span4{grid-column:span 4}.bento .span6{grid-column:span 6}.bento .span8{grid-column:span 8}.bento .span12{grid-column:span 12}
+@media (max-width:1100px){.bento{grid-template-columns:repeat(2,1fr)}.bento .span2,.bento .span3,.bento .span4,.bento .span6,.bento .span8,.bento .span12{grid-column:span 2}}
+@media (max-width:640px){.bento{grid-template-columns:1fr}.bento .span2,.bento .span3,.bento .span4,.bento .span6,.bento .span8,.bento .span12{grid-column:span 1}}
+/* a chart takes the room the card has, rather than leaving a hole under it */
+.bento .chart-fill{flex:1 1 auto;min-height:74px;display:flex;align-items:stretch}
+.bento .chart-fill > svg{width:100%;height:100%}
+.bento .heat-fill{justify-content:flex-start}
+.bento .heat{max-width:min(100%,340px);width:100%;align-self:center}
+/* a ring reads at a glance where a line would need reading */
+.ring-row{display:flex;gap:14px;align-items:center}
+.ring-row svg{flex:none}
+.ring-lines{min-width:0;display:flex;flex-direction:column;gap:2px}
 .bento .k{font-family:var(--mono);font-size:.62rem;text-transform:uppercase;letter-spacing:.12em;color:var(--faint);display:flex;justify-content:space-between;align-items:center}
 .bento .k a{color:var(--muted);text-decoration:none}
 .bento .k a:hover{color:var(--text)}
@@ -1557,7 +1571,7 @@ body.ws-resizing{cursor:col-resize;user-select:none}
 .import-queue-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;margin-bottom:12px;gap:10px;flex-wrap:wrap;position:sticky;top:0;z-index:10}
 .import-queue{display:flex;flex-direction:column;gap:10px;max-width:900px;margin:0 auto 40px}
 .iq-card{border:1px solid var(--line);border-left:3px solid var(--c,var(--line));border-radius:8px;overflow:hidden;background:var(--surface-2);transition:opacity .18s,border-color .18s}
-.iq-dest-sel{width:auto;font-size:.76rem;font-weight:600;padding:3px 6px}
+.iq-dest-sel{width:auto;font-size:.76rem;font-weight:600;padding:3px 22px 3px 6px}
 .iq-why{padding:4px 10px 0;font-size:.68rem;color:var(--muted);font-style:italic;opacity:.85}
 .iq-tags{padding:0 10px 6px;display:flex;gap:5px;flex-wrap:wrap}
 .iq-extra{border-top:1px dashed var(--line);margin:0 10px 8px}
@@ -1568,7 +1582,8 @@ body.ws-resizing{cursor:col-resize;user-select:none}
 .iq-extra > summary:hover{color:var(--c,var(--page-accent))}
 .iq-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;padding-bottom:8px}
 .iq-field label{display:block;font-size:.6rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin-bottom:3px}
-.iq-field .inp,.iq-field .sel{width:100%;font-size:.82rem;padding:5px 7px}
+.iq-field .inp{width:100%;font-size:.82rem;padding:5px 7px}
+.iq-field .sel{width:100%;font-size:.82rem;padding:5px 22px 5px 7px}
 .iq-f-ta{width:100%;font-size:.82rem;padding:5px 7px;min-height:44px;resize:vertical}
 .iq-card.iq-discarded{opacity:.35}
 .iq-head{display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid var(--line);flex-wrap:wrap;background:color-mix(in srgb,var(--surface-2) 60%,var(--surface))}
@@ -1656,7 +1671,7 @@ body.ws-resizing{cursor:col-resize;user-select:none}
 .ws-table tr[data-wsrow]:hover{background:var(--surface-2)}
 .ws-table tr.on{background:color-mix(in srgb,var(--page-accent) 12%,transparent)}
 .ws-osyn{color:var(--muted);max-width:260px}
-.ws-osel{width:auto;font-size:.72rem;padding:2px 5px}
+.ws-osel{width:auto;font-size:.72rem;padding:2px 22px 2px 5px}
 .ws-otgt{width:66px;font-size:.72rem;padding:2px 5px}
 .ws-obar td{padding:0 8px 6px;border:0}
 .ws-manuscript{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:26px 30px}
@@ -2313,5 +2328,44 @@ html[data-motion="calm"] .ph-plant-svg,html[data-motion="energetic"] .ph-plant-s
 @media (prefers-reduced-motion:reduce){
   .ph-plant .bp-stem{stroke-dasharray:none;stroke-dashoffset:0;animation:none}
   .ph-plant .bp-leaf,.ph-plant .bp-bloom,.ph-plant-svg{animation:none}}
+
+/* ---------- the hierarchy of needs ----------
+   Eight tiers to a point. Each carries its own hue so a level is told apart
+   by colour before its label is read; how solid it is is how embodied it is. */
+.pos-grid{display:grid;grid-template-columns:minmax(0,360px) minmax(0,1fr);gap:26px;align-items:start;margin-top:14px}
+@media (max-width:900px){.pos-grid{grid-template-columns:1fr}}
+.pos-pyr .mas-svg{display:block;width:100%;max-width:400px;overflow:visible}
+.mas-tier{cursor:pointer}
+.mas-tier polygon{transition:fill-opacity .3s var(--ease),stroke-opacity .3s var(--ease)}
+.pos-pyr:hover .mas-tier polygon{fill-opacity:.16}
+.mas-tier:hover polygon,.mas-tier.on polygon{fill-opacity:.92!important;stroke-opacity:1}
+.mas-tier.weak polygon{animation:masWeak 2.8s ease-in-out infinite}
+@keyframes masWeak{0%,100%{stroke-opacity:.5}50%{stroke-opacity:1}}
+.mas-lbl{fill:var(--text);font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-anchor:middle}
+.mas-lbl.out{text-anchor:start;fill:var(--muted)}
+.mas-num{fill:var(--muted);font-family:var(--mono);font-size:9px;text-anchor:middle}
+.mas-lbl.out .mas-num{text-anchor:start}
+
+/* the column beside it: the key when nothing is chosen, the level when one is */
+.pos-side{min-width:0}
+.mas-side{display:flex;flex-direction:column;gap:12px}
+.mas-hint{font-family:var(--quote);font-style:italic;font-size:.84rem;line-height:1.55;margin:0;max-width:46ch}
+.mas-legend{display:flex;flex-direction:column;gap:1px}
+.mas-leg{display:flex;align-items:center;gap:10px;width:100%;padding:5px 8px;border:none;background:none;
+  border-radius:7px;cursor:pointer;color:var(--text);text-align:left;transition:background .18s var(--ease)}
+.mas-leg:hover{background:color-mix(in srgb,var(--mc) 14%,transparent)}
+.mas-leg i{width:13px;height:13px;flex:0 0 13px;border-radius:3px;background:var(--mc);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--mc) 70%,transparent)}
+.mas-leg .n{flex:1;min-width:0;font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mas-leg .v{font-size:.72rem;color:var(--muted)}
+.mas-detail{display:flex;flex-direction:column;gap:8px}
+.mas-detail .mas-ask{font-family:var(--quote);font-style:italic;color:var(--muted);font-size:.88rem;margin:0}
+.mas-inputs{display:flex;gap:6px;flex-wrap:wrap}
+.mas-sparks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 14px;margin-top:2px}
+.mas-spark{display:flex;align-items:center;gap:8px;cursor:pointer;border-radius:5px;padding:1px 4px}
+.mas-spark:hover{background:color-mix(in srgb,var(--text) 5%,transparent)}
+.mas-spark .mono{flex:0 0 74px;font-size:.56rem;color:var(--faint);letter-spacing:.08em}
+.mas-spark svg{flex:1;min-width:0}
+@media (prefers-reduced-motion:reduce){.mas-tier polygon,.mas-leg{transition:none}.mas-tier.weak polygon{animation:none}}
 </style>
 </head>
