@@ -189,6 +189,53 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
   ok('"Content idea" sits in the speed dial', await page.evaluate(() =>
      [...document.querySelectorAll('#speedDial .sd-act')].some(b => /Content idea/.test(b.textContent))), 'not offered');
 
+  console.log('\n12. the desk knows which piece it is writing');
+  const pid = await page.evaluate(() => contentPieces().find(e => e.title.startsWith('The Self-Image')).id);
+  await page.evaluate(i => { location.hash = '#/writing/' + i; rerender(); }, pid);
+  await page.waitForTimeout(1100); await clean();
+  const bar = await page.evaluate(() => { const n = document.querySelector('.ws-piecebar');
+    return n ? {text:n.textContent.replace(/\s+/g, ' ').trim(), stage:!!n.querySelector('#wpbStage'), back:!!n.querySelector('#wpbBack')} : null; });
+  ok('a context bar names the piece, kind, stage, words and destination',
+     bar && /Self-Image/.test(bar.text) && /Essay/.test(bar.text) && /800 \/ 2,500 words/.test(bar.text)
+       && /Substack/.test(bar.text) && bar.stage && bar.back, JSON.stringify(bar));
+  await page.evaluate(() => document.querySelector('#wpbStage').click()); await page.waitForTimeout(400);
+  await page.evaluate(() => { const b = [...document.querySelectorAll('.overlay button')].find(x => /Refining/.test(x.textContent)); b && b.click(); });
+  await page.waitForTimeout(700); await clean();
+  const advanced = await page.evaluate(i => { const e = byId(S.entries, i);
+    return {stage:e.extra.content.stage, ws:e.extra.status, bar:document.querySelector('.ws-piecebar')?.textContent.replace(/\s+/g, ' ')}; }, pid);
+  ok('the pipeline can be advanced without leaving the desk',
+     advanced.stage === 'refining' && advanced.ws === 'Drafting' && /Refining/.test(advanced.bar || ''), JSON.stringify(advanced));
+
+  console.log('\n13. the drawer reaches the vault, and the heap reaches the pipeline');
+  const shelf = await page.evaluate(() => { const d = [...document.querySelectorAll('#drawer details')].find(x => /from the vault/.test(x.textContent));
+    if(!d) return null; d.open = true;
+    return {rows:d.querySelectorAll('.vault-item').length, paras:d.querySelectorAll('.vault-para').length,
+      flags:d.querySelectorAll('.vault-flag').length,
+      quotedParas:[...d.querySelectorAll('.vault-para')].filter(n => n.textContent.trim().startsWith('“')).length}; });
+  ok('the vault shelf matches passages to the piece\'s themes', shelf && shelf.rows > 0, JSON.stringify(shelf));
+  ok('and holds the paraphrase rule there too',
+     shelf && shelf.quotedParas === 0 && shelf.flags === shelf.paras, JSON.stringify(shelf));
+  const grew = await page.evaluate(() => { const ta = document.querySelector('#wBody'); const was = ta.value.length;
+    const d = [...document.querySelectorAll('#drawer details')].find(x => /from the vault/.test(x.textContent));
+    d.open = true; d.querySelector('[data-vpull]').click();
+    const lines = ta.value.split('\n').filter(l => l.startsWith('>'));
+    return {was, now:ta.value.length, quoted:lines.length, cite:lines.find(l => l.includes('—')) || ''}; });
+  await page.waitForTimeout(400); await clean();
+  ok('a passage pulls into the draft as an attributed blockquote',
+     grew.now > grew.was && grew.quoted >= 2 && /—/.test(grew.cite), JSON.stringify(grew));
+
+  await page.evaluate(() => { addCompost('A line I overheard and could not place.', ['craft']);
+    location.hash = '#/writing/compost'; rerender(); });
+  await page.waitForTimeout(900); await clean();
+  ok('every compost fragment offers a way to Content',
+     await page.evaluate(() => document.querySelectorAll('[data-cpromote]').length > 0), 'no promote buttons');
+  await page.evaluate(() => document.querySelector('[data-cpromote]').click()); await page.waitForTimeout(500);
+  const fromHeap = await page.evaluate(() => ({raw:document.querySelector('#ccRaw')?.value,
+    spark:document.querySelector('#ccSpark')?.value}));
+  ok('and carries the fragment into the catcher',
+     /overheard/.test(fromHeap.raw || '') && /compost heap/.test(fromHeap.spark || ''), JSON.stringify(fromHeap));
+  await page.evaluate(() => closeModals()); await page.waitForTimeout(250);
+
   console.log('\nconsole:', errors.length ? errors.slice(0, 6) : 'clean');
   if(errors.length) fails += errors.length;
   console.log(fails ? `\n${fails} FAILED` : '\nall good');

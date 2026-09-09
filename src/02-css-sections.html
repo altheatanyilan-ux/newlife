@@ -3041,5 +3041,30 @@ select.sm-active{border-color:var(--page-accent);
   color:var(--faint);letter-spacing:.04em;padding:5px 10px}
 .ct-bridge.used a{color:var(--terra);cursor:pointer}
 .vp-sec .ct-bridge{margin-top:12px}
+
+/* --- the Content bar at the top of the desk --- */
+.ws-piecebar{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:.68rem;color:var(--faint);
+  padding:6px 2px 8px;margin-bottom:10px;border-bottom:1px solid var(--line)}
+.ws-piecebar b{color:var(--text);font-weight:600;font-size:.72rem}
+.wpb-ico{color:var(--c)}
+.wpb-sep{opacity:.4}
+.wpb-stage{background:none;border:1px solid var(--c);color:var(--c);border-radius:5px;padding:1px 7px;
+  font:inherit;cursor:pointer;transition:background .22s var(--ease)}
+.wpb-stage:hover{background:color-mix(in srgb,var(--c) 15%,transparent)}
+.wpb-words{display:inline-flex;align-items:center;gap:6px}
+.wpb-bar{display:inline-block;width:52px;height:3px;border-radius:2px;background:var(--surface-3);overflow:hidden}
+.wpb-bar i{display:block;height:100%;background:var(--c);border-radius:2px}
+.ws-piecebar .late{color:var(--gold)}
+.wpb-back{margin-left:auto;color:var(--terra);white-space:nowrap}
+@media(max-width:700px){.wpb-back{margin-left:0}}
+
+/* --- the vault and Library shelves in the drawer --- */
+.vault-quote{font-family:var(--serif);font-style:italic;font-size:.84rem;line-height:1.5;margin:4px 0 2px}
+.vault-para{font-size:.79rem;line-height:1.45;color:var(--muted);margin:4px 0 2px}
+.vault-flag{font-size:.6rem;color:var(--faint);border:1px dashed var(--line-2);border-radius:4px;
+  padding:0 5px;display:inline-block;margin-bottom:2px}
+.vault-item.pinned{opacity:.6}
+.lib-q{border-left:2px solid var(--line-2);padding-left:8px;margin-top:7px}
+.lib-why{font-size:.72rem;color:var(--muted);line-height:1.4;margin-top:2px}
 </style>
 </head>

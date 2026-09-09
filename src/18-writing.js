@@ -52,7 +52,7 @@ function renderCompostPage(root){
     
     <div class="row rv" style="gap:8px;margin-bottom:16px"><input class="inp" id="compIn" placeholder="Catch it before it's gone…" style="flex:1"><button class="btn primary" id="compAdd">Catch it</button></div>
     <input class="inp rv" id="compQ" placeholder="search fragments" value="${esc(S._compQ||'')}" style="max-width:320px;margin-bottom:16px">
-    <div class="compost-grid rv">${list.length ? list.map(f => `<div class="compost-frag" data-cid="${f.id}"><div>${esc(f.text)}</div><div class="row between" style="margin-top:8px"><span class="mono faint">${fmtDate(f.date,'short')}${f.projectId?` · ${esc(byId(S.entries,f.projectId)?.title||'assigned')}`:''}</span><span class="row" style="gap:4px"><select class="sel" style="width:auto;padding:2px 6px;font-size:.68rem;padding-right:22px" data-cassign="${f.id}"><option value="">unassigned</option>${writings().map(p=>`<option value="${p.id}" ${f.projectId===p.id?'selected':''}>${esc(p.title||'Untitled')}</option>`).join('')}</select><button class="del-x inline" data-cdel="${f.id}">×</button></span></div></div>`).join('') : '<div class="empty">Nothing composting yet.</div>'}</div>
+    <div class="compost-grid rv">${list.length ? list.map(f => `<div class="compost-frag" data-cid="${f.id}"><div>${esc(f.text)}</div><div class="row between" style="margin-top:8px"><span class="mono faint">${fmtDate(f.date,'short')}${f.projectId?` · ${esc(byId(S.entries,f.projectId)?.title||'assigned')}`:''}</span><span class="row" style="gap:4px">${typeof compostPromoteHTML === 'function' ? compostPromoteHTML(f) : ''}<select class="sel" style="width:auto;padding:2px 6px;font-size:.68rem;padding-right:22px" data-cassign="${f.id}"><option value="">unassigned</option>${writings().map(p=>`<option value="${p.id}" ${f.projectId===p.id?'selected':''}>${esc(p.title||'Untitled')}</option>`).join('')}</select><button class="del-x inline" data-cdel="${f.id}">×</button></span></div></div>`).join('') : '<div class="empty">Nothing composting yet.</div>'}</div>
   </div>`;
   $('#compAdd').onclick = () => { addCompost($('#compIn').value); rerender(); };
   $('#compIn').onkeydown = e => { if(e.key==='Enter'){ addCompost($('#compIn').value); rerender(); } };
@@ -161,6 +161,8 @@ function researchDrawerHTML(proj){
       ${!media.length && !quotes.length ? '<div class="faint" style="font-size:.78rem;padding:4px 0">Nothing from the Library shares a tag or dimension with this piece yet.</div>' : ''}
     </div></details>` : ''}
     ${suggestions.length ? `<details style="margin-top:10px"><summary><span class="mono">you might not have considered (${suggestions.length})</span></summary><div class="body">${suggestions.map(e=>drawerItemHTML('entry',e.id)).join('')}</div></details>` : ''}
+    ${typeof wsLibraryThemeHTML === 'function' ? wsLibraryThemeHTML(proj) : ''}
+    ${typeof wsVaultSectionHTML === 'function' ? wsVaultSectionHTML(proj) : ''}
   </div>`;
 }
 function bindResearchDrawer(root, proj, redraw){
@@ -355,6 +357,7 @@ function renderWritingDesk(root, id){
         <div class="row" style="gap:4px"><button class="btn sm ghost" id="wsCompileBtn">⇩ compile</button><button class="btn sm ghost" id="expMd">↓ .md</button><button class="btn sm ghost" id="expTxt">↓ .txt</button><button class="btn sm ghost" id="expHtml">↓ .html</button></div>
       </div></div>
 
+    ${typeof wsPieceBarHTML === 'function' ? wsPieceBarHTML(e) : ''}
     <div class="writing-head rv">
       <h1 class="write-title">${ed(`entries.#${e.id}.title`,{ph:'Working title'})}</h1>
       <div class="field"><label>One-line premise — what is this really about?</label>${ed(`entries.#${e.id}.extra.premise`,{cls:'quote',ph:'Forces clarity before writing begins.'})}</div>
@@ -421,4 +424,6 @@ function renderWritingDesk(root, id){
   $('#wDel').onclick = () => requestDelete({label:e.title||'this piece', remove:()=>spliceOut(S.entries, y=>y.id===e.id), after:()=>navigate('#/writing')});
   bindResearchDrawer(root, e, redraw);
   bindStructureBoard(root, e, redraw);
+  if(typeof bindWsPieceBar === 'function') bindWsPieceBar(root, e);
+  if(typeof bindWsContentDrawer === 'function') bindWsContentDrawer(root, e);
 }
