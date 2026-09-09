@@ -270,7 +270,7 @@ function wsViewBarHTML(proj){
     <span class="ws-crumb mono">${esc(wsCrumb(x, x.openDoc))}</span>
     <span class="row" style="gap:6px;align-items:center">
       <button class="btn sm ghost ws-tw ${x._typewriter?'on':''}" id="wsTypewriter" title="typewriter scrolling (⌘T) — keeps the line you are writing at eye level">⌶</button>
-      <button class="btn sm ghost ${typeof wsRead === 'function' && wsRead().on ? 'on' : ''}" id="wsReadBtn" title="readability — show where the reader will slow down (⌘⇧R)">◑</button>
+      <button class="btn sm ghost ${typeof wsRead === 'function' && wsRead().on ? 'on' : ''}" id="wsReadBtn" title="readability — show where the reader will slow down (⌘⇧Y)">◑</button>
       <button class="btn sm ghost ${typeof wsRead === 'function' && wsRead().marks ? 'on' : ''}" id="wsMarkBtn" title="show what you have marked (⌘⇧1 · ⌘⇧2 · ⌘⇧3 to mark, ⌘⇧0 to clear)">▤</button>
       <button class="btn sm ghost ${typeof wsRead === 'function' && wsRead().distil ? 'on' : ''}" id="wsDistilBtn" title="show only what you marked">⇊</button>
       <button class="btn sm ghost" id="wsType" title="typeface and size">Aa</button>

@@ -16,11 +16,10 @@ function planTypingInto(el){
 }
 document.addEventListener('keydown', ev => {
   if(parseHash().name !== 'planning') return;
-  if(ev.metaKey || ev.ctrlKey || ev.altKey){
-    if((ev.metaKey || ev.ctrlKey) && ev.key.toLowerCase() === 'k' && !planTypingInto(ev.target)){
-      ev.preventDefault(); $('#plSearch')?.focus(); }
-    return;
-  }
+  /* ⌘K is the omni-search's, everywhere — see the note in the Content room:
+     focusing a page's own field without stopping the event just means the
+     palette opens over it. */
+  if(ev.metaKey || ev.ctrlKey || ev.altKey) return;
   if(planTypingInto(ev.target)) return;
   if($('#panel') && ev.key !== 'Escape') return;                 // the panel has its own keys
   const act = PLAN_KEYS[ev.key.toLowerCase()];

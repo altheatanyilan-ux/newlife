@@ -293,6 +293,21 @@ function preserveScroll(selectors, fn){
   before.forEach(([sel,y]) => { const n = document.querySelector(sel); if(n) n.scrollTop = y; });
 }
 function closePanel({keep=false}={}){ const had = !!$('#panel'); $('#panelOv')?.remove(); $('#panel')?.remove(); if(had && !keep && history.state?.liPanel){ history.back(); } else updateBackButton(); }
+/* Leaving a panel for another page is not the same as closing it. closePanel
+   pops the entry the panel pushed, and history.back() is asynchronous: a
+   navigate() that follows it is undone a moment later, when the pop lands and
+   restores the address the panel was opened over. So take the panel down
+   without touching history, and spend its entry on the destination instead —
+   which also makes the browser's Back button return to the page behind the
+   panel rather than into the panel again. */
+function closePanelTo(hash){
+  const spend = !!$('#panel') && !!history.state?.liPanel;
+  closePanel({keep:true});
+  if(!spend) return navigate(hash);
+  try { history.replaceState(null, '', location.pathname + location.search + hash); }
+  catch(e){ return navigate(hash); }
+  markNavDirection(); navigateNow();       // replaceState fires no hashchange
+}
 
 /* ============================================================
    LIVING VIEW / WORKSHOP VIEW

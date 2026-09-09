@@ -94,11 +94,12 @@ function openPieceMenu(id){
 const CONTENT_KEYS = {i:'catch', w:'write', 1:'pipeline', 2:'calendar', 3:'library', 4:'stats'};
 document.addEventListener('keydown', ev => {
   if(parseHash().name !== 'content') return;
-  if(ev.metaKey || ev.ctrlKey || ev.altKey){
-    if((ev.metaKey || ev.ctrlKey) && ev.key.toLowerCase() === 'k' && !planTypingInto(ev.target)){
-      ev.preventDefault(); $('#ctSearch')?.focus(); }
-    return;
-  }
+  /* ⌘K belongs to the omni-search, everywhere. This page used to focus its
+     own search box on ⌘K without stopping the event, so the palette opened
+     over the field a moment later and stole the focus back — two things
+     happening where the reader asked for one. The palette searches pieces
+     properly now, and the field is right there to click. */
+  if(ev.metaKey || ev.ctrlKey || ev.altKey) return;
   if(planTypingInto(ev.target)) return;
   if($('#panel') && ev.key !== 'Escape') return;
   const act = CONTENT_KEYS[ev.key.toLowerCase()]; if(!act) return;

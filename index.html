@@ -3942,6 +3942,21 @@ function preserveScroll(selectors, fn){
   before.forEach(([sel,y]) => { const n = document.querySelector(sel); if(n) n.scrollTop = y; });
 }
 function closePanel({keep=false}={}){ const had = !!$('#panel'); $('#panelOv')?.remove(); $('#panel')?.remove(); if(had && !keep && history.state?.liPanel){ history.back(); } else updateBackButton(); }
+/* Leaving a panel for another page is not the same as closing it. closePanel
+   pops the entry the panel pushed, and history.back() is asynchronous: a
+   navigate() that follows it is undone a moment later, when the pop lands and
+   restores the address the panel was opened over. So take the panel down
+   without touching history, and spend its entry on the destination instead —
+   which also makes the browser's Back button return to the page behind the
+   panel rather than into the panel again. */
+function closePanelTo(hash){
+  const spend = !!$('#panel') && !!history.state?.liPanel;
+  closePanel({keep:true});
+  if(!spend) return navigate(hash);
+  try { history.replaceState(null, '', location.pathname + location.search + hash); }
+  catch(e){ return navigate(hash); }
+  markNavDirection(); navigateNow();       // replaceState fires no hashchange
+}
 
 /* ============================================================
    LIVING VIEW / WORKSHOP VIEW
@@ -13953,11 +13968,10 @@ function planTypingInto(el){
 }
 document.addEventListener('keydown', ev => {
   if(parseHash().name !== 'planning') return;
-  if(ev.metaKey || ev.ctrlKey || ev.altKey){
-    if((ev.metaKey || ev.ctrlKey) && ev.key.toLowerCase() === 'k' && !planTypingInto(ev.target)){
-      ev.preventDefault(); $('#plSearch')?.focus(); }
-    return;
-  }
+  /* ⌘K is the omni-search's, everywhere — see the note in the Content room:
+     focusing a page's own field without stopping the event just means the
+     palette opens over it. */
+  if(ev.metaKey || ev.ctrlKey || ev.altKey) return;
   if(planTypingInto(ev.target)) return;
   if($('#panel') && ev.key !== 'Escape') return;                 // the panel has its own keys
   const act = PLAN_KEYS[ev.key.toLowerCase()];
@@ -15974,11 +15988,12 @@ function openPieceMenu(id){
 const CONTENT_KEYS = {i:'catch', w:'write', 1:'pipeline', 2:'calendar', 3:'library', 4:'stats'};
 document.addEventListener('keydown', ev => {
   if(parseHash().name !== 'content') return;
-  if(ev.metaKey || ev.ctrlKey || ev.altKey){
-    if((ev.metaKey || ev.ctrlKey) && ev.key.toLowerCase() === 'k' && !planTypingInto(ev.target)){
-      ev.preventDefault(); $('#ctSearch')?.focus(); }
-    return;
-  }
+  /* ⌘K belongs to the omni-search, everywhere. This page used to focus its
+     own search box on ⌘K without stopping the event, so the palette opened
+     over the field a moment later and stole the focus back — two things
+     happening where the reader asked for one. The palette searches pieces
+     properly now, and the field is right there to click. */
+  if(ev.metaKey || ev.ctrlKey || ev.altKey) return;
   if(planTypingInto(ev.target)) return;
   if($('#panel') && ev.key !== 'Escape') return;
   const act = CONTENT_KEYS[ev.key.toLowerCase()]; if(!act) return;
@@ -16481,7 +16496,7 @@ function bindPieceDetail(p, e){
   p.querySelector('#pcStage').onclick = () => planChoose('Where is it?',
     CONTENT_STAGES.map(s => [s.id, `${s.icon}  ${s.name} — ${s.hint}`]),
     v => { pieceSetStage(e, v); sound('click'); pieceRedraw(e); });
-  const go = () => { closePanel(); navigate('#/writing/' + e.id); };
+  const go = () => closePanelTo('#/writing/' + e.id);
   p.querySelector('#pcOpen').onclick = go;
   p.querySelector('#pcOpen2')?.addEventListener('click', ev => { ev.preventDefault(); go(); });
   p.querySelector('#pcPin').onclick = () => { c.pinned = !c.pinned; touch(); pieceRedraw(e); };
@@ -18724,7 +18739,7 @@ function wsViewBarHTML(proj){
     <span class="ws-crumb mono">${esc(wsCrumb(x, x.openDoc))}</span>
     <span class="row" style="gap:6px;align-items:center">
       <button class="btn sm ghost ws-tw ${x._typewriter?'on':''}" id="wsTypewriter" title="typewriter scrolling (⌘T) — keeps the line you are writing at eye level">⌶</button>
-      <button class="btn sm ghost ${typeof wsRead === 'function' && wsRead().on ? 'on' : ''}" id="wsReadBtn" title="readability — show where the reader will slow down (⌘⇧R)">◑</button>
+      <button class="btn sm ghost ${typeof wsRead === 'function' && wsRead().on ? 'on' : ''}" id="wsReadBtn" title="readability — show where the reader will slow down (⌘⇧Y)">◑</button>
       <button class="btn sm ghost ${typeof wsRead === 'function' && wsRead().marks ? 'on' : ''}" id="wsMarkBtn" title="show what you have marked (⌘⇧1 · ⌘⇧2 · ⌘⇧3 to mark, ⌘⇧0 to clear)">▤</button>
       <button class="btn sm ghost ${typeof wsRead === 'function' && wsRead().distil ? 'on' : ''}" id="wsDistilBtn" title="show only what you marked">⇊</button>
       <button class="btn sm ghost" id="wsType" title="typeface and size">Aa</button>
@@ -19542,17 +19557,35 @@ function bindWsReadControls(root, proj, redraw){
     r.distil = +b.dataset.wsdistil; saveNow(); sound('click'); redraw(); });
 }
 
-/* ⌘⇧R for readability, ⌘⇧1–3 to mark, ⌘⇧0 to clear */
+/* Marking a passage and toggling readability, from the keyboard.
+
+   Two traps here, both of which had this silently doing nothing:
+
+   ev.key is the character the key would type, and with Shift held down
+   the number row types !"£$ rather than 1234 — so a handler that reads
+   ev.key never sees '1'. ev.code names the physical key regardless of
+   shift state or layout, which is what a chord like this actually means.
+
+   And ⌘⇧R is the browser's own hard-reload on every platform: a page
+   cannot take it, so asking for it is asking for the page to reload.
+   The readability toggle answers to ⌘⇧Y, which nothing has claimed, and
+   still answers to ⌘⇧R for anyone whose browser lets it through. The
+   toolbar button is always there either way. */
+const WS_MARK_CODES = {Digit0:0, Digit1:1, Digit2:2, Digit3:3,
+                       Numpad0:0, Numpad1:1, Numpad2:2, Numpad3:3};
 document.addEventListener('keydown', ev => {
   if(!(ev.metaKey || ev.ctrlKey) || !ev.shiftKey) return;
   if(parseHash().name !== 'writing') return;
-  const k = ev.key.toLowerCase();
   const r = wsRead();
-  if(k === 'r'){ ev.preventDefault(); r.on = !r.on; if(r.on) r.distil = 0; saveNow(); sound('click'); rerender(); return; }
-  if(!'0123'.includes(k)) return;
+  if(ev.code === 'KeyY' || ev.code === 'KeyR'){
+    ev.preventDefault(); r.on = !r.on; if(r.on) r.distil = 0;
+    saveNow(); sound('click'); rerender(); return;
+  }
+  const layer = WS_MARK_CODES[ev.code];
+  if(layer === undefined) return;
   const ta = document.querySelector('#wBody'); if(!ta) return;
   ev.preventDefault();
-  wsApplyLayer(ta, +k);
+  wsApplyLayer(ta, layer);
   if(!r.marks){ r.marks = true; saveNow(); rerender(); }
 });
 /* ============================================================
@@ -20547,7 +20580,13 @@ function openSearch(){
     grp('Projects', S.projects.filter(x=>hit(x.name+' '+(x.description||''))).map(x=>({t:x.name,go:'#/projects/'+x.id,m:x.status})));
     grp('Threads', S.threads.filter(x=>hit(x.name)).map(x=>({t:x.name,go:'#/timeline/threads',m:x.status})));
     grp('Habits', S.habits.filter(x=>!x.archived&&hit(x.name)).map(x=>({t:x.name,go:'#/rituals',m:x.dimension})));
-    if(s) grp('Entries', sortEntries(S.entries.filter(x => !letterIsSealed(x)).filter(x=>hit(x.title+' '+x.body))).map(x=>({t:x.title||x.body.slice(0,80),go:'#/journals/'+x.type,m:typeName(x.type)+' · '+fmtDate(x.occurredAt,'med'),entry:x.id})));
+    /* A writing project is a Content piece, and #/journals/writing is not a
+       journal — send it to the desk it is written on, and say where in the
+       pipeline it sits rather than calling it an entry. */
+    if(s) grp('Entries', sortEntries(S.entries.filter(x => !letterIsSealed(x)).filter(x=>hit(x.title+' '+x.body))).map(x=> x.type === 'writing'
+      ? {t:x.title||'Untitled piece', go:'#/writing/'+x.id,
+         m:(typeof contentStage === 'function' && x.extra?.content ? contentStage(x.extra.content.stage).name + ' · ' : '') + 'piece'}
+      : {t:x.title||x.body.slice(0,80),go:'#/journals/'+x.type,m:typeName(x.type)+' · '+fmtDate(x.occurredAt,'med'),entry:x.id}));
     sel = 0; draw(); };
   const draw = () => { let i=0; res.innerHTML = items.map(x => x.grp ? `<div class="grp">${x.grp}</div>` : `<div class="res ${i===sel?'sel':''}" data-i="${i++}"><span class="t">${esc(x.t)}</span><span class="m">${esc(x.m)}</span></div>`).join('') || '<div class="empty" style="padding:18px 22px">Nothing found.</div>'; res.querySelectorAll('.res').forEach(r => r.onclick = () => go(+r.dataset.i)); res.querySelector('.res.sel')?.scrollIntoView({block:'nearest'}); };
   const go = i => { const list = items.filter(x=>!x.grp); const x = list[i]; if(!x) return; m.remove(); if(x.run){ x.run(); return; } if(x.entry){ navigate(x.go); setTimeout(()=>{ const n = document.querySelector(`[data-entry="${x.entry}"]`); if(n){ n.scrollIntoView({block:'center'}); n.style.background='color-mix(in srgb,var(--terra) 12%,transparent)'; setTimeout(()=>n.style.background='',1600); } },350); } else navigate(x.go); };

@@ -305,6 +305,100 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
   ok('the minutes land on the piece as well as the task',
      focus.after > focus.before && focus.onTask > 0, JSON.stringify(focus));
 
+  console.log('\n18. leaving the panel for the desk actually arrives');
+  const id = await page.evaluate(() => contentPieces().find(e => e.title.startsWith('The Self-Image')).id);
+  await page.evaluate(() => { location.hash='#/today'; }); await page.waitForTimeout(700);
+  await page.evaluate(() => { location.hash='#/content'; }); await page.waitForTimeout(900);
+  await page.evaluate(i => openPieceDetail(i), id); await page.waitForTimeout(600);
+  ok('the panel is open over Content', await page.evaluate(() => !!document.querySelector('#panel')), 'no panel');
+  await page.click('#pcOpen'); await page.waitForTimeout(1100);
+  ok('the button lands on the desk', /#\/writing\//.test(await page.evaluate(() => location.hash)), await page.evaluate(()=>location.hash));
+  ok('and the panel is gone', await page.evaluate(() => !document.querySelector('#panel')), 'panel still up');
+
+  await page.goBack(); await page.waitForTimeout(1000);
+  const h1 = await page.evaluate(() => location.hash);
+  ok('Back returns to Content, not into the panel', h1 === '#/content', h1);
+  ok('with no panel hanging over it', await page.evaluate(() => !document.querySelector('#panel')), 'panel reappeared');
+  await page.goBack(); await page.waitForTimeout(900);
+  const h2 = await page.evaluate(() => location.hash);
+  ok('Back again reaches the page before that', h2 === '#/today', h2);
+  await page.goForward(); await page.waitForTimeout(900);
+  ok('Forward works too', (await page.evaluate(() => location.hash)) === '#/content', await page.evaluate(()=>location.hash));
+
+  console.log('\n  closing a panel normally still works');
+  await page.evaluate(() => { location.hash='#/content'; }); await page.waitForTimeout(800);
+  await page.evaluate(i => openPieceDetail(i), id); await page.waitForTimeout(600);
+  await page.evaluate(() => closePanel()); await page.waitForTimeout(700);
+  ok('closePanel leaves you on Content', (await page.evaluate(() => location.hash)) === '#/content', await page.evaluate(()=>location.hash));
+  ok('and takes the panel down', await page.evaluate(() => !document.querySelector('#panel')), 'still up');
+
+  console.log('\n19. every shortcut this room documents');
+  const press = async (key, probe, setup) => {
+    await page.evaluate(() => closeModals()); await page.waitForTimeout(150);
+    await page.evaluate(() => { location.hash = '#/content'; rerender(); }); await page.waitForTimeout(800);
+    await clean(); await page.evaluate(() => document.body.click());
+    if(setup) await page.evaluate(setup); await page.waitForTimeout(200);
+    const was = await page.evaluate(probe);
+    await page.keyboard.press(key); await page.waitForTimeout(600);
+    return {was, now: await page.evaluate(probe)};
+  };
+  for(const [key, want, probe, setup] of [
+    ['i', 'the catcher opens',        () => !!document.querySelector('#ccRaw'), null],
+    ['2', 'calendar',                 () => contentView(), null],
+    ['3', 'the shelf',                () => contentView(), () => contentSetView('pipeline')],
+    ['4', 'the numbers',              () => contentView(), () => contentSetView('pipeline')],
+    ['1', 'the pipeline',             () => contentView(), () => contentSetView('stats')],
+    ['w', 'the Writing Studio',       () => location.hash, null],
+  ]){ const r = await press(key, probe, setup);
+    ok(`${key} reaches ${want}`, r.was !== r.now, JSON.stringify(r)); }
+
+  /* ⌘K belongs to the omni-search everywhere. The page used to focus its own
+     field too, without stopping the event, so both happened. */
+  await page.evaluate(() => closeModals()); await page.waitForTimeout(200);
+  await page.evaluate(() => { location.hash = '#/content'; rerender(); }); await page.waitForTimeout(800);
+  await clean(); await page.evaluate(() => document.body.click());
+  await page.keyboard.press('Control+k'); await page.waitForTimeout(700);
+  const pal = await page.evaluate(() => ({open: !!document.querySelector('#palQ'),
+    focused: document.activeElement?.id || ''}));
+  ok('⌘K opens the omni-search, and only that', pal.open && pal.focused === 'palQ', JSON.stringify(pal));
+  await page.evaluate(() => { const q = document.querySelector('#palQ');
+    q.value = 'Self-Image'; q.dispatchEvent(new Event('input')); });
+  await page.waitForTimeout(500);
+  const found = await page.evaluate(() => { const rows = [...document.querySelectorAll('#palRes .res')];
+    const r = rows.find(x => /Self-Image/.test(x.textContent));
+    return r ? {label:r.querySelector('.m')?.textContent || ''} : null; });
+  ok('it finds a piece and says where in the pipeline it is',
+     found && /piece/.test(found.label), JSON.stringify(found));
+  await page.evaluate(() => { const r = [...document.querySelectorAll('#palRes .res')].find(x => /Self-Image/.test(x.textContent)); r && r.click(); });
+  await page.waitForTimeout(900);
+  ok('and opens it on the desk, not in a journal',
+     /^#\/writing\//.test(await page.evaluate(() => location.hash)), await page.evaluate(() => location.hash));
+  await page.evaluate(() => closeModals());
+
+  console.log('\n20. and the ones in the Writing Studio');
+  const wid = await page.evaluate(() => contentPieces().find(e => e.title.startsWith('Structural')).id);
+  const inStudio = async (key, prep) => {
+    await page.evaluate(i => { location.hash = '#/writing/' + i; rerender(); }, wid);
+    await page.waitForTimeout(900); await clean();
+    if(prep) await page.evaluate(prep); await page.waitForTimeout(300);
+    await page.keyboard.press(key); await page.waitForTimeout(600);
+    return page.evaluate(() => ({on: !!S.wsRead?.on, text: document.querySelector('#wBody')?.value.slice(0, 24) || ''}));
+  };
+  const sel = () => { const ta = document.querySelector('#wBody');
+    ta.value = 'One two three four five.'; ta.dispatchEvent(new Event('input'));
+    ta.focus(); ta.setSelectionRange(0, 13); };
+  /* ev.key is the character a key would type, and shift turns the number row
+     into !"£$ — so these chords have to be read off ev.code, which names the
+     physical key. Reading ev.key made every one of them do nothing. */
+  ok('⌘⇧1 marks a passage',       /^==One two three==/.test((await inStudio('Control+Shift+Digit1', sel)).text), 'no mark');
+  ok('⌘⇧2 marks it deeper',       /^===One two three===/.test((await inStudio('Control+Shift+Digit2', sel)).text), 'no mark');
+  ok('⌘⇧3 marks it deepest',      /^====One two three====/.test((await inStudio('Control+Shift+Digit3', sel)).text), 'no mark');
+  const cleared = await inStudio('Control+Shift+Digit0', () => { const ta = document.querySelector('#wBody');
+    ta.value = '==One two three== four.'; ta.dispatchEvent(new Event('input')); ta.focus(); ta.setSelectionRange(3, 15); });
+  ok('⌘⇧0 takes the marks off',   !/=/.test(cleared.text), cleared.text);
+  const before = await page.evaluate(() => !!S.wsRead?.on);
+  ok('⌘⇧Y toggles readability',   (await inStudio('Control+Shift+KeyY')).on !== before, 'unchanged');
+
   console.log('\nconsole:', errors.length ? errors.slice(0, 6) : 'clean');
   if(errors.length) fails += errors.length;
   console.log(fails ? `\n${fails} FAILED` : '\nall good');

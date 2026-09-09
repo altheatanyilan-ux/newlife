@@ -243,16 +243,34 @@ function bindWsReadControls(root, proj, redraw){
     r.distil = +b.dataset.wsdistil; saveNow(); sound('click'); redraw(); });
 }
 
-/* ⌘⇧R for readability, ⌘⇧1–3 to mark, ⌘⇧0 to clear */
+/* Marking a passage and toggling readability, from the keyboard.
+
+   Two traps here, both of which had this silently doing nothing:
+
+   ev.key is the character the key would type, and with Shift held down
+   the number row types !"£$ rather than 1234 — so a handler that reads
+   ev.key never sees '1'. ev.code names the physical key regardless of
+   shift state or layout, which is what a chord like this actually means.
+
+   And ⌘⇧R is the browser's own hard-reload on every platform: a page
+   cannot take it, so asking for it is asking for the page to reload.
+   The readability toggle answers to ⌘⇧Y, which nothing has claimed, and
+   still answers to ⌘⇧R for anyone whose browser lets it through. The
+   toolbar button is always there either way. */
+const WS_MARK_CODES = {Digit0:0, Digit1:1, Digit2:2, Digit3:3,
+                       Numpad0:0, Numpad1:1, Numpad2:2, Numpad3:3};
 document.addEventListener('keydown', ev => {
   if(!(ev.metaKey || ev.ctrlKey) || !ev.shiftKey) return;
   if(parseHash().name !== 'writing') return;
-  const k = ev.key.toLowerCase();
   const r = wsRead();
-  if(k === 'r'){ ev.preventDefault(); r.on = !r.on; if(r.on) r.distil = 0; saveNow(); sound('click'); rerender(); return; }
-  if(!'0123'.includes(k)) return;
+  if(ev.code === 'KeyY' || ev.code === 'KeyR'){
+    ev.preventDefault(); r.on = !r.on; if(r.on) r.distil = 0;
+    saveNow(); sound('click'); rerender(); return;
+  }
+  const layer = WS_MARK_CODES[ev.code];
+  if(layer === undefined) return;
   const ta = document.querySelector('#wBody'); if(!ta) return;
   ev.preventDefault();
-  wsApplyLayer(ta, +k);
+  wsApplyLayer(ta, layer);
   if(!r.marks){ r.marks = true; saveNow(); rerender(); }
 });

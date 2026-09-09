@@ -130,7 +130,7 @@ function bindPieceDetail(p, e){
   p.querySelector('#pcStage').onclick = () => planChoose('Where is it?',
     CONTENT_STAGES.map(s => [s.id, `${s.icon}  ${s.name} — ${s.hint}`]),
     v => { pieceSetStage(e, v); sound('click'); pieceRedraw(e); });
-  const go = () => { closePanel(); navigate('#/writing/' + e.id); };
+  const go = () => closePanelTo('#/writing/' + e.id);
   p.querySelector('#pcOpen').onclick = go;
   p.querySelector('#pcOpen2')?.addEventListener('click', ev => { ev.preventDefault(); go(); });
   p.querySelector('#pcPin').onclick = () => { c.pinned = !c.pinned; touch(); pieceRedraw(e); };
