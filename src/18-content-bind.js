@@ -91,7 +91,10 @@ function openPieceMenu(id){
 }
 
 /* ---------- keyboard ---------- */
-const CONTENT_KEYS = {i:'catch', w:'write', 1:'pipeline', 2:'calendar', 3:'library', 4:'stats'};
+/* N means "make the thing this room makes", everywhere in the house.
+   I still works here — it is what the room was first taught — but N is
+   what the card shows, because one key for one idea is the whole point. */
+const CONTENT_KEYS = {n:'catch', i:'catch', w:'write', 1:'pipeline', 2:'calendar', 3:'library', 4:'stats'};
 document.addEventListener('keydown', ev => {
   if(parseHash().name !== 'content') return;
   /* ⌘K belongs to the omni-search, everywhere. This page used to focus its

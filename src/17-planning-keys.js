@@ -6,7 +6,7 @@
    being typed into — a page that eats your "n" mid-sentence is worse than
    a page with no shortcuts at all. */
 const PLAN_KEYS = {
-  n:'add', q:'add', f:'focus', t:'today', e:'edit', h:'habits', s:'stats',
+  n:'add', f:'focus', t:'today', e:'edit', h:'habits', s:'stats',
   1:'list', 2:'calendar', 3:'kanban', 4:'eisenhower', 5:'timeline',
 };
 function planTypingInto(el){

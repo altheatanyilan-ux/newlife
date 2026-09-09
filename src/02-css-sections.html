@@ -3139,5 +3139,42 @@ select.sm-active{border-color:var(--page-accent);
 .ct-tdesc{font-size:.78rem}
 @media(max-width:640px){.ct-themerow{grid-template-columns:30px minmax(0,1fr) 32px 26px}
   .ct-tdesc{display:none}}
+
+/* --- the keyboard card --- */
+.keyboard-card .kb-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px 22px;margin-top:14px}
+.kb-group{min-width:0}
+.kb-group.here{position:relative}
+.kb-head{display:flex;align-items:baseline;gap:8px;margin-bottom:7px;
+  padding-bottom:5px;border-bottom:1px solid var(--line)}
+.kb-head .sc{margin:0}
+.kb-head .mono{font-size:.6rem;letter-spacing:.09em;text-transform:uppercase;color:var(--terra);margin-left:auto}
+.kb-group.here .kb-head{border-bottom-color:var(--terra)}
+.kb-note{font-family:var(--lora,var(--serif));font-style:italic;font-size:.76rem;color:var(--faint);
+  line-height:1.45;margin-bottom:7px}
+.kb-row{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:baseline;padding:3px 0}
+.kb-keys{display:flex;align-items:center;gap:3px;flex-wrap:wrap}
+.kb-keys i{color:var(--faint);font-style:normal;font-size:.72rem}
+.kb-row kbd{font-family:var(--mono);font-size:.66rem;line-height:1;padding:3px 6px;border-radius:5px;
+  border:1px solid var(--line-2);background:var(--surface-2);color:var(--muted);white-space:nowrap}
+.kb-what{font-size:.81rem;line-height:1.4;color:var(--text)}
+
+/* --- the one-line reminder a room carries --- */
+.kb-hint{display:flex;align-items:center;gap:13px;flex-wrap:wrap;cursor:pointer;
+  background:none;border:0;padding:0 2px 12px;margin-top:-4px;font-size:.64rem;color:var(--faint);
+  width:100%;text-align:left;transition:color .2s var(--ease)}
+.kb-hint:hover{color:var(--muted)}
+.kb-hint span{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.kb-hint kbd{font-family:var(--mono);font-size:.6rem;line-height:1;padding:2px 5px;border-radius:4px;
+  border:1px solid var(--line-2);background:var(--surface-2)}
+.kb-hint .kb-more{color:var(--terra)}
+@media(max-width:760px){.kb-hint span:not(.kb-more){display:none}}
+#btnKeys{font-family:var(--mono)}
+/* the same card, laid into the Settings page rather than over it */
+/* the Settings page is narrow, so the card falls into one column there and
+   the groups need real air between them rather than a grid gutter */
+.kb-inline .kb-grid{margin-top:4px;gap:22px}
+.kb-inline .kb-head{margin-top:4px}
+.kb-inline .kb-group.here .kb-head{border-bottom-color:var(--line)}
+.kb-inline .kb-group.here .kb-head .mono{display:none}
 </style>
 </head>

@@ -181,7 +181,7 @@ function wsDistilHTML(proj){
       `<button class="pf-chip${r.distil === l ? ' on' : ''}" data-wsdistil="${l}">${esc(WS_LAYER_NAMES[l])}</button>`).join('')}
       <button class="pf-chip" data-wsdistil="0">back to the draft</button></div>
     ${rows.length ? rows.map(x => `<p class="wsd-row wsl${x.layer}">${esc(x.text)}</p>`).join('')
-      : `<div class="pk-empty lora">Nothing marked at this layer yet. Select a passage and press ⌘⇧1.</div>`}
+      : `<div class="pk-empty lora">Nothing marked at this layer yet. Select a passage and press ⌥⇧1.</div>`}
   </div>`;
 }
 
@@ -243,30 +243,26 @@ function bindWsReadControls(root, proj, redraw){
     r.distil = +b.dataset.wsdistil; saveNow(); sound('click'); redraw(); });
 }
 
-/* Marking a passage and toggling readability, from the keyboard.
+/* Marking a passage and toggling readability — the same ⌥ grammar the rest
+   of the desk uses, with ⇧ meaning "one layer deeper".
 
-   Two traps here, both of which had this silently doing nothing:
-
-   ev.key is the character the key would type, and with Shift held down
-   the number row types !"£$ rather than 1234 — so a handler that reads
-   ev.key never sees '1'. ev.code names the physical key regardless of
-   shift state or layout, which is what a chord like this actually means.
-
-   And ⌘⇧R is the browser's own hard-reload on every platform: a page
-   cannot take it, so asking for it is asking for the page to reload.
-   The readability toggle answers to ⌘⇧Y, which nothing has claimed, and
-   still answers to ⌘⇧R for anyone whose browser lets it through. The
-   toolbar button is always there either way. */
+   Two traps sat here, both of which had this silently doing nothing. ev.key
+   is the character a key would type, and ⇧ turns the number row into !"£$
+   while ⌥ turns letters into ˜ˆ¨ on a Mac — so a handler reading ev.key
+   never sees '1'. ev.code names the physical key regardless. And ⌘⇧R, which
+   the specification asked for, is the browser's own hard reload on every
+   platform: pressing it reloaded the page rather than toggling anything. */
 const WS_MARK_CODES = {Digit0:0, Digit1:1, Digit2:2, Digit3:3,
                        Numpad0:0, Numpad1:1, Numpad2:2, Numpad3:3};
 document.addEventListener('keydown', ev => {
-  if(!(ev.metaKey || ev.ctrlKey) || !ev.shiftKey) return;
+  if(!ev.altKey || ev.metaKey || ev.ctrlKey) return;
   if(parseHash().name !== 'writing') return;
   const r = wsRead();
-  if(ev.code === 'KeyY' || ev.code === 'KeyR'){
+  if(!ev.shiftKey && ev.code === 'KeyR'){
     ev.preventDefault(); r.on = !r.on; if(r.on) r.distil = 0;
     saveNow(); sound('click'); rerender(); return;
   }
+  if(!ev.shiftKey) return;                       // ⌥ alone belongs to the desk's own keys
   const layer = WS_MARK_CODES[ev.code];
   if(layer === undefined) return;
   const ta = document.querySelector('#wBody'); if(!ta) return;

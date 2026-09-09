@@ -3627,6 +3627,43 @@ select.sm-active{border-color:var(--page-accent);
 .ct-tdesc{font-size:.78rem}
 @media(max-width:640px){.ct-themerow{grid-template-columns:30px minmax(0,1fr) 32px 26px}
   .ct-tdesc{display:none}}
+
+/* --- the keyboard card --- */
+.keyboard-card .kb-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px 22px;margin-top:14px}
+.kb-group{min-width:0}
+.kb-group.here{position:relative}
+.kb-head{display:flex;align-items:baseline;gap:8px;margin-bottom:7px;
+  padding-bottom:5px;border-bottom:1px solid var(--line)}
+.kb-head .sc{margin:0}
+.kb-head .mono{font-size:.6rem;letter-spacing:.09em;text-transform:uppercase;color:var(--terra);margin-left:auto}
+.kb-group.here .kb-head{border-bottom-color:var(--terra)}
+.kb-note{font-family:var(--lora,var(--serif));font-style:italic;font-size:.76rem;color:var(--faint);
+  line-height:1.45;margin-bottom:7px}
+.kb-row{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:baseline;padding:3px 0}
+.kb-keys{display:flex;align-items:center;gap:3px;flex-wrap:wrap}
+.kb-keys i{color:var(--faint);font-style:normal;font-size:.72rem}
+.kb-row kbd{font-family:var(--mono);font-size:.66rem;line-height:1;padding:3px 6px;border-radius:5px;
+  border:1px solid var(--line-2);background:var(--surface-2);color:var(--muted);white-space:nowrap}
+.kb-what{font-size:.81rem;line-height:1.4;color:var(--text)}
+
+/* --- the one-line reminder a room carries --- */
+.kb-hint{display:flex;align-items:center;gap:13px;flex-wrap:wrap;cursor:pointer;
+  background:none;border:0;padding:0 2px 12px;margin-top:-4px;font-size:.64rem;color:var(--faint);
+  width:100%;text-align:left;transition:color .2s var(--ease)}
+.kb-hint:hover{color:var(--muted)}
+.kb-hint span{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.kb-hint kbd{font-family:var(--mono);font-size:.6rem;line-height:1;padding:2px 5px;border-radius:4px;
+  border:1px solid var(--line-2);background:var(--surface-2)}
+.kb-hint .kb-more{color:var(--terra)}
+@media(max-width:760px){.kb-hint span:not(.kb-more){display:none}}
+#btnKeys{font-family:var(--mono)}
+/* the same card, laid into the Settings page rather than over it */
+/* the Settings page is narrow, so the card falls into one column there and
+   the groups need real air between them rather than a grid gutter */
+.kb-inline .kb-grid{margin-top:4px;gap:22px}
+.kb-inline .kb-head{margin-top:4px}
+.kb-inline .kb-group.here .kb-head{border-bottom-color:var(--line)}
+.kb-inline .kb-group.here .kb-head .mono{display:none}
 </style>
 </head>
 <body>
@@ -3639,6 +3676,7 @@ select.sm-active{border-color:var(--page-accent);
 <button class="back-btn" id="backBtn" data-back hidden aria-label="Go back"><span class="arrow">←</span> Back</button>
 <div class="topbar">
   <button class="iconbtn" id="btnSearch" title="Search (⌘K)">⌕ <span>search</span> <kbd>⌘K</kbd></button>
+  <button class="iconbtn" id="btnKeys" title="Keyboard shortcuts (?)">?</button>
   <button class="iconbtn" id="btnSound" title="Interaction sounds">🔕</button>
   <button class="iconbtn" id="btnAmbient" title="Ambient background">🌊</button>
   <button class="iconbtn" id="btnTheme" title="Toggle theme">☾</button>
@@ -13031,6 +13069,11 @@ routes.settings = function(root){
       <div class="opt"><div><b>Felt time</b><div class="d">Default timeline mode: stretch dense stages, compress thin ones.</div></div><label class="toggle ${S.settings.feltTime?'on':''}" id="sFelt"><span>clock</span><span class="sw"></span><span>felt</span></label></div>
       <div class="opt"><div><b>Landing page</b><div class="d">Where the site opens.</div></div><select class="sel" style="width:auto" id="sHome">${[['compass','Compass'],['today','Today']].map(([v,l])=>`<option value="${v}" ${(S.settings.home||'compass')===v?'selected':''}>${l}</option>`).join('')}</select></div>
     </div>
+    <div class="card rv"><h3>The keyboard</h3>
+      <p class="muted" style="font-size:.85rem">Press the key. In the Writing Studio, hold ⌥ as well, because you are always inside the text there. Nothing fires while you are typing into something.</p>
+      ${typeof shortcutsHTML === 'function' ? `<div class="kb-inline">${shortcutsHTML('').replace(/^[\s\S]*?<div class="kb-grid">/, '<div class="kb-grid">')}</div>` : ''}
+    </div>
+
     <div class="card rv"><h3>Navigation zones</h3><p class="muted" style="font-size:.85rem">Drag pages between Becoming, Story and Always. Compass, Today and Journals sit above the zones, and the Writing Studio below them; those four stay where they are.</p>${zoneEditorHTML()}
     </div>
 
@@ -13958,7 +14001,7 @@ function rerenderPlanBody(){
    being typed into — a page that eats your "n" mid-sentence is worse than
    a page with no shortcuts at all. */
 const PLAN_KEYS = {
-  n:'add', q:'add', f:'focus', t:'today', e:'edit', h:'habits', s:'stats',
+  n:'add', f:'focus', t:'today', e:'edit', h:'habits', s:'stats',
   1:'list', 2:'calendar', 3:'kanban', 4:'eisenhower', 5:'timeline',
 };
 function planTypingInto(el){
@@ -14092,8 +14135,9 @@ function planHeaderHTML(sel){
   return `<div class="pl-header">
     <div class="row between" style="align-items:baseline;gap:12px">
       <h2 class="pl-title">${esc(planSelectionTitle(sel))}</h2>
-      ${special ? '' : `<div class="pl-viewsw">${PLAN_VIEWS.map(x => `<button class="${v === x.id ? 'on' : ''}" data-plview="${x.id}" title="${esc(x.name)} view">${x.icon}</button>`).join('')}</div>`}
+      ${special ? '' : `<div class="pl-viewsw">${PLAN_VIEWS.map((x, i) => `<button class="${v === x.id ? 'on' : ''}" data-plview="${x.id}" title="${esc(x.name)} view (${i + 1})">${x.icon}</button>`).join('')}</div>`}
     </div>
+    ${typeof shortcutHintHTML === 'function' ? shortcutHintHTML('planning') : ''}
     ${special ? '' : `<div class="pl-bar">
       <div class="pl-sortwrap"><select class="sel" id="plSort" style="width:auto;padding-right:22px;font-size:.78rem">
         ${PLAN_SORTS.map(([k, n]) => `<option value="${k}" ${p.prefs.sort === k ? 'selected' : ''}>${n}</option>`).join('')}</select></div>
@@ -15985,7 +16029,10 @@ function openPieceMenu(id){
 }
 
 /* ---------- keyboard ---------- */
-const CONTENT_KEYS = {i:'catch', w:'write', 1:'pipeline', 2:'calendar', 3:'library', 4:'stats'};
+/* N means "make the thing this room makes", everywhere in the house.
+   I still works here — it is what the room was first taught — but N is
+   what the card shows, because one key for one idea is the whole point. */
+const CONTENT_KEYS = {n:'catch', i:'catch', w:'write', 1:'pipeline', 2:'calendar', 3:'library', 4:'stats'};
 document.addEventListener('keydown', ev => {
   if(parseHash().name !== 'content') return;
   /* ⌘K belongs to the omni-search, everywhere. This page used to focus its
@@ -16623,7 +16670,7 @@ routes.content = function(root, params){
   if(params[0] === 'stats') S._ctView = 'stats';
   const v = contentView();
   registerPageEntry({pageName:'Content', addLabel:'Catch an idea', defaultEntryType:'content',
-    hint:'or press I anywhere on this page', prefilledFields:{},
+    hint:'', prefilledFields:{},
     options:[{label:'Catch an idea', run:() => openContentCapture()},
              {label:'Start a piece',  run:() => openPieceDetail(contentNewPiece({stage:'seed'}).id)}]});
 
@@ -16636,8 +16683,8 @@ routes.content = function(root, params){
     <div class="page-head"><h1>Content</h1></div>
     <div class="ct-head">
       <div class="ct-views">
-        ${[['pipeline','Pipeline','▥'],['calendar','Calendar','▦'],['library','Shelf','▤'],['stats','Numbers','◫']].map(([k, n, i]) =>
-          `<button class="${v === k ? 'on' : ''}" data-ctview="${k}" title="${n}">${i} <span>${n}</span></button>`).join('')}
+        ${[['pipeline','Pipeline','▥'],['calendar','Calendar','▦'],['library','Shelf','▤'],['stats','Numbers','◫']].map(([k, n, ic], i) =>
+          `<button class="${v === k ? 'on' : ''}" data-ctview="${k}" title="${n} (${i + 1})">${ic} <span>${n}</span></button>`).join('')}
       </div>
       <div class="row" style="gap:8px;margin-left:auto">
         <input class="inp mono ct-search" id="ctSearch" placeholder="search pieces…" value="${esc(S._ctQ || '')}">
@@ -16645,6 +16692,7 @@ routes.content = function(root, params){
         <button class="btn sm" id="ctCatch">＋ catch an idea</button>
       </div>
     </div>
+    ${typeof shortcutHintHTML === 'function' ? shortcutHintHTML('content') : ''}
     ${v === 'pipeline' || v === 'library' ? contentNextStripHTML() : ''}
     <div class="ct-body" id="ctBody">${body}</div>
   </div>`;
@@ -18738,14 +18786,14 @@ function wsViewBarHTML(proj){
   return `<div class="ws-viewbar">
     <span class="ws-crumb mono">${esc(wsCrumb(x, x.openDoc))}</span>
     <span class="row" style="gap:6px;align-items:center">
-      <button class="btn sm ghost ws-tw ${x._typewriter?'on':''}" id="wsTypewriter" title="typewriter scrolling (⌘T) — keeps the line you are writing at eye level">⌶</button>
-      <button class="btn sm ghost ${typeof wsRead === 'function' && wsRead().on ? 'on' : ''}" id="wsReadBtn" title="readability — show where the reader will slow down (⌘⇧Y)">◑</button>
-      <button class="btn sm ghost ${typeof wsRead === 'function' && wsRead().marks ? 'on' : ''}" id="wsMarkBtn" title="show what you have marked (⌘⇧1 · ⌘⇧2 · ⌘⇧3 to mark, ⌘⇧0 to clear)">▤</button>
+      <button class="btn sm ghost ws-tw ${x._typewriter?'on':''}" id="wsTypewriter" title="typewriter scrolling (⌥T) — keeps the line you are writing at eye level">⌶</button>
+      <button class="btn sm ghost ${typeof wsRead === 'function' && wsRead().on ? 'on' : ''}" id="wsReadBtn" title="readability — show where the reader will slow down (⌥R)">◑</button>
+      <button class="btn sm ghost ${typeof wsRead === 'function' && wsRead().marks ? 'on' : ''}" id="wsMarkBtn" title="show what you have marked (⌥⇧1 · ⌥⇧2 · ⌥⇧3 to mark, ⌥⇧0 to clear)">▤</button>
       <button class="btn sm ghost ${typeof wsRead === 'function' && wsRead().distil ? 'on' : ''}" id="wsDistilBtn" title="show only what you marked">⇊</button>
       <button class="btn sm ghost" id="wsType" title="typeface and size">Aa</button>
       <button class="btn sm ghost" id="wsCollNew" title="save a collection">⧉</button>
-      <span class="ws-vtabs">${WS_VIEWS.map(([k,ic,l]) =>
-        `<button class="${x.viewMode===k?'on':''}" data-wsview="${k}" title="${l}">${ic}<span>${l}</span></button>`).join('')}</span>
+      <span class="ws-vtabs">${WS_VIEWS.map(([k,ic,l], i) =>
+        `<button class="${x.viewMode===k?'on':''}" data-wsview="${k}" title="${l} (⌥${i+1})">${ic}<span>${l}</span></button>`).join('')}</span>
     </span>
   </div>
   ${wsCollectionsHTML(proj)}`;
@@ -18902,7 +18950,7 @@ function wsInspectorHTML(proj){
   }[tab]();
   return `<div class="ws-inspector" id="wsInspector">
     <div class="ws-itabs">${WS_INSP_TABS.map(([k,ic,l]) => `<button class="${tab===k?'on':''}" data-wsitab="${k}" title="${esc(l)}">${ic}</button>`).join('')}
-      <button class="ws-fold" id="wsFoldR" style="margin-left:auto" title="fold the inspector away (⌘3)">⟩</button></div>
+      <button class="ws-fold" id="wsFoldR" style="margin-left:auto" title="fold the inspector away (⌥B)">⟩</button></div>
     <div class="ws-ibody">${body}</div>
   </div>`;
 }
@@ -19209,25 +19257,37 @@ function wsOpenCollectionModal(proj, redraw){
 /* ---------- keyboard ----------
    Only while the studio is on screen, and never while a field has focus,
    so typing an N into a draft does not create a document. */
+/* The desk is the one room where you are always inside the text, so its
+   keys need a modifier — and the modifier cannot be ⌘. Every chord this
+   used to answer to was one the browser keeps: ⌘N opens a window, ⌘⇧N a
+   private one, ⌘T a tab, ⌘1/⌘3/⌘5 switch tabs, ⌘M minimises on a Mac.
+   None of them had ever reached the page. ⌥ is unclaimed, so ⌥ it is,
+   and the same grammar the rest of the house uses holds here: digits
+   choose a view, N makes a new thing, ⇧ goes one step further.
+
+   ev.code rather than ev.key throughout: ⌥ and ⇧ both change what a key
+   would type (⌥N is "˜" on a Mac, ⇧1 is "!"), and none of that has
+   anything to do with which key was pressed. */
+const WS_VIEW_CODES = {Digit1:'editor', Digit2:'corkboard', Digit3:'outliner', Digit4:'manuscript'};
 function bindWsKeys(proj, redraw){
   if(window._wsKeyHandler) document.removeEventListener('keydown', window._wsKeyHandler);
   const x = proj.extra;
   const h = ev => {
     if(!document.querySelector('#wsBinder')) return;
-    const t = ev.target;
-    const typing = ['INPUT','TEXTAREA','SELECT'].includes(t.tagName) || t.isContentEditable;
-    const mod = ev.metaKey || ev.ctrlKey;
-    if(!mod) return;
-    const k = ev.key.toLowerCase();
-    const views = {'1':null,'2':'corkboard','3':null};
-    if(k === 'n' && !ev.shiftKey){ ev.preventDefault(); wsAddNode(x, 'doc', redraw); return; }
-    if(k === 'n' && ev.shiftKey){ ev.preventDefault(); wsAddNode(x, 'folder', redraw); return; }
-    if(k === 'm'){ ev.preventDefault(); x.viewMode = x.viewMode === 'manuscript' ? 'editor' : 'manuscript'; saveNow(); redraw(); return; }
-    if(k === 'e' && ev.shiftKey){ ev.preventDefault(); wsOpenCompile(proj); return; }
-    if(k === '5'){ ev.preventDefault(); const d = wsFind(x.binder, x.openDoc); if(d){ wsSnapshot(d); saveNow(); toast('Snapshot kept.'); redraw(); } return; }
-    if(k === 't' && !typing){ ev.preventDefault(); x._typewriter = !x._typewriter; saveNow(); toast(x._typewriter ? 'Typewriter on.' : 'Typewriter off.'); redraw(); return; }
-    if(k === '1'){ ev.preventDefault(); const w = wsPanes(); w.drawer = !w.drawer; saveNow(); redraw(); return; }
-    if(k === '3'){ ev.preventDefault(); const w = wsPanes(); w.board = !w.board; saveNow(); redraw(); return; }
+    if(!ev.altKey || ev.metaKey || ev.ctrlKey) return;
+    const c = ev.code;
+    /* ⌥⇧digit marks the selection; those live with the readability layer */
+    if(ev.shiftKey && /^(Digit|Numpad)[0-3]$/.test(c)) return;
+    const view = WS_VIEW_CODES[c];
+    if(view){ ev.preventDefault(); x.viewMode = view; saveNow(); redraw(); return; }
+    if(c === 'KeyN'){ ev.preventDefault(); wsAddNode(x, ev.shiftKey ? 'folder' : 'doc', redraw); return; }
+    if(c === 'KeyD'){ ev.preventDefault(); const w = wsPanes(); w.drawer = !w.drawer; saveNow(); redraw(); return; }
+    if(c === 'KeyB'){ ev.preventDefault(); const w = wsPanes(); w.board  = !w.board;  saveNow(); redraw(); return; }
+    if(c === 'KeyT'){ ev.preventDefault(); x._typewriter = !x._typewriter; saveNow();
+      toast(x._typewriter ? 'Typewriter on.' : 'Typewriter off.'); redraw(); return; }
+    if(c === 'KeyS'){ ev.preventDefault(); const d = wsFind(x.binder, x.openDoc);
+      if(d){ wsSnapshot(d); saveNow(); toast('Snapshot kept.'); redraw(); } return; }
+    if(c === 'KeyE'){ ev.preventDefault(); wsOpenCompile(proj); return; }
   };
   window._wsKeyHandler = h;
   document.addEventListener('keydown', h);
@@ -19495,7 +19555,7 @@ function wsDistilHTML(proj){
       `<button class="pf-chip${r.distil === l ? ' on' : ''}" data-wsdistil="${l}">${esc(WS_LAYER_NAMES[l])}</button>`).join('')}
       <button class="pf-chip" data-wsdistil="0">back to the draft</button></div>
     ${rows.length ? rows.map(x => `<p class="wsd-row wsl${x.layer}">${esc(x.text)}</p>`).join('')
-      : `<div class="pk-empty lora">Nothing marked at this layer yet. Select a passage and press ⌘⇧1.</div>`}
+      : `<div class="pk-empty lora">Nothing marked at this layer yet. Select a passage and press ⌥⇧1.</div>`}
   </div>`;
 }
 
@@ -19557,30 +19617,26 @@ function bindWsReadControls(root, proj, redraw){
     r.distil = +b.dataset.wsdistil; saveNow(); sound('click'); redraw(); });
 }
 
-/* Marking a passage and toggling readability, from the keyboard.
+/* Marking a passage and toggling readability — the same ⌥ grammar the rest
+   of the desk uses, with ⇧ meaning "one layer deeper".
 
-   Two traps here, both of which had this silently doing nothing:
-
-   ev.key is the character the key would type, and with Shift held down
-   the number row types !"£$ rather than 1234 — so a handler that reads
-   ev.key never sees '1'. ev.code names the physical key regardless of
-   shift state or layout, which is what a chord like this actually means.
-
-   And ⌘⇧R is the browser's own hard-reload on every platform: a page
-   cannot take it, so asking for it is asking for the page to reload.
-   The readability toggle answers to ⌘⇧Y, which nothing has claimed, and
-   still answers to ⌘⇧R for anyone whose browser lets it through. The
-   toolbar button is always there either way. */
+   Two traps sat here, both of which had this silently doing nothing. ev.key
+   is the character a key would type, and ⇧ turns the number row into !"£$
+   while ⌥ turns letters into ˜ˆ¨ on a Mac — so a handler reading ev.key
+   never sees '1'. ev.code names the physical key regardless. And ⌘⇧R, which
+   the specification asked for, is the browser's own hard reload on every
+   platform: pressing it reloaded the page rather than toggling anything. */
 const WS_MARK_CODES = {Digit0:0, Digit1:1, Digit2:2, Digit3:3,
                        Numpad0:0, Numpad1:1, Numpad2:2, Numpad3:3};
 document.addEventListener('keydown', ev => {
-  if(!(ev.metaKey || ev.ctrlKey) || !ev.shiftKey) return;
+  if(!ev.altKey || ev.metaKey || ev.ctrlKey) return;
   if(parseHash().name !== 'writing') return;
   const r = wsRead();
-  if(ev.code === 'KeyY' || ev.code === 'KeyR'){
+  if(!ev.shiftKey && ev.code === 'KeyR'){
     ev.preventDefault(); r.on = !r.on; if(r.on) r.distil = 0;
     saveNow(); sound('click'); rerender(); return;
   }
+  if(!ev.shiftKey) return;                       // ⌥ alone belongs to the desk's own keys
   const layer = WS_MARK_CODES[ev.code];
   if(layer === undefined) return;
   const ta = document.querySelector('#wBody'); if(!ta) return;
@@ -20116,6 +20172,110 @@ function planSeedIfEmpty(){
   saveNow();
 }
 /* ============================================================
+   THE KEYBOARD — one grammar, written down where it can be read.
+
+   What was here before was three grammars at once. The Planning and
+   Content rooms used bare letters; the Writing Studio used ⌘ chords;
+   and most of the Studio's chords were ones the browser keeps for
+   itself — ⌘N opens a window, ⌘T a tab, ⌘1 switches to the first tab —
+   so they had never once reached the page. Nothing was written down
+   anywhere, so none of it could be found without reading the source.
+
+   The grammar is now one sentence long:
+
+     Press the key. In the Writing Studio, hold ⌥ as well.
+
+   Digits choose a view wherever a room has views. N makes the thing
+   the room makes. ? shows this list. The Studio needs the ⌥ because
+   you are always inside the text there, and a bare N would be an N.
+   ============================================================ */
+
+const SHORTCUT_GROUPS = [
+  {scope:'*', name:'Anywhere', rows:[
+    ['?',      'Show this list'],
+    ['/  ·  ⌘K', 'Search everything'],
+    ['N',      'Make something new'],
+    ['Esc',    'Close what is open'],
+    ['← →',    'Step through the Timeline stages'],
+  ]},
+  {scope:'content', name:'Content', line:[['1–4','switch view'],['N','catch an idea'],['W','open it in the Writing Studio']], rows:[
+    ['1 2 3 4', 'Pipeline · Calendar · Shelf · Numbers'],
+    ['N',       'Catch an idea'],
+    ['W',       'Open the piece in the Writing Studio'],
+  ]},
+  {scope:'planning', name:'Planning', line:[['1–5','switch view'],['N','add a task'],['F','focus timer'],['T','today']], rows:[
+    ['1 … 5', 'List · Calendar · Board · Matrix · Timeline'],
+    ['N',     'Add a task'],
+    ['F',     'Start the focus timer'],
+    ['T',     'Jump to today'],
+    ['H',     'Habits'],
+    ['S',     'Statistics'],
+    ['E',     'Open the first task'],
+  ]},
+  {scope:'writing', name:'The Writing Studio', line:[['⌥1–4','switch view'],['⌥N','new document'],['⌥R','readability'],['⌥⇧1','mark a passage']], note:'You are always inside the text here, so every key takes ⌥.', rows:[
+    ['⌥1 … ⌥4', 'Editor · Corkboard · Outliner · Manuscript'],
+    ['⌥N',      'New document'],
+    ['⌥⇧N',     'New folder'],
+    ['⌥D  ⌥B',  'Fold the drawer · fold the board'],
+    ['⌥T',      'Typewriter scrolling'],
+    ['⌥R',      'Readability — where a reader slows down'],
+    ['⌥S',      'Take a snapshot'],
+    ['⌥E',      'Compile and export'],
+  ]},
+  {scope:'writing', name:'Marking a draft', note:'Select a passage first. Holding ⇧ as well goes deeper.', rows:[
+    ['⌥⇧1', 'Worth keeping'],
+    ['⌥⇧2', 'The core of it'],
+    ['⌥⇧3', "The line I'd quote"],
+    ['⌥⇧0', 'Take the marks off'],
+  ]},
+];
+
+/* the rooms whose own keys are worth naming on the page itself */
+function shortcutsFor(scope){ return SHORTCUT_GROUPS.filter(g => g.scope === scope); }
+
+/* ---------- the card ---------- */
+function shortcutsHTML(here){
+  const groups = SHORTCUT_GROUPS.filter(g => g.scope === '*' || g.scope === here)
+    .concat(SHORTCUT_GROUPS.filter(g => g.scope !== '*' && g.scope !== here));
+  const row = ([k, what]) => `<div class="kb-row"><span class="kb-keys">${k.split(/\s+/)
+      .map(x => x === '·' ? '<i>·</i>' : x === '…' ? '<i>…</i>' : `<kbd>${esc(x)}</kbd>`).join(' ')}</span>
+    <span class="kb-what">${esc(what)}</span></div>`;
+  return `<h2>The keyboard</h2>
+    <p class="muted" style="font-size:.86rem;margin-top:-6px">Press the key. In the Writing Studio, hold ⌥ as well.
+      Nothing fires while you are typing into something.</p>
+    <div class="kb-grid">${groups.map(g => `<section class="kb-group${g.scope === here ? ' here' : ''}">
+      <div class="kb-head"><span class="sc">${esc(g.name)}</span>${g.scope === here ? '<span class="mono">this room</span>' : ''}</div>
+      ${g.note ? `<div class="kb-note lora">${esc(g.note)}</div>` : ''}
+      ${g.rows.map(row).join('')}</section>`).join('')}</div>
+    <p class="faint" style="font-size:.76rem;margin-top:14px">A few chords belong to the browser and never reach a page —
+      ⌘N opens a window, ⌘T a tab, ⌘1 switches to the first one. That is why the Studio uses ⌥ rather than ⌘.</p>`;
+}
+function openShortcuts(){ openModal(shortcutsHTML(parseHash().name), 'wide keyboard-card'); }
+
+/* A one-line reminder for the top of a room that has its own keys. It is
+   written out per group rather than derived from the rows: a derived line
+   turned "1 2 3 4 — Pipeline · Calendar · Shelf · Numbers" into "1 pipeline",
+   which says something false about what the other three digits do. */
+function shortcutHintHTML(scope){
+  const g = shortcutsFor(scope).find(x => x.line);
+  if(!g) return '';
+  return `<button class="kb-hint mono" data-kbhint title="every shortcut — or press ?">${
+    g.line.map(([k, what]) => `<span><kbd>${esc(k)}</kbd>${esc(what)}</span>`).join('')
+    }<span class="kb-more"><kbd>?</kbd>all of them</span></button>`;
+}
+
+/* ---------- the key ---------- */
+document.addEventListener('keydown', ev => {
+  if(ev.metaKey || ev.ctrlKey || ev.altKey) return;
+  if(typeof isTyping === 'function' ? isTyping() : /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName || '')) return;
+  if(ev.key !== '?') return;
+  if(document.querySelector('.keyboard-card')) return closeModals();
+  ev.preventDefault(); openShortcuts();
+});
+document.addEventListener('click', ev => {
+  if(ev.target.closest('[data-kbhint]')){ ev.preventDefault(); openShortcuts(); }
+});
+/* ============================================================
    STARTER SET — a first draft of the house, not a biography.
    Everything here is built from things you have actually said:
    the vision board (Japan, jazz piano, opening a bar), the fact
@@ -20623,7 +20783,7 @@ async function init(){
   try { navigator.storage?.persist?.(); } catch(e){}
   $('#btnTheme').onclick = () => { S.settings.theme = S.settings.theme==='dark'?'light':'dark'; saveNow(); applyTheme(); };
   $('#btnSound').onclick = () => SoundManager.toggleSound(); $('#btnAmbient').onclick = () => openAmbientMenu(); syncSoundButtons();
-  $('#btnSearch').onclick = openSearch; $('#fab').onclick = e => { e.stopPropagation(); toggleSpeedDial(); };
+  $('#btnSearch').onclick = openSearch; $('#btnKeys').onclick = openShortcuts; $('#fab').onclick = e => { e.stopPropagation(); toggleSpeedDial(); };
   renderNav();
   if(navigator.platform.toUpperCase().indexOf('MAC')<0){ $$('kbd').forEach(k => k.textContent = k.textContent.replace('⌘','Ctrl+')); }
   if(!location.hash) location.hash = '#/' + homeRoute();

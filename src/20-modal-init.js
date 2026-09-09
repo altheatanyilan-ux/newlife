@@ -232,7 +232,7 @@ async function init(){
   try { navigator.storage?.persist?.(); } catch(e){}
   $('#btnTheme').onclick = () => { S.settings.theme = S.settings.theme==='dark'?'light':'dark'; saveNow(); applyTheme(); };
   $('#btnSound').onclick = () => SoundManager.toggleSound(); $('#btnAmbient').onclick = () => openAmbientMenu(); syncSoundButtons();
-  $('#btnSearch').onclick = openSearch; $('#fab').onclick = e => { e.stopPropagation(); toggleSpeedDial(); };
+  $('#btnSearch').onclick = openSearch; $('#btnKeys').onclick = openShortcuts; $('#fab').onclick = e => { e.stopPropagation(); toggleSpeedDial(); };
   renderNav();
   if(navigator.platform.toUpperCase().indexOf('MAC')<0){ $$('kbd').forEach(k => k.textContent = k.textContent.replace('⌘','Ctrl+')); }
   if(!location.hash) location.hash = '#/' + homeRoute();

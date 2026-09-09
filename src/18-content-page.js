@@ -54,7 +54,7 @@ routes.content = function(root, params){
   if(params[0] === 'stats') S._ctView = 'stats';
   const v = contentView();
   registerPageEntry({pageName:'Content', addLabel:'Catch an idea', defaultEntryType:'content',
-    hint:'or press I anywhere on this page', prefilledFields:{},
+    hint:'', prefilledFields:{},
     options:[{label:'Catch an idea', run:() => openContentCapture()},
              {label:'Start a piece',  run:() => openPieceDetail(contentNewPiece({stage:'seed'}).id)}]});
 
@@ -67,8 +67,8 @@ routes.content = function(root, params){
     <div class="page-head"><h1>Content</h1></div>
     <div class="ct-head">
       <div class="ct-views">
-        ${[['pipeline','Pipeline','▥'],['calendar','Calendar','▦'],['library','Shelf','▤'],['stats','Numbers','◫']].map(([k, n, i]) =>
-          `<button class="${v === k ? 'on' : ''}" data-ctview="${k}" title="${n}">${i} <span>${n}</span></button>`).join('')}
+        ${[['pipeline','Pipeline','▥'],['calendar','Calendar','▦'],['library','Shelf','▤'],['stats','Numbers','◫']].map(([k, n, ic], i) =>
+          `<button class="${v === k ? 'on' : ''}" data-ctview="${k}" title="${n} (${i + 1})">${ic} <span>${n}</span></button>`).join('')}
       </div>
       <div class="row" style="gap:8px;margin-left:auto">
         <input class="inp mono ct-search" id="ctSearch" placeholder="search pieces…" value="${esc(S._ctQ || '')}">
@@ -76,6 +76,7 @@ routes.content = function(root, params){
         <button class="btn sm" id="ctCatch">＋ catch an idea</button>
       </div>
     </div>
+    ${typeof shortcutHintHTML === 'function' ? shortcutHintHTML('content') : ''}
     ${v === 'pipeline' || v === 'library' ? contentNextStripHTML() : ''}
     <div class="ct-body" id="ctBody">${body}</div>
   </div>`;

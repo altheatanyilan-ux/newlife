@@ -10,6 +10,11 @@ routes.settings = function(root){
       <div class="opt"><div><b>Felt time</b><div class="d">Default timeline mode: stretch dense stages, compress thin ones.</div></div><label class="toggle ${S.settings.feltTime?'on':''}" id="sFelt"><span>clock</span><span class="sw"></span><span>felt</span></label></div>
       <div class="opt"><div><b>Landing page</b><div class="d">Where the site opens.</div></div><select class="sel" style="width:auto" id="sHome">${[['compass','Compass'],['today','Today']].map(([v,l])=>`<option value="${v}" ${(S.settings.home||'compass')===v?'selected':''}>${l}</option>`).join('')}</select></div>
     </div>
+    <div class="card rv"><h3>The keyboard</h3>
+      <p class="muted" style="font-size:.85rem">Press the key. In the Writing Studio, hold ⌥ as well, because you are always inside the text there. Nothing fires while you are typing into something.</p>
+      ${typeof shortcutsHTML === 'function' ? `<div class="kb-inline">${shortcutsHTML('').replace(/^[\s\S]*?<div class="kb-grid">/, '<div class="kb-grid">')}</div>` : ''}
+    </div>
+
     <div class="card rv"><h3>Navigation zones</h3><p class="muted" style="font-size:.85rem">Drag pages between Becoming, Story and Always. Compass, Today and Journals sit above the zones, and the Writing Studio below them; those four stay where they are.</p>${zoneEditorHTML()}
     </div>
 

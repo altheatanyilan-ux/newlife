@@ -269,14 +269,14 @@ function wsViewBarHTML(proj){
   return `<div class="ws-viewbar">
     <span class="ws-crumb mono">${esc(wsCrumb(x, x.openDoc))}</span>
     <span class="row" style="gap:6px;align-items:center">
-      <button class="btn sm ghost ws-tw ${x._typewriter?'on':''}" id="wsTypewriter" title="typewriter scrolling (⌘T) — keeps the line you are writing at eye level">⌶</button>
-      <button class="btn sm ghost ${typeof wsRead === 'function' && wsRead().on ? 'on' : ''}" id="wsReadBtn" title="readability — show where the reader will slow down (⌘⇧Y)">◑</button>
-      <button class="btn sm ghost ${typeof wsRead === 'function' && wsRead().marks ? 'on' : ''}" id="wsMarkBtn" title="show what you have marked (⌘⇧1 · ⌘⇧2 · ⌘⇧3 to mark, ⌘⇧0 to clear)">▤</button>
+      <button class="btn sm ghost ws-tw ${x._typewriter?'on':''}" id="wsTypewriter" title="typewriter scrolling (⌥T) — keeps the line you are writing at eye level">⌶</button>
+      <button class="btn sm ghost ${typeof wsRead === 'function' && wsRead().on ? 'on' : ''}" id="wsReadBtn" title="readability — show where the reader will slow down (⌥R)">◑</button>
+      <button class="btn sm ghost ${typeof wsRead === 'function' && wsRead().marks ? 'on' : ''}" id="wsMarkBtn" title="show what you have marked (⌥⇧1 · ⌥⇧2 · ⌥⇧3 to mark, ⌥⇧0 to clear)">▤</button>
       <button class="btn sm ghost ${typeof wsRead === 'function' && wsRead().distil ? 'on' : ''}" id="wsDistilBtn" title="show only what you marked">⇊</button>
       <button class="btn sm ghost" id="wsType" title="typeface and size">Aa</button>
       <button class="btn sm ghost" id="wsCollNew" title="save a collection">⧉</button>
-      <span class="ws-vtabs">${WS_VIEWS.map(([k,ic,l]) =>
-        `<button class="${x.viewMode===k?'on':''}" data-wsview="${k}" title="${l}">${ic}<span>${l}</span></button>`).join('')}</span>
+      <span class="ws-vtabs">${WS_VIEWS.map(([k,ic,l], i) =>
+        `<button class="${x.viewMode===k?'on':''}" data-wsview="${k}" title="${l} (⌥${i+1})">${ic}<span>${l}</span></button>`).join('')}</span>
     </span>
   </div>
   ${wsCollectionsHTML(proj)}`;
@@ -433,7 +433,7 @@ function wsInspectorHTML(proj){
   }[tab]();
   return `<div class="ws-inspector" id="wsInspector">
     <div class="ws-itabs">${WS_INSP_TABS.map(([k,ic,l]) => `<button class="${tab===k?'on':''}" data-wsitab="${k}" title="${esc(l)}">${ic}</button>`).join('')}
-      <button class="ws-fold" id="wsFoldR" style="margin-left:auto" title="fold the inspector away (⌘3)">⟩</button></div>
+      <button class="ws-fold" id="wsFoldR" style="margin-left:auto" title="fold the inspector away (⌥B)">⟩</button></div>
     <div class="ws-ibody">${body}</div>
   </div>`;
 }
@@ -740,25 +740,37 @@ function wsOpenCollectionModal(proj, redraw){
 /* ---------- keyboard ----------
    Only while the studio is on screen, and never while a field has focus,
    so typing an N into a draft does not create a document. */
+/* The desk is the one room where you are always inside the text, so its
+   keys need a modifier — and the modifier cannot be ⌘. Every chord this
+   used to answer to was one the browser keeps: ⌘N opens a window, ⌘⇧N a
+   private one, ⌘T a tab, ⌘1/⌘3/⌘5 switch tabs, ⌘M minimises on a Mac.
+   None of them had ever reached the page. ⌥ is unclaimed, so ⌥ it is,
+   and the same grammar the rest of the house uses holds here: digits
+   choose a view, N makes a new thing, ⇧ goes one step further.
+
+   ev.code rather than ev.key throughout: ⌥ and ⇧ both change what a key
+   would type (⌥N is "˜" on a Mac, ⇧1 is "!"), and none of that has
+   anything to do with which key was pressed. */
+const WS_VIEW_CODES = {Digit1:'editor', Digit2:'corkboard', Digit3:'outliner', Digit4:'manuscript'};
 function bindWsKeys(proj, redraw){
   if(window._wsKeyHandler) document.removeEventListener('keydown', window._wsKeyHandler);
   const x = proj.extra;
   const h = ev => {
     if(!document.querySelector('#wsBinder')) return;
-    const t = ev.target;
-    const typing = ['INPUT','TEXTAREA','SELECT'].includes(t.tagName) || t.isContentEditable;
-    const mod = ev.metaKey || ev.ctrlKey;
-    if(!mod) return;
-    const k = ev.key.toLowerCase();
-    const views = {'1':null,'2':'corkboard','3':null};
-    if(k === 'n' && !ev.shiftKey){ ev.preventDefault(); wsAddNode(x, 'doc', redraw); return; }
-    if(k === 'n' && ev.shiftKey){ ev.preventDefault(); wsAddNode(x, 'folder', redraw); return; }
-    if(k === 'm'){ ev.preventDefault(); x.viewMode = x.viewMode === 'manuscript' ? 'editor' : 'manuscript'; saveNow(); redraw(); return; }
-    if(k === 'e' && ev.shiftKey){ ev.preventDefault(); wsOpenCompile(proj); return; }
-    if(k === '5'){ ev.preventDefault(); const d = wsFind(x.binder, x.openDoc); if(d){ wsSnapshot(d); saveNow(); toast('Snapshot kept.'); redraw(); } return; }
-    if(k === 't' && !typing){ ev.preventDefault(); x._typewriter = !x._typewriter; saveNow(); toast(x._typewriter ? 'Typewriter on.' : 'Typewriter off.'); redraw(); return; }
-    if(k === '1'){ ev.preventDefault(); const w = wsPanes(); w.drawer = !w.drawer; saveNow(); redraw(); return; }
-    if(k === '3'){ ev.preventDefault(); const w = wsPanes(); w.board = !w.board; saveNow(); redraw(); return; }
+    if(!ev.altKey || ev.metaKey || ev.ctrlKey) return;
+    const c = ev.code;
+    /* ⌥⇧digit marks the selection; those live with the readability layer */
+    if(ev.shiftKey && /^(Digit|Numpad)[0-3]$/.test(c)) return;
+    const view = WS_VIEW_CODES[c];
+    if(view){ ev.preventDefault(); x.viewMode = view; saveNow(); redraw(); return; }
+    if(c === 'KeyN'){ ev.preventDefault(); wsAddNode(x, ev.shiftKey ? 'folder' : 'doc', redraw); return; }
+    if(c === 'KeyD'){ ev.preventDefault(); const w = wsPanes(); w.drawer = !w.drawer; saveNow(); redraw(); return; }
+    if(c === 'KeyB'){ ev.preventDefault(); const w = wsPanes(); w.board  = !w.board;  saveNow(); redraw(); return; }
+    if(c === 'KeyT'){ ev.preventDefault(); x._typewriter = !x._typewriter; saveNow();
+      toast(x._typewriter ? 'Typewriter on.' : 'Typewriter off.'); redraw(); return; }
+    if(c === 'KeyS'){ ev.preventDefault(); const d = wsFind(x.binder, x.openDoc);
+      if(d){ wsSnapshot(d); saveNow(); toast('Snapshot kept.'); redraw(); } return; }
+    if(c === 'KeyE'){ ev.preventDefault(); wsOpenCompile(proj); return; }
   };
   window._wsKeyHandler = h;
   document.addEventListener('keydown', h);

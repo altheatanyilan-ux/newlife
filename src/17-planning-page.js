@@ -78,8 +78,9 @@ function planHeaderHTML(sel){
   return `<div class="pl-header">
     <div class="row between" style="align-items:baseline;gap:12px">
       <h2 class="pl-title">${esc(planSelectionTitle(sel))}</h2>
-      ${special ? '' : `<div class="pl-viewsw">${PLAN_VIEWS.map(x => `<button class="${v === x.id ? 'on' : ''}" data-plview="${x.id}" title="${esc(x.name)} view">${x.icon}</button>`).join('')}</div>`}
+      ${special ? '' : `<div class="pl-viewsw">${PLAN_VIEWS.map((x, i) => `<button class="${v === x.id ? 'on' : ''}" data-plview="${x.id}" title="${esc(x.name)} view (${i + 1})">${x.icon}</button>`).join('')}</div>`}
     </div>
+    ${typeof shortcutHintHTML === 'function' ? shortcutHintHTML('planning') : ''}
     ${special ? '' : `<div class="pl-bar">
       <div class="pl-sortwrap"><select class="sel" id="plSort" style="width:auto;padding-right:22px;font-size:.78rem">
         ${PLAN_SORTS.map(([k, n]) => `<option value="${k}" ${p.prefs.sort === k ? 'selected' : ''}>${n}</option>`).join('')}</select></div>

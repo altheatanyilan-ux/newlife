@@ -343,7 +343,8 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
     return {was, now: await page.evaluate(probe)};
   };
   for(const [key, want, probe, setup] of [
-    ['i', 'the catcher opens',        () => !!document.querySelector('#ccRaw'), null],
+    ['n', 'the catcher opens',        () => !!document.querySelector('#ccRaw'), null],
+    ['i', 'the catcher, by its old key', () => !!document.querySelector('#ccRaw'), null],
     ['2', 'calendar',                 () => contentView(), null],
     ['3', 'the shelf',                () => contentView(), () => contentSetView('pipeline')],
     ['4', 'the numbers',              () => contentView(), () => contentSetView('pipeline')],
@@ -390,14 +391,14 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
   /* ev.key is the character a key would type, and shift turns the number row
      into !"£$ — so these chords have to be read off ev.code, which names the
      physical key. Reading ev.key made every one of them do nothing. */
-  ok('⌘⇧1 marks a passage',       /^==One two three==/.test((await inStudio('Control+Shift+Digit1', sel)).text), 'no mark');
-  ok('⌘⇧2 marks it deeper',       /^===One two three===/.test((await inStudio('Control+Shift+Digit2', sel)).text), 'no mark');
-  ok('⌘⇧3 marks it deepest',      /^====One two three====/.test((await inStudio('Control+Shift+Digit3', sel)).text), 'no mark');
-  const cleared = await inStudio('Control+Shift+Digit0', () => { const ta = document.querySelector('#wBody');
+  ok('⌥⇧1 marks a passage',       /^==One two three==/.test((await inStudio('Alt+Shift+Digit1', sel)).text), 'no mark');
+  ok('⌥⇧2 marks it deeper',       /^===One two three===/.test((await inStudio('Alt+Shift+Digit2', sel)).text), 'no mark');
+  ok('⌥⇧3 marks it deepest',      /^====One two three====/.test((await inStudio('Alt+Shift+Digit3', sel)).text), 'no mark');
+  const cleared = await inStudio('Alt+Shift+Digit0', () => { const ta = document.querySelector('#wBody');
     ta.value = '==One two three== four.'; ta.dispatchEvent(new Event('input')); ta.focus(); ta.setSelectionRange(3, 15); });
-  ok('⌘⇧0 takes the marks off',   !/=/.test(cleared.text), cleared.text);
+  ok('⌥⇧0 takes the marks off',   !/=/.test(cleared.text), cleared.text);
   const before = await page.evaluate(() => !!S.wsRead?.on);
-  ok('⌘⇧Y toggles readability',   (await inStudio('Control+Shift+KeyY')).on !== before, 'unchanged');
+  ok('⌥R toggles readability',   (await inStudio('Alt+KeyR')).on !== before, 'unchanged');
 
   console.log('\nconsole:', errors.length ? errors.slice(0, 6) : 'clean');
   if(errors.length) fails += errors.length;
