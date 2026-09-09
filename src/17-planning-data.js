@@ -189,9 +189,12 @@ function planSelectionTasks(sel){
   }
   return planSmartFilter('today');
 }
+/* the two rooms that are not a task list still need their name in the header */
+const PLAN_EXTRA_TITLES = {habits:'Habits', stats:'Statistics'};
 function planSelectionTitle(sel){
   if(!sel) return 'Today';
-  if(sel.kind === 'smart') return (PLAN_SMART_VIEWS.find(v => v.id === sel.id) || {}).name || 'Tasks';
+  if(sel.kind === 'smart') return (PLAN_SMART_VIEWS.find(v => v.id === sel.id) || {}).name
+    || PLAN_EXTRA_TITLES[sel.id] || 'Tasks';
   if(sel.kind === 'list')  return planListName(sel.id);
   if(sel.kind === 'tag')   return '#' + sel.id;
   if(sel.kind === 'smartlist') return (planState().smartLists.find(x => x.id === sel.id) || {}).name || 'Filter';

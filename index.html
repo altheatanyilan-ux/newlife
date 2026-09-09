@@ -3175,6 +3175,91 @@ select.sm-active{border-color:var(--page-accent);
   .pc-cell{min-height:70px}
 }
 @media (prefers-reduced-motion:reduce){.pk-card,.pc-cell,.pe-quad{transition:none}}
+
+/* ---------- Planning: timer, habits, statistics ---------- */
+.focus-panel .ft-wrap{display:flex;flex-direction:column;gap:16px}
+.ft-task{display:flex;gap:8px;align-items:baseline;font-size:.86rem}
+.ft-task .k{font-size:.6rem;text-transform:uppercase;letter-spacing:.11em;color:var(--faint)}
+.ft-task b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ft-ring{position:relative;align-self:center;width:210px;height:210px}
+.ft-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ft-track{fill:none;stroke:var(--surface-3);stroke-width:8}
+.ft-arc{fill:none;stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset 1s linear,stroke .3s var(--ease)}
+.ft-face{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
+.ft-time{font-size:2.3rem;line-height:1;font-variant-numeric:tabular-nums}
+.ft-phase{font-size:.84rem;color:var(--muted)}
+.ft-round{font-size:.62rem;color:var(--faint)}
+.ft-controls{display:flex;gap:8px;justify-content:center;align-items:center}
+.ft-set summary{cursor:pointer;padding:6px 0}
+.ft-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding-top:6px}
+.ft-grid .toggle{grid-column:1/-1}
+.ft-sound .k{font-family:var(--mono);font-size:.6rem;text-transform:uppercase;letter-spacing:.11em;color:var(--faint);margin-bottom:6px;display:block}
+.ft-sounds{display:flex;flex-wrap:wrap;gap:5px}
+.ft-today{display:flex;gap:9px;align-items:baseline;padding-top:12px;border-top:1px solid var(--line)}
+.ft-today .mono{font-size:.62rem;text-transform:uppercase;letter-spacing:.11em;color:var(--faint)}
+
+.ph-wrap{display:flex;flex-direction:column;gap:26px}
+.ph-sec{display:flex;flex-direction:column;gap:9px}
+.ph-cards{display:flex;flex-wrap:wrap;gap:9px}
+.ph-card{flex:1 1 216px;border:1px solid var(--line);border-radius:11px;padding:10px 12px;
+  transition:border-color .2s var(--ease),background .2s var(--ease)}
+.ph-card:hover{border-color:color-mix(in srgb,var(--c) 45%,transparent)}
+.ph-card.done{background:color-mix(in srgb,var(--c) 8%,transparent);border-color:color-mix(in srgb,var(--c) 35%,transparent)}
+.ph-card.open{flex-basis:100%}
+.ph-top{display:flex;align-items:center;gap:9px}
+.ph-face{font-size:1rem;color:var(--c)}
+.ph-name{flex:1;min-width:0;background:none;border:none;color:var(--text);cursor:pointer;font-size:.88rem;
+  text-align:left;padding:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ph-streak{font-size:.68rem;color:var(--c)}
+.ph-detail{margin-top:9px;padding-top:9px;border-top:1px dashed var(--line);display:flex;flex-direction:column;gap:7px}
+.ph-mini{display:flex;gap:2px}
+.ph-mini i{flex:1;height:14px;border-radius:2px;background:var(--surface-3)}
+.ph-mini i.on{background:var(--c)}
+.ph-mini i.off{opacity:.3}
+.ph-facts{display:flex;gap:14px;font-size:.66rem;color:var(--faint)}
+.ph-week{display:flex;flex-direction:column;gap:3px}
+.ph-wrow{display:grid;grid-template-columns:minmax(120px,1fr) repeat(7,26px);gap:5px;align-items:center}
+.ph-wrow.head span{font-size:.58rem;color:var(--faint);text-align:center}
+.ph-wrow.head span.now{color:var(--terra)}
+.ph-wname{font-size:.78rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ph-cell{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--line-2);background:transparent;
+  cursor:pointer;justify-self:center;transition:background .18s var(--ease),border-color .18s var(--ease)}
+.ph-cell:hover{border-color:var(--c)}
+.ph-cell.on{background:var(--c);border-color:var(--c)}
+.ph-cell.off{opacity:.28;cursor:default}
+.ph-stats{display:flex;flex-direction:column;gap:5px}
+.ph-stat{display:grid;grid-template-columns:minmax(130px,1.4fr) 3fr 42px 54px;gap:9px;align-items:center;font-size:.8rem}
+.ph-sname{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ph-stat .mono{font-size:.68rem;text-align:right}
+.ph-heat{display:flex}
+.ph-heatgrid{max-width:340px}
+.ph-legend{display:flex;gap:4px;align-items:center;font-size:.6rem;color:var(--faint);margin-top:6px}
+.ph-legend i{width:11px;height:11px;border-radius:2px;background:var(--surface-3)}
+.ph-legend i.l1{background:color-mix(in srgb,var(--sage) 35%,var(--surface-3))}
+.ph-legend i.l2{background:color-mix(in srgb,var(--sage) 65%,var(--surface-3))}
+.ph-legend i.l3{background:var(--sage)}
+
+.ps{display:flex;flex-direction:column;gap:26px}
+.ps-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.ps-tile{display:flex;flex-direction:column;gap:6px;padding:14px 0;border-top:1px solid var(--line)}
+.ps-tile .k{font-family:var(--mono);font-size:.6rem;text-transform:uppercase;letter-spacing:.12em;color:var(--faint)}
+.ps-n{font-size:1.9rem;line-height:1;font-variant-numeric:tabular-nums}
+.ps-n small{font-family:var(--sans);font-size:.7rem;color:var(--muted);margin-left:5px}
+.ps-tile .sub{font-size:.76rem;color:var(--muted);line-height:1.5;margin-top:auto}
+.ps-score{align-items:flex-start}
+.ps-sec{display:flex;flex-direction:column;gap:9px}
+.ps-bars{display:flex;flex-direction:column;gap:5px}
+.ps-bar{display:grid;grid-template-columns:minmax(110px,1.5fr) 3fr 52px;gap:9px;align-items:center;font-size:.8rem}
+.ps-bar > span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ps-bar .mono{font-size:.68rem;text-align:right;color:var(--faint)}
+.ps-three{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px}
+
+@media (max-width:760px){
+  .ph-wrow{grid-template-columns:minmax(80px,1fr) repeat(7,22px)}
+  .ps-bar,.ph-stat{grid-template-columns:1fr 2fr 44px}
+  .ph-stat > span:last-child{display:none}
+}
+@media (prefers-reduced-motion:reduce){.ft-arc{transition:none}}
 </style>
 </head>
 <body>
@@ -5075,8 +5160,14 @@ addEventListener('resize', () => { if(smOpen) smClose(); });
 const AMBIENT_KINDS = [
   {id:'off',      name:'Off',            desc:'silence'},
   {id:'brown',    name:'Brown noise',    desc:'a low, even hush'},
+  {id:'pink',     name:'Pink noise',     desc:'the same hush, with the air still in it'},
+  {id:'white',    name:'White noise',    desc:'flat and bright — the plainest of them'},
   {id:'rain',     name:'Rain',           desc:'steady rain on a window'},
   {id:'ocean',    name:'Ocean',          desc:'slow waves, long breaths'},
+  {id:'fire',     name:'Fireplace',      desc:'a low burn, and something settling in it'},
+  {id:'cafe',     name:'Café',           desc:'a room with people in it, too far off to follow'},
+  {id:'forest',   name:'Forest',         desc:'wind through leaves, and birds that are not close'},
+  {id:'library',  name:'Library',        desc:'almost nothing — the sound a room makes empty'},
   {id:'piano',    name:'Slow piano',     desc:'a quiet room, someone playing to themselves'},
   {id:'musicbox', name:'Music box',      desc:'sparse bells, further away'},
 ];
@@ -5298,16 +5389,62 @@ const SoundManager = (() => {
       filter.type = 'lowpass'; filter.frequency.value = 380; filter.Q.value = .9;
       const lfo = ctx.createOscillator(), lg = ctx.createGain();                   // waves: a slow cutoff swell
       lfo.frequency.value = .07; lg.gain.value = 230; lfo.connect(lg); lg.connect(filter.frequency); lfo.start(); nodes.push(lfo, lg);
+    } else if(ambientKind === 'fire'){
+      /* a fire is a low burn that breathes, with the crackle laid over it below */
+      filter.type = 'lowpass'; filter.frequency.value = 420; filter.Q.value = .6;
+      const lfo = ctx.createOscillator(), lg = ctx.createGain();
+      lfo.frequency.value = .23; lg.gain.value = 150; lfo.connect(lg); lg.connect(filter.frequency); lfo.start(); nodes.push(lfo, lg);
+    } else if(ambientKind === 'cafe'){
+      /* the sound of a room with people in it is mostly the room: a broad low
+         band, swelling slowly, with the odd unintelligible syllable over it */
+      filter.type = 'lowpass'; filter.frequency.value = 700; filter.Q.value = .5;
+      const lfo = ctx.createOscillator(), lg = ctx.createGain();
+      lfo.frequency.value = .05; lg.gain.value = 260; lfo.connect(lg); lg.connect(filter.frequency); lfo.start(); nodes.push(lfo, lg);
+    } else if(ambientKind === 'forest'){
+      filter.type = 'bandpass'; filter.frequency.value = 620; filter.Q.value = .4;
+      const lfo = ctx.createOscillator(), lg = ctx.createGain();                   // wind, coming and going
+      lfo.frequency.value = .09; lg.gain.value = 330; lfo.connect(lg); lg.connect(filter.frequency); lfo.start(); nodes.push(lfo, lg);
+    } else if(ambientKind === 'library'){
+      filter.type = 'lowpass'; filter.frequency.value = 120; filter.Q.value = .5;   // near silence, and its shape
+    } else if(ambientKind === 'white'){
+      filter.type = 'highpass'; filter.frequency.value = 240; filter.Q.value = .4;  // the brown bed, brightened back up
+    } else if(ambientKind === 'pink'){
+      filter.type = 'lowpass'; filter.frequency.value = 1600; filter.Q.value = .4;
     } else {
       filter.type = 'lowpass'; filter.frequency.value = 200; filter.Q.value = .7;
     }
-    const target = ambientGainValue() * (ambientKind === 'rain' ? 1.5 : ambientKind === 'ocean' ? 1.8 : 1);
+    const NOISE_GAIN = {rain:1.5, ocean:1.8, fire:1.3, cafe:1.4, forest:1.35, library:.85, white:.5, pink:1.1};
+    const target = ambientGainValue() * (NOISE_GAIN[ambientKind] || 1);
     gain.gain.setValueAtTime(.0001, ctx.currentTime); gain.gain.linearRampToValueAtTime(target, ctx.currentTime + 1.8);
     source.connect(filter); last.connect(gain); gain.connect(out());
     ambient = {nodes, gain, timer:null};
-    if(ambientKind === 'rain'){                                                     // occasional drops on the glass
-      const drop = () => { if(!ambient) return; if(Math.random() < .7) noise({dur:.05, freq:2200+Math.random()*2600, q:6, gain:.012, wet:1}); ambient.timer = setTimeout(drop, 400 + Math.random()*1800); };
-      ambient.timer = setTimeout(drop, 900);
+    /* What sits on top of the bed. A filtered hiss is only ever half of a
+       place: the other half is the irregular thing that happens in it, and
+       the irregularity is the part the ear believes. */
+    const overlay = {
+      rain:   () => { if(Math.random() < .7) noise({dur:.05, freq:2200 + Math.random()*2600, q:6, gain:.012, wet:1}); return 400 + Math.random()*1800; },
+      /* a fire crackles in bursts, not on a beat, and sometimes twice at once */
+      fire:   () => { const n = Math.random() < .25 ? 2 : 1;
+                      for(let i = 0; i < n; i++) noise({dur:.03 + Math.random()*.05, freq:900 + Math.random()*2400,
+                        q:3.5, gain:.009 + Math.random()*.012, wet:.7, at:i * .06});
+                      return 180 + Math.random()*1400; },
+      /* a café is cups and a syllable you cannot quite catch */
+      cafe:   () => { if(Math.random() < .35) noise({dur:.05, freq:3200 + Math.random()*2000, q:9, gain:.007, wet:1});
+                      else { const f = 240 + Math.random()*260;                       // a vowel, muffled by distance
+                        noise({dur:.12 + Math.random()*.16, freq:f, q:5, gain:.008, sweep:f * (.8 + Math.random()*.5), wet:.9}); }
+                      return 700 + Math.random()*3200; },
+      /* birds, kept sparse and far: two or three notes, never close */
+      forest: () => { if(Math.random() < .45){ const base = 2100 + Math.random()*1900;
+                        const n = 2 + Math.floor(Math.random()*2);
+                        for(let i = 0; i < n; i++) noise({dur:.05, freq:base * (1 + i*.12), q:22, gain:.006, wet:1, at:i * .1}); }
+                      return 2600 + Math.random()*7000; },
+      /* a room with nobody in it still settles, once in a long while */
+      library:() => { if(Math.random() < .3) noise({dur:.08, freq:300 + Math.random()*500, q:4, gain:.004, wet:1});
+                      return 6000 + Math.random()*14000; },
+    }[ambientKind];
+    if(overlay){
+      const tick = () => { if(!ambient) return; const next = overlay(); ambient.timer = setTimeout(tick, next); };
+      ambient.timer = setTimeout(tick, 900);
     }
     if(ctx.state === 'suspended') ctx.resume().catch(()=>{});
   }
@@ -13108,9 +13245,12 @@ function planSelectionTasks(sel){
   }
   return planSmartFilter('today');
 }
+/* the two rooms that are not a task list still need their name in the header */
+const PLAN_EXTRA_TITLES = {habits:'Habits', stats:'Statistics'};
 function planSelectionTitle(sel){
   if(!sel) return 'Today';
-  if(sel.kind === 'smart') return (PLAN_SMART_VIEWS.find(v => v.id === sel.id) || {}).name || 'Tasks';
+  if(sel.kind === 'smart') return (PLAN_SMART_VIEWS.find(v => v.id === sel.id) || {}).name
+    || PLAN_EXTRA_TITLES[sel.id] || 'Tasks';
   if(sel.kind === 'list')  return planListName(sel.id);
   if(sel.kind === 'tag')   return '#' + sel.id;
   if(sel.kind === 'smartlist') return (planState().smartLists.find(x => x.id === sel.id) || {}).name || 'Filter';
@@ -13867,11 +14007,348 @@ function planOfferReflection(t){
         stages:[], substages:[], threads:[], values:[], people:[]}});
   }});
 }
-/* placeholder — the focus timer, habits and statistics land in the next commit */
-function planHabitsHTML(){ return '<div class="empty">Habits, next.</div>'; }
-function bindPlanHabits(){}
-function planStatsHTML(){ return '<div class="empty">Statistics, next.</div>'; }
-function openFocusTimer(){ toast('The focus timer arrives in the next pass.'); }
+/* ============================================================
+   PLANNING — the three tools: a timer, the habits, the numbers.
+   ============================================================ */
+
+/* ---------- the focus timer ----------
+   One timer for the whole session, held outside any render so navigating
+   away does not stop it. The panel is a view of it, not the thing itself. */
+const FocusTimer = (() => {
+  let st = null;        // {phase:'focus'|'short'|'long', endsAt, remaining, running, taskId, round, startedAt}
+  /* A task can be chosen before the timer is started — from a task's own panel,
+     which is the usual way in. There is no session to hang it on yet, so it
+     waits here until one begins. */
+  let pendingTask = null;
+  const listeners = new Set();
+  const cfg = () => planState().timer;
+  const notify = () => listeners.forEach(f => { try { f(state()); } catch(e){} });
+  function state(){
+    if(!st) return {running:false, phase:'focus', left:cfg().focusDuration * 60, round:1, taskId:pendingTask, idle:true};
+    const left = st.running ? Math.max(0, Math.round((st.endsAt - Date.now()) / 1000)) : st.remaining;
+    return {running:st.running, phase:st.phase, left, round:st.round, taskId:st.taskId, idle:false};
+  }
+  function phaseLen(phase){
+    const c = cfg();
+    return (phase === 'focus' ? c.focusDuration : phase === 'long' ? c.longBreak : c.shortBreak) * 60;
+  }
+  function start(taskId, phase){
+    const p = phase || (st ? st.phase : 'focus');
+    const secs = st && st.phase === p && !st.running && st.remaining > 0 ? st.remaining : phaseLen(p);
+    st = {phase:p, running:true, endsAt:Date.now() + secs * 1000, remaining:secs,
+      taskId: taskId !== undefined ? taskId : (st ? st.taskId : pendingTask),
+      round: st ? st.round : 1, startedAt: st?.startedAt || new Date().toISOString()};
+    tick(); notify();
+  }
+  function pause(){ if(!st || !st.running) return; st.remaining = Math.max(0, Math.round((st.endsAt - Date.now()) / 1000));
+    st.running = false; notify(); }
+  function stop(logIt = true){
+    if(st && logIt && st.phase === 'focus') logSession(false);
+    st = null; pendingTask = null; notify();
+  }
+  function skip(){ if(!st) return; finish(true); }
+  /* a finished focus interval is written down; a break is not worth recording */
+  function logSession(completed){
+    if(!st || st.phase !== 'focus') return;
+    const spent = Math.max(0, phaseLen('focus') - (st.running ? Math.round((st.endsAt - Date.now()) / 1000) : st.remaining));
+    const mins = Math.round(spent / 60);
+    if(mins < 1) return;
+    planState().focusSessions.push({id:uid(), taskId:st.taskId || null, startedAt:st.startedAt,
+      endedAt:new Date().toISOString(), duration:mins, type:'focus', completed:!!completed});
+    if(st.taskId){ const t = planTaskById(st.taskId); if(t){ t.focusTime = (t.focusTime || 0) + mins; t.updatedAt = new Date().toISOString(); } }
+    saveNow();
+  }
+  function finish(skipped){
+    const c = cfg(), was = st.phase, taskId = st.taskId, round = st.round;
+    if(was === 'focus') logSession(!skipped);
+    const nextRound = was === 'focus' ? round + 1 : round;
+    const nextPhase = was === 'focus' ? (round % c.longBreakAfter === 0 ? 'long' : 'short') : 'focus';
+    st = {phase:nextPhase, running:false, remaining:phaseLen(nextPhase), endsAt:0,
+      taskId, round:nextRound, startedAt:new Date().toISOString()};
+    if(!skipped) sound('success');
+    const auto = nextPhase === 'focus' ? c.autoStartFocus : c.autoStartBreaks;
+    if(auto) start(undefined, nextPhase); else notify();
+    if(!skipped) toast(nextPhase === 'focus' ? 'Break over.' : `Interval done${taskId ? '' : ''} — take ${nextPhase === 'long' ? 'the long' : 'a short'} break.`, 6000);
+  }
+  let timer = null;
+  function tick(){
+    clearTimeout(timer);
+    if(!st || !st.running) return;
+    const left = Math.max(0, st.endsAt - Date.now());
+    if(left <= 0){ finish(false); return; }
+    notify();
+    timer = setTimeout(tick, 1000);
+  }
+  return {start, pause, stop, skip, state, reset: () => { st = null; notify(); },
+    setTask(id){ pendingTask = id; if(st) st.taskId = id; notify(); },
+    subscribe(f){ listeners.add(f); return () => listeners.delete(f); }};
+})();
+
+function fmtClock(secs){ return `${pad(Math.floor(secs / 60))}:${pad(secs % 60)}`; }
+
+function openFocusTimer(taskId){
+  if(taskId) FocusTimer.setTask(taskId);
+  const p = openPanel(`<div class="ft" id="ftPanel"></div>`, 'plan-detail focus-panel');
+  const draw = () => { const box = p.querySelector('#ftPanel'); if(!box || !p.isConnected){ off(); return; }
+    box.innerHTML = focusTimerHTML(); bindFocusTimer(box); };
+  const off = FocusTimer.subscribe(draw);
+  draw();
+  return p;
+}
+function focusTimerHTML(){
+  const s = FocusTimer.state(), c = planState().timer;
+  const total = (s.phase === 'focus' ? c.focusDuration : s.phase === 'long' ? c.longBreak : c.shortBreak) * 60;
+  const frac = total ? 1 - s.left / total : 0;
+  const R = 88, C = 2 * Math.PI * R;
+  const t = s.taskId ? planTaskById(s.taskId) : null;
+  const label = s.phase === 'focus' ? 'Focus' : s.phase === 'long' ? 'Long break' : 'Break';
+  const col = s.phase === 'focus' ? 'var(--terra)' : 'var(--sage)';
+  const {ambientKind, ambientEnabled} = SoundManager.state();
+  return `<div class="ft-wrap">
+    ${t ? `<div class="ft-task"><span class="k mono">on</span> <b>${esc(t.text)}</b>
+      <button class="pl-mini" id="ftUnlink" title="unlink">×</button></div>` : '<div class="ft-task faint mono">no task linked — the time is logged all the same</div>'}
+    <div class="ft-ring">
+      <svg viewBox="0 0 200 200" aria-hidden="true">
+        <circle cx="100" cy="100" r="${R}" class="ft-track"/>
+        <circle cx="100" cy="100" r="${R}" class="ft-arc" style="stroke:${col};stroke-dasharray:${C.toFixed(1)};stroke-dashoffset:${(C * (1 - frac)).toFixed(1)}"/>
+      </svg>
+      <div class="ft-face"><div class="ft-time serif">${fmtClock(s.left)}</div>
+        <div class="ft-phase">${label}</div>
+        <div class="ft-round mono">interval ${s.round} · long break every ${c.longBreakAfter}</div></div>
+    </div>
+    <div class="ft-controls">
+      <button class="btn primary" id="ftGo">${s.running ? '⏸ pause' : s.left < ((s.phase === 'focus' ? c.focusDuration : s.phase === 'long' ? c.longBreak : c.shortBreak) * 60) ? '▶ resume' : '▶ start'}</button>
+      <button class="btn sm ghost" id="ftSkip">skip</button>
+      <button class="btn sm ghost" id="ftStop">stop</button>
+    </div>
+    <details class="ft-set"><summary><span class="sc">Intervals</span></summary><div class="ft-grid">
+      ${[['focusDuration','focus', 1, 120],['shortBreak','short break', 1, 30],
+         ['longBreak','long break', 5, 60],['longBreakAfter','long break after', 2, 8]].map(([k, n, lo, hi]) =>
+        `<label class="pd-q"><span class="k">${n}</span><input class="inp mono" type="number" min="${lo}" max="${hi}" data-ftset="${k}" value="${c[k]}"></label>`).join('')}
+      <label class="toggle ${c.autoStartBreaks ? 'on' : ''}" data-fttog="autoStartBreaks"><span class="sw"></span><span>start breaks by themselves</span></label>
+      <label class="toggle ${c.autoStartFocus ? 'on' : ''}" data-fttog="autoStartFocus"><span class="sw"></span><span>start the next focus by itself</span></label>
+    </div></details>
+    <div class="ft-sound"><div class="k mono">sound under it</div>
+      <div class="ft-sounds">${AMBIENT_KINDS.filter(k => k.id !== 'off').map(k =>
+        `<button class="pf-chip${ambientEnabled && ambientKind === k.id ? ' on' : ''}" data-ftamb="${k.id}" title="${esc(k.desc)}">${esc(k.name)}</button>`).join('')}
+        <button class="pf-chip${ambientEnabled ? '' : ' on'}" data-ftamb="off">off</button></div>
+      <div class="faint" style="font-size:.72rem;margin-top:6px">The same atmosphere the rest of the house uses — it keeps playing when you leave this page.</div></div>
+    ${planFocusTodayHTML()}
+  </div>`;
+}
+function planFocusTodayHTML(){
+  const T = today();
+  const mine = planState().focusSessions.filter(s => s.type === 'focus' && (s.startedAt || '').slice(0, 10) === T);
+  const mins = sum(mine.map(s => s.duration));
+  return `<div class="ft-today"><span class="mono">today</span>
+    <b>${mins ? `${Math.floor(mins / 60)}h ${mins % 60}m` : 'nothing yet'}</b>
+    <span class="mono faint">${mine.length} interval${mine.length === 1 ? '' : 's'}</span></div>`;
+}
+function bindFocusTimer(box){
+  const c = planState().timer;
+  box.querySelector('#ftGo').onclick = () => { const s = FocusTimer.state();
+    s.running ? FocusTimer.pause() : FocusTimer.start(undefined, s.phase); sound('click'); };
+  box.querySelector('#ftSkip').onclick = () => { FocusTimer.skip(); sound('nav'); };
+  box.querySelector('#ftStop').onclick = () => { FocusTimer.stop(); sound('click'); rerenderPlanBody(); };
+  box.querySelector('#ftUnlink')?.addEventListener('click', () => FocusTimer.setTask(null));
+  box.querySelectorAll('[data-ftset]').forEach(i => i.onchange = () => {
+    const k = i.dataset.ftset; c[k] = clamp(parseInt(i.value, 10) || c[k], +i.min, +i.max); saveNow(); FocusTimer.reset(); });
+  box.querySelectorAll('[data-fttog]').forEach(b => b.onclick = () => {
+    const k = b.dataset.fttog; c[k] = !c[k]; b.classList.toggle('on', c[k]); saveNow(); });
+  box.querySelectorAll('[data-ftamb]').forEach(b => b.onclick = () => {
+    SoundManager.setAmbientKind(b.dataset.ftamb);
+    box.querySelectorAll('[data-ftamb]').forEach(x => x.classList.toggle('on', x === b)); });
+}
+
+/* ---------- habits ----------
+   Read and written where they already live: S.habits and S.habitLog, the
+   same two the rings on Today use. Ticking one here fills the ring there. */
+function planHabitList(){ return (S.habits || []).filter(h => !h.archived && !h.negative)
+  .sort((a, b) => (a.order || 0) - (b.order || 0)); }
+function planHabitRate(h, days = 30){
+  let due = 0, done = 0;
+  lastDays(days).forEach(d => { if(habitDue(h, d)){ due++; if(habitDone(h, d)) done++; } });
+  return due ? Math.round(done / due * 100) : null;
+}
+function planHabitsHTML(){
+  const hs = planHabitList(), T = today();
+  if(!hs.length) return `<div class="empty">No habits yet. They live on Today as rings; here they get their streaks and their history.</div>
+    <div class="row" style="margin-top:12px"><button class="btn sm" id="phNew">＋ new habit</button></div>`;
+  const week = Array.from({length:7}, (_, i) => addDays(planWeekStart(T), i));
+  const dueToday = hs.filter(h => habitDue(h, T));
+  const overall = (() => { let due = 0, done = 0;
+    lastDays(30).forEach(d => hs.forEach(h => { if(habitDue(h, d)){ due++; if(habitDone(h, d)) done++; } }));
+    return due ? Math.round(done / due * 100) : null; })();
+
+  return `<div class="ph-wrap">
+    <div class="ph-sec"><div class="row between"><span class="sc" style="margin:0">Today</span>
+      <span class="mono faint">${dueToday.filter(h => habitDone(h, T)).length} of ${dueToday.length} kept</span></div>
+      <div class="ph-cards">${dueToday.map(h => { const st = habitStreak(h); const open = S._phOpen === h.id;
+        return `<div class="ph-card${habitDone(h, T) ? ' done' : ''}${open ? ' open' : ''}" style="--c:${esc(h.color || 'var(--sage)')}">
+          <div class="ph-top">
+            <button class="pt-box" data-phtick="${h.id}" role="checkbox" aria-checked="${!!habitDone(h, T)}"
+              style="--pc:${esc(h.color || 'var(--sage)')}"><svg viewBox="0 0 20 20" aria-hidden="true">
+              <circle cx="10" cy="10" r="8.2" class="pt-ring"/><path d="M5.6 10.3 L8.7 13.3 L14.4 6.9" class="pt-tick"/></svg></button>
+            <span class="ph-face">${esc(h.icon || '◍')}</span>
+            <button class="ph-name" data-phopen="${h.id}">${esc(h.name)}</button>
+            <span class="ph-streak mono" title="current streak">${st.cur ? `▲ ${st.cur}` : '—'}</span></div>
+          ${open ? planHabitDetailHTML(h) : ''}</div>`; }).join('')
+        || '<div class="pk-empty">Nothing due today.</div>'}</div></div>
+
+    <div class="ph-sec"><span class="sc">This week</span>
+      <div class="ph-week"><div class="ph-wrow head"><span></span>
+        ${week.map(d => `<span class="mono${d === T ? ' now' : ''}">${['M','T','W','T','F','S','S'][(parseDay(d).getDay() + 6) % 7]}</span>`).join('')}</div>
+        ${hs.map(h => `<div class="ph-wrow"><span class="ph-wname">${esc(h.icon || '◍')} ${esc(h.name)}</span>
+          ${week.map(d => { const due = habitDue(h, d), done = habitDone(h, d);
+            return `<button class="ph-cell${done ? ' on' : ''}${due ? '' : ' off'}" data-phcell="${h.id}:${d}"
+              style="--c:${esc(h.color || 'var(--sage)')}" title="${esc(fmtDate(d, 'med'))}${due ? '' : ' — not scheduled'}"></button>`; }).join('')}
+        </div>`).join('')}</div></div>
+
+    <div class="ph-sec"><div class="row between"><span class="sc" style="margin:0">Over thirty days</span>
+      <span class="mono faint">${overall == null ? 'nothing scheduled' : overall + '% kept'}</span></div>
+      <div class="ph-stats">${hs.map(h => { const r = planHabitRate(h), st = habitStreak(h);
+        return `<div class="ph-stat"><span class="ph-sname">${esc(h.icon || '◍')} ${esc(h.name)}</span>
+          <div class="bar" style="--c:${esc(h.color || 'var(--sage)')}"><i style="width:${r || 0}%"></i></div>
+          <span class="mono">${r == null ? '—' : r + '%'}</span>
+          <span class="mono faint" title="current / best streak">${st.cur} / ${st.best}</span></div>`; })
+        .join('')}</div></div>
+
+    <div class="ph-sec"><span class="sc">Ninety days</span>
+      <div class="ph-heat">${planHabitHeatHTML(hs)}</div>
+      <div class="ph-legend mono"><span>none</span><i class="l0"></i><i class="l1"></i><i class="l2"></i><i class="l3"></i><span>all of them</span></div></div>
+    <div class="row" style="margin-top:14px"><button class="btn sm" id="phNew">＋ new habit</button></div>
+  </div>`;
+}
+function planHabitDetailHTML(h){
+  const r30 = planHabitRate(h), st = habitStreak(h);
+  const total = lastDays(365).filter(d => habitDone(h, d)).length;
+  return `<div class="ph-detail">
+    <div class="ph-mini">${lastDays(30).map(d => { const due = habitDue(h, d), done = habitDone(h, d);
+      return `<i class="${done ? 'on' : due ? '' : 'off'}" title="${esc(fmtDate(d, 'short'))}"></i>`; }).join('')}</div>
+    <div class="ph-facts mono"><span>${r30 == null ? '—' : r30 + '% over 30 days'}</span>
+      <span>best run ${st.best}</span><span>${total} in a year</span></div></div>`;
+}
+function planHabitHeatHTML(hs){
+  const days = lastDays(91);
+  return heatGrid(days, 13, d => {
+    const due = hs.filter(h => habitDue(h, d)); if(!due.length) return '';
+    const done = due.filter(h => habitDone(h, d)).length;
+    const f = done / due.length;
+    return f >= 1 ? 'l3' : f >= .6 ? 'l2' : f > 0 ? 'l1' : '';
+  }, 'heat ph-heatgrid');
+}
+function bindPlanHabits(root){
+  $$('[data-phtick]', root).forEach(b => b.onclick = ev => { ev.stopPropagation();
+    const id = b.dataset.phtick, T = today();
+    S.habitLog[T] = S.habitLog[T] || {};
+    if(S.habitLog[T][id]) delete S.habitLog[T][id]; else S.habitLog[T][id] = {level:'full'};
+    saveNow(); sound(S.habitLog[T][id] ? 'success' : 'click'); rerenderPlanBody(); });
+  $$('[data-phcell]', root).forEach(b => b.onclick = () => {
+    const [id, d] = b.dataset.phcell.split(':');
+    S.habitLog[d] = S.habitLog[d] || {};
+    if(S.habitLog[d][id]) delete S.habitLog[d][id]; else S.habitLog[d][id] = {level:'full'};
+    saveNow(); sound('click'); rerenderPlanBody(); });
+  $$('[data-phopen]', root).forEach(b => b.onclick = () => {
+    S._phOpen = S._phOpen === b.dataset.phopen ? null : b.dataset.phopen; rerenderPlanBody(); });
+  const nb = $('#phNew'); if(nb) nb.onclick = () => { if(typeof openHabitModal === 'function') openHabitModal(); };
+}
+
+/* ---------- statistics ---------- */
+function planStatsHTML(){
+  const T = today(), all = planOwnTasks(), p = planState();
+  const doneOn = d => all.filter(t => t.done && t.doneAt === d).length;
+  const week = lastDays(7), month = lastDays(30);
+  const dToday = doneOn(T), dWeek = sum(week.map(doneOn)), dMonth = sum(month.map(doneOn));
+  const overdue = all.filter(planIsLate);
+  const dueLast30 = all.filter(t => t.day && t.day >= addDays(T, -30) && t.day <= T);
+  const rate = dueLast30.length ? Math.round(dueLast30.filter(t => t.done).length / dueLast30.length * 100) : null;
+  const ages = all.filter(t => t.done && t.doneAt && t.createdAt)
+    .map(t => daysBetween(t.createdAt.slice(0, 10), t.doneAt)).filter(n => n >= 0);
+  const avgAge = ages.length ? (sum(ages) / ages.length) : null;
+
+  const sess = p.focusSessions.filter(s => s.type === 'focus');
+  const fOn = d => sum(sess.filter(s => (s.startedAt || '').slice(0, 10) === d).map(s => s.duration));
+  const fToday = fOn(T), fWeek = sum(week.map(fOn)), fMonth = sum(month.map(fOn));
+  const best = month.map(d => ({d, m:fOn(d)})).sort((a, b) => b.m - a.m)[0];
+  const byTask = {};
+  sess.forEach(s => { if(!s.taskId) return; byTask[s.taskId] = (byTask[s.taskId] || 0) + s.duration; });
+  const topTasks = Object.entries(byTask).map(([id, m]) => ({t:planTaskById(id), m}))
+    .filter(x => x.t).sort((a, b) => b.m - a.m).slice(0, 5);
+
+  const hrs = m => m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${m}m`;
+  const score = planProductivityScore(T);
+  const trend = lastDays(30).map(d => planProductivityScore(d));
+
+  const byPrio = PLAN_PRIORITY.slice().reverse().map(x => ({n:x.name, c:x.color || 'var(--faint)',
+    v:all.filter(t => !t.done && t.priority === x.n).length}));
+  const byList = planLists().map(l => ({n:l.name, c:l.color, v:all.filter(t => !t.done && t.listId === l.id).length}))
+    .filter(x => x.v).sort((a, b) => b.v - a.v);
+  const byTag = p.tags.map(t => ({n:t.name, c:t.color, v:planTagCount(t.name)})).filter(x => x.v).sort((a, b) => b.v - a.v);
+  const bars = rows => { const max = Math.max(1, ...rows.map(r => r.v));
+    return `<div class="ps-bars">${rows.map(r => `<div class="ps-bar"><span>${esc(r.n)}</span>
+      <div class="bar" style="--c:${r.c}"><i style="width:${Math.round(r.v / max * 100)}%"></i></div>
+      <span class="mono">${r.v}</span></div>`).join('') || '<div class="pk-empty">Nothing to count yet.</div>'}</div>`; };
+
+  return `<div class="ps">
+    <div class="ps-row">
+      <div class="ps-tile"><div class="k mono">finished today</div><div class="ps-n serif">${dToday}</div>
+        ${sparkline(week.map(doneOn), {h:34, min:0, color:'var(--terra)'})}<div class="sub">${dWeek} this week · ${dMonth} this month</div></div>
+      <div class="ps-tile"><div class="k mono">kept to the date</div><div class="ps-n serif">${rate == null ? '—' : rate + '%'}</div>
+        <div class="sub">${dueLast30.length} tasks fell due in the last month${rate == null ? '' : `, ${dueLast30.filter(t => t.done).length} of them done`}</div></div>
+      <div class="ps-tile"><div class="k mono">overdue now</div><div class="ps-n serif" style="${overdue.length ? 'color:var(--gold)' : ''}">${overdue.length}</div>
+        <div class="sub">${overdue.length ? `oldest is ${daysSince(overdue.map(t => t.day).sort()[0])} days past` : 'nothing is late'}</div></div>
+      <div class="ps-tile"><div class="k mono">from writing it to doing it</div>
+        <div class="ps-n serif">${avgAge == null ? '—' : avgAge.toFixed(1)}<small>days</small></div>
+        <div class="sub">across ${ages.length} finished task${ages.length === 1 ? '' : 's'}</div></div>
+    </div>
+
+    <div class="ps-row">
+      <div class="ps-tile"><div class="k mono">focus today</div><div class="ps-n serif">${hrs(fToday)}</div>
+        ${sparkline(week.map(fOn), {h:34, min:0, color:'var(--sage)'})}
+        <div class="sub">${hrs(fWeek)} this week · ${hrs(fMonth)} this month · avg ${hrs(Math.round(fMonth / 30))} a day</div></div>
+      <div class="ps-tile"><div class="k mono">intervals</div><div class="ps-n serif">${sess.filter(s => s.completed).length}</div>
+        <div class="sub">${sess.length} started · ${best && best.m ? `best day ${fmtDate(best.d, 'med')}, ${hrs(best.m)}` : 'no best day yet'}</div></div>
+      <div class="ps-tile ps-score"><div class="k mono">the day, scored</div>
+        ${ringSVG(score / 100, {size:74, stroke:7, color:score >= 66 ? 'var(--sage)' : score >= 33 ? 'var(--gold)' : 'var(--terra)', label:String(score)})}
+        ${sparkline(trend, {h:30, min:0, max:100, color:'var(--page-accent)'})}
+        <div class="sub">what was finished, what was focused on, and what is late</div></div>
+    </div>
+
+    <div class="ps-sec"><span class="sc">Where the focus went</span>
+      ${topTasks.length ? `<div class="ps-bars">${topTasks.map(x => { const max = topTasks[0].m;
+        return `<div class="ps-bar"><span>${esc(x.t.text)}</span><div class="bar" style="--c:var(--sage)">
+          <i style="width:${Math.round(x.m / max * 100)}%"></i></div><span class="mono">${hrs(x.m)}</span></div>`; }).join('')}</div>`
+        : '<div class="pk-empty">No focus time has been logged against a task yet.</div>'}</div>
+
+    <div class="ps-sec"><span class="sc">Ninety days of focus</span>
+      ${heatGrid(lastDays(91), 13, d => { const m = fOn(d); return m >= 120 ? 'l3' : m >= 50 ? 'l2' : m > 0 ? 'l1' : ''; }, 'heat ph-heatgrid')}
+    </div>
+
+    <div class="ps-three">
+      <div><span class="sc">By priority</span>${bars(byPrio)}</div>
+      <div><span class="sc">By list</span>${bars(byList)}</div>
+      <div><span class="sc">By tag</span>${bars(byTag)}</div>
+    </div>
+  </div>`;
+}
+/* One number for a day: what was finished against what was due, the focus
+   time against an hour's target, a penalty for what is late, and the steps
+   ticked off inside tasks. It is a rough instrument and says so. */
+function planProductivityScore(day){
+  const all = planOwnTasks();
+  const due = all.filter(t => t.day === day);
+  const done = due.filter(t => t.done).length;
+  const doneShare = due.length ? done / due.length : (all.some(t => t.doneAt === day) ? 1 : 0);
+  const mins = sum(planState().focusSessions.filter(s => s.type === 'focus' && (s.startedAt || '').slice(0, 10) === day)
+    .map(s => s.duration));
+  const focusShare = clamp(mins / 120, 0, 1);
+  const late = all.filter(t => !t.done && t.day && t.day < day).length;
+  const penalty = Math.min(.2, late * .04);
+  const steps = all.filter(t => t.subtasks.length);
+  const stepShare = steps.length
+    ? sum(steps.map(t => t.subtasks.filter(s => s.isCompleted).length)) / sum(steps.map(t => t.subtasks.length)) : 0;
+  return Math.round(clamp(doneShare * .4 + focusShare * .3 + stepShare * .1 + .2 - penalty, 0, 1) * 100);
+}
 /* ============================================================
    PLANNING — the same work, read four other ways.
 

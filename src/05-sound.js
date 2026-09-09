@@ -17,8 +17,14 @@
 const AMBIENT_KINDS = [
   {id:'off',      name:'Off',            desc:'silence'},
   {id:'brown',    name:'Brown noise',    desc:'a low, even hush'},
+  {id:'pink',     name:'Pink noise',     desc:'the same hush, with the air still in it'},
+  {id:'white',    name:'White noise',    desc:'flat and bright — the plainest of them'},
   {id:'rain',     name:'Rain',           desc:'steady rain on a window'},
   {id:'ocean',    name:'Ocean',          desc:'slow waves, long breaths'},
+  {id:'fire',     name:'Fireplace',      desc:'a low burn, and something settling in it'},
+  {id:'cafe',     name:'Café',           desc:'a room with people in it, too far off to follow'},
+  {id:'forest',   name:'Forest',         desc:'wind through leaves, and birds that are not close'},
+  {id:'library',  name:'Library',        desc:'almost nothing — the sound a room makes empty'},
   {id:'piano',    name:'Slow piano',     desc:'a quiet room, someone playing to themselves'},
   {id:'musicbox', name:'Music box',      desc:'sparse bells, further away'},
 ];
@@ -240,16 +246,62 @@ const SoundManager = (() => {
       filter.type = 'lowpass'; filter.frequency.value = 380; filter.Q.value = .9;
       const lfo = ctx.createOscillator(), lg = ctx.createGain();                   // waves: a slow cutoff swell
       lfo.frequency.value = .07; lg.gain.value = 230; lfo.connect(lg); lg.connect(filter.frequency); lfo.start(); nodes.push(lfo, lg);
+    } else if(ambientKind === 'fire'){
+      /* a fire is a low burn that breathes, with the crackle laid over it below */
+      filter.type = 'lowpass'; filter.frequency.value = 420; filter.Q.value = .6;
+      const lfo = ctx.createOscillator(), lg = ctx.createGain();
+      lfo.frequency.value = .23; lg.gain.value = 150; lfo.connect(lg); lg.connect(filter.frequency); lfo.start(); nodes.push(lfo, lg);
+    } else if(ambientKind === 'cafe'){
+      /* the sound of a room with people in it is mostly the room: a broad low
+         band, swelling slowly, with the odd unintelligible syllable over it */
+      filter.type = 'lowpass'; filter.frequency.value = 700; filter.Q.value = .5;
+      const lfo = ctx.createOscillator(), lg = ctx.createGain();
+      lfo.frequency.value = .05; lg.gain.value = 260; lfo.connect(lg); lg.connect(filter.frequency); lfo.start(); nodes.push(lfo, lg);
+    } else if(ambientKind === 'forest'){
+      filter.type = 'bandpass'; filter.frequency.value = 620; filter.Q.value = .4;
+      const lfo = ctx.createOscillator(), lg = ctx.createGain();                   // wind, coming and going
+      lfo.frequency.value = .09; lg.gain.value = 330; lfo.connect(lg); lg.connect(filter.frequency); lfo.start(); nodes.push(lfo, lg);
+    } else if(ambientKind === 'library'){
+      filter.type = 'lowpass'; filter.frequency.value = 120; filter.Q.value = .5;   // near silence, and its shape
+    } else if(ambientKind === 'white'){
+      filter.type = 'highpass'; filter.frequency.value = 240; filter.Q.value = .4;  // the brown bed, brightened back up
+    } else if(ambientKind === 'pink'){
+      filter.type = 'lowpass'; filter.frequency.value = 1600; filter.Q.value = .4;
     } else {
       filter.type = 'lowpass'; filter.frequency.value = 200; filter.Q.value = .7;
     }
-    const target = ambientGainValue() * (ambientKind === 'rain' ? 1.5 : ambientKind === 'ocean' ? 1.8 : 1);
+    const NOISE_GAIN = {rain:1.5, ocean:1.8, fire:1.3, cafe:1.4, forest:1.35, library:.85, white:.5, pink:1.1};
+    const target = ambientGainValue() * (NOISE_GAIN[ambientKind] || 1);
     gain.gain.setValueAtTime(.0001, ctx.currentTime); gain.gain.linearRampToValueAtTime(target, ctx.currentTime + 1.8);
     source.connect(filter); last.connect(gain); gain.connect(out());
     ambient = {nodes, gain, timer:null};
-    if(ambientKind === 'rain'){                                                     // occasional drops on the glass
-      const drop = () => { if(!ambient) return; if(Math.random() < .7) noise({dur:.05, freq:2200+Math.random()*2600, q:6, gain:.012, wet:1}); ambient.timer = setTimeout(drop, 400 + Math.random()*1800); };
-      ambient.timer = setTimeout(drop, 900);
+    /* What sits on top of the bed. A filtered hiss is only ever half of a
+       place: the other half is the irregular thing that happens in it, and
+       the irregularity is the part the ear believes. */
+    const overlay = {
+      rain:   () => { if(Math.random() < .7) noise({dur:.05, freq:2200 + Math.random()*2600, q:6, gain:.012, wet:1}); return 400 + Math.random()*1800; },
+      /* a fire crackles in bursts, not on a beat, and sometimes twice at once */
+      fire:   () => { const n = Math.random() < .25 ? 2 : 1;
+                      for(let i = 0; i < n; i++) noise({dur:.03 + Math.random()*.05, freq:900 + Math.random()*2400,
+                        q:3.5, gain:.009 + Math.random()*.012, wet:.7, at:i * .06});
+                      return 180 + Math.random()*1400; },
+      /* a café is cups and a syllable you cannot quite catch */
+      cafe:   () => { if(Math.random() < .35) noise({dur:.05, freq:3200 + Math.random()*2000, q:9, gain:.007, wet:1});
+                      else { const f = 240 + Math.random()*260;                       // a vowel, muffled by distance
+                        noise({dur:.12 + Math.random()*.16, freq:f, q:5, gain:.008, sweep:f * (.8 + Math.random()*.5), wet:.9}); }
+                      return 700 + Math.random()*3200; },
+      /* birds, kept sparse and far: two or three notes, never close */
+      forest: () => { if(Math.random() < .45){ const base = 2100 + Math.random()*1900;
+                        const n = 2 + Math.floor(Math.random()*2);
+                        for(let i = 0; i < n; i++) noise({dur:.05, freq:base * (1 + i*.12), q:22, gain:.006, wet:1, at:i * .1}); }
+                      return 2600 + Math.random()*7000; },
+      /* a room with nobody in it still settles, once in a long while */
+      library:() => { if(Math.random() < .3) noise({dur:.08, freq:300 + Math.random()*500, q:4, gain:.004, wet:1});
+                      return 6000 + Math.random()*14000; },
+    }[ambientKind];
+    if(overlay){
+      const tick = () => { if(!ambient) return; const next = overlay(); ambient.timer = setTimeout(tick, next); };
+      ambient.timer = setTimeout(tick, 900);
     }
     if(ctx.state === 'suspended') ctx.resume().catch(()=>{});
   }
