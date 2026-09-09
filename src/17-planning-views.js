@@ -45,7 +45,8 @@ function planCalendarHTML(tasks){
       ${[['month','Month'],['week','Week'],['day','Day']].map(([k, n]) =>
         `<button class="pf-chip${mode === k ? ' on' : ''}" data-pcmode="${k}">${n}</button>`).join('')}
     </div>
-    ${mode === 'month' ? planCalMonthHTML(cur, tasks) : mode === 'week' ? planCalWeekHTML(cur, tasks) : planCalDayHTML(cur, tasks)}
+    ${mode === 'day' ? planCalDayHTML(cur, tasks)
+      : `<div class="pc-scroll">${mode === 'month' ? planCalMonthHTML(cur, tasks) : planCalWeekHTML(cur, tasks)}</div>`}
   </div>`;
 }
 function planMonthLabel(d){ const x = parseDay(d); return `${MONTHS[x.getMonth()]} ${x.getFullYear()}`; }
@@ -65,6 +66,7 @@ function planCalMonthHTML(cur, tasks){
     cells.push(`<div class="pc-cell${iso === today() ? ' now' : ''}${late ? ' late' : ''}" data-pcday="${iso}">
       <div class="pc-n"><span>${d}</span><button class="pc-add" data-pcadd="${iso}" title="add on this day">＋</button></div>
       ${ts.slice(0, 3).map(t => `<button class="pc-pill${t.done ? ' done' : ''}" data-ptcard="${t.id}" draggable="true"
+        title="${esc(t.text)}${t.dueTime ? ' · ' + esc(t.dueTime) : ''}"
         style="--c:${planPriority(t.priority).color || planListColor(t.listId)}">${esc(t.text)}</button>`).join('')}
       ${ts.length > 3 ? `<button class="pc-more" data-pcopen="${iso}">+${ts.length - 3} more</button>` : ''}</div>`);
   }
@@ -83,9 +85,9 @@ function planCalWeekHTML(cur, tasks){
         <span class="serif">${parseDay(d).getDate()}</span>
         <button class="pc-add" data-pcadd="${d}">＋</button></div>
       <div class="pc-allday">${allday.map(t => `<button class="pc-pill${t.done ? ' done' : ''}" data-ptcard="${t.id}" draggable="true"
-        style="--c:${planPriority(t.priority).color || planListColor(t.listId)}">${esc(t.text)}</button>`).join('')}</div>
+        title="${esc(t.text)}" style="--c:${planPriority(t.priority).color || planListColor(t.listId)}">${esc(t.text)}</button>`).join('')}</div>
       <div class="pc-timed">${timed.map(t => `<button class="pc-pill timed${t.done ? ' done' : ''}" data-ptcard="${t.id}" draggable="true"
-        style="--c:${planPriority(t.priority).color || planListColor(t.listId)}"><span class="mono">${esc(t.dueTime)}</span> ${esc(t.text)}</button>`).join('')}</div>
+        title="${esc(t.dueTime)} · ${esc(t.text)}" style="--c:${planPriority(t.priority).color || planListColor(t.listId)}"><span class="mono">${esc(t.dueTime)}</span> ${esc(t.text)}</button>`).join('')}</div>
     </div>`; }).join('')}</div>`;
 }
 const PC_DAY_H = 46;                              // pixels per hour on the day timeline
@@ -96,7 +98,7 @@ function planCalDayHTML(cur, tasks){
   return `<div class="pc-daywrap">
     <div class="pc-loose"><div class="k mono">unscheduled on this day</div>
       <div class="pc-loosebox" data-pcunsched>${loose.map(t => `<button class="pc-pill" data-ptcard="${t.id}" draggable="true"
-        style="--c:${planPriority(t.priority).color || planListColor(t.listId)}">${esc(t.text)}</button>`).join('')
+        title="${esc(t.text)}" style="--c:${planPriority(t.priority).color || planListColor(t.listId)}">${esc(t.text)}</button>`).join('')
         || '<span class="faint mono">nothing loose — drag a block up here to unschedule it</span>'}</div></div>
     <div class="pc-day" data-pcdayline="${cur}" style="height:${24 * PC_DAY_H}px">
       ${Array.from({length:24}, (_, h) => `<div class="pc-hour" style="top:${h * PC_DAY_H}px"><span class="mono">${pad(h)}:00</span></div>`).join('')}

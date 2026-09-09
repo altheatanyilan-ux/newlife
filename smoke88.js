@@ -77,6 +77,49 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
     return b ? {pos: getComputedStyle(b).position, inHeader: !!b.closest('.pl-header')} : null; });
   ok('the sort row is still inside the header', barPos && barPos.inHeader && barPos.pos === 'static', JSON.stringify(barPos));
 
+  console.log('\n4b. a long title cannot widen its column and push the week off the page');
+  /* `1fr` is `minmax(auto,1fr)` and `auto` floors at min-content, so one
+     unbreakable title used to stretch its column to the width of the whole
+     string — seven columns came to three thousand pixels in an eight-hundred
+     pixel panel, and most of the month was off the side of the page. */
+  await page.evaluate(() => {
+    const T = today(), start = planWeekStart(T);
+    for(let i = 0; i < 7; i++){ const d = addDays(start, i);
+      for(let k = 0; k < 3; k++) S.tasks.push(newPlanTask(
+        'Prepare the consolidated quarterly compliance documentation review for counsel ' + (k+1), d, {listId:'inbox'})); }
+    for(let i = 1; i <= 28; i++) S.tasks.push(newPlanTask('Task on the ' + i + 'th of an unremarkable month',
+      isoDay(new Date(parseDay(T).getFullYear(), parseDay(T).getMonth(), i)), {listId:'inbox'}));
+    planSetSel('smart','all'); planSetView('calendar'); saveNow();
+  });
+  const fitAt = async (w, mode) => { await page.setViewportSize({width:w, height:1000});
+    await page.evaluate(m => { S.planning.prefs.calMode = m; rerender(); }, mode);
+    await page.waitForTimeout(650);
+    return page.evaluate(() => { const sc = document.querySelector('.pc-scroll'), main = document.querySelector('.pl-main');
+      const cells = Array.from(document.querySelectorAll('.pc-cell:not(.blank), .pc-col')).map(c => Math.round(c.getBoundingClientRect().width));
+      const uniq = [...new Set(cells)];
+      return {equal: uniq.length === 1, widths: uniq, n: cells.length,
+        insidePanel: !sc || sc.getBoundingClientRect().right <= main.getBoundingClientRect().right + 1,
+        pageSideScroll: document.documentElement.scrollWidth > innerWidth + 1,
+        reachable: !sc || sc.scrollWidth <= sc.clientWidth + 1 || getComputedStyle(sc).overflowX === 'auto'}; });
+  };
+  const wideMonth = await fitAt(1500, 'month'), wideWeek = await fitAt(1500, 'week');
+  ok('every day of the month is the same width', wideMonth.equal, JSON.stringify(wideMonth));
+  ok('and every day of the week is too, with three long titles in each',
+     wideWeek.equal && wideWeek.n === 7, JSON.stringify(wideWeek));
+  ok('the whole month is on the page, not off the side of it',
+     wideMonth.insidePanel && !wideMonth.pageSideScroll, JSON.stringify(wideMonth));
+  ok('and so is the whole week', wideWeek.insidePanel && !wideWeek.pageSideScroll, JSON.stringify(wideWeek));
+  const narrow = [];
+  for(const w of [1200, 1024, 860, 640]) for(const m of ['month','week']){
+    const r = await fitAt(w, m);
+    if(r.pageSideScroll || !r.insidePanel || !r.reachable || !r.equal) narrow.push(`${w}/${m} ${JSON.stringify(r)}`);
+  }
+  ok('narrower windows keep the columns even and scroll the calendar, never the page',
+     narrow.length === 0, narrow.join(' ; '));
+  const floor = await fitAt(1024, 'month');
+  ok('and a column never shrinks below something readable', floor.widths[0] >= 80, JSON.stringify(floor));
+  await page.setViewportSize({width:1500, height:1100}); await page.waitForTimeout(400);
+
   console.log('\n5. the day timeline places a task at its hour, its height its length');
   await page.evaluate(() => { const t = S.tasks.find(x => !x.done);
     t.day = today(); t.dueTime = '09:00'; t.duration = 90; planSetSel('smart','today');

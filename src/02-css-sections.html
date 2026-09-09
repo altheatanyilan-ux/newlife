@@ -2568,11 +2568,25 @@ select.sm-active{border-color:var(--page-accent);
 /* ---------- Planning: the other four views ---------- */
 .pc-head{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
 .pc-label{font-size:1rem;min-width:150px}
-.pc-dow{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px}
+/* minmax(0,1fr), never 1fr.
+   A bare `1fr` is `minmax(auto, 1fr)`, and `auto` floors at min-content — so a
+   single unbreakable task title stretched its column to the width of the whole
+   string and took the other six with it. Seven columns of a real week came to
+   three thousand pixels inside an eight-hundred-pixel panel, and most of the
+   month was simply off the side of the page. The zero floor lets a column be
+   narrower than its contents; min-width:0 on the cell lets the ellipsis in the
+   pill actually engage. */
+/* Below a certain width a column stops being a day and becomes a sliver: at
+   1024px the month was down to 55px a cell, which fits a date and nothing
+   else. So each column keeps a floor, and when seven of them no longer fit
+   the panel it is the calendar that scrolls sideways, not the page — the
+   whole month stays reachable either way. */
+.pc-scroll{overflow-x:auto;overflow-y:hidden;padding-bottom:4px;scrollbar-width:thin}
+.pc-dow{display:grid;grid-template-columns:repeat(7,minmax(92px,1fr));gap:4px;margin-bottom:4px}
 .pc-dow span{font-family:var(--mono);font-size:.6rem;letter-spacing:.12em;color:var(--faint);text-align:center}
-.pc-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
-.pc-cell{min-height:94px;border:1px solid var(--line);border-radius:9px;padding:5px;display:flex;
-  flex-direction:column;gap:3px;transition:background .18s var(--ease),border-color .18s var(--ease)}
+.pc-grid{display:grid;grid-template-columns:repeat(7,minmax(92px,1fr));gap:4px}
+.pc-cell{min-height:94px;min-width:0;border:1px solid var(--line);border-radius:9px;padding:5px;display:flex;
+  flex-direction:column;gap:3px;overflow:hidden;transition:background .18s var(--ease),border-color .18s var(--ease)}
 .pc-cell.blank{border:none}
 .pc-cell.now{border-color:var(--terra)}
 .pc-cell.late .pc-n span{color:var(--gold)}
@@ -2581,18 +2595,26 @@ select.sm-active{border-color:var(--page-accent);
 .pc-add{background:none;border:none;color:var(--faint);cursor:pointer;opacity:0;font-size:.8rem;padding:0 2px}
 .pc-cell:hover .pc-add,.pc-colh:hover .pc-add{opacity:1}
 .pc-add:hover{color:var(--page-accent)}
-.pc-pill{display:block;width:100%;text-align:left;background:color-mix(in srgb,var(--c,var(--page-accent)) 16%,transparent);
+.pc-pill{display:block;width:100%;min-width:0;max-width:100%;text-align:left;
+  background:color-mix(in srgb,var(--c,var(--page-accent)) 16%,transparent);
   border:none;border-left:2px solid var(--c,var(--page-accent));border-radius:4px;color:var(--text);cursor:pointer;
   font-size:.7rem;padding:2px 6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pc-pill:hover{background:color-mix(in srgb,var(--c,var(--page-accent)) 28%,transparent)}
 .pc-pill.done{opacity:.45;text-decoration:line-through}
 .pc-pill .mono{font-size:.62rem;opacity:.75}
 .pc-more{background:none;border:none;color:var(--faint);cursor:pointer;font-size:.64rem;font-family:var(--mono);text-align:left;padding:0 6px}
-.pc-week{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
-.pc-col{border:1px solid var(--line);border-radius:9px;padding:6px;min-height:220px;display:flex;flex-direction:column;gap:4px}
+.pc-week{display:grid;grid-template-columns:repeat(7,minmax(112px,1fr));gap:5px}
+.pc-col{border:1px solid var(--line);border-radius:9px;padding:6px;min-height:220px;min-width:0;
+  display:flex;flex-direction:column;gap:4px}
+/* a week column is tall and narrow, so two wrapped lines read better there than
+   one clipped one — the month keeps its single line, where height is the scarce
+   dimension rather than width */
+.pc-week .pc-pill{white-space:normal;overflow-wrap:anywhere;line-height:1.3;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.pc-week .pc-pill.timed{-webkit-line-clamp:3}
 .pc-col.now{border-color:var(--terra)}
 .pc-col.over{background:color-mix(in srgb,var(--page-accent) 12%,transparent)}
-.pc-colh{display:flex;align-items:baseline;gap:5px;padding-bottom:4px;border-bottom:1px solid var(--line)}
+.pc-colh{display:flex;align-items:baseline;gap:5px;padding-bottom:4px;border-bottom:1px solid var(--line);min-width:0}
 .pc-colh .mono{font-size:.58rem;letter-spacing:.1em;color:var(--faint)}
 .pc-colh .serif{font-size:1rem}
 .pc-colh .pc-add{margin-left:auto}
@@ -2602,7 +2624,7 @@ select.sm-active{border-color:var(--page-accent);
 .pc-loose .k{font-family:var(--mono);font-size:.6rem;text-transform:uppercase;letter-spacing:.11em;color:var(--faint);margin-bottom:5px;display:block}
 .pc-loosebox{display:flex;flex-wrap:wrap;gap:5px;min-height:34px;padding:6px;border:1px dashed var(--line);border-radius:9px}
 .pc-loosebox.over{border-color:var(--page-accent);background:color-mix(in srgb,var(--page-accent) 10%,transparent)}
-.pc-loosebox .pc-pill{width:auto;display:inline-block}
+.pc-loosebox .pc-pill{width:auto;max-width:240px;display:inline-block}
 .pc-day{position:relative;border:1px solid var(--line);border-radius:11px;overflow:hidden}
 .pc-hour{position:absolute;left:0;right:0;height:1px;background:var(--line);pointer-events:none}
 .pc-hour span{position:absolute;left:6px;top:-7px;font-size:.58rem;color:var(--faint);background:var(--bg);padding:0 3px}
@@ -2683,8 +2705,12 @@ select.sm-active{border-color:var(--page-accent);
 
 @media (max-width:900px){
   .pe-grid{grid-template-columns:1fr}
+  /* on a phone a week reads down the page rather than across it */
   .pc-week{grid-template-columns:1fr;max-height:none}
+  .pc-scroll{overflow-x:visible}
   .pc-cell{min-height:70px}
+  .pc-dow,.pc-grid{grid-template-columns:repeat(7,minmax(52px,1fr))}
+  .pc-scroll:has(.pc-grid){overflow-x:auto}
 }
 @media (prefers-reduced-motion:reduce){.pk-card,.pc-cell,.pe-quad{transition:none}}
 
