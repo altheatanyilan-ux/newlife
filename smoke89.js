@@ -236,6 +236,75 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
      /overheard/.test(fromHeap.raw || '') && /compost heap/.test(fromHeap.spark || ''), JSON.stringify(fromHeap));
   await page.evaluate(() => closeModals()); await page.waitForTimeout(250);
 
+  await page.evaluate(() => { closeModals(); location.hash = '#/content'; rerender(); });
+  await page.waitForTimeout(1000); await clean();
+
+  console.log('\n14. a seed that has sat too long says so');
+  const germ = await page.evaluate(() => {
+    const old = contentPieces().find(e => e.extra.content.stage === 'idea');
+    const fresh = contentNewPiece({stage:'idea', raw:'Caught just now.'});
+    old.extra.content.stageAt = new Date(Date.now() - 20*864e5).toISOString();
+    saveNow(); rerender();
+    return {old:old.id, fresh:fresh.id};
+  });
+  await page.waitForTimeout(800); await clean();
+  const shown = await page.evaluate(i => ({
+    old: !!document.querySelector(`[data-ctcard="${i.old}"] .ct-germ`),
+    fresh: !!document.querySelector(`[data-ctcard="${i.fresh}"] .ct-germ`)}), germ);
+  ok('a twenty-day-old idea is asked about', shown.old, JSON.stringify(shown));
+  ok('one caught today is left alone', !shown.fresh, JSON.stringify(shown));
+
+  console.log('\n15. the themes can be curated');
+  await page.evaluate(() => document.querySelector('#ctThemes').click()); await page.waitForTimeout(450);
+  const tm = await page.evaluate(() => ({rows:document.querySelectorAll('.ct-themerow').length,
+    add:!!document.querySelector('#tmAdd'), colour:!!document.querySelector('[data-tmcol]')}));
+  ok('every theme is listed, with its colour', tm.rows === 12 && tm.colour, JSON.stringify(tm));
+  await page.fill('#tmNew', 'Solitude');
+  await page.evaluate(() => document.querySelector('#tmAdd').click()); await page.waitForTimeout(500);
+  ok('a new one can be added', await page.evaluate(() => S.content.themes.some(t=>t.name==='Solitude')), 'not added');
+  const renamed = await page.evaluate(async () => {
+    const t = S.content.themes.find(x=>x.name==='Solitude');
+    const inp = document.querySelector(`[data-tmname="${t.id}"]`);
+    inp.value = 'Being alone'; inp.dispatchEvent(new Event('input'));
+    await new Promise(r=>setTimeout(r,600));
+    return S.content.themes.find(x=>x.id===t.id).name; });
+  ok('and renamed', renamed === 'Being alone', renamed);
+
+  console.log('\n16. deleting a theme in use asks first, and takes it off the pieces');
+  const del = await page.evaluate(async () => {
+    const used = S.content.themes.find(t => contentThemeUse(t.id) > 0);
+    const n = contentThemeUse(used.id);
+    document.querySelector(`[data-tmdel="${used.id}"]`).click();
+    await new Promise(r=>setTimeout(r,350));
+    const asked = !!document.querySelector('[data-x=yes]');
+    if(asked) document.querySelector('[data-x=yes]').click();
+    await new Promise(r=>setTimeout(r,500));
+    return {n, asked, gone: !S.content.themes.some(t=>t.id===used.id),
+      onPieces: contentPieces().filter(e=>e.extra.content.themes.includes(used.id)).length};
+  });
+  ok('it asks before deleting a theme pieces are using', del.asked && del.n > 0, JSON.stringify(del));
+  ok('and takes it off every piece that carried it', del.gone && del.onPieces === 0, JSON.stringify(del));
+  await page.evaluate(() => closeModals()); await page.waitForTimeout(300);
+
+  console.log('\n17. a focus session on a piece\'s task counts as time on the piece');
+  const focus = await page.evaluate(() => {
+    const e = contentPieces().find(x => x.title.startsWith('The Self-Image'));
+    const before = e.extra.content.focusMinutes || 0;
+    const t = newPlanTask('Write: the self-image piece', today(), {listId:'inbox'});
+    t.links.content = [e.id]; S.tasks.push(t); saveNow();
+    FocusTimer.setTask(t.id); FocusTimer.start(); FocusTimer.pause();
+    /* No test hook: the timer measures the phase length minus what is left,
+       so lengthening the phase after starting is the same arithmetic as
+       having sat there for the difference. */
+    planState().timer.focusDuration = 55;
+    FocusTimer.skip();
+    return {before, after: e.extra.content.focusMinutes || 0,
+      onTask: (byId(S.tasks, t.id).focusTime || 0),
+      sessions: planState().focusSessions.length};
+  });
+  ok('the minutes land on the piece as well as the task',
+     focus.after > focus.before && focus.onTask > 0, JSON.stringify(focus));
+
   console.log('\nconsole:', errors.length ? errors.slice(0, 6) : 'clean');
   if(errors.length) fails += errors.length;
   console.log(fails ? `\n${fails} FAILED` : '\nall good');

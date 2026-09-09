@@ -3610,6 +3610,20 @@ select.sm-active{border-color:var(--page-accent);
 .wsd-row.wsl2{background:color-mix(in srgb,#b08968 18%,transparent);font-weight:700}
 .wsd-row.wsl3{background:color-mix(in srgb,#b08968 18%,transparent);border-left:3px solid var(--terra);border-radius:0 6px 6px 0}
 .ws-streak{color:var(--terra)}
+
+/* a seed that has sat in the Idea column too long */
+.ct-germ{font-family:var(--lora,var(--serif));font-style:italic;font-size:.72rem;color:var(--faint);
+  margin-top:5px;line-height:1.4}
+/* the theme manager */
+.ct-themelist{display:flex;flex-direction:column;gap:5px;max-height:min(52vh,460px);overflow-y:auto;padding-right:4px}
+.ct-themerow{display:grid;grid-template-columns:30px minmax(0,1.1fr) minmax(0,1.8fr) 32px 26px;gap:7px;align-items:center}
+.ct-themerow .inp{padding:5px 9px;font-size:.82rem}
+.ct-themerow .mono{font-size:.66rem;color:var(--faint);text-align:right}
+.ct-swatch{width:30px;height:28px;padding:0;border:1px solid var(--line);border-radius:6px;
+  background:none;cursor:pointer}
+.ct-tdesc{font-size:.78rem}
+@media(max-width:640px){.ct-themerow{grid-template-columns:30px minmax(0,1fr) 32px 26px}
+  .ct-tdesc{display:none}}
 </style>
 </head>
 <body>
@@ -14486,7 +14500,13 @@ const FocusTimer = (() => {
     if(mins < 1) return;
     planState().focusSessions.push({id:uid(), taskId:st.taskId || null, startedAt:st.startedAt,
       endedAt:new Date().toISOString(), duration:mins, type:'focus', completed:!!completed});
-    if(st.taskId){ const t = planTaskById(st.taskId); if(t){ t.focusTime = (t.focusTime || 0) + mins; t.updatedAt = new Date().toISOString(); } }
+    if(st.taskId){ const t = planTaskById(st.taskId); if(t){ t.focusTime = (t.focusTime || 0) + mins; t.updatedAt = new Date().toISOString();
+      /* a focus session on a task booked for a piece is writing time on
+         that piece: one session, counted in both rooms rather than twice */
+      (t.links?.content || []).forEach(id => { const e = byId(S.entries, id);
+        if(!e || typeof pieceContent !== 'function') return;
+        const c = pieceContent(e); c.focusMinutes = (c.focusMinutes || 0) + mins;
+        if(typeof wsRecordWords === 'function') wsRecordWords(e); }); } }
     saveNow();
   }
   function finish(skipped){
@@ -15879,6 +15899,7 @@ function bindContent(root){
   if(q) q.oninput = debounce(() => { S._ctQ = q.value.trim(); rerender();
     requestAnimationFrame(() => { const n = $('#ctSearch'); if(n){ n.focus(); n.setSelectionRange(n.value.length, n.value.length); } }); }, 280);
   const catch_ = $('#ctCatch'); if(catch_) catch_.onclick = () => openContentCapture();
+  const th = $('#ctThemes'); if(th) th.onclick = () => openThemeManager();
   $$('[data-ctopen]', root).forEach(b => b.onclick = () => openPieceDetail(b.dataset.ctopen));
   $$('[data-ctadd]', root).forEach(b => b.onclick = () => {
     const stage = b.dataset.ctadd;
@@ -16165,6 +16186,7 @@ function pieceContent(e){
   c.pinned    = !!c.pinned;
   c.order     = c.order == null ? Date.now() : c.order;
   c.raw       = c.raw || '';                       // a seed's raw thought
+  c.focusMinutes = +c.focusMinutes || 0;           // time the Planning timer logged against it
   return c;
 }
 function contentPieces(){ return (S.entries || []).filter(e => e.type === 'writing').map(e => { pieceContent(e); return e; }); }
@@ -16419,7 +16441,8 @@ function pieceDetailHTML(e){
     ${notes ? `<details class="pd-sec pcd-fold"><summary><span class="k mono">notes</span></summary>
       <div class="pcd-preview">${md(notes.slice(0, 600))}</div></details>` : ''}
 
-    <div class="pd-sec"><div class="row between"><span class="k mono">work booked for it</span>
+    <div class="pd-sec"><div class="row between"><span class="k mono">work booked for it${
+      c.focusMinutes ? ` · ${Math.round(c.focusMinutes / 60 * 10) / 10}h focused` : ''}</span>
       <button class="pl-mini" id="pcTaskAdd" title="add a task">＋</button></div>
       ${tasks.length ? `<div class="pl-linked">${tasks.map(x => `<a class="pl-lrow" href="#/planning">
         <span class="pt-prio" style="background:${x.done ? 'var(--sage)' : planPriority(x.priority).color || 'var(--line-2)'}"></span>
@@ -16544,6 +16567,8 @@ function contentCardHTML(e){
       ${c.pinned ? '<span class="ct-pin" title="pinned">◆</span>' : ''}
       <span class="ct-title">${esc(e.title || (c.raw ? c.raw.slice(0, 60) : 'Untitled'))}</span></div>
     ${c.raw && seed ? `<div class="ct-raw">${esc(c.raw.slice(0, 140))}</div>` : ''}
+    ${c.stage === 'idea' && daysSince((c.stageAt || '').slice(0, 10)) > 14
+      ? '<div class="ct-germ lora">Still germinating, or ready to be planted?</div>' : ''}
     ${t ? `<div class="ct-bar" title="${w} of ${t} words"><i style="width:${Math.min(100, Math.round(w / t * 100))}%"></i></div>` : ''}
     <div class="ct-cmeta">
       <span class="ct-chip">${esc(contentTypeName(c.type))}</span>
@@ -16598,6 +16623,7 @@ routes.content = function(root, params){
       </div>
       <div class="row" style="gap:8px;margin-left:auto">
         <input class="inp mono ct-search" id="ctSearch" placeholder="search pieces…" value="${esc(S._ctQ || '')}">
+        <button class="btn sm ghost" id="ctThemes" title="the vocabulary this room thinks in">themes</button>
         <button class="btn sm" id="ctCatch">＋ catch an idea</button>
       </div>
     </div>
@@ -16684,6 +16710,53 @@ function openPromoteSeed(id){
     saveNow(); m.remove(); sound('success'); rerender();
     setTimeout(() => openPieceDetail(e.id), 120);
   };
+}
+
+/* ---------- the themes ----------
+   Themes are a fixed vocabulary rather than free tags, which is the
+   whole point of them: they only show a pattern if they stay the same
+   from piece to piece. But a fixed vocabulary still has to be the
+   person's own, so it can be added to, renamed, recoloured and — when
+   nothing is using it — removed. A theme in use cannot be deleted by
+   accident; the count says how many pieces would lose it. */
+function contentThemeUse(id){ return contentPieces().filter(e => (e.extra.content.themes || []).includes(id)).length; }
+function openThemeManager(){
+  const draw = m => {
+    const c = contentState();
+    m.querySelector('#tmHost').innerHTML = `<h2>Themes</h2>
+      <p class="muted" style="font-size:.86rem">The handful of things you keep writing about. Keep the list short and it will tell you something.</p>
+      <div class="ct-themelist">${c.themes.map(t => { const n = contentThemeUse(t.id);
+        return `<div class="ct-themerow" style="--c:${t.color}">
+          <input type="color" class="ct-swatch" value="${esc(t.color)}" data-tmcol="${t.id}" title="colour">
+          <input class="inp" value="${esc(t.name)}" data-tmname="${t.id}" placeholder="name">
+          <input class="inp ct-tdesc" value="${esc(t.description || '')}" data-tmdesc="${t.id}" placeholder="one line about it">
+          <span class="mono">${n || '—'}</span>
+          <button class="del-x inline" data-tmdel="${t.id}" title="${n ? `${n} piece${n === 1 ? '' : 's'} use this` : 'delete'}">×</button>
+        </div>`; }).join('') || '<div class="pk-empty lora">No themes yet.</div>'}</div>
+      <div class="row" style="gap:8px;margin-top:12px">
+        <input class="inp" id="tmNew" placeholder="a new theme" style="flex:1">
+        <button class="btn sm" id="tmAdd">add</button></div>`;
+    const touch = () => { saveNow(); if(parseHash().name === 'content') rerender(); };
+    m.querySelectorAll('[data-tmname]').forEach(i => i.oninput = debounce(() => {
+      const t = c.themes.find(x => x.id === i.dataset.tmname); if(t){ t.name = i.value; touch(); } }, 400));
+    m.querySelectorAll('[data-tmdesc]').forEach(i => i.oninput = debounce(() => {
+      const t = c.themes.find(x => x.id === i.dataset.tmdesc); if(t){ t.description = i.value; touch(); } }, 400));
+    m.querySelectorAll('[data-tmcol]').forEach(i => i.onchange = () => {
+      const t = c.themes.find(x => x.id === i.dataset.tmcol); if(t){ t.color = i.value; touch(); draw(m); } });
+    m.querySelectorAll('[data-tmdel]').forEach(b => b.onclick = () => {
+      const id = b.dataset.tmdel, n = contentThemeUse(id), t = c.themes.find(x => x.id === id);
+      const go = () => { spliceOut(c.themes, x => x.id === id);
+        contentPieces().forEach(e => spliceOut(e.extra.content.themes, x => x === id));
+        touch(); draw(m); sound('click'); };
+      n ? confirmDlg(`${n} piece${n === 1 ? '' : 's'} carry “${esc(t.name)}”. Deleting the theme takes it off ${n === 1 ? 'that piece' : 'all of them'}.`, go) : go(); });
+    const add = () => { const v = m.querySelector('#tmNew').value.trim(); if(!v) return;
+      contentEnsureTheme(v); touch(); draw(m); sound('success');
+      setTimeout(() => m.querySelector('#tmNew')?.focus(), 30); };
+    m.querySelector('#tmAdd').onclick = add;
+    m.querySelector('#tmNew').onkeydown = ev => { if(ev.key === 'Enter') add(); };
+  };
+  const m = openModal('<div id="tmHost"></div>', 'wide');
+  draw(m);
 }
 /* ============================================================
    CONTENT × THE WRITING STUDIO

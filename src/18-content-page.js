@@ -16,6 +16,8 @@ function contentCardHTML(e){
       ${c.pinned ? '<span class="ct-pin" title="pinned">◆</span>' : ''}
       <span class="ct-title">${esc(e.title || (c.raw ? c.raw.slice(0, 60) : 'Untitled'))}</span></div>
     ${c.raw && seed ? `<div class="ct-raw">${esc(c.raw.slice(0, 140))}</div>` : ''}
+    ${c.stage === 'idea' && daysSince((c.stageAt || '').slice(0, 10)) > 14
+      ? '<div class="ct-germ lora">Still germinating, or ready to be planted?</div>' : ''}
     ${t ? `<div class="ct-bar" title="${w} of ${t} words"><i style="width:${Math.min(100, Math.round(w / t * 100))}%"></i></div>` : ''}
     <div class="ct-cmeta">
       <span class="ct-chip">${esc(contentTypeName(c.type))}</span>
@@ -70,6 +72,7 @@ routes.content = function(root, params){
       </div>
       <div class="row" style="gap:8px;margin-left:auto">
         <input class="inp mono ct-search" id="ctSearch" placeholder="search pieces…" value="${esc(S._ctQ || '')}">
+        <button class="btn sm ghost" id="ctThemes" title="the vocabulary this room thinks in">themes</button>
         <button class="btn sm" id="ctCatch">＋ catch an idea</button>
       </div>
     </div>
@@ -156,4 +159,51 @@ function openPromoteSeed(id){
     saveNow(); m.remove(); sound('success'); rerender();
     setTimeout(() => openPieceDetail(e.id), 120);
   };
+}
+
+/* ---------- the themes ----------
+   Themes are a fixed vocabulary rather than free tags, which is the
+   whole point of them: they only show a pattern if they stay the same
+   from piece to piece. But a fixed vocabulary still has to be the
+   person's own, so it can be added to, renamed, recoloured and — when
+   nothing is using it — removed. A theme in use cannot be deleted by
+   accident; the count says how many pieces would lose it. */
+function contentThemeUse(id){ return contentPieces().filter(e => (e.extra.content.themes || []).includes(id)).length; }
+function openThemeManager(){
+  const draw = m => {
+    const c = contentState();
+    m.querySelector('#tmHost').innerHTML = `<h2>Themes</h2>
+      <p class="muted" style="font-size:.86rem">The handful of things you keep writing about. Keep the list short and it will tell you something.</p>
+      <div class="ct-themelist">${c.themes.map(t => { const n = contentThemeUse(t.id);
+        return `<div class="ct-themerow" style="--c:${t.color}">
+          <input type="color" class="ct-swatch" value="${esc(t.color)}" data-tmcol="${t.id}" title="colour">
+          <input class="inp" value="${esc(t.name)}" data-tmname="${t.id}" placeholder="name">
+          <input class="inp ct-tdesc" value="${esc(t.description || '')}" data-tmdesc="${t.id}" placeholder="one line about it">
+          <span class="mono">${n || '—'}</span>
+          <button class="del-x inline" data-tmdel="${t.id}" title="${n ? `${n} piece${n === 1 ? '' : 's'} use this` : 'delete'}">×</button>
+        </div>`; }).join('') || '<div class="pk-empty lora">No themes yet.</div>'}</div>
+      <div class="row" style="gap:8px;margin-top:12px">
+        <input class="inp" id="tmNew" placeholder="a new theme" style="flex:1">
+        <button class="btn sm" id="tmAdd">add</button></div>`;
+    const touch = () => { saveNow(); if(parseHash().name === 'content') rerender(); };
+    m.querySelectorAll('[data-tmname]').forEach(i => i.oninput = debounce(() => {
+      const t = c.themes.find(x => x.id === i.dataset.tmname); if(t){ t.name = i.value; touch(); } }, 400));
+    m.querySelectorAll('[data-tmdesc]').forEach(i => i.oninput = debounce(() => {
+      const t = c.themes.find(x => x.id === i.dataset.tmdesc); if(t){ t.description = i.value; touch(); } }, 400));
+    m.querySelectorAll('[data-tmcol]').forEach(i => i.onchange = () => {
+      const t = c.themes.find(x => x.id === i.dataset.tmcol); if(t){ t.color = i.value; touch(); draw(m); } });
+    m.querySelectorAll('[data-tmdel]').forEach(b => b.onclick = () => {
+      const id = b.dataset.tmdel, n = contentThemeUse(id), t = c.themes.find(x => x.id === id);
+      const go = () => { spliceOut(c.themes, x => x.id === id);
+        contentPieces().forEach(e => spliceOut(e.extra.content.themes, x => x === id));
+        touch(); draw(m); sound('click'); };
+      n ? confirmDlg(`${n} piece${n === 1 ? '' : 's'} carry “${esc(t.name)}”. Deleting the theme takes it off ${n === 1 ? 'that piece' : 'all of them'}.`, go) : go(); });
+    const add = () => { const v = m.querySelector('#tmNew').value.trim(); if(!v) return;
+      contentEnsureTheme(v); touch(); draw(m); sound('success');
+      setTimeout(() => m.querySelector('#tmNew')?.focus(), 30); };
+    m.querySelector('#tmAdd').onclick = add;
+    m.querySelector('#tmNew').onkeydown = ev => { if(ev.key === 'Enter') add(); };
+  };
+  const m = openModal('<div id="tmHost"></div>', 'wide');
+  draw(m);
 }

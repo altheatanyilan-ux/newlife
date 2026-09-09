@@ -103,6 +103,7 @@ function pieceContent(e){
   c.pinned    = !!c.pinned;
   c.order     = c.order == null ? Date.now() : c.order;
   c.raw       = c.raw || '';                       // a seed's raw thought
+  c.focusMinutes = +c.focusMinutes || 0;           // time the Planning timer logged against it
   return c;
 }
 function contentPieces(){ return (S.entries || []).filter(e => e.type === 'writing').map(e => { pieceContent(e); return e; }); }

@@ -93,7 +93,8 @@ function pieceDetailHTML(e){
     ${notes ? `<details class="pd-sec pcd-fold"><summary><span class="k mono">notes</span></summary>
       <div class="pcd-preview">${md(notes.slice(0, 600))}</div></details>` : ''}
 
-    <div class="pd-sec"><div class="row between"><span class="k mono">work booked for it</span>
+    <div class="pd-sec"><div class="row between"><span class="k mono">work booked for it${
+      c.focusMinutes ? ` · ${Math.round(c.focusMinutes / 60 * 10) / 10}h focused` : ''}</span>
       <button class="pl-mini" id="pcTaskAdd" title="add a task">＋</button></div>
       ${tasks.length ? `<div class="pl-linked">${tasks.map(x => `<a class="pl-lrow" href="#/planning">
         <span class="pt-prio" style="background:${x.done ? 'var(--sage)' : planPriority(x.priority).color || 'var(--line-2)'}"></span>

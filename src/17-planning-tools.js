@@ -46,7 +46,13 @@ const FocusTimer = (() => {
     if(mins < 1) return;
     planState().focusSessions.push({id:uid(), taskId:st.taskId || null, startedAt:st.startedAt,
       endedAt:new Date().toISOString(), duration:mins, type:'focus', completed:!!completed});
-    if(st.taskId){ const t = planTaskById(st.taskId); if(t){ t.focusTime = (t.focusTime || 0) + mins; t.updatedAt = new Date().toISOString(); } }
+    if(st.taskId){ const t = planTaskById(st.taskId); if(t){ t.focusTime = (t.focusTime || 0) + mins; t.updatedAt = new Date().toISOString();
+      /* a focus session on a task booked for a piece is writing time on
+         that piece: one session, counted in both rooms rather than twice */
+      (t.links?.content || []).forEach(id => { const e = byId(S.entries, id);
+        if(!e || typeof pieceContent !== 'function') return;
+        const c = pieceContent(e); c.focusMinutes = (c.focusMinutes || 0) + mins;
+        if(typeof wsRecordWords === 'function') wsRecordWords(e); }); } }
     saveNow();
   }
   function finish(skipped){

@@ -22,6 +22,7 @@ function bindContent(root){
   if(q) q.oninput = debounce(() => { S._ctQ = q.value.trim(); rerender();
     requestAnimationFrame(() => { const n = $('#ctSearch'); if(n){ n.focus(); n.setSelectionRange(n.value.length, n.value.length); } }); }, 280);
   const catch_ = $('#ctCatch'); if(catch_) catch_.onclick = () => openContentCapture();
+  const th = $('#ctThemes'); if(th) th.onclick = () => openThemeManager();
   $$('[data-ctopen]', root).forEach(b => b.onclick = () => openPieceDetail(b.dataset.ctopen));
   $$('[data-ctadd]', root).forEach(b => b.onclick = () => {
     const stage = b.dataset.ctadd;
