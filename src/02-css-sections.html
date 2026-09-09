@@ -2398,9 +2398,28 @@ select.sm-active{border-color:var(--page-accent);
    the furniture is plain. A sidebar of where work lives, and one panel that
    can be read five different ways. */
 .plan-page{max-width:none}
-.plan-shell{display:grid;grid-template-columns:264px 1fr;gap:22px;align-items:start}
-.pl-side{position:sticky;top:14px;display:flex;flex-direction:column;gap:6px;max-height:calc(100vh - 40px)}
+/* Collapsing the sidebar has to narrow the grid track, not just the aside
+   sitting in it — otherwise the column stays 264px wide, the panel keeps its
+   old width, and all the collapse does is leave a column of dead space where
+   the sidebar used to be. The state goes on the grid parent for that reason. */
+.plan-shell{display:grid;grid-template-columns:264px minmax(0,1fr);gap:22px;align-items:start;
+  transition:grid-template-columns .28s var(--ease)}
+.plan-shell.shut{grid-template-columns:44px minmax(0,1fr)}
+.pl-side{position:sticky;top:14px;display:flex;flex-direction:column;gap:6px;max-height:calc(100vh - 40px);min-width:0}
 .pl-side.collapsed{width:44px;overflow:hidden}
+/* With the names gone there is nothing to align to, so the icons take the
+   middle — and a bare 8px pip is not a control anybody can aim at or read, so
+   the dots grow and every row carries its name as a tooltip. */
+.pl-side.collapsed .pl-item{justify-content:center;padding:7px 0}
+.pl-side.collapsed .pl-dot{width:11px;height:11px}
+.pl-side.collapsed .pl-ico{width:auto;font-size:1rem}
+.pl-side.collapsed .pl-fkids{padding-left:0;margin-left:0;border-left:none}
+.pl-side.collapsed .pl-foot{align-items:center}
+.pl-side.collapsed .pl-group{margin-bottom:10px}
+/* a folder header on the rail is a chevron with nothing to open — the lists
+   inside it are already there, and the chevron only reads as clutter */
+.pl-side.collapsed .pl-fhead{display:none}
+.pl-side.collapsed .pl-empty{display:none}
 .pl-side.collapsed .pl-name,.pl-side.collapsed .pl-n,.pl-side.collapsed .pl-head,
 .pl-side.collapsed .pl-search,.pl-side.collapsed .pl-mini-row{display:none}
 .pl-collapse{align-self:flex-end;background:none;border:none;color:var(--faint);cursor:pointer;font-size:1rem;padding:2px 6px}

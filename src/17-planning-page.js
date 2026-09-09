@@ -18,12 +18,13 @@ function planSetView(v){ S._planView = v; planState().prefs.view = v; saveNow();
 function planSidebarHTML(){
   const p = planState(), sel = planSel();
   const on = (k, i) => sel.kind === k && sel.id === i ? ' on' : '';
-  const listRow = l => `<button class="pl-item${on('list', l.id)}" data-plsel="list:${l.id}" draggable="true" data-pldrag="${l.id}">
+  const listRow = l => `<button class="pl-item${on('list', l.id)}" data-plsel="list:${l.id}" draggable="true" data-pldrag="${l.id}"
+      title="${esc(l.name)}${planListCount(l.id) ? ` · ${planListCount(l.id)} open` : ''}">
     <span class="pl-dot" style="background:${esc(l.color)}"></span><span class="pl-name">${esc(l.name)}</span>
     <span class="pl-n mono">${planListCount(l.id) || ''}</span></button>`;
   const loose = planLists().filter(l => !l.folderId);
   return `<aside class="pl-side${p.prefs.sidebarCollapsed ? ' collapsed' : ''}" id="plSide">
-    <button class="pl-collapse" id="plCollapse" title="collapse the sidebar">${p.prefs.sidebarCollapsed ? '›' : '‹'}</button>
+    <button class="pl-collapse" id="plCollapse" title="${p.prefs.sidebarCollapsed ? 'show the sidebar' : 'collapse the sidebar'}">${p.prefs.sidebarCollapsed ? '›' : '‹'}</button>
     <div class="pl-scroll">
       <input class="inp mono pl-search" id="plSearch" placeholder="search tasks…" value="${esc(S._planQ || '')}">
       <div class="pl-group">
@@ -31,7 +32,7 @@ function planSidebarHTML(){
           <span class="pl-ico">${v.icon}</span><span class="pl-name">${esc(v.name)}</span>
           <span class="pl-n mono">${planSmartCount(v.id) || ''}</span></button>`).join('')}
       </div>
-      <button class="pl-item${on('smart','habits')}" data-plsel="smart:habits"><span class="pl-ico">◍</span><span class="pl-name">Habits</span>
+      <button class="pl-item${on('smart','habits')}" data-plsel="smart:habits" title="Habits"><span class="pl-ico">◍</span><span class="pl-name">Habits</span>
         <span class="pl-n mono">${(S.habits || []).filter(h => !h.archived && !h.negative && habitDue(h, today()) && !habitDone(h, today())).length || ''}</span></button>
 
       <div class="pl-head"><span>Lists</span><button class="pl-mini" id="plNewList" title="new list">＋</button></div>
@@ -39,7 +40,7 @@ function planSidebarHTML(){
         ${p.folders.slice().sort((a,b)=>a.sortOrder-b.sortOrder).map(f => {
           const kids = planLists().filter(l => l.folderId === f.id);
           return `<div class="pl-folder${f.isCollapsed ? ' shut' : ''}" data-plfolder="${f.id}">
-            <button class="pl-item pl-fhead" data-plfold="${f.id}"><span class="pl-ico">${f.isCollapsed ? '▸' : '▾'}</span>
+            <button class="pl-item pl-fhead" data-plfold="${f.id}" title="${esc(f.name)}"><span class="pl-ico">${f.isCollapsed ? '▸' : '▾'}</span>
               <span class="pl-name">${esc(f.name)}</span><span class="pl-n mono">${kids.length}</span></button>
             <div class="pl-fkids">${kids.map(listRow).join('') || '<div class="pl-empty mono">drop a list here</div>'}</div></div>`;
         }).join('')}
@@ -48,19 +49,19 @@ function planSidebarHTML(){
       <button class="pl-mini-row" id="plNewFolder">＋ folder</button>
 
       ${p.tags.length ? `<div class="pl-head"><span>Tags</span></div>
-      <div class="pl-group pl-tags">${p.tags.map(t => `<button class="pl-item${on('tag', t.name)}" data-plsel="tag:${t.name}">
+      <div class="pl-group pl-tags">${p.tags.map(t => `<button class="pl-item${on('tag', t.name)}" data-plsel="tag:${t.name}" title="#${esc(t.name)}">
         <span class="pl-dot" style="background:${esc(t.color)}"></span><span class="pl-name">${esc(t.name)}</span>
         <span class="pl-n mono">${planTagCount(t.name) || ''}</span></button>`).join('')}</div>` : ''}
 
       <div class="pl-head"><span>Filters</span><button class="pl-mini" id="plNewFilter" title="new saved filter">＋</button></div>
-      <div class="pl-group">${p.smartLists.map(sl => `<button class="pl-item${on('smartlist', sl.id)}" data-plsel="smartlist:${sl.id}">
+      <div class="pl-group">${p.smartLists.map(sl => `<button class="pl-item${on('smartlist', sl.id)}" data-plsel="smartlist:${sl.id}" title="${esc(sl.name)}">
         <span class="pl-ico">${esc(sl.icon || '⌗')}</span><span class="pl-name">${esc(sl.name)}</span>
         <span class="pl-n mono">${planApplySmartList(sl).length || ''}</span></button>`).join('')
         || '<div class="pl-empty mono">no saved filters yet</div>'}</div>
     </div>
     <div class="pl-foot">
-      <button class="pl-item" id="plFocusBtn"><span class="pl-ico">◔</span><span class="pl-name">Focus timer</span></button>
-      <button class="pl-item${on('smart','stats')}" data-plsel="smart:stats"><span class="pl-ico">◫</span><span class="pl-name">Statistics</span></button>
+      <button class="pl-item" id="plFocusBtn" title="Focus timer"><span class="pl-ico">◔</span><span class="pl-name">Focus timer</span></button>
+      <button class="pl-item${on('smart','stats')}" data-plsel="smart:stats" title="Statistics"><span class="pl-ico">◫</span><span class="pl-name">Statistics</span></button>
     </div>
   </aside>`;
 }
@@ -223,7 +224,7 @@ routes.planning = function(root, params){
   root.innerHTML = `<div class="page plan-page">
     <div class="page-head"><h1>Planning</h1></div>
     ${planReminderBannerHTML()}
-    <div class="plan-shell">
+    <div class="plan-shell${planState().prefs.sidebarCollapsed ? ' shut' : ''}">
       ${planSidebarHTML()}
       <section class="pl-main" id="plMain">
         ${planHeaderHTML(sel)}

@@ -216,6 +216,42 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
   ok('typing a 3 into the box does not jump to the board',
      typed.v === 'list' && typed.val === 'milk and 3 eggs', JSON.stringify(typed));
 
+  console.log('\n11b. collapsing the sidebar gives its width to the workspace');
+  /* the collapse used to shrink only the aside; the grid track stayed 264px
+     and all it achieved was a column of dead space where the sidebar had been */
+  await page.evaluate(() => { planSetSel('smart','today'); if(planState().prefs.sidebarCollapsed){
+    planState().prefs.sidebarCollapsed = false; saveNow(); rerender(); } });
+  await page.waitForTimeout(700);
+  const geom = () => page.evaluate(() => { const sh = document.querySelector('.plan-shell');
+    return {shut: sh.classList.contains('shut'),
+      side: Math.round(document.querySelector('.pl-side').getBoundingClientRect().width),
+      main: Math.round(document.querySelector('.pl-main').getBoundingClientRect().width),
+      shell: Math.round(sh.getBoundingClientRect().width),
+      track: getComputedStyle(sh).gridTemplateColumns.split(' ')[0]}; });
+  const wasOpen = await geom();
+  await page.evaluate(() => document.querySelector('#plCollapse').click());
+  await page.waitForTimeout(700);
+  const nowShut = await geom();
+  ok('the grid track narrows, not just the aside inside it',
+     nowShut.shut && parseFloat(nowShut.track) < 60 && parseFloat(wasOpen.track) > 200,
+     JSON.stringify({wasOpen, nowShut}));
+  ok('and the workspace takes every pixel the sidebar gave up',
+     nowShut.main - wasOpen.main === wasOpen.side - nowShut.side,
+     `panel gained ${nowShut.main - wasOpen.main}, sidebar released ${wasOpen.side - nowShut.side}`);
+  ok('the shell itself did not change width', nowShut.shell === wasOpen.shell,
+     `${wasOpen.shell} → ${nowShut.shell}`);
+  ok('the rail still names its rows, so a bare dot is identifiable',
+     await page.evaluate(() => { const rows = Array.from(document.querySelectorAll('.pl-side .pl-item'));
+       return rows.length > 4 && rows.every(r => (r.getAttribute('title') || '').trim().length); }),
+     'some rail rows carry no title');
+  await page.evaluate(() => rerender()); await page.waitForTimeout(600);
+  ok('and it stays collapsed across a redraw', (await geom()).shut, 'it sprang back open');
+  await page.evaluate(() => document.querySelector('#plCollapse').click());
+  await page.waitForTimeout(700);
+  const reopened = await geom();
+  ok('reopening puts it back exactly', !reopened.shut && reopened.main === wasOpen.main,
+     JSON.stringify({wasOpen, reopened}));
+
   console.log('\n12. what the other rooms can see');
   await page.evaluate(() => { const t = S.tasks.find(x => !x.done);
     t.links.projects = [S.projects[0].id]; t.links.skills = [S.skills[0].id]; saveNow(); });
