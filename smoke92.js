@@ -29,10 +29,13 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
   ok('the room you are in is marked and sorted up', card && card.here === 'Content', JSON.stringify(card));
   await p.keyboard.press('?'); await p.waitForTimeout(400);
   ok('? closes it again', await p.evaluate(() => !document.querySelector('.keyboard-card')), 'still open');
-  await go('#/writing');
+  /* #/writing is no longer a room of its own — the desk is reached through a
+     piece, so the card has to follow you into one of those. */
+  const wid0 = await p.evaluate(() => contentPieces()[0].id);
+  await go('#/writing/' + wid0);
   await p.keyboard.press('?'); await p.waitForTimeout(500);
   ok('and follows you to another room',
-     (await p.evaluate(() => document.querySelector('.kb-group.here .sc')?.textContent)) === 'The Writing Studio',
+     (await p.evaluate(() => document.querySelector('.kb-group.here .sc')?.textContent)) === 'Writing a piece',
      await p.evaluate(() => document.querySelector('.kb-group.here .sc')?.textContent));
   await p.evaluate(() => closeModals());
 
@@ -123,10 +126,15 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
 
   console.log('\n5. nothing fires while you are typing');
   await go('#/content');
+  await p.evaluate(() => window.__viewBefore = contentView());
   await p.click('#ctSearch'); await p.keyboard.type('note'); await p.waitForTimeout(500);
-  const typed = await p.evaluate(() => ({v: contentView(), val: document.querySelector('#ctSearch')?.value,
-    card: !!document.querySelector('.keyboard-card')}));
-  ok('typing into a field is just typing', typed.val === 'note' && typed.v === 'pipeline' && !typed.card, JSON.stringify(typed));
+  /* what this is actually about: keys typed into a field are letters, not
+     shortcuts. Which view happens to be showing is not the point, and tying
+     the check to it made an unrelated change look like a failure. */
+  const typed = await p.evaluate(() => ({before: window.__viewBefore, v: contentView(),
+    val: document.querySelector('#ctSearch')?.value, card: !!document.querySelector('.keyboard-card')}));
+  ok('typing into a field is just typing',
+     typed.val === 'note' && typed.v === typed.before && !typed.card, JSON.stringify(typed));
 
   console.log('\nerrors:', errs.length ? errs.slice(0,6) : 'none');
   if(errs.length) fails += errs.length;

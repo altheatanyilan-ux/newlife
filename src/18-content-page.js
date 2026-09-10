@@ -54,8 +54,10 @@ routes.content = function(root, params){
   migrateContent();
   /* the address can name a view — #/content/shelf is where the Writing
      Studio's desk used to be, and a good deal still links there */
-  if(CONTENT_DEEP[params[0]]){ S._ctView = CONTENT_DEEP[params[0]]; contentState().prefs.view = S._ctView;
-    consumeHashParam('#/content'); }
+  /* An address that names a view sets it for this visit only. It must not
+     write the saved default: #/writing redirects here, so following one old
+     bookmark would otherwise change what Content opens on for good. */
+  if(CONTENT_DEEP[params[0]]){ S._ctView = CONTENT_DEEP[params[0]]; consumeHashParam('#/content'); }
   const v = contentView();
   registerPageEntry({pageName:'Content', addLabel:'Catch an idea', defaultEntryType:'content',
     hint:'', prefilledFields:{},

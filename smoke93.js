@@ -46,12 +46,16 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
   ok('Content is the pipeline it is — three marks, open to filled',
      (shapes.content.match(/<circle/g) || []).length === 3 && !/19\.5 5\.7/.test(shapes.content), shapes.content.slice(0, 70));
   await page.evaluate(() => { location.hash = '#/compass'; rerender(); }); await page.waitForTimeout(900);
+  /* The Writing Studio stopped being a sidebar room, so the two can no longer
+     be compared there. What still matters is that the icon Content shows in
+     the sidebar is the pipeline and not the pen. */
   const rendered = await page.evaluate(() => {
-    const g = k => document.querySelector(`[data-page="${k}"] .ico svg`)?.innerHTML.replace(/\s+/g,' ').trim();
-    return {c: g('content'), w: g('writing')};
+    const svg = document.querySelector('[data-page="content"] .ico svg');
+    return svg ? {circles: svg.querySelectorAll('circle').length, paths: svg.querySelectorAll('path').length,
+      pen: /M4\.5 19\.5/.test(svg.innerHTML)} : null;
   });
-  ok('and they render that way in the sidebar', rendered.c && rendered.w && rendered.c !== rendered.w,
-     JSON.stringify(rendered).slice(0, 90));
+  ok('and Content renders the pipeline in the sidebar, not a pen',
+     rendered && rendered.circles === 3 && !rendered.pen, JSON.stringify(rendered));
 
   console.log('\n3. the clock opens at the time it is');
   await page.evaluate(() => { location.hash = '#/today'; rerender(); }); await page.waitForTimeout(1100); await clean();
