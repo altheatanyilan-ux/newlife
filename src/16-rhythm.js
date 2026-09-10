@@ -21,7 +21,7 @@ routes.tag = function(root, params){
     <div class="page-head"><h1>#${esc(t)}</h1><div class="sub">${es.length} ${es.length===1?'entry':'entries'} carry this tag${Object.keys(co).length?' — and travel with the tags below':''}.</div></div>
     ${Object.keys(co).length?`<div class="tag-cloud rv" style="margin-bottom:20px">${Object.entries(co).sort((a,b)=>b[1]-a[1]).slice(0,14).map(([x,n])=>`<a class="tag" href="#/tag/${encodeURIComponent(x)}" style="--n:${Math.min(n,5)}">#${esc(x)}<span class="n">${n}</span></a>`).join('')}</div>`:''}
     <section class="section rv">${es.map(e=>entryCard(e)).join('')||'<div class="empty">Nothing carries this tag yet.</div>'}</section>
-    <div class="row" style="margin-top:24px"><a class="btn sm ghost" href="#/journals">All journals</a><a class="btn sm ghost" href="#/writing">Write from this tag →</a></div>
+    <div class="row" style="margin-top:24px"><a class="btn sm ghost" href="#/journals">All journals</a><a class="btn sm ghost" href="#/content/shelf">Write from this tag →</a></div>
   </div>`;
 };
 

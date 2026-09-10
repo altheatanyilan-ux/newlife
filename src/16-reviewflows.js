@@ -177,7 +177,7 @@ function flowAnnual(){
     {title:"Write the year's narrative.", hint:'It saves as a reflection you can tag to the stage it belongs to.',
      body: () => `<div class="row"><button class="btn sm primary" data-flowquick="reflection">write it</button></div>`},
     {title:'Mint the year into the Timeline.', hint:'A sub-stage for what this year was.',
-     body: () => `<div class="row"><button class="btn sm ghost" data-flowgo="#/timeline">open the Timeline</button></div>`},
+     body: () => `<div class="row"><button class="btn sm ghost" data-flowgo="#/journals/timeline">open the Timeline</button></div>`},
     {title:"Re-read what you wrote a year ago.", hint:'Which came closer? Which drifted, and did you choose that?',
      body: () => { const y = addDays(today(), -365);
        const es = S.entries.filter(e => { const d = (e.occurredAt||e.createdAt||'').slice(0,10); return d >= addDays(y,-14) && d <= addDays(y,14) && (e.body||'').length > 60; }).slice(0,3);

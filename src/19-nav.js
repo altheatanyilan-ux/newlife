@@ -49,36 +49,40 @@ const NAV_PAGES = {
   today:    {label:'Today',            short:'Today',    ico:NAV_ICONS.today,    route:'#/today'},
   journals: {label:'Journals',         short:'Journal',  ico:NAV_ICONS.journals, route:'#/journals'},
   projects: {label:'Projects',         short:'Projects', ico:NAV_ICONS.projects, route:'#/projects'},
-  writing:  {label:'Writing Studio',     short:'Writing', ico:NAV_ICONS.writing,  route:'#/writing'},
+  writing:  {label:'Writing',          short:'Writing',  ico:NAV_ICONS.writing,  route:'#/content/shelf'},
   people:   {label:'People',           short:'People',   ico:NAV_ICONS.people,   route:'#/people'},
   finance:  {label:'Finance',          short:'Money',    ico:NAV_ICONS.finance,  route:'#/finance'},
   commonplace:{label:'Library',        short:'Library',  ico:NAV_ICONS.commonplace, route:'#/commonplace'},
   content:  {label:'Content',          short:'Content',  ico:NAV_ICONS.content,  route:'#/content'},
   values:   {label:'Values',           short:'Values',   ico:NAV_ICONS.values,   route:'#/values'},
   skills:   {label:'Skill Tree',       short:'Skills',   ico:NAV_ICONS.skills,   route:'#/skills'},
-  timeline: {label:'Timeline',         short:'Timeline', ico:NAV_ICONS.timeline, route:'#/timeline'},
+  timeline: {label:'Timeline',         short:'Timeline', ico:NAV_ICONS.timeline, route:'#/journals/timeline'},
 };
-/* The daily rooms sit above the zones, unlabelled — you do not need a heading
-   to tell you what Today is for. Writing Studio sits below everything,
-   always, because it is where you go when the rest of the house is noise. */
-const NAV_TOP = ['compass','today','planning','journals'];
-const NAV_PINNED = ['writing'];
+/* The three rooms you are in most days sit above everything, unlabelled and
+   not foldable — you do not need a heading to tell you what Today is for.
+   Below them, two zones: what you are making, and who you are. */
+const NAV_TOP = ['today','planning','compass'];
+const NAV_PINNED = [];
 const NAV_DEFAULT = {
-  becoming:  ['values','skills','projects','finance','commonplace','content'],
-  story:     ['people','timeline'],
+  create:   ['content','projects','finance','skills','commonplace'],
+  identity: ['values','journals','people'],
   standalone:[],
 };
 const NAV_ZONES = [
-  {id:'becoming', label:'Becoming', hint:'long-term growth, identity',       accent:'var(--ment)'},
-  {id:'story',    label:'Story',    hint:'relationships, memory, meaning',   accent:'var(--rose)'},
+  {id:'create',   label:'Create',   hint:'what you are making',        accent:'var(--ment)'},
+  {id:'identity', label:'Identity', hint:'who you are, and have been', accent:'var(--rose)'},
 ];
 const NAV_ZONE_IDS = [...NAV_ZONES.map(z => z.id), 'standalone'];
-/* reachable by route, but never a sidebar entry: the Import Station is
-   reached from inside Settings, not from a room of its own */
-const NAV_UNLISTED = ['import'];
+/* Reachable by route, never a sidebar entry. The Timeline and the Writing
+   Studio are here because they stopped being rooms of their own: the Timeline
+   is the second view of Journals, and the writing desk is reached from a piece
+   in Content. Their addresses still answer, because a great deal links to
+   them. Settings moved to the buttons in the top right, and the Import
+   Station is reached from inside Settings. */
+const NAV_UNLISTED = ['import','settings','writing','timeline'];
 /* pages that are placed by hand and must never be swept into a zone */
 const NAV_FIXED = new Set([...NAV_TOP, ...NAV_PINNED, ...NAV_UNLISTED]);
-const MOBILE_PRIMARY = ['today','planning','journals','projects','values'];
+const MOBILE_PRIMARY = ['today','planning','content','journals','values'];
 function navConfig(){
   if(!S.settings.nav) S.settings.nav = JSON.parse(JSON.stringify(NAV_DEFAULT));
   const n = S.settings.nav;
@@ -86,13 +90,14 @@ function navConfig(){
      exist. Rebuild it against the current one rather than trying to patch it:
      the arrangement is a preference, not data anybody would mourn. */
   const known = new Set(Object.keys(NAV_PAGES));
+  /* A nav saved under the old zone names (Becoming / Story) describes a
+     shape that no longer exists. Sweeping its pages into 'standalone' would
+     leave every room in one unnamed heap, so start again from the defaults
+     instead: the arrangement is a preference, not data anybody would mourn. */
   const legacy = Object.keys(n).some(z => !NAV_ZONE_IDS.includes(z));
-  if(legacy){ const keep = {}; NAV_ZONE_IDS.forEach(z => keep[z] = []);
-    Object.entries(n).forEach(([z, list]) => { if(!Array.isArray(list)) return;
-      const target = NAV_ZONE_IDS.includes(z) ? z : 'standalone';
-      list.forEach(k => { if(known.has(k) && !NAV_FIXED.has(k)) keep[target].push(k); }); });
-    NAV_ZONE_IDS.forEach(z => n[z] = keep[z]);
-    Object.keys(n).forEach(z => { if(!NAV_ZONE_IDS.includes(z)) delete n[z]; });
+  if(legacy){
+    Object.keys(n).forEach(z => delete n[z]);
+    NAV_ZONE_IDS.forEach(z => n[z] = [...(NAV_DEFAULT[z] || [])]);
   }
   NAV_ZONE_IDS.forEach(z => { if(!Array.isArray(n[z])) n[z] = [...(NAV_DEFAULT[z] || [])]; });
   /* drop anything unknown or hand-placed, and de-duplicate across zones */
@@ -116,10 +121,9 @@ function renderNav(){
       ${NAV_ZONES.map(z => `<div class="zone ${collapsedZones[z.id]?'collapsed':''}" data-zone="${z.id}" style="--z:${z.accent}"><button class="zone-h" data-zoneh="${z.id}" title="${esc(z.hint)}"><span class="zone-lbl">${esc(z.label)}</span><span class="zone-chev">›</span></button><div class="zone-pages">${n[z.id].map(k => navLink(k, z.accent)).join('')}</div></div>`).join('')}
       ${n.standalone.length ? `<div class="nav-sep"></div>${n.standalone.map(k => navLink(k, 'var(--terra)')).join('')}` : ''}
     </nav>
-    <nav class="nav nav-foot">
+    ${NAV_PINNED.filter(k => NAV_PAGES[k]).length ? `<nav class="nav nav-foot">
       ${NAV_PINNED.filter(k => NAV_PAGES[k]).map(k => navLink(k, 'var(--terra)')).join('')}
-      <a href="#/settings" data-page="settings" data-tip="Settings" style="--z:var(--terra)"><span class="ico">${NAV_ICONS.settings}</span><span class="lbl">Settings</span></a>
-    </nav>`;
+    </nav>` : ''}`;
   sb.querySelector('#sbToggle').onclick = () => { lsSet('sidebarCollapsed', !lsGet('sidebarCollapsed', false)); renderNav(); };
   sb.querySelectorAll('[data-zoneh]').forEach(b => b.onclick = () => { const c = lsGet('navZoneCollapsed', {}); c[b.dataset.zoneh] = !c[b.dataset.zoneh]; lsSet('navZoneCollapsed', c); renderNav(); });
   // mobile bottom bar
@@ -144,8 +148,8 @@ NAV_PAGES.import = {label:'Import Station', short:'Import', ico:NAV_ICONS.import
 /* ---------- Compass: life at a glance — today's focus, the living house, long-term panels ---------- */
 /* which level of the hierarchy each room mostly feeds — the annotation the
    house carries, so the map and the pyramid are reading the same building */
-const HOUSE_LEVEL = {today:1, finance:2, people:3, skills:4, projects:6, commonplace:5, journals:5, writing:4, values:7, timeline:5, content:6};
-const HOUSE_EDGES = [['timeline','values','retrospective readings fill the values history'],['projects','skills','projects exercise skills'],['journals','timeline','memories become formative events'],['today','values','the biggest values gap is a daily signal'],['today','journals','the day is where most entries start'],['commonplace','journals','quotes are journal entries with a source'],['finance','projects','a project that earns is an income stream'],['people','timeline','the people in a chapter are part of it'],['commonplace','content','what you read becomes what you write'],['journals','content','a journal entry can be promoted to a piece']];
+const HOUSE_LEVEL = {today:1, finance:2, people:3, skills:4, projects:6, commonplace:5, journals:5, values:7, content:6};
+const HOUSE_EDGES = [['journals','values','retrospective readings fill the values history'],['projects','skills','projects exercise skills'],['today','values','the biggest values gap is a daily signal'],['today','journals','the day is where most entries start'],['commonplace','journals','quotes are journal entries with a source'],['finance','projects','a project that earns is an income stream'],['people','journals','the people in a chapter are part of it'],['commonplace','content','what you read becomes what you write'],['journals','content','a journal entry can be promoted to a piece'],['content','projects','a piece can be a project of its own']];
 function houseStats(){
   const T = today(); const n = navConfig();
   const due = S.habits.filter(h=>!h.archived&&!h.negative&&habitDue(h,T)); const done = due.filter(h=>habitDone(h,T)).length;
@@ -157,7 +161,7 @@ function houseStats(){
   const stat = {
     today:    {line:`${c?.mood?'checked in':'not checked in'} · rings ${done}/${due.length}`, ok:!!c?.mood, cadence:'daily', tip:`${c?.intention?'Intention: '+c.intention:'No intention set yet'}${rem?` · ${rem} reminder${rem>1?'s':''} waiting`:''}`},
     lifetape: {line:`${done}/${due.length} rings today`, ok:due.length>0&&done===due.length, cadence:'daily', tip:`${rehearsalDoneToday()?'Morning Theatre practised':'Morning Theatre not yet practised'} · weekly review ${relDays(daysSince(S.reviews.lastWeekly))}`},
-    journals: {line:`${j7} entr${j7===1?'y':'ies'} this week`, ok:j7>0, cadence:'daily', tip:`${S.entries.length} entries across ${S.journals.length} journals`},
+    journals: {line:`${j7} entr${j7===1?'y':'ies'} this week`, ok:j7>0, cadence:'daily', tip:`${S.entries.length} entries across ${S.journals.length} journals · ${S.stages.length} stages on the timeline`},
     projects: {line:`${active.length} active · ${nods7} nods / 7d`, ok:cold===0, cadence:'daily', tip:cold?`${cold} active project${cold>1?'s':''} without a nod this week`:'every active project nodded this week'},
     values:   {line:`snapshot ${snapDays===null?'never':snapDays===0?'today':snapDays+'d ago'}`, ok:snapDays!==null&&snapDays<=7, cadence:'weekly', tip:gaps[0]?`Biggest gap: ${gaps[0].name} (${gaps[0].gap>0?'+':''}${gaps[0].gap})`:''},
     skills:   {line:`${hrs30.toFixed(0)}h / 30d${atro?` · ${atro} atrophying`:''}`, ok:atro===0, cadence:'monthly', tip:`${S.skills.filter(s=>!s.planned).length} skills held, ${S.skills.filter(s=>s.planned).length} planned${milestonesDueSoon(30).length?` · ${milestonesDueSoon(30).length} milestone${milestonesDueSoon(30).length>1?'s':''} within 30 days`:''}`},
@@ -179,7 +183,7 @@ function houseStats(){
 }
 function houseSVG(st){
   const n = navConfig(); const keys = NAV_ZONE_IDS.flatMap(z => n[z]).filter(k => NAV_PAGES[k] && st.stat[k]);
-  const W = 760, H = 460, cx = W/2, cy = H/2, R = 170; const pos = {}; const zoneColor = k => { const z = st.zonesOf(k); return z==='present' ? 'var(--sage)' : z==='becoming' ? 'var(--ment)' : z==='story' ? 'var(--rose)' : 'var(--terra)'; };
+  const W = 760, H = 460, cx = W/2, cy = H/2, R = 170; const pos = {}; const zoneColor = k => { const z = st.zonesOf(k); return z==='present' ? 'var(--sage)' : z==='create' ? 'var(--ment)' : z==='identity' ? 'var(--rose)' : 'var(--terra)'; };
   keys.forEach((k,i) => { const a = -Math.PI/2 + i*2*Math.PI/keys.length; pos[k] = [cx + Math.cos(a)*R, cy + Math.sin(a)*R]; });
   let g = '';
   HOUSE_EDGES.forEach(([a,b,label],i) => { if(!pos[a]||!pos[b]) return; const [x1,y1]=pos[a],[x2,y2]=pos[b]; const mx=(x1+x2)/2+(cx-(x1+x2)/2)*.25, my=(y1+y2)/2+(cy-(y1+y2)/2)*.25; g += `<path class="hedge" d="M${x1},${y1} Q${mx},${my} ${x2},${y2}" data-a="${a}" data-b="${b}" data-label="${esc(label)}"/>`; });

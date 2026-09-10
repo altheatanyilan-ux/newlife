@@ -49,9 +49,13 @@ function contentPipelineHTML(){
 }
 
 /* ---------- the page ---------- */
+const CONTENT_DEEP = {stats:'stats', shelf:'library', library:'library', calendar:'calendar', pipeline:'pipeline'};
 routes.content = function(root, params){
   migrateContent();
-  if(params[0] === 'stats') S._ctView = 'stats';
+  /* the address can name a view — #/content/shelf is where the Writing
+     Studio's desk used to be, and a good deal still links there */
+  if(CONTENT_DEEP[params[0]]){ S._ctView = CONTENT_DEEP[params[0]]; contentState().prefs.view = S._ctView;
+    consumeHashParam('#/content'); }
   const v = contentView();
   registerPageEntry({pageName:'Content', addLabel:'Catch an idea', defaultEntryType:'content',
     hint:'', prefilledFields:{},
@@ -72,6 +76,7 @@ routes.content = function(root, params){
       </div>
       <div class="row" style="gap:8px;margin-left:auto">
         <input class="inp mono ct-search" id="ctSearch" placeholder="search pieces…" value="${esc(S._ctQ || '')}">
+        <a class="btn sm ghost" href="#/writing/compost" title="fragments that have not become anything yet">🌱 compost (${S.compost.length})</a>
         <button class="btn sm ghost" id="ctThemes" title="the vocabulary this room thinks in">themes</button>
         <button class="btn sm" id="ctCatch">＋ catch an idea</button>
       </div>

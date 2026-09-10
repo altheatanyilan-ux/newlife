@@ -31,10 +31,14 @@ const SHORTCUT_GROUPS = [
     ['Esc',    'Close what is open'],
     ['← →',    'Step through the Timeline stages'],
   ]},
-  {scope:'content', name:'Content', line:[['1–4','switch view'],['N','catch an idea'],['W','open it in the Writing Studio']], rows:[
+  {scope:'content', name:'Content', line:[['1–4','switch view'],['N','catch an idea'],['W','open it and write']], rows:[
     ['1 2 3 4', 'Pipeline · Calendar · Shelf · Numbers'],
     ['N',       'Catch an idea'],
-    ['W',       'Open the piece in the Writing Studio'],
+    ['W',       'Open the piece and write'],
+  ]},
+  {scope:'journals', name:'Journals', line:[['1 2','entries · timeline'],['N','new entry']], rows:[
+    ['1  2', 'Entries · Timeline'],
+    ['N',    'New entry in this journal'],
   ]},
   {scope:'planning', name:'Planning', line:[['1–5','switch view'],['N','add a task'],['F','focus timer'],['T','today']], rows:[
     ['1 … 5', 'List · Calendar · Board · Matrix · Timeline'],
@@ -45,7 +49,7 @@ const SHORTCUT_GROUPS = [
     ['S',     'Statistics'],
     ['E',     'Open the first task'],
   ]},
-  {scope:'writing', name:'The Writing Studio', line:[['1–4','switch view'],['N','new document'],['R','readability'],['⌥⇧1','mark a passage']],
+  {scope:'writing', name:'Writing a piece', line:[['1–4','switch view'],['N','new document'],['R','readability'],['⌥⇧1','mark a passage']],
    rows:[
     ['1 2 3 4', 'Editor · Corkboard · Outliner · Manuscript'],
     ['N',       'New document'],

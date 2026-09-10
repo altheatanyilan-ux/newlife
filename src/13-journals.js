@@ -1,7 +1,41 @@
 /* ============================================================
    6. COMMONPLACE BOOK — journals
    ============================================================ */
+/* Journals is now two ways of looking at the same entries. What was the
+   Timeline is the second: the stages an entry belongs to, and the threads
+   that run between them. It is not a separate room because it was never
+   separate material — the memories on the spine are journal entries filed
+   to a stage. */
+const JOURNAL_VIEWS = [['entries','✍','Journals'], ['timeline','◷','Timeline']];
+/* <!--tools--> is where the Timeline view drops its two toggles, so the page
+   keeps one banner instead of growing a second empty one beneath it. */
+function journalsHeadHTML(view){
+  return `<div class="page-head jr-head"><h1>Journals</h1>
+    <div class="jr-views">${JOURNAL_VIEWS.map(([k, ic, n]) =>
+      `<button class="${view === k ? 'on' : ''}" data-jrview="${k}" title="${n}">${ic} <span>${n}</span></button>`).join('')}</div>
+    <!--tools--></div>`;
+}
+/* 1 and 2 switch the view, the same grammar every other room uses. */
+document.addEventListener('keydown', ev => {
+  if(parseHash().name !== 'journals') return;
+  if(ev.metaKey || ev.ctrlKey || ev.altKey) return;
+  if(typeof isTyping === 'function' && isTyping()) return;
+  if(document.querySelector('#modals .overlay, #panel')) return;
+  if(ev.code === 'Digit1'){ ev.preventDefault(); navigate('#/journals/' + (S._journal || 'reflection')); }
+  else if(ev.code === 'Digit2'){ ev.preventDefault(); navigate('#/journals/timeline'); }
+}, true);
+function bindJournalViews(root){
+  $$('[data-jrview]', root).forEach(b => b.onclick = () => {
+    navigate(b.dataset.jrview === 'timeline' ? '#/journals/timeline' : '#/journals/' + (S._journal || 'reflection'));
+  });
+}
 routes.journals = function(root, params){
+  if(params[0] === 'timeline'){
+    renderTimeline(root, params[1] === 'threads' ? 'threads' : 'stages',
+      {heading: journalsHeadHTML('timeline'), base: '#/journals/timeline'});
+    bindJournalViews(root);
+    return;
+  }
   const type = params[0] || S._journal || 'reflection'; S._journal = type;
   const j = S.journals.find(x=>x.type===type) || S.journals[0];
   if(type === 'letter') registerPageEntry({pageName:'Journals', addLabel:'Seal a letter', defaultEntryType:'letter', prefilledFields:{}, options:[{icon:'✉', label:'Seal a letter', desc:'To be opened on a date you choose.', run:()=>openLetterModal()}]});
@@ -15,7 +49,7 @@ routes.journals = function(root, params){
   const otd = onThisDay().filter(e=>e.type===type);
   const dimOpts = [...S.stages.map(s=>[s.id,s.char+' '+s.name]),...S.threads.map(t=>[t.id,'thread · '+t.name]),...S.values.map(v=>[v.id,'value · '+v.name]),...S.skills.map(s=>[s.id,'skill · '+s.name]),...S.projects.map(p=>[p.id,'project · '+p.name])];
   root.innerHTML = `<div class="page">
-    <div class="page-head"><h1>Journals</h1></div>
+    ${journalsHeadHTML('entries')}
     <div class="journal-layout">
       <div class="jnav">${S.journals.map(x=>`<button class="${x.type===type?'active':''}" data-go="#/journals/${x.type}"><span>${typeIcon(x.type)} ${esc(x.name)}</span><span class="n">${S.entries.filter(e=>e.type===x.type).length}</span></button>`).join('')}<button id="jNew" style="color:var(--faint)">+ new journal type</button><button id="jManage" style="color:var(--faint);font-size:.75rem">manage journals…</button></div>
       <div>
@@ -38,6 +72,7 @@ routes.journals = function(root, params){
   $('#jManage').onclick = () => manageJournalsModal();
   $('#jNew').onclick = () => { const m = openModal(`<h2>A new journal</h2><div class="field"><label>Name</label><input class="inp" id="jnName" placeholder="e.g. Field Notes"></div><div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary" id="jnSave">Create</button></div>`,'narrow'); m.querySelector('#jnSave').onclick = () => { const n = m.querySelector('#jnName').value.trim(); if(!n) return; const t = n.toLowerCase().replace(/[^a-z0-9]+/g,'-'); if(!S.journals.find(x=>x.type===t)){ S.journals.push({type:t,name:n}); ENTRY_TYPES.push([t,n,'▫']); saveNow(); } m.remove(); navigate('#/journals/'+t); }; };
   root.querySelectorAll('[data-dictsym]').forEach(b => b.onclick = () => { S._jq = b.dataset.dictsym; rerender(); });
+  bindJournalViews(root);
 };
 
 function deleteJournalType(t){

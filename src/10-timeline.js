@@ -44,21 +44,29 @@ function deleteStage(st, node, after){
     return () => { back(); restoreLinks(); };
   }});
 }
-routes.timeline = function(root, params){
+/* The Timeline is no longer a room of its own — it is the second way of
+   looking at the Journals, which is where the same entries already live. The
+   drawing is unchanged; only the heading above it and the addresses of its
+   two tabs move, so both are passed in. #/timeline still answers, and lands
+   in the same place, because a lot of the house links to it. */
+function renderTimeline(root, tab, {heading = '', base = '#/timeline'} = {}){
   registerPageEntry({pageName:'Timeline', addLabel:'New memory', defaultEntryType:'memory', prefilledFields:{}, hint:'Open a stage to file it there directly.', options:[{label:'New memory', run:()=>EntryActions.memory()}]});
-  const tab = params[0]==='threads' ? 'threads' : 'stages';
   /* Threads & Tensions is its own room. The stage spine, the ribbons beneath it
      and the two toggles that govern them all belong to the stage view, so on
      the other tab they are not merely inert — they are not drawn at all. */
   const stageView = tab === 'stages';
   const counts = S.stages.map(s=>stageEntries(s).length); const maxc = Math.max(...counts,1);
-  root.innerHTML = `<div class="page">
-    <div class="page-head tl-head"><div><h1>Timeline</h1></div>
-      ${stageView ? `<div class="row">
+  /* The two toggles belong to the stage view. When this is drawn inside the
+     Journals page they ride in its header rather than in a second banner of
+     their own — one page, one banner. */
+  const tools = stageView ? `<div class="row tl-tools">
         <label class="toggle ${S.settings.feltTime?'on':''}" id="feltToggle"><span>clock time</span><span class="sw"></span><span>felt time</span></label>
         <label class="toggle ${S.settings.ribbons?'on':''}" id="ribToggle"><span class="sw"></span><span>threads</span></label>
-      </div>` : ''}</div>
-    <div class="tabs"><button class="${tab==='stages'?'active':''}" data-go="#/timeline">Stages</button><button class="${tab==='threads'?'active':''}" data-go="#/timeline/threads">Threads &amp; Tensions</button></div>
+      </div>` : '';
+  root.innerHTML = `<div class="page">
+    ${heading ? heading.replace('<!--tools-->', tools)
+      : `<div class="page-head tl-head"><div><h1>Timeline</h1></div>${tools}</div>`}
+    <div class="tabs"><button class="${tab==='stages'?'active':''}" data-go="${base}">Stages</button><button class="${tab==='threads'?'active':''}" data-go="${base}/threads">Threads &amp; Tensions</button></div>
     ${stageView ? `<div class="spine-wrap"><div class="spine" id="spine">
       <svg class="curve" viewBox="0 0 1000 120" preserveAspectRatio="none"><path d="M0,60 C250,20 750,100 1000,60" fill="none" stroke="var(--line-2)" stroke-width="1.5"/></svg>
       ${S.stages.map((s,i)=>`<div class="tile ${s.notyet?'notyet':''}" data-stage="${s.id}" style="--c:${s.hue};${S.settings.feltTime?`flex:${(.6 + counts[i]/maxc*1.4).toFixed(2)} 1 0`:''}" tabindex="0">
@@ -86,6 +94,10 @@ routes.timeline = function(root, params){
   const body = $('#tlBody');
   if(tab==='threads') renderThreadsTab(body); else body.innerHTML = `<div class="section rv" style="max-width:var(--content)"><span class="sc">How to read this room</span><p class="muted">Hover a stage to feel it come forward. Click to walk in. The coloured ribbons beneath are your Threads — recurring motifs that run through many stages, thickening where they had many entries and thinning where they went quiet. Active threads continue, dashed, toward the Vision Tree. Toggle <em>felt time</em> to let dense stages stretch and thin ones compress.</p></div>`;
   reveal(body);
+}
+/* the old address, kept because the rest of the house still uses it */
+routes.timeline = function(root, params){
+  navigate(params[0] === 'threads' ? '#/journals/timeline/threads' : '#/journals/timeline');
 };
 
 function renderThreadsTab(body){
@@ -154,7 +166,7 @@ function formativeCardHTML(e){
 }
 
 routes.stage = function(root, params){
-  const s = byId(S.stages, params[0]); if(!s){ navigate('#/timeline'); return; }
+  const s = byId(S.stages, params[0]); if(!s){ navigate('#/journals/timeline'); return; }
   S._lastStage = s.id;
   registerPageEntry({pageName:'Timeline', addLabel:`New memory in ${s.name}`, defaultEntryType:'memory', prefilledFields:{links:{stages:[s.id]}}, options:[{label:'New memory', run:(pre)=>EntryActions.memory(pre)}]});
   const es = sortEntries(stageEntries(s)); const memories = es.filter(e=>e.type==='memory');
@@ -224,7 +236,7 @@ routes.stage = function(root, params){
   $$('[data-ssdel]',root).forEach(b => b.onclick = () => { const ss = s.substages[+b.dataset.ssdel]; requestDelete({label: ss.name, node: b.closest('.substage'), remove: () => { const touched = S.entries.filter(e => (e.links?.substages||[]).includes(ss.id)); const rl = snapshotLinks(touched); touched.forEach(e => e.links.substages = e.links.substages.filter(x => x !== ss.id)); const back = spliceOut(s.substages, x => x === ss); return () => { back(); rl(); }; }}); });
   $$('[data-verdel]',root).forEach(b => b.onclick = () => { const v = s.narrativeHistory[+b.dataset.verdel]; requestDelete({label: `Version from ${fmtDate(v.date,'med')}`, node: b.closest('.v'), remove: () => spliceOut(s.narrativeHistory, x => x === v)}); });
   $('#charEdit') && ($('#charEdit').onclick = () => { const n = root.querySelector('.han .ed'); if(n) beginEdit(n); });
-  $('#delStage').onclick = () => deleteStage(s, null, () => navigate('#/timeline'));
+  $('#delStage').onclick = () => deleteStage(s, null, () => navigate('#/journals/timeline'));
   $('#stageHue').onchange = e => { s.hue = e.target.value; saveNow(); rerender(); };
   const moveStage = d => { const i = S.stages.indexOf(s), j = i + d; if(j < 0 || j >= S.stages.length) return; [S.stages[i], S.stages[j]] = [S.stages[j], S.stages[i]]; S.stages.forEach((x,k) => x.num = k+1); saveNow(); rerender(); };
   $('#stageUp').onclick = () => moveStage(-1); $('#stageDown').onclick = () => moveStage(1);

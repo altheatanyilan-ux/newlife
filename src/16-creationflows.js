@@ -366,7 +366,7 @@ function guidedNewStage(){
     const ny = S.stages.findIndex(x => x.notyet);
     if(ny >= 0) S.stages.splice(ny, 0, s); else S.stages.push(s);
     renumberStages(); saveNow(); sound('success');
-    if(currentRoute !== 'timeline') navigate('#/timeline'); else rerender();
+    if(parseHash().name !== 'journals') navigate('#/journals/timeline'); else rerender();
     toast(`"${s.name}" added to your Timeline.`);
   });
 }

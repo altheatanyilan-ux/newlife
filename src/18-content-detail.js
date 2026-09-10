@@ -117,7 +117,7 @@ function pieceDetailHTML(e){
 /* the same source names the trail uses, so one vocabulary covers both */
 const CONTENT_SOURCE_ICON = {journal_entry:'✍', timeline_event:'◷', library_media:'▤', library_quote:'❝',
   library_note:'▤', value_entry:'◈', skill_milestone:'⋔', project_update:'▲', book_vault_quote:'❞'};
-const CONTENT_SOURCE_PAGE = {journal_entry:'#/journals', timeline_event:'#/timeline',
+const CONTENT_SOURCE_PAGE = {journal_entry:'#/journals', timeline_event:'#/journals/timeline',
   library_media:'#/commonplace', library_quote:'#/commonplace', library_note:'#/commonplace',
   value_entry:'#/values', skill_milestone:'#/skills', project_update:'#/projects'};
 function contentSourceHref(l){ return CONTENT_SOURCE_PAGE[l.sourceType] || '#/content'; }

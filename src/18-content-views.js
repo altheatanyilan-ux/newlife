@@ -293,6 +293,10 @@ function contentStatsHTML(){
       ${ctFigHTML([[streak.cur,'day streak'],[streak.best,'your best']])}
       ${heatGrid(lastDays(182), 26, d => days.has(d) ? 'l3' : 'l0', 'heat ct-heat')}</div>
 
+    <div class="ct-scard wide"><div class="k mono">what your writing keeps reaching for</div>
+      <div class="faint" style="font-size:.76rem;margin:-4px 0 8px">Threads, values and works that turn up across many pieces — the shape of the writing rather than the shape of the pipeline.</div>
+      ${typeof crossPollinationHTML === 'function' ? crossPollinationHTML() : ''}</div>
+
     <div class="ct-scard wide"><div class="k mono">left alone too long</div>
       ${stale.length ? stale.map(e => { const st = contentStage(e.extra.content.stage);
         return `<button class="ct-nrow" data-ctopen="${e.id}" style="--c:${st.color}">

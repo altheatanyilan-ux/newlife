@@ -44,11 +44,11 @@ function newWriting(){
 /* ---------- the Compost Heap — a frictionless parking lot for raw material ---------- */
 function addCompost(text, tags=[]){ if(!text.trim()) return; S.compost.unshift({id:uid(), text:text.trim(), date:today(), tags:normTags(tags), projectId:null}); saveNow(); }
 function renderCompostPage(root){
-  registerPageEntry({pageName:'Writing Studio', addLabel:'Catch a fragment', defaultEntryType:'compost', prefilledFields:{}, options:[{icon:'🌱', label:'Catch a fragment', desc:'A sentence, an image, an overheard line.', run:()=>{ const t = prompt('What just occurred to you?'); if(t) addCompost(t); rerender(); }}]});
+  registerPageEntry({pageName:'Content', addLabel:'Catch a fragment', defaultEntryType:'compost', prefilledFields:{}, options:[{icon:'🌱', label:'Catch a fragment', desc:'A sentence, an image, an overheard line.', run:()=>{ const t = prompt('What just occurred to you?'); if(t) addCompost(t); rerender(); }}]});
   const q = (S._compQ||'').toLowerCase();
   const list = S.compost.filter(f => !q || f.text.toLowerCase().includes(q) || (f.tags||[]).some(t=>t.includes(q)));
   root.innerHTML = `<div class="page">
-    <div class="row between rv" style="margin-bottom:16px"><a class="btn sm ghost" href="#/writing">‹ the desk</a><h1 style="margin:0">The Compost Heap</h1><span></span></div>
+    <div class="row between rv" style="margin-bottom:16px"><a class="btn sm ghost" href="#/content/shelf">‹ Content</a><h1 style="margin:0">The Compost Heap</h1><span></span></div>
     
     <div class="row rv" style="gap:8px;margin-bottom:16px"><input class="inp" id="compIn" placeholder="Catch it before it's gone…" style="flex:1"><button class="btn primary" id="compAdd">Catch it</button></div>
     <input class="inp rv" id="compQ" placeholder="search fragments" value="${esc(S._compQ||'')}" style="max-width:320px;margin-bottom:16px">
@@ -248,37 +248,21 @@ function exportWriting(proj, format){
 }
 
 /* ---------- The Desk — project board ---------- */
+/* The desk is gone. It was a second board of the same pieces the Content
+   room already boards — a status kanban beside a stage pipeline, a published
+   archive beside a Published column, a writing heatmap beside the one in
+   Numbers. What it uniquely held, Cross-pollination, moved to Content's
+   Numbers view, and the compost heap is reached from the Shelf.
+
+   What remains here is the part that was never duplicated: the desk you
+   write at. It keeps its address, so every link into a draft still works. */
 routes.writing = function(root, params){
   migrateWriting();
-  registerPageEntry({pageName:'Writing Studio', addLabel:'New project', defaultEntryType:'writing', prefilledFields:{}, options:[{icon:'✒', label:'New project', desc:'Name the premise; the drawer gathers the rest.', run:()=>{ const e = newWriting(); location.hash = '#/writing/'+e.id; }}]});
   if(params[0] === 'compost') return renderCompostPage(root);
   if(params[0]) return renderWritingDesk(root, params[0]);
-  const view = S._wView || 'board';
-  const ws = writings();
-  const published = ws.filter(e => e.extra.publication?.status === 'published');
-  root.innerHTML = `<div class="page">
-    <div class="page-head"><h1>Writing Studio</h1></div>
-    <div class="row rv" style="gap:8px;margin-bottom:16px"><a class="btn sm ghost" href="#/writing/compost">🌱 Compost Heap (${S.compost.length})</a><div class="view-toggle">${[['board','▥ Board'],['list','☰ List']].map(([k,l])=>`<button class="${view===k?'on':''}" data-wv="${k}">${l}</button>`).join('')}</div></div>
-    ${ws.length ? (view==='board' ? `<div class="wkanban rv" id="wkanban">${WRITING_STATUSES.map((st, si) => { const inCol = ws.filter(e=>e.extra.status===st);
-        const hue = ['var(--muted)','var(--sage)','var(--ment)','var(--page-accent)','var(--gold)','var(--terra)','#7f916a','var(--faint)'][si] || 'var(--page-accent)';
-        return `<div class="wkcol ${inCol.length?'':'quiet'}" data-wcol="${esc(st)}" style="--c:${hue}"><div class="wkcol-h"><span>${esc(st)}</span><span class="n">${inCol.length}</span></div><div class="wkcol-body">${inCol.map(e=>{ const n = wordCount(e.body); const tgt = e.extra.target?.wordTarget||0;
-          return `<div class="wkcard" draggable="true" data-wdrag="${e.id}" data-wopen="${e.id}"><b class="serif" style="font-size:.92rem">${esc(e.title||'Untitled piece')}</b>${e.extra.premise?`<div class="premise">${esc(e.extra.premise)}</div>`:''}<div class="mono faint" style="margin-top:4px">${esc(e.extra.kind)} · ${n}w${tgt?` / ${tgt}`:''}</div>${tgt?`<div class="wk-bar"><i style="width:${clamp(Math.round(n/tgt*100),0,100)}%"></i></div>`:''}</div>`; }).join('')}<div class="wkcol-drop"></div></div>`; }).join('')}</div>`
-      : `<div class="stack" style="gap:8px">${ws.map(e=>`<div class="card rv wproject-card" data-wopen="${e.id}"><div class="row between"><b class="serif">${esc(e.title||'Untitled piece')}</b><span class="status-pill">${esc(e.extra.status)}</span></div>${e.extra.premise?`<div class="premise">${esc(e.extra.premise)}</div>`:''}<div class="row between" style="margin-top:8px"><span class="mono">${esc(e.extra.kind)} · ${wordCount(e.body)} words${e.extra.target?.wordTarget?` of ${e.extra.target.wordTarget}`:''}</span><span class="mono">${fmtDate((e.createdAt||'').slice(0,10),'med')}</span></div></div>`).join('')}</div>`)
-    : `<div class="empty rv">Nothing here yet. A piece starts with one sentence about what it's really about.</div>`}
-
-    ${published.length ? `<section class="section rv"><span class="sc">Published archive</span>${published.map(e=>`<div class="pub-row"><span><b>${esc(e.title)}</b> <span class="mono">${esc(e.extra.kind)}</span></span><span>${e.extra.publication.where?`<a href="${esc(e.extra.publication.where)}" target="_blank" rel="noopener">↗ where it lives</a>`:''}</span></div>`).join('')}</section>` : ''}
-
-    ${typeof wsHistoryHTML === 'function' ? wsHistoryHTML() : ''}
-
-    <section class="section rv"><details><summary><span class="sc">Cross-pollination</span></summary><div class="body" style="padding-top:10px">${crossPollinationHTML()}</div></details></section>
-  </div>`;
-  $$('[data-wv]',root).forEach(b=>b.onclick=()=>{ S._wView = b.dataset.wv; rerender(); });
-  $$('[data-wopen]',root).forEach(c => c.onclick = () => { location.hash = '#/writing/'+c.dataset.wopen; });
-  // drag between kanban status columns
-  let wdrag = null;
-  $$('[data-wdrag]',root).forEach(card => { card.addEventListener('dragstart', ev => { wdrag = card.dataset.wdrag; card.classList.add('dragging'); }); card.addEventListener('dragend', () => card.classList.remove('dragging')); });
-  $$('.wkcol',root).forEach(col => { col.addEventListener('dragover', ev => { ev.preventDefault(); col.classList.add('over'); }); col.addEventListener('dragleave', () => col.classList.remove('over')); col.addEventListener('drop', ev => { ev.preventDefault(); col.classList.remove('over'); const e = byId(S.entries, wdrag); if(!e) return; e.extra.status = col.dataset.wcol; saveNow(); rerender(); }); });
+  navigate('#/content/shelf');
 };
+
 function crossPollinationHTML(){
   const ws = writings(); if(!ws.length) return '<div class="empty">Write a few pieces and the patterns show up here.</div>';
   const thTally = {}, valTally = {}, visTally = {}, mediaTally = {};
@@ -342,14 +326,23 @@ function bindWsResize(root, ws){
   });
 }
 function renderWritingDesk(root, id){
-  const e = byId(S.entries, id); if(!e || e.type !== 'writing'){ navigate('#/writing'); return; }
+  const e = byId(S.entries, id); if(!e || e.type !== 'writing'){ navigate('#/content/shelf'); return; }
   const x = e.extra = e.extra || {}; migrateWriting();
+  /* The desk used to inherit this from the room that listed it. That room is
+     gone, so it registers its own — without it the add bar would still be
+     showing whatever the last page asked for. */
+  registerPageEntry({pageName:'Writing', addLabel:'New document', defaultEntryType:'writing', prefilledFields:{},
+    hint:'in this piece', options:[
+      {icon:'📄', label:'New document', desc:'A section of this piece.', run:() => wsAddNode(x, 'doc', () => rerender())},
+      {icon:'📁', label:'New folder',   desc:'A part, an act, a chapter.', run:() => wsAddNode(x, 'folder', () => rerender())},
+      {icon:'🌱', label:'Catch a fragment', desc:'Onto the compost heap, for later.',
+       run:() => { const t = prompt('What just occurred to you?'); if(t){ addCompost(t); toast('On the heap.'); } }}]});
   if(_wSession.id !== id){ _wSession = {id, base: wordCount(e.body)}; }
   const n = wordCount(e.body); const focus = !!S._writeFocus; const ws = wsPanes();
   const redraw = () => rerender();
   root.innerHTML = `<div class="page ${focus?'wstudio-focus':''}">
     <div class="row between rv" style="margin-bottom:16px"><span class="row" style="gap:10px;align-items:center">
-        <a class="btn sm ghost" href="#/writing">‹ the desk</a>
+        <a class="btn sm ghost" href="#/content/shelf">‹ Content</a>
         ${typeof wsStreakHTML === 'function' ? wsStreakHTML() : ''}</span>
       <div class="row" style="gap:8px;flex-wrap:wrap">
         <select class="sel" style="width:auto" id="wKind">${WRITING_KINDS.map(k=>`<option ${x.kind===k?'selected':''}>${k}</option>`).join('')}</select>
@@ -426,7 +419,7 @@ function renderWritingDesk(root, id){
   $('#pubWhere').onchange = ev => { x.publication.where = ev.target.value.trim(); saveNow(); };
   $('#pubWhen').onchange = ev => { x.publication.when = ev.target.value; saveNow(); };
   $('#expMd').onclick = () => exportWriting(e,'md'); $('#expTxt').onclick = () => exportWriting(e,'plain'); $('#expHtml').onclick = () => exportWriting(e,'html');
-  $('#wDel').onclick = () => requestDelete({label:e.title||'this piece', remove:()=>spliceOut(S.entries, y=>y.id===e.id), after:()=>navigate('#/writing')});
+  $('#wDel').onclick = () => requestDelete({label:e.title||'this piece', remove:()=>spliceOut(S.entries, y=>y.id===e.id), after:()=>navigate('#/content/shelf')});
   bindResearchDrawer(root, e, redraw);
   bindStructureBoard(root, e, redraw);
   if(typeof bindWsPieceBar === 'function') bindWsPieceBar(root, e);

@@ -15,7 +15,7 @@ routes.settings = function(root){
       ${typeof shortcutsHTML === 'function' ? `<div class="kb-inline">${shortcutsHTML('').replace(/^[\s\S]*?<div class="kb-grid">/, '<div class="kb-grid">')}</div>` : ''}
     </div>
 
-    <div class="card rv"><h3>Navigation zones</h3><p class="muted" style="font-size:.85rem">Drag pages between Becoming, Story and Always. Compass, Today and Journals sit above the zones, and the Writing Studio below them; those four stay where they are.</p>${zoneEditorHTML()}
+    <div class="card rv"><h3>Navigation zones</h3><p class="muted" style="font-size:.85rem">Drag pages between Create, Identity and Always. Today, Planning and Compass sit above the zones and stay where they are — they are where most days begin.</p>${zoneEditorHTML()}
     </div>
 
     <div class="card rv"><h3>Import station</h3>
@@ -45,7 +45,7 @@ routes.settings = function(root){
         <div class="row" style="margin-top:8px"><button class="btn sm ghost" id="aiTest">Test the connection</button><button class="btn sm ghost" id="openPatterns">Open the pattern report →</button></div>
       </div>
       <div class="field" style="margin:18px 0"><label>Atmosphere</label><div id="ambSettings">${ambientMenuHTML()}</div></div>
-      <p class="mono">keyboard: N new entry · ⌘K or / search · ← → previous / next stage (Timeline) · Esc close</p>
+      <p class="mono">keyboard: press <kbd>?</kbd> for the whole list</p>
     </div></div></div>`;
   storageInfo().then(i => { const line = $('#storageLine'); if(!line) return; const mode = usingRealDexie ? 'an IndexedDB database (Dexie)' : 'an IndexedDB database'; if(i && i.quota){ line.textContent = `Everything lives in this browser, in ${mode}. Using ${fmtBytes(i.usage)} of about ${fmtBytes(i.quota)} available to this site.`; $('#storageBar').style.width = Math.max(1, i.usage/i.quota*100).toFixed(1)+'%'; } else { line.textContent = `Everything lives in this browser, in ${mode}.`; } });
   $('#sPhotoMax').onchange = e => { S.settings.photoMax = +e.target.value; saveNow(); };

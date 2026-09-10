@@ -141,7 +141,7 @@ function gentlePrompt(){
 function linkChips(e, {click=true}={}){
   const out = [];
   (e.links?.stages||[]).forEach(id => { const s = byId(S.stages,id); if(s) out.push(`<span class="chip on ${click?'click':''}" style="--c:${s.hue}" data-go="#/stage/${s.id}"><span class="dot"></span>${s.char} ${esc(s.name)}</span>`); });
-  (e.links?.threads||[]).forEach(id => { const t = byId(S.threads,id); if(t) out.push(`<span class="chip on ${click?'click':''}" style="--c:${t.color}" data-go="#/timeline/threads"><span class="dot"></span>${esc(t.name)}</span>`); });
+  (e.links?.threads||[]).forEach(id => { const t = byId(S.threads,id); if(t) out.push(`<span class="chip on ${click?'click':''}" style="--c:${t.color}" data-go="#/journals/timeline/threads"><span class="dot"></span>${esc(t.name)}</span>`); });
   (e.links?.values||[]).forEach(x => { const v = byId(S.values,x.id); if(v) out.push(`<span class="chip on ${click?'click':''}" style="--c:${v.color}" data-go="#/value/${v.id}"><span class="pol">${x.pol||'+'}</span>${esc(v.name)}</span>`); });
   (e.links?.skills||[]).forEach(id => { const s = byId(S.skills,id); if(s) out.push(`<span class="chip on ${click?'click':''}" style="--c:var(--ment)" data-go="#/skills/${s.id}">🛠 ${esc(s.name)}</span>`); });
   (e.links?.projects||[]).forEach(id => { const p = byId(S.projects,id); if(p) out.push(`<span class="chip on ${click?'click':''}" style="--c:var(--terra)" data-go="#/projects/${p.id}">🎨 ${esc(p.name)}</span>`); });

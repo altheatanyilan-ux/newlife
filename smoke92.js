@@ -22,7 +22,10 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
     return c ? {groups:c.querySelectorAll('.kb-group').length, rows:c.querySelectorAll('.kb-row').length,
       here:c.querySelector('.kb-group.here .sc')?.textContent, first:c.querySelector('.kb-group .sc')?.textContent} : null; });
   ok('? opens it', !!card, 'no card');
-  ok('it lists every group', card && card.groups === 5, JSON.stringify(card));
+  /* counted off the data rather than hard-coded, so adding a room's keys
+     does not fail a test that has nothing to say about it */
+  const declared = await p.evaluate(() => SHORTCUT_GROUPS.length);
+  ok('it lists every group there is', card && card.groups === declared, JSON.stringify({...card, declared}));
   ok('the room you are in is marked and sorted up', card && card.here === 'Content', JSON.stringify(card));
   await p.keyboard.press('?'); await p.waitForTimeout(400);
   ok('? closes it again', await p.evaluate(() => !document.querySelector('.keyboard-card')), 'still open');
