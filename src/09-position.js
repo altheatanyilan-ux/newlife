@@ -367,6 +367,13 @@ function bindTimeUse(root, redraw){
   sec.querySelectorAll('[data-tunav]').forEach(b => b.onclick = () => {
     if(b.disabled) return; S._tuDay = b.dataset.tunav === today() ? null : b.dataset.tunav; redraw(); });
   const wt = sec.querySelector('[data-tuwake]'), st = sec.querySelector('[data-tusleep]');
+  /* Same reason as the clock on Today: an empty time field opens its picker
+     at midnight. Seeding it at first touch puts the picker where the answer
+     nearly always is. The seed is not saved — only a real change is — so a
+     field brushed past and left alone still holds nothing. */
+  [wt, st].forEach(el => { if(!el) return;
+    const seed = () => { if(!el.value) el.value = nowHM(); };
+    el.addEventListener('focus', seed); el.addEventListener('mousedown', seed); });
   if(wt) wt.onchange = () => { r.wakeTime = wt.value; save(); redraw(); };
   if(st) st.onchange = () => { r.sleepTime = st.value; save(); redraw(); };
 

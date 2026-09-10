@@ -4,15 +4,21 @@
 function checkin(day=today()){ if(!S.checkins[day]) S.checkins[day] = {mood:0, sentence:'', energy:{}, setpoint:0, intention:''}; return S.checkins[day]; }
 function rememberFold(id, open){ if(!id) return; S.settings.todayOpen = S.settings.todayOpen || {}; S.settings.todayOpen[id] = !!open; saveNow(); }
 /* one small dialog for the two ends of the day */
+const nowHM = () => { const d = new Date(); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+/* An empty <input type="time"> opens its picker at midnight, which is never
+   the answer and is a long way from it — you are always logging a time near
+   now. So the field starts at now when nothing has been set, and the nudge
+   is a few minutes rather than a scroll through the small hours. Nothing is
+   recorded until Set: the seeded value is only where the picker begins. */
 function askClock(title, value, onSet){
   const m = openModal(`<h2>${esc(title)}</h2>
-    <input class="inp mono serif-lg" type="time" id="clkV" value="${esc(value || '')}" autofocus>
+    <input class="inp mono serif-lg" type="time" id="clkV" value="${esc(value || nowHM())}" autofocus>
     <div class="row" style="justify-content:space-between;margin-top:16px">
       <button class="btn sm ghost" id="clkNow">now</button>
       <button class="btn primary" id="clkOk">Set</button></div>`, 'narrow');
   const go = () => { const v = m.querySelector('#clkV').value; if(!/^\d{2}:\d{2}$/.test(v)) { m.remove(); return; } m.remove(); onSet(v); sound('click'); };
   m.querySelector('#clkOk').onclick = go;
-  m.querySelector('#clkNow').onclick = () => { const d = new Date(); m.querySelector('#clkV').value = `${pad(d.getHours())}:${pad(d.getMinutes())}`; go(); };
+  m.querySelector('#clkNow').onclick = () => { m.querySelector('#clkV').value = nowHM(); go(); };
   m.querySelector('#clkV').onkeydown = e => { if(e.key === 'Enter') go(); };
 }
 routes.today = function(root){
