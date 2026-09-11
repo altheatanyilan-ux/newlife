@@ -201,7 +201,7 @@ function streamCardHTML(s){
       <span class="k mono">milestones</span>
       <select class="sel" style="width:auto;font-size:.76rem" data-streammspreset="${path}"><option value="">＋ milestone…</option>${MILESTONE_KINDS.map(k=>`<option>${esc(k)}</option>`).join('')}<option value="__custom">other…</option></select>
     </div>
-    ${(inc.milestones||[]).length ? inc.milestones.map((ms,i)=>`<div class="evidence-item"><span class="mono">${ed(`${path}.milestones.${i}.date`,{ph:'date',cls:'mono'})}</span><span style="flex:1">${ed(`${path}.milestones.${i}.text`,{ph:'first user, first dollar, first referral…'})}</span><button class="tbtn" data-streammsdel="${path}:${i}">×</button></div>`).join('') : '<div class="faint" style="font-size:.78rem">None yet.</div>'}
+    ${(inc.milestones||[]).length ? inc.milestones.map((ms,i)=>`<div class="evidence-item"><span class="mono">${ed(`${path}.milestones.${i}.date`,{ph:'date',cls:'mono',date:true})}</span><span style="flex:1">${ed(`${path}.milestones.${i}.text`,{ph:'first user, first dollar, first referral…'})}</span><button class="tbtn" data-streammsdel="${path}:${i}">×</button></div>`).join('') : '<div class="faint" style="font-size:.78rem">None yet.</div>'}
     ${typeof planLinkedTasksHTML === 'function' ? planLinkedTasksHTML('stream', s.id, {heading:'Tasks feeding this stream'}) : ''}
   </div>`;
 }

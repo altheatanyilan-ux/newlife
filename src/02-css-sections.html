@@ -2201,6 +2201,56 @@ input[type="date"].dp-active{border-color:var(--page-accent);box-shadow:0 0 0 2p
 .dp-lnk:hover{color:var(--page-accent)}
 @media (prefers-reduced-motion:reduce){.dp-pop{animation:none}.dp-cell,.dp-nav,.dp-lnk{transition:none}}
 
+/* ---------- the calendar on a field that is not a date input ----------
+   "Occurred at" takes "Summer 2019" as readily as a Tuesday, so it stays a
+   text field and the calendar arrives on a button beside it. */
+.dp-field{display:flex;align-items:center;gap:6px}
+.dp-field .inp{flex:1 1 auto;min-width:0}
+.dp-btn{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;
+  width:28px;height:28px;padding:0;border:1px solid var(--line);border-radius:8px;
+  background:none;color:var(--muted);cursor:pointer;
+  transition:color .15s var(--ease),border-color .15s var(--ease),background .15s var(--ease)}
+.dp-btn:hover{color:var(--page-accent);border-color:color-mix(in srgb,var(--page-accent) 45%,var(--line));
+  background:color-mix(in srgb,var(--page-accent) 8%,transparent)}
+.dp-btn:focus-visible{outline:1px solid var(--page-accent);outline-offset:1px}
+.dp-btn.sm{width:22px;height:20px;border-radius:6px}
+input[data-dp].dp-active{border-color:var(--page-accent);
+  box-shadow:0 0 0 2px color-mix(in srgb,var(--page-accent) 18%,transparent)}
+/* an inline ed() field that holds a date wears the same button, small */
+.ed.ed-date{display:inline-flex;align-items:center;gap:4px}
+.ed.ed-date .dp-btn{opacity:.5}
+.ed.ed-date:hover .dp-btn,.ed.ed-date.editing .dp-btn{opacity:1}
+.ed.ed-date.editing input{min-width:9em}
+
+/* ---------- THE TIME PICKER ----------
+   Two columns under the field: the hours of the day, and the five-minute
+   marks. The field stays typeable, which is how an odd minute gets in. */
+input[type="time"]{cursor:pointer;font-family:var(--mono);font-size:.8rem}
+input[type="time"]::-webkit-calendar-picker-indicator{display:none;-webkit-appearance:none}
+input[type="time"]::-webkit-inner-spin-button,input[type="time"]::-webkit-clear-button{display:none;-webkit-appearance:none}
+input[type="time"].dp-active{border-color:var(--page-accent);
+  box-shadow:0 0 0 2px color-mix(in srgb,var(--page-accent) 18%,transparent)}
+.tp-pop{position:fixed;z-index:400;width:158px;padding:10px;border-radius:14px;
+  background:color-mix(in srgb,var(--surface) 94%,transparent);border:1px solid var(--line-2);
+  backdrop-filter:blur(14px) saturate(1.15);-webkit-backdrop-filter:blur(14px) saturate(1.15);
+  box-shadow:0 14px 40px rgba(10,8,6,.28);animation:dpIn .16s var(--ease)}
+.tp-head{text-align:center;padding-bottom:7px;margin-bottom:7px;border-bottom:1px dashed var(--line)}
+.tp-val{font-size:.82rem;color:var(--text);letter-spacing:.02em}
+.tp-dow{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:3px}
+.tp-dow span{text-align:center;font-family:var(--mono);font-size:.56rem;letter-spacing:.06em;color:var(--faint)}
+.tp-cols{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.tp-col{max-height:188px;overflow-y:auto;display:flex;flex-direction:column;gap:2px;
+  scrollbar-width:thin;scroll-behavior:smooth}
+.tp-col::-webkit-scrollbar{width:5px}
+.tp-col::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:3px}
+.tp-cell{flex:0 0 auto;height:26px;border:none;background:none;border-radius:7px;cursor:pointer;
+  color:var(--text);font-family:var(--mono);font-size:.76rem;
+  transition:background .14s var(--ease),color .14s var(--ease)}
+.tp-cell:hover{background:color-mix(in srgb,var(--page-accent) 16%,transparent)}
+.tp-cell.on{background:var(--page-accent);color:var(--page-accent-ink)}
+.tp-cell.odd{font-style:italic}
+@media (prefers-reduced-motion:reduce){.tp-pop{animation:none}.tp-cell{transition:none}.tp-col{scroll-behavior:auto}}
+
 /* one size for every section header on Today — the page had three, because
    some headers carried .sc and others .sc.lg */
 .today-page .sc{font-size:.76rem;letter-spacing:.14em}

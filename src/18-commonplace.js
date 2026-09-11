@@ -423,8 +423,8 @@ function openMediaPanel(id){
       <select class="sel" style="width:auto" id="mpKind">${Object.entries(MEDIA_KINDS).map(([kk,v])=>`<option value="${kk}" ${x.kind===kk?'selected':''}>${v[0]} ${v[1]}</option>`).join('')}</select>
     </div>
     <div class="spec-grid" style="margin-bottom:14px">
-      <div><div class="k">started</div>${ed(`entries.#${e.id}.extra.startedAt`,{ph:'YYYY-MM-DD',cls:'mono'})}</div>
-      <div><div class="k">date consumed (finished)</div>${ed(`entries.#${e.id}.extra.finishedAt`,{ph:'YYYY-MM-DD',cls:'mono'})}</div>
+      <div><div class="k">started</div>${ed(`entries.#${e.id}.extra.startedAt`,{ph:'YYYY-MM-DD',cls:'mono',date:true})}</div>
+      <div><div class="k">date consumed (finished)</div>${ed(`entries.#${e.id}.extra.finishedAt`,{ph:'YYYY-MM-DD',cls:'mono',date:true})}</div>
     </div>
 
     <div class="vp-sec"><span class="sc">Resonance — not "was it good?", but "what did it do to me?"</span>

@@ -85,12 +85,19 @@ function setPath(p, v){ const [o,k] = resolve(p); if(o!=null){ o[k] = v; } }
 
 /* ---------- inline editing ---------- */
 const hooks = {};
+/* date:true marks an inline field that holds a day. It stays free text — some
+   of these hold "1997" or "the summer we moved" — but it wears a small
+   calendar, and touching it opens the same one every date field in the house
+   opens, so a day never has to be typed from memory. */
+function edInner(val, ph, mdr, date){
+  const body = String(val).trim() ? (mdr ? md(val) : esc(val)) : `<span class="ph">${esc(ph)}</span>`;
+  return body + (date ? `<span class="dp-btn sm" aria-hidden="true">${DP_ICON}</span>` : '');
+}
 function ed(path, opts={}){
   const val = getPath(path) ?? '';
-  const {multi=false, cls='', ph='', mdr=false, tag, hook=''} = opts;
+  const {multi=false, cls='', ph='', mdr=false, tag, hook='', date=false} = opts;
   const t = tag || (multi ? 'div' : 'span');
-  const inner = String(val).trim() ? (mdr ? md(val) : esc(val)) : `<span class="ph">${esc(ph)}</span>`;
-  return `<${t} class="ed ${multi?'ed-multi':''} ${cls}" data-path="${esc(path)}" data-multi="${multi?1:0}" data-md="${mdr?1:0}" data-ph="${esc(ph)}" data-hook="${esc(hook)}" tabindex="0">${inner}</${t}>`;
+  return `<${t} class="ed ${multi?'ed-multi':''} ${date?'ed-date':''} ${cls}" data-path="${esc(path)}" data-multi="${multi?1:0}" data-md="${mdr?1:0}" data-ph="${esc(ph)}" data-hook="${esc(hook)}" data-date="${date?1:0}" tabindex="0">${edInner(val, ph, mdr, date)}</${t}>`;
 }
 function beginEdit(node){
   if(node.classList.contains('editing')) return;
@@ -102,6 +109,7 @@ function beginEdit(node){
   node.innerHTML = ''; node.appendChild(inp);
   const autosize = () => { if(multi){ inp.style.height = 'auto'; inp.style.height = inp.scrollHeight + 'px'; } };
   autosize(); inp.focus();
+  if(node.dataset.date === '1'){ inp.setAttribute('data-dp',''); inp.classList.add('mono'); openDatePicker(inp); }
   if(multi && typeof attachDictation === 'function') attachDictation(inp, {compact:true});
   /* The mid-typing save is debounced, but it must not outlive the blur: if it
      lands afterwards it writes the raw string back over whatever the field's
@@ -111,10 +119,14 @@ function beginEdit(node){
   inp.addEventListener('input', () => { autosize(); commit(); });
   inp.addEventListener('keydown', e => { if(e.key==='Enter' && !multi){ e.preventDefault(); inp.blur(); } if(e.key==='Escape'){ inp.blur(); } e.stopPropagation(); });
   inp.addEventListener('blur', () => {
+    /* Clicking a day in the calendar takes the focus out of the field, and this
+       field only exists while it has focus. The calendar hands the focus back
+       when it closes; until then the edit is still open. */
+    if(typeof dpOpen !== 'undefined' && dpOpen && dpOpen.input === inp) return;
     clearTimeout(commitT);
     const v = inp.value; setPath(path, v); saveNow();
     node.classList.remove('editing');
-    node.innerHTML = v.trim() ? (node.dataset.md==='1' ? md(v) : esc(v)) : `<span class="ph">${esc(node.dataset.ph)}</span>`;
+    node.innerHTML = edInner(v, node.dataset.ph, node.dataset.md==='1', node.dataset.date==='1');
     if(v !== orig){ const p = el('<span class="saved-pulse">saved</span>'); node.appendChild(p); setTimeout(()=>p.remove(), 1200); sound('save'); const h = node.dataset.hook; if(h){ const [name, arg] = h.split(':'); hooks[name]?.(arg, orig, v, node); } }
     /* a field emptied or filled changes what Living View should be showing */
     const lv = node.closest('.lv-mode'); if(lv) applyLivingView(lv);

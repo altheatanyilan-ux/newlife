@@ -118,7 +118,7 @@ function openDecisionPanel(id){
       ${DECISION_OUTCOME.map(([k,l,h]) => `<div class="field" style="margin-top:10px"><label>${l}</label>${h?`<div class="faint" style="font-size:.76rem;margin-bottom:4px">${h}</div>`:''}${ed(`entries.#${e.id}.extra.${k}`, {multi:true, mdr:true, cls:'prose', ph:'…'})}</div>`).join('')}
       <div class="row" style="margin-top:14px;gap:8px"><span class="mono">verdict</span><select class="sel" style="width:auto" id="dVerdict">${['','right for the reasons I thought','right for other reasons','wrong, and I can see why','wrong, and I still would have chosen it','too early to say'].map(v=>`<option ${x.verdict===v?'selected':''}>${v||'—'}</option>`).join('')}</select>
         <button class="btn sm ${settled?'ghost':'primary'}" id="dDone">${settled ? 'reviewed' : 'mark reviewed'}</button></div></div>
-    <div class="vp-sec"><span class="sc">Come back again on</span><div class="row">${ed(`entries.#${e.id}.extra.reviewOn`, {ph:'YYYY-MM-DD', cls:'mono'})}</div></div>
+    <div class="vp-sec"><span class="sc">Come back again on</span><div class="row">${ed(`entries.#${e.id}.extra.reviewOn`, {ph:'YYYY-MM-DD', cls:'mono', date:true})}</div></div>
     ${moreSection(`<div class="danger-zone"><span>This deletes the decision and everything written about it.</span><button class="btn sm ghost danger" id="dDel">Delete this decision</button></div>`)}`, 'decision-panel');
   p.querySelector('#dVerdict').onchange = ev => { x.verdict = ev.target.value; saveNow(); };
   p.querySelector('#dDone').onclick = () => { x.reviewedAt = x.reviewedAt ? '' : today(); saveNow(); sound(x.reviewedAt ? 'success' : 'click'); reopenPanel(() => { rerender(); openDecisionPanel(id); }); };

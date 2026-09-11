@@ -2700,6 +2700,56 @@ input[type="date"].dp-active{border-color:var(--page-accent);box-shadow:0 0 0 2p
 .dp-lnk:hover{color:var(--page-accent)}
 @media (prefers-reduced-motion:reduce){.dp-pop{animation:none}.dp-cell,.dp-nav,.dp-lnk{transition:none}}
 
+/* ---------- the calendar on a field that is not a date input ----------
+   "Occurred at" takes "Summer 2019" as readily as a Tuesday, so it stays a
+   text field and the calendar arrives on a button beside it. */
+.dp-field{display:flex;align-items:center;gap:6px}
+.dp-field .inp{flex:1 1 auto;min-width:0}
+.dp-btn{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;
+  width:28px;height:28px;padding:0;border:1px solid var(--line);border-radius:8px;
+  background:none;color:var(--muted);cursor:pointer;
+  transition:color .15s var(--ease),border-color .15s var(--ease),background .15s var(--ease)}
+.dp-btn:hover{color:var(--page-accent);border-color:color-mix(in srgb,var(--page-accent) 45%,var(--line));
+  background:color-mix(in srgb,var(--page-accent) 8%,transparent)}
+.dp-btn:focus-visible{outline:1px solid var(--page-accent);outline-offset:1px}
+.dp-btn.sm{width:22px;height:20px;border-radius:6px}
+input[data-dp].dp-active{border-color:var(--page-accent);
+  box-shadow:0 0 0 2px color-mix(in srgb,var(--page-accent) 18%,transparent)}
+/* an inline ed() field that holds a date wears the same button, small */
+.ed.ed-date{display:inline-flex;align-items:center;gap:4px}
+.ed.ed-date .dp-btn{opacity:.5}
+.ed.ed-date:hover .dp-btn,.ed.ed-date.editing .dp-btn{opacity:1}
+.ed.ed-date.editing input{min-width:9em}
+
+/* ---------- THE TIME PICKER ----------
+   Two columns under the field: the hours of the day, and the five-minute
+   marks. The field stays typeable, which is how an odd minute gets in. */
+input[type="time"]{cursor:pointer;font-family:var(--mono);font-size:.8rem}
+input[type="time"]::-webkit-calendar-picker-indicator{display:none;-webkit-appearance:none}
+input[type="time"]::-webkit-inner-spin-button,input[type="time"]::-webkit-clear-button{display:none;-webkit-appearance:none}
+input[type="time"].dp-active{border-color:var(--page-accent);
+  box-shadow:0 0 0 2px color-mix(in srgb,var(--page-accent) 18%,transparent)}
+.tp-pop{position:fixed;z-index:400;width:158px;padding:10px;border-radius:14px;
+  background:color-mix(in srgb,var(--surface) 94%,transparent);border:1px solid var(--line-2);
+  backdrop-filter:blur(14px) saturate(1.15);-webkit-backdrop-filter:blur(14px) saturate(1.15);
+  box-shadow:0 14px 40px rgba(10,8,6,.28);animation:dpIn .16s var(--ease)}
+.tp-head{text-align:center;padding-bottom:7px;margin-bottom:7px;border-bottom:1px dashed var(--line)}
+.tp-val{font-size:.82rem;color:var(--text);letter-spacing:.02em}
+.tp-dow{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:3px}
+.tp-dow span{text-align:center;font-family:var(--mono);font-size:.56rem;letter-spacing:.06em;color:var(--faint)}
+.tp-cols{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.tp-col{max-height:188px;overflow-y:auto;display:flex;flex-direction:column;gap:2px;
+  scrollbar-width:thin;scroll-behavior:smooth}
+.tp-col::-webkit-scrollbar{width:5px}
+.tp-col::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:3px}
+.tp-cell{flex:0 0 auto;height:26px;border:none;background:none;border-radius:7px;cursor:pointer;
+  color:var(--text);font-family:var(--mono);font-size:.76rem;
+  transition:background .14s var(--ease),color .14s var(--ease)}
+.tp-cell:hover{background:color-mix(in srgb,var(--page-accent) 16%,transparent)}
+.tp-cell.on{background:var(--page-accent);color:var(--page-accent-ink)}
+.tp-cell.odd{font-style:italic}
+@media (prefers-reduced-motion:reduce){.tp-pop{animation:none}.tp-cell{transition:none}.tp-col{scroll-behavior:auto}}
+
 /* one size for every section header on Today — the page had three, because
    some headers carried .sc and others .sc.lg */
 .today-page .sc{font-size:.76rem;letter-spacing:.14em}
@@ -3794,12 +3844,19 @@ function setPath(p, v){ const [o,k] = resolve(p); if(o!=null){ o[k] = v; } }
 
 /* ---------- inline editing ---------- */
 const hooks = {};
+/* date:true marks an inline field that holds a day. It stays free text — some
+   of these hold "1997" or "the summer we moved" — but it wears a small
+   calendar, and touching it opens the same one every date field in the house
+   opens, so a day never has to be typed from memory. */
+function edInner(val, ph, mdr, date){
+  const body = String(val).trim() ? (mdr ? md(val) : esc(val)) : `<span class="ph">${esc(ph)}</span>`;
+  return body + (date ? `<span class="dp-btn sm" aria-hidden="true">${DP_ICON}</span>` : '');
+}
 function ed(path, opts={}){
   const val = getPath(path) ?? '';
-  const {multi=false, cls='', ph='', mdr=false, tag, hook=''} = opts;
+  const {multi=false, cls='', ph='', mdr=false, tag, hook='', date=false} = opts;
   const t = tag || (multi ? 'div' : 'span');
-  const inner = String(val).trim() ? (mdr ? md(val) : esc(val)) : `<span class="ph">${esc(ph)}</span>`;
-  return `<${t} class="ed ${multi?'ed-multi':''} ${cls}" data-path="${esc(path)}" data-multi="${multi?1:0}" data-md="${mdr?1:0}" data-ph="${esc(ph)}" data-hook="${esc(hook)}" tabindex="0">${inner}</${t}>`;
+  return `<${t} class="ed ${multi?'ed-multi':''} ${date?'ed-date':''} ${cls}" data-path="${esc(path)}" data-multi="${multi?1:0}" data-md="${mdr?1:0}" data-ph="${esc(ph)}" data-hook="${esc(hook)}" data-date="${date?1:0}" tabindex="0">${edInner(val, ph, mdr, date)}</${t}>`;
 }
 function beginEdit(node){
   if(node.classList.contains('editing')) return;
@@ -3811,6 +3868,7 @@ function beginEdit(node){
   node.innerHTML = ''; node.appendChild(inp);
   const autosize = () => { if(multi){ inp.style.height = 'auto'; inp.style.height = inp.scrollHeight + 'px'; } };
   autosize(); inp.focus();
+  if(node.dataset.date === '1'){ inp.setAttribute('data-dp',''); inp.classList.add('mono'); openDatePicker(inp); }
   if(multi && typeof attachDictation === 'function') attachDictation(inp, {compact:true});
   /* The mid-typing save is debounced, but it must not outlive the blur: if it
      lands afterwards it writes the raw string back over whatever the field's
@@ -3820,10 +3878,14 @@ function beginEdit(node){
   inp.addEventListener('input', () => { autosize(); commit(); });
   inp.addEventListener('keydown', e => { if(e.key==='Enter' && !multi){ e.preventDefault(); inp.blur(); } if(e.key==='Escape'){ inp.blur(); } e.stopPropagation(); });
   inp.addEventListener('blur', () => {
+    /* Clicking a day in the calendar takes the focus out of the field, and this
+       field only exists while it has focus. The calendar hands the focus back
+       when it closes; until then the edit is still open. */
+    if(typeof dpOpen !== 'undefined' && dpOpen && dpOpen.input === inp) return;
     clearTimeout(commitT);
     const v = inp.value; setPath(path, v); saveNow();
     node.classList.remove('editing');
-    node.innerHTML = v.trim() ? (node.dataset.md==='1' ? md(v) : esc(v)) : `<span class="ph">${esc(node.dataset.ph)}</span>`;
+    node.innerHTML = edInner(v, node.dataset.ph, node.dataset.md==='1', node.dataset.date==='1');
     if(v !== orig){ const p = el('<span class="saved-pulse">saved</span>'); node.appendChild(p); setTimeout(()=>p.remove(), 1200); sound('save'); const h = node.dataset.hook; if(h){ const [name, arg] = h.split(':'); hooks[name]?.(arg, orig, v, node); } }
     /* a field emptied or filled changes what Living View should be showing */
     const lv = node.closest('.lv-mode'); if(lv) applyLivingView(lv);
@@ -5283,6 +5345,20 @@ function applyPageScene(){
 
    The year is both typeable and steppable, because a life has dates
    in it that are forty years from the month you happen to be on.
+
+   Two fields are not real date inputs and still want the calendar:
+
+   - A field that also takes a fuzzy date. "Occurred at" accepts
+     "Summer 2019" and "age 15" as well as a Tuesday, so it has to
+     stay a text field you can type prose into. It carries data-dp
+     and a calendar button beside it; the button opens the same
+     calendar, and typing is untouched.
+   - An inline field opened by ed(path, {date:true}). Those are spans
+     until you click them, so the calendar opens with the field.
+
+   Times get their own popup for the same reason dates got one: the
+   browser's clock is a different object on every platform, and on
+   some of them touching the field opens nothing at all.
    ============================================================ */
 
 const DP_DOW = ['Mo','Tu','We','Th','Fr','Sa','Su'];
@@ -5348,6 +5424,11 @@ function dpClose(){
   dpOpen = null;
   pop.remove();
   input.classList.remove('dp-active');
+  /* An inline ed() field is a live <input> only while it has focus: its blur
+     handler writes the value and puts the span back. Clicking a day in the
+     calendar took the focus away, so hand it back rather than let the field
+     collapse with the click half-made. */
+  if(input.isConnected && input.closest('.ed.editing')) input.focus({preventScroll:true});
 }
 
 function dpPlace(pop, input){
@@ -5416,7 +5497,16 @@ function openDatePicker(input){
    The native picker is suppressed on mousedown (before it can open) and on
    the keyboard shortcut browsers give it, so there is exactly one calendar. */
 document.addEventListener('mousedown', ev => {
-  const input = ev.target.closest && ev.target.closest('input[type="date"]');
+  if(!ev.target.closest) return;
+  /* the calendar button beside a fuzzy-date text field */
+  const btn = ev.target.closest('[data-dpfor]');
+  if(btn){
+    ev.preventDefault();            // keep the focus where it is
+    const f = document.getElementById(btn.dataset.dpfor);
+    if(f) openDatePicker(f);
+    return;
+  }
+  const input = ev.target.closest('input[type="date"]');
   if(input){
     if(input.readOnly || input.disabled) return;
     ev.preventDefault();            // stops the browser's own picker
@@ -5435,11 +5525,168 @@ document.addEventListener('keydown', ev => {
   if(ev.key === 'Escape' && dpOpen){ ev.stopImmediatePropagation(); ev.preventDefault(); dpClose(); return; }
   const input = ev.target.closest && ev.target.closest('input[type="date"]');
   if(input && (ev.key === 'Enter' || ev.key === ' ') && !dpOpen){ ev.preventDefault(); openDatePicker(input); }
+  /* a text field that also takes prose opens its calendar on the shortcut the
+     browser gives a date field, never on a plain keystroke */
+  const soft = ev.target.closest && ev.target.closest('input[data-dp]');
+  if(soft && !dpOpen && (ev.altKey || ev.metaKey) && (ev.key === 'ArrowDown' || ev.key === 'Enter')){
+    ev.preventDefault(); openDatePicker(soft); return; }
+  /* the button is opened on mousedown, which never fires for someone on the
+     keyboard: reaching it by Tab has to open the calendar too */
+  const kbtn = ev.target.closest && ev.target.closest('[data-dpfor]');
+  if(kbtn && (ev.key === 'Enter' || ev.key === ' ')){
+    ev.preventDefault();
+    const f = document.getElementById(kbtn.dataset.dpfor);
+    if(f) openDatePicker(f);
+  }
 }, true);
+
+const DP_ICON = `<svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round">
+  <rect x="1.6" y="3.1" width="12.8" height="11.3" rx="2.2"></rect><path d="M1.6 6.6h12.8M5 1.6v2.6M11 1.6v2.6"></path>
+  <circle cx="5.2" cy="9.6" r=".75" fill="currentColor" stroke="none"></circle><circle cx="8" cy="9.6" r=".75" fill="currentColor" stroke="none"></circle>
+  <circle cx="10.8" cy="9.6" r=".75" fill="currentColor" stroke="none"></circle><circle cx="5.2" cy="12" r=".75" fill="currentColor" stroke="none"></circle>
+  <circle cx="8" cy="12" r=".75" fill="currentColor" stroke="none"></circle></svg>`;
+/* the button that sits beside a fuzzy-date text field */
+function dpButtonHTML(forId, label = 'Pick a date'){
+  return `<button type="button" class="dp-btn" data-dpfor="${esc(forId)}" title="${esc(label)}" aria-label="${esc(label)}">${DP_ICON}</button>`;
+}
 
 /* a scroll or resize under an open calendar would leave it stranded */
 addEventListener('scroll', () => { if(dpOpen) dpPlace(dpOpen.pop, dpOpen.input); }, true);
 addEventListener('resize', () => { if(dpOpen) dpClose(); });
+
+
+/* ============================================================
+   THE TIME PICKER — the same idea, for the hour.
+
+   Wherever the house asks what time something happened, the field
+   is a real <input type="time">, so every existing read of .value
+   keeps working. What opens on top of it is ours: two columns,
+   hours down one side and five-minute marks down the other, with
+   the field still typeable for the minutes in between.
+   ============================================================ */
+
+let tpOpen = null;                       // {pop, input} while a clock is up
+const tpValid = s => /^\d{2}:\d{2}/.test(s || '');
+const tpNowHM = () => { const d = new Date(); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+const tpParts = v => tpValid(v) ? {h: +v.slice(0, 2), m: +v.slice(3, 5)} : null;
+/* a 24-hour clock is what the fields store; the label reads the way people speak */
+function tpLabel(v){
+  const p = tpParts(v); if(!p) return '—';
+  const h12 = p.h % 12 === 0 ? 12 : p.h % 12;
+  return `${h12}:${pad(p.m)} ${p.h < 12 ? 'am' : 'pm'}`;
+}
+
+function tpColsHTML(v){
+  const p = tpParts(v);
+  const hrs = [], mins = [];
+  for(let h = 0; h < 24; h++)
+    hrs.push(`<button type="button" class="tp-cell${p && p.h === h ? ' on' : ''}" data-tph="${h}">${pad(h)}</button>`);
+  for(let m = 0; m < 60; m += 5)
+    mins.push(`<button type="button" class="tp-cell${p && p.m === m ? ' on' : ''}" data-tpm="${m}">${pad(m)}</button>`);
+  /* a minute that is not a five keeps its own place in the column rather than
+     vanishing, so 07:23 survives being looked at */
+  if(p && p.m % 5) mins.splice(Math.floor(p.m / 5) + 1, 0,
+    `<button type="button" class="tp-cell on odd" data-tpm="${p.m}">${pad(p.m)}</button>`);
+  return `<div class="tp-col" data-tpcol="h" role="listbox" aria-label="Hour">${hrs.join('')}</div>
+    <div class="tp-col" data-tpcol="m" role="listbox" aria-label="Minute">${mins.join('')}</div>`;
+}
+
+/* A calendar is wide and sits under its field. A clock is narrow, so it goes
+   beside it where there is room: dropped underneath it lands on whatever the
+   form's own buttons are, and the modal that asks the hour has its Set button
+   directly below the field. */
+function tpPlace(pop, input){
+  const r = input.getBoundingClientRect();
+  const w = pop.offsetWidth, h = pop.offsetHeight;
+  const right = r.right + 8, left = r.left - w - 8;
+  let x, y = Math.min(Math.max(10, r.top), innerHeight - h - 10);
+  if(right + w <= innerWidth - 10) x = right;
+  else if(left >= 10) x = left;
+  else { dpPlace(pop, input); return; }
+  pop.style.left = Math.round(x) + 'px';
+  pop.style.top  = Math.round(y) + 'px';
+}
+
+function tpRender(){
+  if(!tpOpen) return;
+  const {pop, input} = tpOpen;
+  pop.querySelector('.tp-cols').innerHTML = tpColsHTML(input.value);
+  pop.querySelector('.tp-val').textContent = tpLabel(input.value);
+  $$('[data-tph]', pop).forEach(b => b.onclick = () => tpSet(+b.dataset.tph, null));
+  $$('[data-tpm]', pop).forEach(b => b.onclick = () => tpSet(null, +b.dataset.tpm));
+  $$('.tp-col', pop).forEach(col => { const on = col.querySelector('.on');
+    if(on) col.scrollTop = on.offsetTop - col.clientHeight / 2 + on.offsetHeight / 2; });
+}
+
+/* Either column can be touched first, so a half-set time needs a whole one to
+   land on: an unset field starts from the hour you are in, at the top of it. */
+function tpSet(h, m){
+  const {input} = tpOpen;
+  const cur = tpParts(input.value) || {h: new Date().getHours(), m: 0};
+  tpCommit(input, `${pad(h === null ? cur.h : h)}:${pad(m === null ? cur.m : m)}`);
+  tpRender();
+}
+
+function tpCommit(input, val){
+  input.value = val;
+  input.dispatchEvent(new Event('input', {bubbles: true}));
+  input.dispatchEvent(new Event('change', {bubbles: true}));
+  if(typeof sound === 'function') sound('click');
+}
+
+function tpClose(){
+  if(!tpOpen) return;
+  const {pop, input} = tpOpen;
+  tpOpen = null; pop.remove();
+  input.classList.remove('dp-active');
+}
+
+function openTimePicker(input){
+  if(tpOpen && tpOpen.input === input){ tpClose(); return; }
+  tpClose(); dpClose();
+  const pop = el(`<div class="tp-pop" role="dialog" aria-label="Choose a time">
+    <div class="tp-head"><span class="tp-val mono"></span></div>
+    <div class="tp-dow"><span>hour</span><span>min</span></div>
+    <div class="tp-cols"></div>
+    <div class="dp-foot">
+      <button type="button" class="dp-lnk" data-tpnow>now</button>
+      <button type="button" class="dp-lnk" data-tpclear>clear</button>
+    </div>
+  </div>`);
+  document.body.appendChild(pop);
+  input.classList.add('dp-active');
+  tpOpen = {pop, input};
+  tpRender();
+  tpPlace(pop, input);
+  pop.querySelector('[data-tpnow]').onclick = () => { tpCommit(input, tpNowHM()); tpRender(); };
+  pop.querySelector('[data-tpclear]').onclick = () => { tpCommit(input, ''); tpClose(); };
+  pop.addEventListener('mousedown', ev => ev.stopPropagation());
+}
+
+document.addEventListener('mousedown', ev => {
+  if(!ev.target.closest) return;
+  const input = ev.target.closest('input[type="time"]');
+  if(input){
+    if(input.readOnly || input.disabled) return;
+    ev.preventDefault();            // stops whatever the browser would have shown
+    input.focus({preventScroll: true});
+    openTimePicker(input);
+    return;
+  }
+  if(tpOpen && !ev.target.closest('.tp-pop')) tpClose();
+}, true);
+
+document.addEventListener('keydown', ev => {
+  if(ev.key === 'Escape' && tpOpen){ ev.stopImmediatePropagation(); ev.preventDefault(); tpClose(); return; }
+  const input = ev.target.closest && ev.target.closest('input[type="time"]');
+  if(input && (ev.key === 'Enter' || ev.key === ' ') && !tpOpen){ ev.preventDefault(); openTimePicker(input); }
+  /* typing into the field is still the fastest way to an odd minute — keep the
+     open clock showing what the field now says */
+  if(tpOpen && input === tpOpen.input) setTimeout(tpRender, 0);
+}, true);
+
+addEventListener('scroll', () => { if(tpOpen) tpPlace(tpOpen.pop, tpOpen.input); }, true);
+addEventListener('resize', () => { if(tpOpen) tpClose(); });
 /* ============================================================
    THE SELECT MENU — one dropdown, everywhere a choice is asked.
 
@@ -7780,7 +8027,7 @@ function photoTile(p, path){ return `<div class="photo" data-lb="${p.id}"><img s
 function photoList(path){ return getPath(path); }
 document.addEventListener('click', e => {
   const del = e.target.closest('[data-pdel]'); if(del){ e.stopPropagation(); const arr = photoList(del.dataset.pdel.replace(/\.\d+$/,'')); const i = +del.dataset.pdel.split('.').pop(); const p = arr[i]; requestDelete({label: p?.caption || 'Photo', node: del.closest('.photo'), remove: () => spliceOut(arr, x => x === p)}); return; }
-  const meta = e.target.closest('[data-pmeta]'); if(meta){ e.stopPropagation(); const path = meta.dataset.pmeta; const p = getPath(path); const m = openModal(`<h2>This photo</h2><img src="${p.src}" style="width:100%;max-height:260px;object-fit:contain;border-radius:8px;margin-bottom:14px"><div class="stack"><div class="field"><label>Caption</label><input class="inp" id="pmCap" value="${esc(p.caption||'')}"></div><div class="field"><label>Date</label><input class="inp" id="pmDate" value="${esc(p.date||'')}" placeholder="2013-10 · or “that summer”"></div><div class="field"><label>People</label><input class="inp" id="pmPpl" value="${esc((p.people||[]).join(', '))}" placeholder="comma-separated"></div><div class="row between"><button class="btn sm ghost danger" id="pmDel">remove photo</button><button class="btn primary" id="pmSave">Save</button></div></div>`,'narrow');
+  const meta = e.target.closest('[data-pmeta]'); if(meta){ e.stopPropagation(); const path = meta.dataset.pmeta; const p = getPath(path); const m = openModal(`<h2>This photo</h2><img src="${p.src}" style="width:100%;max-height:260px;object-fit:contain;border-radius:8px;margin-bottom:14px"><div class="stack"><div class="field"><label>Caption</label><input class="inp" id="pmCap" value="${esc(p.caption||'')}"></div><div class="field"><label>Date</label><div class="dp-field"><input class="inp" id="pmDate" data-dp value="${esc(p.date||'')}" placeholder="2013-10 · or “that summer”">${dpButtonHTML('pmDate')}</div></div><div class="field"><label>People</label><input class="inp" id="pmPpl" value="${esc((p.people||[]).join(', '))}" placeholder="comma-separated"></div><div class="row between"><button class="btn sm ghost danger" id="pmDel">remove photo</button><button class="btn primary" id="pmSave">Save</button></div></div>`,'narrow');
     m.querySelector('#pmSave').onclick = () => { p.caption = m.querySelector('#pmCap').value.trim(); p.date = m.querySelector('#pmDate').value.trim(); p.people = m.querySelector('#pmPpl').value.split(',').map(s=>s.trim()).filter(Boolean); S.people = [...new Set([...(S.people||[]), ...p.people])]; saveNow(); m.remove(); rerender(); sound('save'); };
     m.querySelector('#pmDel').onclick = () => { m.remove(); const arr = photoList(path.replace(/\.\d+$/,'')); requestDelete({label: p.caption || 'Photo', remove: () => spliceOut(arr, x => x === p)}); };
   }
@@ -7993,7 +8240,7 @@ routes.stage = function(root, params){
     </div>
 
     <section class="section rv"><div class="row between"><span class="sc">Artifacts shelf</span><span class="row"><button class="btn sm ghost" id="addArtifact">+ artifact</button><input type="file" id="artFile" accept="image/*" hidden></span></div>
-      <div class="shelf">${(s.artifacts||[]).length ? s.artifacts.map((a,i)=>`<div class="artifact" style="--rot:${((i*37)%9-4)}deg"><div class="paper" ${a.src?`data-lb="${a.id}"`:''}>${a.src?`<img src="${a.src}" alt="${esc(a.caption)}">`:esc(a.caption)}</div><div class="cap">${ed(`stages.#${s.id}.artifacts.${i}.caption`,{ph:'caption'})} <span class="mono">${ed(`stages.#${s.id}.artifacts.${i}.date`,{ph:'date'})}</span> <button class="tbtn" data-artdel="${i}">×</button></div></div>`).join('') : '<div class="empty">Tickets, letters, report cards, handwriting. Scan them and set them here.</div>'}</div>
+      <div class="shelf">${(s.artifacts||[]).length ? s.artifacts.map((a,i)=>`<div class="artifact" style="--rot:${((i*37)%9-4)}deg"><div class="paper" ${a.src?`data-lb="${a.id}"`:''}>${a.src?`<img src="${a.src}" alt="${esc(a.caption)}">`:esc(a.caption)}</div><div class="cap">${ed(`stages.#${s.id}.artifacts.${i}.caption`,{ph:'caption'})} <span class="mono">${ed(`stages.#${s.id}.artifacts.${i}.date`,{ph:'date',date:true})}</span> <button class="tbtn" data-artdel="${i}">×</button></div></div>`).join('') : '<div class="empty">Tickets, letters, report cards, handwriting. Scan them and set them here.</div>'}</div>
     </section>
 
     <section class="section rv"><div class="row between"><span class="sc">Everything from this stage</span></div>
@@ -8655,8 +8902,8 @@ function renderPersonPage(root, id){
       </div>
       <div class="grid c2" style="align-items:start;margin-top:12px">
         <div class="card"><div class="row between"><span class="k mono">Important dates</span><button class="btn sm ghost" id="ppDate">＋ date</button></div>
-          ${(p.details.importantDates||[]).length ? `<div class="stack" style="gap:5px;margin-top:8px">${p.details.importantDates.map((d,i)=>`<div class="row between"><span>${ed(`people.#${p.id}.details.importantDates.${i}.label`,{ph:'what it is'})}</span><span class="row">${ed(`people.#${p.id}.details.importantDates.${i}.date`,{ph:'YYYY-MM-DD',cls:'mono'})}<button class="del-x inline" data-dtdel="${i}">×</button></span></div>`).join('')}</div>` : '<div class="faint" style="font-size:.8rem;margin-top:6px">Anniversaries, the day you met, the day they helped.</div>'}
-          <div class="k mono" style="margin-top:12px">Birthday</div>${ed(`people.#${p.id}.birthday`,{ph:'YYYY-MM-DD',cls:'mono'})}</div>
+          ${(p.details.importantDates||[]).length ? `<div class="stack" style="gap:5px;margin-top:8px">${p.details.importantDates.map((d,i)=>`<div class="row between"><span>${ed(`people.#${p.id}.details.importantDates.${i}.label`,{ph:'what it is'})}</span><span class="row">${ed(`people.#${p.id}.details.importantDates.${i}.date`,{ph:'YYYY-MM-DD',cls:'mono',date:true})}<button class="del-x inline" data-dtdel="${i}">×</button></span></div>`).join('')}</div>` : '<div class="faint" style="font-size:.8rem;margin-top:6px">Anniversaries, the day you met, the day they helped.</div>'}
+          <div class="k mono" style="margin-top:12px">Birthday</div>${ed(`people.#${p.id}.birthday`,{ph:'YYYY-MM-DD',cls:'mono',date:true})}</div>
         <div class="card"><div class="k mono">How to reach them</div>
           <div class="spec-grid" style="margin-top:6px"><div><div class="k">phone</div>${ed(`people.#${p.id}.contactInfo.phone`,{ph:'—',cls:'mono'})}</div><div><div class="k">email</div>${ed(`people.#${p.id}.contactInfo.email`,{ph:'—',cls:'mono'})}</div></div>
           <div class="k mono" style="margin-top:12px">Tags</div><input class="inp mono" id="ppTags" value="${esc((p.tags||[]).map(t=>'#'+t).join(' '))}" placeholder="#climbing #singapore"></div>
@@ -8665,7 +8912,7 @@ function renderPersonPage(root, id){
     <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Gift ideas</span><button class="btn sm ghost" id="ppGiftIdea">＋ idea</button></div>
       ${(p.giftIdeas||[]).length ? `<div class="stack" style="gap:5px;margin-top:8px">${p.giftIdeas.map((g,i)=>`<div class="row between"><span style="flex:1">${ed(`people.#${p.id}.giftIdeas.${i}`,{ph:'she\'d love this'})}</span><button class="del-x inline" data-gideldel="${i}">×</button></div>`).join('')}</div>` : '<div class="faint" style="font-size:.8rem;margin-top:6px">"She\'d love this" — log it the moment you think it, before you forget.</div>'}</section>
     <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Gifts given &amp; received</span><button class="btn sm ghost" id="ppGiftLog">＋ gift</button></div>
-      ${(p.giftsLog||[]).length ? `<div class="stack" style="gap:5px;margin-top:8px">${p.giftsLog.map((g,i)=>`<div class="row between"><span class="status-pill">${g.direction==='given'?'gave':'received'}</span><span style="flex:1">${ed(`people.#${p.id}.giftsLog.${i}.what`,{ph:'what'})}</span><span class="mono">${ed(`people.#${p.id}.giftsLog.${i}.date`,{ph:'date',cls:'mono'})}</span><button class="del-x inline" data-glogdel="${i}">×</button></div>`).join('')}</div>` : '<div class="empty">Nothing logged.</div>'}</section>
+      ${(p.giftsLog||[]).length ? `<div class="stack" style="gap:5px;margin-top:8px">${p.giftsLog.map((g,i)=>`<div class="row between"><span class="status-pill">${g.direction==='given'?'gave':'received'}</span><span style="flex:1">${ed(`people.#${p.id}.giftsLog.${i}.what`,{ph:'what'})}</span><span class="mono">${ed(`people.#${p.id}.giftsLog.${i}.date`,{ph:'date',cls:'mono',date:true})}</span><button class="del-x inline" data-glogdel="${i}">×</button></div>`).join('')}</div>` : '<div class="empty">Nothing logged.</div>'}</section>
 
     <section class="section rv"><div class="row between" style="align-items:center"><span class="sc" style="margin:0">Pictures of them</span>${imageAddHTML('person', p.id)}</div>
       <p class="muted" style="font-size:.85rem">A face, a place, their handwriting. The first becomes the ground their card is printed on.</p>
@@ -9235,7 +9482,7 @@ function openDecisionPanel(id){
       ${DECISION_OUTCOME.map(([k,l,h]) => `<div class="field" style="margin-top:10px"><label>${l}</label>${h?`<div class="faint" style="font-size:.76rem;margin-bottom:4px">${h}</div>`:''}${ed(`entries.#${e.id}.extra.${k}`, {multi:true, mdr:true, cls:'prose', ph:'…'})}</div>`).join('')}
       <div class="row" style="margin-top:14px;gap:8px"><span class="mono">verdict</span><select class="sel" style="width:auto" id="dVerdict">${['','right for the reasons I thought','right for other reasons','wrong, and I can see why','wrong, and I still would have chosen it','too early to say'].map(v=>`<option ${x.verdict===v?'selected':''}>${v||'—'}</option>`).join('')}</select>
         <button class="btn sm ${settled?'ghost':'primary'}" id="dDone">${settled ? 'reviewed' : 'mark reviewed'}</button></div></div>
-    <div class="vp-sec"><span class="sc">Come back again on</span><div class="row">${ed(`entries.#${e.id}.extra.reviewOn`, {ph:'YYYY-MM-DD', cls:'mono'})}</div></div>
+    <div class="vp-sec"><span class="sc">Come back again on</span><div class="row">${ed(`entries.#${e.id}.extra.reviewOn`, {ph:'YYYY-MM-DD', cls:'mono', date:true})}</div></div>
     ${moreSection(`<div class="danger-zone"><span>This deletes the decision and everything written about it.</span><button class="btn sm ghost danger" id="dDel">Delete this decision</button></div>`)}`, 'decision-panel');
   p.querySelector('#dVerdict').onchange = ev => { x.verdict = ev.target.value; saveNow(); };
   p.querySelector('#dDone').onclick = () => { x.reviewedAt = x.reviewedAt ? '' : today(); saveNow(); sound(x.reviewedAt ? 'success' : 'click'); reopenPanel(() => { rerender(); openDecisionPanel(id); }); };
@@ -9699,7 +9946,7 @@ function openSkillPanel(id){
     </div>
     <div class="faint" style="font-size:.78rem;margin-bottom:10px">${esc(SKILL_HORIZONS[skillHorizon(s)][2])}</div>
     <div class="field" style="margin-bottom:14px"><label>Why this one?</label>${ed(`skills.#${s.id}.why`,{ph:'One line, for the day you have forgotten.'})}</div>
-    ${['someday','next'].includes(skillHorizon(s))?`<div class="field" style="margin-bottom:14px"><label>Start by</label>${ed(`skills.#${s.id}.startBy`,{ph:'YYYY-MM-DD',cls:'mono'})}</div>`:''}
+    ${['someday','next'].includes(skillHorizon(s))?`<div class="field" style="margin-bottom:14px"><label>Start by</label>${ed(`skills.#${s.id}.startBy`,{ph:'YYYY-MM-DD',cls:'mono',date:true})}</div>`:''}
     <div class="grid c3" style="gap:10px"><div class="card" style="padding:12px 14px"><div class="mono">last practiced</div><div class="serif" style="font-size:1.2rem">${relDays(since)}</div></div><div class="card" style="padding:12px 14px"><div class="mono">streak</div><div class="serif" style="font-size:1.2rem">${st.cur}d <span class="faint" style="font-size:.8rem">best ${st.best}</span></div></div><div class="card" style="padding:12px 14px"><div class="mono">total hours</div><div class="serif" style="font-size:1.2rem" data-tween="${skillHours(s)}" data-dec="1">0</div></div></div>
     <div class="archetype">${arche}</div>
     ${levelTrackHTML(s)}
@@ -9743,7 +9990,7 @@ function levelTrackHTML(s){
           <div class="k mono">what I can do at this level</div><div class="prose" style="font-size:.9rem">${ed(`skills.#${s.id}.levels.${i}.description`,{multi:true,mdr:true,ph:'Describe the capability. Markdown welcome.'})}</div>
           <div class="k mono" style="margin-top:10px">criteria — observable behaviours</div><ul class="lvl-criteria">${l.criteria.map((c,ci)=>`<li><span class="mono">▸</span>${ed(`skills.#${s.id}.levels.${i}.criteria.${ci}`,{ph:'something I can be seen doing'})}<button class="del-x inline" data-critdel="${i}:${ci}" title="remove">×</button></li>`).join('')}</ul><button class="tbtn" data-critadd="${i}">+ criterion</button>
           <div class="k mono" style="margin-top:10px">resources</div><div class="lvl-res">${l.resources.map((r,ri)=>{ let host=''; try { host = new URL(r.url).hostname; } catch(e){} return `<div class="res-row"><span class="res-type" title="${esc(r.type)}">${RES_ICON[r.type]||'▫'}</span>${r.url?`<a class="res-link" href="${esc(r.url)}" target="_blank" rel="noopener">${host?`<img class="res-fav" src="https://www.google.com/s2/favicons?domain=${esc(host)}&sz=16" alt="" onerror="this.style.display='none'">`:''}${esc(r.title||r.url)}</a>`:`<span>${esc(r.title||'untitled resource')}</span>`}<span class="status-pill" style="font-size:.6rem">${esc(r.type)}</span><span class="res-edit"><span class="ed-wrap">${ed(`skills.#${s.id}.levels.${i}.resources.${ri}.title`,{ph:'title',cls:'mono'})}</span><span class="ed-wrap">${ed(`skills.#${s.id}.levels.${i}.resources.${ri}.url`,{ph:'https://…',cls:'mono'})}</span><select class="sel" data-restype="${i}:${ri}" style="width:auto;padding:1px 6px;font-size:.66rem;padding-right:22px">${RESOURCE_TYPES.map(t=>`<option ${r.type===t?'selected':''}>${t}</option>`).join('')}</select><button class="del-x inline" data-resdel="${i}:${ri}" title="remove">×</button></span></div>`; }).join('')}</div><button class="tbtn" data-resadd="${i}">+ resource</button>
-          <div class="row" style="gap:16px;margin-top:10px;flex-wrap:wrap"><span><span class="k mono">estimated time</span> ${ed(`skills.#${s.id}.levels.${i}.estimatedTime`,{ph:'e.g. 3 months',cls:'mono'})}</span><span><span class="k mono">target date</span> ${ed(`skills.#${s.id}.levels.${i}.targetDate`,{ph:'YYYY-MM-DD',cls:'mono',hook:'lvldate:'+s.id+':'+i})}</span><button class="tbtn" data-lvldel="${i}" style="margin-left:auto;color:var(--faint)">remove level</button></div>
+          <div class="row" style="gap:16px;margin-top:10px;flex-wrap:wrap"><span><span class="k mono">estimated time</span> ${ed(`skills.#${s.id}.levels.${i}.estimatedTime`,{ph:'e.g. 3 months',cls:'mono'})}</span><span><span class="k mono">target date</span> ${ed(`skills.#${s.id}.levels.${i}.targetDate`,{ph:'YYYY-MM-DD',cls:'mono',date:true,hook:'lvldate:'+s.id+':'+i})}</span><button class="tbtn" data-lvldel="${i}" style="margin-left:auto;color:var(--faint)">remove level</button></div>
         </div></div>
       </div></div>`; }).join('')}
       <button class="btn sm ghost" id="lvlAdd" style="margin:8px 0 0 44px">＋ Add level</button>
@@ -9869,7 +10116,7 @@ function openProjectPanel(id){
   const r = projectTaskRatio(p); const openPh = S._openPhase?.[p.id];
   const pn = openPanel(`<div class="mono">project · ${ns.length} nods · avg energy ${ns.length?avg(ns.map(n=>n.energy)).toFixed(1):'–'} · ${r.done}/${r.total} tasks</div><h2>${ed(`projects.#${p.id}.name`)}</h2><div class="muted">${ed(`projects.#${p.id}.description`,{multi:true,ph:'one or two sentences'})}</div>
     <div class="row" style="margin:12px 0;gap:8px"><select class="sel" style="width:auto" id="pStatus">${Object.entries(PSTATUS).map(([k,v])=>`<option value="${k}" ${p.status===k?'selected':''}>${v[0]} ${v[1]}</option>`).join('')}</select><select class="sel" style="width:auto" id="pPri">${Object.keys(PRIORITY).map(k=>`<option ${p.priority===k?'selected':''}>${k}</option>`).join('')}</select><span class="mono">tags</span>${ed(`projects.#${p.id}._tags`,{ph:'writing, code, music',cls:'mono',hook:'ptags:'+p.id})}</div>
-    <div class="spec-grid"><div><div class="k">start</div>${ed(`projects.#${p.id}.startDate`,{ph:'YYYY-MM-DD',cls:'mono'})}</div><div><div class="k">target</div>${ed(`projects.#${p.id}.targetDate`,{ph:'YYYY-MM-DD',cls:'mono'})}</div></div>
+    <div class="spec-grid"><div><div class="k">start</div>${ed(`projects.#${p.id}.startDate`,{ph:'YYYY-MM-DD',cls:'mono',date:true})}</div><div><div class="k">target</div>${ed(`projects.#${p.id}.targetDate`,{ph:'YYYY-MM-DD',cls:'mono',date:true})}</div></div>
     <div class="row" style="margin-top:8px"><span class="mono">link</span>${ed(`projects.#${p.id}.link`,{ph:'https://…',cls:'mono'})}</div>
     <div class="vp-sec"><div class="row between"><span class="sc">Phases &amp; tasks</span><button class="btn sm ghost" id="phAdd">+ phase</button></div>
       <div class="bar" style="--c:${(PSTATUS[p.status]||PSTATUS.idea)[2]};margin:6px 0 10px"><i style="width:${r.total?Math.round(r.done/r.total*100):0}%"></i></div>
@@ -9885,7 +10132,7 @@ function openProjectPanel(id){
     <div class="vp-sec"><span class="sc">Notes</span>${ed(`projects.#${p.id}.notes`,{multi:true,mdr:true,cls:'prose',ph:'Working notes. Markdown welcome.'})}</div>
     <div class="vp-sec"><div class="row between"><span class="sc">Activity, twelve weeks</span><button class="btn sm primary" id="pNod">+ nod</button></div>${nodHeat(p)}</div>
     <div class="vp-sec"><span class="sc">Income stream</span><div class="spec-grid"><div><div class="k">revenue model</div>${ed(`projects.#${p.id}.income.model`,{ph:'freelance / product / subscriptions / patronage'})}</div><div><div class="k">current monthly (¥)</div>${ed(`projects.#${p.id}.income.current`,{ph:'0',cls:'mono',hook:'pnum:'+p.id})}</div><div><div class="k">target monthly (¥)</div>${ed(`projects.#${p.id}.income.target`,{ph:'0',cls:'mono',hook:'pnum:'+p.id})}</div></div>
-      <div class="row between" style="margin-top:10px"><span class="k mono">milestones</span><button class="btn sm ghost" id="pMile">+ milestone</button></div>${(p.income.milestones||[]).map((m,i)=>`<div class="evidence-item"><span class="mono">${ed(`projects.#${p.id}.income.milestones.${i}.date`,{ph:'date',cls:'mono'})}</span><span style="flex:1">${ed(`projects.#${p.id}.income.milestones.${i}.text`,{ph:'first user, first dollar, first referral…'})}</span><button class="tbtn" data-mdel="${i}">×</button></div>`).join('')||'<div class="empty">Small wins, recorded. None yet.</div>'}</div>
+      <div class="row between" style="margin-top:10px"><span class="k mono">milestones</span><button class="btn sm ghost" id="pMile">+ milestone</button></div>${(p.income.milestones||[]).map((m,i)=>`<div class="evidence-item"><span class="mono">${ed(`projects.#${p.id}.income.milestones.${i}.date`,{ph:'date',cls:'mono',date:true})}</span><span style="flex:1">${ed(`projects.#${p.id}.income.milestones.${i}.text`,{ph:'first user, first dollar, first referral…'})}</span><button class="tbtn" data-mdel="${i}">×</button></div>`).join('')||'<div class="empty">Small wins, recorded. None yet.</div>'}</div>
     <div class="vp-sec"><div class="row between" style="align-items:center"><span class="sc">What this looks like</span>${imageAddHTML('project', p.id)}</div>
       ${imageStripHTML('project', p.id) || '<p class="faint" style="font-size:.8rem;margin:6px 0 0">Add an image and this project\'s card is printed on it.</p>'}</div>
     <div class="vp-sec"><span class="sc">Cross-pollination</span><div class="stack" style="gap:6px;font-size:.88rem">
@@ -10564,7 +10811,7 @@ function streamCardHTML(s){
       <span class="k mono">milestones</span>
       <select class="sel" style="width:auto;font-size:.76rem" data-streammspreset="${path}"><option value="">＋ milestone…</option>${MILESTONE_KINDS.map(k=>`<option>${esc(k)}</option>`).join('')}<option value="__custom">other…</option></select>
     </div>
-    ${(inc.milestones||[]).length ? inc.milestones.map((ms,i)=>`<div class="evidence-item"><span class="mono">${ed(`${path}.milestones.${i}.date`,{ph:'date',cls:'mono'})}</span><span style="flex:1">${ed(`${path}.milestones.${i}.text`,{ph:'first user, first dollar, first referral…'})}</span><button class="tbtn" data-streammsdel="${path}:${i}">×</button></div>`).join('') : '<div class="faint" style="font-size:.78rem">None yet.</div>'}
+    ${(inc.milestones||[]).length ? inc.milestones.map((ms,i)=>`<div class="evidence-item"><span class="mono">${ed(`${path}.milestones.${i}.date`,{ph:'date',cls:'mono',date:true})}</span><span style="flex:1">${ed(`${path}.milestones.${i}.text`,{ph:'first user, first dollar, first referral…'})}</span><button class="tbtn" data-streammsdel="${path}:${i}">×</button></div>`).join('') : '<div class="faint" style="font-size:.78rem">None yet.</div>'}
     ${typeof planLinkedTasksHTML === 'function' ? planLinkedTasksHTML('stream', s.id, {heading:'Tasks feeding this stream'}) : ''}
   </div>`;
 }
@@ -15979,8 +16226,8 @@ function openMediaPanel(id){
       <select class="sel" style="width:auto" id="mpKind">${Object.entries(MEDIA_KINDS).map(([kk,v])=>`<option value="${kk}" ${x.kind===kk?'selected':''}>${v[0]} ${v[1]}</option>`).join('')}</select>
     </div>
     <div class="spec-grid" style="margin-bottom:14px">
-      <div><div class="k">started</div>${ed(`entries.#${e.id}.extra.startedAt`,{ph:'YYYY-MM-DD',cls:'mono'})}</div>
-      <div><div class="k">date consumed (finished)</div>${ed(`entries.#${e.id}.extra.finishedAt`,{ph:'YYYY-MM-DD',cls:'mono'})}</div>
+      <div><div class="k">started</div>${ed(`entries.#${e.id}.extra.startedAt`,{ph:'YYYY-MM-DD',cls:'mono',date:true})}</div>
+      <div><div class="k">date consumed (finished)</div>${ed(`entries.#${e.id}.extra.finishedAt`,{ph:'YYYY-MM-DD',cls:'mono',date:true})}</div>
     </div>
 
     <div class="vp-sec"><span class="sc">Resonance — not "was it good?", but "what did it do to me?"</span>
@@ -20691,7 +20938,7 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
         <div class="deps people-deps" id="peopleChips">${(S.people||[]).map(p=>`<span class="chip click" style="--c:${(CIRCLES[p.circle]||CIRCLES.outer)[4]}" data-lk="people" data-id="${p.id}" data-pname="${esc(p.name.toLowerCase())}">${(CIRCLES[p.circle]||CIRCLES.outer)[0]} ${esc(p.name)}</span>`).join('')}<button type="button" class="chip click" id="eNewPerson" style="--c:var(--page-accent)">＋ someone new</button></div>
         <div class="faint" style="font-size:.74rem" id="peopleHint"></div></div>
       <div class="field" id="tagField" ${TAGGABLE.includes(e.type)?'':'hidden'}><label>Hashtags — one thread through many entries</label><input class="inp mono" id="eTags" value="${esc((e.tags||[]).map(t=>'#'+t).join(' '))}" placeholder="#kyoto #jazz #beginnings" list="tagList"><datalist id="tagList">${allTags().map(([t,n])=>`<option value="#${esc(t)}">${n}</option>`).join('')}</datalist><div class="faint" style="font-size:.74rem">Typing #something in the body works too.</div></div>
-      <div class="field"><label>Occurred at</label><input class="inp" id="eWhen" value="${esc(e.occurredAt)}" placeholder="2024-09-14 · or “Summer 2019” · or “age 15”"><div class="faint" style="font-size:.74rem">Exact dates sort precisely; approximate ones sort by year. Memories can be logged today about decades ago.</div></div>
+      <div class="field"><label>Occurred at</label><div class="dp-field"><input class="inp" id="eWhen" data-dp value="${esc(e.occurredAt)}" placeholder="2024-09-14 · or “Summer 2019” · or “age 15”">${dpButtonHTML('eWhen')}</div><div class="faint" style="font-size:.74rem">Exact dates sort precisely; approximate ones sort by year. Memories can be logged today about decades ago.</div></div>
       <div class="field"><label>Media</label><div class="dropzone" id="eDrop">drop images here, or click to choose</div><input type="file" id="eFile" accept="image/*" multiple hidden><div class="thumbs" id="eThumbs"></div></div>
       <details ${(openLinks || Object.values(e.links).some(a=>a.length))?'open':''}><summary><span class="sc">Connect this entry</span><span class="mono" id="linkCount"></span></summary><div class="body stack" style="gap:12px">
         <div class="field"><label>Stages</label><div class="deps">${S.stages.map(s=>`<span class="chip click" style="--c:${s.hue}" data-lk="stages" data-id="${s.id}">${s.char} ${esc(s.name)}</span>`).join('')}</div></div>
