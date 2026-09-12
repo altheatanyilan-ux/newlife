@@ -9,8 +9,13 @@ const CURRENCIES = ['SGD','USD','EUR','GBP','JPY','AUD','CNY','HKD','MYR','INR']
 const CURRENCY_SIGN = {SGD:'S$',USD:'$',EUR:'€',GBP:'£',JPY:'¥',AUD:'A$',CNY:'¥',HKD:'HK$',MYR:'RM',INR:'₹'};
 const FIN_DEFAULT = {currency:'SGD', principles:[], note:'', rates:{}, savings:0, hoursLimit:50};
 const SUGGESTED_SPEND = ['Courses & learning','Flights','Skincare & grooming','Housing','Health & wellness','Travel (non-flight)','Hobbies & gear','Gifts','Clothing','Emergency buffer'];
-const STREAM_STATUS = {idea:['💭','Idea'], exploring:['🔍','Exploring'], earning:['🟢','Earning'], paused:['⏸','Paused'], retired:['📦','Retired']};
-const STREAM_STATUS_COLOR = {idea:'var(--muted)', exploring:'var(--page-accent)', earning:'var(--sage)', paused:'var(--gold)', retired:'var(--faint)'};
+/* "Future" is the counterpart of a Future project and a Future skill: a way of
+   earning written down so it stops taking up room in your head, deliberately
+   not counted in what you make or plan to make yet. */
+const STREAM_STATUS = {future:['◌','Future'], idea:['💭','Idea'], exploring:['🔍','Exploring'], earning:['🟢','Earning'], paused:['⏸','Paused'], retired:['📦','Retired']};
+const STREAM_STATUS_COLOR = {future:'var(--faint)', idea:'var(--muted)', exploring:'var(--page-accent)', earning:'var(--sage)', paused:'var(--gold)', retired:'var(--faint)'};
+/* neither a retired stream nor one that has not begun belongs in the totals */
+const STREAM_UNCOUNTED = ['retired', 'future'];
 const MILESTONE_KINDS = ['first dollar','first client','first repeat customer','first referral','first $1k month'];
 const SPEND_CATEGORY_TEMPLATE = [
   'Housing','Food','Transport','Health','Learning','Creative','Relationships','Experiences','Savings & Investment','Giving','Miscellaneous'
@@ -32,6 +37,13 @@ function migrateIncomeShape(obj){
   obj.capital = +obj.capital || 0;
   obj.peopleIds = Array.isArray(obj.peopleIds) ? obj.peopleIds : [];
   obj.revenueLog = Array.isArray(obj.revenueLog) ? obj.revenueLog : [];
+  /* A stream is often a shelf rather than a single thing: "digital products"
+     is three products, each earning its own money against its own hope. The
+     parts carry the numbers and the stream carries their sum, so the two can
+     never disagree. */
+  obj.subs = Array.isArray(obj.subs) ? obj.subs : [];
+  obj.subs.forEach(x => { x.id = x.id || uid(); x.name = x.name || '';
+    x.current = +x.current || 0; x.target = +x.target || 0; });
   obj.links = normLinks(obj.links);
   /* the older single-person field folds into the general links */
   obj.peopleIds.forEach(pid => { if(!obj.links.people.includes(pid)) obj.links.people.push(pid); });
@@ -95,38 +107,50 @@ hooks.hourslimit = () => { S.finance.hoursLimit = parseFloat(String(S.finance.ho
 /* every way money comes in, or could — a project's own income section, or a
    standalone stream that isn't tied to any Creative Project */
 function incomeStreamList(){
-  const projectStreams = S.projects.filter(p => p.income && (p.income.model || p.income.current || p.income.target)).map(p => ({id:'proj:'+p.id, name:p.name, kind:'project', project:p, income:p.income}));
+  /* A stream tied to a project used to appear here only once one of its
+     figures was filled in, so adding one and leaving the numbers for later —
+     which is the normal way to start, and the only way for a project that has
+     not begun — put it on the Projects page and nowhere else. Being made a
+     stream is now the thing that makes it one. */
+  const projectStreams = S.projects
+    .filter(p => p.income && (p.income.isStream || p.income.model || p.income.current || p.income.target || (p.income.subs || []).length))
+    .map(p => ({id:'proj:'+p.id, name:p.name, kind:'project', project:p, income:p.income}));
   const standalone = S.incomeStreams.map(s => ({id:'stream:'+s.id, name:s.name, kind:'standalone', stream:s, income:s}));
   return [...projectStreams, ...standalone];
 }
 /* An hourly rate needs both halves. With hours but no income it is not
    "0/hr", it is not yet answerable — say so rather than print a zero. */
-function effHourlyRate(income){ const h = +income.hoursPerWeek || 0; const c = +income.current || 0; if(!h || !c) return null; return c / (h * 4.33); }
+/* what a stream makes and hopes to make: its own figures, unless it has parts,
+   in which case the parts are the truth and the stream is their total */
+const streamHasSubs = inc => Array.isArray(inc.subs) && inc.subs.length > 0;
+function streamCurrent(inc){ return streamHasSubs(inc) ? sum(inc.subs.map(x => +x.current || 0)) : (+inc.current || 0); }
+function streamTarget(inc){ return streamHasSubs(inc) ? sum(inc.subs.map(x => +x.target || 0)) : (+inc.target || 0); }
+function effHourlyRate(income){ const h = +income.hoursPerWeek || 0; const c = streamCurrent(income); if(!h || !c) return null; return c / (h * 4.33); }
 const isPassive = inc => inc.earning === 'passive';
 /* what a passive stream returns each year on what was put into it */
-function streamYield(inc){ const cap = +inc.capital || 0, c = +inc.current || 0; if(!cap || !c) return null; return c * 12 / cap * 100; }
+function streamYield(inc){ const cap = +inc.capital || 0, c = streamCurrent(inc); if(!cap || !c) return null; return c * 12 / cap * 100; }
 /* how long until it has given back what it cost to build */
-function streamPayback(inc){ const cap = +inc.capital || 0, c = +inc.current || 0; if(!cap || !c) return null; return cap / c; }
+function streamPayback(inc){ const cap = +inc.capital || 0, c = streamCurrent(inc); if(!cap || !c) return null; return cap / c; }
 /* an active stream can only earn as many hours as you have: this is its
    ceiling at today's rate, and the honest reason a rate has to rise */
 function streamCeiling(inc, limitHours){ const r = effHourlyRate(inc); if(r == null) return null; return r * (limitHours || 50) * 4.33; }
 /* hours the stream would need at today's rate to reach its own target —
    meaningless for a passive stream, which does not scale with hours */
-function streamHoursForTarget(inc){ if(isPassive(inc)) return null; const r = effHourlyRate(inc); const t = +inc.target || 0; if(r == null || !t) return null; return t / (r * 4.33); }
+function streamHoursForTarget(inc){ if(isPassive(inc)) return null; const r = effHourlyRate(inc); const t = streamTarget(inc); if(r == null || !t) return null; return t / (r * 4.33); }
 function portfolioTotals(){
-  const streams = incomeStreamList().filter(s => s.income.status !== 'retired');
-  const totalCurrentBase = sum(streams.map(s => toBase(s.income.current, s.income.currency)));
-  const totalTargetBase = sum(streams.map(s => toBase(s.income.target, s.income.currency)));
+  const streams = incomeStreamList().filter(s => !STREAM_UNCOUNTED.includes(s.income.status));
+  const totalCurrentBase = sum(streams.map(s => toBase(streamCurrent(s.income), s.income.currency)));
+  const totalTargetBase = sum(streams.map(s => toBase(streamTarget(s.income), s.income.currency)));
   const totalHours = sum(streams.map(s => +s.income.hoursPerWeek || 0));
   const act = streams.filter(s => !isPassive(s.income)), pas = streams.filter(s => isPassive(s.income));
-  const activeBase  = sum(act.map(s => toBase(s.income.current, s.income.currency)));
-  const passiveBase = sum(pas.map(s => toBase(s.income.current, s.income.currency)));
-  const activeTargetBase  = sum(act.map(s => toBase(s.income.target, s.income.currency)));
-  const passiveTargetBase = sum(pas.map(s => toBase(s.income.target, s.income.currency)));
+  const activeBase  = sum(act.map(s => toBase(streamCurrent(s.income), s.income.currency)));
+  const passiveBase = sum(pas.map(s => toBase(streamCurrent(s.income), s.income.currency)));
+  const activeTargetBase  = sum(act.map(s => toBase(streamTarget(s.income), s.income.currency)));
+  const passiveTargetBase = sum(pas.map(s => toBase(streamTarget(s.income), s.income.currency)));
   const activeHours  = sum(act.map(s => +s.income.hoursPerWeek || 0));
   const passiveHours = sum(pas.map(s => +s.income.hoursPerWeek || 0));
   const capitalBase  = sum(pas.map(s => toBase(s.income.capital, s.income.currency)));
-  const diversified = totalCurrentBase ? streams.filter(s => toBase(s.income.current, s.income.currency)/totalCurrentBase > .1).length : 0;
+  const diversified = totalCurrentBase ? streams.filter(s => toBase(streamCurrent(s.income), s.income.currency)/totalCurrentBase > .1).length : 0;
   return {streams, totalCurrentBase, totalTargetBase, totalHours, diversified,
     activeBase, passiveBase, activeTargetBase, passiveTargetBase, activeHours, passiveHours, capitalBase,
     passiveShare: totalCurrentBase ? passiveBase / totalCurrentBase : 0};
@@ -140,7 +164,8 @@ function runway(){ const burn = monthlyBurn(); if(burn <= 0) return {sustainable
 function streamCardHTML(s){
   const path = s.kind === 'project' ? `projects.#${s.project.id}.income` : `incomeStreams.#${s.stream.id}`;
   const hook = s.kind === 'project' ? 'pnum:'+s.project.id : 'snum:'+s.stream.id;
-  const inc = s.income; const pct = (inc.target||0) ? clamp((inc.current||0)/inc.target*100, 0, 100) : 0;
+  const inc = s.income; const tgt = streamTarget(inc);
+  const pct = tgt ? clamp(streamCurrent(inc)/tgt*100, 0, 100) : 0;
   const rate = effHourlyRate(inc); const st = STREAM_STATUS[inc.status] || STREAM_STATUS.idea;
   const spark = (inc.revenueLog||[]).slice(-12).map(r => r.amount);
   const passive = isPassive(inc); const limit = S.finance.hoursLimit || 50;
@@ -160,11 +185,31 @@ function streamCardHTML(s){
         `<button class="${(passive?'passive':'active')===k?'on':''}" data-streamearn="${path}:${k}" title="${t}">${l}</button>`).join('')}
     </div>
     <div style="margin-top:8px">${ed(`${path}.model`,{ph: passive ? 'what generates it — dividends / royalties / a product that sells itself / rent' : 'revenue model — freelance / retainer / consulting / commissions'})}</div>
+    ${streamHasSubs(inc) ? `
     <div class="grid c2" style="gap:10px;margin-top:8px">
+      <div><div class="k">current / month</div><div class="mono sub-total">${money(streamCurrent(inc), inc.currency)}</div></div>
+      <div><div class="k">target / month</div><div class="mono sub-total">${money(streamTarget(inc), inc.currency)}</div></div>
+    </div>
+    <div class="faint" style="font-size:.72rem">Added up from the parts below — edit them there.</div>`
+    : `<div class="grid c2" style="gap:10px;margin-top:8px">
       <div><div class="k">current / month</div>${ed(`${path}.current`,{ph:'0',cls:'mono',hook})}</div>
       <div><div class="k">target / month</div>${ed(`${path}.target`,{ph:'0',cls:'mono',hook})}</div>
-    </div>
+    </div>`}
     <div class="bar" style="--c:var(--gold);margin:8px 0"><i style="width:${pct}%"></i></div>
+
+    <!-- A stream is often a shelf: "digital products" is three products, each
+         earning its own money against its own hope. The parts hold the figures
+         and the stream shows their total, so nothing can disagree. -->
+    <div class="substreams">
+      <div class="row between"><span class="k">${streamHasSubs(inc) ? 'what is in it' : ''}</span>
+        <button class="tbtn" data-subadd="${path}">+ part</button></div>
+      ${(inc.subs || []).map((x, i) => `<div class="substream">
+        <span class="sub-name">${ed(`${path}.subs.${i}.name`, {ph:'what this one is'})}</span>
+        <span class="sub-num"><span class="k">now</span>${ed(`${path}.subs.${i}.current`, {ph:'0', cls:'mono', hook})}</span>
+        <span class="sub-num"><span class="k">hoped</span>${ed(`${path}.subs.${i}.target`, {ph:'0', cls:'mono', hook})}</span>
+        <button class="del-x inline" data-subdel="${path}:${x.id}" title="remove this part">×</button>
+      </div>`).join('')}
+    </div>
     ${passive ? `
     <div class="grid c3" style="gap:8px;margin:8px 0;align-items:end">
       <div><div class="k">upkeep hrs / wk</div>${ed(`${path}.hoursPerWeek`,{ph:'0',cls:'mono',hook})}</div>
@@ -205,8 +250,12 @@ function streamCardHTML(s){
     ${typeof planLinkedTasksHTML === 'function' ? planLinkedTasksHTML('stream', s.id, {heading:'Tasks feeding this stream'}) : ''}
   </div>`;
 }
-function openStreamModal(){
-  const m = openModal(`<h2>An income stream</h2><p class="muted" style="font-size:.86rem">A way you make money, or are building toward making money.</p><div class="stack">
+function openStreamModal(pre = {}){
+  const future = pre.status === 'future';
+  const m = openModal(`<h2>${future ? 'An income stream for later' : 'An income stream'}</h2>
+    <p class="muted" style="font-size:.86rem">${future
+      ? 'A way of earning you intend to build, written down so it stops taking up room in your head. It is not counted in what you make or plan to make until you start it.'
+      : 'A way you make money, or are building toward making money.'}</p><div class="stack">
     <select class="sel" id="stProj"><option value="">standalone — not tied to a project</option>${S.projects.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select>
     <input class="inp serif-lg" id="stName" placeholder="Name — only needed if standalone" autofocus>
     <select class="sel" id="stEarn"><option value="active">⟳ active — money bought with your hours</option><option value="passive">◇ passive — money from something already built</option></select>
@@ -222,9 +271,18 @@ function openStreamModal(){
       const model = m.querySelector('#stModel').value.trim();
       if(model) p.income.model = model; if(c0) p.income.current = c0; if(t0) p.income.target = t0; p.income.currency = curr;
       p.income.earning = m.querySelector('#stEarn').value;
-      saveNow(); m.remove(); sound('success'); rerender(); return; }
+      /* said outright, so the Finance page lists it whether or not any figure
+         has been filled in yet — which for a project not yet started is the
+         only honest state to be in */
+      p.income.isStream = true;
+      if(future) p.income.status = 'future';
+      saveNow(); m.remove(); sound('success');
+      if(currentRoute !== 'finance') navigate('#/finance'); else rerender();
+      toast(`Added to Finance, linked to ${p.name}.`);
+      return; }
     const name = m.querySelector('#stName').value.trim(); if(!name){ toast('Name it, or link it to a project.'); return; }
     const income = {model:m.querySelector('#stModel').value.trim(), current:c0, target:t0, earning:m.querySelector('#stEarn').value}; migrateIncomeShape(income); income.currency = curr;
+    if(future) income.status = 'future';
     S.incomeStreams.push(Object.assign({id:uid(), name}, income));
     saveNow(); m.remove(); sound('success'); rerender();
   };
@@ -384,7 +442,9 @@ routes.finance = function(root){
       ${currenciesInUse().length ? `<div class="field"><label>Exchange rates — 1 unit of each, in ${S.finance.currency}</label><div class="grid c2" style="gap:8px">${currenciesInUse().map(c=>`<div class="row between"><span class="mono">${c}</span><input class="inp mono" style="width:100px" data-fxrate="${c}" value="${S.finance.rates[c]||''}" placeholder="1.00"></div>`).join('')}</div><div class="faint" style="font-size:.76rem;margin-top:4px">Entered by hand, not fetched live — update them when they drift.</div></div>` : ''}
     </div></details>
 
-    <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Income streams</span><button class="btn sm primary" id="streamAdd">＋ stream</button></div>
+    <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Income streams</span>
+      <span class="row" style="gap:8px"><button class="btn sm primary" id="streamAdd">＋ stream</button>
+      <button class="btn sm ghost" id="streamFuture" title="a way of earning you intend to build">＋ future stream</button></span></div>
       <p class="muted" style="font-size:.85rem">Every way you make money, or are building toward making money. Link one to a Creative Project and the numbers live there, in sync — edit them from either page.</p>
       <div class="card" style="margin:12px 0"><div class="income-strip one-line">
         <div><div class="k">current, monthly (${S.finance.currency})</div><div class="num">${money(totalCurrentBase)}</div><div class="mono">${money(annualCurrent)} / year</div></div>
@@ -395,6 +455,16 @@ routes.finance = function(root){
         <div><div class="k">hours / week</div><div class="num">${totalHours.toFixed(0)}</div>${blendedRate!=null?`<div class="mono">${money(blendedRate)}/hr blended</div>`:''}</div>
       </div></div>
       ${streams.length ? `<div class="grid c2" style="align-items:start">${streams.map(streamCardHTML).join('')}</div>` : '<div class="empty">Nothing yet. What is the first way you could make money doing something you already do?</div>'}
+      <!-- A stream not yet begun, and one put down for good, are both real and
+           neither belongs in the arithmetic above. They were being left out of
+           the totals and off the page at once, which meant writing one down
+           and never seeing it again. -->
+      ${(() => { const rest = incomeStreamList().filter(x => STREAM_UNCOUNTED.includes(x.income.status));
+        if(!rest.length) return '';
+        return `<div class="row between" style="margin:20px 0 6px;align-items:baseline">
+            <span class="sc" style="margin:0">Not counted yet</span>
+            <span class="mono faint">${rest.length} written down — nothing here is in the figures above</span></div>
+          <div class="grid c2" style="align-items:start">${rest.map(streamCardHTML).join('')}</div>`; })()}
     </section>
 
     <section class="section rv"><div class="row between" style="align-items:center"><span class="sc" style="margin:0">The life you want to fund</span><button class="btn sm primary" id="scenarioAdd">＋ scenario</button></div>
@@ -407,11 +477,32 @@ routes.finance = function(root){
   </div>`;
   $('#finWords').addEventListener('toggle', ev => { S._finWordsOpen = ev.target.open; });
   $('#streamAdd').onclick = () => openStreamModal();
+  if($('#streamFuture')) $('#streamFuture').onclick = () => openStreamModal({status:'future'});
   $('#scenarioAdd').onclick = () => openScenarioModal();
   $('#finToDCA').onclick = () => openDCAModal();
   root.querySelectorAll('.spend-cat').forEach(d => d.addEventListener('toggle', () => { S._finOpenCats = S._finOpenCats || {}; S._finOpenCats[d.dataset.cat] = d.open; }));
   root.querySelectorAll('[data-spendadd]').forEach(b => b.onclick = () => { const [scId, cId] = b.dataset.spendadd.split(':'); const c = byId(byId(S.finance.scenarios,scId).categories, cId); c.items.push({id:uid(), name:'', amount:0, currency:byId(S.finance.scenarios,scId).currency, notes:''}); S._finOpenCats = S._finOpenCats || {}; S._finOpenCats[cId] = true; saveNow(); rerender(); });
   root.querySelectorAll('[data-spenddel]').forEach(b => b.onclick = () => { const [scId,cId,iId] = b.dataset.spenddel.split(':'); const c = byId(byId(S.finance.scenarios,scId).categories, cId); const it = byId(c.items, iId); requestDelete({label:it.name||'line item', node:b.closest('.spend-row'), remove:()=>spliceOut(c.items, x=>x.id===iId)}); });
+  root.querySelectorAll('[data-subadd]').forEach(b => b.onclick = () => {
+    const inc = getPath(b.dataset.subadd); if(!inc) return;
+    inc.subs = inc.subs || [];
+    /* the first part inherits the stream's own figures, so making a shelf out
+       of a single thing does not silently zero what it was already earning */
+    if(!inc.subs.length && (inc.current || inc.target))
+      inc.subs.push({id:uid(), name:'', current:+inc.current || 0, target:+inc.target || 0});
+    else inc.subs.push({id:uid(), name:'', current:0, target:0});
+    saveNow(); sound('click'); rerender();
+    setTimeout(() => { const n = document.querySelectorAll('.substream .sub-name .ed');
+      n.length && beginEdit(n[n.length - 1]); }, 60);
+  });
+  root.querySelectorAll('[data-subdel]').forEach(b => b.onclick = () => {
+    const i = b.dataset.subdel.lastIndexOf(':');
+    const inc = getPath(b.dataset.subdel.slice(0, i)), id = b.dataset.subdel.slice(i + 1);
+    if(!inc) return;
+    const part = (inc.subs || []).find(x => x.id === id);
+    requestDelete({label: part?.name || 'this part', node: b.closest('.substream'),
+      remove: () => spliceOut(inc.subs, x => x.id === id), after: rerender});
+  });
   root.querySelectorAll('[data-streamdel]').forEach(b => b.onclick = () => { const s = byId(S.incomeStreams, b.dataset.streamdel); requestDelete({label:s.name||'stream', node:b.closest('.stream-card'), remove:()=>spliceOut(S.incomeStreams, x=>x.id===s.id)}); });
   root.querySelectorAll('[data-streamms]').forEach(b => b.onclick = () => { const arr = getPath(b.dataset.streamms+'.milestones'); arr.push({date:today(), text:'', kind:''}); saveNow(); rerender(); });
   root.querySelectorAll('[data-streammspreset]').forEach(s => s.onchange = () => { if(!s.value) return; const arr = getPath(s.dataset.streammspreset+'.milestones');

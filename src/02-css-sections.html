@@ -3622,5 +3622,17 @@ select.sm-active{border-color:var(--page-accent);
 .fp-drop .sub-wrap{margin-top:8px}
 .fp-caret{margin-right:2px}
 @media (max-width:520px){ .fp-mode{grid-template-columns:1fr} }
+
+/* --- the parts of an income stream --- */
+.substreams{margin-top:6px}
+.substreams .k{letter-spacing:.09em;text-transform:uppercase;font-size:.58rem;color:var(--faint)}
+.substream{display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center;
+  padding:4px 0;border-top:1px dashed var(--line)}
+.substream .sub-name{font-size:.86rem;min-width:0}
+.substream .sub-num{display:flex;align-items:baseline;gap:5px;font-size:.8rem;white-space:nowrap}
+.substream .sub-num .k{font-size:.55rem}
+.sub-total{font-size:1.05rem}
+@media (max-width:560px){ .substream{grid-template-columns:1fr auto;row-gap:2px}
+  .substream .sub-name{grid-column:1/-1} }
 </style>
 </head>
