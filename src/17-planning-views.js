@@ -193,7 +193,8 @@ function planTimelineHTML(tasks, sel){
               lastX = x; lastLow = low;
               return `<button class="pl-gms${m.done ? ' done' : ''}${late ? ' late' : ''}${low ? ' low' : ''}" data-plms="${m.id}"
                 style="left:${x}px;--c:${esc(list.color)}"
-                title="${esc(m.name)} · ${m.date ? esc(fmtDate(m.date, 'med')) : 'no date'}"><i></i><span>${esc(m.name)}</span></button>`; }).join('')}
+                title="${esc(m.name)} · ${m.date ? esc(fmtDate(m.date, 'med')) + ' · ' + esc(planWhenAway(m.date)) : 'no date'}"><i></i><span>${esc(m.name)}</span>
+                ${m.date && !m.done ? `<span class="pl-gmsaway mono">${esc(planWhenAway(m.date))}</span>` : ''}</button>`; }).join('')}
           </div></div>`; })()}
       <div class="pl-tlrows" data-ptgroup>${rows.map(({t, x0, w}) => `<div class="pl-tlrow" data-ptunit="${t.id}">
         <span class="pl-tlname" draggable="true" data-ptgrip="${t.id}"

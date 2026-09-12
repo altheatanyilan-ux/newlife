@@ -1491,21 +1491,6 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
    HOME — life at a glance
    ============================================================ */
 /* the zone summary cards — one per navigation zone */
-.zone-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:20px}
-@media (max-width:1180px){.zone-cards{grid-template-columns:repeat(2,1fr)}}
-@media (max-width:620px){.zone-cards{grid-template-columns:1fr}}
-.zone-card{position:relative;display:flex;flex-direction:column;gap:10px;padding:15px 16px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);text-decoration:none;color:inherit;overflow:hidden;transition:border-color .25s var(--page-ease,ease),transform .25s var(--page-ease,ease),box-shadow .25s}
-.zone-card::before{content:'';position:absolute;inset:0 auto 0 0;width:3px;background:var(--z);opacity:.6;transition:opacity .25s,width .25s}
-.zone-card:hover{border-color:color-mix(in srgb,var(--z) 45%,var(--line));transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.09)}
-.zone-card:hover::before{opacity:1;width:4px}
-.zc-h{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
-.zc-label{font-family:var(--serif);font-size:1.06rem;color:var(--z);letter-spacing:.01em}
-.zc-hint{font-size:.6rem;color:var(--faint);text-align:right;line-height:1.3}
-.zc-lines{display:flex;flex-direction:column;gap:5px;flex:1}
-.zc-line{font-size:.82rem;color:var(--muted);line-height:1.4}
-.zc-line:first-child{color:var(--text);font-size:.88rem}
-.zc-go{font-size:.62rem;color:var(--faint);opacity:0;transition:opacity .25s}
-.zone-card:hover .zc-go{opacity:1}
 .home-hero{display:grid;grid-template-columns:1.3fr 1fr;gap:18px;align-items:stretch}
 @media (max-width:900px){.home-hero{grid-template-columns:1fr}}
 .focus-card{background:linear-gradient(135deg,color-mix(in srgb,var(--page-accent) 10%,var(--surface)),var(--surface));border:1px solid var(--line);border-radius:18px;padding:22px 24px}
@@ -3533,6 +3518,10 @@ select.sm-active{border-color:var(--page-accent);
 .pl-mspin:hover .pl-msdot{transform:rotate(45deg) scale(1.25)}
 .pl-mslabel{font-size:.68rem;line-height:1.15;color:var(--ink);text-align:center;
   overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+/* the distance, under the name: a date alone still needs arithmetic */
+.pl-msaway{font-size:.58rem;color:var(--faint);white-space:nowrap;line-height:1}
+.pl-mspin.late .pl-msaway{color:var(--terra)}
+.pl-gmsaway{font-size:.56rem;color:var(--faint);white-space:nowrap;line-height:1}
 .pl-mspin.done .pl-msdot{background:var(--card);border:1.5px solid var(--c,var(--terra))}
 .pl-mspin.done .pl-mslabel{text-decoration:line-through;color:var(--faint)}
 .pl-mspin.late .pl-msdot{background:var(--terra);box-shadow:0 0 0 3px var(--bg),0 0 0 5px color-mix(in srgb,var(--terra) 30%,transparent)}

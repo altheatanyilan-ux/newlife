@@ -207,60 +207,12 @@ function nextReviewLine(){
   if(d >= 7) return [`weekly review due${d > 8 ? ` · ${d - 7}d late` : ''}`, 'var(--gold)'];
   return [`next review in ${7 - d} day${7 - d === 1 ? '' : 's'}`, ''];
 }
-function zoneSummaries(){
-  const T = today(); const st = houseStats();
-  const cards = [];
-
-  const tasks = typeof tasksForDay === 'function' ? tasksForDay(T) : [];
-  const openTasks = tasks.filter(t => !t.done);
-  const [revLine, revC] = nextReviewLine();
-  cards.push({label:'Present', hint:'what is happening now', accent:'var(--sage)', route:'#/today',
-    lines:[
-      [openTasks.length ? `${openTasks.length} item${openTasks.length === 1 ? '' : 's'} still planned today` : (tasks.length ? 'everything planned today is done' : 'nothing planned today'), openTasks.length ? '' : (tasks.length ? 'var(--sage)' : 'var(--faint)')],
-      [st.due.length ? `${st.done} of ${st.due.length} habit${st.due.length === 1 ? '' : 's'} done` : 'no habits due today', st.due.length ? (st.done === st.due.length ? 'var(--sage)' : '') : 'var(--faint)'],
-      [revLine, revC],
-    ]});
-
-  const ms = typeof milestonesWithin === 'function' ? milestonesWithin(365) : [];
-  const nextMs = ms[0];
-  const snaps = allSnapshotsWithRetro(); const lastSnap = snaps[snaps.length - 1];
-  const snapAge = lastSnap ? daysSince(lastSnap.date) : null;
-  cards.push({label:'Becoming', hint:'long-term growth, identity', accent:'var(--ment)', route:'#/skills',
-    lines:[
-      nextMs ? [nextMs.days < 0 ? `${esc(nextMs.skill.name)} milestone ${-nextMs.days}d overdue` : `${esc(nextMs.skill.name)} milestone in ${nextMs.days} day${nextMs.days === 1 ? '' : 's'}`, nextMs.days < 0 ? 'var(--gold)' : '']
-              : ['no skill milestone dated', 'var(--faint)'],
-      snapAge === null ? ['no congruence snapshot yet', 'var(--gold)'] : [`congruence read ${relDays(snapAge)}`, snapAge > 45 ? 'var(--gold)' : ''],
-    ]});
-
-  const overdue = typeof peopleNeedingAttention === 'function' ? peopleNeedingAttention() : [];
-  const bdays = typeof birthdaysSoon === 'function' ? birthdaysSoon(30) : [];
-  const jrn = sortEntries(S.entries.filter(e => ['journal','reflection','dream','gratitude'].includes(e.type)))[0];
-  const jrnAge = jrn ? daysSince((jrn.occurredAt || jrn.createdAt || '').slice(0,10)) : null;
-  cards.push({label:'Story', hint:'relationships, memory, meaning', accent:'var(--rose)', route:'#/people',
-    lines:[
-      overdue.length ? [`${overdue.length} ${overdue.length === 1 ? 'person is' : 'people are'} overdue for contact`, 'var(--gold)'] : ['everyone is within their cadence', 'var(--sage)'],
-      jrnAge === null ? ['nothing written yet', 'var(--faint)'] : [`last journal ${relDays(jrnAge)}`, jrnAge > 7 ? 'var(--gold)' : ''],
-      bdays.length ? [`${esc(bdays[0].p.name)}&#39;s birthday in ${bdays[0].days} day${bdays[0].days === 1 ? '' : 's'}`, 'var(--terra)'] : null,
-    ]});
-
-  const m = T.slice(0,7);
-  if(typeof migrateFinance === 'function') migrateFinance();
-  const {streams, totalCurrentBase, totalTargetBase} = typeof portfolioTotals === 'function' ? portfolioTotals() : {streams:[], totalCurrentBase:0, totalTargetBase:0};
-  const annualWant = typeof activeScenario === 'function' ? scenarioAnnualTotal(activeScenario()) : 0;
-  cards.push({label:'Finance', hint:'ways to make money, and what enough looks like', accent:'var(--gold)', route:'#/finance',
-    lines:[
-      streams.length ? [`${money(totalCurrentBase)}/mo across ${streams.length} stream${streams.length===1?'':'s'}`, ''] : ['no income streams yet', 'var(--faint)'],
-      totalTargetBase ? [`${money(totalTargetBase)}/mo target`, ''] : ['no target set', 'var(--faint)'],
-      annualWant ? [`covers ${Math.round(totalCurrentBase*12/annualWant*100)}% of ${money(annualWant)}/yr wanted`, totalCurrentBase*12 < annualWant ? 'var(--gold)' : 'var(--sage)'] : ['no life-cost scenario priced yet', 'var(--faint)'],
-    ]});
-  return cards;
-}
-function zoneCardsHTML(){
-  return `<section class="zone-cards rv">${zoneSummaries().map(c => `<a class="zone-card" href="${c.route}" style="--z:${c.accent}">
-    <div class="zc-h"><span class="zc-label">${esc(c.label)}</span><span class="zc-hint mono">${esc(c.hint)}</span></div>
-    <div class="zc-lines">${c.lines.filter(Boolean).map(([t, col]) => `<div class="zc-line"${col ? ` style="color:${col}"` : ''}>${t}</div>`).join('')}</div>
-    <span class="zc-go mono">open →</span></a>`).join('')}</section>`;
-}
+/* The Compass used to open with a row of four cards — Present, Becoming,
+   Story, Finance — each a heading over three lines of numbers with a link into
+   the room they came from. Every one of those rooms is a click away in the
+   sidebar and says the same thing in full when you get there, so the row was a
+   table of contents for a house you can already see. Removed with the two
+   functions that built it. */
 routes.compass = function(root){
   const T = today(); const st = houseStats(); const moon = moonPhase(); const c = checkin(T);
   const days30 = lastDays(30); const weeks12 = Array.from({length:12},(_,w)=>w).map(w => lastDays(84).slice(w*7, w*7+7));
@@ -291,8 +243,6 @@ routes.compass = function(root){
     <div class="page-head" style="margin-bottom:22px"><div><h1>${fmtDate(T)}</h1><div class="moon">${moonSVG(moon.p)} <span>${moon.name}</span><span class="mono" style="margin-left:6px">· the compass — your life at a glance</span></div></div></div>
 
     ${typeof weekShapeHTML === 'function' ? weekShapeHTML() : ''}
-
-    ${zoneCardsHTML()}
 
     ${typeof positionHTML === 'function' ? positionHTML() : ''}
 

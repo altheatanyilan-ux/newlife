@@ -122,6 +122,25 @@ function planMilestoneSpan(items){
 /* carried outside the map because a template literal cannot hold a running
    value, and the choice for one pin depends on what the pin before it did */
 const planMilestoneRowState = {last: false};
+/* How far away a date is, said the way a person would say it. A number of
+   days stops being legible somewhere around a fortnight — "in 34 days" has to
+   be divided before it means anything — so from a week out it is weeks and
+   days. Past dates are counted the same way, backwards. */
+function planWhenAway(date, from = today()){
+  if(!date) return '';
+  const d = daysBetween(from, date);
+  if(d === 0) return 'today';
+  const n = Math.abs(d), past = d < 0;
+  let said;
+  if(n === 1) said = past ? 'yesterday' : 'tomorrow';
+  else if(n < 7) said = `${n} days`;
+  else {
+    const w = Math.floor(n / 7), r = n % 7;
+    said = `${w} week${w === 1 ? '' : 's'}${r ? ` ${r} day${r === 1 ? '' : 's'}` : ''}`;
+  }
+  if(n === 1) return said;
+  return past ? `${said} ago` : `in ${said}`;
+}
 function planMilestoneStripHTML(sel){
   if(!sel || (sel.kind !== 'list' && sel.kind !== 'folder')) return '';
   const items = planMilestonesFor(sel);
@@ -159,8 +178,9 @@ function planMilestoneStripHTML(sel){
         planMilestoneRowState.last = low;
         return `<button class="pl-mspin${m.done ? ' done' : ''}${late ? ' late' : ''}${low ? ' low' : ''}" data-plms="${m.id}"
           style="left:${at(m.date || T)}%;--c:${esc(list.color)}" role="listitem"
-          title="${esc(m.name)} · ${m.date ? esc(fmtDate(m.date, 'med')) : 'no date'}${late ? ' · past' : ''}${m.note ? ' · ' + esc(m.note) : ''}">
-          <i class="pl-msdot"></i><span class="pl-mslabel">${esc(m.name)}</span></button>`; }).join('')}
+          title="${esc(m.name)} · ${m.date ? esc(fmtDate(m.date, 'med')) + ' · ' + esc(planWhenAway(m.date)) : 'no date'}${m.note ? ' · ' + esc(m.note) : ''}">
+          <i class="pl-msdot"></i><span class="pl-mslabel">${esc(m.name)}</span>
+          ${m.date ? `<span class="pl-msaway mono">${esc(m.done ? fmtDate(m.date, 'short') : planWhenAway(m.date))}</span>` : ''}</button>`; }).join('')}
     </div>
   </div>`;
 }

@@ -2015,21 +2015,6 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
    HOME — life at a glance
    ============================================================ */
 /* the zone summary cards — one per navigation zone */
-.zone-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:20px}
-@media (max-width:1180px){.zone-cards{grid-template-columns:repeat(2,1fr)}}
-@media (max-width:620px){.zone-cards{grid-template-columns:1fr}}
-.zone-card{position:relative;display:flex;flex-direction:column;gap:10px;padding:15px 16px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);text-decoration:none;color:inherit;overflow:hidden;transition:border-color .25s var(--page-ease,ease),transform .25s var(--page-ease,ease),box-shadow .25s}
-.zone-card::before{content:'';position:absolute;inset:0 auto 0 0;width:3px;background:var(--z);opacity:.6;transition:opacity .25s,width .25s}
-.zone-card:hover{border-color:color-mix(in srgb,var(--z) 45%,var(--line));transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.09)}
-.zone-card:hover::before{opacity:1;width:4px}
-.zc-h{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
-.zc-label{font-family:var(--serif);font-size:1.06rem;color:var(--z);letter-spacing:.01em}
-.zc-hint{font-size:.6rem;color:var(--faint);text-align:right;line-height:1.3}
-.zc-lines{display:flex;flex-direction:column;gap:5px;flex:1}
-.zc-line{font-size:.82rem;color:var(--muted);line-height:1.4}
-.zc-line:first-child{color:var(--text);font-size:.88rem}
-.zc-go{font-size:.62rem;color:var(--faint);opacity:0;transition:opacity .25s}
-.zone-card:hover .zc-go{opacity:1}
 .home-hero{display:grid;grid-template-columns:1.3fr 1fr;gap:18px;align-items:stretch}
 @media (max-width:900px){.home-hero{grid-template-columns:1fr}}
 .focus-card{background:linear-gradient(135deg,color-mix(in srgb,var(--page-accent) 10%,var(--surface)),var(--surface));border:1px solid var(--line);border-radius:18px;padding:22px 24px}
@@ -4057,6 +4042,10 @@ select.sm-active{border-color:var(--page-accent);
 .pl-mspin:hover .pl-msdot{transform:rotate(45deg) scale(1.25)}
 .pl-mslabel{font-size:.68rem;line-height:1.15;color:var(--ink);text-align:center;
   overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+/* the distance, under the name: a date alone still needs arithmetic */
+.pl-msaway{font-size:.58rem;color:var(--faint);white-space:nowrap;line-height:1}
+.pl-mspin.late .pl-msaway{color:var(--terra)}
+.pl-gmsaway{font-size:.56rem;color:var(--faint);white-space:nowrap;line-height:1}
 .pl-mspin.done .pl-msdot{background:var(--card);border:1.5px solid var(--c,var(--terra))}
 .pl-mspin.done .pl-mslabel{text-decoration:line-through;color:var(--faint)}
 .pl-mspin.late .pl-msdot{background:var(--terra);box-shadow:0 0 0 3px var(--bg),0 0 0 5px color-mix(in srgb,var(--terra) 30%,transparent)}
@@ -16296,6 +16285,25 @@ function planMilestoneSpan(items){
 /* carried outside the map because a template literal cannot hold a running
    value, and the choice for one pin depends on what the pin before it did */
 const planMilestoneRowState = {last: false};
+/* How far away a date is, said the way a person would say it. A number of
+   days stops being legible somewhere around a fortnight — "in 34 days" has to
+   be divided before it means anything — so from a week out it is weeks and
+   days. Past dates are counted the same way, backwards. */
+function planWhenAway(date, from = today()){
+  if(!date) return '';
+  const d = daysBetween(from, date);
+  if(d === 0) return 'today';
+  const n = Math.abs(d), past = d < 0;
+  let said;
+  if(n === 1) said = past ? 'yesterday' : 'tomorrow';
+  else if(n < 7) said = `${n} days`;
+  else {
+    const w = Math.floor(n / 7), r = n % 7;
+    said = `${w} week${w === 1 ? '' : 's'}${r ? ` ${r} day${r === 1 ? '' : 's'}` : ''}`;
+  }
+  if(n === 1) return said;
+  return past ? `${said} ago` : `in ${said}`;
+}
 function planMilestoneStripHTML(sel){
   if(!sel || (sel.kind !== 'list' && sel.kind !== 'folder')) return '';
   const items = planMilestonesFor(sel);
@@ -16333,8 +16341,9 @@ function planMilestoneStripHTML(sel){
         planMilestoneRowState.last = low;
         return `<button class="pl-mspin${m.done ? ' done' : ''}${late ? ' late' : ''}${low ? ' low' : ''}" data-plms="${m.id}"
           style="left:${at(m.date || T)}%;--c:${esc(list.color)}" role="listitem"
-          title="${esc(m.name)} · ${m.date ? esc(fmtDate(m.date, 'med')) : 'no date'}${late ? ' · past' : ''}${m.note ? ' · ' + esc(m.note) : ''}">
-          <i class="pl-msdot"></i><span class="pl-mslabel">${esc(m.name)}</span></button>`; }).join('')}
+          title="${esc(m.name)} · ${m.date ? esc(fmtDate(m.date, 'med')) + ' · ' + esc(planWhenAway(m.date)) : 'no date'}${m.note ? ' · ' + esc(m.note) : ''}">
+          <i class="pl-msdot"></i><span class="pl-mslabel">${esc(m.name)}</span>
+          ${m.date ? `<span class="pl-msaway mono">${esc(m.done ? fmtDate(m.date, 'short') : planWhenAway(m.date))}</span>` : ''}</button>`; }).join('')}
     </div>
   </div>`;
 }
@@ -17430,7 +17439,8 @@ function planTimelineHTML(tasks, sel){
               lastX = x; lastLow = low;
               return `<button class="pl-gms${m.done ? ' done' : ''}${late ? ' late' : ''}${low ? ' low' : ''}" data-plms="${m.id}"
                 style="left:${x}px;--c:${esc(list.color)}"
-                title="${esc(m.name)} · ${m.date ? esc(fmtDate(m.date, 'med')) : 'no date'}"><i></i><span>${esc(m.name)}</span></button>`; }).join('')}
+                title="${esc(m.name)} · ${m.date ? esc(fmtDate(m.date, 'med')) + ' · ' + esc(planWhenAway(m.date)) : 'no date'}"><i></i><span>${esc(m.name)}</span>
+                ${m.date && !m.done ? `<span class="pl-gmsaway mono">${esc(planWhenAway(m.date))}</span>` : ''}</button>`; }).join('')}
           </div></div>`; })()}
       <div class="pl-tlrows" data-ptgroup>${rows.map(({t, x0, w}) => `<div class="pl-tlrow" data-ptunit="${t.id}">
         <span class="pl-tlname" draggable="true" data-ptgrip="${t.id}"
@@ -22820,60 +22830,12 @@ function nextReviewLine(){
   if(d >= 7) return [`weekly review due${d > 8 ? ` · ${d - 7}d late` : ''}`, 'var(--gold)'];
   return [`next review in ${7 - d} day${7 - d === 1 ? '' : 's'}`, ''];
 }
-function zoneSummaries(){
-  const T = today(); const st = houseStats();
-  const cards = [];
-
-  const tasks = typeof tasksForDay === 'function' ? tasksForDay(T) : [];
-  const openTasks = tasks.filter(t => !t.done);
-  const [revLine, revC] = nextReviewLine();
-  cards.push({label:'Present', hint:'what is happening now', accent:'var(--sage)', route:'#/today',
-    lines:[
-      [openTasks.length ? `${openTasks.length} item${openTasks.length === 1 ? '' : 's'} still planned today` : (tasks.length ? 'everything planned today is done' : 'nothing planned today'), openTasks.length ? '' : (tasks.length ? 'var(--sage)' : 'var(--faint)')],
-      [st.due.length ? `${st.done} of ${st.due.length} habit${st.due.length === 1 ? '' : 's'} done` : 'no habits due today', st.due.length ? (st.done === st.due.length ? 'var(--sage)' : '') : 'var(--faint)'],
-      [revLine, revC],
-    ]});
-
-  const ms = typeof milestonesWithin === 'function' ? milestonesWithin(365) : [];
-  const nextMs = ms[0];
-  const snaps = allSnapshotsWithRetro(); const lastSnap = snaps[snaps.length - 1];
-  const snapAge = lastSnap ? daysSince(lastSnap.date) : null;
-  cards.push({label:'Becoming', hint:'long-term growth, identity', accent:'var(--ment)', route:'#/skills',
-    lines:[
-      nextMs ? [nextMs.days < 0 ? `${esc(nextMs.skill.name)} milestone ${-nextMs.days}d overdue` : `${esc(nextMs.skill.name)} milestone in ${nextMs.days} day${nextMs.days === 1 ? '' : 's'}`, nextMs.days < 0 ? 'var(--gold)' : '']
-              : ['no skill milestone dated', 'var(--faint)'],
-      snapAge === null ? ['no congruence snapshot yet', 'var(--gold)'] : [`congruence read ${relDays(snapAge)}`, snapAge > 45 ? 'var(--gold)' : ''],
-    ]});
-
-  const overdue = typeof peopleNeedingAttention === 'function' ? peopleNeedingAttention() : [];
-  const bdays = typeof birthdaysSoon === 'function' ? birthdaysSoon(30) : [];
-  const jrn = sortEntries(S.entries.filter(e => ['journal','reflection','dream','gratitude'].includes(e.type)))[0];
-  const jrnAge = jrn ? daysSince((jrn.occurredAt || jrn.createdAt || '').slice(0,10)) : null;
-  cards.push({label:'Story', hint:'relationships, memory, meaning', accent:'var(--rose)', route:'#/people',
-    lines:[
-      overdue.length ? [`${overdue.length} ${overdue.length === 1 ? 'person is' : 'people are'} overdue for contact`, 'var(--gold)'] : ['everyone is within their cadence', 'var(--sage)'],
-      jrnAge === null ? ['nothing written yet', 'var(--faint)'] : [`last journal ${relDays(jrnAge)}`, jrnAge > 7 ? 'var(--gold)' : ''],
-      bdays.length ? [`${esc(bdays[0].p.name)}&#39;s birthday in ${bdays[0].days} day${bdays[0].days === 1 ? '' : 's'}`, 'var(--terra)'] : null,
-    ]});
-
-  const m = T.slice(0,7);
-  if(typeof migrateFinance === 'function') migrateFinance();
-  const {streams, totalCurrentBase, totalTargetBase} = typeof portfolioTotals === 'function' ? portfolioTotals() : {streams:[], totalCurrentBase:0, totalTargetBase:0};
-  const annualWant = typeof activeScenario === 'function' ? scenarioAnnualTotal(activeScenario()) : 0;
-  cards.push({label:'Finance', hint:'ways to make money, and what enough looks like', accent:'var(--gold)', route:'#/finance',
-    lines:[
-      streams.length ? [`${money(totalCurrentBase)}/mo across ${streams.length} stream${streams.length===1?'':'s'}`, ''] : ['no income streams yet', 'var(--faint)'],
-      totalTargetBase ? [`${money(totalTargetBase)}/mo target`, ''] : ['no target set', 'var(--faint)'],
-      annualWant ? [`covers ${Math.round(totalCurrentBase*12/annualWant*100)}% of ${money(annualWant)}/yr wanted`, totalCurrentBase*12 < annualWant ? 'var(--gold)' : 'var(--sage)'] : ['no life-cost scenario priced yet', 'var(--faint)'],
-    ]});
-  return cards;
-}
-function zoneCardsHTML(){
-  return `<section class="zone-cards rv">${zoneSummaries().map(c => `<a class="zone-card" href="${c.route}" style="--z:${c.accent}">
-    <div class="zc-h"><span class="zc-label">${esc(c.label)}</span><span class="zc-hint mono">${esc(c.hint)}</span></div>
-    <div class="zc-lines">${c.lines.filter(Boolean).map(([t, col]) => `<div class="zc-line"${col ? ` style="color:${col}"` : ''}>${t}</div>`).join('')}</div>
-    <span class="zc-go mono">open →</span></a>`).join('')}</section>`;
-}
+/* The Compass used to open with a row of four cards — Present, Becoming,
+   Story, Finance — each a heading over three lines of numbers with a link into
+   the room they came from. Every one of those rooms is a click away in the
+   sidebar and says the same thing in full when you get there, so the row was a
+   table of contents for a house you can already see. Removed with the two
+   functions that built it. */
 routes.compass = function(root){
   const T = today(); const st = houseStats(); const moon = moonPhase(); const c = checkin(T);
   const days30 = lastDays(30); const weeks12 = Array.from({length:12},(_,w)=>w).map(w => lastDays(84).slice(w*7, w*7+7));
@@ -22904,8 +22866,6 @@ routes.compass = function(root){
     <div class="page-head" style="margin-bottom:22px"><div><h1>${fmtDate(T)}</h1><div class="moon">${moonSVG(moon.p)} <span>${moon.name}</span><span class="mono" style="margin-left:6px">· the compass — your life at a glance</span></div></div></div>
 
     ${typeof weekShapeHTML === 'function' ? weekShapeHTML() : ''}
-
-    ${zoneCardsHTML()}
 
     ${typeof positionHTML === 'function' ? positionHTML() : ''}
 
