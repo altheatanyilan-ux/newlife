@@ -1366,6 +1366,36 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 .wr-ico{font-size:.86rem;opacity:.75}
 .wr-name{font-size:.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .wr-time{font-size:.74rem;color:var(--muted);white-space:nowrap}
+
+/* dreams: the button beside the waking hour, and the calendar of nights */
+.dream-edge{margin-left:14px;display:inline-flex;align-items:center;gap:7px}
+.day-edge-t.muted-t{color:var(--faint)}
+.dream-none{background:none;border:0;padding:0 2px;cursor:pointer;font-family:var(--mono);
+  font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);
+  border-bottom:1px dashed var(--line-2);transition:color .2s var(--ease)}
+.dream-none:hover{color:var(--page-accent)}
+.dream-cal .dc-legend{display:flex;align-items:center;gap:6px;font-size:.64rem;color:var(--faint);margin:8px 0 10px;flex-wrap:wrap}
+.dc-key{width:9px;height:9px;border-radius:2px;display:inline-block;margin-left:10px}
+.dc-key:first-child{margin-left:0}
+.dc-key.dreamt{background:var(--page-accent)}
+.dc-key.blank{background:var(--line-2)}
+.dc-key.unasked{background:none;border:1px dashed var(--line-2)}
+.dc-months{display:flex;gap:16px;flex-wrap:wrap}
+.dc-month{flex:0 0 auto}
+.dc-mname{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.dc-grid{display:grid;grid-template-columns:repeat(7,13px);gap:3px}
+.dc-dow{font-family:var(--mono);font-size:.5rem;color:var(--faint);text-align:center;font-style:normal}
+.dc-pad{display:block}
+.dc-day{width:13px;height:13px;border-radius:3px;border:1px dashed var(--line-2);background:none;
+  padding:0;cursor:pointer;position:relative;transition:transform .15s var(--ease),box-shadow .15s var(--ease)}
+.dc-day.dreamt{background:var(--page-accent);border-style:solid;border-color:var(--page-accent)}
+.dc-day.blank{background:var(--line-2);border-style:solid;border-color:var(--line-2)}
+.dc-day.today{box-shadow:0 0 0 2px var(--gold)}
+.dc-day:hover{transform:scale(1.35);z-index:2}
+.dc-n{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:.5rem;color:#fff}
+@media (max-width:560px){ .dc-months{gap:12px} .dc-grid{grid-template-columns:repeat(7,11px)}
+  .dc-day{width:11px;height:11px} }
 .lvl-res{display:flex;flex-direction:column;gap:4px}
 .res-row{display:flex;gap:8px;align-items:center;font-size:.85rem;flex-wrap:wrap;position:relative}
 .res-type{font-size:.85rem;min-width:18px;text-align:center}

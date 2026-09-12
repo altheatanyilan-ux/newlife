@@ -1890,6 +1890,36 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 .wr-ico{font-size:.86rem;opacity:.75}
 .wr-name{font-size:.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .wr-time{font-size:.74rem;color:var(--muted);white-space:nowrap}
+
+/* dreams: the button beside the waking hour, and the calendar of nights */
+.dream-edge{margin-left:14px;display:inline-flex;align-items:center;gap:7px}
+.day-edge-t.muted-t{color:var(--faint)}
+.dream-none{background:none;border:0;padding:0 2px;cursor:pointer;font-family:var(--mono);
+  font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);
+  border-bottom:1px dashed var(--line-2);transition:color .2s var(--ease)}
+.dream-none:hover{color:var(--page-accent)}
+.dream-cal .dc-legend{display:flex;align-items:center;gap:6px;font-size:.64rem;color:var(--faint);margin:8px 0 10px;flex-wrap:wrap}
+.dc-key{width:9px;height:9px;border-radius:2px;display:inline-block;margin-left:10px}
+.dc-key:first-child{margin-left:0}
+.dc-key.dreamt{background:var(--page-accent)}
+.dc-key.blank{background:var(--line-2)}
+.dc-key.unasked{background:none;border:1px dashed var(--line-2)}
+.dc-months{display:flex;gap:16px;flex-wrap:wrap}
+.dc-month{flex:0 0 auto}
+.dc-mname{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.dc-grid{display:grid;grid-template-columns:repeat(7,13px);gap:3px}
+.dc-dow{font-family:var(--mono);font-size:.5rem;color:var(--faint);text-align:center;font-style:normal}
+.dc-pad{display:block}
+.dc-day{width:13px;height:13px;border-radius:3px;border:1px dashed var(--line-2);background:none;
+  padding:0;cursor:pointer;position:relative;transition:transform .15s var(--ease),box-shadow .15s var(--ease)}
+.dc-day.dreamt{background:var(--page-accent);border-style:solid;border-color:var(--page-accent)}
+.dc-day.blank{background:var(--line-2);border-style:solid;border-color:var(--line-2)}
+.dc-day.today{box-shadow:0 0 0 2px var(--gold)}
+.dc-day:hover{transform:scale(1.35);z-index:2}
+.dc-n{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:.5rem;color:#fff}
+@media (max-width:560px){ .dc-months{gap:12px} .dc-grid{grid-template-columns:repeat(7,11px)}
+  .dc-day{width:11px;height:11px} }
 .lvl-res{display:flex;flex-direction:column;gap:4px}
 .res-row{display:flex;gap:8px;align-items:center;font-size:.85rem;flex-wrap:wrap;position:relative}
 .res-type{font-size:.85rem;min-width:18px;text-align:center}
@@ -8830,7 +8860,12 @@ routes.today = function(root){
         <div class="moon row" style="gap:6px;align-items:center">${moonSVG(moon.p)} <span class="mono faint">${moon.name}</span></div>
       </div>
       ${cyest?.intention ? `<div class="mono faint" style="margin-top:8px;font-size:.78rem">Yesterday you set out to: <em>${esc(cyest.intention)}</em></div>` : ''}
-      <p class="day-edge waking">I woke up at <button class="day-edge-t" id="wokeAt">${c.wakeAt ? esc(_ft(c.wakeAt)) : '—'}</button></p>
+      <!-- A dream is gone within minutes of opening your eyes, so it is asked
+           for here, beside the hour you woke, and not three pages into a
+           journal. "None" is a real answer about a night, not the absence of
+           one — without it the calendar cannot tell a blank night from an
+           unasked one. -->
+      <p class="day-edge waking">I woke up at <button class="day-edge-t" id="wokeAt">${c.wakeAt ? esc(_ft(c.wakeAt)) : '—'}</button>${dreamEdgeHTML(T)}</p>
     </header>
 
     <nav class="today-jump rv" aria-label="jump to a section">
@@ -9061,6 +9096,7 @@ routes.today = function(root){
   $$('[data-dopen]',root).forEach(b => b.onclick = () => openDecisionPanel(b.dataset.dopen));
   /* the tally is a way back into what was written, not just a number */
   $$('[data-wopen]',root).forEach(b => b.onclick = () => openEntryModal({entryId: b.dataset.wopen}));
+  bindDreamEdge(root, T);
 
 
   reveal(root);
@@ -10454,6 +10490,129 @@ routes.value = function(root, params){
    ============================================================ */
 function isoWeek(d = today()){ const x = parseDay(d); const day = (x.getDay()+6)%7; x.setDate(x.getDate()-day+3); const first = new Date(x.getFullYear(),0,4); const n = 1 + Math.round(((x - first)/DAY - 3 + ((first.getDay()+6)%7))/7); return `${x.getFullYear()}-W${pad(n)}`; }
 /* ============================================================
+   DREAMS — caught on waking, or honestly not caught at all
+
+   A dream evaporates within minutes of opening your eyes, so the place to
+   ask for one is the top of the day, beside the hour you woke, and not
+   three pages into a journal. And "I don't remember dreaming" is a real
+   answer about a night, not an absence of one: without somewhere to put it
+   the record can never distinguish a night with no dream from a night you
+   never asked about, and the calendar below depends on that difference.
+   ============================================================ */
+
+/* the nights this day's sleep belongs to: a dream is filed on the morning
+   it was remembered, which is how a person talks about them */
+function dreamsOn(day){ return (S.entries || []).filter(e => e.type === 'dream' && (e.occurredAt || '').slice(0,10) === day); }
+function noDreamOn(day){ return !!S.checkins?.[day]?.noDream; }
+function dreamStateOn(day){
+  if(dreamsOn(day).length) return 'dreamt';
+  if(noDreamOn(day)) return 'blank';
+  return 'unasked';
+}
+function setNoDream(day, on){
+  const c = checkin(day);
+  if(on) c.noDream = true; else delete c.noDream;
+  saveNow();
+}
+
+/* the button that sits beside "I woke up at" */
+function dreamEdgeHTML(day = today()){
+  const st = dreamStateOn(day), n = dreamsOn(day).length;
+  return `<span class="dream-edge">${
+    st === 'dreamt' ? `<button class="day-edge-t" id="dreamAdd" title="write another">☾ ${n} dream${n===1?'':'s'} written</button>`
+    : st === 'blank' ? `<button class="day-edge-t muted-t" id="dreamNone" title="I did remember one after all">☾ no dream remembered</button>`
+    : `<button class="day-edge-t" id="dreamAdd" title="write it before it goes">☾ record a dream</button>
+       <button class="dream-none" id="dreamNone" title="nothing to write down for last night">none</button>`}</span>`;
+}
+function bindDreamEdge(root, day = today()){
+  const add = $('#dreamAdd', root);
+  if(add) add.onclick = () => openEntryModal({type:'dream', allowedTypes:['dream'],
+    heading:'Last night', occurredAt: day, after: () => { setNoDream(day, false); rerender(); }});
+  const none = $('#dreamNone', root);
+  if(none) none.onclick = () => {
+    const was = noDreamOn(day);
+    setNoDream(day, !was);
+    sound('click');
+    toast(was ? 'Unmarked. Write it while it is still there.' : 'Noted — a night with nothing to write down is still a night on the record.');
+    rerender();
+  };
+}
+
+/* ---------- the calendar of nights ----------
+   Three states, and the third is the point: a night dreamt, a night with
+   nothing to write down, and a night nobody asked about. A calendar that
+   only drew the first two would make an unbroken record out of a patchy
+   one. */
+const DREAM_CAL_MONTHS = 6;
+/* month arithmetic on a YYYY-MM string: the day of the month is irrelevant
+   here and rolling it through a Date would drag the 31st into March */
+const dreamMonthShift = (ym, n) => { let y = +ym.slice(0,4), m = +ym.slice(5,7) - 1 + n;
+  y += Math.floor(m / 12); m = ((m % 12) + 12) % 12;
+  return `${y}-${pad(m + 1)}`; };
+function dreamCalendarHTML(){
+  const T = today();
+  const back = S._dreamCalBack || 0;
+  const anchor = dreamMonthShift(T.slice(0,7), -back);
+  const months = [];
+  for(let i = DREAM_CAL_MONTHS - 1; i >= 0; i--) months.push(dreamMonthShift(anchor, -i));
+  const total = {dreamt:0, blank:0};
+  const grid = months.map(m => {
+    const y = +m.slice(0,4), mo = +m.slice(5,7);
+    const first = `${y}-${pad(mo)}-01`;
+    const days = new Date(y, mo, 0).getDate();
+    /* Monday-first, like the rest of the house */
+    const lead = (new Date(y, mo - 1, 1).getDay() + 6) % 7;
+    const cells = [];
+    for(let i = 0; i < lead; i++) cells.push('<i class="dc-pad"></i>');
+    for(let d = 1; d <= days; d++){
+      const day = `${y}-${pad(mo)}-${pad(d)}`;
+      const st = dreamStateOn(day);
+      if(st === 'dreamt') total.dreamt++; else if(st === 'blank') total.blank++;
+      const ds = dreamsOn(day);
+      const title = st === 'dreamt' ? `${fmtDate(day,'med')} — ${ds.map(e => e.title || (e.body||'').slice(0,60)).join(' · ')}`
+        : st === 'blank' ? `${fmtDate(day,'med')} — no dream remembered`
+        : `${fmtDate(day,'med')} — nothing recorded`;
+      cells.push(`<button class="dc-day ${st}${day === T ? ' today' : ''}" data-dcday="${day}" title="${esc(title)}">${
+        st === 'dreamt' && ds.length > 1 ? `<span class="dc-n">${ds.length}</span>` : ''}</button>`);
+    }
+    return `<div class="dc-month"><div class="dc-mname mono">${esc(fmtMonth(first))}</div>
+      <div class="dc-grid">${'MTWTFSS'.split('').map(x => `<i class="dc-dow">${x}</i>`).join('')}${cells.join('')}</div></div>`;
+  }).join('');
+  const asked = total.dreamt + total.blank;
+  return `<div class="otd rv dream-cal">
+    <div class="row between" style="align-items:baseline">
+      <div class="sc" style="margin:0">The nights</div>
+      <span class="mono">${total.dreamt} dreamt · ${total.blank} blank${asked ? ` · ${Math.round(total.dreamt / asked * 100)}% recalled when asked` : ''}</span>
+    </div>
+    <div class="dc-legend mono"><i class="dc-key dreamt"></i>a dream<i class="dc-key blank"></i>none remembered<i class="dc-key unasked"></i>not asked</div>
+    <div class="dc-months">${grid}</div>
+    <div class="row" style="gap:8px;margin-top:8px;align-items:center">
+      <button class="tbtn" id="dcBack">← earlier</button>
+      ${back ? `<button class="tbtn" id="dcNow">back to now</button>` : ''}
+      <span class="faint" style="font-size:.74rem;margin-left:auto">Click a night to read it, or to mark one you did not dream.</span>
+    </div></div>`;
+}
+function bindDreamCalendar(root){
+  const b = $('#dcBack', root); if(b) b.onclick = () => { S._dreamCalBack = (S._dreamCalBack || 0) + DREAM_CAL_MONTHS; rerender(); };
+  const n = $('#dcNow', root); if(n) n.onclick = () => { S._dreamCalBack = 0; rerender(); };
+  $$('[data-dcday]', root).forEach(el => el.onclick = () => {
+    const day = el.dataset.dcday;
+    const ds = dreamsOn(day);
+    if(ds.length === 1) return openEntryModal({entryId: ds[0].id});
+    if(ds.length > 1) return openPanel(`<div class="mono">${esc(fmtDate(day,'med'))}</div>${ds.map(e => entryCard(e, {clamp:false})).join('')}`)
+      && $$('#panel .rv').forEach(x => x.classList.add('in'));
+    /* an empty night: offer both answers rather than assuming one */
+    planChoose(fmtDate(day, 'med'), [
+      ['write', '☾  Write the dream'],
+      ['none', noDreamOn(day) ? '✓  Remembered one after all' : '·  No dream remembered'],
+    ], v => {
+      if(v === 'write') openEntryModal({type:'dream', allowedTypes:['dream'], heading:'That night',
+        occurredAt: day, after: () => { setNoDream(day, false); rerender(); }});
+      else { setNoDream(day, !noDreamOn(day)); rerender(); }
+    });
+  });
+}
+/* ============================================================
    6. COMMONPLACE BOOK — journals
    ============================================================ */
 /* Journals is now two ways of looking at the same entries. What was the
@@ -10540,7 +10699,7 @@ routes.journals = function(root, params){
         ${otd.length?`<div class="otd rv"><div class="sc">On this day</div>${otd.slice(0,2).map(e=>`<div class="serif" style="font-size:1.05rem;margin-top:6px">${esc(fmtDate(e.occurredAt,'med'))} — ${esc(e.title||e.body.slice(0,120))}</div>`).join('')}</div>`:`<div class="otd rv"><div class="sc">On this day</div><div class="quote">No ${esc(j.name.toLowerCase())} from this day in earlier years. You're making them now.</div></div>`}
         <div class="jtools rv"><input class="inp" id="jq" placeholder="search title & body" value="${esc(S._jq||'')}"><input class="inp" type="date" id="jfrom" value="${from}" style="max-width:126px"><input class="inp" type="date" id="jto" value="${to}" style="max-width:126px"><select class="sel" id="jtag" style="max-width:158px"><option value="">any link</option>${dimOpts.map(([id,n])=>`<option value="${id}" ${tag===id?'selected':''}>${esc(n)}</option>`).join('')}</select><button class="btn sm ghost" id="jRandom" title="random entry">🎲</button><span class="mono">${filtered.length} of ${all.length}</span><span class="jt-add" data-ctx-slot></span></div>
         ${type==='question'?'<p class="quote">Questions you are living with. They don\'t get archived; they sit open until an answer accumulates, or the framing turns out to have been wrong.</p>':''}
-        ${type==='dream'?dreamDictionaryHTML():''}
+        ${type==='dream'?dreamCalendarHTML() + dreamDictionaryHTML():''}
         ${type==='synchronicity'?'<p class="quote">Entries flagged “revisit later” resurface in the Today page prompts. Synchronicities often only make sense in retrospect.</p>':''}
         ${type==='manifestation'?'<p class="quote">Ask → It Is Given → Allow. When an intention arrives, offer it to the Vision Tree as fruit.</p>':''}
         <div id="jSpecial">${special === 'letters' ? sealedLettersHTML() : special === 'decisions' ? decisionListHTML() : ''}</div>
@@ -10556,6 +10715,7 @@ routes.journals = function(root, params){
   $('#jManage').onclick = () => manageJournalsModal();
   $('#jNew').onclick = () => { const m = openModal(`<h2>A new journal</h2><div class="field"><label>Name</label><input class="inp" id="jnName" placeholder="e.g. Field Notes"></div><div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary" id="jnSave">Create</button></div>`,'narrow'); m.querySelector('#jnSave').onclick = () => { const n = m.querySelector('#jnName').value.trim(); if(!n) return; const t = n.toLowerCase().replace(/[^a-z0-9]+/g,'-'); if(!S.journals.find(x=>x.type===t)){ S.journals.push({type:t,name:n}); ENTRY_TYPES.push([t,n,'▫']); saveNow(); } m.remove(); navigate('#/journals/'+t); }; };
   root.querySelectorAll('[data-dictsym]').forEach(b => b.onclick = () => { S._jq = b.dataset.dictsym; rerender(); });
+  if(type === 'dream') bindDreamCalendar(root);
   bindJournalViews(root);
 };
 

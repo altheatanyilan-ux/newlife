@@ -117,7 +117,12 @@ routes.today = function(root){
         <div class="moon row" style="gap:6px;align-items:center">${moonSVG(moon.p)} <span class="mono faint">${moon.name}</span></div>
       </div>
       ${cyest?.intention ? `<div class="mono faint" style="margin-top:8px;font-size:.78rem">Yesterday you set out to: <em>${esc(cyest.intention)}</em></div>` : ''}
-      <p class="day-edge waking">I woke up at <button class="day-edge-t" id="wokeAt">${c.wakeAt ? esc(_ft(c.wakeAt)) : '—'}</button></p>
+      <!-- A dream is gone within minutes of opening your eyes, so it is asked
+           for here, beside the hour you woke, and not three pages into a
+           journal. "None" is a real answer about a night, not the absence of
+           one — without it the calendar cannot tell a blank night from an
+           unasked one. -->
+      <p class="day-edge waking">I woke up at <button class="day-edge-t" id="wokeAt">${c.wakeAt ? esc(_ft(c.wakeAt)) : '—'}</button>${dreamEdgeHTML(T)}</p>
     </header>
 
     <nav class="today-jump rv" aria-label="jump to a section">
@@ -348,6 +353,7 @@ routes.today = function(root){
   $$('[data-dopen]',root).forEach(b => b.onclick = () => openDecisionPanel(b.dataset.dopen));
   /* the tally is a way back into what was written, not just a number */
   $$('[data-wopen]',root).forEach(b => b.onclick = () => openEntryModal({entryId: b.dataset.wopen}));
+  bindDreamEdge(root, T);
 
 
   reveal(root);
