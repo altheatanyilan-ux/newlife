@@ -24,7 +24,8 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
     S.dailyRhythm = S.dailyRhythm || {}; S.dailyRhythm['1999-01-01'] = {blocks:[{tag:'canary'}]};
     await saveNow(); await flushSave();
   });
-  await p.waitForTimeout(900); await p.reload(); await p.waitForTimeout(3400);
+  await p.waitForTimeout(900); await p.evaluate(() => flushSave());
+  await p.reload(); await p.waitForTimeout(3400);
   const a = await p.evaluate(() => ({
     content: !!(S.content?.themes||[]).find(t=>t.id==='C1'),
     vault: !!(S.contentVault?.quotes||[]).find(q=>q.id==='C2'),

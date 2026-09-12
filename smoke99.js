@@ -78,7 +78,10 @@ const fs = require('fs');
   is('and so is the theme chosen', await p.evaluate(() => S.settings.theme), 'light');
 
   console.log('\n6. choosing dark, then reloading, keeps dark');
-  await p.evaluate(() => { S.settings.theme = 'dark'; saveNow(); applyTheme(); });
+  /* saveNow returns a promise; reloading before it lands reads back the theme
+     from before the change, which made this pass most of the time */
+  await p.evaluate(async () => { S.settings.theme = 'dark'; await saveNow(); applyTheme(); });
+  await p.evaluate(() => flushSave());
   await p.reload(); await p.waitForTimeout(3000);
   is('a chosen theme survives a reload', await p.evaluate(() => document.documentElement.dataset.theme), 'dark');
   yes('and the question stays away', !(await p.$('#frGo')));

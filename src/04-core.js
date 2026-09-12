@@ -147,7 +147,30 @@ function beginEdit(node){
     if(v !== orig){ const p = el('<span class="saved-pulse">saved</span>'); node.appendChild(p); setTimeout(()=>p.remove(), 1200); sound('save'); const h = node.dataset.hook; if(h){ const [name, arg] = h.split(':'); hooks[name]?.(arg, orig, v, node); } }
     /* a field emptied or filled changes what Living View should be showing */
     const lv = node.closest('.lv-mode'); if(lv) applyLivingView(lv);
+    if(v !== orig) refreshBehind(node);
   });
+}
+/* A value is almost never shown in only one place. Rename a skill in its panel
+   and the inventory row behind it, the tree, the counts and every card that
+   names it are all still saying the old thing — until a reload, which is how
+   this was being noticed. The edited node repaints itself and nothing else
+   did.
+
+   So a committed change redraws the page. `rerender()` rebuilds `#main` only,
+   which is what makes this safe: a side panel and any open modal are siblings
+   of it and stay exactly as they were, and the page's scroll position is
+   already preserved.
+
+   Two things it must not interrupt. It waits a tick so the blur that triggered
+   it finishes first; and if by then the pointer has landed in another field,
+   it stands down rather than tearing that edit out from under the caret —
+   clicking straight from one field to the next has to keep working. */
+function refreshBehind(node){
+  if(node.closest('#modals')) return;         // a form redraws itself when it saves
+  setTimeout(() => {
+    if(document.querySelector('.ed.editing')) return;
+    if(typeof rerender === 'function') rerender();
+  }, 0);
 }
 document.addEventListener('click', e => { const n = e.target.closest('.ed'); if(n && !e.target.closest('a')) beginEdit(n); });
 document.addEventListener('keydown', e => { if(e.key==='Enter' && e.target.classList?.contains('ed')) { e.preventDefault(); beginEdit(e.target); } });

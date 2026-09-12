@@ -31,11 +31,13 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
 
   console.log('\n2. an install that already chose "list" is brought across, once');
   await p.evaluate(() => { planState().prefs.view = 'list'; delete planState().prefs.matrixFirst; saveNow(); });
+  await p.evaluate(() => flushSave());
   await p.reload(); await p.waitForTimeout(2500);
   if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(1800); }
   await plan();
   is('the old default is moved to the matrix', await p.evaluate(() => planView()), 'eisenhower');
   await p.evaluate(() => { planState().prefs.view = 'calendar'; saveNow(); });
+  await p.evaluate(() => flushSave());
   await p.reload(); await p.waitForTimeout(2500);
   if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(1800); }
   await plan();
@@ -99,6 +101,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
       await p.evaluate(() => !!document.querySelector('.ph-card.done')));
 
   console.log('\n6. the room is remembered, and the old address still works');
+  await p.evaluate(() => flushSave());
   await p.reload(); await p.waitForTimeout(2500);
   if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(1800); }
   await p.evaluate(() => { location.hash = '#/planning'; });
