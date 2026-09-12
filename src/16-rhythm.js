@@ -774,7 +774,20 @@ function renderHabitsPanel(box, focus){
       <div class="row between mono" style="margin-top:10px"><span>${best?`best streak · ${esc(best.name)} ${habitStreak(best).best}d`:''}</span><span>${worst && Math.min(...rates) < .6 ? `most missed · ${esc(worst.name)}` : ''}</span></div>
     </div>` : ''}
 
-    ${neg.length ? `<div class="hab-stats"><div class="sc">Days since</div><div class="stack" style="gap:5px;margin-top:8px">${neg.map(h=>`<div class="row between"><span>${esc(h.name)}</span><span class="row"><b class="serif">${daysSince(S.negLast?.[h.id])===Infinity?'–':daysSince(S.negLast?.[h.id])}</b><button class="btn sm ghost" data-relapse="${h.id}">it happened</button></span></div>`).join('')}</div></div>` : ''}`;
+    ${neg.length ? `<div class="hab-stats"><div class="sc">Days since</div><div class="stack" style="gap:10px;margin-top:8px">${neg.map(h=>{
+      const d = daysSince(S.negLast?.[h.id]);
+      /* what was written down when the habit was set up is what is worth
+         reading here: the line, what sets it off, what to do instead, and
+         what it costs — the last one in particular, at the moment of choosing */
+      return `<div class="neg-row">
+        <div class="row between"><span class="serif">${esc(h.name)}</span>
+          <span class="row" style="gap:8px"><b class="serif" style="font-size:1.2rem">${d===Infinity?'–':d}</b>
+            <button class="btn sm ghost" data-relapse="${h.id}">it happened</button>
+            <button class="btn sm ghost" data-hopen="${h.id}">edit</button></span></div>
+        ${h.standard?`<div class="neg-std mono">${esc(h.standard)}</div>`:''}
+        ${h.trigger||h.instead?`<div class="faint" style="font-size:.78rem">${h.trigger?`sets it off: ${esc(h.trigger)}`:''}${h.trigger&&h.instead?' · ':''}${h.instead?`instead: ${esc(h.instead)}`:''}</div>`:''}
+        ${h.cost?`<div class="neg-cost">${esc(h.cost)}</div>`:''}
+      </div>`; }).join('')}</div></div>` : ''}`;
   $('#hNew').onclick = () => openHabitModal();
   $('#hArch') && ($('#hArch').onclick = () => openArchivedHabits());
   $$('[data-hopen]',box).forEach(b => b.onclick = () => openHabitModal(b.dataset.hopen));
