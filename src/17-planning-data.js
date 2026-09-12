@@ -310,6 +310,42 @@ function planSelectionTitle(sel){
   if(sel.kind === 'smartlist') return (planState().smartLists.find(x => x.id === sel.id) || {}).name || 'Filter';
   return 'Tasks';
 }
+/* One filter shape, one evaluator. The live filter at the top of the sidebar
+   and a saved filter ask the same kinds of question, so they are the same
+   object read by the same function — the live one was a cut-down thing that
+   only knew about one priority, one tag and two date words, which is why it
+   could not answer what the saved-filter builder could. */
+function planFilterKeep(f, t){
+  const T = today();
+  if(!f) return true;
+  if(f.completion === 'active' && t.done) return false;
+  if(f.completion === 'completed' && !t.done) return false;
+  if(f.lists?.length && !f.lists.includes(t.listId)) return false;
+  if(f.tags?.length && !f.tags.some(x => t.tags.includes(x))) return false;
+  if(f.priorities?.length && !f.priorities.includes(t.priority)) return false;
+  if(f.hasSubtasks === true && !t.subtasks.length) return false;
+  if(f.hasSubtasks === false && t.subtasks.length) return false;
+  if(f.search && !(t.text + ' ' + t.desc).toLowerCase().includes(f.search.toLowerCase())) return false;
+  const d = f.dateRange;
+  if(d === 'overdue'  && !planIsLate(t)) return false;
+  if(d === 'today'    && t.day !== T) return false;
+  if(d === 'tomorrow' && t.day !== addDays(T,1)) return false;
+  if(d === 'next7days'&& !planDueWithin(t, T, addDays(T,7))) return false;
+  if(d === 'noDate'   && t.day) return false;
+  if(d && typeof d === 'object' && d.start && !planDueWithin(t, d.start, d.end || '9999-12-31')) return false;
+  return true;
+}
+/* how many axes a filter is actually narrowing on, for the badge */
+function planFilterCount(f){
+  if(!f) return 0;
+  let n = 0;
+  ['lists','tags','priorities'].forEach(k => { if(f[k]?.length) n++; });
+  if(f.dateRange) n++;
+  if(f.completion && f.completion !== 'any') n++;
+  if(f.hasSubtasks === true || f.hasSubtasks === false) n++;
+  if(f.search) n++;
+  return n;
+}
 function planApplySmartList(sl){
   const f = sl.filters || {}, T = today();
   return planOwnTasks().filter(t => {

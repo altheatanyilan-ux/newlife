@@ -114,7 +114,6 @@ function bindPlanning(root, sel, tasks){
   $$('[data-plview]', root).forEach(b => b.onclick = () => planSetView(b.dataset.plview));
   const sort = $('#plSort'); if(sort) sort.onchange = () => { p.prefs.sort = sort.value; saveNow(); rerender(); };
   const showDone = $('#plShowDone'); if(showDone) showDone.onclick = () => { p.prefs.showCompleted = !p.prefs.showCompleted; saveNow(); rerender(); };
-  const fbtn = $('#plFilterBtn'); if(fbtn) fbtn.onclick = () => openPlanQuickFilter();
   $$('[data-pfclear]', root).forEach(c => c.onclick = () => {
     S._planFilter = Object.assign({}, S._planFilter); delete S._planFilter[c.dataset.pfclear]; rerender(); });
 
@@ -371,20 +370,63 @@ function openPlanFolderRename(id){
       const back = spliceOut(planState().folders, x => x.id === f.id);
       return () => { back(); kids.forEach(l => l.folderId = f.id); }; }}); };
 }
+/* The one filter. It used to be a cut-down thing — one priority, one tag, two
+   date words — sitting beside a much more capable builder for saved filters,
+   which meant the quick way to narrow a list could not ask most of the
+   questions worth asking. This asks all of them, in the shape the saved
+   filters already used, and every choice is a multiple: three lists, two tags
+   and high priority is a reasonable question and used not to be expressible.
+
+   Nothing is applied until Apply, so a filter with several parts is set in one
+   go rather than redrawing the page after each chip. */
 function openPlanQuickFilter(){
   const p = planState();
-  const m = openModal(`<h2>Filter</h2><div class="stack">
-    <div class="field"><label>Priority</label><div class="chip-row">
-      ${PLAN_PRIORITY.map(x => `<button class="chip click" data-fp="${x.n}">${esc(x.name)}</button>`).join('')}</div></div>
-    <div class="field"><label>Tag</label><div class="chip-row">
-      ${p.tags.map(t => `<button class="chip click" data-ft="${esc(t.name)}" style="--c:${t.color}">${esc(t.name)}</button>`).join('') || '<span class="faint">no tags yet</span>'}</div></div>
-    <div class="field"><label>When</label><div class="chip-row">
-      <button class="chip click" data-fr="overdue">overdue</button><button class="chip click" data-fr="no date">no date</button></div></div>
-    <div class="row" style="justify-content:flex-end;gap:8px"><button class="btn sm ghost" id="pfClear">clear all</button></div></div>`, 'narrow');
-  const set = (k, v) => { S._planFilter = Object.assign({}, S._planFilter, {[k]: v}); m.remove(); rerender(); };
-  m.querySelectorAll('[data-fp]').forEach(b => b.onclick = () => set('priority', +b.dataset.fp));
-  m.querySelectorAll('[data-ft]').forEach(b => b.onclick = () => set('tag', b.dataset.ft));
-  m.querySelectorAll('[data-fr]').forEach(b => b.onclick = () => set('range', b.dataset.fr));
+  const cur = Object.assign({lists:[], tags:[], priorities:[], dateRange:'', completion:'active',
+    hasSubtasks:null, search:''}, S._planFilter || {});
+  const f = {lists:[...(cur.lists||[])], tags:[...(cur.tags||[])], priorities:[...(cur.priorities||[])],
+    dateRange: cur.dateRange || '', completion: cur.completion || 'active',
+    hasSubtasks: cur.hasSubtasks == null ? null : cur.hasSubtasks, search: cur.search || ''};
+  const m = openModal(`<h2>Filter</h2>
+    <p class="muted" style="font-size:.85rem">Narrows whatever is open — a list, a folder, a span, all of it. Pick as many as you like in each row.</p>
+    <div class="stack">
+      <div class="field"><label>Text</label>
+        <input class="inp" id="pfSearch" value="${esc(f.search)}" placeholder="words in the name or the note"></div>
+      <div class="field"><label>Lists</label><div class="chip-row">${planLists().map(l =>
+        `<button type="button" class="chip click${f.lists.includes(l.id) ? ' on' : ''}" data-fl="${l.id}" style="--c:${l.color}">${esc(l.name)}</button>`).join('')}</div></div>
+      <div class="field"><label>Tags</label><div class="chip-row">${p.tags.map(t =>
+        `<button type="button" class="chip click${f.tags.includes(t.name) ? ' on' : ''}" data-ft="${esc(t.name)}" style="--c:${t.color}">${esc(t.name)}</button>`).join('') || '<span class="faint">no tags yet</span>'}</div></div>
+      <div class="field"><label>Priority</label><div class="chip-row">${PLAN_PRIORITY.map(x =>
+        `<button type="button" class="chip click${f.priorities.includes(x.n) ? ' on' : ''}" data-fp="${x.n}">${esc(x.name)}</button>`).join('')}</div></div>
+      <div class="field"><label>When</label><div class="chip-row">${
+        [['','any time'],['overdue','overdue'],['today','today'],['tomorrow','tomorrow'],['next7days','next 7 days'],['noDate','no date']]
+        .map(([v, n]) => `<button type="button" class="chip click${f.dateRange === v ? ' on' : ''}" data-fr="${v}">${n}</button>`).join('')}</div></div>
+      <div class="field"><label>Done or not</label><div class="chip-row">${
+        [['active','not done'],['completed','done'],['any','either']]
+        .map(([v, n]) => `<button type="button" class="chip click${f.completion === v ? ' on' : ''}" data-fc="${v}">${n}</button>`).join('')}</div></div>
+      <div class="field"><label>Steps</label><div class="chip-row">${
+        [['','either'],['yes','has steps'],['no','no steps']]
+        .map(([v, n]) => `<button type="button" class="chip click${(v === '' ? f.hasSubtasks == null : (v === 'yes') === f.hasSubtasks) ? ' on' : ''}" data-fs="${v}">${n}</button>`).join('')}</div></div>
+      <div class="row between" style="margin-top:6px">
+        <button class="btn sm ghost" id="pfClear">clear all</button>
+        <button class="btn primary" id="pfApply">Apply</button></div>
+    </div>`, 'narrow');
+
+  const one = (sel, set) => m.querySelectorAll(sel).forEach(b => b.onclick = () => {
+    m.querySelectorAll(sel).forEach(x => x.classList.toggle('on', x === b)); set(b); });
+  const many = (sel, arr, read) => m.querySelectorAll(sel).forEach(b => b.onclick = () => {
+    const v = read(b), i = arr.indexOf(v);
+    i < 0 ? arr.push(v) : arr.splice(i, 1);
+    b.classList.toggle('on', i < 0); });
+  many('[data-fl]', f.lists, b => b.dataset.fl);
+  many('[data-ft]', f.tags,  b => b.dataset.ft);
+  many('[data-fp]', f.priorities, b => +b.dataset.fp);
+  one('[data-fr]', b => { f.dateRange = b.dataset.fr; });
+  one('[data-fc]', b => { f.completion = b.dataset.fc; });
+  one('[data-fs]', b => { f.hasSubtasks = b.dataset.fs === '' ? null : b.dataset.fs === 'yes'; });
+  m.querySelector('#pfApply').onclick = () => {
+    f.search = m.querySelector('#pfSearch').value.trim();
+    S._planFilter = f; m.remove(); sound('click'); rerender();
+  };
   m.querySelector('#pfClear').onclick = () => { S._planFilter = {}; m.remove(); rerender(); };
 }
 function openPlanFilterModal(id){

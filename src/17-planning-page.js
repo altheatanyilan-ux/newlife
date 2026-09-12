@@ -32,9 +32,10 @@ function planSidebarHTML(){
     <button class="pl-collapse" id="plCollapse" title="${p.prefs.sidebarCollapsed ? 'show the sidebar' : 'collapse the sidebar'}">${p.prefs.sidebarCollapsed ? '›' : '‹'}</button>
     <div class="pl-scroll">
       <input class="inp mono pl-search" id="plSearch" placeholder="search tasks…" value="${esc(S._planQ || '')}">
-      <button class="pl-item pl-filter${S._planFilter && Object.keys(S._planFilter).length ? ' on' : ''}" id="plSideFilter" title="narrow what is shown">
-        <span class="pl-ico">⚟</span><span class="pl-name">Filter</span>
-        ${(() => { const n = Object.keys(S._planFilter || {}).length; return n ? `<span class="pl-n mono">${n}</span>` : ''; })()}</button>
+      ${(() => { const n = planFilterCount(S._planFilter);
+        return `<button class="pl-item pl-filter${n ? ' on' : ''}" id="plSideFilter" title="narrow what is shown — lists, tags, priority, dates, steps">
+          <span class="pl-ico">⚟</span><span class="pl-name">Filter</span>
+          ${n ? `<span class="pl-n mono">${n}</span>` : ''}</button>`; })()}
 
       <div class="pl-group">
         ${(() => { const v = PLAN_SMART_VIEWS.find(x => x.id === 'all');
@@ -84,11 +85,9 @@ function planSidebarHTML(){
         <span class="pl-dot" style="background:${esc(t.color)}"></span><span class="pl-name">${esc(t.name)}</span>
         <span class="pl-n mono">${planTagCount(t.name) || ''}</span></button>`).join('')}</div>` : ''}
 
-      <div class="pl-head"><span>Filters</span><button class="pl-mini" id="plNewFilter" title="new saved filter">＋</button></div>
-      <div class="pl-group">${p.smartLists.map(sl => `<button class="pl-item${on('smartlist', sl.id)}" data-plsel="smartlist:${sl.id}" title="${esc(sl.name)}">
-        <span class="pl-ico">${esc(sl.icon || '⌗')}</span><span class="pl-name">${esc(sl.name)}</span>
-        <span class="pl-n mono">${planApplySmartList(sl).length || ''}</span></button>`).join('')
-        || '<div class="pl-empty mono">no saved filters yet</div>'}</div>
+      <!-- The saved-filter list used to sit here, a second filter with its own
+           builder. There is one filter now, at the top, and it asks everything
+           that builder asked. Saved filters are left in the data untouched. -->
     </div>
     <div class="pl-foot">
       <button class="pl-item" id="plFocusBtn" title="The focus timer is on Today"><span class="pl-ico">◔</span><span class="pl-name">Focus timer ↗</span></button>
@@ -202,10 +201,17 @@ function openPlanMilestone(id){
 function planHeaderHTML(sel){
   const p = planState(), v = planView();
   const f = S._planFilter || {};
+  /* what the filter is doing, said in the header and clearable one axis at a
+     time — the filter itself is set in one place, at the top of the sidebar */
+  const RANGE_SAID = {overdue:'overdue', today:'today', tomorrow:'tomorrow', next7days:'next 7 days', noDate:'no date'};
   const chips = [];
-  if(f.priority != null) chips.push(`<span class="pf-chip on" data-pfclear="priority">${planPriority(f.priority).name}<i>×</i></span>`);
-  if(f.tag) chips.push(`<span class="pf-chip on" data-pfclear="tag">#${esc(f.tag)}<i>×</i></span>`);
-  if(f.range) chips.push(`<span class="pf-chip on" data-pfclear="range">${esc(f.range)}<i>×</i></span>`);
+  if(f.lists?.length) chips.push(`<span class="pf-chip on" data-pfclear="lists">${f.lists.map(planListName).join(', ')}<i>×</i></span>`);
+  if(f.tags?.length) chips.push(`<span class="pf-chip on" data-pfclear="tags">${f.tags.map(x => '#' + esc(x)).join(' ')}<i>×</i></span>`);
+  if(f.priorities?.length) chips.push(`<span class="pf-chip on" data-pfclear="priorities">${f.priorities.map(n => planPriority(n).name).join(', ')}<i>×</i></span>`);
+  if(f.dateRange) chips.push(`<span class="pf-chip on" data-pfclear="dateRange">${esc(RANGE_SAID[f.dateRange] || String(f.dateRange))}<i>×</i></span>`);
+  if(f.completion && f.completion !== 'any') chips.push(`<span class="pf-chip on" data-pfclear="completion">${f.completion === 'active' ? 'not done' : 'done'}<i>×</i></span>`);
+  if(f.hasSubtasks === true || f.hasSubtasks === false) chips.push(`<span class="pf-chip on" data-pfclear="hasSubtasks">${f.hasSubtasks ? 'has steps' : 'no steps'}<i>×</i></span>`);
+  if(f.search) chips.push(`<span class="pf-chip on" data-pfclear="search">“${esc(f.search)}”<i>×</i></span>`);
   const special = sel.kind === 'smart' && sel.id === 'stats';
   return `<div class="pl-header">
     <div class="row between" style="align-items:baseline;gap:12px">
@@ -218,7 +224,6 @@ function planHeaderHTML(sel){
         ${PLAN_SORTS.map(([k, n]) => `<option value="${k}" ${p.prefs.sort === k ? 'selected' : ''}>${n}</option>`).join('')}</select></div>
       <div class="pf-chips">
         ${chips.join('')}
-        <button class="pf-chip" id="plFilterBtn">filter…</button>
         <button class="pf-chip${p.prefs.showCompleted ? ' on' : ''}" id="plShowDone">done</button>
       </div>
       <span class="pl-count mono" id="plCount"></span>
@@ -376,11 +381,7 @@ routes.planning = function(root, params){
     options:[{label:'New task', run:() => openPlanTask(null)}]});
 
   let tasks = planSelectionTasks(sel);
-  const f = S._planFilter || {};
-  if(f.priority != null) tasks = tasks.filter(t => t.priority === f.priority);
-  if(f.tag)   tasks = tasks.filter(t => t.tags.includes(f.tag));
-  if(f.range === 'overdue') tasks = tasks.filter(planIsLate);
-  if(f.range === 'no date') tasks = tasks.filter(t => !t.day);
+  if(planFilterCount(S._planFilter)) tasks = tasks.filter(t => planFilterKeep(S._planFilter, t));
   if(S._planQ) { const q = S._planQ.toLowerCase();
     tasks = tasks.filter(t => (t.text + ' ' + t.desc + ' ' + t.tags.join(' ') + ' ' +
       t.subtasks.map(s => s.title).join(' ')).toLowerCase().includes(q)); }

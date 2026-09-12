@@ -36,11 +36,16 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   console.log('\n2. renaming is its own small button');
   yes('every row carries a pencil', await p.evaluate(() =>
     document.querySelectorAll('.task-row').length === document.querySelectorAll('.task-row .task-pen').length));
-  /* take the pointer off the list first: the row is still hovered from the
-     click above, and a hovered row is supposed to show its pencil */
+  /* Ask a row the pointer is demonstrably not over. Moving the mouse away and
+     then reading the first row is not the same thing: where the pointer lands
+     is a guess, and a hovered row is *supposed* to show its pencil. */
   await p.mouse.move(5, 5); await p.waitForTimeout(300);
-  yes('  which stays out of the way until wanted', await p.evaluate(() =>
-    getComputedStyle(document.querySelector('.task-row .task-pen')).opacity === '0'));
+  const resting = await p.evaluate(() => {
+    const r = [...document.querySelectorAll('.task-row')].find(x => !x.matches(':hover'));
+    if(!r) return null;
+    return getComputedStyle(r.querySelector('.task-pen')).opacity;
+  });
+  is('  which stays out of the way until wanted', resting, '0');
   await p.hover('.task-row'); await p.waitForTimeout(350);
   is('  and appears on hover', await p.evaluate(() =>
     getComputedStyle(document.querySelector('.task-row .task-pen')).opacity), '1');
