@@ -1,8 +1,19 @@
 /* ============================================================
    8. CREATIVE PROJECTS — the gardens you tend
    ============================================================ */
-const PSTATUS = {idea:['○','not started','#8a8d8f'],active:['●','in progress','#7f916a'],paused:['◐','on hold','#d4a44c'],completed:['✓','completed','#b08968'],archived:['▣','archived','#6f675f'],abandoned:['×','abandoned','#8e5f6b']};
-const KANBAN = [['idea','Not Started'],['active','In Progress'],['paused','On Hold'],['completed','Completed'],['archived','Archived']];
+/* "future" is the counterpart of the Skill Tree's Future skill: a project
+   written down so it stops taking up room in your head, and deliberately not
+   in the pipeline yet. It leads the list because it comes before starting. */
+const PSTATUS = {future:['◌','future','#8a8d8f'],idea:['○','not started','#8a8d8f'],active:['●','in progress','#7f916a'],paused:['◐','on hold','#d4a44c'],completed:['✓','completed','#b08968'],archived:['▣','archived','#6f675f'],abandoned:['×','abandoned','#8e5f6b']};
+const KANBAN = [['future','Future'],['idea','Not Started'],['active','In Progress'],['paused','On Hold'],['completed','Completed'],['archived','Archived']];
+/* the cards grid and the timeline are about work under way; a project with no
+   start, no tasks and no dates would be an empty card and a bar of nothing.
+   The inventory is where everything is, which is the point of an inventory. */
+const projectIsFuture = p => p.status === 'future';
+function migrateProjects(){ (S.projects || []).forEach(p => {
+  if(!PSTATUS[p.status]) p.status = 'idea';
+  if(!Array.isArray(p.tags)) p.tags = [];
+}); }
 const PRIORITY = {P1:['P1','#c25b5b'],P2:['P2','#d4a44c'],P3:['P3','#7f916a'],P4:['P4','#8a8d8f']};
 const prBadge = p => `<span class="pri ${p.priority||'P3'}" title="priority">${p.priority||'P3'}</span>`;
 const stBadge = p => { const st = PSTATUS[p.status]||PSTATUS.idea; return `<span class="pstatus" style="--c:${st[2]}">${st[0]} ${st[1]}</span>`; };
@@ -36,10 +47,114 @@ function ganttHTML(ps){
   const HH = y + 10; const xT = X(T);
   return `<div class="gantt"><div class="g-names" style="height:${HH}px;flex:0 0 ${NW}px">${names}</div><svg viewBox="0 0 ${W} ${HH}" width="${W}" height="${HH}" style="display:block;flex:0 0 ${W}px;overflow:visible">${g}<line class="g-today" x1="${xT.toFixed(1)}" y1="22" x2="${xT.toFixed(1)}" y2="${HH}" stroke="#e3a15a" stroke-width="1.5" stroke-dasharray="3 3"/><text x="${(xT+3).toFixed(1)}" y="${HH-2}" style="fill:#e3a15a">today</text></svg></div>`;
 }
+/* ---------- the inventory ----------
+   The cards, the board and the timeline all answer "what is happening". None
+   of them answers "what have I written down", which is the question you ask
+   when you are deciding what to pick up next, or wondering whether an idea
+   you had in March is still there. The Skill Tree grew the same section for
+   the same reason, and this is deliberately the same shape: search, the same
+   filters as chips and as selects, one row per project, and a control on the
+   row to move it without opening anything.
+
+   Future projects live here and nowhere else, which is what makes writing one
+   down cheap: it does not clutter the pipeline, and it is not lost. */
+function projectFilters(){ return S._pinv = S._pinv || {q:'', status:'all', prio:'all', shape:'all', sort:'status'}; }
+function projectLastNod(p){ const n = projectNods(p)[0]; return n ? n.date : ''; }
+function projectMatches(p, f){
+  const q = (f.q || '').trim().toLowerCase();
+  if(q && !`${p.name} ${p.description || ''} ${(p.tags || []).join(' ')}`.toLowerCase().includes(q)) return false;
+  if(f.status !== 'all' && p.status !== f.status) return false;
+  if(f.prio !== 'all' && (p.priority || 'P3') !== f.prio) return false;
+  const r = projectTaskRatio(p), live = !['completed','archived','abandoned','future'].includes(p.status);
+  const late = p.targetDate && p.targetDate.slice(0, 10) < today() && live;
+  const last = projectLastNod(p);
+  if(f.shape === 'dated'   && !p.targetDate) return false;
+  if(f.shape === 'nodate'  && p.targetDate) return false;
+  if(f.shape === 'late'    && !late) return false;
+  if(f.shape === 'notasks' && r.total) return false;
+  if(f.shape === 'earning' && !(p.income?.current > 0)) return false;
+  if(f.shape === 'stale'   && !(live && (!last || daysSince(last) > 30))) return false;
+  return true;
+}
+function projectInventoryHTML(){
+  const f = projectFilters();
+  const counts = {}; Object.keys(PSTATUS).forEach(k => counts[k] = S.projects.filter(p => p.status === k).length);
+  const ord = Object.keys(PSTATUS);
+  const list = S.projects.filter(p => projectMatches(p, f)).sort((a, b) => {
+    if(f.sort === 'name')     return a.name.localeCompare(b.name);
+    if(f.sort === 'priority') return (a.priority || 'P3').localeCompare(b.priority || 'P3') || a.name.localeCompare(b.name);
+    if(f.sort === 'target')   return (a.targetDate || '9999').localeCompare(b.targetDate || '9999') || a.name.localeCompare(b.name);
+    if(f.sort === 'activity') return daysSince(projectLastNod(a)) - daysSince(projectLastNod(b));
+    return ord.indexOf(a.status) - ord.indexOf(b.status)
+        || (a.priority || 'P3').localeCompare(b.priority || 'P3') || a.name.localeCompare(b.name);
+  });
+  const dirty = f.q || f.status !== 'all' || f.prio !== 'all' || f.shape !== 'all';
+  return `<section class="section rv" id="pInv">
+    <div class="row between"><span class="sc" style="margin:0">Inventory</span>
+      <span class="mono">${list.length} of ${S.projects.length} shown</span></div>
+    <p class="muted" style="font-size:.85rem">Everything you have written down, including the projects you have not started and may never start.</p>
+    <div class="row" style="gap:8px;margin:12px 0">
+      <button class="btn primary" id="pInvNew">＋ Project</button>
+      <button class="btn ghost" id="pInvFuture">＋ Future project</button>
+    </div>
+    <div class="filter-bar">
+      <input class="inp" id="pinvq" placeholder="search name, description, tag" value="${esc(f.q)}">
+      <select class="sel" id="pinvStatus"><option value="all">every status</option>${ord.map(k =>
+        `<option value="${k}" ${f.status === k ? 'selected' : ''}>${PSTATUS[k][0]} ${PSTATUS[k][1]} (${counts[k]})</option>`).join('')}</select>
+      <select class="sel" id="pinvPrio"><option value="all">any priority</option>${Object.keys(PRIORITY).map(k =>
+        `<option value="${k}" ${f.prio === k ? 'selected' : ''}>${k}</option>`).join('')}</select>
+      <select class="sel" id="pinvShape">${[['all','any shape'],['dated','has a target date'],['nodate','no date set'],['late','past its date'],['notasks','no tasks yet'],['earning','earning something'],['stale','nothing for a month']].map(([v, l]) =>
+        `<option value="${v}" ${f.shape === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
+      <select class="sel" id="pinvSort">${[['status','by status'],['priority','by priority'],['activity','by last nod'],['target','by target date'],['name','by name']].map(([v, l]) =>
+        `<option value="${v}" ${f.sort === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
+      ${dirty ? `<button class="btn sm ghost" id="pinvClear">clear</button>` : ''}
+    </div>
+    <div class="chip-row" style="margin-bottom:12px">${ord.map(k => { const v = PSTATUS[k];
+      return `<button class="chip click ${f.status === k ? 'on' : ''}" style="--c:${v[2]}" data-pinvs="${k}">${v[0]} ${esc(v[1])} <span class="mono">${counts[k]}</span></button>`; }).join('')}</div>
+    <div class="inv-list">${list.length ? list.map(p => { const st = PSTATUS[p.status] || PSTATUS.idea;
+      const r = projectTaskRatio(p), last = projectLastNod(p);
+      const live = !['completed','archived','abandoned','future'].includes(p.status);
+      const late = p.targetDate && p.targetDate.slice(0, 10) < today() && live;
+      return `<div class="inv-row" data-popen="${p.id}" style="--c:${st[2]}">
+        <span class="inv-h" title="${esc(st[1])}" style="color:${st[2]}">${st[0]}</span>
+        <span class="inv-name"><b>${esc(p.name)}</b>${p.description ? `<span class="inv-why">${esc(p.description.slice(0, 120))}</span>` : ''}</span>
+        ${(p.tags || []).slice(0, 2).map(t => `<span class="chip">${esc(t)}</span>`).join('')}
+        <span class="pri ${p.priority || 'P3'}" style="--c:${(PRIORITY[p.priority || 'P3'])[1]}">${p.priority || 'P3'}</span>
+        <span class="inv-lv"><span class="mono">${r.total ? `${r.done}/${r.total}` : '—'}</span></span>
+        <span class="mono inv-last">${p.status === 'future' ? 'not started' : last ? relDays(daysSince(last)) : 'no nods'}</span>
+        <span class="mono inv-ms ${late ? 'atrophy' : ''}">${p.targetDate ? `${late ? '⚠ ' : '🎯 '}${fmtDate(p.targetDate, 'short')}` : ''}</span>
+        <select class="sel inv-set" data-setpst="${p.id}" title="move this project">${ord.map(k =>
+          `<option value="${k}" ${p.status === k ? 'selected' : ''}>${PSTATUS[k][0]} ${PSTATUS[k][1]}</option>`).join('')}</select>
+      </div>`; }).join('') : '<div class="empty">Nothing matches those filters.</div>'}</div>
+  </section>`;
+}
+function bindProjectInventory(root){
+  const f = projectFilters();
+  const box = root.querySelector('#pInv'); if(!box) return;
+  box.querySelector('#pInvNew').onclick = () => createProject();
+  box.querySelector('#pInvFuture').onclick = () => createProject('', {status: 'future'});
+  const q = box.querySelector('#pinvq');
+  /* the search keeps the caret where it was: a redraw that sends you back to
+     the start of the box makes typing a word impossible */
+  if(q) q.addEventListener('input', debounce(function(){ f.q = this.value; rerender();
+    const i = document.querySelector('#pinvq'); if(i){ i.focus(); i.setSelectionRange(i.value.length, i.value.length); } }, 300));
+  const sel = (id, key) => { const el = box.querySelector('#' + id);
+    if(el) el.onchange = () => { f[key] = el.value; rerender(); }; };
+  sel('pinvStatus', 'status'); sel('pinvPrio', 'prio'); sel('pinvShape', 'shape'); sel('pinvSort', 'sort');
+  const clr = box.querySelector('#pinvClear');
+  if(clr) clr.onclick = () => { S._pinv = {q:'', status:'all', prio:'all', shape:'all', sort:'status'}; rerender(); };
+  box.querySelectorAll('[data-pinvs]').forEach(b => b.onclick = () => {
+    f.status = f.status === b.dataset.pinvs ? 'all' : b.dataset.pinvs; rerender(); });
+  box.querySelectorAll('[data-setpst]').forEach(s2 => s2.onchange = ev => { ev.stopPropagation();
+    const p = byId(S.projects, s2.dataset.setpst); if(!p) return;
+    p.status = s2.value; saveNow(); sound('click'); rerender(); });
+}
+
 routes.projects = function(root, params){
   registerPageEntry({pageName:'Projects', addLabel:'New project', defaultEntryType:'project', prefilledFields:{}, hint:'Nods have their own button — they must stay fast.', options:[{label:'New project', run:()=>EntryActions.newProject()}]});
+  migrateProjects();
   const sort = S._psort || 'activity'; const view = S.settings.projectView || 'cards';
-  const ps = [...S.projects].sort((a,b) => sort==='name' ? a.name.localeCompare(b.name) : sort==='status' ? Object.keys(PSTATUS).indexOf(a.status)-Object.keys(PSTATUS).indexOf(b.status) : sort==='priority' ? (a.priority||'P3').localeCompare(b.priority||'P3') : daysSince(projectNods(a)[0]?.date) - daysSince(projectNods(b)[0]?.date));
+  const ps = [...S.projects].filter(p => !projectIsFuture(p) || view === 'kanban').sort((a,b) => sort==='name' ? a.name.localeCompare(b.name) : sort==='status' ? Object.keys(PSTATUS).indexOf(a.status)-Object.keys(PSTATUS).indexOf(b.status) : sort==='priority' ? (a.priority||'P3').localeCompare(b.priority||'P3') : daysSince(projectNods(a)[0]?.date) - daysSince(projectNods(b)[0]?.date));
   const income = S.projects.filter(p=>p.income?.current>0); const total = sum(income.map(p=>p.income.current)); const diversified = income.filter(p=>p.income.current/total > .1).length;
   const mode = S.settings.projectMode || 'tracking';
   if(mode === 'ideation'){ renderIdeation(root); return; }
@@ -47,16 +162,17 @@ routes.projects = function(root, params){
     <button class="btn primary nod-fab" id="nodFab" title="quick nod">+ nod</button>
     <div class="mode-switch rv">${[['ideation','◌ Ideation','sparks and open questions'],['tracking','◉ Tracking','the work already under way']].map(([k,l,d])=>`<button class="${mode===k?'on':''}" data-pmode="${k}" title="${d}">${l}</button>`).join('')}</div>
     <div class="page-head row between"><div><h1>Projects</h1></div><div class="row"><div class="view-toggle">${[['cards','▦ Cards'],['kanban','▥ Board'],['timeline','▬ Timeline']].map(([k,l])=>`<button class="${view===k?'on':''}" data-pview="${k}">${l}</button>`).join('')}</div><select class="sel" style="width:auto" id="psort"><option value="activity" ${sort==='activity'?'selected':''}>by last activity</option><option value="priority" ${sort==='priority'?'selected':''}>by priority</option><option value="status" ${sort==='status'?'selected':''}>by status</option><option value="name" ${sort==='name'?'selected':''}>by name</option></select><button class="btn primary" id="addNod">+ nod</button></div></div>
-    <div class="card rv" style="margin-bottom:22px"><div class="income-strip"><div><div class="k">monthly income, all streams</div><div class="num">${fmtYen(total)}</div><div class="mono">per month</div></div><div><div class="k">active streams</div><div class="num">${income.length}</div></div><div><div class="k">diversification</div><div class="num">${diversified}</div><div class="mono">contribute &gt;10%</div></div><div><div class="k">open tasks</div><div class="num">${sum(S.projects.filter(p=>!['completed','archived','abandoned'].includes(p.status)).map(p=>{ const r = projectTaskRatio(p); return r.total-r.done; }))}</div></div></div></div>
+    <div class="card rv" style="margin-bottom:22px"><div class="income-strip"><div><div class="k">monthly income, all streams</div><div class="num">${fmtYen(total)}</div><div class="mono">per month</div></div><div><div class="k">active streams</div><div class="num">${income.length}</div></div><div><div class="k">diversification</div><div class="num">${diversified}</div><div class="mono">contribute &gt;10%</div></div><div><div class="k">open tasks</div><div class="num">${sum(S.projects.filter(p=>!['future','completed','archived','abandoned'].includes(p.status)).map(p=>{ const r = projectTaskRatio(p); return r.total-r.done; }))}</div></div></div></div>
     ${view==='cards' ? `<div class="grid c3" id="pcards">${ps.map(projectCardHTML).join('')}</div>` : view==='kanban' ? kanbanHTML(ps) : `<div class="card rv"><div class="row between" style="margin-bottom:8px"><span class="sc" style="margin:0">Phases over time</span><span class="mono">bars are phases · lighter fill is tasks done · click a bar to open</span></div>${ganttHTML(ps)}</div>`}
-    
+    ${projectInventoryHTML()}
   </div>`;
   $('#psort').onchange = e => { S._psort = e.target.value; rerender(); };
   $$('[data-pmode]',root).forEach(b => b.onclick = () => { S.settings.projectMode = b.dataset.pmode; saveNow(); rerender(); });
   $$('[data-pview]',root).forEach(b => b.onclick = () => { S.settings.projectView = b.dataset.pview; saveNow(); rerender(); });
   { const gt = root.querySelector('.gantt'); const tl = gt?.querySelector('.g-today'); if(gt && tl){ gt.scrollLeft = Math.max(0, +tl.getAttribute('x1') - (gt.clientWidth-170)*0.6); } }
   $('#addNod').onclick = () => openNodModal(); $('#nodFab').onclick = () => openNodModal();
-  $$('[data-popen]',root).forEach(c => c.addEventListener('click', e => { if(e.target.closest('.del-x,.ed')) return; openProjectPanel(c.dataset.popen); }));
+  bindProjectInventory(root);
+  $$('[data-popen]',root).forEach(c => c.addEventListener('click', e => { if(e.target.closest('.del-x,.ed,.inv-set')) return; openProjectPanel(c.dataset.popen); }));
   // kanban drag between columns
   let kdrag = null;
   $$('[data-kdrag]',root).forEach(card => { card.addEventListener('dragstart', ev => { if(ev.target.closest('.ed')){ ev.preventDefault(); return; } kdrag = card.dataset.kdrag; card.classList.add('dragging'); ev.dataTransfer.effectAllowed='move'; try { ev.dataTransfer.setData('text/plain', kdrag); } catch(e){} }); card.addEventListener('dragend', () => { card.classList.remove('dragging'); $$('.kcol.over',root).forEach(c=>c.classList.remove('over')); }); });
@@ -64,7 +180,7 @@ routes.projects = function(root, params){
   /* the id is consumed, not kept: a re-render must not reopen the panel */
   if(params[0]){ const _id = params[0]; consumeHashParam('#/projects'); setTimeout(() => openProjectPanel(_id), 0); }
 };
-function createProject(name=''){ const p = {id:uid(),name:name||'New project',description:'',tags:[],status:'idea',priority:'P3',startDate:today(),targetDate:'',phases:[],resources:[],linkedSkills:[],linkedVisionEra:null,notes:'',link:'',income:{model:'',current:0,target:0,milestones:[]},createdAt:today()}; S.projects.push(p); saveNow(); rerender(); openProjectPanel(p.id); }
+function createProject(name='', pre={}){ const p = {id:uid(),name:name||(pre.status==='future'?'A project for later':'New project'),description:'',tags:[],status:pre.status||'idea',priority:'P3',startDate:today(),targetDate:'',phases:[],resources:[],linkedSkills:[],linkedVisionEra:null,notes:'',link:'',income:{model:'',current:0,target:0,milestones:[]},createdAt:today()}; S.projects.push(p); saveNow(); rerender(); openProjectPanel(p.id); }
 function deleteProject(p, node, after){
   requestDelete({label: p.name, node, after, remove: () => {
     const nods = S.nods.filter(n => n.projectId === p.id).map(n => [S.nods.indexOf(n), n]); nods.forEach(([,n]) => S.nods.splice(S.nods.indexOf(n), 1));

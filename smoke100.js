@@ -137,6 +137,10 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('a real drag onto the lower half of a row drops it below that row',
       dragged && rightAfter(dragged, /alpha/, /beta/), (dragged||[]).join(' | '));
 
+  /* the write is a promise, and reloading before it lands reads back the
+     order from before the drag — a race that made this pass most of the time */
+  await p.evaluate(() => flushSave());
+  await p.waitForTimeout(300);
   await p.reload(); await p.waitForTimeout(2400);
   if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(1800); }
   await openTasks();
