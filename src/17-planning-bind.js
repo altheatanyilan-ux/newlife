@@ -227,7 +227,7 @@ function bindPlanning(root, sel, tasks){
   });
 
   if(typeof bindPlanViews === 'function') bindPlanViews(root, sel, tasks);
-  if(typeof bindPlanHabits === 'function') bindPlanHabits(root);
+  if(typeof bindHabRoom === 'function') bindHabRoom(root);
   if(typeof bindPlanBatch === 'function') bindPlanBatch(root);
   if(typeof bindPlanReminderBanner === 'function') bindPlanReminderBanner(root);
 }

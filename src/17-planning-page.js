@@ -432,10 +432,10 @@ routes.planning = function(root, params){
     root.innerHTML = `<div class="page plan-page">
       <div class="page-head"><h1>Planning</h1></div>
       ${planRoomsHTML()}
-      <div class="pl-habits-room${room === 'stats' ? ' pl-stats-room' : ''}">${room === 'habits' ? planHabitsHTML() : planStatsHTML()}</div>
+      <div class="pl-habits-room${room === 'stats' ? ' pl-stats-room' : ''}">${room === 'habits' ? habRoomHTML() : planStatsHTML()}</div>
     </div>`;
     bindPlanRooms(root);
-    if(room === 'habits' && typeof bindPlanHabits === 'function') bindPlanHabits(root);
+    if(room === 'habits') bindHabRoom(root);
     return;
   }
 

@@ -168,6 +168,60 @@ function houseIsEmpty(){
   return !(S.visions||[]).length && !(S.skills||[]).length && !(S.projects||[]).length
       && !(S.values||[]).length && !(S.entries||[]).length && !(S.stages||[]).length;
 }
+/* Two to build and two to outgrow. The breaking pair carry the fields that
+   make the difference between a rule and a replacement: what you do instead,
+   what sets it off, and what to do the moment it hits. */
+STARTER.habits = [
+  {name:'Morning writing', icon:'✍', category:'creative', dimension:'mental', kind:'expenditure',
+   timeOfDay:'morning', specificTime:'06:30', durationTarget:30,
+   identity:'I am someone who writes before the world wakes up.',
+   why:'Writing is how I digest a life. Without it, things pass through me undigested.',
+   vision:'First light through the window, a draft taking shape that will become something I am proud of.',
+   inaction:'Ideas stay formless. I stay a consumer rather than a maker.',
+   rehearsal:'You sit down. The cursor blinks. You type one word, then another. Twenty minutes later there are five hundred.',
+   cue:'After the coffee is poured', environment:'Desk, candle lit, phone in another room',
+   min:'Open the document and write one sentence', ideal:'Thirty minutes without stopping',
+   preRitual:'Pour the coffee, light the candle, close the door',
+   postRitual:'One line about what came out',
+   reward:'The first walk of the day', difficulty:3,
+   progression:[{week:1,target:'10 minutes'},{week:2,target:'15 minutes'},{week:4,target:'20 minutes'},{week:8,target:'30 minutes'}],
+   freq:{type:'daily',days:[],count:1}},
+  {name:'Japanese study', icon:'あ', category:'mind', dimension:'mental', kind:'expenditure',
+   timeOfDay:'afternoon', specificTime:'14:00', durationTarget:25,
+   identity:'I am someone who is becoming fluent in Japanese.',
+   why:'Japanese is the bridge to the life I am building.',
+   vision:'Reading a newspaper on a Tokyo train without effort.',
+   inaction:'The move stays a daydream instead of a plan.',
+   cue:'After lunch', environment:'Anki open, timer set for one sitting',
+   min:'Five cards', ideal:'Twenty-five minutes of review and new material',
+   reward:'A proper coffee', difficulty:3,
+   progression:[{week:1,target:'15 minutes of review'},{week:4,target:'25 minutes with new material'},{week:8,target:'30 minutes of immersion'}],
+   freq:{type:'daily',days:[],count:1}},
+  {name:'No doom-scrolling', icon:'🔓', negative:true, category:'mind', dimension:'mental', kind:'recovery',
+   identity:'I am someone who chooses what enters my mind.',
+   reframe:'I am no longer someone who numbs with infinite feeds. I am someone who sits with the quiet.',
+   standard:'No feeds after ten at night',
+   replacement:'Pick up the book on the desk, or write for five minutes',
+   harm:'One to two hours a day. Fragments my attention. Leaves me drained rather than rested, and contradicts every value I claim about intention.',
+   protocol:'1) Say it aloud: I notice the urge. 2) Phone face down. 3) Five slow breaths. 4) Pick up the book. 5) If it is still strong after two minutes, text someone.',
+   triggers:[
+     {id:'', type:'emotional', description:'After a stressful email or meeting', intensity:4, strategy:'Three breaths, then walk to the window'},
+     {id:'', type:'temporal', description:'The ten o\'clock wind-down', intensity:3, strategy:'Phone charges in another room after half past nine'},
+     {id:'', type:'situational', description:'Waiting for something — a bus, food, a person', intensity:2, strategy:'Always carry a book'}],
+   freq:{type:'daily',days:[],count:1}},
+  {name:'No late-night eating', icon:'🔓', negative:true, category:'health', dimension:'physical', kind:'recovery',
+   identity:'I am someone who respects my body\'s rhythms.',
+   reframe:'I no longer use food as padding for a feeling. I sit with what I feel.',
+   standard:'Kitchen closed after nine',
+   replacement:'Herbal tea, or five minutes of stretching',
+   harm:'Wrecks the quality of my sleep, and teaches me that discomfort has to be soothed immediately.',
+   protocol:'1) Brush your teeth — that is the signal eating is done. 2) Make chamomile. 3) If it persists, write for five minutes about what is underneath it.',
+   triggers:[
+     {id:'', type:'emotional', description:'Boredom or unease in the evening', intensity:3, strategy:'Name the feeling. Make the tea.'},
+     {id:'', type:'temporal', description:'After nine', intensity:4, strategy:'Teeth brushed as the signal'}],
+   freq:{type:'daily',days:[],count:1}},
+];
+
 function applyStarter(){
   const T = today(), stamp = new Date().toISOString();
   const has = (arr, key) => (arr||[]).some(x => x && x.seedKey === key);
@@ -244,6 +298,15 @@ function applyStarter(){
   STARTER.ideas.forEach(([kind, text], i) => { const key = 'idea-' + i; if(has(S.ideas, key)) return;
     S.ideas.unshift({id:uid(), seeded:STARTER_TAG, seedKey:key, text, kind, note:'', createdAt:stamp,
       tags: typeof parseTags === 'function' ? parseTags(text) : []}); });
+
+  /* Four habits, two of each kind, filled in far enough that the fields mean
+     something the first time they are seen. An empty habit page teaches
+     nothing about what a habit here is for. */
+  STARTER.habits.forEach((h, i) => { const key = 'hab-' + i; if(has(S.habits, key)) return;
+    const rec = Object.assign(habitDefaults(), h, {id:uid(), seeded:STARTER_TAG, seedKey:key,
+      order:S.habits.length, createdAt:stamp});
+    S.habits.push(rec);
+    if(typeof habDefaults === 'function') habDefaults(rec); });
 
   S.settings.starterApplied = stamp;
   saveNow();

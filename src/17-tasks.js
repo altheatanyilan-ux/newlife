@@ -253,6 +253,17 @@ function bindTaskRows(root, after){
   bindTaskReorder(root, redraw);
 
   $$('[data-taskrow]', root).forEach(row => {
+    /* The name opened the task and the rest of the row did nothing, so a
+       click a few pixels wide of it fell through — on the Planning row the
+       whole row has always opened it, and there is no reason Today should
+       behave differently. The controls are excluded, and so is the subtask
+       block, which has its own rows to click. */
+    row.addEventListener('click', ev => {
+      if(ev.target.closest('button, a, input, select, .ed, .sub-wrap, [data-topen]')) return;
+      const r = findTaskRef(row.dataset.taskrow); if(!r) return;
+      if(r.kind === 'own' && typeof openPlanTask === 'function') openPlanTask(r.id);
+      else if(r.go) navigate(r.go);
+    });
     row.addEventListener('dragstart', ev => { ev.dataTransfer.setData('text/plain', row.dataset.taskrow); ev.dataTransfer.effectAllowed = 'move'; row.classList.add('dragging'); window._taskDrag = row.dataset.taskrow; });
     row.addEventListener('dragend', () => { row.classList.remove('dragging'); window._taskDrag = null;
       $$('.task-row.drop-above, .task-row.drop-below', root).forEach(x => x.classList.remove('drop-above','drop-below')); });

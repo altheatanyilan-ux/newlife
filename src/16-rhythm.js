@@ -107,6 +107,9 @@ function migrateRhythm(){
   S.monthReviews = S.monthReviews && typeof S.monthReviews === 'object' ? S.monthReviews : {};
   domains();
   (S.habits||[]).forEach(h => { if(h.at === undefined) h.at = null; if(!h.icon) h.icon = ''; if(!h.linkedSkill) h.linkedSkill = null; if(!Array.isArray(h.celebrated)) h.celebrated = []; });
+  /* the fuller habit shape — identity, energy, milestones, triggers — is
+     filled in by migrateHabits, which lives with the rest of it */
+  if(typeof migrateHabits === 'function') migrateHabits();
 }
 function dayPlan(d = today()){
   migrateRhythm();

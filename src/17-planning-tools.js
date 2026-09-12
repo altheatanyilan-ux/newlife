@@ -144,15 +144,11 @@ const FocusTimer = (() => {
 
 function fmtClock(secs){ return `${pad(Math.floor(secs / 60))}:${pad(secs % 60)}`; }
 
-function openFocusTimer(taskId){
-  if(taskId) FocusTimer.setTask(taskId);
-  const p = openPanel(`<div class="ft" id="ftPanel"></div>`, 'plan-detail focus-panel');
-  const draw = () => { const box = p.querySelector('#ftPanel'); if(!box || !p.isConnected){ off(); return; }
-    box.innerHTML = focusTimerHTML(); bindFocusTimer(box); };
-  const off = FocusTimer.subscribe(draw);
-  draw();
-  return p;
-}
+/* The side-panel timer is gone. It was the lesser of two timers — it could
+   start and stop, and could not take a note of what the sitting was for or
+   what the break was spent on, which is most of why the panel on Today is
+   worth having. Pressing a task's timer now puts the task on today and takes
+   you to that one. */
 function focusTimerHTML(){
   const s = FocusTimer.state(), c = planState().timer;
   const total = (s.phase === 'focus' ? c.focusDuration : s.phase === 'long' ? c.longBreak : c.shortBreak) * 60;

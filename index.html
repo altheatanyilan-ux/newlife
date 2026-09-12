@@ -1131,6 +1131,9 @@ button.tm-cell:hover{border-color:var(--page-accent)}
 .task-row.dragging{opacity:.4;cursor:grabbing}
 .task-row.done .task-text{text-decoration:line-through;color:var(--faint)}
 .task-row.late .task-day{color:#d08080}
+/* the whole row opens the task, so it should look like it does */
+.task-row{cursor:pointer}
+.task-row .task-grip{cursor:grab}
 .task-check{flex:none;width:18px;height:18px;border-radius:6px;border:1.5px solid var(--line-2);background:none;color:var(--page-accent-ink);font-size:.72rem;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s var(--ease),border-color .2s var(--ease)}
 .task-row.done .task-check{background:var(--page-accent);border-color:var(--page-accent)}
 .task-text{flex:1;min-width:0;font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -1937,6 +1940,171 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 .pt-wip{font-size:.58rem;letter-spacing:.09em;text-transform:uppercase;color:var(--terra);
   border:1px solid var(--terra);border-radius:20px;padding:1px 6px;opacity:.8}
 @media (prefers-reduced-motion:reduce){ .task-timer.on .tt-ring{animation:none} }
+
+/* --- habits: the room, its three views, and the panel --- */
+.hb-room{display:flex;flex-direction:column;gap:14px}
+.hb-head{align-items:center;flex-wrap:wrap;gap:10px}
+.hb-views{display:inline-flex;gap:2px;background:var(--line);padding:2px;border-radius:9px}
+.hb-views button{background:none;border:0;padding:5px 11px;border-radius:7px;cursor:pointer;
+  font-family:var(--sans);font-size:.78rem;color:var(--muted);transition:background .2s var(--ease),color .2s var(--ease)}
+.hb-views button.on{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.hb-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px;align-items:start}
+.hb-s1 .k{font-family:var(--mono);font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+.hb-s1 .num{font-family:var(--mono);font-size:1.5rem;line-height:1.15;margin-top:2px}
+.hb-ring{width:38px;height:38px;flex:none;transform:rotate(-90deg)}
+.hb-rt{fill:none;stroke:var(--line);stroke-width:4}
+.hb-ra{fill:none;stroke:var(--terra);stroke-width:4;stroke-linecap:round;transition:stroke-dashoffset .5s var(--ease)}
+.hb-dots{display:flex;gap:5px;margin-top:5px}
+.hb-dot{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-family:var(--mono);
+  font-size:.6rem;border:1.5px solid var(--c);color:var(--c);opacity:.45}
+.hb-dot.ok{opacity:1;background:color-mix(in srgb,var(--c) 18%,transparent)}
+.hb-dot.over{opacity:1;border-color:var(--gold);color:var(--gold);box-shadow:0 0 0 2px color-mix(in srgb,var(--gold) 22%,transparent)}
+.hb-warn{font-size:.72rem;color:var(--gold);margin-top:5px;line-height:1.35}
+.hb-filters{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.hb-fsep{width:1px;height:16px;background:var(--line-2);margin:0 3px}
+.hb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(248px,1fr));gap:12px;align-items:start}
+.hb-card{background:var(--surface);border:1px solid var(--line);border-left:3px solid transparent;
+  border-radius:12px;padding:13px 14px;cursor:pointer;display:flex;flex-direction:column;gap:7px;
+  transition:box-shadow .2s var(--ease),transform .2s var(--ease)}
+.hb-card:hover{box-shadow:0 4px 14px rgba(0,0,0,.09);transform:translateY(-2px)}
+.hb-card.kept{border-left-color:var(--sage)}
+.hb-card.pending{border-left-color:var(--terra)}
+.hb-card.off{opacity:.8}
+.hb-ctop{display:flex;align-items:center;gap:7px}
+.hb-face{font-size:1rem}
+.hb-name{background:none;border:0;padding:0;cursor:pointer;font:inherit;color:inherit;font-weight:600;
+  text-align:left;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hb-name:hover{color:var(--page-accent)}
+.hb-badge{font-size:.78rem;opacity:.7}
+.hb-badge.sm{font-size:.66rem}
+.hb-decline{width:6px;height:6px;border-radius:50%;background:var(--gold);flex:none}
+.hb-ident{font-family:var(--serif-i,var(--serif));font-style:italic;font-size:.82rem;color:var(--muted);line-height:1.4}
+.hb-ident.big{font-size:1.02rem;color:var(--text)}
+.hb-streak{font-family:var(--mono);font-size:1.7rem;line-height:1;color:var(--c)}
+.hb-sunit{font-size:.6rem;color:var(--faint);letter-spacing:.06em;margin-left:4px}
+.hb-mini{display:flex;gap:1.5px;flex-wrap:nowrap;overflow:hidden}
+.hb-mini i{flex:1 1 0;min-width:2px;height:13px;border-radius:2px;background:var(--line);display:block}
+.hb-mini i.on{background:var(--c)}
+.hb-mini i.half{background:color-mix(in srgb,var(--c) 45%,transparent)}
+.hb-mini i.slip{background:var(--terra)}
+.hb-mini i.resist{background:var(--dusty,#a0727e)}
+.hb-mini i.off{background:none;border:1px dashed var(--line-2)}
+.hb-mini.big i{height:19px}
+.hb-mini.sm i{height:9px}
+.hb-meta{display:flex;justify-content:space-between;gap:8px;font-size:.66rem;color:var(--faint);flex-wrap:wrap}
+.hb-vals{display:flex;flex-wrap:wrap;gap:4px}
+.hb-val{font-size:.6rem;padding:1px 6px;border-radius:20px;border:1px solid var(--c);color:var(--c)}
+.hb-rate{font-size:.66rem;color:var(--muted)}
+.hb-checkin{align-self:flex-start;margin-top:2px}
+.hb-arch{margin-top:16px}
+.hb-archrow{padding:5px 0;border-top:1px dashed var(--line);font-size:.86rem}
+
+/* today */
+.hb-focus{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.hb-tgroup{display:flex;flex-direction:column;gap:3px}
+.hb-tgroup.done{opacity:.62}
+.hb-tlabel{font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);
+  padding-bottom:4px;border-bottom:1px solid var(--line);margin-bottom:3px}
+.hb-trow{display:flex;gap:11px;align-items:flex-start;padding:9px 2px;border-bottom:1px dashed var(--line)}
+.hb-trow.kept .hb-tname{text-decoration:line-through;color:var(--faint)}
+.hb-tmid{flex:1;min-width:0}
+.hb-tname{background:none;border:0;padding:0;cursor:pointer;font:inherit;color:inherit;font-size:.94rem;text-align:left}
+.hb-tname:hover{color:var(--page-accent)}
+.hb-tident{font-family:var(--serif-i,var(--serif));font-style:italic;font-size:.76rem;color:var(--muted);margin-top:1px}
+.hb-tcue{font-size:.64rem;color:var(--faint);margin-top:2px}
+.hb-tright{display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex:none}
+.hb-tstreak{font-size:.78rem}
+.hb-tdur{font-size:.6rem;color:var(--faint)}
+.hb-quiet{font-family:var(--serif-i,var(--serif));font-style:italic;text-align:center}
+.hb-quote{font-family:var(--serif-i,var(--serif));font-style:italic;font-size:.82rem;color:var(--muted);
+  text-align:center;line-height:1.5;padding:8px 0}
+.hb-quote cite{display:block;font-family:var(--mono);font-style:normal;font-size:.6rem;color:var(--faint);margin-top:3px}
+.hb-quote.top{text-align:left;padding-top:0}
+
+/* analytics */
+.hb-an{display:flex;flex-direction:column;gap:22px}
+.hb-asec{display:flex;flex-direction:column;gap:8px}
+.hb-health{display:flex;flex-direction:column;gap:1px}
+.hb-hrow{display:grid;grid-template-columns:minmax(120px,1.4fr) 42px minmax(90px,1.6fr) 92px 54px;gap:10px;
+  align-items:center;padding:6px 2px;border-top:1px dashed var(--line);font-size:.82rem}
+.hb-hname{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hb-hscore{font-size:1rem;text-align:right;color:var(--c)}
+.hb-htrend{font-size:.62rem}
+.hb-htrend.up{color:var(--sage)}
+.hb-htrend.down{color:var(--gold)}
+.hb-quad{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.hb-q{border:1px solid var(--line);border-radius:11px;padding:11px 12px;border-left:3px solid var(--c)}
+.hb-q.over{border-left-color:var(--gold)}
+.hb-qname{font-size:.86rem;margin-bottom:7px}
+.hb-qb{display:grid;grid-template-columns:64px 1fr 22px;gap:7px;align-items:center;margin-bottom:4px}
+.hb-qb .k{font-family:var(--mono);font-size:.55rem;letter-spacing:.07em;text-transform:uppercase;color:var(--faint)}
+.hb-qb .bar{--c:var(--terra)}
+.hb-qb.rec .bar{--c:var(--sage)}
+.hb-qb .mono{font-size:.68rem;text-align:right}
+.hb-mtimeline{display:flex;flex-direction:column;gap:1px}
+.hb-mrow{display:flex;gap:12px;padding:5px 0;border-top:1px dashed var(--line);font-size:.84rem;align-items:baseline}
+.hb-mdate{font-size:.66rem;color:var(--faint);flex:none;width:78px}
+.hb-runrow{padding:4px 0;border-top:1px dashed var(--line);font-size:.84rem}
+
+/* the check-in */
+.hb-ci-status{display:flex;flex-direction:column;gap:5px}
+.hb-cis{text-align:left;padding:9px 12px;border-radius:9px;border:1px solid var(--line);background:none;
+  cursor:pointer;font:inherit;font-size:.88rem;color:var(--text);transition:border-color .2s var(--ease),background .2s var(--ease)}
+.hb-cis.on{border-color:var(--page-accent);background:color-mix(in srgb,var(--page-accent) 10%,transparent)}
+.hb-gentle{font-family:var(--serif-i,var(--serif));font-style:italic;font-size:.82rem;color:var(--muted);
+  border-left:2px solid var(--terra);padding:6px 0 6px 11px;line-height:1.5}
+.hb-gentle cite{display:block;font-family:var(--mono);font-style:normal;font-size:.6rem;color:var(--faint);margin-top:3px}
+
+/* the panel */
+.hb-panel{--c:var(--sage)}
+.hb-phead{display:flex;gap:10px;align-items:flex-start}
+.hb-pface{font-size:1.5rem;line-height:1.1}
+.hb-psub{font-size:.62rem;color:var(--faint);margin-top:3px}
+.hb-pstreak{font-family:var(--mono);font-size:1.35rem;color:var(--c);flex:none}
+.hb-psec > summary{cursor:pointer;padding:7px 0;border-top:1px solid var(--line);list-style:none}
+.hb-psec > summary::-webkit-details-marker{display:none}
+.hb-psec > summary::before{content:'›';display:inline-block;margin-right:7px;color:var(--faint);
+  transition:transform .2s var(--ease)}
+.hb-psec[open] > summary::before{transform:rotate(90deg)}
+.hb-pbody{display:flex;flex-direction:column;gap:10px;padding:4px 0 12px}
+.hb-coach{font-family:var(--serif-i,var(--serif));font-style:italic;font-size:.78rem;color:var(--muted);
+  border-left:2px solid var(--terra);padding:4px 0 4px 10px;line-height:1.45}
+.hb-coach.sm{font-size:.72rem;margin-top:4px}
+.hb-coach cite{font-family:var(--mono);font-style:normal;font-size:.58rem;color:var(--faint)}
+.hb-facts{display:flex;flex-wrap:wrap;gap:10px;font-size:.68rem;color:var(--muted)}
+.hb-msrow{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.hb-ms{font-family:var(--mono);font-size:.6rem;padding:2px 7px;border-radius:20px;
+  border:1px dashed var(--line-2);color:var(--faint)}
+.hb-ms.on{border-style:solid;border-color:var(--c);color:var(--c);background:color-mix(in srgb,var(--c) 12%,transparent)}
+.hb-progrow{display:grid;grid-template-columns:64px 1fr auto;gap:8px;align-items:center;
+  padding:3px 0;border-top:1px dashed var(--line);font-size:.84rem}
+.hb-stack{font-size:.72rem;color:var(--muted);padding:5px 0}
+.hb-protocol .ed{border-left:2px solid var(--terra);padding-left:10px}
+.hb-trig{border-top:1px dashed var(--line);padding:7px 0;display:flex;flex-direction:column;gap:4px}
+.hb-tint{display:inline-flex;gap:2px}
+.hb-tint button{width:11px;height:11px;border-radius:50%;border:1px solid var(--line-2);background:none;
+  padding:0;cursor:pointer}
+.hb-tint button.on{background:var(--terra);border-color:var(--terra)}
+.hb-tstrat{font-size:.82rem;color:var(--muted);padding-left:12px;border-left:2px solid var(--line)}
+.hb-urges{display:flex;flex-direction:column;gap:1px}
+.hb-urge{display:grid;grid-template-columns:56px 96px 1fr;gap:8px;padding:5px 0;
+  border-top:1px dashed var(--line);font-size:.8rem;align-items:baseline}
+.hb-urge.slipped .hb-uout{color:var(--terra)}
+.hb-urge.resisted .hb-uout{color:var(--sage)}
+.hb-uout{font-family:var(--mono);font-size:.66rem}
+.hb-unote{color:var(--muted);overflow:hidden;text-overflow:ellipsis}
+.hb-log{display:flex;flex-direction:column;gap:1px}
+.hb-lrow{display:grid;grid-template-columns:56px 96px auto;gap:8px;padding:5px 0;
+  border-top:1px dashed var(--line);font-size:.8rem;align-items:baseline}
+.hb-lrow.slipped .hb-lstat{color:var(--terra)}
+.hb-lstat{font-size:.74rem}
+.hb-lnote{grid-column:1/-1;color:var(--muted);font-size:.78rem;padding-left:56px}
+.hb-freq{font-size:.86rem}
+@media (max-width:640px){
+  .hb-grid{grid-template-columns:1fr}
+  .hb-hrow{grid-template-columns:1fr 40px;row-gap:4px}
+  .hb-hrow .hb-mini,.hb-hrow .hb-htrend{grid-column:1/-1}
+}
 .lvl-res{display:flex;flex-direction:column;gap:4px}
 .res-row{display:flex;gap:8px;align-items:center;font-size:.85rem;flex-wrap:wrap;position:relative}
 .res-type{font-size:.85rem;min-width:18px;text-align:center}
@@ -7744,21 +7912,29 @@ function bindTaskTimers(root){
     focusOnTask(b.dataset.tfocus);
   });
 }
-/* Starting is the whole gesture: set the subject, begin the sitting, and put
-   the timer where it can be seen. A task that has ever been sat with is "in
-   progress" from then on — that is read off the sessions, never stored, so it
-   cannot disagree with them. */
+/* Pressing the timer does what dragging the task into the panel does, and
+   nothing less. There used to be a second, smaller timer in a side panel for
+   when you pressed this from somewhere other than Today — it could start and
+   stop and that was all: no note of what you were actually doing, no note of
+   what the break was for. Two timers of unequal worth is worse than one, so
+   that panel is gone and this always lands you at the real one.
+
+   Which means the gesture is three things, in order: put the task on today,
+   because a task you are sitting down with now is today's whether or not it
+   was this morning; hand it to the timer; and go to the page the timer lives
+   on. */
 function focusOnTask(id){
+  const t = (typeof planTaskById === 'function' ? planTaskById(id) : null) ||
+            (typeof findTaskRef === 'function' ? findTaskRef(id)?.task : null);
+  const T = today();
+  if(t && t.day !== T){ t.day = T; t.updatedAt = new Date().toISOString(); saveNow(); }
   FocusTimer.setTask(id);
   const st = FocusTimer.state();
   if(!st.running || st.taskId !== id) FocusTimer.start();
   sound('success');
-  const t = (typeof planTaskById === 'function' ? planTaskById(id) : null) ||
-            (typeof findTaskRef === 'function' ? findTaskRef(id)?.task : null);
-  toast(`Focusing on ${t?.text || 'this'}.`);
-  /* the panel lives on Today; from anywhere else, open it where you stand */
+  toast(`Focusing on ${t?.text || 'this'} — it is on today's list now.`);
   if(parseHash().name === 'today') rerender();
-  else openFocusTimer(id);
+  else navigate('#/today');
 }
 /* Any task with a logged sitting is in progress, whoever asks. */
 function taskIsInProgress(id){ return !id ? false : focusSessionsFor(id).length > 0; }
@@ -14155,6 +14331,9 @@ function migrateRhythm(){
   S.monthReviews = S.monthReviews && typeof S.monthReviews === 'object' ? S.monthReviews : {};
   domains();
   (S.habits||[]).forEach(h => { if(h.at === undefined) h.at = null; if(!h.icon) h.icon = ''; if(!h.linkedSkill) h.linkedSkill = null; if(!Array.isArray(h.celebrated)) h.celebrated = []; });
+  /* the fuller habit shape — identity, energy, milestones, triggers — is
+     filled in by migrateHabits, which lives with the rest of it */
+  if(typeof migrateHabits === 'function') migrateHabits();
 }
 function dayPlan(d = today()){
   migrateRhythm();
@@ -15119,6 +15298,11 @@ function openHabitModal(id){
       <div class="field"><label>Ideal version</label><input class="inp" id="hIdeal" value="${esc(h.ideal)}" placeholder="30-minute workout"></div>
     </div>
     <div class="field"><label>Stack after</label><select class="sel" id="hStack"><option value="">—</option>${S.habits.filter(x=>x.id!==h.id&&!x.archived&&!x.negative).map(x=>`<option value="${x.id}" ${h.stackAfter===x.id?'selected':''}>${esc(x.name)}</option>`).join('')}</select></div>
+    <div class="grid c2" style="gap:10px">
+      <div class="field"><label>The cue</label><input class="inp" id="hCue" value="${esc(h.cue || '')}" placeholder="After I pour the coffee…">
+        <div class="faint" style="font-size:.74rem">A ritual hangs off something that already happens.</div></div>
+      <div class="field"><label>The set-up</label><input class="inp" id="hEnv" value="${esc(h.environment || '')}" placeholder="desk, phone in another room"></div>
+    </div>
     <div class="field"><label>Micro-journal prompt (optional)</label><input class="inp" id="hPrompt" value="${esc(h.prompt)}" placeholder="How was the run?"></div>
     <div class="field"><label>Relational ritual (optional)</label><select class="sel" id="hRelational"><option value="">not relational</option>
       <option value="reachout" ${h.relational==='reachout'?'selected':''}>reach out to one person</option>
@@ -15138,12 +15322,28 @@ function openHabitModal(id){
     <div class="field"><label>What it costs me</label>
       <textarea class="ta" id="hCost" style="min-height:56px" placeholder="what it actually takes, written plainly">${esc(h.cost)}</textarea>
       <div class="faint" style="font-size:.76rem;margin-top:4px">Written now, to be read at the moment you are deciding.</div></div>
+    <div class="field"><label>When the urge hits</label>
+      <textarea class="ta" id="hProtocol" style="min-height:56px" placeholder="1) Name it aloud. 2) Five breaths. 3) Phone in the drawer. 4) Open the book.">${esc(h.protocol || '')}</textarea>
+      <div class="faint" style="font-size:.76rem;margin-top:4px">Written now, in the calm, because the moment you need it is the moment you cannot write it.</div></div>
     <div class="field"><label>Energy dimension</label><select class="sel" id="hDim">${DIMS.map(d=>`<option value="${d.id}" ${h.dimension===d.id?'selected':''}>${d.name}</option>`).join('')}</select></div>
     <div class="field"><label>Micro-journal prompt (optional)</label><input class="inp" id="hPrompt" value="${esc(h.prompt)}" placeholder="What was going on just before?"></div>`;
 
   const m = openModal(`<h2>${id?'Edit habit':'A new habit'}</h2><div class="stack">
     <div class="field"><label>Which kind is this?</label>${kindRow()}</div>
     <div class="field"><label>Name</label><input class="inp" id="hName" value="${esc(h.name)}"></div>
+    <!-- Maltz's point, asked at the moment of creation rather than buried in a
+         panel: a habit that does not follow from who you take yourself to be
+         is a rule, and rules are kept with willpower until the willpower runs
+         out. Optional, because forcing it would make it glib. -->
+    <div class="field"><label>${neg ? 'I am no longer someone who…' : 'I am someone who…'}</label>
+      <input class="inp" id="hIdentity" value="${esc(h.identity || '')}"
+        placeholder="${neg ? 'numbs with a feed. I am someone who sits with the quiet.' : 'begins each day in stillness.'}">
+      <div class="hb-coach sm">${esc(HAB_QUOTES.identity[1])} <cite>${esc(HAB_QUOTES.identity[0])}</cite></div></div>
+    <div class="grid c2" style="gap:10px">
+      <div class="field"><label>Area of life</label><select class="sel" id="hCat">${HAB_CATS.map(c =>
+        `<option value="${c}" ${(h.category || 'health') === c ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
+      <div class="field"><label>Why it matters</label><input class="inp" id="hWhy" value="${esc(h.why || '')}" placeholder="the reason under the reason"></div>
+    </div>
     <div id="hBody" class="stack">${neg ? breaking() : building()}</div>
     <div class="field"><label>Linked values</label><div class="deps">${S.values.map(v=>`<span class="chip click ${h.links.values.includes(v.id)?'on':''}" style="--c:${v.color}" data-lv="${v.id}">${esc(v.name.split(' ')[0])}</span>`).join('')}</div></div>
     <div class="field" id="hSkillField"><label>Linked skills</label><div class="deps">${S.skills.map(v=>`<span class="chip click ${h.links.skills.includes(v.id)?'on':''}" style="--c:var(--ment)" data-lsk="${v.id}">${esc(v.name)}</span>`).join('')}</div></div>
@@ -15172,6 +15372,8 @@ function openHabitModal(id){
         count: +g('#hCountN') || 1}; }
     h.dimension = g('#hDim') ?? h.dimension;
     h.prompt = g('#hPrompt') ?? h.prompt;
+    if(neg) h.protocol = g('#hProtocol') ?? h.protocol;
+    else { h.cue = g('#hCue') ?? h.cue; h.environment = g('#hEnv') ?? h.environment; }
   };
   const bindBody = () => {
     const f = m.querySelector('#hFreq'); if(f){ updFreq(); f.onchange = updFreq; }
@@ -15189,6 +15391,12 @@ function openHabitModal(id){
     neg = want;
     m.querySelectorAll('[data-hkind]').forEach(x => x.classList.toggle('on', x === b));
     m.querySelector('#hBody').innerHTML = neg ? breaking() : building();
+    /* the identity line reads the other way round for a habit you are
+       outgrowing, so its label and prompt change with the choice */
+    const il = m.querySelector('#hIdentity');
+    if(il){ il.previousElementSibling; const lab = il.closest('.field').querySelector('label');
+      lab.textContent = neg ? 'I am no longer someone who…' : 'I am someone who…';
+      il.placeholder = neg ? 'numbs with a feed. I am someone who sits with the quiet.' : 'begins each day in stillness.'; }
     bindBody(); updSkills();
   });
 
@@ -15196,7 +15404,11 @@ function openHabitModal(id){
   m.querySelector('#hSave').onclick = () => {
     h.name = m.querySelector('#hName').value.trim(); if(!h.name) return;
     readBody();
+    h.identity = m.querySelector('#hIdentity').value.trim();
+    h.category = m.querySelector('#hCat').value;
+    h.why = m.querySelector('#hWhy').value.trim();
     h.negative = neg;
+    habDefaults(h);
     /* a habit you are breaking is never "due", so it keeps a frequency only so
        that nothing downstream has to guard against its absence */
     if(neg){ h.freq = {type:'daily', days:[], count:1}; h.stackAfter = null; h.relational = ''; }
@@ -15269,6 +15481,746 @@ function renderPatterns(body){
 }
 /* the local report uses **bold**; render just that much inline */
 function mdInline(s){ return esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>'); }
+/* ============================================================
+   HABITS — checking in, the detail panel, and the wiring
+   ============================================================ */
+
+/* ---------- the check-in ----------
+   Two different questions, because the two kinds of habit are two different
+   things. A building habit asks how it went and what it left you with. A
+   breaking one asks a three-way question — clean, resisted, slipped — because
+   an urge that came and did not win is the most informative day of the three
+   and has nowhere else to be recorded. */
+function openHabitCheckIn(id, day = today()){
+  const h = habDefaults(byId(S.habits, id)); if(!h) return;
+  const br = habIsBreaking(h);
+  const cur = habEntry(h, day) || {};
+  let status = cur.status || (br ? 'clean' : 'completed');
+  const opts = br ? [['clean','○  Clean day — no urges'], ['resisted','🛡  Resisted an urge'], ['slipped','↯  Slipped']]
+    : [['completed','✓  Completed'], ['partial','◐  Partial'], ['skipped','·  Skipped']];
+
+  const body = () => `
+    <div class="hb-ci-status">${opts.map(([k, n]) =>
+      `<button type="button" class="hb-cis${status === k ? ' on' : ''}" data-cis="${k}">${esc(n)}</button>`).join('')}</div>
+    ${!br ? `
+      <div class="grid c2" style="gap:10px">
+        <div class="field"><label>How long</label><div class="row" style="gap:6px;align-items:baseline">
+          <input class="inp mono" id="ciDur" type="number" min="0" max="600" style="width:88px"
+            value="${cur.minutes || h.durationTarget || ''}"><span class="mono faint">min</span></div></div>
+      </div>
+      <div class="field"><label>Mood after</label><div class="feeling" id="ciMood">${[1,2,3,4,5].map(n =>
+        `<button type="button" data-cim="${n}" class="${(cur.mood || 0) === n ? 'on' : ''}">${n}</button>`).join('')}</div></div>
+      <div class="field"><label>Energy after</label><div class="feeling" id="ciEn">${[1,2,3,4,5].map(n =>
+        `<button type="button" data-cie="${n}" class="${(cur.energy || 0) === n ? 'on' : ''}">${n}</button>`).join('')}</div></div>`
+    : `
+      <div id="ciResist" ${status === 'resisted' ? '' : 'hidden'}>
+        <div class="field"><label>How strong was it</label><div class="feeling" id="ciInt">${[1,2,3,4,5].map(n =>
+          `<button type="button" data-cii="${n}" class="${(cur.intensity || 0) === n ? 'on' : ''}">${n}</button>`).join('')}</div></div>
+        ${h.triggers.length ? `<div class="field"><label>What set it off</label>
+          <select class="sel" id="ciTrig"><option value="">not one of the mapped ones</option>
+          ${h.triggers.map(t => `<option value="${t.id}" ${cur.triggerId === t.id ? 'selected' : ''}>${esc(t.description || 'a trigger')}</option>`).join('')}</select></div>` : ''}
+      </div>
+      <div id="ciSlip" ${status === 'slipped' ? '' : 'hidden'}>
+        <div class="hb-gentle">${esc(HAB_QUOTES.slip[1])} <cite>${esc(HAB_QUOTES.slip[0])}</cite></div>
+      </div>`}
+    <div class="field"><label>${br ? 'What happened, and what you did' : 'Anything worth saying'}${h.prompt ? ` — ${esc(h.prompt)}` : ''}</label>
+      <textarea class="ta" id="ciNote" style="min-height:64px" placeholder="${br ? 'Felt the pull after a stressful hour. Put the phone in the drawer.' : 'optional'}">${esc(cur.note || '')}</textarea></div>`;
+
+  const m = openModal(`<h2>${esc(h.icon || (br ? '🛡' : '✓'))} ${esc(h.name)}</h2>
+    <p class="muted" style="font-size:.86rem">${esc(fmtDate(day, 'full') || fmtDate(day, 'med'))}</p>
+    <div class="stack" id="ciBody">${body()}</div>
+    <div class="row between" style="margin-top:16px">
+      ${habEntry(h, day) ? '<button class="btn sm ghost" id="ciClear">clear this day</button>' : '<span></span>'}
+      <button class="btn primary" id="ciSave">Save check-in</button></div>`, 'narrow');
+
+  const bind = () => {
+    m.querySelectorAll('[data-cis]').forEach(b => b.onclick = () => {
+      status = b.dataset.cis;
+      m.querySelectorAll('[data-cis]').forEach(x => x.classList.toggle('on', x === b));
+      const r = m.querySelector('#ciResist'), s = m.querySelector('#ciSlip');
+      if(r) r.hidden = status !== 'resisted';
+      if(s) s.hidden = status !== 'slipped';
+    });
+    ['cim','cie','cii'].forEach(k => m.querySelectorAll(`[data-${k}]`).forEach(b => b.onclick = () =>
+      b.parentElement.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b))));
+  };
+  bind();
+
+  if(m.querySelector('#ciClear')) m.querySelector('#ciClear').onclick = () => {
+    habClearEntry(h, day); m.remove(); sound('click'); rerenderPlanBody(); };
+
+  m.querySelector('#ciSave').onclick = () => {
+    const pick = k => +m.querySelector(`[data-${k}].on`)?.dataset[k] || 0;
+    const before = habStreak(h).cur;
+    const patch = {status, note: m.querySelector('#ciNote').value.trim()};
+    if(!br){ patch.minutes = +m.querySelector('#ciDur')?.value || 0;
+      patch.mood = pick('cim'); patch.energy = pick('cie'); }
+    else { patch.intensity = pick('cii'); patch.triggerId = m.querySelector('#ciTrig')?.value || '';
+      if(status !== 'clean') h.urgeLog.unshift({id:uid(), date:day, intensity:patch.intensity,
+        outcome: status === 'slipped' ? 'slipped' : 'resisted', strategy:'', note:patch.note}); }
+    habSetEntry(h, day, patch);
+    m.remove();
+    /* a slip is not punished: the counter resets quietly and the house says
+       something kind rather than nothing */
+    if(br && status === 'slipped'){ sound('click'); toast('Begin again. The spiral always begins again.'); }
+    else {
+      sound('success');
+      const after = habStreak(h).cur;
+      const hit = h.milestones.find(x => x.days > before && x.days <= after);
+      if(hit) habCelebrate(h, hit); 
+    }
+    rerenderPlanBody();
+  };
+}
+/* seven, twenty-one, thirty, sixty, ninety, a year — each one named for the
+   reason it is a threshold at all */
+function habCelebrate(h, m){
+  const q = m.days === 21 ? HAB_QUOTES.m21 : m.days === 60 ? HAB_QUOTES.m60 : null;
+  toast(`${m.label} — ${m.days} days of ${h.name}.${q ? ` ${q[1]}` : ''}`, 6000);
+  sound('success');
+}
+
+/* ---------- the detail panel ---------- */
+function openHabitPanel(id){
+  const h = habDefaults(byId(S.habits, id)); if(!h) return;
+  const p = openPanel(habPanelHTML(h), 'plan-detail habit-detail');
+  bindHabitPanel(p, h);
+  return p;
+}
+function habRedraw(h){ const p = openPanel(habPanelHTML(h), 'plan-detail habit-detail'); bindHabitPanel(p, h); rerenderPlanBody(); }
+
+function habPanelHTML(h){
+  const br = habIsBreaking(h), st = habStreak(h), t = habTrend(h);
+  const c = h.color || (br ? 'var(--terra)' : 'var(--sage)');
+  const path = `habits.#${h.id}`;
+  const sec = (title, inner, open = false) => `<details class="pd-sec hb-psec"${open ? ' open' : ''}>
+    <summary><span class="k mono">${esc(title)}</span></summary><div class="hb-pbody">${inner}</div></details>`;
+  const log = lastDays(120).map(d => ({d, e: habEntry(h, d)})).filter(x => x.e);
+  return `<div class="pd hb-panel" style="--c:${esc(c)}">
+    <div class="hb-phead">
+      <span class="hb-pface">${esc(h.icon || (br ? '🔓' : '🌱'))}</span>
+      <div style="min-width:0;flex:1">
+        <input class="inp pd-title" id="hpName" value="${esc(h.name)}">
+        <div class="mono hb-psub">${br ? '🔓 breaking' : '🌱 building'} · ${esc(h.category)} ·
+          ${esc(DIMS.find(d => d.id === h.dimension)?.name || '')} · ${h.kind === 'recovery' ? 'recovery' : 'expenditure'}</div>
+      </div>
+      <div class="hb-pstreak">${br ? '🛡' : '🔥'} ${st.cur}</div>
+    </div>
+    <div class="row" style="gap:8px;flex-wrap:wrap;margin:10px 0">
+      <button class="btn sm primary" id="hpCheck">Check in</button>
+      <button class="btn sm ghost" id="hpEdit">Edit fields</button>
+      <button class="btn sm ghost" id="hpArchive">${h.archived ? 'Restore' : 'Archive'}</button>
+      <button class="btn sm ghost danger" id="hpDel">Delete</button>
+    </div>
+
+    ${sec('why', `
+      <div class="hb-ident big">${ed(`${path}.identity`, {ph:'I am someone who…'})}</div>
+      <div class="hb-coach">${esc(HAB_QUOTES.identity[1])} <cite>${esc(HAB_QUOTES.identity[0])}</cite></div>
+      <div class="field"><label>Why this matters</label>${ed(`${path}.why`, {multi:true, ph:'the reason underneath the reason'})}</div>
+      <div class="field"><label>What it looks like fully lived</label>${ed(`${path}.vision`, {multi:true, ph:'see the room, the hour, the light'})}</div>
+      <div class="field"><label>What is lost by not doing it</label>${ed(`${path}.inaction`, {multi:true, ph:'plainly'})}</div>
+      <div class="field"><label>Seeing yourself do it</label>${ed(`${path}.rehearsal`, {multi:true, ph:'You are on the mat. The room is quiet. Your breath slows.'})}
+        <div class="hb-coach sm">Your nervous system cannot tell the difference between a vividly imagined experience and a real one. <cite>Maltz</cite></div></div>`, true)}
+
+    ${sec('when, and what sets it off', `
+      <div class="grid c2" style="gap:10px">
+        <div><div class="k mono">how often</div><div class="hb-freq">${esc(habitFreqLabel(h))}</div></div>
+        <div><div class="k mono">time of day</div><div>${esc(h.timeOfDay || 'anytime')}${h.specificTime ? ` · ${esc(h.specificTime)}` : ''}</div></div>
+      </div>
+      <div class="field"><label>The cue</label>${ed(`${path}.cue`, {ph:'After I pour the coffee…'})}</div>
+      <div class="field"><label>The set-up</label>${ed(`${path}.environment`, {ph:'At the desk, phone in another room, timer set'})}</div>
+      ${!br ? `<div class="grid c2" style="gap:10px">
+        <div class="field"><label>Before</label>${ed(`${path}.preRitual`, {ph:'light the candle, close the door'})}</div>
+        <div class="field"><label>After</label>${ed(`${path}.postRitual`, {ph:'one sentence about what came'})}</div></div>
+        ${h.stackAfter && byId(S.habits, h.stackAfter) ? `<div class="hb-stack mono">→ ${esc(byId(S.habits, h.stackAfter).name)} → <b>${esc(h.name)}</b> →</div>` : ''}` : ''}`)}
+
+    ${sec('how it is going', `
+      <div class="hb-mini big">${lastDays(90).map(d => { const s = habStatus(h, d);
+        const cls = br ? (s === 'slipped' ? 'slip' : s === 'resisted' ? 'resist' : s === 'clean' ? 'on' : '')
+          : (s === 'completed' ? 'on' : s === 'partial' ? 'half' : habDue(h, d) ? '' : 'off');
+        return `<i class="${cls}" title="${esc(fmtDate(d, 'short'))}"></i>`; }).join('')}</div>
+      <div class="hb-facts mono"><span>now ${st.cur}</span><span>best ${st.best}</span>
+        <span>${habRate(h, 7) ?? '—'}% · 7d</span><span>${habRate(h, 30) ?? '—'}% · 30d</span><span>${habRate(h, 90) ?? '—'}% · 90d</span>
+        <span class="hb-htrend ${t.dir}">${t.dir === 'up' ? 'improving ↑' : t.dir === 'down' ? 'slipping ↓' : 'steady →'}</span></div>
+      <div class="hb-msrow">${h.milestones.map(m => `<span class="hb-ms${m.reached ? ' on' : ''}" title="${m.reached ? 'reached ' + esc(fmtDate((m.reachedAt||'').slice(0,10),'med')) : `${Math.max(0, m.days - st.cur)} days away`}">${m.days}</span>`).join('')}</div>
+      ${!br && h.progression.length ? `<div class="k mono" style="margin-top:10px">the plan</div>
+        <div class="hb-prog">${h.progression.map((x, i) => `<div class="hb-progrow">
+          <span class="mono">week ${x.week}</span>${ed(`${path}.progression.${i}.target`, {ph:'what it is by then'})}
+          <button class="del-x inline" data-hpprogdel="${i}">×</button></div>`).join('')}</div>` : ''}
+      ${!br ? `<button class="tbtn" id="hpProgAdd">+ a week to the plan</button>` : ''}`, true)}
+
+    ${br ? sec('instead of it', `
+      <div class="field"><label>What I do instead</label>${ed(`${path}.replacement`, {multi:true, ph:'pick up the book on the desk'})}</div>
+      <div class="hb-coach">${esc(HAB_QUOTES.replace[1])} <cite>${esc(HAB_QUOTES.replace[0])}</cite></div>
+      <div class="field"><label>I am no longer someone who…</label>${ed(`${path}.reframe`, {multi:true, ph:'…numbs with a feed. I am someone who sits with the quiet.'})}</div>
+      <div class="field"><label>What it costs me</label>${ed(`${path}.harm`, {multi:true, ph:'hours, attention, sleep, self-respect — plainly'})}</div>
+      <div class="field hb-protocol"><label>When the urge hits</label>${ed(`${path}.protocol`, {multi:true, ph:'1) Name it aloud. 2) Five breaths. 3) Phone in the drawer. 4) Open the book.'})}</div>`, true)
+      + sec('what sets it off', `
+      <div class="hb-trigs">${h.triggers.map((tr, i) => `<div class="hb-trig">
+        <div class="row" style="gap:8px;align-items:center">
+          <select class="sel sm" data-hptrigtype="${tr.id}">${HAB_TRIGGER_KINDS.map(k =>
+            `<option value="${k}" ${tr.type === k ? 'selected' : ''}>${k}</option>`).join('')}</select>
+          <span class="hb-tint" title="how strongly it pulls">${[1,2,3,4,5].map(n =>
+            `<button class="${tr.intensity >= n ? 'on' : ''}" data-hptrigint="${tr.id}:${n}"></button>`).join('')}</span>
+          <button class="del-x inline" data-hptrigdel="${tr.id}">×</button></div>
+        ${ed(`${path}.triggers.${i}.description`, {ph:'when I feel… / after… / whenever…'})}
+        <div class="hb-tstrat">${ed(`${path}.triggers.${i}.strategy`, {ph:'and what I do about it'})}</div>
+      </div>`).join('') || '<div class="pk-empty">Nothing mapped yet. Naming the trigger is most of the work.</div>'}</div>
+      <button class="tbtn" id="hpTrigAdd">+ trigger</button>`)
+      + sec('the urges that did not win', `
+      ${h.urgeLog.length ? `<div class="hb-urges">${h.urgeLog.slice(0, 30).map(u => `<div class="hb-urge ${esc(u.outcome)}">
+        <span class="mono">${esc(fmtDate(u.date, 'short'))}</span>
+        <span class="hb-uout">${u.outcome === 'slipped' ? '↯ slipped' : '🛡 resisted'}${u.intensity ? ` · ${u.intensity}/5` : ''}</span>
+        <span class="hb-unote">${esc(u.note || '')}</span></div>`).join('')}</div>`
+        : '<div class="pk-empty">Nothing logged. Every resisted urge belongs here — it is the evidence the new self-image is forming.</div>'}`)
+    : sec('the two sizes of it', `
+      <div class="field"><label>On the worst day</label>${ed(`${path}.min`, {ph:'sit on the mat for two minutes'})}
+        <div class="faint" style="font-size:.76rem">Small enough that missing it would be a decision, not an accident.</div></div>
+      <div class="field"><label>On a good one</label>${ed(`${path}.ideal`, {ph:'thirty minutes'})}</div>
+      <div class="grid c2" style="gap:10px">
+        <div class="field"><label>Best ever</label><div class="row" style="gap:6px">${ed(`${path}.personalBest.value`, {cls:'mono', ph:'—'})}
+          ${ed(`${path}.personalBest.unit`, {cls:'mono', ph:'minutes'})}</div></div>
+        <div class="field"><label>Target each time</label><div class="row" style="gap:6px;align-items:baseline">${ed(`${path}.durationTarget`, {cls:'mono', ph:'0'})}<span class="mono faint">min</span></div></div>
+      </div>`)}
+
+    ${sec('what keeps it going', `
+      <div class="field"><label>What follows it</label>${ed(`${path}.reward`, {ph:'fifteen minutes of reading'})}</div>
+      <div class="grid c2" style="gap:10px">
+        <div class="field"><label>Who knows</label><select class="sel" id="hpAcc">${['self','partner','public'].map(k =>
+          `<option value="${k}" ${h.accountability === k ? 'selected' : ''}>${k === 'self' ? 'just me' : k === 'partner' ? 'one other person' : 'out loud'}</option>`).join('')}</select></div>
+        <div class="field"><label>How hard it is</label><div class="feeling">${[1,2,3,4,5].map(n =>
+          `<button data-hpdiff="${n}" class="${h.difficulty === n ? 'on' : ''}">${n}</button>`).join('')}</div></div>
+      </div>`)}
+
+    ${sec('what it is for', `
+      <div class="field"><label>Values</label><div class="deps">${S.values.map(v =>
+        `<span class="chip click${(h.links.values || []).includes(v.id) ? ' on' : ''}" style="--c:${v.color}" data-hplk="values:${v.id}">${esc(v.name)}</span>`).join('')}</div></div>
+      ${!br ? `<div class="field"><label>Skills</label><div class="deps">${S.skills.map(v =>
+        `<span class="chip click${(h.links.skills || []).includes(v.id) ? ' on' : ''}" style="--c:var(--ment)" data-hplk="skills:${v.id}">${esc(v.name)}</span>`).join('')}</div></div>` : ''}
+      <div class="field"><label>Projects</label><div class="deps">${S.projects.map(v =>
+        `<span class="chip click${(h.links.projects || []).includes(v.id) ? ' on' : ''}" style="--c:var(--terra)" data-hplk="projects:${v.id}">${esc(v.name)}</span>`).join('')}</div></div>`)}
+
+    ${sec('every check-in', log.length ? `<div class="hb-log">${log.map(({d, e}) => {
+        const s = e.status || (e.level === 'min' ? 'partial' : 'completed');
+        const [ic, name] = HAB_SESSION_STATUS[s] || ['·', s];
+        return `<div class="hb-lrow ${esc(s)}"><span class="mono">${esc(fmtDate(d, 'short'))}</span>
+          <span class="hb-lstat">${ic} ${esc(name)}</span>
+          <span class="mono faint">${e.minutes ? e.minutes + 'm' : ''}${e.mood ? ` · mood ${e.mood}` : ''}${e.energy ? ` · energy ${e.energy}` : ''}</span>
+          ${e.note ? `<span class="hb-lnote">${esc(e.note)}</span>` : ''}</div>`; }).join('')}</div>`
+      : '<div class="pk-empty">Nothing logged yet.</div>')}
+  </div>`;
+}
+
+function bindHabitPanel(p, h){
+  const path = `habits.#${h.id}`;
+  p.querySelector('#hpName').oninput = debounce(function(){ h.name = this.value; saveNow(); rerenderPlanBody(); }, 350);
+  p.querySelector('#hpCheck').onclick = () => openHabitCheckIn(h.id);
+  p.querySelector('#hpEdit').onclick = () => openHabitModal(h.id);
+  p.querySelector('#hpArchive').onclick = () => { h.archived = !h.archived; saveNow(); sound('click');
+    toast(h.archived ? 'Archived. The history is kept.' : 'Back among the living.'); closePanel(); rerenderPlanBody(); };
+  p.querySelector('#hpDel').onclick = () => { const days = Object.values(S.habitLog).filter(l => l[h.id]).length;
+    closePanel();
+    requestDelete({label: `${h.name}${days ? ` and ${days} logged day${days === 1 ? '' : 's'}` : ''}`,
+      remove: () => { const logs = [];
+        Object.entries(S.habitLog).forEach(([d, l]) => { if(l[h.id]){ logs.push([d, l[h.id]]); delete l[h.id]; } });
+        const stacked = (S.habits || []).filter(x => x.stackAfter === h.id); stacked.forEach(x => x.stackAfter = null);
+        const back = spliceOut(S.habits, x => x.id === h.id);
+        return () => { back(); logs.forEach(([d, v]) => { S.habitLog[d] = S.habitLog[d] || {}; S.habitLog[d][h.id] = v; });
+          stacked.forEach(x => x.stackAfter = h.id); }; },
+      after: rerenderPlanBody}); };
+  p.querySelector('#hpAcc').onchange = function(){ h.accountability = this.value; saveNow(); };
+  p.querySelectorAll('[data-hpdiff]').forEach(b => b.onclick = () => { h.difficulty = +b.dataset.hpdiff;
+    b.parentElement.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); saveNow(); });
+  p.querySelectorAll('[data-hplk]').forEach(c => c.onclick = () => {
+    const [k, id] = c.dataset.hplk.split(':');
+    const arr = h.links[k] = h.links[k] || [];
+    const i = arr.indexOf(id); if(i < 0) arr.push(id); else arr.splice(i, 1);
+    c.classList.toggle('on', i < 0); saveNow(); });
+  const pa = p.querySelector('#hpProgAdd'); if(pa) pa.onclick = () => {
+    h.progression.push({week: (h.progression[h.progression.length - 1]?.week || 0) + 1, target:''}); saveNow(); habRedraw(h); };
+  p.querySelectorAll('[data-hpprogdel]').forEach(b => b.onclick = () => { h.progression.splice(+b.dataset.hpprogdel, 1); saveNow(); habRedraw(h); });
+  const ta = p.querySelector('#hpTrigAdd'); if(ta) ta.onclick = () => {
+    h.triggers.push({id:uid(), type:'emotional', description:'', intensity:3, strategy:''}); saveNow(); habRedraw(h); };
+  p.querySelectorAll('[data-hptrigdel]').forEach(b => b.onclick = () => { spliceOut(h.triggers, x => x.id === b.dataset.hptrigdel); saveNow(); habRedraw(h); });
+  p.querySelectorAll('[data-hptrigtype]').forEach(s => s.onchange = () => {
+    const t = h.triggers.find(x => x.id === s.dataset.hptrigtype); if(t){ t.type = s.value; saveNow(); } });
+  p.querySelectorAll('[data-hptrigint]').forEach(b => b.onclick = () => {
+    const [id, n] = b.dataset.hptrigint.split(':');
+    const t = h.triggers.find(x => x.id === id); if(!t) return;
+    t.intensity = +n; saveNow(); habRedraw(h); });
+}
+
+/* ---------- the room's own wiring ---------- */
+function bindHabRoom(root){
+  $$('[data-hbview]', root).forEach(b => b.onclick = () => habSetView(b.dataset.hbview));
+  const nb = $('#hbNew', root); if(nb) nb.onclick = () => openHabitModal();
+  $$('[data-hbf]', root).forEach(b => b.onclick = () => {
+    const [k, v] = b.dataset.hbf.split(':');
+    const f = habFilter();
+    if(k === 'clear'){ S._habFilter = {type:'all', cat:'', dim:'', value:''}; }
+    else if(k === 'type') f.type = v;
+    else f[k] = f[k] === v ? '' : v;
+    rerenderPlanBody(); });
+  $$('[data-hbopen]', root).forEach(b => b.onclick = ev => { ev.stopPropagation(); openHabitPanel(b.dataset.hbopen); });
+  $$('[data-hbcheck]', root).forEach(b => b.onclick = ev => { ev.stopPropagation(); openHabitCheckIn(b.dataset.hbcheck); });
+  $$('[data-hbcard]', root).forEach(c => c.addEventListener('click', ev => {
+    if(ev.target.closest('button')) return; openHabitPanel(c.dataset.hbcard); }));
+  $$('[data-hbrestore]', root).forEach(b => b.onclick = () => {
+    const h = byId(S.habits, b.dataset.hbrestore); if(!h) return;
+    h.archived = false; saveNow(); sound('click'); rerenderPlanBody(); });
+}
+/* ============================================================
+   HABITS — energy rituals, not willpower
+
+   Two kinds, and they are not the same thing wearing different words.
+
+   Building 🌱 is planting: a behaviour you are making automatic. Loehr and
+   Schwartz are the ground here — a ritual is a precise behaviour at a precise
+   time, fuelled by something you actually care about, and after thirty to
+   sixty days it stops costing anything to do. The point is not discipline.
+   Discipline is what you spend when the ritual has not formed yet.
+
+   Breaking 🔓 is outgrowing. Maltz: habits are garments worn by the
+   personality — you do not tear one off, you become someone it no longer fits.
+   So a breaking habit is not tracked as an absence. It is tracked as a
+   replacement, a map of what sets it off, and a record of the times the urge
+   came and did not win. "Trying not to do something rapidly depletes our
+   limited stores of will"; the field that matters most on a breaking habit is
+   what you do instead.
+
+   Everything here is written into S.habits and S.habitLog, the same two the
+   rings on Today already read, so a habit kept in one place is kept in both.
+   ============================================================ */
+
+const HAB_CATS = ['health','mind','craft','relationships','finance','spiritual','creative','career'];
+const HAB_MILESTONES = [
+  {days:7,   label:'First week'},
+  {days:21,  label:'Maltz threshold'},
+  {days:30,  label:'One month'},
+  {days:60,  label:'Loehr acquisition'},
+  {days:90,  label:'Quarter'},
+  {days:365, label:'One year'},
+];
+const HAB_TRIGGER_KINDS = ['emotional','situational','social','temporal','environmental'];
+const HAB_SESSION_STATUS = {
+  completed:['✓','Completed'], partial:['◐','Partial'], skipped:['·','Skipped'],
+  clean:['○','Clean day'], resisted:['🛡','Resisted'], slipped:['↯','Slipped'],
+};
+/* the quotes are not decoration: each one is the reason the field beside it
+   exists, and seeing it at the moment of writing is the whole point */
+const HAB_QUOTES = {
+  identity:   ['Maltz', 'The self-image is the key to human personality and behavior. Change the self-image and you change the behavior.'],
+  energy:     ['Loehr & Schwartz', 'We build emotional, mental and spiritual capacity in precisely the same way that we build physical capacity.'],
+  replace:    ['Knight Dunlap, in Psycho-Cybernetics', 'The best way to break a habit is to form a clear mental image of the desired end result, and to practice without effort toward reaching that goal.'],
+  ritual:     ['Loehr & Schwartz', 'Positive energy rituals are the key to full engagement and sustained high performance.'],
+  oscillate:  ['Loehr & Schwartz', 'We must balance energy expenditure with intermittent renewal in all dimensions.'],
+  slip:       ['Maltz, adapted', 'Negative feedback is not failure — it is information. The servo-mechanism corrects course.'],
+  m21:        ['Maltz', 'It usually requires a minimum of about 21 days to effect any perceptible change in a mental image.'],
+  m60:        ['Loehr & Schwartz', 'The thirty-to-sixty-day acquisition period requires precision and specificity.'],
+  plateau:    ['Leonard', 'You must love the plateau.'],
+};
+
+const habIsBreaking = h => !!h.negative;
+const habType = h => habIsBreaking(h) ? 'breaking' : 'building';
+
+/* Every field the two kinds share, plus the ones only one of them uses. Filled
+   in on read rather than on write, so a habit written by an older version of
+   the app is simply complete the next time it is looked at. */
+function habDefaults(h){
+  if(!h) return h;
+  h.category   = HAB_CATS.includes(h.category) ? h.category : 'health';
+  h.identity   = h.identity   || '';   /* "I am someone who…" */
+  h.why        = h.why        || '';
+  h.vision     = h.vision     || '';
+  h.inaction   = h.inaction   || '';   /* what is lost by not doing it */
+  h.rehearsal  = h.rehearsal  || '';   /* seeing yourself do it, in detail */
+  h.cue        = h.cue        || '';
+  h.environment= h.environment|| '';
+  h.specificTime = h.specificTime || '';
+  h.durationTarget = +h.durationTarget || 0;
+  h.reward     = h.reward     || '';
+  h.accountability = ['self','partner','public'].includes(h.accountability) ? h.accountability : 'self';
+  h.difficulty = clamp(+h.difficulty || 3, 1, 5);
+  h.kind       = h.kind === 'recovery' ? 'recovery' : 'expenditure';
+  h.milestones = Array.isArray(h.milestones) && h.milestones.length
+    ? h.milestones : HAB_MILESTONES.map(m => ({...m, reached:false, reachedAt:null}));
+  h.milestones.forEach((m, i) => { const d = HAB_MILESTONES[i];
+    if(d){ m.days = d.days; m.label = d.label; } m.reached = !!m.reached; m.reachedAt = m.reachedAt || null; });
+
+  if(habIsBreaking(h)){
+    h.replacement   = h.replacement   || h.instead || '';
+    h.replacementHabitId = h.replacementHabitId || null;
+    h.harm          = h.harm          || h.cost || '';
+    h.reframe       = h.reframe       || '';   /* "I am no longer someone who…" */
+    h.protocol      = h.protocol      || '';   /* what to do the moment it hits */
+    h.triggers      = Array.isArray(h.triggers) ? h.triggers : [];
+    /* the older single trigger line becomes the first mapped trigger */
+    if(!h.triggers.length && h.trigger) h.triggers.push({id:uid(), type:'situational',
+      description:h.trigger, intensity:3, strategy:h.instead || ''});
+    h.triggers.forEach(t => { t.id = t.id || uid(); t.type = HAB_TRIGGER_KINDS.includes(t.type) ? t.type : 'situational';
+      t.description = t.description || ''; t.intensity = clamp(+t.intensity || 3, 1, 5); t.strategy = t.strategy || ''; });
+    h.urgeLog = Array.isArray(h.urgeLog) ? h.urgeLog : [];
+  } else {
+    h.min   = h.min   || '';   /* the two-minute version */
+    h.ideal = h.ideal || '';
+    h.preRitual  = h.preRitual  || '';
+    h.postRitual = h.postRitual || '';
+    h.progression = Array.isArray(h.progression) ? h.progression : [];
+    h.progression.forEach(p => { p.week = +p.week || 1; p.target = p.target || ''; });
+    h.personalBest = h.personalBest && typeof h.personalBest === 'object'
+      ? h.personalBest : {value:null, unit:'minutes', date:null};
+  }
+  h.links = h.links && typeof h.links === 'object' ? h.links : {};
+  ['values','skills','projects'].forEach(k => { h.links[k] = Array.isArray(h.links[k]) ? h.links[k] : []; });
+  return h;
+}
+function migrateHabits(){
+  (S.habits || []).forEach(habDefaults);
+  S.habitLog = S.habitLog && typeof S.habitLog === 'object' ? S.habitLog : {};
+}
+
+/* ---------- the record ----------
+   One log entry per habit per day, in the same S.habitLog the rings read, so
+   ticking a ring and filling in a check-in write to the same place and can
+   never disagree. The older shape was {level:'full'|'min'}; that still reads. */
+function habEntry(h, d){ return S.habitLog?.[d]?.[h.id] || null; }
+function habStatus(h, d){
+  const e = habEntry(h, d);
+  if(!e) return null;
+  if(e.status) return e.status;
+  return e.level === 'min' ? 'partial' : 'completed';
+}
+function habKept(h, d){
+  const st = habStatus(h, d);
+  if(habIsBreaking(h)) return st === 'clean' || st === 'resisted';
+  return st === 'completed' || st === 'partial';
+}
+function habSetEntry(h, d, patch){
+  S.habitLog[d] = S.habitLog[d] || {};
+  const cur = S.habitLog[d][h.id] || {};
+  S.habitLog[d][h.id] = Object.assign({}, cur, patch, {at: patch.at || cur.at || new Date().toISOString()});
+  /* the rings read `level`, so keep it true to the status */
+  const st = S.habitLog[d][h.id].status;
+  if(st) S.habitLog[d][h.id].level = st === 'partial' ? 'min' : 'full';
+  habCheckMilestones(h);
+  saveNow();
+}
+function habClearEntry(h, d){ if(S.habitLog?.[d]) delete S.habitLog[d][h.id]; saveNow(); }
+
+/* ---------- is it due ----------
+   A breaking habit is due every day it exists: not slipping is a thing you do
+   daily whether or not anyone scheduled it. */
+function habDue(h, d){ return habIsBreaking(h) ? true : habitDue(h, d); }
+
+/* ---------- streaks ----------
+   For a building habit the streak counts days kept. For a breaking one it
+   counts days since the last slip, which is the number that means something —
+   a day nobody recorded is not a slip, only an unrecorded day. */
+function habStreak(h, upto = today()){
+  let cur = 0, best = 0, run = 0, total = 0;
+  const start = h.createdAt ? h.createdAt.slice(0,10) : addDays(upto, -400);
+  const days = [];
+  for(let d = upto; d >= start && days.length < 400; d = addDays(d, -1)) days.push(d);
+  const ordered = days.slice().reverse();
+  ordered.forEach(d => {
+    if(habIsBreaking(h)){
+      if(habStatus(h, d) === 'slipped'){ best = Math.max(best, run); run = 0; }
+      else { run++; if(habKept(h, d)) total++; }
+    } else {
+      if(!habDue(h, d)) return;                 /* a day off does not break a run */
+      if(habKept(h, d)){ run++; total++; }
+      else { best = Math.max(best, run); run = 0; }
+    }
+  });
+  best = Math.max(best, run); cur = run;
+  return {cur, best, total};
+}
+function habRate(h, days = 30, upto = today()){
+  let due = 0, kept = 0;
+  for(let i = 0; i < days; i++){ const d = addDays(upto, -i);
+    if(!habDue(h, d)) continue; due++; if(habKept(h, d)) kept++; }
+  return due ? Math.round(kept / due * 100) : null;
+}
+/* improving, stable or slipping: the last fortnight against the one before */
+function habTrend(h){
+  const a = habRate(h, 14), b = habRate(h, 14, addDays(today(), -14));
+  if(a == null || b == null) return {dir:'stable', delta:0};
+  const delta = a - b;
+  return {dir: delta > 8 ? 'up' : delta < -8 ? 'down' : 'stable', delta};
+}
+/* completion carries most of it, consistency and direction the rest */
+function habHealth(h){
+  const r = habRate(h, 30); if(r == null) return null;
+  const st = habStreak(h), t = habTrend(h);
+  const consistency = st.best ? Math.min(100, st.cur / st.best * 100) : 0;
+  const dir = t.dir === 'up' ? 100 : t.dir === 'stable' ? 60 : 20;
+  return Math.round(r * .6 + consistency * .2 + dir * .2);
+}
+function habCheckMilestones(h){
+  const st = habStreak(h);
+  h.milestones.forEach(m => { if(!m.reached && st.cur >= m.days){ m.reached = true; m.reachedAt = new Date().toISOString(); } });
+}
+function habMilestonesReached(){
+  const out = [];
+  (S.habits || []).forEach(h => (h.milestones || []).forEach(m => {
+    if(m.reached && m.reachedAt) out.push({habit:h, m});
+  }));
+  return out.sort((a, b) => a.m.reachedAt < b.m.reachedAt ? 1 : -1);
+}
+
+/* ---------- the four dimensions, spent and renewed ----------
+   Loehr's whole argument in one number per dimension: a dimension that is all
+   expenditure and no recovery is being overtrained, and the system should say
+   so rather than congratulate you on the streak. */
+function habEnergyBalance(day = today()){
+  const out = {};
+  DIMS.forEach(x => out[x.id] = {exp:0, rec:0, expDone:0, recDone:0, name:x.name, c:x.c});
+  habList().forEach(h => {
+    const slot = out[h.dimension]; if(!slot) return;
+    const k = h.kind === 'recovery' ? 'rec' : 'exp';
+    if(!habDue(h, day)) return;
+    slot[k]++; if(habKept(h, day)) slot[k + 'Done']++;
+  });
+  return out;
+}
+function habOvertrained(day = today()){
+  return Object.entries(habEnergyBalance(day))
+    .filter(([, v]) => v.exp >= 2 && v.rec === 0)
+    .map(([id, v]) => v.name);
+}
+
+/* ---------- reading the list ---------- */
+function habList({archived = false} = {}){
+  return (S.habits || []).filter(h => !!h.archived === archived).map(habDefaults)
+    .sort((a, b) => (a.order || 0) - (b.order || 0));
+}
+function habBuilding(){ return habList().filter(h => !habIsBreaking(h)); }
+function habBreaking(){ return habList().filter(habIsBreaking); }
+function habDueOn(d = today()){ return habList().filter(h => habDue(h, d)); }
+/* ============================================================
+   HABITS — the three ways of looking at them
+
+   Dashboard: every habit as a card, filterable, with the day's balance
+     across the four dimensions at the top.
+   Today: only what is due, grouped by when in the day it belongs, one
+     column, nothing else on screen.
+   Analytics: ninety days of heat, a health score per habit, the energy
+     quadrant, the milestones reached and the longest runs.
+   ============================================================ */
+
+const HAB_VIEWS = [['dashboard','▦','Dashboard'], ['today','◉','Today'], ['analytics','◫','Analytics']];
+function habView(){ const v = S._habView || planState().prefs.habitView || 'dashboard';
+  return HAB_VIEWS.some(x => x[0] === v) ? v : 'dashboard'; }
+function habSetView(v){ S._habView = v; planState().prefs.habitView = v; saveNow(); rerenderPlanBody(); }
+
+function habFilter(){ return S._habFilter = S._habFilter || {type:'all', cat:'', dim:'', value:''}; }
+function habFiltered(){
+  const f = habFilter();
+  return habList().filter(h =>
+    (f.type === 'all' || habType(h) === f.type) &&
+    (!f.cat || h.category === f.cat) &&
+    (!f.dim || h.dimension === f.dim) &&
+    (!f.value || (h.links.values || []).includes(f.value)));
+}
+
+/* ---------- the shell ---------- */
+function habRoomHTML(){
+  const v = habView();
+  return `<div class="hb-room">
+    <div class="row between hb-head">
+      <div class="hb-views">${HAB_VIEWS.map(([k, ic, n]) =>
+        `<button class="${v === k ? 'on' : ''}" data-hbview="${k}">${ic} <span>${n}</span></button>`).join('')}</div>
+      <button class="btn sm primary" id="hbNew">＋ habit</button>
+    </div>
+    ${v === 'today' ? habTodayHTML() : v === 'analytics' ? habAnalyticsHTML() : habDashboardHTML()}
+  </div>`;
+}
+
+/* ---------- the strip that opens the dashboard ---------- */
+function habSummaryHTML(){
+  const T = today(), all = habList();
+  const due = habDueOn(T), kept = due.filter(h => habKept(h, T));
+  const b = all.filter(h => !habIsBreaking(h)).length, k = all.length - b;
+  const best = all.map(h => ({h, s: habStreak(h)})).sort((a, c) => c.s.cur - a.s.cur)[0];
+  const bal = habEnergyBalance(T), over = habOvertrained(T);
+  const pct = due.length ? kept.length / due.length : 0;
+  const R = 15, C = 2 * Math.PI * R;
+  return `<div class="hb-strip card">
+    <div class="hb-s1"><div class="k">active</div><div class="num">${all.length}</div>
+      <div class="mono faint">${b} building · ${k} breaking</div></div>
+    <div class="hb-s1"><div class="k">today</div>
+      <div class="row" style="gap:8px;align-items:center">
+        <svg class="hb-ring" viewBox="0 0 40 40" aria-hidden="true">
+          <circle cx="20" cy="20" r="${R}" class="hb-rt"/>
+          <circle cx="20" cy="20" r="${R}" class="hb-ra" style="stroke-dasharray:${C.toFixed(1)};stroke-dashoffset:${(C * (1 - pct)).toFixed(1)}"/></svg>
+        <div class="num">${kept.length} / ${due.length}</div></div></div>
+    <div class="hb-s1"><div class="k">longest run</div>
+      <div class="num">${best?.s.cur ? `🔥 ${best.s.cur}` : '—'}</div>
+      <div class="mono faint">${best?.s.cur ? esc(best.h.name) : 'nothing running yet'}</div></div>
+    <div class="hb-s1 hb-bal"><div class="k">energy today</div>
+      <div class="hb-dots">${DIMS.map(x => { const v = bal[x.id];
+        const state = !v.exp && !v.rec ? 'none' : (v.exp && !v.rec) ? 'over' : 'ok';
+        return `<span class="hb-dot ${state}" style="--c:${x.c}" title="${esc(x.name)} — ${v.exp} spending, ${v.rec} renewing">${x.name[0]}</span>`; }).join('')}</div>
+      ${over.length ? `<div class="hb-warn">${esc(over.join(' and '))} ${over.length === 1 ? 'is' : 'are'} all expenditure today. Where is the recovery?</div>` : ''}</div>
+  </div>`;
+}
+
+/* ---------- dashboard ---------- */
+function habDashboardHTML(){
+  const f = habFilter(), hs = habFiltered();
+  const cats = [...new Set(habList().map(h => h.category))];
+  return `${habSummaryHTML()}
+    <div class="hb-filters">
+      ${[['all','Everything'],['building','🌱 Building'],['breaking','🔓 Breaking']].map(([k, n]) =>
+        `<button class="chip click${f.type === k ? ' on' : ''}" data-hbf="type:${k}">${n}</button>`).join('')}
+      <span class="hb-fsep"></span>
+      ${cats.map(c => `<button class="chip click${f.cat === c ? ' on' : ''}" data-hbf="cat:${c}">${esc(c)}</button>`).join('')}
+      <span class="hb-fsep"></span>
+      ${DIMS.map(d => `<button class="chip click${f.dim === d.id ? ' on' : ''}" style="--c:${d.c}" data-hbf="dim:${d.id}">${esc(d.name)}</button>`).join('')}
+      ${(f.type !== 'all' || f.cat || f.dim || f.value) ? '<button class="tbtn" data-hbf="clear:">clear</button>' : ''}
+    </div>
+    ${hs.length ? `<div class="hb-grid">${hs.map(habCardHTML).join('')}</div>`
+      : `<div class="empty">Nothing here yet. ${habList().length ? 'Nothing matches those filters.' : 'A habit is a ritual, not a rule — start with one you could keep on your worst day.'}</div>`}
+    ${habList({archived:true}).length ? `<details class="hb-arch"><summary><span class="sc">Archived</span>
+      <span class="mono faint">${habList({archived:true}).length}</span></summary>
+      <div class="hb-archlist">${habList({archived:true}).map(h => `<div class="row between hb-archrow">
+        <span>${esc(h.icon || '◍')} ${esc(h.name)}</span>
+        <button class="tbtn" data-hbrestore="${h.id}">restore</button></div>`).join('')}</div></details>` : ''}`;
+}
+
+function habCardHTML(h){
+  const T = today(), br = habIsBreaking(h), st = habStreak(h), r = habRate(h, 30);
+  const kept = habKept(h, T), due = habDue(h, T), t = habTrend(h);
+  const c = h.color || (br ? 'var(--terra)' : 'var(--sage)');
+  const state = !due ? 'off' : kept ? 'kept' : 'pending';
+  return `<div class="hb-card ${state}${br ? ' breaking' : ''}" data-hbcard="${h.id}" style="--c:${esc(c)}">
+    <div class="hb-ctop">
+      <span class="hb-face">${esc(h.icon || (br ? '🔓' : '🌱'))}</span>
+      <button class="hb-name" data-hbopen="${h.id}">${esc(h.name)}</button>
+      <span class="hb-badge">${br ? '🔓' : '🌱'}</span>
+      ${t.dir === 'down' ? '<span class="hb-decline" title="kept less often than a fortnight ago"></span>' : ''}
+    </div>
+    ${h.identity ? `<div class="hb-ident">${esc(h.identity)}</div>` : ''}
+    <div class="hb-streak">${br ? `🛡 ${st.cur}` : `🔥 ${st.cur}`}
+      <span class="hb-sunit">${br ? 'days clean' : st.cur === 1 ? 'day' : 'days'}</span></div>
+    <div class="hb-mini">${lastDays(30).map(d => {
+      const s = habStatus(h, d);
+      const cls = br ? (s === 'slipped' ? 'slip' : s === 'resisted' ? 'resist' : s === 'clean' ? 'on' : '')
+        : (s === 'completed' ? 'on' : s === 'partial' ? 'half' : habDue(h, d) ? '' : 'off');
+      return `<i class="${cls}" title="${esc(fmtDate(d, 'short'))}${s ? ' — ' + HAB_SESSION_STATUS[s][1] : ''}"></i>`; }).join('')}</div>
+    <div class="hb-meta mono">
+      <span>${!due ? 'not due today' : kept ? '✅ done today' : 'due today'}</span>
+      <span class="hb-dim">${esc(DIMS.find(d => d.id === h.dimension)?.name || '')} · ${h.kind === 'recovery' ? 'recovery' : 'expenditure'}</span>
+    </div>
+    ${(h.links.values || []).length ? `<div class="hb-vals">${(h.links.values || []).map(id =>
+      byId(S.values, id)).filter(Boolean).map(v => `<span class="hb-val" style="--c:${v.color}">${esc(v.name)}</span>`).join('')}</div>` : ''}
+    ${r != null ? `<div class="hb-rate mono">${r}% over thirty days${t.dir !== 'stable' ? ` · ${t.dir === 'up' ? 'improving ↑' : 'slipping ↓'}` : ''}</div>` : ''}
+    ${due && !kept ? `<button class="btn sm hb-checkin" data-hbcheck="${h.id}">Check in</button>` : ''}
+  </div>`;
+}
+
+/* ---------- today ---------- */
+function habTodayHTML(){
+  const T = today(), due = habDueOn(T);
+  const kept = due.filter(h => habKept(h, T)), open = due.filter(h => !habKept(h, T));
+  if(!due.length) return `<div class="hb-focus"><div class="empty hb-quiet">Nothing due today. Recovery is part of the oscillation.</div></div>`;
+  const groups = [...TOD.filter(t => open.some(h => (h.timeOfDay || 'anytime') === t)), ]
+    .map(t => [t, open.filter(h => (h.timeOfDay || 'anytime') === t)]);
+  const loose = open.filter(h => !TOD.includes(h.timeOfDay || 'anytime'));
+  if(loose.length) groups.push(['anytime', loose]);
+  return `<div class="hb-focus">
+    ${open.length ? groups.map(([t, hs]) => `<div class="hb-tgroup">
+      <div class="hb-tlabel mono">${esc(t)}</div>
+      ${hs.map(habTodayRowHTML).join('')}</div>`).join('')
+      : `<div class="empty hb-quiet">Every ritual honoured. The day's structure holds.</div>`}
+    ${kept.length ? `<div class="hb-tgroup done"><div class="hb-tlabel mono">kept</div>
+      ${kept.map(habTodayRowHTML).join('')}</div>` : ''}
+    <div class="hb-quote">“${esc(HAB_QUOTES.ritual[1])}” <cite>${esc(HAB_QUOTES.ritual[0])}</cite></div>
+  </div>`;
+}
+function habTodayRowHTML(h){
+  const T = today(), br = habIsBreaking(h), kept = habKept(h, T), st = habStreak(h);
+  const c = h.color || (br ? 'var(--terra)' : 'var(--sage)');
+  return `<div class="hb-trow${kept ? ' kept' : ''}" style="--c:${esc(c)}">
+    <button class="pt-box" data-hbcheck="${h.id}" role="checkbox" aria-checked="${kept}"
+      style="--pc:${esc(c)}" title="${kept ? 'change the check-in' : 'check in'}">
+      <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.2" class="pt-ring"/>
+        <path d="M5.6 10.3 L8.7 13.3 L14.4 6.9" class="pt-tick"/></svg></button>
+    <div class="hb-tmid">
+      <button class="hb-tname" data-hbopen="${h.id}">${esc(h.icon || '')} ${esc(h.name)}</button>
+      ${h.identity ? `<div class="hb-tident">${esc(h.identity)}</div>` : ''}
+      ${h.cue ? `<div class="hb-tcue mono">after: ${esc(h.cue)}</div>` : ''}
+    </div>
+    <div class="hb-tright">
+      <span class="mono hb-tstreak">${br ? '🛡' : '🔥'} ${st.cur}</span>
+      ${h.durationTarget ? `<span class="mono hb-tdur">${h.durationTarget} min</span>` : ''}
+    </div></div>`;
+}
+
+/* ---------- analytics ---------- */
+function habAnalyticsHTML(){
+  const hs = habList();
+  if(!hs.length) return '<div class="empty">Nothing to read yet.</div>';
+  const bal = habEnergyBalance();
+  const reached = habMilestonesReached();
+  const runs = hs.map(h => ({h, s:habStreak(h)}));
+  return `<div class="hb-an">
+    <div class="hb-quote top">“${esc(HAB_QUOTES.plateau[1])}” <cite>${esc(HAB_QUOTES.plateau[0])}</cite></div>
+
+    <section class="hb-asec"><div class="row between"><span class="sc" style="margin:0">Ninety days</span>
+      <span class="mono faint">how much of each day's ritual was kept</span></div>
+      ${heatGrid(lastDays(91), 13, d => {
+        const due = hs.filter(h => habDue(h, d)); if(!due.length) return '';
+        const f = due.filter(h => habKept(h, d)).length / due.length;
+        return f >= 1 ? 'l3' : f >= .6 ? 'l2' : f > 0 ? 'l1' : '';
+      }, 'heat hb-heat')}
+      <div class="ph-legend mono"><span>none</span><i class="l0"></i><i class="l1"></i><i class="l2"></i><i class="l3"></i><span>all of them</span></div>
+    </section>
+
+    <section class="hb-asec"><span class="sc">Each one, and how it is holding</span>
+      <div class="hb-health">${hs.map(h => { const sc = habHealth(h), t = habTrend(h), st = habStreak(h);
+        return `<div class="hb-hrow" style="--c:${esc(h.color || (habIsBreaking(h) ? 'var(--terra)' : 'var(--sage)'))}">
+          <span class="hb-hname">${esc(h.icon || '◍')} ${esc(h.name)}
+            <span class="hb-badge sm">${habIsBreaking(h) ? '🔓' : '🌱'}</span></span>
+          <span class="hb-hscore mono" title="completion, consistency and direction">${sc == null ? '—' : sc}</span>
+          <span class="hb-mini sm">${lastDays(30).map(d => { const s = habStatus(h, d);
+            const cls = s === 'slipped' ? 'slip' : (s && habKept(h, d)) ? 'on' : habDue(h, d) ? '' : 'off';
+            return `<i class="${cls}"></i>`; }).join('')}</span>
+          <span class="mono hb-htrend ${t.dir}">${t.dir === 'up' ? '↑ improving' : t.dir === 'down' ? '↓ slipping' : '→ steady'}</span>
+          <span class="mono faint">${st.cur} / ${st.best}</span></div>`; }).join('')}</div>
+    </section>
+
+    <section class="hb-asec"><span class="sc">The four dimensions, spent and renewed</span>
+      <div class="hb-quad">${DIMS.map(x => { const v = bal[x.id];
+        const over = v.exp >= 2 && v.rec === 0;
+        const tot = Math.max(1, v.exp + v.rec);
+        return `<div class="hb-q${over ? ' over' : ''}" style="--c:${x.c}">
+          <div class="hb-qname">${esc(x.name)}</div>
+          <div class="hb-qbars">
+            <div class="hb-qb"><span class="k">spending</span><div class="bar"><i style="width:${v.exp / tot * 100}%"></i></div><span class="mono">${v.exp}</span></div>
+            <div class="hb-qb rec"><span class="k">renewing</span><div class="bar"><i style="width:${v.rec / tot * 100}%"></i></div><span class="mono">${v.rec}</span></div>
+          </div>
+          ${over ? '<div class="hb-warn">all spending, no renewal</div>' : ''}</div>`; }).join('')}</div>
+      <div class="hb-quote">“${esc(HAB_QUOTES.oscillate[1])}” <cite>${esc(HAB_QUOTES.oscillate[0])}</cite></div>
+    </section>
+
+    <section class="hb-asec"><span class="sc">Milestones reached</span>
+      ${reached.length ? `<div class="hb-mtimeline">${reached.slice(0, 24).map(({habit, m}) => `<div class="hb-mrow">
+        <span class="mono hb-mdate">${esc(fmtDate((m.reachedAt || '').slice(0,10), 'med'))}</span>
+        <span class="hb-mwhat"><b>${esc(habit.name)}</b> — ${esc(m.label)}<span class="mono faint"> · ${m.days} days</span></span></div>`).join('')}</div>`
+        : '<div class="pk-empty">None yet. The first is seven days away from the day you start.</div>'}
+    </section>
+
+    <section class="hb-asec"><span class="sc">The longest runs</span>
+      <div class="grid c2" style="gap:18px;align-items:start">
+        <div><div class="k mono">all time</div>${runs.slice().sort((a,b)=>b.s.best-a.s.best).slice(0,5)
+          .map(({h,s}) => `<div class="row between hb-runrow"><span>${esc(h.icon||'◍')} ${esc(h.name)}</span><span class="mono">${s.best}</span></div>`).join('') || '<div class="pk-empty">nothing yet</div>'}</div>
+        <div><div class="k mono">running now</div>${runs.slice().sort((a,b)=>b.s.cur-a.s.cur).filter(x=>x.s.cur).slice(0,5)
+          .map(({h,s}) => `<div class="row between hb-runrow"><span>${esc(h.icon||'◍')} ${esc(h.name)}</span><span class="mono">${s.cur}</span></div>`).join('') || '<div class="pk-empty">nothing running</div>'}</div>
+      </div>
+    </section>
+  </div>`;
+}
 /* ============================================================
    13. SETTINGS
    ============================================================ */
@@ -15591,7 +16543,7 @@ function bindPlanning(root, sel, tasks){
   });
 
   if(typeof bindPlanViews === 'function') bindPlanViews(root, sel, tasks);
-  if(typeof bindPlanHabits === 'function') bindPlanHabits(root);
+  if(typeof bindHabRoom === 'function') bindHabRoom(root);
   if(typeof bindPlanBatch === 'function') bindPlanBatch(root);
   if(typeof bindPlanReminderBanner === 'function') bindPlanReminderBanner(root);
 }
@@ -17141,10 +18093,10 @@ routes.planning = function(root, params){
     root.innerHTML = `<div class="page plan-page">
       <div class="page-head"><h1>Planning</h1></div>
       ${planRoomsHTML()}
-      <div class="pl-habits-room${room === 'stats' ? ' pl-stats-room' : ''}">${room === 'habits' ? planHabitsHTML() : planStatsHTML()}</div>
+      <div class="pl-habits-room${room === 'stats' ? ' pl-stats-room' : ''}">${room === 'habits' ? habRoomHTML() : planStatsHTML()}</div>
     </div>`;
     bindPlanRooms(root);
-    if(room === 'habits' && typeof bindPlanHabits === 'function') bindPlanHabits(root);
+    if(room === 'habits') bindHabRoom(root);
     return;
   }
 
@@ -17536,15 +18488,11 @@ const FocusTimer = (() => {
 
 function fmtClock(secs){ return `${pad(Math.floor(secs / 60))}:${pad(secs % 60)}`; }
 
-function openFocusTimer(taskId){
-  if(taskId) FocusTimer.setTask(taskId);
-  const p = openPanel(`<div class="ft" id="ftPanel"></div>`, 'plan-detail focus-panel');
-  const draw = () => { const box = p.querySelector('#ftPanel'); if(!box || !p.isConnected){ off(); return; }
-    box.innerHTML = focusTimerHTML(); bindFocusTimer(box); };
-  const off = FocusTimer.subscribe(draw);
-  draw();
-  return p;
-}
+/* The side-panel timer is gone. It was the lesser of two timers — it could
+   start and stop, and could not take a note of what the sitting was for or
+   what the break was spent on, which is most of why the panel on Today is
+   worth having. Pressing a task's timer now puts the task on today and takes
+   you to that one. */
 function focusTimerHTML(){
   const s = FocusTimer.state(), c = planState().timer;
   const total = (s.phase === 'focus' ? c.focusDuration : s.phase === 'long' ? c.longBreak : c.shortBreak) * 60;
@@ -18425,6 +19373,17 @@ function bindTaskRows(root, after){
   bindTaskReorder(root, redraw);
 
   $$('[data-taskrow]', root).forEach(row => {
+    /* The name opened the task and the rest of the row did nothing, so a
+       click a few pixels wide of it fell through — on the Planning row the
+       whole row has always opened it, and there is no reason Today should
+       behave differently. The controls are excluded, and so is the subtask
+       block, which has its own rows to click. */
+    row.addEventListener('click', ev => {
+      if(ev.target.closest('button, a, input, select, .ed, .sub-wrap, [data-topen]')) return;
+      const r = findTaskRef(row.dataset.taskrow); if(!r) return;
+      if(r.kind === 'own' && typeof openPlanTask === 'function') openPlanTask(r.id);
+      else if(r.go) navigate(r.go);
+    });
     row.addEventListener('dragstart', ev => { ev.dataTransfer.setData('text/plain', row.dataset.taskrow); ev.dataTransfer.effectAllowed = 'move'; row.classList.add('dragging'); window._taskDrag = row.dataset.taskrow; });
     row.addEventListener('dragend', () => { row.classList.remove('dragging'); window._taskDrag = null;
       $$('.task-row.drop-above, .task-row.drop-below', root).forEach(x => x.classList.remove('drop-above','drop-below')); });
@@ -23927,6 +24886,60 @@ function houseIsEmpty(){
   return !(S.visions||[]).length && !(S.skills||[]).length && !(S.projects||[]).length
       && !(S.values||[]).length && !(S.entries||[]).length && !(S.stages||[]).length;
 }
+/* Two to build and two to outgrow. The breaking pair carry the fields that
+   make the difference between a rule and a replacement: what you do instead,
+   what sets it off, and what to do the moment it hits. */
+STARTER.habits = [
+  {name:'Morning writing', icon:'✍', category:'creative', dimension:'mental', kind:'expenditure',
+   timeOfDay:'morning', specificTime:'06:30', durationTarget:30,
+   identity:'I am someone who writes before the world wakes up.',
+   why:'Writing is how I digest a life. Without it, things pass through me undigested.',
+   vision:'First light through the window, a draft taking shape that will become something I am proud of.',
+   inaction:'Ideas stay formless. I stay a consumer rather than a maker.',
+   rehearsal:'You sit down. The cursor blinks. You type one word, then another. Twenty minutes later there are five hundred.',
+   cue:'After the coffee is poured', environment:'Desk, candle lit, phone in another room',
+   min:'Open the document and write one sentence', ideal:'Thirty minutes without stopping',
+   preRitual:'Pour the coffee, light the candle, close the door',
+   postRitual:'One line about what came out',
+   reward:'The first walk of the day', difficulty:3,
+   progression:[{week:1,target:'10 minutes'},{week:2,target:'15 minutes'},{week:4,target:'20 minutes'},{week:8,target:'30 minutes'}],
+   freq:{type:'daily',days:[],count:1}},
+  {name:'Japanese study', icon:'あ', category:'mind', dimension:'mental', kind:'expenditure',
+   timeOfDay:'afternoon', specificTime:'14:00', durationTarget:25,
+   identity:'I am someone who is becoming fluent in Japanese.',
+   why:'Japanese is the bridge to the life I am building.',
+   vision:'Reading a newspaper on a Tokyo train without effort.',
+   inaction:'The move stays a daydream instead of a plan.',
+   cue:'After lunch', environment:'Anki open, timer set for one sitting',
+   min:'Five cards', ideal:'Twenty-five minutes of review and new material',
+   reward:'A proper coffee', difficulty:3,
+   progression:[{week:1,target:'15 minutes of review'},{week:4,target:'25 minutes with new material'},{week:8,target:'30 minutes of immersion'}],
+   freq:{type:'daily',days:[],count:1}},
+  {name:'No doom-scrolling', icon:'🔓', negative:true, category:'mind', dimension:'mental', kind:'recovery',
+   identity:'I am someone who chooses what enters my mind.',
+   reframe:'I am no longer someone who numbs with infinite feeds. I am someone who sits with the quiet.',
+   standard:'No feeds after ten at night',
+   replacement:'Pick up the book on the desk, or write for five minutes',
+   harm:'One to two hours a day. Fragments my attention. Leaves me drained rather than rested, and contradicts every value I claim about intention.',
+   protocol:'1) Say it aloud: I notice the urge. 2) Phone face down. 3) Five slow breaths. 4) Pick up the book. 5) If it is still strong after two minutes, text someone.',
+   triggers:[
+     {id:'', type:'emotional', description:'After a stressful email or meeting', intensity:4, strategy:'Three breaths, then walk to the window'},
+     {id:'', type:'temporal', description:'The ten o\'clock wind-down', intensity:3, strategy:'Phone charges in another room after half past nine'},
+     {id:'', type:'situational', description:'Waiting for something — a bus, food, a person', intensity:2, strategy:'Always carry a book'}],
+   freq:{type:'daily',days:[],count:1}},
+  {name:'No late-night eating', icon:'🔓', negative:true, category:'health', dimension:'physical', kind:'recovery',
+   identity:'I am someone who respects my body\'s rhythms.',
+   reframe:'I no longer use food as padding for a feeling. I sit with what I feel.',
+   standard:'Kitchen closed after nine',
+   replacement:'Herbal tea, or five minutes of stretching',
+   harm:'Wrecks the quality of my sleep, and teaches me that discomfort has to be soothed immediately.',
+   protocol:'1) Brush your teeth — that is the signal eating is done. 2) Make chamomile. 3) If it persists, write for five minutes about what is underneath it.',
+   triggers:[
+     {id:'', type:'emotional', description:'Boredom or unease in the evening', intensity:3, strategy:'Name the feeling. Make the tea.'},
+     {id:'', type:'temporal', description:'After nine', intensity:4, strategy:'Teeth brushed as the signal'}],
+   freq:{type:'daily',days:[],count:1}},
+];
+
 function applyStarter(){
   const T = today(), stamp = new Date().toISOString();
   const has = (arr, key) => (arr||[]).some(x => x && x.seedKey === key);
@@ -24003,6 +25016,15 @@ function applyStarter(){
   STARTER.ideas.forEach(([kind, text], i) => { const key = 'idea-' + i; if(has(S.ideas, key)) return;
     S.ideas.unshift({id:uid(), seeded:STARTER_TAG, seedKey:key, text, kind, note:'', createdAt:stamp,
       tags: typeof parseTags === 'function' ? parseTags(text) : []}); });
+
+  /* Four habits, two of each kind, filled in far enough that the fields mean
+     something the first time they are seen. An empty habit page teaches
+     nothing about what a habit here is for. */
+  STARTER.habits.forEach((h, i) => { const key = 'hab-' + i; if(has(S.habits, key)) return;
+    const rec = Object.assign(habitDefaults(), h, {id:uid(), seeded:STARTER_TAG, seedKey:key,
+      order:S.habits.length, createdAt:stamp});
+    S.habits.push(rec);
+    if(typeof habDefaults === 'function') habDefaults(rec); });
 
   S.settings.starterApplied = stamp;
   saveNow();

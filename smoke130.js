@@ -53,7 +53,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   const tT = await p.$$eval('.task-row [data-tfocus]', n => n.length);
   yes('  and the Today row', trows > 0 && tT === trows, `${tT} timers on ${trows} rows`);
 
-  console.log('\n4. pressing it starts the sitting on that task');
+  console.log('\n4. pressing it puts the task on today and starts the sitting there');
   const tid = await p.evaluate(() => document.querySelector('.task-row [data-tfocus]').dataset.tfocus);
   await p.evaluate(() => FocusTimer.reset());
   await p.evaluate(i => document.querySelector(`.task-row [data-tfocus="${i}"]`).click(), tid);
@@ -63,6 +63,36 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   is('  on that task', st.taskId, tid);
   yes('  and its own button says so', await p.evaluate(i =>
     !!document.querySelector(`[data-tfocus="${i}"].on`), tid));
+
+  /* pressed from Planning: the task joins today's list and you land on Today,
+     at the full timer rather than a lesser one in a side panel */
+  await p.evaluate(() => FocusTimer.reset());
+  const away = await p.evaluate(() => {
+    const t = (S.tasks || []).find(x => !x.done && x.day !== today());
+    if(t) return t.id;
+    const u = (S.tasks || []).find(x => !x.done); if(u){ u.day = addDays(today(), 5); saveNow(); return u.id; }
+    return null;
+  });
+  /* "All" now redirects to the dated view, and this task is deliberately not
+     on today — so look at it in the list it actually lives in */
+  const awayList = await p.evaluate(i => byId(S.tasks, i).listId, away);
+  await p.evaluate(l => { S._planSel = {kind:'list', id:l}; S._planView = 'list';
+    location.hash = '#/planning'; rerender(); }, awayList);
+  await p.waitForTimeout(1400);
+  const btn = await p.$(`[data-tfocus="${away}"]`);
+  yes('the task is reachable in Planning', !!btn, String(away));
+  if(btn){
+    await btn.click(); await p.waitForTimeout(1400);
+    is('  it is put on today', await p.evaluate(i => byId(S.tasks, i).day, away),
+       await p.evaluate(() => today()));
+    is('  and we are taken to Today', await p.evaluate(() => parseHash().name), 'today');
+    yes('  where the full timer is, with its work note and break log',
+        !!(await p.$('#fpDid')) || await p.evaluate(() => !!document.querySelector('.fp-card')));
+    yes('  and no lesser timer opens in a panel', !(await p.$('.focus-panel')));
+    is('  the sitting is on that task', await p.evaluate(() => FocusTimer.state().taskId), away);
+  }
+  yes('the side-panel timer is gone from the app entirely',
+      await p.evaluate(() => typeof openFocusTimer === 'undefined'));
 
   console.log('\n5. a task that has been sat with is in progress');
   const pid = await p.evaluate(() => (S.tasks || [])[0]?.id);

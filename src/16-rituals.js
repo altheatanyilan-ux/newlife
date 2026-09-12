@@ -67,6 +67,11 @@ function openHabitModal(id){
       <div class="field"><label>Ideal version</label><input class="inp" id="hIdeal" value="${esc(h.ideal)}" placeholder="30-minute workout"></div>
     </div>
     <div class="field"><label>Stack after</label><select class="sel" id="hStack"><option value="">—</option>${S.habits.filter(x=>x.id!==h.id&&!x.archived&&!x.negative).map(x=>`<option value="${x.id}" ${h.stackAfter===x.id?'selected':''}>${esc(x.name)}</option>`).join('')}</select></div>
+    <div class="grid c2" style="gap:10px">
+      <div class="field"><label>The cue</label><input class="inp" id="hCue" value="${esc(h.cue || '')}" placeholder="After I pour the coffee…">
+        <div class="faint" style="font-size:.74rem">A ritual hangs off something that already happens.</div></div>
+      <div class="field"><label>The set-up</label><input class="inp" id="hEnv" value="${esc(h.environment || '')}" placeholder="desk, phone in another room"></div>
+    </div>
     <div class="field"><label>Micro-journal prompt (optional)</label><input class="inp" id="hPrompt" value="${esc(h.prompt)}" placeholder="How was the run?"></div>
     <div class="field"><label>Relational ritual (optional)</label><select class="sel" id="hRelational"><option value="">not relational</option>
       <option value="reachout" ${h.relational==='reachout'?'selected':''}>reach out to one person</option>
@@ -86,12 +91,28 @@ function openHabitModal(id){
     <div class="field"><label>What it costs me</label>
       <textarea class="ta" id="hCost" style="min-height:56px" placeholder="what it actually takes, written plainly">${esc(h.cost)}</textarea>
       <div class="faint" style="font-size:.76rem;margin-top:4px">Written now, to be read at the moment you are deciding.</div></div>
+    <div class="field"><label>When the urge hits</label>
+      <textarea class="ta" id="hProtocol" style="min-height:56px" placeholder="1) Name it aloud. 2) Five breaths. 3) Phone in the drawer. 4) Open the book.">${esc(h.protocol || '')}</textarea>
+      <div class="faint" style="font-size:.76rem;margin-top:4px">Written now, in the calm, because the moment you need it is the moment you cannot write it.</div></div>
     <div class="field"><label>Energy dimension</label><select class="sel" id="hDim">${DIMS.map(d=>`<option value="${d.id}" ${h.dimension===d.id?'selected':''}>${d.name}</option>`).join('')}</select></div>
     <div class="field"><label>Micro-journal prompt (optional)</label><input class="inp" id="hPrompt" value="${esc(h.prompt)}" placeholder="What was going on just before?"></div>`;
 
   const m = openModal(`<h2>${id?'Edit habit':'A new habit'}</h2><div class="stack">
     <div class="field"><label>Which kind is this?</label>${kindRow()}</div>
     <div class="field"><label>Name</label><input class="inp" id="hName" value="${esc(h.name)}"></div>
+    <!-- Maltz's point, asked at the moment of creation rather than buried in a
+         panel: a habit that does not follow from who you take yourself to be
+         is a rule, and rules are kept with willpower until the willpower runs
+         out. Optional, because forcing it would make it glib. -->
+    <div class="field"><label>${neg ? 'I am no longer someone who…' : 'I am someone who…'}</label>
+      <input class="inp" id="hIdentity" value="${esc(h.identity || '')}"
+        placeholder="${neg ? 'numbs with a feed. I am someone who sits with the quiet.' : 'begins each day in stillness.'}">
+      <div class="hb-coach sm">${esc(HAB_QUOTES.identity[1])} <cite>${esc(HAB_QUOTES.identity[0])}</cite></div></div>
+    <div class="grid c2" style="gap:10px">
+      <div class="field"><label>Area of life</label><select class="sel" id="hCat">${HAB_CATS.map(c =>
+        `<option value="${c}" ${(h.category || 'health') === c ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
+      <div class="field"><label>Why it matters</label><input class="inp" id="hWhy" value="${esc(h.why || '')}" placeholder="the reason under the reason"></div>
+    </div>
     <div id="hBody" class="stack">${neg ? breaking() : building()}</div>
     <div class="field"><label>Linked values</label><div class="deps">${S.values.map(v=>`<span class="chip click ${h.links.values.includes(v.id)?'on':''}" style="--c:${v.color}" data-lv="${v.id}">${esc(v.name.split(' ')[0])}</span>`).join('')}</div></div>
     <div class="field" id="hSkillField"><label>Linked skills</label><div class="deps">${S.skills.map(v=>`<span class="chip click ${h.links.skills.includes(v.id)?'on':''}" style="--c:var(--ment)" data-lsk="${v.id}">${esc(v.name)}</span>`).join('')}</div></div>
@@ -120,6 +141,8 @@ function openHabitModal(id){
         count: +g('#hCountN') || 1}; }
     h.dimension = g('#hDim') ?? h.dimension;
     h.prompt = g('#hPrompt') ?? h.prompt;
+    if(neg) h.protocol = g('#hProtocol') ?? h.protocol;
+    else { h.cue = g('#hCue') ?? h.cue; h.environment = g('#hEnv') ?? h.environment; }
   };
   const bindBody = () => {
     const f = m.querySelector('#hFreq'); if(f){ updFreq(); f.onchange = updFreq; }
@@ -137,6 +160,12 @@ function openHabitModal(id){
     neg = want;
     m.querySelectorAll('[data-hkind]').forEach(x => x.classList.toggle('on', x === b));
     m.querySelector('#hBody').innerHTML = neg ? breaking() : building();
+    /* the identity line reads the other way round for a habit you are
+       outgrowing, so its label and prompt change with the choice */
+    const il = m.querySelector('#hIdentity');
+    if(il){ il.previousElementSibling; const lab = il.closest('.field').querySelector('label');
+      lab.textContent = neg ? 'I am no longer someone who…' : 'I am someone who…';
+      il.placeholder = neg ? 'numbs with a feed. I am someone who sits with the quiet.' : 'begins each day in stillness.'; }
     bindBody(); updSkills();
   });
 
@@ -144,7 +173,11 @@ function openHabitModal(id){
   m.querySelector('#hSave').onclick = () => {
     h.name = m.querySelector('#hName').value.trim(); if(!h.name) return;
     readBody();
+    h.identity = m.querySelector('#hIdentity').value.trim();
+    h.category = m.querySelector('#hCat').value;
+    h.why = m.querySelector('#hWhy').value.trim();
     h.negative = neg;
+    habDefaults(h);
     /* a habit you are breaking is never "due", so it keeps a frequency only so
        that nothing downstream has to guard against its absence */
     if(neg){ h.freq = {type:'daily', days:[], count:1}; h.stackAfter = null; h.relational = ''; }

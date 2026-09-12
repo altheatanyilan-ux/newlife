@@ -47,21 +47,29 @@ function bindTaskTimers(root){
     focusOnTask(b.dataset.tfocus);
   });
 }
-/* Starting is the whole gesture: set the subject, begin the sitting, and put
-   the timer where it can be seen. A task that has ever been sat with is "in
-   progress" from then on — that is read off the sessions, never stored, so it
-   cannot disagree with them. */
+/* Pressing the timer does what dragging the task into the panel does, and
+   nothing less. There used to be a second, smaller timer in a side panel for
+   when you pressed this from somewhere other than Today — it could start and
+   stop and that was all: no note of what you were actually doing, no note of
+   what the break was for. Two timers of unequal worth is worse than one, so
+   that panel is gone and this always lands you at the real one.
+
+   Which means the gesture is three things, in order: put the task on today,
+   because a task you are sitting down with now is today's whether or not it
+   was this morning; hand it to the timer; and go to the page the timer lives
+   on. */
 function focusOnTask(id){
+  const t = (typeof planTaskById === 'function' ? planTaskById(id) : null) ||
+            (typeof findTaskRef === 'function' ? findTaskRef(id)?.task : null);
+  const T = today();
+  if(t && t.day !== T){ t.day = T; t.updatedAt = new Date().toISOString(); saveNow(); }
   FocusTimer.setTask(id);
   const st = FocusTimer.state();
   if(!st.running || st.taskId !== id) FocusTimer.start();
   sound('success');
-  const t = (typeof planTaskById === 'function' ? planTaskById(id) : null) ||
-            (typeof findTaskRef === 'function' ? findTaskRef(id)?.task : null);
-  toast(`Focusing on ${t?.text || 'this'}.`);
-  /* the panel lives on Today; from anywhere else, open it where you stand */
+  toast(`Focusing on ${t?.text || 'this'} — it is on today's list now.`);
   if(parseHash().name === 'today') rerender();
-  else openFocusTimer(id);
+  else navigate('#/today');
 }
 /* Any task with a logged sitting is in progress, whoever asks. */
 function taskIsInProgress(id){ return !id ? false : focusSessionsFor(id).length > 0; }
