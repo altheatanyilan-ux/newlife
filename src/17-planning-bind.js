@@ -122,11 +122,18 @@ function bindPlanning(root, sel, tasks){
   /* the same steps, the same handlers, as on Today — one implementation, so
      the two rooms cannot drift into behaving differently */
   bindSubtasks(root, planRedraw);
+  /* The pencil renames the name beside it; the name itself opens the task,
+     which the row's own click handler already does. There is deliberately no
+     double-click-to-rename: the single click that opens would always fire
+     first, and the only way to let both live is to delay every open by a
+     quarter of a second waiting for a second click that almost never comes. */
   $$('[data-tedit]', root).forEach(n => n.onclick = ev => {
     ev.stopPropagation();
     const t = planTaskById(n.dataset.tedit); if(!t) return;
-    inlineTaskEdit(n, t.text || '', v => { t.text = v; t.updatedAt = new Date().toISOString(); }, planRedraw);
+    const label = n.parentElement.querySelector('.pt-text, .pk-text') || n;
+    inlineTaskEdit(label, t.text || '', v => { t.text = v; t.updatedAt = new Date().toISOString(); }, planRedraw);
   });
+
   $$('[data-ptdone]', root).forEach(b => b.onclick = ev => { ev.stopPropagation();
     const t = planTaskById(b.dataset.ptdone); if(!t) return;
     planCompleteRow(b.closest('.pt-row, .pk-card'), t, !t.done); });

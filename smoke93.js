@@ -26,14 +26,18 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
     .map(l => ({rel:l.rel, type:l.type || ''})));
   ok('an SVG favicon is declared', icons.some(l => l.rel === 'icon' && /svg/.test(l.type)), JSON.stringify(icons));
   ok('and a PNG for iOS, which will not take an SVG', icons.some(l => /apple/.test(l.rel)), JSON.stringify(icons));
-  /* drawn as paths, not text: a favicon renders outside the page and cannot
-     reach the CJK webfont, so as text it would be tofu wherever no CJK font
-     is installed */
+  /* Drawn rather than typed: a favicon renders outside the page and can reach
+     no webfont, so anything typographic would be tofu on a machine without it.
+     The mark was 生 and is now the tree of life, which stands for the house
+     rather than for any one room in it. */
   const svg = await page.evaluate(async () => {
     try { return await (await fetch(document.querySelector('link[rel="icon"]').href)).text(); } catch(e){ return ''; } });
   ok('the data URI is a real SVG document', /^<svg[\s>]/.test(svg.trim()), svg.slice(0, 60));
-  ok('生 is five drawn strokes, not a text node',
-     (svg.match(/<path/g) || []).length === 5 && !/<text/.test(svg), `${(svg.match(/<path/g)||[]).length} paths, text:${/<text/.test(svg)}`);
+  ok('the tree is drawn, not set as type',
+     (svg.match(/<path/g) || []).length >= 3 && /<circle/.test(svg) && !/<text/.test(svg),
+     `${(svg.match(/<path/g)||[]).length} paths, circle:${/<circle/.test(svg)}, text:${/<text/.test(svg)}`);
+  ok('  with a crown, a trunk and roots',
+     /<circle/.test(svg) && /M50 84V15/.test(svg) && /M50 84c0 6-6 8-17 10/.test(svg), svg.slice(0, 120));
   ok('on a seal, so it reads on a light or a dark tab bar', /<rect/.test(svg) && /#b08968/i.test(svg), svg.slice(0, 90));
   const paints = await page.evaluate(() => Promise.all(
     [...document.querySelectorAll('link[rel*="icon"]')].map(l => new Promise(res => {

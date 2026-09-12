@@ -237,7 +237,8 @@ function planRowHTML(t, {showList = false, showDate = true} = {}){
       <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.2" class="pt-ring"/>
         <path d="M5.6 10.3 L8.7 13.3 L14.4 6.9" class="pt-tick"/></svg></button>
     ${t.priority ? `<span class="pt-prio" style="background:${pr.color}" title="${pr.name} priority"></span>` : ''}
-    <span class="pt-text" data-tedit="${t.id}" title="click to rewrite">${esc(t.text || 'Untitled task')}</span>
+    <span class="pt-text" title="open this task">${esc(t.text || 'Untitled task')}</span>
+    <button class="task-pen" data-tedit="${t.id}" title="rename it here" aria-label="rename">✎</button>
     <span class="pt-meta">
       ${sub ? `<button class="pt-sub mono" data-tsubs="${t.id}" title="${sub.done} of ${sub.total} steps done">${sub.done}/${sub.total}</button>` : ''}
       ${t.recurrence ? `<span class="pt-rep" title="repeats ${esc(t.recurrence.pattern)}">↻</span>` : ''}

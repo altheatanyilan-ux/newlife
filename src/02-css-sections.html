@@ -3591,5 +3591,22 @@ select.sm-active{border-color:var(--page-accent);
 .neg-std{font-size:.74rem;color:var(--ink)}
 .neg-cost{font-family:var(--quote);font-style:italic;font-size:.84rem;color:var(--muted);
   border-top:1px dashed var(--line);padding-top:4px;margin-top:2px}
+
+/* --- renaming a task is a button, opening it is the whole name ---
+   The name used to be the edit target, which made the task's own page hard to
+   reach: most of the row was a rename waiting to happen. The pencil keeps
+   renaming one click away without spending the row on it. */
+.task-text[data-topen], .pt-text, .pk-text{cursor:pointer;border-radius:4px;
+  transition:background .15s ease,box-shadow .15s ease}
+.task-text[data-topen]:hover, .pt-text:hover, .pk-text:hover{
+  background:color-mix(in srgb,var(--page-accent) 10%,transparent);
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--page-accent) 10%,transparent)}
+.task-pen{flex:none;background:none;border:0;padding:0 5px;cursor:pointer;font:inherit;font-size:.82rem;
+  line-height:1;color:var(--faint);opacity:0;transition:opacity .15s ease,color .15s ease}
+.task-pen:hover{color:var(--page-accent)}
+.task-row:hover .task-pen, .pt-row:hover .task-pen, .pk-card:hover .task-pen,
+.task-pen:focus-visible{opacity:1}
+/* a touch screen has no hover, so the pencil is simply always there */
+@media (hover:none){ .task-pen{opacity:.55} }
 </style>
 </head>

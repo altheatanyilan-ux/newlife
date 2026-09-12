@@ -115,7 +115,13 @@ function taskRowHTML(r, {showDay=false}={}){
     <span class="task-grip" title="drag to reorder" aria-hidden="true">⠿</span>
     ${subCaretHTML(r.id, r.task)}
     <button class="task-check" data-tcheck="${r.id}" role="checkbox" aria-checked="${r.done}" title="${r.done?'mark not done':'mark done'}">${r.done?'✓':''}</button>
-    <span class="task-text" data-tedit="${r.id}" title="click to rewrite">${esc(r.text || 'Untitled task')}</span>
+    <!-- The name opens the task, because the name is the biggest thing on the
+         row and opening it is what you mostly want. Renaming has its own small
+         button rather than the whole middle of the row: it used to be the other
+         way round, and reaching the task's own page meant hunting for the few
+         pixels that were not an edit target. -->
+    <span class="task-text" data-topen="${r.id}" title="open this task">${esc(r.text || 'Untitled task')}</span>
+    <button class="task-pen" data-tedit="${r.id}" title="rename it here" aria-label="rename">✎</button>
     ${prog?`<button class="task-subcount${prog.done===prog.total?' all':''}" data-tsubs="${r.id}"
       title="${prog.done} of ${prog.total} steps done">${prog.done}/${prog.total}</button>`:''}
     ${r.where?`<a class="task-where" href="${r.go}" title="${esc(r.where)}">${esc(r.where)}</a>`:''}
@@ -136,7 +142,7 @@ function taskRowHTML(r, {showDay=false}={}){
 function inlineTaskEdit(node, current, commit, redraw){
   if(node.dataset.editing) return;
   node.dataset.editing = '1';
-  const row = node.closest('[data-taskrow],[data-ptrow]');
+  const row = node.closest('[data-taskrow],[data-ptrow],[data-ptcard]');
   const wasDraggable = row && row.getAttribute('draggable');
   if(row) row.setAttribute('draggable', 'false');
   const inp = el(`<input class="inp task-inline" value="${esc(current)}">`);
@@ -223,11 +229,23 @@ function bindTaskRows(root, after){
       {label: 'put it back', fn: () => { setTaskDay(r.id, was); redraw(); }});
     redraw();
   });
+  /* the pencil renames the name beside it, not itself */
   $$('[data-tedit]', root).forEach(n => n.onclick = e => {
     e.stopPropagation();
     const r = findTaskRef(n.dataset.tedit); if(!r) return;
-    inlineTaskEdit(n, r.task.text || '', v => { r.task.text = v; }, redraw);
+    const label = n.parentElement.querySelector('[data-topen]') || n;
+    inlineTaskEdit(label, r.task.text || '', v => { r.task.text = v; }, redraw);
   });
+  /* Today never had a way to open a task at all; the row's own page is where
+     the description, the dates and the links live. A task that belongs to a
+     project has no page of its own, so it goes to the project. */
+  $$('[data-topen]', root).forEach(n => n.onclick = e => {
+    e.stopPropagation();
+    const r = findTaskRef(n.dataset.topen); if(!r) return;
+    if(r.kind === 'own' && typeof openPlanTask === 'function') openPlanTask(r.id);
+    else if(r.go) navigate(r.go);
+  });
+
 
   bindSubtasks(root, redraw);
   bindTaskReorder(root, redraw);

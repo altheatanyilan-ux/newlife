@@ -4115,6 +4115,23 @@ select.sm-active{border-color:var(--page-accent);
 .neg-std{font-size:.74rem;color:var(--ink)}
 .neg-cost{font-family:var(--quote);font-style:italic;font-size:.84rem;color:var(--muted);
   border-top:1px dashed var(--line);padding-top:4px;margin-top:2px}
+
+/* --- renaming a task is a button, opening it is the whole name ---
+   The name used to be the edit target, which made the task's own page hard to
+   reach: most of the row was a rename waiting to happen. The pencil keeps
+   renaming one click away without spending the row on it. */
+.task-text[data-topen], .pt-text, .pk-text{cursor:pointer;border-radius:4px;
+  transition:background .15s ease,box-shadow .15s ease}
+.task-text[data-topen]:hover, .pt-text:hover, .pk-text:hover{
+  background:color-mix(in srgb,var(--page-accent) 10%,transparent);
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--page-accent) 10%,transparent)}
+.task-pen{flex:none;background:none;border:0;padding:0 5px;cursor:pointer;font:inherit;font-size:.82rem;
+  line-height:1;color:var(--faint);opacity:0;transition:opacity .15s ease,color .15s ease}
+.task-pen:hover{color:var(--page-accent)}
+.task-row:hover .task-pen, .pt-row:hover .task-pen, .pk-card:hover .task-pen,
+.task-pen:focus-visible{opacity:1}
+/* a touch screen has no hover, so the pencil is simply always there */
+@media (hover:none){ .task-pen{opacity:.55} }
 </style>
 </head>
 <body>
@@ -14870,11 +14887,18 @@ function bindPlanning(root, sel, tasks){
   /* the same steps, the same handlers, as on Today — one implementation, so
      the two rooms cannot drift into behaving differently */
   bindSubtasks(root, planRedraw);
+  /* The pencil renames the name beside it; the name itself opens the task,
+     which the row's own click handler already does. There is deliberately no
+     double-click-to-rename: the single click that opens would always fire
+     first, and the only way to let both live is to delay every open by a
+     quarter of a second waiting for a second click that almost never comes. */
   $$('[data-tedit]', root).forEach(n => n.onclick = ev => {
     ev.stopPropagation();
     const t = planTaskById(n.dataset.tedit); if(!t) return;
-    inlineTaskEdit(n, t.text || '', v => { t.text = v; t.updatedAt = new Date().toISOString(); }, planRedraw);
+    const label = n.parentElement.querySelector('.pt-text, .pk-text') || n;
+    inlineTaskEdit(label, t.text || '', v => { t.text = v; t.updatedAt = new Date().toISOString(); }, planRedraw);
   });
+
   $$('[data-ptdone]', root).forEach(b => b.onclick = ev => { ev.stopPropagation();
     const t = planTaskById(b.dataset.ptdone); if(!t) return;
     planCompleteRow(b.closest('.pt-row, .pk-card'), t, !t.done); });
@@ -16217,7 +16241,8 @@ function planRowHTML(t, {showList = false, showDate = true} = {}){
       <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.2" class="pt-ring"/>
         <path d="M5.6 10.3 L8.7 13.3 L14.4 6.9" class="pt-tick"/></svg></button>
     ${t.priority ? `<span class="pt-prio" style="background:${pr.color}" title="${pr.name} priority"></span>` : ''}
-    <span class="pt-text" data-tedit="${t.id}" title="click to rewrite">${esc(t.text || 'Untitled task')}</span>
+    <span class="pt-text" title="open this task">${esc(t.text || 'Untitled task')}</span>
+    <button class="task-pen" data-tedit="${t.id}" title="rename it here" aria-label="rename">✎</button>
     <span class="pt-meta">
       ${sub ? `<button class="pt-sub mono" data-tsubs="${t.id}" title="${sub.done} of ${sub.total} steps done">${sub.done}/${sub.total}</button>` : ''}
       ${t.recurrence ? `<span class="pt-rep" title="repeats ${esc(t.recurrence.pattern)}">↻</span>` : ''}
@@ -17027,7 +17052,8 @@ function planCardHTML(t){
       <button class="pt-box sm" data-ptdone="${t.id}" role="checkbox" aria-checked="${t.done}"
         style="${pr.color ? `--pc:${pr.color}` : ''}"><svg viewBox="0 0 20 20" aria-hidden="true">
         <circle cx="10" cy="10" r="8.2" class="pt-ring"/><path d="M5.6 10.3 L8.7 13.3 L14.4 6.9" class="pt-tick"/></svg></button>
-      <span class="pk-text" data-tedit="${t.id}" title="click to rewrite">${esc(t.text || 'Untitled task')}</span>
+      <span class="pk-text" title="open this task">${esc(t.text || 'Untitled task')}</span>
+      <button class="task-pen" data-tedit="${t.id}" title="rename it here" aria-label="rename">✎</button>
       <!-- the same caret a list row has, so steps fold here too rather than
            being permanently open on a card -->
       ${subCaretHTML(t.id, t, 'task-caret pk-caret')}</div>
@@ -17481,7 +17507,13 @@ function taskRowHTML(r, {showDay=false}={}){
     <span class="task-grip" title="drag to reorder" aria-hidden="true">⠿</span>
     ${subCaretHTML(r.id, r.task)}
     <button class="task-check" data-tcheck="${r.id}" role="checkbox" aria-checked="${r.done}" title="${r.done?'mark not done':'mark done'}">${r.done?'✓':''}</button>
-    <span class="task-text" data-tedit="${r.id}" title="click to rewrite">${esc(r.text || 'Untitled task')}</span>
+    <!-- The name opens the task, because the name is the biggest thing on the
+         row and opening it is what you mostly want. Renaming has its own small
+         button rather than the whole middle of the row: it used to be the other
+         way round, and reaching the task's own page meant hunting for the few
+         pixels that were not an edit target. -->
+    <span class="task-text" data-topen="${r.id}" title="open this task">${esc(r.text || 'Untitled task')}</span>
+    <button class="task-pen" data-tedit="${r.id}" title="rename it here" aria-label="rename">✎</button>
     ${prog?`<button class="task-subcount${prog.done===prog.total?' all':''}" data-tsubs="${r.id}"
       title="${prog.done} of ${prog.total} steps done">${prog.done}/${prog.total}</button>`:''}
     ${r.where?`<a class="task-where" href="${r.go}" title="${esc(r.where)}">${esc(r.where)}</a>`:''}
@@ -17502,7 +17534,7 @@ function taskRowHTML(r, {showDay=false}={}){
 function inlineTaskEdit(node, current, commit, redraw){
   if(node.dataset.editing) return;
   node.dataset.editing = '1';
-  const row = node.closest('[data-taskrow],[data-ptrow]');
+  const row = node.closest('[data-taskrow],[data-ptrow],[data-ptcard]');
   const wasDraggable = row && row.getAttribute('draggable');
   if(row) row.setAttribute('draggable', 'false');
   const inp = el(`<input class="inp task-inline" value="${esc(current)}">`);
@@ -17589,11 +17621,23 @@ function bindTaskRows(root, after){
       {label: 'put it back', fn: () => { setTaskDay(r.id, was); redraw(); }});
     redraw();
   });
+  /* the pencil renames the name beside it, not itself */
   $$('[data-tedit]', root).forEach(n => n.onclick = e => {
     e.stopPropagation();
     const r = findTaskRef(n.dataset.tedit); if(!r) return;
-    inlineTaskEdit(n, r.task.text || '', v => { r.task.text = v; }, redraw);
+    const label = n.parentElement.querySelector('[data-topen]') || n;
+    inlineTaskEdit(label, r.task.text || '', v => { r.task.text = v; }, redraw);
   });
+  /* Today never had a way to open a task at all; the row's own page is where
+     the description, the dates and the links live. A task that belongs to a
+     project has no page of its own, so it goes to the project. */
+  $$('[data-topen]', root).forEach(n => n.onclick = e => {
+    e.stopPropagation();
+    const r = findTaskRef(n.dataset.topen); if(!r) return;
+    if(r.kind === 'own' && typeof openPlanTask === 'function') openPlanTask(r.id);
+    else if(r.go) navigate(r.go);
+  });
+
 
   bindSubtasks(root, redraw);
   bindTaskReorder(root, redraw);

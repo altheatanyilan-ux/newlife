@@ -194,10 +194,12 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   await p.waitForTimeout(1400);
   await p.evaluate(() => { S._planView = 'list'; rerender(); });
   await p.waitForTimeout(900);
-  const ptid = await p.evaluate(() => { const r = document.querySelector('.pt-text[data-tedit]'); return r ? r.dataset.tedit : null; });
+  /* the name opens the task now; the pencil beside it is what renames, so the
+     rename is reached through that rather than by clicking the words */
+  const ptid = await p.evaluate(() => { const b = document.querySelector('.pt-row .task-pen'); return b ? b.dataset.tedit : null; });
   if(!ptid) no('a planner row can be rewritten in place', 'no editable planner row');
   else {
-    await p.click(`.pt-text[data-tedit="${ptid}"]`);
+    await p.click(`.pt-row [data-tedit="${ptid}"]`);
     await p.waitForTimeout(400);
     yes('clicking a planner row\u2019s text opens a field there', !!(await p.$('.inp.task-inline')));
     await p.fill('.inp.task-inline', 'renamed in the planner');
@@ -206,7 +208,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     is('Return alone saves it — no button to find',
        await p.evaluate(id => byId(S.tasks, id).text, ptid), 'renamed in the planner');
     /* and simply clicking away must save too, which is what "no confirmation" means */
-    await p.click(`.pt-text[data-tedit="${ptid}"]`);
+    await p.click(`.pt-row [data-tedit="${ptid}"]`);
     await p.waitForTimeout(400);
     await p.fill('.inp.task-inline', 'renamed by clicking away');
     await p.evaluate(() => document.querySelector('.inp.task-inline').blur());
