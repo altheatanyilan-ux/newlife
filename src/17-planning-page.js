@@ -7,8 +7,13 @@ function planSel(){ return S._planSel || (S._planSel = {kind:'smart', id:'today'
 function planSetSel(kind, id){
   S._planSel = {kind, id};
   planState().prefs.lastView = `${kind}:${id}`;
-  /* a list that prefers a board opens as a board */
-  if(kind === 'list'){ const l = planList(id); if(l?.defaultView) S._planView = l.defaultView; }
+  /* Every selection opens on the matrix. Picking a list is asking "what is in
+     here, and what should I touch first" — the second half of that is what the
+     matrix answers, and carrying over whichever view happened to be open last
+     answered it by accident. A list that has deliberately been given a view of
+     its own still gets it. */
+  const l = kind === 'list' ? planList(id) : null;
+  S._planView = l?.defaultView || PLAN_VIEW_DEFAULT;
   saveNow(); rerender();
 }
 function planView(){ return S._planView || planState().prefs.view || PLAN_VIEW_DEFAULT; }
@@ -352,8 +357,18 @@ routes.planning = function(root, params){
   migratePlanning();
   /* an address still naming habits opens the habits room rather than a
      selection inside the task room that no longer exists */
-  if(params[0] === 'habits' || params[0] === 'stats'){ S._planRoom = params[0]; }
-  else if(params[0]) { S._planRoom = 'tasks'; S._planSel = {kind:'smart', id:params[0]}; }
+  /* An address naming a room or a view is where you arrived, not a standing
+     instruction. Applied on every render it became one: the page re-read the
+     hash each time, so clicking a list set the selection and the very next
+     redraw put it straight back — the page looked stuck on Today and no other
+     list could be opened. It is consumed instead, the way the Skills and
+     Projects pages already consume the id of a panel they were asked to open. */
+  if(params[0]){
+    if(params[0] === 'habits' || params[0] === 'stats') S._planRoom = params[0];
+    else { S._planRoom = 'tasks'; S._planSel = {kind:'smart', id:params[0]};
+      if(PLAN_SPANS.includes(params[0])){ S._planSpan = params[0]; planState().prefs.span = params[0]; } }
+    consumeHashParam('#/planning');
+  }
   const sel = planSel();
   registerPageEntry({pageName:'Planning', addLabel:'New task', defaultEntryType:'task', prefilledFields:{},
     hint:'or type it straight into a quadrant, or the line at the top of the list',
@@ -386,7 +401,7 @@ routes.planning = function(root, params){
     root.innerHTML = `<div class="page plan-page">
       <div class="page-head"><h1>Planning</h1></div>
       ${planRoomsHTML()}
-      <div class="pl-habits-room">${room === 'habits' ? planHabitsHTML() : planStatsHTML()}</div>
+      <div class="pl-habits-room${room === 'stats' ? ' pl-stats-room' : ''}">${room === 'habits' ? planHabitsHTML() : planStatsHTML()}</div>
     </div>`;
     bindPlanRooms(root);
     if(room === 'habits' && typeof bindPlanHabits === 'function') bindPlanHabits(root);
