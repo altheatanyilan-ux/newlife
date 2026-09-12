@@ -62,6 +62,32 @@ function bindContent(root){
       saveNow(); sound('click'); rerenderContentBody(); });
   });
 
+  /* Drag a column's right edge to set how wide it is. The width is written
+     live to the grid so the drag is visible, and only saved when it stops —
+     a full re-render on every pointermove would fight the drag. */
+  $$('[data-ctgrip]', root).forEach(grip => {
+    const id = grip.dataset.ctgrip;
+    const board = grip.closest('.ct-board');
+    const apply = w => { ctSetColWidth(id, w);
+      board.style.gridTemplateColumns = CONTENT_STAGES.map(st => ctColWidth(st.id) + 'px').join(' '); };
+    grip.addEventListener('pointerdown', ev => {
+      ev.preventDefault(); ev.stopPropagation();
+      const x0 = ev.clientX, w0 = ctColWidth(id);
+      grip.setPointerCapture(ev.pointerId); board.classList.add('sizing');
+      const move = e => apply(w0 + (e.clientX - x0));
+      const up = () => { grip.removeEventListener('pointermove', move); grip.removeEventListener('pointerup', up);
+        grip.removeEventListener('pointercancel', up); board.classList.remove('sizing'); saveNow(); };
+      grip.addEventListener('pointermove', move);
+      grip.addEventListener('pointerup', up);
+      grip.addEventListener('pointercancel', up);
+    });
+    grip.addEventListener('dblclick', ev => { ev.stopPropagation(); apply(CT_COL_W); saveNow(); sound('click'); });
+    grip.addEventListener('keydown', ev => {
+      const d = ev.key === 'ArrowRight' ? 24 : ev.key === 'ArrowLeft' ? -24 : 0;
+      if(!d) return; ev.preventDefault(); apply(ctColWidth(id) + d); saveNow();
+    });
+  });
+
   if(typeof bindContentCalendar === 'function') bindContentCalendar(root);
   if(typeof bindContentLibrary === 'function') bindContentLibrary(root);
 }

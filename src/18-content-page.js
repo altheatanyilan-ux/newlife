@@ -33,9 +33,26 @@ function contentCardHTML(e){
     </div></div>`;
 }
 
-/* ---------- pipeline ---------- */
+/* ---------- pipeline ----------
+   Eight columns used to share whatever width the page had, which at 136px a
+   column meant a card title broke over four lines and the note under it was
+   unreadable. They have a real width now — wide enough to read a card — and
+   the board scrolls sideways rather than squeezing, because eight readable
+   columns do not fit on a laptop and pretending they do was the whole problem.
+   Each column's width is dragged by its own right edge and remembered. */
+const CT_COL_W = 248, CT_COL_MIN = 150, CT_COL_MAX = 620;
+function ctColWidth(id){
+  const w = S.settings?.ctColW?.[id];
+  return clamp(+w || CT_COL_W, CT_COL_MIN, CT_COL_MAX);
+}
+function ctSetColWidth(id, w){
+  S.settings = S.settings || {};
+  S.settings.ctColW = S.settings.ctColW || {};
+  S.settings.ctColW[id] = Math.round(clamp(w, CT_COL_MIN, CT_COL_MAX));
+}
 function contentPipelineHTML(){
-  return `<div class="ct-board">${CONTENT_STAGES.map(st => {
+  const cols = CONTENT_STAGES.map(st => ctColWidth(st.id) + 'px').join(' ');
+  return `<div class="ct-board" style="grid-template-columns:${cols}">${CONTENT_STAGES.map(st => {
     const list = contentByStage(st.id).sort((a, b) =>
       (b.extra.content.pinned ? 1 : 0) - (a.extra.content.pinned ? 1 : 0)
       || (a.extra.content.order || 0) - (b.extra.content.order || 0));
@@ -45,6 +62,8 @@ function contentPipelineHTML(){
         <button class="pl-mini" data-ctadd="${st.id}" title="start one here">＋</button></div>
       <div class="ct-cards">${list.map(contentCardHTML).join('')
         || `<div class="ct-empty">${esc(st.hint)}</div>`}</div>
+      <div class="ct-grip" data-ctgrip="${st.id}" title="drag to widen · double-click to reset" role="separator"
+        aria-label="width of ${esc(st.name)}" tabindex="0"></div>
     </div>`; }).join('')}</div>`;
 }
 
