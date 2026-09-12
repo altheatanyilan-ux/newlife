@@ -155,14 +155,21 @@ routes.today = function(root){
 
     <!-- today's tasks (up front) -->
     <details class="section rv t-sec" id="t-tasks"${fold('t-tasks')}>
-      <summary><span class="sc" style="margin:0">Today's tasks</span><span class="mono">${rows.length?`${doneN} of ${rows.length} done`:'nothing parked yet'}</span>${flowTick('tasksAt')}</summary>
+      <summary><span class="sc" style="margin:0">Today's tasks</span><span class="mono">${(() => {
+        if(!rows.length) return 'nothing parked yet';
+        const must = rows.filter(r => !taskIsBonus(r)), extra = rows.filter(taskIsBonus);
+        const mDone = must.filter(r => r.done).length, eDone = extra.filter(r => r.done).length;
+        /* the headline number is what had to be done, because that is what
+           finishing the day means; the bonus is counted beside it, never in it */
+        return extra.length
+          ? `${mDone} of ${must.length} done · ${eDone}/${extra.length} bonus`
+          : `${mDone} of ${must.length} done`; })()}</span>${flowTick('tasksAt')}</summary>
       <div class="body">
       <div class="card" data-daydrop="${T}" style="margin-top:10px">
         ${dayListFilterHTML(rows)}
-        <div class="stack" style="gap:2px">${(() => { const shown = filterRowsByList(rows);
-          return shown.map(r=>taskRowHTML(r)).join('') || (rows.length
-            ? `<div class="empty">Nothing in that list today. <button class="tbtn" data-tlist="all">show all ${rows.length}</button></div>`
-            : `<div class="empty">Park work here from a project, or write one below.</div>`); })()}</div>
+        ${dayTaskListHTML(rows) || (rows.length
+          ? `<div class="empty">Nothing in that list today. <button class="tbtn" data-tlist="all">show all ${rows.length}</button></div>`
+          : `<div class="empty">Park work here from a project, or write one below.</div>`)}
         <div class="row" style="margin-top:10px;gap:8px">${quickTaskInput(T)}<button class="btn sm ghost" id="pullTask">pull in ↓</button><a class="btn sm ghost" href="#/planning/today">all of it →</a></div>
         ${carried.length?`<div class="row" style="margin-top:10px"><span class="mono" style="color:#d08080">${carried.length} carried over from earlier days</span><button class="btn sm ghost" id="carryAll">bring to today</button></div>`:''}
       </div></div></details>

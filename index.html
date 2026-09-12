@@ -1131,6 +1131,35 @@ button.tm-cell:hover{border-color:var(--page-accent)}
 .task-row.dragging{opacity:.4;cursor:grabbing}
 .task-row.done .task-text{text-decoration:line-through;color:var(--faint)}
 .task-row.late .task-day{color:#d08080}
+/* --- today's two lists, and the groups inside them --- */
+.tband{margin-top:14px}
+.tband:first-child{margin-top:4px}
+.tband-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.tband-name{font-family:var(--serif);font-size:1.02rem}
+.tband-n{font-size:.66rem;color:var(--muted)}
+.tband-note{font-family:var(--serif-i,var(--serif));font-style:italic;font-size:.78rem;
+  color:var(--faint);margin:1px 0 8px}
+.tband-bonus{opacity:.9;border-top:1px dashed var(--line);padding-top:12px}
+.tband-bonus .tband-name{color:var(--muted)}
+.tg{margin-bottom:6px}
+.tg-head{display:flex;align-items:baseline;gap:7px;width:100%;background:none;border:0;
+  padding:4px 2px;cursor:pointer;font:inherit;color:inherit;text-align:left;
+  border-bottom:1px solid var(--line);box-shadow:inset 3px 0 0 -1px var(--c)}
+.tg-head:hover .tg-name{color:var(--page-accent)}
+.tg-caret{display:inline-block;color:var(--faint);font-size:.8rem;transition:transform .18s var(--ease)}
+.tg.open .tg-caret{transform:rotate(90deg)}
+.tg-name{font-family:var(--mono);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tg-n{font-size:.6rem;color:var(--faint);white-space:nowrap}
+.tg-rows{padding-left:8px;margin-top:2px}
+/* compulsory or bonus, changed from the row */
+.task-bonus{flex:none;background:none;border:0;padding:0 3px;cursor:pointer;font-size:.76rem;
+  line-height:1;color:var(--faint);opacity:0;transition:opacity .18s var(--ease),color .18s var(--ease)}
+.task-row:hover .task-bonus,.task-bonus:focus-visible{opacity:1}
+.task-bonus:hover{color:var(--page-accent)}
+.task-bonus.on{opacity:1;color:var(--gold)}
+.task-row.bonus .task-text{color:var(--muted)}
+
 /* the whole row opens the task, so it should look like it does */
 .task-row{cursor:pointer}
 .task-row .task-grip{cursor:grab}
@@ -1198,19 +1227,42 @@ button.tm-cell:hover{border-color:var(--page-accent)}
 .fp-on b{font-size:1.02rem;overflow-wrap:anywhere}
 .fp-rec{font-size:.68rem;color:var(--faint);letter-spacing:.04em;margin-top:5px}
 .fp-empty{font-size:.84rem;color:var(--faint)}
-.fp-body{display:flex;align-items:center;gap:20px;padding:14px 16px;flex-wrap:wrap}
-.fp-ring{position:relative;flex:0 0 auto;width:120px;height:120px}
-.fp-ring svg{width:120px;height:120px;transform:rotate(-90deg)}
-.fp-ring .ft-track{fill:none;stroke:var(--line);stroke-width:7}
-.fp-ring .ft-arc{fill:none;stroke-width:7;stroke-linecap:round;transition:stroke-dashoffset .9s linear,stroke .3s}
-.fp-face{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
-.fp-time{font-size:1.5rem;line-height:1}
-.fp-phase{font-size:.58rem;letter-spacing:.09em;color:var(--faint)}
-.fp-side{flex:1;min-width:210px;display:flex;flex-direction:column;gap:9px}
+.fp-body{display:flex;align-items:center;gap:26px;padding:18px 18px 20px;flex-wrap:wrap}
+/* --- a real clock, with hands that move --- */
+.fp-ring{position:relative;flex:0 0 auto;width:158px;height:158px;
+  border-radius:50%;background:radial-gradient(circle at 50% 38%,
+    color-mix(in srgb,var(--card) 96%,transparent), color-mix(in srgb,var(--surface-2,var(--card)) 88%,transparent));
+  box-shadow:0 1px 3px rgba(0,0,0,.07), inset 0 0 0 1px var(--line);
+  transition:box-shadow .3s var(--ease)}
+.fp-ring.ticking{box-shadow:0 2px 10px color-mix(in srgb,var(--terra) 22%,transparent), inset 0 0 0 1px color-mix(in srgb,var(--terra) 40%,transparent)}
+.fp-ring.resting{box-shadow:0 2px 10px color-mix(in srgb,var(--sage) 20%,transparent), inset 0 0 0 1px color-mix(in srgb,var(--sage) 40%,transparent)}
+.fp-ring svg{width:158px;height:158px}
+.fp-ring .ft-track{fill:none;stroke:var(--line);stroke-width:2.5}
+/* the arc is a quiet second reading behind the hands, not the main event */
+.fp-ring .ft-arc{fill:none;stroke-width:2.5;stroke-linecap:round;opacity:.8;
+  transform:rotate(-90deg);transform-origin:60px 60px;
+  transition:stroke-dashoffset .9s linear,stroke .3s}
+.fc-mark{stroke:var(--line-2);stroke-width:.8;stroke-linecap:round}
+.fc-mark.major{stroke:var(--muted);stroke-width:1.6}
+.fc-hand{transform-origin:60px 60px;transform-box:view-box}
+.fc-hand line{stroke-linecap:round}
+.fc-min line{stroke:var(--ink);stroke-width:3.4}
+.fc-sec line{stroke:var(--terra);stroke-width:1.3}
+/* a hand that jumps once a second reads as a real clock; a hand that glides
+   reads as an animation. The minute hand glides because it barely moves. */
+.fc-min{transition:transform .9s linear}
+.fp-face{position:absolute;left:0;right:0;bottom:30px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:1px;pointer-events:none}
+.fp-time{font-size:.94rem;line-height:1;letter-spacing:.02em;
+  background:color-mix(in srgb,var(--card) 82%,transparent);padding:1px 6px;border-radius:4px}
+.fp-phase{font-size:.54rem;letter-spacing:.1em;color:var(--faint);text-transform:uppercase}
+.fp-side{flex:1;min-width:230px;display:flex;flex-direction:column;gap:11px}
 .fp-break{display:flex;flex-direction:column;gap:5px;padding:9px 11px;border-radius:10px;
   background:color-mix(in srgb,var(--sage) 10%,transparent);
   border:1px solid color-mix(in srgb,var(--sage) 35%,transparent)}
-@media (max-width:560px){.fp-body{gap:14px}.fp-ring,.fp-ring svg{width:96px;height:96px}.fp-time{font-size:1.25rem}}
+@media (prefers-reduced-motion:reduce){ .fc-min{transition:none} }
+@media (max-width:560px){.fp-body{gap:16px;padding:14px}
+  .fp-ring,.fp-ring svg{width:132px;height:132px} .fp-face{bottom:24px} }
 
 .pk-caret{margin-left:auto;flex:0 0 auto}
 .pk-text[data-tedit]{cursor:text;border-radius:4px}
@@ -4394,7 +4446,11 @@ select.sm-active{border-color:var(--page-accent);
 @media (hover:none){ .task-pen{opacity:.55} }
 
 /* --- how the sitting is counted, chosen before it starts --- */
-.fp-mode{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+/* the two setup rows are a step you take before the clock, so they sit in
+   their own band above it rather than floating loose in the card */
+.fp-setup{padding:14px 18px 12px;border-bottom:1px dashed var(--line);
+  background:color-mix(in srgb,var(--line) 22%,transparent)}
+.fp-mode{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
 .fp-modebtn{display:flex;flex-direction:column;gap:2px;text-align:left;cursor:pointer;font:inherit;
   background:var(--card);border:1px solid var(--line);border-radius:9px;padding:7px 11px;color:var(--ink);
   transition:border-color .18s ease,background .18s ease}
@@ -4404,7 +4460,7 @@ select.sm-active{border-color:var(--page-accent);
 .fp-modebtn .fp-mname{font-family:var(--serif);font-size:.92rem}
 .fp-modebtn .fp-mwhy{font-size:.68rem;color:var(--muted)}
 .fp-mode.locked .fp-modebtn:disabled{opacity:.5;cursor:not-allowed}
-.fp-len{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.fp-len{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:0}
 .fp-lenbtn{font:inherit;font-size:.72rem;cursor:pointer;background:var(--card);border:1px solid var(--line);
   border-radius:999px;padding:2px 10px;color:var(--muted);transition:border-color .15s,color .15s}
 .fp-lenbtn:hover:not(:disabled){border-color:var(--page-accent);color:var(--ink)}
@@ -8079,6 +8135,51 @@ function taskWorkRecord(taskId){
 const fmtHM = m => m >= 60 ? `${Math.floor(m / 60)}h ${m % 60 ? (m % 60) + 'm' : ''}`.trim() : `${m}m`;
 const clockOf = iso => { if(!iso) return '—'; const d = new Date(iso); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
 
+/* ---------- the face ----------
+   A ring that empties is a progress bar bent into a circle: it says how much
+   is left as a proportion and nothing about time. A clock says it as time,
+   which is the thing being measured, and a hand that sweeps is the plainest
+   signal in the world that something is running.
+
+   So: a dial with sixty marks, a minute hand and a second hand, both moving.
+   Counting down, the hands read the time remaining — the minute hand falls
+   back towards twelve as the sitting ends. Counting up, they read the time
+   spent. The thin arc stays, behind the hands, because for a countdown the
+   proportion is worth seeing too. */
+const FP_R = 52;
+function focusClockHTML(face, frac, col, s, stop){
+  const C = 2 * Math.PI * FP_R;
+  const secs = Math.max(0, face | 0);
+  const secDeg = (secs % 60) * 6;
+  /* one sweep of the minute hand is an hour, so a 25-minute sitting uses less
+     than half the dial and a 90-minute one goes round once and a half */
+  const minDeg = (secs % 3600) / 3600 * 360;
+  const marks = Array.from({length: 60}, (_, i) => {
+    const major = i % 5 === 0;
+    const a = i * 6 * Math.PI / 180, r1 = major ? 40 : 44, r2 = 46.5;
+    return `<line class="fc-mark${major ? ' major' : ''}"
+      x1="${(60 + Math.sin(a) * r1).toFixed(2)}" y1="${(60 - Math.cos(a) * r1).toFixed(2)}"
+      x2="${(60 + Math.sin(a) * r2).toFixed(2)}" y2="${(60 - Math.cos(a) * r2).toFixed(2)}"/>`;
+  }).join('');
+  const phase = s.phase === 'focus' ? (s.onBreak ? 'on a break' : (stop ? 'counting up' : 'focus'))
+    : s.phase === 'long' ? 'long break' : 'break';
+  return `<div class="fp-ring${s.running ? ' ticking' : ''}${s.onBreak ? ' resting' : ''}">
+    <svg viewBox="0 0 120 120" aria-hidden="true">
+      <circle cx="60" cy="60" r="${FP_R}" class="ft-track"/>
+      <circle cx="60" cy="60" r="${FP_R}" class="ft-arc"
+        style="stroke:${col};stroke-dasharray:${C.toFixed(1)};stroke-dashoffset:${(C * (1 - frac)).toFixed(1)}"/>
+      <g class="fc-marks">${marks}</g>
+      <g class="fc-hand fc-min" style="transform:rotate(${minDeg.toFixed(2)}deg)">
+        <line x1="60" y1="60" x2="60" y2="27"/></g>
+      <g class="fc-hand fc-sec" style="transform:rotate(${secDeg.toFixed(2)}deg)">
+        <line x1="60" y1="66" x2="60" y2="20"/></g>
+      <circle cx="60" cy="60" r="3.2" class="fc-pin" style="fill:${col}"/>
+    </svg>
+    <div class="fp-face"><div class="fp-time mono">${fmtClock(face)}</div>
+      <div class="fp-phase mono">${phase}</div></div>
+  </div>`;
+}
+
 /* ---------- the panel ---------- */
 function focusPanelHTML(){
   const s = FocusTimer.state(), c = planState().timer;
@@ -8107,6 +8208,7 @@ function focusPanelHTML(){
       <!-- How the sitting is counted is chosen before it starts, because the two
            are different questions: can I hold this for twenty-five minutes, or
            how long did that actually take. It is fixed once the clock runs. -->
+      <div class="fp-setup">
       <div class="fp-mode${s.idle ? '' : ' locked'}">
         ${[['countdown', 'Countdown', 'to a length you set'], ['stopwatch', 'Stopwatch', 'counts up, no end']]
           .map(([k, n, why]) => `<button class="fp-modebtn${s.mode === k ? ' on' : ''}" data-fpmode="${k}"
@@ -8120,6 +8222,7 @@ function focusPanelHTML(){
         <input class="inp mono fp-lenn" id="fpLen" type="number" min="1" max="240"
           value="${c.focusDuration}" ${s.idle ? '' : 'disabled'} aria-label="minutes">
       </div>` : ''}
+      </div>
 
       <!-- the drop target: a task becomes the subject by being dragged here -->
       <div class="fp-drop" data-focusdrop>
@@ -8139,14 +8242,7 @@ function focusPanelHTML(){
       </div>
 
       <div class="fp-body">
-        <div class="fp-ring">
-          <svg viewBox="0 0 120 120" aria-hidden="true">
-            <circle cx="60" cy="60" r="${R}" class="ft-track"/>
-            <circle cx="60" cy="60" r="${R}" class="ft-arc" style="stroke:${col};stroke-dasharray:${C.toFixed(1)};stroke-dashoffset:${(C * (1 - frac)).toFixed(1)}"/>
-          </svg>
-          <div class="fp-face"><div class="fp-time serif">${fmtClock(face)}</div>
-            <div class="fp-phase mono">${s.phase === 'focus' ? (s.onBreak ? 'on a break' : (stop ? 'counting up' : 'focus')) : s.phase === 'long' ? 'long break' : 'break'}</div></div>
-        </div>
+        ${focusClockHTML(face, frac, col, s, stop)}
         <div class="fp-side">
           <div class="row" style="gap:8px;flex-wrap:wrap">
             <button class="btn sm primary" id="fpGo">${s.running ? '⏸ pause' : s.idle ? '▶ start' : '▶ resume'}</button>
@@ -8239,9 +8335,17 @@ function liveFocusFace(root){
     const c = planState().timer;
     const total = (s.phase === 'focus' ? c.focusDuration : s.phase === 'long' ? c.longBreak : c.shortBreak) * 60;
     const arc = box.querySelector('.ft-arc');
-    if(arc){ const R = 52, C = 2 * Math.PI * R;
+    if(arc){ const C = 2 * Math.PI * FP_R;
       const frac = up ? (s.elapsed % 3600) / 3600 : (total ? 1 - s.left / total : 0);
       arc.style.strokeDashoffset = (C * (1 - frac)).toFixed(1); }
+    /* the hands are the point of the face, so they move every second rather
+       than only when the panel happens to be redrawn */
+    const secs = Math.max(0, (up ? s.elapsed : s.left) | 0);
+    const mh = box.querySelector('.fc-min'), sh = box.querySelector('.fc-sec');
+    if(mh) mh.style.transform = `rotate(${((secs % 3600) / 3600 * 360).toFixed(2)}deg)`;
+    if(sh) sh.style.transform = `rotate(${((secs % 60) * 6).toFixed(2)}deg)`;
+    const ring = box.querySelector('.fp-ring');
+    if(ring){ ring.classList.toggle('ticking', !!s.running); ring.classList.toggle('resting', !!s.onBreak); }
   };
   const iv = setInterval(face, 1000);
   face();
@@ -9246,14 +9350,21 @@ routes.today = function(root){
 
     <!-- today's tasks (up front) -->
     <details class="section rv t-sec" id="t-tasks"${fold('t-tasks')}>
-      <summary><span class="sc" style="margin:0">Today's tasks</span><span class="mono">${rows.length?`${doneN} of ${rows.length} done`:'nothing parked yet'}</span>${flowTick('tasksAt')}</summary>
+      <summary><span class="sc" style="margin:0">Today's tasks</span><span class="mono">${(() => {
+        if(!rows.length) return 'nothing parked yet';
+        const must = rows.filter(r => !taskIsBonus(r)), extra = rows.filter(taskIsBonus);
+        const mDone = must.filter(r => r.done).length, eDone = extra.filter(r => r.done).length;
+        /* the headline number is what had to be done, because that is what
+           finishing the day means; the bonus is counted beside it, never in it */
+        return extra.length
+          ? `${mDone} of ${must.length} done · ${eDone}/${extra.length} bonus`
+          : `${mDone} of ${must.length} done`; })()}</span>${flowTick('tasksAt')}</summary>
       <div class="body">
       <div class="card" data-daydrop="${T}" style="margin-top:10px">
         ${dayListFilterHTML(rows)}
-        <div class="stack" style="gap:2px">${(() => { const shown = filterRowsByList(rows);
-          return shown.map(r=>taskRowHTML(r)).join('') || (rows.length
-            ? `<div class="empty">Nothing in that list today. <button class="tbtn" data-tlist="all">show all ${rows.length}</button></div>`
-            : `<div class="empty">Park work here from a project, or write one below.</div>`); })()}</div>
+        ${dayTaskListHTML(rows) || (rows.length
+          ? `<div class="empty">Nothing in that list today. <button class="tbtn" data-tlist="all">show all ${rows.length}</button></div>`
+          : `<div class="empty">Park work here from a project, or write one below.</div>`)}
         <div class="row" style="margin-top:10px;gap:8px">${quickTaskInput(T)}<button class="btn sm ghost" id="pullTask">pull in ↓</button><a class="btn sm ghost" href="#/planning/today">all of it →</a></div>
         ${carried.length?`<div class="row" style="margin-top:10px"><span class="mono" style="color:#d08080">${carried.length} carried over from earlier days</span><button class="btn sm ghost" id="carryAll">bring to today</button></div>`:''}
       </div></div></details>
@@ -19432,7 +19543,7 @@ function taskRowHTML(r, {showDay=false}={}){
   const late = r.day && !r.done && r.day < today();
   const prog = taskSubCount(r.task);
   const open = subsOpen(r.id, r.task);
-  return `<div class="task-row ${r.done?'done':''} ${late?'late':''}${open?' subs-open':''}" data-taskrow="${r.id}" draggable="true">
+  return `<div class="task-row ${r.done?'done':''} ${late?'late':''}${open?' subs-open':''}${taskIsBonus(r)?' bonus':''}" data-taskrow="${r.id}" draggable="true">
     <span class="task-grip" title="drag to reorder" aria-hidden="true">⠿</span>
     ${subCaretHTML(r.id, r.task)}
     <button class="task-check" data-tcheck="${r.id}" role="checkbox" aria-checked="${r.done}" title="${r.done?'mark not done':'mark done'}">${r.done?'✓':''}</button>
@@ -19451,6 +19562,12 @@ function taskRowHTML(r, {showDay=false}={}){
     <!-- Taking something off a day is not the same as deciding never to do it.
          This clears the day and keeps the task, so it comes back in the pull-in
          list for any other day; the × beside it still deletes, with its undo. -->
+    <!-- which of the two lists it belongs to, changed from the row itself
+         because the difference is a judgement you make while looking at the
+         day, not something you go into a panel to set -->
+    <button class="task-bonus${taskIsBonus(r) ? ' on' : ''}" data-tbonus="${r.id}"
+      title="${taskIsBonus(r) ? 'a bonus — leaving it is not a miss. Press to make it compulsory.' : 'compulsory today. Press to make it a bonus.'}"
+      aria-label="compulsory or bonus">${taskIsBonus(r) ? '✧' : '✦'}</button>
     ${r.day?`<button class="task-defer" data-tdefer="${r.id}" title="not today — keep it for another day">not today</button>`:''}
     <button class="del-x inline" data-tdel="${r.id}" title="delete this task for good">×</button>
   </div>
@@ -19540,6 +19657,18 @@ function bindSubtasks(root, after){
 function bindTaskRows(root, after){
   const redraw = after || rerender;
   bindTaskTimers(root);
+  $$('[data-tgroup]', root).forEach(b => b.onclick = ev => {
+    ev.stopPropagation();
+    const k = b.dataset.tgroup;
+    S.settings.todayGroupShut = S.settings.todayGroupShut || {};
+    S.settings.todayGroupShut[k] = !S.settings.todayGroupShut[k];
+    saveNow(); redraw(); });
+  $$('[data-tbonus]', root).forEach(b => b.onclick = ev => {
+    ev.stopPropagation();
+    const r = findTaskRef(b.dataset.tbonus); if(!r) return;
+    setTaskBonus(r.id, !taskIsBonus(r)); sound('click');
+    toast(taskIsBonus(r) ? 'Bonus — no failure if it waits.' : 'Compulsory — this one has to be finished today.');
+    redraw(); });
   $$('[data-tcheck]', root).forEach(b => b.onclick = () => { const r = findTaskRef(b.dataset.tcheck); if(!r) return; setTaskDone(r.id, !r.done); sound(r.done ? 'click' : 'success'); redraw(); });
   $$('[data-tdel]', root).forEach(b => b.onclick = e => { e.stopPropagation(); deleteTaskRef(b.dataset.tdel, b.closest('.task-row'), redraw); });
   $$('[data-tdefer]', root).forEach(b => b.onclick = e => {
@@ -19650,6 +19779,78 @@ function dayListBuckets(rows){
   rows.forEach(r => { const k = taskListKey(r); seen.set(k, (seen.get(k) || 0) + 1); });
   return [...seen.entries()].map(([id, n]) => ({id, n, name: taskListLabel(id)}))
     .sort((a, b) => a.name.localeCompare(b.name));
+}
+/* ---------- compulsory and bonus ----------
+   Not everything parked on a day has the same weight. Some of it has to be
+   finished today; the rest would be good to reach and costs nothing if it
+   waits. Counting both against one total makes a day with eleven things on
+   it read as a failure at eight, when eight was the whole of what was
+   actually required — so they are two lists, tallied separately, and the
+   bonus one says outright that leaving it is not a miss. */
+const taskIsBonus = r => !!(r.task && r.task.bonus);
+function setTaskBonus(id, on){
+  const r = findTaskRef(id); if(!r) return;
+  r.task.bonus = !!on; r.task.updatedAt = new Date().toISOString(); saveNow();
+}
+
+/* ---------- grouped by the list each one lives in ----------
+   Today's rows were a flat run whose only clue to where a task came from was
+   a small label at the end. Grouped under the list, each group folds and
+   counts what is left in it, and the busiest group is at the top: the list
+   with six things outstanding is the one the day is really about. */
+function dayGroups(rows){
+  const by = new Map();
+  rows.forEach(r => { const k = taskListKey(r);
+    if(!by.has(k)) by.set(k, {id:k, name: taskListLabel(k), rows: []});
+    by.get(k).rows.push(r); });
+  return [...by.values()].map(g => ({...g,
+    left: g.rows.filter(r => !r.done).length, total: g.rows.length}))
+    .sort((a, b) => b.left - a.left || b.total - a.total || a.name.localeCompare(b.name));
+}
+function dayGroupOpen(kind, id){
+  const shut = S.settings.todayGroupShut || {};
+  return !shut[`${kind}:${id}`];
+}
+function dayGroupColor(id){
+  return id === 'projects' ? 'var(--terra)'
+    : (typeof planListColor === 'function' ? planListColor(id) : 'var(--faint)');
+}
+function dayGroupsHTML(rows, kind){
+  const gs = dayGroups(rows);
+  if(!gs.length) return '';
+  /* one list is not a grouping — draw the rows plainly */
+  if(gs.length === 1) return `<div class="stack" style="gap:2px">${gs[0].rows.map(r => taskRowHTML(r)).join('')}</div>`;
+  return gs.map(g => { const open = dayGroupOpen(kind, g.id);
+    return `<div class="tg${open ? ' open' : ''}" style="--c:${dayGroupColor(g.id)}">
+      <button class="tg-head" data-tgroup="${esc(kind)}:${esc(g.id)}" aria-expanded="${open}">
+        <span class="tg-caret">›</span>
+        <span class="tg-name">${esc(g.name)}</span>
+        <span class="tg-n mono">${g.left ? `${g.left} left` : 'all done'}${g.total !== g.left ? ` · ${g.total}` : ''}</span>
+      </button>
+      ${open ? `<div class="tg-rows stack" style="gap:2px">${g.rows.map(r => taskRowHTML(r)).join('')}</div>` : ''}
+    </div>`; }).join('');
+}
+/* Compulsory first, then bonus. The bonus heading carries its own sentence,
+   because the whole point of the split is what it means not to finish. */
+function dayTaskListHTML(rows){
+  const shown = filterRowsByList(rows);
+  if(!shown.length) return '';
+  const must = shown.filter(r => !taskIsBonus(r)), extra = shown.filter(taskIsBonus);
+  const band = (label, note, list, kind) => { if(!list.length) return '';
+    const left = list.filter(r => !r.done).length;
+    return `<div class="tband tband-${kind}">
+      <div class="tband-head">
+        <span class="tband-name">${esc(label)}</span>
+        <span class="mono tband-n">${left ? `${left} of ${list.length} left` : `all ${list.length} done`}</span>
+      </div>
+      <div class="tband-note">${esc(note)}</div>
+      ${dayGroupsHTML(list, kind)}
+    </div>`; };
+  /* with nothing marked bonus there is nothing to contrast, so the day is
+     just a list and the headings would be noise */
+  if(!extra.length) return dayGroupsHTML(must, 'must');
+  return band('Compulsory', 'Finish these today.', must, 'must')
+       + band('Bonus', 'Good to reach. Leaving them is not a miss.', extra, 'bonus');
 }
 function filterRowsByList(rows){
   const pick = S._todayList;

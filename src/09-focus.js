@@ -187,6 +187,51 @@ function taskWorkRecord(taskId){
 const fmtHM = m => m >= 60 ? `${Math.floor(m / 60)}h ${m % 60 ? (m % 60) + 'm' : ''}`.trim() : `${m}m`;
 const clockOf = iso => { if(!iso) return '—'; const d = new Date(iso); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
 
+/* ---------- the face ----------
+   A ring that empties is a progress bar bent into a circle: it says how much
+   is left as a proportion and nothing about time. A clock says it as time,
+   which is the thing being measured, and a hand that sweeps is the plainest
+   signal in the world that something is running.
+
+   So: a dial with sixty marks, a minute hand and a second hand, both moving.
+   Counting down, the hands read the time remaining — the minute hand falls
+   back towards twelve as the sitting ends. Counting up, they read the time
+   spent. The thin arc stays, behind the hands, because for a countdown the
+   proportion is worth seeing too. */
+const FP_R = 52;
+function focusClockHTML(face, frac, col, s, stop){
+  const C = 2 * Math.PI * FP_R;
+  const secs = Math.max(0, face | 0);
+  const secDeg = (secs % 60) * 6;
+  /* one sweep of the minute hand is an hour, so a 25-minute sitting uses less
+     than half the dial and a 90-minute one goes round once and a half */
+  const minDeg = (secs % 3600) / 3600 * 360;
+  const marks = Array.from({length: 60}, (_, i) => {
+    const major = i % 5 === 0;
+    const a = i * 6 * Math.PI / 180, r1 = major ? 40 : 44, r2 = 46.5;
+    return `<line class="fc-mark${major ? ' major' : ''}"
+      x1="${(60 + Math.sin(a) * r1).toFixed(2)}" y1="${(60 - Math.cos(a) * r1).toFixed(2)}"
+      x2="${(60 + Math.sin(a) * r2).toFixed(2)}" y2="${(60 - Math.cos(a) * r2).toFixed(2)}"/>`;
+  }).join('');
+  const phase = s.phase === 'focus' ? (s.onBreak ? 'on a break' : (stop ? 'counting up' : 'focus'))
+    : s.phase === 'long' ? 'long break' : 'break';
+  return `<div class="fp-ring${s.running ? ' ticking' : ''}${s.onBreak ? ' resting' : ''}">
+    <svg viewBox="0 0 120 120" aria-hidden="true">
+      <circle cx="60" cy="60" r="${FP_R}" class="ft-track"/>
+      <circle cx="60" cy="60" r="${FP_R}" class="ft-arc"
+        style="stroke:${col};stroke-dasharray:${C.toFixed(1)};stroke-dashoffset:${(C * (1 - frac)).toFixed(1)}"/>
+      <g class="fc-marks">${marks}</g>
+      <g class="fc-hand fc-min" style="transform:rotate(${minDeg.toFixed(2)}deg)">
+        <line x1="60" y1="60" x2="60" y2="27"/></g>
+      <g class="fc-hand fc-sec" style="transform:rotate(${secDeg.toFixed(2)}deg)">
+        <line x1="60" y1="66" x2="60" y2="20"/></g>
+      <circle cx="60" cy="60" r="3.2" class="fc-pin" style="fill:${col}"/>
+    </svg>
+    <div class="fp-face"><div class="fp-time mono">${fmtClock(face)}</div>
+      <div class="fp-phase mono">${phase}</div></div>
+  </div>`;
+}
+
 /* ---------- the panel ---------- */
 function focusPanelHTML(){
   const s = FocusTimer.state(), c = planState().timer;
@@ -215,6 +260,7 @@ function focusPanelHTML(){
       <!-- How the sitting is counted is chosen before it starts, because the two
            are different questions: can I hold this for twenty-five minutes, or
            how long did that actually take. It is fixed once the clock runs. -->
+      <div class="fp-setup">
       <div class="fp-mode${s.idle ? '' : ' locked'}">
         ${[['countdown', 'Countdown', 'to a length you set'], ['stopwatch', 'Stopwatch', 'counts up, no end']]
           .map(([k, n, why]) => `<button class="fp-modebtn${s.mode === k ? ' on' : ''}" data-fpmode="${k}"
@@ -228,6 +274,7 @@ function focusPanelHTML(){
         <input class="inp mono fp-lenn" id="fpLen" type="number" min="1" max="240"
           value="${c.focusDuration}" ${s.idle ? '' : 'disabled'} aria-label="minutes">
       </div>` : ''}
+      </div>
 
       <!-- the drop target: a task becomes the subject by being dragged here -->
       <div class="fp-drop" data-focusdrop>
@@ -247,14 +294,7 @@ function focusPanelHTML(){
       </div>
 
       <div class="fp-body">
-        <div class="fp-ring">
-          <svg viewBox="0 0 120 120" aria-hidden="true">
-            <circle cx="60" cy="60" r="${R}" class="ft-track"/>
-            <circle cx="60" cy="60" r="${R}" class="ft-arc" style="stroke:${col};stroke-dasharray:${C.toFixed(1)};stroke-dashoffset:${(C * (1 - frac)).toFixed(1)}"/>
-          </svg>
-          <div class="fp-face"><div class="fp-time serif">${fmtClock(face)}</div>
-            <div class="fp-phase mono">${s.phase === 'focus' ? (s.onBreak ? 'on a break' : (stop ? 'counting up' : 'focus')) : s.phase === 'long' ? 'long break' : 'break'}</div></div>
-        </div>
+        ${focusClockHTML(face, frac, col, s, stop)}
         <div class="fp-side">
           <div class="row" style="gap:8px;flex-wrap:wrap">
             <button class="btn sm primary" id="fpGo">${s.running ? '⏸ pause' : s.idle ? '▶ start' : '▶ resume'}</button>
@@ -347,9 +387,17 @@ function liveFocusFace(root){
     const c = planState().timer;
     const total = (s.phase === 'focus' ? c.focusDuration : s.phase === 'long' ? c.longBreak : c.shortBreak) * 60;
     const arc = box.querySelector('.ft-arc');
-    if(arc){ const R = 52, C = 2 * Math.PI * R;
+    if(arc){ const C = 2 * Math.PI * FP_R;
       const frac = up ? (s.elapsed % 3600) / 3600 : (total ? 1 - s.left / total : 0);
       arc.style.strokeDashoffset = (C * (1 - frac)).toFixed(1); }
+    /* the hands are the point of the face, so they move every second rather
+       than only when the panel happens to be redrawn */
+    const secs = Math.max(0, (up ? s.elapsed : s.left) | 0);
+    const mh = box.querySelector('.fc-min'), sh = box.querySelector('.fc-sec');
+    if(mh) mh.style.transform = `rotate(${((secs % 3600) / 3600 * 360).toFixed(2)}deg)`;
+    if(sh) sh.style.transform = `rotate(${((secs % 60) * 6).toFixed(2)}deg)`;
+    const ring = box.querySelector('.fp-ring');
+    if(ring){ ring.classList.toggle('ticking', !!s.running); ring.classList.toggle('resting', !!s.onBreak); }
   };
   const iv = setInterval(face, 1000);
   face();

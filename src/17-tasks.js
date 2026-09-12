@@ -119,7 +119,7 @@ function taskRowHTML(r, {showDay=false}={}){
   const late = r.day && !r.done && r.day < today();
   const prog = taskSubCount(r.task);
   const open = subsOpen(r.id, r.task);
-  return `<div class="task-row ${r.done?'done':''} ${late?'late':''}${open?' subs-open':''}" data-taskrow="${r.id}" draggable="true">
+  return `<div class="task-row ${r.done?'done':''} ${late?'late':''}${open?' subs-open':''}${taskIsBonus(r)?' bonus':''}" data-taskrow="${r.id}" draggable="true">
     <span class="task-grip" title="drag to reorder" aria-hidden="true">⠿</span>
     ${subCaretHTML(r.id, r.task)}
     <button class="task-check" data-tcheck="${r.id}" role="checkbox" aria-checked="${r.done}" title="${r.done?'mark not done':'mark done'}">${r.done?'✓':''}</button>
@@ -138,6 +138,12 @@ function taskRowHTML(r, {showDay=false}={}){
     <!-- Taking something off a day is not the same as deciding never to do it.
          This clears the day and keeps the task, so it comes back in the pull-in
          list for any other day; the × beside it still deletes, with its undo. -->
+    <!-- which of the two lists it belongs to, changed from the row itself
+         because the difference is a judgement you make while looking at the
+         day, not something you go into a panel to set -->
+    <button class="task-bonus${taskIsBonus(r) ? ' on' : ''}" data-tbonus="${r.id}"
+      title="${taskIsBonus(r) ? 'a bonus — leaving it is not a miss. Press to make it compulsory.' : 'compulsory today. Press to make it a bonus.'}"
+      aria-label="compulsory or bonus">${taskIsBonus(r) ? '✧' : '✦'}</button>
     ${r.day?`<button class="task-defer" data-tdefer="${r.id}" title="not today — keep it for another day">not today</button>`:''}
     <button class="del-x inline" data-tdel="${r.id}" title="delete this task for good">×</button>
   </div>
@@ -227,6 +233,18 @@ function bindSubtasks(root, after){
 function bindTaskRows(root, after){
   const redraw = after || rerender;
   bindTaskTimers(root);
+  $$('[data-tgroup]', root).forEach(b => b.onclick = ev => {
+    ev.stopPropagation();
+    const k = b.dataset.tgroup;
+    S.settings.todayGroupShut = S.settings.todayGroupShut || {};
+    S.settings.todayGroupShut[k] = !S.settings.todayGroupShut[k];
+    saveNow(); redraw(); });
+  $$('[data-tbonus]', root).forEach(b => b.onclick = ev => {
+    ev.stopPropagation();
+    const r = findTaskRef(b.dataset.tbonus); if(!r) return;
+    setTaskBonus(r.id, !taskIsBonus(r)); sound('click');
+    toast(taskIsBonus(r) ? 'Bonus — no failure if it waits.' : 'Compulsory — this one has to be finished today.');
+    redraw(); });
   $$('[data-tcheck]', root).forEach(b => b.onclick = () => { const r = findTaskRef(b.dataset.tcheck); if(!r) return; setTaskDone(r.id, !r.done); sound(r.done ? 'click' : 'success'); redraw(); });
   $$('[data-tdel]', root).forEach(b => b.onclick = e => { e.stopPropagation(); deleteTaskRef(b.dataset.tdel, b.closest('.task-row'), redraw); });
   $$('[data-tdefer]', root).forEach(b => b.onclick = e => {
@@ -337,6 +355,78 @@ function dayListBuckets(rows){
   rows.forEach(r => { const k = taskListKey(r); seen.set(k, (seen.get(k) || 0) + 1); });
   return [...seen.entries()].map(([id, n]) => ({id, n, name: taskListLabel(id)}))
     .sort((a, b) => a.name.localeCompare(b.name));
+}
+/* ---------- compulsory and bonus ----------
+   Not everything parked on a day has the same weight. Some of it has to be
+   finished today; the rest would be good to reach and costs nothing if it
+   waits. Counting both against one total makes a day with eleven things on
+   it read as a failure at eight, when eight was the whole of what was
+   actually required — so they are two lists, tallied separately, and the
+   bonus one says outright that leaving it is not a miss. */
+const taskIsBonus = r => !!(r.task && r.task.bonus);
+function setTaskBonus(id, on){
+  const r = findTaskRef(id); if(!r) return;
+  r.task.bonus = !!on; r.task.updatedAt = new Date().toISOString(); saveNow();
+}
+
+/* ---------- grouped by the list each one lives in ----------
+   Today's rows were a flat run whose only clue to where a task came from was
+   a small label at the end. Grouped under the list, each group folds and
+   counts what is left in it, and the busiest group is at the top: the list
+   with six things outstanding is the one the day is really about. */
+function dayGroups(rows){
+  const by = new Map();
+  rows.forEach(r => { const k = taskListKey(r);
+    if(!by.has(k)) by.set(k, {id:k, name: taskListLabel(k), rows: []});
+    by.get(k).rows.push(r); });
+  return [...by.values()].map(g => ({...g,
+    left: g.rows.filter(r => !r.done).length, total: g.rows.length}))
+    .sort((a, b) => b.left - a.left || b.total - a.total || a.name.localeCompare(b.name));
+}
+function dayGroupOpen(kind, id){
+  const shut = S.settings.todayGroupShut || {};
+  return !shut[`${kind}:${id}`];
+}
+function dayGroupColor(id){
+  return id === 'projects' ? 'var(--terra)'
+    : (typeof planListColor === 'function' ? planListColor(id) : 'var(--faint)');
+}
+function dayGroupsHTML(rows, kind){
+  const gs = dayGroups(rows);
+  if(!gs.length) return '';
+  /* one list is not a grouping — draw the rows plainly */
+  if(gs.length === 1) return `<div class="stack" style="gap:2px">${gs[0].rows.map(r => taskRowHTML(r)).join('')}</div>`;
+  return gs.map(g => { const open = dayGroupOpen(kind, g.id);
+    return `<div class="tg${open ? ' open' : ''}" style="--c:${dayGroupColor(g.id)}">
+      <button class="tg-head" data-tgroup="${esc(kind)}:${esc(g.id)}" aria-expanded="${open}">
+        <span class="tg-caret">›</span>
+        <span class="tg-name">${esc(g.name)}</span>
+        <span class="tg-n mono">${g.left ? `${g.left} left` : 'all done'}${g.total !== g.left ? ` · ${g.total}` : ''}</span>
+      </button>
+      ${open ? `<div class="tg-rows stack" style="gap:2px">${g.rows.map(r => taskRowHTML(r)).join('')}</div>` : ''}
+    </div>`; }).join('');
+}
+/* Compulsory first, then bonus. The bonus heading carries its own sentence,
+   because the whole point of the split is what it means not to finish. */
+function dayTaskListHTML(rows){
+  const shown = filterRowsByList(rows);
+  if(!shown.length) return '';
+  const must = shown.filter(r => !taskIsBonus(r)), extra = shown.filter(taskIsBonus);
+  const band = (label, note, list, kind) => { if(!list.length) return '';
+    const left = list.filter(r => !r.done).length;
+    return `<div class="tband tband-${kind}">
+      <div class="tband-head">
+        <span class="tband-name">${esc(label)}</span>
+        <span class="mono tband-n">${left ? `${left} of ${list.length} left` : `all ${list.length} done`}</span>
+      </div>
+      <div class="tband-note">${esc(note)}</div>
+      ${dayGroupsHTML(list, kind)}
+    </div>`; };
+  /* with nothing marked bonus there is nothing to contrast, so the day is
+     just a list and the headings would be noise */
+  if(!extra.length) return dayGroupsHTML(must, 'must');
+  return band('Compulsory', 'Finish these today.', must, 'must')
+       + band('Bonus', 'Good to reach. Leaving them is not a miss.', extra, 'bonus');
 }
 function filterRowsByList(rows){
   const pick = S._todayList;
