@@ -10,6 +10,16 @@ routes.settings = function(root){
       <div class="opt"><div><b>Felt time</b><div class="d">Default timeline mode: stretch dense stages, compress thin ones.</div></div><label class="toggle ${S.settings.feltTime?'on':''}" id="sFelt"><span>clock</span><span class="sw"></span><span>felt</span></label></div>
       <div class="opt"><div><b>Landing page</b><div class="d">Where the site opens.</div></div><select class="sel" style="width:auto" id="sHome">${[['compass','Compass'],['today','Today']].map(([v,l])=>`<option value="${v}" ${(S.settings.home||'compass')===v?'selected':''}>${l}</option>`).join('')}</select></div>
     </div>
+    <div class="card rv"><h3>Day &amp; sleep</h3>
+      <div class="opt"><div><b>The day turns over at</b>
+        <div class="d">A day ends when you go to sleep, not at midnight. Before this hour the site is still on yesterday — so a bedtime logged at half past one belongs to the day you have been living, and the sleep chart draws it at the end of that day rather than the start of the next.</div></div>
+        <select class="sel" style="width:auto" id="sBoundary">${[0,1,2,3,4,5,6].map(h =>
+          `<option value="${h}" ${dayBoundaryHour() === h ? 'selected' : ''}>${h === 0 ? 'midnight — no delay' : `${h} AM`}${h === 4 ? ' (recommended)' : ''}</option>`).join('')}</select></div>
+      <div class="opt"><div><b>Right now</b><div class="d">${
+        isLateNight() ? `It is ${esc(clockDay())} by the clock, and the site is treating it as ${esc(today())} — you are up late.`
+                      : `The clock and the day agree: ${esc(today())}.`}</div></div></div>
+    </div>
+
     <div class="card rv"><h3>The keyboard</h3>
       <p class="muted" style="font-size:.85rem">Press the key. Nothing fires while you are typing into something — which is why the two things you do with the caret still in a draft take ⌥, and nothing else does.</p>
       ${typeof shortcutsHTML === 'function' ? `<div class="kb-inline">${shortcutsHTML('').replace(/^[\s\S]*?<div class="kb-grid">/, '<div class="kb-grid">')}</div>` : ''}
@@ -78,7 +88,10 @@ routes.settings = function(root){
     st.textContent = 'checking…';
     try { const r = await askClaude('Reply with exactly: ok', 'ping', {maxTokens:10}); st.textContent = r ? 'Connected. Claude answered.' : 'Connected, but the answer was empty.'; sound('success'); }
     catch(e){ st.textContent = e.message; sound('error'); }
-  };  $('#sTheme').onclick = function(){ S.settings.theme = S.settings.theme==='dark'?'light':'dark'; saveNow(); applyTheme(); this.classList.toggle('on', S.settings.theme==='light'); };
+  };  $('#sBoundary').onchange = function(){ S.settings.dayBoundaryHour = +this.value; saveNow(); rerender();
+    toast(+this.value === 0 ? 'The day turns over at midnight again.'
+      : `The day turns over at ${this.value} AM. Anything before that is still the day before.`); };
+  $('#sTheme').onclick = function(){ S.settings.theme = S.settings.theme==='dark'?'light':'dark'; saveNow(); applyTheme(); this.classList.toggle('on', S.settings.theme==='light'); };
   $('#sSound').onclick = function(){ SoundManager.toggleSound(); this.classList.toggle('on', SoundManager.state().soundEnabled); };
   $('#sAmbient').onclick = function(){ SoundManager.toggleAmbient(); this.classList.toggle('on', SoundManager.state().ambientEnabled); };
   $('#sFelt').onclick = function(){ S.settings.feltTime = !S.settings.feltTime; saveNow(); this.classList.toggle('on', S.settings.feltTime); };

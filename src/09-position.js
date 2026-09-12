@@ -619,7 +619,16 @@ function weekShapeRow(d){
   const r = rhythmDay(d);
   let wake = hm2min(r.wakeTime), close = hm2min(r.sleepTime);
   if(wake != null) wake /= 60;
-  if(close != null){ close /= 60; if(wake != null && close <= wake) close += 24; }
+  /* A bedtime in the small hours belongs to the evening before, so it is
+     plotted past 24 rather than back at the bottom of the chart: 10pm, 11pm,
+     midnight, 1am reads as 22, 23, 24, 25 and the line stays smooth instead of
+     falling off a cliff every time you are up late. The old rule only did this
+     when a wake time happened to exist beside it, so a night logged on its own
+     still spiked. The boundary hour is the test now — the same hour the rest
+     of the house uses to decide which day you are in. */
+  if(close != null){ close /= 60;
+    const b = typeof dayBoundaryHour === 'function' ? dayBoundaryHour() : 4;
+    if(close < Math.max(b, 1) || (wake != null && close <= wake)) close += 24; }
   /* Worked hours are measured now — the focus timer's own sessions — rather
      than a figure typed in at the end of a day nobody remembers accurately.
      Wasted time is not tracked at all any more: it was the half of the pair

@@ -1951,6 +1951,13 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 .pf-cold{font-size:.62rem;color:var(--faint);white-space:nowrap}
 .pf-cold.cold{color:var(--gold)}
 
+/* it is past midnight and you are still up */
+.late-night{font-family:var(--mono);font-size:.6rem;letter-spacing:.08em;color:var(--gold);
+  border:1px solid color-mix(in srgb,var(--gold) 45%,transparent);border-radius:20px;
+  padding:1px 8px;margin-left:9px;vertical-align:middle;white-space:nowrap}
+.wind-down .card{border-left:3px solid var(--gold);
+  background:linear-gradient(180deg,color-mix(in srgb,var(--gold) 7%,transparent),transparent)}
+
 /* how long the day's writing took */
 .write-total{font-size:1.5rem;color:var(--page-accent);letter-spacing:-.01em}
 .write-rows{display:flex;flex-direction:column;gap:1px;margin-top:10px}
@@ -4540,7 +4547,40 @@ const byId = (arr,id) => (arr||[]).find(x => x.id === id);
 const DAY = 86400000;
 const pad = n => String(n).padStart(2,'0');
 const isoDay = (d=new Date()) => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-const today = () => isoDay(new Date());
+/* ---------- the personal day boundary ----------
+   A day does not end at midnight. It ends when you go to sleep, and if that
+   is at two in the morning then two in the morning still belongs to the day
+   you have been living. Midnight as the cut-off had the site announce a fresh
+   morning while you were plainly still in your evening: it asked for a
+   wake-up time you had already given, filed the bedtime you were about to log
+   under tomorrow, and put a 1:30am bedtime at the *start* of a day in the
+   sleep chart rather than the end of the one before.
+
+   So there is a boundary hour, four in the morning by default and settable
+   from midnight to six. Before it, the site is still on yesterday.
+
+   This is the definition of today() itself rather than a second function
+   beside it, because "today" is asked 278 times across this house and every
+   one of those answers has to agree. `clockDay()` is the calendar date for
+   the few places that genuinely want the wall clock. */
+const DAY_BOUNDARY_DEFAULT = 4;
+const dayBoundaryHour = () => {
+  const h = (typeof S !== 'undefined' && S && S.settings) ? S.settings.dayBoundaryHour : undefined;
+  return h == null ? DAY_BOUNDARY_DEFAULT : clamp(+h || 0, 0, 6);
+};
+const clockDay = () => isoDay(new Date());
+function effectiveDate(at = new Date()){
+  const b = dayBoundaryHour();
+  let late = at.getHours() < b;
+  /* An all-nighter, or a day deliberately closed early: the person said their
+     day was over, so it is. The mark is the calendar date it was said on, so
+     it stops applying the moment the clock catches up. */
+  if(late && typeof S !== 'undefined' && S?.settings?.dayStartedEarly === isoDay(at)) late = false;
+  const d = late ? new Date(at.getTime() - DAY) : at;
+  return {date: isoDay(d), isLateNight: late, clockDate: isoDay(at), boundaryHour: b};
+}
+const today = () => effectiveDate().date;
+const isLateNight = () => effectiveDate().isLateNight;
 const parseDay = s => { const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); };
 const addDays = (s, n) => isoDay(new Date(parseDay(s).getTime() + n*DAY));
 const daysBetween = (a,b) => Math.round((parseDay(b) - parseDay(a))/DAY);
@@ -8987,7 +9027,16 @@ function weekShapeRow(d){
   const r = rhythmDay(d);
   let wake = hm2min(r.wakeTime), close = hm2min(r.sleepTime);
   if(wake != null) wake /= 60;
-  if(close != null){ close /= 60; if(wake != null && close <= wake) close += 24; }
+  /* A bedtime in the small hours belongs to the evening before, so it is
+     plotted past 24 rather than back at the bottom of the chart: 10pm, 11pm,
+     midnight, 1am reads as 22, 23, 24, 25 and the line stays smooth instead of
+     falling off a cliff every time you are up late. The old rule only did this
+     when a wake time happened to exist beside it, so a night logged on its own
+     still spiked. The boundary hour is the test now — the same hour the rest
+     of the house uses to decide which day you are in. */
+  if(close != null){ close /= 60;
+    const b = typeof dayBoundaryHour === 'function' ? dayBoundaryHour() : 4;
+    if(close < Math.max(b, 1) || (wake != null && close <= wake)) close += 24; }
   /* Worked hours are measured now — the focus timer's own sessions — rather
      than a figure typed in at the end of a day nobody remembers accurately.
      Wasted time is not tracked at all any more: it was the half of the pair
@@ -9212,6 +9261,63 @@ function bindWeekShape(root, redraw){
 /* ============================================================
    1. TODAY — the entryway (lean ritual space, ≤640px column)
    ============================================================ */
+/* ---------- coming back after a night ----------
+   Open the page after eight hours away and the effective day has changed:
+   the previous day was never closed and this one was never opened, so the
+   record has a hole at both ends. One small greeting catches both — what
+   time you went to bed, and what time you got up — rather than leaving the
+   bedtime to be guessed at later or lost.
+
+   It is offered, not insisted on: dismissing it is an answer, and it does not
+   ask again for the same day. */
+const WAKE_PROMPT_GAP_H = 5;
+function shouldGreetMorning(){
+  const T = today();
+  if(S.settings?.wakeAskedOn === T) return false;
+  if(isLateNight()) return false;                       /* you have not been to bed */
+  const c = checkin(T);
+  if(c.wakeAt) return false;                            /* already said */
+  const last = +S.settings?.lastSeenAt || 0;
+  if(!last) return false;                               /* first ever visit is not a return */
+  const hours = (Date.now() - last) / 3600000;
+  if(hours < WAKE_PROMPT_GAP_H) return false;
+  return effectiveDate(new Date(last)).date !== T;      /* and the day has turned over */
+}
+function noteSeen(){ S.settings = S.settings || {}; S.settings.lastSeenAt = Date.now(); saveNow(); }
+function openMorningGreeting(){
+  const T = today(), Y = addDays(T, -1);
+  const yr = typeof rhythmDay === 'function' ? rhythmDay(Y) : {};
+  const m = openModal(`<h2>☀️ Good morning</h2>
+    <p class="muted" style="font-size:.87rem">Two questions, and then the day is yours. Last night belongs to ${esc(fmtDate(Y, 'med'))}; this morning starts ${esc(fmtDate(T, 'med'))}.</p>
+    <div class="stack">
+      <div class="field"><label>What time did you go to bed?</label>
+        <input type="time" class="inp mono" id="mgBed" value="${esc(yr.sleepTime || '')}"></div>
+      <div class="field"><label>And what time did you wake?</label>
+        <input type="time" class="inp mono" id="mgWake" value="${esc(nowHM())}"></div>
+      <div class="row between" style="margin-top:6px">
+        <button class="btn sm ghost" id="mgSkip">not now</button>
+        <button class="btn primary" id="mgGo">Start the day</button></div>
+    </div>`, 'narrow');
+  const done = () => { S.settings.wakeAskedOn = T; saveNow(); m.remove(); rerender(); };
+  m.querySelector('#mgSkip').onclick = done;
+  m.querySelector('.close').onclick = done;
+  m.querySelector('#mgGo').onclick = () => {
+    const bed = m.querySelector('#mgBed').value, wake = m.querySelector('#mgWake').value;
+    /* the bedtime belongs to the day that ended, the waking to the one starting */
+    if(bed && typeof rhythmDay === 'function'){ const r = rhythmDay(Y); r.sleepTime = bed;
+      if(typeof rhythmCompute === 'function') rhythmCompute(r); }
+    if(wake){
+      if(typeof rhythmDay === 'function'){ const r = rhythmDay(T); r.wakeTime = wake;
+        if(typeof rhythmCompute === 'function') rhythmCompute(r); }
+      const [hh, mm] = wake.split(':').map(Number);
+      const d = parseDay(T); d.setHours(hh || 0, mm || 0, 0, 0);
+      checkin(T).wakeAt = d.toISOString();
+    }
+    sound('success'); toast('Both ends noted. The night is on yesterday where it belongs.');
+    done();
+  };
+}
+
 function checkin(day=today()){ if(!S.checkins[day]) S.checkins[day] = {mood:0, sentence:'', energy:{}, setpoint:0, intention:''}; return S.checkins[day]; }
 function rememberFold(id, open){ if(!id) return; S.settings.todayOpen = S.settings.todayOpen || {}; S.settings.todayOpen[id] = !!open; saveNow(); }
 /* one small dialog for the two ends of the day */
@@ -9322,7 +9428,8 @@ routes.today = function(root){
     <header class="rv today-head">
       <div class="row between" style="align-items:flex-start;gap:12px">
         <div>
-          <div class="today-date">${fmtDate(T)}</div>
+          <div class="today-date">${fmtDate(T)}${isLateNight()
+            ? ` <span class="late-night" title="It is ${esc(clockDay())} by the clock. The day turns over at ${dayBoundaryHour()} AM.">🌙 still ${esc(fmtDate(T, 'short'))}</span>` : ''}</div>
           ${seasonName?`<div class="mono faint" style="font-size:.72rem;margin-top:2px">${seasonName} · day ${Math.round(moon.age)} of the lunar cycle</div>`:''}
         </div>
         <div class="moon row" style="gap:6px;align-items:center">${moonSVG(moon.p)} <span class="mono faint">${moon.name}</span></div>
@@ -9386,7 +9493,10 @@ routes.today = function(root){
       </div></div></details>
 
     <!-- daily check-in (intention + mood + energy + setpoint) -->
-    <details class="section rv today-checkin t-sec" id="t-checkin"${fold('t-checkin', !c.intention || (!c.setpoint && !c.mood))}>
+    <!-- Past the small hours the morning check-in is not a form to fill in, it
+         is something you did fifteen hours ago. It folds itself away rather
+         than sitting open asking to start a morning you are at the end of. -->
+    <details class="section rv today-checkin t-sec" id="t-checkin"${fold('t-checkin', !isLateNight() && (!c.intention || (!c.setpoint && !c.mood)))}>
       <summary><span class="sc">Daily check-in</span><span class="mono">${c.intention ? esc(c.intention.slice(0,40)) : 'not yet set'}</span>${flowTick('checkinAt')}</summary>
       <div class="body stack" style="gap:20px">
         <div class="field"><label>Today's intention ${planT.planned && c.intention ? '<span class="mono faint" style="text-transform:none;letter-spacing:0">· set last night</span>' : ''}</label>
@@ -9462,6 +9572,16 @@ routes.today = function(root){
             <span class="mono wr-time">${esc(fmtWriting(n))}</span></button>`; }).join('')}</div>
       </div></section>`; })()}
 
+    ${isLateNight() ? `<section class="section rv wind-down"><div class="card">
+      <div class="row between" style="align-items:baseline">
+        <span class="sc" style="margin:0">🌙 Ready to close the day?</span>
+        <span class="mono faint">${esc(nowHM())} · still ${esc(fmtDate(T, 'short'))}</span></div>
+      <p class="muted" style="font-size:.85rem;margin:6px 0 10px">The clock says ${esc(fmtDate(clockDay(), 'short'))}, but this is still your ${esc(fmtDate(T, 'short'))} until you sleep. Logging a bedtime files it against the day you have been living.</p>
+      <div class="row" style="gap:8px;flex-wrap:wrap">
+        <button class="btn sm primary" id="wdBed">${c.sleepAt ? `bedtime ${esc(_ft(c.sleepAt))} — change it` : 'I am going to bed now'}</button>
+        <button class="btn sm ghost" id="wdNewDay">start a new day →</button>
+      </div></div></section>` : ''}
+
     <!-- before you sleep: the day after this one gets decided here -->
     <details class="section rv tomorrow-block t-sec ${evening ? 'is-evening' : ''}" id="t-tonight"${fold('t-tonight')}>
       <summary>
@@ -9516,6 +9636,23 @@ routes.today = function(root){
   }));
   $('#sleptAt') && ($('#sleptAt').onclick = () => { const r = rhythmDay(T);
     askClock('What time did you close the day?', r.sleepTime, v => { r.sleepTime = v; rhythmCompute(r); saveNow(); rerender(); }); });
+
+  /* the wind-down card, when it is past midnight and you are still up */
+  $('#wdBed') && ($('#wdBed').onclick = () => { const r = rhythmDay(T);
+    askClock('What time are you going to bed?', r.sleepTime || nowHM(), v => {
+      r.sleepTime = v; rhythmCompute(r); saveNow();
+      toast(`Filed against ${fmtDate(T, 'short')} — the day you have been living.`);
+      rerender(); }); });
+  /* An all-nighter, or a day closed early: whatever the boundary says, the
+     person is the authority on when their day ended. This moves them over the
+     line by hand, and it is remembered so the site does not argue. */
+  $('#wdNewDay') && ($('#wdNewDay').onclick = () => {
+    const r = rhythmDay(T);
+    if(!r.sleepTime){ r.sleepTime = nowHM(); rhythmCompute(r); }
+    S.settings.dayStartedEarly = clockDay();
+    saveNow(); sound('success');
+    toast(`${fmtDate(T, 'short')} is closed. This is ${fmtDate(clockDay(), 'short')} now.`);
+    rerender(); });
 
   /* habits */
   $('#todayAddHabit') && ($('#todayAddHabit').onclick = () => openHabitModal());
@@ -9572,6 +9709,9 @@ routes.today = function(root){
   /* the tally is a way back into what was written, not just a number */
   $$('[data-wopen]',root).forEach(b => b.onclick = () => openEntryModal({entryId: b.dataset.wopen}));
   bindDreamEdge(root, T);
+  /* after a night away, catch both ends of the gap before anything else */
+  if(shouldGreetMorning()) setTimeout(openMorningGreeting, 400);
+  noteSeen();
 
 
   reveal(root);
@@ -16565,6 +16705,16 @@ routes.settings = function(root){
       <div class="opt"><div><b>Felt time</b><div class="d">Default timeline mode: stretch dense stages, compress thin ones.</div></div><label class="toggle ${S.settings.feltTime?'on':''}" id="sFelt"><span>clock</span><span class="sw"></span><span>felt</span></label></div>
       <div class="opt"><div><b>Landing page</b><div class="d">Where the site opens.</div></div><select class="sel" style="width:auto" id="sHome">${[['compass','Compass'],['today','Today']].map(([v,l])=>`<option value="${v}" ${(S.settings.home||'compass')===v?'selected':''}>${l}</option>`).join('')}</select></div>
     </div>
+    <div class="card rv"><h3>Day &amp; sleep</h3>
+      <div class="opt"><div><b>The day turns over at</b>
+        <div class="d">A day ends when you go to sleep, not at midnight. Before this hour the site is still on yesterday — so a bedtime logged at half past one belongs to the day you have been living, and the sleep chart draws it at the end of that day rather than the start of the next.</div></div>
+        <select class="sel" style="width:auto" id="sBoundary">${[0,1,2,3,4,5,6].map(h =>
+          `<option value="${h}" ${dayBoundaryHour() === h ? 'selected' : ''}>${h === 0 ? 'midnight — no delay' : `${h} AM`}${h === 4 ? ' (recommended)' : ''}</option>`).join('')}</select></div>
+      <div class="opt"><div><b>Right now</b><div class="d">${
+        isLateNight() ? `It is ${esc(clockDay())} by the clock, and the site is treating it as ${esc(today())} — you are up late.`
+                      : `The clock and the day agree: ${esc(today())}.`}</div></div></div>
+    </div>
+
     <div class="card rv"><h3>The keyboard</h3>
       <p class="muted" style="font-size:.85rem">Press the key. Nothing fires while you are typing into something — which is why the two things you do with the caret still in a draft take ⌥, and nothing else does.</p>
       ${typeof shortcutsHTML === 'function' ? `<div class="kb-inline">${shortcutsHTML('').replace(/^[\s\S]*?<div class="kb-grid">/, '<div class="kb-grid">')}</div>` : ''}
@@ -16633,7 +16783,10 @@ routes.settings = function(root){
     st.textContent = 'checking…';
     try { const r = await askClaude('Reply with exactly: ok', 'ping', {maxTokens:10}); st.textContent = r ? 'Connected. Claude answered.' : 'Connected, but the answer was empty.'; sound('success'); }
     catch(e){ st.textContent = e.message; sound('error'); }
-  };  $('#sTheme').onclick = function(){ S.settings.theme = S.settings.theme==='dark'?'light':'dark'; saveNow(); applyTheme(); this.classList.toggle('on', S.settings.theme==='light'); };
+  };  $('#sBoundary').onchange = function(){ S.settings.dayBoundaryHour = +this.value; saveNow(); rerender();
+    toast(+this.value === 0 ? 'The day turns over at midnight again.'
+      : `The day turns over at ${this.value} AM. Anything before that is still the day before.`); };
+  $('#sTheme').onclick = function(){ S.settings.theme = S.settings.theme==='dark'?'light':'dark'; saveNow(); applyTheme(); this.classList.toggle('on', S.settings.theme==='light'); };
   $('#sSound').onclick = function(){ SoundManager.toggleSound(); this.classList.toggle('on', SoundManager.state().soundEnabled); };
   $('#sAmbient').onclick = function(){ SoundManager.toggleAmbient(); this.classList.toggle('on', SoundManager.state().ambientEnabled); };
   $('#sFelt').onclick = function(){ S.settings.feltTime = !S.settings.feltTime; saveNow(); this.classList.toggle('on', S.settings.feltTime); };

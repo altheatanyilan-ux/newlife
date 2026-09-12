@@ -13,7 +13,40 @@ const byId = (arr,id) => (arr||[]).find(x => x.id === id);
 const DAY = 86400000;
 const pad = n => String(n).padStart(2,'0');
 const isoDay = (d=new Date()) => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-const today = () => isoDay(new Date());
+/* ---------- the personal day boundary ----------
+   A day does not end at midnight. It ends when you go to sleep, and if that
+   is at two in the morning then two in the morning still belongs to the day
+   you have been living. Midnight as the cut-off had the site announce a fresh
+   morning while you were plainly still in your evening: it asked for a
+   wake-up time you had already given, filed the bedtime you were about to log
+   under tomorrow, and put a 1:30am bedtime at the *start* of a day in the
+   sleep chart rather than the end of the one before.
+
+   So there is a boundary hour, four in the morning by default and settable
+   from midnight to six. Before it, the site is still on yesterday.
+
+   This is the definition of today() itself rather than a second function
+   beside it, because "today" is asked 278 times across this house and every
+   one of those answers has to agree. `clockDay()` is the calendar date for
+   the few places that genuinely want the wall clock. */
+const DAY_BOUNDARY_DEFAULT = 4;
+const dayBoundaryHour = () => {
+  const h = (typeof S !== 'undefined' && S && S.settings) ? S.settings.dayBoundaryHour : undefined;
+  return h == null ? DAY_BOUNDARY_DEFAULT : clamp(+h || 0, 0, 6);
+};
+const clockDay = () => isoDay(new Date());
+function effectiveDate(at = new Date()){
+  const b = dayBoundaryHour();
+  let late = at.getHours() < b;
+  /* An all-nighter, or a day deliberately closed early: the person said their
+     day was over, so it is. The mark is the calendar date it was said on, so
+     it stops applying the moment the clock catches up. */
+  if(late && typeof S !== 'undefined' && S?.settings?.dayStartedEarly === isoDay(at)) late = false;
+  const d = late ? new Date(at.getTime() - DAY) : at;
+  return {date: isoDay(d), isLateNight: late, clockDate: isoDay(at), boundaryHour: b};
+}
+const today = () => effectiveDate().date;
+const isLateNight = () => effectiveDate().isLateNight;
 const parseDay = s => { const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); };
 const addDays = (s, n) => isoDay(new Date(parseDay(s).getTime() + n*DAY));
 const daysBetween = (a,b) => Math.round((parseDay(b) - parseDay(a))/DAY);
