@@ -19,7 +19,7 @@ function planCardHTML(t){
         <circle cx="10" cy="10" r="8.2" class="pt-ring"/><path d="M5.6 10.3 L8.7 13.3 L14.4 6.9" class="pt-tick"/></svg></button>
       <span class="pk-text" title="open this task">${esc(t.text || 'Untitled task')}</span>
       <button class="task-pen" data-tedit="${t.id}" title="rename it here" aria-label="rename">✎</button>
-      ${taskTimerBtnHTML(t.id, {sm:true})}
+      ${taskEstHTML(t.id, t, {sm:true})}
       <!-- the same caret a list row has, so steps fold here too rather than
            being permanently open on a card -->
       ${subCaretHTML(t.id, t, 'task-caret pk-caret')}</div>

@@ -1924,22 +1924,25 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 @media (max-width:560px){ .dc-months{gap:12px} .dc-grid{grid-template-columns:repeat(7,11px)}
   .dc-day{width:11px;height:11px} }
 
-/* a timer on every task, wherever the task is drawn */
-.task-timer{flex:none;width:22px;height:22px;padding:0;background:none;border:0;cursor:pointer;
-  border-radius:50%;color:var(--faint);opacity:0;transition:opacity .18s var(--ease),color .18s var(--ease),background .18s var(--ease)}
-.task-timer.sm{width:19px;height:19px}
-.task-timer svg{width:100%;height:100%;display:block;fill:none;stroke:currentColor;
-  stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
-.task-row:hover .task-timer,.pt-row:hover .task-timer,.pk-card:hover .task-timer,
-.task-timer:focus-visible{opacity:1}
-.task-timer:hover{color:var(--page-accent);background:var(--line)}
-/* a sitting in progress on this very task stays lit whether or not you hover */
-.task-timer.on{opacity:1;color:var(--terra)}
-.task-timer.on .tt-ring{animation:ttPulse 2.4s ease-in-out infinite}
-@keyframes ttPulse{0%,100%{opacity:1}50%{opacity:.35}}
+/* how long a task will take — and the way into a sitting of that length */
+.task-est{flex:none;padding:2px 8px;background:none;border:1px solid var(--line-2);border-radius:20px;
+  cursor:pointer;font-family:var(--mono);font-size:.64rem;letter-spacing:.03em;color:var(--muted);
+  white-space:nowrap;transition:border-color .18s var(--ease),color .18s var(--ease),background .18s var(--ease)}
+.task-est.sm{font-size:.6rem;padding:1px 6px}
+.task-est:hover{border-color:var(--page-accent);color:var(--page-accent);
+  background:color-mix(in srgb,var(--page-accent) 8%,transparent)}
+/* with no estimate yet it stays out of the way until the row is hovered */
+.task-est.none{opacity:0;border-style:dashed}
+.task-row:hover .task-est.none,.pt-row:hover .task-est.none,.pk-card:hover .task-est.none,
+.sub-row:hover .task-est.none,.task-est.none:focus-visible{opacity:1}
+.te-set{letter-spacing:.06em}
+/* a sitting running on this very task stays lit whether or not you hover */
+.task-est.on{opacity:1;border-color:var(--terra);color:var(--terra);
+  background:color-mix(in srgb,var(--terra) 10%,transparent);animation:tePulse 2.4s ease-in-out infinite}
+@keyframes tePulse{0%,100%{border-color:var(--terra)}50%{border-color:color-mix(in srgb,var(--terra) 35%,transparent)}}
 .pt-wip{font-size:.58rem;letter-spacing:.09em;text-transform:uppercase;color:var(--terra);
   border:1px solid var(--terra);border-radius:20px;padding:1px 6px;opacity:.8}
-@media (prefers-reduced-motion:reduce){ .task-timer.on .tt-ring{animation:none} }
+@media (prefers-reduced-motion:reduce){ .task-est.on{animation:none} }
 
 /* --- habits: the room, its three views, and the panel --- */
 .hb-room{display:flex;flex-direction:column;gap:14px}
@@ -7891,51 +7894,107 @@ function maybeAskPreferences(then){
    day was made use of, and that can be measured instead of guessed.
    ============================================================ */
 
-/* ---------- the timer, reachable from any task ----------
-   The focus timer used to be a place you went to, and then a panel on Today
-   you dragged a task into. Both make starting work a small errand. A task
-   anywhere in the house now carries its own timer button: press it and the
-   sitting begins, on that task, wherever you happened to be looking.
+/* ---------- how long it will take, and starting that long ----------
+   The button on a task row used to be a bare timer icon: press it and a
+   sitting began, of whatever length the timer happened to be set to. But the
+   useful thing to see on a row is not that a timer exists — it is how long
+   you think the thing will take. So the row carries the estimate, and the
+   estimate is the button: press it and the countdown starts at exactly that
+   length.
 
-   One button, one handler, drawn by three different row renderers (the Today
-   row, the Planning row, the matrix card), so they cannot drift apart. */
-function taskTimerBtnHTML(id, {sm = false} = {}){
+   A task broken into steps takes its total from the steps. Estimating the
+   whole and estimating the parts are two different acts and the parts are
+   the honest one, so when there are parts they are the answer and the
+   task's own figure steps aside — the same rule an income stream made of
+   parts already follows. */
+function taskEstOf(t){
+  if(!t) return 0;
+  const subs = Array.isArray(t.subtasks) ? t.subtasks : [];
+  const fromSubs = subs.reduce((n, s) => n + (+s.minutes || 0), 0);
+  return fromSubs || +t.duration || 0;
+}
+const taskHasSubEst = t => (Array.isArray(t?.subtasks) ? t.subtasks : []).some(s => +s.minutes > 0);
+/* "25m", "1h", "1h 30m" — never "0h 25m" */
+function fmtEst(m){
+  m = Math.round(+m || 0); if(!m) return '';
+  const h = Math.floor(m / 60), r = m % 60;
+  return h ? (r ? `${h}h ${r}m` : `${h}h`) : `${r}m`;
+}
+function taskEstHTML(id, t, {sm = false} = {}){
+  const mins = taskEstOf(t);
   const on = FocusTimer.state().taskId === id && FocusTimer.state().running;
-  return `<button class="task-timer${sm ? ' sm' : ''}${on ? ' on' : ''}" data-tfocus="${esc(id)}"
-    title="${on ? 'this sitting is running' : 'start a focus session on this'}" aria-label="focus on this task">
-    <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="11" r="7" class="tt-ring"/>
-      <path d="M10 7.4V11l2.4 1.6" class="tt-hands"/><path d="M7.6 2.8h4.8" class="tt-crown"/></svg></button>`;
+  const rolled = taskHasSubEst(t);
+  return `<button class="task-est${sm ? ' sm' : ''}${on ? ' on' : ''}${mins ? '' : ' none'}"
+    data-test="${esc(id)}" data-estmin="${mins}"
+    title="${mins ? `${fmtEst(mins)}${rolled ? ', added up from the steps' : ''} — press to sit down with it for that long` : 'how long will it take?'}">
+    ${mins ? esc(fmtEst(mins)) : '<span class="te-set">＋ est</span>'}</button>`;
 }
 function bindTaskTimers(root){
-  $$('[data-tfocus]', root).forEach(b => b.onclick = ev => {
+  $$('[data-test]', root).forEach(b => b.onclick = ev => {
     ev.stopPropagation();
-    focusOnTask(b.dataset.tfocus);
+    const id = b.dataset.test, mins = +b.dataset.estmin || 0;
+    if(!mins) return askTaskEstimate(id);
+    focusOnTask(id, mins);
+  });
+  $$('[data-subest]', root).forEach(b => b.onclick = ev => {
+    ev.stopPropagation();
+    const [rid, sid] = b.dataset.subest.split('|');
+    const r = findTaskRef(rid) || (typeof planTaskById === 'function' ? {task: planTaskById(rid), id: rid} : null);
+    const s = (r?.task?.subtasks || []).find(x => x.id === sid); if(!s) return;
+    if(!+s.minutes) return askSubEstimate(rid, sid);
+    focusOnTask(rid, +s.minutes, s.title);
   });
 }
-/* Pressing the timer does what dragging the task into the panel does, and
+/* asked with the same small chooser the rest of the planner uses */
+const EST_CHOICES = [5, 10, 15, 25, 30, 45, 60, 90, 120];
+function askTaskEstimate(id){
+  const t = (typeof planTaskById === 'function' ? planTaskById(id) : null) || findTaskRef(id)?.task;
+  if(!t) return;
+  planChoose('How long will it take?', [...EST_CHOICES.map(n => [String(n), fmtEst(n)]), ['0', 'no estimate']],
+    v => { t.duration = +v || 0; t.updatedAt = new Date().toISOString(); saveNow(); sound('click'); rerender(); });
+}
+function askSubEstimate(rid, sid){
+  const r = findTaskRef(rid) || (typeof planTaskById === 'function' ? {task: planTaskById(rid)} : null);
+  const s = (r?.task?.subtasks || []).find(x => x.id === sid); if(!s) return;
+  planChoose('How long will this step take?', [...EST_CHOICES.map(n => [String(n), fmtEst(n)]), ['0', 'no estimate']],
+    v => { s.minutes = +v || 0; saveNow(); sound('click'); rerender(); });
+}
+
+/* Pressing an estimate does what dragging the task into the panel does, and
    nothing less. There used to be a second, smaller timer in a side panel for
    when you pressed this from somewhere other than Today — it could start and
    stop and that was all: no note of what you were actually doing, no note of
    what the break was for. Two timers of unequal worth is worse than one, so
    that panel is gone and this always lands you at the real one.
 
-   Which means the gesture is three things, in order: put the task on today,
-   because a task you are sitting down with now is today's whether or not it
-   was this morning; hand it to the timer; and go to the page the timer lives
-   on. */
-function focusOnTask(id){
+   Three things, in order: put the task on today, because a task you are
+   sitting down with now is today's whether or not it was this morning; set
+   the countdown to the length you estimated and hand it the task; and go to
+   the page the timer lives on. */
+function focusOnTask(id, minutes = 0, what = ''){
   const t = (typeof planTaskById === 'function' ? planTaskById(id) : null) ||
             (typeof findTaskRef === 'function' ? findTaskRef(id)?.task : null);
   const T = today();
   if(t && t.day !== T){ t.day = T; t.updatedAt = new Date().toISOString(); saveNow(); }
+  /* a length can only be set while nothing is running, so a sitting already
+     under way is stopped first — pressing an estimate is an unambiguous
+     request to sit down with that thing for that long */
+  if(minutes){
+    if(FocusTimer.state().running) FocusTimer.stop();
+    FocusTimer.reset();
+    FocusTimer.setMode('countdown');
+    FocusTimer.setLength(minutes);
+  }
   FocusTimer.setTask(id);
   const st = FocusTimer.state();
   if(!st.running || st.taskId !== id) FocusTimer.start();
+  if(what && typeof FocusTimer.noteWork === 'function') FocusTimer.noteWork(what);
   sound('success');
-  toast(`Focusing on ${t?.text || 'this'} — it is on today's list now.`);
+  toast(`${minutes ? fmtEst(minutes) + ' on ' : 'Focusing on '}${what || t?.text || 'this'} — it is on today's list now.`);
   if(parseHash().name === 'today') rerender();
   else navigate('#/today');
 }
+
 /* Any task with a logged sitting is in progress, whoever asks. */
 function taskIsInProgress(id){ return !id ? false : focusSessionsFor(id).length > 0; }
 function taskFocusMinutes(id){ return sum(focusSessionsFor(id).map(s => +s.duration || 0)); }
@@ -17932,12 +17991,12 @@ function planRowHTML(t, {showList = false, showDate = true} = {}){
     ${t.priority ? `<span class="pt-prio" style="background:${pr.color}" title="${pr.name} priority"></span>` : ''}
     <span class="pt-text" title="open this task">${esc(t.text || 'Untitled task')}</span>
     <button class="task-pen" data-tedit="${t.id}" title="rename it here" aria-label="rename">✎</button>
-    ${taskTimerBtnHTML(t.id)}
+    ${taskEstHTML(t.id, t)}
     <span class="pt-meta">
       ${taskIsInProgress(t.id) && !t.done ? `<span class="pt-wip mono" title="${fmtHM(taskFocusMinutes(t.id))} sat with so far">in progress</span>` : ''}
       ${sub ? `<button class="pt-sub mono" data-tsubs="${t.id}" title="${sub.done} of ${sub.total} steps done">${sub.done}/${sub.total}</button>` : ''}
       ${t.recurrence ? `<span class="pt-rep" title="repeats ${esc(t.recurrence.pattern)}">↻</span>` : ''}
-      ${t.duration ? `<span class="pt-dur mono">${t.duration >= 60 ? (t.duration / 60).toFixed(t.duration % 60 ? 1 : 0) + 'h' : t.duration + 'm'}</span>` : ''}
+      <!-- the length now lives on the chip beside the name, which is also the way into the timer -->
       ${t.tags.map(x => `<span class="pt-tag" style="--c:${planTagColor(x)}">${esc(x)}</span>`).join('')}
       ${showList && t.listId !== 'inbox' ? `<span class="pt-list" style="--c:${planListColor(t.listId)}">${esc(planListName(t.listId))}</span>` : ''}
       ${showDate && t.day ? `<span class="pt-day mono${late ? ' late' : ''}">${late ? '⚠ ' : ''}${esc(fmtDate(t.day, 'short'))}${t.dueTime ? ' ' + esc(t.dueTime) : ''}</span>` : ''}
@@ -18768,7 +18827,7 @@ function planCardHTML(t){
         <circle cx="10" cy="10" r="8.2" class="pt-ring"/><path d="M5.6 10.3 L8.7 13.3 L14.4 6.9" class="pt-tick"/></svg></button>
       <span class="pk-text" title="open this task">${esc(t.text || 'Untitled task')}</span>
       <button class="task-pen" data-tedit="${t.id}" title="rename it here" aria-label="rename">✎</button>
-      ${taskTimerBtnHTML(t.id, {sm:true})}
+      ${taskEstHTML(t.id, t, {sm:true})}
       <!-- the same caret a list row has, so steps fold here too rather than
            being permanently open on a card -->
       ${subCaretHTML(t.id, t, 'task-caret pk-caret')}</div>
@@ -19208,6 +19267,11 @@ function subRowHTML(rid, s){
     <button class="task-check sm" data-subcheck="${esc(rid)}|${esc(s.id)}" role="checkbox"
       aria-checked="${!!s.isCompleted}" title="${s.isCompleted ? 'mark not done' : 'mark done'}">${s.isCompleted ? '✓' : ''}</button>
     <span class="sub-text" data-subedit="${esc(rid)}|${esc(s.id)}" title="click to rewrite">${esc(s.title || '')}</span>
+    <!-- a step is the unit you actually sit down with, so it carries its own
+         length and its own way into the timer -->
+    <button class="task-est sm${+s.minutes ? '' : ' none'}" data-subest="${esc(rid)}|${esc(s.id)}"
+      title="${+s.minutes ? `${fmtEst(s.minutes)} — press to sit down with just this step` : 'how long will this step take?'}">${
+      +s.minutes ? esc(fmtEst(s.minutes)) : '<span class="te-set">＋</span>'}</button>
     <button class="del-x inline" data-subdel="${esc(rid)}|${esc(s.id)}" title="remove this step">×</button>
   </div>`;
 }
@@ -19242,7 +19306,7 @@ function taskRowHTML(r, {showDay=false}={}){
          pixels that were not an edit target. -->
     <span class="task-text" data-topen="${r.id}" title="open this task">${esc(r.text || 'Untitled task')}</span>
     <button class="task-pen" data-tedit="${r.id}" title="rename it here" aria-label="rename">✎</button>
-    ${taskTimerBtnHTML(r.id)}
+    ${taskEstHTML(r.id, r.task)}
     ${prog?`<button class="task-subcount${prog.done===prog.total?' all':''}" data-tsubs="${r.id}"
       title="${prog.done} of ${prog.total} steps done">${prog.done}/${prog.total}</button>`:''}
     ${r.where?`<a class="task-where" href="${r.go}" title="${esc(r.where)}">${esc(r.where)}</a>`:''}

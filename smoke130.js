@@ -38,31 +38,37 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('  and something in the sidebar is lit',
       await p.evaluate(() => !!document.querySelector('#plSide .pl-item.on')));
 
-  console.log('\n3. every task carries a timer, wherever it is drawn');
+  console.log('\n3. every task carries its estimate, wherever it is drawn');
   await p.evaluate(() => { S._planSel = {kind:'smart', id:'today'}; S._planView = 'list'; rerender(); });
   await p.waitForTimeout(1000);
   const rows = await p.$$eval('.pt-row', n => n.length);
-  const timers = await p.$$eval('.pt-row [data-tfocus]', n => n.length);
-  yes('the Planning list row has one', rows > 0 && timers === rows, `${timers} timers on ${rows} rows`);
+  const timers = await p.$$eval('.pt-row [data-test]', n => n.length);
+  yes('the Planning list row has one', rows > 0 && timers === rows, `${timers} chips on ${rows} rows`);
   await p.evaluate(() => { S._planView = 'eisenhower'; rerender(); }); await p.waitForTimeout(1000);
   const cards = await p.$$eval('.pk-card', n => n.length);
-  const cardT = await p.$$eval('.pk-card [data-tfocus]', n => n.length);
-  yes('  so does the matrix card', cards > 0 && cardT === cards, `${cardT} timers on ${cards} cards`);
+  const cardT = await p.$$eval('.pk-card [data-test]', n => n.length);
+  yes('  so does the matrix card', cards > 0 && cardT === cards, `${cardT} chips on ${cards} cards`);
   await p.evaluate(() => { location.hash = '#/today'; rerender(); }); await p.waitForTimeout(1400);
   const trows = await p.$$eval('.task-row', n => n.length);
-  const tT = await p.$$eval('.task-row [data-tfocus]', n => n.length);
-  yes('  and the Today row', trows > 0 && tT === trows, `${tT} timers on ${trows} rows`);
+  const tT = await p.$$eval('.task-row [data-test]', n => n.length);
+  yes('  and the Today row', trows > 0 && tT === trows, `${tT} chips on ${trows} rows`);
 
   console.log('\n4. pressing it puts the task on today and starts the sitting there');
-  const tid = await p.evaluate(() => document.querySelector('.task-row [data-tfocus]').dataset.tfocus);
+  /* a chip with no estimate asks for a length instead of starting, so give
+     this one a length before pressing it */
+  const tid = await p.evaluate(() => {
+    const el = document.querySelector('.task-row [data-test]'); const id = el.dataset.test;
+    const r = findTaskRef(id); if(r && !taskEstOf(r.task)){ r.task.duration = 20; saveNow(); rerender(); }
+    return id; });
+  await p.waitForTimeout(900);
   await p.evaluate(() => FocusTimer.reset());
-  await p.evaluate(i => document.querySelector(`.task-row [data-tfocus="${i}"]`).click(), tid);
+  await p.evaluate(i => document.querySelector(`.task-row [data-test="${i}"]`).click(), tid);
   await p.waitForTimeout(1200);
   const st = await p.evaluate(() => FocusTimer.state());
   is('the timer is running', st.running, true);
   is('  on that task', st.taskId, tid);
   yes('  and its own button says so', await p.evaluate(i =>
-    !!document.querySelector(`[data-tfocus="${i}"].on`), tid));
+    !!document.querySelector(`[data-test="${i}"].on`), tid));
 
   /* pressed from Planning: the task joins today's list and you land on Today,
      at the full timer rather than a lesser one in a side panel */
@@ -79,7 +85,9 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   await p.evaluate(l => { S._planSel = {kind:'list', id:l}; S._planView = 'list';
     location.hash = '#/planning'; rerender(); }, awayList);
   await p.waitForTimeout(1400);
-  const btn = await p.$(`[data-tfocus="${away}"]`);
+  await p.evaluate(i => { const t = byId(S.tasks, i); if(!taskEstOf(t)){ t.duration = 15; saveNow(); rerender(); } }, away);
+  await p.waitForTimeout(900);
+  const btn = await p.$(`[data-test="${away}"]`);
   yes('the task is reachable in Planning', !!btn, String(away));
   if(btn){
     await btn.click(); await p.waitForTimeout(1400);

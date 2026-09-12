@@ -271,12 +271,12 @@ function planRowHTML(t, {showList = false, showDate = true} = {}){
     ${t.priority ? `<span class="pt-prio" style="background:${pr.color}" title="${pr.name} priority"></span>` : ''}
     <span class="pt-text" title="open this task">${esc(t.text || 'Untitled task')}</span>
     <button class="task-pen" data-tedit="${t.id}" title="rename it here" aria-label="rename">✎</button>
-    ${taskTimerBtnHTML(t.id)}
+    ${taskEstHTML(t.id, t)}
     <span class="pt-meta">
       ${taskIsInProgress(t.id) && !t.done ? `<span class="pt-wip mono" title="${fmtHM(taskFocusMinutes(t.id))} sat with so far">in progress</span>` : ''}
       ${sub ? `<button class="pt-sub mono" data-tsubs="${t.id}" title="${sub.done} of ${sub.total} steps done">${sub.done}/${sub.total}</button>` : ''}
       ${t.recurrence ? `<span class="pt-rep" title="repeats ${esc(t.recurrence.pattern)}">↻</span>` : ''}
-      ${t.duration ? `<span class="pt-dur mono">${t.duration >= 60 ? (t.duration / 60).toFixed(t.duration % 60 ? 1 : 0) + 'h' : t.duration + 'm'}</span>` : ''}
+      <!-- the length now lives on the chip beside the name, which is also the way into the timer -->
       ${t.tags.map(x => `<span class="pt-tag" style="--c:${planTagColor(x)}">${esc(x)}</span>`).join('')}
       ${showList && t.listId !== 'inbox' ? `<span class="pt-list" style="--c:${planListColor(t.listId)}">${esc(planListName(t.listId))}</span>` : ''}
       ${showDate && t.day ? `<span class="pt-day mono${late ? ' late' : ''}">${late ? '⚠ ' : ''}${esc(fmtDate(t.day, 'short'))}${t.dueTime ? ' ' + esc(t.dueTime) : ''}</span>` : ''}

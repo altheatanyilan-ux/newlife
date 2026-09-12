@@ -88,6 +88,11 @@ function subRowHTML(rid, s){
     <button class="task-check sm" data-subcheck="${esc(rid)}|${esc(s.id)}" role="checkbox"
       aria-checked="${!!s.isCompleted}" title="${s.isCompleted ? 'mark not done' : 'mark done'}">${s.isCompleted ? '✓' : ''}</button>
     <span class="sub-text" data-subedit="${esc(rid)}|${esc(s.id)}" title="click to rewrite">${esc(s.title || '')}</span>
+    <!-- a step is the unit you actually sit down with, so it carries its own
+         length and its own way into the timer -->
+    <button class="task-est sm${+s.minutes ? '' : ' none'}" data-subest="${esc(rid)}|${esc(s.id)}"
+      title="${+s.minutes ? `${fmtEst(s.minutes)} — press to sit down with just this step` : 'how long will this step take?'}">${
+      +s.minutes ? esc(fmtEst(s.minutes)) : '<span class="te-set">＋</span>'}</button>
     <button class="del-x inline" data-subdel="${esc(rid)}|${esc(s.id)}" title="remove this step">×</button>
   </div>`;
 }
@@ -122,7 +127,7 @@ function taskRowHTML(r, {showDay=false}={}){
          pixels that were not an edit target. -->
     <span class="task-text" data-topen="${r.id}" title="open this task">${esc(r.text || 'Untitled task')}</span>
     <button class="task-pen" data-tedit="${r.id}" title="rename it here" aria-label="rename">✎</button>
-    ${taskTimerBtnHTML(r.id)}
+    ${taskEstHTML(r.id, r.task)}
     ${prog?`<button class="task-subcount${prog.done===prog.total?' all':''}" data-tsubs="${r.id}"
       title="${prog.done} of ${prog.total} steps done">${prog.done}/${prog.total}</button>`:''}
     ${r.where?`<a class="task-where" href="${r.go}" title="${esc(r.where)}">${esc(r.where)}</a>`:''}
