@@ -4060,7 +4060,13 @@ select.sm-active{border-color:var(--page-accent);
 .pl-gms span{font-size:.62rem;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:8em}
 .pl-gms.done i{background:var(--card);border:1.5px solid var(--c,var(--terra))}
 .pl-gms.late i{background:var(--terra)}
-@media (max-width:720px){ .pl-msline{height:88px} .pl-mspin{max-width:5.5em} }
+/* the tick step is chosen from the length of the run, which says nothing
+   about how much room there is to print it in — so on a narrow screen the
+   labels are thinned rather than the scale redrawn */
+@media (max-width:760px){ .pl-msline{height:104px;margin-left:26px;margin-right:26px}
+  .pl-mspin{max-width:6em} .pl-mstick:nth-child(even){display:none} }
+@media (max-width:480px){ .pl-mspin{max-width:5em;font-size:.95em}
+  .pl-mstick:not(:nth-child(4n+1)){display:none} }
 </style>
 </head>
 <body>
