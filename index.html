@@ -4196,11 +4196,22 @@ function ed(path, opts={}){
   const t = tag || (multi ? 'div' : 'span');
   return `<${t} class="ed ${multi?'ed-multi':''} ${date?'ed-date':''} ${cls}" data-path="${esc(path)}" data-multi="${multi?1:0}" data-md="${mdr?1:0}" data-ph="${esc(ph)}" data-hook="${esc(hook)}" data-date="${date?1:0}" tabindex="0">${edInner(val, ph, mdr, date)}</${t}>`;
 }
+/* Living View stamps lv-empty on anything blank and the stylesheet hides it
+   outright. That is right for reading and fatal for writing: every "+ add"
+   button in the app pushes a blank row and then asks to edit it, so the row
+   was hidden the instant it existed — and focus() on a display:none input
+   silently does nothing, which is why those buttons looked broken. A field
+   being edited is the one thing on the page you are certainly looking at, so
+   it and every wrapper above it come back into view for the duration. */
+function unhideForEdit(node){
+  for(let n = node; n && n !== document.body; n = n.parentElement) n.classList?.remove('lv-empty');
+}
 function beginEdit(node){
   if(node.classList.contains('editing')) return;
   const path = node.dataset.path, multi = node.dataset.multi==='1';
   const orig = getPath(path) ?? '';
   node.classList.add('editing');
+  unhideForEdit(node);
   const inp = document.createElement(multi ? 'textarea' : 'input');
   inp.value = orig;
   node.innerHTML = ''; node.appendChild(inp);
