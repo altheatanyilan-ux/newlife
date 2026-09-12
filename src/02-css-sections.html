@@ -2251,6 +2251,33 @@ input[type="time"].dp-active{border-color:var(--page-accent);
 .tp-cell.odd{font-style:italic}
 @media (prefers-reduced-motion:reduce){.tp-pop{animation:none}.tp-cell{transition:none}.tp-col{scroll-behavior:auto}}
 
+/* ---------- UNFINISHED ----------
+   The half-written things, last on Today. Marked in the same terracotta the
+   house uses for something still in hand, and deliberately not foldable: a
+   section you can collapse is a section you can forget. */
+.unfinished-block{margin-top:18px;padding-top:16px;border-top:1px dashed var(--line-2)}
+.unfinished-block.empty{opacity:.62;transition:opacity .2s var(--ease)}
+.unfinished-block.empty:hover,.unfinished-block.empty:focus-within{opacity:1}
+.unf-card{margin-top:10px;padding:0;overflow:hidden;
+  border-left:3px solid color-mix(in srgb,var(--terra) 70%,transparent)}
+.unf{padding:13px 16px;border-top:1px dashed var(--line)}
+.unf:first-child{border-top:none}
+.unf-text{font-size:1rem;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}
+.unf-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  flex-wrap:wrap;margin-top:9px}
+.unf-foot .mono{font-size:.68rem;letter-spacing:.05em}
+.status-pill.unf-pill{border-color:color-mix(in srgb,var(--terra) 55%,transparent);
+  color:color-mix(in srgb,var(--terra) 85%,var(--text))}
+
+/* the switch beside Save in the entry editor */
+.unf-toggle{display:flex;align-items:center;gap:9px;cursor:pointer;user-select:none;
+  padding:9px 12px;border:1px solid var(--line);border-radius:10px;
+  font-size:.86rem;color:var(--muted);transition:border-color .15s var(--ease),color .15s var(--ease),background .15s var(--ease)}
+.unf-toggle:hover{border-color:var(--line-2);color:var(--text)}
+.unf-toggle.on{border-color:color-mix(in srgb,var(--terra) 55%,transparent);
+  background:color-mix(in srgb,var(--terra) 8%,transparent);color:var(--text)}
+.unf-toggle input{accent-color:var(--terra);width:15px;height:15px;flex:0 0 auto;cursor:pointer}
+
 /* one size for every section header on Today — the page had three, because
    some headers carried .sc and others .sc.lg */
 .today-page .sc{font-size:.76rem;letter-spacing:.14em}

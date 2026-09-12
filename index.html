@@ -2767,6 +2767,33 @@ input[type="time"].dp-active{border-color:var(--page-accent);
 .tp-cell.odd{font-style:italic}
 @media (prefers-reduced-motion:reduce){.tp-pop{animation:none}.tp-cell{transition:none}.tp-col{scroll-behavior:auto}}
 
+/* ---------- UNFINISHED ----------
+   The half-written things, last on Today. Marked in the same terracotta the
+   house uses for something still in hand, and deliberately not foldable: a
+   section you can collapse is a section you can forget. */
+.unfinished-block{margin-top:18px;padding-top:16px;border-top:1px dashed var(--line-2)}
+.unfinished-block.empty{opacity:.62;transition:opacity .2s var(--ease)}
+.unfinished-block.empty:hover,.unfinished-block.empty:focus-within{opacity:1}
+.unf-card{margin-top:10px;padding:0;overflow:hidden;
+  border-left:3px solid color-mix(in srgb,var(--terra) 70%,transparent)}
+.unf{padding:13px 16px;border-top:1px dashed var(--line)}
+.unf:first-child{border-top:none}
+.unf-text{font-size:1rem;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}
+.unf-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  flex-wrap:wrap;margin-top:9px}
+.unf-foot .mono{font-size:.68rem;letter-spacing:.05em}
+.status-pill.unf-pill{border-color:color-mix(in srgb,var(--terra) 55%,transparent);
+  color:color-mix(in srgb,var(--terra) 85%,var(--text))}
+
+/* the switch beside Save in the entry editor */
+.unf-toggle{display:flex;align-items:center;gap:9px;cursor:pointer;user-select:none;
+  padding:9px 12px;border:1px solid var(--line);border-radius:10px;
+  font-size:.86rem;color:var(--muted);transition:border-color .15s var(--ease),color .15s var(--ease),background .15s var(--ease)}
+.unf-toggle:hover{border-color:var(--line-2);color:var(--text)}
+.unf-toggle.on{border-color:color-mix(in srgb,var(--terra) 55%,transparent);
+  background:color-mix(in srgb,var(--terra) 8%,transparent);color:var(--text)}
+.unf-toggle input{accent-color:var(--terra);width:15px;height:15px;flex:0 0 auto;cursor:pointer}
+
 /* one size for every section header on Today — the page had three, because
    some headers carried .sc and others .sc.lg */
 .today-page .sc{font-size:.76rem;letter-spacing:.14em}
@@ -6922,7 +6949,7 @@ function entryCard(e, {clamp:cl=true, tools=true}={}){
   const rest = pics.slice(1);
   return `<article class="entry rv ${pics.length?'plated':''}" data-entry="${e.id}">
     ${pics.length ? imageBackdropHTML(e) : ''}
-    <div class="meta"><span class="mono">${typeIcon(e.type)} ${typeName(e.type)}</span><span class="mono">${esc(fmtDate(e.occurredAt,'med'))}</span>${e.confidence?`<span class="status-pill">${esc(e.confidence)}</span>`:''}${tools?`<span class="tools"><button class="tbtn" data-edit="${e.id}">edit</button><button class="snip-btn" data-snip="${e.id}" title="save to the Writing Studio">✂</button></span>`:''}</div>${tools?`<button class="del-x" data-del="${e.id}" title="delete" aria-label="delete entry">×</button>`:''}
+    <div class="meta"><span class="mono">${typeIcon(e.type)} ${typeName(e.type)}</span><span class="mono">${esc(fmtDate(e.occurredAt,'med'))}</span>${unfinishedFlag(e)?`<span class="status-pill unf-pill" title="waiting at the bottom of Today">unfinished</span>`:''}${e.confidence?`<span class="status-pill">${esc(e.confidence)}</span>`:''}${tools?`<span class="tools"><button class="tbtn" data-edit="${e.id}">edit</button><button class="snip-btn" data-snip="${e.id}" title="save to the Writing Studio">✂</button></span>`:''}</div>${tools?`<button class="del-x" data-del="${e.id}" title="delete" aria-label="delete entry">×</button>`:''}
     ${e.title?`<div class="title">${esc(e.title)}</div>`:''}
     ${e.body?`<div class="body ${cl?'clamp':''} ${q?'quote':''}">${q?'“'+esc(e.body)+'”':md(e.body)}</div>`:''}
     ${rest.length?`<div class="thumbs">${rest.map(m=>`<div class="photo" style="width:88px;height:88px;cursor:zoom-in" data-lb="${m.id}"><img src="${m.src}" alt="${esc(m.caption)}"></div>`).join('')}</div>`:''}
@@ -7797,6 +7824,7 @@ routes.today = function(root){
   registerPageEntry({pageName:'Today', addLabel:'New note', defaultEntryType:'reflection', prefilledFields:{}, options:[
     {icon:'▫', label:'Task for today', desc:'Something to finish before the day closes.', run:()=>openTaskPicker(T, rerender)},
     {icon:'✎', label:'Note', desc:'One honest line, kept as a reflection.', run:()=>EntryActions.quickNote()},
+    {icon:'⋯', label:'Unfinished thought', desc:'No time to write it properly. It waits at the bottom of Today.', run:()=>openMemoryDump()},
     {icon:'◎', label:'Intention', desc:'The one thing to give attention to today.', run:()=>EntryActions.dailyIntention()}]});
 
   const MOODS = [
@@ -7820,6 +7848,10 @@ routes.today = function(root){
     ['t-theatre', 'theatre',  true],
     ['t-habits',  'habits',   true],
     ['t-tonight', 'tonight',  true],
+    /* The bottom of a long page cannot catch an eye on its own. The count
+       rides up here so an unfinished thought is visible from the top, which
+       is the whole reason the section exists. */
+    ['t-unfinished', `unfinished ${unfinishedEntries().length}`, unfinishedEntries().length > 0],
   ].filter(x => x[2]);
 
   root.innerHTML = `<div class="page narrow today-page">
@@ -7950,6 +7982,10 @@ routes.today = function(root){
       </div></div>
     </details>
 
+    <!-- last on the page by request: the half-written things, which stay
+         here until they are called finished. Nothing expires them. -->
+    ${unfinishedSectionHTML()}
+
     <p class="day-edge sleeping">I went to sleep at <button class="day-edge-t" id="sleptAt">${(() => { const r = rhythmDay(T); return r.sleepTime ? esc(r.sleepTime) : '—'; })()}</button></p>
 
   </div>`;
@@ -8017,6 +8053,7 @@ routes.today = function(root){
 
   const redraw = () => rerender();
   bindTimeUse(root, redraw);
+  bindUnfinished(root, redraw);
 
   /* the night before */
   $('#planTomorrow') && ($('#planTomorrow').onclick = () => { if(typeof planMyDay === 'function') planMyDay(tomorrow); });
@@ -8035,6 +8072,156 @@ routes.today = function(root){
 
   reveal(root);
 };
+/* ============================================================
+   UNFINISHED — dump it now, finish it later, do not lose it.
+
+   Something occurs to you between two other things and there is no
+   time to write it properly. The choice at that moment is to get
+   one rough line down or to lose the thought, so the capture has
+   to be one field and one keystroke.
+
+   The decision underneath: an unfinished thought is NOT a draft
+   waiting somewhere to be turned into an entry. It IS an entry,
+   from the first keystroke, carrying a flag that says it is not
+   finished. A holding pen would mean two kinds of record, a
+   conversion step between them, and a place where things sit that
+   nothing else in the house can see. Instead the rough line is in
+   Journals, searchable, linkable and backed up the moment it is
+   typed; "finishing" it only clears a flag, so nothing moves and
+   nothing has to be copied anywhere.
+
+   Because it is a flag and not a type, it works on any kind of
+   entry — a dream caught at 3am, half a decision, a memory with
+   only its first sentence.
+
+   The list sits at the bottom of Today, oldest first, and does not
+   go away on its own. Nothing expires it, nothing tidies it after
+   a week: it is there until you say it is done. What the bottom of
+   a long page cannot do is catch your eye, so the count also rides
+   in the jump index at the top.
+   ============================================================ */
+
+const unfinishedFlag = e => !!(e && e.extra && e.extra.unfinished);
+
+/* Oldest first. The one that has been waiting longest is the one most
+   likely to be forgotten, so it goes at the top rather than the bottom. */
+function unfinishedEntries(){
+  return (S.entries || []).filter(unfinishedFlag)
+    .sort((a, b) => (a.extra.dumpedAt || a.createdAt || '') < (b.extra.dumpedAt || b.createdAt || '') ? -1 : 1);
+}
+
+function unfinishedSince(e){
+  return (e.extra.dumpedAt || e.createdAt || '').slice(0, 10);
+}
+
+function setUnfinished(e, on){
+  if(!e) return;
+  e.extra = e.extra || {};
+  if(on){ e.extra.unfinished = true; e.extra.dumpedAt = e.extra.dumpedAt || new Date().toISOString(); }
+  else { delete e.extra.unfinished; }
+  saveNow();
+}
+
+/* ---------- the capture ----------
+   One field. No title, no type row, no date — every one of those is a
+   decision, and the whole point is that there is no time to make any. It
+   lands as a reflection because that is what most of them turn out to be;
+   the kind is chosen later, when there is time to choose. */
+function openMemoryDump(after){
+  const m = openModal(`<h2 class="entry-h">Dump it here</h2>
+    <p class="muted" style="font-size:.86rem;margin:-6px 0 12px">Rough is fine. It stays at the bottom of Today until you say it is finished.</p>
+    <div class="stack">
+      <textarea class="ta serif-lg" id="dumpBody" style="min-height:150px"
+        placeholder="The thought, however half-formed. Come back to it later."></textarea>
+      <div class="row between">
+        <span class="faint mono" style="font-size:.7rem">⌘↵ to keep it</span>
+        <button class="btn primary" id="dumpSave" style="padding:12px 28px;font-size:1rem">Keep it</button>
+      </div>
+    </div>`, 'narrow');
+  const ta = m.querySelector('#dumpBody');
+  ta.focus();
+  if(typeof attachDictation === 'function') attachDictation(ta, {compact: true});
+
+  const keep = () => {
+    const body = ta.value.trim();
+    if(!body){ toast('Write something first — even one line.'); return; }
+    const e = {id: uid(), type: 'reflection', title: '', body, occurredAt: today(),
+      createdAt: new Date().toISOString(), media: [],
+      links: {stages: [], substages: [], threads: [], values: [], visions: [], skills: [], projects: [], people: []},
+      people: [], places: [], emotions: [], tags: [], confidence: '',
+      extra: {unfinished: true, dumpedAt: new Date().toISOString()}};
+    S.entries.push(e);
+    saveNow();
+    m.remove();
+    /* redraw before the toast: the toast lives in the page, and a rerender
+       that follows it would take it back down before it had been read */
+    after ? after() : rerender();
+    sound('save');
+    toast('Kept. It is waiting at the bottom of Today.', 4000,
+      {label: 'flesh it out now', fn: () => openEntryModal({entryId: e.id, after: () => rerender()})});
+  };
+  m.querySelector('#dumpSave').onclick = keep;
+  ta.addEventListener('keydown', ev => {
+    if(ev.key === 'Enter' && (ev.metaKey || ev.ctrlKey)){ ev.preventDefault(); keep(); }
+  });
+  return m;
+}
+
+/* ---------- the list on Today ---------- */
+function unfinishedLineHTML(e){
+  const days = daysSince(unfinishedSince(e));
+  const waited = days <= 0 ? 'today' : days === 1 ? 'since yesterday' : `waiting ${days} days`;
+  const text = (e.title || e.body || '').trim();
+  return `<div class="unf" data-unf="${e.id}">
+    <div class="unf-text serif">${esc(text.length > 260 ? text.slice(0, 260) + '…' : text)}</div>
+    <div class="unf-foot">
+      <span class="mono faint">${typeIcon(e.type)} ${esc(waited)}</span>
+      <span class="row" style="gap:6px">
+        <button class="btn sm ghost" data-unfopen="${e.id}">flesh it out</button>
+        <button class="btn sm" data-unfdone="${e.id}">finished</button>
+      </span>
+    </div>
+  </div>`;
+}
+
+function unfinishedSectionHTML(){
+  const list = unfinishedEntries();
+  /* Empty, this is one quiet line rather than nothing at all: it is the fast
+     way in, and the only place the feature explains itself. */
+  if(!list.length) return `<section class="section rv unfinished-block empty" id="t-unfinished">
+    <div class="row between" style="gap:10px;flex-wrap:wrap">
+      <span class="faint" style="font-size:.82rem">Nothing half-written. A thought with no time to write it properly goes here.</span>
+      <button class="btn sm ghost" id="dumpNew">＋ dump a thought</button>
+    </div></section>`;
+
+  return `<section class="section rv unfinished-block" id="t-unfinished">
+    <div class="row between" style="gap:10px;flex-wrap:wrap">
+      <span class="sc" style="margin:0">Unfinished — come back to these</span>
+      <button class="btn sm ghost" id="dumpNew">＋ dump a thought</button>
+    </div>
+    <div class="card unf-card">${list.map(unfinishedLineHTML).join('')}</div>
+  </section>`;
+}
+
+function bindUnfinished(root, redraw){
+  const go = () => (redraw || rerender)();
+  const nu = root.querySelector('#dumpNew');
+  if(nu) nu.onclick = () => openMemoryDump(go);
+
+  root.querySelectorAll('[data-unfopen]').forEach(b => b.onclick = () => {
+    openEntryModal({entryId: b.dataset.unfopen, after: go});
+  });
+  root.querySelectorAll('[data-unfdone]').forEach(b => b.onclick = () => {
+    const e = byId(S.entries, b.dataset.unfdone); if(!e) return;
+    setUnfinished(e, false);
+    sound('success');
+    /* Nothing is deleted by finishing — the entry stays exactly where it was,
+       so the undo is simply putting the flag back. */
+    toast('Marked finished. It stays in Journals.', 5000,
+      {label: 'not yet', fn: () => { setUnfinished(e, true); go(); }});
+    go();
+  });
+}
 /* ============================================================
    2. TIMELINE — the museum of the past (with Threads woven in)
    ============================================================ */
@@ -15678,6 +15865,7 @@ function registerPageEntry(cfg){ return PageEntryConfig.register(cfg); }
 const journalTypes = () => S.journals.map(j => j.type);
 const EntryActions = {
   quickNote:      (pre={}) => openEntryModal({type:'reflection', allowedTypes:['reflection'], heading:'Quick note', ...pre}),
+  unfinished:     ()       => openMemoryDump(),
   taskReminder:   ()       => openReminderModal(),
   dailyIntention: ()       => focusIntention(),
   journalEntry:   (pre={}) => openEntryModal({type: pre.journalType || S._journal || 'reflection', allowedTypes: journalTypes(), heading:'New journal entry', links: pre.links}),
@@ -15733,6 +15921,7 @@ function runContextAdd(cfg){
 const SPEED_DIAL = [
   {zone:'Planning', icon:'▤', label:'Task',                run: ()=>EntryActions.planTask()},
   {zone:'Today',    icon:'📅', label:'Today — Quick note / Task', actions:[['Quick note', ()=>EntryActions.quickNote()], ['Task', ()=>EntryActions.taskReminder()]]},
+  {zone:'Today',    icon:'⋯', label:'Unfinished thought — dump it now',  run: ()=>EntryActions.unfinished()},
   {zone:'Commonplace Book', icon:'📓', label:'Journal entry',  run: ()=>EntryActions.journalEntry()},
   {zone:'Timeline', icon:'💭', label:'Memory',               run: ()=>EntryActions.memory()},
   {zone:'Commonplace Book', icon:'📚', label:'Quote or saved link', run: ()=>EntryActions.libraryQuote()},
@@ -21038,6 +21227,12 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
         <div class="grid c2" style="gap:8px"><div class="field"><label>Places</label><input class="inp" id="ePlaces" value="${esc(e.places.join(', '))}" list="placeList"><datalist id="placeList">${(S.places||[]).map(p=>`<option value="${esc(p)}">`).join('')}</datalist></div><div class="field"><label>Emotions</label><input class="inp" id="eEmo" value="${esc(e.emotions.join(', '))}"></div></div>
         <div class="field"><label>Confidence (for future-facing entries)</label><div class="ladder">${CONF.map(c=>`<button data-conf="${c}" class="${e.confidence===c?'on':''}">${c}</button>`).join('')}</div></div>
       </div></details>
+      <!-- Fleshing something out ends here, so the switch that says it is done
+           sits beside Save rather than in a settings drawer somewhere. It fails
+           safe: forget to untick and you are reminded again, which is the right
+           direction for a thing whose whole purpose is not being forgotten. -->
+      <label class="unf-toggle${unfinishedFlag(e)?' on':''}" id="eUnfWrap"><input type="checkbox" id="eUnfinished" ${unfinishedFlag(e)?'checked':''}>
+        <span>Still unfinished — keep it at the bottom of Today</span></label>
       <div class="row between"><span class="faint" style="font-size:.78rem" id="linkNudge"></span><button class="btn primary" id="eSave" style="padding:12px 28px;font-size:1rem">${existing?'Save changes':'Save entry'}</button></div>
     </div>`, 'wide');
   const x = () => e.extra;
@@ -21142,6 +21337,9 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
   m.querySelectorAll('[data-conf]').forEach(b => b.onclick = () => { e.confidence = e.confidence===b.dataset.conf ? '' : b.dataset.conf; m.querySelectorAll('[data-conf]').forEach(y=>y.classList.toggle('on', y.dataset.conf===e.confidence)); });
   const thumbs = m.querySelector('#eThumbs'); const drawThumbs = () => { thumbs.innerHTML = e.media.map(md_=>`<div style="display:flex;flex-direction:column;gap:4px;width:120px"><img src="${md_.src}" style="width:120px;height:80px"><input class="inp" style="padding:3px 6px;font-size:.7rem" placeholder="caption" value="${esc(md_.caption)}" data-cap="${md_.id}"><input class="inp" style="padding:3px 6px;font-size:.7rem" placeholder="people" value="${esc((md_.people||[]).join(', '))}" data-ppl="${md_.id}"><button class="tbtn" data-rm="${md_.id}">remove</button></div>`).join(''); thumbs.querySelectorAll('[data-cap]').forEach(i=>i.oninput=()=>byId(e.media,i.dataset.cap).caption=i.value); thumbs.querySelectorAll('[data-ppl]').forEach(i=>i.oninput=()=>byId(e.media,i.dataset.ppl).people=i.value.split(',').map(s=>s.trim()).filter(Boolean)); thumbs.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{ e.media = e.media.filter(y=>y.id!==b.dataset.rm); drawThumbs(); }); }; drawThumbs();
   const dz = m.querySelector('#eDrop'); dz.onclick = () => m.querySelector('#eFile').click(); m.querySelector('#eFile').onchange = ev => readImages(ev.target.files, img => { e.media.push(img); drawThumbs(); }); dz.ondragover = ev => { ev.preventDefault(); dz.classList.add('over'); }; dz.ondragleave = () => dz.classList.remove('over'); dz.ondrop = ev => { ev.preventDefault(); dz.classList.remove('over'); readImages(ev.dataTransfer.files, img => { e.media.push(img); drawThumbs(); }); };
+  const unfBox = m.querySelector('#eUnfinished');
+  if(unfBox) unfBox.onchange = () => m.querySelector('#eUnfWrap').classList.toggle('on', unfBox.checked);
+
   m.querySelector('#eSave').onclick = ev => {
     e.title = m.querySelector('#eTitle').value.trim(); e.body = m.querySelector('#eBody').value; e.occurredAt = m.querySelector('#eWhen').value.trim() || today();
     if(!e.title && !e.body){ toast('Write something first — even one line.'); return; }
@@ -21152,6 +21350,11 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
     [['read','readHistory'],['waking','wakingHistory']].forEach(([k, hk]) => { const prev = existing?.extra?.[k];
       if(prev && e.extra[k] && prev !== e.extra[k]) e.extra[hk] = [...(existing.extra[hk]||[]), {date:today(), text:prev}]; });
     if(e.extra.setpointAt) e.extra.setpointAt = +e.extra.setpointAt;
+    /* the switch is the only thing that clears this: saving an edit does not
+       decide on your behalf that a thought is now finished */
+    if(m.querySelector('#eUnfinished')?.checked){
+      e.extra.unfinished = true; e.extra.dumpedAt = e.extra.dumpedAt || e.createdAt || new Date().toISOString();
+    } else delete e.extra.unfinished;
     m.querySelectorAll('[data-xlist]').forEach(i => { const old = e.extra[i.dataset.xlist]||[]; e.extra[i.dataset.xlist] = i.value.split('\n').map(s=>s.trim()).filter(Boolean).map(t => old.find(o=>o.text===t) || {date:today(),text:t}); });
     if(e.type==='synchronicity') e.extra.revisit = !!m.querySelector('#xRevisit')?.classList.contains('on');
     if(e.type==='dream'){ e.extra.recurring = !!m.querySelector('#xRec')?.classList.contains('on'); e.extra.symbols = (e.extra.symbols_||'').split(',').map(s=>s.trim()).filter(Boolean); delete e.extra.symbols_; }

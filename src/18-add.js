@@ -18,6 +18,7 @@ function registerPageEntry(cfg){ return PageEntryConfig.register(cfg); }
 const journalTypes = () => S.journals.map(j => j.type);
 const EntryActions = {
   quickNote:      (pre={}) => openEntryModal({type:'reflection', allowedTypes:['reflection'], heading:'Quick note', ...pre}),
+  unfinished:     ()       => openMemoryDump(),
   taskReminder:   ()       => openReminderModal(),
   dailyIntention: ()       => focusIntention(),
   journalEntry:   (pre={}) => openEntryModal({type: pre.journalType || S._journal || 'reflection', allowedTypes: journalTypes(), heading:'New journal entry', links: pre.links}),
@@ -73,6 +74,7 @@ function runContextAdd(cfg){
 const SPEED_DIAL = [
   {zone:'Planning', icon:'▤', label:'Task',                run: ()=>EntryActions.planTask()},
   {zone:'Today',    icon:'📅', label:'Today — Quick note / Task', actions:[['Quick note', ()=>EntryActions.quickNote()], ['Task', ()=>EntryActions.taskReminder()]]},
+  {zone:'Today',    icon:'⋯', label:'Unfinished thought — dump it now',  run: ()=>EntryActions.unfinished()},
   {zone:'Commonplace Book', icon:'📓', label:'Journal entry',  run: ()=>EntryActions.journalEntry()},
   {zone:'Timeline', icon:'💭', label:'Memory',               run: ()=>EntryActions.memory()},
   {zone:'Commonplace Book', icon:'📚', label:'Quote or saved link', run: ()=>EntryActions.libraryQuote()},

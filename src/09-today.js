@@ -74,6 +74,7 @@ routes.today = function(root){
   registerPageEntry({pageName:'Today', addLabel:'New note', defaultEntryType:'reflection', prefilledFields:{}, options:[
     {icon:'▫', label:'Task for today', desc:'Something to finish before the day closes.', run:()=>openTaskPicker(T, rerender)},
     {icon:'✎', label:'Note', desc:'One honest line, kept as a reflection.', run:()=>EntryActions.quickNote()},
+    {icon:'⋯', label:'Unfinished thought', desc:'No time to write it properly. It waits at the bottom of Today.', run:()=>openMemoryDump()},
     {icon:'◎', label:'Intention', desc:'The one thing to give attention to today.', run:()=>EntryActions.dailyIntention()}]});
 
   const MOODS = [
@@ -97,6 +98,10 @@ routes.today = function(root){
     ['t-theatre', 'theatre',  true],
     ['t-habits',  'habits',   true],
     ['t-tonight', 'tonight',  true],
+    /* The bottom of a long page cannot catch an eye on its own. The count
+       rides up here so an unfinished thought is visible from the top, which
+       is the whole reason the section exists. */
+    ['t-unfinished', `unfinished ${unfinishedEntries().length}`, unfinishedEntries().length > 0],
   ].filter(x => x[2]);
 
   root.innerHTML = `<div class="page narrow today-page">
@@ -227,6 +232,10 @@ routes.today = function(root){
       </div></div>
     </details>
 
+    <!-- last on the page by request: the half-written things, which stay
+         here until they are called finished. Nothing expires them. -->
+    ${unfinishedSectionHTML()}
+
     <p class="day-edge sleeping">I went to sleep at <button class="day-edge-t" id="sleptAt">${(() => { const r = rhythmDay(T); return r.sleepTime ? esc(r.sleepTime) : '—'; })()}</button></p>
 
   </div>`;
@@ -294,6 +303,7 @@ routes.today = function(root){
 
   const redraw = () => rerender();
   bindTimeUse(root, redraw);
+  bindUnfinished(root, redraw);
 
   /* the night before */
   $('#planTomorrow') && ($('#planTomorrow').onclick = () => { if(typeof planMyDay === 'function') planMyDay(tomorrow); });

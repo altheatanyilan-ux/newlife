@@ -36,6 +36,12 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
         <div class="grid c2" style="gap:8px"><div class="field"><label>Places</label><input class="inp" id="ePlaces" value="${esc(e.places.join(', '))}" list="placeList"><datalist id="placeList">${(S.places||[]).map(p=>`<option value="${esc(p)}">`).join('')}</datalist></div><div class="field"><label>Emotions</label><input class="inp" id="eEmo" value="${esc(e.emotions.join(', '))}"></div></div>
         <div class="field"><label>Confidence (for future-facing entries)</label><div class="ladder">${CONF.map(c=>`<button data-conf="${c}" class="${e.confidence===c?'on':''}">${c}</button>`).join('')}</div></div>
       </div></details>
+      <!-- Fleshing something out ends here, so the switch that says it is done
+           sits beside Save rather than in a settings drawer somewhere. It fails
+           safe: forget to untick and you are reminded again, which is the right
+           direction for a thing whose whole purpose is not being forgotten. -->
+      <label class="unf-toggle${unfinishedFlag(e)?' on':''}" id="eUnfWrap"><input type="checkbox" id="eUnfinished" ${unfinishedFlag(e)?'checked':''}>
+        <span>Still unfinished — keep it at the bottom of Today</span></label>
       <div class="row between"><span class="faint" style="font-size:.78rem" id="linkNudge"></span><button class="btn primary" id="eSave" style="padding:12px 28px;font-size:1rem">${existing?'Save changes':'Save entry'}</button></div>
     </div>`, 'wide');
   const x = () => e.extra;
@@ -140,6 +146,9 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
   m.querySelectorAll('[data-conf]').forEach(b => b.onclick = () => { e.confidence = e.confidence===b.dataset.conf ? '' : b.dataset.conf; m.querySelectorAll('[data-conf]').forEach(y=>y.classList.toggle('on', y.dataset.conf===e.confidence)); });
   const thumbs = m.querySelector('#eThumbs'); const drawThumbs = () => { thumbs.innerHTML = e.media.map(md_=>`<div style="display:flex;flex-direction:column;gap:4px;width:120px"><img src="${md_.src}" style="width:120px;height:80px"><input class="inp" style="padding:3px 6px;font-size:.7rem" placeholder="caption" value="${esc(md_.caption)}" data-cap="${md_.id}"><input class="inp" style="padding:3px 6px;font-size:.7rem" placeholder="people" value="${esc((md_.people||[]).join(', '))}" data-ppl="${md_.id}"><button class="tbtn" data-rm="${md_.id}">remove</button></div>`).join(''); thumbs.querySelectorAll('[data-cap]').forEach(i=>i.oninput=()=>byId(e.media,i.dataset.cap).caption=i.value); thumbs.querySelectorAll('[data-ppl]').forEach(i=>i.oninput=()=>byId(e.media,i.dataset.ppl).people=i.value.split(',').map(s=>s.trim()).filter(Boolean)); thumbs.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{ e.media = e.media.filter(y=>y.id!==b.dataset.rm); drawThumbs(); }); }; drawThumbs();
   const dz = m.querySelector('#eDrop'); dz.onclick = () => m.querySelector('#eFile').click(); m.querySelector('#eFile').onchange = ev => readImages(ev.target.files, img => { e.media.push(img); drawThumbs(); }); dz.ondragover = ev => { ev.preventDefault(); dz.classList.add('over'); }; dz.ondragleave = () => dz.classList.remove('over'); dz.ondrop = ev => { ev.preventDefault(); dz.classList.remove('over'); readImages(ev.dataTransfer.files, img => { e.media.push(img); drawThumbs(); }); };
+  const unfBox = m.querySelector('#eUnfinished');
+  if(unfBox) unfBox.onchange = () => m.querySelector('#eUnfWrap').classList.toggle('on', unfBox.checked);
+
   m.querySelector('#eSave').onclick = ev => {
     e.title = m.querySelector('#eTitle').value.trim(); e.body = m.querySelector('#eBody').value; e.occurredAt = m.querySelector('#eWhen').value.trim() || today();
     if(!e.title && !e.body){ toast('Write something first — even one line.'); return; }
@@ -150,6 +159,11 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
     [['read','readHistory'],['waking','wakingHistory']].forEach(([k, hk]) => { const prev = existing?.extra?.[k];
       if(prev && e.extra[k] && prev !== e.extra[k]) e.extra[hk] = [...(existing.extra[hk]||[]), {date:today(), text:prev}]; });
     if(e.extra.setpointAt) e.extra.setpointAt = +e.extra.setpointAt;
+    /* the switch is the only thing that clears this: saving an edit does not
+       decide on your behalf that a thought is now finished */
+    if(m.querySelector('#eUnfinished')?.checked){
+      e.extra.unfinished = true; e.extra.dumpedAt = e.extra.dumpedAt || e.createdAt || new Date().toISOString();
+    } else delete e.extra.unfinished;
     m.querySelectorAll('[data-xlist]').forEach(i => { const old = e.extra[i.dataset.xlist]||[]; e.extra[i.dataset.xlist] = i.value.split('\n').map(s=>s.trim()).filter(Boolean).map(t => old.find(o=>o.text===t) || {date:today(),text:t}); });
     if(e.type==='synchronicity') e.extra.revisit = !!m.querySelector('#xRevisit')?.classList.contains('on');
     if(e.type==='dream'){ e.extra.recurring = !!m.querySelector('#xRec')?.classList.contains('on'); e.extra.symbols = (e.extra.symbols_||'').split(',').map(s=>s.trim()).filter(Boolean); delete e.extra.symbols_; }
