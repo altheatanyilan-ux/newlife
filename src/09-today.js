@@ -128,11 +128,11 @@ routes.today = function(root){
   const lastFlowTime = flowSteps.map(s => c[s.key]).filter(Boolean).pop();
   const totalDur = allFlowDone && c.wakeAt ? _dur(c.wakeAt, lastFlowTime) : '';
 
-  registerPageEntry({pageName:'Today', addLabel:'New note', defaultEntryType:'reflection', prefilledFields:{}, options:[
-    {icon:'▫', label:'Task for today', desc:'Something to finish before the day closes.', run:()=>openTaskPicker(T, rerender)},
-    {icon:'✎', label:'Note', desc:'One honest line, kept as a reflection.', run:()=>EntryActions.quickNote()},
-    {icon:'⋯', label:'Unfinished thought', desc:'No time to write it properly. It waits at the bottom of Today.', run:()=>openMemoryDump()},
-    {icon:'◎', label:'Intention', desc:'The one thing to give attention to today.', run:()=>EntryActions.dailyIntention()}]});
+  /* No add-bar above this page, by request. Every one of the four buttons it
+     used to carry already has a home further down — a task in the task list's
+     own line, an intention in the check-in, an unfinished thought in the
+     section that holds them — and the speed dial still reaches all of them. */
+  PageEntryConfig.clear();
 
   const MOODS = [
     {v:'open',    icon:'◯', label:'Open'},
@@ -149,9 +149,9 @@ routes.today = function(root){
      due, a review closing tonight) drop out of the index with them. */
   const jumps = [
     ['t-letters', 'letters',  ready.length > 0],
+    ['t-focus',   'focus',    true],
     ['t-plan',    'plan',     true],
     ['t-tasks',   'tasks',    true],
-    ['t-focus',   'focus',    true],
     ['t-checkin', 'check-in', true],
     ['t-theatre', 'theatre',  true],
     ['t-habits',  'habits',   true],
@@ -195,6 +195,10 @@ routes.today = function(root){
       ${ready.map(e=>`<div class="card ready-letter" style="margin-top:8px"><div class="row between"><span><b class="serif">${esc(e.title||'To myself')}</b><div class="mono faint">${daysBetween((e.createdAt||'').slice(0,10), T)} days ago</div></span><button class="btn sm primary" data-lopen="${e.id}">Open it</button></div></div>`).join('')}
     </div></details>` : ''}
 
+    <!-- The clock comes first: on a day already under way, starting the work
+         matters more than reading last night's plan. -->
+    ${focusPanelHTML()}
+
     <!-- the plan, made last night -->
     <details class="section rv today-plan t-sec" id="t-plan"${fold('t-plan')}>
       <summary><span class="sc" style="margin:0">Today's plan</span>
@@ -207,11 +211,7 @@ routes.today = function(root){
       ${planT.risk ? `<p class="plan-line risk"><span class="mono">in the way</span> ${esc(planT.risk)}</p>` : ''}
       </div></details>
 
-    <!-- the focus panel sits under the list it times, and a task is dragged
-         from one into the other -->
-    ${focusPanelHTML()}
-
-    <!-- today's tasks (up front) -->
+    <!-- today's tasks -->
     <details class="section rv t-sec" id="t-tasks"${fold('t-tasks')}>
       <summary><span class="sc" style="margin:0">Today's tasks</span><span class="mono">${(() => {
         if(!rows.length) return 'nothing parked yet';
