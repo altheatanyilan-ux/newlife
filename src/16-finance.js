@@ -188,7 +188,13 @@ function streamCardHTML(s){
       <b class="serif" style="font-size:1.05rem">${esc(s.name)}</b>
       <span class="row" style="gap:6px">
         <select class="sel" style="width:auto;padding:2px 6px;font-size:.74rem;--c:${STREAM_STATUS_COLOR[inc.status]};color:${STREAM_STATUS_COLOR[inc.status]};padding-right:22px" data-streamstatus="${path}">${Object.entries(STREAM_STATUS).map(([k,[ic,l]])=>`<option value="${k}" ${inc.status===k?'selected':''}>${ic} ${l}</option>`).join('')}</select>
-        ${s.kind==='project'?`<a class="chip on click" style="--c:var(--terra);text-decoration:none" href="#/projects/${s.project.id}">🎨 project</a>`:`<button class="del-x inline" data-streamdel="${s.stream.id}" title="delete this stream">×</button>`}
+        ${s.kind==='project'?`<a class="chip on click" style="--c:var(--terra);text-decoration:none" href="#/projects/${s.project.id}">🎨 project</a>`
+          : `<!-- A stream said to be standalone at the moment it was created could
+                  never afterwards be tied to a project, though that is exactly
+                  the order things happen in: the way of earning comes first and
+                  the project it belongs to becomes clear later. -->
+             <button class="tbtn stream-link" data-streamtie="${s.stream.id}" title="tie this to a project">🎨 link to a project</button>
+             <button class="del-x inline" data-streamdel="${s.stream.id}" title="delete this stream">×</button>`}
       </span>
     </div>
     <div class="earn-switch" role="group" aria-label="how this money is earned">
@@ -260,6 +266,47 @@ function streamCardHTML(s){
     ${(inc.milestones||[]).length ? inc.milestones.map((ms,i)=>`<div class="evidence-item"><span class="mono">${ed(`${path}.milestones.${i}.date`,{ph:'date',cls:'mono',date:true})}</span><span style="flex:1">${ed(`${path}.milestones.${i}.text`,{ph:'first user, first dollar, first referral…'})}</span><button class="tbtn" data-streammsdel="${path}:${i}">×</button></div>`).join('') : '<div class="faint" style="font-size:.78rem">None yet.</div>'}
     ${typeof planLinkedTasksHTML === 'function' ? planLinkedTasksHTML('stream', s.id, {heading:'Tasks feeding this stream'}) : ''}
   </div>`;
+}
+/* A project holds its income on itself — p.income — because that is where
+   every room looks for it. So tying a standalone stream to a project is a
+   move, not a pointer: the figures, the parts, the milestones and the log all
+   go across, and the standalone record is retired. Nothing is dropped, and if
+   the project already had figures of its own the move says exactly what it
+   is about to overwrite before it does it. */
+function streamHasFigures(inc){
+  return !!(inc && (inc.model || +inc.current || +inc.target || +inc.capital ||
+    (inc.subs || []).length || (inc.milestones || []).length || (inc.revenueLog || []).length));
+}
+function tieStreamToProject(streamId){
+  const st = byId(S.incomeStreams, streamId); if(!st) return;
+  if(!(S.projects || []).length) return toast('No projects yet to tie it to.');
+  planChoose(`Which project is ${st.name || 'this'} part of?`,
+    S.projects.slice().sort((a, b) => a.name.localeCompare(b.name)).map(p => [p.id, p.name]),
+    pid => {
+      const pr = byId(S.projects, pid); if(!pr) return;
+      pr.income = pr.income || {};
+      const doMove = () => {
+        /* everything that belongs to the stream, onto the project */
+        ['model','current','target','currency','earning','status','hoursPerWeek','capital',
+         'subs','milestones','revenueLog','links','peopleIds'].forEach(k => {
+          if(st[k] !== undefined) pr.income[k] = st[k]; });
+        pr.income.isStream = true;
+        migrateIncomeShape(pr.income);
+        spliceOut(S.incomeStreams, x => x.id === st.id);
+        saveNow(); sound('success'); rerender();
+        toast(`${st.name || 'The stream'} is part of ${pr.name} now — its figures moved with it.`);
+      };
+      if(streamHasFigures(pr.income)){
+        const m = openModal(`<h2>${esc(pr.name)} already has income of its own</h2>
+          <p class="muted" style="font-size:.88rem">Tying <b>${esc(st.name || 'this stream')}</b> to it will replace
+          those figures with this stream's. Nothing else about the project changes, and this cannot be undone.</p>
+          <div class="row" style="justify-content:flex-end;gap:8px;margin-top:16px">
+            <button class="btn sm ghost" id="tieNo">Leave it as it is</button>
+            <button class="btn primary" id="tieYes">Move it across</button></div>`, 'narrow');
+        m.querySelector('#tieNo').onclick = () => m.remove();
+        m.querySelector('#tieYes').onclick = () => { m.remove(); doMove(); };
+      } else doMove();
+    });
 }
 function openStreamModal(pre = {}){
   const future = pre.status === 'future';
@@ -514,6 +561,7 @@ routes.finance = function(root){
     requestDelete({label: part?.name || 'this part', node: b.closest('.substream'),
       remove: () => spliceOut(inc.subs, x => x.id === id), after: rerender});
   });
+  root.querySelectorAll('[data-streamtie]').forEach(b => b.onclick = () => tieStreamToProject(b.dataset.streamtie));
   root.querySelectorAll('[data-streamdel]').forEach(b => b.onclick = () => { const s = byId(S.incomeStreams, b.dataset.streamdel); requestDelete({label:s.name||'stream', node:b.closest('.stream-card'), remove:()=>spliceOut(S.incomeStreams, x=>x.id===s.id)}); });
   root.querySelectorAll('[data-streamms]').forEach(b => b.onclick = () => { const arr = getPath(b.dataset.streamms+'.milestones'); arr.push({date:today(), text:'', kind:''}); saveNow(); rerender(); });
   root.querySelectorAll('[data-streammspreset]').forEach(s => s.onchange = () => { if(!s.value) return; const arr = getPath(s.dataset.streammspreset+'.milestones');

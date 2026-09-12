@@ -137,6 +137,60 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   const yld = await p.evaluate(i => streamYield(byId(S.incomeStreams, i)), sid3);
   yes('  so the yield can be worked out at all', yld != null && yld > 0, String(yld));
 
+  console.log('\n5. a standalone stream can find a project later');
+  /* which is the order things actually happen in: the way of earning comes
+     first, and which project it belongs to becomes clear afterwards */
+  await fin();
+  const sid5 = await p.evaluate(() => {
+    const st = {id: uid(), name:'Consulting', model:'day rate', current: 1200, target: 3000,
+      earning:'active', status:'earning', hoursPerWeek: 8};
+    migrateIncomeShape(st); st.milestones.push({date: today(), text:'first client', kind:''});
+    S.incomeStreams.push(st); saveNow(); return st.id;
+  });
+  await fin();
+  yes('a standalone stream offers to be tied to one', !!(await p.$(`[data-streamtie="${sid5}"]`)));
+  const emptyProj = await p.evaluate(() => {
+    const pr = S.projects.find(x => !streamHasFigures(x.income || {}));
+    return pr ? {id: pr.id, name: pr.name} : null;
+  });
+  yes('  there is a project with no income of its own to tie it to', !!emptyProj, JSON.stringify(emptyProj));
+  await p.click(`[data-streamtie="${sid5}"]`); await p.waitForTimeout(700);
+  yes('  pressing it asks which project', !!(await p.$('.overlay')));
+  await p.evaluate(i => { const b = [...document.querySelectorAll('.overlay button')]
+    .find(x => x.dataset.pc === i); if(b) b.click(); }, emptyProj.id);
+  await p.waitForTimeout(1400);
+  is('the standalone record is retired', await p.evaluate(i => !byId(S.incomeStreams, i), sid5), true);
+  const moved = await p.evaluate(i => byId(S.projects, i).income, emptyProj.id);
+  is('  its figures moved across', moved.current, 1200);
+  is('  and its target', moved.target, 3000);
+  is('  and its hours', moved.hoursPerWeek, 8);
+  is('  and what it was', moved.model, 'day rate');
+  is('  its milestones came too', (moved.milestones || []).length, 1);
+  is('  and it counts as a stream', moved.isStream, true);
+  await fin();
+  yes('it is still on Finance, now under the project\'s name',
+      (await cards()).includes(emptyProj.name), (await cards()).join(' | '));
+  yes('  and links through to the project',
+      !!(await p.$(`.stream-card a[href="#/projects/${emptyProj.id}"]`)));
+
+  console.log('\n5b. tying it to a project that already earns says so first');
+  const sid6 = await p.evaluate(() => {
+    const st = {id: uid(), name:'Second thing', current: 40, target: 80, earning:'active', status:'earning'};
+    migrateIncomeShape(st); S.incomeStreams.push(st); saveNow(); return st.id;
+  });
+  await fin();
+  await p.click(`[data-streamtie="${sid6}"]`); await p.waitForTimeout(700);
+  await p.evaluate(i => { const b = [...document.querySelectorAll('.overlay button')]
+    .find(x => x.dataset.pc === i); if(b) b.click(); }, emptyProj.id);
+  await p.waitForTimeout(900);
+  yes('it warns before overwriting', await p.evaluate(() =>
+    /already has income of its own/.test(document.body.textContent)));
+  await p.click('#tieNo'); await p.waitForTimeout(800);
+  is('  and leaving it alone leaves both alone',
+     await p.evaluate(i => !!byId(S.incomeStreams, i), sid6), true);
+  is('  with the project untouched',
+     await p.evaluate(i => byId(S.projects, i).income.current, emptyProj.id), 1200);
+
   console.log('\n' + (errs.length ? 'console:\n  ' + errs.join('\n  ') : 'console: clean'));
   if(errs.length) bad += errs.length;
   console.log(bad ? `\n${bad} FAILED` : '\nsmoke122  all good');

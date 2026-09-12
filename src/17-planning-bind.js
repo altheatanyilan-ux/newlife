@@ -278,7 +278,7 @@ function bindPlanBatch(root){
 /* one small chooser, used by every batch action */
 function planChoose(title, opts, fn, allowNew){
   const m = openModal(`<h2>${esc(title)}</h2>
-    ${allowNew ? `<input class="inp" id="pcNew" placeholder="or write a new one"><div class="row" style="justify-content:flex-end;margin:8px 0"><button class="btn sm" id="pcAdd">use it</button></div>` : ''}
+    ${allowNew ? `<input class="inp" id="pcNew" placeholder="${esc(allowNew === true ? 'or write a new one' : allowNew)}"><div class="row" style="justify-content:flex-end;margin:8px 0"><button class="btn sm" id="pcAdd">use it</button></div>` : ''}
     <div class="stack" style="gap:6px;max-height:50vh;overflow:auto">
       ${opts.map(([v, n]) => `<button class="choice" data-pc="${esc(v)}"><span><b>${esc(n)}</b></span></button>`).join('')
         || '<div class="empty">Nothing to choose from yet.</div>'}</div>`, 'narrow');

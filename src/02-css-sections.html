@@ -1412,6 +1412,13 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 .task-row:hover .task-est.none,.pt-row:hover .task-est.none,.pk-card:hover .task-est.none,
 .sub-row:hover .task-est.none,.task-est.none:focus-visible{opacity:1}
 .te-set{letter-spacing:.06em}
+/* the number starts the sitting, the pencil changes the length */
+.est-wrap{display:inline-flex;align-items:center;gap:1px;flex:none}
+.est-pen{background:none;border:0;padding:0 2px;cursor:pointer;font-size:.62rem;line-height:1;
+  color:var(--faint);opacity:0;width:0;overflow:hidden;transition:opacity .18s var(--ease),width .18s var(--ease),color .18s var(--ease)}
+.est-pen:hover{color:var(--page-accent)}
+.task-row:hover .est-pen,.pt-row:hover .est-pen,.pk-card:hover .est-pen,
+.sub-row:hover .est-pen,.est-pen:focus-visible{opacity:1;width:13px}
 /* a sitting running on this very task stays lit whether or not you hover */
 .task-est.on{opacity:1;border-color:var(--terra);color:var(--terra);
   background:color-mix(in srgb,var(--terra) 10%,transparent);animation:tePulse 2.4s ease-in-out infinite}
@@ -3881,6 +3888,8 @@ select.sm-active{border-color:var(--page-accent);
 .substream .sub-num{display:flex;align-items:baseline;gap:5px;font-size:.8rem;white-space:nowrap}
 .substream .sub-num .k{font-size:.55rem}
 .sub-total{font-size:1.05rem}
+.stream-link{font-size:.64rem;letter-spacing:.03em;white-space:nowrap;opacity:.75}
+.stream-card:hover .stream-link{opacity:1}
 @media (max-width:560px){ .substream{grid-template-columns:1fr auto;row-gap:2px}
   .substream .sub-name{grid-column:1/-1} }
 </style>

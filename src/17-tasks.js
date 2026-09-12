@@ -90,9 +90,12 @@ function subRowHTML(rid, s){
     <span class="sub-text" data-subedit="${esc(rid)}|${esc(s.id)}" title="click to rewrite">${esc(s.title || '')}</span>
     <!-- a step is the unit you actually sit down with, so it carries its own
          length and its own way into the timer -->
-    <button class="task-est sm${+s.minutes ? '' : ' none'}" data-subest="${esc(rid)}|${esc(s.id)}"
-      title="${+s.minutes ? `${fmtEst(s.minutes)} — press to sit down with just this step` : 'how long will this step take?'}">${
-      +s.minutes ? esc(fmtEst(s.minutes)) : '<span class="te-set">＋</span>'}</button>
+    <span class="est-wrap sm">
+      <button class="task-est sm${+s.minutes ? '' : ' none'}" data-subest="${esc(rid)}|${esc(s.id)}"
+        title="${+s.minutes ? `${fmtEst(s.minutes)} — press to sit down with just this step` : 'how long will this step take?'}">${
+        +s.minutes ? esc(fmtEst(s.minutes)) : '<span class="te-set">＋</span>'}</button>
+      ${+s.minutes ? `<button class="est-pen" data-subestedit="${esc(rid)}|${esc(s.id)}" title="change the length" aria-label="change the length">✎</button>` : ''}
+    </span>
     <button class="del-x inline" data-subdel="${esc(rid)}|${esc(s.id)}" title="remove this step">×</button>
   </div>`;
 }

@@ -52,14 +52,24 @@ function fmtEst(m){
   const h = Math.floor(m / 60), r = m % 60;
   return h ? (r ? `${h}h ${r}m` : `${h}h`) : `${r}m`;
 }
+/* The number starts the sitting and a small pencil beside it changes the
+   length — the same division the task row already uses, where the name opens
+   the task and a pencil renames it. Without the pencil a length once set
+   could never be changed: every press went to the timer.
+
+   A task whose steps carry the lengths has nothing of its own to edit, so it
+   shows no pencil — the pencils are on the steps, where the figures are. */
 function taskEstHTML(id, t, {sm = false} = {}){
   const mins = taskEstOf(t);
   const on = FocusTimer.state().taskId === id && FocusTimer.state().running;
   const rolled = taskHasSubEst(t);
-  return `<button class="task-est${sm ? ' sm' : ''}${on ? ' on' : ''}${mins ? '' : ' none'}"
-    data-test="${esc(id)}" data-estmin="${mins}"
-    title="${mins ? `${fmtEst(mins)}${rolled ? ', added up from the steps' : ''} — press to sit down with it for that long` : 'how long will it take?'}">
-    ${mins ? esc(fmtEst(mins)) : '<span class="te-set">＋ est</span>'}</button>`;
+  return `<span class="est-wrap${sm ? ' sm' : ''}">
+    <button class="task-est${sm ? ' sm' : ''}${on ? ' on' : ''}${mins ? '' : ' none'}"
+      data-test="${esc(id)}" data-estmin="${mins}"
+      title="${mins ? `${fmtEst(mins)}${rolled ? ', added up from the steps' : ''} — press to sit down with it for that long` : 'how long will it take?'}">
+      ${mins ? esc(fmtEst(mins)) : '<span class="te-set">＋ est</span>'}</button>
+    ${mins && !rolled ? `<button class="est-pen" data-testedit="${esc(id)}" title="change the length" aria-label="change the length">✎</button>` : ''}
+  </span>`;
 }
 function bindTaskTimers(root){
   $$('[data-test]', root).forEach(b => b.onclick = ev => {
@@ -68,6 +78,10 @@ function bindTaskTimers(root){
     if(!mins) return askTaskEstimate(id);
     focusOnTask(id, mins);
   });
+  $$('[data-testedit]', root).forEach(b => b.onclick = ev => {
+    ev.stopPropagation(); askTaskEstimate(b.dataset.testedit); });
+  $$('[data-subestedit]', root).forEach(b => b.onclick = ev => {
+    ev.stopPropagation(); const [rid, sid] = b.dataset.subestedit.split('|'); askSubEstimate(rid, sid); });
   $$('[data-subest]', root).forEach(b => b.onclick = ev => {
     ev.stopPropagation();
     const [rid, sid] = b.dataset.subest.split('|');
@@ -77,19 +91,36 @@ function bindTaskTimers(root){
     focusOnTask(rid, +s.minutes, s.title);
   });
 }
-/* asked with the same small chooser the rest of the planner uses */
-const EST_CHOICES = [5, 10, 15, 25, 30, 45, 60, 90, 120];
+/* Asked with the chooser the rest of the planner uses. The presets run from
+   five minutes to a whole working day, and anything not on the list can be
+   typed: "90", "1h30", "2h", "45m" all mean what they look like. A fixed set
+   of nine was too few — most things do not take exactly twenty-five minutes. */
+const EST_CHOICES = [5, 10, 15, 20, 25, 30, 40, 45, 60, 75, 90, 120, 150, 180, 240, 300, 360, 480];
+/* "1h30" → 90, "2h" → 120, "45m" → 45, "1.5h" → 90, "90" → 90 */
+function parseEst(txt){
+  const t = String(txt || '').trim().toLowerCase();
+  if(!t) return 0;
+  const hm = t.match(/^(\d+(?:\.\d+)?)\s*h(?:ours?|rs?)?\s*(\d+)?\s*m?(?:ins?|inutes?)?$/);
+  if(hm) return Math.round(+hm[1] * 60 + (+hm[2] || 0));
+  const m = t.match(/^(\d+(?:\.\d+)?)\s*m?(?:ins?|inutes?)?$/);
+  if(m) return Math.round(+m[1]);
+  return 0;
+}
+function estChoices(){ return [...EST_CHOICES.map(n => [String(n), fmtEst(n)]), ['0', 'no estimate']]; }
 function askTaskEstimate(id){
   const t = (typeof planTaskById === 'function' ? planTaskById(id) : null) || findTaskRef(id)?.task;
   if(!t) return;
-  planChoose('How long will it take?', [...EST_CHOICES.map(n => [String(n), fmtEst(n)]), ['0', 'no estimate']],
-    v => { t.duration = +v || 0; t.updatedAt = new Date().toISOString(); saveNow(); sound('click'); rerender(); });
+  planChoose('How long will it take?', estChoices(),
+    v => { t.duration = /^\d+$/.test(v) ? +v : parseEst(v);
+      t.updatedAt = new Date().toISOString(); saveNow(); sound('click'); rerender(); },
+    'or type one — 90, 1h30, 2h');
 }
 function askSubEstimate(rid, sid){
   const r = findTaskRef(rid) || (typeof planTaskById === 'function' ? {task: planTaskById(rid)} : null);
   const s = (r?.task?.subtasks || []).find(x => x.id === sid); if(!s) return;
-  planChoose('How long will this step take?', [...EST_CHOICES.map(n => [String(n), fmtEst(n)]), ['0', 'no estimate']],
-    v => { s.minutes = +v || 0; saveNow(); sound('click'); rerender(); });
+  planChoose('How long will this step take?', estChoices(),
+    v => { s.minutes = /^\d+$/.test(v) ? +v : parseEst(v); saveNow(); sound('click'); rerender(); },
+    'or type one — 90, 1h30, 2h');
 }
 
 /* Pressing an estimate does what dragging the task into the panel does, and

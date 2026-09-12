@@ -1936,6 +1936,13 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 .task-row:hover .task-est.none,.pt-row:hover .task-est.none,.pk-card:hover .task-est.none,
 .sub-row:hover .task-est.none,.task-est.none:focus-visible{opacity:1}
 .te-set{letter-spacing:.06em}
+/* the number starts the sitting, the pencil changes the length */
+.est-wrap{display:inline-flex;align-items:center;gap:1px;flex:none}
+.est-pen{background:none;border:0;padding:0 2px;cursor:pointer;font-size:.62rem;line-height:1;
+  color:var(--faint);opacity:0;width:0;overflow:hidden;transition:opacity .18s var(--ease),width .18s var(--ease),color .18s var(--ease)}
+.est-pen:hover{color:var(--page-accent)}
+.task-row:hover .est-pen,.pt-row:hover .est-pen,.pk-card:hover .est-pen,
+.sub-row:hover .est-pen,.est-pen:focus-visible{opacity:1;width:13px}
 /* a sitting running on this very task stays lit whether or not you hover */
 .task-est.on{opacity:1;border-color:var(--terra);color:var(--terra);
   background:color-mix(in srgb,var(--terra) 10%,transparent);animation:tePulse 2.4s ease-in-out infinite}
@@ -4405,6 +4412,8 @@ select.sm-active{border-color:var(--page-accent);
 .substream .sub-num{display:flex;align-items:baseline;gap:5px;font-size:.8rem;white-space:nowrap}
 .substream .sub-num .k{font-size:.55rem}
 .sub-total{font-size:1.05rem}
+.stream-link{font-size:.64rem;letter-spacing:.03em;white-space:nowrap;opacity:.75}
+.stream-card:hover .stream-link{opacity:1}
 @media (max-width:560px){ .substream{grid-template-columns:1fr auto;row-gap:2px}
   .substream .sub-name{grid-column:1/-1} }
 </style>
@@ -7920,14 +7929,24 @@ function fmtEst(m){
   const h = Math.floor(m / 60), r = m % 60;
   return h ? (r ? `${h}h ${r}m` : `${h}h`) : `${r}m`;
 }
+/* The number starts the sitting and a small pencil beside it changes the
+   length — the same division the task row already uses, where the name opens
+   the task and a pencil renames it. Without the pencil a length once set
+   could never be changed: every press went to the timer.
+
+   A task whose steps carry the lengths has nothing of its own to edit, so it
+   shows no pencil — the pencils are on the steps, where the figures are. */
 function taskEstHTML(id, t, {sm = false} = {}){
   const mins = taskEstOf(t);
   const on = FocusTimer.state().taskId === id && FocusTimer.state().running;
   const rolled = taskHasSubEst(t);
-  return `<button class="task-est${sm ? ' sm' : ''}${on ? ' on' : ''}${mins ? '' : ' none'}"
-    data-test="${esc(id)}" data-estmin="${mins}"
-    title="${mins ? `${fmtEst(mins)}${rolled ? ', added up from the steps' : ''} — press to sit down with it for that long` : 'how long will it take?'}">
-    ${mins ? esc(fmtEst(mins)) : '<span class="te-set">＋ est</span>'}</button>`;
+  return `<span class="est-wrap${sm ? ' sm' : ''}">
+    <button class="task-est${sm ? ' sm' : ''}${on ? ' on' : ''}${mins ? '' : ' none'}"
+      data-test="${esc(id)}" data-estmin="${mins}"
+      title="${mins ? `${fmtEst(mins)}${rolled ? ', added up from the steps' : ''} — press to sit down with it for that long` : 'how long will it take?'}">
+      ${mins ? esc(fmtEst(mins)) : '<span class="te-set">＋ est</span>'}</button>
+    ${mins && !rolled ? `<button class="est-pen" data-testedit="${esc(id)}" title="change the length" aria-label="change the length">✎</button>` : ''}
+  </span>`;
 }
 function bindTaskTimers(root){
   $$('[data-test]', root).forEach(b => b.onclick = ev => {
@@ -7936,6 +7955,10 @@ function bindTaskTimers(root){
     if(!mins) return askTaskEstimate(id);
     focusOnTask(id, mins);
   });
+  $$('[data-testedit]', root).forEach(b => b.onclick = ev => {
+    ev.stopPropagation(); askTaskEstimate(b.dataset.testedit); });
+  $$('[data-subestedit]', root).forEach(b => b.onclick = ev => {
+    ev.stopPropagation(); const [rid, sid] = b.dataset.subestedit.split('|'); askSubEstimate(rid, sid); });
   $$('[data-subest]', root).forEach(b => b.onclick = ev => {
     ev.stopPropagation();
     const [rid, sid] = b.dataset.subest.split('|');
@@ -7945,19 +7968,36 @@ function bindTaskTimers(root){
     focusOnTask(rid, +s.minutes, s.title);
   });
 }
-/* asked with the same small chooser the rest of the planner uses */
-const EST_CHOICES = [5, 10, 15, 25, 30, 45, 60, 90, 120];
+/* Asked with the chooser the rest of the planner uses. The presets run from
+   five minutes to a whole working day, and anything not on the list can be
+   typed: "90", "1h30", "2h", "45m" all mean what they look like. A fixed set
+   of nine was too few — most things do not take exactly twenty-five minutes. */
+const EST_CHOICES = [5, 10, 15, 20, 25, 30, 40, 45, 60, 75, 90, 120, 150, 180, 240, 300, 360, 480];
+/* "1h30" → 90, "2h" → 120, "45m" → 45, "1.5h" → 90, "90" → 90 */
+function parseEst(txt){
+  const t = String(txt || '').trim().toLowerCase();
+  if(!t) return 0;
+  const hm = t.match(/^(\d+(?:\.\d+)?)\s*h(?:ours?|rs?)?\s*(\d+)?\s*m?(?:ins?|inutes?)?$/);
+  if(hm) return Math.round(+hm[1] * 60 + (+hm[2] || 0));
+  const m = t.match(/^(\d+(?:\.\d+)?)\s*m?(?:ins?|inutes?)?$/);
+  if(m) return Math.round(+m[1]);
+  return 0;
+}
+function estChoices(){ return [...EST_CHOICES.map(n => [String(n), fmtEst(n)]), ['0', 'no estimate']]; }
 function askTaskEstimate(id){
   const t = (typeof planTaskById === 'function' ? planTaskById(id) : null) || findTaskRef(id)?.task;
   if(!t) return;
-  planChoose('How long will it take?', [...EST_CHOICES.map(n => [String(n), fmtEst(n)]), ['0', 'no estimate']],
-    v => { t.duration = +v || 0; t.updatedAt = new Date().toISOString(); saveNow(); sound('click'); rerender(); });
+  planChoose('How long will it take?', estChoices(),
+    v => { t.duration = /^\d+$/.test(v) ? +v : parseEst(v);
+      t.updatedAt = new Date().toISOString(); saveNow(); sound('click'); rerender(); },
+    'or type one — 90, 1h30, 2h');
 }
 function askSubEstimate(rid, sid){
   const r = findTaskRef(rid) || (typeof planTaskById === 'function' ? {task: planTaskById(rid)} : null);
   const s = (r?.task?.subtasks || []).find(x => x.id === sid); if(!s) return;
-  planChoose('How long will this step take?', [...EST_CHOICES.map(n => [String(n), fmtEst(n)]), ['0', 'no estimate']],
-    v => { s.minutes = +v || 0; saveNow(); sound('click'); rerender(); });
+  planChoose('How long will this step take?', estChoices(),
+    v => { s.minutes = /^\d+$/.test(v) ? +v : parseEst(v); saveNow(); sound('click'); rerender(); },
+    'or type one — 90, 1h30, 2h');
 }
 
 /* Pressing an estimate does what dragging the task into the panel does, and
@@ -12653,7 +12693,13 @@ function streamCardHTML(s){
       <b class="serif" style="font-size:1.05rem">${esc(s.name)}</b>
       <span class="row" style="gap:6px">
         <select class="sel" style="width:auto;padding:2px 6px;font-size:.74rem;--c:${STREAM_STATUS_COLOR[inc.status]};color:${STREAM_STATUS_COLOR[inc.status]};padding-right:22px" data-streamstatus="${path}">${Object.entries(STREAM_STATUS).map(([k,[ic,l]])=>`<option value="${k}" ${inc.status===k?'selected':''}>${ic} ${l}</option>`).join('')}</select>
-        ${s.kind==='project'?`<a class="chip on click" style="--c:var(--terra);text-decoration:none" href="#/projects/${s.project.id}">🎨 project</a>`:`<button class="del-x inline" data-streamdel="${s.stream.id}" title="delete this stream">×</button>`}
+        ${s.kind==='project'?`<a class="chip on click" style="--c:var(--terra);text-decoration:none" href="#/projects/${s.project.id}">🎨 project</a>`
+          : `<!-- A stream said to be standalone at the moment it was created could
+                  never afterwards be tied to a project, though that is exactly
+                  the order things happen in: the way of earning comes first and
+                  the project it belongs to becomes clear later. -->
+             <button class="tbtn stream-link" data-streamtie="${s.stream.id}" title="tie this to a project">🎨 link to a project</button>
+             <button class="del-x inline" data-streamdel="${s.stream.id}" title="delete this stream">×</button>`}
       </span>
     </div>
     <div class="earn-switch" role="group" aria-label="how this money is earned">
@@ -12725,6 +12771,47 @@ function streamCardHTML(s){
     ${(inc.milestones||[]).length ? inc.milestones.map((ms,i)=>`<div class="evidence-item"><span class="mono">${ed(`${path}.milestones.${i}.date`,{ph:'date',cls:'mono',date:true})}</span><span style="flex:1">${ed(`${path}.milestones.${i}.text`,{ph:'first user, first dollar, first referral…'})}</span><button class="tbtn" data-streammsdel="${path}:${i}">×</button></div>`).join('') : '<div class="faint" style="font-size:.78rem">None yet.</div>'}
     ${typeof planLinkedTasksHTML === 'function' ? planLinkedTasksHTML('stream', s.id, {heading:'Tasks feeding this stream'}) : ''}
   </div>`;
+}
+/* A project holds its income on itself — p.income — because that is where
+   every room looks for it. So tying a standalone stream to a project is a
+   move, not a pointer: the figures, the parts, the milestones and the log all
+   go across, and the standalone record is retired. Nothing is dropped, and if
+   the project already had figures of its own the move says exactly what it
+   is about to overwrite before it does it. */
+function streamHasFigures(inc){
+  return !!(inc && (inc.model || +inc.current || +inc.target || +inc.capital ||
+    (inc.subs || []).length || (inc.milestones || []).length || (inc.revenueLog || []).length));
+}
+function tieStreamToProject(streamId){
+  const st = byId(S.incomeStreams, streamId); if(!st) return;
+  if(!(S.projects || []).length) return toast('No projects yet to tie it to.');
+  planChoose(`Which project is ${st.name || 'this'} part of?`,
+    S.projects.slice().sort((a, b) => a.name.localeCompare(b.name)).map(p => [p.id, p.name]),
+    pid => {
+      const pr = byId(S.projects, pid); if(!pr) return;
+      pr.income = pr.income || {};
+      const doMove = () => {
+        /* everything that belongs to the stream, onto the project */
+        ['model','current','target','currency','earning','status','hoursPerWeek','capital',
+         'subs','milestones','revenueLog','links','peopleIds'].forEach(k => {
+          if(st[k] !== undefined) pr.income[k] = st[k]; });
+        pr.income.isStream = true;
+        migrateIncomeShape(pr.income);
+        spliceOut(S.incomeStreams, x => x.id === st.id);
+        saveNow(); sound('success'); rerender();
+        toast(`${st.name || 'The stream'} is part of ${pr.name} now — its figures moved with it.`);
+      };
+      if(streamHasFigures(pr.income)){
+        const m = openModal(`<h2>${esc(pr.name)} already has income of its own</h2>
+          <p class="muted" style="font-size:.88rem">Tying <b>${esc(st.name || 'this stream')}</b> to it will replace
+          those figures with this stream's. Nothing else about the project changes, and this cannot be undone.</p>
+          <div class="row" style="justify-content:flex-end;gap:8px;margin-top:16px">
+            <button class="btn sm ghost" id="tieNo">Leave it as it is</button>
+            <button class="btn primary" id="tieYes">Move it across</button></div>`, 'narrow');
+        m.querySelector('#tieNo').onclick = () => m.remove();
+        m.querySelector('#tieYes').onclick = () => { m.remove(); doMove(); };
+      } else doMove();
+    });
 }
 function openStreamModal(pre = {}){
   const future = pre.status === 'future';
@@ -12979,6 +13066,7 @@ routes.finance = function(root){
     requestDelete({label: part?.name || 'this part', node: b.closest('.substream'),
       remove: () => spliceOut(inc.subs, x => x.id === id), after: rerender});
   });
+  root.querySelectorAll('[data-streamtie]').forEach(b => b.onclick = () => tieStreamToProject(b.dataset.streamtie));
   root.querySelectorAll('[data-streamdel]').forEach(b => b.onclick = () => { const s = byId(S.incomeStreams, b.dataset.streamdel); requestDelete({label:s.name||'stream', node:b.closest('.stream-card'), remove:()=>spliceOut(S.incomeStreams, x=>x.id===s.id)}); });
   root.querySelectorAll('[data-streamms]').forEach(b => b.onclick = () => { const arr = getPath(b.dataset.streamms+'.milestones'); arr.push({date:today(), text:'', kind:''}); saveNow(); rerender(); });
   root.querySelectorAll('[data-streammspreset]').forEach(s => s.onchange = () => { if(!s.value) return; const arr = getPath(s.dataset.streammspreset+'.milestones');
@@ -16653,7 +16741,7 @@ function bindPlanBatch(root){
 /* one small chooser, used by every batch action */
 function planChoose(title, opts, fn, allowNew){
   const m = openModal(`<h2>${esc(title)}</h2>
-    ${allowNew ? `<input class="inp" id="pcNew" placeholder="or write a new one"><div class="row" style="justify-content:flex-end;margin:8px 0"><button class="btn sm" id="pcAdd">use it</button></div>` : ''}
+    ${allowNew ? `<input class="inp" id="pcNew" placeholder="${esc(allowNew === true ? 'or write a new one' : allowNew)}"><div class="row" style="justify-content:flex-end;margin:8px 0"><button class="btn sm" id="pcAdd">use it</button></div>` : ''}
     <div class="stack" style="gap:6px;max-height:50vh;overflow:auto">
       ${opts.map(([v, n]) => `<button class="choice" data-pc="${esc(v)}"><span><b>${esc(n)}</b></span></button>`).join('')
         || '<div class="empty">Nothing to choose from yet.</div>'}</div>`, 'narrow');
@@ -19269,9 +19357,12 @@ function subRowHTML(rid, s){
     <span class="sub-text" data-subedit="${esc(rid)}|${esc(s.id)}" title="click to rewrite">${esc(s.title || '')}</span>
     <!-- a step is the unit you actually sit down with, so it carries its own
          length and its own way into the timer -->
-    <button class="task-est sm${+s.minutes ? '' : ' none'}" data-subest="${esc(rid)}|${esc(s.id)}"
-      title="${+s.minutes ? `${fmtEst(s.minutes)} — press to sit down with just this step` : 'how long will this step take?'}">${
-      +s.minutes ? esc(fmtEst(s.minutes)) : '<span class="te-set">＋</span>'}</button>
+    <span class="est-wrap sm">
+      <button class="task-est sm${+s.minutes ? '' : ' none'}" data-subest="${esc(rid)}|${esc(s.id)}"
+        title="${+s.minutes ? `${fmtEst(s.minutes)} — press to sit down with just this step` : 'how long will this step take?'}">${
+        +s.minutes ? esc(fmtEst(s.minutes)) : '<span class="te-set">＋</span>'}</button>
+      ${+s.minutes ? `<button class="est-pen" data-subestedit="${esc(rid)}|${esc(s.id)}" title="change the length" aria-label="change the length">✎</button>` : ''}
+    </span>
     <button class="del-x inline" data-subdel="${esc(rid)}|${esc(s.id)}" title="remove this step">×</button>
   </div>`;
 }
