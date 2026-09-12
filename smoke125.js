@@ -89,6 +89,44 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     await p.evaluate(() => document.querySelector('.modal .empty')?.textContent || 'no empty note'));
   await p.evaluate(() => closeModals());
 
+  console.log('\n5. what you said mattered is shown before the work is chosen');
+  /* a skill in focus, an active project and a piece being written never appear
+     in a list of tasks, so a week could pass without an hour going to any of
+     them and nothing in this flow would have said so */
+  await p.evaluate(() => planMyDay(addDays(today(), 1))); await p.waitForTimeout(900);
+  await p.click('#pmNext'); await p.waitForTimeout(600);
+  await p.click('#pmNext'); await p.waitForTimeout(700);
+  yes('they are on the waiting step', !!(await p.$('.plan-focus')));
+  yes('  headed by what it is asking', await p.evaluate(() =>
+    /What you said mattered/.test(document.querySelector('.plan-focus').textContent)));
+  yes('  and why it is asking it', await p.evaluate(() =>
+    /worth an hour of/.test(document.querySelector('.plan-focus').textContent)));
+  const rows = await p.$$eval('.pf-row', n => n.map(x => ({
+    name: x.querySelector('.pf-name').textContent.trim(),
+    cold: x.querySelector('.pf-cold').textContent.trim(),
+    go: x.getAttribute('href')})));
+  yes('there is something in it', rows.length > 0, JSON.stringify(rows.slice(0,3)));
+  yes('  each says how long since it was last touched',
+      rows.every(r => /never|today|ago|yesterday|day|week|month/.test(r.cold)), JSON.stringify(rows.slice(0,3)));
+  yes('  and each leads somewhere', rows.every(r => /^#\//.test(r.go || '')), JSON.stringify(rows.slice(0,3)));
+  /* skills in focus, active projects and pieces mid-draft, and nothing else */
+  const kinds = await p.evaluate(() => {
+    const names = [...document.querySelectorAll('.pf-name')].map(x => x.textContent.trim());
+    return {
+      hasFocusSkill: focusSkills().some(s => names.includes(s.name)),
+      noIdleProject: !S.projects.filter(x => x.status !== 'active').some(x => names.includes(x.name)),
+    }; });
+  yes('a skill in focus is among them', kinds.hasFocusSkill);
+  yes('  and a project that is not active is not', kinds.noIdleProject);
+  /* the coldest first: that is the one the question is really for */
+  const colds = await p.evaluate(() => [...document.querySelectorAll('.pf-row')].map(x => {
+    const t = x.querySelector('.pf-cold').textContent;
+    if(/never/.test(t)) return 1e6;
+    const m = t.match(/(\d+)/); return m ? +m[1] : 0; }));
+  yes('  and the coldest is at the top', colds.length < 2 || colds[0] >= colds[colds.length-1],
+      JSON.stringify(colds));
+  await p.evaluate(() => closeModals());
+
   console.log('\n' + (errs.length ? 'console:\n  ' + errs.join('\n  ') : 'console: clean'));
   if(errs.length) bad += errs.length;
   console.log(bad ? `\n${bad} FAILED` : '\nsmoke125  all good');

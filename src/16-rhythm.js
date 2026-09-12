@@ -503,6 +503,43 @@ function planMyDay(d = today()){
     return [...by.values()].sort((a, b) => a.label.localeCompare(b.label));
   })();
   const pool = unscheduled;
+  /* ---------- what you are supposed to be moving forward ----------
+     A day gets given to whatever was already written down. The skills in
+     focus, the projects under way and the pieces being written are the
+     things you decided mattered — and none of them appears anywhere in a
+     list of tasks, so a week can pass without a single hour going to any of
+     them and nothing on this page would have said so. They are shown at the
+     top of the step where tomorrow's work is chosen, with how long since
+     each was last touched, so the choice is made in front of them. */
+  const inFocus = (() => {
+    const out = [];
+    (typeof focusSkills === 'function' ? focusSkills() : []).forEach(sk =>
+      out.push({kind:'skill', icon:'▲', name: sk.name, go:'#/skills/' + sk.id,
+        cold: typeof skillLastPracticed === 'function' ? daysSince(skillLastPracticed(sk)) : Infinity,
+        what:'practised'}));
+    (S.projects || []).filter(x => x.status === 'active').forEach(pr =>
+      out.push({kind:'project', icon:'🎨', name: pr.name, go:'#/projects/' + pr.id,
+        cold: typeof projectNods === 'function' ? daysSince(projectNods(pr)[0]?.date) : Infinity,
+        what:'nodded'}));
+    (S.entries || []).filter(e => e.extra?.content &&
+      ['draft','refining','outline'].includes(e.extra.content.stage)).forEach(e =>
+      out.push({kind:'piece', icon:'✍', name: e.title || 'an untitled piece', go:'#/content',
+        cold: daysSince((e.extra.content.lastTouchedAt || e.createdAt || '').slice(0, 10)),
+        what:'touched'}));
+    /* coldest first: the thing you have not looked at in three weeks is the
+       one this question is really for */
+    return out.sort((a, b) => (b.cold === Infinity ? 1e6 : b.cold) - (a.cold === Infinity ? 1e6 : a.cold)).slice(0, 10);
+  })();
+  const inFocusHTML = () => inFocus.length ? `<div class="plan-focus">
+    <div class="row between" style="align-items:baseline">
+      <span class="k mono">What you said mattered</span>
+      <span class="mono faint">is any of it worth an hour of ${dayWord}?</span></div>
+    <div class="pf-rows">${inFocus.map(x => `<a class="pf-row" href="${x.go}" data-flowgo="${x.go}">
+      <span class="pf-ico">${x.icon}</span><span class="pf-name">${esc(x.name)}</span>
+      <span class="mono pf-cold${x.cold === Infinity || x.cold > 14 ? ' cold' : ''}">${
+        x.cold === Infinity ? `never ${x.what}` : x.cold === 0 ? `${x.what} today` : `${x.what} ${relDays(x.cold)}`}</span></a>`).join('')}</div>
+  </div>` : '';
+
   const habits = S.habits.filter(h => !h.archived && !h.negative && habitDue(h,d));
   /* nothing is pre-ticked now that only undated work is offered: a task
      already dated to this day is not waiting to be chosen, and counting it
@@ -527,7 +564,7 @@ function planMyDay(d = today()){
        </div>` : ''}`,
       `<h2>What are ${dayPoss} three?</h2><p class="muted" style="font-size:.88rem">Not a task list — the three things that would make ${dayWord} count. One is allowed to be empty.</p>
        <div class="stack" style="gap:8px">${[0,1,2].map(i=>`<div class="row" style="gap:8px"><span class="in-n">${i+1}</span><input class="inp serif-lg" data-int="${i}" value="${esc(p.intentions[i]||'')}" placeholder="${['the one that matters most','the one you keep postponing','the small one'][i]}"></div>`).join('')}</div>`,
-      `<h2>Anything waiting?</h2><p class="muted" style="font-size:.88rem">Everything with no day on it, under the list it lives in. Tick what belongs to ${dayWord}; the rest keeps waiting without nagging.</p>
+      `<h2>Anything waiting?</h2>${inFocusHTML()}<p class="muted" style="font-size:.88rem">Everything with no day on it, under the list it lives in. Tick what belongs to ${dayWord}; the rest keeps waiting without nagging.</p>
        <div class="stack" style="gap:10px;max-height:44vh;overflow:auto">${planGroups.length ? planGroups.map(g => `<div class="pick-group">
          <div class="pick-glabel" style="--c:${g.color}">${esc(g.label)}<span class="mono">${g.rows.length}</span></div>
          ${g.rows.map(r=>`<label class="pick-row ${chosen.has(r.id)?'on':''}"><input type="checkbox" data-pick2="${r.id}" ${chosen.has(r.id)?'checked':''}><span><b>${esc(r.text)}</b>${r.kind === 'project' && r.phase ? `<span class="d">${esc(r.phase.name)}</span>` : ''}</span></label>`).join('')}

@@ -1411,6 +1411,22 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 .pick-glabel .mono{font-size:.6rem;color:var(--faint);letter-spacing:.04em}
 .pick-group .pick-row{margin-left:8px}
 
+/* what you said mattered, shown before tomorrow's work is chosen */
+.plan-focus{border:1px solid var(--line);border-radius:11px;padding:10px 12px;margin:0 0 14px;
+  background:color-mix(in srgb,var(--line) 16%,transparent)}
+.plan-focus .k{letter-spacing:.09em;text-transform:uppercase;font-size:.6rem;color:var(--muted)}
+.plan-focus .faint{font-size:.66rem}
+.pf-rows{display:flex;flex-direction:column;gap:1px;margin-top:6px;max-height:22vh;overflow:auto}
+.pf-row{display:grid;grid-template-columns:auto 1fr auto;gap:9px;align-items:baseline;
+  padding:4px 2px;border-top:1px dashed var(--line);text-decoration:none;color:inherit;
+  transition:background .16s var(--ease)}
+.pf-row:first-child{border-top:0}
+.pf-row:hover{background:color-mix(in srgb,var(--page-accent) 8%,transparent)}
+.pf-ico{font-size:.8rem;opacity:.8}
+.pf-name{font-size:.86rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.pf-cold{font-size:.62rem;color:var(--faint);white-space:nowrap}
+.pf-cold.cold{color:var(--gold)}
+
 /* how long the day's writing took */
 .write-total{font-size:1.5rem;color:var(--page-accent);letter-spacing:-.01em}
 .write-rows{display:flex;flex-direction:column;gap:1px;margin-top:10px}
