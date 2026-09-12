@@ -4011,5 +4011,12 @@ select.sm-active{border-color:var(--page-accent);
   .sk-seedling .sk-shoot{stroke-dashoffset:0;animation:none}
   .sk-seedling .sk-seed .leaf{opacity:1;animation:none}
 }
+
+/* a day on the sleep chart is a button, and a guessed bedtime says so */
+.wk-col{cursor:pointer}
+.wk-col .wk-hit{transition:fill .15s}
+.wk-col:hover .wk-hit,.wk-col:focus-visible .wk-hit{fill:color-mix(in srgb,var(--page-accent) 7%,transparent)}
+.wk-col:focus-visible{outline:none}
+.wk-key i.gs{width:9px;height:9px;border-radius:50%;background:var(--bg);border:1.5px dashed var(--ment);display:inline-block}
 </style>
 </head>

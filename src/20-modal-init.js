@@ -266,6 +266,12 @@ async function init(){
   if(navigator.platform.toUpperCase().indexOf('MAC')<0){ $$('kbd').forEach(k => k.textContent = k.textContent.replace('⌘','Ctrl+')); }
   if(!location.hash) location.hash = '#/' + homeRoute();
   markNavDirection(); renderRoute(); startDust(); updateBackButton();
+  /* Stamp the last moment you were here, so a night you forget to close still
+     has a bedtime to fall back on tomorrow. Every minute while the tab is
+     open, and again the moment it comes back to the front. */
+  try { touchPresence(); setInterval(touchPresence, 60000);
+    document.addEventListener('visibilitychange', () => { if(!document.hidden) touchPresence(); });
+  } catch(e){ console.warn('presence stamp skipped', e); }
   window.addEventListener('beforeunload', () => { if(saving || savePending) saveNow(); });
   if(S.settings.firstOpen === today() && !S._welcomed){ S._welcomed = true; setTimeout(()=>toast('Welcome home. Every piece of text here is editable — click it. The placeholder life is yours to overwrite.', 7000), 800); }
   registerServiceWorker();

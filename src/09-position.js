@@ -61,6 +61,32 @@ function rhythmCompute(r){
   };
   return r.computed;
 }
+/* ---------- the bedtime you forgot to log ----------
+   A night you went to bed without closing the day leaves no sleeping time at
+   all, and by the next morning there was nowhere to put one — the chart said
+   "no sleeping time" for that day for ever. The house already knows something
+   better than nothing: the last moment you were in it that day.
+
+   Two rules keep that from being a lie. It is only ever consulted for a day
+   that is already over, so opening the app at noon never reads as "you went to
+   bed at noon"; and it is always drawn and named as a guess, and always
+   replaceable by hand. */
+function touchPresence(){
+  if(typeof S === 'undefined' || !S || !S.dailyRhythm && !S.checkins) return;
+  const d = today(), hm = nowHM();
+  const r = rhythmDay(d);
+  if(r.lastSeenAt === hm) return;
+  r.lastSeenAt = hm;
+  save();
+}
+/* the sleeping time for a day, and whether it was told to us or inferred */
+function rhythmSleep(d){
+  const r = rhythmDay(d);
+  if(r.sleepTime) return {hm: r.sleepTime, inferred: false};
+  /* today is not over, so "the last time you were here" is just now */
+  if(d >= today()) return {hm: '', inferred: false};
+  return r.lastSeenAt ? {hm: r.lastSeenAt, inferred: true} : {hm: '', inferred: false};
+}
 const rhythmBlockEnd = b => { const s = hm2min(b.startTime), e = hm2min(b.endTime); return e == null ? s : (e <= s ? e + 1440 : e); };
 function rhythmTags(){ const set = new Set();
   Object.values(S.dailyRhythm || {}).forEach(r => (r.blocks||[]).forEach(b => b.tag && set.add(b.tag)));
@@ -617,7 +643,8 @@ function weekShapeDays(anchor = today(), n = 7){
 }
 function weekShapeRow(d){
   const r = rhythmDay(d);
-  let wake = hm2min(r.wakeTime), close = hm2min(r.sleepTime);
+  const sl = rhythmSleep(d);
+  let wake = hm2min(r.wakeTime), close = hm2min(sl.hm);
   if(wake != null) wake /= 60;
   /* A bedtime in the small hours belongs to the evening before, so it is
      plotted past 24 rather than back at the bottom of the chart: 10pm, 11pm,
@@ -636,7 +663,7 @@ function weekShapeRow(d){
      does not require an estimate of the rest. */
   const worked = focusMinutesOn(d) / 60;
   const awake = (wake != null && close != null) ? close - wake : null;
-  return {d, wake, close, worked, awake,
+  return {d, wake, close, worked, awake, guessedClose: sl.inferred,
           ratio: awake ? Math.round(worked / awake * 100) : null,
           empty: wake == null && close == null && !worked};
 }
@@ -708,9 +735,15 @@ function sleepWakeHTML(anchor = today()){
       else cur.push(`${x(i).toFixed(1)},${y(r[key]).toFixed(1)}`); });
     if(cur.length > 1) segs.push(cur);
     const lines = segs.map(pts => `<polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" opacity=".85"/>`).join('');
-    const dots = rows.map((r, i) => r[key] == null ? '' :
-      `<g><circle cx="${x(i).toFixed(1)}" cy="${y(r[key]).toFixed(1)}" r="3.2" fill="${color}"/>
-       <title>${esc(fmtDate(r.d,'med'))} · ${key === 'wake' ? 'woke' : 'went to sleep'} ${wkClock(r[key])}</title></g>`).join('');
+    const dots = rows.map((r, i) => r[key] == null ? '' : (() => {
+      /* a bedtime nobody logged is drawn hollow: the shape says "this is the
+         last time you were here, not something you told me" without a word */
+      const guess = key === 'close' && r.guessedClose;
+      return `<g><circle cx="${x(i).toFixed(1)}" cy="${y(r[key]).toFixed(1)}" r="3.2"
+        fill="${guess ? 'var(--bg)' : color}" stroke="${color}" stroke-width="${guess ? 1.6 : 0}"
+        ${guess ? 'stroke-dasharray="2 1.6"' : ''}/>
+       <title>${esc(fmtDate(r.d,'med'))} · ${key === 'wake' ? 'woke' : (guess ? 'last here' : 'went to sleep')} ${wkClock(r[key])}</title></g>`;
+    })()).join('');
     return lines + dots;
   };
 
@@ -730,13 +763,16 @@ function sleepWakeHTML(anchor = today()){
   const dayLine = r => {
     const parts = [fmtDate(r.d, 'med')];
     parts.push(r.wake != null ? `woke ${wkClock(r.wake)}` : 'no waking time');
-    parts.push(r.close != null ? `slept ${wkClock(r.close)}` : 'no sleeping time');
+    parts.push(r.close == null ? 'no sleeping time'
+      : r.guessedClose ? `last here ${wkClock(r.close)} — assumed` : `slept ${wkClock(r.close)}`);
     if(r.awake) parts.push(`${r.awake.toFixed(1)}h awake`);
     if(r.worked) parts.push(`${r.worked.toFixed(1)}h worked${r.ratio != null ? ` · ${r.ratio}% of it` : ''}`);
+    parts.push('click to set');
     return parts.join('  ·  ');
   };
   const restRow = rows.find(r => r.d === T && !r.empty) || [...rows].reverse().find(r => !r.empty) || rows[rows.length - 1];
-  const hovers = rows.map((r, i) => `<g class="wk-col${r.d === T ? ' now' : ''}" data-wkday="${r.d}">
+  const hovers = rows.map((r, i) => `<g class="wk-col${r.d === T ? ' now' : ''}" data-wkday="${r.d}"
+      role="button" tabindex="0" aria-label="Set the two ends of ${esc(fmtDate(r.d, 'med'))}">
       <rect x="${(x(i) - colW / 2).toFixed(1)}" y="${padT}" width="${colW.toFixed(1)}" height="${(H - padB - padT).toFixed(1)}"
         fill="transparent" class="wk-hit"/>
     </g>`).join('');
@@ -747,11 +783,12 @@ function sleepWakeHTML(anchor = today()){
       <span class="sc" style="margin:0">Sleep and waking</span>
       <span class="mono faint">${filled.length} of ${days.length} days logged</span>
     </div>
-    <p class="muted" style="font-size:.85rem;margin:4px 0 0">The top line is when each day ended, the bottom line is when it began. The band between them is how long you were up.</p>
+    <p class="muted" style="font-size:.85rem;margin:4px 0 0">The top line is when each day ended, the bottom line is when it began. The band between them is how long you were up. Click any day to set or correct either end.</p>
     <div class="wk-legend row" style="gap:16px;flex-wrap:wrap;margin:10px 0 2px">
       <span class="wk-key"><i class="ln" style="background:var(--gold)"></i>I woke up${aw!=null?` · usually ${wkClock(aw)}`:''}</span>
       <span class="wk-key"><i class="ln" style="background:var(--ment)"></i>I went to sleep${ac!=null?` · usually ${wkClock(ac)}`:''}</span>
       <span class="wk-key"><i class="bnd"></i>awake${(aw!=null&&ac!=null)?` · ${(ac-aw).toFixed(1)}h a day`:''}</span>
+      ${rows.some(r => r.guessedClose) ? `<span class="wk-key"><i class="gs"></i>assumed from the last time you were here</span>` : ''}
     </div>
     ${filled.length ? `<div class="wk-readout mono" id="wkReadout" aria-live="polite">
       <span class="wk-say rest">${esc(restRow ? dayLine(restRow) : '')}</span>${readouts}</div>
@@ -822,6 +859,32 @@ function timePieHTML(){
   </section>`;
 }
 /* the pair, in the order they are read */
+/* Set or correct the two ends of any day, from the chart itself. A day you
+   forgot to close used to be unreachable: the Today page only ever asks about
+   today, so by the morning there was nowhere to put last night's bedtime. */
+function openDayEdgesEditor(d, after){
+  const r = rhythmDay(d), sl = rhythmSleep(d);
+  const m = openModal(`<h2>${esc(fmtDate(d, 'med'))}</h2>
+    <p class="muted" style="font-size:.85rem;margin:0 0 14px">The two ends of the day. Leave one empty to clear it.</p>
+    <div class="field"><label>I woke up at</label>
+      <input type="time" class="inp mono serif-lg" id="deWake" value="${esc(r.wakeTime || '')}"></div>
+    <div class="field"><label>I went to sleep at</label>
+      <input type="time" class="inp mono serif-lg" id="deSleep" value="${esc(sl.hm || '')}">
+      ${sl.inferred ? `<div class="mono faint" style="margin-top:5px;font-size:.7rem">assumed — the last time you were here that day. Save to keep it as the real one.</div>` : ''}</div>
+    <div class="row" style="justify-content:space-between;margin-top:18px;gap:8px">
+      <button class="btn sm ghost" id="deClear">clear both</button>
+      <button class="btn primary" id="deOk">Save</button></div>`, 'narrow');
+  const write = (wake, sleep) => {
+    r.wakeTime = wake; r.sleepTime = sleep;
+    /* the check-in holds the same two facts for today's page to read */
+    if(S.checkins?.[d]){ const c = S.checkins[d];
+      if(wake){ const t = parseDay(d); const [h, mm] = wake.split(':').map(Number); t.setHours(h, mm, 0, 0); c.wakeAt = t.toISOString(); }
+      else delete c.wakeAt; }
+    rhythmCompute(r); saveNow(); sound('click'); m.remove(); (after || rerender)();
+  };
+  m.querySelector('#deOk').onclick = () => write(m.querySelector('#deWake').value || '', m.querySelector('#deSleep').value || '');
+  m.querySelector('#deClear').onclick = () => write('', '');
+}
 function weekShapeHTML(anchor = today()){ return sleepWakeHTML(anchor) + timePieHTML(); }
 function bindWeekShape(root, redraw){
   /* one line, many prepared sentences: hovering a column reveals its own and
@@ -838,12 +901,18 @@ function bindWeekShape(root, redraw){
       const d = g.dataset.wkday;
       g.addEventListener('pointerenter', () => show(d));
       g.addEventListener('pointermove', () => show(d));
-      /* a tap on a phone should read out too, and stay read out */
-      g.addEventListener('click', () => show(d));
     });
     const svg = root.querySelector('.wk-svg');
     if(svg) svg.addEventListener('pointerleave', () => show(null));
   }
+  /* A column is a button: pressing it opens that day's two ends. On a phone,
+     where there is no hover, the dialog is also how you read the day — it
+     names it and shows both times. */
+  root.querySelectorAll('[data-wkday]').forEach(g => {
+    const d = g.dataset.wkday;
+    g.addEventListener('click', () => openDayEdgesEditor(d, redraw || rerender));
+    g.addEventListener('keydown', e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openDayEdgesEditor(d, redraw || rerender); } });
+  });
 
   /* "claim today's hours" is gone with the hand-entered figures it wrote:
      the timer records the hours now, so there is nothing to claim. */
