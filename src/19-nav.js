@@ -49,13 +49,13 @@ const NAV_ICONS = {
 const NAV_PAGES = {
   planning: {label:'Planning',         short:'Plan',     ico:NAV_ICONS.planning, route:'#/planning'},
   today:    {label:'Today',            short:'Today',    ico:NAV_ICONS.today,    route:'#/today'},
-  journals: {label:'Journals',         short:'Journal',  ico:NAV_ICONS.journals, route:'#/journals'},
+  journals: {label:'Lived Record',     short:'Record',   ico:NAV_ICONS.journals, route:'#/journals'},
   projects: {label:'Projects',         short:'Projects', ico:NAV_ICONS.projects, route:'#/projects'},
   writing:  {label:'Writing',          short:'Writing',  ico:NAV_ICONS.writing,  route:'#/content/shelf'},
   people:   {label:'People',           short:'People',   ico:NAV_ICONS.people,   route:'#/people'},
   finance:  {label:'Finance',          short:'Money',    ico:NAV_ICONS.finance,  route:'#/finance'},
   commonplace:{label:'Library',        short:'Library',  ico:NAV_ICONS.commonplace, route:'#/journals/library'},
-  content:  {label:'Content',          short:'Content',  ico:NAV_ICONS.content,  route:'#/content'},
+  content:  {label:'Content Studio',   short:'Studio',   ico:NAV_ICONS.content,  route:'#/content'},
   values:   {label:'Values',           short:'Values',   ico:NAV_ICONS.values,   route:'#/values'},
   skills:   {label:'Skill Tree',       short:'Skills',   ico:NAV_ICONS.skills,   route:'#/skills'},
   timeline: {label:'Timeline',         short:'Timeline', ico:NAV_ICONS.timeline, route:'#/journals/timeline'},
@@ -246,8 +246,7 @@ routes.compass = function(root){
 
     ${typeof positionHTML === 'function' ? positionHTML() : ''}
 
-    <section class="section rv" style="margin-top:22px"><div class="row between"><span class="sc" style="margin:0">The house</span><span class="mono">● green tended · ● amber needs you · solid rings daily, dashed seasonal · hover to see what feeds what</span></div>
-      <div class="house-wrap" id="houseWrap" style="margin-top:10px">${houseSVG(st)}<div class="htip" id="htip"></div></div></section>
+    <!-- the house diagram is gone by request -->
 
     <section class="section rv"><div class="row between"><span class="sc" style="margin:0">The long view</span><span class="mono">nine readings, three rows — where the house stands over months, not days</span></div>
     <div class="bento">
@@ -264,9 +263,7 @@ routes.compass = function(root){
       <div class="card span4"><div class="k">Money, current against target <a href="#/finance">→</a></div><div class="big">${money(pf.totalCurrentBase)}<small>per month</small></div><div class="vbar"><span>of target</span><div class="bar" style="--c:var(--sage)"><i style="width:${pf.totalTargetBase?Math.min(100,pf.totalCurrentBase/pf.totalTargetBase*100).toFixed(0):0}%"></i></div><span class="mono">${pf.totalTargetBase?Math.round(pf.totalCurrentBase/pf.totalTargetBase*100)+'%':'—'}</span></div><div class="vbar"><span>passive</span><div class="bar" style="--c:var(--ment)"><i style="width:${Math.round(pf.passiveShare*100)}%"></i></div><span class="mono">${Math.round(pf.passiveShare*100)}%</span></div><div class="chart-fill">${sparkline(moneyMonths,{h:56,min:0,color:'var(--sage)'})}</div><div class="sub">${!pf.totalCurrentBase ? 'nothing coming in yet' : rw.sustainable?`<span style="color:var(--sage)">covered</span> — ${money(rw.surplus)}/mo over what the life costs`:`<span style="color:var(--gold)">${rw.months===Infinity?'no savings to run on':`${rw.months.toFixed(1)} months of runway`}</span> — ${money(monthlyBurn())}/mo short`}</div></div>
     </div></section>
   </div>`;
-  const wrap = $('#houseWrap'), tip = $('#htip'); const showTip = (e, html) => { tip.innerHTML = html; tip.style.display='block'; const r = wrap.getBoundingClientRect(); tip.style.left = Math.min(e.clientX-r.left+14, r.width-290)+'px'; tip.style.top = (e.clientY-r.top+14)+'px'; };
-  wrap.querySelectorAll('.hnode').forEach(nd => { nd.onmouseenter = e => { wrap.classList.add('hov'); nd.classList.add('hot'); wrap.querySelectorAll('.hedge').forEach(ed_ => { if(ed_.dataset.a===nd.dataset.node||ed_.dataset.b===nd.dataset.node){ ed_.classList.add('hot'); wrap.querySelector(`[data-node="${ed_.dataset.a}"]`)?.classList.add('hot'); wrap.querySelector(`[data-node="${ed_.dataset.b}"]`)?.classList.add('hot'); } }); const s = st.stat[nd.dataset.node]; showTip(e, `<b class="serif">${esc(NAV_PAGES[nd.dataset.node].label)}</b> · <span class="mono">${s.cadence}</span><br>${esc(s.line)}${s.tip?'<br>'+esc(s.tip):''}<br><span class="mono">click to open</span>`); }; nd.onmousemove = e => showTip(e, tip.innerHTML); nd.onmouseleave = () => { wrap.classList.remove('hov'); wrap.querySelectorAll('.hot').forEach(x=>x.classList.remove('hot')); tip.style.display='none'; }; });
-  wrap.querySelectorAll('.hedge').forEach(ed_ => { ed_.onmouseenter = e => { ed_.classList.add('hot'); showTip(e, `<span class="mono">${esc(NAV_PAGES[ed_.dataset.a].label)} ↔ ${esc(NAV_PAGES[ed_.dataset.b].label)}</span><br>${esc(ed_.dataset.label)}`); }; ed_.onmousemove = e => showTip(e, tip.innerHTML); ed_.onmouseleave = () => { ed_.classList.remove('hot'); tip.style.display='none'; }; });
+  /* the house diagram is gone, and so is the wiring that made it hoverable */
   if(typeof bindPosition === 'function') bindPosition(root, () => rerender());
   if(typeof bindWeekShape === 'function') bindWeekShape(root, () => rerender());
 };

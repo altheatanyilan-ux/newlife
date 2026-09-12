@@ -77,7 +77,9 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
     banners: document.querySelectorAll('.page-head').length}));
   ok('the stage spine is there', tl.spine && tl.hash === '#/journals/timeline', JSON.stringify(tl));
   ok('so is Threads & Tensions', tl.tabs.join('|') === 'Stages|Threads & Tensions', JSON.stringify(tl.tabs));
-  ok('the page is still called Journals', tl.h1 === 'Journals', tl.h1);
+  /* the page is the Lived Record; the banner names whichever of its three
+     views you are looking at, so on the Timeline it says Timeline */
+  ok('the banner names the view, not the whole room', tl.h1 === 'Timeline', tl.h1);
   ok('and it has one banner, not two', tl.banners === 1, tl.banners + ' page-heads');
   await go('#/journals/timeline/threads');
   ok('the threads tab draws its threads',

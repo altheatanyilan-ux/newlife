@@ -3756,19 +3756,34 @@ select.sm-active{border-color:var(--page-accent);
 .pl-ms.empty-strip{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:.82rem;padding:9px 14px}
 .pl-ms .k{letter-spacing:.09em;text-transform:uppercase;font-size:.62rem;color:var(--faint)}
 /* inset, so a tick centred on 0% or 100% is not sliced in half by the edge */
-.pl-msline{position:relative;height:96px;margin:32px 40px 0}
+/* The rail sits in the middle of the box so names have somewhere to go on
+   both sides of it: the ticks along the top, then three tiers of names above
+   the line, the line, then three tiers below. */
+.pl-msline{position:relative;margin:14px 40px 0;--step:36px;
+  --above:calc(28px + (var(--up,0) + 1) * var(--step));
+  --below:calc(22px + (var(--down,0) + 1) * var(--step));
+  height:calc(var(--above) + var(--below))}
 .pl-msaxis{position:absolute;inset:0}
-.pl-mstick{position:absolute;top:-28px;transform:translateX(-50%);font:.6rem/1 var(--mono);color:var(--faint);white-space:nowrap}
-.pl-msrail{position:absolute;left:0;right:0;top:8px;height:2px;border-radius:2px;
+.pl-mstick{position:absolute;top:0;transform:translateX(-50%);font:.6rem/1 var(--mono);color:var(--faint);white-space:nowrap}
+.pl-msrail{position:absolute;left:0;right:0;top:var(--above);height:2px;border-radius:2px;
   background:linear-gradient(90deg,transparent,var(--line) 6%,var(--line) 94%,transparent)}
-.pl-msnow{position:absolute;top:0;bottom:22px;width:1px;background:var(--page-accent);opacity:.5}
-.pl-msnow span{position:absolute;top:-13px;left:3px;font-size:.58rem;color:var(--page-accent);white-space:nowrap}
-/* neighbours a few days apart would print their names on top of each other,
-   so alternate rows carry theirs lower and the pin grows a stem to reach */
-.pl-mspin{position:absolute;top:0;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;
-  gap:3px;background:none;border:0;padding:0 2px;cursor:pointer;max-width:9em}
-.pl-mspin.low{top:34px}
-.pl-mspin.low::before{content:'';position:absolute;left:50%;top:-32px;height:32px;width:1px;background:var(--line)}
+.pl-msnow{position:absolute;top:18px;bottom:10px;width:1px;background:var(--page-accent);opacity:.5}
+.pl-msnow span{position:absolute;top:-14px;left:3px;font-size:.58rem;color:var(--page-accent);white-space:nowrap}
+/* Names are laid out in lanes rather than alternated pairwise, because three
+   dates falling together used to put the third name straight under the first.
+   Even lanes hang below the rail and odd ones stand above it, each tier a
+   fixed step further out, with a stem back to the dot so a name is never
+   orphaned from the date it belongs to. */
+.pl-mspin{position:absolute;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;
+  gap:3px;background:none;border:0;padding:0 2px;cursor:pointer;max-width:9em;
+  top:calc(var(--above) - 5px + var(--tier,0) * var(--step))}
+.pl-mspin .pl-msstem{position:absolute;left:50%;width:1px;background:var(--line-2);opacity:.7;
+  top:calc(var(--tier,0) * var(--step) * -1);height:calc(var(--tier,0) * var(--step));
+  pointer-events:none}
+/* above the rail: the whole pin is flipped so the dot still meets the line
+   and the name reads outward from it */
+.pl-mspin.up{top:auto;bottom:calc(var(--below) + 7px + var(--tier,0) * var(--step));flex-direction:column-reverse}
+.pl-mspin.up .pl-msstem{top:auto;bottom:calc(var(--tier,0) * var(--step) * -1)}
 .pl-msdot{width:11px;height:11px;background:var(--c,var(--terra));transform:rotate(45deg);border-radius:2px;
   box-shadow:0 0 0 3px var(--bg);transition:transform .18s ease}
 .pl-mspin:hover .pl-msdot{transform:rotate(45deg) scale(1.25)}
@@ -3795,7 +3810,7 @@ select.sm-active{border-color:var(--page-accent);
 /* the tick step is chosen from the length of the run, which says nothing
    about how much room there is to print it in — so on a narrow screen the
    labels are thinned rather than the scale redrawn */
-@media (max-width:760px){ .pl-msline{height:104px;margin-left:26px;margin-right:26px}
+@media (max-width:760px){ .pl-msline{margin-left:26px;margin-right:26px}
   .pl-mspin{max-width:6em} .pl-mstick:nth-child(even){display:none} }
 @media (max-width:480px){ .pl-mspin{max-width:5em;font-size:.95em}
   .pl-mstick:not(:nth-child(4n+1)){display:none} }

@@ -126,9 +126,33 @@ function planMilestoneSpan(items){
   let pad = Math.max(3, Math.round(Math.abs(daysBetween(lo, hi)) * 0.12));
   return {from: addDays(lo, -pad), to: addDays(hi, pad)};
 }
-/* carried outside the map because a template literal cannot hold a running
-   value, and the choice for one pin depends on what the pin before it did */
-const planMilestoneRowState = {last: false};
+/* ---------- keeping the names off each other ----------
+   Pins are placed by date, so two dates a few days apart put two names on top
+   of one another and neither can be read. The old rule alternated each pin
+   with the one before it, which fails the moment three fall together: the
+   third goes back to the first row, straight underneath the first name.
+
+   So the names are laid out properly. Each pin is given a lane, and a lane is
+   only reused once the last name in it has ended — lane 0 sits just under the
+   rail, lane 1 just above it, then further down and further up, so a cluster
+   opens outwards from the line rather than stacking on one side. */
+const MS_LANES = 6;
+/* a name occupies roughly this much of the strip. Measured properly it would
+   vary with the name, but the strip's pixel width is not known at render and
+   a fixed, slightly generous guess keeps names apart at every width. */
+const MS_LABEL_PCT = 13;
+function planMilestoneLanes(items, at){
+  const ends = new Array(MS_LANES).fill(-Infinity);
+  return items.map(x => {
+    const left = at(x.m.date || today());
+    let lane = ends.findIndex(e => left - e >= MS_LABEL_PCT);
+    /* everything is crowded: put it in the lane with the most room and let
+       the ellipsis handle what is left */
+    if(lane < 0) lane = ends.indexOf(Math.min(...ends));
+    ends[lane] = left;
+    return {...x, left, lane};
+  });
+}
 /* How far away a date is, said the way a person would say it. A number of
    days stops being legible somewhere around a fortnight — "in 34 days" has to
    be divided before it means anything — so from a week out it is weeks and
@@ -152,7 +176,6 @@ function planMilestoneStripHTML(sel){
   if(!sel || (sel.kind !== 'list' && sel.kind !== 'folder')) return '';
   const items = planMilestonesFor(sel);
   const host = planMilestoneList(sel);
-  planMilestoneRowState.last = false;
   const add = host ? `<button class="pl-mini" id="plMsAdd" title="a date that matters for this list">＋ milestone</button>` : '';
   if(!items.length) return `<div class="pl-ms empty-strip">
     <span class="k mono">Milestones</span>
@@ -167,26 +190,28 @@ function planMilestoneStripHTML(sel){
   const step = weeks <= 8 ? 7 : weeks <= 30 ? 14 : 30;
   const ticks = [];
   for(let d = from; d <= to; d = addDays(d, step)) ticks.push(d);
+  /* the strip is only as tall as the tiers it actually uses — a list with
+     three well-spaced dates should not reserve room for eighteen */
+  const laid = planMilestoneLanes(items, at);
+  const upT = Math.max(0, ...laid.filter(x => x.lane % 2 === 1).map(x => Math.floor(x.lane / 2)));
+  const downT = Math.max(0, ...laid.filter(x => x.lane % 2 === 0).map(x => Math.floor(x.lane / 2)));
   return `<div class="pl-ms">
     <div class="row between" style="align-items:baseline">
       <span class="k mono">Milestones</span>
       <span class="mono faint">${items.filter(x => !x.m.done).length} ahead · ${items.length} in all</span>
       ${add}
     </div>
-    <div class="pl-msline" role="list">
+    <div class="pl-msline" role="list" style="--up:${upT};--down:${downT}">
       <div class="pl-msaxis">${ticks.map(d => `<span class="pl-mstick" style="left:${at(d)}%">${esc(fmtDate(d, 'short'))}</span>`).join('')}</div>
       <div class="pl-msrail"></div>
       <div class="pl-msnow" style="left:${at(T)}%"><span class="mono">today</span></div>
-      ${items.map(({m, list}, i) => { const late = !m.done && m.date && m.date < T;
-        /* a name printed under a neighbour four days away is unreadable, so
-           every other pin hangs its name lower on a stem */
-        const near = i > 0 && Math.abs(daysBetween(items[i - 1].m.date || T, m.date || T)) / total < 0.09;
-        const low = near && !(planMilestoneRowState.last);
-        planMilestoneRowState.last = low;
-        return `<button class="pl-mspin${m.done ? ' done' : ''}${late ? ' late' : ''}${low ? ' low' : ''}" data-plms="${m.id}"
-          style="left:${at(m.date || T)}%;--c:${esc(list.color)}" role="listitem"
+      ${laid.map(({m, list, left, lane}) => { const late = !m.done && m.date && m.date < T;
+        /* even lanes hang below the rail, odd ones stand above it */
+        const up = lane % 2 === 1, tier = Math.floor(lane / 2);
+        return `<button class="pl-mspin${m.done ? ' done' : ''}${late ? ' late' : ''}${up ? ' up' : ''}" data-plms="${m.id}"
+          style="left:${left}%;--c:${esc(list.color)};--tier:${tier}" role="listitem"
           title="${esc(m.name)} · ${m.date ? esc(fmtDate(m.date, 'med')) + ' · ' + esc(planWhenAway(m.date)) : 'no date'}${m.note ? ' · ' + esc(m.note) : ''}">
-          <i class="pl-msdot"></i><span class="pl-mslabel">${esc(m.name)}</span>
+          <i class="pl-msdot"></i><i class="pl-msstem"></i><span class="pl-mslabel">${esc(m.name)}</span>
           ${m.date ? `<span class="pl-msaway mono">${esc(m.done ? fmtDate(m.date, 'short') : planWhenAway(m.date))}</span>` : ''}</button>`; }).join('')}
     </div>
   </div>`;

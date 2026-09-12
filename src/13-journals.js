@@ -22,8 +22,14 @@ function journalsShown(){ return S.journals.filter(j => !JOURNAL_HIDDEN.includes
 function journalDefault(){ return (journalsShown()[0] || S.journals[0] || {type:'reflection'}).type; }
 /* <!--tools--> is where the Timeline view drops its two toggles, so the page
    keeps one banner instead of growing a second empty one beneath it. */
+/* The page is the Lived Record; the three views under it are Journals, the
+   Timeline and the Library. The banner said "Journals" whichever one you were
+   in, which named a third of the room after the whole of it — so the heading
+   is the view you are actually looking at, and the page's own name sits above
+   it in the sidebar. */
+const JOURNAL_VIEW_TITLE = {entries:'Journals', timeline:'Timeline', library:'Library'};
 function journalsHeadHTML(view){
-  return `<div class="page-head jr-head"><h1>Journals</h1>
+  return `<div class="page-head jr-head"><h1>${esc(JOURNAL_VIEW_TITLE[view] || 'Lived Record')}</h1>
     <div class="jr-views">${JOURNAL_VIEWS.map(([k, ic, n]) =>
       `<button class="${view === k ? 'on' : ''}" data-jrview="${k}" title="${n}">${ic} <span>${n}</span></button>`).join('')}</div>
     <!--tools--></div>`;
