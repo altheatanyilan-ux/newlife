@@ -4132,6 +4132,31 @@ select.sm-active{border-color:var(--page-accent);
 .task-pen:focus-visible{opacity:1}
 /* a touch screen has no hover, so the pencil is simply always there */
 @media (hover:none){ .task-pen{opacity:.55} }
+
+/* --- how the sitting is counted, chosen before it starts --- */
+.fp-mode{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.fp-modebtn{display:flex;flex-direction:column;gap:2px;text-align:left;cursor:pointer;font:inherit;
+  background:var(--card);border:1px solid var(--line);border-radius:9px;padding:7px 11px;color:var(--ink);
+  transition:border-color .18s ease,background .18s ease}
+.fp-modebtn:hover:not(:disabled){border-color:var(--page-accent)}
+.fp-modebtn.on{border-color:var(--page-accent);background:color-mix(in srgb,var(--page-accent) 9%,var(--card));
+  box-shadow:inset 0 0 0 1px var(--page-accent)}
+.fp-modebtn .fp-mname{font-family:var(--serif);font-size:.92rem}
+.fp-modebtn .fp-mwhy{font-size:.68rem;color:var(--muted)}
+.fp-mode.locked .fp-modebtn:disabled{opacity:.5;cursor:not-allowed}
+.fp-len{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.fp-lenbtn{font:inherit;font-size:.72rem;cursor:pointer;background:var(--card);border:1px solid var(--line);
+  border-radius:999px;padding:2px 10px;color:var(--muted);transition:border-color .15s,color .15s}
+.fp-lenbtn:hover:not(:disabled){border-color:var(--page-accent);color:var(--ink)}
+.fp-lenbtn.on{border-color:var(--page-accent);color:var(--ink);background:color-mix(in srgb,var(--page-accent) 10%,transparent)}
+.fp-lenn{width:5em;padding:2px 6px;font-size:.72rem}
+.fp-len.locked .fp-lenbtn:disabled,.fp-len.locked .fp-lenn:disabled{opacity:.5}
+/* what the sitting is going on, written while it happens */
+.fp-did{margin-top:8px;display:flex;flex-direction:column;gap:4px}
+.fp-desc{font-size:.82rem;color:var(--muted);margin-top:6px;padding-left:2px}
+.fp-drop .sub-wrap{margin-top:8px}
+.fp-caret{margin-right:2px}
+@media (max-width:520px){ .fp-mode{grid-template-columns:1fr} }
 </style>
 </head>
 <body>
@@ -7555,7 +7580,12 @@ function focusPanelHTML(){
   const ref = s.taskId && !t && typeof findTaskRef === 'function' ? findTaskRef(s.taskId) : null;
   const name = t ? t.text : ref ? ref.text : '';
   const total = (s.phase === 'focus' ? c.focusDuration : s.phase === 'long' ? c.longBreak : c.shortBreak) * 60;
-  const frac = total ? 1 - s.left / total : 0;
+  /* A countdown's ring empties towards an end. A stopwatch has no end, so its
+     ring fills once round every hour — a shape that says "time is passing"
+     without pretending to a finish line. */
+  const stop = s.mode === 'stopwatch' && s.phase === 'focus';
+  const frac = stop ? (s.elapsed % 3600) / 3600 : (total ? 1 - s.left / total : 0);
+  const face = stop ? s.elapsed : s.left;
   const R = 52, C = 2 * Math.PI * R;
   const col = s.phase === 'focus' ? 'var(--terra)' : 'var(--sage)';
   const rec = s.taskId ? taskWorkRecord(s.taskId) : null;
@@ -7567,14 +7597,37 @@ function focusPanelHTML(){
       <span class="mono faint">${todayMins ? `${fmtHM(todayMins)} worked today` : 'nothing timed yet today'}</span>
     </div>
     <div class="card fp-card${s.running ? ' running' : ''}${s.onBreak ? ' onbreak' : ''}">
+      <!-- How the sitting is counted is chosen before it starts, because the two
+           are different questions: can I hold this for twenty-five minutes, or
+           how long did that actually take. It is fixed once the clock runs. -->
+      <div class="fp-mode${s.idle ? '' : ' locked'}">
+        ${[['countdown', 'Countdown', 'to a length you set'], ['stopwatch', 'Stopwatch', 'counts up, no end']]
+          .map(([k, n, why]) => `<button class="fp-modebtn${s.mode === k ? ' on' : ''}" data-fpmode="${k}"
+            ${s.idle ? '' : 'disabled'} title="${s.idle ? esc(why) : 'the clock is already running'}">
+            <span class="fp-mname">${n}</span><span class="fp-mwhy">${esc(why)}</span></button>`).join('')}
+      </div>
+      ${s.mode === 'countdown' ? `<div class="fp-len${s.idle ? '' : ' locked'}">
+        <span class="k mono">how long</span>
+        ${[15, 25, 45, 60, 90].map(n => `<button class="fp-lenbtn${c.focusDuration === n ? ' on' : ''}"
+          data-fplen="${n}" ${s.idle ? '' : 'disabled'}>${n}m</button>`).join('')}
+        <input class="inp mono fp-lenn" id="fpLen" type="number" min="1" max="240"
+          value="${c.focusDuration}" ${s.idle ? '' : 'disabled'} aria-label="minutes">
+      </div>` : ''}
+
       <!-- the drop target: a task becomes the subject by being dragged here -->
       <div class="fp-drop" data-focusdrop>
         ${name ? `<div class="fp-on">
             <span class="k mono">on</span>
+            ${t ? subCaretHTML(t.id, t, 'task-caret fp-caret') : ''}
             <b class="serif">${esc(name)}</b>
             <button class="pl-mini" id="fpClear" title="take it out of the timer">×</button>
           </div>
-          ${rec ? `<div class="fp-rec mono">${fmtHM(rec.minutes)} over ${rec.sessions} sitting${rec.sessions === 1 ? '' : 's'}${rec.breaks ? ` · ${rec.breaks} break${rec.breaks === 1 ? '' : 's'}` : ''} · started ${clockOf(rec.startedAt)}</div>` : ''}`
+          ${rec ? `<div class="fp-rec mono">${fmtHM(rec.minutes)} over ${rec.sessions} sitting${rec.sessions === 1 ? '' : 's'}${rec.breaks ? ` · ${rec.breaks} break${rec.breaks === 1 ? '' : 's'}` : ''} · started ${clockOf(rec.startedAt)}</div>` : ''}
+          <!-- The steps and the links are the reason the task was parked here:
+               they are what you are about to work from. Hiding them behind the
+               task's own page meant leaving the timer to read them. -->
+          ${t && subsOpen(t.id, t) ? subBlockHTML(t.id, t) : ''}
+          ${t && t.desc ? `<div class="fp-desc">${esc(t.desc)}</div>` : ''}`
         : `<div class="fp-empty">Drag a task here to time it — or start the clock without one.</div>`}
       </div>
 
@@ -7584,8 +7637,8 @@ function focusPanelHTML(){
             <circle cx="60" cy="60" r="${R}" class="ft-track"/>
             <circle cx="60" cy="60" r="${R}" class="ft-arc" style="stroke:${col};stroke-dasharray:${C.toFixed(1)};stroke-dashoffset:${(C * (1 - frac)).toFixed(1)}"/>
           </svg>
-          <div class="fp-face"><div class="fp-time serif">${fmtClock(s.left)}</div>
-            <div class="fp-phase mono">${s.phase === 'focus' ? (s.onBreak ? 'on a break' : 'focus') : s.phase === 'long' ? 'long break' : 'break'}</div></div>
+          <div class="fp-face"><div class="fp-time serif">${fmtClock(face)}</div>
+            <div class="fp-phase mono">${s.phase === 'focus' ? (s.onBreak ? 'on a break' : (stop ? 'counting up' : 'focus')) : s.phase === 'long' ? 'long break' : 'break'}</div></div>
         </div>
         <div class="fp-side">
           <div class="row" style="gap:8px;flex-wrap:wrap">
@@ -7600,6 +7653,14 @@ function focusPanelHTML(){
           </div>` : `<div class="faint" style="font-size:.76rem">${s.running
             ? 'Pausing starts a break, and asks what it is for.'
             : 'Only time the clock is running counts as worked.'}</div>`}
+          <!-- A break has always been asked what it was for. A sitting of work
+               was not, which left the record saying how long but never what. -->
+          ${s.idle ? '' : `<div class="fp-did">
+            <label class="k mono" for="fpDid">what are you actually doing?</label>
+            <input class="inp sm" id="fpDid" value="${esc(s.notes || '')}"
+              placeholder="the second draft · the tricky bit of the proof" autocomplete="off">
+            <div class="faint" style="font-size:.7rem">Kept with the sitting when it is finished.</div>
+          </div>`}
         </div>
       </div>
     </div>
@@ -7623,6 +7684,20 @@ function bindFocusPanel(root, redraw){
      typed rather than needing to be confirmed before the break ends */
   const note = box.querySelector('#fpBreakNote');
   if(note) note.oninput = debounce(function(){ FocusTimer.noteBreak(this.value); }, 300);
+  const did = box.querySelector('#fpDid');
+  if(did) did.oninput = debounce(function(){ FocusTimer.noteWork(this.value); }, 300);
+
+  /* the mode and the length are settable only while the clock is idle, which
+     the timer enforces as well as the disabled attribute */
+  box.querySelectorAll('[data-fpmode]').forEach(bt => bt.onclick = () => {
+    if(FocusTimer.setMode(bt.dataset.fpmode)){ sound('click'); go(); } });
+  box.querySelectorAll('[data-fplen]').forEach(bt => bt.onclick = () => {
+    if(FocusTimer.setLength(+bt.dataset.fplen)){ sound('click'); go(); } });
+  const len = box.querySelector('#fpLen');
+  if(len) len.onchange = () => { if(FocusTimer.setLength(len.value)) go(); };
+
+  /* the steps of the task being worked on are live here, not a picture of it */
+  if(typeof bindSubtasks === 'function') bindSubtasks(box, go);
 
   const drop = box.querySelector('[data-focusdrop]');
   if(drop){
@@ -7650,12 +7725,16 @@ function liveFocusFace(root){
   const face = () => {
     const box = root.querySelector('#t-focus'); if(!box || !box.isConnected){ clearInterval(iv); off(); return; }
     const s = FocusTimer.state();
-    const tEl = box.querySelector('.fp-time'); if(tEl) tEl.textContent = fmtClock(s.left);
+    /* a stopwatch counts up and has no `left` to show: reading that field
+       regardless is how the face sat at 00:00 while the clock was running */
+    const up = s.mode === 'stopwatch' && s.phase === 'focus';
+    const tEl = box.querySelector('.fp-time'); if(tEl) tEl.textContent = fmtClock(up ? s.elapsed : s.left);
     const c = planState().timer;
     const total = (s.phase === 'focus' ? c.focusDuration : s.phase === 'long' ? c.longBreak : c.shortBreak) * 60;
     const arc = box.querySelector('.ft-arc');
-    if(arc && total){ const R = 52, C = 2 * Math.PI * R;
-      arc.style.strokeDashoffset = (C * (s.left / total)).toFixed(1); }
+    if(arc){ const R = 52, C = 2 * Math.PI * R;
+      const frac = up ? (s.elapsed % 3600) / 3600 : (total ? 1 - s.left / total : 0);
+      arc.style.strokeDashoffset = (C * (1 - frac)).toFixed(1); }
   };
   const iv = setInterval(face, 1000);
   face();
@@ -15436,7 +15515,8 @@ function planState(){
   p.focusSessions = Array.isArray(p.focusSessions) ? p.focusSessions : [];
   p.reminders  = Array.isArray(p.reminders) ? p.reminders : [];
   p.timer = Object.assign({focusDuration:25, shortBreak:5, longBreak:15, longBreakAfter:4,
-    autoStartBreaks:true, autoStartFocus:false}, p.timer || {});
+    autoStartBreaks:true, autoStartFocus:false, mode:'countdown'}, p.timer || {});
+  if(p.timer.mode !== 'stopwatch') p.timer.mode = 'countdown';
   p.prefs = Object.assign({view:PLAN_VIEW_DEFAULT, span:'today', sort:'dueDate', sortDir:'asc', showCompleted:false,
     group:'auto', sidebarCollapsed:false, lastView:'today', calMode:'month', tlScale:'week'}, p.prefs || {});
   if(!p.lists.some(l => l.id === 'inbox'))
@@ -16762,14 +16842,28 @@ const FocusTimer = (() => {
   const listeners = new Set();
   const cfg = () => planState().timer;
   const notify = () => listeners.forEach(f => { try { f(state()); } catch(e){} });
+  /* Two ways to time a piece of work, and they are different questions.
+     A countdown asks "can I hold this for twenty-five minutes"; a stopwatch
+     asks "how long did that actually take". The second has no end to reach,
+     so it never finishes itself and never hands you a break. */
+  const timerMode = () => cfg().mode === 'stopwatch' ? 'stopwatch' : 'countdown';
+  /* seconds of work done in the current sitting, whichever way it is counted */
+  function elapsedSecs(){
+    if(!st) return 0;
+    if(st.up) return Math.round(st.acc + (st.running ? (Date.now() - st.since) / 1000 : 0));
+    return Math.max(0, phaseLen(st.phase) - (st.running ? Math.round((st.endsAt - Date.now()) / 1000) : st.remaining));
+  }
   function state(){
-    if(!st) return {running:false, phase:'focus', left:cfg().focusDuration * 60, round:1, taskId:pendingTask, idle:true};
-    const left = st.running ? Math.max(0, Math.round((st.endsAt - Date.now()) / 1000)) : st.remaining;
+    if(!st) return {running:false, phase:'focus', left:cfg().focusDuration * 60, elapsed:0,
+      mode:timerMode(), round:1, taskId:pendingTask, idle:true};
+    const left = st.up ? 0 : (st.running ? Math.max(0, Math.round((st.endsAt - Date.now()) / 1000)) : st.remaining);
     const onBreak = !st.running && st.phase === 'focus' && (st.breaks || []).some(b => !b.to);
     const cur = (st.breaks || []).find(b => !b.to) || null;
-    return {running:st.running, phase:st.phase, left, round:st.round, taskId:st.taskId, idle:false,
+    return {running:st.running, phase:st.phase, left, elapsed: elapsedSecs(),
+      mode: st.up ? 'stopwatch' : 'countdown',
+      round:st.round, taskId:st.taskId, idle:false,
       onBreak, breakNote: cur ? cur.note : '', breakSince: cur ? cur.from : null,
-      breaks:(st.breaks || []).length, startedAt: st.startedAt};
+      breaks:(st.breaks || []).length, startedAt: st.startedAt, notes: st.notes || ''};
   }
   function phaseLen(phase){
     const c = cfg();
@@ -16777,11 +16871,16 @@ const FocusTimer = (() => {
   }
   function start(taskId, phase){
     const p = phase || (st ? st.phase : 'focus');
+    /* a break is always counted down, whatever the focus sitting is doing */
+    const up = timerMode() === 'stopwatch' && p === 'focus';
     const secs = st && st.phase === p && !st.running && st.remaining > 0 ? st.remaining : phaseLen(p);
     const carried = st ? st.breaks : null;
-    st = {phase:p, running:true, endsAt:Date.now() + secs * 1000, remaining:secs,
+    st = {phase:p, running:true, up,
+      endsAt: up ? 0 : Date.now() + secs * 1000, remaining: up ? 0 : secs,
+      acc: st && st.up ? (st.acc || 0) : 0, since: Date.now(),
       taskId: taskId !== undefined ? taskId : (st ? st.taskId : pendingTask),
       round: st ? st.round : 1, startedAt: st?.startedAt || new Date().toISOString(),
+      notes: st ? (st.notes || '') : '',
       breaks: carried || []};
     closeBreak();                       // resuming ends whatever break was open
     tick(); notify();
@@ -16806,7 +16905,9 @@ const FocusTimer = (() => {
     const open = st.breaks.find(b => !b.to) || st.breaks[st.breaks.length - 1];
     if(open){ open.note = String(text || ''); notify(); }
   }
-  function pause(){ if(!st || !st.running) return; st.remaining = Math.max(0, Math.round((st.endsAt - Date.now()) / 1000));
+  function pause(){ if(!st || !st.running) return;
+    if(st.up) st.acc = (st.acc || 0) + (Date.now() - st.since) / 1000;
+    else st.remaining = Math.max(0, Math.round((st.endsAt - Date.now()) / 1000));
     st.running = false; openBreak(); notify(); }
   function stop(logIt = true){
     if(st && logIt && st.phase === 'focus') logSession(false);
@@ -16816,12 +16917,12 @@ const FocusTimer = (() => {
   /* a finished focus interval is written down; a break is not worth recording */
   function logSession(completed){
     if(!st || st.phase !== 'focus') return;
-    const spent = Math.max(0, phaseLen('focus') - (st.running ? Math.round((st.endsAt - Date.now()) / 1000) : st.remaining));
-    const mins = Math.round(spent / 60);
+    const mins = Math.round(elapsedSecs() / 60);
     if(mins < 1) return;
     closeBreak();
     planState().focusSessions.push({id:uid(), taskId:st.taskId || null, startedAt:st.startedAt,
       endedAt:new Date().toISOString(), duration:mins, type:'focus', completed:!!completed,
+      mode: st.up ? 'stopwatch' : 'countdown', note: st.notes || '',
       breaks:(st.breaks || []).filter(b => b.to).map(b => ({from:b.from, to:b.to, note:b.note || ''}))});
     if(st.taskId){ const t = planTaskById(st.taskId); if(t){ t.focusTime = (t.focusTime || 0) + mins; t.updatedAt = new Date().toISOString();
       /* a focus session on a task booked for a piece is writing time on
@@ -16848,14 +16949,24 @@ const FocusTimer = (() => {
   function tick(){
     clearTimeout(timer);
     if(!st || !st.running) return;
-    const left = Math.max(0, st.endsAt - Date.now());
-    if(left <= 0){ finish(false); return; }
+    /* a stopwatch has nowhere to arrive, so it only ever keeps counting */
+    if(!st.up){
+      const left = Math.max(0, st.endsAt - Date.now());
+      if(left <= 0){ finish(false); return; }
+    }
     notify();
     timer = setTimeout(tick, 1000);
   }
+  /* what the sitting was actually spent on, written while it is happening —
+     the same courtesy the breaks already had */
+  function noteWork(text){ if(!st) return; st.notes = String(text || ''); notify(); }
   return {start, pause, stop, skip, state, reset: () => { st = null; notify(); },
     setTask(id){ pendingTask = id; if(st) st.taskId = id; notify(); },
-    noteBreak,
+    mode: timerMode,
+    setMode(m){ if(st) return false; cfg().mode = m === 'stopwatch' ? 'stopwatch' : 'countdown'; saveNow(); notify(); return true; },
+    setLength(mins){ if(st) return false; const n = clamp(Math.round(+mins || 0), 1, 240);
+      cfg().focusDuration = n; saveNow(); notify(); return true; },
+    noteBreak, noteWork,
     subscribe(f){ listeners.add(f); return () => listeners.delete(f); }};
 })();
 

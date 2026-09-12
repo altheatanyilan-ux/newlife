@@ -14,14 +14,28 @@ const FocusTimer = (() => {
   const listeners = new Set();
   const cfg = () => planState().timer;
   const notify = () => listeners.forEach(f => { try { f(state()); } catch(e){} });
+  /* Two ways to time a piece of work, and they are different questions.
+     A countdown asks "can I hold this for twenty-five minutes"; a stopwatch
+     asks "how long did that actually take". The second has no end to reach,
+     so it never finishes itself and never hands you a break. */
+  const timerMode = () => cfg().mode === 'stopwatch' ? 'stopwatch' : 'countdown';
+  /* seconds of work done in the current sitting, whichever way it is counted */
+  function elapsedSecs(){
+    if(!st) return 0;
+    if(st.up) return Math.round(st.acc + (st.running ? (Date.now() - st.since) / 1000 : 0));
+    return Math.max(0, phaseLen(st.phase) - (st.running ? Math.round((st.endsAt - Date.now()) / 1000) : st.remaining));
+  }
   function state(){
-    if(!st) return {running:false, phase:'focus', left:cfg().focusDuration * 60, round:1, taskId:pendingTask, idle:true};
-    const left = st.running ? Math.max(0, Math.round((st.endsAt - Date.now()) / 1000)) : st.remaining;
+    if(!st) return {running:false, phase:'focus', left:cfg().focusDuration * 60, elapsed:0,
+      mode:timerMode(), round:1, taskId:pendingTask, idle:true};
+    const left = st.up ? 0 : (st.running ? Math.max(0, Math.round((st.endsAt - Date.now()) / 1000)) : st.remaining);
     const onBreak = !st.running && st.phase === 'focus' && (st.breaks || []).some(b => !b.to);
     const cur = (st.breaks || []).find(b => !b.to) || null;
-    return {running:st.running, phase:st.phase, left, round:st.round, taskId:st.taskId, idle:false,
+    return {running:st.running, phase:st.phase, left, elapsed: elapsedSecs(),
+      mode: st.up ? 'stopwatch' : 'countdown',
+      round:st.round, taskId:st.taskId, idle:false,
       onBreak, breakNote: cur ? cur.note : '', breakSince: cur ? cur.from : null,
-      breaks:(st.breaks || []).length, startedAt: st.startedAt};
+      breaks:(st.breaks || []).length, startedAt: st.startedAt, notes: st.notes || ''};
   }
   function phaseLen(phase){
     const c = cfg();
@@ -29,11 +43,16 @@ const FocusTimer = (() => {
   }
   function start(taskId, phase){
     const p = phase || (st ? st.phase : 'focus');
+    /* a break is always counted down, whatever the focus sitting is doing */
+    const up = timerMode() === 'stopwatch' && p === 'focus';
     const secs = st && st.phase === p && !st.running && st.remaining > 0 ? st.remaining : phaseLen(p);
     const carried = st ? st.breaks : null;
-    st = {phase:p, running:true, endsAt:Date.now() + secs * 1000, remaining:secs,
+    st = {phase:p, running:true, up,
+      endsAt: up ? 0 : Date.now() + secs * 1000, remaining: up ? 0 : secs,
+      acc: st && st.up ? (st.acc || 0) : 0, since: Date.now(),
       taskId: taskId !== undefined ? taskId : (st ? st.taskId : pendingTask),
       round: st ? st.round : 1, startedAt: st?.startedAt || new Date().toISOString(),
+      notes: st ? (st.notes || '') : '',
       breaks: carried || []};
     closeBreak();                       // resuming ends whatever break was open
     tick(); notify();
@@ -58,7 +77,9 @@ const FocusTimer = (() => {
     const open = st.breaks.find(b => !b.to) || st.breaks[st.breaks.length - 1];
     if(open){ open.note = String(text || ''); notify(); }
   }
-  function pause(){ if(!st || !st.running) return; st.remaining = Math.max(0, Math.round((st.endsAt - Date.now()) / 1000));
+  function pause(){ if(!st || !st.running) return;
+    if(st.up) st.acc = (st.acc || 0) + (Date.now() - st.since) / 1000;
+    else st.remaining = Math.max(0, Math.round((st.endsAt - Date.now()) / 1000));
     st.running = false; openBreak(); notify(); }
   function stop(logIt = true){
     if(st && logIt && st.phase === 'focus') logSession(false);
@@ -68,12 +89,12 @@ const FocusTimer = (() => {
   /* a finished focus interval is written down; a break is not worth recording */
   function logSession(completed){
     if(!st || st.phase !== 'focus') return;
-    const spent = Math.max(0, phaseLen('focus') - (st.running ? Math.round((st.endsAt - Date.now()) / 1000) : st.remaining));
-    const mins = Math.round(spent / 60);
+    const mins = Math.round(elapsedSecs() / 60);
     if(mins < 1) return;
     closeBreak();
     planState().focusSessions.push({id:uid(), taskId:st.taskId || null, startedAt:st.startedAt,
       endedAt:new Date().toISOString(), duration:mins, type:'focus', completed:!!completed,
+      mode: st.up ? 'stopwatch' : 'countdown', note: st.notes || '',
       breaks:(st.breaks || []).filter(b => b.to).map(b => ({from:b.from, to:b.to, note:b.note || ''}))});
     if(st.taskId){ const t = planTaskById(st.taskId); if(t){ t.focusTime = (t.focusTime || 0) + mins; t.updatedAt = new Date().toISOString();
       /* a focus session on a task booked for a piece is writing time on
@@ -100,14 +121,24 @@ const FocusTimer = (() => {
   function tick(){
     clearTimeout(timer);
     if(!st || !st.running) return;
-    const left = Math.max(0, st.endsAt - Date.now());
-    if(left <= 0){ finish(false); return; }
+    /* a stopwatch has nowhere to arrive, so it only ever keeps counting */
+    if(!st.up){
+      const left = Math.max(0, st.endsAt - Date.now());
+      if(left <= 0){ finish(false); return; }
+    }
     notify();
     timer = setTimeout(tick, 1000);
   }
+  /* what the sitting was actually spent on, written while it is happening —
+     the same courtesy the breaks already had */
+  function noteWork(text){ if(!st) return; st.notes = String(text || ''); notify(); }
   return {start, pause, stop, skip, state, reset: () => { st = null; notify(); },
     setTask(id){ pendingTask = id; if(st) st.taskId = id; notify(); },
-    noteBreak,
+    mode: timerMode,
+    setMode(m){ if(st) return false; cfg().mode = m === 'stopwatch' ? 'stopwatch' : 'countdown'; saveNow(); notify(); return true; },
+    setLength(mins){ if(st) return false; const n = clamp(Math.round(+mins || 0), 1, 240);
+      cfg().focusDuration = n; saveNow(); notify(); return true; },
+    noteBreak, noteWork,
     subscribe(f){ listeners.add(f); return () => listeners.delete(f); }};
 })();
 

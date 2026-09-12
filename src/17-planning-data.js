@@ -118,7 +118,8 @@ function planState(){
   p.focusSessions = Array.isArray(p.focusSessions) ? p.focusSessions : [];
   p.reminders  = Array.isArray(p.reminders) ? p.reminders : [];
   p.timer = Object.assign({focusDuration:25, shortBreak:5, longBreak:15, longBreakAfter:4,
-    autoStartBreaks:true, autoStartFocus:false}, p.timer || {});
+    autoStartBreaks:true, autoStartFocus:false, mode:'countdown'}, p.timer || {});
+  if(p.timer.mode !== 'stopwatch') p.timer.mode = 'countdown';
   p.prefs = Object.assign({view:PLAN_VIEW_DEFAULT, span:'today', sort:'dueDate', sortDir:'asc', showCompleted:false,
     group:'auto', sidebarCollapsed:false, lastView:'today', calMode:'month', tlScale:'week'}, p.prefs || {});
   if(!p.lists.some(l => l.id === 'inbox'))

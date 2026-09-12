@@ -3608,5 +3608,30 @@ select.sm-active{border-color:var(--page-accent);
 .task-pen:focus-visible{opacity:1}
 /* a touch screen has no hover, so the pencil is simply always there */
 @media (hover:none){ .task-pen{opacity:.55} }
+
+/* --- how the sitting is counted, chosen before it starts --- */
+.fp-mode{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.fp-modebtn{display:flex;flex-direction:column;gap:2px;text-align:left;cursor:pointer;font:inherit;
+  background:var(--card);border:1px solid var(--line);border-radius:9px;padding:7px 11px;color:var(--ink);
+  transition:border-color .18s ease,background .18s ease}
+.fp-modebtn:hover:not(:disabled){border-color:var(--page-accent)}
+.fp-modebtn.on{border-color:var(--page-accent);background:color-mix(in srgb,var(--page-accent) 9%,var(--card));
+  box-shadow:inset 0 0 0 1px var(--page-accent)}
+.fp-modebtn .fp-mname{font-family:var(--serif);font-size:.92rem}
+.fp-modebtn .fp-mwhy{font-size:.68rem;color:var(--muted)}
+.fp-mode.locked .fp-modebtn:disabled{opacity:.5;cursor:not-allowed}
+.fp-len{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.fp-lenbtn{font:inherit;font-size:.72rem;cursor:pointer;background:var(--card);border:1px solid var(--line);
+  border-radius:999px;padding:2px 10px;color:var(--muted);transition:border-color .15s,color .15s}
+.fp-lenbtn:hover:not(:disabled){border-color:var(--page-accent);color:var(--ink)}
+.fp-lenbtn.on{border-color:var(--page-accent);color:var(--ink);background:color-mix(in srgb,var(--page-accent) 10%,transparent)}
+.fp-lenn{width:5em;padding:2px 6px;font-size:.72rem}
+.fp-len.locked .fp-lenbtn:disabled,.fp-len.locked .fp-lenn:disabled{opacity:.5}
+/* what the sitting is going on, written while it happens */
+.fp-did{margin-top:8px;display:flex;flex-direction:column;gap:4px}
+.fp-desc{font-size:.82rem;color:var(--muted);margin-top:6px;padding-left:2px}
+.fp-drop .sub-wrap{margin-top:8px}
+.fp-caret{margin-right:2px}
+@media (max-width:520px){ .fp-mode{grid-template-columns:1fr} }
 </style>
 </head>
