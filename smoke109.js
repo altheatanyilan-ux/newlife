@@ -38,7 +38,17 @@ const near = (n,a,b,tol) => Math.abs(a-b) <= tol ? ok(n, `${a.toFixed(1)} vs ${b
   await p.click('#plMsAdd');
   await p.waitForTimeout(900);
   yes('the form opens straight away', !!(await p.$('#msName')));
-  yes('  and asks for the date with the picker, not a bare box', !!(await p.$('#msDate[data-dp]')) && !!(await p.$('[data-dpfor="msDate"]')));
+  /* every other place a date is asked for opens a calendar; checking the two
+     attributes are present would pass on a picker that never opened */
+  yes('  the date field carries a picker', !!(await p.$('#msDate[data-dp]')) && !!(await p.$('[data-dpfor="msDate"]')));
+  await p.click('[data-dpfor="msDate"]');
+  await p.waitForTimeout(600);
+  yes('  and it actually opens', !!(await p.$('.dp-pop')));
+  yes('    with a month of days in it', await p.evaluate(() => document.querySelectorAll('.dp-cell[data-dpd]').length) >= 28);
+  await p.evaluate(() => [...document.querySelectorAll('.dp-cell[data-dpd]')][14].click());
+  await p.waitForTimeout(500);
+  yes('    and choosing one writes it into the field', /^\d{4}-\d{2}-\d{2}$/.test(await p.inputValue('#msDate')),
+      await p.inputValue('#msDate'));
   await p.fill('#msName', 'Hearing');
   await p.fill('#msDate', await p.evaluate(() => addDays(today(), 9)));
   await p.fill('#msNote', 'court 3');
