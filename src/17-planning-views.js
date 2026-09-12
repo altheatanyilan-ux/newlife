@@ -153,7 +153,7 @@ function planMatrixHTML(tasks){
 
 /* ---------- timeline ---------- */
 const PL_SCALES = {day:{n:14, w:64, step:1}, week:{n:12, w:56, step:7}, month:{n:12, w:64, step:30}};
-function planTimelineHTML(tasks){
+function planTimelineHTML(tasks, sel){
   const scale = planState().prefs.tlScale || 'week';
   const sc = PL_SCALES[scale];
   const start = addDays(today(), -sc.step * 2);
@@ -175,6 +175,25 @@ function planTimelineHTML(tasks){
       <div class="pl-tlaxis" style="margin-left:190px;width:${W}px">
         ${ticks.map((d, i) => `<span class="pl-tick" style="left:${(i / sc.n) * W}px">${esc(fmtDate(d, 'short'))}</span>`).join('')}
         <div class="pl-tlnow" style="left:${px(today())}px"></div></div>
+      <!-- the dates the work is running towards, on the same scale as the work
+           itself: a bar that ends after the diamond is late, and you can see it
+           without doing arithmetic -->
+      ${(() => { const ms = typeof planMilestonesFor === 'function' ? planMilestonesFor(sel) : [];
+        if(!ms.length) return '';
+        let lastX = -999, lastLow = false;
+        return `<div class="pl-tlrow pl-tlms">
+          <span class="pl-tlname mono">milestones</span>
+          <div class="pl-tltrack" style="width:${W}px">
+            ${ms.map(({m, list}) => { const x = clamp(px(m.date || today()), 0, W);
+              const late = !m.done && m.date && m.date < today();
+              /* two dates a few days apart print their names on top of each
+                 other at this scale, so the second one hangs lower */
+              const low = (x - lastX) < 92 && !lastLow;
+              lastX = x; lastLow = low;
+              return `<button class="pl-gms${m.done ? ' done' : ''}${late ? ' late' : ''}${low ? ' low' : ''}" data-plms="${m.id}"
+                style="left:${x}px;--c:${esc(list.color)}"
+                title="${esc(m.name)} · ${m.date ? esc(fmtDate(m.date, 'med')) : 'no date'}"><i></i><span>${esc(m.name)}</span></button>`; }).join('')}
+          </div></div>`; })()}
       <div class="pl-tlrows" data-ptgroup>${rows.map(({t, x0, w}) => `<div class="pl-tlrow" data-ptunit="${t.id}">
         <span class="pl-tlname" draggable="true" data-ptgrip="${t.id}"
           title="${esc(t.text)} — drag this name to reorder the rows">${esc(t.text)}</span>

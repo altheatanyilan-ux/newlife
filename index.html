@@ -4019,6 +4019,48 @@ select.sm-active{border-color:var(--page-accent);
   background:var(--card);border:1px solid var(--line);border-radius:999px;padding:3px 11px;color:var(--ink);
   transition:border-color .18s ease,background .18s ease}
 .qw-chip:hover{border-color:var(--page-accent);background:var(--bg)}
+
+/* --- the milestone strip: one line of time above every view ---
+   Absolute positioning on a percentage is what makes the strip a scale rather
+   than a list: the gap between two dates is the time between them. */
+.pl-ms{margin:0 0 14px;padding:10px 14px 6px;border:1px solid var(--line);border-radius:12px;
+  background:color-mix(in srgb, var(--card) 76%, transparent)}
+.pl-ms.empty-strip{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:.82rem;padding:9px 14px}
+.pl-ms .k{letter-spacing:.09em;text-transform:uppercase;font-size:.62rem;color:var(--faint)}
+/* inset, so a tick centred on 0% or 100% is not sliced in half by the edge */
+.pl-msline{position:relative;height:96px;margin:32px 40px 0}
+.pl-msaxis{position:absolute;inset:0}
+.pl-mstick{position:absolute;top:-28px;transform:translateX(-50%);font:.6rem/1 var(--mono);color:var(--faint);white-space:nowrap}
+.pl-msrail{position:absolute;left:0;right:0;top:8px;height:2px;border-radius:2px;
+  background:linear-gradient(90deg,transparent,var(--line) 6%,var(--line) 94%,transparent)}
+.pl-msnow{position:absolute;top:0;bottom:22px;width:1px;background:var(--page-accent);opacity:.5}
+.pl-msnow span{position:absolute;top:-13px;left:3px;font-size:.58rem;color:var(--page-accent);white-space:nowrap}
+/* neighbours a few days apart would print their names on top of each other,
+   so alternate rows carry theirs lower and the pin grows a stem to reach */
+.pl-mspin{position:absolute;top:0;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;
+  gap:3px;background:none;border:0;padding:0 2px;cursor:pointer;max-width:9em}
+.pl-mspin.low{top:34px}
+.pl-mspin.low::before{content:'';position:absolute;left:50%;top:-32px;height:32px;width:1px;background:var(--line)}
+.pl-msdot{width:11px;height:11px;background:var(--c,var(--terra));transform:rotate(45deg);border-radius:2px;
+  box-shadow:0 0 0 3px var(--bg);transition:transform .18s ease}
+.pl-mspin:hover .pl-msdot{transform:rotate(45deg) scale(1.25)}
+.pl-mslabel{font-size:.68rem;line-height:1.15;color:var(--ink);text-align:center;
+  overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.pl-mspin.done .pl-msdot{background:var(--card);border:1.5px solid var(--c,var(--terra))}
+.pl-mspin.done .pl-mslabel{text-decoration:line-through;color:var(--faint)}
+.pl-mspin.late .pl-msdot{background:var(--terra);box-shadow:0 0 0 3px var(--bg),0 0 0 5px color-mix(in srgb,var(--terra) 30%,transparent)}
+/* the same dates, drawn on the Timeline's own scale */
+.pl-tlms{border-bottom:1px solid var(--line);padding-bottom:6px;margin-bottom:4px;min-height:52px}
+.pl-tlms .pl-tltrack{min-height:48px}
+.pl-gms.low{top:24px}
+.pl-gms.low::before{content:'';position:absolute;left:50%;top:-22px;height:22px;width:1px;background:var(--line)}
+.pl-gms{position:absolute;top:2px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;
+  gap:2px;background:none;border:0;padding:0;cursor:pointer;max-width:8em}
+.pl-gms i{width:10px;height:10px;background:var(--c,var(--terra));transform:rotate(45deg);border-radius:2px}
+.pl-gms span{font-size:.62rem;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:8em}
+.pl-gms.done i{background:var(--card);border:1.5px solid var(--c,var(--terra))}
+.pl-gms.late i{background:var(--terra)}
+@media (max-width:720px){ .pl-msline{height:88px} .pl-mspin{max-width:5.5em} }
 </style>
 </head>
 <body>
@@ -15055,6 +15097,9 @@ function planState(){
   p.lists.forEach((l, i) => {
     l.kanbanColumns = Array.isArray(l.kanbanColumns) && l.kanbanColumns.length ? l.kanbanColumns : DEFAULT_KANBAN();
     l.sections = Array.isArray(l.sections) ? l.sections : [];
+    /* a list has dates of its own that are not tasks: the shipping date, the
+       hearing, the day the deposit is due */
+    l.milestones = Array.isArray(l.milestones) ? l.milestones : [];
     l.defaultView = l.defaultView || PLAN_VIEW_DEFAULT;
     if(l.sortOrder == null) l.sortOrder = i;
   });
@@ -15094,6 +15139,7 @@ function planNewList(name, {folderId = null, color = null} = {}){
   const l = {id:uid(), name: name || 'New list', color: color || PLAN_COLORS[p.lists.length % PLAN_COLORS.length],
     folderId, sortOrder: p.lists.length, defaultView:PLAN_VIEW_DEFAULT, kanbanColumns:DEFAULT_KANBAN(), sections:[],
     isDefault:false, createdAt:new Date().toISOString()};
+  l.milestones = [];
   p.lists.push(l); return l;
 }
 function planNewFolder(name){
@@ -15254,6 +15300,50 @@ function planApplySmartList(sl){
     if(d && typeof d === 'object' && d.start && !planDueWithin(t, d.start, d.end || '9999-12-31')) return false;
     return true;
   });
+}
+
+/* ---------- milestones ----------
+   A list runs towards dates that are not tasks: the day it ships, the hearing,
+   the day the deposit is due. Those used to have to be written as tasks with
+   no doing in them, which made the task list lie about how much work was left.
+
+   They are kept on the list rather than on a task, because they outlive any
+   particular task, and they are shown as a strip above whichever view is open
+   — the shape of the run is the same question whether you are reading the
+   matrix, the board or the calendar, so it should not be a view of its own. */
+function planListMilestones(l){ return Array.isArray(l?.milestones) ? l.milestones : []; }
+/* every milestone the current selection is about, each carrying its list, so
+   a folder can show the dates of all the lists inside it at once */
+function planMilestonesFor(sel){
+  if(!sel) return [];
+  let lists = [];
+  if(sel.kind === 'list'){ const l = planList(sel.id); if(l) lists = [l]; }
+  else if(sel.kind === 'folder') lists = planLists().filter(l => l.folderId === sel.id);
+  return lists.flatMap(l => planListMilestones(l).map(m => ({m, list: l})))
+    .sort((a, b) => (a.m.date || '9999-12-31').localeCompare(b.m.date || '9999-12-31'));
+}
+function planMilestoneList(sel){
+  if(sel?.kind === 'list') return planList(sel.id);
+  if(sel?.kind === 'folder'){ const ls = planLists().filter(l => l.folderId === sel.id); return ls[0] || null; }
+  return null;
+}
+function planFindMilestone(id){
+  for(const l of planState().lists){
+    const m = planListMilestones(l).find(x => x.id === id);
+    if(m) return {m, list: l};
+  }
+  return null;
+}
+function planAddMilestone(listId, {name = '', date = ''} = {}){
+  const l = planList(listId); if(!l) return null;
+  if(!Array.isArray(l.milestones)) l.milestones = [];
+  const m = {id: uid(), name: name || 'A date that matters', date: date || addDays(today(), 14),
+    done: false, note: '', createdAt: new Date().toISOString()};
+  l.milestones.push(m); saveNow(); return m;
+}
+function planDeleteMilestone(id){
+  const hit = planFindMilestone(id); if(!hit) return null;
+  return spliceOut(hit.list.milestones, x => x.id === id);
 }
 
 /* ---------- sorting ---------- */
@@ -15716,6 +15806,103 @@ function planSidebarHTML(){
   </aside>`;
 }
 
+/* ---------- the milestone strip ----------
+   One line of time, from the first date that matters to the last, with today
+   marked on it. It is drawn above the workspace rather than inside a view,
+   because the run a list is on does not change with how you happen to be
+   reading the tasks.
+
+   The scale is fitted to the dates it has, with a little air either side, and
+   today is always inside it — a strip whose window excludes the present is a
+   strip you cannot read your position off. */
+function planMilestoneSpan(items){
+  const ds = items.map(x => x.m.date).filter(Boolean).sort();
+  const T = today();
+  let lo = ds[0] || T, hi = ds[ds.length - 1] || T;
+  if(T < lo) lo = T;
+  if(T > hi) hi = T;
+  /* a single date, or several on one day, would divide by zero */
+  let pad = Math.max(3, Math.round(Math.abs(daysBetween(lo, hi)) * 0.12));
+  return {from: addDays(lo, -pad), to: addDays(hi, pad)};
+}
+/* carried outside the map because a template literal cannot hold a running
+   value, and the choice for one pin depends on what the pin before it did */
+const planMilestoneRowState = {last: false};
+function planMilestoneStripHTML(sel){
+  if(!sel || (sel.kind !== 'list' && sel.kind !== 'folder')) return '';
+  const items = planMilestonesFor(sel);
+  const host = planMilestoneList(sel);
+  planMilestoneRowState.last = false;
+  const add = host ? `<button class="pl-mini" id="plMsAdd" title="a date that matters for this list">＋ milestone</button>` : '';
+  if(!items.length) return `<div class="pl-ms empty-strip">
+    <span class="k mono">Milestones</span>
+    <span class="faint">No dates set for this ${sel.kind === 'folder' ? 'folder' : 'list'} yet — a shipping date, a hearing, the day a deposit is due.</span>
+    ${add}</div>`;
+  const {from, to} = planMilestoneSpan(items);
+  const total = Math.max(1, daysBetween(from, to));
+  const at = d => clamp(daysBetween(from, d) / total * 100, 0, 100);
+  const T = today();
+  /* one tick a month if the run is long, one a week if it is short */
+  const weeks = total / 7;
+  const step = weeks <= 8 ? 7 : weeks <= 30 ? 14 : 30;
+  const ticks = [];
+  for(let d = from; d <= to; d = addDays(d, step)) ticks.push(d);
+  return `<div class="pl-ms">
+    <div class="row between" style="align-items:baseline">
+      <span class="k mono">Milestones</span>
+      <span class="mono faint">${items.filter(x => !x.m.done).length} ahead · ${items.length} in all</span>
+      ${add}
+    </div>
+    <div class="pl-msline" role="list">
+      <div class="pl-msaxis">${ticks.map(d => `<span class="pl-mstick" style="left:${at(d)}%">${esc(fmtDate(d, 'short'))}</span>`).join('')}</div>
+      <div class="pl-msrail"></div>
+      <div class="pl-msnow" style="left:${at(T)}%"><span class="mono">today</span></div>
+      ${items.map(({m, list}, i) => { const late = !m.done && m.date && m.date < T;
+        /* a name printed under a neighbour four days away is unreadable, so
+           every other pin hangs its name lower on a stem */
+        const near = i > 0 && Math.abs(daysBetween(items[i - 1].m.date || T, m.date || T)) / total < 0.09;
+        const low = near && !(planMilestoneRowState.last);
+        planMilestoneRowState.last = low;
+        return `<button class="pl-mspin${m.done ? ' done' : ''}${late ? ' late' : ''}${low ? ' low' : ''}" data-plms="${m.id}"
+          style="left:${at(m.date || T)}%;--c:${esc(list.color)}" role="listitem"
+          title="${esc(m.name)} · ${m.date ? esc(fmtDate(m.date, 'med')) : 'no date'}${late ? ' · past' : ''}${m.note ? ' · ' + esc(m.note) : ''}">
+          <i class="pl-msdot"></i><span class="pl-mslabel">${esc(m.name)}</span></button>`; }).join('')}
+    </div>
+  </div>`;
+}
+function bindPlanMilestones(root, sel){
+  const addb = root.querySelector('#plMsAdd');
+  if(addb) addb.onclick = () => { const host = planMilestoneList(sel); if(!host) return;
+    const m = planAddMilestone(host.id); sound('click'); rerender();
+    setTimeout(() => openPlanMilestone(m.id), 60); };
+  root.querySelectorAll('[data-plms]').forEach(b => b.onclick = () => openPlanMilestone(b.dataset.plms));
+}
+function openPlanMilestone(id){
+  const hit = planFindMilestone(id); if(!hit) return;
+  const {m, list} = hit;
+  const mo = openModal(`<h2>A date that matters</h2>
+    <p class="muted" style="font-size:.85rem">In ${esc(list.name)}. Not a task — a date the work is running towards.</p>
+    <div class="stack">
+      <div class="field"><label>What it is</label><input class="inp serif-lg" id="msName" value="${esc(m.name)}" placeholder="Ship it · the hearing · deposit due"></div>
+      <div class="field"><label>When</label><div class="dp-field"><input class="inp mono" id="msDate" data-dp value="${esc(m.date || '')}" placeholder="${esc(today())}">${dpButtonHTML('msDate')}</div></div>
+      <div class="field"><label>Anything to remember about it</label><textarea class="ta" id="msNote" style="min-height:60px" placeholder="optional">${esc(m.note || '')}</textarea></div>
+      <label class="toggle ${m.done ? 'on' : ''}" id="msDone"><span class="sw"></span><span>this one has been met</span></label>
+      <div class="row between"><button class="btn sm ghost danger" id="msDel">remove</button>
+        <button class="btn primary" id="msSave">Save</button></div>
+    </div>`, 'narrow');
+  let done = !!m.done;
+  mo.querySelector('#msDone').onclick = function(){ done = !done; this.classList.toggle('on', done); };
+  mo.querySelector('#msSave').onclick = () => {
+    m.name = mo.querySelector('#msName').value.trim() || 'A date that matters';
+    m.date = mo.querySelector('#msDate').value.trim();
+    m.note = mo.querySelector('#msNote').value.trim();
+    m.done = done;
+    saveNow(); mo.remove(); sound('success'); rerender();
+  };
+  mo.querySelector('#msDel').onclick = () => { mo.remove();
+    requestDelete({label: m.name || 'Milestone', after: rerender, remove: () => planDeleteMilestone(m.id)}); };
+}
+
 /* ---------- the header over the workspace ---------- */
 function planHeaderHTML(sel){
   const p = planState(), v = planView();
@@ -15901,7 +16088,7 @@ routes.planning = function(root, params){
     : v === 'calendar'   ? planCalendarHTML(tasks)
     : v === 'kanban'     ? planKanbanHTML(sel, tasks)
     : v === 'eisenhower' ? planMatrixHTML(tasks)
-    : v === 'timeline'   ? planTimelineHTML(tasks)
+    : v === 'timeline'   ? planTimelineHTML(tasks, sel)
     : planListViewHTML(sel, tasks);
 
   const room = planRoom();
@@ -15924,6 +16111,7 @@ routes.planning = function(root, params){
       ${planSidebarHTML()}
       <section class="pl-main" id="plMain">
         ${planHeaderHTML(sel)}
+        ${special ? '' : planMilestoneStripHTML(sel)}
         <div class="pl-body" id="plBody">${body}</div>
         ${planBatchBarHTML()}
       </section>
@@ -15932,6 +16120,7 @@ routes.planning = function(root, params){
   const count = $('#plCount'); if(count) count.textContent = `${tasks.filter(t => !t.done).length} open`;
   bindPlanRooms(root);
   bindPlanning(root, sel, tasks);
+  bindPlanMilestones(root, sel);
 };
 ROUTE_ALIASES.plan = 'planning';
 
@@ -16689,7 +16878,7 @@ function planMatrixHTML(tasks){
 
 /* ---------- timeline ---------- */
 const PL_SCALES = {day:{n:14, w:64, step:1}, week:{n:12, w:56, step:7}, month:{n:12, w:64, step:30}};
-function planTimelineHTML(tasks){
+function planTimelineHTML(tasks, sel){
   const scale = planState().prefs.tlScale || 'week';
   const sc = PL_SCALES[scale];
   const start = addDays(today(), -sc.step * 2);
@@ -16711,6 +16900,25 @@ function planTimelineHTML(tasks){
       <div class="pl-tlaxis" style="margin-left:190px;width:${W}px">
         ${ticks.map((d, i) => `<span class="pl-tick" style="left:${(i / sc.n) * W}px">${esc(fmtDate(d, 'short'))}</span>`).join('')}
         <div class="pl-tlnow" style="left:${px(today())}px"></div></div>
+      <!-- the dates the work is running towards, on the same scale as the work
+           itself: a bar that ends after the diamond is late, and you can see it
+           without doing arithmetic -->
+      ${(() => { const ms = typeof planMilestonesFor === 'function' ? planMilestonesFor(sel) : [];
+        if(!ms.length) return '';
+        let lastX = -999, lastLow = false;
+        return `<div class="pl-tlrow pl-tlms">
+          <span class="pl-tlname mono">milestones</span>
+          <div class="pl-tltrack" style="width:${W}px">
+            ${ms.map(({m, list}) => { const x = clamp(px(m.date || today()), 0, W);
+              const late = !m.done && m.date && m.date < today();
+              /* two dates a few days apart print their names on top of each
+                 other at this scale, so the second one hangs lower */
+              const low = (x - lastX) < 92 && !lastLow;
+              lastX = x; lastLow = low;
+              return `<button class="pl-gms${m.done ? ' done' : ''}${late ? ' late' : ''}${low ? ' low' : ''}" data-plms="${m.id}"
+                style="left:${x}px;--c:${esc(list.color)}"
+                title="${esc(m.name)} · ${m.date ? esc(fmtDate(m.date, 'med')) : 'no date'}"><i></i><span>${esc(m.name)}</span></button>`; }).join('')}
+          </div></div>`; })()}
       <div class="pl-tlrows" data-ptgroup>${rows.map(({t, x0, w}) => `<div class="pl-tlrow" data-ptunit="${t.id}">
         <span class="pl-tlname" draggable="true" data-ptgrip="${t.id}"
           title="${esc(t.text)} — drag this name to reorder the rows">${esc(t.text)}</span>

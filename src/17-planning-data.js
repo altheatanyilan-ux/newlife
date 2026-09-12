@@ -127,6 +127,9 @@ function planState(){
   p.lists.forEach((l, i) => {
     l.kanbanColumns = Array.isArray(l.kanbanColumns) && l.kanbanColumns.length ? l.kanbanColumns : DEFAULT_KANBAN();
     l.sections = Array.isArray(l.sections) ? l.sections : [];
+    /* a list has dates of its own that are not tasks: the shipping date, the
+       hearing, the day the deposit is due */
+    l.milestones = Array.isArray(l.milestones) ? l.milestones : [];
     l.defaultView = l.defaultView || PLAN_VIEW_DEFAULT;
     if(l.sortOrder == null) l.sortOrder = i;
   });
@@ -166,6 +169,7 @@ function planNewList(name, {folderId = null, color = null} = {}){
   const l = {id:uid(), name: name || 'New list', color: color || PLAN_COLORS[p.lists.length % PLAN_COLORS.length],
     folderId, sortOrder: p.lists.length, defaultView:PLAN_VIEW_DEFAULT, kanbanColumns:DEFAULT_KANBAN(), sections:[],
     isDefault:false, createdAt:new Date().toISOString()};
+  l.milestones = [];
   p.lists.push(l); return l;
 }
 function planNewFolder(name){
@@ -326,6 +330,50 @@ function planApplySmartList(sl){
     if(d && typeof d === 'object' && d.start && !planDueWithin(t, d.start, d.end || '9999-12-31')) return false;
     return true;
   });
+}
+
+/* ---------- milestones ----------
+   A list runs towards dates that are not tasks: the day it ships, the hearing,
+   the day the deposit is due. Those used to have to be written as tasks with
+   no doing in them, which made the task list lie about how much work was left.
+
+   They are kept on the list rather than on a task, because they outlive any
+   particular task, and they are shown as a strip above whichever view is open
+   — the shape of the run is the same question whether you are reading the
+   matrix, the board or the calendar, so it should not be a view of its own. */
+function planListMilestones(l){ return Array.isArray(l?.milestones) ? l.milestones : []; }
+/* every milestone the current selection is about, each carrying its list, so
+   a folder can show the dates of all the lists inside it at once */
+function planMilestonesFor(sel){
+  if(!sel) return [];
+  let lists = [];
+  if(sel.kind === 'list'){ const l = planList(sel.id); if(l) lists = [l]; }
+  else if(sel.kind === 'folder') lists = planLists().filter(l => l.folderId === sel.id);
+  return lists.flatMap(l => planListMilestones(l).map(m => ({m, list: l})))
+    .sort((a, b) => (a.m.date || '9999-12-31').localeCompare(b.m.date || '9999-12-31'));
+}
+function planMilestoneList(sel){
+  if(sel?.kind === 'list') return planList(sel.id);
+  if(sel?.kind === 'folder'){ const ls = planLists().filter(l => l.folderId === sel.id); return ls[0] || null; }
+  return null;
+}
+function planFindMilestone(id){
+  for(const l of planState().lists){
+    const m = planListMilestones(l).find(x => x.id === id);
+    if(m) return {m, list: l};
+  }
+  return null;
+}
+function planAddMilestone(listId, {name = '', date = ''} = {}){
+  const l = planList(listId); if(!l) return null;
+  if(!Array.isArray(l.milestones)) l.milestones = [];
+  const m = {id: uid(), name: name || 'A date that matters', date: date || addDays(today(), 14),
+    done: false, note: '', createdAt: new Date().toISOString()};
+  l.milestones.push(m); saveNow(); return m;
+}
+function planDeleteMilestone(id){
+  const hit = planFindMilestone(id); if(!hit) return null;
+  return spliceOut(hit.list.milestones, x => x.id === id);
 }
 
 /* ---------- sorting ---------- */

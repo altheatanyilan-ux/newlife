@@ -96,6 +96,103 @@ function planSidebarHTML(){
   </aside>`;
 }
 
+/* ---------- the milestone strip ----------
+   One line of time, from the first date that matters to the last, with today
+   marked on it. It is drawn above the workspace rather than inside a view,
+   because the run a list is on does not change with how you happen to be
+   reading the tasks.
+
+   The scale is fitted to the dates it has, with a little air either side, and
+   today is always inside it — a strip whose window excludes the present is a
+   strip you cannot read your position off. */
+function planMilestoneSpan(items){
+  const ds = items.map(x => x.m.date).filter(Boolean).sort();
+  const T = today();
+  let lo = ds[0] || T, hi = ds[ds.length - 1] || T;
+  if(T < lo) lo = T;
+  if(T > hi) hi = T;
+  /* a single date, or several on one day, would divide by zero */
+  let pad = Math.max(3, Math.round(Math.abs(daysBetween(lo, hi)) * 0.12));
+  return {from: addDays(lo, -pad), to: addDays(hi, pad)};
+}
+/* carried outside the map because a template literal cannot hold a running
+   value, and the choice for one pin depends on what the pin before it did */
+const planMilestoneRowState = {last: false};
+function planMilestoneStripHTML(sel){
+  if(!sel || (sel.kind !== 'list' && sel.kind !== 'folder')) return '';
+  const items = planMilestonesFor(sel);
+  const host = planMilestoneList(sel);
+  planMilestoneRowState.last = false;
+  const add = host ? `<button class="pl-mini" id="plMsAdd" title="a date that matters for this list">＋ milestone</button>` : '';
+  if(!items.length) return `<div class="pl-ms empty-strip">
+    <span class="k mono">Milestones</span>
+    <span class="faint">No dates set for this ${sel.kind === 'folder' ? 'folder' : 'list'} yet — a shipping date, a hearing, the day a deposit is due.</span>
+    ${add}</div>`;
+  const {from, to} = planMilestoneSpan(items);
+  const total = Math.max(1, daysBetween(from, to));
+  const at = d => clamp(daysBetween(from, d) / total * 100, 0, 100);
+  const T = today();
+  /* one tick a month if the run is long, one a week if it is short */
+  const weeks = total / 7;
+  const step = weeks <= 8 ? 7 : weeks <= 30 ? 14 : 30;
+  const ticks = [];
+  for(let d = from; d <= to; d = addDays(d, step)) ticks.push(d);
+  return `<div class="pl-ms">
+    <div class="row between" style="align-items:baseline">
+      <span class="k mono">Milestones</span>
+      <span class="mono faint">${items.filter(x => !x.m.done).length} ahead · ${items.length} in all</span>
+      ${add}
+    </div>
+    <div class="pl-msline" role="list">
+      <div class="pl-msaxis">${ticks.map(d => `<span class="pl-mstick" style="left:${at(d)}%">${esc(fmtDate(d, 'short'))}</span>`).join('')}</div>
+      <div class="pl-msrail"></div>
+      <div class="pl-msnow" style="left:${at(T)}%"><span class="mono">today</span></div>
+      ${items.map(({m, list}, i) => { const late = !m.done && m.date && m.date < T;
+        /* a name printed under a neighbour four days away is unreadable, so
+           every other pin hangs its name lower on a stem */
+        const near = i > 0 && Math.abs(daysBetween(items[i - 1].m.date || T, m.date || T)) / total < 0.09;
+        const low = near && !(planMilestoneRowState.last);
+        planMilestoneRowState.last = low;
+        return `<button class="pl-mspin${m.done ? ' done' : ''}${late ? ' late' : ''}${low ? ' low' : ''}" data-plms="${m.id}"
+          style="left:${at(m.date || T)}%;--c:${esc(list.color)}" role="listitem"
+          title="${esc(m.name)} · ${m.date ? esc(fmtDate(m.date, 'med')) : 'no date'}${late ? ' · past' : ''}${m.note ? ' · ' + esc(m.note) : ''}">
+          <i class="pl-msdot"></i><span class="pl-mslabel">${esc(m.name)}</span></button>`; }).join('')}
+    </div>
+  </div>`;
+}
+function bindPlanMilestones(root, sel){
+  const addb = root.querySelector('#plMsAdd');
+  if(addb) addb.onclick = () => { const host = planMilestoneList(sel); if(!host) return;
+    const m = planAddMilestone(host.id); sound('click'); rerender();
+    setTimeout(() => openPlanMilestone(m.id), 60); };
+  root.querySelectorAll('[data-plms]').forEach(b => b.onclick = () => openPlanMilestone(b.dataset.plms));
+}
+function openPlanMilestone(id){
+  const hit = planFindMilestone(id); if(!hit) return;
+  const {m, list} = hit;
+  const mo = openModal(`<h2>A date that matters</h2>
+    <p class="muted" style="font-size:.85rem">In ${esc(list.name)}. Not a task — a date the work is running towards.</p>
+    <div class="stack">
+      <div class="field"><label>What it is</label><input class="inp serif-lg" id="msName" value="${esc(m.name)}" placeholder="Ship it · the hearing · deposit due"></div>
+      <div class="field"><label>When</label><div class="dp-field"><input class="inp mono" id="msDate" data-dp value="${esc(m.date || '')}" placeholder="${esc(today())}">${dpButtonHTML('msDate')}</div></div>
+      <div class="field"><label>Anything to remember about it</label><textarea class="ta" id="msNote" style="min-height:60px" placeholder="optional">${esc(m.note || '')}</textarea></div>
+      <label class="toggle ${m.done ? 'on' : ''}" id="msDone"><span class="sw"></span><span>this one has been met</span></label>
+      <div class="row between"><button class="btn sm ghost danger" id="msDel">remove</button>
+        <button class="btn primary" id="msSave">Save</button></div>
+    </div>`, 'narrow');
+  let done = !!m.done;
+  mo.querySelector('#msDone').onclick = function(){ done = !done; this.classList.toggle('on', done); };
+  mo.querySelector('#msSave').onclick = () => {
+    m.name = mo.querySelector('#msName').value.trim() || 'A date that matters';
+    m.date = mo.querySelector('#msDate').value.trim();
+    m.note = mo.querySelector('#msNote').value.trim();
+    m.done = done;
+    saveNow(); mo.remove(); sound('success'); rerender();
+  };
+  mo.querySelector('#msDel').onclick = () => { mo.remove();
+    requestDelete({label: m.name || 'Milestone', after: rerender, remove: () => planDeleteMilestone(m.id)}); };
+}
+
 /* ---------- the header over the workspace ---------- */
 function planHeaderHTML(sel){
   const p = planState(), v = planView();
@@ -281,7 +378,7 @@ routes.planning = function(root, params){
     : v === 'calendar'   ? planCalendarHTML(tasks)
     : v === 'kanban'     ? planKanbanHTML(sel, tasks)
     : v === 'eisenhower' ? planMatrixHTML(tasks)
-    : v === 'timeline'   ? planTimelineHTML(tasks)
+    : v === 'timeline'   ? planTimelineHTML(tasks, sel)
     : planListViewHTML(sel, tasks);
 
   const room = planRoom();
@@ -304,6 +401,7 @@ routes.planning = function(root, params){
       ${planSidebarHTML()}
       <section class="pl-main" id="plMain">
         ${planHeaderHTML(sel)}
+        ${special ? '' : planMilestoneStripHTML(sel)}
         <div class="pl-body" id="plBody">${body}</div>
         ${planBatchBarHTML()}
       </section>
@@ -312,6 +410,7 @@ routes.planning = function(root, params){
   const count = $('#plCount'); if(count) count.textContent = `${tasks.filter(t => !t.done).length} open`;
   bindPlanRooms(root);
   bindPlanning(root, sel, tasks);
+  bindPlanMilestones(root, sel);
 };
 ROUTE_ALIASES.plan = 'planning';
 
