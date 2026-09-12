@@ -62,7 +62,7 @@ function planSidebarHTML(){
         || '<div class="pl-empty mono">no saved filters yet</div>'}</div>
     </div>
     <div class="pl-foot">
-      <button class="pl-item" id="plFocusBtn" title="Focus timer"><span class="pl-ico">◔</span><span class="pl-name">Focus timer</span></button>
+      <button class="pl-item" id="plFocusBtn" title="The focus timer is on Today"><span class="pl-ico">◔</span><span class="pl-name">Focus timer ↗</span></button>
       <button class="pl-item${on('smart','stats')}" data-plsel="smart:stats" title="Statistics"><span class="pl-ico">◫</span><span class="pl-name">Statistics</span></button>
     </div>
   </aside>`;

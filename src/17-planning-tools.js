@@ -17,7 +17,11 @@ const FocusTimer = (() => {
   function state(){
     if(!st) return {running:false, phase:'focus', left:cfg().focusDuration * 60, round:1, taskId:pendingTask, idle:true};
     const left = st.running ? Math.max(0, Math.round((st.endsAt - Date.now()) / 1000)) : st.remaining;
-    return {running:st.running, phase:st.phase, left, round:st.round, taskId:st.taskId, idle:false};
+    const onBreak = !st.running && st.phase === 'focus' && (st.breaks || []).some(b => !b.to);
+    const cur = (st.breaks || []).find(b => !b.to) || null;
+    return {running:st.running, phase:st.phase, left, round:st.round, taskId:st.taskId, idle:false,
+      onBreak, breakNote: cur ? cur.note : '', breakSince: cur ? cur.from : null,
+      breaks:(st.breaks || []).length, startedAt: st.startedAt};
   }
   function phaseLen(phase){
     const c = cfg();
@@ -26,13 +30,36 @@ const FocusTimer = (() => {
   function start(taskId, phase){
     const p = phase || (st ? st.phase : 'focus');
     const secs = st && st.phase === p && !st.running && st.remaining > 0 ? st.remaining : phaseLen(p);
+    const carried = st ? st.breaks : null;
     st = {phase:p, running:true, endsAt:Date.now() + secs * 1000, remaining:secs,
       taskId: taskId !== undefined ? taskId : (st ? st.taskId : pendingTask),
-      round: st ? st.round : 1, startedAt: st?.startedAt || new Date().toISOString()};
+      round: st ? st.round : 1, startedAt: st?.startedAt || new Date().toISOString(),
+      breaks: carried || []};
+    closeBreak();                       // resuming ends whatever break was open
     tick(); notify();
   }
+  /* A pause is a break, and a break is worth knowing about: it is the part of
+     the day that looks like working and is not. The interval is recorded when
+     you stop, closed when you start again, and the note is whatever you were
+     actually doing — written while it is happening rather than reconstructed. */
+  function openBreak(){
+    if(!st || st.phase !== 'focus') return;
+    st.breaks = st.breaks || [];
+    if(st.breaks.some(b => !b.to)) return;
+    st.breaks.push({from: new Date().toISOString(), to: null, note: ''});
+  }
+  function closeBreak(){
+    if(!st || !st.breaks) return;
+    const open = st.breaks.find(b => !b.to);
+    if(open) open.to = new Date().toISOString();
+  }
+  function noteBreak(text){
+    if(!st || !st.breaks) return;
+    const open = st.breaks.find(b => !b.to) || st.breaks[st.breaks.length - 1];
+    if(open){ open.note = String(text || ''); notify(); }
+  }
   function pause(){ if(!st || !st.running) return; st.remaining = Math.max(0, Math.round((st.endsAt - Date.now()) / 1000));
-    st.running = false; notify(); }
+    st.running = false; openBreak(); notify(); }
   function stop(logIt = true){
     if(st && logIt && st.phase === 'focus') logSession(false);
     st = null; pendingTask = null; notify();
@@ -44,8 +71,10 @@ const FocusTimer = (() => {
     const spent = Math.max(0, phaseLen('focus') - (st.running ? Math.round((st.endsAt - Date.now()) / 1000) : st.remaining));
     const mins = Math.round(spent / 60);
     if(mins < 1) return;
+    closeBreak();
     planState().focusSessions.push({id:uid(), taskId:st.taskId || null, startedAt:st.startedAt,
-      endedAt:new Date().toISOString(), duration:mins, type:'focus', completed:!!completed});
+      endedAt:new Date().toISOString(), duration:mins, type:'focus', completed:!!completed,
+      breaks:(st.breaks || []).filter(b => b.to).map(b => ({from:b.from, to:b.to, note:b.note || ''}))});
     if(st.taskId){ const t = planTaskById(st.taskId); if(t){ t.focusTime = (t.focusTime || 0) + mins; t.updatedAt = new Date().toISOString();
       /* a focus session on a task booked for a piece is writing time on
          that piece: one session, counted in both rooms rather than twice */
@@ -78,6 +107,7 @@ const FocusTimer = (() => {
   }
   return {start, pause, stop, skip, state, reset: () => { st = null; notify(); },
     setTask(id){ pendingTask = id; if(st) st.taskId = id; notify(); },
+    noteBreak,
     subscribe(f){ listeners.add(f); return () => listeners.delete(f); }};
 })();
 

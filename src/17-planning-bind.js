@@ -157,7 +157,7 @@ function bindPlanning(root, sel, tasks){
   if(typeof bindPlanViews === 'function') bindPlanViews(root, sel, tasks);
   if(typeof bindPlanHabits === 'function') bindPlanHabits(root);
   if(typeof bindPlanBatch === 'function') bindPlanBatch(root);
-  const fb = $('#plFocusBtn'); if(fb) fb.onclick = () => openFocusTimer(null);
+  const fb = $('#plFocusBtn'); if(fb) fb.onclick = () => navigate('#/today');
   if(typeof bindPlanReminderBanner === 'function') bindPlanReminderBanner(root);
 }
 

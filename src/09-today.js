@@ -94,6 +94,7 @@ routes.today = function(root){
     ['t-letters', 'letters',  ready.length > 0],
     ['t-plan',    'plan',     true],
     ['t-tasks',   'tasks',    true],
+    ['t-focus',   'focus',    true],
     ['t-checkin', 'check-in', true],
     ['t-theatre', 'theatre',  true],
     ['t-habits',  'habits',   true],
@@ -142,6 +143,10 @@ routes.today = function(root){
       ${planT.firstMove ? `<p class="plan-line"><span class="mono">first move</span> ${esc(planT.firstMove)}</p>` : ''}
       ${planT.risk ? `<p class="plan-line risk"><span class="mono">in the way</span> ${esc(planT.risk)}</p>` : ''}
       </div></details>
+
+    <!-- the focus panel sits under the list it times, and a task is dragged
+         from one into the other -->
+    ${focusPanelHTML()}
 
     <!-- today's tasks (up front) -->
     <details class="section rv t-sec" id="t-tasks"${fold('t-tasks')}>
@@ -318,6 +323,7 @@ routes.today = function(root){
   $('#pullTask').onclick = () => openTaskPicker(T, rerender);
   if($('#carryAll')) $('#carryAll').onclick = () => { carried.forEach(r => r.task.day = T); saveNow(); sound('success'); rerender(); };
   bindTaskRows(root); bindDayDrop(root); bindQuickTask(root); bindDayListFilter(root);
+  bindFocusPanel(root, redraw); liveFocusFace(root);
 
   /* letters & decisions */
   bindSealedLetters(root);

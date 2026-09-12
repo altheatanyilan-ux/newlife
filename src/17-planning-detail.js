@@ -88,7 +88,7 @@ function planDetailHTML(t){
 
     <div class="pd-sec"><div class="row between"><span class="k mono">focus</span>
       <span class="mono">${t.focusTime ? `${Math.floor(t.focusTime / 60)}h ${t.focusTime % 60}m logged` : 'nothing logged'}</span></div>
-      <button class="btn sm" id="pdFocus">◔ start a focus session</button>
+      <button class="btn sm" id="pdFocus">◔ time this on Today</button>
       ${sessions.length ? `<div class="pd-fsess">${sessions.slice(-6).reverse().map(s =>
         `<div class="mono"><span>${esc(fmtDate(s.startedAt.slice(0, 10), 'short'))}</span><span>${s.duration}m</span></div>`).join('')}</div>` : ''}</div>
 
@@ -186,7 +186,9 @@ function bindPlanDetail(p, t){
     p.querySelectorAll('[data-pdstream]').forEach(x => x.classList.toggle('on', x.dataset.pdstream === t.streamId));
     touch(); });
 
-  p.querySelector('#pdFocus').onclick = () => { closePanel(); openFocusTimer(t.id); };
+  /* hand the task to the panel on Today rather than opening a timer here:
+     one timer, in the room where the day is */
+  p.querySelector('#pdFocus').onclick = () => { FocusTimer.setTask(t.id); closePanelTo('#/today'); };
   p.querySelector('#pdDup').onclick = () => {
     const c = newPlanTask(t.text + ' (copy)', t.day, JSON.parse(JSON.stringify({listId:t.listId, sectionId:t.sectionId,
       priority:t.priority, dueTime:t.dueTime, duration:t.duration, desc:t.desc, tags:t.tags,

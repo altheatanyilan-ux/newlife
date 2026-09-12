@@ -6,7 +6,7 @@
    being typed into — a page that eats your "n" mid-sentence is worse than
    a page with no shortcuts at all. */
 const PLAN_KEYS = {
-  n:'add', f:'focus', t:'today', e:'edit', h:'habits', s:'stats',
+  n:'add', f:'focus', t:'today', e:'edit', s:'stats',
   /* derived from PLAN_VIEWS so the number keys can never disagree with the
      order of the buttons they stand for */
   ...Object.fromEntries(PLAN_VIEWS.map((v, i) => [i + 1, v.id])),
@@ -28,7 +28,8 @@ document.addEventListener('keydown', ev => {
   if(!act) return;
   ev.preventDefault();
   if(act === 'add'){ const i = document.querySelector('.pq-input'); if(i){ i.focus(); } else openPlanTask(null); return; }
-  if(act === 'focus')  return openFocusTimer(null);
+  /* the timer lives on Today now — go to it rather than opening a second one */
+  if(act === 'focus')  return navigate('#/today');
   if(act === 'today')  return planSetSel('smart', 'today');
   if(act === 'habits') return planSetSel('smart', 'habits');
   if(act === 'stats')  return planSetSel('smart', 'stats');

@@ -37,6 +37,9 @@ function rhythmDay(d = today()){
   if(r.sleepTime === undefined) r.sleepTime = c?.closeAt ? isoToHM(c.closeAt) : '';
   if(r.legacyUsed === undefined){ r.legacyUsed = +c?.hoursUsed || 0; r.legacyWasted = +c?.hoursWasted || 0; }
   if(!Array.isArray(r.blocks)) r.blocks = [];
+  /* the record is keyed by day but never carried it, and the worked figure is
+     looked up by day — so stamp it rather than pass it separately everywhere */
+  r.day = d;
   rhythmCompute(r);
   return r;
 }
@@ -45,18 +48,16 @@ function rhythmCompute(r){
   /* a stop past midnight belongs to the same waking day */
   const stop = sleep == null ? null : (wake != null && sleep <= wake ? sleep + 1440 : sleep);
   const awake = (wake != null && stop != null) ? stop - wake : null;
-  let used = 0, wasted = 0;
-  r.blocks.forEach(b => {
-    const mins = Math.max(0, rhythmBlockEnd(b) - hm2min(b.startTime));
-    if(b.category === 'wasted') wasted += mins; else used += mins;
-  });
-  /* days logged before blocks existed keep their totals */
-  if(!r.blocks.length){ used = (r.legacyUsed || 0) * 60; wasted = (r.legacyWasted || 0) * 60; }
-  const claimed = used + wasted;
+  /* Time worked is measured by the focus timer, not summed from blocks anyone
+     had to categorise, and there is no "wasted" total any more — that half of
+     the pair was always an estimate, and a discouraging one to be asked for. */
+  const worked = typeof focusMinutesOn === 'function' ? focusMinutesOn(r.day || '') : 0;
   r.computed = {
-    totalAwakeMinutes: awake, intentionalMinutes: used, wastedMinutes: wasted,
-    unaccountedMinutes: awake == null ? null : Math.max(0, awake - claimed),
-    ratio: claimed ? Math.round(used / claimed * 100) : null,
+    totalAwakeMinutes: awake, workedMinutes: worked,
+    /* kept under its old name so nothing that reads it has to change at once */
+    intentionalMinutes: worked,
+    unaccountedMinutes: awake == null ? null : Math.max(0, awake - worked),
+    ratio: awake ? Math.round(worked / awake * 100) : null,
   };
   return r.computed;
 }
@@ -430,7 +431,6 @@ function openTimeBlockModal(r, seed, save, redraw){
       </div>
       <div class="row" style="gap:8px">
         <button class="btn tu-cat ${seed.category !== 'wasted' ? 'primary' : 'ghost'}" data-tbcat="intentional">Used intentionally</button>
-        <button class="btn tu-cat ${seed.category === 'wasted' ? 'primary' : 'ghost'}" data-tbcat="wasted">Wasted</button>
       </div>
       <input class="inp" id="tbTag" placeholder="what it was — deep work, exercise, scrolling…" value="${esc(seed.tag||'')}">
       ${tags.length ? `<div class="row" style="gap:4px;flex-wrap:wrap">${tags.map(t=>`<span class="chip click" data-tbsug="${esc(t)}">${esc(t)}</span>`).join('')}</div>` : ''}
@@ -616,13 +616,20 @@ function weekShapeDays(anchor = today(), n = 7){
   return out;
 }
 function weekShapeRow(d){
-  const r = rhythmDay(d); const c = r.computed;
+  const r = rhythmDay(d);
   let wake = hm2min(r.wakeTime), close = hm2min(r.sleepTime);
   if(wake != null) wake /= 60;
   if(close != null){ close /= 60; if(wake != null && close <= wake) close += 24; }
-  const used = (c.intentionalMinutes || 0) / 60, wasted = (c.wastedMinutes || 0) / 60;
-  return {d, wake, close, used, wasted, ratio: c.ratio,
-          empty: wake == null && close == null && !used && !wasted};
+  /* Worked hours are measured now — the focus timer's own sessions — rather
+     than a figure typed in at the end of a day nobody remembers accurately.
+     Wasted time is not tracked at all any more: it was the half of the pair
+     that was always a guess, and knowing how much of a day was made use of
+     does not require an estimate of the rest. */
+  const worked = focusMinutesOn(d) / 60;
+  const awake = (wake != null && close != null) ? close - wake : null;
+  return {d, wake, close, worked, awake,
+          ratio: awake ? Math.round(worked / awake * 100) : null,
+          empty: wake == null && close == null && !worked};
 }
 const wkClock = h => { const hh = Math.floor(h) % 24, mm = Math.round((h % 1) * 60);
   const ap = hh >= 12 ? 'pm' : 'am', h12 = hh % 12 || 12;
@@ -636,12 +643,36 @@ function sleepWakeHTML(anchor = today()){
   const days = weekShapeDays(anchor);
   const rows = days.map(weekShapeRow);
   const filled = rows.filter(r => r.wake != null || r.close != null);
-  const H = 200, W = Math.max(320, days.length * 64), padL = 40, padB = 26;
-  const y = h => (H - padB) - ((h - WK_LO) / (WK_HI - WK_LO)) * (H - padB - 8);
+  /* Two things made this hard to read. It was drawn at 320–450px wide inside a
+     full-width page, so a week of readings sat in a third of the space; and
+     the axis ran a fixed 4am–4am whatever the week held, which squeezed every
+     real reading into the middle third of the height.
+
+     So: the figure fills the width it is given, and the scale is chosen from
+     the data — the range actually recorded, padded by an hour either side and
+     snapped to whole hours, with a sane floor so one flat week is not blown up
+     into drama. */
+  const H = 260, padL = 48, padB = 28, padT = 10;
+  const T = today();
+  const vals = rows.flatMap(r => [r.wake, r.close]).filter(v => v != null);
+  let lo = WK_LO, hi = WK_HI;
+  if(vals.length){
+    lo = Math.floor(Math.min(...vals) - 1);
+    hi = Math.ceil(Math.max(...vals) + 1);
+    if(hi - lo < 6){ const mid = (hi + lo) / 2; lo = Math.floor(mid - 3); hi = Math.ceil(mid + 3); }
+    lo = Math.max(WK_LO, lo); hi = Math.min(WK_HI, hi);
+  }
+  /* the viewBox is a coordinate space, not a pixel size: the svg is set to
+     100% width, so this only fixes the aspect the marks are drawn at */
+  const W = 900;
+  const y = h => (H - padB) - ((h - lo) / (hi - lo)) * (H - padB - padT);
   const colW = (W - padL) / days.length;
   const x = i => padL + (i + .5) * colW;
-  const ticks = [6, 9, 12, 15, 18, 21, 24];
-  const T = today();
+  /* a gridline every 2 or 3 hours depending on how much range there is, so the
+     labels never collide and never thin out to two */
+  const step = (hi - lo) > 14 ? 3 : (hi - lo) > 8 ? 2 : 1;
+  const ticks = [];
+  for(let h = Math.ceil(lo / step) * step; h <= hi; h += step) ticks.push(h);
 
   /* the shaded band is only drawn across runs of days that have both ends —
      a gap in the record must read as a gap, not as a straight line through it */
@@ -677,6 +708,24 @@ function sleepWakeHTML(anchor = today()){
   const avgOf = k => { const v = rows.map(r => r[k]).filter(z => z != null); return v.length ? avg(v) : null; };
   const aw = avgOf('wake'), ac = avgOf('close');
 
+  /* A dot three pixels wide is a poor thing to have to hit, and a title on the
+     dot alone says nothing when you are pointing at the gap between two. Each
+     day gets a full-height strip instead: hovering anywhere in the column
+     lights it and reads out that day — both ends, how long awake, how much of
+     it was worked. */
+  const hovers = rows.map((r, i) => {
+    const parts = [fmtDate(r.d, 'med')];
+    parts.push(r.wake != null ? `woke ${wkClock(r.wake)}` : 'no waking time');
+    parts.push(r.close != null ? `slept ${wkClock(r.close)}` : 'no sleeping time');
+    if(r.awake) parts.push(`${r.awake.toFixed(1)}h awake`);
+    if(r.worked) parts.push(`${r.worked.toFixed(1)}h worked${r.ratio != null ? ` (${r.ratio}%)` : ''}`);
+    return `<g class="wk-col${r.d === T ? ' now' : ''}">
+      <rect x="${(x(i) - colW / 2).toFixed(1)}" y="${padT}" width="${colW.toFixed(1)}" height="${(H - padB - padT).toFixed(1)}"
+        fill="transparent" class="wk-hit"/>
+      <title>${esc(parts.join(' · '))}</title>
+    </g>`;
+  }).join('');
+
   return `<section class="section rv week-shape">
     <div class="row between" style="align-items:baseline;flex-wrap:wrap;gap:8px">
       <span class="sc" style="margin:0">Sleep and waking</span>
@@ -688,32 +737,34 @@ function sleepWakeHTML(anchor = today()){
       <span class="wk-key"><i class="ln" style="background:var(--ment)"></i>I went to sleep${ac!=null?` · usually ${wkClock(ac)}`:''}</span>
       <span class="wk-key"><i class="bnd"></i>awake${(aw!=null&&ac!=null)?` · ${(ac-aw).toFixed(1)}h a day`:''}</span>
     </div>
-    ${filled.length ? `<div class="wk-scroll"><svg class="wk-svg" viewBox="0 0 ${W} ${H}" width="100%" height="${H}" preserveAspectRatio="xMidYMid meet">
+    ${filled.length ? `<div class="wk-scroll"><svg class="wk-svg" viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="none">
       ${ticks.map(h => `<g><line x1="${padL}" y1="${y(h).toFixed(1)}" x2="${W}" y2="${y(h).toFixed(1)}" stroke="var(--line)" stroke-width="1" opacity=".5"/>
         <text x="2" y="${(y(h)+3).toFixed(1)}" class="wk-tick">${wkClock(h)}</text></g>`).join('')}
       ${bands.join('')}
       ${series('close','var(--ment)')}
       ${series('wake','var(--gold)')}
       ${rows.map((r, i) => `<text x="${x(i).toFixed(1)}" y="${H - 8}" class="wk-day ${r.d === T ? 'now' : ''}" text-anchor="middle">${DOW[parseDay(r.d).getDay()][0]}</text>`).join('')}
+      ${hovers}
     </svg></div>`
       : `<div class="empty" style="margin-top:10px">Nothing logged this week yet. The two ends of each day are set on the Today page — "I woke up at" and "I went to sleep at".</div>`}
   </section>`;
 }
 
-/* ---------- 2. what the hours went on ----------
-   A single question — how much of the time you were awake did you claim —
-   asked over whatever stretch you choose. */
+/* ---------- 2. how much of the day was made use of ----------
+   One measured quantity against one measured quantity: hours the timer was
+   running, over hours you were awake. Nothing here is entered by hand, which
+   is why it can be believed. */
 const TIME_SPANS = [['1','the past day'],['7','the past week'],['30','the past month'],['90','the past three months'],['365','the past year']];
 function timeSpanDays(){ const v = S.settings?.timeSpan; return TIME_SPANS.some(x => x[0] === v) ? +v : 7; }
 function timeSplit(n){
-  let used = 0, wasted = 0, days = 0;
+  let worked = 0, awake = 0, days = 0;
   for(let i = 0; i < n; i++){
-    const c = rhythmDay(addDays(today(), -i)).computed;
-    const u = (c.intentionalMinutes || 0) / 60, w = (c.wastedMinutes || 0) / 60;
-    if(u || w) days++;
-    used += u; wasted += w;
+    const r = weekShapeRow(addDays(today(), -i));
+    if(r.worked || r.awake) days++;
+    worked += r.worked;
+    awake += r.awake || 0;
   }
-  return {used, wasted, days, total: used + wasted};
+  return {worked, awake, days, rest: Math.max(0, awake - worked)};
 }
 /* one arc of a donut, drawn from a fraction of the circle */
 function donutArc(frac, from, r, R, color, op){
@@ -725,29 +776,29 @@ function donutArc(frac, from, r, R, color, op){
 }
 function timePieHTML(){
   const n = timeSpanDays(), sp = timeSplit(n);
-  const pct = sp.total ? Math.round(sp.used / sp.total * 100) : null;
+  const base = sp.awake || sp.worked;
+  const pct = base ? Math.round(sp.worked / base * 100) : null;
   const label = (TIME_SPANS.find(x => +x[0] === n) || [])[1] || '';
   return `<section class="section rv time-pie">
     <div class="row between" style="align-items:baseline;flex-wrap:wrap;gap:8px">
-      <span class="sc" style="margin:0">Hours claimed</span>
+      <span class="sc" style="margin:0">Hours made use of</span>
       <select class="sel tp-span" id="tpSpan" style="width:auto">${TIME_SPANS.map(([v, l]) => `<option value="${v}" ${n === +v ? 'selected' : ''}>${l}</option>`).join('')}</select>
     </div>
-    <p class="muted" style="font-size:.85rem;margin:4px 0 0">Of the hours you accounted for over ${esc(label)}, how many you would claim as well spent.</p>
-    ${sp.total ? `<div class="tp-body">
-      <svg class="tp-svg" viewBox="0 0 120 120" width="150" height="150" role="img" aria-label="${pct}% of accounted hours well used">
-        ${donutArc(sp.used / sp.total, 0, 34, 54, 'var(--sage)', '.9')}
-        ${donutArc(sp.wasted / sp.total, sp.used / sp.total, 34, 54, 'var(--rose)', '.75')}
+    <p class="muted" style="font-size:.85rem;margin:4px 0 0">Hours the focus timer was actually running over ${esc(label)}, against the hours you were awake. Both are measured, neither is estimated.</p>
+    ${base ? `<div class="tp-body">
+      <svg class="tp-svg" viewBox="0 0 120 120" width="150" height="150" role="img" aria-label="${pct}% of waking hours worked">
+        ${donutArc(sp.worked / base, 0, 34, 54, 'var(--sage)', '.9')}
+        ${donutArc(sp.rest / base, sp.worked / base, 34, 54, 'var(--line-2)', '.6')}
         <text x="60" y="58" class="tp-big" text-anchor="middle">${pct}%</text>
-        <text x="60" y="73" class="tp-sub" text-anchor="middle">well used</text>
+        <text x="60" y="73" class="tp-sub" text-anchor="middle">worked</text>
       </svg>
       <div class="tp-keys">
-        <div class="tp-key"><i style="background:var(--sage)"></i><span class="n">${sp.used.toFixed(1)}h</span><span class="l">used well</span></div>
-        <div class="tp-key"><i style="background:var(--rose)"></i><span class="n">${sp.wasted.toFixed(1)}h</span><span class="l">wasted</span></div>
-        <div class="tp-key quiet"><i></i><span class="n">${sp.days}</span><span class="l">day${sp.days===1?'':'s'} with hours claimed</span></div>
+        <div class="tp-key"><i style="background:var(--sage)"></i><span class="n">${sp.worked.toFixed(1)}h</span><span class="l">timed work</span></div>
+        <div class="tp-key"><i style="background:var(--line-2)"></i><span class="n">${sp.rest.toFixed(1)}h</span><span class="l">the rest of being awake</span></div>
+        <div class="tp-key quiet"><i></i><span class="n">${sp.days}</span><span class="l">day${sp.days===1?'':'s'} with anything recorded</span></div>
       </div>
-    </div>` : `<div class="empty" style="margin-top:10px">No hours claimed over ${esc(label)}. Claim a block on Today and this fills in.</div>`}
+    </div>` : `<div class="empty" style="margin-top:10px">Nothing timed over ${esc(label)}. Drag a task into the focus panel on Today and this fills in by itself.</div>`}
     <div class="row" style="gap:8px;margin-top:10px;flex-wrap:wrap">
-      <button class="btn sm ghost" id="wkClaim">claim today's hours</button>
       <a class="btn sm ghost" href="#/today">the day itself →</a>
     </div>
   </section>`;
@@ -755,11 +806,8 @@ function timePieHTML(){
 /* the pair, in the order they are read */
 function weekShapeHTML(anchor = today()){ return sleepWakeHTML(anchor) + timePieHTML(); }
 function bindWeekShape(root, redraw){
-  const claim = root.querySelector('#wkClaim');
-  if(claim) claim.onclick = () => {
-    const r = rhythmDay(today());
-    openTimeBlockModal(r, {startTime:'09:00', endTime:'10:00'}, () => { rhythmCompute(r); saveNow(); }, redraw || rerender);
-  };
+  /* "claim today's hours" is gone with the hand-entered figures it wrote:
+     the timer records the hours now, so there is nothing to claim. */
   const span = root.querySelector('#tpSpan');
   if(span) span.onchange = () => { S.settings.timeSpan = span.value; saveNow(); (redraw || rerender)(); };
 }

@@ -18,7 +18,7 @@
    worker at all.
    ============================================================ */
 
-const BUILD = 'ed22633ddde9';                                  /* build.js rewrites this line */
+const BUILD = '602629975939';                                  /* build.js rewrites this line */
 const SHELL = `shell-${BUILD}`;
 const FONTS = 'fonts-v1';
 const NET_TIMEOUT = 3500;
