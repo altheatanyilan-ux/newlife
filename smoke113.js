@@ -50,6 +50,11 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   }));
   yes('  it says what it wants when empty', await p.evaluate(() =>
     /one line/.test(document.querySelector('.vhead-tag').textContent)));
+  /* a value is not always one word — "telling the truth when it costs me
+     something" is a value too, and the prompt should not say otherwise */
+  const askedAs = await p.evaluate(() => document.querySelector('.vhead-tag').textContent.trim());
+  yes('  and asks about the value, not about a word',
+      /what this value means to you/.test(askedAs) && !/this word/.test(askedAs), askedAs);
 
   console.log('\n3. it can be written, and it stays written');
   await p.click('.vhead-tag .ed'); await p.waitForTimeout(400);

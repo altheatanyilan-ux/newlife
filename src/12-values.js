@@ -194,7 +194,7 @@ routes.value = function(root, params){
       <!-- one line for what the word means to you, which is not any of the
            four questions: those are worked out over years, this is the thing
            you would say if someone asked -->
-      <div class="vhead-tag">${ed(`values.#${v.id}.tagline`, {ph:'in one line — what this word means to you', cls:'vtag'})}</div>
+      <div class="vhead-tag">${ed(`values.#${v.id}.tagline`, {ph:'in one line — what this value means to you', cls:'vtag'})}</div>
       <div class="row" style="margin-top:12px"><div class="bar" style="flex:1;--c:${v.color}"><i style="width:${cur}%"></i></div><span class="num" data-tween="${cur}" data-suffix="%">0</span></div>
       ${lifeline}
     </div>

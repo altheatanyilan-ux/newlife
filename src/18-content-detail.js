@@ -52,18 +52,29 @@ function pieceDetailHTML(e){
         ${CONTENT_DESTS.map(([k, n]) => `<option value="${k}" ${c.dest === k ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
       <label class="pd-q"><span class="k">planned for</span><input type="date" class="inp" id="pcSched" value="${esc(c.scheduled)}"></label>
       <label class="pd-q"><span class="k">words wanted</span><input class="inp mono" id="pcTarget" value="${t || ''}" placeholder="—"></label>
-      <!-- a piece is often part of something bigger: the book, the series, the
-           launch. It is written on the entry's own links, which is the same
-           place every other room records a project, so the project's page
-           lists the piece without being told about Content at all. -->
-      <label class="pd-q"><span class="k">part of</span><select class="sel" id="pcProject">
-        <option value="">not part of a project</option>
-        ${(S.projects || []).slice().sort((a, b) => a.name.localeCompare(b.name)).map(pr =>
-          `<option value="${pr.id}" ${pieceProject(e) === pr.id ? 'selected' : ''}>${esc(pr.name)}</option>`).join('')}
-      </select></label>
     </div>
     <div class="pcd-words mono">${w.toLocaleString()} written${t ? ` of ${t.toLocaleString()}` : ''}
       ${t ? `<span class="pd-bar" style="flex:1"><i style="width:${Math.min(100, Math.round(w / t * 100))}%"></i></span>` : ''}</div>
+
+    <!-- A piece is usually written in service of something bigger: the book,
+         the launch, the series. This was a nameless dropdown in the row of
+         quick fields above, lost among "kind" and "words wanted" — while
+         every other relationship the piece has is a section with a heading
+         and a way through to the other end. It is one of those now, and once
+         a project is chosen the panel links to it. The answer is still stored
+         on the entry's own links, which is where every room records a
+         project, so the project's page lists the piece without being told
+         anything about Content. -->
+    <div class="pd-sec" id="pcProjSec"><div class="k mono">the project it serves</div>
+      <select class="sel" id="pcProject" style="width:100%">
+        <option value="">not part of a project</option>
+        ${(S.projects || []).slice().sort((a, b) => a.name.localeCompare(b.name)).map(pr =>
+          `<option value="${pr.id}" ${pieceProject(e) === pr.id ? 'selected' : ''}>${esc(pr.name)}</option>`).join('')}
+      </select>
+      ${(() => { const pr = byId(S.projects, pieceProject(e));
+        return pr ? `<a class="pcd-projlink" href="#/projects/${pr.id}">↗ open ${esc(pr.name)}</a>`
+          : '<div class="pk-empty">Not part of anything bigger yet. A piece that serves a project gets finished more often than one that serves nothing.</div>'; })()}
+    </div>
 
     <div class="pd-sec"><div class="k mono">themes</div><div class="chip-row" id="pcThemes">
       ${contentState().themes.map(x => `<button class="chip click${c.themes.includes(x.id) ? ' on' : ''}" data-pcth="${x.id}" style="--c:${x.color}">${esc(x.name)}</button>`).join('')}</div></div>
@@ -161,6 +172,9 @@ function bindPieceDetail(p, e){
   p.querySelector('#pcProject').onchange = function(){
     pieceSetProject(e, this.value); touch();
     toast(this.value ? `Filed under ${byId(S.projects, this.value)?.name}.` : 'No longer part of a project.');
+    /* redraw so the way through to the project appears with the choice,
+       rather than only on the next time the panel is opened */
+    pieceRedraw(e);
   };
   p.querySelector('#pcTarget').oninput = debounce(function(){
     e.extra.target = e.extra.target || {}; e.extra.target.wordTarget = parseInt(this.value, 10) || 0; touch(); }, 400);
