@@ -96,19 +96,22 @@ function flowEvening(opts = {}){
      body: () => tasksReviewHTML(T, T)},
     {title:'Anything else from today?', hint:'Before the day closes — anything that happened and has not been written down anywhere.',
      body: () => captureStepHTML(T, T), bind: b => bindCaptureStep(b, T, T)},
-    {title:'One line.', hint:'One thing you learned, noticed, or are grateful for. It saves as a reflection.',
-     body: () => `<textarea class="ta" id="fwLine" placeholder="Today I noticed…">${esc(r.note || '')}</textarea>`,
-     next: b => { const v = b.querySelector('#fwLine').value.trim(); r.note = v; if(!c.sentence && v) c.sentence = v.split('\n')[0].slice(0,160);
-       if(v) S.entries.push({id:uid(), type:'reflection', title:'', body:v, occurredAt:T, createdAt:new Date().toISOString(), media:[],
-         links:{stages:[],substages:[],threads:[],values:[],visions:[],skills:[],projects:[],people:[]}, people:[], places:[], emotions:[], tags:[], confidence:'', extra:{}});
-       r.closedAt = new Date().toTimeString().slice(0,5); saveNow(); }},
     {title:'Plan tomorrow.', hint:'While today is still in the room, and you can still judge it honestly. Everything here saves as you type.',
      body: () => planStepHTML(TOM), bind: b => bindPlanStep(b, TOM),
      next: () => { const p = dayPlan(TOM); p.planned = true;
        const first = (p.intentions || []).filter(Boolean)[0];
        if(first && typeof checkin === 'function' && !checkin(TOM).intention) checkin(TOM).intention = first;
        saveNow(); }},
-  ], () => { reviewDone('lastEvening'); toast('Day closed.'); }, {flow:'evening', startAt: opts.startAt, scroll: opts.scroll});
+  /* The "One line." step is gone by request. It wrote three things: the
+     day's note, the day's one-sentence summary, and a reflection entry. A
+     reflection can still be written at any hour from Journals or ⌘N, which
+     is where every other entry is made; the day's note and summary now have
+     no writer, and the two places that show them simply stay quiet.
+     Marking the day closed was the one thing only this step did, so that
+     moves here — finishing the review is what closes the day. */
+  ], () => { const rv = dayReview(T); rv.closedAt = rv.closedAt || new Date().toTimeString().slice(0,5);
+    saveNow(); reviewDone('lastEvening'); toast('Day closed.'); },
+    {flow:'evening', startAt: opts.startAt, scroll: opts.scroll});
 }
 
 /* ---------- 3. the weekly review ---------- */
@@ -296,7 +299,7 @@ function flowHalf(){
 /* ---------- the hub ---------- */
 const REVIEW_FLOWS = [
   ['lastMorning',  'Morning practice',  '30 minutes', 'Maltz, Hill and Hicks, in the order they work: script, visualise, aim, set-point, intention, mark.', flowMorning],
-  ['lastEvening',  'Evening review',    '5 minutes',  'Close the day honestly: the rings, what actually happened, the energy it ended on, one line.', flowEvening],
+  ['lastEvening',  'Evening review',    '5 minutes',  'Close the day honestly: the rings, what actually happened, the energy it ended on, and tomorrow.', flowEvening],
   ['lastWeekly',   'Weekly review',     '15 minutes', "The week's shape, the habits, a congruence snapshot, current reality on the tension that carries most.", flowWeekly],
   ['lastMonthly',  'Monthly review',    '15 minutes', 'The month at once: the milestones you named, the habits across thirty days, which rooms got used, and what carries over.', flowMonthly],
   ['lastSeasonal', 'Quarterly review',  '30 minutes', 'A season: values re-ranked, confidence rungs, what is going quiet, the five closest, the money.', flowSeasonal],
