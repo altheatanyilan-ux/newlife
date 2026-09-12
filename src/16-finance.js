@@ -99,7 +99,18 @@ function finLiveRecalc(){
     if(document.querySelector('.stream-card, .scenario-card, .gap-panel')) rerender();
   }, 220);
 }
-hooks.snum = (sid) => { const s = byId(S.incomeStreams, sid); if(s){ ['current','target','hoursPerWeek'].forEach(k => { s[k] = parseFloat(String(s[k]).replace(/[^\d.]/g,''))||0; }); saveNow(); finLiveRecalc(); } };
+/* A money field is typed, so it arrives as text: "1,200", "$400", "40 hrs".
+   Everything downstream adds it up, and a string that is not a bare number
+   adds up to nothing. Clean the whole income object — its own figures and
+   those of every part, which now carry the numbers whenever a stream is a
+   shelf rather than a single thing. */
+const finNum = v => parseFloat(String(v).replace(/[^\d.]/g, '')) || 0;
+function normIncomeNums(inc){
+  if(!inc) return;
+  ['current','target','hoursPerWeek','capital'].forEach(k => { if(inc[k] !== undefined) inc[k] = finNum(inc[k]); });
+  (inc.subs || []).forEach(x => { x.current = finNum(x.current); x.target = finNum(x.target); });
+}
+hooks.snum = (sid) => { const s = byId(S.incomeStreams, sid); if(s){ normIncomeNums(s); saveNow(); finLiveRecalc(); } };
 hooks.spendnum = (path) => { const i = getPath(path); if(i) i.amount = parseFloat(String(i.amount).replace(/[^\d.]/g,''))||0; saveNow(); finLiveRecalc(); };
 hooks.savingsnum = () => { S.finance.savings = parseFloat(String(S.finance.savings).replace(/[^\d.]/g,''))||0; saveNow(); finLiveRecalc(); };
 hooks.hourslimit = () => { S.finance.hoursLimit = parseFloat(String(S.finance.hoursLimit).replace(/[^\d.]/g,''))||50; saveNow(); finLiveRecalc(); };

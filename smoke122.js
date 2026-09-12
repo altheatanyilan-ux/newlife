@@ -102,6 +102,41 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   is('  and the target with them', kept.tgt, 1500);
   is('  as one part', kept.n, 1);
 
+  console.log('\n4. a money figure is typed, so it arrives as text');
+  /* "1,200" and "S$400" are how people write money. Every figure downstream is
+     added up, and a string that is not a bare number adds up to nothing — so a
+     comma in a part used to read back as zero while the same comma in a plain
+     stream was cleaned. The parts carry the numbers now; they need the same
+     cleaning. */
+  const retype = async (sel, text) => {
+    await p.click(sel); await p.waitForTimeout(320);
+    await p.keyboard.press('Control+A'); await p.keyboard.type(text);
+    await p.keyboard.press('Enter'); await p.waitForTimeout(900);
+  };
+  const sid3 = await p.evaluate(() => {
+    const st = {id: uid(), name:'Typed by hand', model:'', earning:'passive', status:'earning',
+      subs:[{id: uid(), name:'One', current:0, target:0}]};
+    migrateIncomeShape(st); S.incomeStreams.push(st); saveNow(); return st.id;
+  });
+  await fin();
+  await retype(`.stream-card [data-path="incomeStreams.#${sid3}.subs.0.current"]`, '1,200');
+  await fin();
+  await retype(`.stream-card [data-path="incomeStreams.#${sid3}.subs.0.target"]`, 'S$3,000');
+  await fin();
+  const typed = await p.evaluate(i => { const st = byId(S.incomeStreams, i);
+    return {c: st.subs[0].current, t: st.subs[0].target, roll: streamCurrent(st)}; }, sid3);
+  is('a part written "1,200" is twelve hundred', typed.c, 1200);
+  is('  and "S$3,000" is three thousand', typed.t, 3000);
+  is('  so the stream adds them up rather than reading zero', typed.roll, 1200);
+
+  /* capital was edited with the same hook and never cleaned at all */
+  await retype(`.stream-card [data-path="incomeStreams.#${sid3}.capital"]`, '20,000');
+  await fin();
+  const cap = await p.evaluate(i => byId(S.incomeStreams, i).capital, sid3);
+  is('capital in, written "20,000", is twenty thousand', cap, 20000);
+  const yld = await p.evaluate(i => streamYield(byId(S.incomeStreams, i)), sid3);
+  yes('  so the yield can be worked out at all', yld != null && yld > 0, String(yld));
+
   console.log('\n' + (errs.length ? 'console:\n  ' + errs.join('\n  ') : 'console: clean'));
   if(errs.length) bad += errs.length;
   console.log(bad ? `\n${bad} FAILED` : '\nsmoke122  all good');
