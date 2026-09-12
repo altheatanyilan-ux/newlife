@@ -17,6 +17,18 @@ function pieceRedraw(e){
   if(parseHash().name === 'content') rerenderContentBody();
 }
 
+/* A piece belongs to at most one project — "part of the book" is one answer,
+   not a set — so it is read as the first of the entry's project links and set
+   by replacing them. The entry's own links are used rather than a new field
+   because that is where every other room already records a project: the
+   project's page lists the piece through entriesLinked, and needs to know
+   nothing about Content to do it. */
+function pieceProject(e){ const l = (e.links?.projects || [])[0]; return l ? (typeof l === 'string' ? l : l.id) : ''; }
+function pieceSetProject(e, id){
+  e.links = e.links || {};
+  e.links.projects = id ? [id] : [];
+  saveNow();
+}
 function pieceDetailHTML(e){
   const c = e.extra.content, st = contentStage(c.stage);
   const w = pieceWords(e), t = pieceTarget(e);
@@ -40,6 +52,15 @@ function pieceDetailHTML(e){
         ${CONTENT_DESTS.map(([k, n]) => `<option value="${k}" ${c.dest === k ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
       <label class="pd-q"><span class="k">planned for</span><input type="date" class="inp" id="pcSched" value="${esc(c.scheduled)}"></label>
       <label class="pd-q"><span class="k">words wanted</span><input class="inp mono" id="pcTarget" value="${t || ''}" placeholder="—"></label>
+      <!-- a piece is often part of something bigger: the book, the series, the
+           launch. It is written on the entry's own links, which is the same
+           place every other room records a project, so the project's page
+           lists the piece without being told about Content at all. -->
+      <label class="pd-q"><span class="k">part of</span><select class="sel" id="pcProject">
+        <option value="">not part of a project</option>
+        ${(S.projects || []).slice().sort((a, b) => a.name.localeCompare(b.name)).map(pr =>
+          `<option value="${pr.id}" ${pieceProject(e) === pr.id ? 'selected' : ''}>${esc(pr.name)}</option>`).join('')}
+      </select></label>
     </div>
     <div class="pcd-words mono">${w.toLocaleString()} written${t ? ` of ${t.toLocaleString()}` : ''}
       ${t ? `<span class="pd-bar" style="flex:1"><i style="width:${Math.min(100, Math.round(w / t * 100))}%"></i></span>` : ''}</div>
@@ -137,6 +158,10 @@ function bindPieceDetail(p, e){
   p.querySelector('#pcType').onchange = function(){ c.type = this.value; touch(); };
   p.querySelector('#pcDest').onchange = function(){ c.dest = this.value; touch(); };
   p.querySelector('#pcSched').onchange = function(){ c.scheduled = this.value; touch(); };
+  p.querySelector('#pcProject').onchange = function(){
+    pieceSetProject(e, this.value); touch();
+    toast(this.value ? `Filed under ${byId(S.projects, this.value)?.name}.` : 'No longer part of a project.');
+  };
   p.querySelector('#pcTarget').oninput = debounce(function(){
     e.extra.target = e.extra.target || {}; e.extra.target.wordTarget = parseInt(this.value, 10) || 0; touch(); }, 400);
   p.querySelectorAll('[data-pcth]').forEach(b => b.onclick = () => {

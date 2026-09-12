@@ -222,10 +222,28 @@ function openProjectPanel(id){
       <div class="faint" style="font-size:.78rem">Derived from entries tagged to this project. The varied interests become facets of one body of work.</div></div></div>
     <div class="vp-sec"><span class="sc">Nods</span><div class="nodlist">${ns.slice(0,40).map(n=>`<div class="nod"><span class="mono">${fmtDate(n.date,'med')}</span><span>${esc(n.text)}${n.link?` <a href="${esc(n.link)}" target="_blank" rel="noopener" class="mono">↗</a>`:''}${n.image?`<div class="photo" style="width:60px;height:60px;margin-top:4px"><img src="${n.image}"></div>`:''}</span><span class="row" style="gap:6px"><span class="mono">${n.duration||''} · ${'●'.repeat(n.energy)}${'○'.repeat(5-n.energy)}</span><button class="tbtn" data-nodedit="${n.id}">edit</button><button class="del-x inline" data-noddel="${n.id}" title="delete nod">×</button></span></div>`).join('')||'<div class="empty">No nods yet. Show up once.</div>'}</div></div>
     ${typeof planLinkedTasksHTML === 'function' ? planLinkedTasksHTML('projects', p.id, {heading:'Tasks in Planning'}) : ''}
-    ${es.length?`<div class="vp-sec"><span class="sc">Entries</span>${es.map(e=>entryCard(e)).join('')}</div>`:''}
+    ${(() => { const pieces = es.filter(e => e.type === 'writing');
+      if(!pieces.length) return '';
+      /* a piece filed under this project reads as a piece — its stage and how
+         much of it exists — rather than as an untitled entry card with a dot
+         for an icon, which is what the generic feed made of it */
+      return `<div class="vp-sec"><span class="sc">Pieces</span>
+        <div class="pj-pieces">${pieces.map(e => { const c = e.extra?.content || {};
+          const st = typeof contentStage === 'function' ? contentStage(c.stage) : null;
+          const w = typeof pieceWords === 'function' ? pieceWords(e) : 0;
+          return `<button class="pj-piece" data-pjpiece="${e.id}" style="--c:${st?.color || 'var(--faint)'}">
+            <span class="pj-pst" title="${esc(st?.name || '')}">${esc(st?.icon || '✍')}</span>
+            <span class="pj-pname">${esc(e.title || 'Untitled piece')}</span>
+            <span class="mono">${st ? esc(st.name) : ''}${w ? ` · ${w.toLocaleString()} words` : ''}</span>
+          </button>`; }).join('')}</div></div>`; })()}
+    ${(() => { const rest = es.filter(e => e.type !== 'writing');
+      return rest.length ? `<div class="vp-sec"><span class="sc">Entries</span>${rest.map(e=>entryCard(e)).join('')}</div>` : ''; })()}
     ${moreSection(`<div class="danger-zone"><span>Projects carry their nods with them. Archive it instead if it may return.</span><button class="btn sm ghost danger" id="pDel">Delete this project</button></div>`)}`);
   $$('#panel .rv').forEach(n=>n.classList.add('in'));
   p._tags = (p.tags||[]).join(', ');
+  pn.querySelectorAll('[data-pjpiece]').forEach(b => b.onclick = () => {
+    const pid = b.dataset.pjpiece; closePanel();
+    if(typeof openPieceDetail === 'function') setTimeout(() => openPieceDetail(pid), 60); });
   pn.querySelector('#pStatus').onchange = e => { p.status = e.target.value; saveNow(); reopenPanel(() => { rerender(); openProjectPanel(id); }); };
   pn.querySelector('#pPri').onchange = e => { p.priority = e.target.value; saveNow(); reopenPanel(() => { rerender(); openProjectPanel(id); }); };
   pn.querySelectorAll('[data-plink]').forEach(c => c.onclick = () => { const sid = c.dataset.plink; p.linkedSkills = (p.linkedSkills||[]).includes(sid) ? p.linkedSkills.filter(x=>x!==sid) : [...(p.linkedSkills||[]), sid]; saveNow(); c.classList.toggle('on'); });

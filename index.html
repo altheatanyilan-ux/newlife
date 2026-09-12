@@ -4077,6 +4077,16 @@ select.sm-active{border-color:var(--page-accent);
 /* the evidence feed has a page's width to fill now, so it reads in columns
    rather than as one very long ribbon */
 @media (min-width:1000px){ .value-page .vev{max-width:none} }
+
+/* --- pieces filed under a project --- */
+.pj-pieces{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.pj-piece{display:flex;align-items:center;gap:10px;width:100%;text-align:left;cursor:pointer;
+  background:var(--card);border:1px solid var(--line);border-left:3px solid var(--c,var(--faint));
+  border-radius:8px;padding:8px 12px;font:inherit;color:var(--ink);transition:border-color .18s ease,background .18s ease}
+.pj-piece:hover{background:var(--bg);border-color:var(--page-accent)}
+.pj-piece .pj-pst{font-size:.95rem;color:var(--c,var(--faint))}
+.pj-piece .pj-pname{flex:1;font-family:var(--serif);font-size:.95rem}
+.pj-piece .mono{font-size:.68rem;color:var(--faint);white-space:nowrap}
 </style>
 </head>
 <body>
@@ -11217,10 +11227,28 @@ function openProjectPanel(id){
       <div class="faint" style="font-size:.78rem">Derived from entries tagged to this project. The varied interests become facets of one body of work.</div></div></div>
     <div class="vp-sec"><span class="sc">Nods</span><div class="nodlist">${ns.slice(0,40).map(n=>`<div class="nod"><span class="mono">${fmtDate(n.date,'med')}</span><span>${esc(n.text)}${n.link?` <a href="${esc(n.link)}" target="_blank" rel="noopener" class="mono">↗</a>`:''}${n.image?`<div class="photo" style="width:60px;height:60px;margin-top:4px"><img src="${n.image}"></div>`:''}</span><span class="row" style="gap:6px"><span class="mono">${n.duration||''} · ${'●'.repeat(n.energy)}${'○'.repeat(5-n.energy)}</span><button class="tbtn" data-nodedit="${n.id}">edit</button><button class="del-x inline" data-noddel="${n.id}" title="delete nod">×</button></span></div>`).join('')||'<div class="empty">No nods yet. Show up once.</div>'}</div></div>
     ${typeof planLinkedTasksHTML === 'function' ? planLinkedTasksHTML('projects', p.id, {heading:'Tasks in Planning'}) : ''}
-    ${es.length?`<div class="vp-sec"><span class="sc">Entries</span>${es.map(e=>entryCard(e)).join('')}</div>`:''}
+    ${(() => { const pieces = es.filter(e => e.type === 'writing');
+      if(!pieces.length) return '';
+      /* a piece filed under this project reads as a piece — its stage and how
+         much of it exists — rather than as an untitled entry card with a dot
+         for an icon, which is what the generic feed made of it */
+      return `<div class="vp-sec"><span class="sc">Pieces</span>
+        <div class="pj-pieces">${pieces.map(e => { const c = e.extra?.content || {};
+          const st = typeof contentStage === 'function' ? contentStage(c.stage) : null;
+          const w = typeof pieceWords === 'function' ? pieceWords(e) : 0;
+          return `<button class="pj-piece" data-pjpiece="${e.id}" style="--c:${st?.color || 'var(--faint)'}">
+            <span class="pj-pst" title="${esc(st?.name || '')}">${esc(st?.icon || '✍')}</span>
+            <span class="pj-pname">${esc(e.title || 'Untitled piece')}</span>
+            <span class="mono">${st ? esc(st.name) : ''}${w ? ` · ${w.toLocaleString()} words` : ''}</span>
+          </button>`; }).join('')}</div></div>`; })()}
+    ${(() => { const rest = es.filter(e => e.type !== 'writing');
+      return rest.length ? `<div class="vp-sec"><span class="sc">Entries</span>${rest.map(e=>entryCard(e)).join('')}</div>` : ''; })()}
     ${moreSection(`<div class="danger-zone"><span>Projects carry their nods with them. Archive it instead if it may return.</span><button class="btn sm ghost danger" id="pDel">Delete this project</button></div>`)}`);
   $$('#panel .rv').forEach(n=>n.classList.add('in'));
   p._tags = (p.tags||[]).join(', ');
+  pn.querySelectorAll('[data-pjpiece]').forEach(b => b.onclick = () => {
+    const pid = b.dataset.pjpiece; closePanel();
+    if(typeof openPieceDetail === 'function') setTimeout(() => openPieceDetail(pid), 60); });
   pn.querySelector('#pStatus').onchange = e => { p.status = e.target.value; saveNow(); reopenPanel(() => { rerender(); openProjectPanel(id); }); };
   pn.querySelector('#pPri').onchange = e => { p.priority = e.target.value; saveNow(); reopenPanel(() => { rerender(); openProjectPanel(id); }); };
   pn.querySelectorAll('[data-plink]').forEach(c => c.onclick = () => { const sid = c.dataset.plink; p.linkedSkills = (p.linkedSkills||[]).includes(sid) ? p.linkedSkills.filter(x=>x!==sid) : [...(p.linkedSkills||[]), sid]; saveNow(); c.classList.toggle('on'); });
@@ -18765,6 +18793,18 @@ function pieceRedraw(e){
   if(parseHash().name === 'content') rerenderContentBody();
 }
 
+/* A piece belongs to at most one project — "part of the book" is one answer,
+   not a set — so it is read as the first of the entry's project links and set
+   by replacing them. The entry's own links are used rather than a new field
+   because that is where every other room already records a project: the
+   project's page lists the piece through entriesLinked, and needs to know
+   nothing about Content to do it. */
+function pieceProject(e){ const l = (e.links?.projects || [])[0]; return l ? (typeof l === 'string' ? l : l.id) : ''; }
+function pieceSetProject(e, id){
+  e.links = e.links || {};
+  e.links.projects = id ? [id] : [];
+  saveNow();
+}
 function pieceDetailHTML(e){
   const c = e.extra.content, st = contentStage(c.stage);
   const w = pieceWords(e), t = pieceTarget(e);
@@ -18788,6 +18828,15 @@ function pieceDetailHTML(e){
         ${CONTENT_DESTS.map(([k, n]) => `<option value="${k}" ${c.dest === k ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
       <label class="pd-q"><span class="k">planned for</span><input type="date" class="inp" id="pcSched" value="${esc(c.scheduled)}"></label>
       <label class="pd-q"><span class="k">words wanted</span><input class="inp mono" id="pcTarget" value="${t || ''}" placeholder="—"></label>
+      <!-- a piece is often part of something bigger: the book, the series, the
+           launch. It is written on the entry's own links, which is the same
+           place every other room records a project, so the project's page
+           lists the piece without being told about Content at all. -->
+      <label class="pd-q"><span class="k">part of</span><select class="sel" id="pcProject">
+        <option value="">not part of a project</option>
+        ${(S.projects || []).slice().sort((a, b) => a.name.localeCompare(b.name)).map(pr =>
+          `<option value="${pr.id}" ${pieceProject(e) === pr.id ? 'selected' : ''}>${esc(pr.name)}</option>`).join('')}
+      </select></label>
     </div>
     <div class="pcd-words mono">${w.toLocaleString()} written${t ? ` of ${t.toLocaleString()}` : ''}
       ${t ? `<span class="pd-bar" style="flex:1"><i style="width:${Math.min(100, Math.round(w / t * 100))}%"></i></span>` : ''}</div>
@@ -18885,6 +18934,10 @@ function bindPieceDetail(p, e){
   p.querySelector('#pcType').onchange = function(){ c.type = this.value; touch(); };
   p.querySelector('#pcDest').onchange = function(){ c.dest = this.value; touch(); };
   p.querySelector('#pcSched').onchange = function(){ c.scheduled = this.value; touch(); };
+  p.querySelector('#pcProject').onchange = function(){
+    pieceSetProject(e, this.value); touch();
+    toast(this.value ? `Filed under ${byId(S.projects, this.value)?.name}.` : 'No longer part of a project.');
+  };
   p.querySelector('#pcTarget').oninput = debounce(function(){
     e.extra.target = e.extra.target || {}; e.extra.target.wordTarget = parseInt(this.value, 10) || 0; touch(); }, 400);
   p.querySelectorAll('[data-pcth]').forEach(b => b.onclick = () => {

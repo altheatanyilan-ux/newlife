@@ -3561,5 +3561,15 @@ select.sm-active{border-color:var(--page-accent);
 /* the evidence feed has a page's width to fill now, so it reads in columns
    rather than as one very long ribbon */
 @media (min-width:1000px){ .value-page .vev{max-width:none} }
+
+/* --- pieces filed under a project --- */
+.pj-pieces{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.pj-piece{display:flex;align-items:center;gap:10px;width:100%;text-align:left;cursor:pointer;
+  background:var(--card);border:1px solid var(--line);border-left:3px solid var(--c,var(--faint));
+  border-radius:8px;padding:8px 12px;font:inherit;color:var(--ink);transition:border-color .18s ease,background .18s ease}
+.pj-piece:hover{background:var(--bg);border-color:var(--page-accent)}
+.pj-piece .pj-pst{font-size:.95rem;color:var(--c,var(--faint))}
+.pj-piece .pj-pname{flex:1;font-family:var(--serif);font-size:.95rem}
+.pj-piece .mono{font-size:.68rem;color:var(--faint);white-space:nowrap}
 </style>
 </head>
