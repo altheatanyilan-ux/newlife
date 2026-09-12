@@ -1328,6 +1328,8 @@ details.era-lived[open] > summary::before{transform:rotate(90deg)}
 .sk-organic.hov .sk-branch:not(.hot) .limb-tint{opacity:.1}
 .sk-organic .sk-twig.hot .limb{filter:drop-shadow(0 0 4px color-mix(in srgb,var(--nc) 60%,transparent))}
 .sk-organic .sk-twig.hot .sk-lbl{fill:var(--text);font-weight:600}
+.sk-organic .sk-lblfor.hot .sk-lbl{fill:var(--text);font-weight:600}
+.sk-organic.hov .sk-lblfor:not(.hot){opacity:.42}
 .sk-organic .sk-lbl{fill:var(--text);font-family:var(--serif);letter-spacing:.02em;pointer-events:none;paint-order:stroke;stroke:var(--bg);stroke-width:3px;stroke-linejoin:round}
 .sk-organic .sk-sublbl{fill:var(--muted);font-family:var(--mono);font-size:8.5px;pointer-events:none;paint-order:stroke;stroke:var(--bg);stroke-width:3px;stroke-linejoin:round}
 .sk-organic .sk-catlbl{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;pointer-events:none;paint-order:stroke;stroke:var(--bg);stroke-width:3px}
@@ -1348,11 +1350,18 @@ details.era-lived[open] > summary::before{transform:rotate(90deg)}
    canopy is what moves. A flower on a twig whose milestone is close by keeps
    breathing, so a near deadline is something you can see across the page. */
 .sk-organic .blossom{transform-box:fill-box;transform-origin:center;
-  animation:blossomOpen .7s var(--page-ease) backwards;animation-delay:var(--d,0s)}
-@keyframes blossomOpen{from{opacity:0;transform:scale(.15) rotate(-40deg)}to{opacity:1;transform:none}}
+  animation:blossomOpen .7s var(--page-ease) backwards, blossomIdle 7s ease-in-out infinite;
+  animation-delay:var(--d,0s), calc(var(--d,0s) + .7s)}
+/* barely there — the feeling of a living thing, not a thing that is moving */
+@keyframes blossomIdle{0%,100%{scale:.985}50%{scale:1.015}}
+/* These animate the individual `scale`/`rotate` properties, not `transform`.
+   A CSS `transform` replaces the SVG transform attribute outright, so an
+   infinite one threw every flower back to the top-left corner of the canvas
+   and the tree came up bare; the individual properties compose with it. */
+@keyframes blossomOpen{from{opacity:0;scale:.15;rotate:-40deg}to{opacity:1;scale:1;rotate:0deg}}
 .sk-organic .blossom.soon{animation:blossomOpen .7s var(--page-ease) backwards,
   blossomBreathe 3.2s ease-in-out infinite;animation-delay:var(--d,0s), calc(var(--d,0s) + .7s)}
-@keyframes blossomBreathe{0%,100%{opacity:.78;transform:scale(1)}50%{opacity:1;transform:scale(1.14)}}
+@keyframes blossomBreathe{0%,100%{opacity:.78;scale:1}50%{opacity:1;scale:1.14}}
 .sk-organic .fall{animation:leafFall 7s linear infinite;transform-box:fill-box;transform-origin:center}
 @keyframes leafFall{0%{opacity:0;transform:translate(0,0) rotate(0)}10%{opacity:.8}100%{opacity:0;transform:translate(14px,70px) rotate(220deg)}}
 .sk-organic .sk-sun{animation:sunBreathe 9s ease-in-out infinite alternate}
@@ -3986,5 +3995,20 @@ select.sm-active{border-color:var(--page-accent);
 .stream-card:hover .stream-link{opacity:1}
 @media (max-width:560px){ .substream{grid-template-columns:1fr auto;row-gap:2px}
   .substream .sub-name{grid-column:1/-1} }
+
+/* --- the skill tree before anything is planted --- */
+.sk-seedlbl{fill:var(--ink);font-family:var(--serif);font-style:italic;font-size:.95rem}
+.sk-seedsub{fill:var(--muted);font-family:var(--serif);font-style:italic;font-size:.78rem}
+.sk-plant{position:absolute;left:50%;transform:translateX(-50%);bottom:20%;z-index:2}
+.sk-seedling .sk-seed{transform-box:fill-box;transform-origin:50% 100%}
+.sk-seedling .sk-shoot{stroke-dasharray:44;stroke-dashoffset:44;animation:skShoot 1.4s var(--ease) .25s forwards}
+.sk-seedling .sk-seed .leaf{opacity:0;animation:skLeafIn .7s var(--ease) 1.3s forwards}
+.sk-seedling .sk-seed .leaf:nth-of-type(2){animation-delay:1.55s}
+@keyframes skShoot{to{stroke-dashoffset:0}}
+@keyframes skLeafIn{from{opacity:0;transform:scale(.3)}to{opacity:1;transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){
+  .sk-seedling .sk-shoot{stroke-dashoffset:0;animation:none}
+  .sk-seedling .sk-seed .leaf{opacity:1;animation:none}
+}
 </style>
 </head>

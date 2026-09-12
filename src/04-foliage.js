@@ -88,7 +88,10 @@ function growTree(svg){
     p.style.animation = `limbDraw .9s var(--ease) forwards`;
     p.style.animationDelay = `${Math.min(.75, len / 900).toFixed(2)}s`;
   });
-  const late = [...svg.querySelectorAll('.leaf, .fruit, .blossom, .sk-canopy')];
+  /* Blossoms are left out: they carry their own opening animation from the
+     stylesheet, and overriding it here only to clear it again a second later
+     made every flower bloom twice. */
+  const late = [...svg.querySelectorAll('.leaf, .fruit, .sk-canopy')];
   late.forEach((n, i) => {
     n.style.animation = `leafOpen .7s var(--ease) both`;
     n.style.animationDelay = `${(0.5 + (i % 40) * 0.012).toFixed(2)}s`;
