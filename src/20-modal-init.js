@@ -44,6 +44,9 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
         <span>Still unfinished — keep it at the bottom of Today</span></label>
       <div class="row between"><span class="faint" style="font-size:.78rem" id="linkNudge"></span><button class="btn primary" id="eSave" style="padding:12px 28px;font-size:1rem">${existing?'Save changes':'Save entry'}</button></div>
     </div>`, 'wide');
+  /* An entry takes as long as it takes. The clock starts with the form and
+     counts only the time actually spent on it — see 07-writeclock.js. */
+  const wclock = startWritingClock(m);
   const x = () => e.extra;
   /* type-specific fields. Anything with data-x saves itself on the way out;
      the pickers below write straight into extra so a click is a save. */
@@ -178,6 +181,7 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
     const split = id => m.querySelector(id).value.split(',').map(s=>s.trim()).filter(Boolean);
     e.places = split('#ePlaces'); e.emotions = split('#eEmo'); e.people = (e.links.people||[]).map(id => byId(S.people,id)?.name).filter(Boolean);
     S.places = [...new Set([...(S.places||[]), ...e.places])];
+    recordWritingSession(e, wclock);
     if(existing) Object.assign(existing, e); else S.entries.push(e);
     saveNow();
     /* a quote that names a work is a passage of that work, so the work is told

@@ -1355,6 +1355,17 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
   box-shadow:inset 3px 0 0 -1px var(--c);padding-left:8px}
 .pick-glabel .mono{font-size:.6rem;color:var(--faint);letter-spacing:.04em}
 .pick-group .pick-row{margin-left:8px}
+
+/* how long the day's writing took */
+.write-total{font-size:1.5rem;color:var(--page-accent);letter-spacing:-.01em}
+.write-rows{display:flex;flex-direction:column;gap:1px;margin-top:10px}
+.write-row{display:grid;grid-template-columns:auto 1fr auto;gap:9px;align-items:center;width:100%;
+  background:none;border:0;border-top:1px dashed var(--line);padding:7px 2px;cursor:pointer;
+  font:inherit;color:inherit;text-align:left;transition:background .18s var(--ease)}
+.write-row:hover{background:var(--surface-2,rgba(0,0,0,.03))}
+.wr-ico{font-size:.86rem;opacity:.75}
+.wr-name{font-size:.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.wr-time{font-size:.74rem;color:var(--muted);white-space:nowrap}
 .lvl-res{display:flex;flex-direction:column;gap:4px}
 .res-row{display:flex;gap:8px;align-items:center;font-size:.85rem;flex-wrap:wrap;position:relative}
 .res-type{font-size:.85rem;min-width:18px;text-align:center}

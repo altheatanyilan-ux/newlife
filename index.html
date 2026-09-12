@@ -1879,6 +1879,17 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
   box-shadow:inset 3px 0 0 -1px var(--c);padding-left:8px}
 .pick-glabel .mono{font-size:.6rem;color:var(--faint);letter-spacing:.04em}
 .pick-group .pick-row{margin-left:8px}
+
+/* how long the day's writing took */
+.write-total{font-size:1.5rem;color:var(--page-accent);letter-spacing:-.01em}
+.write-rows{display:flex;flex-direction:column;gap:1px;margin-top:10px}
+.write-row{display:grid;grid-template-columns:auto 1fr auto;gap:9px;align-items:center;width:100%;
+  background:none;border:0;border-top:1px dashed var(--line);padding:7px 2px;cursor:pointer;
+  font:inherit;color:inherit;text-align:left;transition:background .18s var(--ease)}
+.write-row:hover{background:var(--surface-2,rgba(0,0,0,.03))}
+.wr-ico{font-size:.86rem;opacity:.75}
+.wr-name{font-size:.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.wr-time{font-size:.74rem;color:var(--muted);white-space:nowrap}
 .lvl-res{display:flex;flex-direction:column;gap:4px}
 .res-row{display:flex;gap:8px;align-items:center;font-size:.85rem;flex-wrap:wrap;position:relative}
 .res-type{font-size:.85rem;min-width:18px;text-align:center}
@@ -7207,6 +7218,98 @@ function seed(){
   };
 }
 /* ============================================================
+   THE WRITING CLOCK — how long an entry actually took
+
+   Writing an entry is not an instant. It begins when the form opens and
+   ends when it is saved, and in between a person walks away, answers the
+   door, comes back an hour later and finishes the sentence. The interesting
+   number is the time actually spent, not the wall-clock span, so this
+   counts only while the writing is really happening and stops the moment
+   it is not.
+
+   What stops the clock:
+     · the tab going to the background, or the window losing focus
+     · the modal being scrolled away from and nothing touched for a while
+   What restarts it: any keystroke, click or scroll inside the form.
+
+   The idle cut is deliberately generous. Thinking with your hands off the
+   keyboard is writing; making tea is not. Two minutes is long enough to
+   stare out of a window and short enough that lunch does not count.
+   ============================================================ */
+const WRITE_IDLE_MS = 120000;
+
+function startWritingClock(scope){
+  const st = {
+    startedAt: new Date().toISOString(),
+    on: today(),
+    ms: 0,            /* accumulated, breaks excluded */
+    since: Date.now(),/* when the current stretch began, null while paused */
+    stopped: false
+  };
+  const pause = () => { if(st.stopped || st.since == null) return;
+    st.ms += Date.now() - st.since; st.since = null; };
+  const resume = () => { if(st.stopped || st.since != null) return; st.since = Date.now(); };
+  /* the idle timer is reset by anything that looks like writing */
+  let idle = null;
+  const poke = () => { resume(); clearTimeout(idle); idle = setTimeout(pause, WRITE_IDLE_MS); };
+  const onVis = () => document.hidden ? pause() : poke();
+
+  ['keydown','pointerdown','input','scroll'].forEach(ev =>
+    scope.addEventListener(ev, poke, {capture:true, passive:true}));
+  document.addEventListener('visibilitychange', onVis);
+  window.addEventListener('blur', pause);
+  window.addEventListener('focus', poke);
+  poke();
+
+  st.elapsedMs = () => st.ms + (st.since == null ? 0 : Date.now() - st.since);
+  st.stop = () => {
+    if(st.stopped) return st;
+    pause(); st.stopped = true; clearTimeout(idle);
+    document.removeEventListener('visibilitychange', onVis);
+    window.removeEventListener('blur', pause);
+    window.removeEventListener('focus', poke);
+    ['keydown','pointerdown','input','scroll'].forEach(ev =>
+      scope.removeEventListener(ev, poke, {capture:true}));
+    return st;
+  };
+  return st;
+}
+
+/* Sessions are kept per day rather than as one running total, because an
+   entry written last week and edited today spent time on two different days
+   and the day that asks "how long did I write today" wants only its own. */
+function recordWritingSession(e, st){
+  if(!st) return;
+  st.stop();
+  const secs = Math.round(st.elapsedMs() / 1000);
+  if(secs < 1) return;
+  e.extra = e.extra || {};
+  const w = e.extra.writing = e.extra.writing || {startedAt: st.startedAt, sessions: []};
+  w.startedAt = w.startedAt || st.startedAt;
+  w.sessions = Array.isArray(w.sessions) ? w.sessions : [];
+  const same = w.sessions.find(s => s.on === st.on);
+  if(same) same.seconds += secs; else w.sessions.push({on: st.on, seconds: secs});
+}
+
+/* every second spent writing on one day, across however many entries */
+function writingSecondsOn(day = today()){
+  return (S.entries || []).reduce((n, e) => n +
+    ((e.extra?.writing?.sessions || []).find(s => s.on === day)?.seconds || 0), 0);
+}
+function writingEntriesOn(day = today()){
+  return (S.entries || []).filter(e =>
+    (e.extra?.writing?.sessions || []).some(s => s.on === day && s.seconds > 0));
+}
+/* "1h 12m", "12m", "40s" — never "0h 0m 40s" */
+function fmtWriting(secs){
+  if(!secs) return '';
+  const h = Math.floor(secs / 3600), m = Math.round(secs % 3600 / 60);
+  if(h && m) return `${h}h ${m}m`;
+  if(h) return `${h}h`;
+  if(m) return `${m}m`;
+  return `${secs}s`;
+}
+/* ============================================================
    CHARTS — small SVG helpers
    ============================================================ */
 function sparkline(vals, {w=200,h=40,color='var(--terra)',min,max,fill=true,dots=false,labels}={}){
@@ -8831,6 +8934,24 @@ routes.today = function(root){
     <!-- the ledger reads the whole instrument, so it belongs to the Compass;
          the gentle prompt and the quick-add row are gone by request -->
 
+    <!-- How long the day's writing actually took. Not the span from the first
+         entry to the last — the time really spent on them, breaks left out.
+         Only shown on a day something was written: a zero here would be a
+         reproach, and this is a record, not a scoreboard. -->
+    ${(() => { const secs = writingSecondsOn(T), ents = writingEntriesOn(T);
+      if(!secs) return '';
+      return `<section class="section rv write-tally"><div class="card">
+        <div class="row between" style="align-items:baseline">
+          <span class="sc" style="margin:0">Time spent writing</span>
+          <span class="mono write-total">${esc(fmtWriting(secs))}</span></div>
+        <p class="muted" style="font-size:.84rem;margin:6px 0 0">Across ${ents.length} entr${ents.length === 1 ? 'y' : 'ies'} today. Time away is not counted.</p>
+        <div class="write-rows">${ents.map(e => { const n = (e.extra.writing.sessions.find(x => x.on === T) || {}).seconds || 0;
+          return `<button class="write-row" data-wopen="${e.id}">
+            <span class="wr-ico">${typeIcon(e.type)}</span>
+            <span class="wr-name">${esc(e.title || (e.body || '').trim().split('\n')[0].slice(0, 60) || typeName(e.type))}</span>
+            <span class="mono wr-time">${esc(fmtWriting(n))}</span></button>`; }).join('')}</div>
+      </div></section>`; })()}
+
     <!-- before you sleep: the day after this one gets decided here -->
     <details class="section rv tomorrow-block t-sec ${evening ? 'is-evening' : ''}" id="t-tonight"${fold('t-tonight')}>
       <summary>
@@ -8938,6 +9059,8 @@ routes.today = function(root){
   /* letters & decisions */
   bindSealedLetters(root);
   $$('[data-dopen]',root).forEach(b => b.onclick = () => openDecisionPanel(b.dataset.dopen));
+  /* the tally is a way back into what was written, not just a number */
+  $$('[data-wopen]',root).forEach(b => b.onclick = () => openEntryModal({entryId: b.dataset.wopen}));
 
 
   reveal(root);
@@ -23698,6 +23821,9 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
         <span>Still unfinished — keep it at the bottom of Today</span></label>
       <div class="row between"><span class="faint" style="font-size:.78rem" id="linkNudge"></span><button class="btn primary" id="eSave" style="padding:12px 28px;font-size:1rem">${existing?'Save changes':'Save entry'}</button></div>
     </div>`, 'wide');
+  /* An entry takes as long as it takes. The clock starts with the form and
+     counts only the time actually spent on it — see 07-writeclock.js. */
+  const wclock = startWritingClock(m);
   const x = () => e.extra;
   /* type-specific fields. Anything with data-x saves itself on the way out;
      the pickers below write straight into extra so a click is a save. */
@@ -23832,6 +23958,7 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
     const split = id => m.querySelector(id).value.split(',').map(s=>s.trim()).filter(Boolean);
     e.places = split('#ePlaces'); e.emotions = split('#eEmo'); e.people = (e.links.people||[]).map(id => byId(S.people,id)?.name).filter(Boolean);
     S.places = [...new Set([...(S.places||[]), ...e.places])];
+    recordWritingSession(e, wclock);
     if(existing) Object.assign(existing, e); else S.entries.push(e);
     saveNow();
     /* a quote that names a work is a passage of that work, so the work is told

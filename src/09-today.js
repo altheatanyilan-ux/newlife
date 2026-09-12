@@ -221,6 +221,24 @@ routes.today = function(root){
     <!-- the ledger reads the whole instrument, so it belongs to the Compass;
          the gentle prompt and the quick-add row are gone by request -->
 
+    <!-- How long the day's writing actually took. Not the span from the first
+         entry to the last — the time really spent on them, breaks left out.
+         Only shown on a day something was written: a zero here would be a
+         reproach, and this is a record, not a scoreboard. -->
+    ${(() => { const secs = writingSecondsOn(T), ents = writingEntriesOn(T);
+      if(!secs) return '';
+      return `<section class="section rv write-tally"><div class="card">
+        <div class="row between" style="align-items:baseline">
+          <span class="sc" style="margin:0">Time spent writing</span>
+          <span class="mono write-total">${esc(fmtWriting(secs))}</span></div>
+        <p class="muted" style="font-size:.84rem;margin:6px 0 0">Across ${ents.length} entr${ents.length === 1 ? 'y' : 'ies'} today. Time away is not counted.</p>
+        <div class="write-rows">${ents.map(e => { const n = (e.extra.writing.sessions.find(x => x.on === T) || {}).seconds || 0;
+          return `<button class="write-row" data-wopen="${e.id}">
+            <span class="wr-ico">${typeIcon(e.type)}</span>
+            <span class="wr-name">${esc(e.title || (e.body || '').trim().split('\n')[0].slice(0, 60) || typeName(e.type))}</span>
+            <span class="mono wr-time">${esc(fmtWriting(n))}</span></button>`; }).join('')}</div>
+      </div></section>`; })()}
+
     <!-- before you sleep: the day after this one gets decided here -->
     <details class="section rv tomorrow-block t-sec ${evening ? 'is-evening' : ''}" id="t-tonight"${fold('t-tonight')}>
       <summary>
@@ -328,6 +346,8 @@ routes.today = function(root){
   /* letters & decisions */
   bindSealedLetters(root);
   $$('[data-dopen]',root).forEach(b => b.onclick = () => openDecisionPanel(b.dataset.dopen));
+  /* the tally is a way back into what was written, not just a number */
+  $$('[data-wopen]',root).forEach(b => b.onclick = () => openEntryModal({entryId: b.dataset.wopen}));
 
 
   reveal(root);
