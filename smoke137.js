@@ -42,7 +42,36 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
       jumps.filter(j => order.includes(j)).join(',') === order.filter(o => jumps.includes(o)).join(','),
       jumps.join(' → '));
 
-  console.log('\n3. every other page keeps its add button');
+  console.log('\n3. the focus clock has three hands');
+  const hands = await p.evaluate(() => ({
+    hour: !!document.querySelector('.fc-hour'), min: !!document.querySelector('.fc-min'), sec: !!document.querySelector('.fc-sec')}));
+  yes('an hour hand, a minute hand and a second hand', hands.hour && hands.min && hands.sec, JSON.stringify(hands));
+  /* the hour hand must be the short one, or it reads as a second minute hand */
+  const lens = await p.evaluate(() => {
+    const L = sel => { const l = document.querySelector(sel + ' line');
+      return Math.abs(+l.getAttribute('y1') - +l.getAttribute('y2')); };
+    return {hour: L('.fc-hour'), min: L('.fc-min'), sec: L('.fc-sec')}; });
+  yes('  and the hour hand is the shortest of the three', lens.hour < lens.min && lens.min < lens.sec, JSON.stringify(lens));
+  /* a sitting of two and a half hours, put through the real face-drawing
+     code: the hour hand should be a quarter of the way round while the minute
+     hand is back at the top */
+  const ang = await p.evaluate(() => {
+    const html = focusClockHTML(9000, .5, '#888', FocusTimer.state(), true);
+    const box = document.createElement('div'); box.innerHTML = html;
+    const deg = sel => +box.querySelector(sel).getAttribute('style').match(/rotate\(([-\d.]+)deg\)/)[1];
+    return {hour: deg('.fc-hour'), min: deg('.fc-min'), sec: deg('.fc-sec')};
+  });
+  is('  two and a half hours puts the hour hand at 75°', ang.hour, 75);
+  is('  with the minute hand back at the top', ang.min, 180);
+  is('  and the second hand on the twelve', ang.sec, 0);
+  const ang12 = await p.evaluate(() => {
+    const box = document.createElement('div');
+    box.innerHTML = focusClockHTML(43200, .5, '#888', FocusTimer.state(), true);
+    return +box.querySelector('.fc-hour').getAttribute('style').match(/rotate\(([-\d.]+)deg\)/)[1];
+  });
+  is('  and twelve hours brings it right round', ang12, 0);
+
+  console.log('\n4. every other page keeps its add button');
   for(const [hash, page] of [['#/planning','Planning'], ['#/people','People'], ['#/projects','Projects']]){
     await go(hash);
     yes(`${page} still has one`, await p.evaluate(() => !!document.querySelector('#ctxAdd')));

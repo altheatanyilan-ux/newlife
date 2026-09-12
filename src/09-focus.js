@@ -204,8 +204,11 @@ function focusClockHTML(face, frac, col, s, stop){
   const secs = Math.max(0, face | 0);
   const secDeg = (secs % 60) * 6;
   /* one sweep of the minute hand is an hour, so a 25-minute sitting uses less
-     than half the dial and a 90-minute one goes round once and a half */
+     than half the dial and a 90-minute one goes round once and a half; the
+     hour hand takes twelve hours to come round, as on any clock, and is what
+     tells a two-hour sitting from a fourteen-minute one at a glance */
   const minDeg = (secs % 3600) / 3600 * 360;
+  const hourDeg = (secs % 43200) / 43200 * 360;
   const marks = Array.from({length: 60}, (_, i) => {
     const major = i % 5 === 0;
     const a = i * 6 * Math.PI / 180, r1 = major ? 40 : 44, r2 = 46.5;
@@ -221,6 +224,8 @@ function focusClockHTML(face, frac, col, s, stop){
       <circle cx="60" cy="60" r="${FP_R}" class="ft-arc"
         style="stroke:${col};stroke-dasharray:${C.toFixed(1)};stroke-dashoffset:${(C * (1 - frac)).toFixed(1)}"/>
       <g class="fc-marks">${marks}</g>
+      <g class="fc-hand fc-hour" style="transform:rotate(${hourDeg.toFixed(2)}deg)">
+        <line x1="60" y1="62" x2="60" y2="38"/></g>
       <g class="fc-hand fc-min" style="transform:rotate(${minDeg.toFixed(2)}deg)">
         <line x1="60" y1="60" x2="60" y2="27"/></g>
       <g class="fc-hand fc-sec" style="transform:rotate(${secDeg.toFixed(2)}deg)">
@@ -393,7 +398,8 @@ function liveFocusFace(root){
     /* the hands are the point of the face, so they move every second rather
        than only when the panel happens to be redrawn */
     const secs = Math.max(0, (up ? s.elapsed : s.left) | 0);
-    const mh = box.querySelector('.fc-min'), sh = box.querySelector('.fc-sec');
+    const mh = box.querySelector('.fc-min'), sh = box.querySelector('.fc-sec'), hh = box.querySelector('.fc-hour');
+    if(hh) hh.style.transform = `rotate(${((secs % 43200) / 43200 * 360).toFixed(2)}deg)`;
     if(mh) mh.style.transform = `rotate(${((secs % 3600) / 3600 * 360).toFixed(2)}deg)`;
     if(sh) sh.style.transform = `rotate(${((secs % 60) * 6).toFixed(2)}deg)`;
     const ring = box.querySelector('.fp-ring');
