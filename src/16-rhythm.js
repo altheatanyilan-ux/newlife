@@ -482,10 +482,29 @@ function planMyDay(d = today()){
   const dayWord = ahead ? (daysBetween(today(), d) === 1 ? 'tomorrow' : fmtDate(d,'short')) : 'today';
   const dayPoss = ahead ? (daysBetween(today(), d) === 1 ? "tomorrow's" : `${fmtDate(d,'short')}'s`) : "today's";
   const overdue = allTaskRefs().filter(r => !r.done && r.day && r.day <= d);
+  /* This step is for parking what is not parked. A task that already carries
+     a date has been given a day — showing it here again is asking the same
+     question twice, and it was burying the ones that had never been placed.
+     So: only the undated, and grouped under the list each one lives in
+     rather than a flat run of names with no idea where they came from. */
   const unscheduled = unscheduledTasks();
-  const pool = [...overdue, ...unscheduled.slice(0, 20)];
+  const planGroups = (() => {
+    const by = new Map();
+    unscheduled.forEach(r => {
+      const key = r.kind === 'project' ? 'proj:' + r.project.id : 'list:' + (r.task.listId || 'inbox');
+      const label = r.kind === 'project' ? r.project.name : planListName(r.task.listId || 'inbox');
+      const color = r.kind === 'project' ? 'var(--terra)' : planListColor(r.task.listId || 'inbox');
+      if(!by.has(key)) by.set(key, {key, label, color, rows: []});
+      by.get(key).rows.push(r);
+    });
+    return [...by.values()].sort((a, b) => a.label.localeCompare(b.label));
+  })();
+  const pool = unscheduled;
   const habits = S.habits.filter(h => !h.archived && !h.negative && habitDue(h,d));
-  const chosen = new Set(overdue.filter(r => r.day === d).map(r => r.id));
+  /* nothing is pre-ticked now that only undated work is offered: a task
+     already dated to this day is not waiting to be chosen, and counting it
+     among the ones "pulled in" would overstate what this step did */
+  const chosen = new Set();
   const chosenH = new Set(habits.filter(h => h.at != null).map(h => h.id));
   const yest = addDays(d, -1);
   const yPlan = dayPlan(yest), yThree = (yPlan.intentions || []).filter(Boolean);
@@ -501,12 +520,15 @@ function planMyDay(d = today()){
          ${yThree.length ? `<ol class="today-three">${yThree.map(t => `<li>${esc(t)}</li>`).join('')}</ol>` : ''}
          ${yTasks.rows.length ? `<p class="mono faint">${yTasks.done.length} of ${yTasks.rows.length} finished${yTasks.open.length ? ` · ${yTasks.open.length} still open` : ''}</p>` : ''}
          ${yTasks.open.length ? `<ul class="tsk-list">${yTasks.open.slice(0,5).map(r => `<li>${esc(r.text)}</li>`).join('')}</ul>
-           <p class="faint" style="font-size:.78rem">These are still waiting. Pull the ones that matter into ${dayWord} on the next step.</p>` : ''}
+           <p class="faint" style="font-size:.78rem">These already carry yesterday's date, so they follow you into ${dayWord} on their own — the next step is only for work that has no day yet.</p>` : ''}
        </div>` : ''}`,
       `<h2>What are ${dayPoss} three?</h2><p class="muted" style="font-size:.88rem">Not a task list — the three things that would make ${dayWord} count. One is allowed to be empty.</p>
        <div class="stack" style="gap:8px">${[0,1,2].map(i=>`<div class="row" style="gap:8px"><span class="in-n">${i+1}</span><input class="inp serif-lg" data-int="${i}" value="${esc(p.intentions[i]||'')}" placeholder="${['the one that matters most','the one you keep postponing','the small one'][i]}"></div>`).join('')}</div>`,
-      `<h2>Anything waiting?</h2><p class="muted" style="font-size:.88rem">Tasks from your projects and your own list. Tick what belongs to ${dayWord}; the rest keeps waiting without nagging.</p>
-       <div class="stack" style="gap:4px;max-height:44vh;overflow:auto">${pool.length ? pool.map(r=>`<label class="pick-row ${chosen.has(r.id)?'on':''}"><input type="checkbox" data-pick2="${r.id}" ${chosen.has(r.id)?'checked':''}><span><b>${esc(r.text)}</b>${r.where?`<span class="d">${esc(r.where)}</span>`:''}${r.day && r.day < d ?'<span class="d" style="color:#d08080">carried over</span>':''}</span></label>`).join('') : '<div class="empty">Nothing waiting. Add work as you go.</div>'}</div>`,
+      `<h2>Anything waiting?</h2><p class="muted" style="font-size:.88rem">Everything with no day on it, under the list it lives in. Tick what belongs to ${dayWord}; the rest keeps waiting without nagging.</p>
+       <div class="stack" style="gap:10px;max-height:44vh;overflow:auto">${planGroups.length ? planGroups.map(g => `<div class="pick-group">
+         <div class="pick-glabel" style="--c:${g.color}">${esc(g.label)}<span class="mono">${g.rows.length}</span></div>
+         ${g.rows.map(r=>`<label class="pick-row ${chosen.has(r.id)?'on':''}"><input type="checkbox" data-pick2="${r.id}" ${chosen.has(r.id)?'checked':''}><span><b>${esc(r.text)}</b>${r.kind === 'project' && r.phase ? `<span class="d">${esc(r.phase.name)}</span>` : ''}</span></label>`).join('')}
+       </div>`).join('') : '<div class="empty">Nothing without a day on it. Everything you have written down is already placed.</div>'}</div>`,
       `<h2>And the habits?</h2><p class="muted" style="font-size:.88rem">The ones due ${dayWord}. Give one a time if it helps you keep it.</p>
        <div class="stack" style="gap:4px;max-height:44vh;overflow:auto">${habits.length ? habits.map(h=>`<label class="pick-row ${chosenH.has(h.id)?'on':''}"><input type="checkbox" data-pickh="${h.id}" ${chosenH.has(h.id)?'checked':''}><span><b>${h.icon||''} ${esc(h.name)}</b><span class="d">${esc(habitFreqLabel(h))} · ${esc(h.timeOfDay)}</span></span><select class="sel" data-hat="${h.id}" style="width:auto"><option value="">no time</option>${Array.from({length:(HOUR1-HOUR0)*2},(_,i)=>HOUR0+i/2).map(x=>`<option value="${x}" ${+h.at===x?'selected':''}>${fmtHour(x)}</option>`).join('')}</select></label>`).join('') : '<div class="empty">No habits due ${dayWord}.</div>'}</div>`,
       `<h2>What does ${dayWord} start with?</h2><p class="muted" style="font-size:.88rem">The first move, decided now, so the morning is not a negotiation.</p>
