@@ -49,6 +49,24 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
      !nav.zones.some(z => z.pages.includes('timeline') || z.pages.includes('writing')) && !nav.top.includes('timeline'),
      JSON.stringify(nav.zones));
 
+  /* An icon has to say which room it opens. Two of them did not: Content was
+     three dots, and Projects was a row of finished roofs that read as a
+     village rather than as things being built. */
+  const icons = await page.evaluate(() => {
+    const out = {};
+    document.querySelectorAll('#sidebar a[data-page]').forEach(a => {
+      const svg = a.querySelector('svg'); if(svg) out[a.dataset.page] = svg.innerHTML.replace(/\s+/g, ' ').trim(); });
+    return out; });
+  ok('every room in the sidebar has an icon',
+     Object.keys(icons).length >= 8 && Object.values(icons).every(v => v.length > 10), JSON.stringify(Object.keys(icons)));
+  ok('and no two rooms share one',
+     new Set(Object.values(icons)).size === Object.values(icons).length,
+     'a duplicate icon: ' + Object.keys(icons).filter((k, i, a) => a.some((j, m) => m !== i && icons[j] === icons[k])).join(', '));
+  ok('Content Studio is drawn as the pieces it holds, not as three dots',
+     /rect|path/.test(icons.content || '') && !/circle/.test(icons.content || ''), icons.content);
+  ok('Projects is something part-built, not a finished village',
+     (icons.projects || '').split('<rect').length - 1 === 3, icons.projects);
+
   console.log('\n2. Settings moved to the top right');
   ok('it has left the sidebar', !nav.settings, 'still listed');
   ok('and is a button up there instead', await page.evaluate(() => !!document.querySelector('#btnSettings')), 'no button');
