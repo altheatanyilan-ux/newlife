@@ -34,7 +34,11 @@ function planDetailHTML(t){
       <button class="pt-box lg${t.done ? ' on' : ''}" id="pdDone" role="checkbox" aria-checked="${t.done}"
         style="${pr.color ? `--pc:${pr.color}` : ''}"><svg viewBox="0 0 20 20" aria-hidden="true">
         <circle cx="10" cy="10" r="8.2" class="pt-ring"/><path d="M5.6 10.3 L8.7 13.3 L14.4 6.9" class="pt-tick"/></svg></button>
-      <input class="inp pd-title${t.done ? ' struck' : ''}" id="pdTitle" value="${esc(t.text)}" placeholder="What needs doing?">
+      <!-- A one-line input cannot show a long task name at any width, and the
+           name is the one thing the panel exists to show. A textarea that grows
+           to its content wraps instead of hiding the end of the sentence. -->
+      <textarea class="inp pd-title${t.done ? ' struck' : ''}" id="pdTitle" rows="1"
+        placeholder="What needs doing?">${esc(t.text)}</textarea>
     </div>
     <div class="pd-prios">${PLAN_PRIORITY.map(x => `<button class="pd-prio${t.priority === x.n ? ' on' : ''}"
       data-pdprio="${x.n}" title="${esc(x.name)} priority" style="${x.color ? `--c:${x.color}` : '--c:var(--line-2)'}"></button>`).join('')}
@@ -109,7 +113,20 @@ function bindPlanDetail(p, t){
   const redraw = () => { const np = openPanel(planDetailHTML(planTaskById(t.id)), 'plan-detail');
     bindPlanDetail(np, planTaskById(t.id)); rerenderPlanBody(); };
 
-  p.querySelector('#pdTitle').oninput = debounce(function(){ t.text = this.value; touch(); rerenderPlanBody(); }, 350);
+  /* It always saved as you typed, but said nothing and ignored Return, which
+     reads exactly like a field that has not saved. Now it answers: a pulse
+     when the text settles, and Return means "done" rather than nothing. */
+  const pdT = p.querySelector('#pdTitle');
+  /* grow to fit, now and after every change, so the whole name is always on
+     screen — including at the widest the panel goes */
+  const fitTitle = () => { pdT.style.height = 'auto'; pdT.style.height = pdT.scrollHeight + 'px'; };
+  fitTitle(); pdT.addEventListener('input', fitTitle);
+  addEventListener('resize', fitTitle);
+  const pulse = () => { if(!pdT.isConnected) return;
+    const s = el('<span class="saved-pulse">saved</span>');
+    pdT.parentNode.appendChild(s); setTimeout(() => s.remove(), 1200); };
+  pdT.oninput = debounce(function(){ t.text = this.value; touch(); pulse(); rerenderPlanBody(); }, 350);
+  pdT.onkeydown = ev => { if(ev.key === 'Enter'){ ev.preventDefault(); t.text = pdT.value; touch(); pulse(); rerenderPlanBody(); pdT.blur(); } };
   p.querySelector('#pdDone').onclick = () => { planSetDone(t, !t.done); sound(t.done ? 'success' : 'click'); redraw(); };
   p.querySelectorAll('[data-pdprio]').forEach(b => b.onclick = () => { t.priority = +b.dataset.pdprio; touch(); redraw(); });
   p.querySelector('#pdDay').onchange = function(){ t.day = this.value; planSyncReminders(t); touch(); rerenderPlanBody(); };

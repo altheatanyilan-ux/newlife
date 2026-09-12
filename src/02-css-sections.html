@@ -643,6 +643,46 @@ button.tm-cell:hover{border-color:var(--page-accent)}
 .sub-add .inp.sm{font-size:.8rem;padding:5px 8px;background:none;border-style:dashed}
 .sub-add .inp.sm:focus{background:var(--surface-2);border-style:solid}
 
+/* the folder's own add button, quiet until the folder is under the cursor */
+.pl-frow{display:flex;align-items:center;gap:2px}
+.pl-frow .pl-fhead{flex:1;min-width:0}
+.pl-fadd{flex:0 0 auto;opacity:0;transition:opacity .15s var(--ease)}
+.pl-frow:hover .pl-fadd,.pl-frow:focus-within .pl-fadd{opacity:1}
+@media (hover:none){.pl-fadd{opacity:.7}}
+
+/* the task title in the detail panel: a textarea that reads as a heading and
+   wraps rather than truncating */
+textarea.pd-title{resize:none;overflow:hidden;white-space:pre-wrap;overflow-wrap:anywhere;
+  line-height:1.35;min-height:0;
+  /* capped to a reading measure rather than the panel's full width: a heading
+     set across 1100px is one long line nobody can scan, and the point of
+     wrapping is to take the whole name in at once */
+  max-width:30em}
+
+/* the grip, the drop line, the inline field, and the list chips */
+.task-grip{flex:none;width:11px;color:var(--faint);font-size:.72rem;line-height:1;cursor:grab;
+  opacity:0;transition:opacity .16s var(--ease)}
+.task-row:hover .task-grip{opacity:.6}
+.task-row.drop-above{box-shadow:inset 0 2px 0 0 var(--page-accent)}
+.task-row.drop-below{box-shadow:inset 0 -2px 0 0 var(--page-accent)}
+.task-text[data-tedit],.sub-text[data-subedit]{cursor:text;border-radius:5px;
+  transition:background .14s var(--ease)}
+.task-text[data-tedit]:hover,.sub-text[data-subedit]:hover{background:color-mix(in srgb,var(--text) 6%,transparent)}
+.inp.task-inline{flex:1;min-width:0;padding:3px 7px;font-size:.9rem;border-radius:6px}
+
+.task-lists{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 10px}
+.tl-chip{border:1px solid var(--line);background:none;cursor:pointer;color:var(--muted);
+  padding:3px 10px;border-radius:20px;font-size:.74rem;
+  transition:border-color .16s var(--ease),color .16s var(--ease),background .16s var(--ease)}
+.tl-chip i{font-style:normal;font-family:var(--mono);font-size:.62rem;opacity:.65;margin-left:3px}
+.tl-chip:hover{color:var(--text);border-color:var(--line-2)}
+.tl-chip.on{color:var(--text);border-color:var(--c,var(--page-accent));
+  background:color-mix(in srgb,var(--c,var(--page-accent)) 14%,transparent)}
+/* the same steps under a Planning row */
+.pt-caret{margin-right:-2px}
+button.pt-sub{border:none;cursor:pointer}
+.pt-row + .sub-wrap{margin-left:34px}
+
 /* "not today" — the non-destructive half of taking a task off a day. Quiet
    until the row is under the cursor, so a list of them is not a wall of it. */
 .task-defer{flex:none;border:none;background:none;cursor:pointer;padding:2px 6px;border-radius:6px;

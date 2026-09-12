@@ -31,6 +31,10 @@ function bindPlanning(root, sel, tasks){
   const collapse = $('#plCollapse'); if(collapse) collapse.onclick = () => {
     p.prefs.sidebarCollapsed = !p.prefs.sidebarCollapsed; saveNow(); rerender(); };
   const nl = $('#plNewList'); if(nl) nl.onclick = () => openPlanListModal(null);
+  /* asked from inside a folder, so the folder comes pre-chosen */
+  $$('[data-plnewin]', root).forEach(b => b.onclick = ev => {
+    ev.stopPropagation(); openPlanListModal(null, {folderId: b.dataset.plnewin});
+  });
   const nf = $('#plNewFolder'); if(nf) nf.onclick = () => {
     const f = planNewFolder('New folder'); saveNow(); rerender();
     setTimeout(() => openPlanFolderRename(f.id), 60); };
@@ -62,6 +66,14 @@ function bindPlanning(root, sel, tasks){
     S._planFilter = Object.assign({}, S._planFilter); delete S._planFilter[c.dataset.pfclear]; rerender(); });
 
   /* --- rows --- */
+  /* the same steps, the same handlers, as on Today — one implementation, so
+     the two rooms cannot drift into behaving differently */
+  bindSubtasks(root, planRedraw);
+  $$('[data-tedit]', root).forEach(n => n.onclick = ev => {
+    ev.stopPropagation();
+    const t = planTaskById(n.dataset.tedit); if(!t) return;
+    inlineTaskEdit(n, t.text || '', v => { t.text = v; t.updatedAt = new Date().toISOString(); }, planRedraw);
+  });
   $$('[data-ptdone]', root).forEach(b => b.onclick = ev => { ev.stopPropagation();
     const t = planTaskById(b.dataset.ptdone); if(!t) return;
     planCompleteRow(b.closest('.pt-row, .pk-card'), t, !t.done); });
@@ -239,14 +251,16 @@ function openPlanRowMenu(ev, id){
 }
 
 /* ---------- list / folder / filter editing ---------- */
-function openPlanListModal(id){
+function openPlanListModal(id, {folderId = null} = {}){
   const p = planState(), l = id ? planList(id) : null;
+  /* a new list asked for from inside a folder already knows its folder */
+  const preFolder = l ? l.folderId : folderId;
   const m = openModal(`<h2>${l ? 'Edit list' : 'New list'}</h2><div class="stack">
     <div class="field"><label>Name</label><input class="inp" id="plnName" value="${esc(l?.name || '')}" placeholder="Work, Health, Japan…"></div>
     <div class="field"><label>Colour</label><div class="pl-swatches" id="plnColors">
       ${PLAN_COLORS.map(c => `<button class="pl-sw${(l?.color || PLAN_COLORS[0]) === c ? ' on' : ''}" data-plc="${c}" style="background:${c}"></button>`).join('')}</div></div>
     <div class="field"><label>Folder</label><select class="sel" id="plnFolder">
-      <option value="">— none —</option>${p.folders.map(f => `<option value="${f.id}" ${l?.folderId === f.id ? 'selected' : ''}>${esc(f.name)}</option>`).join('')}</select></div>
+      <option value="">— none —</option>${p.folders.map(f => `<option value="${f.id}" ${preFolder === f.id ? 'selected' : ''}>${esc(f.name)}</option>`).join('')}</select></div>
     <div class="field"><label>Opens as</label><select class="sel" id="plnView">
       ${PLAN_VIEWS.map(v => `<option value="${v.id}" ${(l?.defaultView || 'list') === v.id ? 'selected' : ''}>${v.name}</option>`).join('')}</select></div>
     <div class="row between" style="margin-top:8px">

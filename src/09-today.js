@@ -148,7 +148,11 @@ routes.today = function(root){
       <summary><span class="sc" style="margin:0">Today's tasks</span><span class="mono">${rows.length?`${doneN} of ${rows.length} done`:'nothing parked yet'}</span>${flowTick('tasksAt')}</summary>
       <div class="body">
       <div class="card" data-daydrop="${T}" style="margin-top:10px">
-        <div class="stack" style="gap:2px">${rows.map(r=>taskRowHTML(r)).join('')||`<div class="empty">Park work here from a project, or write one below.</div>`}</div>
+        ${dayListFilterHTML(rows)}
+        <div class="stack" style="gap:2px">${(() => { const shown = filterRowsByList(rows);
+          return shown.map(r=>taskRowHTML(r)).join('') || (rows.length
+            ? `<div class="empty">Nothing in that list today. <button class="tbtn" data-tlist="all">show all ${rows.length}</button></div>`
+            : `<div class="empty">Park work here from a project, or write one below.</div>`); })()}</div>
         <div class="row" style="margin-top:10px;gap:8px">${quickTaskInput(T)}<button class="btn sm ghost" id="pullTask">pull in ↓</button><a class="btn sm ghost" href="#/planning/today">all of it →</a></div>
         ${carried.length?`<div class="row" style="margin-top:10px"><span class="mono" style="color:#d08080">${carried.length} carried over from earlier days</span><button class="btn sm ghost" id="carryAll">bring to today</button></div>`:''}
       </div></div></details>
@@ -313,7 +317,7 @@ routes.today = function(root){
   /* tasks */
   $('#pullTask').onclick = () => openTaskPicker(T, rerender);
   if($('#carryAll')) $('#carryAll').onclick = () => { carried.forEach(r => r.task.day = T); saveNow(); sound('success'); rerender(); };
-  bindTaskRows(root); bindDayDrop(root); bindQuickTask(root);
+  bindTaskRows(root); bindDayDrop(root); bindQuickTask(root); bindDayListFilter(root);
 
   /* letters & decisions */
   bindSealedLetters(root);

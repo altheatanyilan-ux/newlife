@@ -76,12 +76,13 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   is('one of them still done',
      await p.evaluate(id => byId(S.tasks, id).subtasks.filter(s => s.isCompleted).length, tid), 1);
   is('the row shows the count without being opened', await p.$eval(`${row} .task-subcount`, n => n.textContent), '1/3');
-  is('and the list starts closed, so a new day starts tidy',
-     await p.$$eval('.sub-wrap', n => n.length), 0);
+  /* This used to assert the opposite. Steps are now shown on the row by
+     request — the point of writing them down is seeing them beside the task —
+     so a reload starts from open, and the caret is only how you fold one away. */
+  yes('and the steps are on the row without anything being opened',
+      await p.evaluate(id => !!document.querySelector(`[data-subwrap="${id}"]`), tid));
 
   console.log('\n5. removing a step');
-  await p.click(`${row} [data-tsubs]`);
-  await p.waitForTimeout(600);
   await p.evaluate(id => {
     const rows = document.querySelectorAll(`[data-subwrap="${id}"] .sub-row [data-subdel]`);
     rows[rows.length - 1].click();

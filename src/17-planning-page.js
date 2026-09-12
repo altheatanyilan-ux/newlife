@@ -40,8 +40,13 @@ function planSidebarHTML(){
         ${p.folders.slice().sort((a,b)=>a.sortOrder-b.sortOrder).map(f => {
           const kids = planLists().filter(l => l.folderId === f.id);
           return `<div class="pl-folder${f.isCollapsed ? ' shut' : ''}" data-plfolder="${f.id}">
-            <button class="pl-item pl-fhead" data-plfold="${f.id}" title="${esc(f.name)}"><span class="pl-ico">${f.isCollapsed ? '▸' : '▾'}</span>
-              <span class="pl-name">${esc(f.name)}</span><span class="pl-n mono">${kids.length}</span></button>
+            <div class="pl-frow">
+              <button class="pl-item pl-fhead" data-plfold="${f.id}" title="${esc(f.name)}"><span class="pl-ico">${f.isCollapsed ? '▸' : '▾'}</span>
+                <span class="pl-name">${esc(f.name)}</span><span class="pl-n mono">${kids.length}</span></button>
+              <!-- the folder is implied by where you asked, so there is nothing
+                   to pick afterwards -->
+              <button class="pl-mini pl-fadd" data-plnewin="${f.id}" title="new list in ${esc(f.name)}">＋</button>
+            </div>
             <div class="pl-fkids">${kids.map(listRow).join('') || '<div class="pl-empty mono">drop a list here</div>'}</div></div>`;
         }).join('')}
         ${loose.map(listRow).join('')}
@@ -99,14 +104,15 @@ function planRowHTML(t, {showList = false, showDate = true} = {}){
   const pr = planPriority(t.priority), sub = planSubProgress(t), late = planIsLate(t);
   return `<div class="pt-row${t.done ? ' done' : ''}${late ? ' late' : ''}${S._planPick?.has(t.id) ? ' picked' : ''}"
       data-ptrow="${t.id}" data-prio="${t.priority}" draggable="true">
+    ${subCaretHTML(t.id, t, 'task-caret pt-caret')}
     <button class="pt-box" data-ptdone="${t.id}" role="checkbox" aria-checked="${t.done}"
       style="${pr.color ? `--pc:${pr.color}` : ''}" title="${t.done ? 'not done after all' : 'done'}">
       <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.2" class="pt-ring"/>
         <path d="M5.6 10.3 L8.7 13.3 L14.4 6.9" class="pt-tick"/></svg></button>
     ${t.priority ? `<span class="pt-prio" style="background:${pr.color}" title="${pr.name} priority"></span>` : ''}
-    <span class="pt-text">${esc(t.text || 'Untitled task')}</span>
+    <span class="pt-text" data-tedit="${t.id}" title="click to rewrite">${esc(t.text || 'Untitled task')}</span>
     <span class="pt-meta">
-      ${sub ? `<span class="pt-sub mono" title="subtasks">${sub.done}/${sub.total}</span>` : ''}
+      ${sub ? `<button class="pt-sub mono" data-tsubs="${t.id}" title="${sub.done} of ${sub.total} steps done">${sub.done}/${sub.total}</button>` : ''}
       ${t.recurrence ? `<span class="pt-rep" title="repeats ${esc(t.recurrence.pattern)}">↻</span>` : ''}
       ${t.duration ? `<span class="pt-dur mono">${t.duration >= 60 ? (t.duration / 60).toFixed(t.duration % 60 ? 1 : 0) + 'h' : t.duration + 'm'}</span>` : ''}
       ${t.tags.map(x => `<span class="pt-tag" style="--c:${planTagColor(x)}">${esc(x)}</span>`).join('')}
@@ -114,7 +120,8 @@ function planRowHTML(t, {showList = false, showDate = true} = {}){
       ${showDate && t.day ? `<span class="pt-day mono${late ? ' late' : ''}">${late ? '⚠ ' : ''}${esc(fmtDate(t.day, 'short'))}${t.dueTime ? ' ' + esc(t.dueTime) : ''}</span>` : ''}
     </span>
     <button class="del-x inline" data-ptdel="${t.id}" title="delete">×</button>
-  </div>`;
+  </div>
+  ${subsOpen(t.id, t) ? subBlockHTML(t.id, t) : ''}`;
 }
 
 /* ---------- list view ---------- */

@@ -30,7 +30,13 @@ function fmtDate(s, style='long'){
   return s;
 }
 function relDays(n){ if(n===Infinity) return 'never'; if(n===0) return 'today'; if(n===1) return 'yesterday'; if(n<30) return `${n} days ago`; if(n<365) return `${Math.round(n/30)} months ago`; return `${(n/365).toFixed(1)} years ago`; }
-function debounce(fn, ms){ let t; return (...a) => { clearTimeout(t); t = setTimeout(()=>fn(...a), ms); }; }
+/* The wrapper has to be a real function, not an arrow: nine handlers in
+   Planning and Content are written as `debounce(function(){ … this.value … })`
+   and an arrow wrapper gives them no receiver at all, so every one of them
+   threw on the first keystroke and silently never saved. Keeping `this` is
+   what those call sites were always written against. */
+function debounce(fn, ms){ let t; return function(...a){ const self = this;
+  clearTimeout(t); t = setTimeout(() => fn.apply(self, a), ms); }; }
 function el(html){ const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; }
 function hexA(hex, a){ const n = parseInt(hex.slice(1),16); return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`; }
 function occurredSort(e){ if(e.occurredSort) return e.occurredSort; const s = e.occurredAt||''; if(/^\d{4}-\d{2}-\d{2}/.test(s)) return parseDay(s.slice(0,10)).getTime(); const y = (s.match(/\d{4}/)||[])[0]; if(y) return new Date(+y,5,1).getTime(); return new Date(e.createdAt||0).getTime(); }
@@ -73,7 +79,7 @@ function wipeDemoData(){
   const keep = S.settings || {};
   const fresh = seed();
   for(const k of Object.keys(fresh)) if(demo || S[k] === undefined) S[k] = fresh[k];
-  if(demo) S.settings = Object.assign(fresh.settings, {theme:keep.theme||'dark', sound:keep.sound, feltTime:keep.feltTime, home:keep.home||'compass', nav:keep.nav, projectView:keep.projectView, firstOpen:keep.firstOpen||today()});
+  if(demo) S.settings = Object.assign(fresh.settings, {theme:keep.theme||'light', sound:keep.sound, feltTime:keep.feltTime, home:keep.home||'compass', nav:keep.nav, projectView:keep.projectView, firstOpen:keep.firstOpen||today()});
   S.settings.demoWiped = true;
 }
 
