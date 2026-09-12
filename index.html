@@ -4067,6 +4067,16 @@ select.sm-active{border-color:var(--page-accent);
   .pl-mspin{max-width:6em} .pl-mstick:nth-child(even){display:none} }
 @media (max-width:480px){ .pl-mspin{max-width:5em;font-size:.95em}
   .pl-mstick:not(:nth-child(4n+1)){display:none} }
+
+/* --- a value's tagline: the one line under its name --- */
+.vhead-tag{margin-top:6px}
+.vhead-tag .ed.vtag{font-family:var(--quote);font-style:italic;font-size:1.05rem;color:var(--muted);
+  display:inline-block;min-width:14em}
+.vhead-tag .ed.vtag .ph{font-style:italic}
+.vhead-tag .ed.vtag input{font-family:var(--quote);font-style:italic;font-size:1.05rem;width:100%}
+/* the evidence feed has a page's width to fill now, so it reads in columns
+   rather than as one very long ribbon */
+@media (min-width:1000px){ .value-page .vev{max-width:none} }
 </style>
 </head>
 <body>
@@ -4160,7 +4170,7 @@ function tagChips(e, {link=true}={}){ const t = entryTags(e); return t.length ? 
 const KEY = 'lifeinstrument.v1';
 let S = null;
 /* persistence lives in db.js (Dexie schema + load/save/backup) */
-function migrate(){ if(S.settings && (S.settings.home === 'map' || S.settings.home === 'home')) S.settings.home = 'compass'; wipeDemoData(); if(S.rehearsal && !S.rehearsal){ S.rehearsal = S.rehearsal; } delete S.rehearsal; if(typeof migrateEras === 'function') migrateEras(); const d = seed(); for(const k of Object.keys(d)) if(S[k]===undefined) S[k] = d[k]; if(typeof migrateLifeline === 'function') migrateLifeline(); if(typeof migrateSkillLevels === 'function') migrateSkillLevels(); if(typeof migrateProjects === 'function') migrateProjects(); if(typeof migrateStages === 'function') migrateStages(); if(typeof migrateTasks === 'function') migrateTasks(); if(typeof migrateIdeas === 'function') migrateIdeas(); if(typeof migrateMedia === 'function') migrateMedia(); if(typeof migrateSkillFocus === 'function') migrateSkillFocus(); if(typeof migratePeople === 'function') migratePeople(); if(typeof migrateValuePractices === 'function') migrateValuePractices(); if(typeof migrateFinance === 'function') migrateFinance(); if(typeof migrateRhythm === 'function') migrateRhythm(); S.boards = Array.isArray(S.boards) ? S.boards : []; if(typeof migrateBoards === 'function') migrateBoards(); }
+function migrate(){ if(S.settings && (S.settings.home === 'map' || S.settings.home === 'home')) S.settings.home = 'compass'; wipeDemoData(); if(S.rehearsal && !S.rehearsal){ S.rehearsal = S.rehearsal; } delete S.rehearsal; if(typeof migrateEras === 'function') migrateEras(); const d = seed(); for(const k of Object.keys(d)) if(S[k]===undefined) S[k] = d[k]; if(typeof migrateLifeline === 'function') migrateLifeline(); if(typeof migrateSkillLevels === 'function') migrateSkillLevels(); if(typeof migrateProjects === 'function') migrateProjects(); if(typeof migrateStages === 'function') migrateStages(); if(typeof migrateTasks === 'function') migrateTasks(); if(typeof migrateIdeas === 'function') migrateIdeas(); if(typeof migrateMedia === 'function') migrateMedia(); if(typeof migrateSkillFocus === 'function') migrateSkillFocus(); if(typeof migrateSkillCats === 'function') migrateSkillCats(); if(typeof migratePeople === 'function') migratePeople(); if(typeof migrateValuePractices === 'function') migrateValuePractices(); if(typeof migrateFinance === 'function') migrateFinance(); if(typeof migrateRhythm === 'function') migrateRhythm(); S.boards = Array.isArray(S.boards) ? S.boards : []; if(typeof migrateBoards === 'function') migrateBoards(); }
 
 /* One-time: the house used to open furnished with a demonstration life. If that
    demonstration is still here, clear it so the rooms start empty. */
@@ -10111,10 +10121,20 @@ routes.value = function(root, params){
       ${sparkline(snaps.map(s=>s.ratings[v.id]??null),{h:56,min:0,max:100,color:v.color,dots:true,labels:snaps.map(s=>`${fmtDate(s.date,'med')}: ${s.ratings[v.id]??'–'}${s.note?' — '+s.note:''}`)})}
       <div class="row between mono vhead-scale"><span>${snaps[0]?fmtDate(snaps[0].date,'med'):''}</span><span>congruence over a lifetime</span><span>${snaps.slice(-1)[0]?fmtDate(snaps.slice(-1)[0].date,'med'):''}</span></div>
     </div>` : '';
-  root.innerHTML = `<div class="page narrow value-page" style="--val:${v.color}">
+  /* The page was capped at the reading width of a paragraph, which suited the
+     four questions when they were four paragraphs and suits nothing now: the
+     evidence feed, the lifetime line and the two-column facets all had a third
+     of the screen to work with. It takes the same width as every other room in
+     the house — full width, and aligned with them rather than a column of its
+     own. */
+  root.innerHTML = `<div class="page value-page" style="--val:${v.color}">
     <div class="page-head vhead" style="--page-accent:${v.color}">
       <div class="mono">value · ranked #${rank} of ${S.valueOrder.length}</div>
       <h1 style="color:${v.color}">${ed(`values.#${v.id}.name`)}</h1>
+      <!-- one line for what the word means to you, which is not any of the
+           four questions: those are worked out over years, this is the thing
+           you would say if someone asked -->
+      <div class="vhead-tag">${ed(`values.#${v.id}.tagline`, {ph:'in one line — what this word means to you', cls:'vtag'})}</div>
       <div class="row" style="margin-top:12px"><div class="bar" style="flex:1;--c:${v.color}"><i style="width:${cur}%"></i></div><span class="num" data-tween="${cur}" data-suffix="%">0</span></div>
       ${lifeline}
     </div>
@@ -17634,7 +17654,7 @@ function openReminderModal(){
 function newValueDialog(){
   if(S.values.length >= 10){ toast('The compass holds ten values. Rename one instead of adding an eleventh.'); return; }
   const m = openModal(`<h2>A new value</h2><div class="stack"><div class="field"><label>Name</label><input class="inp" id="nvName" placeholder="e.g. Generosity"></div><div class="field"><label>Colour</label><input type="color" id="nvColor" value="#b08968" style="width:48px;height:32px;border:none;background:none;padding:0"></div><div class="row" style="justify-content:flex-end"><button class="btn primary" id="nvSave">Add value</button></div></div>`, 'narrow');
-  m.querySelector('#nvSave').onclick = () => { const name = m.querySelector('#nvName').value.trim(); if(!name) return; const v = {id:'v-'+uid(), name, color:m.querySelector('#nvColor').value, fields:{embody:[],hundred:[],motivation:[],counterfeit:[]}, practices:[]}; S.values.push(v); S.valueOrderHistory.push({date:today(), order:[...S.valueOrder]}); S.valueOrder.push(v.id); saveNow(); m.remove(); rerender(); navigate('#/value/'+v.id); };
+  m.querySelector('#nvSave').onclick = () => { const name = m.querySelector('#nvName').value.trim(); if(!name) return; const v = {id:'v-'+uid(), name, tagline:'', color:m.querySelector('#nvColor').value, fields:{embody:[],hundred:[],motivation:[],counterfeit:[]}, practices:[]}; S.values.push(v); S.valueOrderHistory.push({date:today(), order:[...S.valueOrder]}); S.valueOrder.push(v.id); saveNow(); m.remove(); rerender(); navigate('#/value/'+v.id); };
 }
 function newSkillDialog(pre={}){
   const hz = pre.horizon || 'active';

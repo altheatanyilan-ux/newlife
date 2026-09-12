@@ -3551,5 +3551,15 @@ select.sm-active{border-color:var(--page-accent);
   .pl-mspin{max-width:6em} .pl-mstick:nth-child(even){display:none} }
 @media (max-width:480px){ .pl-mspin{max-width:5em;font-size:.95em}
   .pl-mstick:not(:nth-child(4n+1)){display:none} }
+
+/* --- a value's tagline: the one line under its name --- */
+.vhead-tag{margin-top:6px}
+.vhead-tag .ed.vtag{font-family:var(--quote);font-style:italic;font-size:1.05rem;color:var(--muted);
+  display:inline-block;min-width:14em}
+.vhead-tag .ed.vtag .ph{font-style:italic}
+.vhead-tag .ed.vtag input{font-family:var(--quote);font-style:italic;font-size:1.05rem;width:100%}
+/* the evidence feed has a page's width to fill now, so it reads in columns
+   rather than as one very long ribbon */
+@media (min-width:1000px){ .value-page .vev{max-width:none} }
 </style>
 </head>

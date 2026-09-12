@@ -117,7 +117,7 @@ function openReminderModal(){
 function newValueDialog(){
   if(S.values.length >= 10){ toast('The compass holds ten values. Rename one instead of adding an eleventh.'); return; }
   const m = openModal(`<h2>A new value</h2><div class="stack"><div class="field"><label>Name</label><input class="inp" id="nvName" placeholder="e.g. Generosity"></div><div class="field"><label>Colour</label><input type="color" id="nvColor" value="#b08968" style="width:48px;height:32px;border:none;background:none;padding:0"></div><div class="row" style="justify-content:flex-end"><button class="btn primary" id="nvSave">Add value</button></div></div>`, 'narrow');
-  m.querySelector('#nvSave').onclick = () => { const name = m.querySelector('#nvName').value.trim(); if(!name) return; const v = {id:'v-'+uid(), name, color:m.querySelector('#nvColor').value, fields:{embody:[],hundred:[],motivation:[],counterfeit:[]}, practices:[]}; S.values.push(v); S.valueOrderHistory.push({date:today(), order:[...S.valueOrder]}); S.valueOrder.push(v.id); saveNow(); m.remove(); rerender(); navigate('#/value/'+v.id); };
+  m.querySelector('#nvSave').onclick = () => { const name = m.querySelector('#nvName').value.trim(); if(!name) return; const v = {id:'v-'+uid(), name, tagline:'', color:m.querySelector('#nvColor').value, fields:{embody:[],hundred:[],motivation:[],counterfeit:[]}, practices:[]}; S.values.push(v); S.valueOrderHistory.push({date:today(), order:[...S.valueOrder]}); S.valueOrder.push(v.id); saveNow(); m.remove(); rerender(); navigate('#/value/'+v.id); };
 }
 function newSkillDialog(pre={}){
   const hz = pre.horizon || 'active';

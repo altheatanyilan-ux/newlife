@@ -181,10 +181,20 @@ routes.value = function(root, params){
       ${sparkline(snaps.map(s=>s.ratings[v.id]??null),{h:56,min:0,max:100,color:v.color,dots:true,labels:snaps.map(s=>`${fmtDate(s.date,'med')}: ${s.ratings[v.id]??'–'}${s.note?' — '+s.note:''}`)})}
       <div class="row between mono vhead-scale"><span>${snaps[0]?fmtDate(snaps[0].date,'med'):''}</span><span>congruence over a lifetime</span><span>${snaps.slice(-1)[0]?fmtDate(snaps.slice(-1)[0].date,'med'):''}</span></div>
     </div>` : '';
-  root.innerHTML = `<div class="page narrow value-page" style="--val:${v.color}">
+  /* The page was capped at the reading width of a paragraph, which suited the
+     four questions when they were four paragraphs and suits nothing now: the
+     evidence feed, the lifetime line and the two-column facets all had a third
+     of the screen to work with. It takes the same width as every other room in
+     the house — full width, and aligned with them rather than a column of its
+     own. */
+  root.innerHTML = `<div class="page value-page" style="--val:${v.color}">
     <div class="page-head vhead" style="--page-accent:${v.color}">
       <div class="mono">value · ranked #${rank} of ${S.valueOrder.length}</div>
       <h1 style="color:${v.color}">${ed(`values.#${v.id}.name`)}</h1>
+      <!-- one line for what the word means to you, which is not any of the
+           four questions: those are worked out over years, this is the thing
+           you would say if someone asked -->
+      <div class="vhead-tag">${ed(`values.#${v.id}.tagline`, {ph:'in one line — what this word means to you', cls:'vtag'})}</div>
       <div class="row" style="margin-top:12px"><div class="bar" style="flex:1;--c:${v.color}"><i style="width:${cur}%"></i></div><span class="num" data-tween="${cur}" data-suffix="%">0</span></div>
       ${lifeline}
     </div>
