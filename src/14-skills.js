@@ -1,8 +1,26 @@
 /* ============================================================
    7. SKILL TREE — the architecture of becoming
    ============================================================ */
-const SKILL_CATS = ['Languages','Technical','Creative','Physical','Social','Craft'];
-const catColor = c => ({Languages:'#6b7f8e',Technical:'#8a8d8f',Creative:'#b08968',Physical:'#c47832',Social:'#a0727e',Craft:'#7f916a'}[c]||'#a89f94');
+/* The seven the tree is sorted into. Colours are drawn from the house palette
+   so a branch never arrives as a stranger. */
+const SKILL_CATS = ['Musical','Artistic','Income','Language','Intellectual','Social','Spirituality'];
+const CAT_COLORS = {Musical:'#8a7f9e', Artistic:'#b08968', Income:'#d4a44c', Language:'#6b7f8e',
+  Intellectual:'#5f7f86', Social:'#a0727e', Spirituality:'#7f916a'};
+const catColor = c => CAT_COLORS[c] || '#a89f94';
+/* An install made before this set existed has skills filed under the old six.
+   Five of them have an obvious home; "Physical" has none in the new set, so it
+   is left alone rather than quietly mis-filed, and the pickers below carry any
+   category actually in use so it stays visible and can be moved deliberately. */
+const CAT_RENAMES = {Languages:'Language', Creative:'Artistic', Technical:'Intellectual', Craft:'Artistic'};
+function migrateSkillCats(){
+  (S.skills || []).forEach(s => { const to = CAT_RENAMES[s.cat]; if(to) s.cat = to; });
+}
+/* every category offered: the standard seven, plus whatever is genuinely in
+   use, so a skill is never shown a dropdown that disagrees with its own data */
+function skillCatOptions(current){
+  const inUse = (S.skills || []).map(x => x.cat).filter(Boolean);
+  return [...new Set([...SKILL_CATS, ...inUse, ...(current ? [current] : [])])];
+}
 /* ---------- hierarchy: virtual root → categories → skills (parent = first prerequisite) ---------- */
 function skillIsLocked(s){ return s.prereqs.some(p => { const ps = byId(S.skills,p); return ps && ps.currentLevel < 2; }) && s.currentLevel === 0; }
 function skillHierarchy(){
@@ -114,7 +132,7 @@ routes.skills = function(root, params){
     {icon:'↗', label:'Log practice', desc:'Time spent today on something you are already growing.', run:()=>EntryActions.skillProgress()},
     {icon:'✓', label:'Reached a level', desc:'Move a skill up its own ladder.', run:()=>openLevelUpPicker()},
     {icon:'📅', label:'Set a milestone', desc:'A level, and the date you want it by.', run:()=>openMilestonePicker()}]});
-  migrateSkillFocus();
+  migrateSkillFocus(); migrateSkillCats();
   const f = skillFilterState(); const foc = focusSkills(); const T = today();
   const win = S._skWindow || 90; const due = milestonesWithin(win);
   const list = filteredSkills(); const cats = [...new Set(S.skills.map(s=>s.cat))].sort();
@@ -384,7 +402,7 @@ function openSkillPanel(id){
   const arche = s.planned ? 'A bud. Nothing to judge yet.' : since>90 ? 'The Dabbler? Enthusiasm, then a plateau, then silence. Or perhaps a deliberate surrender — some competencies are meant to be let go.' : st.best>=14 && st.cur===0 ? 'The Obsessive? A long hard streak, then a break. Watch for burnout; oscillation is the rhythm, not a failure.' : s.currentLevel>=3 && !skillTargetLevel(s) && s.currentLevel < skillLevelCount(s) ? 'The Hacker? Good enough, and stopped. Is this the level you chose, or the one you settled for?' : 'On the path. Loving the plateau. The master stays on the mat five minutes longer.';
   const p = openPanel(`${vmToggleHTML('skill')}<div class="mono row between"><span>${esc(s.cat)} · ${s.planned?'planned':'level '+s.currentLevel+' of '+skillLevelCount(s)}</span><span class="wv-badge"></span></div><h2>${ed(`skills.#${s.id}.name`)}</h2>
     <div class="row" style="margin:8px 0 10px;gap:8px;flex-wrap:wrap">
-      <select class="sel" style="width:auto" id="skCatSel">${SKILL_CATS.map(c=>`<option ${s.cat===c?'selected':''}>${c}</option>`).join('')}</select>
+      <select class="sel" style="width:auto" id="skCatSel">${skillCatOptions(s.cat).map(c=>`<option ${s.cat===c?'selected':''}>${c}</option>`).join('')}</select>
       <select class="sel" style="width:auto" id="skHzSel" title="how near this skill is">${Object.entries(SKILL_HORIZONS).map(([k,v])=>`<option value="${k}" ${skillHorizon(s)===k?'selected':''}>${v[0]} ${v[1]}</option>`).join('')}</select>
       <select class="sel" style="width:auto" id="skPrioSel" title="priority">${Object.keys(SKILL_PRIOS).map(pp=>`<option ${(s.priority||'P3')===pp?'selected':''}>${pp}</option>`).join('')}</select>
     </div>

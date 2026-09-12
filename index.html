@@ -10478,8 +10478,26 @@ function bindDecisionList(root){
 /* ============================================================
    7. SKILL TREE — the architecture of becoming
    ============================================================ */
-const SKILL_CATS = ['Languages','Technical','Creative','Physical','Social','Craft'];
-const catColor = c => ({Languages:'#6b7f8e',Technical:'#8a8d8f',Creative:'#b08968',Physical:'#c47832',Social:'#a0727e',Craft:'#7f916a'}[c]||'#a89f94');
+/* The seven the tree is sorted into. Colours are drawn from the house palette
+   so a branch never arrives as a stranger. */
+const SKILL_CATS = ['Musical','Artistic','Income','Language','Intellectual','Social','Spirituality'];
+const CAT_COLORS = {Musical:'#8a7f9e', Artistic:'#b08968', Income:'#d4a44c', Language:'#6b7f8e',
+  Intellectual:'#5f7f86', Social:'#a0727e', Spirituality:'#7f916a'};
+const catColor = c => CAT_COLORS[c] || '#a89f94';
+/* An install made before this set existed has skills filed under the old six.
+   Five of them have an obvious home; "Physical" has none in the new set, so it
+   is left alone rather than quietly mis-filed, and the pickers below carry any
+   category actually in use so it stays visible and can be moved deliberately. */
+const CAT_RENAMES = {Languages:'Language', Creative:'Artistic', Technical:'Intellectual', Craft:'Artistic'};
+function migrateSkillCats(){
+  (S.skills || []).forEach(s => { const to = CAT_RENAMES[s.cat]; if(to) s.cat = to; });
+}
+/* every category offered: the standard seven, plus whatever is genuinely in
+   use, so a skill is never shown a dropdown that disagrees with its own data */
+function skillCatOptions(current){
+  const inUse = (S.skills || []).map(x => x.cat).filter(Boolean);
+  return [...new Set([...SKILL_CATS, ...inUse, ...(current ? [current] : [])])];
+}
 /* ---------- hierarchy: virtual root → categories → skills (parent = first prerequisite) ---------- */
 function skillIsLocked(s){ return s.prereqs.some(p => { const ps = byId(S.skills,p); return ps && ps.currentLevel < 2; }) && s.currentLevel === 0; }
 function skillHierarchy(){
@@ -10591,7 +10609,7 @@ routes.skills = function(root, params){
     {icon:'↗', label:'Log practice', desc:'Time spent today on something you are already growing.', run:()=>EntryActions.skillProgress()},
     {icon:'✓', label:'Reached a level', desc:'Move a skill up its own ladder.', run:()=>openLevelUpPicker()},
     {icon:'📅', label:'Set a milestone', desc:'A level, and the date you want it by.', run:()=>openMilestonePicker()}]});
-  migrateSkillFocus();
+  migrateSkillFocus(); migrateSkillCats();
   const f = skillFilterState(); const foc = focusSkills(); const T = today();
   const win = S._skWindow || 90; const due = milestonesWithin(win);
   const list = filteredSkills(); const cats = [...new Set(S.skills.map(s=>s.cat))].sort();
@@ -10861,7 +10879,7 @@ function openSkillPanel(id){
   const arche = s.planned ? 'A bud. Nothing to judge yet.' : since>90 ? 'The Dabbler? Enthusiasm, then a plateau, then silence. Or perhaps a deliberate surrender — some competencies are meant to be let go.' : st.best>=14 && st.cur===0 ? 'The Obsessive? A long hard streak, then a break. Watch for burnout; oscillation is the rhythm, not a failure.' : s.currentLevel>=3 && !skillTargetLevel(s) && s.currentLevel < skillLevelCount(s) ? 'The Hacker? Good enough, and stopped. Is this the level you chose, or the one you settled for?' : 'On the path. Loving the plateau. The master stays on the mat five minutes longer.';
   const p = openPanel(`${vmToggleHTML('skill')}<div class="mono row between"><span>${esc(s.cat)} · ${s.planned?'planned':'level '+s.currentLevel+' of '+skillLevelCount(s)}</span><span class="wv-badge"></span></div><h2>${ed(`skills.#${s.id}.name`)}</h2>
     <div class="row" style="margin:8px 0 10px;gap:8px;flex-wrap:wrap">
-      <select class="sel" style="width:auto" id="skCatSel">${SKILL_CATS.map(c=>`<option ${s.cat===c?'selected':''}>${c}</option>`).join('')}</select>
+      <select class="sel" style="width:auto" id="skCatSel">${skillCatOptions(s.cat).map(c=>`<option ${s.cat===c?'selected':''}>${c}</option>`).join('')}</select>
       <select class="sel" style="width:auto" id="skHzSel" title="how near this skill is">${Object.entries(SKILL_HORIZONS).map(([k,v])=>`<option value="${k}" ${skillHorizon(s)===k?'selected':''}>${v[0]} ${v[1]}</option>`).join('')}</select>
       <select class="sel" style="width:auto" id="skPrioSel" title="priority">${Object.keys(SKILL_PRIOS).map(pp=>`<option ${(s.priority||'P3')===pp?'selected':''}>${pp}</option>`).join('')}</select>
     </div>
@@ -17623,7 +17641,7 @@ function newSkillDialog(pre={}){
   const m = openModal(`<h2>${hz==='someday'?'A skill for later':'A new skill'}</h2><div class="stack">
     <div class="field"><label>Name</label><input class="inp" id="skName" placeholder="Conversational Japanese"></div>
     <div class="grid c2" style="gap:10px">
-      <div class="field"><label>Category</label><select class="sel" id="skCat">${SKILL_CATS.map(c=>`<option>${c}</option>`).join('')}</select></div>
+      <div class="field"><label>Category</label><select class="sel" id="skCat">${skillCatOptions().map(c=>`<option>${c}</option>`).join('')}</select></div>
       <div class="field"><label>Priority</label><select class="sel" id="skPrio">${Object.keys(SKILL_PRIOS).map(p=>`<option ${p==='P3'?'selected':''}>${p}</option>`).join('')}</select></div>
     </div>
     <div class="field"><label>Horizon</label><select class="sel" id="skHz">${Object.entries(SKILL_HORIZONS).map(([k,v])=>`<option value="${k}" ${hz===k?'selected':''}>${v[0]} ${v[1]} — ${v[2]}</option>`).join('')}</select></div>
@@ -22698,25 +22716,25 @@ const STARTER = {
 
   /* ---- the skills those goals actually require ---- */
   skills: [
-    {key:'sk-piano', name:'Jazz piano', cat:'Creative', horizon:'focus', priority:'P1',
+    {key:'sk-piano', name:'Jazz piano', cat:'Musical', horizon:'focus', priority:'P1',
      why:'Because sitting in at a jam is the only item on the board I can start today, alone, for free.',
      levels:['Reading and voicings','Comping through a standard','Soloing over changes','Playing with people','Sitting in anywhere'], current:1},
-    {key:'sk-jp', name:'Japanese', cat:'Languages', horizon:'focus', priority:'P1',
+    {key:'sk-jp', name:'Japanese', cat:'Language', horizon:'focus', priority:'P1',
      why:'A year there is a holiday without it and a life with it.',
      levels:['Kana and survival phrases','Simple conversation','Reading a menu and a sign','Holding a real conversation','Being a person, not a guest'], current:1},
-    {key:'sk-bar', name:'Bartending and mixology', cat:'Craft', horizon:'next', priority:'P2',
+    {key:'sk-bar', name:'Bartending and mixology', cat:'Income', horizon:'next', priority:'P2',
      why:'You cannot own a room you cannot work.', startBy:'',
      levels:['The classics, made correctly','Speed and consistency','Building a drink from scratch','Running a service alone','Designing a list'], current:0},
-    {key:'sk-build', name:'Building things on the web', cat:'Technical', horizon:'active', priority:'P2',
+    {key:'sk-build', name:'Building things on the web', cat:'Intellectual', horizon:'active', priority:'P2',
      why:'This instrument exists because of it, and the next thing will too.',
      levels:['Making it work','Making it readable','Making it fast','Making it something other people can use'], current:2},
-    {key:'sk-write', name:'Writing', cat:'Creative', horizon:'active', priority:'P3',
+    {key:'sk-write', name:'Writing', cat:'Artistic', horizon:'active', priority:'P3',
      why:'Everything here — the journals, the Timeline, the Writing room — is downstream of being able to say what I mean.',
      levels:['Getting it down','Getting it clear','Getting it good','Getting it read'], current:2},
     {key:'sk-hosp', name:'Running a room', cat:'Social', horizon:'someday', priority:'P3',
      why:'The bar is not a drinks problem. It is a hospitality problem.',
      levels:['Reading a room','Regulars','Staff','Ownership'], current:0},
-    {key:'sk-ink', name:'Ink and brush', cat:'Craft', horizon:'someday', priority:'P4',
+    {key:'sk-ink', name:'Ink and brush', cat:'Artistic', horizon:'someday', priority:'P4',
      why:'Written down so it stops taking up room in my head.',
      levels:['Holding the brush','A bamboo leaf','A rock','A mountain'], current:0},
   ],

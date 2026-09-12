@@ -124,7 +124,7 @@ function newSkillDialog(pre={}){
   const m = openModal(`<h2>${hz==='someday'?'A skill for later':'A new skill'}</h2><div class="stack">
     <div class="field"><label>Name</label><input class="inp" id="skName" placeholder="Conversational Japanese"></div>
     <div class="grid c2" style="gap:10px">
-      <div class="field"><label>Category</label><select class="sel" id="skCat">${SKILL_CATS.map(c=>`<option>${c}</option>`).join('')}</select></div>
+      <div class="field"><label>Category</label><select class="sel" id="skCat">${skillCatOptions().map(c=>`<option>${c}</option>`).join('')}</select></div>
       <div class="field"><label>Priority</label><select class="sel" id="skPrio">${Object.keys(SKILL_PRIOS).map(p=>`<option ${p==='P3'?'selected':''}>${p}</option>`).join('')}</select></div>
     </div>
     <div class="field"><label>Horizon</label><select class="sel" id="skHz">${Object.entries(SKILL_HORIZONS).map(([k,v])=>`<option value="${k}" ${hz===k?'selected':''}>${v[0]} ${v[1]} — ${v[2]}</option>`).join('')}</select></div>
