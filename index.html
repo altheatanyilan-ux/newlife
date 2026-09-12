@@ -15712,6 +15712,19 @@ function migratePlanning(){
     p.prefs.matrixFirst = true;
     if(p.prefs.view === 'list') p.prefs.view = PLAN_VIEW_DEFAULT;
   }
+  /* Every list also carries a default view of its own, and selecting a list
+     uses it in preference to the page's. Those were written when the old
+     default was the plain list and were left behind by the change above — so
+     a folder opened on the matrix while any list made before the change
+     opened on the list, which is exactly the half-changed behaviour that got
+     reported. This needs a flag of its own: matrixFirst was already set for
+     anyone who has opened the app since, so putting the fix inside that block
+     would never reach them. Once, and only over the old default, so a view
+     deliberately chosen for a list since is left alone. */
+  if(!p.prefs.matrixFirstLists){
+    p.prefs.matrixFirstLists = true;
+    p.lists.forEach(l => { if(l.defaultView === 'list') l.defaultView = PLAN_VIEW_DEFAULT; });
+  }
   /* a task pointing at a list that has since been deleted belongs in the Inbox,
      not in a list nobody can navigate to */
   const ids = new Set(p.lists.map(l => l.id));
