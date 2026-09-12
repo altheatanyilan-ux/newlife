@@ -16,9 +16,26 @@
 <meta name="theme-color" content="#f5f0ea" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#1a1816" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-title" content="Life Instrument">
+<!-- Hosted, these turn the page into something installable: its own icon on a
+     home screen, no browser chrome, and every room reachable with no signal.
+     They are inert when the file is opened from disk. -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Nunito+Sans:ital,opsz,wght@0,6..12,300;0,6..12,400;0,6..12,600;0,6..12,700;1,6..12,400&family=Noto+Serif+SC:wght@400;600&family=Lora:ital,wght@0,400;1,400;1,500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!-- The typefaces arrive without holding the door. A stylesheet from another
+     host blocks the first paint until it answers, and on a phone with one bar
+     — or with no signal at all, where this request can only fail — that is a
+     blank screen for as long as the network takes to give up. Loading it as
+     print media takes it off the critical path; onload promotes it to the
+     real thing. The page comes up immediately in the fallback stack and the
+     serif settles in behind it, which is what font-display:swap already
+     promises for the faces themselves. There is no noscript fallback: with
+     scripting off this page renders nothing at all, so a second copy of the
+     stylesheet would only be one more blocking request serving nobody. -->
+<link rel="stylesheet" media="print" onload="this.media='all';this.onload=null" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Nunito+Sans:ital,opsz,wght@0,6..12,300;0,6..12,400;0,6..12,600;0,6..12,700;1,6..12,400&family=Noto+Serif+SC:wght@400;600&family=Lora:ital,wght@0,400;1,400;1,500&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 /* ============================================================
    0. DESIGN SYSTEM

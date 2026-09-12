@@ -39,4 +39,24 @@ function assertNothingStrayed(){
 assertNothingStrayed();
 
 fs.writeFileSync(path.join(__dirname, 'index.html'), out);
-console.log(`index.html written (${(out.length/1024).toFixed(0)} KB) — database layer: ${dexie ? 'Dexie (inlined)' : 'built-in MiniDexie fallback'}`);
+
+/* The service worker holds a copy of index.html for offline use, and the only
+   signal a browser uses to fetch a new worker is the worker file's own bytes
+   changing. Stamping the build's hash into it is what makes a deploy actually
+   reach a phone that already has the app installed — without this line the
+   first version anyone installs is the version they keep. */
+function stampServiceWorker(){
+  const swPath = path.join(__dirname, 'sw.js');
+  if(!fs.existsSync(swPath)) return '';
+  const hash = require('crypto').createHash('sha256').update(out).digest('hex').slice(0, 12);
+  const sw = fs.readFileSync(swPath, 'utf8');
+  const stamped = sw.replace(/^const BUILD = '[^']*';/m, `const BUILD = '${hash}';`);
+  if(stamped === sw && !sw.includes(`const BUILD = '${hash}';`)){
+    console.error("BUILD FAILED — sw.js has no `const BUILD = '…';` line to stamp.");
+    process.exit(1);
+  }
+  if(stamped !== sw) fs.writeFileSync(swPath, stamped);
+  return hash;
+}
+const build = stampServiceWorker();
+console.log(`index.html written (${(out.length/1024).toFixed(0)} KB) — database layer: ${dexie ? 'Dexie (inlined)' : 'built-in MiniDexie fallback'}${build ? ` — build ${build}` : ''}`);

@@ -1,0 +1,58 @@
+# Publishes the house to GitHub Pages.
+#
+# It rebuilds index.html from src/ rather than trusting the committed copy, so
+# what is served can never quietly drift from the source it was built from —
+# and then uploads only the handful of files the site actually needs. The repo
+# also holds src/, the smoke tests and node_modules; none of that belongs on a
+# public URL.
+name: Deploy to Pages
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deploy at a time; a queued run supersedes an older queued run but is
+# never cancelled halfway through publishing.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      # Dexie is optional: build.js inlines it when present and falls back to
+      # its own MiniDexie when not. Install it if the repo declares it.
+      - name: Install dependencies
+        run: if [ -f package-lock.json ]; then npm ci --omit=dev; elif [ -f package.json ]; then npm install --omit=dev; fi
+      - name: Build
+        run: node build.js
+      - name: Assemble the site
+        run: |
+          mkdir -p _site
+          cp index.html manifest.webmanifest sw.js _site/
+          cp -r icons _site/
+          touch _site/.nojekyll
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

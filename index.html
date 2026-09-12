@@ -16,9 +16,26 @@
 <meta name="theme-color" content="#f5f0ea" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#1a1816" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-title" content="Life Instrument">
+<!-- Hosted, these turn the page into something installable: its own icon on a
+     home screen, no browser chrome, and every room reachable with no signal.
+     They are inert when the file is opened from disk. -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Nunito+Sans:ital,opsz,wght@0,6..12,300;0,6..12,400;0,6..12,600;0,6..12,700;1,6..12,400&family=Noto+Serif+SC:wght@400;600&family=Lora:ital,wght@0,400;1,400;1,500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!-- The typefaces arrive without holding the door. A stylesheet from another
+     host blocks the first paint until it answers, and on a phone with one bar
+     — or with no signal at all, where this request can only fail — that is a
+     blank screen for as long as the network takes to give up. Loading it as
+     print media takes it off the critical path; onload promotes it to the
+     real thing. The page comes up immediately in the fallback stack and the
+     serif settles in behind it, which is what font-display:swap already
+     promises for the faces themselves. There is no noscript fallback: with
+     scripting off this page renders nothing at all, so a second copy of the
+     stylesheet would only be one more blocking request serving nobody. -->
+<link rel="stylesheet" media="print" onload="this.media='all';this.onload=null" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Nunito+Sans:ital,opsz,wght@0,6..12,300;0,6..12,400;0,6..12,600;0,6..12,700;1,6..12,400&family=Noto+Serif+SC:wght@400;600&family=Lora:ital,wght@0,400;1,400;1,500&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 /* ============================================================
    0. DESIGN SYSTEM
@@ -20521,6 +20538,77 @@ function planSeedIfEmpty(){
   saveNow();
 }
 /* ============================================================
+   INSTALLING THE HOUSE
+
+   Hosted, this becomes an app you can put on a phone's home
+   screen: its own icon, no browser chrome, and every page
+   available with the phone in aeroplane mode.
+
+   Opened from disk it stays exactly what it was. A file:// page
+   cannot register a service worker at all, and asking anyway
+   throws into the console on every load, so nothing here runs
+   unless the app is being served over http.
+
+   The one thing that does not travel: a browser keeps its
+   database per origin, and file:// and https://…  are two
+   different origins. The data does not follow the app across.
+   That is what the handoff notice below is for — it fires once,
+   on a hosted copy that opened to an empty house, and points at
+   the import button rather than letting someone furnish the
+   place twice and lose a year of entries finding out.
+   ============================================================ */
+
+const PWA_OK = location.protocol === 'http:' || location.protocol === 'https:';
+
+function registerServiceWorker(){
+  if(!PWA_OK || !('serviceWorker' in navigator)) return;
+  /* Registering is deferred past first paint so it never competes with the
+     page appearing — but it cannot simply wait for the load event, because
+     init() opens the database first and by the time it awaits its way back
+     here that event has usually already fired. Waiting for it then is waiting
+     for something that will not happen twice. */
+  const start = async () => {
+    let reg;
+    try { reg = await navigator.serviceWorker.register('sw.js', {scope: './'}); }
+    catch(e){ console.warn('offline support unavailable', e); return; }
+
+    /* A worker already waiting means a newer build is sitting on disk from a
+       previous visit; one that arrives now means the update landed while the
+       page was open. Both end in the same offer. */
+    if(reg.waiting && navigator.serviceWorker.controller) offerUpdate(reg.waiting);
+    reg.addEventListener('updatefound', () => {
+      const w = reg.installing; if(!w) return;
+      w.addEventListener('statechange', () => {
+        /* no controller means this is the first install, not an update: there
+           is nothing to reload for, the page is already the new version */
+        if(w.state === 'installed' && navigator.serviceWorker.controller) offerUpdate(w);
+      });
+    });
+
+    let reloading = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if(reloading) return; reloading = true; location.reload();
+    });
+  };
+  if(document.readyState === 'complete') setTimeout(start, 0);
+  else addEventListener('load', start, {once: true});
+}
+
+function offerUpdate(worker){
+  toast('A newer version of the house is ready.', 20000,
+    {label: 'reload', fn: () => worker.postMessage({type: 'SKIP_WAITING'})});
+}
+
+/* ---------- coming across from the local copy ---------- */
+function maybeOfferHandoff(){
+  if(!PWA_OK) return;                       // the file on disk is what you are coming *from*
+  if(lsGet('handoffSeen', false)) return;
+  lsSet('handoffSeen', true);
+  if(!houseIsEmpty()) return;               // there is already a life in here; nothing to warn about
+  toast('This is a fresh copy — your browser keeps its data per address, so nothing came across from the file on your computer. Export a backup there, then import it here.',
+    22000, {label: 'go to Settings', fn: () => navigate('#/settings')});
+}
+/* ============================================================
    THE KEYBOARD — one grammar, written down where it can be read.
 
    What was here before was three grammars at once. The Planning and
@@ -21153,7 +21241,9 @@ async function init(){
   markNavDirection(); renderRoute(); startDust(); updateBackButton();
   window.addEventListener('beforeunload', () => { if(saving || savePending) saveNow(); });
   if(S.settings.firstOpen === today() && !S._welcomed){ S._welcomed = true; setTimeout(()=>toast('Welcome home. Every piece of text here is editable — click it. The placeholder life is yours to overwrite.', 7000), 800); }
-  setTimeout(() => { try { maybeOfferStarter(); } catch(e){ console.warn('starter set skipped', e); }
+  registerServiceWorker();
+  setTimeout(() => { try { maybeOfferHandoff(); } catch(e){ console.warn('handoff notice skipped', e); }
+    try { maybeOfferStarter(); } catch(e){ console.warn('starter set skipped', e); }
     try { migratePlanning(); planSeedIfEmpty(); } catch(e){ console.warn('planning seed skipped', e); }
     try { migrateContent(); contentSeedIfEmpty(); } catch(e){ console.warn('content seed skipped', e); } }, 1200);
 }

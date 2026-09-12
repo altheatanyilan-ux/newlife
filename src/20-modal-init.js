@@ -239,7 +239,9 @@ async function init(){
   markNavDirection(); renderRoute(); startDust(); updateBackButton();
   window.addEventListener('beforeunload', () => { if(saving || savePending) saveNow(); });
   if(S.settings.firstOpen === today() && !S._welcomed){ S._welcomed = true; setTimeout(()=>toast('Welcome home. Every piece of text here is editable — click it. The placeholder life is yours to overwrite.', 7000), 800); }
-  setTimeout(() => { try { maybeOfferStarter(); } catch(e){ console.warn('starter set skipped', e); }
+  registerServiceWorker();
+  setTimeout(() => { try { maybeOfferHandoff(); } catch(e){ console.warn('handoff notice skipped', e); }
+    try { maybeOfferStarter(); } catch(e){ console.warn('starter set skipped', e); }
     try { migratePlanning(); planSeedIfEmpty(); } catch(e){ console.warn('planning seed skipped', e); }
     try { migrateContent(); contentSeedIfEmpty(); } catch(e){ console.warn('content seed skipped', e); } }, 1200);
 }
