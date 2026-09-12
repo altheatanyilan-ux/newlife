@@ -35,8 +35,10 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
      JSON.stringify(nav.top) === JSON.stringify(['today','planning','compass']), JSON.stringify(nav.top));
   ok('the top three carry no heading',
      await page.evaluate(() => !document.querySelector('.nav-top .zone-h')), 'a heading appeared');
-  ok('Create holds Content, Projects, Finance, Skill Tree — and the Library',
-     nav.zones[0]?.name === 'Create' && JSON.stringify(nav.zones[0].pages) === JSON.stringify(['content','projects','finance','skills','commonplace']),
+  /* the Library moved in with Journals as its third view, so it is no longer
+     a door of its own in this zone */
+  ok('Create holds Content, Projects, Finance and the Skill Tree',
+     nav.zones[0]?.name === 'Create' && JSON.stringify(nav.zones[0].pages) === JSON.stringify(['content','projects','finance','skills']),
      JSON.stringify(nav.zones[0]));
   ok('Identity holds Values, Journals, People',
      nav.zones[1]?.name === 'Identity' && JSON.stringify(nav.zones[1].pages) === JSON.stringify(['values','journals','people']),
@@ -61,12 +63,14 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
   await page.evaluate(() => document.querySelector('#navOverlay')?.remove());
   await page.setViewportSize({width:1500, height:1050}); await page.waitForTimeout(400);
 
-  console.log('\n3. Journals holds the Timeline now');
+  console.log('\n3. Journals holds the Timeline and the Library now');
   await go('#/journals');
   ok('it opens on the entries, as before',
      await page.evaluate(() => !!document.querySelector('.jnav') && document.querySelector('[data-jrview].on')?.dataset.jrview === 'entries'), 'no');
-  ok('with a switch to the Timeline',
-     await page.evaluate(() => document.querySelectorAll('[data-jrview]').length === 2), 'no switch');
+  ok('with a switch to the Timeline and to the Library',
+     await page.evaluate(() => [...document.querySelectorAll('[data-jrview]')].map(b => b.dataset.jrview).join(',')
+       === 'entries,timeline,library'),
+     await page.evaluate(() => [...document.querySelectorAll('[data-jrview]')].map(b => b.dataset.jrview).join(',')));
   await page.evaluate(() => document.querySelector('[data-jrview="timeline"]').click()); await page.waitForTimeout(1000);
   const tl = await page.evaluate(() => ({hash: location.hash, h1: document.querySelector('h1')?.textContent,
     spine: !!document.querySelector('#spine'), tabs: [...document.querySelectorAll('.tabs button')].map(b => b.textContent.trim()),

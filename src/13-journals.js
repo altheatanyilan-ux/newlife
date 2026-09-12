@@ -6,7 +6,7 @@
    that run between them. It is not a separate room because it was never
    separate material — the memories on the spine are journal entries filed
    to a stage. */
-const JOURNAL_VIEWS = [['entries','✍','Journals'], ['timeline','◷','Timeline']];
+const JOURNAL_VIEWS = [['entries','✍','Journals'], ['timeline','◷','Timeline'], ['library','▤','Library']];
 /* Five of the fourteen journals were doors into rooms that already exist, or
    into nothing at all. Memories and life events are the Timeline's own
    material, filed to a stage. Media is the Library. The practice log is
@@ -36,10 +36,14 @@ document.addEventListener('keydown', ev => {
   if(document.querySelector('#modals .overlay, #panel')) return;
   if(ev.code === 'Digit1'){ ev.preventDefault(); navigate('#/journals/' + (S._journal || journalDefault())); }
   else if(ev.code === 'Digit2'){ ev.preventDefault(); navigate('#/journals/timeline'); }
+  else if(ev.code === 'Digit3'){ ev.preventDefault(); navigate('#/journals/library'); }
 }, true);
 function bindJournalViews(root){
   $$('[data-jrview]', root).forEach(b => b.onclick = () => {
-    navigate(b.dataset.jrview === 'timeline' ? '#/journals/timeline' : '#/journals/' + (S._journal || journalDefault()));
+    const v = b.dataset.jrview;
+    navigate(v === 'timeline' ? '#/journals/timeline'
+           : v === 'library'  ? '#/journals/library'
+           : '#/journals/' + (S._journal || journalDefault()));
   });
 }
 routes.journals = function(root, params){
@@ -49,10 +53,18 @@ routes.journals = function(root, params){
     bindJournalViews(root);
     return;
   }
+  /* the Library, under the same roof as the entries written about what is in
+     it — it draws itself, and only the heading above it changes */
+  if(params[0] === 'library'){
+    renderLibrary(root, params.slice(1),
+      {heading: journalsHeadHTML('library'), base: '#/journals/library'});
+    bindJournalViews(root);
+    return;
+  }
   let type = params[0] || S._journal || journalDefault();
   /* an address or a remembered choice naming a hidden journal lands on the
      first real one instead of a page nothing in the sidebar points at */
-  if(JOURNAL_HIDDEN.includes(type)) type = journalDefault();
+  if(JOURNAL_HIDDEN.includes(type) || type === 'library' || type === 'timeline') type = journalDefault();
   S._journal = type;
   const j = S.journals.find(x=>x.type===type) || journalsShown()[0] || S.journals[0];
   if(type === 'letter') registerPageEntry({pageName:'Journals', addLabel:'Seal a letter', defaultEntryType:'letter', prefilledFields:{}, options:[{icon:'✉', label:'Seal a letter', desc:'To be opened on a date you choose.', run:()=>openLetterModal()}]});

@@ -54,7 +54,7 @@ const NAV_PAGES = {
   writing:  {label:'Writing',          short:'Writing',  ico:NAV_ICONS.writing,  route:'#/content/shelf'},
   people:   {label:'People',           short:'People',   ico:NAV_ICONS.people,   route:'#/people'},
   finance:  {label:'Finance',          short:'Money',    ico:NAV_ICONS.finance,  route:'#/finance'},
-  commonplace:{label:'Library',        short:'Library',  ico:NAV_ICONS.commonplace, route:'#/commonplace'},
+  commonplace:{label:'Library',        short:'Library',  ico:NAV_ICONS.commonplace, route:'#/journals/library'},
   content:  {label:'Content',          short:'Content',  ico:NAV_ICONS.content,  route:'#/content'},
   values:   {label:'Values',           short:'Values',   ico:NAV_ICONS.values,   route:'#/values'},
   skills:   {label:'Skill Tree',       short:'Skills',   ico:NAV_ICONS.skills,   route:'#/skills'},
@@ -66,7 +66,7 @@ const NAV_PAGES = {
 const NAV_TOP = ['today','planning','compass'];
 const NAV_PINNED = [];
 const NAV_DEFAULT = {
-  create:   ['content','projects','finance','skills','commonplace'],
+  create:   ['content','projects','finance','skills'],
   identity: ['values','journals','people'],
   standalone:[],
 };
@@ -81,7 +81,10 @@ const NAV_ZONE_IDS = [...NAV_ZONES.map(z => z.id), 'standalone'];
    in Content. Their addresses still answer, because a great deal links to
    them. Settings moved to the buttons in the top right, and the Import
    Station is reached from inside Settings. */
-const NAV_UNLISTED = ['import','settings','writing','timeline'];
+/* Rooms that keep a NAV_PAGES entry — for the house diagram, for a link
+   somewhere, for an address that still resolves — but are not doors in the
+   sidebar. Timeline and the Library are both views of Journals. */
+const NAV_UNLISTED = ['import','settings','writing','timeline','commonplace'];
 /* pages that are placed by hand and must never be swept into a zone */
 const NAV_FIXED = new Set([...NAV_TOP, ...NAV_PINNED, ...NAV_UNLISTED]);
 const MOBILE_PRIMARY = ['today','planning','content','journals','values'];

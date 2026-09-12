@@ -84,8 +84,9 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('  and naming it', chip.text.includes(work.title), chip.text);
   await p.click(`.entry[data-entry="${saved.id}"] [data-qwopen]`);
   await p.waitForTimeout(1400);
+  /* the Library lives under Journals now; the old address redirects there */
   yes('clicking it opens the work in the Library',
-      await p.evaluate(() => location.hash.startsWith('#/commonplace/')), await p.evaluate(() => location.hash));
+      await p.evaluate(() => location.hash.startsWith('#/journals/library/')), await p.evaluate(() => location.hash));
 
   console.log('\n5. a work can be added without leaving the quote');
   await p.evaluate(() => { closePanel(); location.hash = '#/journals/quote'; });

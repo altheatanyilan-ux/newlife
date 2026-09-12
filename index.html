@@ -10233,7 +10233,7 @@ function isoWeek(d = today()){ const x = parseDay(d); const day = (x.getDay()+6)
    that run between them. It is not a separate room because it was never
    separate material — the memories on the spine are journal entries filed
    to a stage. */
-const JOURNAL_VIEWS = [['entries','✍','Journals'], ['timeline','◷','Timeline']];
+const JOURNAL_VIEWS = [['entries','✍','Journals'], ['timeline','◷','Timeline'], ['library','▤','Library']];
 /* Five of the fourteen journals were doors into rooms that already exist, or
    into nothing at all. Memories and life events are the Timeline's own
    material, filed to a stage. Media is the Library. The practice log is
@@ -10263,10 +10263,14 @@ document.addEventListener('keydown', ev => {
   if(document.querySelector('#modals .overlay, #panel')) return;
   if(ev.code === 'Digit1'){ ev.preventDefault(); navigate('#/journals/' + (S._journal || journalDefault())); }
   else if(ev.code === 'Digit2'){ ev.preventDefault(); navigate('#/journals/timeline'); }
+  else if(ev.code === 'Digit3'){ ev.preventDefault(); navigate('#/journals/library'); }
 }, true);
 function bindJournalViews(root){
   $$('[data-jrview]', root).forEach(b => b.onclick = () => {
-    navigate(b.dataset.jrview === 'timeline' ? '#/journals/timeline' : '#/journals/' + (S._journal || journalDefault()));
+    const v = b.dataset.jrview;
+    navigate(v === 'timeline' ? '#/journals/timeline'
+           : v === 'library'  ? '#/journals/library'
+           : '#/journals/' + (S._journal || journalDefault()));
   });
 }
 routes.journals = function(root, params){
@@ -10276,10 +10280,18 @@ routes.journals = function(root, params){
     bindJournalViews(root);
     return;
   }
+  /* the Library, under the same roof as the entries written about what is in
+     it — it draws itself, and only the heading above it changes */
+  if(params[0] === 'library'){
+    renderLibrary(root, params.slice(1),
+      {heading: journalsHeadHTML('library'), base: '#/journals/library'});
+    bindJournalViews(root);
+    return;
+  }
   let type = params[0] || S._journal || journalDefault();
   /* an address or a remembered choice naming a hidden journal lands on the
      first real one instead of a page nothing in the sidebar points at */
-  if(JOURNAL_HIDDEN.includes(type)) type = journalDefault();
+  if(JOURNAL_HIDDEN.includes(type) || type === 'library' || type === 'timeline') type = journalDefault();
   S._journal = type;
   const j = S.journals.find(x=>x.type===type) || journalsShown()[0] || S.journals[0];
   if(type === 'letter') registerPageEntry({pageName:'Journals', addLabel:'Seal a letter', defaultEntryType:'letter', prefilledFields:{}, options:[{icon:'✉', label:'Seal a letter', desc:'To be opened on a date you choose.', run:()=>openLetterModal()}]});
@@ -18441,7 +18453,13 @@ function renderLibraryLists(root){
 }
 
 /* ---------- the Shelf & the Review ---------- */
-routes.commonplace = function(root, params){
+/* The Library is a view of Journals now rather than a room of its own: what
+   you read and what you wrote about it are the same material, filed under the
+   same roof. It still draws itself — only the heading above it and the address
+   under its tabs change, which is exactly the arrangement the Timeline view
+   already uses. */
+function renderLibrary(root, params, opts = {}){
+  const base = opts.base || '#/journals/library';
   registerPageEntry({pageName:'Library', addLabel:'Log a work', defaultEntryType:'media', prefilledFields:{}, options:[{icon:'📗', label:'Log a work', desc:'Pick the kind on the next screen.', run:()=>openMediaModal({})}]});
   const tab = ['timeline','lists'].includes(params[0]) ? params[0] : 'shelf';
   const all = mediaEntries();
@@ -18456,11 +18474,14 @@ routes.commonplace = function(root, params){
   const counts = {}; all.forEach(e => { const k = mediaX(e).kind; counts[k] = (counts[k]||0)+1; });
 
   root.innerHTML = `<div class="page">
-    <div class="page-head"><h1>Library</h1></div>
+    ${opts.heading || '<div class="page-head"><h1>Library</h1></div>'}
 
     <div class="media-kind-row rv">${Object.entries(MEDIA_KINDS).map(([k,v])=>`<button class="media-kind-btn ${kind===k?'on':''}" style="--c:${v[2]}" data-mkind="${k}"><span class="ico">${v[0]}</span><span class="lbl">${v[1]}</span><span class="n">${counts[k]||0}</span></button>`).join('')}</div>
 
-    <div class="tabs rv">${[['shelf','The Shelf'],['timeline','Timeline'],['lists','Queue & Lists']].map(([k,l])=>`<button class="${tab===k?'active':''}" data-go="#/commonplace${k==='shelf'?'':'/'+k}">${l}</button>`).join('')}</div>
+    <!-- "Chronology" rather than "Timeline": Journals already has a Timeline
+         view directly above this row, and two tabs of the same name stacked on
+         each other is a way of saying nothing -->
+    <div class="tabs rv">${[['shelf','The Shelf'],['timeline','Chronology'],['lists','Queue & Lists']].map(([k,l])=>`<button class="${tab===k?'active':''}" data-go="${base}${k==='shelf'?'':'/'+k}">${l}</button>`).join('')}</div>
 
     ${tab==='shelf' ? `
     <div class="card rv" style="margin:16px 0"><div class="income-strip">
@@ -18516,6 +18537,12 @@ routes.commonplace = function(root, params){
   bindGlobal();
   function bindGlobal(){ $$('[data-mopen]',root).forEach(c => c.onclick = () => openMediaPanel(c.dataset.mopen)); }
   if(params[0] && !['timeline','lists'].includes(params[0])) openMediaPanel(params[0]);
+}
+/* Everything that used to point at #/commonplace — the house diagram, a quote's
+   chip, a piece's sources, a bookmark — still lands in the right place, with
+   whatever id it was carrying. */
+routes.commonplace = function(root, params){
+  navigate('#/journals/library' + (params[0] ? '/' + params.map(encodeURIComponent).join('/') : ''));
 };
 
 /* The caller may want the new work handed back rather than opened: a quote
@@ -22529,7 +22556,7 @@ const NAV_PAGES = {
   writing:  {label:'Writing',          short:'Writing',  ico:NAV_ICONS.writing,  route:'#/content/shelf'},
   people:   {label:'People',           short:'People',   ico:NAV_ICONS.people,   route:'#/people'},
   finance:  {label:'Finance',          short:'Money',    ico:NAV_ICONS.finance,  route:'#/finance'},
-  commonplace:{label:'Library',        short:'Library',  ico:NAV_ICONS.commonplace, route:'#/commonplace'},
+  commonplace:{label:'Library',        short:'Library',  ico:NAV_ICONS.commonplace, route:'#/journals/library'},
   content:  {label:'Content',          short:'Content',  ico:NAV_ICONS.content,  route:'#/content'},
   values:   {label:'Values',           short:'Values',   ico:NAV_ICONS.values,   route:'#/values'},
   skills:   {label:'Skill Tree',       short:'Skills',   ico:NAV_ICONS.skills,   route:'#/skills'},
@@ -22541,7 +22568,7 @@ const NAV_PAGES = {
 const NAV_TOP = ['today','planning','compass'];
 const NAV_PINNED = [];
 const NAV_DEFAULT = {
-  create:   ['content','projects','finance','skills','commonplace'],
+  create:   ['content','projects','finance','skills'],
   identity: ['values','journals','people'],
   standalone:[],
 };
@@ -22556,7 +22583,10 @@ const NAV_ZONE_IDS = [...NAV_ZONES.map(z => z.id), 'standalone'];
    in Content. Their addresses still answer, because a great deal links to
    them. Settings moved to the buttons in the top right, and the Import
    Station is reached from inside Settings. */
-const NAV_UNLISTED = ['import','settings','writing','timeline'];
+/* Rooms that keep a NAV_PAGES entry — for the house diagram, for a link
+   somewhere, for an address that still resolves — but are not doors in the
+   sidebar. Timeline and the Library are both views of Journals. */
+const NAV_UNLISTED = ['import','settings','writing','timeline','commonplace'];
 /* pages that are placed by hand and must never be swept into a zone */
 const NAV_FIXED = new Set([...NAV_TOP, ...NAV_PINNED, ...NAV_UNLISTED]);
 const MOBILE_PRIMARY = ['today','planning','content','journals','values'];

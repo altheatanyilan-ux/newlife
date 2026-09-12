@@ -412,7 +412,13 @@ function renderLibraryLists(root){
 }
 
 /* ---------- the Shelf & the Review ---------- */
-routes.commonplace = function(root, params){
+/* The Library is a view of Journals now rather than a room of its own: what
+   you read and what you wrote about it are the same material, filed under the
+   same roof. It still draws itself — only the heading above it and the address
+   under its tabs change, which is exactly the arrangement the Timeline view
+   already uses. */
+function renderLibrary(root, params, opts = {}){
+  const base = opts.base || '#/journals/library';
   registerPageEntry({pageName:'Library', addLabel:'Log a work', defaultEntryType:'media', prefilledFields:{}, options:[{icon:'📗', label:'Log a work', desc:'Pick the kind on the next screen.', run:()=>openMediaModal({})}]});
   const tab = ['timeline','lists'].includes(params[0]) ? params[0] : 'shelf';
   const all = mediaEntries();
@@ -427,11 +433,14 @@ routes.commonplace = function(root, params){
   const counts = {}; all.forEach(e => { const k = mediaX(e).kind; counts[k] = (counts[k]||0)+1; });
 
   root.innerHTML = `<div class="page">
-    <div class="page-head"><h1>Library</h1></div>
+    ${opts.heading || '<div class="page-head"><h1>Library</h1></div>'}
 
     <div class="media-kind-row rv">${Object.entries(MEDIA_KINDS).map(([k,v])=>`<button class="media-kind-btn ${kind===k?'on':''}" style="--c:${v[2]}" data-mkind="${k}"><span class="ico">${v[0]}</span><span class="lbl">${v[1]}</span><span class="n">${counts[k]||0}</span></button>`).join('')}</div>
 
-    <div class="tabs rv">${[['shelf','The Shelf'],['timeline','Timeline'],['lists','Queue & Lists']].map(([k,l])=>`<button class="${tab===k?'active':''}" data-go="#/commonplace${k==='shelf'?'':'/'+k}">${l}</button>`).join('')}</div>
+    <!-- "Chronology" rather than "Timeline": Journals already has a Timeline
+         view directly above this row, and two tabs of the same name stacked on
+         each other is a way of saying nothing -->
+    <div class="tabs rv">${[['shelf','The Shelf'],['timeline','Chronology'],['lists','Queue & Lists']].map(([k,l])=>`<button class="${tab===k?'active':''}" data-go="${base}${k==='shelf'?'':'/'+k}">${l}</button>`).join('')}</div>
 
     ${tab==='shelf' ? `
     <div class="card rv" style="margin:16px 0"><div class="income-strip">
@@ -487,6 +496,12 @@ routes.commonplace = function(root, params){
   bindGlobal();
   function bindGlobal(){ $$('[data-mopen]',root).forEach(c => c.onclick = () => openMediaPanel(c.dataset.mopen)); }
   if(params[0] && !['timeline','lists'].includes(params[0])) openMediaPanel(params[0]);
+}
+/* Everything that used to point at #/commonplace — the house diagram, a quote's
+   chip, a piece's sources, a bookmark — still lands in the right place, with
+   whatever id it was carrying. */
+routes.commonplace = function(root, params){
+  navigate('#/journals/library' + (params[0] ? '/' + params.map(encodeURIComponent).join('/') : ''));
 };
 
 /* The caller may want the new work handed back rather than opened: a quote
