@@ -26,6 +26,23 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('a time is stamped on today', /^\d{2}:\d{2}$/.test(seen || ''), String(seen));
   is('  and it is now', seen, await p.evaluate(() => nowHM()));
 
+  console.log('\n1b. but it never writes a waking time on your behalf');
+  await p.evaluate(() => { const T = today(); delete checkin(T).wakeAt;
+    const r = rhythmDay(T); r.wakeTime = ''; rhythmCompute(r); saveNow();
+    location.hash = '#/today'; rerender(); });
+  await p.waitForTimeout(1400);
+  is('opening Today leaves the check-in empty', await p.evaluate(() => checkin(today()).wakeAt || ''), '');
+  is('  and the rhythm empty', await p.evaluate(() => rhythmDay(today()).wakeTime || ''), '');
+  is('  the line says nothing yet', await p.evaluate(() => document.querySelector('#wokeAt')?.textContent.trim()), '—');
+  /* and pressing it is still how you say */
+  await p.evaluate(() => { document.querySelector('#wokeAt').click(); });
+  await p.waitForTimeout(500);
+  await p.evaluate(() => { document.querySelector('#clkV').value = '07:05'; document.querySelector('#clkOk').click(); });
+  await p.waitForTimeout(1200);
+  is('answering it writes the time', await p.evaluate(() => rhythmDay(today()).wakeTime), '07:05');
+  await p.evaluate(() => { location.hash = '#/today'; rerender(); }); await p.waitForTimeout(1200);
+  is('  and a redraw keeps it', await p.evaluate(() => rhythmDay(today()).wakeTime), '07:05');
+
   console.log('\n2. it is never read as a bedtime while the day is still running');
   const now = await p.evaluate(() => { const r = rhythmDay(today()); r.sleepTime = ''; return rhythmSleep(today()); });
   is('today has no sleeping time from it', now.hm, '');

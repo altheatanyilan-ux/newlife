@@ -88,9 +88,14 @@ routes.today = function(root){
   const due = decisionsDue();
   const milestones = milestonesDueSoon(30);
 
-  /* opening the page is the wake signal; the daily rhythm owns the time now */
-  if(!c.wakeAt){ c.wakeAt = new Date().toISOString(); saveNow(); }
-  { const r = rhythmDay(T); if(!r.wakeTime){ r.wakeTime = isoToHM(c.wakeAt); rhythmCompute(r); saveNow(); } }
+  /* Opening the page used to be taken as the wake signal, which meant the
+     time you first looked at your phone was written down as the time you got
+     up — and it was written the moment the page drew, so there was no chance
+     to correct it before it was a fact. The line stays empty until it is
+     answered: by the morning greeting, by pressing it, or on the Compass
+     chart. Only a wake time you actually gave is carried into the rhythm. */
+  { const r = rhythmDay(T);
+    if(!r.wakeTime && c.wakeAt){ r.wakeTime = isoToHM(c.wakeAt); rhythmCompute(r); saveNow(); } }
 
   const _ft = iso => { if(!iso) return ''; const d = new Date(iso); let h = d.getHours(), m = d.getMinutes(); const ap = h >= 12 ? 'pm' : 'am'; h = h % 12 || 12; return h + ':' + String(m).padStart(2,'0') + ap; };
   const _dur = (a, b) => { if(!a||!b) return ''; const mins = Math.round((new Date(b) - new Date(a)) / 60000); if(mins < 1) return '<1m'; if(mins < 60) return mins + 'm'; return Math.floor(mins/60) + 'h ' + (mins%60) + 'm'; };
