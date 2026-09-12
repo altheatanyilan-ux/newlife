@@ -122,6 +122,7 @@ function taskRowHTML(r, {showDay=false}={}){
          pixels that were not an edit target. -->
     <span class="task-text" data-topen="${r.id}" title="open this task">${esc(r.text || 'Untitled task')}</span>
     <button class="task-pen" data-tedit="${r.id}" title="rename it here" aria-label="rename">✎</button>
+    ${taskTimerBtnHTML(r.id)}
     ${prog?`<button class="task-subcount${prog.done===prog.total?' all':''}" data-tsubs="${r.id}"
       title="${prog.done} of ${prog.total} steps done">${prog.done}/${prog.total}</button>`:''}
     ${r.where?`<a class="task-where" href="${r.go}" title="${esc(r.where)}">${esc(r.where)}</a>`:''}
@@ -217,6 +218,7 @@ function bindSubtasks(root, after){
 }
 function bindTaskRows(root, after){
   const redraw = after || rerender;
+  bindTaskTimers(root);
   $$('[data-tcheck]', root).forEach(b => b.onclick = () => { const r = findTaskRef(b.dataset.tcheck); if(!r) return; setTaskDone(r.id, !r.done); sound(r.done ? 'click' : 'success'); redraw(); });
   $$('[data-tdel]', root).forEach(b => b.onclick = e => { e.stopPropagation(); deleteTaskRef(b.dataset.tdel, b.closest('.task-row'), redraw); });
   $$('[data-tdefer]', root).forEach(b => b.onclick = e => {

@@ -73,6 +73,18 @@ const PLAN_QUADRANTS = [
   {n:3, name:'Urgent',             act:'Delegate',  color:'var(--gold)'},
   {n:4, name:'Neither',            act:'Let go',    color:'var(--faint)'},
 ];
+/* Which column a task is in. Every task is stamped 'todo' when it is first
+   seen, so the stamp alone cannot say whether anyone ever decided anything —
+   which is why a task you had plainly sat down and worked on still sat under
+   To do. A column dragged by hand sets kanbanPinned and is honoured exactly;
+   otherwise the sessions answer, because a task with time logged against it
+   is in progress whether or not anyone moved its card. */
+function planTaskColumn(t, hasWip = true){
+  if(t.kanbanPinned) return t.kanbanColumn || 'todo';
+  if(t.done) return 'done';
+  if(hasWip && typeof taskIsInProgress === 'function' && taskIsInProgress(t.id)) return 'in_progress';
+  return t.kanbanColumn || 'todo';
+}
 const DEFAULT_KANBAN = () => [
   {id:'todo',        name:'To do',       color:'#a89f94', wipLimit:null, sortOrder:0},
   {id:'in_progress', name:'In progress', color:'#d4a44c', wipLimit:5,    sortOrder:1},
@@ -97,6 +109,7 @@ function planTaskDefaults(t){
   t.reminders = Array.isArray(t.reminders) ? t.reminders : [];
   t.recurrence = t.recurrence || null;
   t.kanbanColumn = t.kanbanColumn || (t.done ? 'done' : 'todo');
+  t.kanbanPinned = !!t.kanbanPinned;
   t.quadrant  = t.quadrant == null ? null : clamp(+t.quadrant, 1, 4);
   t.focusTime = +t.focusTime || 0;
   t.streamId  = t.streamId || null;

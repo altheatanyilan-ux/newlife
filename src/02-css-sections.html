@@ -1396,6 +1396,23 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
   font-family:var(--mono);font-size:.5rem;color:#fff}
 @media (max-width:560px){ .dc-months{gap:12px} .dc-grid{grid-template-columns:repeat(7,11px)}
   .dc-day{width:11px;height:11px} }
+
+/* a timer on every task, wherever the task is drawn */
+.task-timer{flex:none;width:22px;height:22px;padding:0;background:none;border:0;cursor:pointer;
+  border-radius:50%;color:var(--faint);opacity:0;transition:opacity .18s var(--ease),color .18s var(--ease),background .18s var(--ease)}
+.task-timer.sm{width:19px;height:19px}
+.task-timer svg{width:100%;height:100%;display:block;fill:none;stroke:currentColor;
+  stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.task-row:hover .task-timer,.pt-row:hover .task-timer,.pk-card:hover .task-timer,
+.task-timer:focus-visible{opacity:1}
+.task-timer:hover{color:var(--page-accent);background:var(--line)}
+/* a sitting in progress on this very task stays lit whether or not you hover */
+.task-timer.on{opacity:1;color:var(--terra)}
+.task-timer.on .tt-ring{animation:ttPulse 2.4s ease-in-out infinite}
+@keyframes ttPulse{0%,100%{opacity:1}50%{opacity:.35}}
+.pt-wip{font-size:.58rem;letter-spacing:.09em;text-transform:uppercase;color:var(--terra);
+  border:1px solid var(--terra);border-radius:20px;padding:1px 6px;opacity:.8}
+@media (prefers-reduced-motion:reduce){ .task-timer.on .tt-ring{animation:none} }
 .lvl-res{display:flex;flex-direction:column;gap:4px}
 .res-row{display:flex;gap:8px;align-items:center;font-size:.85rem;flex-wrap:wrap;position:relative}
 .res-type{font-size:.85rem;min-width:18px;text-align:center}

@@ -3,7 +3,14 @@
    workspace that can be read five different ways.
    ============================================================ */
 
-function planSel(){ return S._planSel || (S._planSel = {kind:'smart', id:'today'}); }
+function planSel(){ return S._planSel = planFixSel(S._planSel || {kind:'smart', id:'today'}); }
+/* "All" no longer has a row in the sidebar, so a remembered selection on it
+   would leave nothing lit and no way back to it. Send it to the dated view,
+   which is what the top of the sidebar now opens with. */
+function planFixSel(sel){
+  if(sel.kind === 'smart' && sel.id === 'all') return {kind:'smart', id: planSpan()};
+  return sel;
+}
 function planSetSel(kind, id){
   S._planSel = {kind, id};
   planState().prefs.lastView = `${kind}:${id}`;
@@ -32,17 +39,12 @@ function planSidebarHTML(){
     <button class="pl-collapse" id="plCollapse" title="${p.prefs.sidebarCollapsed ? 'show the sidebar' : 'collapse the sidebar'}">${p.prefs.sidebarCollapsed ? '›' : '‹'}</button>
     <div class="pl-scroll">
       <input class="inp mono pl-search" id="plSearch" placeholder="search tasks…" value="${esc(S._planQ || '')}">
-      ${(() => { const n = planFilterCount(S._planFilter);
-        return `<button class="pl-item pl-filter${n ? ' on' : ''}" id="plSideFilter" title="narrow what is shown — lists, tags, priority, dates, steps">
-          <span class="pl-ico">⚟</span><span class="pl-name">Filter</span>
-          ${n ? `<span class="pl-n mono">${n}</span>` : ''}</button>`; })()}
-
+      <!-- "All" is gone: a list of every task in the house is the one view
+           that never answers a question, and it was standing between the
+           search and the lists. The lists come up to meet the search instead,
+           and the filter goes to the foot with Completed — both are things
+           you reach for after you have decided what you are looking at. -->
       <div class="pl-group">
-        ${(() => { const v = PLAN_SMART_VIEWS.find(x => x.id === 'all');
-          return `<button class="pl-item${on('smart', 'all')}" data-plsel="smart:all" title="${esc(v.hint)}">
-            <span class="pl-ico">${v.icon}</span><span class="pl-name">${esc(v.name)}</span>
-            <span class="pl-n mono">${planSmartCount('all') || ''}</span></button>`; })()}
-
         <!-- one dated row, with the span chosen on it: the same question over
              three lengths of time, not three separate places -->
         ${(() => { const sp = planSpan(), v = PLAN_SMART_VIEWS.find(x => x.id === sp);
@@ -90,7 +92,12 @@ function planSidebarHTML(){
            that builder asked. Saved filters are left in the data untouched. -->
     </div>
     <div class="pl-foot">
-      <button class="pl-item" id="plFocusBtn" title="The focus timer is on Today"><span class="pl-ico">◔</span><span class="pl-name">Focus timer ↗</span></button>
+      ${(() => { const n = planFilterCount(S._planFilter);
+        return `<button class="pl-item pl-filter${n ? ' on' : ''}" id="plSideFilter" title="narrow what is shown — lists, tags, priority, dates, steps">
+          <span class="pl-ico">⚟</span><span class="pl-name">Filter</span>
+          ${n ? `<span class="pl-n mono">${n}</span>` : ''}</button>`; })()}
+      <!-- The focus timer is no longer a place. Every task carries its own
+           timer now, wherever the task is, so there is nothing here to go to. -->
       <!-- last, because finished work is what you look at last -->
       ${(() => { const v = PLAN_SMART_VIEWS.find(x => x.id === 'done');
         return `<button class="pl-item pl-done-item${on('smart','done')}" data-plsel="smart:done" title="${esc(v.hint)}">
@@ -264,7 +271,9 @@ function planRowHTML(t, {showList = false, showDate = true} = {}){
     ${t.priority ? `<span class="pt-prio" style="background:${pr.color}" title="${pr.name} priority"></span>` : ''}
     <span class="pt-text" title="open this task">${esc(t.text || 'Untitled task')}</span>
     <button class="task-pen" data-tedit="${t.id}" title="rename it here" aria-label="rename">✎</button>
+    ${taskTimerBtnHTML(t.id)}
     <span class="pt-meta">
+      ${taskIsInProgress(t.id) && !t.done ? `<span class="pt-wip mono" title="${fmtHM(taskFocusMinutes(t.id))} sat with so far">in progress</span>` : ''}
       ${sub ? `<button class="pt-sub mono" data-tsubs="${t.id}" title="${sub.done} of ${sub.total} steps done">${sub.done}/${sub.total}</button>` : ''}
       ${t.recurrence ? `<span class="pt-rep" title="repeats ${esc(t.recurrence.pattern)}">↻</span>` : ''}
       ${t.duration ? `<span class="pt-dur mono">${t.duration >= 60 ? (t.duration / 60).toFixed(t.duration % 60 ? 1 : 0) + 'h' : t.duration + 'm'}</span>` : ''}

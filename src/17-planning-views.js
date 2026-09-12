@@ -19,6 +19,7 @@ function planCardHTML(t){
         <circle cx="10" cy="10" r="8.2" class="pt-ring"/><path d="M5.6 10.3 L8.7 13.3 L14.4 6.9" class="pt-tick"/></svg></button>
       <span class="pk-text" title="open this task">${esc(t.text || 'Untitled task')}</span>
       <button class="task-pen" data-tedit="${t.id}" title="rename it here" aria-label="rename">✎</button>
+      ${taskTimerBtnHTML(t.id, {sm:true})}
       <!-- the same caret a list row has, so steps fold here too rather than
            being permanently open on a card -->
       ${subCaretHTML(t.id, t, 'task-caret pk-caret')}</div>
@@ -123,8 +124,15 @@ function planCalDayHTML(cur, tasks){
 function planKanbanHTML(sel, tasks){
   const l = sel.kind === 'list' ? planList(sel.id) : null;
   const cols = (l ? l.kanbanColumns : DEFAULT_KANBAN()).slice().sort((a, b) => a.sortOrder - b.sortOrder);
+  /* A task you have actually sat down with is in progress, whether or not
+     anyone remembered to drag its card. The sessions already know — so the
+     board reads them rather than waiting to be told a second time. Dragging
+     still wins: a column chosen by hand is a decision, and a decision beats
+     an inference. */
+  const wip = cols.find(c => c.id === 'in_progress');
+  const colOf = t => planTaskColumn(t, !!wip);
   return `<div class="pk-board">${cols.map(c => {
-    const ts = tasks.filter(t => (t.kanbanColumn || 'todo') === c.id);
+    const ts = tasks.filter(t => colOf(t) === c.id);
     const over = c.wipLimit != null && ts.filter(t => !t.done).length > c.wipLimit;
     return `<div class="pk-col${over ? ' over-wip' : ''}" data-pkcol="${c.id}" style="--c:${c.color}">
       <div class="pk-colh"><span class="pk-cname">${esc(c.name)}</span>
@@ -278,6 +286,11 @@ function bindPlanViews(root, sel, tasks){
     col.addEventListener('dragleave', () => col.classList.remove('over'));
     col.addEventListener('drop', ev => { ev.preventDefault(); col.classList.remove('over');
       const t = planTaskById(window._plTaskDrag); window._plTaskDrag = null; if(!t) return;
+      /* Putting a card in a column by hand is a decision. It is marked as one
+         so the board stops inferring the column from the sessions for this
+         task — otherwise a task you deliberately moved back to To do would
+         spring straight back to In progress. */
+      t.kanbanPinned = true;
       const to = col.dataset.pkcol;
       t.kanbanColumn = to;
       /* the Done column means done — the board and the checkbox cannot disagree */

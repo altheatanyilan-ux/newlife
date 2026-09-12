@@ -1920,6 +1920,23 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
   font-family:var(--mono);font-size:.5rem;color:#fff}
 @media (max-width:560px){ .dc-months{gap:12px} .dc-grid{grid-template-columns:repeat(7,11px)}
   .dc-day{width:11px;height:11px} }
+
+/* a timer on every task, wherever the task is drawn */
+.task-timer{flex:none;width:22px;height:22px;padding:0;background:none;border:0;cursor:pointer;
+  border-radius:50%;color:var(--faint);opacity:0;transition:opacity .18s var(--ease),color .18s var(--ease),background .18s var(--ease)}
+.task-timer.sm{width:19px;height:19px}
+.task-timer svg{width:100%;height:100%;display:block;fill:none;stroke:currentColor;
+  stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.task-row:hover .task-timer,.pt-row:hover .task-timer,.pk-card:hover .task-timer,
+.task-timer:focus-visible{opacity:1}
+.task-timer:hover{color:var(--page-accent);background:var(--line)}
+/* a sitting in progress on this very task stays lit whether or not you hover */
+.task-timer.on{opacity:1;color:var(--terra)}
+.task-timer.on .tt-ring{animation:ttPulse 2.4s ease-in-out infinite}
+@keyframes ttPulse{0%,100%{opacity:1}50%{opacity:.35}}
+.pt-wip{font-size:.58rem;letter-spacing:.09em;text-transform:uppercase;color:var(--terra);
+  border:1px solid var(--terra);border-radius:20px;padding:1px 6px;opacity:.8}
+@media (prefers-reduced-motion:reduce){ .task-timer.on .tt-ring{animation:none} }
 .lvl-res{display:flex;flex-direction:column;gap:4px}
 .res-row{display:flex;gap:8px;align-items:center;font-size:.85rem;flex-wrap:wrap;position:relative}
 .res-type{font-size:.85rem;min-width:18px;text-align:center}
@@ -7705,6 +7722,47 @@ function maybeAskPreferences(then){
    which was being guessed. What is worth knowing is how much of a
    day was made use of, and that can be measured instead of guessed.
    ============================================================ */
+
+/* ---------- the timer, reachable from any task ----------
+   The focus timer used to be a place you went to, and then a panel on Today
+   you dragged a task into. Both make starting work a small errand. A task
+   anywhere in the house now carries its own timer button: press it and the
+   sitting begins, on that task, wherever you happened to be looking.
+
+   One button, one handler, drawn by three different row renderers (the Today
+   row, the Planning row, the matrix card), so they cannot drift apart. */
+function taskTimerBtnHTML(id, {sm = false} = {}){
+  const on = FocusTimer.state().taskId === id && FocusTimer.state().running;
+  return `<button class="task-timer${sm ? ' sm' : ''}${on ? ' on' : ''}" data-tfocus="${esc(id)}"
+    title="${on ? 'this sitting is running' : 'start a focus session on this'}" aria-label="focus on this task">
+    <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="11" r="7" class="tt-ring"/>
+      <path d="M10 7.4V11l2.4 1.6" class="tt-hands"/><path d="M7.6 2.8h4.8" class="tt-crown"/></svg></button>`;
+}
+function bindTaskTimers(root){
+  $$('[data-tfocus]', root).forEach(b => b.onclick = ev => {
+    ev.stopPropagation();
+    focusOnTask(b.dataset.tfocus);
+  });
+}
+/* Starting is the whole gesture: set the subject, begin the sitting, and put
+   the timer where it can be seen. A task that has ever been sat with is "in
+   progress" from then on — that is read off the sessions, never stored, so it
+   cannot disagree with them. */
+function focusOnTask(id){
+  FocusTimer.setTask(id);
+  const st = FocusTimer.state();
+  if(!st.running || st.taskId !== id) FocusTimer.start();
+  sound('success');
+  const t = (typeof planTaskById === 'function' ? planTaskById(id) : null) ||
+            (typeof findTaskRef === 'function' ? findTaskRef(id)?.task : null);
+  toast(`Focusing on ${t?.text || 'this'}.`);
+  /* the panel lives on Today; from anywhere else, open it where you stand */
+  if(parseHash().name === 'today') rerender();
+  else openFocusTimer(id);
+}
+/* Any task with a logged sitting is in progress, whoever asks. */
+function taskIsInProgress(id){ return !id ? false : focusSessionsFor(id).length > 0; }
+function taskFocusMinutes(id){ return sum(focusSessionsFor(id).map(s => +s.duration || 0)); }
 
 /* ---------- reading the record ---------- */
 function focusSessions(){ return (planState().focusSessions || []).filter(s => s.type === 'focus'); }
@@ -15327,6 +15385,8 @@ function planCompleteRow(row, t, done){
 
 function bindPlanning(root, sel, tasks){
   const p = planState();
+  /* every task row and card carries its own timer, wherever it is drawn */
+  bindTaskTimers(root);
 
   /* --- sidebar --- */
   $$('[data-plsel]', root).forEach(b => b.onclick = () => {
@@ -15533,7 +15593,6 @@ function bindPlanning(root, sel, tasks){
   if(typeof bindPlanViews === 'function') bindPlanViews(root, sel, tasks);
   if(typeof bindPlanHabits === 'function') bindPlanHabits(root);
   if(typeof bindPlanBatch === 'function') bindPlanBatch(root);
-  const fb = $('#plFocusBtn'); if(fb) fb.onclick = () => navigate('#/today');
   if(typeof bindPlanReminderBanner === 'function') bindPlanReminderBanner(root);
 }
 
@@ -15920,6 +15979,18 @@ const PLAN_QUADRANTS = [
   {n:3, name:'Urgent',             act:'Delegate',  color:'var(--gold)'},
   {n:4, name:'Neither',            act:'Let go',    color:'var(--faint)'},
 ];
+/* Which column a task is in. Every task is stamped 'todo' when it is first
+   seen, so the stamp alone cannot say whether anyone ever decided anything —
+   which is why a task you had plainly sat down and worked on still sat under
+   To do. A column dragged by hand sets kanbanPinned and is honoured exactly;
+   otherwise the sessions answer, because a task with time logged against it
+   is in progress whether or not anyone moved its card. */
+function planTaskColumn(t, hasWip = true){
+  if(t.kanbanPinned) return t.kanbanColumn || 'todo';
+  if(t.done) return 'done';
+  if(hasWip && typeof taskIsInProgress === 'function' && taskIsInProgress(t.id)) return 'in_progress';
+  return t.kanbanColumn || 'todo';
+}
 const DEFAULT_KANBAN = () => [
   {id:'todo',        name:'To do',       color:'#a89f94', wipLimit:null, sortOrder:0},
   {id:'in_progress', name:'In progress', color:'#d4a44c', wipLimit:5,    sortOrder:1},
@@ -15944,6 +16015,7 @@ function planTaskDefaults(t){
   t.reminders = Array.isArray(t.reminders) ? t.reminders : [];
   t.recurrence = t.recurrence || null;
   t.kanbanColumn = t.kanbanColumn || (t.done ? 'done' : 'todo');
+  t.kanbanPinned = !!t.kanbanPinned;
   t.quadrant  = t.quadrant == null ? null : clamp(+t.quadrant, 1, 4);
   t.focusTime = +t.focusTime || 0;
   t.streamId  = t.streamId || null;
@@ -16640,7 +16712,14 @@ function planSkillFocusHours(skillId){
    workspace that can be read five different ways.
    ============================================================ */
 
-function planSel(){ return S._planSel || (S._planSel = {kind:'smart', id:'today'}); }
+function planSel(){ return S._planSel = planFixSel(S._planSel || {kind:'smart', id:'today'}); }
+/* "All" no longer has a row in the sidebar, so a remembered selection on it
+   would leave nothing lit and no way back to it. Send it to the dated view,
+   which is what the top of the sidebar now opens with. */
+function planFixSel(sel){
+  if(sel.kind === 'smart' && sel.id === 'all') return {kind:'smart', id: planSpan()};
+  return sel;
+}
 function planSetSel(kind, id){
   S._planSel = {kind, id};
   planState().prefs.lastView = `${kind}:${id}`;
@@ -16669,17 +16748,12 @@ function planSidebarHTML(){
     <button class="pl-collapse" id="plCollapse" title="${p.prefs.sidebarCollapsed ? 'show the sidebar' : 'collapse the sidebar'}">${p.prefs.sidebarCollapsed ? '›' : '‹'}</button>
     <div class="pl-scroll">
       <input class="inp mono pl-search" id="plSearch" placeholder="search tasks…" value="${esc(S._planQ || '')}">
-      ${(() => { const n = planFilterCount(S._planFilter);
-        return `<button class="pl-item pl-filter${n ? ' on' : ''}" id="plSideFilter" title="narrow what is shown — lists, tags, priority, dates, steps">
-          <span class="pl-ico">⚟</span><span class="pl-name">Filter</span>
-          ${n ? `<span class="pl-n mono">${n}</span>` : ''}</button>`; })()}
-
+      <!-- "All" is gone: a list of every task in the house is the one view
+           that never answers a question, and it was standing between the
+           search and the lists. The lists come up to meet the search instead,
+           and the filter goes to the foot with Completed — both are things
+           you reach for after you have decided what you are looking at. -->
       <div class="pl-group">
-        ${(() => { const v = PLAN_SMART_VIEWS.find(x => x.id === 'all');
-          return `<button class="pl-item${on('smart', 'all')}" data-plsel="smart:all" title="${esc(v.hint)}">
-            <span class="pl-ico">${v.icon}</span><span class="pl-name">${esc(v.name)}</span>
-            <span class="pl-n mono">${planSmartCount('all') || ''}</span></button>`; })()}
-
         <!-- one dated row, with the span chosen on it: the same question over
              three lengths of time, not three separate places -->
         ${(() => { const sp = planSpan(), v = PLAN_SMART_VIEWS.find(x => x.id === sp);
@@ -16727,7 +16801,12 @@ function planSidebarHTML(){
            that builder asked. Saved filters are left in the data untouched. -->
     </div>
     <div class="pl-foot">
-      <button class="pl-item" id="plFocusBtn" title="The focus timer is on Today"><span class="pl-ico">◔</span><span class="pl-name">Focus timer ↗</span></button>
+      ${(() => { const n = planFilterCount(S._planFilter);
+        return `<button class="pl-item pl-filter${n ? ' on' : ''}" id="plSideFilter" title="narrow what is shown — lists, tags, priority, dates, steps">
+          <span class="pl-ico">⚟</span><span class="pl-name">Filter</span>
+          ${n ? `<span class="pl-n mono">${n}</span>` : ''}</button>`; })()}
+      <!-- The focus timer is no longer a place. Every task carries its own
+           timer now, wherever the task is, so there is nothing here to go to. -->
       <!-- last, because finished work is what you look at last -->
       ${(() => { const v = PLAN_SMART_VIEWS.find(x => x.id === 'done');
         return `<button class="pl-item pl-done-item${on('smart','done')}" data-plsel="smart:done" title="${esc(v.hint)}">
@@ -16901,7 +16980,9 @@ function planRowHTML(t, {showList = false, showDate = true} = {}){
     ${t.priority ? `<span class="pt-prio" style="background:${pr.color}" title="${pr.name} priority"></span>` : ''}
     <span class="pt-text" title="open this task">${esc(t.text || 'Untitled task')}</span>
     <button class="task-pen" data-tedit="${t.id}" title="rename it here" aria-label="rename">✎</button>
+    ${taskTimerBtnHTML(t.id)}
     <span class="pt-meta">
+      ${taskIsInProgress(t.id) && !t.done ? `<span class="pt-wip mono" title="${fmtHM(taskFocusMinutes(t.id))} sat with so far">in progress</span>` : ''}
       ${sub ? `<button class="pt-sub mono" data-tsubs="${t.id}" title="${sub.done} of ${sub.total} steps done">${sub.done}/${sub.total}</button>` : ''}
       ${t.recurrence ? `<span class="pt-rep" title="repeats ${esc(t.recurrence.pattern)}">↻</span>` : ''}
       ${t.duration ? `<span class="pt-dur mono">${t.duration >= 60 ? (t.duration / 60).toFixed(t.duration % 60 ? 1 : 0) + 'h' : t.duration + 'm'}</span>` : ''}
@@ -17739,6 +17820,7 @@ function planCardHTML(t){
         <circle cx="10" cy="10" r="8.2" class="pt-ring"/><path d="M5.6 10.3 L8.7 13.3 L14.4 6.9" class="pt-tick"/></svg></button>
       <span class="pk-text" title="open this task">${esc(t.text || 'Untitled task')}</span>
       <button class="task-pen" data-tedit="${t.id}" title="rename it here" aria-label="rename">✎</button>
+      ${taskTimerBtnHTML(t.id, {sm:true})}
       <!-- the same caret a list row has, so steps fold here too rather than
            being permanently open on a card -->
       ${subCaretHTML(t.id, t, 'task-caret pk-caret')}</div>
@@ -17843,8 +17925,15 @@ function planCalDayHTML(cur, tasks){
 function planKanbanHTML(sel, tasks){
   const l = sel.kind === 'list' ? planList(sel.id) : null;
   const cols = (l ? l.kanbanColumns : DEFAULT_KANBAN()).slice().sort((a, b) => a.sortOrder - b.sortOrder);
+  /* A task you have actually sat down with is in progress, whether or not
+     anyone remembered to drag its card. The sessions already know — so the
+     board reads them rather than waiting to be told a second time. Dragging
+     still wins: a column chosen by hand is a decision, and a decision beats
+     an inference. */
+  const wip = cols.find(c => c.id === 'in_progress');
+  const colOf = t => planTaskColumn(t, !!wip);
   return `<div class="pk-board">${cols.map(c => {
-    const ts = tasks.filter(t => (t.kanbanColumn || 'todo') === c.id);
+    const ts = tasks.filter(t => colOf(t) === c.id);
     const over = c.wipLimit != null && ts.filter(t => !t.done).length > c.wipLimit;
     return `<div class="pk-col${over ? ' over-wip' : ''}" data-pkcol="${c.id}" style="--c:${c.color}">
       <div class="pk-colh"><span class="pk-cname">${esc(c.name)}</span>
@@ -17998,6 +18087,11 @@ function bindPlanViews(root, sel, tasks){
     col.addEventListener('dragleave', () => col.classList.remove('over'));
     col.addEventListener('drop', ev => { ev.preventDefault(); col.classList.remove('over');
       const t = planTaskById(window._plTaskDrag); window._plTaskDrag = null; if(!t) return;
+      /* Putting a card in a column by hand is a decision. It is marked as one
+         so the board stops inferring the column from the sessions for this
+         task — otherwise a task you deliberately moved back to To do would
+         spring straight back to In progress. */
+      t.kanbanPinned = true;
       const to = col.dataset.pkcol;
       t.kanbanColumn = to;
       /* the Done column means done — the board and the checkbox cannot disagree */
@@ -18200,6 +18294,7 @@ function taskRowHTML(r, {showDay=false}={}){
          pixels that were not an edit target. -->
     <span class="task-text" data-topen="${r.id}" title="open this task">${esc(r.text || 'Untitled task')}</span>
     <button class="task-pen" data-tedit="${r.id}" title="rename it here" aria-label="rename">✎</button>
+    ${taskTimerBtnHTML(r.id)}
     ${prog?`<button class="task-subcount${prog.done===prog.total?' all':''}" data-tsubs="${r.id}"
       title="${prog.done} of ${prog.total} steps done">${prog.done}/${prog.total}</button>`:''}
     ${r.where?`<a class="task-where" href="${r.go}" title="${esc(r.where)}">${esc(r.where)}</a>`:''}
@@ -18295,6 +18390,7 @@ function bindSubtasks(root, after){
 }
 function bindTaskRows(root, after){
   const redraw = after || rerender;
+  bindTaskTimers(root);
   $$('[data-tcheck]', root).forEach(b => b.onclick = () => { const r = findTaskRef(b.dataset.tcheck); if(!r) return; setTaskDone(r.id, !r.done); sound(r.done ? 'click' : 'success'); redraw(); });
   $$('[data-tdel]', root).forEach(b => b.onclick = e => { e.stopPropagation(); deleteTaskRef(b.dataset.tdel, b.closest('.task-row'), redraw); });
   $$('[data-tdefer]', root).forEach(b => b.onclick = e => {

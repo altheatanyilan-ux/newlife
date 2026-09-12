@@ -26,6 +26,47 @@
    day was made use of, and that can be measured instead of guessed.
    ============================================================ */
 
+/* ---------- the timer, reachable from any task ----------
+   The focus timer used to be a place you went to, and then a panel on Today
+   you dragged a task into. Both make starting work a small errand. A task
+   anywhere in the house now carries its own timer button: press it and the
+   sitting begins, on that task, wherever you happened to be looking.
+
+   One button, one handler, drawn by three different row renderers (the Today
+   row, the Planning row, the matrix card), so they cannot drift apart. */
+function taskTimerBtnHTML(id, {sm = false} = {}){
+  const on = FocusTimer.state().taskId === id && FocusTimer.state().running;
+  return `<button class="task-timer${sm ? ' sm' : ''}${on ? ' on' : ''}" data-tfocus="${esc(id)}"
+    title="${on ? 'this sitting is running' : 'start a focus session on this'}" aria-label="focus on this task">
+    <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="11" r="7" class="tt-ring"/>
+      <path d="M10 7.4V11l2.4 1.6" class="tt-hands"/><path d="M7.6 2.8h4.8" class="tt-crown"/></svg></button>`;
+}
+function bindTaskTimers(root){
+  $$('[data-tfocus]', root).forEach(b => b.onclick = ev => {
+    ev.stopPropagation();
+    focusOnTask(b.dataset.tfocus);
+  });
+}
+/* Starting is the whole gesture: set the subject, begin the sitting, and put
+   the timer where it can be seen. A task that has ever been sat with is "in
+   progress" from then on — that is read off the sessions, never stored, so it
+   cannot disagree with them. */
+function focusOnTask(id){
+  FocusTimer.setTask(id);
+  const st = FocusTimer.state();
+  if(!st.running || st.taskId !== id) FocusTimer.start();
+  sound('success');
+  const t = (typeof planTaskById === 'function' ? planTaskById(id) : null) ||
+            (typeof findTaskRef === 'function' ? findTaskRef(id)?.task : null);
+  toast(`Focusing on ${t?.text || 'this'}.`);
+  /* the panel lives on Today; from anywhere else, open it where you stand */
+  if(parseHash().name === 'today') rerender();
+  else openFocusTimer(id);
+}
+/* Any task with a logged sitting is in progress, whoever asks. */
+function taskIsInProgress(id){ return !id ? false : focusSessionsFor(id).length > 0; }
+function taskFocusMinutes(id){ return sum(focusSessionsFor(id).map(s => +s.duration || 0)); }
+
 /* ---------- reading the record ---------- */
 function focusSessions(){ return (planState().focusSessions || []).filter(s => s.type === 'focus'); }
 function focusSessionsOn(day){ return focusSessions().filter(s => (s.startedAt || '').slice(0, 10) === day); }

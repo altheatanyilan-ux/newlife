@@ -21,6 +21,8 @@ function planCompleteRow(row, t, done){
 
 function bindPlanning(root, sel, tasks){
   const p = planState();
+  /* every task row and card carries its own timer, wherever it is drawn */
+  bindTaskTimers(root);
 
   /* --- sidebar --- */
   $$('[data-plsel]', root).forEach(b => b.onclick = () => {
@@ -227,7 +229,6 @@ function bindPlanning(root, sel, tasks){
   if(typeof bindPlanViews === 'function') bindPlanViews(root, sel, tasks);
   if(typeof bindPlanHabits === 'function') bindPlanHabits(root);
   if(typeof bindPlanBatch === 'function') bindPlanBatch(root);
-  const fb = $('#plFocusBtn'); if(fb) fb.onclick = () => navigate('#/today');
   if(typeof bindPlanReminderBanner === 'function') bindPlanReminderBanner(root);
 }
 
