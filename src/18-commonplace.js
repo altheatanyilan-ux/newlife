@@ -80,6 +80,111 @@ function syncMediaQuotes(e){
 }
 hooks.syncquote = (mediaId) => { const e = byId(S.entries, mediaId); if(e) syncMediaQuotes(e); };
 
+/* ---------- the other direction: a quote written in the journal ----------
+   A quote copied out of a book belongs to the book. Until now that was only
+   true one way round — the Library could push a passage into the Quotes
+   journal, but a quote written in the journal was a loose scrap with the
+   title typed out by hand, and the Library never heard of it.
+
+   Attaching writes the passage into the work as well, keyed by the entry's
+   own id, so the two are one thing seen from two rooms: the work's panel
+   lists it, editing either side updates the other, and deleting the work
+   takes it with it. This also has to be done rather than merely setting
+   `fromMedia`, because syncMediaQuotes sweeps away any quote claiming a work
+   that the work does not claim back — a scrap set adrift would be deleted the
+   next time anyone touched the book. */
+/* ---------- the field itself, used by the entry modal ----------
+   A select rather than a search box: a shelf is a few dozen works, not a
+   corpus, and a list you can read is faster than a box you have to guess at.
+   The ＋ beside it is the answer to "I have not added it yet", and it comes
+   back here rather than walking you off to the Library. */
+function quoteWorkOptions(chosen){
+  return mediaEntries()
+    .slice()
+    .sort((a, b) => (a.title || '').localeCompare(b.title || ''))
+    .map(w => { const k = MEDIA_KINDS[mediaX(w).kind] || MEDIA_KINDS.book;
+      const who = mediaX(w).creator;
+      return `<option value="${w.id}"${chosen === w.id ? ' selected' : ''}>${esc(k[0])} ${esc(w.title || 'Untitled')}${who ? ' — ' + esc(who) : ''}</option>`; })
+    .join('');
+}
+function quoteWorkFieldHTML(x){
+  const chosen = x.fromMedia || '';
+  const w = chosen ? byId(S.entries, chosen) : null;
+  const shelf = mediaEntries().length;
+  return `<div class="field" id="qwField">
+    <label>Which work is this from?</label>
+    <div class="faint" style="font-size:.76rem;margin-bottom:5px">Choose it from the Library and the quote is filed against the work itself — author and source fill themselves in, and the work's page lists the passage.</div>
+    <div class="row" style="gap:8px;align-items:center;flex-wrap:wrap">
+      <select class="sel" id="qwPick" style="flex:1;min-width:12em">
+        <option value="">${shelf ? 'not from anything on the shelf' : 'nothing on the shelf yet'}</option>
+        ${quoteWorkOptions(chosen)}
+      </select>
+      <button type="button" class="btn sm ghost" id="qwNew">＋ add a work</button>
+    </div>
+    ${w ? `<div class="qw-chosen mono">filed under ${esc((MEDIA_KINDS[mediaX(w).kind] || MEDIA_KINDS.book)[0])} ${esc(w.title || 'Untitled')}${mediaX(w).year ? ' · ' + esc(mediaX(w).year) : ''}</div>` : ''}
+  </div>`;
+}
+function bindQuoteWorkField(box, x, redraw){
+  const pick = box.querySelector('#qwPick');
+  if(pick) pick.onchange = () => {
+    x.fromMedia = pick.value;
+    /* fill the two fields the work already knows, without overwriting
+       anything typed by hand */
+    const w = pick.value ? byId(S.entries, pick.value) : null;
+    if(w){
+      const src = box.querySelector('[data-x=source]'), au = box.querySelector('[data-x=author]');
+      if(src && !src.value.trim()){ src.value = w.title || ''; x.source = src.value; }
+      if(au && !au.value.trim()){ au.value = mediaX(w).creator || ''; x.author = au.value; }
+    }
+    /* keep what has been typed into the other fields across the redraw */
+    box.querySelectorAll('[data-x]').forEach(i => { x[i.dataset.x] = i.value; });
+    redraw();
+  };
+  const add = box.querySelector('#qwNew');
+  if(add) add.onclick = () => {
+    box.querySelectorAll('[data-x]').forEach(i => { x[i.dataset.x] = i.value; });
+    openMediaModal({}, w => { x.fromMedia = w.id;
+      if(!x.source) x.source = w.title || '';
+      if(!x.author) x.author = mediaX(w).creator || '';
+      redraw(); toast(`Added to the Library. The quote is filed under ${w.title}.`); });
+  };
+}
+function quoteWork(entry){
+  const id = entry?.extra?.fromMedia;
+  if(!id) return null;
+  const w = byId(S.entries, id);
+  return w && w.type === 'media' ? w : null;
+}
+function detachQuote(entry){
+  mediaEntries().forEach(w => {
+    const qs = mediaX(w).quotes;
+    if(!Array.isArray(qs)) return;
+    for(let i = qs.length - 1; i >= 0; i--) if(qs[i].quoteEntryId === entry.id) qs.splice(i, 1);
+  });
+}
+function attachQuoteToMedia(entry, mediaId){
+  if(!entry || entry.type !== 'quote') return null;
+  const before = entry.extra?.fromMedia || '';
+  if(before && before !== mediaId) detachQuote(entry);
+  entry.extra = entry.extra || {};
+  if(!mediaId){ if(before) detachQuote(entry); entry.extra.fromMedia = ''; saveNow(); return null; }
+  const w = byId(S.entries, mediaId);
+  if(!w || w.type !== 'media') return null;
+  const x = mediaX(w);
+  if(!Array.isArray(x.quotes)) x.quotes = [];
+  let q = x.quotes.find(y => y.quoteEntryId === entry.id);
+  if(!q){ q = {id: uid(), text: '', where: '', why: '', quoteEntryId: entry.id}; x.quotes.push(q); }
+  q.text = entry.body || ''; q.where = entry.extra.page || ''; q.why = entry.extra.why || '';
+  entry.extra.fromMedia = mediaId;
+  /* the work already knows who made it and what it is called, so those two
+     fields stop being something to retype */
+  entry.extra.source = w.title || entry.extra.source || '';
+  if(!entry.extra.author) entry.extra.author = mediaX(w).creator || '';
+  saveNow();
+  return w;
+}
+
+
 /* ---------- the Personal Queue — a single ordered "up next" list ---------- */
 function openQueueItemModal(existing){
   const it = existing || {id:uid(), title:'', medium:'book', why:'', valueId:'', createdAt:today()};
@@ -384,7 +489,10 @@ routes.commonplace = function(root, params){
   if(params[0] && !['timeline','lists'].includes(params[0])) openMediaPanel(params[0]);
 };
 
-function openMediaModal(pre={}){
+/* The caller may want the new work handed back rather than opened: a quote
+   being written needs to go on being written, not to be replaced by a panel
+   about the book it came from. */
+function openMediaModal(pre={}, onCreate=null){
   const kinds = Object.entries(MEDIA_KINDS);
   const m = openModal(`<h2>Log a work</h2>
     <div class="typerow" id="mkRow">${kinds.map(([k,v])=>`<button class="${(pre.kind||'book')===k?'on':''}" data-mk="${k}">${v[0]} ${v[1]}</button>`).join('')}</div>
@@ -405,7 +513,9 @@ function openMediaModal(pre={}){
     const st = m.querySelector('#mStat').value; const stageId = m.querySelector('#mStage').value || '';
     const e = {id:uid(), type:'media', title, body:'', occurredAt:today(), createdAt:new Date().toISOString(), media:[], links:{stages:stageId?[stageId]:[],substages:[],threads:[],values:[],visions:[],skills:[],projects:[]}, people:[], places:[], emotions:[], tags:[], confidence:'',
       extra:{kind, creator:m.querySelector('#mCreator').value.trim(), year:m.querySelector('#mYear').value.trim(), status:st, resonanceLevel:null, quotes:[], startedAt: st==='progress'?today():'', finishedAt: pre.finishedAt || (st==='finished'?today():''), oneLineCapture:'', installed:'', recommend:'', recommendWho:''}};
-    S.entries.push(e); saveNow(); m.remove(); sound('success'); rerender(); openMediaPanel(e.id);
+    S.entries.push(e); saveNow(); m.remove(); sound('success');
+    if(onCreate){ onCreate(e); return; }
+    rerender(); openMediaPanel(e.id);
   };
 }
 function openMediaPanel(id){

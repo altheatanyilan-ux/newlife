@@ -8,7 +8,10 @@ const { chromium } = require('playwright');
   page.on('pageerror', e => errors.push('PAGEERROR: ' + e.message));
   page.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET/.test(m.text())) errors.push('CONSOLE: '+m.text()); });
   await page.goto('file://' + process.cwd() + '/index.html');
+  /* a fresh profile is asked about theme and sound before anything else, and
+     everything behind that dialog is unreachable until it is answered */
   await page.waitForTimeout(900);
+  if(await page.$('#frGo')){ await page.click('#frGo'); await page.waitForTimeout(1800); }
 
   await page.evaluate(() => {
     S.settings.starterApplied='skip'; S.settings.starterDeclined=true;

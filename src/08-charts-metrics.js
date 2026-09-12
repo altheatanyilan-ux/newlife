@@ -169,7 +169,12 @@ function entryExtraHTML(e){
     if((x.tone||[]).length) rows.push(`<div>${(x.tone||[]).map(t=>`<span class="chip">${esc(t)}</span>`).join(' ')}</div>`);
     if((x.symbols||[]).length) rows.push(`<div>${(x.symbols||[]).map(sm=>`<span class="chip click" data-symbol="${esc(sm)}">${esc(sm)}</span>`).join(' ')}</div>`);
     if(x.waking) rows.push(`<div><span class="mono">waking interpretation</span><br>${esc(x.waking)}${versions(x.wakingHistory,'interpretation')}</div>`); }
-  if(e.type==='quote'){ rows.push(`<div class="mono">— ${esc(x.author||'')}${x.source?', <em>'+esc(x.source)+'</em>':''}${x.page?' · '+esc(x.page):''}${x.link?` · <a href="${esc(x.link)}" target="_blank" rel="noopener">↗ link</a>`:''}${x.category?` · ${esc(x.category)}`:''}</div>`);
+  if(e.type==='quote'){
+    /* a quote filed against a work says so, and the work is one click away —
+       otherwise the connection exists only in the data */
+    const w = typeof quoteWork === 'function' ? quoteWork(e) : null;
+    if(w) rows.push(`<button class="qw-chip" data-qwopen="${w.id}" title="open ${esc(w.title||'the work')} in the Library">${esc((MEDIA_KINDS[mediaX(w).kind]||MEDIA_KINDS.book)[0])} ${esc(w.title || 'Untitled')}</button>`);
+    rows.push(`<div class="mono">— ${esc(x.author||'')}${x.source?', <em>'+esc(x.source)+'</em>':''}${x.page?' · '+esc(x.page):''}${x.link?` · <a href="${esc(x.link)}" target="_blank" rel="noopener">↗ link</a>`:''}${x.category?` · ${esc(x.category)}`:''}</div>`);
     if(x.why) rows.push(`<div><span class="mono">why this caught me</span><br>${esc(x.why)}</div>`); }
   if(e.type==='question'){ const ans = x.answers||[]; const age = daysSince((e.occurredAt||e.createdAt||'').slice(0,10));
     const st = x.status || 'open';
@@ -212,6 +217,7 @@ document.addEventListener('click', e => {
   const ed_ = e.target.closest('[data-edit]'); if(ed_){ openEntryModal({entryId: ed_.dataset.edit}); }
   const del = e.target.closest('[data-del]'); if(del){ e.stopPropagation(); const ent = byId(S.entries, del.dataset.del); if(ent) requestDelete({label: ent.title || typeName(ent.type), node: del.closest('.entry, .formative'), remove: () => spliceOut(S.entries, x => x.id === ent.id)}); }
   const lb = e.target.closest('[data-lb]'); if(lb){ const img = lb.querySelector('img'); lightbox(img.src, img.alt); }
+  const qw = e.target.closest('[data-qwopen]'); if(qw){ e.stopPropagation(); navigate('#/commonplace/' + qw.dataset.qwopen); }
   const an = e.target.closest('[data-answer]'); if(an){ const ent = byId(S.entries, an.dataset.answer);
     const m = openModal(`<h2>An answer, for now</h2><p class="quote">${esc(ent.title)}</p>
       <textarea class="ta" id="ansText" placeholder="It doesn't have to be final."></textarea>

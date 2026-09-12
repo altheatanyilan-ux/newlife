@@ -82,7 +82,13 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
       + f('symbols_','Symbols / motifs','comma-separated: water, flying, teeth, a particular room')
       + f('waking','Waking interpretation','What you think it meant, written now. Kept as versions if you revise it.',true)
       + `<div class="faint" style="font-size:.76rem">Captured ${esc(x().capturedAt || new Date().toTimeString().slice(0,5))} — the closer to waking, the truer the record.</div>`;
-    if(t==='quote') html = f('author','Author / speaker','') + f('source','Source','book, film, a person') + f('link','Saved link (optional)','https://…') + f('page','Page / timestamp / location','')
+    /* A quote comes from somewhere, and that somewhere is usually already on
+       the shelf. Asking which work first — before the author and the source,
+       which it can then fill in itself — turns a loose scrap into a passage of
+       a book the Library also knows about. It stays optional: a line said to
+       you over dinner has no work behind it. */
+    if(t==='quote') html = quoteWorkFieldHTML(x())
+      + f('author','Author / speaker','') + f('source','Source','book, film, a person') + f('link','Saved link (optional)','https://…') + f('page','Page / timestamp / location','')
       + f('why','Why this caught me (required)','A quote without this is a bookmark, not knowledge.',true)
       + pick('category','What kind of words', [['wisdom','wisdom'],['craft','craft'],['beauty','beauty'],['provocation','provocation'],['comfort','comfort'],['challenge','challenge']]);
     if(t==='question') html = f('why','Why I am asking','What prompted this question?',true)
@@ -106,6 +112,7 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
       x()[k] = arr.includes(v) ? arr.filter(y=>y!==v) : [...arr, v]; b.classList.toggle('on'); });
     const sp = box.querySelector('[data-x=setpointAt]');
     if(sp) sp.oninput = () => { const n = box.querySelector('#xSpName'); if(n) n.textContent = hicksName(+sp.value); };
+    if(t === 'quote') bindQuoteWorkField(box, x(), renderExtra);
   };
   renderExtra();
   /* the painting changes with the kind — it is the fastest way to see that the
@@ -173,6 +180,10 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
     S.places = [...new Set([...(S.places||[]), ...e.places])];
     if(existing) Object.assign(existing, e); else S.entries.push(e);
     saveNow();
+    /* a quote that names a work is a passage of that work, so the work is told
+       — after the entry exists, because the passage points back at its id */
+    if(e.type === 'quote' && typeof attachQuoteToMedia === 'function')
+      attachQuoteToMedia(existing || e, e.extra.fromMedia || '');
     /* the ripple takes its colour from whatever the entry is tagged to; every
        lookup is optional because an entry may carry no links at all */
     const L = e.links || {};
