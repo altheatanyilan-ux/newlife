@@ -7,7 +7,9 @@
    a page with no shortcuts at all. */
 const PLAN_KEYS = {
   n:'add', f:'focus', t:'today', e:'edit', h:'habits', s:'stats',
-  1:'list', 2:'calendar', 3:'kanban', 4:'eisenhower', 5:'timeline',
+  /* derived from PLAN_VIEWS so the number keys can never disagree with the
+     order of the buttons they stand for */
+  ...Object.fromEntries(PLAN_VIEWS.map((v, i) => [i + 1, v.id])),
 };
 function planTypingInto(el){
   if(!el) return false;

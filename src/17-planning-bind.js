@@ -262,7 +262,7 @@ function openPlanListModal(id, {folderId = null} = {}){
     <div class="field"><label>Folder</label><select class="sel" id="plnFolder">
       <option value="">— none —</option>${p.folders.map(f => `<option value="${f.id}" ${preFolder === f.id ? 'selected' : ''}>${esc(f.name)}</option>`).join('')}</select></div>
     <div class="field"><label>Opens as</label><select class="sel" id="plnView">
-      ${PLAN_VIEWS.map(v => `<option value="${v.id}" ${(l?.defaultView || 'list') === v.id ? 'selected' : ''}>${v.name}</option>`).join('')}</select></div>
+      ${PLAN_VIEWS.map(v => `<option value="${v.id}" ${(l?.defaultView || PLAN_VIEW_DEFAULT) === v.id ? 'selected' : ''}>${v.name}</option>`).join('')}</select></div>
     <div class="row between" style="margin-top:8px">
       ${l && !l.isDefault ? `<button class="btn sm ghost danger" id="plnDel">delete list</button>` : '<span></span>'}
       <button class="btn primary" id="plnSave">${l ? 'Save' : 'Create'}</button></div></div>`, 'narrow');

@@ -168,8 +168,11 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
      await p.$$eval('#t-tasks .task-row', n => n.length), allN);
 
   console.log('\n7. the Planner shows the same steps on its own rows');
+  /* Planning opens on the matrix now; these checks are about the list row */
   await p.evaluate(() => { location.hash = '#/planning'; });
-  await p.waitForTimeout(1600);
+  await p.waitForTimeout(1400);
+  await p.evaluate(() => { S._planView = 'list'; rerender(); });
+  await p.waitForTimeout(900);
   const ptRows = await p.$$eval('.pt-row', n => n.length);
   yes('the planner has rows', ptRows > 0, String(ptRows));
   yes('and a task with steps shows them without opening the detail panel',
@@ -182,8 +185,11 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
      await p.evaluate(id => byId(S.tasks, id).subtasks.filter(s => s.isCompleted).length, ids.a), beforeTick + 1);
 
   console.log('\n8. rewriting a task needs no save button, in either room');
+  /* Planning opens on the matrix now; these checks are about the list row */
   await p.evaluate(() => { location.hash = '#/planning'; });
-  await p.waitForTimeout(1600);
+  await p.waitForTimeout(1400);
+  await p.evaluate(() => { S._planView = 'list'; rerender(); });
+  await p.waitForTimeout(900);
   const ptid = await p.evaluate(() => { const r = document.querySelector('.pt-text[data-tedit]'); return r ? r.dataset.tedit : null; });
   if(!ptid) no('a planner row can be rewritten in place', 'no editable planner row');
   else {

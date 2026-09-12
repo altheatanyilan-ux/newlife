@@ -204,14 +204,18 @@ function rerenderPlanBody(){
   const main = $('#main'); if(!main) return;
   const keep = $('#panel');
   const y = window.scrollY;
-  const body = $('#plBody'); if(!body) return;
+  /* the habits room is the whole page rather than a body inside a shell, so
+     there is nothing partial to redraw there — redraw the page instead of
+     returning and leaving a tick that changed nothing on screen */
+  const body = $('#plBody');
+  if(!body){ if(typeof planRoom === 'function' && planRoom() === 'habits'){ rerender(); scrollTo(0, y); } return; }
   const sel = planSel();
   let tasks = planSelectionTasks(sel);
   const p = planState();
   tasks = planSortTasks(tasks, p.prefs.sort, p.prefs.sortDir);
   const v = planView();
-  const special = sel.kind === 'smart' && (sel.id === 'habits' || sel.id === 'stats');
-  body.innerHTML = special ? (sel.id === 'habits' ? planHabitsHTML() : planStatsHTML())
+  const special = sel.kind === 'smart' && sel.id === 'stats';
+  body.innerHTML = special ? planStatsHTML()
     : v === 'calendar' ? planCalendarHTML(tasks) : v === 'kanban' ? planKanbanHTML(sel, tasks)
     : v === 'eisenhower' ? planMatrixHTML(tasks) : v === 'timeline' ? planTimelineHTML(tasks)
     : planListViewHTML(sel, tasks);

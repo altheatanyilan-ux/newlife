@@ -30,8 +30,11 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   is('debounce passes the element through as `this`', keepsThis, 'held');
 
   console.log('\n2. so typing a task name in the panel actually saves it');
+  /* Planning opens on the matrix now; these checks are about the list row */
   await p.evaluate(() => { location.hash = '#/planning'; });
-  await p.waitForTimeout(1700);
+  await p.waitForTimeout(1400);
+  await p.evaluate(() => { S._planView = 'list'; rerender(); });
+  await p.waitForTimeout(900);
   const tid = await p.evaluate(() => { const r = document.querySelector('[data-ptrow]'); if(!r) return null;
     openPlanTask(r.dataset.ptrow); return r.dataset.ptrow; });
   if(!tid) no('the panel opens on a task', 'no planner row');

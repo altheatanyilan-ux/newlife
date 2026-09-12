@@ -32,7 +32,13 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
   ok('seeded with lists, folders, tags and sections',
      seed.lists >= 6 && seed.folders === 2 && seed.tags === 5 && seed.sections >= 5, JSON.stringify(seed));
   ok('and with tasks', seed.tasks >= 15, 'saw ' + seed.tasks);
-  ok('every smart view is offered', seed.smart >= 8, 'saw ' + seed.smart);
+  /* Habits used to be the eighth item here. It is a room of its own now — a
+     peer of the whole task side rather than one of its saved views — so the
+     sidebar carries the task views, and the two rooms sit above them. */
+  ok('every smart task view is offered', seed.smart >= 7, 'saw ' + seed.smart);
+  ok('habits is not among them', await page.evaluate(() => !document.querySelector('[data-plsel="smart:habits"]')));
+  ok('it is one of the two rooms instead',
+     await page.evaluate(() => [...document.querySelectorAll('[data-plroom]')].map(b => b.dataset.plroom).join(',') === 'tasks,habits'));
 
   console.log('\n2. the sentence, read as a task');
   const parsed = await page.evaluate(() => {
@@ -51,6 +57,10 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
      && more[2].day && more[3].day && more[4].t === '09:00' && more[5].day, JSON.stringify(more));
 
   console.log('\n3. adding one, and the preview before it lands');
+  /* the typed line with its live preview belongs to the list view; the page
+     now opens on the matrix, which has its own add line in each quadrant */
+  await page.evaluate(() => { S._planView = 'list'; rerender(); });
+  await page.waitForTimeout(900);
   await page.fill('.pq-input', 'Ring the bank monday !med #call ~30m');
   await page.waitForTimeout(350);
   const prev = await page.evaluate(() => Array.from(document.querySelectorAll('.qp-chip')).map(c => c.textContent.trim()));
@@ -163,7 +173,8 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
       negative:false, min:'', ideal:'', prompt:'', stackAfter:null, links:{values:[],skills:[]}});
     const h = S.habits[0], T = today();
     delete (S.habitLog[T] || {})[h.id];
-    planSetSel('smart','habits'); return {id:h.id, before: !!habitDone(h, T)};
+    /* habits are their own room now, not a selection inside the task room */
+    planSetRoom('habits'); return {id:h.id, before: !!habitDone(h, T)};
   });
   await page.waitForTimeout(900);
   ok('the habits view renders cards', await page.evaluate(() => document.querySelectorAll('.ph-card').length) > 0, 'no cards');
@@ -198,7 +209,9 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
   ok('through the same global toggle', snd.global, 'no #btnAmbient');
 
   console.log('\n10. the statistics');
-  await page.evaluate(() => planSetSel('smart','stats')); await page.waitForTimeout(900);
+  /* back out of the habits room before asking the task room for anything */
+  await page.evaluate(() => { planSetRoom('tasks'); planSetSel('smart','stats'); });
+  await page.waitForTimeout(900);
   const stats = await page.evaluate(() => ({tiles: document.querySelectorAll('.ps-tile').length,
     bars: document.querySelectorAll('.ps-bar').length, heat: document.querySelectorAll('.ph-heatgrid').length,
     score: planProductivityScore(today())}));
@@ -208,12 +221,20 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
   console.log('\n11. the keyboard, and the keyboard staying out of the way');
   await page.evaluate(() => planSetSel('smart', 'today'));      // off Statistics, which has no add line
   await go();
+  /* Read the wanted order off PLAN_VIEWS rather than repeating it here: the
+     number keys are derived from that list, so a hard-coded copy only records
+     whatever the order happened to be the day it was written. */
+  const order = await page.evaluate(() => PLAN_VIEWS.map(v => v.id));
   const vk = [];
-  for(const [k, want] of [['2','calendar'],['3','kanban'],['4','eisenhower'],['5','timeline'],['1','list']]){
-    await page.keyboard.press(k); await page.waitForTimeout(420);
-    vk.push(await page.evaluate(() => planView()) === want);
+  for(let i = 0; i < order.length; i++){
+    await page.keyboard.press(String(i + 1)); await page.waitForTimeout(420);
+    vk.push((await page.evaluate(() => planView())) === order[i]);
   }
-  ok('1–5 switch views', vk.every(Boolean), vk.join(','));
+  ok(`1–${order.length} switch views, in the order the buttons are in`, vk.every(Boolean),
+     order.map((o, i) => `${i+1}:${o}${vk[i] ? '' : ' ✗'}`).join(' '));
+  /* the typed add line lives in the list view */
+  await page.evaluate(() => { S._planView = 'list'; rerender(); });
+  await page.waitForTimeout(700);
   await page.keyboard.press('n'); await page.waitForTimeout(400);
   ok('n reaches for the add line', await page.evaluate(() => document.activeElement?.classList.contains('pq-input')), 'focus elsewhere');
   await page.keyboard.type('milk and 3 eggs');

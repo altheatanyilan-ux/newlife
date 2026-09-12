@@ -18,7 +18,10 @@ function planCardHTML(t){
         style="${pr.color ? `--pc:${pr.color}` : ''}"><svg viewBox="0 0 20 20" aria-hidden="true">
         <circle cx="10" cy="10" r="8.2" class="pt-ring"/><path d="M5.6 10.3 L8.7 13.3 L14.4 6.9" class="pt-tick"/></svg></button>
       <span class="pk-text">${esc(t.text || 'Untitled task')}</span></div>
-    ${sub ? `<div class="pk-bar" title="${sub.done} of ${sub.total} steps"><i style="width:${Math.round(sub.done / sub.total * 100)}%"></i></div>` : ''}
+    ${sub ? `<button class="pk-bar" data-tsubs="${t.id}" title="${sub.done} of ${sub.total} steps — ${subsOpen(t.id, t) ? 'hide them' : 'show them'}"><i style="width:${Math.round(sub.done / sub.total * 100)}%"></i></button>` : ''}
+    <!-- the matrix is the view this page opens on, so steps have to be legible
+         here too, not only in the list -->
+    ${subsOpen(t.id, t) ? subBlockHTML(t.id, t) : ''}
     <div class="pk-meta">
       ${t.day ? `<span class="mono${late ? ' late' : ''}">${late ? '⚠ ' : ''}${esc(fmtDate(t.day, 'short'))}</span>` : ''}
       ${t.duration ? `<span class="mono">${t.duration >= 60 ? (t.duration / 60).toFixed(t.duration % 60 ? 1 : 0) + 'h' : t.duration + 'm'}</span>` : ''}

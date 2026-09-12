@@ -11,7 +11,7 @@ function planSetSel(kind, id){
   if(kind === 'list'){ const l = planList(id); if(l?.defaultView) S._planView = l.defaultView; }
   saveNow(); rerender();
 }
-function planView(){ return S._planView || planState().prefs.view || 'list'; }
+function planView(){ return S._planView || planState().prefs.view || PLAN_VIEW_DEFAULT; }
 function planSetView(v){ S._planView = v; planState().prefs.view = v; saveNow(); rerender(); }
 
 /* ---------- sidebar ---------- */
@@ -32,9 +32,6 @@ function planSidebarHTML(){
           <span class="pl-ico">${v.icon}</span><span class="pl-name">${esc(v.name)}</span>
           <span class="pl-n mono">${planSmartCount(v.id) || ''}</span></button>`).join('')}
       </div>
-      <button class="pl-item${on('smart','habits')}" data-plsel="smart:habits" title="Habits"><span class="pl-ico">◍</span><span class="pl-name">Habits</span>
-        <span class="pl-n mono">${(S.habits || []).filter(h => !h.archived && !h.negative && habitDue(h, today()) && !habitDone(h, today())).length || ''}</span></button>
-
       <div class="pl-head"><span>Lists</span><button class="pl-mini" id="plNewList" title="new list">＋</button></div>
       <div class="pl-group" id="plLists">
         ${p.folders.slice().sort((a,b)=>a.sortOrder-b.sortOrder).map(f => {
@@ -79,7 +76,7 @@ function planHeaderHTML(sel){
   if(f.priority != null) chips.push(`<span class="pf-chip on" data-pfclear="priority">${planPriority(f.priority).name}<i>×</i></span>`);
   if(f.tag) chips.push(`<span class="pf-chip on" data-pfclear="tag">#${esc(f.tag)}<i>×</i></span>`);
   if(f.range) chips.push(`<span class="pf-chip on" data-pfclear="range">${esc(f.range)}<i>×</i></span>`);
-  const special = sel.kind === 'smart' && (sel.id === 'habits' || sel.id === 'stats');
+  const special = sel.kind === 'smart' && sel.id === 'stats';
   return `<div class="pl-header">
     <div class="row between" style="align-items:baseline;gap:12px">
       <h2 class="pl-title">${esc(planSelectionTitle(sel))}</h2>
@@ -200,12 +197,40 @@ function planEmptyLine(sel){
 }
 
 /* ---------- the page ---------- */
+/* ---------- two rooms, not one room with habits filed inside it ----------
+   Habits were an item in the sidebar, sitting among the smart task views, so
+   the daily practice you are trying to keep was one line below "next 7 days".
+   They are not a way of looking at tasks; they are the other half of what this
+   page is for, so they are a peer of the whole task side rather than a sibling
+   of one of its layouts. */
+const PLAN_ROOMS = [
+  {id:'tasks',  name:'Tasks',  icon:'▤'},
+  {id:'habits', name:'Habits', icon:'◍'},
+];
+function planRoom(){ return S._planRoom || planState().prefs.room || 'tasks'; }
+function planSetRoom(id){
+  S._planRoom = id; planState().prefs.room = id; saveNow(); rerender();
+}
+function planRoomsHTML(){
+  const cur = planRoom();
+  const due = (S.habits || []).filter(h => !h.archived && !h.negative && habitDue(h, today()) && !habitDone(h, today())).length;
+  return `<div class="pl-rooms" role="tablist" aria-label="Tasks or habits">
+    ${PLAN_ROOMS.map(r => `<button class="pl-room${cur === r.id ? ' on' : ''}" role="tab"
+      aria-selected="${cur === r.id}" data-plroom="${r.id}">
+      <span class="pl-ico">${r.icon}</span>${esc(r.name)}${r.id === 'habits' && due ? `<i class="pl-n mono">${due}</i>` : ''}</button>`).join('')}
+  </div>`;
+}
+
 routes.planning = function(root, params){
   migratePlanning();
-  if(params[0]) S._planSel = {kind:'smart', id:params[0]};
+  /* an address still naming habits opens the habits room rather than a
+     selection inside the task room that no longer exists */
+  if(params[0] === 'habits'){ S._planRoom = 'habits'; }
+  else if(params[0]) { S._planRoom = 'tasks'; S._planSel = {kind:'smart', id:params[0]}; }
   const sel = planSel();
   registerPageEntry({pageName:'Planning', addLabel:'New task', defaultEntryType:'task', prefilledFields:{},
-    hint:'or type it in the line at the top of the list', options:[{label:'New task', run:() => openPlanTask(null)}]});
+    hint:'or type it straight into a quadrant, or the line at the top of the list',
+    options:[{label:'New task', run:() => openPlanTask(null)}]});
 
   let tasks = planSelectionTasks(sel);
   const f = S._planFilter || {};
@@ -220,17 +245,30 @@ routes.planning = function(root, params){
   tasks = planSortTasks(tasks, p.prefs.sort, p.prefs.sortDir);
 
   const v = planView();
-  const special = sel.kind === 'smart' && (sel.id === 'habits' || sel.id === 'stats');
+  const special = sel.kind === 'smart' && sel.id === 'stats';
   const body = special
-    ? (sel.id === 'habits' ? planHabitsHTML() : planStatsHTML())
+    ? planStatsHTML()
     : v === 'calendar'   ? planCalendarHTML(tasks)
     : v === 'kanban'     ? planKanbanHTML(sel, tasks)
     : v === 'eisenhower' ? planMatrixHTML(tasks)
     : v === 'timeline'   ? planTimelineHTML(tasks)
     : planListViewHTML(sel, tasks);
 
+  if(planRoom() === 'habits'){
+    root.innerHTML = `<div class="page plan-page">
+      <div class="page-head"><h1>Planning</h1></div>
+      ${planRoomsHTML()}
+      <div class="pl-habits-room">${planHabitsHTML()}</div>
+    </div>`;
+    bindPlanRooms(root);
+    if(typeof bindPlanHabits === 'function') bindPlanHabits(root);
+    else if(typeof bindPlanning === 'function') bindPlanning(root);
+    return;
+  }
+
   root.innerHTML = `<div class="page plan-page">
     <div class="page-head"><h1>Planning</h1></div>
+    ${planRoomsHTML()}
     ${planReminderBannerHTML()}
     <div class="plan-shell${planState().prefs.sidebarCollapsed ? ' shut' : ''}">
       ${planSidebarHTML()}
@@ -242,6 +280,11 @@ routes.planning = function(root, params){
     </div>
   </div>`;
   const count = $('#plCount'); if(count) count.textContent = `${tasks.filter(t => !t.done).length} open`;
+  bindPlanRooms(root);
   bindPlanning(root, sel, tasks);
 };
 ROUTE_ALIASES.plan = 'planning';
+
+function bindPlanRooms(root){
+  $$('[data-plroom]', root).forEach(b => b.onclick = () => { sound('nav'); planSetRoom(b.dataset.plroom); });
+}

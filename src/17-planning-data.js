@@ -40,13 +40,17 @@ const PLAN_SMART_VIEWS = [
   {id:'all',      icon:'≡', name:'All',         hint:'every task, every list'},
   {id:'done',     icon:'✓', name:'Completed',   hint:'the last thirty days of finished work'},
 ];
+/* The matrix leads, and the page opens on it. A list answers "what is there";
+   the matrix answers "what should I touch first", which is the question the
+   page is for — and the number keys follow this order, so 1 is the matrix. */
 const PLAN_VIEWS = [
+  {id:'eisenhower', icon:'⊞', name:'Matrix'},
   {id:'list',       icon:'☰', name:'List'},
   {id:'calendar',   icon:'▦', name:'Calendar'},
   {id:'kanban',     icon:'▥', name:'Board'},
-  {id:'eisenhower', icon:'⊞', name:'Matrix'},
   {id:'timeline',   icon:'▬', name:'Timeline'},
 ];
+const PLAN_VIEW_DEFAULT = 'eisenhower';
 const PLAN_QUADRANTS = [
   {n:1, name:'Urgent & important', act:'Do first',  color:'var(--terra)'},
   {n:2, name:'Important',          act:'Schedule',  color:'var(--sage)'},
@@ -99,15 +103,15 @@ function planState(){
   p.reminders  = Array.isArray(p.reminders) ? p.reminders : [];
   p.timer = Object.assign({focusDuration:25, shortBreak:5, longBreak:15, longBreakAfter:4,
     autoStartBreaks:true, autoStartFocus:false}, p.timer || {});
-  p.prefs = Object.assign({view:'list', sort:'dueDate', sortDir:'asc', showCompleted:false,
+  p.prefs = Object.assign({view:PLAN_VIEW_DEFAULT, sort:'dueDate', sortDir:'asc', showCompleted:false,
     group:'auto', sidebarCollapsed:false, lastView:'today', calMode:'month', tlScale:'week'}, p.prefs || {});
   if(!p.lists.some(l => l.id === 'inbox'))
     p.lists.unshift({id:'inbox', name:'Inbox', color:'#a89f94', folderId:null, sortOrder:-1,
-      defaultView:'list', kanbanColumns:DEFAULT_KANBAN(), sections:[], isDefault:true, createdAt:new Date().toISOString()});
+      defaultView:PLAN_VIEW_DEFAULT, kanbanColumns:DEFAULT_KANBAN(), sections:[], isDefault:true, createdAt:new Date().toISOString()});
   p.lists.forEach((l, i) => {
     l.kanbanColumns = Array.isArray(l.kanbanColumns) && l.kanbanColumns.length ? l.kanbanColumns : DEFAULT_KANBAN();
     l.sections = Array.isArray(l.sections) ? l.sections : [];
-    l.defaultView = l.defaultView || 'list';
+    l.defaultView = l.defaultView || PLAN_VIEW_DEFAULT;
     if(l.sortOrder == null) l.sortOrder = i;
   });
   return p;
@@ -116,6 +120,14 @@ function migratePlanning(){
   migrateTasks();
   const p = planState();
   (S.tasks || []).forEach(planTaskDefaults);
+  /* The matrix became the view this page opens on, but prefs.view was written
+     the last time a view was picked — so without this the change never reaches
+     anyone who already has the app. Once, and only over the old default: a
+     view deliberately chosen since is left alone. */
+  if(!p.prefs.matrixFirst){
+    p.prefs.matrixFirst = true;
+    if(p.prefs.view === 'list') p.prefs.view = PLAN_VIEW_DEFAULT;
+  }
   /* a task pointing at a list that has since been deleted belongs in the Inbox,
      not in a list nobody can navigate to */
   const ids = new Set(p.lists.map(l => l.id));
@@ -136,7 +148,7 @@ function planListColor(id){ return planList(id)?.color || 'var(--faint)'; }
 function planNewList(name, {folderId = null, color = null} = {}){
   const p = planState();
   const l = {id:uid(), name: name || 'New list', color: color || PLAN_COLORS[p.lists.length % PLAN_COLORS.length],
-    folderId, sortOrder: p.lists.length, defaultView:'list', kanbanColumns:DEFAULT_KANBAN(), sections:[],
+    folderId, sortOrder: p.lists.length, defaultView:PLAN_VIEW_DEFAULT, kanbanColumns:DEFAULT_KANBAN(), sections:[],
     isDefault:false, createdAt:new Date().toISOString()};
   p.lists.push(l); return l;
 }

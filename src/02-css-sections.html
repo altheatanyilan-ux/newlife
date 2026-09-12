@@ -643,6 +643,28 @@ button.tm-cell:hover{border-color:var(--page-accent)}
 .sub-add .inp.sm{font-size:.8rem;padding:5px 8px;background:none;border-style:dashed}
 .sub-add .inp.sm:focus{background:var(--surface-2);border-style:solid}
 
+/* steps inside a matrix or board card: the same block, tightened */
+.pk-card .sub-wrap{margin:6px 0 4px 4px;padding-left:9px}
+.pk-card .sub-row{padding:2px 4px;gap:7px}
+.pk-card .sub-text{font-size:.78rem}
+.pk-card .sub-add .inp.sm{font-size:.74rem;padding:3px 6px}
+button.pk-bar{display:block;width:100%;border:none;padding:0;cursor:pointer}
+
+/* ---------- Planning's two rooms ----------
+   Tasks and habits are the two halves of the page, so they read as two tabs
+   above everything rather than as items inside one of them. */
+.pl-rooms{display:flex;gap:4px;margin:0 0 14px;border-bottom:1px solid var(--line)}
+.pl-room{display:inline-flex;align-items:center;gap:7px;border:none;background:none;cursor:pointer;
+  padding:9px 16px;margin-bottom:-1px;color:var(--muted);font-size:.92rem;font-family:var(--serif);
+  border-bottom:2px solid transparent;
+  transition:color .16s var(--ease),border-color .16s var(--ease)}
+.pl-room .pl-ico{font-size:.9rem;opacity:.8}
+.pl-room:hover{color:var(--text)}
+.pl-room.on{color:var(--text);border-bottom-color:var(--page-accent)}
+.pl-room .pl-n{font-style:normal;font-size:.6rem;padding:1px 6px;border-radius:20px;
+  background:color-mix(in srgb,var(--page-accent) 22%,transparent);color:var(--text)}
+.pl-habits-room{max-width:var(--content,1100px)}
+
 /* the folder's own add button, quiet until the folder is under the cursor */
 .pl-frow{display:flex;align-items:center;gap:2px}
 .pl-frow .pl-fhead{flex:1;min-width:0}
