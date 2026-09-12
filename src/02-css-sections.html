@@ -1335,6 +1335,11 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 .lvl-criteria{list-style:none;padding:0;margin:0}
 .lvl-criteria li{display:flex;gap:8px;align-items:flex-start;padding:3px 0;font-size:.88rem;position:relative}
 .lvl-criteria li .ed{flex:1}
+/* a criterion met is struck through and steps back, the way a done task does */
+.lvl-criteria li.met .ed{text-decoration:line-through;color:var(--faint)}
+.lvl-criteria li.met .task-check{background:var(--page-accent);border-color:var(--page-accent);color:#fff}
+.lvl-criteria li .task-check{margin-top:2px}
+.crit-count{font-family:var(--mono);font-size:.6rem;color:var(--page-accent);letter-spacing:.06em;margin-left:6px}
 .lvl-res{display:flex;flex-direction:column;gap:4px}
 .res-row{display:flex;gap:8px;align-items:center;font-size:.85rem;flex-wrap:wrap;position:relative}
 .res-type{font-size:.85rem;min-width:18px;text-align:center}

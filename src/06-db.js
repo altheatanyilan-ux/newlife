@@ -127,7 +127,12 @@ const RESOURCE_TYPES = ['book','video','course','article','tool'];
 function migrateSkillLevels(){
   S.skills.forEach(s => {
     if(!Array.isArray(s.levels) || !s.levels.length){ const rub = Array.isArray(s.rubric) && s.rubric.length ? s.rubric : ['','','','','']; s.levels = rub.map((d,i) => ({number:i+1, label:LEVEL_LABELS[i] || `Level ${i+1}`, description:d||'', criteria:[], resources:[], estimatedTime:'', targetDate:null})); }
-    s.levels.forEach((l,i) => { l.number = i+1; l.criteria = l.criteria||[]; l.resources = l.resources||[]; l.estimatedTime = l.estimatedTime||''; if(l.targetDate===undefined) l.targetDate = null; if(!l.label) l.label = `Level ${i+1}`; if(l.description===undefined) l.description = ''; });
+    /* A criterion is an observable behaviour, so it is something you either can
+       or cannot yet do — it wants a tick, not just a line of text. They were
+       stored as bare strings; each becomes an object that can carry one. */
+    s.levels.forEach((l,i) => { l.number = i+1; l.resources = l.resources||[]; l.estimatedTime = l.estimatedTime||''; if(l.targetDate===undefined) l.targetDate = null; if(!l.label) l.label = `Level ${i+1}`; if(l.description===undefined) l.description = '';
+      l.criteria = (l.criteria||[]).map(c => typeof c === 'string' ? {id:uid(), text:c, done:false}
+        : {id:c.id||uid(), text:c.text||'', done:!!c.done, metAt:c.metAt||null}); });
     if(s.currentLevel === undefined) s.currentLevel = s.level ?? (s.planned ? 0 : 1);
     s.currentLevel = Math.min(s.currentLevel, s.levels.length);
     if(!Array.isArray(s.milestones)){ s.milestones = []; if(s.target && s.target > s.currentLevel) s.milestones.push({levelTarget:s.target, by:s.targetDate||null, note:''}); }

@@ -82,6 +82,30 @@ const WANT = ['Musical','Artistic','Income','Language','Intellectual','Social','
   is('  so it can be moved deliberately',
      await p.evaluate(i => byId(S.skills, i).cat, sid), 'Social');
 
+  console.log('\n6. the inventory offers all seven, empty or not');
+  /* The inventory listed only the categories something was already filed
+     under. Musical, until you write down your first instrument, could not be
+     picked there at all — while the panel and the add form both offered it.
+     Two vocabularies for one page. */
+  await p.evaluate(() => { location.hash = '#/skills'; rerender(); }); await p.waitForTimeout(1300);
+  const optsOf = () => p.$$eval('#skCat option', o => o.map(x => x.textContent));
+  await p.evaluate(() => { S.skills.forEach(s => { if(s.cat === 'Musical') s.cat = 'Artistic'; }); saveNow(); rerender(); });
+  await p.waitForTimeout(1000);
+  const catOpts = await optsOf();
+  yes('Musical is offered with nothing filed under it', catOpts.some(t => /^Musical/.test(t)), catOpts.join(' | '));
+  yes('  and says so plainly', catOpts.some(t => /^Musical — none yet/.test(t)), catOpts.join(' | '));
+  yes('every one of the seven is there', ['Musical','Artistic','Income','Language','Intellectual','Social','Spirituality']
+      .every(c => catOpts.some(t => t.startsWith(c))), catOpts.join(' | '));
+  yes('  and the ones in use are counted', catOpts.some(t => /^Artistic \(\d+\)/.test(t)), catOpts.join(' | '));
+  await p.selectOption('#skCat', 'Musical'); await p.waitForTimeout(900);
+  is('choosing an empty one shows nothing rather than everything',
+     await p.$$eval('.inv-row', n => n.length), 0);
+  yes('  and the page still stands', !!(await p.$('.inv-list')));
+  /* file something under it and it fills up */
+  await p.evaluate(() => { S.skills[0].cat = 'Musical'; saveNow(); rerender(); });
+  await p.waitForTimeout(900);
+  is('filing one there shows it', await p.$$eval('.inv-row', n => n.length), 1);
+
   console.log('\n' + (errs.length ? 'console:\n  ' + errs.join('\n  ') : 'console: clean'));
   if(errs.length) bad += errs.length;
   console.log(bad ? `\n${bad} FAILED` : '\nsmoke112  all good');
