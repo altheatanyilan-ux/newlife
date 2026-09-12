@@ -36,21 +36,113 @@ function deleteTaskRef(id, node, after){
     ? spliceOut(S.tasks, x => x.id === r.task.id)
     : spliceOut(r.phase.tasks, x => x.id === r.task.id)});
 }
-/* ---------- one row, used by Today and by the Planner ---------- */
+/* ---------- subtasks ----------
+   The shape already existed on a planner task — {id, title, isCompleted} —
+   and only the detail panel ever showed it. A task broken into steps is most
+   useful on the day you are doing it, so the same list is here too.
+
+   A task made inside a project never went through planTaskDefaults, so it can
+   reach this point with no subtasks array at all. Create it on demand rather
+   than guarding at twenty call sites. */
+function taskSubs(task){
+  if(!Array.isArray(task.subtasks)) task.subtasks = [];
+  return task.subtasks;
+}
+function taskSubCount(task){
+  const subs = Array.isArray(task.subtasks) ? task.subtasks : [];
+  return subs.length ? {done: subs.filter(s => s.isCompleted).length, total: subs.length} : null;
+}
+/* Which rows are open is a property of this glance at the page, not of the
+   task: it is deliberately not saved, so tomorrow starts tidy. */
+const taskOpenSubs = new Set();
+
+function subRowHTML(rid, s){
+  return `<div class="sub-row${s.isCompleted ? ' done' : ''}" data-subrow="${esc(s.id)}">
+    <button class="task-check sm" data-subcheck="${esc(rid)}|${esc(s.id)}" role="checkbox"
+      aria-checked="${!!s.isCompleted}" title="${s.isCompleted ? 'mark not done' : 'mark done'}">${s.isCompleted ? '✓' : ''}</button>
+    <span class="sub-text">${esc(s.title || '')}</span>
+    <button class="del-x inline" data-subdel="${esc(rid)}|${esc(s.id)}" title="remove this step">×</button>
+  </div>`;
+}
+
+/* ---------- one row ---------- */
 function taskRowHTML(r, {showDay=false}={}){
   const late = r.day && !r.done && r.day < today();
-  return `<div class="task-row ${r.done?'done':''} ${late?'late':''}" data-taskrow="${r.id}" draggable="true">
+  const prog = taskSubCount(r.task);
+  const open = taskOpenSubs.has(r.id);
+  const subs = Array.isArray(r.task.subtasks) ? r.task.subtasks : [];
+  return `<div class="task-row ${r.done?'done':''} ${late?'late':''}${open?' subs-open':''}" data-taskrow="${r.id}" draggable="true">
+    <button class="task-caret${open?' on':''}" data-tsubs="${r.id}" aria-expanded="${open}"
+      title="${open ? 'hide the steps' : 'break this into steps'}">›</button>
     <button class="task-check" data-tcheck="${r.id}" role="checkbox" aria-checked="${r.done}" title="${r.done?'mark not done':'mark done'}">${r.done?'✓':''}</button>
     <span class="task-text">${esc(r.text || 'Untitled task')}</span>
+    ${prog?`<button class="task-subcount${prog.done===prog.total?' all':''}" data-tsubs="${r.id}"
+      title="${prog.done} of ${prog.total} steps done">${prog.done}/${prog.total}</button>`:''}
     ${r.where?`<a class="task-where" href="${r.go}" title="${esc(r.where)}">${esc(r.where)}</a>`:''}
     ${showDay && r.day?`<span class="mono task-day">${late?'⚠ ':''}${fmtDate(r.day,'short')}</span>`:''}
-    <button class="del-x inline" data-tdel="${r.id}" title="delete task">×</button>
-  </div>`;
+    <!-- Taking something off a day is not the same as deciding never to do it.
+         This clears the day and keeps the task, so it comes back in the pull-in
+         list for any other day; the × beside it still deletes, with its undo. -->
+    ${r.day?`<button class="task-defer" data-tdefer="${r.id}" title="not today — keep it for another day">not today</button>`:''}
+    <button class="del-x inline" data-tdel="${r.id}" title="delete this task for good">×</button>
+  </div>
+  ${open ? `<div class="sub-wrap" data-subwrap="${r.id}">
+    ${subs.map(s => subRowHTML(r.id, s)).join('')}
+    <div class="sub-add"><input class="inp sm" data-subnew="${r.id}" placeholder="＋ add a step and press Enter"></div>
+  </div>` : ''}`;
 }
 function bindTaskRows(root, after){
   const redraw = after || rerender;
   $$('[data-tcheck]', root).forEach(b => b.onclick = () => { const r = findTaskRef(b.dataset.tcheck); if(!r) return; setTaskDone(r.id, !r.done); sound(r.done ? 'click' : 'success'); redraw(); });
   $$('[data-tdel]', root).forEach(b => b.onclick = e => { e.stopPropagation(); deleteTaskRef(b.dataset.tdel, b.closest('.task-row'), redraw); });
+  $$('[data-tdefer]', root).forEach(b => b.onclick = e => {
+    e.stopPropagation();
+    const r = findTaskRef(b.dataset.tdefer); if(!r) return;
+    const was = r.day;
+    setTaskDay(r.id, '');
+    sound('click');
+    toast('Off today. It is waiting in the unscheduled list, and “pull in” will find it on any day.', 6000,
+      {label: 'put it back', fn: () => { setTaskDay(r.id, was); redraw(); }});
+    redraw();
+  });
+
+  /* subtasks */
+  $$('[data-tsubs]', root).forEach(b => b.onclick = e => {
+    e.stopPropagation();
+    const id = b.dataset.tsubs;
+    taskOpenSubs.has(id) ? taskOpenSubs.delete(id) : taskOpenSubs.add(id);
+    sound('click'); redraw();
+  });
+  $$('[data-subcheck]', root).forEach(b => b.onclick = e => {
+    e.stopPropagation();
+    const [rid, sid] = b.dataset.subcheck.split('|');
+    const r = findTaskRef(rid); if(!r) return;
+    const s = taskSubs(r.task).find(x => x.id === sid); if(!s) return;
+    s.isCompleted = !s.isCompleted; s.completedAt = s.isCompleted ? today() : null;
+    saveNow(); sound(s.isCompleted ? 'success' : 'click'); redraw();
+  });
+  $$('[data-subdel]', root).forEach(b => b.onclick = e => {
+    e.stopPropagation();
+    const [rid, sid] = b.dataset.subdel.split('|');
+    const r = findTaskRef(rid); if(!r) return;
+    spliceOut(taskSubs(r.task), x => x.id === sid);
+    saveNow(); redraw();
+  });
+  /* The field keeps the caret after each step, the way the day planner does:
+     breaking a task down is several lines in a row, not one. */
+  $$('[data-subnew]', root).forEach(i => i.addEventListener('keydown', ev => {
+    ev.stopPropagation();
+    if(ev.key !== 'Enter') return;
+    const v = i.value.trim(); if(!v) return;
+    const r = findTaskRef(i.dataset.subnew); if(!r) return;
+    const subs = taskSubs(r.task);
+    subs.push({id: uid(), title: v, isCompleted: false, completedAt: null, sortOrder: subs.length});
+    saveNow(); sound('save');
+    i.value = '';
+    redraw();
+    const again = document.querySelector(`[data-subnew="${i.dataset.subnew}"]`);
+    if(again) again.focus();
+  }));
   $$('[data-taskrow]', root).forEach(row => {
     row.addEventListener('dragstart', ev => { ev.dataTransfer.setData('text/plain', row.dataset.taskrow); ev.dataTransfer.effectAllowed = 'move'; row.classList.add('dragging'); window._taskDrag = row.dataset.taskrow; });
     row.addEventListener('dragend', () => { row.classList.remove('dragging'); window._taskDrag = null; });
