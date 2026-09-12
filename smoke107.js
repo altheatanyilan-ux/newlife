@@ -67,20 +67,28 @@ const GONE = ['uncategorized', 'progress', 'lifeevent', 'memory', 'media'];
         .filter(r => /not in the sidebar/.test(r.textContent)).length >= 5));
   await p.evaluate(() => closeModals());
 
-  console.log('\n5. the room is marked by a tree');
+  console.log('\n5. the room keeps its open book, and the house wears the tree');
+  /* The tree was briefly the Journals icon and has since moved to the favicon,
+     where it stands for the whole house rather than one room in it. */
   const ico = await p.evaluate(() => NAV_ICONS.journals);
-  yes('the icon is not the old open book', !/M12 6\.5c-1\.6-1\.4-3\.8/.test(ico));
-  yes('  it has a crown', /<circle/.test(ico), ico.slice(0, 80));
-  yes('  a trunk running through it', /M12 19\.9V3\.7/.test(ico), ico);
-  yes('  branches and roots', (ico.match(/M12 /g) || []).length >= 5, ico);
+  yes('Journals is an open book again', /M12 6\.5c-1\.6-1\.4/.test(ico), ico.slice(0, 80));
+  yes('  with no crown on it', !/<circle/.test(ico), ico.slice(0, 90));
   /* <html> carries data-page for the current room, so the nav link has to be
      addressed as a link — the bare attribute selector finds the document */
   const inNav = await p.evaluate(() => {
     const svg = document.querySelector('a[data-page="journals"] .ico svg');
     return svg ? {circles: svg.querySelectorAll('circle').length, paths: svg.querySelectorAll('path').length} : null;
   });
-  yes('and the sidebar of the whole app draws it', inNav && inNav.circles === 1 && inNav.paths >= 3,
-      JSON.stringify(inNav));
+  yes('and the sidebar draws that', inNav && inNav.circles === 0 && inNav.paths === 2, JSON.stringify(inNav));
+
+  console.log('\n5b. the tree is the mark of the site itself');
+  const fav = await p.evaluate(() => decodeURIComponent(document.querySelector('link[rel="icon"]').href));
+  yes('the favicon has a crown', /<circle/.test(fav));
+  yes('  a trunk', /M50 84V15/.test(fav), fav.slice(0, 140));
+  yes('  and roots', /M50 84c0 6-6 8-17 10/.test(fav));
+  yes('  and it is no longer the 生 strokes', !/M58 16/.test(fav));
+  yes('the home-screen icon agrees with it', await p.evaluate(() =>
+    !!document.querySelector('link[rel="apple-touch-icon"]')?.href.startsWith('data:image/png')));
 
   console.log('\n' + (errs.length ? 'console:\n  ' + errs.join('\n  ') : 'console: clean'));
   if(errs.length) bad += errs.length;

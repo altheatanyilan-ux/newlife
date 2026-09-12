@@ -15,10 +15,9 @@ const NAV_ICONS = {
   planning: '<svg viewBox="0 0 24 24"><rect x="4" y="3.5" width="16" height="17" rx="2.5"/><path d="M9 3.5V6h6V3.5"/><path d="m8.2 11.4 1.9 1.9 4-4.2"/><path d="M8.2 16.6h7.6"/></svg>',
   home:     '<svg viewBox="0 0 24 24"><path d="M4 11.5 12 5l8 6.5"/><path d="M6.5 10.5V19h11v-8.5"/><path d="M10.5 19v-4.5h3V19"/></svg>',
   today:    '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4"/></svg>',
-  /* the tree of life: one round crown, a trunk that carries on down into
-     roots the same shape as the branches. An open book was the wrong picture
-     for a room that is mostly about what grew out of what */
-  journals: '<svg viewBox="0 0 24 24"><circle cx="12" cy="8.2" r="6.5"/><path d="M12 19.9V3.7"/><path d="m12 12.8-3.2-3.2M12 10.4l3.2-3.2M12 7.8 9.6 5.4M12 5.8l2.4-2.4"/><path d="M12 19.9c0 1.4-1.4 2-4 2.4M12 19.9c0 1.4 1.4 2 4 2.4M12 19.9c-.7 1-1.2 1.6-1.4 2.4M12 19.9c.7 1 1.2 1.6 1.4 2.4"/></svg>',
+  /* the open book it always was — the tree of life went to the favicon, where
+     it stands for the whole house rather than for one room in it */
+  journals: '<svg viewBox="0 0 24 24"><path d="M12 6.5c-1.6-1.4-3.8-1.8-7-1.5v13c3.2-.3 5.4.1 7 1.5 1.6-1.4 3.8-1.8 7-1.5V5c-3.2-.3-5.4.1-7 1.5Z"/><path d="M12 6.5v13"/></svg>',
   /* the village stepping up the slope, which is what the Projects room is
      painted as — three roofs rising, each one a thing being built */
   projects: '<svg viewBox="0 0 24 24"><path d="M2.5 20.5h19"/><path d="M3 17.5v-3l3-2.4 3 2.4v3"/><path d="M9.5 17.5v-4.6l3.2-2.6 3.2 2.6v4.6"/><path d="M16.4 17.5v-6.3L19 9.2l2.3 1.9v6.4"/><path d="M6 17.5v-2.2M12.7 17.5v-2.6M19 17.5v-2.8"/></svg>',
