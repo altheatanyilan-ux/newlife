@@ -7,7 +7,10 @@ function seed(){
   const T = today();
   return {
     version:1,
-    settings:{theme:'dark',sound:false,feltTime:false,home:'compass',chapterNamed:false,ribbons:true,firstOpen:T,relationships:[]},
+    /* Light is the default. resetAll() rebuilds from this object, so "clear all
+       data" comes back to light too, and prefsAsked being absent here is what
+       brings the opening question back with it. */
+    settings:{theme:'light',sound:false,feltTime:false,home:'compass',chapterNamed:false,ribbons:true,firstOpen:T,relationships:[]},
     reminders:[], tasks:[],
     stages:[], threads:[], tensions:[],
     values:[], valueOrder:[], valueOrderHistory:[], valueSnapshots:[],

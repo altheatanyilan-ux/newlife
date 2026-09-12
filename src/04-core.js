@@ -227,7 +227,7 @@ function renderRoute(){
   closePanel({keep:true});
   /* a modal belongs to the page that opened it — carrying one across a
      navigation leaves it stranded on top of a page it knows nothing about */
-  if(typeof closeModals === 'function') closeModals();
+  if(typeof closeModals === 'function') closeModals({route: true});
   if(typeof stopSway === 'function') stopSway();
   main.innerHTML = '';
   main.style.animation = 'none'; void main.offsetWidth; main.style.animation = '';
@@ -390,7 +390,16 @@ function updateBackButton(){
 function goBack(){ if(history.length > 1) history.back(); else navigate('#/' + homeRoute()); }
 document.addEventListener('click', e => { const b = e.target.closest('[data-back]'); if(b){ e.preventDefault(); goBack(); } });
 function openModal(html, cls=''){ sound('open'); const ov = el(`<div class="overlay"><div class="modal ${cls}"><button class="close">×</button>${html}</div></div>`); ov.addEventListener('mousedown', e => { if(e.target===ov) ov.remove(); }); ov.querySelector('.close').onclick = () => ov.remove(); $('#modals').appendChild(ov); if(typeof attachDictationIn === 'function') attachDictationIn(ov); return ov; }
-function closeModals(){ $$('#modals .overlay').forEach(o=>o.remove()); $('.lightbox')?.remove(); closePanel(); }
+/* A modal belongs to the page that opened it, so routing sweeps them — but a
+   few belong to the session instead. The opening question is asked once, before
+   any page exists, and init() sets location.hash a moment before showing it:
+   the hashchange that follows would otherwise arrive and close the dialog on
+   its way past. data-keep opts an overlay out of that sweep only; asking to
+   close it — Escape, the ×, the backdrop — still closes it. */
+function closeModals({route = false} = {}){
+  $$('#modals .overlay').forEach(o => { if(route && o.dataset.keep) return; o.remove(); });
+  $('.lightbox')?.remove(); closePanel();
+}
 /* the Escape key closes a panel through history so the stack stays true */
 function lightbox(src, cap=''){ const lb = el(`<div class="lightbox"><img src="${src}"><div class="cap">${esc(cap)}</div></div>`); lb.onclick = ()=>lb.remove(); document.body.appendChild(lb); }
 function confirmDlg(msg, onYes){ const m = openModal(`<h2>Are you sure?</h2><p class="muted">${msg}</p><div class="row" style="justify-content:flex-end;margin-top:18px"><button class="btn" data-x="no">Cancel</button><button class="btn danger" data-x="yes">Yes, do it</button></div>`, 'narrow'); m.querySelector('[data-x=no]').onclick = ()=>m.remove(); m.querySelector('[data-x=yes]').onclick = ()=>{ sound('error'); m.remove(); onYes(); }; }

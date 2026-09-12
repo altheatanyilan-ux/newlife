@@ -35,6 +35,12 @@ const WORDS = () => {
   page.on('pageerror', e => errors.push('PAGEERROR: ' + e.message));
   page.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION/.test(m.text())) errors.push('CONSOLE: '+m.text()); });
   await page.goto('file://' + process.cwd() + '/index.html');
+  /* A fresh profile is asked about theme and sound before anything else, and
+     the rest of boot waits behind that dialog. Take the defaults and get on
+     with it, the way a first-time user would. */
+  await page.waitForTimeout(900);
+  if(await page.$('#frGo')){ await page.click('#frGo'); await page.waitForTimeout(1800); }
+
   await page.waitForTimeout(2200);
   const go = async h => { await page.evaluate(x => { location.hash = x; rerender(); }, h); await page.waitForTimeout(1500); };
 

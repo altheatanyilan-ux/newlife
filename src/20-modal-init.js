@@ -254,10 +254,14 @@ async function init(){
   window.addEventListener('beforeunload', () => { if(saving || savePending) saveNow(); });
   if(S.settings.firstOpen === today() && !S._welcomed){ S._welcomed = true; setTimeout(()=>toast('Welcome home. Every piece of text here is editable — click it. The placeholder life is yours to overwrite.', 7000), 800); }
   registerServiceWorker();
-  setTimeout(() => { try { maybeOfferHandoff(); } catch(e){ console.warn('handoff notice skipped', e); }
+  /* The question about theme and sound comes before anything else has a chance
+     to speak, and the rest of boot waits behind it. */
+  const restOfBoot = () => setTimeout(() => {
+    try { maybeOfferHandoff(); } catch(e){ console.warn('handoff notice skipped', e); }
     try { maybeOfferStarter(); } catch(e){ console.warn('starter set skipped', e); }
     try { migratePlanning(); planSeedIfEmpty(); } catch(e){ console.warn('planning seed skipped', e); }
     try { migrateContent(); contentSeedIfEmpty(); } catch(e){ console.warn('content seed skipped', e); } }, 1200);
+  try { maybeAskPreferences(restOfBoot); } catch(e){ console.warn('opening question skipped', e); restOfBoot(); }
 }
 document.readyState==='loading' ? document.addEventListener('DOMContentLoaded', init) : init();
 </script>

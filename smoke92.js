@@ -10,6 +10,12 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
   const errs=[]; p.on('pageerror', e=>errs.push('PAGEERROR '+e.message));
   p.on('console', m=>{ if(m.type()==='error' && !/ERR_CONNECTION/.test(m.text())) errs.push('CONSOLE '+m.text()); });
   await p.goto('file://' + process.cwd() + '/index.html'); await p.waitForTimeout(3000);
+  /* A fresh profile is asked about theme and sound before anything else, and
+     the rest of boot waits behind that dialog. Take the defaults and get on
+     with it, the way a first-time user would. */
+  await p.waitForTimeout(900);
+  if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(1800); }
+
   const clean = () => p.evaluate(() => document.querySelectorAll('.toast').forEach(n=>n.remove()));
   const go = async h => { await p.evaluate(() => closeModals()); await p.waitForTimeout(150);
     await p.evaluate(x => { location.hash=x; rerender(); }, h); await p.waitForTimeout(850); await clean();

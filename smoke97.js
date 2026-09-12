@@ -16,6 +16,12 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   p.on('pageerror', e => errs.push('pageerror: ' + e.message));
   p.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET|Failed to load resource/.test(m.text())) errs.push('console: ' + m.text()); });
   await p.goto(FILE); await p.waitForTimeout(2200);
+  /* A fresh profile is asked about theme and sound before anything else, and
+     the rest of boot waits behind that dialog. Take the defaults and get on
+     with it, the way a first-time user would. */
+  await p.waitForTimeout(900);
+  if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(1800); }
+
   /* Setting location.hash to the value it already holds fires no hashchange,
      so a "navigate" to the page you are on redraws nothing. Ask directly. */
   const go = async (h) => {

@@ -16,6 +16,12 @@ const yes = (n, c, got='')=> c ? ok(n) : no(n, got);
   /* the webfont link cannot be reached from a file:// page in this sandbox */
   p.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET/.test(m.text())) errs.push('console: ' + m.text()); });
   await p.goto(FILE); await p.waitForTimeout(1400);
+  /* A fresh profile is asked about theme and sound before anything else, and
+     the rest of boot waits behind that dialog. Take the defaults and get on
+     with it, the way a first-time user would. */
+  await p.waitForTimeout(900);
+  if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(1800); }
+
 
   console.log('\n1. the Occurred at field on a new journal entry');
   await p.evaluate(() => { location.hash = '#/journals'; });

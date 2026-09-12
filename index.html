@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -2809,6 +2809,51 @@ input[type="time"].dp-active{border-color:var(--page-accent);
 .tp-cell.odd{font-style:italic}
 @media (prefers-reduced-motion:reduce){.tp-pop{animation:none}.tp-cell{transition:none}.tp-col{scroll-behavior:auto}}
 
+/* ---------- THE OPENING QUESTION ----------
+   Two swatches and two switches. The swatches are the palette itself rather
+   than the words for it, because nobody chooses a theme from the word. */
+.fr-stack{gap:10px}
+.fr-themes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fr-theme{display:flex;flex-direction:column;align-items:flex-start;gap:3px;
+  padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:none;
+  cursor:pointer;text-align:left;color:var(--muted);
+  transition:border-color .16s var(--ease),background .16s var(--ease),color .16s var(--ease)}
+.fr-theme:hover{border-color:var(--line-2)}
+.fr-theme.on{border-color:var(--page-accent);color:var(--text);
+  background:color-mix(in srgb,var(--page-accent) 9%,transparent)}
+.fr-theme b{font-family:var(--serif);font-size:1rem;font-weight:500}
+.fr-swatch{display:flex;gap:3px;width:100%;height:30px;margin-bottom:6px;
+  border-radius:7px;overflow:hidden;padding:5px;border:1px solid var(--line)}
+.fr-swatch i{flex:1;border-radius:3px}
+.fr-swatch.light{background:#f5f0ea}
+.fr-swatch.light i:nth-child(1){background:#b08968}
+.fr-swatch.light i:nth-child(2){background:#c9bfb2}
+.fr-swatch.light i:nth-child(3){background:#3a342e}
+.fr-swatch.dark{background:#1a1816}
+.fr-swatch.dark i:nth-child(1){background:#b08968}
+.fr-swatch.dark i:nth-child(2){background:#4a443d}
+.fr-swatch.dark i:nth-child(3){background:#e8e0d4}
+
+.fr-row{display:flex;align-items:center;justify-content:space-between;gap:14px;width:100%;
+  padding:13px 15px;border:1px solid var(--line);border-radius:12px;background:none;
+  cursor:pointer;text-align:left;color:var(--text);
+  transition:border-color .16s var(--ease),background .16s var(--ease)}
+.fr-row:hover{border-color:var(--line-2)}
+.fr-row.on{border-color:color-mix(in srgb,var(--page-accent) 55%,transparent);
+  background:color-mix(in srgb,var(--page-accent) 7%,transparent)}
+.fr-copy{display:flex;flex-direction:column;gap:2px;min-width:0}
+.fr-copy b{font-family:var(--serif);font-size:.98rem;font-weight:500}
+.fr-desc{font-size:.78rem;color:var(--muted);line-height:1.45}
+.fr-switch{flex:0 0 auto;width:38px;height:22px;border-radius:20px;padding:3px;
+  background:color-mix(in srgb,var(--text) 12%,transparent);
+  transition:background .18s var(--ease)}
+.fr-switch i{display:block;width:16px;height:16px;border-radius:50%;background:var(--muted);
+  transform:translateX(0);transition:transform .18s var(--ease),background .18s var(--ease)}
+.fr-row.on .fr-switch{background:var(--page-accent)}
+.fr-row.on .fr-switch i{transform:translateX(16px);background:var(--page-accent-ink)}
+@media (max-width:520px){.fr-themes{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){.fr-switch,.fr-switch i{transition:none}}
+
 /* ---------- UNFINISHED ----------
    The half-written things, last on Today. Marked in the same terracotta the
    house uses for something still in hand, and deliberately not foldable: a
@@ -4072,7 +4117,7 @@ function renderRoute(){
   closePanel({keep:true});
   /* a modal belongs to the page that opened it — carrying one across a
      navigation leaves it stranded on top of a page it knows nothing about */
-  if(typeof closeModals === 'function') closeModals();
+  if(typeof closeModals === 'function') closeModals({route: true});
   if(typeof stopSway === 'function') stopSway();
   main.innerHTML = '';
   main.style.animation = 'none'; void main.offsetWidth; main.style.animation = '';
@@ -4235,7 +4280,16 @@ function updateBackButton(){
 function goBack(){ if(history.length > 1) history.back(); else navigate('#/' + homeRoute()); }
 document.addEventListener('click', e => { const b = e.target.closest('[data-back]'); if(b){ e.preventDefault(); goBack(); } });
 function openModal(html, cls=''){ sound('open'); const ov = el(`<div class="overlay"><div class="modal ${cls}"><button class="close">×</button>${html}</div></div>`); ov.addEventListener('mousedown', e => { if(e.target===ov) ov.remove(); }); ov.querySelector('.close').onclick = () => ov.remove(); $('#modals').appendChild(ov); if(typeof attachDictationIn === 'function') attachDictationIn(ov); return ov; }
-function closeModals(){ $$('#modals .overlay').forEach(o=>o.remove()); $('.lightbox')?.remove(); closePanel(); }
+/* A modal belongs to the page that opened it, so routing sweeps them — but a
+   few belong to the session instead. The opening question is asked once, before
+   any page exists, and init() sets location.hash a moment before showing it:
+   the hashchange that follows would otherwise arrive and close the dialog on
+   its way past. data-keep opts an overlay out of that sweep only; asking to
+   close it — Escape, the ×, the backdrop — still closes it. */
+function closeModals({route = false} = {}){
+  $$('#modals .overlay').forEach(o => { if(route && o.dataset.keep) return; o.remove(); });
+  $('.lightbox')?.remove(); closePanel();
+}
 /* the Escape key closes a panel through history so the stack stays true */
 function lightbox(src, cap=''){ const lb = el(`<div class="lightbox"><img src="${src}"><div class="cap">${esc(cap)}</div></div>`); lb.onclick = ()=>lb.remove(); document.body.appendChild(lb); }
 function confirmDlg(msg, onYes){ const m = openModal(`<h2>Are you sure?</h2><p class="muted">${msg}</p><div class="row" style="justify-content:flex-end;margin-top:18px"><button class="btn" data-x="no">Cancel</button><button class="btn danger" data-x="yes">Yes, do it</button></div>`, 'narrow'); m.querySelector('[data-x=no]').onclick = ()=>m.remove(); m.querySelector('[data-x=yes]').onclick = ()=>{ sound('error'); m.remove(); onYes(); }; }
@@ -6757,7 +6811,10 @@ function seed(){
   const T = today();
   return {
     version:1,
-    settings:{theme:'dark',sound:false,feltTime:false,home:'compass',chapterNamed:false,ribbons:true,firstOpen:T,relationships:[]},
+    /* Light is the default. resetAll() rebuilds from this object, so "clear all
+       data" comes back to light too, and prefsAsked being absent here is what
+       brings the opening question back with it. */
+    settings:{theme:'light',sound:false,feltTime:false,home:'compass',chapterNamed:false,ribbons:true,firstOpen:T,relationships:[]},
     reminders:[], tasks:[],
     stages:[], threads:[], tensions:[],
     values:[], valueOrder:[], valueOrderHistory:[], valueSnapshots:[],
@@ -7025,6 +7082,106 @@ document.addEventListener('click', e => {
 });
 function sortEntries(arr){ return [...arr].sort((a,b)=>occurredSort(b)-occurredSort(a) || (b.createdAt<a.createdAt?-1:1)); }
 function stageChip(s){ return `<span class="chip on click" style="--c:${s.hue}" data-go="#/stage/${s.id}"><span class="dot"></span>${s.char} ${esc(s.name)}</span>`; }
+/* ============================================================
+   THE OPENING QUESTION
+
+   Three things about this house are matters of taste rather than
+   of data, and all three are wrong for somebody by default: whether
+   the rooms are lit or dark, whether there is a sound under the
+   work, and whether the buttons answer when pressed.
+
+   Guessing is worse than asking, and asking later is worse than
+   asking first — a page that arrives in the wrong theme has already
+   made its impression. So on a house nobody has answered for yet,
+   this is the first thing on screen.
+
+   Every control takes effect as you touch it. There is no Save: the
+   dark option makes the room dark under the dialog, and the sound
+   options play and stop as you toggle them, because the only honest
+   way to choose a sound is to hear it. "Begin" only closes the door.
+
+   It asks once. The flag lives in S.settings, which resetAll()
+   rebuilds from the seed, so clearing all data brings the question
+   back with the light theme it defaults to.
+   ============================================================ */
+
+function prefsAnswered(){ return !!(S.settings && S.settings.prefsAsked); }
+
+function firstRunRowHTML(key, title, desc, on){
+  return `<button class="fr-row${on ? ' on' : ''}" data-fr="${key}" role="switch" aria-checked="${on}">
+    <span class="fr-copy"><b>${esc(title)}</b><span class="fr-desc">${esc(desc)}</span></span>
+    <span class="fr-switch" aria-hidden="true"><i></i></span>
+  </button>`;
+}
+
+function openFirstRun(after){
+  const snd = SoundManager.state();
+  const m = openModal(`<h2 class="entry-h">Before you start</h2>
+    <p class="muted" style="font-size:.9rem;margin:-6px 0 16px">Three things that are a matter of taste. All of them are in Settings later, and none of them is permanent.</p>
+    <div class="stack fr-stack">
+      <div class="fr-themes" role="radiogroup" aria-label="Light or dark">
+        ${[['light', 'Light', 'Paper. The default.'], ['dark', 'Dark', 'Ink. Easier at night.']].map(([v, n, d]) => `
+          <button class="fr-theme${S.settings.theme === v ? ' on' : ''}" data-frtheme="${v}" role="radio" aria-checked="${S.settings.theme === v}">
+            <span class="fr-swatch ${v}"><i></i><i></i><i></i></span>
+            <b>${n}</b><span class="fr-desc">${d}</span>
+          </button>`).join('')}
+      </div>
+      ${firstRunRowHTML('ambient', 'Sound in the room', 'A quiet bed of noise under the work — rain, a café, a slow piano. Off by default.', snd.ambientEnabled)}
+      ${firstRunRowHTML('clicks', 'Sound on the buttons', 'Two soft piano notes when something is pressed or saved. Off by default.', snd.soundEnabled)}
+      <div class="row" style="justify-content:flex-end;margin-top:6px">
+        <button class="btn primary" id="frGo" style="padding:12px 30px;font-size:1rem">Begin</button>
+      </div>
+    </div>`, 'narrow');
+
+  /* Not swept away by the navigation that init() has already queued: this
+     dialog belongs to the session, not to whichever page loaded first. */
+  m.dataset.keep = '1';
+
+  /* Answered the moment it is seen, not the moment it is finished. Someone who
+     closes it with Escape has still been asked, and being asked twice is worse
+     than keeping whichever defaults they left alone. */
+  S.settings.prefsAsked = true;
+  saveNow();
+
+  /* Closed by Begin, by the ×, or by Escape — all three land here, and only
+     the first one counts, so what follows boot is never run twice. */
+  let settled = false;
+  const done = () => { if(settled) return; settled = true; if(after) after(); };
+
+  m.querySelectorAll('[data-frtheme]').forEach(b => b.onclick = () => {
+    S.settings.theme = b.dataset.frtheme;
+    saveNow(); applyTheme();
+    m.querySelectorAll('[data-frtheme]').forEach(x => {
+      const on = x.dataset.frtheme === S.settings.theme;
+      x.classList.toggle('on', on); x.setAttribute('aria-checked', on);
+    });
+    sound('click');
+  });
+
+  m.querySelectorAll('[data-fr]').forEach(b => b.onclick = () => {
+    const on = !b.classList.contains('on');
+    b.classList.toggle('on', on); b.setAttribute('aria-checked', on);
+    /* Toggling a sound plays it. Choosing one you cannot hear is guessing. */
+    if(b.dataset.fr === 'ambient') SoundManager.setAmbient(on);
+    else SoundManager.setSound(on);
+    if(typeof syncSoundButtons === 'function') syncSoundButtons();
+  });
+
+  m.querySelector('#frGo').onclick = () => m.remove();
+  /* Begin, the ×, the backdrop and Escape all end as the overlay leaving the
+     page, so watch for that rather than binding each way out separately. */
+  const obs = new MutationObserver(() => { if(!m.isConnected){ obs.disconnect(); done(); } });
+  obs.observe(document.getElementById('modals'), {childList: true});
+  return m;
+}
+
+/* Runs before the starter set and the handoff notice, and holds them until it
+   is closed: a stack of toasts under a modal is a stack of toasts nobody
+   reads. Everything else about boot is unchanged when there is nothing to ask. */
+function maybeAskPreferences(then){
+  if(prefsAnswered()){ then(); return; }
+  openFirstRun(then);
+}
 /* ============================================================
    WHERE AM I RIGHT NOW — the home page's two lenses and its clock
 
@@ -21579,10 +21736,14 @@ async function init(){
   window.addEventListener('beforeunload', () => { if(saving || savePending) saveNow(); });
   if(S.settings.firstOpen === today() && !S._welcomed){ S._welcomed = true; setTimeout(()=>toast('Welcome home. Every piece of text here is editable — click it. The placeholder life is yours to overwrite.', 7000), 800); }
   registerServiceWorker();
-  setTimeout(() => { try { maybeOfferHandoff(); } catch(e){ console.warn('handoff notice skipped', e); }
+  /* The question about theme and sound comes before anything else has a chance
+     to speak, and the rest of boot waits behind it. */
+  const restOfBoot = () => setTimeout(() => {
+    try { maybeOfferHandoff(); } catch(e){ console.warn('handoff notice skipped', e); }
     try { maybeOfferStarter(); } catch(e){ console.warn('starter set skipped', e); }
     try { migratePlanning(); planSeedIfEmpty(); } catch(e){ console.warn('planning seed skipped', e); }
     try { migrateContent(); contentSeedIfEmpty(); } catch(e){ console.warn('content seed skipped', e); } }, 1200);
+  try { maybeAskPreferences(restOfBoot); } catch(e){ console.warn('opening question skipped', e); restOfBoot(); }
 }
 document.readyState==='loading' ? document.addEventListener('DOMContentLoaded', init) : init();
 </script>
