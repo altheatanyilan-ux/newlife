@@ -3996,6 +3996,22 @@ select.sm-active{border-color:var(--page-accent);
 .jr-views button.on{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.07)}
 .jr-head .tl-tools{margin-left:auto;gap:10px;flex-wrap:wrap}
 @media(max-width:820px){.jr-head .tl-tools{margin-left:0}}
+
+/* --- a task dropped between two others, in any Planning view ---
+   One rule for five views: whatever the unit is — a row, a card, a pill, a
+   line of the timeline — the line is drawn on the edge the drop will land on.
+   Outline rather than box-shadow, because the matrix and board cards already
+   spend their shadow on depth. */
+.pt-dropat{position:relative}
+.pt-dropat::after{content:'';position:absolute;left:0;right:0;height:2px;background:var(--page-accent);
+  border-radius:2px;pointer-events:none;z-index:3}
+.pt-dropat.above::after{top:-1px}
+.pt-dropat.below::after{bottom:-1px}
+.pl-tlrow.pt-dropat::after{left:0;right:0}
+/* the timeline's handle: the bar means dates, so the name means order */
+.pl-tlname[data-ptgrip]{cursor:grab}
+.pl-tlname[data-ptgrip]:active{cursor:grabbing}
+.pl-tlrow.dragging{opacity:.45}
 </style>
 </head>
 <body>
@@ -14420,6 +14436,17 @@ function bindPlanning(root, sel, tasks){
       ev.dataTransfer.effectAllowed = 'move'; try { ev.dataTransfer.setData('text/plain', id); } catch(e){} });
     row.addEventListener('dragend', () => { row.classList.remove('dragging'); window._plTaskDrag = null; });
   });
+  /* the timeline's bar already means "move the dates", so there the name is
+     the handle for rearranging the rows */
+  $$('[data-ptgrip]', root).forEach(g => {
+    const id = g.dataset.ptgrip;
+    g.addEventListener('dragstart', ev => { window._plTaskDrag = id;
+      g.closest('[data-ptunit]')?.classList.add('dragging');
+      ev.dataTransfer.effectAllowed = 'move'; try { ev.dataTransfer.setData('text/plain', id); } catch(e){} });
+    g.addEventListener('dragend', () => { g.closest('[data-ptunit]')?.classList.remove('dragging');
+      window._plTaskDrag = null; });
+  });
+  bindPlanTaskReorder(root, planRedraw);
 
   /* --- sections --- */
   $$('[data-plsectog]', root).forEach(b => b.onclick = () => {
@@ -14685,6 +14712,74 @@ function openPlanFilterModal(id){
     remove: () => { if(planSel().id === sl.id) S._planSel = {kind:'smart', id:'today'};
       return spliceOut(p.smartLists, x => x.id === sl.id); }}); };
 }
+
+/* ---------- dropping a task between two others, in any view ----------
+   A drag in Planning has always meant "put this somewhere else" — another day,
+   another column, another quadrant. It never meant "put this above that", so
+   an order arranged by hand was possible only on Today.
+
+   What a drop means is decided by where it lands, and the marker for that is
+   the parent: a container marked data-ptgroup holds one run of tasks read in
+   order, and two tasks in the same run are siblings whose relative order is
+   the only thing a drop between them could be about. A task dropped into a
+   different run is changing what it belongs to, and the run's own handler,
+   sitting behind this one, is the thing that knows how to do that — so this
+   handler simply does not call preventDefault and stands out of its way.
+
+   The unit that moves is not always the draggable element: on the timeline the
+   draggable is a name and the thing that moves is the whole row. So the unit
+   is whichever ancestor is a direct child of the group, which is the element
+   itself everywhere else. */
+function planGroupOf(node){ return node ? node.closest('[data-ptgroup]') : null; }
+function planUnitIn(group, node){
+  let e = node;
+  while(e && e.parentElement !== group) e = e.parentElement;
+  return e;
+}
+function bindPlanTaskReorder(root, redraw){
+  const SEL = '[data-ptrow], [data-ptcard], [data-ptgrip]';
+  const idOf = n => n.dataset.ptrow || n.dataset.ptcard || n.dataset.ptgrip;
+  const nodeFor = id => $$(SEL, root).find(n => idOf(n) === id);
+  const clear = () => $$('.pt-dropat', root).forEach(n => n.classList.remove('pt-dropat', 'above', 'below'));
+  /* every task on screen, once, in the order it is read in */
+  const visible = () => { const out = [];
+    $$(SEL, root).forEach(n => { const id = idOf(n); if(id && !out.includes(id)) out.push(id); });
+    return out; };
+
+  $$(SEL, root).forEach(node => {
+    const id = idOf(node);
+    const group = planGroupOf(node);
+    if(!group) return;                       // a run that is not ordered, such as a month cell
+    const unit = planUnitIn(group, node);
+    if(!unit) return;
+    /* returns true for "above", false for "below", null for "not my business" */
+    const where = ev => {
+      const drag = window._plTaskDrag;
+      if(!drag || drag === id) return null;
+      const src = nodeFor(drag);
+      if(!src || planGroupOf(src) !== group) return null;
+      const box = unit.getBoundingClientRect();
+      return ev.clientY < box.top + box.height / 2;
+    };
+    unit.addEventListener('dragover', ev => {
+      const before = where(ev);
+      if(before == null) return;
+      ev.preventDefault(); ev.stopPropagation();
+      ev.dataTransfer.dropEffect = 'move';
+      clear();
+      unit.classList.add('pt-dropat', before ? 'above' : 'below');
+    });
+    unit.addEventListener('dragleave', () => unit.classList.remove('pt-dropat', 'above', 'below'));
+    unit.addEventListener('drop', ev => {
+      const before = where(ev);
+      if(before == null) return;
+      ev.preventDefault(); ev.stopPropagation();
+      clear();
+      const drag = window._plTaskDrag; window._plTaskDrag = null;
+      if(planReorderVisible(visible(), drag, id, before)){ sound('click'); (redraw || rerender)(); }
+    });
+  });
+}
 /* ============================================================
    PLANNING — the execution room.
 
@@ -14923,6 +15018,44 @@ function planReorderLists(dragId, targetId, before){
   if(!planReorder(ls, dragId, targetId, before)) return false;
   planState().lists = ls; saveNow(); return true;
 }
+/* ---------- dragging a task into place, in any view ----------
+   Reordering by hand only means something if the view is willing to show a
+   hand-made order, and Planning opens sorted by due date. So a drop says two
+   things at once: this is where the task goes, and this arrangement is mine
+   now. Rewriting `order` under a due-date sort would rearrange nothing on
+   screen, and the drag would look broken — which is exactly the bug this is
+   fixing on Today's side of the house.
+
+   The sequence comes off the screen rather than being recomputed, because the
+   screen is the thing being rearranged. Whatever the view groups by — a
+   section, a board column, a quadrant, a day, a row of the timeline — the DOM
+   already holds every task in the order it is being read in, so one function
+   serves all five views and none of them has to describe its own shape.
+
+   Everything on screen is renumbered, not just the group that was dropped
+   into: numbers that only make sense within one column would collide the
+   moment two columns were read as one list. */
+function planReorderVisible(ids, dragId, targetId, before){
+  const seq = ids.slice();
+  const from = seq.indexOf(dragId);
+  if(from < 0) return false;
+  seq.splice(from, 1);
+  let at = seq.indexOf(targetId);
+  if(at < 0) at = seq.length; else if(!before) at += 1;
+  seq.splice(at, 0, dragId);
+  seq.forEach((id, i) => { const t = planTaskById(id); if(t) t.order = i; });
+  const moved = planTaskById(dragId);
+  if(moved) moved.updatedAt = new Date().toISOString();
+  const p = planState();
+  const wasSorted = p.prefs.sort !== 'custom';
+  p.prefs.sort = 'custom'; p.prefs.sortDir = 'asc';
+  saveNow();
+  /* said once, when the sort actually changed under them, rather than on
+     every drop */
+  if(wasSorted) toast('Sorted by hand now — the sort menu says Manual.');
+  return true;
+}
+
 function planTagCount(name){ return planOwnTasks().filter(t => !t.done && t.tags.includes(name)).length; }
 
 /* one place decides what a selection means, so every view shows the same set */
@@ -15533,7 +15666,7 @@ function planListViewHTML(sel, tasks){
   if(grouped){
     return `${quick({})}
       ${grouped.map(([name, ts]) => `<div class="pt-group"><div class="pt-ghead">${esc(name)}<span class="mono">${ts.length}</span></div>
-        ${ts.map(t => planRowHTML(t, {showList: true})).join('')}</div>`).join('')
+        <div class="pt-gbody" data-ptgroup>${ts.map(t => planRowHTML(t, {showList: true})).join('')}</div></div>`).join('')
       || `<div class="empty">${esc(planEmptyLine(sel))}</div>`}`;
   }
   /* a real list: its own sections, each of them a place to add to */
@@ -15541,18 +15674,18 @@ function planListViewHTML(sel, tasks){
   const secs = l ? l.sections.slice().sort((a, b) => a.sortOrder - b.sortOrder) : [];
   const loose = live.filter(t => !t.sectionId || !secs.some(s => s.id === t.sectionId));
   return `${quick({listId: l?.id})}
-    ${loose.map(t => planRowHTML(t)).join('')}
+    <div class="pt-loose" data-ptgroup>${loose.map(t => planRowHTML(t)).join('')}</div>
     ${secs.map(sc => { const ts = live.filter(t => t.sectionId === sc.id);
       return `<div class="pt-section${sc.isCollapsed ? ' shut' : ''}" data-plsec="${sc.id}">
         <div class="pt-shead"><button class="pt-stog" data-plsectog="${sc.id}">${sc.isCollapsed ? '▸' : '▾'}</button>
           <span class="pt-sname">${esc(sc.name)}</span><span class="mono">${ts.length}</span>
           <button class="pl-mini" data-plsecdel="${sc.id}" title="remove section">×</button></div>
-        <div class="pt-sbody">${ts.map(t => planRowHTML(t)).join('') || '<div class="pl-empty mono">nothing in this section</div>'}
+        <div class="pt-sbody"><div class="pt-secrows" data-ptgroup>${ts.map(t => planRowHTML(t)).join('') || '<div class="pl-empty mono">nothing in this section</div>'}</div>
           ${quick({listId: l?.id, sectionId: sc.id})}</div></div>`; }).join('')}
     ${l ? `<button class="pl-mini-row" id="plNewSection">＋ section</button>` : ''}
     ${!live.length && !doneT.length ? `<div class="empty">${esc(planEmptyLine(sel))}</div>` : ''}
     ${doneT.length ? `<details class="pt-done"${p.prefs.showCompleted ? ' open' : ''}><summary><span class="sc">Completed</span><span class="mono">${doneT.length}</span></summary>
-      <div>${doneT.map(t => planRowHTML(t)).join('')}</div></details>` : ''}`;
+      <div data-ptgroup>${doneT.map(t => planRowHTML(t)).join('')}</div></details>` : ''}`;
 }
 function planEmptyLine(sel){
   if(sel.kind === 'smart'){
@@ -16347,9 +16480,9 @@ function planCalWeekHTML(cur, tasks){
       <div class="pc-colh"><span class="mono">${['Mo','Tu','We','Th','Fr','Sa','Su'][(parseDay(d).getDay() + 6) % 7]}</span>
         <span class="serif">${parseDay(d).getDate()}</span>
         <button class="pc-add" data-pcadd="${d}">＋</button></div>
-      <div class="pc-allday">${allday.map(t => `<button class="pc-pill${t.done ? ' done' : ''}" data-ptcard="${t.id}" draggable="true"
+      <div class="pc-allday" data-ptgroup>${allday.map(t => `<button class="pc-pill${t.done ? ' done' : ''}" data-ptcard="${t.id}" draggable="true"
         title="${esc(t.text)}" style="--c:${planPriority(t.priority).color || planListColor(t.listId)}">${esc(t.text)}</button>`).join('')}</div>
-      <div class="pc-timed">${timed.map(t => `<button class="pc-pill timed${t.done ? ' done' : ''}" data-ptcard="${t.id}" draggable="true"
+      <div class="pc-timed" data-ptgroup>${timed.map(t => `<button class="pc-pill timed${t.done ? ' done' : ''}" data-ptcard="${t.id}" draggable="true"
         title="${esc(t.dueTime)} · ${esc(t.text)}" style="--c:${planPriority(t.priority).color || planListColor(t.listId)}"><span class="mono">${esc(t.dueTime)}</span> ${esc(t.text)}</button>`).join('')}</div>
     </div>`; }).join('')}</div>`;
 }
@@ -16360,7 +16493,7 @@ function planCalDayHTML(cur, tasks){
   const now = new Date(), nowMin = now.getHours() * 60 + now.getMinutes();
   return `<div class="pc-daywrap">
     <div class="pc-loose"><div class="k mono">unscheduled on this day</div>
-      <div class="pc-loosebox" data-pcunsched>${loose.map(t => `<button class="pc-pill" data-ptcard="${t.id}" draggable="true"
+      <div class="pc-loosebox" data-pcunsched data-ptgroup>${loose.map(t => `<button class="pc-pill" data-ptcard="${t.id}" draggable="true"
         title="${esc(t.text)}" style="--c:${planPriority(t.priority).color || planListColor(t.listId)}">${esc(t.text)}</button>`).join('')
         || '<span class="faint mono">nothing loose — drag a block up here to unschedule it</span>'}</div></div>
     <div class="pc-day" data-pcdayline="${cur}" style="height:${24 * PC_DAY_H}px">
@@ -16386,7 +16519,7 @@ function planKanbanHTML(sel, tasks){
       <div class="pk-colh"><span class="pk-cname">${esc(c.name)}</span>
         <span class="mono">${ts.length}${c.wipLimit != null ? ` / ${c.wipLimit}` : ''}</span>
         ${l ? `<button class="pl-mini" data-pkedit="${c.id}" title="rename, limit, remove">⋯</button>` : ''}</div>
-      <div class="pk-cards">${ts.map(planCardHTML).join('') || '<div class="pk-empty">Nothing here yet. Drag a task in, or add one.</div>'}</div>
+      <div class="pk-cards" data-ptgroup>${ts.map(planCardHTML).join('') || '<div class="pk-empty">Nothing here yet. Drag a task in, or add one.</div>'}</div>
       <input class="inp pk-add" data-pqadd='${esc(JSON.stringify({listId: l?.id, kanbanColumn: c.id}))}' placeholder="＋ add">
     </div>`; }).join('')}
     ${l ? `<button class="pk-newcol" id="pkNewCol">＋ column</button>` : ''}</div>`;
@@ -16400,11 +16533,11 @@ function planMatrixHTML(tasks){
     return `<div class="pe-quad" data-pequad="${q.n}" style="--c:${q.color}">
       <div class="pe-head"><span class="pe-name">${esc(q.name)}</span><span class="pe-act">${esc(q.act)}</span>
         <span class="mono">${ts.length}</span></div>
-      <div class="pe-cards">${ts.map(planCardHTML).join('') || '<div class="pk-empty">Empty. That is allowed.</div>'}</div>
+      <div class="pe-cards" data-ptgroup>${ts.map(planCardHTML).join('') || '<div class="pk-empty">Empty. That is allowed.</div>'}</div>
       <input class="inp pk-add" data-pqadd='${esc(JSON.stringify({quadrant: q.n}))}' placeholder="＋ add here">
     </div>`; }).join('')}</div>
     <details class="pe-tray"${loose.length ? ' open' : ''}><summary><span class="sc">Not yet placed</span><span class="mono">${loose.length}</span></summary>
-      <div class="pe-traybox" data-pequad="0">${loose.map(planCardHTML).join('')
+      <div class="pe-traybox" data-pequad="0" data-ptgroup>${loose.map(planCardHTML).join('')
         || '<div class="pk-empty">Everything has been placed.</div>'}</div></details>`;
 }
 
@@ -16432,8 +16565,9 @@ function planTimelineHTML(tasks){
       <div class="pl-tlaxis" style="margin-left:190px;width:${W}px">
         ${ticks.map((d, i) => `<span class="pl-tick" style="left:${(i / sc.n) * W}px">${esc(fmtDate(d, 'short'))}</span>`).join('')}
         <div class="pl-tlnow" style="left:${px(today())}px"></div></div>
-      <div class="pl-tlrows">${rows.map(({t, x0, w}) => `<div class="pl-tlrow">
-        <span class="pl-tlname" title="${esc(t.text)}">${esc(t.text)}</span>
+      <div class="pl-tlrows" data-ptgroup>${rows.map(({t, x0, w}) => `<div class="pl-tlrow" data-ptunit="${t.id}">
+        <span class="pl-tlname" draggable="true" data-ptgrip="${t.id}"
+          title="${esc(t.text)} — drag this name to reorder the rows">${esc(t.text)}</span>
         <div class="pl-tltrack" style="width:${W}px">
           <div class="pl-gbar${t.done ? ' done' : ''}" data-ptcard="${t.id}" data-tlbar="${t.id}" draggable="true"
             style="left:${x0}px;width:${w}px;--c:${planPriority(t.priority).color || planListColor(t.listId)}"

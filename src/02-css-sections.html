@@ -3480,5 +3480,21 @@ select.sm-active{border-color:var(--page-accent);
 .jr-views button.on{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.07)}
 .jr-head .tl-tools{margin-left:auto;gap:10px;flex-wrap:wrap}
 @media(max-width:820px){.jr-head .tl-tools{margin-left:0}}
+
+/* --- a task dropped between two others, in any Planning view ---
+   One rule for five views: whatever the unit is — a row, a card, a pill, a
+   line of the timeline — the line is drawn on the edge the drop will land on.
+   Outline rather than box-shadow, because the matrix and board cards already
+   spend their shadow on depth. */
+.pt-dropat{position:relative}
+.pt-dropat::after{content:'';position:absolute;left:0;right:0;height:2px;background:var(--page-accent);
+  border-radius:2px;pointer-events:none;z-index:3}
+.pt-dropat.above::after{top:-1px}
+.pt-dropat.below::after{bottom:-1px}
+.pl-tlrow.pt-dropat::after{left:0;right:0}
+/* the timeline's handle: the bar means dates, so the name means order */
+.pl-tlname[data-ptgrip]{cursor:grab}
+.pl-tlname[data-ptgrip]:active{cursor:grabbing}
+.pl-tlrow.dragging{opacity:.45}
 </style>
 </head>

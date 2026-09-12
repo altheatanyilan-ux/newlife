@@ -90,9 +90,9 @@ function planCalWeekHTML(cur, tasks){
       <div class="pc-colh"><span class="mono">${['Mo','Tu','We','Th','Fr','Sa','Su'][(parseDay(d).getDay() + 6) % 7]}</span>
         <span class="serif">${parseDay(d).getDate()}</span>
         <button class="pc-add" data-pcadd="${d}">＋</button></div>
-      <div class="pc-allday">${allday.map(t => `<button class="pc-pill${t.done ? ' done' : ''}" data-ptcard="${t.id}" draggable="true"
+      <div class="pc-allday" data-ptgroup>${allday.map(t => `<button class="pc-pill${t.done ? ' done' : ''}" data-ptcard="${t.id}" draggable="true"
         title="${esc(t.text)}" style="--c:${planPriority(t.priority).color || planListColor(t.listId)}">${esc(t.text)}</button>`).join('')}</div>
-      <div class="pc-timed">${timed.map(t => `<button class="pc-pill timed${t.done ? ' done' : ''}" data-ptcard="${t.id}" draggable="true"
+      <div class="pc-timed" data-ptgroup>${timed.map(t => `<button class="pc-pill timed${t.done ? ' done' : ''}" data-ptcard="${t.id}" draggable="true"
         title="${esc(t.dueTime)} · ${esc(t.text)}" style="--c:${planPriority(t.priority).color || planListColor(t.listId)}"><span class="mono">${esc(t.dueTime)}</span> ${esc(t.text)}</button>`).join('')}</div>
     </div>`; }).join('')}</div>`;
 }
@@ -103,7 +103,7 @@ function planCalDayHTML(cur, tasks){
   const now = new Date(), nowMin = now.getHours() * 60 + now.getMinutes();
   return `<div class="pc-daywrap">
     <div class="pc-loose"><div class="k mono">unscheduled on this day</div>
-      <div class="pc-loosebox" data-pcunsched>${loose.map(t => `<button class="pc-pill" data-ptcard="${t.id}" draggable="true"
+      <div class="pc-loosebox" data-pcunsched data-ptgroup>${loose.map(t => `<button class="pc-pill" data-ptcard="${t.id}" draggable="true"
         title="${esc(t.text)}" style="--c:${planPriority(t.priority).color || planListColor(t.listId)}">${esc(t.text)}</button>`).join('')
         || '<span class="faint mono">nothing loose — drag a block up here to unschedule it</span>'}</div></div>
     <div class="pc-day" data-pcdayline="${cur}" style="height:${24 * PC_DAY_H}px">
@@ -129,7 +129,7 @@ function planKanbanHTML(sel, tasks){
       <div class="pk-colh"><span class="pk-cname">${esc(c.name)}</span>
         <span class="mono">${ts.length}${c.wipLimit != null ? ` / ${c.wipLimit}` : ''}</span>
         ${l ? `<button class="pl-mini" data-pkedit="${c.id}" title="rename, limit, remove">⋯</button>` : ''}</div>
-      <div class="pk-cards">${ts.map(planCardHTML).join('') || '<div class="pk-empty">Nothing here yet. Drag a task in, or add one.</div>'}</div>
+      <div class="pk-cards" data-ptgroup>${ts.map(planCardHTML).join('') || '<div class="pk-empty">Nothing here yet. Drag a task in, or add one.</div>'}</div>
       <input class="inp pk-add" data-pqadd='${esc(JSON.stringify({listId: l?.id, kanbanColumn: c.id}))}' placeholder="＋ add">
     </div>`; }).join('')}
     ${l ? `<button class="pk-newcol" id="pkNewCol">＋ column</button>` : ''}</div>`;
@@ -143,11 +143,11 @@ function planMatrixHTML(tasks){
     return `<div class="pe-quad" data-pequad="${q.n}" style="--c:${q.color}">
       <div class="pe-head"><span class="pe-name">${esc(q.name)}</span><span class="pe-act">${esc(q.act)}</span>
         <span class="mono">${ts.length}</span></div>
-      <div class="pe-cards">${ts.map(planCardHTML).join('') || '<div class="pk-empty">Empty. That is allowed.</div>'}</div>
+      <div class="pe-cards" data-ptgroup>${ts.map(planCardHTML).join('') || '<div class="pk-empty">Empty. That is allowed.</div>'}</div>
       <input class="inp pk-add" data-pqadd='${esc(JSON.stringify({quadrant: q.n}))}' placeholder="＋ add here">
     </div>`; }).join('')}</div>
     <details class="pe-tray"${loose.length ? ' open' : ''}><summary><span class="sc">Not yet placed</span><span class="mono">${loose.length}</span></summary>
-      <div class="pe-traybox" data-pequad="0">${loose.map(planCardHTML).join('')
+      <div class="pe-traybox" data-pequad="0" data-ptgroup>${loose.map(planCardHTML).join('')
         || '<div class="pk-empty">Everything has been placed.</div>'}</div></details>`;
 }
 
@@ -175,8 +175,9 @@ function planTimelineHTML(tasks){
       <div class="pl-tlaxis" style="margin-left:190px;width:${W}px">
         ${ticks.map((d, i) => `<span class="pl-tick" style="left:${(i / sc.n) * W}px">${esc(fmtDate(d, 'short'))}</span>`).join('')}
         <div class="pl-tlnow" style="left:${px(today())}px"></div></div>
-      <div class="pl-tlrows">${rows.map(({t, x0, w}) => `<div class="pl-tlrow">
-        <span class="pl-tlname" title="${esc(t.text)}">${esc(t.text)}</span>
+      <div class="pl-tlrows" data-ptgroup>${rows.map(({t, x0, w}) => `<div class="pl-tlrow" data-ptunit="${t.id}">
+        <span class="pl-tlname" draggable="true" data-ptgrip="${t.id}"
+          title="${esc(t.text)} — drag this name to reorder the rows">${esc(t.text)}</span>
         <div class="pl-tltrack" style="width:${W}px">
           <div class="pl-gbar${t.done ? ' done' : ''}" data-ptcard="${t.id}" data-tlbar="${t.id}" draggable="true"
             style="left:${x0}px;width:${w}px;--c:${planPriority(t.priority).color || planListColor(t.listId)}"

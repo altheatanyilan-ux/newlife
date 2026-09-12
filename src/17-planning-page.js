@@ -192,7 +192,7 @@ function planListViewHTML(sel, tasks){
   if(grouped){
     return `${quick({})}
       ${grouped.map(([name, ts]) => `<div class="pt-group"><div class="pt-ghead">${esc(name)}<span class="mono">${ts.length}</span></div>
-        ${ts.map(t => planRowHTML(t, {showList: true})).join('')}</div>`).join('')
+        <div class="pt-gbody" data-ptgroup>${ts.map(t => planRowHTML(t, {showList: true})).join('')}</div></div>`).join('')
       || `<div class="empty">${esc(planEmptyLine(sel))}</div>`}`;
   }
   /* a real list: its own sections, each of them a place to add to */
@@ -200,18 +200,18 @@ function planListViewHTML(sel, tasks){
   const secs = l ? l.sections.slice().sort((a, b) => a.sortOrder - b.sortOrder) : [];
   const loose = live.filter(t => !t.sectionId || !secs.some(s => s.id === t.sectionId));
   return `${quick({listId: l?.id})}
-    ${loose.map(t => planRowHTML(t)).join('')}
+    <div class="pt-loose" data-ptgroup>${loose.map(t => planRowHTML(t)).join('')}</div>
     ${secs.map(sc => { const ts = live.filter(t => t.sectionId === sc.id);
       return `<div class="pt-section${sc.isCollapsed ? ' shut' : ''}" data-plsec="${sc.id}">
         <div class="pt-shead"><button class="pt-stog" data-plsectog="${sc.id}">${sc.isCollapsed ? '▸' : '▾'}</button>
           <span class="pt-sname">${esc(sc.name)}</span><span class="mono">${ts.length}</span>
           <button class="pl-mini" data-plsecdel="${sc.id}" title="remove section">×</button></div>
-        <div class="pt-sbody">${ts.map(t => planRowHTML(t)).join('') || '<div class="pl-empty mono">nothing in this section</div>'}
+        <div class="pt-sbody"><div class="pt-secrows" data-ptgroup>${ts.map(t => planRowHTML(t)).join('') || '<div class="pl-empty mono">nothing in this section</div>'}</div>
           ${quick({listId: l?.id, sectionId: sc.id})}</div></div>`; }).join('')}
     ${l ? `<button class="pl-mini-row" id="plNewSection">＋ section</button>` : ''}
     ${!live.length && !doneT.length ? `<div class="empty">${esc(planEmptyLine(sel))}</div>` : ''}
     ${doneT.length ? `<details class="pt-done"${p.prefs.showCompleted ? ' open' : ''}><summary><span class="sc">Completed</span><span class="mono">${doneT.length}</span></summary>
-      <div>${doneT.map(t => planRowHTML(t)).join('')}</div></details>` : ''}`;
+      <div data-ptgroup>${doneT.map(t => planRowHTML(t)).join('')}</div></details>` : ''}`;
 }
 function planEmptyLine(sel){
   if(sel.kind === 'smart'){

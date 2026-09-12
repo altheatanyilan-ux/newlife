@@ -146,6 +146,17 @@ function bindPlanning(root, sel, tasks){
       ev.dataTransfer.effectAllowed = 'move'; try { ev.dataTransfer.setData('text/plain', id); } catch(e){} });
     row.addEventListener('dragend', () => { row.classList.remove('dragging'); window._plTaskDrag = null; });
   });
+  /* the timeline's bar already means "move the dates", so there the name is
+     the handle for rearranging the rows */
+  $$('[data-ptgrip]', root).forEach(g => {
+    const id = g.dataset.ptgrip;
+    g.addEventListener('dragstart', ev => { window._plTaskDrag = id;
+      g.closest('[data-ptunit]')?.classList.add('dragging');
+      ev.dataTransfer.effectAllowed = 'move'; try { ev.dataTransfer.setData('text/plain', id); } catch(e){} });
+    g.addEventListener('dragend', () => { g.closest('[data-ptunit]')?.classList.remove('dragging');
+      window._plTaskDrag = null; });
+  });
+  bindPlanTaskReorder(root, planRedraw);
 
   /* --- sections --- */
   $$('[data-plsectog]', root).forEach(b => b.onclick = () => {
@@ -410,4 +421,72 @@ function openPlanFilterModal(id){
   if(d) d.onclick = () => { m.remove(); requestDelete({label:sl.name, after:planRedraw,
     remove: () => { if(planSel().id === sl.id) S._planSel = {kind:'smart', id:'today'};
       return spliceOut(p.smartLists, x => x.id === sl.id); }}); };
+}
+
+/* ---------- dropping a task between two others, in any view ----------
+   A drag in Planning has always meant "put this somewhere else" — another day,
+   another column, another quadrant. It never meant "put this above that", so
+   an order arranged by hand was possible only on Today.
+
+   What a drop means is decided by where it lands, and the marker for that is
+   the parent: a container marked data-ptgroup holds one run of tasks read in
+   order, and two tasks in the same run are siblings whose relative order is
+   the only thing a drop between them could be about. A task dropped into a
+   different run is changing what it belongs to, and the run's own handler,
+   sitting behind this one, is the thing that knows how to do that — so this
+   handler simply does not call preventDefault and stands out of its way.
+
+   The unit that moves is not always the draggable element: on the timeline the
+   draggable is a name and the thing that moves is the whole row. So the unit
+   is whichever ancestor is a direct child of the group, which is the element
+   itself everywhere else. */
+function planGroupOf(node){ return node ? node.closest('[data-ptgroup]') : null; }
+function planUnitIn(group, node){
+  let e = node;
+  while(e && e.parentElement !== group) e = e.parentElement;
+  return e;
+}
+function bindPlanTaskReorder(root, redraw){
+  const SEL = '[data-ptrow], [data-ptcard], [data-ptgrip]';
+  const idOf = n => n.dataset.ptrow || n.dataset.ptcard || n.dataset.ptgrip;
+  const nodeFor = id => $$(SEL, root).find(n => idOf(n) === id);
+  const clear = () => $$('.pt-dropat', root).forEach(n => n.classList.remove('pt-dropat', 'above', 'below'));
+  /* every task on screen, once, in the order it is read in */
+  const visible = () => { const out = [];
+    $$(SEL, root).forEach(n => { const id = idOf(n); if(id && !out.includes(id)) out.push(id); });
+    return out; };
+
+  $$(SEL, root).forEach(node => {
+    const id = idOf(node);
+    const group = planGroupOf(node);
+    if(!group) return;                       // a run that is not ordered, such as a month cell
+    const unit = planUnitIn(group, node);
+    if(!unit) return;
+    /* returns true for "above", false for "below", null for "not my business" */
+    const where = ev => {
+      const drag = window._plTaskDrag;
+      if(!drag || drag === id) return null;
+      const src = nodeFor(drag);
+      if(!src || planGroupOf(src) !== group) return null;
+      const box = unit.getBoundingClientRect();
+      return ev.clientY < box.top + box.height / 2;
+    };
+    unit.addEventListener('dragover', ev => {
+      const before = where(ev);
+      if(before == null) return;
+      ev.preventDefault(); ev.stopPropagation();
+      ev.dataTransfer.dropEffect = 'move';
+      clear();
+      unit.classList.add('pt-dropat', before ? 'above' : 'below');
+    });
+    unit.addEventListener('dragleave', () => unit.classList.remove('pt-dropat', 'above', 'below'));
+    unit.addEventListener('drop', ev => {
+      const before = where(ev);
+      if(before == null) return;
+      ev.preventDefault(); ev.stopPropagation();
+      clear();
+      const drag = window._plTaskDrag; window._plTaskDrag = null;
+      if(planReorderVisible(visible(), drag, id, before)){ sound('click'); (redraw || rerender)(); }
+    });
+  });
 }

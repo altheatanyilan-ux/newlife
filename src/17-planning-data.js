@@ -236,6 +236,44 @@ function planReorderLists(dragId, targetId, before){
   if(!planReorder(ls, dragId, targetId, before)) return false;
   planState().lists = ls; saveNow(); return true;
 }
+/* ---------- dragging a task into place, in any view ----------
+   Reordering by hand only means something if the view is willing to show a
+   hand-made order, and Planning opens sorted by due date. So a drop says two
+   things at once: this is where the task goes, and this arrangement is mine
+   now. Rewriting `order` under a due-date sort would rearrange nothing on
+   screen, and the drag would look broken — which is exactly the bug this is
+   fixing on Today's side of the house.
+
+   The sequence comes off the screen rather than being recomputed, because the
+   screen is the thing being rearranged. Whatever the view groups by — a
+   section, a board column, a quadrant, a day, a row of the timeline — the DOM
+   already holds every task in the order it is being read in, so one function
+   serves all five views and none of them has to describe its own shape.
+
+   Everything on screen is renumbered, not just the group that was dropped
+   into: numbers that only make sense within one column would collide the
+   moment two columns were read as one list. */
+function planReorderVisible(ids, dragId, targetId, before){
+  const seq = ids.slice();
+  const from = seq.indexOf(dragId);
+  if(from < 0) return false;
+  seq.splice(from, 1);
+  let at = seq.indexOf(targetId);
+  if(at < 0) at = seq.length; else if(!before) at += 1;
+  seq.splice(at, 0, dragId);
+  seq.forEach((id, i) => { const t = planTaskById(id); if(t) t.order = i; });
+  const moved = planTaskById(dragId);
+  if(moved) moved.updatedAt = new Date().toISOString();
+  const p = planState();
+  const wasSorted = p.prefs.sort !== 'custom';
+  p.prefs.sort = 'custom'; p.prefs.sortDir = 'asc';
+  saveNow();
+  /* said once, when the sort actually changed under them, rather than on
+     every drop */
+  if(wasSorted) toast('Sorted by hand now — the sort menu says Manual.');
+  return true;
+}
+
 function planTagCount(name){ return planOwnTasks().filter(t => !t.done && t.tags.includes(name)).length; }
 
 /* one place decides what a selection means, so every view shows the same set */
