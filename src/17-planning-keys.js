@@ -30,6 +30,7 @@ document.addEventListener('keydown', ev => {
   if(act === 'add'){ const i = document.querySelector('.pq-input'); if(i){ i.focus(); } else openPlanTask(null); return; }
   /* the timer lives on Today now — go to it rather than opening a second one */
   if(act === 'focus')  return navigate('#/today');
+  if(act === 'stats')  return planSetRoom('stats');
   if(act === 'today')  return planSetSel('smart', 'today');
   if(act === 'habits') return planSetSel('smart', 'habits');
   if(act === 'stats')  return planSetSel('smart', 'stats');

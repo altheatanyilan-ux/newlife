@@ -41,15 +41,68 @@ function bindPlanning(root, sel, tasks){
   const nfil = $('#plNewFilter'); if(nfil) nfil.onclick = () => openPlanFilterModal(null);
   $$('[data-plfolder] .pl-fhead', root).forEach(h => h.addEventListener('contextmenu', ev => {
     ev.preventDefault(); openPlanFolderRename(h.closest('[data-plfolder]').dataset.plfolder); }));
+  /* the span on the one dated row */
+  $$('[data-plspan]', root).forEach(b => b.onclick = ev => {
+    ev.stopPropagation(); sound('click'); planSetSpan(b.dataset.plspan); });
+  const sf = $('#plSideFilter'); if(sf) sf.onclick = () => openPlanQuickFilter();
+
+  /* ---- dragging lists and folders into an order ----
+     A list dropped on a list takes its place in the order (and its folder). A
+     list dropped on a folder's own row joins that folder, which is what that
+     drop already meant. A folder dropped on a folder reorders the folders. */
+  const clearDrop = () => $$('.pl-item.drop-above, .pl-item.drop-below, .pl-frow.drop-above, .pl-frow.drop-below', root)
+    .forEach(x => x.classList.remove('drop-above', 'drop-below'));
+  const edge = (el, ev) => { const r = el.getBoundingClientRect(); return ev.clientY < r.top + r.height / 2; };
+
   $$('[data-pldrag]', root).forEach(b => {
-    b.addEventListener('dragstart', ev => { ev.stopPropagation(); window._plListDrag = b.dataset.pldrag; ev.dataTransfer.effectAllowed = 'move'; });
+    b.addEventListener('dragstart', ev => { ev.stopPropagation();
+      window._plListDrag = b.dataset.pldrag; window._plFolderDrag = null;
+      ev.dataTransfer.effectAllowed = 'move'; });
+    b.addEventListener('dragend', () => { window._plListDrag = null; clearDrop(); });
     b.addEventListener('contextmenu', ev => { ev.preventDefault(); openPlanListModal(b.dataset.pldrag); });
+    b.addEventListener('dragover', ev => {
+      if(!window._plListDrag || window._plListDrag === b.dataset.pldrag) return;
+      ev.preventDefault(); ev.stopPropagation();
+      clearDrop(); b.classList.add(edge(b, ev) ? 'drop-above' : 'drop-below');
+    });
+    b.addEventListener('drop', ev => {
+      const id = window._plListDrag;
+      if(!id || id === b.dataset.pldrag) return;
+      ev.preventDefault(); ev.stopPropagation();
+      const before = b.classList.contains('drop-above');
+      clearDrop(); window._plListDrag = null;
+      if(planReorderLists(id, b.dataset.pldrag, before)){ sound('click'); rerender(); }
+    });
   });
+
+  $$('[data-plfdrag]', root).forEach(fr => {
+    fr.addEventListener('dragstart', ev => { ev.stopPropagation();
+      window._plFolderDrag = fr.dataset.plfdrag; window._plListDrag = null;
+      ev.dataTransfer.effectAllowed = 'move'; });
+    fr.addEventListener('dragend', () => { window._plFolderDrag = null; clearDrop(); });
+    fr.addEventListener('dragover', ev => {
+      const f = window._plFolderDrag;
+      if(!f || f === fr.dataset.plfdrag) return;
+      ev.preventDefault(); ev.stopPropagation();
+      clearDrop(); fr.classList.add(edge(fr, ev) ? 'drop-above' : 'drop-below');
+    });
+    fr.addEventListener('drop', ev => {
+      const f = window._plFolderDrag;
+      if(!f || f === fr.dataset.plfdrag) return;
+      ev.preventDefault(); ev.stopPropagation();
+      const before = fr.classList.contains('drop-above');
+      clearDrop(); window._plFolderDrag = null;
+      if(planReorderFolders(f, fr.dataset.plfdrag, before)){ sound('click'); rerender(); }
+    });
+  });
+
+  /* a list dropped anywhere else inside a folder still just joins it */
   $$('[data-plfolder]', root).forEach(fd => {
     fd.addEventListener('dragover', ev => { if(window._plListDrag){ ev.preventDefault(); fd.classList.add('over'); } });
     fd.addEventListener('dragleave', () => fd.classList.remove('over'));
-    fd.addEventListener('drop', ev => { ev.preventDefault(); fd.classList.remove('over');
+    fd.addEventListener('drop', ev => { fd.classList.remove('over');
       const l = planList(window._plListDrag); window._plListDrag = null; if(!l) return;
+      ev.preventDefault();
       l.folderId = fd.dataset.plfolder; saveNow(); sound('click'); rerender(); });
   });
 

@@ -34,11 +34,18 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
   ok('and with tasks', seed.tasks >= 15, 'saw ' + seed.tasks);
   /* Habits used to be the eighth item here. It is a room of its own now — a
      peer of the whole task side rather than one of its saved views — so the
-     sidebar carries the task views, and the two rooms sit above them. */
-  ok('every smart task view is offered', seed.smart >= 7, 'saw ' + seed.smart);
+     sidebar carries the task views, and the rooms sit above them.
+
+     The sidebar since carried three smart entries rather than seven: All, one
+     dated row whose span is chosen on the row itself, and Completed at the
+     foot. Today, Tomorrow and Next 7 days are the same question over three
+     lengths of time, so they share a row instead of taking three. */
+  ok('the sidebar carries All, one dated row and Completed', seed.smart === 3, 'saw ' + seed.smart);
+  ok('and the dated row offers all three spans',
+     await page.evaluate(() => [...document.querySelectorAll('[data-plspan]')].map(b => b.dataset.plspan).join(',') === 'today,tomorrow,next7'));
   ok('habits is not among them', await page.evaluate(() => !document.querySelector('[data-plsel="smart:habits"]')));
-  ok('it is one of the two rooms instead',
-     await page.evaluate(() => [...document.querySelectorAll('[data-plroom]')].map(b => b.dataset.plroom).join(',') === 'tasks,habits'));
+  ok('it is one of the three rooms instead',
+     await page.evaluate(() => [...document.querySelectorAll('[data-plroom]')].map(b => b.dataset.plroom).join(',') === 'tasks,habits,stats'));
 
   console.log('\n2. the sentence, read as a task');
   const parsed = await page.evaluate(() => {

@@ -27,19 +27,43 @@ function planSidebarHTML(){
     <button class="pl-collapse" id="plCollapse" title="${p.prefs.sidebarCollapsed ? 'show the sidebar' : 'collapse the sidebar'}">${p.prefs.sidebarCollapsed ? '›' : '‹'}</button>
     <div class="pl-scroll">
       <input class="inp mono pl-search" id="plSearch" placeholder="search tasks…" value="${esc(S._planQ || '')}">
+      <button class="pl-item pl-filter${S._planFilter && Object.keys(S._planFilter).length ? ' on' : ''}" id="plSideFilter" title="narrow what is shown">
+        <span class="pl-ico">⚟</span><span class="pl-name">Filter</span>
+        ${(() => { const n = Object.keys(S._planFilter || {}).length; return n ? `<span class="pl-n mono">${n}</span>` : ''; })()}</button>
+
       <div class="pl-group">
-        ${PLAN_SMART_VIEWS.map(v => `<button class="pl-item${on('smart', v.id)}" data-plsel="smart:${v.id}" title="${esc(v.hint)}">
-          <span class="pl-ico">${v.icon}</span><span class="pl-name">${esc(v.name)}</span>
-          <span class="pl-n mono">${planSmartCount(v.id) || ''}</span></button>`).join('')}
+        ${(() => { const v = PLAN_SMART_VIEWS.find(x => x.id === 'all');
+          return `<button class="pl-item${on('smart', 'all')}" data-plsel="smart:all" title="${esc(v.hint)}">
+            <span class="pl-ico">${v.icon}</span><span class="pl-name">${esc(v.name)}</span>
+            <span class="pl-n mono">${planSmartCount('all') || ''}</span></button>`; })()}
+
+        <!-- one dated row, with the span chosen on it: the same question over
+             three lengths of time, not three separate places -->
+        ${(() => { const sp = planSpan(), v = PLAN_SMART_VIEWS.find(x => x.id === sp);
+          const picked = PLAN_SPANS.includes(sel.id) && sel.kind === 'smart';
+          return `<div class="pl-dated${picked ? ' on' : ''}">
+            <button class="pl-item${picked ? ' on' : ''}" data-plsel="smart:${sp}" title="${esc(v.hint)}">
+              <span class="pl-ico">${v.icon}</span><span class="pl-name">${esc(v.name)}</span>
+              <span class="pl-n mono">${planSmartCount(sp) || ''}</span></button>
+            <div class="pl-spans" role="group" aria-label="which span">
+              ${PLAN_SPANS.map(id => { const w = PLAN_SMART_VIEWS.find(x => x.id === id);
+                return `<button class="pl-span${sp === id ? ' on' : ''}" data-plspan="${id}" title="${esc(w.hint)}">${esc(w.name)}</button>`; }).join('')}
+            </div></div>`; })()}
       </div>
+
       <div class="pl-head"><span>Lists</span><button class="pl-mini" id="plNewList" title="new list">＋</button></div>
       <div class="pl-group" id="plLists">
         ${p.folders.slice().sort((a,b)=>a.sortOrder-b.sortOrder).map(f => {
           const kids = planLists().filter(l => l.folderId === f.id);
           return `<div class="pl-folder${f.isCollapsed ? ' shut' : ''}" data-plfolder="${f.id}">
-            <div class="pl-frow">
-              <button class="pl-item pl-fhead" data-plfold="${f.id}" title="${esc(f.name)}"><span class="pl-ico">${f.isCollapsed ? '▸' : '▾'}</span>
-                <span class="pl-name">${esc(f.name)}</span><span class="pl-n mono">${kids.length}</span></button>
+            <div class="pl-frow" draggable="true" data-plfdrag="${f.id}">
+              <!-- the arrow folds, the name selects: a folder is a place to
+                   look at as well as a place to keep things in -->
+              <button class="pl-fold" data-plfold="${f.id}" aria-expanded="${!f.isCollapsed}"
+                title="${f.isCollapsed ? 'show its lists' : 'hide its lists'}">${f.isCollapsed ? '▸' : '▾'}</button>
+              <button class="pl-item pl-fhead${on('folder', f.id)}" data-plsel="folder:${f.id}"
+                title="everything in ${esc(f.name)}">
+                <span class="pl-name">${esc(f.name)}</span><span class="pl-n mono">${planFolderCount(f.id) || ''}</span></button>
               <!-- the folder is implied by where you asked, so there is nothing
                    to pick afterwards -->
               <button class="pl-mini pl-fadd" data-plnewin="${f.id}" title="new list in ${esc(f.name)}">＋</button>
@@ -63,7 +87,11 @@ function planSidebarHTML(){
     </div>
     <div class="pl-foot">
       <button class="pl-item" id="plFocusBtn" title="The focus timer is on Today"><span class="pl-ico">◔</span><span class="pl-name">Focus timer ↗</span></button>
-      <button class="pl-item${on('smart','stats')}" data-plsel="smart:stats" title="Statistics"><span class="pl-ico">◫</span><span class="pl-name">Statistics</span></button>
+      <!-- last, because finished work is what you look at last -->
+      ${(() => { const v = PLAN_SMART_VIEWS.find(x => x.id === 'done');
+        return `<button class="pl-item pl-done-item${on('smart','done')}" data-plsel="smart:done" title="${esc(v.hint)}">
+          <span class="pl-ico">${v.icon}</span><span class="pl-name">${esc(v.name)}</span>
+          <span class="pl-n mono">${planSmartCount('done') || ''}</span></button>`; })()}
     </div>
   </aside>`;
 }
@@ -206,8 +234,10 @@ function planEmptyLine(sel){
 const PLAN_ROOMS = [
   {id:'tasks',  name:'Tasks',  icon:'▤'},
   {id:'habits', name:'Habits', icon:'◍'},
+  {id:'stats',  name:'Statistics', icon:'◫'},
 ];
-function planRoom(){ return S._planRoom || planState().prefs.room || 'tasks'; }
+function planRoom(){ const r = S._planRoom || planState().prefs.room || 'tasks';
+  return PLAN_ROOMS.some(x => x.id === r) ? r : 'tasks'; }
 function planSetRoom(id){
   S._planRoom = id; planState().prefs.room = id; saveNow(); rerender();
 }
@@ -225,7 +255,7 @@ routes.planning = function(root, params){
   migratePlanning();
   /* an address still naming habits opens the habits room rather than a
      selection inside the task room that no longer exists */
-  if(params[0] === 'habits'){ S._planRoom = 'habits'; }
+  if(params[0] === 'habits' || params[0] === 'stats'){ S._planRoom = params[0]; }
   else if(params[0]) { S._planRoom = 'tasks'; S._planSel = {kind:'smart', id:params[0]}; }
   const sel = planSel();
   registerPageEntry({pageName:'Planning', addLabel:'New task', defaultEntryType:'task', prefilledFields:{},
@@ -254,15 +284,15 @@ routes.planning = function(root, params){
     : v === 'timeline'   ? planTimelineHTML(tasks)
     : planListViewHTML(sel, tasks);
 
-  if(planRoom() === 'habits'){
+  const room = planRoom();
+  if(room === 'habits' || room === 'stats'){
     root.innerHTML = `<div class="page plan-page">
       <div class="page-head"><h1>Planning</h1></div>
       ${planRoomsHTML()}
-      <div class="pl-habits-room">${planHabitsHTML()}</div>
+      <div class="pl-habits-room">${room === 'habits' ? planHabitsHTML() : planStatsHTML()}</div>
     </div>`;
     bindPlanRooms(root);
-    if(typeof bindPlanHabits === 'function') bindPlanHabits(root);
-    else if(typeof bindPlanning === 'function') bindPlanning(root);
+    if(room === 'habits' && typeof bindPlanHabits === 'function') bindPlanHabits(root);
     return;
   }
 

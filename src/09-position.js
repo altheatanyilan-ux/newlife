@@ -713,18 +713,25 @@ function sleepWakeHTML(anchor = today()){
      day gets a full-height strip instead: hovering anywhere in the column
      lights it and reads out that day — both ends, how long awake, how much of
      it was worked. */
-  const hovers = rows.map((r, i) => {
+  /* An SVG <title> is the browser's own tooltip: a second of hover, a system
+     bubble, nothing on a touch screen, and impossible to style or to read at a
+     glance. The readout is a line of the page instead — it fills in the moment
+     the pointer crosses a column, and rests on today when it is not being
+     pointed at. */
+  const dayLine = r => {
     const parts = [fmtDate(r.d, 'med')];
     parts.push(r.wake != null ? `woke ${wkClock(r.wake)}` : 'no waking time');
     parts.push(r.close != null ? `slept ${wkClock(r.close)}` : 'no sleeping time');
     if(r.awake) parts.push(`${r.awake.toFixed(1)}h awake`);
-    if(r.worked) parts.push(`${r.worked.toFixed(1)}h worked${r.ratio != null ? ` (${r.ratio}%)` : ''}`);
-    return `<g class="wk-col${r.d === T ? ' now' : ''}">
+    if(r.worked) parts.push(`${r.worked.toFixed(1)}h worked${r.ratio != null ? ` · ${r.ratio}% of it` : ''}`);
+    return parts.join('  ·  ');
+  };
+  const restRow = rows.find(r => r.d === T && !r.empty) || [...rows].reverse().find(r => !r.empty) || rows[rows.length - 1];
+  const hovers = rows.map((r, i) => `<g class="wk-col${r.d === T ? ' now' : ''}" data-wkday="${r.d}">
       <rect x="${(x(i) - colW / 2).toFixed(1)}" y="${padT}" width="${colW.toFixed(1)}" height="${(H - padB - padT).toFixed(1)}"
         fill="transparent" class="wk-hit"/>
-      <title>${esc(parts.join(' · '))}</title>
-    </g>`;
-  }).join('');
+    </g>`).join('');
+  const readouts = rows.map(r => `<span class="wk-say" data-wksay="${r.d}" hidden>${esc(dayLine(r))}</span>`).join('');
 
   return `<section class="section rv week-shape">
     <div class="row between" style="align-items:baseline;flex-wrap:wrap;gap:8px">
@@ -737,7 +744,9 @@ function sleepWakeHTML(anchor = today()){
       <span class="wk-key"><i class="ln" style="background:var(--ment)"></i>I went to sleep${ac!=null?` · usually ${wkClock(ac)}`:''}</span>
       <span class="wk-key"><i class="bnd"></i>awake${(aw!=null&&ac!=null)?` · ${(ac-aw).toFixed(1)}h a day`:''}</span>
     </div>
-    ${filled.length ? `<div class="wk-scroll"><svg class="wk-svg" viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="none">
+    ${filled.length ? `<div class="wk-readout mono" id="wkReadout" aria-live="polite">
+      <span class="wk-say rest">${esc(restRow ? dayLine(restRow) : '')}</span>${readouts}</div>
+    <div class="wk-scroll"><svg class="wk-svg" viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="none">
       ${ticks.map(h => `<g><line x1="${padL}" y1="${y(h).toFixed(1)}" x2="${W}" y2="${y(h).toFixed(1)}" stroke="var(--line)" stroke-width="1" opacity=".5"/>
         <text x="2" y="${(y(h)+3).toFixed(1)}" class="wk-tick">${wkClock(h)}</text></g>`).join('')}
       ${bands.join('')}
@@ -806,6 +815,27 @@ function timePieHTML(){
 /* the pair, in the order they are read */
 function weekShapeHTML(anchor = today()){ return sleepWakeHTML(anchor) + timePieHTML(); }
 function bindWeekShape(root, redraw){
+  /* one line, many prepared sentences: hovering a column reveals its own and
+     hides the resting one, which costs nothing and needs no re-render */
+  const say = root.querySelector('#wkReadout');
+  if(say){
+    const rest = say.querySelector('.wk-say.rest');
+    const show = d => {
+      say.querySelectorAll('.wk-say').forEach(n => { n.hidden = true; });
+      const one = d && say.querySelector(`[data-wksay="${d}"]`);
+      (one || rest).hidden = false;
+    };
+    root.querySelectorAll('[data-wkday]').forEach(g => {
+      const d = g.dataset.wkday;
+      g.addEventListener('pointerenter', () => show(d));
+      g.addEventListener('pointermove', () => show(d));
+      /* a tap on a phone should read out too, and stay read out */
+      g.addEventListener('click', () => show(d));
+    });
+    const svg = root.querySelector('.wk-svg');
+    if(svg) svg.addEventListener('pointerleave', () => show(null));
+  }
+
   /* "claim today's hours" is gone with the hand-entered figures it wrote:
      the timer records the hours now, so there is nothing to claim. */
   const span = root.querySelector('#tpSpan');

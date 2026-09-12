@@ -647,7 +647,10 @@ button.tm-cell:hover{border-color:var(--page-accent)}
    day is a strip you can point at rather than a three-pixel dot */
 .week-shape .wk-scroll{width:100%;overflow:visible}
 .week-shape .wk-svg{width:100%;height:260px;display:block}
-.wk-col .wk-hit{cursor:default}
+.wk-readout{min-height:1.5em;margin:8px 0 2px;font-size:.72rem;letter-spacing:.03em;
+  color:var(--muted);transition:color .15s var(--ease)}
+.wk-readout .wk-say[hidden]{display:none}
+.wk-col .wk-hit{cursor:crosshair}
 .wk-col:hover .wk-hit{fill:color-mix(in srgb,var(--page-accent) 9%,transparent)}
 .wk-col.now .wk-hit{fill:color-mix(in srgb,var(--page-accent) 5%,transparent)}
 
@@ -682,12 +685,38 @@ button.tm-cell:hover{border-color:var(--page-accent)}
   border:1px solid color-mix(in srgb,var(--sage) 35%,transparent)}
 @media (max-width:560px){.fp-body{gap:14px}.fp-ring,.fp-ring svg{width:96px;height:96px}.fp-time{font-size:1.25rem}}
 
+.pk-caret{margin-left:auto;flex:0 0 auto}
+.pk-text[data-tedit]{cursor:text;border-radius:4px}
+.pk-text[data-tedit]:hover{background:color-mix(in srgb,var(--text) 6%,transparent)}
+
 /* steps inside a matrix or board card: the same block, tightened */
 .pk-card .sub-wrap{margin:6px 0 4px 4px;padding-left:9px}
 .pk-card .sub-row{padding:2px 4px;gap:7px}
 .pk-card .sub-text{font-size:.78rem}
 .pk-card .sub-add .inp.sm{font-size:.74rem;padding:3px 6px}
 button.pk-bar{display:block;width:100%;border:none;padding:0;cursor:pointer}
+
+/* the sidebar's new shape: a filter at the top, one dated row that carries its
+   own span, and drop lines for reordering */
+.pl-item.pl-filter{margin-bottom:8px}
+.pl-item.pl-filter.on{color:var(--text)}
+.pl-dated{border-radius:9px;transition:background .16s var(--ease)}
+.pl-dated.on{background:color-mix(in srgb,var(--page-accent) 8%,transparent)}
+.pl-spans{display:flex;gap:2px;padding:0 6px 6px 26px}
+.pl-span{flex:1;border:none;background:none;cursor:pointer;color:var(--faint);
+  font-family:var(--mono);font-size:.56rem;letter-spacing:.04em;padding:2px 4px;border-radius:5px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  transition:color .15s var(--ease),background .15s var(--ease)}
+.pl-span:hover{color:var(--text)}
+.pl-span.on{color:var(--text);background:color-mix(in srgb,var(--page-accent) 22%,transparent)}
+.pl-fold{flex:0 0 auto;width:18px;border:none;background:none;cursor:pointer;color:var(--faint);
+  font-size:.7rem;line-height:1;border-radius:5px;padding:0;
+  transition:color .15s var(--ease)}
+.pl-fold:hover{color:var(--text)}
+.pl-done-item{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}
+.pl-item.drop-above,.pl-frow.drop-above{box-shadow:inset 0 2px 0 0 var(--page-accent)}
+.pl-item.drop-below,.pl-frow.drop-below{box-shadow:inset 0 -2px 0 0 var(--page-accent)}
+.pl-frow{cursor:grab}
 
 /* ---------- Planning's two rooms ----------
    Tasks and habits are the two halves of the page, so they read as two tabs

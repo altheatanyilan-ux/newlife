@@ -32,6 +32,11 @@ const planPriority = n => PLAN_PRIORITY[clamp(+n || 0, 0, 3)];
 const PLAN_COLORS = ['#b08968','#a0727e','#7f916a','#d4a44c','#6b7f8e','#8a7f9e',
                      '#c2452d','#4f9e70','#9a63ab','#d1743a','#4a8fa8','#a89f94'];
 
+/* Today, tomorrow and the next seven days are one question asked over three
+   spans, not three places to go — so they are one row with the span chosen on
+   it. Inbox is gone from the sidebar: a list nobody filed anything into is not
+   worth a permanent line, and the Inbox list itself is still in Lists below.
+   Completed sits at the bottom because finished work is what you look at last. */
 const PLAN_SMART_VIEWS = [
   {id:'inbox',    icon:'▫', name:'Inbox',       hint:'anything not yet filed'},
   {id:'today',    icon:'◉', name:'Today',       hint:'due today, and anything late'},
@@ -40,6 +45,17 @@ const PLAN_SMART_VIEWS = [
   {id:'all',      icon:'≡', name:'All',         hint:'every task, every list'},
   {id:'done',     icon:'✓', name:'Completed',   hint:'the last thirty days of finished work'},
 ];
+/* the three spans the one dated row can be set to */
+const PLAN_SPANS = ['today', 'tomorrow', 'next7'];
+function planSpan(){
+  const v = S._planSpan || planState().prefs.span;
+  return PLAN_SPANS.includes(v) ? v : 'today';
+}
+function planSetSpan(id){
+  if(!PLAN_SPANS.includes(id)) return;
+  S._planSpan = id; planState().prefs.span = id;
+  planSetSel('smart', id);
+}
 /* The matrix leads, and the page opens on it. A list answers "what is there";
    the matrix answers "what should I touch first", which is the question the
    page is for — and the number keys follow this order, so 1 is the matrix. */
@@ -103,7 +119,7 @@ function planState(){
   p.reminders  = Array.isArray(p.reminders) ? p.reminders : [];
   p.timer = Object.assign({focusDuration:25, shortBreak:5, longBreak:15, longBreakAfter:4,
     autoStartBreaks:true, autoStartFocus:false}, p.timer || {});
-  p.prefs = Object.assign({view:PLAN_VIEW_DEFAULT, sort:'dueDate', sortDir:'asc', showCompleted:false,
+  p.prefs = Object.assign({view:PLAN_VIEW_DEFAULT, span:'today', sort:'dueDate', sortDir:'asc', showCompleted:false,
     group:'auto', sidebarCollapsed:false, lastView:'today', calMode:'month', tlScale:'week'}, p.prefs || {});
   if(!p.lists.some(l => l.id === 'inbox'))
     p.lists.unshift({id:'inbox', name:'Inbox', color:'#a89f94', folderId:null, sortOrder:-1,
@@ -187,6 +203,39 @@ function planSmartFilter(id){
 }
 function planSmartCount(id){ return planSmartFilter(id).length; }
 function planListCount(id){ return planOwnTasks().filter(t => !t.done && t.listId === id).length; }
+function planFolderCount(id){
+  const ids = new Set(planLists().filter(l => l.folderId === id).map(l => l.id));
+  return planOwnTasks().filter(t => !t.done && ids.has(t.listId)).length;
+}
+/* Dropping one row on another rewrites the whole sequence rather than nudging
+   two numbers — the same shape as reordering tasks in a day, for the same
+   reason: it cannot drift. */
+function planReorder(items, dragId, targetId, before){
+  const from = items.findIndex(x => x.id === dragId);
+  if(from < 0) return false;
+  const moved = items.splice(from, 1)[0];
+  let at = items.findIndex(x => x.id === targetId);
+  if(at < 0) at = items.length; else if(!before) at += 1;
+  items.splice(at, 0, moved);
+  items.forEach((x, i) => { x.sortOrder = i; });
+  saveNow();
+  return true;
+}
+function planReorderFolders(dragId, targetId, before){
+  const fs = planState().folders.slice().sort((a, b) => a.sortOrder - b.sortOrder);
+  if(!planReorder(fs, dragId, targetId, before)) return false;
+  planState().folders = fs; saveNow(); return true;
+}
+function planReorderLists(dragId, targetId, before){
+  const drag = planList(dragId), target = planList(targetId);
+  if(!drag || !target) return false;
+  /* dropping a list onto one in another folder moves it there too — the drop
+     says where it belongs as well as where it sits */
+  drag.folderId = target.folderId ?? null;
+  const ls = planLists();
+  if(!planReorder(ls, dragId, targetId, before)) return false;
+  planState().lists = ls; saveNow(); return true;
+}
 function planTagCount(name){ return planOwnTasks().filter(t => !t.done && t.tags.includes(name)).length; }
 
 /* one place decides what a selection means, so every view shows the same set */
@@ -194,6 +243,12 @@ function planSelectionTasks(sel){
   if(!sel) return [];
   if(sel.kind === 'smart') return planSmartFilter(sel.id);
   if(sel.kind === 'list')  return planOwnTasks().filter(t => t.listId === sel.id && (!t.done || planState().prefs.showCompleted));
+  /* A folder holds lists, and its tasks are every task in any of them — the
+     thing you actually want when a folder is a project or a client. */
+  if(sel.kind === 'folder'){
+    const ids = new Set(planLists().filter(l => l.folderId === sel.id).map(l => l.id));
+    return planOwnTasks().filter(t => ids.has(t.listId) && (!t.done || planState().prefs.showCompleted));
+  }
   if(sel.kind === 'tag')   return planOwnTasks().filter(t => t.tags.includes(sel.id) && !t.done);
   if(sel.kind === 'smartlist'){
     const sl = planState().smartLists.find(x => x.id === sel.id);
@@ -208,6 +263,7 @@ function planSelectionTitle(sel){
   if(sel.kind === 'smart') return (PLAN_SMART_VIEWS.find(v => v.id === sel.id) || {}).name
     || PLAN_EXTRA_TITLES[sel.id] || 'Tasks';
   if(sel.kind === 'list')  return planListName(sel.id);
+  if(sel.kind === 'folder') return (planState().folders.find(f => f.id === sel.id) || {}).name || 'Folder';
   if(sel.kind === 'tag')   return '#' + sel.id;
   if(sel.kind === 'smartlist') return (planState().smartLists.find(x => x.id === sel.id) || {}).name || 'Filter';
   return 'Tasks';

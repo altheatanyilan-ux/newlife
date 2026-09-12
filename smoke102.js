@@ -42,10 +42,12 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   is('but a view chosen deliberately since is left alone', await p.evaluate(() => planView()), 'calendar');
   await p.evaluate(() => { planState().prefs.view = 'eisenhower'; saveNow(); });
 
-  console.log('\n3. tasks and habits are two rooms, not a list item');
+  console.log('\n3. tasks, habits and statistics are rooms, not list items');
   await plan();
   const rooms = await p.$$eval('[data-plroom]', n => n.map(x => x.dataset.plroom));
-  is('there are exactly two', rooms.join(','), 'tasks,habits');
+  /* Statistics joined them later: the numbers about the work are a peer of the
+     work, not a view of one list of it. */
+  is('the three rooms, in order', rooms.join(','), 'tasks,habits,stats');
   yes('habits is no longer buried among the task views',
       await p.evaluate(() => !document.querySelector('[data-plsel="smart:habits"]')));
   yes('the task room has its list sidebar', !!(await p.$('.pl-side')));

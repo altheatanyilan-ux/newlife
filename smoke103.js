@@ -156,16 +156,60 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     const ticks = [...document.querySelectorAll('.wk-tick')].map(t => t.textContent);
     return {w: Math.round(r.width), pageW: Math.round(page.width), ticks,
       cols: document.querySelectorAll('.wk-col').length,
-      readout: document.querySelector('.wk-col title')?.textContent || ''};
+      hasReadout: !!document.querySelector('#wkReadout')};
   });
   yes('it fills the width it is given rather than a third of it',
       chart && chart.w > chart.pageW * 0.85, chart ? `${chart.w} of ${chart.pageW}` : 'no chart');
   yes('the scale is fitted to the readings, not a fixed 4am–4am',
       chart && !chart.ticks.includes('4am') && chart.ticks.length >= 4, (chart?.ticks || []).join(' '));
   is('every day is a strip you can point at', chart && chart.cols, 7);
-  yes('and pointing at one reads out that day',
-      /woke/.test(chart.readout) && /slept/.test(chart.readout), chart.readout);
-  yes('  including how much of it was worked', /worked/.test(chart.readout), chart.readout);
+
+  /* An SVG <title> was the browser's own tooltip: a second of delay, a system
+     bubble, and nothing at all under a finger. So the readout is a line of the
+     page — which means the test has to move a real pointer over a real column
+     and read what the line then says, not read an attribute off the markup. */
+  yes('there is a readout line at all', chart && chart.hasReadout);
+  const shown = () => p.evaluate(() => {
+    const n = document.querySelector('#wkReadout .wk-say:not([hidden])');
+    return n ? n.textContent.trim() : '';
+  });
+  const atRest = await shown();
+  yes('it rests on a day rather than sitting blank',
+      /woke|no waking time/.test(atRest), JSON.stringify(atRest));
+  /* pick a column that is not the one already being read out, so a change is
+     proof the pointer did it and not the initial paint */
+  const target = await p.evaluate(rest => {
+    const cols = [...document.querySelectorAll('[data-wkday]')];
+    const g = cols.find(c => { const say = document.querySelector(`[data-wksay="${c.dataset.wkday}"]`);
+      return say && say.textContent.trim() !== rest; }) || cols[0];
+    if(!g) return null;
+    const r = g.querySelector('.wk-hit').getBoundingClientRect();
+    return {d: g.dataset.wkday, x: r.x + r.width / 2, y: r.y + r.height / 2,
+      want: document.querySelector(`[data-wksay="${g.dataset.wkday}"]`).textContent.trim()};
+  }, atRest);
+  yes('a column can be found to point at', !!target);
+  await p.mouse.move(target.x, target.y);
+  await p.waitForTimeout(200);
+  const onHover = await shown();
+  is('pointing at a column reads out that column', onHover, target.want);
+  yes('  and it changed under the pointer', onHover !== atRest, `still ${JSON.stringify(onHover)}`);
+  yes('  naming the day and both ends of it',
+      /woke/.test(onHover) && /slept/.test(onHover), onHover);
+  yes('  including how much of it was worked, when any was',
+      !/h awake/.test(onHover) || /worked/.test(onHover) || /0\.0h/.test(onHover), onHover);
+  /* a tap has no hover, so a click has to read out too */
+  await p.mouse.move(5, 5);
+  await p.waitForTimeout(200);
+  /* which day rests there is whichever day is most recently logged, and the
+     page keeps redrawing as the timer runs — so assert it is the resting line,
+     not the string it happened to hold a moment ago */
+  yes('taking the pointer off puts the resting day back',
+      await p.evaluate(() => document.querySelector('#wkReadout .wk-say:not([hidden])')?.classList.contains('rest')),
+      await shown());
+  await p.evaluate(d => document.querySelector(`[data-wkday="${d}"]`).dispatchEvent(
+    new MouseEvent('click', {bubbles: true})), target.d);
+  await p.waitForTimeout(200);
+  is('and a tap reads it out, for a screen with no pointer', await shown(), target.want);
 
   console.log('\n' + (errs.length ? 'console:\n  ' + errs.join('\n  ') : 'console: clean'));
   if(errs.length) bad += errs.length;

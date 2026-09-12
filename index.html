@@ -1163,7 +1163,10 @@ button.tm-cell:hover{border-color:var(--page-accent)}
    day is a strip you can point at rather than a three-pixel dot */
 .week-shape .wk-scroll{width:100%;overflow:visible}
 .week-shape .wk-svg{width:100%;height:260px;display:block}
-.wk-col .wk-hit{cursor:default}
+.wk-readout{min-height:1.5em;margin:8px 0 2px;font-size:.72rem;letter-spacing:.03em;
+  color:var(--muted);transition:color .15s var(--ease)}
+.wk-readout .wk-say[hidden]{display:none}
+.wk-col .wk-hit{cursor:crosshair}
 .wk-col:hover .wk-hit{fill:color-mix(in srgb,var(--page-accent) 9%,transparent)}
 .wk-col.now .wk-hit{fill:color-mix(in srgb,var(--page-accent) 5%,transparent)}
 
@@ -1198,12 +1201,38 @@ button.tm-cell:hover{border-color:var(--page-accent)}
   border:1px solid color-mix(in srgb,var(--sage) 35%,transparent)}
 @media (max-width:560px){.fp-body{gap:14px}.fp-ring,.fp-ring svg{width:96px;height:96px}.fp-time{font-size:1.25rem}}
 
+.pk-caret{margin-left:auto;flex:0 0 auto}
+.pk-text[data-tedit]{cursor:text;border-radius:4px}
+.pk-text[data-tedit]:hover{background:color-mix(in srgb,var(--text) 6%,transparent)}
+
 /* steps inside a matrix or board card: the same block, tightened */
 .pk-card .sub-wrap{margin:6px 0 4px 4px;padding-left:9px}
 .pk-card .sub-row{padding:2px 4px;gap:7px}
 .pk-card .sub-text{font-size:.78rem}
 .pk-card .sub-add .inp.sm{font-size:.74rem;padding:3px 6px}
 button.pk-bar{display:block;width:100%;border:none;padding:0;cursor:pointer}
+
+/* the sidebar's new shape: a filter at the top, one dated row that carries its
+   own span, and drop lines for reordering */
+.pl-item.pl-filter{margin-bottom:8px}
+.pl-item.pl-filter.on{color:var(--text)}
+.pl-dated{border-radius:9px;transition:background .16s var(--ease)}
+.pl-dated.on{background:color-mix(in srgb,var(--page-accent) 8%,transparent)}
+.pl-spans{display:flex;gap:2px;padding:0 6px 6px 26px}
+.pl-span{flex:1;border:none;background:none;cursor:pointer;color:var(--faint);
+  font-family:var(--mono);font-size:.56rem;letter-spacing:.04em;padding:2px 4px;border-radius:5px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  transition:color .15s var(--ease),background .15s var(--ease)}
+.pl-span:hover{color:var(--text)}
+.pl-span.on{color:var(--text);background:color-mix(in srgb,var(--page-accent) 22%,transparent)}
+.pl-fold{flex:0 0 auto;width:18px;border:none;background:none;cursor:pointer;color:var(--faint);
+  font-size:.7rem;line-height:1;border-radius:5px;padding:0;
+  transition:color .15s var(--ease)}
+.pl-fold:hover{color:var(--text)}
+.pl-done-item{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}
+.pl-item.drop-above,.pl-frow.drop-above{box-shadow:inset 0 2px 0 0 var(--page-accent)}
+.pl-item.drop-below,.pl-frow.drop-below{box-shadow:inset 0 -2px 0 0 var(--page-accent)}
+.pl-frow{cursor:grab}
 
 /* ---------- Planning's two rooms ----------
    Tasks and habits are the two halves of the page, so they read as two tabs
@@ -8170,18 +8199,25 @@ function sleepWakeHTML(anchor = today()){
      day gets a full-height strip instead: hovering anywhere in the column
      lights it and reads out that day — both ends, how long awake, how much of
      it was worked. */
-  const hovers = rows.map((r, i) => {
+  /* An SVG <title> is the browser's own tooltip: a second of hover, a system
+     bubble, nothing on a touch screen, and impossible to style or to read at a
+     glance. The readout is a line of the page instead — it fills in the moment
+     the pointer crosses a column, and rests on today when it is not being
+     pointed at. */
+  const dayLine = r => {
     const parts = [fmtDate(r.d, 'med')];
     parts.push(r.wake != null ? `woke ${wkClock(r.wake)}` : 'no waking time');
     parts.push(r.close != null ? `slept ${wkClock(r.close)}` : 'no sleeping time');
     if(r.awake) parts.push(`${r.awake.toFixed(1)}h awake`);
-    if(r.worked) parts.push(`${r.worked.toFixed(1)}h worked${r.ratio != null ? ` (${r.ratio}%)` : ''}`);
-    return `<g class="wk-col${r.d === T ? ' now' : ''}">
+    if(r.worked) parts.push(`${r.worked.toFixed(1)}h worked${r.ratio != null ? ` · ${r.ratio}% of it` : ''}`);
+    return parts.join('  ·  ');
+  };
+  const restRow = rows.find(r => r.d === T && !r.empty) || [...rows].reverse().find(r => !r.empty) || rows[rows.length - 1];
+  const hovers = rows.map((r, i) => `<g class="wk-col${r.d === T ? ' now' : ''}" data-wkday="${r.d}">
       <rect x="${(x(i) - colW / 2).toFixed(1)}" y="${padT}" width="${colW.toFixed(1)}" height="${(H - padB - padT).toFixed(1)}"
         fill="transparent" class="wk-hit"/>
-      <title>${esc(parts.join(' · '))}</title>
-    </g>`;
-  }).join('');
+    </g>`).join('');
+  const readouts = rows.map(r => `<span class="wk-say" data-wksay="${r.d}" hidden>${esc(dayLine(r))}</span>`).join('');
 
   return `<section class="section rv week-shape">
     <div class="row between" style="align-items:baseline;flex-wrap:wrap;gap:8px">
@@ -8194,7 +8230,9 @@ function sleepWakeHTML(anchor = today()){
       <span class="wk-key"><i class="ln" style="background:var(--ment)"></i>I went to sleep${ac!=null?` · usually ${wkClock(ac)}`:''}</span>
       <span class="wk-key"><i class="bnd"></i>awake${(aw!=null&&ac!=null)?` · ${(ac-aw).toFixed(1)}h a day`:''}</span>
     </div>
-    ${filled.length ? `<div class="wk-scroll"><svg class="wk-svg" viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="none">
+    ${filled.length ? `<div class="wk-readout mono" id="wkReadout" aria-live="polite">
+      <span class="wk-say rest">${esc(restRow ? dayLine(restRow) : '')}</span>${readouts}</div>
+    <div class="wk-scroll"><svg class="wk-svg" viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="none">
       ${ticks.map(h => `<g><line x1="${padL}" y1="${y(h).toFixed(1)}" x2="${W}" y2="${y(h).toFixed(1)}" stroke="var(--line)" stroke-width="1" opacity=".5"/>
         <text x="2" y="${(y(h)+3).toFixed(1)}" class="wk-tick">${wkClock(h)}</text></g>`).join('')}
       ${bands.join('')}
@@ -8263,6 +8301,27 @@ function timePieHTML(){
 /* the pair, in the order they are read */
 function weekShapeHTML(anchor = today()){ return sleepWakeHTML(anchor) + timePieHTML(); }
 function bindWeekShape(root, redraw){
+  /* one line, many prepared sentences: hovering a column reveals its own and
+     hides the resting one, which costs nothing and needs no re-render */
+  const say = root.querySelector('#wkReadout');
+  if(say){
+    const rest = say.querySelector('.wk-say.rest');
+    const show = d => {
+      say.querySelectorAll('.wk-say').forEach(n => { n.hidden = true; });
+      const one = d && say.querySelector(`[data-wksay="${d}"]`);
+      (one || rest).hidden = false;
+    };
+    root.querySelectorAll('[data-wkday]').forEach(g => {
+      const d = g.dataset.wkday;
+      g.addEventListener('pointerenter', () => show(d));
+      g.addEventListener('pointermove', () => show(d));
+      /* a tap on a phone should read out too, and stay read out */
+      g.addEventListener('click', () => show(d));
+    });
+    const svg = root.querySelector('.wk-svg');
+    if(svg) svg.addEventListener('pointerleave', () => show(null));
+  }
+
   /* "claim today's hours" is gone with the hand-entered figures it wrote:
      the timer records the hours now, so there is nothing to claim. */
   const span = root.querySelector('#tpSpan');
@@ -14256,15 +14315,68 @@ function bindPlanning(root, sel, tasks){
   const nfil = $('#plNewFilter'); if(nfil) nfil.onclick = () => openPlanFilterModal(null);
   $$('[data-plfolder] .pl-fhead', root).forEach(h => h.addEventListener('contextmenu', ev => {
     ev.preventDefault(); openPlanFolderRename(h.closest('[data-plfolder]').dataset.plfolder); }));
+  /* the span on the one dated row */
+  $$('[data-plspan]', root).forEach(b => b.onclick = ev => {
+    ev.stopPropagation(); sound('click'); planSetSpan(b.dataset.plspan); });
+  const sf = $('#plSideFilter'); if(sf) sf.onclick = () => openPlanQuickFilter();
+
+  /* ---- dragging lists and folders into an order ----
+     A list dropped on a list takes its place in the order (and its folder). A
+     list dropped on a folder's own row joins that folder, which is what that
+     drop already meant. A folder dropped on a folder reorders the folders. */
+  const clearDrop = () => $$('.pl-item.drop-above, .pl-item.drop-below, .pl-frow.drop-above, .pl-frow.drop-below', root)
+    .forEach(x => x.classList.remove('drop-above', 'drop-below'));
+  const edge = (el, ev) => { const r = el.getBoundingClientRect(); return ev.clientY < r.top + r.height / 2; };
+
   $$('[data-pldrag]', root).forEach(b => {
-    b.addEventListener('dragstart', ev => { ev.stopPropagation(); window._plListDrag = b.dataset.pldrag; ev.dataTransfer.effectAllowed = 'move'; });
+    b.addEventListener('dragstart', ev => { ev.stopPropagation();
+      window._plListDrag = b.dataset.pldrag; window._plFolderDrag = null;
+      ev.dataTransfer.effectAllowed = 'move'; });
+    b.addEventListener('dragend', () => { window._plListDrag = null; clearDrop(); });
     b.addEventListener('contextmenu', ev => { ev.preventDefault(); openPlanListModal(b.dataset.pldrag); });
+    b.addEventListener('dragover', ev => {
+      if(!window._plListDrag || window._plListDrag === b.dataset.pldrag) return;
+      ev.preventDefault(); ev.stopPropagation();
+      clearDrop(); b.classList.add(edge(b, ev) ? 'drop-above' : 'drop-below');
+    });
+    b.addEventListener('drop', ev => {
+      const id = window._plListDrag;
+      if(!id || id === b.dataset.pldrag) return;
+      ev.preventDefault(); ev.stopPropagation();
+      const before = b.classList.contains('drop-above');
+      clearDrop(); window._plListDrag = null;
+      if(planReorderLists(id, b.dataset.pldrag, before)){ sound('click'); rerender(); }
+    });
   });
+
+  $$('[data-plfdrag]', root).forEach(fr => {
+    fr.addEventListener('dragstart', ev => { ev.stopPropagation();
+      window._plFolderDrag = fr.dataset.plfdrag; window._plListDrag = null;
+      ev.dataTransfer.effectAllowed = 'move'; });
+    fr.addEventListener('dragend', () => { window._plFolderDrag = null; clearDrop(); });
+    fr.addEventListener('dragover', ev => {
+      const f = window._plFolderDrag;
+      if(!f || f === fr.dataset.plfdrag) return;
+      ev.preventDefault(); ev.stopPropagation();
+      clearDrop(); fr.classList.add(edge(fr, ev) ? 'drop-above' : 'drop-below');
+    });
+    fr.addEventListener('drop', ev => {
+      const f = window._plFolderDrag;
+      if(!f || f === fr.dataset.plfdrag) return;
+      ev.preventDefault(); ev.stopPropagation();
+      const before = fr.classList.contains('drop-above');
+      clearDrop(); window._plFolderDrag = null;
+      if(planReorderFolders(f, fr.dataset.plfdrag, before)){ sound('click'); rerender(); }
+    });
+  });
+
+  /* a list dropped anywhere else inside a folder still just joins it */
   $$('[data-plfolder]', root).forEach(fd => {
     fd.addEventListener('dragover', ev => { if(window._plListDrag){ ev.preventDefault(); fd.classList.add('over'); } });
     fd.addEventListener('dragleave', () => fd.classList.remove('over'));
-    fd.addEventListener('drop', ev => { ev.preventDefault(); fd.classList.remove('over');
+    fd.addEventListener('drop', ev => { fd.classList.remove('over');
       const l = planList(window._plListDrag); window._plListDrag = null; if(!l) return;
+      ev.preventDefault();
       l.folderId = fd.dataset.plfolder; saveNow(); sound('click'); rerender(); });
   });
 
@@ -14607,6 +14719,11 @@ const planPriority = n => PLAN_PRIORITY[clamp(+n || 0, 0, 3)];
 const PLAN_COLORS = ['#b08968','#a0727e','#7f916a','#d4a44c','#6b7f8e','#8a7f9e',
                      '#c2452d','#4f9e70','#9a63ab','#d1743a','#4a8fa8','#a89f94'];
 
+/* Today, tomorrow and the next seven days are one question asked over three
+   spans, not three places to go — so they are one row with the span chosen on
+   it. Inbox is gone from the sidebar: a list nobody filed anything into is not
+   worth a permanent line, and the Inbox list itself is still in Lists below.
+   Completed sits at the bottom because finished work is what you look at last. */
 const PLAN_SMART_VIEWS = [
   {id:'inbox',    icon:'▫', name:'Inbox',       hint:'anything not yet filed'},
   {id:'today',    icon:'◉', name:'Today',       hint:'due today, and anything late'},
@@ -14615,6 +14732,17 @@ const PLAN_SMART_VIEWS = [
   {id:'all',      icon:'≡', name:'All',         hint:'every task, every list'},
   {id:'done',     icon:'✓', name:'Completed',   hint:'the last thirty days of finished work'},
 ];
+/* the three spans the one dated row can be set to */
+const PLAN_SPANS = ['today', 'tomorrow', 'next7'];
+function planSpan(){
+  const v = S._planSpan || planState().prefs.span;
+  return PLAN_SPANS.includes(v) ? v : 'today';
+}
+function planSetSpan(id){
+  if(!PLAN_SPANS.includes(id)) return;
+  S._planSpan = id; planState().prefs.span = id;
+  planSetSel('smart', id);
+}
 /* The matrix leads, and the page opens on it. A list answers "what is there";
    the matrix answers "what should I touch first", which is the question the
    page is for — and the number keys follow this order, so 1 is the matrix. */
@@ -14678,7 +14806,7 @@ function planState(){
   p.reminders  = Array.isArray(p.reminders) ? p.reminders : [];
   p.timer = Object.assign({focusDuration:25, shortBreak:5, longBreak:15, longBreakAfter:4,
     autoStartBreaks:true, autoStartFocus:false}, p.timer || {});
-  p.prefs = Object.assign({view:PLAN_VIEW_DEFAULT, sort:'dueDate', sortDir:'asc', showCompleted:false,
+  p.prefs = Object.assign({view:PLAN_VIEW_DEFAULT, span:'today', sort:'dueDate', sortDir:'asc', showCompleted:false,
     group:'auto', sidebarCollapsed:false, lastView:'today', calMode:'month', tlScale:'week'}, p.prefs || {});
   if(!p.lists.some(l => l.id === 'inbox'))
     p.lists.unshift({id:'inbox', name:'Inbox', color:'#a89f94', folderId:null, sortOrder:-1,
@@ -14762,6 +14890,39 @@ function planSmartFilter(id){
 }
 function planSmartCount(id){ return planSmartFilter(id).length; }
 function planListCount(id){ return planOwnTasks().filter(t => !t.done && t.listId === id).length; }
+function planFolderCount(id){
+  const ids = new Set(planLists().filter(l => l.folderId === id).map(l => l.id));
+  return planOwnTasks().filter(t => !t.done && ids.has(t.listId)).length;
+}
+/* Dropping one row on another rewrites the whole sequence rather than nudging
+   two numbers — the same shape as reordering tasks in a day, for the same
+   reason: it cannot drift. */
+function planReorder(items, dragId, targetId, before){
+  const from = items.findIndex(x => x.id === dragId);
+  if(from < 0) return false;
+  const moved = items.splice(from, 1)[0];
+  let at = items.findIndex(x => x.id === targetId);
+  if(at < 0) at = items.length; else if(!before) at += 1;
+  items.splice(at, 0, moved);
+  items.forEach((x, i) => { x.sortOrder = i; });
+  saveNow();
+  return true;
+}
+function planReorderFolders(dragId, targetId, before){
+  const fs = planState().folders.slice().sort((a, b) => a.sortOrder - b.sortOrder);
+  if(!planReorder(fs, dragId, targetId, before)) return false;
+  planState().folders = fs; saveNow(); return true;
+}
+function planReorderLists(dragId, targetId, before){
+  const drag = planList(dragId), target = planList(targetId);
+  if(!drag || !target) return false;
+  /* dropping a list onto one in another folder moves it there too — the drop
+     says where it belongs as well as where it sits */
+  drag.folderId = target.folderId ?? null;
+  const ls = planLists();
+  if(!planReorder(ls, dragId, targetId, before)) return false;
+  planState().lists = ls; saveNow(); return true;
+}
 function planTagCount(name){ return planOwnTasks().filter(t => !t.done && t.tags.includes(name)).length; }
 
 /* one place decides what a selection means, so every view shows the same set */
@@ -14769,6 +14930,12 @@ function planSelectionTasks(sel){
   if(!sel) return [];
   if(sel.kind === 'smart') return planSmartFilter(sel.id);
   if(sel.kind === 'list')  return planOwnTasks().filter(t => t.listId === sel.id && (!t.done || planState().prefs.showCompleted));
+  /* A folder holds lists, and its tasks are every task in any of them — the
+     thing you actually want when a folder is a project or a client. */
+  if(sel.kind === 'folder'){
+    const ids = new Set(planLists().filter(l => l.folderId === sel.id).map(l => l.id));
+    return planOwnTasks().filter(t => ids.has(t.listId) && (!t.done || planState().prefs.showCompleted));
+  }
   if(sel.kind === 'tag')   return planOwnTasks().filter(t => t.tags.includes(sel.id) && !t.done);
   if(sel.kind === 'smartlist'){
     const sl = planState().smartLists.find(x => x.id === sel.id);
@@ -14783,6 +14950,7 @@ function planSelectionTitle(sel){
   if(sel.kind === 'smart') return (PLAN_SMART_VIEWS.find(v => v.id === sel.id) || {}).name
     || PLAN_EXTRA_TITLES[sel.id] || 'Tasks';
   if(sel.kind === 'list')  return planListName(sel.id);
+  if(sel.kind === 'folder') return (planState().folders.find(f => f.id === sel.id) || {}).name || 'Folder';
   if(sel.kind === 'tag')   return '#' + sel.id;
   if(sel.kind === 'smartlist') return (planState().smartLists.find(x => x.id === sel.id) || {}).name || 'Filter';
   return 'Tasks';
@@ -15137,6 +15305,7 @@ document.addEventListener('keydown', ev => {
   if(act === 'add'){ const i = document.querySelector('.pq-input'); if(i){ i.focus(); } else openPlanTask(null); return; }
   /* the timer lives on Today now — go to it rather than opening a second one */
   if(act === 'focus')  return navigate('#/today');
+  if(act === 'stats')  return planSetRoom('stats');
   if(act === 'today')  return planSetSel('smart', 'today');
   if(act === 'habits') return planSetSel('smart', 'habits');
   if(act === 'stats')  return planSetSel('smart', 'stats');
@@ -15199,19 +15368,43 @@ function planSidebarHTML(){
     <button class="pl-collapse" id="plCollapse" title="${p.prefs.sidebarCollapsed ? 'show the sidebar' : 'collapse the sidebar'}">${p.prefs.sidebarCollapsed ? '›' : '‹'}</button>
     <div class="pl-scroll">
       <input class="inp mono pl-search" id="plSearch" placeholder="search tasks…" value="${esc(S._planQ || '')}">
+      <button class="pl-item pl-filter${S._planFilter && Object.keys(S._planFilter).length ? ' on' : ''}" id="plSideFilter" title="narrow what is shown">
+        <span class="pl-ico">⚟</span><span class="pl-name">Filter</span>
+        ${(() => { const n = Object.keys(S._planFilter || {}).length; return n ? `<span class="pl-n mono">${n}</span>` : ''; })()}</button>
+
       <div class="pl-group">
-        ${PLAN_SMART_VIEWS.map(v => `<button class="pl-item${on('smart', v.id)}" data-plsel="smart:${v.id}" title="${esc(v.hint)}">
-          <span class="pl-ico">${v.icon}</span><span class="pl-name">${esc(v.name)}</span>
-          <span class="pl-n mono">${planSmartCount(v.id) || ''}</span></button>`).join('')}
+        ${(() => { const v = PLAN_SMART_VIEWS.find(x => x.id === 'all');
+          return `<button class="pl-item${on('smart', 'all')}" data-plsel="smart:all" title="${esc(v.hint)}">
+            <span class="pl-ico">${v.icon}</span><span class="pl-name">${esc(v.name)}</span>
+            <span class="pl-n mono">${planSmartCount('all') || ''}</span></button>`; })()}
+
+        <!-- one dated row, with the span chosen on it: the same question over
+             three lengths of time, not three separate places -->
+        ${(() => { const sp = planSpan(), v = PLAN_SMART_VIEWS.find(x => x.id === sp);
+          const picked = PLAN_SPANS.includes(sel.id) && sel.kind === 'smart';
+          return `<div class="pl-dated${picked ? ' on' : ''}">
+            <button class="pl-item${picked ? ' on' : ''}" data-plsel="smart:${sp}" title="${esc(v.hint)}">
+              <span class="pl-ico">${v.icon}</span><span class="pl-name">${esc(v.name)}</span>
+              <span class="pl-n mono">${planSmartCount(sp) || ''}</span></button>
+            <div class="pl-spans" role="group" aria-label="which span">
+              ${PLAN_SPANS.map(id => { const w = PLAN_SMART_VIEWS.find(x => x.id === id);
+                return `<button class="pl-span${sp === id ? ' on' : ''}" data-plspan="${id}" title="${esc(w.hint)}">${esc(w.name)}</button>`; }).join('')}
+            </div></div>`; })()}
       </div>
+
       <div class="pl-head"><span>Lists</span><button class="pl-mini" id="plNewList" title="new list">＋</button></div>
       <div class="pl-group" id="plLists">
         ${p.folders.slice().sort((a,b)=>a.sortOrder-b.sortOrder).map(f => {
           const kids = planLists().filter(l => l.folderId === f.id);
           return `<div class="pl-folder${f.isCollapsed ? ' shut' : ''}" data-plfolder="${f.id}">
-            <div class="pl-frow">
-              <button class="pl-item pl-fhead" data-plfold="${f.id}" title="${esc(f.name)}"><span class="pl-ico">${f.isCollapsed ? '▸' : '▾'}</span>
-                <span class="pl-name">${esc(f.name)}</span><span class="pl-n mono">${kids.length}</span></button>
+            <div class="pl-frow" draggable="true" data-plfdrag="${f.id}">
+              <!-- the arrow folds, the name selects: a folder is a place to
+                   look at as well as a place to keep things in -->
+              <button class="pl-fold" data-plfold="${f.id}" aria-expanded="${!f.isCollapsed}"
+                title="${f.isCollapsed ? 'show its lists' : 'hide its lists'}">${f.isCollapsed ? '▸' : '▾'}</button>
+              <button class="pl-item pl-fhead${on('folder', f.id)}" data-plsel="folder:${f.id}"
+                title="everything in ${esc(f.name)}">
+                <span class="pl-name">${esc(f.name)}</span><span class="pl-n mono">${planFolderCount(f.id) || ''}</span></button>
               <!-- the folder is implied by where you asked, so there is nothing
                    to pick afterwards -->
               <button class="pl-mini pl-fadd" data-plnewin="${f.id}" title="new list in ${esc(f.name)}">＋</button>
@@ -15235,7 +15428,11 @@ function planSidebarHTML(){
     </div>
     <div class="pl-foot">
       <button class="pl-item" id="plFocusBtn" title="The focus timer is on Today"><span class="pl-ico">◔</span><span class="pl-name">Focus timer ↗</span></button>
-      <button class="pl-item${on('smart','stats')}" data-plsel="smart:stats" title="Statistics"><span class="pl-ico">◫</span><span class="pl-name">Statistics</span></button>
+      <!-- last, because finished work is what you look at last -->
+      ${(() => { const v = PLAN_SMART_VIEWS.find(x => x.id === 'done');
+        return `<button class="pl-item pl-done-item${on('smart','done')}" data-plsel="smart:done" title="${esc(v.hint)}">
+          <span class="pl-ico">${v.icon}</span><span class="pl-name">${esc(v.name)}</span>
+          <span class="pl-n mono">${planSmartCount('done') || ''}</span></button>`; })()}
     </div>
   </aside>`;
 }
@@ -15378,8 +15575,10 @@ function planEmptyLine(sel){
 const PLAN_ROOMS = [
   {id:'tasks',  name:'Tasks',  icon:'▤'},
   {id:'habits', name:'Habits', icon:'◍'},
+  {id:'stats',  name:'Statistics', icon:'◫'},
 ];
-function planRoom(){ return S._planRoom || planState().prefs.room || 'tasks'; }
+function planRoom(){ const r = S._planRoom || planState().prefs.room || 'tasks';
+  return PLAN_ROOMS.some(x => x.id === r) ? r : 'tasks'; }
 function planSetRoom(id){
   S._planRoom = id; planState().prefs.room = id; saveNow(); rerender();
 }
@@ -15397,7 +15596,7 @@ routes.planning = function(root, params){
   migratePlanning();
   /* an address still naming habits opens the habits room rather than a
      selection inside the task room that no longer exists */
-  if(params[0] === 'habits'){ S._planRoom = 'habits'; }
+  if(params[0] === 'habits' || params[0] === 'stats'){ S._planRoom = params[0]; }
   else if(params[0]) { S._planRoom = 'tasks'; S._planSel = {kind:'smart', id:params[0]}; }
   const sel = planSel();
   registerPageEntry({pageName:'Planning', addLabel:'New task', defaultEntryType:'task', prefilledFields:{},
@@ -15426,15 +15625,15 @@ routes.planning = function(root, params){
     : v === 'timeline'   ? planTimelineHTML(tasks)
     : planListViewHTML(sel, tasks);
 
-  if(planRoom() === 'habits'){
+  const room = planRoom();
+  if(room === 'habits' || room === 'stats'){
     root.innerHTML = `<div class="page plan-page">
       <div class="page-head"><h1>Planning</h1></div>
       ${planRoomsHTML()}
-      <div class="pl-habits-room">${planHabitsHTML()}</div>
+      <div class="pl-habits-room">${room === 'habits' ? planHabitsHTML() : planStatsHTML()}</div>
     </div>`;
     bindPlanRooms(root);
-    if(typeof bindPlanHabits === 'function') bindPlanHabits(root);
-    else if(typeof bindPlanning === 'function') bindPlanning(root);
+    if(room === 'habits' && typeof bindPlanHabits === 'function') bindPlanHabits(root);
     return;
   }
 
@@ -16075,7 +16274,10 @@ function planCardHTML(t){
       <button class="pt-box sm" data-ptdone="${t.id}" role="checkbox" aria-checked="${t.done}"
         style="${pr.color ? `--pc:${pr.color}` : ''}"><svg viewBox="0 0 20 20" aria-hidden="true">
         <circle cx="10" cy="10" r="8.2" class="pt-ring"/><path d="M5.6 10.3 L8.7 13.3 L14.4 6.9" class="pt-tick"/></svg></button>
-      <span class="pk-text">${esc(t.text || 'Untitled task')}</span></div>
+      <span class="pk-text" data-tedit="${t.id}" title="click to rewrite">${esc(t.text || 'Untitled task')}</span>
+      <!-- the same caret a list row has, so steps fold here too rather than
+           being permanently open on a card -->
+      ${subCaretHTML(t.id, t, 'task-caret pk-caret')}</div>
     ${sub ? `<button class="pk-bar" data-tsubs="${t.id}" title="${sub.done} of ${sub.total} steps — ${subsOpen(t.id, t) ? 'hide them' : 'show them'}"><i style="width:${Math.round(sub.done / sub.total * 100)}%"></i></button>` : ''}
     <!-- the matrix is the view this page opens on, so steps have to be legible
          here too, not only in the list -->
