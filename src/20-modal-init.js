@@ -408,7 +408,7 @@ async function initInner(){
   try { touchPresence(); setInterval(touchPresence, 60000);
     document.addEventListener('visibilitychange', () => { if(!document.hidden) touchPresence(); });
   } catch(e){ console.warn('presence stamp skipped', e); }
-  window.addEventListener('beforeunload', () => { if(saving || savePending) saveNow(); });
+  window.addEventListener('beforeunload', () => { if(saving || queued) saveNow(); });
   if(S.settings.firstOpen === today() && !S._welcomed){ S._welcomed = true; setTimeout(()=>toast('Welcome home. Every piece of text here is editable — click it. The placeholder life is yours to overwrite.', 7000), 800); }
   registerServiceWorker();
   /* The question about theme and sound comes before anything else has a chance

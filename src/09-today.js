@@ -202,17 +202,16 @@ routes.today = function(root){
       ${ready.map(e=>`<div class="card ready-letter" style="margin-top:8px"><div class="row between"><span><b class="serif">${esc(e.title||'To myself')}</b><div class="mono faint">${daysBetween((e.createdAt||'').slice(0,10), T)} days ago</div></span><button class="btn sm primary" data-lopen="${e.id}">Open it</button></div></div>`).join('')}
     </div></details>` : ''}
 
-    <!-- THE DAY, IN COMPARTMENTS
-         Every section is a box of its own: a ceiling it will not grow past,
-         its heading pinned to the top of it, and its contents scrolling
-         inside rather than shoving the rest of the page down. Nothing here
-         moves because something else got longer.
+    <!-- THE DAY, ONE ROOM AT A TIME
+         Every section has a line to itself and stands about a screenful
+         tall: a box you can be inside. Its heading is pinned to the top of
+         it and its contents scroll within it, so nothing here moves because
+         something else got longer, and working on one section does not put
+         another half in your eye.
 
-         The plan takes a line to itself — it is read once, in a glance, and
-         it is the frame the rest of the day hangs on. Under it the clock and
-         the list stand side by side and exactly the same height, because
-         choosing the next thing and timing it are one act. Then the
-         reflective half, in pairs. Under 1000px it is one column again. -->
+         The index above stays pinned while you do it — that is how you get
+         from one room to the next without scrolling past the ones between.
+         Under 1000px the frames come off and it is the plain stacked page. -->
     <div class="daybox daybox-solo">
     <details class="section rv today-plan t-sec" id="t-plan"${fold('t-plan')}>
       <summary><span class="sc" style="margin:0">Today's plan</span>
@@ -226,7 +225,7 @@ routes.today = function(root){
       </div></details>
     </div>
 
-    <div class="daybox daybox-pair daybox-work">
+    <div class="daybox daybox-solo daybox-work">
     ${focusPanelHTML()}
 
 
@@ -252,7 +251,7 @@ routes.today = function(root){
       </div></div></details>
     </div><!-- /daybox-work -->
 
-    <div class="daybox daybox-pair">
+    <div class="daybox daybox-solo">
 
     <!-- daily check-in (intention + mood + energy + setpoint) -->
     <!-- Past the small hours the morning check-in is not a form to fill in, it
@@ -292,9 +291,9 @@ routes.today = function(root){
         <button class="btn sm ghost" id="todayHabitGrid">the whole grid →</button>
       </div>
     </div></details>
-    </div><!-- /daybox-pair -->
+    </div><!-- /daybox -->
 
-    <div class="daybox daybox-pair">
+    <div class="daybox daybox-solo">
     <!-- morning rehearsal (Maltz) -->
     <details class="section rv rehearsal-wrap t-sec" id="t-theatre"${fold('t-theatre', !theatreDoneToday())} style="margin-top:8px">
       <summary><span class="sc">Morning Theatre</span><span class="mono">${theatreDoneToday() ? 'practised today' : 'six ways in · pick one'}</span>${flowTick('theatreAt')}</summary>
@@ -310,7 +309,7 @@ routes.today = function(root){
       ${stillnessHTML()}
     </details>
 
-    </div><!-- /daybox-pair -->
+    </div><!-- /daybox -->
 
 
     ${due.length ? `<section class="section rv"><div class="card"><div class="row between"><span class="sc" style="margin:0">Decisions ready to grade</span><a class="mono" href="#/journals/decision">all →</a></div>${due.map(e=>`<div class="row between" style="margin-top:8px"><span><b class="serif">${esc(e.title)}</b><div class="mono">${fmtDate((e.createdAt||'').slice(0,10),'med')}</div></span><button class="btn sm" data-dopen="${e.id}">Look back</button></div>`).join('')}</div></section>` : ''}
@@ -383,8 +382,11 @@ routes.today = function(root){
   root.querySelectorAll('[data-jump]').forEach(b => b.onclick = () => {
     const t = root.querySelector('#' + b.dataset.jump); if(!t) return;
     if(t.tagName === 'DETAILS' && !t.open){ t.open = true; rememberFold(t.id, true); }
+    /* the strip is pinned clear of the floating chrome, so the room a
+       section needs above it is where the strip ends, not how tall it is */
     const bar = root.querySelector('.today-jump');
-    const pad = (bar ? bar.getBoundingClientRect().height : 0) + 14;
+    const pad = bar ? Math.max(0, parseFloat(getComputedStyle(bar).top) || 0)
+      + bar.getBoundingClientRect().height + 4 : 14;
     const y = t.getBoundingClientRect().top + window.scrollY - pad;
     window.scrollTo({top: Math.max(0, y), behavior: reduced() ? 'auto' : 'smooth'});
     t.classList.add('jump-lit'); setTimeout(() => t.classList.remove('jump-lit'), 1200);
