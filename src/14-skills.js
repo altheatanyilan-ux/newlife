@@ -815,7 +815,7 @@ function organicSVG(W, H){
        The first one sits at the point the branch grew to reach. */
     const flowers = (s.planned || locked) ? 0 : clamp(Math.round(1 + prog * 3.2), 1, 5);
     if(flowers && lvl > 0){
-      const tier = clamp(Math.ceil(prog * 5), 1, 5), R = [0, 15, 20, 26, 32, 40][tier] * Math.min(k, 1.15);
+      const tier = clamp(Math.ceil(prog * 5), 1, 5), R = [0, 16, 22, 28, 35, 44][tier] * Math.min(k, 1.15);
       for(let i = 0; i < flowers; i++){
         let cx, cy;
         /* the first one sits where the branch stopped — which is as near as

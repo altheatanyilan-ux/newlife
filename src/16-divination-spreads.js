@@ -461,13 +461,13 @@ function spreadDotsHTML(sp){
    table too; the reading underneath is where each card is actually read,
    and it is full size there.
    ============================================================ */
-const spreadCardW = n => n <= 3 ? 160 : n <= 7 ? 136 : n <= 10 ? 116 : 100;
-const CARD_RATIO = 281 / 160;
+const spreadCardW = n => n <= 3 ? 200 : n <= 7 ? 170 : n <= 10 ? 145 : 125;
+const CARD_RATIO = 351 / 200;
 
 function tarotBoardHTML(sp, slotHTML){
   const g = spreadGeometry(sp);
   const cw = spreadCardW(sp.cardCount), ch = Math.round(cw * CARD_RATIO);
-  const named = cw >= 132;                       /* below that a label is a smudge */
+  const named = cw >= 165;                       /* below that a label is a smudge */
   /* the vertical step has to clear the card AND the name that arrives under
      it, or a spread deeper than one row stacks on itself */
   const under = named ? 46 : 30;

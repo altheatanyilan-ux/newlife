@@ -741,7 +741,8 @@ html.reduce-motion *,html.reduce-motion *::before,html.reduce-motion *::after{an
 .circle-map.dragging-active .cm-drop{pointer-events:auto}
 .cm-drop.over{background:color-mix(in srgb,var(--page-accent) 8%,transparent)}
 .cm-empty{position:absolute;inset:auto 0 40% 0}
-.cm-person.glow{box-shadow:0 0 14px 2px color-mix(in srgb,var(--c) 55%,transparent)}
+.cm-person.glow{box-shadow:0 0 26px 4px color-mix(in srgb,var(--c) 75%,transparent),
+  0 0 52px 10px color-mix(in srgb,var(--c) 30%,transparent)}
 .cm-person.hollow{background:transparent;border-style:dashed}
 .cm-person.faded{opacity:.4;filter:saturate(.5)}
 .cm-person.dashed{border-style:dashed}
@@ -5074,21 +5075,21 @@ select.sm-active{border-color:var(--page-accent);
    the drawings are that proportion: 500 by 878. The card is cut to match,
    so the picture fills it rather than sitting in a letterbox. */
 .tc-row{display:flex;gap:22px;flex-wrap:wrap;justify-content:center;margin:6px 0 14px;align-items:flex-start}
-.tc-slot{display:flex;flex-direction:column;align-items:center;gap:7px;width:160px}
+.tc-slot{display:flex;flex-direction:column;align-items:center;gap:7px;width:200px}
 .tc-pos{font-family:var(--serif);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);text-align:center}
-.tc-hole{width:160px;height:281px;border-radius:11px;border:1px dashed var(--line-2);
+.tc-hole{width:200px;height:351px;border-radius:13px;border:1px dashed var(--line-2);
   background:color-mix(in srgb,var(--surface-2) 55%,transparent)}
 .tc-hole:has(.tc){border:0;background:none}
 .tc-capslot{min-height:30px;text-align:center}
 .tc-cap{display:flex;flex-direction:column;align-items:center;gap:1px;animation:vbFade .4s var(--ease)}
 .tc-cap-name{font-size:.92rem;letter-spacing:.03em;min-height:1.2em;line-height:1.2}
 .tc-cap-rev{font-size:.56rem;letter-spacing:.12em;text-transform:uppercase;color:var(--terra,#b4462f)}
-.tc{width:160px;height:281px;perspective:900px;cursor:default}
+.tc{width:200px;height:351px;perspective:1000px;cursor:default}
 .tc-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;
-  transition:transform .8s cubic-bezier(.5,.03,.3,1),box-shadow .8s var(--ease)}
+  transition:transform 1s cubic-bezier(.5,.03,.3,1),box-shadow 1s var(--ease)}
 .tc.up .tc-inner{transform:rotateY(180deg)}
 .tc.pulse .tc-face{box-shadow:0 0 0 2px var(--sc,#8f7bb0),0 0 18px color-mix(in srgb,var(--sc,#8f7bb0) 55%,transparent)}
-.tc-back,.tc-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:11px;
+.tc-back,.tc-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:13px;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:11px;text-align:center;
   box-shadow:0 2px 10px rgba(0,0,0,.22)}
 .tc-back{background:linear-gradient(140deg,#4a3f56,#2f2838);color:#d8c9ea;border:1px solid #5d5070;padding:0}
@@ -5108,10 +5109,10 @@ select.sm-active{border-color:var(--page-accent);
 /* the scan is 176x309, the face 160x281 — the same 1:1.757 the printed
    card has, so `cover` crops nothing and only rounds away a half pixel */
 .tc-art{width:100%;height:100%;display:block;object-fit:cover;user-select:none;-webkit-user-drag:none}
-.tc-corner{position:absolute;font-size:8px;color:var(--sc,#8f7bb0);opacity:.3;line-height:1}
-.tc-corner.tl{top:6px;left:7px}.tc-corner.tr{top:6px;right:7px}
-.tc-corner.bl{bottom:6px;left:7px}.tc-corner.br{bottom:6px;right:7px}
-.tc-name{font-size:15px;line-height:1.15;letter-spacing:.04em;text-transform:uppercase;max-width:132px;min-height:1.1em}
+.tc-corner{position:absolute;font-size:10px;color:var(--sc,#8f7bb0);opacity:.3;line-height:1}
+.tc-corner.tl{top:8px;left:9px}.tc-corner.tr{top:8px;right:9px}
+.tc-corner.bl{bottom:8px;left:9px}.tc-corner.br{bottom:8px;right:9px}
+.tc-name{font-size:17px;line-height:1.15;letter-spacing:.04em;text-transform:uppercase;max-width:166px;min-height:1.1em}
 .tc-rev{font-size:.52rem;color:var(--terra,#b4462f);letter-spacing:.12em;text-transform:uppercase;margin-top:-3px}
 .tc-sigwrap{margin:3px 0 1px}
 .tc-sig{width:64px;height:64px;display:block}
@@ -5256,11 +5257,11 @@ select.sm-active{border-color:var(--page-accent);
   transform:translateX(-100%);animation:dvShimmer 2.5s var(--ease) infinite;
   animation-delay:calc(var(--i,0) * -.28s)}
 @keyframes dvShimmer{0%{transform:translateX(-100%)}60%,100%{transform:translateX(100%)}}
-.dv-pick:hover,.dv-pick:focus-visible{filter:drop-shadow(0 0 14px rgba(212,164,76,.32)) drop-shadow(0 6px 14px color-mix(in srgb,var(--terra,#b08968) 55%,transparent))}
+.dv-pick:hover,.dv-pick:focus-visible{filter:drop-shadow(0 0 30px rgba(212,164,76,.4)) drop-shadow(0 0 60px rgba(212,164,76,.2)) drop-shadow(0 6px 14px color-mix(in srgb,var(--terra,#b08968) 55%,transparent))}
 .tc.pulse .tc-face{animation:dvReveal 1.2s var(--ease)}
 @keyframes dvReveal{
   0%{box-shadow:0 0 0 rgba(212,164,76,0)}
-  30%{box-shadow:0 0 30px rgba(212,164,76,.5),0 0 60px rgba(212,164,76,.2)}
+  30%{box-shadow:0 0 40px rgba(212,164,76,.7),0 0 80px rgba(212,164,76,.35)}
   100%{box-shadow:0 0 0 rgba(212,164,76,0)}}
 @media (prefers-reduced-motion:reduce){
   .dv-pick .tc-back::after{animation:none;opacity:0}
@@ -7116,11 +7117,11 @@ function startSway(root){
       const gust = 0.55 + 0.45 * Math.sin(gustPhase - L.across * 1.9);
       const swing = Math.sin(s * L.w1 + L.ph);
       const flutter = Math.sin(s * L.w2 + L.ph * 1.7);
-      const deg = (swing * 3.4 + flutter * 1.5) * L.gain * gust;
+      const deg = (swing * 6 + flutter * 2.6) * L.gain * gust;
       /* a leaf on a stem also lifts as it swings — pure rotation reads as a
          windscreen wiper, the small bob is what sells it */
-      const lift = flutter * 0.5 * L.gain;
-      L.el.style.transform = `translate(${(swing * .7 * L.gain).toFixed(2)}px,${lift.toFixed(2)}px) rotate(${deg.toFixed(2)}deg)`;
+      const lift = flutter * 0.9 * L.gain;
+      L.el.style.transform = `translate(${(swing * 1.2 * L.gain).toFixed(2)}px,${lift.toFixed(2)}px) rotate(${deg.toFixed(2)}deg)`;
     }
     swayRAF = requestAnimationFrame(tick);
   };
@@ -16192,7 +16193,7 @@ function organicSVG(W, H){
        The first one sits at the point the branch grew to reach. */
     const flowers = (s.planned || locked) ? 0 : clamp(Math.round(1 + prog * 3.2), 1, 5);
     if(flowers && lvl > 0){
-      const tier = clamp(Math.ceil(prog * 5), 1, 5), R = [0, 15, 20, 26, 32, 40][tier] * Math.min(k, 1.15);
+      const tier = clamp(Math.ceil(prog * 5), 1, 5), R = [0, 16, 22, 28, 35, 44][tier] * Math.min(k, 1.15);
       for(let i = 0; i < flowers; i++){
         let cx, cy;
         /* the first one sits where the branch stopped — which is as near as
@@ -22154,9 +22155,9 @@ function ichingFlyCoins(box, faces, done){
     const sh = coin.querySelector('.ic-coin-sh');
     /* how high, measured against the room it has: on a phone the same 150px
        would put the coin off the top of the panel */
-    const head = Math.min(150, Math.max(70, (box.getBoundingClientRect().top -
+    const head = Math.min(225, Math.max(105, (box.getBoundingClientRect().top -
       (box.closest('.modal')?.getBoundingClientRect().top || 0)) - 20));
-    const up = head + (Math.random() - .5) * 26;
+    const up = head + (Math.random() - .5) * 34;
     const rise = 430 + Math.random() * 50;
     const hang = 130;
     const fall = 470 + order.indexOf(i) * 60;
@@ -22187,12 +22188,12 @@ function ichingFlyCoins(box, faces, done){
     const f = (x, y, sc, e) => ({transform: `translate(${x.toFixed(1)}px,${y.toFixed(1)}px) scale(${sc})`, easing: e});
     coin.animate([
       Object.assign(f(0, 0, 1, easeUp), {offset: 0}),
-      Object.assign(f(drift * .62, -up, 1.16, easeHang), {offset: at(rise)}),
-      Object.assign(f(drift * .78, -up * .985, 1.16, easeDown), {offset: at(rise + hang)}),
+      Object.assign(f(drift * .62, -up, 1.25, easeHang), {offset: at(rise)}),
+      Object.assign(f(drift * .78, -up * .985, 1.25, easeDown), {offset: at(rise + hang)}),
       Object.assign(f(drift, 0, 1, easeLand), {offset: at(rise + hang + fall)}),
-      Object.assign(f(drift * .96, -9, 1.02, easeLand), {offset: at(rise + hang + fall + 90)}),
+      Object.assign(f(drift * .96, -14, 1.03, easeLand), {offset: at(rise + hang + fall + 90)}),
       Object.assign(f(drift * .99, 0, 1, easeLand), {offset: at(rise + hang + fall + 160)}),
-      Object.assign(f(drift, -3, 1, easeLand), {offset: at(rise + hang + fall + 210)}),
+      Object.assign(f(drift, -5, 1, easeLand), {offset: at(rise + hang + fall + 210)}),
       Object.assign(f(drift, 0, 1, 'linear'), {offset: 1}),
     ], {duration: total, delay: start, fill: 'forwards'});
 
@@ -22605,8 +22606,8 @@ const CeremonySound = {
 
   /* --- the coins and the stalks --- */
   /* metal leaving the hand */
-  ching(){ this.tone(2000, {attack: .002, hold: .006, release: .04, peak: .045});
-           this.tone(1500, {attack: .002, hold: .006, release: .05, peak: .022}); },
+  ching(){ this.tone(2000, {attack: .002, hold: .006, release: .04, peak: .08});
+           this.tone(1500, {attack: .002, hold: .006, release: .05, peak: .04}); },
   /* one coin finding the table */
   clink(){ this.tone(760 + Math.random() * 160, {attack: .002, hold: .004, release: .05, peak: .05});
            this.tone(1900 + Math.random() * 300, {attack: .002, hold: .003, release: .03, peak: .012}); },
@@ -23751,13 +23752,13 @@ function spreadDotsHTML(sp){
    table too; the reading underneath is where each card is actually read,
    and it is full size there.
    ============================================================ */
-const spreadCardW = n => n <= 3 ? 160 : n <= 7 ? 136 : n <= 10 ? 116 : 100;
-const CARD_RATIO = 281 / 160;
+const spreadCardW = n => n <= 3 ? 200 : n <= 7 ? 170 : n <= 10 ? 145 : 125;
+const CARD_RATIO = 351 / 200;
 
 function tarotBoardHTML(sp, slotHTML){
   const g = spreadGeometry(sp);
   const cw = spreadCardW(sp.cardCount), ch = Math.round(cw * CARD_RATIO);
-  const named = cw >= 132;                       /* below that a label is a smudge */
+  const named = cw >= 165;                       /* below that a label is a smudge */
   /* the vertical step has to clear the card AND the name that arrives under
      it, or a spread deeper than one row stacks on itself */
   const under = named ? 46 : 30;

@@ -236,9 +236,9 @@ function ichingFlyCoins(box, faces, done){
     const sh = coin.querySelector('.ic-coin-sh');
     /* how high, measured against the room it has: on a phone the same 150px
        would put the coin off the top of the panel */
-    const head = Math.min(150, Math.max(70, (box.getBoundingClientRect().top -
+    const head = Math.min(225, Math.max(105, (box.getBoundingClientRect().top -
       (box.closest('.modal')?.getBoundingClientRect().top || 0)) - 20));
-    const up = head + (Math.random() - .5) * 26;
+    const up = head + (Math.random() - .5) * 34;
     const rise = 430 + Math.random() * 50;
     const hang = 130;
     const fall = 470 + order.indexOf(i) * 60;
@@ -269,12 +269,12 @@ function ichingFlyCoins(box, faces, done){
     const f = (x, y, sc, e) => ({transform: `translate(${x.toFixed(1)}px,${y.toFixed(1)}px) scale(${sc})`, easing: e});
     coin.animate([
       Object.assign(f(0, 0, 1, easeUp), {offset: 0}),
-      Object.assign(f(drift * .62, -up, 1.16, easeHang), {offset: at(rise)}),
-      Object.assign(f(drift * .78, -up * .985, 1.16, easeDown), {offset: at(rise + hang)}),
+      Object.assign(f(drift * .62, -up, 1.25, easeHang), {offset: at(rise)}),
+      Object.assign(f(drift * .78, -up * .985, 1.25, easeDown), {offset: at(rise + hang)}),
       Object.assign(f(drift, 0, 1, easeLand), {offset: at(rise + hang + fall)}),
-      Object.assign(f(drift * .96, -9, 1.02, easeLand), {offset: at(rise + hang + fall + 90)}),
+      Object.assign(f(drift * .96, -14, 1.03, easeLand), {offset: at(rise + hang + fall + 90)}),
       Object.assign(f(drift * .99, 0, 1, easeLand), {offset: at(rise + hang + fall + 160)}),
-      Object.assign(f(drift, -3, 1, easeLand), {offset: at(rise + hang + fall + 210)}),
+      Object.assign(f(drift, -5, 1, easeLand), {offset: at(rise + hang + fall + 210)}),
       Object.assign(f(drift, 0, 1, 'linear'), {offset: 1}),
     ], {duration: total, delay: start, fill: 'forwards'});
 

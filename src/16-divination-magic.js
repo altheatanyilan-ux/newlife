@@ -299,8 +299,8 @@ const CeremonySound = {
 
   /* --- the coins and the stalks --- */
   /* metal leaving the hand */
-  ching(){ this.tone(2000, {attack: .002, hold: .006, release: .04, peak: .045});
-           this.tone(1500, {attack: .002, hold: .006, release: .05, peak: .022}); },
+  ching(){ this.tone(2000, {attack: .002, hold: .006, release: .04, peak: .08});
+           this.tone(1500, {attack: .002, hold: .006, release: .05, peak: .04}); },
   /* one coin finding the table */
   clink(){ this.tone(760 + Math.random() * 160, {attack: .002, hold: .004, release: .05, peak: .05});
            this.tone(1900 + Math.random() * 300, {attack: .002, hold: .003, release: .03, peak: .012}); },

@@ -58,11 +58,11 @@ function startSway(root){
       const gust = 0.55 + 0.45 * Math.sin(gustPhase - L.across * 1.9);
       const swing = Math.sin(s * L.w1 + L.ph);
       const flutter = Math.sin(s * L.w2 + L.ph * 1.7);
-      const deg = (swing * 3.4 + flutter * 1.5) * L.gain * gust;
+      const deg = (swing * 6 + flutter * 2.6) * L.gain * gust;
       /* a leaf on a stem also lifts as it swings — pure rotation reads as a
          windscreen wiper, the small bob is what sells it */
-      const lift = flutter * 0.5 * L.gain;
-      L.el.style.transform = `translate(${(swing * .7 * L.gain).toFixed(2)}px,${lift.toFixed(2)}px) rotate(${deg.toFixed(2)}deg)`;
+      const lift = flutter * 0.9 * L.gain;
+      L.el.style.transform = `translate(${(swing * 1.2 * L.gain).toFixed(2)}px,${lift.toFixed(2)}px) rotate(${deg.toFixed(2)}deg)`;
     }
     swayRAF = requestAnimationFrame(tick);
   };
