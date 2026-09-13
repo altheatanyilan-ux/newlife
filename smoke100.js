@@ -94,9 +94,13 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
      await p.evaluate(id => byId(S.tasks, id).subtasks[0].title, ids.a), 'step one, reworded');
 
   console.log('\n5. dragging a row changes the order, and it sticks');
-  const orderNow = () => p.$$eval('#t-tasks .task-row .task-text', n => n.map(x => x.textContent.trim()));
-  const first = (await orderNow())[0];
-  yes('the list starts in the order the tasks were given', /alpha/.test(first), first);
+  /* On the page the day is grouped by list with the busiest group first, so
+     alpha — alone in Inbox — is drawn after beta and gamma in Work. That is
+     the grouping doing its job, not the ordering; the sequence this section
+     is about is the day's own, which is what the drag rewrites. */
+  const mine = async () => (await p.evaluate(() => tasksForDay(today()).map(r => r.text)))
+    .filter(t => /alpha|beta|gamma/.test(t)).map(t => t.split(' ')[0]);
+  is('the three start in the order they were given', (await mine()).join(','), 'alpha,beta,gamma');
   const moved = await p.evaluate(o => {
     const day = today();
     const rows = tasksForDay(day);

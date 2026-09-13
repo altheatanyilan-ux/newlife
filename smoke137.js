@@ -33,12 +33,15 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
       await p.evaluate(() => { openSpeedDial(); const t = document.querySelector('#speedDial').textContent;
         closeSpeedDial(); return /Quick note/.test(t) && /Unfinished thought/.test(t); }));
 
-  console.log('\n2. the focus clock sits above the plan');
-  /* document order, not child order: the sections sit inside the day's bento
-     bands now, so a direct-child selector no longer finds any of them */
+  console.log('\n2. the plan is read first, then the clock and the list together');
+  /* document order, not child order: the sections sit inside the day's own
+     compartments now, so a direct-child selector no longer finds any of them.
+     The plan leads: it takes a line to itself and it is the frame the rest of
+     the day hangs on. Under it the clock and the list stand side by side, and
+     the clock comes first in the source because it is the left-hand one. */
   const order = await p.evaluate(() => [...document.querySelectorAll('#main .page [id^="t-"]')].map(n => n.id));
   const iF = order.indexOf('t-focus'), iP = order.indexOf('t-plan'), iT = order.indexOf('t-tasks');
-  yes('focus, then the plan, then the tasks', iF >= 0 && iF < iP && iP < iT, order.join(' → '));
+  yes('the plan, then the clock, then the tasks', iP >= 0 && iP < iF && iF < iT, order.join(' → '));
   const jumps = await p.evaluate(() => [...document.querySelectorAll('.today-jump [data-jump]')].map(b => b.dataset.jump));
   yes('  and the jump links read in the same order as the page',
       jumps.filter(j => order.includes(j)).join(',') === order.filter(o => jumps.includes(o)).join(','),

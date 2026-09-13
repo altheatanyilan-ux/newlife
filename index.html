@@ -8374,25 +8374,58 @@ function migrateLifeline(){
 function migrateEras(){ if(Array.isArray(S.visionEras) && S.visionEras.length) return; const old = Array.isArray(S.eras) ? S.eras : []; S.visionEras = old.map((e,i) => ({id:e.id, name:e.label||e.name||'Era', subtitle:e.desc||e.subtitle||'', startYear:null, endYear:null, color:ERA_PALETTE[i%ERA_PALETTE.length], order:i})); delete S.eras; }
 async function readAllStores(){ const rows = {}; for(const t of db.tables) rows[t.name] = await t.toArray(); return rows; }
 async function writeAllStores(rows){
+  /* the same rule as persist: serialise before the write, so what is recorded
+     as written is what was written and not whatever the state became meanwhile */
+  const shot = {}; for(const k of Object.keys(rows)) shot[k] = JSON.stringify(rows[k]);
   await db.transaction('rw', db.tables, async tx => { for(const t of db.tables){ const table = tx[t.name] || tx.table(t.name); await table.clear(); if(rows[t.name]?.length) await table.bulkPut(rows[t.name]); } });
-  lastWritten = {}; for(const k of Object.keys(rows)) lastWritten[k] = JSON.stringify(rows[k]);
+  lastWritten = shot;
 }
 
 /* ---------- save: only stores whose contents changed ---------- */
-let lastWritten = {}; let saving = null; let savePending = false;
+let lastWritten = {}; let saving = null; let queued = null;
+/* A pass writes only the stores whose contents changed, which means it has to
+   remember what it wrote. It used to work that out AFTER the write — and
+   stateToStores hands back the live arrays, not copies, so a change made while
+   the transaction was in the air got recorded as already written. The next
+   pass then compared the new state against itself, found nothing dirty, and
+   skipped it. A reorder made at the wrong moment was silently dropped.
+   So: take one snapshot, write that snapshot, and record that snapshot. What
+   goes to the disk and what we claim went to the disk are the same thing. */
 async function persist(){
-  const rows = stateToStores(S); const dirty = Object.keys(rows).filter(k => JSON.stringify(rows[k]) !== lastWritten[k]);
+  const rows = stateToStores(S);
+  const shot = {}; for(const k of Object.keys(rows)) shot[k] = JSON.stringify(rows[k]);
+  const dirty = Object.keys(rows).filter(k => shot[k] !== lastWritten[k]);
   if(!dirty.length) return;
-  await db.transaction('rw', dirty.map(k => db[k]), async tx => { for(const k of dirty){ const table = tx[k] || tx.table(k); await table.clear(); if(rows[k].length) await table.bulkPut(rows[k]); } });
-  dirty.forEach(k => lastWritten[k] = JSON.stringify(rows[k]));
+  const frozen = {}; dirty.forEach(k => frozen[k] = JSON.parse(shot[k]));
+  await db.transaction('rw', dirty.map(k => db[k]), async tx => { for(const k of dirty){ const table = tx[k] || tx.table(k); await table.clear(); if(frozen[k].length) await table.bulkPut(frozen[k]); } });
+  dirty.forEach(k => lastWritten[k] = shot[k]);
 }
+/* A save that arrives while one is already running has to wait for its turn,
+   and the promise it is handed must be the one that settles when ITS OWN
+   change has reached the disk. Returning the in-flight promise instead was a
+   quiet lie: `await saveNow()` came back before the change was written, so a
+   reload straight after a reorder could read back the order from before it.
+   The queued save is one slot, not a queue — every waiter joins the same next
+   pass, because a pass writes the whole of the state anyway. */
 function saveNow(){
-  if(saving){ savePending = true; return saving; }
-  saving = persist().catch(err => { console.error('save failed', err); toast('Saving failed — export a backup from Settings to be safe.', 6000); }).finally(() => { saving = null; if(savePending){ savePending = false; saveNow(); } });
+  if(saving){
+    if(!queued){ let go; const p = new Promise(res => { go = res; }); queued = {promise:p, go}; }
+    return queued.promise;
+  }
+  saving = persist()
+    .catch(err => { console.error('save failed', err); toast('Saving failed — export a backup from Settings to be safe.', 6000); })
+    .finally(() => {
+      saving = null;
+      const q = queued; queued = null;
+      /* the waiters are released by the pass that actually carries their
+         change, not by the one that was already in the air when they asked */
+      if(q) saveNow().then(q.go, q.go);
+    });
   return saving;
 }
 const save = debounce(saveNow, 400);
-function flushSave(){ return saving ? saving.then(() => saving || Promise.resolve()) : Promise.resolve(); }
+/* wait until nothing at all is in the air, however many passes that takes */
+async function flushSave(){ while(saving || queued) await (queued ? queued.promise : saving); }
 
 /* ---------- load, with one-time migration from older stores ---------- */
 async function readLegacyBlobDB(){
@@ -34844,7 +34877,7 @@ async function initInner(){
   try { touchPresence(); setInterval(touchPresence, 60000);
     document.addEventListener('visibilitychange', () => { if(!document.hidden) touchPresence(); });
   } catch(e){ console.warn('presence stamp skipped', e); }
-  window.addEventListener('beforeunload', () => { if(saving || savePending) saveNow(); });
+  window.addEventListener('beforeunload', () => { if(saving || queued) saveNow(); });
   if(S.settings.firstOpen === today() && !S._welcomed){ S._welcomed = true; setTimeout(()=>toast('Welcome home. Every piece of text here is editable — click it. The placeholder life is yours to overwrite.', 7000), 800); }
   registerServiceWorker();
   /* The question about theme and sound comes before anything else has a chance
