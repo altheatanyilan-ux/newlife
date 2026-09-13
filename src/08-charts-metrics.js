@@ -230,7 +230,7 @@ function entryExtraHTML(e){
   return rows.length ? `<div class="stack" style="gap:6px;margin-top:8px;font-size:.85rem">${rows.join('')}</div>` : '';
 }
 function entryCard(e, {clamp:cl=true, tools=true}={}){
-  if(typeof letterIsSealed === 'function' && letterIsSealed(e)) return `<article class="entry rv sealed" data-entry="${e.id}">
+  if(typeof letterIsSealed === 'function' && letterIsSealed(e)) return `<article class="entry rv sealed" data-type="letter" data-stamp="sealed" data-entry="${e.id}">
     <div class="meta"><span class="mono">✉ Sealed letter</span><span class="mono">written ${esc(fmtDate((e.createdAt||'').slice(0,10),'med'))}</span></div>
     <div class="title">${esc(e.title || 'To myself')}</div>
     <div class="body muted">Sealed until ${esc(fmtDate(e.extra.sealedUntil,'med'))} — ${daysBetween(today(), e.extra.sealedUntil)} days from now. Whatever is in here was written for someone you have not become yet.</div>
@@ -241,7 +241,13 @@ function entryCard(e, {clamp:cl=true, tools=true}={}){
      others stay as thumbnails underneath. */
   const pics = Array.isArray(e.media) ? e.media : [];
   const rest = pics.slice(1);
-  return `<article class="entry rv ${pics.length?'plated':''}" data-entry="${e.id}">
+  /* the kind of thing this is, and — for the two kinds that get stamped — how
+     it turned out. The stylesheet reads both: a memory is torn from a
+     notebook, a manifestation that arrived is stamped as arrived. */
+  const mark = e.type === 'manifestation' && xc.status === 'arrived' ? ' data-stamp="arrived"'
+    : e.type === 'synchronicity' && (xc.conf === 'significant' || xc.conf === 'unmistakable') ? ' data-stamp="sync"'
+    : '';
+  return `<article class="entry rv ${pics.length?'plated':''}" data-type="${esc(e.type||'')}"${mark} data-entry="${e.id}">
     ${pics.length ? imageBackdropHTML(e) : ''}
     <div class="meta"><span class="mono">${typeIcon(e.type)} ${typeName(e.type)}</span><span class="mono">${esc(fmtDate(e.occurredAt,'med'))}</span>${unfinishedFlag(e)?`<span class="status-pill unf-pill" title="waiting at the bottom of Today">unfinished</span>`:''}${e.confidence?`<span class="status-pill">${esc(e.confidence)}</span>`:''}${tools?`<span class="tools"><button class="tbtn" data-edit="${e.id}">edit</button><button class="snip-btn" data-snip="${e.id}" title="save to the Writing Studio">✂</button>${
       /* a quote, or an entry carrying a photograph, can go straight onto the

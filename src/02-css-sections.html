@@ -5964,5 +5964,82 @@ html[data-theme="dark"] body[data-route="commonplace"] #vines{opacity:.2;
   opacity:.62;pointer-events:none}
 html[data-theme="dark"] .ph-mark,html:not([data-theme="light"]) .ph-mark{opacity:.72}
 @media (max-width:640px){.ph-mark{width:28px;height:28px;margin-bottom:6px}}
+
+/* ============================================================
+   14. THE COLLAGE
+
+   Things that are artefacts rather than controls sit at a slight angle, as
+   if they had been put down rather than laid out, and straighten under the
+   pointer — the small satisfaction of picking something up and putting it
+   back.
+
+   The angle is deterministic, taken from the element's position in its list
+   rather than from Math.random(). The spec asked for random, but this app
+   rebuilds #main on nearly every edit: a random angle would make every card
+   on the page jump to a new one every time you typed a word into any of
+   them. A fixed cycle of six reads as random and stays where it is.
+
+   It is set with the `rotate` property rather than inside `transform`, so it
+   composes with the transforms these elements already carry — a stage tile
+   that slides sideways when something is dragged over it still slides, and
+   still sits at its own angle while doing it.
+   ============================================================ */
+.entries > .entry,.vb-card,.era-col{transition:rotate .2s var(--ease),transform .2s var(--ease),
+  border-color .2s var(--ease),box-shadow .3s var(--ease)}
+.entries > .entry:nth-child(6n+1){rotate:-.5deg}
+.entries > .entry:nth-child(6n+2){rotate:.8deg}
+.entries > .entry:nth-child(6n+3){rotate:-1.1deg}
+.entries > .entry:nth-child(6n+4){rotate:.4deg}
+.entries > .entry:nth-child(6n+5){rotate:-.8deg}
+.entries > .entry:nth-child(6n+6){rotate:1.2deg}
+/* a vision board IS a collage, so it leans hardest into it */
+.vb-card:nth-child(5n+1){rotate:-2.4deg}
+.vb-card:nth-child(5n+2){rotate:1.8deg}
+.vb-card:nth-child(5n+3){rotate:-1.2deg}
+.vb-card:nth-child(5n+4){rotate:3.1deg}
+.vb-card:nth-child(5n+5){rotate:-3.4deg}
+/* the spine of the Timeline: photographs pinned to a board */
+.era-col:nth-child(4n+1){rotate:-.6deg}
+.era-col:nth-child(4n+2){rotate:.5deg}
+.era-col:nth-child(4n+3){rotate:-.9deg}
+.era-col:nth-child(4n+4){rotate:.7deg}
+/* picked up */
+.entries > .entry:hover,.vb-card:hover,.era-col:hover,
+.entries > .entry:focus-within,.vb-card:focus-within,.era-col:focus-within{rotate:0deg}
+@media (prefers-reduced-motion:reduce){
+  .entries > .entry,.vb-card,.era-col{rotate:0deg !important;transition:none}
+}
+
+/* ---------- torn from something ----------
+   Only on the kinds that were torn from something in the first place: a
+   memory out of a notebook, a letter out of its envelope, a quote off a page,
+   an artefact out of a box. Never on a control. The tear is shallow — two per
+   cent — because it has to nibble the edge without eating the tools that sit
+   in the top corner of the card. */
+.entry[data-type="memory"],.entry[data-type="letter"],
+.entry[data-type="quote"],.entry[data-type="artifact"]{
+  clip-path:polygon(
+    0% 1.6%, 3% 0%, 7% 1.2%, 12% .4%, 18% 1.6%, 23% 0%, 28% .8%, 33% .4%,
+    38% 1.6%, 43% 0%, 48% 1.2%, 53% 0%, 58% 1.6%, 63% .4%, 68% .8%, 73% 0%,
+    78% 1.6%, 83% .4%, 88% 1.2%, 93% 0%, 97% .8%, 100% 1.6%,
+    100% 98.4%, 97% 100%, 93% 98.8%, 88% 100%, 83% 98.4%, 78% 99.6%,
+    73% 98.4%, 68% 100%, 63% 98.8%, 58% 100%, 53% 98.4%, 48% 99.6%,
+    43% 98.4%, 38% 100%, 33% 98.8%, 28% 100%, 23% 98.4%, 18% 99.6%,
+    12% 98.4%, 7% 100%, 3% 98.8%, 0% 98.4%)}
+
+/* ---------- stamped ----------
+   A mark pressed onto the card after the fact, at the angle a hand presses
+   one. Three of them, and each says something the card does not: this is
+   sealed and it is not time yet; this one arrived; this one was not noise. */
+.entry[data-stamp]{position:relative}
+.entry[data-stamp]::before{content:"";position:absolute;top:10px;right:12px;
+  width:52px;height:52px;background-size:contain;background-repeat:no-repeat;
+  pointer-events:none;z-index:1;opacity:.85}
+.entry[data-stamp="sealed"]::before{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'52'%20height%3D'52'%20viewBox%3D'0%200%2052%2052'%3E%3Ccircle%20cx%3D'26'%20cy%3D'26'%20r%3D'22'%20fill%3D'none'%20stroke%3D'%23b0616a'%20stroke-width%3D'1.1'%20opacity%3D'.42'%2F%3E%3Ccircle%20cx%3D'26'%20cy%3D'26'%20r%3D'17.6'%20fill%3D'none'%20stroke%3D'%23b0616a'%20stroke-width%3D'.55'%20opacity%3D'.3'%2F%3E%3Ctext%20x%3D'26'%20y%3D'23.5'%20text-anchor%3D'middle'%20font-size%3D'6.4'%20letter-spacing%3D'.9'%20font-family%3D'Georgia%2Cserif'%20fill%3D'%23b0616a'%20opacity%3D'.5'%3ESEALED%3C%2Ftext%3E%3Ctext%20x%3D'26'%20y%3D'33'%20text-anchor%3D'middle'%20font-size%3D'5.2'%20letter-spacing%3D'.6'%20font-family%3D'monospace'%20fill%3D'%23b0616a'%20opacity%3D'.36'%3ENOT%20YET%3C%2Ftext%3E%3C%2Fsvg%3E");rotate:-13deg}
+.entry[data-stamp="arrived"]::before{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'52'%20height%3D'52'%20viewBox%3D'0%200%2052%2052'%3E%3Ccircle%20cx%3D'26'%20cy%3D'26'%20r%3D'22'%20fill%3D'none'%20stroke%3D'%237f916a'%20stroke-width%3D'1.1'%20opacity%3D'.42'%2F%3E%3Ccircle%20cx%3D'26'%20cy%3D'26'%20r%3D'17.6'%20fill%3D'none'%20stroke%3D'%237f916a'%20stroke-width%3D'.55'%20opacity%3D'.3'%2F%3E%3Cpath%20d%3D'M17.5%2026.5%2023.5%2032.5%2035%2020.5'%20fill%3D'none'%20stroke%3D'%237f916a'%20stroke-width%3D'2'%20stroke-linecap%3D'round'%20stroke-linejoin%3D'round'%20opacity%3D'.5'%2F%3E%3C%2Fsvg%3E");rotate:8deg}
+.entry[data-stamp="sync"]::before{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'52'%20height%3D'52'%20viewBox%3D'0%200%2052%2052'%3E%3Ccircle%20cx%3D'26'%20cy%3D'26'%20r%3D'22'%20fill%3D'none'%20stroke%3D'%23b08968'%20stroke-width%3D'1.1'%20opacity%3D'.42'%2F%3E%3Ccircle%20cx%3D'26'%20cy%3D'26'%20r%3D'17.6'%20fill%3D'none'%20stroke%3D'%23b08968'%20stroke-width%3D'.55'%20opacity%3D'.3'%2F%3E%3Cpath%20d%3D'M26%2014.5%2028.6%2022.8%2037%2022.8%2030.2%2027.9%2032.8%2036.2%2026%2031.1%2019.2%2036.2%2021.8%2027.9%2015%2022.8%2023.4%2022.8Z'%20fill%3D'none'%20stroke%3D'%23b08968'%20stroke-width%3D'1.1'%20stroke-linejoin%3D'round'%20opacity%3D'.48'%2F%3E%3C%2Fsvg%3E");rotate:-7deg}
+/* the tools live in that corner too, so they come out from under the stamp */
+.entry[data-stamp] .tools,.entry[data-stamp] .del-x{position:relative;z-index:2}
+@media (max-width:640px){.entry[data-stamp]::before{width:42px;height:42px}}
 </style>
 </head>

@@ -99,7 +99,31 @@ const atLeast = (n,a,b,g='') => a >= b ? ok(n, g||String(a)) : no(n, `${a} is un
     f.ps = []; f.w = 800; f.h = 600; f.run = () => {}; f.shimmer(); return f.ps.length; });
   atLeast('  and the wind at the end of a spread is eighty or more', shim, 80, shim + ' motes');
 
-  console.log('\n6. the decode is deciphering rather than loading');
+  console.log('\n6. things that are artefacts sit where they were put down');
+  const col = await p.evaluate(() => {
+    const w = document.createElement('div'); w.className = 'entries';
+    w.innerHTML = ['memory','letter','quote','reflection'].map(t =>
+      `<article class="entry" data-type="${t}"${t === 'letter' ? ' data-stamp="sealed"' : ''}>x</article>`).join('');
+    document.body.appendChild(w);
+    const cs = i => getComputedStyle(w.children[i]);
+    const out = {
+      angles: [0,1,2,3].map(i => cs(i).rotate),
+      torn: [0,1,2,3].map(i => cs(i).clipPath !== 'none'),
+      straight: (() => { w.children[0].classList.add('x'); return true; })(),
+      stamp: getComputedStyle(w.children[1], '::before').backgroundImage.slice(0, 26),
+      stampTilt: getComputedStyle(w.children[1], '::before').rotate,
+    };
+    w.remove(); return out;
+  });
+  yes('no two neighbours lean the same way', new Set(col.angles).size === 4, col.angles.join(' '));
+  yes('  and none of them is straight', col.angles.every(a => a !== 'none' && parseFloat(a) !== 0));
+  is('a memory is torn from something', col.torn[0], true);
+  is('  so is a letter and so is a quote', col.torn[1] && col.torn[2], true);
+  is('  a reflection is not', col.torn[3], false);
+  yes('a sealed letter carries a stamp', /^url\("data:image/.test(col.stamp));
+  yes('  pressed at the angle a hand presses one', parseFloat(col.stampTilt) !== 0, col.stampTilt);
+
+  console.log('\n7. the decode is deciphering rather than loading');
   yes('there are characters in the scramble set, not just marks',
     await p.evaluate(() => /[一-鿿]/.test(SCRAMBLE_GLYPHS)));
 
