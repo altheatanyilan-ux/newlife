@@ -184,7 +184,7 @@ function streamCardHTML(s){
   const ceiling = streamCeiling(inc, limit), hoursTgt = streamHoursForTarget(inc);
   const ceilingShort = ceiling != null && (inc.target||0) > ceiling;
   return `<div class="card stream-card ${passive ? 'passive' : 'active-inc'}">
-    <div class="row between">
+    <div class="row between fin-head">
       <b class="serif" style="font-size:1.05rem">${esc(s.name)}</b>
       <span class="row" style="gap:6px">
         <select class="sel" style="width:auto;padding:2px 6px;font-size:.74rem;--c:${STREAM_STATUS_COLOR[inc.status]};color:${STREAM_STATUS_COLOR[inc.status]};padding-right:22px" data-streamstatus="${path}">${Object.entries(STREAM_STATUS).map(([k,[ic,l]])=>`<option value="${k}" ${inc.status===k?'selected':''}>${ic} ${l}</option>`).join('')}</select>
@@ -374,7 +374,7 @@ function spendItemRowHTML(sc, cat, item){
 function scenarioHTML(sc){
   const annual = scenarioAnnualTotal(sc);
   return `<div class="card scenario-card ${sc.active?'active':''}" data-scenario="${sc.id}">
-    <div class="row between" style="align-items:center">
+    <div class="row between fin-head" style="align-items:center">
       <div class="row" style="gap:8px;align-items:center">
         <button class="btn sm ${sc.active?'primary':'ghost'}" data-scenariopick="${sc.id}">${sc.active?'★ active target':'set as target'}</button>
         <b class="serif" style="font-size:1.05rem">${ed(`finance.scenarios.#${sc.id}.name`)}</b>
@@ -434,7 +434,10 @@ function gapAnalysisHTML(){
       <div class="row between"><span class="mono">at target, streams would cover</span><span class="mono">${monthlyCostBase?Math.round(totalTargetBase/monthlyCostBase*100):0}%</span></div>
       <div class="bar" style="--c:var(--page-accent)"><i style="width:${monthlyCostBase?clamp(totalTargetBase/monthlyCostBase*100,0,100):0}%"></i></div>
     </div>
-    <div class="grid c2" style="gap:14px;align-items:start;margin-bottom:14px">
+    <!-- these two are short and need no ceiling; they are only levelled with
+         each other, because a row that ends at two different heights is the
+         thing that reads as unfinished -->
+    <div class="grid c2 fin-cards" style="gap:14px;margin-bottom:14px">
       <div class="card"><span class="sc">Per-stream contribution</span>
         ${contribs.length ? `<div class="stack" style="gap:5px;margin-top:10px">${contribs.map(({s,base})=>`<div class="row between"><span style="min-width:8em">${esc(s.name)}</span><span class="bar" style="flex:1;--c:var(--gold)"><i style="width:${Math.round(base/maxContrib*100)}%"></i></span><span class="mono">${Math.round(base/Math.max(totalCurrentBase,1)*100)}%</span></div>`).join('')}</div>` : '<div class="empty">No streams earning yet.</div>'}
       </div>
@@ -512,7 +515,7 @@ routes.finance = function(root){
         <div><div class="k">passive share</div><div class="num">${Math.round(passiveShare*100)}<small>%</small></div><div class="mono">${money(passiveBase)} of ${money(totalCurrentBase)}</div></div>
         <div><div class="k">hours / week</div><div class="num">${totalHours.toFixed(0)}</div>${blendedRate!=null?`<div class="mono">${money(blendedRate)}/hr blended</div>`:''}</div>
       </div></div>
-      ${streams.length ? `<div class="grid c2" style="align-items:start">${streams.map(streamCardHTML).join('')}</div>` : '<div class="empty">Nothing yet. What is the first way you could make money doing something you already do?</div>'}
+      ${streams.length ? `<div class="grid c2 fin-cards">${streams.map(streamCardHTML).join('')}</div>` : '<div class="empty">Nothing yet. What is the first way you could make money doing something you already do?</div>'}
       <!-- A stream not yet begun, and one put down for good, are both real and
            neither belongs in the arithmetic above. They were being left out of
            the totals and off the page at once, which meant writing one down
@@ -522,7 +525,7 @@ routes.finance = function(root){
         return `<div class="row between" style="margin:20px 0 6px;align-items:baseline">
             <span class="sc" style="margin:0">Not counted yet</span>
             <span class="mono faint">${rest.length} written down — nothing here is in the figures above</span></div>
-          <div class="grid c2" style="align-items:start">${rest.map(streamCardHTML).join('')}</div>`; })()}
+          <div class="grid c2 fin-cards">${rest.map(streamCardHTML).join('')}</div>`; })()}
     </section>
 
     <section class="section rv"><div class="row between" style="align-items:center"><span class="sc" style="margin:0">The life you want to fund</span><button class="btn sm primary" id="scenarioAdd">＋ scenario</button></div>

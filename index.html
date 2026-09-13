@@ -1277,10 +1277,13 @@ button.tm-cell:hover{border-color:var(--page-accent)}
   .daybox>.t-sec,.daybox>.focus-block{
     background:var(--bg);border:1px solid var(--line);border-radius:var(--radius);
     padding:0 14px 14px;min-height:0;overflow-y:auto;overscroll-behavior:contain;
-    scrollbar-width:thin;scrollbar-color:var(--line-2) transparent}
+    scrollbar-gutter:stable}
   .daybox>.t-sec::-webkit-scrollbar,.daybox>.focus-block::-webkit-scrollbar{width:9px}
   .daybox>.t-sec::-webkit-scrollbar-thumb,.daybox>.focus-block::-webkit-scrollbar-thumb{
-    background:var(--line-2);border-radius:5px;border:2px solid transparent;background-clip:padding-box}
+    background:color-mix(in srgb,var(--text) 22%,transparent);border-radius:5px;
+    border:2px solid transparent;background-clip:padding-box}
+  .daybox>.t-sec:hover::-webkit-scrollbar-thumb,.daybox>.focus-block:hover::-webkit-scrollbar-thumb{
+    background:color-mix(in srgb,var(--text) 34%,transparent);background-clip:padding-box}
   /* A cell is the ceiling, not the floor. A section with more in it than a
      screenful is exactly a screenful and scrolls inside that — which is the
      point: you are in one room at a time. A section with less takes only
@@ -3136,6 +3139,65 @@ html.vision-deep .page-scene.on{opacity:var(--scene-op)}
 .scenario-card .spend-row .row{gap:6px}
 .scenario-card .cat-name{min-width:0}
 @media (max-width:620px){.scenario-rail > .scenario-card{flex-basis:min(322px,86vw);max-width:86vw}}
+
+/* ============================================================
+   FINANCE, IN RECTANGLES  —  classes: .fin-cards, .fin-head
+   ------------------------------------------------------------
+   A stream with three sub-streams and a paragraph about what it is for runs
+   to two and a half times the length of one that says "Book." Set side by
+   side they were 669, 703 and 703 pixels; the two lives you are pricing were
+   800 and 1457. Nothing was wrong with any of them and the page still looked
+   like a broken fence.
+
+   So a card is given a rectangle, the same bargain Today's sections keep: a
+   ceiling of about a screenful with room to breathe under it, its heading
+   pinned to the top, and anything longer scrolling inside rather than
+   dragging its neighbours' bottoms out of line. Cards in a row are levelled
+   with each other, because a ragged row is the thing being complained about;
+   the ceiling is what keeps the level from being set by the longest card on
+   the page.
+
+   Nothing is hidden that was not already below the fold — the page scrolled
+   past all of this before. It scrolls in place now.
+   ============================================================ */
+.fin-cards,.scenario-rail{
+  /* a screenful with wiggle room: not so tall that a card is the whole
+     screen, not so short that a normal stream is cut in half */
+  --fin-cell:clamp(340px,66vh,640px)}
+/* level within a row; the ceiling stops the longest card setting the level */
+.fin-cards{align-items:stretch}
+.scenario-rail{align-items:stretch}
+.fin-cards>.stream-card,.scenario-rail>.scenario-card{
+  max-height:var(--fin-cell);overflow-y:auto;overscroll-behavior:contain;
+  /* no padding along the top: the heading has to sit flat against the edge
+     or the rows scroll through the gap above it */
+  padding-top:0;
+  /* the gutter is held whether or not the bar is showing, so a card does not
+     change width the moment its contents grow past the ceiling */
+  scrollbar-gutter:stable}
+.fin-cards>.stream-card::-webkit-scrollbar,.scenario-rail>.scenario-card::-webkit-scrollbar{width:9px}
+.fin-cards>.stream-card::-webkit-scrollbar-thumb,.scenario-rail>.scenario-card::-webkit-scrollbar-thumb{
+  background:color-mix(in srgb,var(--text) 22%,transparent);border-radius:5px;
+  border:2px solid transparent;background-clip:padding-box}
+.fin-cards>.stream-card:hover::-webkit-scrollbar-thumb,
+.scenario-rail>.scenario-card:hover::-webkit-scrollbar-thumb{
+  background:color-mix(in srgb,var(--text) 34%,transparent);background-clip:padding-box}
+/* the name stays where you can see it while the card's insides move under
+   it, and it is opaque in the card's own colour so nothing shows through */
+.fin-cards>.stream-card>.fin-head,.scenario-rail>.scenario-card>.fin-head{
+  position:sticky;top:0;z-index:3;background:var(--surface);
+  padding:16px 0 10px;margin:0;border-bottom:1px solid var(--line)}
+/* a card levelled up to its neighbour should not end in a hard stop where
+   its content ran out — the rule under the heading is enough structure */
+.fin-cards>.stream-card>.fin-head+*,.scenario-rail>.scenario-card>.fin-head+*{margin-top:10px}
+@media (max-width:700px){
+  /* on a phone a card inside a scroller inside a page is one scroller too
+     many; it goes back to being as long as it is */
+  .fin-cards>.stream-card,.scenario-rail>.scenario-card{
+    max-height:none;overflow:visible;padding-top:16px}
+  .fin-cards>.stream-card>.fin-head,.scenario-rail>.scenario-card>.fin-head{
+    position:static;padding:0;border-bottom:0}
+}
 
 /* ---------- Finance: how a stream earns ---------- */
 .earn-switch{display:inline-flex;gap:2px;margin-top:8px;padding:2px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2)}
@@ -19710,7 +19772,7 @@ function streamCardHTML(s){
   const ceiling = streamCeiling(inc, limit), hoursTgt = streamHoursForTarget(inc);
   const ceilingShort = ceiling != null && (inc.target||0) > ceiling;
   return `<div class="card stream-card ${passive ? 'passive' : 'active-inc'}">
-    <div class="row between">
+    <div class="row between fin-head">
       <b class="serif" style="font-size:1.05rem">${esc(s.name)}</b>
       <span class="row" style="gap:6px">
         <select class="sel" style="width:auto;padding:2px 6px;font-size:.74rem;--c:${STREAM_STATUS_COLOR[inc.status]};color:${STREAM_STATUS_COLOR[inc.status]};padding-right:22px" data-streamstatus="${path}">${Object.entries(STREAM_STATUS).map(([k,[ic,l]])=>`<option value="${k}" ${inc.status===k?'selected':''}>${ic} ${l}</option>`).join('')}</select>
@@ -19900,7 +19962,7 @@ function spendItemRowHTML(sc, cat, item){
 function scenarioHTML(sc){
   const annual = scenarioAnnualTotal(sc);
   return `<div class="card scenario-card ${sc.active?'active':''}" data-scenario="${sc.id}">
-    <div class="row between" style="align-items:center">
+    <div class="row between fin-head" style="align-items:center">
       <div class="row" style="gap:8px;align-items:center">
         <button class="btn sm ${sc.active?'primary':'ghost'}" data-scenariopick="${sc.id}">${sc.active?'★ active target':'set as target'}</button>
         <b class="serif" style="font-size:1.05rem">${ed(`finance.scenarios.#${sc.id}.name`)}</b>
@@ -19960,7 +20022,10 @@ function gapAnalysisHTML(){
       <div class="row between"><span class="mono">at target, streams would cover</span><span class="mono">${monthlyCostBase?Math.round(totalTargetBase/monthlyCostBase*100):0}%</span></div>
       <div class="bar" style="--c:var(--page-accent)"><i style="width:${monthlyCostBase?clamp(totalTargetBase/monthlyCostBase*100,0,100):0}%"></i></div>
     </div>
-    <div class="grid c2" style="gap:14px;align-items:start;margin-bottom:14px">
+    <!-- these two are short and need no ceiling; they are only levelled with
+         each other, because a row that ends at two different heights is the
+         thing that reads as unfinished -->
+    <div class="grid c2 fin-cards" style="gap:14px;margin-bottom:14px">
       <div class="card"><span class="sc">Per-stream contribution</span>
         ${contribs.length ? `<div class="stack" style="gap:5px;margin-top:10px">${contribs.map(({s,base})=>`<div class="row between"><span style="min-width:8em">${esc(s.name)}</span><span class="bar" style="flex:1;--c:var(--gold)"><i style="width:${Math.round(base/maxContrib*100)}%"></i></span><span class="mono">${Math.round(base/Math.max(totalCurrentBase,1)*100)}%</span></div>`).join('')}</div>` : '<div class="empty">No streams earning yet.</div>'}
       </div>
@@ -20038,7 +20103,7 @@ routes.finance = function(root){
         <div><div class="k">passive share</div><div class="num">${Math.round(passiveShare*100)}<small>%</small></div><div class="mono">${money(passiveBase)} of ${money(totalCurrentBase)}</div></div>
         <div><div class="k">hours / week</div><div class="num">${totalHours.toFixed(0)}</div>${blendedRate!=null?`<div class="mono">${money(blendedRate)}/hr blended</div>`:''}</div>
       </div></div>
-      ${streams.length ? `<div class="grid c2" style="align-items:start">${streams.map(streamCardHTML).join('')}</div>` : '<div class="empty">Nothing yet. What is the first way you could make money doing something you already do?</div>'}
+      ${streams.length ? `<div class="grid c2 fin-cards">${streams.map(streamCardHTML).join('')}</div>` : '<div class="empty">Nothing yet. What is the first way you could make money doing something you already do?</div>'}
       <!-- A stream not yet begun, and one put down for good, are both real and
            neither belongs in the arithmetic above. They were being left out of
            the totals and off the page at once, which meant writing one down
@@ -20048,7 +20113,7 @@ routes.finance = function(root){
         return `<div class="row between" style="margin:20px 0 6px;align-items:baseline">
             <span class="sc" style="margin:0">Not counted yet</span>
             <span class="mono faint">${rest.length} written down — nothing here is in the figures above</span></div>
-          <div class="grid c2" style="align-items:start">${rest.map(streamCardHTML).join('')}</div>`; })()}
+          <div class="grid c2 fin-cards">${rest.map(streamCardHTML).join('')}</div>`; })()}
     </section>
 
     <section class="section rv"><div class="row between" style="align-items:center"><span class="sc" style="margin:0">The life you want to fund</span><button class="btn sm primary" id="scenarioAdd">＋ scenario</button></div>
