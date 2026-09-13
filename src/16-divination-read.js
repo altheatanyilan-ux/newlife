@@ -38,26 +38,17 @@ function tarotCard(i){
 }
 const tarotSide = pick => { const c = tarotCard(pick.card); return c && (pick.rev ? c.reversed : c.upright); };
 
-/* Which of the six kinds of position a slot in a spread is. The Tower in the
-   past is not the Tower in the outcome, and the card carries a line for each
-   — but a spread's positions are named in English rather than in the six
-   words, so the mapping is written down here rather than guessed at. */
-const TAROT_SLOTS = {
-  one:   ['present'],
-  three: ['past', 'present', 'future'],
-  act:   ['present', 'advice', 'outcome'],
-  rel:   ['present', 'present', 'present', 'obstacle', 'advice'],
-  cross: ['present', 'obstacle', 'past', 'past', 'future', 'future',
-          'present', 'present', 'future', 'outcome'],
-};
-const tarotSlot = (spreadId, i) => (TAROT_SLOTS[spreadId] || [])[i] || 'present';
+/* Which of the six kinds of position a slot in a spread is — the Tower in
+   the past is not the Tower in the outcome, and the card carries a line for
+   each. It used to be a table keyed by spread id; it lives on the spread's
+   own positions now (see tarotSlot in 16-divination-spreads.js), which is
+   the only thing that survives twenty spreads instead of five. */
 
 /* ---------- the face of a card ----------
-   The old card was its name in a box. A card is a picture with a name on
-   it, so: a sigil that is the card's own, the one line of essence, and the
-   number, element and planet along the bottom. Nothing here is
-   illustrative — this is not a Rider-Waite reproduction — but it is a
-   card, and it is different from every other card in the deck.
+   The face is Smith's drawing; this is what stands in for it if the
+   pictures are ever not there — a sigil that is the card's own, and the
+   name. Nothing here is illustrative, but it is a card, and it is
+   different from every other card in the deck.
 
    Major Arcana get a star polygon of their own number of points, drawn by
    stepping round the circle: twenty-two figures, each geometrically
@@ -201,37 +192,66 @@ function tarotCardReadHTML(pick, posName, slot){
    that the person has a first sentence to disagree with. The disagreeing is
    where the reading actually happens. */
 function tarotNarrative(picks, sp){
-  if(!sp || picks.length < 3) return '';
+  if(!sp) return '';
+  /* the one spread whose answer is a word: say the word, then take it back
+     a little, because a card is not a coin */
+  if(sp.id === 'yesno' && picks.length){
+    const c = tarotCard(picks[0].card), s2 = tarotSide(picks[0]) || {themes: []};
+    const t = (s2.themes[0] || '').toLowerCase();
+    return `${picks[0].rev ? 'Leaning no' : 'Leaning yes'} — ${c.name}${picks[0].rev ? ' reversed' : ''}. `
+      + `But the lean is the smaller half of it: what the card actually puts in front of you is ${t || 'the thing you asked about'}, `
+      + `and that is the answer you can do something with. ${(c.essence || '').replace(/[.!]$/, '')}.`;
+  }
+  if(picks.length < 3) return '';
   const side = i => tarotSide(picks[i]) || {themes: []};
   const card = i => tarotCard(picks[i].card) || {name: '', essence: ''};
   const nm = i => card(i).name + (picks[i].rev ? ' reversed' : '');
   const th = (i, n = 0) => (side(i).themes[n] || side(i).themes[0] || 'something unnamed').toLowerCase();
   const ess = i => (card(i).essence || '').replace(/[.!]$/, '');
   const lower = s => s ? s.charAt(0).toLowerCase() + s.slice(1) : s;
-  if(sp.id === 'three'){
+  if(sp.id === 'ppf'){
     return `Behind you is ${th(0)} and ${th(0, 1)} — ${nm(0)}. That is what has brought you to a present `
       + `marked by ${th(1)} (${nm(1)}), and the movement from here runs toward ${th(2)} and ${th(2, 1)} (${nm(2)}). `
       + `Read as one line: from ${lower(ess(0))}, through ${lower(ess(1))}, to ${lower(ess(2))}.`;
   }
-  if(sp.id === 'act'){
+  if(sp.id === 'sao'){
     return `The situation is one of ${th(0)} — ${nm(0)}. What it asks of you is ${th(1)} (${nm(1)}), `
       + `and where that leads is ${th(2)} and ${th(2, 1)} (${nm(2)}). In short: ${lower(ess(1))}, `
       + `and ${lower(ess(2))}.`;
   }
-  if(sp.id === 'rel'){
+  if(sp.id === 'relationship'){
     return `You are carrying ${th(0)} into this (${nm(0)}) and they are carrying ${th(1)} (${nm(1)}). `
       + `What is actually between you is ${th(2)} — ${nm(2)}. The difficulty is ${th(3)} (${nm(3)}), `
       + `and the counsel is plain enough: ${lower(ess(4))} (${nm(4)}).`;
   }
-  if(sp.id === 'cross'){
+  if(sp.id === 'celtic_cross'){
     return `At the heart of it is ${th(0)} (${nm(0)}), crossed by ${th(1)} (${nm(1)}). `
       + `It is rooted in ${th(2)} and it came out of ${th(3)}. What could be is ${th(4)}; what comes next is ${th(5)}. `
       + `You are in it as ${th(6)}, surrounded by ${th(7)}, hoping for and fearing ${th(8)} — `
       + `and where it lands is ${th(9)}: ${lower(ess(9))} (${nm(9)}).`;
   }
+  /* the rest of the twenty, by shape rather than by name — a spread whose
+     positions are a sequence reads as a sequence, one built around a centre
+     reads outward from the centre, and the others read end to end */
+  const last = picks.length - 1;
+  if(sp.layout === 'cross' || sp.layout === 'pyramid'){
+    return `At the centre of this is ${th(0)} — ${nm(0)}. Around it: ${th(1)} (${nm(1)}), `
+      + `${th(2)} (${nm(2)})${picks.length > 3 ? `, and under all of it ${th(picks.length - 1)} (${nm(last)})` : ''}. `
+      + `Read from the middle out: ${lower(ess(0))}, and then ${lower(ess(last))}.`;
+  }
+  if(sp.layout === 'column' || sp.layout === 'circle'){
+    return `Laid round, the weight of this falls on ${sp.pos[0]} and ${sp.pos[last]}: ${nm(0)} at one end `
+      + `and ${nm(last)} at the other, with ${th(Math.floor(picks.length / 2))} in the middle of it. `
+      + `The whole of it is ${lower(ess(0))} becoming ${lower(ess(last))}.`;
+  }
+  if(sp.layout === 'grid' || sp.layout === 'horseshoe'){
+    return `It opens on ${th(0)} (${nm(0)}), turns on ${th(Math.floor(picks.length / 2))} `
+      + `(${nm(Math.floor(picks.length / 2))}) and closes on ${th(last)} (${nm(last)}). `
+      + `The line through it: ${lower(ess(0))}, then ${lower(ess(last))}.`;
+  }
   const names = picks.map((_, i) => nm(i));
-  return `Taken together, these run from ${th(0)} through ${th(1)} to ${th(picks.length - 1)} — `
-    + `${names.join(', ')}. The line through them is ${lower(ess(0))}, arriving at ${lower(ess(picks.length - 1))}.`;
+  return `Taken together, these run from ${th(0)} through ${th(1)} to ${th(last)} — `
+    + `${names.join(', ')}. The line through them is ${lower(ess(0))}, arriving at ${lower(ess(last))}.`;
 }
 
 /* The whole reading, under the spread. Built once, when the last card has

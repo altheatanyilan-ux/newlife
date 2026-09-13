@@ -208,27 +208,25 @@ const ORACLE_DECKS = [
   ]},
 ];
 
-const TAROT_SPREADS = [
-  {id:'one',   name:'A single card',  pos:['What to see']},
-  {id:'three', name:'Three cards',    pos:['What is behind', 'Where you are', 'What is coming']},
-  {id:'act',   name:'Situation, action, outcome', pos:['The situation', 'What to do', 'Where it goes']},
-  {id:'rel',   name:'A relationship', pos:['You', 'Them', 'Between you', 'The difficulty', 'The counsel']},
-  {id:'cross', name:'The Celtic cross', pos:['The heart of it', 'What crosses it', 'The root', 'The past',
-    'What could be', 'What comes next', 'You in it', 'What surrounds you', 'Hopes and fears', 'Where it lands']},
-];
+/* The five spreads that used to be here are the twenty in
+   16-divination-spreads.js, which also keeps their old ids working. */
 const SUIT_COLOR = {major:'#8f7bb0', wands:'#b4462f', cups:'#4b7d9c', swords:'#c9a84c', pentacles:'#5f8d49'};
 const SUIT_GLYPH = {major:'✦', wands:'🜂', cups:'🜄', swords:'🜁', pentacles:'🜃'};
 const SUIT_ELEM  = {major:'', wands:'Fire', cups:'Water', swords:'Air', pentacles:'Earth'};
 
 /* ---------- drawing ---------- */
-function tarotDraw(n){
+/* Reversals are a choice: some readers use them and some do not, and a
+   deck read upright only is not a lesser reading. `rev` is whether this
+   deal allows them at all; the 30% is unchanged when it does. */
+function tarotDraw(n, rev){
+  if(rev === undefined) rev = divPrefs().reversals;
   /* a real shuffle: take from a copy of the deck so no card comes up twice */
   const deck = TAROT.slice();
   const out = [];
   for(let i = 0; i < n && deck.length; i++){
     const at = Math.floor(Math.random() * deck.length);
     const card = deck.splice(at, 1)[0];
-    out.push({card: TAROT.indexOf(card), rev: Math.random() < .3});
+    out.push({card: TAROT.indexOf(card), rev: rev ? Math.random() < .3 : false});
   }
   return out;
 }
@@ -272,7 +270,10 @@ function divinationSave(rec){
     people:[], places:[], emotions:[], tags:['divination', rec.system], confidence:'',
     extra:{divination:{system:rec.system, question:rec.question || '', spread:rec.spread || '',
       cards:rec.cards || [], lines:rec.lines || null, hexagram:rec.hexagram || null,
-      relating:rec.relating || null, deck:rec.deck || '', revisit: !!rec.revisit}}};
+      relating:rec.relating || null, deck:rec.deck || '', revisit: !!rec.revisit,
+      /* where the cards were: dealt here, or laid out on a real table and
+         typed in afterwards. Everything else about the two is identical. */
+      source: rec.source === 'physical' ? 'physical' : 'digital'}}};
   S.entries.push(e); saveNow();
   return e;
 }
@@ -372,7 +373,13 @@ function divinationReadHTML(d){
      cards came up, and occasionally to read the whole thing again. Both are
      read off the deck at render time rather than copied into the entry, so a
      correction to the deck reaches the readings already filed. */
-  return (d.cards || []).map((c, i) => {
+  /* which spread it was, and whether it was dealt here or laid out on a
+     table somewhere — both are worth knowing months later, and the spread
+     is the only thing that tells you what the position names meant */
+  const head = `<div class="dv-read-src">
+    <span class="mono faint">${esc(spreadById(d.spread).name)}</span>
+    ${d.source === 'physical' ? '<span class="dv-src mono">📖 read on paper</span>' : ''}</div>`;
+  return head + (d.cards || []).map((c, i) => {
     const mn = tarotMeaning(c); if(!mn) return '';
     const slot = tarotSlot(d.spread, i);
     const guide = mn.card.positionGuidance ? mn.card.positionGuidance[slot] : '';
@@ -438,33 +445,155 @@ function tarotShuffleHTML(){
   </div>`;
 }
 
+/* ---------- choosing the shape of the question ----------
+   Twenty spreads in a dropdown is a list nobody reads. Laid out as tiles,
+   grouped by how long they take, each with a diagram of its own shape, the
+   choice is made with the eye — which is the right organ for it, because
+   the shape IS the choice. */
+function spreadPickerHTML(sel){
+  return `<div class="sp-lib" id="dvLib">${SPREAD_CATEGORIES.map(cat => {
+    const list = spreadsInCategory(cat.id);
+    if(!list.length) return '';
+    return `<section class="sp-cat"><h5 class="sp-cat-h"><span class="sc">${esc(cat.name)}</span>
+      <span class="quote">${esc(cat.hint)}</span></h5>
+      <div class="sp-tiles">${list.map(sp => `
+        <button type="button" class="sp-tile${sp.id === sel ? ' on' : ''}" data-dvspread="${esc(sp.id)}"
+          title="${esc(sp.desc)}">
+          ${spreadDotsHTML(sp)}
+          <span class="sp-name serif">${esc(sp.name)}</span>
+          <span class="sp-n mono">${sp.cardCount} card${sp.cardCount === 1 ? '' : 's'}</span>
+          ${sp.custom && sp.id !== 'custom' ? '<span class="sp-own" data-dvedit="' + esc(sp.id) + '" title="rename it, or change its positions">✎</span>' : ''}
+        </button>`).join('')}
+        ${cat.id === 'special' ? `<button type="button" class="sp-tile sp-new" data-dvnewspread
+          title="name your own positions"><span class="sp-plus">＋</span>
+          <span class="sp-name serif">One of your own</span>
+          <span class="sp-n mono">you name them</span></button>` : ''}</div></section>`;
+  }).join('')}</div>`;
+}
+
+/* the three switches that change how a reading behaves, in one row: whether
+   cards may land upside down, and whether the room has light and sound in
+   it. They are preferences, so they hold from one reading to the next. */
+/* Selecting, making and editing a spread, wired the same way wherever the
+   picker appears — a redraw is needed whenever the list itself changes,
+   which is what making or forgetting a spread of your own does. */
+function bindSpreadPicker(root, get, set){
+  const bind = () => {
+    root.querySelectorAll('[data-dvspread]').forEach(b => b.onclick = ev => {
+      if(ev.target.closest('[data-dvedit]')) return;
+      set(b.dataset.dvspread);
+      if(typeof sound === 'function') sound('click');
+    });
+    root.querySelectorAll('[data-dvedit]').forEach(n => n.onclick = ev => { ev.stopPropagation();
+      const rec = (divPrefs().customSpreads || []).find(x => x.id === n.dataset.dvedit);
+      openCustomSpread(rec, id => { set(id || (get() === n.dataset.dvedit ? 'ppf' : get())); redraw(); }); });
+    const nu = root.querySelector('[data-dvnewspread]');
+    if(nu) nu.onclick = () => openCustomSpread(null, id => { if(id) set(id); redraw(); });
+  };
+  const redraw = () => { const host = root.querySelector('#dvLib');
+    if(host) host.outerHTML = spreadPickerHTML(get());
+    bind(); set(get()); };
+  bind();
+}
+
+function divTogglesHTML(){
+  const p = divPrefs();
+  const sw = (k, on, label, hint) => `<button type="button" class="dv-sw${on ? ' on' : ''}" data-dvpref="${k}"
+    role="switch" aria-checked="${on}" title="${esc(hint)}"><i></i><span>${esc(label)}</span></button>`;
+  return `<div class="dv-switches">
+    ${sw('reversals', p.reversals, 'Reversals', 'Cards may land upside down and be read the other way. Off means every card comes up upright.')}
+    ${sw('sound', p.sound, 'Sound', 'A bowl, the paper, a chime as each card turns. Only ever during a reading.')}
+    <label class="dv-vol" title="how loud, out of a not-very-loud whole"><span class="mono">vol</span>
+      <input type="range" id="dvVol" min="0" max="100" step="5" value="${Math.round(p.volume * 100)}"></label>
+    ${sw('particles', p.particles, 'Light', 'Dust in the air over the ceremony. Off if you have asked for less motion.')}
+  </div>`;
+}
+function bindDivToggles(root){
+  root.querySelectorAll('[data-dvpref]').forEach(b => b.onclick = () => {
+    const k = b.dataset.dvpref, v = !divPrefs()[k];
+    divPrefSet(k, v);
+    b.classList.toggle('on', v); b.setAttribute('aria-checked', String(v));
+    if(k === 'sound' && v) CeremonySound.chime();
+    if(k === 'sound' && !v) CeremonySound.close();
+  });
+  const vol = root.querySelector('#dvVol');
+  /* on `input` so it is heard while it is dragged, which is the only way to
+     set a volume — and a chime on release so there is something to hear */
+  if(vol){
+    vol.addEventListener('input', () => { divPrefs().volume = +vol.value / 100;
+      if(CeremonySound.master) CeremonySound.master.gain.value = divPrefs().volume; });
+    vol.addEventListener('change', () => { saveNow(); if(divPrefs().sound) CeremonySound.chime(); });
+  }
+}
+
 function openTarot(pre = {}){
   const projects = typeof thProjects === 'function' ? thProjects() : [];
+  let spreadId = pre.spread || divPrefs().spread || 'ppf';
+  if(!spreadById(spreadId)) spreadId = 'ppf';
+  spreadId = spreadById(spreadId).id;
   const m = openModal(`<h2>A reading</h2>
     <div class="stack" id="divSetup">
       <div class="field"><label>What are you asking?</label>
         <input class="inp serif-lg" id="dvQ" value="${esc(pre.question || '')}" placeholder="Not ‘will it happen’ — ‘what am I not seeing’."></div>
       <div class="field"><label>The spread</label>
-        <select class="inp" id="dvSpread">${TAROT_SPREADS.map(s =>
-          `<option value="${s.id}" ${(pre.spread || 'three') === s.id ? 'selected' : ''}>${esc(s.name)} · ${s.pos.length} card${s.pos.length === 1 ? '' : 's'}</option>`).join('')}</select>
-        <div class="mono faint" id="dvPos" style="margin-top:5px"></div></div>
+        ${spreadPickerHTML(spreadId)}
+        <div class="sp-chosen" id="dvChosen"></div></div>
+      ${divTogglesHTML()}
       <p class="th-quote">Hill: when ideas flash into the mind through what is popularly called a hunch, they come from somewhere you cannot reach on purpose. The cards are not the somewhere. They are the door handle.</p>
-      <div class="row" style="justify-content:flex-end"><button class="btn primary" id="dvDraw">Take a breath, then deal</button></div>
+      <div class="row" style="justify-content:flex-end;gap:8px;flex-wrap:wrap">
+        <button class="btn" id="dvPhys" title="cards you have already laid out on a table">📖 a reading you did on paper</button>
+        <button class="btn primary" id="dvDraw">Take a breath, then deal</button></div>
     </div>
     <div id="divOut"></div>`, 'wide');
-  const spreadOf = () => TAROT_SPREADS.find(s => s.id === m.querySelector('#dvSpread').value) || TAROT_SPREADS[1];
-  const showPos = () => { m.querySelector('#dvPos').textContent = spreadOf().pos.join('  ·  '); };
-  m.querySelector('#dvSpread').onchange = showPos; showPos();
+  bindDivToggles(m);
+  m.querySelector('#dvPhys').onclick = () => { m.remove(); openPhysicalReading({question: m.querySelector('#dvQ')?.value || '', spread: spreadId}); };
+
+  const spreadOf = () => spreadById(spreadId);
+  const showChosen = () => {
+    const sp = spreadOf();
+    m.querySelector('#dvChosen').innerHTML = `<p class="sp-desc">${esc(sp.desc)}</p>
+      <ol class="sp-poslist">${sp.positions.map(q =>
+        `<li><b>${esc(q.name)}</b>${q.desc ? ` — ${esc(q.desc)}` : ''}</li>`).join('')}</ol>`;
+    m.querySelectorAll('[data-dvspread]').forEach(b => b.classList.toggle('on', b.dataset.dvspread === sp.id));
+  };
+  bindSpreadPicker(m, () => spreadId, id => { spreadId = id; divPrefSet('spread', id); showChosen(); });
+  showChosen();
 
   m.querySelector('#dvDraw').onclick = () => {
-    const sp = spreadOf(), picks = tarotDraw(sp.pos.length);
+    const sp = spreadOf(), picks = tarotDraw(sp.cardCount, sp.forceRev || undefined);
     const soft = typeof reduced === 'function' && reduced();
     m.querySelector('#divSetup').hidden = true;
-    m.querySelector('#divOut').innerHTML = tarotShuffleHTML();
+    /* the canvas sits over the whole ceremony and nothing else; it is torn
+       down with the modal, and the field with it */
+    m.querySelector('#divOut').innerHTML = `<div class="dv-cer" id="dvCer">
+      <canvas class="dv-motes" id="dvMotes" aria-hidden="true"></canvas>
+      <button class="dv-mute mono" id="dvMute" title="the sounds of the ceremony"></button>
+      <div class="dv-cer-in" id="dvCerIn">${tarotShuffleHTML()}</div></div>`;
+    const cer = m.querySelector('#dvCer'), inner = m.querySelector('#dvCerIn');
+    const field = dvFieldStart(m.querySelector('#dvMotes'));
+    const mute = m.querySelector('#dvMute');
+    const showMute = () => { mute.textContent = divPrefs().sound ? '♪ sound on' : '♪ sound off';
+      mute.classList.toggle('off', !divPrefs().sound); };
+    mute.onclick = () => { const v = !divPrefs().sound; divPrefSet('sound', v); showMute();
+      if(v) CeremonySound.chime(); else CeremonySound.close(); };
+    showMute();
+    /* a modal that goes takes the animation frame and the audio with it */
+    const stopAll = () => { dvFieldStop(); CeremonySound.close(); window.removeEventListener('resize', fit); };
+    /* a modal lives in #modals, and every way of closing one — the ×, the
+       backdrop, Escape, a route away — ends with it removed from there */
+    const stage = document.getElementById('modals') || document.body;
+    const obs = new MutationObserver(() => { if(!stage.contains(m)){ stopAll(); obs.disconnect(); } });
+    obs.observe(stage, {childList: true});
+    const fit = () => { field.resize && field.resize(); tarotBoardFit(m); };
+    window.addEventListener('resize', fit);
+
+    field.ambient(18);
     tarotCentering(() => {
+      dvMoment('bowl');
       const sh = m.querySelector('#dvShuffle');
       if(sh) sh.classList.add('go');
-      sound('click');
+      /* four slides across the shuffle, on the beats of the animation */
+      [0, 420, 980, 1500].forEach(t => setTimeout(() => dvMoment('slide'), soft ? 0 : t));
       setTimeout(deal, soft ? 0 : 2400);
     });
 
@@ -474,44 +603,52 @@ function openTarot(pre = {}){
        this; which back you pick decides the order they arrive in, not what
        they are, and that is the honest arrangement. */
     function deal(){
-      const many = clamp(picks.length + 6, 8, 12);
-      m.querySelector('#divOut').innerHTML = `
+      const many = clamp(picks.length + 6, 8, 14);
+      inner.innerHTML = `
         <div class="dv-stage">
           <div class="dv-prompt" id="dvPrompt"></div>
-          <div class="tc-row dv-spread" id="dvSpread2">${picks.map((pk, i) =>
-            `<div class="tc-slot" data-slot="${i}"><span class="tc-pos mono">${esc(sp.pos[i])}</span>
-              <div class="tc-hole" data-hole="${i}"></div>
-              <div class="tc-capslot" data-cap="${i}"></div></div>`).join('')}</div>
+          ${tarotBoardHTML(sp)}
           <div class="dv-fan" id="dvFan">${Array.from({length: many}, (_, i) =>
             `<button class="dv-pick" data-pick="${i}" style="--i:${i};--n:${many}" aria-label="choose a card">
               <div class="tc-mini">${tarotBackHTML()}</div></button>`).join('')}</div>
-        </div>
-        <div id="dvRead" hidden></div>`;
+        </div>`;
+      m.querySelector('#divOut').insertAdjacentHTML('beforeend', '<div id="dvRead" hidden></div>');
+      tarotBoardFit(m);
       let turned = 0, busy = false;
       const prompt = m.querySelector('#dvPrompt');
       const say = () => { prompt.innerHTML = turned < picks.length
-        ? `<span class="sc">choose your ${['first','second','third','fourth','fifth','sixth','seventh','eighth','ninth','tenth'][turned] || (turned + 1) + 'th'} card</span> <b class="serif">${esc(sp.pos[turned])}</b>`
+        ? `<span class="sc">choose your ${['first','second','third','fourth','fifth','sixth','seventh','eighth','ninth','tenth','eleventh','twelfth','thirteenth'][turned] || (turned + 1) + 'th'} card</span> <b class="serif">${esc(sp.pos[turned])}</b>${
+            sp.positions[turned].desc ? `<span class="dv-prompt-d quote">${esc(sp.positions[turned].desc)}</span>` : ''}`
         : '<span class="sc">the spread is complete</span>'; };
       say();
+
+      /* where on the canvas a thing is, so the sparks come off the card
+         rather than off the middle of the screen */
+      const at = node => { const r = node.getBoundingClientRect(), c = cer.getBoundingClientRect();
+        return [r.left - c.left + r.width / 2, r.top - c.top + r.height / 2]; };
 
       m.querySelectorAll('[data-pick]').forEach(btn => btn.onclick = () => {
         if(busy || turned >= picks.length || btn.classList.contains('taken')) return;
         busy = true;
-        const at = turned++, hole = m.querySelector(`[data-hole="${at}"]`);
+        dvMoment('chime');
+        const idx = turned++, hole = m.querySelector(`[data-hole="${idx}"]`);
         btn.classList.add('taken');
         const land = () => {
-          hole.innerHTML = tarotCardHTML(picks[at], at, false);
-          const cap = m.querySelector(`[data-cap="${at}"]`);
-          cap.innerHTML = tarotCaptionHTML(picks[at]);
+          hole.innerHTML = tarotCardHTML(picks[idx], idx, false);
+          const cap = m.querySelector(`[data-cap="${idx}"]`);
+          cap.innerHTML = tarotCaptionHTML(picks[idx]);
           const card = hole.querySelector('.tc');
           /* slide in, a breath, then the turn — the pause is the point of it */
           setTimeout(() => {
-            card.classList.add('up'); sound('click');
+            card.classList.add('up');
+            const [cx, cy] = at(card);
+            dvMoment('thrum', cx, cy);
             setTimeout(() => {
               card.classList.add('pulse');
               /* the name arrives under the card as it comes round, rather
                  than being printed over the drawing */
-              scrambleInto(cap.querySelector('.tc-cap-name'), TAROT[picks[at].card].n, 600);
+              scrambleInto(cap.querySelector('.tc-cap-name'), TAROT[picks[idx].card].n, 600);
+              dvMoment('tinkle');
               setTimeout(() => card.classList.remove('pulse'), 900);
             }, soft ? 0 : 420);
             busy = false; say();
@@ -520,6 +657,7 @@ function openTarot(pre = {}){
                  sitting under the spread as a row of gaps */
               const fan = m.querySelector('#dvFan');
               if(fan){ fan.classList.add('spent'); setTimeout(() => fan.remove(), soft ? 0 : 500); }
+              setTimeout(() => { dvMoment('chord'); dvMoment('wind'); }, soft ? 0 : 700);
               setTimeout(showReading, soft ? 0 : 1400);
             }
           }, soft ? 0 : 300);
@@ -536,30 +674,42 @@ function openTarot(pre = {}){
       });
 
       function showReading(){
+        /* The ceremony is over. The dust drops to a few motes while the
+           reading arrives and then stops altogether: a person may sit
+           writing in this box for ten minutes, and there is no version of
+           this app that runs an animation frame behind them while they do. */
+        field.ambient(8);
+        setTimeout(() => field.stop(), soft ? 0 : 6000);
         const box = m.querySelector('#dvRead');
-        box.innerHTML = `${tarotReadingHTML(picks, sp)}
-          <section class="dv-yours"><h4 class="dv-sec-h">Your reflection</h4>
-            <p class="dv-yours-p">Now that you have read them — what lands? What surprised you? What do you want to sit with?</p>
-            <div class="field"><textarea class="inp" id="dvText" rows="5" placeholder="Not what the book says. What it says to you, about the thing you asked."></textarea></div>
-            <div class="row between" style="margin-top:10px;flex-wrap:wrap;gap:8px">
-              <label class="row" style="gap:6px;font-size:.78rem;align-items:center"><input type="checkbox" id="dvRevisit"> <span>come back to this one</span></label>
-              ${projects.length ? `<select class="inp sm" id="dvProj"><option value="">nothing in particular</option>
-                ${projects.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select>` : ''}
-              <button class="btn primary" id="dvSave">Keep the reading</button></div>
-          </section>`;
+        box.innerHTML = tarotReadingHTML(picks, sp) + divKeepHTML(projects);
         box.hidden = false;
         box.scrollIntoView({behavior: soft ? 'auto' : 'smooth', block: 'start'});
         m.querySelector('#dvSave').onclick = () => {
           divinationSave({system:'tarot', question:m.querySelector('#dvQ').value.trim(), spread:sp.id,
             title:`${sp.name} — ${picks.map(pk => TAROT[pk.card].n).join(', ')}`,
             cards:picks.map((pk, i) => ({card:pk.card, rev:pk.rev, pos:sp.pos[i]})),
-            reading:m.querySelector('#dvText').value.trim(),
+            reading:m.querySelector('#dvText').value.trim(), source:'digital',
             revisit:m.querySelector('#dvRevisit').checked, projectId:m.querySelector('#dvProj')?.value || null});
+          stopAll();
           sound('success'); toast('Kept in the Lived Record.'); m.remove(); rerender();
         };
       }
     }
   };
+}
+
+/* the box under every reading, digital or paper: what you make of it, which
+   is the part that is actually yours */
+function divKeepHTML(projects){
+  return `<section class="dv-yours"><h4 class="dv-sec-h">Your reflection</h4>
+    <p class="dv-yours-p">Now that you have read them — what lands? What surprised you? What do you want to sit with?</p>
+    <div class="field"><textarea class="inp" id="dvText" rows="5" placeholder="Not what the book says. What it says to you, about the thing you asked."></textarea></div>
+    <div class="row between" style="margin-top:10px;flex-wrap:wrap;gap:8px">
+      <label class="row" style="gap:6px;font-size:.78rem;align-items:center"><input type="checkbox" id="dvRevisit"> <span>come back to this one</span></label>
+      ${(projects || []).length ? `<select class="inp sm" id="dvProj"><option value="">nothing in particular</option>
+        ${projects.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select>` : ''}
+      <button class="btn primary" id="dvSave">Keep the reading</button></div>
+  </section>`;
 }
 /* ---------- casting the coins ----------
    Three coins, six times, bottom line first. The toss is animated because
@@ -702,13 +852,17 @@ function openQuickDraw(){
       <button class="choice" data-qd="tarot"><span class="ico">🔮</span><span><b>One tarot card</b><div class="d">From the full deck of 78.</div></span></button>
       <button class="choice" data-qd="oracle"><span class="ico">◈</span><span><b>An oracle card</b><div class="d">A short one. Something to hold for the day.</div></span></button>
       <button class="choice" data-qd="iching"><span class="ico">☰</span><span><b>Cast the coins</b><div class="d">Six tosses, and the hexagram they make.</div></span></button>
-      <button class="choice" data-qd="full"><span class="ico">✦</span><span><b>A whole reading</b><div class="d">A spread, with room to write.</div></span></button>
+      <button class="choice" data-qd="full"><span class="ico">✦</span><span><b>A whole reading</b><div class="d">Twenty spreads, with room to write.</div></span></button>
+      <button class="choice" data-qd="paper"><span class="ico">📖</span><span><b>A reading you did on paper</b><div class="d">Name the cards you laid out and get the same reading.</div></span></button>
+      <button class="choice" data-qd="deck"><span class="ico">📚</span><span><b>The deck</b><div class="d">All seventy-eight, and every time each one has come up for you.</div></span></button>
     </div>`, 'narrow');
   m.querySelectorAll('[data-qd]').forEach(b => b.onclick = () => {
     const k = b.dataset.qd; m.remove();
     if(k === 'iching') openIChing();
     else if(k === 'oracle') openOracle();
     else if(k === 'full') openTarot();
-    else openTarot({spread:'one'});
+    else if(k === 'paper') openPhysicalReading();
+    else if(k === 'deck') openCardDirectory();
+    else openTarot({spread:'daily'});
   });
 }
