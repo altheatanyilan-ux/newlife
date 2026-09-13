@@ -3437,8 +3437,19 @@ select.sm-active{border-color:var(--page-accent);
 .pe-cards{display:flex;flex-direction:column;gap:6px;flex:1}
 .pe-tray{margin-top:14px;border-top:1px dashed var(--line)}
 .pe-tray summary{display:flex;gap:10px;align-items:baseline;padding:10px 0;cursor:pointer}
-.pe-traybox{display:flex;flex-wrap:wrap;gap:6px;padding:6px 0}
-.pe-traybox .pk-card{flex:0 0 210px}
+.pe-traybox{display:flex;flex-wrap:wrap;gap:6px;padding:6px 0;--pew:320px}
+/* one width for the whole tray, dragged from any card's right edge — and
+   never wider than the page, however far the handle was once pulled */
+.pe-traybox .pk-card{position:relative;flex:0 0 var(--pew);max-width:100%}
+.pe-traybox.sizing{user-select:none;cursor:col-resize}
+.pe-traybox.sizing .pk-card{transition:none}
+.pe-grip{position:absolute;top:0;right:-3px;width:11px;height:100%;cursor:col-resize;
+  border-radius:6px;touch-action:none;z-index:2}
+.pe-grip::after{content:"";position:absolute;top:18%;bottom:18%;left:4px;width:2px;border-radius:2px;
+  background:var(--line-2);opacity:0;transition:opacity .18s var(--ease),background .18s var(--ease)}
+.pk-card:hover .pe-grip::after,.pe-grip:focus-visible::after,.pe-traybox.sizing .pe-grip::after{opacity:1}
+.pe-grip:hover::after,.pe-grip:focus-visible::after,.pe-traybox.sizing .pe-grip::after{background:var(--page-accent)}
+.pe-grip:focus-visible{outline:none}
 .pe-traybox.over{background:color-mix(in srgb,var(--page-accent) 8%,transparent);border-radius:9px}
 
 .pl-tlbar{display:flex;gap:6px;align-items:center;margin-bottom:10px}

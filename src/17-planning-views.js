@@ -8,8 +8,11 @@
    tasks answer all five.
    ============================================================ */
 
-/* ---------- shared: the card used by the board and the matrix ---------- */
-function planCardHTML(t){
+/* ---------- shared: the card used by the board and the matrix ----------
+   `tail` is anything that belongs inside the card but is not part of it —
+   the tray's width handle is the only caller so far. Passed explicitly,
+   never by .map, because .map would hand it the index. */
+function planCardHTML(t, tail){
   const pr = planPriority(t.priority), sub = planSubProgress(t), late = planIsLate(t);
   return `<div class="pk-card${t.done ? ' done' : ''}${late ? ' late' : ''}${S._planPick?.has(t.id) ? ' picked' : ''}"
       data-ptcard="${t.id}" draggable="true" style="${pr.color ? `--pc:${pr.color}` : ''}">
@@ -31,7 +34,7 @@ function planCardHTML(t){
       ${t.day ? `<span class="mono${late ? ' late' : ''}">${late ? '⚠ ' : ''}${esc(fmtDate(t.day, 'short'))}</span>` : ''}
       ${t.duration ? `<span class="mono">${t.duration >= 60 ? (t.duration / 60).toFixed(t.duration % 60 ? 1 : 0) + 'h' : t.duration + 'm'}</span>` : ''}
       ${t.tags.map(x => `<span class="pt-tag" style="--c:${planTagColor(x)}">${esc(x)}</span>`).join('')}
-    </div></div>`;
+    </div>${tail || ''}</div>`;
 }
 const planTimeToMin = s => { const m = /^(\d{1,2}):(\d{2})/.exec(s || ''); return m ? +m[1] * 60 + +m[2] : null; };
 const planMinToTime = n => `${pad(Math.floor(n / 60) % 24)}:${pad(Math.round(n) % 60)}`;
@@ -138,13 +141,22 @@ function planKanbanHTML(sel, tasks){
       <div class="pk-colh"><span class="pk-cname">${esc(c.name)}</span>
         <span class="mono">${ts.length}${c.wipLimit != null ? ` / ${c.wipLimit}` : ''}</span>
         ${l ? `<button class="pl-mini" data-pkedit="${c.id}" title="rename, limit, remove">⋯</button>` : ''}</div>
-      <div class="pk-cards" data-ptgroup>${ts.map(planCardHTML).join('') || '<div class="pk-empty">Nothing here yet. Drag a task in, or add one.</div>'}</div>
+      <div class="pk-cards" data-ptgroup>${ts.map(t => planCardHTML(t)).join('') || '<div class="pk-empty">Nothing here yet. Drag a task in, or add one.</div>'}</div>
       <input class="inp pk-add" data-pqadd='${esc(JSON.stringify({listId: l?.id, kanbanColumn: c.id}))}' placeholder="＋ add">
     </div>`; }).join('')}
     ${l ? `<button class="pk-newcol" id="pkNewCol">＋ column</button>` : ''}</div>`;
 }
 
-/* ---------- matrix ---------- */
+/* ---------- matrix ----------
+   The quadrants are a grid and size themselves; the tray underneath is a
+   wrapping row, so its cards need a width given to them. 210px was narrow
+   enough that anything but a short title wrapped to four lines, so: wider
+   by default, and dragged from a card's right edge like a board column. */
+const PE_TRAY_W = 320, PE_TRAY_MIN = 170, PE_TRAY_MAX = 720;
+function peTrayWidth(){ return clamp(+planState().prefs.trayW || PE_TRAY_W, PE_TRAY_MIN, PE_TRAY_MAX); }
+function peSetTrayWidth(w){ planState().prefs.trayW = Math.round(clamp(w, PE_TRAY_MIN, PE_TRAY_MAX)); }
+const peTrayGripHTML = () => `<div class="pe-grip" data-petraygrip title="drag to widen · double-click to reset"
+  role="separator" aria-label="width of the cards waiting here" tabindex="0"></div>`;
 function planMatrixHTML(tasks){
   const loose = tasks.filter(t => !t.quadrant);
   return `<div class="pe-grid">${PLAN_QUADRANTS.map(q => {
@@ -152,11 +164,12 @@ function planMatrixHTML(tasks){
     return `<div class="pe-quad" data-pequad="${q.n}" style="--c:${q.color}">
       <div class="pe-head"><span class="pe-name">${esc(q.name)}</span><span class="pe-act">${esc(q.act)}</span>
         <span class="mono">${ts.length}</span></div>
-      <div class="pe-cards" data-ptgroup>${ts.map(planCardHTML).join('') || '<div class="pk-empty">Empty. That is allowed.</div>'}</div>
+      <div class="pe-cards" data-ptgroup>${ts.map(t => planCardHTML(t)).join('') || '<div class="pk-empty">Empty. That is allowed.</div>'}</div>
       <input class="inp pk-add" data-pqadd='${esc(JSON.stringify({quadrant: q.n}))}' placeholder="＋ add here">
     </div>`; }).join('')}</div>
     <details class="pe-tray"${loose.length ? ' open' : ''}><summary><span class="sc">Not yet placed</span><span class="mono">${loose.length}</span></summary>
-      <div class="pe-traybox" data-pequad="0" data-ptgroup>${loose.map(planCardHTML).join('')
+      <div class="pe-traybox" data-pequad="0" data-ptgroup style="--pew:${peTrayWidth()}px">${
+        loose.map(t => planCardHTML(t, peTrayGripHTML())).join('')
         || '<div class="pk-empty">Everything has been placed.</div>'}</div></details>`;
 }
 
@@ -306,7 +319,31 @@ function bindPlanViews(root, sel, tasks){
       wipLimit:null, sortOrder:l.kanbanColumns.length});
     saveNow(); sound('click'); rerender(); };
 
-  /* matrix */
+  /* matrix — the tray card's right edge sets how wide every card in the tray
+     is. Written straight to the box while dragging so the cards follow the
+     pointer; a re-render per pointermove would fight the drag. */
+  const trayBox = $('.pe-traybox', root);
+  if(trayBox) $$('[data-petraygrip]', trayBox).forEach(grip => {
+    const apply = w => { peSetTrayWidth(w); trayBox.style.setProperty('--pew', peTrayWidth() + 'px'); };
+    grip.addEventListener('pointerdown', ev => {
+      ev.preventDefault(); ev.stopPropagation();
+      const x0 = ev.clientX, w0 = peTrayWidth();
+      grip.setPointerCapture(ev.pointerId); trayBox.classList.add('sizing');
+      const move = e => apply(w0 + (e.clientX - x0));
+      const up = () => { grip.removeEventListener('pointermove', move); grip.removeEventListener('pointerup', up);
+        grip.removeEventListener('pointercancel', up); trayBox.classList.remove('sizing'); saveNow(); };
+      grip.addEventListener('pointermove', move);
+      grip.addEventListener('pointerup', up);
+      grip.addEventListener('pointercancel', up);
+    });
+    grip.addEventListener('dblclick', ev => { ev.stopPropagation(); apply(PE_TRAY_W); saveNow(); sound('click'); });
+    grip.addEventListener('click', ev => ev.stopPropagation());
+    grip.addEventListener('keydown', ev => {
+      const d = ev.key === 'ArrowRight' ? 24 : ev.key === 'ArrowLeft' ? -24 : 0;
+      if(!d) return; ev.preventDefault(); ev.stopPropagation(); apply(peTrayWidth() + d); saveNow();
+    });
+  });
+
   $$('[data-pequad]', root).forEach(q => {
     q.addEventListener('dragover', ev => { if(window._plTaskDrag){ ev.preventDefault(); q.classList.add('over'); } });
     q.addEventListener('dragleave', () => q.classList.remove('over'));
