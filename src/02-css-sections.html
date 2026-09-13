@@ -5469,5 +5469,240 @@ html.mfx-cursor .pl-gbaredge{cursor:ew-resize!important}
   .ms-mdate{grid-column:2/4}
   .ms-mlist,.ms-mprog{display:none}
 }
+
+/* ============================================================
+   THE TWO ROOMS
+
+   Everything above this point builds the app. This builds the room it is
+   in — and there are two of them, with different manners.
+
+   LIGHT is a zen writing desk. Warm paper with a grain in it, ink, and
+   shadows that fall the way shadows fall. Controls feel pressed into the
+   paper or raised out of it. Nothing moves that was not asked to move.
+
+   DARK is a scholar's study with a candle in it. Surfaces have depth,
+   edges are lit rather than drawn, cards leak a little warmth from behind
+   themselves, and the air has something in it. Text arrives rather than
+   appearing.
+
+   Both rooms are made of the same tokens (see 01-head.html), so almost
+   nothing below has to be written twice.
+
+   The ink painting the rooms hang in — the mist, the scenes, the seasons —
+   is untouched by all of this. It sits on its own layer and always did.
+   ============================================================ */
+
+/* ---------- 1. the grain in the surface ----------
+   Not a blend mode. A full-viewport mix-blend layer costs about a quarter of
+   the frame rate here, which was measured when the dust was built: every
+   moving mote invalidates the blend over the whole page. A flat, very faint
+   overlay under the content looks the same and costs nothing. */
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:var(--grain);opacity:var(--grain-op)}
+@media (max-width:640px){body::before{opacity:calc(var(--grain-op) * .6)}}
+
+/* ---------- 2. cards, panels and surfaces ----------
+   The border stays — it is load-bearing for legibility at small sizes — but
+   it thins to almost nothing and the shadow does the work of separating a
+   card from the page. */
+.card{background:var(--card-face);border:var(--surface-border);box-shadow:var(--elev-2-shadow);
+  transition:border-color calc(.3s * var(--page-motion-speed)) var(--page-ease),
+    transform calc(.3s * var(--page-motion-speed)) var(--page-ease),
+    box-shadow .35s var(--ease)}
+html[data-theme="dark"] .card:hover,html:not([data-theme="light"]) .card:hover{
+  box-shadow:0 8px 30px rgba(0,0,0,.4), 0 0 20px color-mix(in srgb,var(--page-accent) 9%,transparent);
+  border-color:color-mix(in srgb,var(--page-accent) 16%,transparent)}
+html[data-theme="light"] .card:hover{box-shadow:var(--surface-shadow-hover)}
+/* a card that belongs to a section takes that section's colour into its glow */
+.card[data-accent]{--page-accent:var(--acc,var(--terra))}
+
+/* ---------- 3. modals sit at the top of the stack ---------- */
+.overlay{backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.modal{background:var(--elev-3);border:var(--surface-border);box-shadow:var(--elev-3-shadow)}
+html[data-theme="dark"] .modal,html:not([data-theme="light"]) .modal{
+  box-shadow:0 20px 60px rgba(0,0,0,.5), 0 0 0 1px rgba(212,164,76,.06), 0 0 40px rgba(212,164,76,.02)}
+
+/* ---------- 4. the sidebar ---------- */
+.sidebar{background:var(--elev-1)}
+html[data-theme="dark"] .sidebar,html:not([data-theme="light"]) .sidebar{
+  box-shadow:inset -1px 0 0 rgba(212,164,76,.04)}
+
+/* ---------- 5. attention, given and shown ----------
+   In dark the thing you are typing into is lit from inside — a tight ring, a
+   halo and a diffuse warmth. In light it is a clean accent border, because a
+   glowing input on white paper looks like a fault. */
+.inp:focus,.inp:focus-visible,input:focus,textarea:focus,select:focus,[contenteditable="true"]:focus{
+  outline:none;box-shadow:var(--focus-ring);transition:box-shadow .3s var(--ease)}
+html[data-theme="dark"] .inp:focus,html:not([data-theme="light"]) .inp:focus,
+html[data-theme="dark"] textarea:focus,html:not([data-theme="light"]) textarea:focus{
+  border-color:color-mix(in srgb,var(--gold) 22%,transparent)}
+
+/* ---------- 6. buttons ---------- */
+.btn{box-shadow:var(--surface-shadow)}
+.btn:hover{box-shadow:var(--surface-shadow-hover)}
+.btn:active{box-shadow:var(--neu-pressed)}
+.btn.primary{box-shadow:var(--surface-shadow)}
+html[data-theme="dark"] .btn.primary:hover,html:not([data-theme="light"]) .btn.primary:hover{
+  box-shadow:var(--surface-shadow-hover), 0 0 12px color-mix(in srgb,var(--page-accent) 22%,transparent)}
+
+/* ---------- 7. scrollbars ----------
+   Thin, warm, no track. A scrollbar should read as an accent, not a control. */
+*{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--page-accent) 26%,transparent) transparent}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--page-accent) 24%,transparent);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:color-mix(in srgb,var(--page-accent) 42%,transparent)}
+
+/* ============================================================
+   8. NEUMORPHISM — the things you press
+
+   Only for contained, interactive objects: a switch, a slider, a ring, a
+   tab, a field you type into. Never for a page, a panel or a block of
+   text — soft shadows on a large surface read as fog, not as a material.
+   ============================================================ */
+.neu{background:var(--neu-bg);box-shadow:var(--neu-raised);border:none;border-radius:12px;
+  transition:box-shadow .25s var(--ease),transform .15s var(--ease)}
+.neu:hover{box-shadow:var(--neu-raised-hover);transform:translateY(-1px)}
+.neu:active,.neu.pressed{box-shadow:var(--neu-pressed);transform:translateY(0)}
+.neu-in{background:var(--neu-bg);box-shadow:var(--neu-pressed);border:none;border-radius:8px}
+.neu-circle{border-radius:50%;background:var(--neu-bg);box-shadow:var(--neu-raised)}
+
+/* the switch: an inset track with a raised thumb in it */
+.dv-sw{background:var(--neu-bg);box-shadow:var(--neu-pressed);border:none}
+.dv-sw i{background:var(--neu-bg);box-shadow:var(--neu-raised);width:26px;height:14px}
+.dv-sw i::after{width:10px;height:10px;top:2px;left:2px;
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1),background .2s var(--ease)}
+.dv-sw.on i::after{transform:translateX(12px)}
+html[data-theme="dark"] .dv-sw.on i::after,html:not([data-theme="light"]) .dv-sw.on i::after{
+  box-shadow:0 0 8px rgba(212,164,76,.28)}
+
+/* the sliders: an inset groove with a raised thumb riding in it */
+.slider{height:8px;border-radius:4px;background:var(--neu-bg);box-shadow:var(--neu-pressed)}
+.slider::-webkit-slider-thumb{width:20px;height:20px;background:var(--neu-bg);border:none;
+  box-shadow:var(--neu-raised),0 0 0 3px color-mix(in srgb,var(--c,var(--page-accent)) 26%,transparent)}
+.slider::-moz-range-thumb{width:18px;height:18px;background:var(--neu-bg);border:none;
+  box-shadow:var(--neu-raised),0 0 0 3px color-mix(in srgb,var(--c,var(--page-accent)) 26%,transparent)}
+.slider:active::-webkit-slider-thumb{box-shadow:var(--neu-pressed),0 0 0 4px color-mix(in srgb,var(--c,var(--page-accent)) 30%,transparent)}
+html[data-theme="dark"] .slider::-webkit-slider-thumb,html:not([data-theme="light"]) .slider::-webkit-slider-thumb{
+  box-shadow:var(--neu-raised),0 0 0 3px color-mix(in srgb,var(--c,var(--page-accent)) 26%,transparent),0 0 10px rgba(212,164,76,.1)}
+
+/* the search field is something you press into the desk */
+#btnSearch{background:var(--neu-bg);box-shadow:var(--neu-pressed);border-color:transparent}
+#btnSearch:hover{box-shadow:var(--neu-pressed),0 0 0 1px color-mix(in srgb,var(--page-accent) 25%,transparent)}
+
+/* a chosen tab stands up out of the row; the rest lie flat */
+.chip.on,.pf-chip.on,.tab.on,[data-cdtab].on,[data-plview].on{
+  background:var(--neu-bg);box-shadow:var(--neu-raised);border-color:transparent}
+.chip:not(.on),.pf-chip:not(.on){box-shadow:none}
+
+/* counts and streaks: small raised pills */
+.badge,.streak-pill,.hb-streak{box-shadow:var(--neu-raised);border:none;background:var(--neu-bg)}
+
+/* the rings you complete, and the circle the timer lives in */
+.ring,.habit-ring,.hb-ring,.still-circle,.timer-dial{border-radius:50%}
+.hb-ring:not(.done),.habit-ring:not(.done){box-shadow:var(--neu-raised)}
+.hb-ring.done,.habit-ring.done{box-shadow:var(--neu-pressed)}
+
+/* ============================================================
+   9. KINETIC TYPOGRAPHY
+
+   Every effect here has one job and one place it is allowed. Text that
+   moves for no reason is text that is harder to read.
+   ============================================================ */
+/* words arriving one after another, as if being written — both rooms */
+[data-reveal] .wd{display:inline-block;opacity:0;transform:translateY(6px);
+  transition:opacity .4s var(--ease),transform .4s var(--ease),text-shadow .4s var(--ease);
+  transition-delay:calc(var(--i) * 30ms)}
+[data-reveal].shown .wd{opacity:1;transform:none}
+/* in the dark room each word lights as it lands, and then settles */
+html[data-theme="dark"] [data-reveal].shown .wd,html:not([data-theme="light"]) [data-reveal].shown .wd{
+  animation:wdGlow .7s var(--ease) both;animation-delay:calc(var(--i) * 30ms)}
+@keyframes wdGlow{0%{text-shadow:0 0 20px rgba(212,164,76,.3)}100%{text-shadow:0 0 0 transparent}}
+
+/* a cursor, for text that is being typed rather than revealed */
+.tw-cursor{color:var(--page-accent);font-weight:300;opacity:1}
+.tw-cursor.blink{animation:twBlink .8s step-end infinite}
+@keyframes twBlink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* breathing: only where something is actually breathing */
+.breathing{animation:txBreathe 4s ease-in-out infinite}
+@keyframes txBreathe{0%,100%{transform:scale(1);opacity:.9}50%{transform:scale(1.015);opacity:1}}
+
+/* firelight moving across engraved text — dark only, and slowly */
+html[data-theme="dark"] .flow,html:not([data-theme="light"]) .flow{
+  background:linear-gradient(90deg,var(--text) 0%,var(--gold) 25%,var(--terra) 50%,var(--rose) 75%,var(--text) 100%);
+  background-size:300% 100%;-webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent;
+  animation:flowShift 12s ease-in-out infinite}
+@keyframes flowShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+
+/* one string dissolving into another rather than swapping */
+.morph{display:inline-block;position:relative}
+.morph.out{animation:morphOut .45s ease-in forwards}
+.morph.in{animation:morphIn .45s ease-out forwards}
+@keyframes morphOut{0%{opacity:1;transform:translateY(0);filter:blur(0)}
+  100%{opacity:0;transform:translateY(-8px);filter:blur(2px)}}
+@keyframes morphIn{0%{opacity:0;transform:translateY(8px);filter:blur(2px)}
+  100%{opacity:1;transform:none;filter:blur(0)}}
+
+/* ============================================================
+   10. THE DARK ROOM ONLY
+
+   None of this renders in light mode, and none of it renders for anyone
+   who has asked for less motion. It is all transform and opacity.
+   ============================================================ */
+/* candlelight. The spec puts a filter on the page container; a filter makes
+   an element the containing block for every position:fixed child, and the
+   back pill, the top bar, the speed dial, the panel and the cursor are all
+   fixed children of body — they would all reposition and the page would come
+   apart. The same warmth is breathed through the tint sheet that is already
+   over everything instead, which moves nothing. */
+html[data-theme="dark"] #warmth,html:not([data-theme="light"]) #warmth{
+  animation:candle 8s ease-in-out infinite}
+@keyframes candle{0%,100%{opacity:1}20%{opacity:.86}40%{opacity:1.0}60%{opacity:.9}80%{opacity:.97}}
+
+/* four soft lights, far out of focus, drifting a few pixels a minute.
+   Invisible unless you look for them; without them the dark is dead. */
+html[data-theme="dark"] body[data-route="today"]::after,
+html[data-theme="dark"] body[data-route="values"]::after,
+html[data-theme="dark"] body[data-route="journals"]::after,
+html:not([data-theme="light"]) body[data-route="today"]::after,
+html:not([data-theme="light"]) body[data-route="values"]::after,
+html:not([data-theme="light"]) body[data-route="journals"]::after{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(120px circle at 15% 25%,rgba(212,164,76,.018) 0%,transparent 100%),
+    radial-gradient(180px circle at 70% 60%,rgba(176,137,104,.015) 0%,transparent 100%),
+    radial-gradient(90px circle at 40% 80%,rgba(160,114,126,.013) 0%,transparent 100%),
+    radial-gradient(150px circle at 85% 20%,rgba(127,145,106,.01) 0%,transparent 100%);
+  animation:bokeh 60s ease-in-out infinite alternate}
+@keyframes bokeh{
+  0%{transform:translate(0,0) scale(1)}
+  25%{transform:translate(20px,-15px) scale(1.02)}
+  50%{transform:translate(-10px,25px) scale(.98)}
+  75%{transform:translate(15px,10px) scale(1.01)}
+  100%{transform:translate(-15px,-20px) scale(1)}}
+
+/* a thin band of warm light crossing something that deserves it. Two or
+   three per cent per stop: a shimmer, not a rainbow. */
+.sheen{position:relative;overflow:hidden}
+html[data-theme="dark"] .sheen::after,html:not([data-theme="light"]) .sheen::after{
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:2;
+  background:linear-gradient(105deg,transparent 30%,rgba(212,164,76,.035) 38%,
+    rgba(160,114,126,.035) 42%,rgba(127,145,106,.035) 46%,rgba(212,164,76,.025) 50%,transparent 58%);
+  animation:sheenSweep 6s ease-in-out infinite}
+@keyframes sheenSweep{0%{transform:translateX(-120%)}100%{transform:translateX(120%)}}
+
+/* ---------- 11. less motion, asked for ---------- */
+@media (prefers-reduced-motion:reduce){
+  [data-reveal] .wd{opacity:1;transform:none;transition:none;animation:none}
+  .breathing,.flow,.morph.out,.morph.in,.tw-cursor.blink{animation:none}
+  html[data-theme="dark"] .flow,html:not([data-theme="light"]) .flow{
+    background:none;-webkit-text-fill-color:currentColor;color:var(--text)}
+  html[data-theme="dark"] #warmth,html:not([data-theme="light"]) #warmth{animation:none}
+  html[data-theme="dark"] body[data-route]::after,html:not([data-theme="light"]) body[data-route]::after{animation:none}
+  html[data-theme="dark"] .sheen::after,html:not([data-theme="light"]) .sheen::after{animation:none;opacity:0}
+  .neu,.dv-sw i::after,.card{transition:none}
+}
 </style>
 </head>
