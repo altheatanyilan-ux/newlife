@@ -4156,5 +4156,97 @@ select.sm-active{border-color:var(--page-accent);
 .fw-row{display:flex;align-items:center;gap:8px}
 .fw-row .mono{font-size:.62rem;color:var(--faint);width:14px;flex:none;text-align:right}
 .fw-row .inp{flex:1;min-width:0}
+
+/* ============================================================
+   STILLNESS, DIVINATION, INTUITION
+   ============================================================ */
+.stillness{display:flex;flex-direction:column;gap:12px}
+.still-tabs{display:flex;gap:2px;background:var(--surface-2);border:1px solid var(--line);
+  border-radius:10px;padding:3px;flex-wrap:wrap}
+.still-tabs button{flex:1;min-width:96px;background:none;border:0;color:var(--faint);font-family:var(--serif);
+  font-size:.84rem;padding:6px 9px;border-radius:8px;cursor:pointer;transition:all .2s var(--ease);white-space:nowrap}
+.still-tabs button:hover{color:var(--text)}
+.still-tabs button.on{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.07)}
+.still-pane{border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--surface-2)}
+.still-stats{display:flex;gap:16px;flex-wrap:wrap;font-size:.66rem;color:var(--faint)}
+.sanct-card{border:1px solid var(--line);border-left:3px solid var(--sage,#7f916a);border-radius:9px;
+  padding:10px 12px;background:var(--surface);display:flex;flex-direction:column;gap:5px;align-items:flex-start}
+.sanct-card p{margin:0;font-family:var(--lora,var(--serif));font-style:italic;font-size:.85rem}
+/* the sitting itself: as little screen as a screen can be */
+.modal.plain{background:var(--bg);border-color:transparent;box-shadow:none}
+.still-run{min-height:62vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px}
+.still-circle{position:relative;width:min(46vh,300px);aspect-ratio:1;display:flex;align-items:center;justify-content:center}
+.still-circle i{position:absolute;inset:0;border-radius:50%;border:1px solid var(--line-2);
+  background:radial-gradient(circle,color-mix(in srgb,var(--page-accent) 12%,transparent),transparent 70%);
+  transform:scale(calc(.42 + var(--p,0) * .58));transition:transform .12s linear}
+.still-cue{position:relative;font-size:.68rem;letter-spacing:.22em;text-transform:uppercase;color:var(--faint)}
+.still-under{display:flex;gap:18px;align-items:baseline;flex-wrap:wrap;justify-content:center}
+.still-mantra{font-family:var(--lora,var(--serif));font-style:italic;font-size:1.05rem;color:var(--muted)}
+.still-end{opacity:.4;transition:opacity .2s}
+.still-end:hover{opacity:1}
+.still-guide{min-height:44vh;display:flex;flex-direction:column;justify-content:center;gap:26px;text-align:center}
+.still-card{font-family:var(--lora,var(--serif));font-style:italic;font-size:1.15rem;line-height:1.7;
+  max-width:36ch;margin:0 auto;color:var(--ink);animation:vbFade .8s var(--ease)}
+.still-guide-foot{margin-top:auto;align-items:center}
+@media (prefers-reduced-motion:reduce){.still-card{animation:none}.still-circle i{transition:none}}
+
+/* --- tarot --- */
+.tc-row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin:6px 0 14px}
+.tc-slot{display:flex;flex-direction:column;align-items:center;gap:5px;max-width:130px}
+.tc-pos{font-size:.6rem;color:var(--faint);text-align:center}
+.tc{width:104px;height:164px;perspective:800px;cursor:pointer}
+.tc-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .6s var(--ease)}
+.tc.up .tc-inner{transform:rotateY(180deg)}
+.tc-back,.tc-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:9px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:9px;text-align:center}
+.tc-back{background:linear-gradient(140deg,#4a3f56,#2f2838);color:#d8c9ea;font-size:1.4rem;
+  border:1px solid #5d5070}
+.tc-face{transform:rotateY(180deg);background:var(--surface);border:1px solid var(--sc,#8f7bb0);
+  border-top:3px solid var(--sc,#8f7bb0)}
+.tc.rev .tc-face{transform:rotateY(180deg) rotate(180deg)}
+.tc-suit{font-size:1.1rem;color:var(--sc,#8f7bb0);line-height:1}
+.tc-name{font-family:var(--serif);font-size:.82rem;line-height:1.25}
+.tc-rev{font-size:.55rem;color:var(--terra,#b4462f);letter-spacing:.08em;text-transform:uppercase}
+.tc-keys{font-size:.56rem;color:var(--faint);line-height:1.35}
+.dv-meanings{display:flex;flex-direction:column;gap:9px;margin-bottom:14px}
+.dv-m{border-left:2px solid var(--line-2);padding-left:10px}
+.dv-m .mono{font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+.dv-m b{display:block;font-size:.95rem}
+.dv-m p{margin:3px 0 0;font-size:.83rem;line-height:1.5;color:var(--muted)}
+.dv-cards{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.dv-chip{display:inline-flex;flex-direction:column;font-size:.72rem;padding:3px 8px;border-radius:6px;
+  border:1px solid var(--sc,var(--line-2));color:var(--text);background:var(--surface)}
+.dv-chip i{font-size:.55rem;color:var(--faint);font-style:normal;letter-spacing:.06em;text-transform:uppercase}
+/* --- I Ching --- */
+.ic-build{display:flex;flex-direction:column;align-items:center;gap:12px;padding:10px 0}
+.ic-lines{display:flex;flex-direction:column;gap:6px;align-items:center}
+.ic-line{display:flex;gap:5px;align-items:center;width:104px;position:relative}
+.ic-line i{height:8px;border-radius:2px;background:var(--ink)}
+.ic-line i.full{flex:1}
+.ic-line i.half{flex:1}
+.ic-line.empty{height:8px;width:104px;border-bottom:1px dashed var(--line-2)}
+.ic-line.moving i{background:var(--terra,#b4462f)}
+.ic-mv{position:absolute;right:-16px;font-size:.7rem;color:var(--terra,#b4462f)}
+.ic-line.small{width:44px}
+.ic-line.small i{height:4px}
+.ic-coins{display:flex;gap:8px;min-height:26px}
+.ic-coin{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:.7rem;border:1px solid var(--line-2);animation:vbFade .35s var(--ease)}
+.ic-coin.heads{background:color-mix(in srgb,var(--gold,#d4a44c) 22%,transparent)}
+.ic-coin.tails{background:var(--surface-3)}
+.ic-res{border-left:2px solid var(--terra,#b4462f);padding-left:11px;margin:8px 0}
+.ic-res.second{border-left-color:var(--sage,#7f916a);opacity:.9}
+.ic-j{font-family:var(--lora,var(--serif));font-style:italic;margin:6px 0 2px;line-height:1.55}
+.ic-im{font-size:.8rem;color:var(--muted);margin:0;line-height:1.5}
+.or-card{border:1px solid var(--line);border-left:3px solid var(--sage,#7f916a);border-radius:9px;
+  padding:14px;background:var(--surface);text-align:center}
+.or-card b{font-size:1.1rem;display:block;margin-bottom:5px}
+.or-card p{margin:0;font-family:var(--lora,var(--serif));font-style:italic;line-height:1.6}
+/* --- intuition --- */
+.chip.wide{width:100%;text-align:left;justify-content:flex-start}
+.int-stats{border:1px solid var(--line);border-radius:10px;padding:11px 13px;background:var(--surface-2)}
+.int-nums{display:flex;gap:16px;flex-wrap:wrap;align-items:baseline;font-size:.8rem}
+.int-nums b{font-size:1.05rem;font-family:var(--serif)}
+.int-stats p{margin:6px 0 0;font-size:.66rem}
 </style>
 </head>

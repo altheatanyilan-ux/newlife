@@ -1,0 +1,192 @@
+/* smoke142 — the spiritual practice suite: four ways of sitting still, three
+   symbolic systems to look into, and a log that keeps score of your hunches */
+const {chromium} = require('playwright');
+const path = require('path');
+const FILE = 'file://' + path.resolve('/home/user/newlife/index.html');
+let bad = 0;
+const ok  = (n, x='') => console.log(`  ok   ${n}${x?'  — '+x:''}`);
+const no  = (n, g='') => { bad++; console.log(`  FAIL ${n}${g!==''?'  — '+g:''}`); };
+const is  = (n,a,b) => a===b ? ok(n) : no(n, `got ${JSON.stringify(a)}, want ${JSON.stringify(b)}`);
+const yes = (n,c,g='') => c ? ok(n) : no(n,g);
+
+(async () => {
+  const b = await chromium.launch({executablePath:'/opt/pw-browsers/chromium'});
+  const p = await b.newPage({viewport:{width:1400, height:1200}});
+  const errs = [];
+  p.on('pageerror', e => errs.push('pageerror: ' + e.message));
+  p.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET|Failed to load resource/.test(m.text())) errs.push('console: ' + m.text()); });
+  await p.goto(FILE); await p.waitForTimeout(900);
+  if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(1800); }
+  const today_ = async () => { await p.evaluate(() => { if(location.hash === '#/today') rerender(); else location.hash = '#/today'; });
+    await p.waitForTimeout(1500);
+    await p.evaluate(() => { document.querySelectorAll('.toast').forEach(n => n.remove());
+      const d = document.querySelector('#t-still'); if(d) d.open = true; });
+    await p.waitForTimeout(200); };
+  await today_();
+
+  console.log('\n1. the deck is a whole deck');
+  is('all 78 tarot cards', await p.evaluate(() => TAROT.length), 78);
+  is('  22 major', await p.evaluate(() => TAROT.filter(c => c.s === 'major').length), 22);
+  is('  and 56 minor, fourteen to a suit', await p.evaluate(() =>
+    ['wands','cups','swords','pentacles'].map(s => TAROT.filter(c => c.s === s).length).join(',')), '14,14,14,14');
+  yes('  every card has keywords and both meanings', await p.evaluate(() =>
+    TAROT.every(c => c.n && c.k && c.k.length && c.u && c.v)));
+  is('  no card is named after the old suit', await p.evaluate(() => TAROT.filter(c => /Coins/.test(c.n)).length), 0);
+  is('all 64 hexagrams', await p.evaluate(() => ICHING.length), 64);
+  is('  each with its own six lines', await p.evaluate(() => new Set(ICHING.map(h => h.b)).size), 64);
+  yes('  numbered one to sixty-four in King Wen order', await p.evaluate(() =>
+    ICHING.every((h, i) => h.i === i + 1)));
+  yes('  and each carries a judgment and an image', await p.evaluate(() =>
+    ICHING.every(h => h.n && h.c && h.j && h.m && h.k.length)));
+
+  console.log('\n2. a reading deals real cards and keeps what you make of it');
+  await p.evaluate(() => openTarot({spread:'three'})); await p.waitForTimeout(400);
+  await p.evaluate(() => document.querySelector('#dvDraw').click()); await p.waitForTimeout(400);
+  is('three are dealt', await p.$$eval('[data-tc]', n => n.length), 3);
+  yes('  face down', await p.evaluate(() => ![...document.querySelectorAll('[data-tc]')].some(c => c.classList.contains('up'))));
+  /* Drawn without replacement: three cards from seventy-eight would collide
+     only rarely by luck, so this asks the dealer itself, with the biggest
+     spread, many times over. */
+  const dupes = await p.evaluate(() => {
+    let worst = 0;
+    for(let i = 0; i < 300; i++){ const pick = tarotDraw(10).map(x => x.card);
+      worst = Math.max(worst, pick.length - new Set(pick).size); }
+    return worst; });
+  is('  and no card comes up twice in one spread', dupes, 0);
+  yes('  the meanings are hidden until they are turned', await p.evaluate(() => document.querySelector('#dvRead').hidden));
+  await p.evaluate(() => document.querySelectorAll('[data-tc]').forEach(c => c.click())); await p.waitForTimeout(900);
+  yes('turning them all shows what they mean', await p.evaluate(() => !document.querySelector('#dvRead').hidden));
+  const eB = await p.evaluate(() => S.entries.length);
+  await p.evaluate(() => { document.querySelector('#dvText').value = 'It is about the move, not the job.';
+    document.querySelector('#dvSave').click(); });
+  await p.waitForTimeout(1000);
+  is('  and keeping it makes a journal entry', await p.evaluate(() => S.entries.length), eB + 1);
+  const read = await p.evaluate(() => S.entries[S.entries.length - 1]);
+  is('  of the divination kind', read.type, 'divination');
+  is('  with the three cards on it', read.extra.divination.cards.length, 3);
+  yes('  and your reading, not the book\'s', /about the move/.test(read.body), read.body);
+  /* a reversed card reads the other meaning, which is the whole reason to have one */
+  const rev = await p.evaluate(() => { const c = TAROT[0];
+    return {up: c.u, down: c.v, differ: c.u !== c.v}; });
+  yes('a reversed card means something else', rev.differ);
+
+  console.log('\n3. the coins actually decide the hexagram');
+  const cast = await p.evaluate(() => {
+    /* six tosses of three coins: 6 and 9 are the moving lines, and moving
+       lines are what give the second hexagram */
+    const totals = [];
+    for(let i = 0; i < 400; i++) ichingCast().forEach(l => totals.push(l.total));
+    return {kinds: [...new Set(totals)].sort(), moving: totals.filter(t => t === 6 || t === 9).length / totals.length};
+  });
+  is('a line is 6, 7, 8 or 9', cast.kinds.join(','), '6,7,8,9');
+  yes('  and about a quarter of them move', cast.moving > .15 && cast.moving < .35, cast.moving.toFixed(2));
+  const moved = await p.evaluate(() => {
+    const lines = [{v:1,moving:true},{v:0,moving:false},{v:1,moving:false},{v:0,moving:false},{v:1,moving:false},{v:0,moving:false}];
+    const rel = ichingRelating(lines);
+    return {from: ichingLookup(ichingBinary(lines)).i, to: rel ? rel.i : null,
+      none: ichingRelating(lines.map(l => ({...l, moving:false})))};
+  });
+  yes('a moving line turns one hexagram into another', moved.from !== moved.to, `${moved.from} → ${moved.to}`);
+  is('  and with none, nothing is becoming anything', moved.none, null);
+  await p.evaluate(() => closeModals());
+  await p.evaluate(() => openIChing()); await p.waitForTimeout(400);
+  for(let i = 0; i < 6; i++){ await p.evaluate(() => document.querySelector('#icToss').click()); await p.waitForTimeout(120); }
+  await p.waitForTimeout(400);
+  is('six tosses build six lines', await p.$$eval('.ic-lines .ic-line:not(.empty)', n => n.length), 6);
+  yes('  and name the hexagram', await p.evaluate(() => /^\d+\./.test(document.querySelector('.ic-res b')?.textContent || '')),
+      await p.evaluate(() => document.querySelector('.ic-res b')?.textContent));
+  await p.evaluate(() => closeModals());
+
+  console.log('\n4. the intuition log, and the check on it');
+  await p.evaluate(() => { S.entries = S.entries.filter(e => e.type !== 'intuition'); saveNow(); });
+  const imp = await p.evaluate(() => logIntuition({impression:'Thursday will be cancelled.', kind:'hunch',
+    strength:4, state:'walking', verifiable:true, criteria:'Check whether the class ran.', checkOn: addDays(today(), -1)}).id);
+  is('an impression is a journal entry', await p.evaluate(i => byId(S.entries, i).type, imp), 'intuition');
+  yes('  it is not judged yet', await p.evaluate(i => intuitionOf(byId(S.entries, i)).outcome === null, imp));
+  is('  and it comes due for checking', await p.evaluate(() => intuitionsDue().length), 1);
+  await p.evaluate(i => openIntuitionVerify(i), imp); await p.waitForTimeout(400);
+  yes('the check offers five outcomes', await p.$$eval('[data-io]', n => n.length === 5));
+  await p.evaluate(() => { document.querySelector('[data-io="confirmed"]').click();
+    document.querySelector('#ivNotes').value = 'It was.';
+    document.querySelector('#ivSave').click(); });
+  await p.waitForTimeout(900);
+  is('  marking it records the outcome', await p.evaluate(i => intuitionOf(byId(S.entries, i)).outcome, imp), 'confirmed');
+  is('  and it is no longer waiting', await p.evaluate(() => intuitionsDue().length), 0);
+  /* "cannot tell yet" postpones rather than counting as a miss */
+  const imp2 = await p.evaluate(() => logIntuition({impression:'A letter is coming.', kind:'knowing', strength:2,
+    state:'drowsy', verifiable:true, criteria:'watch the post', checkOn: addDays(today(), -1)}).id);
+  await p.evaluate(i => openIntuitionVerify(i), imp2); await p.waitForTimeout(400);
+  await p.evaluate(() => { document.querySelector('[data-io="cant_verify"]').click(); document.querySelector('#ivSave').click(); });
+  await p.waitForTimeout(900);
+  const later = await p.evaluate(i => intuitionOf(byId(S.entries, i)), imp2);
+  is('cannot-tell-yet leaves it unjudged', later.outcome, null);
+  yes('  and puts it back in the diary', later.checkOn > (await p.evaluate(() => today())), later.checkOn);
+
+  console.log('\n5. the score it keeps');
+  await p.evaluate(() => {
+    S.entries = S.entries.filter(e => e.type !== 'intuition');
+    const mk = (kind, state, strength, outcome) => { const e = logIntuition({impression:'x', kind, state, strength, verifiable:true});
+      intuitionOf(e).outcome = outcome; return e; };
+    mk('hunch','walking',5,'confirmed'); mk('hunch','walking',4,'confirmed'); mk('hunch','walking',4,'partial');
+    mk('dream','drowsy',2,'not_confirmed'); mk('dream','drowsy',3,'not_confirmed');
+    mk('flash','relaxed',3,'confirmed'); mk('flash','relaxed',2,'not_confirmed');
+    mk('knowing','active',3,'irrelevant');   /* left out of the rate entirely */
+    saveNow(); });
+  const st = await p.evaluate(() => intuitionStats(addDays(today(), -30), today()));
+  is('everything logged is counted', st.total, 8);
+  is('  but only what was actually judged is scored', st.judged, 7);
+  is('  four of seven came true', st.hits, 4);
+  is('  which is the hit rate', st.rate, 57);
+  is('  the strongest channel is the one that keeps being right', st.bestChannel, 'hunch');
+  is('  and the state that goes with it', st.bestState, 'walking');
+  yes('  the ones that came true felt stronger at the time',
+      st.strengthOfHits > st.strength, `${st.strengthOfHits} against ${st.strength}`);
+
+  console.log('\n6. sitting still');
+  await today_();
+  yes('the section is on Today, under the theatre', await p.evaluate(() => {
+    const ids = [...document.querySelectorAll('#main .page > [id^="t-"]')].map(n => n.id);
+    return ids.indexOf('t-still') > ids.indexOf('t-theatre'); }));
+  is('  four ways in', await p.$$eval('[data-stkind]', n => n.length), 4);
+  yes('  and two quick doors beside it',
+      await p.evaluate(() => !!document.querySelector('#stDraw') && !!document.querySelector('#stIntuit')));
+  /* breathwork draws the pattern it is actually running */
+  const pat = await p.evaluate(() => BREATH_PATTERNS.find(x => x.id === 'calm'));
+  is('the calming breath is in for three, out for six', `${pat.inh}/${pat.exh}`, '3/6');
+  await p.evaluate(() => { const s = stillness();
+    s.sessions = []; saveNow(); });
+  await p.evaluate(() => saveStillSession({kind:'meditation', planned:10, actual:10, complete:true,
+    depth:4, clarity:3, sensations:['warmth'], insight:''}));
+  await today_();
+  yes('a finished sitting is counted on the day', await p.evaluate(() => stillMinutesOn(today()) === 10));
+  yes('  and shows in the heading', await p.evaluate(() =>
+    /10 min today/.test(document.querySelector('#t-still summary')?.textContent || '')));
+  is('  a streak starts at one', await p.evaluate(() => stillStreak()), 1);
+  /* an insight from a sitting can become an impression to check later */
+  await p.evaluate(() => { S.entries = S.entries.filter(e => e.type !== 'intuition'); saveNow(); });
+  const n0 = await p.evaluate(() => intuitions().length);
+  await p.evaluate(() => { const rec = saveStillSession({kind:'meditation', planned:5, actual:5, complete:true,
+      depth:3, clarity:4, sensations:[], insight:'Call her.'});
+    const e = logIntuition({impression:'Call her.', kind:'flash', strength:3, state:'relaxed',
+      context:'during a meditation sitting', source:'stillness', sessionId:rec.id});
+    rec.intuitionId = e.id; saveNow(); });
+  is('what arrives in a sitting can be logged as an impression', await p.evaluate(() => intuitions().length), n0 + 1);
+  is('  and knows where it came from', await p.evaluate(() =>
+    intuitionOf(intuitions()[intuitions().length - 1]).source), 'stillness');
+
+  console.log('\n7. the two kinds appear in the Lived Record');
+  yes('divination and intuition are journal kinds',
+      await p.evaluate(() => { migrateJournalTypes();
+        return ['divination','intuition'].every(t => S.journals.some(j => j.type === t)); }));
+  yes('  each with its own name and mark',
+      await p.evaluate(() => typeName('divination') === 'Divination' && typeIcon('intuition') === '⚡'));
+  await p.evaluate(() => { location.hash = '#/journals/divination'; rerender(); }); await p.waitForTimeout(1300);
+  yes('  and the divination page draws the deal on the entry',
+      await p.evaluate(() => !!document.querySelector('.dv-cards') || !!document.querySelector('.entry')));
+
+  console.log('\n' + (errs.length ? 'console:\n  ' + errs.join('\n  ') : 'console: clean'));
+  if(errs.length) bad += errs.length;
+  console.log(bad ? `\n${bad} FAILED` : '\nsmoke142  all good');
+  await b.close();
+  process.exit(bad ? 1 : 0);
+})();

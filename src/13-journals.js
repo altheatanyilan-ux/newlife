@@ -52,6 +52,14 @@ function bindJournalViews(root){
            : '#/journals/' + (S._journal || journalDefault()));
   });
 }
+/* The journals list is stored, so a kind added after someone started using
+   the house would never appear for them. Any kind the seed knows about and
+   the stored list does not is added once, in the order the seed has it. */
+function migrateJournalTypes(){
+  if(!Array.isArray(S.journals)) return;
+  const want = [['divination','Divination'], ['intuition','Intuition']];
+  want.forEach(([type, name]) => { if(!S.journals.some(j => j.type === type)) S.journals.push({type, name}); });
+}
 routes.journals = function(root, params){
   if(params[0] === 'timeline'){
     renderTimeline(root, params[1] === 'threads' ? 'threads' : 'stages',

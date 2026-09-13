@@ -159,6 +159,7 @@ routes.today = function(root){
     ['t-tasks',   'tasks',    true],
     ['t-checkin', 'check-in', true],
     ['t-theatre', 'theatre',  true],
+    ['t-still',   'stillness',true],
     ['t-habits',  'habits',   true],
     ['t-tonight', 'tonight',  true],
     /* The bottom of a long page cannot catch an eye on its own. The count
@@ -267,6 +268,15 @@ routes.today = function(root){
     <details class="section rv rehearsal-wrap t-sec" id="t-theatre"${fold('t-theatre', !theatreDoneToday())} style="margin-top:8px">
       <summary><span class="sc">Morning Theatre</span><span class="mono">${theatreDoneToday() ? 'practised today' : 'six ways in · pick one'}</span>${flowTick('theatreAt')}</summary>
       ${theatreHTML()}
+    </details>
+
+    <!-- The receptive half of the practice, and the two quick doors that
+         belong beside it: a card to draw and an impression to catch. -->
+    <details class="section rv t-sec" id="t-still"${fold('t-still')} style="margin-top:8px">
+      <summary><span class="sc">Stillness</span><span class="mono">${(() => {
+        const mins = stillMinutesOn(T); const st = stillStreak();
+        return mins ? `${mins} min today${st > 1 ? ` · ${st} days running` : ''}` : 'nothing sat today'; })()}</span></summary>
+      ${stillnessHTML()}
     </details>
 
     <!-- the habit checklist: the whole of habit-keeping now lives here -->

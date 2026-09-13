@@ -168,6 +168,33 @@ function entryExtraHTML(e){
   if(e.type==='manifestation'){ rows.push(`<span class="status-pill">${esc(x.status||'held')}</span>${x.setpointAt?` <span class="mono">set from ${esc(hicksName(+x.setpointAt).split(' / ')[0])} (${x.setpointAt}/22)</span>`:''}`);
     if(x.resistance) rows.push(`<div><span class="mono">resistance</span><br>${esc(x.resistance)}</div>`);
     (x.evidence||[]).forEach(ev => rows.push(`<div class="evidence-item"><span class="mono">${fmtDate(ev.date,'med')}</span><span>${esc(ev.text)}</span></div>`)); }
+  /* A reading shows its deal, and an impression shows what became of it —
+     both are the part of the entry that is not the prose. */
+  if(e.type==='divination' && x.divination){ const d = x.divination;
+    if(d.question) rows.push(`<div><span class="mono">asked</span><br>${esc(d.question)}</div>`);
+    if(d.system === 'iching'){
+      rows.push(`<div class="dv-cards">${(d.lines||[]).slice().reverse().map(l =>
+        `<span class="ic-line small ${l.v?'yang':'yin'} ${l.moving?'moving':''}">${l.v?'<i class="full"></i>':'<i class="half"></i><i class="half"></i>'}</span>`).join('')}</div>`);
+      rows.push(`<div class="mono">${esc(divinationLine(e))}</div>`);
+    } else {
+      rows.push(`<div class="dv-cards">${(d.cards||[]).map(c => {
+        const card = typeof c.card === 'number' ? TAROT[c.card] : null;
+        const label = card ? card.n + (c.rev ? ' (R)' : '') : (c.name || '');
+        return `<span class="dv-chip"${card?` style="--sc:${SUIT_COLOR[card.s]}"`:''}>${c.pos?`<i class="mono">${esc(c.pos)}</i>`:''}${esc(label)}</span>`;
+      }).join('')}</div>`);
+    }
+    if(d.revisit) rows.push('<span class="status-pill">come back to this</span>'); }
+  if(e.type==='intuition' && x.intuition){ const t = x.intuition;
+    const kindName = (typeof INTUIT_KINDS !== 'undefined' ? (INTUIT_KINDS.find(k => k[0] === t.kind) || [,t.kind])[1] : t.kind);
+    rows.push(`<span class="status-pill">${esc(kindName)}</span> <span class="mono">strength ${'●'.repeat(t.strength||0)}${'○'.repeat(5-(t.strength||0))}</span>`);
+    if(t.context) rows.push(`<div class="mono">${esc(t.context)}</div>`);
+    if(t.criteria && !t.outcome) rows.push(`<div><span class="mono">to check</span><br>${esc(t.criteria)}${
+      t.checkOn ? ` <span class="mono faint">· ${esc(fmtDate(t.checkOn,'med'))}</span>` : ''}</div>
+      <button class="btn sm" data-iverify="${e.id}">mark what happened</button>`);
+    if(t.outcome){ const o_ = (typeof INTUIT_OUTCOMES !== 'undefined' ? (INTUIT_OUTCOMES.find(z => z[0] === t.outcome) || [,t.outcome])[1] : t.outcome);
+      rows.push(`<span class="status-pill">${esc(o_)}</span>`);
+      if(t.notes) rows.push(`<div>${esc(t.notes)}</div>`);
+      if(t.learned) rows.push(`<div><span class="mono">what it taught</span><br>${esc(t.learned)}</div>`); } }
   if(e.type==='dream'){ rows.push(`<span class="status-pill">vividness ${'●'.repeat(x.vivid||0)}${'○'.repeat(5-(x.vivid||0))}</span> ${x.recurring?'<span class="status-pill">recurring</span>':''} ${x.capturedAt?`<span class="mono">caught ${esc(x.capturedAt)}</span>`:''}`);
     if((x.tone||[]).length) rows.push(`<div>${(x.tone||[]).map(t=>`<span class="chip">${esc(t)}</span>`).join(' ')}</div>`);
     if((x.symbols||[]).length) rows.push(`<div>${(x.symbols||[]).map(sm=>`<span class="chip click" data-symbol="${esc(sm)}">${esc(sm)}</span>`).join(' ')}</div>`);
@@ -223,6 +250,7 @@ document.addEventListener('click', e => {
   const ed_ = e.target.closest('[data-edit]'); if(ed_){ openEntryModal({entryId: ed_.dataset.edit}); }
   const del = e.target.closest('[data-del]'); if(del){ e.stopPropagation(); const ent = byId(S.entries, del.dataset.del); if(ent) requestDelete({label: ent.title || typeName(ent.type), node: del.closest('.entry, .formative'), remove: () => spliceOut(S.entries, x => x.id === ent.id)}); }
   const lb = e.target.closest('[data-lb]'); if(lb){ const img = lb.querySelector('img'); lightbox(img.src, img.alt); }
+  const iv = e.target.closest('[data-iverify]'); if(iv){ e.stopPropagation(); openIntuitionVerify(iv.dataset.iverify); return; }
   const pin = e.target.closest('[data-vbpin]');
   if(pin){ e.stopPropagation(); const ent = byId(S.entries, pin.dataset.vbpin); if(!ent) return;
     const img = (ent.media || [])[0];
