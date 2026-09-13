@@ -51,6 +51,7 @@ function unscheduledTasks(){ return allTaskRefs().filter(r => !r.day && !r.done)
 function setTaskDay(id, day){ const r = findTaskRef(id); if(!r) return; r.task.day = day || ''; saveNow(); }
 function setTaskDone(id, done){ const r = findTaskRef(id); if(!r) return;
   r.task.done = !!done; r.task.doneAt = done ? today() : null; saveNow();
+  if(done) try { RewardFX.check(); } catch(e){}
   /* crossing off the thing the clock is running on ends the sitting */
   if(typeof taskCrossedOff === 'function') taskCrossedOff(id, done);
 }
@@ -201,7 +202,8 @@ function inlineTaskEdit(node, current, commit, redraw){
     if(closed) return; closed = true;
     if(row) row.setAttribute('draggable', wasDraggable === null ? 'true' : wasDraggable);
     const v = inp.value.trim();
-    if(save && v && v !== current){ commit(v); saveNow(); sound('save'); }
+    if(save && v && v !== current){ commit(v); saveNow(); sound('save');
+      try { RewardFX.savedAt(inp, 'var(--sage)'); } catch(e){} }
     redraw();
   };
   inp.addEventListener('keydown', ev => {

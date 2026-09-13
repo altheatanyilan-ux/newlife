@@ -36,6 +36,12 @@ const SoundManager = (() => {
   const writeStr = (k, v) => { try { localStorage.setItem(k, String(v)); } catch(e){} };
   let ctx = null, master = null, verb = null, verbSend = null, dry = null;
   let soundOn = readFlag(LS_SOUND, false), ambientOn = readFlag(LS_AMBIENT, false);
+  /* The interface layer is its own switch and its own default. These are the
+     sounds nobody asked for — a tick under the pointer, a breath when a panel
+     opens — so they are off until somebody says otherwise, and they are off
+     entirely whenever the interaction sounds are, since they are quieter
+     versions of the same idea and a muted house should be silent. */
+  let uiOn = readFlag('li.ui.sounds', false);
   let ambientKind = readStr(LS_KIND, 'brown'), ambientVol = parseFloat(readStr(LS_VOL, '0.5'));
   let ambient = null;               // {nodes:[], gain, timer}
   let pendingClick = null, lastPlay = 0;
@@ -161,11 +167,21 @@ const SoundManager = (() => {
                      tone({freq:P.B5, dur:.34, gain:.02, beat:8, at:.03}); },
     /* the smallest sound there is */
     leaf:    () => dyad(P.A5, P.E6, {dur:.5, gain:.013, roll:.03}),
+    /* ---- the interface layer (§1.8d), off by default ----
+       Almost subliminal on purpose: a tick you notice only by its absence. */
+    uiHover: () => tone({freq:P.E6, dur:.05, gain:.008, attack:.004, beat:0}),
+    /* a panel arriving or leaving: air, not a note */
+    uiWhoosh:() => noise({dur:.09, freq:220, sweep:820, q:.7, gain:.03, wet:.35}),
+    /* something finished: the wooden knock, kept for completions everywhere */
+    uiKnock: () => { noise({dur:.05, freq:320, q:2.4, gain:.05, wet:.2});
+                     tone({freq:P.A4, dur:.28, gain:.012, attack:.004}); },
   };
+  const UI_KINDS = new Set(['uiHover', 'uiWhoosh', 'uiKnock']);
 
   /* ---- layer 1 ---- */
   function play(kind){
     if(kind !== 'click' && pendingClick){ clearTimeout(pendingClick); pendingClick = null; }
+    if(UI_KINDS.has(kind) && !uiOn) return;
     if(!soundOn || !recipes[kind]) return;
     if(!ctx){ if(!ensureCtx()) return; }
     if(ctx.state === 'suspended'){ ctx.resume().catch(()=>{}); }
@@ -318,7 +334,8 @@ const SoundManager = (() => {
 
   /* ---- public state ---- */
   function notify(){ listeners.forEach(fn => { try { fn(state()); } catch(e){} }); }
-  function state(){ return {soundEnabled: soundOn, ambientEnabled: ambientOn, ambientKind, ambientVolume: ambientVol, ready: !!ctx}; }
+  function state(){ return {soundEnabled: soundOn, ambientEnabled: ambientOn, uiEnabled: uiOn, ambientKind, ambientVolume: ambientVol, ready: !!ctx}; }
+  function setUi(v){ uiOn = !!v; writeFlag('li.ui.sounds', uiOn); if(uiOn){ ensureCtx(); play('uiKnock'); } notify(); }
   function setSound(v){ soundOn = !!v; writeFlag(LS_SOUND, soundOn); if(soundOn){ ensureCtx(); play('click'); } notify(); }
   function setAmbient(v){ ambientOn = !!v; writeFlag(LS_AMBIENT, ambientOn); if(ambientOn && ambientKind !== 'off'){ ensureCtx(); startAmbient(); } else stopAmbient(); notify(); }
   function setAmbientKind(k){
@@ -332,8 +349,9 @@ const SoundManager = (() => {
     if(ambient){ const g = ambient.gain.gain, t = ctx.currentTime; g.cancelScheduledValues(t); g.linearRampToValueAtTime(Math.max(.0001, ambientGainValue()*1.4), t+.3); }
     notify();
   }
-  return { play, state, setSound, setAmbient, setAmbientKind, setAmbientVolume,
+  return { play, state, setSound, setAmbient, setAmbientKind, setAmbientVolume, setUi,
     toggleSound: () => setSound(!soundOn), toggleAmbient: () => setAmbient(!ambientOn),
+    toggleUi: () => setUi(!uiOn),
     subscribe(fn){ listeners.add(fn); return () => listeners.delete(fn); },
     get context(){ return ctx; } };
 })();

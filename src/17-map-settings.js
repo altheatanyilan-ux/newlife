@@ -7,6 +7,11 @@ routes.settings = function(root){
       <div class="opt"><div><b>Theme</b><div class="d">Dark: rich soil and old leather. Light: warm paper.</div></div><label class="toggle ${S.settings.theme==='light'?'on':''}" id="sTheme"><span>dark</span><span class="sw"></span><span>light</span></label></div>
       <div class="opt"><div><b>Interaction sounds 🔔</b><div class="d">Soft chimes on clicks, a low note on navigation, a rising pair when something is completed. Synthesised in the browser; nothing is downloaded.</div></div><label class="toggle ${SoundManager.state().soundEnabled?'on':''}" id="sSound"><span class="sw"></span></label></div>
       <div class="opt"><div><b>Ambient background 🌊</b><div class="d">A barely-audible brown-noise wash, low-passed at 200 Hz. Ducks briefly under each click. Off by default.</div></div><label class="toggle ${SoundManager.state().ambientEnabled?'on':''}" id="sAmbient"><span class="sw"></span></label></div>
+      <!-- Quieter than the chimes and answering to different things: the
+           pointer passing over the sidebar, a panel taking a breath as it
+           opens. Kept behind its own switch because most people will never
+           want it, and it is silent anyway while the chimes are off. -->
+      <div class="opt"><div><b>Interface sounds ⌁</b><div class="d">A tick almost too quiet to hear as the pointer crosses the sidebar; a breath of air when a panel opens or closes; a wooden knock on anything finished. Needs interaction sounds on. Off by default.</div></div><label class="toggle ${SoundManager.state().uiEnabled?'on':''}" id="sUiSound"><span class="sw"></span></label></div>
       <div class="opt"><div><b>Felt time</b><div class="d">Default timeline mode: stretch dense stages, compress thin ones.</div></div><label class="toggle ${S.settings.feltTime?'on':''}" id="sFelt"><span>clock</span><span class="sw"></span><span>felt</span></label></div>
       <div class="opt"><div><b>Landing page</b><div class="d">Where the site opens.</div></div><select class="sel" style="width:auto" id="sHome">${[['compass','Compass'],['today','Today']].map(([v,l])=>`<option value="${v}" ${(S.settings.home||'compass')===v?'selected':''}>${l}</option>`).join('')}</select></div>
     </div>
@@ -94,6 +99,7 @@ routes.settings = function(root){
   $('#sTheme').onclick = function(){ S.settings.theme = S.settings.theme==='dark'?'light':'dark'; saveNow(); applyTheme(); this.classList.toggle('on', S.settings.theme==='light'); };
   $('#sSound').onclick = function(){ SoundManager.toggleSound(); this.classList.toggle('on', SoundManager.state().soundEnabled); };
   $('#sAmbient').onclick = function(){ SoundManager.toggleAmbient(); this.classList.toggle('on', SoundManager.state().ambientEnabled); };
+  $('#sUiSound').onclick = function(){ SoundManager.toggleUi(); this.classList.toggle('on', SoundManager.state().uiEnabled); };
   $('#sFelt').onclick = function(){ S.settings.feltTime = !S.settings.feltTime; saveNow(); this.classList.toggle('on', S.settings.feltTime); };
   $('#sHome').onchange = e => { S.settings.home = e.target.value; saveNow(); };
   bindZoneEditor($('#zoneEditor').parentElement);

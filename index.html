@@ -5370,6 +5370,147 @@ select.sm-active{border-color:var(--page-accent);
 .fl-breaks li{display:flex;gap:9px;align-items:baseline;font-size:.75rem;color:var(--muted)}
 .fl-breaks li .mono{font-size:.6rem;color:var(--gold,#d4a44c);flex:none;min-width:8.5em}
 .pd-fsess{margin-top:8px}
+/* ============================================================
+   THE POINTER LAYER  —  cursor, magnetism, tilt, flashlight
+   ------------------------------------------------------------
+   None of this exists until MicroFX.start() puts .mfx-cursor on <html>, and
+   it refuses to start on a touch screen or under prefers-reduced-motion. So
+   a browser that never runs it keeps the pointer it always had — the native
+   cursor is only hidden while there is a drawn one to replace it.
+   ============================================================ */
+html.mfx-cursor,html.mfx-cursor *{cursor:none!important}
+/* except the grips. The resize arrow is the only thing that says a column
+   edge can be dragged; a drawn dot cannot say it. */
+html.mfx-cursor .panel-grip,html.mfx-cursor .ws-grip,html.mfx-cursor .ws-grip::after,
+html.mfx-cursor .tu-grip,html.mfx-cursor .pe-grip{cursor:col-resize!important}
+html.mfx-cursor .pc-grip{cursor:ns-resize!important}
+html.mfx-cursor .pl-gbaredge{cursor:ew-resize!important}
+.mfx-dot,.mfx-ring{position:fixed;left:0;top:0;pointer-events:none;z-index:99999;
+  will-change:transform;border-radius:50%}
+.mfx-dot{width:6px;height:6px;background:var(--text);
+  transition:width .2s var(--ease),height .2s var(--ease),border-radius .2s var(--ease),
+    box-shadow .3s var(--ease),opacity .2s var(--ease)}
+.mfx-ring{width:32px;height:32px;border:1px solid color-mix(in srgb,var(--text) 40%,transparent);
+  transition:width .2s var(--ease),height .2s var(--ease),margin .2s var(--ease),
+    background .2s var(--ease),border-color .2s var(--ease),opacity .2s var(--ease)}
+/* over something you can press: the dot tightens, the ring opens and fills */
+.mfx-ring.click{width:48px;height:48px;margin:-8px;
+  background:color-mix(in srgb,var(--page-accent) 8%,transparent);
+  border-color:color-mix(in srgb,var(--page-accent) 45%,transparent)}
+/* over something you can type in: the dot becomes the caret and the ring goes */
+.mfx-dot.text{width:2px;height:20px;border-radius:1px;margin:-7px 2px}
+.mfx-ring.text{opacity:0}
+/* pressed: a quick squeeze, then back */
+.mfx-ring.press{width:24px;height:24px;margin:4px;transition-duration:.1s}
+/* carrying something: the ring turns and its edge breaks into dashes */
+.mfx-ring.drag{border-style:dashed;animation:mfxSpin 3s linear infinite}
+@keyframes mfxSpin{to{transform:rotate(360deg)}}
+/* over a canvas — the tree, the solar system — the pointer picks up its warmth */
+.mfx-dot.warm{box-shadow:0 0 8px rgba(212,164,76,.45)}
+.mfx-ring.warm{border-color:rgba(212,164,76,.3)}
+.mfx-dot.gone,.mfx-ring.gone{opacity:0}
+
+/* the light that follows the pointer across a large surface. Dim on purpose:
+   at 4% it reads as warmth following you, not as a lamp on the screen. */
+.nav,.page,.flashlight-panel{position:relative}
+.nav::before,.page::before,.flashlight-panel::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(300px circle at var(--mx,50%) var(--my,50%),
+    color-mix(in srgb,var(--terra) 9%,transparent) 0%,transparent 100%);
+  pointer-events:none;opacity:0;transition:opacity .5s var(--ease);z-index:0}
+.nav.mfx-lit::before,.page.mfx-lit::before,.flashlight-panel.mfx-lit::before{opacity:1}
+/* the glare on a tilted card: a soft spot of light where you are looking from */
+.mfx-tilt{transform-style:preserve-3d;will-change:transform}
+.mfx-tilt::after{content:'';position:absolute;inset:0;border-radius:inherit;
+  background:radial-gradient(circle at var(--mouse-x,50%) var(--mouse-y,50%),
+    color-mix(in srgb,var(--text) 5%,transparent) 0%,transparent 60%);
+  pointer-events:none;z-index:1}
+@media (prefers-reduced-motion:reduce){
+  .mfx-dot,.mfx-ring{display:none}
+  .nav::before,.page::before,.flashlight-panel::before,.mfx-tilt::after{display:none}
+}
+/* ============================================================
+   THE AMBIENT, FEEDBACK AND POLISH LAYERS
+   ============================================================ */
+/* 1.7c — the hour of the day, laid over the top rather than filtered onto
+   <body>. A filter on body would make it the containing block for every
+   position:fixed child — the Back pill, the top bar, the speed dial, the side
+   panel, the cursor — and the whole shell would reposition. A sheet in
+   soft-light tints all of it and moves none of it. */
+#warmth{position:fixed;inset:0;pointer-events:none;z-index:99990;
+  transition:background 4s linear}
+/* 1.7a — the page's own name breathes. Under one per cent: you should only
+   ever catch it by staring, and then only just. */
+.page-head h1{animation:mfxBreathe 6s ease-in-out infinite;transform-origin:left center}
+@keyframes mfxBreathe{0%,100%{transform:scale(1)}50%{transform:scale(1.008)}}
+
+/* 1.8a — a press you can feel: down fast, back with a little overshoot */
+.btn.primary,.btn,#fab{transition:transform .2s cubic-bezier(.34,1.56,.64,1),
+  background .2s var(--ease),border-color .2s var(--ease),color .2s var(--ease)}
+.btn:active,#fab:active{transform:scale(.96);transition-duration:.08s;transition-timing-function:ease-in}
+/* 1.8b — the word beside the ripple. The ring alone says something happened;
+   this says what. */
+.fx-saved{position:fixed;transform:translate(-50%,-50%);pointer-events:none;z-index:99998;
+  font-size:.62rem;letter-spacing:.08em;color:var(--sage);white-space:nowrap;
+  animation:fxSaved 1.4s var(--ease) forwards}
+@keyframes fxSaved{
+  0%{opacity:0;transform:translate(-50%,-40%)}
+  18%{opacity:.85;transform:translate(-50%,-60%)}
+  70%{opacity:.85;transform:translate(-50%,-66%)}
+  100%{opacity:0;transform:translate(-50%,-90%)}}
+/* 1.8c — the milestone. A candle flaring for a moment, not a firework: one
+   ring opening, a few motes going up, one line of writing, three seconds. */
+.fx-mile{position:fixed;inset:0;pointer-events:none;z-index:99997;overflow:hidden}
+.fx-mile-ring{position:absolute;left:50%;top:50%;width:0;height:0;border-radius:50%;
+  border:1px solid var(--gold,#d4a44c);transform:translate(-50%,-50%);
+  animation:fxMileRing 1.5s cubic-bezier(.2,.7,.3,1) forwards}
+@keyframes fxMileRing{
+  0%{width:0;height:0;opacity:.5}
+  100%{width:150vmax;height:150vmax;opacity:0}}
+.fx-mile-word{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  font-family:var(--serif-i,var(--serif));font-style:italic;font-size:1.35rem;
+  color:var(--text);opacity:0;white-space:nowrap;text-align:center;
+  animation:fxMileWord 2.5s var(--ease) forwards}
+@keyframes fxMileWord{
+  0%{opacity:0}20%{opacity:.6}80%{opacity:.6}100%{opacity:0}}
+.fx-mote{position:absolute;bottom:-8px;width:3px;height:3px;border-radius:50%;
+  background:var(--gold,#d4a44c);opacity:0;animation:fxMote 2s linear forwards}
+@keyframes fxMote{
+  0%{opacity:0;transform:translateY(0)}
+  15%{opacity:.7}
+  100%{opacity:0;transform:translateY(-70vh)}}
+
+/* 1.9 — how far down you are, in the page's own accent. It thickens while you
+   are actually moving and thins again when you stop. */
+.scroll-progress{position:fixed;top:0;left:0;height:1px;width:0;
+  background:var(--page-accent);z-index:100000;pointer-events:none;
+  transition:width .1s linear,height .2s var(--ease),opacity .3s var(--ease);opacity:.5}
+.scroll-progress.active{height:2px;opacity:.9}
+/* 1.10 — even the selection belongs to the palette */
+::selection{background:color-mix(in srgb,var(--terra) 25%,transparent);color:inherit}
+[data-theme="dark"] ::selection{background:color-mix(in srgb,var(--gold,#d4a44c) 22%,transparent)}
+/* 1.11 — something to look at while a slow list is still coming */
+.skeleton{background:linear-gradient(90deg,var(--surface) 25%,
+  color-mix(in srgb,var(--terra) 8%,transparent) 50%,var(--surface) 75%);
+  background-size:200% 100%;animation:skelShimmer 1.5s ease-in-out infinite;border-radius:4px}
+.skeleton.line{height:11px;margin:9px 0}
+.skeleton.line:nth-child(3n){width:82%}
+.skeleton.line:nth-child(3n+1){width:64%}
+.skeleton.line:nth-child(3n+2){width:91%}
+.skeleton.block{height:74px;margin:10px 0}
+@keyframes skelShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+/* 1.12 — the mark the code leaves, for the rest of the session */
+.brand.konami::after{content:'✦';margin-left:6px;font-size:.7em;color:var(--gold,#d4a44c);opacity:.8}
+
+/* 1.13 — asked for less motion, given less motion. Everything above is either
+   switched off here or never started in the first place. */
+@media (prefers-reduced-motion:reduce){
+  .page-head h1{animation:none}
+  #warmth{transition:none}
+  .fx-mile,.fx-saved,.fx-mote{display:none}
+  .scroll-progress{transition:none}
+  .skeleton{animation:none}
+  .btn:active,#fab:active{transform:none}
+}
 </style>
 </head>
 <body>
@@ -5604,7 +5745,11 @@ function beginEdit(node){
     const v = inp.value; setPath(path, v); saveNow();
     node.classList.remove('editing');
     node.innerHTML = edInner(v, node.dataset.ph, node.dataset.md==='1', node.dataset.date==='1');
-    if(v !== orig){ const p = el('<span class="saved-pulse">saved</span>'); node.appendChild(p); setTimeout(()=>p.remove(), 1200); sound('save'); const h = node.dataset.hook; if(h){ const [name, arg] = h.split(':'); hooks[name]?.(arg, orig, v, node); } }
+    if(v !== orig){ const p = el('<span class="saved-pulse">saved</span>'); node.appendChild(p); setTimeout(()=>p.remove(), 1200); sound('save');
+      /* the ring goes out from the field that was actually edited, not from
+         some fixed corner of the page — it is that field saying it heard you */
+      try { RewardFX.savedAt(node, 'var(--sage)'); RewardFX.check(); } catch(e){}
+      const h = node.dataset.hook; if(h){ const [name, arg] = h.split(':'); hooks[name]?.(arg, orig, v, node); } }
     /* a field emptied or filled changes what Living View should be showing */
     const lv = node.closest('.lv-mode'); if(lv) applyLivingView(lv);
     if(v !== orig) refreshBehind(node);
@@ -5735,7 +5880,11 @@ function renderRoute(){
   try { fn(main, params); } catch(err){ console.error(err); routeFailure(err); }
   /* the decorations can throw too, and by then main has already been emptied —
      losing the trimmings is survivable, losing the page is not */
-  try { decoratePageHead(main); mountContextAdd(main); reveal(main); tweenAll(main); backupBanner(); updateBackButton(); }
+  /* The counters and the bars used to run the moment the page was written,
+     which meant everything below the fold had finished animating before it
+     was ever seen. They wait for the scroll now; tweenAll stays for the
+     panels and modals, which have no scroll to wait for. */
+  try { decoratePageHead(main); mountContextAdd(main); reveal(main); ScrollFX.scan(main); backupBanner(); updateBackButton(); }
   catch(err){ console.error('page trimmings failed', err); }
   /* a review the user stepped out of to write an entry comes back, same step */
   if(typeof resumeReviewIfPending === 'function') resumeReviewIfPending();
@@ -5753,7 +5902,7 @@ function rerender(){
   catch(err){ console.error('rerender failed', err); routeFailure(err); window.scrollTo({top:y}); return; }
   try { decoratePageHead(main); mountContextAdd(main);
     if(typeof attachDictationIn === 'function') attachDictationIn(main);
-    $$('.rv', main).forEach(n=>n.classList.add('in')); tweenAll(main); }
+    $$('.rv', main).forEach(n=>n.classList.add('in')); tweenAll(main); ScrollFX.scan(main); }
   catch(err){ console.error('page trimmings failed', err); }
   window.scrollTo({top:y});
 }
@@ -5795,7 +5944,7 @@ function navigateNow(){
 window.addEventListener('hashchange', () => { sound('page'); markNavDirection(); navigateNow(); });
 
 /* ---------- side panel ---------- */
-function openPanel(html, cls=''){ closePanel({keep:true}); sound('open'); if(!history.state?.liPanel){ try { history.pushState({liPanel:true, liIdx:navIdx}, '', location.href); } catch(e){} } const ov = el(`<div class="panel-overlay" id="panelOv"></div>`); const p = el(`<div class="side-panel ${cls}" id="panel"><div class="panel-grip" title="drag to resize · double-click to reset"></div><button class="panel-wide" title="widen / narrow (focus)">⤢</button><button class="close" title="close">×</button>${html}</div>`); document.body.appendChild(ov); document.body.appendChild(p); ov.onclick = closePanel; p.querySelector('.close').onclick = closePanel; bindPanelResize(p); tweenAll(p); if(typeof attachDictationIn === 'function') attachDictationIn(p); return p; }
+function openPanel(html, cls=''){ closePanel({keep:true}); sound('open'); try { SoundManager.play('uiWhoosh'); } catch(e){} if(!history.state?.liPanel){ try { history.pushState({liPanel:true, liIdx:navIdx}, '', location.href); } catch(e){} } const ov = el(`<div class="panel-overlay" id="panelOv"></div>`); const p = el(`<div class="side-panel ${cls}" id="panel"><div class="panel-grip" title="drag to resize · double-click to reset"></div><button class="panel-wide" title="widen / narrow (focus)">⤢</button><button class="close" title="close">×</button>${html}</div>`); document.body.appendChild(ov); document.body.appendChild(p); ov.onclick = closePanel; p.querySelector('.close').onclick = closePanel; bindPanelResize(p); tweenAll(p); if(typeof attachDictationIn === 'function') attachDictationIn(p); return p; }
 /* panel width: drag the left edge, persisted; ⤢ toggles a wide "focus" width */
 function panelWidthDefault(){ return 560; }
 function applyPanelWidth(p){ const wide = lsGet('panelWide', false); const w = wide ? Math.min(1180, innerWidth*.94) : clamp(lsGet('panelWidth', panelWidthDefault()), 380, innerWidth*.94); p.style.setProperty('--panel-w', Math.round(w)+'px'); p.classList.toggle('wide', !!wide); }
@@ -5906,7 +6055,7 @@ function updateBackButton(){
 }
 function goBack(){ if(history.length > 1) history.back(); else navigate('#/' + homeRoute()); }
 document.addEventListener('click', e => { const b = e.target.closest('[data-back]'); if(b){ e.preventDefault(); goBack(); } });
-function openModal(html, cls=''){ sound('open'); const ov = el(`<div class="overlay"><div class="modal ${cls}"><button class="close">×</button>${html}</div></div>`); ov.addEventListener('mousedown', e => { if(e.target===ov) ov.remove(); }); ov.querySelector('.close').onclick = () => ov.remove(); $('#modals').appendChild(ov); if(typeof attachDictationIn === 'function') attachDictationIn(ov); return ov; }
+function openModal(html, cls=''){ sound('open'); try { SoundManager.play('uiWhoosh'); } catch(e){} const ov = el(`<div class="overlay"><div class="modal ${cls}"><button class="close">×</button>${html}</div></div>`); ov.addEventListener('mousedown', e => { if(e.target===ov) ov.remove(); }); ov.querySelector('.close').onclick = () => ov.remove(); $('#modals').appendChild(ov); if(typeof attachDictationIn === 'function') attachDictationIn(ov); return ov; }
 /* A modal belongs to the page that opened it, so routing sweeps them — but a
    few belong to the session instead. The opening question is asked once, before
    any page exists, and init() sets location.hash a moment before showing it:
@@ -7458,6 +7607,605 @@ document.addEventListener('keydown', ev => {
 addEventListener('scroll', () => { if(tpOpen) tpPlace(tpOpen.pop, tpOpen.input); }, true);
 addEventListener('resize', () => { if(tpOpen) tpClose(); });
 /* ============================================================
+   THE POINTER LAYER — cursor, magnetism, tilt, flashlight
+   ------------------------------------------------------------
+   Small responses to where the pointer is, so the page reads as something
+   aware of you rather than a sheet of paper. The rule for all of it: the
+   content responds to you; nothing decorates itself at you. If a thing here
+   is ever noticed as an effect rather than felt as a texture, it is too
+   strong and should come down, not up.
+
+   Three things shape how this is built rather than how the spec wrote it.
+
+   The spec binds a listener per element — applyMagnetic(el), applyTilt(el).
+   This app rebuilds #main wholesale on every rerender(), and rerender() runs
+   on nearly every edit, so per-element bindings would have to be re-hung
+   hundreds of times a page and would leak the ones on nodes already thrown
+   away. Instead there is one pointermove on the document, coalesced into a
+   single frame, that reads the element under the pointer and applies whatever
+   effects match it. One listener, nothing to rebind, nothing to leak.
+
+   Everything here is off entirely under prefers-reduced-motion and on touch:
+   a finger has no hover, and a cursor it cannot see is worse than none.
+
+   And the native cursor is hidden only while ours is actually running, so a
+   browser that never starts it — or a person who asked for less motion — is
+   left with the pointer they had.
+   ============================================================ */
+const MicroFX = (() => {
+  const isTouch = () => matchMedia('(hover:none)').matches || 'ontouchstart' in window;
+  const off = () => reduced() || isTouch();
+
+  /* ---------- what gets what ----------
+     Kept as selectors in one place so the answer to "why is this card
+     tilting" is one grep, not a hunt through five call sites. */
+  const CLICKABLE = 'a[href],button,[role="button"],summary,.chip,.tbtn,.card[data-taskrow],[data-jump],[data-topen],label';
+  const EDITABLE  = 'input:not([type="range"]):not([type="checkbox"]),textarea,[contenteditable="true"],.ed';
+  const CANVASY   = 'canvas,.tree-wrap,.solar-wrap,.constellation,.sky';
+  /* the grips that resize things keep their own cursor: the double arrow is
+     the only thing that says a column edge can be dragged at all */
+  const GRIP      = '.panel-grip,.ws-grip,.tu-grip,.pc-grip,.pe-grip,.pl-gbaredge';
+
+  const MAGNETS = [
+    {sel:'.btn.primary,#fab,.speed-item', strength:.3,  threshold:60},
+    {sel:'.nav a,.nav button',            strength:.2,  threshold:40},
+    {sel:'.ring,.habit-ring,.hb-ring',    strength:.25, threshold:50},
+    {sel:'.card',                         strength:.1,  threshold:30}];
+  const TILTS = [
+    {sel:'.tarot-card,.card-face,.div-card', max:8},
+    {sel:'.nav a',                           max:2},
+    {sel:'.card,.tile,.panel-card',          max:4}];
+  const FLASHLIGHT = '.nav,.page,.flashlight-panel';
+
+  let dot = null, ring = null, ringX = 0, ringY = 0, px = 0, py = 0, raf = 0;
+  let hovered = null, effects = null, started = false;
+
+  /* ---------- the cursor ---------- */
+  function startCursor(){
+    dot = el('<div class="mfx-dot" aria-hidden="true"></div>');
+    ring = el('<div class="mfx-ring" aria-hidden="true"></div>');
+    document.body.append(dot, ring);
+    document.documentElement.classList.add('mfx-cursor');
+    /* Lerp at 0.15 a frame: the ring chases and lags, which is what gives the
+       pointer weight. The loop stops the moment it has caught up — a frame
+       loop that runs forever to move something zero pixels is a frame loop
+       the rest of the page could have had. onMove restarts it. */
+    const spin = () => {
+      ringX += (px - ringX) * .15; ringY += (py - ringY) * .15;
+      ring.style.transform = `translate(${ringX - 16}px, ${ringY - 16}px)`;
+      if(Math.abs(px - ringX) < .12 && Math.abs(py - ringY) < .12){ raf = 0; return; }
+      raf = requestAnimationFrame(spin);
+    };
+    startCursor.spin = spin;
+    document.addEventListener('mousedown', () => ring.classList.add('press'));
+    document.addEventListener('mouseup', () => ring.classList.remove('press'));
+    document.addEventListener('dragstart', () => ring.classList.add('drag'));
+    document.addEventListener('dragend', () => ring.classList.remove('drag'));
+    /* the cursor has nothing to point at once the pointer leaves the window */
+    document.addEventListener('mouseleave', () => { dot.classList.add('gone'); ring.classList.add('gone'); });
+    document.addEventListener('mouseenter', () => { dot.classList.remove('gone'); ring.classList.remove('gone'); });
+  }
+
+  function cursorState(t){
+    if(!dot) return;
+    const editable = !!t.closest(EDITABLE);
+    dot.classList.toggle('text', editable);
+    ring.classList.toggle('text', editable);
+    ring.classList.toggle('click', !editable && !!t.closest(CLICKABLE));
+    const canvasy = !!t.closest(CANVASY);
+    dot.classList.toggle('warm', canvasy);
+    ring.classList.toggle('warm', canvasy);
+  }
+
+  /* ---------- one pass, one frame ----------
+     Everything the pointer does is worked out here: which element it is over,
+     what that element wants, and the transforms that follow. */
+  function readTarget(t){
+    const out = {magnet:null, tilt:null, flash:null};
+    for(const m of MAGNETS){ const n = t.closest(m.sel); if(n){ out.magnet = {node:n, ...m}; break; } }
+    for(const k of TILTS){ const n = t.closest(k.sel); if(n){ out.tilt = {node:n, max:k.max}; break; } }
+    out.flash = t.closest(FLASHLIGHT);
+    return out;
+  }
+  function release(e){
+    if(!e) return;
+    if(e.magnet) settle(e.magnet.node, 'translate(0,0)', 400);
+    if(e.tilt) settle(e.tilt.node, 'perspective(800px) rotateX(0deg) rotateY(0deg) scale3d(1,1,1)', 500);
+    if(e.tilt) e.tilt.node.classList.remove('mfx-tilt');
+    if(e.flash) e.flash.classList.remove('mfx-lit');
+  }
+  function settle(node, to, ms){
+    node.style.transition = `transform ${ms}ms cubic-bezier(.4,0,.2,1)`;
+    node.style.transform = to;
+    setTimeout(() => { if(node.style.transition.startsWith('transform')) node.style.transition = ''; }, ms);
+  }
+
+  function onMove(ev){
+    px = ev.clientX; py = ev.clientY;
+    if(dot) dot.style.transform = `translate(${px - 3}px, ${py - 3}px)`;
+    if(!raf && startCursor.spin) raf = requestAnimationFrame(startCursor.spin);
+    const t = ev.target;
+    if(t !== hovered){ hovered = t; cursorState(t); }
+    const next = readTarget(t);
+    /* something the pointer has left goes back where it was */
+    if(effects){
+      if(effects.magnet && effects.magnet.node !== next.magnet?.node) settle(effects.magnet.node, 'translate(0,0)', 400);
+      if(effects.tilt && effects.tilt.node !== next.tilt?.node){
+        settle(effects.tilt.node, 'perspective(800px) rotateX(0deg) rotateY(0deg) scale3d(1,1,1)', 500);
+        effects.tilt.node.classList.remove('mfx-tilt');
+      }
+      if(effects.flash && effects.flash !== next.flash) effects.flash.classList.remove('mfx-lit');
+    }
+    effects = next;
+
+    if(next.flash){
+      const r = next.flash.getBoundingClientRect();
+      next.flash.classList.add('mfx-lit');
+      next.flash.style.setProperty('--mx', (px - r.left) + 'px');
+      next.flash.style.setProperty('--my', (py - r.top) + 'px');
+    }
+    /* A magnet and a tilt only fight when they land on the SAME node, since
+       both write transform. Usually they do not: the tilt is the card and the
+       magnet is a button inside it, and both should happen. Letting the tilt
+       win on any overlap at all meant no button inside a card was magnetic —
+       which is nearly all of them. */
+    const sameNode = !!(next.tilt && next.magnet && next.tilt.node === next.magnet.node);
+    if(next.tilt){
+      const n = next.tilt.node, r = n.getBoundingClientRect();
+      const x = (px - r.left) / r.width, y = (py - r.top) / r.height;
+      n.classList.add('mfx-tilt');
+      n.style.setProperty('--mouse-x', (x * 100) + '%');
+      n.style.setProperty('--mouse-y', (y * 100) + '%');
+      n.style.transition = '';
+      n.style.transform = `perspective(800px) rotateX(${(.5 - y) * next.tilt.max * 2}deg) `
+        + `rotateY(${(x - .5) * next.tilt.max * 2}deg) scale3d(1.02,1.02,1.02)`;
+    }
+    if(next.magnet && !sameNode){
+      const n = next.magnet.node, r = n.getBoundingClientRect();
+      const dx = px - (r.left + r.width / 2), dy = py - (r.top + r.height / 2);
+      const d = Math.hypot(dx, dy);
+      if(d < next.magnet.threshold){
+        const pull = (1 - d / next.magnet.threshold) * next.magnet.strength;
+        n.style.transition = '';
+        n.style.transform = `translate(${dx * pull}px, ${dy * pull}px)`;
+      } else settle(n, 'translate(0,0)', 400);
+    }
+  }
+
+  let pending = null;
+  function queue(ev){
+    pending = ev;
+    if(queue.armed) return;
+    queue.armed = true;
+    requestAnimationFrame(() => { queue.armed = false; if(pending) onMove(pending); });
+  }
+
+  function start(){
+    if(started || off()) return;
+    started = true;
+    startCursor();
+    document.addEventListener('mousemove', queue, {passive:true});
+    /* a page swap leaves transforms on nodes that are already gone; the ones
+       still here are let go so nothing is stuck mid-lean */
+    window.addEventListener('hashchange', () => { release(effects); effects = null; hovered = null; });
+  }
+  function stop(){
+    if(!started) return;
+    started = false;
+    /* zeroed, not just cancelled: a stale id left here reads as "the loop is
+       running", so a restart would never take a frame again and the ring
+       would sit where it was */
+    cancelAnimationFrame(raf); raf = 0;
+    document.removeEventListener('mousemove', queue);
+    document.documentElement.classList.remove('mfx-cursor');
+    dot?.remove(); ring?.remove(); dot = ring = null;
+    release(effects); effects = null;
+  }
+  return {start, stop, get running(){ return started; },
+    /* true once the ring has caught up and the loop has let go of the frame */
+    get idle(){ return started && !raf; }, GRIP};
+})();
+
+/* ============================================================
+   THE SCROLL LAYER — counters, fills, waves, a little depth
+   ------------------------------------------------------------
+   Things that happen once, the first time you reach them. All of it hangs
+   off one IntersectionObserver rather than one per effect: the page can hold
+   a few hundred candidates and three observers over the same nodes is three
+   times the work for no more information.
+   ============================================================ */
+const ScrollFX = (() => {
+  let obs = null;
+
+  function arrive(node){
+    waiting.delete(node);
+    if(obs) obs.unobserve(node);
+    if(node.dataset.sfxDone) return;
+    node.dataset.sfxDone = '1';
+    /* a number counts up to itself */
+    if(node.matches('[data-tween]')){
+      tween(node, parseFloat(node.dataset.tween), {dec:+(node.dataset.dec||0), suffix:node.dataset.suffix||''});
+      return;
+    }
+    /* a bar or a ring fills from empty. The real width is already in the
+       markup, so it is read, zeroed, and put back on the next frame — the
+       page keeps working with JS off, and nothing here has to know the
+       number the bar is about to show. */
+    if(node.matches('.bar > i, .split-bar > i')){
+      const to = node.style.width;
+      if(!to || reduced()) return;
+      node.style.transition = 'none'; node.style.width = '0%';
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        node.style.transition = 'width .8s cubic-bezier(.2,.7,.3,1)';
+        node.style.width = to;
+        setTimeout(() => { node.style.transition = ''; }, 900);
+      }));
+      return;
+    }
+    if(node.matches('circle[data-ringlen]')){
+      const to = node.style.strokeDashoffset;
+      if(reduced()) return;
+      node.style.transition = 'none'; node.style.strokeDashoffset = node.dataset.ringlen;
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        node.style.transition = 'stroke-dashoffset .8s cubic-bezier(.2,.7,.3,1)';
+        node.style.strokeDashoffset = to;
+      }));
+    }
+  }
+
+  /* Everything still waiting for its first look. IntersectionObserver handles
+     the ordinary case — you scroll down and a number comes into view — but it
+     only fires when the ratio crosses a threshold, and a jump straight to the
+     foot of the page (the index, End, a deep link) takes an element from
+     below the fold to above it without ever intersecting. Those never fired
+     and sat at zero for good. So the set is also swept on scroll, and
+     anything now at or past the fold is counted as arrived. The sweep only
+     runs while something is still waiting, and unhooks itself when the set
+     empties. */
+  const waiting = new Set();
+  let sweeping = false;
+  function observer(){
+    if(obs) return obs;
+    obs = new IntersectionObserver(es => es.forEach(e => {
+      if(e.isIntersecting) arrive(e.target);
+    }), {threshold:.15});
+    return obs;
+  }
+  function sweep(){
+    if(!waiting.size){ sweeping = false; return; }
+    [...waiting].forEach(n => {
+      const r = n.getBoundingClientRect();
+      if(r.top < innerHeight) arrive(n);
+    });
+    if(!waiting.size) sweeping = false;
+  }
+  function armSweep(){
+    if(sweeping || !waiting.size) return;
+    sweeping = true;
+    let queued = false;
+    const on = () => {
+      if(queued) return; queued = true;
+      requestAnimationFrame(() => { queued = false; sweep(); if(!sweeping) removeEventListener('scroll', on); });
+    };
+    addEventListener('scroll', on, {passive:true});
+  }
+
+  /* Cards in a grid come in on a diagonal, top-left first, so a grid arrives
+     as a wave rather than as twelve things appearing at once. The delay is
+     read off the position on screen, capped so the last card is never more
+     than a beat behind the first. */
+  function wave(root){
+    root.querySelectorAll('.grid, .fin-cards, .inv-grid, .lib-grid').forEach(g => {
+      const kids = [...g.children].filter(n => n.classList.contains('rv'));
+      if(kids.length < 3) return;
+      const box = g.getBoundingClientRect();
+      kids.forEach(n => {
+        const r = n.getBoundingClientRect();
+        const d = ((r.left - box.left) + (r.top - box.top)) * .12;
+        n.style.transitionDelay = Math.min(Math.round(d), 400) + 'ms';
+      });
+    });
+  }
+
+  function scan(root = document){
+    if(!root.querySelectorAll) return;
+    const o = observer();
+    root.querySelectorAll('[data-tween],.bar > i,.split-bar > i,circle[data-ringlen]')
+      .forEach(n => { if(n.dataset.sfxDone) return; waiting.add(n); o.observe(n); });
+    wave(root);
+    armSweep();
+  }
+
+  /* 1.6d — three depth planes. The ink layer behind already drifts at half
+     speed; the page's own title moves at 0.95×, which is not enough to read
+     as movement and is enough to stop the page feeling like one flat sheet.
+     Only the title: a heading that lags inside a column of text is a
+     readability problem, not depth. */
+  function parallax(){
+    if(reduced()) return;
+    let armed = false;
+    addEventListener('scroll', () => {
+      if(armed) return; armed = true;
+      requestAnimationFrame(() => {
+        armed = false;
+        const h = document.querySelector('#main .page-head');
+        if(h) h.style.transform = `translateY(${Math.min(scrollY * .05, 40)}px)`;
+      });
+    }, {passive:true});
+  }
+
+  return {scan, parallax, arrive};
+})();
+
+/* ============================================================
+   THE AMBIENT LAYER — breath, dust, the hour of the day
+   ------------------------------------------------------------
+   Always on, never asked for, and none of it should ever be the thing you
+   are looking at.
+   ============================================================ */
+const AmbientFX = (() => {
+  /* 1.7c — the site warms towards night. The spec puts a sepia filter on
+     <body>, which cannot be done here: a filter on an element makes it the
+     containing block for every position:fixed descendant, and the Back pill,
+     the top bar, the speed dial, the side panel and the cursor itself are all
+     fixed children of body. They would all reposition against the body box
+     and the page would come apart. The same warmth is laid over the top
+     instead, as a pointer-transparent sheet in soft-light, which tints
+     everything under it and moves nothing. */
+  function warmth(){
+    const h = new Date().getHours();
+    return h >= 5 && h < 10 ? 0 : h >= 10 && h < 16 ? -0.012 : h >= 16 && h < 20 ? 0.03 : 0.05;
+  }
+  function applyWarmth(){
+    let n = document.getElementById('warmth');
+    if(!n){ n = el('<div id="warmth" aria-hidden="true"></div>'); document.body.appendChild(n); }
+    const w = warmth();
+    /* a negative value is the midday cool: the same sheet, a cool cast */
+    n.style.background = w >= 0 ? `rgba(212,164,76,${w})` : `rgba(150,180,210,${-w})`;
+    /* Measured before this line existed: a full-viewport mix-blend-mode sheet
+       cost a quarter of the frame rate, because every dust mote invalidated
+       the blend over the whole page. A flat tint at the same alpha looks the
+       same at five per cent and costs one frame in twenty. */
+  }
+
+  /* 1.7b — dust, everywhere rather than on two pages. Sparse (14 motes), slow,
+     and skipped entirely on a page that runs a canvas of its own so the two
+     are never drawing at once. Thirty frames a second: at this speed nobody
+     can tell, and it halves the cost. */
+  const OWN_CANVAS = ['skills', 'values'];
+  function dust(){
+    const c = document.getElementById('dust');
+    if(!c || reduced()) return;
+    const ctx = c.getContext('2d');
+    let ps = [];
+    const seed = () => { ps = []; for(let i = 0; i < 14; i++) ps.push({
+      x:Math.random()*innerWidth, y:Math.random()*innerHeight, r:.5+Math.random()*1.5,
+      vx:(Math.random()-.5)*.12, vy:-.05-Math.random()*.1,
+      a:Math.random()*Math.PI*2, w:.06+Math.random()*.06}); };
+    const resize = () => { c.width = innerWidth; c.height = innerHeight; };
+    resize(); seed(); addEventListener('resize', resize);
+    let last = 0, gold = 0, cleared = false;
+    const tick = t => {
+      requestAnimationFrame(tick);
+      if(document.hidden) return;            // nobody is looking
+      if(t - last < 33) return;              // 30fps, not 60
+      last = t;
+      if(OWN_CANVAS.includes(currentRoute)){ // that page draws its own
+        if(!cleared){ ctx.clearRect(0, 0, c.width, c.height); cleared = true; }
+        return;
+      }
+      cleared = false;
+      ctx.clearRect(0, 0, c.width, c.height);
+      const dark = S.settings.theme === 'dark';
+      const golden = gold > performance.now();
+      ctx.fillStyle = golden ? 'rgba(212,164,76,.5)'
+        : dark ? 'rgba(232,224,212,.05)' : 'rgba(44,37,32,.035)';
+      ps.forEach(p => {
+        p.a += p.w * .06;
+        p.x += p.vx + Math.sin(p.a) * .06;
+        p.y += p.vy;
+        if(p.y < -5){ p.y = innerHeight + 5; p.x = Math.random() * innerWidth; }
+        if(p.x < -5) p.x = innerWidth + 5;
+        if(p.x > innerWidth + 5) p.x = -5;
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+      });
+    };
+    requestAnimationFrame(tick);
+    /* the Konami code borrows the dust for five seconds */
+    dust.goGold = (ms = 5000) => {
+      gold = performance.now() + ms;
+      const extra = [];
+      for(let i = 0; i < 36; i++) extra.push({x:Math.random()*innerWidth, y:Math.random()*innerHeight,
+        r:.6+Math.random()*1.8, vx:(Math.random()-.5)*.2, vy:-.08-Math.random()*.16,
+        a:Math.random()*Math.PI*2, w:.06+Math.random()*.08});
+      ps = ps.concat(extra);
+      setTimeout(() => { ps = ps.slice(0, 14); }, ms);
+    };
+  }
+
+  function start(){ applyWarmth(); setInterval(applyWarmth, 30 * 60 * 1000); dust(); }
+  return {start, warmth, get goGold(){ return dust.goGold; }};
+})();
+
+/* ============================================================
+   THE FEEDBACK LAYER — a press, a save, a milestone
+   ------------------------------------------------------------
+   What the app says back when you do something. The rule for the loudest of
+   it, the milestone: it should read as a candle flaring for a moment, not as
+   winning a game. Three seconds, no dismiss button, and never twice for the
+   same thing.
+   ============================================================ */
+const RewardFX = (() => {
+
+  /* 1.8b — a ripple from wherever the save actually happened, and a word to
+     say so. ripple() already existed for the expanding ring; this adds the
+     ✓ beside it, because a ring alone does not say what it was for. */
+  function saved(x, y, colour){
+    if(typeof ripple === 'function') ripple(x, y, colour);
+    if(reduced()) return;
+    const n = el('<span class="fx-saved mono">✓ saved</span>');
+    n.style.left = x + 'px'; n.style.top = y + 'px';
+    document.body.appendChild(n);
+    setTimeout(() => n.remove(), 1400);
+  }
+  /* the common case: a field just committed, and the ripple belongs at it */
+  function savedAt(node, colour){
+    if(!node || !node.getBoundingClientRect) return;
+    const r = node.getBoundingClientRect();
+    if(!r.width && !r.height) return;
+    saved(r.left + r.width / 2, r.top + r.height / 2, colour);
+  }
+
+  /* 1.8c — the milestones. Each fires once and is remembered, so a thing you
+     have already been congratulated for stays congratulated. */
+  const MILESTONES = {
+    habitsAll:   () => 'Every habit kept today ✦',
+    values70:    () => 'All values above seventy ✦',
+    streak21:    n  => `Twenty-one days ✦`,
+    skillLevel:  n  => `${n} — a level up ✦`,
+    entries100:  () => 'A hundred entries ✦',
+    yearOne:     () => 'One year of this ✦',
+    visionTier:  n  => `${n} ✦`,
+    arrived:     n  => `${n} — arrived ✦`,
+  };
+
+  function celebrate(text){
+    if(!text) return;
+    if(reduced()){ if(typeof toast === 'function') toast(text, 2600); return; }
+    const wrap = el(`<div class="fx-mile" aria-live="polite"><i class="fx-mile-ring"></i>
+      <span class="fx-mile-word">${esc(text)}</span></div>`);
+    document.body.appendChild(wrap);
+    /* motes rising, the same dust as everywhere else, briefly given a reason */
+    for(let i = 0; i < 20; i++){
+      const m = el('<i class="fx-mote"></i>');
+      m.style.left = (5 + Math.random() * 90) + 'vw';
+      m.style.animationDelay = (Math.random() * 900) + 'ms';
+      m.style.animationDuration = (1600 + Math.random() * 900) + 'ms';
+      wrap.appendChild(m);
+    }
+    try { SoundManager.play('chime'); } catch(e){}
+    setTimeout(() => wrap.remove(), 3200);
+  }
+
+  /* fired once per thing, ever — the ledger lives with the rest of the state */
+  function once(key, text){
+    S.settings.milestones = S.settings.milestones || {};
+    if(S.settings.milestones[key]) return false;
+    S.settings.milestones[key] = today();
+    save();
+    celebrate(text);
+    return true;
+  }
+
+  /* Checked after a save rather than on a timer, because every one of these
+     becomes true as a consequence of something you just did. Wrapped whole:
+     a milestone that cannot be worked out must never cost you the save. */
+  function check(){
+    try {
+      const T = today();
+      const due = S.habits.filter(h => !h.archived && !h.negative && habitDue(h, T));
+      if(due.length >= 3 && due.every(h => habitDone(h, T))) once('habitsAll:' + T, MILESTONES.habitsAll());
+      if(S.valueOrder.length >= 5){
+        const all = S.valueOrder.map(id => valueCurrent(id));
+        if(all.every(v => v >= 70)) once('values70:' + T, MILESTONES.values70());
+      }
+      S.habits.filter(h => !h.archived && !h.negative).forEach(h => {
+        const st = habitStreak(h);
+        if(st && st.cur >= 21) once('streak21:' + h.id + ':' + Math.floor(st.cur / 21), MILESTONES.streak21(h.name));
+      });
+      if(S.entries.length >= 100) once('entries100', MILESTONES.entries100());
+      const first = S.settings.firstOpen;
+      if(first && daysSince(first) >= 365) once('yearOne:' + Math.floor(daysSince(first) / 365), MILESTONES.yearOne());
+    } catch(e){ console.warn('milestone check skipped', e); }
+  }
+
+  return {saved, savedAt, celebrate, check, MILESTONES};
+})();
+
+/* ============================================================
+   THE POLISH LAYER — the progress line, the code, the fallback
+   ============================================================ */
+const PolishFX = (() => {
+  /* 1.9 — how far down a long page you are. Only on pages long enough for
+     the question to arise; on a short page the line is noise. */
+  function progressLine(){
+    const bar = el('<div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>');
+    document.body.appendChild(bar);
+    let armed = false, fat = 0;
+    const paint = () => {
+      const h = document.documentElement.scrollHeight - innerHeight;
+      if(h < innerHeight * 0.5){ bar.style.width = '0'; return; }   // short page: nothing to say
+      bar.style.width = Math.min(100, (scrollY / h) * 100) + '%';
+      bar.classList.add('active');
+      clearTimeout(fat);
+      fat = setTimeout(() => bar.classList.remove('active'), 400);
+    };
+    addEventListener('scroll', () => {
+      if(armed) return; armed = true;
+      requestAnimationFrame(() => { armed = false; paint(); });
+    }, {passive:true});
+    paint();
+  }
+
+  /* 1.12 — the code. Costs nothing, rewards the curious. */
+  const CODE = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
+  function konami(){
+    let at = 0;
+    addEventListener('keydown', e => {
+      if(typeof isTyping === 'function' && isTyping()) return;
+      const want = CODE[at];
+      const got = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+      at = (got === want) ? at + 1 : (got === CODE[0] ? 1 : 0);
+      if(at < CODE.length) return;
+      at = 0;
+      try { AmbientFX.goGold?.(5000); } catch(err){}
+      document.querySelector('.brand')?.classList.add('konami');
+      const t = document.querySelector('#main .page-head h1');
+      if(t && !reduced()) scramble(t);
+    });
+  }
+  /* the title comes apart and puts itself back — the same trick the divination
+     card uses to say its name */
+  function scramble(node){
+    const real = node.textContent, pool = '✦✧·—+*';
+    let f = 0;
+    const id = setInterval(() => {
+      f++;
+      node.textContent = real.split('').map((ch, i) =>
+        ch === ' ' ? ' ' : (i < f * 1.5 ? ch : pool[(Math.random() * pool.length) | 0])).join('');
+      if(f * 1.5 > real.length){ clearInterval(id); node.textContent = real; }
+    }, 45);
+  }
+
+  function start(){ progressLine(); konami(); }
+  return {start, scramble};
+})();
+
+/* ---------- where the layers meet the app ----------
+   Four hooks, all delegated at the document so nothing has to be rebound when
+   a page redraws, and all of them guarded: a sound or a sparkle must never be
+   the reason an edit fails. */
+(function wireFX(){
+  /* the pointer crossing the sidebar, and a panel taking a breath */
+  document.addEventListener('pointerover', e => {
+    try { if(e.target.closest?.('.nav a,.nav button')) SoundManager.play('uiHover'); } catch(err){}
+  }, {passive:true, capture:true});
+
+  /* anything finished gets the knock, wherever it happens */
+  document.addEventListener('change', e => {
+    try {
+      const t = e.target;
+      if(t.matches?.('input[type="checkbox"]') && t.checked) SoundManager.play('uiKnock');
+    } catch(err){}
+  }, true);
+  document.addEventListener('click', e => {
+    try {
+      const t = e.target.closest?.('.task-check,.hb-check,[data-tcheck],[data-subcheck],[data-hdone]');
+      if(t && !t.closest('.done')) SoundManager.play('uiKnock');
+    } catch(err){}
+  }, true);
+})();
+/* ============================================================
    THE SELECT MENU — one dropdown, everywhere a choice is asked.
 
    A native <select> popup is drawn by the browser, not by the page:
@@ -7640,6 +8388,12 @@ const SoundManager = (() => {
   const writeStr = (k, v) => { try { localStorage.setItem(k, String(v)); } catch(e){} };
   let ctx = null, master = null, verb = null, verbSend = null, dry = null;
   let soundOn = readFlag(LS_SOUND, false), ambientOn = readFlag(LS_AMBIENT, false);
+  /* The interface layer is its own switch and its own default. These are the
+     sounds nobody asked for — a tick under the pointer, a breath when a panel
+     opens — so they are off until somebody says otherwise, and they are off
+     entirely whenever the interaction sounds are, since they are quieter
+     versions of the same idea and a muted house should be silent. */
+  let uiOn = readFlag('li.ui.sounds', false);
   let ambientKind = readStr(LS_KIND, 'brown'), ambientVol = parseFloat(readStr(LS_VOL, '0.5'));
   let ambient = null;               // {nodes:[], gain, timer}
   let pendingClick = null, lastPlay = 0;
@@ -7765,11 +8519,21 @@ const SoundManager = (() => {
                      tone({freq:P.B5, dur:.34, gain:.02, beat:8, at:.03}); },
     /* the smallest sound there is */
     leaf:    () => dyad(P.A5, P.E6, {dur:.5, gain:.013, roll:.03}),
+    /* ---- the interface layer (§1.8d), off by default ----
+       Almost subliminal on purpose: a tick you notice only by its absence. */
+    uiHover: () => tone({freq:P.E6, dur:.05, gain:.008, attack:.004, beat:0}),
+    /* a panel arriving or leaving: air, not a note */
+    uiWhoosh:() => noise({dur:.09, freq:220, sweep:820, q:.7, gain:.03, wet:.35}),
+    /* something finished: the wooden knock, kept for completions everywhere */
+    uiKnock: () => { noise({dur:.05, freq:320, q:2.4, gain:.05, wet:.2});
+                     tone({freq:P.A4, dur:.28, gain:.012, attack:.004}); },
   };
+  const UI_KINDS = new Set(['uiHover', 'uiWhoosh', 'uiKnock']);
 
   /* ---- layer 1 ---- */
   function play(kind){
     if(kind !== 'click' && pendingClick){ clearTimeout(pendingClick); pendingClick = null; }
+    if(UI_KINDS.has(kind) && !uiOn) return;
     if(!soundOn || !recipes[kind]) return;
     if(!ctx){ if(!ensureCtx()) return; }
     if(ctx.state === 'suspended'){ ctx.resume().catch(()=>{}); }
@@ -7922,7 +8686,8 @@ const SoundManager = (() => {
 
   /* ---- public state ---- */
   function notify(){ listeners.forEach(fn => { try { fn(state()); } catch(e){} }); }
-  function state(){ return {soundEnabled: soundOn, ambientEnabled: ambientOn, ambientKind, ambientVolume: ambientVol, ready: !!ctx}; }
+  function state(){ return {soundEnabled: soundOn, ambientEnabled: ambientOn, uiEnabled: uiOn, ambientKind, ambientVolume: ambientVol, ready: !!ctx}; }
+  function setUi(v){ uiOn = !!v; writeFlag('li.ui.sounds', uiOn); if(uiOn){ ensureCtx(); play('uiKnock'); } notify(); }
   function setSound(v){ soundOn = !!v; writeFlag(LS_SOUND, soundOn); if(soundOn){ ensureCtx(); play('click'); } notify(); }
   function setAmbient(v){ ambientOn = !!v; writeFlag(LS_AMBIENT, ambientOn); if(ambientOn && ambientKind !== 'off'){ ensureCtx(); startAmbient(); } else stopAmbient(); notify(); }
   function setAmbientKind(k){
@@ -7936,8 +8701,9 @@ const SoundManager = (() => {
     if(ambient){ const g = ambient.gain.gain, t = ctx.currentTime; g.cancelScheduledValues(t); g.linearRampToValueAtTime(Math.max(.0001, ambientGainValue()*1.4), t+.3); }
     notify();
   }
-  return { play, state, setSound, setAmbient, setAmbientKind, setAmbientVolume,
+  return { play, state, setSound, setAmbient, setAmbientKind, setAmbientVolume, setUi,
     toggleSound: () => setSound(!soundOn), toggleAmbient: () => setAmbient(!ambientOn),
+    toggleUi: () => setUi(!uiOn),
     subscribe(fn){ listeners.add(fn); return () => listeners.delete(fn); },
     get context(){ return ctx; } };
 })();
@@ -22917,6 +23683,8 @@ function habitDayToggle(h, d){
   else if(cur.level === 'full') S.habitLog[d][h.id] = {level:'min', note:''};
   else delete S.habitLog[d][h.id];
   saveNow(); sound(S.habitLog[d][h.id] ? 'success' : 'click');
+  /* a habit kept is one of the eight things that can be a milestone */
+  if(S.habitLog[d][h.id]) try { RewardFX.check(); } catch(e){}
   const st = habitStreak(h);
   const mark = STREAK_MARKS.find(x => st.cur === x && !(h.celebrated||[]).includes(x));
   if(mark){ h.celebrated = [...(h.celebrated||[]), mark]; saveNow(); celebrateStreak(h, mark); }
@@ -25357,6 +26125,11 @@ routes.settings = function(root){
       <div class="opt"><div><b>Theme</b><div class="d">Dark: rich soil and old leather. Light: warm paper.</div></div><label class="toggle ${S.settings.theme==='light'?'on':''}" id="sTheme"><span>dark</span><span class="sw"></span><span>light</span></label></div>
       <div class="opt"><div><b>Interaction sounds 🔔</b><div class="d">Soft chimes on clicks, a low note on navigation, a rising pair when something is completed. Synthesised in the browser; nothing is downloaded.</div></div><label class="toggle ${SoundManager.state().soundEnabled?'on':''}" id="sSound"><span class="sw"></span></label></div>
       <div class="opt"><div><b>Ambient background 🌊</b><div class="d">A barely-audible brown-noise wash, low-passed at 200 Hz. Ducks briefly under each click. Off by default.</div></div><label class="toggle ${SoundManager.state().ambientEnabled?'on':''}" id="sAmbient"><span class="sw"></span></label></div>
+      <!-- Quieter than the chimes and answering to different things: the
+           pointer passing over the sidebar, a panel taking a breath as it
+           opens. Kept behind its own switch because most people will never
+           want it, and it is silent anyway while the chimes are off. -->
+      <div class="opt"><div><b>Interface sounds ⌁</b><div class="d">A tick almost too quiet to hear as the pointer crosses the sidebar; a breath of air when a panel opens or closes; a wooden knock on anything finished. Needs interaction sounds on. Off by default.</div></div><label class="toggle ${SoundManager.state().uiEnabled?'on':''}" id="sUiSound"><span class="sw"></span></label></div>
       <div class="opt"><div><b>Felt time</b><div class="d">Default timeline mode: stretch dense stages, compress thin ones.</div></div><label class="toggle ${S.settings.feltTime?'on':''}" id="sFelt"><span>clock</span><span class="sw"></span><span>felt</span></label></div>
       <div class="opt"><div><b>Landing page</b><div class="d">Where the site opens.</div></div><select class="sel" style="width:auto" id="sHome">${[['compass','Compass'],['today','Today']].map(([v,l])=>`<option value="${v}" ${(S.settings.home||'compass')===v?'selected':''}>${l}</option>`).join('')}</select></div>
     </div>
@@ -25444,6 +26217,7 @@ routes.settings = function(root){
   $('#sTheme').onclick = function(){ S.settings.theme = S.settings.theme==='dark'?'light':'dark'; saveNow(); applyTheme(); this.classList.toggle('on', S.settings.theme==='light'); };
   $('#sSound').onclick = function(){ SoundManager.toggleSound(); this.classList.toggle('on', SoundManager.state().soundEnabled); };
   $('#sAmbient').onclick = function(){ SoundManager.toggleAmbient(); this.classList.toggle('on', SoundManager.state().ambientEnabled); };
+  $('#sUiSound').onclick = function(){ SoundManager.toggleUi(); this.classList.toggle('on', SoundManager.state().uiEnabled); };
   $('#sFelt').onclick = function(){ S.settings.feltTime = !S.settings.feltTime; saveNow(); this.classList.toggle('on', S.settings.feltTime); };
   $('#sHome').onchange = e => { S.settings.home = e.target.value; saveNow(); };
   bindZoneEditor($('#zoneEditor').parentElement);
@@ -28523,6 +29297,7 @@ function unscheduledTasks(){ return allTaskRefs().filter(r => !r.day && !r.done)
 function setTaskDay(id, day){ const r = findTaskRef(id); if(!r) return; r.task.day = day || ''; saveNow(); }
 function setTaskDone(id, done){ const r = findTaskRef(id); if(!r) return;
   r.task.done = !!done; r.task.doneAt = done ? today() : null; saveNow();
+  if(done) try { RewardFX.check(); } catch(e){}
   /* crossing off the thing the clock is running on ends the sitting */
   if(typeof taskCrossedOff === 'function') taskCrossedOff(id, done);
 }
@@ -28673,7 +29448,8 @@ function inlineTaskEdit(node, current, commit, redraw){
     if(closed) return; closed = true;
     if(row) row.setAttribute('draggable', wasDraggable === null ? 'true' : wasDraggable);
     const v = inp.value.trim();
-    if(save && v && v !== current){ commit(v); saveNow(); sound('save'); }
+    if(save && v && v !== current){ commit(v); saveNow(); sound('save');
+      try { RewardFX.savedAt(inp, 'var(--sage)'); } catch(e){} }
     redraw();
   };
   inp.addEventListener('keydown', ev => {
@@ -34838,8 +35614,9 @@ function openSearch(){
 /* ============================================================
    Ambient dust (canvas views only), shortcuts, init
    ============================================================ */
-function startDust(){ const c = $('#dust'); if(!c || reduced()) return; const ctx = c.getContext('2d'); let ps = []; const resize = () => { c.width = innerWidth; c.height = innerHeight; }; resize(); window.addEventListener('resize', resize); for(let i=0;i<40;i++) ps.push({x:Math.random()*innerWidth, y:Math.random()*innerHeight, r:.6+Math.random()*1.6, vx:(Math.random()-.5)*.15, vy:-.05-Math.random()*.12, a:Math.random()*Math.PI*2});
-  const tick = () => { const on = ['compass','skills'].includes(currentRoute); ctx.clearRect(0,0,c.width,c.height); if(on){ ctx.fillStyle = S.settings.theme==='dark' ? 'rgba(232,224,212,.05)' : 'rgba(120,90,60,.06)'; ps.forEach(p => { p.a += .01; p.x += p.vx + Math.sin(p.a)*.1; p.y += p.vy; if(p.y < -5){ p.y = innerHeight+5; p.x = Math.random()*innerWidth; } if(p.x<-5) p.x = innerWidth+5; if(p.x>innerWidth+5) p.x=-5; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); }); } requestAnimationFrame(tick); }; requestAnimationFrame(tick); }
+/* The dust used to live here and only blew on two pages. It is site-wide now
+   and lives in AmbientFX (§1.7b), which also knows to hold still on a page
+   drawing a canvas of its own. */
 /* Shortcuts. Browsers reserve ⌘N / Ctrl+N (new window) and cannot be overridden, so
    the app uses single keys when you are not typing: N new entry, / search, ← → stages, Esc close. */
 function isTyping(){ const a = document.activeElement; return !!a && (/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) || a.isContentEditable); }
@@ -35001,7 +35778,12 @@ async function initInner(){
      the sidebar is how you get to a page that still works. */
   try { renderRoute(); }
   catch(err){ console.error('this page failed to draw', err); routeFailure(err); }
-  startDust(); updateBackButton();
+  updateBackButton();
+  /* every layer on its own guard: a decoration that throws must never be the
+     reason the house does not open */
+  try { MicroFX.start(); } catch(e){ console.warn('pointer layer skipped', e); }
+  try { AmbientFX.start(); } catch(e){ console.warn('ambient layer skipped', e); }
+  try { ScrollFX.parallax(); PolishFX.start(); } catch(e){ console.warn('polish layer skipped', e); }
   /* Stamp the last moment you were here, so a night you forget to close still
      has a bedtime to fall back on tomorrow. Every minute while the tab is
      open, and again the moment it comes back to the front. */

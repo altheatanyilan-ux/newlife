@@ -238,8 +238,9 @@ function openSearch(){
 /* ============================================================
    Ambient dust (canvas views only), shortcuts, init
    ============================================================ */
-function startDust(){ const c = $('#dust'); if(!c || reduced()) return; const ctx = c.getContext('2d'); let ps = []; const resize = () => { c.width = innerWidth; c.height = innerHeight; }; resize(); window.addEventListener('resize', resize); for(let i=0;i<40;i++) ps.push({x:Math.random()*innerWidth, y:Math.random()*innerHeight, r:.6+Math.random()*1.6, vx:(Math.random()-.5)*.15, vy:-.05-Math.random()*.12, a:Math.random()*Math.PI*2});
-  const tick = () => { const on = ['compass','skills'].includes(currentRoute); ctx.clearRect(0,0,c.width,c.height); if(on){ ctx.fillStyle = S.settings.theme==='dark' ? 'rgba(232,224,212,.05)' : 'rgba(120,90,60,.06)'; ps.forEach(p => { p.a += .01; p.x += p.vx + Math.sin(p.a)*.1; p.y += p.vy; if(p.y < -5){ p.y = innerHeight+5; p.x = Math.random()*innerWidth; } if(p.x<-5) p.x = innerWidth+5; if(p.x>innerWidth+5) p.x=-5; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); }); } requestAnimationFrame(tick); }; requestAnimationFrame(tick); }
+/* The dust used to live here and only blew on two pages. It is site-wide now
+   and lives in AmbientFX (§1.7b), which also knows to hold still on a page
+   drawing a canvas of its own. */
 /* Shortcuts. Browsers reserve ⌘N / Ctrl+N (new window) and cannot be overridden, so
    the app uses single keys when you are not typing: N new entry, / search, ← → stages, Esc close. */
 function isTyping(){ const a = document.activeElement; return !!a && (/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) || a.isContentEditable); }
@@ -401,7 +402,12 @@ async function initInner(){
      the sidebar is how you get to a page that still works. */
   try { renderRoute(); }
   catch(err){ console.error('this page failed to draw', err); routeFailure(err); }
-  startDust(); updateBackButton();
+  updateBackButton();
+  /* every layer on its own guard: a decoration that throws must never be the
+     reason the house does not open */
+  try { MicroFX.start(); } catch(e){ console.warn('pointer layer skipped', e); }
+  try { AmbientFX.start(); } catch(e){ console.warn('ambient layer skipped', e); }
+  try { ScrollFX.parallax(); PolishFX.start(); } catch(e){ console.warn('polish layer skipped', e); }
   /* Stamp the last moment you were here, so a night you forget to close still
      has a bedtime to fall back on tomorrow. Every minute while the tab is
      open, and again the moment it comes back to the front. */
