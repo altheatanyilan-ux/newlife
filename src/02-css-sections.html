@@ -5693,6 +5693,59 @@ html[data-theme="dark"] .sheen::after,html:not([data-theme="light"]) .sheen::aft
   animation:sheenSweep 6s ease-in-out infinite}
 @keyframes sheenSweep{0%{transform:translateX(-120%)}100%{transform:translateX(120%)}}
 
+/* ---------- 10b. a rite takes the room ----------
+   A consultation is not a dialog box. The old ceremony ran in the same
+   760px panel a settings sheet uses, which left the coins the size of
+   buttons and the hexagram in a column down one side of a lot of nothing.
+   A rite gets the width and the height, the overlay goes darker behind it
+   so the room around it recedes, and the furniture inside grows to match. */
+.modal.rite{max-width:min(1180px,95vw);min-height:min(760px,86vh);padding:34px 38px;
+  display:flex;flex-direction:column;border-radius:22px}
+/* A tall panel with short content in the top of it is worse than a small
+   panel: it reads as a page that failed to load. So while there is only a
+   cast in here, the cast sits in the middle of it; once the reading arrives
+   the whole thing goes back to running from the top, because a long reading
+   centred is a long reading with its first paragraph off the screen. */
+.modal.rite > #icSetup{flex:1;justify-content:center}
+.modal.rite > #icOut{flex:1;display:flex;flex-direction:column;min-height:0}
+.modal.rite > #icOut:has(#icRead[hidden]){justify-content:center}
+.overlay:has(.modal.rite){padding:3vh 16px;background:rgba(10,8,6,.72)}
+html[data-theme="light"] .overlay:has(.modal.rite){background:rgba(70,55,40,.42)}
+.modal.rite > h2{font-size:2rem;text-align:center;margin-bottom:4px}
+/* the cast fills what it is given rather than sitting in the top of it */
+.modal.rite .ic-cer{flex:1;display:flex;flex-direction:column;justify-content:center}
+.modal.rite .ic-stage{gap:48px;align-items:center}
+.modal.rite .ic-figwrap{max-width:420px}
+.modal.rite .ic-fig{max-width:340px}
+.modal.rite .ic-rows{gap:9px}
+.modal.rite .ic-row,.modal.rite .ic-row i,.modal.rite .ic-bar{height:13px}
+/* The coins rise a hundred and fifty pixels, so there has to be a hundred
+   and fifty pixels above them. Without this the apex of the throw is off the
+   top of the panel and the coins pass over the title on their way up, which
+   is the one moment of the whole ceremony that has to look deliberate. */
+.modal.rite .ic-cast{max-width:460px;padding-top:172px}
+.modal.rite .ic-coins{gap:34px;min-height:150px;perspective:900px}
+.modal.rite .ic-coin{width:82px;height:82px}
+.modal.rite .ic-coin-sh{width:60px;bottom:-16px}
+.modal.rite .ic-coin-v{bottom:-34px;font-size:.72rem}
+.modal.rite .ic-total{margin-top:34px}
+.modal.rite .ic-tot-n{font-size:1.4rem}
+.modal.rite .ic-yar{min-height:200px}
+.modal.rite .ic-yar i,.modal.rite .ic-yar-set i{height:130px}
+.modal.rite .ic-yar-say{font-size:.88rem}
+.modal.rite .ic-method{padding:16px 14px}
+/* and the reading under it keeps the same generous measure */
+.modal.rite #icRead{max-width:none}
+.modal.rite .ic-reading{max-width:720px;margin-left:auto;margin-right:auto}
+@media (max-width:820px){
+  .modal.rite{padding:22px 18px;min-height:auto}
+  .modal.rite .ic-stage{gap:20px;min-height:0}
+  .modal.rite .ic-cast{padding-top:120px}
+  .modal.rite .ic-coins{gap:20px;min-height:110px}
+  .modal.rite .ic-coin{width:58px;height:58px}
+  .modal.rite .ic-row,.modal.rite .ic-row i,.modal.rite .ic-bar{height:11px}
+}
+
 /* ---------- 11. less motion, asked for ---------- */
 @media (prefers-reduced-motion:reduce){
   [data-reveal] .wd{opacity:1;transform:none;transition:none;animation:none}

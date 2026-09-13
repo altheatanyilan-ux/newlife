@@ -233,41 +233,78 @@ function ichingFlyCoins(box, faces, done){
   let last = 0;
   coins.forEach((coin, i) => {
     const inner = coin.querySelector('.ic-coin-in');
-    const up = 118 + (Math.random() - .5) * 30;
-    const lift = 340 + Math.random() * 60;
-    const hang = 170;
-    const fall = 420 + order.indexOf(i) * 70;
-    const turns = 3 + Math.floor(Math.random() * 3);          /* whole tumbles */
-    const rest = faces[i] === 3 ? 0 : 180;
-    const start = Math.random() * 60;
-    const drift = (i - 1) * (4 + Math.random() * 5);
-    coin.animate([
-      {transform: 'translate(0,0) scale(1)', offset: 0},
-      {transform: `translate(${(drift * .6).toFixed(1)}px,${(-up).toFixed(0)}px) scale(1.15)`, offset: .42},
-      {transform: `translate(${drift.toFixed(1)}px,${(-up).toFixed(0)}px) scale(1.15)`, offset: .58},
-      {transform: `translate(${(drift * .4).toFixed(1)}px,8px) scale(1)`, offset: .93},
-      {transform: 'translate(0,0) scale(1)', offset: 1},
-    ], {duration: lift + hang + fall, delay: start,
-        easing: 'cubic-bezier(.33,.02,.5,1)', fill: 'backwards'});
-    /* the tumble: whole turns in the air, then whichever face is up */
-    inner.animate([
-      {transform: 'rotateX(0deg)'},
-      {transform: `rotateX(${turns * 360 + rest}deg)`},
-    ], {duration: lift + hang + fall, delay: start, easing: 'cubic-bezier(.2,.55,.35,1)', fill: 'forwards'});
-    /* the shadow shrinks as the coin goes up, the way a shadow does */
     const sh = coin.querySelector('.ic-coin-sh');
-    if(sh) sh.animate([
-      {transform: 'scale(1)', opacity: .22, offset: 0},
-      {transform: 'scale(.45)', opacity: .07, offset: .5},
-      {transform: 'scale(1.06)', opacity: .26, offset: .95},
-      {transform: 'scale(1)', opacity: .22, offset: 1},
-    ], {duration: lift + hang + fall, delay: start, easing: 'cubic-bezier(.33,.02,.5,1)', fill: 'backwards'});
+    /* how high, measured against the room it has: on a phone the same 150px
+       would put the coin off the top of the panel */
+    const head = Math.min(150, Math.max(70, (box.getBoundingClientRect().top -
+      (box.closest('.modal')?.getBoundingClientRect().top || 0)) - 20));
+    const up = head + (Math.random() - .5) * 26;
+    const rise = 430 + Math.random() * 50;
+    const hang = 130;
+    const fall = 470 + order.indexOf(i) * 60;
+    const turns = 4 + Math.floor(Math.random() * 3);
+    const rest = faces[i] === 3 ? 0 : 180;
+    const start = Math.random() * 50;
+    const drift = (i - 1) * (5 + Math.random() * 5);
+    const total = rise + hang + fall + 260;            /* the last stretch is the settling */
+    const at = t => (t / total);                        /* a moment in the flight, as an offset */
 
-    const at = start + lift + hang + fall;
-    last = Math.max(last, at);
-    setTimeout(() => { coin.classList.add('landed'); dvMoment('clink'); }, at);
+    /* The arc is written as one thing thrown under gravity rather than as a
+       shape that happens to go up and come down. Each leg carries its own
+       easing, which is the part that was missing: a single curve across the
+       whole flight gives a coin that rises and falls at the same rate, and
+       the eye reads that as a lift rather than a throw.
+
+         up      decelerating, because gravity is taking the speed off it
+         hang    barely moving, which is what the top of an arc is
+         down    accelerating, the same gravity the other way
+         land    two small damped bounces, each about a third of the one before
+
+       The drift sideways is carried on the same clock so the coin travels a
+       parabola rather than going up, sliding across, and coming down. */
+    const easeUp   = 'cubic-bezier(.16,.62,.32,1)';
+    const easeHang = 'linear';
+    const easeDown = 'cubic-bezier(.5,0,.85,.42)';
+    const easeLand = 'cubic-bezier(.3,.9,.5,1)';
+    const f = (x, y, sc, e) => ({transform: `translate(${x.toFixed(1)}px,${y.toFixed(1)}px) scale(${sc})`, easing: e});
+    coin.animate([
+      Object.assign(f(0, 0, 1, easeUp), {offset: 0}),
+      Object.assign(f(drift * .62, -up, 1.16, easeHang), {offset: at(rise)}),
+      Object.assign(f(drift * .78, -up * .985, 1.16, easeDown), {offset: at(rise + hang)}),
+      Object.assign(f(drift, 0, 1, easeLand), {offset: at(rise + hang + fall)}),
+      Object.assign(f(drift * .96, -9, 1.02, easeLand), {offset: at(rise + hang + fall + 90)}),
+      Object.assign(f(drift * .99, 0, 1, easeLand), {offset: at(rise + hang + fall + 160)}),
+      Object.assign(f(drift, -3, 1, easeLand), {offset: at(rise + hang + fall + 210)}),
+      Object.assign(f(drift, 0, 1, 'linear'), {offset: 1}),
+    ], {duration: total, delay: start, fill: 'forwards'});
+
+    /* The tumble runs at a near-constant rate in the air and only settles in
+       the last leg, because a coin does not slow its spin while it is still
+       falling — it stops when it hits something. */
+    inner.animate([
+      {transform: 'rotateX(0deg)', easing: 'linear', offset: 0},
+      {transform: `rotateX(${(turns * 300 + rest * .6).toFixed(0)}deg)`, easing: 'cubic-bezier(.25,.6,.3,1)',
+       offset: at(rise + hang + fall)},
+      {transform: `rotateX(${(turns * 360 + rest).toFixed(0)}deg)`, easing: 'linear', offset: at(rise + hang + fall + 210)},
+      {transform: `rotateX(${(turns * 360 + rest).toFixed(0)}deg)`, offset: 1},
+    ], {duration: total, delay: start, fill: 'forwards'});
+
+    /* the shadow: small and faint at the top of the arc, hard and dark at
+       the moment of contact. This is most of what sells the height. */
+    if(sh) sh.animate([
+      {transform: 'scale(1)', opacity: .24, easing: easeUp, offset: 0},
+      {transform: 'scale(.4)', opacity: .06, easing: easeDown, offset: at(rise)},
+      {transform: 'scale(.42)', opacity: .06, easing: easeDown, offset: at(rise + hang)},
+      {transform: 'scale(1.12)', opacity: .3, easing: easeLand, offset: at(rise + hang + fall)},
+      {transform: 'scale(.9)', opacity: .17, easing: easeLand, offset: at(rise + hang + fall + 90)},
+      {transform: 'scale(1)', opacity: .24, offset: 1},
+    ], {duration: total, delay: start, fill: 'forwards'});
+
+    const lands = start + rise + hang + fall;
+    last = Math.max(last, lands);
+    setTimeout(() => { coin.classList.add('landed'); dvMoment('clink'); }, lands);
   });
-  setTimeout(() => { dvMoment('softchime'); if(done) done(); }, last + 200);
+  setTimeout(() => { dvMoment('softchime'); if(done) done(); }, last + 380);
 }
 
 /* ---------- the yarrow bundle ----------

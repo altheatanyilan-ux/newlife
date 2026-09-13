@@ -95,7 +95,9 @@ const near = (n,a,b,tol,g='') => Math.abs(a-b) <= tol ? ok(n, g) : no(n, `${a} i
     if(!await ready()){ no('the cast stalled at line ' + (i + 2)); break; }
     await p.evaluate(() => document.querySelector('#icToss').click());
   }
-  for(let k = 0; k < 60; k++){
+  /* the toss carries a real arc now — rise, hang, fall and two small
+     bounces — so a cast takes about two and a half seconds a line */
+  for(let k = 0; k < 140; k++){
     if(await p.evaluate(() => !!document.querySelector('#dvSave'))) break;
     await p.waitForTimeout(250);
   }
@@ -182,7 +184,9 @@ const near = (n,a,b,tol,g='') => Math.abs(a-b) <= tol ? ok(n, g) : no(n, `${a} i
     await p.evaluate(() => document.querySelector('#icToss').click());
   }
   /* the reading arrives a beat after the sixth line lands, not with it */
-  for(let k = 0; k < 60; k++){
+  /* the toss carries a real arc now — rise, hang, fall and two small
+     bounces — so a cast takes about two and a half seconds a line */
+  for(let k = 0; k < 140; k++){
     if(await p.evaluate(() => !!document.querySelector('#dvSave'))) break;
     await p.waitForTimeout(250);
   }

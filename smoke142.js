@@ -159,7 +159,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     await p.evaluate(() => document.querySelector('#icToss').click());
   }
   /* the coins are thrown and land before the hexagram names itself */
-  for(let k = 0; k < 60; k++){
+  for(let k = 0; k < 140; k++){
     if(await p.evaluate(() => !!document.querySelector('#dvSave'))) break;
     await p.waitForTimeout(250);
   }

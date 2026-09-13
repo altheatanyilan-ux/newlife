@@ -756,7 +756,7 @@ function openIChing(pre = {}){
       <p class="th-quote">The book is older than any of its readers and has been asked most of this before. What it is good for is not prediction; it is being handed a description of a situation you did not write, and finding out which parts you argue with.</p>
       <div class="row" style="justify-content:flex-end"><button class="btn primary" id="icGo">Settle, then cast</button></div>
     </div>
-    <div id="icOut"></div>`, 'wide');
+    <div id="icOut"></div>`, 'wide rite');
   bindDivToggles(m);
   m.querySelectorAll('[data-icmethod]').forEach(b => b.onclick = () => {
     method = b.dataset.icmethod; divPrefSet('castMethod', method);
