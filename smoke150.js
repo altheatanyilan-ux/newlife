@@ -111,6 +111,33 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     await b3.close();
   }
 
+  console.log('\n3c. the two database engines number the same database alike');
+  {
+    /* Dexie writes its version to IndexedDB as version * 10, so its
+       version(11) is IDB 110. MiniDexie stands in for Dexie under the same
+       database name, and which one a build contains depends only on whether
+       whoever ran build.js had npm install'ed. If they disagree, a database
+       written by one cannot be opened by the other at all — VersionError, and
+       the app never starts. This is the guard on that. */
+    const decl = fs.readFileSync('/home/user/newlife/src/06-db.js', 'utf8');
+    const v = (decl.match(/db\.version\((\d+)\)/) || [])[1];
+    yes('the declared version is found', !!v, String(v));
+    yes('  MiniDexie multiplies it by ten, as Dexie does',
+        /_idbVersion\(\)\s*{\s*return Math\.round\(this\._version \* 10\)/.test(decl));
+    yes('  and a newer database is adopted rather than refused',
+        /VersionError/.test(decl) && /_openAt\(null\)/.test(decl));
+    /* the number the browser actually ends up holding */
+    const b4 = await chromium.launch({executablePath:'/opt/pw-browsers/chromium'});
+    const p4 = await (await b4.newContext({viewport:{width:1000,height:800}})).newPage();
+    await p4.goto('file://' + REAL); await p4.waitForTimeout(3000);
+    const got = await p4.evaluate(() => new Promise(res => {
+      const q = indexedDB.open('lifeinstrument-db');
+      q.onsuccess = () => { const n = q.result.version; q.result.close(); res(n); };
+      q.onerror = () => res(-1); }));
+    is('  the database really is at Dexie\'s number', got, Number(v) * 10);
+    await b4.close();
+  }
+
   console.log('\n4. an unfinished merge cannot be built');
   {
     const {execFileSync} = require('child_process');
