@@ -5790,5 +5790,70 @@ html[data-theme="light"] .overlay:has(.modal.rite){background:rgba(70,55,40,.42)
   html[data-theme="dark"] .sheen::after,html:not([data-theme="light"]) .sheen::after{animation:none;opacity:0}
   .neu,.dv-sw i::after,.card{transition:none}
 }
+
+/* ============================================================
+   11. THE HAND, AND THE CEREMONIAL FACE
+
+   Two voices besides the house's own, each with one job.
+
+   THE HAND (Caveat) is for lines addressed TO the person: the prompt that
+   asks them something, the affirmation they wrote for themselves, the note
+   about who they become around somebody. Those are not typeset instructions;
+   they are a note left out on the desk, and setting them in the same face as
+   a button label is what made them read as instructions. It is set larger
+   than the text it replaces, because a handwriting face has a small x-height
+   and matching the point size would shrink it.
+
+   THE DISPLAY FACE (Playfair Display) is for the ceremonial: the lines on
+   the way into a reading, a milestone, the name of an era, and — in the dark
+   room only — the title over each page. The light room keeps EB Garamond for
+   titles: a writing desk in daylight does not need the ornate cut, and the
+   dark room is where the house is allowed to be theatrical.
+
+   Neither appears in functional text. A face with this much personality in a
+   button, a label or a column of numbers is only harder to read.
+   ============================================================ */
+.hand{font-family:var(--hand);font-size:1.18em;line-height:1.5;letter-spacing:.01em}
+
+/* lines the house says to you */
+.vb-affirm,.still-mantra,.th-quote,.cc-lead,.dv-prompt-d,
+.value-field .q,.gentle-prompt{font-family:var(--hand);font-style:normal;letter-spacing:.01em}
+.vb-affirm{font-size:1.32rem;line-height:1.45}
+.still-mantra{font-size:1.5rem}
+.th-quote{font-size:1.12rem;line-height:1.4}
+.cc-lead{font-size:1.16rem;line-height:1.45}
+.dv-prompt-d{font-size:1.16rem}
+.value-field .q{font-size:1.42rem;color:var(--text)}
+/* and the placeholder in a field that is asking rather than collecting */
+.inp.serif-lg::placeholder,.scr-area::placeholder,textarea.inp::placeholder{
+  font-family:var(--hand);font-size:1.15em;opacity:.75}
+
+/* the ceremonial */
+.dv-veil-l{font-family:var(--display);font-style:normal;font-weight:400;letter-spacing:.01em}
+.dv-veil-l:first-child{font-weight:700}
+.fx-mile-word{font-family:var(--display);font-style:normal;font-weight:700;font-size:1.6rem;letter-spacing:.02em}
+.era-name{font-family:var(--display);font-variant-caps:small-caps;letter-spacing:.06em}
+html[data-theme="dark"] .page-head h1,html:not([data-theme="light"]) .page-head h1{
+  font-family:var(--display);font-style:italic;font-weight:400;letter-spacing:.005em}
+
+/* ---------- a line drawn under something rather than set under it ----------
+   text-decoration gives a rule of exactly even weight, which is the one thing
+   a person marking a page never produces. This is a pen going over the words
+   once, so it wanders. */
+.hand-u{text-decoration:none;padding-bottom:5px;background-repeat:repeat-x;background-position:left bottom;
+  background-size:104px 9px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='104' height='9'%3E%3Cpath d='M1 6.4Q11 2.6 21 5.2T41 4.1Q51 1.4 61 5.1T81 4.2Q91 1.6 103 5.4' stroke='%23b08968' stroke-width='1.5' stroke-linecap='round' fill='none' opacity='0.55'/%3E%3C/svg%3E")}
+html[data-theme="dark"] .hand-u,html:not([data-theme="light"]) .hand-u{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='104' height='9'%3E%3Cpath d='M1 6.4Q11 2.6 21 5.2T41 4.1Q51 1.4 61 5.1T81 4.2Q91 1.6 103 5.4' stroke='%23d4a44c' stroke-width='1.5' stroke-linecap='round' fill='none' opacity='0.5'/%3E%3C/svg%3E")}
+/* the room you are in, and the tab you are on, are marked rather than ruled */
+.nav a.active .lbl,.tab.on,.chip.on .lbl,[data-cdtab].on{
+  background-repeat:repeat-x;background-position:left bottom;background-size:104px 9px}
+.nav a.active .lbl{padding-bottom:4px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='104' height='9'%3E%3Cpath d='M1 6.4Q11 2.6 21 5.2T41 4.1Q51 1.4 61 5.1T81 4.2Q91 1.6 103 5.4' stroke='%23b08968' stroke-width='1.4' stroke-linecap='round' fill='none' opacity='0.45'/%3E%3C/svg%3E")}
+/* a wavy line under a word is decoration; someone who has asked for less
+   motion has not asked for less decoration, so only the motion above stands
+   down and this stays. */
+@media (prefers-reduced-motion:reduce){
+  .hand-u,.nav a.active .lbl{background-image:none;border-bottom:1px solid color-mix(in srgb,var(--page-accent) 45%,transparent)}
+}
 </style>
 </head>

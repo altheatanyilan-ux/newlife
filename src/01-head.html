@@ -39,7 +39,7 @@
      promises for the faces themselves. There is no noscript fallback: with
      scripting off this page renders nothing at all, so a second copy of the
      stylesheet would only be one more blocking request serving nobody. -->
-<link rel="stylesheet" media="print" onload="this.media='all';this.onload=null" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Nunito+Sans:ital,opsz,wght@0,6..12,300;0,6..12,400;0,6..12,600;0,6..12,700;1,6..12,400&family=Noto+Serif+SC:wght@400;600&family=Lora:ital,wght@0,400;1,400;1,500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" media="print" onload="this.media='all';this.onload=null" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Nunito+Sans:ital,opsz,wght@0,6..12,300;0,6..12,400;0,6..12,600;0,6..12,700;1,6..12,400&family=Noto+Serif+SC:wght@400;600&family=Lora:ital,wght@0,400;1,400;1,500&family=Caveat:wght@400;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 /* ============================================================
    0. DESIGN SYSTEM
@@ -54,6 +54,15 @@
   --sans:'Nunito Sans','Helvetica Neue',Arial,sans-serif;
   --han:'Noto Serif SC','EB Garamond',serif;
   --quote:'Lora',Georgia,serif;
+  /* The two voices the house speaks in besides its own. The hand is for the
+     lines addressed TO the person — a prompt, an affirmation, a note about
+     somebody they know — because those are not typeset instructions, they are
+     a note left out on the desk. The display face is for the ceremonial: a
+     title on the way into a reading, a milestone, the name of an era. Neither
+     is ever used for functional text, where a face with this much personality
+     is only harder to read. */
+  --hand:'Caveat',ui-rounded,'Bradley Hand','Segoe Print',cursive;
+  --display:'Playfair Display','EB Garamond',Georgia,serif;
   --mono:'IBM Plex Mono','SF Mono',Menlo,monospace;
   --ease:cubic-bezier(.4,0,.2,1);
   /* the ink: warm cream on the dark ground — an old scroll by candlelight */
