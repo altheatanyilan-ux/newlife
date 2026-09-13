@@ -81,20 +81,22 @@
      This is the dark half. */
   --accent-glow:rgba(212,164,76,.10);
   --surface-shadow:0 4px 20px rgba(0,0,0,.3);
-  --surface-shadow-hover:0 8px 30px rgba(0,0,0,.4), 0 0 15px var(--accent-glow);
+  --surface-shadow-hover:0 8px 30px rgba(0,0,0,.5), 0 0 25px var(--accent-glow), 0 0 50px rgba(212,164,76,.05);
   --surface-border:1px solid rgba(212,164,76,.08);
   --surface-glow:0 0 20px rgba(212,164,76,.03);
   /* soft, tactile controls: light from the upper left, shadow to the lower right */
   --neu-bg:#2a2724;
-  --neu-raised:4px 4px 10px rgba(0,0,0,.4), -3px -3px 8px rgba(60,55,45,.3), inset 1px 1px 0 rgba(212,164,76,.05);
-  --neu-raised-hover:5px 5px 14px rgba(0,0,0,.45), -4px -4px 10px rgba(60,55,45,.34), inset 1px 1px 0 rgba(212,164,76,.08);
-  --neu-pressed:inset 3px 3px 8px rgba(0,0,0,.4), inset -2px -2px 6px rgba(60,55,45,.2);
+  --neu-raised:6px 6px 14px rgba(0,0,0,.5), -4px -4px 10px rgba(60,55,45,.35), inset 1px 1px 0 rgba(212,164,76,.08);
+  --neu-raised-hover:7px 7px 18px rgba(0,0,0,.55), -5px -5px 12px rgba(60,55,45,.4), inset 1px 1px 0 rgba(212,164,76,.13);
+  --neu-pressed:inset 4px 4px 10px rgba(0,0,0,.5), inset -3px -3px 8px rgba(60,55,45,.25);
   /* how high a thing sits: each level a little lighter, like earth to wood to leather */
-  --elev-0:#1a1816; --elev-1:#1f1d1b; --elev-2:#242220; --elev-3:#2c2a27; --elev-4:#34312d;
-  --elev-2-shadow:0 2px 10px rgba(0,0,0,.2), 0 0 0 1px rgba(212,164,76,.03);
-  --elev-3-shadow:0 8px 24px rgba(0,0,0,.35), 0 0 0 1px rgba(212,164,76,.06);
-  --elev-4-shadow:0 12px 32px rgba(0,0,0,.45), 0 0 20px rgba(212,164,76,.04);
-  --focus-ring:0 0 0 1px rgba(212,164,76,.18), 0 0 15px rgba(212,164,76,.07), 0 0 30px rgba(212,164,76,.035);
+  --elev-0:#1a1816; --elev-1:#222018; --elev-2:#2a2822; --elev-3:#35322c; --elev-4:#403d36;
+  --elev-2-shadow:0 4px 16px rgba(0,0,0,.3), 0 0 0 1px rgba(212,164,76,.06);
+  --elev-3-shadow:0 10px 30px rgba(0,0,0,.45), 0 0 0 1px rgba(212,164,76,.1);
+  --elev-4-shadow:0 16px 40px rgba(0,0,0,.55), 0 0 25px rgba(212,164,76,.08);
+  /* attention, made visible: a ring you can see, a halo, and two widths of
+     warmth past it. The old one was a rounding error at reading distance. */
+  --focus-ring:0 0 0 1.5px rgba(212,164,76,.25), 0 0 20px rgba(212,164,76,.12), 0 0 40px rgba(212,164,76,.06), 0 0 60px rgba(212,164,76,.03);
   /* 宣纸 — the ground the whole house is written on. Pulp laid down
      unevenly, long mulberry fibres lying loose in it at odds with each
      other, and a fine tooth over all of it. Thresholded turbulence, not
@@ -139,9 +141,9 @@ html[data-theme="light"]{
   --surface-border:1px solid rgba(120,90,60,.07);
   --surface-glow:none;
   --neu-bg:#ece5dc;
-  --neu-raised:3px 3px 8px rgba(120,90,60,.13), -3px -3px 8px rgba(255,255,255,.85);
-  --neu-raised-hover:4px 4px 11px rgba(120,90,60,.17), -4px -4px 10px rgba(255,255,255,.9);
-  --neu-pressed:inset 2px 2px 6px rgba(120,90,60,.11), inset -2px -2px 6px rgba(255,255,255,.75);
+  --neu-raised:5px 5px 12px rgba(120,90,60,.18), -4px -4px 10px rgba(255,255,255,.85);
+  --neu-raised-hover:6px 6px 15px rgba(120,90,60,.22), -5px -5px 12px rgba(255,255,255,.92);
+  --neu-pressed:inset 4px 4px 10px rgba(120,90,60,.15), inset -3px -3px 8px rgba(255,255,255,.75);
   --elev-0:#f5f0ea; --elev-1:#faf6f0; --elev-2:#fffdf9; --elev-3:#fffdf9; --elev-4:#fffdf9;
   --elev-2-shadow:0 1px 3px rgba(120,90,60,.07), 0 4px 14px rgba(120,90,60,.05);
   --elev-3-shadow:0 6px 22px rgba(120,90,60,.12), 0 1px 3px rgba(120,90,60,.08);
@@ -5249,9 +5251,9 @@ select.sm-active{border-color:var(--page-accent);
 /* candlelight moving across a polished back, while it waits to be chosen */
 .dv-pick .tc-back{position:relative;overflow:hidden}
 .dv-pick .tc-back::after{content:"";position:absolute;inset:0;pointer-events:none;
-  background:linear-gradient(105deg,transparent 40%,rgba(212,164,76,.08) 45%,rgba(212,164,76,.16) 50%,
-    rgba(212,164,76,.08) 55%,transparent 60%);
-  transform:translateX(-100%);animation:dvShimmer 3.4s var(--ease) infinite;
+  background:linear-gradient(105deg,transparent 35%,rgba(212,164,76,.15) 42%,rgba(212,164,76,.25) 50%,
+    rgba(212,164,76,.15) 58%,transparent 65%);
+  transform:translateX(-100%);animation:dvShimmer 2.5s var(--ease) infinite;
   animation-delay:calc(var(--i,0) * -.28s)}
 @keyframes dvShimmer{0%{transform:translateX(-100%)}60%,100%{transform:translateX(100%)}}
 .dv-pick:hover,.dv-pick:focus-visible{filter:drop-shadow(0 0 14px rgba(212,164,76,.32)) drop-shadow(0 6px 14px color-mix(in srgb,var(--terra,#b08968) 55%,transparent))}
@@ -5986,10 +5988,11 @@ html.mfx-cursor .pl-gbaredge{cursor:ew-resize!important}
    soft-light tints all of it and moves none of it. */
 #warmth{position:fixed;inset:0;pointer-events:none;z-index:99990;
   transition:background 4s linear}
-/* 1.7a — the page's own name breathes. Under one per cent: you should only
-   ever catch it by staring, and then only just. */
+/* 1.7a — the page's own name breathes. Under one per cent was a rounding
+   error you would never catch; at two, with the brightness moving with it,
+   you notice within a couple of seconds and then stop noticing. */
 .page-head h1{animation:mfxBreathe 6s ease-in-out infinite;transform-origin:left center}
-@keyframes mfxBreathe{0%,100%{transform:scale(1)}50%{transform:scale(1.008)}}
+@keyframes mfxBreathe{0%,100%{transform:scale(1);opacity:.94}50%{transform:scale(1.02);opacity:1}}
 
 /* 1.8a — a press you can feel: down fast, back with a little overshoot */
 .btn.primary,.btn,#fab{transition:transform .2s cubic-bezier(.34,1.56,.64,1),
@@ -6122,8 +6125,11 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
     transform calc(.3s * var(--page-motion-speed)) var(--page-ease),
     box-shadow .35s var(--ease)}
 html[data-theme="dark"] .card:hover,html:not([data-theme="light"]) .card:hover{
-  box-shadow:0 8px 30px rgba(0,0,0,.4), 0 0 20px color-mix(in srgb,var(--page-accent) 9%,transparent);
-  border-color:color-mix(in srgb,var(--page-accent) 16%,transparent)}
+  box-shadow:0 8px 30px rgba(0,0,0,.5),
+    0 0 25px color-mix(in srgb,var(--page-accent) 20%,transparent),
+    0 0 50px color-mix(in srgb,var(--page-accent) 10%,transparent),
+    0 0 80px color-mix(in srgb,var(--terra) 6%,transparent);
+  border-color:color-mix(in srgb,var(--page-accent) 30%,transparent)}
 html[data-theme="light"] .card:hover{box-shadow:var(--surface-shadow-hover)}
 /* a card that belongs to a section takes that section's colour into its glow */
 .card[data-accent]{--page-accent:var(--acc,var(--terra))}
@@ -6238,7 +6244,7 @@ html[data-theme="dark"] [data-reveal].shown .wd,html:not([data-theme="light"]) [
 
 /* breathing: only where something is actually breathing */
 .breathing{animation:txBreathe 4s ease-in-out infinite}
-@keyframes txBreathe{0%,100%{transform:scale(1);opacity:.9}50%{transform:scale(1.015);opacity:1}}
+@keyframes txBreathe{0%,100%{transform:scale(1);opacity:.92}50%{transform:scale(1.03);opacity:1}}
 
 /* firelight moving across engraved text — dark only, and slowly */
 html[data-theme="dark"] .flow,html:not([data-theme="light"]) .flow{
@@ -6269,12 +6275,27 @@ html[data-theme="dark"] .flow,html:not([data-theme="light"]) .flow{
    fixed children of body — they would all reposition and the page would come
    apart. The same warmth is breathed through the tint sheet that is already
    over everything instead, which moves nothing. */
-html[data-theme="dark"] #warmth,html:not([data-theme="light"]) #warmth{
-  animation:candle 8s ease-in-out infinite}
-@keyframes candle{0%,100%{opacity:1}20%{opacity:.86}40%{opacity:1.0}60%{opacity:.9}80%{opacity:.97}}
+/* The tint sheet's own alpha is between nothing and five per cent depending
+   on the hour, so fading IT in and out can only ever move the page by a
+   fraction of a per cent — which is what the first attempt did, and you could
+   not see it. Two sheets of its own instead, one warm and one dark, crossing
+   each other: each is a fixed colour and only its opacity animates, so this
+   stays on the compositor and repaints nothing. The page rises about two per
+   cent into the gold and falls about two per cent into the dark, over six
+   seconds, forever. A candle, not a backlight. */
+html[data-theme="dark"] #warmth::before,html:not([data-theme="light"]) #warmth::before,
+html[data-theme="dark"] #warmth::after,html:not([data-theme="light"]) #warmth::after{
+  content:"";position:absolute;inset:0;pointer-events:none;will-change:opacity}
+html[data-theme="dark"] #warmth::after,html:not([data-theme="light"]) #warmth::after{
+  background:rgba(212,164,76,.05);animation:candleUp 6s ease-in-out infinite}
+html[data-theme="dark"] #warmth::before,html:not([data-theme="light"]) #warmth::before{
+  background:rgba(0,0,0,.028);animation:candleDown 6s ease-in-out infinite}
+@keyframes candleUp{0%,100%{opacity:0}15%{opacity:1}30%{opacity:0}50%{opacity:.85}65%{opacity:0}80%{opacity:.6}}
+@keyframes candleDown{0%,100%{opacity:0}30%{opacity:1}65%{opacity:.7}}
 
-/* four soft lights, far out of focus, drifting a few pixels a minute.
-   Invisible unless you look for them; without them the dark is dead. */
+/* five soft lights, far out of focus, drifting across the better part of a
+   minute. Warm pools you can actually find if you look past the words —
+   distant candles through frosted glass. */
 html[data-theme="dark"] body[data-route="today"]::after,
 html[data-theme="dark"] body[data-route="values"]::after,
 html[data-theme="dark"] body[data-route="journals"]::after,
@@ -6283,11 +6304,12 @@ html:not([data-theme="light"]) body[data-route="values"]::after,
 html:not([data-theme="light"]) body[data-route="journals"]::after{
   content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
   background:
-    radial-gradient(120px circle at 15% 25%,rgba(212,164,76,.018) 0%,transparent 100%),
-    radial-gradient(180px circle at 70% 60%,rgba(176,137,104,.015) 0%,transparent 100%),
-    radial-gradient(90px circle at 40% 80%,rgba(160,114,126,.013) 0%,transparent 100%),
-    radial-gradient(150px circle at 85% 20%,rgba(127,145,106,.01) 0%,transparent 100%);
-  animation:bokeh 60s ease-in-out infinite alternate}
+    radial-gradient(160px circle at 15% 25%,rgba(212,164,76,.045) 0%,transparent 100%),
+    radial-gradient(220px circle at 70% 60%,rgba(176,137,104,.035) 0%,transparent 100%),
+    radial-gradient(130px circle at 40% 80%,rgba(160,114,126,.03) 0%,transparent 100%),
+    radial-gradient(190px circle at 85% 20%,rgba(127,145,106,.025) 0%,transparent 100%),
+    radial-gradient(140px circle at 55% 40%,rgba(212,164,76,.02) 0%,transparent 100%);
+  animation:bokeh 45s ease-in-out infinite alternate}
 @keyframes bokeh{
   0%{transform:translate(0,0) scale(1)}
   25%{transform:translate(20px,-15px) scale(1.02)}
@@ -6295,14 +6317,16 @@ html:not([data-theme="light"]) body[data-route="journals"]::after{
   75%{transform:translate(15px,10px) scale(1.01)}
   100%{transform:translate(-15px,-20px) scale(1)}}
 
-/* a thin band of warm light crossing something that deserves it. Two or
-   three per cent per stop: a shimmer, not a rainbow. */
+/* a band of warm light crossing something that deserves it, every five
+   seconds. Five to eight per cent per stop, and a cold one in the middle of
+   the warm ones so it reads as a reflection rather than a wash. */
 .sheen{position:relative;overflow:hidden}
 html[data-theme="dark"] .sheen::after,html:not([data-theme="light"]) .sheen::after{
   content:"";position:absolute;inset:0;pointer-events:none;z-index:2;
-  background:linear-gradient(105deg,transparent 30%,rgba(212,164,76,.035) 38%,
-    rgba(160,114,126,.035) 42%,rgba(127,145,106,.035) 46%,rgba(212,164,76,.025) 50%,transparent 58%);
-  animation:sheenSweep 6s ease-in-out infinite}
+  background:linear-gradient(105deg,transparent 25%,rgba(212,164,76,.07) 33%,
+    rgba(160,114,126,.08) 38%,rgba(127,145,106,.07) 43%,rgba(107,127,142,.06) 48%,
+    rgba(212,164,76,.05) 53%,transparent 60%);
+  animation:sheenSweep 5s ease-in-out infinite}
 @keyframes sheenSweep{0%{transform:translateX(-120%)}100%{transform:translateX(120%)}}
 
 /* ---------- 10b. a rite takes the room ----------
@@ -6364,7 +6388,9 @@ html[data-theme="light"] .overlay:has(.modal.rite){background:rgba(70,55,40,.42)
   .breathing,.flow,.morph.out,.morph.in,.tw-cursor.blink{animation:none}
   html[data-theme="dark"] .flow,html:not([data-theme="light"]) .flow{
     background:none;-webkit-text-fill-color:currentColor;color:var(--text)}
-  html[data-theme="dark"] #warmth,html:not([data-theme="light"]) #warmth{animation:none}
+  html[data-theme="dark"] #warmth::before,html:not([data-theme="light"]) #warmth::before,
+  html[data-theme="dark"] #warmth::after,html:not([data-theme="light"]) #warmth::after{
+    animation:none;opacity:0}
   html[data-theme="dark"] body[data-route]::after,html:not([data-theme="light"]) body[data-route]::after{animation:none}
   html[data-theme="dark"] .sheen::after,html:not([data-theme="light"]) .sheen::after{animation:none;opacity:0}
   .neu,.dv-sw i::after,.card{transition:none}

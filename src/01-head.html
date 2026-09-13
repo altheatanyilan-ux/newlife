@@ -81,20 +81,22 @@
      This is the dark half. */
   --accent-glow:rgba(212,164,76,.10);
   --surface-shadow:0 4px 20px rgba(0,0,0,.3);
-  --surface-shadow-hover:0 8px 30px rgba(0,0,0,.4), 0 0 15px var(--accent-glow);
+  --surface-shadow-hover:0 8px 30px rgba(0,0,0,.5), 0 0 25px var(--accent-glow), 0 0 50px rgba(212,164,76,.05);
   --surface-border:1px solid rgba(212,164,76,.08);
   --surface-glow:0 0 20px rgba(212,164,76,.03);
   /* soft, tactile controls: light from the upper left, shadow to the lower right */
   --neu-bg:#2a2724;
-  --neu-raised:4px 4px 10px rgba(0,0,0,.4), -3px -3px 8px rgba(60,55,45,.3), inset 1px 1px 0 rgba(212,164,76,.05);
-  --neu-raised-hover:5px 5px 14px rgba(0,0,0,.45), -4px -4px 10px rgba(60,55,45,.34), inset 1px 1px 0 rgba(212,164,76,.08);
-  --neu-pressed:inset 3px 3px 8px rgba(0,0,0,.4), inset -2px -2px 6px rgba(60,55,45,.2);
+  --neu-raised:6px 6px 14px rgba(0,0,0,.5), -4px -4px 10px rgba(60,55,45,.35), inset 1px 1px 0 rgba(212,164,76,.08);
+  --neu-raised-hover:7px 7px 18px rgba(0,0,0,.55), -5px -5px 12px rgba(60,55,45,.4), inset 1px 1px 0 rgba(212,164,76,.13);
+  --neu-pressed:inset 4px 4px 10px rgba(0,0,0,.5), inset -3px -3px 8px rgba(60,55,45,.25);
   /* how high a thing sits: each level a little lighter, like earth to wood to leather */
-  --elev-0:#1a1816; --elev-1:#1f1d1b; --elev-2:#242220; --elev-3:#2c2a27; --elev-4:#34312d;
-  --elev-2-shadow:0 2px 10px rgba(0,0,0,.2), 0 0 0 1px rgba(212,164,76,.03);
-  --elev-3-shadow:0 8px 24px rgba(0,0,0,.35), 0 0 0 1px rgba(212,164,76,.06);
-  --elev-4-shadow:0 12px 32px rgba(0,0,0,.45), 0 0 20px rgba(212,164,76,.04);
-  --focus-ring:0 0 0 1px rgba(212,164,76,.18), 0 0 15px rgba(212,164,76,.07), 0 0 30px rgba(212,164,76,.035);
+  --elev-0:#1a1816; --elev-1:#222018; --elev-2:#2a2822; --elev-3:#35322c; --elev-4:#403d36;
+  --elev-2-shadow:0 4px 16px rgba(0,0,0,.3), 0 0 0 1px rgba(212,164,76,.06);
+  --elev-3-shadow:0 10px 30px rgba(0,0,0,.45), 0 0 0 1px rgba(212,164,76,.1);
+  --elev-4-shadow:0 16px 40px rgba(0,0,0,.55), 0 0 25px rgba(212,164,76,.08);
+  /* attention, made visible: a ring you can see, a halo, and two widths of
+     warmth past it. The old one was a rounding error at reading distance. */
+  --focus-ring:0 0 0 1.5px rgba(212,164,76,.25), 0 0 20px rgba(212,164,76,.12), 0 0 40px rgba(212,164,76,.06), 0 0 60px rgba(212,164,76,.03);
   /* 宣纸 — the ground the whole house is written on. Pulp laid down
      unevenly, long mulberry fibres lying loose in it at odds with each
      other, and a fine tooth over all of it. Thresholded turbulence, not
@@ -139,9 +141,9 @@ html[data-theme="light"]{
   --surface-border:1px solid rgba(120,90,60,.07);
   --surface-glow:none;
   --neu-bg:#ece5dc;
-  --neu-raised:3px 3px 8px rgba(120,90,60,.13), -3px -3px 8px rgba(255,255,255,.85);
-  --neu-raised-hover:4px 4px 11px rgba(120,90,60,.17), -4px -4px 10px rgba(255,255,255,.9);
-  --neu-pressed:inset 2px 2px 6px rgba(120,90,60,.11), inset -2px -2px 6px rgba(255,255,255,.75);
+  --neu-raised:5px 5px 12px rgba(120,90,60,.18), -4px -4px 10px rgba(255,255,255,.85);
+  --neu-raised-hover:6px 6px 15px rgba(120,90,60,.22), -5px -5px 12px rgba(255,255,255,.92);
+  --neu-pressed:inset 4px 4px 10px rgba(120,90,60,.15), inset -3px -3px 8px rgba(255,255,255,.75);
   --elev-0:#f5f0ea; --elev-1:#faf6f0; --elev-2:#fffdf9; --elev-3:#fffdf9; --elev-4:#fffdf9;
   --elev-2-shadow:0 1px 3px rgba(120,90,60,.07), 0 4px 14px rgba(120,90,60,.05);
   --elev-3-shadow:0 6px 22px rgba(120,90,60,.12), 0 1px 3px rgba(120,90,60,.08);
