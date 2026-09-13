@@ -148,8 +148,32 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     const ids = [...document.querySelectorAll('#main .page > [id^="t-"]')].map(n => n.id);
     return ids.indexOf('t-still') > ids.indexOf('t-theatre'); }));
   is('  four ways in', await p.$$eval('[data-stkind]', n => n.length), 4);
-  yes('  and two quick doors beside it',
-      await p.evaluate(() => !!document.querySelector('#stDraw') && !!document.querySelector('#stIntuit')));
+  /* Drawn is not the same as wired. The whole section once rendered perfectly
+     with every button dead, because the line that binds it was never added —
+     so press them rather than merely finding them. */
+  await p.evaluate(() => document.querySelector('[data-stkind="breath"]').click()); await p.waitForTimeout(900);
+  is('pressing a tab changes the practice', await p.evaluate(() => stillness().prefs.kind), 'breath');
+  yes('  and the pane follows', await p.evaluate(() => !!document.querySelector('[data-stpat]')));
+  await p.evaluate(() => document.querySelector('[data-stmin="20"]').click()); await p.waitForTimeout(900);
+  is('pressing a length sets it', await p.evaluate(() => stillness().prefs.minutes), 20);
+  await p.evaluate(() => { document.querySelector('#t-still').open = true;
+    document.querySelector('#stBegin').click(); });
+  await p.waitForTimeout(700);
+  yes('pressing begin starts a sitting', await p.evaluate(() => !!document.querySelector('.still-run')));
+  yes('  with a circle that breathes', await p.evaluate(() => !!document.querySelector('.still-circle')));
+  await p.evaluate(() => document.querySelector('#stillEnd').click()); await p.waitForTimeout(600);
+  yes('  and ending it asks how it went', await p.evaluate(() => !!document.querySelector('#stDepth')));
+  await p.evaluate(() => closeModals());
+  await today_();
+  await p.evaluate(() => { document.querySelector('#t-still').open = true; document.querySelector('#stDraw').click(); });
+  await p.waitForTimeout(600);
+  yes('the quick draw opens', await p.evaluate(() => !!document.querySelector('[data-qd]')));
+  await p.evaluate(() => closeModals());
+  await p.evaluate(() => { document.querySelector('#t-still').open = true; document.querySelector('#stIntuit').click(); });
+  await p.waitForTimeout(600);
+  yes('  and so does the intuition log', await p.evaluate(() => !!document.querySelector('#inText')));
+  await p.evaluate(() => closeModals());
+  await today_();
   /* breathwork draws the pattern it is actually running */
   const pat = await p.evaluate(() => BREATH_PATTERNS.find(x => x.id === 'calm'));
   is('the calming breath is in for three, out for six', `${pat.inh}/${pat.exh}`, '3/6');
