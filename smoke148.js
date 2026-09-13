@@ -1,6 +1,7 @@
-/* smoke148 — Today in compartments: the plan on its own line, the clock and
-   the list side by side at exactly the same height, everything scrolling
-   inside its own box, and one plain column again on a narrow screen */
+/* smoke148 — Today, one room at a time: every section on a line of its own
+   and about a screenful tall, scrolling inside its own rectangle, with the
+   index pinned clear of the chrome so it is the way between them — and one
+   plain column again on a narrow screen */
 const {chromium} = require('playwright');
 const path = require('path');
 const FILE = 'file://' + path.resolve('/home/user/newlife/index.html');
@@ -36,7 +37,7 @@ const rects = () => {
       saveNow(); rerender(); }); await p.waitForTimeout(900); }
     if(sittings){ await p.evaluate(() => { const st = planState(); const T = today();
       st.focusSessions = st.focusSessions || [];
-      for(let i=0;i<6;i++) st.focusSessions.push({id:'fs'+i, type:'focus', taskId:null, duration:25,
+      for(let i=0;i<14;i++) st.focusSessions.push({id:'fs'+i, type:'focus', taskId:null, duration:25,
         startedAt:new Date(Date.parse(T+'T09:00:00') + i*3600000).toISOString(),
         endedAt:new Date(Date.parse(T+'T09:25:00') + i*3600000).toISOString(),
         note:'Wrote the second half of the chapter and cut two paragraphs from the first.'});
@@ -50,27 +51,36 @@ const rects = () => {
   console.log('\n1. the plan has a line to itself');
   let p = await open(1440, 900);
   let m = await p.evaluate(rects);
-  yes('it spans the width the pair below it shares', m.plan.l <= m.focus.l + 2 && m.plan.r >= m.tasks.r - 2,
-      `plan ${m.plan.l}-${m.plan.r}, pair ${m.focus.l}-${m.tasks.r}`);
-  yes('  and stands above both of them', m.plan.b <= m.focus.t + 2 && m.plan.b <= m.tasks.t + 2);
+  yes('it spans the same width as the sections under it',
+      m.plan.l === m.focus.l && m.plan.r === m.tasks.r,
+      `plan ${m.plan.l}-${m.plan.r}, focus ${m.focus.l}-${m.focus.r}, tasks ${m.tasks.l}-${m.tasks.r}`);
+  yes('  and stands above them', m.plan.b <= m.focus.t + 2 && m.plan.b <= m.tasks.t + 2);
   yes('  it is still a section you can fold', await p.evaluate(() => {
     const d = document.getElementById('t-plan'); const was = d.open;
     d.querySelector('summary').click(); const now = d.open; d.open = was; return was !== now; }));
-  yes('  and folding it gives the room back rather than leaving a square',
+  yes('  and folding it gives the room back rather than leaving an empty screenful',
       await p.evaluate(() => { const d = document.getElementById('t-plan');
         const openH = d.getBoundingClientRect().height;
         d.open = false; const shutH = d.getBoundingClientRect().height; d.open = true;
         return shutH < openH * 0.8 && shutH < 90; }));
 
-  console.log('\n2. the clock and the list, side by side and the same height');
-  yes('the list is to the right of the clock, not below it',
-      m.tasks.l >= m.focus.r - 2, `focus ${m.focus.l}-${m.focus.r}, tasks ${m.tasks.l}-${m.tasks.r}`);
-  is('  their tops are level', m.focus.t, m.tasks.t);
-  is('  and so are their bottoms', m.focus.b, m.tasks.b);
-  is('  which is to say they are exactly the same height', m.focus.h, m.tasks.h);
-  const wF = m.focus.w, wT = m.tasks.w;
-  yes('  neither column is a sliver', Math.min(wF, wT) / Math.max(wF, wT) > 0.8, `${wF} vs ${wT}`);
-  yes('  and nothing runs off the side', !m.hscroll);
+  console.log('\n2. every section has a line of its own, about a screenful tall');
+  const secs = ['plan','focus','tasks','checkin','habits','theatre','still'];
+  yes('nothing shares a line with anything else', secs.every((k, i) =>
+    i === 0 || m[k].t >= m[secs[i-1]].b - 2), secs.map(k => `${k} ${m[k].t}-${m[k].b}`).join(', '));
+  yes('  they all use the whole width', secs.every(k => m[k].w === m.plan.w),
+      secs.map(k => `${k} ${m[k].w}`).join(', '));
+  /* a screenful is the ceiling: nothing is taller than one, and anything
+     with more in it than that is exactly one and scrolls inside it */
+  yes('  none is taller than a screenful', secs.every(k => m[k].h <= m.vh),
+      secs.map(k => `${k} ${m[k].h}`).join(', ') + ` of ${m.vh}`);
+  yes('  and the full ones are a screenful, near enough',
+      secs.filter(k => m[k].scrolls).length > 0 &&
+      secs.filter(k => m[k].scrolls).every(k => m[k].h > m.vh * 0.82),
+      secs.filter(k => m[k].scrolls).map(k => `${k} ${m[k].h}`).join(', ') || 'none scrolls');
+  yes('  a short one takes only the room it needs',
+      m.plan.h < m.vh * 0.5, `plan ${m.plan.h} of ${m.vh}`);
+  yes('  nothing runs off the side', !m.hscroll);
 
   console.log('\n3. a long list scrolls inside its own compartment');
   const sc = await p.evaluate(() => { const t = document.getElementById('t-tasks');
@@ -169,7 +179,7 @@ const rects = () => {
       inSight: seen.bottom <= box.bottom + 2 && seen.bottom > box.top,
       headPinned: Math.round(head.top) <= Math.round(box.top) + 3,
       rows: f.querySelectorAll('.fl-row').length}; });
-  yes('the ledger of the day\'s sittings is there', led.found && led.rows === 6, `${led.rows} sittings`);
+  yes('the ledger of the day\'s sittings is there', led.found && led.rows === 14, `${led.rows} sittings`);
   yes('  opened, it runs off the bottom of its box', led.outOfSight);
   yes('  the box scrolls', led.scrolls);
   yes('  and scrolling it brings the whole ledger into view', led.inSight && led.moved > 0,
@@ -177,16 +187,34 @@ const rects = () => {
   yes('  with the Focus heading still pinned to the top', led.headPinned);
   await p.close();
 
-  console.log('\n6. the reflective half goes in pairs');
-  p = await open(1440, 900, {many:false});
-  m = await p.evaluate(rects);
-  yes('the check-in and the habits share a row', m.habits.l >= m.checkin.r - 2);
-  is('  and are the same height as each other', m.checkin.h, m.habits.h);
-  yes('  the theatre and the stillness share the next', m.still.l >= m.theatre.r - 2);
-  yes('  and the pairs are stacked, not interleaved', m.theatre.t >= m.checkin.t);
-  is('the index offers them in the order the page has them',
+  console.log('\n6. the index is pinned, and it is the way between the rooms');
+  p = await open(1440, 900, {many:true});
+  is('it offers the sections in the order the page has them',
      await p.evaluate(() => [...document.querySelectorAll('[data-jump]')].map(n => n.dataset.jump).join(',')),
      't-plan,t-focus,t-tasks,t-checkin,t-habits,t-theatre,t-still,t-tonight');
+  await p.evaluate(() => document.querySelector('[data-jump="t-tasks"]').click());
+  await p.waitForTimeout(1300);
+  const nav = await p.evaluate(() => {
+    const bar = document.querySelector('.today-jump').getBoundingClientRect();
+    const t = document.getElementById('t-tasks').getBoundingClientRect();
+    /* The chrome at the top of the page is fixed, not scrolled: the top bar
+       sits at top:14 and the Back pill, when it is showing, at top:16 and
+       about 33 tall. At top:0 the strip went under them and lost its first
+       button, so it has to stick below all of that — which is a statement
+       about where the strip is, and true whether or not the pill is up. */
+    return {scrolled: window.scrollY,
+      barTop: Math.round(bar.top), barBottom: Math.round(bar.bottom),
+      pinned: Math.round(bar.top) > 0 && Math.round(bar.bottom) <= innerHeight,
+      clearOfTheChrome: Math.round(bar.top) >= 50,
+      landsUnderIt: Math.round(t.top) >= Math.round(bar.bottom) - 2,
+      andFitsBelow: Math.round(t.bottom) <= innerHeight + 2,
+      vh: innerHeight}; });
+  yes('a jump moves the page', nav.scrolled > 100, `scrolled ${nav.scrolled}`);
+  yes('  the strip is still on screen after it', nav.pinned, `${nav.barTop}–${nav.barBottom}`);
+  yes('  and clear of the chrome fixed above it', nav.clearOfTheChrome, `top ${nav.barTop}`);
+  yes('  the section lands under the strip, not behind it', nav.landsUnderIt);
+  yes('  and fills the screen from there down', nav.andFitsBelow,
+      `bottom vs ${nav.vh}`);
   await p.close();
 
   console.log('\n7. a narrow screen is the plain single column it always was');
@@ -195,7 +223,9 @@ const rects = () => {
   is('the clock and the list share a left edge', m.tasks.l, m.focus.l);
   yes('  the plan is above them both', m.plan.b <= m.focus.t + 2);
   yes('  the clock is above the list', m.focus.b <= m.tasks.t + 2);
-  yes('  the pairs stack too', m.habits.t >= m.checkin.b - 2 && m.still.t >= m.theatre.b - 2);
+  yes('  everything else stacks too', m.habits.t >= m.checkin.b - 2 && m.still.t >= m.theatre.b - 2);
+  yes('  a section is as tall as it needs to be, not a screenful',
+      m.tasks.h > m.vh * 0.9, `tasks ${m.tasks.h} of ${m.vh}`);
   yes('  nothing runs off the side', !m.hscroll);
   yes('  nothing is trapped in a scroller', !m.tasks.scrolls && !m.focus.scrolls,
       `tasks ${m.tasks.ch}/${m.tasks.sh}, focus ${m.focus.ch}/${m.focus.sh}`);

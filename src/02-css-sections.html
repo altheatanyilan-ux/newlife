@@ -709,40 +709,41 @@ button.tm-cell:hover{border-color:var(--page-accent)}
    Under the list it times. The ring is small on purpose: this is a companion
    to the day, not the subject of it. */
 /* ============================================================
-   THE DAY, IN COMPARTMENTS  —  class: .daybox
+   THE DAY, ONE ROOM AT A TIME  —  class: .daybox
    ------------------------------------------------------------
-   A day is not one long column. It is a set of rooms you look into: the
-   plan, the clock, the list, the check-in. So each one is given a box of a
-   fixed size and told to keep its contents inside it. A section that fills
-   up scrolls within its own square instead of shoving everything below it
-   down the page — nothing on this page moves because something else got
-   longer, and the whole arrangement stays where you left it.
+   A day is not one long column. It is a set of rooms you go into: the plan,
+   the clock, the list, the check-in. So each one is given a line to itself
+   and about a screenful of height, and told to keep its contents inside
+   that. A section that fills up scrolls within its own rectangle instead of
+   shoving everything below it down the page — nothing here moves because
+   something else got longer, and working on one section does not leave
+   another half in your eye.
 
-   The plan takes a line to itself. It is read once, at a glance, and it is
-   the frame the rest of the day hangs on; it also sizes to what it says
-   rather than holding a square open for text that isn't there.
-
-   Under it the clock and the list stand side by side at exactly the same
-   height, because choosing the next thing and timing it are one act and
-   they were a screenful apart. Then the reflective half, in pairs.
+   A screenful is measured from under the index, which is pinned to the top
+   of the page: scroll a section's heading up to the index and the section
+   fills what is left. That is what makes the index the way from one room to
+   the next rather than a shortcut through a long scroll.
 
    Folding a section away gives the room back rather than leaving an empty
-   square, which is what keeps every heading here worth clicking.
+   rectangle, which is what keeps every heading here worth clicking.
 
    Under 1000px the boxes come apart and it is the plain stacked page again:
-   one column, no frames, nothing scrolling inside anything.
+   one column, no frames, nothing scrolling inside anything. A phone has no
+   room to be inside a room.
 
    The class is daybox, not bento, because a bento grid already exists
    further down this sheet — the Review dashboard's twelve columns — and
    being further down, it quietly won every rule this block tried to set.
    ============================================================ */
-.daybox{display:grid;gap:12px;margin-top:14px;
+.daybox{display:grid;gap:12px;margin-top:14px;grid-template-columns:minmax(0,1fr);
   /* one compartment's height, and the only number that decides the shape of
-     the page. Everything open is this tall, so the boxes line up. */
-  --cell:clamp(340px,54vh,600px)}
+     the page: the screen, less the pinned index and a little air. The floor
+     keeps it usable on a short window, where a screenful is not much. */
+  --cell:max(360px,calc(100dvh - 106px))}
 .daybox>*{margin-top:0!important}
-.daybox-solo{grid-template-columns:minmax(0,1fr);--cell:clamp(150px,30vh,320px)}
-.daybox-pair{grid-template-columns:repeat(2,minmax(0,1fr))}
+/* both are one column now; the names are kept because the markup and the
+   tests speak them, and because a pair may want to come back */
+.daybox-solo,.daybox-pair{grid-template-columns:minmax(0,1fr)}
 @media (min-width:1000px){
   /* The box itself. Its fill is the page's own colour, not a card's, so the
      solid cards inside it still read as cards and a compartment never looks
@@ -755,13 +756,17 @@ button.tm-cell:hover{border-color:var(--page-accent)}
   .daybox>.t-sec::-webkit-scrollbar,.daybox>.focus-block::-webkit-scrollbar{width:9px}
   .daybox>.t-sec::-webkit-scrollbar-thumb,.daybox>.focus-block::-webkit-scrollbar-thumb{
     background:var(--line-2);border-radius:5px;border:2px solid transparent;background-clip:padding-box}
-  /* An open box is exactly one cell tall. That — and nothing else — is what
-     makes the clock and the list the same height: neither is told about the
-     other, they are both told the same number. */
-  .daybox>.t-sec[open],.daybox>.focus-block{height:var(--cell)}
+  /* A cell is the ceiling, not the floor. A section with more in it than a
+     screenful is exactly a screenful and scrolls inside that — which is the
+     point: you are in one room at a time. A section with less takes only
+     what it needs, because a screenful of nothing held open under "nothing
+     was named for today" is not focus, it is a hole. A shut one is its
+     heading alone: folding a section away has to give the room back. */
+  .daybox>.t-sec[open],.daybox>.focus-block{max-height:var(--cell);align-self:start}
   .daybox>.t-sec:not([open]){align-self:start;overflow:visible;padding-bottom:0}
-  /* the plan has no neighbour to match, so it takes only the room it needs */
-  .daybox-solo>.t-sec[open]{height:auto;max-height:var(--cell);align-self:start}
+  /* land a section under the pinned index, not behind it, whoever does the
+     scrolling — the jump buttons, the keyboard, or the browser itself */
+  .daybox>.t-sec,.daybox>.focus-block{scroll-margin-top:101px}
   /* The heading stays put while its contents move under it, so you always
      know which box you are reading. It is opaque and in the box's own colour
      — text scrolling past has to go behind it, not show through it. */
@@ -2554,10 +2559,14 @@ html.vision-deep .page-scene.on{opacity:var(--scene-op)}
 }
 
 /* ---------- Today's index ----------
-   The page is long on purpose; the index is how you get to the one thing you
-   opened it for. It sticks under the header and stays out of the way. */
-.today-jump{position:sticky;top:0;z-index:6;display:flex;gap:4px;flex-wrap:wrap;
-  margin:0 0 18px;padding:8px 0;background:linear-gradient(to bottom,var(--bg) 72%,transparent);
+   The page is long on purpose, and now that each section is a screenful the
+   index is not a shortcut through it — it is the way from one room to the
+   next. So it is pinned, and pinned clear of the chrome: at top:0 it sat
+   under the floating Back pill, which ate the first button on the strip.
+   The gradient goes transparent in the padding below the buttons, not
+   behind them, so nothing scrolls through a word. */
+.today-jump{position:sticky;top:56px;z-index:6;display:flex;gap:4px;flex-wrap:wrap;
+  margin:0 0 18px;padding:8px 0 14px;background:linear-gradient(to bottom,var(--bg) 78%,transparent);
   backdrop-filter:blur(6px)}
 .today-jump button{background:none;border:1px solid transparent;border-radius:999px;
   padding:3px 10px;font-family:var(--mono);font-size:.62rem;letter-spacing:.08em;
