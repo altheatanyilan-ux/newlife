@@ -350,6 +350,7 @@ function focusPanelHTML(){
           </div>`}
         </div>
       </div>
+      ${typeof focusLogHTML === 'function' ? focusLogHTML() : ''}
     </div>
   </section>`;
 }
@@ -505,4 +506,69 @@ function taskCrossedOff(id, done){
   FocusTimer.setTask(null);   /* and leaves the clock empty for the next thing */
   celebrateFinish(minutes);
   return true;
+}
+
+/* ============================================================
+   THE RECORD OF A SITTING
+   ------------------------------------------------------------
+   Two things are typed while a sitting is happening: what you are actually
+   doing, and — every time you pause — what the break is for. Both were being
+   written down and neither was ever shown back, which made them notes into a
+   drawer. They are the interesting part of the record: how long is only
+   half the question, and the other half is what the hour went on.
+   ============================================================ */
+const breakMinutes = br => { if(!br?.from || !br?.to) return 0;
+  return Math.max(0, Math.round((new Date(br.to) - new Date(br.from)) / 60000)); };
+const sessionBreakMinutes = s => sum((s.breaks || []).map(breakMinutes));
+function focusLogOn(day){
+  return (typeof focusSessions === 'function' ? focusSessions() : [])
+    .filter(s => (s.startedAt || '').slice(0, 10) === day)
+    .sort((a, b) => (a.startedAt || '').localeCompare(b.startedAt || ''));
+}
+/* every sitting there has ever been, newest first — the whole ledger */
+function focusLogAll(){
+  return (typeof focusSessions === 'function' ? focusSessions() : [])
+    .slice().sort((a, b) => (b.startedAt || '').localeCompare(a.startedAt || ''));
+}
+const _lgClock = iso => { if(!iso) return ''; const d = new Date(iso);
+  let h = d.getHours(), m = d.getMinutes(); const ap = h >= 12 ? 'pm' : 'am';
+  h = h % 12 || 12; return `${h}:${String(m).padStart(2, '0')}${ap}`; };
+/* One sitting, with what it was for, what was done in it, and every break in
+   it with the reason given at the time. */
+function focusSessionHTML(s, {withDate = false} = {}){
+  const t = s.taskId && typeof findTaskRef === 'function' ? findTaskRef(s.taskId) : null;
+  const sub = s.subId && t?.task?.subtasks ? t.task.subtasks.find(x => x.id === s.subId) : null;
+  const brs = (s.breaks || []).filter(b => b.to);
+  const bm = sessionBreakMinutes(s);
+  const name = sub ? sub.title : (t?.task?.text || t?.text || '');
+  return `<div class="fl-row">
+    <div class="fl-head">
+      <span class="mono fl-when">${withDate ? esc(fmtDate((s.startedAt || '').slice(0, 10), 'short')) + ' · ' : ''}${esc(_lgClock(s.startedAt))}</span>
+      <span class="mono fl-len">${esc(fmtEst(+s.duration || 0))}</span>
+      ${s.mode === 'stopwatch' ? '<span class="mono faint">counted up</span>' : ''}
+      ${s.completed === false ? '<span class="mono faint">ended early</span>' : ''}
+      ${bm ? `<span class="mono fl-br">${brs.length} break${brs.length === 1 ? '' : 's'} · ${esc(fmtEst(bm))}</span>` : ''}
+    </div>
+    ${name ? `<div class="fl-task">${esc(name)}${sub ? ' <span class="mono faint">a step of ' + esc(t.task.text || '') + '</span>' : ''}</div>` : ''}
+    ${s.note ? `<div class="fl-did">${esc(s.note)}</div>`
+      : `<div class="fl-did none">nothing written down about this one</div>`}
+    ${brs.length ? `<ul class="fl-breaks">${brs.map(br =>
+      `<li><span class="mono">${esc(_lgClock(br.from))} · ${esc(fmtEst(breakMinutes(br)))}</span>
+        <span>${br.note ? esc(br.note) : '<em class="faint">no reason given</em>'}</span></li>`).join('')}</ul>` : ''}
+  </div>`;
+}
+/* the day's ledger, as it appears at the foot of the focus panel */
+function focusLogHTML(day){
+  const list = focusLogOn(day || today());
+  if(!list.length) return '';
+  const worked = sum(list.map(s => +s.duration || 0));
+  const broke = sum(list.map(sessionBreakMinutes));
+  const noted = list.filter(s => s.note).length;
+  return `<details class="fl-wrap"${list.length <= 2 ? ' open' : ''}>
+    <summary><span class="mono">what the sittings went on</span>
+      <span class="mono faint">${list.length} sitting${list.length === 1 ? '' : 's'} · ${esc(fmtEst(worked))} worked${
+        broke ? ` · ${esc(fmtEst(broke))} in breaks` : ''}${
+        noted < list.length ? ` · ${list.length - noted} unwritten` : ''}</span></summary>
+    <div class="fl-list">${list.map(s => focusSessionHTML(s)).join('')}</div>
+  </details>`;
 }

@@ -154,9 +154,12 @@ function reviewGather(from, to){
     const doneTasks = (typeof allTaskRefs === 'function' ? allTaskRefs() : []).filter(r => r.done && inRange(r.task?.doneAt || ''));
     if(sess.length || doneTasks.length){
       const mins = sum(sess.map(s => +s.duration || 0));
+      const brs = sum(sess.map(x => typeof sessionBreakMinutes === 'function' ? sessionBreakMinutes(x) : 0));
       st.tasks = {sittings: sess.length, minutes: mins, finished: doneTasks.length,
         perDay: days.length ? +(mins / days.length).toFixed(0) : 0,
-        longest: sess.length ? Math.max(...sess.map(s => +s.duration || 0)) : 0};
+        longest: sess.length ? Math.max(...sess.map(s => +s.duration || 0)) : 0,
+        breaks: sum(sess.map(x => (x.breaks || []).filter(b => b.to).length)), breakMinutes: brs,
+        noted: sess.filter(x => x.note).length};
     }
   }
   /* skills */
@@ -277,6 +280,8 @@ function reviewSectionHTML(key, d){
     line('time at the clock', typeof fmtEst === 'function' ? fmtEst(d.minutes) : d.minutes + 'm'),
     line('a day', d.perDay + ' minutes'),
     line('longest sitting', typeof fmtEst === 'function' ? fmtEst(d.longest) : d.longest + 'm'),
+    line('breaks', d.breaks ? `${d.breaks} · ${typeof fmtEst === 'function' ? fmtEst(d.breakMinutes) : d.breakMinutes + 'm'}` : null),
+    line('sittings written up', d.noted != null ? `${d.noted} of ${d.sittings}` : null),
     line('tasks finished', d.finished)].join('');
   if(key === 'skills') return [
     line('practice logged', d.entries + (d.hours ? ` · ${d.hours} hours` : '')),

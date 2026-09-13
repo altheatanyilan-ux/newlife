@@ -155,6 +155,51 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('a fresh sitting starts on the task', logged.ran && logged.task === fid, JSON.stringify(logged));
   await p.evaluate(() => FocusTimer.stop());
 
+  console.log('\n9. what the sittings actually went on');
+  await p.evaluate(i => { const now = Date.now(), iso = m => new Date(now - m * 60000).toISOString();
+    planState().focusSessions = [
+      {id:uid(), type:'focus', taskId:i, duration:25, note:'the tricky bit of the proof',
+       startedAt:iso(180), endedAt:iso(150), mode:'countdown', completed:true,
+       breaks:[{from:iso(168), to:iso(163), note:'tea, and stared out of the window'},
+               {from:iso(158), to:iso(155), note:''}]},
+      {id:uid(), type:'focus', taskId:i, duration:47, note:'', startedAt:iso(90), endedAt:iso(43),
+       mode:'stopwatch', completed:false, breaks:[]}];
+    saveNow(); }, id);
+  await go();
+  yes('the day\'s sittings are listed', await p.evaluate(() => !!document.querySelector('.fl-wrap')));
+  is('  one row each', await p.$$eval('.fl-row', n => n.length), 2);
+  yes('  with what was done in it', await p.evaluate(() =>
+    /the tricky bit of the proof/.test(document.querySelector('.fl-list').textContent)));
+  yes('  and it says when one was never written up', await p.evaluate(() =>
+    !!document.querySelector('.fl-did.none')));
+  is('  each break is a line', await p.$$eval('.fl-breaks li', n => n.length), 2);
+  yes('  with the reason given at the time', await p.evaluate(() =>
+    /tea, and stared out of the window/.test(document.querySelector('.fl-breaks').textContent)));
+  yes('  and an honest blank where none was', await p.evaluate(() =>
+    /no reason given/.test(document.querySelector('.fl-breaks').textContent)));
+  /* the arithmetic: 25 + 47 worked, 5 + 3 in breaks */
+  is('break time is measured from the two ends', await p.evaluate(() =>
+    sessionBreakMinutes(focusLogOn(today())[0])), 8);
+  yes('  and the heading totals the day', await p.evaluate(() => {
+    const t = document.querySelector('.fl-wrap summary').textContent.replace(/\s+/g, ' ');
+    return /2 sittings/.test(t) && /1h 12m worked/.test(t) && /8m in breaks/.test(t) && /1 unwritten/.test(t); }),
+    await p.evaluate(() => document.querySelector('.fl-wrap summary').textContent.replace(/\s+/g, ' ').trim()));
+  /* an unfinished break — one you are still on — is not counted as time spent */
+  is('a break still running counts nothing yet', await p.evaluate(() =>
+    breakMinutes({from:new Date().toISOString(), to:null})), 0);
+  /* the same record is on the task's own panel */
+  await p.evaluate(i => openPlanTask(i), id); await p.waitForTimeout(700);
+  yes('and the task\'s panel shows its own sittings the same way',
+      await p.evaluate(() => !!document.querySelector('.pd-fsess .fl-row')));
+  yes('  with the note on them', await p.evaluate(() =>
+    /the tricky bit of the proof/.test(document.querySelector('.pd-fsess').textContent)));
+  await p.evaluate(() => closePanel?.());
+  /* and the review counts the breaks beside the work */
+  const dig = await p.evaluate(() => reviewGather(today(), today()));
+  is('the review counts the breaks', dig.tasks?.breaks, 2);
+  is('  and how much of the day they took', dig.tasks?.breakMinutes, 8);
+  is('  and how many sittings were written up', dig.tasks?.noted, 1);
+
   console.log('\n' + (errs.length ? 'console:\n  ' + errs.join('\n  ') : 'console: clean'));
   if(errs.length) bad += errs.length;
   console.log(bad ? `\n${bad} FAILED` : '\nsmoke143  all good');

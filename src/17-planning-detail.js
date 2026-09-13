@@ -89,8 +89,9 @@ function planDetailHTML(t){
     <div class="pd-sec"><div class="row between"><span class="k mono">focus</span>
       <span class="mono">${t.focusTime ? `${Math.floor(t.focusTime / 60)}h ${t.focusTime % 60}m logged` : 'nothing logged'}</span></div>
       <button class="btn sm" id="pdFocus">◔ time this on Today</button>
-      ${sessions.length ? `<div class="pd-fsess">${sessions.slice(-6).reverse().map(s =>
-        `<div class="mono"><span>${esc(fmtDate(s.startedAt.slice(0, 10), 'short'))}</span><span>${s.duration}m</span></div>`).join('')}</div>` : ''}</div>
+      ${sessions.length ? `<div class="fl-list pd-fsess">${sessions.slice(-6).reverse().map(s =>
+        typeof focusSessionHTML === 'function' ? focusSessionHTML(s, {withDate:true})
+          : `<div class="mono"><span>${esc(fmtDate(s.startedAt.slice(0, 10), 'short'))}</span><span>${s.duration}m</span></div>`).join('')}</div>` : ''}</div>
 
     <div class="pd-sec"><div class="k mono">connects to</div>
       <div class="chip-row">${(S.projects || []).map(x => `<button class="chip click${t.links.projects.includes(x.id) ? ' on' : ''}" data-pdlk="projects:${x.id}" style="--c:var(--terra)">${esc(x.name)}</button>`).join('')}</div>

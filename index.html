@@ -4843,6 +4843,29 @@ select.sm-active{border-color:var(--page-accent);
 .rv-post .inp.sm{padding:2px 6px;font-size:.72rem;width:auto}
 .rv-card.overall{background:var(--surface-2)}
 .entry.flash{outline:2px solid var(--page-accent);outline-offset:3px;border-radius:12px}
+
+/* --- the record of what the sittings went on --- */
+.fl-wrap{margin-top:14px;border-top:1px dashed var(--line);padding-top:10px}
+.fl-wrap>summary{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;cursor:pointer;list-style:none;
+  font-size:.64rem;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+.fl-wrap>summary::-webkit-details-marker{display:none}
+.fl-wrap>summary::before{content:"›";transition:transform .2s var(--ease);display:inline-block}
+.fl-wrap[open]>summary::before{transform:rotate(90deg)}
+.fl-wrap>summary>.mono:last-child{margin-left:auto;text-transform:none;letter-spacing:0}
+.fl-list{display:flex;flex-direction:column;gap:7px;margin-top:9px}
+.fl-row{border-left:2px solid var(--line-2);padding:2px 0 2px 10px}
+.fl-head{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+.fl-when{font-size:.64rem;color:var(--faint)}
+.fl-len{font-size:.68rem;font-weight:600;color:var(--text)}
+.fl-br{font-size:.6rem;color:var(--gold,#d4a44c)}
+.fl-task{font-size:.8rem;margin-top:1px}
+.fl-did{font-family:var(--lora,var(--serif));font-style:italic;font-size:.82rem;line-height:1.5;
+  color:var(--muted);margin-top:2px}
+.fl-did.none{font-style:normal;font-family:var(--mono);font-size:.62rem;color:var(--faint)}
+.fl-breaks{margin:5px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:2px}
+.fl-breaks li{display:flex;gap:9px;align-items:baseline;font-size:.75rem;color:var(--muted)}
+.fl-breaks li .mono{font-size:.6rem;color:var(--gold,#d4a44c);flex:none;min-width:8.5em}
+.pd-fsess{margin-top:8px}
 </style>
 </head>
 <body>
@@ -8745,6 +8768,7 @@ function focusPanelHTML(){
           </div>`}
         </div>
       </div>
+      ${typeof focusLogHTML === 'function' ? focusLogHTML() : ''}
     </div>
   </section>`;
 }
@@ -8900,6 +8924,71 @@ function taskCrossedOff(id, done){
   FocusTimer.setTask(null);   /* and leaves the clock empty for the next thing */
   celebrateFinish(minutes);
   return true;
+}
+
+/* ============================================================
+   THE RECORD OF A SITTING
+   ------------------------------------------------------------
+   Two things are typed while a sitting is happening: what you are actually
+   doing, and — every time you pause — what the break is for. Both were being
+   written down and neither was ever shown back, which made them notes into a
+   drawer. They are the interesting part of the record: how long is only
+   half the question, and the other half is what the hour went on.
+   ============================================================ */
+const breakMinutes = br => { if(!br?.from || !br?.to) return 0;
+  return Math.max(0, Math.round((new Date(br.to) - new Date(br.from)) / 60000)); };
+const sessionBreakMinutes = s => sum((s.breaks || []).map(breakMinutes));
+function focusLogOn(day){
+  return (typeof focusSessions === 'function' ? focusSessions() : [])
+    .filter(s => (s.startedAt || '').slice(0, 10) === day)
+    .sort((a, b) => (a.startedAt || '').localeCompare(b.startedAt || ''));
+}
+/* every sitting there has ever been, newest first — the whole ledger */
+function focusLogAll(){
+  return (typeof focusSessions === 'function' ? focusSessions() : [])
+    .slice().sort((a, b) => (b.startedAt || '').localeCompare(a.startedAt || ''));
+}
+const _lgClock = iso => { if(!iso) return ''; const d = new Date(iso);
+  let h = d.getHours(), m = d.getMinutes(); const ap = h >= 12 ? 'pm' : 'am';
+  h = h % 12 || 12; return `${h}:${String(m).padStart(2, '0')}${ap}`; };
+/* One sitting, with what it was for, what was done in it, and every break in
+   it with the reason given at the time. */
+function focusSessionHTML(s, {withDate = false} = {}){
+  const t = s.taskId && typeof findTaskRef === 'function' ? findTaskRef(s.taskId) : null;
+  const sub = s.subId && t?.task?.subtasks ? t.task.subtasks.find(x => x.id === s.subId) : null;
+  const brs = (s.breaks || []).filter(b => b.to);
+  const bm = sessionBreakMinutes(s);
+  const name = sub ? sub.title : (t?.task?.text || t?.text || '');
+  return `<div class="fl-row">
+    <div class="fl-head">
+      <span class="mono fl-when">${withDate ? esc(fmtDate((s.startedAt || '').slice(0, 10), 'short')) + ' · ' : ''}${esc(_lgClock(s.startedAt))}</span>
+      <span class="mono fl-len">${esc(fmtEst(+s.duration || 0))}</span>
+      ${s.mode === 'stopwatch' ? '<span class="mono faint">counted up</span>' : ''}
+      ${s.completed === false ? '<span class="mono faint">ended early</span>' : ''}
+      ${bm ? `<span class="mono fl-br">${brs.length} break${brs.length === 1 ? '' : 's'} · ${esc(fmtEst(bm))}</span>` : ''}
+    </div>
+    ${name ? `<div class="fl-task">${esc(name)}${sub ? ' <span class="mono faint">a step of ' + esc(t.task.text || '') + '</span>' : ''}</div>` : ''}
+    ${s.note ? `<div class="fl-did">${esc(s.note)}</div>`
+      : `<div class="fl-did none">nothing written down about this one</div>`}
+    ${brs.length ? `<ul class="fl-breaks">${brs.map(br =>
+      `<li><span class="mono">${esc(_lgClock(br.from))} · ${esc(fmtEst(breakMinutes(br)))}</span>
+        <span>${br.note ? esc(br.note) : '<em class="faint">no reason given</em>'}</span></li>`).join('')}</ul>` : ''}
+  </div>`;
+}
+/* the day's ledger, as it appears at the foot of the focus panel */
+function focusLogHTML(day){
+  const list = focusLogOn(day || today());
+  if(!list.length) return '';
+  const worked = sum(list.map(s => +s.duration || 0));
+  const broke = sum(list.map(sessionBreakMinutes));
+  const noted = list.filter(s => s.note).length;
+  return `<details class="fl-wrap"${list.length <= 2 ? ' open' : ''}>
+    <summary><span class="mono">what the sittings went on</span>
+      <span class="mono faint">${list.length} sitting${list.length === 1 ? '' : 's'} · ${esc(fmtEst(worked))} worked${
+        broke ? ` · ${esc(fmtEst(broke))} in breaks` : ''}${
+        noted < list.length ? ` · ${list.length - noted} unwritten` : ''}</span></summary>
+    <div class="fl-list">${list.map(s => focusSessionHTML(s)).join('')}</div>
+  </details>`;
 }
 /* ============================================================
    WHERE AM I RIGHT NOW — the home page's two lenses and its clock
@@ -15653,9 +15742,12 @@ function reviewGather(from, to){
     const doneTasks = (typeof allTaskRefs === 'function' ? allTaskRefs() : []).filter(r => r.done && inRange(r.task?.doneAt || ''));
     if(sess.length || doneTasks.length){
       const mins = sum(sess.map(s => +s.duration || 0));
+      const brs = sum(sess.map(x => typeof sessionBreakMinutes === 'function' ? sessionBreakMinutes(x) : 0));
       st.tasks = {sittings: sess.length, minutes: mins, finished: doneTasks.length,
         perDay: days.length ? +(mins / days.length).toFixed(0) : 0,
-        longest: sess.length ? Math.max(...sess.map(s => +s.duration || 0)) : 0};
+        longest: sess.length ? Math.max(...sess.map(s => +s.duration || 0)) : 0,
+        breaks: sum(sess.map(x => (x.breaks || []).filter(b => b.to).length)), breakMinutes: brs,
+        noted: sess.filter(x => x.note).length};
     }
   }
   /* skills */
@@ -15776,6 +15868,8 @@ function reviewSectionHTML(key, d){
     line('time at the clock', typeof fmtEst === 'function' ? fmtEst(d.minutes) : d.minutes + 'm'),
     line('a day', d.perDay + ' minutes'),
     line('longest sitting', typeof fmtEst === 'function' ? fmtEst(d.longest) : d.longest + 'm'),
+    line('breaks', d.breaks ? `${d.breaks} · ${typeof fmtEst === 'function' ? fmtEst(d.breakMinutes) : d.breakMinutes + 'm'}` : null),
+    line('sittings written up', d.noted != null ? `${d.noted} of ${d.sittings}` : null),
     line('tasks finished', d.finished)].join('');
   if(key === 'skills') return [
     line('practice logged', d.entries + (d.hours ? ` · ${d.hours} hours` : '')),
@@ -21157,8 +21251,9 @@ function planDetailHTML(t){
     <div class="pd-sec"><div class="row between"><span class="k mono">focus</span>
       <span class="mono">${t.focusTime ? `${Math.floor(t.focusTime / 60)}h ${t.focusTime % 60}m logged` : 'nothing logged'}</span></div>
       <button class="btn sm" id="pdFocus">◔ time this on Today</button>
-      ${sessions.length ? `<div class="pd-fsess">${sessions.slice(-6).reverse().map(s =>
-        `<div class="mono"><span>${esc(fmtDate(s.startedAt.slice(0, 10), 'short'))}</span><span>${s.duration}m</span></div>`).join('')}</div>` : ''}</div>
+      ${sessions.length ? `<div class="fl-list pd-fsess">${sessions.slice(-6).reverse().map(s =>
+        typeof focusSessionHTML === 'function' ? focusSessionHTML(s, {withDate:true})
+          : `<div class="mono"><span>${esc(fmtDate(s.startedAt.slice(0, 10), 'short'))}</span><span>${s.duration}m</span></div>`).join('')}</div>` : ''}</div>
 
     <div class="pd-sec"><div class="k mono">connects to</div>
       <div class="chip-row">${(S.projects || []).map(x => `<button class="chip click${t.links.projects.includes(x.id) ? ' on' : ''}" data-pdlk="projects:${x.id}" style="--c:var(--terra)">${esc(x.name)}</button>`).join('')}</div>
