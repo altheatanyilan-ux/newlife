@@ -71,9 +71,23 @@ window.addEventListener('scroll', () => { if(document.documentElement.dataset.mo
    redraw itself on each arrival; every page gets one without knowing about it */
 function decoratePageHead(main){
   const key = pageThemeKey();
+  /* Today has no banner — its heading IS the date — so the mark is hung over
+     that instead, once, by the same pass that hangs it over every other room. */
+  const td = main.querySelector('.today-head .today-date');
+  if(td && !main.querySelector('.today-head .ph-mark') && typeof roomMarkHTML === 'function'){
+    const m = roomMarkHTML();
+    if(m) td.insertAdjacentHTML('beforebegin', m);
+  }
   $$('.page-head', main).forEach(h => {
     if(h.querySelector(':scope > .ph-rule')) return;
     h.insertBefore(el('<i class="ph-rule" aria-hidden="true"></i>'), h.firstChild);
+    /* the mark over the door: one small line drawing per room, set beside its
+       title. Inserted before the title rather than inside it, so the title is
+       still one run of text for the word-by-word reveal to split. */
+    if(typeof roomMarkHTML === 'function'){
+      const m = roomMarkHTML();
+      if(m) h.querySelector('h1')?.insertAdjacentHTML('beforebegin', m);
+    }
     /* and whatever blooms on this room's banner — plum for Values, buds for
        Journals, a doubled peony for Writing. Flowers only, in the room's own
        accent, and only in the gaps the words leave. */
