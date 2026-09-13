@@ -1925,10 +1925,16 @@ details.era-lived[open] > summary::before{transform:rotate(90deg)}
 /* the living tree */
 .sk-organic{width:100%;height:100%;display:block}
 .sk-organic .sk-twig{cursor:pointer}
-.sk-organic .sk-twig .limb,.sk-organic .sk-branch .limb-tint{transition:stroke-width .25s var(--ease),opacity .3s var(--ease)}
+/* Branches are filled tapered shapes, not stroked lines — a limb of even
+   width is half of why a drawn tree looks drawn. `.limb` now lives inside
+   the reveal mask that draws each branch outward from its fork; the wood
+   itself is `.wood` / `.limb-wood`, and `.sk-centre` is the invisible
+   centreline the sap runs along. */
+.sk-organic .wood,.sk-organic .limb-wood,.sk-organic .limb-tint{transition:opacity .3s var(--ease),filter .25s var(--ease)}
+.sk-organic .sk-centre{fill:none;stroke:none}
 .sk-organic.hov .sk-twig:not(.hot){opacity:.42}
 .sk-organic.hov .sk-branch:not(.hot) .limb-tint{opacity:.1}
-.sk-organic .sk-twig.hot .limb{filter:drop-shadow(0 0 4px color-mix(in srgb,var(--nc) 60%,transparent))}
+.sk-organic .sk-twig.hot .wood{filter:drop-shadow(0 0 4px color-mix(in srgb,var(--nc) 60%,transparent))}
 .sk-organic .sk-twig.hot .sk-lbl{fill:var(--text);font-weight:600}
 .sk-organic .sk-lblfor.hot .sk-lbl{fill:var(--text);font-weight:600}
 .sk-organic.hov .sk-lblfor:not(.hot){opacity:.42}
@@ -3189,12 +3195,13 @@ html.vision-deep .page-scene.on{opacity:var(--scene-op)}
   100%{opacity:0;transform:translate(var(--dx),var(--dy))}}
 
 /* sap: a travelling light along a limb that has been practised lately */
-.sk-organic .sk-twig.fresh .limb{stroke-dasharray:5 190;animation:sapRun 4.5s linear infinite}
+.sk-organic .sk-twig.fresh .sk-centre{stroke:color-mix(in srgb,var(--nc) 55%,#fff6dc);stroke-width:2;stroke-linecap:round;
+  stroke-dasharray:5 190;animation:sapRun 4.5s linear infinite}
 @keyframes sapRun{from{stroke-dashoffset:195}to{stroke-dashoffset:0}}
 
 @media (prefers-reduced-motion:reduce){
   .tree-motes{display:none}
-  .sk-organic .sk-canopy,.sk-organic .sk-twig.fresh .limb{animation:none}
+  .sk-organic .sk-canopy,.sk-organic .sk-twig.fresh .sk-centre{animation:none;stroke:none}
   .sk-organic .leaf{transform:none!important}
 }
 
@@ -4500,6 +4507,25 @@ select.sm-active{border-color:var(--page-accent);
    Even lanes hang below the rail and odd ones stand above it, each tier a
    fixed step further out, with a stem back to the dot so a name is never
    orphaned from the date it belongs to. */
+/* --- a milestone as a lens --- */
+/* the pressed pin is the filter that is on: it fills, so the strip says at a
+   glance which date the list below is about */
+.pl-mspin.on .pl-msdot{background:var(--c);box-shadow:0 0 0 3px color-mix(in srgb,var(--c) 30%,transparent)}
+.pl-mspin.on .pl-mslabel{color:var(--c);font-weight:600}
+.pl-mscount{font-size:.58rem;color:var(--faint);letter-spacing:.04em}
+.pl-msedit{opacity:0;font-style:normal;font-size:.68rem;color:var(--faint);padding:0 3px;
+  cursor:pointer;transition:opacity .15s,color .15s}
+.pl-mspin:hover .pl-msedit,.pl-mspin:focus-within .pl-msedit{opacity:1}
+.pl-msedit:hover{color:var(--terra)}
+/* the work under one date, in its own panel */
+.ms-tasks{display:flex;flex-direction:column;gap:2px;max-height:230px;overflow-y:auto}
+.ms-task{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:.88rem;
+  border-bottom:1px dashed var(--line)}
+.ms-task:last-child{border-bottom:0}
+.ms-task.done .ms-task-t{text-decoration:line-through;opacity:.5}
+.ms-task-t{flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
+/* the dates the day's work is running towards, in the planning flow */
+.plan-ms{margin-bottom:10px}
 .pl-mspin{position:absolute;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;
   gap:3px;background:none;border:0;padding:0 2px;cursor:pointer;max-width:9em;
   top:calc(var(--above) - 5px + var(--tier,0) * var(--step))}
@@ -4832,24 +4858,153 @@ select.sm-active{border-color:var(--page-accent);
 .still-guide-foot{margin-top:auto;align-items:center}
 @media (prefers-reduced-motion:reduce){.still-card{animation:none}.still-circle i{transition:none}}
 
-/* --- tarot --- */
-.tc-row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin:6px 0 14px}
-.tc-slot{display:flex;flex-direction:column;align-items:center;gap:5px;max-width:130px}
-.tc-pos{font-size:.6rem;color:var(--faint);text-align:center}
-.tc{width:104px;height:164px;perspective:800px;cursor:pointer}
-.tc-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .6s var(--ease)}
+/* --- tarot ---
+   A card is 160 by 240 and is drawn as a card: a name, a sigil of its own,
+   the one line of essence, and its number, element and planet along the
+   bottom. The turn takes 800ms on a real perspective, because the turning
+   is the part of a reading that means anything. */
+.tc-row{display:flex;gap:22px;flex-wrap:wrap;justify-content:center;margin:6px 0 14px;align-items:flex-start}
+.tc-slot{display:flex;flex-direction:column;align-items:center;gap:7px;width:160px}
+.tc-pos{font-family:var(--serif);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);text-align:center}
+.tc-hole{width:160px;height:240px;border-radius:11px;border:1px dashed var(--line-2);
+  background:color-mix(in srgb,var(--surface-2) 55%,transparent)}
+.tc-hole:has(.tc){border:0;background:none}
+.tc{width:160px;height:240px;perspective:900px;cursor:default}
+.tc-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;
+  transition:transform .8s cubic-bezier(.5,.03,.3,1),box-shadow .8s var(--ease)}
 .tc.up .tc-inner{transform:rotateY(180deg)}
-.tc-back,.tc-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:9px;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:9px;text-align:center}
-.tc-back{background:linear-gradient(140deg,#4a3f56,#2f2838);color:#d8c9ea;font-size:1.4rem;
-  border:1px solid #5d5070}
-.tc-face{transform:rotateY(180deg);background:var(--surface);border:1px solid var(--sc,#8f7bb0);
-  border-top:3px solid var(--sc,#8f7bb0)}
+.tc.pulse .tc-face{box-shadow:0 0 0 2px var(--sc,#8f7bb0),0 0 18px color-mix(in srgb,var(--sc,#8f7bb0) 55%,transparent)}
+.tc-back,.tc-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:11px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:11px;text-align:center;
+  box-shadow:0 2px 10px rgba(0,0,0,.22)}
+.tc-back{background:linear-gradient(140deg,#4a3f56,#2f2838);color:#d8c9ea;border:1px solid #5d5070;padding:0}
+.tc-back svg{width:100%;height:100%;display:block}
+.tc-face{transform:rotateY(180deg);border:1.5px solid var(--sc,#8f7bb0);position:relative;
+  background:#fffdf5 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='60' height='60' filter='url(%23n)' opacity='.045'/%3E%3C/svg%3E");
+  color:#231f1b;transition:box-shadow .3s var(--ease)}
+html[data-theme="dark"] .tc-face{background-color:#1e1b18;color:#e8e0d4}
+.tc-corner{position:absolute;font-size:8px;color:var(--sc,#8f7bb0);opacity:.3;line-height:1}
+.tc-corner.tl{top:6px;left:7px}.tc-corner.tr{top:6px;right:7px}
+.tc-corner.bl{bottom:6px;left:7px}.tc-corner.br{bottom:6px;right:7px}
+.tc-name{font-size:15px;line-height:1.15;letter-spacing:.04em;text-transform:uppercase;max-width:132px;min-height:1.1em}
+.tc-rev{font-size:.52rem;color:var(--terra,#b4462f);letter-spacing:.12em;text-transform:uppercase;margin-top:-3px}
+.tc-sigwrap{margin:3px 0 1px}
+.tc-sig{width:64px;height:64px;display:block}
+.tc-rule{width:58%;height:1px;background:var(--sc,#8f7bb0);opacity:.35}
+.tc-essence{font-family:var(--lora,var(--serif));font-style:italic;font-size:10.5px;line-height:1.45;
+  max-width:134px;opacity:.85}
+.tc-meta{font-size:8.5px;letter-spacing:.12em;opacity:.6}
+/* the small backs: in the pile, and in the fan you choose from */
+.tc-mini{width:74px;height:112px;border-radius:8px;overflow:hidden;position:relative}
+.tc-mini .tc-back{position:absolute;inset:0;border-radius:8px}
 .tc.rev .tc-face{transform:rotateY(180deg) rotate(180deg)}
 .tc-suit{font-size:1.1rem;color:var(--sc,#8f7bb0);line-height:1}
 .tc-name{font-family:var(--serif);font-size:.82rem;line-height:1.25}
 .tc-rev{font-size:.55rem;color:var(--terra,#b4462f);letter-spacing:.08em;text-transform:uppercase}
 .tc-keys{font-size:.56rem;color:var(--faint);line-height:1.35}
+/* --- the ceremony ---
+   The veil is warm and dark in either theme: a reading wants a room of its
+   own, and a page that stays the colour it was does not read as one. */
+.dv-veil{position:fixed;inset:0;z-index:200;background:radial-gradient(120% 90% at 50% 40%,#241d18,#15110e 70%);
+  display:flex;align-items:center;justify-content:center;animation:dvVeilIn .5s var(--ease) both}
+.dv-veil.out{animation:dvVeilOut .4s var(--ease) both}
+.dv-veil-in{display:flex;flex-direction:column;align-items:center;gap:26px;text-align:center;padding:30px}
+.dv-veil-l{font-family:var(--lora,var(--serif));font-style:italic;font-size:1.5rem;line-height:1.6;color:#efe6d8;margin:0;
+  animation:dvLine .9s var(--ease) both;animation-delay:calc(.35s + var(--i) * .7s)}
+.dv-veil .dv-ready{animation:dvLine 1.4s var(--ease) both;margin-top:12px}
+.dv-veil .dv-skip{position:absolute;bottom:24px;right:26px;background:none;border:0;color:#efe6d8;
+  opacity:.35;cursor:pointer;font-family:var(--mono);font-size:.68rem;letter-spacing:.1em}
+.dv-veil .dv-skip:hover{opacity:.8}
+@keyframes dvVeilIn{from{opacity:0}to{opacity:1}}
+@keyframes dvVeilOut{to{opacity:0}}
+@keyframes dvLine{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){
+  .dv-veil,.dv-veil.out,.dv-veil-l,.dv-veil .dv-ready{animation:none}
+  .dv-veil.out{display:none}}
+
+/* the shuffle: a choreographed sequence, not a random one — a shuffle that
+   looks random looks like a fault */
+.dv-shuffle{display:flex;flex-direction:column;align-items:center;gap:22px;padding:44px 0 30px;min-height:220px}
+.dv-pile{position:relative;width:220px;height:116px}
+.dv-sh-card{position:absolute;left:calc(50% - 37px);top:0;transform:rotate(var(--r))}
+.dv-shuffle.go .dv-sh-card{animation:dvShuffle 2.4s cubic-bezier(.4,.05,.3,1) both;
+  animation-delay:calc(var(--i) * .07s)}
+@keyframes dvShuffle{
+  0%{transform:translate(0,0) rotate(var(--r))}
+  18%{transform:translate(-62px,-14px) rotate(-12deg)}
+  36%{transform:translate(54px,10px) rotate(11deg)}
+  54%{transform:translate(-26px,-6px) rotate(-5deg)}
+  72%{transform:translate(18px,4px) rotate(4deg)}
+  100%{transform:translate(0,0) rotate(var(--r))}}
+.dv-sh-say{font-size:.95rem;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){.dv-shuffle.go .dv-sh-card{animation:none}}
+
+/* the fan you choose from: always more backs than the spread needs, because
+   choosing from exactly as many as you need is not choosing */
+.dv-stage{display:flex;flex-direction:column;gap:16px}
+.dv-prompt{text-align:center;font-size:1.02rem}
+.dv-prompt .sc{display:block;margin-bottom:2px}
+.dv-fan{display:flex;justify-content:center;padding:30px 0 12px}
+.dv-pick{background:none;border:0;padding:0;cursor:pointer;margin-left:-26px;
+  --rot:calc((var(--i) - (var(--n) - 1) / 2) * 4deg); --lift:0px;
+  transform:rotate(var(--rot)) translateY(var(--lift));
+  transform-origin:50% 190%;
+  transition:transform .18s var(--ease),filter .18s var(--ease)}
+.dv-pick:first-child{margin-left:0}
+.dv-pick:hover,.dv-pick:focus-visible{--lift:-14px;z-index:2;
+  filter:drop-shadow(0 6px 14px color-mix(in srgb,var(--terra,#b08968) 55%,transparent))}
+.dv-pick.taken{pointer-events:none}
+.dv-spread{min-height:60px}
+@media (prefers-reduced-motion:reduce){.dv-pick:hover{--lift:0px}.dv-pick{transition:none}}
+
+/* --- the reading, at length --- */
+.dv-reading{display:flex;flex-direction:column;gap:26px;margin-top:22px;
+  border-top:1px solid var(--line);padding-top:22px}
+.dv-card-read{max-width:640px}
+.dv-cr-h{font-family:var(--serif);font-size:18px;font-weight:500;letter-spacing:.03em;
+  border-bottom:1px solid var(--terra,#b08968);padding-bottom:5px;margin:0 0 10px;
+  display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.dv-cr-pos{font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.dv-cr-name{text-transform:uppercase;letter-spacing:.06em}
+.dv-cr-ess{margin:0 0 10px;padding-left:12px;border-left:3px solid var(--sc,var(--terra,#b08968));
+  font-family:var(--lora,var(--serif));font-style:italic;font-size:14px;line-height:1.6;color:var(--muted)}
+.dv-cr-ess cite{display:block;font-style:normal;font-family:var(--mono);font-size:.58rem;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-top:4px}
+.dv-cr-themes{font-size:11px;letter-spacing:.1em;color:var(--muted);margin-bottom:9px}
+.dv-cr-sum{margin:0 0 10px;font-size:14px;line-height:1.7;font-weight:600}
+.dv-cr-t{margin:0 0 10px;font-size:14px;line-height:1.7}
+.dv-cr-guide{margin:12px 0;padding:9px 12px;border-radius:8px;
+  background:color-mix(in srgb,var(--sc,var(--terra,#b08968)) 8%,transparent)}
+.dv-cr-guide .mono{font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+.dv-cr-guide p{margin:3px 0 0;font-size:13px;line-height:1.6;color:var(--muted)}
+.dv-cr-q{list-style:none;padding:0;margin:12px 0}
+.dv-cr-q li{font-family:var(--lora,var(--serif));font-style:italic;font-size:13px;line-height:1.6;
+  color:var(--muted);margin:5px 0;padding-left:14px;position:relative}
+.dv-cr-q li::before{content:'·';position:absolute;left:3px;color:var(--terra,#b08968)}
+.dv-cr-adv{margin:10px 0 0;font-size:14px;line-height:1.65;font-weight:600;
+  color:color-mix(in srgb,var(--terra,#b08968) 45%,var(--text))}
+.dv-cr-im{margin-top:10px}
+.dv-cr-im>summary{cursor:pointer;font-family:var(--mono);font-size:.62rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--faint)}
+.dv-cr-im p{margin:6px 0 0;font-size:13px;line-height:1.6;color:var(--muted)}
+.dv-sec-h{font-family:var(--serif);font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--muted);font-weight:600;margin:0 0 10px}
+.dv-story{max-width:640px;border-top:1px solid var(--line);padding-top:18px}
+.dv-story p{font-family:var(--lora,var(--serif));font-style:italic;font-size:14px;line-height:1.8;margin:0 0 8px}
+.dv-yours{max-width:640px;border-top:1px solid var(--line);padding-top:18px;margin-top:8px}
+.dv-yours-p{font-family:var(--lora,var(--serif));font-style:italic;font-size:14px;color:var(--muted);margin:0 0 10px}
+.dv-read-ess{font-family:var(--lora,var(--serif));font-style:italic;font-size:.82rem;color:var(--muted);
+  margin:3px 0 2px;padding-left:8px;border-left:2px solid var(--sc,var(--terra,#b08968))}
+.dv-read-more{margin-top:6px}
+.dv-read-more>summary{cursor:pointer;font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--faint)}
+@media (max-width:640px){
+  .tc,.tc-hole,.tc-slot{width:132px}
+  .tc,.tc-hole{height:198px}
+  .tc-name{font-size:13px;max-width:108px}
+  .tc-essence{font-size:9.5px;max-width:110px}
+  .dv-veil-l{font-size:1.15rem}}
+
 .dv-meanings{display:flex;flex-direction:column;gap:9px;margin-bottom:14px}
 .dv-m{border-left:2px solid var(--line-2);padding-left:10px}
 .dv-m .mono{font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
@@ -21133,6 +21288,30 @@ function planMyDay(d = today()){
         x.cold === Infinity ? `never ${x.what}` : x.cold === 0 ? `${x.what} today` : `${x.what} ${relDays(x.cold)}`}</span></a>`).join('')}</div>
   </div>` : '';
 
+  /* ---------- the dates the work is running towards ----------
+     Choosing tomorrow's tasks without the near milestones in front of you is
+     choosing in the dark: the reason a piece of work matters this week is
+     usually a date, and the date is on another page. So the milestones that
+     are close and not yet met are shown beside the waiting work, each saying
+     how soon it is and how much of its own work is still open. Pressing one
+     goes to its list with the filter already on it. */
+  const msAhead = typeof planMilestonesAhead === 'function'
+    ? planMilestonesAhead({within: 45, limit: 5}) : [];
+  const milestonesHTML = () => msAhead.length ? `<div class="plan-focus plan-ms">
+    <div class="row between" style="align-items:baseline">
+      <span class="k mono">What the work is running towards</span>
+      <span class="mono faint">does ${dayWord} owe any of these an hour?</span></div>
+    <div class="pf-rows">${msAhead.map(({m, list}) => {
+      const prog = typeof planMilestoneProgress === 'function' ? planMilestoneProgress(m.id) : {total:0, done:0};
+      const away = daysBetween(today(), m.date);
+      return `<a class="pf-row" href="#/planning" data-planms="${esc(m.id)}">
+        <span class="pf-ico" style="color:${esc(list.color)}">◆</span>
+        <span class="pf-name">${esc(m.name)} <span class="faint">· ${esc(list.name)}</span></span>
+        <span class="mono pf-cold${away <= 7 ? ' cold' : ''}">${
+          away < 0 ? `${-away}d overdue` : away === 0 ? 'today' : `in ${away}d`}${
+          prog.total ? ` · ${prog.total - prog.done} left` : ' · nothing under it'}</span></a>`; }).join('')}</div>
+  </div>` : '';
+
   const habits = S.habits.filter(h => !h.archived && !h.negative && habitDue(h,d));
   /* nothing is pre-ticked now that only undated work is offered: a task
      already dated to this day is not waiting to be chosen, and counting it
@@ -21157,7 +21336,7 @@ function planMyDay(d = today()){
        </div>` : ''}`,
       `<h2>What are ${dayPoss} three?</h2><p class="muted" style="font-size:.88rem">Not a task list — the three things that would make ${dayWord} count. One is allowed to be empty.</p>
        <div class="stack" style="gap:8px">${[0,1,2].map(i=>`<div class="row" style="gap:8px"><span class="in-n">${i+1}</span><input class="inp serif-lg" data-int="${i}" value="${esc(p.intentions[i]||'')}" placeholder="${['the one that matters most','the one you keep postponing','the small one'][i]}"></div>`).join('')}</div>`,
-      `<h2>Anything waiting?</h2>${inFocusHTML()}<p class="muted" style="font-size:.88rem">Everything with no day on it, under the list it lives in. Tick what belongs to ${dayWord}; the rest keeps waiting without nagging.</p>
+      `<h2>Anything waiting?</h2>${milestonesHTML()}${inFocusHTML()}<p class="muted" style="font-size:.88rem">Everything with no day on it, under the list it lives in. Tick what belongs to ${dayWord}; the rest keeps waiting without nagging.</p>
        <div class="stack" style="gap:10px;max-height:44vh;overflow:auto">${planGroups.length ? planGroups.map(g => `<div class="pick-group">
          <div class="pick-glabel" style="--c:${g.color}">${esc(g.label)}<span class="mono">${g.rows.length}</span></div>
          ${g.rows.map(r=>`<label class="pick-row ${chosen.has(r.id)?'on':''}"><input type="checkbox" data-pick2="${r.id}" ${chosen.has(r.id)?'checked':''}><span><b>${esc(r.text)}</b>${r.kind === 'project' && r.phase ? `<span class="d">${esc(r.phase.name)}</span>` : ''}</span></label>`).join('')}
@@ -21182,6 +21361,17 @@ function planMyDay(d = today()){
     m.querySelectorAll('[data-pick2]').forEach(c => c.onchange = () => { c.checked ? chosen.add(c.dataset.pick2) : chosen.delete(c.dataset.pick2); c.closest('.pick-row').classList.toggle('on', c.checked); });
     m.querySelectorAll('[data-pickh]').forEach(c => c.onchange = () => { c.checked ? chosenH.add(c.dataset.pickh) : chosenH.delete(c.dataset.pickh); c.closest('.pick-row').classList.toggle('on', c.checked); });
     m.querySelectorAll('[data-hat]').forEach(s => s.onchange = () => { const h = byId(S.habits, s.dataset.hat); h.at = s.value === '' ? null : +s.value; });
+    /* the things you said mattered, and the dates the work runs towards, are
+       both doors: pressing one leaves the flow and opens what it points at */
+    m.querySelectorAll('[data-flowgo]').forEach(b => b.onclick = ev => {
+      ev.preventDefault(); const go = b.dataset.flowgo; m.remove(); navigate(go); });
+    m.querySelectorAll('[data-planms]').forEach(b => b.onclick = ev => {
+      ev.preventDefault(); const id = b.dataset.planms;
+      const hit = typeof planFindMilestone === 'function' ? planFindMilestone(id) : null;
+      /* land on the list the date belongs to, already narrowed to its work */
+      if(hit) S._planSel = {kind:'list', id: hit.list.id};
+      S._planFilter = Object.assign({}, S._planFilter || {}, {milestone: id});
+      m.remove(); navigate('#/planning'); });
     if(m.querySelector('#pmBack')) m.querySelector('#pmBack').onclick = () => { step--; draw(); };
     m.querySelector('#pmNext').onclick = () => {
       if(step === 0) m.querySelectorAll('[data-int]').forEach(i => p.intentions[+i.dataset.int] = i.value.trim());
@@ -24424,6 +24614,11 @@ function planTaskDefaults(t){
   t.kanbanColumn = t.kanbanColumn || (t.done ? 'done' : 'todo');
   t.kanbanPinned = !!t.kanbanPinned;
   t.quadrant  = t.quadrant == null ? null : clamp(+t.quadrant, 1, 4);
+  /* the date this task is for. A milestone is the reason a piece of work
+     exists — "ship it" is why the four things under it are on the list at
+     all — so the task points at it rather than the other way round: a task
+     belongs to one, and a milestone gathers however many point at it. */
+  t.milestoneId = t.milestoneId || null;
   t.focusTime = +t.focusTime || 0;
   t.streamId  = t.streamId || null;
   t.updatedAt = t.updatedAt || t.createdAt || new Date().toISOString();
@@ -24661,6 +24856,7 @@ function planFilterKeep(f, t){
   if(f.completion === 'active' && t.done) return false;
   if(f.completion === 'completed' && !t.done) return false;
   if(f.lists?.length && !f.lists.includes(t.listId)) return false;
+  if(f.milestone && t.milestoneId !== f.milestone) return false;
   if(f.tags?.length && !f.tags.some(x => t.tags.includes(x))) return false;
   if(f.priorities?.length && !f.priorities.includes(t.priority)) return false;
   if(f.hasSubtasks === true && !t.subtasks.length) return false;
@@ -24680,6 +24876,7 @@ function planFilterCount(f){
   if(!f) return 0;
   let n = 0;
   ['lists','tags','priorities'].forEach(k => { if(f[k]?.length) n++; });
+  if(f.milestone) n++;
   if(f.dateRange) n++;
   if(f.completion && f.completion !== 'any') n++;
   if(f.hasSubtasks === true || f.hasSubtasks === false) n++;
@@ -24747,9 +24944,37 @@ function planAddMilestone(listId, {name = '', date = ''} = {}){
     done: false, note: '', createdAt: new Date().toISOString()};
   l.milestones.push(m); saveNow(); return m;
 }
+/* every task pointing at one milestone, in the order the list shows them */
+function planMilestoneTasks(id, {includeDone = true} = {}){
+  if(!id) return [];
+  return planOwnTasks().filter(t => t.milestoneId === id && (includeDone || !t.done));
+}
+function planTaskMilestone(t){
+  return t && t.milestoneId ? planFindMilestone(t.milestoneId) : null;
+}
+/* how a milestone is doing, read off the tasks that point at it rather than
+   ticked by hand — the date is met when the work under it is */
+function planMilestoneProgress(id){
+  const ts = planMilestoneTasks(id);
+  return {total: ts.length, done: ts.filter(t => t.done).length};
+}
+/* The milestones worth thinking about when choosing what to do next: not met,
+   dated, and near enough to matter. Sorted by how soon, because that is the
+   order they press on you. */
+function planMilestonesAhead({within = 60, limit = 6} = {}){
+  const T = today(), to = addDays(T, within);
+  return planLists().flatMap(l => planListMilestones(l).map(m => ({m, list: l})))
+    .filter(({m}) => !m.done && m.date && m.date <= to)
+    .sort((a, b) => (a.m.date || '').localeCompare(b.m.date || ''))
+    .slice(0, limit);
+}
 function planDeleteMilestone(id){
   const hit = planFindMilestone(id); if(!hit) return null;
-  return spliceOut(hit.list.milestones, x => x.id === id);
+  /* the tasks outlive the date they were for, but they stop pointing at it */
+  const were = planMilestoneTasks(id);
+  were.forEach(t => { t.milestoneId = null; });
+  const undo = spliceOut(hit.list.milestones, x => x.id === id);
+  return () => { if(typeof undo === 'function') undo(); were.forEach(t => { t.milestoneId = id; }); };
 }
 
 /* ---------- sorting ---------- */
@@ -24874,6 +25099,22 @@ function planDetailHTML(t){
       <label class="pd-q"><span class="k">starts</span><input type="date" class="inp" id="pdStart" value="${esc(t.startDate || '')}"></label>
       <label class="pd-q"><span class="k">list</span><select class="sel" id="pdList">
         ${planLists().map(l => `<option value="${l.id}" ${t.listId === l.id ? 'selected' : ''}>${esc(l.name)}</option>`).join('')}</select></label>
+      <!-- The date this task is for. A due date says when it must be done; a
+           milestone says what it is being done towards, which is the thing
+           you actually want back when you ask what is left before shipping.
+           The choice is the milestones of the task's own list, because that
+           is where the run it belongs to lives. -->
+      <label class="pd-q"><span class="k">towards</span><select class="sel" id="pdMilestone">
+        <option value="">— no milestone —</option>
+        ${(() => { const own = planListMilestones(planList(t.listId)).slice()
+            .sort((a, b) => (a.date || '9999').localeCompare(b.date || '9999'));
+          /* a task keeps a milestone from another list if it already has one:
+             moving the task between lists must not silently break the link */
+          const cur = t.milestoneId && !own.some(m => m.id === t.milestoneId) ? planFindMilestone(t.milestoneId) : null;
+          return [...own.map(m => ({m, from:''})), ...(cur ? [{m:cur.m, from:cur.list.name}] : [])]
+            .map(({m, from}) => `<option value="${esc(m.id)}" ${t.milestoneId === m.id ? 'selected' : ''}>${
+              esc(m.name)}${m.date ? ' · ' + esc(fmtDate(m.date, 'short')) : ''}${from ? ' (' + esc(from) + ')' : ''}</option>`).join(''); })()}
+      </select></label>
     </div>
 
     <div class="pd-sec"><div class="k mono">how long</div><div class="chip-row">
@@ -24958,6 +25199,8 @@ function bindPlanDetail(p, t){
   p.querySelector('#pdTime').onchange = function(){ t.dueTime = this.value; planSyncReminders(t); touch(); rerenderPlanBody(); };
   p.querySelector('#pdStart').onchange = function(){ t.startDate = this.value; touch(); };
   p.querySelector('#pdList').onchange = function(){ t.listId = this.value; t.sectionId = null; touch(); rerenderPlanBody(); };
+  p.querySelector('#pdMilestone').onchange = function(){
+    t.milestoneId = this.value || null; touch(); rerenderPlanBody(); };
   p.querySelectorAll('[data-pddur]').forEach(b => b.onclick = () => { const v = +b.dataset.pddur;
     t.duration = v || null; touch(); redraw(); });
   p.querySelectorAll('[data-pdtag]').forEach(b => b.onclick = () => { const n = b.dataset.pdtag;
@@ -25342,11 +25585,22 @@ function planMilestoneStripHTML(sel){
       ${laid.map(({m, list, left, lane}) => { const late = !m.done && m.date && m.date < T;
         /* even lanes hang below the rail, odd ones stand above it */
         const up = lane % 2 === 1, tier = Math.floor(lane / 2);
-        return `<button class="pl-mspin${m.done ? ' done' : ''}${late ? ' late' : ''}${up ? ' up' : ''}" data-plms="${m.id}"
+        /* Pressing a date narrows the list to the work that is for it — the
+           question a milestone asks is "what is left before this", and the
+           answer is a filter, not a dialog. Pressing it again lets go. The
+           pencil is the way into the milestone itself. */
+        const on = S._planFilter?.milestone === m.id;
+        const prog = typeof planMilestoneProgress === 'function' ? planMilestoneProgress(m.id) : {total:0, done:0};
+        return `<button class="pl-mspin${m.done ? ' done' : ''}${late ? ' late' : ''}${up ? ' up' : ''}${on ? ' on' : ''}"
+          data-plmsfilter="${m.id}" aria-pressed="${on}"
           style="left:${left}%;--c:${esc(list.color)};--tier:${tier}" role="listitem"
-          title="${esc(m.name)} · ${m.date ? esc(fmtDate(m.date, 'med')) + ' · ' + esc(planWhenAway(m.date)) : 'no date'}${m.note ? ' · ' + esc(m.note) : ''}">
+          title="${esc(m.name)} · ${m.date ? esc(fmtDate(m.date, 'med')) + ' · ' + esc(planWhenAway(m.date)) : 'no date'}${
+            prog.total ? ` · ${prog.done} of ${prog.total} done` : ' · nothing under it yet'} — ${
+            on ? 'press to show everything again' : 'press to see only its work'}${m.note ? ' · ' + esc(m.note) : ''}">
           <i class="pl-msdot"></i><i class="pl-msstem"></i><span class="pl-mslabel">${esc(m.name)}</span>
-          ${m.date ? `<span class="pl-msaway mono">${esc(m.done ? fmtDate(m.date, 'short') : planWhenAway(m.date))}</span>` : ''}</button>`; }).join('')}
+          ${prog.total ? `<span class="pl-mscount mono">${prog.done}/${prog.total}</span>` : ''}
+          ${m.date ? `<span class="pl-msaway mono">${esc(m.done ? fmtDate(m.date, 'short') : planWhenAway(m.date))}</span>` : ''}
+          <i class="pl-msedit" data-plms="${m.id}" role="button" tabindex="0" title="open this milestone">✎</i></button>`; }).join('')}
     </div>
   </div>`;
 }
@@ -25355,7 +25609,17 @@ function bindPlanMilestones(root, sel){
   if(addb) addb.onclick = () => { const host = planMilestoneList(sel); if(!host) return;
     const m = planAddMilestone(host.id); sound('click'); rerender();
     setTimeout(() => openPlanMilestone(m.id), 60); };
-  root.querySelectorAll('[data-plms]').forEach(b => b.onclick = () => openPlanMilestone(b.dataset.plms));
+  root.querySelectorAll('[data-plmsfilter]').forEach(b => b.onclick = ev => {
+    if(ev.target.closest('[data-plms]')) return;   /* the pencil is its own door */
+    const id = b.dataset.plmsfilter;
+    const f = Object.assign({}, S._planFilter || {});
+    if(f.milestone === id) delete f.milestone; else f.milestone = id;
+    S._planFilter = f; sound('click'); rerender(); });
+  root.querySelectorAll('[data-plms]').forEach(b => {
+    const go = ev => { ev.stopPropagation(); openPlanMilestone(b.dataset.plms); };
+    b.onclick = go;
+    b.onkeydown = ev => { if(ev.key === 'Enter' || ev.key === ' ') go(ev); };
+  });
 }
 function openPlanMilestone(id){
   const hit = planFindMilestone(id); if(!hit) return;
@@ -25366,12 +25630,37 @@ function openPlanMilestone(id){
       <div class="field"><label>What it is</label><input class="inp serif-lg" id="msName" value="${esc(m.name)}" placeholder="Ship it · the hearing · deposit due"></div>
       <div class="field"><label>When</label><div class="dp-field"><input class="inp mono" id="msDate" data-dp value="${esc(m.date || '')}" placeholder="${esc(today())}">${dpButtonHTML('msDate')}</div></div>
       <div class="field"><label>Anything to remember about it</label><textarea class="ta" id="msNote" style="min-height:60px" placeholder="optional">${esc(m.note || '')}</textarea></div>
+      <!-- A date is only as real as the work under it, so opening one shows
+           that work rather than asking you to go and look for it. -->
+      ${(() => {
+        const ts = typeof planMilestoneTasks === 'function' ? planMilestoneTasks(m.id) : [];
+        const left = ts.filter(t => !t.done);
+        return `<div class="field"><label>The work that is for it${
+          ts.length ? ` <span class="mono faint" style="text-transform:none;letter-spacing:0">· ${ts.length - left.length} of ${ts.length} done</span>` : ''}</label>
+          ${ts.length ? `<div class="ms-tasks">${planSortTasks(ts, 'dueDate').map(t =>
+            `<div class="ms-task${t.done ? ' done' : ''}">
+              <button class="task-check sm${t.done ? ' on' : ''}" data-mstick="${esc(t.id)}" role="checkbox"
+                aria-checked="${!!t.done}" title="${t.done ? 'not done after all' : 'mark done'}">${t.done ? '✓' : ''}</button>
+              <span class="ms-task-t">${esc(t.text)}</span>
+              <span class="mono faint">${t.day ? esc(fmtDate(t.day, 'short')) : 'no date'}</span>
+            </div>`).join('')}</div>`
+          : `<div class="empty" style="margin:0">Nothing points at this date yet. Open a task and name this milestone on it, or press the date on the strip to work with only its tasks.</div>`}
+          ${ts.length ? `<button class="btn sm ghost" id="msOnly" style="margin-top:8px">show only its work →</button>` : ''}
+        </div>`; })()}
       <label class="toggle ${m.done ? 'on' : ''}" id="msDone"><span class="sw"></span><span>this one has been met</span></label>
       <div class="row between"><button class="btn sm ghost danger" id="msDel">remove</button>
         <button class="btn primary" id="msSave">Save</button></div>
     </div>`, 'narrow');
   let done = !!m.done;
   mo.querySelector('#msDone').onclick = function(){ done = !done; this.classList.toggle('on', done); };
+  /* ticking a task off from here is the same act as ticking it in the list */
+  mo.querySelectorAll('[data-mstick]').forEach(b => b.onclick = () => {
+    const t = planTaskById(b.dataset.mstick); if(!t) return;
+    planSetDone(t, !t.done); mo.remove(); rerender(); setTimeout(() => openPlanMilestone(id), 60); });
+  const only = mo.querySelector('#msOnly');
+  if(only) only.onclick = () => {
+    S._planFilter = Object.assign({}, S._planFilter || {}, {milestone: m.id});
+    mo.remove(); sound('click'); rerender(); };
   mo.querySelector('#msSave').onclick = () => {
     m.name = mo.querySelector('#msName').value.trim() || 'A date that matters';
     m.date = mo.querySelector('#msDate').value.trim();
@@ -25392,6 +25681,8 @@ function planHeaderHTML(sel){
   const RANGE_SAID = {overdue:'overdue', today:'today', tomorrow:'tomorrow', next7days:'next 7 days', noDate:'no date'};
   const chips = [];
   if(f.lists?.length) chips.push(`<span class="pf-chip on" data-pfclear="lists">${f.lists.map(planListName).join(', ')}<i>×</i></span>`);
+  if(f.milestone){ const hit = planFindMilestone(f.milestone);
+    chips.push(`<span class="pf-chip on" data-pfclear="milestone">◆ ${esc(hit ? hit.m.name : 'a milestone')}<i>×</i></span>`); }
   if(f.tags?.length) chips.push(`<span class="pf-chip on" data-pfclear="tags">${f.tags.map(x => '#' + esc(x)).join(' ')}<i>×</i></span>`);
   if(f.priorities?.length) chips.push(`<span class="pf-chip on" data-pfclear="priorities">${f.priorities.map(n => planPriority(n).name).join(', ')}<i>×</i></span>`);
   if(f.dateRange) chips.push(`<span class="pf-chip on" data-pfclear="dateRange">${esc(RANGE_SAID[f.dateRange] || String(f.dateRange))}<i>×</i></span>`);

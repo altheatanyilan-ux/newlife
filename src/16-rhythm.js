@@ -540,6 +540,30 @@ function planMyDay(d = today()){
         x.cold === Infinity ? `never ${x.what}` : x.cold === 0 ? `${x.what} today` : `${x.what} ${relDays(x.cold)}`}</span></a>`).join('')}</div>
   </div>` : '';
 
+  /* ---------- the dates the work is running towards ----------
+     Choosing tomorrow's tasks without the near milestones in front of you is
+     choosing in the dark: the reason a piece of work matters this week is
+     usually a date, and the date is on another page. So the milestones that
+     are close and not yet met are shown beside the waiting work, each saying
+     how soon it is and how much of its own work is still open. Pressing one
+     goes to its list with the filter already on it. */
+  const msAhead = typeof planMilestonesAhead === 'function'
+    ? planMilestonesAhead({within: 45, limit: 5}) : [];
+  const milestonesHTML = () => msAhead.length ? `<div class="plan-focus plan-ms">
+    <div class="row between" style="align-items:baseline">
+      <span class="k mono">What the work is running towards</span>
+      <span class="mono faint">does ${dayWord} owe any of these an hour?</span></div>
+    <div class="pf-rows">${msAhead.map(({m, list}) => {
+      const prog = typeof planMilestoneProgress === 'function' ? planMilestoneProgress(m.id) : {total:0, done:0};
+      const away = daysBetween(today(), m.date);
+      return `<a class="pf-row" href="#/planning" data-planms="${esc(m.id)}">
+        <span class="pf-ico" style="color:${esc(list.color)}">◆</span>
+        <span class="pf-name">${esc(m.name)} <span class="faint">· ${esc(list.name)}</span></span>
+        <span class="mono pf-cold${away <= 7 ? ' cold' : ''}">${
+          away < 0 ? `${-away}d overdue` : away === 0 ? 'today' : `in ${away}d`}${
+          prog.total ? ` · ${prog.total - prog.done} left` : ' · nothing under it'}</span></a>`; }).join('')}</div>
+  </div>` : '';
+
   const habits = S.habits.filter(h => !h.archived && !h.negative && habitDue(h,d));
   /* nothing is pre-ticked now that only undated work is offered: a task
      already dated to this day is not waiting to be chosen, and counting it
@@ -564,7 +588,7 @@ function planMyDay(d = today()){
        </div>` : ''}`,
       `<h2>What are ${dayPoss} three?</h2><p class="muted" style="font-size:.88rem">Not a task list — the three things that would make ${dayWord} count. One is allowed to be empty.</p>
        <div class="stack" style="gap:8px">${[0,1,2].map(i=>`<div class="row" style="gap:8px"><span class="in-n">${i+1}</span><input class="inp serif-lg" data-int="${i}" value="${esc(p.intentions[i]||'')}" placeholder="${['the one that matters most','the one you keep postponing','the small one'][i]}"></div>`).join('')}</div>`,
-      `<h2>Anything waiting?</h2>${inFocusHTML()}<p class="muted" style="font-size:.88rem">Everything with no day on it, under the list it lives in. Tick what belongs to ${dayWord}; the rest keeps waiting without nagging.</p>
+      `<h2>Anything waiting?</h2>${milestonesHTML()}${inFocusHTML()}<p class="muted" style="font-size:.88rem">Everything with no day on it, under the list it lives in. Tick what belongs to ${dayWord}; the rest keeps waiting without nagging.</p>
        <div class="stack" style="gap:10px;max-height:44vh;overflow:auto">${planGroups.length ? planGroups.map(g => `<div class="pick-group">
          <div class="pick-glabel" style="--c:${g.color}">${esc(g.label)}<span class="mono">${g.rows.length}</span></div>
          ${g.rows.map(r=>`<label class="pick-row ${chosen.has(r.id)?'on':''}"><input type="checkbox" data-pick2="${r.id}" ${chosen.has(r.id)?'checked':''}><span><b>${esc(r.text)}</b>${r.kind === 'project' && r.phase ? `<span class="d">${esc(r.phase.name)}</span>` : ''}</span></label>`).join('')}
@@ -589,6 +613,17 @@ function planMyDay(d = today()){
     m.querySelectorAll('[data-pick2]').forEach(c => c.onchange = () => { c.checked ? chosen.add(c.dataset.pick2) : chosen.delete(c.dataset.pick2); c.closest('.pick-row').classList.toggle('on', c.checked); });
     m.querySelectorAll('[data-pickh]').forEach(c => c.onchange = () => { c.checked ? chosenH.add(c.dataset.pickh) : chosenH.delete(c.dataset.pickh); c.closest('.pick-row').classList.toggle('on', c.checked); });
     m.querySelectorAll('[data-hat]').forEach(s => s.onchange = () => { const h = byId(S.habits, s.dataset.hat); h.at = s.value === '' ? null : +s.value; });
+    /* the things you said mattered, and the dates the work runs towards, are
+       both doors: pressing one leaves the flow and opens what it points at */
+    m.querySelectorAll('[data-flowgo]').forEach(b => b.onclick = ev => {
+      ev.preventDefault(); const go = b.dataset.flowgo; m.remove(); navigate(go); });
+    m.querySelectorAll('[data-planms]').forEach(b => b.onclick = ev => {
+      ev.preventDefault(); const id = b.dataset.planms;
+      const hit = typeof planFindMilestone === 'function' ? planFindMilestone(id) : null;
+      /* land on the list the date belongs to, already narrowed to its work */
+      if(hit) S._planSel = {kind:'list', id: hit.list.id};
+      S._planFilter = Object.assign({}, S._planFilter || {}, {milestone: id});
+      m.remove(); navigate('#/planning'); });
     if(m.querySelector('#pmBack')) m.querySelector('#pmBack').onclick = () => { step--; draw(); };
     m.querySelector('#pmNext').onclick = () => {
       if(step === 0) m.querySelectorAll('[data-int]').forEach(i => p.intentions[+i.dataset.int] = i.value.trim());

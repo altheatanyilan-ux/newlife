@@ -1400,10 +1400,16 @@ details.era-lived[open] > summary::before{transform:rotate(90deg)}
 /* the living tree */
 .sk-organic{width:100%;height:100%;display:block}
 .sk-organic .sk-twig{cursor:pointer}
-.sk-organic .sk-twig .limb,.sk-organic .sk-branch .limb-tint{transition:stroke-width .25s var(--ease),opacity .3s var(--ease)}
+/* Branches are filled tapered shapes, not stroked lines — a limb of even
+   width is half of why a drawn tree looks drawn. `.limb` now lives inside
+   the reveal mask that draws each branch outward from its fork; the wood
+   itself is `.wood` / `.limb-wood`, and `.sk-centre` is the invisible
+   centreline the sap runs along. */
+.sk-organic .wood,.sk-organic .limb-wood,.sk-organic .limb-tint{transition:opacity .3s var(--ease),filter .25s var(--ease)}
+.sk-organic .sk-centre{fill:none;stroke:none}
 .sk-organic.hov .sk-twig:not(.hot){opacity:.42}
 .sk-organic.hov .sk-branch:not(.hot) .limb-tint{opacity:.1}
-.sk-organic .sk-twig.hot .limb{filter:drop-shadow(0 0 4px color-mix(in srgb,var(--nc) 60%,transparent))}
+.sk-organic .sk-twig.hot .wood{filter:drop-shadow(0 0 4px color-mix(in srgb,var(--nc) 60%,transparent))}
 .sk-organic .sk-twig.hot .sk-lbl{fill:var(--text);font-weight:600}
 .sk-organic .sk-lblfor.hot .sk-lbl{fill:var(--text);font-weight:600}
 .sk-organic.hov .sk-lblfor:not(.hot){opacity:.42}
@@ -2664,12 +2670,13 @@ html.vision-deep .page-scene.on{opacity:var(--scene-op)}
   100%{opacity:0;transform:translate(var(--dx),var(--dy))}}
 
 /* sap: a travelling light along a limb that has been practised lately */
-.sk-organic .sk-twig.fresh .limb{stroke-dasharray:5 190;animation:sapRun 4.5s linear infinite}
+.sk-organic .sk-twig.fresh .sk-centre{stroke:color-mix(in srgb,var(--nc) 55%,#fff6dc);stroke-width:2;stroke-linecap:round;
+  stroke-dasharray:5 190;animation:sapRun 4.5s linear infinite}
 @keyframes sapRun{from{stroke-dashoffset:195}to{stroke-dashoffset:0}}
 
 @media (prefers-reduced-motion:reduce){
   .tree-motes{display:none}
-  .sk-organic .sk-canopy,.sk-organic .sk-twig.fresh .limb{animation:none}
+  .sk-organic .sk-canopy,.sk-organic .sk-twig.fresh .sk-centre{animation:none;stroke:none}
   .sk-organic .leaf{transform:none!important}
 }
 
@@ -3975,6 +3982,25 @@ select.sm-active{border-color:var(--page-accent);
    Even lanes hang below the rail and odd ones stand above it, each tier a
    fixed step further out, with a stem back to the dot so a name is never
    orphaned from the date it belongs to. */
+/* --- a milestone as a lens --- */
+/* the pressed pin is the filter that is on: it fills, so the strip says at a
+   glance which date the list below is about */
+.pl-mspin.on .pl-msdot{background:var(--c);box-shadow:0 0 0 3px color-mix(in srgb,var(--c) 30%,transparent)}
+.pl-mspin.on .pl-mslabel{color:var(--c);font-weight:600}
+.pl-mscount{font-size:.58rem;color:var(--faint);letter-spacing:.04em}
+.pl-msedit{opacity:0;font-style:normal;font-size:.68rem;color:var(--faint);padding:0 3px;
+  cursor:pointer;transition:opacity .15s,color .15s}
+.pl-mspin:hover .pl-msedit,.pl-mspin:focus-within .pl-msedit{opacity:1}
+.pl-msedit:hover{color:var(--terra)}
+/* the work under one date, in its own panel */
+.ms-tasks{display:flex;flex-direction:column;gap:2px;max-height:230px;overflow-y:auto}
+.ms-task{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:.88rem;
+  border-bottom:1px dashed var(--line)}
+.ms-task:last-child{border-bottom:0}
+.ms-task.done .ms-task-t{text-decoration:line-through;opacity:.5}
+.ms-task-t{flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
+/* the dates the day's work is running towards, in the planning flow */
+.plan-ms{margin-bottom:10px}
 .pl-mspin{position:absolute;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;
   gap:3px;background:none;border:0;padding:0 2px;cursor:pointer;max-width:9em;
   top:calc(var(--above) - 5px + var(--tier,0) * var(--step))}
@@ -4307,24 +4333,153 @@ select.sm-active{border-color:var(--page-accent);
 .still-guide-foot{margin-top:auto;align-items:center}
 @media (prefers-reduced-motion:reduce){.still-card{animation:none}.still-circle i{transition:none}}
 
-/* --- tarot --- */
-.tc-row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin:6px 0 14px}
-.tc-slot{display:flex;flex-direction:column;align-items:center;gap:5px;max-width:130px}
-.tc-pos{font-size:.6rem;color:var(--faint);text-align:center}
-.tc{width:104px;height:164px;perspective:800px;cursor:pointer}
-.tc-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .6s var(--ease)}
+/* --- tarot ---
+   A card is 160 by 240 and is drawn as a card: a name, a sigil of its own,
+   the one line of essence, and its number, element and planet along the
+   bottom. The turn takes 800ms on a real perspective, because the turning
+   is the part of a reading that means anything. */
+.tc-row{display:flex;gap:22px;flex-wrap:wrap;justify-content:center;margin:6px 0 14px;align-items:flex-start}
+.tc-slot{display:flex;flex-direction:column;align-items:center;gap:7px;width:160px}
+.tc-pos{font-family:var(--serif);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);text-align:center}
+.tc-hole{width:160px;height:240px;border-radius:11px;border:1px dashed var(--line-2);
+  background:color-mix(in srgb,var(--surface-2) 55%,transparent)}
+.tc-hole:has(.tc){border:0;background:none}
+.tc{width:160px;height:240px;perspective:900px;cursor:default}
+.tc-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;
+  transition:transform .8s cubic-bezier(.5,.03,.3,1),box-shadow .8s var(--ease)}
 .tc.up .tc-inner{transform:rotateY(180deg)}
-.tc-back,.tc-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:9px;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:9px;text-align:center}
-.tc-back{background:linear-gradient(140deg,#4a3f56,#2f2838);color:#d8c9ea;font-size:1.4rem;
-  border:1px solid #5d5070}
-.tc-face{transform:rotateY(180deg);background:var(--surface);border:1px solid var(--sc,#8f7bb0);
-  border-top:3px solid var(--sc,#8f7bb0)}
+.tc.pulse .tc-face{box-shadow:0 0 0 2px var(--sc,#8f7bb0),0 0 18px color-mix(in srgb,var(--sc,#8f7bb0) 55%,transparent)}
+.tc-back,.tc-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:11px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:11px;text-align:center;
+  box-shadow:0 2px 10px rgba(0,0,0,.22)}
+.tc-back{background:linear-gradient(140deg,#4a3f56,#2f2838);color:#d8c9ea;border:1px solid #5d5070;padding:0}
+.tc-back svg{width:100%;height:100%;display:block}
+.tc-face{transform:rotateY(180deg);border:1.5px solid var(--sc,#8f7bb0);position:relative;
+  background:#fffdf5 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='60' height='60' filter='url(%23n)' opacity='.045'/%3E%3C/svg%3E");
+  color:#231f1b;transition:box-shadow .3s var(--ease)}
+html[data-theme="dark"] .tc-face{background-color:#1e1b18;color:#e8e0d4}
+.tc-corner{position:absolute;font-size:8px;color:var(--sc,#8f7bb0);opacity:.3;line-height:1}
+.tc-corner.tl{top:6px;left:7px}.tc-corner.tr{top:6px;right:7px}
+.tc-corner.bl{bottom:6px;left:7px}.tc-corner.br{bottom:6px;right:7px}
+.tc-name{font-size:15px;line-height:1.15;letter-spacing:.04em;text-transform:uppercase;max-width:132px;min-height:1.1em}
+.tc-rev{font-size:.52rem;color:var(--terra,#b4462f);letter-spacing:.12em;text-transform:uppercase;margin-top:-3px}
+.tc-sigwrap{margin:3px 0 1px}
+.tc-sig{width:64px;height:64px;display:block}
+.tc-rule{width:58%;height:1px;background:var(--sc,#8f7bb0);opacity:.35}
+.tc-essence{font-family:var(--lora,var(--serif));font-style:italic;font-size:10.5px;line-height:1.45;
+  max-width:134px;opacity:.85}
+.tc-meta{font-size:8.5px;letter-spacing:.12em;opacity:.6}
+/* the small backs: in the pile, and in the fan you choose from */
+.tc-mini{width:74px;height:112px;border-radius:8px;overflow:hidden;position:relative}
+.tc-mini .tc-back{position:absolute;inset:0;border-radius:8px}
 .tc.rev .tc-face{transform:rotateY(180deg) rotate(180deg)}
 .tc-suit{font-size:1.1rem;color:var(--sc,#8f7bb0);line-height:1}
 .tc-name{font-family:var(--serif);font-size:.82rem;line-height:1.25}
 .tc-rev{font-size:.55rem;color:var(--terra,#b4462f);letter-spacing:.08em;text-transform:uppercase}
 .tc-keys{font-size:.56rem;color:var(--faint);line-height:1.35}
+/* --- the ceremony ---
+   The veil is warm and dark in either theme: a reading wants a room of its
+   own, and a page that stays the colour it was does not read as one. */
+.dv-veil{position:fixed;inset:0;z-index:200;background:radial-gradient(120% 90% at 50% 40%,#241d18,#15110e 70%);
+  display:flex;align-items:center;justify-content:center;animation:dvVeilIn .5s var(--ease) both}
+.dv-veil.out{animation:dvVeilOut .4s var(--ease) both}
+.dv-veil-in{display:flex;flex-direction:column;align-items:center;gap:26px;text-align:center;padding:30px}
+.dv-veil-l{font-family:var(--lora,var(--serif));font-style:italic;font-size:1.5rem;line-height:1.6;color:#efe6d8;margin:0;
+  animation:dvLine .9s var(--ease) both;animation-delay:calc(.35s + var(--i) * .7s)}
+.dv-veil .dv-ready{animation:dvLine 1.4s var(--ease) both;margin-top:12px}
+.dv-veil .dv-skip{position:absolute;bottom:24px;right:26px;background:none;border:0;color:#efe6d8;
+  opacity:.35;cursor:pointer;font-family:var(--mono);font-size:.68rem;letter-spacing:.1em}
+.dv-veil .dv-skip:hover{opacity:.8}
+@keyframes dvVeilIn{from{opacity:0}to{opacity:1}}
+@keyframes dvVeilOut{to{opacity:0}}
+@keyframes dvLine{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){
+  .dv-veil,.dv-veil.out,.dv-veil-l,.dv-veil .dv-ready{animation:none}
+  .dv-veil.out{display:none}}
+
+/* the shuffle: a choreographed sequence, not a random one — a shuffle that
+   looks random looks like a fault */
+.dv-shuffle{display:flex;flex-direction:column;align-items:center;gap:22px;padding:44px 0 30px;min-height:220px}
+.dv-pile{position:relative;width:220px;height:116px}
+.dv-sh-card{position:absolute;left:calc(50% - 37px);top:0;transform:rotate(var(--r))}
+.dv-shuffle.go .dv-sh-card{animation:dvShuffle 2.4s cubic-bezier(.4,.05,.3,1) both;
+  animation-delay:calc(var(--i) * .07s)}
+@keyframes dvShuffle{
+  0%{transform:translate(0,0) rotate(var(--r))}
+  18%{transform:translate(-62px,-14px) rotate(-12deg)}
+  36%{transform:translate(54px,10px) rotate(11deg)}
+  54%{transform:translate(-26px,-6px) rotate(-5deg)}
+  72%{transform:translate(18px,4px) rotate(4deg)}
+  100%{transform:translate(0,0) rotate(var(--r))}}
+.dv-sh-say{font-size:.95rem;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){.dv-shuffle.go .dv-sh-card{animation:none}}
+
+/* the fan you choose from: always more backs than the spread needs, because
+   choosing from exactly as many as you need is not choosing */
+.dv-stage{display:flex;flex-direction:column;gap:16px}
+.dv-prompt{text-align:center;font-size:1.02rem}
+.dv-prompt .sc{display:block;margin-bottom:2px}
+.dv-fan{display:flex;justify-content:center;padding:30px 0 12px}
+.dv-pick{background:none;border:0;padding:0;cursor:pointer;margin-left:-26px;
+  --rot:calc((var(--i) - (var(--n) - 1) / 2) * 4deg); --lift:0px;
+  transform:rotate(var(--rot)) translateY(var(--lift));
+  transform-origin:50% 190%;
+  transition:transform .18s var(--ease),filter .18s var(--ease)}
+.dv-pick:first-child{margin-left:0}
+.dv-pick:hover,.dv-pick:focus-visible{--lift:-14px;z-index:2;
+  filter:drop-shadow(0 6px 14px color-mix(in srgb,var(--terra,#b08968) 55%,transparent))}
+.dv-pick.taken{pointer-events:none}
+.dv-spread{min-height:60px}
+@media (prefers-reduced-motion:reduce){.dv-pick:hover{--lift:0px}.dv-pick{transition:none}}
+
+/* --- the reading, at length --- */
+.dv-reading{display:flex;flex-direction:column;gap:26px;margin-top:22px;
+  border-top:1px solid var(--line);padding-top:22px}
+.dv-card-read{max-width:640px}
+.dv-cr-h{font-family:var(--serif);font-size:18px;font-weight:500;letter-spacing:.03em;
+  border-bottom:1px solid var(--terra,#b08968);padding-bottom:5px;margin:0 0 10px;
+  display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.dv-cr-pos{font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.dv-cr-name{text-transform:uppercase;letter-spacing:.06em}
+.dv-cr-ess{margin:0 0 10px;padding-left:12px;border-left:3px solid var(--sc,var(--terra,#b08968));
+  font-family:var(--lora,var(--serif));font-style:italic;font-size:14px;line-height:1.6;color:var(--muted)}
+.dv-cr-ess cite{display:block;font-style:normal;font-family:var(--mono);font-size:.58rem;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-top:4px}
+.dv-cr-themes{font-size:11px;letter-spacing:.1em;color:var(--muted);margin-bottom:9px}
+.dv-cr-sum{margin:0 0 10px;font-size:14px;line-height:1.7;font-weight:600}
+.dv-cr-t{margin:0 0 10px;font-size:14px;line-height:1.7}
+.dv-cr-guide{margin:12px 0;padding:9px 12px;border-radius:8px;
+  background:color-mix(in srgb,var(--sc,var(--terra,#b08968)) 8%,transparent)}
+.dv-cr-guide .mono{font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+.dv-cr-guide p{margin:3px 0 0;font-size:13px;line-height:1.6;color:var(--muted)}
+.dv-cr-q{list-style:none;padding:0;margin:12px 0}
+.dv-cr-q li{font-family:var(--lora,var(--serif));font-style:italic;font-size:13px;line-height:1.6;
+  color:var(--muted);margin:5px 0;padding-left:14px;position:relative}
+.dv-cr-q li::before{content:'·';position:absolute;left:3px;color:var(--terra,#b08968)}
+.dv-cr-adv{margin:10px 0 0;font-size:14px;line-height:1.65;font-weight:600;
+  color:color-mix(in srgb,var(--terra,#b08968) 45%,var(--text))}
+.dv-cr-im{margin-top:10px}
+.dv-cr-im>summary{cursor:pointer;font-family:var(--mono);font-size:.62rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--faint)}
+.dv-cr-im p{margin:6px 0 0;font-size:13px;line-height:1.6;color:var(--muted)}
+.dv-sec-h{font-family:var(--serif);font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--muted);font-weight:600;margin:0 0 10px}
+.dv-story{max-width:640px;border-top:1px solid var(--line);padding-top:18px}
+.dv-story p{font-family:var(--lora,var(--serif));font-style:italic;font-size:14px;line-height:1.8;margin:0 0 8px}
+.dv-yours{max-width:640px;border-top:1px solid var(--line);padding-top:18px;margin-top:8px}
+.dv-yours-p{font-family:var(--lora,var(--serif));font-style:italic;font-size:14px;color:var(--muted);margin:0 0 10px}
+.dv-read-ess{font-family:var(--lora,var(--serif));font-style:italic;font-size:.82rem;color:var(--muted);
+  margin:3px 0 2px;padding-left:8px;border-left:2px solid var(--sc,var(--terra,#b08968))}
+.dv-read-more{margin-top:6px}
+.dv-read-more>summary{cursor:pointer;font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--faint)}
+@media (max-width:640px){
+  .tc,.tc-hole,.tc-slot{width:132px}
+  .tc,.tc-hole{height:198px}
+  .tc-name{font-size:13px;max-width:108px}
+  .tc-essence{font-size:9.5px;max-width:110px}
+  .dv-veil-l{font-size:1.15rem}}
+
 .dv-meanings{display:flex;flex-direction:column;gap:9px;margin-bottom:14px}
 .dv-m{border-left:2px solid var(--line-2);padding-left:10px}
 .dv-m .mono{font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
