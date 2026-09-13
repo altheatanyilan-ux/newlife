@@ -188,25 +188,45 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   });
   is('all sixty-four are written out, lines and all', hexDepth.length, 0);
 
-  /* the deck is drawn as well as written: all seventy-eight pictures, in the
-     order the deck holds them */
+  /* the deck is pictured as well as written: all seventy-eight, in the order
+     the deck holds them, in the colours Rider printed them in */
   const art = await p.evaluate(() => {
-    if(typeof TAROT_ART === 'undefined') return {missing: 78, thin: [], vb: ''};
+    if(typeof TAROT_ART === 'undefined') return {missing: 78, thin: [], w: 0, h: 0};
     const thin = [];
     for(let i = 0; i < 78; i++) if(!TAROT_ART[i] || TAROT_ART[i].length < 2000) thin.push(TAROT[i].n);
-    return {missing: 78 - TAROT_ART.length, thin: thin.slice(0, 4), vb: TAROT_ART_VB};
+    return {missing: 78 - TAROT_ART.length, thin: thin.slice(0, 4), w: TAROT_ART_W, h: TAROT_ART_H};
   });
-  is('all seventy-eight are drawn', art.missing, 0);
+  is('all seventy-eight are pictured', art.missing, 0);
   is('  none of them a stub', art.thin.length, 0);
-  yes('  on the deck\'s own proportion', /500 878/.test(art.vb), art.vb);
-  /* the art is indexed by the same number as the meanings, so a card cannot
-     be drawn as one thing and read as another */
+  yes('  on the deck\'s own proportion', Math.abs(art.h / art.w - 527 / 300) < .02, `${art.w}x${art.h}`);
+  /* the picture is indexed by the same number as the meanings, so a card
+     cannot be drawn as one thing and read as another */
   yes('  and the picture matches the card', await p.evaluate(() => {
     const holder = document.createElement('div');
     holder.innerHTML = tarotCardHTML({card: 0, rev: false}, 0, true);
-    const d = holder.querySelector('.tc-art path').getAttribute('d');
-    return d === TAROT_ART[0] && d !== TAROT_ART[1];
+    const src = holder.querySelector('.tc-art').getAttribute('src');
+    return src === tarotArtURL(0) && src !== tarotArtURL(1);
   }));
+  /* the whole point of the change: they are photographs of a coloured
+     print, not a tracing of its outline */
+  const inColour = await p.evaluate(async () => {
+    const im = new Image(); im.src = tarotArtURL(0);
+    await im.decode();
+    const c = document.createElement('canvas'); c.width = im.width; c.height = im.height;
+    c.getContext('2d').drawImage(im, 0, 0);
+    const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+    let colourful = 0, n = 0;
+    for(let i = 0; i < d.length; i += 4 * 37){        /* every 37th pixel is plenty */
+      n++;
+      const mx = Math.max(d[i], d[i+1], d[i+2]), mn = Math.min(d[i], d[i+1], d[i+2]);
+      if(mx - mn > 40) colourful++;                   /* grey has no spread between channels */
+    }
+    return {share: colourful / n, w: im.width, h: im.height};
+  });
+  yes('the Fool is in colour, not black on cream', inColour.share > .25,
+    `only ${(inColour.share * 100).toFixed(0)}% of pixels have any hue`);
+  yes('  and decodes at the size it was written at', inColour.w === art.w && inColour.h === art.h,
+    `${inColour.w}x${inColour.h} vs ${art.w}x${art.h}`);
 
   /* an oracle card is a sentence, and a sentence in a box is a notification:
      it is a card you turn over, with a note on how to sit with it */

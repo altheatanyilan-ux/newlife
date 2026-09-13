@@ -4379,13 +4379,14 @@ select.sm-active{border-color:var(--page-accent);
    different heights in the same spread. The corners still anchor correctly:
    an absolutely positioned element is a containing block too. */
 /* The paper stays paper in either theme. A card is a printed object: it
-   does not go dark because the room did, and Pamela Colman Smith's black
-   line on a dark card would be no drawing at all. */
+   does not go dark because the room did, and Smith's colours were chosen
+   against cream. */
 .tc-face{transform:rotateY(180deg);border:1.5px solid var(--sc,#8f7bb0);padding:0;overflow:hidden;
   background:#fffdf5 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='60' height='60' filter='url(%23n)' opacity='.045'/%3E%3C/svg%3E");
   color:#231f1b;transition:box-shadow .3s var(--ease)}
-.tc-art{width:100%;height:100%;display:block}
-.tc-art path{fill:#17130f}
+/* the scan is 176x309, the face 160x281 — the same 1:1.757 the printed
+   card has, so `cover` crops nothing and only rounds away a half pixel */
+.tc-art{width:100%;height:100%;display:block;object-fit:cover;user-select:none;-webkit-user-drag:none}
 .tc-corner{position:absolute;font-size:8px;color:var(--sc,#8f7bb0);opacity:.3;line-height:1}
 .tc-corner.tl{top:6px;left:7px}.tc-corner.tr{top:6px;right:7px}
 .tc-corner.bl{bottom:6px;left:7px}.tc-corner.br{bottom:6px;right:7px}

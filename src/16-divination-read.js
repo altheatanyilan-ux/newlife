@@ -127,7 +127,8 @@ function tarotBackHTML(){
 /* a whole card, face and back, ready to be turned */
 /* a whole card, face and back, ready to be turned.
 
-   The face is Pamela Colman Smith's drawing, which is the card: it carries
+   The face is Pamela Colman Smith's drawing in the colours Rider printed
+   it in, which is the card: it carries
    its own title along the bottom and its own numeral at the top, the way a
    tarot card has since 1909, so nothing needs printing over it. The name
    goes under the card instead, where it can arrive out of noise without
@@ -135,20 +136,27 @@ function tarotBackHTML(){
    way up, title and all, which is how a reversed card has always been read.
 
    The paper stays paper in either theme. A card is a printed object; it
-   does not turn dark because the room did, and black ink on a dark card
-   would be no drawing at all. */
+   does not turn dark because the room did. */
+/* The images are stored as bare base64 to save writing the same prefix
+   seventy-eight times; this puts it back. */
+function tarotArtURL(i){
+  const b = typeof TAROT_ART !== 'undefined' ? TAROT_ART[i] : null;
+  return b ? 'data:image/webp;base64,' + b : '';
+}
+function tarotFaceHTML(card){
+  const art = tarotArtURL(card.id);
+  return art
+    ? `<img class="tc-art" src="${art}" alt="" draggable="false" decoding="async">`
+    : `<div class="tc-sigwrap">${tarotSigilSVG(card, 64)}</div>
+       <div class="tc-name serif">${esc(card.name)}</div>`;
+}
 function tarotCardHTML(pick, pos, faceUp){
   const card = tarotCard(pick.card); if(!card) return '';
   const col = SUIT_COLOR[card.suit] || '#8f7bb0';
-  const art = typeof TAROT_ART !== 'undefined' ? TAROT_ART[card.id] : null;
   return `<div class="tc ${faceUp ? 'up' : ''} ${pick.rev ? 'rev' : ''}" data-tc="${pos}" style="--sc:${col}">
     <div class="tc-inner">
       ${tarotBackHTML()}
-      <div class="tc-face">${art
-        ? `<svg class="tc-art" viewBox="${TAROT_ART_VB}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><path d="${art}"/></svg>`
-        : `<div class="tc-sigwrap">${tarotSigilSVG(card, 64)}</div>
-           <div class="tc-name serif">${esc(card.name)}</div>`}
-      </div>
+      <div class="tc-face">${tarotFaceHTML(card)}</div>
     </div></div>`;
 }
 

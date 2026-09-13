@@ -176,7 +176,7 @@ A field you are not editing is not a box. At rest, an input is its own text on t
 
 ## Credits
 
-The tarot card meanings are normalised from Mark McElroy's *A Guide to Tarot Meanings* by way of the [corpora project](https://github.com/dariusk/corpora); everything written at length around them is this house's own. The card pictures are Pamela Colman Smith's illustrations for the deck published by Rider in 1909, which are in the public domain — the vector tracings come from the black-and-white SVGs bundled with [georgestephanis/tarot](https://github.com/georgestephanis/tarot), and `tools/build-tarot-art.js` cuts them down from seven megabytes to the size they are actually drawn at here. The hexagrams follow the King Wen order with the Judgment and Image in the usual English renderings.
+The tarot card meanings are normalised from Mark McElroy's *A Guide to Tarot Meanings* by way of the [corpora project](https://github.com/dariusk/corpora); everything written at length around them is this house's own. The card pictures are Pamela Colman Smith's illustrations for the deck published by Rider in 1909, in the colours they were printed in; they are in the public domain, published in 1909 with Smith dead since 1951. The scans come from the [@cometpisces/tarot-kit-images](https://www.npmjs.com/package/@cometpisces/tarot-kit-images) package, and `tools/build-tarot-art.py` cuts them down from twenty-one megabytes to the size they are actually drawn at here. The hexagrams follow the King Wen order with the Judgment and Image in the usual English renderings.
 
 ## Keyboard
 
