@@ -78,6 +78,22 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     [...document.querySelectorAll('.dv-card-read')].every(n => n.querySelectorAll('.dv-cr-q li').length >= 2)));
   yes('  three cards are read as one story', await p.evaluate(() =>
     (document.querySelector('.dv-story p')?.textContent || '').length > 80));
+
+  /* Every card is Pamela Colman Smith's drawing of it, and every card is the
+     same card-shaped rectangle. The faces once took their size from their own
+     text, so a card with a long line came out taller than its neighbour and a
+     spread was three different sizes. */
+  yes('  each card carries its own drawing', await p.evaluate(() =>
+    document.querySelectorAll('.tc.up .tc-art').length === 3));
+  is('  and every card is the same size', await p.evaluate(() =>
+    new Set([...document.querySelectorAll('.tc-face')].map(n => {
+      const r = n.getBoundingClientRect(); return Math.round(r.width) + 'x' + Math.round(r.height);
+    })).size), 1);
+  yes('  at the proportion a tarot card actually is', await p.evaluate(() => {
+    const r = document.querySelector('.tc').getBoundingClientRect();
+    return Math.abs(r.height / r.width - 878 / 500) < 0.06; }));
+  yes('  the name arrives under the card, not over the drawing', await p.evaluate(() =>
+    [...document.querySelectorAll('.tc-cap-name')].every(n => n.textContent.trim().length > 2)));
   const eB = await p.evaluate(() => S.entries.length);
   await p.evaluate(() => { document.querySelector('#dvText').value = 'It is about the move, not the job.';
     document.querySelector('#dvSave').click(); });
@@ -171,6 +187,26 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     return bad.slice(0, 4);
   });
   is('all sixty-four are written out, lines and all', hexDepth.length, 0);
+
+  /* the deck is drawn as well as written: all seventy-eight pictures, in the
+     order the deck holds them */
+  const art = await p.evaluate(() => {
+    if(typeof TAROT_ART === 'undefined') return {missing: 78, thin: [], vb: ''};
+    const thin = [];
+    for(let i = 0; i < 78; i++) if(!TAROT_ART[i] || TAROT_ART[i].length < 2000) thin.push(TAROT[i].n);
+    return {missing: 78 - TAROT_ART.length, thin: thin.slice(0, 4), vb: TAROT_ART_VB};
+  });
+  is('all seventy-eight are drawn', art.missing, 0);
+  is('  none of them a stub', art.thin.length, 0);
+  yes('  on the deck\'s own proportion', /500 878/.test(art.vb), art.vb);
+  /* the art is indexed by the same number as the meanings, so a card cannot
+     be drawn as one thing and read as another */
+  yes('  and the picture matches the card', await p.evaluate(() => {
+    const holder = document.createElement('div');
+    holder.innerHTML = tarotCardHTML({card: 0, rev: false}, 0, true);
+    const d = holder.querySelector('.tc-art path').getAttribute('d');
+    return d === TAROT_ART[0] && d !== TAROT_ART[1];
+  }));
 
   /* an oracle card is a sentence, and a sentence in a box is a notification:
      it is a card you turn over, with a note on how to sit with it */

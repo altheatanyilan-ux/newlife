@@ -480,7 +480,8 @@ function openTarot(pre = {}){
           <div class="dv-prompt" id="dvPrompt"></div>
           <div class="tc-row dv-spread" id="dvSpread2">${picks.map((pk, i) =>
             `<div class="tc-slot" data-slot="${i}"><span class="tc-pos mono">${esc(sp.pos[i])}</span>
-              <div class="tc-hole" data-hole="${i}"></div></div>`).join('')}</div>
+              <div class="tc-hole" data-hole="${i}"></div>
+              <div class="tc-capslot" data-cap="${i}"></div></div>`).join('')}</div>
           <div class="dv-fan" id="dvFan">${Array.from({length: many}, (_, i) =>
             `<button class="dv-pick" data-pick="${i}" style="--i:${i};--n:${many}" aria-label="choose a card">
               <div class="tc-mini">${tarotBackHTML()}</div></button>`).join('')}</div>
@@ -500,17 +501,27 @@ function openTarot(pre = {}){
         btn.classList.add('taken');
         const land = () => {
           hole.innerHTML = tarotCardHTML(picks[at], at, false);
+          const cap = m.querySelector(`[data-cap="${at}"]`);
+          cap.innerHTML = tarotCaptionHTML(picks[at]);
           const card = hole.querySelector('.tc');
           /* slide in, a breath, then the turn — the pause is the point of it */
           setTimeout(() => {
             card.classList.add('up'); sound('click');
             setTimeout(() => {
               card.classList.add('pulse');
-              scrambleInto(card.querySelector('.tc-name'), TAROT[picks[at].card].n, 600);
+              /* the name arrives under the card as it comes round, rather
+                 than being printed over the drawing */
+              scrambleInto(cap.querySelector('.tc-cap-name'), TAROT[picks[at].card].n, 600);
               setTimeout(() => card.classList.remove('pulse'), 900);
             }, soft ? 0 : 420);
             busy = false; say();
-            if(turned === picks.length) setTimeout(showReading, soft ? 0 : 1400);
+            if(turned === picks.length){
+              /* the rest of the deck has done its job — it goes, rather than
+                 sitting under the spread as a row of gaps */
+              const fan = m.querySelector('#dvFan');
+              if(fan){ fan.classList.add('spent'); setTimeout(() => fan.remove(), soft ? 0 : 500); }
+              setTimeout(showReading, soft ? 0 : 1400);
+            }
           }, soft ? 0 : 300);
         };
         if(soft){ btn.style.visibility = 'hidden'; land(); return; }

@@ -125,25 +125,39 @@ function tarotBackHTML(){
 }
 
 /* a whole card, face and back, ready to be turned */
+/* a whole card, face and back, ready to be turned.
+
+   The face is Pamela Colman Smith's drawing, which is the card: it carries
+   its own title along the bottom and its own numeral at the top, the way a
+   tarot card has since 1909, so nothing needs printing over it. The name
+   goes under the card instead, where it can arrive out of noise without
+   covering the picture — and a reversed card is simply the card the other
+   way up, title and all, which is how a reversed card has always been read.
+
+   The paper stays paper in either theme. A card is a printed object; it
+   does not turn dark because the room did, and black ink on a dark card
+   would be no drawing at all. */
 function tarotCardHTML(pick, pos, faceUp){
   const card = tarotCard(pick.card); if(!card) return '';
   const col = SUIT_COLOR[card.suit] || '#8f7bb0';
-  const gl = SUIT_GLYPH[card.suit] || '✦';
-  const meta = [card.number === 0 && card.arcana === 'major' ? '0' : card.number,
-    card.element, card.planet].filter(Boolean).join(' · ');
+  const art = typeof TAROT_ART !== 'undefined' ? TAROT_ART[card.id] : null;
   return `<div class="tc ${faceUp ? 'up' : ''} ${pick.rev ? 'rev' : ''}" data-tc="${pos}" style="--sc:${col}">
     <div class="tc-inner">
       ${tarotBackHTML()}
-      <div class="tc-face">
-        ${['tl','tr','bl','br'].map(c => `<span class="tc-corner ${c}">${gl}</span>`).join('')}
-        <div class="tc-name serif" data-name="${esc(card.name)}">${esc(card.name)}</div>
-        ${pick.rev ? '<div class="tc-rev mono">(reversed)</div>' : ''}
-        <div class="tc-sigwrap">${tarotSigilSVG(card, 64)}</div>
-        <div class="tc-rule"></div>
-        ${card.essence ? `<div class="tc-essence">${esc(card.essence)}</div>` : ''}
-        <div class="tc-meta mono">${esc(meta.toUpperCase())}</div>
+      <div class="tc-face">${art
+        ? `<svg class="tc-art" viewBox="${TAROT_ART_VB}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><path d="${art}"/></svg>`
+        : `<div class="tc-sigwrap">${tarotSigilSVG(card, 64)}</div>
+           <div class="tc-name serif">${esc(card.name)}</div>`}
       </div>
     </div></div>`;
+}
+
+/* the caption under a card: the name, arriving as the card turns, and the
+   word that says which way up it landed */
+function tarotCaptionHTML(pick){
+  const card = tarotCard(pick.card); if(!card) return '';
+  return `<div class="tc-cap"><span class="tc-cap-name serif"></span>${
+    pick.rev ? '<span class="tc-cap-rev mono">reversed</span>' : ''}</div>`;
 }
 
 /* ---------- the reading ----------
