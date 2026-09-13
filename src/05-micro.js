@@ -64,15 +64,26 @@ const MicroFX = (() => {
        the rest of the page could have had. onMove restarts it. */
     const spin = () => {
       ringX += (px - ringX) * .15; ringY += (py - ringY) * .15;
-      ring.style.transform = `translate(${ringX - 16}px, ${ringY - 16}px)`;
+      /* `translate`, not `transform`. The dashed spin while you are carrying
+         something is a CSS animation on `rotate`, and an animation beats an
+         inline style — written as one `transform` the two fought, the spin
+         won, and the ring lost its position entirely and sat in the corner
+         turning. As separate properties they compose and neither can clobber
+         the other. */
+      ring.style.translate = `${ringX - 16}px ${ringY - 16}px`;
       if(Math.abs(px - ringX) < .12 && Math.abs(py - ringY) < .12){ raf = 0; return; }
       raf = requestAnimationFrame(spin);
     };
     startCursor.spin = spin;
     document.addEventListener('mousedown', () => ring.classList.add('press'));
-    document.addEventListener('mouseup', () => ring.classList.remove('press'));
+    document.addEventListener('mouseup', () => { ring.classList.remove('press'); ring.classList.remove('drag'); });
     document.addEventListener('dragstart', () => ring.classList.add('drag'));
+    /* Three ways out of a drag, because one is not enough: dragend is the
+       ordinary one, drop covers a handler that swallows it, and mouseup
+       covers a drag the browser abandons without firing either. Getting
+       stuck in the drag state used to need a page reload to escape. */
     document.addEventListener('dragend', () => ring.classList.remove('drag'));
+    document.addEventListener('drop', () => ring.classList.remove('drag'), true);
     /* the cursor has nothing to point at once the pointer leaves the window */
     document.addEventListener('mouseleave', () => { dot.classList.add('gone'); ring.classList.add('gone'); });
     document.addEventListener('mouseenter', () => { dot.classList.remove('gone'); ring.classList.remove('gone'); });
@@ -114,7 +125,7 @@ const MicroFX = (() => {
 
   function onMove(ev){
     px = ev.clientX; py = ev.clientY;
-    if(dot) dot.style.transform = `translate(${px - 3}px, ${py - 3}px)`;
+    if(dot) dot.style.translate = `${px - 3}px ${py - 3}px`;
     if(!raf && startCursor.spin) raf = requestAnimationFrame(startCursor.spin);
     const t = ev.target;
     if(t !== hovered){ hovered = t; cursorState(t); }
@@ -177,6 +188,9 @@ const MicroFX = (() => {
     started = true;
     startCursor();
     document.addEventListener('mousemove', queue, {passive:true});
+    /* mousemove stops during a drag; dragover is the only thing still saying
+       where the pointer is, so the ring keeps up instead of being left behind */
+    document.addEventListener('dragover', queue, {passive:true});
     /* a page swap leaves transforms on nodes that are already gone; the ones
        still here are let go so nothing is stuck mid-lean */
     window.addEventListener('hashchange', () => { release(effects); effects = null; hovered = null; });
@@ -189,6 +203,7 @@ const MicroFX = (() => {
        would sit where it was */
     cancelAnimationFrame(raf); raf = 0;
     document.removeEventListener('mousemove', queue);
+    document.removeEventListener('dragover', queue);
     document.documentElement.classList.remove('mfx-cursor');
     dot?.remove(); ring?.remove(); dot = ring = null;
     release(effects); effects = null;

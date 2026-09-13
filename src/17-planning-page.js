@@ -23,7 +23,12 @@ function planSetSel(kind, id){
   S._planView = l?.defaultView || PLAN_VIEW_DEFAULT;
   saveNow(); rerender();
 }
-function planView(){ return S._planView || planState().prefs.view || PLAN_VIEW_DEFAULT; }
+function planView(){
+  const v = S._planView || planState().prefs.view || PLAN_VIEW_DEFAULT;
+  /* Board and Timeline are gone. A list that still remembers one of them —
+     or a saved preference from before — must not leave the workspace blank. */
+  return PLAN_VIEWS.some(x => x.id === v) ? v : PLAN_VIEW_DEFAULT;
+}
 function planSetView(v){ S._planView = v; planState().prefs.view = v; saveNow(); rerender(); }
 
 /* ---------- sidebar ---------- */
@@ -177,6 +182,11 @@ function planMilestoneStripHTML(sel){
   const items = planMilestonesFor(sel);
   const host = planMilestoneList(sel);
   const add = host ? `<button class="pl-mini" id="plMsAdd" title="a date that matters for this list">＋ milestone</button>` : '';
+  /* A milestone could be made and then never got rid of: pressing one filters
+     the list, and the only door to the thing itself was a pencil four pixels
+     wide that appeared on hover, inside the button that filters. So there is
+     a plain way in now, named for what it does. */
+  const manage = items.length ? `<button class="pl-mini" id="plMsManage" title="rename, re-date or remove these">manage</button>` : '';
   if(!items.length) return `<div class="pl-ms empty-strip">
     <span class="k mono">Milestones</span>
     <span class="faint">No dates set for this ${sel.kind === 'folder' ? 'folder' : 'list'} yet — a shipping date, a hearing, the day a deposit is due.</span>
@@ -199,7 +209,7 @@ function planMilestoneStripHTML(sel){
     <div class="row between" style="align-items:baseline">
       <span class="k mono">Milestones</span>
       <span class="mono faint">${items.filter(x => !x.m.done).length} ahead · ${items.length} in all</span>
-      ${add}
+      <span class="row" style="gap:6px">${manage}${add}</span>
     </div>
     <div class="pl-msline" role="list" style="--up:${upT};--down:${downT}">
       <div class="pl-msaxis">${ticks.map(d => `<span class="pl-mstick" style="left:${at(d)}%">${esc(fmtDate(d, 'short'))}</span>`).join('')}</div>
@@ -228,6 +238,8 @@ function planMilestoneStripHTML(sel){
   </div>`;
 }
 function bindPlanMilestones(root, sel){
+  const mgb = root.querySelector('#plMsManage');
+  if(mgb) mgb.onclick = () => openPlanMilestoneManager(sel);
   const addb = root.querySelector('#plMsAdd');
   if(addb) addb.onclick = () => { const host = planMilestoneList(sel); if(!host) return;
     const m = planAddMilestone(host.id); sound('click'); rerender();
@@ -243,6 +255,69 @@ function bindPlanMilestones(root, sel){
     b.onclick = go;
     b.onkeydown = ev => { if(ev.key === 'Enter' || ev.key === ' ') go(ev); };
   });
+}
+/* Every date this list or folder is running towards, in one place, where each
+   one can be renamed, re-dated, marked met or taken away. Deliberately plain:
+   this is the room you come to when a milestone is wrong or over, and the
+   answer to both is usually one press. */
+function openPlanMilestoneManager(sel){
+  const draw = () => {
+    const items = planMilestonesFor(sel);
+    const T = today();
+    if(!items.length) return `<div class="empty" style="margin:0">Nothing left. Every date has been taken away.</div>`;
+    return `<div class="ms-manage">${items.map(({m, list}) => {
+      const late = !m.done && m.date && m.date < T;
+      const prog = typeof planMilestoneProgress === 'function' ? planMilestoneProgress(m.id) : {total:0, done:0};
+      return `<div class="ms-mrow${m.done ? ' done' : ''}${late ? ' late' : ''}" data-msrow="${esc(m.id)}" style="--c:${esc(list.color)}">
+        <button class="task-check sm${m.done ? ' on' : ''}" data-msmet="${esc(m.id)}" role="checkbox"
+          aria-checked="${!!m.done}" title="${m.done ? 'not met after all' : 'this one has been met'}">${m.done ? '✓' : ''}</button>
+        <input class="inp ms-mname" data-msname="${esc(m.id)}" value="${esc(m.name)}" placeholder="What it is">
+        <div class="dp-field ms-mdate"><input class="inp mono" id="msmd-${esc(m.id)}" data-msdate="${esc(m.id)}" data-dp
+          value="${esc(m.date || '')}" placeholder="no date">${dpButtonHTML('msmd-' + m.id)}</div>
+        <span class="mono faint ms-mwhen">${m.date ? esc(m.done ? fmtDate(m.date, 'short') : planWhenAway(m.date)) : '—'}</span>
+        <span class="mono faint ms-mprog" title="${prog.total ? prog.done + ' of ' + prog.total + ' done' : 'nothing points at it yet'}">${
+          prog.total ? `${prog.done}/${prog.total}` : '—'}</span>
+        <span class="mono faint ms-mlist">${esc(list.name)}</span>
+        <button class="btn sm ghost" data-msopen="${esc(m.id)}" title="open it on its own">open</button>
+        <button class="del-x inline" data-msdrop="${esc(m.id)}" title="remove this date">×</button>
+      </div>`; }).join('')}</div>`;
+  };
+  const host = planMilestoneList(sel);
+  const mo = openModal(`<h2>The dates this is running towards</h2>
+    <p class="muted" style="font-size:.85rem">Rename one, move it, mark it met, or take it away. Nothing here touches the tasks under it — a date removed leaves its work exactly where it was.</p>
+    <div id="msMgBody">${draw()}</div>
+    <div class="row between" style="margin-top:12px">
+      ${host ? `<button class="btn sm ghost" id="msMgAdd">＋ another date</button>` : '<span></span>'}
+      <button class="btn primary" id="msMgDone">Done</button></div>`, 'wide');
+
+  const refresh = () => { mo.querySelector('#msMgBody').innerHTML = draw(); wire(); rerender(); };
+  function wire(){
+    /* the calendar is delegated at the document, so a redrawn row needs no
+       remounting — only its own handlers back */
+    mo.querySelectorAll('[data-msname]').forEach(i => i.onchange = () => {
+      const hit = planFindMilestone(i.dataset.msname); if(!hit) return;
+      hit.m.name = i.value.trim() || 'A date that matters'; saveNow(); rerender(); });
+    mo.querySelectorAll('[data-msdate]').forEach(i => i.onchange = () => {
+      const hit = planFindMilestone(i.dataset.msdate); if(!hit) return;
+      hit.m.date = i.value.trim(); saveNow(); refresh(); });
+    mo.querySelectorAll('[data-msmet]').forEach(b => b.onclick = () => {
+      const hit = planFindMilestone(b.dataset.msmet); if(!hit) return;
+      hit.m.done = !hit.m.done; saveNow(); sound('click'); refresh(); });
+    mo.querySelectorAll('[data-msopen]').forEach(b => b.onclick = () => {
+      const id = b.dataset.msopen; mo.remove(); openPlanMilestone(id); });
+    /* removal goes through requestDelete like everything else, so it can be
+       undone from the same banner as any other deletion */
+    mo.querySelectorAll('[data-msdrop]').forEach(b => b.onclick = () => {
+      const hit = planFindMilestone(b.dataset.msdrop); if(!hit) return;
+      const row = b.closest('.ms-mrow');
+      requestDelete({label: hit.m.name || 'Milestone', node: row,
+        after: () => { refresh(); }, remove: () => planDeleteMilestone(hit.m.id)}); });
+  }
+  wire();
+  const addb = mo.querySelector('#msMgAdd');
+  if(addb) addb.onclick = () => { const h = planMilestoneList(sel); if(!h) return;
+    planAddMilestone(h.id); sound('click'); refresh(); };
+  mo.querySelector('#msMgDone').onclick = () => { mo.remove(); rerender(); };
 }
 function openPlanMilestone(id){
   const hit = planFindMilestone(id); if(!hit) return;
@@ -495,9 +570,7 @@ routes.planning = function(root, params){
   const body = special
     ? planStatsHTML()
     : v === 'calendar'   ? planCalendarHTML(tasks)
-    : v === 'kanban'     ? planKanbanHTML(sel, tasks)
     : v === 'eisenhower' ? planMatrixHTML(tasks)
-    : v === 'timeline'   ? planTimelineHTML(tasks, sel)
     : planListViewHTML(sel, tasks);
 
   const room = planRoom();

@@ -62,7 +62,48 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
       await p.evaluate(() => !!document.querySelector('.mfx-lit')));
   yes('  and a card leans', await p.evaluate(() => document.querySelectorAll('.mfx-tilt').length > 0));
 
-  console.log('\n3. the ambient layer is on, and quiet');
+  console.log('\n3. carrying something does not lose the pointer');
+  /* The spin while you drag was an animation on `transform`, and the ring's
+     position is an inline `transform` written every frame. An animation beats
+     an inline style, so the moment a drag began the ring stopped following
+     the pointer, sat in the corner turning, and stayed there until the page
+     was reloaded. Position is on `translate` now and the spin on `rotate`. */
+  await p.mouse.move(600, 400); await p.waitForTimeout(1000);
+  const ringAt = () => p.evaluate(() => { const r = document.querySelector('.mfx-ring');
+    const b = r.getBoundingClientRect();
+    return {cx: Math.round(b.left + b.width / 2), cy: Math.round(b.top + b.height / 2),
+      cls: r.className, anim: getComputedStyle(r).animationName}; });
+  await p.evaluate(() => document.body.dispatchEvent(new DragEvent('dragstart', {bubbles:true})));
+  await p.waitForTimeout(250);
+  let dr = await ringAt();
+  yes('the ring knows it is carrying something', /\bdrag\b/.test(dr.cls) && dr.anim === 'mfxSpin', dr.cls + ' / ' + dr.anim);
+  /* mousemove stops during a drag; dragover is the only thing left saying
+     where the pointer is */
+  for(const [x, y] of [[820,320],[1000,600],[1120,440]]){
+    await p.evaluate(([x, y]) => document.body.dispatchEvent(
+      new DragEvent('dragover', {bubbles:true, clientX:x, clientY:y})), [x, y]);
+    await p.waitForTimeout(650);
+  }
+  dr = await ringAt();
+  yes('  and it follows the pointer while it spins',
+      Math.abs(dr.cx - 1120) < 60 && Math.abs(dr.cy - 440) < 60, `ring at ${dr.cx},${dr.cy} for a pointer at 1120,440`);
+  yes('  still spinning while it does', dr.anim === 'mfxSpin');
+  /* three ways out, because one is not enough */
+  const exits = {};
+  for(const ev of ['dragend', 'drop', 'mouseup']){
+    await p.evaluate(() => document.body.dispatchEvent(new DragEvent('dragstart', {bubbles:true})));
+    await p.waitForTimeout(120);
+    const inIt = await p.evaluate(() => document.querySelector('.mfx-ring').classList.contains('drag'));
+    await p.evaluate(e => document.body.dispatchEvent(e === 'mouseup'
+      ? new MouseEvent('mouseup', {bubbles:true}) : new DragEvent(e, {bubbles:true})), ev);
+    await p.waitForTimeout(180);
+    exits[ev] = inIt && await p.evaluate(() => !document.querySelector('.mfx-ring').classList.contains('drag'));
+  }
+  yes('  dragend lets go of it', exits.dragend);
+  yes('  so does a drop whose handler swallowed dragend', exits.drop);
+  yes('  and so does a drag the browser simply abandons', exits.mouseup);
+
+  console.log('\n3b. the ambient layer is on, and quiet');
   const amb = await p.evaluate(() => {
     const w = document.getElementById('warmth');
     const h = document.querySelector('.page-head h1') || document.querySelector('h1');
