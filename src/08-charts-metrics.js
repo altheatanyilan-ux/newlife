@@ -94,7 +94,10 @@ function stateBlurb(trend){
   const dir = d > 6 ? 'rising' : d < -6 ? 'sinking' : 'level';
   return `now ${now}/100 · ${dir} over ${vals.length} logged days`;
 }
-function rehearsalDoneToday(){ return S.rehearsal.days.includes(today()); }
+/* Any of the Morning Theatre practices counts as having practised, not only
+   the day being ticked by hand — building a scene or writing a script is the
+   practice, and having to also press a button for it was silly. */
+function rehearsalDoneToday(){ return typeof theatreDoneToday === 'function' ? theatreDoneToday() : (S.rehearsal.days || []).includes(today()); }
 function rehearsalStreak(){ let n=0, d=today(); if(!S.rehearsal.days.includes(d)) d=addDays(d,-1); while(S.rehearsal.days.includes(d)){n++; d=addDays(d,-1);} return n; }
 function signals(){
   const out = [];
@@ -202,7 +205,10 @@ function entryCard(e, {clamp:cl=true, tools=true}={}){
   const rest = pics.slice(1);
   return `<article class="entry rv ${pics.length?'plated':''}" data-entry="${e.id}">
     ${pics.length ? imageBackdropHTML(e) : ''}
-    <div class="meta"><span class="mono">${typeIcon(e.type)} ${typeName(e.type)}</span><span class="mono">${esc(fmtDate(e.occurredAt,'med'))}</span>${unfinishedFlag(e)?`<span class="status-pill unf-pill" title="waiting at the bottom of Today">unfinished</span>`:''}${e.confidence?`<span class="status-pill">${esc(e.confidence)}</span>`:''}${tools?`<span class="tools"><button class="tbtn" data-edit="${e.id}">edit</button><button class="snip-btn" data-snip="${e.id}" title="save to the Writing Studio">✂</button></span>`:''}</div>${tools?`<button class="del-x" data-del="${e.id}" title="delete" aria-label="delete entry">×</button>`:''}
+    <div class="meta"><span class="mono">${typeIcon(e.type)} ${typeName(e.type)}</span><span class="mono">${esc(fmtDate(e.occurredAt,'med'))}</span>${unfinishedFlag(e)?`<span class="status-pill unf-pill" title="waiting at the bottom of Today">unfinished</span>`:''}${e.confidence?`<span class="status-pill">${esc(e.confidence)}</span>`:''}${tools?`<span class="tools"><button class="tbtn" data-edit="${e.id}">edit</button><button class="snip-btn" data-snip="${e.id}" title="save to the Writing Studio">✂</button>${
+      /* a quote, or an entry carrying a photograph, can go straight onto the
+         Morning Theatre's vision board without being retyped there */
+      (q || pics.length) ? `<button class="snip-btn" data-vbpin="${e.id}" title="pin to the vision board">📌</button>` : ''}</span>`:''}</div>${tools?`<button class="del-x" data-del="${e.id}" title="delete" aria-label="delete entry">×</button>`:''}
     ${e.title?`<div class="title">${esc(e.title)}</div>`:''}
     ${e.body?`<div class="body ${cl?'clamp':''} ${q?'quote':''}">${q?'“'+esc(e.body)+'”':md(e.body)}</div>`:''}
     ${rest.length?`<div class="thumbs">${rest.map(m=>`<div class="photo" style="width:88px;height:88px;cursor:zoom-in" data-lb="${m.id}"><img src="${m.src}" alt="${esc(m.caption)}"></div>`).join('')}</div>`:''}
@@ -217,6 +223,14 @@ document.addEventListener('click', e => {
   const ed_ = e.target.closest('[data-edit]'); if(ed_){ openEntryModal({entryId: ed_.dataset.edit}); }
   const del = e.target.closest('[data-del]'); if(del){ e.stopPropagation(); const ent = byId(S.entries, del.dataset.del); if(ent) requestDelete({label: ent.title || typeName(ent.type), node: del.closest('.entry, .formative'), remove: () => spliceOut(S.entries, x => x.id === ent.id)}); }
   const lb = e.target.closest('[data-lb]'); if(lb){ const img = lb.querySelector('img'); lightbox(img.src, img.alt); }
+  const pin = e.target.closest('[data-vbpin]');
+  if(pin){ e.stopPropagation(); const ent = byId(S.entries, pin.dataset.vbpin); if(!ent) return;
+    const img = (ent.media || [])[0];
+    if(img) pinToVisionBoard({type:'image', src:img.src, caption:img.caption || ent.title || '',
+      projectId:(ent.links?.projects || [])[0] || null}, 'The picture');
+    else pinToVisionBoard({type:'quote', text:ent.body || ent.title || '', source:ent.title || '',
+      projectId:(ent.links?.projects || [])[0] || null}, 'The quote');
+    rerender(); }
   const qw = e.target.closest('[data-qwopen]'); if(qw){ e.stopPropagation(); navigate('#/commonplace/' + qw.dataset.qwopen); }
   const an = e.target.closest('[data-answer]'); if(an){ const ent = byId(S.entries, an.dataset.answer);
     const m = openModal(`<h2>An answer, for now</h2><p class="quote">${esc(ent.title)}</p>

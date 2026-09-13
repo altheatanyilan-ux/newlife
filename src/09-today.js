@@ -264,18 +264,9 @@ routes.today = function(root){
     </details>
 
     <!-- morning rehearsal (Maltz) -->
-    <details class="section rv rehearsal-wrap t-sec" id="t-theatre"${fold('t-theatre', !rehearsalDoneToday())} style="margin-top:8px">
-      <summary><span class="sc">Morning Theatre</span><span class="mono">${rehearsalDoneToday()?'practised today':'30 minutes · Maltz'}</span>${flowTick('theatreAt')}</summary>
-      <div class="body rehearsal stack" style="gap:24px">
-        <blockquote class="rehearsal-epigraph">Close your eyes for thirty minutes. See yourself on a mental screen — sights, sounds, smells. See yourself acting, feeling and being as you want to be. The nervous system cannot tell a real experience from one vividly imagined.<cite>Maxwell Maltz</cite></blockquote>
-        <div class="field"><label>Self-image script</label>${ed('rehearsal.script',{multi:true,mdr:true,cls:'prose serif-lg',ph:'First person, present tense. Who you are becoming — vivid, sensory, felt as already real.'})}</div>
-        <div class="field"><label>The winning feeling</label><div class="faint" style="font-size:.8rem;margin-bottom:4px">Recall a moment when you felt self-confident and successful. Capture that feeling, then weld it to your vision of the future.</div>${ed('rehearsal.winning',{multi:true,cls:'prose',ph:'Where were you? What did your body do?'})}</div>
-        <div class="field"><label>Definite chief aim</label><div class="faint" style="font-size:.8rem;margin-bottom:4px">The exact thing desired, what you will give in return, the date, the plan. Read aloud morning and night, with feeling.</div>${ed('rehearsal.aim',{multi:true,cls:'prose serif-lg',ph:'By [date] I will have [exactly this]. In return I will give [this].'})}</div>
-        <div class="field"><label>21-day tracker <span class="mono" style="text-transform:none;letter-spacing:0">· day ${clamp(cycleDay+1,1,21)} of 21 · ${S.rehearsal.days.filter(d=>d>=S.rehearsal.cycleStart).length} practised</span></label>
-          <div class="tracker">${Array.from({length:21},(_,i)=>{ const d = addDays(S.rehearsal.cycleStart||T, i); return `<i class="${S.rehearsal.days.includes(d)?'done':''} ${d===T?'today':''}" data-td="${d}" title="${fmtDate(d,'med')}"></i>`; }).join('')}</div>
-          <div class="row" style="margin-top:12px"><button class="btn sm ${rehearsalDoneToday()?'':'primary'}" id="markTheatre">${rehearsalDoneToday()?'✓ Practised today':'Mark today\'s practice'}</button><button class="btn sm ghost" id="newCycle">Begin a new 21-day cycle</button></div>
-        </div>
-      </div>
+    <details class="section rv rehearsal-wrap t-sec" id="t-theatre"${fold('t-theatre', !theatreDoneToday())} style="margin-top:8px">
+      <summary><span class="sc">Morning Theatre</span><span class="mono">${theatreDoneToday() ? 'practised today' : 'six ways in · pick one'}</span>${flowTick('theatreAt')}</summary>
+      ${theatreHTML()}
     </details>
 
     <!-- the habit checklist: the whole of habit-keeping now lives here -->
@@ -429,6 +420,7 @@ routes.today = function(root){
   const sp = $('#setpoint'); if(sp){ sp.oninput = () => { $('#spName').textContent = hicksName(+sp.value); $('#spNum').textContent = sp.value; }; sp.onchange = () => { c.setpoint = +sp.value; saveNow(); sound('save'); }; }
 
   /* morning theatre */
+  bindTheatre(root);
   $('#markTheatre').onclick = () => { if(!S.rehearsal.days.includes(T)){ S.rehearsal.days.push(T); if(!S.rehearsal.cycleStart) S.rehearsal.cycleStart = T; saveNow(); sound('chime'); toast('Practice marked. The nervous system takes care of the rest, in time.'); rerender(); } };
   $('#newCycle').onclick = () => confirmDlg('Start a fresh 21-day cycle from today? Past days stay in your history.', () => { S.rehearsal.cycleStart = T; saveNow(); rerender(); });
   root.querySelectorAll('.tracker i').forEach(i => i.onclick = () => { const d = i.dataset.td; if(d > T) return; const idx = S.rehearsal.days.indexOf(d); if(idx>=0) S.rehearsal.days.splice(idx,1); else S.rehearsal.days.push(d); saveNow(); rerender(); });
