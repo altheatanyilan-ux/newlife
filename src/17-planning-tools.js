@@ -13,6 +13,7 @@ const FocusTimer = (() => {
   let pendingTask = null;
   const listeners = new Set();
   const cfg = () => planState().timer;
+  let pendingSub = null;
   const notify = () => listeners.forEach(f => { try { f(state()); } catch(e){} });
   /* Two ways to time a piece of work, and they are different questions.
      A countdown asks "can I hold this for twenty-five minutes"; a stopwatch
@@ -27,11 +28,11 @@ const FocusTimer = (() => {
   }
   function state(){
     if(!st) return {running:false, phase:'focus', left:cfg().focusDuration * 60, elapsed:0,
-      mode:timerMode(), round:1, taskId:pendingTask, idle:true};
+      mode:timerMode(), round:1, taskId:pendingTask, subId:pendingSub, idle:true};
     const left = st.up ? 0 : (st.running ? Math.max(0, Math.round((st.endsAt - Date.now()) / 1000)) : st.remaining);
     const onBreak = !st.running && st.phase === 'focus' && (st.breaks || []).some(b => !b.to);
     const cur = (st.breaks || []).find(b => !b.to) || null;
-    return {running:st.running, phase:st.phase, left, elapsed: elapsedSecs(),
+    return {running:st.running, phase:st.phase, left, elapsed: elapsedSecs(), subId: st.subId || null,
       mode: st.up ? 'stopwatch' : 'countdown',
       round:st.round, taskId:st.taskId, idle:false,
       onBreak, breakNote: cur ? cur.note : '', breakSince: cur ? cur.from : null,
@@ -51,6 +52,7 @@ const FocusTimer = (() => {
       endsAt: up ? 0 : Date.now() + secs * 1000, remaining: up ? 0 : secs,
       acc: st && st.up ? (st.acc || 0) : 0, since: Date.now(),
       taskId: taskId !== undefined ? taskId : (st ? st.taskId : pendingTask),
+      subId: st ? (st.subId || pendingSub) : pendingSub,
       round: st ? st.round : 1, startedAt: st?.startedAt || new Date().toISOString(),
       notes: st ? (st.notes || '') : '',
       breaks: carried || []};
@@ -92,7 +94,7 @@ const FocusTimer = (() => {
     const mins = Math.round(elapsedSecs() / 60);
     if(mins < 1) return;
     closeBreak();
-    planState().focusSessions.push({id:uid(), taskId:st.taskId || null, startedAt:st.startedAt,
+    planState().focusSessions.push({id:uid(), taskId:st.taskId || null, subId:st.subId || null, startedAt:st.startedAt,
       endedAt:new Date().toISOString(), duration:mins, type:'focus', completed:!!completed,
       mode: st.up ? 'stopwatch' : 'countdown', note: st.notes || '',
       breaks:(st.breaks || []).filter(b => b.to).map(b => ({from:b.from, to:b.to, note:b.note || ''}))});
@@ -111,7 +113,7 @@ const FocusTimer = (() => {
     const nextRound = was === 'focus' ? round + 1 : round;
     const nextPhase = was === 'focus' ? (round % c.longBreakAfter === 0 ? 'long' : 'short') : 'focus';
     st = {phase:nextPhase, running:false, remaining:phaseLen(nextPhase), endsAt:0,
-      taskId, round:nextRound, startedAt:new Date().toISOString()};
+      taskId, subId: pendingSub, round:nextRound, startedAt:new Date().toISOString()};
     if(!skipped) sound('success');
     const auto = nextPhase === 'focus' ? c.autoStartFocus : c.autoStartBreaks;
     if(auto) start(undefined, nextPhase); else notify();
@@ -133,7 +135,11 @@ const FocusTimer = (() => {
      the same courtesy the breaks already had */
   function noteWork(text){ if(!st) return; st.notes = String(text || ''); notify(); }
   return {start, pause, stop, skip, state, reset: () => { st = null; notify(); },
-    setTask(id){ pendingTask = id; if(st) st.taskId = id; notify(); },
+    /* A step of a task is a thing you sit down with in its own right, so the
+       timer carries which step as well as which task — otherwise a session on
+       one step is indistinguishable from a session on the whole thing. */
+    setTask(id, subId){ pendingTask = id; pendingSub = subId || null;
+      if(st){ st.taskId = id; st.subId = pendingSub; } notify(); },
     mode: timerMode,
     setMode(m){ if(st) return false; cfg().mode = m === 'stopwatch' ? 'stopwatch' : 'countdown'; saveNow(); notify(); return true; },
     setLength(mins){ if(st) return false; const n = clamp(Math.round(+mins || 0), 1, 240);

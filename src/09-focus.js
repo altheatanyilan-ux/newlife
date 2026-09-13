@@ -46,6 +46,28 @@ function taskEstOf(t){
   return fromSubs || +t.duration || 0;
 }
 const taskHasSubEst = t => (Array.isArray(t?.subtasks) ? t.subtasks : []).some(s => +s.minutes > 0);
+/* How long was actually spent on it. The timer's own accounting already
+   leaves out the pauses and the breaks — a countdown's remaining freezes
+   while paused and a stopwatch accumulates only while running — so this is
+   simply the sum of the sittings.
+
+   A step's sittings belong to the task as well as to the step, which is why
+   the task's figure counts them all and the step's counts only its own. */
+function taskSpentOn(id){
+  if(!id || typeof focusSessions !== 'function') return 0;
+  return sum(focusSessions().filter(s => s.taskId === id).map(s => +s.duration || 0));
+}
+function subSpentOn(taskId, subId){
+  if(!taskId || !subId || typeof focusSessions !== 'function') return 0;
+  return sum(focusSessions().filter(s => s.taskId === taskId && s.subId === subId).map(s => +s.duration || 0));
+}
+/* "13m of 15m" while there is an estimate to measure against, "13m" when
+   there is not, and nothing at all under a minute — a sitting shorter than
+   that is not worth the ink and is not recorded in the first place. */
+function fmtSpent(spent, est){
+  if(!(spent >= 1)) return '';
+  return est ? `${fmtEst(spent)} of ${fmtEst(est)}` : fmtEst(spent);
+}
 /* "25m", "1h", "1h 30m" — never "0h 25m" */
 function fmtEst(m){
   m = Math.round(+m || 0); if(!m) return '';
@@ -63,11 +85,16 @@ function taskEstHTML(id, t, {sm = false} = {}){
   const mins = taskEstOf(t);
   const on = FocusTimer.state().taskId === id && FocusTimer.state().running;
   const rolled = taskHasSubEst(t);
+  const spent = taskSpentOn(id);
+  const over = mins && spent > mins;
+  const label = spent >= 1
+    ? `<span class="te-spent">${esc(fmtEst(spent))}</span>${mins ? `<span class="te-of">of</span>${esc(fmtEst(mins))}` : ''}`
+    : mins ? esc(fmtEst(mins)) : '<span class="te-set">＋ est</span>';
   return `<span class="est-wrap${sm ? ' sm' : ''}">
-    <button class="task-est${sm ? ' sm' : ''}${on ? ' on' : ''}${mins ? '' : ' none'}"
+    <button class="task-est${sm ? ' sm' : ''}${on ? ' on' : ''}${mins ? '' : ' none'}${spent >= 1 ? ' spent' : ''}${over ? ' over' : ''}"
       data-test="${esc(id)}" data-estmin="${mins}"
-      title="${mins ? `${fmtEst(mins)}${rolled ? ', added up from the steps' : ''} — press to sit down with it for that long` : 'how long will it take?'}">
-      ${mins ? esc(fmtEst(mins)) : '<span class="te-set">＋ est</span>'}</button>
+      title="${spent >= 1 ? `${fmtEst(spent)} sat with so far${mins ? `, of ${fmtEst(mins)} estimated` : ''} — press to sit down with it again` : mins ? `${fmtEst(mins)}${rolled ? ', added up from the steps' : ''} — press to sit down with it for that long` : 'how long will it take?'}">
+      ${label}</button>
     ${mins && !rolled ? `<button class="est-pen" data-testedit="${esc(id)}" title="change the length" aria-label="change the length">✎</button>` : ''}
   </span>`;
 }
@@ -88,7 +115,7 @@ function bindTaskTimers(root){
     const r = findTaskRef(rid) || (typeof planTaskById === 'function' ? {task: planTaskById(rid), id: rid} : null);
     const s = (r?.task?.subtasks || []).find(x => x.id === sid); if(!s) return;
     if(!+s.minutes) return askSubEstimate(rid, sid);
-    focusOnTask(rid, +s.minutes, s.title);
+    focusOnTask(rid, +s.minutes, s.title, sid);
   });
 }
 /* Asked with the chooser the rest of the planner uses. The presets run from
@@ -134,7 +161,7 @@ function askSubEstimate(rid, sid){
    sitting down with now is today's whether or not it was this morning; set
    the countdown to the length you estimated and hand it the task; and go to
    the page the timer lives on. */
-function focusOnTask(id, minutes = 0, what = ''){
+function focusOnTask(id, minutes = 0, what = '', subId = null){
   const t = (typeof planTaskById === 'function' ? planTaskById(id) : null) ||
             (typeof findTaskRef === 'function' ? findTaskRef(id)?.task : null);
   const T = today();
@@ -148,9 +175,9 @@ function focusOnTask(id, minutes = 0, what = ''){
     FocusTimer.setMode('countdown');
     FocusTimer.setLength(minutes);
   }
-  FocusTimer.setTask(id);
+  FocusTimer.setTask(id, subId || null);
   const st = FocusTimer.state();
-  if(!st.running || st.taskId !== id) FocusTimer.start();
+  if(!st.running || st.taskId !== id || st.subId !== (subId || null)) FocusTimer.start();
   if(what && typeof FocusTimer.noteWork === 'function') FocusTimer.noteWork(what);
   sound('success');
   toast(`${minutes ? fmtEst(minutes) + ' on ' : 'Focusing on '}${what || t?.text || 'this'} — it is on today's list now.`);
@@ -407,4 +434,75 @@ function liveFocusFace(root){
   };
   const iv = setInterval(face, 1000);
   face();
+}
+
+/* ============================================================
+   FINISHING THE THING YOU WERE SITTING WITH
+   ------------------------------------------------------------
+   Ticking off the task the clock is running on is the end of the sitting, and
+   the app should not need telling. The session is written down with the time
+   actually worked, the clock is emptied and ready for the next thing to be
+   dragged in, and — because finishing something you sat down to finish is the
+   whole point of the apparatus — the screen says so.
+   ============================================================ */
+const FINISH_LINES = [
+  'Done. That is one thing that will not be on tomorrow’s list.',
+  'Finished. The clock is yours again.',
+  'That is it closed. Nothing owed on it.',
+  'Sat down, did it, got up. That is the whole method.',
+  'Off the list. The day is measurably shorter.',
+  'One less thing between you and the evening.',
+  'Complete. Give it a moment before the next one.',
+  'That was the hard part. It is behind you.',
+  'Struck out. The page is cleaner than it was.',
+  'You started it and you finished it, which is rarer than it sounds.',
+  'Done — and the time it took is written down, which is how you get better at guessing.',
+  'That is the thing you were avoiding. It is over now.',
+  'Closed. Stand up, look out of a window.',
+  'Finished, and the record says how long it really took.',
+];
+/* A burst of colour from the middle of the timer, or from the middle of the
+   screen if the timer is not on it. Not a long animation — a second and a
+   half, and gone. */
+function fireworks(x, y){
+  if(reduced()) return;
+  const cols = ['#d4a44c', '#b4462f', '#7f916a', '#8f7bb0', '#4b7d9c', '#e8c7a0'];
+  const c = el('<div class="fw-burst" aria-hidden="true"></div>');
+  for(let s = 0; s < 3; s++){
+    const cx = x + (s ? (Math.random() - .5) * 220 : 0), cy = y + (s ? (Math.random() - .5) * 120 : 0);
+    for(let i = 0; i < 22; i++){
+      const a = (i / 22) * Math.PI * 2 + Math.random() * .3, d = 60 + Math.random() * 130;
+      c.insertAdjacentHTML('beforeend', `<i style="left:${cx.toFixed(0)}px;top:${cy.toFixed(0)}px;
+        --dx:${(Math.cos(a) * d).toFixed(0)}px;--dy:${(Math.sin(a) * d).toFixed(0)}px;
+        animation-delay:${(s * .18 + Math.random() * .12).toFixed(2)}s;
+        background:${cols[(i + s) % cols.length]}"></i>`);
+    }
+  }
+  document.body.appendChild(c);
+  setTimeout(() => c.remove(), 2200);
+}
+function celebrateFinish(minutes){
+  const line = FINISH_LINES[Math.floor(Math.random() * FINISH_LINES.length)];
+  const face = document.querySelector('#t-focus .fp-ring') || document.querySelector('.fp-ring');
+  const r = face ? face.getBoundingClientRect() : null;
+  fireworks(r ? r.left + r.width / 2 : innerWidth / 2, r ? r.top + r.height / 2 : innerHeight / 3);
+  const note = el(`<div class="fw-note" role="status">
+    <b>${esc(line)}</b>${minutes >= 1 ? `<span class="mono">${esc(fmtEst(minutes))} on it</span>` : ''}</div>`);
+  document.body.appendChild(note);
+  setTimeout(() => { note.classList.add('go'); }, 2400);
+  setTimeout(() => note.remove(), 3000);
+  sound('success');
+}
+/* Called wherever a task is crossed off, from Today and from Planning alike.
+   Returns whether it was the one being timed, so the caller can skip its own
+   click sound rather than playing two at once. */
+function taskCrossedOff(id, done){
+  if(!done || !id || typeof FocusTimer === 'undefined') return false;
+  const st = FocusTimer.state();
+  if(st.idle || st.taskId !== id) return false;
+  const minutes = Math.round((st.elapsed || 0) / 60);
+  FocusTimer.stop();          /* writes the sitting down, with the time worked */
+  FocusTimer.setTask(null);   /* and leaves the clock empty for the next thing */
+  celebrateFinish(minutes);
+  return true;
 }

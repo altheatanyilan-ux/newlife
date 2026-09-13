@@ -502,6 +502,7 @@ function planSetDone(t, done){
   else if(t.kanbanColumn === 'done') t.kanbanColumn = 'todo';
   const rolled = done ? planRollRecurrence(t) : null;
   saveNow();
+  if(typeof taskCrossedOff === 'function') taskCrossedOff(t.id, done);
   return rolled;
 }
 function planSubProgress(t){

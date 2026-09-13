@@ -4772,6 +4772,37 @@ select.sm-active{border-color:var(--page-accent);
 .int-nums{display:flex;gap:16px;flex-wrap:wrap;align-items:baseline;font-size:.8rem}
 .int-nums b{font-size:1.05rem;font-family:var(--serif)}
 .int-stats p{margin:6px 0 0;font-size:.66rem}
+
+/* --- what was spent, beside what was estimated --- */
+.task-est.spent{border-color:color-mix(in srgb,var(--sage,#7f916a) 55%,var(--line));
+  background:color-mix(in srgb,var(--sage,#7f916a) 9%,transparent)}
+.task-est.spent.over{border-color:color-mix(in srgb,var(--terra,#b4462f) 55%,var(--line));
+  background:color-mix(in srgb,var(--terra,#b4462f) 9%,transparent)}
+.te-spent{font-weight:600}
+.task-est.spent.over .te-spent{color:var(--terra,#b4462f)}
+.te-of{opacity:.5;margin:0 .28em;font-weight:400}
+
+/* --- finishing the thing you sat down with --- */
+.fw-burst{position:fixed;inset:0;pointer-events:none;z-index:400}
+.fw-burst i{position:absolute;width:7px;height:7px;border-radius:50%;
+  animation:fwFly 1.5s cubic-bezier(.15,.75,.35,1) forwards}
+@keyframes fwFly{
+  0%{transform:translate(0,0) scale(.4);opacity:0}
+  12%{opacity:1;transform:translate(calc(var(--dx) * .18),calc(var(--dy) * .18)) scale(1.15)}
+  100%{transform:translate(var(--dx),calc(var(--dy) + 60px)) scale(.25);opacity:0}}
+.fw-note{position:fixed;left:50%;top:22%;transform:translate(-50%,0);z-index:401;pointer-events:none;
+  display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center;max-width:min(30ch,86vw);
+  padding:14px 22px;border-radius:14px;border:1px solid var(--line);
+  background:color-mix(in srgb,var(--surface) 94%,transparent);backdrop-filter:blur(7px);
+  box-shadow:0 8px 28px rgba(0,0,0,.14);animation:fwNoteIn .5s var(--page-ease) both}
+.fw-note b{font-family:var(--lora,var(--serif));font-style:italic;font-weight:500;font-size:1rem;line-height:1.5}
+.fw-note .mono{font-size:.64rem;color:var(--faint)}
+.fw-note.go{animation:fwNoteOut .6s var(--ease) forwards}
+@keyframes fwNoteIn{from{opacity:0;transform:translate(-50%,10px) scale(.96)}to{opacity:1;transform:translate(-50%,0) scale(1)}}
+@keyframes fwNoteOut{to{opacity:0;transform:translate(-50%,-8px)}}
+@media (prefers-reduced-motion:reduce){
+  .fw-burst{display:none}
+  .fw-note{animation:none}}
 </style>
 </head>
 <body>
@@ -8361,6 +8392,28 @@ function taskEstOf(t){
   return fromSubs || +t.duration || 0;
 }
 const taskHasSubEst = t => (Array.isArray(t?.subtasks) ? t.subtasks : []).some(s => +s.minutes > 0);
+/* How long was actually spent on it. The timer's own accounting already
+   leaves out the pauses and the breaks — a countdown's remaining freezes
+   while paused and a stopwatch accumulates only while running — so this is
+   simply the sum of the sittings.
+
+   A step's sittings belong to the task as well as to the step, which is why
+   the task's figure counts them all and the step's counts only its own. */
+function taskSpentOn(id){
+  if(!id || typeof focusSessions !== 'function') return 0;
+  return sum(focusSessions().filter(s => s.taskId === id).map(s => +s.duration || 0));
+}
+function subSpentOn(taskId, subId){
+  if(!taskId || !subId || typeof focusSessions !== 'function') return 0;
+  return sum(focusSessions().filter(s => s.taskId === taskId && s.subId === subId).map(s => +s.duration || 0));
+}
+/* "13m of 15m" while there is an estimate to measure against, "13m" when
+   there is not, and nothing at all under a minute — a sitting shorter than
+   that is not worth the ink and is not recorded in the first place. */
+function fmtSpent(spent, est){
+  if(!(spent >= 1)) return '';
+  return est ? `${fmtEst(spent)} of ${fmtEst(est)}` : fmtEst(spent);
+}
 /* "25m", "1h", "1h 30m" — never "0h 25m" */
 function fmtEst(m){
   m = Math.round(+m || 0); if(!m) return '';
@@ -8378,11 +8431,16 @@ function taskEstHTML(id, t, {sm = false} = {}){
   const mins = taskEstOf(t);
   const on = FocusTimer.state().taskId === id && FocusTimer.state().running;
   const rolled = taskHasSubEst(t);
+  const spent = taskSpentOn(id);
+  const over = mins && spent > mins;
+  const label = spent >= 1
+    ? `<span class="te-spent">${esc(fmtEst(spent))}</span>${mins ? `<span class="te-of">of</span>${esc(fmtEst(mins))}` : ''}`
+    : mins ? esc(fmtEst(mins)) : '<span class="te-set">＋ est</span>';
   return `<span class="est-wrap${sm ? ' sm' : ''}">
-    <button class="task-est${sm ? ' sm' : ''}${on ? ' on' : ''}${mins ? '' : ' none'}"
+    <button class="task-est${sm ? ' sm' : ''}${on ? ' on' : ''}${mins ? '' : ' none'}${spent >= 1 ? ' spent' : ''}${over ? ' over' : ''}"
       data-test="${esc(id)}" data-estmin="${mins}"
-      title="${mins ? `${fmtEst(mins)}${rolled ? ', added up from the steps' : ''} — press to sit down with it for that long` : 'how long will it take?'}">
-      ${mins ? esc(fmtEst(mins)) : '<span class="te-set">＋ est</span>'}</button>
+      title="${spent >= 1 ? `${fmtEst(spent)} sat with so far${mins ? `, of ${fmtEst(mins)} estimated` : ''} — press to sit down with it again` : mins ? `${fmtEst(mins)}${rolled ? ', added up from the steps' : ''} — press to sit down with it for that long` : 'how long will it take?'}">
+      ${label}</button>
     ${mins && !rolled ? `<button class="est-pen" data-testedit="${esc(id)}" title="change the length" aria-label="change the length">✎</button>` : ''}
   </span>`;
 }
@@ -8403,7 +8461,7 @@ function bindTaskTimers(root){
     const r = findTaskRef(rid) || (typeof planTaskById === 'function' ? {task: planTaskById(rid), id: rid} : null);
     const s = (r?.task?.subtasks || []).find(x => x.id === sid); if(!s) return;
     if(!+s.minutes) return askSubEstimate(rid, sid);
-    focusOnTask(rid, +s.minutes, s.title);
+    focusOnTask(rid, +s.minutes, s.title, sid);
   });
 }
 /* Asked with the chooser the rest of the planner uses. The presets run from
@@ -8449,7 +8507,7 @@ function askSubEstimate(rid, sid){
    sitting down with now is today's whether or not it was this morning; set
    the countdown to the length you estimated and hand it the task; and go to
    the page the timer lives on. */
-function focusOnTask(id, minutes = 0, what = ''){
+function focusOnTask(id, minutes = 0, what = '', subId = null){
   const t = (typeof planTaskById === 'function' ? planTaskById(id) : null) ||
             (typeof findTaskRef === 'function' ? findTaskRef(id)?.task : null);
   const T = today();
@@ -8463,9 +8521,9 @@ function focusOnTask(id, minutes = 0, what = ''){
     FocusTimer.setMode('countdown');
     FocusTimer.setLength(minutes);
   }
-  FocusTimer.setTask(id);
+  FocusTimer.setTask(id, subId || null);
   const st = FocusTimer.state();
-  if(!st.running || st.taskId !== id) FocusTimer.start();
+  if(!st.running || st.taskId !== id || st.subId !== (subId || null)) FocusTimer.start();
   if(what && typeof FocusTimer.noteWork === 'function') FocusTimer.noteWork(what);
   sound('success');
   toast(`${minutes ? fmtEst(minutes) + ' on ' : 'Focusing on '}${what || t?.text || 'this'} — it is on today's list now.`);
@@ -8722,6 +8780,77 @@ function liveFocusFace(root){
   };
   const iv = setInterval(face, 1000);
   face();
+}
+
+/* ============================================================
+   FINISHING THE THING YOU WERE SITTING WITH
+   ------------------------------------------------------------
+   Ticking off the task the clock is running on is the end of the sitting, and
+   the app should not need telling. The session is written down with the time
+   actually worked, the clock is emptied and ready for the next thing to be
+   dragged in, and — because finishing something you sat down to finish is the
+   whole point of the apparatus — the screen says so.
+   ============================================================ */
+const FINISH_LINES = [
+  'Done. That is one thing that will not be on tomorrow’s list.',
+  'Finished. The clock is yours again.',
+  'That is it closed. Nothing owed on it.',
+  'Sat down, did it, got up. That is the whole method.',
+  'Off the list. The day is measurably shorter.',
+  'One less thing between you and the evening.',
+  'Complete. Give it a moment before the next one.',
+  'That was the hard part. It is behind you.',
+  'Struck out. The page is cleaner than it was.',
+  'You started it and you finished it, which is rarer than it sounds.',
+  'Done — and the time it took is written down, which is how you get better at guessing.',
+  'That is the thing you were avoiding. It is over now.',
+  'Closed. Stand up, look out of a window.',
+  'Finished, and the record says how long it really took.',
+];
+/* A burst of colour from the middle of the timer, or from the middle of the
+   screen if the timer is not on it. Not a long animation — a second and a
+   half, and gone. */
+function fireworks(x, y){
+  if(reduced()) return;
+  const cols = ['#d4a44c', '#b4462f', '#7f916a', '#8f7bb0', '#4b7d9c', '#e8c7a0'];
+  const c = el('<div class="fw-burst" aria-hidden="true"></div>');
+  for(let s = 0; s < 3; s++){
+    const cx = x + (s ? (Math.random() - .5) * 220 : 0), cy = y + (s ? (Math.random() - .5) * 120 : 0);
+    for(let i = 0; i < 22; i++){
+      const a = (i / 22) * Math.PI * 2 + Math.random() * .3, d = 60 + Math.random() * 130;
+      c.insertAdjacentHTML('beforeend', `<i style="left:${cx.toFixed(0)}px;top:${cy.toFixed(0)}px;
+        --dx:${(Math.cos(a) * d).toFixed(0)}px;--dy:${(Math.sin(a) * d).toFixed(0)}px;
+        animation-delay:${(s * .18 + Math.random() * .12).toFixed(2)}s;
+        background:${cols[(i + s) % cols.length]}"></i>`);
+    }
+  }
+  document.body.appendChild(c);
+  setTimeout(() => c.remove(), 2200);
+}
+function celebrateFinish(minutes){
+  const line = FINISH_LINES[Math.floor(Math.random() * FINISH_LINES.length)];
+  const face = document.querySelector('#t-focus .fp-ring') || document.querySelector('.fp-ring');
+  const r = face ? face.getBoundingClientRect() : null;
+  fireworks(r ? r.left + r.width / 2 : innerWidth / 2, r ? r.top + r.height / 2 : innerHeight / 3);
+  const note = el(`<div class="fw-note" role="status">
+    <b>${esc(line)}</b>${minutes >= 1 ? `<span class="mono">${esc(fmtEst(minutes))} on it</span>` : ''}</div>`);
+  document.body.appendChild(note);
+  setTimeout(() => { note.classList.add('go'); }, 2400);
+  setTimeout(() => note.remove(), 3000);
+  sound('success');
+}
+/* Called wherever a task is crossed off, from Today and from Planning alike.
+   Returns whether it was the one being timed, so the caller can skip its own
+   click sound rather than playing two at once. */
+function taskCrossedOff(id, done){
+  if(!done || !id || typeof FocusTimer === 'undefined') return false;
+  const st = FocusTimer.state();
+  if(st.idle || st.taskId !== id) return false;
+  const minutes = Math.round((st.elapsed || 0) / 60);
+  FocusTimer.stop();          /* writes the sitting down, with the time worked */
+  FocusTimer.setTask(null);   /* and leaves the clock empty for the next thing */
+  celebrateFinish(minutes);
+  return true;
 }
 /* ============================================================
    WHERE AM I RIGHT NOW — the home page's two lenses and its clock
@@ -20314,6 +20443,7 @@ function planSetDone(t, done){
   else if(t.kanbanColumn === 'done') t.kanbanColumn = 'todo';
   const rolled = done ? planRollRecurrence(t) : null;
   saveNow();
+  if(typeof taskCrossedOff === 'function') taskCrossedOff(t.id, done);
   return rolled;
 }
 function planSubProgress(t){
@@ -21348,6 +21478,7 @@ const FocusTimer = (() => {
   let pendingTask = null;
   const listeners = new Set();
   const cfg = () => planState().timer;
+  let pendingSub = null;
   const notify = () => listeners.forEach(f => { try { f(state()); } catch(e){} });
   /* Two ways to time a piece of work, and they are different questions.
      A countdown asks "can I hold this for twenty-five minutes"; a stopwatch
@@ -21362,11 +21493,11 @@ const FocusTimer = (() => {
   }
   function state(){
     if(!st) return {running:false, phase:'focus', left:cfg().focusDuration * 60, elapsed:0,
-      mode:timerMode(), round:1, taskId:pendingTask, idle:true};
+      mode:timerMode(), round:1, taskId:pendingTask, subId:pendingSub, idle:true};
     const left = st.up ? 0 : (st.running ? Math.max(0, Math.round((st.endsAt - Date.now()) / 1000)) : st.remaining);
     const onBreak = !st.running && st.phase === 'focus' && (st.breaks || []).some(b => !b.to);
     const cur = (st.breaks || []).find(b => !b.to) || null;
-    return {running:st.running, phase:st.phase, left, elapsed: elapsedSecs(),
+    return {running:st.running, phase:st.phase, left, elapsed: elapsedSecs(), subId: st.subId || null,
       mode: st.up ? 'stopwatch' : 'countdown',
       round:st.round, taskId:st.taskId, idle:false,
       onBreak, breakNote: cur ? cur.note : '', breakSince: cur ? cur.from : null,
@@ -21386,6 +21517,7 @@ const FocusTimer = (() => {
       endsAt: up ? 0 : Date.now() + secs * 1000, remaining: up ? 0 : secs,
       acc: st && st.up ? (st.acc || 0) : 0, since: Date.now(),
       taskId: taskId !== undefined ? taskId : (st ? st.taskId : pendingTask),
+      subId: st ? (st.subId || pendingSub) : pendingSub,
       round: st ? st.round : 1, startedAt: st?.startedAt || new Date().toISOString(),
       notes: st ? (st.notes || '') : '',
       breaks: carried || []};
@@ -21427,7 +21559,7 @@ const FocusTimer = (() => {
     const mins = Math.round(elapsedSecs() / 60);
     if(mins < 1) return;
     closeBreak();
-    planState().focusSessions.push({id:uid(), taskId:st.taskId || null, startedAt:st.startedAt,
+    planState().focusSessions.push({id:uid(), taskId:st.taskId || null, subId:st.subId || null, startedAt:st.startedAt,
       endedAt:new Date().toISOString(), duration:mins, type:'focus', completed:!!completed,
       mode: st.up ? 'stopwatch' : 'countdown', note: st.notes || '',
       breaks:(st.breaks || []).filter(b => b.to).map(b => ({from:b.from, to:b.to, note:b.note || ''}))});
@@ -21446,7 +21578,7 @@ const FocusTimer = (() => {
     const nextRound = was === 'focus' ? round + 1 : round;
     const nextPhase = was === 'focus' ? (round % c.longBreakAfter === 0 ? 'long' : 'short') : 'focus';
     st = {phase:nextPhase, running:false, remaining:phaseLen(nextPhase), endsAt:0,
-      taskId, round:nextRound, startedAt:new Date().toISOString()};
+      taskId, subId: pendingSub, round:nextRound, startedAt:new Date().toISOString()};
     if(!skipped) sound('success');
     const auto = nextPhase === 'focus' ? c.autoStartFocus : c.autoStartBreaks;
     if(auto) start(undefined, nextPhase); else notify();
@@ -21468,7 +21600,11 @@ const FocusTimer = (() => {
      the same courtesy the breaks already had */
   function noteWork(text){ if(!st) return; st.notes = String(text || ''); notify(); }
   return {start, pause, stop, skip, state, reset: () => { st = null; notify(); },
-    setTask(id){ pendingTask = id; if(st) st.taskId = id; notify(); },
+    /* A step of a task is a thing you sit down with in its own right, so the
+       timer carries which step as well as which task — otherwise a session on
+       one step is indistinguishable from a session on the whole thing. */
+    setTask(id, subId){ pendingTask = id; pendingSub = subId || null;
+      if(st){ st.taskId = id; st.subId = pendingSub; } notify(); },
     mode: timerMode,
     setMode(m){ if(st) return false; cfg().mode = m === 'stopwatch' ? 'stopwatch' : 'countdown'; saveNow(); notify(); return true; },
     setLength(mins){ if(st) return false; const n = clamp(Math.round(+mins || 0), 1, 240);
@@ -22160,7 +22296,11 @@ function reorderTaskInDay(day, dragId, targetId, before){
 function tasksDueBy(day){ return allTaskRefs().filter(r => r.day && r.day <= day && !r.done).sort((a,b)=> a.day.localeCompare(b.day)); }
 function unscheduledTasks(){ return allTaskRefs().filter(r => !r.day && !r.done); }
 function setTaskDay(id, day){ const r = findTaskRef(id); if(!r) return; r.task.day = day || ''; saveNow(); }
-function setTaskDone(id, done){ const r = findTaskRef(id); if(!r) return; r.task.done = !!done; r.task.doneAt = done ? today() : null; saveNow(); }
+function setTaskDone(id, done){ const r = findTaskRef(id); if(!r) return;
+  r.task.done = !!done; r.task.doneAt = done ? today() : null; saveNow();
+  /* crossing off the thing the clock is running on ends the sitting */
+  if(typeof taskCrossedOff === 'function') taskCrossedOff(id, done);
+}
 function deleteTaskRef(id, node, after){
   const r = findTaskRef(id); if(!r) return;
   requestDelete({label:r.text || 'Task', node, after, remove: () => r.kind === 'own'
@@ -22202,9 +22342,14 @@ function subRowHTML(rid, s){
     <!-- a step is the unit you actually sit down with, so it carries its own
          length and its own way into the timer -->
     <span class="est-wrap sm">
-      <button class="task-est sm${+s.minutes ? '' : ' none'}" data-subest="${esc(rid)}|${esc(s.id)}"
-        title="${+s.minutes ? `${fmtEst(s.minutes)} — press to sit down with just this step` : 'how long will this step take?'}">${
-        +s.minutes ? esc(fmtEst(s.minutes)) : '<span class="te-set">＋</span>'}</button>
+      <button class="task-est sm${+s.minutes ? '' : ' none'}${subSpentOn(rid, s.id) >= 1 ? ' spent' : ''}${
+          +s.minutes && subSpentOn(rid, s.id) > +s.minutes ? ' over' : ''}" data-subest="${esc(rid)}|${esc(s.id)}"
+        title="${subSpentOn(rid, s.id) >= 1
+          ? `${fmtEst(subSpentOn(rid, s.id))} sat with so far${+s.minutes ? `, of ${fmtEst(s.minutes)} estimated` : ''}`
+          : +s.minutes ? `${fmtEst(s.minutes)} — press to sit down with just this step` : 'how long will this step take?'}">${
+        subSpentOn(rid, s.id) >= 1
+          ? `<span class="te-spent">${esc(fmtEst(subSpentOn(rid, s.id)))}</span>${+s.minutes ? `<span class="te-of">of</span>${esc(fmtEst(s.minutes))}` : ''}`
+          : +s.minutes ? esc(fmtEst(s.minutes)) : '<span class="te-set">＋</span>'}</button>
       ${+s.minutes ? `<button class="est-pen" data-subestedit="${esc(rid)}|${esc(s.id)}" title="change the length" aria-label="change the length">✎</button>` : ''}
     </span>
     <button class="del-x inline" data-subdel="${esc(rid)}|${esc(s.id)}" title="remove this step">×</button>
@@ -22356,7 +22501,12 @@ function bindTaskRows(root, after){
     setTaskBonus(r.id, !taskIsBonus(r)); sound('click');
     toast(taskIsBonus(r) ? 'Bonus — no failure if it waits.' : 'Compulsory — this one has to be finished today.');
     redraw(); });
-  $$('[data-tcheck]', root).forEach(b => b.onclick = () => { const r = findTaskRef(b.dataset.tcheck); if(!r) return; setTaskDone(r.id, !r.done); sound(r.done ? 'click' : 'success'); redraw(); });
+  $$('[data-tcheck]', root).forEach(b => b.onclick = () => { const r = findTaskRef(b.dataset.tcheck); if(!r) return;
+    const wasTimed = typeof FocusTimer !== 'undefined' && !FocusTimer.state().idle && FocusTimer.state().taskId === r.id;
+    setTaskDone(r.id, !r.done);
+    /* the celebration plays its own sound; two at once is a mess */
+    if(!(wasTimed && !r.done)) sound(r.done ? 'click' : 'success');
+    redraw(); });
   $$('[data-tdel]', root).forEach(b => b.onclick = e => { e.stopPropagation(); deleteTaskRef(b.dataset.tdel, b.closest('.task-row'), redraw); });
   $$('[data-tdefer]', root).forEach(b => b.onclick = e => {
     e.stopPropagation();

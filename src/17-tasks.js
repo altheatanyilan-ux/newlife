@@ -49,7 +49,11 @@ function reorderTaskInDay(day, dragId, targetId, before){
 function tasksDueBy(day){ return allTaskRefs().filter(r => r.day && r.day <= day && !r.done).sort((a,b)=> a.day.localeCompare(b.day)); }
 function unscheduledTasks(){ return allTaskRefs().filter(r => !r.day && !r.done); }
 function setTaskDay(id, day){ const r = findTaskRef(id); if(!r) return; r.task.day = day || ''; saveNow(); }
-function setTaskDone(id, done){ const r = findTaskRef(id); if(!r) return; r.task.done = !!done; r.task.doneAt = done ? today() : null; saveNow(); }
+function setTaskDone(id, done){ const r = findTaskRef(id); if(!r) return;
+  r.task.done = !!done; r.task.doneAt = done ? today() : null; saveNow();
+  /* crossing off the thing the clock is running on ends the sitting */
+  if(typeof taskCrossedOff === 'function') taskCrossedOff(id, done);
+}
 function deleteTaskRef(id, node, after){
   const r = findTaskRef(id); if(!r) return;
   requestDelete({label:r.text || 'Task', node, after, remove: () => r.kind === 'own'
@@ -91,9 +95,14 @@ function subRowHTML(rid, s){
     <!-- a step is the unit you actually sit down with, so it carries its own
          length and its own way into the timer -->
     <span class="est-wrap sm">
-      <button class="task-est sm${+s.minutes ? '' : ' none'}" data-subest="${esc(rid)}|${esc(s.id)}"
-        title="${+s.minutes ? `${fmtEst(s.minutes)} — press to sit down with just this step` : 'how long will this step take?'}">${
-        +s.minutes ? esc(fmtEst(s.minutes)) : '<span class="te-set">＋</span>'}</button>
+      <button class="task-est sm${+s.minutes ? '' : ' none'}${subSpentOn(rid, s.id) >= 1 ? ' spent' : ''}${
+          +s.minutes && subSpentOn(rid, s.id) > +s.minutes ? ' over' : ''}" data-subest="${esc(rid)}|${esc(s.id)}"
+        title="${subSpentOn(rid, s.id) >= 1
+          ? `${fmtEst(subSpentOn(rid, s.id))} sat with so far${+s.minutes ? `, of ${fmtEst(s.minutes)} estimated` : ''}`
+          : +s.minutes ? `${fmtEst(s.minutes)} — press to sit down with just this step` : 'how long will this step take?'}">${
+        subSpentOn(rid, s.id) >= 1
+          ? `<span class="te-spent">${esc(fmtEst(subSpentOn(rid, s.id)))}</span>${+s.minutes ? `<span class="te-of">of</span>${esc(fmtEst(s.minutes))}` : ''}`
+          : +s.minutes ? esc(fmtEst(s.minutes)) : '<span class="te-set">＋</span>'}</button>
       ${+s.minutes ? `<button class="est-pen" data-subestedit="${esc(rid)}|${esc(s.id)}" title="change the length" aria-label="change the length">✎</button>` : ''}
     </span>
     <button class="del-x inline" data-subdel="${esc(rid)}|${esc(s.id)}" title="remove this step">×</button>
@@ -245,7 +254,12 @@ function bindTaskRows(root, after){
     setTaskBonus(r.id, !taskIsBonus(r)); sound('click');
     toast(taskIsBonus(r) ? 'Bonus — no failure if it waits.' : 'Compulsory — this one has to be finished today.');
     redraw(); });
-  $$('[data-tcheck]', root).forEach(b => b.onclick = () => { const r = findTaskRef(b.dataset.tcheck); if(!r) return; setTaskDone(r.id, !r.done); sound(r.done ? 'click' : 'success'); redraw(); });
+  $$('[data-tcheck]', root).forEach(b => b.onclick = () => { const r = findTaskRef(b.dataset.tcheck); if(!r) return;
+    const wasTimed = typeof FocusTimer !== 'undefined' && !FocusTimer.state().idle && FocusTimer.state().taskId === r.id;
+    setTaskDone(r.id, !r.done);
+    /* the celebration plays its own sound; two at once is a mess */
+    if(!(wasTimed && !r.done)) sound(r.done ? 'click' : 'success');
+    redraw(); });
   $$('[data-tdel]', root).forEach(b => b.onclick = e => { e.stopPropagation(); deleteTaskRef(b.dataset.tdel, b.closest('.task-row'), redraw); });
   $$('[data-tdefer]', root).forEach(b => b.onclick = e => {
     e.stopPropagation();

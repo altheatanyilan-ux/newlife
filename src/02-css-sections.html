@@ -4248,5 +4248,36 @@ select.sm-active{border-color:var(--page-accent);
 .int-nums{display:flex;gap:16px;flex-wrap:wrap;align-items:baseline;font-size:.8rem}
 .int-nums b{font-size:1.05rem;font-family:var(--serif)}
 .int-stats p{margin:6px 0 0;font-size:.66rem}
+
+/* --- what was spent, beside what was estimated --- */
+.task-est.spent{border-color:color-mix(in srgb,var(--sage,#7f916a) 55%,var(--line));
+  background:color-mix(in srgb,var(--sage,#7f916a) 9%,transparent)}
+.task-est.spent.over{border-color:color-mix(in srgb,var(--terra,#b4462f) 55%,var(--line));
+  background:color-mix(in srgb,var(--terra,#b4462f) 9%,transparent)}
+.te-spent{font-weight:600}
+.task-est.spent.over .te-spent{color:var(--terra,#b4462f)}
+.te-of{opacity:.5;margin:0 .28em;font-weight:400}
+
+/* --- finishing the thing you sat down with --- */
+.fw-burst{position:fixed;inset:0;pointer-events:none;z-index:400}
+.fw-burst i{position:absolute;width:7px;height:7px;border-radius:50%;
+  animation:fwFly 1.5s cubic-bezier(.15,.75,.35,1) forwards}
+@keyframes fwFly{
+  0%{transform:translate(0,0) scale(.4);opacity:0}
+  12%{opacity:1;transform:translate(calc(var(--dx) * .18),calc(var(--dy) * .18)) scale(1.15)}
+  100%{transform:translate(var(--dx),calc(var(--dy) + 60px)) scale(.25);opacity:0}}
+.fw-note{position:fixed;left:50%;top:22%;transform:translate(-50%,0);z-index:401;pointer-events:none;
+  display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center;max-width:min(30ch,86vw);
+  padding:14px 22px;border-radius:14px;border:1px solid var(--line);
+  background:color-mix(in srgb,var(--surface) 94%,transparent);backdrop-filter:blur(7px);
+  box-shadow:0 8px 28px rgba(0,0,0,.14);animation:fwNoteIn .5s var(--page-ease) both}
+.fw-note b{font-family:var(--lora,var(--serif));font-style:italic;font-weight:500;font-size:1rem;line-height:1.5}
+.fw-note .mono{font-size:.64rem;color:var(--faint)}
+.fw-note.go{animation:fwNoteOut .6s var(--ease) forwards}
+@keyframes fwNoteIn{from{opacity:0;transform:translate(-50%,10px) scale(.96)}to{opacity:1;transform:translate(-50%,0) scale(1)}}
+@keyframes fwNoteOut{to{opacity:0;transform:translate(-50%,-8px)}}
+@media (prefers-reduced-motion:reduce){
+  .fw-burst{display:none}
+  .fw-note{animation:none}}
 </style>
 </head>
