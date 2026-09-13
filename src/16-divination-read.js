@@ -102,16 +102,26 @@ function tarotSigilSVG(card, size = 64){
 /* the back: the same for every card, so that a spread face-down is a spread
    and not a row of different things */
 function tarotBackHTML(){
+  /* Eight petals opening out of a ring, a second rank set between them, a
+     dashed sky round the whole thing and a dot at each cardinal point. The
+     old back was eight spokes and a circle, which is a diagram of a wheel;
+     this is a flower, which is what the rest of the house is made of. */
+  const petals = Array.from({length: 8}, (_, i) =>
+    `<ellipse cx="30" cy="33" rx="3.6" ry="10.4" fill="none" stroke="currentColor" stroke-width=".5" opacity=".36" transform="rotate(${i * 45} 30 45)"/>`).join('');
+  const inner = Array.from({length: 8}, (_, i) =>
+    `<path d="M30 30.6q2.6 3 0 6.4" fill="none" stroke="currentColor" stroke-width=".4" opacity=".22" transform="rotate(${i * 45 + 22.5} 30 45)"/>`).join('');
+  const cardinal = [[30, 8], [52, 45], [30, 82], [8, 45]].map(([x, y]) =>
+    `<circle cx="${x}" cy="${y}" r="1.5" fill="currentColor" opacity=".34"/>`).join('');
+  const leaves = [[16, 20, -30], [44, 20, 30], [16, 70, -30], [44, 70, 30]].map(([x, y, a]) =>
+    `<path d="M0 0q3.4-2.6 6.8 0-3.4 2.6-6.8 0Z" fill="currentColor" opacity=".18" transform="translate(${x - 3.4} ${y}) rotate(${a} 3.4 0)"/>`).join('');
   return `<div class="tc-back"><svg viewBox="0 0 60 90" aria-hidden="true">
     <rect x="3" y="3" width="54" height="84" rx="5" fill="none" stroke="currentColor" stroke-width=".7" opacity=".45"/>
-    <rect x="7" y="7" width="46" height="76" rx="3" fill="none" stroke="currentColor" stroke-width=".4" opacity=".3"/>
-    ${[0,1,2,3,4,5,6,7].map(i => { const a = i * Math.PI / 4;
-      return `<line x1="30" y1="45" x2="${(30 + Math.cos(a) * 15).toFixed(1)}" y2="${(45 + Math.sin(a) * 15).toFixed(1)}" stroke="currentColor" stroke-width=".5" opacity=".5"/>`; }).join('')}
-    <circle cx="30" cy="45" r="15" fill="none" stroke="currentColor" stroke-width=".6" opacity=".55"/>
-    <circle cx="30" cy="45" r="8" fill="none" stroke="currentColor" stroke-width=".5" opacity=".45"/>
-    <circle cx="30" cy="45" r="2.4" fill="currentColor" opacity=".7"/>
-    <text x="30" y="22" text-anchor="middle" font-size="7" fill="currentColor" opacity=".6">✦</text>
-    <text x="30" y="72" text-anchor="middle" font-size="7" fill="currentColor" opacity=".6">✦</text>
+    <rect x="6.4" y="6.4" width="47.2" height="77.2" rx="3.4" fill="none" stroke="currentColor" stroke-width=".4" opacity=".28"/>
+    ${petals}${inner}
+    <circle cx="30" cy="45" r="7.4" fill="none" stroke="currentColor" stroke-width=".5" opacity=".5"/>
+    <circle cx="30" cy="45" r="2.6" fill="currentColor" opacity=".32"/>
+    <circle cx="30" cy="45" r="23" fill="none" stroke="currentColor" stroke-width=".5" opacity=".24" stroke-dasharray="1.6 3.4"/>
+    ${cardinal}${leaves}
   </svg></div>`;
 }
 

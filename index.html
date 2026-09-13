@@ -6478,6 +6478,78 @@ html[data-theme="dark"] .hand-u,html:not([data-theme="light"]) .hand-u{
 @media (prefers-reduced-motion:reduce){
   .hand-u,.nav a.active .lbl{background-image:none;border-bottom:1px solid color-mix(in srgb,var(--page-accent) 45%,transparent)}
 }
+
+/* ============================================================
+   12. VICTORIAN FURNITURE
+
+   Ornament, and a rule about where it is allowed to go. The whole set is
+   one weight of line with a curl or two off it, so a corner, a section
+   break and the back of a card read as the same hand.
+
+   It goes on containers that are ceremonial — a rite, a theatre, a modal,
+   the veil before a reading. It does not go on a list, a form or a table,
+   where a flourish is only something else to look past.
+
+   The two top corners are pseudo-elements, because those can be mirrored
+   with a transform. The two feet are background layers, because a container
+   only has two pseudo-elements and adding empty <i> tags to every ceremonial
+   panel in the house to carry the other two is worse — so those two are
+   drawn already turned over instead.
+   ============================================================ */
+:root{
+  --orn-corner:url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'34'%20height%3D'34'%20viewBox%3D'0%200%2034%2034'%3E%3Cg%20fill%3D'none'%20stroke%3D'%23b08968'%20stroke-linecap%3D'round'%3E%0A%20%20%3Cpath%20d%3D'M2%2032C2%2021%204.4%2011%2012.6%206.2%2016.8%203.8%2024.4%202%2032%202'%20stroke-width%3D'1'%20opacity%3D'.6'%2F%3E%0A%20%20%3Cpath%20d%3D'M2%2027C4%2018.6%208%2012.4%2014.4%208'%20stroke-width%3D'.55'%20opacity%3D'.4'%2F%3E%0A%20%20%3Cpath%20d%3D'M10.6%2015.6C8.2%2014.4%207%2012%207.6%209.2c2.8-.4%205%201%206%203.4'%20stroke-width%3D'.55'%20opacity%3D'.46'%2F%3E%0A%20%20%3Cpath%20d%3D'M20.6%206.6c1.4-2.2%203.6-3.2%206.2-2.8-.2%202.6-1.6%204.4-4%205.2'%20stroke-width%3D'.55'%20opacity%3D'.4'%2F%3E%0A%20%20%3C%2Fg%3E%0A%20%20%3Ccircle%20cx%3D'4.2'%20cy%3D'29.8'%20r%3D'1.6'%20fill%3D'%23b08968'%20opacity%3D'.48'%2F%3E%0A%20%20%3Ccircle%20cx%3D'29.4'%20cy%3D'3.6'%20r%3D'1.1'%20fill%3D'%23b08968'%20opacity%3D'.4'%2F%3E%3C%2Fsvg%3E"); --orn-foot-l:url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'34'%20height%3D'34'%20viewBox%3D'0%200%2034%2034'%3E%3Cg%20transform%3D'translate(0%2034)%20scale(1%20-1)'%3E%3Cg%20fill%3D'none'%20stroke%3D'%23b08968'%20stroke-linecap%3D'round'%3E%0A%20%20%3Cpath%20d%3D'M2%2032C2%2021%204.4%2011%2012.6%206.2%2016.8%203.8%2024.4%202%2032%202'%20stroke-width%3D'1'%20opacity%3D'.6'%2F%3E%0A%20%20%3Cpath%20d%3D'M2%2027C4%2018.6%208%2012.4%2014.4%208'%20stroke-width%3D'.55'%20opacity%3D'.4'%2F%3E%0A%20%20%3Cpath%20d%3D'M10.6%2015.6C8.2%2014.4%207%2012%207.6%209.2c2.8-.4%205%201%206%203.4'%20stroke-width%3D'.55'%20opacity%3D'.46'%2F%3E%0A%20%20%3Cpath%20d%3D'M20.6%206.6c1.4-2.2%203.6-3.2%206.2-2.8-.2%202.6-1.6%204.4-4%205.2'%20stroke-width%3D'.55'%20opacity%3D'.4'%2F%3E%0A%20%20%3C%2Fg%3E%0A%20%20%3Ccircle%20cx%3D'4.2'%20cy%3D'29.8'%20r%3D'1.6'%20fill%3D'%23b08968'%20opacity%3D'.48'%2F%3E%0A%20%20%3Ccircle%20cx%3D'29.4'%20cy%3D'3.6'%20r%3D'1.1'%20fill%3D'%23b08968'%20opacity%3D'.4'%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); --orn-foot-r:url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'34'%20height%3D'34'%20viewBox%3D'0%200%2034%2034'%3E%3Cg%20transform%3D'translate(34%2034)%20scale(-1%20-1)'%3E%3Cg%20fill%3D'none'%20stroke%3D'%23b08968'%20stroke-linecap%3D'round'%3E%0A%20%20%3Cpath%20d%3D'M2%2032C2%2021%204.4%2011%2012.6%206.2%2016.8%203.8%2024.4%202%2032%202'%20stroke-width%3D'1'%20opacity%3D'.6'%2F%3E%0A%20%20%3Cpath%20d%3D'M2%2027C4%2018.6%208%2012.4%2014.4%208'%20stroke-width%3D'.55'%20opacity%3D'.4'%2F%3E%0A%20%20%3Cpath%20d%3D'M10.6%2015.6C8.2%2014.4%207%2012%207.6%209.2c2.8-.4%205%201%206%203.4'%20stroke-width%3D'.55'%20opacity%3D'.46'%2F%3E%0A%20%20%3Cpath%20d%3D'M20.6%206.6c1.4-2.2%203.6-3.2%206.2-2.8-.2%202.6-1.6%204.4-4%205.2'%20stroke-width%3D'.55'%20opacity%3D'.4'%2F%3E%0A%20%20%3C%2Fg%3E%0A%20%20%3Ccircle%20cx%3D'4.2'%20cy%3D'29.8'%20r%3D'1.6'%20fill%3D'%23b08968'%20opacity%3D'.48'%2F%3E%0A%20%20%3Ccircle%20cx%3D'29.4'%20cy%3D'3.6'%20r%3D'1.1'%20fill%3D'%23b08968'%20opacity%3D'.4'%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");
+  --orn-divider:url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'210'%20height%3D'18'%20viewBox%3D'0%200%20210%2018'%3E%3Cg%20fill%3D'none'%20stroke%3D'%23b08968'%20stroke-linecap%3D'round'%3E%0A%20%20%3Cpath%20d%3D'M2%209H80'%20stroke-width%3D'.6'%20opacity%3D'.46'%2F%3E%3Cpath%20d%3D'M130%209h78'%20stroke-width%3D'.6'%20opacity%3D'.46'%2F%3E%0A%20%20%3Ccircle%20cx%3D'94'%20cy%3D'9'%20r%3D'2.2'%20stroke-width%3D'.6'%20opacity%3D'.6'%2F%3E%0A%20%20%3Ccircle%20cx%3D'105'%20cy%3D'9'%20r%3D'3.4'%20stroke-width%3D'.6'%20opacity%3D'.7'%2F%3E%0A%20%20%3Ccircle%20cx%3D'116'%20cy%3D'9'%20r%3D'2.2'%20stroke-width%3D'.6'%20opacity%3D'.6'%2F%3E%0A%20%20%3Cpath%20d%3D'M84%205.6Q89%201.6%2094%205.6'%20stroke-width%3D'.55'%20opacity%3D'.48'%2F%3E%0A%20%20%3Cpath%20d%3D'M116%205.6q5-4%2010%200'%20stroke-width%3D'.55'%20opacity%3D'.48'%2F%3E%0A%20%20%3Cpath%20d%3D'M84%2012.4Q89%2016.4%2094%2012.4'%20stroke-width%3D'.55'%20opacity%3D'.48'%2F%3E%0A%20%20%3Cpath%20d%3D'M116%2012.4q5%204%2010%200'%20stroke-width%3D'.55'%20opacity%3D'.48'%2F%3E%0A%20%20%3Ccircle%20cx%3D'105'%20cy%3D'9'%20r%3D'1'%20fill%3D'%23b08968'%20stroke%3D'none'%20opacity%3D'.7'%2F%3E%0A%20%20%3C%2Fg%3E%3C%2Fsvg%3E");
+}
+html[data-theme="dark"]{
+  --orn-corner:url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'34'%20height%3D'34'%20viewBox%3D'0%200%2034%2034'%3E%3Cg%20fill%3D'none'%20stroke%3D'%23d4a44c'%20stroke-linecap%3D'round'%3E%0A%20%20%3Cpath%20d%3D'M2%2032C2%2021%204.4%2011%2012.6%206.2%2016.8%203.8%2024.4%202%2032%202'%20stroke-width%3D'1'%20opacity%3D'.6'%2F%3E%0A%20%20%3Cpath%20d%3D'M2%2027C4%2018.6%208%2012.4%2014.4%208'%20stroke-width%3D'.55'%20opacity%3D'.4'%2F%3E%0A%20%20%3Cpath%20d%3D'M10.6%2015.6C8.2%2014.4%207%2012%207.6%209.2c2.8-.4%205%201%206%203.4'%20stroke-width%3D'.55'%20opacity%3D'.46'%2F%3E%0A%20%20%3Cpath%20d%3D'M20.6%206.6c1.4-2.2%203.6-3.2%206.2-2.8-.2%202.6-1.6%204.4-4%205.2'%20stroke-width%3D'.55'%20opacity%3D'.4'%2F%3E%0A%20%20%3C%2Fg%3E%0A%20%20%3Ccircle%20cx%3D'4.2'%20cy%3D'29.8'%20r%3D'1.6'%20fill%3D'%23d4a44c'%20opacity%3D'.48'%2F%3E%0A%20%20%3Ccircle%20cx%3D'29.4'%20cy%3D'3.6'%20r%3D'1.1'%20fill%3D'%23d4a44c'%20opacity%3D'.4'%2F%3E%3C%2Fsvg%3E"); --orn-foot-l:url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'34'%20height%3D'34'%20viewBox%3D'0%200%2034%2034'%3E%3Cg%20transform%3D'translate(0%2034)%20scale(1%20-1)'%3E%3Cg%20fill%3D'none'%20stroke%3D'%23d4a44c'%20stroke-linecap%3D'round'%3E%0A%20%20%3Cpath%20d%3D'M2%2032C2%2021%204.4%2011%2012.6%206.2%2016.8%203.8%2024.4%202%2032%202'%20stroke-width%3D'1'%20opacity%3D'.6'%2F%3E%0A%20%20%3Cpath%20d%3D'M2%2027C4%2018.6%208%2012.4%2014.4%208'%20stroke-width%3D'.55'%20opacity%3D'.4'%2F%3E%0A%20%20%3Cpath%20d%3D'M10.6%2015.6C8.2%2014.4%207%2012%207.6%209.2c2.8-.4%205%201%206%203.4'%20stroke-width%3D'.55'%20opacity%3D'.46'%2F%3E%0A%20%20%3Cpath%20d%3D'M20.6%206.6c1.4-2.2%203.6-3.2%206.2-2.8-.2%202.6-1.6%204.4-4%205.2'%20stroke-width%3D'.55'%20opacity%3D'.4'%2F%3E%0A%20%20%3C%2Fg%3E%0A%20%20%3Ccircle%20cx%3D'4.2'%20cy%3D'29.8'%20r%3D'1.6'%20fill%3D'%23d4a44c'%20opacity%3D'.48'%2F%3E%0A%20%20%3Ccircle%20cx%3D'29.4'%20cy%3D'3.6'%20r%3D'1.1'%20fill%3D'%23d4a44c'%20opacity%3D'.4'%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); --orn-foot-r:url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'34'%20height%3D'34'%20viewBox%3D'0%200%2034%2034'%3E%3Cg%20transform%3D'translate(34%2034)%20scale(-1%20-1)'%3E%3Cg%20fill%3D'none'%20stroke%3D'%23d4a44c'%20stroke-linecap%3D'round'%3E%0A%20%20%3Cpath%20d%3D'M2%2032C2%2021%204.4%2011%2012.6%206.2%2016.8%203.8%2024.4%202%2032%202'%20stroke-width%3D'1'%20opacity%3D'.6'%2F%3E%0A%20%20%3Cpath%20d%3D'M2%2027C4%2018.6%208%2012.4%2014.4%208'%20stroke-width%3D'.55'%20opacity%3D'.4'%2F%3E%0A%20%20%3Cpath%20d%3D'M10.6%2015.6C8.2%2014.4%207%2012%207.6%209.2c2.8-.4%205%201%206%203.4'%20stroke-width%3D'.55'%20opacity%3D'.46'%2F%3E%0A%20%20%3Cpath%20d%3D'M20.6%206.6c1.4-2.2%203.6-3.2%206.2-2.8-.2%202.6-1.6%204.4-4%205.2'%20stroke-width%3D'.55'%20opacity%3D'.4'%2F%3E%0A%20%20%3C%2Fg%3E%0A%20%20%3Ccircle%20cx%3D'4.2'%20cy%3D'29.8'%20r%3D'1.6'%20fill%3D'%23d4a44c'%20opacity%3D'.48'%2F%3E%0A%20%20%3Ccircle%20cx%3D'29.4'%20cy%3D'3.6'%20r%3D'1.1'%20fill%3D'%23d4a44c'%20opacity%3D'.4'%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");
+  --orn-divider:url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'210'%20height%3D'18'%20viewBox%3D'0%200%20210%2018'%3E%3Cg%20fill%3D'none'%20stroke%3D'%23d4a44c'%20stroke-linecap%3D'round'%3E%0A%20%20%3Cpath%20d%3D'M2%209H80'%20stroke-width%3D'.6'%20opacity%3D'.46'%2F%3E%3Cpath%20d%3D'M130%209h78'%20stroke-width%3D'.6'%20opacity%3D'.46'%2F%3E%0A%20%20%3Ccircle%20cx%3D'94'%20cy%3D'9'%20r%3D'2.2'%20stroke-width%3D'.6'%20opacity%3D'.6'%2F%3E%0A%20%20%3Ccircle%20cx%3D'105'%20cy%3D'9'%20r%3D'3.4'%20stroke-width%3D'.6'%20opacity%3D'.7'%2F%3E%0A%20%20%3Ccircle%20cx%3D'116'%20cy%3D'9'%20r%3D'2.2'%20stroke-width%3D'.6'%20opacity%3D'.6'%2F%3E%0A%20%20%3Cpath%20d%3D'M84%205.6Q89%201.6%2094%205.6'%20stroke-width%3D'.55'%20opacity%3D'.48'%2F%3E%0A%20%20%3Cpath%20d%3D'M116%205.6q5-4%2010%200'%20stroke-width%3D'.55'%20opacity%3D'.48'%2F%3E%0A%20%20%3Cpath%20d%3D'M84%2012.4Q89%2016.4%2094%2012.4'%20stroke-width%3D'.55'%20opacity%3D'.48'%2F%3E%0A%20%20%3Cpath%20d%3D'M116%2012.4q5%204%2010%200'%20stroke-width%3D'.55'%20opacity%3D'.48'%2F%3E%0A%20%20%3Ccircle%20cx%3D'105'%20cy%3D'9'%20r%3D'1'%20fill%3D'%23d4a44c'%20stroke%3D'none'%20opacity%3D'.7'%2F%3E%0A%20%20%3C%2Fg%3E%3C%2Fsvg%3E");
+}
+
+.ornate,.modal.rite,.dv-veil-in,.body.theatre{position:relative;
+  background-image:var(--orn-foot-l),var(--orn-foot-r);
+  background-position:left bottom,right bottom;
+  background-size:38px 38px;background-repeat:no-repeat}
+.ornate::before,.ornate::after,
+.modal.rite::before,.modal.rite::after,
+.dv-veil-in::before,.dv-veil-in::after,
+.body.theatre::before,.body.theatre::after{content:"";position:absolute;z-index:3;
+  width:38px;height:38px;background-image:var(--orn-corner);background-size:contain;
+  background-repeat:no-repeat;pointer-events:none}
+.ornate::before,.modal.rite::before,.dv-veil-in::before,.body.theatre::before{top:0;left:0}
+.ornate::after,.modal.rite::after,.dv-veil-in::after,.body.theatre::after{top:0;right:0;transform:scaleX(-1)}
+/* the modal keeps its own surface under the two feet */
+.modal.rite{background-color:var(--elev-3)}
+/* the veil is dark whatever the room is, so it always takes the gold set */
+.dv-veil-in{--orn-corner:url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'34'%20height%3D'34'%20viewBox%3D'0%200%2034%2034'%3E%3Cg%20fill%3D'none'%20stroke%3D'%23d4a44c'%20stroke-linecap%3D'round'%3E%0A%20%20%3Cpath%20d%3D'M2%2032C2%2021%204.4%2011%2012.6%206.2%2016.8%203.8%2024.4%202%2032%202'%20stroke-width%3D'1'%20opacity%3D'.6'%2F%3E%0A%20%20%3Cpath%20d%3D'M2%2027C4%2018.6%208%2012.4%2014.4%208'%20stroke-width%3D'.55'%20opacity%3D'.4'%2F%3E%0A%20%20%3Cpath%20d%3D'M10.6%2015.6C8.2%2014.4%207%2012%207.6%209.2c2.8-.4%205%201%206%203.4'%20stroke-width%3D'.55'%20opacity%3D'.46'%2F%3E%0A%20%20%3Cpath%20d%3D'M20.6%206.6c1.4-2.2%203.6-3.2%206.2-2.8-.2%202.6-1.6%204.4-4%205.2'%20stroke-width%3D'.55'%20opacity%3D'.4'%2F%3E%0A%20%20%3C%2Fg%3E%0A%20%20%3Ccircle%20cx%3D'4.2'%20cy%3D'29.8'%20r%3D'1.6'%20fill%3D'%23d4a44c'%20opacity%3D'.48'%2F%3E%0A%20%20%3Ccircle%20cx%3D'29.4'%20cy%3D'3.6'%20r%3D'1.1'%20fill%3D'%23d4a44c'%20opacity%3D'.4'%2F%3E%3C%2Fsvg%3E");--orn-foot-l:url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'34'%20height%3D'34'%20viewBox%3D'0%200%2034%2034'%3E%3Cg%20transform%3D'translate(0%2034)%20scale(1%20-1)'%3E%3Cg%20fill%3D'none'%20stroke%3D'%23d4a44c'%20stroke-linecap%3D'round'%3E%0A%20%20%3Cpath%20d%3D'M2%2032C2%2021%204.4%2011%2012.6%206.2%2016.8%203.8%2024.4%202%2032%202'%20stroke-width%3D'1'%20opacity%3D'.6'%2F%3E%0A%20%20%3Cpath%20d%3D'M2%2027C4%2018.6%208%2012.4%2014.4%208'%20stroke-width%3D'.55'%20opacity%3D'.4'%2F%3E%0A%20%20%3Cpath%20d%3D'M10.6%2015.6C8.2%2014.4%207%2012%207.6%209.2c2.8-.4%205%201%206%203.4'%20stroke-width%3D'.55'%20opacity%3D'.46'%2F%3E%0A%20%20%3Cpath%20d%3D'M20.6%206.6c1.4-2.2%203.6-3.2%206.2-2.8-.2%202.6-1.6%204.4-4%205.2'%20stroke-width%3D'.55'%20opacity%3D'.4'%2F%3E%0A%20%20%3C%2Fg%3E%0A%20%20%3Ccircle%20cx%3D'4.2'%20cy%3D'29.8'%20r%3D'1.6'%20fill%3D'%23d4a44c'%20opacity%3D'.48'%2F%3E%0A%20%20%3Ccircle%20cx%3D'29.4'%20cy%3D'3.6'%20r%3D'1.1'%20fill%3D'%23d4a44c'%20opacity%3D'.4'%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");--orn-foot-r:url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'34'%20height%3D'34'%20viewBox%3D'0%200%2034%2034'%3E%3Cg%20transform%3D'translate(34%2034)%20scale(-1%20-1)'%3E%3Cg%20fill%3D'none'%20stroke%3D'%23d4a44c'%20stroke-linecap%3D'round'%3E%0A%20%20%3Cpath%20d%3D'M2%2032C2%2021%204.4%2011%2012.6%206.2%2016.8%203.8%2024.4%202%2032%202'%20stroke-width%3D'1'%20opacity%3D'.6'%2F%3E%0A%20%20%3Cpath%20d%3D'M2%2027C4%2018.6%208%2012.4%2014.4%208'%20stroke-width%3D'.55'%20opacity%3D'.4'%2F%3E%0A%20%20%3Cpath%20d%3D'M10.6%2015.6C8.2%2014.4%207%2012%207.6%209.2c2.8-.4%205%201%206%203.4'%20stroke-width%3D'.55'%20opacity%3D'.46'%2F%3E%0A%20%20%3Cpath%20d%3D'M20.6%206.6c1.4-2.2%203.6-3.2%206.2-2.8-.2%202.6-1.6%204.4-4%205.2'%20stroke-width%3D'.55'%20opacity%3D'.4'%2F%3E%0A%20%20%3C%2Fg%3E%0A%20%20%3Ccircle%20cx%3D'4.2'%20cy%3D'29.8'%20r%3D'1.6'%20fill%3D'%23d4a44c'%20opacity%3D'.48'%2F%3E%0A%20%20%3Ccircle%20cx%3D'29.4'%20cy%3D'3.6'%20r%3D'1.1'%20fill%3D'%23d4a44c'%20opacity%3D'.4'%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");padding:40px 46px}
+
+/* a section break that is a break rather than a rule */
+.ornate-rule{width:210px;height:18px;margin:26px auto;border:0;
+  background-image:var(--orn-divider);background-repeat:no-repeat;background-position:center}
+/* and the places that were already breaking between sections with nothing but
+   white space: the parts of a reading, and the deep fields on a person. The
+   rule is drawn by the second of a pair, so a lone section never gets one. */
+.ic-sec + .ic-sec::before,.value-field + .value-field::before,.dv-story + .dv-sec::before{
+  content:"";display:block;width:210px;height:18px;margin:2px auto 22px;
+  background-image:var(--orn-divider);background-repeat:no-repeat;background-position:center}
+
+/* ---------- the simpler containers get a dot, not a flourish ----------
+   Four of them, one per corner, drawn as background layers so no card needs
+   an extra element. A bookplate's worth of ceremony and nothing more. */
+.card::after{content:"";position:absolute;inset:9px;pointer-events:none;border-radius:inherit;
+  background-repeat:no-repeat;
+  background-image:
+    radial-gradient(circle 1.6px at 0 0,color-mix(in srgb,var(--terra) 45%,transparent) 60%,transparent 62%),
+    radial-gradient(circle 1.6px at 100% 0,color-mix(in srgb,var(--terra) 45%,transparent) 60%,transparent 62%),
+    radial-gradient(circle 1.6px at 0 100%,color-mix(in srgb,var(--terra) 45%,transparent) 60%,transparent 62%),
+    radial-gradient(circle 1.6px at 100% 100%,color-mix(in srgb,var(--terra) 45%,transparent) 60%,transparent 62%)}
+/* a card that is only a dashed outline is not a bookplate */
+.card.soft::after{display:none}
+
+/* ---------- the double frame on a card face ----------
+   The outer border and an outline set eight pixels in: the two-rule frame an
+   antique deck and a Victorian book plate both have. It sits over Smith's
+   drawing rather than beside it, which is where a printed frame sits too. */
+.tc-face{outline:1px solid color-mix(in srgb,var(--sc,#8f7bb0) 55%,transparent);outline-offset:-8px}
 </style>
 </head>
 <body>
@@ -23083,16 +23155,26 @@ function tarotSigilSVG(card, size = 64){
 /* the back: the same for every card, so that a spread face-down is a spread
    and not a row of different things */
 function tarotBackHTML(){
+  /* Eight petals opening out of a ring, a second rank set between them, a
+     dashed sky round the whole thing and a dot at each cardinal point. The
+     old back was eight spokes and a circle, which is a diagram of a wheel;
+     this is a flower, which is what the rest of the house is made of. */
+  const petals = Array.from({length: 8}, (_, i) =>
+    `<ellipse cx="30" cy="33" rx="3.6" ry="10.4" fill="none" stroke="currentColor" stroke-width=".5" opacity=".36" transform="rotate(${i * 45} 30 45)"/>`).join('');
+  const inner = Array.from({length: 8}, (_, i) =>
+    `<path d="M30 30.6q2.6 3 0 6.4" fill="none" stroke="currentColor" stroke-width=".4" opacity=".22" transform="rotate(${i * 45 + 22.5} 30 45)"/>`).join('');
+  const cardinal = [[30, 8], [52, 45], [30, 82], [8, 45]].map(([x, y]) =>
+    `<circle cx="${x}" cy="${y}" r="1.5" fill="currentColor" opacity=".34"/>`).join('');
+  const leaves = [[16, 20, -30], [44, 20, 30], [16, 70, -30], [44, 70, 30]].map(([x, y, a]) =>
+    `<path d="M0 0q3.4-2.6 6.8 0-3.4 2.6-6.8 0Z" fill="currentColor" opacity=".18" transform="translate(${x - 3.4} ${y}) rotate(${a} 3.4 0)"/>`).join('');
   return `<div class="tc-back"><svg viewBox="0 0 60 90" aria-hidden="true">
     <rect x="3" y="3" width="54" height="84" rx="5" fill="none" stroke="currentColor" stroke-width=".7" opacity=".45"/>
-    <rect x="7" y="7" width="46" height="76" rx="3" fill="none" stroke="currentColor" stroke-width=".4" opacity=".3"/>
-    ${[0,1,2,3,4,5,6,7].map(i => { const a = i * Math.PI / 4;
-      return `<line x1="30" y1="45" x2="${(30 + Math.cos(a) * 15).toFixed(1)}" y2="${(45 + Math.sin(a) * 15).toFixed(1)}" stroke="currentColor" stroke-width=".5" opacity=".5"/>`; }).join('')}
-    <circle cx="30" cy="45" r="15" fill="none" stroke="currentColor" stroke-width=".6" opacity=".55"/>
-    <circle cx="30" cy="45" r="8" fill="none" stroke="currentColor" stroke-width=".5" opacity=".45"/>
-    <circle cx="30" cy="45" r="2.4" fill="currentColor" opacity=".7"/>
-    <text x="30" y="22" text-anchor="middle" font-size="7" fill="currentColor" opacity=".6">✦</text>
-    <text x="30" y="72" text-anchor="middle" font-size="7" fill="currentColor" opacity=".6">✦</text>
+    <rect x="6.4" y="6.4" width="47.2" height="77.2" rx="3.4" fill="none" stroke="currentColor" stroke-width=".4" opacity=".28"/>
+    ${petals}${inner}
+    <circle cx="30" cy="45" r="7.4" fill="none" stroke="currentColor" stroke-width=".5" opacity=".5"/>
+    <circle cx="30" cy="45" r="2.6" fill="currentColor" opacity=".32"/>
+    <circle cx="30" cy="45" r="23" fill="none" stroke="currentColor" stroke-width=".5" opacity=".24" stroke-dasharray="1.6 3.4"/>
+    ${cardinal}${leaves}
   </svg></div>`;
 }
 
