@@ -34,7 +34,9 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
         closeSpeedDial(); return /Quick note/.test(t) && /Unfinished thought/.test(t); }));
 
   console.log('\n2. the focus clock sits above the plan');
-  const order = await p.evaluate(() => [...document.querySelectorAll('#main .page > [id^="t-"]')].map(n => n.id));
+  /* document order, not child order: the sections sit inside the day's bento
+     bands now, so a direct-child selector no longer finds any of them */
+  const order = await p.evaluate(() => [...document.querySelectorAll('#main .page [id^="t-"]')].map(n => n.id));
   const iF = order.indexOf('t-focus'), iP = order.indexOf('t-plan'), iT = order.indexOf('t-tasks');
   yes('focus, then the plan, then the tasks', iF >= 0 && iF < iP && iP < iT, order.join(' → '));
   const jumps = await p.evaluate(() => [...document.querySelectorAll('.today-jump [data-jump]')].map(b => b.dataset.jump));

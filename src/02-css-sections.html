@@ -689,6 +689,73 @@ button.tm-cell:hover{border-color:var(--page-accent)}
 /* ---------- THE FOCUS PANEL ----------
    Under the list it times. The ring is small on purpose: this is a companion
    to the day, not the subject of it. */
+/* ============================================================
+   TODAY AS A BENTO BOX  —  class: .daybox
+   ------------------------------------------------------------
+   A bento is not a grid of equal squares — it is one large compartment and
+   several small ones, packed so nothing rattles. The day has the same shape:
+   the clock is the large compartment, and the plan and the tasks are the two
+   beside it, because choosing the next thing and timing it are one act and
+   they were a screenful apart.
+
+   Below that the reflective half goes in pairs, so the page ends in two short
+   columns rather than one long scroll. Under 1000px every band is one column
+   again — the same page it has always been, stacked.
+
+   The class is daybox, not bento, because a bento grid already exists further
+   down this sheet — the Review dashboard's twelve columns — and being further
+   down, it quietly won every rule this block tried to set.
+   ============================================================ */
+.daybox{display:grid;gap:12px;align-items:start;margin-top:14px}
+.daybox>*{margin-top:0!important}
+/* the clock keeps a little more room than the list beside it, because it has
+   a face to draw; the plan and the tasks stack in the narrower column */
+.daybox-work{grid-template-columns:minmax(0,1.06fr) minmax(0,1fr);
+  grid-template-rows:auto minmax(0,1fr)}
+.daybox-work>.focus-block{grid-column:1;grid-row:1 / span 2}
+.daybox-work>#t-plan{grid-column:2;grid-row:1}
+.daybox-work>#t-tasks{grid-column:2;grid-row:2}
+.daybox-pair{grid-template-columns:repeat(2,minmax(0,1fr))}
+/* an open section in a bento cell should scroll inside its own compartment
+   rather than pushing the one beside it down the page */
+.daybox .t-sec[open]>.body,.daybox .t-sec[open]>.body.stack{max-height:min(62vh,620px);overflow-y:auto}
+.daybox .t-sec[open]>.body::-webkit-scrollbar{width:7px}
+.daybox .t-sec[open]>.body::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:4px}
+/* the clock's own row was laid out for 640px; at bento width it has less to
+   play with, so the face and the controls stack sooner */
+.daybox-work .fp-body{gap:18px;padding:16px}
+@media (max-width:1180px){
+  .daybox-work .fp-ring,.daybox-work .fp-ring svg{width:132px;height:132px}
+}
+/* The point of the band is that the clock and the list are on screen at once,
+   which is a promise about height as well as width. So on a screen with the
+   room for it the band is exactly one screenful, and the task list scrolls
+   inside its own compartment rather than pushing the clock off the top. */
+@media (min-width:1000px) and (min-height:700px){
+  /* 233px is where the band starts under the date, the waking line and the
+     index; the rest of the screen is the band's, and nothing below the fold */
+  /* the cells stretch to the row here, rather than sizing to their content —
+     otherwise the list simply grows past the bottom of the band it is in */
+  .daybox-work{max-height:calc(100dvh - 245px);align-items:stretch}
+  .daybox-work>#t-plan{align-self:start}
+  /* The compartment itself does the scrolling. A <details> puts its content
+     in an anonymous slot, so a flex or grid child of one cannot be told to
+     shrink — the list simply grew out of the bottom of the box. Scrolling the
+     details and pinning its own summary gets the same result honestly. */
+  .daybox-work>#t-tasks{min-height:0;overflow-y:auto}
+  .daybox-work>#t-tasks>summary{position:sticky;top:0;z-index:2;
+    background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(6px)}
+  .daybox-work>#t-tasks>.body{max-height:none;overflow:visible}
+  /* the clock's card fills its compartment, so the room left under it reads as
+     the space a bento leaves rather than as a hole in the page */
+  .daybox-work>.focus-block{min-height:0;overflow-y:auto;display:flex;flex-direction:column}
+  .daybox-work>.focus-block>.fp-card{flex:1 1 auto}
+}
+@media (max-width:1000px){
+  .daybox,.daybox-work,.daybox-pair{grid-template-columns:1fr;grid-template-rows:auto}
+  .daybox-work>.focus-block,.daybox-work>#t-plan,.daybox-work>#t-tasks{grid-column:1;grid-row:auto}
+  .daybox .t-sec[open]>.body{max-height:none;overflow:visible}
+}
 .focus-block{margin-top:14px}
 .fp-card{margin-top:10px;padding:0;overflow:hidden;
   border-left:3px solid color-mix(in srgb,var(--terra) 45%,transparent);
