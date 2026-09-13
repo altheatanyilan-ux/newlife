@@ -99,7 +99,55 @@ const rects = () => {
       getComputedStyle(document.getElementById('t-tasks').querySelector('summary')).backgroundColor));
   await p.close();
 
-  console.log('\n4. the clock scrolls too, so the sittings can be read');
+  console.log('\n4. a task\'s name has the line to itself');
+  /* eight controls used to share the line with the name, several of them
+     invisible until the row is hovered — and an invisible button still takes
+     its width, so in half a compartment the name was left about seventy
+     pixels of it */
+  p = await open(1280, 900, {many:false});
+  await p.evaluate(() => {
+    const t = newTask('Reply to opposing counsel about the discovery schedule', today());
+    t.duration = 60;
+    t.subtasks = [{id:'sx1', title:'Read their motion', isCompleted:false, minutes:20}];
+    S.tasks.push(t); saveNow(); rerender(); });
+  await p.waitForTimeout(800);
+  /* a task with steps shows them without being asked */
+  await p.evaluate(() => { const d = document.getElementById('t-tasks'); if(d) d.open = true; });
+  await p.waitForTimeout(500);
+  const rw = await p.evaluate(() => {
+    const row = [...document.querySelectorAll('#t-tasks .task-row')]
+      .find(r => /opposing counsel/.test(r.textContent));
+    if(!row) return {found:false};
+    const name = row.querySelector('.task-text'), tools = row.querySelector('.task-tools');
+    const nb = name.getBoundingClientRect(), rb = row.getBoundingClientRect();
+    const sub = document.querySelector('#t-tasks .sub-row');
+    const st = sub && sub.querySelector('.sub-text'), se = sub && sub.querySelector('.est-wrap');
+    return {found:true,
+      share: nb.width / rb.width,
+      clipped: name.scrollWidth > name.clientWidth + 1,
+      toolsBelow: tools ? Math.round(tools.getBoundingClientRect().top) >= Math.round(nb.bottom) - 1 : null,
+      buttonsInTools: tools ? tools.querySelectorAll('button,a').length : 0,
+      /* the tick and the disclosure caret stay with the name — they are how
+         you read the row, not the cluster that was squeezing it */
+      besideName: [...row.children].filter(n => n.matches('button,a')
+        && !n.matches('.task-check,.task-caret,.task-grip')).length,
+      /* a step keeps its one button on the line with its name */
+      tickBeside: !!row.querySelector(':scope > .task-check') && !!row.querySelector(':scope > .task-caret'),
+      stepFound: !!sub, stepTwoLine: !!(sub && sub.querySelector('.task-tools')),
+      stepInline: !!(st && se && Math.abs(st.getBoundingClientRect().top - se.getBoundingClientRect().top) < 12)}; });
+  yes('the task is on the page', rw.found);
+  yes('  its name gets most of the row\'s width', rw.share > 0.6, `${Math.round(rw.share*100)}%`);
+  yes('  and is not cut off', !rw.clipped);
+  yes('  the controls are on the line under it', rw.toolsBelow);
+  yes('  all of them', rw.buttonsInTools >= 4, `${rw.buttonsInTools} in the tool line`);
+  is('  and none of them left beside the name', rw.besideName, 0);
+  yes('  the tick and the caret do stay with it', rw.tickBeside);
+  yes('a step is left alone: one button, on the line with its name',
+      rw.stepFound && !rw.stepTwoLine && rw.stepInline,
+      `found ${rw.stepFound}, two-line ${rw.stepTwoLine}, inline ${rw.stepInline}`);
+  await p.close();
+
+  console.log('\n5. the clock scrolls too, so the sittings can be read');
   /* this is the whole point of the redesign: the ledger of what the sittings
      went on sits below the clock face and used to be unreachable */
   p = await open(1440, 900, {many:false, sittings:true});
@@ -129,7 +177,7 @@ const rects = () => {
   yes('  with the Focus heading still pinned to the top', led.headPinned);
   await p.close();
 
-  console.log('\n5. the reflective half goes in pairs');
+  console.log('\n6. the reflective half goes in pairs');
   p = await open(1440, 900, {many:false});
   m = await p.evaluate(rects);
   yes('the check-in and the habits share a row', m.habits.l >= m.checkin.r - 2);
@@ -141,7 +189,7 @@ const rects = () => {
      't-plan,t-focus,t-tasks,t-checkin,t-habits,t-theatre,t-still,t-tonight');
   await p.close();
 
-  console.log('\n6. a narrow screen is the plain single column it always was');
+  console.log('\n7. a narrow screen is the plain single column it always was');
   p = await open(880, 1100, {many:true});
   m = await p.evaluate(rects);
   is('the clock and the list share a left edge', m.tasks.l, m.focus.l);
@@ -156,7 +204,7 @@ const rects = () => {
     return cs.borderTopWidth === '0px' && cs.paddingLeft === '0px'; }));
   await p.close();
 
-  console.log('\n7. the day\'s own grid does not disturb the Review dashboard');
+  console.log('\n8. the day\'s own grid does not disturb the Review dashboard');
   /* .bento is the Review tab's twelve-column grid; the day's boxes are .daybox,
      and the two must not read each other's rules */
   p = await b.newPage({viewport:{width:1440, height:900}});
@@ -171,7 +219,7 @@ const rects = () => {
      await p.evaluate(() => document.querySelectorAll('.rv-dash .daybox').length), 0);
   await p.close();
 
-  console.log('\n8. quiet');
+  console.log('\n9. quiet');
   is('no errors on the console', errs.length, 0, errs.join(' | '));
   if(errs.length) errs.forEach(e => console.log('    ' + e));
 
