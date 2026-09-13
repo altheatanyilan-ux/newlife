@@ -234,7 +234,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   console.log('\n6. sitting still');
   await today_();
   yes('the section is on Today, under the theatre', await p.evaluate(() => {
-    const ids = [...document.querySelectorAll('#main .page > [id^="t-"]')].map(n => n.id);
+    const ids = [...document.querySelectorAll('#main .page [id^="t-"]')].map(n => n.id);
     return ids.indexOf('t-still') > ids.indexOf('t-theatre'); }));
   is('  four ways in', await p.$$eval('[data-stkind]', n => n.length), 4);
   /* Drawn is not the same as wired. The whole section once rendered perfectly

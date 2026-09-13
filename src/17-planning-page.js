@@ -208,11 +208,22 @@ function planMilestoneStripHTML(sel){
       ${laid.map(({m, list, left, lane}) => { const late = !m.done && m.date && m.date < T;
         /* even lanes hang below the rail, odd ones stand above it */
         const up = lane % 2 === 1, tier = Math.floor(lane / 2);
-        return `<button class="pl-mspin${m.done ? ' done' : ''}${late ? ' late' : ''}${up ? ' up' : ''}" data-plms="${m.id}"
+        /* Pressing a date narrows the list to the work that is for it — the
+           question a milestone asks is "what is left before this", and the
+           answer is a filter, not a dialog. Pressing it again lets go. The
+           pencil is the way into the milestone itself. */
+        const on = S._planFilter?.milestone === m.id;
+        const prog = typeof planMilestoneProgress === 'function' ? planMilestoneProgress(m.id) : {total:0, done:0};
+        return `<button class="pl-mspin${m.done ? ' done' : ''}${late ? ' late' : ''}${up ? ' up' : ''}${on ? ' on' : ''}"
+          data-plmsfilter="${m.id}" aria-pressed="${on}"
           style="left:${left}%;--c:${esc(list.color)};--tier:${tier}" role="listitem"
-          title="${esc(m.name)} · ${m.date ? esc(fmtDate(m.date, 'med')) + ' · ' + esc(planWhenAway(m.date)) : 'no date'}${m.note ? ' · ' + esc(m.note) : ''}">
+          title="${esc(m.name)} · ${m.date ? esc(fmtDate(m.date, 'med')) + ' · ' + esc(planWhenAway(m.date)) : 'no date'}${
+            prog.total ? ` · ${prog.done} of ${prog.total} done` : ' · nothing under it yet'} — ${
+            on ? 'press to show everything again' : 'press to see only its work'}${m.note ? ' · ' + esc(m.note) : ''}">
           <i class="pl-msdot"></i><i class="pl-msstem"></i><span class="pl-mslabel">${esc(m.name)}</span>
-          ${m.date ? `<span class="pl-msaway mono">${esc(m.done ? fmtDate(m.date, 'short') : planWhenAway(m.date))}</span>` : ''}</button>`; }).join('')}
+          ${prog.total ? `<span class="pl-mscount mono">${prog.done}/${prog.total}</span>` : ''}
+          ${m.date ? `<span class="pl-msaway mono">${esc(m.done ? fmtDate(m.date, 'short') : planWhenAway(m.date))}</span>` : ''}
+          <i class="pl-msedit" data-plms="${m.id}" role="button" tabindex="0" title="open this milestone">✎</i></button>`; }).join('')}
     </div>
   </div>`;
 }
@@ -221,7 +232,17 @@ function bindPlanMilestones(root, sel){
   if(addb) addb.onclick = () => { const host = planMilestoneList(sel); if(!host) return;
     const m = planAddMilestone(host.id); sound('click'); rerender();
     setTimeout(() => openPlanMilestone(m.id), 60); };
-  root.querySelectorAll('[data-plms]').forEach(b => b.onclick = () => openPlanMilestone(b.dataset.plms));
+  root.querySelectorAll('[data-plmsfilter]').forEach(b => b.onclick = ev => {
+    if(ev.target.closest('[data-plms]')) return;   /* the pencil is its own door */
+    const id = b.dataset.plmsfilter;
+    const f = Object.assign({}, S._planFilter || {});
+    if(f.milestone === id) delete f.milestone; else f.milestone = id;
+    S._planFilter = f; sound('click'); rerender(); });
+  root.querySelectorAll('[data-plms]').forEach(b => {
+    const go = ev => { ev.stopPropagation(); openPlanMilestone(b.dataset.plms); };
+    b.onclick = go;
+    b.onkeydown = ev => { if(ev.key === 'Enter' || ev.key === ' ') go(ev); };
+  });
 }
 function openPlanMilestone(id){
   const hit = planFindMilestone(id); if(!hit) return;
@@ -232,12 +253,37 @@ function openPlanMilestone(id){
       <div class="field"><label>What it is</label><input class="inp serif-lg" id="msName" value="${esc(m.name)}" placeholder="Ship it · the hearing · deposit due"></div>
       <div class="field"><label>When</label><div class="dp-field"><input class="inp mono" id="msDate" data-dp value="${esc(m.date || '')}" placeholder="${esc(today())}">${dpButtonHTML('msDate')}</div></div>
       <div class="field"><label>Anything to remember about it</label><textarea class="ta" id="msNote" style="min-height:60px" placeholder="optional">${esc(m.note || '')}</textarea></div>
+      <!-- A date is only as real as the work under it, so opening one shows
+           that work rather than asking you to go and look for it. -->
+      ${(() => {
+        const ts = typeof planMilestoneTasks === 'function' ? planMilestoneTasks(m.id) : [];
+        const left = ts.filter(t => !t.done);
+        return `<div class="field"><label>The work that is for it${
+          ts.length ? ` <span class="mono faint" style="text-transform:none;letter-spacing:0">· ${ts.length - left.length} of ${ts.length} done</span>` : ''}</label>
+          ${ts.length ? `<div class="ms-tasks">${planSortTasks(ts, 'dueDate').map(t =>
+            `<div class="ms-task${t.done ? ' done' : ''}">
+              <button class="task-check sm${t.done ? ' on' : ''}" data-mstick="${esc(t.id)}" role="checkbox"
+                aria-checked="${!!t.done}" title="${t.done ? 'not done after all' : 'mark done'}">${t.done ? '✓' : ''}</button>
+              <span class="ms-task-t">${esc(t.text)}</span>
+              <span class="mono faint">${t.day ? esc(fmtDate(t.day, 'short')) : 'no date'}</span>
+            </div>`).join('')}</div>`
+          : `<div class="empty" style="margin:0">Nothing points at this date yet. Open a task and name this milestone on it, or press the date on the strip to work with only its tasks.</div>`}
+          ${ts.length ? `<button class="btn sm ghost" id="msOnly" style="margin-top:8px">show only its work →</button>` : ''}
+        </div>`; })()}
       <label class="toggle ${m.done ? 'on' : ''}" id="msDone"><span class="sw"></span><span>this one has been met</span></label>
       <div class="row between"><button class="btn sm ghost danger" id="msDel">remove</button>
         <button class="btn primary" id="msSave">Save</button></div>
     </div>`, 'narrow');
   let done = !!m.done;
   mo.querySelector('#msDone').onclick = function(){ done = !done; this.classList.toggle('on', done); };
+  /* ticking a task off from here is the same act as ticking it in the list */
+  mo.querySelectorAll('[data-mstick]').forEach(b => b.onclick = () => {
+    const t = planTaskById(b.dataset.mstick); if(!t) return;
+    planSetDone(t, !t.done); mo.remove(); rerender(); setTimeout(() => openPlanMilestone(id), 60); });
+  const only = mo.querySelector('#msOnly');
+  if(only) only.onclick = () => {
+    S._planFilter = Object.assign({}, S._planFilter || {}, {milestone: m.id});
+    mo.remove(); sound('click'); rerender(); };
   mo.querySelector('#msSave').onclick = () => {
     m.name = mo.querySelector('#msName').value.trim() || 'A date that matters';
     m.date = mo.querySelector('#msDate').value.trim();
@@ -258,6 +304,8 @@ function planHeaderHTML(sel){
   const RANGE_SAID = {overdue:'overdue', today:'today', tomorrow:'tomorrow', next7days:'next 7 days', noDate:'no date'};
   const chips = [];
   if(f.lists?.length) chips.push(`<span class="pf-chip on" data-pfclear="lists">${f.lists.map(planListName).join(', ')}<i>×</i></span>`);
+  if(f.milestone){ const hit = planFindMilestone(f.milestone);
+    chips.push(`<span class="pf-chip on" data-pfclear="milestone">◆ ${esc(hit ? hit.m.name : 'a milestone')}<i>×</i></span>`); }
   if(f.tags?.length) chips.push(`<span class="pf-chip on" data-pfclear="tags">${f.tags.map(x => '#' + esc(x)).join(' ')}<i>×</i></span>`);
   if(f.priorities?.length) chips.push(`<span class="pf-chip on" data-pfclear="priorities">${f.priorities.map(n => planPriority(n).name).join(', ')}<i>×</i></span>`);
   if(f.dateRange) chips.push(`<span class="pf-chip on" data-pfclear="dateRange">${esc(RANGE_SAID[f.dateRange] || String(f.dateRange))}<i>×</i></span>`);

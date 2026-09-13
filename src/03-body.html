@@ -1,4 +1,33 @@
 <body>
+<!-- The last resort. If the script below fails to *parse* — a half-finished
+     merge in the one file the whole app lives in is the way that happens —
+     then no JavaScript runs at all, no error handler fires, and every clever
+     recovery further down is dead code. The only thing that still works is
+     plain HTML that was already on the page.
+
+     So this sits in the document from the start and boot removes it. Seeing it
+     means the app never started, and it says the one thing that matters: the
+     writing is in the browser's storage, not in this file. -->
+<div id="deadStart" style="position:fixed;inset:0;z-index:99998;overflow:auto;background:#f7f4ef;
+  color:#2e2a26;padding:min(9vh,72px) 22px;font:15px/1.6 ui-serif,Georgia,serif">
+  <div style="max-width:640px;margin:0 auto">
+    <div style="font:600 12px/1 ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;
+      color:#9a8f84">Life Instrument</div>
+    <h1 style="font:400 1.7rem/1.25 ui-serif,Georgia,serif;margin:14px 0 6px">The house did not start.</h1>
+    <p style="margin:0 0 14px;color:#6b6259">This copy of the app could not be read by the browser —
+      usually a file that was damaged in transit or left half-merged.
+      <b>Your writing is not in this file.</b> It is in this browser's own storage, untouched, and a
+      working copy of the app will find it exactly where it was.</p>
+    <p style="margin:0 0 6px;color:#6b6259">What to do:</p>
+    <ol style="margin:0 0 16px;padding-left:22px;color:#6b6259">
+      <li>Reload the page — a stale cached copy is the commonest cause.</li>
+      <li>If it says this again, get a fresh <code>index.html</code> and open that.
+        Nothing you have written is lost by replacing it.</li>
+    </ol>
+    <button onclick="location.reload()" style="font:inherit;padding:9px 15px;border-radius:9px;
+      border:1px solid #c9bfb2;background:#b06a4a;color:#fff;cursor:pointer">Reload</button>
+  </div>
+</div>
 <div class="ambient"><div class="page-scene" id="scA"></div><div class="page-scene" id="scB"></div><div class="ink-layer" id="inkMist"></div><div class="page-grad" id="pgA"></div><div class="page-grad" id="pgB"></div><div class="ink-layer" id="inkSeason"></div><div class="ink-layer" id="inkRipple"></div></div>
 <canvas class="dust" id="dust"></canvas>
 <div id="app">

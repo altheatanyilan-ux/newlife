@@ -1214,6 +1214,73 @@ button.tm-cell:hover{border-color:var(--page-accent)}
 /* ---------- THE FOCUS PANEL ----------
    Under the list it times. The ring is small on purpose: this is a companion
    to the day, not the subject of it. */
+/* ============================================================
+   TODAY AS A BENTO BOX  —  class: .daybox
+   ------------------------------------------------------------
+   A bento is not a grid of equal squares — it is one large compartment and
+   several small ones, packed so nothing rattles. The day has the same shape:
+   the clock is the large compartment, and the plan and the tasks are the two
+   beside it, because choosing the next thing and timing it are one act and
+   they were a screenful apart.
+
+   Below that the reflective half goes in pairs, so the page ends in two short
+   columns rather than one long scroll. Under 1000px every band is one column
+   again — the same page it has always been, stacked.
+
+   The class is daybox, not bento, because a bento grid already exists further
+   down this sheet — the Review dashboard's twelve columns — and being further
+   down, it quietly won every rule this block tried to set.
+   ============================================================ */
+.daybox{display:grid;gap:12px;align-items:start;margin-top:14px}
+.daybox>*{margin-top:0!important}
+/* the clock keeps a little more room than the list beside it, because it has
+   a face to draw; the plan and the tasks stack in the narrower column */
+.daybox-work{grid-template-columns:minmax(0,1.06fr) minmax(0,1fr);
+  grid-template-rows:auto minmax(0,1fr)}
+.daybox-work>.focus-block{grid-column:1;grid-row:1 / span 2}
+.daybox-work>#t-plan{grid-column:2;grid-row:1}
+.daybox-work>#t-tasks{grid-column:2;grid-row:2}
+.daybox-pair{grid-template-columns:repeat(2,minmax(0,1fr))}
+/* an open section in a bento cell should scroll inside its own compartment
+   rather than pushing the one beside it down the page */
+.daybox .t-sec[open]>.body,.daybox .t-sec[open]>.body.stack{max-height:min(62vh,620px);overflow-y:auto}
+.daybox .t-sec[open]>.body::-webkit-scrollbar{width:7px}
+.daybox .t-sec[open]>.body::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:4px}
+/* the clock's own row was laid out for 640px; at bento width it has less to
+   play with, so the face and the controls stack sooner */
+.daybox-work .fp-body{gap:18px;padding:16px}
+@media (max-width:1180px){
+  .daybox-work .fp-ring,.daybox-work .fp-ring svg{width:132px;height:132px}
+}
+/* The point of the band is that the clock and the list are on screen at once,
+   which is a promise about height as well as width. So on a screen with the
+   room for it the band is exactly one screenful, and the task list scrolls
+   inside its own compartment rather than pushing the clock off the top. */
+@media (min-width:1000px) and (min-height:700px){
+  /* 233px is where the band starts under the date, the waking line and the
+     index; the rest of the screen is the band's, and nothing below the fold */
+  /* the cells stretch to the row here, rather than sizing to their content —
+     otherwise the list simply grows past the bottom of the band it is in */
+  .daybox-work{max-height:calc(100dvh - 245px);align-items:stretch}
+  .daybox-work>#t-plan{align-self:start}
+  /* The compartment itself does the scrolling. A <details> puts its content
+     in an anonymous slot, so a flex or grid child of one cannot be told to
+     shrink — the list simply grew out of the bottom of the box. Scrolling the
+     details and pinning its own summary gets the same result honestly. */
+  .daybox-work>#t-tasks{min-height:0;overflow-y:auto}
+  .daybox-work>#t-tasks>summary{position:sticky;top:0;z-index:2;
+    background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(6px)}
+  .daybox-work>#t-tasks>.body{max-height:none;overflow:visible}
+  /* the clock's card fills its compartment, so the room left under it reads as
+     the space a bento leaves rather than as a hole in the page */
+  .daybox-work>.focus-block{min-height:0;overflow-y:auto;display:flex;flex-direction:column}
+  .daybox-work>.focus-block>.fp-card{flex:1 1 auto}
+}
+@media (max-width:1000px){
+  .daybox,.daybox-work,.daybox-pair{grid-template-columns:1fr;grid-template-rows:auto}
+  .daybox-work>.focus-block,.daybox-work>#t-plan,.daybox-work>#t-tasks{grid-column:1;grid-row:auto}
+  .daybox .t-sec[open]>.body{max-height:none;overflow:visible}
+}
 .focus-block{margin-top:14px}
 .fp-card{margin-top:10px;padding:0;overflow:hidden;
   border-left:3px solid color-mix(in srgb,var(--terra) 45%,transparent);
@@ -4440,6 +4507,25 @@ select.sm-active{border-color:var(--page-accent);
    Even lanes hang below the rail and odd ones stand above it, each tier a
    fixed step further out, with a stem back to the dot so a name is never
    orphaned from the date it belongs to. */
+/* --- a milestone as a lens --- */
+/* the pressed pin is the filter that is on: it fills, so the strip says at a
+   glance which date the list below is about */
+.pl-mspin.on .pl-msdot{background:var(--c);box-shadow:0 0 0 3px color-mix(in srgb,var(--c) 30%,transparent)}
+.pl-mspin.on .pl-mslabel{color:var(--c);font-weight:600}
+.pl-mscount{font-size:.58rem;color:var(--faint);letter-spacing:.04em}
+.pl-msedit{opacity:0;font-style:normal;font-size:.68rem;color:var(--faint);padding:0 3px;
+  cursor:pointer;transition:opacity .15s,color .15s}
+.pl-mspin:hover .pl-msedit,.pl-mspin:focus-within .pl-msedit{opacity:1}
+.pl-msedit:hover{color:var(--terra)}
+/* the work under one date, in its own panel */
+.ms-tasks{display:flex;flex-direction:column;gap:2px;max-height:230px;overflow-y:auto}
+.ms-task{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:.88rem;
+  border-bottom:1px dashed var(--line)}
+.ms-task:last-child{border-bottom:0}
+.ms-task.done .ms-task-t{text-decoration:line-through;opacity:.5}
+.ms-task-t{flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
+/* the dates the day's work is running towards, in the planning flow */
+.plan-ms{margin-bottom:10px}
 .pl-mspin{position:absolute;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;
   gap:3px;background:none;border:0;padding:0 2px;cursor:pointer;max-width:9em;
   top:calc(var(--above) - 5px + var(--tier,0) * var(--step))}
@@ -5148,6 +5234,35 @@ html[data-theme="dark"] .tc-face{background-color:#1e1b18;color:#e8e0d4}
 </style>
 </head>
 <body>
+<!-- The last resort. If the script below fails to *parse* — a half-finished
+     merge in the one file the whole app lives in is the way that happens —
+     then no JavaScript runs at all, no error handler fires, and every clever
+     recovery further down is dead code. The only thing that still works is
+     plain HTML that was already on the page.
+
+     So this sits in the document from the start and boot removes it. Seeing it
+     means the app never started, and it says the one thing that matters: the
+     writing is in the browser's storage, not in this file. -->
+<div id="deadStart" style="position:fixed;inset:0;z-index:99998;overflow:auto;background:#f7f4ef;
+  color:#2e2a26;padding:min(9vh,72px) 22px;font:15px/1.6 ui-serif,Georgia,serif">
+  <div style="max-width:640px;margin:0 auto">
+    <div style="font:600 12px/1 ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;
+      color:#9a8f84">Life Instrument</div>
+    <h1 style="font:400 1.7rem/1.25 ui-serif,Georgia,serif;margin:14px 0 6px">The house did not start.</h1>
+    <p style="margin:0 0 14px;color:#6b6259">This copy of the app could not be read by the browser —
+      usually a file that was damaged in transit or left half-merged.
+      <b>Your writing is not in this file.</b> It is in this browser's own storage, untouched, and a
+      working copy of the app will find it exactly where it was.</p>
+    <p style="margin:0 0 6px;color:#6b6259">What to do:</p>
+    <ol style="margin:0 0 16px;padding-left:22px;color:#6b6259">
+      <li>Reload the page — a stale cached copy is the commonest cause.</li>
+      <li>If it says this again, get a fresh <code>index.html</code> and open that.
+        Nothing you have written is lost by replacing it.</li>
+    </ol>
+    <button onclick="location.reload()" style="font:inherit;padding:9px 15px;border-radius:9px;
+      border:1px solid #c9bfb2;background:#b06a4a;color:#fff;cursor:pointer">Reload</button>
+  </div>
+</div>
 <div class="ambient"><div class="page-scene" id="scA"></div><div class="page-scene" id="scB"></div><div class="ink-layer" id="inkMist"></div><div class="page-grad" id="pgA"></div><div class="page-grad" id="pgB"></div><div class="ink-layer" id="inkSeason"></div><div class="ink-layer" id="inkRipple"></div></div>
 <canvas class="dust" id="dust"></canvas>
 <div id="app">
@@ -5284,6 +5399,10 @@ function wipeDemoData(){
   if(demo) S.settings = Object.assign(fresh.settings, {theme:keep.theme||'light', sound:keep.sound, feltTime:keep.feltTime, home:keep.home||'compass', nav:keep.nav, projectView:keep.projectView, firstOpen:keep.firstOpen||today()});
   S.settings.demoWiped = true;
 }
+
+/* The script parsed, so the last-resort notice in the HTML is wrong: take it
+   down immediately, before anything else can go wrong and want to speak. */
+try { const d = document.getElementById('deadStart'); if(d) d.remove(); } catch(e){}
 
 /* path access: "stages.#id.narrative" or "rehearsal.script" */
 function resolve(path){ const segs = path.split('.'); let o = S; for(let i=0;i<segs.length-1;i++){ o = step(o, segs[i]); if(o==null) return [null,null]; } return [o, segs[segs.length-1]]; }
@@ -5474,14 +5593,31 @@ function renderRoute(){
   main.innerHTML = '';
   main.style.animation = 'none'; void main.offsetWidth; main.style.animation = '';
   currentRoute = name; PageEntryConfig.clear();
-  try { fn(main, params); } catch(err){ console.error(err); main.innerHTML = `<div class="page narrow"><h1>Something went wrong</h1><p class="muted">${esc(err.message)}</p></div>`; }
-  decoratePageHead(main); mountContextAdd(main); reveal(main); tweenAll(main); backupBanner(); updateBackButton();
+  try { fn(main, params); } catch(err){ console.error(err); routeFailure(err); }
+  /* the decorations can throw too, and by then main has already been emptied —
+     losing the trimmings is survivable, losing the page is not */
+  try { decoratePageHead(main); mountContextAdd(main); reveal(main); tweenAll(main); backupBanner(); updateBackButton(); }
+  catch(err){ console.error('page trimmings failed', err); }
   /* a review the user stepped out of to write an entry comes back, same step */
   if(typeof resumeReviewIfPending === 'function') resumeReviewIfPending();
   if(typeof attachDictationIn === 'function') attachDictationIn(main);
   restoreScroll(location.hash);
 }
-function rerender(){ const y = window.scrollY; const main = $('#main'); const {name, params} = parseHash(); main.innerHTML=''; PageEntryConfig.clear(); (routes[name]||routes.today)(main, params); decoratePageHead(main); mountContextAdd(main); if(typeof attachDictationIn === 'function') attachDictationIn(main); $$('.rv', main).forEach(n=>n.classList.add('in')); tweenAll(main); window.scrollTo({top:y}); }
+/* rerender empties #main before it draws, so anything that throws on the way
+   used to leave the page blank — and because almost every edit ends in a
+   rerender, one bad record could empty the room you were working in and keep
+   it empty. It gets the same floor renderRoute has. */
+function rerender(){
+  const y = window.scrollY; const main = $('#main'); const {name, params} = parseHash();
+  main.innerHTML=''; PageEntryConfig.clear();
+  try { (routes[name]||routes.today)(main, params); }
+  catch(err){ console.error('rerender failed', err); routeFailure(err); window.scrollTo({top:y}); return; }
+  try { decoratePageHead(main); mountContextAdd(main);
+    if(typeof attachDictationIn === 'function') attachDictationIn(main);
+    $$('.rv', main).forEach(n=>n.classList.add('in')); tweenAll(main); }
+  catch(err){ console.error('page trimmings failed', err); }
+  window.scrollTo({top:y});
+}
 /* where you were on each page, so Back returns you to the spot and not the top */
 try { history.scrollRestoration = 'manual'; } catch(e){}
 const scrollMem = new Map(); let wentBack = false, navSeq = 0, navIdx = -1;
@@ -7988,11 +8124,61 @@ class MiniTable {
 class MiniDexie {
   constructor(name){ this.name = name; this._schema = null; this._version = 1; this._db = null; this.tables = []; }
   version(n){ this._version = n; return { stores: schema => { this._schema = schema; this.tables = Object.keys(schema).map(k => { const t = new MiniTable(this, k); this[k] = t; return t; }); return this; } }; }
-  _open(){ if(this._db) return Promise.resolve(this._db); if(this._opening) return this._opening;
-    this._opening = new Promise((res, rej) => { const r = indexedDB.open(this.name, this._version);
-      r.onupgradeneeded = () => { const d = r.result; for(const [name, spec] of Object.entries(this._schema)){ const [pk, ...idx] = spec.split(',').map(s => s.trim()); if(!d.objectStoreNames.contains(name)){ const st = d.createObjectStore(name, {keyPath: pk}); idx.forEach(i => st.createIndex(i, i)); } } };
-      r.onsuccess = () => { this._db = r.result; this._db.onversionchange = () => this._db.close(); res(this._db); }; r.onerror = () => rej(r.error); r.onblocked = () => rej(new Error('blocked')); });
-    return this._opening; }
+  /* ---- the version number has to match Dexie's ----
+     Dexie does not store its version number in IndexedDB as you wrote it: its
+     own source rounds `versionNumber * 10`, so Dexie's version(11) is really
+     IndexedDB version 110. MiniDexie stands in for Dexie under the same
+     database name, and which of the two a build contains depends on nothing
+     more than whether whoever ran build.js had npm install'ed first — the CI
+     deploy does, a bare checkout does not.
+
+     So the two numbered the same database differently, and a database written
+     by one could not be opened by the other at all: IndexedDB refuses to go
+     backwards, the open rejects with a VersionError, and the app never starts.
+     Multiplying by ten here makes them agree. An existing MiniDexie database
+     at 11 upgrades to 110 and keeps everything; one Dexie wrote at 110 opens
+     as it stands. */
+  _idbVersion(){ return Math.round(this._version * 10); }
+  _createStores(d){
+    for(const [name, spec] of Object.entries(this._schema)){
+      const [pk, ...idx] = spec.split(',').map(s => s.trim());
+      if(!d.objectStoreNames.contains(name)){
+        const st = d.createObjectStore(name, {keyPath: pk});
+        idx.forEach(i => st.createIndex(i, i));
+      }
+    }
+  }
+  _openAt(version){
+    return new Promise((res, rej) => {
+      const r = version == null ? indexedDB.open(this.name) : indexedDB.open(this.name, version);
+      r.onupgradeneeded = () => this._createStores(r.result);
+      r.onsuccess = () => res(r.result);
+      r.onerror = () => rej(r.error);
+      r.onblocked = () => rej(new Error('blocked'));
+    });
+  }
+  _open(){
+    if(this._db) return Promise.resolve(this._db);
+    if(this._opening) return this._opening;
+    this._opening = (async () => {
+      let d;
+      try { d = await this._openAt(this._idbVersion()); }
+      catch(err){
+        /* Someone's database is newer than this build expects. Refusing to
+           open is the one response that cannot be right — it loses them the
+           whole app to protect a number. Take it as it is. */
+        if(!err || err.name !== 'VersionError') throw err;
+        d = await this._openAt(null);
+      }
+      /* whichever way it opened, a store this build needs may not be there
+         yet; that is the one thing worth a version bump of its own */
+      const missing = Object.keys(this._schema).filter(n => !d.objectStoreNames.contains(n));
+      if(missing.length){ const next = d.version + 1; d.close(); d = await this._openAt(next); }
+      this._db = d; d.onversionchange = () => d.close();
+      return d;
+    })();
+    return this._opening;
+  }
   open(){ return this._open(); }
   async transaction(mode, tables, fn){ const idb = await this._open(); const names = (Array.isArray(tables) ? tables : [tables]).map(t => typeof t === 'string' ? t : t.name); const tx = idb.transaction(names, mode === 'r' ? 'readonly' : 'readwrite');
     const scope = {}; names.forEach(n => scope[n] = new MiniTable(this, n, tx)); scope.table = n => scope[n];
@@ -10504,10 +10690,11 @@ routes.today = function(root){
     ['t-focus',   'focus',    true],
     ['t-plan',    'plan',     true],
     ['t-tasks',   'tasks',    true],
+    /* the order the index offers is the order the page is in */
     ['t-checkin', 'check-in', true],
+    ['t-habits',  'habits',   true],
     ['t-theatre', 'theatre',  true],
     ['t-still',   'stillness',true],
-    ['t-habits',  'habits',   true],
     ['t-tonight', 'tonight',  true],
     /* The bottom of a long page cannot catch an eye on its own. The count
        rides up here so an unfinished thought is visible from the top, which
@@ -10515,7 +10702,7 @@ routes.today = function(root){
     ['t-unfinished', `unfinished ${unfinishedEntries().length}`, unfinishedEntries().length > 0],
   ].filter(x => x[2]);
 
-  root.innerHTML = `<div class="page narrow today-page">
+  root.innerHTML = `<div class="page today-page">
 
     <!-- header -->
     <header class="rv today-head">
@@ -10548,8 +10735,12 @@ routes.today = function(root){
       ${ready.map(e=>`<div class="card ready-letter" style="margin-top:8px"><div class="row between"><span><b class="serif">${esc(e.title||'To myself')}</b><div class="mono faint">${daysBetween((e.createdAt||'').slice(0,10), T)} days ago</div></span><button class="btn sm primary" data-lopen="${e.id}">Open it</button></div></div>`).join('')}
     </div></details>` : ''}
 
-    <!-- The clock comes first: on a day already under way, starting the work
-         matters more than reading last night's plan. -->
+    <!-- THE WORKING HALF, as a bento box: the clock on the left, and beside
+         it the plan and the tasks — because you cannot pick the next thing
+         while looking at a clock that is on another screenful. Three cells,
+         two columns, one glance. Below it the reflective half, in pairs.
+         Under 1000px it all falls back to the single column it was. -->
+    <div class="daybox daybox-work">
     ${focusPanelHTML()}
 
     <!-- the plan, made last night -->
@@ -10584,6 +10775,9 @@ routes.today = function(root){
         <div class="row" style="margin-top:10px;gap:8px">${quickTaskInput(T)}<button class="btn sm ghost" id="pullTask">pull in ↓</button><a class="btn sm ghost" href="#/planning/today">all of it →</a></div>
         ${carried.length?`<div class="row" style="margin-top:10px"><span class="mono" style="color:#d08080">${carried.length} carried over from earlier days</span><button class="btn sm ghost" id="carryAll">bring to today</button></div>`:''}
       </div></div></details>
+    </div><!-- /daybox-work -->
+
+    <div class="daybox daybox-pair">
 
     <!-- daily check-in (intention + mood + energy + setpoint) -->
     <!-- Past the small hours the morning check-in is not a form to fill in, it
@@ -10611,6 +10805,21 @@ routes.today = function(root){
       </div>
     </details>
 
+    <!-- the habit checklist: the whole of habit-keeping now lives here -->
+    <details class="section rv t-sec" style="margin-top:8px" id="t-habits"${fold('t-habits')}>
+      <summary><span class="sc" style="margin:0">Today's habits</span>
+        <span class="mono faint">${(() => { const due = S.habits.filter(h => !h.archived && !h.negative && habitDue(h, T)); const dn = due.filter(h => habitDone(h, T)).length; return due.length ? `${dn} of ${due.length} kept` : 'nothing due'; })()}</span></summary>
+      <div class="body">
+      <div id="todayRings" style="margin-top:10px"></div>
+      <div class="row" style="gap:6px;margin-top:12px;flex-wrap:wrap">
+        <button class="btn sm primary" id="todayAddHabit">＋ add habit</button>
+        ${S.habits.some(h => h.archived) ? '<button class="btn sm ghost" id="todayArchHabit">archived</button>' : ''}
+        <button class="btn sm ghost" id="todayHabitGrid">the whole grid →</button>
+      </div>
+    </div></details>
+    </div><!-- /daybox-pair -->
+
+    <div class="daybox daybox-pair">
     <!-- morning rehearsal (Maltz) -->
     <details class="section rv rehearsal-wrap t-sec" id="t-theatre"${fold('t-theatre', !theatreDoneToday())} style="margin-top:8px">
       <summary><span class="sc">Morning Theatre</span><span class="mono">${theatreDoneToday() ? 'practised today' : 'six ways in · pick one'}</span>${flowTick('theatreAt')}</summary>
@@ -10626,18 +10835,7 @@ routes.today = function(root){
       ${stillnessHTML()}
     </details>
 
-    <!-- the habit checklist: the whole of habit-keeping now lives here -->
-    <details class="section rv t-sec" style="margin-top:8px" id="t-habits"${fold('t-habits')}>
-      <summary><span class="sc" style="margin:0">Today's habits</span>
-        <span class="mono faint">${(() => { const due = S.habits.filter(h => !h.archived && !h.negative && habitDue(h, T)); const dn = due.filter(h => habitDone(h, T)).length; return due.length ? `${dn} of ${due.length} kept` : 'nothing due'; })()}</span></summary>
-      <div class="body">
-      <div id="todayRings" style="margin-top:10px"></div>
-      <div class="row" style="gap:6px;margin-top:12px;flex-wrap:wrap">
-        <button class="btn sm primary" id="todayAddHabit">＋ add habit</button>
-        ${S.habits.some(h => h.archived) ? '<button class="btn sm ghost" id="todayArchHabit">archived</button>' : ''}
-        <button class="btn sm ghost" id="todayHabitGrid">the whole grid →</button>
-      </div>
-    </div></details>
+    </div><!-- /daybox-pair -->
 
 
     ${due.length ? `<section class="section rv"><div class="card"><div class="row between"><span class="sc" style="margin:0">Decisions ready to grade</span><a class="mono" href="#/journals/decision">all →</a></div>${due.map(e=>`<div class="row between" style="margin-top:8px"><span><b class="serif">${esc(e.title)}</b><div class="mono">${fmtDate((e.createdAt||'').slice(0,10),'med')}</div></span><button class="btn sm" data-dopen="${e.id}">Look back</button></div>`).join('')}</div></section>` : ''}
@@ -22275,6 +22473,30 @@ function planMyDay(d = today()){
         x.cold === Infinity ? `never ${x.what}` : x.cold === 0 ? `${x.what} today` : `${x.what} ${relDays(x.cold)}`}</span></a>`).join('')}</div>
   </div>` : '';
 
+  /* ---------- the dates the work is running towards ----------
+     Choosing tomorrow's tasks without the near milestones in front of you is
+     choosing in the dark: the reason a piece of work matters this week is
+     usually a date, and the date is on another page. So the milestones that
+     are close and not yet met are shown beside the waiting work, each saying
+     how soon it is and how much of its own work is still open. Pressing one
+     goes to its list with the filter already on it. */
+  const msAhead = typeof planMilestonesAhead === 'function'
+    ? planMilestonesAhead({within: 45, limit: 5}) : [];
+  const milestonesHTML = () => msAhead.length ? `<div class="plan-focus plan-ms">
+    <div class="row between" style="align-items:baseline">
+      <span class="k mono">What the work is running towards</span>
+      <span class="mono faint">does ${dayWord} owe any of these an hour?</span></div>
+    <div class="pf-rows">${msAhead.map(({m, list}) => {
+      const prog = typeof planMilestoneProgress === 'function' ? planMilestoneProgress(m.id) : {total:0, done:0};
+      const away = daysBetween(today(), m.date);
+      return `<a class="pf-row" href="#/planning" data-planms="${esc(m.id)}">
+        <span class="pf-ico" style="color:${esc(list.color)}">◆</span>
+        <span class="pf-name">${esc(m.name)} <span class="faint">· ${esc(list.name)}</span></span>
+        <span class="mono pf-cold${away <= 7 ? ' cold' : ''}">${
+          away < 0 ? `${-away}d overdue` : away === 0 ? 'today' : `in ${away}d`}${
+          prog.total ? ` · ${prog.total - prog.done} left` : ' · nothing under it'}</span></a>`; }).join('')}</div>
+  </div>` : '';
+
   const habits = S.habits.filter(h => !h.archived && !h.negative && habitDue(h,d));
   /* nothing is pre-ticked now that only undated work is offered: a task
      already dated to this day is not waiting to be chosen, and counting it
@@ -22299,7 +22521,7 @@ function planMyDay(d = today()){
        </div>` : ''}`,
       `<h2>What are ${dayPoss} three?</h2><p class="muted" style="font-size:.88rem">Not a task list — the three things that would make ${dayWord} count. One is allowed to be empty.</p>
        <div class="stack" style="gap:8px">${[0,1,2].map(i=>`<div class="row" style="gap:8px"><span class="in-n">${i+1}</span><input class="inp serif-lg" data-int="${i}" value="${esc(p.intentions[i]||'')}" placeholder="${['the one that matters most','the one you keep postponing','the small one'][i]}"></div>`).join('')}</div>`,
-      `<h2>Anything waiting?</h2>${inFocusHTML()}<p class="muted" style="font-size:.88rem">Everything with no day on it, under the list it lives in. Tick what belongs to ${dayWord}; the rest keeps waiting without nagging.</p>
+      `<h2>Anything waiting?</h2>${milestonesHTML()}${inFocusHTML()}<p class="muted" style="font-size:.88rem">Everything with no day on it, under the list it lives in. Tick what belongs to ${dayWord}; the rest keeps waiting without nagging.</p>
        <div class="stack" style="gap:10px;max-height:44vh;overflow:auto">${planGroups.length ? planGroups.map(g => `<div class="pick-group">
          <div class="pick-glabel" style="--c:${g.color}">${esc(g.label)}<span class="mono">${g.rows.length}</span></div>
          ${g.rows.map(r=>`<label class="pick-row ${chosen.has(r.id)?'on':''}"><input type="checkbox" data-pick2="${r.id}" ${chosen.has(r.id)?'checked':''}><span><b>${esc(r.text)}</b>${r.kind === 'project' && r.phase ? `<span class="d">${esc(r.phase.name)}</span>` : ''}</span></label>`).join('')}
@@ -22324,6 +22546,17 @@ function planMyDay(d = today()){
     m.querySelectorAll('[data-pick2]').forEach(c => c.onchange = () => { c.checked ? chosen.add(c.dataset.pick2) : chosen.delete(c.dataset.pick2); c.closest('.pick-row').classList.toggle('on', c.checked); });
     m.querySelectorAll('[data-pickh]').forEach(c => c.onchange = () => { c.checked ? chosenH.add(c.dataset.pickh) : chosenH.delete(c.dataset.pickh); c.closest('.pick-row').classList.toggle('on', c.checked); });
     m.querySelectorAll('[data-hat]').forEach(s => s.onchange = () => { const h = byId(S.habits, s.dataset.hat); h.at = s.value === '' ? null : +s.value; });
+    /* the things you said mattered, and the dates the work runs towards, are
+       both doors: pressing one leaves the flow and opens what it points at */
+    m.querySelectorAll('[data-flowgo]').forEach(b => b.onclick = ev => {
+      ev.preventDefault(); const go = b.dataset.flowgo; m.remove(); navigate(go); });
+    m.querySelectorAll('[data-planms]').forEach(b => b.onclick = ev => {
+      ev.preventDefault(); const id = b.dataset.planms;
+      const hit = typeof planFindMilestone === 'function' ? planFindMilestone(id) : null;
+      /* land on the list the date belongs to, already narrowed to its work */
+      if(hit) S._planSel = {kind:'list', id: hit.list.id};
+      S._planFilter = Object.assign({}, S._planFilter || {}, {milestone: id});
+      m.remove(); navigate('#/planning'); });
     if(m.querySelector('#pmBack')) m.querySelector('#pmBack').onclick = () => { step--; draw(); };
     m.querySelector('#pmNext').onclick = () => {
       if(step === 0) m.querySelectorAll('[data-int]').forEach(i => p.intentions[+i.dataset.int] = i.value.trim());
@@ -25566,6 +25799,11 @@ function planTaskDefaults(t){
   t.kanbanColumn = t.kanbanColumn || (t.done ? 'done' : 'todo');
   t.kanbanPinned = !!t.kanbanPinned;
   t.quadrant  = t.quadrant == null ? null : clamp(+t.quadrant, 1, 4);
+  /* the date this task is for. A milestone is the reason a piece of work
+     exists — "ship it" is why the four things under it are on the list at
+     all — so the task points at it rather than the other way round: a task
+     belongs to one, and a milestone gathers however many point at it. */
+  t.milestoneId = t.milestoneId || null;
   t.focusTime = +t.focusTime || 0;
   t.streamId  = t.streamId || null;
   t.updatedAt = t.updatedAt || t.createdAt || new Date().toISOString();
@@ -25803,6 +26041,7 @@ function planFilterKeep(f, t){
   if(f.completion === 'active' && t.done) return false;
   if(f.completion === 'completed' && !t.done) return false;
   if(f.lists?.length && !f.lists.includes(t.listId)) return false;
+  if(f.milestone && t.milestoneId !== f.milestone) return false;
   if(f.tags?.length && !f.tags.some(x => t.tags.includes(x))) return false;
   if(f.priorities?.length && !f.priorities.includes(t.priority)) return false;
   if(f.hasSubtasks === true && !t.subtasks.length) return false;
@@ -25822,6 +26061,7 @@ function planFilterCount(f){
   if(!f) return 0;
   let n = 0;
   ['lists','tags','priorities'].forEach(k => { if(f[k]?.length) n++; });
+  if(f.milestone) n++;
   if(f.dateRange) n++;
   if(f.completion && f.completion !== 'any') n++;
   if(f.hasSubtasks === true || f.hasSubtasks === false) n++;
@@ -25889,9 +26129,37 @@ function planAddMilestone(listId, {name = '', date = ''} = {}){
     done: false, note: '', createdAt: new Date().toISOString()};
   l.milestones.push(m); saveNow(); return m;
 }
+/* every task pointing at one milestone, in the order the list shows them */
+function planMilestoneTasks(id, {includeDone = true} = {}){
+  if(!id) return [];
+  return planOwnTasks().filter(t => t.milestoneId === id && (includeDone || !t.done));
+}
+function planTaskMilestone(t){
+  return t && t.milestoneId ? planFindMilestone(t.milestoneId) : null;
+}
+/* how a milestone is doing, read off the tasks that point at it rather than
+   ticked by hand — the date is met when the work under it is */
+function planMilestoneProgress(id){
+  const ts = planMilestoneTasks(id);
+  return {total: ts.length, done: ts.filter(t => t.done).length};
+}
+/* The milestones worth thinking about when choosing what to do next: not met,
+   dated, and near enough to matter. Sorted by how soon, because that is the
+   order they press on you. */
+function planMilestonesAhead({within = 60, limit = 6} = {}){
+  const T = today(), to = addDays(T, within);
+  return planLists().flatMap(l => planListMilestones(l).map(m => ({m, list: l})))
+    .filter(({m}) => !m.done && m.date && m.date <= to)
+    .sort((a, b) => (a.m.date || '').localeCompare(b.m.date || ''))
+    .slice(0, limit);
+}
 function planDeleteMilestone(id){
   const hit = planFindMilestone(id); if(!hit) return null;
-  return spliceOut(hit.list.milestones, x => x.id === id);
+  /* the tasks outlive the date they were for, but they stop pointing at it */
+  const were = planMilestoneTasks(id);
+  were.forEach(t => { t.milestoneId = null; });
+  const undo = spliceOut(hit.list.milestones, x => x.id === id);
+  return () => { if(typeof undo === 'function') undo(); were.forEach(t => { t.milestoneId = id; }); };
 }
 
 /* ---------- sorting ---------- */
@@ -26016,6 +26284,22 @@ function planDetailHTML(t){
       <label class="pd-q"><span class="k">starts</span><input type="date" class="inp" id="pdStart" value="${esc(t.startDate || '')}"></label>
       <label class="pd-q"><span class="k">list</span><select class="sel" id="pdList">
         ${planLists().map(l => `<option value="${l.id}" ${t.listId === l.id ? 'selected' : ''}>${esc(l.name)}</option>`).join('')}</select></label>
+      <!-- The date this task is for. A due date says when it must be done; a
+           milestone says what it is being done towards, which is the thing
+           you actually want back when you ask what is left before shipping.
+           The choice is the milestones of the task's own list, because that
+           is where the run it belongs to lives. -->
+      <label class="pd-q"><span class="k">towards</span><select class="sel" id="pdMilestone">
+        <option value="">— no milestone —</option>
+        ${(() => { const own = planListMilestones(planList(t.listId)).slice()
+            .sort((a, b) => (a.date || '9999').localeCompare(b.date || '9999'));
+          /* a task keeps a milestone from another list if it already has one:
+             moving the task between lists must not silently break the link */
+          const cur = t.milestoneId && !own.some(m => m.id === t.milestoneId) ? planFindMilestone(t.milestoneId) : null;
+          return [...own.map(m => ({m, from:''})), ...(cur ? [{m:cur.m, from:cur.list.name}] : [])]
+            .map(({m, from}) => `<option value="${esc(m.id)}" ${t.milestoneId === m.id ? 'selected' : ''}>${
+              esc(m.name)}${m.date ? ' · ' + esc(fmtDate(m.date, 'short')) : ''}${from ? ' (' + esc(from) + ')' : ''}</option>`).join(''); })()}
+      </select></label>
     </div>
 
     <div class="pd-sec"><div class="k mono">how long</div><div class="chip-row">
@@ -26100,6 +26384,8 @@ function bindPlanDetail(p, t){
   p.querySelector('#pdTime').onchange = function(){ t.dueTime = this.value; planSyncReminders(t); touch(); rerenderPlanBody(); };
   p.querySelector('#pdStart').onchange = function(){ t.startDate = this.value; touch(); };
   p.querySelector('#pdList').onchange = function(){ t.listId = this.value; t.sectionId = null; touch(); rerenderPlanBody(); };
+  p.querySelector('#pdMilestone').onchange = function(){
+    t.milestoneId = this.value || null; touch(); rerenderPlanBody(); };
   p.querySelectorAll('[data-pddur]').forEach(b => b.onclick = () => { const v = +b.dataset.pddur;
     t.duration = v || null; touch(); redraw(); });
   p.querySelectorAll('[data-pdtag]').forEach(b => b.onclick = () => { const n = b.dataset.pdtag;
@@ -26484,11 +26770,22 @@ function planMilestoneStripHTML(sel){
       ${laid.map(({m, list, left, lane}) => { const late = !m.done && m.date && m.date < T;
         /* even lanes hang below the rail, odd ones stand above it */
         const up = lane % 2 === 1, tier = Math.floor(lane / 2);
-        return `<button class="pl-mspin${m.done ? ' done' : ''}${late ? ' late' : ''}${up ? ' up' : ''}" data-plms="${m.id}"
+        /* Pressing a date narrows the list to the work that is for it — the
+           question a milestone asks is "what is left before this", and the
+           answer is a filter, not a dialog. Pressing it again lets go. The
+           pencil is the way into the milestone itself. */
+        const on = S._planFilter?.milestone === m.id;
+        const prog = typeof planMilestoneProgress === 'function' ? planMilestoneProgress(m.id) : {total:0, done:0};
+        return `<button class="pl-mspin${m.done ? ' done' : ''}${late ? ' late' : ''}${up ? ' up' : ''}${on ? ' on' : ''}"
+          data-plmsfilter="${m.id}" aria-pressed="${on}"
           style="left:${left}%;--c:${esc(list.color)};--tier:${tier}" role="listitem"
-          title="${esc(m.name)} · ${m.date ? esc(fmtDate(m.date, 'med')) + ' · ' + esc(planWhenAway(m.date)) : 'no date'}${m.note ? ' · ' + esc(m.note) : ''}">
+          title="${esc(m.name)} · ${m.date ? esc(fmtDate(m.date, 'med')) + ' · ' + esc(planWhenAway(m.date)) : 'no date'}${
+            prog.total ? ` · ${prog.done} of ${prog.total} done` : ' · nothing under it yet'} — ${
+            on ? 'press to show everything again' : 'press to see only its work'}${m.note ? ' · ' + esc(m.note) : ''}">
           <i class="pl-msdot"></i><i class="pl-msstem"></i><span class="pl-mslabel">${esc(m.name)}</span>
-          ${m.date ? `<span class="pl-msaway mono">${esc(m.done ? fmtDate(m.date, 'short') : planWhenAway(m.date))}</span>` : ''}</button>`; }).join('')}
+          ${prog.total ? `<span class="pl-mscount mono">${prog.done}/${prog.total}</span>` : ''}
+          ${m.date ? `<span class="pl-msaway mono">${esc(m.done ? fmtDate(m.date, 'short') : planWhenAway(m.date))}</span>` : ''}
+          <i class="pl-msedit" data-plms="${m.id}" role="button" tabindex="0" title="open this milestone">✎</i></button>`; }).join('')}
     </div>
   </div>`;
 }
@@ -26497,7 +26794,17 @@ function bindPlanMilestones(root, sel){
   if(addb) addb.onclick = () => { const host = planMilestoneList(sel); if(!host) return;
     const m = planAddMilestone(host.id); sound('click'); rerender();
     setTimeout(() => openPlanMilestone(m.id), 60); };
-  root.querySelectorAll('[data-plms]').forEach(b => b.onclick = () => openPlanMilestone(b.dataset.plms));
+  root.querySelectorAll('[data-plmsfilter]').forEach(b => b.onclick = ev => {
+    if(ev.target.closest('[data-plms]')) return;   /* the pencil is its own door */
+    const id = b.dataset.plmsfilter;
+    const f = Object.assign({}, S._planFilter || {});
+    if(f.milestone === id) delete f.milestone; else f.milestone = id;
+    S._planFilter = f; sound('click'); rerender(); });
+  root.querySelectorAll('[data-plms]').forEach(b => {
+    const go = ev => { ev.stopPropagation(); openPlanMilestone(b.dataset.plms); };
+    b.onclick = go;
+    b.onkeydown = ev => { if(ev.key === 'Enter' || ev.key === ' ') go(ev); };
+  });
 }
 function openPlanMilestone(id){
   const hit = planFindMilestone(id); if(!hit) return;
@@ -26508,12 +26815,37 @@ function openPlanMilestone(id){
       <div class="field"><label>What it is</label><input class="inp serif-lg" id="msName" value="${esc(m.name)}" placeholder="Ship it · the hearing · deposit due"></div>
       <div class="field"><label>When</label><div class="dp-field"><input class="inp mono" id="msDate" data-dp value="${esc(m.date || '')}" placeholder="${esc(today())}">${dpButtonHTML('msDate')}</div></div>
       <div class="field"><label>Anything to remember about it</label><textarea class="ta" id="msNote" style="min-height:60px" placeholder="optional">${esc(m.note || '')}</textarea></div>
+      <!-- A date is only as real as the work under it, so opening one shows
+           that work rather than asking you to go and look for it. -->
+      ${(() => {
+        const ts = typeof planMilestoneTasks === 'function' ? planMilestoneTasks(m.id) : [];
+        const left = ts.filter(t => !t.done);
+        return `<div class="field"><label>The work that is for it${
+          ts.length ? ` <span class="mono faint" style="text-transform:none;letter-spacing:0">· ${ts.length - left.length} of ${ts.length} done</span>` : ''}</label>
+          ${ts.length ? `<div class="ms-tasks">${planSortTasks(ts, 'dueDate').map(t =>
+            `<div class="ms-task${t.done ? ' done' : ''}">
+              <button class="task-check sm${t.done ? ' on' : ''}" data-mstick="${esc(t.id)}" role="checkbox"
+                aria-checked="${!!t.done}" title="${t.done ? 'not done after all' : 'mark done'}">${t.done ? '✓' : ''}</button>
+              <span class="ms-task-t">${esc(t.text)}</span>
+              <span class="mono faint">${t.day ? esc(fmtDate(t.day, 'short')) : 'no date'}</span>
+            </div>`).join('')}</div>`
+          : `<div class="empty" style="margin:0">Nothing points at this date yet. Open a task and name this milestone on it, or press the date on the strip to work with only its tasks.</div>`}
+          ${ts.length ? `<button class="btn sm ghost" id="msOnly" style="margin-top:8px">show only its work →</button>` : ''}
+        </div>`; })()}
       <label class="toggle ${m.done ? 'on' : ''}" id="msDone"><span class="sw"></span><span>this one has been met</span></label>
       <div class="row between"><button class="btn sm ghost danger" id="msDel">remove</button>
         <button class="btn primary" id="msSave">Save</button></div>
     </div>`, 'narrow');
   let done = !!m.done;
   mo.querySelector('#msDone').onclick = function(){ done = !done; this.classList.toggle('on', done); };
+  /* ticking a task off from here is the same act as ticking it in the list */
+  mo.querySelectorAll('[data-mstick]').forEach(b => b.onclick = () => {
+    const t = planTaskById(b.dataset.mstick); if(!t) return;
+    planSetDone(t, !t.done); mo.remove(); rerender(); setTimeout(() => openPlanMilestone(id), 60); });
+  const only = mo.querySelector('#msOnly');
+  if(only) only.onclick = () => {
+    S._planFilter = Object.assign({}, S._planFilter || {}, {milestone: m.id});
+    mo.remove(); sound('click'); rerender(); };
   mo.querySelector('#msSave').onclick = () => {
     m.name = mo.querySelector('#msName').value.trim() || 'A date that matters';
     m.date = mo.querySelector('#msDate').value.trim();
@@ -26534,6 +26866,8 @@ function planHeaderHTML(sel){
   const RANGE_SAID = {overdue:'overdue', today:'today', tomorrow:'tomorrow', next7days:'next 7 days', noDate:'no date'};
   const chips = [];
   if(f.lists?.length) chips.push(`<span class="pf-chip on" data-pfclear="lists">${f.lists.map(planListName).join(', ')}<i>×</i></span>`);
+  if(f.milestone){ const hit = planFindMilestone(f.milestone);
+    chips.push(`<span class="pf-chip on" data-pfclear="milestone">◆ ${esc(hit ? hit.m.name : 'a milestone')}<i>×</i></span>`); }
   if(f.tags?.length) chips.push(`<span class="pf-chip on" data-pfclear="tags">${f.tags.map(x => '#' + esc(x)).join(' ')}<i>×</i></span>`);
   if(f.priorities?.length) chips.push(`<span class="pf-chip on" data-pfclear="priorities">${f.priorities.map(n => planPriority(n).name).join(', ')}<i>×</i></span>`);
   if(f.dateRange) chips.push(`<span class="pf-chip on" data-pfclear="dateRange">${esc(RANGE_SAID[f.dateRange] || String(f.dateRange))}<i>×</i></span>`);
@@ -34168,7 +34502,135 @@ document.addEventListener('keydown', e => {
   else if(e.key==='/'){ e.preventDefault(); openSearch(); }
   else if(e.key==='ArrowLeft' || e.key==='ArrowRight'){ if(typeof stepTimeline === 'function' && stepTimeline(e.key==='ArrowRight' ? 1 : -1)) e.preventDefault(); }
 });
+/* ============================================================
+   WHEN BOOT FAILS
+   ------------------------------------------------------------
+   Everything below used to run unguarded, so a single throw anywhere in
+   load(), a migration, or the first render left the promise rejected and the
+   page simply blank — no message, no way back, and no clue what happened.
+   For an app that holds the only copy of someone's writing, a white screen is
+   the worst possible failure: it looks exactly like having lost everything.
+
+   So boot now has a floor. If it falls through, this draws a page that says
+   what broke, and offers the three things worth having in that moment: try
+   again, get your data out, and drop the offline copy — which is the usual
+   culprit when a page that worked yesterday comes up empty today.
+
+   It is deliberately written with no help from the rest of the app: raw DOM,
+   raw IndexedDB, its own styles. The one thing it must never do is need the
+   code that just failed.
+   ============================================================ */
+/* The same floor, one storey up: the shell survives, and the failure is
+   reported inside the page area with a way out of it. */
+function routeFailure(err){
+  const main = document.querySelector('#main'); if(!main){ bootFailure(err); return; }
+  const msg = (err && (err.stack || err.message)) || String(err);
+  main.innerHTML = `<div class="page narrow"><section class="section rv in">
+    <span class="sc">This page did not draw</span>
+    <div class="card" style="margin-top:10px">
+      <p style="margin:0 0 10px">Something in it threw an error. Nothing has been lost —
+        the rest of the house still works, and Settings can export a backup.</p>
+      <div class="row" style="gap:8px;flex-wrap:wrap">
+        <a class="btn sm primary" href="#/today">Go to Today</a>
+        <a class="btn sm ghost" href="#/settings">Settings</a>
+        <button class="btn sm ghost" onclick="location.reload()">Reload</button>
+      </div>
+      <details style="margin-top:12px"><summary class="mono faint" style="cursor:pointer">what went wrong</summary>
+        <pre class="mono" style="white-space:pre-wrap;word-break:break-word;font-size:.72rem;margin-top:8px">${
+          String(msg).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}</pre></details>
+    </div></section></div>`;
+}
+function bootFailure(err){
+  const msg = (err && (err.stack || err.message)) || String(err);
+  const el = document.createElement('div');
+  el.id = 'bootFail';
+  el.setAttribute('style', [
+    'position:fixed', 'inset:0', 'z-index:99999', 'overflow:auto',
+    'background:#f7f4ef', 'color:#2e2a26', 'padding:min(9vh,72px) 22px',
+    'font:15px/1.6 ui-serif,Georgia,serif'].join(';'));
+  el.innerHTML = `<div style="max-width:640px;margin:0 auto">
+    <div style="font:600 12px/1 ui-monospace,monospace;letter-spacing:.14em;
+      text-transform:uppercase;color:#9a8f84">Life Instrument</div>
+    <h1 style="font:400 1.7rem/1.25 ui-serif,Georgia,serif;margin:14px 0 6px">
+      The house did not open.</h1>
+    <p style="margin:0 0 18px;color:#6b6259">Something went wrong while starting up.
+      <b>Your writing has not been touched</b> — it is still in this browser's storage,
+      and the button below will hand it to you as a file before you try anything else.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin:0 0 20px">
+      <button id="bfRetry" style="font:inherit;padding:9px 15px;border-radius:9px;border:1px solid #c9bfb2;
+        background:#b06a4a;color:#fff;cursor:pointer">Try again</button>
+      <button id="bfSave" style="font:inherit;padding:9px 15px;border-radius:9px;border:1px solid #c9bfb2;
+        background:#fffdf9;color:inherit;cursor:pointer">Download a backup</button>
+      <button id="bfSW" style="font:inherit;padding:9px 15px;border-radius:9px;border:1px solid #c9bfb2;
+        background:#fffdf9;color:inherit;cursor:pointer">Drop the offline copy and reload</button>
+    </div>
+    <p id="bfSaid" style="margin:0 0 18px;color:#6b6259;min-height:1.6em"></p>
+    <details style="margin-top:8px">
+      <summary style="cursor:pointer;color:#9a8f84;font:12px/1.6 ui-monospace,monospace;
+        letter-spacing:.08em;text-transform:uppercase">What went wrong</summary>
+      <pre style="white-space:pre-wrap;word-break:break-word;font:12px/1.6 ui-monospace,monospace;
+        background:#fffdf9;border:1px solid #e6ded2;border-radius:9px;padding:12px;margin-top:10px;
+        color:#6b6259">${String(msg).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}</pre>
+    </details>
+  </div>`;
+  document.body.appendChild(el);
+  const said = t => { const n = el.querySelector('#bfSaid'); if(n) n.textContent = t; };
+  el.querySelector('#bfRetry').onclick = () => location.reload();
+
+  /* Read the database directly, so a backup is possible even when every layer
+     above it is the thing that broke. */
+  el.querySelector('#bfSave').onclick = () => {
+    said('Reading the database…');
+    const req = indexedDB.open('lifeinstrument-db');
+    req.onerror = () => said('The database could not be opened: ' + (req.error && req.error.message));
+    req.onblocked = () => said('Another tab has this open. Close the other tabs and press it again.');
+    req.onsuccess = () => {
+      const idb = req.result;
+      const names = Array.from(idb.objectStoreNames);
+      if(!names.length){ said('There is nothing stored in this browser yet.'); idb.close(); return; }
+      const data = {}; let left = names.length;
+      const done = () => {
+        const payload = {version:1, exportedAt:new Date().toISOString(), rescued:true, data};
+        const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'}));
+        const a = document.createElement('a');
+        a.href = url; a.download = 'backup-rescued-' + new Date().toISOString().slice(0,10) + '.json';
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 4000);
+        said('Saved. Keep that file — Settings → Import backup will read it back.');
+        idb.close();
+      };
+      names.forEach(n => {
+        try {
+          const q = idb.transaction(n, 'readonly').objectStore(n).getAll();
+          q.onsuccess = () => { data[n] = q.result || []; if(!--left) done(); };
+          q.onerror   = () => { data[n] = []; if(!--left) done(); };
+        } catch(e){ data[n] = []; if(!--left) done(); }
+      });
+    };
+  };
+
+  /* A page that worked yesterday and is blank today is very often a stale
+     cached copy. This throws the cache and the worker away — it touches no
+     data, only the copy of the app itself. */
+  el.querySelector('#bfSW').onclick = async () => {
+    said('Clearing…');
+    try {
+      if(navigator.serviceWorker){
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map(r => r.unregister()));
+      }
+      if(window.caches){ const ks = await caches.keys(); await Promise.all(ks.map(k => caches.delete(k))); }
+      said('Cleared. Reloading…');
+      setTimeout(() => location.reload(true), 500);
+    } catch(e){ said('Could not clear it: ' + (e && e.message)); }
+  };
+}
+
 async function init(){
+  try { await initInner(); }
+  catch(err){ console.error('boot failed', err); bootFailure(err); }
+}
+async function initInner(){
   await load(); applyTheme();
   try { navigator.storage?.persist?.(); } catch(e){}
   $('#btnTheme').onclick = () => { S.settings.theme = S.settings.theme==='dark'?'light':'dark'; saveNow(); applyTheme(); };
@@ -34177,7 +34639,12 @@ async function init(){
   renderNav();
   if(navigator.platform.toUpperCase().indexOf('MAC')<0){ $$('kbd').forEach(k => k.textContent = k.textContent.replace('⌘','Ctrl+')); }
   if(!location.hash) location.hash = '#/' + homeRoute();
-  markNavDirection(); renderRoute(); startDust(); updateBackButton();
+  markNavDirection();
+  /* A page that throws should cost you that page, not the shell around it —
+     the sidebar is how you get to a page that still works. */
+  try { renderRoute(); }
+  catch(err){ console.error('this page failed to draw', err); routeFailure(err); }
+  startDust(); updateBackButton();
   /* Stamp the last moment you were here, so a night you forget to close still
      has a bedtime to fall back on tomorrow. Every minute while the tab is
      open, and again the moment it comes back to the front. */

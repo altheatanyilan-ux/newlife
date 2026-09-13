@@ -111,6 +111,11 @@ function planTaskDefaults(t){
   t.kanbanColumn = t.kanbanColumn || (t.done ? 'done' : 'todo');
   t.kanbanPinned = !!t.kanbanPinned;
   t.quadrant  = t.quadrant == null ? null : clamp(+t.quadrant, 1, 4);
+  /* the date this task is for. A milestone is the reason a piece of work
+     exists — "ship it" is why the four things under it are on the list at
+     all — so the task points at it rather than the other way round: a task
+     belongs to one, and a milestone gathers however many point at it. */
+  t.milestoneId = t.milestoneId || null;
   t.focusTime = +t.focusTime || 0;
   t.streamId  = t.streamId || null;
   t.updatedAt = t.updatedAt || t.createdAt || new Date().toISOString();
@@ -348,6 +353,7 @@ function planFilterKeep(f, t){
   if(f.completion === 'active' && t.done) return false;
   if(f.completion === 'completed' && !t.done) return false;
   if(f.lists?.length && !f.lists.includes(t.listId)) return false;
+  if(f.milestone && t.milestoneId !== f.milestone) return false;
   if(f.tags?.length && !f.tags.some(x => t.tags.includes(x))) return false;
   if(f.priorities?.length && !f.priorities.includes(t.priority)) return false;
   if(f.hasSubtasks === true && !t.subtasks.length) return false;
@@ -367,6 +373,7 @@ function planFilterCount(f){
   if(!f) return 0;
   let n = 0;
   ['lists','tags','priorities'].forEach(k => { if(f[k]?.length) n++; });
+  if(f.milestone) n++;
   if(f.dateRange) n++;
   if(f.completion && f.completion !== 'any') n++;
   if(f.hasSubtasks === true || f.hasSubtasks === false) n++;
@@ -434,9 +441,37 @@ function planAddMilestone(listId, {name = '', date = ''} = {}){
     done: false, note: '', createdAt: new Date().toISOString()};
   l.milestones.push(m); saveNow(); return m;
 }
+/* every task pointing at one milestone, in the order the list shows them */
+function planMilestoneTasks(id, {includeDone = true} = {}){
+  if(!id) return [];
+  return planOwnTasks().filter(t => t.milestoneId === id && (includeDone || !t.done));
+}
+function planTaskMilestone(t){
+  return t && t.milestoneId ? planFindMilestone(t.milestoneId) : null;
+}
+/* how a milestone is doing, read off the tasks that point at it rather than
+   ticked by hand — the date is met when the work under it is */
+function planMilestoneProgress(id){
+  const ts = planMilestoneTasks(id);
+  return {total: ts.length, done: ts.filter(t => t.done).length};
+}
+/* The milestones worth thinking about when choosing what to do next: not met,
+   dated, and near enough to matter. Sorted by how soon, because that is the
+   order they press on you. */
+function planMilestonesAhead({within = 60, limit = 6} = {}){
+  const T = today(), to = addDays(T, within);
+  return planLists().flatMap(l => planListMilestones(l).map(m => ({m, list: l})))
+    .filter(({m}) => !m.done && m.date && m.date <= to)
+    .sort((a, b) => (a.m.date || '').localeCompare(b.m.date || ''))
+    .slice(0, limit);
+}
 function planDeleteMilestone(id){
   const hit = planFindMilestone(id); if(!hit) return null;
-  return spliceOut(hit.list.milestones, x => x.id === id);
+  /* the tasks outlive the date they were for, but they stop pointing at it */
+  const were = planMilestoneTasks(id);
+  were.forEach(t => { t.milestoneId = null; });
+  const undo = spliceOut(hit.list.milestones, x => x.id === id);
+  return () => { if(typeof undo === 'function') undo(); were.forEach(t => { t.milestoneId = id; }); };
 }
 
 /* ---------- sorting ---------- */

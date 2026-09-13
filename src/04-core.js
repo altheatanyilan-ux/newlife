@@ -116,6 +116,10 @@ function wipeDemoData(){
   S.settings.demoWiped = true;
 }
 
+/* The script parsed, so the last-resort notice in the HTML is wrong: take it
+   down immediately, before anything else can go wrong and want to speak. */
+try { const d = document.getElementById('deadStart'); if(d) d.remove(); } catch(e){}
+
 /* path access: "stages.#id.narrative" or "rehearsal.script" */
 function resolve(path){ const segs = path.split('.'); let o = S; for(let i=0;i<segs.length-1;i++){ o = step(o, segs[i]); if(o==null) return [null,null]; } return [o, segs[segs.length-1]]; }
 function step(o, seg){ if(seg.startsWith('#')) return Array.isArray(o) ? o.find(x=>x.id===seg.slice(1)) : undefined; return o?.[seg]; }
@@ -305,14 +309,31 @@ function renderRoute(){
   main.innerHTML = '';
   main.style.animation = 'none'; void main.offsetWidth; main.style.animation = '';
   currentRoute = name; PageEntryConfig.clear();
-  try { fn(main, params); } catch(err){ console.error(err); main.innerHTML = `<div class="page narrow"><h1>Something went wrong</h1><p class="muted">${esc(err.message)}</p></div>`; }
-  decoratePageHead(main); mountContextAdd(main); reveal(main); tweenAll(main); backupBanner(); updateBackButton();
+  try { fn(main, params); } catch(err){ console.error(err); routeFailure(err); }
+  /* the decorations can throw too, and by then main has already been emptied —
+     losing the trimmings is survivable, losing the page is not */
+  try { decoratePageHead(main); mountContextAdd(main); reveal(main); tweenAll(main); backupBanner(); updateBackButton(); }
+  catch(err){ console.error('page trimmings failed', err); }
   /* a review the user stepped out of to write an entry comes back, same step */
   if(typeof resumeReviewIfPending === 'function') resumeReviewIfPending();
   if(typeof attachDictationIn === 'function') attachDictationIn(main);
   restoreScroll(location.hash);
 }
-function rerender(){ const y = window.scrollY; const main = $('#main'); const {name, params} = parseHash(); main.innerHTML=''; PageEntryConfig.clear(); (routes[name]||routes.today)(main, params); decoratePageHead(main); mountContextAdd(main); if(typeof attachDictationIn === 'function') attachDictationIn(main); $$('.rv', main).forEach(n=>n.classList.add('in')); tweenAll(main); window.scrollTo({top:y}); }
+/* rerender empties #main before it draws, so anything that throws on the way
+   used to leave the page blank — and because almost every edit ends in a
+   rerender, one bad record could empty the room you were working in and keep
+   it empty. It gets the same floor renderRoute has. */
+function rerender(){
+  const y = window.scrollY; const main = $('#main'); const {name, params} = parseHash();
+  main.innerHTML=''; PageEntryConfig.clear();
+  try { (routes[name]||routes.today)(main, params); }
+  catch(err){ console.error('rerender failed', err); routeFailure(err); window.scrollTo({top:y}); return; }
+  try { decoratePageHead(main); mountContextAdd(main);
+    if(typeof attachDictationIn === 'function') attachDictationIn(main);
+    $$('.rv', main).forEach(n=>n.classList.add('in')); tweenAll(main); }
+  catch(err){ console.error('page trimmings failed', err); }
+  window.scrollTo({top:y});
+}
 /* where you were on each page, so Back returns you to the spot and not the top */
 try { history.scrollRestoration = 'manual'; } catch(e){}
 const scrollMem = new Map(); let wentBack = false, navSeq = 0, navIdx = -1;

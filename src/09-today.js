@@ -157,10 +157,11 @@ routes.today = function(root){
     ['t-focus',   'focus',    true],
     ['t-plan',    'plan',     true],
     ['t-tasks',   'tasks',    true],
+    /* the order the index offers is the order the page is in */
     ['t-checkin', 'check-in', true],
+    ['t-habits',  'habits',   true],
     ['t-theatre', 'theatre',  true],
     ['t-still',   'stillness',true],
-    ['t-habits',  'habits',   true],
     ['t-tonight', 'tonight',  true],
     /* The bottom of a long page cannot catch an eye on its own. The count
        rides up here so an unfinished thought is visible from the top, which
@@ -168,7 +169,7 @@ routes.today = function(root){
     ['t-unfinished', `unfinished ${unfinishedEntries().length}`, unfinishedEntries().length > 0],
   ].filter(x => x[2]);
 
-  root.innerHTML = `<div class="page narrow today-page">
+  root.innerHTML = `<div class="page today-page">
 
     <!-- header -->
     <header class="rv today-head">
@@ -201,8 +202,12 @@ routes.today = function(root){
       ${ready.map(e=>`<div class="card ready-letter" style="margin-top:8px"><div class="row between"><span><b class="serif">${esc(e.title||'To myself')}</b><div class="mono faint">${daysBetween((e.createdAt||'').slice(0,10), T)} days ago</div></span><button class="btn sm primary" data-lopen="${e.id}">Open it</button></div></div>`).join('')}
     </div></details>` : ''}
 
-    <!-- The clock comes first: on a day already under way, starting the work
-         matters more than reading last night's plan. -->
+    <!-- THE WORKING HALF, as a bento box: the clock on the left, and beside
+         it the plan and the tasks — because you cannot pick the next thing
+         while looking at a clock that is on another screenful. Three cells,
+         two columns, one glance. Below it the reflective half, in pairs.
+         Under 1000px it all falls back to the single column it was. -->
+    <div class="daybox daybox-work">
     ${focusPanelHTML()}
 
     <!-- the plan, made last night -->
@@ -237,6 +242,9 @@ routes.today = function(root){
         <div class="row" style="margin-top:10px;gap:8px">${quickTaskInput(T)}<button class="btn sm ghost" id="pullTask">pull in ↓</button><a class="btn sm ghost" href="#/planning/today">all of it →</a></div>
         ${carried.length?`<div class="row" style="margin-top:10px"><span class="mono" style="color:#d08080">${carried.length} carried over from earlier days</span><button class="btn sm ghost" id="carryAll">bring to today</button></div>`:''}
       </div></div></details>
+    </div><!-- /daybox-work -->
+
+    <div class="daybox daybox-pair">
 
     <!-- daily check-in (intention + mood + energy + setpoint) -->
     <!-- Past the small hours the morning check-in is not a form to fill in, it
@@ -264,6 +272,21 @@ routes.today = function(root){
       </div>
     </details>
 
+    <!-- the habit checklist: the whole of habit-keeping now lives here -->
+    <details class="section rv t-sec" style="margin-top:8px" id="t-habits"${fold('t-habits')}>
+      <summary><span class="sc" style="margin:0">Today's habits</span>
+        <span class="mono faint">${(() => { const due = S.habits.filter(h => !h.archived && !h.negative && habitDue(h, T)); const dn = due.filter(h => habitDone(h, T)).length; return due.length ? `${dn} of ${due.length} kept` : 'nothing due'; })()}</span></summary>
+      <div class="body">
+      <div id="todayRings" style="margin-top:10px"></div>
+      <div class="row" style="gap:6px;margin-top:12px;flex-wrap:wrap">
+        <button class="btn sm primary" id="todayAddHabit">＋ add habit</button>
+        ${S.habits.some(h => h.archived) ? '<button class="btn sm ghost" id="todayArchHabit">archived</button>' : ''}
+        <button class="btn sm ghost" id="todayHabitGrid">the whole grid →</button>
+      </div>
+    </div></details>
+    </div><!-- /daybox-pair -->
+
+    <div class="daybox daybox-pair">
     <!-- morning rehearsal (Maltz) -->
     <details class="section rv rehearsal-wrap t-sec" id="t-theatre"${fold('t-theatre', !theatreDoneToday())} style="margin-top:8px">
       <summary><span class="sc">Morning Theatre</span><span class="mono">${theatreDoneToday() ? 'practised today' : 'six ways in · pick one'}</span>${flowTick('theatreAt')}</summary>
@@ -279,18 +302,7 @@ routes.today = function(root){
       ${stillnessHTML()}
     </details>
 
-    <!-- the habit checklist: the whole of habit-keeping now lives here -->
-    <details class="section rv t-sec" style="margin-top:8px" id="t-habits"${fold('t-habits')}>
-      <summary><span class="sc" style="margin:0">Today's habits</span>
-        <span class="mono faint">${(() => { const due = S.habits.filter(h => !h.archived && !h.negative && habitDue(h, T)); const dn = due.filter(h => habitDone(h, T)).length; return due.length ? `${dn} of ${due.length} kept` : 'nothing due'; })()}</span></summary>
-      <div class="body">
-      <div id="todayRings" style="margin-top:10px"></div>
-      <div class="row" style="gap:6px;margin-top:12px;flex-wrap:wrap">
-        <button class="btn sm primary" id="todayAddHabit">＋ add habit</button>
-        ${S.habits.some(h => h.archived) ? '<button class="btn sm ghost" id="todayArchHabit">archived</button>' : ''}
-        <button class="btn sm ghost" id="todayHabitGrid">the whole grid →</button>
-      </div>
-    </div></details>
+    </div><!-- /daybox-pair -->
 
 
     ${due.length ? `<section class="section rv"><div class="card"><div class="row between"><span class="sc" style="margin:0">Decisions ready to grade</span><a class="mono" href="#/journals/decision">all →</a></div>${due.map(e=>`<div class="row between" style="margin-top:8px"><span><b class="serif">${esc(e.title)}</b><div class="mono">${fmtDate((e.createdAt||'').slice(0,10),'med')}</div></span><button class="btn sm" data-dopen="${e.id}">Look back</button></div>`).join('')}</div></section>` : ''}

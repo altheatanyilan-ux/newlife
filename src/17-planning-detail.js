@@ -50,6 +50,22 @@ function planDetailHTML(t){
       <label class="pd-q"><span class="k">starts</span><input type="date" class="inp" id="pdStart" value="${esc(t.startDate || '')}"></label>
       <label class="pd-q"><span class="k">list</span><select class="sel" id="pdList">
         ${planLists().map(l => `<option value="${l.id}" ${t.listId === l.id ? 'selected' : ''}>${esc(l.name)}</option>`).join('')}</select></label>
+      <!-- The date this task is for. A due date says when it must be done; a
+           milestone says what it is being done towards, which is the thing
+           you actually want back when you ask what is left before shipping.
+           The choice is the milestones of the task's own list, because that
+           is where the run it belongs to lives. -->
+      <label class="pd-q"><span class="k">towards</span><select class="sel" id="pdMilestone">
+        <option value="">— no milestone —</option>
+        ${(() => { const own = planListMilestones(planList(t.listId)).slice()
+            .sort((a, b) => (a.date || '9999').localeCompare(b.date || '9999'));
+          /* a task keeps a milestone from another list if it already has one:
+             moving the task between lists must not silently break the link */
+          const cur = t.milestoneId && !own.some(m => m.id === t.milestoneId) ? planFindMilestone(t.milestoneId) : null;
+          return [...own.map(m => ({m, from:''})), ...(cur ? [{m:cur.m, from:cur.list.name}] : [])]
+            .map(({m, from}) => `<option value="${esc(m.id)}" ${t.milestoneId === m.id ? 'selected' : ''}>${
+              esc(m.name)}${m.date ? ' · ' + esc(fmtDate(m.date, 'short')) : ''}${from ? ' (' + esc(from) + ')' : ''}</option>`).join(''); })()}
+      </select></label>
     </div>
 
     <div class="pd-sec"><div class="k mono">how long</div><div class="chip-row">
@@ -134,6 +150,8 @@ function bindPlanDetail(p, t){
   p.querySelector('#pdTime').onchange = function(){ t.dueTime = this.value; planSyncReminders(t); touch(); rerenderPlanBody(); };
   p.querySelector('#pdStart').onchange = function(){ t.startDate = this.value; touch(); };
   p.querySelector('#pdList').onchange = function(){ t.listId = this.value; t.sectionId = null; touch(); rerenderPlanBody(); };
+  p.querySelector('#pdMilestone').onchange = function(){
+    t.milestoneId = this.value || null; touch(); rerenderPlanBody(); };
   p.querySelectorAll('[data-pddur]').forEach(b => b.onclick = () => { const v = +b.dataset.pddur;
     t.duration = v || null; touch(); redraw(); });
   p.querySelectorAll('[data-pdtag]').forEach(b => b.onclick = () => { const n = b.dataset.pdtag;

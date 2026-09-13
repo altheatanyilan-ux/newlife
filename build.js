@@ -36,6 +36,24 @@ function assertNothingStrayed(){
     process.exit(1);
   }
 }
+/* A half-finished merge is the other way to ship a blank page: conflict
+   markers inside src/ concatenate straight into the one <script> the app lives
+   in, and the browser reports a syntax error nobody sees. Refuse to build. */
+function assertNoConflictMarkers(){
+  const bad = [];
+  for(const f of parts){
+    const body = fs.readFileSync(path.join(src, f), 'utf8');
+    body.split('\n').forEach((line, i) => {
+      if(/^(<{7}|={7}|>{7})(\s|$)/.test(line)) bad.push(`${f}:${i + 1}  ${line.slice(0, 60)}`);
+    });
+  }
+  if(bad.length){
+    console.error('BUILD FAILED — an unfinished merge is still in src/:\n  ' + bad.join('\n  '));
+    console.error('\nResolve those files, then build again. Never hand-edit index.html to fix it.');
+    process.exit(1);
+  }
+}
+assertNoConflictMarkers();
 assertNothingStrayed();
 
 fs.writeFileSync(path.join(__dirname, 'index.html'), out);

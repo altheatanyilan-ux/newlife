@@ -82,11 +82,61 @@ class MiniTable {
 class MiniDexie {
   constructor(name){ this.name = name; this._schema = null; this._version = 1; this._db = null; this.tables = []; }
   version(n){ this._version = n; return { stores: schema => { this._schema = schema; this.tables = Object.keys(schema).map(k => { const t = new MiniTable(this, k); this[k] = t; return t; }); return this; } }; }
-  _open(){ if(this._db) return Promise.resolve(this._db); if(this._opening) return this._opening;
-    this._opening = new Promise((res, rej) => { const r = indexedDB.open(this.name, this._version);
-      r.onupgradeneeded = () => { const d = r.result; for(const [name, spec] of Object.entries(this._schema)){ const [pk, ...idx] = spec.split(',').map(s => s.trim()); if(!d.objectStoreNames.contains(name)){ const st = d.createObjectStore(name, {keyPath: pk}); idx.forEach(i => st.createIndex(i, i)); } } };
-      r.onsuccess = () => { this._db = r.result; this._db.onversionchange = () => this._db.close(); res(this._db); }; r.onerror = () => rej(r.error); r.onblocked = () => rej(new Error('blocked')); });
-    return this._opening; }
+  /* ---- the version number has to match Dexie's ----
+     Dexie does not store its version number in IndexedDB as you wrote it: its
+     own source rounds `versionNumber * 10`, so Dexie's version(11) is really
+     IndexedDB version 110. MiniDexie stands in for Dexie under the same
+     database name, and which of the two a build contains depends on nothing
+     more than whether whoever ran build.js had npm install'ed first — the CI
+     deploy does, a bare checkout does not.
+
+     So the two numbered the same database differently, and a database written
+     by one could not be opened by the other at all: IndexedDB refuses to go
+     backwards, the open rejects with a VersionError, and the app never starts.
+     Multiplying by ten here makes them agree. An existing MiniDexie database
+     at 11 upgrades to 110 and keeps everything; one Dexie wrote at 110 opens
+     as it stands. */
+  _idbVersion(){ return Math.round(this._version * 10); }
+  _createStores(d){
+    for(const [name, spec] of Object.entries(this._schema)){
+      const [pk, ...idx] = spec.split(',').map(s => s.trim());
+      if(!d.objectStoreNames.contains(name)){
+        const st = d.createObjectStore(name, {keyPath: pk});
+        idx.forEach(i => st.createIndex(i, i));
+      }
+    }
+  }
+  _openAt(version){
+    return new Promise((res, rej) => {
+      const r = version == null ? indexedDB.open(this.name) : indexedDB.open(this.name, version);
+      r.onupgradeneeded = () => this._createStores(r.result);
+      r.onsuccess = () => res(r.result);
+      r.onerror = () => rej(r.error);
+      r.onblocked = () => rej(new Error('blocked'));
+    });
+  }
+  _open(){
+    if(this._db) return Promise.resolve(this._db);
+    if(this._opening) return this._opening;
+    this._opening = (async () => {
+      let d;
+      try { d = await this._openAt(this._idbVersion()); }
+      catch(err){
+        /* Someone's database is newer than this build expects. Refusing to
+           open is the one response that cannot be right — it loses them the
+           whole app to protect a number. Take it as it is. */
+        if(!err || err.name !== 'VersionError') throw err;
+        d = await this._openAt(null);
+      }
+      /* whichever way it opened, a store this build needs may not be there
+         yet; that is the one thing worth a version bump of its own */
+      const missing = Object.keys(this._schema).filter(n => !d.objectStoreNames.contains(n));
+      if(missing.length){ const next = d.version + 1; d.close(); d = await this._openAt(next); }
+      this._db = d; d.onversionchange = () => d.close();
+      return d;
+    })();
+    return this._opening;
+  }
   open(){ return this._open(); }
   async transaction(mode, tables, fn){ const idb = await this._open(); const names = (Array.isArray(tables) ? tables : [tables]).map(t => typeof t === 'string' ? t : t.name); const tx = idb.transaction(names, mode === 'r' ? 'readonly' : 'readwrite');
     const scope = {}; names.forEach(n => scope[n] = new MiniTable(this, n, tx)); scope.table = n => scope[n];
