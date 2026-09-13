@@ -124,29 +124,11 @@ function planCalDayHTML(cur, tasks){
 }
 
 /* ---------- board ---------- */
-function planKanbanHTML(sel, tasks){
-  const l = sel.kind === 'list' ? planList(sel.id) : null;
-  const cols = (l ? l.kanbanColumns : DEFAULT_KANBAN()).slice().sort((a, b) => a.sortOrder - b.sortOrder);
-  /* A task you have actually sat down with is in progress, whether or not
-     anyone remembered to drag its card. The sessions already know — so the
-     board reads them rather than waiting to be told a second time. Dragging
-     still wins: a column chosen by hand is a decision, and a decision beats
-     an inference. */
-  const wip = cols.find(c => c.id === 'in_progress');
-  const colOf = t => planTaskColumn(t, !!wip);
-  return `<div class="pk-board">${cols.map(c => {
-    const ts = tasks.filter(t => colOf(t) === c.id);
-    const over = c.wipLimit != null && ts.filter(t => !t.done).length > c.wipLimit;
-    return `<div class="pk-col${over ? ' over-wip' : ''}" data-pkcol="${c.id}" style="--c:${c.color}">
-      <div class="pk-colh"><span class="pk-cname">${esc(c.name)}</span>
-        <span class="mono">${ts.length}${c.wipLimit != null ? ` / ${c.wipLimit}` : ''}</span>
-        ${l ? `<button class="pl-mini" data-pkedit="${c.id}" title="rename, limit, remove">⋯</button>` : ''}</div>
-      <div class="pk-cards" data-ptgroup>${ts.map(t => planCardHTML(t)).join('') || '<div class="pk-empty">Nothing here yet. Drag a task in, or add one.</div>'}</div>
-      <input class="inp pk-add" data-pqadd='${esc(JSON.stringify({listId: l?.id, kanbanColumn: c.id}))}' placeholder="＋ add">
-    </div>`; }).join('')}
-    ${l ? `<button class="pk-newcol" id="pkNewCol">＋ column</button>` : ''}</div>`;
-}
-
+/* The Board and the Timeline used to live here — 106 lines of column
+   dragging and Gantt bars. Both are gone: the Board arranged tasks by a
+   status the matrix already arranges them by, and the Timeline drew bars
+   against dates the milestone strip draws above every view. Their drop
+   handlers, the column modal and the bar-drag maths went with them. */
 /* ---------- matrix ----------
    The quadrants are a grid and size themselves; the tray underneath is a
    wrapping row, so its cards need a width given to them. 210px was narrow
@@ -173,63 +155,6 @@ function planMatrixHTML(tasks){
         || '<div class="pk-empty">Everything has been placed.</div>'}</div></details>`;
 }
 
-/* ---------- timeline ---------- */
-const PL_SCALES = {day:{n:14, w:64, step:1}, week:{n:12, w:56, step:7}, month:{n:12, w:64, step:30}};
-function planTimelineHTML(tasks, sel){
-  const scale = planState().prefs.tlScale || 'week';
-  const sc = PL_SCALES[scale];
-  const start = addDays(today(), -sc.step * 2);
-  const total = sc.n * sc.step;
-  const px = d => (daysBetween(start, d) / total) * (sc.n * sc.w);
-  const W = sc.n * sc.w;
-  const dated = tasks.filter(t => t.day || t.startDate);
-  const rows = dated.map(t => {
-    const s = t.startDate || t.day, e = t.day || t.startDate;
-    const x0 = clamp(px(s), 0, W), x1 = clamp(px(e), 0, W);
-    return {t, x0: Math.min(x0, x1), w: Math.max(8, Math.abs(x1 - x0) || 14)};
-  });
-  const ticks = Array.from({length: sc.n + 1}, (_, i) => addDays(start, i * sc.step));
-  return `<div class="pl-tl">
-    <div class="pl-tlbar">${Object.keys(PL_SCALES).map(k =>
-      `<button class="pf-chip${scale === k ? ' on' : ''}" data-tlscale="${k}">${k}</button>`).join('')}
-      <span class="faint mono" style="margin-left:auto">drag a bar to move it · drag its right edge to change the due date</span></div>
-    <div class="pl-tlscroll"><div class="pl-tlinner" style="width:${W + 190}px">
-      <div class="pl-tlaxis" style="margin-left:190px;width:${W}px">
-        ${ticks.map((d, i) => `<span class="pl-tick" style="left:${(i / sc.n) * W}px">${esc(fmtDate(d, 'short'))}</span>`).join('')}
-        <div class="pl-tlnow" style="left:${px(today())}px"></div></div>
-      <!-- the dates the work is running towards, on the same scale as the work
-           itself: a bar that ends after the diamond is late, and you can see it
-           without doing arithmetic -->
-      ${(() => { const ms = typeof planMilestonesFor === 'function' ? planMilestonesFor(sel) : [];
-        if(!ms.length) return '';
-        let lastX = -999, lastLow = false;
-        return `<div class="pl-tlrow pl-tlms">
-          <span class="pl-tlname mono">milestones</span>
-          <div class="pl-tltrack" style="width:${W}px">
-            ${ms.map(({m, list}) => { const x = clamp(px(m.date || today()), 0, W);
-              const late = !m.done && m.date && m.date < today();
-              /* two dates a few days apart print their names on top of each
-                 other at this scale, so the second one hangs lower */
-              const low = (x - lastX) < 92 && !lastLow;
-              lastX = x; lastLow = low;
-              return `<button class="pl-gms${m.done ? ' done' : ''}${late ? ' late' : ''}${low ? ' low' : ''}" data-plms="${m.id}"
-                style="left:${x}px;--c:${esc(list.color)}"
-                title="${esc(m.name)} · ${m.date ? esc(fmtDate(m.date, 'med')) + ' · ' + esc(planWhenAway(m.date)) : 'no date'}"><i></i><span>${esc(m.name)}</span>
-                ${m.date && !m.done ? `<span class="pl-gmsaway mono">${esc(planWhenAway(m.date))}</span>` : ''}</button>`; }).join('')}
-          </div></div>`; })()}
-      <div class="pl-tlrows" data-ptgroup>${rows.map(({t, x0, w}) => `<div class="pl-tlrow" data-ptunit="${t.id}">
-        <span class="pl-tlname" draggable="true" data-ptgrip="${t.id}"
-          title="${esc(t.text)} — drag this name to reorder the rows">${esc(t.text)}</span>
-        <div class="pl-tltrack" style="width:${W}px">
-          <div class="pl-gbar${t.done ? ' done' : ''}" data-ptcard="${t.id}" data-tlbar="${t.id}" draggable="true"
-            style="left:${x0}px;width:${w}px;--c:${planPriority(t.priority).color || planListColor(t.listId)}"
-            title="${esc(t.text)} · ${t.startDate ? esc(fmtDate(t.startDate, 'short')) + ' → ' : ''}${t.day ? esc(fmtDate(t.day, 'med')) : 'no date'}">
-            <span class="pl-gbaredge" data-tledge="${t.id}"></span></div></div></div>`).join('')
-        || '<div class="empty">Nothing here carries a date yet. A timeline needs one to draw against.</div>'}</div>
-    </div></div></div>`;
-}
-
-/* ---------- bindings for all four ---------- */
 function bindPlanViews(root, sel, tasks){
   const p = planState();
 
@@ -293,32 +218,6 @@ function bindPlanViews(root, sel, tasks){
     }));
   }
 
-  /* board */
-  $$('[data-pkcol]', root).forEach(col => {
-    col.addEventListener('dragover', ev => { if(window._plTaskDrag){ ev.preventDefault(); col.classList.add('over'); } });
-    col.addEventListener('dragleave', () => col.classList.remove('over'));
-    col.addEventListener('drop', ev => { ev.preventDefault(); col.classList.remove('over');
-      const t = planTaskById(window._plTaskDrag); window._plTaskDrag = null; if(!t) return;
-      /* Putting a card in a column by hand is a decision. It is marked as one
-         so the board stops inferring the column from the sessions for this
-         task — otherwise a task you deliberately moved back to To do would
-         spring straight back to In progress. */
-      t.kanbanPinned = true;
-      const to = col.dataset.pkcol;
-      t.kanbanColumn = to;
-      /* the Done column means done — the board and the checkbox cannot disagree */
-      if(to === 'done' && !t.done) planSetDone(t, true);
-      else if(to !== 'done' && t.done) planSetDone(t, false);
-      t.updatedAt = new Date().toISOString(); saveNow(); sound('click'); rerender(); });
-  });
-  $$('[data-pkedit]', root).forEach(b => b.onclick = () => openPlanColumnModal(sel, b.dataset.pkedit));
-  const nc = $('#pkNewCol'); if(nc) nc.onclick = () => {
-    const l = planList(sel.id); if(!l) return;
-    const name = prompt('Name the column'); if(!name || !name.trim()) return;
-    l.kanbanColumns.push({id:uid(), name:name.trim(), color:PLAN_COLORS[l.kanbanColumns.length % PLAN_COLORS.length],
-      wipLimit:null, sortOrder:l.kanbanColumns.length});
-    saveNow(); sound('click'); rerender(); };
-
   /* matrix — the tray card's right edge sets how wide every card in the tray
      is. Written straight to the box while dragging so the cards follow the
      pointer; a re-render per pointermove would fight the drag. */
@@ -353,56 +252,5 @@ function bindPlanViews(root, sel, tasks){
       saveNow(); sound('click'); rerender(); });
   });
 
-  /* timeline */
-  $$('[data-tlscale]', root).forEach(b => b.onclick = () => { p.prefs.tlScale = b.dataset.tlscale; saveNow(); rerender(); });
-  const sc = PL_SCALES[p.prefs.tlScale || 'week'];
-  const perPx = (sc.n * sc.step) / (sc.n * sc.w);            // days per pixel
-  $$('[data-tlbar]', root).forEach(bar => {
-    const t = planTaskById(bar.dataset.tlbar); if(!t) return;
-    const grab = (ev, edge) => {
-      ev.preventDefault(); ev.stopPropagation();
-      const x0 = ev.clientX, left0 = bar.offsetLeft, w0 = bar.offsetWidth;
-      const move = e2 => { const dx = e2.clientX - x0;
-        if(edge){ bar.style.width = Math.max(8, w0 + dx) + 'px'; }
-        else bar.style.left = Math.max(0, left0 + dx) + 'px'; };
-      const up = e2 => { document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up);
-        const dDays = Math.round((e2.clientX - x0) * perPx);
-        if(!dDays){ rerender(); return; }
-        if(edge){ if(t.day) t.day = addDays(t.day, dDays); }
-        else { if(t.day) t.day = addDays(t.day, dDays); if(t.startDate) t.startDate = addDays(t.startDate, dDays); }
-        planSyncReminders(t); saveNow(); sound('click'); rerender(); };
-      document.addEventListener('mousemove', move); document.addEventListener('mouseup', up);
-    };
-    bar.addEventListener('mousedown', ev => { if(ev.target.closest('[data-tledge]')) return; grab(ev, false); });
-    bar.querySelector('[data-tledge]')?.addEventListener('mousedown', ev => grab(ev, true));
-  });
 }
 
-function openPlanColumnModal(sel, colId){
-  const l = planList(sel.id); if(!l) return;
-  const c = l.kanbanColumns.find(x => x.id === colId); if(!c) return;
-  const m = openModal(`<h2>Column</h2><div class="stack">
-    <div class="field"><label>Name</label><input class="inp" id="pkName" value="${esc(c.name)}"></div>
-    <div class="field"><label>Colour</label><div class="pl-swatches">${PLAN_COLORS.map(x =>
-      `<button class="pl-sw${c.color === x ? ' on' : ''}" data-pkc="${x}" style="background:${x}"></button>`).join('')}</div></div>
-    <div class="field"><label>Work-in-progress limit</label>
-      <input class="inp mono" id="pkWip" value="${c.wipLimit == null ? '' : c.wipLimit}" placeholder="leave blank for none">
-      <div class="faint" style="font-size:.74rem;margin-top:4px">Past the limit the column warns rather than blocks — it is a question, not a gate.</div></div>
-    <div class="row between"><button class="btn sm ghost danger" id="pkDel">remove column</button>
-      <button class="btn primary" id="pkSave">Save</button></div></div>`, 'narrow');
-  let color = c.color;
-  m.querySelectorAll('[data-pkc]').forEach(b => b.onclick = () => { color = b.dataset.pkc;
-    m.querySelectorAll('[data-pkc]').forEach(x => x.classList.toggle('on', x === b)); });
-  m.querySelector('#pkSave').onclick = () => {
-    c.name = m.querySelector('#pkName').value.trim() || 'Column'; c.color = color;
-    const w = parseInt(m.querySelector('#pkWip').value, 10); c.wipLimit = isNaN(w) ? null : Math.max(1, w);
-    saveNow(); m.remove(); rerender(); };
-  m.querySelector('#pkDel').onclick = () => { m.remove();
-    if(l.kanbanColumns.length < 2) return toast('A board needs at least one column.');
-    requestDelete({label:c.name, after:planRedraw, remove: () => {
-      const first = l.kanbanColumns.find(x => x.id !== c.id).id;
-      const moved = (S.tasks || []).filter(t => t.kanbanColumn === c.id);
-      moved.forEach(t => t.kanbanColumn = first);
-      const back = spliceOut(l.kanbanColumns, x => x.id === c.id);
-      return () => { back(); moved.forEach(t => t.kanbanColumn = c.id); }; }}); };
-}

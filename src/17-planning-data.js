@@ -59,12 +59,15 @@ function planSetSpan(id){
 /* The matrix leads, and the page opens on it. A list answers "what is there";
    the matrix answers "what should I touch first", which is the question the
    page is for — and the number keys follow this order, so 1 is the matrix. */
+/* Three ways to look at a list, not five. The Board said the same thing the
+   matrix says, in columns instead of quadrants, and the Timeline drew bars
+   against dates the milestone strip above it already draws — two rooms
+   nobody went into. A view stored on a list from before they went falls back
+   to the matrix rather than rendering nothing (see planView). */
 const PLAN_VIEWS = [
   {id:'eisenhower', icon:'⊞', name:'Matrix'},
   {id:'list',       icon:'☰', name:'List'},
   {id:'calendar',   icon:'▦', name:'Calendar'},
-  {id:'kanban',     icon:'▥', name:'Board'},
-  {id:'timeline',   icon:'▬', name:'Timeline'},
 ];
 const PLAN_VIEW_DEFAULT = 'eisenhower';
 const PLAN_QUADRANTS = [

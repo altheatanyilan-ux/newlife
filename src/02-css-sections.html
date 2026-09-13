@@ -5312,5 +5312,27 @@ html.mfx-cursor .pl-gbaredge{cursor:ew-resize!important}
   .skeleton{animation:none}
   .btn:active,#fab:active{transform:none}
 }
+/* ---------- managing the dates a list runs towards ---------- */
+/* The pencil on a pin is now a hint rather than the only door — the strip has
+   a "manage" button beside "＋ milestone" — but it should still be findable
+   without hovering exactly the right four pixels. */
+.pl-msedit{opacity:.35}
+.pl-mspin:hover .pl-msedit,.pl-mspin:focus-within .pl-msedit{opacity:1}
+.ms-manage{display:flex;flex-direction:column;gap:6px;max-height:56vh;overflow-y:auto;padding-right:4px}
+.ms-mrow{display:grid;grid-template-columns:auto minmax(120px,1fr) 150px 5.5em 3.5em auto auto auto;
+  gap:9px;align-items:center;padding:7px 9px;border-radius:9px;
+  border:1px solid var(--line);border-left:3px solid var(--c,var(--line-2));background:var(--surface)}
+.ms-mrow.done{opacity:.6}
+.ms-mrow.done .ms-mname{text-decoration:line-through}
+.ms-mrow.late .ms-mwhen{color:#c25b5b}
+.ms-mname{font-family:var(--serif);font-size:.94rem;padding:3px 7px}
+.ms-mdate{min-width:0}
+.ms-mdate .inp{font-size:.76rem;padding:3px 7px}
+.ms-mwhen,.ms-mprog,.ms-mlist{font-size:.68rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:760px){
+  .ms-mrow{grid-template-columns:auto 1fr auto auto;row-gap:6px}
+  .ms-mdate{grid-column:2/4}
+  .ms-mlist,.ms-mprog{display:none}
+}
 </style>
 </head>

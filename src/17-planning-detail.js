@@ -253,8 +253,8 @@ function rerenderPlanBody(){
   const v = planView();
   const special = sel.kind === 'smart' && sel.id === 'stats';
   body.innerHTML = special ? planStatsHTML()
-    : v === 'calendar' ? planCalendarHTML(tasks) : v === 'kanban' ? planKanbanHTML(sel, tasks)
-    : v === 'eisenhower' ? planMatrixHTML(tasks) : v === 'timeline' ? planTimelineHTML(tasks)
+    : v === 'calendar' ? planCalendarHTML(tasks)
+    : v === 'eisenhower' ? planMatrixHTML(tasks)
     : planListViewHTML(sel, tasks);
   bindPlanning(main, sel, tasks);
   if(keep && !$('#panel')) document.body.appendChild(keep);
