@@ -90,17 +90,19 @@ const Kinetic = (() => {
     if(!node) return Promise.resolve();
     const str = text !== undefined ? text : node.textContent;
     if(soft() || !dark()){ node.textContent = str; return Promise.resolve(); }
-    const speed = opt.speed || 35, hold = opt.pause || 200;
+    const speed = opt.speed || 28, hold = opt.pause || 200;
     node.textContent = '';
+    /* the cursor is a drawn bar, not a glyph: a │ is a hairline in most
+       faces and disappears at the size these lines are set in */
     const cur = document.createElement('span');
-    cur.className = 'tw-cursor'; cur.textContent = '│';
+    cur.className = 'tw-cursor';
     node.appendChild(cur);
     let i = 0;
     return new Promise(done => {
       const step = () => {
         if(i >= str.length){
           cur.classList.add('blink');
-          setTimeout(() => { cur.style.opacity = '0'; }, 2000);
+          setTimeout(() => { cur.style.opacity = '0'; }, 4000);
           return done();
         }
         const ch = str[i++];
@@ -126,7 +128,7 @@ const Kinetic = (() => {
       node.textContent = next;
       node.classList.remove('out'); node.classList.add('in');
       setTimeout(() => node.classList.remove('in'), 500);
-    }, 420);
+    }, 440);
   }
   /* A run of strings, one after another, on a slow clock.
      Two things this got wrong first time round, both worth writing down.
@@ -161,7 +163,7 @@ const Kinetic = (() => {
       if(soft() || !dark()) return;        /* the light room holds still */
       i = (i + 1) % strings.length;
       morph(node, strings[i]);
-    }, ms || 8000);
+    }, ms || 6000);
     cycles.set(sel, t);
     return () => { clearInterval(t); cycles.delete(sel); };
   }

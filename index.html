@@ -6232,17 +6232,21 @@ html[data-theme="dark"] .slider::-webkit-slider-thumb,html:not([data-theme="ligh
    moves for no reason is text that is harder to read.
    ============================================================ */
 /* words arriving one after another, as if being written — both rooms */
-[data-reveal] .wd{display:inline-block;opacity:0;transform:translateY(6px);
+[data-reveal] .wd{display:inline-block;opacity:0;transform:translateY(12px);
   transition:opacity .4s var(--ease),transform .4s var(--ease),text-shadow .4s var(--ease);
-  transition-delay:calc(var(--i) * 30ms)}
+  transition-delay:calc(var(--i) * 50ms)}
 [data-reveal].shown .wd{opacity:1;transform:none}
 /* in the dark room each word lights as it lands, and then settles */
 html[data-theme="dark"] [data-reveal].shown .wd,html:not([data-theme="light"]) [data-reveal].shown .wd{
-  animation:wdGlow .7s var(--ease) both;animation-delay:calc(var(--i) * 30ms)}
-@keyframes wdGlow{0%{text-shadow:0 0 20px rgba(212,164,76,.3)}100%{text-shadow:0 0 0 transparent}}
+  animation:wdGlow 1s var(--ease) both;animation-delay:calc(var(--i) * 50ms)}
+/* the glow holds for six hundred milliseconds before it goes: a word has to
+   still be lit by the time your eye reaches it, not on the way already */
+@keyframes wdGlow{0%,60%{text-shadow:0 0 20px rgba(212,164,76,.25)}100%{text-shadow:0 0 0 transparent}}
 
-/* a cursor, for text that is being typed rather than revealed */
-.tw-cursor{color:var(--page-accent);font-weight:300;opacity:1}
+/* a cursor, for text that is being typed rather than revealed. A drawn bar
+   rather than a glyph: a │ is a hairline in most faces and vanishes. */
+.tw-cursor{display:inline-block;width:3px;height:1em;vertical-align:-.14em;
+  margin-left:.06em;background:var(--page-accent);opacity:1}
 .tw-cursor.blink{animation:twBlink .8s step-end infinite}
 @keyframes twBlink{0%,100%{opacity:1}50%{opacity:0}}
 
@@ -6252,10 +6256,10 @@ html[data-theme="dark"] [data-reveal].shown .wd,html:not([data-theme="light"]) [
 
 /* firelight moving across engraved text — dark only, and slowly */
 html[data-theme="dark"] .flow,html:not([data-theme="light"]) .flow{
-  background:linear-gradient(90deg,var(--text) 0%,var(--gold) 25%,var(--terra) 50%,var(--rose) 75%,var(--text) 100%);
-  background-size:300% 100%;-webkit-background-clip:text;background-clip:text;
+  background:linear-gradient(90deg,var(--text) 0%,#e0a82f 25%,#bd8657 50%,#ac6b7b 75%,var(--text) 100%);
+  background-size:400% 100%;-webkit-background-clip:text;background-clip:text;
   -webkit-text-fill-color:transparent;color:transparent;
-  animation:flowShift 12s ease-in-out infinite}
+  animation:flowShift 8s ease-in-out infinite}
 @keyframes flowShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
 
 /* one string dissolving into another rather than swapping */
@@ -6263,8 +6267,8 @@ html[data-theme="dark"] .flow,html:not([data-theme="light"]) .flow{
 .morph.out{animation:morphOut .45s ease-in forwards}
 .morph.in{animation:morphIn .45s ease-out forwards}
 @keyframes morphOut{0%{opacity:1;transform:translateY(0);filter:blur(0)}
-  100%{opacity:0;transform:translateY(-8px);filter:blur(2px)}}
-@keyframes morphIn{0%{opacity:0;transform:translateY(8px);filter:blur(2px)}
+  100%{opacity:0;transform:translateY(-14px);filter:blur(4px)}}
+@keyframes morphIn{0%{opacity:0;transform:translateY(14px);filter:blur(4px)}
   100%{opacity:1;transform:none;filter:blur(0)}}
 
 /* ============================================================
@@ -8592,17 +8596,19 @@ const Kinetic = (() => {
     if(!node) return Promise.resolve();
     const str = text !== undefined ? text : node.textContent;
     if(soft() || !dark()){ node.textContent = str; return Promise.resolve(); }
-    const speed = opt.speed || 35, hold = opt.pause || 200;
+    const speed = opt.speed || 28, hold = opt.pause || 200;
     node.textContent = '';
+    /* the cursor is a drawn bar, not a glyph: a │ is a hairline in most
+       faces and disappears at the size these lines are set in */
     const cur = document.createElement('span');
-    cur.className = 'tw-cursor'; cur.textContent = '│';
+    cur.className = 'tw-cursor';
     node.appendChild(cur);
     let i = 0;
     return new Promise(done => {
       const step = () => {
         if(i >= str.length){
           cur.classList.add('blink');
-          setTimeout(() => { cur.style.opacity = '0'; }, 2000);
+          setTimeout(() => { cur.style.opacity = '0'; }, 4000);
           return done();
         }
         const ch = str[i++];
@@ -8628,7 +8634,7 @@ const Kinetic = (() => {
       node.textContent = next;
       node.classList.remove('out'); node.classList.add('in');
       setTimeout(() => node.classList.remove('in'), 500);
-    }, 420);
+    }, 440);
   }
   /* A run of strings, one after another, on a slow clock.
      Two things this got wrong first time round, both worth writing down.
@@ -8663,7 +8669,7 @@ const Kinetic = (() => {
       if(soft() || !dark()) return;        /* the light room holds still */
       i = (i + 1) % strings.length;
       morph(node, strings[i]);
-    }, ms || 8000);
+    }, ms || 6000);
     cycles.set(sel, t);
     return () => { clearInterval(t); cycles.delete(sel); };
   }
@@ -13103,7 +13109,7 @@ routes.today = function(root){
     const lines = [`${seasonName} · day ${Math.round(moon.age)} of the lunar cycle`, greet, moon.name.toLowerCase()];
     const sp = c.setpoint && typeof hicksName === 'function' ? hicksName(c.setpoint) : null;
     if(sp) lines.push(String(sp).toLowerCase());
-    if(typeof Kinetic !== 'undefined') Kinetic.cycle('#todayCycle', lines, 8000);
+    if(typeof Kinetic !== 'undefined') Kinetic.cycle('#todayCycle', lines, 6000);
   }
 
   reveal(root);
@@ -23170,8 +23176,11 @@ function tarotReadingHTML(picks, sp){
    noise has been received, which is closer to what a card is for. Two
    hundred milliseconds of characters settling, left to right; nothing at
    all if the reader has asked for less motion. */
-const SCRAMBLE_GLYPHS = '✦✧◇◈○●△▽☰☷⚹✶⁂※∴∵⌖';
-function scrambleInto(el, text, ms = 600){
+/* Marks and characters, not letters. A name coming out of scrambled Latin
+   reads as a loading state; a name coming out of 道夢光風空心 and a handful of
+   marks reads as something being deciphered, which is what the moment is. */
+const SCRAMBLE_GLYPHS = '✦✧◇◈○●△▽☰☷⚹✶⁂※∴∵⌖道夢光風空心';
+function scrambleInto(el, text, ms = 900){
   if(!el) return;
   if(typeof reduced === 'function' && reduced()){ el.textContent = text; return; }
   const chars = [...text];
@@ -24451,7 +24460,7 @@ function openTarot(pre = {}){
               card.classList.add('pulse');
               /* the name arrives under the card as it comes round, rather
                  than being printed over the drawing */
-              scrambleInto(cap.querySelector('.tc-cap-name'), TAROT[picks[idx].card].n, 600);
+              scrambleInto(cap.querySelector('.tc-cap-name'), TAROT[picks[idx].card].n, 900);
               dvMoment('tinkle');
               setTimeout(() => card.classList.remove('pulse'), 900);
             }, soft ? 0 : 420);
@@ -24647,7 +24656,7 @@ function openIChing(pre = {}){
       </div>${ichingTrigramNoteHTML(h.b)}`;
       const nm = fig.querySelector('.ic-hnm');
       if(nm){ if(soft) nm.textContent = h.n;
-        else { scrambleInto(nm, h.n, 800); setTimeout(() => dvMoment('tinkle'), 300); } }
+        else { scrambleInto(nm, h.n, 1200); setTimeout(() => dvMoment('tinkle'), 300); } }
       if(rel && !soft){
         fig.querySelector('.ic-one.rel').classList.add('arriving');
         setTimeout(() => dvMoment('turning'), 900);
@@ -24726,7 +24735,7 @@ function openOracle(deckId){
       </section>`;
     const card = m.querySelector('#orCard');
     const turn = () => { card.classList.add('up'); sound('click');
-      setTimeout(() => scrambleInto(card.querySelector('.or-name'), name, 500), soft ? 0 : 420); };
+      setTimeout(() => scrambleInto(card.querySelector('.or-name'), name, 800), soft ? 0 : 420); };
     if(soft) turn(); else setTimeout(turn, 380);
     m.querySelector('#orDraw').textContent = 'keep it';
     m.querySelector('#orDraw').onclick = () => {

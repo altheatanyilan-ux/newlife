@@ -501,7 +501,7 @@ routes.today = function(root){
     const lines = [`${seasonName} · day ${Math.round(moon.age)} of the lunar cycle`, greet, moon.name.toLowerCase()];
     const sp = c.setpoint && typeof hicksName === 'function' ? hicksName(c.setpoint) : null;
     if(sp) lines.push(String(sp).toLowerCase());
-    if(typeof Kinetic !== 'undefined') Kinetic.cycle('#todayCycle', lines, 8000);
+    if(typeof Kinetic !== 'undefined') Kinetic.cycle('#todayCycle', lines, 6000);
   }
 
   reveal(root);

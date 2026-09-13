@@ -270,8 +270,11 @@ function tarotReadingHTML(picks, sp){
    noise has been received, which is closer to what a card is for. Two
    hundred milliseconds of characters settling, left to right; nothing at
    all if the reader has asked for less motion. */
-const SCRAMBLE_GLYPHS = '✦✧◇◈○●△▽☰☷⚹✶⁂※∴∵⌖';
-function scrambleInto(el, text, ms = 600){
+/* Marks and characters, not letters. A name coming out of scrambled Latin
+   reads as a loading state; a name coming out of 道夢光風空心 and a handful of
+   marks reads as something being deciphered, which is what the moment is. */
+const SCRAMBLE_GLYPHS = '✦✧◇◈○●△▽☰☷⚹✶⁂※∴∵⌖道夢光風空心';
+function scrambleInto(el, text, ms = 900){
   if(!el) return;
   if(typeof reduced === 'function' && reduced()){ el.textContent = text; return; }
   const chars = [...text];

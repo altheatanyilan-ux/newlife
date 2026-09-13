@@ -664,7 +664,7 @@ function openTarot(pre = {}){
               card.classList.add('pulse');
               /* the name arrives under the card as it comes round, rather
                  than being printed over the drawing */
-              scrambleInto(cap.querySelector('.tc-cap-name'), TAROT[picks[idx].card].n, 600);
+              scrambleInto(cap.querySelector('.tc-cap-name'), TAROT[picks[idx].card].n, 900);
               dvMoment('tinkle');
               setTimeout(() => card.classList.remove('pulse'), 900);
             }, soft ? 0 : 420);
@@ -860,7 +860,7 @@ function openIChing(pre = {}){
       </div>${ichingTrigramNoteHTML(h.b)}`;
       const nm = fig.querySelector('.ic-hnm');
       if(nm){ if(soft) nm.textContent = h.n;
-        else { scrambleInto(nm, h.n, 800); setTimeout(() => dvMoment('tinkle'), 300); } }
+        else { scrambleInto(nm, h.n, 1200); setTimeout(() => dvMoment('tinkle'), 300); } }
       if(rel && !soft){
         fig.querySelector('.ic-one.rel').classList.add('arriving');
         setTimeout(() => dvMoment('turning'), 900);
@@ -939,7 +939,7 @@ function openOracle(deckId){
       </section>`;
     const card = m.querySelector('#orCard');
     const turn = () => { card.classList.add('up'); sound('click');
-      setTimeout(() => scrambleInto(card.querySelector('.or-name'), name, 500), soft ? 0 : 420); };
+      setTimeout(() => scrambleInto(card.querySelector('.or-name'), name, 800), soft ? 0 : 420); };
     if(soft) turn(); else setTimeout(turn, 380);
     m.querySelector('#orDraw').textContent = 'keep it';
     m.querySelector('#orDraw').onclick = () => {

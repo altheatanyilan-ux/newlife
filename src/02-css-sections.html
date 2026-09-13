@@ -5618,17 +5618,21 @@ html[data-theme="dark"] .slider::-webkit-slider-thumb,html:not([data-theme="ligh
    moves for no reason is text that is harder to read.
    ============================================================ */
 /* words arriving one after another, as if being written — both rooms */
-[data-reveal] .wd{display:inline-block;opacity:0;transform:translateY(6px);
+[data-reveal] .wd{display:inline-block;opacity:0;transform:translateY(12px);
   transition:opacity .4s var(--ease),transform .4s var(--ease),text-shadow .4s var(--ease);
-  transition-delay:calc(var(--i) * 30ms)}
+  transition-delay:calc(var(--i) * 50ms)}
 [data-reveal].shown .wd{opacity:1;transform:none}
 /* in the dark room each word lights as it lands, and then settles */
 html[data-theme="dark"] [data-reveal].shown .wd,html:not([data-theme="light"]) [data-reveal].shown .wd{
-  animation:wdGlow .7s var(--ease) both;animation-delay:calc(var(--i) * 30ms)}
-@keyframes wdGlow{0%{text-shadow:0 0 20px rgba(212,164,76,.3)}100%{text-shadow:0 0 0 transparent}}
+  animation:wdGlow 1s var(--ease) both;animation-delay:calc(var(--i) * 50ms)}
+/* the glow holds for six hundred milliseconds before it goes: a word has to
+   still be lit by the time your eye reaches it, not on the way already */
+@keyframes wdGlow{0%,60%{text-shadow:0 0 20px rgba(212,164,76,.25)}100%{text-shadow:0 0 0 transparent}}
 
-/* a cursor, for text that is being typed rather than revealed */
-.tw-cursor{color:var(--page-accent);font-weight:300;opacity:1}
+/* a cursor, for text that is being typed rather than revealed. A drawn bar
+   rather than a glyph: a │ is a hairline in most faces and vanishes. */
+.tw-cursor{display:inline-block;width:3px;height:1em;vertical-align:-.14em;
+  margin-left:.06em;background:var(--page-accent);opacity:1}
 .tw-cursor.blink{animation:twBlink .8s step-end infinite}
 @keyframes twBlink{0%,100%{opacity:1}50%{opacity:0}}
 
@@ -5638,10 +5642,10 @@ html[data-theme="dark"] [data-reveal].shown .wd,html:not([data-theme="light"]) [
 
 /* firelight moving across engraved text — dark only, and slowly */
 html[data-theme="dark"] .flow,html:not([data-theme="light"]) .flow{
-  background:linear-gradient(90deg,var(--text) 0%,var(--gold) 25%,var(--terra) 50%,var(--rose) 75%,var(--text) 100%);
-  background-size:300% 100%;-webkit-background-clip:text;background-clip:text;
+  background:linear-gradient(90deg,var(--text) 0%,#e0a82f 25%,#bd8657 50%,#ac6b7b 75%,var(--text) 100%);
+  background-size:400% 100%;-webkit-background-clip:text;background-clip:text;
   -webkit-text-fill-color:transparent;color:transparent;
-  animation:flowShift 12s ease-in-out infinite}
+  animation:flowShift 8s ease-in-out infinite}
 @keyframes flowShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
 
 /* one string dissolving into another rather than swapping */
@@ -5649,8 +5653,8 @@ html[data-theme="dark"] .flow,html:not([data-theme="light"]) .flow{
 .morph.out{animation:morphOut .45s ease-in forwards}
 .morph.in{animation:morphIn .45s ease-out forwards}
 @keyframes morphOut{0%{opacity:1;transform:translateY(0);filter:blur(0)}
-  100%{opacity:0;transform:translateY(-8px);filter:blur(2px)}}
-@keyframes morphIn{0%{opacity:0;transform:translateY(8px);filter:blur(2px)}
+  100%{opacity:0;transform:translateY(-14px);filter:blur(4px)}}
+@keyframes morphIn{0%{opacity:0;transform:translateY(14px);filter:blur(4px)}
   100%{opacity:1;transform:none;filter:blur(0)}}
 
 /* ============================================================
