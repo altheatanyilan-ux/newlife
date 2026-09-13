@@ -110,7 +110,9 @@ function subRowHTML(rid, s){
       <button class="task-est sm${+s.minutes ? '' : ' none'}${subSpentOn(rid, s.id) >= 1 ? ' spent' : ''}${
           +s.minutes && subSpentOn(rid, s.id) > +s.minutes ? ' over' : ''}" data-subest="${esc(rid)}|${esc(s.id)}"
         title="${subSpentOn(rid, s.id) >= 1
-          ? `${fmtEst(subSpentOn(rid, s.id))} sat with so far${+s.minutes ? `, of ${fmtEst(s.minutes)} estimated` : ''}`
+          ? `${fmtEst(subSpentOn(rid, s.id))} sat with so far${+s.minutes ? `, of ${fmtEst(s.minutes)} estimated` : ''}${
+              +s.minutes ? ` — press to sit down with ${focusLeftOn(rid, +s.minutes, s.id) >= 1
+                ? `the ${fmtEst(focusLeftOn(rid, +s.minutes, s.id))} left` : 'it again; the estimate is spent, so it counts up'}` : ''}`
           : +s.minutes ? `${fmtEst(s.minutes)} — press to sit down with just this step` : 'how long will this step take?'}">${
         subSpentOn(rid, s.id) >= 1
           ? `<span class="te-spent">${esc(fmtEst(subSpentOn(rid, s.id)))}</span>${+s.minutes ? `<span class="te-of">of</span>${esc(fmtEst(s.minutes))}` : ''}`

@@ -8617,6 +8617,22 @@ function subSpentOn(taskId, subId){
   if(!taskId || !subId || typeof focusSessions !== 'function') return 0;
   return sum(focusSessions().filter(s => s.taskId === taskId && s.subId === subId).map(s => +s.duration || 0));
 }
+/* What is left of the estimate, which is what a second sitting should be.
+   Pressing "25m" on a task you have already given fifteen minutes to used to
+   start another twenty-five — so the countdown and the estimate stopped
+   meaning the same thing the moment you came back to something. An estimate
+   is of the whole job, not of each visit to it, so a later sitting counts
+   down what is still owed.
+
+   A step's sittings are measured against the step's own figure; the task's
+   against the task's. Once the estimate is spent there is nothing left to
+   count down, and the sitting counts up instead rather than inventing time
+   that was never estimated. */
+function focusLeftOn(id, minutes, subId){
+  if(!(+minutes > 0)) return 0;
+  const done = subId ? subSpentOn(id, subId) : taskSpentOn(id);
+  return Math.max(0, Math.round(+minutes - done));
+}
 /* "13m of 15m" while there is an estimate to measure against, "13m" when
    there is not, and nothing at all under a minute — a sitting shorter than
    that is not worth the ink and is not recorded in the first place. */
@@ -8642,6 +8658,7 @@ function taskEstHTML(id, t, {sm = false} = {}){
   const on = FocusTimer.state().taskId === id && FocusTimer.state().running;
   const rolled = taskHasSubEst(t);
   const spent = taskSpentOn(id);
+  const left = focusLeftOn(id, mins);
   const over = mins && spent > mins;
   const label = spent >= 1
     ? `<span class="te-spent">${esc(fmtEst(spent))}</span>${mins ? `<span class="te-of">of</span>${esc(fmtEst(mins))}` : ''}`
@@ -8649,7 +8666,11 @@ function taskEstHTML(id, t, {sm = false} = {}){
   return `<span class="est-wrap${sm ? ' sm' : ''}">
     <button class="task-est${sm ? ' sm' : ''}${on ? ' on' : ''}${mins ? '' : ' none'}${spent >= 1 ? ' spent' : ''}${over ? ' over' : ''}"
       data-test="${esc(id)}" data-estmin="${mins}"
-      title="${spent >= 1 ? `${fmtEst(spent)} sat with so far${mins ? `, of ${fmtEst(mins)} estimated` : ''} — press to sit down with it again` : mins ? `${fmtEst(mins)}${rolled ? ', added up from the steps' : ''} — press to sit down with it for that long` : 'how long will it take?'}">
+      title="${spent >= 1
+        ? `${fmtEst(spent)} sat with so far${mins ? `, of ${fmtEst(mins)} estimated` : ''} — press to sit down with ${
+            !mins ? 'it again' : left >= 1 ? `the ${fmtEst(left)} left` : 'it again; the estimate is spent, so it counts up'}`
+        : mins ? `${fmtEst(mins)}${rolled ? ', added up from the steps' : ''} — press to sit down with it for that long`
+        : 'how long will it take?'}">
       ${label}</button>
     ${mins && !rolled ? `<button class="est-pen" data-testedit="${esc(id)}" title="change the length" aria-label="change the length">✎</button>` : ''}
   </span>`;
@@ -8725,18 +8746,25 @@ function focusOnTask(id, minutes = 0, what = '', subId = null){
   /* a length can only be set while nothing is running, so a sitting already
      under way is stopped first — pressing an estimate is an unambiguous
      request to sit down with that thing for that long */
+  const left = focusLeftOn(id, minutes, subId);
   if(minutes){
     if(FocusTimer.state().running) FocusTimer.stop();
     FocusTimer.reset();
-    FocusTimer.setMode('countdown');
-    FocusTimer.setLength(minutes);
+    /* the estimate is of the job, so a sitting that follows earlier ones
+       counts down what is still owed rather than the whole figure again */
+    if(left >= 1){ FocusTimer.setMode('countdown'); FocusTimer.setLength(left); }
+    else FocusTimer.setMode('stopwatch');
   }
   FocusTimer.setTask(id, subId || null);
   const st = FocusTimer.state();
   if(!st.running || st.taskId !== id || st.subId !== (subId || null)) FocusTimer.start();
   if(what && typeof FocusTimer.noteWork === 'function') FocusTimer.noteWork(what);
   sound('success');
-  toast(`${minutes ? fmtEst(minutes) + ' on ' : 'Focusing on '}${what || t?.text || 'this'} — it is on today's list now.`);
+  const thing = what || t?.text || 'this';
+  toast(!minutes ? `Focusing on ${thing} — it is on today's list now.`
+    : left >= 1
+      ? `${fmtEst(left)}${left < minutes ? ` left of ${fmtEst(minutes)}` : ''} on ${thing} — it is on today's list now.`
+      : `${fmtEst(minutes)} was the estimate and it is spent — this sitting counts up. ${thing} is on today's list now.`);
   if(parseHash().name === 'today') rerender();
   else navigate('#/today');
 }
@@ -14740,6 +14768,377 @@ function guidedNewStage(){
     toast(`"${s.name}" added to your Timeline.`);
   });
 }
+/* ============================================================
+   THE DECK, WRITTEN OUT
+
+   The card list in 16-divination.js is a dictionary: a name, a suit, four
+   keywords and a sentence each way up. That is enough to identify a card
+   and nowhere near enough to sit with one. A person who draws the Tower
+   reversed and is handed "Clinging to traditions that repress growth" has
+   been given a definition, not a reading — and the whole point of dealing
+   a symbol is to have something to think against.
+
+   So every card carries, as well: what it shows, which is where the
+   meaning came from in the first place; one sentence of essence; a few
+   paragraphs each way up that say the thing slowly enough to argue with;
+   two or three questions to put to yourself; a line of counsel; and what
+   it means in each of the positions a spread can put it in, because the
+   Tower in the past is not the Tower in the outcome.
+
+   None of this predicts anything. It is written to give the part of you
+   that already knows something a wider vocabulary to say it in.
+
+   The twenty-two Major Arcana are written at full length. The
+   fifty-six Minor are written shorter, which is proportionate: a Minor is
+   a passing weather system and a Major is a season.
+
+   Fields, short-named because they are repeated seventy-eight times:
+     im  what the card depicts
+     es  the one-sentence essence
+     el  element · pl  planet or sign · nu  what its number carries
+     rel ids of cards that speak to it
+     u   upright, v  reversed — each {s: summary, t: themes,
+         d: the long reading, q: questions, a: counsel}
+     pg  [past, present, future, advice, obstacle, outcome]
+   ============================================================ */
+const TAROT_RICH = [
+/* 0 · The Fool */ {
+  im: "A young figure stands at the edge of a cliff, looking up at the sky rather than down at the drop. A small white dog leaps at their heel. One hand holds a white rose; over the shoulder is a small bag with everything they own in it. The sun is blazing behind them.",
+  es: "The leap into the unknown is where everything that gets made begins.",
+  el: "Air", pl: "Uranus", nu: "Nought: the space before the first number, pure possibility, nothing decided yet",
+  rel: [21, 1],
+  u: {
+    s: "A beginning. You are standing at the edge of something that has not been done before, at least not by you, and it is asking you to trust the ground you cannot see yet.",
+    t: ["beginnings", "innocence", "spontaneity", "trust", "open road"],
+    d: "The Fool is numbered nought — the number before the numbers, the empty place everything else comes out of. When it turns up you are being offered a moment of unspent possibility. Something wants to begin through you, and the only thing it asks is that you be willing to start.\n\nNotice that the figure is not looking at the cliff. That is not stupidity; it is a particular kind of practical wisdom. Look at the drop long enough and you will never move. There is a time for measuring, and this is not it. This is the time for the first step, which is the only part of any road that is ever really difficult.\n\nThe little bag over the shoulder is not empty. It has in it everything that actually matters — what you have already lived through, what you have already learned, what you will not trade. You are not unprepared. You are being asked to carry only what is essential and leave the furniture behind.\n\nThe white rose is innocence, which is not the same as ignorance: it is the willingness to meet what comes without having decided in advance what it is. The dog is instinct, and it is coming with you. Even on the leap, you are not going alone.",
+    q: ["What beginning have you been circling without starting?", "What would you do if you believed the net would appear?", "What could you put down, to travel lighter?"],
+    a: "Begin. The conditions will not improve by being waited for. That you want it is the readiness; the preparation is a story you tell yourself while not starting.",
+  },
+  v: {
+    s: "Either you are holding back from a leap that needs making, or you are leaping to get away from something. Be honest about which.",
+    t: ["hesitation", "recklessness", "fear of the unknown", "escape", "stalling"],
+    d: "Reversed, the beginning is still there but something has got in the way of it, and there are usually two shapes that takes.\n\nThe first is the frozen one. You know a chapter wants to end and another to start, and fear has pinned you at the edge. So you gather more information. You make another plan. You wait for a sign — and the card is the sign. You have been standing at this edge long enough that the standing has become the thing you are doing.\n\nThe second is the opposite and wears the costume of courage: leaping without looking, not out of nerve but out of avoidance. Starting something new because the old thing got uncomfortable, or hard, or simply asked for depth. If you feel a restless pull to blow it all up and start clean, ask honestly whether that is growth or flight, because the two feel identical from inside.\n\nThe medicine is the same either way. Slow down far enough to feel your own feet, and then choose — rather than freeze, and rather than bolt.",
+    q: ["Are you holding back out of fear, or rushing forward to get away?", "What would a deliberate beginning look like — neither frozen nor bolting?"],
+    a: "Feel the fear and check the impulse. Neither standing still nor running serves you. What does is one clear-eyed step, taken on purpose.",
+  },
+  pg: [
+    "A leap you took — possibly without noticing how much it was one — is what put you where you now stand. It has not finished unfolding.",
+    "You are at a threshold now. Something is asking to begin. The question is not whether you step but how awake you are when you do.",
+    "A beginning is coming: an opening, a disruption, or a quiet internal turn. Be in a position to say yes when it arrives.",
+    "Begin before you feel ready. The road appears under people who are already walking.",
+    "Fear of the unknown is the obstacle, and the cliff is not the danger. Standing still is.",
+    "This resolves into something genuinely new — not the old pieces rearranged. Let what was be over.",
+  ],
+},
+/* 1 · The Magician */ {
+  im: "A figure stands at a table with a cup, a coin, a sword and a wand laid on it — all four suits, all four elements, everything needed. One hand points up, the other down. Roses and lilies grow around, and above the head is the sign of infinity.",
+  es: "You already have what the work requires; what is missing is the decision to use it.",
+  el: "Air", pl: "Mercury", nu: "One: the first move, the point where the undivided becomes particular",
+  rel: [0, 2],
+  u: {
+    s: "The resources are on the table. This is the card of having the means and being asked to act — of becoming the channel through which something gets made.",
+    t: ["capability", "will", "focus", "resourcefulness", "making"],
+    d: "Everything on the Magician's table is an ordinary tool. That is the point of the image. Nothing has been granted, nothing was flown in; the four suits are the four kinds of capacity everybody has — what you feel, what you think, what you want, and what you can physically do — and all four are present and in reach.\n\nOne hand points at the sky and one at the ground, which is the whole instruction. Something has to come down through you and land in matter. Idea alone is not the Magician. Effort alone is not either. It is the joining: attention gathered at one point until it goes through.\n\nThis is the card of skill rather than talent. The infinity sign overhead is not a promise of endless energy, it is the shape of practice — the same loop, again, until the loop becomes ability. What you are being told is that the gap between what you can imagine and what you can do is narrower than you have been assuming, and that the way to close it is unglamorous.\n\nWhen this card comes up, stop looking for the missing piece. It is a way of not starting. Take what is on the table.",
+    q: ["What have you been telling yourself you need before you can begin?", "Which of your four tools — feeling, thought, desire, hands — are you refusing to pick up?", "Where would one hour of undivided attention change something?"],
+    a: "Gather your attention to one point and put it through. Scattered capability is indistinguishable from none.",
+  },
+  v: {
+    s: "Power turned on itself: cleverness without direction, or skill used to perform rather than to build.",
+    t: ["manipulation", "scattering", "bluff", "unused talent", "trickery"],
+    d: "Reversed, the Magician is still capable — that never goes away — but the capacity has come loose from any honest purpose.\n\nSometimes that shows as manipulation: using what you know about people to steer them, making the case rather than making the thing. Sometimes it shows as performance: the endless preparation, the beautiful setup, the tools polished and never used. Both are ways of holding the power without spending it, and both feel productive from inside.\n\nAnd sometimes it is simply scattering. Four tools on the table and a hand on all of them at once. The infinity sign becomes a circle you are running in. If you are busy and nothing is finishing, the reversal is describing your week.\n\nThe correction is small and unwelcome: pick one. Not the best one — there may not be a best one — just one, and take it through to something that exists outside your head.",
+    q: ["Am I using what I know to build something, or to be seen knowing it?", "What single thing, finished, would make the rest of the busyness unnecessary?"],
+    a: "Stop preparing. Choose the one thing and carry it all the way to done, even badly.",
+  },
+  pg: [
+    "You had, at some earlier point, exactly what was needed — and whether you used it or not is shaping the present.",
+    "The means are in your hands right now. The situation is waiting on your decision, not on further conditions.",
+    "A moment is coming that will ask you to act on what you already know. Be in practice for it.",
+    "Use what is already on the table. Do not go looking for a fifth tool.",
+    "The obstacle is dispersal, or the polished version of yourself that never quite starts.",
+    "It resolves through deliberate skilled action — your own, not anyone's permission.",
+  ],
+},
+/* 2 · The Papess / High Priestess */ {
+  im: "A figure seated between two pillars, one dark and one light, with a veil hung between them. A crescent moon rests at the feet; a scroll, half hidden, lies in the lap. What is behind the veil is not shown.",
+  es: "Some things are known before they can be said, and that knowing is not to be argued out of you.",
+  el: "Water", pl: "The Moon", nu: "Two: the first division, the pair, the space that opens between",
+  rel: [1, 18],
+  u: {
+    s: "Something in you already knows. The card asks you to stop interrogating it and let it finish forming, in the dark, at its own speed.",
+    t: ["intuition", "stillness", "the unspoken", "inner knowing", "patience"],
+    d: "The Priestess sits between opposites and does not pick one. That is the posture the card is teaching. Not every question is ripe for an answer, and forcing one early usually means choosing the answer you already had.\n\nThe scroll in her lap is half covered. Some of what you know can be brought out and stated; some of it cannot yet, and the part that cannot is not less real. Anyone who has ever had a decision arrive whole after a night's sleep knows this mechanism exists. This card says it is working now, and asks you not to interrupt it.\n\nThe veil is the real image. Behind it is water — the whole of it, unbroken. What comes through to you comes in pieces because that is the only way it fits. Do not mistake the pieces for the whole, and do not dismiss them for being partial.\n\nPractically, the Priestess usually means: not yet. Not refusal — ripening. Keep your own counsel, write things down that you do not understand, and stop asking other people what you think.",
+    q: ["What do you already know that you have not let yourself say?", "Where are you demanding an answer from something that is still forming?", "Whose voice have you been using to override your own?"],
+    a: "Be quiet for longer than is comfortable. The answer is not late; you are early.",
+  },
+  v: {
+    s: "The channel is blocked — either you are talking over it, or you have retreated so far into private knowing that nothing is being tested against the world.",
+    t: ["noise", "secrecy", "self-deception", "ignored instinct", "withdrawal"],
+    d: "Reversed, the relationship with your own inner knowing has gone wrong in one of two directions, and it matters which.\n\nThe common one is noise. You have taken the question to everyone, read everything about it, and the one voice that had something specific to say has been drowned. You may even be able to feel it down there, still saying the same thing, being overruled by a majority you assembled yourself.\n\nThe other is closure. Private knowing has become a room with the door shut — intuition that never gets checked against anybody's experience, certainty with no exposure to correction. That is not depth; it is insulation. Secrets that protect you from being known are not the same as secrets that need keeping.\n\nEither way, the movement is toward honesty with one person: yourself first, then one other you trust to disagree with you.",
+    q: ["What have I known all along and kept talking myself out of?", "Is my privacy here protecting something real, or protecting me from being corrected?"],
+    a: "Put down the second opinions and sit with the first one. Then say it out loud to exactly one person.",
+  },
+  pg: [
+    "Something you sensed but did not act on is part of how you got here. It was not wrong.",
+    "You are in a waiting phase that looks like nothing happening, and is not. Something is forming below the line.",
+    "What you need will come to you as knowing rather than as information. Be in a state where you would notice it.",
+    "Wait. Keep your counsel. Let it ripen rather than forcing it to speak early.",
+    "The obstacle is impatience, or the habit of overruling yourself with other people's certainty.",
+    "It resolves quietly and inwardly, and you will know before you can explain.",
+  ],
+},
+/* 3 · The Empress */ {
+  im: "A figure seated on cushions in a field of ripening corn, a stream running past, trees behind. A crown of stars, a sceptre held loosely, a shield with the sign of Venus resting at her side. Everything in the picture is growing.",
+  es: "What you tend is what bears; there is no shortcut past the season it takes.",
+  el: "Earth", pl: "Venus", nu: "Three: the pair becomes fertile, the first thing that is made rather than found",
+  rel: [4, 2],
+  u: {
+    s: "Abundance, and the ordinary work that produces it. Something you have been feeding is ready, or nearly. Attend to the body, the senses, the material fact of your life.",
+    t: ["fertility", "nourishment", "creativity", "the senses", "ripening"],
+    d: "The Empress is not a card about luck. It is a card about what happens when something is consistently fed. The corn in the field is at the point of harvest because somebody put it in and left it alone long enough, and the card is asking what in your life is at that point, and what you are still tending that has not got there yet.\n\nShe is sitting down. This is worth noticing in a deck full of standing figures. The Empress does not force growth, and cannot; you can water a thing, you cannot pull it. If you are trying to accelerate something living — a piece of work, a relationship, a recovery — the card is saying the rate is not yours to set.\n\nThere is also a plain instruction in here about the body. The Empress governs the physical, and she is the least abstract card in the deck: eat properly, sleep, be touched, go outside, make something with your hands. When this card appears in a life that has gone entirely mental, that is usually the whole message.\n\nAnd she is generous without being depleted, which is the harder half. Abundance that costs you everything is not abundance. Whatever you are giving, check that the field is being replanted.",
+    q: ["What have you been feeding that is nearly ready?", "Where are you trying to hurry something that only grows at its own rate?", "What has your body been telling you that you have been too busy to hear?"],
+    a: "Tend it and let it take the time it takes. Then enjoy it without apologising, which is the part most people skip.",
+  },
+  v: {
+    s: "Care gone out of balance: smothering, or depleted, or cut off from the physical and living entirely in the head.",
+    t: ["overgiving", "stagnation", "neglect", "smothering", "creative block"],
+    d: "Reversed, the Empress usually points at one of two failures of care, and they look like opposites.\n\nOne is giving past your own supply. Nurture that has become an identity, care that cannot be refused, a field harvested every year and never rested. The tell is resentment — it arrives long before you admit the arrangement has stopped working, and it is information, not a character flaw.\n\nThe other is neglect, and most often it is neglect of yourself: the project starved, the body treated as a vehicle, the creative thing put last for so long it has stopped asking. A blocked Empress is rarely blocked for lack of ideas. She is blocked for lack of soil.\n\nThere is a third, smaller reading: smothering. Care that has become control, help that prevents someone from getting on with their own growth. If someone near you has stopped trying, ask whether you have been doing it for them.",
+    q: ["Where am I harvesting without replanting?", "What in me has been last on the list long enough to have gone quiet?", "Is my helping actually helping, or holding?"],
+    a: "Put something back into the ground. Start with your own.",
+  },
+  pg: [
+    "Something you nourished — or failed to — is bearing now, and this is the fruit of it.",
+    "You are in a growing season. It looks slow because growth is slow; it is not stalled.",
+    "Something you have been tending will come to fruit. Do not dig it up to look.",
+    "Feed it and wait. And feed yourself, which is the same instruction.",
+    "The obstacle is impatience with a living process, or a well you have drawn from too often.",
+    "It ripens. What comes is material, tangible and slower than you would like.",
+  ],
+},
+/* 4 · The Emperor */ {
+  im: "A figure on a stone throne carved with rams' heads, in armour under the robe, holding an ankh and an orb. The ground behind is bare mountain, hard and dry. Nothing here is soft.",
+  es: "Freedom needs walls; a form you choose is not a cage.",
+  el: "Fire", pl: "Aries", nu: "Four: the square, the first stable thing, structure that holds weight",
+  rel: [3, 7],
+  u: {
+    s: "Structure, authority, and the unromantic business of deciding. Something in your life needs a spine put in it.",
+    t: ["order", "authority", "boundaries", "discipline", "responsibility"],
+    d: "The Emperor is the least fashionable card in the deck and one of the most useful. He is armoured under his robes, sitting on stone, in a landscape with no water in it. That is what holding a structure actually costs, and the card does not pretend otherwise.\n\nWhat he offers is form. Most things that are failing in a life are not failing for lack of feeling or lack of ideas; they are failing because nobody has decided anything, drawn a line, set an hour, or said what is and is not going to happen. The Emperor is the part of you that can do that, and if the card has turned up it is because that part is needed and has been out of the room.\n\nHe is also the card of the boundary — the honest no, the closed door, the limit set in advance rather than after the damage. This is care, though it does not read as care. A person who cannot say no cannot actually say yes; the yes means nothing if it was never possible to refuse.\n\nAnd he is the father, in the specific sense of the one who says: this is how it is done, and I will stand here while you learn. That is either a memory, a lack, or a job you are being asked to take on.",
+    q: ["What in my life has no structure and is failing for want of one?", "Which boundary have I not drawn because drawing it will disappoint someone?", "Where am I waiting for permission that is mine to give?"],
+    a: "Decide. Write it down, set the limit, and hold it for long enough that it becomes the shape of the thing rather than an argument you are having.",
+  },
+  v: {
+    s: "Structure turned rigid, or absent altogether: control for its own sake, or the failure to take charge of what is yours.",
+    t: ["rigidity", "domination", "chaos", "abdication", "control"],
+    d: "Reversed, the Emperor fails in two directions, and it is usually obvious which one you are looking at.\n\nThe hard version is tyranny — rules kept after they have stopped serving anything, control exercised because it is available, a structure defended against the people inside it. The tell is that the form has become more important than what it was built to protect. If you are winning arguments and losing the thing you were arguing about, this is it.\n\nThe soft version is abdication. Nobody is deciding. The structure has gone, or was never built, and the cost is being paid quietly in drift, lateness, resentment and things half-done. Reversed, the Emperor often turns up for people who dislike authority so much they will not exercise their own, and then live in the mess that leaves.\n\nThere can also be a literal reading: a difficulty with a father, a boss, an institution. Someone with power is using it badly, or refusing to use it at all, and part of your work is to stop waiting for them.",
+    q: ["Am I holding a rule that has outlived its reason?", "What am I refusing to take charge of, and who is carrying it instead?"],
+    a: "Loosen the grip or take hold, whichever is actually your failure. Both are decisions and only you know which.",
+  },
+  pg: [
+    "A structure laid down earlier — one you built or one you were raised inside — is still holding the shape of things.",
+    "The situation is asking for a decision and a boundary, now, from you rather than from anyone else.",
+    "Order is coming, either because you build it or because circumstances impose it. Better the first.",
+    "Set the rule. Hold it. Be the one who decides.",
+    "The obstacle is rigidity, or an authority — possibly your own — that will not bend and will not let go.",
+    "It settles into a lasting form. Firm, workable, and not especially warm.",
+  ],
+},
+/* 5 · The Pope / Hierophant */ {
+  im: "A figure in three-tiered vestments seated between two stone pillars, one hand raised in blessing, two keys crossed below. Two acolytes kneel in front. Everything is indoors, and everything is inherited.",
+  es: "You are not the first person to stand here, and the road has been mapped by people who went before.",
+  el: "Earth", pl: "Taurus", nu: "Five: the settled four disturbed, what happens when the structure meets a person",
+  rel: [2, 4],
+  u: {
+    s: "Tradition, teaching, and the accumulated knowledge of people who have done this before. Look for the lineage rather than reinventing.",
+    t: ["teaching", "tradition", "belonging", "mentorship", "the tried way"],
+    d: "The Hierophant is the card of the transmitted thing: the craft passed down, the school, the church, the discipline with a curriculum. It is deeply out of fashion to be told that the answer might be conventional, and the card says it anyway.\n\nThe two keys are the giveaway. Some knowledge can be worked out from first principles, and some has to be handed to you — not because it is secret but because it took a hundred people a hundred years and you do not have a hundred years. Finding a teacher, joining a form, learning the standard method before deviating from it: this is what the card is pointing at, and it is more often the shortcut than the detour.\n\nIt is also the card of belonging, which is a real human need and not a weakness. Somewhere there is a group of people doing the thing you are trying to do alone. The Hierophant asks why you are not among them.\n\nThe shadow is in the image too: two acolytes, kneeling, backs to us. Tradition can carry you or it can hold you. But that is the reversal's business. Upright, the card says the well is deep and you have been refusing to drink from it.",
+    q: ["Who has already solved this, and why have I not asked them?", "What discipline would I be further along in if I had submitted to its method?", "Where do I belong that I have been standing outside of?"],
+    a: "Learn the form properly before you break it. Find the person who knows, and be teachable in front of them.",
+  },
+  v: {
+    s: "Inherited belief that no longer fits, or a hunger to find your own way outside the sanctioned one.",
+    t: ["dogma", "questioning", "unorthodoxy", "hollow ritual", "leaving"],
+    d: "Reversed, the Hierophant is the moment the handed-down thing stops fitting, and it is usually uncomfortable rather than triumphant.\n\nSometimes what is being shown is dogma: a rule you are keeping because it was given to you, long past anyone being able to say what it is for. Beliefs about work, money, family, what you are allowed to want. The test is simple and rarely applied — can you say why? If the only answer is that this is how it is done, the card is asking you to find out whether you agree.\n\nSometimes it is the opposite failure: rejecting the whole tradition because part of it was wrong, and then having to rediscover by hand what was already known. That is expensive and feels like integrity for about a year.\n\nAnd sometimes it means leaving — a faith, a profession, a family expectation — which is grief as much as liberation, and the card does not ask you to pretend otherwise.",
+    q: ["Which of my rules did I actually choose?", "What am I rejecting wholesale that has a usable part in it?"],
+    a: "Sort the inheritance. Keep what stands up on its own; put the rest down, respectfully, and go.",
+  },
+  pg: [
+    "Something you were taught — a faith, a trade, a family rule — is still running underneath this.",
+    "You are being offered a tried method, or a teacher, or a place to belong. It is worth more than it looks.",
+    "Formal learning, a mentor, or an institution will matter here. Prepare to be a beginner.",
+    "Ask someone who knows. Learn the standard way. Stop improvising in a solved field.",
+    "The obstacle is inherited belief, or an institution that no longer fits and is expensive to leave.",
+    "It resolves through established means: the accepted route, the qualified person, the ordinary door.",
+  ],
+},
+/* 6 · The Lovers */ {
+  im: "Two figures stand naked under a winged being in the light. Behind one is a tree in flame; behind the other a tree with a serpent in it. Neither of them is looking at the angel; they are looking at each other.",
+  es: "A real choice is one that costs you the other thing.",
+  el: "Air", pl: "Gemini", nu: "Six: the pairing, harmony bought by choosing",
+  rel: [2, 14],
+  u: {
+    s: "Union, attraction, and the decision underneath them. Something is asking you to choose, and to know what you are choosing by.",
+    t: ["love", "union", "choice", "values", "alignment"],
+    d: "The Lovers is a card about love and also, more precisely, about the moment love becomes a decision. Attraction happens to you. What you do about it does not.\n\nThe two trees in the picture are the two futures. One burns and one has knowledge in it, and the card does not say which is right — it says that you will have one and not both, and that pretending otherwise is the actual danger. Most people stuck at a crossroads are not stuck for lack of information. They are stuck because both options are real and choosing means losing something true.\n\nUnderneath the romance, this is the card of values. What you choose reveals what you actually hold, as distinct from what you say you hold. If you want to know your real priorities, look at the last three decisions you made when they conflicted.\n\nAnd it is the card of being seen. The figures are naked and are not covering themselves. Whatever union this points to — a person, a partnership, a piece of work you have put your name on — it involves being known, which is the price and also the whole of the reward.",
+    q: ["What am I actually choosing between, under the version I tell people?", "What does this choice say about what I value, whether or not I like the answer?", "Where am I trying to keep both options open to avoid the loss?"],
+    a: "Choose, and let the other thing go properly. A choice you keep re-opening is not a choice, it is a hesitation with a date on it.",
+  },
+  v: {
+    s: "Something is out of alignment: a union under strain, a choice avoided, or a life arranged around values that are not yours.",
+    t: ["disharmony", "avoidance", "misalignment", "fracture", "temptation"],
+    d: "Reversed, the Lovers points at a gap between what you are doing and what you believe, and that gap is usually where the unhappiness is coming from.\n\nIn a relationship it can be plain: strain, distance, the conversation that keeps not happening. Often it is not that anyone has done wrong but that two people have stopped choosing each other daily and are running on the original decision, which has gone stale.\n\nMore often the reversal is internal. You are living by a set of values you absorbed rather than picked. The job, the shape of the week, the thing you are working towards — one of them belongs to somebody else and you have been carrying it so long it feels like yours. The tiredness that comes from this is specific, and no amount of rest touches it.\n\nAnd sometimes it is simply avoidance: a decision you have declined to make, which is being made for you a little more each week.",
+    q: ["Where is my life out of step with what I actually believe?", "What decision am I letting time make on my behalf?"],
+    a: "Name the values, honestly, and then look at your calendar. Where they disagree, one of them has to move.",
+  },
+  pg: [
+    "A choice made earlier — or a union formed, or refused — set the terms you are living in now.",
+    "Something is asking you to choose, and to be honest about what the choice is really between.",
+    "A decision is coming that will cost you the other road. Know your values before you get there.",
+    "Choose by what you actually value, not by what would be easier to explain.",
+    "The obstacle is divided loyalty, or a life built on values you never examined.",
+    "It resolves through a genuine choice — and a genuine letting go of the other.",
+  ],
+},
+/* 7 · The Chariot */ {
+  im: "A figure stands in a stone chariot drawn by two sphinxes, one black and one white, pulling in different directions. There are no reins. The canopy overhead is stitched with stars; the city is behind, already left.",
+  es: "You get there by holding two opposite forces and refusing to let either one drive.",
+  el: "Water", pl: "Cancer", nu: "Seven: the settled six set in motion, effort applied to a direction",
+  rel: [1, 11],
+  u: {
+    s: "Forward motion through control of yourself rather than of circumstances. Willpower, direction, and the discipline to keep both hands on it.",
+    t: ["drive", "control", "momentum", "willpower", "victory"],
+    d: "The Chariot is usually read as triumph, and it is, but the image is more specific than that. The two beasts are pulling in different directions and there are no reins. Whatever is holding them together is coming from the driver, and it is not force. It is composure.\n\nThat is the instruction. You are being moved by opposing pulls — ambition and fear, duty and want, the version of you that wants to go and the version that wants to stay — and the work is not to kill one of them. It is to stand up straight in the middle and keep the whole contraption pointed.\n\nThe city is behind him. Something has already been left, and the card does not suggest going back to check. Momentum is fragile in the early part; the main threat to a journey in its first stretch is the temptation to revisit the decision.\n\nAnd it is a card about self-command in the plain sense: getting up, doing the thing on the day you do not feel like it, not spending the energy on the argument. Victory here is not dramatic. It is the accumulation of not stopping.",
+    q: ["What two forces am I holding, and which one have I been letting drive?", "What have I left that I keep going back to look at?", "Where would sheer consistency, unglamorously applied, get me further than cleverness?"],
+    a: "Keep going, and keep hold of yourself. The direction matters more than the speed, and both matter more than how you feel today.",
+  },
+  v: {
+    s: "Momentum lost or misdirected: driving hard with no destination, or stalled and mistaking the stall for rest.",
+    t: ["scattered force", "stalling", "aggression", "no direction", "losing the thread"],
+    d: "Reversed, the Chariot has come off the road in one of two ways.\n\nThe first is force without direction. Working hard, moving fast, and unable to say where. This is the most respectable form of being lost, because it looks exactly like diligence and nobody will challenge it, including you. If you are exhausted and cannot name what you are exhausted toward, the card is describing this.\n\nThe second is the stall. Something stopped — a setback, a loss of nerve, one bad week — and the not-going has quietly become the state. Momentum is much harder to start than to keep, and the longer this runs the larger the first step looks.\n\nThere is also the aggression reading: will hardened into force, pushing through people rather than situations. If you are winning and alone, look at that.",
+    q: ["What am I working hard toward — in one sentence, out loud?", "What is the smallest possible motion that would end the stall today?"],
+    a: "Name the destination or stop paying for the journey. Then take one small step, today, before the momentum question gets any bigger.",
+  },
+  pg: [
+    "A push you made — of will, of discipline, of sheer refusal to stop — is why you are where you are.",
+    "You are in motion and the work is to stay pointed. Both pulls are real; neither gets to steer.",
+    "A stretch is coming that will be won by consistency rather than brilliance.",
+    "Hold your direction and hold yourself. Do not renegotiate the decision every morning.",
+    "The obstacle is being pulled two ways, or effort with no destination attached to it.",
+    "It resolves through your own persistence. Not cleanly, not quickly, but it resolves.",
+  ],
+},
+/* 8 · Strength */ {
+  im: "A figure in white, wearing a chain of flowers, closing a lion's mouth with both hands. There is no struggle in the posture. Above her head is the sign of infinity, the same one the Magician wears.",
+  es: "The thing you cannot beat, you can sometimes befriend.",
+  el: "Fire", pl: "Leo", nu: "Eight: power, and the mastery that makes power usable",
+  rel: [1, 11],
+  u: {
+    s: "Courage of the quiet kind. Not overpowering what is wild in you but staying with it until it settles.",
+    t: ["courage", "patience", "compassion", "self-mastery", "gentleness"],
+    d: "The lion is not being defeated. That is the entire card. Her hands are on its jaws and there is no strain anywhere in the picture — no weapon, no armour, no visible effort. Whatever she is doing, it is not force, and it is working.\n\nThis is the card for the part of you that you have been at war with. The appetite, the temper, the fear, the want that keeps embarrassing you. The Strength card says the war is the problem. What is wild in you is also where your energy comes from, and killing it would cost you more than it costs you now.\n\nSo the instruction is patience with yourself, which is harder than discipline and much less satisfying. You stay. You do not flinch and you do not attack. Over time the thing stops fighting you, not because it was beaten but because it was finally met.\n\nIt applies outwards too: the difficult person, the situation that will not yield to pressure. Strength is the card that says the confrontation you are planning will lose you the thing you want, and that steadiness will get it.",
+    q: ["What in me have I been trying to defeat rather than understand?", "Where would patience achieve what force has failed to?", "What would change if I stopped being ashamed of the wild part?"],
+    a: "Stay with it. No force, no flinching, no deadline. Steadiness is doing something even on the days it looks like nothing.",
+  },
+  v: {
+    s: "Either the wild thing is running the house, or you have clamped down so hard there is no life left in it.",
+    t: ["self-doubt", "suppression", "indulgence", "raw nerve", "loss of nerve"],
+    d: "Reversed, the balance between you and what is wild in you has gone, and again it can go two ways.\n\nOne is being ridden. The appetite, the anger, the anxiety is setting the agenda and you are explaining it afterwards. The hallmark is the private promise made every night and broken every afternoon. Notice that this is not weakness of will; it is usually what happens when a need has gone unmet for long enough to stop asking politely.\n\nThe other is the clamp. Total control, nothing expressed, and a life that has gone grey around the edges. Suppression works, which is what makes it dangerous — it works until the day it does not, and it costs vitality the whole time.\n\nThere is also a quieter reading: nerve gone. Something knocked your confidence and you have been trading in courage for caution ever since, one small decision at a time.",
+    q: ["What need of mine has been ignored long enough to start making decisions for me?", "Where has my control cost me more life than the thing I was controlling?"],
+    a: "Feed the thing you have been starving, honestly and in a form you choose — before it chooses for you.",
+  },
+  pg: [
+    "You got through something by staying with it rather than by winning. That endurance is in you now.",
+    "You are being asked for patience with something wild — in you or near you. Force will lose here.",
+    "Something will test your nerve. Gentleness held steady will do better than force.",
+    "Do not fight it. Stay with it, longer than feels reasonable, without flinching.",
+    "The obstacle is your own appetite or fear — not because it is strong but because you are at war with it.",
+    "It resolves through endurance and warmth rather than through victory. Nothing is defeated; something is reconciled.",
+  ],
+},
+/* 9 · The Hermit */ {
+  im: "An old figure alone on a snow-covered height, wrapped in grey, holding up a lantern with a star inside it. A staff in the other hand. No path is visible; the lantern lights only the next few feet.",
+  es: "You have to go where it is quiet before you can hear what you think.",
+  el: "Earth", pl: "Virgo", nu: "Nine: the near-complete, the turn inward before the end",
+  rel: [2, 12],
+  u: {
+    s: "Withdrawal on purpose. Time alone, not from sadness but because the answer is not available in company.",
+    t: ["solitude", "search", "inner light", "retreat", "discernment"],
+    d: "The Hermit has climbed above the noise and is holding up a lamp that lights about three feet of ground. That is an honest picture of how guidance actually works. You do not get the map. You get the next bit, and only if you are somewhere quiet enough to see it.\n\nThe card asks for deliberate solitude, which is different from loneliness and different from hiding. It is the decision to stop taking input for a while — to get off the feed, out of the conversation, away from the people whose opinions you can predict — long enough to find out what you think when nobody is watching you think it.\n\nThere is a second meaning that arrives with age: the Hermit is also the one who has something to give and waits to be asked. If you have been through something, part of this card is being willing to hold the lamp up for whoever is behind you on the same climb.\n\nAnd it is slow. The staff, the snow, the deliberate pace. Anything worked out on a Hermit's timescale tends to hold, and anything decided quickly to end the discomfort of not knowing tends not to.",
+    q: ["When did I last spend time alone that was not filled?", "What would I think about this if nobody were going to hear the answer?", "What do I know now that would be worth handing to someone behind me?"],
+    a: "Go where it is quiet and stay longer than is comfortable. Take the next three feet; the rest lights up as you walk.",
+  },
+  v: {
+    s: "Isolation rather than solitude — or the opposite, a life so crowded that the necessary retreat never happens.",
+    t: ["loneliness", "hiding", "over-exposure", "refusal of help", "lost thread"],
+    d: "Reversed, the Hermit tips out of solitude into one of its two failures.\n\nThe first is isolation: the retreat that was supposed to be temporary and became the arrangement. The lamp goes out, the search stops, and what is left is simply being alone. The tell is that solitude has stopped producing anything — no insight, no rest, just the absence of people. That is not a spiritual state, it is a symptom, and it responds to company rather than to more solitude.\n\nThe second is the opposite. Life is so full that the inward turn is permanently deferred. You know you need to think and there is no hour in the week where thinking could happen. The card reversed is often just this: a plain scheduling problem with spiritual consequences.\n\nThere is also the refusal of help — the hermit who will not come down, will not ask, will not let anyone carry anything. Self-sufficiency is a virtue until it becomes a way of never being known.",
+    q: ["Is my aloneness producing anything, or has it just become the shape of my week?", "When in the next seven days could I actually be quiet, and what would I have to refuse to make it happen?"],
+    a: "If you have been alone, go and see someone. If you have not been alone at all, clear an evening and defend it.",
+  },
+  pg: [
+    "A period of withdrawal — chosen or imposed — shaped what you now understand.",
+    "You need time out of the noise. What you are looking for is not available in company right now.",
+    "A quiet stretch is coming, and it will be more useful than it looks from here.",
+    "Withdraw. Take counsel from yourself. Light the next three feet and walk them.",
+    "The obstacle is isolation dressed as independence, or a life too crowded to think in.",
+    "It resolves privately and slowly, through understanding rather than through events.",
+  ],
+},
+/* 10 · The Wheel */ {
+  im: "A great wheel turning in the sky, lettered and marked. Creatures at the four corners read from open books, indifferent to the turning. A sphinx sits on top, still, while everything else rises and falls.",
+  es: "The turn is not about you, and the still point is the only place to stand.",
+  el: "Fire", pl: "Jupiter", nu: "Ten: the cycle complete and beginning again",
+  rel: [0, 21],
+  u: {
+    s: "Change arriving on its own schedule. Luck, timing, the turn of a cycle — none of it earned, all of it real.",
+    t: ["cycles", "fortune", "timing", "change", "the larger pattern"],
+    d: "The Wheel is the card that says not everything is your doing. Some of what has happened to you was weather. Some of what is about to happen is too.\n\nThis is unfashionable in both directions. It means the credit for the good stretch is not entirely yours, and it means the bad stretch was not entirely your fault either. People find the second half easier to say and the first half easier to believe. The card is asking for both at once.\n\nPractically, the Wheel says a turn is happening. Something that has been stuck is moving; something that has been reliable is about to stop being. It rarely specifies which, because the mechanism is the same. What it does specify is timing: this is a moment to act on what is moving rather than on what you planned six months ago.\n\nThe sphinx on top is not going round. That is the whole counsel. There is a position — call it perspective — from which the rise and fall are visible as one motion rather than as a series of personal events. Getting there is the work of a life, and it is available in small amounts immediately.",
+    q: ["What is turning right now that I am still treating as fixed?", "Where have I been taking personal credit, or personal blame, for weather?", "If this is the upswing, what should I be doing that I am not?"],
+    a: "Move with it. Do not mistake the turn for a verdict on your character, in either direction.",
+  },
+  v: {
+    s: "Resisting a change that is happening anyway, or a run of bad timing that is not a judgement on you.",
+    t: ["resistance", "bad timing", "stuck", "fatalism", "clinging"],
+    d: "Reversed, the Wheel is usually about the effort of holding still while something turns.\n\nThe common form is clinging. A phase is ending — a job, a version of a relationship, a way of working — and you are spending real strength on keeping it. That strength is not wasted exactly; it is simply being spent on the one thing it cannot buy. The exhaustion of this is distinctive: you work very hard and nothing moves.\n\nThe other form is fatalism, which is the reversal's subtler failure. The Wheel turns, therefore nothing I do matters, therefore I will do nothing. But the sphinx is still and the creatures are reading; nobody in the picture has given up. The turn is not an argument against having your hands on something.\n\nAnd sometimes it is simply a bad run. Luck is real and it is currently not with you. That is not a moral fact. Cut costs, do not make large bets, and wait for the wheel, which has never once failed to keep going.",
+    q: ["What am I holding shut that is trying to turn?", "If this stretch is just weather, what would I do differently than if it were a verdict?"],
+    a: "Let go of what is ending, and keep your hands on what is actually yours. Both are required.",
+  },
+  pg: [
+    "A turn of luck or timing — not of your making — put you here. It was weather, not verdict.",
+    "Something is turning now, faster than your plans are updating.",
+    "A change of fortune is coming. Be positioned rather than surprised.",
+    "Move with the turn. Do not spend strength holding a phase that is ending.",
+    "The obstacle is timing, or your grip on something that has already begun to go.",
+    "It resolves by turning. What is down comes up; the pattern is larger than the episode.",
+  ],
+},
+/* 11 · Justice */ {
+  im: "A figure seated between two pillars holding an upright sword in one hand and level scales in the other. The gaze is direct — the only card in the deck that looks straight out at you. A red robe, a square clasp, one foot showing.",
+  es: "What you did is what will be weighed, not what you meant.",
+  el: "Air", pl: "Libra", nu: "Eleven: the balance point, the pause at the middle of the journey",
+  rel: [8, 20],
+  u: {
+    s: "Consequence, honesty, and the settling of accounts. Something is being weighed, and the measure is what actually happened.",
+    t: ["truth", "consequence", "fairness", "accountability", "clear sight"],
+    d: "Justice holds a sword and a set of scales, and looks straight at you. It is not a comfortable card and it is not supposed to be. What is coming is proportionate to what was done — not to what you intended, not to what you can explain, not to how sorry you are.\n\nThat cuts both ways, and the deck means it to. If you have been doing good work quietly, this card says it lands. If you have been getting away with something, it says the ledger is being read. Neither is a punishment; both are simply the arithmetic catching up.\n\nThe sword is upright: cutting is part of fairness. Some situations cannot be balanced by adding. Something has to be cut away — a habit, an arrangement, a relationship that has been running at a loss for one of the parties. Justice is the card that says stop negotiating and make the cut.\n\nAnd it asks for your own honesty first. The scales are not for other people. Before this card is about what you are owed, it is about what you owe, and the second question is the one most people skip.",
+    q: ["What have I done that I have not squared up?", "Where am I arguing intention against a result?", "If I looked at this without self-interest, what would I plainly see?"],
+    a: "Tell the truth about it, including to yourself, and accept what follows. That is the shortest route through.",
+  },
+  v: {
+    s: "Imbalance: an account unsettled, a judgement withheld or given too harshly, or a story told in your own favour for so long you believe it.",
+    t: ["evasion", "bias", "unfairness", "harshness", "denial"],
+    d: "Reversed, Justice describes the scales left uneven, and it is usually by a small and comfortable amount.\n\nMost often it is self-deception: the version of events you have told so many times that the edges have been worn smooth. Not lying — editing. The tell is that you feel defensive before anyone has accused you of anything.\n\nSometimes it is real injustice, done to you or by a system, and the card does not pretend that everything balances on its own. When it does not, the work is to be clear-eyed about that without letting it become the story of your life.\n\nAnd sometimes it is harshness — judgement applied to yourself at a severity you would consider cruel if it were directed at anybody else. Justice reversed often turns up in people who are rigorous about their own failures and generous about everyone's. That is not fairness. That is a bias with good manners.",
+    q: ["What account have I left open because opening it properly would cost me?", "Am I applying to myself a standard I would call unjust if I saw it used on a friend?"],
+    a: "Weigh it honestly, once, and then act on the result rather than relitigating it.",
+  },
+  pg: [
+    "A decision or an action of yours, and its plain consequences, is the ground you are standing on.",
+    "Something is being weighed now. The measure is what happened, not what was meant.",
+    "A reckoning or a settlement is coming. Get your own account straight before it does.",
+    "Be honest, especially where it costs. Then accept the result without negotiating.",
+    "The obstacle is an unsettled account, or a story you have told in your own favour.",
+    "It resolves fairly — which may or may not be pleasantly. What was done decides it.",
+  ],
+},
+];
 /* ============================================================
    DIVINATION — a mirror, not a fortune
 
@@ -24061,7 +24460,9 @@ function subRowHTML(rid, s){
       <button class="task-est sm${+s.minutes ? '' : ' none'}${subSpentOn(rid, s.id) >= 1 ? ' spent' : ''}${
           +s.minutes && subSpentOn(rid, s.id) > +s.minutes ? ' over' : ''}" data-subest="${esc(rid)}|${esc(s.id)}"
         title="${subSpentOn(rid, s.id) >= 1
-          ? `${fmtEst(subSpentOn(rid, s.id))} sat with so far${+s.minutes ? `, of ${fmtEst(s.minutes)} estimated` : ''}`
+          ? `${fmtEst(subSpentOn(rid, s.id))} sat with so far${+s.minutes ? `, of ${fmtEst(s.minutes)} estimated` : ''}${
+              +s.minutes ? ` — press to sit down with ${focusLeftOn(rid, +s.minutes, s.id) >= 1
+                ? `the ${fmtEst(focusLeftOn(rid, +s.minutes, s.id))} left` : 'it again; the estimate is spent, so it counts up'}` : ''}`
           : +s.minutes ? `${fmtEst(s.minutes)} — press to sit down with just this step` : 'how long will this step take?'}">${
         subSpentOn(rid, s.id) >= 1
           ? `<span class="te-spent">${esc(fmtEst(subSpentOn(rid, s.id)))}</span>${+s.minutes ? `<span class="te-of">of</span>${esc(fmtEst(s.minutes))}` : ''}`
