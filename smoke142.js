@@ -41,9 +41,19 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
 
   console.log('\n2. a reading deals real cards and keeps what you make of it');
   await p.evaluate(() => openTarot({spread:'three'})); await p.waitForTimeout(400);
-  await p.evaluate(() => document.querySelector('#dvDraw').click()); await p.waitForTimeout(400);
-  is('three are dealt', await p.$$eval('[data-tc]', n => n.length), 3);
-  yes('  face down', await p.evaluate(() => ![...document.querySelectorAll('[data-tc]')].some(c => c.classList.contains('up'))));
+  await p.evaluate(() => document.querySelector('#dvDraw').click()); await p.waitForTimeout(500);
+  /* the deal is a ceremony now: a moment to settle, a shuffle, and then a
+     spread of backs to choose from — always more of them than the spread
+     needs, because choosing from exactly as many as you need is not
+     choosing */
+  yes('a moment to settle comes first', await p.evaluate(() => !!document.querySelector('.dv-veil')));
+  yes('  and it can be skipped', await p.evaluate(() => !!document.querySelector('.dv-veil .dv-skip')));
+  await p.evaluate(() => document.querySelector('.dv-veil .dv-skip').click());
+  await p.waitForTimeout(3000);
+  is('a place for each position', await p.$$eval('.tc-slot', n => n.length), 3);
+  yes('  with more backs to choose from than cards to be dealt',
+      (await p.$$eval('.dv-pick', n => n.length)) > 3);
+  yes('  and nothing face up yet', await p.evaluate(() => !document.querySelector('.tc.up')));
   /* Drawn without replacement: three cards from seventy-eight would collide
      only rarely by luck, so this asks the dealer itself, with the biggest
      spread, many times over. */
@@ -54,8 +64,20 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     return worst; });
   is('  and no card comes up twice in one spread', dupes, 0);
   yes('  the meanings are hidden until they are turned', await p.evaluate(() => document.querySelector('#dvRead').hidden));
-  await p.evaluate(() => document.querySelectorAll('[data-tc]').forEach(c => c.click())); await p.waitForTimeout(900);
+  for(let i = 0; i < 3; i++){
+    await p.evaluate(j => document.querySelectorAll('.dv-pick:not(.taken)')[j * 2].click(), i);
+    await p.waitForTimeout(1900);
+  }
+  await p.waitForTimeout(1800);
+  is('choosing three turns three', await p.$$eval('.tc.up', n => n.length), 3);
   yes('turning them all shows what they mean', await p.evaluate(() => !document.querySelector('#dvRead').hidden));
+  is('  one reading apiece', await p.$$eval('.dv-card-read', n => n.length), 3);
+  yes('  each with more than a line of it', await p.evaluate(() =>
+    [...document.querySelectorAll('.dv-card-read')].every(n => n.querySelectorAll('.dv-cr-t').length >= 2)));
+  yes('  and questions to put to yourself', await p.evaluate(() =>
+    [...document.querySelectorAll('.dv-card-read')].every(n => n.querySelectorAll('.dv-cr-q li').length >= 2)));
+  yes('  three cards are read as one story', await p.evaluate(() =>
+    (document.querySelector('.dv-story p')?.textContent || '').length > 80));
   const eB = await p.evaluate(() => S.entries.length);
   await p.evaluate(() => { document.querySelector('#dvText').value = 'It is about the move, not the job.';
     document.querySelector('#dvSave').click(); });
@@ -66,9 +88,28 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   is('  with the three cards on it', read.extra.divination.cards.length, 3);
   yes('  and your reading, not the book\'s', /about the move/.test(read.body), read.body);
   /* a reversed card reads the other meaning, which is the whole reason to have one */
-  const rev = await p.evaluate(() => { const c = TAROT[0];
-    return {up: c.u, down: c.v, differ: c.u !== c.v}; });
+  const rev = await p.evaluate(() => { const c = tarotCard(0);
+    return {up: c.upright.summary, down: c.reversed.summary, differ: c.upright.inDepth !== c.reversed.inDepth}; });
   yes('a reversed card means something else', rev.differ);
+
+  /* every card carries the long version, not just a dictionary line */
+  const depth = await p.evaluate(() => {
+    const bad = [];
+    for(let i = 0; i < 78; i++){
+      const c = tarotCard(i);
+      if(!c.imagery || !c.essence) bad.push(c.name + ': no picture');
+      else if(!c.upright.inDepth || !c.reversed.inDepth) bad.push(c.name + ': no reading');
+      else if(c.upright.questions.length < 2 || c.reversed.questions.length < 2) bad.push(c.name + ': no questions');
+      else if(!c.positionGuidance || !c.positionGuidance.past || !c.positionGuidance.outcome) bad.push(c.name + ': no positions');
+    }
+    const majors = [...Array(22).keys()].map(i => tarotCard(i));
+    return {bad: bad.slice(0, 4),
+      majorParas: Math.min(...majors.map(c => c.upright.inDepth.split('\n\n').length)),
+      minorParas: Math.min(...[...Array(56).keys()].map(i => tarotCard(i + 22).upright.inDepth.split('\n\n').length))};
+  });
+  is('  every one of the seventy-eight is written out', depth.bad.length, 0);
+  yes('  the Major Arcana at length', depth.majorParas >= 3, depth.majorParas + ' paragraphs at the shortest');
+  yes('  the Minor in proportion', depth.minorParas >= 2, depth.minorParas + ' paragraphs at the shortest');
 
   console.log('\n3. the coins actually decide the hexagram');
   const cast = await p.evaluate(() => {

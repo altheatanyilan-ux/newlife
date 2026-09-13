@@ -107,12 +107,17 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   const card = await p.evaluate(i => {
     const n = document.querySelector(`[data-entry="${i}"]`); return n ? n.textContent : ''; }, eid);
   yes('the note typed at the time is still there', /my own note/.test(card));
-  yes('  and so is the first card\'s own meaning', /Freeing yourself from limitation/.test(card),
-      card.slice(0, 200));
-  yes('  the reversed card gives its reversed reading', /Refusing to let go|clinging|Clinging/.test(card)
-      || /reversed/i.test(card));
+  /* the meaning kept with a reading is the long one now: the card's essence,
+     its themes and what it says the way up it landed — not a dictionary line */
+  yes('  and so is the first card\'s own meaning',
+      /standing at the edge of something/.test(card), card.slice(0, 260));
+  yes('  with the line it is carried by', /The leap into the unknown/.test(card));
+  yes('  the reversed card gives its reversed reading',
+      /Hanging on/.test(card) && /reversed/i.test(card));
   yes('  each card says which position it fell in', /What is behind/.test(card) && /Where you are/.test(card));
-  yes('  and its keywords', /freedom/.test(card));
+  yes('  and its themes', /beginnings/.test(card));
+  yes('  with the long reading one click away', await p.evaluate(i =>
+    !!document.querySelector(`[data-entry="${i}"] .dv-read-more`), eid));
   /* the meaning is read from the deck, not copied — so it cannot go stale */
   is('the entry stores only the card number', await p.evaluate(i =>
     JSON.stringify(S.entries.find(e => e.id === i).extra.divination.cards[0]),
@@ -135,7 +140,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   const still = await p.evaluate(() => document.querySelector('#t-still')?.textContent || '');
   yes('the stillness section shows what was drawn today', /drawn today/.test(still), still.slice(0, 120));
   yes('  naming the cards', /The Fool/.test(still));
-  yes('  and giving their meaning', /Freeing yourself from limitation/.test(still));
+  yes('  and giving their meaning', /standing at the edge of something/.test(still));
   yes('  the hexagram is there as well', /The Creative/.test(still));
   /* it is a way back into the record, not a dead card */
   const opens = await p.evaluate(() => {

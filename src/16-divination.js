@@ -330,9 +330,11 @@ function bindDrawnToday(root){
 }
 
 function tarotMeaning(pick){
-  const c = TAROT[pick.card]; if(!c) return null;
-  return {name:c.n + (pick.rev ? ', reversed' : ''), suit:c.s,
-    keys:(c.k || []).join(' · '), text:(pick.rev ? c.v : c.u) || ''};
+  const c = tarotCard(pick.card); if(!c) return null;
+  const s = pick.rev ? c.reversed : c.upright;
+  return {name:c.name + (pick.rev ? ', reversed' : ''), suit:c.suit, card:c, side:s,
+    keys:(s.themes.length ? s.themes : c.keywords).join(' · '),
+    text:s.summary || s.plain || ''};
 }
 function divinationReadHTML(d){
   if(!d) return '';
@@ -352,30 +354,77 @@ function divinationReadHTML(d){
       <div class="dv-read-h"><b class="serif">${esc(c.name || '')}</b></div>
       ${c.text ? `<p class="dv-read-t">${esc(c.text)}</p>` : ''}</div>`).join('');
   }
-  return (d.cards || []).map(c => {
+  /* A kept reading shows the summary and keeps the long version one click
+     away: months later the point of opening it is usually to remember which
+     cards came up, and occasionally to read the whole thing again. Both are
+     read off the deck at render time rather than copied into the entry, so a
+     correction to the deck reaches the readings already filed. */
+  return (d.cards || []).map((c, i) => {
     const mn = tarotMeaning(c); if(!mn) return '';
+    const slot = tarotSlot(d.spread, i);
+    const guide = mn.card.positionGuidance ? mn.card.positionGuidance[slot] : '';
+    const paras = (mn.side.inDepth || '').split('\n\n').filter(Boolean);
     return `<div class="dv-read-card"${SUIT_COLOR[mn.suit] ? ` style="--sc:${SUIT_COLOR[mn.suit]}"` : ''}>
       <div class="dv-read-h"><b class="serif">${esc(mn.name)}</b>${
         c.pos ? `<span class="mono faint">${esc(c.pos)}</span>` : ''}</div>
+      ${mn.card.essence ? `<div class="dv-read-ess">${esc(mn.card.essence)}</div>` : ''}
       ${mn.keys ? `<div class="dv-read-k mono">${esc(mn.keys)}</div>` : ''}
-      ${mn.text ? `<p class="dv-read-t">${esc(mn.text)}</p>` : ''}</div>`;
+      ${mn.text ? `<p class="dv-read-t">${esc(mn.text)}</p>` : ''}
+      ${paras.length ? `<details class="dv-read-more"><summary>the longer reading</summary>
+        ${paras.map(t => `<p class="dv-read-t">${esc(t)}</p>`).join('')}
+        ${guide ? `<p class="dv-read-t faint"><span class="mono">in a ${esc(slot)} position</span> — ${esc(guide)}</p>` : ''}
+        ${mn.side.questions.length ? `<ul class="dv-cr-q">${mn.side.questions.map(q => `<li>${esc(q)}</li>`).join('')}</ul>` : ''}
+        ${mn.side.advice ? `<p class="dv-cr-adv">${esc(mn.side.advice)}</p>` : ''}</details>` : ''}</div>`;
   }).join('');
 }
 
-function tarotCardHTML(pick, pos, faceUp){
-  const c = TAROT[pick.card]; if(!c) return '';
-  const col = SUIT_COLOR[c.s] || '#8f7bb0';
-  return `<div class="tc ${faceUp ? 'up' : ''} ${pick.rev ? 'rev' : ''}" data-tc="${pos}" style="--sc:${col}">
-    <div class="tc-inner">
-      <div class="tc-back"><span>✦</span></div>
-      <div class="tc-face">
-        <span class="tc-suit">${SUIT_GLYPH[c.s] || '✦'}</span>
-        <span class="tc-name">${esc(c.n)}</span>
-        ${pick.rev ? '<span class="tc-rev mono">reversed</span>' : ''}
-        <span class="tc-keys mono">${esc((c.k || []).slice(0, 3).join(' · '))}</span>
-      </div>
-    </div></div>`;
+/* ---------- the drawing ceremony ----------
+   The old draw was a row of small rectangles you clicked to flip. It worked
+   and it felt like a flashcard test. A reading is a ceremony — not because
+   anything supernatural is happening, but because the pause, the intention
+   and the turning are the mechanism by which a person gets far enough out
+   of their own argument to hear themselves. Removing the ceremony removes
+   the working part.
+
+   Five phases: a moment to settle, the shuffle, choosing from a spread of
+   backs, the turn, and then the reading. Every one of them is skippable by
+   the person and every animation in them is dropped for anyone who has
+   asked for less motion. */
+
+/* Phase one. A full-viewport veil, warm and dark whatever the theme, with
+   three lines that arrive one at a time. The button comes last and on its
+   own, so there is a moment where there is nothing to do. */
+function tarotCentering(then){
+  const lines = ['Take a breath.', 'Close your eyes for a moment.', 'Hold your question in your mind.'];
+  const soft = typeof reduced === 'function' && reduced();
+  const veil = el(`<div class="dv-veil" role="dialog" aria-label="a moment before the cards">
+    <div class="dv-veil-in">
+      ${lines.map((l, i) => `<p class="dv-veil-l" style="--i:${i}">${esc(l)}</p>`).join('')}
+      <button class="btn primary dv-ready" ${soft ? '' : 'hidden'}>I'm ready</button>
+      <button class="dv-skip mono">skip</button>
+    </div></div>`);
+  document.body.appendChild(veil);
+  const go = () => { veil.classList.add('out'); setTimeout(() => veil.remove(), soft ? 0 : 420); then(); };
+  veil.querySelector('.dv-ready').onclick = go;
+  veil.querySelector('.dv-skip').onclick = go;
+  if(!soft) setTimeout(() => { const b = veil.querySelector('.dv-ready'); b.hidden = false; b.focus(); },
+    lines.length * 700 + 1400);
+  else veil.querySelector('.dv-ready').focus();
+  veil.addEventListener('keydown', e => { if(e.key === 'Escape') go(); });
+  return veil;
 }
+
+/* Phase two. Seven backs in a loose pile that slide, restack and spread.
+   The sequence is choreographed rather than random — a shuffle that looks
+   random looks like a bug. */
+function tarotShuffleHTML(){
+  return `<div class="dv-shuffle" id="dvShuffle">
+    <div class="dv-pile">${Array.from({length: 7}, (_, i) =>
+      `<div class="dv-sh-card" style="--i:${i};--r:${(i * 37 % 13) - 6}deg"><div class="tc-mini">${tarotBackHTML()}</div></div>`).join('')}</div>
+    <div class="dv-sh-say quote">The cards are being shuffled…</div>
+  </div>`;
+}
+
 function openTarot(pre = {}){
   const projects = typeof thProjects === 'function' ? thProjects() : [];
   const m = openModal(`<h2>A reading</h2>
@@ -393,39 +442,99 @@ function openTarot(pre = {}){
   const spreadOf = () => TAROT_SPREADS.find(s => s.id === m.querySelector('#dvSpread').value) || TAROT_SPREADS[1];
   const showPos = () => { m.querySelector('#dvPos').textContent = spreadOf().pos.join('  ·  '); };
   m.querySelector('#dvSpread').onchange = showPos; showPos();
+
   m.querySelector('#dvDraw').onclick = () => {
     const sp = spreadOf(), picks = tarotDraw(sp.pos.length);
+    const soft = typeof reduced === 'function' && reduced();
     m.querySelector('#divSetup').hidden = true;
-    m.querySelector('#divOut').innerHTML = `<div class="mono faint" style="margin-bottom:8px">${esc(sp.name)} — turn each one over</div>
-      <div class="tc-row">${picks.map((pk, i) => `<div class="tc-slot"><span class="tc-pos mono">${esc(sp.pos[i])}</span>${tarotCardHTML(pk, i, false)}</div>`).join('')}</div>
-      <div id="dvRead" hidden>
-        <div class="dv-meanings">${picks.map((pk, i) => { const c = TAROT[pk.card];
-          return `<div class="dv-m"><span class="mono">${esc(sp.pos[i])}</span>
-            <b class="serif">${esc(c.n)}${pk.rev ? ' — reversed' : ''}</b>
-            <div class="mono faint">${esc((c.k || []).join(' · '))}${SUIT_ELEM[c.s] ? ' · ' + SUIT_ELEM[c.s] : ''}</div>
-            <p>${esc(pk.rev ? c.v : c.u)}</p></div>`; }).join('')}</div>
-        <div class="field"><label>What do you make of it?</label>
-          <textarea class="inp" id="dvText" rows="5" placeholder="Not what the book says. What it says to you, about the thing you asked."></textarea></div>
-        <div class="row between" style="margin-top:10px;flex-wrap:wrap;gap:8px">
-          <label class="row" style="gap:6px;font-size:.78rem;align-items:center"><input type="checkbox" id="dvRevisit"> <span>come back to this one</span></label>
-          ${projects.length ? `<select class="inp sm" id="dvProj"><option value="">nothing in particular</option>
-            ${projects.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select>` : ''}
-          <button class="btn primary" id="dvSave">Keep the reading</button></div>
-      </div>`;
-    let turned = 0;
-    m.querySelectorAll('[data-tc]').forEach(card => card.onclick = () => {
-      if(card.classList.contains('up')) return;
-      card.classList.add('up'); sound('click');
-      if(++turned === picks.length) setTimeout(() => { m.querySelector('#dvRead').hidden = false; }, 500);
+    m.querySelector('#divOut').innerHTML = tarotShuffleHTML();
+    tarotCentering(() => {
+      const sh = m.querySelector('#dvShuffle');
+      if(sh) sh.classList.add('go');
+      sound('click');
+      setTimeout(deal, soft ? 0 : 2400);
     });
-    m.querySelector('#dvSave').onclick = () => {
-      divinationSave({system:'tarot', question:m.querySelector('#dvQ').value.trim(), spread:sp.id,
-        title:`${sp.name} — ${picks.map(pk => TAROT[pk.card].n).join(', ')}`,
-        cards:picks.map((pk, i) => ({card:pk.card, rev:pk.rev, pos:sp.pos[i]})),
-        reading:m.querySelector('#dvText').value.trim(),
-        revisit:m.querySelector('#dvRevisit').checked, projectId:m.querySelector('#dvProj')?.value || null});
-      sound('success'); toast('Kept in the Lived Record.'); m.remove(); rerender();
-    };
+
+    /* Phase three onward. Backs are laid out to choose from — always more of
+       them than will be drawn, because choosing from exactly as many as you
+       need is not choosing. The cards themselves were dealt before any of
+       this; which back you pick decides the order they arrive in, not what
+       they are, and that is the honest arrangement. */
+    function deal(){
+      const many = clamp(picks.length + 6, 8, 12);
+      m.querySelector('#divOut').innerHTML = `
+        <div class="dv-stage">
+          <div class="dv-prompt" id="dvPrompt"></div>
+          <div class="tc-row dv-spread" id="dvSpread2">${picks.map((pk, i) =>
+            `<div class="tc-slot" data-slot="${i}"><span class="tc-pos mono">${esc(sp.pos[i])}</span>
+              <div class="tc-hole" data-hole="${i}"></div></div>`).join('')}</div>
+          <div class="dv-fan" id="dvFan">${Array.from({length: many}, (_, i) =>
+            `<button class="dv-pick" data-pick="${i}" style="--i:${i};--n:${many}" aria-label="choose a card">
+              <div class="tc-mini">${tarotBackHTML()}</div></button>`).join('')}</div>
+        </div>
+        <div id="dvRead" hidden></div>`;
+      let turned = 0, busy = false;
+      const prompt = m.querySelector('#dvPrompt');
+      const say = () => { prompt.innerHTML = turned < picks.length
+        ? `<span class="sc">choose your ${['first','second','third','fourth','fifth','sixth','seventh','eighth','ninth','tenth'][turned] || (turned + 1) + 'th'} card</span> <b class="serif">${esc(sp.pos[turned])}</b>`
+        : '<span class="sc">the spread is complete</span>'; };
+      say();
+
+      m.querySelectorAll('[data-pick]').forEach(btn => btn.onclick = () => {
+        if(busy || turned >= picks.length || btn.classList.contains('taken')) return;
+        busy = true;
+        const at = turned++, hole = m.querySelector(`[data-hole="${at}"]`);
+        btn.classList.add('taken');
+        const land = () => {
+          hole.innerHTML = tarotCardHTML(picks[at], at, false);
+          const card = hole.querySelector('.tc');
+          /* slide in, a breath, then the turn — the pause is the point of it */
+          setTimeout(() => {
+            card.classList.add('up'); sound('click');
+            setTimeout(() => {
+              card.classList.add('pulse');
+              scrambleInto(card.querySelector('.tc-name'), TAROT[picks[at].card].n, 600);
+              setTimeout(() => card.classList.remove('pulse'), 900);
+            }, soft ? 0 : 420);
+            busy = false; say();
+            if(turned === picks.length) setTimeout(showReading, soft ? 0 : 1400);
+          }, soft ? 0 : 300);
+        };
+        if(soft){ btn.style.visibility = 'hidden'; land(); return; }
+        /* fly the chosen back to its place in the spread, then let the real
+           card take over from it */
+        const a = btn.getBoundingClientRect(), b = hole.getBoundingClientRect();
+        btn.style.transformOrigin = 'top left';
+        btn.style.transition = 'transform .42s cubic-bezier(.22,.61,.36,1), opacity .12s .34s';
+        btn.style.transform = `translate(${(b.left - a.left).toFixed(1)}px,${(b.top - a.top).toFixed(1)}px) scale(${(b.width / a.width).toFixed(3)},${(b.height / a.height).toFixed(3)})`;
+        btn.style.opacity = '0';
+        setTimeout(() => { btn.style.visibility = 'hidden'; land(); }, 430);
+      });
+
+      function showReading(){
+        const box = m.querySelector('#dvRead');
+        box.innerHTML = `${tarotReadingHTML(picks, sp)}
+          <section class="dv-yours"><h4 class="dv-sec-h">Your reflection</h4>
+            <p class="dv-yours-p">Now that you have read them — what lands? What surprised you? What do you want to sit with?</p>
+            <div class="field"><textarea class="inp" id="dvText" rows="5" placeholder="Not what the book says. What it says to you, about the thing you asked."></textarea></div>
+            <div class="row between" style="margin-top:10px;flex-wrap:wrap;gap:8px">
+              <label class="row" style="gap:6px;font-size:.78rem;align-items:center"><input type="checkbox" id="dvRevisit"> <span>come back to this one</span></label>
+              ${projects.length ? `<select class="inp sm" id="dvProj"><option value="">nothing in particular</option>
+                ${projects.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select>` : ''}
+              <button class="btn primary" id="dvSave">Keep the reading</button></div>
+          </section>`;
+        box.hidden = false;
+        box.scrollIntoView({behavior: soft ? 'auto' : 'smooth', block: 'start'});
+        m.querySelector('#dvSave').onclick = () => {
+          divinationSave({system:'tarot', question:m.querySelector('#dvQ').value.trim(), spread:sp.id,
+            title:`${sp.name} — ${picks.map(pk => TAROT[pk.card].n).join(', ')}`,
+            cards:picks.map((pk, i) => ({card:pk.card, rev:pk.rev, pos:sp.pos[i]})),
+            reading:m.querySelector('#dvText').value.trim(),
+            revisit:m.querySelector('#dvRevisit').checked, projectId:m.querySelector('#dvProj')?.value || null});
+          sound('success'); toast('Kept in the Lived Record.'); m.remove(); rerender();
+        };
+      }
+    }
   };
 }
 function openIChing(){
