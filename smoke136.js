@@ -79,7 +79,9 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   const leafW = await p.evaluate(() => { const l = document.querySelector('.sk-twig .leaf path');
     return l ? Math.round(l.getBoundingClientRect().width) : 0; });
   if(!high){ no('a bloom is drawn at all'); high = {w:0, petals:0}; }
-  yes('a leaf is not a sliver beside the flower', leafW * 4 >= high.w, `leaf ${leafW}px vs flower ${high.w}px`);
+  /* the blossom is deliberately the largest thing on the tree, so the leaf is
+     not measured against it — only against being a sliver you cannot read */
+  yes('a leaf is drawn at a size you can see the shape of', leafW >= 20, leafW + 'px');
 
   /* An infinite CSS `transform` on a group that carries an SVG transform
      attribute throws the group to the canvas origin. That emptied the tree of
@@ -93,9 +95,13 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
           return cx > lb.left - 70 && cx < lb.right + 70 && cy > lb.top - 70 && cy < lb.bottom + 70; });
       })), 'a flower has come off its twig');
 
-  console.log('\n4. mastery hangs fruit');
-  yes('an apple appears when the last level is reached',
-      await p.evaluate(() => !!document.querySelector('.fruit .fruit-body')));
+  console.log('\n4. mastery hangs cherries');
+  /* a cherry, not an apple: a pair on a shared forked stem, which is how they
+     actually grow */
+  const cherry = await p.evaluate(() => { const f = document.querySelector('.fruit');
+    return f ? {circles: f.querySelectorAll('circle').length, stem: f.querySelectorAll('path').length} : null; });
+  yes('a pair hangs when the last level is reached', cherry && cherry.circles >= 4, JSON.stringify(cherry));
+  yes('  on a forked stem', cherry && cherry.stem >= 1, JSON.stringify(cherry));
 
   console.log('\n5. every label is legible');
   await p.evaluate(() => { S.skills = S._all.slice(); }); await draw();
@@ -115,13 +121,30 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     }
     return out; });
   yes('no two names sit on top of each other', clash.length === 0, clash.join(' | '));
-  yes('  and each name clears its own foliage',
-      await p.evaluate(() => [...document.querySelectorAll('.sk-twig')].every(tw => {
-        const id = tw.dataset.skill; const lbl = document.querySelector(`.sk-lblfor[data-for="${id}"] .sk-lbl`);
-        if(!lbl) return true; const a = lbl.getBoundingClientRect();
-        return [...tw.querySelectorAll('.leaf path')].every(l => { const r = l.getBoundingClientRect();
-          return !(Math.min(a.right, r.right) - Math.max(a.left, r.left) > 2 && Math.min(a.bottom, r.bottom) - Math.max(a.top, r.top) > 2); });
-      })), 'a leaf covers a name');
+  /* The leaves are big enough now that a rotated one will sometimes pass
+     behind the end of a name. That is fine — the name is painted in the top
+     layer with a background halo behind it, so it still reads — but a leaf
+     across most of a name is not. Both halves are checked. */
+  yes('  a name is painted with a halo, over everything else',
+      await p.evaluate(() => { const st = getComputedStyle(document.querySelector('.sk-lbl'));
+        return /^stroke/.test(st.paintOrder) && parseFloat(st.strokeWidth) >= 2; }),
+      await p.evaluate(() => { const st = getComputedStyle(document.querySelector('.sk-lbl'));
+        return st.paintOrder + ' / ' + st.strokeWidth; }));
+  const covered = await p.evaluate(() => {
+    const worst = [];
+    document.querySelectorAll('.sk-twig').forEach(tw => {
+      const id = tw.dataset.skill; const lbl = document.querySelector(`.sk-lblfor[data-for="${id}"] .sk-lbl`);
+      if(!lbl) return; const a = lbl.getBoundingClientRect(); if(!a.width) return;
+      let lo = Infinity, hi = -Infinity;
+      tw.querySelectorAll('.leaf path').forEach(l => { const r = l.getBoundingClientRect();
+        const ox = Math.min(a.right, r.right) - Math.max(a.left, r.left);
+        const oy = Math.min(a.bottom, r.bottom) - Math.max(a.top, r.top);
+        if(ox > 1 && oy > 1){ lo = Math.min(lo, Math.max(a.left, r.left)); hi = Math.max(hi, Math.min(a.right, r.right)); } });
+      if(hi > lo) worst.push({name: lbl.textContent, frac: +((hi - lo) / a.width).toFixed(2)});
+    });
+    return worst; });
+  yes('  and no leaf covers more than a quarter of one',
+      covered.every(c => c.frac <= .25), JSON.stringify(covered));
 
   console.log('\n' + (errs.length ? 'console:\n  ' + errs.join('\n  ') : 'console: clean'));
   if(errs.length) bad += errs.length;

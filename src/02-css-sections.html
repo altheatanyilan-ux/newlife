@@ -4026,5 +4026,21 @@ select.sm-active{border-color:var(--page-accent);
 .wk-col:hover .wk-hit,.wk-col:focus-visible .wk-hit{fill:color-mix(in srgb,var(--page-accent) 7%,transparent)}
 .wk-col:focus-visible{outline:none}
 .wk-key i.gs{width:9px;height:9px;border-radius:50%;background:var(--bg);border:1.5px dashed var(--ment);display:inline-block}
+
+/* --- the sakura: petals in the air, grass that moves --- */
+.sk-organic .sk-fallpetal{transform-box:fill-box;transform-origin:center;
+  animation:sakFall var(--dur,12s) linear infinite;animation-delay:var(--delay,0s)}
+@keyframes sakFall{
+  0%{opacity:0;translate:0 0;rotate:0deg}
+  8%{opacity:.85}
+  85%{opacity:.7}
+  100%{opacity:0;translate:var(--dx,30px) var(--dy,300px);rotate:520deg}}
+.sk-organic .blade{transform-box:fill-box;transform-origin:50% 100%}
+.sk-organic .orchid{transform-box:fill-box;transform-origin:50% 100%;
+  animation:sakNod 5.2s ease-in-out infinite;animation-delay:calc(var(--d,0s))}
+@keyframes sakNod{0%,100%{rotate:-1.6deg}50%{rotate:1.6deg}}
+@media (prefers-reduced-motion:reduce){
+  .sk-organic .sk-fallpetal{animation:none;opacity:.7}
+  .sk-organic .orchid{animation:none}}
 </style>
 </head>

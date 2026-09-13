@@ -4550,6 +4550,22 @@ select.sm-active{border-color:var(--page-accent);
 .wk-col:hover .wk-hit,.wk-col:focus-visible .wk-hit{fill:color-mix(in srgb,var(--page-accent) 7%,transparent)}
 .wk-col:focus-visible{outline:none}
 .wk-key i.gs{width:9px;height:9px;border-radius:50%;background:var(--bg);border:1.5px dashed var(--ment);display:inline-block}
+
+/* --- the sakura: petals in the air, grass that moves --- */
+.sk-organic .sk-fallpetal{transform-box:fill-box;transform-origin:center;
+  animation:sakFall var(--dur,12s) linear infinite;animation-delay:var(--delay,0s)}
+@keyframes sakFall{
+  0%{opacity:0;translate:0 0;rotate:0deg}
+  8%{opacity:.85}
+  85%{opacity:.7}
+  100%{opacity:0;translate:var(--dx,30px) var(--dy,300px);rotate:520deg}}
+.sk-organic .blade{transform-box:fill-box;transform-origin:50% 100%}
+.sk-organic .orchid{transform-box:fill-box;transform-origin:50% 100%;
+  animation:sakNod 5.2s ease-in-out infinite;animation-delay:calc(var(--d,0s))}
+@keyframes sakNod{0%,100%{rotate:-1.6deg}50%{rotate:1.6deg}}
+@media (prefers-reduced-motion:reduce){
+  .sk-organic .sk-fallpetal{animation:none;opacity:.7}
+  .sk-organic .orchid{animation:none}}
 </style>
 </head>
 <body>
@@ -11866,7 +11882,7 @@ routes.skills = function(root, params){
 
     <!-- 3. the tree -->
     <div class="row between" style="margin:30px 0 8px"><span class="sc" style="margin:0">The tree</span><button class="btn sm ghost" id="skReset" title="redraw the tree">⟳ redraw</button></div>
-    <div class="skill-wrap" id="skillWrap"><div class="minimap" id="minimap" hidden></div><div class="sk-hint mono">every living twig is leaved · flowers open as a skill grows · an apple is mastery · click a twig to open it</div></div>
+    <div class="skill-wrap" id="skillWrap"><div class="minimap" id="minimap" hidden></div><div class="sk-hint mono">a cherry in flower · the blossom opens as the skill grows · a pair of cherries is mastery · click a twig to open it</div></div>
 
     <!-- 4. the inventory, with the add button right above it -->
     <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Inventory</span><span class="mono">${list.length} of ${S.skills.length} shown</span></div>
@@ -11971,6 +11987,176 @@ function organicLayout(){
   });
   return {items, cats, trunkTop};
 }
+/* ============================================================
+   THE SAKURA — the pieces the tree is drawn from
+   ------------------------------------------------------------
+   A cherry in flower, not a diagram with dots on it. Three things carry that:
+   the petal has a cleft at its tip (which is what makes a cherry petal a
+   cherry petal rather than a rounded blob), the centre is a spray of stamens
+   with yellow anthers on the ends, and the bark is smooth and dark with
+   horizontal lenticels — the marks you would know a cherry by in winter.
+   ============================================================ */
+const SAK = {
+  petal:  ['#ffeef4', '#fbd4e2', '#f4b3ca'],   /* heart, face, edge */
+  petal2: ['#fff6f9', '#fde3ec', '#f6c6d8'],   /* the paler ones, for variety */
+  anther: '#e6b455', filament: '#f7dce7',
+  leaf:   ['#7ba85f', '#5f8d49', '#96b96f'],
+  young:  ['#b58a63', '#9a6e4c'],              /* new leaves come out bronze */
+  bark:   ['#4e3d33', '#6b5648', '#8a7263'],
+  grass:  ['#5f9a49', '#74b358', '#4d8340', '#8cc46a'],
+  orchid: ['#e8d9f0', '#c9a8dd', '#8f5fb0', '#f2e3a8'],
+};
+/* one cherry petal, base at the origin, pointing up the -y axis */
+function sakPetal(L, W, fill, op){
+  return `<path d="M0,0
+    C${(-W*.56).toFixed(2)},${(-L*.28).toFixed(2)} ${(-W*.66).toFixed(2)},${(-L*.70).toFixed(2)} ${(-W*.31).toFixed(2)},${(-L*.90).toFixed(2)}
+    C${(-W*.17).toFixed(2)},${(-L*1.00).toFixed(2)} ${(-W*.11).toFixed(2)},${(-L*.87).toFixed(2)} 0,${(-L*.90).toFixed(2)}
+    C${(W*.11).toFixed(2)},${(-L*.87).toFixed(2)} ${(W*.17).toFixed(2)},${(-L*1.00).toFixed(2)} ${(W*.31).toFixed(2)},${(-L*.90).toFixed(2)}
+    C${(W*.66).toFixed(2)},${(-L*.70).toFixed(2)} ${(W*.56).toFixed(2)},${(-L*.28).toFixed(2)} 0,0 Z"
+    fill="${fill}"${op ? ` opacity="${op}"` : ''}/>`;
+}
+/* the stamens: a spray of filaments, each with an anther on the end */
+function sakStamens(R, n){
+  let out = '';
+  for(let i = 0; i < n; i++){
+    const a = (i / n) * 360 + (i % 3) * 4;
+    const len = R * (.30 + ((i * 7) % 5) / 14);
+    const bend = ((i % 2) ? 1 : -1) * R * .07;
+    out += `<g transform="rotate(${a.toFixed(1)})">
+      <path d="M0,0 Q${bend.toFixed(2)},${(-len * .6).toFixed(2)} 0,${(-len).toFixed(2)}"
+        stroke="${SAK.filament}" stroke-width="${Math.max(.5, R * .035).toFixed(2)}" fill="none" stroke-linecap="round"/>
+      <ellipse cy="${(-len).toFixed(2)}" rx="${(R * .062).toFixed(2)}" ry="${(R * .045).toFixed(2)}" fill="${SAK.anther}"/></g>`;
+  }
+  return out;
+}
+/* A whole flower at radius R. `tier` runs 1–5 and says how far open it is:
+   a closed bud, a bud splitting, three petals parting, five open, and at the
+   last a full bloom with a second rank of petals behind — a yae-zakura. */
+function sakFlower(R, tier, pale){
+  const c = pale ? SAK.petal2 : SAK.petal;
+  const id = 'sakP' + (pale ? '2' : '');
+  const calyx = `<g class="sak-calyx">${[0, 72, 144, 216, 288].slice(0, 5).map(a =>
+    `<path d="M0,0 Q${(R * .12).toFixed(2)},${(R * .16).toFixed(2)} 0,${(R * .30).toFixed(2)} Q${(-R * .12).toFixed(2)},${(R * .16).toFixed(2)} 0,0Z"
+      transform="rotate(${a + 36})" fill="#9c6b56" opacity=".75"/>`).join('')}</g>`;
+  if(tier <= 1){
+    /* a bud: the petals still wound round each other, calyx gripping the base */
+    return `${calyx}
+      <ellipse rx="${(R * .40).toFixed(2)}" ry="${(R * .70).toFixed(2)}" cy="${(-R * .34).toFixed(2)}" fill="url(#${id})"/>
+      <path d="M${(-R * .16).toFixed(2)},${(-R * .12).toFixed(2)} Q${(-R * .30).toFixed(2)},${(-R * .62).toFixed(2)} 0,${(-R * .98).toFixed(2)}"
+        stroke="${c[2]}" stroke-width="${(R * .07).toFixed(2)}" fill="none" opacity=".7" stroke-linecap="round"/>
+      <path d="M${(R * .14).toFixed(2)},${(-R * .14).toFixed(2)} Q${(R * .28).toFixed(2)},${(-R * .60).toFixed(2)} ${(R * .02).toFixed(2)},${(-R * .96).toFixed(2)}"
+        stroke="${c[0]}" stroke-width="${(R * .06).toFixed(2)}" fill="none" opacity=".8" stroke-linecap="round"/>`;
+  }
+  const petals = tier === 2 ? 3 : 5;
+  const spread = tier === 2 ? .62 : 1;      /* half-open petals sit closer in */
+  const step = 360 / petals;
+  const ring = (rr, ww, off, fill, op) => Array.from({length: petals}, (_, i) =>
+    `<g transform="rotate(${(i * step + off).toFixed(1)})">${sakPetal(rr, ww, fill, op)}</g>`).join('');
+  let g = calyx;
+  /* the second rank, only on a full bloom, set between the front petals */
+  if(tier >= 5) g += `<g opacity=".85">${ring(R * .94, R * .82, step / 2, `url(#${id}b)`, '')}</g>`;
+  g += ring(R * (tier === 2 ? .78 : 1) * spread + R * (1 - spread) * .3, R * .78, tier === 2 ? -14 : 0, `url(#${id})`, '');
+  if(tier >= 3) g += sakStamens(R, tier >= 5 ? 22 : tier >= 4 ? 16 : 11);
+  g += `<circle r="${(R * .085).toFixed(2)}" fill="#f0c98a"/>`;
+  return g;
+}
+/* the gradients the petals are painted with — one set for the whole drawing */
+function sakDefs(){
+  const grad = (id, c) => `<radialGradient id="${id}" cx=".5" cy="1" r="1.05">
+      <stop offset="0" stop-color="${c[0]}"/><stop offset=".45" stop-color="${c[1]}"/>
+      <stop offset="1" stop-color="${c[2]}"/></radialGradient>`;
+  return grad('sakP', SAK.petal) + grad('sakP2', SAK.petal2)
+    + grad('sakPb', [SAK.petal[1], '#f4aec9', '#e888ae'])
+    + grad('sakP2b', [SAK.petal2[1], '#f4bcd3', '#eb9dbe'])
+    + `<linearGradient id="sakBark" x1="0" y1="1" x2=".7" y2="0">
+        <stop offset="0" stop-color="${SAK.bark[0]}"/><stop offset=".55" stop-color="${SAK.bark[1]}"/>
+        <stop offset="1" stop-color="${SAK.bark[2]}"/></linearGradient>`;
+}
+/* A cherry leaf: ovate, drawn to a point, with a toothed edge and its veins
+   showing. `young` gives it the bronze of a leaf just out. */
+function sakLeaf(L, young, tone){
+  const w = L * .40, col = young ? SAK.young[tone % 2] : SAK.leaf[tone % 3];
+  /* the widest point sits nearer the base than the tip, which is what makes an
+     ovate leaf ovate; the teeth are the little bumps riding on that outline */
+  const half = t => w * Math.sin(Math.PI * Math.pow(t, .78));
+  const N = 6;
+  let d = 'M0,0';
+  for(let i = 0; i < N; i++){
+    const t0 = i / N, t1 = (i + 1) / N, tm = (t0 + t1) / 2;
+    d += ` Q${(L * tm).toFixed(2)},${(-(half(tm) + w * .17)).toFixed(2)} ${(L * t1).toFixed(2)},${(-half(t1)).toFixed(2)}`;
+  }
+  for(let i = N; i > 0; i--){
+    const t0 = i / N, t1 = (i - 1) / N, tm = (t0 + t1) / 2;
+    d += ` Q${(L * tm).toFixed(2)},${(half(tm) + w * .17).toFixed(2)} ${(L * t1).toFixed(2)},${half(t1).toFixed(2)}`;
+  }
+  d += ' Z';
+  return `<path d="${d}" fill="${col}"/>
+    <path d="M0,0 L${(L * .97).toFixed(2)},0" stroke="#3f5c30" stroke-opacity=".32"
+      stroke-width="${Math.max(.4, L * .035).toFixed(2)}" fill="none" stroke-linecap="round"/>
+    ${[.20, .38, .56, .72].map(t => `<path d="M${(L * t).toFixed(2)},0 q${(L * .10).toFixed(2)},${(-half(t) * .40).toFixed(2)} ${(L * .19).toFixed(2)},${(-half(t) * .66).toFixed(2)}
+      M${(L * t).toFixed(2)},0 q${(L * .10).toFixed(2)},${(half(t) * .40).toFixed(2)} ${(L * .19).toFixed(2)},${(half(t) * .66).toFixed(2)}"
+      stroke="#3f5c30" stroke-opacity=".2" stroke-width="${Math.max(.3, L * .022).toFixed(2)}" fill="none"/>`).join('')}`;
+}
+/* Grass and orchids at the foot of the tree. The grass is many blades of four
+   greens, tall at the back and short at the front; the orchids are what grows
+   between them — three flowers up a slender arching spike, each with the lip
+   that tells an orchid from anything else. */
+function sakGrassHTML(trunkX, ground, W, rnd){
+  let g = '';
+  /* Two ranks: a darker one behind, standing taller, and a bright one in front
+     — which is what makes grass read as a lawn rather than as a row of ticks. */
+  [[240, ['#4a7d3c', '#3f6d34'], 1.35, .55], [340, SAK.grass, 1, .95]].forEach(([n, pal, tall, op]) => {
+    for(let i = 0; i < n; i++){
+      const x = trunkX + (rnd() - .5) * W * 1.02;
+      const h = (16 + rnd() * 34) * tall * (1 - Math.abs(x - trunkX) / (W * .8) * .3);
+      const lean = (rnd() - .5) * h * .6, wd = 1 + rnd() * 1.6;
+      const col = pal[(i * 7) % pal.length];
+      const dip = ground + 2 + rnd() * 14;
+      g += `<path class="blade" data-phase="${(rnd() * 6.28).toFixed(2)}" d="M${x.toFixed(1)},${dip.toFixed(1)}
+        q${(lean * .3).toFixed(1)},${(-h * .6).toFixed(1)} ${lean.toFixed(1)},${(-h).toFixed(1)}"
+        stroke="${col}" stroke-width="${wd.toFixed(1)}" fill="none" stroke-linecap="round" opacity="${(op * (.6 + rnd() * .4)).toFixed(2)}"/>`;
+    }
+  });
+  /* the orchids, in clumps either side of the trunk */
+  const clumps = 5;
+  for(let c = 0; c < clumps; c++){
+    const side = c % 2 ? 1 : -1;
+    const x = trunkX + side * (W * .09 + rnd() * W * .30);
+    const base = ground + rnd() * 5;
+    const hh = 44 + rnd() * 30, bend = side * (10 + rnd() * 16);
+    g += `<path d="M${x.toFixed(1)},${base.toFixed(1)} q${(bend * .3).toFixed(1)},${(-hh * .6).toFixed(1)} ${bend.toFixed(1)},${(-hh).toFixed(1)}"
+      stroke="#4d7f3c" stroke-width="1.5" fill="none" stroke-linecap="round"/>`;
+    /* two strap leaves at the foot */
+    [[-1, 13], [1, 10]].forEach(([sd, ln]) => g += `<path d="M${x.toFixed(1)},${base.toFixed(1)}
+      q${(sd * ln * .8).toFixed(1)},${(-ln * .5).toFixed(1)} ${(sd * ln * 1.5).toFixed(1)},${(-ln * .2).toFixed(1)}
+      q${(-sd * ln * .7).toFixed(1)},${(ln * .5).toFixed(1)} ${(-sd * ln * 1.5).toFixed(1)},${(ln * .2).toFixed(1)}z"
+      fill="#4d7f3c" opacity=".7"/>`);
+    const n = 2 + Math.round(rnd());
+    for(let f = 0; f < n; f++){
+      const t = .45 + f * .27;
+      const fx = x + bend * t * t, fy = base - hh * t;
+      const r = 11 + rnd() * 5;
+      g += `<g class="orchid" data-phase="${(rnd() * 6.28).toFixed(2)}" transform="translate(${fx.toFixed(1)},${fy.toFixed(1)}) rotate(${(rnd() * 40 - 20).toFixed(0)})">
+        ${/* three sepals behind, narrower, at the points of a triangle */''}
+        ${[90, 210, 330].map(a => `<ellipse rx="${(r * .26).toFixed(1)}" ry="${(r * .60).toFixed(1)}"
+          cy="${(-r * .54).toFixed(1)}" transform="rotate(${a})" fill="${SAK.orchid[0]}" opacity=".9"/>`).join('')}
+        ${/* two broad petals across the top, which is the moth-orchid look */''}
+        ${[-52, 52].map(a => `<ellipse rx="${(r * .40).toFixed(1)}" ry="${(r * .54).toFixed(1)}"
+          cy="${(-r * .46).toFixed(1)}" transform="rotate(${a})" fill="${SAK.orchid[1]}" opacity=".95"/>`).join('')}
+        ${/* the labellum: the lower lip, split into two lobes, is the whole tell */''}
+        <path d="M0,${(-r * .04).toFixed(1)}
+          C${(-r * .42).toFixed(1)},${(r * .22).toFixed(1)} ${(-r * .48).toFixed(1)},${(r * .70).toFixed(1)} ${(-r * .20).toFixed(1)},${(r * .86).toFixed(1)}
+          C${(-r * .07).toFixed(1)},${(r * .92).toFixed(1)} ${(-r * .05).toFixed(1)},${(r * .70).toFixed(1)} 0,${(r * .70).toFixed(1)}
+          C${(r * .05).toFixed(1)},${(r * .70).toFixed(1)} ${(r * .07).toFixed(1)},${(r * .92).toFixed(1)} ${(r * .20).toFixed(1)},${(r * .86).toFixed(1)}
+          C${(r * .48).toFixed(1)},${(r * .70).toFixed(1)} ${(r * .42).toFixed(1)},${(r * .22).toFixed(1)} 0,${(-r * .04).toFixed(1)}z"
+          fill="${SAK.orchid[2]}" opacity=".92"/>
+        <path d="M${(-r * .16).toFixed(1)},${(r * .18).toFixed(1)} q${(r * .16).toFixed(1)},${(r * .12).toFixed(1)} ${(r * .32).toFixed(1)},0"
+          stroke="${SAK.orchid[3]}" stroke-width="${(r * .1).toFixed(1)}" fill="none" stroke-linecap="round" opacity=".85"/>
+        <circle r="${(r * .15).toFixed(1)}" cy="${(-r * .02).toFixed(1)}" fill="${SAK.orchid[3]}"/></g>`;
+    }
+  }
+  return g;
+}
 /* Nothing planted yet. A bare trunk with no branches read as a broken tree —
    as if the app had lost the skills rather than never having been given any.
    A seed under the soil, with the first pale shoot just breaking it, says the
@@ -12019,7 +12205,7 @@ function organicSVG(W, H){
   const qt = (a,c,b,t) => Math.atan2( 2*(1-t)*(c[1]-a[1]) + 2*t*(b[1]-c[1]), 2*(1-t)*(c[0]-a[0]) + 2*t*(b[0]-c[0]) );
   const season = [-8,-6,0,6,10,12,10,6,2,-2,-6,-8][new Date().getMonth()];
   const trunkX = X(0); let g = '', labels = ''; const lblItems = [], labelsBySkill = {};
-  g += `<defs><linearGradient id="skTrunk" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#4a3a2c"/><stop offset="1" stop-color="#6e5a44"/></linearGradient><radialGradient id="skSun"><stop offset="0" stop-color="var(--page-accent)" stop-opacity=".22"/><stop offset="1" stop-color="var(--page-accent)" stop-opacity="0"/></radialGradient><radialGradient id="skMoon"><stop offset="0" stop-color="#e8e0d4" stop-opacity=".16"/><stop offset="1" stop-color="#e8e0d4" stop-opacity="0"/></radialGradient><radialGradient id="skGround"><stop offset="0" stop-color="#3a3128" stop-opacity=".55"/><stop offset="1" stop-color="#3a3128" stop-opacity="0"/></radialGradient></defs>`;
+  g += `<defs>${sakDefs()}<linearGradient id="skTrunk" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#4e3d33"/><stop offset="1" stop-color="#7a6455"/></linearGradient><radialGradient id="skSun"><stop offset="0" stop-color="var(--page-accent)" stop-opacity=".22"/><stop offset="1" stop-color="var(--page-accent)" stop-opacity="0"/></radialGradient><radialGradient id="skMoon"><stop offset="0" stop-color="#e8e0d4" stop-opacity=".16"/><stop offset="1" stop-color="#e8e0d4" stop-opacity="0"/></radialGradient><radialGradient id="skGround"><stop offset="0" stop-color="#3a3128" stop-opacity=".55"/><stop offset="1" stop-color="#3a3128" stop-opacity="0"/></radialGradient></defs>`;
   const hour = new Date().getHours(); const daytime = hour >= 6 && hour < 19;
   g += daytime ? `<circle class="sk-sun" cx="${(W*.84).toFixed(0)}" cy="70" r="120" fill="url(#skSun)"/>` : `<g class="sk-moon" transform="translate(${(W*.84).toFixed(0)},70)"><circle r="90" fill="url(#skMoon)"/><path d="M-8,-14 a15,15 0 1 0 12,24 a11,11 0 1 1 -12,-24 Z" fill="#e8e0d4" opacity=".55"/></g>`;
   items.filter(i => i.kind==='cat').forEach(it => { const e = it.end; const r = (46 + 10*Math.sqrt(it.count))*k; g += `<circle class="sk-canopy" cx="${X(e[0]).toFixed(1)}" cy="${(Y(e[1])-10).toFixed(1)}" r="${r.toFixed(1)}" fill="${catColor(it.cat)}" opacity=".07"/>`; });
@@ -12038,15 +12224,18 @@ function organicSVG(W, H){
       const host = cs[i % cs.length];
       const a = rnd() * Math.PI * 2, rr = (30 + rnd() * 78) * k;
       const cx = X(host.end[0]) + Math.cos(a) * rr, cy = Y(host.end[1]) - 8 + Math.sin(a) * rr * .62;
-      const sz = (5.4 + rnd() * 4.2) * k, rot = rnd() * 360;
-      const cl = lerpColor(catColor(host.cat), '#6f9a58', .45 + rnd() * .3);
+      const sz = (13 + rnd() * 9) * k, rot = rnd() * 360;
+      /* one in four of the drifting things is a petal rather than a leaf —
+         under a cherry in flower the air is full of both */
+      const petal = rnd() < .28;
       g += `<g class="leaf amb" data-phase="${(rnd()*6.28).toFixed(2)}" data-period="${(3 + rnd()*2.4).toFixed(2)}"
-        transform="translate(${cx.toFixed(1)},${cy.toFixed(1)}) rotate(${rot.toFixed(0)})">
-        <path d="M0,0 Q${sz.toFixed(1)},${(-sz*.7).toFixed(1)} ${(sz*2).toFixed(1)},0 Q${sz.toFixed(1)},${(sz*.7).toFixed(1)} 0,0"
-          fill="${cl}" opacity="${(.26 + rnd()*.2).toFixed(2)}"/></g>`;
+        transform="translate(${cx.toFixed(1)},${cy.toFixed(1)}) rotate(${rot.toFixed(0)})" opacity="${(.34 + rnd()*.26).toFixed(2)}">
+        ${petal ? sakPetal(sz * .9, sz * .72, 'url(#sakP2)', '') : sakLeaf(sz, rnd() < .3, Math.floor(rnd()*3))}</g>`;
     }
   })();
-  g += `<ellipse cx="${trunkX.toFixed(1)}" cy="${ground+4}" rx="${(W*.3).toFixed(0)}" ry="14" fill="url(#skGround)"/><line x1="${(trunkX-W*.34).toFixed(0)}" x2="${(trunkX+W*.34).toFixed(0)}" y1="${ground}" y2="${ground}" stroke="var(--line-2)" stroke-width="1"/>`;
+  g += `<ellipse cx="${trunkX.toFixed(1)}" cy="${ground+4}" rx="${(W*.3).toFixed(0)}" ry="14" fill="url(#skGround)"/>`;
+  /* the turf the tree is standing in — a soft band of green, then the blades */
+  g += `<path d="M${(trunkX-W*.5).toFixed(0)},${(ground+4).toFixed(0)} Q${(trunkX-W*.22).toFixed(0)},${(ground-9).toFixed(0)} ${trunkX.toFixed(0)},${(ground-5).toFixed(0)} Q${(trunkX+W*.24).toFixed(0)},${(ground-11).toFixed(0)} ${(trunkX+W*.5).toFixed(0)},${(ground+4).toFixed(0)} L${(trunkX+W*.5).toFixed(0)},${(ground+44).toFixed(0)} L${(trunkX-W*.5).toFixed(0)},${(ground+44).toFixed(0)} Z" fill="#6fa353" opacity=".30"/>`;
   // roots and trunk
   /* thicker at the base, and it thickens with what it is carrying */
   /* A sapling with one skill on it had the same 18-unit trunk as a tree with
@@ -12062,6 +12251,28 @@ function organicSVG(W, H){
     const gx = trunkX + sd*tw, gh = 12*h*k;
     g += `<path class="sk-grass" d="M${gx.toFixed(1)},${ground} q${(2*h).toFixed(1)},${(-gh*.6).toFixed(1)} ${(5*h).toFixed(1)},${(-gh).toFixed(1)} M${gx.toFixed(1)},${ground} q${(-1.6*h).toFixed(1)},${(-gh*.55).toFixed(1)} ${(-3.4*h).toFixed(1)},${(-gh*.86).toFixed(1)}" stroke="#7f916a" stroke-width="1.2" fill="none" opacity=".28" stroke-linecap="round"/>`;
   });
+  /* Lenticels — the short horizontal dashes across a cherry's bark. They are
+     the one mark that names the species from thirty feet away, and the trunk
+     read as a plain brown stroke without them. */
+  {
+    let bs = 5 + S.skills.length * 17;
+    const rnd = () => { bs = (bs * 1103515245 + 12345) & 0x7fffffff; return bs / 0x7fffffff; };
+    /* Short dashes, two or three to a row and never spanning the trunk — a
+       lenticel is a pore, not a rung, and a bar right across turned the trunk
+       into a ladder. */
+    const rows = Math.max(7, Math.round(trunkTop / 15));
+    for(let i = 0; i < rows; i++){
+      const fy = .04 + (i / rows) * .92;
+      const ty = Y(trunkTop * fy) + (rnd() - .5) * 4;
+      const lean = (fy - .5) * 7 * k;
+      const per = 1 + Math.round(rnd() * 2);
+      for(let j = 0; j < per; j++){
+        const wid = tw * (.07 + rnd() * .15), off = (rnd() - .5) * tw * .62;
+        g += `<path class="sk-lentic" d="M${(trunkX + off - wid/2 + lean).toFixed(1)},${(ty + j*1.6).toFixed(1)} h${wid.toFixed(1)}"
+          stroke="#33281f" stroke-width="${(tw*.045 + .4).toFixed(2)}" stroke-linecap="round" opacity="${(.16 + rnd()*.2).toFixed(2)}"/>`;
+      }
+    }
+  }
   // crown bud at the top of the trunk: the skills still to be named
   g += `<circle cx="${trunkX.toFixed(1)}" cy="${Y(trunkTop).toFixed(1)}" r="${(tw*.42).toFixed(1)}" fill="#6e5a44"/>`;
   items.filter(i => i.kind==='cat').forEach(it => {
@@ -12073,10 +12284,11 @@ function organicSVG(W, H){
     {
       const m = clamp(4 + it.count*2, 5, 14); let bl = '';
       for(let q=0;q<m;q++){
-        const t = .48 + (q/Math.max(m-1,1))*.5; const p = qp(it.start, it.ctrl, it.end, t);
+        const t = .44 + (q/Math.max(m-1,1))*.44; const p = qp(it.start, it.ctrl, it.end, t);
         const tan = -qt(it.start, it.ctrl, it.end, t)*180/Math.PI; const sd = q%2 ? 1 : -1;
-        const size = 8.2*k*(.72 + ((q*7)%6)/12); const rot = tan + sd*(46 + ((q*11)%18));
-        bl += `<g transform="translate(${P(p)}) rotate(${rot.toFixed(1)})"><g class="leaf" data-phase="${((q*2.3)%6.28).toFixed(2)}" data-period="${(3.1 + (q*.41)%2).toFixed(2)}"><path d="M0,0 Q${size.toFixed(1)},${(-size*.7).toFixed(1)} ${(size*2).toFixed(1)},0 Q${size.toFixed(1)},${(size*.7).toFixed(1)} 0,0" fill="${lerpColor(col,'#6f9a58',.4)}" opacity=".72"/></g></g>`;
+        const size = 23*k*(.74 + ((q*7)%6)/11); const rot = tan + sd*(46 + ((q*11)%18));
+        bl += `<g transform="translate(${P(p)}) rotate(${rot.toFixed(1)})"><g class="leaf" data-phase="${((q*2.3)%6.28).toFixed(2)}" data-period="${(3.1 + (q*.41)%2).toFixed(2)}"
+          opacity=".82">${sakLeaf(size, false, q + 1)}</g></g>`;
       }
       g += `<g class="sk-branchleaves">${bl}</g>`;
     }
@@ -12109,84 +12321,62 @@ function organicSVG(W, H){
     const n = s.planned || locked ? 0 : clamp(Math.round(twigLen/9) + Math.round(prog*4), 8, 17);
     let lf = '';
     for(let i=0;i<n;i++){
-      const t = .22 + (i/Math.max(n-1,1))*.76; const p = qp(it.start, it.ctrl, it.end, t); const tan = -qt(it.start, it.ctrl, it.end, t)*180/Math.PI; const sd = i%2 ? 1 : -1;
+      /* the outer eighth of the twig is left bare: that is where the name is
+         written, and a leaf across the first letter of it is worse than a
+         slightly shorter spray */
+      const t = .18 + (i/Math.max(n-1,1))*.70; const p = qp(it.start, it.ctrl, it.end, t); const tan = -qt(it.start, it.ctrl, it.end, t)*180/Math.PI; const sd = i%2 ? 1 : -1;
       /* size varies leaf to leaf so the canopy is not a stencil, but never with level */
-      const size = 9.4 * k * (1 - wither*.3) * (.78 + ((i*7)%6)/12); const rot = tan + sd*(40 + ((i*13)%20)); const curl = wither ? ` Q${(size*.6).toFixed(1)},${(size*.35*sd).toFixed(1)} ${(size*.8).toFixed(1)},${(size*.5).toFixed(1)}` : '';
-      lf += `<g transform="translate(${P(p)}) rotate(${rot.toFixed(1)})"><g class="leaf" data-phase="${(i*1.7)%6.28}" data-period="${(2.8 + (i*.37)%2).toFixed(2)}"><path d="M0,0 Q${size},${-size*.7} ${size*2},0 Q${size},${size*.7} 0,0${curl}" fill="${leafCol}" opacity="${(.9 - wither*.35).toFixed(2)}"/><path d="M0,0 L${(size*1.7).toFixed(1)},0" stroke="#1a1816" stroke-opacity=".18" stroke-width=".6"/></g></g>`;
+      /* a real cherry leaf: ovate, toothed, veined — and drawn big, because a
+         leaf you cannot see the shape of might as well be a dash */
+      const size = 27 * k * (1 - wither*.28) * (.80 + ((i*7)%6)/11); const rot = tan + sd*(40 + ((i*13)%20));
+      lf += `<g transform="translate(${P(p)}) rotate(${rot.toFixed(1)})"><g class="leaf" data-phase="${(i*1.7)%6.28}" data-period="${(2.8 + (i*.37)%2).toFixed(2)}"
+        opacity="${(.94 - wither*.4).toFixed(2)}">${sakLeaf(size, wither > .3, i)}</g></g>`;
     }
     if(s.planned || locked){ for(let i=0;i<3;i++){ const p = qp(it.start, it.ctrl, it.end, .55 + i*.2); lf += `<circle class="bud" cx="${X(p[0]).toFixed(1)}" cy="${Y(p[1]).toFixed(1)}" r="${(2.4*k).toFixed(1)}" fill="${locked?'#5a554f':col}" opacity=".7"/>`; } }
-    /* ---- the flowers ----
-       These were 5–8px across on a 600px tree: aphids, not blossoms. They are
-       the thing the eye should go to, so they are drawn at a size that reads —
-       and their shape carries the level rather than only their number.
+    /* ---- the blossom ----
+       A cherry flower, drawn as one: five petals each with the cleft at the
+       tip that makes a sakura a sakura, a spray of stamens with yellow anthers
+       in the middle, and the calyx gripping it from behind. How far open it is
+       carries the level — bud, splitting, three petals parting, five open, and
+       at mastery a double bloom with a second rank behind.
 
-         a bud at one, two petals closed
-         opening at two, three petals coming apart
-         a bloom at three, five petals and a centre
-         a full bloom at four, seven petals with a shadow behind
-         and at mastery eight petals in two rings with a gold heart
-
-       The size is held in screen pixels rather than multiplied by the fit
-       scale, because a flower that shrinks as the tree grows defeats the whole
-       point of drawing it larger. */
-    /* Fewer, larger. Six small flowers on a twig read as a smudge; two or three
-       big ones read as a flowering branch, and the size already carries the
-       level so the count does not have to. */
-    const flowers = (s.planned || locked) ? 0 : clamp(Math.round(1 + prog * 2.4), 1, 4);
+       They are drawn large on purpose. A flower you cannot see the shape of is
+       a dot, and the whole point of the tree is to be worth looking at. */
+    const flowers = (s.planned || locked) ? 0 : clamp(Math.round(1 + prog * 3.2), 1, 5);
     if(flowers && lvl > 0){
       const tier = clamp(Math.ceil(prog * 5), 1, 5);
-      const R = [0, 12, 15, 19, 23, 28][tier];
-      const petalN = [0, 2, 3, 5, 7, 8][tier];
-      const heart = lerpColor('#e8c7a0', '#d4a44c', prog);
-      const petalCol = lerpColor('#efd0d8', col, .22);
+      const R = [0, 15, 20, 26, 32, 40][tier];
       for(let i=0;i<flowers;i++){
-        const t = .40 + (i/Math.max(flowers-1,1))*.56; const p = qp(it.start, it.ctrl, it.end, t);
+        const t = .36 + (i/Math.max(flowers-1,1))*.60; const p = qp(it.start, it.ctrl, it.end, t);
         /* off the twig by most of their own width, alternating sides, so two
            neighbours never sit on top of each other */
-        const sd = i%2 ? 1 : -1; const cx = X(p[0]) + sd*(R*.72), cy = Y(p[1]) - (R*.5);
-        const spin = (i*37) % (360/petalN);
-        const step = 360/petalN;
-        const ring = (rr, op, cl) => Array.from({length: petalN}, (_, q) => {
-          const ang = q*step + spin;
-          const a = ang * Math.PI/180;
-          return `<ellipse cx="${(Math.cos(a)*rr*.58).toFixed(2)}" cy="${(Math.sin(a)*rr*.58).toFixed(2)}"
-            rx="${(rr*.58).toFixed(2)}" ry="${(rr*.40 * (1 + ((q*5)%3)*.05)).toFixed(2)}"
-            transform="rotate(${ang.toFixed(0)})" fill="${cl}" opacity="${op}"/>`; }).join('');
-        /* a bud is closed: two petals overlapping, no centre showing */
-        const body = tier === 1
-          ? `<ellipse rx="${(R*.58).toFixed(2)}" ry="${(R*.88).toFixed(2)}" fill="${petalCol}" opacity=".9"/>
-             <ellipse rx="${(R*.34).toFixed(2)}" ry="${(R*.7).toFixed(2)}" fill="${lerpColor(petalCol,'#ffffff',.25)}" opacity=".85"/>`
-          : tier >= 5
-            /* two rings, the outer wider and paler, and a gold heart */
-            ? `${ring(R, '.6', lerpColor(petalCol,'#ffffff',.35))}
-               <g transform="rotate(${(step/2).toFixed(0)})">${ring(R*.72, '.95', petalCol)}</g>
-               <circle r="${(R*.26).toFixed(2)}" fill="${heart}"/>
-               <circle r="${(R*.13).toFixed(2)}" fill="#fff3d0" opacity=".8"/>`
-            : `${ring(R, '.93', petalCol)}<circle r="${(R*.24).toFixed(2)}" fill="${heart}"/>`;
-        lf += `<g class="blossom t${tier} ${blossom ? 'soon' : ''}" style="--d:${(i*.31).toFixed(2)}s"
-          transform="translate(${cx.toFixed(1)},${cy.toFixed(1)})">
-          ${tier >= 4 ? `<circle r="${(R*.9).toFixed(2)}" fill="${col}" opacity=".1"/>` : ''}${body}</g>`;
+        const sd = i%2 ? 1 : -1; const cx = X(p[0]) + sd*(R*.66), cy = Y(p[1]) - (R*.44);
+        const tilt = (i*53) % 70 - 35;
+        /* every other one is the paler sort, and they lean at their own angles,
+           because a branch of identical flowers reads as a stencil */
+        lf += `<g class="blossom t${tier} ${blossom ? 'soon' : ''}" style="--d:${(i*.28).toFixed(2)}s"
+          transform="translate(${cx.toFixed(1)},${cy.toFixed(1)}) rotate(${tilt.toFixed(0)})">
+          ${tier >= 4 ? `<circle r="${(R*.95).toFixed(2)}" fill="#f8cfe0" opacity=".16"/>` : ''}
+          ${sakFlower(R, tier, i % 2 === 1)}</g>`;
       }
     }
     /* mastery hangs an apple, not a disc: two lobes with a dip at the top, a
        stem going back into the twig, one leaf, and a highlight where the light
        is coming from — a plain circle read as a smudge at this size */
+    /* Mastery hangs cherries — dark, glossy, in pairs on a shared stem, which
+       is how they actually grow. An apple on a cherry tree was a small lie. */
     if(mastered){ for(let i=0;i<3;i++){
-      const p = qp(it.start, it.ctrl, it.end, .6 + i*.16); const sd = i%2?1:-1;
-      const cx = X(p[0]) + sd*8*k, cy = Y(p[1]) + 7*k, r = 7.4*k;
+      const p = qp(it.start, it.ctrl, it.end, .58 + i*.15); const sd = i%2?1:-1;
+      const cx = X(p[0]) + sd*9*k, cy = Y(p[1]) + 4*k, r = 6.4*k;
       lf += `<g class="fruit" style="--d:${(i*.22).toFixed(2)}s" transform="translate(${cx.toFixed(1)},${cy.toFixed(1)})">
-        <path class="fruit-stem" d="M0,${(-r*.92).toFixed(2)} q${(r*.16).toFixed(2)},${(-r*.5).toFixed(2)} ${(r*.5).toFixed(2)},${(-r*.72).toFixed(2)}"
-          fill="none" stroke="#6b4a2e" stroke-width="${(r*.17).toFixed(2)}" stroke-linecap="round"/>
-        <path class="fruit-leaf" d="M${(r*.16).toFixed(2)},${(-r*1.1).toFixed(2)} q${(r*.62).toFixed(2)},${(-r*.42).toFixed(2)} ${(r*.98).toFixed(2)},${(-r*.06).toFixed(2)} q${(-r*.58).toFixed(2)},${(r*.34).toFixed(2)} ${(-r*.98).toFixed(2)},${(r*.06).toFixed(2)}z"
-          fill="#6f9a58" opacity=".92"/>
-        <path class="fruit-body" d="M0,${(-r*.86).toFixed(2)}
-          C${(-r*.42).toFixed(2)},${(-r*1.22).toFixed(2)} ${(-r*1.14).toFixed(2)},${(-r*.86).toFixed(2)} ${(-r*1.06).toFixed(2)},${(-r*.06).toFixed(2)}
-          C${(-r*1.0).toFixed(2)},${(r*.78).toFixed(2)} ${(-r*.44).toFixed(2)},${(r*1.16).toFixed(2)} 0,${(r*.92).toFixed(2)}
-          C${(r*.44).toFixed(2)},${(r*1.16).toFixed(2)} ${(r*1.0).toFixed(2)},${(r*.78).toFixed(2)} ${(r*1.06).toFixed(2)},${(-r*.06).toFixed(2)}
-          C${(r*1.14).toFixed(2)},${(-r*.86).toFixed(2)} ${(r*.42).toFixed(2)},${(-r*1.22).toFixed(2)} 0,${(-r*.86).toFixed(2)}z"
-          fill="#b4462f" stroke="#6d2a1c" stroke-width=".7"/>
-        <ellipse class="fruit-shine" cx="${(-r*.38).toFixed(2)}" cy="${(-r*.3).toFixed(2)}" rx="${(r*.24).toFixed(2)}" ry="${(r*.36).toFixed(2)}"
-          fill="#ffd9c2" opacity=".42" transform="rotate(-22 ${(-r*.38).toFixed(2)} ${(-r*.3).toFixed(2)})"/>
+        <path d="M0,${(-r*1.9).toFixed(2)} q${(-r*.5).toFixed(2)},${(r*.9).toFixed(2)} ${(-r*.78).toFixed(2)},${(r*1.5).toFixed(2)}
+                 M0,${(-r*1.9).toFixed(2)} q${(r*.55).toFixed(2)},${(r*.95).toFixed(2)} ${(r*.82).toFixed(2)},${(r*1.55).toFixed(2)}"
+          fill="none" stroke="#6f8a4a" stroke-width="${(r*.16).toFixed(2)}" stroke-linecap="round"/>
+        ${[[-.78, 1.5, .92], [.82, 1.55, 1]].map(([dx, dy, sc]) => `<g transform="translate(${(-r*0 + r*dx).toFixed(2)},${(r*dy).toFixed(2)}) scale(${sc})">
+          <circle r="${r.toFixed(2)}" fill="#9e2436"/>
+          <path d="M${(-r*.86).toFixed(2)},${(-r*.2).toFixed(2)} a${r.toFixed(2)},${r.toFixed(2)} 0 0 1 ${(r*.7).toFixed(2)},${(-r*.72).toFixed(2)}"
+            stroke="#f0a8b4" stroke-width="${(r*.26).toFixed(2)}" fill="none" stroke-linecap="round" opacity=".55"/>
+          <circle r="${r.toFixed(2)}" fill="none" stroke="#5e1220" stroke-width=".6" opacity=".5"/></g>`).join('')}
       </g>`; } }
     if(wither > .3){ for(let i=0;i<2;i++){ const p = qp(it.start, it.ctrl, it.end, .5 + i*.3); lf += `<g class="fall" style="animation-delay:${(i*2.1).toFixed(1)}s;animation-duration:${(6 + i*1.5).toFixed(1)}s" transform="translate(${P(p)})"><path d="M0,0 Q4,-3 8,0 Q4,3 0,0" fill="${leafCol}" opacity=".8"/></g>`; } }
     if(active){ lf = `<circle class="halo" cx="${X(it.end[0]).toFixed(1)}" cy="${Y(it.end[1]).toFixed(1)}" r="${(15*k).toFixed(1)}" fill="${col}" opacity=".16"/>` + lf; }
@@ -12194,9 +12384,32 @@ function organicSVG(W, H){
     const outward = it.end[0] >= 0 ? 1 : -1;
     const sub = s.planned ? 'planned' : locked ? 'locked' : mastered ? 'mastered' : `lvl ${lvl}/${lc}${active?' · active':wither?' · withering':!last?' · not yet practised':''}`;
     const name = (locked?'🔒 ':'') + s.name; const fs = it.depth===2 ? 11.5 : 10.5;
-    lblItems.push({id:s.id, ex:X(it.end[0]), ey:Y(it.end[1]), x:X(it.end[0]) + outward*17, y:Y(it.end[1]), anchor:outward>0?'start':'end', w:Math.max(name.length*fs*.56, sub.length*8.5*.62) + 6, h:24, name, sub, fs, col});
+    /* the leaves are a good deal bigger than they were, so a label eight pixels
+       off the twig tip now sits inside the foliage; it stands further out */
+    lblItems.push({id:s.id, ex:X(it.end[0]), ey:Y(it.end[1]), x:X(it.end[0]) + outward*32, y:Y(it.end[1]), anchor:outward>0?'start':'end', w:Math.max(name.length*fs*.56, sub.length*8.5*.62) + 6, h:24, name, sub, fs, col});
     g += `<g class="sk-twig ${locked?'locked':''} ${active?'active':''} ${mastered?'mastered':''} ${since <= 7 ? 'fresh' : ''}" data-skill="${s.id}" data-parent="${it.parent}" data-x="${X(it.end[0]).toFixed(1)}" data-y="${Y(it.end[1]).toFixed(1)}" style="--nc:${col}"><title>${esc(s.name)} · ${esc(sub)}${since<Infinity?` · last practised ${relDays(since)}`:''}</title>${inner}<g class="sk-leaves">${lf}</g><g class="sk-lblslot" data-for="${s.id}"></g></g>`;
   });
+  /* The grass grows in front of the trunk, so it is drawn after it. Orchids
+     come up between the blades, three to a spike, each with the lip that tells
+     an orchid from any other flower. */
+  {
+    let gs = 41 + S.skills.length * 13;
+    const rnd = () => { gs = (gs * 1103515245 + 12345) & 0x7fffffff; return gs / 0x7fffffff; };
+    g += `<g class="sk-turf">${sakGrassHTML(trunkX, ground, W, rnd)}</g>`;
+  }
+  /* petals in the air, which is the whole of a cherry in April */
+  {
+    let ps = 913 + S.skills.length * 7;
+    const rnd = () => { ps = (ps * 1103515245 + 12345) & 0x7fffffff; return ps / 0x7fffffff; };
+    const many = clamp(6 + S.skills.length, 6, 22);
+    for(let i = 0; i < many; i++){
+      const px = trunkX + (rnd() - .5) * W * .8, py = 40 + rnd() * (ground - 90);
+      const sz = (7 + rnd() * 6) * k;
+      g += `<g class="sk-fallpetal" style="--dur:${(9 + rnd()*9).toFixed(1)}s;--delay:${(-rnd()*14).toFixed(1)}s;--dx:${(18 + rnd()*40).toFixed(0)}px;--dy:${(ground - py).toFixed(0)}px"
+        transform="translate(${px.toFixed(1)},${py.toFixed(1)}) rotate(${(rnd()*360).toFixed(0)})">
+        ${sakPetal(sz, sz*.8, 'url(#sakP)', (.5 + rnd()*.4).toFixed(2))}</g>`;
+    }
+  }
   // relax labels so they never sit on top of each other; a faint leader joins a moved label to its twig
   /* Two labels a pixel apart still read as one smear, because each is painted
      with a background-coloured halo that eats its neighbour's first letter. The
@@ -12213,7 +12426,7 @@ function organicSVG(W, H){
   return `<svg class="sk-organic" viewBox="0 0 ${W} ${H}" style="filter:hue-rotate(${season}deg)">${g}${labels}<g class="sk-lbls">${labelLayer}</g></svg>`;
 }
 function drawOrganicTree(root){
-  const wrap = $('#skillWrap'); if(!wrap) return; wrap.querySelector('svg')?.remove(); const mm = $('#minimap'); if(mm) mm.hidden = true; const hint = wrap.querySelector('.sk-hint'); if(hint) hint.textContent = 'every living twig is leaved · the flowers are the progress · an apple is mastery · a flower breathing means a milestone is near · brown leaves are withering';
+  const wrap = $('#skillWrap'); if(!wrap) return; wrap.querySelector('svg')?.remove(); const mm = $('#minimap'); if(mm) mm.hidden = true; const hint = wrap.querySelector('.sk-hint'); if(hint) hint.textContent = 'a cherry in flower · the blossom opens as the skill grows, bud to full bloom · a pair of cherries is mastery · a flower breathing means a milestone is near · bronze leaves are withering';
   const W = Math.max(wrap.clientWidth, 600), H = wrap.clientHeight || 640; const svg = el(organicSVG(W, H)); wrap.insertBefore(svg, wrap.firstChild);
   /* with nothing planted, the one thing to do is right under the seed */
   wrap.querySelector('.sk-plant')?.remove();
