@@ -20524,10 +20524,22 @@ function bindPlanDetail(p, t){
 /* Repainting the whole page would close this panel. Only the workspace needs
    to change while a task is being edited, so only the workspace is redrawn. */
 function rerenderPlanBody(){
-  if(parseHash().name !== 'planning') return;
   const main = $('#main'); if(!main) return;
   const keep = $('#panel');
   const y = window.scrollY;
+  /* A task's detail panel is opened from Today as well as from Planning, and
+     from the Content studio's own rows. This used to give up unless Planning
+     was the page underneath, so an edit made from anywhere else wrote to
+     state and changed nothing on screen until the page was reloaded by hand.
+     Anywhere but Planning, redraw the page — keeping the open panel and where
+     the page was scrolled to, which is the only reason this is not just
+     rerender() everywhere. */
+  if(parseHash().name !== 'planning'){
+    rerender();
+    if(keep && !$('#panel')) document.body.appendChild(keep);
+    window.scrollTo({top:y});
+    return;
+  }
   /* the habits room is the whole page rather than a body inside a shell, so
      there is nothing partial to redraw there — redraw the page instead of
      returning and leaving a tick that changed nothing on screen */

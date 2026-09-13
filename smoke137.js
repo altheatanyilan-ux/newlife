@@ -71,6 +71,34 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   });
   is('  and twelve hours brings it right round', ang12, 0);
 
+  console.log('\n3b. an edit in a task\'s panel lands at once, wherever it was opened');
+  await go('#/today');
+  const tid = await p.evaluate(() => document.querySelector('.task-row')?.dataset.taskrow);
+  yes('there is a task on Today to open', !!tid);
+  await p.evaluate(i => openPlanTask(i), tid); await p.waitForTimeout(700);
+  yes('  its panel opens', await p.evaluate(() => !!document.querySelector('#pdTitle')));
+  await p.evaluate(() => { const t = document.querySelector('#pdTitle');
+    t.value = 'Renamed from Today'; t.dispatchEvent(new Event('input')); });
+  await p.waitForTimeout(1400);
+  is('  the name is written', await p.evaluate(i => findTaskRef(i).task.text, tid), 'Renamed from Today');
+  yes('  and the row behind it says so without a reload',
+      await p.evaluate(i => /Renamed from Today/.test(document.querySelector(`[data-taskrow="${i}"]`)?.textContent || ''), tid),
+      await p.evaluate(i => document.querySelector(`[data-taskrow="${i}"]`)?.textContent.replace(/\s+/g, ' ').trim().slice(0, 60), tid));
+  yes('  the panel is still open, and the page has not jumped',
+      await p.evaluate(() => !!document.querySelector('#pdTitle')));
+  /* and the same edit from Planning still works, which is where it always did */
+  await go('#/planning');
+  const pid2 = await p.evaluate(() => document.querySelector('[data-ptrow]')?.dataset.ptrow);
+  if(pid2){
+    await p.evaluate(i => openPlanTask(i), pid2); await p.waitForTimeout(700);
+    await p.evaluate(() => { const t = document.querySelector('#pdTitle');
+      t.value = 'Renamed from Planning'; t.dispatchEvent(new Event('input')); });
+    await p.waitForTimeout(1400);
+    yes('Planning still updates its own row too',
+        await p.evaluate(i => /Renamed from Planning/.test(document.querySelector(`[data-ptrow="${i}"]`)?.textContent || ''), pid2));
+  }
+  await p.evaluate(() => closePanel?.());
+
   console.log('\n4. every other page keeps its add button');
   for(const [hash, page] of [['#/planning','Planning'], ['#/people','People'], ['#/projects','Projects']]){
     await go(hash);
