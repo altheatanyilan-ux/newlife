@@ -341,13 +341,26 @@ function divinationReadHTML(d){
   if(d.system === 'iching'){
     const h = d.hexagram ? ICHING.find(x => x.i === d.hexagram.i) : null;
     const r = d.relating ? ICHING.find(x => x.i === d.relating.i) : null;
-    const one = (x, role) => x ? `<div class="dv-read-card">
-      <div class="dv-read-h"><b class="serif">${esc(x.c)} · ${esc(x.n)}</b>
-        <span class="mono faint">${esc(role)} · hexagram ${x.i}</span></div>
-      <div class="dv-read-k mono">${esc((x.k || []).join(' · '))}</div>
-      <p class="dv-read-t">${esc(x.j)}</p>
-      <p class="dv-read-t faint">${esc(x.m)}</p></div>` : '';
-    return one(h, 'as cast') + one(r, 'as it becomes');
+    const moving = (d.lines || []).map((l, i) => l.moving ? i : -1).filter(i => i >= 0);
+    const one = (x, role, withLines) => { if(!x) return '';
+      const rich = typeof ichingRich === 'function' ? ichingRich(x.i) : null;
+      const paras = rich ? rich.d.split('\n\n').filter(Boolean) : [];
+      return `<div class="dv-read-card">
+        <div class="dv-read-h"><b class="serif">${esc(x.c)} · ${esc(x.n)}</b>
+          <span class="mono faint">${esc(role)} · hexagram ${x.i}</span></div>
+        ${typeof ichingTrigramsHTML === 'function' ? ichingTrigramsHTML(x.b) : ''}
+        <div class="dv-read-k mono">${esc((x.k || []).join(' · '))}</div>
+        <p class="dv-read-t">${esc(x.j)}</p>
+        <p class="dv-read-t faint">${esc(x.m)}</p>
+        ${paras.length ? `<details class="dv-read-more"><summary>the longer reading</summary>
+          ${paras.map(t => `<p class="dv-read-t">${esc(t)}</p>`).join('')}
+          <p class="dv-read-t faint">${esc(rich.mi)}</p>
+          ${withLines && moving.length ? moving.map(i => `<div class="ic-lineread"><span class="mono">line ${i + 1}</span>
+            <p>${esc(rich.L[i])}</p></div>`).join('') : ''}
+          ${rich.q.length ? `<ul class="dv-cr-q">${rich.q.map(q => `<li>${esc(q)}</li>`).join('')}</ul>` : ''}
+        </details>` : ''}</div>`; };
+    return (d.lines && typeof ichingLinesHTML === 'function' ? ichingLinesHTML(d.lines, 'small') : '')
+      + one(h, 'as cast', true) + one(r, 'as it becomes', false);
   }
   if(d.system === 'oracle'){
     return (d.cards || []).map(c => `<div class="dv-read-card">
@@ -467,7 +480,8 @@ function openTarot(pre = {}){
           <div class="dv-prompt" id="dvPrompt"></div>
           <div class="tc-row dv-spread" id="dvSpread2">${picks.map((pk, i) =>
             `<div class="tc-slot" data-slot="${i}"><span class="tc-pos mono">${esc(sp.pos[i])}</span>
-              <div class="tc-hole" data-hole="${i}"></div></div>`).join('')}</div>
+              <div class="tc-hole" data-hole="${i}"></div>
+              <div class="tc-capslot" data-cap="${i}"></div></div>`).join('')}</div>
           <div class="dv-fan" id="dvFan">${Array.from({length: many}, (_, i) =>
             `<button class="dv-pick" data-pick="${i}" style="--i:${i};--n:${many}" aria-label="choose a card">
               <div class="tc-mini">${tarotBackHTML()}</div></button>`).join('')}</div>
@@ -487,17 +501,27 @@ function openTarot(pre = {}){
         btn.classList.add('taken');
         const land = () => {
           hole.innerHTML = tarotCardHTML(picks[at], at, false);
+          const cap = m.querySelector(`[data-cap="${at}"]`);
+          cap.innerHTML = tarotCaptionHTML(picks[at]);
           const card = hole.querySelector('.tc');
           /* slide in, a breath, then the turn — the pause is the point of it */
           setTimeout(() => {
             card.classList.add('up'); sound('click');
             setTimeout(() => {
               card.classList.add('pulse');
-              scrambleInto(card.querySelector('.tc-name'), TAROT[picks[at].card].n, 600);
+              /* the name arrives under the card as it comes round, rather
+                 than being printed over the drawing */
+              scrambleInto(cap.querySelector('.tc-cap-name'), TAROT[picks[at].card].n, 600);
               setTimeout(() => card.classList.remove('pulse'), 900);
             }, soft ? 0 : 420);
             busy = false; say();
-            if(turned === picks.length) setTimeout(showReading, soft ? 0 : 1400);
+            if(turned === picks.length){
+              /* the rest of the deck has done its job — it goes, rather than
+                 sitting under the spread as a row of gaps */
+              const fan = m.querySelector('#dvFan');
+              if(fan){ fan.classList.add('spent'); setTimeout(() => fan.remove(), soft ? 0 : 500); }
+              setTimeout(showReading, soft ? 0 : 1400);
+            }
           }, soft ? 0 : 300);
         };
         if(soft){ btn.style.visibility = 'hidden'; land(); return; }
@@ -537,63 +561,98 @@ function openTarot(pre = {}){
     }
   };
 }
+/* ---------- casting the coins ----------
+   Three coins, six times, bottom line first. The toss is animated because
+   the pacing is the practice: you are meant to throw a line, look at it,
+   and throw the next, rather than press a button six times. The line lands
+   as the coins settle, and when the sixth is down the hexagram pulses once
+   and its name resolves out of noise, the same way a card's does. */
 function openIChing(){
   const m = openModal(`<h2>The Book of Changes</h2>
     <div class="stack">
       <div class="field"><label>What are you asking?</label>
         <input class="inp serif-lg" id="icQ" placeholder="A situation, not a yes-or-no."></div>
-      <div class="ic-build"><div class="ic-lines" id="icLines"></div>
-        <div class="ic-coins" id="icCoins"></div></div>
+      <div class="ic-build">
+        <div id="icLines"></div>
+        <div class="ic-coins" id="icCoins"></div>
+        <div class="ic-name serif" id="icName" hidden></div>
+      </div>
       <div class="row between"><span class="mono faint" id="icCount">no lines yet</span>
         <button class="btn primary" id="icToss">toss the coins</button></div>
       <div id="icOut"></div>
     </div>`, 'wide');
+  const soft = typeof reduced === 'function' && reduced();
   const lines = [];
   const drawLines = () => {
-    m.querySelector('#icLines').innerHTML = [5,4,3,2,1,0].map(i => {
-      const l = lines[i];
-      if(!l) return '<div class="ic-line empty"></div>';
-      return `<div class="ic-line ${l.v ? 'yang' : 'yin'} ${l.moving ? 'moving' : ''}">
-        ${l.v ? '<i class="full"></i>' : '<i class="half"></i><i class="half"></i>'}
-        ${l.moving ? '<span class="ic-mv">×</span>' : ''}</div>`;
-    }).join('');
+    m.querySelector('#icLines').innerHTML = ichingLinesHTML(lines);
     m.querySelector('#icCount').textContent = lines.length ? `${lines.length} of 6 lines` : 'no lines yet';
   };
   drawLines();
   m.querySelector('#icToss').onclick = () => {
     if(lines.length >= 6) return;
-    const coins = [0,0,0].map(() => Math.random() < .5 ? 2 : 3);
+    const coins = [0, 0, 0].map(() => Math.random() < .5 ? 2 : 3);
     const total = coins[0] + coins[1] + coins[2];
     lines.push({v: total % 2 ? 1 : 0, moving: total === 6 || total === 9, total, coins});
-    m.querySelector('#icCoins').innerHTML = coins.map(c =>
-      `<span class="ic-coin ${c === 3 ? 'heads' : 'tails'}">${c === 3 ? '陽' : '陰'}</span>`).join('');
+    const box = m.querySelector('#icCoins');
+    box.innerHTML = coins.map((c, i) => ichingCoinHTML(c, i)).join('');
+    if(!soft){ box.classList.remove('toss'); void box.offsetWidth; box.classList.add('toss'); }
     sound('click'); drawLines();
     if(lines.length < 6) return;
     m.querySelector('#icToss').disabled = true;
     const h = ichingLookup(ichingBinary(lines)), rel = ichingRelating(lines);
-    const moving = lines.map((l, i) => l.moving ? i + 1 : 0).filter(Boolean);
-    m.querySelector('#icOut').innerHTML = `
-      <div class="ic-res"><b class="serif">${h.i}. ${esc(h.n)}</b> <span class="mono faint">${esc(h.c)}</span>
-        <div class="mono faint">${esc(h.k.join(' · '))}</div>
-        <p class="ic-j">${esc(h.j)}</p><p class="ic-im">${esc(h.m)}</p></div>
-      ${moving.length ? `<div class="mono faint" style="margin:8px 0">moving line${moving.length === 1 ? '' : 's'}: ${moving.join(', ')} — the situation is in motion</div>` : ''}
-      ${rel ? `<div class="ic-res second"><span class="mono faint">changing into</span>
-        <b class="serif">${rel.i}. ${esc(rel.n)}</b> <span class="mono faint">${esc(rel.c)}</span>
-        <p class="ic-j">${esc(rel.j)}</p></div>` : ''}
-      <div class="field"><label>What do you make of it?</label>
-        <textarea class="inp" id="icText" rows="5"></textarea></div>
-      <div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn primary" id="icSave">Keep the reading</button></div>`;
-    m.querySelector('#icSave').onclick = () => {
-      divinationSave({system:'iching', question:m.querySelector('#icQ').value.trim(),
-        title:`${h.i}. ${h.n}${rel ? ' → ' + rel.i + '. ' + rel.n : ''}`,
-        lines:lines.map(l => ({v:l.v, moving:l.moving})), hexagram:{i:h.i, n:h.n, c:h.c}, relating:rel ? {i:rel.i, n:rel.n} : null,
-        reading:m.querySelector('#icText').value.trim()});
-      sound('success'); toast('Kept in the Lived Record.'); m.remove(); rerender();
+    const settle = () => {
+      const nm = m.querySelector('#icName');
+      nm.hidden = false;
+      nm.innerHTML = `<span class="ic-num mono">hexagram ${h.i}</span><span class="ic-nm"></span>
+        <span class="ic-cn mono">${esc(h.c)}</span>${ichingTrigramsHTML(h.b)}`;
+      scrambleInto(nm.querySelector('.ic-nm'), h.n, 600);
+      const lw = m.querySelector('.ic-lines');
+      if(lw && !soft){ lw.classList.add('done'); setTimeout(() => lw.classList.remove('done'), 1200); }
+      m.querySelector('#icOut').innerHTML = `
+        <div class="mono faint ic-keys">${esc(h.k.join('  ·  '))}</div>
+        ${ichingReadingHTML(lines, h, rel)}
+        <section class="dv-yours"><h4 class="dv-sec-h">Your reflection</h4>
+          <p class="dv-yours-p">The hexagram describes a situation. Only you know which one.</p>
+          <div class="field"><textarea class="inp" id="icText" rows="5" placeholder="Not what the book says. What it says to you, about the thing you asked."></textarea></div>
+          <div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn primary" id="icSave">Keep the reading</button></div>
+        </section>`;
+      /* the old, compact result block is still the thing tests and the
+         record look for, so it stays — folded in above the long reading */
+      m.querySelector('#icOut').insertAdjacentHTML('afterbegin',
+        `<div class="ic-res"><b class="serif">${h.i}. ${esc(h.n)}</b> <span class="mono faint">${esc(h.c)}</span></div>`);
+      m.querySelector('#icSave').onclick = () => {
+        divinationSave({system:'iching', question:m.querySelector('#icQ').value.trim(),
+          title:`${h.i}. ${h.n}${rel ? ' → ' + rel.i + '. ' + rel.n : ''}`,
+          lines:lines.map(l => ({v:l.v, moving:l.moving})), hexagram:{i:h.i, n:h.n, c:h.c},
+          relating:rel ? {i:rel.i, n:rel.n} : null,
+          reading:m.querySelector('#icText').value.trim()});
+        sound('success'); toast('Kept in the Lived Record.'); m.remove(); rerender();
+      };
+      m.querySelector('#icOut').scrollIntoView({behavior: soft ? 'auto' : 'smooth', block: 'start'});
     };
+    if(soft) settle(); else setTimeout(settle, 700);
   };
 }
+/* ---------- the oracle ----------
+   An oracle card is a sentence, and a sentence in a text box is a
+   notification. Given a card to turn over and a moment to sit with before
+   answering, the same sentence is something else — which is the whole
+   difference this section is trying to make.
+
+   What to do with a card depends on the deck it came from, so each deck
+   says so in its own words. Inner Weather is about the afternoon you are
+   actually in; Thresholds is about finding the real doorway behind the
+   metaphor; Elements asks you to feel it before you think about it,
+   because the answer that arrives from the head first is usually a
+   defence. */
+const ORACLE_SIT = {
+  inner: "Before you answer, put this somewhere you will see it again this afternoon. Inner Weather is about what is actually going on rather than what you had planned, so the test of a card is simple: does it change anything in the next four hours?",
+  thresh: "Find the actual threshold. Not the metaphor — the specific doorway this is pointing at: the conversation, the decision, the room you have been standing outside of. Name that first, then answer.",
+  elem: "Take three slow breaths before you respond. Let it land in the body rather than in the head, and notice what arrives — a feeling, an image, a resistance. That is the answer beginning to form. The one that comes from the head first is usually a defence.",
+};
 function openOracle(deckId){
   const deck = ORACLE_DECKS.find(d => d.id === deckId) || ORACLE_DECKS[0];
+  const soft = typeof reduced === 'function' && reduced();
   const m = openModal(`<h2>${esc(deck.name)}</h2>
     <div class="stack">
       <div class="row" style="gap:5px;flex-wrap:wrap">${ORACLE_DECKS.map(d =>
@@ -605,8 +664,28 @@ function openOracle(deckId){
   m.querySelectorAll('[data-deck]').forEach(b => b.onclick = () => { m.remove(); openOracle(b.dataset.deck); });
   m.querySelector('#orDraw').onclick = () => {
     const [i] = oracleDraw(deck.id, 1); const [name, text] = deck.cards[i];
-    m.querySelector('#orOut').innerHTML = `<div class="or-card"><b class="serif">${esc(name)}</b><p>${esc(text)}</p></div>
-      <div class="field"><label>What do you make of it?</label><textarea class="inp" id="orText" rows="3"></textarea></div>`;
+    m.querySelector('#orOut').innerHTML = `
+      <div class="or-stage">
+        <div class="or-card" id="orCard">
+          <div class="or-inner">
+            <div class="or-back">${tarotBackHTML()}<span class="or-deck mono">${esc(deck.name)}</span></div>
+            <div class="or-face">
+              <div class="or-name serif">${esc(name)}</div>
+              <p class="or-text">${esc(text)}</p>
+              <span class="or-src mono">${esc(deck.name)}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <section class="or-sit"><h4 class="dv-sec-h">Sit with this</h4>
+        <p>${esc(ORACLE_SIT[deck.id] || ORACLE_SIT.inner)}</p></section>
+      <section class="or-yours"><h4 class="dv-sec-h">Your response</h4>
+        <div class="field"><textarea class="inp" id="orText" rows="4" placeholder="Not what it means in general. What it means here."></textarea></div>
+      </section>`;
+    const card = m.querySelector('#orCard');
+    const turn = () => { card.classList.add('up'); sound('click');
+      setTimeout(() => scrambleInto(card.querySelector('.or-name'), name, 500), soft ? 0 : 420); };
+    if(soft) turn(); else setTimeout(turn, 380);
     m.querySelector('#orDraw').textContent = 'keep it';
     m.querySelector('#orDraw').onclick = () => {
       divinationSave({system:'oracle', deck:deck.id, question:m.querySelector('#orQ').value.trim(),

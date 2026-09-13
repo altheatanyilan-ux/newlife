@@ -78,6 +78,22 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     [...document.querySelectorAll('.dv-card-read')].every(n => n.querySelectorAll('.dv-cr-q li').length >= 2)));
   yes('  three cards are read as one story', await p.evaluate(() =>
     (document.querySelector('.dv-story p')?.textContent || '').length > 80));
+
+  /* Every card is Pamela Colman Smith's drawing of it, and every card is the
+     same card-shaped rectangle. The faces once took their size from their own
+     text, so a card with a long line came out taller than its neighbour and a
+     spread was three different sizes. */
+  yes('  each card carries its own drawing', await p.evaluate(() =>
+    document.querySelectorAll('.tc.up .tc-art').length === 3));
+  is('  and every card is the same size', await p.evaluate(() =>
+    new Set([...document.querySelectorAll('.tc-face')].map(n => {
+      const r = n.getBoundingClientRect(); return Math.round(r.width) + 'x' + Math.round(r.height);
+    })).size), 1);
+  yes('  at the proportion a tarot card actually is', await p.evaluate(() => {
+    const r = document.querySelector('.tc').getBoundingClientRect();
+    return Math.abs(r.height / r.width - 878 / 500) < 0.06; }));
+  yes('  the name arrives under the card, not over the drawing', await p.evaluate(() =>
+    [...document.querySelectorAll('.tc-cap-name')].every(n => n.textContent.trim().length > 2)));
   const eB = await p.evaluate(() => S.entries.length);
   await p.evaluate(() => { document.querySelector('#dvText').value = 'It is about the move, not the job.';
     document.querySelector('#dvSave').click(); });
@@ -131,11 +147,79 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   is('  and with none, nothing is becoming anything', moved.none, null);
   await p.evaluate(() => closeModals());
   await p.evaluate(() => openIChing()); await p.waitForTimeout(400);
-  for(let i = 0; i < 6; i++){ await p.evaluate(() => document.querySelector('#icToss').click()); await p.waitForTimeout(120); }
-  await p.waitForTimeout(400);
-  is('six tosses build six lines', await p.$$eval('.ic-lines .ic-line:not(.empty)', n => n.length), 6);
+  for(let i = 0; i < 6; i++){ await p.evaluate(() => document.querySelector('#icToss').click()); await p.waitForTimeout(160); }
+  /* the coins are thrown and land before the hexagram names itself */
+  await p.waitForTimeout(1400);
+  /* scoped to the hexagram being cast: the reading below it draws the one it
+     is turning into as well */
+  is('six tosses build six lines', await p.$$eval('#icLines .ic-line:not(.empty)', n => n.length), 6);
+  is('  each numbered in the order it was cast', await p.$$eval('#icLines .ic-n', n => n.length), 6);
+  is('  three coins are shown for the last throw', await p.$$eval('.ic-coin', n => n.length), 3);
   yes('  and name the hexagram', await p.evaluate(() => /^\d+\./.test(document.querySelector('.ic-res b')?.textContent || '')),
       await p.evaluate(() => document.querySelector('.ic-res b')?.textContent));
+  yes('  with its trigrams', await p.evaluate(() => /above/.test(document.querySelector('.ic-tri')?.textContent || '')));
+  yes('  the judgment is interpreted, not just quoted', await p.evaluate(() =>
+    (document.querySelector('.ic-reading')?.textContent || '').length > 600));
+  yes('  and the image with it', await p.evaluate(() =>
+    [...document.querySelectorAll('.dv-sec-h')].some(h => /Image/.test(h.textContent))));
+  /* the coins exist in order to single out particular lines; a reading that
+     names the moving lines and does not say what they say has thrown the
+     whole method away */
+  const mv = await p.evaluate(() => ({moving: document.querySelectorAll('.ic-line.moving').length,
+    given: document.querySelectorAll('.ic-lineread').length,
+    becoming: !!document.querySelector('.ic-moving')}));
+  is('  every changing line is given its own text', mv.given, mv.moving);
+  is('  and a moving reading says what it is becoming', mv.becoming, mv.moving > 0);
+  yes('  with questions to sit with', await p.$$eval('.ic-reading .dv-cr-q li', n => n.length >= 2));
+  await p.evaluate(() => closeModals());
+
+  /* every hexagram is written out, not only the ones that happened to come up */
+  const hexDepth = await p.evaluate(() => {
+    const bad = [];
+    for(let i = 1; i <= 64; i++){
+      const r = ichingRich(i);
+      if(!r) { bad.push(i + ': missing'); continue; }
+      if(r.d.split('\n\n').length < 2) bad.push(i + ': judgment too short');
+      else if(!r.mi) bad.push(i + ': no image');
+      else if(r.L.length !== 6 || r.L.some(x => !x)) bad.push(i + ': lines missing');
+      else if(r.q.length < 2) bad.push(i + ': no questions');
+    }
+    return bad.slice(0, 4);
+  });
+  is('all sixty-four are written out, lines and all', hexDepth.length, 0);
+
+  /* the deck is drawn as well as written: all seventy-eight pictures, in the
+     order the deck holds them */
+  const art = await p.evaluate(() => {
+    if(typeof TAROT_ART === 'undefined') return {missing: 78, thin: [], vb: ''};
+    const thin = [];
+    for(let i = 0; i < 78; i++) if(!TAROT_ART[i] || TAROT_ART[i].length < 2000) thin.push(TAROT[i].n);
+    return {missing: 78 - TAROT_ART.length, thin: thin.slice(0, 4), vb: TAROT_ART_VB};
+  });
+  is('all seventy-eight are drawn', art.missing, 0);
+  is('  none of them a stub', art.thin.length, 0);
+  yes('  on the deck\'s own proportion', /500 878/.test(art.vb), art.vb);
+  /* the art is indexed by the same number as the meanings, so a card cannot
+     be drawn as one thing and read as another */
+  yes('  and the picture matches the card', await p.evaluate(() => {
+    const holder = document.createElement('div');
+    holder.innerHTML = tarotCardHTML({card: 0, rev: false}, 0, true);
+    const d = holder.querySelector('.tc-art path').getAttribute('d');
+    return d === TAROT_ART[0] && d !== TAROT_ART[1];
+  }));
+
+  /* an oracle card is a sentence, and a sentence in a box is a notification:
+     it is a card you turn over, with a note on how to sit with it */
+  await p.evaluate(() => openOracle('elem')); await p.waitForTimeout(400);
+  await p.evaluate(() => document.querySelector('#orDraw').click()); await p.waitForTimeout(1600);
+  yes('an oracle card is turned over', await p.evaluate(() => document.querySelector('#orCard')?.classList.contains('up')));
+  yes('  drawn at a size worth looking at', await p.evaluate(() => {
+    const r = document.querySelector('#orCard')?.getBoundingClientRect();
+    return !!r && r.width >= 180 && r.height >= 250; }));
+  yes('  and the deck says how to sit with it', await p.evaluate(() =>
+    /breaths/.test(document.querySelector('.or-sit p')?.textContent || '')));
+  yes('  each deck in its own words', await p.evaluate(() =>
+    new Set(Object.values(ORACLE_SIT)).size === Object.keys(ORACLE_SIT).length));
   await p.evaluate(() => closeModals());
 
   console.log('\n4. the intuition log, and the check on it');

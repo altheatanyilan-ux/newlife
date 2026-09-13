@@ -125,25 +125,39 @@ function tarotBackHTML(){
 }
 
 /* a whole card, face and back, ready to be turned */
+/* a whole card, face and back, ready to be turned.
+
+   The face is Pamela Colman Smith's drawing, which is the card: it carries
+   its own title along the bottom and its own numeral at the top, the way a
+   tarot card has since 1909, so nothing needs printing over it. The name
+   goes under the card instead, where it can arrive out of noise without
+   covering the picture — and a reversed card is simply the card the other
+   way up, title and all, which is how a reversed card has always been read.
+
+   The paper stays paper in either theme. A card is a printed object; it
+   does not turn dark because the room did, and black ink on a dark card
+   would be no drawing at all. */
 function tarotCardHTML(pick, pos, faceUp){
   const card = tarotCard(pick.card); if(!card) return '';
   const col = SUIT_COLOR[card.suit] || '#8f7bb0';
-  const gl = SUIT_GLYPH[card.suit] || '✦';
-  const meta = [card.number === 0 && card.arcana === 'major' ? '0' : card.number,
-    card.element, card.planet].filter(Boolean).join(' · ');
+  const art = typeof TAROT_ART !== 'undefined' ? TAROT_ART[card.id] : null;
   return `<div class="tc ${faceUp ? 'up' : ''} ${pick.rev ? 'rev' : ''}" data-tc="${pos}" style="--sc:${col}">
     <div class="tc-inner">
       ${tarotBackHTML()}
-      <div class="tc-face">
-        ${['tl','tr','bl','br'].map(c => `<span class="tc-corner ${c}">${gl}</span>`).join('')}
-        <div class="tc-name serif" data-name="${esc(card.name)}">${esc(card.name)}</div>
-        ${pick.rev ? '<div class="tc-rev mono">(reversed)</div>' : ''}
-        <div class="tc-sigwrap">${tarotSigilSVG(card, 64)}</div>
-        <div class="tc-rule"></div>
-        ${card.essence ? `<div class="tc-essence">${esc(card.essence)}</div>` : ''}
-        <div class="tc-meta mono">${esc(meta.toUpperCase())}</div>
+      <div class="tc-face">${art
+        ? `<svg class="tc-art" viewBox="${TAROT_ART_VB}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><path d="${art}"/></svg>`
+        : `<div class="tc-sigwrap">${tarotSigilSVG(card, 64)}</div>
+           <div class="tc-name serif">${esc(card.name)}</div>`}
       </div>
     </div></div>`;
+}
+
+/* the caption under a card: the name, arriving as the card turns, and the
+   word that says which way up it landed */
+function tarotCaptionHTML(pick){
+  const card = tarotCard(pick.card); if(!card) return '';
+  return `<div class="tc-cap"><span class="tc-cap-name serif"></span>${
+    pick.rev ? '<span class="tc-cap-rev mono">reversed</span>' : ''}</div>`;
 }
 
 /* ---------- the reading ----------
@@ -245,4 +259,86 @@ function scrambleInto(el, text, ms = 600){
     else el.textContent = text;
   };
   requestAnimationFrame(tick);
+}
+
+/* ============================================================
+   THE HEXAGRAM, DRAWN AND READ
+
+   Six lines three pixels thick with a small × beside the moving ones is an
+   accurate diagram and it is not a hexagram — the thing is meant to be
+   looked at. The lines here are the width of the column and thick enough
+   to read across a room, numbered up the side in the order they were cast,
+   with the changing ones breathing.
+
+   And the coin method exists in order to single out particular lines. A
+   reading that names the moving lines and then does not say what they say
+   has thrown away the only reason to use coins rather than pick a hexagram
+   out of a hat. So the moving lines are given, in full, in their place.
+   ============================================================ */
+const TRIGRAMS = {
+  '111': ['☰', 'Qián', 'Heaven'], '000': ['☷', 'Kūn', 'Earth'],
+  '100': ['☳', 'Zhèn', 'Thunder'], '010': ['☵', 'Kǎn', 'Water'],
+  '001': ['☶', 'Gèn', 'Mountain'], '011': ['☴', 'Xùn', 'Wind'],
+  '101': ['☲', 'Lí', 'Fire'], '110': ['☱', 'Duì', 'Lake'],
+};
+const ichingRich = n => (typeof ICHING_RICH !== 'undefined' && ICHING_RICH[n - 1]) || null;
+
+/* the six lines, bottom to top, at a size worth looking at */
+function ichingLinesHTML(lines, cls = ''){
+  return `<div class="ic-lines ${cls}">` + [5, 4, 3, 2, 1, 0].map(i => {
+    const l = lines[i];
+    if(!l) return `<div class="ic-line empty"><span class="ic-n mono">${i + 1}</span><span class="ic-bar"></span></div>`;
+    return `<div class="ic-line ${l.v ? 'yang' : 'yin'}${l.moving ? ' moving' : ''}" style="--d:${(i * .07).toFixed(2)}s">
+      <span class="ic-n mono">${i + 1}</span>
+      <span class="ic-bar">${l.v ? '<i class="full"></i>' : '<i class="half"></i><i class="half"></i>'}</span>
+      ${l.moving ? '<span class="ic-mv mono">changing</span>' : ''}</div>`;
+  }).join('') + '</div>';
+}
+
+/* the trigrams a hexagram is made of, which is how it is named and how
+   anyone who reads the book actually recognises it */
+function ichingTrigramsHTML(bin){
+  const lower = TRIGRAMS[bin.slice(0, 3)], upper = TRIGRAMS[bin.slice(3, 6)];
+  if(!lower || !upper) return '';
+  return `<div class="ic-tri mono">${upper[0]} ${esc(upper[2])} above · ${lower[0]} ${esc(lower[2])} below</div>`;
+}
+
+/* three ancient coins: a circle with a square hole, which is what a Chinese
+   coin is and what makes a row of them read as a cast rather than as discs */
+function ichingCoinHTML(face, i){
+  return `<span class="ic-coin ${face === 3 ? 'heads' : 'tails'}" style="--i:${i}">
+    <svg viewBox="0 0 40 40" aria-hidden="true">
+      <circle cx="20" cy="20" r="18" class="ic-c-body"/>
+      <circle cx="20" cy="20" r="18" class="ic-c-rim"/>
+      <rect x="14" y="14" width="12" height="12" rx="1" class="ic-c-hole"/>
+    </svg><b>${face === 3 ? '陽' : '陰'}</b></span>`;
+}
+
+/* the whole reading: judgment and what it is saying, the image, every
+   changing line in its place, what the reading is turning into, and
+   questions to put to yourself */
+function ichingReadingHTML(lines, h, rel){
+  const r = ichingRich(h.i), rr = rel ? ichingRich(rel.i) : null;
+  const moving = lines.map((l, i) => l.moving ? i : -1).filter(i => i >= 0);
+  const paras = r ? r.d.split('\n\n').filter(Boolean) : [];
+  return `<div class="ic-reading">
+    <section class="ic-sec"><h4 class="dv-sec-h">Judgment</h4>
+      <blockquote class="ic-quote">${esc(h.j)}</blockquote>
+      ${paras.map(t => `<p class="dv-cr-t">${esc(t)}</p>`).join('')}</section>
+    <section class="ic-sec"><h4 class="dv-sec-h">Image</h4>
+      <blockquote class="ic-quote">${esc(h.m)}</blockquote>
+      ${r ? `<p class="dv-cr-t">${esc(r.mi)}</p>` : ''}</section>
+    ${moving.length ? `<section class="ic-sec"><h4 class="dv-sec-h">Changing line${moving.length === 1 ? '' : 's'}</h4>
+      ${moving.map(i => `<div class="ic-lineread"><span class="mono">line ${i + 1}</span>
+        <p>${esc(r ? r.L[i] : '')}</p></div>`).join('')}
+      <p class="mono faint">A changing line is the part of the situation that is already in motion. It is why the reading has a second hexagram.</p>
+      </section>` : `<p class="mono faint">No changing lines: the situation is not, for the moment, in motion.</p>`}
+    ${rel ? `<section class="ic-sec ic-moving"><h4 class="dv-sec-h">Moving toward</h4>
+      <div class="ic-relhead"><b class="serif">${rel.i}. ${esc(rel.n)}</b> <span class="mono faint">${esc(rel.c)}</span></div>
+      ${ichingLinesHTML(lines.map(l => ({v: l.moving ? (l.v ? 0 : 1) : l.v, moving: false})), 'small')}
+      <blockquote class="ic-quote">${esc(rel.j)}</blockquote>
+      ${rr ? `<p class="dv-cr-t">${esc(rr.d.split('\n\n')[0])}</p>` : ''}</section>` : ''}
+    ${r && r.q.length ? `<section class="ic-sec"><h4 class="dv-sec-h">Questions</h4>
+      <ul class="dv-cr-q">${r.q.map(q => `<li>${esc(q)}</li>`).join('')}</ul></section>` : ''}
+  </div>`;
 }
