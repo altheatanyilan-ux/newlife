@@ -6,7 +6,7 @@
    that run between them. It is not a separate room because it was never
    separate material — the memories on the spine are journal entries filed
    to a stage. */
-const JOURNAL_VIEWS = [['entries','✍','Journals'], ['timeline','◷','Timeline'], ['library','▤','Library']];
+const JOURNAL_VIEWS = [['entries','✍','Journals'], ['timeline','◷','Timeline'], ['library','▤','Library'], ['review','◫','Review']];
 /* Five of the fourteen journals were doors into rooms that already exist, or
    into nothing at all. Memories and life events are the Timeline's own
    material, filed to a stage. Media is the Library. The practice log is
@@ -27,7 +27,7 @@ function journalDefault(){ return (journalsShown()[0] || S.journals[0] || {type:
    in, which named a third of the room after the whole of it — so the heading
    is the view you are actually looking at, and the page's own name sits above
    it in the sidebar. */
-const JOURNAL_VIEW_TITLE = {entries:'Journals', timeline:'Timeline', library:'Library'};
+const JOURNAL_VIEW_TITLE = {entries:'Journals', timeline:'Timeline', library:'Library', review:'Review'};
 function journalsHeadHTML(view){
   return `<div class="page-head jr-head"><h1>${esc(JOURNAL_VIEW_TITLE[view] || 'Lived Record')}</h1>
     <div class="jr-views">${JOURNAL_VIEWS.map(([k, ic, n]) =>
@@ -43,12 +43,14 @@ document.addEventListener('keydown', ev => {
   if(ev.code === 'Digit1'){ ev.preventDefault(); navigate('#/journals/' + (S._journal || journalDefault())); }
   else if(ev.code === 'Digit2'){ ev.preventDefault(); navigate('#/journals/timeline'); }
   else if(ev.code === 'Digit3'){ ev.preventDefault(); navigate('#/journals/library'); }
+  else if(ev.code === 'Digit4'){ ev.preventDefault(); navigate('#/journals/review'); }
 }, true);
 function bindJournalViews(root){
   $$('[data-jrview]', root).forEach(b => b.onclick = () => {
     const v = b.dataset.jrview;
     navigate(v === 'timeline' ? '#/journals/timeline'
            : v === 'library'  ? '#/journals/library'
+           : v === 'review'   ? '#/journals/review'
            : '#/journals/' + (S._journal || journalDefault()));
   });
 }
@@ -61,6 +63,19 @@ function migrateJournalTypes(){
   want.forEach(([type, name]) => { if(!S.journals.some(j => j.type === type)) S.journals.push({type, name}); });
 }
 routes.journals = function(root, params){
+  /* The Review: the charts that used to be the Compass, and under them the
+     reviews written about the periods they describe. The Compass was a page
+     of its own; it is a tab here, because looking at the numbers and writing
+     about them is one activity and it was two rooms. */
+  if(params[0] === 'review'){
+    root.innerHTML = `<div class="page">${journalsHeadHTML('review')}
+      <div class="rv-dash">${typeof compassBodyHTML === 'function' ? compassBodyHTML() : ''}</div>
+      ${typeof reviewListHTML === 'function' ? reviewListHTML() : ''}</div>`;
+    bindJournalViews(root);
+    if(typeof bindCompassBody === 'function') bindCompassBody(root, () => rerender());
+    if(typeof bindReviewList === 'function') bindReviewList(root);
+    return;
+  }
   if(params[0] === 'timeline'){
     renderTimeline(root, params[1] === 'threads' ? 'threads' : 'stages',
       {heading: journalsHeadHTML('timeline'), base: '#/journals/timeline'});

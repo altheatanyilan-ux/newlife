@@ -65,7 +65,9 @@ const NAV_PAGES = {
 /* The three rooms you are in most days sit above everything, unlabelled and
    not foldable — you do not need a heading to tell you what Today is for.
    Below them, two zones: what you are making, and who you are. */
-const NAV_TOP = ['today','planning','compass'];
+/* The Compass is no longer a door of its own — the charts it held are the
+   Review tab of the Lived Record, next to the writing about them. */
+const NAV_TOP = ['today','planning'];
 const NAV_PINNED = [];
 const NAV_DEFAULT = {
   create:   ['content','projects','finance','skills'],
@@ -86,7 +88,9 @@ const NAV_ZONE_IDS = [...NAV_ZONES.map(z => z.id), 'standalone'];
 /* Rooms that keep a NAV_PAGES entry — for the house diagram, for a link
    somewhere, for an address that still resolves — but are not doors in the
    sidebar. Timeline and the Library are both views of Journals. */
-const NAV_UNLISTED = ['import','settings','writing','timeline','commonplace'];
+/* `compass` joins these: the address still answers — it redirects to the
+   Review tab — but it is not a room to be listed or dragged into a zone. */
+const NAV_UNLISTED = ['import','settings','writing','timeline','commonplace','compass'];
 /* pages that are placed by hand and must never be swept into a zone */
 const NAV_FIXED = new Set([...NAV_TOP, ...NAV_PINNED, ...NAV_UNLISTED]);
 const MOBILE_PRIMARY = ['today','planning','content','journals','values'];
@@ -215,7 +219,12 @@ function nextReviewLine(){
    sidebar and says the same thing in full when you get there, so the row was a
    table of contents for a house you can already see. Removed with the two
    functions that built it. */
-routes.compass = function(root){
+/* The Compass was a page of its own: the charts that read the whole house,
+   the week's sleep, and how much of each day was used. It is a tab of the
+   Lived Record now — under Review, above the reviews themselves, which is
+   where you would actually look at it: with the writing about it. The
+   function that draws it is unchanged; only where it is drawn has moved. */
+function compassBodyHTML(){
   const T = today(); const st = houseStats(); const moon = moonPhase(); const c = checkin(T);
   const days30 = lastDays(30); const weeks12 = Array.from({length:12},(_,w)=>w).map(w => lastDays(84).slice(w*7, w*7+7));
   const axes = S.valueOrder.map(id=>{ const v=byId(S.values,id); return {name:v.name, short:v.name.split(' ')[0], color:v.color}; });
@@ -241,8 +250,9 @@ routes.compass = function(root){
   /* what actually landed, month by month, across every stream that keeps a log */
   const moneyMonths = Array.from({length:12},(_,k)=>{ const d = new Date(); d.setMonth(d.getMonth()-(11-k)); const key = `${d.getFullYear()}-${pad(d.getMonth()+1)}`;
     return sum(pf.streams.map(s => sum((s.income.revenueLog||[]).filter(r => (r.month||r.date||'').startsWith(key)).map(r => toBase(r.amount, s.income.currency))))); });
-  root.innerHTML = `<div class="page">
-    <div class="page-head" style="margin-bottom:22px"><div><h1>${fmtDate(T)}</h1><div class="moon">${moonSVG(moon.p)} <span>${moon.name}</span><span class="mono" style="margin-left:6px">· the compass — your life at a glance</span></div></div></div>
+  return `
+    <div class="cmp-when"><span class="serif-lg">${fmtDate(T)}</span>
+      <span class="moon">${moonSVG(moon.p)} <span>${moon.name}</span></span></div>
 
     ${typeof weekShapeHTML === 'function' ? weekShapeHTML() : ''}
 
@@ -263,12 +273,15 @@ routes.compass = function(root){
       <div class="card span4"><div class="k">The record <a href="#/journals">→</a></div><div class="big" data-tween="${S.entries.length}">0<small>entries</small></div><div class="chart-fill">${sparkline(entriesW,{h:56,min:0,color:'var(--rose)'})}</div><div class="sub">${st.j7} this week · ${st.memories} memories · ${st.quotes} quotes</div><div class="stagebars" title="entries per stage">${stageCounts.map(x=>`<i style="--c:${x.s.hue};height:${Math.max(4,x.n/maxStage*44)}px" title="${esc(x.s.name)} · ${x.n}"></i>`).join('')}</div></div>
       <div class="card span4"><div class="k">People, within cadence <a href="#/people">→</a></div><div class="ring-row">${ringSVG(cadencePct,{size:88,stroke:8,color:overduePpl.length?'var(--gold)':'var(--sage)',label:Math.round(cadencePct*100)+'%'})}<div class="ring-lines"><div class="sub">${tended} of ${withCadence.length} kept to the rhythm you chose${withCadence.length?'':' — no cadences set'}</div>${overduePpl.slice(0,3).map(o=>`<div class="sub" style="color:var(--gold)">${esc(o.p.name)} · ${o.days===Infinity?'never spoken':o.days+'d ago'}</div>`).join('')}</div></div><div class="sub">${bdays.length?`next: ${esc(bdays[0].p.name)}'s birthday in ${bdays[0].days} day${bdays[0].days===1?'':'s'}`:'no birthdays in the next month'}</div></div>
       <div class="card span4"><div class="k">Money, current against target <a href="#/finance">→</a></div><div class="big">${money(pf.totalCurrentBase)}<small>per month</small></div><div class="vbar"><span>of target</span><div class="bar" style="--c:var(--sage)"><i style="width:${pf.totalTargetBase?Math.min(100,pf.totalCurrentBase/pf.totalTargetBase*100).toFixed(0):0}%"></i></div><span class="mono">${pf.totalTargetBase?Math.round(pf.totalCurrentBase/pf.totalTargetBase*100)+'%':'—'}</span></div><div class="vbar"><span>passive</span><div class="bar" style="--c:var(--ment)"><i style="width:${Math.round(pf.passiveShare*100)}%"></i></div><span class="mono">${Math.round(pf.passiveShare*100)}%</span></div><div class="chart-fill">${sparkline(moneyMonths,{h:56,min:0,color:'var(--sage)'})}</div><div class="sub">${!pf.totalCurrentBase ? 'nothing coming in yet' : rw.sustainable?`<span style="color:var(--sage)">covered</span> — ${money(rw.surplus)}/mo over what the life costs`:`<span style="color:var(--gold)">${rw.months===Infinity?'no savings to run on':`${rw.months.toFixed(1)} months of runway`}</span> — ${money(monthlyBurn())}/mo short`}</div></div>
-    </div></section>
-  </div>`;
+    </div></section>`;
+}
+function bindCompassBody(root, redraw){
   /* the house diagram is gone, and so is the wiring that made it hoverable */
-  if(typeof bindPosition === 'function') bindPosition(root, () => rerender());
-  if(typeof bindWeekShape === 'function') bindWeekShape(root, () => rerender());
-};
+  if(typeof bindPosition === 'function') bindPosition(root, redraw || (() => rerender()));
+  if(typeof bindWeekShape === 'function') bindWeekShape(root, redraw || (() => rerender()));
+}
+/* the old address still answers — it goes where the content went */
+routes.compass = function(){ navigate('#/journals/review'); };
 
 /* ---------- Settings: drag-and-drop zone editor ---------- */
 function zoneEditorHTML(){ const n = navConfig(); const col = (id, label, keys, accent) => `<div class="zone-col" data-zcol="${id}" style="--z:${accent}"><div class="sc" style="color:${accent}">${label}</div>${keys.map(k => `<div class="zone-item" draggable="true" data-zitem="${k}"><span class="ico">${NAV_PAGES[k].ico}</span>${esc(NAV_PAGES[k].label)}<span class="mono">⋮</span></div>`).join('')||'<div class="faint" style="font-size:.75rem;padding:6px">drop pages here</div>'}</div>`;

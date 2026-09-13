@@ -31,8 +31,12 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
     loose: [...document.querySelectorAll('.nav > a')].map(a => a.dataset.page),
     settings: !!document.querySelector('#sidebar a[href="#/settings"]'),
   }));
-  ok('Today, Planning, Compass at the top, in that order',
-     JSON.stringify(nav.top) === JSON.stringify(['today','planning','compass']), JSON.stringify(nav.top));
+  /* the Compass is no longer a door of its own: its charts are the Review tab
+     of the Lived Record, beside the writing about them */
+  ok('Today and Planning at the top, in that order',
+     JSON.stringify(nav.top) === JSON.stringify(['today','planning']), JSON.stringify(nav.top));
+  ok('and the Compass is not a room any more',
+     !nav.top.includes('compass') && !nav.zones.some(z => z.pages.includes('compass')), JSON.stringify(nav));
   ok('the top three carry no heading',
      await page.evaluate(() => !document.querySelector('.nav-top .zone-h')), 'a heading appeared');
   /* the Library moved in with Journals as its third view, so it is no longer
@@ -85,9 +89,9 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
   await go('#/journals');
   ok('it opens on the entries, as before',
      await page.evaluate(() => !!document.querySelector('.jnav') && document.querySelector('[data-jrview].on')?.dataset.jrview === 'entries'), 'no');
-  ok('with a switch to the Timeline and to the Library',
+  ok('with a switch to the Timeline, the Library and the Review',
      await page.evaluate(() => [...document.querySelectorAll('[data-jrview]')].map(b => b.dataset.jrview).join(',')
-       === 'entries,timeline,library'),
+       === 'entries,timeline,library,review'),
      await page.evaluate(() => [...document.querySelectorAll('[data-jrview]')].map(b => b.dataset.jrview).join(',')));
   await page.evaluate(() => document.querySelector('[data-jrview="timeline"]').click()); await page.waitForTimeout(1000);
   const tl = await page.evaluate(() => ({hash: location.hash, h1: document.querySelector('h1')?.textContent,
@@ -140,7 +144,7 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
 
   console.log('\n6. every old address still answers');
   for(const [from, want] of [['#/timeline','#/journals/timeline'], ['#/timeline/threads','#/journals/timeline/threads'],
-                             ['#/writing','#/content']]){
+                             ['#/writing','#/content'], ['#/compass','#/journals/review']]){
     await go(from);
     const landed = await page.evaluate(() => location.hash);
     ok(`${from} → ${want}`, landed === want, landed);

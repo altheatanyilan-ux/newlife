@@ -168,6 +168,10 @@ function entryExtraHTML(e){
   if(e.type==='manifestation'){ rows.push(`<span class="status-pill">${esc(x.status||'held')}</span>${x.setpointAt?` <span class="mono">set from ${esc(hicksName(+x.setpointAt).split(' / ')[0])} (${x.setpointAt}/22)</span>`:''}`);
     if(x.resistance) rows.push(`<div><span class="mono">resistance</span><br>${esc(x.resistance)}</div>`);
     (x.evidence||[]).forEach(ev => rows.push(`<div class="evidence-item"><span class="mono">${fmtDate(ev.date,'med')}</span><span>${esc(ev.text)}</span></div>`)); }
+  /* An entry promoted out of a review says where it came from, and goes back
+     there — the two are one text with two homes. */
+  if(x.fromReview) rows.push(`<button class="rv-link mono" data-rvback="${esc(x.fromReview)}">from a review · ${
+    esc((typeof reviewOf === 'function' ? reviewOf(x.fromReview)?.label : '') || 'open it')} →</button>`);
   /* A reading shows its deal, and an impression shows what became of it —
      both are the part of the entry that is not the prose. */
   if(e.type==='divination' && x.divination){ const d = x.divination;
@@ -250,6 +254,10 @@ document.addEventListener('click', e => {
   const ed_ = e.target.closest('[data-edit]'); if(ed_){ openEntryModal({entryId: ed_.dataset.edit}); }
   const del = e.target.closest('[data-del]'); if(del){ e.stopPropagation(); const ent = byId(S.entries, del.dataset.del); if(ent) requestDelete({label: ent.title || typeName(ent.type), node: del.closest('.entry, .formative'), remove: () => spliceOut(S.entries, x => x.id === ent.id)}); }
   const lb = e.target.closest('[data-lb]'); if(lb){ const img = lb.querySelector('img'); lightbox(img.src, img.alt); }
+  const rb = e.target.closest('[data-rvback]'); if(rb){ e.stopPropagation();
+    navigate('#/journals/review');
+    setTimeout(() => { const n = document.querySelector(`[data-rvid="${rb.dataset.rvback}"]`);
+      if(n){ n.open = true; n.scrollIntoView({block:'center'}); } }, 400); return; }
   const iv = e.target.closest('[data-iverify]'); if(iv){ e.stopPropagation(); openIntuitionVerify(iv.dataset.iverify); return; }
   const pin = e.target.closest('[data-vbpin]');
   if(pin){ e.stopPropagation(); const ent = byId(S.entries, pin.dataset.vbpin); if(!ent) return;

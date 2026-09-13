@@ -102,7 +102,7 @@ function tagChips(e, {link=true}={}){ const t = entryTags(e); return t.length ? 
 const KEY = 'lifeinstrument.v1';
 let S = null;
 /* persistence lives in db.js (Dexie schema + load/save/backup) */
-function migrate(){ if(S.settings && (S.settings.home === 'map' || S.settings.home === 'home')) S.settings.home = 'compass'; wipeDemoData(); if(S.rehearsal && !S.rehearsal){ S.rehearsal = S.rehearsal; } delete S.rehearsal; if(typeof migrateEras === 'function') migrateEras(); const d = seed(); for(const k of Object.keys(d)) if(S[k]===undefined) S[k] = d[k]; if(typeof migrateLifeline === 'function') migrateLifeline(); if(typeof migrateSkillLevels === 'function') migrateSkillLevels(); if(typeof migrateProjects === 'function') migrateProjects(); if(typeof migrateStages === 'function') migrateStages(); if(typeof migrateTasks === 'function') migrateTasks(); if(typeof migrateIdeas === 'function') migrateIdeas(); if(typeof migrateMedia === 'function') migrateMedia(); if(typeof migrateSkillFocus === 'function') migrateSkillFocus(); if(typeof migrateSkillCats === 'function') migrateSkillCats(); if(typeof migratePeople === 'function') migratePeople(); if(typeof migrateValuePractices === 'function') migrateValuePractices(); if(typeof migrateFinance === 'function') migrateFinance(); if(typeof migrateRhythm === 'function') migrateRhythm(); if(typeof migrateTheatre === 'function') migrateTheatre(); if(typeof migrateStillness === 'function') migrateStillness(); if(typeof migrateJournalTypes === 'function') migrateJournalTypes(); S.boards = Array.isArray(S.boards) ? S.boards : []; if(typeof migrateBoards === 'function') migrateBoards(); }
+function migrate(){ if(S.settings && ['map','home','compass'].includes(S.settings.home)) S.settings.home = 'today'; wipeDemoData(); if(S.rehearsal && !S.rehearsal){ S.rehearsal = S.rehearsal; } delete S.rehearsal; if(typeof migrateEras === 'function') migrateEras(); const d = seed(); for(const k of Object.keys(d)) if(S[k]===undefined) S[k] = d[k]; if(typeof migrateLifeline === 'function') migrateLifeline(); if(typeof migrateSkillLevels === 'function') migrateSkillLevels(); if(typeof migrateProjects === 'function') migrateProjects(); if(typeof migrateStages === 'function') migrateStages(); if(typeof migrateTasks === 'function') migrateTasks(); if(typeof migrateIdeas === 'function') migrateIdeas(); if(typeof migrateMedia === 'function') migrateMedia(); if(typeof migrateSkillFocus === 'function') migrateSkillFocus(); if(typeof migrateSkillCats === 'function') migrateSkillCats(); if(typeof migratePeople === 'function') migratePeople(); if(typeof migrateValuePractices === 'function') migrateValuePractices(); if(typeof migrateFinance === 'function') migrateFinance(); if(typeof migrateRhythm === 'function') migrateRhythm(); if(typeof migrateTheatre === 'function') migrateTheatre(); if(typeof migrateStillness === 'function') migrateStillness(); if(typeof migrateReviews === 'function') migrateReviews(); if(typeof migrateJournalTypes === 'function') migrateJournalTypes(); S.boards = Array.isArray(S.boards) ? S.boards : []; if(typeof migrateBoards === 'function') migrateBoards(); }
 
 /* One-time: the house used to open furnished with a demonstration life. If that
    demonstration is still here, clear it so the rooms start empty. */
@@ -284,8 +284,8 @@ function consumeHashParam(bare){
 function parseHash(){ const h = (location.hash||'').replace(/^#\/?/,''); const [name, ...rest] = h.split('/'); return {name: name || homeRoute(), params: rest.map(decodeURIComponent)}; }
 /* rooms that no longer exist, pointed at where their work went */
 /* rooms that no longer exist, pointed at where their work went */
-const ROUTE_ALIASES = {home:'compass', rhythm:'today', lifetape:'today', calendar:'today', plan:'today',
-  rituals:'today', reviews:'today', board:'compass', vision:'compass', needs:'compass', spiral:'compass'};
+const ROUTE_ALIASES = {home:'today', rhythm:'today', lifetape:'today', calendar:'today', plan:'today',
+  rituals:'today', reviews:'today', board:'today', vision:'today', needs:'today', spiral:'today'};
 function renderRoute(){
   /* page-scoped atmosphere flags do not survive a navigation */
   
@@ -296,7 +296,7 @@ function renderRoute(){
   if(ROUTE_ALIASES[name] && !routes[name]){ navigate('#/' + ROUTE_ALIASES[name]); return; }
   markActiveNav(); applyPageTheme();
   const main = $('#main');
-  const fn = routes[name] || routes.compass;
+  const fn = routes[name] || routes.today;
   closePanel({keep:true});
   /* a modal belongs to the page that opened it — carrying one across a
      navigation leaves it stranded on top of a page it knows nothing about */
@@ -312,7 +312,7 @@ function renderRoute(){
   if(typeof attachDictationIn === 'function') attachDictationIn(main);
   restoreScroll(location.hash);
 }
-function rerender(){ const y = window.scrollY; const main = $('#main'); const {name, params} = parseHash(); main.innerHTML=''; PageEntryConfig.clear(); (routes[name]||routes.compass)(main, params); decoratePageHead(main); mountContextAdd(main); if(typeof attachDictationIn === 'function') attachDictationIn(main); $$('.rv', main).forEach(n=>n.classList.add('in')); tweenAll(main); window.scrollTo({top:y}); }
+function rerender(){ const y = window.scrollY; const main = $('#main'); const {name, params} = parseHash(); main.innerHTML=''; PageEntryConfig.clear(); (routes[name]||routes.today)(main, params); decoratePageHead(main); mountContextAdd(main); if(typeof attachDictationIn === 'function') attachDictationIn(main); $$('.rv', main).forEach(n=>n.classList.add('in')); tweenAll(main); window.scrollTo({top:y}); }
 /* where you were on each page, so Back returns you to the spot and not the top */
 try { history.scrollRestoration = 'manual'; } catch(e){}
 const scrollMem = new Map(); let wentBack = false, navSeq = 0, navIdx = -1;
@@ -452,7 +452,7 @@ function bindVmToggle(container, key){
 }
 window.addEventListener('popstate', e => { if($('#panel') && !e.state?.liPanel) closePanel({keep:true}); updateBackButton(); });
 /* ---------- persistent Back button: history.back() only, never a link ---------- */
-function homeRoute(){ const h = S?.settings?.home; return (h && h !== 'map' && routes[h]) ? h : 'compass'; }
+function homeRoute(){ const h = S?.settings?.home; return (h && h !== 'map' && h !== 'compass' && routes[h]) ? h : 'today'; }
 function updateBackButton(){
   const b = $('#backBtn'); if(!b) return;
   const {name} = parseHash();

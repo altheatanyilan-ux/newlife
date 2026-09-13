@@ -40,6 +40,7 @@ function seed(){
       {type:'uncategorized',name:'Uncategorized'},
     ],
     rehearsal:{script:'', winning:'', aim:'', cycleStart:'', days:[]},
+    reviewEntries:[], reviewPrefs:{period:'week', nudges:true},
     stillness:{sessions:[], sanctuary:{built:false, door:'', wall:'blue', view:'', detail:'', visits:0, last:null},
       prefs:{kind:'meditation', minutes:10, anchor:'breath', mantra:'', pattern:'calm', picture:'concrete', chime:'bowl'}},
     reviews:{lastWeekly:null,lastSeasonal:null,lastAnnual:null},

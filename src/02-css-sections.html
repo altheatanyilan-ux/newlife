@@ -4279,5 +4279,45 @@ select.sm-active{border-color:var(--page-accent);
 @media (prefers-reduced-motion:reduce){
   .fw-burst{display:none}
   .fw-note{animation:none}}
+
+/* ============================================================
+   THE REVIEW TAB
+   ============================================================ */
+.cmp-when{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:0 0 16px}
+.cmp-when .moon{display:inline-flex;align-items:center;gap:6px;font-size:.72rem;color:var(--faint)}
+.rv-dash{margin-bottom:26px}
+.rv-list{border-top:1px dashed var(--line);padding-top:20px}
+.rv-nudge{font-family:var(--lora,var(--serif));font-style:italic;font-size:.85rem;color:var(--muted);margin:6px 0 0}
+.rv-entry{border:1px solid var(--line);border-radius:12px;background:var(--surface-2);margin-bottom:8px;overflow:hidden}
+.rv-entry>summary{display:flex;align-items:baseline;gap:10px;padding:11px 14px;cursor:pointer;list-style:none;flex-wrap:wrap}
+.rv-entry>summary::-webkit-details-marker{display:none}
+.rv-entry>summary:hover{background:var(--surface-3)}
+.rv-kind{font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);
+  border:1px solid var(--line-2);border-radius:5px;padding:1px 6px}
+.rv-entry>summary>.mono{margin-left:auto;font-size:.64rem}
+.rv-body{padding:2px 14px 14px}
+.rv-strip{font-size:.66rem;margin-bottom:8px}
+.rv-said{font-family:var(--lora,var(--serif));font-style:italic;line-height:1.65;margin:0 0 10px}
+.rv-refl{border-left:2px solid var(--line-2);padding-left:11px;margin:0 0 9px}
+.rv-refl>.mono{font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+.rv-refl p{margin:2px 0 4px;font-size:.86rem;line-height:1.6}
+.rv-link{background:none;border:0;padding:0;color:var(--page-accent);cursor:pointer;font-size:.62rem;text-decoration:underline}
+/* --- the digest --- */
+.rv-flow-head{margin-bottom:16px}
+.rv-flow-head h2{margin:0 0 3px}
+.rv-sections{display:flex;flex-direction:column;gap:12px;max-height:64vh;overflow-y:auto;padding-right:4px;scrollbar-width:thin}
+.rv-card{border:1px solid var(--line);border-left:3px solid var(--c);border-radius:11px;
+  padding:12px 14px;background:var(--surface)}
+.rv-card h3{margin:0 0 8px;font-family:var(--serif);font-size:.95rem;font-variant:small-caps;letter-spacing:.05em;color:var(--c)}
+.rv-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:3px 18px;margin-bottom:10px}
+.rv-stat{display:flex;align-items:baseline;justify-content:space-between;gap:10px;
+  border-bottom:1px dotted var(--line);padding:2px 0}
+.rv-stat .mono{font-size:.64rem;color:var(--faint)}
+.rv-stat b{font-size:.82rem;font-weight:500;text-align:right}
+.rv-say{width:100%;resize:vertical;font-family:var(--lora,var(--serif));font-size:.92rem;line-height:1.6}
+.rv-post{display:flex;align-items:center;gap:7px;margin-top:6px;font-size:.72rem;color:var(--muted);flex-wrap:wrap}
+.rv-post .inp.sm{padding:2px 6px;font-size:.72rem;width:auto}
+.rv-card.overall{background:var(--surface-2)}
+.entry.flash{outline:2px solid var(--page-accent);outline-offset:3px;border-radius:12px}
 </style>
 </head>

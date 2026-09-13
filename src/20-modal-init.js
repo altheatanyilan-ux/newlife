@@ -183,6 +183,9 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
     S.places = [...new Set([...(S.places||[]), ...e.places])];
     recordWritingSession(e, wclock);
     if(existing) Object.assign(existing, e); else S.entries.push(e);
+    /* an entry promoted out of a review is one text with two homes: editing
+       it here writes the change back into the review it came from */
+    if(e.extra?.fromReview && typeof reviewSyncFromJournal === 'function') reviewSyncFromJournal(e.id);
     saveNow();
     /* a quote that names a work is a passage of that work, so the work is told
        — after the entry exists, because the passage points back at its id */
