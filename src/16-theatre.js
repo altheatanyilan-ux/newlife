@@ -131,7 +131,7 @@ function vbCardHTML(it){
     : it.type === 'quote'
       ? `<blockquote class="vb-quote">${esc(it.text)}${it.source ? `<cite>${esc(it.source)}</cite>` : ''}</blockquote>`
       : it.type === 'affirmation'
-        ? `<p class="vb-affirm">${esc(it.text)}</p>`
+        ? `<p class="vb-affirm" data-typed>${esc(it.text)}</p>`
         : `<p class="vb-desc">${esc(it.text)}</p>`;
   return `<figure class="vb-card ${it.type}" data-vb="${it.id}" draggable="true" tabindex="0">
     ${body}

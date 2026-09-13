@@ -177,7 +177,11 @@ routes.today = function(root){
         <div>
           <div class="today-date">${fmtDate(T)}${isLateNight()
             ? ` <span class="late-night" title="It is ${esc(clockDay())} by the clock. The day turns over at ${dayBoundaryHour()} AM.">🌙 still ${esc(fmtDate(T, 'short'))}</span>` : ''}</div>
-          ${seasonName?`<div class="mono faint" style="font-size:.72rem;margin-top:2px">${seasonName} · day ${Math.round(moon.age)} of the lunar cycle</div>`:''}
+          <!-- The spec cycles the date itself between a greeting, the moon
+               and the season. The date is the one thing this page is for, so
+               the line UNDER it does the cycling instead and the date stays
+               where it is. -->
+          ${seasonName?`<div class="mono faint today-cycle" id="todayCycle" style="font-size:.72rem;margin-top:2px">${seasonName} · day ${Math.round(moon.age)} of the lunar cycle</div>`:''}
         </div>
         <div class="moon row" style="gap:6px;align-items:center">${moonSVG(moon.p)} <span class="mono faint">${moon.name}</span></div>
       </div>
@@ -485,6 +489,20 @@ routes.today = function(root){
   if(shouldGreetMorning()) setTimeout(openMorningGreeting, 400);
   noteSeen();
 
+  /* The line under the date says four things in turn, dissolving from one
+     into the next — the season and where the moon is in its month, the hour
+     of the day spoken as an hour, the moon by name, and how the day has been
+     rated if it has. Eight seconds apart, and in the dark room only, where
+     the page is allowed to be alive. */
+  if($('#todayCycle')){
+    const h = new Date().getHours();
+    const greet = h < 5 ? 'the small hours' : h < 12 ? 'good morning' : h < 17 ? 'good afternoon'
+      : h < 22 ? 'good evening' : 'late, and still up';
+    const lines = [`${seasonName} · day ${Math.round(moon.age)} of the lunar cycle`, greet, moon.name.toLowerCase()];
+    const sp = c.setpoint && typeof hicksName === 'function' ? hicksName(c.setpoint) : null;
+    if(sp) lines.push(String(sp).toLowerCase());
+    if(typeof Kinetic !== 'undefined') Kinetic.cycle('#todayCycle', lines, 8000);
+  }
 
   reveal(root);
 };

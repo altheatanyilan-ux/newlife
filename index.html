@@ -6661,7 +6661,7 @@ function renderRoute(){
      was ever seen. They wait for the scroll now; tweenAll stays for the
      panels and modals, which have no scroll to wait for. */
   try { decoratePageHead(main); mountContextAdd(main); reveal(main); ScrollFX.scan(main);
-        Kinetic.scan(main); Kinetic.flourish(main); backupBanner(); updateBackButton(); }
+        Kinetic.scan(main); Kinetic.flourish(main); Kinetic.typed(main); backupBanner(); updateBackButton(); }
   catch(err){ console.error('page trimmings failed', err); }
   /* a review the user stepped out of to write an entry comes back, same step */
   if(typeof resumeReviewIfPending === 'function') resumeReviewIfPending();
@@ -6680,7 +6680,7 @@ function rerender(){
   try { decoratePageHead(main); mountContextAdd(main);
     if(typeof attachDictationIn === 'function') attachDictationIn(main);
     $$('.rv', main).forEach(n=>n.classList.add('in')); tweenAll(main); ScrollFX.scan(main);
-    Kinetic.scan(main); Kinetic.flourish(main); }
+    Kinetic.scan(main); Kinetic.flourish(main); Kinetic.typed(main); }
   catch(err){ console.error('page trimmings failed', err); }
   window.scrollTo({top:y});
 }
@@ -8514,20 +8514,42 @@ const Kinetic = (() => {
       setTimeout(() => node.classList.remove('in'), 500);
     }, 420);
   }
-  /* a run of strings, one after another, on a slow clock. Returns the stop
-     function, because a cycle left running against a node that has been
-     re-rendered away is a leak with a timer on it. */
-  function cycle(node, strings, ms){
-    if(!node || !strings.length) return () => {};
+  /* A run of strings, one after another, on a slow clock.
+     Two things this got wrong first time round, both worth writing down.
+
+     It took a NODE. This app rebuilds #main on nearly every edit, so the
+     node a cycle was started against is thrown away and the cycle then
+     talks to an orphan forever. It takes a selector and re-asks the
+     document each tick.
+
+     And it decided at call time whether the room was dark enough to
+     bother. A page renders before anybody touches the theme switch, so a
+     cycle armed in the light room stayed dead after the switch to dark —
+     which is exactly how it was found. The room is checked on the tick,
+     not at the start.
+
+     Keyed by selector, so calling it again — which every rerender does —
+     replaces the timer rather than adding a second one. */
+  const cycles = new Map();
+  function cycle(sel, strings, ms){
+    if(typeof sel !== 'string') sel = null;
+    if(!sel || !strings || !strings.length) return () => {};
+    clearInterval(cycles.get(sel));
+    const first = document.querySelector(sel);
+    if(first) first.textContent = strings[0];
+    if(strings.length < 2) return () => {};
     let i = 0;
-    node.textContent = strings[0];
-    if(soft() || !dark() || strings.length < 2) return () => {};
     const t = setInterval(() => {
-      if(!node.isConnected){ clearInterval(t); return; }
+      const node = document.querySelector(sel);
+      /* gone for good rather than between renders: a page that no longer
+         has this line is a page that has moved on */
+      if(!node){ clearInterval(t); cycles.delete(sel); return; }
+      if(soft() || !dark()) return;        /* the light room holds still */
       i = (i + 1) % strings.length;
       morph(node, strings[i]);
     }, ms || 8000);
-    return () => clearInterval(t);
+    cycles.set(sel, t);
+    return () => { clearInterval(t); cycles.delete(sel); };
   }
 
   /* ---------- 4. the two that are only a class ----------
@@ -8543,7 +8565,20 @@ const Kinetic = (() => {
     (root || document).querySelectorAll(FLOW).forEach(n => n.classList.add('flow'));
   }
 
-  return {scan, type, morph, cycle, flourish,
+  /* Anything marked [data-typed] is typed at the reader rather than simply
+     being there. It is for lines that are ADDRESSED to them — an affirmation,
+     an aim read aloud — and not for text that describes something, which
+     would only be slow. Once per element; a second render leaves it alone. */
+  function typed(root){
+    if(soft() || !dark()) return;
+    (root || document).querySelectorAll('[data-typed]:not([data-typed="done"])').forEach(n => {
+      const txt = n.textContent;
+      n.dataset.typed = 'done';
+      type(n, txt, {speed: 28});
+    });
+  }
+
+  return {scan, type, typed, morph, cycle, flourish,
     /* exposed so a page can ask for the effect on something it just made */
     reveal: prepare};
 })();
@@ -12621,7 +12656,11 @@ routes.today = function(root){
         <div>
           <div class="today-date">${fmtDate(T)}${isLateNight()
             ? ` <span class="late-night" title="It is ${esc(clockDay())} by the clock. The day turns over at ${dayBoundaryHour()} AM.">🌙 still ${esc(fmtDate(T, 'short'))}</span>` : ''}</div>
-          ${seasonName?`<div class="mono faint" style="font-size:.72rem;margin-top:2px">${seasonName} · day ${Math.round(moon.age)} of the lunar cycle</div>`:''}
+          <!-- The spec cycles the date itself between a greeting, the moon
+               and the season. The date is the one thing this page is for, so
+               the line UNDER it does the cycling instead and the date stays
+               where it is. -->
+          ${seasonName?`<div class="mono faint today-cycle" id="todayCycle" style="font-size:.72rem;margin-top:2px">${seasonName} · day ${Math.round(moon.age)} of the lunar cycle</div>`:''}
         </div>
         <div class="moon row" style="gap:6px;align-items:center">${moonSVG(moon.p)} <span class="mono faint">${moon.name}</span></div>
       </div>
@@ -12929,6 +12968,20 @@ routes.today = function(root){
   if(shouldGreetMorning()) setTimeout(openMorningGreeting, 400);
   noteSeen();
 
+  /* The line under the date says four things in turn, dissolving from one
+     into the next — the season and where the moon is in its month, the hour
+     of the day spoken as an hour, the moon by name, and how the day has been
+     rated if it has. Eight seconds apart, and in the dark room only, where
+     the page is allowed to be alive. */
+  if($('#todayCycle')){
+    const h = new Date().getHours();
+    const greet = h < 5 ? 'the small hours' : h < 12 ? 'good morning' : h < 17 ? 'good afternoon'
+      : h < 22 ? 'good evening' : 'late, and still up';
+    const lines = [`${seasonName} · day ${Math.round(moon.age)} of the lunar cycle`, greet, moon.name.toLowerCase()];
+    const sp = c.setpoint && typeof hicksName === 'function' ? hicksName(c.setpoint) : null;
+    if(sp) lines.push(String(sp).toLowerCase());
+    if(typeof Kinetic !== 'undefined') Kinetic.cycle('#todayCycle', lines, 8000);
+  }
 
   reveal(root);
 };
@@ -22834,7 +22887,7 @@ function tarotCardHTML(pick, pos, faceUp){
   return `<div class="tc ${faceUp ? 'up' : ''} ${pick.rev ? 'rev' : ''}" data-tc="${pos}" style="--sc:${col}">
     <div class="tc-inner">
       ${tarotBackHTML()}
-      <div class="tc-face">${tarotFaceHTML(card)}</div>
+      <div class="tc-face sheen">${tarotFaceHTML(card)}</div>
     </div></div>`;
 }
 
@@ -24008,7 +24061,7 @@ function divinationReadHTML(d){
 function tarotCentering(then){
   const lines = ['Take a breath.', 'Close your eyes for a moment.', 'Hold your question in your mind.'];
   const soft = typeof reduced === 'function' && reduced();
-  const veil = el(`<div class="dv-veil" role="dialog" aria-label="a moment before the cards">
+  const veil = el(`<div class="dv-veil sheen" role="dialog" aria-label="a moment before the cards">
     <div class="dv-veil-in">
       ${lines.map((l, i) => `<p class="dv-veil-l" style="--i:${i}">${esc(l)}</p>`).join('')}
       <button class="btn primary dv-ready" ${soft ? '' : 'hidden'}>I'm ready</button>
@@ -28640,7 +28693,7 @@ function openStillTimer(opts){
     <div class="still-under">
       <span class="mono faint" id="stillLeft"></span>
       ${kind === 'breath' ? '<span class="mono faint" id="stillCycles"></span>' : ''}
-      ${anchor === 'mantra' && mantra ? `<span class="still-mantra">${esc(mantra)}</span>` : ''}
+      ${anchor === 'mantra' && mantra ? `<span class="still-mantra breathing">${esc(mantra)}</span>` : ''}
       ${anchor === 'breath' && kind === 'meditation' ? '<span class="mono faint" id="stillCount"></span>' : ''}
     </div>
     <button class="btn sm ghost still-end" id="stillEnd">end the sitting</button>
@@ -29021,7 +29074,7 @@ function vbCardHTML(it){
     : it.type === 'quote'
       ? `<blockquote class="vb-quote">${esc(it.text)}${it.source ? `<cite>${esc(it.source)}</cite>` : ''}</blockquote>`
       : it.type === 'affirmation'
-        ? `<p class="vb-affirm">${esc(it.text)}</p>`
+        ? `<p class="vb-affirm" data-typed>${esc(it.text)}</p>`
         : `<p class="vb-desc">${esc(it.text)}</p>`;
   return `<figure class="vb-card ${it.type}" data-vb="${it.id}" draggable="true" tabindex="0">
     ${body}

@@ -128,20 +128,42 @@ const Kinetic = (() => {
       setTimeout(() => node.classList.remove('in'), 500);
     }, 420);
   }
-  /* a run of strings, one after another, on a slow clock. Returns the stop
-     function, because a cycle left running against a node that has been
-     re-rendered away is a leak with a timer on it. */
-  function cycle(node, strings, ms){
-    if(!node || !strings.length) return () => {};
+  /* A run of strings, one after another, on a slow clock.
+     Two things this got wrong first time round, both worth writing down.
+
+     It took a NODE. This app rebuilds #main on nearly every edit, so the
+     node a cycle was started against is thrown away and the cycle then
+     talks to an orphan forever. It takes a selector and re-asks the
+     document each tick.
+
+     And it decided at call time whether the room was dark enough to
+     bother. A page renders before anybody touches the theme switch, so a
+     cycle armed in the light room stayed dead after the switch to dark —
+     which is exactly how it was found. The room is checked on the tick,
+     not at the start.
+
+     Keyed by selector, so calling it again — which every rerender does —
+     replaces the timer rather than adding a second one. */
+  const cycles = new Map();
+  function cycle(sel, strings, ms){
+    if(typeof sel !== 'string') sel = null;
+    if(!sel || !strings || !strings.length) return () => {};
+    clearInterval(cycles.get(sel));
+    const first = document.querySelector(sel);
+    if(first) first.textContent = strings[0];
+    if(strings.length < 2) return () => {};
     let i = 0;
-    node.textContent = strings[0];
-    if(soft() || !dark() || strings.length < 2) return () => {};
     const t = setInterval(() => {
-      if(!node.isConnected){ clearInterval(t); return; }
+      const node = document.querySelector(sel);
+      /* gone for good rather than between renders: a page that no longer
+         has this line is a page that has moved on */
+      if(!node){ clearInterval(t); cycles.delete(sel); return; }
+      if(soft() || !dark()) return;        /* the light room holds still */
       i = (i + 1) % strings.length;
       morph(node, strings[i]);
     }, ms || 8000);
-    return () => clearInterval(t);
+    cycles.set(sel, t);
+    return () => { clearInterval(t); cycles.delete(sel); };
   }
 
   /* ---------- 4. the two that are only a class ----------
@@ -157,7 +179,20 @@ const Kinetic = (() => {
     (root || document).querySelectorAll(FLOW).forEach(n => n.classList.add('flow'));
   }
 
-  return {scan, type, morph, cycle, flourish,
+  /* Anything marked [data-typed] is typed at the reader rather than simply
+     being there. It is for lines that are ADDRESSED to them — an affirmation,
+     an aim read aloud — and not for text that describes something, which
+     would only be slow. Once per element; a second render leaves it alone. */
+  function typed(root){
+    if(soft() || !dark()) return;
+    (root || document).querySelectorAll('[data-typed]:not([data-typed="done"])').forEach(n => {
+      const txt = n.textContent;
+      n.dataset.typed = 'done';
+      type(n, txt, {speed: 28});
+    });
+  }
+
+  return {scan, type, typed, morph, cycle, flourish,
     /* exposed so a page can ask for the effect on something it just made */
     reveal: prepare};
 })();

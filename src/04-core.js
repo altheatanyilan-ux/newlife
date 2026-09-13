@@ -325,7 +325,7 @@ function renderRoute(){
      was ever seen. They wait for the scroll now; tweenAll stays for the
      panels and modals, which have no scroll to wait for. */
   try { decoratePageHead(main); mountContextAdd(main); reveal(main); ScrollFX.scan(main);
-        Kinetic.scan(main); Kinetic.flourish(main); backupBanner(); updateBackButton(); }
+        Kinetic.scan(main); Kinetic.flourish(main); Kinetic.typed(main); backupBanner(); updateBackButton(); }
   catch(err){ console.error('page trimmings failed', err); }
   /* a review the user stepped out of to write an entry comes back, same step */
   if(typeof resumeReviewIfPending === 'function') resumeReviewIfPending();
@@ -344,7 +344,7 @@ function rerender(){
   try { decoratePageHead(main); mountContextAdd(main);
     if(typeof attachDictationIn === 'function') attachDictationIn(main);
     $$('.rv', main).forEach(n=>n.classList.add('in')); tweenAll(main); ScrollFX.scan(main);
-    Kinetic.scan(main); Kinetic.flourish(main); }
+    Kinetic.scan(main); Kinetic.flourish(main); Kinetic.typed(main); }
   catch(err){ console.error('page trimmings failed', err); }
   window.scrollTo({top:y});
 }

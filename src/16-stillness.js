@@ -100,7 +100,7 @@ function openStillTimer(opts){
     <div class="still-under">
       <span class="mono faint" id="stillLeft"></span>
       ${kind === 'breath' ? '<span class="mono faint" id="stillCycles"></span>' : ''}
-      ${anchor === 'mantra' && mantra ? `<span class="still-mantra">${esc(mantra)}</span>` : ''}
+      ${anchor === 'mantra' && mantra ? `<span class="still-mantra breathing">${esc(mantra)}</span>` : ''}
       ${anchor === 'breath' && kind === 'meditation' ? '<span class="mono faint" id="stillCount"></span>' : ''}
     </div>
     <button class="btn sm ghost still-end" id="stillEnd">end the sitting</button>

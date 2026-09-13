@@ -434,7 +434,7 @@ function divinationReadHTML(d){
 function tarotCentering(then){
   const lines = ['Take a breath.', 'Close your eyes for a moment.', 'Hold your question in your mind.'];
   const soft = typeof reduced === 'function' && reduced();
-  const veil = el(`<div class="dv-veil" role="dialog" aria-label="a moment before the cards">
+  const veil = el(`<div class="dv-veil sheen" role="dialog" aria-label="a moment before the cards">
     <div class="dv-veil-in">
       ${lines.map((l, i) => `<p class="dv-veil-l" style="--i:${i}">${esc(l)}</p>`).join('')}
       <button class="btn primary dv-ready" ${soft ? '' : 'hidden'}>I'm ready</button>

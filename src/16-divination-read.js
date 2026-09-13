@@ -147,7 +147,7 @@ function tarotCardHTML(pick, pos, faceUp){
   return `<div class="tc ${faceUp ? 'up' : ''} ${pick.rev ? 'rev' : ''}" data-tc="${pos}" style="--sc:${col}">
     <div class="tc-inner">
       ${tarotBackHTML()}
-      <div class="tc-face">${tarotFaceHTML(card)}</div>
+      <div class="tc-face sheen">${tarotFaceHTML(card)}</div>
     </div></div>`;
 }
 
