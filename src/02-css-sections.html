@@ -690,70 +690,94 @@ button.tm-cell:hover{border-color:var(--page-accent)}
    Under the list it times. The ring is small on purpose: this is a companion
    to the day, not the subject of it. */
 /* ============================================================
-   TODAY AS A BENTO BOX  —  class: .daybox
+   THE DAY, IN COMPARTMENTS  —  class: .daybox
    ------------------------------------------------------------
-   A bento is not a grid of equal squares — it is one large compartment and
-   several small ones, packed so nothing rattles. The day has the same shape:
-   the clock is the large compartment, and the plan and the tasks are the two
-   beside it, because choosing the next thing and timing it are one act and
-   they were a screenful apart.
+   A day is not one long column. It is a set of rooms you look into: the
+   plan, the clock, the list, the check-in. So each one is given a box of a
+   fixed size and told to keep its contents inside it. A section that fills
+   up scrolls within its own square instead of shoving everything below it
+   down the page — nothing on this page moves because something else got
+   longer, and the whole arrangement stays where you left it.
 
-   Below that the reflective half goes in pairs, so the page ends in two short
-   columns rather than one long scroll. Under 1000px every band is one column
-   again — the same page it has always been, stacked.
+   The plan takes a line to itself. It is read once, at a glance, and it is
+   the frame the rest of the day hangs on; it also sizes to what it says
+   rather than holding a square open for text that isn't there.
 
-   The class is daybox, not bento, because a bento grid already exists further
-   down this sheet — the Review dashboard's twelve columns — and being further
-   down, it quietly won every rule this block tried to set.
+   Under it the clock and the list stand side by side at exactly the same
+   height, because choosing the next thing and timing it are one act and
+   they were a screenful apart. Then the reflective half, in pairs.
+
+   Folding a section away gives the room back rather than leaving an empty
+   square, which is what keeps every heading here worth clicking.
+
+   Under 1000px the boxes come apart and it is the plain stacked page again:
+   one column, no frames, nothing scrolling inside anything.
+
+   The class is daybox, not bento, because a bento grid already exists
+   further down this sheet — the Review dashboard's twelve columns — and
+   being further down, it quietly won every rule this block tried to set.
    ============================================================ */
-.daybox{display:grid;gap:12px;align-items:start;margin-top:14px}
+.daybox{display:grid;gap:12px;margin-top:14px;
+  /* one compartment's height, and the only number that decides the shape of
+     the page. Everything open is this tall, so the boxes line up. */
+  --cell:clamp(340px,54vh,600px)}
 .daybox>*{margin-top:0!important}
-/* the clock keeps a little more room than the list beside it, because it has
-   a face to draw; the plan and the tasks stack in the narrower column */
-.daybox-work{grid-template-columns:minmax(0,1.06fr) minmax(0,1fr);
-  grid-template-rows:auto minmax(0,1fr)}
-.daybox-work>.focus-block{grid-column:1;grid-row:1 / span 2}
-.daybox-work>#t-plan{grid-column:2;grid-row:1}
-.daybox-work>#t-tasks{grid-column:2;grid-row:2}
+.daybox-solo{grid-template-columns:minmax(0,1fr);--cell:clamp(150px,30vh,320px)}
 .daybox-pair{grid-template-columns:repeat(2,minmax(0,1fr))}
-/* an open section in a bento cell should scroll inside its own compartment
-   rather than pushing the one beside it down the page */
-.daybox .t-sec[open]>.body,.daybox .t-sec[open]>.body.stack{max-height:min(62vh,620px);overflow-y:auto}
-.daybox .t-sec[open]>.body::-webkit-scrollbar{width:7px}
-.daybox .t-sec[open]>.body::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:4px}
-/* the clock's own row was laid out for 640px; at bento width it has less to
-   play with, so the face and the controls stack sooner */
-.daybox-work .fp-body{gap:18px;padding:16px}
-@media (max-width:1180px){
-  .daybox-work .fp-ring,.daybox-work .fp-ring svg{width:132px;height:132px}
+@media (min-width:1000px){
+  /* The box itself. Its fill is the page's own colour, not a card's, so the
+     solid cards inside it still read as cards and a compartment never looks
+     like a card sitting in another card. Nothing is padded along the top,
+     because the heading has to be able to sit flat against the edge. */
+  .daybox>.t-sec,.daybox>.focus-block{
+    background:var(--bg);border:1px solid var(--line);border-radius:var(--radius);
+    padding:0 14px 14px;min-height:0;overflow-y:auto;overscroll-behavior:contain;
+    scrollbar-width:thin;scrollbar-color:var(--line-2) transparent}
+  .daybox>.t-sec::-webkit-scrollbar,.daybox>.focus-block::-webkit-scrollbar{width:9px}
+  .daybox>.t-sec::-webkit-scrollbar-thumb,.daybox>.focus-block::-webkit-scrollbar-thumb{
+    background:var(--line-2);border-radius:5px;border:2px solid transparent;background-clip:padding-box}
+  /* An open box is exactly one cell tall. That — and nothing else — is what
+     makes the clock and the list the same height: neither is told about the
+     other, they are both told the same number. */
+  .daybox>.t-sec[open],.daybox>.focus-block{height:var(--cell)}
+  .daybox>.t-sec:not([open]){align-self:start;overflow:visible;padding-bottom:0}
+  /* the plan has no neighbour to match, so it takes only the room it needs */
+  .daybox-solo>.t-sec[open]{height:auto;max-height:var(--cell);align-self:start}
+  /* The heading stays put while its contents move under it, so you always
+     know which box you are reading. It is opaque and in the box's own colour
+     — text scrolling past has to go behind it, not show through it. */
+  .daybox>.t-sec>summary,.daybox>.focus-block>.fp-head{
+    position:sticky;top:0;z-index:3;background:var(--bg);
+    padding:12px 0 8px;margin:0}
+  .daybox>.focus-block>.fp-head{border-bottom:1px solid var(--line)}
+  /* the box does the scrolling now; the section's insides go back to
+     flowing, or they would be a scroller inside a scroller */
+  .daybox .t-sec[open]>.body,.daybox .t-sec[open]>.body.stack{max-height:none;overflow:visible}
+  /* the clock's card fills the box it is in, so the room a square leaves over
+     reads as the space a compartment holds rather than as a hole in the page */
+  .daybox>.focus-block{display:flex;flex-direction:column}
+  .daybox>.focus-block>.fp-card{margin-top:12px;flex:1 0 auto}
+  /* A task row keeps eight controls to the right of the name, several of them
+     invisible until the row is hovered — and an invisible button still takes
+     its width. At full page width the name had room anyway; in half of a
+     compartment it was cut to "Task nu…". So here the name wraps instead of
+     being cut: the box scrolls, and a name never has to compete for the
+     width. */
+  .daybox .task-row{gap:8px}
+  .daybox .task-text{white-space:normal;overflow:visible;text-overflow:clip;
+    overflow-wrap:anywhere;line-height:1.35}
 }
-/* The point of the band is that the clock and the list are on screen at once,
-   which is a promise about height as well as width. So on a screen with the
-   room for it the band is exactly one screenful, and the task list scrolls
-   inside its own compartment rather than pushing the clock off the top. */
-@media (min-width:1000px) and (min-height:700px){
-  /* 233px is where the band starts under the date, the waking line and the
-     index; the rest of the screen is the band's, and nothing below the fold */
-  /* the cells stretch to the row here, rather than sizing to their content —
-     otherwise the list simply grows past the bottom of the band it is in */
-  .daybox-work{max-height:calc(100dvh - 245px);align-items:stretch}
-  .daybox-work>#t-plan{align-self:start}
-  /* The compartment itself does the scrolling. A <details> puts its content
-     in an anonymous slot, so a flex or grid child of one cannot be told to
-     shrink — the list simply grew out of the bottom of the box. Scrolling the
-     details and pinning its own summary gets the same result honestly. */
-  .daybox-work>#t-tasks{min-height:0;overflow-y:auto}
-  .daybox-work>#t-tasks>summary{position:sticky;top:0;z-index:2;
-    background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(6px)}
-  .daybox-work>#t-tasks>.body{max-height:none;overflow:visible}
-  /* the clock's card fills its compartment, so the room left under it reads as
-     the space a bento leaves rather than as a hole in the page */
-  .daybox-work>.focus-block{min-height:0;overflow-y:auto;display:flex;flex-direction:column}
-  .daybox-work>.focus-block>.fp-card{flex:1 1 auto}
+/* the clock's own row was laid out for a full-width page; in a compartment it
+   has less to play with, so the face and the controls stack sooner */
+.daybox .fp-body{gap:18px;padding:16px}
+@media (min-width:1000px) and (max-width:1180px){
+  .daybox .fp-ring,.daybox .fp-ring svg{width:132px;height:132px}
 }
 @media (max-width:1000px){
-  .daybox,.daybox-work,.daybox-pair{grid-template-columns:1fr;grid-template-rows:auto}
-  .daybox-work>.focus-block,.daybox-work>#t-plan,.daybox-work>#t-tasks{grid-column:1;grid-row:auto}
+  .daybox,.daybox-solo,.daybox-pair,.daybox-work{grid-template-columns:1fr;grid-template-rows:auto}
+  .daybox>.t-sec,.daybox>.focus-block{grid-column:1;grid-row:auto;
+    height:auto;max-height:none;overflow:visible;background:none;border:0;padding:0}
+  .daybox>.t-sec>summary,.daybox>.focus-block>.fp-head{position:static;padding:6px 0}
   .daybox .t-sec[open]>.body{max-height:none;overflow:visible}
 }
 .focus-block{margin-top:14px}

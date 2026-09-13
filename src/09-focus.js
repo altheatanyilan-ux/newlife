@@ -317,7 +317,7 @@ function focusPanelHTML(){
   const todayMins = focusMinutesOn(today());
 
   return `<section class="section rv focus-block" id="t-focus">
-    <div class="row between" style="gap:10px;flex-wrap:wrap">
+    <div class="row between fp-head" style="gap:10px;flex-wrap:wrap">
       <span class="sc" style="margin:0">Focus</span>
       <span class="mono faint">${todayMins ? `${fmtHM(todayMins)} worked today` : 'nothing timed yet today'}</span>
     </div>

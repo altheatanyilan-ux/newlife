@@ -154,8 +154,8 @@ routes.today = function(root){
      due, a review closing tonight) drop out of the index with them. */
   const jumps = [
     ['t-letters', 'letters',  ready.length > 0],
-    ['t-focus',   'focus',    true],
     ['t-plan',    'plan',     true],
+    ['t-focus',   'focus',    true],
     ['t-tasks',   'tasks',    true],
     /* the order the index offers is the order the page is in */
     ['t-checkin', 'check-in', true],
@@ -202,15 +202,18 @@ routes.today = function(root){
       ${ready.map(e=>`<div class="card ready-letter" style="margin-top:8px"><div class="row between"><span><b class="serif">${esc(e.title||'To myself')}</b><div class="mono faint">${daysBetween((e.createdAt||'').slice(0,10), T)} days ago</div></span><button class="btn sm primary" data-lopen="${e.id}">Open it</button></div></div>`).join('')}
     </div></details>` : ''}
 
-    <!-- THE WORKING HALF, as a bento box: the clock on the left, and beside
-         it the plan and the tasks — because you cannot pick the next thing
-         while looking at a clock that is on another screenful. Three cells,
-         two columns, one glance. Below it the reflective half, in pairs.
-         Under 1000px it all falls back to the single column it was. -->
-    <div class="daybox daybox-work">
-    ${focusPanelHTML()}
+    <!-- THE DAY, IN COMPARTMENTS
+         Every section is a box of its own: a ceiling it will not grow past,
+         its heading pinned to the top of it, and its contents scrolling
+         inside rather than shoving the rest of the page down. Nothing here
+         moves because something else got longer.
 
-    <!-- the plan, made last night -->
+         The plan takes a line to itself — it is read once, in a glance, and
+         it is the frame the rest of the day hangs on. Under it the clock and
+         the list stand side by side and exactly the same height, because
+         choosing the next thing and timing it are one act. Then the
+         reflective half, in pairs. Under 1000px it is one column again. -->
+    <div class="daybox daybox-solo">
     <details class="section rv today-plan t-sec" id="t-plan"${fold('t-plan')}>
       <summary><span class="sc" style="margin:0">Today's plan</span>
         <span class="mono faint">${planT.planned ? 'set last night' : 'not planned in advance'}</span></summary>
@@ -221,6 +224,11 @@ routes.today = function(root){
       ${planT.firstMove ? `<p class="plan-line"><span class="mono">first move</span> ${esc(planT.firstMove)}</p>` : ''}
       ${planT.risk ? `<p class="plan-line risk"><span class="mono">in the way</span> ${esc(planT.risk)}</p>` : ''}
       </div></details>
+    </div>
+
+    <div class="daybox daybox-pair daybox-work">
+    ${focusPanelHTML()}
+
 
     <!-- today's tasks -->
     <details class="section rv t-sec" id="t-tasks"${fold('t-tasks')}>
