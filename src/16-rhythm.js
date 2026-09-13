@@ -674,6 +674,8 @@ function habitDayToggle(h, d){
   else if(cur.level === 'full') S.habitLog[d][h.id] = {level:'min', note:''};
   else delete S.habitLog[d][h.id];
   saveNow(); sound(S.habitLog[d][h.id] ? 'success' : 'click');
+  /* a habit kept is one of the eight things that can be a milestone */
+  if(S.habitLog[d][h.id]) try { RewardFX.check(); } catch(e){}
   const st = habitStreak(h);
   const mark = STREAK_MARKS.find(x => st.cur === x && !(h.celebrated||[]).includes(x));
   if(mark){ h.celebrated = [...(h.celebrated||[]), mark]; saveNow(); celebrateStreak(h, mark); }

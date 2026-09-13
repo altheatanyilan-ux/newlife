@@ -5171,5 +5171,146 @@ select.sm-active{border-color:var(--page-accent);
 .fl-breaks li{display:flex;gap:9px;align-items:baseline;font-size:.75rem;color:var(--muted)}
 .fl-breaks li .mono{font-size:.6rem;color:var(--gold,#d4a44c);flex:none;min-width:8.5em}
 .pd-fsess{margin-top:8px}
+/* ============================================================
+   THE POINTER LAYER  —  cursor, magnetism, tilt, flashlight
+   ------------------------------------------------------------
+   None of this exists until MicroFX.start() puts .mfx-cursor on <html>, and
+   it refuses to start on a touch screen or under prefers-reduced-motion. So
+   a browser that never runs it keeps the pointer it always had — the native
+   cursor is only hidden while there is a drawn one to replace it.
+   ============================================================ */
+html.mfx-cursor,html.mfx-cursor *{cursor:none!important}
+/* except the grips. The resize arrow is the only thing that says a column
+   edge can be dragged; a drawn dot cannot say it. */
+html.mfx-cursor .panel-grip,html.mfx-cursor .ws-grip,html.mfx-cursor .ws-grip::after,
+html.mfx-cursor .tu-grip,html.mfx-cursor .pe-grip{cursor:col-resize!important}
+html.mfx-cursor .pc-grip{cursor:ns-resize!important}
+html.mfx-cursor .pl-gbaredge{cursor:ew-resize!important}
+.mfx-dot,.mfx-ring{position:fixed;left:0;top:0;pointer-events:none;z-index:99999;
+  will-change:transform;border-radius:50%}
+.mfx-dot{width:6px;height:6px;background:var(--text);
+  transition:width .2s var(--ease),height .2s var(--ease),border-radius .2s var(--ease),
+    box-shadow .3s var(--ease),opacity .2s var(--ease)}
+.mfx-ring{width:32px;height:32px;border:1px solid color-mix(in srgb,var(--text) 40%,transparent);
+  transition:width .2s var(--ease),height .2s var(--ease),margin .2s var(--ease),
+    background .2s var(--ease),border-color .2s var(--ease),opacity .2s var(--ease)}
+/* over something you can press: the dot tightens, the ring opens and fills */
+.mfx-ring.click{width:48px;height:48px;margin:-8px;
+  background:color-mix(in srgb,var(--page-accent) 8%,transparent);
+  border-color:color-mix(in srgb,var(--page-accent) 45%,transparent)}
+/* over something you can type in: the dot becomes the caret and the ring goes */
+.mfx-dot.text{width:2px;height:20px;border-radius:1px;margin:-7px 2px}
+.mfx-ring.text{opacity:0}
+/* pressed: a quick squeeze, then back */
+.mfx-ring.press{width:24px;height:24px;margin:4px;transition-duration:.1s}
+/* carrying something: the ring turns and its edge breaks into dashes */
+.mfx-ring.drag{border-style:dashed;animation:mfxSpin 3s linear infinite}
+@keyframes mfxSpin{to{transform:rotate(360deg)}}
+/* over a canvas — the tree, the solar system — the pointer picks up its warmth */
+.mfx-dot.warm{box-shadow:0 0 8px rgba(212,164,76,.45)}
+.mfx-ring.warm{border-color:rgba(212,164,76,.3)}
+.mfx-dot.gone,.mfx-ring.gone{opacity:0}
+
+/* the light that follows the pointer across a large surface. Dim on purpose:
+   at 4% it reads as warmth following you, not as a lamp on the screen. */
+.nav,.page,.flashlight-panel{position:relative}
+.nav::before,.page::before,.flashlight-panel::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(300px circle at var(--mx,50%) var(--my,50%),
+    color-mix(in srgb,var(--terra) 9%,transparent) 0%,transparent 100%);
+  pointer-events:none;opacity:0;transition:opacity .5s var(--ease);z-index:0}
+.nav.mfx-lit::before,.page.mfx-lit::before,.flashlight-panel.mfx-lit::before{opacity:1}
+/* the glare on a tilted card: a soft spot of light where you are looking from */
+.mfx-tilt{transform-style:preserve-3d;will-change:transform}
+.mfx-tilt::after{content:'';position:absolute;inset:0;border-radius:inherit;
+  background:radial-gradient(circle at var(--mouse-x,50%) var(--mouse-y,50%),
+    color-mix(in srgb,var(--text) 5%,transparent) 0%,transparent 60%);
+  pointer-events:none;z-index:1}
+@media (prefers-reduced-motion:reduce){
+  .mfx-dot,.mfx-ring{display:none}
+  .nav::before,.page::before,.flashlight-panel::before,.mfx-tilt::after{display:none}
+}
+/* ============================================================
+   THE AMBIENT, FEEDBACK AND POLISH LAYERS
+   ============================================================ */
+/* 1.7c — the hour of the day, laid over the top rather than filtered onto
+   <body>. A filter on body would make it the containing block for every
+   position:fixed child — the Back pill, the top bar, the speed dial, the side
+   panel, the cursor — and the whole shell would reposition. A sheet in
+   soft-light tints all of it and moves none of it. */
+#warmth{position:fixed;inset:0;pointer-events:none;z-index:99990;
+  transition:background 4s linear}
+/* 1.7a — the page's own name breathes. Under one per cent: you should only
+   ever catch it by staring, and then only just. */
+.page-head h1{animation:mfxBreathe 6s ease-in-out infinite;transform-origin:left center}
+@keyframes mfxBreathe{0%,100%{transform:scale(1)}50%{transform:scale(1.008)}}
+
+/* 1.8a — a press you can feel: down fast, back with a little overshoot */
+.btn.primary,.btn,#fab{transition:transform .2s cubic-bezier(.34,1.56,.64,1),
+  background .2s var(--ease),border-color .2s var(--ease),color .2s var(--ease)}
+.btn:active,#fab:active{transform:scale(.96);transition-duration:.08s;transition-timing-function:ease-in}
+/* 1.8b — the word beside the ripple. The ring alone says something happened;
+   this says what. */
+.fx-saved{position:fixed;transform:translate(-50%,-50%);pointer-events:none;z-index:99998;
+  font-size:.62rem;letter-spacing:.08em;color:var(--sage);white-space:nowrap;
+  animation:fxSaved 1.4s var(--ease) forwards}
+@keyframes fxSaved{
+  0%{opacity:0;transform:translate(-50%,-40%)}
+  18%{opacity:.85;transform:translate(-50%,-60%)}
+  70%{opacity:.85;transform:translate(-50%,-66%)}
+  100%{opacity:0;transform:translate(-50%,-90%)}}
+/* 1.8c — the milestone. A candle flaring for a moment, not a firework: one
+   ring opening, a few motes going up, one line of writing, three seconds. */
+.fx-mile{position:fixed;inset:0;pointer-events:none;z-index:99997;overflow:hidden}
+.fx-mile-ring{position:absolute;left:50%;top:50%;width:0;height:0;border-radius:50%;
+  border:1px solid var(--gold,#d4a44c);transform:translate(-50%,-50%);
+  animation:fxMileRing 1.5s cubic-bezier(.2,.7,.3,1) forwards}
+@keyframes fxMileRing{
+  0%{width:0;height:0;opacity:.5}
+  100%{width:150vmax;height:150vmax;opacity:0}}
+.fx-mile-word{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  font-family:var(--serif-i,var(--serif));font-style:italic;font-size:1.35rem;
+  color:var(--text);opacity:0;white-space:nowrap;text-align:center;
+  animation:fxMileWord 2.5s var(--ease) forwards}
+@keyframes fxMileWord{
+  0%{opacity:0}20%{opacity:.6}80%{opacity:.6}100%{opacity:0}}
+.fx-mote{position:absolute;bottom:-8px;width:3px;height:3px;border-radius:50%;
+  background:var(--gold,#d4a44c);opacity:0;animation:fxMote 2s linear forwards}
+@keyframes fxMote{
+  0%{opacity:0;transform:translateY(0)}
+  15%{opacity:.7}
+  100%{opacity:0;transform:translateY(-70vh)}}
+
+/* 1.9 — how far down you are, in the page's own accent. It thickens while you
+   are actually moving and thins again when you stop. */
+.scroll-progress{position:fixed;top:0;left:0;height:1px;width:0;
+  background:var(--page-accent);z-index:100000;pointer-events:none;
+  transition:width .1s linear,height .2s var(--ease),opacity .3s var(--ease);opacity:.5}
+.scroll-progress.active{height:2px;opacity:.9}
+/* 1.10 — even the selection belongs to the palette */
+::selection{background:color-mix(in srgb,var(--terra) 25%,transparent);color:inherit}
+[data-theme="dark"] ::selection{background:color-mix(in srgb,var(--gold,#d4a44c) 22%,transparent)}
+/* 1.11 — something to look at while a slow list is still coming */
+.skeleton{background:linear-gradient(90deg,var(--surface) 25%,
+  color-mix(in srgb,var(--terra) 8%,transparent) 50%,var(--surface) 75%);
+  background-size:200% 100%;animation:skelShimmer 1.5s ease-in-out infinite;border-radius:4px}
+.skeleton.line{height:11px;margin:9px 0}
+.skeleton.line:nth-child(3n){width:82%}
+.skeleton.line:nth-child(3n+1){width:64%}
+.skeleton.line:nth-child(3n+2){width:91%}
+.skeleton.block{height:74px;margin:10px 0}
+@keyframes skelShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+/* 1.12 — the mark the code leaves, for the rest of the session */
+.brand.konami::after{content:'✦';margin-left:6px;font-size:.7em;color:var(--gold,#d4a44c);opacity:.8}
+
+/* 1.13 — asked for less motion, given less motion. Everything above is either
+   switched off here or never started in the first place. */
+@media (prefers-reduced-motion:reduce){
+  .page-head h1{animation:none}
+  #warmth{transition:none}
+  .fx-mile,.fx-saved,.fx-mote{display:none}
+  .scroll-progress{transition:none}
+  .skeleton{animation:none}
+  .btn:active,#fab:active{transform:none}
+}
 </style>
 </head>

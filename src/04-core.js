@@ -181,7 +181,11 @@ function beginEdit(node){
     const v = inp.value; setPath(path, v); saveNow();
     node.classList.remove('editing');
     node.innerHTML = edInner(v, node.dataset.ph, node.dataset.md==='1', node.dataset.date==='1');
-    if(v !== orig){ const p = el('<span class="saved-pulse">saved</span>'); node.appendChild(p); setTimeout(()=>p.remove(), 1200); sound('save'); const h = node.dataset.hook; if(h){ const [name, arg] = h.split(':'); hooks[name]?.(arg, orig, v, node); } }
+    if(v !== orig){ const p = el('<span class="saved-pulse">saved</span>'); node.appendChild(p); setTimeout(()=>p.remove(), 1200); sound('save');
+      /* the ring goes out from the field that was actually edited, not from
+         some fixed corner of the page — it is that field saying it heard you */
+      try { RewardFX.savedAt(node, 'var(--sage)'); RewardFX.check(); } catch(e){}
+      const h = node.dataset.hook; if(h){ const [name, arg] = h.split(':'); hooks[name]?.(arg, orig, v, node); } }
     /* a field emptied or filled changes what Living View should be showing */
     const lv = node.closest('.lv-mode'); if(lv) applyLivingView(lv);
     if(v !== orig) refreshBehind(node);
@@ -312,7 +316,11 @@ function renderRoute(){
   try { fn(main, params); } catch(err){ console.error(err); routeFailure(err); }
   /* the decorations can throw too, and by then main has already been emptied —
      losing the trimmings is survivable, losing the page is not */
-  try { decoratePageHead(main); mountContextAdd(main); reveal(main); tweenAll(main); backupBanner(); updateBackButton(); }
+  /* The counters and the bars used to run the moment the page was written,
+     which meant everything below the fold had finished animating before it
+     was ever seen. They wait for the scroll now; tweenAll stays for the
+     panels and modals, which have no scroll to wait for. */
+  try { decoratePageHead(main); mountContextAdd(main); reveal(main); ScrollFX.scan(main); backupBanner(); updateBackButton(); }
   catch(err){ console.error('page trimmings failed', err); }
   /* a review the user stepped out of to write an entry comes back, same step */
   if(typeof resumeReviewIfPending === 'function') resumeReviewIfPending();
@@ -330,7 +338,7 @@ function rerender(){
   catch(err){ console.error('rerender failed', err); routeFailure(err); window.scrollTo({top:y}); return; }
   try { decoratePageHead(main); mountContextAdd(main);
     if(typeof attachDictationIn === 'function') attachDictationIn(main);
-    $$('.rv', main).forEach(n=>n.classList.add('in')); tweenAll(main); }
+    $$('.rv', main).forEach(n=>n.classList.add('in')); tweenAll(main); ScrollFX.scan(main); }
   catch(err){ console.error('page trimmings failed', err); }
   window.scrollTo({top:y});
 }
@@ -372,7 +380,7 @@ function navigateNow(){
 window.addEventListener('hashchange', () => { sound('page'); markNavDirection(); navigateNow(); });
 
 /* ---------- side panel ---------- */
-function openPanel(html, cls=''){ closePanel({keep:true}); sound('open'); if(!history.state?.liPanel){ try { history.pushState({liPanel:true, liIdx:navIdx}, '', location.href); } catch(e){} } const ov = el(`<div class="panel-overlay" id="panelOv"></div>`); const p = el(`<div class="side-panel ${cls}" id="panel"><div class="panel-grip" title="drag to resize · double-click to reset"></div><button class="panel-wide" title="widen / narrow (focus)">⤢</button><button class="close" title="close">×</button>${html}</div>`); document.body.appendChild(ov); document.body.appendChild(p); ov.onclick = closePanel; p.querySelector('.close').onclick = closePanel; bindPanelResize(p); tweenAll(p); if(typeof attachDictationIn === 'function') attachDictationIn(p); return p; }
+function openPanel(html, cls=''){ closePanel({keep:true}); sound('open'); try { SoundManager.play('uiWhoosh'); } catch(e){} if(!history.state?.liPanel){ try { history.pushState({liPanel:true, liIdx:navIdx}, '', location.href); } catch(e){} } const ov = el(`<div class="panel-overlay" id="panelOv"></div>`); const p = el(`<div class="side-panel ${cls}" id="panel"><div class="panel-grip" title="drag to resize · double-click to reset"></div><button class="panel-wide" title="widen / narrow (focus)">⤢</button><button class="close" title="close">×</button>${html}</div>`); document.body.appendChild(ov); document.body.appendChild(p); ov.onclick = closePanel; p.querySelector('.close').onclick = closePanel; bindPanelResize(p); tweenAll(p); if(typeof attachDictationIn === 'function') attachDictationIn(p); return p; }
 /* panel width: drag the left edge, persisted; ⤢ toggles a wide "focus" width */
 function panelWidthDefault(){ return 560; }
 function applyPanelWidth(p){ const wide = lsGet('panelWide', false); const w = wide ? Math.min(1180, innerWidth*.94) : clamp(lsGet('panelWidth', panelWidthDefault()), 380, innerWidth*.94); p.style.setProperty('--panel-w', Math.round(w)+'px'); p.classList.toggle('wide', !!wide); }
@@ -483,7 +491,7 @@ function updateBackButton(){
 }
 function goBack(){ if(history.length > 1) history.back(); else navigate('#/' + homeRoute()); }
 document.addEventListener('click', e => { const b = e.target.closest('[data-back]'); if(b){ e.preventDefault(); goBack(); } });
-function openModal(html, cls=''){ sound('open'); const ov = el(`<div class="overlay"><div class="modal ${cls}"><button class="close">×</button>${html}</div></div>`); ov.addEventListener('mousedown', e => { if(e.target===ov) ov.remove(); }); ov.querySelector('.close').onclick = () => ov.remove(); $('#modals').appendChild(ov); if(typeof attachDictationIn === 'function') attachDictationIn(ov); return ov; }
+function openModal(html, cls=''){ sound('open'); try { SoundManager.play('uiWhoosh'); } catch(e){} const ov = el(`<div class="overlay"><div class="modal ${cls}"><button class="close">×</button>${html}</div></div>`); ov.addEventListener('mousedown', e => { if(e.target===ov) ov.remove(); }); ov.querySelector('.close').onclick = () => ov.remove(); $('#modals').appendChild(ov); if(typeof attachDictationIn === 'function') attachDictationIn(ov); return ov; }
 /* A modal belongs to the page that opened it, so routing sweeps them — but a
    few belong to the session instead. The opening question is asked once, before
    any page exists, and init() sets location.hash a moment before showing it:
