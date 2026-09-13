@@ -234,7 +234,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
 
   console.log('\n' + (errs.length ? 'console:\n  ' + errs.join('\n  ') : 'console: clean'));
   if(errs.length) bad += errs.length;
-  console.log(bad ? `\n${bad} FAILED` : '\nsmoke152  all good');
+  console.log(bad ? `\n${bad} FAILED` : '\nsmoke154  all good');
   await b.close();
   process.exitCode = bad ? 1 : 0;
 })();
