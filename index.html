@@ -5097,6 +5097,180 @@ select.sm-active{border-color:var(--page-accent);
 .dv-spread{min-height:60px}
 @media (prefers-reduced-motion:reduce){.dv-pick:hover{--lift:0px}.dv-pick{transition:none}}
 
+/* --- choosing a spread ---
+   Twenty of them, grouped by how long they take, each with a diagram of
+   its own shape: the choice is made with the eye, because the shape is
+   most of what a spread is. */
+.sp-lib{display:flex;flex-direction:column;gap:14px;max-height:44vh;overflow-y:auto;padding:2px 2px 4px;
+  border:1px solid var(--line);border-radius:11px;background:var(--surface-2)}
+.sp-cat{padding:8px 10px 0}
+.sp-cat-h{display:flex;gap:9px;align-items:baseline;flex-wrap:wrap;margin:0 0 7px;font-weight:400}
+.sp-cat-h .sc{font-family:var(--serif);font-size:.74rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.sp-cat-h .quote{font-family:var(--lora,var(--serif));font-style:italic;font-size:.72rem;color:var(--faint)}
+.sp-tiles{display:flex;flex-wrap:wrap;gap:7px}
+.sp-tile{display:flex;flex-direction:column;align-items:center;gap:3px;width:104px;padding:8px 6px 7px;
+  border:1px solid var(--line);border-radius:10px;background:var(--surface);cursor:pointer;
+  transition:border-color .18s var(--ease),background .18s var(--ease),transform .18s var(--ease)}
+.sp-tile:hover{border-color:var(--page-accent);transform:translateY(-2px)}
+.sp-tile.on{border-color:var(--page-accent);background:color-mix(in srgb,var(--page-accent) 10%,var(--surface))}
+.sp-dots{width:38px;height:30px;fill:var(--muted);opacity:.75}
+.sp-tile.on .sp-dots{fill:var(--page-accent);opacity:1}
+.sp-name{font-family:var(--serif);font-size:.74rem;line-height:1.2;text-align:center}
+.sp-n{font-size:.56rem;color:var(--faint);letter-spacing:.06em}
+.sp-tile{position:relative}
+.sp-own{position:absolute;top:2px;right:4px;font-size:.62rem;color:var(--faint);line-height:1;padding:2px}
+.sp-own:hover{color:var(--page-accent)}
+.sp-new{border-style:dashed;justify-content:center}
+.sp-plus{font-size:1.2rem;line-height:1;color:var(--faint);height:30px;display:flex;align-items:center}
+.sp-new:hover .sp-plus{color:var(--page-accent)}
+.dv-vol{display:inline-flex;align-items:center;gap:6px;padding:0 4px}
+.dv-vol .mono{font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+.dv-vol input[type=range]{width:74px;accent-color:var(--page-accent)}
+.sp-chosen{margin-top:8px}
+.sp-desc{font-family:var(--lora,var(--serif));font-style:italic;font-size:.84rem;line-height:1.6;
+  color:var(--muted);margin:0 0 6px}
+.sp-poslist{margin:0;padding-left:18px;font-size:.76rem;line-height:1.55;color:var(--muted);
+  display:flex;flex-direction:column;gap:2px}
+.sp-poslist b{color:var(--text);font-weight:500}
+
+/* the switches: reversals, sound, light */
+.dv-switches{display:flex;gap:7px;flex-wrap:wrap}
+.dv-sw{display:inline-flex;align-items:center;gap:7px;padding:5px 11px 5px 7px;border-radius:999px;
+  border:1px solid var(--line);background:var(--surface);cursor:pointer;font-size:.74rem;color:var(--muted);
+  transition:border-color .18s var(--ease),color .18s var(--ease)}
+.dv-sw i{width:24px;height:13px;border-radius:999px;background:var(--surface-3);position:relative;
+  transition:background .2s var(--ease)}
+.dv-sw i::after{content:"";position:absolute;top:2px;left:2px;width:9px;height:9px;border-radius:50%;
+  background:var(--faint);transition:transform .2s var(--ease),background .2s var(--ease)}
+.dv-sw.on{border-color:var(--page-accent);color:var(--text)}
+.dv-sw.on i{background:color-mix(in srgb,var(--page-accent) 45%,transparent)}
+.dv-sw.on i::after{transform:translateX(11px);background:var(--page-accent)}
+@media (prefers-reduced-motion:reduce){.dv-sw i::after{transition:none}.sp-tile{transition:none}}
+
+/* --- the ceremony's own air ---
+   The canvas covers the ceremony and nothing else, takes no clicks, and is
+   torn down with it. Nothing draws on it outside a reading. */
+.dv-cer{position:relative}
+.dv-motes{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3}
+.dv-cer-in{position:relative;z-index:1}
+.dv-mute{position:absolute;top:0;right:0;z-index:4;background:none;border:0;cursor:pointer;
+  font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);padding:4px 6px}
+.dv-mute:hover{color:var(--text)}
+.dv-mute.off{opacity:.55;text-decoration:line-through}
+.dv-prompt-d{display:block;margin-top:3px;font-family:var(--lora,var(--serif));font-style:italic;
+  font-size:.76rem;color:var(--faint)}
+/* candlelight moving across a polished back, while it waits to be chosen */
+.dv-pick .tc-back{position:relative;overflow:hidden}
+.dv-pick .tc-back::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(105deg,transparent 40%,rgba(212,164,76,.08) 45%,rgba(212,164,76,.16) 50%,
+    rgba(212,164,76,.08) 55%,transparent 60%);
+  transform:translateX(-100%);animation:dvShimmer 3.4s var(--ease) infinite;
+  animation-delay:calc(var(--i,0) * -.28s)}
+@keyframes dvShimmer{0%{transform:translateX(-100%)}60%,100%{transform:translateX(100%)}}
+.dv-pick:hover,.dv-pick:focus-visible{filter:drop-shadow(0 0 14px rgba(212,164,76,.32)) drop-shadow(0 6px 14px color-mix(in srgb,var(--terra,#b08968) 55%,transparent))}
+.tc.pulse .tc-face{animation:dvReveal 1.2s var(--ease)}
+@keyframes dvReveal{
+  0%{box-shadow:0 0 0 rgba(212,164,76,0)}
+  30%{box-shadow:0 0 30px rgba(212,164,76,.5),0 0 60px rgba(212,164,76,.2)}
+  100%{box-shadow:0 0 0 rgba(212,164,76,0)}}
+@media (prefers-reduced-motion:reduce){
+  .dv-pick .tc-back::after{animation:none;opacity:0}
+  .tc.pulse .tc-face{animation:none}}
+
+/* --- the table ---
+   One fixed piece of geometry, scaled to the room it is in. Scaling beats
+   reflowing: a Celtic cross that reflows is not a Celtic cross. */
+.tc-boardwrap{position:relative;width:100%;overflow-x:auto;overflow-y:hidden;margin:4px 0 10px}
+.tc-boardwrap.tight{justify-content:flex-start}
+.tc-board{position:relative;margin:0 auto;transform-origin:top center;transition:transform .2s var(--ease)}
+.tc-board .tc-slot{position:absolute;display:flex;flex-direction:column;align-items:center;gap:5px;
+  width:var(--cw)}
+.tc-board .tc,.tc-board .tc-hole{width:var(--cw);height:var(--ch)}
+.tc-board .tc-hole{border-radius:9px}
+/* the one card in any spread that is deliberately the wrong way round:
+   only the card turns, so the name under it still reads left to right */
+.tc-board .tc-slot.cross{z-index:2}
+.tc-board .tc-slot.cross .tc{transform:rotate(90deg)}
+.tc-board .tc-slot.cross .tc-pos,.tc-board .tc-slot.cross .tc-no{visibility:hidden}
+/* its name has to sit over the card underneath it, so it gets a plate to
+   sit on rather than being read off Smith's sky */
+.tc-board .tc-slot.cross .tc-capslot{margin-top:calc((var(--cw) - var(--ch)) / 2 + 5px);
+  min-height:0;background:color-mix(in srgb,var(--surface) 90%,transparent);
+  border-radius:7px;padding:2px 7px;box-shadow:0 1px 4px rgba(0,0,0,.14)}
+.tc-board .tc-slot.bare .tc-capslot{min-height:0;font-size:.62rem}
+.tc-no{font-family:var(--mono);font-size:.56rem;color:var(--faint);line-height:1}
+.tc-board .tc-cap-name{font-size:.7rem}
+.tc-board .tc-cap-rev{font-size:.5rem}
+@media (prefers-reduced-motion:reduce){.tc-board{transition:none}}
+
+/* --- a reading you did on paper --- */
+.ph-slot{border-top:1px solid var(--line);padding:11px 0 4px}
+.ph-h{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;margin:0 0 7px;font-weight:400}
+.ph-h .mono{font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+.ph-h .quote{font-family:var(--lora,var(--serif));font-style:italic;font-size:.74rem;color:var(--faint)}
+.ph-pick{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ph-typed{position:relative;flex:1;min-width:200px}
+.ph-in{width:100%}
+.ph-sugg{position:absolute;left:0;right:0;top:calc(100% + 3px);z-index:20;background:var(--surface);
+  border:1px solid var(--line-2);border-radius:9px;box-shadow:var(--shadow);overflow:hidden;max-height:230px;overflow-y:auto}
+.ph-s{display:flex;gap:8px;align-items:center;width:100%;text-align:left;background:none;border:0;
+  padding:6px 10px;cursor:pointer;font-size:.82rem;color:var(--text)}
+.ph-s:hover{background:color-mix(in srgb,var(--page-accent) 10%,transparent)}
+.ph-s-suit{font-size:.8rem;width:1em}
+.ph-rev{display:inline-flex;gap:5px;align-items:center;font-size:.74rem;color:var(--muted);white-space:nowrap}
+.ph-rev.off{display:none}
+.ph-grid-b{flex:0 0 auto}
+.ph-chosen:empty{display:none}
+.ph-card{display:flex;gap:9px;align-items:center;margin-top:8px;font-size:.8rem}
+.ph-card .quote{font-family:var(--lora,var(--serif));font-style:italic;font-size:.74rem;color:var(--faint)}
+.ph-thumb{width:38px;height:67px;border-radius:4px;object-fit:cover;border:1px solid var(--line-2)}
+.ph-card.rev .ph-thumb{transform:rotate(180deg)}
+.ph-done{display:flex;gap:9px;align-items:baseline;flex-wrap:wrap;margin-bottom:8px}
+.ph-done .quote{font-family:var(--lora,var(--serif));font-style:italic;color:var(--muted)}
+.dv-src{font-size:.56rem;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);
+  border:1px solid var(--line-2);border-radius:999px;padding:1px 7px}
+.dv-read-src{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
+.dv-read-src .mono{font-size:.6rem;letter-spacing:.09em;text-transform:uppercase}
+
+/* --- the deck, browsable --- */
+.cd-tabs{margin:2px 0}
+.cd-count{font-size:.62rem;color:var(--faint);letter-spacing:.05em}
+.cd-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(86px,1fr));gap:9px;
+  max-height:56vh;overflow-y:auto;padding:3px}
+.cd-tile{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:0;
+  padding:0;cursor:pointer;position:relative;transition:transform .18s var(--ease)}
+.cd-tile:hover{transform:translateY(-3px)}
+.cd-tile.dim{opacity:.42}
+.cd-tile.dim:hover{opacity:.8}
+.cd-thumb{width:100%;aspect-ratio:160/281;object-fit:cover;border-radius:6px;
+  border:1px solid var(--line-2);box-shadow:0 1px 5px rgba(0,0,0,.16);background:#fffdf5}
+.cd-t-name{font-family:var(--serif);font-size:.64rem;line-height:1.2;text-align:center;color:var(--muted)}
+.cd-t-n{position:absolute;top:3px;right:4px;font-size:.54rem;color:#fffdf5;background:rgba(0,0,0,.5);
+  border-radius:999px;padding:0 5px;line-height:1.5}
+.cd-page{display:flex;flex-direction:column;gap:18px}
+.cd-head{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+.cd-head .tc{flex:0 0 auto;perspective:none}
+.cd-head .tc .tc-inner,.cd-head .tc .tc-face{transform:none}
+.cd-head-t{flex:1;min-width:220px}
+.cd-head-t h3{margin:0 0 2px;font-size:1.35rem}
+.cd-ess{font-family:var(--lora,var(--serif));font-style:italic;font-size:.92rem;line-height:1.6;
+  color:var(--muted);margin:8px 0 8px;max-width:44ch}
+.cd-seen{font-size:.58rem;letter-spacing:.08em;text-transform:uppercase;color:var(--page-accent)}
+.cd-seen.none{color:var(--faint)}
+.cd-side{border-top:1px solid var(--line);padding-top:12px}
+.cd-sum{font-size:.9rem;line-height:1.6;margin:0 0 7px}
+.cd-p{font-size:.83rem;line-height:1.7;color:var(--muted);margin:0 0 7px}
+.cd-adv{font-size:.83rem;line-height:1.6;margin:6px 0 0}
+.cd-hist{border-top:2px solid var(--line-2);padding-top:14px}
+.cd-pat{font-family:var(--lora,var(--serif));font-style:italic;font-size:.88rem;line-height:1.7;
+  color:var(--muted);margin:0 0 12px;max-width:56ch}
+.cd-app{border-left:2px solid var(--line-2);padding:0 0 0 11px;margin-bottom:13px}
+.cd-app-h{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.cd-app-h .mono{font-size:.62rem;color:var(--faint)}
+.cd-app-q{font-family:var(--lora,var(--serif));font-style:italic;font-size:.78rem;color:var(--muted);margin-top:3px}
+.cd-app-n{font-size:.8rem;line-height:1.6;color:var(--muted);margin:5px 0 5px}
+@media (prefers-reduced-motion:reduce){.cd-tile{transition:none}}
+
 /* --- the reading, at length --- */
 .dv-reading{display:flex;flex-direction:column;gap:26px;margin-top:22px;
   border-top:1px solid var(--line);padding-top:22px}
@@ -18434,6 +18608,183 @@ const TAROT_RICH = [
 },
 ];
 /* ============================================================
+   THE CARD DIRECTORY
+
+   Seventy-eight cards, browsable, with everything the deck knows about
+   each one — and, underneath that, everything YOU know about it: every
+   time it has come up, in which spread, in which position, which way up,
+   what you had asked, and what you wrote down afterwards.
+
+   That second half is the whole reason this exists. A tarot encyclopedia
+   is a book and there are better books. What no book has is the fact that
+   the Tower has turned up in your outcome position three times this year,
+   which is the sort of thing a person does not notice while it is
+   happening and cannot miss once it is written down.
+
+   Cards you have never drawn are dimmed rather than hidden. Not a
+   collection to complete — just an honest picture of which parts of the
+   deck you have actually met.
+   ============================================================ */
+
+/* ---------- every appearance of a card, across every reading kept ---------- */
+function cardAppearances(cardId){
+  const out = [];
+  (S.entries || []).forEach(e => {
+    if(e.type !== 'divination') return;
+    const d = divinationOf(e); if(!d || d.system !== 'tarot') return;
+    (d.cards || []).forEach((c, i) => {
+      if(c.card !== cardId) return;
+      out.push({entry: e, day: e.occurredAt, at: e.createdAt || e.occurredAt,
+        spread: spreadById(d.spread).name, pos: c.pos || `card ${i + 1}`,
+        rev: !!c.rev, question: d.question || '', note: e.body || '',
+        source: d.source || 'digital'});
+    });
+  });
+  return out.sort((a, b) => (b.at || '') < (a.at || '') ? -1 : 1);
+}
+/* how many times each of the seventy-eight has come up, in one pass —
+   the grid asks for all of them at once and 78 × every entry is silly */
+function cardCounts(){
+  const n = new Array(TAROT.length).fill(0);
+  (S.entries || []).forEach(e => {
+    if(e.type !== 'divination') return;
+    const d = divinationOf(e); if(!d || d.system !== 'tarot') return;
+    (d.cards || []).forEach(c => { if(typeof c.card === 'number' && n[c.card] !== undefined) n[c.card]++; });
+  });
+  return n;
+}
+
+/* A sentence about a card's history, or the absence of one. Template-built
+   and deliberately modest: it counts and it notices a repeated position,
+   and it does not pretend to more than that. */
+function cardPattern(cardId, apps){
+  const card = tarotCard(cardId);
+  if(!apps.length) return 'You have not drawn this one yet. It is waiting its turn.';
+  if(apps.length === 1){
+    const a = apps[0];
+    return `Drawn once, ${fmtDate(a.day, 'long')}, in “${a.pos}”${a.rev ? ', reversed' : ''}.`;
+  }
+  const up = apps.filter(a => !a.rev).length;
+  const by = {};
+  apps.forEach(a => { by[a.pos] = (by[a.pos] || 0) + 1; });
+  const top = Object.entries(by).sort((a, b) => b[1] - a[1])[0];
+  let t = `Drawn ${apps.length} times — ${up} upright, ${apps.length - up} reversed. `;
+  if(top[1] > 1){
+    const keys = (card.keywords || []).slice(0, 2).join(' and ') || 'what it carries';
+    t += `Most often in “${top[0]}” (${top[1]} of them), which puts ${keys} in that part of your questions `
+       + `more than anywhere else.`;
+  } else {
+    t += 'No one position more than another, so far.';
+  }
+  return t;
+}
+
+/* ---------- the directory ---------- */
+function openCardDirectory(startAt){
+  let tab = 'major', q = '';
+  const counts = cardCounts();
+  const m = openModal(`<h2>The deck</h2>
+    <div class="stack" id="cdWrap">
+      <p class="dv-yours-p">All seventy-eight, what each one means, and what each one has meant to you.
+        The ones you have not drawn are dimmed.</p>
+      <input class="inp" id="cdFind" placeholder="a name, a keyword, an element — “love”, “tower”, “fire”" autocomplete="off">
+      <div class="row cd-tabs" style="gap:5px;flex-wrap:wrap">${CARD_TABS.map(t =>
+        `<button class="chip${t.id === tab ? ' on' : ''}" data-cdtab="${t.id}">${esc(t.name)}</button>`).join('')}</div>
+      <div class="cd-count mono" id="cdCount"></div>
+      <div class="cd-grid" id="cdGrid"></div>
+    </div>
+    <div id="cdPage" hidden></div>`, 'wide');
+
+  function grid(){
+    const list = q ? cardSearch(q, 78) : cardsInTab(tab);
+    const seen = list.filter(i => counts[i]).length;
+    m.querySelector('#cdCount').textContent = q
+      ? `${list.length} card${list.length === 1 ? '' : 's'} match “${q}”`
+      : `${list.length} cards · ${seen} of them drawn at least once`;
+    m.querySelector('#cdGrid').innerHTML = list.length
+      ? list.map(i => cardTileHTML(i, {count: counts[i], dim: !counts[i]})).join('')
+      : '<div class="pk-empty">Nothing in the deck goes by that.</div>';
+    m.querySelectorAll('[data-cardpick]').forEach(b => b.onclick = () => page(+b.dataset.cardpick));
+  }
+  m.querySelectorAll('[data-cdtab]').forEach(b => b.onclick = () => {
+    tab = b.dataset.cdtab; q = ''; m.querySelector('#cdFind').value = '';
+    m.querySelectorAll('[data-cdtab]').forEach(x => x.classList.toggle('on', x === b));
+    grid();
+  });
+  m.querySelector('#cdFind').addEventListener('input', e => { q = e.target.value.trim(); grid(); });
+
+  /* one card's page: the reference above the rule, your own history below */
+  function page(i){
+    const c = tarotCard(i); if(!c) return;
+    const apps = cardAppearances(i);
+    const col = SUIT_COLOR[c.suit] || '#8f7bb0';
+    const side = (s, label) => `<section class="cd-side"><h4 class="dv-sec-h">${label}</h4>
+      <p class="cd-sum">${esc(s.summary || s.plain || '')}</p>
+      ${s.themes && s.themes.length ? `<div class="dv-cards">${s.themes.map(t =>
+        `<span class="pt-tag" style="--c:${col}">${esc(t)}</span>`).join('')}</div>` : ''}
+      ${s.inDepth ? s.inDepth.split('\n\n').filter(Boolean).map(t => `<p class="cd-p">${esc(t)}</p>`).join('') : ''}
+      ${s.advice ? `<p class="cd-adv"><b>What it asks:</b> ${esc(s.advice)}</p>` : ''}
+      ${s.questions && s.questions.length ? `<ul class="dv-cr-q">${s.questions.map(x =>
+        `<li>${esc(x)}</li>`).join('')}</ul>` : ''}</section>`;
+    m.querySelector('#cdWrap').hidden = true;
+    const box = m.querySelector('#cdPage');
+    box.hidden = false;
+    box.innerHTML = `<div class="cd-page" style="--sc:${col}">
+      <button class="pf-chip" id="cdBack">‹ all the cards</button>
+      <div class="cd-head">
+        <div class="tc up" style="--sc:${col}"><div class="tc-inner"><div class="tc-face">${tarotFaceHTML(c)}</div></div></div>
+        <div class="cd-head-t">
+          <h3 class="serif">${esc(c.name)}</h3>
+          <div class="mono faint">${c.arcana === 'major' ? `Major Arcana · ${CARD_ROMAN[c.number] ? CARD_ROMAN[c.number].toUpperCase() : c.number}`
+            : `${esc(c.suit.charAt(0).toUpperCase() + c.suit.slice(1))} · ${c.number}`}${
+            c.element ? ` · ${esc(c.element)}` : ''}${c.planet ? ` · ${esc(c.planet)}` : ''}</div>
+          ${c.essence ? `<p class="cd-ess">${esc(c.essence)}</p>` : ''}
+          ${counts[i] ? `<span class="cd-seen mono">drawn ${counts[i]} time${counts[i] === 1 ? '' : 's'}</span>`
+            : '<span class="cd-seen mono none">not yet drawn</span>'}
+        </div></div>
+      ${c.imagery ? `<section class="cd-side"><h4 class="dv-sec-h">What it shows</h4>
+        <p class="cd-p">${esc(c.imagery)}</p></section>` : ''}
+      ${side(c.upright, 'Upright')}
+      ${side(c.reversed, 'Reversed')}
+      ${c.numerology && c.numerology.meaning ? `<section class="cd-side"><h4 class="dv-sec-h">The number</h4>
+        <p class="cd-p"><b>${c.numerology.number}</b> — ${esc(c.numerology.meaning)}</p></section>` : ''}
+      ${(c.relatedCards || []).length ? `<section class="cd-side"><h4 class="dv-sec-h">It travels with</h4>
+        <div class="dv-cards">${c.relatedCards.map(r => {
+          const at = TAROT.findIndex(x => x.n === r || x.n.split('/').some(y => y.trim() === r));
+          return at >= 0 ? `<button class="chip" data-cardgo="${at}">${esc(r)}</button>`
+                         : `<span class="chip">${esc(r)}</span>`; }).join('')}</div></section>` : ''}
+      <section class="cd-hist">
+        <h4 class="dv-sec-h">Your history with ${esc(c.name)}</h4>
+        <p class="cd-pat">${esc(cardPattern(i, apps))}</p>
+        ${apps.map(a => `<article class="cd-app">
+          <div class="cd-app-h"><span class="mono">${esc(fmtDate(a.day, 'med'))}</span>
+            <b class="serif">${esc(a.spread)}</b>
+            ${a.source === 'physical' ? '<span class="dv-src mono">📖 paper</span>' : ''}</div>
+          <div class="mono faint">${esc(a.pos)} · ${a.rev ? 'reversed' : 'upright'}</div>
+          ${a.question ? `<div class="cd-app-q quote">“${esc(a.question)}”</div>` : ''}
+          ${a.note ? `<p class="cd-app-n">${esc(a.note.length > 260 ? a.note.slice(0, 260) + '…' : a.note)}</p>` : ''}
+          <button class="pf-chip" data-cdopen="${a.entry.id}">the whole reading →</button>
+        </article>`).join('')}
+      </section></div>`;
+    box.querySelector('#cdBack').onclick = () => {
+      box.hidden = true; m.querySelector('#cdWrap').hidden = false; grid(); };
+    box.querySelectorAll('[data-cardgo]').forEach(b => b.onclick = () => page(+b.dataset.cardgo));
+    /* the same road the day's draws take to the Lived Record: address the
+       journal by kind, then find the entry in it */
+    box.querySelectorAll('[data-cdopen]').forEach(b => b.onclick = () => {
+      const id = b.dataset.cdopen; m.remove();
+      navigate('#/journals/divination');
+      setTimeout(() => { const n = document.querySelector(`[data-entry="${id}"]`);
+        if(n){ n.scrollIntoView({block: 'center'});
+          n.style.background = 'color-mix(in srgb,var(--terra) 12%,transparent)';
+          setTimeout(() => n.style.background = '', 1600); } }, 350);
+    });
+    box.scrollIntoView({block: 'start'});
+  }
+  if(typeof startAt === 'number') page(startAt);
+  else grid();
+}
+/* ============================================================
    THE BOOK OF CHANGES, AT LENGTH
 
    The hexagram list in 16-divination.js carries the Judgment and the Image
@@ -19287,6 +19638,565 @@ const ICHING_RICH = [
 },
 ];
 /* ============================================================
+   THE AIR IN THE ROOM
+
+   Two small machines that run only while a reading is being dealt: a few
+   dozen specks of warm light on a canvas over the ceremony, and a handful
+   of tones synthesised on the spot. Neither is decoration for its own
+   sake. A ceremony is a way of marking that the next few minutes are
+   different from the ones before, and that mark is made out of exactly
+   this — a change in the light and a change in the sound.
+
+   The rule for both is the same: never loud, never fast, never anywhere
+   but in the ceremony. Nothing here starts on its own and nothing here
+   plays on any other page. Either can be switched off; the light is also
+   off outright for anyone who has asked for less motion, which the sound
+   is not, because asking for less movement is not asking for silence.
+
+   No audio files: every sound is an oscillator and an envelope, which is
+   how a single file affords a singing bowl.
+   ============================================================ */
+
+/* ---------- preferences ----------
+   Kept with the app's other settings rather than in the divination state,
+   because they are about how the room behaves, not about any reading. */
+function divPrefs(){
+  S.settings = S.settings || {};
+  const d = S.settings.divination || (S.settings.divination = {});
+  if(typeof d.reversals  !== 'boolean') d.reversals = true;
+  if(typeof d.sound      !== 'boolean') d.sound = true;
+  if(typeof d.particles  !== 'boolean') d.particles = true;
+  if(typeof d.volume     !== 'number')  d.volume = .3;
+  if(typeof d.spread     !== 'string')  d.spread = 'ppf';
+  if(!Array.isArray(d.customSpreads))   d.customSpreads = [];
+  return d;
+}
+const divPrefSet = (k, v) => { divPrefs()[k] = v; saveNow(); };
+
+/* ============================================================
+   THE DUST
+
+   Three behaviours, on one canvas, over the ceremony and nothing else.
+
+     ambient   a few motes drifting, the way dust moves in candlelight
+     burst     a card has turned: a ring of sparks off its centre
+     shimmer   all of them are up: a slow sweep of light left to right
+
+   The loop runs only while there is something to draw and only while the
+   ceremony is on screen. `stop()` cancels the frame and clears the canvas;
+   there is no idling loop in the background of this app.
+   ============================================================ */
+const DV_GOLD = '#d4a44c', DV_PALE = '#fffdf5';
+
+function ParticleField(canvas){
+  this.cv = canvas;
+  this.ctx = canvas.getContext('2d');
+  this.ps = [];
+  this.mode = 'idle';
+  this.raf = 0;
+  this.dpr = Math.min(window.devicePixelRatio || 1, 2);
+  this.resize();
+}
+ParticleField.prototype.resize = function(){
+  const r = this.cv.getBoundingClientRect();
+  this.w = Math.max(r.width, 1); this.h = Math.max(r.height, 1);
+  this.cv.width = Math.round(this.w * this.dpr);
+  this.cv.height = Math.round(this.h * this.dpr);
+  this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+};
+ParticleField.prototype.make = function(x, y, o){
+  o = o || {};
+  const life = o.life || 60 + Math.random() * 120;
+  return {x, y,
+    vx: o.vx !== undefined ? o.vx : (Math.random() - .5) * .3,
+    vy: o.vy !== undefined ? o.vy : (Math.random() - .5) * .3,
+    rad: o.rad || 1 + Math.random() * 1.5,
+    op:  o.op  || .3 + Math.random() * .3,
+    life, maxLife: life,
+    col: o.col || DV_GOLD,
+    /* a mote that only travels in a straight line reads as a bug; a small
+       angular velocity is the whole difference between dust and pixels */
+    spin: o.spin ? (Math.random() - .5) * .03 : 0,
+    ang: Math.random() * Math.PI * 2,
+    wob: o.wob === undefined ? .4 : o.wob,
+    fade: o.fade !== false};
+};
+/* motes wandering in from the edges — the air being alive, not an effect */
+ParticleField.prototype.ambient = function(n){
+  this.mode = 'ambient';
+  this.want = n || 20;
+  this.run();
+};
+ParticleField.prototype.seed = function(){
+  const edge = Math.floor(Math.random() * 4);
+  const x = edge === 0 ? -4 : edge === 1 ? this.w + 4 : Math.random() * this.w;
+  const y = edge === 2 ? -4 : edge === 3 ? this.h + 4 : Math.random() * this.h;
+  this.ps.push(this.make(x, y, {rad: .7 + Math.random() * 1.3, op: .3 + Math.random() * .2,
+    life: 420 + Math.random() * 400, fade: false}));
+};
+/* a card has turned */
+ParticleField.prototype.burst = function(x, y, n){
+  n = n || 26;
+  for(let i = 0; i < n; i++){
+    const a = (Math.PI * 2 * i) / n + (Math.random() - .5) * .5;
+    const sp = 1.5 + Math.random() * 2.5;
+    this.ps.push(this.make(x, y, {vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+      rad: 1 + Math.random() * 1.6, op: .6 + Math.random() * .3,
+      life: 40 + Math.random() * 40, spin: true, wob: .12,
+      col: Math.random() > .3 ? DV_GOLD : DV_PALE}));
+  }
+  /* one or two heavier ones, which live longer and leave the trail */
+  for(let i = 0; i < 2; i++){
+    const a = Math.random() * Math.PI * 2, sp = 1 + Math.random();
+    this.ps.push(this.make(x, y, {vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+      rad: 2.6 + Math.random() * 1.6, op: .5, life: 80 + Math.random() * 40, spin: true, wob: .1}));
+  }
+  this.run();
+};
+/* everything is up: a wind of light across the whole ceremony */
+ParticleField.prototype.shimmer = function(){
+  this.mode = 'shimmer';
+  for(let i = 0; i < 52; i++){
+    this.ps.push(this.make(-Math.random() * this.w * .5, Math.random() * this.h,
+      {vx: 3 + Math.random() * 2.4, vy: (Math.random() - .5) * .25,
+       rad: .8 + Math.random() * .5, op: .2 + Math.random() * .1,
+       life: 70 + Math.random() * 40, wob: .05}));
+  }
+  this.run();
+};
+ParticleField.prototype.step = function(){
+  const ps = this.ps;
+  for(let i = 0; i < ps.length; i++){
+    const p = ps[i];
+    p.ang += p.spin;
+    /* the wobble is a sine on the drift rather than a second velocity, so a
+       mote floats instead of jittering */
+    p.x += p.vx + Math.sin(p.ang) * p.wob;
+    p.y += p.vy + Math.cos(p.ang * .7) * p.wob * .6;
+    p.vx *= .985; p.vy *= .985;
+    p.life--;
+    if(p.fade) p.op = Math.max(0, (p.life / p.maxLife) * p.op * 1.02);
+  }
+  this.ps = ps.filter(p => p.life > 0 && p.x > -30 && p.x < this.w + 30 && p.y > -30 && p.y < this.h + 30);
+  if(this.mode === 'ambient') while(this.ps.length < this.want) this.seed();
+};
+ParticleField.prototype.draw = function(){
+  const c = this.ctx;
+  c.clearRect(0, 0, this.w, this.h);
+  for(const p of this.ps){
+    c.beginPath();
+    c.arc(p.x, p.y, p.rad, 0, Math.PI * 2);
+    c.fillStyle = p.col;
+    c.globalAlpha = Math.max(0, Math.min(1, p.op));
+    c.fill();
+  }
+  c.globalAlpha = 1;
+};
+ParticleField.prototype.run = function(){
+  if(this.raf) return;
+  const tick = () => {
+    /* The surest sign that a ceremony is over is that its canvas is no
+       longer in the document — the modal was closed, or routed away from,
+       or swept. Checking that each frame means no close path can leave a
+       loop running behind a page nobody is looking at. */
+    if(!this.cv.isConnected){ this.stop(); return; }
+    this.step(); this.draw();
+    /* nothing left to draw and nothing asking for more: stop the loop
+       rather than spin a blank canvas at sixty frames a second */
+    if(!this.ps.length && this.mode !== 'ambient'){ this.raf = 0; return; }
+    this.raf = requestAnimationFrame(tick);
+  };
+  this.raf = requestAnimationFrame(tick);
+};
+ParticleField.prototype.stop = function(){
+  if(this.raf) cancelAnimationFrame(this.raf);
+  this.raf = 0; this.ps = []; this.mode = 'idle';
+  this.ctx.clearRect(0, 0, this.w, this.h);
+};
+
+/* The field for the ceremony currently on screen, or a stub that does
+   nothing — so every call site can say `dvField().burst(x, y)` without
+   asking first whether there is a canvas, whether the person wants
+   particles, or whether they have asked for less motion. */
+const DV_NOFIELD = {ambient(){}, burst(){}, shimmer(){}, stop(){}, resize(){}};
+let _dvField = null;
+function dvFieldStart(canvas){
+  dvFieldStop();
+  if(!canvas || !divPrefs().particles || (typeof reduced === 'function' && reduced())) return DV_NOFIELD;
+  _dvField = new ParticleField(canvas);
+  return _dvField;
+}
+const dvField = () => _dvField || DV_NOFIELD;
+function dvFieldStop(){ if(_dvField){ _dvField.stop(); _dvField = null; } }
+
+/* ============================================================
+   THE SOUNDS
+
+   Seven, each one an oscillator or a scrap of noise with an envelope on
+   it. They are quiet by design: a third of full is the default and full
+   is not loud. The context is built on the first sound of a ceremony,
+   never at load, because a browser will not let it start before a person
+   has touched something anyway — and because an app that opens an
+   AudioContext for a page you are only reading is an app that is doing
+   something behind your back.
+   ============================================================ */
+const CeremonySound = {
+  ctx: null, master: null,
+  /* motion and sound are different requests: someone who has asked for
+     less movement has not asked for silence, so `reduced()` is not consulted
+     here the way it is for the particles */
+  on(){ return divPrefs().sound; },
+  init(){
+    if(this.ctx) { this.master.gain.value = divPrefs().volume; return true; }
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if(!AC) return false;
+    try {
+      this.ctx = new AC();
+      this.master = this.ctx.createGain();
+      this.master.gain.value = divPrefs().volume;
+      this.master.connect(this.ctx.destination);
+    } catch(e){ this.ctx = null; return false; }
+    return true;
+  },
+  ready(){
+    if(!this.on()) return null;
+    if(!this.init()) return null;
+    /* a context made before the first gesture starts suspended */
+    if(this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
+    return this.ctx;
+  },
+  /* one voice: an oscillator, an envelope, done */
+  tone(freq, {type = 'sine', at = 0, attack = .01, hold = .1, release = .3, peak = .12} = {}){
+    const c = this.ready(); if(!c) return;
+    const t = c.currentTime + at;
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(.0001, t);
+    g.gain.linearRampToValueAtTime(peak, t + attack);
+    g.gain.setValueAtTime(peak, t + attack + hold);
+    g.gain.exponentialRampToValueAtTime(.0001, t + attack + hold + release);
+    o.connect(g); g.connect(this.master);
+    o.start(t); o.stop(t + attack + hold + release + .05);
+  },
+  /* a scrap of white noise through a filter: paper, or wind */
+  noise(dur, {freq = 3000, q = 1, peak = .08, sweepTo = 0, at = 0} = {}){
+    const c = this.ready(); if(!c) return;
+    const t = c.currentTime + at;
+    const n = Math.floor(c.sampleRate * dur);
+    const buf = c.createBuffer(1, n, c.sampleRate);
+    const d = buf.getChannelData(0);
+    for(let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+    const src = c.createBufferSource(); src.buffer = buf;
+    const f = c.createBiquadFilter();
+    f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = q;
+    if(sweepTo) f.frequency.linearRampToValueAtTime(sweepTo, t + dur);
+    const g = c.createGain();
+    g.gain.setValueAtTime(.0001, t);
+    g.gain.linearRampToValueAtTime(peak, t + Math.min(.05, dur * .3));
+    g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    src.connect(f); f.connect(g); g.connect(this.master);
+    src.start(t); src.stop(t + dur + .02);
+  },
+
+  /* the moment to settle: a bowl struck once, and its fifth under it */
+  bowl(){ this.tone(220, {attack: 1.8, hold: 1.6, release: 3, peak: .15});
+          this.tone(330, {attack: 2, hold: 1.4, release: 3, peak: .045}); },
+  /* the shuffle: paper on paper */
+  slide(){ this.noise(.15, {freq: 3000, q: 1, peak: .08}); },
+  /* choosing a card */
+  chime(){ this.tone(800, {attack: .004, hold: .01, release: .2, peak: .09});
+           this.tone(1600, {attack: .004, hold: .01, release: .18, peak: .018}); },
+  /* the turn itself: weight */
+  thrum(){ this.tone(110, {attack: .1, hold: .3, release: .4, peak: .13});
+           this.tone(55,  {attack: .1, hold: .3, release: .45, peak: .05}); },
+  /* the name resolving out of the noise */
+  tinkle(){ [1800, 1650, 1480, 1320].forEach((f, i) =>
+    this.tone(f, {at: i * .045, attack: .003, hold: .01, release: .1, peak: .045})); },
+  /* all of them are up */
+  chord(){ [261.6, 329.6, 392].forEach((f, i) =>
+    this.tone(f, {attack: 1, hold: 1.6, release: 2, peak: i ? .05 : .07})); },
+  /* and the wind that carries the reading in */
+  wind(){ this.noise(1.5, {freq: 500, sweepTo: 2000, q: .7, peak: .05}); },
+
+  /* between readings: let the context go rather than hold the audio
+     hardware open for a page nobody is listening to */
+  close(){ if(this.ctx){ try { this.ctx.close(); } catch(e){} this.ctx = null; this.master = null; } },
+};
+/* one name for both halves, so a call site says what happened rather than
+   which machine it wants */
+function dvMoment(what, x, y){
+  if(CeremonySound[what]) CeremonySound[what]();
+  if(what === 'thrum' && x !== undefined) dvField().burst(x, y);
+  if(what === 'wind') dvField().shimmer();
+}
+/* ============================================================
+   A READING YOU DID ON PAPER
+
+   Most readings that matter are done with a real deck on a real table.
+   The cards are the same cards, the positions are the same positions, and
+   everything this app can say about them is just as true — so there is no
+   reason the long interpretation, the position guidance, the story and the
+   box to write in should be available only to a deal made by a random
+   number generator.
+
+   So: choose the spread, name the cards, and get the identical reading.
+   The entry is marked as having come from paper and nothing else about it
+   differs — it is in the journal, in the card directory's history, and in
+   the review with the rest.
+
+   Two ways to name a card, because people are different: type it, with
+   everything matched loosely enough that "3 cups", "three of cups" and
+   "cups 3" all land on the same card; or open the deck and point at it.
+   ============================================================ */
+
+/* ---------- finding a card by whatever the person typed ----------
+   Names, numbers, suit abbreviations, roman numerals and keywords, scored
+   so that an exact name beats a keyword and a prefix beats a substring. */
+const CARD_WORDS = ['ace', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten',
+                    'page', 'knight', 'queen', 'king'];
+const CARD_ROMAN = ['0','i','ii','iii','iv','v','vi','vii','viii','ix','x','xi','xii','xiii','xiv',
+                    'xv','xvi','xvii','xviii','xix','xx','xxi'];
+const SUIT_WORDS = {wands:['wands','wand','w','rods','staves','batons','fire'],
+                    cups:['cups','cup','c','chalices','hearts','water'],
+                    swords:['swords','sword','s','blades','air'],
+                    pentacles:['pentacles','pentacle','p','coins','disks','discs','earth'],
+                    major:['major','majors','arcana','trump','trumps']};
+
+/* everything one card can be called, lower-cased, built once */
+let _cardIndex = null;
+function cardIndex(){
+  if(_cardIndex) return _cardIndex;
+  _cardIndex = TAROT.map((c, i) => {
+    const names = [c.n.toLowerCase()];
+    /* "The Papess/High Priestess" is two names for one card */
+    c.n.toLowerCase().split('/').forEach(x => names.push(x.trim()));
+    names.push(c.n.toLowerCase().replace(/^the\s+/, ''));
+    if(c.s === 'major'){
+      names.push(String(c.r), CARD_ROMAN[c.r] || '');
+    } else {
+      const word = CARD_WORDS[c.r - 1] || '';
+      (SUIT_WORDS[c.s] || []).forEach(su => {
+        names.push(`${word} of ${su}`, `${word} ${su}`, `${su} ${c.r}`, `${c.r} ${su}`, `${su}${c.r}`);
+        if(c.r > 10) names.push(`${word} of ${su}`);
+      });
+    }
+    return {i, names: [...new Set(names.filter(Boolean))],
+            keys: (c.k || []).map(k => k.toLowerCase()),
+            el: (SUIT_ELEM[c.s] || '').toLowerCase()};
+  });
+  return _cardIndex;
+}
+/* the matches for what has been typed, best first */
+function cardSearch(q, limit = 8){
+  q = (q || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  if(!q) return [];
+  const out = [];
+  for(const e of cardIndex()){
+    let best = 0;
+    for(const n of e.names){
+      if(n === q){ best = Math.max(best, 100); break; }
+      if(n.startsWith(q)) best = Math.max(best, 70 - n.length * .1);
+      else if(n.includes(q)) best = Math.max(best, 45 - n.length * .1);
+    }
+    if(!best) for(const k of e.keys) if(k.startsWith(q)) best = Math.max(best, 22);
+    if(!best && e.el && e.el.startsWith(q)) best = 14;
+    if(best) out.push({i: e.i, score: best});
+  }
+  return out.sort((a, b) => b.score - a.score || a.i - b.i).slice(0, limit).map(x => x.i);
+}
+
+/* ---------- the form ---------- */
+function openPhysicalReading(pre = {}){
+  const projects = typeof thProjects === 'function' ? thProjects() : [];
+  let spreadId = spreadById(pre.spread || divPrefs().spread || 'ppf').id;
+  let rev = divPrefs().reversals;
+  /* one entry per slot: which card, and which way up */
+  let slots = [];
+  const m = openModal(`<h2>A reading you did on paper</h2>
+    <div class="stack" id="phWrap">
+      <p class="dv-yours-p">Cards you have already laid out. Name them and the reading is the same
+        reading — the long meanings, the position guidance, the story, and room to write.</p>
+      <div class="field"><label>What were you asking?</label>
+        <input class="inp serif-lg" id="phQ" value="${esc(pre.question || '')}" placeholder="The question you sat down with."></div>
+      <div class="field"><label>Which spread did you lay out?</label>
+        ${spreadPickerHTML(spreadId)}
+        <div class="sp-chosen" id="phChosen"></div></div>
+      <div class="dv-switches"><button type="button" class="dv-sw${rev ? ' on' : ''}" id="phRev" role="switch"
+        aria-checked="${rev}" title="whether any of the cards were upside down"><i></i><span>Reversals were in play</span></button></div>
+      <div id="phSlots"></div>
+      <div class="row" style="justify-content:flex-end;gap:8px">
+        <button class="btn primary" id="phGo">Read it</button></div>
+    </div>
+    <div id="phOut"></div>`, 'wide');
+
+  const sp = () => spreadById(spreadId);
+  function drawSlots(){
+    const s = sp();
+    /* a yes/no laid on paper still has to be able to say no */
+    if(s.forceRev) rev = true;
+    slots = s.positions.map((_, i) => slots[i] || {card: null, rev: false});
+    slots.length = s.cardCount;
+    m.querySelector('#phChosen').innerHTML = `<p class="sp-desc">${esc(s.desc)}</p>`;
+    m.querySelectorAll('[data-dvspread]').forEach(b => b.classList.toggle('on', b.dataset.dvspread === s.id));
+    m.querySelector('#phSlots').innerHTML = s.positions.map((q, i) => `
+      <section class="ph-slot" data-phslot="${i}">
+        <h5 class="ph-h"><span class="mono">card ${i + 1}</span> <b class="serif">${esc(q.name)}</b>
+          ${q.desc ? `<span class="quote">${esc(q.desc)}</span>` : ''}</h5>
+        <div class="ph-pick">
+          <div class="ph-typed">
+            <input class="inp ph-in" data-phin="${i}" autocomplete="off" spellcheck="false"
+              placeholder="type a name — “tower”, “3 cups”, “knight of swords”" value="${slots[i].card !== null ? esc(TAROT[slots[i].card].n) : ''}">
+            <div class="ph-sugg" data-phsugg="${i}" hidden></div>
+          </div>
+          <button type="button" class="pl-mini ph-grid-b" data-phgrid="${i}" title="open the deck and point at it">▦</button>
+          <label class="ph-rev${rev ? '' : ' off'}"><input type="checkbox" data-phrev="${i}" ${slots[i].rev ? 'checked' : ''}> reversed</label>
+        </div>
+        <div class="ph-chosen" data-phchosen="${i}"></div>
+      </section>`).join('');
+    slots.forEach((_, i) => paint(i));
+    bindSlots();
+  }
+  /* the little card that shows what has been named, so a mistyped card is
+     caught before the reading rather than after it */
+  function paint(i){
+    const box = m.querySelector(`[data-phchosen="${i}"]`); if(!box) return;
+    const pick = slots[i];
+    if(pick.card === null){ box.innerHTML = ''; return; }
+    const c = tarotCard(pick.card);
+    box.innerHTML = `<div class="ph-card${pick.rev ? ' rev' : ''}">
+      <img class="ph-thumb" src="${tarotArtURL(pick.card)}" alt="">
+      <div><b class="serif">${esc(c.name)}</b>${pick.rev ? ' <span class="tc-cap-rev mono">reversed</span>' : ''}
+        <div class="quote">${esc(c.essence || (c.keywords || []).slice(0, 3).join(' · '))}</div></div></div>`;
+  }
+  function bindSlots(){
+    m.querySelectorAll('[data-phin]').forEach(inp => {
+      const i = +inp.dataset.phin, sugg = m.querySelector(`[data-phsugg="${i}"]`);
+      const close = () => { sugg.hidden = true; sugg.innerHTML = ''; };
+      const choose = at => { slots[i].card = at; inp.value = TAROT[at].n; close(); paint(i);
+        if(typeof sound === 'function') sound('click'); };
+      inp.addEventListener('input', () => {
+        const hits = cardSearch(inp.value);
+        if(!hits.length || (hits.length === 1 && TAROT[hits[0]].n.toLowerCase() === inp.value.trim().toLowerCase())){
+          if(hits.length === 1) slots[i].card = hits[0];
+          else if(!inp.value.trim()) slots[i].card = null;
+          paint(i); return close();
+        }
+        sugg.innerHTML = hits.map(at => `<button type="button" class="ph-s" data-phs="${at}">
+          <span class="ph-s-suit" style="color:${SUIT_COLOR[TAROT[at].s]}">${SUIT_GLYPH[TAROT[at].s]}</span>
+          ${esc(TAROT[at].n)}</button>`).join('');
+        sugg.hidden = false;
+        sugg.querySelectorAll('[data-phs]').forEach(b => b.onclick = () => choose(+b.dataset.phs));
+      });
+      inp.addEventListener('keydown', e => {
+        if(e.key === 'Enter'){ const first = sugg.querySelector('[data-phs]');
+          if(first){ e.preventDefault(); choose(+first.dataset.phs); } }
+        if(e.key === 'Escape') close();
+      });
+      inp.addEventListener('blur', () => setTimeout(close, 160));
+    });
+    m.querySelectorAll('[data-phrev]').forEach(cb => cb.onchange = () => {
+      slots[+cb.dataset.phrev].rev = cb.checked; paint(+cb.dataset.phrev); });
+    m.querySelectorAll('[data-phgrid]').forEach(b => b.onclick = () => {
+      const i = +b.dataset.phgrid;
+      openCardGrid(at => { slots[i].card = at;
+        const inp = m.querySelector(`[data-phin="${i}"]`); if(inp) inp.value = TAROT[at].n;
+        paint(i); });
+    });
+  }
+  bindSpreadPicker(m, () => spreadId, id => { spreadId = spreadById(id).id; slots = []; drawSlots(); });
+  m.querySelector('#phRev').onclick = () => {
+    rev = !rev; const b = m.querySelector('#phRev');
+    b.classList.toggle('on', rev); b.setAttribute('aria-checked', String(rev));
+    if(!rev) slots.forEach((s, i) => { s.rev = false; paint(i); });
+    m.querySelectorAll('.ph-rev').forEach(l => l.classList.toggle('off', !rev));
+  };
+  drawSlots();
+
+  m.querySelector('#phGo').onclick = () => {
+    const s = sp();
+    const missing = slots.findIndex(x => x.card === null);
+    if(missing >= 0){
+      toast(`Which card was in “${s.positions[missing].name}”?`);
+      m.querySelector(`[data-phin="${missing}"]`)?.focus();
+      return;
+    }
+    const dupe = slots.map(x => x.card).findIndex((c, i, a) => a.indexOf(c) !== i);
+    if(dupe >= 0 && !confirm(`${TAROT[slots[dupe].card].n} is named twice. Keep it anyway?`)) return;
+    const picks = slots.map(x => ({card: x.card, rev: !!x.rev}));
+    m.querySelector('#phWrap').hidden = true;
+    const out = m.querySelector('#phOut');
+    out.innerHTML = `<div class="ph-done"><span class="dv-src mono">📖 read on paper</span>
+      <b class="serif">${esc(s.name)}</b>${m.querySelector('#phQ').value.trim()
+        ? `<span class="quote">${esc(m.querySelector('#phQ').value.trim())}</span>` : ''}</div>
+      ${tarotBoardHTML(s, i => `<div class="tc-hole">${tarotCardHTML(picks[i], i, true)}</div>`)}
+      ${tarotReadingHTML(picks, s)}${divKeepHTML(projects)}`;
+    /* the cards are already face up — the captions go straight on */
+    picks.forEach((pk, i) => {
+      const cap = out.querySelector(`[data-cap="${i}"]`);
+      if(cap){ cap.innerHTML = tarotCaptionHTML(pk);
+        const n = cap.querySelector('.tc-cap-name'); if(n) n.textContent = TAROT[pk.card].n; }
+    });
+    tarotBoardFit(out);
+    out.scrollIntoView({behavior: (typeof reduced === 'function' && reduced()) ? 'auto' : 'smooth', block: 'start'});
+    m.querySelector('#dvSave').onclick = () => {
+      divinationSave({system:'tarot', question:m.querySelector('#phQ').value.trim(), spread:s.id,
+        title:`${s.name} — ${picks.map(pk => TAROT[pk.card].n).join(', ')}`,
+        cards:picks.map((pk, i) => ({card:pk.card, rev:pk.rev, pos:s.pos[i]})),
+        reading:m.querySelector('#dvText').value.trim(), source:'physical',
+        revisit:m.querySelector('#dvRevisit').checked, projectId:m.querySelector('#dvProj')?.value || null});
+      sound('success'); toast('Kept in the Lived Record.'); m.remove(); rerender();
+    };
+  };
+}
+
+/* ---------- the deck, to point at ----------
+   For anyone who would rather see the cards than spell them. Also the body
+   of the card directory, which is the same grid with a different thing to
+   do when one is tapped. */
+const CARD_TABS = [
+  {id:'major',     name:'Major Arcana', has: c => c.s === 'major'},
+  {id:'wands',     name:'Wands',        has: c => c.s === 'wands' && c.r <= 10},
+  {id:'cups',      name:'Cups',         has: c => c.s === 'cups' && c.r <= 10},
+  {id:'swords',    name:'Swords',       has: c => c.s === 'swords' && c.r <= 10},
+  {id:'pentacles', name:'Pentacles',    has: c => c.s === 'pentacles' && c.r <= 10},
+  /* the sixteen faces together, because they work differently from the
+     numbered cards: they are usually a person, or a way of being one */
+  {id:'court',     name:'Court cards',  has: c => c.s !== 'major' && c.r > 10},
+];
+const cardsInTab = id => { const t = CARD_TABS.find(x => x.id === id) || CARD_TABS[0];
+  return TAROT.map((c, i) => ({c, i})).filter(x => t.has(x.c)).map(x => x.i); };
+
+function cardTileHTML(i, extra){
+  const c = TAROT[i];
+  return `<button type="button" class="cd-tile${extra && extra.dim ? ' dim' : ''}" data-cardpick="${i}"
+    title="${esc(c.n)}"><img class="cd-thumb" src="${tarotArtURL(i)}" alt="" loading="lazy">
+    <span class="cd-t-name">${esc(c.n)}</span>
+    ${extra && extra.count ? `<span class="cd-t-n mono">×${extra.count}</span>` : ''}</button>`;
+}
+
+function openCardGrid(then){
+  let tab = 'major';
+  const m = openModal(`<h2>Which card?</h2>
+    <div class="stack">
+      <div class="row cd-tabs" style="gap:5px;flex-wrap:wrap">${CARD_TABS.map(t =>
+        `<button class="chip${t.id === tab ? ' on' : ''}" data-cdtab="${t.id}">${esc(t.name)}</button>`).join('')}</div>
+      <input class="inp" id="cdFind" placeholder="or type a name, a keyword, an element" autocomplete="off">
+      <div class="cd-grid" id="cdGrid"></div>
+    </div>`, 'wide');
+  const draw = list => { m.querySelector('#cdGrid').innerHTML = list.map(i => cardTileHTML(i)).join('');
+    m.querySelectorAll('[data-cardpick]').forEach(b => b.onclick = () => {
+      then(+b.dataset.cardpick); if(typeof sound === 'function') sound('click'); m.remove(); }); };
+  const show = () => draw(cardsInTab(tab));
+  m.querySelectorAll('[data-cdtab]').forEach(b => b.onclick = () => { tab = b.dataset.cdtab;
+    m.querySelectorAll('[data-cdtab]').forEach(x => x.classList.toggle('on', x === b));
+    m.querySelector('#cdFind').value = ''; show(); });
+  m.querySelector('#cdFind').addEventListener('input', e => {
+    const q = e.target.value.trim();
+    draw(q ? cardSearch(q, 24) : cardsInTab(tab));
+  });
+  show();
+}
+/* ============================================================
    READING A CARD
 
    The deck in 16-divination.js identifies the cards; the deck in
@@ -19326,26 +20236,17 @@ function tarotCard(i){
 }
 const tarotSide = pick => { const c = tarotCard(pick.card); return c && (pick.rev ? c.reversed : c.upright); };
 
-/* Which of the six kinds of position a slot in a spread is. The Tower in the
-   past is not the Tower in the outcome, and the card carries a line for each
-   — but a spread's positions are named in English rather than in the six
-   words, so the mapping is written down here rather than guessed at. */
-const TAROT_SLOTS = {
-  one:   ['present'],
-  three: ['past', 'present', 'future'],
-  act:   ['present', 'advice', 'outcome'],
-  rel:   ['present', 'present', 'present', 'obstacle', 'advice'],
-  cross: ['present', 'obstacle', 'past', 'past', 'future', 'future',
-          'present', 'present', 'future', 'outcome'],
-};
-const tarotSlot = (spreadId, i) => (TAROT_SLOTS[spreadId] || [])[i] || 'present';
+/* Which of the six kinds of position a slot in a spread is — the Tower in
+   the past is not the Tower in the outcome, and the card carries a line for
+   each. It used to be a table keyed by spread id; it lives on the spread's
+   own positions now (see tarotSlot in 16-divination-spreads.js), which is
+   the only thing that survives twenty spreads instead of five. */
 
 /* ---------- the face of a card ----------
-   The old card was its name in a box. A card is a picture with a name on
-   it, so: a sigil that is the card's own, the one line of essence, and the
-   number, element and planet along the bottom. Nothing here is
-   illustrative — this is not a Rider-Waite reproduction — but it is a
-   card, and it is different from every other card in the deck.
+   The face is Smith's drawing; this is what stands in for it if the
+   pictures are ever not there — a sigil that is the card's own, and the
+   name. Nothing here is illustrative, but it is a card, and it is
+   different from every other card in the deck.
 
    Major Arcana get a star polygon of their own number of points, drawn by
    stepping round the circle: twenty-two figures, each geometrically
@@ -19489,37 +20390,66 @@ function tarotCardReadHTML(pick, posName, slot){
    that the person has a first sentence to disagree with. The disagreeing is
    where the reading actually happens. */
 function tarotNarrative(picks, sp){
-  if(!sp || picks.length < 3) return '';
+  if(!sp) return '';
+  /* the one spread whose answer is a word: say the word, then take it back
+     a little, because a card is not a coin */
+  if(sp.id === 'yesno' && picks.length){
+    const c = tarotCard(picks[0].card), s2 = tarotSide(picks[0]) || {themes: []};
+    const t = (s2.themes[0] || '').toLowerCase();
+    return `${picks[0].rev ? 'Leaning no' : 'Leaning yes'} — ${c.name}${picks[0].rev ? ' reversed' : ''}. `
+      + `But the lean is the smaller half of it: what the card actually puts in front of you is ${t || 'the thing you asked about'}, `
+      + `and that is the answer you can do something with. ${(c.essence || '').replace(/[.!]$/, '')}.`;
+  }
+  if(picks.length < 3) return '';
   const side = i => tarotSide(picks[i]) || {themes: []};
   const card = i => tarotCard(picks[i].card) || {name: '', essence: ''};
   const nm = i => card(i).name + (picks[i].rev ? ' reversed' : '');
   const th = (i, n = 0) => (side(i).themes[n] || side(i).themes[0] || 'something unnamed').toLowerCase();
   const ess = i => (card(i).essence || '').replace(/[.!]$/, '');
   const lower = s => s ? s.charAt(0).toLowerCase() + s.slice(1) : s;
-  if(sp.id === 'three'){
+  if(sp.id === 'ppf'){
     return `Behind you is ${th(0)} and ${th(0, 1)} — ${nm(0)}. That is what has brought you to a present `
       + `marked by ${th(1)} (${nm(1)}), and the movement from here runs toward ${th(2)} and ${th(2, 1)} (${nm(2)}). `
       + `Read as one line: from ${lower(ess(0))}, through ${lower(ess(1))}, to ${lower(ess(2))}.`;
   }
-  if(sp.id === 'act'){
+  if(sp.id === 'sao'){
     return `The situation is one of ${th(0)} — ${nm(0)}. What it asks of you is ${th(1)} (${nm(1)}), `
       + `and where that leads is ${th(2)} and ${th(2, 1)} (${nm(2)}). In short: ${lower(ess(1))}, `
       + `and ${lower(ess(2))}.`;
   }
-  if(sp.id === 'rel'){
+  if(sp.id === 'relationship'){
     return `You are carrying ${th(0)} into this (${nm(0)}) and they are carrying ${th(1)} (${nm(1)}). `
       + `What is actually between you is ${th(2)} — ${nm(2)}. The difficulty is ${th(3)} (${nm(3)}), `
       + `and the counsel is plain enough: ${lower(ess(4))} (${nm(4)}).`;
   }
-  if(sp.id === 'cross'){
+  if(sp.id === 'celtic_cross'){
     return `At the heart of it is ${th(0)} (${nm(0)}), crossed by ${th(1)} (${nm(1)}). `
       + `It is rooted in ${th(2)} and it came out of ${th(3)}. What could be is ${th(4)}; what comes next is ${th(5)}. `
       + `You are in it as ${th(6)}, surrounded by ${th(7)}, hoping for and fearing ${th(8)} — `
       + `and where it lands is ${th(9)}: ${lower(ess(9))} (${nm(9)}).`;
   }
+  /* the rest of the twenty, by shape rather than by name — a spread whose
+     positions are a sequence reads as a sequence, one built around a centre
+     reads outward from the centre, and the others read end to end */
+  const last = picks.length - 1;
+  if(sp.layout === 'cross' || sp.layout === 'pyramid'){
+    return `At the centre of this is ${th(0)} — ${nm(0)}. Around it: ${th(1)} (${nm(1)}), `
+      + `${th(2)} (${nm(2)})${picks.length > 3 ? `, and under all of it ${th(picks.length - 1)} (${nm(last)})` : ''}. `
+      + `Read from the middle out: ${lower(ess(0))}, and then ${lower(ess(last))}.`;
+  }
+  if(sp.layout === 'column' || sp.layout === 'circle'){
+    return `Laid round, the weight of this falls on ${sp.pos[0]} and ${sp.pos[last]}: ${nm(0)} at one end `
+      + `and ${nm(last)} at the other, with ${th(Math.floor(picks.length / 2))} in the middle of it. `
+      + `The whole of it is ${lower(ess(0))} becoming ${lower(ess(last))}.`;
+  }
+  if(sp.layout === 'grid' || sp.layout === 'horseshoe'){
+    return `It opens on ${th(0)} (${nm(0)}), turns on ${th(Math.floor(picks.length / 2))} `
+      + `(${nm(Math.floor(picks.length / 2))}) and closes on ${th(last)} (${nm(last)}). `
+      + `The line through it: ${lower(ess(0))}, then ${lower(ess(last))}.`;
+  }
   const names = picks.map((_, i) => nm(i));
-  return `Taken together, these run from ${th(0)} through ${th(1)} to ${th(picks.length - 1)} — `
-    + `${names.join(', ')}. The line through them is ${lower(ess(0))}, arriving at ${lower(ess(picks.length - 1))}.`;
+  return `Taken together, these run from ${th(0)} through ${th(1)} to ${th(last)} — `
+    + `${names.join(', ')}. The line through them is ${lower(ess(0))}, arriving at ${lower(ess(last))}.`;
 }
 
 /* The whole reading, under the spread. Built once, when the last card has
@@ -19637,6 +20567,512 @@ function ichingReadingHTML(lines, h, rel){
     ${r && r.q.length ? `<section class="ic-sec"><h4 class="dv-sec-h">Questions</h4>
       <ul class="dv-cr-q">${r.q.map(q => `<li>${esc(q)}</li>`).join('')}</ul></section>` : ''}
   </div>`;
+}
+/* ============================================================
+   THE SPREADS
+
+   A spread is a set of questions with the cards left out. The card that
+   lands in "what crosses you" is answering a different question from the
+   same card in "what you hope for", and choosing the shape of the layout
+   before you deal is most of the work of asking well.
+
+   There were five. There are twenty, in five groups by how much of an
+   afternoon they want: a card before breakfast, a three-card frame, a
+   deeper look, the long classical layouts, and the ones for a particular
+   occasion. Each carries the name AND the sense of every position, because
+   "Crown" tells a person nothing and "what could be — the best of it, if
+   you let it" tells them what to look for.
+
+   Each position also names which of the six kinds of position it is, so
+   the card's own line for that kind can be pulled out (see positionGuidance
+   in 16-divination-cards.js). That used to be a table keyed by spread id,
+   which does not survive going from five spreads to twenty.
+   ============================================================ */
+
+/* ---------- the groups ---------- */
+const SPREAD_CATEGORIES = [
+  {id:'quick',  name:'Quick draws',   hint:'One or two cards. A morning, a question with a yes in it.'},
+  {id:'three',  name:'Foundation',    hint:'Three cards. The frame that fits most questions.'},
+  {id:'depth',  name:'Depth',         hint:'Five to seven. When the short answer was not enough.'},
+  {id:'major',  name:'Major',         hint:'Ten and up. An afternoon, and something that deserves one.'},
+  {id:'special',name:'Special purpose',hint:'For an occasion: a shadow, a new moon, a year.'},
+];
+
+/* ---------- the twenty ----------
+   `pos` is derived below from `positions`, because everything that reads a
+   spread wants the names as a plain list and nothing should have to keep
+   the two in step by hand. */
+const SPREAD_LIBRARY = [
+  /* — quick draws — */
+  {id:'daily', name:'Daily card', cat:'quick', layout:'single',
+   desc:'One card to set the tone. Pull it before the day starts and let it be a question you carry rather than an answer you got.',
+   when:'A morning check-in.',
+   positions:[
+     {name:'Theme of the day', slot:'present', desc:'The energy or the lesson of today.'}]},
+
+  /* The only spread whose answer IS the orientation, so it deals reversed
+     cards whether or not the rest of the room does — with reversals off it
+     would answer yes to everything, which is not an oracle, it is a wall. */
+  {id:'yesno', name:'Yes or no', cat:'quick', layout:'single', forceRev:true,
+   desc:'One card, read for its lean: upright inclines toward yes, reversed toward no, and the card itself says what kind of yes or no it is. The nuance is the point — a reversed Star is not the same no as a reversed Tower. This one deals reversals even if you have them switched off, because without them it has nothing to say.',
+   when:'A question that really is binary.',
+   positions:[
+     {name:'The lean', slot:'outcome', desc:'Upright leans yes, reversed leans no — and the card says what sort.'}]},
+
+  {id:'two_paths', name:'Two paths', cat:'quick', layout:'row',
+   desc:'One card for each option, side by side, read against each other rather than on their own.',
+   when:'Choosing between two things.',
+   positions:[
+     {name:'Path A', slot:'future', desc:'Where the first choice goes.'},
+     {name:'Path B', slot:'future', desc:'Where the second one goes.'}]},
+
+  /* — foundation — */
+  {id:'ppf', name:'Past, present, future', cat:'three', layout:'row', alias:'three',
+   desc:'The oldest three-card frame there is: what has brought you here, where you stand, and where the line runs next.',
+   when:'A general reading when you are not sure what to ask.',
+   positions:[
+     {name:'What is behind', slot:'past',    desc:'What has brought you to this point.'},
+     {name:'Where you are',  slot:'present', desc:'The shape of the present moment.'},
+     {name:'What is coming', slot:'future',  desc:'Where the line runs from here.'}]},
+
+  {id:'sao', name:'Situation, action, outcome', cat:'three', layout:'row', alias:'act',
+   desc:'What is actually happening, what to do about it, and where doing that leads.',
+   when:'A decision you have been going round in circles on.',
+   positions:[
+     {name:'The situation', slot:'present', desc:'What is actually happening, under what you have been telling yourself.'},
+     {name:'What to do',    slot:'advice',  desc:'The action the situation is asking for.'},
+     {name:'Where it goes',  slot:'outcome', desc:'Where taking that action lands you.'}]},
+
+  {id:'mbs', name:'Mind, body, spirit', cat:'three', layout:'row',
+   desc:'A check of the three floors of the house, when something is off and you cannot name which one.',
+   when:'A holistic self-check.',
+   positions:[
+     {name:'Mind',   slot:'present', desc:'What your thinking is doing right now.'},
+     {name:'Body',   slot:'present', desc:'What the body has been saying and you have been ignoring.'},
+     {name:'Spirit', slot:'present', desc:'What the part of you that is not mind or body needs.'}]},
+
+  {id:'kre', name:'Keep, release, embrace', cat:'three', layout:'row',
+   desc:'For a threshold: what comes with you, what is put down at the door, and what is waiting on the other side.',
+   when:'A transition, an ending, a letting go.',
+   positions:[
+     {name:'Keep',    slot:'present', desc:'What is worth carrying forward.'},
+     {name:'Release', slot:'obstacle',desc:'What you are holding that is holding you.'},
+     {name:'Embrace', slot:'future',  desc:'What is asking to be taken up.'}]},
+
+  {id:'you_other', name:'You, the other, the connection', cat:'three', layout:'row',
+   desc:'Three cards for two people: what each brings, and the third thing that exists only between them.',
+   when:'Any relationship you want a quick read on.',
+   positions:[
+     {name:'You',              slot:'present', desc:'What you are bringing to this.'},
+     {name:'Them',             slot:'present', desc:'What they are bringing, as far as the cards can say.'},
+     {name:'The space between',slot:'present', desc:'The third thing — what exists because you are both in it.'}]},
+
+  /* — depth — */
+  {id:'cross5', name:'The cross', cat:'depth', layout:'cross',
+   desc:'One issue, held still and looked at from five sides: its centre, what it came out of, where it is going, what you know about it, and what you have not admitted.',
+   when:'A single knotted question.',
+   positions:[
+     {name:'The core',        slot:'present', desc:'The issue itself, stripped of the story around it.'},
+     {name:'What it came from',slot:'past',   desc:'The history the issue is standing on.'},
+     {name:'Where it goes',   slot:'future',  desc:'Where it runs if nothing changes.'},
+     {name:'What you know',   slot:'present', desc:'The conscious part — what you would say if asked.'},
+     {name:'What you have not said', slot:'obstacle', desc:'The part underneath: what you know and have not admitted.'}]},
+
+  {id:'horseshoe', name:'Horseshoe', cat:'depth', layout:'horseshoe',
+   desc:'Seven cards in an arc, covering a situation from every angle: where it came from, what is hidden in it, who else is in it, and what to do.',
+   when:'A whole situation rather than a single question.',
+   positions:[
+     {name:'The past',      slot:'past',    desc:'What the situation grew out of.'},
+     {name:'The present',   slot:'present', desc:'Where it stands now.'},
+     {name:'Hidden influences', slot:'obstacle', desc:'What is at work in this that you cannot see.'},
+     {name:'Obstacles',     slot:'obstacle',desc:'What stands in the way.'},
+     {name:'Other people',  slot:'present', desc:'The influence of everyone else involved.'},
+     {name:'What to do',    slot:'advice',  desc:'The counsel, plainly.'},
+     {name:'Where it lands',slot:'outcome', desc:'The likeliest resolution.'}]},
+
+  {id:'relationship', name:'A relationship', cat:'depth', layout:'cross', alias:'rel',
+   desc:'Five cards on a bond: each person, the thing between them, the difficulty, and what it could become.',
+   when:'A relationship worth an hour.',
+   positions:[
+     {name:'You',           slot:'present', desc:'What you are bringing to it.'},
+     {name:'Them',          slot:'present', desc:'What they are bringing to it.'},
+     {name:'Between you',   slot:'present', desc:'The connection itself, as its own thing.'},
+     {name:'The difficulty',slot:'obstacle',desc:'What keeps going wrong, under the arguments.'},
+     {name:'The counsel',   slot:'advice',  desc:'What the reading asks of you specifically.'}]},
+
+  {id:'week', name:'The week ahead', cat:'depth', layout:'grid',
+   desc:'One card per day, Monday to Sunday. Not a forecast — a set of seven questions to hold each morning.',
+   when:'Sunday night, or the start of a week that matters.',
+   positions:[
+     {name:'Monday',    slot:'future', desc:'What Monday is asking.'},
+     {name:'Tuesday',   slot:'future', desc:'What Tuesday is asking.'},
+     {name:'Wednesday', slot:'future', desc:'What Wednesday is asking.'},
+     {name:'Thursday',  slot:'future', desc:'What Thursday is asking.'},
+     {name:'Friday',    slot:'future', desc:'What Friday is asking.'},
+     {name:'Saturday',  slot:'future', desc:'What Saturday is asking.'},
+     {name:'Sunday',    slot:'future', desc:'What Sunday is asking.'}]},
+
+  /* The doc lays the chakras out in a circle with the twelve houses. They
+     are drawn as a column here instead: these seven positions are places on
+     a body, root at the base and crown at the head, and a ring throws that
+     away for no gain. Everything else about the spread is as specified. */
+  {id:'chakra', name:'The seven centres', cat:'depth', layout:'column',
+   desc:'Root to crown, bottom to top: where the energy is moving freely and where it is stuck.',
+   when:'An energy check, or a vague and locatable unwellness.',
+   positions:[
+     {name:'Root · security',      slot:'present', desc:'Safety, ground, money, the body’s base.'},
+     {name:'Sacral · feeling',     slot:'present', desc:'Pleasure, appetite, creativity, what moves you.'},
+     {name:'Solar plexus · will',  slot:'present', desc:'Power, agency, the sense of being able to act.'},
+     {name:'Heart · love',         slot:'present', desc:'What you can give and what you can take in.'},
+     {name:'Throat · voice',       slot:'present', desc:'What is being said and what is being swallowed.'},
+     {name:'Third eye · sight',    slot:'present', desc:'Insight, intuition, what you already know.'},
+     {name:'Crown · meaning',      slot:'present', desc:'The connection to whatever is larger than you.'}]},
+
+  /* — major — */
+  {id:'celtic_cross', name:'The Celtic cross', cat:'major', layout:'celtic_cross', alias:'cross',
+   desc:'The classic. A cross of six around the heart of the matter, and a staff of four beside it for you, the room, the hope and the end.',
+   when:'A complicated situation that deserves the long look.',
+   positions:[
+     {name:'The heart of it',   slot:'present', desc:'Where you are right now, at the centre of it.'},
+     {name:'What crosses it',   slot:'obstacle',desc:'The immediate difficulty, lying across the first card.'},
+     {name:'The root',          slot:'past',    desc:'The basis of the situation — what it is standing on.'},
+     {name:'The past',          slot:'past',    desc:'What is passing away.'},
+     {name:'What could be',     slot:'future',  desc:'The best of it, if you let it happen.'},
+     {name:'What comes next',   slot:'future',  desc:'What is already approaching.'},
+     {name:'You in it',         slot:'present', desc:'How you see yourself here.'},
+     {name:'What surrounds you',slot:'present', desc:'The room: other people, conditions, weather.'},
+     {name:'Hopes and fears',   slot:'future',  desc:'The thing you most want and most dread — usually one card.'},
+     {name:'Where it lands',    slot:'outcome', desc:'The likeliest resolution of all of it.'}]},
+
+  {id:'astro', name:'The twelve houses', cat:'major', layout:'circle',
+   desc:'A card for each house of the chart, laid in a ring: a full survey of a year or a life, one department at a time.',
+   when:'A birthday, a new year, a general audit.',
+   positions:[
+     {name:'I · self',        slot:'present', desc:'You, your body, how you arrive in a room.'},
+     {name:'II · resources',  slot:'present', desc:'Money, possessions, what you value.'},
+     {name:'III · voice',     slot:'present', desc:'Talk, siblings, short journeys, learning.'},
+     {name:'IV · home',       slot:'past',    desc:'Family, roots, the place you come from.'},
+     {name:'V · play',        slot:'present', desc:'Creation, romance, children, delight.'},
+     {name:'VI · work',       slot:'present', desc:'Daily labour, health, routine, service.'},
+     {name:'VII · the other', slot:'present', desc:'Partnership, marriage, open enemies.'},
+     {name:'VIII · the depths',slot:'obstacle',desc:'Death, sex, debt, what is shared and what is buried.'},
+     {name:'IX · the far',    slot:'future',  desc:'Travel, belief, philosophy, the long view.'},
+     {name:'X · the summit',  slot:'outcome', desc:'Career, reputation, what you are known for.'},
+     {name:'XI · the many',   slot:'future',  desc:'Friends, groups, hopes for the future.'},
+     {name:'XII · the unseen',slot:'obstacle',desc:'The unconscious, the hidden, what undoes you quietly.'}]},
+
+  {id:'tree', name:'The Tree of Life', cat:'major', layout:'tree',
+   desc:'The ten sephiroth of the Kabbalistic tree, from crown to kingdom: a reading that runs from the most abstract thing in the question down to where it touches the ground.',
+   when:'A spiritual question, or a practical one you suspect is a spiritual one.',
+   positions:[
+     {name:'Kether · crown',    slot:'outcome', desc:'The highest purpose in this — the thing above the question.'},
+     {name:'Chokmah · wisdom',  slot:'advice',  desc:'The creative impulse; raw force before it has form.'},
+     {name:'Binah · understanding',slot:'present',desc:'The form the impulse takes; the shaping, limiting side.'},
+     {name:'Chesed · mercy',    slot:'present', desc:'Where you are generous, expansive, giving.'},
+     {name:'Geburah · severity',slot:'obstacle',desc:'Where you must cut, judge, refuse.'},
+     {name:'Tiphareth · beauty',slot:'present', desc:'The centre; the balancing heart of the matter.'},
+     {name:'Netzach · victory', slot:'present', desc:'Feeling, desire, endurance — what you love.'},
+     {name:'Hod · splendour',   slot:'present', desc:'Intellect, analysis, the words for it.'},
+     {name:'Yesod · foundation',slot:'past',    desc:'The unconscious ground; dreams, habit, the machinery.'},
+     {name:'Malkuth · kingdom', slot:'outcome', desc:'Where it arrives in the actual world.'}]},
+
+  /* — special purpose — */
+  {id:'shadow', name:'Shadow work', cat:'special', layout:'pyramid',
+   desc:'Five cards on the part of yourself you do not show: what you present, what you hide, why, what the hidden thing is actually for, and how to carry both.',
+   when:'Something you keep reacting to out of proportion.',
+   positions:[
+     {name:'The mask',    slot:'present', desc:'What you show; the self you have agreed to be.'},
+     {name:'The shadow',  slot:'obstacle',desc:'What is behind it — the part you disown.'},
+     {name:'The root',    slot:'past',    desc:'Where the split started.'},
+     {name:'The gift',    slot:'advice',  desc:'What the shadow is protecting, or good for.'},
+     {name:'Integration', slot:'outcome', desc:'How the two are carried as one thing.'}]},
+
+  {id:'new_moon', name:'New moon intention', cat:'special', layout:'pyramid',
+   desc:'Six cards for planting something: the intention itself, the conditions it needs, what feeds it, what it grows toward, and what it yields.',
+   when:'A new moon, or any beginning you want to do deliberately.',
+   positions:[
+     {name:'The seed',   slot:'present', desc:'The intention itself, named plainly.'},
+     {name:'The soil',   slot:'present', desc:'The conditions you are planting into.'},
+     {name:'The water',  slot:'advice',  desc:'What must be given to it, regularly.'},
+     {name:'The light',  slot:'advice',  desc:'What it needs to be turned toward.'},
+     {name:'The growth', slot:'future',  desc:'How it will change while it grows.'},
+     {name:'The harvest',slot:'outcome', desc:'What is actually gathered at the end.'}]},
+
+  {id:'year_ahead', name:'The year ahead', cat:'special', layout:'grid',
+   desc:'A card for the year and one for each of its months. Thirteen cards is an afternoon; the point is to write down what each one made you think, and read it back in December.',
+   when:'A new year, or a birthday.',
+   positions:[
+     {name:'The theme of the year', slot:'outcome', desc:'What the whole year is about.'},
+     {name:'January',  slot:'future', desc:'What January asks.'},
+     {name:'February', slot:'future', desc:'What February asks.'},
+     {name:'March',    slot:'future', desc:'What March asks.'},
+     {name:'April',    slot:'future', desc:'What April asks.'},
+     {name:'May',      slot:'future', desc:'What May asks.'},
+     {name:'June',     slot:'future', desc:'What June asks.'},
+     {name:'July',     slot:'future', desc:'What July asks.'},
+     {name:'August',   slot:'future', desc:'What August asks.'},
+     {name:'September',slot:'future', desc:'What September asks.'},
+     {name:'October',  slot:'future', desc:'What October asks.'},
+     {name:'November', slot:'future', desc:'What November asks.'},
+     {name:'December', slot:'future', desc:'What December asks.'}]},
+
+  {id:'custom', name:'Your own', cat:'special', layout:'row', custom:true,
+   desc:'Name the positions yourself, one per line, up to twelve. Kept, so a layout you invent once can be dealt again.',
+   when:'A question no published spread fits.',
+   positions:[{name:'The card', slot:'present', desc:'Whatever you decide it is.'}]},
+];
+
+/* ---------- one card, one position ---------- */
+/* `pos` is the plain list of names, which is what the reading, the saved
+   entry and the fan prompt all want. Derived, never written twice. */
+SPREAD_LIBRARY.forEach(s => { s.pos = s.positions.map(p => p.name); s.cardCount = s.positions.length; });
+
+/* the five ids the app shipped with, still resolving after the library
+   replaced them — old journal entries name them */
+const SPREAD_ALIAS = {};
+SPREAD_LIBRARY.forEach(s => { if(s.alias) SPREAD_ALIAS[s.alias] = s.id; });
+SPREAD_ALIAS.one = 'daily';
+
+function spreadById(id){
+  if(!id) return spreadById('ppf');
+  const custom = (divPrefs().customSpreads || []).find(s => s.id === id);
+  if(custom) return customSpread(custom);
+  return SPREAD_LIBRARY.find(s => s.id === id)
+      || SPREAD_LIBRARY.find(s => s.id === SPREAD_ALIAS[id])
+      || SPREAD_LIBRARY.find(s => s.id === 'ppf');
+}
+/* a saved custom layout, dressed as a spread so everything else can treat
+   it like one */
+function customSpread(rec){
+  const base = SPREAD_LIBRARY.find(s => s.id === 'custom');
+  const positions = (rec.positions || []).map(p => ({name:p.name, slot:p.slot || 'present', desc:p.description || ''}));
+  return Object.assign({}, base, {id:rec.id, name:rec.name || 'Your own', custom:true,
+    desc:rec.description || base.desc, positions, pos:positions.map(p => p.name), cardCount:positions.length});
+}
+const spreadsInCategory = cat => SPREAD_LIBRARY.filter(s => s.cat === cat)
+  .concat(cat === 'special' ? (divPrefs().customSpreads || []).map(customSpread) : []);
+
+/* ---------- a spread of your own ----------
+   The library is fixed, which is right — these twenty are the ones that
+   have been used for a century and they are not improved by editing. But a
+   layout a person invents for a question only they have is a real thing,
+   so: name it, name its positions one per line, and it is kept in the
+   Special group with the rest. */
+function openCustomSpread(existing, then){
+  const rec = existing || null;
+  const m = openModal(`<h2>${rec ? 'That spread of yours' : 'A spread of your own'}</h2>
+    <div class="stack">
+      <div class="field"><label>What do you call it?</label>
+        <input class="inp serif-lg" id="csName" value="${esc(rec ? rec.name : '')}" placeholder="The one for Sunday nights"></div>
+      <div class="field"><label>The positions, one to a line</label>
+        <textarea class="inp" id="csPos" rows="7" placeholder="What I am avoiding
+What it is costing
+What to do about it tomorrow">${
+          esc(rec ? (rec.positions || []).map(q => q.name).join('\n') : '')}</textarea>
+        <div class="mono faint" style="margin-top:5px">Between one and twelve. A card is dealt for each.</div></div>
+      <div class="row between">
+        ${rec ? '<button class="btn danger" id="csDel">forget it</button>' : '<span></span>'}
+        <button class="btn primary" id="csSave">${rec ? 'save it' : 'make it'}</button></div>
+    </div>`, 'narrow');
+  m.querySelector('#csSave').onclick = () => {
+    const name = m.querySelector('#csName').value.trim();
+    const lines = m.querySelector('#csPos').value.split('\n').map(x => x.trim()).filter(Boolean).slice(0, 12);
+    if(!name) return toast('It needs a name.');
+    if(!lines.length) return toast('It needs at least one position.');
+    const p = divPrefs();
+    const out = {id: rec ? rec.id : 'own-' + uid(), name,
+      positions: lines.map((n, i) => ({index: i, name: n, description: '', slot: 'present'})),
+      createdAt: rec ? rec.createdAt : new Date().toISOString()};
+    if(rec) p.customSpreads = p.customSpreads.map(x => x.id === rec.id ? out : x);
+    else p.customSpreads.push(out);
+    saveNow(); sound('success'); m.remove(); if(then) then(out.id);
+  };
+  if(rec) m.querySelector('#csDel').onclick = () => {
+    const p = divPrefs();
+    p.customSpreads = p.customSpreads.filter(x => x.id !== rec.id);
+    saveNow(); m.remove(); if(then) then(null);
+  };
+}
+
+/* which of the six kinds of position slot i is — read off the spread now,
+   rather than from a table that had to be kept in step with one */
+function tarotSlot(spreadId, i){
+  const s = spreadById(spreadId);
+  return (s.positions[i] && s.positions[i].slot) || 'present';
+}
+
+/* ============================================================
+   WHERE THE CARDS GO
+
+   A layout is a list of cells: column and row, counted in card widths and
+   card heights, with an optional rotation. Fractions are allowed and
+   normalised afterwards, so a layout can be written the way it looks
+   rather than the way it indexes. `vs` tightens the vertical step where a
+   layout is tall (the Tree of Life is seven rows deep).
+   ============================================================ */
+const SPREAD_LAYOUTS = {
+  single: () => [{c:0, r:0}],
+  row: n => Array.from({length:n}, (_, i) => ({c:i, r:0})),
+  column: n => Array.from({length:n}, (_, i) => ({c:0, r:n - 1 - i})),   /* first named is lowest: root to crown */
+
+  /* centre, then out of it: what it came from, where it goes, what is
+     known, what is under it */
+  cross: n => n <= 5
+    ? [{c:1, r:1}, {c:0, r:1}, {c:2, r:1}, {c:1, r:0}, {c:1, r:2}].slice(0, n)
+    : SPREAD_LAYOUTS.row(n),
+
+  /* An arc rising left to right, the way the cards sit on a table. The
+     radius is solved the same way the ring's is — at the two ends of the
+     arc the cards are stacked vertically, so the chord has to clear a card
+     height, not a card width. */
+  horseshoe: n => {
+    const step = Math.PI / Math.max(n - 1, 1);
+    const R = Math.max(2, 1.14 * CARD_RATIO / (2 * Math.sin(step / 2)));
+    return Array.from({length:n}, (_, i) => {
+      const a = Math.PI - i * step;
+      return {c: R * Math.cos(a), r: -(R / CARD_RATIO) * .74 * Math.sin(a)};
+    });
+  },
+
+  /* the cross of six with the staff of four beside it. The second card lies
+     across the first, which is the one place in any spread where a card is
+     deliberately the wrong way round. */
+  /* The left and right arms stand off a little further than a plain grid
+     would put them: the crossing card is a card lying on its side, so it
+     is a card HEIGHT wide, and the cards either side of it have to clear
+     that rather than clear the card underneath it. */
+  celtic_cross: () => [
+    {c:1.15, r:1.5}, {c:1.15, r:1.5, rot:90}, {c:1.15, r:2.5}, {c:0, r:1.5},
+    {c:1.15, r:.5}, {c:2.3, r:1.5}, {c:3.6, r:3}, {c:3.6, r:2},
+    {c:3.6, r:1}, {c:3.6, r:0},
+  ],
+
+  /* A ring, first card at the left and going round the way a chart does.
+     The radius is not chosen, it is solved for: the tightest gap on a ring
+     is between the two cards at nine o'clock, where neighbours are a card
+     HEIGHT apart rather than a card width, so the radius is whatever makes
+     that chord clear. Guessing a radius here is how you get a wheel whose
+     cards overlap at the sides and float apart at the top. */
+  circle: n => {
+    const R = Math.max(1.7, 1.14 * CARD_RATIO / (2 * Math.sin(Math.PI / Math.max(n, 3))));
+    return Array.from({length:n}, (_, i) => {
+      const a = Math.PI - (2 * Math.PI * i) / n;
+      return {c: R * Math.cos(a), r: -(R / CARD_RATIO) * Math.sin(a)};
+    });
+  },
+
+  /* three pillars: severity on the left, mercy on the right, the middle
+     pillar between them */
+  tree: () => [
+    {c:1, r:0}, {c:2, r:1}, {c:0, r:1}, {c:2, r:2}, {c:0, r:2},
+    {c:1, r:3}, {c:2, r:4}, {c:0, r:4}, {c:1, r:5}, {c:1, r:6},
+  ],
+
+  /* rows of four. Thirteen puts the year's own card alone on top. */
+  grid: n => {
+    const head = n === 13 ? 1 : 0, per = 4;
+    const out = head ? [{c:1.5, r:0}] : [];
+    for(let i = 0; i < n - head; i++){
+      const row = Math.floor(i / per), inRow = Math.min(per, n - head - row * per);
+      out.push({c: (i % per) + (per - inRow) / 2, r: row + head});
+    }
+    return out;
+  },
+
+  /* one, then two, then three, until they are all placed; the last row
+     centred under the one above */
+  pyramid: n => {
+    const rows = []; let left = n, w = 1;
+    while(left > 0){ const k = Math.min(w, left); rows.push(k); left -= k; w++; }
+    const wide = Math.max(...rows), out = [];
+    rows.forEach((k, r) => { for(let i = 0; i < k; i++) out.push({c: i + (wide - k) / 2, r}); });
+    return out;
+  },
+};
+/* How far apart the rows sit, as a multiple of one card plus its caption.
+   Never below 1: a row step shorter than a card is two cards on top of each
+   other, which is what the first version of this did to the Celtic cross's
+   staff. Above 1 is breathing room for the layouts that want it. */
+const LAYOUT_VS = {tree:1, celtic_cross:1.04, circle:1.02, horseshoe:1.06, grid:1.06};
+
+/* The geometry of one spread, normalised so the top-left cell is at 0 and
+   the caller knows how many card-widths and card-heights it needs. */
+function spreadGeometry(sp){
+  const fn = SPREAD_LAYOUTS[sp.layout] || SPREAD_LAYOUTS.row;
+  const cells = fn(sp.cardCount).slice(0, sp.cardCount);
+  while(cells.length < sp.cardCount) cells.push({c: cells.length, r: 0});
+  const minC = Math.min(...cells.map(p => p.c)), minR = Math.min(...cells.map(p => p.r));
+  const out = cells.map(p => ({c: p.c - minC, r: p.r - minR, rot: p.rot || 0}));
+  return {cells: out, vs: Math.max(1, LAYOUT_VS[sp.layout] || 1.04),
+    cols: Math.max(...out.map(p => p.c)) + 1, rows: Math.max(...out.map(p => p.r)) + 1};
+}
+
+/* the little diagram on a spread's tile in the chooser: the same geometry,
+   at dot scale, so the shape of the layout is visible before it is chosen */
+function spreadDotsHTML(sp){
+  const g = spreadGeometry(sp);
+  const W = g.cols * 10 + 6, H = g.rows * 10 * g.vs + 6;
+  return `<svg class="sp-dots" viewBox="0 0 ${W.toFixed(1)} ${H.toFixed(1)}" aria-hidden="true">${
+    g.cells.map(p => `<rect x="${(p.c * 10 + 3.4).toFixed(1)}" y="${(p.r * 10 * g.vs + 2.4).toFixed(1)}"
+      width="4.2" height="6.2" rx="1"${p.rot ? ` transform="rotate(90 ${(p.c*10+5.5).toFixed(1)} ${(p.r*10*g.vs+5.5).toFixed(1)})"` : ''}/>`).join('')}</svg>`;
+}
+
+/* ============================================================
+   THE TABLE
+
+   The five spreads this replaced were all a row, so a flex row drew them.
+   A Celtic cross is not a row, a Tree of Life is not a row, and the shape
+   is half of what those spreads mean — the card lying across the first one
+   is crossing it, and saying so in a caption is not the same.
+
+   So: an absolutely positioned board, laid out from the geometry above,
+   scaled down as one piece to whatever width there is. The cards get
+   smaller as the spread gets bigger, which is what happens on a real
+   table too; the reading underneath is where each card is actually read,
+   and it is full size there.
+   ============================================================ */
+const spreadCardW = n => n <= 3 ? 160 : n <= 7 ? 136 : n <= 10 ? 116 : 100;
+const CARD_RATIO = 281 / 160;
+
+function tarotBoardHTML(sp, slotHTML){
+  const g = spreadGeometry(sp);
+  const cw = spreadCardW(sp.cardCount), ch = Math.round(cw * CARD_RATIO);
+  const named = cw >= 132;                       /* below that a label is a smudge */
+  /* the vertical step has to clear the card AND the name that arrives under
+     it, or a spread deeper than one row stacks on itself */
+  const under = named ? 46 : 30;
+  const stepX = cw * 1.14, stepY = (ch + under) * g.vs;
+  const W = Math.round((g.cols - 1) * stepX + cw), H = Math.round((g.rows - 1) * stepY + ch + under);
+  return `<div class="tc-boardwrap" data-board style="--bw:${W}px;--bh:${H}px">
+    <div class="tc-board" style="width:${W}px;height:${H}px;--cw:${cw}px;--ch:${ch}px">${
+    g.cells.map((p, i) => `<div class="tc-slot${named ? '' : ' bare'}${p.rot ? ' cross' : ''}" data-slot="${i}"
+      style="left:${(p.c * stepX).toFixed(1)}px;top:${(p.r * stepY).toFixed(1)}px"
+      title="${esc(sp.positions[i].name + ' — ' + (sp.positions[i].desc || ''))}">
+      ${named ? `<span class="tc-pos mono">${esc(sp.positions[i].name)}</span>`
+              : `<span class="tc-no mono">${i + 1}</span>`}
+      ${slotHTML ? slotHTML(i) : `<div class="tc-hole" data-hole="${i}"></div>`}
+      <div class="tc-capslot" data-cap="${i}"></div></div>`).join('')}</div></div>`;
+}
+
+/* The board is one fixed-size piece of geometry scaled to fit the room it
+   is in — scaling it beats reflowing it, because a Celtic cross that
+   reflows is not a Celtic cross. It will not shrink past legibility; below
+   that it scrolls sideways instead. */
+function tarotBoardFit(root){
+  (root || document).querySelectorAll('[data-board]').forEach(wrap => {
+    const board = wrap.firstElementChild; if(!board) return;
+    const W = parseFloat(wrap.style.getPropertyValue('--bw')) || board.offsetWidth;
+    const H = parseFloat(wrap.style.getPropertyValue('--bh')) || board.offsetHeight;
+    const avail = wrap.clientWidth || wrap.parentElement?.clientWidth || W;
+    /* Fit the width; let the height scroll. A chakra column IS tall and a
+       Tree of Life IS tall — squeezing either into one screenful makes the
+       cards too small to see, and the modal scrolls anyway. The height cap
+       only catches the extremes. */
+    const k = Math.max(.5, Math.min(1, avail / W, 1250 / H));
+    board.style.transform = `scale(${k.toFixed(3)})`;
+    wrap.style.height = Math.ceil(H * k) + 'px';
+    wrap.classList.toggle('tight', W * k > avail + 1);
+  });
 }
 /* ============================================================
    DIVINATION — a mirror, not a fortune
@@ -19848,27 +21284,25 @@ const ORACLE_DECKS = [
   ]},
 ];
 
-const TAROT_SPREADS = [
-  {id:'one',   name:'A single card',  pos:['What to see']},
-  {id:'three', name:'Three cards',    pos:['What is behind', 'Where you are', 'What is coming']},
-  {id:'act',   name:'Situation, action, outcome', pos:['The situation', 'What to do', 'Where it goes']},
-  {id:'rel',   name:'A relationship', pos:['You', 'Them', 'Between you', 'The difficulty', 'The counsel']},
-  {id:'cross', name:'The Celtic cross', pos:['The heart of it', 'What crosses it', 'The root', 'The past',
-    'What could be', 'What comes next', 'You in it', 'What surrounds you', 'Hopes and fears', 'Where it lands']},
-];
+/* The five spreads that used to be here are the twenty in
+   16-divination-spreads.js, which also keeps their old ids working. */
 const SUIT_COLOR = {major:'#8f7bb0', wands:'#b4462f', cups:'#4b7d9c', swords:'#c9a84c', pentacles:'#5f8d49'};
 const SUIT_GLYPH = {major:'✦', wands:'🜂', cups:'🜄', swords:'🜁', pentacles:'🜃'};
 const SUIT_ELEM  = {major:'', wands:'Fire', cups:'Water', swords:'Air', pentacles:'Earth'};
 
 /* ---------- drawing ---------- */
-function tarotDraw(n){
+/* Reversals are a choice: some readers use them and some do not, and a
+   deck read upright only is not a lesser reading. `rev` is whether this
+   deal allows them at all; the 30% is unchanged when it does. */
+function tarotDraw(n, rev){
+  if(rev === undefined) rev = divPrefs().reversals;
   /* a real shuffle: take from a copy of the deck so no card comes up twice */
   const deck = TAROT.slice();
   const out = [];
   for(let i = 0; i < n && deck.length; i++){
     const at = Math.floor(Math.random() * deck.length);
     const card = deck.splice(at, 1)[0];
-    out.push({card: TAROT.indexOf(card), rev: Math.random() < .3});
+    out.push({card: TAROT.indexOf(card), rev: rev ? Math.random() < .3 : false});
   }
   return out;
 }
@@ -19912,7 +21346,10 @@ function divinationSave(rec){
     people:[], places:[], emotions:[], tags:['divination', rec.system], confidence:'',
     extra:{divination:{system:rec.system, question:rec.question || '', spread:rec.spread || '',
       cards:rec.cards || [], lines:rec.lines || null, hexagram:rec.hexagram || null,
-      relating:rec.relating || null, deck:rec.deck || '', revisit: !!rec.revisit}}};
+      relating:rec.relating || null, deck:rec.deck || '', revisit: !!rec.revisit,
+      /* where the cards were: dealt here, or laid out on a real table and
+         typed in afterwards. Everything else about the two is identical. */
+      source: rec.source === 'physical' ? 'physical' : 'digital'}}};
   S.entries.push(e); saveNow();
   return e;
 }
@@ -20012,7 +21449,13 @@ function divinationReadHTML(d){
      cards came up, and occasionally to read the whole thing again. Both are
      read off the deck at render time rather than copied into the entry, so a
      correction to the deck reaches the readings already filed. */
-  return (d.cards || []).map((c, i) => {
+  /* which spread it was, and whether it was dealt here or laid out on a
+     table somewhere — both are worth knowing months later, and the spread
+     is the only thing that tells you what the position names meant */
+  const head = `<div class="dv-read-src">
+    <span class="mono faint">${esc(spreadById(d.spread).name)}</span>
+    ${d.source === 'physical' ? '<span class="dv-src mono">📖 read on paper</span>' : ''}</div>`;
+  return head + (d.cards || []).map((c, i) => {
     const mn = tarotMeaning(c); if(!mn) return '';
     const slot = tarotSlot(d.spread, i);
     const guide = mn.card.positionGuidance ? mn.card.positionGuidance[slot] : '';
@@ -20078,33 +21521,155 @@ function tarotShuffleHTML(){
   </div>`;
 }
 
+/* ---------- choosing the shape of the question ----------
+   Twenty spreads in a dropdown is a list nobody reads. Laid out as tiles,
+   grouped by how long they take, each with a diagram of its own shape, the
+   choice is made with the eye — which is the right organ for it, because
+   the shape IS the choice. */
+function spreadPickerHTML(sel){
+  return `<div class="sp-lib" id="dvLib">${SPREAD_CATEGORIES.map(cat => {
+    const list = spreadsInCategory(cat.id);
+    if(!list.length) return '';
+    return `<section class="sp-cat"><h5 class="sp-cat-h"><span class="sc">${esc(cat.name)}</span>
+      <span class="quote">${esc(cat.hint)}</span></h5>
+      <div class="sp-tiles">${list.map(sp => `
+        <button type="button" class="sp-tile${sp.id === sel ? ' on' : ''}" data-dvspread="${esc(sp.id)}"
+          title="${esc(sp.desc)}">
+          ${spreadDotsHTML(sp)}
+          <span class="sp-name serif">${esc(sp.name)}</span>
+          <span class="sp-n mono">${sp.cardCount} card${sp.cardCount === 1 ? '' : 's'}</span>
+          ${sp.custom && sp.id !== 'custom' ? '<span class="sp-own" data-dvedit="' + esc(sp.id) + '" title="rename it, or change its positions">✎</span>' : ''}
+        </button>`).join('')}
+        ${cat.id === 'special' ? `<button type="button" class="sp-tile sp-new" data-dvnewspread
+          title="name your own positions"><span class="sp-plus">＋</span>
+          <span class="sp-name serif">One of your own</span>
+          <span class="sp-n mono">you name them</span></button>` : ''}</div></section>`;
+  }).join('')}</div>`;
+}
+
+/* the three switches that change how a reading behaves, in one row: whether
+   cards may land upside down, and whether the room has light and sound in
+   it. They are preferences, so they hold from one reading to the next. */
+/* Selecting, making and editing a spread, wired the same way wherever the
+   picker appears — a redraw is needed whenever the list itself changes,
+   which is what making or forgetting a spread of your own does. */
+function bindSpreadPicker(root, get, set){
+  const bind = () => {
+    root.querySelectorAll('[data-dvspread]').forEach(b => b.onclick = ev => {
+      if(ev.target.closest('[data-dvedit]')) return;
+      set(b.dataset.dvspread);
+      if(typeof sound === 'function') sound('click');
+    });
+    root.querySelectorAll('[data-dvedit]').forEach(n => n.onclick = ev => { ev.stopPropagation();
+      const rec = (divPrefs().customSpreads || []).find(x => x.id === n.dataset.dvedit);
+      openCustomSpread(rec, id => { set(id || (get() === n.dataset.dvedit ? 'ppf' : get())); redraw(); }); });
+    const nu = root.querySelector('[data-dvnewspread]');
+    if(nu) nu.onclick = () => openCustomSpread(null, id => { if(id) set(id); redraw(); });
+  };
+  const redraw = () => { const host = root.querySelector('#dvLib');
+    if(host) host.outerHTML = spreadPickerHTML(get());
+    bind(); set(get()); };
+  bind();
+}
+
+function divTogglesHTML(){
+  const p = divPrefs();
+  const sw = (k, on, label, hint) => `<button type="button" class="dv-sw${on ? ' on' : ''}" data-dvpref="${k}"
+    role="switch" aria-checked="${on}" title="${esc(hint)}"><i></i><span>${esc(label)}</span></button>`;
+  return `<div class="dv-switches">
+    ${sw('reversals', p.reversals, 'Reversals', 'Cards may land upside down and be read the other way. Off means every card comes up upright.')}
+    ${sw('sound', p.sound, 'Sound', 'A bowl, the paper, a chime as each card turns. Only ever during a reading.')}
+    <label class="dv-vol" title="how loud, out of a not-very-loud whole"><span class="mono">vol</span>
+      <input type="range" id="dvVol" min="0" max="100" step="5" value="${Math.round(p.volume * 100)}"></label>
+    ${sw('particles', p.particles, 'Light', 'Dust in the air over the ceremony. Off if you have asked for less motion.')}
+  </div>`;
+}
+function bindDivToggles(root){
+  root.querySelectorAll('[data-dvpref]').forEach(b => b.onclick = () => {
+    const k = b.dataset.dvpref, v = !divPrefs()[k];
+    divPrefSet(k, v);
+    b.classList.toggle('on', v); b.setAttribute('aria-checked', String(v));
+    if(k === 'sound' && v) CeremonySound.chime();
+    if(k === 'sound' && !v) CeremonySound.close();
+  });
+  const vol = root.querySelector('#dvVol');
+  /* on `input` so it is heard while it is dragged, which is the only way to
+     set a volume — and a chime on release so there is something to hear */
+  if(vol){
+    vol.addEventListener('input', () => { divPrefs().volume = +vol.value / 100;
+      if(CeremonySound.master) CeremonySound.master.gain.value = divPrefs().volume; });
+    vol.addEventListener('change', () => { saveNow(); if(divPrefs().sound) CeremonySound.chime(); });
+  }
+}
+
 function openTarot(pre = {}){
   const projects = typeof thProjects === 'function' ? thProjects() : [];
+  let spreadId = pre.spread || divPrefs().spread || 'ppf';
+  if(!spreadById(spreadId)) spreadId = 'ppf';
+  spreadId = spreadById(spreadId).id;
   const m = openModal(`<h2>A reading</h2>
     <div class="stack" id="divSetup">
       <div class="field"><label>What are you asking?</label>
         <input class="inp serif-lg" id="dvQ" value="${esc(pre.question || '')}" placeholder="Not ‘will it happen’ — ‘what am I not seeing’."></div>
       <div class="field"><label>The spread</label>
-        <select class="inp" id="dvSpread">${TAROT_SPREADS.map(s =>
-          `<option value="${s.id}" ${(pre.spread || 'three') === s.id ? 'selected' : ''}>${esc(s.name)} · ${s.pos.length} card${s.pos.length === 1 ? '' : 's'}</option>`).join('')}</select>
-        <div class="mono faint" id="dvPos" style="margin-top:5px"></div></div>
+        ${spreadPickerHTML(spreadId)}
+        <div class="sp-chosen" id="dvChosen"></div></div>
+      ${divTogglesHTML()}
       <p class="th-quote">Hill: when ideas flash into the mind through what is popularly called a hunch, they come from somewhere you cannot reach on purpose. The cards are not the somewhere. They are the door handle.</p>
-      <div class="row" style="justify-content:flex-end"><button class="btn primary" id="dvDraw">Take a breath, then deal</button></div>
+      <div class="row" style="justify-content:flex-end;gap:8px;flex-wrap:wrap">
+        <button class="btn" id="dvPhys" title="cards you have already laid out on a table">📖 a reading you did on paper</button>
+        <button class="btn primary" id="dvDraw">Take a breath, then deal</button></div>
     </div>
     <div id="divOut"></div>`, 'wide');
-  const spreadOf = () => TAROT_SPREADS.find(s => s.id === m.querySelector('#dvSpread').value) || TAROT_SPREADS[1];
-  const showPos = () => { m.querySelector('#dvPos').textContent = spreadOf().pos.join('  ·  '); };
-  m.querySelector('#dvSpread').onchange = showPos; showPos();
+  bindDivToggles(m);
+  m.querySelector('#dvPhys').onclick = () => { m.remove(); openPhysicalReading({question: m.querySelector('#dvQ')?.value || '', spread: spreadId}); };
+
+  const spreadOf = () => spreadById(spreadId);
+  const showChosen = () => {
+    const sp = spreadOf();
+    m.querySelector('#dvChosen').innerHTML = `<p class="sp-desc">${esc(sp.desc)}</p>
+      <ol class="sp-poslist">${sp.positions.map(q =>
+        `<li><b>${esc(q.name)}</b>${q.desc ? ` — ${esc(q.desc)}` : ''}</li>`).join('')}</ol>`;
+    m.querySelectorAll('[data-dvspread]').forEach(b => b.classList.toggle('on', b.dataset.dvspread === sp.id));
+  };
+  bindSpreadPicker(m, () => spreadId, id => { spreadId = id; divPrefSet('spread', id); showChosen(); });
+  showChosen();
 
   m.querySelector('#dvDraw').onclick = () => {
-    const sp = spreadOf(), picks = tarotDraw(sp.pos.length);
+    const sp = spreadOf(), picks = tarotDraw(sp.cardCount, sp.forceRev || undefined);
     const soft = typeof reduced === 'function' && reduced();
     m.querySelector('#divSetup').hidden = true;
-    m.querySelector('#divOut').innerHTML = tarotShuffleHTML();
+    /* the canvas sits over the whole ceremony and nothing else; it is torn
+       down with the modal, and the field with it */
+    m.querySelector('#divOut').innerHTML = `<div class="dv-cer" id="dvCer">
+      <canvas class="dv-motes" id="dvMotes" aria-hidden="true"></canvas>
+      <button class="dv-mute mono" id="dvMute" title="the sounds of the ceremony"></button>
+      <div class="dv-cer-in" id="dvCerIn">${tarotShuffleHTML()}</div></div>`;
+    const cer = m.querySelector('#dvCer'), inner = m.querySelector('#dvCerIn');
+    const field = dvFieldStart(m.querySelector('#dvMotes'));
+    const mute = m.querySelector('#dvMute');
+    const showMute = () => { mute.textContent = divPrefs().sound ? '♪ sound on' : '♪ sound off';
+      mute.classList.toggle('off', !divPrefs().sound); };
+    mute.onclick = () => { const v = !divPrefs().sound; divPrefSet('sound', v); showMute();
+      if(v) CeremonySound.chime(); else CeremonySound.close(); };
+    showMute();
+    /* a modal that goes takes the animation frame and the audio with it */
+    const stopAll = () => { dvFieldStop(); CeremonySound.close(); window.removeEventListener('resize', fit); };
+    /* a modal lives in #modals, and every way of closing one — the ×, the
+       backdrop, Escape, a route away — ends with it removed from there */
+    const stage = document.getElementById('modals') || document.body;
+    const obs = new MutationObserver(() => { if(!stage.contains(m)){ stopAll(); obs.disconnect(); } });
+    obs.observe(stage, {childList: true});
+    const fit = () => { field.resize && field.resize(); tarotBoardFit(m); };
+    window.addEventListener('resize', fit);
+
+    field.ambient(18);
     tarotCentering(() => {
+      dvMoment('bowl');
       const sh = m.querySelector('#dvShuffle');
       if(sh) sh.classList.add('go');
-      sound('click');
+      /* four slides across the shuffle, on the beats of the animation */
+      [0, 420, 980, 1500].forEach(t => setTimeout(() => dvMoment('slide'), soft ? 0 : t));
       setTimeout(deal, soft ? 0 : 2400);
     });
 
@@ -20114,44 +21679,52 @@ function openTarot(pre = {}){
        this; which back you pick decides the order they arrive in, not what
        they are, and that is the honest arrangement. */
     function deal(){
-      const many = clamp(picks.length + 6, 8, 12);
-      m.querySelector('#divOut').innerHTML = `
+      const many = clamp(picks.length + 6, 8, 14);
+      inner.innerHTML = `
         <div class="dv-stage">
           <div class="dv-prompt" id="dvPrompt"></div>
-          <div class="tc-row dv-spread" id="dvSpread2">${picks.map((pk, i) =>
-            `<div class="tc-slot" data-slot="${i}"><span class="tc-pos mono">${esc(sp.pos[i])}</span>
-              <div class="tc-hole" data-hole="${i}"></div>
-              <div class="tc-capslot" data-cap="${i}"></div></div>`).join('')}</div>
+          ${tarotBoardHTML(sp)}
           <div class="dv-fan" id="dvFan">${Array.from({length: many}, (_, i) =>
             `<button class="dv-pick" data-pick="${i}" style="--i:${i};--n:${many}" aria-label="choose a card">
               <div class="tc-mini">${tarotBackHTML()}</div></button>`).join('')}</div>
-        </div>
-        <div id="dvRead" hidden></div>`;
+        </div>`;
+      m.querySelector('#divOut').insertAdjacentHTML('beforeend', '<div id="dvRead" hidden></div>');
+      tarotBoardFit(m);
       let turned = 0, busy = false;
       const prompt = m.querySelector('#dvPrompt');
       const say = () => { prompt.innerHTML = turned < picks.length
-        ? `<span class="sc">choose your ${['first','second','third','fourth','fifth','sixth','seventh','eighth','ninth','tenth'][turned] || (turned + 1) + 'th'} card</span> <b class="serif">${esc(sp.pos[turned])}</b>`
+        ? `<span class="sc">choose your ${['first','second','third','fourth','fifth','sixth','seventh','eighth','ninth','tenth','eleventh','twelfth','thirteenth'][turned] || (turned + 1) + 'th'} card</span> <b class="serif">${esc(sp.pos[turned])}</b>${
+            sp.positions[turned].desc ? `<span class="dv-prompt-d quote">${esc(sp.positions[turned].desc)}</span>` : ''}`
         : '<span class="sc">the spread is complete</span>'; };
       say();
+
+      /* where on the canvas a thing is, so the sparks come off the card
+         rather than off the middle of the screen */
+      const at = node => { const r = node.getBoundingClientRect(), c = cer.getBoundingClientRect();
+        return [r.left - c.left + r.width / 2, r.top - c.top + r.height / 2]; };
 
       m.querySelectorAll('[data-pick]').forEach(btn => btn.onclick = () => {
         if(busy || turned >= picks.length || btn.classList.contains('taken')) return;
         busy = true;
-        const at = turned++, hole = m.querySelector(`[data-hole="${at}"]`);
+        dvMoment('chime');
+        const idx = turned++, hole = m.querySelector(`[data-hole="${idx}"]`);
         btn.classList.add('taken');
         const land = () => {
-          hole.innerHTML = tarotCardHTML(picks[at], at, false);
-          const cap = m.querySelector(`[data-cap="${at}"]`);
-          cap.innerHTML = tarotCaptionHTML(picks[at]);
+          hole.innerHTML = tarotCardHTML(picks[idx], idx, false);
+          const cap = m.querySelector(`[data-cap="${idx}"]`);
+          cap.innerHTML = tarotCaptionHTML(picks[idx]);
           const card = hole.querySelector('.tc');
           /* slide in, a breath, then the turn — the pause is the point of it */
           setTimeout(() => {
-            card.classList.add('up'); sound('click');
+            card.classList.add('up');
+            const [cx, cy] = at(card);
+            dvMoment('thrum', cx, cy);
             setTimeout(() => {
               card.classList.add('pulse');
               /* the name arrives under the card as it comes round, rather
                  than being printed over the drawing */
-              scrambleInto(cap.querySelector('.tc-cap-name'), TAROT[picks[at].card].n, 600);
+              scrambleInto(cap.querySelector('.tc-cap-name'), TAROT[picks[idx].card].n, 600);
+              dvMoment('tinkle');
               setTimeout(() => card.classList.remove('pulse'), 900);
             }, soft ? 0 : 420);
             busy = false; say();
@@ -20160,6 +21733,7 @@ function openTarot(pre = {}){
                  sitting under the spread as a row of gaps */
               const fan = m.querySelector('#dvFan');
               if(fan){ fan.classList.add('spent'); setTimeout(() => fan.remove(), soft ? 0 : 500); }
+              setTimeout(() => { dvMoment('chord'); dvMoment('wind'); }, soft ? 0 : 700);
               setTimeout(showReading, soft ? 0 : 1400);
             }
           }, soft ? 0 : 300);
@@ -20176,30 +21750,42 @@ function openTarot(pre = {}){
       });
 
       function showReading(){
+        /* The ceremony is over. The dust drops to a few motes while the
+           reading arrives and then stops altogether: a person may sit
+           writing in this box for ten minutes, and there is no version of
+           this app that runs an animation frame behind them while they do. */
+        field.ambient(8);
+        setTimeout(() => field.stop(), soft ? 0 : 6000);
         const box = m.querySelector('#dvRead');
-        box.innerHTML = `${tarotReadingHTML(picks, sp)}
-          <section class="dv-yours"><h4 class="dv-sec-h">Your reflection</h4>
-            <p class="dv-yours-p">Now that you have read them — what lands? What surprised you? What do you want to sit with?</p>
-            <div class="field"><textarea class="inp" id="dvText" rows="5" placeholder="Not what the book says. What it says to you, about the thing you asked."></textarea></div>
-            <div class="row between" style="margin-top:10px;flex-wrap:wrap;gap:8px">
-              <label class="row" style="gap:6px;font-size:.78rem;align-items:center"><input type="checkbox" id="dvRevisit"> <span>come back to this one</span></label>
-              ${projects.length ? `<select class="inp sm" id="dvProj"><option value="">nothing in particular</option>
-                ${projects.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select>` : ''}
-              <button class="btn primary" id="dvSave">Keep the reading</button></div>
-          </section>`;
+        box.innerHTML = tarotReadingHTML(picks, sp) + divKeepHTML(projects);
         box.hidden = false;
         box.scrollIntoView({behavior: soft ? 'auto' : 'smooth', block: 'start'});
         m.querySelector('#dvSave').onclick = () => {
           divinationSave({system:'tarot', question:m.querySelector('#dvQ').value.trim(), spread:sp.id,
             title:`${sp.name} — ${picks.map(pk => TAROT[pk.card].n).join(', ')}`,
             cards:picks.map((pk, i) => ({card:pk.card, rev:pk.rev, pos:sp.pos[i]})),
-            reading:m.querySelector('#dvText').value.trim(),
+            reading:m.querySelector('#dvText').value.trim(), source:'digital',
             revisit:m.querySelector('#dvRevisit').checked, projectId:m.querySelector('#dvProj')?.value || null});
+          stopAll();
           sound('success'); toast('Kept in the Lived Record.'); m.remove(); rerender();
         };
       }
     }
   };
+}
+
+/* the box under every reading, digital or paper: what you make of it, which
+   is the part that is actually yours */
+function divKeepHTML(projects){
+  return `<section class="dv-yours"><h4 class="dv-sec-h">Your reflection</h4>
+    <p class="dv-yours-p">Now that you have read them — what lands? What surprised you? What do you want to sit with?</p>
+    <div class="field"><textarea class="inp" id="dvText" rows="5" placeholder="Not what the book says. What it says to you, about the thing you asked."></textarea></div>
+    <div class="row between" style="margin-top:10px;flex-wrap:wrap;gap:8px">
+      <label class="row" style="gap:6px;font-size:.78rem;align-items:center"><input type="checkbox" id="dvRevisit"> <span>come back to this one</span></label>
+      ${(projects || []).length ? `<select class="inp sm" id="dvProj"><option value="">nothing in particular</option>
+        ${projects.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select>` : ''}
+      <button class="btn primary" id="dvSave">Keep the reading</button></div>
+  </section>`;
 }
 /* ---------- casting the coins ----------
    Three coins, six times, bottom line first. The toss is animated because
@@ -20342,14 +21928,18 @@ function openQuickDraw(){
       <button class="choice" data-qd="tarot"><span class="ico">🔮</span><span><b>One tarot card</b><div class="d">From the full deck of 78.</div></span></button>
       <button class="choice" data-qd="oracle"><span class="ico">◈</span><span><b>An oracle card</b><div class="d">A short one. Something to hold for the day.</div></span></button>
       <button class="choice" data-qd="iching"><span class="ico">☰</span><span><b>Cast the coins</b><div class="d">Six tosses, and the hexagram they make.</div></span></button>
-      <button class="choice" data-qd="full"><span class="ico">✦</span><span><b>A whole reading</b><div class="d">A spread, with room to write.</div></span></button>
+      <button class="choice" data-qd="full"><span class="ico">✦</span><span><b>A whole reading</b><div class="d">Twenty spreads, with room to write.</div></span></button>
+      <button class="choice" data-qd="paper"><span class="ico">📖</span><span><b>A reading you did on paper</b><div class="d">Name the cards you laid out and get the same reading.</div></span></button>
+      <button class="choice" data-qd="deck"><span class="ico">📚</span><span><b>The deck</b><div class="d">All seventy-eight, and every time each one has come up for you.</div></span></button>
     </div>`, 'narrow');
   m.querySelectorAll('[data-qd]').forEach(b => b.onclick = () => {
     const k = b.dataset.qd; m.remove();
     if(k === 'iching') openIChing();
     else if(k === 'oracle') openOracle();
     else if(k === 'full') openTarot();
-    else openTarot({spread:'one'});
+    else if(k === 'paper') openPhysicalReading();
+    else if(k === 'deck') openCardDirectory();
+    else openTarot({spread:'daily'});
   });
 }
 /* ============================================================
@@ -24656,6 +26246,10 @@ function stillnessHTML(){
       </div>`).join('')}</div>` : ''}
     <div class="still-util row" style="gap:8px;flex-wrap:wrap;margin-top:12px">
       <button class="btn sm ghost" id="stDraw">🔮 quick draw</button>
+      <!-- the two ways into the cards that are not a draw: one you already
+           did somewhere else, and the deck itself -->
+      <button class="btn sm ghost" id="stPaper" title="cards you laid out on a real table">📖 a reading on paper</button>
+      <button class="btn sm ghost" id="stDeck" title="all seventy-eight, and every time each has come up">📚 the deck</button>
       <button class="btn sm ghost" id="stIntuit">⚡ log an intuition</button>
     </div>
     <!-- a card drawn here is for today, so it stays here as well as being filed -->
@@ -24679,6 +26273,8 @@ function bindStillness(root){
     else openStillTimer({kind:p.kind, minutes:p.minutes, anchor:p.anchor, mantra:p.mantra, pattern:p.pattern});
   };
   if(q('#stDraw')) q('#stDraw').onclick = () => openQuickDraw();
+  if(q('#stPaper')) q('#stPaper').onclick = () => openPhysicalReading();
+  if(q('#stDeck')) q('#stDeck').onclick = () => openCardDirectory();
   if(typeof bindDrawnToday === 'function') bindDrawnToday(root);
   if(q('#stIntuit')) q('#stIntuit').onclick = () => openIntuitionQuick();
 }

@@ -314,6 +314,10 @@ function stillnessHTML(){
       </div>`).join('')}</div>` : ''}
     <div class="still-util row" style="gap:8px;flex-wrap:wrap;margin-top:12px">
       <button class="btn sm ghost" id="stDraw">🔮 quick draw</button>
+      <!-- the two ways into the cards that are not a draw: one you already
+           did somewhere else, and the deck itself -->
+      <button class="btn sm ghost" id="stPaper" title="cards you laid out on a real table">📖 a reading on paper</button>
+      <button class="btn sm ghost" id="stDeck" title="all seventy-eight, and every time each has come up">📚 the deck</button>
       <button class="btn sm ghost" id="stIntuit">⚡ log an intuition</button>
     </div>
     <!-- a card drawn here is for today, so it stays here as well as being filed -->
@@ -337,6 +341,8 @@ function bindStillness(root){
     else openStillTimer({kind:p.kind, minutes:p.minutes, anchor:p.anchor, mantra:p.mantra, pattern:p.pattern});
   };
   if(q('#stDraw')) q('#stDraw').onclick = () => openQuickDraw();
+  if(q('#stPaper')) q('#stPaper').onclick = () => openPhysicalReading();
+  if(q('#stDeck')) q('#stDeck').onclick = () => openCardDirectory();
   if(typeof bindDrawnToday === 'function') bindDrawnToday(root);
   if(q('#stIntuit')) q('#stIntuit').onclick = () => openIntuitionQuick();
 }

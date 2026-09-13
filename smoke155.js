@@ -1,4 +1,4 @@
-/* smoke154 — the micro-interaction layer (Part 1 of the site-wide spec).
+/* smoke155 — the micro-interaction layer (Part 1 of the site-wide spec).
    The pointer layer, the scroll layer, the ambient layer, the feedback layer
    and the polish layer: that each is there, that each is off when the browser
    asks for less motion, and that none of it costs the page a listener or a
@@ -206,7 +206,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   is('no errors on the console', errs.length, 0, errs.join(' | '));
   if(errs.length) errs.forEach(e => console.log('    ' + e));
 
-  console.log(bad ? `\n${bad} FAILED` : '\nsmoke154  all good');
+  console.log(bad ? `\n${bad} FAILED` : '\nsmoke155  all good');
   await b.close();
   process.exit(bad ? 1 : 0);
 })();
