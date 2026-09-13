@@ -6649,6 +6649,10 @@ function renderRoute(){
   main.innerHTML = '';
   main.style.animation = 'none'; void main.offsetWidth; main.style.animation = '';
   currentRoute = name; PageEntryConfig.clear();
+  /* the room's name on the body, so CSS can answer "which page is this"
+     without asking JavaScript — the bokeh on the contemplative pages is the
+     first thing that needed it */
+  document.body.dataset.route = name;
   try { fn(main, params); } catch(err){ console.error(err); routeFailure(err); }
   /* the decorations can throw too, and by then main has already been emptied —
      losing the trimmings is survivable, losing the page is not */
@@ -6656,7 +6660,8 @@ function renderRoute(){
      which meant everything below the fold had finished animating before it
      was ever seen. They wait for the scroll now; tweenAll stays for the
      panels and modals, which have no scroll to wait for. */
-  try { decoratePageHead(main); mountContextAdd(main); reveal(main); ScrollFX.scan(main); backupBanner(); updateBackButton(); }
+  try { decoratePageHead(main); mountContextAdd(main); reveal(main); ScrollFX.scan(main);
+        Kinetic.scan(main); Kinetic.flourish(main); backupBanner(); updateBackButton(); }
   catch(err){ console.error('page trimmings failed', err); }
   /* a review the user stepped out of to write an entry comes back, same step */
   if(typeof resumeReviewIfPending === 'function') resumeReviewIfPending();
@@ -6674,7 +6679,8 @@ function rerender(){
   catch(err){ console.error('rerender failed', err); routeFailure(err); window.scrollTo({top:y}); return; }
   try { decoratePageHead(main); mountContextAdd(main);
     if(typeof attachDictationIn === 'function') attachDictationIn(main);
-    $$('.rv', main).forEach(n=>n.classList.add('in')); tweenAll(main); ScrollFX.scan(main); }
+    $$('.rv', main).forEach(n=>n.classList.add('in')); tweenAll(main); ScrollFX.scan(main);
+    Kinetic.scan(main); Kinetic.flourish(main); }
   catch(err){ console.error('page trimmings failed', err); }
   window.scrollTo({top:y});
 }
@@ -8379,6 +8385,169 @@ document.addEventListener('keydown', ev => {
 addEventListener('scroll', () => { if(tpOpen) tpPlace(tpOpen.pop, tpOpen.input); }, true);
 addEventListener('resize', () => { if(tpOpen) tpClose(); });
 /* ============================================================
+   TEXT THAT ARRIVES
+
+   Five ways for words to reach the page, and a rule for each about where
+   it is allowed. That rule is the whole of the design: text that moves for
+   no reason is text that is harder to read, and an app where everything
+   animates is an app where nothing means anything.
+
+     reveal      a block arriving word by word, as if being written
+     typewriter  a line being typed at you, one character at a time
+     breathe     text belonging to something that is actually breathing
+     flow        firelight moving across engraved letters
+     morph       one string dissolving into another in the same place
+
+   The first belongs to both rooms. The rest, apart from breathing, belong
+   to the dark one: a writing desk in daylight is still, and a page that
+   shimmers on white paper reads as a fault rather than as atmosphere.
+
+   Everything here is off entirely under prefers-reduced-motion, where the
+   final text is simply there.
+
+   Built as one observer and one selector list rather than a constructor
+   per element. This app rebuilds #main wholesale on nearly every edit, so
+   per-element instances would have to be re-made hundreds of times a page
+   and would hold references to nodes already thrown away.
+   ============================================================ */
+const Kinetic = (() => {
+  const soft = () => typeof reduced === 'function' && reduced();
+  const dark = () => document.documentElement.getAttribute('data-theme') !== 'light';
+
+  /* ---------- 1. a block of text, arriving ----------
+     Words, not characters: a character-by-character fade over a paragraph
+     is a hundred and fifty transitions and reads as static. Thirty
+     milliseconds a word is about the speed of a hand writing. */
+  const REVEAL = [
+    '.page-head h1', '.page-head .sub',
+    '.dv-sec-h', '.sec-h', 'section > h2', '.prose blockquote',
+    '.th-quote', '.quote.pull', '.gentle-prompt', '.tl-story p', '.vt-desc',
+    '.dv-story p', '.cc-lead', '.cd-pat', '.cc-pat',
+  ].join(',');
+
+  function prepare(node){
+    if(node.dataset.reveal) return;
+    /* only plain text: a block with markup in it would lose the markup, and
+       a block with a form in it would lose the form */
+    if(node.children.length || !node.textContent.trim()) { node.dataset.reveal = 'skip'; return; }
+    const words = node.textContent.trim().split(/\s+/);
+    if(words.length > 90){ node.dataset.reveal = 'skip'; return; }   /* an essay is not an arrival */
+    node.dataset.reveal = 'ready';
+    node.innerHTML = words.map((w, i) =>
+      `<span class="wd" style="--i:${i}">${esc(w)}</span>`).join(' ');
+  }
+
+  let io = null;
+  function observer(){
+    if(io) return io;
+    io = new IntersectionObserver(entries => {
+      entries.forEach(e => { if(!e.isIntersecting) return;
+        e.target.classList.add('shown'); io.unobserve(e.target); });
+    }, {threshold: .15, rootMargin: '0px 0px -6% 0px'});
+    return io;
+  }
+
+  /* called after every render, on whatever was just drawn */
+  function scan(root){
+    if(soft()) return;
+    (root || document).querySelectorAll(REVEAL).forEach(n => {
+      prepare(n);
+      if(n.dataset.reveal !== 'ready') return;
+      /* already on screen when the page was drawn: show it now rather than
+         waiting for a scroll that may never come */
+      const r = n.getBoundingClientRect();
+      if(r.top < innerHeight * .94 && r.bottom > 0){ n.classList.add('shown'); return; }
+      observer().observe(n);
+      /* A block whose words are never shown is a block that has disappeared,
+         and the ways that can happen are not all foreseeable — a section
+         folded shut, a panel that never scrolls, a tab nobody opens. So
+         there is a floor: eight seconds later it is shown regardless. The
+         effect is worth having; it is not worth losing a paragraph over. */
+      setTimeout(() => { if(n.isConnected) n.classList.add('shown'); }, 8000);
+    });
+  }
+
+  /* ---------- 2. typed at you ----------
+     For the handful of lines that are addressed to the person rather than
+     describing something to them: the script they read to themselves in the
+     morning, the aim they say out loud, the line before a reading. */
+  function type(node, text, opt){
+    opt = opt || {};
+    if(!node) return Promise.resolve();
+    const str = text !== undefined ? text : node.textContent;
+    if(soft() || !dark()){ node.textContent = str; return Promise.resolve(); }
+    const speed = opt.speed || 35, hold = opt.pause || 200;
+    node.textContent = '';
+    const cur = document.createElement('span');
+    cur.className = 'tw-cursor'; cur.textContent = '│';
+    node.appendChild(cur);
+    let i = 0;
+    return new Promise(done => {
+      const step = () => {
+        if(i >= str.length){
+          cur.classList.add('blink');
+          setTimeout(() => { cur.style.opacity = '0'; }, 2000);
+          return done();
+        }
+        const ch = str[i++];
+        node.insertBefore(document.createTextNode(ch), cur);
+        /* a sentence ends with a breath in it, not at the same rate as the
+           middle of a word */
+        const d = speed + ('.!?'.includes(ch) ? hold : ',;:—'.includes(ch) ? hold * .5 : 0);
+        setTimeout(step, d);
+      };
+      step();
+    });
+  }
+
+  /* ---------- 3. one string becoming another ----------
+     Not a swap: the old one dissolves upward and out of focus while the new
+     one gathers below and comes into it. */
+  function morph(node, next){
+    if(!node) return;
+    if(soft() || !dark()){ node.textContent = next; return; }
+    if(node.textContent === next) return;
+    node.classList.remove('in'); node.classList.add('out');
+    setTimeout(() => {
+      node.textContent = next;
+      node.classList.remove('out'); node.classList.add('in');
+      setTimeout(() => node.classList.remove('in'), 500);
+    }, 420);
+  }
+  /* a run of strings, one after another, on a slow clock. Returns the stop
+     function, because a cycle left running against a node that has been
+     re-rendered away is a leak with a timer on it. */
+  function cycle(node, strings, ms){
+    if(!node || !strings.length) return () => {};
+    let i = 0;
+    node.textContent = strings[0];
+    if(soft() || !dark() || strings.length < 2) return () => {};
+    const t = setInterval(() => {
+      if(!node.isConnected){ clearInterval(t); return; }
+      i = (i + 1) % strings.length;
+      morph(node, strings[i]);
+    }, ms || 8000);
+    return () => clearInterval(t);
+  }
+
+  /* ---------- 4. the two that are only a class ----------
+     Breathing belongs to something that is breathing; the gradient belongs
+     to a title in the dark room. Both are CSS; these only decide who gets
+     them, so the answer to "why is this moving" is one grep. */
+  /* Titles, the Chinese characters, and the name of the house. Today's
+     heading is its own element rather than a .page-head h1, and the brand is
+     .brand .name — the spec guessed at both. */
+  const FLOW = '.page-head h1, .today-date, .ic-hcn, .tl-glyph, .cd-hexbig + .cd-head-t .ic-hcn, .brand .name';
+  function flourish(root){
+    if(soft()) return;
+    (root || document).querySelectorAll(FLOW).forEach(n => n.classList.add('flow'));
+  }
+
+  return {scan, type, morph, cycle, flourish,
+    /* exposed so a page can ask for the effect on something it just made */
+    reveal: prepare};
+})();
+/* ============================================================
    THE POINTER LAYER — cursor, magnetism, tilt, flashlight
    ------------------------------------------------------------
    Small responses to where the pointer is, so the page reads as something
@@ -8768,7 +8937,12 @@ const AmbientFX = (() => {
     const seed = () => { ps = []; for(let i = 0; i < 14; i++) ps.push({
       x:Math.random()*innerWidth, y:Math.random()*innerHeight, r:.5+Math.random()*1.5,
       vx:(Math.random()-.5)*.12, vy:-.05-Math.random()*.1,
-      a:Math.random()*Math.PI*2, w:.06+Math.random()*.06}); };
+      a:Math.random()*Math.PI*2, w:.06+Math.random()*.06,
+      /* the dark room's extras, carried by every mote and used by none of
+         them in the light: which warm it is, how fast it breathes, and
+         whether it is one of the few that rise */
+      warm:Math.random() > .5, per:4+Math.random()*4, ph:Math.random()*Math.PI*2,
+      ember:Math.random() > .7}); };
     const resize = () => { c.width = innerWidth; c.height = innerHeight; };
     resize(); seed(); addEventListener('resize', resize);
     let last = 0, gold = 0, cleared = false;
@@ -8785,16 +8959,28 @@ const AmbientFX = (() => {
       ctx.clearRect(0, 0, c.width, c.height);
       const dark = S.settings.theme === 'dark';
       const golden = gold > performance.now();
-      ctx.fillStyle = golden ? 'rgba(212,164,76,.5)'
-        : dark ? 'rgba(232,224,212,.05)' : 'rgba(44,37,32,.035)';
+      /* In the light room this is dust in a sunbeam: neutral, one colour,
+         drawn in a single fill. In the dark room it is embers off a fire —
+         warmer, a little bigger, each one slowly brightening and dimming on
+         a clock of its own, and a few of them rising. Two behaviours, one
+         set of particles: the mode only decides how each is drawn. */
+      const flat = golden ? 'rgba(212,164,76,.5)'
+        : dark ? null : 'rgba(44,37,32,.035)';
+      if(flat) ctx.fillStyle = flat;
+      const now = performance.now() / 1000;
       ps.forEach(p => {
         p.a += p.w * .06;
         p.x += p.vx + Math.sin(p.a) * .06;
-        p.y += p.vy;
+        p.y += p.vy * (dark && p.ember ? 1.6 : 1);
         if(p.y < -5){ p.y = innerHeight + 5; p.x = Math.random() * innerWidth; }
         if(p.x < -5) p.x = innerWidth + 5;
         if(p.x > innerWidth + 5) p.x = -5;
-        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+        if(!flat){
+          /* between eight and fifteen per cent, breathing on its own cycle */
+          const pulse = .5 + .5 * Math.sin(now / p.per + p.ph);
+          ctx.fillStyle = `rgba(${p.warm ? '212,164,76' : '196,120,50'},${(.08 + pulse * .07).toFixed(3)})`;
+        }
+        ctx.beginPath(); ctx.arc(p.x, p.y, dark ? p.r * 1.35 : p.r, 0, Math.PI * 2); ctx.fill();
       });
     };
     requestAnimationFrame(tick);

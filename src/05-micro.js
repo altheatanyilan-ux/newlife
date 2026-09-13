@@ -388,7 +388,12 @@ const AmbientFX = (() => {
     const seed = () => { ps = []; for(let i = 0; i < 14; i++) ps.push({
       x:Math.random()*innerWidth, y:Math.random()*innerHeight, r:.5+Math.random()*1.5,
       vx:(Math.random()-.5)*.12, vy:-.05-Math.random()*.1,
-      a:Math.random()*Math.PI*2, w:.06+Math.random()*.06}); };
+      a:Math.random()*Math.PI*2, w:.06+Math.random()*.06,
+      /* the dark room's extras, carried by every mote and used by none of
+         them in the light: which warm it is, how fast it breathes, and
+         whether it is one of the few that rise */
+      warm:Math.random() > .5, per:4+Math.random()*4, ph:Math.random()*Math.PI*2,
+      ember:Math.random() > .7}); };
     const resize = () => { c.width = innerWidth; c.height = innerHeight; };
     resize(); seed(); addEventListener('resize', resize);
     let last = 0, gold = 0, cleared = false;
@@ -405,16 +410,28 @@ const AmbientFX = (() => {
       ctx.clearRect(0, 0, c.width, c.height);
       const dark = S.settings.theme === 'dark';
       const golden = gold > performance.now();
-      ctx.fillStyle = golden ? 'rgba(212,164,76,.5)'
-        : dark ? 'rgba(232,224,212,.05)' : 'rgba(44,37,32,.035)';
+      /* In the light room this is dust in a sunbeam: neutral, one colour,
+         drawn in a single fill. In the dark room it is embers off a fire —
+         warmer, a little bigger, each one slowly brightening and dimming on
+         a clock of its own, and a few of them rising. Two behaviours, one
+         set of particles: the mode only decides how each is drawn. */
+      const flat = golden ? 'rgba(212,164,76,.5)'
+        : dark ? null : 'rgba(44,37,32,.035)';
+      if(flat) ctx.fillStyle = flat;
+      const now = performance.now() / 1000;
       ps.forEach(p => {
         p.a += p.w * .06;
         p.x += p.vx + Math.sin(p.a) * .06;
-        p.y += p.vy;
+        p.y += p.vy * (dark && p.ember ? 1.6 : 1);
         if(p.y < -5){ p.y = innerHeight + 5; p.x = Math.random() * innerWidth; }
         if(p.x < -5) p.x = innerWidth + 5;
         if(p.x > innerWidth + 5) p.x = -5;
-        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+        if(!flat){
+          /* between eight and fifteen per cent, breathing on its own cycle */
+          const pulse = .5 + .5 * Math.sin(now / p.per + p.ph);
+          ctx.fillStyle = `rgba(${p.warm ? '212,164,76' : '196,120,50'},${(.08 + pulse * .07).toFixed(3)})`;
+        }
+        ctx.beginPath(); ctx.arc(p.x, p.y, dark ? p.r * 1.35 : p.r, 0, Math.PI * 2); ctx.fill();
       });
     };
     requestAnimationFrame(tick);

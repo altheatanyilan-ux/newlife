@@ -313,6 +313,10 @@ function renderRoute(){
   main.innerHTML = '';
   main.style.animation = 'none'; void main.offsetWidth; main.style.animation = '';
   currentRoute = name; PageEntryConfig.clear();
+  /* the room's name on the body, so CSS can answer "which page is this"
+     without asking JavaScript — the bokeh on the contemplative pages is the
+     first thing that needed it */
+  document.body.dataset.route = name;
   try { fn(main, params); } catch(err){ console.error(err); routeFailure(err); }
   /* the decorations can throw too, and by then main has already been emptied —
      losing the trimmings is survivable, losing the page is not */
@@ -320,7 +324,8 @@ function renderRoute(){
      which meant everything below the fold had finished animating before it
      was ever seen. They wait for the scroll now; tweenAll stays for the
      panels and modals, which have no scroll to wait for. */
-  try { decoratePageHead(main); mountContextAdd(main); reveal(main); ScrollFX.scan(main); backupBanner(); updateBackButton(); }
+  try { decoratePageHead(main); mountContextAdd(main); reveal(main); ScrollFX.scan(main);
+        Kinetic.scan(main); Kinetic.flourish(main); backupBanner(); updateBackButton(); }
   catch(err){ console.error('page trimmings failed', err); }
   /* a review the user stepped out of to write an entry comes back, same step */
   if(typeof resumeReviewIfPending === 'function') resumeReviewIfPending();
@@ -338,7 +343,8 @@ function rerender(){
   catch(err){ console.error('rerender failed', err); routeFailure(err); window.scrollTo({top:y}); return; }
   try { decoratePageHead(main); mountContextAdd(main);
     if(typeof attachDictationIn === 'function') attachDictationIn(main);
-    $$('.rv', main).forEach(n=>n.classList.add('in')); tweenAll(main); ScrollFX.scan(main); }
+    $$('.rv', main).forEach(n=>n.classList.add('in')); tweenAll(main); ScrollFX.scan(main);
+    Kinetic.scan(main); Kinetic.flourish(main); }
   catch(err){ console.error('page trimmings failed', err); }
   window.scrollTo({top:y});
 }
