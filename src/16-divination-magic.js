@@ -89,42 +89,42 @@ ParticleField.prototype.make = function(x, y, o){
 /* motes wandering in from the edges — the air being alive, not an effect */
 ParticleField.prototype.ambient = function(n){
   this.mode = 'ambient';
-  this.want = n || 20;
+  this.want = n || 40;
   this.run();
 };
 ParticleField.prototype.seed = function(){
   const edge = Math.floor(Math.random() * 4);
   const x = edge === 0 ? -4 : edge === 1 ? this.w + 4 : Math.random() * this.w;
   const y = edge === 2 ? -4 : edge === 3 ? this.h + 4 : Math.random() * this.h;
-  this.ps.push(this.make(x, y, {rad: .7 + Math.random() * 1.3, op: .3 + Math.random() * .2,
+  this.ps.push(this.make(x, y, {rad: 1.2 + Math.random() * 1.8, op: .34 + Math.random() * .26,
     life: 420 + Math.random() * 400, fade: false}));
 };
 /* a card has turned */
 ParticleField.prototype.burst = function(x, y, n){
-  n = n || 26;
+  n = n || 50;
   for(let i = 0; i < n; i++){
     const a = (Math.PI * 2 * i) / n + (Math.random() - .5) * .5;
     const sp = 1.5 + Math.random() * 2.5;
     this.ps.push(this.make(x, y, {vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
-      rad: 1 + Math.random() * 1.6, op: .6 + Math.random() * .3,
+      rad: 2 + Math.random() * 3, op: .7 + Math.random() * .3,
       life: 40 + Math.random() * 40, spin: true, wob: .12,
       col: Math.random() > .3 ? DV_GOLD : DV_PALE}));
   }
-  /* one or two heavier ones, which live longer and leave the trail */
-  for(let i = 0; i < 2; i++){
+  /* three heavier ones, which live longer and leave the trail */
+  for(let i = 0; i < 3; i++){
     const a = Math.random() * Math.PI * 2, sp = 1 + Math.random();
     this.ps.push(this.make(x, y, {vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
-      rad: 2.6 + Math.random() * 1.6, op: .5, life: 80 + Math.random() * 40, spin: true, wob: .1}));
+      rad: 3.4 + Math.random() * 2, op: .7, life: 80 + Math.random() * 40, spin: true, wob: .1}));
   }
   this.run();
 };
 /* everything is up: a wind of light across the whole ceremony */
 ParticleField.prototype.shimmer = function(){
   this.mode = 'shimmer';
-  for(let i = 0; i < 52; i++){
+  for(let i = 0; i < 100; i++){
     this.ps.push(this.make(-Math.random() * this.w * .5, Math.random() * this.h,
       {vx: 3 + Math.random() * 2.4, vy: (Math.random() - .5) * .25,
-       rad: .8 + Math.random() * .5, op: .2 + Math.random() * .1,
+       rad: 1.1 + Math.random() * .7, op: .3 + Math.random() * .2,
        life: 70 + Math.random() * 40, wob: .05}));
   }
   this.run();

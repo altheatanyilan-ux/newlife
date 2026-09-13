@@ -5399,22 +5399,26 @@ html.mfx-cursor .pl-gbaredge{cursor:ew-resize!important}
 .fx-mile{position:fixed;inset:0;pointer-events:none;z-index:99997;overflow:hidden}
 .fx-mile-ring{position:absolute;left:50%;top:50%;width:0;height:0;border-radius:50%;
   border:1px solid var(--gold,#d4a44c);transform:translate(-50%,-50%);
-  animation:fxMileRing 1.5s cubic-bezier(.2,.7,.3,1) forwards}
+  border-width:2px;animation:fxMileRing 2.7s cubic-bezier(.2,.7,.3,1) forwards}
+/* the ring does not simply leave once it is off the edges: it holds at a
+   third of itself for a second, so the moment has a length to it */
 @keyframes fxMileRing{
-  0%{width:0;height:0;opacity:.5}
+  0%{width:0;height:0;opacity:.6}
+  55%{width:150vmax;height:150vmax;opacity:.3}
+  80%{opacity:.3}
   100%{width:150vmax;height:150vmax;opacity:0}}
 .fx-mile-word{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
   font-family:var(--serif-i,var(--serif));font-style:italic;font-size:1.35rem;
   color:var(--text);opacity:0;white-space:nowrap;text-align:center;
-  animation:fxMileWord 2.5s var(--ease) forwards}
+  animation:fxMileWord 3.5s var(--ease) forwards}
 @keyframes fxMileWord{
-  0%{opacity:0}20%{opacity:.6}80%{opacity:.6}100%{opacity:0}}
+  0%{opacity:0}14%{opacity:.85}80%{opacity:.85}100%{opacity:0}}
 .fx-mote{position:absolute;bottom:-8px;width:3px;height:3px;border-radius:50%;
-  background:var(--gold,#d4a44c);opacity:0;animation:fxMote 2s linear forwards}
+  background:var(--gold,#d4a44c);opacity:0;animation:fxMote 2.6s linear forwards}
 @keyframes fxMote{
   0%{opacity:0;transform:translateY(0)}
-  15%{opacity:.7}
-  100%{opacity:0;transform:translateY(-70vh)}}
+  15%{opacity:.9}
+  100%{opacity:0;transform:translateY(-80vh)}}
 
 /* 1.9 — how far down you are, in the page's own accent. It thickens while you
    are actually moving and thins again when you stop. */

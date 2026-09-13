@@ -385,15 +385,19 @@ const AmbientFX = (() => {
     if(!c || reduced()) return;
     const ctx = c.getContext('2d');
     let ps = [];
-    const seed = () => { ps = []; for(let i = 0; i < 14; i++) ps.push({
-      x:Math.random()*innerWidth, y:Math.random()*innerHeight, r:.5+Math.random()*1.5,
-      vx:(Math.random()-.5)*.12, vy:-.05-Math.random()*.1,
+    /* Thirty, not fourteen. Fourteen motes across a 1400px page is one mote
+       every hundred pixels, which at four per cent opacity is not an effect,
+       it is a rendering artefact. A third of them rise, which is what makes
+       the dark room read as a fire rather than a still room with specks. */
+    const seed = () => { ps = []; for(let i = 0; i < 30; i++) ps.push({
+      x:Math.random()*innerWidth, y:Math.random()*innerHeight, r:1.5+Math.random()*2,
+      vx:(Math.random()-.5)*.2, vy:-.08-Math.random()*.17,
       a:Math.random()*Math.PI*2, w:.06+Math.random()*.06,
       /* the dark room's extras, carried by every mote and used by none of
          them in the light: which warm it is, how fast it breathes, and
          whether it is one of the few that rise */
       warm:Math.random() > .5, per:4+Math.random()*4, ph:Math.random()*Math.PI*2,
-      ember:Math.random() > .7}); };
+      ember:Math.random() > .67}); };
     const resize = () => { c.width = innerWidth; c.height = innerHeight; };
     resize(); seed(); addEventListener('resize', resize);
     let last = 0, gold = 0, cleared = false;
@@ -416,7 +420,7 @@ const AmbientFX = (() => {
          a clock of its own, and a few of them rising. Two behaviours, one
          set of particles: the mode only decides how each is drawn. */
       const flat = golden ? 'rgba(212,164,76,.5)'
-        : dark ? null : 'rgba(44,37,32,.035)';
+        : dark ? null : 'rgba(44,37,32,.06)';
       if(flat) ctx.fillStyle = flat;
       const now = performance.now() / 1000;
       ps.forEach(p => {
@@ -427,11 +431,14 @@ const AmbientFX = (() => {
         if(p.x < -5) p.x = innerWidth + 5;
         if(p.x > innerWidth + 5) p.x = -5;
         if(!flat){
-          /* between eight and fifteen per cent, breathing on its own cycle */
+          /* a mote breathes between eight and eighteen per cent on a clock of
+             its own; an ember, which is nearer the fire, between fifteen and
+             thirty, and is drawn half again as large */
           const pulse = .5 + .5 * Math.sin(now / p.per + p.ph);
-          ctx.fillStyle = `rgba(${p.warm ? '212,164,76' : '196,120,50'},${(.08 + pulse * .07).toFixed(3)})`;
+          const lo = p.ember ? .15 : .08, sw = p.ember ? .15 : .1;
+          ctx.fillStyle = `rgba(${p.warm ? '212,164,76' : '196,120,50'},${(lo + pulse * sw).toFixed(3)})`;
         }
-        ctx.beginPath(); ctx.arc(p.x, p.y, dark ? p.r * 1.35 : p.r, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(p.x, p.y, dark && p.ember ? p.r * 1.4 : p.r, 0, Math.PI * 2); ctx.fill();
       });
     };
     requestAnimationFrame(tick);
@@ -500,15 +507,15 @@ const RewardFX = (() => {
       <span class="fx-mile-word">${esc(text)}</span></div>`);
     document.body.appendChild(wrap);
     /* motes rising, the same dust as everywhere else, briefly given a reason */
-    for(let i = 0; i < 20; i++){
+    for(let i = 0; i < 50; i++){
       const m = el('<i class="fx-mote"></i>');
       m.style.left = (5 + Math.random() * 90) + 'vw';
-      m.style.animationDelay = (Math.random() * 900) + 'ms';
-      m.style.animationDuration = (1600 + Math.random() * 900) + 'ms';
+      m.style.animationDelay = (Math.random() * 1400) + 'ms';
+      m.style.animationDuration = (1900 + Math.random() * 1200) + 'ms';
       wrap.appendChild(m);
     }
     try { SoundManager.play('chime'); } catch(e){}
-    setTimeout(() => wrap.remove(), 3200);
+    setTimeout(() => wrap.remove(), 4200);
   }
 
   /* fired once per thing, ever — the ledger lives with the rest of the state */

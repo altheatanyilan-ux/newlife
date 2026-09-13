@@ -323,7 +323,7 @@ function charmThrow(surface, marks, done){
         const r = tok.getBoundingClientRect();
         const cv = document.getElementById('ccMotes');
         if(cv){ const c = cv.getBoundingClientRect();
-          dvField().burst(r.left - c.left + r.width / 2, r.top - c.top + r.height / 2, 6); }
+          dvField().burst(r.left - c.left + r.width / 2, r.top - c.top + r.height / 2, 12); }
       }, lands);
     });
     setTimeout(() => { dvMoment('wind'); dvMoment('bowlQuiet'); if(done) done(); }, last + 220);
@@ -508,7 +508,7 @@ function castStageInto(host, thrown, opt){
 
   bindToks();
   if(opt.animate){
-    field.ambient(16);
+    field.ambient(34);
     charmThrow(host.querySelector('#ccSurface'), a0.marks, () => {
       field.shimmer();
       paint();

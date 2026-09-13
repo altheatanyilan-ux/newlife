@@ -604,7 +604,7 @@ function openTarot(pre = {}){
     const fit = () => { field.resize && field.resize(); tarotBoardFit(m); };
     window.addEventListener('resize', fit);
 
-    field.ambient(18);
+    field.ambient(38);
     tarotCentering(() => {
       dvMoment('bowl');
       const sh = m.querySelector('#dvShuffle');
@@ -695,7 +695,7 @@ function openTarot(pre = {}){
            reading arrives and then stops altogether: a person may sit
            writing in this box for ten minutes, and there is no version of
            this app that runs an animation frame behind them while they do. */
-        field.ambient(8);
+        field.ambient(18);
         setTimeout(() => field.stop(), soft ? 0 : 6000);
         const box = m.querySelector('#dvRead');
         box.innerHTML = tarotReadingHTML(picks, sp) + divKeepHTML(projects);
@@ -805,7 +805,7 @@ function openIChing(pre = {}){
       const row = m.querySelector(`[data-row="${lines.length - 1}"]`);
       if(row && !soft) row.classList.add('drawing'); };
     count(); redraw();
-    field.ambient(14);
+    field.ambient(30);
     ichingCentering(() => { dvMoment('bowl'); m.querySelector('#icToss').focus(); });
 
     let busy = false;
