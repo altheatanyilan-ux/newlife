@@ -259,7 +259,135 @@ document.addEventListener('keydown', e => {
   else if(e.key==='/'){ e.preventDefault(); openSearch(); }
   else if(e.key==='ArrowLeft' || e.key==='ArrowRight'){ if(typeof stepTimeline === 'function' && stepTimeline(e.key==='ArrowRight' ? 1 : -1)) e.preventDefault(); }
 });
+/* ============================================================
+   WHEN BOOT FAILS
+   ------------------------------------------------------------
+   Everything below used to run unguarded, so a single throw anywhere in
+   load(), a migration, or the first render left the promise rejected and the
+   page simply blank — no message, no way back, and no clue what happened.
+   For an app that holds the only copy of someone's writing, a white screen is
+   the worst possible failure: it looks exactly like having lost everything.
+
+   So boot now has a floor. If it falls through, this draws a page that says
+   what broke, and offers the three things worth having in that moment: try
+   again, get your data out, and drop the offline copy — which is the usual
+   culprit when a page that worked yesterday comes up empty today.
+
+   It is deliberately written with no help from the rest of the app: raw DOM,
+   raw IndexedDB, its own styles. The one thing it must never do is need the
+   code that just failed.
+   ============================================================ */
+/* The same floor, one storey up: the shell survives, and the failure is
+   reported inside the page area with a way out of it. */
+function routeFailure(err){
+  const main = document.querySelector('#main'); if(!main){ bootFailure(err); return; }
+  const msg = (err && (err.stack || err.message)) || String(err);
+  main.innerHTML = `<div class="page narrow"><section class="section rv in">
+    <span class="sc">This page did not draw</span>
+    <div class="card" style="margin-top:10px">
+      <p style="margin:0 0 10px">Something in it threw an error. Nothing has been lost —
+        the rest of the house still works, and Settings can export a backup.</p>
+      <div class="row" style="gap:8px;flex-wrap:wrap">
+        <a class="btn sm primary" href="#/today">Go to Today</a>
+        <a class="btn sm ghost" href="#/settings">Settings</a>
+        <button class="btn sm ghost" onclick="location.reload()">Reload</button>
+      </div>
+      <details style="margin-top:12px"><summary class="mono faint" style="cursor:pointer">what went wrong</summary>
+        <pre class="mono" style="white-space:pre-wrap;word-break:break-word;font-size:.72rem;margin-top:8px">${
+          String(msg).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}</pre></details>
+    </div></section></div>`;
+}
+function bootFailure(err){
+  const msg = (err && (err.stack || err.message)) || String(err);
+  const el = document.createElement('div');
+  el.id = 'bootFail';
+  el.setAttribute('style', [
+    'position:fixed', 'inset:0', 'z-index:99999', 'overflow:auto',
+    'background:#f7f4ef', 'color:#2e2a26', 'padding:min(9vh,72px) 22px',
+    'font:15px/1.6 ui-serif,Georgia,serif'].join(';'));
+  el.innerHTML = `<div style="max-width:640px;margin:0 auto">
+    <div style="font:600 12px/1 ui-monospace,monospace;letter-spacing:.14em;
+      text-transform:uppercase;color:#9a8f84">Life Instrument</div>
+    <h1 style="font:400 1.7rem/1.25 ui-serif,Georgia,serif;margin:14px 0 6px">
+      The house did not open.</h1>
+    <p style="margin:0 0 18px;color:#6b6259">Something went wrong while starting up.
+      <b>Your writing has not been touched</b> — it is still in this browser's storage,
+      and the button below will hand it to you as a file before you try anything else.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin:0 0 20px">
+      <button id="bfRetry" style="font:inherit;padding:9px 15px;border-radius:9px;border:1px solid #c9bfb2;
+        background:#b06a4a;color:#fff;cursor:pointer">Try again</button>
+      <button id="bfSave" style="font:inherit;padding:9px 15px;border-radius:9px;border:1px solid #c9bfb2;
+        background:#fffdf9;color:inherit;cursor:pointer">Download a backup</button>
+      <button id="bfSW" style="font:inherit;padding:9px 15px;border-radius:9px;border:1px solid #c9bfb2;
+        background:#fffdf9;color:inherit;cursor:pointer">Drop the offline copy and reload</button>
+    </div>
+    <p id="bfSaid" style="margin:0 0 18px;color:#6b6259;min-height:1.6em"></p>
+    <details style="margin-top:8px">
+      <summary style="cursor:pointer;color:#9a8f84;font:12px/1.6 ui-monospace,monospace;
+        letter-spacing:.08em;text-transform:uppercase">What went wrong</summary>
+      <pre style="white-space:pre-wrap;word-break:break-word;font:12px/1.6 ui-monospace,monospace;
+        background:#fffdf9;border:1px solid #e6ded2;border-radius:9px;padding:12px;margin-top:10px;
+        color:#6b6259">${String(msg).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}</pre>
+    </details>
+  </div>`;
+  document.body.appendChild(el);
+  const said = t => { const n = el.querySelector('#bfSaid'); if(n) n.textContent = t; };
+  el.querySelector('#bfRetry').onclick = () => location.reload();
+
+  /* Read the database directly, so a backup is possible even when every layer
+     above it is the thing that broke. */
+  el.querySelector('#bfSave').onclick = () => {
+    said('Reading the database…');
+    const req = indexedDB.open('lifeinstrument-db');
+    req.onerror = () => said('The database could not be opened: ' + (req.error && req.error.message));
+    req.onblocked = () => said('Another tab has this open. Close the other tabs and press it again.');
+    req.onsuccess = () => {
+      const idb = req.result;
+      const names = Array.from(idb.objectStoreNames);
+      if(!names.length){ said('There is nothing stored in this browser yet.'); idb.close(); return; }
+      const data = {}; let left = names.length;
+      const done = () => {
+        const payload = {version:1, exportedAt:new Date().toISOString(), rescued:true, data};
+        const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'}));
+        const a = document.createElement('a');
+        a.href = url; a.download = 'backup-rescued-' + new Date().toISOString().slice(0,10) + '.json';
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 4000);
+        said('Saved. Keep that file — Settings → Import backup will read it back.');
+        idb.close();
+      };
+      names.forEach(n => {
+        try {
+          const q = idb.transaction(n, 'readonly').objectStore(n).getAll();
+          q.onsuccess = () => { data[n] = q.result || []; if(!--left) done(); };
+          q.onerror   = () => { data[n] = []; if(!--left) done(); };
+        } catch(e){ data[n] = []; if(!--left) done(); }
+      });
+    };
+  };
+
+  /* A page that worked yesterday and is blank today is very often a stale
+     cached copy. This throws the cache and the worker away — it touches no
+     data, only the copy of the app itself. */
+  el.querySelector('#bfSW').onclick = async () => {
+    said('Clearing…');
+    try {
+      if(navigator.serviceWorker){
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map(r => r.unregister()));
+      }
+      if(window.caches){ const ks = await caches.keys(); await Promise.all(ks.map(k => caches.delete(k))); }
+      said('Cleared. Reloading…');
+      setTimeout(() => location.reload(true), 500);
+    } catch(e){ said('Could not clear it: ' + (e && e.message)); }
+  };
+}
+
 async function init(){
+  try { await initInner(); }
+  catch(err){ console.error('boot failed', err); bootFailure(err); }
+}
+async function initInner(){
   await load(); applyTheme();
   try { navigator.storage?.persist?.(); } catch(e){}
   $('#btnTheme').onclick = () => { S.settings.theme = S.settings.theme==='dark'?'light':'dark'; saveNow(); applyTheme(); };
@@ -268,7 +396,12 @@ async function init(){
   renderNav();
   if(navigator.platform.toUpperCase().indexOf('MAC')<0){ $$('kbd').forEach(k => k.textContent = k.textContent.replace('⌘','Ctrl+')); }
   if(!location.hash) location.hash = '#/' + homeRoute();
-  markNavDirection(); renderRoute(); startDust(); updateBackButton();
+  markNavDirection();
+  /* A page that throws should cost you that page, not the shell around it —
+     the sidebar is how you get to a page that still works. */
+  try { renderRoute(); }
+  catch(err){ console.error('this page failed to draw', err); routeFailure(err); }
+  startDust(); updateBackButton();
   /* Stamp the last moment you were here, so a night you forget to close still
      has a bedtime to fall back on tomorrow. Every minute while the tab is
      open, and again the moment it comes back to the front. */
