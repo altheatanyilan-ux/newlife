@@ -61,7 +61,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   console.log('\n3. the bark is a cherry\'s');
   const bark = await p.evaluate(() => ({
     lentic: document.querySelectorAll('.sk-lentic').length,
-    span: (() => { const t = document.querySelector('.sk-trunk'); const tw = +t.getAttribute('stroke-width');
+    span: (() => { const t = document.querySelector('.sk-trunk'); const tw = +t.dataset.w;
       return [...document.querySelectorAll('.sk-lentic')].every(l => {
         const m = l.getAttribute('d').match(/h(-?[\d.]+)/); return m && Math.abs(+m[1]) < tw * .55; }); })(),
   }));

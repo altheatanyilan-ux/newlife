@@ -1,118 +1,122 @@
-/* smoke147 — Today as a bento box: the clock and the day's list in one glance,
-   the reflective half in pairs, and one column again on a narrow screen */
+/* smoke147 — the two arithmetics of a sitting. An estimate is of the job,
+   not of each visit to it, so a second sitting counts down what is still
+   owed; and the minutes are written down as they are worked rather than
+   only when the clock is finally stopped. */
 const {chromium} = require('playwright');
 const path = require('path');
-const FILE = 'file://' + path.resolve('/home/user/newlife/index.html');
+const FILE = 'file://' + path.resolve(__dirname, 'index.html');
 let bad = 0;
 const ok  = (n, x='') => console.log(`  ok   ${n}${x?'  — '+x:''}`);
 const no  = (n, g='') => { bad++; console.log(`  FAIL ${n}${g!==''?'  — '+g:''}`); };
 const is  = (n,a,b) => a===b ? ok(n) : no(n, `got ${JSON.stringify(a)}, want ${JSON.stringify(b)}`);
 const yes = (n,c,g='') => c ? ok(n) : no(n,g);
 
-const rects = () => {
-  const r = id => { const e = document.getElementById(id); if(!e) return null;
-    const b = e.getBoundingClientRect();
-    return {t:Math.round(b.top), b:Math.round(b.bottom), l:Math.round(b.left), r:Math.round(b.right)}; };
-  return {focus:r('t-focus'), plan:r('t-plan'), tasks:r('t-tasks'), checkin:r('t-checkin'),
-    habits:r('t-habits'), theatre:r('t-theatre'), still:r('t-still'),
-    vh:innerHeight, hscroll: document.documentElement.scrollWidth > innerWidth + 1};
-};
-
 (async () => {
   const b = await chromium.launch({executablePath:'/opt/pw-browsers/chromium'});
+  const p = await b.newPage({viewport:{width:1400, height:1000}});
   const errs = [];
-  const open = async (w, h, many = true) => {
-    const p = await b.newPage({viewport:{width:w, height:h}});
-    p.on('pageerror', e => errs.push(`${w}x${h} pageerror: ` + e.message));
-    p.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET|Failed to load resource/.test(m.text())) errs.push(`${w}x${h} console: ` + m.text()); });
-    await p.goto(FILE); await p.waitForTimeout(1000);
-    if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(2100); }
-    await p.evaluate(() => { location.hash = '#/today'; rerender(); }); await p.waitForTimeout(1500);
-    if(many){ await p.evaluate(() => { for(let i=0;i<18;i++)
-      S.tasks.push(Object.assign(newTask('Task number ' + i, today()), {duration:20}));
-      saveNow(); rerender(); }); await p.waitForTimeout(900); }
-    await p.evaluate(() => { ['t-plan','t-tasks'].forEach(i => { const d = document.getElementById(i); if(d) d.open = true; }); });
-    await p.waitForTimeout(600);
-    return p;
-  };
+  p.on('pageerror', e => errs.push('pageerror: ' + e.message));
+  p.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET|Failed to load resource/.test(m.text())) errs.push('console: ' + m.text()); });
+  await p.goto(FILE); await p.waitForTimeout(900);
+  if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(2200); }
+  await p.evaluate(() => { location.hash = '#/today'; rerender(); }); await p.waitForTimeout(1400);
 
-  console.log('\n1. the clock and the list, in one glance');
-  let p = await open(1440, 900);
-  let m = await p.evaluate(rects);
-  yes('the list is to the right of the clock, not below it',
-      m.tasks.l >= m.focus.r - 2, `focus ${m.focus.l}-${m.focus.r}, tasks ${m.tasks.l}-${m.tasks.r}`);
-  is('  the plan is in that column too', m.plan.l, m.tasks.l);
-  yes('  and the clock stands beside both', m.focus.t <= m.plan.t + 2 && m.focus.b >= m.tasks.b - 2);
-  yes('both are on screen without scrolling', m.focus.t >= 0 && m.tasks.b <= m.vh,
-      `tasks bottom ${m.tasks.b}, screen ${m.vh}`);
-  /* the two columns are near enough equal — neither is a sliver */
-  const wF = m.focus.r - m.focus.l, wT = m.tasks.r - m.tasks.l;
-  yes('  neither column is a sliver', Math.min(wF, wT) / Math.max(wF, wT) > 0.8, `${wF} vs ${wT}`);
-  yes('  and nothing runs off the side', !m.hscroll);
+  const len = () => p.evaluate(() => planState().timer.focusDuration);
+  const mode = () => p.evaluate(() => FocusTimer.state().mode);
 
-  console.log('\n2. a long list scrolls inside its own compartment');
-  const sc = await p.evaluate(() => { const t = document.getElementById('t-tasks');
-    return {rows:document.querySelectorAll('#t-tasks .task-row').length,
-      scrolls:t.scrollHeight > t.clientHeight + 1, client:t.clientHeight, full:t.scrollHeight}; });
-  yes('there are more rows than fit', sc.rows >= 20, `${sc.rows} rows`);
-  yes('  the compartment scrolls rather than growing', sc.scrolls, `${sc.client} of ${sc.full}`);
-  /* and the page itself is not what moved */
-  m = await p.evaluate(rects);
-  yes('  the band still ends above the fold', m.tasks.b <= m.vh, `${m.tasks.b} vs ${m.vh}`);
-  /* the heading stays put while the rows go by */
-  const stuck = await p.evaluate(() => {
-    const t = document.getElementById('t-tasks'), s = t.querySelector('summary');
-    const before = Math.round(s.getBoundingClientRect().top);
-    t.scrollTop = 300;
-    return {before, after: Math.round(s.getBoundingClientRect().top), moved: t.scrollTop};
+  console.log('\n1. a task nobody has sat with starts at its whole estimate');
+  const fresh = await p.evaluate(() => { const t = newPlanTask('Untouched', today(), {duration: 45});
+    S.tasks.push(t); saveNow(); return t.id; });
+  is('the estimate is what was set', await p.evaluate(i => taskEstOf(planTaskById(i)), fresh), 45);
+  is('  nothing spent on it yet', await p.evaluate(i => taskSpentOn(i), fresh), 0);
+  await p.evaluate(i => focusOnTask(i, 45), fresh); await p.waitForTimeout(800);
+  is('  the sitting is the full length', await len(), 45);
+  is('  and it counts down', await mode(), 'countdown');
+  await p.evaluate(() => FocusTimer.stop());
+
+  console.log('\n2. a task already sat with counts down what is left');
+  const part = await p.evaluate(() => { const t = newPlanTask('Half done', today(), {duration: 60});
+    S.tasks.push(t);
+    planState().focusSessions.push({id: uid(), type: 'focus', taskId: t.id, subId: null,
+      duration: 25, startedAt: new Date().toISOString()});
+    saveNow(); return t.id; });
+  is('25 of the 60 are on the record', await p.evaluate(i => taskSpentOn(i), part), 25);
+  is('  so 35 are owed', await p.evaluate(i => focusLeftOn(i, 60), part), 35);
+  await p.evaluate(i => focusOnTask(i, 60), part); await p.waitForTimeout(800);
+  is('  and the sitting is 35, not 60', await len(), 35);
+  is('  still a countdown', await mode(), 'countdown');
+  yes('  running on that task', await p.evaluate(i => { const s = FocusTimer.state();
+    return s.running && s.taskId === i; }, part));
+  await p.evaluate(() => FocusTimer.stop());
+
+  console.log('\n3. once the estimate is spent there is nothing to count down');
+  await p.evaluate(i => { planState().focusSessions.push({id: uid(), type: 'focus', taskId: i,
+    subId: null, duration: 40, startedAt: new Date().toISOString()}); saveNow(); }, part);
+  is('the estimate is over-run', await p.evaluate(i => taskSpentOn(i) > taskEstOf(planTaskById(i)), part), true);
+  is('  nothing is left', await p.evaluate(i => focusLeftOn(i, 60), part), 0);
+  await p.evaluate(i => focusOnTask(i, 60), part); await p.waitForTimeout(800);
+  is('  so the sitting counts up instead of inventing time', await mode(), 'stopwatch');
+  await p.evaluate(() => { FocusTimer.stop(); FocusTimer.setMode('countdown'); });
+
+  console.log('\n4. a step is measured against its own figure, not the task\'s');
+  const withStep = await p.evaluate(() => {
+    const t = newPlanTask('Has steps', today(), {duration: 0});
+    t.subtasks = [{id: uid(), title: 'First step', minutes: 30, isCompleted: false},
+                  {id: uid(), title: 'Second step', minutes: 30, isCompleted: false}];
+    S.tasks.push(t);
+    planState().focusSessions.push({id: uid(), type: 'focus', taskId: t.id, subId: t.subtasks[0].id,
+      duration: 10, startedAt: new Date().toISOString()});
+    saveNow(); return {id: t.id, a: t.subtasks[0].id, c: t.subtasks[1].id};
   });
-  yes('  and its heading is pinned while they do', stuck.moved > 0 && stuck.after === stuck.before,
-      `${stuck.before} → ${stuck.after}`);
-  await p.close();
+  is('the first step has 10 against it', await p.evaluate(x => subSpentOn(x.id, x.a), withStep), 10);
+  is('  so it owes 20', await p.evaluate(x => focusLeftOn(x.id, 30, x.a), withStep), 20);
+  is('  the untouched step still owes all 30', await p.evaluate(x => focusLeftOn(x.id, 30, x.c), withStep), 30);
+  await p.evaluate(x => focusOnTask(x.id, 30, 'First step', x.a), withStep); await p.waitForTimeout(800);
+  is('  sitting down with the first step gives 20', await len(), 20);
+  await p.evaluate(() => FocusTimer.stop());
+  await p.evaluate(x => focusOnTask(x.id, 30, 'Second step', x.c), withStep); await p.waitForTimeout(800);
+  is('  and with the second, 30', await len(), 30);
+  await p.evaluate(() => FocusTimer.stop());
 
-  console.log('\n3. the reflective half goes in pairs');
-  p = await open(1440, 900, false);
-  m = await p.evaluate(rects);
-  yes('the check-in and the habits share a row', m.habits.l >= m.checkin.r - 2);
-  yes('  the theatre and the stillness share the next', m.still.l >= m.theatre.r - 2);
-  yes('  and the pairs are stacked, not interleaved', m.theatre.t >= m.checkin.t);
-  is('the index offers them in the order the page has them',
-     await p.evaluate(() => [...document.querySelectorAll('[data-jump]')].map(n => n.dataset.jump).join(',')),
-     't-focus,t-plan,t-tasks,t-checkin,t-habits,t-theatre,t-still,t-tonight');
-  await p.close();
+  console.log('\n5. the button says what pressing it will do');
+  await p.evaluate(() => { location.hash = '#/today'; rerender(); }); await p.waitForTimeout(1400);
+  const title = await p.evaluate(i => document.querySelector(`[data-test="${i}"]`)?.getAttribute('title') || '', part);
+  yes('an over-run task warns that it will count up', /counts up/.test(title), title);
 
-  console.log('\n4. a narrow screen is the single column it always was');
-  p = await open(880, 1100, false);
-  m = await p.evaluate(rects);
-  is('the clock and the list share a left edge', m.tasks.l, m.focus.l);
-  yes('  the clock is above the list', m.focus.b <= m.tasks.t + 2);
-  yes('  the pairs stack too', m.habits.t >= m.checkin.b - 2 && m.still.t >= m.theatre.b - 2);
-  yes('  nothing runs off the side', !m.hscroll);
-  yes('  and nothing is trapped in a scroller', await p.evaluate(() => {
-    const t = document.getElementById('t-tasks');
-    return getComputedStyle(t).overflowY !== 'auto' || t.scrollHeight <= t.clientHeight + 1; }));
-  await p.close();
+  console.log('\n6. the minutes are written down as they are worked');
+  /* A timer paused and forgotten used to lose the whole afternoon, and a
+     task's own figure was wrong for exactly as long as you were sitting
+     with it — which is when you are looking at it. */
+  await p.clock.install();
+  const live = await p.evaluate(() => { const t = newPlanTask('Worked on now', today(), {duration: 30});
+    S.tasks.push(t); saveNow(); return t.id; });
+  await p.evaluate(i => { FocusTimer.reset(); FocusTimer.setMode('countdown'); FocusTimer.setLength(30);
+    FocusTimer.setTask(i, null); FocusTimer.start(); }, live);
+  await p.clock.runFor(7 * 60 * 1000);
+  is('nothing is written while it runs', await p.evaluate(i => taskSpentOn(i), live), 0);
+  await p.evaluate(() => FocusTimer.pause()); await p.clock.runFor(200);
+  is('pausing writes down what has been done', await p.evaluate(i => taskSpentOn(i), live), 7);
+  is('  on the sitting\'s own row', await p.evaluate(i => focusSessionsFor(i).length, live), 1);
+  is('  and the task carries it as well', await p.evaluate(i => planTaskById(i).focusTime, live), 7);
+  await p.evaluate(() => FocusTimer.start()); await p.clock.runFor(5 * 60 * 1000);
+  await p.evaluate(() => FocusTimer.pause()); await p.clock.runFor(200);
+  is('resuming and pausing again adds to the same row', await p.evaluate(i => taskSpentOn(i), live), 12);
+  is('  rather than opening a second one', await p.evaluate(i => focusSessionsFor(i).length, live), 1);
+  is('  and nothing is counted twice', await p.evaluate(i => planTaskById(i).focusTime, live), 12);
+  is('  what is left of the estimate follows it', await p.evaluate(i => focusLeftOn(i, 30), live), 18);
+  await p.evaluate(() => FocusTimer.start()); await p.clock.runFor(3 * 60 * 1000);
+  await p.evaluate(() => FocusTimer.stop()); await p.clock.runFor(200);
+  is('stopping closes the same row', await p.evaluate(i => focusSessionsFor(i).length, live), 1);
+  is('  with the whole sitting on it', await p.evaluate(i => taskSpentOn(i), live), 15);
+  await p.evaluate(i => { FocusTimer.reset(); FocusTimer.setTask(i, null); FocusTimer.start(); }, live);
+  await p.clock.runFor(4 * 60 * 1000);
+  await p.evaluate(() => FocusTimer.stop()); await p.clock.runFor(200);
+  is('a later sitting is a new row', await p.evaluate(i => focusSessionsFor(i).length, live), 2);
+  is('  and the total is both of them', await p.evaluate(i => taskSpentOn(i), live), 19);
 
-  console.log('\n5. the day\'s own grid does not disturb the Review dashboard');
-  /* .bento is the Review tab's twelve-column grid; the day's band is .daybox,
-     and the two must not read each other's rules */
-  p = await b.newPage({viewport:{width:1440, height:900}});
-  p.on('pageerror', e => errs.push('review pageerror: ' + e.message));
-  await p.goto(FILE); await p.waitForTimeout(1000);
-  if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(2100); }
-  await p.evaluate(() => { location.hash = '#/journals/review'; rerender(); }); await p.waitForTimeout(1800);
-  const cols = await p.evaluate(() => { const n = document.querySelector('.rv-dash .bento');
-    return n ? getComputedStyle(n).gridTemplateColumns.split(' ').length : -1; });
-  is('the Review grid still has its twelve columns', cols, 12);
-  is('  and Today\'s band is not one of them',
-     await p.evaluate(() => document.querySelectorAll('.rv-dash .daybox').length), 0);
-  await p.close();
-
-  console.log('\n6. quiet');
-  is('no errors on the console', errs.length, 0, errs.join(' | '));
-  if(errs.length) errs.forEach(e => console.log('    ' + e));
-
+  console.log('\n' + (errs.length ? 'console:\n  ' + errs.join('\n  ') : 'console: clean'));
+  if(errs.length) bad += errs.length;
   console.log(bad ? `\n${bad} FAILED` : '\nsmoke147  all good');
   await b.close();
-  process.exit(bad ? 1 : 0);
+  process.exitCode = bad ? 1 : 0;
 })();

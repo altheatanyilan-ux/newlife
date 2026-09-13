@@ -61,6 +61,22 @@ function subSpentOn(taskId, subId){
   if(!taskId || !subId || typeof focusSessions !== 'function') return 0;
   return sum(focusSessions().filter(s => s.taskId === taskId && s.subId === subId).map(s => +s.duration || 0));
 }
+/* What is left of the estimate, which is what a second sitting should be.
+   Pressing "25m" on a task you have already given fifteen minutes to used to
+   start another twenty-five — so the countdown and the estimate stopped
+   meaning the same thing the moment you came back to something. An estimate
+   is of the whole job, not of each visit to it, so a later sitting counts
+   down what is still owed.
+
+   A step's sittings are measured against the step's own figure; the task's
+   against the task's. Once the estimate is spent there is nothing left to
+   count down, and the sitting counts up instead rather than inventing time
+   that was never estimated. */
+function focusLeftOn(id, minutes, subId){
+  if(!(+minutes > 0)) return 0;
+  const done = subId ? subSpentOn(id, subId) : taskSpentOn(id);
+  return Math.max(0, Math.round(+minutes - done));
+}
 /* "13m of 15m" while there is an estimate to measure against, "13m" when
    there is not, and nothing at all under a minute — a sitting shorter than
    that is not worth the ink and is not recorded in the first place. */
@@ -86,6 +102,7 @@ function taskEstHTML(id, t, {sm = false} = {}){
   const on = FocusTimer.state().taskId === id && FocusTimer.state().running;
   const rolled = taskHasSubEst(t);
   const spent = taskSpentOn(id);
+  const left = focusLeftOn(id, mins);
   const over = mins && spent > mins;
   const label = spent >= 1
     ? `<span class="te-spent">${esc(fmtEst(spent))}</span>${mins ? `<span class="te-of">of</span>${esc(fmtEst(mins))}` : ''}`
@@ -93,7 +110,11 @@ function taskEstHTML(id, t, {sm = false} = {}){
   return `<span class="est-wrap${sm ? ' sm' : ''}">
     <button class="task-est${sm ? ' sm' : ''}${on ? ' on' : ''}${mins ? '' : ' none'}${spent >= 1 ? ' spent' : ''}${over ? ' over' : ''}"
       data-test="${esc(id)}" data-estmin="${mins}"
-      title="${spent >= 1 ? `${fmtEst(spent)} sat with so far${mins ? `, of ${fmtEst(mins)} estimated` : ''} — press to sit down with it again` : mins ? `${fmtEst(mins)}${rolled ? ', added up from the steps' : ''} — press to sit down with it for that long` : 'how long will it take?'}">
+      title="${spent >= 1
+        ? `${fmtEst(spent)} sat with so far${mins ? `, of ${fmtEst(mins)} estimated` : ''} — press to sit down with ${
+            !mins ? 'it again' : left >= 1 ? `the ${fmtEst(left)} left` : 'it again; the estimate is spent, so it counts up'}`
+        : mins ? `${fmtEst(mins)}${rolled ? ', added up from the steps' : ''} — press to sit down with it for that long`
+        : 'how long will it take?'}">
       ${label}</button>
     ${mins && !rolled ? `<button class="est-pen" data-testedit="${esc(id)}" title="change the length" aria-label="change the length">✎</button>` : ''}
   </span>`;
@@ -169,18 +190,25 @@ function focusOnTask(id, minutes = 0, what = '', subId = null){
   /* a length can only be set while nothing is running, so a sitting already
      under way is stopped first — pressing an estimate is an unambiguous
      request to sit down with that thing for that long */
+  const left = focusLeftOn(id, minutes, subId);
   if(minutes){
     if(FocusTimer.state().running) FocusTimer.stop();
     FocusTimer.reset();
-    FocusTimer.setMode('countdown');
-    FocusTimer.setLength(minutes);
+    /* the estimate is of the job, so a sitting that follows earlier ones
+       counts down what is still owed rather than the whole figure again */
+    if(left >= 1){ FocusTimer.setMode('countdown'); FocusTimer.setLength(left); }
+    else FocusTimer.setMode('stopwatch');
   }
   FocusTimer.setTask(id, subId || null);
   const st = FocusTimer.state();
   if(!st.running || st.taskId !== id || st.subId !== (subId || null)) FocusTimer.start();
   if(what && typeof FocusTimer.noteWork === 'function') FocusTimer.noteWork(what);
   sound('success');
-  toast(`${minutes ? fmtEst(minutes) + ' on ' : 'Focusing on '}${what || t?.text || 'this'} — it is on today's list now.`);
+  const thing = what || t?.text || 'this';
+  toast(!minutes ? `Focusing on ${thing} — it is on today's list now.`
+    : left >= 1
+      ? `${fmtEst(left)}${left < minutes ? ` left of ${fmtEst(minutes)}` : ''} on ${thing} — it is on today's list now.`
+      : `${fmtEst(minutes)} was the estimate and it is spent — this sitting counts up. ${thing} is on today's list now.`);
   if(parseHash().name === 'today') rerender();
   else navigate('#/today');
 }

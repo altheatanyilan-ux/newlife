@@ -43,8 +43,10 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   /* how fat the trunk is against how tall it is — the honest measure of a
      sapling, since the whole drawing is scaled to fit the plot */
   const trunkAt = async m => { await p.evaluate(x => { S.skills = S._all.slice(0, x); }, m); await draw();
+    /* the trunk is a filled tapered shape now, not a stroked line: it says
+       how thick it is at the foot in data-w rather than in stroke-width */
     return p.evaluate(() => { const t = document.querySelector('.sk-trunk');
-      return t ? {w: +t.getAttribute('stroke-width'), h: t.getBBox().height} : {w:0, h:1}; }); };
+      return t ? {w: +t.dataset.w, h: t.getBBox().height} : {w:0, h:1}; }); };
   const one = await trunkAt(1), full = await trunkAt(await p.evaluate(() => S._all.length));
   const slender = x => x.w / x.h;
   yes('a sapling is a slender stem', slender(one) < .085, `${one.w.toFixed(1)}px wide on ${one.h.toFixed(0)}px tall`);
@@ -88,7 +90,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
      flowers once; this catches it if it comes back. */
   yes('  and it sits on its own twig, not in the corner',
       await p.evaluate(() => [...document.querySelectorAll('.sk-twig')].every(tw => {
-        const limb = tw.querySelector('path.limb'); if(!limb) return true;
+        const limb = tw.querySelector('path.wood'); if(!limb) return true;
         const lb = limb.getBoundingClientRect();
         return [...tw.querySelectorAll('.blossom')].every(fl => { const r = fl.getBoundingClientRect();
           const cx = r.left + r.width/2, cy = r.top + r.height/2;

@@ -228,52 +228,55 @@ function openMilestonePicker(){
   m.querySelectorAll('[data-ms]').forEach(b => b.onclick = () => { m.remove(); openSkillPanel(b.dataset.ms); setTimeout(()=>document.querySelector('#panel #msAdd')?.click(),260); });
 }
 
-/* ---------- the living tree: trunk, category branches, skill twigs, leaves for progress ---------- */
+/* ---------- the living tree ----------
+   Layout runs in its own space: the trunk's foot at the origin, y going up.
+   Nothing here decides where a branch should be — it says where the light
+   is (one point per skill, in `sgAttractors`) and lets the growth in
+   14-skillgrow.js find its own way there. What comes back is a set of
+   strands of wood; organicSVG below turns them into a cherry tree. */
 function organicLayout(){
-  const cats = [...new Set([...SKILL_CATS, ...S.skills.map(s=>s.cat)])].filter(c => S.skills.some(s=>s.cat===c));
-  const parentOf = s => s.prereqs.find(id => byId(S.skills,id)) || null;
-  /* The trunk was 300 tall whatever the tree held, so a young tree was mostly
-     bare wood with a few twigs at the top. It grows with the canopy now. */
-  const items = [];
-  const trunkTop = clamp(150 + cats.length * 22 + S.skills.length * 4, 150, 320);
-  const rad = d => d*Math.PI/180; const dir = a => [Math.cos(a), Math.sin(a)]; // y up in layout space
-  const limb = (start, ang, len, droop) => { const d = dir(ang); const end = [start[0]+d[0]*len, start[1]+d[1]*len]; const cd = dir(ang - droop); const ctrl = [start[0]+cd[0]*len*.55, start[1]+cd[1]*len*.55]; return {end, ctrl}; };
-  const qp = (a,c,b,t) => [ (1-t)*(1-t)*a[0] + 2*(1-t)*t*c[0] + t*t*b[0], (1-t)*(1-t)*a[1] + 2*(1-t)*t*c[1] + t*t*b[1] ];
-  const qt = (a,c,b,t) => Math.atan2( 2*(1-t)*(c[1]-a[1]) + 2*t*(b[1]-c[1]), 2*(1-t)*(c[0]-a[0]) + 2*t*(b[0]-c[0]) );
-  const twig = (sk, parentItem, t, sideSign, depth) => {
-    const start = qp(parentItem.start, parentItem.ctrl, parentItem.end, t); const tan = qt(parentItem.start, parentItem.ctrl, parentItem.end, t);
-    /* Skills used to leave their branch at a fixed angle a few degrees apart,
-       so a category with four of them read as one thick twig. They fan now —
-       far enough apart that each is its own line with its own flower, and
-       always long enough to give that flower room to sit clear of the branch. */
-    let ang = tan + sideSign*rad(depth===2 ? 52 : 46); if(Math.sin(ang) < .2) ang = (Math.cos(ang) >= 0 ? rad(24) : rad(156)); // always reach upward
-    const kids = S.skills.filter(x => parentOf(x) === sk.id);
-    const len = (depth===2 ? 116 : 78) + 15*(sk.currentLevel||0) + 8*kids.length;
-    const {end, ctrl} = limb(start, ang, len, sideSign*rad(14)); const it = {id:sk.id, kind:'skill', skill:sk, cat:sk.cat, start, end, ctrl, ang, depth, parent:parentItem.id, side:sideSign}; items.push(it);
-    kids.forEach((k,m) => twig(k, it, .45 + .5*(m+.5)/kids.length, m%2 ? -sideSign : sideSign, depth+1));
-    return it;
-  };
-  cats.forEach((c,i) => {
-    /* Only categories with something in them get a branch — an empty one used
-       to take up an arc of sky and hold nothing. What is left leaves the trunk
-       from its upper half rather than all the way down it, and at elevations
-       that stay within a band, so the canopy gathers into a crown instead of
-       raying out into empty space. A small per-branch wobble keeps it from
-       looking stamped. */
-    const side = i%2===0 ? -1 : 1;
-    const frac = cats.length===1 ? .72 : .42 + .56*(i/(cats.length-1));
-    const y0 = 30 + frac*(trunkTop-60);
-    const roots = S.skills.filter(s => s.cat===c && !parentOf(s)); const all = S.skills.filter(s => s.cat===c);
-    const jitter = ((c.charCodeAt(0)*7 + c.length*13) % 9) - 4;
-    const elev = rad(clamp(30 + 22*frac + jitter, 22, 58));
-    const ang = side < 0 ? Math.PI - elev : elev;
-    const len = 150 + 46*Math.sqrt(all.length);
-    const start = [0, y0]; const {end, ctrl} = limb(start, ang, len, side*rad(-10));
-    const it = {id:'cat:'+c, kind:'cat', cat:c, start, end, ctrl, ang, depth:1, parent:null, side, count:all.length}; items.push(it);
-    /* spread across most of the branch rather than bunched at its end */
-    roots.forEach((sk,j) => twig(sk, it, .28 + .70*(j+.5)/roots.length, j%2 ? -1 : 1, 2));
-  });
-  return {items, cats, trunkTop};
+  const skills = S.skills;
+  /* Seeded off the skills themselves, so the tree is the same on every
+     load. A new skill adds a point of light and the crown grows toward it;
+     it does not redeal the whole hand. */
+  const rnd = mulberry32(hashSeed('tree:' + skills.map(s => s.id).slice().sort().join('|')));
+  /* A cherry is not a pine: the trunk is short and the crown starts low.
+     A tall bare pole with a wreath on top is the other way a drawn tree
+     gives itself away. */
+  const trunkTop = clamp(56 + Math.sqrt(skills.length) * 30, 56, 200);
+  const env = sgEnvelope(skills.length, trunkTop);
+  const fillers = clamp(Math.round(26 + skills.length * 3.2), 26, 96);
+  const {attractors, cats} = sgAttractors(rnd, env, fillers);
+  /* A trunk is never a straight line. A lean with a countercurve in it is
+     the posture of something that has been standing in weather. */
+  const lean = (rnd() - .5) * trunkTop * .11;
+  const trunk = [[0, 0], [lean * .8 + (rnd() - .5) * 5, trunkTop * .30],
+    [lean * .12, trunkTop * .65], [lean, trunkTop]];
+  /* A short step and a modest influence radius are what make a tree fork
+     early and often. With a wide radius every shoot is pulled by every
+     skill at once, the averages cancel, and the trunk carries on upward as
+     one bare pole before anything happens — which is the shape the old
+     tree had, arrived at by a different route. */
+  const seg = clamp(env.rx * .038, 7, 13);
+  /* The influence radius is set off how far the furthest skill actually is,
+     not off a constant: too small and no shoot can feel anything, so the
+     tree grows as one unbranched cane toward the nearest light; too large
+     and every shoot feels everything, the pulls cancel, and it grows as one
+     unbranched cane straight up. Something over half the reach leaves each
+     tip aware of its own quarter of the sky and nothing else. */
+  const reach = Math.max(...attractors.map(a => Math.hypot(a.x - lean, a.y - trunkTop)), 120);
+  const grown = sgGrow(attractors, {startX: lean, startY: trunkTop, rnd, seg,
+    kill: seg * 1.5, infl: clamp(reach * .42, 85, 250),
+    up: .20, jitter: .46, maxIter: Math.round(reach / seg * 3) + 40});
+  const owned = sgOwn(grown, attractors, 2);
+  const strands = sgStrands(owned);
+  /* Thickness follows what a limb carries, not how deep it is — which is
+     why a branch with six skills on it is stouter than one with one, and
+     why the trunk thickens as the tree fills out. */
+  const rootSize = owned.meta.get(owned.root).size || 1;
+  const topW = clamp(3 + Math.sqrt(skills.length) * 4.2, 3, 26);
+  const unit = topW / Math.pow(rootSize, 1 / 2.45);
+  return {strands, attractors, cats, trunkTop, env, trunk, owned, unit, topW, rnd, seg};
 }
 /* ============================================================
    THE SAKURA — the pieces the tree is drawn from
@@ -479,245 +482,435 @@ function seedSVG(W, H){
 }
 function organicSVG(W, H){
   if(!S.skills.length) return seedSVG(W, H);
-  const {items, cats, trunkTop} = organicLayout(); const T = today();
-  // fit layout (y up, trunk base at origin) into the canvas
-  const xs = [0], ys = [0, trunkTop]; items.forEach(it => { [it.start, it.end, it.ctrl].forEach(p => { xs.push(p[0]); ys.push(p[1]); }); if(it.kind==='skill'){ xs.push(it.end[0] + (it.end[0] >= 0 ? 90 : -90)); ys.push(it.end[1] + 18); } else { xs.push(it.end[0] + it.side*80); } });
-  const bx0 = Math.min(...xs), bx1 = Math.max(...xs), by1 = Math.max(...ys) + 20; const padX = 30, ground = H - 44;
-  /* A sapling stretched to fill the whole plot stopped looking like a sapling:
-     two skills came out with a trunk as thick as a mature tree's. The fit only
-     shrinks a tree that is too big for the frame; it never blows a small one up
-     past life size. */
-  const k = Math.min((W - padX*2)/(bx1 - bx0), (ground - 30)/by1, 1.35); const ox = padX + (W - padX*2 - (bx1-bx0)*k)/2 - bx0*k;
-  const X = x => ox + x*k, Y = y => ground - y*k; const P = p => `${X(p[0]).toFixed(1)},${Y(p[1]).toFixed(1)}`;
-  const qp = (a,c,b,t) => [ (1-t)*(1-t)*a[0] + 2*(1-t)*t*c[0] + t*t*b[0], (1-t)*(1-t)*a[1] + 2*(1-t)*t*c[1] + t*t*b[1] ];
-  const qt = (a,c,b,t) => Math.atan2( 2*(1-t)*(c[1]-a[1]) + 2*t*(b[1]-c[1]), 2*(1-t)*(c[0]-a[0]) + 2*t*(b[0]-c[0]) );
-  const season = [-8,-6,0,6,10,12,10,6,2,-2,-6,-8][new Date().getMonth()];
-  const trunkX = X(0); let g = '', labels = ''; const lblItems = [], labelsBySkill = {};
-  g += `<defs>${sakDefs()}<linearGradient id="skTrunk" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#4e3d33"/><stop offset="1" stop-color="#7a6455"/></linearGradient><radialGradient id="skSun"><stop offset="0" stop-color="var(--page-accent)" stop-opacity=".22"/><stop offset="1" stop-color="var(--page-accent)" stop-opacity="0"/></radialGradient><radialGradient id="skMoon"><stop offset="0" stop-color="#e8e0d4" stop-opacity=".16"/><stop offset="1" stop-color="#e8e0d4" stop-opacity="0"/></radialGradient><radialGradient id="skGround"><stop offset="0" stop-color="#3a3128" stop-opacity=".55"/><stop offset="1" stop-color="#3a3128" stop-opacity="0"/></radialGradient></defs>`;
-  const hour = new Date().getHours(); const daytime = hour >= 6 && hour < 19;
-  g += daytime ? `<circle class="sk-sun" cx="${(W*.84).toFixed(0)}" cy="70" r="120" fill="url(#skSun)"/>` : `<g class="sk-moon" transform="translate(${(W*.84).toFixed(0)},70)"><circle r="90" fill="url(#skMoon)"/><path d="M-8,-14 a15,15 0 1 0 12,24 a11,11 0 1 1 -12,-24 Z" fill="#e8e0d4" opacity=".55"/></g>`;
-  items.filter(i => i.kind==='cat').forEach(it => { const e = it.end; const r = (46 + 10*Math.sqrt(it.count))*k; g += `<circle class="sk-canopy" cx="${X(e[0]).toFixed(1)}" cy="${(Y(e[1])-10).toFixed(1)}" r="${r.toFixed(1)}" fill="${catColor(it.cat)}" opacity=".07"/>`; });
-  /* Leaves scattered in the gaps between branches. They are not attached to
-     anything and mean nothing — they are there so the crown has a silhouette
-     rather than a set of separate twigs floating apart. Their number follows
-     the size of the tree, with a floor so even three skills read as a young
-     tree rather than a diagram. */
-  (() => {
-    const cs = items.filter(i => i.kind === 'cat'); if(!cs.length) return;
-    const many = clamp(Math.round(S.skills.length * 3.2), 6, 54);
-    /* a fixed pseudo-random walk, so the canopy does not reshuffle on redraw */
-    let seed = 7 + S.skills.length * 31;
-    const rnd = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
-    for(let i = 0; i < many; i++){
-      const host = cs[i % cs.length];
-      const a = rnd() * Math.PI * 2, rr = (30 + rnd() * 78) * k;
-      const cx = X(host.end[0]) + Math.cos(a) * rr, cy = Y(host.end[1]) - 8 + Math.sin(a) * rr * .62;
-      const sz = (13 + rnd() * 9) * k, rot = rnd() * 360;
-      /* one in four of the drifting things is a petal rather than a leaf —
-         under a cherry in flower the air is full of both */
-      const petal = rnd() < .28;
-      g += `<g class="leaf amb" data-phase="${(rnd()*6.28).toFixed(2)}" data-period="${(3 + rnd()*2.4).toFixed(2)}"
-        transform="translate(${cx.toFixed(1)},${cy.toFixed(1)}) rotate(${rot.toFixed(0)})" opacity="${(.34 + rnd()*.26).toFixed(2)}">
-        ${petal ? sakPetal(sz * .9, sz * .72, 'url(#sakP2)', '') : sakLeaf(sz, rnd() < .3, Math.floor(rnd()*3))}</g>`;
-    }
-  })();
-  g += `<ellipse cx="${trunkX.toFixed(1)}" cy="${ground+4}" rx="${(W*.3).toFixed(0)}" ry="14" fill="url(#skGround)"/>`;
-  /* the turf the tree is standing in — a soft band of green, then the blades */
-  g += `<path d="M${(trunkX-W*.5).toFixed(0)},${(ground+4).toFixed(0)} Q${(trunkX-W*.22).toFixed(0)},${(ground-9).toFixed(0)} ${trunkX.toFixed(0)},${(ground-5).toFixed(0)} Q${(trunkX+W*.24).toFixed(0)},${(ground-11).toFixed(0)} ${(trunkX+W*.5).toFixed(0)},${(ground+4).toFixed(0)} L${(trunkX+W*.5).toFixed(0)},${(ground+44).toFixed(0)} L${(trunkX-W*.5).toFixed(0)},${(ground+44).toFixed(0)} Z" fill="#6fa353" opacity=".30"/>`;
-  // roots and trunk
-  /* thicker at the base, and it thickens with what it is carrying */
-  /* A sapling with one skill on it had the same 18-unit trunk as a tree with
-     twenty. It starts slender and thickens with what it carries. */
-  const tw = clamp(6 + S.skills.length*2.6, 6, 40)*k;
-  g += `<path d="M${(trunkX-tw*1.7).toFixed(1)},${ground+2} Q${(trunkX-tw*.6).toFixed(1)},${(ground-tw*.5).toFixed(1)} ${trunkX.toFixed(1)},${(ground-tw*.9).toFixed(1)} Q${(trunkX+tw*.6).toFixed(1)},${(ground-tw*.5).toFixed(1)} ${(trunkX+tw*1.7).toFixed(1)},${ground+2} Z" fill="url(#skTrunk)" opacity=".85"/>`;
-  [[-1,.6],[1,.5],[-1,.3],[1,.25]].forEach(([sd,f],i) => g += `<path class="sk-root" d="M${trunkX.toFixed(1)},${(ground-4).toFixed(1)} Q${(trunkX+sd*tw*(1.2+i*.4)).toFixed(1)},${(ground+6+i*3).toFixed(1)} ${(trunkX+sd*tw*(2.6+i*.8)).toFixed(1)},${(ground+16+i*4*f).toFixed(1)}" stroke="url(#skTrunk)" stroke-width="${(3.2-i*.5).toFixed(1)}" fill="none" opacity=".55"/>`);
-  g += `<path class="sk-trunk" d="M${trunkX.toFixed(1)},${ground} C${(trunkX-6*k).toFixed(1)},${Y(trunkTop*.35).toFixed(1)} ${(trunkX+7*k).toFixed(1)},${Y(trunkTop*.7).toFixed(1)} ${trunkX.toFixed(1)},${Y(trunkTop).toFixed(1)}" stroke="url(#skTrunk)" stroke-width="${tw.toFixed(1)}" stroke-linecap="round" fill="none"/>`;
-  g += `<path class="sk-trunk-light" d="M${(trunkX-tw*.22).toFixed(1)},${ground-10} C${(trunkX-6*k-tw*.2).toFixed(1)},${Y(trunkTop*.35).toFixed(1)} ${(trunkX+7*k-tw*.2).toFixed(1)},${Y(trunkTop*.7).toFixed(1)} ${(trunkX-tw*.15).toFixed(1)},${Y(trunkTop*.96).toFixed(1)}" stroke="#8b7357" stroke-width="${(tw*.18).toFixed(1)}" stroke-linecap="round" fill="none" opacity=".35"/>`;
-  g += `<path class="sk-trunk-grain" d="M${(trunkX+tw*.2).toFixed(1)},${ground-16} C${(trunkX-6*k+tw*.24).toFixed(1)},${Y(trunkTop*.38).toFixed(1)} ${(trunkX+7*k+tw*.2).toFixed(1)},${Y(trunkTop*.68).toFixed(1)} ${(trunkX+tw*.12).toFixed(1)},${Y(trunkTop*.9).toFixed(1)}" stroke="#3b2e22" stroke-width="${(tw*.09).toFixed(1)}" stroke-linecap="round" fill="none" opacity=".22"/>`;
-  /* a few tufts at the foot, so the tree is standing in something */
-  [[-2.9,.9],[-1.6,.6],[2.2,1],[3.4,.7]].forEach(([sd,h],i) => {
-    const gx = trunkX + sd*tw, gh = 12*h*k;
-    g += `<path class="sk-grass" d="M${gx.toFixed(1)},${ground} q${(2*h).toFixed(1)},${(-gh*.6).toFixed(1)} ${(5*h).toFixed(1)},${(-gh).toFixed(1)} M${gx.toFixed(1)},${ground} q${(-1.6*h).toFixed(1)},${(-gh*.55).toFixed(1)} ${(-3.4*h).toFixed(1)},${(-gh*.86).toFixed(1)}" stroke="#7f916a" stroke-width="1.2" fill="none" opacity=".28" stroke-linecap="round"/>`;
-  });
-  /* Lenticels — the short horizontal dashes across a cherry's bark. They are
-     the one mark that names the species from thirty feet away, and the trunk
-     read as a plain brown stroke without them. */
-  {
-    let bs = 5 + S.skills.length * 17;
-    const rnd = () => { bs = (bs * 1103515245 + 12345) & 0x7fffffff; return bs / 0x7fffffff; };
-    /* Short dashes, two or three to a row and never spanning the trunk — a
-       lenticel is a pore, not a rung, and a bar right across turned the trunk
-       into a ladder. */
-    const rows = Math.max(7, Math.round(trunkTop / 15));
-    for(let i = 0; i < rows; i++){
-      const fy = .04 + (i / rows) * .92;
-      const ty = Y(trunkTop * fy) + (rnd() - .5) * 4;
-      const lean = (fy - .5) * 7 * k;
-      const per = 1 + Math.round(rnd() * 2);
-      for(let j = 0; j < per; j++){
-        const wid = tw * (.07 + rnd() * .15), off = (rnd() - .5) * tw * .62;
-        g += `<path class="sk-lentic" d="M${(trunkX + off - wid/2 + lean).toFixed(1)},${(ty + j*1.6).toFixed(1)} h${wid.toFixed(1)}"
-          stroke="#33281f" stroke-width="${(tw*.045 + .4).toFixed(2)}" stroke-linecap="round" opacity="${(.16 + rnd()*.2).toFixed(2)}"/>`;
+  const L = organicLayout(), T = today();
+  const {strands, attractors, cats, trunkTop, trunk, owned, unit, topW, rnd} = L;
+  const meta = owned.meta;
+  const parentOf = s => s.prereqs.find(id => byId(S.skills, id)) || null;
+
+  /* ---------- framing ----------
+     The viewport is fitted to what was actually drawn rather than to a
+     guess, so a tree never sits as a speck in a field of nothing. It only
+     ever shrinks a crown that is too big for the frame; a sapling is left
+     at life size instead of being blown up into a fake maturity. */
+  const xs = [], ys = [0];
+  const note = (x, y) => { xs.push(x); ys.push(y); };
+  trunk.forEach(p => note(p[0], p[1]));
+  owned.live.forEach(n => note(n.x, n.y));
+  attractors.forEach(a => note(a.x, a.y + 26));
+  const padX = 54, ground = H - 44;
+  const bx0 = Math.min(...xs) - padX, bx1 = Math.max(...xs) + padX, by1 = Math.max(...ys) + 34;
+  const k = Math.min((W - 24) / Math.max(bx1 - bx0, 1), (ground - 24) / Math.max(by1, 1), 1.45);
+  const ox = (W - (bx1 - bx0) * k) / 2 - bx0 * k;
+  const X = x => ox + x * k, Y = y => ground - y * k;
+  const NP = n => [X(n.x), Y(n.y)];
+  const trunkX = X(trunk[3][0]);
+
+  /* ---------- helpers ----------
+     Every piece of wood is a filled tapered shape, and every piece of wood
+     is revealed by a mask whose centreline draws itself outward from the
+     fork it leaves. That is what makes the tree arrive by growing: the
+     mask path carries the `limb` class, and 04-foliage.js animates its
+     dash offset without needing to know what it is masking. */
+  let maskN = 0; const masks = [], spurCentres = [];
+  const wood = (pts, widths, cls, fill, extra = '') => {
+    /* `data-w` is how thick this piece of wood is where it leaves its
+       parent. A stroked line advertises that in stroke-width; a filled
+       shape has nowhere to say it, and the tree's own proportions are
+       worth being able to check from outside. */
+    if(pts.length < 2) return '';
+    const id = `skm${maskN++}`, mx = Math.max(...widths);
+    masks.push(`<mask id="${id}" maskUnits="userSpaceOnUse" x="0" y="0" width="${W}" height="${H}">`
+      + `<path class="limb" d="${sgPath(pts)}" stroke="#fff" stroke-width="${(mx + 3.5).toFixed(1)}"`
+      + ` fill="none" stroke-linecap="round" stroke-linejoin="round"/></mask>`);
+    return `<path class="${cls}" data-w="${widths[0].toFixed(1)}" d="${sgRibbon(pts, widths)}" fill="${fill}" mask="url(#${id})"${extra}/>`;
+  };
+  /* a strand as it is drawn: screen points, and the width the wood has at
+     each of them. The first point is the fork it grows out of, so the base
+     is allowed a flare but not the whole thickness of its parent. */
+  const strandPts = st => sgSmooth(st.nodes.map(NP), 3, .3);
+  const strandW = st => {
+    const w = st.nodes.map(n => Math.max(sgWidth(meta.get(n).size, unit) * k, .5));
+    /* A branch leaving another one starts at a flare, not at its parent's
+       full thickness. A run that simply carries on — the leader out of the
+       trunk — keeps it, or the wood steps in where nothing happened. */
+    if(w.length > 1 && meta.get(st.nodes[0]).kind !== st.kind) w[0] = Math.min(w[0], w[1] * 1.45);
+    return w;
+  };
+  /* walk a polyline by arc length: where a leaf sits, and which way it lies */
+  const along = (pts, t) => {
+    const segs = []; let total = 0;
+    for(let i = 1; i < pts.length; i++){ const d = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); segs.push(d); total += d; }
+    let want = clamp(t, 0, 1) * total;
+    for(let i = 0; i < segs.length; i++){
+      if(want <= segs[i] || i === segs.length - 1){
+        const u = segs[i] ? clamp(want / segs[i], 0, 1) : 0, a = pts[i], b = pts[i + 1];
+        return {p: [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u],
+          ang: Math.atan2(b[1] - a[1], b[0] - a[0]) * 180 / Math.PI, len: total};
       }
+      want -= segs[i];
+    }
+    return {p: pts[pts.length - 1], ang: 0, len: total};
+  };
+  const P2 = p => `${p[0].toFixed(1)},${p[1].toFixed(1)}`;
+
+  const season = [-8,-6,0,6,10,12,10,6,2,-2,-6,-8][new Date().getMonth()];
+  let g = '', labels = ''; const lblItems = [], labelsBySkill = {};
+  const hour = new Date().getHours(), daytime = hour >= 6 && hour < 19;
+  g += daytime
+    ? `<circle class="sk-sun" cx="${(W*.84).toFixed(0)}" cy="70" r="120" fill="url(#skSun)"/>`
+    : `<g class="sk-moon" transform="translate(${(W*.84).toFixed(0)},70)"><circle r="90" fill="url(#skMoon)"/><path d="M-8,-14 a15,15 0 1 0 12,24 a11,11 0 1 1 -12,-24 Z" fill="#e8e0d4" opacity=".55"/></g>`;
+
+  /* the soft wash of colour behind each category's share of the crown */
+  const skillPts = attractors.filter(a => a.skill);
+  const catCloud = {};
+  skillPts.forEach(a => { (catCloud[a.cat] || (catCloud[a.cat] = [])).push(a); });
+  Object.keys(catCloud).forEach(c => {
+    const pts = catCloud[c].map(a => [X(a.x), Y(a.y)]);
+    const cx = pts.reduce((s, p) => s + p[0], 0) / pts.length, cy = pts.reduce((s, p) => s + p[1], 0) / pts.length;
+    const r = Math.max(52 * k, pts.reduce((m, p) => Math.max(m, Math.hypot(p[0] - cx, p[1] - cy)), 0) + 42 * k);
+    g += `<circle class="sk-canopy" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r.toFixed(1)}" fill="${catColor(c)}" opacity=".07"/>`;
+  });
+
+  /* Leaves loose in the gaps between branches. They are attached to nothing
+     and mean nothing: they are there so the crown has a silhouette instead
+     of a set of separate twigs floating apart. */
+  {
+    const many = clamp(Math.round(S.skills.length * 3.4), 8, 60);
+    for(let i = 0; i < many; i++){
+      const a = attractors[Math.floor(rnd() * attractors.length)];
+      const th = rnd() * Math.PI * 2, rr = (16 + rnd() * 66) * k;
+      const cx = X(a.x) + Math.cos(th) * rr, cy = Y(a.y) + Math.sin(th) * rr * .66;
+      const sz = (13 + rnd() * 9) * k, rot = rnd() * 360, petal = rnd() < .28;
+      g += `<g class="leaf amb" data-phase="${(rnd()*6.28).toFixed(2)}" data-period="${(3 + rnd()*2.4).toFixed(2)}"
+        transform="translate(${cx.toFixed(1)},${cy.toFixed(1)}) rotate(${rot.toFixed(0)})" opacity="${(.32 + rnd()*.26).toFixed(2)}">
+        ${petal ? sakPetal(sz * .9, sz * .72, 'url(#sakP2)', '') : sakLeaf(sz, rnd() < .12, Math.floor(rnd()*3))}</g>`;
     }
   }
-  // crown bud at the top of the trunk: the skills still to be named
-  g += `<circle cx="${trunkX.toFixed(1)}" cy="${Y(trunkTop).toFixed(1)}" r="${(tw*.42).toFixed(1)}" fill="#6e5a44"/>`;
-  items.filter(i => i.kind==='cat').forEach(it => {
-    const col = catColor(it.cat); const w = (4 + 1.6*Math.sqrt(it.count))*k;
-    g += `<g class="sk-branch" data-node="${it.id}" style="--nc:${col}"><path class="limb" d="M${P(it.start)} Q${P(it.ctrl)} ${P(it.end)}" stroke="url(#skTrunk)" stroke-width="${w.toFixed(1)}" stroke-linecap="round" fill="none"/><path class="limb-tint" d="M${P(it.start)} Q${P(it.ctrl)} ${P(it.end)}" stroke="${col}" stroke-width="${(w*.5).toFixed(1)}" stroke-linecap="round" fill="none" opacity=".28"/><ellipse class="sk-fork" cx="${X(it.start[0]).toFixed(1)}" cy="${Y(it.start[1]).toFixed(1)}" rx="${(w*.85).toFixed(1)}" ry="${(w*.62).toFixed(1)}" fill="#5c4834"/></g>`;
-    /* The category limb was a bare stick with a label on the end, and all the
-       green sat at the tips of its twigs. A spray of leaves along its outer
-       half joins the two up, so the crown reads as one canopy. */
-    {
-      const m = clamp(4 + it.count*2, 5, 14); let bl = '';
-      for(let q=0;q<m;q++){
-        const t = .44 + (q/Math.max(m-1,1))*.44; const p = qp(it.start, it.ctrl, it.end, t);
-        const tan = -qt(it.start, it.ctrl, it.end, t)*180/Math.PI; const sd = q%2 ? 1 : -1;
-        const size = 23*k*(.74 + ((q*7)%6)/11); const rot = tan + sd*(46 + ((q*11)%18));
-        bl += `<g transform="translate(${P(p)}) rotate(${rot.toFixed(1)})"><g class="leaf" data-phase="${((q*2.3)%6.28).toFixed(2)}" data-period="${(3.1 + (q*.41)%2).toFixed(2)}"
-          opacity=".82">${sakLeaf(size, false, q + 1)}</g></g>`;
-      }
-      g += `<g class="sk-branchleaves">${bl}</g>`;
-    }
-    const e = it.end; const lx = X(e[0]) + it.side*12, anchor = it.side>0 ? 'start' : 'end';
-    labels += `<text class="sk-catlbl" x="${lx.toFixed(1)}" y="${(Y(e[1])+4).toFixed(1)}" text-anchor="${anchor}" style="fill:${col}">${esc(it.cat)}</text><text class="sk-catsub" x="${lx.toFixed(1)}" y="${(Y(e[1])+16).toFixed(1)}" text-anchor="${anchor}">${it.count} skill${it.count===1?'':'s'}</text>`;
-    lblItems.push({id:'cat:'+it.cat, ex:X(e[0]), ey:Y(e[1])+8, x:lx, y:Y(e[1])+8, anchor, w:Math.max(it.cat.length*7.2, 62)+10, h:24, fixed:true});
-  });
-  items.filter(i => i.kind==='skill').sort((a,b)=>a.depth-b.depth).forEach(it => {
-    const s = it.skill; const col = catColor(s.cat); const locked = skillIsLocked(s); const last = skillLastPracticed(s); const since = daysSince(last); const active = !locked && !s.planned && since <= 7;
-    /* The blossom reads the roll-up, so a skill broken into abilities flowers
-       by how far its parts have actually come, not by a number set by hand. */
-    const lc = skillLevelCount(s); const lvl = s.currentLevel||0;
-    const prog = skillProgress(s);
-    const mastered = !s.planned && (skillAbilities(s).length
-      ? prog >= 1
-      : lc >= 2 && lvl >= lc);
-    const wither = last && !s.planned && !locked && since > 90 ? clamp((since-90)/180, 0, .8) : 0;
-    const nm = nextMilestone(s); const due = nm?.by ? daysBetween(T, nm.by) : null; const blossom = due !== null && due >= 0 && due <= 45; const overdue = due !== null && due < 0;
-    const limbW = ((it.depth===2 ? 3.2 : 2.4) + lvl*.5) * k * (1 - wither*.3); const limbCol = locked ? '#5a554f' : lerpColor('#6b5642', '#5a4634', prog);
-    const leafBase = lerpColor(col, '#6f9a58', .25 + .45*prog); const leafCol = lerpColor(leafBase, '#8a6a3a', wither);
-    const pid = `tw-${s.id}`; let inner = `<ellipse class="sk-fork" cx="${X(it.start[0]).toFixed(1)}" cy="${Y(it.start[1]).toFixed(1)}" rx="${(limbW*.9).toFixed(1)}" ry="${(limbW*.66).toFixed(1)}" fill="${limbCol}"/><path class="limb" id="${pid}" d="M${P(it.start)} Q${P(it.ctrl)} ${P(it.end)}" stroke="${limbCol}" stroke-width="${limbW.toFixed(1)}" stroke-linecap="round" fill="none" ${locked?'stroke-dasharray="4 4"':''}/>`;
-    if(active && !reduced()) inner += `<circle class="sap" r="${(2.2*k).toFixed(1)}" fill="#fff6dc" opacity=".9"><animateMotion dur="${(2.6 + (s.id.length%3)*.5).toFixed(1)}s" repeatCount="indefinite"><mpath href="#${pid}"/></animateMotion></circle>`;
-    /* ---- foliage and flower ----
-       A twig that is alive is fully leaved, whatever level it is on: leaves
-       are the fact that the thing exists at all, so they do not carry the
-       score. Progress is carried by the blossom — how many flowers open on
-       the twig, and how big they are. A skill at level zero is a green twig
-       with nothing on it; one at mastery is covered. */
-    const twigLen = Math.hypot(it.end[0]-it.start[0], it.end[1]-it.start[1]);
-    /* Six to thirteen leaves left daylight between them and the twig read as a
-       bare stick with ornaments. A living twig is thick with leaves, and one
-       further along gets more — the branch looks healthier because it is. */
-    /* Thirty slivers along a twig read as a feather, not a branch. Eight to
-       seventeen leaves at nearly twice the size read as leaves — and next to a
-       blossom drawn in screen pixels they are finally in proportion to it. */
-    const n = s.planned || locked ? 0 : clamp(Math.round(twigLen/9) + Math.round(prog*4), 8, 17);
-    let lf = '';
-    for(let i=0;i<n;i++){
-      /* the outer eighth of the twig is left bare: that is where the name is
-         written, and a leaf across the first letter of it is worse than a
-         slightly shorter spray */
-      const t = .18 + (i/Math.max(n-1,1))*.70; const p = qp(it.start, it.ctrl, it.end, t); const tan = -qt(it.start, it.ctrl, it.end, t)*180/Math.PI; const sd = i%2 ? 1 : -1;
-      /* size varies leaf to leaf so the canopy is not a stencil, but never with level */
-      /* a real cherry leaf: ovate, toothed, veined — and drawn big, because a
-         leaf you cannot see the shape of might as well be a dash */
-      const size = 27 * k * (1 - wither*.28) * (.80 + ((i*7)%6)/11); const rot = tan + sd*(40 + ((i*13)%20));
-      lf += `<g transform="translate(${P(p)}) rotate(${rot.toFixed(1)})"><g class="leaf" data-phase="${(i*1.7)%6.28}" data-period="${(2.8 + (i*.37)%2).toFixed(2)}"
-        opacity="${(.94 - wither*.4).toFixed(2)}">${sakLeaf(size, wither > .3, i)}</g></g>`;
-    }
-    if(s.planned || locked){ for(let i=0;i<3;i++){ const p = qp(it.start, it.ctrl, it.end, .55 + i*.2); lf += `<circle class="bud" cx="${X(p[0]).toFixed(1)}" cy="${Y(p[1]).toFixed(1)}" r="${(2.4*k).toFixed(1)}" fill="${locked?'#5a554f':col}" opacity=".7"/>`; } }
-    /* ---- the blossom ----
-       A cherry flower, drawn as one: five petals each with the cleft at the
-       tip that makes a sakura a sakura, a spray of stamens with yellow anthers
-       in the middle, and the calyx gripping it from behind. How far open it is
-       carries the level — bud, splitting, three petals parting, five open, and
-       at mastery a double bloom with a second rank behind.
 
-       They are drawn large on purpose. A flower you cannot see the shape of is
-       a dot, and the whole point of the tree is to be worth looking at. */
+  /* ---------- the ground ---------- */
+  g += `<ellipse cx="${trunkX.toFixed(1)}" cy="${ground+4}" rx="${(W*.3).toFixed(0)}" ry="14" fill="url(#skGround)"/>`;
+  g += `<path d="M${(trunkX-W*.5).toFixed(0)},${(ground+4).toFixed(0)} Q${(trunkX-W*.22).toFixed(0)},${(ground-9).toFixed(0)} ${trunkX.toFixed(0)},${(ground-5).toFixed(0)} Q${(trunkX+W*.24).toFixed(0)},${(ground-11).toFixed(0)} ${(trunkX+W*.5).toFixed(0)},${(ground+4).toFixed(0)} L${(trunkX+W*.5).toFixed(0)},${(ground+44).toFixed(0)} L${(trunkX-W*.5).toFixed(0)},${(ground+44).toFixed(0)} Z" fill="#6fa353" opacity=".30"/>`;
+
+  /* ---------- roots ----------
+     The same tapered shape as a branch, grown the other way: a short fan
+     that spreads and flattens as it goes into the soil, so the tree is
+     standing in the ground rather than resting on it. */
+  /* A sapling's foot barely flares; an old tree's spreads into its roots.
+     Flaring both by the same factor gave one skill the butt of a veteran. */
+  const baseW = topW * (1.52 + Math.min(S.skills.length, 24) * .018) * k;
+  {
+    const many = 3 + Math.floor(rnd() * 3);
+    for(let i = 0; i < many; i++){
+      const sd = i % 2 ? 1 : -1, f = .5 + rnd() * .9;
+      const reach = baseW * (1.9 + f * 2.4), drop = 7 + rnd() * 11;
+      const pts = [[trunkX + sd * baseW * .18, ground - baseW * .35],
+        [trunkX + sd * reach * .45, ground + drop * .35],
+        [trunkX + sd * reach * .82, ground + drop * .85],
+        [trunkX + sd * reach, ground + drop]];
+      g += wood(pts, [baseW * .42, baseW * .3, baseW * .16, .9], 'sk-root', 'url(#skTrunk)', ' opacity=".62"');
+    }
+  }
+
+  /* ---------- the trunk ----------
+     The trunk and the leader growing out of it are one piece of wood, so
+     they are drawn as one ribbon. Two paths meeting at the same point still
+     meet at an angle, and the join shows as a kink — which is exactly the
+     joint a real trunk does not have. */
+  const rootStrand = strands.find(st => st.nodes[0] === owned.root && st.nodes.length > 1);
+  {
+    const stem = trunk.slice(0, 3).map(p => [X(p[0]), Y(p[1])]);
+    const stemW = [baseW, baseW * .84, baseW * .70];
+    const pts = rootStrand ? stem.concat(strandPts(rootStrand)) : stem.concat([[X(trunk[3][0]), Y(trunk[3][1])]]);
+    const w = rootStrand ? stemW.concat(strandW(rootStrand)) : stemW.concat([topW * k]);
+    g += wood(pts, w, 'sk-trunk', 'url(#skTrunk)');
+    /* Bark: a few thin lines running the length of the trunk, each following
+       its curve at its own offset. Then the lenticels — the short horizontal
+       dashes a cherry is known by, which are the one mark that says which
+       tree this is from thirty feet away. */
+    for(let i = 0; i < 5; i++){
+      const off = (rnd() - .5) * baseW * .55;
+      const line = pts.map((p, j) => [p[0] + off * (1 - j * .18) + (rnd() - .5) * 2.4, p[1]]);
+      g += `<path class="sk-bark" d="${sgPath(line)}" stroke="#33281f" stroke-width="${(baseW*.05 + .5).toFixed(2)}" fill="none" opacity="${(.10 + rnd()*.12).toFixed(2)}"/>`;
+    }
+    const trunkAt = f => {                       /* where the trunk is, f of the way up */
+      const yy = trunkTop * f;
+      for(let i = 1; i < trunk.length; i++){
+        if(yy <= trunk[i][1] || i === trunk.length - 1){
+          const a = trunk[i-1], b = trunk[i], u = b[1] === a[1] ? 0 : clamp((yy - a[1]) / (b[1] - a[1]), 0, 1);
+          return [X(a[0] + (b[0] - a[0]) * u), Y(yy)];
+        }
+      }
+      return [trunkX, Y(yy)];
+    };
+    const rows = Math.max(7, Math.round(trunkTop / 15));
+    for(let i = 0; i < rows; i++){
+      const f = .05 + (i / rows) * .90, at = trunkAt(f);
+      const wdth = baseW + (topW * k - baseW) * f;
+      const per = 1 + Math.round(rnd() * 2);
+      for(let j = 0; j < per; j++){
+        const wid = wdth * (.08 + rnd() * .16), offx = (rnd() - .5) * wdth * .6;
+        g += `<path class="sk-lentic" d="M${(at[0] + offx - wid/2).toFixed(1)},${(at[1] + j*1.7).toFixed(1)} h${wid.toFixed(1)}"
+          stroke="#33281f" stroke-width="${(wdth*.05 + .4).toFixed(2)}" stroke-linecap="round" opacity="${(.16 + rnd()*.2).toFixed(2)}"/>`;
+      }
+    }
+    /* a few tufts at the foot, so the tree is standing in something */
+    [[-2.4,.9],[-1.3,.6],[1.8,1],[2.8,.7]].forEach(([sd, h]) => {
+      const gx = trunkX + sd * baseW, gh = 12 * h * k;
+      g += `<path class="sk-grass" d="M${gx.toFixed(1)},${ground} q${(2*h).toFixed(1)},${(-gh*.6).toFixed(1)} ${(5*h).toFixed(1)},${(-gh).toFixed(1)} M${gx.toFixed(1)},${ground} q${(-1.6*h).toFixed(1)},${(-gh*.55).toFixed(1)} ${(-3.4*h).toFixed(1)},${(-gh*.86).toFixed(1)}" stroke="#7f916a" stroke-width="1.2" fill="none" opacity=".28" stroke-linecap="round"/>`;
+    });
+  }
+
+  /* ---------- the scaffold ----------
+     The wood that belongs to no one skill: the limbs above the trunk that
+     several categories still share, and the short spurs the growth threw
+     out that never reached anything. Trees are full of those, and leaving
+     them out is half of why a drawn tree looks bald. */
+  {
+    /* How many spurs a crown ends up with depends on how the growth fell
+       out, and a run of good luck can leave hundreds of one-segment stubs.
+       The longest of them are the ones that read as branches; the rest are
+       specks, and drawing them costs more than they are worth. */
+    const scaff = strands.filter(st => st !== rootStrand && st.kind === 'trunk');
+    const spurs = strands.filter(st => st.kind === 'twiglet' && st.nodes.length >= 2)
+      .sort((a, b) => b.nodes.length - a.nodes.length)
+      .slice(0, clamp(20 + S.skills.length * 2, 20, 70));
+    let body = '', bl = '';
+    [...scaff, ...spurs].forEach(st => {
+      const pts = strandPts(st), w = strandW(st), spur = st.kind === 'twiglet';
+      body += `<path class="${spur ? 'sk-spur' : 'sk-scaffold'}" data-w="${w[0].toFixed(1)}"
+        d="${sgRibbon(pts, w)}" fill="url(#skTrunk)"${spur ? ' opacity=".82"' : ''}/>`;
+      spurCentres.push(`<path class="limb" d="${sgPath(pts)}" stroke="#fff" stroke-width="${(Math.max(...w) + 3.5).toFixed(1)}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`);
+      const n = spur ? 2 + Math.round(rnd() * 2) : clamp(Math.round(along(pts, 1).len / (30 * k)), 2, 9);
+      for(let i = 0; i < n; i++){
+        const at = along(pts, .34 + (i / Math.max(n - 1, 1)) * .58 + (rnd() - .5) * .08);
+        const sz = (spur ? 18 : 20) * k * (.72 + rnd() * .5);
+        bl += `<g transform="translate(${P2(at.p)}) rotate(${(at.ang + (i%2?54:-54) + (rnd()-.5)*18).toFixed(1)})"><g class="leaf"
+          data-phase="${(rnd()*6.28).toFixed(2)}" data-period="${(2.9 + rnd()*1.8).toFixed(2)}" opacity=".82">${sakLeaf(sz, rnd()<.12, i)}</g></g>`;
+      }
+    });
+    /* one reveal mask for all of the scaffolding rather than one apiece:
+       each centreline still draws itself, and the crown does not arrive
+       carrying a hundred mask elements */
+    g += `<g mask="url(#skmScaff)">${body}</g><g class="sk-branchleaves">${bl}</g>`;
+  }
+
+  /* ---------- category limbs ----------
+     A limb belongs to a category when everything past it is that category's
+     — which is a fact about where the branches went, not a decision taken
+     in advance. Its label hangs at the far end of the longest run. */
+  const catTips = {};
+  cats.forEach(c => {
+    const mine = strands.filter(st => st.kind === 'cat:' + c);
+    if(!mine.length) return;
+    const col = catColor(c);
+    let body = '';
+    mine.forEach(st => {
+      const pts = strandPts(st), w = strandW(st);
+      body += wood(pts, w, 'limb-wood', 'url(#skTrunk)');
+      body += wood(pts, w.map(v => v * .52), 'limb-tint', col, ' opacity=".26"');
+      /* a spray of leaves along the outer half, so the limb joins up with
+         the green at the ends of its twigs instead of being a bare stick */
+      const m = clamp(Math.round(along(pts, 1).len / (26 * k)), 4, 12); let bl = '';
+      for(let q = 0; q < m; q++){
+        const at = along(pts, .40 + (q / Math.max(m - 1, 1)) * .55);
+        const sd = q % 2 ? 1 : -1, sz = 22 * k * (.74 + ((q * 7) % 6) / 11);
+        bl += `<g transform="translate(${P2(at.p)}) rotate(${(at.ang + sd * (48 + ((q*11)%18))).toFixed(1)})"><g class="leaf"
+          data-phase="${((q*2.3)%6.28).toFixed(2)}" data-period="${(3.1 + (q*.41)%2).toFixed(2)}" opacity=".84">${sakLeaf(sz, false, q + 1)}</g></g>`;
+      }
+      body += `<g class="sk-branchleaves">${bl}</g>`;
+      const tip = pts[pts.length - 1];
+      if(!catTips[c] || tip[1] < catTips[c][1]) catTips[c] = tip;
+    });
+    g += `<g class="sk-branch" data-node="cat:${esc(c)}" style="--nc:${col}">${body}</g>`;
+  });
+  cats.forEach(c => {
+    if(!catTips[c]){
+      /* a category whose skills never shared a limb — one skill, usually.
+         Label the cluster instead of a branch that does not exist. */
+      const pts = (catCloud[c] || []).map(a => [X(a.x), Y(a.y)]);
+      if(!pts.length) return;
+      catTips[c] = [pts.reduce((s, p) => s + p[0], 0) / pts.length, Math.min(...pts.map(p => p[1])) - 26 * k];
+    }
+    const col = catColor(c), tip = catTips[c], out = tip[0] >= trunkX ? 1 : -1;
+    const count = S.skills.filter(s => s.cat === c).length;
+    const lx = tip[0] + out * 13, anchor = out > 0 ? 'start' : 'end';
+    labels += `<text class="sk-catlbl" x="${lx.toFixed(1)}" y="${(tip[1]+4).toFixed(1)}" text-anchor="${anchor}" style="fill:${col}">${esc(c)}</text>`
+      + `<text class="sk-catsub" x="${lx.toFixed(1)}" y="${(tip[1]+16).toFixed(1)}" text-anchor="${anchor}">${count} skill${count===1?'':'s'}</text>`;
+    lblItems.push({id: 'cat:' + c, ex: tip[0], ey: tip[1] + 8, x: lx, y: tip[1] + 8, anchor,
+      w: Math.max(c.length * 7.2, 62) + 10, h: 24, fixed: true});
+  });
+
+  /* ---------- the skills ----------
+     One twig per skill: the run of wood that only it lies beyond. What
+     hangs on it is what the skill is doing — leaves for being alive at all,
+     blossom for how far it has come, cherries for mastery, bronze for a
+     skill going cold. */
+  const bySkill = {};
+  strands.filter(st => st.kind.startsWith('skill:')).forEach(st => {
+    const id = st.kind.slice(6); (bySkill[id] || (bySkill[id] = [])).push(st);
+  });
+  skillPts.slice().sort((a, b) => a.depth - b.depth).forEach(a => {
+    const s = a.skill, col = catColor(s.cat), locked = skillIsLocked(s);
+    const last = skillLastPracticed(s), since = daysSince(last);
+    const active = !locked && !s.planned && since <= 7;
+    const lc = skillLevelCount(s), lvl = s.currentLevel || 0, prog = skillProgress(s);
+    const mastered = !s.planned && (skillAbilities(s).length ? prog >= 1 : lc >= 2 && lvl >= lc);
+    const wither = last && !s.planned && !locked && since > 90 ? clamp((since - 90) / 180, 0, .8) : 0;
+    const nm = nextMilestone(s), due = nm?.by ? daysBetween(T, nm.by) : null;
+    const soon = due !== null && due >= 0 && due <= 45, overdue = due !== null && due < 0;
+
+    const mine = bySkill[s.id] || [];
+    /* the longest run is the twig proper; anything else it threw out is a
+       side spur off the same skill */
+    const pts0 = mine.length ? mine.map(strandPts) : [];
+    let main = 0;
+    pts0.forEach((p, i) => { if(along(p, 1).len > along(pts0[main], 1).len) main = i; });
+    const twig = pts0.length ? pts0[main] : [[X(a.x), Y(a.y) + 30 * k], [X(a.x), Y(a.y)]];
+    const tip = twig[twig.length - 1];
+
+    const limbCol = locked ? '#5a554f' : lerpColor('#6b5642', '#5a4634', prog);
+    let inner = '';
+    mine.forEach((st, i) => {
+      const pts = strandPts(st), w = strandW(st).map(v => v * (1 - wither * .22));
+      inner += wood(pts, w, 'wood', limbCol, locked ? ' opacity=".55"' : '');
+    });
+    const pid = `tw-${s.id}`;
+    inner += `<path class="sk-centre" id="${pid}" d="${sgPath(twig)}" fill="none"/>`;
+    if(active && !reduced()) inner += `<circle class="sap" r="${(2.2*k).toFixed(1)}" fill="#fff6dc" opacity=".9"><animateMotion dur="${(2.6 + (s.id.length%3)*.5).toFixed(1)}s" repeatCount="indefinite"><mpath href="#${pid}"/></animateMotion></circle>`;
+
+    /* ---- foliage ----
+       A twig that is alive is fully leaved whatever level it is on: leaves
+       are the fact that the thing exists at all, so they do not carry the
+       score. Progress is carried by the blossom. */
+    let lf = '', tLeaf = .5;
+    const runs = pts0.length ? pts0 : [twig];
+    runs.forEach((pts, ri) => {
+      const len = along(pts, 1).len;
+      /* Leaves grow on the new wood at the ends, not down the whole length
+         of a limb. A skill whose run happens to be the leader out of the
+         trunk would otherwise come out with leaves sprouting from its
+         trunk, which no tree does. */
+      const t0 = clamp(1 - (150 * k) / Math.max(len, 1), .14, .74);
+      if(pts === twig) tLeaf = t0;
+      const n = s.planned || locked ? 0 : clamp(Math.round(len * (1 - t0) / (10 * k)) + Math.round(prog * 4), ri ? 3 : 7, 20);
+      for(let i = 0; i < n; i++){
+        const at = along(pts, t0 + (i / Math.max(n - 1, 1)) * (.94 - t0)), sd = i % 2 ? 1 : -1;
+        const size = 22 * k * (1 - wither * .28) * (.80 + ((i * 7) % 6) / 11);
+        lf += `<g transform="translate(${P2(at.p)}) rotate(${(at.ang + sd * (42 + ((i*13)%20))).toFixed(1)})"><g class="leaf"
+          data-phase="${((i*1.7)%6.28).toFixed(2)}" data-period="${(2.8 + (i*.37)%2).toFixed(2)}"
+          opacity="${(.94 - wither*.4).toFixed(2)}">${sakLeaf(size, wither > .3, i)}</g></g>`;
+      }
+    });
+    if(s.planned || locked) for(let i = 0; i < 3; i++){
+      const at = along(twig, .55 + i * .2);
+      lf += `<circle class="bud" cx="${at.p[0].toFixed(1)}" cy="${at.p[1].toFixed(1)}" r="${(2.4*k).toFixed(1)}" fill="${locked ? '#5a554f' : col}" opacity=".7"/>`;
+    }
+
+    /* ---- the blossom ----
+       A cherry flower drawn as one: five petals each with the cleft at the
+       tip that makes a sakura a sakura, a spray of stamens with yellow
+       anthers in the middle, the calyx gripping it from behind. How far
+       open it is carries the level — bud, splitting, three petals parting,
+       five open, and at mastery a double bloom with a second rank behind.
+       The first one sits at the point the branch grew to reach. */
     const flowers = (s.planned || locked) ? 0 : clamp(Math.round(1 + prog * 3.2), 1, 5);
     if(flowers && lvl > 0){
-      const tier = clamp(Math.ceil(prog * 5), 1, 5);
-      const R = [0, 15, 20, 26, 32, 40][tier];
-      for(let i=0;i<flowers;i++){
-        const t = .36 + (i/Math.max(flowers-1,1))*.60; const p = qp(it.start, it.ctrl, it.end, t);
-        /* off the twig by most of their own width, alternating sides, so two
-           neighbours never sit on top of each other */
-        const sd = i%2 ? 1 : -1; const cx = X(p[0]) + sd*(R*.66), cy = Y(p[1]) - (R*.44);
-        const tilt = (i*53) % 70 - 35;
-        /* every other one is the paler sort, and they lean at their own angles,
-           because a branch of identical flowers reads as a stencil */
-        lf += `<g class="blossom t${tier} ${blossom ? 'soon' : ''}" style="--d:${(i*.28).toFixed(2)}s"
+      const tier = clamp(Math.ceil(prog * 5), 1, 5), R = [0, 15, 20, 26, 32, 40][tier] * Math.min(k, 1.15);
+      for(let i = 0; i < flowers; i++){
+        let cx, cy;
+        /* the first one sits where the branch stopped — which is as near as
+           the wood got to the light it was growing toward */
+        if(i === 0){ cx = tip[0]; cy = tip[1]; }
+        else {
+          const at = along(twig, Math.max(.5, tLeaf) + (i / Math.max(flowers - 1, 1)) * (.96 - Math.max(.5, tLeaf))), sd = i % 2 ? 1 : -1;
+          cx = at.p[0] + sd * R * .66; cy = at.p[1] - R * .40;
+        }
+        const tilt = (i * 53) % 70 - 35;
+        lf += `<g class="blossom t${tier} ${soon ? 'soon' : ''}" style="--d:${(i*.28).toFixed(2)}s"
           transform="translate(${cx.toFixed(1)},${cy.toFixed(1)}) rotate(${tilt.toFixed(0)})">
           ${tier >= 4 ? `<circle r="${(R*.95).toFixed(2)}" fill="#f8cfe0" opacity=".16"/>` : ''}
           ${sakFlower(R, tier, i % 2 === 1)}</g>`;
       }
     }
-    /* mastery hangs an apple, not a disc: two lobes with a dip at the top, a
-       stem going back into the twig, one leaf, and a highlight where the light
-       is coming from — a plain circle read as a smudge at this size */
-    /* Mastery hangs cherries — dark, glossy, in pairs on a shared stem, which
-       is how they actually grow. An apple on a cherry tree was a small lie. */
-    if(mastered){ for(let i=0;i<3;i++){
-      const p = qp(it.start, it.ctrl, it.end, .58 + i*.15); const sd = i%2?1:-1;
-      const cx = X(p[0]) + sd*9*k, cy = Y(p[1]) + 4*k, r = 6.4*k;
+    /* Mastery hangs cherries — dark, glossy, in pairs on a shared stem,
+       which is how they actually grow. */
+    if(mastered) for(let i = 0; i < 3; i++){
+      const at = along(twig, .58 + i * .15), sd = i % 2 ? 1 : -1;
+      const cx = at.p[0] + sd * 9 * k, cy = at.p[1] + 4 * k, r = 6.4 * k;
       lf += `<g class="fruit" style="--d:${(i*.22).toFixed(2)}s" transform="translate(${cx.toFixed(1)},${cy.toFixed(1)})">
         <path d="M0,${(-r*1.9).toFixed(2)} q${(-r*.5).toFixed(2)},${(r*.9).toFixed(2)} ${(-r*.78).toFixed(2)},${(r*1.5).toFixed(2)}
                  M0,${(-r*1.9).toFixed(2)} q${(r*.55).toFixed(2)},${(r*.95).toFixed(2)} ${(r*.82).toFixed(2)},${(r*1.55).toFixed(2)}"
           fill="none" stroke="#6f8a4a" stroke-width="${(r*.16).toFixed(2)}" stroke-linecap="round"/>
-        ${[[-.78, 1.5, .92], [.82, 1.55, 1]].map(([dx, dy, sc]) => `<g transform="translate(${(-r*0 + r*dx).toFixed(2)},${(r*dy).toFixed(2)}) scale(${sc})">
+        ${[[-.78, 1.5, .92], [.82, 1.55, 1]].map(([dx, dy, sc]) => `<g transform="translate(${(r*dx).toFixed(2)},${(r*dy).toFixed(2)}) scale(${sc})">
           <circle r="${r.toFixed(2)}" fill="#9e2436"/>
           <path d="M${(-r*.86).toFixed(2)},${(-r*.2).toFixed(2)} a${r.toFixed(2)},${r.toFixed(2)} 0 0 1 ${(r*.7).toFixed(2)},${(-r*.72).toFixed(2)}"
             stroke="#f0a8b4" stroke-width="${(r*.26).toFixed(2)}" fill="none" stroke-linecap="round" opacity=".55"/>
           <circle r="${r.toFixed(2)}" fill="none" stroke="#5e1220" stroke-width=".6" opacity=".5"/></g>`).join('')}
-      </g>`; } }
-    if(wither > .3){ for(let i=0;i<2;i++){ const p = qp(it.start, it.ctrl, it.end, .5 + i*.3); lf += `<g class="fall" style="animation-delay:${(i*2.1).toFixed(1)}s;animation-duration:${(6 + i*1.5).toFixed(1)}s" transform="translate(${P(p)})"><path d="M0,0 Q4,-3 8,0 Q4,3 0,0" fill="${leafCol}" opacity=".8"/></g>`; } }
-    if(active){ lf = `<circle class="halo" cx="${X(it.end[0]).toFixed(1)}" cy="${Y(it.end[1]).toFixed(1)}" r="${(15*k).toFixed(1)}" fill="${col}" opacity=".16"/>` + lf; }
-    if(overdue){ lf += `<circle cx="${X(it.end[0]).toFixed(1)}" cy="${Y(it.end[1]).toFixed(1)}" r="${(3*k).toFixed(1)}" fill="#c25b5b"/>`; }
-    const outward = it.end[0] >= 0 ? 1 : -1;
-    const sub = s.planned ? 'planned' : locked ? 'locked' : mastered ? 'mastered' : `lvl ${lvl}/${lc}${active?' · active':wither?' · withering':!last?' · not yet practised':''}`;
-    const name = (locked?'🔒 ':'') + s.name; const fs = it.depth===2 ? 11.5 : 10.5;
-    /* the leaves are a good deal bigger than they were, so a label eight pixels
-       off the twig tip now sits inside the foliage; it stands further out */
-    lblItems.push({id:s.id, ex:X(it.end[0]), ey:Y(it.end[1]), x:X(it.end[0]) + outward*32, y:Y(it.end[1]), anchor:outward>0?'start':'end', w:Math.max(name.length*fs*.56, sub.length*8.5*.62) + 6, h:24, name, sub, fs, col});
-    g += `<g class="sk-twig ${locked?'locked':''} ${active?'active':''} ${mastered?'mastered':''} ${since <= 7 ? 'fresh' : ''}" data-skill="${s.id}" data-parent="${it.parent}" data-x="${X(it.end[0]).toFixed(1)}" data-y="${Y(it.end[1]).toFixed(1)}" style="--nc:${col}"><title>${esc(s.name)} · ${esc(sub)}${since<Infinity?` · last practised ${relDays(since)}`:''}</title>${inner}<g class="sk-leaves">${lf}</g><g class="sk-lblslot" data-for="${s.id}"></g></g>`;
+      </g>`;
+    }
+    if(wither > .3) for(let i = 0; i < 2; i++){
+      const at = along(twig, .5 + i * .3);
+      lf += `<g class="fall" style="animation-delay:${(i*2.1).toFixed(1)}s;animation-duration:${(6 + i*1.5).toFixed(1)}s" transform="translate(${P2(at.p)})"><path d="M0,0 Q4,-3 8,0 Q4,3 0,0" fill="${lerpColor(col, '#8a6a3a', 1)}" opacity=".8"/></g>`;
+    }
+    if(active) lf = `<circle class="halo" cx="${tip[0].toFixed(1)}" cy="${tip[1].toFixed(1)}" r="${(15*k).toFixed(1)}" fill="${col}" opacity=".16"/>` + lf;
+    if(overdue) lf += `<circle cx="${tip[0].toFixed(1)}" cy="${tip[1].toFixed(1)}" r="${(3*k).toFixed(1)}" fill="#c25b5b"/>`;
+
+    const outward = tip[0] >= trunkX ? 1 : -1;
+    const sub = s.planned ? 'planned' : locked ? 'locked' : mastered ? 'mastered'
+      : `lvl ${lvl}/${lc}${active ? ' · active' : wither ? ' · withering' : !last ? ' · not yet practised' : ''}`;
+    const name = (locked ? '🔒 ' : '') + s.name, fs = a.depth === 0 ? 11.5 : 10.5;
+    lblItems.push({id: s.id, ex: tip[0], ey: tip[1], x: tip[0] + outward * 34, y: tip[1],
+      anchor: outward > 0 ? 'start' : 'end',
+      w: Math.max(name.length * fs * .56, sub.length * 8.5 * .62) + 6, h: 24, name, sub, fs, col});
+    const par = parentOf(s);
+    g += `<g class="sk-twig ${locked?'locked':''} ${active?'active':''} ${mastered?'mastered':''} ${since <= 7 ? 'fresh' : ''}"
+      data-skill="${s.id}" data-parent="${par && byId(S.skills, par) ? par : 'cat:' + s.cat}"
+      data-x="${tip[0].toFixed(1)}" data-y="${tip[1].toFixed(1)}" style="--nc:${col}"><title>${esc(s.name)} · ${esc(sub)}${since < Infinity ? ` · last practised ${relDays(since)}` : ''}</title>${inner}<g class="sk-leaves">${lf}</g></g>`;
   });
-  /* The grass grows in front of the trunk, so it is drawn after it. Orchids
-     come up between the blades, three to a spike, each with the lip that tells
-     an orchid from any other flower. */
+
+  /* the grass grows in front of the trunk, so it is drawn after it */
   {
     let gs = 41 + S.skills.length * 13;
-    const rnd = () => { gs = (gs * 1103515245 + 12345) & 0x7fffffff; return gs / 0x7fffffff; };
-    g += `<g class="sk-turf">${sakGrassHTML(trunkX, ground, W, rnd)}</g>`;
+    const r2 = () => { gs = (gs * 1103515245 + 12345) & 0x7fffffff; return gs / 0x7fffffff; };
+    g += `<g class="sk-turf">${sakGrassHTML(trunkX, ground, W, r2)}</g>`;
   }
   /* petals in the air, which is the whole of a cherry in April */
   {
-    let ps = 913 + S.skills.length * 7;
-    const rnd = () => { ps = (ps * 1103515245 + 12345) & 0x7fffffff; return ps / 0x7fffffff; };
     const many = clamp(6 + S.skills.length, 6, 22);
     for(let i = 0; i < many; i++){
-      const px = trunkX + (rnd() - .5) * W * .8, py = 40 + rnd() * (ground - 90);
-      const sz = (7 + rnd() * 6) * k;
+      const px = trunkX + (rnd() - .5) * W * .8, py = 40 + rnd() * (ground - 90), sz = (7 + rnd() * 6) * k;
       g += `<g class="sk-fallpetal" style="--dur:${(9 + rnd()*9).toFixed(1)}s;--delay:${(-rnd()*14).toFixed(1)}s;--dx:${(18 + rnd()*40).toFixed(0)}px;--dy:${(ground - py).toFixed(0)}px"
         transform="translate(${px.toFixed(1)},${py.toFixed(1)}) rotate(${(rnd()*360).toFixed(0)})">
         ${sakPetal(sz, sz*.8, 'url(#sakP)', (.5 + rnd()*.4).toFixed(2))}</g>`;
     }
   }
-  // relax labels so they never sit on top of each other; a faint leader joins a moved label to its twig
-  /* Two labels a pixel apart still read as one smear, because each is painted
-     with a background-coloured halo that eats its neighbour's first letter. The
-     box is drawn a little larger than the text, and touching counts as a clash. */
-  const boxOf = l => ({left: l.anchor==='start' ? l.x : l.x - l.w, right: l.anchor==='start' ? l.x + l.w : l.x, top: l.y - 15, bottom: l.y + 15});
-  for(let pass=0; pass<40; pass++){ let moved = false; for(let i=0;i<lblItems.length;i++) for(let j=i+1;j<lblItems.length;j++){ const a = lblItems[i], b = lblItems[j]; const A = boxOf(a), B = boxOf(b); const ox = Math.min(A.right,B.right) - Math.max(A.left,B.left), oy = Math.min(A.bottom,B.bottom) - Math.max(A.top,B.top); if(ox > -6 && oy > 0){ const lower = a.y >= b.y ? a : b, upper = lower===a ? b : a; if(lower.fixed && upper.fixed) continue; if(lower.fixed) upper.y -= oy + 2; else if(upper.fixed) lower.y += oy + 2; else { lower.y += oy/2 + 1; upper.y -= oy/2 + 1; } moved = true; } } if(!moved) break; }
-  lblItems.forEach(l => { if(l.fixed) return; l.y = clamp(l.y, 16, H - 52); const dy = Math.abs(l.y - l.ey); const leader = dy > 7 ? `<line class="sk-leader" x1="${l.ex.toFixed(1)}" y1="${l.ey.toFixed(1)}" x2="${(l.anchor==='start' ? l.x - 2 : l.x + 2).toFixed(1)}" y2="${l.y.toFixed(1)}"/>` : ''; labelsBySkill[l.id] = `${leader}<text class="sk-lbl" x="${l.x.toFixed(1)}" y="${(l.y-3).toFixed(1)}" text-anchor="${l.anchor}" style="font-size:${l.fs}px">${esc(l.name)}</text><text class="sk-sublbl" x="${l.x.toFixed(1)}" y="${(l.y+9).toFixed(1)}" text-anchor="${l.anchor}">${esc(l.sub)}</text>`; });
-  /* Every label used to live inside its own twig's group, so the twig drawn
-     after it painted leaves over its first letters — "Writing" read as
-     "riting". They are one layer now, laid over the whole tree. */
-  g = g.replace(/<g class="sk-lblslot" data-for="[^"]+"><\/g>/g, '');
+
+  /* Labels are relaxed so no two sit on top of each other; a faint leader
+     joins a label that had to move back to the twig it belongs to. Touching
+     counts as a clash, because each is painted with a background-coloured
+     halo that eats its neighbour's first letter. */
+  const boxOf = l => ({left: l.anchor === 'start' ? l.x : l.x - l.w, right: l.anchor === 'start' ? l.x + l.w : l.x, top: l.y - 15, bottom: l.y + 15});
+  for(let pass = 0; pass < 40; pass++){ let moved = false;
+    for(let i = 0; i < lblItems.length; i++) for(let j = i + 1; j < lblItems.length; j++){
+      const a = lblItems[i], b = lblItems[j], A = boxOf(a), B = boxOf(b);
+      const oxx = Math.min(A.right, B.right) - Math.max(A.left, B.left), oy = Math.min(A.bottom, B.bottom) - Math.max(A.top, B.top);
+      if(oxx > -6 && oy > 0){ const lower = a.y >= b.y ? a : b, upper = lower === a ? b : a;
+        if(lower.fixed && upper.fixed) continue;
+        if(lower.fixed) upper.y -= oy + 2; else if(upper.fixed) lower.y += oy + 2;
+        else { lower.y += oy / 2 + 1; upper.y -= oy / 2 + 1; }
+        moved = true; } }
+    if(!moved) break; }
+  lblItems.forEach(l => { if(l.fixed) return;
+    l.y = clamp(l.y, 16, H - 52);
+    const dy = Math.abs(l.y - l.ey);
+    const leader = dy > 7 ? `<line class="sk-leader" x1="${l.ex.toFixed(1)}" y1="${l.ey.toFixed(1)}" x2="${(l.anchor === 'start' ? l.x - 2 : l.x + 2).toFixed(1)}" y2="${l.y.toFixed(1)}"/>` : '';
+    labelsBySkill[l.id] = `${leader}<text class="sk-lbl" x="${l.x.toFixed(1)}" y="${(l.y-3).toFixed(1)}" text-anchor="${l.anchor}" style="font-size:${l.fs}px">${esc(l.name)}</text><text class="sk-sublbl" x="${l.x.toFixed(1)}" y="${(l.y+9).toFixed(1)}" text-anchor="${l.anchor}">${esc(l.sub)}</text>`;
+  });
   const labelLayer = Object.keys(labelsBySkill).map(id =>
     `<g class="sk-lblfor" data-for="${id}">${labelsBySkill[id]}</g>`).join('');
-  return `<svg class="sk-organic" viewBox="0 0 ${W} ${H}" style="filter:hue-rotate(${season}deg)">${g}${labels}<g class="sk-lbls">${labelLayer}</g></svg>`;
+
+  const defs = `<defs>${sakDefs()}<linearGradient id="skTrunk" gradientUnits="userSpaceOnUse" x1="0" y1="${ground}" x2="0" y2="${(ground*.12).toFixed(0)}"><stop offset="0" stop-color="#4a392f"/><stop offset=".55" stop-color="#66513f"/><stop offset="1" stop-color="#7f6957"/></linearGradient><radialGradient id="skSun"><stop offset="0" stop-color="var(--page-accent)" stop-opacity=".22"/><stop offset="1" stop-color="var(--page-accent)" stop-opacity="0"/></radialGradient><radialGradient id="skMoon"><stop offset="0" stop-color="#e8e0d4" stop-opacity=".16"/><stop offset="1" stop-color="#e8e0d4" stop-opacity="0"/></radialGradient><radialGradient id="skGround"><stop offset="0" stop-color="#3a3128" stop-opacity=".55"/><stop offset="1" stop-color="#3a3128" stop-opacity="0"/></radialGradient>${masks.join('')}<mask id="skmScaff" maskUnits="userSpaceOnUse" x="0" y="0" width="${W}" height="${H}">${spurCentres.join('')}</mask></defs>`;
+  return `<svg class="sk-organic" viewBox="0 0 ${W} ${H}" style="filter:hue-rotate(${season}deg)">${defs}${g}${labels}<g class="sk-lbls">${labelLayer}</g></svg>`;
 }
 function drawOrganicTree(root){
   const wrap = $('#skillWrap'); if(!wrap) return; wrap.querySelector('svg')?.remove(); const mm = $('#minimap'); if(mm) mm.hidden = true; const hint = wrap.querySelector('.sk-hint'); if(hint) hint.textContent = 'a cherry in flower · the blossom opens as the skill grows, bud to full bloom · a pair of cherries is mastery · a flower breathing means a milestone is near · bronze leaves are withering';
