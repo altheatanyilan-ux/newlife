@@ -1167,6 +1167,25 @@ button.tm-cell:hover{border-color:var(--page-accent)}
 .task-check{flex:none;width:18px;height:18px;border-radius:6px;border:1.5px solid var(--line-2);background:none;color:var(--page-accent-ink);font-size:.72rem;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s var(--ease),border-color .2s var(--ease)}
 .task-row.done .task-check{background:var(--page-accent);border-color:var(--page-accent)}
 .task-text{flex:1;min-width:0;font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* A TASK'S NAME GETS ITS OWN LINE
+   Eight controls used to sit to the right of the name on the same line, and
+   several of them are invisible until the row is hovered — but an invisible
+   button still takes up its width. The name got what was left: at full page
+   width that was enough, and in half of a compartment on Today it was seventy
+   pixels, so "Reply to opposing counsel" read as "Reply to oppos…".
+   Now the name has the line to itself and wraps rather than being cut, and
+   the controls have the line under it. A step is left alone: it carries one
+   button, and one button was never the problem. */
+.task-row:has(> .task-body){align-items:flex-start}
+.task-row:has(> .task-body) > .task-grip,
+.task-row:has(> .task-body) > .task-caret,
+.task-row:has(> .task-body) > .task-check{margin-top:1px}
+.task-body{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:3px}
+.task-body > .task-text{flex:none;width:100%;line-height:1.35;
+  white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
+/* the controls keep the row's own gap between them and wrap onto a second
+   line of their own rather than pushing the row wider than its box */
+.task-tools{display:flex;align-items:center;flex-wrap:wrap;gap:8px;min-height:19px}
 .task-where{font-family:var(--mono);font-size:.62rem;color:var(--faint);text-decoration:none;max-width:11em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 /* ---------- steps under a task ----------
@@ -1282,15 +1301,8 @@ button.tm-cell:hover{border-color:var(--page-accent)}
      reads as the space a compartment holds rather than as a hole in the page */
   .daybox>.focus-block{display:flex;flex-direction:column}
   .daybox>.focus-block>.fp-card{margin-top:12px;flex:1 0 auto}
-  /* A task row keeps eight controls to the right of the name, several of them
-     invisible until the row is hovered — and an invisible button still takes
-     its width. At full page width the name had room anyway; in half of a
-     compartment it was cut to "Task nu…". So here the name wraps instead of
-     being cut: the box scrolls, and a name never has to compete for the
-     width. */
+  /* a compartment is half a page wide, so the row's controls sit closer */
   .daybox .task-row{gap:8px}
-  .daybox .task-text{white-space:normal;overflow:visible;text-overflow:clip;
-    overflow-wrap:anywhere;line-height:1.35}
 }
 /* the clock's own row was laid out for a full-width page; in a compartment it
    has less to play with, so the face and the controls stack sooner */
@@ -28506,7 +28518,16 @@ function taskRowHTML(r, {showDay=false}={}){
          button rather than the whole middle of the row: it used to be the other
          way round, and reaching the task's own page meant hunting for the few
          pixels that were not an edit target. -->
+    <!-- The name gets a line to itself and the eight controls get the one
+         under it. They were all on one line, and since a control that is
+         invisible until the row is hovered still takes up its width, the name
+         was left with what they did not want — in half of a compartment on
+         Today that was seventy pixels, and "Reply to opposing counsel" read
+         as "Reply to oppos…". A step keeps its single button on the line
+         with its name; one button was never the problem. -->
+    <div class="task-body">
     <span class="task-text" data-topen="${r.id}" title="open this task">${esc(r.text || 'Untitled task')}</span>
+    <div class="task-tools">
     <button class="task-pen" data-tedit="${r.id}" title="rename it here" aria-label="rename">✎</button>
     ${taskEstHTML(r.id, r.task)}
     ${prog?`<button class="task-subcount${prog.done===prog.total?' all':''}" data-tsubs="${r.id}"
@@ -28524,6 +28545,7 @@ function taskRowHTML(r, {showDay=false}={}){
       aria-label="compulsory or bonus">${taskIsBonus(r) ? '✧' : '✦'}</button>
     ${r.day?`<button class="task-defer" data-tdefer="${r.id}" title="not today — keep it for another day">not today</button>`:''}
     <button class="del-x inline" data-tdel="${r.id}" title="delete this task for good">×</button>
+    </div></div>
   </div>
   ${open ? subBlockHTML(r.id, r.task) : ''}`;
 }

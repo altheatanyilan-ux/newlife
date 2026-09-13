@@ -151,7 +151,16 @@ function taskRowHTML(r, {showDay=false}={}){
          button rather than the whole middle of the row: it used to be the other
          way round, and reaching the task's own page meant hunting for the few
          pixels that were not an edit target. -->
+    <!-- The name gets a line to itself and the eight controls get the one
+         under it. They were all on one line, and since a control that is
+         invisible until the row is hovered still takes up its width, the name
+         was left with what they did not want — in half of a compartment on
+         Today that was seventy pixels, and "Reply to opposing counsel" read
+         as "Reply to oppos…". A step keeps its single button on the line
+         with its name; one button was never the problem. -->
+    <div class="task-body">
     <span class="task-text" data-topen="${r.id}" title="open this task">${esc(r.text || 'Untitled task')}</span>
+    <div class="task-tools">
     <button class="task-pen" data-tedit="${r.id}" title="rename it here" aria-label="rename">✎</button>
     ${taskEstHTML(r.id, r.task)}
     ${prog?`<button class="task-subcount${prog.done===prog.total?' all':''}" data-tsubs="${r.id}"
@@ -169,6 +178,7 @@ function taskRowHTML(r, {showDay=false}={}){
       aria-label="compulsory or bonus">${taskIsBonus(r) ? '✧' : '✦'}</button>
     ${r.day?`<button class="task-defer" data-tdefer="${r.id}" title="not today — keep it for another day">not today</button>`:''}
     <button class="del-x inline" data-tdel="${r.id}" title="delete this task for good">×</button>
+    </div></div>
   </div>
   ${open ? subBlockHTML(r.id, r.task) : ''}`;
 }
