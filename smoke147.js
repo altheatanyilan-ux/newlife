@@ -1,6 +1,7 @@
-/* smoke147 — an estimate is of the job, not of each visit to it: a second
-   sitting counts down what is still owed, and counts up once the estimate
-   has been spent. */
+/* smoke147 — the two arithmetics of a sitting. An estimate is of the job,
+   not of each visit to it, so a second sitting counts down what is still
+   owed; and the minutes are written down as they are worked rather than
+   only when the clock is finally stopped. */
 const {chromium} = require('playwright');
 const path = require('path');
 const FILE = 'file://' + path.resolve(__dirname, 'index.html');
@@ -82,9 +83,40 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   const title = await p.evaluate(i => document.querySelector(`[data-test="${i}"]`)?.getAttribute('title') || '', part);
   yes('an over-run task warns that it will count up', /counts up/.test(title), title);
 
+  console.log('\n6. the minutes are written down as they are worked');
+  /* A timer paused and forgotten used to lose the whole afternoon, and a
+     task's own figure was wrong for exactly as long as you were sitting
+     with it — which is when you are looking at it. */
+  await p.clock.install();
+  const live = await p.evaluate(() => { const t = newPlanTask('Worked on now', today(), {duration: 30});
+    S.tasks.push(t); saveNow(); return t.id; });
+  await p.evaluate(i => { FocusTimer.reset(); FocusTimer.setMode('countdown'); FocusTimer.setLength(30);
+    FocusTimer.setTask(i, null); FocusTimer.start(); }, live);
+  await p.clock.runFor(7 * 60 * 1000);
+  is('nothing is written while it runs', await p.evaluate(i => taskSpentOn(i), live), 0);
+  await p.evaluate(() => FocusTimer.pause()); await p.clock.runFor(200);
+  is('pausing writes down what has been done', await p.evaluate(i => taskSpentOn(i), live), 7);
+  is('  on the sitting\'s own row', await p.evaluate(i => focusSessionsFor(i).length, live), 1);
+  is('  and the task carries it as well', await p.evaluate(i => planTaskById(i).focusTime, live), 7);
+  await p.evaluate(() => FocusTimer.start()); await p.clock.runFor(5 * 60 * 1000);
+  await p.evaluate(() => FocusTimer.pause()); await p.clock.runFor(200);
+  is('resuming and pausing again adds to the same row', await p.evaluate(i => taskSpentOn(i), live), 12);
+  is('  rather than opening a second one', await p.evaluate(i => focusSessionsFor(i).length, live), 1);
+  is('  and nothing is counted twice', await p.evaluate(i => planTaskById(i).focusTime, live), 12);
+  is('  what is left of the estimate follows it', await p.evaluate(i => focusLeftOn(i, 30), live), 18);
+  await p.evaluate(() => FocusTimer.start()); await p.clock.runFor(3 * 60 * 1000);
+  await p.evaluate(() => FocusTimer.stop()); await p.clock.runFor(200);
+  is('stopping closes the same row', await p.evaluate(i => focusSessionsFor(i).length, live), 1);
+  is('  with the whole sitting on it', await p.evaluate(i => taskSpentOn(i), live), 15);
+  await p.evaluate(i => { FocusTimer.reset(); FocusTimer.setTask(i, null); FocusTimer.start(); }, live);
+  await p.clock.runFor(4 * 60 * 1000);
+  await p.evaluate(() => FocusTimer.stop()); await p.clock.runFor(200);
+  is('a later sitting is a new row', await p.evaluate(i => focusSessionsFor(i).length, live), 2);
+  is('  and the total is both of them', await p.evaluate(i => taskSpentOn(i), live), 19);
+
   console.log('\n' + (errs.length ? 'console:\n  ' + errs.join('\n  ') : 'console: clean'));
   if(errs.length) bad += errs.length;
   console.log(bad ? `\n${bad} FAILED` : '\nsmoke147  all good');
   await b.close();
-  process.exit(bad ? 1 : 0);
+  process.exitCode = bad ? 1 : 0;
 })();

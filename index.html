@@ -25958,6 +25958,10 @@ const FocusTimer = (() => {
       subId: st ? (st.subId || pendingSub) : pendingSub,
       round: st ? st.round : 1, startedAt: st?.startedAt || new Date().toISOString(),
       notes: st ? (st.notes || '') : '',
+      /* the same sitting resumed is the same record: the minutes already
+         written down stay written down and go on the same row */
+      sessionId: st && st.phase === p ? st.sessionId : null,
+      logged: st && st.phase === p ? (st.logged || 0) : 0,
       breaks: carried || []};
     closeBreak();                       // resuming ends whatever break was open
     tick(); notify();
@@ -25985,28 +25989,49 @@ const FocusTimer = (() => {
   function pause(){ if(!st || !st.running) return;
     if(st.up) st.acc = (st.acc || 0) + (Date.now() - st.since) / 1000;
     else st.remaining = Math.max(0, Math.round((st.endsAt - Date.now()) / 1000));
-    st.running = false; openBreak(); notify(); }
+    st.running = false; openBreak();
+    /* Pausing writes down what has been done so far. The work happened
+       whether or not the sitting is finished, and waiting until the end to
+       record it meant that a timer paused and forgotten lost the afternoon,
+       and that a task's own figure was wrong for as long as you were sitting
+       with it — which is exactly when you are looking at it. */
+    logSession(false);
+    notify(); }
   function stop(logIt = true){
     if(st && logIt && st.phase === 'focus') logSession(false);
     st = null; pendingTask = null; notify();
   }
   function skip(){ if(!st) return; finish(true); }
-  /* a finished focus interval is written down; a break is not worth recording */
+  /* A focus interval is written down as it goes: one record per sitting,
+     updated in place each time the clock is paused or stopped, so the total
+     against a task is right at every moment rather than only afterwards. A
+     break is not worth recording as work. */
   function logSession(completed){
     if(!st || st.phase !== 'focus') return;
     const mins = Math.round(elapsedSecs() / 60);
-    if(mins < 1) return;
+    const already = st.logged || 0;
+    const delta = mins - already;
+    if(mins < 1 || delta < 1) return;
     closeBreak();
-    planState().focusSessions.push({id:uid(), taskId:st.taskId || null, subId:st.subId || null, startedAt:st.startedAt,
-      endedAt:new Date().toISOString(), duration:mins, type:'focus', completed:!!completed,
-      mode: st.up ? 'stopwatch' : 'countdown', note: st.notes || '',
-      breaks:(st.breaks || []).filter(b => b.to).map(b => ({from:b.from, to:b.to, note:b.note || ''}))});
-    if(st.taskId){ const t = planTaskById(st.taskId); if(t){ t.focusTime = (t.focusTime || 0) + mins; t.updatedAt = new Date().toISOString();
+    const breaks = (st.breaks || []).filter(b => b.to).map(b => ({from:b.from, to:b.to, note:b.note || ''}));
+    const sessions = planState().focusSessions;
+    let rec = st.sessionId ? sessions.find(s => s.id === st.sessionId) : null;
+    if(rec){
+      rec.duration = mins; rec.endedAt = new Date().toISOString();
+      rec.completed = !!completed; rec.note = st.notes || ''; rec.breaks = breaks;
+    } else {
+      rec = {id:uid(), taskId:st.taskId || null, subId:st.subId || null, startedAt:st.startedAt,
+        endedAt:new Date().toISOString(), duration:mins, type:'focus', completed:!!completed,
+        mode: st.up ? 'stopwatch' : 'countdown', note: st.notes || '', breaks};
+      sessions.push(rec); st.sessionId = rec.id;
+    }
+    st.logged = mins;
+    if(st.taskId){ const t = planTaskById(st.taskId); if(t){ t.focusTime = (t.focusTime || 0) + delta; t.updatedAt = new Date().toISOString();
       /* a focus session on a task booked for a piece is writing time on
          that piece: one session, counted in both rooms rather than twice */
       (t.links?.content || []).forEach(id => { const e = byId(S.entries, id);
         if(!e || typeof pieceContent !== 'function') return;
-        const c = pieceContent(e); c.focusMinutes = (c.focusMinutes || 0) + mins;
+        const c = pieceContent(e); c.focusMinutes = (c.focusMinutes || 0) + delta;
         if(typeof wsRecordWords === 'function') wsRecordWords(e); }); } }
     saveNow();
   }
