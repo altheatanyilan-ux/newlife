@@ -202,7 +202,11 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   await p.evaluate(() => { document.querySelectorAll('.modal-wrap,.modal').forEach(n => n.remove());
     openCardDirectory(); }); await p.waitForTimeout(600);
   is('six ways into the cards', await p.evaluate(() => CARD_TABS.length), 6);
-  is('  and a seventh tab, for the charms', await p.$$eval('[data-cdtab]', n => n.length), 7);
+  /* and one tab each for the other two systems that have a directory */
+  is('  plus a tab for the charms and one for the hexagrams',
+     await p.$$eval('[data-cdtab]', n => n.length), 8);
+  is('  named', await p.$$eval('[data-cdtab]', n => n.slice(-2).map(x => x.textContent).join(',')),
+     'Charms,I Ching');
   is('  the majors are twenty-two', await p.evaluate(() => cardsInTab('major').length), 22);
   is('  each numbered suit is ten', await p.evaluate(() =>
     ['wands','cups','swords','pentacles'].map(s => cardsInTab(s).length).join(',')), '10,10,10,10');
