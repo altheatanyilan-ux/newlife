@@ -1857,10 +1857,16 @@ details.era-lived[open] > summary::before{transform:rotate(90deg)}
 /* the living tree */
 .sk-organic{width:100%;height:100%;display:block}
 .sk-organic .sk-twig{cursor:pointer}
-.sk-organic .sk-twig .limb,.sk-organic .sk-branch .limb-tint{transition:stroke-width .25s var(--ease),opacity .3s var(--ease)}
+/* Branches are filled tapered shapes, not stroked lines — a limb of even
+   width is half of why a drawn tree looks drawn. `.limb` now lives inside
+   the reveal mask that draws each branch outward from its fork; the wood
+   itself is `.wood` / `.limb-wood`, and `.sk-centre` is the invisible
+   centreline the sap runs along. */
+.sk-organic .wood,.sk-organic .limb-wood,.sk-organic .limb-tint{transition:opacity .3s var(--ease),filter .25s var(--ease)}
+.sk-organic .sk-centre{fill:none;stroke:none}
 .sk-organic.hov .sk-twig:not(.hot){opacity:.42}
 .sk-organic.hov .sk-branch:not(.hot) .limb-tint{opacity:.1}
-.sk-organic .sk-twig.hot .limb{filter:drop-shadow(0 0 4px color-mix(in srgb,var(--nc) 60%,transparent))}
+.sk-organic .sk-twig.hot .wood{filter:drop-shadow(0 0 4px color-mix(in srgb,var(--nc) 60%,transparent))}
 .sk-organic .sk-twig.hot .sk-lbl{fill:var(--text);font-weight:600}
 .sk-organic .sk-lblfor.hot .sk-lbl{fill:var(--text);font-weight:600}
 .sk-organic.hov .sk-lblfor:not(.hot){opacity:.42}
@@ -3121,12 +3127,13 @@ html.vision-deep .page-scene.on{opacity:var(--scene-op)}
   100%{opacity:0;transform:translate(var(--dx),var(--dy))}}
 
 /* sap: a travelling light along a limb that has been practised lately */
-.sk-organic .sk-twig.fresh .limb{stroke-dasharray:5 190;animation:sapRun 4.5s linear infinite}
+.sk-organic .sk-twig.fresh .sk-centre{stroke:color-mix(in srgb,var(--nc) 55%,#fff6dc);stroke-width:2;stroke-linecap:round;
+  stroke-dasharray:5 190;animation:sapRun 4.5s linear infinite}
 @keyframes sapRun{from{stroke-dashoffset:195}to{stroke-dashoffset:0}}
 
 @media (prefers-reduced-motion:reduce){
   .tree-motes{display:none}
-  .sk-organic .sk-canopy,.sk-organic .sk-twig.fresh .limb{animation:none}
+  .sk-organic .sk-canopy,.sk-organic .sk-twig.fresh .sk-centre{animation:none;stroke:none}
   .sk-organic .leaf{transform:none!important}
 }
 
@@ -7685,6 +7692,10 @@ async function generatePatternReport({days = 90} = {}){
   const text = await askClaude(REPORT_SYSTEM, `Here are the statistics from my last ${days} days. Write my reflection.\n\n${JSON.stringify(p, null, 1)}`, {maxTokens: 1600});
   return {mode:'claude', text, lines: local, data: p};
 }
+/* ---- dexie (inlined by build.js, Apache-2.0, https://dexie.org) ---- */
+((e,t)=>{"object"==typeof exports&&"undefined"!=typeof module?module.exports=t():"function"==typeof define&&define.amd?define(t):(e="undefined"!=typeof globalThis?globalThis:e||self).Dexie=t()})(this,function(){var B=function(e,t){return(B=Object.setPrototypeOf||({__proto__:[]}instanceof Array?function(e,t){e.__proto__=t}:function(e,t){for(var n in t)Object.prototype.hasOwnProperty.call(t,n)&&(e[n]=t[n])}))(e,t)};var _=function(){return(_=Object.assign||function(e){for(var t,n=1,r=arguments.length;n<r;n++)for(var i in t=arguments[n])Object.prototype.hasOwnProperty.call(t,i)&&(e[i]=t[i]);return e}).apply(this,arguments)};function R(e,t,n){if(n||2===arguments.length)for(var r,i=0,o=t.length;i<o;i++)!r&&i in t||((r=r||Array.prototype.slice.call(t,0,i))[i]=t[i]);return e.concat(r||Array.prototype.slice.call(t))}var f="undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:"undefined"!=typeof window?window:global,O=Object.keys,x=Array.isArray;function a(t,n){return"object"==typeof n&&O(n).forEach(function(e){t[e]=n[e]}),t}"undefined"==typeof Promise||f.Promise||(f.Promise=Promise);var F=Object.getPrototypeOf,N={}.hasOwnProperty;function m(e,t){return N.call(e,t)}function M(t,n){"function"==typeof n&&(n=n(F(t))),("undefined"==typeof Reflect?O:Reflect.ownKeys)(n).forEach(function(e){u(t,e,n[e])})}var L=Object.defineProperty;function u(e,t,n,r){L(e,t,a(n&&m(n,"get")&&"function"==typeof n.get?{get:n.get,set:n.set,configurable:!0}:{value:n,configurable:!0,writable:!0},r))}function U(t){return{from:function(e){return t.prototype=Object.create(e.prototype),u(t.prototype,"constructor",t),{extend:M.bind(null,t.prototype)}}}}var z=Object.getOwnPropertyDescriptor;var V=[].slice;function W(e,t,n){return V.call(e,t,n)}function Y(e,t){return t(e)}function $(e){if(!e)throw new Error("Assertion Failed")}function Q(e){f.setImmediate?setImmediate(e):setTimeout(e,0)}function c(e,t){if("string"==typeof t&&m(e,t))return e[t];if(!t)return e;if("string"!=typeof t){for(var n=[],r=0,i=t.length;r<i;++r){var o=c(e,t[r]);n.push(o)}return n}var a,u=t.indexOf(".");return-1===u||null==(a=e[t.substr(0,u)])?void 0:c(a,t.substr(u+1))}function b(e,t,n){if(e&&void 0!==t&&!("isFrozen"in Object&&Object.isFrozen(e)))if("string"!=typeof t&&"length"in t){$("string"!=typeof n&&"length"in n);for(var r=0,i=t.length;r<i;++r)b(e,t[r],n[r])}else{var o=t.indexOf(".");if(-1!==o){var a=t.substr(0,o),o=t.substr(o+1);if(""===o)void 0===n?x(e)&&!isNaN(parseInt(a))?e.splice(a,1):delete e[a]:e[a]=n;else{var u=e[a];if(!u||!m(e,a)){if(void 0===n)return;u=e[a]={}}b(u,o,n)}}else void 0===n?x(e)&&!isNaN(parseInt(t))?e.splice(t,1):delete e[t]:e[t]=n}}function G(e){var t,n={};for(t in e)m(e,t)&&(n[t]=e[t]);return n}var X=[].concat;function H(e){return X.apply([],e)}var e="BigUint64Array,BigInt64Array,Array,Boolean,String,Date,RegExp,Blob,File,FileList,FileSystemFileHandle,FileSystemDirectoryHandle,ArrayBuffer,DataView,Uint8ClampedArray,ImageBitmap,ImageData,Map,Set,CryptoKey".split(",").concat(H([8,16,32,64].map(function(t){return["Int","Uint","Float"].map(function(e){return e+t+"Array"})}))).filter(function(e){return f[e]}),J=new Set(e.map(function(e){return f[e]}));var Z=null;function ee(e){Z=new WeakMap;e=function e(t){if(!t||"object"!=typeof t)return t;var n=Z.get(t);if(n)return n;if(x(t)){n=[],Z.set(t,n);for(var r=0,i=t.length;r<i;++r)n.push(e(t[r]))}else if(J.has(t.constructor))n=t;else{var o,a=F(t);for(o in n=a===Object.prototype?{}:Object.create(a),Z.set(t,n),t)m(t,o)&&(n[o]=e(t[o]))}return n}(e);return Z=null,e}var te={}.toString;function ne(e){return te.call(e).slice(8,-1)}var re="undefined"!=typeof Symbol?Symbol.iterator:"@@iterator",ie="symbol"==typeof re?function(e){var t;return null!=e&&(t=e[re])&&t.apply(e)}:function(){return null};function oe(e,t){t=e.indexOf(t);0<=t&&e.splice(t,1)}var ae={};function n(e){var t,n,r,i;if(1===arguments.length){if(x(e))return e.slice();if(this===ae&&"string"==typeof e)return[e];if(i=ie(e))for(n=[];!(r=i.next()).done;)n.push(r.value);else{if(null==e)return[e];if("number"!=typeof(t=e.length))return[e];for(n=new Array(t);t--;)n[t]=e[t]}}else for(t=arguments.length,n=new Array(t);t--;)n[t]=arguments[t];return n}var ue="undefined"!=typeof Symbol?function(e){return"AsyncFunction"===e[Symbol.toStringTag]}:function(){return!1},e=["Unknown","Constraint","Data","TransactionInactive","ReadOnly","Version","NotFound","InvalidState","InvalidAccess","Abort","Timeout","QuotaExceeded","Syntax","DataClone"],t=["Modify","Bulk","OpenFailed","VersionChange","Schema","Upgrade","InvalidTable","MissingAPI","NoSuchDatabase","InvalidArgument","SubTransaction","Unsupported","Internal","DatabaseClosed","PrematureCommit","ForeignAwait"].concat(e),se={VersionChanged:"Database version changed by other database connection",DatabaseClosed:"Database has been closed",Abort:"Transaction aborted",TransactionInactive:"Transaction has already completed or failed",MissingAPI:"IndexedDB API missing. Please visit https://tinyurl.com/y2uuvskb"};function ce(e,t){this.name=e,this.message=t}function le(e,t){return e+". Errors: "+Object.keys(t).map(function(e){return t[e].toString()}).filter(function(e,t,n){return n.indexOf(e)===t}).join("\n")}function fe(e,t,n,r){this.failures=t,this.failedKeys=r,this.successCount=n,this.message=le(e,t)}function he(e,t){this.name="BulkError",this.failures=Object.keys(t).map(function(e){return t[e]}),this.failuresByPos=t,this.message=le(e,this.failures)}U(ce).from(Error).extend({toString:function(){return this.name+": "+this.message}}),U(fe).from(ce),U(he).from(ce);var de=t.reduce(function(e,t){return e[t]=t+"Error",e},{}),pe=ce,k=t.reduce(function(e,n){var r=n+"Error";function t(e,t){this.name=r,e?"string"==typeof e?(this.message="".concat(e).concat(t?"\n "+t:""),this.inner=t||null):"object"==typeof e&&(this.message="".concat(e.name," ").concat(e.message),this.inner=e):(this.message=se[n]||r,this.inner=null)}return U(t).from(pe),e[n]=t,e},{}),ye=(k.Syntax=SyntaxError,k.Type=TypeError,k.Range=RangeError,e.reduce(function(e,t){return e[t+"Error"]=k[t],e},{}));e=t.reduce(function(e,t){return-1===["Syntax","Type","Range"].indexOf(t)&&(e[t+"Error"]=k[t]),e},{});function g(){}function ve(e){return e}function me(t,n){return null==t||t===ve?n:function(e){return n(t(e))}}function be(e,t){return function(){e.apply(this,arguments),t.apply(this,arguments)}}function ge(i,o){return i===g?o:function(){var e=i.apply(this,arguments),t=(void 0!==e&&(arguments[0]=e),this.onsuccess),n=this.onerror,r=(this.onsuccess=null,this.onerror=null,o.apply(this,arguments));return t&&(this.onsuccess=this.onsuccess?be(t,this.onsuccess):t),n&&(this.onerror=this.onerror?be(n,this.onerror):n),void 0!==r?r:e}}function we(n,r){return n===g?r:function(){n.apply(this,arguments);var e=this.onsuccess,t=this.onerror;this.onsuccess=this.onerror=null,r.apply(this,arguments),e&&(this.onsuccess=this.onsuccess?be(e,this.onsuccess):e),t&&(this.onerror=this.onerror?be(t,this.onerror):t)}}function _e(i,o){return i===g?o:function(){var e=i.apply(this,arguments),t=(a(arguments[0],e),this.onsuccess),n=this.onerror,r=(this.onsuccess=null,this.onerror=null,o.apply(this,arguments));return t&&(this.onsuccess=this.onsuccess?be(t,this.onsuccess):t),n&&(this.onerror=this.onerror?be(n,this.onerror):n),void 0===e?void 0===r?void 0:r:a(e,r)}}function xe(e,t){return e===g?t:function(){return!1!==t.apply(this,arguments)&&e.apply(this,arguments)}}function ke(i,o){return i===g?o:function(){var e=i.apply(this,arguments);if(e&&"function"==typeof e.then){for(var t=this,n=arguments.length,r=new Array(n);n--;)r[n]=arguments[n];return e.then(function(){return o.apply(t,r)})}return o.apply(this,arguments)}}e.ModifyError=fe,e.DexieError=ce,e.BulkError=he;var l="undefined"!=typeof location&&/^(http|https):\/\/(localhost|127\.0\.0\.1)/.test(location.href);function Oe(e){l=e}var Pe={},Ke=100,Ee="undefined"==typeof Promise?[]:(t=Promise.resolve(),"undefined"!=typeof crypto&&crypto.subtle?[Ee=crypto.subtle.digest("SHA-512",new Uint8Array([0])),F(Ee),t]:[t,F(t),t]),t=Ee[0],Se=Ee[1],Se=Se&&Se.then,Ae=t&&t.constructor,je=!!Ee[2];var Ce=function(e,t){Re.push([e,t]),Ie&&(queueMicrotask(Ye),Ie=!1)},Te=!0,Ie=!0,qe=[],De=[],Be=ve,s={id:"global",global:!0,ref:0,unhandleds:[],onunhandled:g,pgp:!1,env:{},finalize:g},P=s,Re=[],Fe=0,Ne=[];function K(e){if("object"!=typeof this)throw new TypeError("Promises must be constructed via new");this._listeners=[],this._lib=!1;var t=this._PSD=P;if("function"!=typeof e){if(e!==Pe)throw new TypeError("Not a function");this._state=arguments[1],this._value=arguments[2],!1===this._state&&Ue(this,this._value)}else this._state=null,this._value=null,++t.ref,function t(r,e){try{e(function(n){if(null===r._state){if(n===r)throw new TypeError("A promise cannot be resolved with itself.");var e=r._lib&&$e();n&&"function"==typeof n.then?t(r,function(e,t){n instanceof K?n._then(e,t):n.then(e,t)}):(r._state=!0,r._value=n,ze(r)),e&&Qe()}},Ue.bind(null,r))}catch(e){Ue(r,e)}}(this,e)}var Me={get:function(){var u=P,t=et;function e(n,r){var i=this,o=!u.global&&(u!==P||t!==et),a=o&&!w(),e=new K(function(e,t){Ve(i,new Le(ut(n,u,o,a),ut(r,u,o,a),e,t,u))});return this._consoleTask&&(e._consoleTask=this._consoleTask),e}return e.prototype=Pe,e},set:function(e){u(this,"then",e&&e.prototype===Pe?Me:{get:function(){return e},set:Me.set})}};function Le(e,t,n,r,i){this.onFulfilled="function"==typeof e?e:null,this.onRejected="function"==typeof t?t:null,this.resolve=n,this.reject=r,this.psd=i}function Ue(e,t){var n,r;De.push(t),null===e._state&&(n=e._lib&&$e(),t=Be(t),e._state=!1,e._value=t,r=e,qe.some(function(e){return e._value===r._value})||qe.push(r),ze(e),n)&&Qe()}function ze(e){var t=e._listeners;e._listeners=[];for(var n=0,r=t.length;n<r;++n)Ve(e,t[n]);var i=e._PSD;--i.ref||i.finalize(),0===Fe&&(++Fe,Ce(function(){0==--Fe&&Ge()},[]))}function Ve(e,t){if(null===e._state)e._listeners.push(t);else{var n=e._state?t.onFulfilled:t.onRejected;if(null===n)return(e._state?t.resolve:t.reject)(e._value);++t.psd.ref,++Fe,Ce(We,[n,e,t])}}function We(e,t,n){try{var r,i=t._value;!t._state&&De.length&&(De=[]),r=l&&t._consoleTask?t._consoleTask.run(function(){return e(i)}):e(i),t._state||-1!==De.indexOf(i)||(e=>{for(var t=qe.length;t;)if(qe[--t]._value===e._value)return qe.splice(t,1)})(t),n.resolve(r)}catch(e){n.reject(e)}finally{0==--Fe&&Ge(),--n.psd.ref||n.psd.finalize()}}function Ye(){at(s,function(){$e()&&Qe()})}function $e(){var e=Te;return Ie=Te=!1,e}function Qe(){var e,t,n;do{for(;0<Re.length;)for(e=Re,Re=[],n=e.length,t=0;t<n;++t){var r=e[t];r[0].apply(null,r[1])}}while(0<Re.length);Ie=Te=!0}function Ge(){for(var e=qe,t=(qe=[],e.forEach(function(e){e._PSD.onunhandled.call(null,e._value,e)}),Ne.slice(0)),n=t.length;n;)t[--n]()}function Xe(e){return new K(Pe,!1,e)}function E(n,r){var i=P;return function(){var e=$e(),t=P;try{return h(i,!0),n.apply(this,arguments)}catch(e){r&&r(e)}finally{h(t,!1),e&&Qe()}}}M(K.prototype,{then:Me,_then:function(e,t){Ve(this,new Le(null,null,e,t,P))},catch:function(e){var t,n;return 1===arguments.length?this.then(null,e):(t=e,n=arguments[1],"function"==typeof t?this.then(null,function(e){return(e instanceof t?n:Xe)(e)}):this.then(null,function(e){return(e&&e.name===t?n:Xe)(e)}))},finally:function(t){return this.then(function(e){return K.resolve(t()).then(function(){return e})},function(e){return K.resolve(t()).then(function(){return Xe(e)})})},timeout:function(r,i){var o=this;return r<1/0?new K(function(e,t){var n=setTimeout(function(){return t(new k.Timeout(i))},r);o.then(e,t).finally(clearTimeout.bind(null,n))}):this}}),"undefined"!=typeof Symbol&&Symbol.toStringTag&&u(K.prototype,Symbol.toStringTag,"Dexie.Promise"),s.env=ot(),M(K,{all:function(){var o=n.apply(null,arguments).map(rt);return new K(function(n,r){0===o.length&&n([]);var i=o.length;o.forEach(function(e,t){return K.resolve(e).then(function(e){o[t]=e,--i||n(o)},r)})})},resolve:function(n){return n instanceof K?n:n&&"function"==typeof n.then?new K(function(e,t){n.then(e,t)}):new K(Pe,!0,n)},reject:Xe,race:function(){var e=n.apply(null,arguments).map(rt);return new K(function(t,n){e.map(function(e){return K.resolve(e).then(t,n)})})},PSD:{get:function(){return P},set:function(e){return P=e}},totalEchoes:{get:function(){return et}},newPSD:v,usePSD:at,scheduler:{get:function(){return Ce},set:function(e){Ce=e}},rejectionMapper:{get:function(){return Be},set:function(e){Be=e}},follow:function(i,n){return new K(function(e,t){return v(function(n,r){var e=P;e.unhandleds=[],e.onunhandled=r,e.finalize=be(function(){var t,e=this;t=function(){0===e.unhandleds.length?n():r(e.unhandleds[0])},Ne.push(function e(){t(),Ne.splice(Ne.indexOf(e),1)}),++Fe,Ce(function(){0==--Fe&&Ge()},[])},e.finalize),i()},n,e,t)})}}),Ae&&(Ae.allSettled&&u(K,"allSettled",function(){var e=n.apply(null,arguments).map(rt);return new K(function(n){0===e.length&&n([]);var r=e.length,i=new Array(r);e.forEach(function(e,t){return K.resolve(e).then(function(e){return i[t]={status:"fulfilled",value:e}},function(e){return i[t]={status:"rejected",reason:e}}).then(function(){return--r||n(i)})})})}),Ae.any&&"undefined"!=typeof AggregateError&&u(K,"any",function(){var e=n.apply(null,arguments).map(rt);return new K(function(n,r){0===e.length&&r(new AggregateError([]));var i=e.length,o=new Array(i);e.forEach(function(e,t){return K.resolve(e).then(function(e){return n(e)},function(e){o[t]=e,--i||r(new AggregateError(o))})})})}),Ae.withResolvers)&&(K.withResolvers=Ae.withResolvers);var o={awaits:0,echoes:0,id:0},He=0,Je=[],Ze=0,et=0,tt=0;function v(e,t,n,r){var i=P,o=Object.create(i),t=(o.parent=i,o.ref=0,o.global=!1,o.id=++tt,s.env,o.env=je?{Promise:K,PromiseProp:{value:K,configurable:!0,writable:!0},all:K.all,race:K.race,allSettled:K.allSettled,any:K.any,resolve:K.resolve,reject:K.reject}:{},t&&a(o,t),++i.ref,o.finalize=function(){--this.parent.ref||this.parent.finalize()},at(o,e,n,r));return 0===o.ref&&o.finalize(),t}function nt(){return o.id||(o.id=++He),++o.awaits,o.echoes+=Ke,o.id}function w(){return!!o.awaits&&(0==--o.awaits&&(o.id=0),o.echoes=o.awaits*Ke,!0)}function rt(e){return o.echoes&&e&&e.constructor===Ae?(nt(),e.then(function(e){return w(),e},function(e){return w(),S(e)})):e}function it(){var e=Je[Je.length-1];Je.pop(),h(e,!1)}function h(e,t){var n,r,i=P;(t?!o.echoes||Ze++&&e===P:!Ze||--Ze&&e===P)||queueMicrotask(t?function(e){++et,o.echoes&&0!=--o.echoes||(o.echoes=o.awaits=o.id=0),Je.push(P),h(e,!0)}.bind(null,e):it),e!==P&&(P=e,i===s&&(s.env=ot()),je)&&(n=s.env.Promise,r=e.env,i.global||e.global)&&(Object.defineProperty(f,"Promise",r.PromiseProp),n.all=r.all,n.race=r.race,n.resolve=r.resolve,n.reject=r.reject,r.allSettled&&(n.allSettled=r.allSettled),r.any)&&(n.any=r.any)}function ot(){var e=f.Promise;return je?{Promise:e,PromiseProp:Object.getOwnPropertyDescriptor(f,"Promise"),all:e.all,race:e.race,allSettled:e.allSettled,any:e.any,resolve:e.resolve,reject:e.reject}:{}}function at(e,t,n,r,i){var o=P;try{return h(e,!0),t(n,r,i)}finally{h(o,!1)}}function ut(t,n,r,i){return"function"!=typeof t?t:function(){var e=P;r&&nt(),h(n,!0);try{return t.apply(this,arguments)}finally{h(e,!1),i&&queueMicrotask(w)}}}function st(e){Promise===Ae&&0===o.echoes?0===Ze?e():enqueueNativeMicroTask(e):setTimeout(e,0)}-1===(""+Se).indexOf("[native code]")&&(nt=w=g);var S=K.reject;var ct=String.fromCharCode(65535),A="Invalid key provided. Keys must be of type string, number, Date or Array<string | number | Date>.",lt="String expected.",ft="__dbnames",ht="readonly",dt="readwrite";function pt(e,t){return e?t?function(){return e.apply(this,arguments)&&t.apply(this,arguments)}:e:t}var yt={type:3,lower:-1/0,lowerOpen:!1,upper:[[]],upperOpen:!1};function vt(t){return"string"!=typeof t||/\./.test(t)?function(e){return e}:function(e){return void 0===e[t]&&t in e&&delete(e=ee(e))[t],e}}function mt(){throw k.Type("Entity instances must never be new:ed. Instances are generated by the framework bypassing the constructor.")}function j(e,t){try{var n=bt(e),r=bt(t);if(n!==r)return"Array"===n?1:"Array"===r?-1:"binary"===n?1:"binary"===r?-1:"string"===n?1:"string"===r?-1:"Date"===n?1:"Date"!==r?NaN:-1;switch(n){case"number":case"Date":case"string":return t<e?1:e<t?-1:0;case"binary":for(var i=gt(e),o=gt(t),a=i.length,u=o.length,s=a<u?a:u,c=0;c<s;++c)if(i[c]!==o[c])return i[c]<o[c]?-1:1;return a===u?0:a<u?-1:1;case"Array":for(var l=e,f=t,h=l.length,d=f.length,p=h<d?h:d,y=0;y<p;++y){var v=j(l[y],f[y]);if(0!==v)return v}return h===d?0:h<d?-1:1}}catch(e){}return NaN}function bt(e){var t=typeof e;return"object"==t&&(ArrayBuffer.isView(e)||"ArrayBuffer"===(t=ne(e)))?"binary":t}function gt(e){return e instanceof Uint8Array?e:ArrayBuffer.isView(e)?new Uint8Array(e.buffer,e.byteOffset,e.byteLength):new Uint8Array(e)}function wt(t,n,r){var e=t.schema.yProps;return e?(n&&0<r.numFailures&&(n=n.filter(function(e,t){return!r.failures[t]})),Promise.all(e.map(function(e){e=e.updatesTable;return n?t.db.table(e).where("k").anyOf(n).delete():t.db.table(e).clear()})).then(function(){return r})):r}xt.prototype.execute=function(e){var t=this["@@propmod"];if(void 0!==t.add){var n=t.add;if(x(n))return R(R([],x(e)?e:[],!0),n,!0).sort();if("number"==typeof n)return(Number(e)||0)+n;if("bigint"==typeof n)try{return BigInt(e)+n}catch(e){return BigInt(0)+n}throw new TypeError("Invalid term ".concat(n))}if(void 0!==t.remove){var r=t.remove;if(x(r))return x(e)?e.filter(function(e){return!r.includes(e)}).sort():[];if("number"==typeof r)return Number(e)-r;if("bigint"==typeof r)try{return BigInt(e)-r}catch(e){return BigInt(0)-r}throw new TypeError("Invalid subtrahend ".concat(r))}n=null==(n=t.replacePrefix)?void 0:n[0];return n&&"string"==typeof e&&e.startsWith(n)?t.replacePrefix[1]+e.substring(n.length):e};var _t=xt;function xt(e){this["@@propmod"]=e}function kt(e,t){for(var n=O(t),r=n.length,i=!1,o=0;o<r;++o){var a=n[o],u=t[a],s=c(e,a);u instanceof _t?(b(e,a,u.execute(s)),i=!0):s!==u&&(b(e,a,u),i=!0)}return i}r.prototype._trans=function(e,r,t){var n=this._tx||P.trans,i=this.name,o=l&&"undefined"!=typeof console&&console.createTask&&console.createTask("Dexie: ".concat("readonly"===e?"read":"write"," ").concat(this.name));function a(e,t,n){if(n.schema[i])return r(n.idbtrans,n);throw new k.NotFound("Table "+i+" not part of transaction")}var u=$e();try{var s=n&&n.db._novip===this.db._novip?n===P.trans?n._promise(e,a,t):v(function(){return n._promise(e,a,t)},{trans:n,transless:P.transless||P}):function t(n,r,i,o){if(n.idbdb&&(n._state.openComplete||P.letThrough||n._vip)){var a=n._createTransaction(r,i,n._dbSchema);try{a.create(),n._state.PR1398_maxLoop=3}catch(e){return e.name===de.InvalidState&&n.isOpen()&&0<--n._state.PR1398_maxLoop?(console.warn("Dexie: Need to reopen db"),n.close({disableAutoOpen:!1}),n.open().then(function(){return t(n,r,i,o)})):S(e)}return a._promise(r,function(e,t){return v(function(){return P.trans=a,o(e,t,a)})}).then(function(e){if("readwrite"===r)try{a.idbtrans.commit()}catch(e){}return"readonly"===r?e:a._completion.then(function(){return e})})}if(n._state.openComplete)return S(new k.DatabaseClosed(n._state.dbOpenError));if(!n._state.isBeingOpened){if(!n._state.autoOpen)return S(new k.DatabaseClosed);n.open().catch(g)}return n._state.dbReadyPromise.then(function(){return t(n,r,i,o)})}(this.db,e,[this.name],a);return o&&(s._consoleTask=o,s=s.catch(function(e){return console.trace(e),S(e)})),s}finally{u&&Qe()}},r.prototype.get=function(t,e){var n=this;return t&&t.constructor===Object?this.where(t).first(e):null==t?S(new k.Type("Invalid argument to Table.get()")):this._trans("readonly",function(e){return n.core.get({trans:e,key:t}).then(function(e){return n.hook.reading.fire(e)})}).then(e)},r.prototype.where=function(o){if("string"==typeof o)return new this.db.WhereClause(this,o);if(x(o))return new this.db.WhereClause(this,"[".concat(o.join("+"),"]"));var n=O(o);if(1===n.length)return this.where(n[0]).equals(o[n[0]]);var e=this.schema.indexes.concat(this.schema.primKey).filter(function(t){if(t.compound&&n.every(function(e){return 0<=t.keyPath.indexOf(e)})){for(var e=0;e<n.length;++e)if(-1===n.indexOf(t.keyPath[e]))return!1;return!0}return!1}).sort(function(e,t){return e.keyPath.length-t.keyPath.length})[0];if(e&&this.db._maxKey!==ct)return t=e.keyPath.slice(0,n.length),this.where(t).equals(t.map(function(e){return o[e]}));!e&&l&&console.warn("The query ".concat(JSON.stringify(o)," on ").concat(this.name," would benefit from a ")+"compound index [".concat(n.join("+"),"]"));var a=this.schema.idxByName;function u(e,t){return 0===j(e,t)}var t=n.reduce(function(e,t){var n=e[0],e=e[1],r=a[t],i=o[t];return[n||r,n||!r?pt(e,r&&r.multi?function(e){e=c(e,t);return x(e)&&e.some(function(e){return u(i,e)})}:function(e){return u(i,c(e,t))}):e]},[null,null]),r=t[0],t=t[1];return r?this.where(r.name).equals(o[r.keyPath]).filter(t):e?this.filter(t):this.where(n).equals("")},r.prototype.filter=function(e){return this.toCollection().and(e)},r.prototype.count=function(e){return this.toCollection().count(e)},r.prototype.offset=function(e){return this.toCollection().offset(e)},r.prototype.limit=function(e){return this.toCollection().limit(e)},r.prototype.each=function(e){return this.toCollection().each(e)},r.prototype.toArray=function(e){return this.toCollection().toArray(e)},r.prototype.toCollection=function(){return new this.db.Collection(new this.db.WhereClause(this))},r.prototype.orderBy=function(e){return new this.db.Collection(new this.db.WhereClause(this,x(e)?"[".concat(e.join("+"),"]"):e))},r.prototype.reverse=function(){return this.toCollection().reverse()},r.prototype.mapToClass=function(r){for(var o=this.db,a=this.name,i=((this.schema.mappedClass=r).prototype instanceof mt&&(r=(e=>{var t=i,n=e;if("function"!=typeof n&&null!==n)throw new TypeError("Class extends value "+String(n)+" is not a constructor or null");function r(){this.constructor=t}function i(){return null!==e&&e.apply(this,arguments)||this}return B(t,n),t.prototype=null===n?Object.create(n):(r.prototype=n.prototype,new r),Object.defineProperty(i.prototype,"db",{get:function(){return o},enumerable:!1,configurable:!0}),i.prototype.table=function(){return a},i})(r)),new Set),e=r.prototype;e;e=F(e))Object.getOwnPropertyNames(e).forEach(function(e){return i.add(e)});function t(e){if(!e)return e;var t,n=Object.create(r.prototype);for(t in e)if(!i.has(t))try{n[t]=e[t]}catch(e){}return n}return this.schema.readHook&&this.hook.reading.unsubscribe(this.schema.readHook),this.schema.readHook=t,this.hook("reading",t),r},r.prototype.defineClass=function(){return this.mapToClass(function(e){a(this,e)})},r.prototype.add=function(t,n){var r=this,e=this.schema.primKey,i=e.auto,o=e.keyPath,a=t;return o&&i&&(a=vt(o)(t)),this._trans("readwrite",function(e){return r.core.mutate({trans:e,type:"add",keys:null!=n?[n]:null,values:[a]})}).then(function(e){return e.numFailures?K.reject(e.failures[0]):e.lastResult}).then(function(e){if(o)try{b(t,o,e)}catch(e){}return e})},r.prototype.upsert=function(r,i){var o=this,a=this.schema.primKey.keyPath;return this._trans("readwrite",function(n){return o.core.get({trans:n,key:r}).then(function(t){var e=null!=t?t:{};return kt(e,i),a&&b(e,a,r),o.core.mutate({trans:n,type:"put",values:[e],keys:[r],upsert:!0,updates:{keys:[r],changeSpecs:[i]}}).then(function(e){return e.numFailures?K.reject(e.failures[0]):!!t})})})},r.prototype.update=function(e,t){return"object"!=typeof e||x(e)?this.where(":id").equals(e).modify(t):void 0===(e=c(e,this.schema.primKey.keyPath))?S(new k.InvalidArgument("Given object does not contain its primary key")):this.where(":id").equals(e).modify(t)},r.prototype.put=function(t,n){var r=this,e=this.schema.primKey,i=e.auto,o=e.keyPath,a=t;return o&&i&&(a=vt(o)(t)),this._trans("readwrite",function(e){return r.core.mutate({trans:e,type:"put",values:[a],keys:null!=n?[n]:null})}).then(function(e){return e.numFailures?K.reject(e.failures[0]):e.lastResult}).then(function(e){if(o)try{b(t,o,e)}catch(e){}return e})},r.prototype.delete=function(t){var n=this;return this._trans("readwrite",function(e){return n.core.mutate({trans:e,type:"delete",keys:[t]}).then(function(e){return wt(n,[t],e)}).then(function(e){return e.numFailures?K.reject(e.failures[0]):void 0})})},r.prototype.clear=function(){var t=this;return this._trans("readwrite",function(e){return t.core.mutate({trans:e,type:"deleteRange",range:yt}).then(function(e){return wt(t,null,e)})}).then(function(e){return e.numFailures?K.reject(e.failures[0]):void 0})},r.prototype.bulkGet=function(t){var n=this;return this._trans("readonly",function(e){return n.core.getMany({keys:t,trans:e}).then(function(e){return e.map(function(e){return n.hook.reading.fire(e)})})})},r.prototype.bulkAdd=function(i,e,t){var o=this,a=Array.isArray(e)?e:void 0,u=(t=t||(a?void 0:e))?t.allKeys:void 0;return this._trans("readwrite",function(e){var t=o.schema.primKey,n=t.auto,t=t.keyPath;if(t&&a)throw new k.InvalidArgument("bulkAdd(): keys argument invalid on tables with inbound keys");if(a&&a.length!==i.length)throw new k.InvalidArgument("Arguments objects and keys must have the same length");var r=i.length,n=t&&n?i.map(vt(t)):i;return o.core.mutate({trans:e,type:"add",keys:a,values:n,wantResults:u}).then(function(e){var t=e.numFailures,n=e.failures;if(0===t)return u?e.results:e.lastResult;throw new he("".concat(o.name,".bulkAdd(): ").concat(t," of ").concat(r," operations failed"),n)})})},r.prototype.bulkPut=function(i,e,t){var o=this,a=Array.isArray(e)?e:void 0,u=(t=t||(a?void 0:e))?t.allKeys:void 0;return this._trans("readwrite",function(e){var t=o.schema.primKey,n=t.auto,t=t.keyPath;if(t&&a)throw new k.InvalidArgument("bulkPut(): keys argument invalid on tables with inbound keys");if(a&&a.length!==i.length)throw new k.InvalidArgument("Arguments objects and keys must have the same length");var r=i.length,n=t&&n?i.map(vt(t)):i;return o.core.mutate({trans:e,type:"put",keys:a,values:n,wantResults:u}).then(function(e){var t=e.numFailures,n=e.failures;if(0===t)return u?e.results:e.lastResult;throw new he("".concat(o.name,".bulkPut(): ").concat(t," of ").concat(r," operations failed"),n)})})},r.prototype.bulkUpdate=function(t){var h=this,n=this.core,r=t.map(function(e){return e.key}),i=t.map(function(e){return e.changes}),d=[];return this._trans("readwrite",function(e){return n.getMany({trans:e,keys:r,cache:"clone"}).then(function(c){var l=[],f=[],s=(t.forEach(function(e,t){var n=e.key,r=e.changes,i=c[t];if(i){for(var o=0,a=Object.keys(r);o<a.length;o++){var u=a[o],s=r[u];if(u===h.schema.primKey.keyPath){if(0!==j(s,n))throw new k.Constraint("Cannot update primary key in bulkUpdate()")}else b(i,u,s)}d.push(t),l.push(n),f.push(i)}}),l.length);return n.mutate({trans:e,type:"put",keys:l,values:f,updates:{keys:r,changeSpecs:i}}).then(function(e){var t=e.numFailures,n=e.failures;if(0===t)return s;for(var r=0,i=Object.keys(n);r<i.length;r++){var o,a=i[r],u=d[Number(a)];null!=u&&(o=n[a],delete n[a],n[u]=o)}throw new he("".concat(h.name,".bulkUpdate(): ").concat(t," of ").concat(s," operations failed"),n)})})})},r.prototype.bulkDelete=function(t){var r=this,i=t.length;return this._trans("readwrite",function(e){return r.core.mutate({trans:e,type:"delete",keys:t}).then(function(e){return wt(r,t,e)})}).then(function(e){var t=e.numFailures,n=e.failures;if(0===t)return e.lastResult;throw new he("".concat(r.name,".bulkDelete(): ").concat(t," of ").concat(i," operations failed"),n)})};var Ot=r;function r(){}function Pt(i){function t(e,t){if(t){for(var n=arguments.length,r=new Array(n-1);--n;)r[n-1]=arguments[n];return a[e].subscribe.apply(null,r),i}if("string"==typeof e)return a[e]}var a={};t.addEventType=u;for(var e=1,n=arguments.length;e<n;++e)u(arguments[e]);return t;function u(e,n,r){var i,o;if("object"!=typeof e)return n=n||xe,o={subscribers:[],fire:r=r||g,subscribe:function(e){-1===o.subscribers.indexOf(e)&&(o.subscribers.push(e),o.fire=n(o.fire,e))},unsubscribe:function(t){o.subscribers=o.subscribers.filter(function(e){return e!==t}),o.fire=o.subscribers.reduce(n,r)}},a[e]=t[e]=o;O(i=e).forEach(function(e){var t=i[e];if(x(t))u(e,i[e][0],i[e][1]);else{if("asap"!==t)throw new k.InvalidArgument("Invalid event config");var n=u(e,ve,function(){for(var e=arguments.length,t=new Array(e);e--;)t[e]=arguments[e];n.subscribers.forEach(function(e){Q(function(){e.apply(null,t)})})})}})}}function Kt(e,t){return U(t).from({prototype:e}),t}function Et(e,t){return!(e.filter||e.algorithm||e.or)&&(t?e.justLimit:!e.replayFilter)}function St(e,t){e.filter=pt(e.filter,t)}function At(e,t,n){var r=e.replayFilter;e.replayFilter=r?function(){return pt(r(),t())}:t,e.justLimit=n&&!r}function jt(e,t){if(e.isPrimKey)return t.primaryKey;var n=t.getIndexByKeyPath(e.index);if(n)return n;throw new k.Schema("KeyPath "+e.index+" on object store "+t.name+" is not indexed")}function Ct(e,t,n){var r=jt(e,t.schema);return t.openCursor({trans:n,values:!e.keysOnly,reverse:"prev"===e.dir,unique:!!e.unique,query:{index:r,range:e.range}})}function Tt(e,o,t,n){var a,r,u=e.replayFilter?pt(e.filter,e.replayFilter()):e.filter;return e.or?(a={},r=function(e,t,n){var r,i;u&&!u(t,n,function(e){return t.stop(e)},function(e){return t.fail(e)})||("[object ArrayBuffer]"===(i=""+(r=t.primaryKey))&&(i=""+new Uint8Array(r)),m(a,i))||(a[i]=!0,o(e,t,n))},Promise.all([e.or._iterate(r,t),It(Ct(e,n,t),e.algorithm,r,!e.keysOnly&&e.valueMapper)])):It(Ct(e,n,t),pt(e.algorithm,u),o,!e.keysOnly&&e.valueMapper)}function It(e,r,i,o){var a=E(o?function(e,t,n){return i(o(e),t,n)}:i);return e.then(function(n){if(n)return n.start(function(){var t=function(){return n.continue()};r&&!r(n,function(e){return t=e},function(e){n.stop(e),t=g},function(e){n.fail(e),t=g})||a(n.value,n,function(e){return t=e}),t()})})}i.prototype._read=function(e,t){var n=this._ctx;return n.error?n.table._trans(null,S.bind(null,n.error)):n.table._trans("readonly",e).then(t)},i.prototype._write=function(e){var t=this._ctx;return t.error?t.table._trans(null,S.bind(null,t.error)):t.table._trans("readwrite",e,"locked")},i.prototype._addAlgorithm=function(e){var t=this._ctx;t.algorithm=pt(t.algorithm,e)},i.prototype._iterate=function(e,t){return Tt(this._ctx,e,t,this._ctx.table.core)},i.prototype.clone=function(e){var t=Object.create(this.constructor.prototype),n=Object.create(this._ctx);return e&&a(n,e),t._ctx=n,t},i.prototype.raw=function(){return this._ctx.valueMapper=null,this},i.prototype.each=function(t){var n=this._ctx;return this._read(function(e){return Tt(n,t,e,n.table.core)})},i.prototype.count=function(e){var i=this;return this._read(function(e){var t,n=i._ctx,r=n.table.core;return Et(n,!0)?r.count({trans:e,query:{index:jt(n,r.schema),range:n.range}}).then(function(e){return Math.min(e,n.limit)}):(t=0,Tt(n,function(){return++t,!1},e,r).then(function(){return t}))}).then(e)},i.prototype.sortBy=function(e,t){var n=e.split(".").reverse(),r=n[0],i=n.length-1;function o(e,t){return t?o(e[n[t]],t-1):e[r]}var a="next"===this._ctx.dir?1:-1;function u(e,t){return j(o(e,i),o(t,i))*a}return this.toArray(function(e){return e.slice().sort(u)}).then(t)},i.prototype.toArray=function(e){var o=this;return this._read(function(e){var t,n,r,i=o._ctx;return Et(i,!0)&&0<i.limit?(t=i.valueMapper,n=jt(i,i.table.core.schema),i.table.core.query({trans:e,limit:i.limit,values:!0,direction:"prev"===i.dir?"prev":void 0,query:{index:n,range:i.range}}).then(function(e){e=e.result;return t?e.map(t):e})):(r=[],Tt(i,function(e){return r.push(e)},e,i.table.core).then(function(){return r}))},e)},i.prototype.offset=function(t){var e=this._ctx;return t<=0||(e.offset+=t,Et(e)?At(e,function(){var n=t;return function(e,t){return 0===n||(1===n?--n:t(function(){e.advance(n),n=0}),!1)}}):At(e,function(){var e=t;return function(){return--e<0}})),this},i.prototype.limit=function(e){return this._ctx.limit=Math.min(this._ctx.limit,e),At(this._ctx,function(){var r=e;return function(e,t,n){return--r<=0&&t(n),0<=r}},!0),this},i.prototype.until=function(r,i){return St(this._ctx,function(e,t,n){return!r(e.value)||(t(n),i)}),this},i.prototype.first=function(e){return this.limit(1).toArray(function(e){return e[0]}).then(e)},i.prototype.last=function(e){return this.reverse().first(e)},i.prototype.filter=function(t){var e;return St(this._ctx,function(e){return t(e.value)}),(e=this._ctx).isMatch=pt(e.isMatch,t),this},i.prototype.and=function(e){return this.filter(e)},i.prototype.or=function(e){return new this.db.WhereClause(this._ctx.table,e,this)},i.prototype.reverse=function(){return this._ctx.dir="prev"===this._ctx.dir?"next":"prev",this._ondirectionchange&&this._ondirectionchange(this._ctx.dir),this},i.prototype.desc=function(){return this.reverse()},i.prototype.eachKey=function(n){var e=this._ctx;return e.keysOnly=!e.isMatch,this.each(function(e,t){n(t.key,t)})},i.prototype.eachUniqueKey=function(e){return this._ctx.unique="unique",this.eachKey(e)},i.prototype.eachPrimaryKey=function(n){var e=this._ctx;return e.keysOnly=!e.isMatch,this.each(function(e,t){n(t.primaryKey,t)})},i.prototype.keys=function(e){var t=this._ctx,n=(t.keysOnly=!t.isMatch,[]);return this.each(function(e,t){n.push(t.key)}).then(function(){return n}).then(e)},i.prototype.primaryKeys=function(e){var n=this._ctx;if(Et(n,!0)&&0<n.limit)return this._read(function(e){var t=jt(n,n.table.core.schema);return n.table.core.query({trans:e,values:!1,limit:n.limit,direction:"prev"===n.dir?"prev":void 0,query:{index:t,range:n.range}})}).then(function(e){return e.result}).then(e);n.keysOnly=!n.isMatch;var r=[];return this.each(function(e,t){r.push(t.primaryKey)}).then(function(){return r}).then(e)},i.prototype.uniqueKeys=function(e){return this._ctx.unique="unique",this.keys(e)},i.prototype.firstKey=function(e){return this.limit(1).keys(function(e){return e[0]}).then(e)},i.prototype.lastKey=function(e){return this.reverse().firstKey(e)},i.prototype.distinct=function(){var n,e=this._ctx,e=e.index&&e.table.schema.idxByName[e.index];return e&&e.multi&&(n={},St(this._ctx,function(e){var e=e.primaryKey.toString(),t=m(n,e);return n[e]=!0,!t})),this},i.prototype.modify=function(x){var n=this,k=this._ctx;return this._write(function(p){function y(e,t){var n=t.failures;u+=e-t.numFailures;for(var r=0,i=O(n);r<i.length;r++){var o=i[r];a.push(n[o])}}var v="function"==typeof x?x:function(e){return kt(e,x)},m=k.table.core,e=m.schema.primaryKey,b=e.outbound,g=e.extractKey,w=200,e=n.db._options.modifyChunkSize,a=(e&&(w="object"==typeof e?e[m.name]||e["*"]||200:e),[]),u=0,t=[],_=x===Dt;return n.clone().primaryKeys().then(function(f){function h(s){var c=Math.min(w,f.length-s),l=f.slice(s,s+c);return(_?Promise.resolve([]):m.getMany({trans:p,keys:l,cache:"immutable"})).then(function(e){var n=[],t=[],r=b?[]:null,i=_?l:[];if(!_)for(var o=0;o<c;++o){var a=e[o],u={value:ee(a),primKey:f[s+o]};!1!==v.call(u,u.value,u)&&(null==u.value?i.push(f[s+o]):b||0===j(g(a),g(u.value))?(t.push(u.value),b&&r.push(f[s+o])):(i.push(f[s+o]),n.push(u.value)))}return Promise.resolve(0<n.length&&m.mutate({trans:p,type:"add",values:n}).then(function(e){for(var t in e.failures)i.splice(parseInt(t),1);y(n.length,e)})).then(function(){return(0<t.length||d&&"object"==typeof x)&&m.mutate({trans:p,type:"put",keys:r,values:t,criteria:d,changeSpec:"function"!=typeof x&&x,isAdditionalChunk:0<s}).then(function(e){return y(t.length,e)})}).then(function(){return(0<i.length||d&&_)&&m.mutate({trans:p,type:"delete",keys:i,criteria:d,isAdditionalChunk:0<s}).then(function(e){return wt(k.table,i,e)}).then(function(e){return y(i.length,e)})}).then(function(){return f.length>s+c&&h(s+w)})})}var d=Et(k)&&k.limit===1/0&&("function"!=typeof x||_)&&{index:k.index,range:k.range};return h(0).then(function(){if(0<a.length)throw new fe("Error modifying one or more objects",a,u,t);return f.length})})})},i.prototype.delete=function(){var i=this._ctx,n=i.range;return!Et(i)||i.table.schema.yProps||!i.isPrimKey&&3!==n.type?this.modify(Dt):this._write(function(e){var t=i.table.core.schema.primaryKey,r=n;return i.table.core.count({trans:e,query:{index:t,range:r}}).then(function(n){return i.table.core.mutate({trans:e,type:"deleteRange",range:r}).then(function(e){var t=e.failures,e=e.numFailures;if(e)throw new fe("Could not delete some values",Object.keys(t).map(function(e){return t[e]}),n-e);return n-e})})})};var qt=i;function i(){}var Dt=function(e,t){return t.value=null};function Bt(e,t){return e<t?-1:e===t?0:1}function Rt(e,t){return t<e?-1:e===t?0:1}function C(e,t,n){e=e instanceof Lt?new e.Collection(e):e;return e._ctx.error=new(n||TypeError)(t),e}function Ft(e){return new e.Collection(e,function(){return Mt("")}).limit(0)}function Nt(e,s,n,r){var i,c,l,f,h,d,p,y=n.length;if(!n.every(function(e){return"string"==typeof e}))return C(e,lt);function t(e){i="next"===e?function(e){return e.toUpperCase()}:function(e){return e.toLowerCase()},c="next"===e?function(e){return e.toLowerCase()}:function(e){return e.toUpperCase()},l="next"===e?Bt:Rt;var t=n.map(function(e){return{lower:c(e),upper:i(e)}}).sort(function(e,t){return l(e.lower,t.lower)});f=t.map(function(e){return e.upper}),h=t.map(function(e){return e.lower}),p="next"===(d=e)?"":r}t("next");var e=new e.Collection(e,function(){return T(f[0],h[y-1]+r)}),v=(e._ondirectionchange=function(e){t(e)},0);return e._addAlgorithm(function(e,t,n){var r=e.key;if("string"==typeof r){var i=c(r);if(s(i,h,v))return!0;for(var o=null,a=v;a<y;++a){var u=((e,t,n,r,i,o)=>{for(var a=Math.min(e.length,r.length),u=-1,s=0;s<a;++s){var c=t[s];if(c!==r[s])return i(e[s],n[s])<0?e.substr(0,s)+n[s]+n.substr(s+1):i(e[s],r[s])<0?e.substr(0,s)+r[s]+n.substr(s+1):0<=u?e.substr(0,u)+t[u]+n.substr(u+1):null;i(e[s],c)<0&&(u=s)}return a<r.length&&"next"===o?e+n.substr(e.length):a<e.length&&"prev"===o?e.substr(0,n.length):u<0?null:e.substr(0,u)+r[u]+n.substr(u+1)})(r,i,f[a],h[a],l,d);null===u&&null===o?v=a+1:(null===o||0<l(o,u))&&(o=u)}t(null!==o?function(){e.continue(o+p)}:n)}return!1}),e}function T(e,t,n,r){return{type:2,lower:e,upper:t,lowerOpen:n,upperOpen:r}}function Mt(e){return{type:1,lower:e,upper:e}}Object.defineProperty(d.prototype,"Collection",{get:function(){return this._ctx.table.db.Collection},enumerable:!1,configurable:!0}),d.prototype.between=function(e,t,n,r){n=!1!==n,r=!0===r;try{return 0<this._cmp(e,t)||0===this._cmp(e,t)&&(n||r)&&(!n||!r)?Ft(this):new this.Collection(this,function(){return T(e,t,!n,!r)})}catch(e){return C(this,A)}},d.prototype.equals=function(e){return null==e?C(this,A):new this.Collection(this,function(){return Mt(e)})},d.prototype.above=function(e){return null==e?C(this,A):new this.Collection(this,function(){return T(e,void 0,!0)})},d.prototype.aboveOrEqual=function(e){return null==e?C(this,A):new this.Collection(this,function(){return T(e,void 0,!1)})},d.prototype.below=function(e){return null==e?C(this,A):new this.Collection(this,function(){return T(void 0,e,!1,!0)})},d.prototype.belowOrEqual=function(e){return null==e?C(this,A):new this.Collection(this,function(){return T(void 0,e)})},d.prototype.startsWith=function(e){return"string"!=typeof e?C(this,lt):this.between(e,e+ct,!0,!0)},d.prototype.startsWithIgnoreCase=function(e){return""===e?this.startsWith(e):Nt(this,function(e,t){return 0===e.indexOf(t[0])},[e],ct)},d.prototype.equalsIgnoreCase=function(e){return Nt(this,function(e,t){return e===t[0]},[e],"")},d.prototype.anyOfIgnoreCase=function(){var e=n.apply(ae,arguments);return 0===e.length?Ft(this):Nt(this,function(e,t){return-1!==t.indexOf(e)},e,"")},d.prototype.startsWithAnyOfIgnoreCase=function(){var e=n.apply(ae,arguments);return 0===e.length?Ft(this):Nt(this,function(t,e){return e.some(function(e){return 0===t.indexOf(e)})},e,ct)},d.prototype.anyOf=function(){var e,i,t=this,o=n.apply(ae,arguments),a=this._cmp;try{o.sort(a)}catch(e){return C(this,A)}return 0===o.length?Ft(this):((e=new this.Collection(this,function(){return T(o[0],o[o.length-1])}))._ondirectionchange=function(e){a="next"===e?t._ascending:t._descending,o.sort(a)},i=0,e._addAlgorithm(function(e,t,n){for(var r=e.key;0<a(r,o[i]);)if(++i===o.length)return t(n),!1;return 0===a(r,o[i])||(t(function(){e.continue(o[i])}),!1)}),e)},d.prototype.notEqual=function(e){return this.inAnyRange([[-1/0,e],[e,this.db._maxKey]],{includeLowers:!1,includeUppers:!1})},d.prototype.noneOf=function(){var e=n.apply(ae,arguments);if(0===e.length)return new this.Collection(this);try{e.sort(this._ascending)}catch(e){return C(this,A)}var t=e.reduce(function(e,t){return e?e.concat([[e[e.length-1][1],t]]):[[-1/0,t]]},null);return t.push([e[e.length-1],this.db._maxKey]),this.inAnyRange(t,{includeLowers:!1,includeUppers:!1})},d.prototype.inAnyRange=function(e,t){var o=this,a=this._cmp,u=this._ascending,n=this._descending,s=this._min,c=this._max;if(0===e.length)return Ft(this);if(!e.every(function(e){return void 0!==e[0]&&void 0!==e[1]&&u(e[0],e[1])<=0}))return C(this,"First argument to inAnyRange() must be an Array of two-value Arrays [lower,upper] where upper must not be lower than lower",k.InvalidArgument);var r=!t||!1!==t.includeLowers,i=t&&!0===t.includeUppers;var l,f=u;function h(e,t){return f(e[0],t[0])}try{(l=e.reduce(function(e,t){for(var n=0,r=e.length;n<r;++n){var i=e[n];if(a(t[0],i[1])<0&&0<a(t[1],i[0])){i[0]=s(i[0],t[0]),i[1]=c(i[1],t[1]);break}}return n===r&&e.push(t),e},[])).sort(h)}catch(e){return C(this,A)}var d=0,p=i?function(e){return 0<u(e,l[d][1])}:function(e){return 0<=u(e,l[d][1])},y=r?function(e){return 0<n(e,l[d][0])}:function(e){return 0<=n(e,l[d][0])};var v=p,t=new this.Collection(this,function(){return T(l[0][0],l[l.length-1][1],!r,!i)});return t._ondirectionchange=function(e){f="next"===e?(v=p,u):(v=y,n),l.sort(h)},t._addAlgorithm(function(e,t,n){for(var r,i=e.key;v(i);)if(++d===l.length)return t(n),!1;return!p(r=i)&&!y(r)||(0===o._cmp(i,l[d][1])||0===o._cmp(i,l[d][0])||t(function(){f===u?e.continue(l[d][0]):e.continue(l[d][1])}),!1)}),t},d.prototype.startsWithAnyOf=function(){var e=n.apply(ae,arguments);return e.every(function(e){return"string"==typeof e})?0===e.length?Ft(this):this.inAnyRange(e.map(function(e){return[e,e+ct]})):C(this,"startsWithAnyOf() only works with strings")};var Lt=d;function d(){}function I(t){return E(function(e){return Ut(e),t(e.target.error),!1})}function Ut(e){e.stopPropagation&&e.stopPropagation(),e.preventDefault&&e.preventDefault()}var zt="storagemutated",Vt="x-storagemutated-1",Wt=Pt(null,zt),Yt=(p.prototype._lock=function(){return $(!P.global),++this._reculock,1!==this._reculock||P.global||(P.lockOwnerFor=this),this},p.prototype._unlock=function(){if($(!P.global),0==--this._reculock)for(P.global||(P.lockOwnerFor=null);0<this._blockedFuncs.length&&!this._locked();){var e=this._blockedFuncs.shift();try{at(e[1],e[0])}catch(e){}}return this},p.prototype._locked=function(){return this._reculock&&P.lockOwnerFor!==this},p.prototype.create=function(t){var n=this;if(this.mode){var e=this.db.idbdb,r=this.db._state.dbOpenError;if($(!this.idbtrans),!t&&!e)switch(r&&r.name){case"DatabaseClosedError":throw new k.DatabaseClosed(r);case"MissingAPIError":throw new k.MissingAPI(r.message,r);default:throw new k.OpenFailed(r)}if(!this.active)throw new k.TransactionInactive;$(null===this._completion._state),(t=this.idbtrans=t||(this.db.core||e).transaction(this.storeNames,this.mode,{durability:this.chromeTransactionDurability})).onerror=E(function(e){Ut(e),n._reject(t.error)}),t.onabort=E(function(e){Ut(e),n.active&&n._reject(new k.Abort(t.error)),n.active=!1,n.on("abort").fire(e)}),t.oncomplete=E(function(){n.active=!1,n._resolve(),"mutatedParts"in t&&Wt.storagemutated.fire(t.mutatedParts)})}return this},p.prototype._promise=function(n,r,i){var e,o=this;return"readwrite"===n&&"readwrite"!==this.mode?S(new k.ReadOnly("Transaction is readonly")):this.active?this._locked()?new K(function(e,t){o._blockedFuncs.push([function(){o._promise(n,r,i).then(e,t)},P])}):i?v(function(){var e=new K(function(e,t){o._lock();var n=r(e,t,o);n&&n.then&&n.then(e,t)});return e.finally(function(){return o._unlock()}),e._lib=!0,e}):((e=new K(function(e,t){var n=r(e,t,o);n&&n.then&&n.then(e,t)}))._lib=!0,e):S(new k.TransactionInactive)},p.prototype._root=function(){return this.parent?this.parent._root():this},p.prototype.waitFor=function(e){var t,r=this._root(),i=K.resolve(e),o=(r._waitingFor?r._waitingFor=r._waitingFor.then(function(){return i}):(r._waitingFor=i,r._waitingQueue=[],t=r.idbtrans.objectStore(r.storeNames[0]),function e(){for(++r._spinCount;r._waitingQueue.length;)r._waitingQueue.shift()();r._waitingFor&&(t.get(-1/0).onsuccess=e)}()),r._waitingFor);return new K(function(t,n){i.then(function(e){return r._waitingQueue.push(E(t.bind(null,e)))},function(e){return r._waitingQueue.push(E(n.bind(null,e)))}).finally(function(){r._waitingFor===o&&(r._waitingFor=null)})})},p.prototype.abort=function(){this.active&&(this.active=!1,this.idbtrans&&this.idbtrans.abort(),this._reject(new k.Abort))},p.prototype.table=function(e){var t=this._memoizedTables||(this._memoizedTables={});if(m(t,e))return t[e];var n=this.schema[e];if(n)return(n=new this.db.Table(e,n,this)).core=this.db.core.table(e),t[e]=n;throw new k.NotFound("Table "+e+" not part of transaction")},p);function p(){}function $t(e,t,n,r,i,o,a,u){return{name:e,keyPath:t,unique:n,multi:r,auto:i,compound:o,src:(n&&!a?"&":"")+(r?"*":"")+(i?"++":"")+Qt(t),type:u}}function Qt(e){return"string"==typeof e?e:e?"["+[].join.call(e,"+")+"]":""}function Gt(e,t,n){return{name:e,primKey:t,indexes:n,mappedClass:null,idxByName:(r=function(e){return[e.name,e]},n.reduce(function(e,t,n){t=r(t,n);return t&&(e[t[0]]=t[1]),e},{}))};var r}var Xt=function(e){try{return e.only([[]]),Xt=function(){return[[]]},[[]]}catch(e){return Xt=function(){return ct},ct}};function Ht(t){return null==t?function(){}:"string"==typeof t?1===(n=t).split(".").length?function(e){return e[n]}:function(e){return c(e,n)}:function(e){return c(e,t)};var n}function Jt(e){return[].slice.call(e)}var Zt=0;function en(e){return null==e?":id":"string"==typeof e?e:"[".concat(e.join("+"),"]")}function tn(e,i,t){function _(e){if(3===e.type)return null;if(4===e.type)throw new Error("Cannot convert never type to IDBKeyRange");var t=e.lower,n=e.upper,r=e.lowerOpen,e=e.upperOpen;return void 0===t?void 0===n?null:i.upperBound(n,!!e):void 0===n?i.lowerBound(t,!!r):i.bound(t,n,!!r,!!e)}function n(e){var p,y,w=e.name;return{name:w,schema:e,mutate:function(e){var y=e.trans,v=e.type,m=e.keys,b=e.values,g=e.range;return new Promise(function(t,e){t=E(t);var n=y.objectStore(w),r=null==n.keyPath,i="put"===v||"add"===v;if(!i&&"delete"!==v&&"deleteRange"!==v)throw new Error("Invalid operation type: "+v);var o,a=(m||b||{length:1}).length;if(m&&b&&m.length!==b.length)throw new Error("Given keys array must have same length as given values array.");if(0===a)return t({numFailures:0,failures:{},results:[],lastResult:void 0});function u(e){++l,Ut(e)}var s=[],c=[],l=0;if("deleteRange"===v){if(4===g.type)return t({numFailures:l,failures:c,results:[],lastResult:void 0});3===g.type?s.push(o=n.clear()):s.push(o=n.delete(_(g)))}else{var r=i?r?[b,m]:[b,null]:[m,null],f=r[0],h=r[1];if(i)for(var d=0;d<a;++d)s.push(o=h&&void 0!==h[d]?n[v](f[d],h[d]):n[v](f[d])),o.onerror=u;else for(d=0;d<a;++d)s.push(o=n[v](f[d])),o.onerror=u}function p(e){e=e.target.result,s.forEach(function(e,t){return null!=e.error&&(c[t]=e.error)}),t({numFailures:l,failures:c,results:"delete"===v?m:s.map(function(e){return e.result}),lastResult:e})}o.onerror=function(e){u(e),p(e)},o.onsuccess=p})},getMany:function(e){var f=e.trans,h=e.keys;return new Promise(function(t,e){t=E(t);for(var n,r=f.objectStore(w),i=h.length,o=new Array(i),a=0,u=0,s=function(e){e=e.target;o[e._pos]=e.result,++u===a&&t(o)},c=I(e),l=0;l<i;++l)null!=h[l]&&((n=r.get(h[l]))._pos=l,n.onsuccess=s,n.onerror=c,++a);0===a&&t(o)})},get:function(e){var r=e.trans,i=e.key;return new Promise(function(t,e){t=E(t);var n=r.objectStore(w).get(i);n.onsuccess=function(e){return t(e.target.result)},n.onerror=I(e)})},query:(p=a,y=u,function(d){return new Promise(function(t,e){t=E(t);var n,r,i,o,a=d.trans,u=d.values,s=d.limit,c=d.query,l=null!=(l=d.direction)?l:"next",f=s===1/0?void 0:s,h=c.index,c=c.range,a=a.objectStore(w),a=h.isPrimaryKey?a:a.index(h.name),h=_(c);if(0===s)return t({result:[]});y?(c={query:h,count:f,direction:l},(n=u?a.getAll(c):a.getAllKeys(c)).onsuccess=function(e){return t({result:e.target.result})},n.onerror=I(e)):p&&"next"===l?((n=u?a.getAll(h,f):a.getAllKeys(h,f)).onsuccess=function(e){return t({result:e.target.result})},n.onerror=I(e)):(r=0,i=!u&&"openKeyCursor"in a?a.openKeyCursor(h,l):a.openCursor(h,l),o=[],i.onsuccess=function(){var e=i.result;return!e||(o.push(u?e.value:e.primaryKey),++r===s)?t({result:o}):void e.continue()},i.onerror=I(e))})}),openCursor:function(e){var c=e.trans,o=e.values,a=e.query,u=e.reverse,l=e.unique;return new Promise(function(t,n){t=E(t);var e=a.index,r=a.range,i=c.objectStore(w),i=e.isPrimaryKey?i:i.index(e.name),e=u?l?"prevunique":"prev":l?"nextunique":"next",s=!o&&"openKeyCursor"in i?i.openKeyCursor(_(r),e):i.openCursor(_(r),e);s.onerror=I(n),s.onsuccess=E(function(e){var r,i,o,a,u=s.result;u?(u.___id=++Zt,u.done=!1,r=u.continue.bind(u),i=(i=u.continuePrimaryKey)&&i.bind(u),o=u.advance.bind(u),a=function(){throw new Error("Cursor not stopped")},u.trans=c,u.stop=u.continue=u.continuePrimaryKey=u.advance=function(){throw new Error("Cursor not started")},u.fail=E(n),u.next=function(){var e=this,t=1;return this.start(function(){return t--?e.continue():e.stop()}).then(function(){return e})},u.start=function(e){function t(){if(s.result)try{e()}catch(e){u.fail(e)}else u.done=!0,u.start=function(){throw new Error("Cursor behind last entry")},u.stop()}var n=new Promise(function(t,e){t=E(t),s.onerror=I(e),u.fail=e,u.stop=function(e){u.stop=u.continue=u.continuePrimaryKey=u.advance=a,t(e)}});return s.onsuccess=E(function(e){s.onsuccess=t,t()}),u.continue=r,u.continuePrimaryKey=i,u.advance=o,t(),n},t(u)):t(null)},n)})},count:function(e){var t=e.query,i=e.trans,o=t.index,a=t.range;return new Promise(function(t,e){var n=i.objectStore(w),n=o.isPrimaryKey?n:n.index(o.name),r=_(a),r=r?n.count(r):n.count();r.onsuccess=E(function(e){return t(e.target.result)}),r.onerror=I(e)})}}}r=t,o=Jt((t=e).objectStoreNames),s=0<o.length?r.objectStore(o[0]):{};var r,t={schema:{name:t.name,tables:o.map(function(e){return r.objectStore(e)}).map(function(t){var e=t.keyPath,n=t.autoIncrement,r=x(e),i={},r={name:t.name,primaryKey:{name:null,isPrimaryKey:!0,outbound:null==e,compound:r,keyPath:e,autoIncrement:n,unique:!0,extractKey:Ht(e)},indexes:Jt(t.indexNames).map(function(e){return t.index(e)}).map(function(e){var t=e.name,n=e.unique,r=e.multiEntry,e=e.keyPath,t={name:t,compound:x(e),keyPath:e,unique:n,multiEntry:r,extractKey:Ht(e)};return i[en(e)]=t}),getIndexByKeyPath:function(e){return i[en(e)]}};return i[":id"]=r.primaryKey,null!=e&&(i[en(e)]=r.primaryKey),r})},hasGetAll:0<o.length&&"getAll"in s&&!("undefined"!=typeof navigator&&/Safari/.test(navigator.userAgent)&&!/(Chrome\/|Edge\/)/.test(navigator.userAgent)&&[].concat(navigator.userAgent.match(/Safari\/(\d*)/))[1]<604),hasIdb3Features:"getAllRecords"in s},o=t.schema,a=t.hasGetAll,u=t.hasIdb3Features,s=o.tables.map(n),c={};return s.forEach(function(e){return c[e.name]=e}),{stack:"dbcore",transaction:e.transaction.bind(e),table:function(e){if(c[e])return c[e];throw new Error("Table '".concat(e,"' not found"))},MIN_KEY:-1/0,MAX_KEY:Xt(i),schema:o}}function nn(e,t,n,r){n=n.IDBKeyRange;return t=tn(t,n,r),{dbcore:e.dbcore.reduce(function(e,t){t=t.create;return _(_({},e),t(e))},t)}}function rn(n,e){var t=e.db,t=nn(n._middlewares,t,n._deps,e);n.core=t.dbcore,n.tables.forEach(function(e){var t=e.name;n.core.schema.tables.some(function(e){return e.name===t})&&(e.core=n.core.table(t),n[t]instanceof n.Table)&&(n[t].core=e.core)})}function on(i,e,t,o){t.forEach(function(n){var r=o[n];e.forEach(function(e){var t=function e(t,n){return z(t,n)||(t=F(t))&&e(t,n)}(e,n);(!t||"value"in t&&void 0===t.value)&&(e===i.Transaction.prototype||e instanceof i.Transaction?u(e,n,{get:function(){return this.table(n)},set:function(e){L(this,n,{value:e,writable:!0,configurable:!0,enumerable:!0})}}):e[n]=new i.Table(n,r))})})}function an(n,e){e.forEach(function(e){for(var t in e)e[t]instanceof n.Table&&delete e[t]})}function un(e,t){return e._cfg.version-t._cfg.version}function sn(n,r,i,e){var o=n._dbSchema,a=(i.objectStoreNames.contains("$meta")&&!o.$meta&&(o.$meta=Gt("$meta",vn("")[0],[]),n._storeNames.push("$meta")),n._createTransaction("readwrite",n._storeNames,o)),u=(a.create(i),a._completion.catch(e),a._reject.bind(a)),s=P.transless||P;v(function(){if(P.trans=a,P.transless=s,0!==r)return rn(n,i),t=r,((e=a).storeNames.includes("$meta")?e.table("$meta").get("version").then(function(e){return null!=e?e:t}):K.resolve(t)).then(function(e){var s=n,c=e,l=a,f=i,t=[],e=s._versions,h=s._dbSchema=pn(0,s.idbdb,f);return 0===(e=e.filter(function(e){return e._cfg.version>=c})).length?K.resolve():(e.forEach(function(u){t.push(function(){var t,n,r,i=h,e=u._cfg.dbschema,o=(yn(s,i,f),yn(s,e,f),h=s._dbSchema=e,ln(i,e)),a=(o.add.forEach(function(e){fn(f,e[0],e[1].primKey,e[1].indexes)}),o.change.forEach(function(e){if(e.recreate)throw new k.Upgrade("Not yet support for changing primary key");var t=f.objectStore(e.name);e.add.forEach(function(e){return dn(t,e)}),e.change.forEach(function(e){t.deleteIndex(e.name),dn(t,e)}),e.del.forEach(function(e){return t.deleteIndex(e)})}),u._cfg.contentUpgrade);if(a&&u._cfg.version>c)return rn(s,f),l._memoizedTables={},t=G(e),o.del.forEach(function(e){t[e]=i[e]}),an(s,[s.Transaction.prototype]),on(s,[s.Transaction.prototype],O(t),t),l.schema=t,(n=ue(a))&&nt(),e=K.follow(function(){var e;(r=a(l))&&n&&(e=w.bind(null,null),r.then(e,e))}),r&&"function"==typeof r.then?K.resolve(r):e.then(function(){return r})}),t.push(function(e){var t,n,r=u._cfg.dbschema;t=r,n=e,[].slice.call(n.db.objectStoreNames).forEach(function(e){return null==t[e]&&n.db.deleteObjectStore(e)}),an(s,[s.Transaction.prototype]),on(s,[s.Transaction.prototype],s._storeNames,s._dbSchema),l.schema=s._dbSchema}),t.push(function(e){s.idbdb.objectStoreNames.contains("$meta")&&(Math.ceil(s.idbdb.version/10)===u._cfg.version?(s.idbdb.deleteObjectStore("$meta"),delete s._dbSchema.$meta,s._storeNames=s._storeNames.filter(function(e){return"$meta"!==e})):e.objectStore("$meta").put(u._cfg.version,"version"))})}),function e(){return t.length?K.resolve(t.shift()(l.idbtrans)).then(e):K.resolve()}().then(function(){hn(h,f)}))}).catch(u);var e,t;O(o).forEach(function(e){fn(i,e,o[e].primKey,o[e].indexes)}),rn(n,i),K.follow(function(){return n.on.populate.fire(a)}).catch(u)})}function cn(e,r){hn(e._dbSchema,r),r.db.version%10!=0||r.objectStoreNames.contains("$meta")||r.db.createObjectStore("$meta").add(Math.ceil(r.db.version/10-1),"version");var t=pn(0,e.idbdb,r);yn(e,e._dbSchema,r);for(var n=0,i=ln(t,e._dbSchema).change;n<i.length;n++){var o=(t=>{if(t.change.length||t.recreate)return console.warn("Unable to patch indexes of table ".concat(t.name," because it has changes on the type of index or primary key.")),{value:void 0};var n=r.objectStore(t.name);t.add.forEach(function(e){l&&console.debug("Dexie upgrade patch: Creating missing index ".concat(t.name,".").concat(e.src)),dn(n,e)})})(i[n]);if("object"==typeof o)return o.value}}function ln(e,t){var n,r={del:[],add:[],change:[]};for(n in e)t[n]||r.del.push(n);for(n in t){var i=e[n],o=t[n];if(i){var a={name:n,def:o,recreate:!1,del:[],add:[],change:[]};if(""+(i.primKey.keyPath||"")!=""+(o.primKey.keyPath||"")||i.primKey.auto!==o.primKey.auto)a.recreate=!0,r.change.push(a);else{var u=i.idxByName,s=o.idxByName,c=void 0;for(c in u)s[c]||a.del.push(c);for(c in s){var l=u[c],f=s[c];l?l.src!==f.src&&a.change.push(f):a.add.push(f)}(0<a.del.length||0<a.add.length||0<a.change.length)&&r.change.push(a)}}else r.add.push([n,o])}return r}function fn(e,t,n,r){var i=e.db.createObjectStore(t,n.keyPath?{keyPath:n.keyPath,autoIncrement:n.auto}:{autoIncrement:n.auto});r.forEach(function(e){return dn(i,e)})}function hn(t,n){O(t).forEach(function(e){n.db.objectStoreNames.contains(e)||(l&&console.debug("Dexie: Creating missing table",e),fn(n,e,t[e].primKey,t[e].indexes))})}function dn(e,t){e.createIndex(t.name,t.keyPath,{unique:t.unique,multiEntry:t.multi})}function pn(e,t,u){var s={};return W(t.objectStoreNames,0).forEach(function(e){for(var t=u.objectStore(e),n=$t(Qt(a=t.keyPath),a||"",!0,!1,!!t.autoIncrement,a&&"string"!=typeof a,!0),r=[],i=0;i<t.indexNames.length;++i){var o=t.index(t.indexNames[i]),a=o.keyPath,o=$t(o.name,a,!!o.unique,!!o.multiEntry,!1,a&&"string"!=typeof a,!1);r.push(o)}s[e]=Gt(e,n,r)}),s}function yn(e,t,n){for(var r=n.db.objectStoreNames,i=0;i<r.length;++i){var o=r[i],a=n.objectStore(o);e._hasGetAll="getAll"in a;for(var u=0;u<a.indexNames.length;++u){var s,c=a.indexNames[u],l=a.index(c).keyPath,l="string"==typeof l?l:"["+W(l).join("+")+"]";t[o]&&(s=t[o].idxByName[l])&&(s.name=c,delete t[o].idxByName[l],t[o].idxByName[c]=s)}}"undefined"!=typeof navigator&&/Safari/.test(navigator.userAgent)&&!/(Chrome\/|Edge\/)/.test(navigator.userAgent)&&f.WorkerGlobalScope&&f instanceof f.WorkerGlobalScope&&[].concat(navigator.userAgent.match(/Safari\/(\d*)/))[1]<604&&(e._hasGetAll=!1)}function vn(e){return e.split(",").map(function(e,t){var n=e.split(":"),r=null==(r=n[1])?void 0:r.trim(),n=(e=n[0].trim()).replace(/([&*]|\+\+)/g,""),i=/^\[/.test(n)?n.match(/^\[(.*)\]$/)[1].split("+"):n;return $t(n,i||null,/\&/.test(e),/\*/.test(e),/\+\+/.test(e),x(i),0===t,r)})}bn.prototype._createTableSchema=Gt,bn.prototype._parseIndexSyntax=vn,bn.prototype._parseStoresSpec=function(r,i){var o=this;O(r).forEach(function(e){if(null!==r[e]){var t=o._parseIndexSyntax(r[e]),n=t.shift();if(!n)throw new k.Schema("Invalid schema for table "+e+": "+r[e]);if(n.unique=!0,n.multi)throw new k.Schema("Primary key cannot be multiEntry*");t.forEach(function(e){if(e.auto)throw new k.Schema("Only primary key can be marked as autoIncrement (++)");if(!e.keyPath)throw new k.Schema("Index must have a name and cannot be an empty string")});n=o._createTableSchema(e,n,t);i[e]=n}})},bn.prototype.stores=function(e){var t=this.db,e=(this._cfg.storesSource=this._cfg.storesSource?a(this._cfg.storesSource,e):e,t._versions),n={},r={};return e.forEach(function(e){a(n,e._cfg.storesSource),r=e._cfg.dbschema={},e._parseStoresSpec(n,r)}),t._dbSchema=r,an(t,[t._allTables,t,t.Transaction.prototype]),on(t,[t._allTables,t,t.Transaction.prototype,this._cfg.tables],O(r),r),t._storeNames=O(r),this},bn.prototype.upgrade=function(e){return this._cfg.contentUpgrade=ke(this._cfg.contentUpgrade||g,e),this};var mn=bn;function bn(){}var gn=(()=>{var i,o,t;return"undefined"!=typeof FinalizationRegistry&&"undefined"!=typeof WeakRef?(i=new Set,o=new FinalizationRegistry(function(e){i.delete(e)}),{toArray:function(){return Array.from(i).map(function(e){return e.deref()}).filter(function(e){return void 0!==e})},add:function(e){var t=new WeakRef(e._novip);i.add(t),o.register(e._novip,t,t),i.size>e._options.maxConnections&&(t=i.values().next().value,i.delete(t),o.unregister(t))},remove:function(e){if(e)for(var t=i.values(),n=t.next();!n.done;){var r=n.value;if(r.deref()===e._novip)return i.delete(r),void o.unregister(r);n=t.next()}}}):(t=[],{toArray:function(){return t},add:function(e){t.push(e._novip)},remove:function(e){e&&-1!==(e=t.indexOf(e._novip))&&t.splice(e,1)}})})();function wn(e,t){var n=e._dbNamesDB;return n||(n=e._dbNamesDB=new y(ft,{addons:[],indexedDB:e,IDBKeyRange:t})).version(1).stores({dbnames:"name"}),n.table("dbnames")}function _n(e){return e&&"function"==typeof e.databases}function xn(e){return v(function(){return P.letThrough=!0,e()})}function kn(e){return!("from"in e)}var q=function(e,t){var n;if(!this)return n=new q,e&&"d"in e&&a(n,e),n;a(this,arguments.length?{d:1,from:e,to:1<arguments.length?t:e}:{d:0})};function On(e,t,n){var r=j(t,n);if(!isNaN(r)){if(0<r)throw RangeError();if(kn(e))return a(e,{from:t,to:n,d:1});var r=e.l,i=e.r;if(j(n,e.from)<0)return r?On(r,t,n):e.l={from:t,to:n,d:1,l:null,r:null},Sn(e);if(0<j(t,e.to))return i?On(i,t,n):e.r={from:t,to:n,d:1,l:null,r:null},Sn(e);j(t,e.from)<0&&(e.from=t,e.l=null,e.d=i?i.d+1:1),0<j(n,e.to)&&(e.to=n,e.r=null,e.d=e.l?e.l.d+1:1);t=!e.r;r&&!e.l&&Pn(e,r),i&&t&&Pn(e,i)}}function Pn(e,t){kn(t)||function e(t,n){var r=n.from,i=n.l,o=n.r;On(t,r,n.to),i&&e(t,i),o&&e(t,o)}(e,t)}function Kn(e,t){var n=En(t),r=n.next();if(!r.done)for(var i=r.value,o=En(e),a=o.next(i.from),u=a.value;!r.done&&!a.done;){if(j(u.from,i.to)<=0&&0<=j(u.to,i.from))return!0;j(i.from,u.from)<0?i=(r=n.next(u.from)).value:u=(a=o.next(i.from)).value}return!1}function En(e){var n=kn(e)?null:{s:0,n:e};return{next:function(e){for(var t=0<arguments.length;n;)switch(n.s){case 0:if(n.s=1,t)for(;n.n.l&&j(e,n.n.from)<0;)n={up:n,n:n.n.l,s:1};else for(;n.n.l;)n={up:n,n:n.n.l,s:1};case 1:if(n.s=2,!t||j(e,n.n.to)<=0)return{value:n.n,done:!1};case 2:if(n.n.r){n.s=3,n={up:n,n:n.n.r,s:0};continue}case 3:n=n.up}return{done:!0}}}}function Sn(e){var t,n,r,i=((null==(i=e.r)?void 0:i.d)||0)-((null==(i=e.l)?void 0:i.d)||0),i=1<i?"r":i<-1?"l":"";i&&(t="r"==i?"l":"r",n=_({},e),r=e[i],e.from=r.from,e.to=r.to,e[i]=r[i],n[i]=r[t],(e[t]=n).d=An(n)),e.d=An(e)}function An(e){var t=e.r,e=e.l;return(t?e?Math.max(t.d,e.d):t.d:e?e.d:0)+1}function jn(t,n){return O(n).forEach(function(e){t[e]?Pn(t[e],n[e]):t[e]=function e(t){var n,r,i={};for(n in t)m(t,n)&&(r=t[n],i[n]=!r||"object"!=typeof r||J.has(r.constructor)?r:e(r));return i}(n[e])}),t}function Cn(t,n){return t.all||n.all||Object.keys(t).some(function(e){return n[e]&&Kn(n[e],t[e])})}M(q.prototype,((t={add:function(e){return Pn(this,e),this},addKey:function(e){return On(this,e,e),this},addKeys:function(e){var t=this;return e.forEach(function(e){return On(t,e,e)}),this},hasKey:function(e){var t=En(this).next(e).value;return t&&j(t.from,e)<=0&&0<=j(t.to,e)}})[re]=function(){return En(this)},t));var Tn={},In={},qn=!1;function Dn(e){jn(In,e),qn||(qn=!0,setTimeout(function(){qn=!1,Bn(In,!(In={}))},0))}function Bn(e,t){void 0===t&&(t=!1);var n=new Set;if(e.all)for(var r=0,i=Object.values(Tn);r<i.length;r++)Rn(u=i[r],e,n,t);else for(var o in e){var a,u,o=/^idb\:\/\/(.*)\/(.*)\//.exec(o);o&&(a=o[1],o=o[2],u=Tn["idb://".concat(a,"/").concat(o)])&&Rn(u,e,n,t)}n.forEach(function(e){return e()})}function Rn(e,t,n,r){for(var i=[],o=0,a=Object.entries(e.queries.query);o<a.length;o++){for(var u=a[o],s=u[0],c=[],l=0,f=u[1];l<f.length;l++){var h=f[l];Cn(t,h.obsSet)?h.subscribers.forEach(function(e){return n.add(e)}):r&&c.push(h)}r&&i.push([s,c])}if(r)for(var d=0,p=i;d<p.length;d++){var y=p[d],s=y[0],c=y[1];e.queries.query[s]=c}}function Fn(h){var d=h._state,r=h._deps.indexedDB;if(d.isBeingOpened||h.idbdb)return d.dbReadyPromise.then(function(){return d.dbOpenError?S(d.dbOpenError):h});d.isBeingOpened=!0,d.dbOpenError=null,d.openComplete=!1;var t=d.openCanceller,p=Math.round(10*h.verno),y=!1;function e(){if(d.openCanceller!==t)throw new k.DatabaseClosed("db.open() was cancelled")}function v(){return new K(function(c,n){if(e(),!r)throw new k.MissingAPI;var l=h.name,f=d.autoSchema||!p?r.open(l):r.open(l,p);if(!f)throw new k.MissingAPI;f.onerror=I(n),f.onblocked=E(h._fireOnBlocked),f.onupgradeneeded=E(function(e){var t;m=f.transaction,d.autoSchema&&!h._options.allowEmptyDB?(f.onerror=Ut,m.abort(),f.result.close(),(t=r.deleteDatabase(l)).onsuccess=t.onerror=E(function(){n(new k.NoSuchDatabase("Database ".concat(l," doesnt exist")))})):(m.onerror=I(n),t=e.oldVersion>Math.pow(2,62)?0:e.oldVersion,b=t<1,h.idbdb=f.result,y&&cn(h,m),sn(h,t/10,m,n))},n),f.onsuccess=E(function(){m=null;var e,t,n,r,i,o,a=h.idbdb=f.result,u=W(a.objectStoreNames);if(0<u.length)try{var s=a.transaction(1===(i=u).length?i[0]:i,"readonly");if(d.autoSchema)o=a,r=s,(n=h).verno=o.version/10,r=n._dbSchema=pn(0,o,r),n._storeNames=W(o.objectStoreNames,0),on(n,[n._allTables],O(r),r);else if(yn(h,h._dbSchema,s),t=s,((t=ln(pn(0,(e=h).idbdb,t),e._dbSchema)).add.length||t.change.some(function(e){return e.add.length||e.change.length}))&&!y)return console.warn("Dexie SchemaDiff: Schema was extended without increasing the number passed to db.version(). Dexie will add missing parts and increment native version number to workaround this."),a.close(),p=a.version+1,y=!0,c(v());rn(h,s)}catch(e){}gn.add(h),a.onversionchange=E(function(e){d.vcFired=!0,h.on("versionchange").fire(e)}),a.onclose=E(function(){h.close({disableAutoOpen:!1})}),b&&(u=h._deps,i=l,_n(o=u.indexedDB)||i===ft||wn(o,u.IDBKeyRange).put({name:i}).catch(g)),c()},n)}).catch(function(e){switch(null==e?void 0:e.name){case"UnknownError":if(0<d.PR1398_maxLoop)return d.PR1398_maxLoop--,console.warn("Dexie: Workaround for Chrome UnknownError on open()"),v();break;case"VersionError":if(0<p)return p=0,v()}return K.reject(e)})}var n,i=d.dbReadyResolve,m=null,b=!1;return K.race([t,("undefined"==typeof navigator?K.resolve():!navigator.userAgentData&&/Safari\//.test(navigator.userAgent)&&!/Chrom(e|ium)\//.test(navigator.userAgent)&&indexedDB.databases?new Promise(function(e){function t(){return indexedDB.databases().finally(e)}n=setInterval(t,100),t()}).finally(function(){return clearInterval(n)}):Promise.resolve()).then(v)]).then(function(){return e(),d.onReadyBeingFired=[],K.resolve(xn(function(){return h.on.ready.fire(h.vip)})).then(function e(){var t;if(0<d.onReadyBeingFired.length)return t=d.onReadyBeingFired.reduce(ke,g),d.onReadyBeingFired=[],K.resolve(xn(function(){return t(h.vip)})).then(e)})}).finally(function(){d.openCanceller===t&&(d.onReadyBeingFired=null,d.isBeingOpened=!1)}).catch(function(e){d.dbOpenError=e;try{m&&m.abort()}catch(e){}return t===d.openCanceller&&h._close(),S(e)}).finally(function(){d.openComplete=!0,i()}).then(function(){var n;return b&&(n={},h.tables.forEach(function(t){t.schema.indexes.forEach(function(e){e.name&&(n["idb://".concat(h.name,"/").concat(t.name,"/").concat(e.name)]=new q(-1/0,[[[]]]))}),n["idb://".concat(h.name,"/").concat(t.name,"/")]=n["idb://".concat(h.name,"/").concat(t.name,"/:dels")]=new q(-1/0,[[[]]])}),Wt(zt).fire(n),Bn(n,!0)),h})}function Nn(t){function e(e){return t.next(e)}var r=n(e),i=n(function(e){return t.throw(e)});function n(n){return function(e){var e=n(e),t=e.value;return e.done?t:t&&"function"==typeof t.then?t.then(r,i):x(t)?Promise.all(t).then(r,i):r(t)}}return n(e)()}function Mn(e,t,n){for(var r=x(e)?e.slice():[e],i=0;i<n;++i)r.push(t);return r}var Ln={stack:"dbcore",name:"VirtualIndexMiddleware",level:1,create:function(l){return _(_({},l),{table:function(e){var o=l.table(e),e=o.schema,u=Object.create(null),s=[];function c(e,t,n){var r=en(e),i=u[r]=u[r]||[],o=null==e?0:"string"==typeof e?1:e.length,a=0<t,r=_(_({},n),{name:a?"".concat(r,"(virtual-from:").concat(n.name,")"):n.name,lowLevelIndex:n,isVirtual:a,keyTail:t,keyLength:o,extractKey:Ht(e),unique:!a&&n.unique});return i.push(r),r.isPrimaryKey||s.push(r),1<o&&c(2===o?e[0]:e.slice(0,o-1),t+1,n),i.sort(function(e,t){return e.keyTail-t.keyTail}),r}var t=c(e.primaryKey.keyPath,0,e.primaryKey);u[":id"]=[t];for(var n=0,r=e.indexes;n<r.length;n++){var i=r[n];c(i.keyPath,0,i)}function a(e){var t,n=e.query.index;return n.isVirtual?_(_({},e),{query:{index:n.lowLevelIndex,range:(t=e.query.range,n=n.keyTail,{type:1===t.type?2:t.type,lower:Mn(t.lower,t.lowerOpen?l.MAX_KEY:l.MIN_KEY,n),lowerOpen:!0,upper:Mn(t.upper,t.upperOpen?l.MIN_KEY:l.MAX_KEY,n),upperOpen:!0})}}):e}return _(_({},o),{schema:_(_({},e),{primaryKey:t,indexes:s,getIndexByKeyPath:function(e){return(e=u[en(e)])&&e[0]}}),count:function(e){return o.count(a(e))},query:function(e){return o.query(a(e))},openCursor:function(t){var e=t.query.index,r=e.keyTail,i=e.keyLength;return e.isVirtual?o.openCursor(a(t)).then(function(e){return e&&n(e)}):o.openCursor(t);function n(n){return Object.create(n,{continue:{value:function(e){null!=e?n.continue(Mn(e,t.reverse?l.MAX_KEY:l.MIN_KEY,r)):t.unique?n.continue(n.key.slice(0,i).concat(t.reverse?l.MIN_KEY:l.MAX_KEY,r)):n.continue()}},continuePrimaryKey:{value:function(e,t){n.continuePrimaryKey(Mn(e,l.MAX_KEY,r),t)}},primaryKey:{get:function(){return n.primaryKey}},key:{get:function(){var e=n.key;return 1===i?e[0]:e.slice(0,i)}},value:{get:function(){return n.value}}})}}})}})}};function Un(i,o,a,u){return a=a||{},u=u||"",O(i).forEach(function(e){var t,n,r;m(o,e)?(t=i[e],n=o[e],"object"==typeof t&&"object"==typeof n&&t&&n?(r=ne(t))!==ne(n)?a[u+e]=o[e]:"Object"===r?Un(t,n,a,u+e+"."):t!==n&&(a[u+e]=o[e]):t!==n&&(a[u+e]=o[e])):a[u+e]=void 0}),O(o).forEach(function(e){m(i,e)||(a[u+e]=o[e])}),a}function zn(e,t){return"delete"===t.type?t.keys:t.keys||t.values.map(e.extractKey)}var Vn={stack:"dbcore",name:"HooksMiddleware",level:2,create:function(e){return _(_({},e),{table:function(r){var y=e.table(r),v=y.schema.primaryKey;return _(_({},y),{mutate:function(e){var t=P.trans,n=t.table(r).hook,h=n.deleting,d=n.creating,p=n.updating;switch(e.type){case"add":if(d.fire===g)break;return t._promise("readwrite",function(){return a(e)},!0);case"put":if(d.fire===g&&p.fire===g)break;return t._promise("readwrite",function(){return a(e)},!0);case"delete":if(h.fire===g)break;return t._promise("readwrite",function(){return a(e)},!0);case"deleteRange":if(h.fire===g)break;return t._promise("readwrite",function(){return function n(r,i,o){return y.query({trans:r,values:!1,query:{index:v,range:i},limit:o}).then(function(e){var t=e.result;return a({type:"delete",keys:t,trans:r}).then(function(e){return 0<e.numFailures?Promise.reject(e.failures[0]):t.length<o?{failures:[],numFailures:0,lastResult:void 0}:n(r,_(_({},i),{lower:t[t.length-1],lowerOpen:!0}),o)})})}(e.trans,e.range,1e4)},!0)}return y.mutate(e);function a(c){var e,t,n,l=P.trans,f=c.keys||zn(v,c);if(f)return"delete"!==(c="add"===c.type||"put"===c.type?_(_({},c),{keys:f}):_({},c)).type&&(c.values=R([],c.values,!0)),c.keys&&(c.keys=R([],c.keys,!0)),e=y,n=f,("add"===(t=c).type?Promise.resolve([]):e.getMany({trans:t.trans,keys:n,cache:"immutable"})).then(function(u){var s=f.map(function(e,t){var n,r,i,o=u[t],a={onerror:null,onsuccess:null};return"delete"===c.type?h.fire.call(a,e,o,l):"add"===c.type||void 0===o?(n=d.fire.call(a,e,c.values[t],l),null==e&&null!=n&&(c.keys[t]=e=n,v.outbound||b(c.values[t],v.keyPath,e))):(n=Un(o,c.values[t]),(r=p.fire.call(a,n,e,o,l))&&(i=c.values[t],Object.keys(r).forEach(function(e){m(i,e)?i[e]=r[e]:b(i,e,r[e])}))),a});return y.mutate(c).then(function(e){for(var t=e.failures,n=e.results,r=e.numFailures,e=e.lastResult,i=0;i<f.length;++i){var o=(n||f)[i],a=s[i];null==o?a.onerror&&a.onerror(t[i]):a.onsuccess&&a.onsuccess("put"===c.type&&u[i]?c.values[i]:o)}return{failures:t,results:n,numFailures:r,lastResult:e}}).catch(function(t){return s.forEach(function(e){return e.onerror&&e.onerror(t)}),Promise.reject(t)})});throw new Error("Keys missing")}}})}})}};function Wn(e,t,n){try{if(!t)return null;if(t.keys.length<e.length)return null;for(var r=[],i=0,o=0;i<t.keys.length&&o<e.length;++i)0===j(t.keys[i],e[o])&&(r.push(n?ee(t.values[i]):t.values[i]),++o);return r.length===e.length?r:null}catch(e){return null}}var Yn={stack:"dbcore",level:-1,create:function(t){return{table:function(e){var n=t.table(e);return _(_({},n),{getMany:function(t){var e;return t.cache?(e=Wn(t.keys,t.trans._cache,"clone"===t.cache))?K.resolve(e):n.getMany(t).then(function(e){return t.trans._cache={keys:t.keys,values:"clone"===t.cache?ee(e):e},e}):n.getMany(t)},mutate:function(e){return"add"!==e.type&&(e.trans._cache=null),n.mutate(e)}})}}}};function $n(e,t){return"readonly"===e.trans.mode&&!!e.subscr&&!e.trans.explicit&&"disabled"!==e.trans.db._options.cache&&!t.schema.primaryKey.outbound}function Qn(e,t){switch(e){case"query":return t.values&&!t.unique;case"get":case"getMany":case"count":case"openCursor":return!1}}var Gn={stack:"dbcore",level:0,name:"Observability",create:function(b){var g=b.schema.name,w=new q(b.MIN_KEY,b.MAX_KEY);return _(_({},b),{transaction:function(e,t,n){if(P.subscr&&"readonly"!==t)throw new k.ReadOnly("Readwrite transaction in liveQuery context. Querier source: ".concat(P.querier));return b.transaction(e,t,n)},table:function(d){function e(e){var t,e=e.query;return[t=e.index,new q(null!=(t=(e=e.range).lower)?t:b.MIN_KEY,null!=(t=e.upper)?t:b.MAX_KEY)]}var p=b.table(d),y=p.schema,v=y.primaryKey,t=y.indexes,c=v.extractKey,l=v.outbound,m=v.autoIncrement&&t.filter(function(e){return e.compound&&e.keyPath.includes(v.keyPath)}),n=_(_({},p),{mutate:function(a){function u(e){return e="idb://".concat(g,"/").concat(d,"/").concat(e),n[e]||(n[e]=new q)}var e,o,s,t=a.trans,n=a.mutatedParts||(a.mutatedParts={}),r=u(""),i=u(":dels"),c=a.type,l="deleteRange"===a.type?[a.range]:"delete"===a.type?[a.keys]:a.values.length<50?[zn(v,a).filter(function(e){return e}),a.values]:[],f=l[0],l=l[1],h=a.trans._cache;return x(f)?(r.addKeys(f),(c="delete"===c||f.length===l.length?Wn(f,h):null)||i.addKeys(f),(c||l)&&(e=u,o=c,s=l,y.indexes.forEach(function(t){var n=e(t.name||"");function r(e){return null!=e?t.extractKey(e):null}function i(e){t.multiEntry&&x(e)?e.forEach(function(e){return n.addKey(e)}):n.addKey(e)}(o||s).forEach(function(e,t){var n=o&&r(o[t]),t=s&&r(s[t]);0!==j(n,t)&&(null!=n&&i(n),null!=t)&&i(t)})}))):f?(l={from:null!=(h=f.lower)?h:b.MIN_KEY,to:null!=(c=f.upper)?c:b.MAX_KEY},i.add(l),r.add(l)):(r.add(w),i.add(w),y.indexes.forEach(function(e){return u(e.name).add(w)})),p.mutate(a).then(function(o){return!f||"add"!==a.type&&"put"!==a.type||(r.addKeys(o.results),m&&m.forEach(function(t){for(var e=a.values.map(function(e){return t.extractKey(e)}),n=t.keyPath.findIndex(function(e){return e===v.keyPath}),r=0,i=o.results.length;r<i;++r)e[r][n]=o.results[r];u(t.name).addKeys(e)})),t.mutatedParts=jn(t.mutatedParts||{},n),o})}}),f={get:function(e){return[v,new q(e.key)]},getMany:function(e){return[v,(new q).addKeys(e.keys)]},count:e,query:e,openCursor:e};return O(f).forEach(function(s){n[s]=function(i){var e=P.subscr,t=!!e,n=$n(P,p)&&Qn(s,i)?i.obsSet={}:e;if(t){var o,e=function(e){e="idb://".concat(g,"/").concat(d,"/").concat(e);return n[e]||(n[e]=new q)},a=e(""),u=e(":dels"),t=f[s](i),r=t[0],t=t[1];if(("query"===s&&r.isPrimaryKey&&!i.values?u:e(r.name||"")).add(t),!r.isPrimaryKey){if("count"!==s)return o="query"===s&&l&&i.values&&p.query(_(_({},i),{values:!1})),p[s].apply(this,arguments).then(function(t){if("query"===s){if(l&&i.values)return o.then(function(e){e=e.result;return a.addKeys(e),t});var e=i.values?t.result.map(c):t.result;(i.values?a:u).addKeys(e)}else{var n,r;if("openCursor"===s)return r=i.values,(n=t)&&Object.create(n,{key:{get:function(){return u.addKey(n.primaryKey),n.key}},primaryKey:{get:function(){var e=n.primaryKey;return u.addKey(e),e}},value:{get:function(){return r&&a.addKey(n.primaryKey),n.value}}})}return t});u.add(w)}}return p[s].apply(this,arguments)}}),n}})}};function Xn(e,t,n){var r;return 0===n.numFailures?t:"deleteRange"===t.type||(r=t.keys?t.keys.length:"values"in t&&t.values?t.values.length:1,n.numFailures===r)?null:(r=_({},t),x(r.keys)&&(r.keys=r.keys.filter(function(e,t){return!(t in n.failures)})),"values"in r&&x(r.values)&&(r.values=r.values.filter(function(e,t){return!(t in n.failures)})),r)}function Hn(e,t){return n=e,(void 0===(r=t).lower||(r.lowerOpen?0<j(n,r.lower):0<=j(n,r.lower)))&&(n=e,void 0===(r=t).upper||(r.upperOpen?j(n,r.upper)<0:j(n,r.upper)<=0));var n,r}function Jn(e,d,t,n,r,i){var o,p,y,v,m,a,u;return!t||0===t.length||(o=d.query.index,p=o.multiEntry,y=d.query.range,v=n.schema.primaryKey.extractKey,m=o.extractKey,a=(o.lowLevelIndex||o).extractKey,(n=t.reduce(function(e,t){var n=e,r=[];if("add"===t.type||"put"===t.type)for(var i=new q,o=t.values.length-1;0<=o;--o){var a,u=t.values[o],s=v(u);!i.hasKey(s)&&(a=m(u),p&&x(a)?a.some(function(e){return Hn(e,y)}):Hn(a,y))&&(i.addKey(s),r.push(u))}switch(t.type){case"add":var c=(new q).addKeys(d.values?e.map(function(e){return v(e)}):e),n=e.concat(d.values?r.filter(function(e){e=v(e);return!c.hasKey(e)&&(c.addKey(e),!0)}):r.map(function(e){return v(e)}).filter(function(e){return!c.hasKey(e)&&(c.addKey(e),!0)}));break;case"put":var l=(new q).addKeys(t.values.map(function(e){return v(e)}));n=e.filter(function(e){return!l.hasKey(d.values?v(e):e)}).concat(d.values?r:r.map(function(e){return v(e)}));break;case"delete":var f=(new q).addKeys(t.keys);n=e.filter(function(e){return!f.hasKey(d.values?v(e):e)});break;case"deleteRange":var h=t.range;n=e.filter(function(e){return!Hn(v(e),h)})}return n},e))===e)?e:(u=function(e,t){return j(a(e),a(t))||j(v(e),v(t))},n.sort("prev"===d.direction||"prevunique"===d.direction?function(e,t){return u(t,e)}:u),d.limit&&d.limit<1/0&&(n.length>d.limit?n.length=d.limit:e.length===d.limit&&n.length<d.limit&&(r.dirty=!0)),i?Object.freeze(n):n)}function Zn(e,t){return 0===j(e.lower,t.lower)&&0===j(e.upper,t.upper)&&!!e.lowerOpen==!!t.lowerOpen&&!!e.upperOpen==!!t.upperOpen}function er(e,t){return((e,t,n,r)=>{if(void 0===e)return void 0!==t?-1:0;if(void 0===t)return 1;if(0===(e=j(e,t))){if(n&&r)return 0;if(n)return 1;if(r)return-1}return e})(e.lower,t.lower,e.lowerOpen,t.lowerOpen)<=0&&0<=((e,t,n,r)=>{if(void 0===e)return void 0!==t?1:0;if(void 0===t)return-1;if(0===(e=j(e,t))){if(n&&r)return 0;if(n)return-1;if(r)return 1}return e})(e.upper,t.upper,e.upperOpen,t.upperOpen)}function tr(n,r,i,e){n.subscribers.add(i),e.addEventListener("abort",function(){var e,t;n.subscribers.delete(i),0===n.subscribers.size&&(e=n,t=r,setTimeout(function(){0===e.subscribers.size&&oe(t,e)},3e3))})}var nr={stack:"dbcore",level:0,name:"Cache",create:function(k){var O=k.schema.name;return _(_({},k),{transaction:function(g,w,e){var _,t,x=k.transaction(g,w,e);return"readwrite"===w&&(e=(_=new AbortController).signal,x.addEventListener("abort",(t=function(b){return function(){if(_.abort(),"readwrite"===w){for(var t=new Set,e=0,n=g;e<n.length;e++){var r=n[e],i=Tn["idb://".concat(O,"/").concat(r)];if(i){var o=k.table(r),a=i.optimisticOps.filter(function(e){return e.trans===x});if(x._explicit&&b&&x.mutatedParts)for(var u=0,s=Object.values(i.queries.query);u<s.length;u++)for(var c=0,l=(d=s[u]).slice();c<l.length;c++)Cn((p=l[c]).obsSet,x.mutatedParts)&&(oe(d,p),p.subscribers.forEach(function(e){return t.add(e)}));else if(0<a.length){i.optimisticOps=i.optimisticOps.filter(function(e){return e.trans!==x});for(var f=0,h=Object.values(i.queries.query);f<h.length;f++)for(var d,p,y,v=0,m=(d=h[f]).slice();v<m.length;v++)null!=(p=m[v]).res&&x.mutatedParts&&(b&&!p.dirty?(y=Object.isFrozen(p.res),y=Jn(p.res,p.req,a,o,p,y),p.dirty?(oe(d,p),p.subscribers.forEach(function(e){return t.add(e)})):y!==p.res&&(p.res=y,p.promise=K.resolve({result:y}))):(p.dirty&&oe(d,p),p.subscribers.forEach(function(e){return t.add(e)})))}}}t.forEach(function(e){return e()})}}})(!1),{signal:e}),x.addEventListener("error",t(!1),{signal:e}),x.addEventListener("complete",t(!0),{signal:e})),x},table:function(s){var c=k.table(s),i=c.schema.primaryKey;return _(_({},c),{mutate:function(t){var n,e=P.trans;return!i.outbound&&"disabled"!==e.db._options.cache&&!e.explicit&&"readwrite"===e.idbtrans.mode&&(n=Tn["idb://".concat(O,"/").concat(s)])?(e=c.mutate(t),"add"!==t.type&&"put"!==t.type||!(50<=t.values.length||zn(i,t).some(function(e){return null==e}))?(n.optimisticOps.push(t),t.mutatedParts&&Dn(t.mutatedParts),e.then(function(e){0<e.numFailures&&(oe(n.optimisticOps,t),(e=Xn(0,t,e))&&n.optimisticOps.push(e),t.mutatedParts)&&Dn(t.mutatedParts)}),e.catch(function(){oe(n.optimisticOps,t),t.mutatedParts&&Dn(t.mutatedParts)})):e.then(function(r){var e=Xn(0,_(_({},t),{values:t.values.map(function(e,t){var n;return r.failures[t]?e:(b(n=null!=(n=i.keyPath)&&n.includes(".")?ee(e):_({},e),i.keyPath,r.results[t]),n)})}),r);n.optimisticOps.push(e),queueMicrotask(function(){return t.mutatedParts&&Dn(t.mutatedParts)})}),e):c.mutate(t)},query:function(t){var i,e,n,r,o,a,u;return $n(P,c)&&Qn("query",t)?(i="immutable"===(null==(n=P.trans)?void 0:n.db._options.cache),e=(n=P).requery,n=n.signal,a=((e,t,n,r)=>{var i=Tn["idb://".concat(e,"/").concat(t)];if(!i)return[];if(!(e=i.queries[n]))return[null,!1,i,null];var o=e[(r.query?r.query.index.name:null)||""];if(!o)return[null,!1,i,null];switch(n){case"query":var a=null!=(u=r.direction)?u:"next",u=o.find(function(e){var t;return e.req.limit===r.limit&&e.req.values===r.values&&(null!=(t=e.req.direction)?t:"next")===a&&Zn(e.req.query.range,r.query.range)});return u?[u,!0,i,o]:[o.find(function(e){var t;return("limit"in e.req?e.req.limit:1/0)>=r.limit&&(null!=(t=e.req.direction)?t:"next")===a&&(!r.values||e.req.values)&&er(e.req.query.range,r.query.range)}),!1,i,o];case"count":u=o.find(function(e){return Zn(e.req.query.range,r.query.range)});return[u,!!u,i,o]}})(O,s,"query",t),u=a[0],r=a[2],o=a[3],u&&a[1]?u.obsSet=t.obsSet:(a=c.query(t).then(function(e){var t=e.result;if(u&&(u.res=t),i){for(var n=0,r=t.length;n<r;++n)Object.freeze(t[n]);Object.freeze(t)}return e}).catch(function(e){return o&&u&&oe(o,u),Promise.reject(e)}),u={obsSet:t.obsSet,promise:a,subscribers:new Set,type:"query",req:t,dirty:!1},o?o.push(u):(o=[u],(r=r||(Tn["idb://".concat(O,"/").concat(s)]={queries:{query:{},count:{}},objs:new Map,optimisticOps:[],unsignaledParts:{}})).queries.query[t.query.index.name||""]=o)),tr(u,o,e,n),u.promise.then(function(e){e=Jn(e.result,t,null==r?void 0:r.optimisticOps,c,u,i);return{result:i?e:ee(e)}})):c.query(t)}})}})}};function rr(e,r){return new Proxy(e,{get:function(e,t,n){return"db"===t?r:Reflect.get(e,t,n)}})}D.prototype.version=function(t){if(isNaN(t)||t<.1)throw new k.Type("Given version is not a positive number");if(t=Math.round(10*t)/10,this.idbdb||this._state.isBeingOpened)throw new k.Schema("Cannot add version when database is open");this.verno=Math.max(this.verno,t);var e=this._versions,n=e.filter(function(e){return e._cfg.version===t})[0];return n||(n=new this.Version(t),e.push(n),e.sort(un),n.stores({}),this._state.autoSchema=!1),n},D.prototype._whenReady=function(e){var n=this;return this.idbdb&&(this._state.openComplete||P.letThrough||this._vip)?e():new K(function(e,t){if(n._state.openComplete)return t(new k.DatabaseClosed(n._state.dbOpenError));if(!n._state.isBeingOpened){if(!n._state.autoOpen)return void t(new k.DatabaseClosed);n.open().catch(g)}n._state.dbReadyPromise.then(e,t)}).then(e)},D.prototype.use=function(e){var t=e.stack,n=e.create,r=e.level,e=e.name,i=(e&&this.unuse({stack:t,name:e}),this._middlewares[t]||(this._middlewares[t]=[]));return i.push({stack:t,create:n,level:null==r?10:r,name:e}),i.sort(function(e,t){return e.level-t.level}),this},D.prototype.unuse=function(e){var t=e.stack,n=e.name,r=e.create;return t&&this._middlewares[t]&&(this._middlewares[t]=this._middlewares[t].filter(function(e){return r?e.create!==r:!!n&&e.name!==n})),this},D.prototype.open=function(){var e=this;return at(s,function(){return Fn(e)})},D.prototype._close=function(){this.on.close.fire(new CustomEvent("close"));var n=this._state;if(gn.remove(this),this.idbdb){try{this.idbdb.close()}catch(e){}this.idbdb=null}n.isBeingOpened||(n.dbReadyPromise=new K(function(e){n.dbReadyResolve=e}),n.openCanceller=new K(function(e,t){n.cancelOpen=t}))},D.prototype.close=function(e){var e=(void 0===e?{disableAutoOpen:!0}:e).disableAutoOpen,t=this._state;e?(t.isBeingOpened&&t.cancelOpen(new k.DatabaseClosed),this._close(),t.autoOpen=!1,t.dbOpenError=new k.DatabaseClosed):(this._close(),t.autoOpen=this._options.autoOpen||t.isBeingOpened,t.openComplete=!1,t.dbOpenError=null)},D.prototype.delete=function(n){var i=this,o=(void 0===n&&(n={disableAutoOpen:!0}),0<arguments.length&&"object"!=typeof arguments[0]),a=this._state;return new K(function(r,t){function e(){i.close(n);var e=i._deps.indexedDB.deleteDatabase(i.name);e.onsuccess=E(function(){var e,t,n;e=i._deps,t=i.name,_n(n=e.indexedDB)||t===ft||wn(n,e.IDBKeyRange).delete(t).catch(g),r()}),e.onerror=I(t),e.onblocked=i._fireOnBlocked}if(o)throw new k.InvalidArgument("Invalid closeOptions argument to db.delete()");a.isBeingOpened?a.dbReadyPromise.then(e):e()})},D.prototype.backendDB=function(){return this.idbdb},D.prototype.isOpen=function(){return null!==this.idbdb},D.prototype.hasBeenClosed=function(){var e=this._state.dbOpenError;return e&&"DatabaseClosed"===e.name},D.prototype.hasFailed=function(){return null!==this._state.dbOpenError},D.prototype.dynamicallyOpened=function(){return this._state.autoSchema},Object.defineProperty(D.prototype,"tables",{get:function(){var t=this;return O(this._allTables).map(function(e){return t._allTables[e]})},enumerable:!1,configurable:!0}),D.prototype.transaction=function(){var e=function(e,t,n){var r=arguments.length;if(r<2)throw new k.InvalidArgument("Too few arguments");for(var i=new Array(r-1);--r;)i[r-1]=arguments[r];return n=i.pop(),[e,H(i),n]}.apply(this,arguments);return this._transaction.apply(this,e)},D.prototype._transaction=function(e,t,n){var r,i,o=this,a=P.trans,u=(a&&a.db===this&&-1===e.indexOf("!")||(a=null),-1!==e.indexOf("?"));e=e.replace("!","").replace("?","");try{if(i=t.map(function(e){e=e instanceof o.Table?e.name:e;if("string"!=typeof e)throw new TypeError("Invalid table argument to Dexie.transaction(). Only Table or String are allowed");return e}),"r"==e||e===ht)r=ht;else{if("rw"!=e&&e!=dt)throw new k.InvalidArgument("Invalid transaction mode: "+e);r=dt}if(a){if(a.mode===ht&&r===dt){if(!u)throw new k.SubTransaction("Cannot enter a sub-transaction with READWRITE mode when parent transaction is READONLY");a=null}a&&i.forEach(function(e){if(a&&-1===a.storeNames.indexOf(e)){if(!u)throw new k.SubTransaction("Table "+e+" not included in parent transaction.");a=null}}),u&&a&&!a.active&&(a=null)}}catch(n){return a?a._promise(null,function(e,t){t(n)}):S(n)}var s=function i(o,a,u,s,c){return K.resolve().then(function(){var e=P.transless||P,t=o._createTransaction(a,u,o._dbSchema,s),e=(t.explicit=!0,{trans:t,transless:e});if(s)t.idbtrans=s.idbtrans;else try{t.create(),t.idbtrans._explicit=!0,o._state.PR1398_maxLoop=3}catch(e){return e.name===de.InvalidState&&o.isOpen()&&0<--o._state.PR1398_maxLoop?(console.warn("Dexie: Need to reopen db"),o.close({disableAutoOpen:!1}),o.open().then(function(){return i(o,a,u,null,c)})):S(e)}var n,r=ue(c),e=(r&&nt(),K.follow(function(){var e;(n=c.call(t,t))&&(r?(e=w.bind(null,null),n.then(e,e)):"function"==typeof n.next&&"function"==typeof n.throw&&(n=Nn(n)))},e));return(n&&"function"==typeof n.then?K.resolve(n).then(function(e){return t.active?e:S(new k.PrematureCommit("Transaction committed too early. See http://bit.ly/2kdckMn"))}):e.then(function(){return n})).then(function(e){return s&&t._resolve(),t._completion.then(function(){return e})}).catch(function(e){return t._reject(e),S(e)})})}.bind(null,this,r,i,a,n);return a?a._promise(r,s,"lock"):P.trans?at(P.transless,function(){return o._whenReady(s)}):this._whenReady(s)},D.prototype.table=function(e){if(m(this._allTables,e))return this._allTables[e];throw new k.InvalidTable("Table ".concat(e," does not exist"))};var y=D;function D(e,t){var o,r,a,n,i,u=this,s=(this._middlewares={},this.verno=0,D.dependencies),s=(this._options=t=_({addons:D.addons,autoOpen:!0,indexedDB:s.indexedDB,IDBKeyRange:s.IDBKeyRange,cache:"cloned",maxConnections:1e3},t),this._deps={indexedDB:t.indexedDB,IDBKeyRange:t.IDBKeyRange},t.addons),c=(this._dbSchema={},this._versions=[],this._storeNames=[],this._allTables={},this.idbdb=null,this._novip=this,{dbOpenError:null,isBeingOpened:!1,onReadyBeingFired:null,openComplete:!1,dbReadyResolve:g,dbReadyPromise:null,cancelOpen:g,openCanceller:null,autoSchema:!0,PR1398_maxLoop:3,autoOpen:t.autoOpen}),l=(c.dbReadyPromise=new K(function(e){c.dbReadyResolve=e}),c.openCanceller=new K(function(e,t){c.cancelOpen=t}),this._state=c,this.name=e,this.on=Pt(this,"populate","blocked","versionchange","close",{ready:[ke,g]}),this.once=function(n,r){var i=function(){for(var e=[],t=0;t<arguments.length;t++)e[t]=arguments[t];u.on(n).unsubscribe(i),r.apply(u,e)};return u.on(n,i)},this.on.ready.subscribe=Y(this.on.ready.subscribe,function(i){return function(n,r){D.vip(function(){var t,e=u._state;e.openComplete?(e.dbOpenError||K.resolve().then(n),r&&i(n)):e.onReadyBeingFired?(e.onReadyBeingFired.push(n),r&&i(n)):(i(n),t=u,r||i(function e(){t.on.ready.unsubscribe(n),t.on.ready.unsubscribe(e)}))})}}),this.Collection=(o=this,Kt(qt.prototype,function(e,t){this.db=o;var n=yt,r=null;if(t)try{n=t()}catch(e){r=e}var t=e._ctx,e=t.table,i=e.hook.reading.fire;this._ctx={table:e,index:t.index,isPrimKey:!t.index||e.schema.primKey.keyPath&&t.index===e.schema.primKey.name,range:n,keysOnly:!1,dir:"next",unique:"",algorithm:null,filter:null,replayFilter:null,justLimit:!0,isMatch:null,offset:0,limit:1/0,error:r,or:t.or,valueMapper:i!==ve?i:null}})),this.Table=(r=this,Kt(Ot.prototype,function(e,t,n){this.db=r,this._tx=n,this.name=e,this.schema=t,this.hook=r._allTables[e]?r._allTables[e].hook:Pt(null,{creating:[ge,g],reading:[me,ve],updating:[_e,g],deleting:[we,g]})})),this.Transaction=(a=this,Kt(Yt.prototype,function(e,t,n,r,i){var o=this;"readonly"!==e&&t.forEach(function(e){e=null==(e=n[e])?void 0:e.yProps;e&&(t=t.concat(e.map(function(e){return e.updatesTable})))}),this.db=a,this.mode=e,this.storeNames=t,this.schema=n,this.chromeTransactionDurability=r,this.idbtrans=null,this.on=Pt(this,"complete","error","abort"),this.parent=i||null,this.active=!0,this._reculock=0,this._blockedFuncs=[],this._resolve=null,this._reject=null,this._waitingFor=null,this._waitingQueue=null,this._spinCount=0,this._completion=new K(function(e,t){o._resolve=e,o._reject=t}),this._completion.then(function(){o.active=!1,o.on.complete.fire()},function(e){var t=o.active;return o.active=!1,o.on.error.fire(e),o.parent?o.parent._reject(e):t&&o.idbtrans&&o.idbtrans.abort(),S(e)})})),this.Version=(n=this,Kt(mn.prototype,function(e){this.db=n,this._cfg={version:e,storesSource:null,dbschema:{},tables:{},contentUpgrade:null}})),this.WhereClause=(i=this,Kt(Lt.prototype,function(e,t,n){if(this.db=i,this._ctx={table:e,index:":id"===t?null:t,or:n},this._cmp=this._ascending=j,this._descending=function(e,t){return j(t,e)},this._max=function(e,t){return 0<j(e,t)?e:t},this._min=function(e,t){return j(e,t)<0?e:t},this._IDBKeyRange=i._deps.IDBKeyRange,!this._IDBKeyRange)throw new k.MissingAPI})),this.on("versionchange",function(e){0<e.newVersion?console.warn("Another connection wants to upgrade database '".concat(u.name,"'. Closing db now to resume the upgrade.")):console.warn("Another connection wants to delete database '".concat(u.name,"'. Closing db now to resume the delete request.")),u.close({disableAutoOpen:!1})}),this.on("blocked",function(e){!e.newVersion||e.newVersion<e.oldVersion?console.warn("Dexie.delete('".concat(u.name,"') was blocked")):console.warn("Upgrade '".concat(u.name,"' blocked by other connection holding version ").concat(e.oldVersion/10))}),this._maxKey=Xt(t.IDBKeyRange),this._createTransaction=function(e,t,n,r){return new u.Transaction(e,t,n,u._options.chromeTransactionDurability,r)},this._fireOnBlocked=function(t){u.on("blocked").fire(t),gn.toArray().filter(function(e){return e.name===u.name&&e!==u&&!e._state.vcFired}).map(function(e){return e.on("versionchange").fire(t)})},this.use(Yn),this.use(nr),this.use(Gn),this.use(Ln),this.use(Vn),new Proxy(this,{get:function(e,t,n){var r;return"_vip"===t||("table"===t?function(e){return rr(u.table(e),l)}:(r=Reflect.get(e,t,n))instanceof Ot?rr(r,l):"tables"===t?r.map(function(e){return rr(e,l)}):"_createTransaction"===t?function(){return rr(r.apply(this,arguments),l)}:r)}}));this.vip=l,s.forEach(function(e){return e(u)})}var ir,Se="undefined"!=typeof Symbol&&"observable"in Symbol?Symbol.observable:"@@observable",or=(ar.prototype.subscribe=function(e,t,n){return this._subscribe(e&&"function"!=typeof e?e:{next:e,error:t,complete:n})},ar.prototype[Se]=function(){return this},ar);function ar(e){this._subscribe=e}try{ir={indexedDB:f.indexedDB||f.mozIndexedDB||f.webkitIndexedDB||f.msIndexedDB,IDBKeyRange:f.IDBKeyRange||f.webkitIDBKeyRange}}catch(e){ir={indexedDB:null,IDBKeyRange:null}}function ur(d){var p,y=!1,e=new or(function(r){var i=ue(d);var o,a=!1,u={},s={},e={get closed(){return a},unsubscribe:function(){a||(a=!0,o&&o.abort(),c&&Wt.storagemutated.unsubscribe(h))}},c=(r.start&&r.start(e),!1),l=function(){return st(t)};function f(){return Cn(s,u)}var h=function(e){jn(u,e),f()&&l()},t=function(){var t,n,e;!a&&ir.indexedDB&&(u={},t={},o&&o.abort(),o=new AbortController,e=(e=>{var t=$e();try{i&&nt();var n=v(d,e);return n=i?n.finally(w):n}finally{t&&Qe()}})(n={subscr:t,signal:o.signal,requery:l,querier:d,trans:null}),c||(Wt.storagemutated.subscribe(h),c=!0),Promise.resolve(e).then(function(e){y=!0,p=e,a||n.signal.aborted||(f()||(s=t,f())?l():(u={},st(function(){return!a&&r.next&&r.next(e)})))},function(e){y=!1,["DatabaseClosedError","AbortError"].includes(null==e?void 0:e.name)||a||st(function(){a||r.error&&r.error(e)})}))};return setTimeout(l,0),e});return e.hasValue=function(){return y},e.getValue=function(){return p},e}var sr=y;function cr(e){var t=fr;try{fr=!0,Wt.storagemutated.fire(e),Bn(e,!0)}finally{fr=t}}M(sr,_(_({},e),{delete:function(e){return new sr(e,{addons:[]}).delete()},exists:function(e){return new sr(e,{addons:[]}).open().then(function(e){return e.close(),!0}).catch("NoSuchDatabaseError",function(){return!1})},getDatabaseNames:function(e){try{return t=sr.dependencies,n=t.indexedDB,t=t.IDBKeyRange,(_n(n)?Promise.resolve(n.databases()).then(function(e){return e.map(function(e){return e.name}).filter(function(e){return e!==ft})}):wn(n,t).toCollection().primaryKeys()).then(e)}catch(e){return S(new k.MissingAPI)}var t,n},defineClass:function(){return function(e){a(this,e)}},ignoreTransaction:function(e){return P.trans?at(P.transless||s,e):e()},vip:xn,async:function(t){return function(){try{var e=Nn(t.apply(this,arguments));return e&&"function"==typeof e.then?e:K.resolve(e)}catch(e){return S(e)}}},spawn:function(e,t,n){try{var r=Nn(e.apply(n,t||[]));return r&&"function"==typeof r.then?r:K.resolve(r)}catch(e){return S(e)}},currentTransaction:{get:function(){return P.trans||null}},waitFor:function(e,t){e=K.resolve("function"==typeof e?sr.ignoreTransaction(e):e).timeout(t||6e4);return P.trans?P.trans.waitFor(e):e},Promise:K,debug:{get:function(){return l},set:function(e){Oe(e)}},derive:U,extend:a,props:M,override:Y,Events:Pt,on:Wt,liveQuery:ur,extendObservabilitySet:jn,getByKeyPath:c,setByKeyPath:b,delByKeyPath:function(t,e){"string"==typeof e?b(t,e,void 0):"length"in e&&[].map.call(e,function(e){b(t,e,void 0)})},shallowClone:G,deepClone:ee,getObjectDiff:Un,cmp:j,asap:Q,minKey:-1/0,addons:[],connections:{get:gn.toArray},errnames:de,dependencies:ir,cache:Tn,semVer:"4.4.6",version:"4.4.6".split(".").map(function(e){return parseInt(e)}).reduce(function(e,t,n){return e+t/Math.pow(10,2*n)})})),sr.maxKey=Xt(sr.dependencies.IDBKeyRange),"undefined"!=typeof dispatchEvent&&"undefined"!=typeof addEventListener&&(Wt(zt,function(e){fr||(e=new CustomEvent(Vt,{detail:e}),fr=!0,dispatchEvent(e),fr=!1)}),addEventListener(Vt,function(e){e=e.detail;fr||cr(e)}));var lr,fr=!1,hr=function(){};return"undefined"!=typeof BroadcastChannel&&((hr=function(){(lr=new BroadcastChannel(Vt)).onmessage=function(e){return e.data&&cr(e.data)}})(),"function"==typeof lr.unref&&lr.unref(),Wt(zt,function(e){fr||lr.postMessage(e)})),"undefined"!=typeof addEventListener&&(addEventListener("pagehide",function(e){if(!y.disableBfCache&&e.persisted){l&&console.debug("Dexie: handling persisted pagehide"),null!=lr&&lr.close();for(var t=0,n=gn.toArray();t<n.length;t++)n[t].close({disableAutoOpen:!1})}}),addEventListener("pageshow",function(e){!y.disableBfCache&&e.persisted&&(l&&console.debug("Dexie: handling persisted pageshow"),hr(),cr({all:new q(-1/0,[[]])}))})),K.rejectionMapper=function(e,t){return!e||e instanceof ce||e instanceof TypeError||e instanceof SyntaxError||!e.name||!ye[e.name]?e:(t=new ye[e.name](t||e.message,e),"stack"in e&&u(t,"stack",{get:function(){return this.inner.stack}}),t)},Oe(l),_(y,Object.freeze({__proto__:null,DEFAULT_MAX_CONNECTIONS:1e3,Dexie:y,Entity:mt,PropModification:_t,RangeSet:q,add:function(e){return new _t({add:e})},cmp:j,default:y,liveQuery:ur,mergeRanges:Pn,rangesOverlap:Kn,remove:function(e){return new _t({remove:e})},replacePrefix:function(e,t){return new _t({replacePrefix:[e,t]})}}),{default:y}),y});
+//# sourceMappingURL=dexie.min.js.map
+/* ---- end dexie ---- */
 /* ============================================================
    db.js — Dexie database schema and persistence layer
    ------------------------------------------------------------
@@ -12445,6 +12456,389 @@ function bindDecisionList(root){
   root.querySelectorAll('[data-dopen]').forEach(x => x.onclick = () => openDecisionPanel(x.dataset.dopen));
 }
 /* ============================================================
+   HOW A TREE GETS ITS SHAPE
+
+   The old tree was laid out by arithmetic: divide the sky into as many
+   sectors as there are categories, put a branch down the middle of each,
+   hang the skills off it at fixed angles. That is a diagram-drawing
+   algorithm, and no amount of jitter hides it — the eye reads the even
+   spacing straight through the noise.
+
+   A real tree does not divide anything. It grows toward light, a segment
+   at a time, and forks when the light it is reaching for lies in two
+   directions at once. Everything that makes a tree look like a tree — the
+   asymmetry, the way a limb thickens where it carries more, the way two
+   branches never leave at quite the same angle — comes out of that one
+   rule rather than being added on top of it.
+
+   So: scatter the skills as points of light in the canopy, start a shoot
+   at the top of the trunk, and let it grow. The algorithm is space
+   colonisation (Runions, Lane & Prusinkiewicz, 2007), which is what most
+   convincing procedural trees use. What comes out is a cloud of short
+   segments; the rest of this file turns those into wood — chained into
+   strands, smoothed through a Catmull-Rom spline, and filled as tapered
+   ribbons rather than stroked as lines, because a branch of even width is
+   the other half of why a drawn tree looks drawn.
+
+   The randomness is seeded off the skill ids, so the same skills always
+   make the same tree. Adding one grows a branch; it does not reshuffle
+   the garden.
+   ============================================================ */
+
+/* ---------- curves ----------
+   Catmull-Rom passes *through* every point it is given, which is what we
+   want: the growth points are where the branch actually went, and a curve
+   that merely approximates them wanders off the wood. Converting to cubic
+   Bézier is the standard trick — the spline's tangent at each point gives
+   the two control points of the segment leaving it. */
+function sgBezier(pts, tension = 1){
+  const n = pts.length;
+  if(n < 2) return [];
+  const out = [];
+  for(let i = 0; i < n - 1; i++){
+    const p0 = pts[Math.max(0, i - 1)], p1 = pts[i], p2 = pts[i + 1], p3 = pts[Math.min(n - 1, i + 2)];
+    out.push([
+      [p1[0] + (p2[0] - p0[0]) / 6 * tension, p1[1] + (p2[1] - p0[1]) / 6 * tension],
+      [p2[0] - (p3[0] - p1[0]) / 6 * tension, p2[1] - (p3[1] - p1[1]) / 6 * tension],
+      [p2[0], p2[1]],
+    ]);
+  }
+  return out;
+}
+const sgN = v => (Math.round(v * 10) / 10).toFixed(1);
+/* the smooth path through a run of points, as an open curve */
+function sgPath(pts, tension = 1){
+  if(pts.length < 2) return '';
+  return `M${sgN(pts[0][0])},${sgN(pts[0][1])}` + sgBezier(pts, tension)
+    .map(c => `C${sgN(c[0][0])},${sgN(c[0][1])} ${sgN(c[1][0])},${sgN(c[1][1])} ${sgN(c[2][0])},${sgN(c[2][1])}`).join('');
+}
+
+/* ---------- wood ----------
+   A branch is a ribbon, not a line: walk the centreline, step out to
+   either side by half the width at that point, and close the two edges
+   into one filled shape. The taper is the whole effect — a limb that
+   leaves the trunk thick and arrives at its tip thin reads as wood, and
+   the same curve stroked at a constant width reads as wire.
+
+   The tip is rounded off rather than cut square, because a branch that
+   ends in a flat edge looks snapped. */
+function sgRibbon(pts, widths, tension = 1){
+  const n = pts.length;
+  if(n < 2) return '';
+  const normalAt = i => {
+    const a = pts[Math.max(0, i - 1)], b = pts[Math.min(n - 1, i + 1)];
+    const dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy) || 1;
+    return [-dy / L, dx / L];
+  };
+  const left = [], right = [];
+  for(let i = 0; i < n; i++){
+    const [nx, ny] = normalAt(i), h = Math.max(widths[i], .35) / 2;
+    left.push([pts[i][0] + nx * h, pts[i][1] + ny * h]);
+    right.push([pts[i][0] - nx * h, pts[i][1] - ny * h]);
+  }
+  /* carry the tip a little past the last growth point and round it */
+  const tipR = Math.max(widths[n - 1], .35) / 2;
+  const [tx, ty] = (() => {
+    const a = pts[n - 2], b = pts[n - 1], L = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
+    return [b[0] + (b[0] - a[0]) / L * tipR, b[1] + (b[1] - a[1]) / L * tipR];
+  })();
+  const rev = right.slice().reverse();
+  return sgPath(left, tension)
+    + ` Q${sgN(tx)},${sgN(ty)} ${sgN(rev[0][0])},${sgN(rev[0][1])}`
+    + sgBezier(rev, tension).map(c => `C${sgN(c[0][0])},${sgN(c[0][1])} ${sgN(c[1][0])},${sgN(c[1][1])} ${sgN(c[2][0])},${sgN(c[2][1])}`).join('')
+    + ' Z';
+}
+
+/* ---------- the canopy the tree is reaching into ----------
+   An ellipse a little wider than it is tall, sitting above the trunk. It
+   grows with the number of skills, but slower than linearly: a tree with
+   forty skills is denser than one with ten, not four times the size. */
+function sgEnvelope(count, trunkTop){
+  const rx = Math.min(430, 130 + Math.sqrt(count) * 82);
+  const ry = Math.min(330, 92 + Math.sqrt(count) * 46);
+  return {rx, ry, base: trunkTop};
+}
+
+/* ---------- where the light is ----------
+   One attractor per skill. Categories take overlapping zones of the
+   canopy rather than tidy sectors — overlapping is what stops the tree
+   reading as a pie chart — and a skill sits further out the further it
+   has come, so a practised skill ends up on a longer branch with room
+   around its flower. A skill that grows out of another one is placed just
+   beyond its parent, which is how the branch reaching the parent carries
+   on to the child without anything having to arrange it. */
+function sgAttractors(rnd, env, fillers){
+  const cats = [...new Set([...SKILL_CATS, ...S.skills.map(s => s.cat)])].filter(c => S.skills.some(s => s.cat === c));
+  const parentOf = s => s.prereqs.find(id => byId(S.skills, id)) || null;
+  const out = [];
+  /* Positions are polar about the top of the trunk: an angle out from
+     straight up, and a reach along the canopy ellipse. A cherry's crown is
+     a vase — wide, and not much taller than it is wide — so the ellipse is
+     the wider way round and the outermost skills sit almost level with the
+     top of the trunk rather than piled above it. */
+  const ARC = 74 * Math.PI / 180;
+  const slot = (2 * ARC * .88) / Math.max(cats.length, 1);
+  cats.forEach((c, ci) => {
+    const mine = S.skills.filter(s => s.cat === c);
+    const roots = mine.filter(s => { const p = parentOf(s); return !p || byId(S.skills, p).cat !== c; });
+    /* Each category gets a slot, then is pushed off it by an amount of its
+       own. The push is seeded, so it is the same on every load — but it is
+       not the same for every category, and that is what keeps neighbouring
+       zones overlapping instead of reading as the segments of a pie. */
+    const centre = -ARC * .88 + slot * (ci + .5) + (rnd() - .5) * slot * .40;
+    const place = (sk, ang, rf, depth) => {
+      const a = clamp(ang + (rnd() - .5) * .20, -1.47, 1.47);
+      const r = clamp(rf + (rnd() - .5) * .13, .34, 1.08);
+      out.push({
+        x: Math.sin(a) * env.rx * r,
+        y: env.base + Math.cos(a) * env.ry * r,
+        skill: sk, cat: c, depth, claimed: false, node: null,
+      });
+      const kids = S.skills.filter(k => parentOf(k) === sk.id);
+      kids.forEach((k, j) => place(k, a + (j - (kids.length - 1) / 2) * .26 + (rnd() - .5) * .10,
+        r + .22 + rnd() * .08, depth + 1));
+    };
+    const span = slot * .42;
+    roots.forEach((sk, j) => {
+      const off = roots.length === 1 ? 0 : (j / (roots.length - 1) - .5) * span * 2;
+      /* the further along a skill is, the further out it reaches for light */
+      const lc = Math.max(skillLevelCount(sk), 1);
+      const prog = clamp((sk.currentLevel || 0) / lc, 0, 1);
+      place(sk, centre + off, .52 + prog * .40, 0);
+    });
+  });
+  /* ---- the rest of the canopy ----
+     Seven points of light make a star, not a tree: each skill pulls its own
+     shoot straight off the trunk and nothing ever forks. A real canopy is
+     a volume to be filled, so the crown is seeded with plain points as
+     well — they carry no skill and get no flower, but the wood that grows
+     to reach them is what gives the tree its interior: the limbs that
+     divide, the spurs, the silhouette. This is what the space-colonisation
+     papers mean by the attractor cloud; the skills are simply the points
+     that are also worth naming. */
+  let tries = 0;
+  while(out.length < fillers + S.skills.length && tries++ < fillers * 12){
+    const a = (rnd() * 2 - 1) * ARC * 1.04;
+    const r = Math.sqrt(rnd()) * 1.06;
+    if(r < .24) continue;
+    out.push({x: Math.sin(a) * env.rx * r, y: env.base + Math.cos(a) * env.ry * r,
+      skill: null, cat: null, depth: 0, claimed: false, node: null, filler: true});
+  }
+  return {attractors: out, cats};
+}
+
+/* ---------- growth ----------
+   Every unclaimed attractor pulls on whichever node of the tree is nearest
+   it. A node pulled from several directions at once averages them, which
+   is what makes a branch lean; a node pulled hard in two directions ends
+   up forking on the next step, because its two children then have
+   different nearest attractors. When a node arrives within the kill
+   distance of an attractor, that attractor stops pulling — it has been
+   reached, and its skill will flower there.
+
+   The upward bias is the one piece of biology that is not emergent:
+   without it a tree with all its skills to one side grows sideways out of
+   the ground like a hedge. */
+function sgGrow(attractors, opt){
+  const root = {x: opt.startX || 0, y: opt.startY, parent: null, depth: 0, kids: 0};
+  const nodes = [root];
+  const rnd = opt.rnd;
+  const seg = opt.seg, kill = opt.kill, infl = opt.infl;
+  /* One flower to a tip: a node that has already been reached by a skill
+     cannot be reached by a second, or two skills end up sharing a twig and
+     neither of them owns any wood. The one that misses keeps pulling, and
+     claims the shoot that grows out of it a step later. */
+  const taken = new Set();
+  for(let iter = 0; iter < opt.maxIter; iter++){
+    const pull = new Map();
+    let live = 0;
+    for(const a of attractors){
+      if(a.claimed) continue;
+      live++;
+      let best = -1, bd = Infinity;
+      for(let i = 0; i < nodes.length; i++){
+        const d = Math.hypot(nodes[i].x - a.x, nodes[i].y - a.y);
+        if(d < bd){ bd = d; best = i; }
+      }
+      if(best < 0) continue;
+      if(bd <= kill && !taken.has(nodes[best])){ a.claimed = true; a.node = nodes[best]; taken.add(nodes[best]); live--; continue; }
+      if(bd > infl) continue;
+      const n = nodes[best], p = pull.get(best) || [0, 0, 0];
+      p[0] += (a.x - n.x) / bd; p[1] += (a.y - n.y) / bd; p[2]++;
+      pull.set(best, p);
+    }
+    if(!live) break;
+    if(!pull.size){
+      /* Nothing is close enough to pull on anything — which happens when a
+         skill sits outside the influence radius of every shoot. Reach for
+         the nearest unclaimed one directly rather than stalling. */
+      let bn = null, ba = null, bd = Infinity;
+      for(const a of attractors){ if(a.claimed) continue;
+        for(const n of nodes){ const d = Math.hypot(n.x - a.x, n.y - a.y); if(d < bd){ bd = d; bn = n; ba = a; } } }
+      if(!bn) break;
+      const L = Math.hypot(ba.x - bn.x, ba.y - bn.y) || 1;
+      nodes.push({x: bn.x + (ba.x - bn.x) / L * seg, y: bn.y + (ba.y - bn.y) / L * seg,
+        parent: bn, depth: bn.depth + 1, kids: 0});
+      bn.kids++;
+      continue;
+    }
+    for(const [idx, p] of pull){
+      const n = nodes[idx];
+      let dx = p[0] / p[2], dy = p[1] / p[2];
+      dy += opt.up;
+      dx += (rnd() - .5) * opt.jitter;
+      dy += (rnd() - .5) * opt.jitter * .45;
+      const L = Math.hypot(dx, dy) || 1;
+      nodes.push({x: n.x + dx / L * seg, y: n.y + dy / L * seg, parent: n, depth: n.depth + 1, kids: 0});
+      n.kids++;
+    }
+  }
+  /* Any skill the growth never reached gets a shoot of its own from the
+     nearest wood. This should be rare; it is here so that a skill is never
+     silently missing from the tree because the geometry went against it.
+     A plain canopy point that was never reached is just a gap in the crown,
+     which is what gaps in a crown are. */
+  for(const a of attractors){
+    if(a.claimed || a.filler) continue;
+    let bn = nodes[0], bd = Infinity;
+    for(const n of nodes){ const d = Math.hypot(n.x - a.x, n.y - a.y); if(d < bd){ bd = d; bn = n; } }
+    let cur = bn, steps = Math.max(1, Math.round(bd / seg));
+    for(let i = 0; i < Math.min(steps, 24); i++){
+      const L = Math.hypot(a.x - cur.x, a.y - cur.y) || 1;
+      const nx = {x: cur.x + (a.x - cur.x) / L * Math.min(seg, L), y: cur.y + (a.y - cur.y) / L * Math.min(seg, L),
+        parent: cur, depth: cur.depth + 1, kids: 0};
+      cur.kids++; nodes.push(nx); cur = nx;
+      if(Math.hypot(cur.x - a.x, cur.y - a.y) <= kill && !taken.has(cur)) break;
+    }
+    a.claimed = true; a.node = cur; taken.add(cur);
+  }
+  return {nodes, root};
+}
+
+/* ---------- pruning and ownership ----------
+   The growth leaves a lot of shoots that never reached anything. A few are
+   worth keeping — real trees are full of twigs going nowhere, and they are
+   most of what gives a crown its silhouette — but a long dead run is just
+   clutter, so they are cut back to a couple of segments.
+
+   Then every node is asked two questions. Which skills lie anywhere beyond
+   it — that sorts the shared wood into category limbs and trunk. And which
+   flowers are the *next* ones beyond it, with no other flower in between:
+   a node with exactly one of those belongs to that skill, and is the twig
+   you click on. The second question is the one that matters, because a
+   skill grown out of another sits further along the same branch, and the
+   wood between the two flowers belongs to the further one. Nothing is
+   assigned by decree; it falls out of where the branches went. */
+function sgOwn(grown, attractors, deadLen = 2){
+  const {nodes, root} = grown;
+  const byNode = new Map();
+  nodes.forEach(n => byNode.set(n, {skills: new Set(), cats: new Set(), front: new Set(), size: 0, reached: 0, tip: true}));
+  attractors.forEach(a => { if(!a.node) return;
+    const m = byNode.get(a.node);
+    m.stops = true; m.reached++;
+    if(a.skill){ m.skills.add(a.skill.id); m.cats.add(a.cat); m.claim = m.claim || a.skill.id; } });
+  /* nodes are pushed in creation order, so a parent is always before its
+     children: one pass backwards rolls every subtree up */
+  for(let i = nodes.length - 1; i >= 0; i--){
+    const n = nodes[i], m = byNode.get(n);
+    m.size++;
+    /* a flower stops the front: what is beyond it is no longer the nearest
+       thing beyond whatever is below */
+    if(m.stops){ m.front.clear(); if(m.claim) m.front.add(m.claim); }
+    if(!n.parent) continue;
+    const p = byNode.get(n.parent);
+    p.size += m.size; p.reached += m.reached; p.tip = false;
+    m.skills.forEach(s => p.skills.add(s));
+    m.cats.forEach(c => p.cats.add(c));
+    m.front.forEach(s => p.front.add(s));
+  }
+  /* cut the dead runs back */
+  const keep = new Set();
+  nodes.forEach(n => { if(byNode.get(n).reached) keep.add(n); });
+  nodes.forEach(n => {
+    if(keep.has(n)) return;
+    let up = n.parent, d = 0;
+    while(up && !keep.has(up)){ up = up.parent; d++; if(d > 40) break; }
+    if(up && n.depth - up.depth <= deadLen) keep.add(n);
+  });
+  const live = nodes.filter(n => keep.has(n) || n === root);
+  const kindOf = n => {
+    const m = byNode.get(n);
+    if(m.front.size === 1) return 'skill:' + [...m.front][0];
+    if(m.skills.size === 0) return 'twiglet';
+    if(m.cats.size === 1) return 'cat:' + [...m.cats][0];
+    return 'trunk';
+  };
+  live.forEach(n => { const m = byNode.get(n); m.kind = kindOf(n); });
+  return {live, meta: byNode, root};
+}
+
+/* ---------- strands ----------
+   The growth is a cloud of one-segment steps; wood comes in runs. At every
+   node the child carrying the most tree beyond it continues the branch,
+   and the others start their own — which is exactly how a limb reads: one
+   line carrying on, with others leaving it. A run also breaks where it
+   changes hands, so a category's limb stops being the category's at the
+   fork where its skills part company. */
+function sgStrands(owned){
+  const {live, meta} = owned;
+  const liveSet = new Set(live);
+  const kids = new Map();
+  live.forEach(n => {
+    if(!n.parent || !liveSet.has(n.parent)) return;
+    if(!kids.has(n.parent)) kids.set(n.parent, []);
+    kids.get(n.parent).push(n);
+  });
+  const cont = new Map();
+  kids.forEach((cs, p) => {
+    const pk = meta.get(p).kind;
+    const same = cs.filter(c => meta.get(c).kind === pk);
+    const pick = (same.length ? same : []).sort((a, b) => meta.get(b).size - meta.get(a).size)[0];
+    if(pick) cont.set(p, pick);
+  });
+  const strands = [];
+  const used = new Set();
+  live.forEach(n => {
+    if(used.has(n)) return;
+    const p = n.parent;
+    const starts = !p || !liveSet.has(p) || cont.get(p) !== n;
+    if(!starts) return;
+    const chain = [];
+    /* a strand is drawn from the fork it leaves, so the wood joins up */
+    if(p && liveSet.has(p)) chain.push(p);
+    let cur = n;
+    while(cur){ chain.push(cur); used.add(cur); cur = cont.get(cur); }
+    if(chain.length >= 2) strands.push({kind: meta.get(n).kind, nodes: chain, meta});
+  });
+  return strands;
+}
+
+/* A growth chain is a staircase: every step took a fresh random nudge, and
+   a spline drawn straight through them keeps every one of those corners.
+   Two or three passes of pulling each interior point a quarter of the way
+   toward the average of its neighbours takes the staircase out without
+   moving the branch — the wood keeps where it went and loses the jitter it
+   went there with. The ends are pinned, so nothing comes adrift from the
+   fork it grows out of or from the flower it grew to reach. */
+function sgSmooth(pts, rounds = 2, amount = .28){
+  if(pts.length < 3) return pts;
+  let cur = pts.map(p => [p[0], p[1]]);
+  for(let r = 0; r < rounds; r++){
+    const next = cur.map(p => [p[0], p[1]]);
+    for(let i = 1; i < cur.length - 1; i++){
+      next[i][0] = cur[i][0] + ((cur[i-1][0] + cur[i+1][0]) / 2 - cur[i][0]) * amount;
+      next[i][1] = cur[i][1] + ((cur[i-1][1] + cur[i+1][1]) / 2 - cur[i][1]) * amount;
+    }
+    cur = next;
+  }
+  return cur;
+}
+
+/* Leonardo's rule: the wood below a fork carries the wood above it. Raising
+   the total to a power a little under a half is the usual approximation and
+   is what makes a trunk thicken believably as a tree fills out. */
+function sgWidth(size, unit){ return Math.max(unit * .55, unit * Math.pow(size, 1 / 2.45)); }
+/* ============================================================
    7. SKILL TREE — the architecture of becoming
    ============================================================ */
 /* The seven the tree is sorted into. Colours are drawn from the house palette
@@ -12674,52 +13068,55 @@ function openMilestonePicker(){
   m.querySelectorAll('[data-ms]').forEach(b => b.onclick = () => { m.remove(); openSkillPanel(b.dataset.ms); setTimeout(()=>document.querySelector('#panel #msAdd')?.click(),260); });
 }
 
-/* ---------- the living tree: trunk, category branches, skill twigs, leaves for progress ---------- */
+/* ---------- the living tree ----------
+   Layout runs in its own space: the trunk's foot at the origin, y going up.
+   Nothing here decides where a branch should be — it says where the light
+   is (one point per skill, in `sgAttractors`) and lets the growth in
+   14-skillgrow.js find its own way there. What comes back is a set of
+   strands of wood; organicSVG below turns them into a cherry tree. */
 function organicLayout(){
-  const cats = [...new Set([...SKILL_CATS, ...S.skills.map(s=>s.cat)])].filter(c => S.skills.some(s=>s.cat===c));
-  const parentOf = s => s.prereqs.find(id => byId(S.skills,id)) || null;
-  /* The trunk was 300 tall whatever the tree held, so a young tree was mostly
-     bare wood with a few twigs at the top. It grows with the canopy now. */
-  const items = [];
-  const trunkTop = clamp(150 + cats.length * 22 + S.skills.length * 4, 150, 320);
-  const rad = d => d*Math.PI/180; const dir = a => [Math.cos(a), Math.sin(a)]; // y up in layout space
-  const limb = (start, ang, len, droop) => { const d = dir(ang); const end = [start[0]+d[0]*len, start[1]+d[1]*len]; const cd = dir(ang - droop); const ctrl = [start[0]+cd[0]*len*.55, start[1]+cd[1]*len*.55]; return {end, ctrl}; };
-  const qp = (a,c,b,t) => [ (1-t)*(1-t)*a[0] + 2*(1-t)*t*c[0] + t*t*b[0], (1-t)*(1-t)*a[1] + 2*(1-t)*t*c[1] + t*t*b[1] ];
-  const qt = (a,c,b,t) => Math.atan2( 2*(1-t)*(c[1]-a[1]) + 2*t*(b[1]-c[1]), 2*(1-t)*(c[0]-a[0]) + 2*t*(b[0]-c[0]) );
-  const twig = (sk, parentItem, t, sideSign, depth) => {
-    const start = qp(parentItem.start, parentItem.ctrl, parentItem.end, t); const tan = qt(parentItem.start, parentItem.ctrl, parentItem.end, t);
-    /* Skills used to leave their branch at a fixed angle a few degrees apart,
-       so a category with four of them read as one thick twig. They fan now —
-       far enough apart that each is its own line with its own flower, and
-       always long enough to give that flower room to sit clear of the branch. */
-    let ang = tan + sideSign*rad(depth===2 ? 52 : 46); if(Math.sin(ang) < .2) ang = (Math.cos(ang) >= 0 ? rad(24) : rad(156)); // always reach upward
-    const kids = S.skills.filter(x => parentOf(x) === sk.id);
-    const len = (depth===2 ? 116 : 78) + 15*(sk.currentLevel||0) + 8*kids.length;
-    const {end, ctrl} = limb(start, ang, len, sideSign*rad(14)); const it = {id:sk.id, kind:'skill', skill:sk, cat:sk.cat, start, end, ctrl, ang, depth, parent:parentItem.id, side:sideSign}; items.push(it);
-    kids.forEach((k,m) => twig(k, it, .45 + .5*(m+.5)/kids.length, m%2 ? -sideSign : sideSign, depth+1));
-    return it;
-  };
-  cats.forEach((c,i) => {
-    /* Only categories with something in them get a branch — an empty one used
-       to take up an arc of sky and hold nothing. What is left leaves the trunk
-       from its upper half rather than all the way down it, and at elevations
-       that stay within a band, so the canopy gathers into a crown instead of
-       raying out into empty space. A small per-branch wobble keeps it from
-       looking stamped. */
-    const side = i%2===0 ? -1 : 1;
-    const frac = cats.length===1 ? .72 : .42 + .56*(i/(cats.length-1));
-    const y0 = 30 + frac*(trunkTop-60);
-    const roots = S.skills.filter(s => s.cat===c && !parentOf(s)); const all = S.skills.filter(s => s.cat===c);
-    const jitter = ((c.charCodeAt(0)*7 + c.length*13) % 9) - 4;
-    const elev = rad(clamp(30 + 22*frac + jitter, 22, 58));
-    const ang = side < 0 ? Math.PI - elev : elev;
-    const len = 150 + 46*Math.sqrt(all.length);
-    const start = [0, y0]; const {end, ctrl} = limb(start, ang, len, side*rad(-10));
-    const it = {id:'cat:'+c, kind:'cat', cat:c, start, end, ctrl, ang, depth:1, parent:null, side, count:all.length}; items.push(it);
-    /* spread across most of the branch rather than bunched at its end */
-    roots.forEach((sk,j) => twig(sk, it, .28 + .70*(j+.5)/roots.length, j%2 ? -1 : 1, 2));
-  });
-  return {items, cats, trunkTop};
+  const skills = S.skills;
+  /* Seeded off the skills themselves, so the tree is the same on every
+     load. A new skill adds a point of light and the crown grows toward it;
+     it does not redeal the whole hand. */
+  const rnd = mulberry32(hashSeed('tree:' + skills.map(s => s.id).slice().sort().join('|')));
+  /* A cherry is not a pine: the trunk is short and the crown starts low.
+     A tall bare pole with a wreath on top is the other way a drawn tree
+     gives itself away. */
+  const trunkTop = clamp(56 + Math.sqrt(skills.length) * 30, 56, 200);
+  const env = sgEnvelope(skills.length, trunkTop);
+  const fillers = clamp(Math.round(26 + skills.length * 3.2), 26, 96);
+  const {attractors, cats} = sgAttractors(rnd, env, fillers);
+  /* A trunk is never a straight line. A lean with a countercurve in it is
+     the posture of something that has been standing in weather. */
+  const lean = (rnd() - .5) * trunkTop * .11;
+  const trunk = [[0, 0], [lean * .8 + (rnd() - .5) * 5, trunkTop * .30],
+    [lean * .12, trunkTop * .65], [lean, trunkTop]];
+  /* A short step and a modest influence radius are what make a tree fork
+     early and often. With a wide radius every shoot is pulled by every
+     skill at once, the averages cancel, and the trunk carries on upward as
+     one bare pole before anything happens — which is the shape the old
+     tree had, arrived at by a different route. */
+  const seg = clamp(env.rx * .038, 7, 13);
+  /* The influence radius is set off how far the furthest skill actually is,
+     not off a constant: too small and no shoot can feel anything, so the
+     tree grows as one unbranched cane toward the nearest light; too large
+     and every shoot feels everything, the pulls cancel, and it grows as one
+     unbranched cane straight up. Something over half the reach leaves each
+     tip aware of its own quarter of the sky and nothing else. */
+  const reach = Math.max(...attractors.map(a => Math.hypot(a.x - lean, a.y - trunkTop)), 120);
+  const grown = sgGrow(attractors, {startX: lean, startY: trunkTop, rnd, seg,
+    kill: seg * 1.5, infl: clamp(reach * .42, 85, 250),
+    up: .20, jitter: .46, maxIter: Math.round(reach / seg * 3) + 40});
+  const owned = sgOwn(grown, attractors, 2);
+  const strands = sgStrands(owned);
+  /* Thickness follows what a limb carries, not how deep it is — which is
+     why a branch with six skills on it is stouter than one with one, and
+     why the trunk thickens as the tree fills out. */
+  const rootSize = owned.meta.get(owned.root).size || 1;
+  const topW = clamp(3 + Math.sqrt(skills.length) * 4.2, 3, 26);
+  const unit = topW / Math.pow(rootSize, 1 / 2.45);
+  return {strands, attractors, cats, trunkTop, env, trunk, owned, unit, topW, rnd, seg};
 }
 /* ============================================================
    THE SAKURA — the pieces the tree is drawn from
@@ -12925,245 +13322,435 @@ function seedSVG(W, H){
 }
 function organicSVG(W, H){
   if(!S.skills.length) return seedSVG(W, H);
-  const {items, cats, trunkTop} = organicLayout(); const T = today();
-  // fit layout (y up, trunk base at origin) into the canvas
-  const xs = [0], ys = [0, trunkTop]; items.forEach(it => { [it.start, it.end, it.ctrl].forEach(p => { xs.push(p[0]); ys.push(p[1]); }); if(it.kind==='skill'){ xs.push(it.end[0] + (it.end[0] >= 0 ? 90 : -90)); ys.push(it.end[1] + 18); } else { xs.push(it.end[0] + it.side*80); } });
-  const bx0 = Math.min(...xs), bx1 = Math.max(...xs), by1 = Math.max(...ys) + 20; const padX = 30, ground = H - 44;
-  /* A sapling stretched to fill the whole plot stopped looking like a sapling:
-     two skills came out with a trunk as thick as a mature tree's. The fit only
-     shrinks a tree that is too big for the frame; it never blows a small one up
-     past life size. */
-  const k = Math.min((W - padX*2)/(bx1 - bx0), (ground - 30)/by1, 1.35); const ox = padX + (W - padX*2 - (bx1-bx0)*k)/2 - bx0*k;
-  const X = x => ox + x*k, Y = y => ground - y*k; const P = p => `${X(p[0]).toFixed(1)},${Y(p[1]).toFixed(1)}`;
-  const qp = (a,c,b,t) => [ (1-t)*(1-t)*a[0] + 2*(1-t)*t*c[0] + t*t*b[0], (1-t)*(1-t)*a[1] + 2*(1-t)*t*c[1] + t*t*b[1] ];
-  const qt = (a,c,b,t) => Math.atan2( 2*(1-t)*(c[1]-a[1]) + 2*t*(b[1]-c[1]), 2*(1-t)*(c[0]-a[0]) + 2*t*(b[0]-c[0]) );
-  const season = [-8,-6,0,6,10,12,10,6,2,-2,-6,-8][new Date().getMonth()];
-  const trunkX = X(0); let g = '', labels = ''; const lblItems = [], labelsBySkill = {};
-  g += `<defs>${sakDefs()}<linearGradient id="skTrunk" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#4e3d33"/><stop offset="1" stop-color="#7a6455"/></linearGradient><radialGradient id="skSun"><stop offset="0" stop-color="var(--page-accent)" stop-opacity=".22"/><stop offset="1" stop-color="var(--page-accent)" stop-opacity="0"/></radialGradient><radialGradient id="skMoon"><stop offset="0" stop-color="#e8e0d4" stop-opacity=".16"/><stop offset="1" stop-color="#e8e0d4" stop-opacity="0"/></radialGradient><radialGradient id="skGround"><stop offset="0" stop-color="#3a3128" stop-opacity=".55"/><stop offset="1" stop-color="#3a3128" stop-opacity="0"/></radialGradient></defs>`;
-  const hour = new Date().getHours(); const daytime = hour >= 6 && hour < 19;
-  g += daytime ? `<circle class="sk-sun" cx="${(W*.84).toFixed(0)}" cy="70" r="120" fill="url(#skSun)"/>` : `<g class="sk-moon" transform="translate(${(W*.84).toFixed(0)},70)"><circle r="90" fill="url(#skMoon)"/><path d="M-8,-14 a15,15 0 1 0 12,24 a11,11 0 1 1 -12,-24 Z" fill="#e8e0d4" opacity=".55"/></g>`;
-  items.filter(i => i.kind==='cat').forEach(it => { const e = it.end; const r = (46 + 10*Math.sqrt(it.count))*k; g += `<circle class="sk-canopy" cx="${X(e[0]).toFixed(1)}" cy="${(Y(e[1])-10).toFixed(1)}" r="${r.toFixed(1)}" fill="${catColor(it.cat)}" opacity=".07"/>`; });
-  /* Leaves scattered in the gaps between branches. They are not attached to
-     anything and mean nothing — they are there so the crown has a silhouette
-     rather than a set of separate twigs floating apart. Their number follows
-     the size of the tree, with a floor so even three skills read as a young
-     tree rather than a diagram. */
-  (() => {
-    const cs = items.filter(i => i.kind === 'cat'); if(!cs.length) return;
-    const many = clamp(Math.round(S.skills.length * 3.2), 6, 54);
-    /* a fixed pseudo-random walk, so the canopy does not reshuffle on redraw */
-    let seed = 7 + S.skills.length * 31;
-    const rnd = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
-    for(let i = 0; i < many; i++){
-      const host = cs[i % cs.length];
-      const a = rnd() * Math.PI * 2, rr = (30 + rnd() * 78) * k;
-      const cx = X(host.end[0]) + Math.cos(a) * rr, cy = Y(host.end[1]) - 8 + Math.sin(a) * rr * .62;
-      const sz = (13 + rnd() * 9) * k, rot = rnd() * 360;
-      /* one in four of the drifting things is a petal rather than a leaf —
-         under a cherry in flower the air is full of both */
-      const petal = rnd() < .28;
-      g += `<g class="leaf amb" data-phase="${(rnd()*6.28).toFixed(2)}" data-period="${(3 + rnd()*2.4).toFixed(2)}"
-        transform="translate(${cx.toFixed(1)},${cy.toFixed(1)}) rotate(${rot.toFixed(0)})" opacity="${(.34 + rnd()*.26).toFixed(2)}">
-        ${petal ? sakPetal(sz * .9, sz * .72, 'url(#sakP2)', '') : sakLeaf(sz, rnd() < .3, Math.floor(rnd()*3))}</g>`;
-    }
-  })();
-  g += `<ellipse cx="${trunkX.toFixed(1)}" cy="${ground+4}" rx="${(W*.3).toFixed(0)}" ry="14" fill="url(#skGround)"/>`;
-  /* the turf the tree is standing in — a soft band of green, then the blades */
-  g += `<path d="M${(trunkX-W*.5).toFixed(0)},${(ground+4).toFixed(0)} Q${(trunkX-W*.22).toFixed(0)},${(ground-9).toFixed(0)} ${trunkX.toFixed(0)},${(ground-5).toFixed(0)} Q${(trunkX+W*.24).toFixed(0)},${(ground-11).toFixed(0)} ${(trunkX+W*.5).toFixed(0)},${(ground+4).toFixed(0)} L${(trunkX+W*.5).toFixed(0)},${(ground+44).toFixed(0)} L${(trunkX-W*.5).toFixed(0)},${(ground+44).toFixed(0)} Z" fill="#6fa353" opacity=".30"/>`;
-  // roots and trunk
-  /* thicker at the base, and it thickens with what it is carrying */
-  /* A sapling with one skill on it had the same 18-unit trunk as a tree with
-     twenty. It starts slender and thickens with what it carries. */
-  const tw = clamp(6 + S.skills.length*2.6, 6, 40)*k;
-  g += `<path d="M${(trunkX-tw*1.7).toFixed(1)},${ground+2} Q${(trunkX-tw*.6).toFixed(1)},${(ground-tw*.5).toFixed(1)} ${trunkX.toFixed(1)},${(ground-tw*.9).toFixed(1)} Q${(trunkX+tw*.6).toFixed(1)},${(ground-tw*.5).toFixed(1)} ${(trunkX+tw*1.7).toFixed(1)},${ground+2} Z" fill="url(#skTrunk)" opacity=".85"/>`;
-  [[-1,.6],[1,.5],[-1,.3],[1,.25]].forEach(([sd,f],i) => g += `<path class="sk-root" d="M${trunkX.toFixed(1)},${(ground-4).toFixed(1)} Q${(trunkX+sd*tw*(1.2+i*.4)).toFixed(1)},${(ground+6+i*3).toFixed(1)} ${(trunkX+sd*tw*(2.6+i*.8)).toFixed(1)},${(ground+16+i*4*f).toFixed(1)}" stroke="url(#skTrunk)" stroke-width="${(3.2-i*.5).toFixed(1)}" fill="none" opacity=".55"/>`);
-  g += `<path class="sk-trunk" d="M${trunkX.toFixed(1)},${ground} C${(trunkX-6*k).toFixed(1)},${Y(trunkTop*.35).toFixed(1)} ${(trunkX+7*k).toFixed(1)},${Y(trunkTop*.7).toFixed(1)} ${trunkX.toFixed(1)},${Y(trunkTop).toFixed(1)}" stroke="url(#skTrunk)" stroke-width="${tw.toFixed(1)}" stroke-linecap="round" fill="none"/>`;
-  g += `<path class="sk-trunk-light" d="M${(trunkX-tw*.22).toFixed(1)},${ground-10} C${(trunkX-6*k-tw*.2).toFixed(1)},${Y(trunkTop*.35).toFixed(1)} ${(trunkX+7*k-tw*.2).toFixed(1)},${Y(trunkTop*.7).toFixed(1)} ${(trunkX-tw*.15).toFixed(1)},${Y(trunkTop*.96).toFixed(1)}" stroke="#8b7357" stroke-width="${(tw*.18).toFixed(1)}" stroke-linecap="round" fill="none" opacity=".35"/>`;
-  g += `<path class="sk-trunk-grain" d="M${(trunkX+tw*.2).toFixed(1)},${ground-16} C${(trunkX-6*k+tw*.24).toFixed(1)},${Y(trunkTop*.38).toFixed(1)} ${(trunkX+7*k+tw*.2).toFixed(1)},${Y(trunkTop*.68).toFixed(1)} ${(trunkX+tw*.12).toFixed(1)},${Y(trunkTop*.9).toFixed(1)}" stroke="#3b2e22" stroke-width="${(tw*.09).toFixed(1)}" stroke-linecap="round" fill="none" opacity=".22"/>`;
-  /* a few tufts at the foot, so the tree is standing in something */
-  [[-2.9,.9],[-1.6,.6],[2.2,1],[3.4,.7]].forEach(([sd,h],i) => {
-    const gx = trunkX + sd*tw, gh = 12*h*k;
-    g += `<path class="sk-grass" d="M${gx.toFixed(1)},${ground} q${(2*h).toFixed(1)},${(-gh*.6).toFixed(1)} ${(5*h).toFixed(1)},${(-gh).toFixed(1)} M${gx.toFixed(1)},${ground} q${(-1.6*h).toFixed(1)},${(-gh*.55).toFixed(1)} ${(-3.4*h).toFixed(1)},${(-gh*.86).toFixed(1)}" stroke="#7f916a" stroke-width="1.2" fill="none" opacity=".28" stroke-linecap="round"/>`;
-  });
-  /* Lenticels — the short horizontal dashes across a cherry's bark. They are
-     the one mark that names the species from thirty feet away, and the trunk
-     read as a plain brown stroke without them. */
-  {
-    let bs = 5 + S.skills.length * 17;
-    const rnd = () => { bs = (bs * 1103515245 + 12345) & 0x7fffffff; return bs / 0x7fffffff; };
-    /* Short dashes, two or three to a row and never spanning the trunk — a
-       lenticel is a pore, not a rung, and a bar right across turned the trunk
-       into a ladder. */
-    const rows = Math.max(7, Math.round(trunkTop / 15));
-    for(let i = 0; i < rows; i++){
-      const fy = .04 + (i / rows) * .92;
-      const ty = Y(trunkTop * fy) + (rnd() - .5) * 4;
-      const lean = (fy - .5) * 7 * k;
-      const per = 1 + Math.round(rnd() * 2);
-      for(let j = 0; j < per; j++){
-        const wid = tw * (.07 + rnd() * .15), off = (rnd() - .5) * tw * .62;
-        g += `<path class="sk-lentic" d="M${(trunkX + off - wid/2 + lean).toFixed(1)},${(ty + j*1.6).toFixed(1)} h${wid.toFixed(1)}"
-          stroke="#33281f" stroke-width="${(tw*.045 + .4).toFixed(2)}" stroke-linecap="round" opacity="${(.16 + rnd()*.2).toFixed(2)}"/>`;
+  const L = organicLayout(), T = today();
+  const {strands, attractors, cats, trunkTop, trunk, owned, unit, topW, rnd} = L;
+  const meta = owned.meta;
+  const parentOf = s => s.prereqs.find(id => byId(S.skills, id)) || null;
+
+  /* ---------- framing ----------
+     The viewport is fitted to what was actually drawn rather than to a
+     guess, so a tree never sits as a speck in a field of nothing. It only
+     ever shrinks a crown that is too big for the frame; a sapling is left
+     at life size instead of being blown up into a fake maturity. */
+  const xs = [], ys = [0];
+  const note = (x, y) => { xs.push(x); ys.push(y); };
+  trunk.forEach(p => note(p[0], p[1]));
+  owned.live.forEach(n => note(n.x, n.y));
+  attractors.forEach(a => note(a.x, a.y + 26));
+  const padX = 54, ground = H - 44;
+  const bx0 = Math.min(...xs) - padX, bx1 = Math.max(...xs) + padX, by1 = Math.max(...ys) + 34;
+  const k = Math.min((W - 24) / Math.max(bx1 - bx0, 1), (ground - 24) / Math.max(by1, 1), 1.45);
+  const ox = (W - (bx1 - bx0) * k) / 2 - bx0 * k;
+  const X = x => ox + x * k, Y = y => ground - y * k;
+  const NP = n => [X(n.x), Y(n.y)];
+  const trunkX = X(trunk[3][0]);
+
+  /* ---------- helpers ----------
+     Every piece of wood is a filled tapered shape, and every piece of wood
+     is revealed by a mask whose centreline draws itself outward from the
+     fork it leaves. That is what makes the tree arrive by growing: the
+     mask path carries the `limb` class, and 04-foliage.js animates its
+     dash offset without needing to know what it is masking. */
+  let maskN = 0; const masks = [], spurCentres = [];
+  const wood = (pts, widths, cls, fill, extra = '') => {
+    /* `data-w` is how thick this piece of wood is where it leaves its
+       parent. A stroked line advertises that in stroke-width; a filled
+       shape has nowhere to say it, and the tree's own proportions are
+       worth being able to check from outside. */
+    if(pts.length < 2) return '';
+    const id = `skm${maskN++}`, mx = Math.max(...widths);
+    masks.push(`<mask id="${id}" maskUnits="userSpaceOnUse" x="0" y="0" width="${W}" height="${H}">`
+      + `<path class="limb" d="${sgPath(pts)}" stroke="#fff" stroke-width="${(mx + 3.5).toFixed(1)}"`
+      + ` fill="none" stroke-linecap="round" stroke-linejoin="round"/></mask>`);
+    return `<path class="${cls}" data-w="${widths[0].toFixed(1)}" d="${sgRibbon(pts, widths)}" fill="${fill}" mask="url(#${id})"${extra}/>`;
+  };
+  /* a strand as it is drawn: screen points, and the width the wood has at
+     each of them. The first point is the fork it grows out of, so the base
+     is allowed a flare but not the whole thickness of its parent. */
+  const strandPts = st => sgSmooth(st.nodes.map(NP), 3, .3);
+  const strandW = st => {
+    const w = st.nodes.map(n => Math.max(sgWidth(meta.get(n).size, unit) * k, .5));
+    /* A branch leaving another one starts at a flare, not at its parent's
+       full thickness. A run that simply carries on — the leader out of the
+       trunk — keeps it, or the wood steps in where nothing happened. */
+    if(w.length > 1 && meta.get(st.nodes[0]).kind !== st.kind) w[0] = Math.min(w[0], w[1] * 1.45);
+    return w;
+  };
+  /* walk a polyline by arc length: where a leaf sits, and which way it lies */
+  const along = (pts, t) => {
+    const segs = []; let total = 0;
+    for(let i = 1; i < pts.length; i++){ const d = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); segs.push(d); total += d; }
+    let want = clamp(t, 0, 1) * total;
+    for(let i = 0; i < segs.length; i++){
+      if(want <= segs[i] || i === segs.length - 1){
+        const u = segs[i] ? clamp(want / segs[i], 0, 1) : 0, a = pts[i], b = pts[i + 1];
+        return {p: [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u],
+          ang: Math.atan2(b[1] - a[1], b[0] - a[0]) * 180 / Math.PI, len: total};
       }
+      want -= segs[i];
+    }
+    return {p: pts[pts.length - 1], ang: 0, len: total};
+  };
+  const P2 = p => `${p[0].toFixed(1)},${p[1].toFixed(1)}`;
+
+  const season = [-8,-6,0,6,10,12,10,6,2,-2,-6,-8][new Date().getMonth()];
+  let g = '', labels = ''; const lblItems = [], labelsBySkill = {};
+  const hour = new Date().getHours(), daytime = hour >= 6 && hour < 19;
+  g += daytime
+    ? `<circle class="sk-sun" cx="${(W*.84).toFixed(0)}" cy="70" r="120" fill="url(#skSun)"/>`
+    : `<g class="sk-moon" transform="translate(${(W*.84).toFixed(0)},70)"><circle r="90" fill="url(#skMoon)"/><path d="M-8,-14 a15,15 0 1 0 12,24 a11,11 0 1 1 -12,-24 Z" fill="#e8e0d4" opacity=".55"/></g>`;
+
+  /* the soft wash of colour behind each category's share of the crown */
+  const skillPts = attractors.filter(a => a.skill);
+  const catCloud = {};
+  skillPts.forEach(a => { (catCloud[a.cat] || (catCloud[a.cat] = [])).push(a); });
+  Object.keys(catCloud).forEach(c => {
+    const pts = catCloud[c].map(a => [X(a.x), Y(a.y)]);
+    const cx = pts.reduce((s, p) => s + p[0], 0) / pts.length, cy = pts.reduce((s, p) => s + p[1], 0) / pts.length;
+    const r = Math.max(52 * k, pts.reduce((m, p) => Math.max(m, Math.hypot(p[0] - cx, p[1] - cy)), 0) + 42 * k);
+    g += `<circle class="sk-canopy" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r.toFixed(1)}" fill="${catColor(c)}" opacity=".07"/>`;
+  });
+
+  /* Leaves loose in the gaps between branches. They are attached to nothing
+     and mean nothing: they are there so the crown has a silhouette instead
+     of a set of separate twigs floating apart. */
+  {
+    const many = clamp(Math.round(S.skills.length * 3.4), 8, 60);
+    for(let i = 0; i < many; i++){
+      const a = attractors[Math.floor(rnd() * attractors.length)];
+      const th = rnd() * Math.PI * 2, rr = (16 + rnd() * 66) * k;
+      const cx = X(a.x) + Math.cos(th) * rr, cy = Y(a.y) + Math.sin(th) * rr * .66;
+      const sz = (13 + rnd() * 9) * k, rot = rnd() * 360, petal = rnd() < .28;
+      g += `<g class="leaf amb" data-phase="${(rnd()*6.28).toFixed(2)}" data-period="${(3 + rnd()*2.4).toFixed(2)}"
+        transform="translate(${cx.toFixed(1)},${cy.toFixed(1)}) rotate(${rot.toFixed(0)})" opacity="${(.32 + rnd()*.26).toFixed(2)}">
+        ${petal ? sakPetal(sz * .9, sz * .72, 'url(#sakP2)', '') : sakLeaf(sz, rnd() < .12, Math.floor(rnd()*3))}</g>`;
     }
   }
-  // crown bud at the top of the trunk: the skills still to be named
-  g += `<circle cx="${trunkX.toFixed(1)}" cy="${Y(trunkTop).toFixed(1)}" r="${(tw*.42).toFixed(1)}" fill="#6e5a44"/>`;
-  items.filter(i => i.kind==='cat').forEach(it => {
-    const col = catColor(it.cat); const w = (4 + 1.6*Math.sqrt(it.count))*k;
-    g += `<g class="sk-branch" data-node="${it.id}" style="--nc:${col}"><path class="limb" d="M${P(it.start)} Q${P(it.ctrl)} ${P(it.end)}" stroke="url(#skTrunk)" stroke-width="${w.toFixed(1)}" stroke-linecap="round" fill="none"/><path class="limb-tint" d="M${P(it.start)} Q${P(it.ctrl)} ${P(it.end)}" stroke="${col}" stroke-width="${(w*.5).toFixed(1)}" stroke-linecap="round" fill="none" opacity=".28"/><ellipse class="sk-fork" cx="${X(it.start[0]).toFixed(1)}" cy="${Y(it.start[1]).toFixed(1)}" rx="${(w*.85).toFixed(1)}" ry="${(w*.62).toFixed(1)}" fill="#5c4834"/></g>`;
-    /* The category limb was a bare stick with a label on the end, and all the
-       green sat at the tips of its twigs. A spray of leaves along its outer
-       half joins the two up, so the crown reads as one canopy. */
-    {
-      const m = clamp(4 + it.count*2, 5, 14); let bl = '';
-      for(let q=0;q<m;q++){
-        const t = .44 + (q/Math.max(m-1,1))*.44; const p = qp(it.start, it.ctrl, it.end, t);
-        const tan = -qt(it.start, it.ctrl, it.end, t)*180/Math.PI; const sd = q%2 ? 1 : -1;
-        const size = 23*k*(.74 + ((q*7)%6)/11); const rot = tan + sd*(46 + ((q*11)%18));
-        bl += `<g transform="translate(${P(p)}) rotate(${rot.toFixed(1)})"><g class="leaf" data-phase="${((q*2.3)%6.28).toFixed(2)}" data-period="${(3.1 + (q*.41)%2).toFixed(2)}"
-          opacity=".82">${sakLeaf(size, false, q + 1)}</g></g>`;
-      }
-      g += `<g class="sk-branchleaves">${bl}</g>`;
-    }
-    const e = it.end; const lx = X(e[0]) + it.side*12, anchor = it.side>0 ? 'start' : 'end';
-    labels += `<text class="sk-catlbl" x="${lx.toFixed(1)}" y="${(Y(e[1])+4).toFixed(1)}" text-anchor="${anchor}" style="fill:${col}">${esc(it.cat)}</text><text class="sk-catsub" x="${lx.toFixed(1)}" y="${(Y(e[1])+16).toFixed(1)}" text-anchor="${anchor}">${it.count} skill${it.count===1?'':'s'}</text>`;
-    lblItems.push({id:'cat:'+it.cat, ex:X(e[0]), ey:Y(e[1])+8, x:lx, y:Y(e[1])+8, anchor, w:Math.max(it.cat.length*7.2, 62)+10, h:24, fixed:true});
-  });
-  items.filter(i => i.kind==='skill').sort((a,b)=>a.depth-b.depth).forEach(it => {
-    const s = it.skill; const col = catColor(s.cat); const locked = skillIsLocked(s); const last = skillLastPracticed(s); const since = daysSince(last); const active = !locked && !s.planned && since <= 7;
-    /* The blossom reads the roll-up, so a skill broken into abilities flowers
-       by how far its parts have actually come, not by a number set by hand. */
-    const lc = skillLevelCount(s); const lvl = s.currentLevel||0;
-    const prog = skillProgress(s);
-    const mastered = !s.planned && (skillAbilities(s).length
-      ? prog >= 1
-      : lc >= 2 && lvl >= lc);
-    const wither = last && !s.planned && !locked && since > 90 ? clamp((since-90)/180, 0, .8) : 0;
-    const nm = nextMilestone(s); const due = nm?.by ? daysBetween(T, nm.by) : null; const blossom = due !== null && due >= 0 && due <= 45; const overdue = due !== null && due < 0;
-    const limbW = ((it.depth===2 ? 3.2 : 2.4) + lvl*.5) * k * (1 - wither*.3); const limbCol = locked ? '#5a554f' : lerpColor('#6b5642', '#5a4634', prog);
-    const leafBase = lerpColor(col, '#6f9a58', .25 + .45*prog); const leafCol = lerpColor(leafBase, '#8a6a3a', wither);
-    const pid = `tw-${s.id}`; let inner = `<ellipse class="sk-fork" cx="${X(it.start[0]).toFixed(1)}" cy="${Y(it.start[1]).toFixed(1)}" rx="${(limbW*.9).toFixed(1)}" ry="${(limbW*.66).toFixed(1)}" fill="${limbCol}"/><path class="limb" id="${pid}" d="M${P(it.start)} Q${P(it.ctrl)} ${P(it.end)}" stroke="${limbCol}" stroke-width="${limbW.toFixed(1)}" stroke-linecap="round" fill="none" ${locked?'stroke-dasharray="4 4"':''}/>`;
-    if(active && !reduced()) inner += `<circle class="sap" r="${(2.2*k).toFixed(1)}" fill="#fff6dc" opacity=".9"><animateMotion dur="${(2.6 + (s.id.length%3)*.5).toFixed(1)}s" repeatCount="indefinite"><mpath href="#${pid}"/></animateMotion></circle>`;
-    /* ---- foliage and flower ----
-       A twig that is alive is fully leaved, whatever level it is on: leaves
-       are the fact that the thing exists at all, so they do not carry the
-       score. Progress is carried by the blossom — how many flowers open on
-       the twig, and how big they are. A skill at level zero is a green twig
-       with nothing on it; one at mastery is covered. */
-    const twigLen = Math.hypot(it.end[0]-it.start[0], it.end[1]-it.start[1]);
-    /* Six to thirteen leaves left daylight between them and the twig read as a
-       bare stick with ornaments. A living twig is thick with leaves, and one
-       further along gets more — the branch looks healthier because it is. */
-    /* Thirty slivers along a twig read as a feather, not a branch. Eight to
-       seventeen leaves at nearly twice the size read as leaves — and next to a
-       blossom drawn in screen pixels they are finally in proportion to it. */
-    const n = s.planned || locked ? 0 : clamp(Math.round(twigLen/9) + Math.round(prog*4), 8, 17);
-    let lf = '';
-    for(let i=0;i<n;i++){
-      /* the outer eighth of the twig is left bare: that is where the name is
-         written, and a leaf across the first letter of it is worse than a
-         slightly shorter spray */
-      const t = .18 + (i/Math.max(n-1,1))*.70; const p = qp(it.start, it.ctrl, it.end, t); const tan = -qt(it.start, it.ctrl, it.end, t)*180/Math.PI; const sd = i%2 ? 1 : -1;
-      /* size varies leaf to leaf so the canopy is not a stencil, but never with level */
-      /* a real cherry leaf: ovate, toothed, veined — and drawn big, because a
-         leaf you cannot see the shape of might as well be a dash */
-      const size = 27 * k * (1 - wither*.28) * (.80 + ((i*7)%6)/11); const rot = tan + sd*(40 + ((i*13)%20));
-      lf += `<g transform="translate(${P(p)}) rotate(${rot.toFixed(1)})"><g class="leaf" data-phase="${(i*1.7)%6.28}" data-period="${(2.8 + (i*.37)%2).toFixed(2)}"
-        opacity="${(.94 - wither*.4).toFixed(2)}">${sakLeaf(size, wither > .3, i)}</g></g>`;
-    }
-    if(s.planned || locked){ for(let i=0;i<3;i++){ const p = qp(it.start, it.ctrl, it.end, .55 + i*.2); lf += `<circle class="bud" cx="${X(p[0]).toFixed(1)}" cy="${Y(p[1]).toFixed(1)}" r="${(2.4*k).toFixed(1)}" fill="${locked?'#5a554f':col}" opacity=".7"/>`; } }
-    /* ---- the blossom ----
-       A cherry flower, drawn as one: five petals each with the cleft at the
-       tip that makes a sakura a sakura, a spray of stamens with yellow anthers
-       in the middle, and the calyx gripping it from behind. How far open it is
-       carries the level — bud, splitting, three petals parting, five open, and
-       at mastery a double bloom with a second rank behind.
 
-       They are drawn large on purpose. A flower you cannot see the shape of is
-       a dot, and the whole point of the tree is to be worth looking at. */
+  /* ---------- the ground ---------- */
+  g += `<ellipse cx="${trunkX.toFixed(1)}" cy="${ground+4}" rx="${(W*.3).toFixed(0)}" ry="14" fill="url(#skGround)"/>`;
+  g += `<path d="M${(trunkX-W*.5).toFixed(0)},${(ground+4).toFixed(0)} Q${(trunkX-W*.22).toFixed(0)},${(ground-9).toFixed(0)} ${trunkX.toFixed(0)},${(ground-5).toFixed(0)} Q${(trunkX+W*.24).toFixed(0)},${(ground-11).toFixed(0)} ${(trunkX+W*.5).toFixed(0)},${(ground+4).toFixed(0)} L${(trunkX+W*.5).toFixed(0)},${(ground+44).toFixed(0)} L${(trunkX-W*.5).toFixed(0)},${(ground+44).toFixed(0)} Z" fill="#6fa353" opacity=".30"/>`;
+
+  /* ---------- roots ----------
+     The same tapered shape as a branch, grown the other way: a short fan
+     that spreads and flattens as it goes into the soil, so the tree is
+     standing in the ground rather than resting on it. */
+  /* A sapling's foot barely flares; an old tree's spreads into its roots.
+     Flaring both by the same factor gave one skill the butt of a veteran. */
+  const baseW = topW * (1.52 + Math.min(S.skills.length, 24) * .018) * k;
+  {
+    const many = 3 + Math.floor(rnd() * 3);
+    for(let i = 0; i < many; i++){
+      const sd = i % 2 ? 1 : -1, f = .5 + rnd() * .9;
+      const reach = baseW * (1.9 + f * 2.4), drop = 7 + rnd() * 11;
+      const pts = [[trunkX + sd * baseW * .18, ground - baseW * .35],
+        [trunkX + sd * reach * .45, ground + drop * .35],
+        [trunkX + sd * reach * .82, ground + drop * .85],
+        [trunkX + sd * reach, ground + drop]];
+      g += wood(pts, [baseW * .42, baseW * .3, baseW * .16, .9], 'sk-root', 'url(#skTrunk)', ' opacity=".62"');
+    }
+  }
+
+  /* ---------- the trunk ----------
+     The trunk and the leader growing out of it are one piece of wood, so
+     they are drawn as one ribbon. Two paths meeting at the same point still
+     meet at an angle, and the join shows as a kink — which is exactly the
+     joint a real trunk does not have. */
+  const rootStrand = strands.find(st => st.nodes[0] === owned.root && st.nodes.length > 1);
+  {
+    const stem = trunk.slice(0, 3).map(p => [X(p[0]), Y(p[1])]);
+    const stemW = [baseW, baseW * .84, baseW * .70];
+    const pts = rootStrand ? stem.concat(strandPts(rootStrand)) : stem.concat([[X(trunk[3][0]), Y(trunk[3][1])]]);
+    const w = rootStrand ? stemW.concat(strandW(rootStrand)) : stemW.concat([topW * k]);
+    g += wood(pts, w, 'sk-trunk', 'url(#skTrunk)');
+    /* Bark: a few thin lines running the length of the trunk, each following
+       its curve at its own offset. Then the lenticels — the short horizontal
+       dashes a cherry is known by, which are the one mark that says which
+       tree this is from thirty feet away. */
+    for(let i = 0; i < 5; i++){
+      const off = (rnd() - .5) * baseW * .55;
+      const line = pts.map((p, j) => [p[0] + off * (1 - j * .18) + (rnd() - .5) * 2.4, p[1]]);
+      g += `<path class="sk-bark" d="${sgPath(line)}" stroke="#33281f" stroke-width="${(baseW*.05 + .5).toFixed(2)}" fill="none" opacity="${(.10 + rnd()*.12).toFixed(2)}"/>`;
+    }
+    const trunkAt = f => {                       /* where the trunk is, f of the way up */
+      const yy = trunkTop * f;
+      for(let i = 1; i < trunk.length; i++){
+        if(yy <= trunk[i][1] || i === trunk.length - 1){
+          const a = trunk[i-1], b = trunk[i], u = b[1] === a[1] ? 0 : clamp((yy - a[1]) / (b[1] - a[1]), 0, 1);
+          return [X(a[0] + (b[0] - a[0]) * u), Y(yy)];
+        }
+      }
+      return [trunkX, Y(yy)];
+    };
+    const rows = Math.max(7, Math.round(trunkTop / 15));
+    for(let i = 0; i < rows; i++){
+      const f = .05 + (i / rows) * .90, at = trunkAt(f);
+      const wdth = baseW + (topW * k - baseW) * f;
+      const per = 1 + Math.round(rnd() * 2);
+      for(let j = 0; j < per; j++){
+        const wid = wdth * (.08 + rnd() * .16), offx = (rnd() - .5) * wdth * .6;
+        g += `<path class="sk-lentic" d="M${(at[0] + offx - wid/2).toFixed(1)},${(at[1] + j*1.7).toFixed(1)} h${wid.toFixed(1)}"
+          stroke="#33281f" stroke-width="${(wdth*.05 + .4).toFixed(2)}" stroke-linecap="round" opacity="${(.16 + rnd()*.2).toFixed(2)}"/>`;
+      }
+    }
+    /* a few tufts at the foot, so the tree is standing in something */
+    [[-2.4,.9],[-1.3,.6],[1.8,1],[2.8,.7]].forEach(([sd, h]) => {
+      const gx = trunkX + sd * baseW, gh = 12 * h * k;
+      g += `<path class="sk-grass" d="M${gx.toFixed(1)},${ground} q${(2*h).toFixed(1)},${(-gh*.6).toFixed(1)} ${(5*h).toFixed(1)},${(-gh).toFixed(1)} M${gx.toFixed(1)},${ground} q${(-1.6*h).toFixed(1)},${(-gh*.55).toFixed(1)} ${(-3.4*h).toFixed(1)},${(-gh*.86).toFixed(1)}" stroke="#7f916a" stroke-width="1.2" fill="none" opacity=".28" stroke-linecap="round"/>`;
+    });
+  }
+
+  /* ---------- the scaffold ----------
+     The wood that belongs to no one skill: the limbs above the trunk that
+     several categories still share, and the short spurs the growth threw
+     out that never reached anything. Trees are full of those, and leaving
+     them out is half of why a drawn tree looks bald. */
+  {
+    /* How many spurs a crown ends up with depends on how the growth fell
+       out, and a run of good luck can leave hundreds of one-segment stubs.
+       The longest of them are the ones that read as branches; the rest are
+       specks, and drawing them costs more than they are worth. */
+    const scaff = strands.filter(st => st !== rootStrand && st.kind === 'trunk');
+    const spurs = strands.filter(st => st.kind === 'twiglet' && st.nodes.length >= 2)
+      .sort((a, b) => b.nodes.length - a.nodes.length)
+      .slice(0, clamp(20 + S.skills.length * 2, 20, 70));
+    let body = '', bl = '';
+    [...scaff, ...spurs].forEach(st => {
+      const pts = strandPts(st), w = strandW(st), spur = st.kind === 'twiglet';
+      body += `<path class="${spur ? 'sk-spur' : 'sk-scaffold'}" data-w="${w[0].toFixed(1)}"
+        d="${sgRibbon(pts, w)}" fill="url(#skTrunk)"${spur ? ' opacity=".82"' : ''}/>`;
+      spurCentres.push(`<path class="limb" d="${sgPath(pts)}" stroke="#fff" stroke-width="${(Math.max(...w) + 3.5).toFixed(1)}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`);
+      const n = spur ? 2 + Math.round(rnd() * 2) : clamp(Math.round(along(pts, 1).len / (30 * k)), 2, 9);
+      for(let i = 0; i < n; i++){
+        const at = along(pts, .34 + (i / Math.max(n - 1, 1)) * .58 + (rnd() - .5) * .08);
+        const sz = (spur ? 18 : 20) * k * (.72 + rnd() * .5);
+        bl += `<g transform="translate(${P2(at.p)}) rotate(${(at.ang + (i%2?54:-54) + (rnd()-.5)*18).toFixed(1)})"><g class="leaf"
+          data-phase="${(rnd()*6.28).toFixed(2)}" data-period="${(2.9 + rnd()*1.8).toFixed(2)}" opacity=".82">${sakLeaf(sz, rnd()<.12, i)}</g></g>`;
+      }
+    });
+    /* one reveal mask for all of the scaffolding rather than one apiece:
+       each centreline still draws itself, and the crown does not arrive
+       carrying a hundred mask elements */
+    g += `<g mask="url(#skmScaff)">${body}</g><g class="sk-branchleaves">${bl}</g>`;
+  }
+
+  /* ---------- category limbs ----------
+     A limb belongs to a category when everything past it is that category's
+     — which is a fact about where the branches went, not a decision taken
+     in advance. Its label hangs at the far end of the longest run. */
+  const catTips = {};
+  cats.forEach(c => {
+    const mine = strands.filter(st => st.kind === 'cat:' + c);
+    if(!mine.length) return;
+    const col = catColor(c);
+    let body = '';
+    mine.forEach(st => {
+      const pts = strandPts(st), w = strandW(st);
+      body += wood(pts, w, 'limb-wood', 'url(#skTrunk)');
+      body += wood(pts, w.map(v => v * .52), 'limb-tint', col, ' opacity=".26"');
+      /* a spray of leaves along the outer half, so the limb joins up with
+         the green at the ends of its twigs instead of being a bare stick */
+      const m = clamp(Math.round(along(pts, 1).len / (26 * k)), 4, 12); let bl = '';
+      for(let q = 0; q < m; q++){
+        const at = along(pts, .40 + (q / Math.max(m - 1, 1)) * .55);
+        const sd = q % 2 ? 1 : -1, sz = 22 * k * (.74 + ((q * 7) % 6) / 11);
+        bl += `<g transform="translate(${P2(at.p)}) rotate(${(at.ang + sd * (48 + ((q*11)%18))).toFixed(1)})"><g class="leaf"
+          data-phase="${((q*2.3)%6.28).toFixed(2)}" data-period="${(3.1 + (q*.41)%2).toFixed(2)}" opacity=".84">${sakLeaf(sz, false, q + 1)}</g></g>`;
+      }
+      body += `<g class="sk-branchleaves">${bl}</g>`;
+      const tip = pts[pts.length - 1];
+      if(!catTips[c] || tip[1] < catTips[c][1]) catTips[c] = tip;
+    });
+    g += `<g class="sk-branch" data-node="cat:${esc(c)}" style="--nc:${col}">${body}</g>`;
+  });
+  cats.forEach(c => {
+    if(!catTips[c]){
+      /* a category whose skills never shared a limb — one skill, usually.
+         Label the cluster instead of a branch that does not exist. */
+      const pts = (catCloud[c] || []).map(a => [X(a.x), Y(a.y)]);
+      if(!pts.length) return;
+      catTips[c] = [pts.reduce((s, p) => s + p[0], 0) / pts.length, Math.min(...pts.map(p => p[1])) - 26 * k];
+    }
+    const col = catColor(c), tip = catTips[c], out = tip[0] >= trunkX ? 1 : -1;
+    const count = S.skills.filter(s => s.cat === c).length;
+    const lx = tip[0] + out * 13, anchor = out > 0 ? 'start' : 'end';
+    labels += `<text class="sk-catlbl" x="${lx.toFixed(1)}" y="${(tip[1]+4).toFixed(1)}" text-anchor="${anchor}" style="fill:${col}">${esc(c)}</text>`
+      + `<text class="sk-catsub" x="${lx.toFixed(1)}" y="${(tip[1]+16).toFixed(1)}" text-anchor="${anchor}">${count} skill${count===1?'':'s'}</text>`;
+    lblItems.push({id: 'cat:' + c, ex: tip[0], ey: tip[1] + 8, x: lx, y: tip[1] + 8, anchor,
+      w: Math.max(c.length * 7.2, 62) + 10, h: 24, fixed: true});
+  });
+
+  /* ---------- the skills ----------
+     One twig per skill: the run of wood that only it lies beyond. What
+     hangs on it is what the skill is doing — leaves for being alive at all,
+     blossom for how far it has come, cherries for mastery, bronze for a
+     skill going cold. */
+  const bySkill = {};
+  strands.filter(st => st.kind.startsWith('skill:')).forEach(st => {
+    const id = st.kind.slice(6); (bySkill[id] || (bySkill[id] = [])).push(st);
+  });
+  skillPts.slice().sort((a, b) => a.depth - b.depth).forEach(a => {
+    const s = a.skill, col = catColor(s.cat), locked = skillIsLocked(s);
+    const last = skillLastPracticed(s), since = daysSince(last);
+    const active = !locked && !s.planned && since <= 7;
+    const lc = skillLevelCount(s), lvl = s.currentLevel || 0, prog = skillProgress(s);
+    const mastered = !s.planned && (skillAbilities(s).length ? prog >= 1 : lc >= 2 && lvl >= lc);
+    const wither = last && !s.planned && !locked && since > 90 ? clamp((since - 90) / 180, 0, .8) : 0;
+    const nm = nextMilestone(s), due = nm?.by ? daysBetween(T, nm.by) : null;
+    const soon = due !== null && due >= 0 && due <= 45, overdue = due !== null && due < 0;
+
+    const mine = bySkill[s.id] || [];
+    /* the longest run is the twig proper; anything else it threw out is a
+       side spur off the same skill */
+    const pts0 = mine.length ? mine.map(strandPts) : [];
+    let main = 0;
+    pts0.forEach((p, i) => { if(along(p, 1).len > along(pts0[main], 1).len) main = i; });
+    const twig = pts0.length ? pts0[main] : [[X(a.x), Y(a.y) + 30 * k], [X(a.x), Y(a.y)]];
+    const tip = twig[twig.length - 1];
+
+    const limbCol = locked ? '#5a554f' : lerpColor('#6b5642', '#5a4634', prog);
+    let inner = '';
+    mine.forEach((st, i) => {
+      const pts = strandPts(st), w = strandW(st).map(v => v * (1 - wither * .22));
+      inner += wood(pts, w, 'wood', limbCol, locked ? ' opacity=".55"' : '');
+    });
+    const pid = `tw-${s.id}`;
+    inner += `<path class="sk-centre" id="${pid}" d="${sgPath(twig)}" fill="none"/>`;
+    if(active && !reduced()) inner += `<circle class="sap" r="${(2.2*k).toFixed(1)}" fill="#fff6dc" opacity=".9"><animateMotion dur="${(2.6 + (s.id.length%3)*.5).toFixed(1)}s" repeatCount="indefinite"><mpath href="#${pid}"/></animateMotion></circle>`;
+
+    /* ---- foliage ----
+       A twig that is alive is fully leaved whatever level it is on: leaves
+       are the fact that the thing exists at all, so they do not carry the
+       score. Progress is carried by the blossom. */
+    let lf = '', tLeaf = .5;
+    const runs = pts0.length ? pts0 : [twig];
+    runs.forEach((pts, ri) => {
+      const len = along(pts, 1).len;
+      /* Leaves grow on the new wood at the ends, not down the whole length
+         of a limb. A skill whose run happens to be the leader out of the
+         trunk would otherwise come out with leaves sprouting from its
+         trunk, which no tree does. */
+      const t0 = clamp(1 - (150 * k) / Math.max(len, 1), .14, .74);
+      if(pts === twig) tLeaf = t0;
+      const n = s.planned || locked ? 0 : clamp(Math.round(len * (1 - t0) / (10 * k)) + Math.round(prog * 4), ri ? 3 : 7, 20);
+      for(let i = 0; i < n; i++){
+        const at = along(pts, t0 + (i / Math.max(n - 1, 1)) * (.94 - t0)), sd = i % 2 ? 1 : -1;
+        const size = 22 * k * (1 - wither * .28) * (.80 + ((i * 7) % 6) / 11);
+        lf += `<g transform="translate(${P2(at.p)}) rotate(${(at.ang + sd * (42 + ((i*13)%20))).toFixed(1)})"><g class="leaf"
+          data-phase="${((i*1.7)%6.28).toFixed(2)}" data-period="${(2.8 + (i*.37)%2).toFixed(2)}"
+          opacity="${(.94 - wither*.4).toFixed(2)}">${sakLeaf(size, wither > .3, i)}</g></g>`;
+      }
+    });
+    if(s.planned || locked) for(let i = 0; i < 3; i++){
+      const at = along(twig, .55 + i * .2);
+      lf += `<circle class="bud" cx="${at.p[0].toFixed(1)}" cy="${at.p[1].toFixed(1)}" r="${(2.4*k).toFixed(1)}" fill="${locked ? '#5a554f' : col}" opacity=".7"/>`;
+    }
+
+    /* ---- the blossom ----
+       A cherry flower drawn as one: five petals each with the cleft at the
+       tip that makes a sakura a sakura, a spray of stamens with yellow
+       anthers in the middle, the calyx gripping it from behind. How far
+       open it is carries the level — bud, splitting, three petals parting,
+       five open, and at mastery a double bloom with a second rank behind.
+       The first one sits at the point the branch grew to reach. */
     const flowers = (s.planned || locked) ? 0 : clamp(Math.round(1 + prog * 3.2), 1, 5);
     if(flowers && lvl > 0){
-      const tier = clamp(Math.ceil(prog * 5), 1, 5);
-      const R = [0, 15, 20, 26, 32, 40][tier];
-      for(let i=0;i<flowers;i++){
-        const t = .36 + (i/Math.max(flowers-1,1))*.60; const p = qp(it.start, it.ctrl, it.end, t);
-        /* off the twig by most of their own width, alternating sides, so two
-           neighbours never sit on top of each other */
-        const sd = i%2 ? 1 : -1; const cx = X(p[0]) + sd*(R*.66), cy = Y(p[1]) - (R*.44);
-        const tilt = (i*53) % 70 - 35;
-        /* every other one is the paler sort, and they lean at their own angles,
-           because a branch of identical flowers reads as a stencil */
-        lf += `<g class="blossom t${tier} ${blossom ? 'soon' : ''}" style="--d:${(i*.28).toFixed(2)}s"
+      const tier = clamp(Math.ceil(prog * 5), 1, 5), R = [0, 15, 20, 26, 32, 40][tier] * Math.min(k, 1.15);
+      for(let i = 0; i < flowers; i++){
+        let cx, cy;
+        /* the first one sits where the branch stopped — which is as near as
+           the wood got to the light it was growing toward */
+        if(i === 0){ cx = tip[0]; cy = tip[1]; }
+        else {
+          const at = along(twig, Math.max(.5, tLeaf) + (i / Math.max(flowers - 1, 1)) * (.96 - Math.max(.5, tLeaf))), sd = i % 2 ? 1 : -1;
+          cx = at.p[0] + sd * R * .66; cy = at.p[1] - R * .40;
+        }
+        const tilt = (i * 53) % 70 - 35;
+        lf += `<g class="blossom t${tier} ${soon ? 'soon' : ''}" style="--d:${(i*.28).toFixed(2)}s"
           transform="translate(${cx.toFixed(1)},${cy.toFixed(1)}) rotate(${tilt.toFixed(0)})">
           ${tier >= 4 ? `<circle r="${(R*.95).toFixed(2)}" fill="#f8cfe0" opacity=".16"/>` : ''}
           ${sakFlower(R, tier, i % 2 === 1)}</g>`;
       }
     }
-    /* mastery hangs an apple, not a disc: two lobes with a dip at the top, a
-       stem going back into the twig, one leaf, and a highlight where the light
-       is coming from — a plain circle read as a smudge at this size */
-    /* Mastery hangs cherries — dark, glossy, in pairs on a shared stem, which
-       is how they actually grow. An apple on a cherry tree was a small lie. */
-    if(mastered){ for(let i=0;i<3;i++){
-      const p = qp(it.start, it.ctrl, it.end, .58 + i*.15); const sd = i%2?1:-1;
-      const cx = X(p[0]) + sd*9*k, cy = Y(p[1]) + 4*k, r = 6.4*k;
+    /* Mastery hangs cherries — dark, glossy, in pairs on a shared stem,
+       which is how they actually grow. */
+    if(mastered) for(let i = 0; i < 3; i++){
+      const at = along(twig, .58 + i * .15), sd = i % 2 ? 1 : -1;
+      const cx = at.p[0] + sd * 9 * k, cy = at.p[1] + 4 * k, r = 6.4 * k;
       lf += `<g class="fruit" style="--d:${(i*.22).toFixed(2)}s" transform="translate(${cx.toFixed(1)},${cy.toFixed(1)})">
         <path d="M0,${(-r*1.9).toFixed(2)} q${(-r*.5).toFixed(2)},${(r*.9).toFixed(2)} ${(-r*.78).toFixed(2)},${(r*1.5).toFixed(2)}
                  M0,${(-r*1.9).toFixed(2)} q${(r*.55).toFixed(2)},${(r*.95).toFixed(2)} ${(r*.82).toFixed(2)},${(r*1.55).toFixed(2)}"
           fill="none" stroke="#6f8a4a" stroke-width="${(r*.16).toFixed(2)}" stroke-linecap="round"/>
-        ${[[-.78, 1.5, .92], [.82, 1.55, 1]].map(([dx, dy, sc]) => `<g transform="translate(${(-r*0 + r*dx).toFixed(2)},${(r*dy).toFixed(2)}) scale(${sc})">
+        ${[[-.78, 1.5, .92], [.82, 1.55, 1]].map(([dx, dy, sc]) => `<g transform="translate(${(r*dx).toFixed(2)},${(r*dy).toFixed(2)}) scale(${sc})">
           <circle r="${r.toFixed(2)}" fill="#9e2436"/>
           <path d="M${(-r*.86).toFixed(2)},${(-r*.2).toFixed(2)} a${r.toFixed(2)},${r.toFixed(2)} 0 0 1 ${(r*.7).toFixed(2)},${(-r*.72).toFixed(2)}"
             stroke="#f0a8b4" stroke-width="${(r*.26).toFixed(2)}" fill="none" stroke-linecap="round" opacity=".55"/>
           <circle r="${r.toFixed(2)}" fill="none" stroke="#5e1220" stroke-width=".6" opacity=".5"/></g>`).join('')}
-      </g>`; } }
-    if(wither > .3){ for(let i=0;i<2;i++){ const p = qp(it.start, it.ctrl, it.end, .5 + i*.3); lf += `<g class="fall" style="animation-delay:${(i*2.1).toFixed(1)}s;animation-duration:${(6 + i*1.5).toFixed(1)}s" transform="translate(${P(p)})"><path d="M0,0 Q4,-3 8,0 Q4,3 0,0" fill="${leafCol}" opacity=".8"/></g>`; } }
-    if(active){ lf = `<circle class="halo" cx="${X(it.end[0]).toFixed(1)}" cy="${Y(it.end[1]).toFixed(1)}" r="${(15*k).toFixed(1)}" fill="${col}" opacity=".16"/>` + lf; }
-    if(overdue){ lf += `<circle cx="${X(it.end[0]).toFixed(1)}" cy="${Y(it.end[1]).toFixed(1)}" r="${(3*k).toFixed(1)}" fill="#c25b5b"/>`; }
-    const outward = it.end[0] >= 0 ? 1 : -1;
-    const sub = s.planned ? 'planned' : locked ? 'locked' : mastered ? 'mastered' : `lvl ${lvl}/${lc}${active?' · active':wither?' · withering':!last?' · not yet practised':''}`;
-    const name = (locked?'🔒 ':'') + s.name; const fs = it.depth===2 ? 11.5 : 10.5;
-    /* the leaves are a good deal bigger than they were, so a label eight pixels
-       off the twig tip now sits inside the foliage; it stands further out */
-    lblItems.push({id:s.id, ex:X(it.end[0]), ey:Y(it.end[1]), x:X(it.end[0]) + outward*32, y:Y(it.end[1]), anchor:outward>0?'start':'end', w:Math.max(name.length*fs*.56, sub.length*8.5*.62) + 6, h:24, name, sub, fs, col});
-    g += `<g class="sk-twig ${locked?'locked':''} ${active?'active':''} ${mastered?'mastered':''} ${since <= 7 ? 'fresh' : ''}" data-skill="${s.id}" data-parent="${it.parent}" data-x="${X(it.end[0]).toFixed(1)}" data-y="${Y(it.end[1]).toFixed(1)}" style="--nc:${col}"><title>${esc(s.name)} · ${esc(sub)}${since<Infinity?` · last practised ${relDays(since)}`:''}</title>${inner}<g class="sk-leaves">${lf}</g><g class="sk-lblslot" data-for="${s.id}"></g></g>`;
+      </g>`;
+    }
+    if(wither > .3) for(let i = 0; i < 2; i++){
+      const at = along(twig, .5 + i * .3);
+      lf += `<g class="fall" style="animation-delay:${(i*2.1).toFixed(1)}s;animation-duration:${(6 + i*1.5).toFixed(1)}s" transform="translate(${P2(at.p)})"><path d="M0,0 Q4,-3 8,0 Q4,3 0,0" fill="${lerpColor(col, '#8a6a3a', 1)}" opacity=".8"/></g>`;
+    }
+    if(active) lf = `<circle class="halo" cx="${tip[0].toFixed(1)}" cy="${tip[1].toFixed(1)}" r="${(15*k).toFixed(1)}" fill="${col}" opacity=".16"/>` + lf;
+    if(overdue) lf += `<circle cx="${tip[0].toFixed(1)}" cy="${tip[1].toFixed(1)}" r="${(3*k).toFixed(1)}" fill="#c25b5b"/>`;
+
+    const outward = tip[0] >= trunkX ? 1 : -1;
+    const sub = s.planned ? 'planned' : locked ? 'locked' : mastered ? 'mastered'
+      : `lvl ${lvl}/${lc}${active ? ' · active' : wither ? ' · withering' : !last ? ' · not yet practised' : ''}`;
+    const name = (locked ? '🔒 ' : '') + s.name, fs = a.depth === 0 ? 11.5 : 10.5;
+    lblItems.push({id: s.id, ex: tip[0], ey: tip[1], x: tip[0] + outward * 34, y: tip[1],
+      anchor: outward > 0 ? 'start' : 'end',
+      w: Math.max(name.length * fs * .56, sub.length * 8.5 * .62) + 6, h: 24, name, sub, fs, col});
+    const par = parentOf(s);
+    g += `<g class="sk-twig ${locked?'locked':''} ${active?'active':''} ${mastered?'mastered':''} ${since <= 7 ? 'fresh' : ''}"
+      data-skill="${s.id}" data-parent="${par && byId(S.skills, par) ? par : 'cat:' + s.cat}"
+      data-x="${tip[0].toFixed(1)}" data-y="${tip[1].toFixed(1)}" style="--nc:${col}"><title>${esc(s.name)} · ${esc(sub)}${since < Infinity ? ` · last practised ${relDays(since)}` : ''}</title>${inner}<g class="sk-leaves">${lf}</g></g>`;
   });
-  /* The grass grows in front of the trunk, so it is drawn after it. Orchids
-     come up between the blades, three to a spike, each with the lip that tells
-     an orchid from any other flower. */
+
+  /* the grass grows in front of the trunk, so it is drawn after it */
   {
     let gs = 41 + S.skills.length * 13;
-    const rnd = () => { gs = (gs * 1103515245 + 12345) & 0x7fffffff; return gs / 0x7fffffff; };
-    g += `<g class="sk-turf">${sakGrassHTML(trunkX, ground, W, rnd)}</g>`;
+    const r2 = () => { gs = (gs * 1103515245 + 12345) & 0x7fffffff; return gs / 0x7fffffff; };
+    g += `<g class="sk-turf">${sakGrassHTML(trunkX, ground, W, r2)}</g>`;
   }
   /* petals in the air, which is the whole of a cherry in April */
   {
-    let ps = 913 + S.skills.length * 7;
-    const rnd = () => { ps = (ps * 1103515245 + 12345) & 0x7fffffff; return ps / 0x7fffffff; };
     const many = clamp(6 + S.skills.length, 6, 22);
     for(let i = 0; i < many; i++){
-      const px = trunkX + (rnd() - .5) * W * .8, py = 40 + rnd() * (ground - 90);
-      const sz = (7 + rnd() * 6) * k;
+      const px = trunkX + (rnd() - .5) * W * .8, py = 40 + rnd() * (ground - 90), sz = (7 + rnd() * 6) * k;
       g += `<g class="sk-fallpetal" style="--dur:${(9 + rnd()*9).toFixed(1)}s;--delay:${(-rnd()*14).toFixed(1)}s;--dx:${(18 + rnd()*40).toFixed(0)}px;--dy:${(ground - py).toFixed(0)}px"
         transform="translate(${px.toFixed(1)},${py.toFixed(1)}) rotate(${(rnd()*360).toFixed(0)})">
         ${sakPetal(sz, sz*.8, 'url(#sakP)', (.5 + rnd()*.4).toFixed(2))}</g>`;
     }
   }
-  // relax labels so they never sit on top of each other; a faint leader joins a moved label to its twig
-  /* Two labels a pixel apart still read as one smear, because each is painted
-     with a background-coloured halo that eats its neighbour's first letter. The
-     box is drawn a little larger than the text, and touching counts as a clash. */
-  const boxOf = l => ({left: l.anchor==='start' ? l.x : l.x - l.w, right: l.anchor==='start' ? l.x + l.w : l.x, top: l.y - 15, bottom: l.y + 15});
-  for(let pass=0; pass<40; pass++){ let moved = false; for(let i=0;i<lblItems.length;i++) for(let j=i+1;j<lblItems.length;j++){ const a = lblItems[i], b = lblItems[j]; const A = boxOf(a), B = boxOf(b); const ox = Math.min(A.right,B.right) - Math.max(A.left,B.left), oy = Math.min(A.bottom,B.bottom) - Math.max(A.top,B.top); if(ox > -6 && oy > 0){ const lower = a.y >= b.y ? a : b, upper = lower===a ? b : a; if(lower.fixed && upper.fixed) continue; if(lower.fixed) upper.y -= oy + 2; else if(upper.fixed) lower.y += oy + 2; else { lower.y += oy/2 + 1; upper.y -= oy/2 + 1; } moved = true; } } if(!moved) break; }
-  lblItems.forEach(l => { if(l.fixed) return; l.y = clamp(l.y, 16, H - 52); const dy = Math.abs(l.y - l.ey); const leader = dy > 7 ? `<line class="sk-leader" x1="${l.ex.toFixed(1)}" y1="${l.ey.toFixed(1)}" x2="${(l.anchor==='start' ? l.x - 2 : l.x + 2).toFixed(1)}" y2="${l.y.toFixed(1)}"/>` : ''; labelsBySkill[l.id] = `${leader}<text class="sk-lbl" x="${l.x.toFixed(1)}" y="${(l.y-3).toFixed(1)}" text-anchor="${l.anchor}" style="font-size:${l.fs}px">${esc(l.name)}</text><text class="sk-sublbl" x="${l.x.toFixed(1)}" y="${(l.y+9).toFixed(1)}" text-anchor="${l.anchor}">${esc(l.sub)}</text>`; });
-  /* Every label used to live inside its own twig's group, so the twig drawn
-     after it painted leaves over its first letters — "Writing" read as
-     "riting". They are one layer now, laid over the whole tree. */
-  g = g.replace(/<g class="sk-lblslot" data-for="[^"]+"><\/g>/g, '');
+
+  /* Labels are relaxed so no two sit on top of each other; a faint leader
+     joins a label that had to move back to the twig it belongs to. Touching
+     counts as a clash, because each is painted with a background-coloured
+     halo that eats its neighbour's first letter. */
+  const boxOf = l => ({left: l.anchor === 'start' ? l.x : l.x - l.w, right: l.anchor === 'start' ? l.x + l.w : l.x, top: l.y - 15, bottom: l.y + 15});
+  for(let pass = 0; pass < 40; pass++){ let moved = false;
+    for(let i = 0; i < lblItems.length; i++) for(let j = i + 1; j < lblItems.length; j++){
+      const a = lblItems[i], b = lblItems[j], A = boxOf(a), B = boxOf(b);
+      const oxx = Math.min(A.right, B.right) - Math.max(A.left, B.left), oy = Math.min(A.bottom, B.bottom) - Math.max(A.top, B.top);
+      if(oxx > -6 && oy > 0){ const lower = a.y >= b.y ? a : b, upper = lower === a ? b : a;
+        if(lower.fixed && upper.fixed) continue;
+        if(lower.fixed) upper.y -= oy + 2; else if(upper.fixed) lower.y += oy + 2;
+        else { lower.y += oy / 2 + 1; upper.y -= oy / 2 + 1; }
+        moved = true; } }
+    if(!moved) break; }
+  lblItems.forEach(l => { if(l.fixed) return;
+    l.y = clamp(l.y, 16, H - 52);
+    const dy = Math.abs(l.y - l.ey);
+    const leader = dy > 7 ? `<line class="sk-leader" x1="${l.ex.toFixed(1)}" y1="${l.ey.toFixed(1)}" x2="${(l.anchor === 'start' ? l.x - 2 : l.x + 2).toFixed(1)}" y2="${l.y.toFixed(1)}"/>` : '';
+    labelsBySkill[l.id] = `${leader}<text class="sk-lbl" x="${l.x.toFixed(1)}" y="${(l.y-3).toFixed(1)}" text-anchor="${l.anchor}" style="font-size:${l.fs}px">${esc(l.name)}</text><text class="sk-sublbl" x="${l.x.toFixed(1)}" y="${(l.y+9).toFixed(1)}" text-anchor="${l.anchor}">${esc(l.sub)}</text>`;
+  });
   const labelLayer = Object.keys(labelsBySkill).map(id =>
     `<g class="sk-lblfor" data-for="${id}">${labelsBySkill[id]}</g>`).join('');
-  return `<svg class="sk-organic" viewBox="0 0 ${W} ${H}" style="filter:hue-rotate(${season}deg)">${g}${labels}<g class="sk-lbls">${labelLayer}</g></svg>`;
+
+  const defs = `<defs>${sakDefs()}<linearGradient id="skTrunk" gradientUnits="userSpaceOnUse" x1="0" y1="${ground}" x2="0" y2="${(ground*.12).toFixed(0)}"><stop offset="0" stop-color="#4a392f"/><stop offset=".55" stop-color="#66513f"/><stop offset="1" stop-color="#7f6957"/></linearGradient><radialGradient id="skSun"><stop offset="0" stop-color="var(--page-accent)" stop-opacity=".22"/><stop offset="1" stop-color="var(--page-accent)" stop-opacity="0"/></radialGradient><radialGradient id="skMoon"><stop offset="0" stop-color="#e8e0d4" stop-opacity=".16"/><stop offset="1" stop-color="#e8e0d4" stop-opacity="0"/></radialGradient><radialGradient id="skGround"><stop offset="0" stop-color="#3a3128" stop-opacity=".55"/><stop offset="1" stop-color="#3a3128" stop-opacity="0"/></radialGradient>${masks.join('')}<mask id="skmScaff" maskUnits="userSpaceOnUse" x="0" y="0" width="${W}" height="${H}">${spurCentres.join('')}</mask></defs>`;
+  return `<svg class="sk-organic" viewBox="0 0 ${W} ${H}" style="filter:hue-rotate(${season}deg)">${defs}${g}${labels}<g class="sk-lbls">${labelLayer}</g></svg>`;
 }
 function drawOrganicTree(root){
   const wrap = $('#skillWrap'); if(!wrap) return; wrap.querySelector('svg')?.remove(); const mm = $('#minimap'); if(mm) mm.hidden = true; const hint = wrap.querySelector('.sk-hint'); if(hint) hint.textContent = 'a cherry in flower · the blossom opens as the skill grows, bud to full bloom · a pair of cherries is mastery · a flower breathing means a milestone is near · bronze leaves are withering';

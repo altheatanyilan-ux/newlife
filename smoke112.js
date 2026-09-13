@@ -48,8 +48,14 @@ const WANT = ['Musical','Artistic','Income','Language','Intellectual','Social','
   const filterOpts = await p.$$eval('#skCat option', n => n.map(o => o.value));
   yes('the inventory filter lists the ones in use',
       filterOpts.includes('Musical') && filterOpts.includes('Language'), filterOpts.join(','));
-  yes('the tree draws a branch per category in use', await p.evaluate(() =>
-    document.querySelectorAll('.sk-branch').length >= 3));
+  /* The tree grows toward the skills rather than dividing the sky between
+     the categories, so a category owns a limb only where its skills really
+     do share one. What it always has is its name on the crown. */
+  yes('every category in use is named on the tree', await p.evaluate(() => {
+    const inUse = new Set(S.skills.map(s => s.cat));
+    const drawn = new Set([...document.querySelectorAll('.sk-catlbl')].map(t => t.textContent));
+    return inUse.size >= 3 && [...inUse].every(c => drawn.has(c));
+  }));
 
   console.log('\n4. the starter set is written in the new vocabulary');
   const cats = await p.evaluate(() => [...new Set(S.skills.map(s => s.cat))].sort());
