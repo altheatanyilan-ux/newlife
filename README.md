@@ -21,9 +21,17 @@ npm run build   # writes index.html
 
 If `dexie` is installed, the build inlines its UMD bundle so the database layer runs on real Dexie. If it is not, `src/06-db.js` falls back to a small built-in class with the same API subset over raw IndexedDB. Either way the output is one self-contained file.
 
+`npm start` serves the folder on port 8080, which is what you want if you are testing the service worker — a `file://` page cannot register one.
+
+The parts in `src/` are concatenated **alphabetically** into a single `<script>`, so function declarations are visible across files but a top-level `const` is not readable before the file that declares it. `src/02-css-sections.html` holds the stylesheet and must be edited before its closing `</style>`; the build asserts nothing has strayed past it. `src/20-modal-init.js` carries the script's closing tag, so `node --check` on that one file always complains.
+
+## Installing it
+
+`manifest.webmanifest` and `sw.js` sit beside `index.html`, so the house can be installed to a home screen and opened without a network — everything it needs is already in the one file. `.github/workflows/pages.yml` builds and publishes it to GitHub Pages on every push to the default branch. Data belongs to the origin it was written on: moving between `file://`, a local server and the published site means exporting a backup and importing it on the other side.
+
 ## Data
 
-All data lives in an IndexedDB database named `lifeinstrument-db`, declared in `src/06-db.js` with one object store per data structure: `meta`, `stages`, `threads`, `tensions`, `values`, `valueSnapshots`, `visions`, `skills`, `projects`, `nods`, `ideas`, `habits`, `habitLog`, `checkins`, `entries`, `tasks`, `events`, `people`, `interactions`, `accounts`, `txns`, `budgets`, `finGoals`, `chapters`, `turns`, `threadsN`. Photos are resized on upload and stored inline as base64. On first load the app migrates any data found under the old `localStorage` key or the interim single-blob database, then removes the old copy.
+All data lives in an IndexedDB database named `lifeinstrument-db`, declared in `src/06-db.js` with one object store per data structure. Two lists in that file decide where a new piece of state lives: `ARRAY_STORES` (`stages`, `threads`, `tensions`, `values`, `valueSnapshots`, `visions`, `skills`, `projects`, `nods`, `ideas`, `habits`, `entries`, `tasks`, `people`, `events`, `interactions`, `accounts`, `txns`, `budgets`, `finGoals`, `chapters`, `turns`, `threadsN`, `mediaQueue`, `mediaLists`, `mediaRecs`, `compost`, `incomeStreams`, `spendCategories` and a few more) for the collections, and `META_KEYS` (`settings`, `planning`, `content`, `rehearsal`, `stillness`, `position`, `dailyRhythm`, `reviews`, `reviewEntries`, `finance`, `plans` and the rest) for the single objects that live in `meta`. State registered in neither list is not saved. Photos are resized on upload and stored inline as base64. On first load the app migrates any data found under the old `localStorage` key or the interim single-blob database, then removes the old copy.
 
 Three small preferences stay in `localStorage`: `soundEnabled`, `ambientEnabled`, and `lastBackupDate`.
 
@@ -35,31 +43,41 @@ To restore your data on a new device: open this website in the same browser, go 
 
 ## Rooms
 
-The sidebar opens with the three rooms you are in daily — **Compass**, **Today**, **Journals** — and groups the rest by what each is for rather than by feature:
+The sidebar opens with the two rooms you are in every day — **Today** and **Planning** — unlabelled and not foldable. Below them, two zones grouped by what each is for:
 
-- **Becoming** — long-term growth and identity: Values, Skill Tree, Projects, Finance, Library
-- **Story** — relationships and memory: People, Timeline
+- **Create** — what you are making: Content Studio, Projects, Finance, Skill Tree
+- **Identity** — who you are, and have been: Values, Lived Record, People
 
-At the foot, always present, sit **Writing Studio** and **Settings**. The Import Station has no room of its own; it is a section inside Settings. Sidebar labels are the same names the pages carry as their titles, drawn with thin line icons. Zones collapse, the sidebar collapses to icons, and both states persist. On narrow screens a bottom bar shows the five most-used rooms and a More button opens the full grouped menu. Pages can be moved between zones by drag-and-drop in Settings.
+Settings sits in the buttons at the top right; the Import Station is a section inside it. Zones collapse, the sidebar collapses to icons, and both states persist. On narrow screens a bottom bar shows the most-used rooms and a More button opens the full grouped menu. Pages can be moved between zones by drag-and-drop in Settings.
 
-The Compass opens with one summary card per zone — items still planned today and habits done, the next skill milestone and how long since a congruence reading, who is overdue for contact and when you last wrote, net worth and what is left in this month's envelopes — each card opening the room where you would act on it.
+Four rooms no longer have a door of their own, because they stopped being separate places — the **Timeline**, the **Library** and the **Review** are views of the Lived Record, and the **writing desk** is reached from a piece in the Content Studio. Their addresses all still answer, because a great deal links to them. The **Compass** was retired the same way: the charts it held now open as the Lived Record's Review tab, next to the writing about them, and `#/compass` redirects there.
 
 | Route | Room |
 |---|---|
-| `#/compass` | Life at a glance: the week's shape (when each day opened and closed, and how the hours between split into claimed and wasted), the twelve-week habit trend, the Life Position check-in (Maslow pyramid and stage resonance), the living house diagram of rooms with health dots, flows and the need each one feeds, and long-term panels with charts |
-| `#/today` | The whole day, bracketed by its two ends — *I woke up at* under the date, *I went to sleep at* at the foot, both editable. Between them, every section folds and remembers whether it was open: the plan made last night, tasks, the check-in, the Morning Theatre, the habit checklist with **＋ add habit**, and any review whose cycle closes tonight. The three morning steps are ticks in the headers of the sections they belong to, each printing its own timestamp on that line. A sticky index at the top jumps to any of them |
-| `#/people` | A relationship garden: three concentric circles (Inner, Middle, Outer, with Dunbar-ish sizes) you can drag faces between, a contact cadence per person and who has drifted past it, interactions logged by kind, birthdays and follow-ups, and everything you have written about them |
-| `#/finance` | Not a ledger: the ways you make money (each active or passive, with the arithmetic that kind deserves — effective rate, hours to target and the ceiling those hours impose, or yield on capital, payback and money per upkeep hour), the gap against a life-cost scenario, what share of the life keeps running when you stop, runway, and life-cost scenarios as columns you can compare side by side |
-| `#/writing` | Pieces with an intention and source hashtags; the entries carrying those tags line up beside the page and can be quoted straight in |
-| `#/commonplace` | Books, films, series, albums, talks: status, rating, passages, and prompts that ask what a work changed rather than what it scored |
+| `#/today` | The whole day, bracketed by its two ends — *I woke up at* under the date (blank until you fill it in), *I went to sleep at* at the foot. Between them, in order: the focus timer, the plan made last night, today's tasks, the check-in, the Morning Theatre, stillness and divination, habits, and any review whose cycle closes tonight. Every section folds and remembers whether it was open; a sticky index at the top jumps to any of them |
+| `#/planning` | Where work is moved rather than reflected on. Folders and lists in the sidebar, five views over whichever is selected — Matrix (Eisenhower, and the default), List, Calendar, Board, Timeline — milestones on a dated timeline above every one of them, subtasks on the row itself, drag to reorder anywhere, and Habits and Statistics as rooms beside Tasks |
+| `#/journals` | The **Lived Record**, in four views: `entries` (synchronicity, manifestation, reflections, gratitude, dreams, quotes, open questions, divination, intuition, sealed letters and decisions), `timeline` (life stages on a spine, felt-time toggle, thread ribbons, tensions), `library` (books, films, series, albums, talks — status, rating, passages, and prompts that ask what a work changed rather than what it scored) and `review` (the charts the Compass used to hold, and the periodic reviews under them) |
+| `#/content` | The **Content Studio**: pieces from seed to published, in four views — Pipeline (columns you can widen by dragging), Calendar, Shelf and Numbers. A piece opens onto the writing desk, with source hashtags pulling the entries that carry them in beside the page |
+| `#/projects` | Ideation mode — sparks and open questions, two columns of equal width — and Tracking mode with three views: cards, a kanban board, and a Gantt of phases. Each project has phases with task checklists, resources, linked skills, notes, nod heatmaps, income streams and an idea inbox. Future Projects sit in the inventory beside the live ones |
+| `#/skills` | What you are practising now, milestones inside a window you choose, then the living tree: a sakura, one branch per category and a twig per skill, in grass with orchids growing at its foot. Every living twig is fully leaved whatever level it is on; progress is the blossom, from a single bud to a covered twig at mastery. Customisable levels (labels, descriptions, criteria as checkboxes, typed resources, estimated time), multi-target milestones on a timeline, atrophy, cross-mappings |
+| `#/values` | Four figures, one table that is priority, congruence, gap and trend at once, and the radar over time. Each value carries a tagline and opens onto what you embody, what a hundred-percent day looks like, what moves you and what counterfeits it, with the evidence feed at the top |
+| `#/people` | A relationship garden: concentric circles you can drag faces between, a contact cadence per person and who has drifted past it, interactions logged by kind, birthdays and follow-ups, and everything you have written about them |
+| `#/finance` | Not a ledger: the ways you make money (each active or passive, with the arithmetic that kind deserves — effective rate, hours to target and the ceiling those hours impose, or yield on capital, payback and money per upkeep hour), substreams under a stream, the gap against a life-cost scenario, what share of the life keeps running when you stop, runway, and life-cost scenarios as columns you can compare side by side |
 | `#/tag/:name` | Every entry carrying one hashtag |
-| `#/timeline` | Life stages on a spine (add a stage from the dashed tile at the end of the spine), felt-time toggle, thread ribbons, tensions |
 | `#/stage/:id` | Stage detail: versioned narrative, sub-stages (each printed on its own uploaded images), formative events, retrospective values, soundtrack, artifacts, letters |
-| `#/values` | Four figures, one table that is priority, congruence, gap and trend at once, and the radar over time. Each value opens onto what you embody, what a hundred-percent day looks like, what moves you and what counterfeits it, with the evidence feed underneath |
-| `#/journals` | Synchronicity, manifestation, reflections, gratitude, dreams, quotes, open questions, sealed letters and decisions |
-| `#/skills` | What you are practising now, milestones inside a window you choose, then the living tree: trunk, one branch per category, a twig per skill. Every living twig is fully leaved, whatever level it is on — leaves are the fact that the thing exists at all. Progress is the blossom: how many flowers open on a twig and how big they are, from nothing at level zero to covered at mastery, with a flower still breathing where a milestone is close. An apple hangs where a skill is mastered, brown falling leaves for atrophy, sap flowing on recently practised twigs, a sun by day and a moon at night; customisable levels (labels, descriptions, criteria, typed resources, estimated time), multi-target milestones on a timeline, atrophy, cross-mappings |
-| `#/projects` | Ideation mode — sparks and open questions, two columns of equal width — and Tracking mode. Tracking has three views: cards (priority, status, task ratio, target date), a kanban board with drag between status columns, and a Gantt timeline of phases; each project has phases with task checklists and quick capture, resources, linked skills, notes, nod heatmaps, income streams, and an idea inbox |
 | `#/settings` | Theme, ambient sound, felt time, landing page, sidebar zones, the Import Station, export/import/clear |
+
+## The day
+
+Today is the room the app is really for, and most of what has been added lately lives there.
+
+**The focus timer** sits above the plan. Choose countdown or stopwatch before you start — the two answer different questions, and the choice locks once the clock runs. Drag a task onto it, or press a task's estimated length anywhere in the app, and the clock starts on it. The face has hour, minute and second hands. Pausing starts a break and asks what the break is for; while it runs, a second field asks what you are actually doing. Both are kept with the sitting, and the day's ledger of sittings unfolds under the clock: when, how long, on what, what you did, and every break with its note.
+
+A task in the timer carries its own tick box, its steps and its estimate, so the work can be finished where it was done. Crossing it off there — or in any list, or in the planner — ends the sitting, writes the minutes down, sets the fireworks off with a sentence that is never quite the same one, and leaves the clock empty for the next thing. A step being timed works the same way, and finishing a step does not close the whole task. Minutes accumulate against whatever was timed, and show beside the estimate: *13m of 15m*.
+
+**Morning Theatre** is the manifestation practice, in eight parts: the self-image script, the winning feeling, a vision board you can pin anything in the app to, a scene entered step by step, scripting, structural tension against a real project, thanks given in advance, and the definite chief aim. What is written cross-posts into the Lived Record as manifestation or gratitude, and tension is written back onto the project it is about.
+
+**Stillness** is meditation, breathwork with a breathing circle, a body scan and a built sanctuary you return to, each with a length, a streak and a depth reading. Beside it, **divination** — a full tarot deck of 78 with five spreads, the *I Ching* by three coins with the moving lines and the hexagram they change into, and three short oracle decks — and an **intuition log** that records a hunch with its channel and strength, then comes back later to ask what actually happened. It only counts as a miss if you could tell. A reading is filed in the Lived Record with each card's own meaning read off the deck, and a card drawn on Today stays on Today for the day it was drawn for.
 
 ## Page themes
 
@@ -68,16 +86,16 @@ Every room shares one design language but carries its own personality. The confi
 | Room | Accent | Gradient | Motion |
 |---|---|---|---|
 | Today | warm coral | coral → peach | snappy |
-| Journals | warm amber | amber → rose | calm |
+| Planning | slate | slate → sky | crisp |
+| Lived Record | warm amber | amber → rose | calm |
+| Content Studio | parchment | sand → oat | calm |
 | Projects | slate blue | slate → sky | crisp |
-| Writing | parchment | sand → oat | calm |
-| Library | mulberry | plum → rose | calm |
 | People | dusty rose | rose → clay | calm |
 | Finance | moss | moss → sage | crisp |
 | Values | soft purple | lavender → mauve | calm |
 | Skill Tree | emerald | emerald → teal | energetic (springy) |
-| Timeline | dusty gold | gold → sepia | calm |
-| Compass | cool gray | gray → blue-gray | calm |
+
+The Timeline, the Library and the Review keep the theme of the Lived Record they now live in.
 
 On every route change `applyPageTheme()` sets `--page-accent`, `--page-accent-ink`, `--page-gradient-start`, `--page-gradient-end`, `--page-motion-speed`, `--page-ease` and `--page-glyph` on the root element. Shared components (buttons, inputs, chips, toggles, tabs, bars, sliders, the FAB, toasts, selection) read those variables, so they adapt without per-page CSS. The `.page-head` becomes a gradient banner with the room's glyph and mood line, the ambient background gradient crossfades between two layers in 350 ms, and the two large blobs take the page's gradient colours.
 
@@ -93,7 +111,7 @@ Two synthesised layers, nothing downloaded. Both are off by default and remember
 
 Every room has an ink landscape in the ambient layer, built from the vocabulary of the old shan shui (山水) painters: peaks that are shoulders and saddles rather than triangles, hemp-fibre texture strokes (皴) raked down the shaded face, mist that is simply the ink running out at the foot of the mountain, and the empty space (留白) doing as much work as the marks. Pines, bamboo, a plum branch in blossom, a pavilion with upswept eaves, a thatched hut, a plank bridge, one boat with one figure in it, a line of geese, a vertical inscription in the empty half of the picture, and a red seal in the corner.
 
-Every kind of entry opens on a painting of its own, too — a band across the top of the add-entry modal, drawn with the same brush, sealed with its own character: the moon and mist for a dream, a boat pushed out for a letter, a figure at a fork for a decision, a plum branch in flower for gratitude. Each room gets its own composition: a hut under pines for the Compass, a boat on the river at first light for Today, rain over bamboo for Journals, the scholar's table for the Library, a pavilion by the water with the poem unwritten for Writing, a village stepping up the slope for Projects, sun and moon on the same arc for Habits, a still lake with the mountain in it twice for Reviews, one pine on a bare rock for Values (松柏 — what integrity looks like in this tradition), the grove for the Skill Tree, ridge behind ridge for the Timeline, the elegant gathering for People, terraced fields for Finance. They are drawn in each page's own accent at low opacity, with a soft vignette so text stays readable.
+Every kind of entry opens on a painting of its own, too — a band across the top of the add-entry modal, drawn with the same brush, sealed with its own character: the moon and mist for a dream, a boat pushed out for a letter, a figure at a fork for a decision, a plum branch in flower for gratitude. Each room gets its own composition: a hut under pines for the Review, a boat on the river at first light for Today, rain over bamboo for the Lived Record, the scholar's table for the Library, a pavilion by the water with the poem unwritten for the writing desk, a village stepping up the slope for Projects, sun and moon on the same arc for Habits, a still lake with the mountain in it twice for Reviews, one pine on a bare rock for Values (松柏 — what integrity looks like in this tradition), the grove for the Skill Tree, ridge behind ridge for the Timeline, the elegant gathering for People, terraced fields for Finance. They are drawn in each page's own accent at low opacity, with a soft vignette so text stays readable.
 
 Pages about one record — a project, a skill, a stage, a value, a person, a media entry, a piece of writing — get a landscape generated from that record's id instead: how many ridges, where the summit falls, whether there is a boat on the water or a moon over it. No two look alike, and each looks the same every time you open it.
 
@@ -109,8 +127,8 @@ A Claude Pro or Max subscription — or a ChatGPT one — cannot be used for thi
 
 ## Letters, decisions and people
 
-- **Sealed letters** (Journals → Letters): write to a future self and seal it until a date. It is hidden from cards, lists and search until then, and surfaces on Today when it comes due, with room to answer the person who wrote it.
-- **Decision journal** (Journals → Decisions): the situation, the options, the real reasoning, what you expect and what would make it a mistake — then a review date that returns on Today, with what actually happened and a verdict.
+- **Sealed letters** (Lived Record → Letters): write to a future self and seal it until a date. It is hidden from cards, lists and search until then, and surfaces on Today when it comes due, with room to answer the person who wrote it.
+- **Decision journal** (Lived Record → Decisions): the situation, the options, the real reasoning, what you expect and what would make it a mistake — then a review date that returns on Today, with what actually happened and a verdict.
 - **People**: tag anyone in an entry and the People room fills itself — every mention becomes a logged interaction, and anyone you have not been in touch with inside their cadence surfaces as overdue. Relationship types are a list you extend: pick **＋ name another…** in any relationship dropdown and whatever you type is added, kept, and available everywhere from then on.
 
 ## Imagery
@@ -119,7 +137,7 @@ Pictures belong to the record, not to a separate board. Any project, skill, valu
 
 ## Hashtags
 
-Substantive entries carry hashtags: type `#something` in the body, or use the field in the entry form. `#/tag/:name` gathers everything carrying one, and the Writing room uses them to pull source material beside the page.
+Substantive entries carry hashtags: type `#something` in the body, or use the field in the entry form. `#/tag/:name` gathers everything carrying one, and the writing desk in the Content Studio uses them to pull source material beside the page.
 
 ## Reviews
 
@@ -131,12 +149,12 @@ The daily and weekly reviews both surface what actually got finished, plainly, a
 
 A developmental frame, kept honest by being read off things already logged rather than asked about in a quiz.
 
-**Maslow's seven levels** are read in their structural order — not a ranking, a sequence — inside the Life Position panel on the Compass. Each level's score is averaged from live readings elsewhere (sleep and physical habits, runway and the gap, contact recency, skill practice and writing, media resonance and reflection, creative nods and awe congruence). A missing input is excluded, never zeroed. The thinnest tier is the one to act on, and each level points at the room where you would act on it.
+**Maslow's seven levels** are read in their structural order — not a ranking, a sequence — inside the Life Position panel, which is now part of the Lived Record's Review tab. Each level's score is averaged from live readings elsewhere (sleep and physical habits, runway and the gap, contact recency, skill practice and writing, media resonance and reflection, creative nods and awe congruence). A missing input is excluded, never zeroed. The thinnest tier is the one to act on, and each level points at the room where you would act on it.
 
 
 ## The starter set
 
-The house opens with a first draft in it: seven skills, four projects with real phase checklists, a five-point compass, three narrative threads, a shelf of things to get to, some open questions and a handful of sparks. It is written from things the owner actually said — the work in progress — rather than invented, and where writing it would have meant inventing a biography (life stages, people, memories, money) it leaves a named, empty room instead. **No habits and no habit log**, because a logged day is the one thing in here you cannot cleanly take back.
+The house opens with a first draft in it: seven skills, four projects with real phase checklists, five values, three narrative threads, a shelf of things to get to, some open questions and a handful of sparks. It is written from things the owner actually said — the work in progress — rather than invented, and where writing it would have meant inventing a biography (life stages, people, memories, money) it leaves a named, empty room instead. **No habits and no habit log**, because a logged day is the one thing in here you cannot cleanly take back.
 
 Every record it adds carries `seeded:'starter'`, so **Settings → Starter set → Take it out** removes all of it in one action and touches nothing you wrote yourself. It is offered only into a house that is still empty; if you have written anything, the button in Settings is the only way in. Applying it twice is a no-op — records are matched on a stable key.
 
@@ -148,7 +166,7 @@ Every dropdown is the app's own, not the browser's. A native `<select>` popup is
 
 ## Editing
 
-Writing Studio sets its own type: **Aa** in the view bar opens a typeface, size and leading control, applied live to the page you are writing on and kept once for everything you open.
+The writing desk sets its own type: **Aa** in the view bar opens a typeface, size and leading control, applied live to the page you are writing on and kept once for everything you open.
 
 A field you are not editing is not a box. At rest, an input is its own text on the page; the ground and the rule appear when you go near it, and the accent lands when you are actually in it. It is the same idiom the inline editors have always used, applied to every plain field in the house, so nothing reads as a form. A select keeps its chevron at rest, because a select has to keep saying it is one.
 
@@ -157,6 +175,7 @@ A field you are not editing is not a box. At rest, an input is its own text on t
 - `N` new entry (browsers reserve `⌘N` / `Ctrl+N` for a new window, so the app uses the bare key when you are not typing)
 - `⌘K` / `Ctrl+K` or `/` omni-search
 - `←` `→` previous / next stage on a stage page; move along the spine on the Timeline
+- `1` … `4` switch view inside a room that has views — the Lived Record's journals, timeline, library and review; the Content Studio's pipeline, calendar, shelf and numbers
 - `Esc` close the speed dial, search, panels and modals
 
 Going back returns you to the exact place on the page you left, not the top of it.

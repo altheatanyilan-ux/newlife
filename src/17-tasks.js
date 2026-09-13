@@ -54,6 +54,18 @@ function setTaskDone(id, done){ const r = findTaskRef(id); if(!r) return;
   /* crossing off the thing the clock is running on ends the sitting */
   if(typeof taskCrossedOff === 'function') taskCrossedOff(id, done);
 }
+/* Ticking a step goes through here from every room, for the same reason
+   setTaskDone exists: the clock has to hear about it. Returns whether it was
+   the step being timed, so the caller can leave the cheer to make the noise. */
+function findSub(rid, sid){
+  const r = findTaskRef(rid); if(!r) return null;
+  return taskSubs(r.task).find(x => x.id === sid) || null;
+}
+function setSubDone(rid, sid, done){
+  const s = findSub(rid, sid); if(!s) return false;
+  s.isCompleted = !!done; s.completedAt = done ? today() : null; saveNow();
+  return typeof subCrossedOff === 'function' ? subCrossedOff(rid, sid, done) : false;
+}
 function deleteTaskRef(id, node, after){
   const r = findTaskRef(id); if(!r) return;
   requestDelete({label:r.text || 'Task', node, after, remove: () => r.kind === 'own'
@@ -200,10 +212,10 @@ function bindSubtasks(root, after){
   $$('[data-subcheck]', root).forEach(b => b.onclick = e => {
     e.stopPropagation();
     const [rid, sid] = b.dataset.subcheck.split('|');
-    const r = findTaskRef(rid); if(!r) return;
-    const s = taskSubs(r.task).find(x => x.id === sid); if(!s) return;
-    s.isCompleted = !s.isCompleted; s.completedAt = s.isCompleted ? today() : null;
-    saveNow(); sound(s.isCompleted ? 'success' : 'click'); redraw();
+    const s = findSub(rid, sid); if(!s) return;
+    const timed = setSubDone(rid, sid, !s.isCompleted);
+    if(!timed) sound(s.isCompleted ? 'success' : 'click');
+    redraw();
   });
   $$('[data-subdel]', root).forEach(b => b.onclick = e => {
     e.stopPropagation();

@@ -1225,6 +1225,15 @@ button.tm-cell:hover{border-color:var(--page-accent)}
   box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--terra) 50%,transparent)}
 .fp-on{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
 .fp-on b{font-size:1.02rem;overflow-wrap:anywhere}
+/* the tick at the clock: the same box as a task row's, sized to sit on the
+   baseline of the name it belongs to */
+.fp-check{flex:0 0 auto;align-self:center}
+.fp-on b.struck{text-decoration:line-through;opacity:.55}
+/* which step the sitting is on, when it is on one rather than the whole task */
+.fp-step{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px;
+  padding:5px 9px;border-radius:9px;background:var(--wash,rgba(0,0,0,.035))}
+.fp-stepname{font-size:.9rem}
+.fp-stepname.struck{text-decoration:line-through;opacity:.55}
 .fp-rec{font-size:.68rem;color:var(--faint);letter-spacing:.04em;margin-top:5px}
 .fp-empty{font-size:.84rem;color:var(--faint)}
 .fp-body{display:flex;align-items:center;gap:26px;padding:18px 18px 20px;flex-wrap:wrap}
@@ -4693,6 +4702,15 @@ select.sm-active{border-color:var(--page-accent);
 .still-tabs button.on{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.07)}
 .still-pane{border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--surface-2)}
 .still-stats{display:flex;gap:16px;flex-wrap:wrap;font-size:.66rem;color:var(--faint)}
+/* the day's draws, kept where they were drawn */
+.dv-today{margin-top:12px;display:flex;flex-direction:column;gap:8px}
+.dv-today>.k{font-size:.66rem}
+.dv-today-card{padding:9px 11px;border-radius:10px;border:1px solid var(--line-2);
+  background:var(--surface);cursor:pointer;transition:border-color .15s,transform .12s}
+.dv-today-card:hover,.dv-today-card:focus-visible{border-color:var(--terra);transform:translateY(-1px)}
+.dv-today-h{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;justify-content:space-between}
+.dv-today-h b{font-size:.96rem}
+.dv-today-card .dv-read-card{background:transparent;padding:6px 0 0 9px}
 .sanct-card{border:1px solid var(--line);border-left:3px solid var(--sage,#7f916a);border-radius:9px;
   padding:10px 12px;background:var(--surface);display:flex;flex-direction:column;gap:5px;align-items:flex-start}
 .sanct-card p{margin:0;font-family:var(--lora,var(--serif));font-style:italic;font-size:.85rem}
@@ -4741,6 +4759,20 @@ select.sm-active{border-color:var(--page-accent);
 .dv-chip{display:inline-flex;flex-direction:column;font-size:.72rem;padding:3px 8px;border-radius:6px;
   border:1px solid var(--sc,var(--line-2));color:var(--text);background:var(--surface)}
 .dv-chip i{font-size:.55rem;color:var(--faint);font-style:normal;letter-spacing:.06em;text-transform:uppercase}
+/* the deck's own words, kept with the reading */
+.dv-read{margin-top:6px}
+.dv-read>summary{cursor:pointer;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--faint);list-style:none;padding:2px 0}
+.dv-read>summary::-webkit-details-marker{display:none}
+.dv-read>summary::before{content:'▸ ';display:inline-block;transition:transform .15s}
+.dv-read[open]>summary::before{content:'▾ '}
+.dv-read-card{margin-top:6px;padding:7px 10px;border-radius:8px;background:var(--surface);
+  border-left:3px solid var(--sc,var(--line-2))}
+.dv-read-h{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.dv-read-h b{font-size:.94rem}
+.dv-read-h .mono{font-size:.62rem;letter-spacing:.06em;text-transform:uppercase}
+.dv-read-k{font-size:.66rem;color:var(--faint);margin-top:2px}
+.dv-read-t{margin:4px 0 0;font-size:.84rem;line-height:1.45}
 /* --- I Ching --- */
 .ic-build{display:flex;flex-direction:column;align-items:center;gap:12px;padding:10px 0}
 .ic-lines{display:flex;flex-direction:column;gap:6px;align-items:center}
@@ -8216,6 +8248,13 @@ function entryExtraHTML(e){
         return `<span class="dv-chip"${card?` style="--sc:${SUIT_COLOR[card.s]}"`:''}>${c.pos?`<i class="mono">${esc(c.pos)}</i>`:''}${esc(label)}</span>`;
       }).join('')}</div>`);
     }
+    /* the cards' own meanings, not only the notes taken at the time */
+    if(typeof divinationReadHTML === 'function'){
+      const read = divinationReadHTML(d);
+      if(read) rows.push(`<details class="dv-read"${(d.cards || []).length <= 3 ? ' open' : ''}>
+        <summary class="mono">what the ${d.system === 'iching' ? 'hexagram says' : 'cards mean'}</summary>
+        ${read}</details>`);
+    }
     if(d.revisit) rows.push('<span class="status-pill">come back to this</span>'); }
   if(e.type==='intuition' && x.intuition){ const t = x.intuition;
     const kindName = (typeof INTUIT_KINDS !== 'undefined' ? (INTUIT_KINDS.find(k => k[0] === t.kind) || [,t.kind])[1] : t.kind);
@@ -8685,10 +8724,15 @@ function focusClockHTML(face, frac, col, s, stop){
 /* ---------- the panel ---------- */
 function focusPanelHTML(){
   const s = FocusTimer.state(), c = planState().timer;
-  const t = s.taskId ? (typeof planTaskById === 'function' ? planTaskById(s.taskId) : null)
-                     : null;
-  const ref = s.taskId && !t && typeof findTaskRef === 'function' ? findTaskRef(s.taskId) : null;
-  const name = t ? t.text : ref ? ref.text : '';
+  /* One lookup, not two. planTaskById only knows the standalone tasks, so a
+     task living inside a project reached the timer as a bare name with no
+     steps, no estimate and nothing to tick. findTaskRef knows both kinds. */
+  const ref = s.taskId && typeof findTaskRef === 'function' ? findTaskRef(s.taskId) : null;
+  const t = ref ? ref.task : null;
+  const name = ref ? ref.text : '';
+  /* A sitting can be on one step rather than the whole task, and until now the
+     panel said only the task's name — so you could not tell which. */
+  const sub = t && s.subId ? (Array.isArray(t.subtasks) ? t.subtasks : []).find(x => x.id === s.subId) : null;
   const total = (s.phase === 'focus' ? c.focusDuration : s.phase === 'long' ? c.longBreak : c.shortBreak) * 60;
   /* A countdown's ring empties towards an end. A stopwatch has no end, so its
      ring fills once round every hour — a shape that says "time is passing"
@@ -8729,16 +8773,34 @@ function focusPanelHTML(){
       <!-- the drop target: a task becomes the subject by being dragged here -->
       <div class="fp-drop" data-focusdrop>
         ${name ? `<div class="fp-on">
+            <!-- Finishing the work happens at the clock, so the tick belongs at
+                 the clock. Without it you had to leave the timer, scroll down
+                 to the list and find the row to say you were done — which is
+                 why the sitting so rarely got closed by the task it was for. -->
+            <button class="task-check fp-check${ref.done ? ' on' : ''}" data-fpdone="${esc(ref.id)}"
+              role="checkbox" aria-checked="${!!ref.done}"
+              title="${ref.done ? 'not done after all' : 'done — this ends the sitting'}">${ref.done ? '✓' : ''}</button>
             <span class="k mono">on</span>
-            ${t ? subCaretHTML(t.id, t, 'task-caret fp-caret') : ''}
-            <b class="serif">${esc(name)}</b>
+            ${subCaretHTML(ref.id, t, 'task-caret fp-caret')}
+            <b class="serif${ref.done ? ' struck' : ''}">${esc(name)}</b>
+            ${taskEstHTML(ref.id, t, {sm:true})}
             <button class="pl-mini" id="fpClear" title="take it out of the timer">×</button>
           </div>
+          ${sub ? `<div class="fp-step">
+            <button class="task-check sm fp-check${sub.isCompleted ? ' on' : ''}"
+              data-fpsubdone="${esc(ref.id)}|${esc(sub.id)}" role="checkbox"
+              aria-checked="${!!sub.isCompleted}"
+              title="${sub.isCompleted ? 'not done after all' : 'done — this ends the sitting'}">${sub.isCompleted ? '✓' : ''}</button>
+            <span class="k mono">this step</span>
+            <span class="fp-stepname${sub.isCompleted ? ' struck' : ''}">${esc(sub.title || '')}</span>
+            ${subSpentOn(ref.id, sub.id) >= 1 || +sub.minutes ? `<span class="mono faint">${
+              esc(fmtSpent(subSpentOn(ref.id, sub.id), +sub.minutes || 0) || fmtEst(sub.minutes))}</span>` : ''}
+          </div>` : ''}
           ${rec ? `<div class="fp-rec mono">${fmtHM(rec.minutes)} over ${rec.sessions} sitting${rec.sessions === 1 ? '' : 's'}${rec.breaks ? ` · ${rec.breaks} break${rec.breaks === 1 ? '' : 's'}` : ''} · started ${clockOf(rec.startedAt)}</div>` : ''}
           <!-- The steps and the links are the reason the task was parked here:
                they are what you are about to work from. Hiding them behind the
                task's own page meant leaving the timer to read them. -->
-          ${t && subsOpen(t.id, t) ? subBlockHTML(t.id, t) : ''}
+          ${subsOpen(ref.id, t) ? subBlockHTML(ref.id, t) : ''}
           ${t && t.desc ? `<div class="fp-desc">${esc(t.desc)}</div>` : ''}`
         : `<div class="fp-empty">Drag a task here to time it — or start the clock without one.</div>`}
       </div>
@@ -8785,6 +8847,26 @@ function bindFocusPanel(root, redraw){
   if(stop) stop.onclick = () => { FocusTimer.stop(); sound('click'); go(); };
   const clr = box.querySelector('#fpClear');
   if(clr) clr.onclick = () => { FocusTimer.setTask(null); go(); };
+  /* Crossing it off here is the same act as crossing it off in the list: the
+     shared setter runs, so the sitting ends and the cheer goes up. The cheer
+     makes its own noise, so we stay quiet when it fired. */
+  const fpd = box.querySelector('[data-fpdone]');
+  if(fpd) fpd.onclick = () => {
+    const id = fpd.dataset.fpdone;
+    const r = typeof findTaskRef === 'function' ? findTaskRef(id) : null; if(!r) return;
+    const was = r.done;
+    setTaskDone(id, !was);
+    if(was || !taskWasTimed(id)) sound(was ? 'click' : 'success');
+    go(); };
+  const fps = box.querySelector('[data-fpsubdone]');
+  if(fps) fps.onclick = () => {
+    const [rid, sid] = fps.dataset.fpsubdone.split('|');
+    const sb = typeof findSub === 'function' ? findSub(rid, sid) : null; if(!sb) return;
+    const was = sb.isCompleted;
+    const cheered = setSubDone(rid, sid, !was);
+    if(!cheered) sound(was ? 'click' : 'success');
+    go(); };
+  if(typeof bindTaskTimers === 'function') bindTaskTimers(box);
 
   /* the note is written while the break is happening, so it saves as it is
      typed rather than needing to be confirmed before the break ends */
@@ -8919,7 +9001,24 @@ function taskCrossedOff(id, done){
   if(!done || !id || typeof FocusTimer === 'undefined') return false;
   const st = FocusTimer.state();
   if(st.idle || st.taskId !== id) return false;
-  const minutes = Math.round((st.elapsed || 0) / 60);
+  return endSittingWithACheer();
+}
+/* A step is a thing you sit down with in its own right, so finishing the step
+   you are timing ends the sitting exactly as finishing the whole task does.
+   Ticking some *other* step of the same task does not: you are still working. */
+function subCrossedOff(taskId, subId, done){
+  if(!done || !taskId || !subId || typeof FocusTimer === 'undefined') return false;
+  const st = FocusTimer.state();
+  if(st.idle || st.taskId !== taskId || st.subId !== subId) return false;
+  return endSittingWithACheer();
+}
+/* The click handler needs to know whether the cheer already made a sound, but
+   by the time it asks, the clock has been stopped — so it is asked before. */
+let lastCheerAt = 0;
+function taskWasTimed(){ return Date.now() - lastCheerAt < 500; }
+function endSittingWithACheer(){
+  lastCheerAt = Date.now();
+  const minutes = Math.round((FocusTimer.state().elapsed || 0) / 60);
   FocusTimer.stop();          /* writes the sitting down, with the time worked */
   FocusTimer.setTask(null);   /* and leaves the clock empty for the next thing */
   celebrateFinish(minutes);
@@ -14118,6 +14217,84 @@ function divinationLine(e){
   if(d.system === 'oracle') return (d.cards || []).map(c => c.name).join(' · ');
   return (d.cards || []).map(c => (TAROT[c.card]?.n || '') + (c.rev ? ' (R)' : '')).join(' → ');
 }
+/* ---------- what the reading actually said ----------
+   A kept reading used to show the notes typed at the time and a row of names.
+   The names are the smaller half: months later "Six of Swords, reversed" means
+   nothing without the card, and the deck is not always to hand. So the meaning
+   travels with the entry. It is read from the deck at render time rather than
+   copied into the entry, so a correction to the deck reaches old readings. */
+/* Every reading is filed in the Lived Record, which is right — but a card
+   pulled on Today was pulled *for* today, and the point of pulling it is to
+   have it in front of you while the day happens. So the day's draws stay
+   where they were taken as well as going into the record. */
+function divinationsOn(day){
+  return (S.entries || []).filter(e => e.type === 'divination' && e.occurredAt === day)
+    .sort((a, b) => (b.createdAt || '') < (a.createdAt || '') ? -1 : 1);
+}
+function drawnTodayHTML(day){
+  const xs = divinationsOn(day || today());
+  if(!xs.length) return '';
+  return `<div class="dv-today">
+    <div class="k mono">drawn today</div>
+    ${xs.map(e => { const d = divinationOf(e); if(!d) return '';
+      return `<div class="dv-today-card" data-dvopen="${esc(e.id)}" role="button" tabindex="0"
+        title="open it in the Lived Record">
+        <div class="dv-today-h"><b class="serif">${esc(divinationLine(e) || e.title || 'a reading')}</b>
+          <span class="mono faint">${esc(d.system === 'iching' ? 'the coins' : d.system === 'oracle'
+            ? ((ORACLE_DECKS.find(k => k.id === d.deck) || {}).name || 'oracle') : 'tarot')}</span></div>
+        ${d.question ? `<div class="mono faint">${esc(d.question)}</div>` : ''}
+        ${divinationReadHTML(d)}
+      </div>`; }).join('')}
+  </div>`;
+}
+function bindDrawnToday(root){
+  root.querySelectorAll('[data-dvopen]').forEach(n => {
+    const open = () => { const id = n.dataset.dvopen;
+      /* the Lived Record is addressed by the kind of entry, not by the word
+         "entries" — that address falls back to whichever journal was last open */
+      navigate('#/journals/divination');
+      setTimeout(() => { const el2 = document.querySelector(`[data-entry="${id}"]`);
+        if(el2){ el2.scrollIntoView({block:'center'});
+          el2.style.background = 'color-mix(in srgb,var(--terra) 12%,transparent)';
+          setTimeout(() => el2.style.background = '', 1600); } }, 350); };
+    n.onclick = open;
+    n.onkeydown = ev => { if(ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); open(); } };
+  });
+}
+
+function tarotMeaning(pick){
+  const c = TAROT[pick.card]; if(!c) return null;
+  return {name:c.n + (pick.rev ? ', reversed' : ''), suit:c.s,
+    keys:(c.k || []).join(' · '), text:(pick.rev ? c.v : c.u) || ''};
+}
+function divinationReadHTML(d){
+  if(!d) return '';
+  if(d.system === 'iching'){
+    const h = d.hexagram ? ICHING.find(x => x.i === d.hexagram.i) : null;
+    const r = d.relating ? ICHING.find(x => x.i === d.relating.i) : null;
+    const one = (x, role) => x ? `<div class="dv-read-card">
+      <div class="dv-read-h"><b class="serif">${esc(x.c)} · ${esc(x.n)}</b>
+        <span class="mono faint">${esc(role)} · hexagram ${x.i}</span></div>
+      <div class="dv-read-k mono">${esc((x.k || []).join(' · '))}</div>
+      <p class="dv-read-t">${esc(x.j)}</p>
+      <p class="dv-read-t faint">${esc(x.m)}</p></div>` : '';
+    return one(h, 'as cast') + one(r, 'as it becomes');
+  }
+  if(d.system === 'oracle'){
+    return (d.cards || []).map(c => `<div class="dv-read-card">
+      <div class="dv-read-h"><b class="serif">${esc(c.name || '')}</b></div>
+      ${c.text ? `<p class="dv-read-t">${esc(c.text)}</p>` : ''}</div>`).join('');
+  }
+  return (d.cards || []).map(c => {
+    const mn = tarotMeaning(c); if(!mn) return '';
+    return `<div class="dv-read-card"${SUIT_COLOR[mn.suit] ? ` style="--sc:${SUIT_COLOR[mn.suit]}"` : ''}>
+      <div class="dv-read-h"><b class="serif">${esc(mn.name)}</b>${
+        c.pos ? `<span class="mono faint">${esc(c.pos)}</span>` : ''}</div>
+      ${mn.keys ? `<div class="dv-read-k mono">${esc(mn.keys)}</div>` : ''}
+      ${mn.text ? `<p class="dv-read-t">${esc(mn.text)}</p>` : ''}</div>`;
+  }).join('');
+}
+
 function tarotCardHTML(pick, pos, faceUp){
   const c = TAROT[pick.card]; if(!c) return '';
   const col = SUIT_COLOR[c.s] || '#8f7bb0';
@@ -18546,6 +18723,8 @@ function stillnessHTML(){
       <button class="btn sm ghost" id="stDraw">🔮 quick draw</button>
       <button class="btn sm ghost" id="stIntuit">⚡ log an intuition</button>
     </div>
+    <!-- a card drawn here is for today, so it stays here as well as being filed -->
+    ${typeof drawnTodayHTML === 'function' ? drawnTodayHTML(today()) : ''}
   </div>`;
 }
 function bindStillness(root){
@@ -18565,6 +18744,7 @@ function bindStillness(root){
     else openStillTimer({kind:p.kind, minutes:p.minutes, anchor:p.anchor, mantra:p.mantra, pattern:p.pattern});
   };
   if(q('#stDraw')) q('#stDraw').onclick = () => openQuickDraw();
+  if(typeof bindDrawnToday === 'function') bindDrawnToday(root);
   if(q('#stIntuit')) q('#stIntuit').onclick = () => openIntuitionQuick();
 }
 /* ============================================================
@@ -21308,8 +21488,12 @@ function bindPlanDetail(p, t){
   /* subtasks */
   p.querySelectorAll('[data-pdsubdone]').forEach(b => b.onclick = () => {
     const s = t.subtasks.find(x => x.id === b.dataset.pdsubdone); if(!s) return;
-    s.isCompleted = !s.isCompleted; s.completedAt = s.isCompleted ? new Date().toISOString() : null;
-    sound(s.isCompleted ? 'click' : 'nav'); touch(); redraw(); });
+    /* through the shared setter so the clock hears it here too */
+    const timed = typeof setSubDone === 'function'
+      ? setSubDone(t.id, s.id, !s.isCompleted)
+      : (s.isCompleted = !s.isCompleted, s.completedAt = s.isCompleted ? today() : null, false);
+    if(!timed) sound(s.isCompleted ? 'click' : 'nav');
+    touch(); redraw(); });
   p.querySelectorAll('[data-pdsubtext]').forEach(i => i.oninput = debounce(function(){
     const s = t.subtasks.find(x => x.id === i.dataset.pdsubtext); if(s){ s.title = this.value; touch(); } }, 350));
   p.querySelectorAll('[data-pdsubdel]').forEach(b => b.onclick = () => {
@@ -23012,6 +23196,18 @@ function setTaskDone(id, done){ const r = findTaskRef(id); if(!r) return;
   /* crossing off the thing the clock is running on ends the sitting */
   if(typeof taskCrossedOff === 'function') taskCrossedOff(id, done);
 }
+/* Ticking a step goes through here from every room, for the same reason
+   setTaskDone exists: the clock has to hear about it. Returns whether it was
+   the step being timed, so the caller can leave the cheer to make the noise. */
+function findSub(rid, sid){
+  const r = findTaskRef(rid); if(!r) return null;
+  return taskSubs(r.task).find(x => x.id === sid) || null;
+}
+function setSubDone(rid, sid, done){
+  const s = findSub(rid, sid); if(!s) return false;
+  s.isCompleted = !!done; s.completedAt = done ? today() : null; saveNow();
+  return typeof subCrossedOff === 'function' ? subCrossedOff(rid, sid, done) : false;
+}
 function deleteTaskRef(id, node, after){
   const r = findTaskRef(id); if(!r) return;
   requestDelete({label:r.text || 'Task', node, after, remove: () => r.kind === 'own'
@@ -23158,10 +23354,10 @@ function bindSubtasks(root, after){
   $$('[data-subcheck]', root).forEach(b => b.onclick = e => {
     e.stopPropagation();
     const [rid, sid] = b.dataset.subcheck.split('|');
-    const r = findTaskRef(rid); if(!r) return;
-    const s = taskSubs(r.task).find(x => x.id === sid); if(!s) return;
-    s.isCompleted = !s.isCompleted; s.completedAt = s.isCompleted ? today() : null;
-    saveNow(); sound(s.isCompleted ? 'success' : 'click'); redraw();
+    const s = findSub(rid, sid); if(!s) return;
+    const timed = setSubDone(rid, sid, !s.isCompleted);
+    if(!timed) sound(s.isCompleted ? 'success' : 'click');
+    redraw();
   });
   $$('[data-subdel]', root).forEach(b => b.onclick = e => {
     e.stopPropagation();

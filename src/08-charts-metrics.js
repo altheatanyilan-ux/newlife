@@ -187,6 +187,13 @@ function entryExtraHTML(e){
         return `<span class="dv-chip"${card?` style="--sc:${SUIT_COLOR[card.s]}"`:''}>${c.pos?`<i class="mono">${esc(c.pos)}</i>`:''}${esc(label)}</span>`;
       }).join('')}</div>`);
     }
+    /* the cards' own meanings, not only the notes taken at the time */
+    if(typeof divinationReadHTML === 'function'){
+      const read = divinationReadHTML(d);
+      if(read) rows.push(`<details class="dv-read"${(d.cards || []).length <= 3 ? ' open' : ''}>
+        <summary class="mono">what the ${d.system === 'iching' ? 'hexagram says' : 'cards mean'}</summary>
+        ${read}</details>`);
+    }
     if(d.revisit) rows.push('<span class="status-pill">come back to this</span>'); }
   if(e.type==='intuition' && x.intuition){ const t = x.intuition;
     const kindName = (typeof INTUIT_KINDS !== 'undefined' ? (INTUIT_KINDS.find(k => k[0] === t.kind) || [,t.kind])[1] : t.kind);

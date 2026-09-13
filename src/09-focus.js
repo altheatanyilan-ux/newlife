@@ -267,10 +267,15 @@ function focusClockHTML(face, frac, col, s, stop){
 /* ---------- the panel ---------- */
 function focusPanelHTML(){
   const s = FocusTimer.state(), c = planState().timer;
-  const t = s.taskId ? (typeof planTaskById === 'function' ? planTaskById(s.taskId) : null)
-                     : null;
-  const ref = s.taskId && !t && typeof findTaskRef === 'function' ? findTaskRef(s.taskId) : null;
-  const name = t ? t.text : ref ? ref.text : '';
+  /* One lookup, not two. planTaskById only knows the standalone tasks, so a
+     task living inside a project reached the timer as a bare name with no
+     steps, no estimate and nothing to tick. findTaskRef knows both kinds. */
+  const ref = s.taskId && typeof findTaskRef === 'function' ? findTaskRef(s.taskId) : null;
+  const t = ref ? ref.task : null;
+  const name = ref ? ref.text : '';
+  /* A sitting can be on one step rather than the whole task, and until now the
+     panel said only the task's name — so you could not tell which. */
+  const sub = t && s.subId ? (Array.isArray(t.subtasks) ? t.subtasks : []).find(x => x.id === s.subId) : null;
   const total = (s.phase === 'focus' ? c.focusDuration : s.phase === 'long' ? c.longBreak : c.shortBreak) * 60;
   /* A countdown's ring empties towards an end. A stopwatch has no end, so its
      ring fills once round every hour — a shape that says "time is passing"
@@ -311,16 +316,34 @@ function focusPanelHTML(){
       <!-- the drop target: a task becomes the subject by being dragged here -->
       <div class="fp-drop" data-focusdrop>
         ${name ? `<div class="fp-on">
+            <!-- Finishing the work happens at the clock, so the tick belongs at
+                 the clock. Without it you had to leave the timer, scroll down
+                 to the list and find the row to say you were done — which is
+                 why the sitting so rarely got closed by the task it was for. -->
+            <button class="task-check fp-check${ref.done ? ' on' : ''}" data-fpdone="${esc(ref.id)}"
+              role="checkbox" aria-checked="${!!ref.done}"
+              title="${ref.done ? 'not done after all' : 'done — this ends the sitting'}">${ref.done ? '✓' : ''}</button>
             <span class="k mono">on</span>
-            ${t ? subCaretHTML(t.id, t, 'task-caret fp-caret') : ''}
-            <b class="serif">${esc(name)}</b>
+            ${subCaretHTML(ref.id, t, 'task-caret fp-caret')}
+            <b class="serif${ref.done ? ' struck' : ''}">${esc(name)}</b>
+            ${taskEstHTML(ref.id, t, {sm:true})}
             <button class="pl-mini" id="fpClear" title="take it out of the timer">×</button>
           </div>
+          ${sub ? `<div class="fp-step">
+            <button class="task-check sm fp-check${sub.isCompleted ? ' on' : ''}"
+              data-fpsubdone="${esc(ref.id)}|${esc(sub.id)}" role="checkbox"
+              aria-checked="${!!sub.isCompleted}"
+              title="${sub.isCompleted ? 'not done after all' : 'done — this ends the sitting'}">${sub.isCompleted ? '✓' : ''}</button>
+            <span class="k mono">this step</span>
+            <span class="fp-stepname${sub.isCompleted ? ' struck' : ''}">${esc(sub.title || '')}</span>
+            ${subSpentOn(ref.id, sub.id) >= 1 || +sub.minutes ? `<span class="mono faint">${
+              esc(fmtSpent(subSpentOn(ref.id, sub.id), +sub.minutes || 0) || fmtEst(sub.minutes))}</span>` : ''}
+          </div>` : ''}
           ${rec ? `<div class="fp-rec mono">${fmtHM(rec.minutes)} over ${rec.sessions} sitting${rec.sessions === 1 ? '' : 's'}${rec.breaks ? ` · ${rec.breaks} break${rec.breaks === 1 ? '' : 's'}` : ''} · started ${clockOf(rec.startedAt)}</div>` : ''}
           <!-- The steps and the links are the reason the task was parked here:
                they are what you are about to work from. Hiding them behind the
                task's own page meant leaving the timer to read them. -->
-          ${t && subsOpen(t.id, t) ? subBlockHTML(t.id, t) : ''}
+          ${subsOpen(ref.id, t) ? subBlockHTML(ref.id, t) : ''}
           ${t && t.desc ? `<div class="fp-desc">${esc(t.desc)}</div>` : ''}`
         : `<div class="fp-empty">Drag a task here to time it — or start the clock without one.</div>`}
       </div>
@@ -367,6 +390,26 @@ function bindFocusPanel(root, redraw){
   if(stop) stop.onclick = () => { FocusTimer.stop(); sound('click'); go(); };
   const clr = box.querySelector('#fpClear');
   if(clr) clr.onclick = () => { FocusTimer.setTask(null); go(); };
+  /* Crossing it off here is the same act as crossing it off in the list: the
+     shared setter runs, so the sitting ends and the cheer goes up. The cheer
+     makes its own noise, so we stay quiet when it fired. */
+  const fpd = box.querySelector('[data-fpdone]');
+  if(fpd) fpd.onclick = () => {
+    const id = fpd.dataset.fpdone;
+    const r = typeof findTaskRef === 'function' ? findTaskRef(id) : null; if(!r) return;
+    const was = r.done;
+    setTaskDone(id, !was);
+    if(was || !taskWasTimed(id)) sound(was ? 'click' : 'success');
+    go(); };
+  const fps = box.querySelector('[data-fpsubdone]');
+  if(fps) fps.onclick = () => {
+    const [rid, sid] = fps.dataset.fpsubdone.split('|');
+    const sb = typeof findSub === 'function' ? findSub(rid, sid) : null; if(!sb) return;
+    const was = sb.isCompleted;
+    const cheered = setSubDone(rid, sid, !was);
+    if(!cheered) sound(was ? 'click' : 'success');
+    go(); };
+  if(typeof bindTaskTimers === 'function') bindTaskTimers(box);
 
   /* the note is written while the break is happening, so it saves as it is
      typed rather than needing to be confirmed before the break ends */
@@ -501,7 +544,24 @@ function taskCrossedOff(id, done){
   if(!done || !id || typeof FocusTimer === 'undefined') return false;
   const st = FocusTimer.state();
   if(st.idle || st.taskId !== id) return false;
-  const minutes = Math.round((st.elapsed || 0) / 60);
+  return endSittingWithACheer();
+}
+/* A step is a thing you sit down with in its own right, so finishing the step
+   you are timing ends the sitting exactly as finishing the whole task does.
+   Ticking some *other* step of the same task does not: you are still working. */
+function subCrossedOff(taskId, subId, done){
+  if(!done || !taskId || !subId || typeof FocusTimer === 'undefined') return false;
+  const st = FocusTimer.state();
+  if(st.idle || st.taskId !== taskId || st.subId !== subId) return false;
+  return endSittingWithACheer();
+}
+/* The click handler needs to know whether the cheer already made a sound, but
+   by the time it asks, the clock has been stopped — so it is asked before. */
+let lastCheerAt = 0;
+function taskWasTimed(){ return Date.now() - lastCheerAt < 500; }
+function endSittingWithACheer(){
+  lastCheerAt = Date.now();
+  const minutes = Math.round((FocusTimer.state().elapsed || 0) / 60);
   FocusTimer.stop();          /* writes the sitting down, with the time worked */
   FocusTimer.setTask(null);   /* and leaves the clock empty for the next thing */
   celebrateFinish(minutes);

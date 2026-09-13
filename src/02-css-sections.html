@@ -701,6 +701,15 @@ button.tm-cell:hover{border-color:var(--page-accent)}
   box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--terra) 50%,transparent)}
 .fp-on{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
 .fp-on b{font-size:1.02rem;overflow-wrap:anywhere}
+/* the tick at the clock: the same box as a task row's, sized to sit on the
+   baseline of the name it belongs to */
+.fp-check{flex:0 0 auto;align-self:center}
+.fp-on b.struck{text-decoration:line-through;opacity:.55}
+/* which step the sitting is on, when it is on one rather than the whole task */
+.fp-step{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px;
+  padding:5px 9px;border-radius:9px;background:var(--wash,rgba(0,0,0,.035))}
+.fp-stepname{font-size:.9rem}
+.fp-stepname.struck{text-decoration:line-through;opacity:.55}
 .fp-rec{font-size:.68rem;color:var(--faint);letter-spacing:.04em;margin-top:5px}
 .fp-empty{font-size:.84rem;color:var(--faint)}
 .fp-body{display:flex;align-items:center;gap:26px;padding:18px 18px 20px;flex-wrap:wrap}
@@ -4169,6 +4178,15 @@ select.sm-active{border-color:var(--page-accent);
 .still-tabs button.on{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.07)}
 .still-pane{border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--surface-2)}
 .still-stats{display:flex;gap:16px;flex-wrap:wrap;font-size:.66rem;color:var(--faint)}
+/* the day's draws, kept where they were drawn */
+.dv-today{margin-top:12px;display:flex;flex-direction:column;gap:8px}
+.dv-today>.k{font-size:.66rem}
+.dv-today-card{padding:9px 11px;border-radius:10px;border:1px solid var(--line-2);
+  background:var(--surface);cursor:pointer;transition:border-color .15s,transform .12s}
+.dv-today-card:hover,.dv-today-card:focus-visible{border-color:var(--terra);transform:translateY(-1px)}
+.dv-today-h{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;justify-content:space-between}
+.dv-today-h b{font-size:.96rem}
+.dv-today-card .dv-read-card{background:transparent;padding:6px 0 0 9px}
 .sanct-card{border:1px solid var(--line);border-left:3px solid var(--sage,#7f916a);border-radius:9px;
   padding:10px 12px;background:var(--surface);display:flex;flex-direction:column;gap:5px;align-items:flex-start}
 .sanct-card p{margin:0;font-family:var(--lora,var(--serif));font-style:italic;font-size:.85rem}
@@ -4217,6 +4235,20 @@ select.sm-active{border-color:var(--page-accent);
 .dv-chip{display:inline-flex;flex-direction:column;font-size:.72rem;padding:3px 8px;border-radius:6px;
   border:1px solid var(--sc,var(--line-2));color:var(--text);background:var(--surface)}
 .dv-chip i{font-size:.55rem;color:var(--faint);font-style:normal;letter-spacing:.06em;text-transform:uppercase}
+/* the deck's own words, kept with the reading */
+.dv-read{margin-top:6px}
+.dv-read>summary{cursor:pointer;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--faint);list-style:none;padding:2px 0}
+.dv-read>summary::-webkit-details-marker{display:none}
+.dv-read>summary::before{content:'▸ ';display:inline-block;transition:transform .15s}
+.dv-read[open]>summary::before{content:'▾ '}
+.dv-read-card{margin-top:6px;padding:7px 10px;border-radius:8px;background:var(--surface);
+  border-left:3px solid var(--sc,var(--line-2))}
+.dv-read-h{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.dv-read-h b{font-size:.94rem}
+.dv-read-h .mono{font-size:.62rem;letter-spacing:.06em;text-transform:uppercase}
+.dv-read-k{font-size:.66rem;color:var(--faint);margin-top:2px}
+.dv-read-t{margin:4px 0 0;font-size:.84rem;line-height:1.45}
 /* --- I Ching --- */
 .ic-build{display:flex;flex-direction:column;align-items:center;gap:12px;padding:10px 0}
 .ic-lines{display:flex;flex-direction:column;gap:6px;align-items:center}

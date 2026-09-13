@@ -146,8 +146,12 @@ function bindPlanDetail(p, t){
   /* subtasks */
   p.querySelectorAll('[data-pdsubdone]').forEach(b => b.onclick = () => {
     const s = t.subtasks.find(x => x.id === b.dataset.pdsubdone); if(!s) return;
-    s.isCompleted = !s.isCompleted; s.completedAt = s.isCompleted ? new Date().toISOString() : null;
-    sound(s.isCompleted ? 'click' : 'nav'); touch(); redraw(); });
+    /* through the shared setter so the clock hears it here too */
+    const timed = typeof setSubDone === 'function'
+      ? setSubDone(t.id, s.id, !s.isCompleted)
+      : (s.isCompleted = !s.isCompleted, s.completedAt = s.isCompleted ? today() : null, false);
+    if(!timed) sound(s.isCompleted ? 'click' : 'nav');
+    touch(); redraw(); });
   p.querySelectorAll('[data-pdsubtext]').forEach(i => i.oninput = debounce(function(){
     const s = t.subtasks.find(x => x.id === i.dataset.pdsubtext); if(s){ s.title = this.value; touch(); } }, 350));
   p.querySelectorAll('[data-pdsubdel]').forEach(b => b.onclick = () => {

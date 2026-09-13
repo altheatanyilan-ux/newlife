@@ -284,6 +284,84 @@ function divinationLine(e){
   if(d.system === 'oracle') return (d.cards || []).map(c => c.name).join(' · ');
   return (d.cards || []).map(c => (TAROT[c.card]?.n || '') + (c.rev ? ' (R)' : '')).join(' → ');
 }
+/* ---------- what the reading actually said ----------
+   A kept reading used to show the notes typed at the time and a row of names.
+   The names are the smaller half: months later "Six of Swords, reversed" means
+   nothing without the card, and the deck is not always to hand. So the meaning
+   travels with the entry. It is read from the deck at render time rather than
+   copied into the entry, so a correction to the deck reaches old readings. */
+/* Every reading is filed in the Lived Record, which is right — but a card
+   pulled on Today was pulled *for* today, and the point of pulling it is to
+   have it in front of you while the day happens. So the day's draws stay
+   where they were taken as well as going into the record. */
+function divinationsOn(day){
+  return (S.entries || []).filter(e => e.type === 'divination' && e.occurredAt === day)
+    .sort((a, b) => (b.createdAt || '') < (a.createdAt || '') ? -1 : 1);
+}
+function drawnTodayHTML(day){
+  const xs = divinationsOn(day || today());
+  if(!xs.length) return '';
+  return `<div class="dv-today">
+    <div class="k mono">drawn today</div>
+    ${xs.map(e => { const d = divinationOf(e); if(!d) return '';
+      return `<div class="dv-today-card" data-dvopen="${esc(e.id)}" role="button" tabindex="0"
+        title="open it in the Lived Record">
+        <div class="dv-today-h"><b class="serif">${esc(divinationLine(e) || e.title || 'a reading')}</b>
+          <span class="mono faint">${esc(d.system === 'iching' ? 'the coins' : d.system === 'oracle'
+            ? ((ORACLE_DECKS.find(k => k.id === d.deck) || {}).name || 'oracle') : 'tarot')}</span></div>
+        ${d.question ? `<div class="mono faint">${esc(d.question)}</div>` : ''}
+        ${divinationReadHTML(d)}
+      </div>`; }).join('')}
+  </div>`;
+}
+function bindDrawnToday(root){
+  root.querySelectorAll('[data-dvopen]').forEach(n => {
+    const open = () => { const id = n.dataset.dvopen;
+      /* the Lived Record is addressed by the kind of entry, not by the word
+         "entries" — that address falls back to whichever journal was last open */
+      navigate('#/journals/divination');
+      setTimeout(() => { const el2 = document.querySelector(`[data-entry="${id}"]`);
+        if(el2){ el2.scrollIntoView({block:'center'});
+          el2.style.background = 'color-mix(in srgb,var(--terra) 12%,transparent)';
+          setTimeout(() => el2.style.background = '', 1600); } }, 350); };
+    n.onclick = open;
+    n.onkeydown = ev => { if(ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); open(); } };
+  });
+}
+
+function tarotMeaning(pick){
+  const c = TAROT[pick.card]; if(!c) return null;
+  return {name:c.n + (pick.rev ? ', reversed' : ''), suit:c.s,
+    keys:(c.k || []).join(' · '), text:(pick.rev ? c.v : c.u) || ''};
+}
+function divinationReadHTML(d){
+  if(!d) return '';
+  if(d.system === 'iching'){
+    const h = d.hexagram ? ICHING.find(x => x.i === d.hexagram.i) : null;
+    const r = d.relating ? ICHING.find(x => x.i === d.relating.i) : null;
+    const one = (x, role) => x ? `<div class="dv-read-card">
+      <div class="dv-read-h"><b class="serif">${esc(x.c)} · ${esc(x.n)}</b>
+        <span class="mono faint">${esc(role)} · hexagram ${x.i}</span></div>
+      <div class="dv-read-k mono">${esc((x.k || []).join(' · '))}</div>
+      <p class="dv-read-t">${esc(x.j)}</p>
+      <p class="dv-read-t faint">${esc(x.m)}</p></div>` : '';
+    return one(h, 'as cast') + one(r, 'as it becomes');
+  }
+  if(d.system === 'oracle'){
+    return (d.cards || []).map(c => `<div class="dv-read-card">
+      <div class="dv-read-h"><b class="serif">${esc(c.name || '')}</b></div>
+      ${c.text ? `<p class="dv-read-t">${esc(c.text)}</p>` : ''}</div>`).join('');
+  }
+  return (d.cards || []).map(c => {
+    const mn = tarotMeaning(c); if(!mn) return '';
+    return `<div class="dv-read-card"${SUIT_COLOR[mn.suit] ? ` style="--sc:${SUIT_COLOR[mn.suit]}"` : ''}>
+      <div class="dv-read-h"><b class="serif">${esc(mn.name)}</b>${
+        c.pos ? `<span class="mono faint">${esc(c.pos)}</span>` : ''}</div>
+      ${mn.keys ? `<div class="dv-read-k mono">${esc(mn.keys)}</div>` : ''}
+      ${mn.text ? `<p class="dv-read-t">${esc(mn.text)}</p>` : ''}</div>`;
+  }).join('');
+}
+
 function tarotCardHTML(pick, pos, faceUp){
   const c = TAROT[pick.card]; if(!c) return '';
   const col = SUIT_COLOR[c.s] || '#8f7bb0';

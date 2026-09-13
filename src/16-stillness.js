@@ -316,6 +316,8 @@ function stillnessHTML(){
       <button class="btn sm ghost" id="stDraw">🔮 quick draw</button>
       <button class="btn sm ghost" id="stIntuit">⚡ log an intuition</button>
     </div>
+    <!-- a card drawn here is for today, so it stays here as well as being filed -->
+    ${typeof drawnTodayHTML === 'function' ? drawnTodayHTML(today()) : ''}
   </div>`;
 }
 function bindStillness(root){
@@ -335,5 +337,6 @@ function bindStillness(root){
     else openStillTimer({kind:p.kind, minutes:p.minutes, anchor:p.anchor, mantra:p.mantra, pattern:p.pattern});
   };
   if(q('#stDraw')) q('#stDraw').onclick = () => openQuickDraw();
+  if(typeof bindDrawnToday === 'function') bindDrawnToday(root);
   if(q('#stIntuit')) q('#stIntuit').onclick = () => openIntuitionQuick();
 }
