@@ -5399,6 +5399,31 @@ select.sm-active{border-color:var(--page-accent);
   box-shadow:0 3px 10px rgba(0,0,0,.16)}
 .cc-symin{text-align:center;font-size:1.2rem}
 @media (prefers-reduced-motion:reduce){.cd-ctile{transition:none}}
+/* the sixty-four as a square: upper trigram down the side, lower across */
+.cd-grid.hexsquare{display:block;overflow:auto}
+.cd-hexnote{font-size:.56rem;letter-spacing:.09em;text-transform:uppercase;color:var(--faint);margin-bottom:7px}
+.cd-hex{border-collapse:collapse;margin:0 auto}
+.cd-hex th{padding:4px;color:var(--muted);font-weight:400}
+.cd-hex td{padding:2px}
+.cd-hexcell{position:relative;width:38px;height:32px;border-radius:7px;border:1px solid var(--line);
+  background:var(--surface);cursor:pointer;font-family:var(--mono);font-size:.66rem;color:var(--faint);
+  transition:border-color .15s var(--ease),color .15s var(--ease),transform .15s var(--ease)}
+.cd-hexcell:hover{border-color:var(--page-accent);color:var(--text);transform:translateY(-2px)}
+.cd-hexcell.seen{color:var(--text);border-color:color-mix(in srgb,var(--terra,#b08968) 45%,transparent)}
+.cd-dot{position:absolute;top:3px;right:4px;width:4px;height:4px;border-radius:50%;
+  background:var(--terra,#b08968)}
+.cd-grid.hexlist{display:flex;flex-direction:column;gap:6px}
+.cd-hexrow{display:flex;gap:13px;align-items:center;text-align:left;background:none;cursor:pointer;
+  border:1px solid var(--line);border-radius:10px;padding:8px 12px;color:var(--text)}
+.cd-hexrow:hover{border-color:var(--page-accent)}
+.cd-hexrow.dim{opacity:.5}
+.cd-hexrow.dim:hover{opacity:1}
+.cd-hexrow .ic-fig{margin:0;flex:0 0 74px;max-width:74px;padding:0}
+.cd-hexrow .mono{font-size:.6rem;color:var(--faint);margin-left:7px}
+.cd-hexrow .cd-t-n{position:static;margin-left:auto;background:none;color:var(--faint)}
+.cd-hexbig{flex:0 0 auto;width:210px}
+.cd-hexbig .ic-fig{margin:0;max-width:210px}
+.ic-page .cd-head h3{margin:0}
 .cd-page{display:flex;flex-direction:column;gap:18px}
 .cd-head{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
 .cd-head .tc{flex:0 0 auto;perspective:none}
@@ -5500,28 +5525,61 @@ select.sm-active{border-color:var(--page-accent);
 /* stretch, not centre: centring the column makes every child shrink to its
    own content, and a hexagram that shrinks to its content is six dashes */
 .ic-build{display:flex;flex-direction:column;align-items:stretch;gap:16px;padding:14px 0}
-.ic-lines{display:flex;flex-direction:column;gap:12px;align-items:stretch;
-  width:100%;max-width:400px;margin:0 auto}
-.ic-line{display:flex;gap:10px;align-items:center;position:relative;
-  animation:icLineIn .5s var(--ease) both;animation-delay:var(--d,0s)}
-.ic-line .ic-n{width:14px;flex:none;font-size:.6rem;color:var(--faint);text-align:right}
-.ic-bar{flex:1;display:flex;gap:20px;height:8px}
-.ic-line i{height:8px;border-radius:2px;background:var(--ink);flex:1}
+
+/* --- the figure --- */
+.ic-fig{position:relative;width:100%;max-width:300px;margin:0 auto;padding:0 46px 0 22px}
+.ic-rows{display:flex;flex-direction:column;gap:6px}
+.ic-row{display:flex;gap:9px;align-items:center;position:relative;height:10px;
+  animation:icLineIn .45s var(--ease) both;animation-delay:var(--d,0s)}
+.ic-row .ic-n{position:absolute;left:-22px;width:14px;font-size:.56rem;color:var(--faint);text-align:right}
+.ic-row .ic-mk{position:absolute;right:-16px;font-size:.72rem;line-height:1;color:var(--lc,var(--terra))}
+.ic-bar{flex:1;display:flex;gap:28px;height:10px}
+.ic-row i{height:10px;border-radius:2px;background:var(--ic-line,#6b5744);flex:1;
+  transform-origin:center;animation:icDraw .4s var(--ease) both;animation-delay:var(--d,0s)}
+:root[data-theme="dark"] .ic-row i,:root:not([data-theme="light"]) .ic-row i{--ic-line:#c4b89a}
 /* `.empty` is also the house class for an empty-state message, which brings
    padding and an italic face with it — a line not yet cast wants neither */
-.ic-line.empty{padding:0;font-style:normal}
-.ic-line.empty .ic-bar{border-bottom:1px dashed var(--line-2);height:8px}
-.ic-line.moving i{background:var(--terra,#b4462f);animation:icMoving 3s ease-in-out infinite}
-.ic-mv{position:absolute;right:0;top:-10px;font-size:.54rem;letter-spacing:.1em;
-  text-transform:uppercase;color:var(--terra,#b4462f);
-  background:var(--surface);padding:0 4px;border-radius:3px}
-.ic-lines.done .ic-bar{box-shadow:0 0 0 2px color-mix(in srgb,var(--terra,#b4462f) 40%,transparent)}
-.ic-lines.small{max-width:170px;gap:6px}
-.ic-lines.small .ic-bar{height:5px;gap:12px}
-.ic-lines.small i{height:5px}
-.ic-lines.small .ic-n{display:none}
-@keyframes icLineIn{from{opacity:0;transform:translateY(10px) scaleX(.85)}to{opacity:1;transform:none}}
-@keyframes icMoving{0%,100%{opacity:.55}50%{opacity:1}}
+.ic-row.empty{padding:0;font-style:normal;animation:none}
+.ic-row.empty .ic-bar{border-bottom:1px dashed var(--line-2);height:10px;opacity:.4}
+/* a changing line is the part already in motion, and says so by breathing */
+.ic-row.moving i{box-shadow:0 0 0 0 var(--lc);animation:icDraw .4s var(--ease) both,icMoving 3s ease-in-out infinite .4s}
+.ic-row.drawing i{animation:icDraw .4s var(--ease) both,icFlash .7s var(--ease) .1s}
+/* the two trigrams are separate things, and the figure should say so */
+.ic-div{height:0;border-top:1px dotted var(--line-2);opacity:.5;margin:1px 0}
+.ic-trilab{position:absolute;right:-2px;font-size:.52rem;letter-spacing:.08em;color:var(--faint);
+  white-space:nowrap;line-height:1}
+.ic-trilab b{font-size:.8rem;font-weight:400;line-height:1}
+/* the trigram, drawn rather than set in a font that does not have it */
+.ic-tg{display:inline-block;vertical-align:-.12em;fill:currentColor;opacity:.72}
+.ic-trilab .ic-tg,.ic-htri .ic-tg,.ic-tri .ic-tg{opacity:.6}
+.ic-trisym .ic-tg{opacity:.85}
+.ic-trilab.up{top:14px}
+.ic-trilab.lo{bottom:14px}
+.ic-fig.done,.ic-figwrap.done .ic-fig{border-radius:12px;
+  box-shadow:0 0 30px color-mix(in srgb,var(--gold,#d4a44c) 30%,transparent)}
+.ic-fig.small{max-width:160px;padding:0 8px 0 4px}
+.ic-fig.small .ic-bar{height:6px;gap:16px}
+.ic-fig.small i{height:6px}
+.ic-fig.small .ic-n,.ic-fig.small .ic-trilab{display:none}
+.ic-fig.small .ic-row{height:6px;gap:5px}
+.ic-fig.small .ic-rows{gap:4px}
+.ic-fig.small .ic-mk{right:-11px;font-size:.6rem}
+@keyframes icLineIn{from{opacity:0}to{opacity:1}}
+@keyframes icDraw{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes icFlash{0%,100%{box-shadow:0 0 0 0 transparent}
+  40%{box-shadow:0 0 14px 2px color-mix(in srgb,var(--lc,var(--gold)) 60%,transparent)}}
+@keyframes icMoving{0%,100%{box-shadow:0 0 6px 0 color-mix(in srgb,var(--lc) 30%,transparent)}
+  50%{box-shadow:0 0 14px 2px color-mix(in srgb,var(--lc) 70%,transparent)}}
+
+/* --- the named head under a figure --- */
+.ic-head{text-align:center;display:flex;flex-direction:column;gap:2px;align-items:center;margin-top:14px;
+  animation:vbFade .6s var(--ease) both}
+.ic-hnum{font-size:.56rem;letter-spacing:.16em;text-transform:uppercase;color:var(--faint)}
+.ic-hcn{font-family:var(--han,var(--serif));font-size:2rem;line-height:1.15;color:var(--ink)}
+.ic-hnm{font-size:1.12rem;line-height:1.2;min-height:1.2em;font-variant:small-caps;letter-spacing:.04em}
+.ic-htri{font-size:.58rem;letter-spacing:.06em;color:var(--faint);margin-top:2px}
+.ic-head.small .ic-hcn{font-size:1.3rem}
+.ic-head.small .ic-hnm{font-size:.9rem}
 .ic-name{text-align:center;display:flex;flex-direction:column;gap:2px;align-items:center;
   animation:vbFade .6s var(--ease) both}
 .ic-name .ic-num{font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:var(--faint)}
@@ -5529,25 +5587,101 @@ select.sm-active{border-color:var(--page-accent);
 .ic-name .ic-cn{font-size:.72rem;color:var(--muted)}
 .ic-tri{font-size:.62rem;letter-spacing:.06em;color:var(--faint);margin-top:3px}
 .ic-keys{font-size:.66rem;letter-spacing:.1em;text-align:center;margin:10px 0 4px}
-/* three ancient coins: a circle with a square hole */
-.ic-coins{display:flex;gap:14px;min-height:44px;align-items:center;justify-content:center}
-.ic-coin{width:40px;height:40px;position:relative;display:inline-flex;align-items:center;justify-content:center}
-.ic-coin svg{position:absolute;inset:0;width:100%;height:100%}
-.ic-coin .ic-c-body{fill:var(--surface-3)}
-.ic-coin .ic-c-rim{fill:none;stroke:var(--line-2);stroke-width:1.5}
+
+/* --- the pair, when there are changing lines --- */
+.ic-pair{display:flex;gap:20px;align-items:flex-start;justify-content:center;flex-wrap:wrap}
+.ic-one{margin:0;flex:0 1 300px}
+.ic-one.rel{opacity:.94}
+.ic-one.rel.arriving .ic-fig i{animation:icDraw .6s var(--ease) both;animation-delay:calc(1s + var(--d,0s))}
+.ic-one.rel.arriving .ic-head{animation:vbFade .6s var(--ease) 1.3s both}
+.ic-arrow{display:flex;flex-direction:column;align-self:center;color:var(--faint);font-size:1.1rem;line-height:.9}
+.ic-arrow span{animation:icDrift 2s ease-in-out infinite}
+.ic-arrow span:last-child{animation-delay:.35s;opacity:.5}
+@keyframes icDrift{0%,100%{transform:translateX(-2px)}50%{transform:translateX(2px)}}
+
+/* --- the coins --- */
+.ic-coins{display:flex;gap:24px;min-height:96px;align-items:center;justify-content:center;perspective:700px}
+.ic-coin{width:60px;height:60px;position:relative;display:inline-flex;align-items:center;justify-content:center}
+.ic-coin-in{position:absolute;inset:0;transform-style:preserve-3d}
+.ic-coin .ic-face{position:absolute;inset:0;width:100%;height:100%;backface-visibility:hidden}
+.ic-coin .ic-face.yin{transform:rotateX(180deg)}
+/* aged bronze: the fill, a lighter rim, the page showing through the hole */
+.ic-coin .ic-c-body{fill:#9a8a65}
+.ic-coin .ic-c-rim{fill:none;stroke:#7a6a45;stroke-width:2}
+.ic-coin .ic-c-rim.in{stroke-width:.7;opacity:.5}
 .ic-coin .ic-c-hole{fill:var(--surface)}
-.ic-coin.heads .ic-c-body{fill:color-mix(in srgb,var(--gold,#d4a44c) 34%,var(--surface-3))}
-.ic-coin.heads .ic-c-rim{stroke:color-mix(in srgb,var(--gold,#d4a44c) 70%,transparent)}
-.ic-coin b{position:relative;font-family:var(--han,var(--serif));font-size:.78rem;font-weight:400;
-  color:var(--muted);z-index:1}
-.ic-coin.heads b{color:color-mix(in srgb,var(--gold,#d4a44c) 80%,var(--text))}
-.ic-coins.toss .ic-coin{animation:icToss .6s cubic-bezier(.36,.07,.3,1) both;animation-delay:calc(var(--i) * .06s)}
-@keyframes icToss{
-  0%{transform:translateY(0) rotate(0)}
-  42%{transform:translateY(-58px) rotate(340deg)}
-  76%{transform:translateY(5px) rotate(690deg)}
-  88%{transform:translateY(-3px) rotate(715deg)}
-  100%{transform:translateY(0) rotate(720deg)}}
+.ic-coin .ic-c-pat{fill:none;stroke:#5a4a30;stroke-width:.6;opacity:.16}
+.ic-coin .ic-c-mark{fill:#4a3c24;opacity:.72}
+.ic-coin .ic-c-ch{font-family:var(--han,var(--serif));font-size:7px;fill:#6b5a3a;opacity:.6;text-anchor:middle}
+:root[data-theme="dark"] .ic-coin,:root:not([data-theme="light"]) .ic-coin{}
+:root[data-theme="dark"] .ic-coin .ic-c-body,:root:not([data-theme="light"]) .ic-coin .ic-c-body{fill:#8b7b55}
+:root[data-theme="dark"] .ic-coin .ic-c-rim,:root:not([data-theme="light"]) .ic-coin .ic-c-rim{stroke:#a09060}
+:root[data-theme="dark"] .ic-coin .ic-c-mark,:root:not([data-theme="light"]) .ic-coin .ic-c-mark{fill:#e0cf9c;opacity:.8}
+:root[data-theme="dark"] .ic-coin .ic-c-ch,:root:not([data-theme="light"]) .ic-coin .ic-c-ch{fill:#c0a870}
+/* the shadow it casts, which is most of why it reads as an object in the air */
+.ic-coin-sh{position:absolute;left:50%;bottom:-12px;width:44px;height:8px;border-radius:50%;
+  transform:translateX(-50%);background:rgba(0,0,0,.22);filter:blur(3px)}
+.ic-coin-v{position:absolute;bottom:-30px;left:50%;transform:translateX(-50%);
+  font-size:.62rem;color:var(--faint);opacity:0;transition:opacity .3s var(--ease)}
+.ic-coin.landed .ic-coin-v{opacity:1}
+.ic-coin.landed{animation:icLand .4s var(--ease)}
+@keyframes icLand{0%,100%{filter:none}35%{filter:drop-shadow(0 0 9px color-mix(in srgb,var(--gold,#d4a44c) 70%,transparent))}}
+.ic-total{text-align:center;min-height:2.1em;margin-top:26px;display:flex;flex-direction:column;gap:1px}
+.ic-tot-n{font-size:1.05rem;letter-spacing:.06em}
+.ic-tot-k{font-size:.58rem;letter-spacing:.13em;text-transform:uppercase;color:var(--lc,var(--faint))}
+
+/* --- the stalks --- */
+/* room under the bundle for the line that says what is happening to it */
+.ic-yar{position:relative;min-height:126px;padding-bottom:34px;display:flex;align-items:flex-end;
+  justify-content:center;gap:18px}
+.ic-yar-bundle{display:flex;gap:1px;align-items:flex-end;transition:gap .4s var(--ease)}
+.ic-yar-bundle.split{gap:2px}
+.ic-yar i,.ic-yar-set i{display:block;width:2px;height:80px;border-radius:1px;background:#9a8a65;
+  transform:rotate(var(--r,0deg));transform-origin:bottom center;
+  transition:opacity .3s var(--ease),transform .3s var(--ease)}
+.ic-yar i.gone{opacity:.12;transform:translateY(6px) rotate(var(--r,0deg))}
+.ic-yar-set{align-self:flex-end;transition:opacity .4s var(--ease),transform .4s var(--ease)}
+.ic-yar-set.gone{opacity:.3;transform:translateX(-10px) rotate(-14deg)}
+.ic-yar-say{position:absolute;bottom:2px;left:0;right:0;text-align:center;line-height:1.5;
+  font-family:var(--lora,var(--serif));font-style:italic;font-size:.78rem;color:var(--muted)}
+
+/* --- the ceremony around it --- */
+.ic-cer{position:relative;padding-top:14px}
+.ic-cer .dv-motes{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3}
+.ic-stage{display:flex;gap:26px;align-items:flex-start;justify-content:center;flex-wrap:wrap;
+  position:relative;z-index:1}
+.ic-figwrap{flex:1 1 300px;max-width:380px;transition:max-width .4s var(--ease)}
+/* the cast is over: the figure (or the pair of them) takes the whole room */
+.ic-stage.settled .ic-figwrap{max-width:100%;flex-basis:100%}
+.ic-cast{flex:1 1 300px;max-width:400px;padding-top:10px;transition:opacity .5s var(--ease)}
+.ic-cast.spent{opacity:0;pointer-events:none;height:0;overflow:hidden;margin:0;padding:0}
+.ic-bar{margin-top:14px;align-items:center}
+.ic-methods{display:flex;gap:8px;flex-wrap:wrap}
+.ic-method{flex:1 1 220px;display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:12px 11px;border:1px solid var(--line);border-radius:11px;background:var(--surface);cursor:pointer;
+  transition:border-color .18s var(--ease),transform .18s var(--ease),background .18s var(--ease)}
+.ic-method:hover{border-color:var(--page-accent);transform:translateY(-2px)}
+.ic-method.on{border-color:var(--page-accent);background:color-mix(in srgb,var(--page-accent) 10%,var(--surface))}
+.ic-method-i{font-size:1.5rem;line-height:1.1;color:var(--muted)}
+.ic-method.on .ic-method-i{color:var(--page-accent)}
+/* a wash of ink behind the settling screen, moving at the speed of nothing */
+.ic-wash{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.1}
+.ic-wash path{fill:#d8c9ea;animation:icWash 26s ease-in-out infinite alternate}
+.ic-wash path.two{fill:#b08968;animation-duration:34s;animation-direction:alternate-reverse}
+@keyframes icWash{from{transform:translateX(-6%)}to{transform:translateX(6%)}}
+/* the two trigrams, explained, for anyone learning the book */
+.ic-trinotes{margin-top:16px;max-width:520px;margin-left:auto;margin-right:auto}
+.ic-trinote{margin:10px 0}
+.ic-trinote-h{display:flex;gap:9px;align-items:baseline;flex-wrap:wrap}
+.ic-trisym{font-size:1.2rem;line-height:1}
+.ic-trinote-h .mono{font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+@media (prefers-reduced-motion:reduce){
+  .ic-row,.ic-row i,.ic-name,.ic-head{animation:none}
+  .ic-row.moving i{animation:none;box-shadow:0 0 8px 1px color-mix(in srgb,var(--lc) 55%,transparent)}
+  .ic-arrow span,.ic-wash path{animation:none}
+  .ic-coin.landed{animation:none}
+  .ic-one.rel.arriving .ic-fig i,.ic-one.rel.arriving .ic-head{animation:none}}
+
 /* the reading under it */
 .ic-reading{display:flex;flex-direction:column;gap:22px;margin-top:18px;
   border-top:1px solid var(--line);padding-top:18px;max-width:640px}
@@ -5561,10 +5695,6 @@ select.sm-active{border-color:var(--page-accent);
 .ic-moving{border-top:1px solid var(--line);padding-top:16px}
 .ic-relhead{margin-bottom:10px}
 .ic-relhead b{font-size:1.05rem}
-@media (prefers-reduced-motion:reduce){
-  .ic-line,.ic-name{animation:none}
-  .ic-line.moving i{animation:none;opacity:1}
-  .ic-coins.toss .ic-coin{animation:none}}
 .ic-res{border-left:2px solid var(--terra,#b4462f);padding-left:11px;margin:8px 0}
 .ic-res.second{border-left-color:var(--sage,#7f916a);opacity:.9}
 .ic-j{font-family:var(--lora,var(--serif));font-style:italic;margin:6px 0 2px;line-height:1.55}
@@ -19814,11 +19944,60 @@ function charmPattern(charm, apps){
   return t.trim();
 }
 
+/* ---------- every reading a hexagram has come up in ----------
+   A hexagram can arrive twice in one reading — once as what is, once as
+   what it is becoming — and those are different things to have seen. */
+function hexAppearances(num){
+  const out = [];
+  (S.entries || []).forEach(e => {
+    if(e.type !== 'divination') return;
+    const d = divinationOf(e); if(!d || d.system !== 'iching') return;
+    const moving = (d.lines || []).map((l, i) => l.moving ? i + 1 : 0).filter(Boolean);
+    if(d.hexagram && d.hexagram.i === num) out.push({entry: e, day: e.occurredAt, at: e.createdAt || e.occurredAt,
+      as: 'cast', moving, toward: d.relating || null, method: d.method || 'coins',
+      question: d.question || '', note: e.body || ''});
+    if(d.relating && d.relating.i === num) out.push({entry: e, day: e.occurredAt, at: e.createdAt || e.occurredAt,
+      as: 'becoming', moving, from: d.hexagram || null, method: d.method || 'coins',
+      question: d.question || '', note: e.body || ''});
+  });
+  return out.sort((a, b) => (b.at || '') < (a.at || '') ? -1 : 1);
+}
+function hexCounts(){
+  const n = {};
+  (S.entries || []).forEach(e => {
+    if(e.type !== 'divination') return;
+    const d = divinationOf(e); if(!d || d.system !== 'iching') return;
+    if(d.hexagram) n[d.hexagram.i] = (n[d.hexagram.i] || 0) + 1;
+    if(d.relating) n[d.relating.i] = (n[d.relating.i] || 0) + 1;
+  });
+  return n;
+}
+/* the eight, in the order the traditional lookup square uses */
+const HEX_GRID_ORDER = ['111', '000', '101', '010', '100', '011', '001', '110'];
+/* a hexagram's binary is its lower trigram then its upper */
+const hexByTrigrams = (lower, upper) => ICHING.find(h => h.b === lower + upper) || null;
+
+/* what a hexagram's history says, if it has one */
+function hexPattern(h, apps){
+  if(!apps.length) return 'You have not cast this one. Sixty-four is a lot of weather; most of it has not been yours yet.';
+  const cast = apps.filter(a => a.as === 'cast').length, toward = apps.length - cast;
+  const moving = apps.filter(a => a.as === 'cast' && a.moving.length).length;
+  let t = `It has come up ${apps.length} time${apps.length === 1 ? '' : 's'}`;
+  if(cast && toward) t += ` — ${cast} as the situation, ${toward} as what a situation was turning into`;
+  else if(toward) t += ', and always as what something else was becoming rather than as the cast itself';
+  t += '. ';
+  if(cast) t += moving === 0 ? 'Never with a line in motion, so far: the book has been describing something settled.'
+    : moving === cast ? 'Always with something already moving in it.'
+    : `${moving} of those ${cast} had a line already moving.`;
+  return t;
+}
+
 /* ---------- the directory ---------- */
 function openCardDirectory(startAt){
   let tab = 'major', q = '';
   const counts = cardCounts();
   const charmN = charmCounts();
+  const hexN = hexCounts();
   const m = openModal(`<h2>The deck</h2>
     <div class="stack" id="cdWrap">
       <p class="dv-yours-p">All seventy-eight, what each one means, and what each one has meant to you.
@@ -19826,7 +20005,8 @@ function openCardDirectory(startAt){
       <input class="inp" id="cdFind" placeholder="a name, a keyword, an element — “love”, “tower”, “fire”" autocomplete="off">
       <div class="row cd-tabs" style="gap:5px;flex-wrap:wrap">${CARD_TABS.map(t =>
         `<button class="chip${t.id === tab ? ' on' : ''}" data-cdtab="${t.id}">${esc(t.name)}</button>`).join('')}
-        <button class="chip" data-cdtab="charms">Charms</button></div>
+        <button class="chip" data-cdtab="charms">Charms</button>
+        <button class="chip" data-cdtab="iching">I Ching</button></div>
       <div class="cd-count mono" id="cdCount"></div>
       <div class="cd-grid" id="cdGrid"></div>
     </div>
@@ -19834,6 +20014,7 @@ function openCardDirectory(startAt){
 
   function grid(){
     if(tab === 'charms') return charmGrid();
+    if(tab === 'iching') return hexGrid();
     const list = q ? cardSearch(q, 78) : cardsInTab(tab);
     const seen = list.filter(i => counts[i]).length;
     m.querySelector('#cdCount').textContent = q
@@ -19951,6 +20132,111 @@ function openCardDirectory(startAt){
     });
     box.scrollIntoView({block: 'start'});
   }
+  /* The sixty-four laid out the way the book lays them out: a square, one
+     row per upper trigram and one column per lower, so a hexagram is found
+     by its two halves rather than by remembering a number. */
+  function hexGrid(){
+    const ql = q.toLowerCase();
+    if(ql){
+      const hits = ICHING.filter(h => h.n.toLowerCase().includes(ql) || h.c.toLowerCase().includes(ql)
+        || (h.k || []).some(k => k.toLowerCase().includes(ql)) || String(h.i) === ql);
+      m.querySelector('#cdCount').textContent =
+        `${hits.length} hexagram${hits.length === 1 ? '' : 's'} match “${q}”`;
+      m.querySelector('#cdGrid').className = 'cd-grid hexlist';
+      m.querySelector('#cdGrid').innerHTML = hits.length
+        ? hits.map(h => `<button type="button" class="cd-hexrow${hexN[h.i] ? '' : ' dim'}" data-hexpick="${h.i}">
+            ${ichingFigureHTML(h.b.split('').map(v => ({v: +v, moving: false, total: +v ? 7 : 8})), {small: true})}
+            <span><b class="serif">${h.i}. ${esc(h.n)}</b>
+              <span class="mono">${esc(h.c)}</span></span>
+            ${hexN[h.i] ? `<span class="cd-t-n mono">×${hexN[h.i]}</span>` : ''}</button>`).join('')
+        : '<div class="pk-empty">Nothing in the book goes by that.</div>';
+    } else {
+      const seen = ICHING.filter(h => hexN[h.i]).length;
+      m.querySelector('#cdCount').textContent = `64 hexagrams · ${seen} of them cast at least once`;
+      m.querySelector('#cdGrid').className = 'cd-grid hexsquare';
+      /* Rows are the LOWER trigram and columns the upper, which is the
+         square the book itself is looked up in — the other way round is a
+         perfectly good table that matches no reference anybody owns. */
+      m.querySelector('#cdGrid').innerHTML = `<div class="cd-hexnote mono">rows are the lower trigram, columns the upper</div>
+        <table class="cd-hex"><thead><tr><th></th>${HEX_GRID_ORDER.map(b =>
+          `<th title="${esc(trigramOf(b).pin)} — ${esc(trigramOf(b).en)}">${trigramGlyph(b, 16)}</th>`).join('')}</tr></thead>
+        <tbody>${HEX_GRID_ORDER.map(lo => `<tr>
+          <th title="${esc(trigramOf(lo).pin)} — ${esc(trigramOf(lo).en)}">${trigramGlyph(lo, 16)}</th>
+          ${HEX_GRID_ORDER.map(up => { const h = hexByTrigrams(lo, up);
+            if(!h) return '<td></td>';
+            return `<td><button type="button" class="cd-hexcell${hexN[h.i] ? ' seen' : ''}"
+              data-hexpick="${h.i}" title="${h.i}. ${esc(h.n)} — ${esc(h.c)}">${h.i}${
+              hexN[h.i] ? `<i class="cd-dot"></i>` : ''}</button></td>`; }).join('')}</tr>`).join('')}</tbody></table>`;
+    }
+    m.querySelectorAll('[data-hexpick]').forEach(b => b.onclick = () => hexPage(+b.dataset.hexpick));
+  }
+
+  /* one hexagram's page: the figure, its two trigrams, the judgment and
+     image at length, all six lines, and every time you have cast it */
+  function hexPage(num){
+    const h = ICHING.find(x => x.i === num); if(!h) return;
+    const r = typeof ichingRich === 'function' ? ichingRich(num) : null;
+    const apps = hexAppearances(num);
+    const lines = h.b.split('').map(v => ({v: +v, moving: false, total: +v ? 7 : 8}));
+    m.querySelector('#cdWrap').hidden = true;
+    const box = m.querySelector('#cdPage');
+    box.hidden = false;
+    box.innerHTML = `<div class="cd-page ic-page">
+      <button class="pf-chip" id="cdBack">‹ all sixty-four</button>
+      <div class="cd-head">
+        <div class="cd-hexbig">${ichingFigureHTML(lines)}</div>
+        <div class="cd-head-t">
+          <h3 class="serif"><span class="ic-hcn">${esc(h.c)}</span></h3>
+          <div class="ic-hnm serif" style="font-size:1.2rem">${h.i}. ${esc(h.n)}</div>
+          <div class="mono faint">${trigramMark(hexUpper(h.b))} ${esc(hexUpper(h.b).en)} above ·
+            ${trigramMark(hexLower(h.b))} ${esc(hexLower(h.b).en)} below</div>
+          <p class="cd-ess">${esc((h.k || []).join(' · '))}</p>
+          ${apps.length ? `<span class="cd-seen mono">cast ${apps.length} time${apps.length === 1 ? '' : 's'}</span>`
+            : '<span class="cd-seen mono none">not yet cast</span>'}
+        </div></div>
+      ${ichingTrigramNoteHTML(h.b)}
+      <section class="cd-side"><h4 class="dv-sec-h">Judgment</h4>
+        <blockquote class="ic-quote">${esc(h.j)}</blockquote>
+        ${r ? r.d.split('\n\n').filter(Boolean).map(t => `<p class="cd-p">${esc(t)}</p>`).join('') : ''}</section>
+      <section class="cd-side"><h4 class="dv-sec-h">Image</h4>
+        <blockquote class="ic-quote">${esc(h.m)}</blockquote>
+        ${r ? `<p class="cd-p">${esc(r.mi)}</p>` : ''}</section>
+      ${r ? `<section class="cd-side"><h4 class="dv-sec-h">The six lines</h4>
+        <p class="cd-p faint">A line is only read when it is moving. These are what each one says when it is.</p>
+        ${r.L.map((t, i) => `<div class="ic-lineread"><span class="mono">line ${i + 1}</span>
+          <p>${esc(t)}</p></div>`).join('')}</section>` : ''}
+      ${r && r.q.length ? `<section class="cd-side"><h4 class="dv-sec-h">Questions</h4>
+        <ul class="dv-cr-q">${r.q.map(x => `<li>${esc(x)}</li>`).join('')}</ul></section>` : ''}
+      <section class="cd-hist">
+        <h4 class="dv-sec-h">When you have cast it</h4>
+        <p class="cd-pat">${esc(hexPattern(h, apps))}</p>
+        ${apps.map(a => `<article class="cd-app">
+          <div class="cd-app-h"><span class="mono">${esc(fmtDate(a.day, 'med'))}</span>
+            <b class="serif">${a.as === 'cast' ? 'cast' : 'what it was becoming'}</b>
+            <span class="dv-src mono">${a.method === 'yarrow' ? 'stalks' : 'coins'}</span></div>
+          <div class="mono faint">${a.as === 'cast'
+            ? (a.moving.length ? `moving on line${a.moving.length > 1 ? 's' : ''} ${a.moving.join(', ')}`
+                + (a.toward ? ` → ${a.toward.i}. ${esc(a.toward.n)}` : '')
+              : 'no moving lines')
+            : (a.from ? `from ${a.from.i}. ${esc(a.from.n)}` : '')}</div>
+          ${a.question ? `<div class="cd-app-q quote">“${esc(a.question)}”</div>` : ''}
+          ${a.note ? `<p class="cd-app-n">${esc(a.note.length > 260 ? a.note.slice(0, 260) + '…' : a.note)}</p>` : ''}
+          <button class="pf-chip" data-cdopen="${a.entry.id}">the whole reading →</button>
+        </article>`).join('')}
+      </section></div>`;
+    box.querySelector('#cdBack').onclick = () => {
+      box.hidden = true; m.querySelector('#cdWrap').hidden = false; grid(); };
+    box.querySelectorAll('[data-cdopen]').forEach(b => b.onclick = () => {
+      const eid = b.dataset.cdopen; m.remove();
+      navigate('#/journals/divination');
+      setTimeout(() => { const n = document.querySelector(`[data-entry="${eid}"]`);
+        if(n){ n.scrollIntoView({block: 'center'});
+          n.style.background = 'color-mix(in srgb,var(--terra) 12%,transparent)';
+          setTimeout(() => n.style.background = '', 1600); } }, 350);
+    });
+    box.scrollIntoView({block: 'start'});
+  }
+
   /* a charm's own page: what it means, and every cast it has landed in */
   function charmPage(id){
     const c = charmById(id); if(!c) return;
@@ -20932,6 +21218,357 @@ const ICHING_RICH = [
 },
 ];
 /* ============================================================
+   CONSULTING THE BOOK OF CHANGES
+
+   The old version tossed three coins by writing three characters into a
+   box and calling it a cast. This is the ceremony: the coins go up, they
+   tumble, they come down one after another and not together, and the line
+   they make draws itself into a figure that is built from the bottom up
+   because that is the direction a hexagram grows.
+
+   Two methods, because there are two. Three coins is what most people use
+   and it is quick. Fifty yarrow stalks is the older one, it takes longer,
+   and — this is the part that matters and is usually got wrong — it does
+   not produce the same distribution. Under the coins every line is equally
+   likely to be moving; under the stalks a moving yang is three times more
+   likely than a moving yin. The readings have a different character, and a
+   simulation that pretends otherwise is a simulation of the wrong thing.
+   ============================================================ */
+
+/* ---------- the eight trigrams, at length ----------
+   A hexagram is two of these stacked, and anyone learning the book learns
+   the trigrams first. The short version lives in TRIGRAMS, keyed by the
+   three bits bottom-to-top; this is the same eight with everything else
+   the reader wants. */
+const TRIGRAM_FULL = {
+  '111': {sym:'☰', pin:'Qián', cn:'乾', en:'Heaven · the Creative',
+    attr:'Strong, active, initiating, firm', img:'The sky. The father. The dragon.',
+    el:'Metal', dir:'Northwest'},
+  '000': {sym:'☷', pin:'Kūn', cn:'坤', en:'Earth · the Receptive',
+    attr:'Yielding, devoted, nourishing, patient', img:'The earth. The mother. The mare.',
+    el:'Earth', dir:'Southwest'},
+  '101': {sym:'☲', pin:'Lí', cn:'離', en:'Fire · the Clinging',
+    attr:'Radiant, clear-sighted, dependent on what it burns', img:'Fire. The sun. Lightning.',
+    el:'Fire', dir:'South'},
+  '010': {sym:'☵', pin:'Kǎn', cn:'坎', en:'Water · the Abysmal',
+    attr:'Dangerous, flowing, deep, brave by necessity', img:'Water. The moon. Rain in a ravine.',
+    el:'Water', dir:'North'},
+  '100': {sym:'☳', pin:'Zhèn', cn:'震', en:'Thunder · the Arousing',
+    attr:'Shocking, decisive, sudden, setting things in motion', img:'Thunder. The eldest son. Spring.',
+    el:'Wood', dir:'East'},
+  '011': {sym:'☴', pin:'Xùn', cn:'巽', en:'Wind · the Gentle',
+    attr:'Penetrating, flexible, persistent, working by degrees', img:'Wind. Wood. The eldest daughter.',
+    el:'Wood', dir:'Southeast'},
+  '001': {sym:'☶', pin:'Gèn', cn:'艮', en:'Mountain · Keeping Still',
+    attr:'Still, resting, immovable, turned inward', img:'The mountain. The youngest son. The hand.',
+    el:'Earth', dir:'Northeast'},
+  '110': {sym:'☱', pin:'Duì', cn:'兌', en:'Lake · the Joyous',
+    attr:'Open, glad, reflective, pleasing', img:'The lake. The youngest daughter. An open mouth.',
+    el:'Metal', dir:'West'},
+};
+const trigramOf = bits => TRIGRAM_FULL[bits] || TRIGRAM_FULL['111'];
+/* ☰ ☱ ☲ ☳ ☴ ☵ ☶ ☷ are in Unicode and in almost no font this app loads, so
+   they came out as dotted boxes. A trigram is three lines; drawing the
+   three lines is both more reliable and more honest than hoping. */
+function trigramGlyph(bits, size){
+  const w = size || 13, h = w * .82, t = Math.max(1.4, w * .13), gap = (h - 3 * t) / 2;
+  return `<svg class="ic-tg" viewBox="0 0 ${w} ${h.toFixed(1)}" width="${w}" height="${h.toFixed(1)}" aria-hidden="true">${
+    [2, 1, 0].map((i, row) => {
+      const y = (row * (t + gap)).toFixed(2);
+      return bits[i] === '1'
+        ? `<rect x="0" y="${y}" width="${w}" height="${t}" rx="${(t / 2).toFixed(1)}"/>`
+        : `<rect x="0" y="${y}" width="${(w * .38).toFixed(1)}" height="${t}" rx="${(t / 2).toFixed(1)}"/>`
+          + `<rect x="${(w * .62).toFixed(1)}" y="${y}" width="${(w * .38).toFixed(1)}" height="${t}" rx="${(t / 2).toFixed(1)}"/>`;
+    }).join('')}</svg>`;
+}
+/* the bits a trigram was built from, so a drawn glyph can be asked for by
+   the same object everything else passes around */
+Object.keys(TRIGRAM_FULL).forEach(b => { TRIGRAM_FULL[b].bits = b; });
+const trigramMark = t => trigramGlyph(t.bits, 13);
+const hexLower = bin => trigramOf(bin.slice(0, 3));
+const hexUpper = bin => trigramOf(bin.slice(3, 6));
+
+/* what the four totals are called, and the colour each is given */
+const IC_LINE_KIND = {
+  6: {id:'oldyin',   name:'old yin',     short:'moving yin',   moving:true,  c:'#a0727e'},
+  7: {id:'youngyang',name:'young yang',  short:'yang',         moving:false, c:'#d4a44c'},
+  8: {id:'youngyin', name:'young yin',   short:'yin',          moving:false, c:'#7f916a'},
+  9: {id:'oldyang',  name:'old yang',    short:'moving yang',  moving:true,  c:'#b08968'},
+};
+
+/* ============================================================
+   THE TWO METHODS
+   ============================================================ */
+/* Three coins. Two heads and a tail is seven, three of a kind moves. Every
+   total but seven and eight is equally likely, which is why a coin cast
+   throws moving lines about as often either way. */
+function ichingTossCoins(){
+  const coins = [0, 0, 0].map(() => Math.random() < .5 ? 2 : 3);
+  return {coins, total: coins[0] + coins[1] + coins[2], method: 'coins'};
+}
+
+/* Fifty stalks, one set aside, three divisions of what is left. The count
+   only ever depends on the size of the left heap modulo four — and a
+   division drawn uniformly across the whole heap does NOT give uniform
+   residues, which drags old yin from a sixteenth down to about a
+   twentieth. Drawn from a window whose length is a multiple of four and
+   centred in the heap, the classical figures come out exactly: old yin
+   1/16, young yang 5/16, young yin 7/16, old yang 3/16. Which is also
+   what a person dividing a bundle roughly in half is doing. */
+function ichingYarrowSplit(stalks){
+  const span = 4 * Math.floor((stalks - 3) / 4);
+  const lo = 1 + Math.floor((stalks - 2 - span) / 2);
+  return lo + Math.floor(Math.random() * span);
+}
+function ichingTossYarrow(){
+  let stalks = 49;
+  const rounds = [];
+  for(let i = 0; i < 3; i++){
+    const left = ichingYarrowSplit(stalks);
+    const right = stalks - left - 1;              /* one held between the fingers */
+    const lr = ((left - 1) % 4) + 1;
+    const rr = ((right - 1) % 4) + 1;
+    const taken = 1 + lr + rr;                    /* 5 or 9 first, then 4 or 8 */
+    rounds.push({left, right, taken, was: stalks});
+    stalks -= taken;
+  }
+  return {rounds, total: stalks / 4, method: 'yarrow'};
+}
+const ichingToss = method => method === 'yarrow' ? ichingTossYarrow() : ichingTossCoins();
+const ichingLineOf = total => ({v: total % 2 ? 1 : 0, moving: total === 6 || total === 9, total});
+
+/* ============================================================
+   THE COIN
+
+   方孔圓錢 — a round coin with a square hole, which is what a Chinese coin
+   is and has been for two thousand years. Two faces: three raised dots for
+   yang, two bars for yin, with 天 above the hole and 地 below. The two
+   faces are the two sides of one object in 3D, so the tumble in the air is
+   a real tumble and the coin lands showing whichever side is up.
+   ============================================================ */
+function ichingCoinFace(kind){
+  const marks = kind === 'yang'
+    /* three points: the value is three */
+    ? `<circle cx="30" cy="15" r="2.6"/><circle cx="22.5" cy="45.5" r="2.6"/><circle cx="37.5" cy="45.5" r="2.6"/>`
+    /* two bars, a broken line in miniature: the value is two */
+    : `<rect x="18" y="13" width="10" height="2.6" rx="1.3"/><rect x="32" y="13" width="10" height="2.6" rx="1.3"/>
+       <rect x="18" y="44.4" width="10" height="2.6" rx="1.3"/><rect x="32" y="44.4" width="10" height="2.6" rx="1.3"/>`;
+  return `<svg class="ic-face ${kind}" viewBox="0 0 60 60" aria-hidden="true">
+    <circle class="ic-c-body" cx="30" cy="30" r="27"/>
+    <circle class="ic-c-rim" cx="30" cy="30" r="27"/>
+    <circle class="ic-c-rim in" cx="30" cy="30" r="22.5"/>
+    <path class="ic-c-pat" d="M10 35 Q20 20 40 28"/>
+    <path class="ic-c-pat" d="M20 46 Q35 41 49 30"/>
+    <rect class="ic-c-hole" x="24" y="24" width="12" height="12" rx="1.2"/>
+    <g class="ic-c-mark">${marks}</g>
+    <text class="ic-c-ch" x="14.5" y="33.5">天</text>
+    <text class="ic-c-ch" x="45.5" y="33.5">地</text></svg>`;
+}
+function ichingCoinHTML(face, i){
+  /* `face` is 3 (yang) or 2 (yin); the rest turns it up the right way */
+  return `<span class="ic-coin" data-coin="${i}" style="--i:${i}">
+    <span class="ic-coin-sh"></span>
+    <span class="ic-coin-in" style="transform:rotateX(${face === 3 ? 0 : 180}deg)">
+      ${ichingCoinFace('yang')}${ichingCoinFace('yin')}</span>
+    <span class="ic-coin-v mono">${face}</span></span>`;
+}
+
+/* ============================================================
+   THE FIGURE
+
+   Six lines, bottom to top, at a size that reads as a hexagram rather than
+   as a barcode: full width, ten pixels of weight, a real gap in the broken
+   ones. The two trigrams are separated by a dotted rule and named at the
+   side, because a hexagram is recognised by its trigrams before it is
+   recognised by its number.
+   ============================================================ */
+function ichingFigureHTML(lines, opt){
+  opt = opt || {};
+  const done = lines.filter(Boolean).length === 6;
+  const bin = done ? lines.map(l => l.v).join('') : null;
+  const rows = [5, 4, 3, 2, 1, 0].map(i => {
+    const l = lines[i];
+    const divider = i === 2 ? '<div class="ic-div" aria-hidden="true"></div>' : '';
+    if(!l) return `<div class="ic-row empty" data-row="${i}">
+      <span class="ic-n mono">${i + 1}</span><span class="ic-bar"></span></div>${divider}`;
+    const kind = IC_LINE_KIND[l.total] || (l.moving
+      ? IC_LINE_KIND[l.v ? 9 : 6] : IC_LINE_KIND[l.v ? 7 : 8]);
+    return `<div class="ic-row ${l.v ? 'yang' : 'yin'}${l.moving ? ' moving' : ''}"
+      data-row="${i}" style="--lc:${kind.c};--d:${(i * .06).toFixed(2)}s">
+      <span class="ic-n mono">${i + 1}</span>
+      <span class="ic-bar">${l.v ? '<i class="full"></i>' : '<i class="half"></i><i class="half"></i>'}</span>
+      <span class="ic-mk mono">${l.moving ? '×' : ''}</span></div>${divider}`;
+  }).join('');
+  const tri = bin ? `<div class="ic-trilab up mono">${trigramMark(hexUpper(bin))} ${esc(hexUpper(bin).pin)}</div>
+    <div class="ic-trilab lo mono">${trigramMark(hexLower(bin))} ${esc(hexLower(bin).pin)}</div>` : '';
+  return `<div class="ic-fig${opt.small ? ' small' : ''}${opt.cls ? ' ' + opt.cls : ''}">
+    <div class="ic-rows">${rows}</div>${tri}</div>`;
+}
+
+/* the named head under a figure: number, the character, the sound of it,
+   and what it is called in English */
+function ichingHeadHTML(h, opt){
+  opt = opt || {};
+  return `<div class="ic-head${opt.small ? ' small' : ''}">
+    <span class="ic-hnum mono">hexagram ${h.i}</span>
+    <span class="ic-hcn">${esc(h.c)}</span>
+    <span class="ic-hnm serif">${opt.scramble ? '' : esc(h.n)}</span>
+    ${h.b ? `<span class="ic-htri mono">${trigramMark(hexUpper(h.b))} ${esc(hexUpper(h.b).en.split(' · ')[0])} above ·
+      ${trigramMark(hexLower(h.b))} ${esc(hexLower(h.b).en.split(' · ')[0])} below</span>` : ''}</div>`;
+}
+
+/* the collapsible note on the two trigrams, for anyone learning the book */
+function ichingTrigramNoteHTML(bin){
+  const lo = hexLower(bin), up = hexUpper(bin);
+  const one = (t, where) => `<div class="ic-trinote">
+    <div class="ic-trinote-h"><span class="ic-trisym">${trigramGlyph(t.bits, 20)}</span>
+      <b class="serif">${esc(t.pin)} ${esc(t.cn)}</b>
+      <span class="mono">${esc(where)} · ${esc(t.en)}</span></div>
+    <p class="dv-cr-t">${esc(t.attr)}. ${esc(t.img)}</p>
+    <p class="mono faint">${esc(t.el)} · ${esc(t.dir)}</p></div>`;
+  return `<details class="dv-read-more ic-trinotes"><summary>about these two trigrams</summary>
+    ${one(lo, 'below')}${one(up, 'above')}
+    <p class="dv-cr-t faint">A hexagram is these two, stacked. What it means is largely what happens when
+      ${esc(lo.pin)} is underneath ${esc(up.pin)} — whether they meet, pass each other, or pull apart.</p>
+  </details>`;
+}
+
+/* ============================================================
+   THE TOSS, ANIMATED
+
+   Up, a moment at the top, down, and a small bounce. The three coins do
+   not move in unison — each gets its own peak, its own delay and its own
+   number of turns, and the middle one lands first — because three coins
+   thrown together landing in perfect time is the one thing that never
+   happens and the thing that most makes an animation look like a machine.
+   ============================================================ */
+function ichingFlyCoins(box, faces, done){
+  const soft = typeof reduced === 'function' && reduced();
+  const coins = [...box.querySelectorAll('.ic-coin')];
+  if(soft){ coins.forEach(c => c.classList.add('landed')); if(done) setTimeout(done, 0); return; }
+  dvMoment('ching');
+  /* the middle coin first, then the outer two a beat later */
+  const order = [1, 0, 2];
+  let last = 0;
+  coins.forEach((coin, i) => {
+    const inner = coin.querySelector('.ic-coin-in');
+    const up = 118 + (Math.random() - .5) * 30;
+    const lift = 340 + Math.random() * 60;
+    const hang = 170;
+    const fall = 420 + order.indexOf(i) * 70;
+    const turns = 3 + Math.floor(Math.random() * 3);          /* whole tumbles */
+    const rest = faces[i] === 3 ? 0 : 180;
+    const start = Math.random() * 60;
+    const drift = (i - 1) * (4 + Math.random() * 5);
+    coin.animate([
+      {transform: 'translate(0,0) scale(1)', offset: 0},
+      {transform: `translate(${(drift * .6).toFixed(1)}px,${(-up).toFixed(0)}px) scale(1.15)`, offset: .42},
+      {transform: `translate(${drift.toFixed(1)}px,${(-up).toFixed(0)}px) scale(1.15)`, offset: .58},
+      {transform: `translate(${(drift * .4).toFixed(1)}px,8px) scale(1)`, offset: .93},
+      {transform: 'translate(0,0) scale(1)', offset: 1},
+    ], {duration: lift + hang + fall, delay: start,
+        easing: 'cubic-bezier(.33,.02,.5,1)', fill: 'backwards'});
+    /* the tumble: whole turns in the air, then whichever face is up */
+    inner.animate([
+      {transform: 'rotateX(0deg)'},
+      {transform: `rotateX(${turns * 360 + rest}deg)`},
+    ], {duration: lift + hang + fall, delay: start, easing: 'cubic-bezier(.2,.55,.35,1)', fill: 'forwards'});
+    /* the shadow shrinks as the coin goes up, the way a shadow does */
+    const sh = coin.querySelector('.ic-coin-sh');
+    if(sh) sh.animate([
+      {transform: 'scale(1)', opacity: .22, offset: 0},
+      {transform: 'scale(.45)', opacity: .07, offset: .5},
+      {transform: 'scale(1.06)', opacity: .26, offset: .95},
+      {transform: 'scale(1)', opacity: .22, offset: 1},
+    ], {duration: lift + hang + fall, delay: start, easing: 'cubic-bezier(.33,.02,.5,1)', fill: 'backwards'});
+
+    const at = start + lift + hang + fall;
+    last = Math.max(last, at);
+    setTimeout(() => { coin.classList.add('landed'); dvMoment('clink'); }, at);
+  });
+  setTimeout(() => { dvMoment('softchime'); if(done) done(); }, last + 200);
+}
+
+/* ---------- the yarrow bundle ----------
+   Fifty thin sticks. One is set aside for the observer, the rest divide
+   into two heaps, and the heaps are counted down in fours three times
+   over. The arithmetic has already happened; this shows it happening. */
+function ichingYarrowHTML(){
+  return `<div class="ic-yar" id="icYar">
+    <div class="ic-yar-set" title="the stalk that is set aside and stays aside"><i></i></div>
+    <div class="ic-yar-bundle">${Array.from({length: 49}, (_, i) =>
+      `<i style="--i:${i};--r:${((i * 37) % 11) - 5}deg"></i>`).join('')}</div>
+    <div class="ic-yar-say quote" id="icYarSay"></div>
+  </div>`;
+}
+function ichingDivideStalks(box, roll, done){
+  const soft = typeof reduced === 'function' && reduced();
+  const say = box.querySelector('#icYarSay');
+  const bundle = box.querySelector('.ic-yar-bundle');
+  const set = box.querySelector('.ic-yar-set');
+  const lines = [
+    'One stalk is set aside, and stays aside.',
+    ...roll.rounds.map((r, i) => `The ${['first','second','third'][i]} division: ${r.left} and ${r.right}, `
+      + `and ${r.taken} are counted out.`),
+    `What is left is ${roll.total * 4} — which is ${roll.total}.`,
+  ];
+  if(soft){ say.textContent = lines[lines.length - 1]; if(done) setTimeout(done, 0); return; }
+  const sticks = [...bundle.querySelectorAll('i')];
+  set.classList.add('gone');
+  dvMoment('clack');
+  /* Six lines at four and a half seconds each is forty seconds of watching a
+     button stay disabled, which is not ceremony, it is waiting. Two and a
+     half seconds a line keeps the method slower than the coins — which it
+     should be — without making it a chore. */
+  let t = 0;
+  lines.forEach((txt, step) => {
+    setTimeout(() => {
+      say.textContent = txt;
+      if(step > 0 && step <= 3){
+        const r = roll.rounds[step - 1];
+        dvMoment('clack');
+        /* the count comes off the near end of the bundle, and what is gone
+           stays visibly gone — which is the whole of what the method is */
+        bundle.classList.add('split');
+        const gone = sticks.filter(s => !s.classList.contains('gone'));
+        gone.slice(0, r.taken).forEach((s, k) =>
+          setTimeout(() => { s.classList.add('gone'); dvMoment('tick'); }, k * 55));
+      }
+    }, t);
+    t += step === 0 ? 380 : 620;
+  });
+  setTimeout(() => { if(done) done(); }, t + 120);
+}
+
+/* ============================================================
+   THE WHOLE CONSULTATION
+   ============================================================ */
+/* Phase one, the same shape as the tarot's but in its own words, with a
+   wash of ink drifting behind it. */
+function ichingCentering(then){
+  const lines = ['Hold your question.', 'Let it settle into the body.', 'The book has been asked this before.'];
+  const soft = typeof reduced === 'function' && reduced();
+  const veil = el(`<div class="dv-veil ic-veil" role="dialog" aria-label="a moment before the coins">
+    <svg class="ic-wash" viewBox="0 0 100 60" aria-hidden="true" preserveAspectRatio="none">
+      <path d="M-20 34 C 10 22, 34 42, 58 30 S 104 20, 128 32 L128 60 L-20 60Z"/>
+      <path class="two" d="M-20 22 C 16 34, 40 14, 66 24 S 108 34, 130 22 L130 0 L-20 0Z"/>
+    </svg>
+    <div class="dv-veil-in">
+      ${lines.map((l, i) => `<p class="dv-veil-l" style="--i:${i}">${esc(l)}</p>`).join('')}
+      <button class="btn primary dv-ready" ${soft ? '' : 'hidden'}>I am ready</button>
+      <button class="dv-skip mono">skip</button>
+    </div></div>`);
+  document.body.appendChild(veil);
+  const go = () => { veil.classList.add('out'); setTimeout(() => veil.remove(), soft ? 0 : 420); then(); };
+  veil.querySelector('.dv-ready').onclick = go;
+  veil.querySelector('.dv-skip').onclick = go;
+  if(!soft) setTimeout(() => { const b = veil.querySelector('.dv-ready'); b.hidden = false; b.focus(); },
+    lines.length * 700 + 1400);
+  else veil.querySelector('.dv-ready').focus();
+  veil.addEventListener('keydown', e => { if(e.key === 'Escape') go(); });
+  return veil;
+}
+/* ============================================================
    THE AIR IN THE ROOM
 
    Two small machines that run only while a reading is being dealt: a few
@@ -20963,6 +21600,7 @@ function divPrefs(){
   if(typeof d.volume     !== 'number')  d.volume = .3;
   if(typeof d.spread     !== 'string')  d.spread = 'ppf';
   if(typeof d.castSize   !== 'string')  d.castSize = 'standard';
+  if(typeof d.castMethod !== 'string')  d.castMethod = 'coins';
   if(typeof d.quickWith  !== 'string')  d.quickWith = 'tarot';
   if(!Array.isArray(d.customSpreads))   d.customSpreads = [];
   if(!Array.isArray(d.customCharms))    d.customCharms = [];
@@ -21228,6 +21866,29 @@ const CeremonySound = {
   /* the bowl again when everything has stopped moving, quieter */
   bowlQuiet(){ this.tone(220, {attack: .5, hold: .6, release: 1.4, peak: .05});
                this.tone(330, {attack: .55, hold: .5, release: 1.4, peak: .018}); },
+
+  /* --- the coins and the stalks --- */
+  /* metal leaving the hand */
+  ching(){ this.tone(2000, {attack: .002, hold: .006, release: .04, peak: .045});
+           this.tone(1500, {attack: .002, hold: .006, release: .05, peak: .022}); },
+  /* one coin finding the table */
+  clink(){ this.tone(760 + Math.random() * 160, {attack: .002, hold: .004, release: .05, peak: .05});
+           this.tone(1900 + Math.random() * 300, {attack: .002, hold: .003, release: .03, peak: .012}); },
+  /* the total, once the three have settled */
+  softchime(){ this.tone(1200, {attack: .004, hold: .01, release: .09, peak: .035}); },
+  /* a line put down into the figure — low and blunt, a stone rather than a bell */
+  stone(){ this.tone(400, {attack: .004, hold: .012, release: .11, peak: .08});
+           this.tone(200, {attack: .006, hold: .02, release: .16, peak: .035}); },
+  /* two stalks knocking together as the bundle divides */
+  clack(){ this.tone(800, {attack: .002, hold: .004, release: .03, peak: .04});
+           this.tone(600, {at: .018, attack: .002, hold: .004, release: .035, peak: .03}); },
+  /* one stalk counted off */
+  tick(){ this.tone(1000, {attack: .001, hold: .002, release: .02, peak: .014}); },
+  /* the second hexagram arriving: a step down from the first chord, which is
+     what a resolution sounds like */
+  turning(){ this.noise(.5, {freq: 700, sweepTo: 1600, q: .8, peak: .03});
+             [196, 246.9, 293.7].forEach((f, i) =>
+               this.tone(f, {at: .12, attack: .7, hold: 1, release: 1.6, peak: i ? .04 : .058})); },
 
   /* between readings: let the context go rather than hold the audio
      hardware open for a page nobody is listening to */
@@ -21812,43 +22473,48 @@ function scrambleInto(el, text, ms = 600){
    has thrown away the only reason to use coins rather than pick a hexagram
    out of a hat. So the moving lines are given, in full, in their place.
    ============================================================ */
-const TRIGRAMS = {
-  '111': ['☰', 'Qián', 'Heaven'], '000': ['☷', 'Kūn', 'Earth'],
-  '100': ['☳', 'Zhèn', 'Thunder'], '010': ['☵', 'Kǎn', 'Water'],
-  '001': ['☶', 'Gèn', 'Mountain'], '011': ['☴', 'Xùn', 'Wind'],
-  '101': ['☲', 'Lí', 'Fire'], '110': ['☱', 'Duì', 'Lake'],
-};
+/* The eight are written out once, in TRIGRAM_FULL — symbol, sound,
+   character, attributes, image, element and quarter of the compass. There
+   used to be a second, shorter copy here; two copies of eight things is
+   two copies that drift. */
 const ichingRich = n => (typeof ICHING_RICH !== 'undefined' && ICHING_RICH[n - 1]) || null;
 
-/* the six lines, bottom to top, at a size worth looking at */
+/* The six lines, bottom to top. The figure itself is drawn by
+   ichingFigureHTML in 16-divination-ichingcast.js — this is the name the
+   rest of the app already calls it by, kept so a hexagram is one drawing
+   wherever it appears rather than two that drift apart. */
 function ichingLinesHTML(lines, cls = ''){
-  return `<div class="ic-lines ${cls}">` + [5, 4, 3, 2, 1, 0].map(i => {
-    const l = lines[i];
-    if(!l) return `<div class="ic-line empty"><span class="ic-n mono">${i + 1}</span><span class="ic-bar"></span></div>`;
-    return `<div class="ic-line ${l.v ? 'yang' : 'yin'}${l.moving ? ' moving' : ''}" style="--d:${(i * .07).toFixed(2)}s">
-      <span class="ic-n mono">${i + 1}</span>
-      <span class="ic-bar">${l.v ? '<i class="full"></i>' : '<i class="half"></i><i class="half"></i>'}</span>
-      ${l.moving ? '<span class="ic-mv mono">changing</span>' : ''}</div>`;
-  }).join('') + '</div>';
+  return ichingFigureHTML(lines, {small: /small/.test(cls), cls});
 }
 
 /* the trigrams a hexagram is made of, which is how it is named and how
    anyone who reads the book actually recognises it */
 function ichingTrigramsHTML(bin){
-  const lower = TRIGRAMS[bin.slice(0, 3)], upper = TRIGRAMS[bin.slice(3, 6)];
+  const lower = hexLower(bin), upper = hexUpper(bin);
   if(!lower || !upper) return '';
-  return `<div class="ic-tri mono">${upper[0]} ${esc(upper[2])} above · ${lower[0]} ${esc(lower[2])} below</div>`;
+  const plain = t => t.en.split(' · ')[0];
+  return `<div class="ic-tri mono">${trigramMark(upper)} ${esc(plain(upper))} above · ${trigramMark(lower)} ${esc(plain(lower))} below</div>`;
 }
 
-/* three ancient coins: a circle with a square hole, which is what a Chinese
-   coin is and what makes a row of them read as a cast rather than as discs */
-function ichingCoinHTML(face, i){
-  return `<span class="ic-coin ${face === 3 ? 'heads' : 'tails'}" style="--i:${i}">
-    <svg viewBox="0 0 40 40" aria-hidden="true">
-      <circle cx="20" cy="20" r="18" class="ic-c-body"/>
-      <circle cx="20" cy="20" r="18" class="ic-c-rim"/>
-      <rect x="14" y="14" width="12" height="12" rx="1" class="ic-c-hole"/>
-    </svg><b>${face === 3 ? '陽' : '陰'}</b></span>`;
+/* The coin is drawn in 16-divination-ichingcast.js, where the cast is —
+   it has two faces and a tumble now, which is more than a render helper. */
+
+/* What the movement between the two hexagrams is, said rather than only
+   drawn. Template-built out of the two names and the lines actually in
+   motion, like the tarot's story paragraph and for the same reason: to get
+   the reader as far as a first sentence of their own. */
+function ichingMovementText(h, rel, moving){
+  const where = moving.length === 1
+    ? `Line ${moving[0] + 1} is the one in motion`
+    : `Lines ${moving.map(i => i + 1).join(', ').replace(/, (\d+)$/, ' and $1')} are in motion`;
+  const rh = typeof ichingRich === 'function' ? ichingRich(h.i) : null;
+  const rr2 = typeof ichingRich === 'function' ? ichingRich(rel.i) : null;
+  const first = t => t ? (t.split(/(?<=\.)\s/)[0] || t) : '';
+  const lower = t => t.replace(/^[A-Z]/, c => c.toLowerCase()).replace(/\.$/, '');
+  return `This reading moves from ${h.c} ${h.n} toward ${rel.c} ${rel.n}. ${where}, `
+    + `which is where the situation is already giving way. `
+    + (rh ? `What you have is ${lower(first(rh.d))} — ` : '')
+    + (rr2 ? `what it is becoming is ${lower(first(rr2.d))}.` : `${rel.n} is what it becomes.`);
 }
 
 /* the whole reading: judgment and what it is saying, the image, every
@@ -21870,11 +22536,15 @@ function ichingReadingHTML(lines, h, rel){
         <p>${esc(r ? r.L[i] : '')}</p></div>`).join('')}
       <p class="mono faint">A changing line is the part of the situation that is already in motion. It is why the reading has a second hexagram.</p>
       </section>` : `<p class="mono faint">No changing lines: the situation is not, for the moment, in motion.</p>`}
-    ${rel ? `<section class="ic-sec ic-moving"><h4 class="dv-sec-h">Moving toward</h4>
+    ${rel ? `<section class="ic-sec ic-moving"><h4 class="dv-sec-h">The movement</h4>
+      <p class="dv-cr-t">${esc(ichingMovementText(h, rel, moving))}</p>
       <div class="ic-relhead"><b class="serif">${rel.i}. ${esc(rel.n)}</b> <span class="mono faint">${esc(rel.c)}</span></div>
-      ${ichingLinesHTML(lines.map(l => ({v: l.moving ? (l.v ? 0 : 1) : l.v, moving: false})), 'small')}
+      ${ichingLinesHTML(lines.map(l => ({v: l.moving ? (l.v ? 0 : 1) : l.v, moving: false,
+        total: (l.moving ? (l.v ? 0 : 1) : l.v) ? 7 : 8})), 'small')}
       <blockquote class="ic-quote">${esc(rel.j)}</blockquote>
-      ${rr ? `<p class="dv-cr-t">${esc(rr.d.split('\n\n')[0])}</p>` : ''}</section>` : ''}
+      ${rr ? `<p class="dv-cr-t">${esc(rr.d.split('\n\n')[0])}</p>` : ''}
+      <p class="mono faint">The second hexagram is not a prediction. It is what this situation becomes if the
+        lines already in motion finish moving — which they may not.</p></section>` : ''}
     ${r && r.q.length ? `<section class="ic-sec"><h4 class="dv-sec-h">Questions</h4>
       <ul class="dv-cr-q">${r.q.map(q => `<li>${esc(q)}</li>`).join('')}</ul></section>` : ''}
   </div>`;
@@ -22661,6 +23331,10 @@ function divinationSave(rec){
          reading — a list of which charms came up would be a different and
          much poorer thing to come back to */
       charms:rec.charms || null,
+      /* which way it was asked, and what each toss actually was — the two
+         methods do not have the same distribution, so a reading that does
+         not say which one it came from cannot be read back properly */
+      method:rec.method || null, tosses:rec.tosses || null,
       relating:rec.relating || null, deck:rec.deck || '', revisit: !!rec.revisit,
       /* where the cards were: dealt here, or laid out on a real table and
          typed in afterwards. Everything else about the two is identical. */
@@ -23117,70 +23791,158 @@ function divKeepHTML(projects){
    and throw the next, rather than press a button six times. The line lands
    as the coins settle, and when the sixth is down the hexagram pulses once
    and its name resolves out of noise, the same way a card's does. */
-function openIChing(){
+function openIChing(pre = {}){
+  const projects = typeof thProjects === 'function' ? thProjects() : [];
+  let method = divPrefs().castMethod || 'coins';
   const m = openModal(`<h2>The Book of Changes</h2>
-    <div class="stack">
+    <div class="stack" id="icSetup">
       <div class="field"><label>What are you asking?</label>
-        <input class="inp serif-lg" id="icQ" placeholder="A situation, not a yes-or-no."></div>
-      <div class="ic-build">
-        <div id="icLines"></div>
-        <div class="ic-coins" id="icCoins"></div>
-        <div class="ic-name serif" id="icName" hidden></div>
+        <input class="inp serif-lg" id="icQ" value="${esc(pre.question || '')}" placeholder="A situation, not a yes-or-no."></div>
+      <div class="field"><label>How to ask it</label>
+        <div class="ic-methods" id="icMethods">
+          <button type="button" class="ic-method${method === 'coins' ? ' on' : ''}" data-icmethod="coins">
+            <span class="ic-method-i">☰</span><span class="sp-name serif">Three coins</span>
+            <span class="sp-n mono">six tosses</span>
+            <span class="cc-size-h quote">What most people use, and quick. Every line is as likely to be moving as any other.</span></button>
+          <button type="button" class="ic-method${method === 'yarrow' ? ' on' : ''}" data-icmethod="yarrow">
+            <span class="ic-method-i">丨</span><span class="sp-name serif">Fifty yarrow stalks</span>
+            <span class="sp-n mono">eighteen divisions</span>
+            <span class="cc-size-h quote">The older way, and slower. Moving lines are rarer, and a moving yang is three times likelier than a moving yin — the readings have a different weather.</span></button>
+        </div></div>
+      ${divTogglesHTML()}
+      <p class="th-quote">The book is older than any of its readers and has been asked most of this before. What it is good for is not prediction; it is being handed a description of a situation you did not write, and finding out which parts you argue with.</p>
+      <div class="row" style="justify-content:flex-end"><button class="btn primary" id="icGo">Settle, then cast</button></div>
+    </div>
+    <div id="icOut"></div>`, 'wide');
+  bindDivToggles(m);
+  m.querySelectorAll('[data-icmethod]').forEach(b => b.onclick = () => {
+    method = b.dataset.icmethod; divPrefSet('castMethod', method);
+    m.querySelectorAll('[data-icmethod]').forEach(x => x.classList.toggle('on', x === b));
+    if(typeof sound === 'function') sound('click');
+  });
+
+  m.querySelector('#icGo').onclick = () => {
+    const soft = typeof reduced === 'function' && reduced();
+    m.querySelector('#icSetup').hidden = true;
+    const lines = [], rolls = [];
+    m.querySelector('#icOut').innerHTML = `<div class="ic-cer" id="icCer">
+      <canvas class="dv-motes" id="icMotes" aria-hidden="true"></canvas>
+      <button class="dv-mute mono" id="icMute"></button>
+      <div class="ic-stage">
+        <div class="ic-figwrap" id="icFigWrap">${ichingFigureHTML(lines)}</div>
+        <div class="ic-cast" id="icCast">
+          ${method === 'yarrow' ? ichingYarrowHTML()
+            : `<div class="ic-coins" id="icCoins">${[3, 3, 3].map((f, i) => ichingCoinHTML(f, i)).join('')}</div>`}
+          <div class="ic-total mono" id="icTotal"></div>
+        </div>
       </div>
-      <div class="row between"><span class="mono faint" id="icCount">no lines yet</span>
-        <button class="btn primary" id="icToss">toss the coins</button></div>
-      <div id="icOut"></div>
-    </div>`, 'wide');
-  const soft = typeof reduced === 'function' && reduced();
-  const lines = [];
-  const drawLines = () => {
-    m.querySelector('#icLines').innerHTML = ichingLinesHTML(lines);
-    m.querySelector('#icCount').textContent = lines.length ? `${lines.length} of 6 lines` : 'no lines yet';
-  };
-  drawLines();
-  m.querySelector('#icToss').onclick = () => {
-    if(lines.length >= 6) return;
-    const coins = [0, 0, 0].map(() => Math.random() < .5 ? 2 : 3);
-    const total = coins[0] + coins[1] + coins[2];
-    lines.push({v: total % 2 ? 1 : 0, moving: total === 6 || total === 9, total, coins});
-    const box = m.querySelector('#icCoins');
-    box.innerHTML = coins.map((c, i) => ichingCoinHTML(c, i)).join('');
-    if(!soft){ box.classList.remove('toss'); void box.offsetWidth; box.classList.add('toss'); }
-    sound('click'); drawLines();
-    if(lines.length < 6) return;
-    m.querySelector('#icToss').disabled = true;
-    const h = ichingLookup(ichingBinary(lines)), rel = ichingRelating(lines);
-    const settle = () => {
-      const nm = m.querySelector('#icName');
-      nm.hidden = false;
-      nm.innerHTML = `<span class="ic-num mono">hexagram ${h.i}</span><span class="ic-nm"></span>
-        <span class="ic-cn mono">${esc(h.c)}</span>${ichingTrigramsHTML(h.b)}`;
-      scrambleInto(nm.querySelector('.ic-nm'), h.n, 600);
-      const lw = m.querySelector('.ic-lines');
-      if(lw && !soft){ lw.classList.add('done'); setTimeout(() => lw.classList.remove('done'), 1200); }
-      m.querySelector('#icOut').innerHTML = `
-        <div class="mono faint ic-keys">${esc(h.k.join('  ·  '))}</div>
+      <div class="row between ic-bar">
+        <span class="mono faint" id="icCount"></span>
+        <button class="btn primary" id="icToss">${method === 'yarrow' ? 'divide the stalks' : 'toss the coins'}</button></div>
+    </div>
+    <div id="icRead" hidden></div>`;
+
+    const cer = m.querySelector('#icCer');
+    const field = dvFieldStart(m.querySelector('#icMotes'));
+    const mute = m.querySelector('#icMute');
+    const showMute = () => { mute.textContent = divPrefs().sound ? '♪ sound on' : '♪ sound off';
+      mute.classList.toggle('off', !divPrefs().sound); };
+    mute.onclick = () => { divPrefSet('sound', !divPrefs().sound); showMute();
+      if(divPrefs().sound) CeremonySound.chime(); else CeremonySound.close(); };
+    showMute();
+    const stopAll = () => { dvFieldStop(); CeremonySound.close(); };
+    const stage = document.getElementById('modals') || document.body;
+    const obs = new MutationObserver(() => { if(!stage.contains(m)){ stopAll(); obs.disconnect(); } });
+    obs.observe(stage, {childList: true});
+
+    const count = () => { m.querySelector('#icCount').textContent = lines.length >= 6
+      ? 'the hexagram is complete'
+      : `${method === 'yarrow' ? 'division' : 'toss'} ${lines.length + 1} of 6`; };
+    const redraw = () => { m.querySelector('#icFigWrap').innerHTML = ichingFigureHTML(lines);
+      const row = m.querySelector(`[data-row="${lines.length - 1}"]`);
+      if(row && !soft) row.classList.add('drawing'); };
+    count(); redraw();
+    field.ambient(14);
+    ichingCentering(() => { dvMoment('bowl'); m.querySelector('#icToss').focus(); });
+
+    let busy = false;
+    m.querySelector('#icToss').onclick = () => {
+      if(busy || lines.length >= 6) return;
+      busy = true;
+      const btn = m.querySelector('#icToss');
+      btn.disabled = true;
+      const roll = ichingToss(method);
+      const kind = IC_LINE_KIND[roll.total];
+      m.querySelector('#icTotal').innerHTML = '';
+
+      const settleLine = () => {
+        /* the total, then the line drawing itself into the figure */
+        m.querySelector('#icTotal').innerHTML =
+          `<span class="ic-tot-n">= ${roll.total}</span>
+           <span class="ic-tot-k" style="--lc:${kind.c}">${esc(kind.name)}${kind.moving ? ' · changing' : ''}</span>`;
+        setTimeout(() => {
+          lines.push(Object.assign(ichingLineOf(roll.total), {coins: roll.coins || null}));
+          rolls.push({toss: lines.length, total: roll.total, kind: kind.id,
+            coins: roll.coins || null, rounds: roll.rounds || null});
+          redraw(); count(); dvMoment('stone');
+          if(lines.length < 6){ busy = false; btn.disabled = false; }
+          else setTimeout(complete, soft ? 0 : 560);
+        }, soft ? 0 : 260);
+      };
+
+      if(method === 'yarrow'){
+        ichingDivideStalks(m.querySelector('#icYar'), roll, settleLine);
+      } else {
+        const box = m.querySelector('#icCoins');
+        box.innerHTML = roll.coins.map((f, i) => ichingCoinHTML(f, i)).join('');
+        ichingFlyCoins(box, roll.coins, settleLine);
+      }
+    };
+
+    function complete(){
+      const h = ichingLookup(ichingBinary(lines)), rel = ichingRelating(lines);
+      const fig = m.querySelector('#icFigWrap');
+      if(!soft){ fig.classList.add('done'); setTimeout(() => fig.classList.remove('done'), 1400); }
+      dvMoment('chord');
+      field.shimmer();
+      m.querySelector('#icCast').classList.add('spent');
+      m.querySelector('.ic-stage').classList.add('settled');
+      /* the pair, side by side, with the movement between them */
+      fig.innerHTML = `<div class="ic-pair${rel ? ' two' : ''}">
+        <figure class="ic-one">${ichingFigureHTML(lines)}${ichingHeadHTML(h, {scramble: true})}</figure>
+        ${rel ? `<div class="ic-arrow" aria-hidden="true"><span>→</span><span>→</span></div>
+          <figure class="ic-one rel">${ichingFigureHTML(
+            lines.map(l => ({v: l.moving ? (l.v ? 0 : 1) : l.v, moving: false,
+              total: (l.moving ? (l.v ? 0 : 1) : l.v) ? 7 : 8})))}${ichingHeadHTML(rel, {})}</figure>` : ''}
+      </div>${ichingTrigramNoteHTML(h.b)}`;
+      const nm = fig.querySelector('.ic-hnm');
+      if(nm){ if(soft) nm.textContent = h.n;
+        else { scrambleInto(nm, h.n, 800); setTimeout(() => dvMoment('tinkle'), 300); } }
+      if(rel && !soft){
+        fig.querySelector('.ic-one.rel').classList.add('arriving');
+        setTimeout(() => dvMoment('turning'), 900);
+      }
+
+      const box = m.querySelector('#icRead');
+      box.innerHTML = `<div class="mono faint ic-keys">${esc(h.k.join('  ·  '))}</div>
+        <div class="ic-res"><b class="serif">${h.i}. ${esc(h.n)}</b> <span class="mono faint">${esc(h.c)}</span></div>
         ${ichingReadingHTML(lines, h, rel)}
-        <section class="dv-yours"><h4 class="dv-sec-h">Your reflection</h4>
-          <p class="dv-yours-p">The hexagram describes a situation. Only you know which one.</p>
-          <div class="field"><textarea class="inp" id="icText" rows="5" placeholder="Not what the book says. What it says to you, about the thing you asked."></textarea></div>
-          <div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn primary" id="icSave">Keep the reading</button></div>
-        </section>`;
-      /* the old, compact result block is still the thing tests and the
-         record look for, so it stays — folded in above the long reading */
-      m.querySelector('#icOut').insertAdjacentHTML('afterbegin',
-        `<div class="ic-res"><b class="serif">${h.i}. ${esc(h.n)}</b> <span class="mono faint">${esc(h.c)}</span></div>`);
-      m.querySelector('#icSave').onclick = () => {
+        ${divKeepHTML(projects)}`;
+      box.hidden = false;
+      box.scrollIntoView({behavior: soft ? 'auto' : 'smooth', block: 'start'});
+      setTimeout(() => field.stop(), soft ? 0 : 6000);
+      m.querySelector('#dvSave').onclick = () => {
         divinationSave({system:'iching', question:m.querySelector('#icQ').value.trim(),
           title:`${h.i}. ${h.n}${rel ? ' → ' + rel.i + '. ' + rel.n : ''}`,
-          lines:lines.map(l => ({v:l.v, moving:l.moving})), hexagram:{i:h.i, n:h.n, c:h.c},
-          relating:rel ? {i:rel.i, n:rel.n} : null,
-          reading:m.querySelector('#icText').value.trim()});
-        sound('success'); toast('Kept in the Lived Record.'); m.remove(); rerender();
+          lines:lines.map(l => ({v:l.v, moving:l.moving, total:l.total})),
+          hexagram:{i:h.i, n:h.n, c:h.c}, relating:rel ? {i:rel.i, n:rel.n} : null,
+          method, tosses:rolls,
+          reading:m.querySelector('#dvText').value.trim(),
+          revisit:m.querySelector('#dvRevisit').checked,
+          projectId:m.querySelector('#dvProj')?.value || null});
+        stopAll(); sound('success'); toast('Kept in the Lived Record.'); m.remove(); rerender();
       };
-      m.querySelector('#icOut').scrollIntoView({behavior: soft ? 'auto' : 'smooth', block: 'start'});
-    };
-    if(soft) settle(); else setTimeout(settle, 700);
+    }
   };
 }
 /* ---------- the oracle ----------

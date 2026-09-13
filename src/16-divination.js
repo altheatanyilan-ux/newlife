@@ -274,6 +274,10 @@ function divinationSave(rec){
          reading — a list of which charms came up would be a different and
          much poorer thing to come back to */
       charms:rec.charms || null,
+      /* which way it was asked, and what each toss actually was — the two
+         methods do not have the same distribution, so a reading that does
+         not say which one it came from cannot be read back properly */
+      method:rec.method || null, tosses:rec.tosses || null,
       relating:rec.relating || null, deck:rec.deck || '', revisit: !!rec.revisit,
       /* where the cards were: dealt here, or laid out on a real table and
          typed in afterwards. Everything else about the two is identical. */
@@ -730,70 +734,158 @@ function divKeepHTML(projects){
    and throw the next, rather than press a button six times. The line lands
    as the coins settle, and when the sixth is down the hexagram pulses once
    and its name resolves out of noise, the same way a card's does. */
-function openIChing(){
+function openIChing(pre = {}){
+  const projects = typeof thProjects === 'function' ? thProjects() : [];
+  let method = divPrefs().castMethod || 'coins';
   const m = openModal(`<h2>The Book of Changes</h2>
-    <div class="stack">
+    <div class="stack" id="icSetup">
       <div class="field"><label>What are you asking?</label>
-        <input class="inp serif-lg" id="icQ" placeholder="A situation, not a yes-or-no."></div>
-      <div class="ic-build">
-        <div id="icLines"></div>
-        <div class="ic-coins" id="icCoins"></div>
-        <div class="ic-name serif" id="icName" hidden></div>
+        <input class="inp serif-lg" id="icQ" value="${esc(pre.question || '')}" placeholder="A situation, not a yes-or-no."></div>
+      <div class="field"><label>How to ask it</label>
+        <div class="ic-methods" id="icMethods">
+          <button type="button" class="ic-method${method === 'coins' ? ' on' : ''}" data-icmethod="coins">
+            <span class="ic-method-i">☰</span><span class="sp-name serif">Three coins</span>
+            <span class="sp-n mono">six tosses</span>
+            <span class="cc-size-h quote">What most people use, and quick. Every line is as likely to be moving as any other.</span></button>
+          <button type="button" class="ic-method${method === 'yarrow' ? ' on' : ''}" data-icmethod="yarrow">
+            <span class="ic-method-i">丨</span><span class="sp-name serif">Fifty yarrow stalks</span>
+            <span class="sp-n mono">eighteen divisions</span>
+            <span class="cc-size-h quote">The older way, and slower. Moving lines are rarer, and a moving yang is three times likelier than a moving yin — the readings have a different weather.</span></button>
+        </div></div>
+      ${divTogglesHTML()}
+      <p class="th-quote">The book is older than any of its readers and has been asked most of this before. What it is good for is not prediction; it is being handed a description of a situation you did not write, and finding out which parts you argue with.</p>
+      <div class="row" style="justify-content:flex-end"><button class="btn primary" id="icGo">Settle, then cast</button></div>
+    </div>
+    <div id="icOut"></div>`, 'wide');
+  bindDivToggles(m);
+  m.querySelectorAll('[data-icmethod]').forEach(b => b.onclick = () => {
+    method = b.dataset.icmethod; divPrefSet('castMethod', method);
+    m.querySelectorAll('[data-icmethod]').forEach(x => x.classList.toggle('on', x === b));
+    if(typeof sound === 'function') sound('click');
+  });
+
+  m.querySelector('#icGo').onclick = () => {
+    const soft = typeof reduced === 'function' && reduced();
+    m.querySelector('#icSetup').hidden = true;
+    const lines = [], rolls = [];
+    m.querySelector('#icOut').innerHTML = `<div class="ic-cer" id="icCer">
+      <canvas class="dv-motes" id="icMotes" aria-hidden="true"></canvas>
+      <button class="dv-mute mono" id="icMute"></button>
+      <div class="ic-stage">
+        <div class="ic-figwrap" id="icFigWrap">${ichingFigureHTML(lines)}</div>
+        <div class="ic-cast" id="icCast">
+          ${method === 'yarrow' ? ichingYarrowHTML()
+            : `<div class="ic-coins" id="icCoins">${[3, 3, 3].map((f, i) => ichingCoinHTML(f, i)).join('')}</div>`}
+          <div class="ic-total mono" id="icTotal"></div>
+        </div>
       </div>
-      <div class="row between"><span class="mono faint" id="icCount">no lines yet</span>
-        <button class="btn primary" id="icToss">toss the coins</button></div>
-      <div id="icOut"></div>
-    </div>`, 'wide');
-  const soft = typeof reduced === 'function' && reduced();
-  const lines = [];
-  const drawLines = () => {
-    m.querySelector('#icLines').innerHTML = ichingLinesHTML(lines);
-    m.querySelector('#icCount').textContent = lines.length ? `${lines.length} of 6 lines` : 'no lines yet';
-  };
-  drawLines();
-  m.querySelector('#icToss').onclick = () => {
-    if(lines.length >= 6) return;
-    const coins = [0, 0, 0].map(() => Math.random() < .5 ? 2 : 3);
-    const total = coins[0] + coins[1] + coins[2];
-    lines.push({v: total % 2 ? 1 : 0, moving: total === 6 || total === 9, total, coins});
-    const box = m.querySelector('#icCoins');
-    box.innerHTML = coins.map((c, i) => ichingCoinHTML(c, i)).join('');
-    if(!soft){ box.classList.remove('toss'); void box.offsetWidth; box.classList.add('toss'); }
-    sound('click'); drawLines();
-    if(lines.length < 6) return;
-    m.querySelector('#icToss').disabled = true;
-    const h = ichingLookup(ichingBinary(lines)), rel = ichingRelating(lines);
-    const settle = () => {
-      const nm = m.querySelector('#icName');
-      nm.hidden = false;
-      nm.innerHTML = `<span class="ic-num mono">hexagram ${h.i}</span><span class="ic-nm"></span>
-        <span class="ic-cn mono">${esc(h.c)}</span>${ichingTrigramsHTML(h.b)}`;
-      scrambleInto(nm.querySelector('.ic-nm'), h.n, 600);
-      const lw = m.querySelector('.ic-lines');
-      if(lw && !soft){ lw.classList.add('done'); setTimeout(() => lw.classList.remove('done'), 1200); }
-      m.querySelector('#icOut').innerHTML = `
-        <div class="mono faint ic-keys">${esc(h.k.join('  ·  '))}</div>
+      <div class="row between ic-bar">
+        <span class="mono faint" id="icCount"></span>
+        <button class="btn primary" id="icToss">${method === 'yarrow' ? 'divide the stalks' : 'toss the coins'}</button></div>
+    </div>
+    <div id="icRead" hidden></div>`;
+
+    const cer = m.querySelector('#icCer');
+    const field = dvFieldStart(m.querySelector('#icMotes'));
+    const mute = m.querySelector('#icMute');
+    const showMute = () => { mute.textContent = divPrefs().sound ? '♪ sound on' : '♪ sound off';
+      mute.classList.toggle('off', !divPrefs().sound); };
+    mute.onclick = () => { divPrefSet('sound', !divPrefs().sound); showMute();
+      if(divPrefs().sound) CeremonySound.chime(); else CeremonySound.close(); };
+    showMute();
+    const stopAll = () => { dvFieldStop(); CeremonySound.close(); };
+    const stage = document.getElementById('modals') || document.body;
+    const obs = new MutationObserver(() => { if(!stage.contains(m)){ stopAll(); obs.disconnect(); } });
+    obs.observe(stage, {childList: true});
+
+    const count = () => { m.querySelector('#icCount').textContent = lines.length >= 6
+      ? 'the hexagram is complete'
+      : `${method === 'yarrow' ? 'division' : 'toss'} ${lines.length + 1} of 6`; };
+    const redraw = () => { m.querySelector('#icFigWrap').innerHTML = ichingFigureHTML(lines);
+      const row = m.querySelector(`[data-row="${lines.length - 1}"]`);
+      if(row && !soft) row.classList.add('drawing'); };
+    count(); redraw();
+    field.ambient(14);
+    ichingCentering(() => { dvMoment('bowl'); m.querySelector('#icToss').focus(); });
+
+    let busy = false;
+    m.querySelector('#icToss').onclick = () => {
+      if(busy || lines.length >= 6) return;
+      busy = true;
+      const btn = m.querySelector('#icToss');
+      btn.disabled = true;
+      const roll = ichingToss(method);
+      const kind = IC_LINE_KIND[roll.total];
+      m.querySelector('#icTotal').innerHTML = '';
+
+      const settleLine = () => {
+        /* the total, then the line drawing itself into the figure */
+        m.querySelector('#icTotal').innerHTML =
+          `<span class="ic-tot-n">= ${roll.total}</span>
+           <span class="ic-tot-k" style="--lc:${kind.c}">${esc(kind.name)}${kind.moving ? ' · changing' : ''}</span>`;
+        setTimeout(() => {
+          lines.push(Object.assign(ichingLineOf(roll.total), {coins: roll.coins || null}));
+          rolls.push({toss: lines.length, total: roll.total, kind: kind.id,
+            coins: roll.coins || null, rounds: roll.rounds || null});
+          redraw(); count(); dvMoment('stone');
+          if(lines.length < 6){ busy = false; btn.disabled = false; }
+          else setTimeout(complete, soft ? 0 : 560);
+        }, soft ? 0 : 260);
+      };
+
+      if(method === 'yarrow'){
+        ichingDivideStalks(m.querySelector('#icYar'), roll, settleLine);
+      } else {
+        const box = m.querySelector('#icCoins');
+        box.innerHTML = roll.coins.map((f, i) => ichingCoinHTML(f, i)).join('');
+        ichingFlyCoins(box, roll.coins, settleLine);
+      }
+    };
+
+    function complete(){
+      const h = ichingLookup(ichingBinary(lines)), rel = ichingRelating(lines);
+      const fig = m.querySelector('#icFigWrap');
+      if(!soft){ fig.classList.add('done'); setTimeout(() => fig.classList.remove('done'), 1400); }
+      dvMoment('chord');
+      field.shimmer();
+      m.querySelector('#icCast').classList.add('spent');
+      m.querySelector('.ic-stage').classList.add('settled');
+      /* the pair, side by side, with the movement between them */
+      fig.innerHTML = `<div class="ic-pair${rel ? ' two' : ''}">
+        <figure class="ic-one">${ichingFigureHTML(lines)}${ichingHeadHTML(h, {scramble: true})}</figure>
+        ${rel ? `<div class="ic-arrow" aria-hidden="true"><span>→</span><span>→</span></div>
+          <figure class="ic-one rel">${ichingFigureHTML(
+            lines.map(l => ({v: l.moving ? (l.v ? 0 : 1) : l.v, moving: false,
+              total: (l.moving ? (l.v ? 0 : 1) : l.v) ? 7 : 8})))}${ichingHeadHTML(rel, {})}</figure>` : ''}
+      </div>${ichingTrigramNoteHTML(h.b)}`;
+      const nm = fig.querySelector('.ic-hnm');
+      if(nm){ if(soft) nm.textContent = h.n;
+        else { scrambleInto(nm, h.n, 800); setTimeout(() => dvMoment('tinkle'), 300); } }
+      if(rel && !soft){
+        fig.querySelector('.ic-one.rel').classList.add('arriving');
+        setTimeout(() => dvMoment('turning'), 900);
+      }
+
+      const box = m.querySelector('#icRead');
+      box.innerHTML = `<div class="mono faint ic-keys">${esc(h.k.join('  ·  '))}</div>
+        <div class="ic-res"><b class="serif">${h.i}. ${esc(h.n)}</b> <span class="mono faint">${esc(h.c)}</span></div>
         ${ichingReadingHTML(lines, h, rel)}
-        <section class="dv-yours"><h4 class="dv-sec-h">Your reflection</h4>
-          <p class="dv-yours-p">The hexagram describes a situation. Only you know which one.</p>
-          <div class="field"><textarea class="inp" id="icText" rows="5" placeholder="Not what the book says. What it says to you, about the thing you asked."></textarea></div>
-          <div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn primary" id="icSave">Keep the reading</button></div>
-        </section>`;
-      /* the old, compact result block is still the thing tests and the
-         record look for, so it stays — folded in above the long reading */
-      m.querySelector('#icOut').insertAdjacentHTML('afterbegin',
-        `<div class="ic-res"><b class="serif">${h.i}. ${esc(h.n)}</b> <span class="mono faint">${esc(h.c)}</span></div>`);
-      m.querySelector('#icSave').onclick = () => {
+        ${divKeepHTML(projects)}`;
+      box.hidden = false;
+      box.scrollIntoView({behavior: soft ? 'auto' : 'smooth', block: 'start'});
+      setTimeout(() => field.stop(), soft ? 0 : 6000);
+      m.querySelector('#dvSave').onclick = () => {
         divinationSave({system:'iching', question:m.querySelector('#icQ').value.trim(),
           title:`${h.i}. ${h.n}${rel ? ' → ' + rel.i + '. ' + rel.n : ''}`,
-          lines:lines.map(l => ({v:l.v, moving:l.moving})), hexagram:{i:h.i, n:h.n, c:h.c},
-          relating:rel ? {i:rel.i, n:rel.n} : null,
-          reading:m.querySelector('#icText').value.trim()});
-        sound('success'); toast('Kept in the Lived Record.'); m.remove(); rerender();
+          lines:lines.map(l => ({v:l.v, moving:l.moving, total:l.total})),
+          hexagram:{i:h.i, n:h.n, c:h.c}, relating:rel ? {i:rel.i, n:rel.n} : null,
+          method, tosses:rolls,
+          reading:m.querySelector('#dvText').value.trim(),
+          revisit:m.querySelector('#dvRevisit').checked,
+          projectId:m.querySelector('#dvProj')?.value || null});
+        stopAll(); sound('success'); toast('Kept in the Lived Record.'); m.remove(); rerender();
       };
-      m.querySelector('#icOut').scrollIntoView({behavior: soft ? 'auto' : 'smooth', block: 'start'});
-    };
-    if(soft) settle(); else setTimeout(settle, 700);
+    }
   };
 }
 /* ---------- the oracle ----------

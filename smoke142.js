@@ -146,18 +146,41 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('a moving line turns one hexagram into another', moved.from !== moved.to, `${moved.from} → ${moved.to}`);
   is('  and with none, nothing is becoming anything', moved.none, null);
   await p.evaluate(() => closeModals());
+  /* the consultation is a ceremony now: a method to choose, a moment to
+     settle, and six tosses that take their time */
   await p.evaluate(() => openIChing()); await p.waitForTimeout(400);
-  for(let i = 0; i < 6; i++){ await p.evaluate(() => document.querySelector('#icToss').click()); await p.waitForTimeout(160); }
+  await p.evaluate(() => document.querySelector('#icGo').click()); await p.waitForTimeout(400);
+  await p.evaluate(() => document.querySelector('.dv-veil .dv-skip').click()); await p.waitForTimeout(500);
+  const icReady = async () => { for(let k = 0; k < 120; k++){
+    if(await p.evaluate(() => { const x = document.querySelector('#icToss'); return !!x && !x.disabled; })) return true;
+    await p.waitForTimeout(200); } return false; };
+  for(let i = 0; i < 6; i++){
+    if(!await icReady()) break;
+    await p.evaluate(() => document.querySelector('#icToss').click());
+  }
   /* the coins are thrown and land before the hexagram names itself */
-  await p.waitForTimeout(1400);
+  for(let k = 0; k < 60; k++){
+    if(await p.evaluate(() => !!document.querySelector('#dvSave'))) break;
+    await p.waitForTimeout(250);
+  }
   /* scoped to the hexagram being cast: the reading below it draws the one it
      is turning into as well */
-  is('six tosses build six lines', await p.$$eval('#icLines .ic-line:not(.empty)', n => n.length), 6);
-  is('  each numbered in the order it was cast', await p.$$eval('#icLines .ic-n', n => n.length), 6);
-  is('  three coins are shown for the last throw', await p.$$eval('.ic-coin', n => n.length), 3);
+  is('six tosses build six lines', await p.evaluate(() =>
+    document.querySelectorAll('#icFigWrap .ic-one:first-child .ic-row:not(.empty)').length
+      || document.querySelectorAll('#icFigWrap .ic-row:not(.empty)').length), 6);
+  is('  each numbered in the order it was cast', await p.evaluate(() =>
+    document.querySelectorAll('#icFigWrap .ic-one:first-child .ic-n').length
+      || document.querySelectorAll('#icFigWrap .ic-n').length), 6);
+  is('  three coins were thrown for it', await p.$$eval('.ic-coin', n => n.length), 3);
   yes('  and name the hexagram', await p.evaluate(() => /^\d+\./.test(document.querySelector('.ic-res b')?.textContent || '')),
       await p.evaluate(() => document.querySelector('.ic-res b')?.textContent));
-  yes('  with its trigrams', await p.evaluate(() => /above/.test(document.querySelector('.ic-tri')?.textContent || '')));
+  /* the trigrams are named under the figure now, and drawn rather than set
+     in a font that has no glyph for them */
+  yes('  with its trigrams named', await p.evaluate(() =>
+    /above/.test(document.querySelector('.ic-htri')?.textContent || '')));
+  /* two per head, and there may be a second head for what it is becoming */
+  yes('  and drawn', await p.evaluate(() =>
+    document.querySelector('.ic-htri').querySelectorAll('.ic-tg').length === 2));
   yes('  the judgment is interpreted, not just quoted', await p.evaluate(() =>
     (document.querySelector('.ic-reading')?.textContent || '').length > 600));
   yes('  and the image with it', await p.evaluate(() =>
@@ -165,7 +188,9 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   /* the coins exist in order to single out particular lines; a reading that
      names the moving lines and does not say what they say has thrown the
      whole method away */
-  const mv = await p.evaluate(() => ({moving: document.querySelectorAll('.ic-line.moving').length,
+  const mv = await p.evaluate(() => ({
+    moving: document.querySelectorAll('#icFigWrap .ic-one:first-child .ic-row.moving').length
+      || document.querySelectorAll('#icFigWrap .ic-row.moving').length,
     given: document.querySelectorAll('.ic-lineread').length,
     becoming: !!document.querySelector('.ic-moving')}));
   is('  every changing line is given its own text', mv.given, mv.moving);

@@ -303,43 +303,48 @@ function scrambleInto(el, text, ms = 600){
    has thrown away the only reason to use coins rather than pick a hexagram
    out of a hat. So the moving lines are given, in full, in their place.
    ============================================================ */
-const TRIGRAMS = {
-  '111': ['☰', 'Qián', 'Heaven'], '000': ['☷', 'Kūn', 'Earth'],
-  '100': ['☳', 'Zhèn', 'Thunder'], '010': ['☵', 'Kǎn', 'Water'],
-  '001': ['☶', 'Gèn', 'Mountain'], '011': ['☴', 'Xùn', 'Wind'],
-  '101': ['☲', 'Lí', 'Fire'], '110': ['☱', 'Duì', 'Lake'],
-};
+/* The eight are written out once, in TRIGRAM_FULL — symbol, sound,
+   character, attributes, image, element and quarter of the compass. There
+   used to be a second, shorter copy here; two copies of eight things is
+   two copies that drift. */
 const ichingRich = n => (typeof ICHING_RICH !== 'undefined' && ICHING_RICH[n - 1]) || null;
 
-/* the six lines, bottom to top, at a size worth looking at */
+/* The six lines, bottom to top. The figure itself is drawn by
+   ichingFigureHTML in 16-divination-ichingcast.js — this is the name the
+   rest of the app already calls it by, kept so a hexagram is one drawing
+   wherever it appears rather than two that drift apart. */
 function ichingLinesHTML(lines, cls = ''){
-  return `<div class="ic-lines ${cls}">` + [5, 4, 3, 2, 1, 0].map(i => {
-    const l = lines[i];
-    if(!l) return `<div class="ic-line empty"><span class="ic-n mono">${i + 1}</span><span class="ic-bar"></span></div>`;
-    return `<div class="ic-line ${l.v ? 'yang' : 'yin'}${l.moving ? ' moving' : ''}" style="--d:${(i * .07).toFixed(2)}s">
-      <span class="ic-n mono">${i + 1}</span>
-      <span class="ic-bar">${l.v ? '<i class="full"></i>' : '<i class="half"></i><i class="half"></i>'}</span>
-      ${l.moving ? '<span class="ic-mv mono">changing</span>' : ''}</div>`;
-  }).join('') + '</div>';
+  return ichingFigureHTML(lines, {small: /small/.test(cls), cls});
 }
 
 /* the trigrams a hexagram is made of, which is how it is named and how
    anyone who reads the book actually recognises it */
 function ichingTrigramsHTML(bin){
-  const lower = TRIGRAMS[bin.slice(0, 3)], upper = TRIGRAMS[bin.slice(3, 6)];
+  const lower = hexLower(bin), upper = hexUpper(bin);
   if(!lower || !upper) return '';
-  return `<div class="ic-tri mono">${upper[0]} ${esc(upper[2])} above · ${lower[0]} ${esc(lower[2])} below</div>`;
+  const plain = t => t.en.split(' · ')[0];
+  return `<div class="ic-tri mono">${trigramMark(upper)} ${esc(plain(upper))} above · ${trigramMark(lower)} ${esc(plain(lower))} below</div>`;
 }
 
-/* three ancient coins: a circle with a square hole, which is what a Chinese
-   coin is and what makes a row of them read as a cast rather than as discs */
-function ichingCoinHTML(face, i){
-  return `<span class="ic-coin ${face === 3 ? 'heads' : 'tails'}" style="--i:${i}">
-    <svg viewBox="0 0 40 40" aria-hidden="true">
-      <circle cx="20" cy="20" r="18" class="ic-c-body"/>
-      <circle cx="20" cy="20" r="18" class="ic-c-rim"/>
-      <rect x="14" y="14" width="12" height="12" rx="1" class="ic-c-hole"/>
-    </svg><b>${face === 3 ? '陽' : '陰'}</b></span>`;
+/* The coin is drawn in 16-divination-ichingcast.js, where the cast is —
+   it has two faces and a tumble now, which is more than a render helper. */
+
+/* What the movement between the two hexagrams is, said rather than only
+   drawn. Template-built out of the two names and the lines actually in
+   motion, like the tarot's story paragraph and for the same reason: to get
+   the reader as far as a first sentence of their own. */
+function ichingMovementText(h, rel, moving){
+  const where = moving.length === 1
+    ? `Line ${moving[0] + 1} is the one in motion`
+    : `Lines ${moving.map(i => i + 1).join(', ').replace(/, (\d+)$/, ' and $1')} are in motion`;
+  const rh = typeof ichingRich === 'function' ? ichingRich(h.i) : null;
+  const rr2 = typeof ichingRich === 'function' ? ichingRich(rel.i) : null;
+  const first = t => t ? (t.split(/(?<=\.)\s/)[0] || t) : '';
+  const lower = t => t.replace(/^[A-Z]/, c => c.toLowerCase()).replace(/\.$/, '');
+  return `This reading moves from ${h.c} ${h.n} toward ${rel.c} ${rel.n}. ${where}, `
+    + `which is where the situation is already giving way. `
+    + (rh ? `What you have is ${lower(first(rh.d))} — ` : '')
+    + (rr2 ? `what it is becoming is ${lower(first(rr2.d))}.` : `${rel.n} is what it becomes.`);
 }
 
 /* the whole reading: judgment and what it is saying, the image, every
@@ -361,11 +366,15 @@ function ichingReadingHTML(lines, h, rel){
         <p>${esc(r ? r.L[i] : '')}</p></div>`).join('')}
       <p class="mono faint">A changing line is the part of the situation that is already in motion. It is why the reading has a second hexagram.</p>
       </section>` : `<p class="mono faint">No changing lines: the situation is not, for the moment, in motion.</p>`}
-    ${rel ? `<section class="ic-sec ic-moving"><h4 class="dv-sec-h">Moving toward</h4>
+    ${rel ? `<section class="ic-sec ic-moving"><h4 class="dv-sec-h">The movement</h4>
+      <p class="dv-cr-t">${esc(ichingMovementText(h, rel, moving))}</p>
       <div class="ic-relhead"><b class="serif">${rel.i}. ${esc(rel.n)}</b> <span class="mono faint">${esc(rel.c)}</span></div>
-      ${ichingLinesHTML(lines.map(l => ({v: l.moving ? (l.v ? 0 : 1) : l.v, moving: false})), 'small')}
+      ${ichingLinesHTML(lines.map(l => ({v: l.moving ? (l.v ? 0 : 1) : l.v, moving: false,
+        total: (l.moving ? (l.v ? 0 : 1) : l.v) ? 7 : 8})), 'small')}
       <blockquote class="ic-quote">${esc(rel.j)}</blockquote>
-      ${rr ? `<p class="dv-cr-t">${esc(rr.d.split('\n\n')[0])}</p>` : ''}</section>` : ''}
+      ${rr ? `<p class="dv-cr-t">${esc(rr.d.split('\n\n')[0])}</p>` : ''}
+      <p class="mono faint">The second hexagram is not a prediction. It is what this situation becomes if the
+        lines already in motion finish moving — which they may not.</p></section>` : ''}
     ${r && r.q.length ? `<section class="ic-sec"><h4 class="dv-sec-h">Questions</h4>
       <ul class="dv-cr-q">${r.q.map(q => `<li>${esc(q)}</li>`).join('')}</ul></section>` : ''}
   </div>`;

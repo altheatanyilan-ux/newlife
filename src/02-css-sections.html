@@ -4874,6 +4874,31 @@ select.sm-active{border-color:var(--page-accent);
   box-shadow:0 3px 10px rgba(0,0,0,.16)}
 .cc-symin{text-align:center;font-size:1.2rem}
 @media (prefers-reduced-motion:reduce){.cd-ctile{transition:none}}
+/* the sixty-four as a square: upper trigram down the side, lower across */
+.cd-grid.hexsquare{display:block;overflow:auto}
+.cd-hexnote{font-size:.56rem;letter-spacing:.09em;text-transform:uppercase;color:var(--faint);margin-bottom:7px}
+.cd-hex{border-collapse:collapse;margin:0 auto}
+.cd-hex th{padding:4px;color:var(--muted);font-weight:400}
+.cd-hex td{padding:2px}
+.cd-hexcell{position:relative;width:38px;height:32px;border-radius:7px;border:1px solid var(--line);
+  background:var(--surface);cursor:pointer;font-family:var(--mono);font-size:.66rem;color:var(--faint);
+  transition:border-color .15s var(--ease),color .15s var(--ease),transform .15s var(--ease)}
+.cd-hexcell:hover{border-color:var(--page-accent);color:var(--text);transform:translateY(-2px)}
+.cd-hexcell.seen{color:var(--text);border-color:color-mix(in srgb,var(--terra,#b08968) 45%,transparent)}
+.cd-dot{position:absolute;top:3px;right:4px;width:4px;height:4px;border-radius:50%;
+  background:var(--terra,#b08968)}
+.cd-grid.hexlist{display:flex;flex-direction:column;gap:6px}
+.cd-hexrow{display:flex;gap:13px;align-items:center;text-align:left;background:none;cursor:pointer;
+  border:1px solid var(--line);border-radius:10px;padding:8px 12px;color:var(--text)}
+.cd-hexrow:hover{border-color:var(--page-accent)}
+.cd-hexrow.dim{opacity:.5}
+.cd-hexrow.dim:hover{opacity:1}
+.cd-hexrow .ic-fig{margin:0;flex:0 0 74px;max-width:74px;padding:0}
+.cd-hexrow .mono{font-size:.6rem;color:var(--faint);margin-left:7px}
+.cd-hexrow .cd-t-n{position:static;margin-left:auto;background:none;color:var(--faint)}
+.cd-hexbig{flex:0 0 auto;width:210px}
+.cd-hexbig .ic-fig{margin:0;max-width:210px}
+.ic-page .cd-head h3{margin:0}
 .cd-page{display:flex;flex-direction:column;gap:18px}
 .cd-head{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
 .cd-head .tc{flex:0 0 auto;perspective:none}
@@ -4975,28 +5000,61 @@ select.sm-active{border-color:var(--page-accent);
 /* stretch, not centre: centring the column makes every child shrink to its
    own content, and a hexagram that shrinks to its content is six dashes */
 .ic-build{display:flex;flex-direction:column;align-items:stretch;gap:16px;padding:14px 0}
-.ic-lines{display:flex;flex-direction:column;gap:12px;align-items:stretch;
-  width:100%;max-width:400px;margin:0 auto}
-.ic-line{display:flex;gap:10px;align-items:center;position:relative;
-  animation:icLineIn .5s var(--ease) both;animation-delay:var(--d,0s)}
-.ic-line .ic-n{width:14px;flex:none;font-size:.6rem;color:var(--faint);text-align:right}
-.ic-bar{flex:1;display:flex;gap:20px;height:8px}
-.ic-line i{height:8px;border-radius:2px;background:var(--ink);flex:1}
+
+/* --- the figure --- */
+.ic-fig{position:relative;width:100%;max-width:300px;margin:0 auto;padding:0 46px 0 22px}
+.ic-rows{display:flex;flex-direction:column;gap:6px}
+.ic-row{display:flex;gap:9px;align-items:center;position:relative;height:10px;
+  animation:icLineIn .45s var(--ease) both;animation-delay:var(--d,0s)}
+.ic-row .ic-n{position:absolute;left:-22px;width:14px;font-size:.56rem;color:var(--faint);text-align:right}
+.ic-row .ic-mk{position:absolute;right:-16px;font-size:.72rem;line-height:1;color:var(--lc,var(--terra))}
+.ic-bar{flex:1;display:flex;gap:28px;height:10px}
+.ic-row i{height:10px;border-radius:2px;background:var(--ic-line,#6b5744);flex:1;
+  transform-origin:center;animation:icDraw .4s var(--ease) both;animation-delay:var(--d,0s)}
+:root[data-theme="dark"] .ic-row i,:root:not([data-theme="light"]) .ic-row i{--ic-line:#c4b89a}
 /* `.empty` is also the house class for an empty-state message, which brings
    padding and an italic face with it — a line not yet cast wants neither */
-.ic-line.empty{padding:0;font-style:normal}
-.ic-line.empty .ic-bar{border-bottom:1px dashed var(--line-2);height:8px}
-.ic-line.moving i{background:var(--terra,#b4462f);animation:icMoving 3s ease-in-out infinite}
-.ic-mv{position:absolute;right:0;top:-10px;font-size:.54rem;letter-spacing:.1em;
-  text-transform:uppercase;color:var(--terra,#b4462f);
-  background:var(--surface);padding:0 4px;border-radius:3px}
-.ic-lines.done .ic-bar{box-shadow:0 0 0 2px color-mix(in srgb,var(--terra,#b4462f) 40%,transparent)}
-.ic-lines.small{max-width:170px;gap:6px}
-.ic-lines.small .ic-bar{height:5px;gap:12px}
-.ic-lines.small i{height:5px}
-.ic-lines.small .ic-n{display:none}
-@keyframes icLineIn{from{opacity:0;transform:translateY(10px) scaleX(.85)}to{opacity:1;transform:none}}
-@keyframes icMoving{0%,100%{opacity:.55}50%{opacity:1}}
+.ic-row.empty{padding:0;font-style:normal;animation:none}
+.ic-row.empty .ic-bar{border-bottom:1px dashed var(--line-2);height:10px;opacity:.4}
+/* a changing line is the part already in motion, and says so by breathing */
+.ic-row.moving i{box-shadow:0 0 0 0 var(--lc);animation:icDraw .4s var(--ease) both,icMoving 3s ease-in-out infinite .4s}
+.ic-row.drawing i{animation:icDraw .4s var(--ease) both,icFlash .7s var(--ease) .1s}
+/* the two trigrams are separate things, and the figure should say so */
+.ic-div{height:0;border-top:1px dotted var(--line-2);opacity:.5;margin:1px 0}
+.ic-trilab{position:absolute;right:-2px;font-size:.52rem;letter-spacing:.08em;color:var(--faint);
+  white-space:nowrap;line-height:1}
+.ic-trilab b{font-size:.8rem;font-weight:400;line-height:1}
+/* the trigram, drawn rather than set in a font that does not have it */
+.ic-tg{display:inline-block;vertical-align:-.12em;fill:currentColor;opacity:.72}
+.ic-trilab .ic-tg,.ic-htri .ic-tg,.ic-tri .ic-tg{opacity:.6}
+.ic-trisym .ic-tg{opacity:.85}
+.ic-trilab.up{top:14px}
+.ic-trilab.lo{bottom:14px}
+.ic-fig.done,.ic-figwrap.done .ic-fig{border-radius:12px;
+  box-shadow:0 0 30px color-mix(in srgb,var(--gold,#d4a44c) 30%,transparent)}
+.ic-fig.small{max-width:160px;padding:0 8px 0 4px}
+.ic-fig.small .ic-bar{height:6px;gap:16px}
+.ic-fig.small i{height:6px}
+.ic-fig.small .ic-n,.ic-fig.small .ic-trilab{display:none}
+.ic-fig.small .ic-row{height:6px;gap:5px}
+.ic-fig.small .ic-rows{gap:4px}
+.ic-fig.small .ic-mk{right:-11px;font-size:.6rem}
+@keyframes icLineIn{from{opacity:0}to{opacity:1}}
+@keyframes icDraw{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes icFlash{0%,100%{box-shadow:0 0 0 0 transparent}
+  40%{box-shadow:0 0 14px 2px color-mix(in srgb,var(--lc,var(--gold)) 60%,transparent)}}
+@keyframes icMoving{0%,100%{box-shadow:0 0 6px 0 color-mix(in srgb,var(--lc) 30%,transparent)}
+  50%{box-shadow:0 0 14px 2px color-mix(in srgb,var(--lc) 70%,transparent)}}
+
+/* --- the named head under a figure --- */
+.ic-head{text-align:center;display:flex;flex-direction:column;gap:2px;align-items:center;margin-top:14px;
+  animation:vbFade .6s var(--ease) both}
+.ic-hnum{font-size:.56rem;letter-spacing:.16em;text-transform:uppercase;color:var(--faint)}
+.ic-hcn{font-family:var(--han,var(--serif));font-size:2rem;line-height:1.15;color:var(--ink)}
+.ic-hnm{font-size:1.12rem;line-height:1.2;min-height:1.2em;font-variant:small-caps;letter-spacing:.04em}
+.ic-htri{font-size:.58rem;letter-spacing:.06em;color:var(--faint);margin-top:2px}
+.ic-head.small .ic-hcn{font-size:1.3rem}
+.ic-head.small .ic-hnm{font-size:.9rem}
 .ic-name{text-align:center;display:flex;flex-direction:column;gap:2px;align-items:center;
   animation:vbFade .6s var(--ease) both}
 .ic-name .ic-num{font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:var(--faint)}
@@ -5004,25 +5062,101 @@ select.sm-active{border-color:var(--page-accent);
 .ic-name .ic-cn{font-size:.72rem;color:var(--muted)}
 .ic-tri{font-size:.62rem;letter-spacing:.06em;color:var(--faint);margin-top:3px}
 .ic-keys{font-size:.66rem;letter-spacing:.1em;text-align:center;margin:10px 0 4px}
-/* three ancient coins: a circle with a square hole */
-.ic-coins{display:flex;gap:14px;min-height:44px;align-items:center;justify-content:center}
-.ic-coin{width:40px;height:40px;position:relative;display:inline-flex;align-items:center;justify-content:center}
-.ic-coin svg{position:absolute;inset:0;width:100%;height:100%}
-.ic-coin .ic-c-body{fill:var(--surface-3)}
-.ic-coin .ic-c-rim{fill:none;stroke:var(--line-2);stroke-width:1.5}
+
+/* --- the pair, when there are changing lines --- */
+.ic-pair{display:flex;gap:20px;align-items:flex-start;justify-content:center;flex-wrap:wrap}
+.ic-one{margin:0;flex:0 1 300px}
+.ic-one.rel{opacity:.94}
+.ic-one.rel.arriving .ic-fig i{animation:icDraw .6s var(--ease) both;animation-delay:calc(1s + var(--d,0s))}
+.ic-one.rel.arriving .ic-head{animation:vbFade .6s var(--ease) 1.3s both}
+.ic-arrow{display:flex;flex-direction:column;align-self:center;color:var(--faint);font-size:1.1rem;line-height:.9}
+.ic-arrow span{animation:icDrift 2s ease-in-out infinite}
+.ic-arrow span:last-child{animation-delay:.35s;opacity:.5}
+@keyframes icDrift{0%,100%{transform:translateX(-2px)}50%{transform:translateX(2px)}}
+
+/* --- the coins --- */
+.ic-coins{display:flex;gap:24px;min-height:96px;align-items:center;justify-content:center;perspective:700px}
+.ic-coin{width:60px;height:60px;position:relative;display:inline-flex;align-items:center;justify-content:center}
+.ic-coin-in{position:absolute;inset:0;transform-style:preserve-3d}
+.ic-coin .ic-face{position:absolute;inset:0;width:100%;height:100%;backface-visibility:hidden}
+.ic-coin .ic-face.yin{transform:rotateX(180deg)}
+/* aged bronze: the fill, a lighter rim, the page showing through the hole */
+.ic-coin .ic-c-body{fill:#9a8a65}
+.ic-coin .ic-c-rim{fill:none;stroke:#7a6a45;stroke-width:2}
+.ic-coin .ic-c-rim.in{stroke-width:.7;opacity:.5}
 .ic-coin .ic-c-hole{fill:var(--surface)}
-.ic-coin.heads .ic-c-body{fill:color-mix(in srgb,var(--gold,#d4a44c) 34%,var(--surface-3))}
-.ic-coin.heads .ic-c-rim{stroke:color-mix(in srgb,var(--gold,#d4a44c) 70%,transparent)}
-.ic-coin b{position:relative;font-family:var(--han,var(--serif));font-size:.78rem;font-weight:400;
-  color:var(--muted);z-index:1}
-.ic-coin.heads b{color:color-mix(in srgb,var(--gold,#d4a44c) 80%,var(--text))}
-.ic-coins.toss .ic-coin{animation:icToss .6s cubic-bezier(.36,.07,.3,1) both;animation-delay:calc(var(--i) * .06s)}
-@keyframes icToss{
-  0%{transform:translateY(0) rotate(0)}
-  42%{transform:translateY(-58px) rotate(340deg)}
-  76%{transform:translateY(5px) rotate(690deg)}
-  88%{transform:translateY(-3px) rotate(715deg)}
-  100%{transform:translateY(0) rotate(720deg)}}
+.ic-coin .ic-c-pat{fill:none;stroke:#5a4a30;stroke-width:.6;opacity:.16}
+.ic-coin .ic-c-mark{fill:#4a3c24;opacity:.72}
+.ic-coin .ic-c-ch{font-family:var(--han,var(--serif));font-size:7px;fill:#6b5a3a;opacity:.6;text-anchor:middle}
+:root[data-theme="dark"] .ic-coin,:root:not([data-theme="light"]) .ic-coin{}
+:root[data-theme="dark"] .ic-coin .ic-c-body,:root:not([data-theme="light"]) .ic-coin .ic-c-body{fill:#8b7b55}
+:root[data-theme="dark"] .ic-coin .ic-c-rim,:root:not([data-theme="light"]) .ic-coin .ic-c-rim{stroke:#a09060}
+:root[data-theme="dark"] .ic-coin .ic-c-mark,:root:not([data-theme="light"]) .ic-coin .ic-c-mark{fill:#e0cf9c;opacity:.8}
+:root[data-theme="dark"] .ic-coin .ic-c-ch,:root:not([data-theme="light"]) .ic-coin .ic-c-ch{fill:#c0a870}
+/* the shadow it casts, which is most of why it reads as an object in the air */
+.ic-coin-sh{position:absolute;left:50%;bottom:-12px;width:44px;height:8px;border-radius:50%;
+  transform:translateX(-50%);background:rgba(0,0,0,.22);filter:blur(3px)}
+.ic-coin-v{position:absolute;bottom:-30px;left:50%;transform:translateX(-50%);
+  font-size:.62rem;color:var(--faint);opacity:0;transition:opacity .3s var(--ease)}
+.ic-coin.landed .ic-coin-v{opacity:1}
+.ic-coin.landed{animation:icLand .4s var(--ease)}
+@keyframes icLand{0%,100%{filter:none}35%{filter:drop-shadow(0 0 9px color-mix(in srgb,var(--gold,#d4a44c) 70%,transparent))}}
+.ic-total{text-align:center;min-height:2.1em;margin-top:26px;display:flex;flex-direction:column;gap:1px}
+.ic-tot-n{font-size:1.05rem;letter-spacing:.06em}
+.ic-tot-k{font-size:.58rem;letter-spacing:.13em;text-transform:uppercase;color:var(--lc,var(--faint))}
+
+/* --- the stalks --- */
+/* room under the bundle for the line that says what is happening to it */
+.ic-yar{position:relative;min-height:126px;padding-bottom:34px;display:flex;align-items:flex-end;
+  justify-content:center;gap:18px}
+.ic-yar-bundle{display:flex;gap:1px;align-items:flex-end;transition:gap .4s var(--ease)}
+.ic-yar-bundle.split{gap:2px}
+.ic-yar i,.ic-yar-set i{display:block;width:2px;height:80px;border-radius:1px;background:#9a8a65;
+  transform:rotate(var(--r,0deg));transform-origin:bottom center;
+  transition:opacity .3s var(--ease),transform .3s var(--ease)}
+.ic-yar i.gone{opacity:.12;transform:translateY(6px) rotate(var(--r,0deg))}
+.ic-yar-set{align-self:flex-end;transition:opacity .4s var(--ease),transform .4s var(--ease)}
+.ic-yar-set.gone{opacity:.3;transform:translateX(-10px) rotate(-14deg)}
+.ic-yar-say{position:absolute;bottom:2px;left:0;right:0;text-align:center;line-height:1.5;
+  font-family:var(--lora,var(--serif));font-style:italic;font-size:.78rem;color:var(--muted)}
+
+/* --- the ceremony around it --- */
+.ic-cer{position:relative;padding-top:14px}
+.ic-cer .dv-motes{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3}
+.ic-stage{display:flex;gap:26px;align-items:flex-start;justify-content:center;flex-wrap:wrap;
+  position:relative;z-index:1}
+.ic-figwrap{flex:1 1 300px;max-width:380px;transition:max-width .4s var(--ease)}
+/* the cast is over: the figure (or the pair of them) takes the whole room */
+.ic-stage.settled .ic-figwrap{max-width:100%;flex-basis:100%}
+.ic-cast{flex:1 1 300px;max-width:400px;padding-top:10px;transition:opacity .5s var(--ease)}
+.ic-cast.spent{opacity:0;pointer-events:none;height:0;overflow:hidden;margin:0;padding:0}
+.ic-bar{margin-top:14px;align-items:center}
+.ic-methods{display:flex;gap:8px;flex-wrap:wrap}
+.ic-method{flex:1 1 220px;display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:12px 11px;border:1px solid var(--line);border-radius:11px;background:var(--surface);cursor:pointer;
+  transition:border-color .18s var(--ease),transform .18s var(--ease),background .18s var(--ease)}
+.ic-method:hover{border-color:var(--page-accent);transform:translateY(-2px)}
+.ic-method.on{border-color:var(--page-accent);background:color-mix(in srgb,var(--page-accent) 10%,var(--surface))}
+.ic-method-i{font-size:1.5rem;line-height:1.1;color:var(--muted)}
+.ic-method.on .ic-method-i{color:var(--page-accent)}
+/* a wash of ink behind the settling screen, moving at the speed of nothing */
+.ic-wash{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.1}
+.ic-wash path{fill:#d8c9ea;animation:icWash 26s ease-in-out infinite alternate}
+.ic-wash path.two{fill:#b08968;animation-duration:34s;animation-direction:alternate-reverse}
+@keyframes icWash{from{transform:translateX(-6%)}to{transform:translateX(6%)}}
+/* the two trigrams, explained, for anyone learning the book */
+.ic-trinotes{margin-top:16px;max-width:520px;margin-left:auto;margin-right:auto}
+.ic-trinote{margin:10px 0}
+.ic-trinote-h{display:flex;gap:9px;align-items:baseline;flex-wrap:wrap}
+.ic-trisym{font-size:1.2rem;line-height:1}
+.ic-trinote-h .mono{font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+@media (prefers-reduced-motion:reduce){
+  .ic-row,.ic-row i,.ic-name,.ic-head{animation:none}
+  .ic-row.moving i{animation:none;box-shadow:0 0 8px 1px color-mix(in srgb,var(--lc) 55%,transparent)}
+  .ic-arrow span,.ic-wash path{animation:none}
+  .ic-coin.landed{animation:none}
+  .ic-one.rel.arriving .ic-fig i,.ic-one.rel.arriving .ic-head{animation:none}}
+
 /* the reading under it */
 .ic-reading{display:flex;flex-direction:column;gap:22px;margin-top:18px;
   border-top:1px solid var(--line);padding-top:18px;max-width:640px}
@@ -5036,10 +5170,6 @@ select.sm-active{border-color:var(--page-accent);
 .ic-moving{border-top:1px solid var(--line);padding-top:16px}
 .ic-relhead{margin-bottom:10px}
 .ic-relhead b{font-size:1.05rem}
-@media (prefers-reduced-motion:reduce){
-  .ic-line,.ic-name{animation:none}
-  .ic-line.moving i{animation:none;opacity:1}
-  .ic-coins.toss .ic-coin{animation:none}}
 .ic-res{border-left:2px solid var(--terra,#b4462f);padding-left:11px;margin:8px 0}
 .ic-res.second{border-left-color:var(--sage,#7f916a);opacity:.9}
 .ic-j{font-family:var(--lora,var(--serif));font-style:italic;margin:6px 0 2px;line-height:1.55}

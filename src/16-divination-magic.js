@@ -30,6 +30,7 @@ function divPrefs(){
   if(typeof d.volume     !== 'number')  d.volume = .3;
   if(typeof d.spread     !== 'string')  d.spread = 'ppf';
   if(typeof d.castSize   !== 'string')  d.castSize = 'standard';
+  if(typeof d.castMethod !== 'string')  d.castMethod = 'coins';
   if(typeof d.quickWith  !== 'string')  d.quickWith = 'tarot';
   if(!Array.isArray(d.customSpreads))   d.customSpreads = [];
   if(!Array.isArray(d.customCharms))    d.customCharms = [];
@@ -295,6 +296,29 @@ const CeremonySound = {
   /* the bowl again when everything has stopped moving, quieter */
   bowlQuiet(){ this.tone(220, {attack: .5, hold: .6, release: 1.4, peak: .05});
                this.tone(330, {attack: .55, hold: .5, release: 1.4, peak: .018}); },
+
+  /* --- the coins and the stalks --- */
+  /* metal leaving the hand */
+  ching(){ this.tone(2000, {attack: .002, hold: .006, release: .04, peak: .045});
+           this.tone(1500, {attack: .002, hold: .006, release: .05, peak: .022}); },
+  /* one coin finding the table */
+  clink(){ this.tone(760 + Math.random() * 160, {attack: .002, hold: .004, release: .05, peak: .05});
+           this.tone(1900 + Math.random() * 300, {attack: .002, hold: .003, release: .03, peak: .012}); },
+  /* the total, once the three have settled */
+  softchime(){ this.tone(1200, {attack: .004, hold: .01, release: .09, peak: .035}); },
+  /* a line put down into the figure — low and blunt, a stone rather than a bell */
+  stone(){ this.tone(400, {attack: .004, hold: .012, release: .11, peak: .08});
+           this.tone(200, {attack: .006, hold: .02, release: .16, peak: .035}); },
+  /* two stalks knocking together as the bundle divides */
+  clack(){ this.tone(800, {attack: .002, hold: .004, release: .03, peak: .04});
+           this.tone(600, {at: .018, attack: .002, hold: .004, release: .035, peak: .03}); },
+  /* one stalk counted off */
+  tick(){ this.tone(1000, {attack: .001, hold: .002, release: .02, peak: .014}); },
+  /* the second hexagram arriving: a step down from the first chord, which is
+     what a resolution sounds like */
+  turning(){ this.noise(.5, {freq: 700, sweepTo: 1600, q: .8, peak: .03});
+             [196, 246.9, 293.7].forEach((f, i) =>
+               this.tone(f, {at: .12, attack: .7, hold: 1, release: 1.6, peak: i ? .04 : .058})); },
 
   /* between readings: let the context go rather than hold the audio
      hardware open for a page nobody is listening to */

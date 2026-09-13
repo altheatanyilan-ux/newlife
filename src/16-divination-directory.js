@@ -124,11 +124,60 @@ function charmPattern(charm, apps){
   return t.trim();
 }
 
+/* ---------- every reading a hexagram has come up in ----------
+   A hexagram can arrive twice in one reading — once as what is, once as
+   what it is becoming — and those are different things to have seen. */
+function hexAppearances(num){
+  const out = [];
+  (S.entries || []).forEach(e => {
+    if(e.type !== 'divination') return;
+    const d = divinationOf(e); if(!d || d.system !== 'iching') return;
+    const moving = (d.lines || []).map((l, i) => l.moving ? i + 1 : 0).filter(Boolean);
+    if(d.hexagram && d.hexagram.i === num) out.push({entry: e, day: e.occurredAt, at: e.createdAt || e.occurredAt,
+      as: 'cast', moving, toward: d.relating || null, method: d.method || 'coins',
+      question: d.question || '', note: e.body || ''});
+    if(d.relating && d.relating.i === num) out.push({entry: e, day: e.occurredAt, at: e.createdAt || e.occurredAt,
+      as: 'becoming', moving, from: d.hexagram || null, method: d.method || 'coins',
+      question: d.question || '', note: e.body || ''});
+  });
+  return out.sort((a, b) => (b.at || '') < (a.at || '') ? -1 : 1);
+}
+function hexCounts(){
+  const n = {};
+  (S.entries || []).forEach(e => {
+    if(e.type !== 'divination') return;
+    const d = divinationOf(e); if(!d || d.system !== 'iching') return;
+    if(d.hexagram) n[d.hexagram.i] = (n[d.hexagram.i] || 0) + 1;
+    if(d.relating) n[d.relating.i] = (n[d.relating.i] || 0) + 1;
+  });
+  return n;
+}
+/* the eight, in the order the traditional lookup square uses */
+const HEX_GRID_ORDER = ['111', '000', '101', '010', '100', '011', '001', '110'];
+/* a hexagram's binary is its lower trigram then its upper */
+const hexByTrigrams = (lower, upper) => ICHING.find(h => h.b === lower + upper) || null;
+
+/* what a hexagram's history says, if it has one */
+function hexPattern(h, apps){
+  if(!apps.length) return 'You have not cast this one. Sixty-four is a lot of weather; most of it has not been yours yet.';
+  const cast = apps.filter(a => a.as === 'cast').length, toward = apps.length - cast;
+  const moving = apps.filter(a => a.as === 'cast' && a.moving.length).length;
+  let t = `It has come up ${apps.length} time${apps.length === 1 ? '' : 's'}`;
+  if(cast && toward) t += ` — ${cast} as the situation, ${toward} as what a situation was turning into`;
+  else if(toward) t += ', and always as what something else was becoming rather than as the cast itself';
+  t += '. ';
+  if(cast) t += moving === 0 ? 'Never with a line in motion, so far: the book has been describing something settled.'
+    : moving === cast ? 'Always with something already moving in it.'
+    : `${moving} of those ${cast} had a line already moving.`;
+  return t;
+}
+
 /* ---------- the directory ---------- */
 function openCardDirectory(startAt){
   let tab = 'major', q = '';
   const counts = cardCounts();
   const charmN = charmCounts();
+  const hexN = hexCounts();
   const m = openModal(`<h2>The deck</h2>
     <div class="stack" id="cdWrap">
       <p class="dv-yours-p">All seventy-eight, what each one means, and what each one has meant to you.
@@ -136,7 +185,8 @@ function openCardDirectory(startAt){
       <input class="inp" id="cdFind" placeholder="a name, a keyword, an element — “love”, “tower”, “fire”" autocomplete="off">
       <div class="row cd-tabs" style="gap:5px;flex-wrap:wrap">${CARD_TABS.map(t =>
         `<button class="chip${t.id === tab ? ' on' : ''}" data-cdtab="${t.id}">${esc(t.name)}</button>`).join('')}
-        <button class="chip" data-cdtab="charms">Charms</button></div>
+        <button class="chip" data-cdtab="charms">Charms</button>
+        <button class="chip" data-cdtab="iching">I Ching</button></div>
       <div class="cd-count mono" id="cdCount"></div>
       <div class="cd-grid" id="cdGrid"></div>
     </div>
@@ -144,6 +194,7 @@ function openCardDirectory(startAt){
 
   function grid(){
     if(tab === 'charms') return charmGrid();
+    if(tab === 'iching') return hexGrid();
     const list = q ? cardSearch(q, 78) : cardsInTab(tab);
     const seen = list.filter(i => counts[i]).length;
     m.querySelector('#cdCount').textContent = q
@@ -261,6 +312,111 @@ function openCardDirectory(startAt){
     });
     box.scrollIntoView({block: 'start'});
   }
+  /* The sixty-four laid out the way the book lays them out: a square, one
+     row per upper trigram and one column per lower, so a hexagram is found
+     by its two halves rather than by remembering a number. */
+  function hexGrid(){
+    const ql = q.toLowerCase();
+    if(ql){
+      const hits = ICHING.filter(h => h.n.toLowerCase().includes(ql) || h.c.toLowerCase().includes(ql)
+        || (h.k || []).some(k => k.toLowerCase().includes(ql)) || String(h.i) === ql);
+      m.querySelector('#cdCount').textContent =
+        `${hits.length} hexagram${hits.length === 1 ? '' : 's'} match “${q}”`;
+      m.querySelector('#cdGrid').className = 'cd-grid hexlist';
+      m.querySelector('#cdGrid').innerHTML = hits.length
+        ? hits.map(h => `<button type="button" class="cd-hexrow${hexN[h.i] ? '' : ' dim'}" data-hexpick="${h.i}">
+            ${ichingFigureHTML(h.b.split('').map(v => ({v: +v, moving: false, total: +v ? 7 : 8})), {small: true})}
+            <span><b class="serif">${h.i}. ${esc(h.n)}</b>
+              <span class="mono">${esc(h.c)}</span></span>
+            ${hexN[h.i] ? `<span class="cd-t-n mono">×${hexN[h.i]}</span>` : ''}</button>`).join('')
+        : '<div class="pk-empty">Nothing in the book goes by that.</div>';
+    } else {
+      const seen = ICHING.filter(h => hexN[h.i]).length;
+      m.querySelector('#cdCount').textContent = `64 hexagrams · ${seen} of them cast at least once`;
+      m.querySelector('#cdGrid').className = 'cd-grid hexsquare';
+      /* Rows are the LOWER trigram and columns the upper, which is the
+         square the book itself is looked up in — the other way round is a
+         perfectly good table that matches no reference anybody owns. */
+      m.querySelector('#cdGrid').innerHTML = `<div class="cd-hexnote mono">rows are the lower trigram, columns the upper</div>
+        <table class="cd-hex"><thead><tr><th></th>${HEX_GRID_ORDER.map(b =>
+          `<th title="${esc(trigramOf(b).pin)} — ${esc(trigramOf(b).en)}">${trigramGlyph(b, 16)}</th>`).join('')}</tr></thead>
+        <tbody>${HEX_GRID_ORDER.map(lo => `<tr>
+          <th title="${esc(trigramOf(lo).pin)} — ${esc(trigramOf(lo).en)}">${trigramGlyph(lo, 16)}</th>
+          ${HEX_GRID_ORDER.map(up => { const h = hexByTrigrams(lo, up);
+            if(!h) return '<td></td>';
+            return `<td><button type="button" class="cd-hexcell${hexN[h.i] ? ' seen' : ''}"
+              data-hexpick="${h.i}" title="${h.i}. ${esc(h.n)} — ${esc(h.c)}">${h.i}${
+              hexN[h.i] ? `<i class="cd-dot"></i>` : ''}</button></td>`; }).join('')}</tr>`).join('')}</tbody></table>`;
+    }
+    m.querySelectorAll('[data-hexpick]').forEach(b => b.onclick = () => hexPage(+b.dataset.hexpick));
+  }
+
+  /* one hexagram's page: the figure, its two trigrams, the judgment and
+     image at length, all six lines, and every time you have cast it */
+  function hexPage(num){
+    const h = ICHING.find(x => x.i === num); if(!h) return;
+    const r = typeof ichingRich === 'function' ? ichingRich(num) : null;
+    const apps = hexAppearances(num);
+    const lines = h.b.split('').map(v => ({v: +v, moving: false, total: +v ? 7 : 8}));
+    m.querySelector('#cdWrap').hidden = true;
+    const box = m.querySelector('#cdPage');
+    box.hidden = false;
+    box.innerHTML = `<div class="cd-page ic-page">
+      <button class="pf-chip" id="cdBack">‹ all sixty-four</button>
+      <div class="cd-head">
+        <div class="cd-hexbig">${ichingFigureHTML(lines)}</div>
+        <div class="cd-head-t">
+          <h3 class="serif"><span class="ic-hcn">${esc(h.c)}</span></h3>
+          <div class="ic-hnm serif" style="font-size:1.2rem">${h.i}. ${esc(h.n)}</div>
+          <div class="mono faint">${trigramMark(hexUpper(h.b))} ${esc(hexUpper(h.b).en)} above ·
+            ${trigramMark(hexLower(h.b))} ${esc(hexLower(h.b).en)} below</div>
+          <p class="cd-ess">${esc((h.k || []).join(' · '))}</p>
+          ${apps.length ? `<span class="cd-seen mono">cast ${apps.length} time${apps.length === 1 ? '' : 's'}</span>`
+            : '<span class="cd-seen mono none">not yet cast</span>'}
+        </div></div>
+      ${ichingTrigramNoteHTML(h.b)}
+      <section class="cd-side"><h4 class="dv-sec-h">Judgment</h4>
+        <blockquote class="ic-quote">${esc(h.j)}</blockquote>
+        ${r ? r.d.split('\n\n').filter(Boolean).map(t => `<p class="cd-p">${esc(t)}</p>`).join('') : ''}</section>
+      <section class="cd-side"><h4 class="dv-sec-h">Image</h4>
+        <blockquote class="ic-quote">${esc(h.m)}</blockquote>
+        ${r ? `<p class="cd-p">${esc(r.mi)}</p>` : ''}</section>
+      ${r ? `<section class="cd-side"><h4 class="dv-sec-h">The six lines</h4>
+        <p class="cd-p faint">A line is only read when it is moving. These are what each one says when it is.</p>
+        ${r.L.map((t, i) => `<div class="ic-lineread"><span class="mono">line ${i + 1}</span>
+          <p>${esc(t)}</p></div>`).join('')}</section>` : ''}
+      ${r && r.q.length ? `<section class="cd-side"><h4 class="dv-sec-h">Questions</h4>
+        <ul class="dv-cr-q">${r.q.map(x => `<li>${esc(x)}</li>`).join('')}</ul></section>` : ''}
+      <section class="cd-hist">
+        <h4 class="dv-sec-h">When you have cast it</h4>
+        <p class="cd-pat">${esc(hexPattern(h, apps))}</p>
+        ${apps.map(a => `<article class="cd-app">
+          <div class="cd-app-h"><span class="mono">${esc(fmtDate(a.day, 'med'))}</span>
+            <b class="serif">${a.as === 'cast' ? 'cast' : 'what it was becoming'}</b>
+            <span class="dv-src mono">${a.method === 'yarrow' ? 'stalks' : 'coins'}</span></div>
+          <div class="mono faint">${a.as === 'cast'
+            ? (a.moving.length ? `moving on line${a.moving.length > 1 ? 's' : ''} ${a.moving.join(', ')}`
+                + (a.toward ? ` → ${a.toward.i}. ${esc(a.toward.n)}` : '')
+              : 'no moving lines')
+            : (a.from ? `from ${a.from.i}. ${esc(a.from.n)}` : '')}</div>
+          ${a.question ? `<div class="cd-app-q quote">“${esc(a.question)}”</div>` : ''}
+          ${a.note ? `<p class="cd-app-n">${esc(a.note.length > 260 ? a.note.slice(0, 260) + '…' : a.note)}</p>` : ''}
+          <button class="pf-chip" data-cdopen="${a.entry.id}">the whole reading →</button>
+        </article>`).join('')}
+      </section></div>`;
+    box.querySelector('#cdBack').onclick = () => {
+      box.hidden = true; m.querySelector('#cdWrap').hidden = false; grid(); };
+    box.querySelectorAll('[data-cdopen]').forEach(b => b.onclick = () => {
+      const eid = b.dataset.cdopen; m.remove();
+      navigate('#/journals/divination');
+      setTimeout(() => { const n = document.querySelector(`[data-entry="${eid}"]`);
+        if(n){ n.scrollIntoView({block: 'center'});
+          n.style.background = 'color-mix(in srgb,var(--terra) 12%,transparent)';
+          setTimeout(() => n.style.background = '', 1600); } }, 350);
+    });
+    box.scrollIntoView({block: 'start'});
+  }
+
   /* a charm's own page: what it means, and every cast it has landed in */
   function charmPage(id){
     const c = charmById(id); if(!c) return;
