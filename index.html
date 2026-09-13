@@ -4943,30 +4943,108 @@ html[data-theme="dark"] .tc-face{background-color:#1e1b18;color:#e8e0d4}
 .dv-read-k{font-size:.66rem;color:var(--faint);margin-top:2px}
 .dv-read-t{margin:4px 0 0;font-size:.84rem;line-height:1.45}
 /* --- I Ching --- */
-.ic-build{display:flex;flex-direction:column;align-items:center;gap:12px;padding:10px 0}
-.ic-lines{display:flex;flex-direction:column;gap:6px;align-items:center}
-.ic-line{display:flex;gap:5px;align-items:center;width:104px;position:relative}
-.ic-line i{height:8px;border-radius:2px;background:var(--ink)}
-.ic-line i.full{flex:1}
-.ic-line i.half{flex:1}
-.ic-line.empty{height:8px;width:104px;border-bottom:1px dashed var(--line-2)}
-.ic-line.moving i{background:var(--terra,#b4462f)}
-.ic-mv{position:absolute;right:-16px;font-size:.7rem;color:var(--terra,#b4462f)}
-.ic-line.small{width:44px}
-.ic-line.small i{height:4px}
-.ic-coins{display:flex;gap:8px;min-height:26px}
-.ic-coin{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-  font-size:.7rem;border:1px solid var(--line-2);animation:vbFade .35s var(--ease)}
-.ic-coin.heads{background:color-mix(in srgb,var(--gold,#d4a44c) 22%,transparent)}
-.ic-coin.tails{background:var(--surface-3)}
+/* The hexagram is meant to be looked at: full column width, lines thick
+   enough to read across a room, numbered up the side in the order they
+   were cast, and the changing ones breathing. */
+/* stretch, not centre: centring the column makes every child shrink to its
+   own content, and a hexagram that shrinks to its content is six dashes */
+.ic-build{display:flex;flex-direction:column;align-items:stretch;gap:16px;padding:14px 0}
+.ic-lines{display:flex;flex-direction:column;gap:12px;align-items:stretch;
+  width:100%;max-width:400px;margin:0 auto}
+.ic-line{display:flex;gap:10px;align-items:center;position:relative;
+  animation:icLineIn .5s var(--ease) both;animation-delay:var(--d,0s)}
+.ic-line .ic-n{width:14px;flex:none;font-size:.6rem;color:var(--faint);text-align:right}
+.ic-bar{flex:1;display:flex;gap:20px;height:8px}
+.ic-line i{height:8px;border-radius:2px;background:var(--ink);flex:1}
+/* `.empty` is also the house class for an empty-state message, which brings
+   padding and an italic face with it — a line not yet cast wants neither */
+.ic-line.empty{padding:0;font-style:normal}
+.ic-line.empty .ic-bar{border-bottom:1px dashed var(--line-2);height:8px}
+.ic-line.moving i{background:var(--terra,#b4462f);animation:icMoving 3s ease-in-out infinite}
+.ic-mv{position:absolute;right:0;top:-10px;font-size:.54rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--terra,#b4462f);
+  background:var(--surface);padding:0 4px;border-radius:3px}
+.ic-lines.done .ic-bar{box-shadow:0 0 0 2px color-mix(in srgb,var(--terra,#b4462f) 40%,transparent)}
+.ic-lines.small{max-width:170px;gap:6px}
+.ic-lines.small .ic-bar{height:5px;gap:12px}
+.ic-lines.small i{height:5px}
+.ic-lines.small .ic-n{display:none}
+@keyframes icLineIn{from{opacity:0;transform:translateY(10px) scaleX(.85)}to{opacity:1;transform:none}}
+@keyframes icMoving{0%,100%{opacity:.55}50%{opacity:1}}
+.ic-name{text-align:center;display:flex;flex-direction:column;gap:2px;align-items:center;
+  animation:vbFade .6s var(--ease) both}
+.ic-name .ic-num{font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:var(--faint)}
+.ic-name .ic-nm{font-size:1.5rem;line-height:1.2;min-height:1.2em}
+.ic-name .ic-cn{font-size:.72rem;color:var(--muted)}
+.ic-tri{font-size:.62rem;letter-spacing:.06em;color:var(--faint);margin-top:3px}
+.ic-keys{font-size:.66rem;letter-spacing:.1em;text-align:center;margin:10px 0 4px}
+/* three ancient coins: a circle with a square hole */
+.ic-coins{display:flex;gap:14px;min-height:44px;align-items:center;justify-content:center}
+.ic-coin{width:40px;height:40px;position:relative;display:inline-flex;align-items:center;justify-content:center}
+.ic-coin svg{position:absolute;inset:0;width:100%;height:100%}
+.ic-coin .ic-c-body{fill:var(--surface-3)}
+.ic-coin .ic-c-rim{fill:none;stroke:var(--line-2);stroke-width:1.5}
+.ic-coin .ic-c-hole{fill:var(--surface)}
+.ic-coin.heads .ic-c-body{fill:color-mix(in srgb,var(--gold,#d4a44c) 34%,var(--surface-3))}
+.ic-coin.heads .ic-c-rim{stroke:color-mix(in srgb,var(--gold,#d4a44c) 70%,transparent)}
+.ic-coin b{position:relative;font-family:var(--han,var(--serif));font-size:.78rem;font-weight:400;
+  color:var(--muted);z-index:1}
+.ic-coin.heads b{color:color-mix(in srgb,var(--gold,#d4a44c) 80%,var(--text))}
+.ic-coins.toss .ic-coin{animation:icToss .6s cubic-bezier(.36,.07,.3,1) both;animation-delay:calc(var(--i) * .06s)}
+@keyframes icToss{
+  0%{transform:translateY(0) rotate(0)}
+  42%{transform:translateY(-58px) rotate(340deg)}
+  76%{transform:translateY(5px) rotate(690deg)}
+  88%{transform:translateY(-3px) rotate(715deg)}
+  100%{transform:translateY(0) rotate(720deg)}}
+/* the reading under it */
+.ic-reading{display:flex;flex-direction:column;gap:22px;margin-top:18px;
+  border-top:1px solid var(--line);padding-top:18px;max-width:640px}
+.ic-sec{margin:0}
+.ic-quote{margin:0 0 10px;padding-left:12px;border-left:3px solid var(--terra,#b4462f);
+  font-family:var(--lora,var(--serif));font-style:italic;font-size:14px;line-height:1.65;color:var(--muted)}
+.ic-lineread{margin:8px 0;padding:9px 12px;border-radius:8px;
+  background:color-mix(in srgb,var(--terra,#b4462f) 8%,transparent)}
+.ic-lineread .mono{font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--terra,#b4462f)}
+.ic-lineread p{margin:3px 0 0;font-size:13.5px;line-height:1.6}
+.ic-moving{border-top:1px solid var(--line);padding-top:16px}
+.ic-relhead{margin-bottom:10px}
+.ic-relhead b{font-size:1.05rem}
+@media (prefers-reduced-motion:reduce){
+  .ic-line,.ic-name{animation:none}
+  .ic-line.moving i{animation:none;opacity:1}
+  .ic-coins.toss .ic-coin{animation:none}}
 .ic-res{border-left:2px solid var(--terra,#b4462f);padding-left:11px;margin:8px 0}
 .ic-res.second{border-left-color:var(--sage,#7f916a);opacity:.9}
 .ic-j{font-family:var(--lora,var(--serif));font-style:italic;margin:6px 0 2px;line-height:1.55}
 .ic-im{font-size:.8rem;color:var(--muted);margin:0;line-height:1.5}
-.or-card{border:1px solid var(--line);border-left:3px solid var(--sage,#7f916a);border-radius:9px;
-  padding:14px;background:var(--surface);text-align:center}
-.or-card b{font-size:1.1rem;display:block;margin-bottom:5px}
-.or-card p{margin:0;font-family:var(--lora,var(--serif));font-style:italic;line-height:1.6}
+/* an oracle card, at a size worth turning over: the sentence set in the
+   middle of it with room around, rather than a line in a box */
+.or-stage{display:flex;justify-content:center;padding:16px 0 6px}
+.or-card{width:200px;height:280px;perspective:900px}
+.or-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;
+  transition:transform .8s cubic-bezier(.5,.03,.3,1)}
+.or-card.up .or-inner{transform:rotateY(180deg)}
+.or-back,.or-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:12px;
+  box-shadow:0 2px 12px rgba(0,0,0,.2)}
+.or-back{background:linear-gradient(140deg,#3f5148,#25332c);color:#cfe0d3;
+  border:1px solid #4d6257;display:flex;align-items:center;justify-content:center;padding:0}
+.or-back .tc-back{position:absolute;inset:0;border:0;box-shadow:none;background:none;padding:0}
+.or-back .or-deck{position:absolute;bottom:10px;left:0;right:0;text-align:center;
+  font-size:9px;letter-spacing:.14em;color:#cfe0d3;opacity:.75}
+.or-face{transform:rotateY(180deg);background:var(--surface);
+  border:1.5px solid var(--sage,#7f916a);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:10px;padding:24px;text-align:center}
+.or-name{font-size:1.05rem;letter-spacing:.06em;text-transform:uppercase;min-height:1.2em;
+  color:var(--sage,#7f916a)}
+.or-text{font-family:var(--lora,var(--serif));font-style:italic;font-size:16px;line-height:1.5;margin:0}
+.or-src{position:absolute;bottom:10px;left:0;right:0;text-align:center;font-size:9px;
+  letter-spacing:.14em;color:var(--faint)}
+.or-sit{max-width:520px;margin:14px auto 0;border-top:1px solid var(--line);padding-top:14px}
+.or-sit p{font-family:var(--lora,var(--serif));font-style:italic;font-size:14px;line-height:1.7;
+  color:var(--muted);margin:0}
+.or-yours{max-width:520px;margin:16px auto 0}
+@media (prefers-reduced-motion:reduce){.or-inner{transition:none}}
 /* --- intuition --- */
 .chip.wide{width:100%;text-align:left;justify-content:flex-start}
 .int-stats{border:1px solid var(--line);border-radius:10px;padding:11px 13px;background:var(--surface-2)}
@@ -17118,6 +17196,859 @@ const TAROT_RICH = [
 },
 ];
 /* ============================================================
+   THE BOOK OF CHANGES, AT LENGTH
+
+   The hexagram list in 16-divination.js carries the Judgment and the Image
+   in a line apiece. That is enough to identify a hexagram and nowhere near
+   enough to consult one: the Judgment is a compressed sentence written for
+   people who already knew the book, and handed over on its own it reads as
+   a fortune cookie.
+
+   So each of the sixty-four also carries two paragraphs on what the
+   Judgment is actually saying, one on the Image, two questions to put to
+   yourself, and the six lines — because the coins single out particular
+   lines, and a line singled out and then not given is the whole point of
+   the coin method thrown away.
+
+   Lines run bottom to top, which is the order they are cast in and the
+   order they are read in. Each is written as the line itself and then what
+   it is for.
+   ============================================================ */
+const ICHING_RICH = [
+/* 1 · The Creative */ {
+  d: "Everything in this hexagram is yang: six unbroken lines, no yielding anywhere. It is the pure form of initiative — the force that starts things, which is not the same as the force that finishes them. When it comes up, the situation is asking for action from you rather than accommodation.\n\nThe warning is folded into the strength. Undiluted force has no give in it, and the classical commentary spends most of its length on timing: when to be hidden, when to appear, when to hold back at the top. Strength used at the wrong moment is simply strain. The counsel is to act, and to know which hour it is.",
+  mi: "Heaven moves ceaselessly and without effort, and it does not stop to be admired. The instruction drawn from it is about self-renewal: make yourself strong and untiring, meaning keep the practice up rather than perform the exertion.",
+  q: ["Where is the initiative genuinely mine to take?", "Am I acting because it is time, or because I cannot bear to wait?"],
+  L: [
+    "The dragon lies hidden in the deep. — Do not act. The strength is real and the hour is not yours yet.",
+    "The dragon appears in the field. — You are becoming visible. Seek out the person who can see what you are doing.",
+    "Active all day, and cautious at nightfall. — Effort is right; so is stopping. The danger here is not failing but not resting.",
+    "Wavering flight over the depths. — A choice between rising and staying. Either is allowed; hesitating between them is not.",
+    "The dragon flies in the heavens. — The full exercise of your power, in its own time. Use it in company rather than alone.",
+    "The arrogant dragon will have cause to repent. — You have gone past the top of the arc. Come down before you are brought down.",
+  ],
+},
+/* 2 · The Receptive */ {
+  d: "Six broken lines: the pure form of yielding, which the book treats as a power rather than as an absence of one. The Receptive is what carries, completes and makes room. Nothing that is begun anywhere else gets anywhere without it.\n\nThe instruction is to follow rather than to lead, and to find that unhumiliating. Follow the thing already in motion; support the person already carrying it; do the work that makes the other work possible. The Judgment adds a practical rider — find friends, go where you are known, and do not strike out alone in this phase.",
+  mi: "The earth's condition is receptive devotion: it takes whatever is put on it and grows what it can. The instruction is breadth of character — carrying the outer world rather than resisting it.",
+  q: ["What is already in motion that I could serve rather than redirect?", "Where does my resistance cost more than it protects?"],
+  L: [
+    "Hoarfrost underfoot: the ice is coming. — Small signs of a large change. Note it now rather than at the freeze.",
+    "Straight, square, great. Without purpose, yet nothing is unfurthered. — Act in accordance with your nature and do not strategise.",
+    "Hidden lines. One is able to remain persevering. — Do the work without claiming it. The credit follows the work, later.",
+    "A tied-up sack. No blame, no praise. — Say nothing, commit to nothing, stay out of it. This is prudence, not cowardice.",
+    "A yellow lower garment brings supreme good fortune. — Discretion in a position of influence. Be effective and unshowy.",
+    "Dragons fight in the meadow. — Yielding pushed to the point where it turns into its opposite. Something has become a war that need not have been.",
+  ],
+},
+/* 3 · Difficulty at the Beginning */ {
+  d: "A blade of grass pushing through hard ground. The hexagram is not about failure; it is about the specific chaos of a thing that has genuinely begun and has not yet found its shape. Everything is tangled, nothing is settled, and that is what beginnings are like from inside.\n\nThe counsel is strikingly practical: do not press forward, and do get help. This is the phase where a single person trying to hold the whole thing together is the failure mode. Appoint helpers, the text says — divide it, name who does what, and accept that the first arrangement will be provisional.",
+  mi: "Clouds and thunder: the storm has not broken and the air is full of it. The instruction is to bring order out of confusion, which is done by sorting rather than by pushing.",
+  q: ["Who could carry part of this that I have not asked?", "What am I trying to finish that has only just started?"],
+  L: [
+    "A hesitation. It furthers one to remain persevering, and to appoint helpers. — Stop, and share the load before going on.",
+    "Difficulties pile up. Ten years, then union. — What is refused now is not refused forever. Do not take the first offer out of fear.",
+    "Chasing deer without a forester, one goes astray in the forest. — Do not pursue this without someone who knows the ground. Let it go rather than get lost.",
+    "Horse and wagon part. Strive for union. — Reach out. What looks like rejection is often only distance.",
+    "Difficulties in blessing. Small perseverance brings good fortune. — Do it in small pieces. Large moves will not land in this phase.",
+    "Horse and wagon part; bloody tears flow. — The thing has come apart. Grieve it rather than dragging it further.",
+  ],
+},
+/* 4 · Youthful Folly */ {
+  d: "A spring at the foot of a mountain: water that has appeared and does not yet know where it is going. The hexagram is about inexperience, and it is unusually kind about it — folly here is a stage, not a character flaw, and the remedy is teaching.\n\nThe famous line is about who asks whom. It is not I who seek the young fool; the young fool seeks me. Instruction only works when it is wanted, and asking the same question three times in the hope of a different answer is not asking. If you are the student, go and ask properly. If you are the teacher, wait to be asked and then answer once.",
+  mi: "A spring wells up at the foot of the mountain, going nowhere in particular. Character is formed the way a stream finds its bed: by thoroughness, one repetition at a time.",
+  q: ["What am I pretending to understand?", "Who could teach me this, and what has stopped me asking?"],
+  L: [
+    "To make a fool develop, discipline is useful. — Some things are learned only by being held to. Set the rule before the lesson.",
+    "To bear with fools in kindliness brings good fortune. — Patience with the inexperienced, including your own.",
+    "Take not a maiden who loses herself. Nothing furthers. — Do not attach yourself to what has no ground of its own.",
+    "Entangled folly brings humiliation. — Inexperience compounded by refusing help. The only exit is admitting it.",
+    "Childlike folly brings good fortune. — Not knowing, openly. This is the good kind, and the fastest to learn.",
+    "In punishing folly, it does not further one to commit transgressions. — Correct the fault, not the person.",
+  ],
+},
+/* 5 · Waiting */ {
+  d: "Clouds have risen but the rain has not come. The hexagram is about the interval when everything necessary has been done and the outcome is not yours to hasten. It is emphatically not passivity — the strength is all there, held.\n\nWhat the Judgment recommends is confidence and nourishment: keep your certainty about the thing, and meanwhile eat, drink and be sociable. That is not frivolity. Waiting badly — anxiously, in isolation, checking — costs more than the wait does. Waiting well keeps you in condition for the day it breaks.",
+  mi: "Clouds rise to heaven and the rain comes when it comes. The instruction is to eat, drink and be joyous in the interval, because the interval is also life.",
+  q: ["What is genuinely outside my control here?", "Am I waiting well, or only refreshing?"],
+  L: [
+    "Waiting in the meadow. It furthers one to abide in what endures. — The danger is still distant. Carry on as normal.",
+    "Waiting on the sand. There is some gossip. — Talk begins. Let it; do not answer it.",
+    "Waiting in the mud brings about the arrival of the enemy. — You have gone too close. Difficulty invited is still difficulty.",
+    "Waiting in blood. Get out of the pit. — Stop trying to hold the position. Withdraw, and survive it.",
+    "Waiting at meat and drink. Perseverance brings good fortune. — A reprieve in the middle of it. Take the rest properly.",
+    "One falls into the pit. Three uninvited guests arrive. Honour them. — Help arrives in a form you did not choose. Accept it anyway.",
+  ],
+},
+/* 6 · Conflict */ {
+  d: "Heaven moves up and water moves down: two things in the same place going opposite ways. The hexagram is about a dispute in which you are, in some real sense, right — and it spends all of its counsel on why that is not the point.\n\nHalfway brings good fortune; going through to the end brings misfortune. Settle. Take the partial resolution, involve someone impartial, and do not press the advantage to its conclusion. The other half of the advice is preventive: consider the beginning of every affair. Most conflicts are built into an arrangement at the point where nobody wanted to be awkward about the terms.",
+  mi: "Heaven and water go their opposite ways, which is not a fault in either. The instruction is to think about beginnings — where things are agreed is where conflicts are made.",
+  q: ["What would settling cost, against what winning would cost?", "Where did this begin, and what was left unsaid then?"],
+  L: [
+    "If one does not perpetuate the affair, there is a little gossip. In the end, good fortune. — Drop it early. The talk passes.",
+    "One cannot engage in conflict; one returns home. — Withdraw. You are outmatched here and there is no shame in it.",
+    "Nourished by ancient virtue. Perseverance brings danger, but the end is good fortune. — Live on what you already have and claim nothing new.",
+    "One cannot engage in conflict. One turns back and accepts fate. — Change your mind and find peace in it.",
+    "To contend before him brings supreme good fortune. — Take it to someone impartial. This is the line that recommends arbitration.",
+    "Even if by chance a leather belt is awarded, by day's end it will have been snatched away three times. — A victory that cannot be held. Winning here is the loss.",
+  ],
+},
+/* 7 · The Army */ {
+  d: "Water under the earth: a great mass, disciplined and out of sight. The hexagram is about organised collective effort, and its whole subject is whether the organisation is sound enough to deserve the effort.\n\nTwo conditions are named and both are hard. Perseverance — the thing has to be run consistently, not in bursts. And a strong leader, meaning one person clearly responsible. An army without either is not an army; it is a crowd with equipment. If you are running something, the counsel is to settle command and standards before the campaign, not during it.",
+  mi: "Water gathers under the earth in quantity, unseen. The instruction is generosity toward the people who make up your numbers: you keep an army by feeding it.",
+  q: ["Who is actually in charge of this, and does everyone know?", "Am I running this consistently or in bursts?"],
+  L: [
+    "An army must set forth in order. — Order first. Setting out unorganised loses it before it starts.",
+    "In the midst of the army. Good fortune. The king bestows a triple decoration. — Lead from inside it, not from above it.",
+    "Perchance the army carries corpses in the wagon. Misfortune. — Something dead is being carried along. Leave it.",
+    "The army retreats. No blame. — Withdrawing in good order is a competence, not a defeat.",
+    "There is game in the field. It furthers one to catch it. Let the eldest lead the army. — Act, and put the experienced person in charge of it.",
+    "The great prince issues commands, founds states, vests families with fiefs. — The work is done; now distribute it. Do not keep it all.",
+  ],
+},
+/* 8 · Holding Together */ {
+  d: "Water on the earth: things that find each other and join without being made to. The hexagram is about union — an alliance, a partnership, a group — and about the honesty required at its formation.\n\nInquire of the oracle again, the Judgment says, which is a way of saying: be sure. Ask whether you are fit to be relied on before asking anyone to rely on you. And those who come too late meet with misfortune: these things have a window. The group forms, the terms set, and someone who hesitates too long arrives to find the shape already made.",
+  mi: "On the earth is water, running together into one body. The old kings drew boundaries and made relationships between the parts, which is what holding together requires — definition, not blur.",
+  q: ["Am I fit to be relied on in the way I am asking to be relied on?", "What am I hesitating to join, and what happens if I am late?"],
+  L: [
+    "Hold to him in truth. There is more good fortune than one could ask for. — Sincerity at the start is the whole foundation.",
+    "Hold to him inwardly. Perseverance brings good fortune. — Join from your own centre, not because you were pulled.",
+    "You hold together with the wrong people. — Look at whom you have attached yourself to.",
+    "Hold to him outwardly also. Perseverance brings good fortune. — Say the alliance out loud. Private loyalty is only half of it.",
+    "Manifestation of holding together. The king lets the game escape from three sides. — Let people choose it. What is compelled is not union.",
+    "He finds no head for holding together. Misfortune. — Too late, or never committed. Both leave you outside.",
+  ],
+},
+/* 9 · The Taming Power of the Small */ {
+  d: "Dense clouds and no rain yet. Something small is restraining something large — not by force, which it does not have, but by persistence. The hexagram describes a phase where you cannot change the situation and you can keep working on the edges of it.\n\nThis is the hexagram of accumulating leverage. Small acts, repeated, in the right place. It is also, honestly, about frustration: the tension of being nearly able. The counsel is to attend to detail and to your own presentation, since those are the things actually within reach, and to stop trying to force the rain.",
+  mi: "The wind drives across heaven without moving it, and shapes the clouds all the same. The instruction is to refine the outward aspect of your nature — the small, visible, doable part.",
+  q: ["What small thing is actually within reach today?", "Where am I trying to force a rain that is not ready?"],
+  L: [
+    "Return to the way. How could there be blame in this? — Go back to your own method. No harm done.",
+    "He allows himself to be drawn into returning. Good fortune. — Be persuaded back. Company helps here.",
+    "The spokes burst out of the wagon wheels. Man and wife roll their eyes. — Pushing on has broken something. The friction is at home.",
+    "If you are sincere, blood vanishes and fear gives way. — Honesty dissolves what force could not.",
+    "If you are sincere and loyally attached, you are rich in your neighbour. — Share the advantage. It multiplies here and nowhere else.",
+    "The rain comes, there is rest. Perseverance brings danger for the woman. The moon is nearly full. — It has worked. Stop now; going further at full moon turns it.",
+  ],
+},
+/* 10 · Treading */ {
+  d: "Treading on the tail of the tiger: it does not bite. The hexagram is about conducting yourself in a dangerous situation, and the danger is usually a person with power over you rather than a circumstance.\n\nWhat makes the difference is manner. Not deference and not defiance — plain, exact courtesy, and doing what you said you would. The hexagram is one of the most practical in the book: it says you can walk through this if you are careful about conduct, and that carelessness here has consequences out of proportion to the carelessness.",
+  mi: "Heaven above and the lake below: a difference in standing that is simply a fact. The instruction is to know your position and be exact in it, which is what keeps the tiger calm.",
+  q: ["Where am I being careless with someone who has power here?", "What exactly did I say I would do, and have I?"],
+  L: [
+    "Simple conduct. Progress without blame. — Go plainly and without display. It is the safest gait.",
+    "Treading a smooth, level course. The perseverance of a dark man brings good fortune. — Keep to your own way, quietly.",
+    "A one-eyed man is able to see; a lame man is able to tread. He treads on the tail of the tiger. — Overreaching on partial capacity. This is the line where it bites.",
+    "He treads on the tail of the tiger. Caution and circumspection lead to good fortune. — Real danger, safely passed, by care alone.",
+    "Resolute conduct. Perseverance with awareness of danger. — Decide and act, without forgetting what you are standing on.",
+    "Look to your conduct and weigh the favourable signs. — Look back over how you behaved. That is the whole verdict.",
+  ],
+},
+/* 11 · Peace */ {
+  d: "Heaven below and earth above — the light rising, the heavy sinking, and the two therefore meeting in the middle. This is the hexagram of a good phase: things are connecting, effort is being repaid, and people are able to hear each other.\n\nThe small departs, the great approaches. What is petty falls away and what matters comes forward, without having to be forced. The only counsel is about use: peace is a condition to work in, not a place to sit. Prosperous phases are when structures should be built, because they will not hold if you start them in a difficult one.",
+  mi: "Heaven and earth unite. The instruction is to divide and complete their course — to make arrangements, while arrangements are easy to make.",
+  q: ["What should I build now, while conditions are with me?", "What small thing is departing that I am still holding?"],
+  L: [
+    "When ribbon grass is pulled up, the sod comes with it. Undertakings bring good fortune. — One thing brings others. Start, and take the connected work with it.",
+    "Bearing with the uncultured, crossing the river resolutely, not neglecting the distant. — Be broad. Do not let good conditions make you narrow.",
+    "No plain not followed by a slope. No going not followed by a return. — It will turn. Enjoy it without believing it is permanent.",
+    "He flutters down, not boasting of his wealth, together with his neighbour. — Share it without being asked, and without display.",
+    "The sovereign gives his daughter in marriage. This brings blessing and supreme good fortune. — A union across a difference in standing. Let it happen.",
+    "The wall falls back into the moat. Do not use the army now. — The turn has come. Do not fight it; put your own house in order.",
+  ],
+},
+/* 12 · Standstill */ {
+  d: "The inverse of Peace: heaven rising away and earth sinking away, so that nothing meets. This is the hexagram of a stuck phase — not disaster, but the specific condition where communication fails, effort does not connect, and the wrong people are in the wrong places.\n\nThe counsel is unusually clear: withdraw. Do not try to force through, do not take the offered advancement, do not spend yourself in a situation that will not carry it. Fall back on your own resources and your own standards, keep your integrity out of the general muddle, and wait. Standstill is a season and it ends.",
+  mi: "Heaven and earth do not unite, and nothing grows between them. The instruction is to fall back on inner worth and to avoid honours that would make you complicit.",
+  q: ["What am I forcing that simply will not connect at the moment?", "What would withdrawing well look like, rather than giving up?"],
+  L: [
+    "When ribbon grass is pulled up, the sod comes with it. Perseverance brings good fortune. — Withdraw together with your people, and keep to your standards.",
+    "They bear and endure. For the great man, standstill means success. — Bear it. There is a way through that does not involve compromise.",
+    "They bear shame. — Something is being tolerated that ought not to be. It will not stay hidden.",
+    "He who acts at the command of the highest remains without blame. — Act only on clear authority or clear principle now.",
+    "Standstill is giving way. Good fortune for the great man. 'What if it should fail?' — It is turning. Stay careful while it does.",
+    "The standstill comes to an end. First standstill, then good fortune. — It ends, and it ends because the phase ends, not because you broke it.",
+  ],
+},
+/* 13 · Fellowship with Others */ {
+  d: "Fire under heaven: light that gathers people. The hexagram is about association in the open — a shared purpose that is stated rather than implied, joined by anyone who shares it rather than by family or faction.\n\nThe emphasis throughout is on the open field. Fellowship formed in private, around a clique, or on the basis of who you already know, is exactly what this hexagram is not. What makes it work is that the aim is clear and public and the door is not guarded. If you are drawing people together, say plainly what it is for.",
+  mi: "Heaven together with fire: things of like nature find each other. The instruction is to organise the clans and make distinctions, which sounds contrary and is not — real fellowship knows what it is and is not.",
+  q: ["Is the aim of this stated plainly enough for someone to join it?", "Am I gathering allies or a faction?"],
+  L: [
+    "Fellowship with men at the gate. No blame. — At the start, in the open. Nothing hidden yet, and nothing to hide.",
+    "Fellowship with men in the clan. Humiliation. — Too narrow. A faction is not a fellowship.",
+    "He hides weapons in the thicket and does not rise for three years. — Mistrust, armed and waiting. Nothing will come of it.",
+    "He climbs up on his wall; he cannot attack. Good fortune. — The conflict is abandoned because it cannot be justified. That is the good outcome.",
+    "Men bound in fellowship first weep and lament, but afterward they laugh. — Separation and then reunion. Hold on through the middle.",
+    "Fellowship with men in the meadow. No remorse. — Out in the open at last, though not yet close. Enough for now.",
+  ],
+},
+/* 14 · Possession in Great Measure */ {
+  d: "Fire in heaven: a great light, seeing a great deal. The hexagram is about having much — resources, capability, standing — and it treats that as a problem of management rather than a reward.\n\nWhat makes possession sound is clarity and modesty together. See the situation exactly, including your own part in it, and do not let the abundance make you heavy. The classical reading is that great possession works when it is held by someone who is not attached to it, which is also the plain practical truth: a person who cannot risk what they have will eventually be run by it.",
+  mi: "Fire in heaven above, illuminating everything. The instruction is to curb evil and further good, and to obey the benevolent will of heaven — to use the light to sort, not to display.",
+  q: ["What do I have that is beginning to own me?", "Where would seeing this clearly be more use than having more of it?"],
+  L: [
+    "No relationship with what is harmful. Remaining conscious of difficulty keeps one without blame. — Keep clear of what would compromise it, and stay aware it could go.",
+    "A big wagon for loading. One may undertake something. — The means are sufficient. Load it and go.",
+    "A prince offers it to the Son of Heaven. A petty man cannot do this. — Put what you have at the service of the aim. Small people cannot.",
+    "He makes a difference between himself and his neighbour. No blame. — Do not compete with those around you. Your measure is not theirs.",
+    "He whose truth is accessible, yet dignified, has good fortune. — Be approachable and not familiar. Both halves matter.",
+    "He is blessed by heaven. Good fortune. Nothing that does not further. — Held rightly, it keeps giving. Nothing to correct.",
+  ],
+},
+/* 15 · Modesty */ {
+  d: "A mountain inside the earth: great height, not displayed. The only hexagram in the book in which every line is favourable, which says something about how the tradition rated the quality.\n\nModesty here is not self-deprecation. It is accurate self-assessment held without anxiety — knowing what you can do and not needing anyone to confirm it. Its practical effect is that it lowers what is too high and raises what is too low, both in you and around you. In a phase of real capability, this hexagram is the one that keeps the capability usable.",
+  mi: "The mountain is within the earth. The instruction is to reduce what is too much and augment what is too little, weighing things and making them equal — which is modesty applied outward.",
+  q: ["What do I know I can do that I keep needing confirmed?", "Where could I take less and give more without it costing me anything real?"],
+  L: [
+    "A superior man modest about his modesty may cross the great water. — Unselfconscious. This is the state that can attempt large things.",
+    "Modesty that comes to expression. Perseverance brings good fortune. — It shows in how you behave, not in what you say about yourself.",
+    "A superior man of modesty and merit carries things to conclusion. — Do the work and finish it. The recognition is not the point and arrives anyway.",
+    "Nothing that would not further. Modesty in movement. — Keep the manner while acting. Effectiveness and humility are not in tension.",
+    "No boasting of wealth before one's neighbour. It is favourable to attack with force. — Even here, firmness is allowed. Modesty is not weakness.",
+    "Modesty that comes to expression. It is favourable to set armies marching. — Put your own house in order first, and then act.",
+  ],
+},
+/* 16 · Enthusiasm */ {
+  d: "Thunder coming out of the earth: energy released, and the release is collective. The hexagram is about the moment a thing catches — when people are ready, the mood is right, and effort stops being uphill.\n\nWhat it asks is that the enthusiasm be given a form. Music and ceremony in the old text; in practice, a structure, a date, a ritual, a name. Enthusiasm without a vessel dissipates in a fortnight, and the hexagram is quite specific that the leader's job at this moment is not to generate feeling but to catch it in something that will hold.",
+  mi: "Thunder comes resounding out of the earth. The ancients made music and honoured the great, which is what you do with collective feeling — you give it a shape and a direction.",
+  q: ["What is ready that I have not given a form to?", "Am I generating enthusiasm, or catching it?"],
+  L: [
+    "Enthusiasm that expresses itself brings misfortune. — Do not broadcast your own excitement. It reads as noise.",
+    "Firm as a rock. Not a whole day. Perseverance brings good fortune. — See it early and act before the day is out.",
+    "Enthusiasm that looks upward creates remorse. Hesitation brings remorse. — Waiting for permission costs the moment.",
+    "The source of enthusiasm. He achieves great things. Doubt not. — You are the centre of it. Gather people without suspicion.",
+    "Persistently ill, and still does not die. — A chronic difficulty that does not finish you. It keeps you from excess.",
+    "Deluded enthusiasm. But if after completion one changes, there is no blame. — Carried away, and correctable. Change course and it is fine.",
+  ],
+},
+/* 17 · Following */ {
+  d: "Thunder in the middle of the lake: the roused thing at rest inside the yielding one. The hexagram is about following — adapting to what is actually happening rather than to the plan you had for it.\n\nIts condition is that in order to be followed you must first be able to follow. The counsel is to serve what the situation requires, and to rest when the day is over rather than pressing on out of momentum. Following well is neither obedience nor drift; it is the willingness to let the circumstances, or a person who knows better, set the direction for a while.",
+  mi: "Thunder in the middle of the lake: at nightfall the energy goes in and rests. The instruction is to go indoors at dusk — to stop when the day stops.",
+  q: ["What is the situation actually asking, as distinct from what I planned?", "Whom would it cost me nothing real to follow for a while?"],
+  L: [
+    "The standard is changing. Perseverance brings good fortune. Going out of the door with clarity brings achievement. — Change your position and then go and mix with people outside your circle.",
+    "If one clings to the little boy, one loses the strong man. — Choosing the easy attachment over the useful one.",
+    "If one clings to the strong man, one loses the little boy. Following brings what one seeks. — Choose the harder company and let the softer go.",
+    "Following creates success. Perseverance brings misfortune. To go one's way with sincerity brings clarity. — Being followed is dangerous here. Be clear about your motive and it holds.",
+    "Sincere in the good. Good fortune. — Attached to what is genuinely worth it. Nothing to correct.",
+    "He meets with firm allegiance and is still further bound. — Loyalty that has become an obligation. Honour it, and notice its weight.",
+  ],
+},
+/* 18 · Work on What Has Been Spoiled */ {
+  d: "The wind at the foot of the mountain, stalled, and what does not move goes bad. The hexagram is about repair — specifically the repair of something that has decayed slowly, usually through neglect rather than through anyone's fault.\n\nOften what has spoiled was inherited: a family pattern, a business arrangement, a habit that was somebody else's before it was yours. The text is unsentimental about the work. It takes three days before the starting point and three days after — meaning look properly at how it got this way before you begin, and stay with it after the fix, or it decays again by the same route.",
+  mi: "The wind blows low along the mountain. The instruction is to stir up the people and strengthen their spirit — decay is met with renewed effort, not with blame.",
+  q: ["What did I inherit that I have been maintaining rather than repairing?", "How did this come to be spoiled, and is that mechanism still running?"],
+  L: [
+    "Setting right what the father has spoiled. Danger, in the end good fortune. — An inherited fault, taken on deliberately. It is repairable.",
+    "Setting right what the mother has spoiled. One must not be too persevering. — Be gentle here. Too much force breaks what you are mending.",
+    "Setting right what the father has spoiled. A little remorse. No great blame. — You will overdo it slightly. That is acceptable.",
+    "Tolerating what has been spoiled by the father. Humiliation. — Leaving it. The cost accrues.",
+    "Setting right what has been spoiled by the father. One meets with praise. — Done properly, and seen.",
+    "He does not serve kings and princes; he sets himself higher goals. — Step out of the arrangement entirely. Some things are repaired by leaving.",
+  ],
+},
+/* 19 · Approach */ {
+  d: "The earth above the lake: something large drawing near. The hexagram is about a favourable season arriving — an opportunity, a person, a phase of growth — and about the fact that seasons end.\n\nThe Judgment carries an unusual timestamp: in the eighth month there will be misfortune. What is coming is genuinely good and it has a term. The counsel is therefore to use the approach rather than to settle into it: begin the thing now, while it is easy, and know that the same effort will cost more in six months. Approach is a window, not a climate.",
+  mi: "The earth above the lake: the ground reaching down to the water. The instruction is inexhaustible care in teaching, and unlimited protection of the people — approach as something you offer, not only receive.",
+  q: ["What is easy now that will not be easy in six months?", "Who is drawing near that I should be meeting properly?"],
+  L: [
+    "Joint approach. Perseverance brings good fortune. — Go together. What is offered is offered to more than you.",
+    "Joint approach. Good fortune. Everything furthers. — The same, and stronger. Take it.",
+    "Comfortable approach. Nothing that would further. If one is induced to grieve over it, one becomes free of blame. — Complacency. Noticing it is the correction.",
+    "Complete approach. No blame. — Wholehearted and without reservation. Nothing held back.",
+    "Wise approach. This is right for a great prince. Good fortune. — Let the people who know do the work. Wisdom here is delegation.",
+    "Great-hearted approach. Good fortune. No blame. — Generosity at the top of it, offered downward.",
+  ],
+},
+/* 20 · Contemplation */ {
+  d: "The wind moving over the earth, touching everything and changing nothing by force. The hexagram is about seeing — standing back far enough to take in the shape of a thing rather than its details.\n\nIt is also about being seen. The image is of a tower from which one looks out and is looked at, and the doubling is the point: what you are is visible whether or not you are performing it, and it influences people more than anything you say. The counsel is to look properly, at the whole, and to let your example do the work that argument will not.",
+  mi: "The wind moves over the earth. The old kings visited the regions, looked at the people, and gave them instruction — the whole method is seeing first.",
+  q: ["What would I notice if I stood back far enough to see the shape of this?", "What is my example saying, as distinct from my argument?"],
+  L: [
+    "Boylike contemplation. For an inferior man, no blame. For a superior man, humiliation. — Looking at only the surface. Forgivable in a beginner.",
+    "Contemplation through the crack of the door. Furthering for the perseverance of a woman. — A partial view, from inside. Better than nothing and not enough.",
+    "Contemplation of my life decides the choice between advance and retreat. — Look at your own conduct. That is where the answer is.",
+    "Contemplation of the light of the kingdom. It furthers to exert influence as the guest of a king. — See what is actually working around you, and go and be near it.",
+    "Contemplation of my life. The superior man is without blame. — Self-examination, without self-punishment.",
+    "Contemplation of his life. The superior man is without blame. — Examine the whole, from outside, as though it were somebody else's.",
+  ],
+},
+/* 21 · Biting Through */ {
+  d: "An open mouth with something stuck between the teeth. Something is in the way and it will not be talked around. The hexagram is about decisive action against an obstruction, including the kind that is a person.\n\nWhat it authorises is energy and clarity together — lightning and thunder in the image. Not force alone: the classical reading insists on justice, meaning that the decision be proportionate and openly reasoned. If you have been circling an obstruction for months, this is the hexagram that says bite through it, and says so without pretending it will be pleasant.",
+  mi: "Thunder and lightning together. The old kings made firm the laws and defined the penalties — clear rules, applied, so that biting through is not arbitrary.",
+  q: ["What obstruction have I been going around instead of through?", "Is my response proportionate, and could I say why out loud?"],
+  L: [
+    "His feet are fastened in the stocks, so that his toes disappear. No blame. — A small correction, early. It prevents the large one.",
+    "Bites through tender meat, so that his nose disappears. No blame. — Easy going, taken slightly too far. Nothing serious.",
+    "Bites on old dried meat and strikes on something poisonous. Slight humiliation. No blame. — An old problem, and it bites back. Unpleasant, not damaging.",
+    "Bites on dried gristly meat. Receives metal arrows. Perseverance brings good fortune. — Hard going. Hold to it; it yields.",
+    "Bites on dried lean meat. Receives yellow gold. Aware of danger, perseverance, no blame. — Success, with the danger kept in view.",
+    "His neck is fastened in the wooden cangue, so that his ears disappear. Misfortune. — Correction refused until it is imposed. He would not hear.",
+  ],
+},
+/* 22 · Grace */ {
+  d: "Fire at the foot of the mountain, lighting it up. The hexagram is about form — beauty, presentation, the way a thing is arranged and shown — and about the limits of what form can do.\n\nGrace furthers in small matters. That is the whole judgment and it is a careful compliment. How something looks genuinely matters: clarity, courtesy and good arrangement change how a thing is received. But form cannot decide a substantial question, and the hexagram warns against the point where attention to the surface starts standing in for attention to the thing. Make it well made, and do not expect that to make it true.",
+  mi: "Fire at the foot of the mountain, clarifying the near and not the far. The instruction is to clear up current affairs but not to decide controversial issues — form settles the small, not the large.",
+  q: ["What here is a question of presentation, and what is a question of substance?", "Where has making it look right stood in for making it right?"],
+  L: [
+    "He lends grace to his toes, leaves the carriage, and walks. — Do it plainly and on foot. Refuse the borrowed dignity.",
+    "Lends grace to the beard on his chin. — Ornament with nothing under it. Attach yourself to substance instead.",
+    "Graceful and moist. Constant perseverance brings good fortune. — Comfortable and well appointed. Keep to your standards inside it.",
+    "Grace or simplicity? A white horse comes as if on wings. — The choice between the decorated and the plain. The plain arrives.",
+    "Grace in hills and gardens. The roll of silk is meagre and small. Humiliation, but in the end good fortune. — Modest means, offered honestly. It is received.",
+    "Simple grace. No blame. — Form reduced to nothing but fitness. This is the top of the hexagram and the best of it.",
+  ],
+},
+/* 23 · Splitting Apart */ {
+  d: "A mountain resting on the earth and being worn away from below: five yielding lines and one firm one left at the top. Something is eroding, and the erosion is structural rather than accidental.\n\nThe Judgment says plainly that it does not further one to go anywhere. This is not a phase for initiatives. What is falling will fall, and the counsel is to be generous, keep quiet, protect what can be protected and wait for the turn — which the next hexagram says is coming. Accepting a decline while it is happening is the hardest instruction in the book and the one that saves the most.",
+  mi: "The mountain rests on the earth. The instruction is generosity toward those below, which is what secures a position when the position is being undermined.",
+  q: ["What is genuinely falling, that I am still spending strength on holding up?", "What can I protect, as distinct from what I would like to save?"],
+  L: [
+    "The leg of the bed is split. Those who persevere are destroyed. Misfortune. — It starts at the bottom and out of sight. Do not persevere in the old way.",
+    "The bed is split at the edge. Those who persevere are destroyed. — It is closer now, and the same advice.",
+    "He splits with them. No blame. — Break with the process rather than with the people. This is the one clear line.",
+    "The bed is split up to the skin. Misfortune. — It has reached you. There is nothing to say except that it has.",
+    "A shoal of fishes. Favour comes through the court ladies. Everything acts to further. — Order among those below turns it. Help from an unexpected quarter.",
+    "There is a large fruit still uneaten. The superior man receives a carriage. — One seed survives the winter. The whole next cycle is in it.",
+  ],
+},
+/* 24 · Return */ {
+  d: "One firm line at the very bottom, under five yielding ones: the solstice, the light returning at the darkest point. The hexagram is about a turning that has just happened and is not yet visible.\n\nThe counsel is entirely about pace. Seven days is the cycle; friends come without blame; going out and coming in without error. What has turned is fragile and does not need forcing — the mistake at this point is to celebrate the recovery by immediately demanding everything of it. Let the new thing be small for a while. It is a beginning, not a resumption.",
+  mi: "Thunder within the earth. At the solstice the old kings closed the passes and merchants did not travel — a phase for quiet, not for business.",
+  q: ["What has quietly turned that I have not noticed yet?", "Where am I demanding full strength of something that has only just begun to come back?"],
+  L: [
+    "Return from a short distance. No need for remorse. Great good fortune. — Corrected early, before it cost anything.",
+    "Quiet return. Good fortune. — Turning back without drama, and in good company.",
+    "Repeated return. Danger. No blame. — Backwards and forwards several times. Wearying, not fatal.",
+    "Walking in the midst of others, one returns alone. — Going back to your own way while the others carry on.",
+    "Noble-hearted return. No remorse. — An honest reckoning with yourself, without self-reproach.",
+    "Missing the return. Misfortune. — The turn was there and was not taken. It will come round again, later and dearer.",
+  ],
+},
+/* 25 · Innocence */ {
+  d: "Thunder under heaven: movement that is natural rather than intended. The hexagram is about acting without calculation — doing the obviously right thing because it is the thing, not because of what it will produce.\n\nThe Judgment warns that if someone is not as they should be, they will have misfortune, and it does not further them to undertake anything. The test is motive. Innocence here is not naivety; it is the absence of an angle. Where there is an angle, this hexagram says the plan will fail on its own terms — and where there is none, it says go ahead without needing the outcome guaranteed.",
+  mi: "Thunder rolls under heaven, and everything attains its natural state. The old kings nourished all beings in accordance with the time — in season, without forcing.",
+  q: ["Is there an angle in what I am about to do?", "What is the obviously right thing, before I calculate anything?"],
+  L: [
+    "Innocent behaviour brings good fortune. — Act from the first impulse. It is sound here.",
+    "If one does not count on the harvest while ploughing, then it furthers one to undertake something. — Do the work without watching for the yield.",
+    "Undeserved misfortune. The cow that was tethered by someone is the wanderer's gain. — Bad luck with no lesson in it. Do not manufacture a moral.",
+    "He who can be persevering remains without blame. — Hold to your own nature. Nothing else is required.",
+    "Use no medicine in an illness incurred through no fault of your own. It will pass of itself. — Do not intervene. It resolves without you.",
+    "Innocent action brings misfortune. Nothing furthers. — Even the right impulse is wrong at the wrong time. Do nothing now.",
+  ],
+},
+/* 26 · The Taming Power of the Great */ {
+  d: "The mountain holding heaven inside it: enormous force, held. The hexagram is about accumulated power — knowledge, capital, capability — that is being stored rather than spent, and about the discipline that storage takes.\n\nIt does not further one to stay at home. Held force is not force in retirement; the counsel is to be out in the world, to study, and to take on what is large. The hexagram makes the connection explicit between restraint and capacity: what you can hold is what you can eventually use, and a power spent as fast as it arrives never becomes anything.",
+  mi: "Heaven within the mountain. The instruction is to acquaint oneself with the sayings and deeds of the past, in order to strengthen the character — stored power begins as stored knowledge.",
+  q: ["What am I spending as fast as it arrives that would be worth more stored?", "What large thing should I be taking on rather than staying home?"],
+  L: [
+    "Danger is at hand. It furthers one to desist. — Stop. The force is not ready to be used.",
+    "The axletrees are taken from the wagon. — Voluntarily immobilised. Wait; this is not damage.",
+    "A good horse that follows others. Awareness of danger, with perseverance. — Now you may move, with company and with care.",
+    "The headboard of a young bull. Great good fortune. — Restrain it early, while it is small and easy.",
+    "The tusk of a gelded boar. Good fortune. — Deal with the source of the force rather than the force.",
+    "One attains the way of heaven. Success. — The stored power finds its opening. Everything moves.",
+  ],
+},
+/* 27 · Corners of the Mouth */ {
+  d: "An open mouth: the two firm lines at top and bottom are the lips, and everything between is what goes in and out. The hexagram is about nourishment in both directions — what you take in, and what you say.\n\nPay heed to the providing of nourishment and to what a person seeks to fill their own mouth with. The counsel is diagnostic rather than moral: look at what you consume, in food, attention and company, and look at what you emit. Both are within your control and both are, over a year, most of what you become. It is the plainest hexagram in the book.",
+  mi: "Thunder at the foot of the mountain. The instruction is to be careful of one's words and temperate in eating and drinking — the two things the mouth does.",
+  q: ["What am I taking in daily that I would not choose deliberately?", "What have I been saying that I would rather not have said?"],
+  L: [
+    "You let your magic tortoise go and look at me with the corners of your mouth drooping. — Envy of what others have, while neglecting your own source.",
+    "Turning to the summit for nourishment, deviating from the path. Misfortune. — Seeking it from the wrong quarter, and upward.",
+    "Turning away from nourishment. Perseverance brings misfortune. Do not act thus for ten years. — Feeding on what does not feed you. Stop entirely.",
+    "Turning to the summit for provision brings good fortune. Spying about with sharp eyes like a tiger. — Seeking help from above, with sharp attention. This works.",
+    "Turning away from the path. To remain persevering brings good fortune. One should not cross the great water. — Stay where you are and be supported. Not the time for large moves.",
+    "The source of nourishment. Awareness of danger brings good fortune. It furthers one to cross the great water. — You are now the source for others. Carefully, and then boldly.",
+  ],
+},
+/* 28 · Preponderance of the Great */ {
+  d: "A ridgepole sagging under weight it was not built for: four strong lines in the middle, weak ones at each end. The hexagram is about a load-bearing thing that is overloaded, and about a moment that is genuinely extraordinary rather than merely busy.\n\nIt furthers one to have somewhere to go. The counsel is not to wait it out. Under this much strain the structure will not simply return to normal; something has to give and it is better that you choose what. Extraordinary times permit extraordinary measures — the hexagram explicitly allows action that would be improper in a normal season.",
+  mi: "The lake rises above the trees and drowns them. The superior man stands alone without fear and renounces the world without regret — the extraordinary time asks for an extraordinary independence.",
+  q: ["What is bearing weight it was never built for?", "What ordinary rule does this situation genuinely suspend?"],
+  L: [
+    "To spread white rushes underneath. No blame. — Excessive care at the start. Under this much weight it is warranted.",
+    "A dry poplar sprouts at the root. An older man takes a young wife. Everything furthers. — Unlikely renewal from an old stock. Let it.",
+    "The ridgepole sags to the breaking point. Misfortune. — Going on alone under the full load. It breaks.",
+    "The ridgepole is braced. Good fortune. If there are ulterior motives, it is humiliating. — Supported, and the support has to be given honestly.",
+    "A withered poplar puts forth flowers. An older woman takes a husband. No blame, no praise. — A late flowering with nothing behind it. Neither good nor bad.",
+    "One must go through the water. It goes over one's head. Misfortune. No blame. — You go under, doing the necessary thing. No fault attaches.",
+  ],
+},
+/* 29 · The Abysmal */ {
+  d: "Water doubled: a gorge, and then another gorge. The hexagram is about danger that repeats — not a single crisis but a run of them, the kind of period where each thing is survived and another arrives.\n\nWhat it teaches is the behaviour of water. Water does not resist the terrain and it does not stop; it fills each hollow completely and then goes on. Sincerity, the text says, brings success in the heart. Meaning: you get through repeated danger by staying exactly what you are in the middle of it, by dealing with each hollow fully rather than skipping ahead, and by continuing.",
+  mi: "Water flows on uninterruptedly and reaches its goal. The instruction is to walk in lasting virtue and carry on the business of teaching — repetition is how both danger and mastery work.",
+  q: ["What would filling this hollow completely look like, rather than getting past it?", "What in me has stayed the same through all of this?"],
+  L: [
+    "Repetition of the Abysmal. One falls into the pit. Misfortune. — Accustomed to danger, and therefore careless in it.",
+    "The abyss is dangerous. One should strive to attain small things only. — Reduce the ambition to what can be got today.",
+    "Forward and backward, abyss on abyss. Pause at first. — Do not move at all for now. Every direction is a drop.",
+    "A jug of wine, a bowl of rice, earthen vessels handed in through the window. — Simplicity and honesty between people. Small provision, offered plainly, is enough.",
+    "The abyss is not filled to overflowing; it is filled only to the rim. — Do not attempt more than the situation holds. To the rim is enough.",
+    "Bound with cords and ropes, shut in between thorn-hedged prison walls. Three years, misfortune. — Lost in it for a long stretch. The way out is a change of conduct, not of circumstance.",
+  ],
+},
+/* 30 · The Clinging Fire */ {
+  d: "Fire doubled: brightness, and the fact that brightness depends on what it burns. The hexagram is about clarity — seeing and being seen — and about dependence, which is the same thing from the other side.\n\nCare of the cow brings good fortune, the Judgment says, which is the least mystical sentence in the book: keep feeding the thing that keeps you going. Clarity is not self-sustaining. It rests on rest, on relationships, on a practice, on whatever your fuel actually is, and this hexagram appears when the light is good and the question of what it is burning has been neglected.",
+  mi: "Brightness rises twice. The great man perpetuates this brightness by illuminating the four quarters — clarity is passed on, not hoarded.",
+  q: ["What is my clarity actually burning, and am I feeding it?", "Where am I dependent in a way I have not admitted?"],
+  L: [
+    "The footprints run crisscross. If one is seriously intent, no blame. — A confused start to the day. Seriousness settles it.",
+    "Yellow light. Supreme good fortune. — The balanced kind of brightness: moderate, central, sustainable.",
+    "In the light of the setting sun, men either beat the pot and sing or loudly bewail the approach of old age. — A phase is ending. Neither the forced cheer nor the lament is required.",
+    "Its coming is sudden; it flames up, dies down, is thrown away. — Brilliance with nothing under it. It burns out within the hour.",
+    "Tears in floods, sighing and lamenting. Good fortune. — Grief at a turning point, which is what makes it turn.",
+    "The king uses him to march. It is best to kill the leaders and take captive the followers. — Deal with the cause and be lenient with the rest.",
+  ],
+},
+/* 31 · Influence */ {
+  d: "A lake on a mountain: the low place at the top, and therefore able to receive. The hexagram is about attraction — courtship in the classical reading, and more generally the mutual influence of two things that are open to each other.\n\nWhat makes it work is emptiness. The mountain is still and the lake is receptive; neither is pushing. Influence achieved by pressure is not this hexagram. The counsel is to be genuinely open — which includes being open to being changed — and to let the attraction do the work that persuasion cannot. It is one of the few hexagrams that is unambiguously about feeling.",
+  mi: "A lake on the mountain. The superior man encourages people to approach him by his readiness to receive them — influence is a door left open.",
+  q: ["Am I trying to persuade where I could simply be open?", "What would I have to be willing to have changed in me?"],
+  L: [
+    "The influence shows itself in the big toe. — The first stirring. Nothing has happened yet and nothing needs to.",
+    "The influence shows itself in the calves. Misfortune. Tarrying brings good fortune. — The impulse to move before the whole is ready. Wait.",
+    "The influence shows itself in the thighs. Continuing brings humiliation. — Following an impulse because it is strong. Do not.",
+    "Perseverance brings good fortune. Remorse disappears. If a man is agitated in mind, only those friends he thinks of will follow. — Influence from a settled centre reaches everyone; from an agitated one, only your own circle.",
+    "The influence shows itself in the back of the neck. No remorse. — Unconscious and firm. You are affecting things without effort.",
+    "The influence shows itself in the jaws, cheeks and tongue. — Influence by talk alone. It carries no weight.",
+  ],
+},
+/* 32 · Duration */ {
+  d: "Thunder and wind: two things that are always in motion and always themselves. The hexagram is about what lasts, and its insight is that duration is not stillness. What endures is a form that keeps renewing its own content — a marriage, a practice, an institution.\n\nIt furthers one to have somewhere to go. Constancy is not staying put; it is continuing in the same direction. The counsel warns against two failures: restlessness that abandons the form, and rigidity that keeps the form and lets the content die. Both end the thing. What lasts moves without changing what it is.",
+  mi: "Thunder and wind: the image of duration. The superior man stands firm and does not change his direction — the direction is the constant, not the position.",
+  q: ["What here is the form, and what is the content that needs renewing?", "Am I confusing constancy with not moving?"],
+  L: [
+    "Seeking duration too hastily brings misfortune persistently. — Demanding permanence at the beginning. It has not had time to become anything.",
+    "Remorse disappears. — Strength held within the proper limit. Nothing to correct.",
+    "He who does not give duration to his character meets with disgrace. — Inconsistency of character, not of circumstance. It is noticed.",
+    "No game in the field. — Persisting in the wrong place. There is nothing here; the constancy is misapplied.",
+    "Giving duration to one's character through perseverance. Good fortune for a woman, misfortune for a man. — Following steadily is right in a subordinate position and wrong in a deciding one.",
+    "Restlessness as an enduring condition brings misfortune. — Perpetual motion made permanent. Nothing accumulates.",
+  ],
+},
+/* 33 · Retreat */ {
+  d: "The mountain under heaven: heaven withdrawing upward, out of reach. The hexagram is about a strategic withdrawal — leaving a situation that is turning against you, early, in good order, and without making a scene about it.\n\nSuccess, the Judgment says, and then: in what is small, perseverance furthers. Retreat here is not defeat and it is not flight. It is recognising that the conditions have changed, declining to fight a battle on ground you did not choose, and keeping your standards intact in a smaller compass. The timing is the whole art: a retreat taken early is a manoeuvre; taken late it is a rout.",
+  mi: "The mountain under heaven: the image of retreat. The superior man keeps the inferior man at a distance — not with anger, which would be engagement, but with dignity.",
+  q: ["What am I still fighting for that the conditions have already decided?", "What would leaving well look like, as against leaving late?"],
+  L: [
+    "At the tail in retreat. This is dangerous. One must not wish to undertake anything. — Too late to go cleanly. Stay still rather than move badly.",
+    "He holds him fast with yellow oxhide. No one can tear him loose. — Hold your commitment where it is genuine. Not everything is to be withdrawn from.",
+    "A halted retreat is nerve-wracking and dangerous. To retain people as servants is good fortune. — Entangled. Keep your obligations and go no further.",
+    "Voluntary retreat brings good fortune to the superior man and downfall to the inferior. — Willing withdrawal. Whether it is loss depends on what you are.",
+    "Friendly retreat. Perseverance brings good fortune. — Leaving well, without rancour, and saying so.",
+    "Cheerful retreat. Everything serves to further. — Out, clear, and glad of it. Nothing left tangled.",
+  ],
+},
+/* 34 · The Power of the Great */ {
+  d: "Thunder in heaven above: force at its most available. Four strong lines rising, and the hexagram spends its whole attention on the difference between power and the right to use it.\n\nPerseverance furthers — which in this hexagram means restraint rather than persistence. Strength that acts simply because it can gets caught, like the ram whose horns stick in the hedge. The counsel is to do only what is proper, and to notice that the moment you are most capable of pushing something through is the moment you are least able to tell whether you should.",
+  mi: "Thunder in heaven above. The superior man does not tread upon paths that do not accord with established order — power is made safe by conduct, not by moderation of the power itself.",
+  q: ["What could I force through right now, and should I?", "Where is my strength about to get caught in something?"],
+  L: [
+    "Power in the toes. Continuing brings misfortune. This is certainly true. — Force applied at the lowest level, and early. It will not carry.",
+    "Perseverance brings good fortune. — Balanced strength, used steadily. Nothing to correct.",
+    "The inferior man works through power. The superior man does not act thus. A goat butts against a hedge and gets its horns entangled. — Pushing because you can. This is how it sticks.",
+    "Perseverance brings good fortune. Remorse disappears. The hedge opens; there is no entanglement. — The obstacle gives way to steady pressure, not to force.",
+    "Loses the goat with ease. No remorse. — Let the combativeness go. Nothing is lost with it.",
+    "A goat butts against a hedge. It cannot go backward, it cannot go forward. If one notes the difficulty, this brings good fortune. — Stuck both ways. Recognising it is the whole of the way out.",
+  ],
+},
+/* 35 · Progress */ {
+  d: "The sun rising over the earth: light increasing, everything becoming visible, advancement that is easy rather than forced. The hexagram is about a favourable phase in which you are being seen and promoted.\n\nWhat it asks is that the progress be clean. The classical image is a prince who is given horses and received three times in a day — honour arriving quickly, and the obligation arriving with it. The counsel is to keep your own brightness clear: advancement got by manoeuvre works and does not last, and this hexagram is about the other kind.",
+  mi: "The sun rises over the earth. The superior man himself brightens his bright virtue — the advancement follows the clarity rather than producing it.",
+  q: ["Where am I being advanced, and on what basis?", "What obligation comes with this that I have not counted?"],
+  L: [
+    "Progressing, but turned back. Perseverance brings good fortune. If one meets with no confidence, remain calm. No mistake. — A rebuff at the start. Keep your composure; it turns.",
+    "Progressing, but in sorrow. Perseverance brings good fortune. Then one obtains great happiness from one's ancestress. — Advancement that is not enjoyable yet. Help comes from an unexpected quarter.",
+    "All are in accord. Remorse disappears. — Others are with you. This is what makes it move.",
+    "Progress like a hamster. Perseverance brings danger. — Hoarding on the way up. It will be found out.",
+    "Remorse disappears. Take not gain and loss to heart. Undertakings bring good fortune. — Stop counting. Act, and let the ledger look after itself.",
+    "Making progress with the horns is permissible only for the purpose of punishing one's own city. — Aggression allowed only against your own faults. Nowhere else.",
+  ],
+},
+/* 36 · Darkening of the Light */ {
+  d: "The sun gone under the earth: a hexagram about adverse conditions in which being right is not safe. The light is still there; it is below the horizon, and the whole counsel is about how to keep it alight.\n\nIt furthers one to be persevering in adversity. Practically: do not display what you know, do not correct people who have power and no interest in being corrected, and do not mistake concealment for compromise. Keep your own clarity privately and completely, behave unremarkably, and wait. This is one of the few hexagrams that recommends hiding, and it means it.",
+  mi: "The light has sunk into the earth. The superior man lives with the great mass: he veils his light, and yet it still shines.",
+  q: ["Where is being visibly right currently unsafe or useless?", "What am I keeping alight privately that I must not let go out?"],
+  L: [
+    "Darkening of the light during flight. He lowers his wings. For three days he does not eat. — Withdraw at once, at cost, rather than be caught.",
+    "Darkening of the light injures him in the left thigh. He gives aid with the strength of a horse. — Wounded and still able to help others. Do that.",
+    "Darkening of the light during the hunt in the south. Their great leader is captured. One must not expect perseverance too soon. — A real gain, and the aftermath takes time. Do not rush the repair.",
+    "He penetrates the left side of the belly. One gets at the very heart of the darkening of the light, and leaves gate and courtyard. — You understand it well enough to see it is not fixable. Leave.",
+    "Darkening of the light as with Prince Chi. Perseverance furthers. — Concealment under direct pressure. Keep your inner clarity exactly.",
+    "Not light but darkness. First he climbed up to heaven, then he plunged into the depths of the earth. — The darkness at its own height, and therefore ending.",
+  ],
+},
+/* 37 · The Family */ {
+  d: "Wind coming out of fire: influence that spreads from a centre outward. The hexagram is about the household, and about every small group that works the way a household does.\n\nWhat makes it hold is that everybody knows what their part is. The classical reading is about roles and it is easy to read as conservatism; the usable part is that undefined responsibility is where households fail. The other half is about speech: words must have substance and conduct must have consistency. Nowhere are people more accurate at noticing a gap between what you say and what you do.",
+  mi: "Wind comes forth from fire. The superior man has substance in his words and duration in his way of life — which is what those closest to you are actually reading.",
+  q: ["Who does what here, and has that ever been said out loud?", "Where is there a gap between what I say at home and what I do?"],
+  L: [
+    "Firm seclusion within the family. Remorse disappears. — Rules set early, before there is anything to argue about.",
+    "She should not follow her whims. She must attend within to the food. — Do the immediate, practical, nearby thing.",
+    "When tempers flare up in the family, too great severity brings remorse. Yet too much familiarity leads to loss. — Between severity and slackness, severity errs better. Neither is right.",
+    "She is the treasure of the house. Great good fortune. — The one who keeps it running. Say so.",
+    "As a king he approaches his family. Fear not. Good fortune. — Lead it with affection rather than authority.",
+    "His work commands respect. In the end good fortune. — Authority that rests on how you conduct yourself. It holds.",
+  ],
+},
+/* 38 · Opposition */ {
+  d: "Fire above and the lake below: two things moving away from each other. The hexagram is about difference — misunderstanding, estrangement, people who want the same thing and cannot agree about anything.\n\nIn small matters, good fortune. That is the entire practical counsel and it is precise. Do not attempt the grand reconciliation; do not try to settle the principle. Small shared things — a piece of work done together, an ordinary kindness, an agreement about something minor — are what dissolve opposition, and they work where argument cannot.",
+  mi: "Fire above, the lake below: they move apart. The superior man, amid all fellowship, retains his individuality — opposition is not always to be cured.",
+  q: ["What small thing could we agree on or do together?", "Am I trying to settle a principle that does not need settling?"],
+  L: [
+    "Remorse disappears. If you lose your horse, do not run after it; it will come back of its own accord. — Do not chase. Let the estrangement take its own course.",
+    "One meets his lord in a narrow street. No blame. — An accidental, informal meeting mends more than an arranged one.",
+    "One sees the wagon dragged back, the oxen halted, a man's hair and nose cut off. Not a good beginning, but a good end. — Obstruction and insult early; it comes right.",
+    "Isolated through opposition, one meets a like-minded man with whom one can associate in good faith. — Alone in it, and then not. Someone turns up.",
+    "Remorse disappears. The companion bites through the wrappings. — The barrier is cut through, from their side. Go with it.",
+    "Isolated through opposition, one sees one's companion as a pig covered with dirt, a wagon full of devils. It is not a bandit; he woos at the right time. Rain falls; then good fortune. — Everything was misread. The tension breaks and it turns out to have been a misunderstanding.",
+  ],
+},
+/* 39 · Obstruction */ {
+  d: "Water on the mountain: a hazard above and a hard climb below. The hexagram is about an obstacle that is genuinely in the way — not a test, not a lesson, simply a difficulty.\n\nThe counsel is directional and unusual. The south-west furthers; the north-east does not. Go where it is easier and where there are people; do not go alone into the hard country. And: it furthers one to see the great man. Obstruction is the hexagram that most plainly recommends asking for help, and the second half of its advice is to turn the attention inward — to look at your own part in the blockage rather than at the blockage.",
+  mi: "Water on the mountain. The superior man turns his attention to himself and moulds his character — what cannot be moved outwardly can be worked on inwardly.",
+  q: ["Who could help with this, and have I actually asked?", "What is my own part in the obstruction?"],
+  L: [
+    "Going leads to obstructions; coming meets with praise. — Do not press forward. Turning back is well received.",
+    "The king's servant is beset by obstruction upon obstruction, but it is not his own fault. — Difficulty taken on for something larger. Not yours to feel guilty about.",
+    "Going leads to obstructions; hence he comes back. — Try, fail, return. That is the correct sequence here.",
+    "Going leads to obstructions; coming leads to union. — Come back and join with others. Alone will not do it.",
+    "In the midst of the greatest obstructions, friends come. — The hardest point is where the help arrives.",
+    "Going leads to obstructions; coming leads to great good fortune. It furthers one to see the great man. — Return, and take counsel from someone who knows.",
+  ],
+},
+/* 40 · Deliverance */ {
+  d: "Thunder and rain: the storm has broken and the tension has gone out of the air. The hexagram is about release — the end of a difficulty — and it is almost entirely about what to do immediately afterwards.\n\nIf there is nowhere one has to go, returning brings good fortune. If there is something to be done, hasten to do it. Meaning: if the crisis is over and nothing is outstanding, go back to normal life at once and do not keep living in the emergency. If something is outstanding, do it now while the way is clear. And forgive: the text is explicit that after a release you pardon mistakes and let old grievances go, because carrying them re-creates the weather.",
+  mi: "Thunder and rain set in. The superior man pardons mistakes and forgives misdeeds — deliverance is completed by letting things drop.",
+  q: ["Is the difficulty actually over, and am I still living as though it were not?", "What grievance would it cost me nothing real to let go of?"],
+  L: [
+    "Without blame. — The moment of release. Nothing needs doing.",
+    "One kills three foxes in the field and receives a yellow arrow. — Clear out what was undermining it. Then hold the middle way.",
+    "If a man carries a burden on his back and nonetheless rides in a carriage, he thereby encourages robbers to draw near. — Display out of keeping with your position invites trouble.",
+    "Deliver yourself from your great toe. Then the companion comes, and him you can trust. — Let go of the attachment that has been holding you back. Better company follows.",
+    "If only the superior man can deliver himself, it brings good fortune. — Free yourself first. The rest follows from it.",
+    "The prince shoots at a hawk on a high wall. He kills it. Everything serves to further. — Deal with the remaining obstacle directly and finish it.",
+  ],
+},
+/* 41 · Decrease */ {
+  d: "The lake at the foot of the mountain, its depth giving to the height above. The hexagram is about giving something up — a deliberate, chosen reduction that makes something else possible.\n\nTwo small bowls may be used for the sacrifice. That is the memorable line: what you offer need not be impressive, and honest simplicity is accepted where a strained display is not. Decrease appears in phases where there is genuinely less — less money, less time, less energy — and its counsel is to reduce cleanly and without apology, and to notice that the reduction is also a simplification.",
+  mi: "At the foot of the mountain, the lake. The superior man controls his anger and restrains his instincts — the decrease begins with what is in you.",
+  q: ["What could I honestly do with less of?", "What am I straining to maintain for appearance's sake?"],
+  L: [
+    "Going quickly when one's tasks are finished is without blame. But one must reflect on how much one may decrease others. — Give help and then go. Do not take more from them than you must.",
+    "Perseverance furthers. To undertake something brings misfortune. Without decreasing oneself, one is able to bring increase to others. — Hold your ground. You help most by remaining intact.",
+    "When three people journey together, their number decreases by one. When one man journeys alone, he finds a companion. — Pairs work; threes do not. Simplify the arrangement.",
+    "If a man decreases his faults, it makes the other hasten to come and rejoice. No blame. — Reduce your own failings. It changes the relationship immediately.",
+    "Someone does indeed increase him. Ten pairs of tortoises cannot oppose it. Supreme good fortune. — Help arrives that cannot be argued away. Take it.",
+    "If one is increased without depriving others, there is no blame. Perseverance brings good fortune. — Gain that costs nobody anything. Rare and sound.",
+  ],
+},
+/* 42 · Increase */ {
+  d: "Wind and thunder together, each strengthening the other. The hexagram is about a phase of gain, and it is one of the most actively encouraging in the book: it furthers one to undertake something, and it furthers one to cross the great water.\n\nWhat it attaches is a direction. The increase moves downward — from those who have to those who have not — and that movement is what keeps it going. Practically, the counsel is to act while conditions favour you and to spend the surplus outward rather than banking it. Increase hoarded stops being increase.",
+  mi: "Wind and thunder. If the superior man sees good, he imitates it; if he has faults, he rids himself of them — increase applied to the character.",
+  q: ["What should I be attempting while conditions are with me?", "Where could I move the surplus downward rather than keeping it?"],
+  L: [
+    "It furthers one to accomplish great deeds. Supreme good fortune. No blame. — Given the means, do something large with them.",
+    "Someone does indeed increase him. Ten pairs of tortoises cannot oppose it. Constant perseverance brings good fortune. — Help you did not arrange. Stay steady and it holds.",
+    "One is enriched through unfortunate events. No blame, if you are sincere and walk in the middle. — Gain out of a misfortune, and it is allowed if honestly held.",
+    "If you walk in the middle and report to the prince, he will follow. — Be moderate and say it plainly upward. It will be heard.",
+    "If in truth you have a kind heart, ask not. Supreme good fortune. — Genuine kindness, unannounced. Nothing further is required.",
+    "He brings increase to no one. Indeed, someone even strikes him. Misfortune. — Taking and not giving. The flow stops and turns against you.",
+  ],
+},
+/* 43 · Breakthrough */ {
+  d: "The lake risen up to heaven: pressure that must be released. Five strong lines and one yielding one at the top — something small and wrong is left, and it is time to be rid of it.\n\nThe counsel is about how. One must resolutely make the matter known at the court of the king; it must be announced truthfully; there is danger. Say it openly rather than manoeuvring. Do not use force, and do not attack the person. Begin with your own house. The hexagram is about the difficult act of naming a thing publicly, and it warns that the danger in doing so is real and worth accepting.",
+  mi: "The lake has risen up to heaven. The superior man dispenses riches downward and refrains from resting on his virtue — breakthrough is followed by giving, not by triumph.",
+  q: ["What needs saying openly that I have been handling privately?", "Am I attacking the problem or the person?"],
+  L: [
+    "Mighty in the forward-striding toes. When one goes and is not equal to the task, one makes a mistake. — Setting out on enthusiasm alone. Check that you can actually do it.",
+    "A cry of alarm. Arms at evening and at night. Fear nothing. — Prepared, and therefore not afraid. Keep the vigilance.",
+    "To be powerful in the cheekbones brings misfortune. To be resolute, to walk alone and be caught in the rain — no blame. — Do it quietly and alone if you must, and take the discomfort.",
+    "There is no skin on his thighs, and walking comes hard. If a man were to let himself be led like a sheep, remorse would disappear. — Being led here would save you. You will not accept it, which is the difficulty.",
+    "In dealing with weeds, firm resolution is necessary. Walking in the middle remains free of blame. — Root it out, keeping to the middle way.",
+    "No cry. In the end misfortune comes. — Left unsaid. It returns.",
+  ],
+},
+/* 44 · Coming to Meet */ {
+  d: "Wind under heaven: something has come in from below and it is small. One yielding line at the bottom of five strong ones — an encounter, a temptation, an apparently minor thing entering the situation.\n\nThe maiden is powerful. One should not marry such a maiden. That is not a moral about women; it is a warning about the pattern. What enters weakly and is accommodated grows, and the point at which it can still be declined is early. The hexagram is also about ordinary meetings: something is being offered and the question is whether to let it in at all, rather than how much of it to allow.",
+  mi: "Under heaven, wind: the image of coming to meet. The prince acts and makes his commands known to the four quarters — meet it openly, in the light.",
+  q: ["What small thing have I let in that is growing?", "Is this an encounter worth having, or one to decline while it is still easy?"],
+  L: [
+    "It must be checked with a brake of bronze. Perseverance brings good fortune. Letting it take its course brings misfortune. — Stop it now, hard, while it is small.",
+    "There is a fish in the tank. No blame. Does not further guests. — Contain it. Do not let it out among others.",
+    "There is no skin on his thighs, and walking comes hard. If one is mindful of the danger, no great mistake is made. — Tempted and hesitating. Awareness keeps it from becoming anything.",
+    "No fish in the tank. This leads to misfortune. — Lost touch with those below you. That is the real exposure.",
+    "A melon covered with willow leaves. Hidden lines. Then it drops down to one from heaven. — Cover what is good without display. What is due will come of itself.",
+    "He comes to meet with his horns. Humiliation. No blame. — Refusing the encounter stiffly. Ungracious, and not wrong.",
+  ],
+},
+/* 45 · Gathering Together */ {
+  d: "The lake above the earth: water collecting. The hexagram is about assembly — people brought together around something, and the work of holding them there.\n\nIt requires a centre. The king approaches his temple; it furthers one to see the great man; great offerings create good fortune. The gathering has to have a point outside the people gathering, or it disperses. And there is a practical warning attached: where many are collected, unforeseen things happen, so keep your weapons in order — meaning be prepared rather than only enthusiastic.",
+  mi: "Over the earth, the lake. The superior man renews his weapons to meet the unforeseen — an assembly is a thing to be ready for, not only to enjoy.",
+  q: ["What is the centre this is gathering around, and is it stated?", "What is likely to go wrong with this many people, and am I ready for it?"],
+  L: [
+    "If you are sincere but not to the end, there will be confusion and gathering. If you call out, then after one grasp of the hand you can laugh again. — Waver, ask for help, and it steadies.",
+    "Letting oneself be drawn brings good fortune and remains blameless. If one is sincere, it furthers one to bring even a small offering. — Be drawn in. Bring something, however small.",
+    "Gathering together amid sighs. Nothing that would further. Going is without blame. Slight humiliation. — Not welcome here. Go anyway and accept the awkwardness.",
+    "Great good fortune. No blame. — Gathering others toward something that is not your own advantage. This is the good version.",
+    "If in gathering together one has position, this brings no blame. If there are some who are not yet sincerely in the work, sublime and enduring perseverance is needed. — Position is not enough. Persist until they mean it.",
+    "Lamenting and sighing, floods of tears. No blame. — Wanting to belong and not yet belonging. The grief is honest and it passes.",
+  ],
+},
+/* 46 · Pushing Upward */ {
+  d: "Wood growing out of the earth: the slowest and most reliable image in the book. The hexagram is about advancement by accumulation — effort applied consistently in the same direction over a long period.\n\nOne must see the great man; fear not; departure toward the south brings good fortune. There is no obstacle in this hexagram. What it asks is that you keep going and not look for a faster route: a tree does not push, it simply does not stop. The counsel is to make yourself known to the person who can help, and then to put in the ordinary hours.",
+  mi: "Within the earth, wood grows. The superior man of devoted character heaps up small things in order to achieve something high and great.",
+  q: ["What have I been doing consistently that is further along than it feels?", "Who should know what I am doing, who does not?"],
+  L: [
+    "Pushing upward that meets with confidence brings great good fortune. — Begin with the support of those above you. It is available.",
+    "If one is sincere, it furthers one to bring even a small offering. No blame. — Sincerity outweighs the size of the offering.",
+    "One pushes upward into an empty city. — No resistance at all. Go, and stay alert to why it is empty.",
+    "The king offers him Mount Ch'i. Good fortune. No blame. — Recognised, and given a place. Accept it.",
+    "Perseverance brings good fortune. One pushes upward by steps. — One step at a time. Do not skip any.",
+    "Pushing upward in darkness. It furthers one to be unremittingly persevering. — Going on without being able to see. Only persistence works here.",
+  ],
+},
+/* 47 · Oppression */ {
+  d: "A lake with the water drained out of it: exhaustion. The hexagram is about a phase of genuine constraint — no money, no energy, no room to move — and it is the least consoling hexagram in the book and one of the most useful.\n\nOne has something to say and is not believed. That is the specific misery it names: in this condition, explaining yourself makes it worse. The counsel is therefore few words, no arguing, and no attempt to talk your way out. Hold to your own standards privately, spend nothing on persuading anybody, and let the phase run. It ends.",
+  mi: "There is no water in the lake. The superior man stakes his life on following his will — when there is nothing left, what you are is what remains.",
+  q: ["Where am I spending energy trying to be believed?", "What is genuinely left, that I could stand on?"],
+  L: [
+    "One sits oppressed under a bare tree and strays into a gloomy valley. For three years one sees nothing. — Withdrawn too far into the difficulty. Stop going deeper.",
+    "One is oppressed while at meat and drink. The man with the scarlet knee bands is just coming. — Comfortable and oppressed at once. Help arrives; be ready to serve rather than to be rescued.",
+    "A man permits himself to be oppressed by stone, and leans on thorns and thistles. He enters his house and does not see his wife. Misfortune. — Leaning on what cannot hold. Loss follows at home.",
+    "He comes very quietly, oppressed in a golden carriage. Humiliation, but the end is reached. — Help offered clumsily and slowly. Take it anyway.",
+    "His nose and feet are cut off. Oppression at the hands of the man with the purple knee bands. Joy comes softly. — Constrained on every side, and something eases quietly. Make the small offering.",
+    "He is oppressed by creeping vines. He moves uncertainly and says, 'Movement brings remorse.' If one feels remorse over this and makes a start, good fortune comes. — Tangled by habit. The regret itself is the opening; move.",
+  ],
+},
+/* 48 · The Well */ {
+  d: "Wood going down into water and drawing it up. The town may be changed, the well cannot be changed. The hexagram is about the source — the thing under a life or an organisation that does not alter when everything around it does.\n\nIts counsel is maintenance. A well silted up gives no water; a well whose rope is too short reaches nothing; a broken jug spills what it draws. All three are failures of upkeep rather than of the source. Whatever your well is — a practice, a relationship, a body of knowledge, your own health — the hexagram says it is still there and it needs clearing out.",
+  mi: "Water over wood: the image of the well. The superior man encourages the people at their work and exhorts them to help one another — a well is for everybody who comes to it.",
+  q: ["What is my well, and when did I last clear it out?", "Is my rope long enough, or am I letting it down halfway?"],
+  L: [
+    "One does not drink the mud of the well. No animals come to an old well. — Neglected until nothing comes. Nobody is at fault but it is nobody's use either.",
+    "At the well hole one shoots fishes. The jug is broken and leaks. — Using the source for the wrong thing, with a vessel that will not hold.",
+    "The well is cleaned, but no one drinks from it. This is my heart's sorrow. — Ready and unused. The waste is real; make it known.",
+    "The well is being lined. No blame. — Repair, which produces nothing today and is the whole of the work.",
+    "In the well there is a clear, cold spring from which one can drink. — Available and good. Use it.",
+    "One draws from the well without hindrance. It is dependable. Supreme good fortune. — Open to all, and inexhaustible. This is the top of the hexagram and its point.",
+  ],
+},
+/* 49 · Revolution */ {
+  d: "Fire in the lake: two elements that destroy each other, and something has to give. The hexagram is about fundamental change — the kind that replaces an arrangement rather than adjusting it.\n\nOn your own day you are believed. That is the timing condition and it is strict: revolution is believed only when the need for it has become obvious to everyone, and attempted before that it is merely disruption. The counsel is threefold — be sure it is necessary, be sure it is the right moment, and be prepared for the fact that the people affected will need to be brought along rather than informed.",
+  mi: "Fire in the lake. The superior man sets the calendar in order and makes the seasons clear — after a change, the first work is to say what the new order is.",
+  q: ["Has the need for this become obvious to anyone besides me?", "Is this the day, or do I simply want it to be?"],
+  L: [
+    "Wrapped in the hide of a yellow cow. — Bound and still. Do nothing yet; it is far too early.",
+    "When one's own day comes, one may create revolution. Starting brings good fortune. No blame. — The moment has arrived. Prepare and then act.",
+    "Starting brings misfortune. Perseverance brings danger. When talk of revolution has gone the rounds three times, one may commit himself. — Neither rush nor refuse. Three hearings and then decide.",
+    "Remorse disappears. Men believe him. Changing the form of government brings good fortune. — Trusted, and therefore able to change it.",
+    "The great man changes like a tiger. Even before he questions the oracle he is believed. — The change is unmistakable and needs no argument.",
+    "The superior man changes like a panther. The inferior man moults in the face. Starting brings misfortune. To remain persevering brings good fortune. — The great change is done; now only detail. Do not start another.",
+  ],
+},
+/* 50 · The Cauldron */ {
+  d: "Wood feeding fire under a vessel: the image of cooking, which is the oldest picture of culture there is. The hexagram is about transformation for nourishment — taking raw material and making it into something people can live on.\n\nIt is the most constructive hexagram in the book and it is about work that serves. A cauldron has legs, a belly, handles and rings, and the lines go up through them in order: the parts have to be sound and the vessel has to be clean. Whatever you are making — a body of work, a household, a piece of knowledge — the counsel is that its purpose is to feed somebody, and that the making is worth doing properly.",
+  mi: "Fire over wood: the image of the cauldron. The superior man consolidates his fate by making his position correct — the vessel has to be set straight before it can hold anything.",
+  q: ["What am I making, and who is it meant to feed?", "Which part of the vessel is not sound?"],
+  L: [
+    "A cauldron with legs upturned. Furthers removal of stagnating stuff. One takes a concubine for the sake of her son. No blame. — Tip out what has gone bad, even at some indignity.",
+    "There is food in the cauldron. My comrades are envious, but they cannot harm me. Good fortune. — You have something worth having. Envy cannot touch it.",
+    "The handle of the cauldron is altered. One is impeded in his way of life. The fat of the pheasant is not eaten. — Unable to be used; the good thing goes to waste. It resolves.",
+    "The legs of the cauldron are broken. The prince's meal is spilled. Misfortune. — A responsibility beyond your strength, and it fails publicly.",
+    "The cauldron has yellow handles, golden carrying rings. Perseverance furthers. — Approachable and strong. Keep it so.",
+    "The cauldron has rings of jade. Great good fortune. Nothing that would not act to further. — Hard and gentle at once. Nothing to correct.",
+  ],
+},
+/* 51 · The Arousing Thunder */ {
+  d: "Thunder doubled: a shock, and then another. The hexagram is about being startled — bad news, a sudden reversal, something that arrives without warning and rearranges the day.\n\nThe famous detail is that the shock terrifies for a hundred miles and the sacrificial spoon is not dropped. Whatever you were carefully holding, keep holding. The counsel is not to be unafraid — fear is in the hexagram and is treated as normal — but to let the fear pass through you without letting go of what you were doing. Afterwards there is laughing and talking. Shocks end.",
+  mi: "Thunder repeated. The superior man, in fear and trembling, sets his life in order and examines himself — a shock is a good moment to look at what you are actually built on.",
+  q: ["What did this shock show me that I would not otherwise have looked at?", "What was I holding that I must not drop?"],
+  L: [
+    "Shock comes — oh, oh! Then follow laughing words — ha, ha! Good fortune. — Frightened and then relieved. The whole cycle in one line.",
+    "Shock comes bringing danger. A hundred thousand times you lose your treasures and must climb the nine hills. Do not go in pursuit of them; after seven days you will get them back. — Let the losses go. They return.",
+    "Shock comes and makes one distraught. If shock spurs to action, one remains free of misfortune. — Move. Distress that becomes action is safe.",
+    "Shock is mired. — Stuck in the middle of it, unable to act. Wait; nothing else is available.",
+    "Shock goes hither and thither. Danger. However, nothing at all is lost, yet there are things to be done. — Repeated alarms, no actual damage. Keep to your duties.",
+    "Shock brings ruin and terrified gazing around. Going ahead brings misfortune. If it has not yet touched one's own body but has reached one's neighbour first, there is no blame. — It has hit near you. Do not move; learn from it.",
+  ],
+},
+/* 52 · Keeping Still */ {
+  d: "The mountain doubled: stillness, and the hexagram in the book that is most literally about meditation. Keeping his back still so that he no longer feels his body; going into his courtyard and not seeing his people.\n\nWhat it describes is a particular quality of stopping — not rest, and not avoidance, but the state where the constant internal commentary goes quiet. The practical counsel is about timing: when it is time to stop, stop; when it is time to move, move. Most difficulty comes from doing one while the other is called for. Stillness here is a competence, not an absence of activity.",
+  mi: "Mountains standing close together. The superior man does not permit his thoughts to go beyond his situation — the stillness is of attention, not of the body only.",
+  q: ["What is my mind doing that has nothing to do with where I am?", "Is it time to stop, or am I stopping to avoid moving?"],
+  L: [
+    "Keeping his toes still. No blame. Continued perseverance furthers. — Stop at the very beginning, before the impulse becomes a direction.",
+    "Keeping his calves still. He cannot rescue him whom he follows. His heart is not glad. — Stopped, and unable to help someone going on ahead. Uncomfortable and right.",
+    "Keeping his hips still. Making his sacrum stiff. Dangerous. The heart suffocates. — Forced stillness. Suppression is not stillness and it hurts.",
+    "Keeping his trunk still. No blame. — The self, quieted. Not yet peace and not a struggle either.",
+    "Keeping his jaws still. The words have order. Remorse disappears. — Say less, and let what you do say be ordered.",
+    "Noblehearted keeping still. Good fortune. — Stillness that has become character. The top of the hexagram and the point of it.",
+  ],
+},
+/* 53 · Development */ {
+  d: "A tree on the mountain: slow growth, in the right order, each stage resting on the one before. The hexagram is about gradual progress and it is unusually insistent that the stages cannot be skipped.\n\nThe classical image is a sequence of geese flying to successively higher ground. What it counsels is patience of a specific kind: not waiting, but doing the current stage properly. Most failures of gradual development come from treating an early stage as a formality on the way to a later one. Perseverance furthers, the Judgment says, and it means the ordinary sort.",
+  mi: "On the mountain, a tree: the image of development. The superior man abides in dignity and virtue in order to improve the mores — slowly, and by being it rather than urging it.",
+  q: ["Which stage am I actually at, and am I doing it properly?", "What am I trying to skip?"],
+  L: [
+    "The wild goose gradually draws near the shore. The young son is in danger. There is talk. No blame. — A beginner exposed and talked about. Nothing is actually wrong.",
+    "The wild goose gradually draws near the cliff. Eating and drinking in peace and concord. Good fortune. — A secure footing. Share it.",
+    "The wild goose gradually draws near the plateau. The man goes forth and does not return. The woman carries a child but does not bring it forth. It furthers one to fight off robbers. — Going too far, too fast, and losing the connection. Defend rather than advance.",
+    "The wild goose gradually draws near the tree. Perhaps it will find a flat branch. No blame. — An unsuitable position, made workable by adaptability.",
+    "The wild goose gradually draws near the summit. For three years the woman has no child. In the end nothing can hinder her. Good fortune. — A long barren stretch inside something that is nonetheless working.",
+    "The wild goose gradually draws near the cloud heights. Its feathers can be used for the sacred dance. Good fortune. — Beyond the ordinary stages. What you have become is of use to others.",
+  ],
+},
+/* 54 · The Marrying Maiden */ {
+  d: "Thunder over the lake: movement above and pleasure below. The hexagram is about entering a situation in a subordinate position, usually by choice and usually on the strength of feeling rather than agreement.\n\nUndertakings bring misfortune. Nothing that would further. That is as blunt as the book gets, and it is not a moral judgement on the arrangement; it is a warning about acting from within it. In a position without standing, initiative is the thing that goes wrong. The counsel is tact, patience, and doing your part well — and being honest with yourself about what the position actually is.",
+  mi: "Thunder over the lake. The superior man understands the transitory in the light of the eternity of the end — know what this is and how long it lasts.",
+  q: ["What is my actual standing here, as against how it feels?", "What would tact look like, where initiative would not work?"],
+  L: [
+    "The marrying maiden as a concubine. A lame man who is able to tread. Undertakings bring good fortune. — A modest place, filled well. It works.",
+    "A one-eyed man who is able to see. The perseverance of a solitary man furthers. — Partial sight, used steadily. Loyalty without recognition.",
+    "The marrying maiden as a slave. She marries as a concubine. — Accepting less than you should out of impatience. Wait instead.",
+    "The marrying maiden draws out the allotted time. A late marriage comes in due course. — Holding out. The right thing arrives late and is still right.",
+    "The sovereign gave his daughter in marriage. The embroidered garments of the princess were not as gorgeous as those of the servingmaid. Good fortune. — Rank set aside; substance preferred to display.",
+    "The woman holds the basket, but there are no fruits in it. The man stabs the sheep, but no blood flows. Nothing that acts to further. — The form gone through with nothing in it. Empty on both sides.",
+  ],
+},
+/* 55 · Abundance */ {
+  d: "Thunder and lightning together: everything at its fullest. The hexagram is about a peak — the moment of most light, most activity, most of everything — and about the fact that noon is followed by afternoon.\n\nBe not sad. Be like the sun at midday. The counsel is to use the fullness rather than to worry about its ending, and at the same time to be clear-eyed that it is a zenith. What is done at this point can be done; six months later the same thing will be hard. Abundance is a working season and a short one.",
+  mi: "Both thunder and lightning come. The superior man decides lawsuits and carries out punishments — at the height of clarity, settle what has been outstanding.",
+  q: ["What can be done now that will be hard in six months?", "What have I been leaving unsettled that this clarity could finish?"],
+  L: [
+    "When a man meets his destined ruler, they can be together ten days, and it is not a mistake. Going meets with recognition. — An equal partnership at the start. Go with it.",
+    "The curtain is of such fullness that the polestars can be seen at noon. Through going one meets with mistrust and hate. If one rouses him through truth, good fortune comes. — Obscured and disbelieved. Sincerity is the only thing that works.",
+    "The underbrush is of such abundance that the small stars can be seen at noon. He breaks his right arm. No blame. — So overgrown that nothing can be done. Not your fault; do not force it.",
+    "The curtain is of such fullness that the polestars can be seen at noon. He meets his ruler, who is of like kind. Good fortune. — Still dark, and the right person appears.",
+    "Lines are coming, blessing and fame draw near. Good fortune. — Openness to counsel brings the good part of the abundance.",
+    "His house is in a state of abundance. He screens off his family. He peers through the gate and no longer perceives anyone. For three years he sees nothing. Misfortune. — Wealth turned into isolation. The house is full and empty at once.",
+  ],
+},
+/* 56 · The Wanderer */ {
+  d: "Fire on the mountain, burning through and moving on. The hexagram is about being somewhere you do not belong — travelling, new in a job, in a country or a situation where you have no standing and no history.\n\nSuccess through smallness. Perseverance brings good fortune to the wanderer. The counsel is entirely about conduct: be modest, be correct, be useful, do not make claims, and be careful with the people you depend on, because a stranger's position rests on goodwill rather than on rights. It also warns against settling in: a wanderer who forgets they are a wanderer loses the advantages of being one.",
+  mi: "Fire on the mountain: the image of the wanderer. The superior man is clear-minded and cautious in imposing penalties, and protracts no lawsuits — a stranger settles nothing by fighting.",
+  q: ["Where am I a stranger, and am I behaving like one?", "Whose goodwill am I actually resting on?"],
+  L: [
+    "If the wanderer busies himself with trivial things, he draws down misfortune upon himself. — Pettiness in a weak position. It is noticed and it costs.",
+    "The wanderer comes to an inn. He has his property with him. He wins the steadfastness of a young servant. — A footing, some means, and one loyal person. That is enough.",
+    "The wanderer's inn burns down. He loses the steadfastness of his young servant. Danger. — Overbearing conduct loses both shelter and ally.",
+    "The wanderer rests in a shelter. He obtains his property and an axe. My heart is not glad. — Provided for and not at ease. Correct, and not home.",
+    "He shoots a pheasant. It drops with the first arrow. In the end this brings both praise and office. — One well-judged act earns a place.",
+    "The bird's nest burns up. The wanderer laughs at first, then must needs lament and weep. He loses his cow. Misfortune. — Carelessness at height. The loss is of the thing that made you gentle.",
+  ],
+},
+/* 57 · The Gentle Wind */ {
+  d: "Wind doubled: something that gets in everywhere by being persistent and mild. The hexagram is about influence exercised without force — the only kind that reaches into places force cannot.\n\nSuccess through what is small. The counsel is to keep going in the same direction for a long time, quietly. The wind does not shift a mountain and it wears one down. What this hexagram warns against is the loss of nerve halfway, and the opposite failure — gentleness so unresolved that it never amounts to a direction. Penetration requires a clear aim held mildly, over a long period.",
+  mi: "Winds following one upon the other. The superior man spreads his commands abroad and carries out his undertakings — repeatedly, and in the same direction.",
+  q: ["What direction have I been holding, and for how long?", "Am I being gentle, or am I being vague?"],
+  L: [
+    "In advancing and in retreating, the perseverance of a warrior furthers. — Wavering. What is needed here is discipline, not more gentleness.",
+    "Penetration under the bed. Priests and magicians are used in great number. Good fortune. No blame. — Hidden influences, brought to light by thorough enquiry.",
+    "Repeated penetration. Humiliation. — Going over it again and again without deciding. Stop analysing.",
+    "Remorse vanishes. During the hunt, three kinds of game are caught. — Modesty and decisiveness together. It works on all sides.",
+    "Perseverance brings good fortune. Remorse vanishes. Nothing that does not further. No beginning, but an end. Before the change, three days. After the change, three days. Good fortune. — A correction, carefully prepared and carefully followed up.",
+    "Penetration under the bed. He loses his property and his axe. Perseverance brings misfortune. — Investigation carried past the point of use, until the means of acting are gone.",
+  ],
+},
+/* 58 · The Joyous Lake */ {
+  d: "Two lakes joined, replenishing each other: the hexagram of gladness, and specifically of gladness that is shared and spoken. It is the most social hexagram in the book.\n\nSuccess. Perseverance is favourable. What it describes is the pleasure of talking things over with people who are glad to see you — and the fact that this is not frivolous. Joy of this kind makes hard work bearable and difficult things sayable. Its shadow is in the lines: pleasure sought for its own sake, or flattery, which is the counterfeit. Real joy strengthens; the counterfeit softens.",
+  mi: "Lakes resting one on the other. The superior man joins with his friends for discussion and practice — the pleasure and the work are the same activity.",
+  q: ["Whom do I talk things over with, and when did I last do it?", "Where am I taking pleasure that leaves me weaker afterwards?"],
+  L: [
+    "Contented joyousness. Good fortune. — Content without needing anything from anyone. The soundest form.",
+    "Sincere joyousness. Good fortune. Remorse disappears. — Honest pleasure in honest company.",
+    "Coming joyousness. Misfortune. — Seeking pleasure from outside because there is none inside. It does not work.",
+    "Joyousness that is weighed is not at peace. After ridding himself of mistakes a man has joy. — Torn between two pleasures. Choose the one that costs you nothing dishonest.",
+    "Sincerity toward disintegrating influences is dangerous. — Trusting what is quietly undermining you. Look at it.",
+    "Seductive joyousness. — Pleasure that leads. You are being drawn rather than choosing.",
+  ],
+},
+/* 59 · Dispersion */ {
+  d: "Wind moving over water, breaking up the ice. The hexagram is about the dissolving of rigidity — in a group that has hardened into factions, in a relationship that has set into positions, in a person who has become inflexible.\n\nThe king approaches his temple; it furthers one to cross the great water. What dissolves rigidity is something larger than the thing people are being rigid about: a shared purpose, a common undertaking, a ceremony that reminds everybody what they are all doing here. Dispersion is one of the few hexagrams whose method is explicitly to widen the frame rather than to resolve the dispute.",
+  mi: "The wind drives over the water. The old kings sacrificed to the Lord and built temples — they dissolved separateness by making something to gather round.",
+  q: ["What larger thing could we all be looking at instead of at each other?", "Where have I set into a position I no longer examine?"],
+  L: [
+    "He brings help with the strength of a horse. Good fortune. — Intervene early and vigorously, before the split hardens.",
+    "At the dissolution he hurries to that which supports him. Remorse disappears. — Go to whatever steadies you rather than staying in the drift.",
+    "He dissolves his self. No remorse. — Put your own interest aside. That is what unblocks it.",
+    "He dissolves his bond with his group. Supreme good fortune. Dispersion leads in turn to accumulation. — Leave your faction. It is what makes the larger union possible.",
+    "His loud cries are as dissolving as sweat. Dissolution! A king abides without blame. — A clear public idea that everyone can gather round.",
+    "He dissolves his blood. Departing, keeping at a distance, going out, is without blame. — Get yourself and yours out of danger. Distance is the right move.",
+  ],
+},
+/* 60 · Limitation */ {
+  d: "Water over the lake: a lake holds only so much, and that is what makes it a lake. The hexagram is about limits — chosen ones — and about the fact that a form is what makes something usable.\n\nGalling limitation must not be persevered in. That is the qualification and it matters: limits that are too tight fail, and a discipline that cannot be kept is worse than none. The counsel is to set the measure yourself, at a level you can actually hold, and then hold it. Budgets, hours, portions, commitments — the hexagram treats all of them as the same act.",
+  mi: "Water over the lake. The superior man creates number and measure, and examines the nature of virtue and correct conduct — limits are made, not found.",
+  q: ["What limit would I actually keep, as against the one I keep setting?", "Where has a discipline become galling enough to be abandoned?"],
+  L: [
+    "Not going out of the door and the courtyard is without blame. — Stay in. The restriction is correct just now.",
+    "Not going out of the gate and the courtyard brings misfortune. — Restraint held past its moment. The chance goes.",
+    "He who knows no limitation will have cause to lament. No blame. — Excess, and the regret that follows it. Own it and there is no fault.",
+    "Contented limitation. Success. — A measure that fits. Kept without effort.",
+    "Sweet limitation brings good fortune. Going brings esteem. — Limits that are easy on others as well as on you. They spread.",
+    "Galling limitation. Perseverance brings misfortune. Remorse disappears. — Too severe to keep. Loosen it rather than fail at it.",
+  ],
+},
+/* 61 · Inner Truth */ {
+  d: "Wind over the lake, moving the surface from above: influence that works because it is genuine. The hexagram is about sincerity — not honesty as a rule, but the state of actually meaning what you are doing.\n\nPigs and fishes. Good fortune. The image is that the most unreachable creatures are reached by it, which is the claim of the hexagram: real sincerity gets through where argument, position and pressure do not. Its practical counsel is to empty yourself of preconception before approaching someone, and to let what you say be what you mean, because everybody can tell the difference and almost nobody says so.",
+  mi: "Wind over the lake. The superior man discusses criminal cases in order to delay executions — inner truth makes one slow to condemn.",
+  q: ["Do I actually mean this, or am I performing it?", "Whom have I written off without first emptying myself of what I assume about them?"],
+  L: [
+    "Being prepared brings good fortune. If there are secret designs, it is disquieting. — Be inwardly settled first. An ulterior motive spoils it.",
+    "A crane calling in the shade. Its young answers it. I have a good goblet. I will share it with you. — What is genuine is answered, unseen, by its own kind.",
+    "He finds a comrade. Now he beats the drum, now he stops. Now he sobs, now he sings. — Dependent on another for your state. Up and down accordingly.",
+    "The moon nearly at the full. The team horse goes astray. No blame. — Leave the pairing behind and go alone toward what is above you.",
+    "He possesses truth, which links together. No blame. — Sincerity that holds people together. Nothing more needed.",
+    "Cockcrow penetrating to heaven. Perseverance brings misfortune. — Words that go further than the substance behind them. It cannot last.",
+  ],
+},
+/* 62 · Preponderance of the Small */ {
+  d: "Thunder on the mountain: sound that carries a short distance. The hexagram is about a period for small things — attention to detail, conscientiousness, modesty — and against large undertakings.\n\nThe flying bird brings the message: it is not well to strive upward, it is well to remain below. That is the whole counsel. This is not a season for launching, expanding or making a case. It is a season for doing the small thing exactly, being more conscientious than necessary, spending less than you could, and being unusually careful about how you behave. Great good fortune, in small things.",
+  mi: "Thunder on the mountain. The superior man gives preponderance to reverence in conduct, to grief in bereavement, and to thrift in expenditure — more of the small virtues than the situation strictly requires.",
+  q: ["What small thing could I do exactly, rather than a large thing approximately?", "Where am I striving upward when staying below would serve?"],
+  L: [
+    "The bird meets with misfortune through flying. — Attempting height too early. It goes badly.",
+    "She passes by her ancestor and meets her ancestress. He does not reach his prince and meets the official. No blame. — Settle for the accessible person. It is enough.",
+    "If one is not extremely careful, somebody may come up from behind and strike him. Misfortune. — Overconfidence in a small season. Be careful.",
+    "No blame. He meets him without passing by. Going brings danger. One must be on guard. Do not act. Be constantly persevering. — Do nothing. Hold the position.",
+    "Dense clouds, no rain from our western territory. The prince shoots and hits him who is in the cave. — The larger thing does not arrive; deal with what is within reach.",
+    "He passes him by, not meeting him. The flying bird leaves him. Misfortune. — Going too far past the mark. Excess of ambition in a small time.",
+  ],
+},
+/* 63 · After Completion */ {
+  d: "Water over fire: everything in its correct place, every line where it should be. The hexagram of a thing finished and working — and its whole message is about what happens next.\n\nGood fortune at the beginning, disorder at the end. Completion is the point of maximum order and therefore the beginning of decline: nothing is more vulnerable than an arrangement that everyone has stopped attending to. The counsel is vigilance without anxiety. Keep maintaining the thing after it works, notice the first small slippage, and do not treat arrival as the end of the work.",
+  mi: "Water over fire: the image of the condition after completion. The superior man takes thought of misfortune and arms himself against it in advance.",
+  q: ["What is working now that has stopped being maintained?", "What is the first small slippage I have noticed and dismissed?"],
+  L: [
+    "He brakes his wheels. He gets his tail in the water. No blame. — Hold back at the start of the new phase. A small check is correct.",
+    "The woman loses the curtain of her carriage. Do not run after it; on the seventh day you will get it. — A loss that returns. Do not chase it.",
+    "The Illustrious Ancestor disciplines the Devil's Country. After three years he conquers it. Inferior people must not be employed. — A long campaign after the main work. Do not staff it carelessly.",
+    "The finest clothes turn to rags. Be careful all day long. — Decay beginning under the surface. Vigilance now.",
+    "The neighbour in the east who slaughters an ox does not attain as much real happiness as the neighbour in the west with his small offering. — Sincerity in a small act outweighs display in a large one.",
+    "He gets his head in the water. Danger. — Looking back at the completed thing until you go under. Move on.",
+  ],
+},
+/* 64 · Before Completion */ {
+  d: "Fire over water: every line in the wrong place, and everything therefore still to be done. The last hexagram in the book is not an ending but a threshold — the transition that has not yet been made.\n\nThe little fox, almost across the stream, gets its tail wet. Nothing that would further. The failure at this point is carelessness in the final stretch: relaxing because the far bank is visible. The counsel is precision at the end, a clear head about what remains, and the plain acknowledgement that the book closes on a thing not yet finished, because that is where anybody actually lives.",
+  mi: "Fire over water: the image of the condition before transition. The superior man is careful in the differentiation of things, so that each finds its place.",
+  q: ["What exactly remains, listed rather than felt?", "Where am I relaxing because I can see the far bank?"],
+  L: [
+    "He gets his tail in the water. Humiliating. — Moving before you are ready. Embarrassing and not fatal.",
+    "He brakes his wheels. Perseverance brings good fortune. — Hold back deliberately. The restraint is the strength.",
+    "Before completion, attack brings misfortune. It furthers one to cross the great water. — Do not attack; do undertake the crossing. The distinction matters.",
+    "Perseverance brings good fortune. Remorse disappears. Shock, to discipline the Devil's Country. For three years, great realms are awarded. — A long, hard, decisive effort. It is rewarded.",
+    "Perseverance brings good fortune. No remorse. The light of the superior man is true. Good fortune. — Clarity at the end. Nothing left to regret.",
+    "There is drinking of wine in genuine confidence. No blame. But if one wets his head, he loses it in truth. — Celebrate, and know the measure. The last mistake available is the one made at the party.",
+  ],
+},
+];
+/* ============================================================
    READING A CARD
 
    The deck in 16-divination.js identifies the cards; the deck in
@@ -17364,6 +18295,88 @@ function scrambleInto(el, text, ms = 600){
     else el.textContent = text;
   };
   requestAnimationFrame(tick);
+}
+
+/* ============================================================
+   THE HEXAGRAM, DRAWN AND READ
+
+   Six lines three pixels thick with a small × beside the moving ones is an
+   accurate diagram and it is not a hexagram — the thing is meant to be
+   looked at. The lines here are the width of the column and thick enough
+   to read across a room, numbered up the side in the order they were cast,
+   with the changing ones breathing.
+
+   And the coin method exists in order to single out particular lines. A
+   reading that names the moving lines and then does not say what they say
+   has thrown away the only reason to use coins rather than pick a hexagram
+   out of a hat. So the moving lines are given, in full, in their place.
+   ============================================================ */
+const TRIGRAMS = {
+  '111': ['☰', 'Qián', 'Heaven'], '000': ['☷', 'Kūn', 'Earth'],
+  '100': ['☳', 'Zhèn', 'Thunder'], '010': ['☵', 'Kǎn', 'Water'],
+  '001': ['☶', 'Gèn', 'Mountain'], '011': ['☴', 'Xùn', 'Wind'],
+  '101': ['☲', 'Lí', 'Fire'], '110': ['☱', 'Duì', 'Lake'],
+};
+const ichingRich = n => (typeof ICHING_RICH !== 'undefined' && ICHING_RICH[n - 1]) || null;
+
+/* the six lines, bottom to top, at a size worth looking at */
+function ichingLinesHTML(lines, cls = ''){
+  return `<div class="ic-lines ${cls}">` + [5, 4, 3, 2, 1, 0].map(i => {
+    const l = lines[i];
+    if(!l) return `<div class="ic-line empty"><span class="ic-n mono">${i + 1}</span><span class="ic-bar"></span></div>`;
+    return `<div class="ic-line ${l.v ? 'yang' : 'yin'}${l.moving ? ' moving' : ''}" style="--d:${(i * .07).toFixed(2)}s">
+      <span class="ic-n mono">${i + 1}</span>
+      <span class="ic-bar">${l.v ? '<i class="full"></i>' : '<i class="half"></i><i class="half"></i>'}</span>
+      ${l.moving ? '<span class="ic-mv mono">changing</span>' : ''}</div>`;
+  }).join('') + '</div>';
+}
+
+/* the trigrams a hexagram is made of, which is how it is named and how
+   anyone who reads the book actually recognises it */
+function ichingTrigramsHTML(bin){
+  const lower = TRIGRAMS[bin.slice(0, 3)], upper = TRIGRAMS[bin.slice(3, 6)];
+  if(!lower || !upper) return '';
+  return `<div class="ic-tri mono">${upper[0]} ${esc(upper[2])} above · ${lower[0]} ${esc(lower[2])} below</div>`;
+}
+
+/* three ancient coins: a circle with a square hole, which is what a Chinese
+   coin is and what makes a row of them read as a cast rather than as discs */
+function ichingCoinHTML(face, i){
+  return `<span class="ic-coin ${face === 3 ? 'heads' : 'tails'}" style="--i:${i}">
+    <svg viewBox="0 0 40 40" aria-hidden="true">
+      <circle cx="20" cy="20" r="18" class="ic-c-body"/>
+      <circle cx="20" cy="20" r="18" class="ic-c-rim"/>
+      <rect x="14" y="14" width="12" height="12" rx="1" class="ic-c-hole"/>
+    </svg><b>${face === 3 ? '陽' : '陰'}</b></span>`;
+}
+
+/* the whole reading: judgment and what it is saying, the image, every
+   changing line in its place, what the reading is turning into, and
+   questions to put to yourself */
+function ichingReadingHTML(lines, h, rel){
+  const r = ichingRich(h.i), rr = rel ? ichingRich(rel.i) : null;
+  const moving = lines.map((l, i) => l.moving ? i : -1).filter(i => i >= 0);
+  const paras = r ? r.d.split('\n\n').filter(Boolean) : [];
+  return `<div class="ic-reading">
+    <section class="ic-sec"><h4 class="dv-sec-h">Judgment</h4>
+      <blockquote class="ic-quote">${esc(h.j)}</blockquote>
+      ${paras.map(t => `<p class="dv-cr-t">${esc(t)}</p>`).join('')}</section>
+    <section class="ic-sec"><h4 class="dv-sec-h">Image</h4>
+      <blockquote class="ic-quote">${esc(h.m)}</blockquote>
+      ${r ? `<p class="dv-cr-t">${esc(r.mi)}</p>` : ''}</section>
+    ${moving.length ? `<section class="ic-sec"><h4 class="dv-sec-h">Changing line${moving.length === 1 ? '' : 's'}</h4>
+      ${moving.map(i => `<div class="ic-lineread"><span class="mono">line ${i + 1}</span>
+        <p>${esc(r ? r.L[i] : '')}</p></div>`).join('')}
+      <p class="mono faint">A changing line is the part of the situation that is already in motion. It is why the reading has a second hexagram.</p>
+      </section>` : `<p class="mono faint">No changing lines: the situation is not, for the moment, in motion.</p>`}
+    ${rel ? `<section class="ic-sec ic-moving"><h4 class="dv-sec-h">Moving toward</h4>
+      <div class="ic-relhead"><b class="serif">${rel.i}. ${esc(rel.n)}</b> <span class="mono faint">${esc(rel.c)}</span></div>
+      ${ichingLinesHTML(lines.map(l => ({v: l.moving ? (l.v ? 0 : 1) : l.v, moving: false})), 'small')}
+      <blockquote class="ic-quote">${esc(rel.j)}</blockquote>
+      ${rr ? `<p class="dv-cr-t">${esc(rr.d.split('\n\n')[0])}</p>` : ''}</section>` : ''}
+    ${r && r.q.length ? `<section class="ic-sec"><h4 class="dv-sec-h">Questions</h4>
+      <ul class="dv-cr-q">${r.q.map(q => `<li>${esc(q)}</li>`).join('')}</ul></section>` : ''}
+  </div>`;
 }
 /* ============================================================
    DIVINATION — a mirror, not a fortune
@@ -17708,13 +18721,26 @@ function divinationReadHTML(d){
   if(d.system === 'iching'){
     const h = d.hexagram ? ICHING.find(x => x.i === d.hexagram.i) : null;
     const r = d.relating ? ICHING.find(x => x.i === d.relating.i) : null;
-    const one = (x, role) => x ? `<div class="dv-read-card">
-      <div class="dv-read-h"><b class="serif">${esc(x.c)} · ${esc(x.n)}</b>
-        <span class="mono faint">${esc(role)} · hexagram ${x.i}</span></div>
-      <div class="dv-read-k mono">${esc((x.k || []).join(' · '))}</div>
-      <p class="dv-read-t">${esc(x.j)}</p>
-      <p class="dv-read-t faint">${esc(x.m)}</p></div>` : '';
-    return one(h, 'as cast') + one(r, 'as it becomes');
+    const moving = (d.lines || []).map((l, i) => l.moving ? i : -1).filter(i => i >= 0);
+    const one = (x, role, withLines) => { if(!x) return '';
+      const rich = typeof ichingRich === 'function' ? ichingRich(x.i) : null;
+      const paras = rich ? rich.d.split('\n\n').filter(Boolean) : [];
+      return `<div class="dv-read-card">
+        <div class="dv-read-h"><b class="serif">${esc(x.c)} · ${esc(x.n)}</b>
+          <span class="mono faint">${esc(role)} · hexagram ${x.i}</span></div>
+        ${typeof ichingTrigramsHTML === 'function' ? ichingTrigramsHTML(x.b) : ''}
+        <div class="dv-read-k mono">${esc((x.k || []).join(' · '))}</div>
+        <p class="dv-read-t">${esc(x.j)}</p>
+        <p class="dv-read-t faint">${esc(x.m)}</p>
+        ${paras.length ? `<details class="dv-read-more"><summary>the longer reading</summary>
+          ${paras.map(t => `<p class="dv-read-t">${esc(t)}</p>`).join('')}
+          <p class="dv-read-t faint">${esc(rich.mi)}</p>
+          ${withLines && moving.length ? moving.map(i => `<div class="ic-lineread"><span class="mono">line ${i + 1}</span>
+            <p>${esc(rich.L[i])}</p></div>`).join('') : ''}
+          ${rich.q.length ? `<ul class="dv-cr-q">${rich.q.map(q => `<li>${esc(q)}</li>`).join('')}</ul>` : ''}
+        </details>` : ''}</div>`; };
+    return (d.lines && typeof ichingLinesHTML === 'function' ? ichingLinesHTML(d.lines, 'small') : '')
+      + one(h, 'as cast', true) + one(r, 'as it becomes', false);
   }
   if(d.system === 'oracle'){
     return (d.cards || []).map(c => `<div class="dv-read-card">
@@ -17904,63 +18930,98 @@ function openTarot(pre = {}){
     }
   };
 }
+/* ---------- casting the coins ----------
+   Three coins, six times, bottom line first. The toss is animated because
+   the pacing is the practice: you are meant to throw a line, look at it,
+   and throw the next, rather than press a button six times. The line lands
+   as the coins settle, and when the sixth is down the hexagram pulses once
+   and its name resolves out of noise, the same way a card's does. */
 function openIChing(){
   const m = openModal(`<h2>The Book of Changes</h2>
     <div class="stack">
       <div class="field"><label>What are you asking?</label>
         <input class="inp serif-lg" id="icQ" placeholder="A situation, not a yes-or-no."></div>
-      <div class="ic-build"><div class="ic-lines" id="icLines"></div>
-        <div class="ic-coins" id="icCoins"></div></div>
+      <div class="ic-build">
+        <div id="icLines"></div>
+        <div class="ic-coins" id="icCoins"></div>
+        <div class="ic-name serif" id="icName" hidden></div>
+      </div>
       <div class="row between"><span class="mono faint" id="icCount">no lines yet</span>
         <button class="btn primary" id="icToss">toss the coins</button></div>
       <div id="icOut"></div>
     </div>`, 'wide');
+  const soft = typeof reduced === 'function' && reduced();
   const lines = [];
   const drawLines = () => {
-    m.querySelector('#icLines').innerHTML = [5,4,3,2,1,0].map(i => {
-      const l = lines[i];
-      if(!l) return '<div class="ic-line empty"></div>';
-      return `<div class="ic-line ${l.v ? 'yang' : 'yin'} ${l.moving ? 'moving' : ''}">
-        ${l.v ? '<i class="full"></i>' : '<i class="half"></i><i class="half"></i>'}
-        ${l.moving ? '<span class="ic-mv">×</span>' : ''}</div>`;
-    }).join('');
+    m.querySelector('#icLines').innerHTML = ichingLinesHTML(lines);
     m.querySelector('#icCount').textContent = lines.length ? `${lines.length} of 6 lines` : 'no lines yet';
   };
   drawLines();
   m.querySelector('#icToss').onclick = () => {
     if(lines.length >= 6) return;
-    const coins = [0,0,0].map(() => Math.random() < .5 ? 2 : 3);
+    const coins = [0, 0, 0].map(() => Math.random() < .5 ? 2 : 3);
     const total = coins[0] + coins[1] + coins[2];
     lines.push({v: total % 2 ? 1 : 0, moving: total === 6 || total === 9, total, coins});
-    m.querySelector('#icCoins').innerHTML = coins.map(c =>
-      `<span class="ic-coin ${c === 3 ? 'heads' : 'tails'}">${c === 3 ? '陽' : '陰'}</span>`).join('');
+    const box = m.querySelector('#icCoins');
+    box.innerHTML = coins.map((c, i) => ichingCoinHTML(c, i)).join('');
+    if(!soft){ box.classList.remove('toss'); void box.offsetWidth; box.classList.add('toss'); }
     sound('click'); drawLines();
     if(lines.length < 6) return;
     m.querySelector('#icToss').disabled = true;
     const h = ichingLookup(ichingBinary(lines)), rel = ichingRelating(lines);
-    const moving = lines.map((l, i) => l.moving ? i + 1 : 0).filter(Boolean);
-    m.querySelector('#icOut').innerHTML = `
-      <div class="ic-res"><b class="serif">${h.i}. ${esc(h.n)}</b> <span class="mono faint">${esc(h.c)}</span>
-        <div class="mono faint">${esc(h.k.join(' · '))}</div>
-        <p class="ic-j">${esc(h.j)}</p><p class="ic-im">${esc(h.m)}</p></div>
-      ${moving.length ? `<div class="mono faint" style="margin:8px 0">moving line${moving.length === 1 ? '' : 's'}: ${moving.join(', ')} — the situation is in motion</div>` : ''}
-      ${rel ? `<div class="ic-res second"><span class="mono faint">changing into</span>
-        <b class="serif">${rel.i}. ${esc(rel.n)}</b> <span class="mono faint">${esc(rel.c)}</span>
-        <p class="ic-j">${esc(rel.j)}</p></div>` : ''}
-      <div class="field"><label>What do you make of it?</label>
-        <textarea class="inp" id="icText" rows="5"></textarea></div>
-      <div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn primary" id="icSave">Keep the reading</button></div>`;
-    m.querySelector('#icSave').onclick = () => {
-      divinationSave({system:'iching', question:m.querySelector('#icQ').value.trim(),
-        title:`${h.i}. ${h.n}${rel ? ' → ' + rel.i + '. ' + rel.n : ''}`,
-        lines:lines.map(l => ({v:l.v, moving:l.moving})), hexagram:{i:h.i, n:h.n, c:h.c}, relating:rel ? {i:rel.i, n:rel.n} : null,
-        reading:m.querySelector('#icText').value.trim()});
-      sound('success'); toast('Kept in the Lived Record.'); m.remove(); rerender();
+    const settle = () => {
+      const nm = m.querySelector('#icName');
+      nm.hidden = false;
+      nm.innerHTML = `<span class="ic-num mono">hexagram ${h.i}</span><span class="ic-nm"></span>
+        <span class="ic-cn mono">${esc(h.c)}</span>${ichingTrigramsHTML(h.b)}`;
+      scrambleInto(nm.querySelector('.ic-nm'), h.n, 600);
+      const lw = m.querySelector('.ic-lines');
+      if(lw && !soft){ lw.classList.add('done'); setTimeout(() => lw.classList.remove('done'), 1200); }
+      m.querySelector('#icOut').innerHTML = `
+        <div class="mono faint ic-keys">${esc(h.k.join('  ·  '))}</div>
+        ${ichingReadingHTML(lines, h, rel)}
+        <section class="dv-yours"><h4 class="dv-sec-h">Your reflection</h4>
+          <p class="dv-yours-p">The hexagram describes a situation. Only you know which one.</p>
+          <div class="field"><textarea class="inp" id="icText" rows="5" placeholder="Not what the book says. What it says to you, about the thing you asked."></textarea></div>
+          <div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn primary" id="icSave">Keep the reading</button></div>
+        </section>`;
+      /* the old, compact result block is still the thing tests and the
+         record look for, so it stays — folded in above the long reading */
+      m.querySelector('#icOut').insertAdjacentHTML('afterbegin',
+        `<div class="ic-res"><b class="serif">${h.i}. ${esc(h.n)}</b> <span class="mono faint">${esc(h.c)}</span></div>`);
+      m.querySelector('#icSave').onclick = () => {
+        divinationSave({system:'iching', question:m.querySelector('#icQ').value.trim(),
+          title:`${h.i}. ${h.n}${rel ? ' → ' + rel.i + '. ' + rel.n : ''}`,
+          lines:lines.map(l => ({v:l.v, moving:l.moving})), hexagram:{i:h.i, n:h.n, c:h.c},
+          relating:rel ? {i:rel.i, n:rel.n} : null,
+          reading:m.querySelector('#icText').value.trim()});
+        sound('success'); toast('Kept in the Lived Record.'); m.remove(); rerender();
+      };
+      m.querySelector('#icOut').scrollIntoView({behavior: soft ? 'auto' : 'smooth', block: 'start'});
     };
+    if(soft) settle(); else setTimeout(settle, 700);
   };
 }
+/* ---------- the oracle ----------
+   An oracle card is a sentence, and a sentence in a text box is a
+   notification. Given a card to turn over and a moment to sit with before
+   answering, the same sentence is something else — which is the whole
+   difference this section is trying to make.
+
+   What to do with a card depends on the deck it came from, so each deck
+   says so in its own words. Inner Weather is about the afternoon you are
+   actually in; Thresholds is about finding the real doorway behind the
+   metaphor; Elements asks you to feel it before you think about it,
+   because the answer that arrives from the head first is usually a
+   defence. */
+const ORACLE_SIT = {
+  inner: "Before you answer, put this somewhere you will see it again this afternoon. Inner Weather is about what is actually going on rather than what you had planned, so the test of a card is simple: does it change anything in the next four hours?",
+  thresh: "Find the actual threshold. Not the metaphor — the specific doorway this is pointing at: the conversation, the decision, the room you have been standing outside of. Name that first, then answer.",
+  elem: "Take three slow breaths before you respond. Let it land in the body rather than in the head, and notice what arrives — a feeling, an image, a resistance. That is the answer beginning to form. The one that comes from the head first is usually a defence.",
+};
 function openOracle(deckId){
   const deck = ORACLE_DECKS.find(d => d.id === deckId) || ORACLE_DECKS[0];
+  const soft = typeof reduced === 'function' && reduced();
   const m = openModal(`<h2>${esc(deck.name)}</h2>
     <div class="stack">
       <div class="row" style="gap:5px;flex-wrap:wrap">${ORACLE_DECKS.map(d =>
@@ -17972,8 +19033,28 @@ function openOracle(deckId){
   m.querySelectorAll('[data-deck]').forEach(b => b.onclick = () => { m.remove(); openOracle(b.dataset.deck); });
   m.querySelector('#orDraw').onclick = () => {
     const [i] = oracleDraw(deck.id, 1); const [name, text] = deck.cards[i];
-    m.querySelector('#orOut').innerHTML = `<div class="or-card"><b class="serif">${esc(name)}</b><p>${esc(text)}</p></div>
-      <div class="field"><label>What do you make of it?</label><textarea class="inp" id="orText" rows="3"></textarea></div>`;
+    m.querySelector('#orOut').innerHTML = `
+      <div class="or-stage">
+        <div class="or-card" id="orCard">
+          <div class="or-inner">
+            <div class="or-back">${tarotBackHTML()}<span class="or-deck mono">${esc(deck.name)}</span></div>
+            <div class="or-face">
+              <div class="or-name serif">${esc(name)}</div>
+              <p class="or-text">${esc(text)}</p>
+              <span class="or-src mono">${esc(deck.name)}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <section class="or-sit"><h4 class="dv-sec-h">Sit with this</h4>
+        <p>${esc(ORACLE_SIT[deck.id] || ORACLE_SIT.inner)}</p></section>
+      <section class="or-yours"><h4 class="dv-sec-h">Your response</h4>
+        <div class="field"><textarea class="inp" id="orText" rows="4" placeholder="Not what it means in general. What it means here."></textarea></div>
+      </section>`;
+    const card = m.querySelector('#orCard');
+    const turn = () => { card.classList.add('up'); sound('click');
+      setTimeout(() => scrambleInto(card.querySelector('.or-name'), name, 500), soft ? 0 : 420); };
+    if(soft) turn(); else setTimeout(turn, 380);
     m.querySelector('#orDraw').textContent = 'keep it';
     m.querySelector('#orDraw').onclick = () => {
       divinationSave({system:'oracle', deck:deck.id, question:m.querySelector('#orQ').value.trim(),
