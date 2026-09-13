@@ -1378,6 +1378,38 @@ details.era-lived[open] > summary::before{transform:rotate(90deg)}
 @keyframes sunBreathe{from{opacity:.7}to{opacity:1}}
 html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 @media (prefers-reduced-motion:reduce){.sk-organic .halo,.sk-organic .blossom,.sk-organic .blossom.soon,.sk-organic .fall,.sk-organic .sk-sun{animation:none;opacity:1}}
+/* --- abilities: the parts of a skill, each with a rubric of its own --- */
+.ab-list{display:flex;flex-direction:column;gap:6px}
+.ab{border:1px solid var(--line-2);border-radius:10px;background:var(--surface);overflow:hidden;
+  transition:border-color .18s}
+.ab.open{border-color:color-mix(in srgb,var(--c) 45%,transparent)}
+/* the one furthest behind is named, because that is where the hour is worth most */
+.ab.weakest{border-left:3px solid var(--terra)}
+.ab-head{display:flex;align-items:center;gap:10px;padding:8px 11px;cursor:pointer;flex-wrap:wrap}
+.ab-head:hover{background:color-mix(in srgb,var(--c) 6%,transparent)}
+.ab-name{flex:1 1 130px;font-family:var(--serif);font-size:.96rem;min-width:0}
+.ab-dots{display:flex;gap:4px;align-items:center;flex:0 0 auto}
+.ab-dot{width:11px;height:11px;border-radius:50%;border:1.5px solid var(--line-2);background:transparent;
+  padding:0;cursor:pointer;transition:background .15s,border-color .15s,transform .12s}
+.ab-dot:hover{transform:scale(1.25);border-color:var(--c)}
+.ab-dot.on{background:var(--c);border-color:var(--c)}
+.ab-meta{font-size:.66rem;color:var(--faint);flex:0 0 auto}
+.ab .lvl-chev{transition:transform .18s}
+.ab.open .lvl-chev{transform:rotate(90deg)}
+.ab-detail{display:grid;grid-template-rows:0fr;transition:grid-template-rows .22s var(--page-ease,ease)}
+.ab.open .ab-detail{grid-template-rows:1fr}
+.ab-detail-inner{overflow:hidden;padding:0 11px}
+.ab.open .ab-detail-inner{padding:2px 11px 11px}
+.ab-lvl{margin-top:8px;padding-left:26px;position:relative;opacity:.62;transition:opacity .18s}
+.ab-lvl.current,.ab-lvl.done{opacity:1}
+.ab-lvl-head{display:flex;align-items:center;gap:8px;font-size:.86rem}
+.ab-lvl-node{position:absolute;left:0;top:0;width:19px;height:19px;border-radius:50%;padding:0;
+  border:1.5px solid var(--line-2);background:var(--surface);font-size:.62rem;color:var(--faint);
+  cursor:pointer;display:grid;place-items:center}
+.ab-lvl.done .ab-lvl-node{background:var(--c);border-color:var(--c);color:#fff}
+.ab-lvl.current .ab-lvl-node{border-color:var(--c);color:var(--c);font-weight:600}
+.ab-lvl-body{font-size:.82rem}
+.ab-lvl-body .lvl-criteria{margin:4px 0 0}
 .lvl-track{display:flex;flex-direction:column;position:relative;padding-left:4px}
 .lvl-track::before{content:"";position:absolute;left:33px;top:14px;bottom:44px;width:2px;background:var(--line-2)}
 .lvl{display:grid;grid-template-columns:44px 1fr;gap:10px;padding:6px 0;position:relative;transition:opacity .2s}

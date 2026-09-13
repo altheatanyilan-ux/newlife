@@ -139,6 +139,62 @@ function migrateSkillLevels(){
     delete s.rubric; delete s.level; delete s.target; delete s.targetDate;
   });
 }
+/* ---------- abilities ----------
+   A skill is rarely one thing. "Japanese" is reading, listening, speaking and
+   writing, and they do not move together: you can read a newspaper and still
+   not order lunch. One level for the whole skill has to average that away,
+   which is exactly the information you wanted.
+
+   So a skill can be broken into abilities, and an ability carries a rubric of
+   its own — the same shape as the skill's levels, because it is the same kind
+   of thing at a smaller grain. A skill with no abilities behaves exactly as it
+   always did; nothing is created until you name the first one. */
+function skillAbilities(s){
+  if(!Array.isArray(s.abilities)) s.abilities = [];
+  return s.abilities;
+}
+function newAbility(name = '', levelCount = 3){
+  return {id:uid(), name, note:'', currentLevel:1, order:Date.now(),
+    levels: Array.from({length: levelCount}, (_, i) => ({number:i+1,
+      label: LEVEL_LABELS[i] || `Level ${i + 1}`, description:'', criteria:[]}))};
+}
+function abilityLevelCount(a){ return (a.levels || []).length || 1; }
+/* An ability's own reading, 0..1 — its level within its own ladder. */
+function abilityProgress(a){
+  const n = abilityLevelCount(a);
+  return n ? Math.max(0, Math.min(1, (a.currentLevel || 0) / n)) : 0;
+}
+/* The skill's reading, rolled up. With no abilities it is the skill's own
+   level, as before. With abilities it is their mean, because a bundle is only
+   as far along as its parts are on average — and the weakest one is named
+   separately rather than hidden inside the average. */
+function skillProgress(s){
+  const abs = (s.abilities || []).filter(a => a.name || (a.levels || []).length);
+  if(abs.length) return sum(abs.map(abilityProgress)) / abs.length;
+  const n = skillLevelCount(s);
+  return n ? Math.max(0, Math.min(1, (s.currentLevel || 0) / n)) : 0;
+}
+function weakestAbility(s){
+  const abs = (s.abilities || []).filter(a => a.name);
+  if(abs.length < 2) return null;
+  return abs.slice().sort((a, b) => abilityProgress(a) - abilityProgress(b))[0];
+}
+function migrateSkillAbilities(){
+  (S.skills || []).forEach(s => {
+    if(!Array.isArray(s.abilities)){ s.abilities = []; return; }
+    s.abilities.forEach((a, i) => {
+      a.id = a.id || uid(); a.name = a.name || ''; a.note = a.note || '';
+      if(a.order == null) a.order = i;
+      a.levels = (Array.isArray(a.levels) && a.levels.length ? a.levels : newAbility().levels)
+        .map((l, li) => ({number: li + 1, label: l.label || `Level ${li + 1}`,
+          description: l.description || '',
+          criteria: (l.criteria || []).map(c => typeof c === 'string'
+            ? {id:uid(), text:c, done:false, metAt:null}
+            : {id:c.id || uid(), text:c.text || '', done:!!c.done, metAt:c.metAt || null})}));
+      a.currentLevel = Math.max(0, Math.min(+a.currentLevel || 0, a.levels.length));
+    });
+  });
+}
 function skillLevelCount(s){ return (s.levels||[]).length || 1; }
 function skillLevelLabel(s, n){ const l = (s.levels||[])[n-1]; return l ? l.label : `Level ${n}`; }
 function skillMilestones(s){ return [...(s.milestones||[])].sort((a,b)=>(a.by||'9999')<(b.by||'9999')?-1:1); }

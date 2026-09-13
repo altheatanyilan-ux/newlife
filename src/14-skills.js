@@ -586,7 +586,13 @@ function organicSVG(W, H){
   });
   items.filter(i => i.kind==='skill').sort((a,b)=>a.depth-b.depth).forEach(it => {
     const s = it.skill; const col = catColor(s.cat); const locked = skillIsLocked(s); const last = skillLastPracticed(s); const since = daysSince(last); const active = !locked && !s.planned && since <= 7;
-    const lc = skillLevelCount(s); const lvl = s.currentLevel||0; const prog = lc ? lvl/lc : 0; const mastered = !s.planned && lc >= 2 && lvl >= lc;
+    /* The blossom reads the roll-up, so a skill broken into abilities flowers
+       by how far its parts have actually come, not by a number set by hand. */
+    const lc = skillLevelCount(s); const lvl = s.currentLevel||0;
+    const prog = skillProgress(s);
+    const mastered = !s.planned && (skillAbilities(s).length
+      ? prog >= 1
+      : lc >= 2 && lvl >= lc);
     const wither = last && !s.planned && !locked && since > 90 ? clamp((since-90)/180, 0, .8) : 0;
     const nm = nextMilestone(s); const due = nm?.by ? daysBetween(T, nm.by) : null; const blossom = due !== null && due >= 0 && due <= 45; const overdue = due !== null && due < 0;
     const limbW = ((it.depth===2 ? 3.2 : 2.4) + lvl*.5) * k * (1 - wither*.3); const limbCol = locked ? '#5a554f' : lerpColor('#6b5642', '#5a4634', prog);
@@ -760,7 +766,12 @@ function openSkillPanel(id){
   const s = byId(S.skills,id); if(!s) return; const es = sortEntries(entriesLinked('skills',s.id)); const st = skillStreak(s); const last = skillLastPracticed(s); const since = daysSince(last);
   const values = {}; es.forEach(e=>(e.links.values||[]).forEach(x=>values[x.id]=(values[x.id]||0)+1));
   const arche = s.planned ? 'A bud. Nothing to judge yet.' : since>90 ? 'The Dabbler? Enthusiasm, then a plateau, then silence. Or perhaps a deliberate surrender — some competencies are meant to be let go.' : st.best>=14 && st.cur===0 ? 'The Obsessive? A long hard streak, then a break. Watch for burnout; oscillation is the rhythm, not a failure.' : s.currentLevel>=3 && !skillTargetLevel(s) && s.currentLevel < skillLevelCount(s) ? 'The Hacker? Good enough, and stopped. Is this the level you chose, or the one you settled for?' : 'On the path. Loving the plateau. The master stays on the mat five minutes longer.';
-  const p = openPanel(`${vmToggleHTML('skill')}<div class="mono row between"><span>${esc(s.cat)} · ${s.planned?'planned':'level '+s.currentLevel+' of '+skillLevelCount(s)}</span><span class="wv-badge"></span></div><h2>${ed(`skills.#${s.id}.name`)}</h2>
+  const p = openPanel(`${vmToggleHTML('skill')}<div class="mono row between"><span>${esc(s.cat)} · ${s.planned ? 'planned'
+      : skillAbilities(s).length
+        /* a bundle is read by its parts, so the header says the roll-up rather
+           than a level the skill no longer really has on its own */
+        ? `${skillAbilities(s).length} abilities · ${Math.round(skillProgress(s)*100)}%`
+        : 'level '+s.currentLevel+' of '+skillLevelCount(s)}</span><span class="wv-badge"></span></div><h2>${ed(`skills.#${s.id}.name`)}</h2>
     <div class="row" style="margin:8px 0 10px;gap:8px;flex-wrap:wrap">
       <select class="sel" style="width:auto" id="skCatSel">${skillCatOptions(s.cat).map(c=>`<option ${s.cat===c?'selected':''}>${c}</option>`).join('')}</select>
       <select class="sel" style="width:auto" id="skHzSel" title="how near this skill is">${Object.entries(SKILL_HORIZONS).map(([k,v])=>`<option value="${k}" ${skillHorizon(s)===k?'selected':''}>${v[0]} ${v[1]}</option>`).join('')}</select>
@@ -772,6 +783,7 @@ function openSkillPanel(id){
     <div class="grid c3" style="gap:10px"><div class="card" style="padding:12px 14px"><div class="mono">last practiced</div><div class="serif" style="font-size:1.2rem">${relDays(since)}</div></div><div class="card" style="padding:12px 14px"><div class="mono">streak</div><div class="serif" style="font-size:1.2rem">${st.cur}d <span class="faint" style="font-size:.8rem">best ${st.best}</span></div></div><div class="card" style="padding:12px 14px"><div class="mono">total hours</div><div class="serif" style="font-size:1.2rem" data-tween="${skillHours(s)}" data-dec="1">0</div></div></div>
     <div class="archetype">${arche}</div>
     ${levelTrackHTML(s)}
+    ${abilitiesHTML(s)}
     ${milestoneTimelineHTML(s)}
     <div class="vp-sec"><div class="row between" style="align-items:center"><span class="sc">What this looks like</span>${imageAddHTML('skill', s.id)}</div>
       ${imageStripHTML('skill', s.id) || '<p class="faint" style="font-size:.8rem;margin:6px 0 0">Add an image and this skill\'s card is printed on it.</p>'}</div>
@@ -789,6 +801,7 @@ function openSkillPanel(id){
   p.querySelector('#skHzSel').onchange = e => { s.horizon = e.target.value; s.planned = s.horizon === 'someday'; if(!s.planned && s.currentLevel===0) s.currentLevel = 1; saveNow(); reopenPanel(() => { rerender(); openSkillPanel(id); }); };
   p.querySelector('#skPrioSel').onchange = e => { s.priority = e.target.value; saveNow(); reopenPanel(() => { rerender(); openSkillPanel(id); }); };
   bindLevelTrack(p, s);
+  bindAbilities(p, s, () => reopenPanel(() => { rerender(); openSkillPanel(id); }));
   bindMilestones(p, s);
   p.querySelectorAll('[data-pre]').forEach(c => c.onclick = () => { const x = c.dataset.pre; s.prereqs = s.prereqs.includes(x) ? s.prereqs.filter(y=>y!==x) : [...s.prereqs,x]; saveNow(); c.classList.toggle('on'); rerender(); });
   p.querySelectorAll('[data-skproj]').forEach(c => c.onclick = () => { const pr = byId(S.projects, c.dataset.skproj); pr.linkedSkills = (pr.linkedSkills||[]).includes(s.id) ? pr.linkedSkills.filter(x=>x!==s.id) : [...(pr.linkedSkills||[]), s.id]; saveNow(); c.classList.toggle('on'); });
@@ -820,6 +833,127 @@ function levelTrackHTML(s){
       </div></div>`; }).join('')}
       <button class="btn sm ghost" id="lvlAdd" style="margin:8px 0 0 44px">＋ Add level</button>
     </div></div>`;
+}
+/* ============================================================
+   ABILITIES — a skill is a bundle, and the parts move separately
+   ------------------------------------------------------------
+   One level for a whole skill has to average its parts together, and the
+   average is the thing you least wanted to know: "Japanese, level 3" hides
+   that the reading is level 5 and the speaking is level 1. So a skill can be
+   broken into named abilities, each with a rubric of its own, and the skill's
+   own reading becomes their mean — with the weakest one named out loud,
+   because that is the one the next hour should go to.
+
+   Nothing is created until the first ability is named. A skill left whole
+   behaves exactly as it did.
+   ============================================================ */
+function abilitiesHTML(s){
+  const abs = skillAbilities(s).slice().sort((a, b) => (a.order || 0) - (b.order || 0));
+  const color = catColor(s.cat);
+  const openAb = S._openAbility?.[s.id];
+  const weak = weakestAbility(s);
+  return `<div class="vp-sec"><div class="row between" style="align-items:baseline">
+      <span class="sc">Abilities${abs.length ? ` — ${abs.length}` : ''}</span>
+      ${abs.length ? `<span class="mono">${Math.round(skillProgress(s) * 100)}% across them</span>` : ''}</div>
+    ${abs.length
+      ? `<p class="faint" style="font-size:.78rem;margin:4px 0 10px">The skill's own reading is the average of these.${
+          weak ? ` The furthest behind is <b>${esc(weak.name)}</b> — which is where the next hour is worth most.` : ''}</p>`
+      : `<p class="faint" style="font-size:.8rem;margin:4px 0 10px">A skill is often several abilities that do not move together — reading and speaking, technique and repertoire, drafting and editing. Name them and each gets a rubric of its own.</p>`}
+    <div class="ab-list" id="abList" style="--c:${color}">${abs.map(a => {
+      const n = abilityLevelCount(a), cur = a.currentLevel || 0, open = openAb === a.id;
+      return `<div class="ab${open ? ' open' : ''}${weak && weak.id === a.id && abs.length > 1 ? ' weakest' : ''}" data-ab="${esc(a.id)}">
+        <div class="ab-head" data-abexpand="${esc(a.id)}">
+          <span class="ab-name">${ed(`skills.#${s.id}.abilities.#${a.id}.name`, {ph:'name this ability'})}</span>
+          <span class="ab-dots" title="level ${cur} of ${n}">${Array.from({length:n}, (_, i) =>
+            `<button class="ab-dot${i < cur ? ' on' : ''}" data-abset="${esc(a.id)}:${i + 1}"
+              title="${esc(a.levels[i]?.label || 'level ' + (i + 1))}"></button>`).join('')}</span>
+          <span class="mono ab-meta">${cur} / ${n}</span>
+          <span class="lvl-chev">›</span>
+        </div>
+        <div class="ab-detail"><div class="ab-detail-inner">
+          <div class="field"><label>What is this one, exactly?</label>
+            ${ed(`skills.#${s.id}.abilities.#${a.id}.note`, {ph:'one line, so it stays the same thing next month'})}</div>
+          ${a.levels.map((l, li) => `<div class="ab-lvl${li + 1 === cur ? ' current' : li + 1 < cur ? ' done' : ''}">
+            <div class="ab-lvl-head">
+              <button class="ab-lvl-node" data-abset="${esc(a.id)}:${li + 1}"
+                title="${li + 1 === cur ? 'current level' : 'set as current level'}">${li + 1 < cur ? '✓' : li + 1}</button>
+              ${ed(`skills.#${s.id}.abilities.#${a.id}.levels.${li}.label`, {ph:'level name'})}
+            </div>
+            <div class="ab-lvl-body">
+              ${ed(`skills.#${s.id}.abilities.#${a.id}.levels.${li}.description`, {multi:true, ph:'what you can do here'})}
+              <ul class="lvl-criteria">${(l.criteria || []).map((c, ci) => `<li class="${c.done ? 'met' : ''}">
+                <button class="task-check sm" data-abcrit="${esc(a.id)}:${li}:${esc(c.id)}" role="checkbox"
+                  aria-checked="${!!c.done}" title="${c.done ? 'not met yet' : 'mark this one met'}">${c.done ? '✓' : ''}</button>
+                ${ed(`skills.#${s.id}.abilities.#${a.id}.levels.${li}.criteria.${ci}.text`, {ph:'something I can be seen doing'})}
+                <button class="del-x inline" data-abcritdel="${esc(a.id)}:${li}:${esc(c.id)}" title="remove">×</button></li>`).join('')}</ul>
+              <button class="tbtn" data-abcritadd="${esc(a.id)}:${li}">+ criterion</button>
+            </div></div>`).join('')}
+          <div class="row" style="gap:8px;margin-top:8px;flex-wrap:wrap">
+            <button class="tbtn" data-ablvladd="${esc(a.id)}">＋ level</button>
+            <button class="tbtn" data-abdel="${esc(a.id)}" style="margin-left:auto;color:var(--faint)">remove this ability</button>
+          </div>
+        </div></div>
+      </div>`; }).join('')}</div>
+    <button class="btn sm ghost" id="abAdd" style="margin-top:8px">＋ Break it into an ability</button>
+  </div>`;
+}
+function bindAbilities(p, s, reopen){
+  const abById = id => skillAbilities(s).find(a => a.id === id) || null;
+  const openIt = id => { S._openAbility = {...(S._openAbility || {}), [s.id]: id}; };
+  p.querySelector('#abAdd').onclick = () => {
+    const a = newAbility('', 3); a.order = skillAbilities(s).length;
+    skillAbilities(s).push(a); openIt(a.id); saveNow(); reopen();
+    setTimeout(() => { const n = $(`#panel .ab[data-ab="${a.id}"] .ab-name .ed`); n && beginEdit(n); }, 60);
+  };
+  p.querySelectorAll('[data-abexpand]').forEach(h => h.onclick = ev => {
+    if(ev.target.closest('.ed, .ab-dot, button')) return;
+    const id = h.dataset.abexpand;
+    openIt(S._openAbility?.[s.id] === id ? null : id); sound('click'); reopen();
+  });
+  /* Pressing the dot you are already on steps back one, so a level can be
+     given up as easily as it was claimed. */
+  p.querySelectorAll('[data-abset]').forEach(b => b.onclick = ev => {
+    ev.stopPropagation();
+    const [id, n] = b.dataset.abset.split(':');
+    const a = abById(id); if(!a) return;
+    a.currentLevel = a.currentLevel === +n ? +n - 1 : +n;
+    saveNow(); sound(a.currentLevel >= +n ? 'success' : 'click'); rerender(); reopen();
+  });
+  p.querySelectorAll('[data-abcritadd]').forEach(b => b.onclick = () => {
+    const [id, li] = b.dataset.abcritadd.split(':');
+    const a = abById(id); if(!a) return;
+    a.levels[+li].criteria.push({id:uid(), text:'', done:false, metAt:null});
+    openIt(id); saveNow(); reopen();
+    setTimeout(() => { const last = $$(`#panel .ab[data-ab="${id}"] .ab-lvl`)[+li]?.querySelectorAll('.lvl-criteria .ed');
+      last && last.length && beginEdit(last[last.length - 1]); }, 60);
+  });
+  p.querySelectorAll('[data-abcrit]').forEach(b => b.onclick = () => {
+    const [id, li, cid] = b.dataset.abcrit.split(':');
+    const a = abById(id); if(!a) return;
+    const c = (a.levels[+li].criteria || []).find(x => x.id === cid); if(!c) return;
+    c.done = !c.done; c.metAt = c.done ? today() : null;
+    saveNow(); sound(c.done ? 'success' : 'click'); reopen();
+  });
+  p.querySelectorAll('[data-abcritdel]').forEach(b => b.onclick = () => {
+    const [id, li, cid] = b.dataset.abcritdel.split(':');
+    const a = abById(id); if(!a) return;
+    const arr = a.levels[+li].criteria;
+    const c = arr.find(x => x.id === cid); if(!c) return;
+    requestDelete({label: c.text || 'this criterion', node: b.closest('li'),
+      remove: () => spliceOut(arr, x => x.id === cid), after: reopen});
+  });
+  p.querySelectorAll('[data-ablvladd]').forEach(b => b.onclick = () => {
+    const a = abById(b.dataset.ablvladd); if(!a) return;
+    const n = a.levels.length + 1;
+    a.levels.push({number:n, label:LEVEL_LABELS[n - 1] || `Level ${n}`, description:'', criteria:[]});
+    openIt(a.id); saveNow(); reopen();
+  });
+  p.querySelectorAll('[data-abdel]').forEach(b => b.onclick = () => {
+    const a = abById(b.dataset.abdel); if(!a) return;
+    requestDelete({label: a.name || 'this ability',
+      remove: () => spliceOut(skillAbilities(s), x => x.id === a.id),
+      after: () => { rerender(); reopen(); }});
+  });
 }
 hooks.lvldate = (arg) => { const [sid, i] = arg.split(':'); const s = byId(S.skills, sid); if(!s) return; const l = s.levels[+i]; if(l && l.targetDate === '') l.targetDate = null; saveNow(); };
 function bindLevelTrack(p, s){
