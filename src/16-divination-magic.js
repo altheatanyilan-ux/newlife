@@ -29,7 +29,10 @@ function divPrefs(){
   if(typeof d.particles  !== 'boolean') d.particles = true;
   if(typeof d.volume     !== 'number')  d.volume = .3;
   if(typeof d.spread     !== 'string')  d.spread = 'ppf';
+  if(typeof d.castSize   !== 'string')  d.castSize = 'standard';
+  if(typeof d.quickWith  !== 'string')  d.quickWith = 'tarot';
   if(!Array.isArray(d.customSpreads))   d.customSpreads = [];
+  if(!Array.isArray(d.customCharms))    d.customCharms = [];
   return d;
 }
 const divPrefSet = (k, v) => { divPrefs()[k] = v; saveNow(); };
@@ -278,6 +281,20 @@ const CeremonySound = {
     this.tone(f, {attack: 1, hold: 1.6, release: 2, peak: i ? .05 : .07})); },
   /* and the wind that carries the reading in */
   wind(){ this.noise(1.5, {freq: 500, sweepTo: 2000, q: .7, peak: .05}); },
+
+  /* --- the charms, which are objects rather than paper --- */
+  /* shaken in cupped hands: short bursts rather than one long hiss */
+  rattle(){ for(let i = 0; i < 7; i++)
+    this.noise(.05, {freq: 1700 + Math.random() * 900, q: 2.2, peak: .05, at: i * .052}); },
+  /* the throw */
+  whoosh(){ this.noise(.3, {freq: 300, sweepTo: 3000, q: .8, peak: .06}); },
+  /* one of them hitting the cloth — small, and slightly different each time,
+     because thirty identical clicks is a machine, not a handful of objects */
+  tink(){ this.tone(1050 + Math.random() * 500,
+    {attack: .002, hold: .004, release: .055, peak: .035}); },
+  /* the bowl again when everything has stopped moving, quieter */
+  bowlQuiet(){ this.tone(220, {attack: .5, hold: .6, release: 1.4, peak: .05});
+               this.tone(330, {attack: .55, hold: .5, release: 1.4, peak: .018}); },
 
   /* between readings: let the context go rather than hold the audio
      hardware open for a page nobody is listening to */

@@ -4707,6 +4707,135 @@ select.sm-active{border-color:var(--page-accent);
 .dv-read-src{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
 .dv-read-src .mono{font-size:.6rem;letter-spacing:.09em;text-transform:uppercase}
 
+/* --- the charms ---
+   A cloth with objects on it. Everything here is in service of that one
+   illusion: the shadow under each token, the warmth of the surface, and
+   the zones drawn at the weight of a watermark rather than a ruled chart. */
+.cc-sizes{display:flex;gap:8px;flex-wrap:wrap}
+.cc-size{flex:1 1 160px;min-width:150px;display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:10px 9px;border:1px solid var(--line);border-radius:11px;background:var(--surface);cursor:pointer;
+  transition:border-color .18s var(--ease),transform .18s var(--ease),background .18s var(--ease)}
+.cc-size:hover{border-color:var(--page-accent);transform:translateY(-2px)}
+.cc-size.on{border-color:var(--page-accent);background:color-mix(in srgb,var(--page-accent) 10%,var(--surface))}
+.cc-dots{width:54px;height:40px;fill:var(--muted);opacity:.7}
+.cc-size.on .cc-dots{fill:var(--page-accent);opacity:1}
+.cc-size-h{font-family:var(--lora,var(--serif));font-style:italic;font-size:.7rem;color:var(--faint);
+  text-align:center;line-height:1.4;margin-top:2px}
+
+/* room around the cloth for the four direction labels */
+.cc-stage{position:relative;padding:16px 34px 0}
+.cc-stage .dv-motes{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:4}
+/* the cloth: warm, slightly apart from the page, with a hint of weave */
+/* the bottom margin is the Material label's room: it is painted below the
+   cloth's own circle and would otherwise land on the row beneath */
+.cc-surface{position:relative;width:min(460px,92vw);aspect-ratio:1;margin:10px auto 26px;border-radius:50%;
+  color:var(--terra,#b08968);
+  background:radial-gradient(circle at 50% 46%,color-mix(in srgb,var(--surface) 92%,var(--terra,#b08968)) 0%,var(--surface-2) 72%,var(--surface-2) 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='60' height='60' filter='url(%23n)' opacity='.03'/%3E%3C/svg%3E");
+  box-shadow:inset 0 1px 18px color-mix(in srgb,var(--terra,#b08968) 12%,transparent)}
+.cc-surface.small{width:min(280px,80vw);margin:6px auto 22px}
+/* the labels are drawn beyond the cloth's own circle, so the SVG has to be
+   allowed to paint outside its box */
+.cc-cloth,.cc-links{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+.cc-ring{fill:none;stroke:currentColor;stroke-width:.35;opacity:.22}
+.cc-cross{stroke:currentColor;stroke-width:.22;opacity:.13}
+.cc-centre{fill:currentColor;opacity:.35}
+.cc-lab{font-family:var(--serif);font-size:4.2px;letter-spacing:.55px;font-variant:small-caps;
+  fill:currentColor;opacity:.38}
+.cc-links line{stroke:var(--page-accent);stroke-width:.4;stroke-dasharray:1.4 1.4;opacity:.5}
+.cc-toks{position:absolute;inset:0}
+/* one charm: a small object with a shadow under it */
+.cc-tok{position:absolute;left:calc(50% + var(--x) * 1%);top:calc(50% + var(--y) * 1%);
+  width:36px;height:36px;border-radius:50%;padding:0;cursor:pointer;
+  border:1.5px solid color-mix(in srgb,var(--cc) 70%,transparent);
+  background:radial-gradient(circle at 42% 36%,color-mix(in srgb,var(--surface) 96%,#fff) 0%,var(--surface) 70%);
+  box-shadow:0 2px 5px rgba(0,0,0,.16);
+  transform:translate(-50%,-50%) rotate(var(--rot));
+  display:flex;align-items:center;justify-content:center;z-index:2;
+  transition:box-shadow .2s var(--ease),opacity .2s var(--ease),border-color .2s var(--ease)}
+.cc-tok .cc-glyph{font-size:17px;line-height:1;display:block}
+.cc-tok.down{border-color:color-mix(in srgb,var(--cc) 32%,transparent);opacity:.8}
+.cc-tok.down .cc-back{width:19px;height:19px;fill:none;stroke:var(--cc);stroke-width:.9;opacity:.6}
+.cc-tok.sig{border-width:2px;border-color:var(--cc);
+  box-shadow:0 2px 6px rgba(0,0,0,.2),0 0 0 3px color-mix(in srgb,var(--cc) 16%,transparent)}
+/* before the throw they are all in the middle of the cloth, shivering */
+.cc-tok.gathered{transform:translate(-50%,-50%) translate(var(--bx),var(--by)) scale(.72);opacity:.55}
+.cc-surface.casting .cc-tok.gathered{animation:ccShake .12s linear infinite}
+@keyframes ccShake{
+  0%{transform:translate(-50%,-50%) translate(calc(var(--bx) + 1.5px),calc(var(--by) - 1px)) scale(.72)}
+  50%{transform:translate(-50%,-50%) translate(calc(var(--bx) - 1.5px),calc(var(--by) + 1.5px)) scale(.72)}
+  100%{transform:translate(-50%,-50%) translate(calc(var(--bx) + 1px),calc(var(--by) + 1px)) scale(.72)}}
+.cc-tok.turning{animation:ccTurn .26s var(--ease)}
+@keyframes ccTurn{50%{transform:translate(-50%,-50%) rotate(var(--rot)) scaleX(.05)}}
+.cc-tok:hover,.cc-tok.lit{z-index:6;
+  box-shadow:0 4px 14px rgba(0,0,0,.24),0 0 16px color-mix(in srgb,var(--cc) 45%,transparent)}
+.cc-tok.lit{transform:translate(-50%,-50%) rotate(var(--rot)) scale(1.3)}
+.cc-tok.kin{z-index:5;border-color:var(--page-accent)}
+.cc-stage.focused .cc-tok:not(.lit):not(.kin){opacity:.34}
+.cc-tok.drag{cursor:grab;touch-action:none}
+.cc-tok.drag:active{cursor:grabbing}
+:root[data-theme="dark"] .cc-tok,:root:not([data-theme="light"]) .cc-tok{
+  box-shadow:0 2px 5px rgba(0,0,0,.4),0 0 9px color-mix(in srgb,var(--cc) 14%,transparent)}
+.cc-tip{position:absolute;left:50%;bottom:2px;transform:translateX(-50%);z-index:7;pointer-events:none;
+  display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;justify-content:center;max-width:92%;
+  background:color-mix(in srgb,var(--surface) 93%,transparent);border:1px solid var(--line);
+  border-radius:999px;padding:4px 13px;box-shadow:var(--shadow)}
+.cc-tip .mono{font-size:.58rem;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+.cc-tip-k{font-family:var(--lora,var(--serif));font-style:italic;font-size:.72rem;color:var(--muted)}
+.cc-bar{gap:8px;align-items:center;margin-top:2px}
+.cc-bar .mono{font-size:.6rem;letter-spacing:.08em}
+@media (prefers-reduced-motion:reduce){
+  .cc-size,.cc-tok{transition:none}
+  .cc-surface.casting .cc-tok.gathered,.cc-tok.turning{animation:none}
+  .cc-tok.lit{transform:translate(-50%,-50%) rotate(var(--rot))}}
+
+/* the reading under the cloth */
+.cc-reading{gap:20px}
+.cc-lead{font-family:var(--lora,var(--serif));font-style:italic;font-size:.82rem;line-height:1.6;
+  color:var(--faint);margin:0 0 9px;max-width:58ch}
+.cc-read{border-left:2px solid var(--cc,var(--line-2));padding-left:12px;margin-bottom:13px;
+  border-radius:0 6px 6px 0;transition:background .3s var(--ease)}
+.cc-read.lit{background:color-mix(in srgb,var(--cc) 9%,transparent)}
+.cc-read-h{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.cc-read-sym{font-size:1.05rem;line-height:1}
+.cc-read-h b{font-size:1.02rem;font-variant:small-caps;letter-spacing:.03em}
+.cc-read-h .mono{font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+.cc-keys{font-size:.58rem;letter-spacing:.09em;color:var(--faint);margin:2px 0 5px}
+.cc-p{font-size:.86rem;line-height:1.7;margin:0 0 6px;max-width:62ch}
+.cc-p.faint{color:var(--muted);font-size:.8rem}
+.cc-clus{border:1px solid var(--line);border-radius:10px;padding:11px 13px;margin-bottom:11px;
+  background:var(--surface-2)}
+.cc-clus-h{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;margin-bottom:5px}
+.cc-clus-sym{font-size:1rem;line-height:1}
+.cc-clus-h .mono{font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-left:auto}
+.cc-edge{display:flex;gap:7px;flex-wrap:wrap}
+.cc-edge-i{display:inline-flex;gap:6px;align-items:baseline;padding:4px 11px;border-radius:999px;
+  border:1px solid color-mix(in srgb,var(--cc,var(--line-2)) 45%,transparent);font-size:.78rem;
+  background:var(--surface)}
+.cc-edge-i .mono{font-size:.54rem;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+.cc-turn{cursor:pointer;color:var(--text);border-style:dashed}
+.cc-turn:hover{border-color:var(--page-accent);border-style:solid}
+.cc-none{font-family:var(--lora,var(--serif));font-style:italic;color:var(--faint);font-size:.82rem}
+.cc-kept{display:flex;flex-direction:column}
+
+/* putting a real cast onto the cloth by hand */
+.cc-lay{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start}
+.cc-lay .cc-surface{flex:0 0 auto;margin:0}
+.cc-tray{flex:1 1 280px;min-width:250px;display:flex;flex-direction:column;gap:7px}
+.cc-tray>.mono{font-size:.58rem;letter-spacing:.09em;text-transform:uppercase;color:var(--faint)}
+.cc-pick{display:flex;flex-direction:column;gap:8px;max-height:330px;overflow-y:auto;padding-right:4px}
+.cc-pick-cat>.mono{font-size:.56rem;letter-spacing:.11em;text-transform:uppercase}
+.cc-pick-row{display:flex;flex-wrap:wrap;gap:5px;margin-top:3px}
+.cc-chip{display:inline-flex;gap:5px;align-items:center;padding:3px 9px 3px 7px;border-radius:999px;
+  border:1px solid color-mix(in srgb,var(--cc) 40%,transparent);background:var(--surface);cursor:pointer;
+  font-size:.72rem;color:var(--muted);transition:border-color .15s var(--ease),background .15s var(--ease)}
+.cc-chip:hover{border-color:var(--cc);color:var(--text)}
+.cc-chip.used{background:color-mix(in srgb,var(--cc) 16%,var(--surface));border-color:var(--cc);color:var(--text)}
+.cc-chip-n{font-family:var(--serif);font-size:.72rem}
+.cc-zones{display:flex;flex-direction:column;gap:2px;margin-top:4px;max-height:150px;overflow-y:auto}
+.cc-zline{font-size:.74rem;color:var(--muted);display:flex;gap:6px;align-items:baseline}
+.cc-zline .mono{font-size:.54rem;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-left:auto}
+
 /* --- the deck, browsable --- */
 .cd-tabs{margin:2px 0}
 .cd-count{font-size:.62rem;color:var(--faint);letter-spacing:.05em}
@@ -4722,6 +4851,29 @@ select.sm-active{border-color:var(--page-accent);
 .cd-t-name{font-family:var(--serif);font-size:.64rem;line-height:1.2;text-align:center;color:var(--muted)}
 .cd-t-n{position:absolute;top:3px;right:4px;font-size:.54rem;color:#fffdf5;background:rgba(0,0,0,.5);
   border-radius:999px;padding:0 5px;line-height:1.5}
+/* the charms browse by family rather than as one wall of tiles */
+.cd-grid.charms{display:flex;flex-direction:column;gap:16px}
+.cd-fam-h{display:flex;gap:9px;align-items:baseline;flex-wrap:wrap;margin:0 0 7px;font-weight:400}
+.cd-fam-h .sc{font-family:var(--serif);font-size:.74rem;letter-spacing:.12em;text-transform:uppercase;color:var(--cc)}
+.cd-fam-h .quote{font-family:var(--lora,var(--serif));font-style:italic;font-size:.72rem;color:var(--faint)}
+.cd-fam-row{display:flex;flex-wrap:wrap;gap:9px}
+.cd-ctile{position:relative;width:84px;display:flex;flex-direction:column;align-items:center;gap:4px;
+  background:none;border:0;padding:0;cursor:pointer;transition:transform .18s var(--ease)}
+.cd-ctile:hover{transform:translateY(-3px)}
+.cd-ctile.dim{opacity:.45}
+.cd-ctile.dim:hover{opacity:.85}
+.cd-ctok{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:21px;border:1.5px solid color-mix(in srgb,var(--cc) 60%,transparent);
+  background:radial-gradient(circle at 42% 36%,color-mix(in srgb,var(--surface) 96%,#fff) 0%,var(--surface) 70%);
+  box-shadow:0 2px 5px rgba(0,0,0,.14)}
+.cd-ctile.add .cd-ctok{border-style:dashed;color:var(--faint);font-size:19px}
+.cd-ctile.add{align-self:flex-start}
+.cd-bigtok{flex:0 0 auto;width:96px;height:96px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:44px;border:2px solid color-mix(in srgb,var(--cc) 65%,transparent);
+  background:radial-gradient(circle at 42% 36%,color-mix(in srgb,var(--surface) 96%,#fff) 0%,var(--surface) 72%);
+  box-shadow:0 3px 10px rgba(0,0,0,.16)}
+.cc-symin{text-align:center;font-size:1.2rem}
+@media (prefers-reduced-motion:reduce){.cd-ctile{transition:none}}
 .cd-page{display:flex;flex-direction:column;gap:18px}
 .cd-head{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
 .cd-head .tc{flex:0 0 auto;perspective:none}

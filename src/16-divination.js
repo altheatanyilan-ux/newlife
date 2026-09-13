@@ -270,6 +270,10 @@ function divinationSave(rec){
     people:[], places:[], emotions:[], tags:['divination', rec.system], confidence:'',
     extra:{divination:{system:rec.system, question:rec.question || '', spread:rec.spread || '',
       cards:rec.cards || [], lines:rec.lines || null, hexagram:rec.hexagram || null,
+      /* a cast keeps where every charm landed, because the positions ARE the
+         reading — a list of which charms came up would be a different and
+         much poorer thing to come back to */
+      charms:rec.charms || null,
       relating:rec.relating || null, deck:rec.deck || '', revisit: !!rec.revisit,
       /* where the cards were: dealt here, or laid out on a real table and
          typed in afterwards. Everything else about the two is identical. */
@@ -283,6 +287,11 @@ function divinationLine(e){
   const d = divinationOf(e); if(!d) return '';
   if(d.system === 'iching') return `${d.hexagram ? '#' + d.hexagram.i + ' ' + d.hexagram.n : ''}${d.relating ? ' → #' + d.relating.i + ' ' + d.relating.n : ''}`;
   if(d.system === 'oracle') return (d.cards || []).map(c => c.name).join(' · ');
+  if(d.system === 'charms'){
+    const a = castAnalyse(d.charms || []);
+    return (a.sig ? a.sig.charm.name + ' at the centre · ' : '')
+      + a.readable.length + ' read' + (a.hidden.length ? `, ${a.hidden.length} face down` : '');
+  }
   return (d.cards || []).map(c => (TAROT[c.card]?.n || '') + (c.rev ? ' (R)' : '')).join(' → ');
 }
 /* ---------- what the reading actually said ----------
@@ -309,7 +318,8 @@ function drawnTodayHTML(day){
         title="open it in the Lived Record">
         <div class="dv-today-h"><b class="serif">${esc(divinationLine(e) || e.title || 'a reading')}</b>
           <span class="mono faint">${esc(d.system === 'iching' ? 'the coins' : d.system === 'oracle'
-            ? ((ORACLE_DECKS.find(k => k.id === d.deck) || {}).name || 'oracle') : 'tarot')}</span></div>
+            ? ((ORACLE_DECKS.find(k => k.id === d.deck) || {}).name || 'oracle')
+            : d.system === 'charms' ? 'the charms' : 'tarot')}</span></div>
         ${d.question ? `<div class="mono faint">${esc(d.question)}</div>` : ''}
         ${divinationReadHTML(d)}
       </div>`; }).join('')}
@@ -339,6 +349,9 @@ function tarotMeaning(pick){
 }
 function divinationReadHTML(d){
   if(!d) return '';
+  /* A kept cast is redrawn rather than described: the scatter is the
+     reading, so a row of charm names would be throwing it away. */
+  if(d.system === 'charms') return castKeptHTML(d);
   if(d.system === 'iching'){
     const h = d.hexagram ? ICHING.find(x => x.i === d.hexagram.i) : null;
     const r = d.relating ? ICHING.find(x => x.i === d.relating.i) : null;
@@ -852,17 +865,22 @@ function openQuickDraw(){
       <button class="choice" data-qd="tarot"><span class="ico">🔮</span><span><b>One tarot card</b><div class="d">From the full deck of 78.</div></span></button>
       <button class="choice" data-qd="oracle"><span class="ico">◈</span><span><b>An oracle card</b><div class="d">A short one. Something to hold for the day.</div></span></button>
       <button class="choice" data-qd="iching"><span class="ico">☰</span><span><b>Cast the coins</b><div class="d">Six tosses, and the hexagram they make.</div></span></button>
+      <button class="choice" data-qd="charms"><span class="ico">🎲</span><span><b>Throw seven charms</b><div class="d">Older than the cards. Read where they fall rather than in what order.</div></span></button>
       <button class="choice" data-qd="full"><span class="ico">✦</span><span><b>A whole reading</b><div class="d">Twenty spreads, with room to write.</div></span></button>
       <button class="choice" data-qd="paper"><span class="ico">📖</span><span><b>A reading you did on paper</b><div class="d">Name the cards you laid out and get the same reading.</div></span></button>
-      <button class="choice" data-qd="deck"><span class="ico">📚</span><span><b>The deck</b><div class="d">All seventy-eight, and every time each one has come up for you.</div></span></button>
+      <button class="choice" data-qd="cast"><span class="ico">🔮</span><span><b>A full cast</b><div class="d">Fifteen charms or all thirty, on the cloth, with room to write.</div></span></button>
+      <button class="choice" data-qd="deck"><span class="ico">📚</span><span><b>The deck</b><div class="d">All seventy-eight and all thirty charms, and every time each has come up for you.</div></span></button>
     </div>`, 'narrow');
   m.querySelectorAll('[data-qd]').forEach(b => b.onclick = () => {
     const k = b.dataset.qd; m.remove();
+    divPrefSet('quickWith', k);
     if(k === 'iching') openIChing();
     else if(k === 'oracle') openOracle();
     else if(k === 'full') openTarot();
     else if(k === 'paper') openPhysicalReading();
     else if(k === 'deck') openCardDirectory();
+    else if(k === 'charms') openCharmCast({size:'quick'});
+    else if(k === 'cast') openCharmCast();
     else openTarot({spread:'daily'});
   });
 }

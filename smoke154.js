@@ -201,7 +201,8 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   console.log('\n7. the whole deck, and what it has meant to you');
   await p.evaluate(() => { document.querySelectorAll('.modal-wrap,.modal').forEach(n => n.remove());
     openCardDirectory(); }); await p.waitForTimeout(600);
-  is('six ways in', await p.$$eval('[data-cdtab]', n => n.length), 6);
+  is('six ways into the cards', await p.evaluate(() => CARD_TABS.length), 6);
+  is('  and a seventh tab, for the charms', await p.$$eval('[data-cdtab]', n => n.length), 7);
   is('  the majors are twenty-two', await p.evaluate(() => cardsInTab('major').length), 22);
   is('  each numbered suit is ten', await p.evaluate(() =>
     ['wands','cups','swords','pentacles'].map(s => cardsInTab(s).length).join(',')), '10,10,10,10');

@@ -5232,6 +5232,135 @@ select.sm-active{border-color:var(--page-accent);
 .dv-read-src{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
 .dv-read-src .mono{font-size:.6rem;letter-spacing:.09em;text-transform:uppercase}
 
+/* --- the charms ---
+   A cloth with objects on it. Everything here is in service of that one
+   illusion: the shadow under each token, the warmth of the surface, and
+   the zones drawn at the weight of a watermark rather than a ruled chart. */
+.cc-sizes{display:flex;gap:8px;flex-wrap:wrap}
+.cc-size{flex:1 1 160px;min-width:150px;display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:10px 9px;border:1px solid var(--line);border-radius:11px;background:var(--surface);cursor:pointer;
+  transition:border-color .18s var(--ease),transform .18s var(--ease),background .18s var(--ease)}
+.cc-size:hover{border-color:var(--page-accent);transform:translateY(-2px)}
+.cc-size.on{border-color:var(--page-accent);background:color-mix(in srgb,var(--page-accent) 10%,var(--surface))}
+.cc-dots{width:54px;height:40px;fill:var(--muted);opacity:.7}
+.cc-size.on .cc-dots{fill:var(--page-accent);opacity:1}
+.cc-size-h{font-family:var(--lora,var(--serif));font-style:italic;font-size:.7rem;color:var(--faint);
+  text-align:center;line-height:1.4;margin-top:2px}
+
+/* room around the cloth for the four direction labels */
+.cc-stage{position:relative;padding:16px 34px 0}
+.cc-stage .dv-motes{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:4}
+/* the cloth: warm, slightly apart from the page, with a hint of weave */
+/* the bottom margin is the Material label's room: it is painted below the
+   cloth's own circle and would otherwise land on the row beneath */
+.cc-surface{position:relative;width:min(460px,92vw);aspect-ratio:1;margin:10px auto 26px;border-radius:50%;
+  color:var(--terra,#b08968);
+  background:radial-gradient(circle at 50% 46%,color-mix(in srgb,var(--surface) 92%,var(--terra,#b08968)) 0%,var(--surface-2) 72%,var(--surface-2) 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='60' height='60' filter='url(%23n)' opacity='.03'/%3E%3C/svg%3E");
+  box-shadow:inset 0 1px 18px color-mix(in srgb,var(--terra,#b08968) 12%,transparent)}
+.cc-surface.small{width:min(280px,80vw);margin:6px auto 22px}
+/* the labels are drawn beyond the cloth's own circle, so the SVG has to be
+   allowed to paint outside its box */
+.cc-cloth,.cc-links{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+.cc-ring{fill:none;stroke:currentColor;stroke-width:.35;opacity:.22}
+.cc-cross{stroke:currentColor;stroke-width:.22;opacity:.13}
+.cc-centre{fill:currentColor;opacity:.35}
+.cc-lab{font-family:var(--serif);font-size:4.2px;letter-spacing:.55px;font-variant:small-caps;
+  fill:currentColor;opacity:.38}
+.cc-links line{stroke:var(--page-accent);stroke-width:.4;stroke-dasharray:1.4 1.4;opacity:.5}
+.cc-toks{position:absolute;inset:0}
+/* one charm: a small object with a shadow under it */
+.cc-tok{position:absolute;left:calc(50% + var(--x) * 1%);top:calc(50% + var(--y) * 1%);
+  width:36px;height:36px;border-radius:50%;padding:0;cursor:pointer;
+  border:1.5px solid color-mix(in srgb,var(--cc) 70%,transparent);
+  background:radial-gradient(circle at 42% 36%,color-mix(in srgb,var(--surface) 96%,#fff) 0%,var(--surface) 70%);
+  box-shadow:0 2px 5px rgba(0,0,0,.16);
+  transform:translate(-50%,-50%) rotate(var(--rot));
+  display:flex;align-items:center;justify-content:center;z-index:2;
+  transition:box-shadow .2s var(--ease),opacity .2s var(--ease),border-color .2s var(--ease)}
+.cc-tok .cc-glyph{font-size:17px;line-height:1;display:block}
+.cc-tok.down{border-color:color-mix(in srgb,var(--cc) 32%,transparent);opacity:.8}
+.cc-tok.down .cc-back{width:19px;height:19px;fill:none;stroke:var(--cc);stroke-width:.9;opacity:.6}
+.cc-tok.sig{border-width:2px;border-color:var(--cc);
+  box-shadow:0 2px 6px rgba(0,0,0,.2),0 0 0 3px color-mix(in srgb,var(--cc) 16%,transparent)}
+/* before the throw they are all in the middle of the cloth, shivering */
+.cc-tok.gathered{transform:translate(-50%,-50%) translate(var(--bx),var(--by)) scale(.72);opacity:.55}
+.cc-surface.casting .cc-tok.gathered{animation:ccShake .12s linear infinite}
+@keyframes ccShake{
+  0%{transform:translate(-50%,-50%) translate(calc(var(--bx) + 1.5px),calc(var(--by) - 1px)) scale(.72)}
+  50%{transform:translate(-50%,-50%) translate(calc(var(--bx) - 1.5px),calc(var(--by) + 1.5px)) scale(.72)}
+  100%{transform:translate(-50%,-50%) translate(calc(var(--bx) + 1px),calc(var(--by) + 1px)) scale(.72)}}
+.cc-tok.turning{animation:ccTurn .26s var(--ease)}
+@keyframes ccTurn{50%{transform:translate(-50%,-50%) rotate(var(--rot)) scaleX(.05)}}
+.cc-tok:hover,.cc-tok.lit{z-index:6;
+  box-shadow:0 4px 14px rgba(0,0,0,.24),0 0 16px color-mix(in srgb,var(--cc) 45%,transparent)}
+.cc-tok.lit{transform:translate(-50%,-50%) rotate(var(--rot)) scale(1.3)}
+.cc-tok.kin{z-index:5;border-color:var(--page-accent)}
+.cc-stage.focused .cc-tok:not(.lit):not(.kin){opacity:.34}
+.cc-tok.drag{cursor:grab;touch-action:none}
+.cc-tok.drag:active{cursor:grabbing}
+:root[data-theme="dark"] .cc-tok,:root:not([data-theme="light"]) .cc-tok{
+  box-shadow:0 2px 5px rgba(0,0,0,.4),0 0 9px color-mix(in srgb,var(--cc) 14%,transparent)}
+.cc-tip{position:absolute;left:50%;bottom:2px;transform:translateX(-50%);z-index:7;pointer-events:none;
+  display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;justify-content:center;max-width:92%;
+  background:color-mix(in srgb,var(--surface) 93%,transparent);border:1px solid var(--line);
+  border-radius:999px;padding:4px 13px;box-shadow:var(--shadow)}
+.cc-tip .mono{font-size:.58rem;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+.cc-tip-k{font-family:var(--lora,var(--serif));font-style:italic;font-size:.72rem;color:var(--muted)}
+.cc-bar{gap:8px;align-items:center;margin-top:2px}
+.cc-bar .mono{font-size:.6rem;letter-spacing:.08em}
+@media (prefers-reduced-motion:reduce){
+  .cc-size,.cc-tok{transition:none}
+  .cc-surface.casting .cc-tok.gathered,.cc-tok.turning{animation:none}
+  .cc-tok.lit{transform:translate(-50%,-50%) rotate(var(--rot))}}
+
+/* the reading under the cloth */
+.cc-reading{gap:20px}
+.cc-lead{font-family:var(--lora,var(--serif));font-style:italic;font-size:.82rem;line-height:1.6;
+  color:var(--faint);margin:0 0 9px;max-width:58ch}
+.cc-read{border-left:2px solid var(--cc,var(--line-2));padding-left:12px;margin-bottom:13px;
+  border-radius:0 6px 6px 0;transition:background .3s var(--ease)}
+.cc-read.lit{background:color-mix(in srgb,var(--cc) 9%,transparent)}
+.cc-read-h{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.cc-read-sym{font-size:1.05rem;line-height:1}
+.cc-read-h b{font-size:1.02rem;font-variant:small-caps;letter-spacing:.03em}
+.cc-read-h .mono{font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+.cc-keys{font-size:.58rem;letter-spacing:.09em;color:var(--faint);margin:2px 0 5px}
+.cc-p{font-size:.86rem;line-height:1.7;margin:0 0 6px;max-width:62ch}
+.cc-p.faint{color:var(--muted);font-size:.8rem}
+.cc-clus{border:1px solid var(--line);border-radius:10px;padding:11px 13px;margin-bottom:11px;
+  background:var(--surface-2)}
+.cc-clus-h{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;margin-bottom:5px}
+.cc-clus-sym{font-size:1rem;line-height:1}
+.cc-clus-h .mono{font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-left:auto}
+.cc-edge{display:flex;gap:7px;flex-wrap:wrap}
+.cc-edge-i{display:inline-flex;gap:6px;align-items:baseline;padding:4px 11px;border-radius:999px;
+  border:1px solid color-mix(in srgb,var(--cc,var(--line-2)) 45%,transparent);font-size:.78rem;
+  background:var(--surface)}
+.cc-edge-i .mono{font-size:.54rem;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+.cc-turn{cursor:pointer;color:var(--text);border-style:dashed}
+.cc-turn:hover{border-color:var(--page-accent);border-style:solid}
+.cc-none{font-family:var(--lora,var(--serif));font-style:italic;color:var(--faint);font-size:.82rem}
+.cc-kept{display:flex;flex-direction:column}
+
+/* putting a real cast onto the cloth by hand */
+.cc-lay{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start}
+.cc-lay .cc-surface{flex:0 0 auto;margin:0}
+.cc-tray{flex:1 1 280px;min-width:250px;display:flex;flex-direction:column;gap:7px}
+.cc-tray>.mono{font-size:.58rem;letter-spacing:.09em;text-transform:uppercase;color:var(--faint)}
+.cc-pick{display:flex;flex-direction:column;gap:8px;max-height:330px;overflow-y:auto;padding-right:4px}
+.cc-pick-cat>.mono{font-size:.56rem;letter-spacing:.11em;text-transform:uppercase}
+.cc-pick-row{display:flex;flex-wrap:wrap;gap:5px;margin-top:3px}
+.cc-chip{display:inline-flex;gap:5px;align-items:center;padding:3px 9px 3px 7px;border-radius:999px;
+  border:1px solid color-mix(in srgb,var(--cc) 40%,transparent);background:var(--surface);cursor:pointer;
+  font-size:.72rem;color:var(--muted);transition:border-color .15s var(--ease),background .15s var(--ease)}
+.cc-chip:hover{border-color:var(--cc);color:var(--text)}
+.cc-chip.used{background:color-mix(in srgb,var(--cc) 16%,var(--surface));border-color:var(--cc);color:var(--text)}
+.cc-chip-n{font-family:var(--serif);font-size:.72rem}
+.cc-zones{display:flex;flex-direction:column;gap:2px;margin-top:4px;max-height:150px;overflow-y:auto}
+.cc-zline{font-size:.74rem;color:var(--muted);display:flex;gap:6px;align-items:baseline}
+.cc-zline .mono{font-size:.54rem;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-left:auto}
+
 /* --- the deck, browsable --- */
 .cd-tabs{margin:2px 0}
 .cd-count{font-size:.62rem;color:var(--faint);letter-spacing:.05em}
@@ -5247,6 +5376,29 @@ select.sm-active{border-color:var(--page-accent);
 .cd-t-name{font-family:var(--serif);font-size:.64rem;line-height:1.2;text-align:center;color:var(--muted)}
 .cd-t-n{position:absolute;top:3px;right:4px;font-size:.54rem;color:#fffdf5;background:rgba(0,0,0,.5);
   border-radius:999px;padding:0 5px;line-height:1.5}
+/* the charms browse by family rather than as one wall of tiles */
+.cd-grid.charms{display:flex;flex-direction:column;gap:16px}
+.cd-fam-h{display:flex;gap:9px;align-items:baseline;flex-wrap:wrap;margin:0 0 7px;font-weight:400}
+.cd-fam-h .sc{font-family:var(--serif);font-size:.74rem;letter-spacing:.12em;text-transform:uppercase;color:var(--cc)}
+.cd-fam-h .quote{font-family:var(--lora,var(--serif));font-style:italic;font-size:.72rem;color:var(--faint)}
+.cd-fam-row{display:flex;flex-wrap:wrap;gap:9px}
+.cd-ctile{position:relative;width:84px;display:flex;flex-direction:column;align-items:center;gap:4px;
+  background:none;border:0;padding:0;cursor:pointer;transition:transform .18s var(--ease)}
+.cd-ctile:hover{transform:translateY(-3px)}
+.cd-ctile.dim{opacity:.45}
+.cd-ctile.dim:hover{opacity:.85}
+.cd-ctok{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:21px;border:1.5px solid color-mix(in srgb,var(--cc) 60%,transparent);
+  background:radial-gradient(circle at 42% 36%,color-mix(in srgb,var(--surface) 96%,#fff) 0%,var(--surface) 70%);
+  box-shadow:0 2px 5px rgba(0,0,0,.14)}
+.cd-ctile.add .cd-ctok{border-style:dashed;color:var(--faint);font-size:19px}
+.cd-ctile.add{align-self:flex-start}
+.cd-bigtok{flex:0 0 auto;width:96px;height:96px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:44px;border:2px solid color-mix(in srgb,var(--cc) 65%,transparent);
+  background:radial-gradient(circle at 42% 36%,color-mix(in srgb,var(--surface) 96%,#fff) 0%,var(--surface) 72%);
+  box-shadow:0 3px 10px rgba(0,0,0,.16)}
+.cc-symin{text-align:center;font-size:1.2rem}
+@media (prefers-reduced-motion:reduce){.cd-ctile{transition:none}}
 .cd-page{display:flex;flex-direction:column;gap:18px}
 .cd-head{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
 .cd-head .tc{flex:0 0 auto;perspective:none}
@@ -17846,6 +17998,931 @@ const TAROT_RICH = [
 },
 ];
 /* ============================================================
+   THE CAST
+
+   Everything the cards do in sequence, this does at once. There is no
+   first position and no second: the charms go up, they come down, and
+   what you have is a scatter to be read like a map rather than a list to
+   be read like a sentence.
+
+   Three things are computed from where they land, and nothing else is:
+
+     the ring        how close to the middle of it this charm is
+     the quarter     which way it is facing — spirit, action, material, intuition
+     the neighbours  which charms came down close enough to be read together
+
+   Plus one charm singled out by the throw itself: whichever landed
+   nearest the centre is the significator, and the reading opens with it.
+   Nobody chooses it; that is the point.
+
+   A sixth or so of the charms land face down. They are not read unless
+   you turn them, and you do not have to. A cast with something still
+   hidden in it is a perfectly good cast.
+   ============================================================ */
+
+const CAST_SIZES = [
+  {id:'quick',    n:7,  name:'Quick',    hint:'A handful. A morning, or one thing you want looked at.'},
+  {id:'standard', n:15, name:'Standard', hint:'Half the set. A question with some room in it.'},
+  {id:'full',     n:30, name:'Full',     hint:'Everything at once. A long question, and an hour to sit with it.'},
+];
+const castSize = id => CAST_SIZES.find(s => s.id === id) || CAST_SIZES[1];
+
+/* ---------- the throw ----------
+   Positions are in the unit circle, so nothing here knows or cares how
+   big the cloth is drawn.
+
+   The radius is the part worth getting right. A radius picked uniformly
+   at random spreads charms evenly *by area*, which puts about a
+   sixteenth of them in the core and nearly two thirds out past the
+   middle ring — a reading where almost everything is "beyond you" and
+   the centre is usually empty. That is not how a handful of thrown
+   objects behaves, and it is not a reading. `pow(random, .95)` is close
+   to linear in the radius, which crowds them toward the middle the way
+   a real throw does: roughly a sixth in the core, two fifths in the
+   influences, two fifths beyond. */
+function charmCast(size){
+  const pool = charmPool().slice();
+  const n = Math.min(castSize(size).n, pool.length);
+  const out = [];
+  for(let i = 0; i < n; i++){
+    const c = pool.splice(Math.floor(Math.random() * pool.length), 1)[0];
+    const ang = Math.random() * Math.PI * 2;
+    const rad = .08 + Math.pow(Math.random(), .95) * .88;
+    out.push({id: c.id,
+      x: Math.cos(ang) * rad, y: Math.sin(ang) * rad,
+      rot: Math.round((Math.random() - .5) * 46),      /* how it came to rest */
+      up: Math.random() > .15,                          /* a sixth land face down */
+      flipped: false});
+  }
+  return out;
+}
+
+/* ---------- reading the scatter ---------- */
+function castAnalyse(thrown){
+  const marks = thrown.map((t, i) => {
+    const d = Math.hypot(t.x, t.y);
+    /* atan2 with y as it is: the cloth's y grows downward like the screen's,
+       so this is already the angle the quarters are written against */
+    const deg = (Math.atan2(t.y, t.x) * 180 / Math.PI + 360) % 360;
+    return Object.assign({}, t, {i, d, deg, charm: charmById(t.id),
+      ring: castRing(d), quarter: castQuarter(deg)});
+  }).filter(m => m.charm);
+
+  /* the significator is decided by the throw, not by the reader — and a
+     charm that landed face down cannot be the core of a reading it is not
+     part of, so it has to be turned first to claim the place */
+  const readable = marks.filter(m => m.up || m.flipped);
+  const sig = readable.slice().sort((a, b) => a.d - b.d)[0] || null;
+
+  /* Clusters: single-link, over the readable charms. The threshold is a
+     fraction of the cloth rather than a pixel count, so the same cast
+     clusters the same way on a phone and on a desk. */
+  const near = .17;
+  const seen = new Set(), clusters = [];
+  readable.forEach(a => {
+    if(seen.has(a.i)) return;
+    const group = [a]; seen.add(a.i);
+    /* single-link: anything near anything already in the group joins it */
+    for(let grew = true; grew;){
+      grew = false;
+      readable.forEach(b => {
+        if(seen.has(b.i)) return;
+        if(group.some(g => Math.hypot(g.x - b.x, g.y - b.y) < near)){
+          group.push(b); seen.add(b.i); grew = true;
+        }
+      });
+    }
+    if(group.length > 1) clusters.push(group);
+  });
+  clusters.sort((a, b) => b.length - a.length);
+
+  const quarters = {};
+  readable.forEach(m => { quarters[m.quarter.id] = (quarters[m.quarter.id] || 0) + 1; });
+  const heaviest = Object.entries(quarters).sort((a, b) => b[1] - a[1])[0] || null;
+
+  return {marks, readable, sig, clusters,
+    inner: readable.filter(m => m.ring.id === 'inner'),
+    hidden: marks.filter(m => !m.up && !m.flipped),
+    quarters, heaviest};
+}
+
+/* ---------- what it says ----------
+   Built from templates out of the charms' own words, like the tarot's
+   story paragraph and for the same reason: not to be profound, only to
+   join enough dots that the person reading has somewhere to start. */
+function castNarrative(a){
+  if(!a.sig) return 'Every charm came down face down. That is a reading of a kind — turn one, or throw again.';
+  const firstSentence = s => (s.split(/(?<=\.)\s/)[0] || s).replace(/\s+$/, '');
+  let t = `At the heart of this cast is ${a.sig.charm.name}. ${firstSentence(a.sig.charm.m)} `
+        + `It came down in ${a.sig.ring.name.toLowerCase()}, toward ${a.sig.quarter.name.toLowerCase()}.`;
+  const others = a.inner.filter(m => m !== a.sig);
+  if(others.length){
+    t += ` Beside it at the centre: ${others.map(m => m.charm.name).join(' and ')} — `
+       + `so this is a reading about ${a.inner.map(m => m.charm.k[0]).join(', ')} before it is about anything else.`;
+  }
+  if(a.clusters.length){
+    const c = a.clusters[0];
+    t += ` ${c.map(m => m.charm.name).join(' and ')} fell together, which is the part to look at hardest: `
+       + `those themes are not separate things in your life at the moment.`;
+  }
+  if(a.heaviest && a.heaviest[1] >= Math.max(2, a.readable.length * .35)){
+    const q = CAST_QUARTERS.find(x => x.id === a.heaviest[0]);
+    t += ` The weight of the cast falls toward ${q.name.toLowerCase()} — ${q.m}.`;
+  }
+  if(a.hidden.length){
+    t += ` ${a.hidden.length === 1 ? 'One charm is' : a.hidden.length + ' charms are'} still face down. `
+       + `Whatever is working on this from underneath, you have not looked at it yet.`;
+  }
+  return t;
+}
+
+/* three questions, drawn from the charms the throw made prominent */
+function castQuestions(a){
+  const qs = [];
+  if(a.sig) qs.push(`${a.sig.charm.m.match(/[^.]*\?$/) ? a.sig.charm.m.split(/(?<=\.)\s/).pop()
+    : `What does ${a.sig.charm.name} ask of the thing you brought?`}`);
+  a.inner.filter(m => m !== a.sig).slice(0, 1).forEach(m =>
+    qs.push(`${m.charm.name} landed at your core. Where is ${m.charm.k[0]} in this, honestly?`));
+  if(a.clusters.length){
+    const c = a.clusters[0];
+    qs.push(`What is the connection between ${c[0].charm.name} and ${c[1].charm.name} that you have not said out loud?`);
+  }
+  if(a.hidden.length) qs.push('What are you not turning over, and why not?');
+  if(a.heaviest){
+    const q = CAST_QUARTERS.find(x => x.id === a.heaviest[0]);
+    qs.push(`Most of this landed toward ${q.name.toLowerCase()}. Is that where you have been looking?`);
+  }
+  return qs.slice(0, 4);
+}
+
+/* ============================================================
+   THE CLOTH, DRAWN
+
+   Three rings and two lines, at the weight of a watermark. The zones are
+   there to orient the reading, not to be the thing you look at — a ruled
+   diagram with objects on it is a chart, and this is meant to be a cloth.
+   ============================================================ */
+function castClothHTML(){
+  /* The viewBox is exactly the cloth: 100 units across, radius 50, so an SVG
+     radius of 50 and a charm thrown to radius 1 are the same circle. They
+     were not, at first, and the outer ring sat a fifth of the way inside
+     where the charms were actually landing. The direction labels sit outside
+     that circle and are painted by overflow rather than by widening it. */
+  const R = 50, lab = (x, y, t, anchor) =>
+    `<text class="cc-lab" x="${x}" y="${y}" text-anchor="${anchor}">${esc(t)}</text>`;
+  return `<svg class="cc-cloth" viewBox="-50 -50 100 100" aria-hidden="true">
+    <defs><radialGradient id="ccCore"><stop offset="0" stop-color="currentColor" stop-opacity=".085"/>
+      <stop offset="1" stop-color="currentColor" stop-opacity="0"/></radialGradient></defs>
+    <circle r="${R * .25}" fill="url(#ccCore)"/>
+    ${CAST_RINGS.map(r => `<circle class="cc-ring" r="${(R * r.max).toFixed(1)}"/>`).join('')}
+    <line class="cc-cross" x1="${-R}" y1="0" x2="${R}" y2="0"/>
+    <line class="cc-cross" x1="0" y1="${-R}" x2="0" y2="${R}"/>
+    <circle class="cc-centre" r="1.1"/>
+    ${lab(0, -R - 3.5, 'Spirit', 'middle')}
+    ${lab(R + 3.5, 1.6, 'Action', 'start')}
+    ${lab(0, R + 7, 'Material', 'middle')}
+    ${lab(-R - 3.5, 1.6, 'Intuition', 'end')}
+  </svg>`;
+}
+
+/* one charm as it sits on the cloth */
+function charmTokenHTML(m, opts){
+  const c = m.charm, cat = charmCatOf(c);
+  const shown = m.up || m.flipped;
+  return `<button type="button" class="cc-tok${shown ? '' : ' down'}${opts && opts.sig ? ' sig' : ''}"
+    data-cctok="${m.i}" style="--x:${(m.x * 50).toFixed(2)};--y:${(m.y * 50).toFixed(2)};--rot:${m.rot}deg;--cc:${cat.c};--hue:${c.hue}"
+    aria-label="${esc(shown ? c.name : 'a charm, face down')}">
+    <span class="cc-glyph">${shown ? c.sym : '<svg viewBox="0 0 24 24" class="cc-back"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.6"/><circle cx="12" cy="12" r="1.4"/></svg>'}</span>
+  </button>`;
+}
+
+/* ---------- the reading, written out ---------- */
+function castReadingHTML(a){
+  const zone = m => `${m.ring.name}, toward ${m.quarter.name.toLowerCase()}`;
+  const one = (m, lead) => `<article class="cc-read" data-ccread="${m.i}" style="--cc:${charmCatOf(m.charm).c}">
+    <div class="cc-read-h"><span class="cc-read-sym">${m.charm.sym}</span>
+      <b class="serif">${esc(m.charm.name)}</b>
+      <span class="mono">${esc(zone(m))}</span></div>
+    <div class="cc-keys mono">${esc(m.charm.k.join(' · '))}</div>
+    <p class="cc-p">${esc(m.charm.m)}</p>
+    ${lead === 'full' ? `<p class="cc-p faint">Where it landed: ${esc(m.ring.m)} And toward ${esc(m.quarter.name.toLowerCase())} — ${esc(m.quarter.m)}.</p>`
+      : lead ? `<p class="cc-p faint">Toward ${esc(m.quarter.name.toLowerCase())}: ${esc(m.quarter.m)}.</p>` : ''}
+  </article>`;
+
+  const sections = [];
+  if(a.sig) sections.push(`<section class="dv-sec"><h4 class="dv-sec-h">The core</h4>
+    <p class="cc-lead">Nearest the centre, and therefore the middle of this:</p>
+    ${one(a.sig, 'full')}</section>`);
+
+  const rest = a.inner.filter(m => m !== a.sig);
+  if(rest.length) sections.push(`<section class="dv-sec"><h4 class="dv-sec-h">Also at the centre</h4>
+    ${rest.map(m => one(m, true)).join('')}</section>`);
+
+  if(a.clusters.length) sections.push(`<section class="dv-sec"><h4 class="dv-sec-h">Together</h4>
+    <p class="cc-lead">Charms that came down close enough to be read as one thing. This is the part of a cast
+      that a deck of cards cannot do.</p>
+    ${a.clusters.map(g => `<article class="cc-clus">
+      <div class="cc-clus-h">${g.map(m => `<span class="cc-clus-sym" title="${esc(m.charm.name)}">${m.charm.sym}</span>`).join('')}
+        <b class="serif">${g.map(m => esc(m.charm.name)).join(' · ')}</b>
+        <span class="mono">${esc(g[0].ring.name)}, ${esc(g[0].quarter.name.toLowerCase())}</span></div>
+      ${g.length === 2
+        ? `<p class="cc-p">${esc(charmPairText(g[0].id, g[1].id))}</p>`
+        : `<p class="cc-p">${esc(`Three or more in one place is a knot rather than a pairing: `
+            + g.map(m => m.charm.k[0]).join(', ') + ` are all one subject here.`)}</p>
+           ${g.slice(0, -1).map((m, i) => `<p class="cc-p faint">${esc(charmPairText(m.id, g[i + 1].id))}</p>`).join('')}`}
+    </article>`).join('')}</section>`);
+
+  /* the outer ring is the weather rather than the question, so it is
+     summarised rather than given a paragraph each */
+  const outer = a.readable.filter(m => m.ring.id === 'outer');
+  if(outer.length) sections.push(`<section class="dv-sec"><h4 class="dv-sec-h">Out at the edge</h4>
+    <p class="cc-lead">Further out than you: coming toward you, going away, or simply not yours to decide.</p>
+    <div class="cc-edge">${outer.map(m => `<span class="cc-edge-i" style="--cc:${charmCatOf(m.charm).c}">
+      <span>${m.charm.sym}</span><b class="serif">${esc(m.charm.name)}</b>
+      <span class="mono">${esc(m.quarter.name.toLowerCase())}</span></span>`).join('')}</div></section>`);
+
+  if(a.hidden.length) sections.push(`<section class="dv-sec" id="ccHiddenSec"><h4 class="dv-sec-h">Face down</h4>
+    <p class="cc-lead">${a.hidden.length === 1 ? 'One charm' : a.hidden.length + ' charms'} landed the wrong way up.
+      They are not part of the reading unless you turn them, and leaving them is a legitimate answer —
+      some influences are working on you and are not yours to look at today.</p>
+    <div class="cc-edge">${a.hidden.map(m => `<button type="button" class="cc-edge-i cc-turn" data-ccflip="${m.i}">
+      <span>↻</span><b class="serif">turn it over</b><span class="mono">${esc(m.ring.name.toLowerCase())}</span></button>`).join('')}</div></section>`);
+
+  sections.push(`<section class="dv-story"><h4 class="dv-sec-h">The scatter, as one thing</h4>
+    <p>${esc(castNarrative(a))}</p>
+    <div class="mono faint">Read as one. Where it is wrong is where your own reading starts.</div></section>`);
+
+  const qs = castQuestions(a);
+  if(qs.length) sections.push(`<section class="dv-sec"><h4 class="dv-sec-h">To sit with</h4>
+    <ul class="dv-cr-q">${qs.map(q => `<li>${esc(q)}</li>`).join('')}</ul></section>`);
+
+  return `<div class="dv-reading cc-reading">${sections.join('')}</div>`;
+}
+
+/* ============================================================
+   THROWING THEM
+
+   Four movements. They are gathered and shaken in the middle, they go
+   up, they come down past where they are going and settle back onto it,
+   and then the cloth is still. The overshoot is the whole illusion: an
+   object that arrives at its resting place and stops was placed there,
+   not thrown.
+
+   Done with the Web Animations API rather than CSS keyframes because
+   every charm needs its own arc, and thirty generated @keyframes blocks
+   is a stylesheet written at runtime. For anyone who has asked for less
+   motion there is no flight at all — the charms are simply where they
+   landed, which is the same reading.
+   ============================================================ */
+function charmThrow(surface, marks, done){
+  const soft = typeof reduced === 'function' && reduced();
+  const toks = [...surface.querySelectorAll('[data-cctok]')];
+  if(soft){ toks.forEach(t => t.classList.add('rest')); if(done) setTimeout(done, 0); return; }
+  /* Each charm already sits at its landing place, set in CSS as a percentage
+     of the cloth. The flight is expressed as a delta from there back to the
+     middle and forward again, which needs pixels — so the cloth is measured
+     once, here, at the moment of throwing. */
+  const R = (surface.clientWidth || 460) / 2;
+  surface.classList.add('casting');
+  dvMoment('rattle');
+  toks.forEach((t, i) => {
+    const m = marks[i];
+    t.style.setProperty('--bx', (-m.x * R).toFixed(1) + 'px');
+    t.style.setProperty('--by', (-m.y * R).toFixed(1) + 'px');
+    t.classList.add('gathered');
+  });
+  setTimeout(() => {
+    dvMoment('whoosh');
+    surface.classList.remove('casting');
+    let last = 0;
+    toks.forEach((tok, i) => {
+      const m = marks[i];
+      const delay = Math.random() * 240;
+      const fly = 520 + Math.random() * 220;
+      const spin = (Math.random() - .5) * 620;
+      const X = m.x * R, Y = m.y * R;
+      const at = (k, r, sc, op) => ({
+        transform: `translate(-50%,-50%) translate(${((k - 1) * X).toFixed(1)}px,${((k - 1) * Y).toFixed(1)}px) rotate(${r.toFixed(0)}deg) scale(${sc})`,
+        opacity: op});
+      tok.classList.remove('gathered');
+      tok.animate([
+        Object.assign(at(0, 0, .72, .55), {offset: 0}),
+        Object.assign(at(.55, spin * .5, 1.06, 1), {offset: .34}),
+        /* past where it is going, then back onto it — an object that arrives
+           and stops was placed there, not thrown */
+        Object.assign(at(1.12, spin, 1.04, 1), {offset: .68}),
+        Object.assign(at(.985, spin + m.rot * .6, .99, 1), {offset: .86}),
+        Object.assign(at(1, m.rot, 1, 1), {offset: 1}),
+      ], {duration: fly, delay, easing: 'cubic-bezier(.2,.62,.3,1)', fill: 'backwards'});
+      const lands = delay + fly;
+      last = Math.max(last, lands);
+      setTimeout(() => {
+        tok.classList.add('rest');
+        dvMoment('tink');
+        const r = tok.getBoundingClientRect();
+        const cv = document.getElementById('ccMotes');
+        if(cv){ const c = cv.getBoundingClientRect();
+          dvField().burst(r.left - c.left + r.width / 2, r.top - c.top + r.height / 2, 6); }
+      }, lands);
+    });
+    setTimeout(() => { dvMoment('wind'); dvMoment('bowlQuiet'); if(done) done(); }, last + 220);
+  }, 360);
+}
+
+/* ---------- the whole thing ---------- */
+function openCharmCast(pre = {}){
+  const projects = typeof thProjects === 'function' ? thProjects() : [];
+  let size = pre.size || divPrefs().castSize || 'standard';
+  const m = openModal(`<h2>A cast</h2>
+    <div class="stack" id="ccSetup">
+      <p class="dv-yours-p">Older than the cards by a few thousand years. You throw the charms and read
+        where they fall — what landed, where it landed, and what it landed beside. Nothing is in a
+        position; everything is somewhere.</p>
+      <div class="field"><label>What are you asking?</label>
+        <input class="inp serif-lg" id="ccQ" value="${esc(pre.question || '')}" placeholder="Charms answer “show me what I am not seeing” better than they answer “will it happen”."></div>
+      <div class="field"><label>How many</label>
+        <div class="cc-sizes" id="ccSizes">${CAST_SIZES.map(s => `
+          <button type="button" class="cc-size${s.id === size ? ' on' : ''}" data-ccsize="${s.id}">
+            ${castSizeDotsHTML(s.n)}
+            <span class="sp-name serif">${esc(s.name)}</span>
+            <span class="sp-n mono">${s.n} charms</span>
+            <span class="cc-size-h quote">${esc(s.hint)}</span>
+          </button>`).join('')}</div></div>
+      ${divTogglesHTML()}
+      <div class="row" style="justify-content:flex-end;gap:8px;flex-wrap:wrap">
+        <button class="btn" id="ccPhys" title="charms you already threw on a real cloth">📖 a cast you did on a cloth</button>
+        <button class="btn primary" id="ccGo">Throw them</button></div>
+    </div>
+    <div id="ccOut"></div>`, 'wide');
+  bindDivToggles(m);
+  m.querySelectorAll('[data-ccsize]').forEach(b => b.onclick = () => {
+    size = b.dataset.ccsize; divPrefSet('castSize', size);
+    m.querySelectorAll('[data-ccsize]').forEach(x => x.classList.toggle('on', x === b));
+    if(typeof sound === 'function') sound('click');
+  });
+  m.querySelector('#ccPhys').onclick = () => { const q = m.querySelector('#ccQ').value; m.remove(); openPhysicalCast({question: q, size}); };
+  m.querySelector('#ccGo').onclick = () => {
+    const thrown = charmCast(size);
+    m.querySelector('#ccSetup').hidden = true;
+    castStageInto(m.querySelector('#ccOut'), thrown, {
+      question: () => m.querySelector('#ccQ')?.value.trim() || pre.question || '',
+      size, projects, modal: m, animate: true,
+      recast: () => { m.remove(); openCharmCast({question: m.querySelector('#ccQ')?.value || '', size}); },
+    });
+  };
+}
+
+const castSizeDotsHTML = n => `<svg class="cc-dots" viewBox="0 0 34 26" aria-hidden="true">${
+  Array.from({length: n}, (_, i) => {
+    /* the dots are a throw of their own, seeded off the index so the tile
+       looks the same every time it is drawn */
+    const a = (i * 2.399), r = 1.6 + Math.sqrt(i / n) * 9.6;
+    return `<circle cx="${(17 + Math.cos(a) * r * 1.28).toFixed(1)}" cy="${(13 + Math.sin(a) * r).toFixed(1)}" r="1.1"/>`;
+  }).join('')}</svg>`;
+
+/* The cloth, the charms on it, and the reading under it — shared by a cast
+   thrown here and one typed in from a real cloth, because they are the
+   same reading and only the provenance differs. */
+function castStageInto(host, thrown, opt){
+  const a0 = castAnalyse(thrown);
+  host.innerHTML = `<div class="cc-stage" id="ccStage">
+    <canvas class="dv-motes" id="ccMotes" aria-hidden="true"></canvas>
+    <button class="dv-mute mono" id="ccMute"></button>
+    <div class="cc-surface" id="ccSurface">
+      ${castClothHTML()}
+      <div class="cc-toks" id="ccToks">${a0.marks.map(mk =>
+        charmTokenHTML(mk, {sig: a0.sig && a0.sig.i === mk.i})).join('')}</div>
+      <svg class="cc-links" id="ccLinks" viewBox="-50 -50 100 100" aria-hidden="true"></svg>
+    </div>
+    <div class="cc-tip" id="ccTip" hidden></div>
+    <div class="row cc-bar">
+      <span class="mono faint" id="ccWhat"></span>
+      <span style="margin-left:auto"></span>
+      <button class="pf-chip" id="ccAgain">throw again</button></div>
+  </div>
+  <div id="ccRead" hidden></div>`;
+
+  const stage = host.querySelector('#ccStage');
+  const field = dvFieldStart(host.querySelector('#ccMotes'));
+  const mute = host.querySelector('#ccMute');
+  const showMute = () => { mute.textContent = divPrefs().sound ? '♪ sound on' : '♪ sound off';
+    mute.classList.toggle('off', !divPrefs().sound); };
+  mute.onclick = () => { divPrefSet('sound', !divPrefs().sound); showMute();
+    if(divPrefs().sound) CeremonySound.chime(); else CeremonySound.close(); };
+  showMute();
+  const stopAll = () => { dvFieldStop(); CeremonySound.close(); };
+  const modalHost = document.getElementById('modals') || document.body;
+  if(opt.modal){
+    const obs = new MutationObserver(() => { if(!modalHost.contains(opt.modal)){ stopAll(); obs.disconnect(); } });
+    obs.observe(modalHost, {childList: true});
+  }
+  host.querySelector('#ccAgain').onclick = () => { stopAll(); opt.recast(); };
+
+  /* re-read and re-render whenever a face-down charm is turned */
+  let a = a0;
+  function paint(){
+    a = castAnalyse(thrown);
+    host.querySelector('#ccWhat').textContent =
+      `${a.readable.length} read · ${a.hidden.length} face down · ${a.clusters.length} together`;
+    const box = host.querySelector('#ccRead');
+    box.innerHTML = castReadingHTML(a) + divKeepHTML(opt.projects);
+    box.hidden = false;
+    bindReading();
+    host.querySelector('#dvSave').onclick = () => {
+      divinationSave({system:'charms', question: opt.question(), spread: opt.size,
+        title: `A cast — ${a.sig ? a.sig.charm.name : 'all face down'}`,
+        charms: thrown.map(t => ({id:t.id, x:+t.x.toFixed(4), y:+t.y.toFixed(4), rot:t.rot,
+          up:t.up, flipped:t.flipped})),
+        cards: [], source: opt.source || 'digital',
+        reading: host.querySelector('#dvText').value.trim(),
+        revisit: host.querySelector('#dvRevisit').checked,
+        projectId: host.querySelector('#dvProj')?.value || null});
+      stopAll(); sound('success'); toast('Kept in the Lived Record.');
+      if(opt.modal) opt.modal.remove();
+      rerender();
+    };
+  }
+  function bindReading(){
+    host.querySelectorAll('[data-ccflip]').forEach(b => b.onclick = () => {
+      const i = +b.dataset.ccflip;
+      thrown[i].flipped = true;
+      const tok = host.querySelector(`[data-cctok="${i}"]`);
+      if(tok){ tok.classList.add('turning');
+        setTimeout(() => { const mk = castAnalyse(thrown).marks[i];
+          tok.outerHTML = charmTokenHTML(mk, {}); bindToks(); paint(); }, 260); }
+      else paint();
+      dvMoment('chime');
+    });
+  }
+
+  /* Hovering a charm: it comes up, the others go quiet, and a line is drawn
+     to everything it came down with. The cluster is the hardest thing to see
+     in a scatter and the most of what the scatter means. */
+  function bindToks(){
+    const links = host.querySelector('#ccLinks'), tip = host.querySelector('#ccTip');
+    host.querySelectorAll('[data-cctok]').forEach(tok => {
+      const i = +tok.dataset.cctok;
+      const on = () => {
+        const mk = a.marks[i]; if(!mk) return;
+        stage.classList.add('focused');
+        tok.classList.add('lit');
+        const group = a.clusters.find(g => g.some(x => x.i === i));
+        links.innerHTML = group ? group.filter(x => x.i !== i).map(x =>
+          `<line x1="${(mk.x * 50).toFixed(1)}" y1="${(mk.y * 50).toFixed(1)}"
+             x2="${(x.x * 50).toFixed(1)}" y2="${(x.y * 50).toFixed(1)}"/>`).join('') : '';
+        if(group) group.forEach(x => host.querySelector(`[data-cctok="${x.i}"]`)?.classList.add('kin'));
+        const shown = mk.up || mk.flipped;
+        tip.hidden = false;
+        tip.innerHTML = shown
+          ? `<b class="serif">${esc(mk.charm.name)}</b>
+             <span class="mono">${esc(mk.ring.name)} · ${esc(mk.quarter.name.toLowerCase())}</span>
+             <span class="cc-tip-k">${esc(mk.charm.k.join(' · '))}</span>`
+          : `<b class="serif">face down</b><span class="mono">${esc(mk.ring.name)}</span>
+             <span class="cc-tip-k">not part of the reading unless you turn it</span>`;
+        host.querySelector(`[data-ccread="${i}"]`)?.classList.add('lit');
+      };
+      const off = () => {
+        stage.classList.remove('focused');
+        host.querySelectorAll('.cc-tok').forEach(t => t.classList.remove('lit', 'kin'));
+        links.innerHTML = ''; tip.hidden = true;
+        host.querySelectorAll('.cc-read').forEach(n => n.classList.remove('lit'));
+      };
+      tok.addEventListener('pointerenter', on);
+      tok.addEventListener('pointerleave', off);
+      tok.addEventListener('focus', on);
+      tok.addEventListener('blur', off);
+      tok.onclick = () => {
+        const mk = a.marks[i];
+        if(mk && !mk.up && !mk.flipped){
+          thrown[i].flipped = true; tok.classList.add('turning'); dvMoment('chime');
+          setTimeout(() => { const m2 = castAnalyse(thrown).marks[i];
+            tok.outerHTML = charmTokenHTML(m2, {}); bindToks(); paint(); }, 260);
+          return;
+        }
+        host.querySelector(`[data-ccread="${i}"]`)?.scrollIntoView({block:'center',
+          behavior: (typeof reduced === 'function' && reduced()) ? 'auto' : 'smooth'});
+      };
+    });
+  }
+
+  bindToks();
+  if(opt.animate){
+    field.ambient(16);
+    charmThrow(host.querySelector('#ccSurface'), a0.marks, () => {
+      field.shimmer();
+      paint();
+      host.querySelector('#ccRead').scrollIntoView({block:'start',
+        behavior: (typeof reduced === 'function' && reduced()) ? 'auto' : 'smooth'});
+      setTimeout(() => field.stop(), 6000);
+    });
+  } else {
+    host.querySelectorAll('[data-cctok]').forEach(t => t.classList.add('rest'));
+    paint();
+  }
+}
+
+/* ---------- a cast, kept ----------
+   Opened months later from the Lived Record. The scatter is redrawn as it
+   fell, because a list of which charms came up would be the one part of a
+   cast that does not carry the meaning. */
+function castKeptHTML(d){
+  const thrown = d.charms || [];
+  if(!thrown.length) return '<div class="cc-none quote">The charms for this cast were not kept.</div>';
+  const a = castAnalyse(thrown);
+  return `<div class="cc-kept">
+    <div class="cc-surface small">
+      ${castClothHTML()}
+      <div class="cc-toks">${a.marks.map(mk =>
+        charmTokenHTML(mk, {sig: a.sig && a.sig.i === mk.i})).join('').replace(/class="cc-tok/g, 'class="cc-tok rest')}</div>
+    </div>
+    ${castReadingHTML(a)}</div>`;
+}
+
+/* ============================================================
+   A CAST YOU DID ON A CLOTH
+
+   The paper equivalent of a real throw, and it cannot work the way the
+   tarot one does. A card goes in position three; a charm goes wherever it
+   went, and "wherever it went" is a place on a circle. So instead of a
+   list of slots there is the cloth itself, and you put each charm where
+   it actually fell by dragging it there — which is both the honest way to
+   record a scatter and considerably faster than filling in two dropdowns
+   per charm.
+
+   Ring and quarter are read off the position, exactly as they are for a
+   thrown cast, so a recorded one reads identically.
+   ============================================================ */
+function openPhysicalCast(pre = {}){
+  const projects = typeof thProjects === 'function' ? thProjects() : [];
+  let placed = [];                       /* {id, x, y, rot, up, flipped} */
+  const m = openModal(`<h2>A cast you did on a cloth</h2>
+    <div class="stack" id="pcWrap">
+      <p class="dv-yours-p">Put each charm where it actually landed. Drag it on the cloth; the ring and the
+        quarter are read off where you put it, the same way they are for a throw made here.</p>
+      <div class="field"><label>What were you asking?</label>
+        <input class="inp serif-lg" id="pcQ" value="${esc(pre.question || '')}"></div>
+      <div class="cc-lay">
+        <div class="cc-surface" id="pcSurface">
+          ${castClothHTML()}
+          <div class="cc-toks" id="pcToks"></div>
+        </div>
+        <div class="cc-tray">
+          <div class="mono faint">the charms — click one to put it on the cloth</div>
+          <div class="cc-pick" id="pcPick"></div>
+        </div>
+      </div>
+      <div class="row" style="justify-content:flex-end;gap:8px">
+        <button class="btn" id="pcClear">take them all off</button>
+        <button class="btn primary" id="pcGo">Read it</button></div>
+    </div>
+    <div id="pcOut"></div>`, 'wide');
+
+  const surface = m.querySelector('#pcSurface');
+  function drawTray(){
+    const used = new Set(placed.map(p => p.id));
+    m.querySelector('#pcPick').innerHTML = CHARM_CATS.map(cat => {
+      const list = charmPool().filter(c => (c.cat || 'shadow') === cat.id);
+      if(!list.length) return '';
+      return `<div class="cc-pick-cat"><span class="mono" style="color:${cat.c}">${esc(cat.name)}</span>
+        <div class="cc-pick-row">${list.map(c => `<button type="button" class="cc-chip${used.has(c.id) ? ' used' : ''}"
+          data-pcadd="${esc(c.id)}" title="${esc(c.name)} — ${esc(c.k.join(', '))}" style="--cc:${cat.c}">
+          <span>${c.sym}</span><span class="cc-chip-n">${esc(c.name.replace(/^The /, ''))}</span></button>`).join('')}</div></div>`;
+    }).join('');
+    m.querySelectorAll('[data-pcadd]').forEach(b => b.onclick = () => {
+      const id = b.dataset.pcadd;
+      if(placed.some(p => p.id === id)){ placed = placed.filter(p => p.id !== id); }
+      else {
+        /* dropped just off centre, in a free-ish spot, and then dragged */
+        const t = placed.length * 2.399;
+        const r = .16 + Math.min(.7, placed.length * .035);
+        placed.push({id, x: Math.cos(t) * r, y: Math.sin(t) * r,
+          rot: Math.round((Math.random() - .5) * 40), up: true, flipped: false});
+      }
+      drawAll(); if(typeof sound === 'function') sound('click');
+    });
+  }
+  function drawCloth(){
+    const a = castAnalyse(placed);
+    m.querySelector('#pcToks').innerHTML = a.marks.map(mk =>
+      charmTokenHTML(mk, {})).join('').replace(/class="cc-tok/g, 'class="cc-tok rest drag');
+    m.querySelectorAll('#pcToks [data-cctok]').forEach(tok => {
+      const i = +tok.dataset.cctok;
+      tok.addEventListener('pointerdown', ev => {
+        ev.preventDefault();
+        tok.setPointerCapture(ev.pointerId);
+        tok.classList.add('lit');
+        const move = e => {
+          const r = surface.getBoundingClientRect();
+          let x = (e.clientX - r.left - r.width / 2) / (r.width / 2);
+          let y = (e.clientY - r.top - r.height / 2) / (r.height / 2);
+          const d = Math.hypot(x, y);
+          if(d > 1){ x /= d; y /= d; }          /* nothing lands off the cloth */
+          placed[i].x = x; placed[i].y = y;
+          tok.style.setProperty('--x', (x * 50).toFixed(2));
+          tok.style.setProperty('--y', (y * 50).toFixed(2));
+        };
+        const up = () => { tok.removeEventListener('pointermove', move);
+          tok.removeEventListener('pointerup', up); tok.removeEventListener('pointercancel', up);
+          tok.classList.remove('lit'); zones(); };
+        tok.addEventListener('pointermove', move);
+        tok.addEventListener('pointerup', up);
+        tok.addEventListener('pointercancel', up);
+      });
+      /* a charm on the cloth can be turned face down, the way one does on a
+         real cloth by simply leaving it as it fell */
+      tok.addEventListener('dblclick', () => { placed[i].up = !placed[i].up; drawAll(); });
+    });
+  }
+  function zones(){
+    const a = castAnalyse(placed);
+    m.querySelector('#pcZones').innerHTML = placed.length
+      ? a.marks.map(mk => `<span class="cc-zline"><b>${mk.charm.sym}</b> ${esc(mk.charm.name)}
+          <span class="mono">${esc(mk.ring.name.toLowerCase())} · ${esc(mk.quarter.name.toLowerCase())}${
+            (mk.up || mk.flipped) ? '' : ' · face down'}</span></span>`).join('')
+      : '<span class="quote">Nothing on the cloth yet.</span>';
+  }
+  function drawAll(){ drawTray(); drawCloth(); zones(); }
+
+  m.querySelector('.cc-tray').insertAdjacentHTML('beforeend',
+    '<div class="cc-zones mono" id="pcZones"></div>');
+  m.querySelector('#pcClear').onclick = () => { placed = []; drawAll(); };
+  drawAll();
+
+  m.querySelector('#pcGo').onclick = () => {
+    if(placed.length < 2) return toast('Put at least two charms on the cloth.');
+    m.querySelector('#pcWrap').hidden = true;
+    castStageInto(m.querySelector('#pcOut'), placed.slice(), {
+      question: () => m.querySelector('#pcQ')?.value.trim() || '',
+      size: 'cloth', projects, modal: m, animate: false, source: 'physical',
+      recast: () => { m.remove(); openPhysicalCast({question: m.querySelector('#pcQ')?.value || ''}); },
+    });
+    m.querySelector('#pcOut').insertAdjacentHTML('afterbegin',
+      `<div class="ph-done"><span class="dv-src mono">📖 thrown on a cloth</span></div>`);
+  };
+}
+/* ============================================================
+   THE CHARMS
+
+   Older than the cards by a long way: a handful of small objects thrown
+   onto a cloth, and the pattern they make is the reading. African bone
+   throwing, European cleromancy, Romani fortune-telling — all the same
+   gesture, which is to hand the arrangement over to physics and then take
+   seriously what physics did.
+
+   It is not tarot with different pictures. Tarot is sequential: card one
+   answers question one. A cast is spatial and all at once — nothing is
+   in a position, everything is somewhere, and three things make the
+   meaning:
+
+     what landed         the charm's own symbol
+     where it landed     which ring, which quarter of the cloth
+     what it landed by   two charms together say what neither says alone
+
+   The thirty here are the symbols that turn up across most traditions,
+   in six families of five. A person can add their own, which is what
+   everyone who does this actually does.
+   ============================================================ */
+
+const CHARM_CATS = [
+  {id:'self',    name:'Self',          hint:'identity, agency, the inner world', c:'#c99a3e'},
+  {id:'bonds',   name:'Bonds',         hint:'love, connection, other people',    c:'#b5607a'},
+  {id:'ground',  name:'Ground',        hint:'money, home, body, work',           c:'#7f916a'},
+  {id:'journey', name:'Journey',       hint:'movement, time, change',            c:'#b4462f'},
+  {id:'spirit',  name:'Spirit',        hint:'wisdom, mystery, the inner life',   c:'#7b79ad'},
+  {id:'shadow',  name:'Shadow',        hint:'obstacles, boundaries, endings',    c:'#8b8880'},
+];
+
+const CHARM_SET = [
+  /* — self — */
+  {id:'mirror', name:'The Mirror', sym:'🪞', cat:'self', hue:45,
+   k:['self-reflection','truth','identity','seeing clearly'],
+   m:'The Mirror asks you to look honestly at yourself. Whatever question you brought, the answer begins with self-awareness. What are you avoiding seeing?'},
+  {id:'eye', name:'The Eye', sym:'👁', cat:'self', hue:280,
+   k:['awareness','insight','perception','vigilance'],
+   m:'The Eye is heightened awareness. Something is asking to be seen — a truth, an opening, or a pattern you have been walking past. Pay attention to what is already in front of you.'},
+  {id:'hand', name:'The Hand', sym:'✋', cat:'self', hue:30,
+   k:['action','agency','craft','giving','receiving'],
+   m:'The Hand is what you do — your agency, your craft, your ability to shape the thing in front of you. Are you reaching for what you want, or holding back?'},
+  {id:'flame', name:'The Flame', sym:'🕯', cat:'self', hue:15,
+   k:['passion','illumination','spirit','transformation','desire'],
+   m:'The Flame is your own fire: passion, desire, the spark that moves you. Is it burning, or has something put it out? This charm asks what lights you.'},
+  {id:'mask', name:'The Mask', sym:'🎭', cat:'self', hue:260,
+   k:['persona','performance','protection','the hidden self'],
+   m:'The Mask is the face you show and the gap between that face and the one underneath. Where are you performing instead of being?'},
+
+  /* — bonds — */
+  {id:'heart', name:'The Heart', sym:'❤️', cat:'bonds', hue:350,
+   k:['love','emotion','compassion','relationship','care'],
+   m:'The Heart speaks to love in every form it takes — romantic, familial, the love you owe yourself, plain compassion. What is your heart asking for?'},
+  {id:'ring', name:'The Ring', sym:'💍', cat:'bonds', hue:45,
+   k:['commitment','partnership','cycles','promise','bond'],
+   m:'The Ring is a binding thing. It can mean marriage, but it means any deep covenant — with a person, with a path, or with yourself.'},
+  {id:'dog', name:'The Dog', sym:'🐕', cat:'bonds', hue:30,
+   k:['loyalty','friendship','trust','protection','company'],
+   m:'The Dog is the loyal companion. This charm asks about your allies: who has your back, and who do you stand by when it is inconvenient?'},
+  {id:'bridge', name:'The Bridge', sym:'🌉', cat:'bonds', hue:170,
+   k:['connection','transition','reconciliation','crossing'],
+   m:'The Bridge joins what is apart. A reconciliation, a crossing between phases, or the plain need to build a connection where there is not one yet.'},
+  {id:'thread', name:'The Thread', sym:'🧵', cat:'bonds', hue:340,
+   k:['connection','fate','weaving','continuity','fragility'],
+   m:'The Thread is the invisible line between things — the red thread of fate, the through-line of a life. What is being woven, and by whom?'},
+
+  /* — ground — */
+  {id:'coin', name:'The Coin', sym:'🪙', cat:'ground', hue:50,
+   k:['money','resources','value','exchange','enough'],
+   m:'The Coin is your relationship with material things. Not only money: value, exchange, and what you have decided counts as enough.'},
+  {id:'key', name:'The Key', sym:'🗝', cat:'ground', hue:45,
+   k:['opportunity','access','solution','secrets','unlocking'],
+   m:'The Key opens what has been shut. There is a way in, a solution exists, or something kept is ready to be told. What door have you been standing in front of?'},
+  {id:'house', name:'The House', sym:'🏠', cat:'ground', hue:25,
+   k:['home','security','foundation','belonging','roots'],
+   m:'The House is where you are safe — the building, and also the inner version of it. Where do you belong, and what are you building on?'},
+  {id:'tree', name:'The Tree', sym:'🌳', cat:'ground', hue:120,
+   k:['growth','roots','family','health','life force'],
+   m:'The Tree is slow rooted growth: health, lineage, the organic business of becoming. Trees do not hurry, and neither should whatever this touches.'},
+  {id:'hammer', name:'The Hammer', sym:'🔨', cat:'ground', hue:20,
+   k:['work','building','effort','making','force'],
+   m:'The Hammer is building by effort. Labour, craft, and the willingness to strike while it is hot. What are you actually constructing?'},
+
+  /* — journey — */
+  {id:'arrow', name:'The Arrow', sym:'➳', cat:'journey', hue:0,
+   k:['direction','focus','intention','forward motion'],
+   m:'The Arrow flies straight at a thing. Where are you aimed? Is the direction chosen, or are you drifting? It also means speed: something is moving.'},
+  {id:'compass', name:'The Compass', sym:'🧭', cat:'journey', hue:190,
+   k:['guidance','navigation','the path','finding the way'],
+   m:'The Compass points at your own north. When it turns up, trust the instrument you already have. You know the way even when the road is not visible.'},
+  {id:'hourglass', name:'The Hourglass', sym:'⏳', cat:'journey', hue:40,
+   k:['time','patience','urgency','cycles','impermanence'],
+   m:'The Hourglass is about time — too much of it or not enough. Are you rushing what wants waiting, or waiting on what wants moving? Timing is part of this question.'},
+  {id:'snake', name:'The Snake', sym:'🐍', cat:'journey', hue:100,
+   k:['transformation','shedding','wisdom','rebirth','healing'],
+   m:'The Snake sheds its skin in order to grow. Something is ready to be shed — an old self, an outgrown pattern, a belief that no longer fits. It is uncomfortable and it is how renewal works.'},
+  {id:'door', name:'The Door', sym:'🚪', cat:'journey', hue:25,
+   k:['threshold','opportunity','choice','a new chapter','leaving'],
+   m:'The Door is a threshold, and you are at one. It may be a way in or a way out. The charm does not say whether to walk through it — only that it is there.'},
+
+  /* — spirit — */
+  {id:'star', name:'The Star', sym:'✦', cat:'spirit', hue:50,
+   k:['hope','aspiration','guidance','destiny','inspiration'],
+   m:'The Star is the light you steer by when everything else has gone dark: the highest thing you want, the purpose underneath the plan. What star are you navigating by?'},
+  {id:'moon', name:'The Moon', sym:'🌙', cat:'spirit', hue:220,
+   k:['intuition','cycles','the unconscious','mystery'],
+   m:'The Moon lights what is hidden. Dreams, intuition, the underneath of the mind, and the turning of natural cycles. What do you know that you do not know you know?'},
+  {id:'sun', name:'The Sun', sym:'☀️', cat:'spirit', hue:45,
+   k:['clarity','success','vitality','joy','consciousness'],
+   m:'The Sun brings warmth and clear sight. Whatever it falls on is lit and brought fully into the open. Success, plain gladness, and seeing straight.'},
+  {id:'book', name:'The Book', sym:'📖', cat:'spirit', hue:30,
+   k:['knowledge','learning','secrets','study','wisdom'],
+   m:'The Book is what you have learned and what you still have to. It can mean information held back that will come out through study, or simply through waiting.'},
+  {id:'crystal', name:'The Crystal', sym:'💎', cat:'spirit', hue:200,
+   k:['clarity','purity','amplification','truth','precious'],
+   m:'The Crystal amplifies whatever is beside it. It brings clarity and it brings intensity — whatever you are feeling, it makes more so. It asks what you actually hold precious.'},
+
+  /* — shadow — */
+  {id:'lock', name:'The Lock', sym:'🔒', cat:'shadow', hue:0,
+   k:['blockage','protection','secrets','boundaries','closed'],
+   m:'The Lock is something shut. It may be a boundary you need or an obstacle you do not. Is this lock keeping you safe, or keeping you from the thing?'},
+  {id:'skull', name:'The Skull', sym:'💀', cat:'shadow', hue:0,
+   k:['endings','transformation','mortality','truth','release'],
+   m:'The Skull is not death. It is the honest admission of what has ended or must. Something has run its course; this charm asks you to name it out loud and let it go.'},
+  {id:'shield', name:'The Shield', sym:'🛡', cat:'shadow', hue:210,
+   k:['protection','defence','resilience','boundaries','strength'],
+   m:'The Shield defends. You may need to hold something — your energy, your work, a line. Or it may be saying you are over-defended, behind a wall that used to help and now only limits.'},
+  {id:'crossroads', name:'The Crossroads', sym:'✖', cat:'shadow', hue:0,
+   k:['choice','a decision','sacrifice','divergence'],
+   m:'The Crossroads is a decision. Two roads go different ways and you cannot walk both. The charm does not choose; it insists that you do, and knowingly.'},
+  {id:'dice', name:'The Dice', sym:'🎲', cat:'shadow', hue:140,
+   k:['chance','risk','fate','luck','the unknown'],
+   m:'The Dice are the part of this that is not up to you. Not everything is in your hands. Are you willing to throw, and can you live with any face it lands on?'},
+];
+
+const charmById = id => CHARM_SET.find(c => c.id === id) || charmCustom(id);
+const charmCustom = id => (divPrefs().customCharms || []).find(c => c.id === id) || null;
+/* the pool a cast is drawn from: the thirty, plus whatever has been added */
+const charmPool = () => CHARM_SET.concat(divPrefs().customCharms || []);
+const charmCatOf = c => CHARM_CATS.find(x => x.id === (c && c.cat)) || CHARM_CATS[5];
+
+/* ============================================================
+   THE CLOTH
+
+   Three rings and four quarters — the layout most traditions converge on,
+   because it answers the two questions a scatter raises: how close to the
+   middle of it are you, and which way is it facing.
+   ============================================================ */
+const CAST_RINGS = [
+  {id:'inner',  name:'The core',       max:.25,
+   m:'You, and the heart of the matter. What lands here speaks directly to you and to the middle of what you asked.'},
+  {id:'middle', name:'The influences', max:.60,
+   m:'What shapes the situation without being it: people, circumstances, beliefs, habits. What surrounds you and acts on you.'},
+  {id:'outer',  name:'The beyond',     max:1,
+   m:'What is outside you — the wider world, what is coming toward you or going away from you, the part you do not get a vote on.'},
+];
+/* Angles are measured the way a screen measures them: zero to the right,
+   increasing clockwise, because that is what atan2 gives once y is flipped. */
+const CAST_QUARTERS = [
+  {id:'north', name:'Spirit',    from:225, to:315, label:'Spirit',
+   m:'the spiritual and the aspirational — meaning, wisdom, and whatever you are reaching toward'},
+  {id:'east',  name:'Action',    from:315, to:45,  label:'Action',
+   m:'what is approaching and what is to be done — beginnings, movement, the next thing'},
+  {id:'south', name:'Material',  from:45,  to:135, label:'Material',
+   m:'the physical and the practical — the body, work, money, what can actually be touched'},
+  {id:'west',  name:'Intuition', from:135, to:225, label:'Intuition',
+   m:'what is behind you and what you sense without proof — memory, undercurrent, the thing you already suspect'},
+];
+const castRing = d => CAST_RINGS.find(r => d <= r.max) || CAST_RINGS[2];
+function castQuarter(deg){
+  const a = ((deg % 360) + 360) % 360;
+  if(a >= 225 && a < 315) return CAST_QUARTERS[0];
+  if(a >= 315 || a < 45)  return CAST_QUARTERS[1];
+  if(a >= 45  && a < 135) return CAST_QUARTERS[2];
+  return CAST_QUARTERS[3];
+}
+
+/* ============================================================
+   WHAT TWO CHARMS SAY THAT NEITHER SAYS ALONE
+
+   This is the part of charm casting that has no equivalent in a deck of
+   cards, and it is the reason people who do this keep doing it: the Key
+   beside the Lock is not the Key plus the Lock. Written out for the
+   pairings that actually carry something; anything else falls through to
+   a plainer sentence built from the two sets of keywords, which is
+   honest about being a lesser reading.
+
+   Keys are the two ids in alphabetical order, joined by a plus.
+   ============================================================ */
+const CHARM_PAIRS = {
+  'key+lock': 'An opening exists for exactly the thing that is closed. The solution and the problem are in the same place, which usually means you already know what to do and have not done it.',
+  'heart+skull': 'Something in your emotional life is ending — not violently, naturally. A love is changing shape, or a grief is finishing its work.',
+  'coin+dice': 'Money and chance in the same breath. A risk is in play; luck and effort are both required, and you should not stake what you cannot afford to lose.',
+  'mask+mirror': 'The gap between who you are and who you present is the subject. This is an invitation to take the mask off — for yourself first, before anybody else.',
+  'arrow+crossroads': 'You want to move and a choice is in the way. An arrow cannot fly in two directions; the decision has to come before the speed.',
+  'moon+star': 'Aspiration and intuition are pointing the same way. Trust what arrives in the quiet — it agrees with what you actually want.',
+  'flame+hourglass': 'What you are burning for is time-limited. The window will not stay open on its own.',
+  'snake+tree': 'Slow transformation in something old — family pattern, inherited belief, the bedrock. What is shifting has deep roots and will take as long as it takes.',
+  'compass+door': 'You know the way and the threshold is right there. The compass is confirming: this is the door.',
+  'heart+shield': 'You are guarding your heart. The question is whether the guard is still needed — at some point the shield has to come down or nothing gets in.',
+  'eye+mask': 'Someone is being seen through, or needs to be. The performance is not working as well as it was.',
+  'book+eye': 'What you are looking for is written down somewhere. Research, ask, read the thing you have been meaning to read.',
+  'hammer+hand': 'Straightforwardly: do the work. This is not a reading about insight, it is one about labour.',
+  'coin+house': 'Money and home in the same place — rent, a move, a mortgage, the cost of being where you are.',
+  'dog+heart': 'Love that is loyal rather than dramatic. A friendship carrying more weight than it is given credit for.',
+  'bridge+crossroads': 'A choice between staying apart and crossing over. The bridge is built; walking it is the decision.',
+  'lock+skull': 'Something closed has died behind the door. Whatever you are protecting may no longer be there.',
+  'crystal+mirror': 'Truth about yourself, amplified. Clear sight that may be more than comfortable.',
+  'hourglass+snake': 'A change that cannot be hurried. The shedding takes the time it takes and pushing it will only tear.',
+  'star+sun': 'A good omen, plainly. Hope and clarity together — what you are hoping for is also visible.',
+  'moon+skull': 'Something is ending below the surface, before you have consciously agreed to it. Listen to the dreams.',
+  'door+key': 'Both halves of an opportunity have arrived at once. There is nothing left to wait for.',
+  'dice+door': 'A threshold with no guarantees behind it. Walking through is a gamble, which does not mean it is the wrong move.',
+  'ring+thread': 'A bond and the fate that made it. This connection has a longer history than the relationship does.',
+  'mirror+shield': 'Self-protection that has become self-deception. The wall is doing something to how you see yourself.',
+  'arrow+compass': 'Direction and purpose agreeing. Rare, and worth acting on while it lasts.',
+  'flame+heart': 'Desire and love in the same place — which is either the best of it or the confusion at the centre of it.',
+  'hammer+tree': 'Building something meant to last, or the cost to something living of what you are building.',
+  'book+crystal': 'Study that clarifies. The answer is knowable; it is a matter of going and knowing it.',
+  'house+tree': 'Home and family, roots in both senses. Where you are from is acting on where you live.',
+  'crossroads+hourglass': 'A decision with a deadline. Not choosing will shortly become the choice.',
+  'dog+shield': 'Loyalty as protection — someone is guarding you, or you are guarding them past the point of sense.',
+  'eye+lock': 'You can see it and you cannot get at it. Knowing is not the same as access.',
+  'coin+hand': 'Earning, exchanging, giving. Money moving because of something you do rather than something you have.',
+  'mask+shield': 'Double defence. The persona and the wall are doing the same job, and it is probably too much.',
+  'skull+sun': 'An ending in full daylight. Nothing hidden about it; the difficulty is accepting it, not seeing it.',
+  'bridge+heart': 'Reconciliation. Someone is reachable who has not been.',
+  'moon+thread': 'A connection you feel and cannot evidence. Take it seriously anyway; that is what this charm is for.',
+  'skull+snake': 'A real ending, and a real renewal on the other side of it. The two are the same event.',
+  'crystal+flame': 'Intensity amplified — which may be brilliance and may be burning out. Check which.',
+  'compass+crossroads': 'You have the instrument and the choice at once. You know which way; the question is whether you will say so.',
+  'hand+key': 'The opening exists and it needs you to act. Nothing here opens by itself.',
+  'dice+hourglass': 'Chance and timing. Some of this is luck and some of it is when — neither is skill, and pretending otherwise will not help.',
+  'house+lock': 'Security that has become confinement, or a home that needs its boundaries kept.',
+  'arrow+door': 'Momentum toward a threshold. You are already moving; the door is where it lands.',
+  'star+thread': 'Fate and aspiration braided. What you want and what keeps happening to you are the same story.',
+  'book+skull': 'The end of a way of understanding something. What you knew was true is no longer sufficient.',
+  'hourglass+tree': 'Growth on a longer clock than yours. Patience is not optional here.',
+  'eye+mirror': 'Seeing and being seen at once. Self-knowledge arriving through someone else\'s attention.',
+  'dog+door': 'Leaving, or someone leaving — and the loyalty that complicates it.',
+  'bridge+lock': 'A crossing that is barred. The way over exists and something is closing it.',
+  'coin+skull': 'Money and ending — a cost being counted, or something you have paid for that is finished.',
+  'hammer+shield': 'Building a defence, which is work, and may be the right work or merely the busy kind.',
+  'crossroads+ring': 'A commitment at a decision point. The question of whether to bind is itself the fork.',
+  'flame+moon': 'Desire under the surface. Something is wanted that has not been admitted in daylight.',
+  'lock+sun': 'Clarity blocked. You can nearly see it; something is in the way and it is probably yours.',
+  'crystal+heart': 'Feeling, magnified, made clear. Whatever you feel about this, you feel it more than you have said.',
+  'hand+thread': 'Doing your part in something larger. One pair of hands on a long weave.',
+  'shield+skull': 'Defending something that has already gone. Worth checking what is actually behind the wall.',
+};
+const charmPairKey = (a, b) => [a, b].sort().join('+');
+function charmPairText(a, b){
+  const c1 = charmById(a), c2 = charmById(b);
+  if(!c1 || !c2) return '';
+  const w = CHARM_PAIRS[charmPairKey(a, b)];
+  if(w) return w;
+  /* no written pairing: say the plain thing, which is two sets of themes
+     in the same place, rather than invent a meaning nobody intended */
+  return `${c1.name}'s ${(c1.k[0] || '')} and ${c2.name}'s ${(c2.k[0] || '')} have come down together. `
+       + `Read them as one thing: the question has ${c1.k[0]} and ${c2.k[1] || c2.k[0]} in it at the same time.`;
+}
+/* ============================================================
    THE CARD DIRECTORY
 
    Seventy-eight cards, browsable, with everything the deck knows about
@@ -17917,23 +18994,80 @@ function cardPattern(cardId, apps){
   return t;
 }
 
+/* ---------- every cast a charm has turned up in ----------
+   Not the same question as a card's history: a charm has a place as well
+   as an appearance, and where it keeps landing is most of what its
+   history says. */
+function charmAppearances(charmId){
+  const out = [];
+  (S.entries || []).forEach(e => {
+    if(e.type !== 'divination') return;
+    const d = divinationOf(e); if(!d || d.system !== 'charms' || !d.charms) return;
+    const a = castAnalyse(d.charms);
+    a.marks.forEach(mk => {
+      if(mk.id !== charmId) return;
+      out.push({entry: e, day: e.occurredAt, at: e.createdAt || e.occurredAt,
+        ring: mk.ring, quarter: mk.quarter, up: mk.up || mk.flipped,
+        sig: !!(a.sig && a.sig.i === mk.i),
+        withWhom: (a.clusters.find(g => g.some(x => x.i === mk.i)) || [])
+          .filter(x => x.i !== mk.i).map(x => x.charm.name),
+        question: d.question || '', note: e.body || '', source: d.source || 'digital'});
+    });
+  });
+  return out.sort((a, b) => (b.at || '') < (a.at || '') ? -1 : 1);
+}
+function charmCounts(){
+  const n = {};
+  (S.entries || []).forEach(e => {
+    if(e.type !== 'divination') return;
+    const d = divinationOf(e); if(!d || d.system !== 'charms' || !d.charms) return;
+    d.charms.forEach(c => { n[c.id] = (n[c.id] || 0) + 1; });
+  });
+  return n;
+}
+function charmPattern(charm, apps){
+  if(!apps.length) return 'You have not thrown this one yet — or it has not come up. It is in the bag either way.';
+  if(apps.length === 1){
+    const a = apps[0];
+    return `Thrown once that it landed readable: ${fmtDate(a.day, 'long')}, in ${a.ring.name.toLowerCase()}, `
+      + `toward ${a.quarter.name.toLowerCase()}${a.sig ? ', at the centre of that cast' : ''}.`;
+  }
+  const byRing = {}, byQ = {};
+  apps.forEach(a => { byRing[a.ring.name] = (byRing[a.ring.name] || 0) + 1;
+    byQ[a.quarter.name] = (byQ[a.quarter.name] || 0) + 1; });
+  const topR = Object.entries(byRing).sort((a, b) => b[1] - a[1])[0];
+  const topQ = Object.entries(byQ).sort((a, b) => b[1] - a[1])[0];
+  const sigs = apps.filter(a => a.sig).length;
+  let t = `It has come up ${apps.length} times. `;
+  if(topR[1] > apps.length * .5)
+    t += `Mostly in ${topR[0].toLowerCase()} (${topR[1]} of them), `
+       + `which puts ${charm.k[0]} ${topR[0] === 'The core' ? 'squarely in the middle of your questions' : 'at that distance from you again and again'}. `;
+  if(topQ[1] > apps.length * .5)
+    t += `And mostly toward ${topQ[0].toLowerCase()}. `;
+  if(sigs) t += `${sigs === 1 ? 'Once' : sigs + ' times'} it landed nearest the centre and opened the reading.`;
+  return t.trim();
+}
+
 /* ---------- the directory ---------- */
 function openCardDirectory(startAt){
   let tab = 'major', q = '';
   const counts = cardCounts();
+  const charmN = charmCounts();
   const m = openModal(`<h2>The deck</h2>
     <div class="stack" id="cdWrap">
       <p class="dv-yours-p">All seventy-eight, what each one means, and what each one has meant to you.
         The ones you have not drawn are dimmed.</p>
       <input class="inp" id="cdFind" placeholder="a name, a keyword, an element — “love”, “tower”, “fire”" autocomplete="off">
       <div class="row cd-tabs" style="gap:5px;flex-wrap:wrap">${CARD_TABS.map(t =>
-        `<button class="chip${t.id === tab ? ' on' : ''}" data-cdtab="${t.id}">${esc(t.name)}</button>`).join('')}</div>
+        `<button class="chip${t.id === tab ? ' on' : ''}" data-cdtab="${t.id}">${esc(t.name)}</button>`).join('')}
+        <button class="chip" data-cdtab="charms">Charms</button></div>
       <div class="cd-count mono" id="cdCount"></div>
       <div class="cd-grid" id="cdGrid"></div>
     </div>
     <div id="cdPage" hidden></div>`, 'wide');
 
   function grid(){
+    if(tab === 'charms') return charmGrid();
     const list = q ? cardSearch(q, 78) : cardsInTab(tab);
     const seen = list.filter(i => counts[i]).length;
     m.querySelector('#cdCount').textContent = q
@@ -17944,9 +19078,41 @@ function openCardDirectory(startAt){
       : '<div class="pk-empty">Nothing in the deck goes by that.</div>';
     m.querySelectorAll('[data-cardpick]').forEach(b => b.onclick = () => page(+b.dataset.cardpick));
   }
+  /* the charms browse by family rather than by suit, and a charm is a
+     symbol rather than a picture, so the tile is a token like the ones on
+     the cloth */
+  function charmGrid(){
+    const ql = q.toLowerCase();
+    const hit = c => !ql || c.name.toLowerCase().includes(ql)
+      || c.k.some(k => k.toLowerCase().includes(ql)) || c.m.toLowerCase().includes(ql);
+    const pool = charmPool().filter(hit);
+    const seen = pool.filter(c => charmN[c.id]).length;
+    m.querySelector('#cdCount').textContent = q
+      ? `${pool.length} charm${pool.length === 1 ? '' : 's'} match “${q}”`
+      : `${pool.length} charms · ${seen} of them thrown at least once`;
+    m.querySelector('#cdGrid').className = 'cd-grid charms';
+    m.querySelector('#cdGrid').innerHTML = pool.length
+      ? CHARM_CATS.map(cat => {
+          const list = pool.filter(c => (c.cat || 'shadow') === cat.id);
+          if(!list.length) return '';
+          return `<section class="cd-fam"><h5 class="cd-fam-h" style="--cc:${cat.c}">
+            <span class="sc">${esc(cat.name)}</span><span class="quote">${esc(cat.hint)}</span></h5>
+            <div class="cd-fam-row">${list.map(c => `<button type="button" class="cd-ctile${charmN[c.id] ? '' : ' dim'}"
+              data-charmpick="${esc(c.id)}" style="--cc:${cat.c}" title="${esc(c.k.join(', '))}">
+              <span class="cd-ctok">${c.sym}</span><span class="cd-t-name">${esc(c.name)}</span>
+              ${charmN[c.id] ? `<span class="cd-t-n mono">×${charmN[c.id]}</span>` : ''}</button>`).join('')}</div>
+          </section>`; }).join('')
+        + `<button type="button" class="cd-ctile add" data-charmnew><span class="cd-ctok">＋</span>
+            <span class="cd-t-name">one of your own</span></button>`
+      : '<div class="pk-empty">Nothing in the bag goes by that.</div>';
+    m.querySelectorAll('[data-charmpick]').forEach(b => b.onclick = () => charmPage(b.dataset.charmpick));
+    const nu = m.querySelector('[data-charmnew]');
+    if(nu) nu.onclick = () => openCustomCharm(null, () => { Object.assign(charmN, charmCounts()); grid(); });
+  }
   m.querySelectorAll('[data-cdtab]').forEach(b => b.onclick = () => {
     tab = b.dataset.cdtab; q = ''; m.querySelector('#cdFind').value = '';
     m.querySelectorAll('[data-cdtab]').forEach(x => x.classList.toggle('on', x === b));
+    m.querySelector('#cdGrid').className = 'cd-grid';
     grid();
   });
   m.querySelector('#cdFind').addEventListener('input', e => { q = e.target.value.trim(); grid(); });
@@ -18019,8 +19185,132 @@ function openCardDirectory(startAt){
     });
     box.scrollIntoView({block: 'start'});
   }
+  /* a charm's own page: what it means, and every cast it has landed in */
+  function charmPage(id){
+    const c = charmById(id); if(!c) return;
+    const cat = charmCatOf(c), apps = charmAppearances(id);
+    const mine = (divPrefs().customCharms || []).some(x => x.id === id);
+    /* the pairings this charm has written for it, which are the most
+       charm-specific thing in the whole system */
+    const pairs = Object.keys(CHARM_PAIRS).filter(k => k.split('+').includes(id))
+      .map(k => ({other: charmById(k.split('+').find(x => x !== id)), text: CHARM_PAIRS[k]}))
+      .filter(x => x.other);
+    m.querySelector('#cdWrap').hidden = true;
+    const box = m.querySelector('#cdPage');
+    box.hidden = false;
+    box.innerHTML = `<div class="cd-page" style="--sc:${cat.c};--cc:${cat.c}">
+      <button class="pf-chip" id="cdBack">‹ all of them</button>
+      <div class="cd-head">
+        <div class="cd-bigtok">${c.sym}</div>
+        <div class="cd-head-t">
+          <h3 class="serif">${esc(c.name)}</h3>
+          <div class="mono faint">${esc(cat.name)} · ${esc(cat.hint)}</div>
+          <p class="cd-ess">${esc(c.k.join(' · '))}</p>
+          ${apps.length ? `<span class="cd-seen mono">thrown ${apps.length} time${apps.length === 1 ? '' : 's'}</span>`
+            : '<span class="cd-seen mono none">not yet thrown</span>'}
+          ${mine ? ' <button class="pf-chip" id="cdEditCharm">edit it</button>' : ''}
+        </div></div>
+      <section class="cd-side"><h4 class="dv-sec-h">What it says</h4>
+        <p class="cd-sum">${esc(c.m)}</p></section>
+      ${pairs.length ? `<section class="cd-side"><h4 class="dv-sec-h">Beside another charm</h4>
+        <p class="cd-p faint">A cast is read in pairs as much as in single charms. These are the ones
+          written out; any other pairing is read from the two sets of themes.</p>
+        ${pairs.map(x => `<div class="cc-clus"><div class="cc-clus-h">
+          <span class="cc-clus-sym">${c.sym}</span><span class="cc-clus-sym">${x.other.sym}</span>
+          <b class="serif">with ${esc(x.other.name)}</b></div>
+          <p class="cc-p">${esc(x.text)}</p></div>`).join('')}</section>` : ''}
+      <section class="cd-hist">
+        <h4 class="dv-sec-h">Where it keeps landing</h4>
+        <p class="cd-pat">${esc(charmPattern(c, apps))}</p>
+        ${apps.map(a => `<article class="cd-app">
+          <div class="cd-app-h"><span class="mono">${esc(fmtDate(a.day, 'med'))}</span>
+            <b class="serif">${esc(a.ring.name)}, ${esc(a.quarter.name.toLowerCase())}</b>
+            ${a.sig ? '<span class="dv-src mono">the centre</span>' : ''}
+            ${a.up ? '' : '<span class="dv-src mono">face down</span>'}
+            ${a.source === 'physical' ? '<span class="dv-src mono">📖 cloth</span>' : ''}</div>
+          ${a.withWhom.length ? `<div class="mono faint">with ${esc(a.withWhom.join(', '))}</div>` : ''}
+          ${a.question ? `<div class="cd-app-q quote">“${esc(a.question)}”</div>` : ''}
+          ${a.note ? `<p class="cd-app-n">${esc(a.note.length > 260 ? a.note.slice(0, 260) + '…' : a.note)}</p>` : ''}
+          <button class="pf-chip" data-cdopen="${a.entry.id}">the whole cast →</button>
+        </article>`).join('')}
+      </section></div>`;
+    box.querySelector('#cdBack').onclick = () => {
+      box.hidden = true; m.querySelector('#cdWrap').hidden = false; grid(); };
+    const ed = box.querySelector('#cdEditCharm');
+    if(ed) ed.onclick = () => openCustomCharm(charmCustom(id), left => {
+      Object.assign(charmN, charmCounts());
+      if(left) charmPage(left); else { box.hidden = true; m.querySelector('#cdWrap').hidden = false; grid(); } });
+    box.querySelectorAll('[data-cdopen]').forEach(b => b.onclick = () => {
+      const eid = b.dataset.cdopen; m.remove();
+      navigate('#/journals/divination');
+      setTimeout(() => { const n = document.querySelector(`[data-entry="${eid}"]`);
+        if(n){ n.scrollIntoView({block: 'center'});
+          n.style.background = 'color-mix(in srgb,var(--terra) 12%,transparent)';
+          setTimeout(() => n.style.background = '', 1600); } }, 350);
+    });
+    box.scrollIntoView({block: 'start'});
+  }
+
   if(typeof startAt === 'number') page(startAt);
+  else if(typeof startAt === 'string'){ tab = 'charms';
+    m.querySelectorAll('[data-cdtab]').forEach(x => x.classList.toggle('on', x.dataset.cdtab === 'charms'));
+    charmPage(startAt); }
   else grid();
+}
+
+/* ---------- a charm of your own ----------
+   Everyone who does this for long adds to their set — a thing off a beach,
+   a button from a coat, something that means one specific thing to one
+   person. Ten is the cap, which is about where a set stops being curated
+   and starts being a drawer. */
+function openCustomCharm(rec, then){
+  const cats = CHARM_CATS;
+  const m = openModal(`<h2>${rec ? 'Your charm' : 'A charm of your own'}</h2>
+    <div class="stack">
+      <p class="dv-yours-p">Something that means a specific thing to you. It goes into the bag with the
+        thirty and comes up as often as any of them.</p>
+      <div class="row" style="gap:9px;align-items:flex-end;flex-wrap:wrap">
+        <div class="field" style="flex:0 0 84px"><label>Its mark</label>
+          <input class="inp cc-symin" id="chSym" maxlength="4" value="${esc(rec ? rec.sym : '')}" placeholder="🔔"></div>
+        <div class="field" style="flex:1 1 200px"><label>What you call it</label>
+          <input class="inp serif-lg" id="chName" value="${esc(rec ? rec.name : '')}" placeholder="The Bell"></div>
+      </div>
+      <div class="field"><label>Its family</label>
+        <div class="row" style="gap:5px;flex-wrap:wrap">${cats.map(c =>
+          `<button type="button" class="chip${rec && rec.cat === c.id || !rec && c.id === 'self' ? ' on' : ''}"
+            data-chcat="${c.id}" style="--c:${c.c}">${esc(c.name)}</button>`).join('')}</div></div>
+      <div class="field"><label>Its themes, separated by commas</label>
+        <input class="inp" id="chKeys" value="${esc(rec ? rec.k.join(', ') : '')}" placeholder="warning, attention, the moment it turns"></div>
+      <div class="field"><label>What it says</label>
+        <textarea class="inp" id="chMean" rows="4" placeholder="Written to yourself, in your own words — this is the text you will read months from now.">${esc(rec ? rec.m : '')}</textarea></div>
+      <div class="row between">
+        ${rec ? '<button class="btn danger" id="chDel">take it out of the bag</button>' : '<span></span>'}
+        <button class="btn primary" id="chSave">${rec ? 'save it' : 'put it in'}</button></div>
+    </div>`, 'narrow');
+  let cat = rec ? rec.cat : 'self';
+  m.querySelectorAll('[data-chcat]').forEach(b => b.onclick = () => { cat = b.dataset.chcat;
+    m.querySelectorAll('[data-chcat]').forEach(x => x.classList.toggle('on', x === b)); });
+  m.querySelector('#chSave').onclick = () => {
+    const name = m.querySelector('#chName').value.trim();
+    const sym = m.querySelector('#chSym').value.trim() || '◆';
+    const mean = m.querySelector('#chMean').value.trim();
+    const keys = m.querySelector('#chKeys').value.split(',').map(x => x.trim()).filter(Boolean).slice(0, 6);
+    if(!name) return toast('It needs a name.');
+    if(!keys.length) return toast('Give it at least one theme.');
+    const p = divPrefs();
+    if(!rec && p.customCharms.length >= 10) return toast('Ten of your own is the limit. Take one out first.');
+    const out = {id: rec ? rec.id : 'own-' + uid(), name, sym, cat, k: keys,
+      m: mean || `${name}: ${keys.join(', ')}.`, hue: 40, own: true,
+      createdAt: rec ? rec.createdAt : new Date().toISOString()};
+    if(rec) p.customCharms = p.customCharms.map(x => x.id === rec.id ? out : x);
+    else p.customCharms.push(out);
+    saveNow(); sound('success'); m.remove(); if(then) then(out.id);
+  };
+  if(rec) m.querySelector('#chDel').onclick = () => {
+    const p = divPrefs();
+    p.customCharms = p.customCharms.filter(x => x.id !== rec.id);
+    saveNow(); m.remove(); if(then) then(null);
+  };
 }
 /* ============================================================
    THE BOOK OF CHANGES, AT LENGTH
@@ -18906,7 +20196,10 @@ function divPrefs(){
   if(typeof d.particles  !== 'boolean') d.particles = true;
   if(typeof d.volume     !== 'number')  d.volume = .3;
   if(typeof d.spread     !== 'string')  d.spread = 'ppf';
+  if(typeof d.castSize   !== 'string')  d.castSize = 'standard';
+  if(typeof d.quickWith  !== 'string')  d.quickWith = 'tarot';
   if(!Array.isArray(d.customSpreads))   d.customSpreads = [];
+  if(!Array.isArray(d.customCharms))    d.customCharms = [];
   return d;
 }
 const divPrefSet = (k, v) => { divPrefs()[k] = v; saveNow(); };
@@ -19155,6 +20448,20 @@ const CeremonySound = {
     this.tone(f, {attack: 1, hold: 1.6, release: 2, peak: i ? .05 : .07})); },
   /* and the wind that carries the reading in */
   wind(){ this.noise(1.5, {freq: 500, sweepTo: 2000, q: .7, peak: .05}); },
+
+  /* --- the charms, which are objects rather than paper --- */
+  /* shaken in cupped hands: short bursts rather than one long hiss */
+  rattle(){ for(let i = 0; i < 7; i++)
+    this.noise(.05, {freq: 1700 + Math.random() * 900, q: 2.2, peak: .05, at: i * .052}); },
+  /* the throw */
+  whoosh(){ this.noise(.3, {freq: 300, sweepTo: 3000, q: .8, peak: .06}); },
+  /* one of them hitting the cloth — small, and slightly different each time,
+     because thirty identical clicks is a machine, not a handful of objects */
+  tink(){ this.tone(1050 + Math.random() * 500,
+    {attack: .002, hold: .004, release: .055, peak: .035}); },
+  /* the bowl again when everything has stopped moving, quieter */
+  bowlQuiet(){ this.tone(220, {attack: .5, hold: .6, release: 1.4, peak: .05});
+               this.tone(330, {attack: .55, hold: .5, release: 1.4, peak: .018}); },
 
   /* between readings: let the context go rather than hold the audio
      hardware open for a page nobody is listening to */
@@ -20584,6 +21891,10 @@ function divinationSave(rec){
     people:[], places:[], emotions:[], tags:['divination', rec.system], confidence:'',
     extra:{divination:{system:rec.system, question:rec.question || '', spread:rec.spread || '',
       cards:rec.cards || [], lines:rec.lines || null, hexagram:rec.hexagram || null,
+      /* a cast keeps where every charm landed, because the positions ARE the
+         reading — a list of which charms came up would be a different and
+         much poorer thing to come back to */
+      charms:rec.charms || null,
       relating:rec.relating || null, deck:rec.deck || '', revisit: !!rec.revisit,
       /* where the cards were: dealt here, or laid out on a real table and
          typed in afterwards. Everything else about the two is identical. */
@@ -20597,6 +21908,11 @@ function divinationLine(e){
   const d = divinationOf(e); if(!d) return '';
   if(d.system === 'iching') return `${d.hexagram ? '#' + d.hexagram.i + ' ' + d.hexagram.n : ''}${d.relating ? ' → #' + d.relating.i + ' ' + d.relating.n : ''}`;
   if(d.system === 'oracle') return (d.cards || []).map(c => c.name).join(' · ');
+  if(d.system === 'charms'){
+    const a = castAnalyse(d.charms || []);
+    return (a.sig ? a.sig.charm.name + ' at the centre · ' : '')
+      + a.readable.length + ' read' + (a.hidden.length ? `, ${a.hidden.length} face down` : '');
+  }
   return (d.cards || []).map(c => (TAROT[c.card]?.n || '') + (c.rev ? ' (R)' : '')).join(' → ');
 }
 /* ---------- what the reading actually said ----------
@@ -20623,7 +21939,8 @@ function drawnTodayHTML(day){
         title="open it in the Lived Record">
         <div class="dv-today-h"><b class="serif">${esc(divinationLine(e) || e.title || 'a reading')}</b>
           <span class="mono faint">${esc(d.system === 'iching' ? 'the coins' : d.system === 'oracle'
-            ? ((ORACLE_DECKS.find(k => k.id === d.deck) || {}).name || 'oracle') : 'tarot')}</span></div>
+            ? ((ORACLE_DECKS.find(k => k.id === d.deck) || {}).name || 'oracle')
+            : d.system === 'charms' ? 'the charms' : 'tarot')}</span></div>
         ${d.question ? `<div class="mono faint">${esc(d.question)}</div>` : ''}
         ${divinationReadHTML(d)}
       </div>`; }).join('')}
@@ -20653,6 +21970,9 @@ function tarotMeaning(pick){
 }
 function divinationReadHTML(d){
   if(!d) return '';
+  /* A kept cast is redrawn rather than described: the scatter is the
+     reading, so a row of charm names would be throwing it away. */
+  if(d.system === 'charms') return castKeptHTML(d);
   if(d.system === 'iching'){
     const h = d.hexagram ? ICHING.find(x => x.i === d.hexagram.i) : null;
     const r = d.relating ? ICHING.find(x => x.i === d.relating.i) : null;
@@ -21166,17 +22486,22 @@ function openQuickDraw(){
       <button class="choice" data-qd="tarot"><span class="ico">🔮</span><span><b>One tarot card</b><div class="d">From the full deck of 78.</div></span></button>
       <button class="choice" data-qd="oracle"><span class="ico">◈</span><span><b>An oracle card</b><div class="d">A short one. Something to hold for the day.</div></span></button>
       <button class="choice" data-qd="iching"><span class="ico">☰</span><span><b>Cast the coins</b><div class="d">Six tosses, and the hexagram they make.</div></span></button>
+      <button class="choice" data-qd="charms"><span class="ico">🎲</span><span><b>Throw seven charms</b><div class="d">Older than the cards. Read where they fall rather than in what order.</div></span></button>
       <button class="choice" data-qd="full"><span class="ico">✦</span><span><b>A whole reading</b><div class="d">Twenty spreads, with room to write.</div></span></button>
       <button class="choice" data-qd="paper"><span class="ico">📖</span><span><b>A reading you did on paper</b><div class="d">Name the cards you laid out and get the same reading.</div></span></button>
-      <button class="choice" data-qd="deck"><span class="ico">📚</span><span><b>The deck</b><div class="d">All seventy-eight, and every time each one has come up for you.</div></span></button>
+      <button class="choice" data-qd="cast"><span class="ico">🔮</span><span><b>A full cast</b><div class="d">Fifteen charms or all thirty, on the cloth, with room to write.</div></span></button>
+      <button class="choice" data-qd="deck"><span class="ico">📚</span><span><b>The deck</b><div class="d">All seventy-eight and all thirty charms, and every time each has come up for you.</div></span></button>
     </div>`, 'narrow');
   m.querySelectorAll('[data-qd]').forEach(b => b.onclick = () => {
     const k = b.dataset.qd; m.remove();
+    divPrefSet('quickWith', k);
     if(k === 'iching') openIChing();
     else if(k === 'oracle') openOracle();
     else if(k === 'full') openTarot();
     else if(k === 'paper') openPhysicalReading();
     else if(k === 'deck') openCardDirectory();
+    else if(k === 'charms') openCharmCast({size:'quick'});
+    else if(k === 'cast') openCharmCast();
     else openTarot({spread:'daily'});
   });
 }
@@ -25484,6 +26809,7 @@ function stillnessHTML(){
       <button class="btn sm ghost" id="stDraw">🔮 quick draw</button>
       <!-- the two ways into the cards that are not a draw: one you already
            did somewhere else, and the deck itself -->
+      <button class="btn sm ghost" id="stCast" title="throw the charms and read where they fall">🎲 throw the charms</button>
       <button class="btn sm ghost" id="stPaper" title="cards you laid out on a real table">📖 a reading on paper</button>
       <button class="btn sm ghost" id="stDeck" title="all seventy-eight, and every time each has come up">📚 the deck</button>
       <button class="btn sm ghost" id="stIntuit">⚡ log an intuition</button>
@@ -25509,6 +26835,7 @@ function bindStillness(root){
     else openStillTimer({kind:p.kind, minutes:p.minutes, anchor:p.anchor, mantra:p.mantra, pattern:p.pattern});
   };
   if(q('#stDraw')) q('#stDraw').onclick = () => openQuickDraw();
+  if(q('#stCast')) q('#stCast').onclick = () => openCharmCast();
   if(q('#stPaper')) q('#stPaper').onclick = () => openPhysicalReading();
   if(q('#stDeck')) q('#stDeck').onclick = () => openCardDirectory();
   if(typeof bindDrawnToday === 'function') bindDrawnToday(root);
