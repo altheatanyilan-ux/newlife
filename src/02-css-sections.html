@@ -7060,6 +7060,41 @@ html[data-theme="light"] .hm-pin-note{fill:#fffdf6;stroke:rgba(44,37,32,.12);str
 .hg-trunk{fill:none;stroke:#5c4632;stroke-width:14;stroke-linecap:round}
 .hg-branch{fill:none;stroke:#5c4632;stroke-width:5;stroke-linecap:round}
 .hg-canopy{fill:var(--sage);opacity:.42}
+
+/* ---------- the year, in the garden ----------
+   The hour is already on this room and so is the moon; this is the other
+   clock. Only the things that mean nothing on their own turn with it — the
+   colour of the canopy, what it is carrying, what is lying on the ground.
+   The herbs, the fire, the chest and the branches are readings off your own
+   record, and a season is not allowed to tell you a thing about them. */
+/* Every one of these is anchored to .room-wrap, and that is not decoration.
+   The app already stamps the season on the <html> element for the page
+   themes, so a bare [data-season="autumn"] matches through that ancestor in
+   every room in every season — which is exactly what happened: the garden
+   came out in autumn colours in all four seasons, because the day I wrote
+   this was in September. The garden's own attribute is the one that decides
+   what the garden looks like. */
+.room-wrap[data-season="spring"] .hg-canopy{fill:#8fae74;opacity:.44}
+.room-wrap[data-season="summer"] .hg-canopy{fill:#5f8352;opacity:.56}
+.room-wrap[data-season="autumn"] .hg-canopy{fill:#b4763a;opacity:.5}
+/* winter draws no canopy at all: see gardenYear */
+.hg-blossom[data-bears="fruit"]{fill:#9e3f3a;opacity:.95}
+.room-wrap[data-season="winter"] .hg-trunk,
+.room-wrap[data-season="winter"] .hg-branch{stroke:#4a3a2b}
+
+/* what the year has dropped. It lies on the ground rather than standing on
+   it, so it is drawn flat and pale and never asks to be looked at. */
+.hg-litter{pointer-events:none}
+.hg-drop{opacity:.5}
+[data-drop="petal"] .hg-drop{fill:#c98ba0}
+[data-drop="leaf"] .hg-drop{fill:#a96a33}
+[data-drop="frost"] .hg-drop{fill:#dfe8ee;opacity:.42}
+/* frost reads as frost by being everywhere and faint, so the ground goes
+   cold under it rather than the ground staying summer with dots on it */
+.room-wrap[data-season="winter"] .hg-ground{fill:#8a8377}
+.room-wrap[data-season="autumn"] .hg-ground{fill:#9a7b4c}
+html[data-theme="dark"] .room-wrap[data-season="winter"] .hg-ground,
+html:not([data-theme="light"]) .room-wrap[data-season="winter"] .hg-ground{fill:#2f2e2b}
 .hg-blossom{fill:var(--rose);opacity:.9;
   animation:hgOpen .6s var(--ease) both;animation-delay:calc(var(--i) * .05s)}
 @keyframes hgOpen{from{opacity:0;transform:scale(.4)}to{opacity:.9;transform:scale(1)}}
@@ -7161,7 +7196,7 @@ html:not([data-theme="light"]) .room-wrap::after{mix-blend-mode:screen;opacity:.
    the objects are stuck to, and a torn horizon is a tear in the wrong thing.
    Anyone who asked for less motion is not asking for less paper, so this
    stays — it does not move. */
-.sacred-room > g.zone,.sacred-room > g.obj{filter:url(#wovCut)}
+.sacred-room > g.zone,.sacred-room > g.obj,.sacred-room > g.hg-litter{filter:url(#wovCut)}
 
 /* ---------- the two woven things ----------
    The specification asks for the cushion to be a kilim and the oracle cloth a

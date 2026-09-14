@@ -469,8 +469,34 @@ function mainRoomHTML(){
    health is, the fire keeps its embers while you have been writing letters,
    the chest opens further the more artifacts are on the shelf, and the tree
    is the skill tree — not a picture of it, the same count of branches. */
+/* ---------- what a year does to a garden ----------
+   And, just as much, what it is not allowed to do. The herbs stand as tall as
+   your health values are being kept, the fire keeps its embers while you have
+   been writing letters, the chest opens on the artifacts you have made and
+   the tree has a branch for every skill. Those are readings, not decoration.
+   A winter that shortened the herbs would be the garden telling you that you
+   had let something slip when all that had happened was December.
+
+   So the year gets the things that mean nothing on their own: whether the
+   canopy is there at all, what colour it is, what it is carrying, and what it
+   has dropped on the ground. */
+function gardenYear(year){
+  return {
+    spring: {canopy: true,  bears: 'blossom', litter: 'petal'},
+    summer: {canopy: true,  bears: 'fruit',   litter: ''},
+    autumn: {canopy: true,  bears: '',        litter: 'leaf'},
+    winter: {canopy: false, bears: '',        litter: 'frost'}
+  }[year] || {canopy: true, bears: 'blossom', litter: ''};
+}
+
 function gardenHTML(){
   const light = houseHour();
+  /* The house already knows the hour; this is the other clock. The garden is
+     the one room where a year actually shows, so it is the one room that
+     turns with it — see gardenYear for what changes and, more importantly,
+     what is not allowed to. */
+  const year = typeof season === 'function' ? season() : 'summer';
+  const Y = gardenYear(year);
   const moon = typeof moonPhase === 'function' ? moonPhase() : {p:.5, name:''};
   const night = light === 'night';
   const arts = (S.stages || []).reduce((n, st) => n + ((st.artifacts || []).length), 0);
@@ -489,9 +515,9 @@ function gardenHTML(){
   const path = Array.from({length: 8}, (_, i) =>
     `<path class="hg-path" d="${roomEdge(0, 318 + i * 36, 1200, 312 + i * 36, 'gp' + i)}"/>`).join('');
 
-  return `<div class="room-wrap house-room rv" data-sky="${light}">
+  return `<div class="room-wrap house-room rv" data-sky="${light}" data-season="${year}">
     <svg class="sacred-room" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid meet"
-      role="group" aria-label="The garden: herbs, a fire pit, a chest and the tree">
+      role="group" aria-label="The garden in ${year}: herbs, a fire pit, a chest and the tree">
       <defs>
         <linearGradient id="hgSky" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" class="hg-sky-top"/><stop offset="1" class="hg-sky-low"/></linearGradient>
@@ -506,6 +532,21 @@ function gardenHTML(){
       <rect x="0" y="0" width="1200" height="300" fill="url(#hgSky)"/>
       <rect x="0" y="300" width="1200" height="300" class="hg-ground"/>
       <g class="rm-tex">${path}</g>
+      <!-- what the year has dropped: petals in spring, leaves in autumn, a
+           frost in winter, and in summer nothing, because a summer garden
+           does not have anything lying about in it. Seeded from its own index
+           rather than random, so the garden is the same garden every time it
+           is drawn rather than twitching on each render. -->
+      ${Y.litter ? `<g class="hg-litter" data-drop="${Y.litter}">${
+        Array.from({length: 26}, (_, i) => {
+          const x = 760 + ((i * 137) % 430), y = 396 + ((i * 89) % 180);
+          const r = 3 + ((i * 31) % 5);
+          const t = ((i * 53) % 360);
+          return Y.litter === 'frost'
+            ? `<circle class="hg-drop" cx="${x}" cy="${y}" r="${(r * .7).toFixed(1)}"/>`
+            : `<path class="hg-drop" transform="translate(${x} ${y}) rotate(${t})"
+                 d="M0,0 q${r},-${r * .7} ${r * 1.9},${r * .2} q-${r * .8},${r} -${r * 1.9},-${r * .2}Z"/>`;
+        }).join('')}</g>` : ''}
 
       <!-- the sun, or the moon at the phase it is actually at tonight -->
       ${night
@@ -576,18 +617,33 @@ function gardenHTML(){
         ${(() => {
           const n = Math.min(Math.max(skills, 2), 10);
           const rx = 96 + n * 7, ry = 76 + n * 5, cx = 1050, cy = 296;
-          return `<ellipse class="hg-canopy" cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}"/>
+          /* Bare, the branches have to BE the tree. At their leafed length
+             they are stubs the canopy was hiding, and a trunk with ten stubs
+             on it is not a winter tree, it is a broken one.
+
+             And in leaf they have to be inside it. They used to be strung
+             along the trunk from well below the canopy, which was invisible
+             while the canopy was a pale green haze and became obvious the
+             moment autumn turned it amber: a balloon on a stick, with twigs
+             hanging out underneath. Leafed, they sit in the crown; bare, they
+             run down the trunk where they can be seen. */
+          const reach = Y.canopy ? 1 : 2.3;
+          const foot = Y.canopy ? cy + ry * .55 : 452;
+          const rise = Y.canopy ? ry * 1.15 : 120;
+          return `${Y.canopy ? `<ellipse class="hg-canopy" cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}"/>` : ''}
             <path class="hg-trunk" d="M1032,572 C1028,512 1038,462 1046,420 C1050,392 1050,360 1050,${cy + ry * .4}"/>
             ${Array.from({length: n}, (_, i) => {
               const up = i / Math.max(1, n - 1);
-              const y = 452 - up * 120, sg = i % 2 ? 1 : -1;
-              const len = (30 + (1 - up) * 26);
+              const y = foot - up * rise, sg = i % 2 ? 1 : -1;
+              const len = (30 + (1 - up) * 26) * reach;
               return `<path class="hg-branch" d="M${1038 + up * 12},${y}
                 q${sg * len * .6},${-len * .3} ${sg * len},${-len * .5}"/>`; }).join('')}
-            ${Array.from({length: Math.min(skills, 12)}, (_, i) => { const a = i / 12 * Math.PI * 2;
-              return `<circle class="hg-blossom" style="--i:${i}"
+            ${!Y.bears ? '' : Array.from({length: Math.min(skills, Y.bears === 'fruit' ? 6 : 12)}, (_, i) => {
+              const a = i / 12 * Math.PI * 2;
+              return `<circle class="hg-blossom" data-bears="${Y.bears}" style="--i:${i}"
                 cx="${(cx + Math.cos(a) * rx * .74).toFixed(0)}"
-                cy="${(cy + Math.sin(a) * ry * .74).toFixed(0)}" r="4.5"/>`; }).join('')}`;
+                cy="${(cy + Math.sin(a) * ry * .74).toFixed(0)}"
+                r="${Y.bears === 'fruit' ? 5.5 : 4.5}"/>`; }).join('')}`;
         })()}
         <text class="rm-say" x="1050" y="592" text-anchor="middle">Every skill is a branch</text>
       </g>
