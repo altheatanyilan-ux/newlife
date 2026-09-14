@@ -29,24 +29,44 @@
   </div>
 </div>
 <div class="ambient"><div class="page-scene" id="scA"></div><div class="page-scene" id="scB"></div><div class="ink-layer" id="inkMist"></div><div class="page-grad" id="pgA"></div><div class="page-grad" id="pgB"></div><div class="ink-layer" id="inkSeason"></div><div class="ink-layer" id="inkRipple"></div><div id="vines" aria-hidden="true"></div><div id="roomtex" aria-hidden="true"></div></div>
-<!-- THE LOOM. The two woven things in the house — the cushion you sit on and
-     the cloth the oracle is laid out on — are patterns rather than colours,
-     and a pattern has to live somewhere that does not go away.
+<!-- THE LOOM. What the house is made of, kept somewhere every room can reach:
+     the torn paper edge every object in a room is cut out with, and the two
+     woven things — the cushion you sit on and the cloth the oracle is laid
+     out on, which are patterns rather than colours.
 
-     The room's own <defs> is not that place: building the three-dimensional
-     room tears the flat scene apart and takes the original svg out of the
-     document with it, and a fill pointing at a pattern that has left paints
-     nothing at all. And there are two rooms drawing the same cushion out of
-     two separate defs, so anything living in there would have to be woven
-     twice and kept in step by hand.
-
-     So the looms sit out here, once, out of the flow and out of the way, and
-     whatever needs cloth reaches for the same two. They take their colours
-     from the room's own tokens, which is why the stylesheet hands those to
-     this element as well as to the rooms. -->
+     They live out here rather than in a room's own <defs> because there are
+     five rooms drawing the same cushion and the same torn edge out of five
+     separate defs, and anything living in there would have to be woven five
+     times and kept in step by hand. They take their colours from the room's
+     own tokens, which is why the stylesheet hands those to this element as
+     well as to the rooms. -->
 <svg id="looms" aria-hidden="true" width="0" height="0"
   style="position:absolute;width:0;height:0;overflow:hidden;pointer-events:none">
   <defs>
+    <!-- THE CUT. Turbulence pushed through a displacement map is a hand
+         tearing a sheet of paper: a slow wobble along the edge with finer
+         roughness on top of it. The same torn silhouette is then flooded with
+         paper and dropped a couple of pixels behind the print, which is a
+         cut-out the printing did not quite line up with — what every real
+         collage looks like.
+
+         The base frequency is low deliberately. Inside a two-hundred-pixel
+         object the whole drawing shifts by a pixel or two and nobody can see
+         it; what stops being a bezier curve is the outline. The filter region
+         is generous because several objects in this house have a glow that
+         reaches well past their own bounding box, and the default region
+         would cut it off. -->
+    <filter id="wovCut" x="-16%" y="-16%" width="132%" height="132%"
+      color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.021 0.027" numOctaves="2"
+        seed="7" result="grain"/>
+      <feDisplacementMap in="SourceGraphic" in2="grain" scale="4"
+        xChannelSelector="R" yChannelSelector="G" result="cut"/>
+      <feOffset in="cut" dx="2" dy="2.6" result="shifted"/>
+      <feFlood style="flood-color:var(--rm-cut,#ede1c9)" result="paper"/>
+      <feComposite in="paper" in2="shifted" operator="in" result="sheet"/>
+      <feMerge><feMergeNode in="sheet"/><feMergeNode in="cut"/></feMerge>
+    </filter>
     <!-- kilim: warp, weft, and a diamond where they cross -->
     <pattern id="wovKilim" width="22" height="22" patternUnits="userSpaceOnUse">
       <rect width="22" height="22" style="fill:var(--rm-cush,#b8848f)"/>

@@ -1,47 +1,37 @@
 /* smoke173 — the house as something somebody made, not something a machine
    generated.
 
-   The rooms were rooms already, but built out of clean vector art they read
-   as a diagram of a room. This is the other half of the brief: a paper
-   theatre cut out by hand, where the edges are torn, the print does not quite
-   line up with the cut, things are taped to the wall and nothing is square.
+   The house is drawn flat, and drawn cleanly it reads as a diagram of a room:
+   correct, legible, and made by nobody. This is the other half of the brief —
+   a paper theatre cut out by hand, where the edges are torn, the print does
+   not quite line up with the cut, and nothing is a bezier curve.
 
    The specification wanted that done with photographs fetched from Unsplash
    and rawpixel and embedded as base64. This app is one file that works with
    the network unplugged, and a picture pulled off the web at build time
    carries a licence nobody opening the file in five years can check — so the
    collage is made out of the drawing that is already here, and out of CSS.
-   That is the thing this file is really watching: every effect below is
-   DERIVED from the art rather than drawn beside it, which is the only reason
-   it cannot drift out of step with it.
+   That is what this file is really watching: every effect below is DERIVED
+   from the art rather than drawn beside it, which is the only reason it
+   cannot drift out of step with it.
 
-   Five things have to keep holding.
+   Four things have to keep holding.
 
    One sheet of paper. The grain is a single layer over the whole room, so
-   floor, wall, art and sky are all printed on the same material — that shared
-   material is what makes mixed media read as one made object rather than as a
+   wall, floor, art and sky are printed on the same material — that shared
+   material is what makes mixed media read as one made object rather than a
    pile of clip art. It is also why it must be ONE element and not thirty.
 
-   The cut follows the print. The paper behind each object is that object's
-   own silhouette, offset; the tear sits one element further in, so the sheet
-   and the print come out ragged together rather than a crisp cut-out behind a
-   torn drawing. Nothing here is traced and nothing is measured.
+   The cut follows the print. Each object is already its own group in the
+   drawing, so one filter tears its outline and floods the same torn
+   silhouette with paper behind it. Nothing is traced and nothing is measured.
 
-   None of it is allowed to flatten the room. This is the trap this house has
-   fallen into twice: an opacity or a filter creates a stacking context, a
-   stacking context flattens preserve-3d for everything inside it, and the
-   whole room comes out squashed by the cosine of the camera angle. The
-   collage is nothing but opacity and filters, so the squash is checked here
-   directly rather than left to be noticed.
+   The room itself is not an object. The wall, the ground and the sky are the
+   sheet everything else is stuck to, and a torn horizon is a tear in the
+   wrong thing.
 
-   The doors still open. Five filters between a person and a piano is five
-   chances to lose the click.
-
-   And it can all be given up without the house going with it. The tear is the
-   one thing here that a compositor cannot simply hand back, so it comes off
-   on its own, a whole rung before the room does — and the flat scene a phone
-   gets is printed on the same paper, because a house made of paper in one
-   place and not the other is two houses. */
+   And the doors still open. A filter between a person and a piano is one more
+   chance to lose the click. */
 const {chromium} = require('playwright');
 const path = require('path');
 const FILE = 'file://' + path.resolve(__dirname, 'index.html');
@@ -68,15 +58,24 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
       if(location.hash === '#/house/' + z) rerender(); else location.hash = '#/house/' + z; }, zone);
     await p.waitForFunction(z => {
       const st = document.querySelector('.house-stage');
-      return st && st.dataset.zone === z && (st.querySelector('.h3-room') || st.querySelector('svg.sacred-room'));
+      return st && st.dataset.zone === z && st.querySelector('svg.sacred-room');
     }, zone, {timeout: 8000}).catch(() => {});
-    await p.waitForTimeout(500);
+    await p.waitForTimeout(400);
   };
 
   let p = await open();
 
-  console.log('\n1. the whole room is printed on one sheet');
+  console.log('\n1. the house is drawn flat, and stays that way');
   await go(p, 'main');
+  const flat = await p.evaluate(() => ({
+    scene: !!document.querySelector('svg.sacred-room'),
+    room: !!document.querySelector('.h3-room'),
+    mod: typeof window.House3D}));
+  yes('the room is the drawing itself', flat.scene);
+  yes('  with nothing standing up out of it', !flat.room);
+  is('  and no machinery left behind to build one', flat.mod, 'undefined');
+
+  console.log('\n2. the whole room is printed on one sheet');
   const sheet = await p.evaluate(() => {
     const w = document.querySelector('.house-room'); if(!w) return null;
     const cs = getComputedStyle(w, '::after');
@@ -92,140 +91,100 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   /* a multiply that is not isolated reaches past the room and grinds the page */
   is('  and the blend stays inside the room', sheet && sheet.isolated, 'isolate');
 
-  console.log('\n2. the cut is the object, and the tear is under it');
+  console.log('\n3. every object is cut out of paper, and the room is not');
   const cut = await p.evaluate(() => {
-    const bill = document.querySelector('.h3-obj .h3-bill');
-    const art = document.querySelector('.h3-obj .h3-art');
-    const obj = document.querySelector('.h3-obj');
-    if(!bill || !art) return null;
-    return {paper: getComputedStyle(bill).filter, tear: getComputedStyle(art).filter,
-      onObj: getComputedStyle(obj).filter, objOpacity: getComputedStyle(obj).opacity,
-      filters: document.querySelectorAll('.h3-room filter').length,
-      defs: document.querySelectorAll('.h3-defs').length};
+    const zones = [...document.querySelectorAll('.sacred-room > g.zone')];
+    const torn = n => /wovCut/.test(getComputedStyle(n).filter);
+    const bg = document.querySelector('.sacred-room > .rm-bg, .sacred-room > g.rm-bg');
+    return {zones: zones.length, all: zones.every(torn),
+      missed: zones.filter(n => !torn(n)).map(n => n.className.baseVal || '?'),
+      ground: bg ? /wovCut/.test(getComputedStyle(bg).filter) : null,
+      looms: document.querySelectorAll('#looms filter#wovCut').length,
+      inRoom: document.querySelectorAll('.house-room filter#wovCut').length};
   });
-  yes('every object is stuck to a sheet of its own shape',
-    cut && /drop-shadow/.test(cut.paper), cut && cut.paper);
-  yes('  and the edge of it is torn', cut && /url\(.*h3torn/.test(cut.tear), cut && cut.tear);
-  /* one turbulence generator for the room, not one per object */
-  is('  one tear for the whole room, not one per object', cut && cut.filters, 1);
-  is('    carried by a defs that is never drawn', cut && cut.defs, 1);
+  yes('the room is full of objects', cut.zones >= 6, String(cut.zones));
+  yes('  and every one of them has a torn edge', cut.all, cut.missed.join(' '));
+  is('  one loom for the whole house, not one per room', cut.looms, 1);
+  is('    and it is not inside a room to be torn out with it', cut.inRoom, 0);
+  /* the wall and the ground are the sheet, not a thing stuck to it */
+  is('  the room itself is not torn up with its furniture', cut.ground, false);
 
-  console.log('\n3. and none of it flattens the room');
-  /* The trap, twice fallen into: a filter or an opacity below one creates a
-     stacking context, which flattens preserve-3d for the whole subtree — so
-     the billboard stops cancelling the camera and every object in the room
-     is squashed by the cosine of the tilt. */
-  is('nothing is filtered at the level that would flatten it', cut && cut.onObj, 'none');
-  is('  and nothing is faded there either', cut && cut.objOpacity, '1');
-  /* The slot an object stands in lies flat on the floor and is squashed by
-     the camera; the billboard inside it stands back up. So on the glass the
-     billboard is about twice the slot, and if anything anywhere flattens the
-     room the two become exactly equal — which is the whole tell, and it needs
-     no arithmetic about the angle or the page scale to read. */
-  const stood = await p.evaluate(() =>
-    [...document.querySelectorAll('.h3-obj')].map(n => {
-      const g = n.querySelector('[data-room]');
-      return {what: g ? g.dataset.room : '?',
-        slot: n.getBoundingClientRect().height,
-        bill: n.querySelector('.h3-bill').getBoundingClientRect().height};
-    }));
-  const squashed = stood.filter(r => r.bill < r.slot * 1.6);
-  yes('  every object still stands up out of its own footprint',
-    stood.length > 5 && !squashed.length,
-    squashed.map(r => `${r.what} ${Math.round(r.bill)}/${Math.round(r.slot)}`).join(' ')
-      || `${stood.length} objects`);
-
-  console.log('\n4. nothing is square, and nothing is random either');
-  const leans = await p.evaluate(() =>
-    [...document.querySelectorAll('.h3-obj')].map(n => n.style.getPropertyValue('--tip').trim()));
-  yes('every object leans', leans.length > 5 && leans.every(t => /deg$/.test(t)), leans.join(' '));
-  yes('  and they do not all lean the same way', new Set(leans).size > 3, String(new Set(leans).size));
-  yes('  by a degree or two, not by a fall', leans.every(t => Math.abs(parseFloat(t)) < 4),
-    leans.join(' '));
-  /* a lean that changed on redraw would be the room twitching, not the room
-     being handmade */
-  await go(p, 'garden'); await go(p, 'main');
-  const again = await p.evaluate(() =>
-    [...document.querySelectorAll('.h3-obj')].map(n => n.style.getPropertyValue('--tip').trim()));
-  is('  and the same room leans the same way every time', again, leans);
-
-  console.log('\n5. the textiles lie down and the tape only goes on the wall');
-  const floor = await p.evaluate(() => {
-    const f = document.querySelector('.h3-floor');
-    const cs = getComputedStyle(f, '::after');
-    return {rug: cs.content !== 'none' && cs.backgroundImage !== 'none',
-      woven: (cs.backgroundImage.match(/gradient/g) || []).length};
+  console.log('\n4. the cut is the object\'s own shape');
+  /* A sheet of paper behind the print, in the print's own outline, offset
+     just enough not to register with it. Flooded from the room's own tokens,
+     so a dark room is not cut out of white paper. */
+  const loom = await p.evaluate(() => {
+    const f = document.querySelector('#looms filter#wovCut'); if(!f) return null;
+    const kid = t => f.querySelector(t);
+    return {tear: !!kid('feTurbulence') && !!kid('feDisplacementMap'),
+      paper: !!kid('feFlood') && !!kid('feComposite'),
+      both: !!kid('feMerge') && f.querySelectorAll('feMergeNode').length === 2,
+      offset: kid('feOffset') ? [kid('feOffset').getAttribute('dx'), kid('feOffset').getAttribute('dy')] : null,
+      flood: getComputedStyle(kid('feFlood')).floodColor,
+      region: [f.getAttribute('x'), f.getAttribute('width')]};
   });
-  yes('there is a rug on the floor of the main room', floor.rug);
-  yes('  woven rather than printed', floor.woven >= 3, String(floor.woven));
-  /* The cushion and the oracle cloth are the only two objects in the house
-     actually made of cloth, and they are patterns on the fill rather than
-     anything laid over the top — so they shear with the object and come into
-     the built room for nothing. The looms live outside every room, because
-     building the room tears the flat scene out of the document and a fill
-     pointing at a pattern that has left paints nothing at all. */
+  yes('the edge is torn rather than drawn', loom && loom.tear, JSON.stringify(loom));
+  yes('  with paper behind it in the same shape', loom && loom.paper);
+  yes('    offset, so the print does not quite register with the cut',
+    loom && loom.offset && loom.offset.every(v => parseFloat(v) > 0), JSON.stringify(loom && loom.offset));
+  yes('    and both are kept, not one instead of the other', loom && loom.both);
+  yes('  the paper is the room\'s own, not white', loom && /rgb/.test(loom.flood)
+    && !/^rgb\(255, 255, 255\)$/.test(loom.flood), loom && loom.flood);
+  /* several objects here glow well past their own box; the default filter
+     region would cut the glow off at the edge of the bounding box */
+  yes('  and the cut is not clipped to the bounding box',
+    loom && parseFloat(loom.region[1]) > 100, JSON.stringify(loom && loom.region));
+
+  console.log('\n5. the two woven things');
   await go(p, 'sanctuary');
   const woven = await p.evaluate(() => ({
-    loom: !!document.getElementById('looms'),
-    inRoom: !!document.querySelector('.h3-room #looms'),
     cush: getComputedStyle(document.querySelector('.rm-cush-top')).fill,
     cloth: getComputedStyle(document.querySelector('.rm-cloth')).fill,
     yarn: getComputedStyle(document.getElementById('looms')).getPropertyValue('--rm-cloth').trim()}));
   yes('the cushion is a kilim rather than a colour', /wovKilim/.test(woven.cush), woven.cush);
   yes('  and the oracle cloth a damask', /wovDamask/.test(woven.cloth), woven.cloth);
-  yes('  woven somewhere the room cannot take away with it',
-    woven.loom && !woven.inRoom);
-  yes('    out of the room\'s own yarn', !!woven.yarn, woven.yarn);
-  await go(p, 'main');
-  const tape = await p.evaluate(() => {
-    const on = document.querySelector('.h3-obj[data-flat] .h3-bill');
-    const off = document.querySelector('.h3-obj:not([data-flat]) .h3-bill');
-    const has = n => n && getComputedStyle(n, '::before').content !== 'none';
-    return {wall: has(on), floor: has(off), any: !!on};
-  });
-  yes('what hangs on the wall is taped there', !tape.any || tape.wall);
-  yes('  and what stands on the floor is not', !tape.floor);
+  yes('  woven out of the room\'s own yarn', !!woven.yarn, woven.yarn);
 
   console.log('\n6. and the doors still open through all of it');
+  await go(p, 'main');
   const before = await p.evaluate(() => location.hash);
-  await p.click('.h3-obj [data-room="piano"]', {timeout: 5000}).catch(e => no('the piano can be reached', e.message.split('\n')[0]));
+  await p.click('.sacred-room [data-room="piano"]', {timeout: 5000})
+    .catch(e => no('the piano can be reached', e.message.split('\n')[0]));
   await p.waitForTimeout(700);
-  const after = await p.evaluate(() => location.hash);
-  yes('reaching through five filters still opens the door', after !== before, `${before} -> ${after}`);
+  yes('reaching through the filter still opens the door',
+    await p.evaluate(() => location.hash) !== before, before);
+  await go(p, 'main');
+  const doors = await p.evaluate(() =>
+    [...document.querySelectorAll('.house-room [data-room]')].map(n => n.dataset.room));
+  yes('  and every door in the room is still a door', doors.length >= 6, doors.join(' '));
   await p.close();
 
-  console.log('\n7. a machine that cannot manage the tear keeps the room');
-  /* The tear is the one expensive thing here — a turbulence generator and a
-     displacement map per object per raster — so it is the first thing to go,
-     a whole rung before the room itself is given up. Measuring the frame rate
-     here would be measuring this machine, so the verdict is set by hand and
-     the consequence of it is what gets checked. */
+  console.log('\n7. every room in the house is made of the same paper');
   p = await open();
-  await go(p, 'main');
-  yes('the tear is on by default', await p.evaluate(() => House3D.rough === true));
-  await p.evaluate(() => { House3D.rough = false; }); await p.waitForTimeout(300);
-  const rough = await p.evaluate(() => ({
-    room: !!document.querySelector('.h3-room'),
-    tear: getComputedStyle(document.querySelector('.h3-art')).filter,
-    paper: getComputedStyle(document.querySelector('.h3-bill')).filter,
-    objs: document.querySelectorAll('.h3-obj').length}));
-  is('  giving it up takes the tear away', rough.tear, 'none');
-  yes('    and nothing else', rough.room && rough.objs > 5 && /drop-shadow/.test(rough.paper),
-    JSON.stringify(rough));
-  yes('    without rebuilding the room out from under anybody',
-    await p.evaluate(() => House3D.on === true));
+  for(const [zone, want] of [['sanctuary', 6], ['garden', 3], ['roof', 3]]){
+    await go(p, zone);
+    const n = await p.evaluate(() => {
+      const z = [...document.querySelectorAll('.sacred-room > g.zone')];
+      return {n: z.length, torn: z.filter(x => /wovCut/.test(getComputedStyle(x).filter)).length,
+        grain: getComputedStyle(document.querySelector('.house-room'), '::after').content !== 'none'};
+    });
+    yes(`the ${zone} is cut from paper too`, n.n >= want && n.torn === n.n, JSON.stringify(n));
+    yes(`  and printed on it`, n.grain);
+  }
   await p.close();
 
-  console.log('\n8. and the flat scene is printed on the same paper');
-  /* A phone gets the flat scene, and a house that is made of paper in one
-     place and not in the other is two houses. */
-  p = await open({viewport:{width:720, height:900}, hasTouch:true, isMobile:true});
+  console.log('\n8. and less motion asked for does not mean less paper');
+  /* Paper does not move. The house drops animation for anyone who asks, and
+     that is not a reason to hand them a diagram instead of a room. */
+  p = await open({reducedMotion: 'reduce'});
   await go(p, 'main');
-  const flat = await p.evaluate(() => ({
-    flat: !document.querySelector('.h3-room') && !!document.querySelector('svg.sacred-room'),
-    grain: getComputedStyle(document.querySelector('.house-room'), '::after').backgroundImage}));
-  yes('a phone gets the flat scene', flat.flat);
-  yes('  on the same sheet of paper', /svg\+xml/.test(flat.grain), flat.grain.slice(0, 60));
+  const still = await p.evaluate(() => ({
+    torn: /wovCut/.test(getComputedStyle(document.querySelector('.sacred-room > g.zone')).filter),
+    grain: getComputedStyle(document.querySelector('.house-room'), '::after').content !== 'none',
+    doors: document.querySelectorAll('.house-room [data-room]').length}));
+  yes('the edges are still torn', still.torn);
+  yes('  the room is still on paper', still.grain);
+  yes('  and every door still works', still.doors >= 6, String(still.doors));
   await p.close();
 
   console.log('\nconsole: ' + (errs.length ? errs.join(' | ') : 'clean'));
