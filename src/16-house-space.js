@@ -56,6 +56,19 @@ const House3D = (() => {
   const off = () => slow || (typeof reduced === 'function' && reduced())
     || matchMedia('(hover:none)').matches || innerWidth < 900;
 
+  /* The collage has a rung of its own between the room and no room.
+
+     Tearing the edge of every object runs a turbulence generator and a
+     displacement map over that object, which is the only thing the collage
+     asks for that a compositor cannot simply hand back. On this machine the
+     difference did not rise above the noise — two builds measured side by
+     side, seven passes each, came out within a frame of one another — but
+     "not measurable here" is not "free everywhere", so it is the first thing
+     to go on a machine that is struggling, a whole rung before the room
+     itself is taken away. Everything else — the paper behind the print, the
+     grain, the rugs, the tape, the lean — is ordinary compositing and stays. */
+  let rough = true;
+
   /* ---------- does this machine want to do this at all ----------
      Asked once, by counting frames rather than by guessing from the user
      agent. A room that stutters is worse than no room: the flat scene is
@@ -95,13 +108,52 @@ const House3D = (() => {
         const ms = performance.now() - t0;
         if(ms < 2000){ requestAnimationFrame(tick); return; }
         const fps = frames / (ms / 1000);
-        if(fps >= 20) return;
-        slow = true;
-        console.warn(`the room fell back to flat: ${fps.toFixed(1)} frames a second`);
-        if(typeof rerender === 'function' && document.querySelector('.h3-room')) rerender();
+        if(fps < 20){
+          slow = true;
+          console.warn(`the room fell back to flat: ${fps.toFixed(1)} frames a second`);
+          if(typeof rerender === 'function' && document.querySelector('.h3-room')) rerender();
+          return;
+        }
+        /* Comfortable but not free: drop the torn edges and keep the room.
+           This costs nothing to apply — an attribute on the room turns one
+           filter off — so unlike the fall to flat it does not rebuild
+           anything, and nobody watching loses their place. */
+        if(fps < 44){
+          rough = false;
+          document.querySelectorAll('.h3-room').forEach(r => { r.dataset.rough = '0'; });
+        }
       };
       requestAnimationFrame(tick);
     }, 900);
+  }
+
+  /* ---------- the torn edge ----------
+     Turbulence pushed through a displacement map, which is a hand tearing a
+     sheet of paper: a slow wobble along the edge with fine roughness on top
+     of it. The base frequency is low on purpose — inside a two-hundred-pixel
+     object the whole drawing shifts by a couple of pixels and nobody can see
+     it, but the outline stops being a bezier curve, which is the only place
+     anybody looks.
+
+     One filter for the whole room rather than one per object: they are all
+     torn out of the same sheet, so a second generator would be a second copy
+     of the same noise for no difference anybody could name. It lives in the
+     room, so the room taking itself down takes it with it.
+
+     The paper behind the print, the shadow the paper casts and the distance
+     haze are the rest of the same chain, and they are in the stylesheet. */
+  function torn(){
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('class', 'h3-defs');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.innerHTML = `<filter id="h3torn" x="-7%" y="-7%" width="114%" height="114%"
+      color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.024 0.031" numOctaves="2"
+        seed="7" result="grain"/>
+      <feDisplacementMap in="SourceGraphic" in2="grain" scale="4"
+        xChannelSelector="R" yChannelSelector="G"/>
+    </filter>`;
+    return svg;
   }
 
   /* where the wall meets the floor, per zone, in the flat drawing */
@@ -214,9 +266,11 @@ const House3D = (() => {
     /* --wallY is where the wall stands and the floor begins; --wallH is how
        tall the wall is. They were one variable, which collapsed the wall to a
        strip the moment the porch pushed it back. */
-    const room = el(`<div class="h3-room" style="--tilt:${TILT}deg;--turn:${TURN}deg;
+    const room = el(`<div class="h3-room" data-rough="${rough ? 1 : 0}"
+      style="--tilt:${TILT}deg;--turn:${TURN}deg;
       --deep:${(deep + porch).toFixed(0)}px;
       --wallY:${(horizon - porch).toFixed(0)}px;--wallH:${horizon}px"></div>`);
+    room.appendChild(torn());
     const st = el('<div class="h3-scene"></div>');
     room.appendChild(st);
 
@@ -273,10 +327,21 @@ const House3D = (() => {
       /* how far back it is, for the haze and for the light falling off */
       const far = 1 - Math.min(1, Math.max(0, (z - porch) / Math.max(1, deep)));
 
+      /* Nothing in a collage is square, and nothing in one is random either:
+         a person cutting paper leans each piece a little and then leaves it
+         alone. The lean is read off where the object stands, so it is
+         different for every object in the room and the same one every time
+         the room is built — a lean that changed on redraw would be the room
+         twitching, not the room being handmade. */
+      /* the modulo is taken twice: an object drawn against the left edge has a
+         negative left once the padding is subtracted, and a negative
+         remainder would tip it right over */
+      const tip = (((((bx * 7 + by * 13) % 47) + 47) % 47) / 47 - 0.5) * 4.4;
+
       const slot = el(`<div class="h3-obj" style="
         left:${bx.toFixed(1)}px; top:${top.toFixed(1)}px;
         width:${bw.toFixed(1)}px; height:${bh.toFixed(1)}px;
-        --lift:${lift.toFixed(1)}px; --far:${far.toFixed(3)}"
+        --lift:${lift.toFixed(1)}px; --far:${far.toFixed(3)}; --tip:${tip.toFixed(2)}deg"
         ${onWall ? 'data-wall data-flat' : ''}></div>`);
       /* the shadow lies on the floor and does not stand up with the object,
          which is what makes the object look like it is standing on something */
@@ -395,5 +460,8 @@ const House3D = (() => {
   }, {passive: true});
 
   return {build, clear, get on(){ return !!scene; }, off,
-    get slow(){ return slow; }, set slow(v){ slow = !!v; }};
+    get slow(){ return slow; }, set slow(v){ slow = !!v; },
+    get rough(){ return rough; },
+    set rough(v){ rough = !!v;
+      document.querySelectorAll('.h3-room').forEach(r => { r.dataset.rough = rough ? '1' : '0'; }); }};
 })();

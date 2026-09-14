@@ -6520,7 +6520,7 @@ html[data-theme="dark"] .entry.sealed{background-image:url("data:image/svg+xml,%
    walls, the floor, the wood and the light get their own tokens and the rest
    of the house is left alone.
    ============================================================ */
-.room-wrap{--rm-wall:#2b2622;--rm-wall-2:#221e1b;--rm-floor:#201c19;--rm-plank:rgba(232,224,212,.05);
+.room-wrap,#looms{--rm-wall:#2b2622;--rm-wall-2:#221e1b;--rm-floor:#201c19;--rm-plank:rgba(232,224,212,.05);
   --rm-line:rgba(232,224,212,.14);--rm-light:#e8b968;--rm-wood:#4a3a2c;--rm-wood-2:#5c4835;
   --rm-cloth:#5a3f52;--rm-cush:#8a5f6b;--rm-cush-2:#6f4a55;--rm-say:#e8e0d4;
   /* width:100% as well as the auto margins: an auto cross-axis margin on a
@@ -6531,7 +6531,7 @@ html[data-theme="dark"] .entry.sealed{background-image:url("data:image/svg+xml,%
   overflow:hidden;background:var(--rm-wall-2);
   box-shadow:inset 0 2px 18px rgba(0,0,0,.4);
   transition:opacity .26s var(--ease),transform .26s var(--ease)}
-html[data-theme="light"] .room-wrap{--rm-wall:#eee5d8;--rm-wall-2:#e6dbcc;--rm-floor:#d8c4a8;
+html[data-theme="light"] .room-wrap,html[data-theme="light"] #looms{--rm-wall:#eee5d8;--rm-wall-2:#e6dbcc;--rm-floor:#d8c4a8;
   --rm-plank:rgba(44,37,32,.07);--rm-line:rgba(44,37,32,.18);--rm-light:#d99a3a;
   --rm-wood:#a9814f;--rm-wood-2:#8d6a3f;--rm-cloth:#8e5f6b;--rm-cush:#b8848f;--rm-cush-2:#9c6a76;
   --rm-say:#2c2520;box-shadow:inset 0 2px 14px rgba(120,90,60,.10)}
@@ -7136,15 +7136,12 @@ html:not([data-theme="light"]) .h3-floor[data-floor="roof"]{background:
    `top` is depth. The billboard stands back up about its own bottom edge, so
    its foot stays exactly where it was put down. */
 .h3-obj{position:absolute;transform-style:preserve-3d;pointer-events:none}
-.h3-bill{position:absolute;inset:0;transform-origin:50% 100%;
-  transform:rotateX(calc(var(--tilt) * -1)) translateY(calc(var(--lift) * -1));
-  transition:transform .22s var(--ease)}
 /* Hung on the wall, not standing in front of it: no counter-rotation, so it
    lies in the wall plane exactly as it was drawn, lifted to the height it was
-   drawn at. */
-.h3-obj[data-flat] .h3-bill{transform:rotateX(-90deg) translateY(calc(var(--lift) * -1))}
-.h3-obj[data-flat]:hover .h3-bill,.h3-obj[data-flat]:focus-within .h3-bill{
-  transform:rotateX(-90deg) translateY(calc(var(--lift) * -1 - 8px))}
+   drawn at. The transforms themselves are in the collage section at the foot
+   of this file, where the lean each object carries is added to them. */
+.h3-bill{position:absolute;inset:0;transform-origin:50% 100%;
+  transition:transform .22s var(--ease)}
 
 /* The backdrop is painted on the wall rather than stood in front of it */
 .h3-backdrop{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
@@ -7152,17 +7149,17 @@ html:not([data-theme="light"]) .h3-floor[data-floor="roof"]{background:
 .h3-wall,.h3-horizon{pointer-events:none}
 .h3-art{display:block;width:100%;height:100%;overflow:visible;pointer-events:none}
 .h3-art .zone,.h3-art .obj{pointer-events:auto}
-/* The haze: the further back, the paler and the flatter. --far runs 0 at the
-   front of the room to 1 at the wall.
+/* The haze — the further back, the paler and the flatter, with --far running 0
+   at the front of the room to 1 at the wall — is folded into the billboard's
+   filter chain in the collage section at the foot of this file.
 
-   It goes on the ART, never on the object. An opacity below one or a filter
-   creates a stacking context, and a stacking context FLATTENS preserve-3d for
-   everything inside it — so the billboard's counter-rotation stopped
-   cancelling the camera's tilt and every object in the room came out squashed
-   by the cosine of the angle. The leaf can be flattened safely; nothing below
-   it carries a 3D transform. */
-.h3-art{opacity:calc(1 - var(--far,0) * .12);
-  filter:brightness(calc(1 - var(--far,0) * .1)) saturate(calc(1 - var(--far,0) * .12))}
+   It is on the BILLBOARD and never on the object, and that is not a
+   preference. An opacity below one or a filter creates a stacking context,
+   and a stacking context FLATTENS preserve-3d for everything inside it — so
+   put on .h3-obj it stopped the billboard's counter-rotation from cancelling
+   the camera's tilt, and every object in the room came out squashed by the
+   cosine of the angle. The billboard is the last thing here carrying a 3D
+   transform; below it there is nothing left to flatten. */
 
 /* the shadow stays on the floor while the object stands up off it, which is
    the thing that makes an object look like it is standing on something */
@@ -7174,8 +7171,6 @@ html:not([data-theme="light"]) .h3-floor[data-floor="roof"]{background:
   pointer-events:none;transition:transform .22s var(--ease),opacity .22s var(--ease)}
 
 /* reaching for a thing lifts it off the floor, and its shadow stays behind */
-.h3-obj:hover .h3-bill,.h3-obj:focus-within .h3-bill{
-  transform:rotateX(calc(var(--tilt) * -1)) translateY(calc(var(--lift) * -1 - 12px))}
 .h3-obj:hover .h3-shadow,.h3-obj:focus-within .h3-shadow{transform:scale(.88);opacity:.7}
 
 /* ---------- the labels ----------
@@ -7199,5 +7194,186 @@ html:not([data-theme="light"]) .h3-floor[data-floor="roof"]{background:
 @media (max-width:900px){
   .house-room:has(.h3-room){height:auto}
 }
+
+/* ============================================================
+   THE HOUSE AS A COLLAGE
+
+   The rooms are rooms now, but built out of clean vector art they read as a
+   diagram of a room. The brief asks for the opposite: a paper theatre
+   somebody cut out by hand, where the edges are torn, the print does not
+   quite line up with the cut, things are taped into place, and nothing is
+   square.
+
+   WHAT THIS DELIBERATELY DOES NOT DO. The specification sources photographs
+   from Unsplash, rawpixel and the Graphics Fairy and embeds them as base64.
+   This app is one file that works with the network unplugged, and an image
+   pulled off the web at build time carries a licence nobody opening this file
+   in five years can check. So the collage is made the way the rest of the
+   house is made: out of the drawing that is already here, and out of CSS.
+
+   Four moves make the material, and every one of them is derived from the
+   drawing rather than laid on top of it. The rugs, the woven cushion and
+   cloth, and the ornament on the wall come after, and those are drawn.
+
+   THE GRAIN IS ON THE GLASS. One noise tile over the whole room, multiplied,
+   so floor, wall, art and sky are all printed on the same sheet of paper.
+   That single shared material is what makes mixed media read as one made
+   object instead of a pile of clip art — and it is one element, not thirty.
+
+   THE CUT IS THE SILHOUETTE. A zero-blur drop-shadow paints an object's own
+   alpha in paper-white, a few pixels down and to the right: a cut-out that
+   the print does not quite register with, which is what every real collage
+   looks like. Nothing is measured and nothing is traced — the art already
+   knows its own shape, and a shape that comes from the art cannot drift out
+   of step with it.
+
+   THE TEAR IS A DISPLACEMENT. Turbulence through a displacement map roughens
+   the edge of the print and the edge of the paper together, because they were
+   cut in the same stroke of the scissors.
+
+   AND NOTHING IS SQUARE. Every object leans a degree or two, taken from where
+   it stands, so the lean is different for each thing and the same every time
+   the room is drawn.
+   ============================================================ */
+
+/* ---------- the sheet the whole room is printed on ----------
+   isolate, or the multiply reaches past the room and grinds the page behind
+   it as well. */
+.house-room{position:relative;isolation:isolate}
+.house-room::after{content:'';position:absolute;inset:0;z-index:3;pointer-events:none;
+  mix-blend-mode:multiply;opacity:.55;
+  background:
+    repeating-linear-gradient(90deg,rgba(116,92,60,.05) 0 1px,transparent 1px 5px),
+    repeating-linear-gradient(0deg,rgba(116,92,60,.03) 0 1px,transparent 1px 9px),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.74' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23p)' opacity='.22'/%3E%3C/svg%3E");
+  background-size:auto,auto,220px 220px}
+/* A dark room multiplied by grain is only a muddier dark room. The same tooth
+   has to come from the other side of the paper. */
+html[data-theme="dark"] .house-room::after,
+html:not([data-theme="light"]) .house-room::after{mix-blend-mode:screen;opacity:.2}
+
+/* ---------- the cut edge ----------
+   The paper behind the print, the shadow that paper casts, and the distance
+   haze. The tear itself is one element further in — see below for why.
+
+   All of this on the BILLBOARD rather than on the object holding it, for the
+   same reason the haze moved here: a filter or an opacity below one flattens
+   preserve-3d for everything below it, and the billboard is the last element
+   in the room that carries a 3D transform. Below it there is nothing left to
+   flatten; above it, the room. */
+.h3-bill{
+  filter:drop-shadow(1.8px 2.4px 0 var(--h3-cut,#ede1c9))
+    drop-shadow(2px 6px 6px rgba(38,26,14,.26))
+    brightness(calc(1 - var(--far,0) * .1))
+    saturate(calc(1 - var(--far,0) * .12));
+  opacity:calc(1 - var(--far,0) * .12)}
+html[data-theme="dark"] .h3-bill,
+html:not([data-theme="light"]) .h3-bill{--h3-cut:#3b332a}
+
+/* The tear is on the ART and the paper is on the BILLBOARD, one element
+   apart, and that is deliberate on two counts.
+
+   It has to be the inner one, so that the paper follows the torn outline
+   rather than the clean one — the print and the sheet under it were cut in
+   the same stroke of the scissors, and a crisp cut-out behind a ragged print
+   is neither.
+
+   And it has to be its OWN element, because the tear is the one thing here a
+   compositor cannot simply hand back: turbulence and a displacement map, per
+   object, per raster. Measured on this machine the difference did not rise
+   above the noise, but not measurable here is not free everywhere — and on
+   its own element it can be turned off by an attribute on the room without
+   disturbing anything else, which is what happens a whole rung before the
+   room itself is given up. */
+.h3-art{filter:url(#h3torn)}
+.h3-room[data-rough="0"] .h3-art{filter:none}
+/* the filter carrier: never drawn, only referenced */
+.h3-defs{position:absolute;width:0;height:0;overflow:hidden;pointer-events:none}
+
+/* ---------- nothing is square ----------
+   --tip comes from where the object stands, so it is stable across redraws
+   and different for every object. It turns in the billboard's own plane about
+   its foot, which is a picture leaning rather than a picture sliding. */
+.h3-obj{--tip:0deg}
+.h3-bill{transform:rotateX(calc(var(--tilt) * -1)) translateY(calc(var(--lift) * -1))
+  rotate(var(--tip))}
+.h3-obj:hover .h3-bill,.h3-obj:focus-within .h3-bill{
+  transform:rotateX(calc(var(--tilt) * -1)) translateY(calc(var(--lift) * -1 - 12px))
+    rotate(var(--tip))}
+.h3-obj[data-flat] .h3-bill{
+  transform:rotateX(-90deg) translateY(calc(var(--lift) * -1)) rotate(var(--tip))}
+.h3-obj[data-flat]:hover .h3-bill,.h3-obj[data-flat]:focus-within .h3-bill{
+  transform:rotateX(-90deg) translateY(calc(var(--lift) * -1 - 8px)) rotate(var(--tip))}
+
+/* ---------- taped to the wall ----------
+   Only the things hanging on it. A washi strip over the top corners is the
+   one detail that says out loud that this is paper somebody put there, and
+   on a shelf standing on the floor it would be saying something untrue. */
+.h3-obj[data-flat] .h3-bill::before,
+.h3-obj[data-flat] .h3-bill::after{content:'';position:absolute;top:-6px;
+  width:clamp(30px,26%,64px);height:15px;pointer-events:none;
+  background:linear-gradient(176deg,rgba(221,196,161,.62),rgba(190,159,120,.5));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.26),inset 0 -1px 0 rgba(120,92,58,.2);
+  mix-blend-mode:multiply}
+.h3-obj[data-flat] .h3-bill::before{left:7%;transform:rotate(-6deg)}
+.h3-obj[data-flat] .h3-bill::after{right:7%;transform:rotate(5deg)}
+
+/* ---------- the textiles ----------
+   A rug is a floor, not an object: it lies in the floor plane and shears with
+   it. As the floor's own pseudo-element it paints on top of the boards with
+   no depth argument to lose — two coplanar elements in a preserve-3d context
+   sort by a coin toss, and a rug that loses is a rug under the floorboards.
+
+   The patterns are gradients rather than a fetched tile, so they cost one
+   paint and weigh nothing: warp and weft crossing on the diagonal is most of
+   what a kilim is at this size. */
+/* only the two rooms that have one: outside, the ground is the ground */
+.h3-floor[data-floor="main"]::after,
+.h3-floor[data-floor="sanctuary"]::after{content:'';position:absolute;pointer-events:none}
+.h3-floor[data-floor="main"]::after{
+  left:250px;top:31%;width:660px;height:44%;transform:rotate(-1.2deg);
+  background:
+    repeating-linear-gradient(45deg,rgba(74,26,37,.30) 0 13px,transparent 13px 26px),
+    repeating-linear-gradient(-45deg,rgba(127,145,106,.24) 0 13px,transparent 13px 26px),
+    repeating-linear-gradient(90deg,rgba(45,20,16,.30) 0 7px,transparent 7px 76px),
+    linear-gradient(180deg,#ac6a42,#8d5033);
+  box-shadow:inset 0 0 0 7px rgba(60,22,24,.34),inset 0 0 0 11px rgba(198,150,96,.3),
+    0 3px 12px rgba(0,0,0,.22);
+  opacity:.92}
+.h3-floor[data-floor="sanctuary"]::after{
+  left:50%;top:32%;width:440px;height:310px;margin-left:-220px;border-radius:50%;
+  transform:rotate(2deg);
+  background:
+    repeating-radial-gradient(circle at 50% 50%,rgba(127,145,106,.22) 0 9px,transparent 9px 19px),
+    repeating-linear-gradient(0deg,rgba(176,137,104,.16) 0 4px,transparent 4px 9px),
+    radial-gradient(circle at 50% 44%,#8e9d78,#70805d);
+  box-shadow:inset 0 0 0 6px rgba(74,60,40,.22),0 3px 10px rgba(0,0,0,.18);
+  opacity:.88}
+html[data-theme="dark"] .h3-floor[data-floor="main"]::after,
+html:not([data-theme="light"]) .h3-floor[data-floor="main"]::after{opacity:.5}
+html[data-theme="dark"] .h3-floor[data-floor="sanctuary"]::after,
+html:not([data-theme="light"]) .h3-floor[data-floor="sanctuary"]::after{opacity:.44}
+
+/* ---------- the two woven things ----------
+   The specification asks for the cushion to be a kilim and the oracle cloth
+   to be a damask rather than two flat fills, and those are the only two
+   objects in the house that are actually made of cloth.
+
+   They are patterns on the fill rather than anything laid over the top, which
+   means they shear with the object, fold with the folds already drawn on the
+   cloth, and come along into the three-dimensional room for nothing. The
+   looms themselves live in the body, out of the flow: see the note there for
+   why they cannot live in the room's own defs. */
+.rm-cush-top{fill:url(#wovKilim)}
+.rm-cloth{fill:url(#wovDamask)}
+
+/* ---------- the ornament on the wall ----------
+   The house already owns a Victorian corner, drawn once and themed; the wall
+   of a room is exactly the surface it was drawn for. */
+.h3-wall-back::before,.h3-wall-back::after{content:'';position:absolute;top:16px;
+  width:56px;height:56px;opacity:.48;pointer-events:none;
+  background:var(--orn-corner) center/contain no-repeat}
+.h3-wall-back::before{left:22px}
+.h3-wall-back::after{right:22px;transform:scaleX(-1)}
 </style>
 </head>

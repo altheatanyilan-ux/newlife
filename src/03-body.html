@@ -29,6 +29,43 @@
   </div>
 </div>
 <div class="ambient"><div class="page-scene" id="scA"></div><div class="page-scene" id="scB"></div><div class="ink-layer" id="inkMist"></div><div class="page-grad" id="pgA"></div><div class="page-grad" id="pgB"></div><div class="ink-layer" id="inkSeason"></div><div class="ink-layer" id="inkRipple"></div><div id="vines" aria-hidden="true"></div><div id="roomtex" aria-hidden="true"></div></div>
+<!-- THE LOOM. The two woven things in the house — the cushion you sit on and
+     the cloth the oracle is laid out on — are patterns rather than colours,
+     and a pattern has to live somewhere that does not go away.
+
+     The room's own <defs> is not that place: building the three-dimensional
+     room tears the flat scene apart and takes the original svg out of the
+     document with it, and a fill pointing at a pattern that has left paints
+     nothing at all. And there are two rooms drawing the same cushion out of
+     two separate defs, so anything living in there would have to be woven
+     twice and kept in step by hand.
+
+     So the looms sit out here, once, out of the flow and out of the way, and
+     whatever needs cloth reaches for the same two. They take their colours
+     from the room's own tokens, which is why the stylesheet hands those to
+     this element as well as to the rooms. -->
+<svg id="looms" aria-hidden="true" width="0" height="0"
+  style="position:absolute;width:0;height:0;overflow:hidden;pointer-events:none">
+  <defs>
+    <!-- kilim: warp, weft, and a diamond where they cross -->
+    <pattern id="wovKilim" width="22" height="22" patternUnits="userSpaceOnUse">
+      <rect width="22" height="22" style="fill:var(--rm-cush,#b8848f)"/>
+      <path d="M11 2 L20 11 L11 20 L2 11Z" style="fill:var(--rm-cush-2,#9c6a76);opacity:.55"/>
+      <path d="M0 11 L11 0 M11 22 L22 11" style="fill:none;stroke:rgba(255,255,255,.16);stroke-width:1.4"/>
+      <path d="M0 .5 H22" style="fill:none;stroke:rgba(0,0,0,.13);stroke-width:1"/>
+    </pattern>
+    <!-- damask: a leaf, a stem and the arc of the next row -->
+    <pattern id="wovDamask" width="34" height="34" patternUnits="userSpaceOnUse">
+      <rect width="34" height="34" style="fill:var(--rm-cloth,#8e5f6b)"/>
+      <g style="fill:none;stroke:rgba(212,164,76,.32);stroke-width:1.2">
+        <path d="M17 5 C23 9 23 15 17 19 C11 15 11 9 17 5Z"/>
+        <path d="M17 19 C17 24 14 27.5 9 28.5 M17 19 C17 24 20 27.5 25 28.5"/>
+        <circle cx="17" cy="12" r="2.2"/>
+        <path d="M0 29 C5 32 12 32 17 30 C22 32 29 32 34 29"/>
+      </g>
+    </pattern>
+  </defs>
+</svg>
 <canvas class="dust" id="dust"></canvas>
 <div id="app">
   <aside class="sidebar" id="sidebar"></aside>
