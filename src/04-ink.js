@@ -113,13 +113,44 @@ function applyInk(){
   if(key !== _inkKey){ seas.innerHTML = inkSeasonHTML(); _inkKey = key; }
   rip.classList.toggle('on', INK_WATER.includes(typeof pageThemeKey === 'function' ? pageThemeKey() : 'compass'));
 }
-/* parallax: the ridges answer the scroll a little, the mist a little more */
+/* parallax: the ridges answer the scroll a little, the mist a little more.
+
+   Written onto the ambient layer rather than onto the root. A custom property
+   set on :root invalidates the style of everything that could inherit it,
+   which is the whole document — so this one line, running once a frame for as
+   long as a scroll lasts, was recalculating style for two and a half thousand
+   elements to move two background layers. Set on the element whose children
+   actually read it, the same movement invalidates ten. */
 (() => {
-  let ticking = false;
+  let ticking = false, sky = null, mist = -1, ridge = -1;
+  /* Two variables and two step sizes, because the two layers cost different
+     amounts to move and move by different amounts.
+
+     The mist is three soft bands and drifts five hundredths of a pixel per
+     pixel scrolled; eight pixels of scroll moves it half a pixel, which is the
+     smallest step worth writing.
+
+     The ridges are a full-viewport drawing under a gradient, and moving them
+     means re-rasterising all of that. They drift three hundredths of a pixel
+     per pixel scrolled — so sixty-four pixels of scroll moves them two, and at
+     seven and a half per cent opacity nobody has ever seen the difference
+     between two pixels arriving smoothly and two pixels arriving at once.
+
+     Writing a property only when its value actually changes is the point: on
+     most frames of a scroll neither has, and the machine does nothing. */
   addEventListener('scroll', () => {
     if(ticking || (typeof reduced === 'function' && reduced())) return;
     ticking = true;
-    requestAnimationFrame(() => { document.documentElement.style.setProperty('--ink-par', String(Math.min(1600, window.scrollY))); ticking = false; });
+    requestAnimationFrame(() => {
+      ticking = false;
+      if(!sky || !sky.isConnected) sky = document.querySelector('.ambient');
+      if(!sky) return;
+      const y = Math.min(1600, window.scrollY);
+      const m = Math.round(y / 8) * 8;
+      if(m !== mist){ mist = m; sky.style.setProperty('--ink-par', String(m)); }
+      const r = Math.round(y / 64) * 64;
+      if(r !== ridge){ ridge = r; sky.style.setProperty('--ink-par-slow', String(r)); }
+    });
   }, {passive:true});
 })();
 

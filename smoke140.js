@@ -75,9 +75,17 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     const greens = new Set([...blades].map(b => b.getAttribute('stroke')));
     const svg = document.querySelector('.sk-organic');
     const gr = document.querySelector('.sk-trunk').getBBox();
-    return {n: blades.length, greens: greens.size, orchids: turf.querySelectorAll('.orchid').length,
+    /* A blade is a move and a curve. They used to be one <path> each — six
+       hundred elements standing in the grass, a third of everything on the
+       page — and they are now gathered into one path per colour, thickness and
+       fading, which is the same lawn in under a hundred elements. So count the
+       blades, which is what "thick" is about, not the paths carrying them. */
+    const n = [...blades].reduce((t, b) => t + (b.getAttribute('d') || '').split('M').length - 1, 0);
+    return {n, paths: blades.length, greens: greens.size, orchids: turf.querySelectorAll('.orchid').length,
       lastIsTurf: [...svg.children].map(c => c.getAttribute('class')).filter(Boolean).includes('sk-turf')}; });
   yes('the grass is thick', ground.n >= 300, ground.n + ' blades');
+  yes('  and drawn in few enough elements to be cheap', ground.paths < 100,
+      ground.paths + ' paths for ' + ground.n + ' blades');
   yes('  and more than one green', ground.greens >= 4, ground.greens + ' greens');
   yes('orchids grow among it', ground.orchids >= 8, ground.orchids + ' flowers');
   /* the lip is what tells an orchid from any other flower */

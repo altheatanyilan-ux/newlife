@@ -243,7 +243,9 @@ kbd{font-family:var(--mono);font-size:.68rem;padding:2px 6px;border:1px solid va
 /* 水墨画 — the ink layers. Everything inside them is monochrome: the rooms own
    the colour, the paper owns the ink. Parallax rides a single scroll variable. */
 .page-scene,.ink-layer{--page-accent:var(--ink);--page-gradient-start:var(--ink);--page-gradient-end:var(--ink)}
-.page-scene{transform:translate3d(0,calc(var(--ink-par,0) * .03px),0)}
+/* the ridges ride the coarse step: see the scroll handler in 04-ink.js for
+   why the two layers do not share one */
+.page-scene{transform:translate3d(0,calc(var(--ink-par-slow,0) * .03px),0)}
 .ink-layer{position:absolute;inset:0;overflow:hidden}
 .ink-layer svg{position:absolute;inset:0;width:100%;height:100%;display:block}
 /* No opacity and no transform on the group: both of them force the three
@@ -7077,6 +7079,124 @@ html[data-decor="full"] .fd-bubble.ticking{animation:fdPulse 2.6s ease-in-out in
 <div id="modals"></div>
 <script>
 /* ============================================================
+   ONE LOOP
+
+   Every moving thing in the house used to ask the browser for its own frames:
+   the dust in the air, the wind in the skill tree's canopy, the planets on
+   Values, the particles in a divination. Each of them was careful on its own —
+   they throttle themselves, they stop when the tab is hidden, they stop when
+   their canvas leaves the document — and together they were still three or
+   four callbacks a frame, each one waking the machine up separately sixty
+   times a second to decide whether it had anything to do.
+
+   So there is one loop now, and the moving things register with it. What this
+   buys, in order of size:
+
+     - One wake-up a frame instead of four. A rAF callback that decides to do
+       nothing is cheap, but it is not free, and four of them are four.
+     - A budget per layer. The dust does not need sixty frames a second to
+       drift a quarter of a pixel; the canopy does not need sixty to lean a
+       degree. Each layer says what it needs and the loop holds it to that.
+     - Background gives way to foreground. While a page is drawing its own
+       canvas — the solar system, a ceremony — the ambient layers stand down
+       rather than competing with the thing you are actually looking at. They
+       come back by themselves when it stops.
+     - One place to switch it all off. A hidden tab, a person who asked for
+       less motion, a machine that cannot take it: one check rather than four
+       that can disagree.
+
+   A loop registered here does not manage its own frames, its own throttle, or
+   its own visibility. It says what it is and what it needs, and it is called
+   when it should be.
+   ============================================================ */
+const Animator = (() => {
+  /* what a layer is for, which decides what gives way to what */
+  const BACKGROUND = 0;   /* ambient: the dust, the wind. First to stand down. */
+  const UI = 1;           /* the pointer's own business. Never stands down. */
+  const PAGE = 2;         /* what this room is actually drawing. */
+
+  const loops = new Map();
+  let raf = 0, hidden = false;
+
+  function register(id, update, opts = {}){
+    const prev = loops.get(id);
+    loops.set(id, {
+      id, update,
+      priority: opts.priority == null ? BACKGROUND : opts.priority,
+      /* a layer that says nothing gets every frame there is */
+      interval: opts.fps ? 1000 / opts.fps : 0,
+      active: prev ? prev.active : false,
+      visible: true,
+      last: 0, io: prev ? prev.io : null,
+    });
+    return id;
+  }
+  function forget(id){
+    const l = loops.get(id);
+    if(l && l.io){ l.io.disconnect(); l.io = null; }
+    loops.delete(id);
+    if(!anyActive()) stop();
+  }
+  const anyActive = () => [...loops.values()].some(l => l.active && l.visible);
+  /* is something in the foreground drawing? then the ambient layers wait */
+  const foreground = () => [...loops.values()].some(l => l.active && l.visible && l.priority >= PAGE);
+
+  function activate(id){
+    const l = loops.get(id); if(!l) return;
+    l.active = true; l.last = 0;
+    start();
+  }
+  function deactivate(id){
+    const l = loops.get(id); if(!l) return;
+    l.active = false;
+    if(!anyActive()) stop();
+  }
+  /* Nothing is drawn for a canvas that has been scrolled off the screen. The
+     element is watched rather than the page, so this keeps working when the
+     thing moves or the page is redrawn under it. */
+  function watch(id, el){
+    const l = loops.get(id); if(!l || !el) return;
+    if(l.io) l.io.disconnect();
+    if(!('IntersectionObserver' in window)){ l.visible = true; return; }
+    l.io = new IntersectionObserver(es => {
+      l.visible = es[0].isIntersecting;
+      if(l.visible && l.active) start(); else if(!anyActive()) stop();
+    }, {threshold: 0});
+    l.io.observe(el);
+  }
+
+  function frame(now){
+    raf = 0;
+    if(hidden || !anyActive()) return;
+    const fg = foreground();
+    loops.forEach(l => {
+      if(!l.active || !l.visible) return;
+      /* the ambient layers give way to whatever the room is drawing */
+      if(fg && l.priority === BACKGROUND) return;
+      if(l.interval && now - l.last < l.interval) return;
+      l.last = now;
+      try { l.update(now); }
+      catch(e){ console.warn('animation layer failed, dropping it', l.id, e); l.active = false; }
+    });
+    if(anyActive()) raf = requestAnimationFrame(frame);
+  }
+  function start(){ if(!raf && !hidden && anyActive()) raf = requestAnimationFrame(frame); }
+  function stop(){ if(raf) cancelAnimationFrame(raf); raf = 0; }
+
+  /* Nobody is looking: not one frame, for any layer. */
+  document.addEventListener('visibilitychange', () => {
+    hidden = document.hidden;
+    if(hidden) stop();
+    else { loops.forEach(l => { l.last = 0; }); start(); }
+  });
+
+  return {BACKGROUND, UI, PAGE, register, forget, activate, deactivate, watch, start, stop,
+    /* what is running, for anyone asking — a person at a console, or a test */
+    stats(){ return {frames: !!raf, hidden, foreground: foreground(),
+      loops: [...loops.values()].map(l => ({id: l.id, priority: l.priority, active: l.active,
+        visible: l.visible, fps: l.interval ? Math.round(1000 / l.interval) : 60}))}; }};
+})();
+/* ============================================================
    CORE — utilities, state, persistence, editing, router
    ============================================================ */
 'use strict';
@@ -7704,11 +7824,13 @@ let swayRAF = 0, swayLeaves = null, swayRoot = null;
 
 /* The sway must be stoppable from outside: a navigation that leaves a tree
    running mid-flight stalls the view transition, and the page never changes. */
-function stopSway(){ if(swayRAF) cancelAnimationFrame(swayRAF); swayRAF = 0; swayLeaves = null; swayRoot = null; }
+function stopSway(){ Animator.deactivate('sway'); swayRAF = 0; swayLeaves = null; swayRoot = null; }
 
 function startSway(root){
   stopSway();
   if(!root || reduced()) return;
+  /* the wind is decoration, and decoration is what plain mode is for */
+  if(typeof plainMode === 'function' && plainMode()) return;
   const nodes = $$('.leaf', root);
   if(!nodes.length) return;
 
@@ -7736,15 +7858,13 @@ function startSway(root){
   swayRoot = root;
 
   const t0 = performance.now();
-  let lastFrame = 0;
+  /* Thirty frames a second. Writing a transform onto every leaf is a style
+     recalculation and an SVG repaint for each one, and a canopy has a lot of
+     leaves; at sixty that is the whole frame budget spent on a movement of
+     under a degree. At thirty it is the same tree in the same wind. The budget
+     and the hidden-tab check belong to the loop, not to the wind. */
   const tick = t => {
     if(!swayRoot || !document.contains(swayRoot)){ stopSway(); return; }
-    /* Thirty frames a second. Writing a transform onto every leaf is a style
-       recalculation and an SVG repaint for each one, and a canopy has a lot of
-       leaves; at sixty that is the whole frame budget spent on a movement of
-       under a degree. At thirty it is the same tree in the same wind. */
-    if(t - lastFrame < 32 || document.hidden){ swayRAF = requestAnimationFrame(tick); return; }
-    lastFrame = t;
     const s = (t - t0) / 1000;
     /* the gust: a slow swell that crosses the canopy, so the whole tree leans
        together for a moment and then lets go, instead of shimmering forever */
@@ -7760,9 +7880,11 @@ function startSway(root){
       const lift = flutter * 0.9 * L.gain;
       L.el.style.transform = `translate(${(swing * 1.2 * L.gain).toFixed(2)}px,${lift.toFixed(2)}px) rotate(${deg.toFixed(2)}deg)`;
     }
-    swayRAF = requestAnimationFrame(tick);
   };
-  swayRAF = requestAnimationFrame(tick);
+  Animator.register('sway', tick, {priority: Animator.BACKGROUND, fps: 30});
+  Animator.watch('sway', swayRoot);
+  Animator.activate('sway');
+  swayRAF = 'animator';
 }
 
 /* ---------- the reveal ----------
@@ -7926,13 +8048,44 @@ function applyInk(){
   if(key !== _inkKey){ seas.innerHTML = inkSeasonHTML(); _inkKey = key; }
   rip.classList.toggle('on', INK_WATER.includes(typeof pageThemeKey === 'function' ? pageThemeKey() : 'compass'));
 }
-/* parallax: the ridges answer the scroll a little, the mist a little more */
+/* parallax: the ridges answer the scroll a little, the mist a little more.
+
+   Written onto the ambient layer rather than onto the root. A custom property
+   set on :root invalidates the style of everything that could inherit it,
+   which is the whole document — so this one line, running once a frame for as
+   long as a scroll lasts, was recalculating style for two and a half thousand
+   elements to move two background layers. Set on the element whose children
+   actually read it, the same movement invalidates ten. */
 (() => {
-  let ticking = false;
+  let ticking = false, sky = null, mist = -1, ridge = -1;
+  /* Two variables and two step sizes, because the two layers cost different
+     amounts to move and move by different amounts.
+
+     The mist is three soft bands and drifts five hundredths of a pixel per
+     pixel scrolled; eight pixels of scroll moves it half a pixel, which is the
+     smallest step worth writing.
+
+     The ridges are a full-viewport drawing under a gradient, and moving them
+     means re-rasterising all of that. They drift three hundredths of a pixel
+     per pixel scrolled — so sixty-four pixels of scroll moves them two, and at
+     seven and a half per cent opacity nobody has ever seen the difference
+     between two pixels arriving smoothly and two pixels arriving at once.
+
+     Writing a property only when its value actually changes is the point: on
+     most frames of a scroll neither has, and the machine does nothing. */
   addEventListener('scroll', () => {
     if(ticking || (typeof reduced === 'function' && reduced())) return;
     ticking = true;
-    requestAnimationFrame(() => { document.documentElement.style.setProperty('--ink-par', String(Math.min(1600, window.scrollY))); ticking = false; });
+    requestAnimationFrame(() => {
+      ticking = false;
+      if(!sky || !sky.isConnected) sky = document.querySelector('.ambient');
+      if(!sky) return;
+      const y = Math.min(1600, window.scrollY);
+      const m = Math.round(y / 8) * 8;
+      if(m !== mist){ mist = m; sky.style.setProperty('--ink-par', String(m)); }
+      const r = Math.round(y / 64) * 64;
+      if(r !== ridge){ ridge = r; sky.style.setProperty('--ink-par-slow', String(r)); }
+    });
   }, {passive:true});
 })();
 
@@ -8245,8 +8398,25 @@ function applyPageTheme(){
   if(typeof applyInk === 'function') applyInk();
   const meta = document.querySelector('meta[name="theme-color"]'); if(meta) meta.content = light ? t.accent[1] : t.accent[0];
 }
-/* parallax for the banner glyph on calm pages */
-window.addEventListener('scroll', () => { if(document.documentElement.dataset.motion === 'calm') document.documentElement.style.setProperty('--page-par', String(Math.min(240, window.scrollY))); }, {passive:true});
+/* Parallax for the banner glyph on calm pages.
+
+   Onto the banner, not onto the root, and once a frame rather than once an
+   event. On the root it invalidated the style of the entire document to drift
+   one pseudo-element; it also ran on every scroll event, which is more often
+   than there are frames to show it in. Nine rooms of fourteen have no banner
+   at all now, and on those this costs one null check. */
+(() => {
+  let ticking = false;
+  window.addEventListener('scroll', () => {
+    if(ticking || document.documentElement.dataset.motion !== 'calm') return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      ticking = false;
+      const h = document.querySelector('#main .page-head');
+      if(h) h.style.setProperty('--page-par', String(Math.min(240, window.scrollY)));
+    });
+  }, {passive:true});
+})();
 /* page banners carry the room's glyph and colour; no descriptive line */
 /* the banner's hairline is an element rather than a pseudo-element so it can
    redraw itself on each arrival; every page gets one without knowing about it */
@@ -9890,18 +10060,16 @@ const AmbientFX = (() => {
       ember:Math.random() > .67}); };
     const resize = () => { c.width = innerWidth; c.height = innerHeight; };
     resize(); seed(); addEventListener('resize', resize);
-    let last = 0, gold = 0, cleared = false;
+    let gold = 0, cleared = false;
+    /* Twenty frames a second, not sixty. A mote drifts a quarter of a pixel
+       per frame, so at sixty you are asking the machine to recomposite the
+       whole page — every translucent ambient layer over it included — to move
+       something a distance you cannot see. At twenty it moves three quarters
+       of a pixel a frame, which reads identically.
+
+       The budget, the hidden-tab check and the giving way to whatever the room
+       is drawing are all the loop's business now rather than this layer's. */
     const tick = t => {
-      requestAnimationFrame(tick);
-      if(document.hidden) return;            // nobody is looking
-      /* Twenty frames a second, not sixty. A mote drifts a quarter of a pixel
-         per frame, so at sixty you are asking the machine to recomposite the
-         whole page — every translucent ambient layer over it included — to
-         move something a distance you cannot see. At twenty it moves three
-         quarters of a pixel a frame, which reads identically, and two frames
-         in three the compositor has nothing to do at all. */
-      if(t - last < 50) return;
-      last = t;
       if(OWN_CANVAS.includes(currentRoute)){ // that page draws its own
         if(!cleared){ ctx.clearRect(0, 0, c.width, c.height); cleared = true; }
         return;
@@ -9937,7 +10105,8 @@ const AmbientFX = (() => {
         ctx.beginPath(); ctx.arc(p.x, p.y, dark && p.ember ? p.r * 1.4 : p.r, 0, Math.PI * 2); ctx.fill();
       });
     };
-    requestAnimationFrame(tick);
+    Animator.register('dust', tick, {priority: Animator.BACKGROUND, fps: 20});
+    Animator.activate('dust');
     /* the Konami code borrows the dust for five seconds */
     dust.goGold = (ms = 5000) => {
       gold = performance.now() + ms;
@@ -15684,22 +15853,19 @@ ValuesSolar.prototype.start = function(){
   /* One frame and stop, for anyone who has asked for less motion: the system
      is a picture of the data either way, and the orbits are not the point. */
   if(this.soft){ this.planets.forEach(p => { p.ang = p.seed; }); this.frame(performance.now()); return; }
-  const tick = now => {
+  /* This is what the room is drawing, so it is a foreground layer: while it
+     runs, the dust and the wind stand down. The hidden tab, the scrolled-off
+     canvas and the frame budget are the loop's business. */
+  Animator.register('solar', now => {
     if(!this.cv.isConnected){ this.stop(); return; }
-    /* nothing is drawn for a page nobody is looking at */
-    if(!document.hidden && this.visible !== false) this.frame(now);
-    this.raf = requestAnimationFrame(tick);
-  };
-  this.raf = requestAnimationFrame(tick);
-  /* and nothing is drawn while it is scrolled off the screen */
-  if('IntersectionObserver' in window){
-    this.io = new IntersectionObserver(es => { this.visible = es[0].isIntersecting; }, {threshold: 0});
-    this.io.observe(this.cv);
-  }
+    this.frame(now);
+  }, {priority: Animator.PAGE});
+  Animator.watch('solar', this.cv);
+  Animator.activate('solar');
+  this.raf = 'animator';
 };
 ValuesSolar.prototype.stop = function(){
-  if(this.raf) cancelAnimationFrame(this.raf); this.raf = 0;
-  this.io && this.io.disconnect();
+  Animator.forget('solar'); this.raf = 0;
   window.removeEventListener('resize', this.onResize);
 };
 
@@ -17280,7 +17446,26 @@ function sakLeaf(L, young, tone){
 function sakGrassHTML(trunkX, ground, W, rnd){
   let g = '';
   /* Two ranks: a darker one behind, standing taller, and a bright one in front
-     — which is what makes grass read as a lawn rather than as a row of ticks. */
+     — which is what makes grass read as a lawn rather than as a row of ticks.
+
+     Five hundred and eighty blades, each its own <path>, was the heaviest
+     thing in the house: a third of every element on the page, all of it under
+     a tree nobody is looking at the foot of. They are all the same shape — a
+     move and one curve — and they differ only in colour, thickness and how
+     faint they are. So they are drawn as one path per combination of those
+     three: the thickness rounded to the nearest half-pixel and the fading to
+     the nearest tenth, neither of which is a distinction an eye can draw at
+     this size. Same lawn, in under a hundred elements instead of six hundred.
+
+     This is safe because a blade never moves: the wind in this tree is applied
+     to `.leaf`, and grass was never in that list. */
+  const bunches = new Map();
+  const blade = (col, wd, op, d) => {
+    const key = `${col}|${wd}|${op}`;
+    const b = bunches.get(key);
+    if(b) b.d += d; else bunches.set(key, {col, wd, op, d});
+  };
+  const step = (v, to) => (Math.round(v / to) * to).toFixed(2);
   [[240, ['#4a7d3c', '#3f6d34'], 1.35, .55], [340, SAK.grass, 1, .95]].forEach(([n, pal, tall, op]) => {
     for(let i = 0; i < n; i++){
       const x = trunkX + (rnd() - .5) * W * 1.02;
@@ -17288,11 +17473,12 @@ function sakGrassHTML(trunkX, ground, W, rnd){
       const lean = (rnd() - .5) * h * .6, wd = 1 + rnd() * 1.6;
       const col = pal[(i * 7) % pal.length];
       const dip = ground + 2 + rnd() * 14;
-      g += `<path class="blade" data-phase="${(rnd() * 6.28).toFixed(2)}" d="M${x.toFixed(1)},${dip.toFixed(1)}
-        q${(lean * .3).toFixed(1)},${(-h * .6).toFixed(1)} ${lean.toFixed(1)},${(-h).toFixed(1)}"
-        stroke="${col}" stroke-width="${wd.toFixed(1)}" fill="none" stroke-linecap="round" opacity="${(op * (.6 + rnd() * .4)).toFixed(2)}"/>`;
+      blade(col, step(wd, .5), step(op * (.6 + rnd() * .4), .1),
+        `M${x.toFixed(1)},${dip.toFixed(1)}q${(lean * .3).toFixed(1)},${(-h * .6).toFixed(1)} ${lean.toFixed(1)},${(-h).toFixed(1)}`);
     }
   });
+  bunches.forEach(b => { g += `<path class="blade" d="${b.d}" stroke="${b.col}" stroke-width="${b.wd}"
+    fill="none" stroke-linecap="round" opacity="${b.op}"/>`; });
   /* the orchids, in clumps either side of the trunk */
   const clumps = 5;
   for(let c = 0; c < clumps; c++){
@@ -23972,22 +24158,25 @@ ParticleField.prototype.draw = function(){
 };
 ParticleField.prototype.run = function(){
   if(this.raf) return;
-  const tick = () => {
+  const id = this.loopId || (this.loopId = 'ceremony-' + (ParticleField._n = (ParticleField._n || 0) + 1));
+  /* A ceremony is the whole of what the screen is doing while it happens, so
+     it is a foreground layer and the ambient ones stand down under it. */
+  Animator.register(id, () => {
     /* The surest sign that a ceremony is over is that its canvas is no
        longer in the document — the modal was closed, or routed away from,
        or swept. Checking that each frame means no close path can leave a
        loop running behind a page nobody is looking at. */
     if(!this.cv.isConnected){ this.stop(); return; }
     this.step(); this.draw();
-    /* nothing left to draw and nothing asking for more: stop the loop
+    /* nothing left to draw and nothing asking for more: stand the layer down
        rather than spin a blank canvas at sixty frames a second */
-    if(!this.ps.length && this.mode !== 'ambient'){ this.raf = 0; return; }
-    this.raf = requestAnimationFrame(tick);
-  };
-  this.raf = requestAnimationFrame(tick);
+    if(!this.ps.length && this.mode !== 'ambient'){ Animator.deactivate(id); this.raf = 0; }
+  }, {priority: Animator.PAGE});
+  Animator.activate(id);
+  this.raf = id;
 };
 ParticleField.prototype.stop = function(){
-  if(this.raf) cancelAnimationFrame(this.raf);
+  if(this.loopId) Animator.forget(this.loopId);
   this.raf = 0; this.ps = []; this.mode = 'idle';
   this.ctx.clearRect(0, 0, this.w, this.h);
 };

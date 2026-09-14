@@ -159,22 +159,25 @@ ParticleField.prototype.draw = function(){
 };
 ParticleField.prototype.run = function(){
   if(this.raf) return;
-  const tick = () => {
+  const id = this.loopId || (this.loopId = 'ceremony-' + (ParticleField._n = (ParticleField._n || 0) + 1));
+  /* A ceremony is the whole of what the screen is doing while it happens, so
+     it is a foreground layer and the ambient ones stand down under it. */
+  Animator.register(id, () => {
     /* The surest sign that a ceremony is over is that its canvas is no
        longer in the document — the modal was closed, or routed away from,
        or swept. Checking that each frame means no close path can leave a
        loop running behind a page nobody is looking at. */
     if(!this.cv.isConnected){ this.stop(); return; }
     this.step(); this.draw();
-    /* nothing left to draw and nothing asking for more: stop the loop
+    /* nothing left to draw and nothing asking for more: stand the layer down
        rather than spin a blank canvas at sixty frames a second */
-    if(!this.ps.length && this.mode !== 'ambient'){ this.raf = 0; return; }
-    this.raf = requestAnimationFrame(tick);
-  };
-  this.raf = requestAnimationFrame(tick);
+    if(!this.ps.length && this.mode !== 'ambient'){ Animator.deactivate(id); this.raf = 0; }
+  }, {priority: Animator.PAGE});
+  Animator.activate(id);
+  this.raf = id;
 };
 ParticleField.prototype.stop = function(){
-  if(this.raf) cancelAnimationFrame(this.raf);
+  if(this.loopId) Animator.forget(this.loopId);
   this.raf = 0; this.ps = []; this.mode = 'idle';
   this.ctx.clearRect(0, 0, this.w, this.h);
 };

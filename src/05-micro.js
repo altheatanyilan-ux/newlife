@@ -401,18 +401,16 @@ const AmbientFX = (() => {
       ember:Math.random() > .67}); };
     const resize = () => { c.width = innerWidth; c.height = innerHeight; };
     resize(); seed(); addEventListener('resize', resize);
-    let last = 0, gold = 0, cleared = false;
+    let gold = 0, cleared = false;
+    /* Twenty frames a second, not sixty. A mote drifts a quarter of a pixel
+       per frame, so at sixty you are asking the machine to recomposite the
+       whole page — every translucent ambient layer over it included — to move
+       something a distance you cannot see. At twenty it moves three quarters
+       of a pixel a frame, which reads identically.
+
+       The budget, the hidden-tab check and the giving way to whatever the room
+       is drawing are all the loop's business now rather than this layer's. */
     const tick = t => {
-      requestAnimationFrame(tick);
-      if(document.hidden) return;            // nobody is looking
-      /* Twenty frames a second, not sixty. A mote drifts a quarter of a pixel
-         per frame, so at sixty you are asking the machine to recomposite the
-         whole page — every translucent ambient layer over it included — to
-         move something a distance you cannot see. At twenty it moves three
-         quarters of a pixel a frame, which reads identically, and two frames
-         in three the compositor has nothing to do at all. */
-      if(t - last < 50) return;
-      last = t;
       if(OWN_CANVAS.includes(currentRoute)){ // that page draws its own
         if(!cleared){ ctx.clearRect(0, 0, c.width, c.height); cleared = true; }
         return;
@@ -448,7 +446,8 @@ const AmbientFX = (() => {
         ctx.beginPath(); ctx.arc(p.x, p.y, dark && p.ember ? p.r * 1.4 : p.r, 0, Math.PI * 2); ctx.fill();
       });
     };
-    requestAnimationFrame(tick);
+    Animator.register('dust', tick, {priority: Animator.BACKGROUND, fps: 20});
+    Animator.activate('dust');
     /* the Konami code borrows the dust for five seconds */
     dust.goGold = (ms = 5000) => {
       gold = performance.now() + ms;

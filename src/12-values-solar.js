@@ -332,22 +332,19 @@ ValuesSolar.prototype.start = function(){
   /* One frame and stop, for anyone who has asked for less motion: the system
      is a picture of the data either way, and the orbits are not the point. */
   if(this.soft){ this.planets.forEach(p => { p.ang = p.seed; }); this.frame(performance.now()); return; }
-  const tick = now => {
+  /* This is what the room is drawing, so it is a foreground layer: while it
+     runs, the dust and the wind stand down. The hidden tab, the scrolled-off
+     canvas and the frame budget are the loop's business. */
+  Animator.register('solar', now => {
     if(!this.cv.isConnected){ this.stop(); return; }
-    /* nothing is drawn for a page nobody is looking at */
-    if(!document.hidden && this.visible !== false) this.frame(now);
-    this.raf = requestAnimationFrame(tick);
-  };
-  this.raf = requestAnimationFrame(tick);
-  /* and nothing is drawn while it is scrolled off the screen */
-  if('IntersectionObserver' in window){
-    this.io = new IntersectionObserver(es => { this.visible = es[0].isIntersecting; }, {threshold: 0});
-    this.io.observe(this.cv);
-  }
+    this.frame(now);
+  }, {priority: Animator.PAGE});
+  Animator.watch('solar', this.cv);
+  Animator.activate('solar');
+  this.raf = 'animator';
 };
 ValuesSolar.prototype.stop = function(){
-  if(this.raf) cancelAnimationFrame(this.raf); this.raf = 0;
-  this.io && this.io.disconnect();
+  Animator.forget('solar'); this.raf = 0;
   window.removeEventListener('resize', this.onResize);
 };
 

@@ -64,8 +64,25 @@ function applyPageTheme(){
   if(typeof applyInk === 'function') applyInk();
   const meta = document.querySelector('meta[name="theme-color"]'); if(meta) meta.content = light ? t.accent[1] : t.accent[0];
 }
-/* parallax for the banner glyph on calm pages */
-window.addEventListener('scroll', () => { if(document.documentElement.dataset.motion === 'calm') document.documentElement.style.setProperty('--page-par', String(Math.min(240, window.scrollY))); }, {passive:true});
+/* Parallax for the banner glyph on calm pages.
+
+   Onto the banner, not onto the root, and once a frame rather than once an
+   event. On the root it invalidated the style of the entire document to drift
+   one pseudo-element; it also ran on every scroll event, which is more often
+   than there are frames to show it in. Nine rooms of fourteen have no banner
+   at all now, and on those this costs one null check. */
+(() => {
+  let ticking = false;
+  window.addEventListener('scroll', () => {
+    if(ticking || document.documentElement.dataset.motion !== 'calm') return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      ticking = false;
+      const h = document.querySelector('#main .page-head');
+      if(h) h.style.setProperty('--page-par', String(Math.min(240, window.scrollY)));
+    });
+  }, {passive:true});
+})();
 /* page banners carry the room's glyph and colour; no descriptive line */
 /* the banner's hairline is an element rather than a pseudo-element so it can
    redraw itself on each arrival; every page gets one without knowing about it */

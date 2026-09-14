@@ -394,7 +394,26 @@ function sakLeaf(L, young, tone){
 function sakGrassHTML(trunkX, ground, W, rnd){
   let g = '';
   /* Two ranks: a darker one behind, standing taller, and a bright one in front
-     — which is what makes grass read as a lawn rather than as a row of ticks. */
+     — which is what makes grass read as a lawn rather than as a row of ticks.
+
+     Five hundred and eighty blades, each its own <path>, was the heaviest
+     thing in the house: a third of every element on the page, all of it under
+     a tree nobody is looking at the foot of. They are all the same shape — a
+     move and one curve — and they differ only in colour, thickness and how
+     faint they are. So they are drawn as one path per combination of those
+     three: the thickness rounded to the nearest half-pixel and the fading to
+     the nearest tenth, neither of which is a distinction an eye can draw at
+     this size. Same lawn, in under a hundred elements instead of six hundred.
+
+     This is safe because a blade never moves: the wind in this tree is applied
+     to `.leaf`, and grass was never in that list. */
+  const bunches = new Map();
+  const blade = (col, wd, op, d) => {
+    const key = `${col}|${wd}|${op}`;
+    const b = bunches.get(key);
+    if(b) b.d += d; else bunches.set(key, {col, wd, op, d});
+  };
+  const step = (v, to) => (Math.round(v / to) * to).toFixed(2);
   [[240, ['#4a7d3c', '#3f6d34'], 1.35, .55], [340, SAK.grass, 1, .95]].forEach(([n, pal, tall, op]) => {
     for(let i = 0; i < n; i++){
       const x = trunkX + (rnd() - .5) * W * 1.02;
@@ -402,11 +421,12 @@ function sakGrassHTML(trunkX, ground, W, rnd){
       const lean = (rnd() - .5) * h * .6, wd = 1 + rnd() * 1.6;
       const col = pal[(i * 7) % pal.length];
       const dip = ground + 2 + rnd() * 14;
-      g += `<path class="blade" data-phase="${(rnd() * 6.28).toFixed(2)}" d="M${x.toFixed(1)},${dip.toFixed(1)}
-        q${(lean * .3).toFixed(1)},${(-h * .6).toFixed(1)} ${lean.toFixed(1)},${(-h).toFixed(1)}"
-        stroke="${col}" stroke-width="${wd.toFixed(1)}" fill="none" stroke-linecap="round" opacity="${(op * (.6 + rnd() * .4)).toFixed(2)}"/>`;
+      blade(col, step(wd, .5), step(op * (.6 + rnd() * .4), .1),
+        `M${x.toFixed(1)},${dip.toFixed(1)}q${(lean * .3).toFixed(1)},${(-h * .6).toFixed(1)} ${lean.toFixed(1)},${(-h).toFixed(1)}`);
     }
   });
+  bunches.forEach(b => { g += `<path class="blade" d="${b.d}" stroke="${b.col}" stroke-width="${b.wd}"
+    fill="none" stroke-linecap="round" opacity="${b.op}"/>`; });
   /* the orchids, in clumps either side of the trunk */
   const clumps = 5;
   for(let c = 0; c < clumps; c++){

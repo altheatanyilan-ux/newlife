@@ -15,11 +15,13 @@ let swayRAF = 0, swayLeaves = null, swayRoot = null;
 
 /* The sway must be stoppable from outside: a navigation that leaves a tree
    running mid-flight stalls the view transition, and the page never changes. */
-function stopSway(){ if(swayRAF) cancelAnimationFrame(swayRAF); swayRAF = 0; swayLeaves = null; swayRoot = null; }
+function stopSway(){ Animator.deactivate('sway'); swayRAF = 0; swayLeaves = null; swayRoot = null; }
 
 function startSway(root){
   stopSway();
   if(!root || reduced()) return;
+  /* the wind is decoration, and decoration is what plain mode is for */
+  if(typeof plainMode === 'function' && plainMode()) return;
   const nodes = $$('.leaf', root);
   if(!nodes.length) return;
 
@@ -47,15 +49,13 @@ function startSway(root){
   swayRoot = root;
 
   const t0 = performance.now();
-  let lastFrame = 0;
+  /* Thirty frames a second. Writing a transform onto every leaf is a style
+     recalculation and an SVG repaint for each one, and a canopy has a lot of
+     leaves; at sixty that is the whole frame budget spent on a movement of
+     under a degree. At thirty it is the same tree in the same wind. The budget
+     and the hidden-tab check belong to the loop, not to the wind. */
   const tick = t => {
     if(!swayRoot || !document.contains(swayRoot)){ stopSway(); return; }
-    /* Thirty frames a second. Writing a transform onto every leaf is a style
-       recalculation and an SVG repaint for each one, and a canopy has a lot of
-       leaves; at sixty that is the whole frame budget spent on a movement of
-       under a degree. At thirty it is the same tree in the same wind. */
-    if(t - lastFrame < 32 || document.hidden){ swayRAF = requestAnimationFrame(tick); return; }
-    lastFrame = t;
     const s = (t - t0) / 1000;
     /* the gust: a slow swell that crosses the canopy, so the whole tree leans
        together for a moment and then lets go, instead of shimmering forever */
@@ -71,9 +71,11 @@ function startSway(root){
       const lift = flutter * 0.9 * L.gain;
       L.el.style.transform = `translate(${(swing * 1.2 * L.gain).toFixed(2)}px,${lift.toFixed(2)}px) rotate(${deg.toFixed(2)}deg)`;
     }
-    swayRAF = requestAnimationFrame(tick);
   };
-  swayRAF = requestAnimationFrame(tick);
+  Animator.register('sway', tick, {priority: Animator.BACKGROUND, fps: 30});
+  Animator.watch('sway', swayRoot);
+  Animator.activate('sway');
+  swayRAF = 'animator';
 }
 
 /* ---------- the reveal ----------
