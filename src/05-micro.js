@@ -38,11 +38,17 @@ const MicroFX = (() => {
      the only thing that says a column edge can be dragged at all */
   const GRIP      = '.panel-grip,.ws-grip,.tu-grip,.pc-grip,.pe-grip,.pl-gbaredge';
 
+  /* The threshold is a distance from the element's CENTRE, which is why
+     everything here is small: a button, a nav link, a ring. There used to be
+     a fourth entry for .card, and it could never once have fired — a card is
+     also in TILTS, and a node that wants both gets the tilt, so the magnet on
+     it was suppressed before the distance was even measured. Even without
+     that it asked the pointer to be within thirty pixels of the middle of a
+     four-hundred-pixel card. */
   const MAGNETS = [
     {sel:'.btn.primary,#fab,.speed-item', strength:.3,  threshold:60},
     {sel:'.nav a,.nav button',            strength:.2,  threshold:40},
-    {sel:'.ring,.habit-ring,.hb-ring',    strength:.25, threshold:50},
-    {sel:'.card',                         strength:.1,  threshold:30}];
+    {sel:'.ring,.habit-ring,.hb-ring',    strength:.25, threshold:50}];
   const TILTS = [
     {sel:'.tarot-card,.card-face,.div-card', max:8},
     {sel:'.nav a',                           max:2},
@@ -572,8 +578,10 @@ const RewardFX = (() => {
     for(let i = 0; i < 50; i++){
       const m = el('<i class="fx-mote"></i>');
       m.style.left = (5 + Math.random() * 90) + 'vw';
-      m.style.animationDelay = (Math.random() * 1400) + 'ms';
-      m.style.animationDuration = (1900 + Math.random() * 1200) + 'ms';
+      /* the slowest mote has to land before the ring is taken away below, or
+         the celebration is cut off mid-flight */
+      m.style.animationDelay = (Math.random() * 1000) + 'ms';
+      m.style.animationDuration = (1800 + Math.random() * 1000) + 'ms';
       wrap.appendChild(m);
     }
     try { SoundManager.play('chime'); } catch(e){}

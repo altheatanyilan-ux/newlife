@@ -6083,11 +6083,15 @@ html.mfx-cursor .pl-gbaredge{cursor:ew-resize!important}
    soft-light tints all of it and moves none of it. */
 #warmth{position:fixed;inset:0;pointer-events:none;z-index:99990;
   transition:background 4s linear}
-/* 1.7a — the page's own name breathes. Under one per cent was a rounding
-   error you would never catch; at two, with the brightness moving with it,
-   you notice within a couple of seconds and then stop noticing. */
-.page-head h1{animation:mfxBreathe 6s ease-in-out infinite;transform-origin:left center}
-@keyframes mfxBreathe{0%,100%{transform:scale(1);opacity:.94}50%{transform:scale(1.02);opacity:1}}
+/* 1.7a — the page's own name used to breathe, on a six-second loop. It was
+   two per cent of scale with the brightness moving with it, which you notice
+   within a couple of seconds and then stop noticing — and which repaints a
+   heading that is on screen the whole time, forever. Section 16 turns it off
+   for everybody, so the rule and its keyframes are gone rather than left here
+   to be overridden.
+   The origin is kept: a heading that is ever transformed should grow from its
+   left edge, where the text starts, not from its middle. */
+.page-head h1{transform-origin:left center}
 
 /* 1.8a — a press you can feel: down fast, back with a little overshoot */
 .btn.primary,.btn,#fab{transition:transform .2s cubic-bezier(.34,1.56,.64,1),
@@ -6154,7 +6158,6 @@ html.mfx-cursor .pl-gbaredge{cursor:ew-resize!important}
 /* 1.13 — asked for less motion, given less motion. Everything above is either
    switched off here or never started in the first place. */
 @media (prefers-reduced-motion:reduce){
-  .page-head h1{animation:none}
   #warmth{transition:none}
   .fx-mile,.fx-saved,.fx-mote{display:none}
   .scroll-progress{transition:none}
@@ -6829,34 +6832,24 @@ html[data-theme="dark"] .body.theatre{background-image:url("data:image/svg+xml,%
 html[data-theme="dark"] .entry.sealed{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'120'%20height%3D'120'%20viewBox%3D'0%200%20120%20120'%3E%0A%20%20%3Ccircle%20cx%3D'60'%20cy%3D'62'%20r%3D'34'%20fill%3D'%23b0616a'%20opacity%3D'.22'%2F%3E%0A%20%20%3Ccircle%20cx%3D'60'%20cy%3D'62'%20r%3D'34'%20fill%3D'none'%20stroke%3D'%23b0616a'%20stroke-width%3D'1.2'%20opacity%3D'.4'%2F%3E%0A%20%20%3Ccircle%20cx%3D'60'%20cy%3D'62'%20r%3D'26'%20fill%3D'none'%20stroke%3D'%23b0616a'%20stroke-width%3D'.6'%20opacity%3D'.3'%2F%3E%0A%20%20%3Cpath%20d%3D'M48%2062h24M60%2050v24'%20stroke%3D'%23b0616a'%20stroke-width%3D'1.4'%20opacity%3D'.35'%20stroke-linecap%3D'round'%2F%3E%0A%20%20%3Cpath%20d%3D'M32%2058q-6%2010%202%2018M88%2058q6%2010-2%2018'%20stroke%3D'%23b0616a'%20stroke-width%3D'1'%20opacity%3D'.24'%20fill%3D'none'%20stroke-linecap%3D'round'%2F%3E%3C%2Fsvg%3E")}
 
 /* ============================================================
-   16. PLAIN
+   16. WHAT THE HOUSE DOES NOT DRAW
 
-   One switch, for a machine that is working hard enough already.
+   This block used to be a setting — first one switch, then three, then two —
+   and then the thing that was actually making the house slow was found and
+   fixed, and the setting had nothing left to do. What survived the setting is
+   this list: the ornaments that cost more than they said, taken off for
+   everybody, permanently.
 
-   Everything below is ornament: the painting behind the rooms, the dust in
-   the air, the grain in the paper and the stone in the surfaces, the
-   candlelight, the glows, the drift, the flourishes. None of it carries any
-   information — every one of them is a way of saying something the page also
-   says in words — so taking all of it off costs nothing but atmosphere, and
-   buys back most of a frame.
+   What is kept is the house's face: the ink painting behind the rooms and the
+   paper it is painted on, the floating leaves, the static lean on a pinned
+   thing. Those are layers that sit still and cost the compositor one blend,
+   or a transform written once when the element is drawn and never touched
+   again. What comes off is the opposite kind: a hundred small things, each on
+   its own element, each recalculated when anything near it moved.
 
-   Written as one block rather than scattered through the file so that the
-   answer to "what does plain actually turn off" is one place, and so that
-   anything added later has to be added here on purpose.
-   ============================================================ */
-/* ============================================================
-   WHAT COMES OFF, AND IN WHICH ORDER
-
-   Three settings, not two. "Plain" takes off everything that is drawing
-   rather than telling you something. "Essential" keeps the one thing that is
-   the house's face — the ink painting behind the rooms, and the paper it is
-   painted on — and takes off everything else: the dust, the flowers, the
-   stone in the surfaces, the blur, the drifting.
-
-   The painting is kept because it is two layers that sit still behind
-   everything and cost the compositor one blend; the rest was a hundred small
-   things, each on its own element, each recalculated when anything near it
-   moved.
+   It stays one block rather than scattered through the file so that the
+   answer to "why is this not drawn" is one place, and so that anything added
+   later has to be added here on purpose.
    ============================================================ */
 
 #dust,
@@ -6874,10 +6867,11 @@ html[data-theme="dark"] .entry.sealed{background-image:url("data:image/svg+xml,%
 .value-field + .value-field::before,
 .ornate-rule{display:none!important}
 
-/* surfaces go flat: no stone, no paper, no double frame */
-/* The stone in the surfaces stays in Essential: it is a background-image on
-   an element that is not moving, which costs a decode once and nothing after.
-   Plain does without it. */
+/* The rite, the theatre and the veil lose their photographed grounds. A
+   background-image on an element that is not moving costs a decode once and
+   nothing after it, which is why the stone in the ordinary surfaces stays —
+   these three are full-screen, and a full-screen decode is a different
+   proposition. */
 .modal.rite,
 .body.theatre,
 .entry.sealed,
@@ -6886,23 +6880,21 @@ html[data-theme="dark"] .entry.sealed{background-image:url("data:image/svg+xml,%
 
 /* A backdrop filter is the single most expensive thing on this page: the
    blurred sample behind it has to be taken again whenever anything behind it
-   moves at all. Plain does without. */
+   moves at all — which, on a header pinned over a scrolling page, is every
+   frame of every scroll. */
 .page-head,
 .today-jump,
 .overlay,
 .back-btn{backdrop-filter:none;-webkit-backdrop-filter:none}
 .page-head{background:color-mix(in srgb,var(--surface) 80%,transparent)}
 
-/* nothing moves that was not asked to move */
+/* Nothing loops on its own. Each of these was a keyframe animation running
+   forever on an element that is always on screen, which is a repaint a second
+   for the life of the page and never once the thing you were looking at. */
 .page-head h1,
 .breathing,
-
 .ripple-ring,
 .dv-pick .tc-back::after{animation:none}
-/* The slight lean on a pinned thing stays in Essential. It is a static
-   transform — written once when the element is drawn, never touched again —
-   so it costs a paint and nothing after it, which is the test everything in
-   Essential has to pass. Plain wants the page square. */
 /* the firelight across a heading becomes a heading */
 .flow{background:none;-webkit-text-fill-color:currentColor;
   color:var(--text);animation:none}
@@ -10024,11 +10016,17 @@ const MicroFX = (() => {
      the only thing that says a column edge can be dragged at all */
   const GRIP      = '.panel-grip,.ws-grip,.tu-grip,.pc-grip,.pe-grip,.pl-gbaredge';
 
+  /* The threshold is a distance from the element's CENTRE, which is why
+     everything here is small: a button, a nav link, a ring. There used to be
+     a fourth entry for .card, and it could never once have fired — a card is
+     also in TILTS, and a node that wants both gets the tilt, so the magnet on
+     it was suppressed before the distance was even measured. Even without
+     that it asked the pointer to be within thirty pixels of the middle of a
+     four-hundred-pixel card. */
   const MAGNETS = [
     {sel:'.btn.primary,#fab,.speed-item', strength:.3,  threshold:60},
     {sel:'.nav a,.nav button',            strength:.2,  threshold:40},
-    {sel:'.ring,.habit-ring,.hb-ring',    strength:.25, threshold:50},
-    {sel:'.card',                         strength:.1,  threshold:30}];
+    {sel:'.ring,.habit-ring,.hb-ring',    strength:.25, threshold:50}];
   const TILTS = [
     {sel:'.tarot-card,.card-face,.div-card', max:8},
     {sel:'.nav a',                           max:2},
@@ -10558,8 +10556,10 @@ const RewardFX = (() => {
     for(let i = 0; i < 50; i++){
       const m = el('<i class="fx-mote"></i>');
       m.style.left = (5 + Math.random() * 90) + 'vw';
-      m.style.animationDelay = (Math.random() * 1400) + 'ms';
-      m.style.animationDuration = (1900 + Math.random() * 1200) + 'ms';
+      /* the slowest mote has to land before the ring is taken away below, or
+         the celebration is cut off mid-flight */
+      m.style.animationDelay = (Math.random() * 1000) + 'ms';
+      m.style.animationDuration = (1800 + Math.random() * 1000) + 'ms';
       wrap.appendChild(m);
     }
     try { SoundManager.play('chime'); } catch(e){}

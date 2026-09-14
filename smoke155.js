@@ -40,8 +40,15 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     const c = getComputedStyle(d).cursor; d.remove(); return c; }), 'col-resize');
 
   console.log('\n2. the pointer changes shape for what it is over');
+  /* Every target here has to be brought into the window first. A bounding box
+     on this page is a document coordinate, and Today is a long page: pointing
+     at the raw box puts the mouse below the fold, where the layer correctly
+     decides the pointer has left and marks itself gone — and then every
+     assertion below reads a cursor that is not there. */
+  const into = async el => { await el.scrollIntoViewIfNeeded(); await p.waitForTimeout(250);
+    return el.boundingBox(); };
   const btn = await p.$('.btn.primary') || await p.$('button');
-  const bb = await btn.boundingBox();
+  const bb = await into(btn);
   await p.mouse.move(bb.x + bb.width * .8, bb.y + bb.height / 2);
   await p.waitForTimeout(350);
   const st = await p.evaluate(() => ({
@@ -52,7 +59,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('over something pressable the ring opens', /\bclick\b/.test(st.ring), st.ring);
   yes('  and the thing itself leans towards the pointer', st.pulled > 0, `${st.pulled} pulled`);
   const inp = await p.$('input.inp,textarea,.ed');
-  if(inp){ const ib = await inp.boundingBox();
+  if(inp){ const ib = await into(inp);
     if(ib){ await p.mouse.move(ib.x + 12, ib.y + 8); await p.waitForTimeout(320);
       const e2 = await p.evaluate(() => ({d:document.querySelector('.mfx-dot').className, r:document.querySelector('.mfx-ring').className}));
       yes('over something writable the dot becomes a caret', /\btext\b/.test(e2.d), e2.d);
@@ -60,6 +67,12 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   await p.mouse.move(720, 520); await p.waitForTimeout(300);
   yes('a large surface lights under the pointer',
       await p.evaluate(() => !!document.querySelector('.mfx-lit')));
+  /* a card, aimed at rather than hoped for: the middle of the page is as
+     likely to be the gap between two of them */
+  const card = await p.$('#main .card');
+  const cb = card && await into(card);
+  if(cb){ await p.mouse.move(cb.x + cb.width / 2, cb.y + Math.min(40, cb.height / 2));
+    await p.waitForTimeout(320); }
   yes('  and a card leans', await p.evaluate(() => document.querySelectorAll('.mfx-tilt').length > 0));
 
   console.log('\n3. carrying something does not lose the pointer');
@@ -121,11 +134,16 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   is('  as a flat sheet, not a blended one', amb.blend, 'normal');
   is('  that nothing can be clicked through', amb.through, 'none');
   yes('  the dust canvas is there', amb.dust);
-  /* Values lost its banner along with six other rooms, so the title this asks
-     about is now on one of the rooms that kept theirs. */
+  /* The page title used to breathe on a six-second loop. It came off when the
+     decoration setting was collapsed into one house: a keyframe animation
+     running forever on a heading that is on screen the whole time is a
+     repaint a second for the life of the page, and it was never the thing you
+     were looking at. Nothing in the room loops on its own now, and that is
+     the assertion worth keeping. */
   await go(p, '#/settings');
-  is('  and the page title breathes',
-     await p.evaluate(() => getComputedStyle(document.querySelector('.page-head h1')).animationName), 'mfxBreathe');
+  is('  and nothing in the room loops forever on its own',
+     await p.evaluate(() => [...document.querySelectorAll('.page-head h1,.breathing,.ripple-ring')]
+       .map(n => getComputedStyle(n).animationName).filter(a => a && a !== 'none').join(' ')), '');
 
   console.log('\n4. numbers wait to be looked at');
   await go(p, '#/journals/review');
@@ -169,7 +187,9 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('a milestone opens a ring', fb.mile);
   yes('  with motes going up', fb.motes >= 15, `${fb.motes}`);
   is('  and one line of writing', fb.word, 'A test milestone ✦');
-  await p.waitForTimeout(3400);
+  /* the motes are given up to 1.4s of delay and up to 3.1s to rise, so the
+     ring cannot be gone before 4.5s without taking them with it */
+  await p.waitForTimeout(4800);
   yes('  and it clears itself away', await p.evaluate(() => !document.querySelector('.fx-mile')));
   /* the same milestone must never be announced twice */
   const twice = await p.evaluate(() => {
@@ -186,10 +206,16 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   await p.waitForTimeout(400);
   yes('the mark appears beside the name', await p.evaluate(() => !!document.querySelector('.brand.konami')));
 
-  console.log('\n8. interface sounds are their own switch, and off');
+  console.log('\n8. interface sounds are their own switch, and on');
+  /* They used to start off. They start on now, and deliberately: they are the
+     quietest layer in the house, they are the one thing at the door that is
+     not asked about, and they are here in Settings for anybody who wants them
+     gone. A default that flips back to off is the regression. */
   await go(p, '#/settings');
   yes('the toggle is in Settings', await p.evaluate(() => !!document.getElementById('sUiSound')));
-  is('  and starts off', await p.evaluate(() => SoundManager.state().uiEnabled), false);
+  is('  and starts on', await p.evaluate(() => SoundManager.state().uiEnabled), true);
+  await p.click('#sUiSound'); await p.waitForTimeout(250);
+  is('  and turning it off turns it off', await p.evaluate(() => SoundManager.state().uiEnabled), false);
   await p.close();
 
   console.log('\n9. asked for less motion, given less');
