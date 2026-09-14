@@ -6723,5 +6723,109 @@ html[data-theme="light"] .rm-oracle{fill:#584a70}
 .hb-whyb.on{color:var(--text);border-color:var(--gold);
   background:color-mix(in srgb,var(--gold) 12%,transparent)}
 .hb-whyi{font-size:1rem;line-height:1}
+
+/* ============================================================
+   THE HOUSE
+
+   The frame the zones are drawn in: the stage, the ways out, the plan in the
+   corner, and the light that changes with the hour. The objects themselves
+   reuse the sacred room's vocabulary above — a bowl and a cushion are drawn
+   the same way whichever floor they are on — and only what is new to the
+   sanctuary floor is styled here.
+   ============================================================ */
+.house-page{max-width:1180px}
+.house-stage{position:relative}
+.house-room{max-width:none}
+
+/* the walk between zones: out in the direction of travel, in behind it */
+.house-stage.walking .room-wrap{opacity:0;transition:opacity .24s var(--ease),transform .24s var(--ease)}
+.house-stage.walking[data-going="left"]  .room-wrap{transform:translateX(7%)}
+.house-stage.walking[data-going="right"] .room-wrap{transform:translateX(-7%)}
+.house-stage.walking[data-going="up"]    .room-wrap{transform:translateY(5%)}
+.house-stage.walking[data-going="down"]  .room-wrap{transform:translateY(-5%)}
+.house-stage[data-arriving] .room-wrap{opacity:0}
+.house-stage[data-arriving].arrived .room-wrap{opacity:1;transition:opacity .3s var(--ease)}
+
+/* ---------- the ways out, and the plan, under the scene ---------- */
+.house-nav{display:flex;align-items:center;gap:12px;margin-top:10px;flex-wrap:wrap}
+.house-exits{display:flex;gap:8px;flex-wrap:wrap;flex:1}
+.house-exit{display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:20px;
+  border:1px solid var(--line);background:var(--surface-2);color:var(--muted);
+  font-family:var(--serif);font-size:.86rem;cursor:pointer;
+  transition:border-color .18s var(--ease),color .18s var(--ease),transform .18s var(--ease)}
+.house-exit:hover{color:var(--text);border-color:var(--terra);transform:translateY(-1px)}
+.hx-arrow{font-family:var(--mono);opacity:.7}
+.house-exit:hover .hx-arrow{opacity:1}
+
+/* ---------- the plan, in the corner ---------- */
+.house-map{display:flex;flex-direction:column;gap:3px;flex:none;
+  padding:6px;border-radius:10px;background:var(--surface-2);border:1px solid var(--line)}
+.hm-row{display:flex;gap:3px;justify-content:flex-end}
+.hm-cell{width:20px;height:20px;border-radius:5px;border:1px solid var(--line-2);
+  background:none;color:var(--faint);font-family:var(--mono);font-size:.56rem;line-height:1;
+  cursor:pointer;display:grid;place-items:center;
+  transition:all .18s var(--ease)}
+.hm-cell:hover{color:var(--text);border-color:var(--terra)}
+.hm-cell.on{color:var(--text);border-color:var(--terra);
+  background:color-mix(in srgb,var(--terra) 26%,transparent)}
+.house-todo{margin:0;padding:40px 24px;text-align:center}
+
+/* ---------- the hour of the day, over the whole scene ----------
+   One filter on one container, recalculated when the zone is drawn and never
+   again. Morning is cool and low, midday is plain, evening warms and dims,
+   night drops the light right down and lets the candles carry it. */
+.house-stage[data-light="morning"] .sacred-room{filter:saturate(.96) brightness(1.03) hue-rotate(-4deg)}
+.house-stage[data-light="midday"]  .sacred-room{filter:none}
+.house-stage[data-light="evening"] .sacred-room{filter:saturate(1.08) brightness(.96) hue-rotate(6deg)}
+.house-stage[data-light="night"]   .sacred-room{filter:saturate(.9) brightness(.82)}
+
+/* ---------- what is new on the sanctuary floor ---------- */
+.hs-alcove{fill:color-mix(in srgb,#000 22%,transparent);stroke:var(--rm-wood-2);stroke-width:3}
+html[data-theme="light"] .hs-alcove{fill:color-mix(in srgb,#6b5033 10%,transparent)}
+.hs-mirror-glass{fill:var(--rm-wood);opacity:.5}
+.hs-mirror-rim{fill:none;stroke:var(--gold);stroke-width:2;opacity:.6}
+/* the cloth lifts when you reach for it — the whole of mirror work is the
+   moment before you look */
+.hs-cloth{fill:var(--rm-cloth);opacity:.92;transform-box:fill-box;transform-origin:50% 0;
+  transition:transform .32s var(--ease),opacity .32s var(--ease)}
+.zone-mirror:hover .hs-cloth,.zone-mirror:focus-visible .hs-cloth{transform:translateY(-34%) scaleY(.5);opacity:.75}
+.hs-candle .rm-flame{animation:rmFlame 2.6s var(--ease) infinite -.6s}
+
+.hs-lowtable{fill:var(--rm-wood-2)}
+.hs-bowl>path{fill:var(--gold);opacity:.85}
+.hs-bowl-lip{fill:none;stroke:var(--gold);stroke-width:1.4;opacity:.75}
+.hs-bowl{transform-box:fill-box;transform-origin:50% 100%;
+  transition:transform .22s var(--ease)}
+.zone-blessing:hover .hs-bowl,.zone-blessing:focus-visible .hs-bowl{transform:translateY(-3px)}
+.hs-note{fill:#f3ead7;opacity:.9}
+html[data-theme="light"] .hs-note{fill:#fffdf6}
+
+.hs-form{transition:transform .24s var(--ease)}
+.zone-fashion:hover .hs-form,.zone-fashion:focus-visible .hs-form{transform:translateY(-4px)}
+.hs-garment{fill:var(--rm-cush);opacity:.9}
+.hs-form:nth-of-type(2) .hs-garment{fill:var(--sage)}
+.hs-form-head{fill:var(--rm-wood-2)}
+.hs-stand-foot{fill:var(--rm-wood-2);opacity:.8}
+.hs-sash{fill:none;stroke:var(--gold);stroke-width:3;stroke-linecap:round;opacity:.8}
+
+.hs-gong-post{fill:none;stroke:var(--rm-wood-2);stroke-width:6;stroke-linecap:round}
+.hs-gong{fill:var(--gold);opacity:.42}
+.hs-gong-in{fill:none;stroke:var(--gold);stroke-width:1.4;opacity:.55}
+.hs-gong-cord{fill:none;stroke:var(--rm-line);stroke-width:1.4}
+/* struck: one ring going out, and nothing looping when nobody is reaching */
+.zone-sound:hover .hs-gong,.zone-sound:focus-visible .hs-gong{animation:hsRing 1.9s var(--ease) infinite}
+@keyframes hsRing{0%,100%{opacity:.42}50%{opacity:.62}}
+.zone-sound:hover .hs-bowl.big{animation:hsHum 2.4s var(--ease) infinite;
+  animation-delay:calc(var(--i) * -.5s)}
+@keyframes hsHum{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+.hs-fork{fill:none;stroke:var(--gold);stroke-width:2.4;stroke-linecap:round;opacity:.8}
+
+@media (prefers-reduced-motion: reduce){
+  .hs-cloth,.hs-form,.hs-bowl,.house-exit,.house-stage .room-wrap{transition:none}
+  .zone-sound:hover .hs-gong,.zone-sound:hover .hs-bowl.big,.hs-candle .rm-flame{animation:none!important}
+}
+@media (max-width:640px){
+  .house-exit{font-size:1rem;padding:9px 16px}
+}
 </style>
 </head>

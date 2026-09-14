@@ -51,6 +51,7 @@ const NAV_ICONS = {
 const NAV_PAGES = {
   planning: {label:'Planning',         short:'Plan',     ico:NAV_ICONS.planning, route:'#/planning'},
   today:    {label:'Today',            short:'Today',    ico:NAV_ICONS.today,    route:'#/today'},
+  house:    {label:'The house',        short:'House',    ico:NAV_ICONS.home,     route:'#/house'},
   journals: {label:'Lived Record',     short:'Record',   ico:NAV_ICONS.journals, route:'#/journals'},
   projects: {label:'Projects',         short:'Projects', ico:NAV_ICONS.projects, route:'#/projects'},
   writing:  {label:'Writing',          short:'Writing',  ico:NAV_ICONS.writing,  route:'#/content/shelf'},
@@ -67,7 +68,10 @@ const NAV_PAGES = {
    Below them, two zones: what you are making, and who you are. */
 /* The Compass is no longer a door of its own — the charts it held are the
    Review tab of the Lived Record, next to the writing about them. */
-const NAV_TOP = ['today','planning'];
+/* The house is a third way in rather than a replacement for this list. A list
+   is the fastest way to reach a room you can already name; the house is for
+   the half of this that is a practice, where the going is part of it. */
+const NAV_TOP = ['today','planning','house'];
 const NAV_PINNED = [];
 const NAV_DEFAULT = {
   create:   ['content','projects','finance','skills'],
