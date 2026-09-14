@@ -70,6 +70,20 @@ function valueHue(hex){
   h = Math.round(h * 60); return h < 0 ? h + 360 : h;
 }
 
+/* One number per value, spread as far from its neighbours as it can be.
+   FNV-1a with a finalising mix: a plain rolling multiply — which is what this
+   used to be — puts ids that differ in one character next to each other, and
+   ids here end in three characters of a timestamp, so a set of values made in
+   one sitting came out bunched on the same arc of the system and wearing the
+   same face. The avalanche step is the whole difference. */
+function valueHash(id){
+  let h = 2166136261 >>> 0;
+  for(let i = 0; i < id.length; i++) h = Math.imul(h ^ id.charCodeAt(i), 16777619) >>> 0;
+  h = (h ^ (h >>> 15)) >>> 0;
+  h = Math.imul(h, 2246822507) >>> 0;
+  return (h ^ (h >>> 13)) >>> 0;              /* unsigned, or every mod goes negative */
+}
+
 /* everything the canvas needs, worked out once per render rather than per frame */
 function valuePlanets(){
   const snaps = allSnapshotsWithRetro();
@@ -98,12 +112,44 @@ function valuePlanets(){
       aura: .05 + (cong / 100) * .35,
       /* the same value starts at the same place on its orbit every time the
          page is drawn, rather than jumping to a new one on every render */
-      seed: [...id].reduce((n, c) => (n * 31 + c.charCodeAt(0)) % 3600, 7) / 3600 * Math.PI * 2,
+      hash: valueHash(id),
+      seed: (valueHash(id) % 3600) / 3600 * Math.PI * 2,
       tagline: v.tagline || (v.fields?.embody || []).slice(-1)[0]?.text || '',
     };
   });
+  /* How fast it goes. The old floor was half a degree a second — twelve
+     minutes for one circuit — so a system with no evidence in it yet had every
+     planet effectively nailed down, which is the state a new house is in and
+     the worst possible first impression. The floor is now a circuit in about a
+     minute; the ceiling, for the value you have tended most, is a quarter of
+     that. Both are slow enough to read and fast enough to be obviously alive.
+
+     The inner orbits are shorter, so a fixed angular speed makes the outer
+     planets look becalmed next to them. Kepler's rule — the further out, the
+     slower round — is both true of real systems and the thing that makes a
+     drawing of one read as motion rather than as a spinning plate.
+
+     Then what the planet is made of. Six surfaces, a ring or no ring, a storm
+     or none, a moon or none: enough combinations that no two planets in a
+     realistic house are the same object, and every one of them is drawn in the
+     value's own hue at the value's own saturation, so the data still reads.
+     All of it comes off one hash of the id, which means a value keeps its face
+     for as long as it exists — you learn to find Craft by looking for the
+     banded one, the way you find Jupiter. */
+  const FACES = ['banded', 'cratered', 'marbled', 'swirled', 'capped', 'smooth'];
   const maxR = Math.max(...raw.map(p => p.recency), 1);
-  raw.forEach(p => { p.speed = 0.5 + (p.recency / maxR) * 5.5; });   /* degrees a second */
+  raw.forEach((p, i) => {
+    const tended = p.recency / maxR;                    /* 0 … 1 */
+    const far = 1 / Math.sqrt(1 + i * .55);             /* the outer ones, slower */
+    p.speed = (6 + tended * 22) * far;                  /* degrees a second */
+    const hash = p.hash;
+    p.face   = FACES[hash % FACES.length];
+    p.ringed = (hash >>> 4) % 3 === 0;
+    p.storm  = (p.face === 'banded' || p.face === 'swirled') && (hash >>> 9) % 2 === 0;
+    p.tilt   = (((hash >>> 2) % 31) - 15) * Math.PI / 180;
+    p.moon = p.evidence >= 6 ? {r: Math.max(2.4, p.radius * .22), d: p.radius * 2.1 + 6,
+      w: .9 + (i % 3) * .35, ph: p.seed * 1.7} : null;
+  });
   return raw;
 }
 
@@ -115,12 +161,11 @@ function ValuesSolar(canvas, planets, opts){
   this.planets = planets;
   this.opts = opts || {};
   this.hover = null; this.drag = null; this.raf = 0; this.t0 = performance.now();
-  /* Still, for anyone who has asked for less motion and for anyone running
-     plain. The orbits are how the data is laid out, not the point of it —
-     a frozen system says everything a moving one says except the speeds, and
-     the speeds are also written in the tooltip. */
-  this.soft = (typeof reduced === 'function' && reduced())
-    || (typeof plainMode === 'function' && plainMode());
+  /* Still, for anyone who has asked their system for less motion. The orbits
+     are how the data is laid out, not the point of it — a frozen system says
+     everything a moving one says except the speeds, and the speeds are also
+     written in the tooltip. */
+  this.soft = (typeof reduced === 'function' && reduced());
   this.resize();
   this.bind();
   this.start();
@@ -135,20 +180,33 @@ ValuesSolar.prototype.resize = function(){
   this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   this.cx = w / 2; this.cy = h / 2;
   this.ysq = w < 700 ? .4 : SOLAR_YSQUASH;
-  /* the innermost orbit has to clear the sun's corona, and the outermost has
-     to leave room for a label under the planet */
-  const minR = 84, maxR = Math.max(minR + 20, Math.min(w / 2 - 56, h / (2 * this.ysq) - 34));
+  /* The innermost orbit has to clear the sun, which is drawn to clear the
+     largest planet, so both of those go into the floor; the outermost has to
+     leave room for a label under the planet. Everything about the sun's size
+     lives in sunCore so the two cannot drift apart. */
+  const big = this.planets.reduce((n, p) => Math.max(n, p.radius), 0);
+  const minR = Math.max(84, this.sunCore() + big + 20);
+  const maxR = Math.max(minR + 20, Math.min(w / 2 - 56 - big, h / (2 * this.ysq) - 34 - big));
   const n = this.planets.length;
   const step = n > 1 ? (maxR - minR) / (n - 1) : 0;
   this.planets.forEach((p, i) => { p.orbit = minR + i * step; });
+};
+ValuesSolar.prototype.sunCore = function(){
+  return Math.max(26, this.planets.reduce((n, p) => Math.max(n, p.radius), 0) * 1.3);
 };
 ValuesSolar.prototype.pos = function(p, ang){
   return {x: this.cx + p.orbit * Math.cos(ang), y: this.cy + p.orbit * Math.sin(ang) * this.ysq};
 };
 ValuesSolar.prototype.angleAt = function(p, ms){
+  let a = p.seed + (p.off || 0) + (ms / 1000) * p.speed * Math.PI / 180;
   /* a planet under the pointer stops, so it can be read */
-  if(p === this.hover || p === this.drag) return p.ang != null ? p.ang : p.seed;
-  return p.seed + (ms / 1000) * p.speed * Math.PI / 180;
+  if(p === this.hover || p === this.drag){ if(p.held == null) p.held = a; return p.held; }
+  /* and starts again from where it stopped rather than from where it would
+     have got to. Carrying the lost arc in an offset is the whole fix: without
+     it every planet the pointer crosses snaps forward when the pointer
+     leaves, which is the one thing in the picture that reads as broken. */
+  if(p.held != null){ p.off = (p.off || 0) + (p.held - a); a = p.held; p.held = null; }
+  return a;
 };
 ValuesSolar.prototype.ink = function(){
   return document.documentElement.dataset.theme === 'light'
@@ -180,10 +238,10 @@ ValuesSolar.prototype.frame = function(now){
   const order = [...ps].sort((a, b) => Math.sin(a.ang) - Math.sin(b.ang));
   order.forEach(p => {
     const dim = this.hover && p !== this.hover ? .4 : 1;
-    if(p === this.drag){ this.planet(p, this.drag.x, this.drag.y, 1.25, 1); return; }
+    if(p === this.drag){ this.planet(p, this.drag.x, this.drag.y, 1.25, 1, now); return; }
     const {x, y} = this.pos(p, p.ang);
     this.trail(p, p.ang, dim, ink);
-    this.planet(p, x, y, p === this.hover ? 1.4 : 1, dim);
+    this.planet(p, x, y, p === this.hover ? 1.4 : 1, dim, now);
     if(this.opts.labels !== false){
       c.save();
       c.fillStyle = ink.label; c.globalAlpha = .72 * dim;
@@ -208,40 +266,164 @@ ValuesSolar.prototype.trail = function(p, ang, dim, ink){
     c.fill();
   }
 };
-ValuesSolar.prototype.planet = function(p, x, y, scale, dim){
+/* A ball with a highlight on it is a ball. These are planets. Six surfaces —
+   banded, cratered, veined, swirled, ice-capped, and the plain sphere the
+   others are variations on — crossed with a ring or no ring and a storm or
+   none, all of it taken from the id so a value keeps its face for as long as
+   it exists.
+
+   The order matters and is the order light arrives in: the aura, the far half
+   of the ring, the body, the surface clipped to the body, the storm, the
+   terminator falling across all of it, the rim light on the lit limb, then the
+   near half of the ring and the moon. The rim light is the cheapest line here
+   and does the most work — a lit edge is what separates a sphere from a disc.
+
+   All of it is drawn in the planet's own colour at its own saturation, so the
+   data still reads: a value with no evidence is still pale, a betrayed one is
+   still grey, and the ornament does not lie about either. */
+ValuesSolar.prototype.planet = function(p, x, y, scale, dim, now){
   const c = this.ctx, r = p.radius * scale;
+  const sat = p.saturation | 0, h = p.hue;
   const aura = p.aura * (p === this.hover ? 1.5 : 1) * dim;
   if(aura > .02){
     const g = c.createRadialGradient(x, y, r, x, y, r * 2.6);
-    g.addColorStop(0, `hsla(${p.hue},${p.saturation | 0}%,62%,${aura.toFixed(3)})`);
-    g.addColorStop(1, `hsla(${p.hue},${p.saturation | 0}%,62%,0)`);
+    g.addColorStop(0, `hsla(${h},${sat}%,62%,${aura.toFixed(3)})`);
+    g.addColorStop(1, `hsla(${h},${sat}%,62%,0)`);
     c.fillStyle = g; c.beginPath(); c.arc(x, y, r * 2.6, 0, Math.PI * 2); c.fill();
   }
-  const g = c.createRadialGradient(x - r * .32, y - r * .32, 0, x, y, r);
-  g.addColorStop(0, `hsla(${p.hue},${p.saturation | 0}%,72%,${dim})`);
-  g.addColorStop(1, `hsla(${p.hue},${p.saturation | 0}%,38%,${dim})`);
+  /* the far half of the ring passes behind the planet */
+  if(p.ringed) this.ring(p, x, y, r, dim, true);
+
+  const g = c.createRadialGradient(x - r * .34, y - r * .34, 0, x, y, r);
+  g.addColorStop(0, `hsla(${h},${sat}%,74%,${dim})`);
+  g.addColorStop(.55, `hsla(${h},${sat}%,56%,${dim})`);
+  g.addColorStop(1, `hsla(${h},${sat}%,34%,${dim})`);
   c.fillStyle = g; c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill();
+
+  /* the surface, clipped to the sphere */
+  if(r > 6){
+    c.save();
+    c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.clip();
+    c.translate(x, y); c.rotate(p.tilt);
+    if(p.face === 'banded'){
+      for(let i = -2; i <= 2; i++){
+        const yy = i * r * .34, hh = r * (i % 2 ? .13 : .2);
+        c.fillStyle = `hsla(${h},${sat}%,${i % 2 ? 66 : 44}%,${(.32 * dim).toFixed(3)})`;
+        c.beginPath(); c.ellipse(0, yy, r, hh, 0, 0, Math.PI * 2); c.fill();
+      }
+    } else if(p.face === 'cratered'){
+      for(let i = 0; i < 5; i++){
+        const a = p.seed * (i + 2), d = r * (.18 + (i % 3) * .26);
+        const cr = r * (.11 + (i % 2) * .09);
+        c.fillStyle = `hsla(${h},${sat}%,38%,${(.4 * dim).toFixed(3)})`;
+        c.beginPath(); c.arc(Math.cos(a) * d, Math.sin(a * 1.7) * d * .8, cr, 0, Math.PI * 2); c.fill();
+        c.fillStyle = `hsla(${h},${sat}%,72%,${(.22 * dim).toFixed(3)})`;
+        c.beginPath(); c.arc(Math.cos(a) * d - cr * .25, Math.sin(a * 1.7) * d * .8 - cr * .25, cr * .7, 0, Math.PI * 2); c.fill();
+      }
+    } else if(p.face === 'marbled'){
+      c.strokeStyle = `hsla(${h},${sat}%,72%,${(.3 * dim).toFixed(3)})`;
+      c.lineWidth = Math.max(1, r * .1);
+      for(let i = 0; i < 3; i++){
+        const o = (i - 1) * r * .5;
+        c.beginPath();
+        c.moveTo(-r, o - r * .3);
+        c.bezierCurveTo(-r * .3, o + r * .4, r * .3, o - r * .5, r, o + r * .2);
+        c.stroke();
+      }
+    } else if(p.face === 'swirled'){
+      /* a gas giant's turbulence: shallow arcs that do not line up, so the
+         eye reads weather rather than stripes */
+      c.lineWidth = Math.max(1, r * .16);
+      c.lineCap = 'round';
+      for(let i = 0; i < 5; i++){
+        const o = (i - 2) * r * .38, bend = ((i % 2) ? 1 : -1) * r * .3;
+        c.strokeStyle = `hsla(${h},${sat}%,${i % 2 ? 70 : 42}%,${(.3 * dim).toFixed(3)})`;
+        c.beginPath();
+        c.moveTo(-r * 1.1, o);
+        c.bezierCurveTo(-r * .35, o + bend, r * .35, o - bend, r * 1.1, o + bend * .3);
+        c.stroke();
+      }
+    } else if(p.face === 'capped'){
+      /* ice at both poles and a darker belt between them */
+      c.fillStyle = `hsla(${h},${Math.max(6, sat - 30)}%,88%,${(.5 * dim).toFixed(3)})`;
+      c.beginPath(); c.ellipse(0, -r * .82, r * .78, r * .34, 0, 0, Math.PI * 2); c.fill();
+      c.beginPath(); c.ellipse(0,  r * .86, r * .66, r * .3,  0, 0, Math.PI * 2); c.fill();
+      c.fillStyle = `hsla(${h},${sat}%,40%,${(.24 * dim).toFixed(3)})`;
+      c.beginPath(); c.ellipse(0, r * .06, r, r * .24, 0, 0, Math.PI * 2); c.fill();
+    }
+    /* the one eye in the weather */
+    if(p.storm){
+      const sx = -r * .3, sy = r * .28;
+      c.fillStyle = `hsla(${(h + 22) % 360},${Math.min(96, sat + 22)}%,58%,${(.5 * dim).toFixed(3)})`;
+      c.beginPath(); c.ellipse(sx, sy, r * .34, r * .2, .3, 0, Math.PI * 2); c.fill();
+      c.strokeStyle = `hsla(${(h + 22) % 360},${Math.min(96, sat + 22)}%,80%,${(.34 * dim).toFixed(3)})`;
+      c.lineWidth = Math.max(.8, r * .05);
+      c.beginPath(); c.ellipse(sx, sy, r * .34, r * .2, .3, 0, Math.PI * 2); c.stroke();
+    }
+    /* everything gets a terminator: the far side falls into shadow */
+    const sh = c.createLinearGradient(-r, -r, r, r);
+    sh.addColorStop(0, 'rgba(0,0,0,0)');
+    sh.addColorStop(.55, 'rgba(0,0,0,0)');
+    sh.addColorStop(1, `rgba(0,0,0,${(.34 * dim).toFixed(3)})`);
+    c.fillStyle = sh; c.beginPath(); c.arc(0, 0, r, 0, Math.PI * 2); c.fill();
+    c.restore();
+    /* the lit limb: one thin bright arc on the side the sun is on. This is the
+       line that makes the whole thing read as lit rather than coloured. */
+    c.save();
+    c.strokeStyle = `hsla(${h},${Math.max(8, sat - 16)}%,92%,${(.42 * dim).toFixed(3)})`;
+    c.lineWidth = Math.max(.7, r * .09);
+    c.beginPath(); c.arc(x, y, r * .94, Math.PI * 1.02, Math.PI * 1.72); c.stroke();
+    c.restore();
+  }
+  if(p.ringed) this.ring(p, x, y, r, dim, false);
+  /* a value with a good deal of evidence behind it has something of its own
+     going round it */
+  if(p.moon && now != null && r > 7){
+    const a = (now / 1000) * p.moon.w + p.moon.ph;
+    const mx = x + Math.cos(a) * p.moon.d, my = y + Math.sin(a) * p.moon.d * .42;
+    c.fillStyle = `hsla(${h},${Math.max(10, sat - 24)}%,${Math.sin(a) > 0 ? 74 : 52}%,${(.85 * dim).toFixed(2)})`;
+    c.beginPath(); c.arc(mx, my, p.moon.r, 0, Math.PI * 2); c.fill();
+  }
 };
+/* the ring, in two halves so the planet sits inside it */
+ValuesSolar.prototype.ring = function(p, x, y, r, dim, behind){
+  const c = this.ctx;
+  c.save();
+  c.translate(x, y); c.rotate(p.tilt - .34);
+  c.beginPath();
+  c.ellipse(0, 0, r * 1.95, r * .52, 0, behind ? Math.PI : 0, behind ? Math.PI * 2 : Math.PI);
+  c.strokeStyle = `hsla(${p.hue},${p.saturation | 0}%,${behind ? 52 : 70}%,${((behind ? .3 : .5) * dim).toFixed(3)})`;
+  c.lineWidth = Math.max(1.4, r * .2);
+  c.stroke();
+  c.restore();
+};
+/* The sun has to be the biggest thing in the picture. A value with fifty
+   pieces of evidence behind it draws at thirty-six pixels, and a sun of
+   twenty-four next to it reads as a small planet in the middle rather than as
+   the thing everything else goes round — which would be exactly backwards
+   about whose system it is. So the core clears the largest planet, and the
+   corona clears the core. */
 ValuesSolar.prototype.sun = function(ms, ink){
   const c = this.ctx, cx = this.cx, cy = this.cy;
-  const pulse = this.soft ? 52 : 52 + Math.sin(ms / 1000 * 1.26) * 5;
-  const g = c.createRadialGradient(cx, cy, 20, cx, cy, pulse);
+  const core = this.sunCore();
+  const pulse = (core * 2.3) + (this.soft ? 0 : Math.sin(ms / 1000 * 1.26) * 5);
+  const g = c.createRadialGradient(cx, cy, core * .8, cx, cy, pulse);
   g.addColorStop(0, `rgba(212,164,76,${ink.corona})`);
   g.addColorStop(.5, `rgba(212,164,76,${(ink.corona * .25).toFixed(3)})`);
   g.addColorStop(1, 'rgba(212,164,76,0)');
   c.fillStyle = g; c.beginPath(); c.arc(cx, cy, pulse, 0, Math.PI * 2); c.fill();
-  const core = c.createRadialGradient(cx - 5, cy - 5, 0, cx, cy, 24);
-  core.addColorStop(0, ink.light ? '#f6e3bd' : '#f5deb3');
-  core.addColorStop(.6, ink.light ? '#c49552' : '#d4a44c');
-  core.addColorStop(1, ink.light ? '#8a6d4a' : '#b08968');
-  c.fillStyle = core; c.beginPath(); c.arc(cx, cy, 24, 0, Math.PI * 2); c.fill();
+  const face = c.createRadialGradient(cx - core * .2, cy - core * .2, 0, cx, cy, core);
+  face.addColorStop(0, ink.light ? '#fdf3df' : '#fbeccb');
+  face.addColorStop(.55, ink.light ? '#d8ab63' : '#e2b45a');
+  face.addColorStop(1, ink.light ? '#8a6d4a' : '#b08968');
+  c.fillStyle = face; c.beginPath(); c.arc(cx, cy, core, 0, Math.PI * 2); c.fill();
   /* it is worth saying out loud whose system this is */
   if(this.opts.labels !== false){
     c.save();
-    c.fillStyle = ink.label; c.globalAlpha = .5;
+    c.fillStyle = ink.label; c.globalAlpha = .72;
     c.font = '10px ' + (getComputedStyle(document.body).fontFamily || 'sans-serif');
     c.textAlign = 'center'; c.letterSpacing && (c.letterSpacing = '1.5px');
-    c.fillText('you', cx, cy + 44);
+    c.fillText('you', cx, cy + core + 26);
     c.restore();
   }
 };

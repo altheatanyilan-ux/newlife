@@ -121,10 +121,53 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   is('the previous order is kept', await p.evaluate(() => S.valueOrderHistory.length), rank0 + 1);
   is('and it survives the redraw', await p.evaluate(() => S.valueOrder[0]), last.id);
 
-  console.log('\n5. it stops when nobody has asked for motion');
-  await p.evaluate(() => { S.settings.decor = 'plain'; applyDecor(); rerender(); });
+  console.log('\n5. the planets are actually going round, and each is its own object');
+  await values();
+  /* A house with nothing in it yet is the state every new house is in, and it
+     used to draw at half a degree a second — twelve minutes for one circuit,
+     which reads as nailed down. Two degrees a second is the floor worth
+     defending: below it nobody can see the system move. */
+  const turn = async () => {
+    const a0 = await p.evaluate(() => _solar.planets.map(q => q.ang));
+    await p.waitForTimeout(1500);
+    const a1 = await p.evaluate(() => _solar.planets.map(q => q.ang));
+    return a0.map((a, i) => ((a1[i] - a) * 180 / Math.PI + 720) % 360 / 1.5);
+  };
+  const degs = await turn();
+  yes('every planet turns at two degrees a second or better',
+    degs.every(d => d >= 2), degs.map(d => d.toFixed(1)).join(' / '));
+  /* Kepler, and the reason the picture reads as a system rather than a plate */
+  yes('  and the further out, the slower round',
+    degs.every((d, i) => i === 0 || d < degs[i - 1] + .01),
+    degs.map(d => d.toFixed(1)).join(' / '));
+  const made = await p.evaluate(() => _solar.planets.map(q =>
+    [q.face, q.ringed ? 'ring' : '', q.storm ? 'storm' : '', q.moon ? 'moon' : ''].filter(Boolean).join('+')));
+  yes('  and every one of them is made of something nameable',
+    made.every(m => /^(banded|cratered|marbled|swirled|capped|smooth)/.test(m)), made.join(' / '));
+
+  /* The one thing in the drawing that read as broken. A planet under the
+     pointer stops so it can be read; when the pointer leaves it used to
+     resume from where it WOULD have got to, so it jumped forward by however
+     long you had lingered. */
+  console.log('\n6. a planet that was held starts again from where it stopped');
+  ps = await spots();
+  const held = ps[0];
+  await p.mouse.move(held.x, held.y); await p.waitForTimeout(150);
+  yes('the pointer stops it', await p.evaluate(() => !!_solar.hover));
+  const frozen = await p.evaluate(() => _solar.hover.ang);
+  await p.waitForTimeout(1200);
+  is('  and it stays stopped', await p.evaluate(() => _solar.hover.ang), frozen);
+  await p.mouse.move(held.x, held.y - 260); await p.waitForTimeout(80);
+  const after1 = await p.evaluate(() => _solar.planets[0].ang);
+  const jump = Math.abs(after1 - frozen) * 180 / Math.PI;
+  yes('  and it does not jump when the pointer leaves', jump < 3, jump.toFixed(2) + ' deg');
   await p.waitForTimeout(900);
-  yes('plain draws one frame and no loop',
+  yes('  it simply carries on', await p.evaluate(() => _solar.planets[0].ang) > after1);
+
+  console.log('\n7. it stops when nobody has asked for motion');
+  await p.emulateMedia({reducedMotion: 'reduce'});
+  await p.evaluate(() => rerender()); await p.waitForTimeout(900);
+  yes('a still system draws one frame and no loop',
     await p.evaluate(() => !!(_solar && _solar.soft && !_solar.raf)),
     await p.evaluate(() => _solar ? `soft=${_solar.soft} raf=${_solar.raf}` : 'no system'));
   const painted = await p.evaluate(() => {
@@ -134,13 +177,14 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     return lit;
   });
   yes('and the one frame is actually drawn', painted > 2000, String(painted));
-  await p.evaluate(() => { S.settings.decor = 'full'; applyDecor(); rerender(); });
-  await p.waitForTimeout(900);
-  yes('and full puts the loop back', await p.evaluate(() => !!(_solar && !_solar.soft && _solar.raf)));
+  await p.emulateMedia({reducedMotion: 'no-preference'});
+  await p.evaluate(() => rerender()); await p.waitForTimeout(900);
+  yes('and asking for motion back puts the loop back',
+    await p.evaluate(() => !!(_solar && !_solar.soft && _solar.raf)));
   await p.evaluate(() => { location.hash = '#/today'; }); await p.waitForTimeout(900);
   yes('leaving the page stops it', await p.evaluate(() => !document.querySelector('#solarCv')));
 
-  console.log('\n6. the key says what it all means, in words');
+  console.log('\n8. the key says what it all means, in words');
   await values();
   const key = await p.evaluate(() =>
     [...document.querySelectorAll('.solar-key dt')].map(n => n.textContent.trim().toLowerCase()));
