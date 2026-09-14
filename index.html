@@ -7490,6 +7490,128 @@ html[data-theme="light"] .hs-note{fill:#fffdf6}
 @media (max-width:640px){
   .house-exit{font-size:1rem;padding:9px 16px}
 }
+
+/* ---------- the main room ----------
+   Everything down here is a thing you make something WITH, and the drawing
+   says so: hard edges, lacquer, keys, glass. The sanctuary above is all soft
+   curves and cloth. That contrast is the only thing telling you which floor
+   you are on once you stop reading the labels. */
+.hm-panel rect{fill:color-mix(in srgb,var(--rm-light) 9%,transparent);
+  stroke:var(--rm-wood-2);stroke-width:2.6}
+.hm-panel path{stroke:var(--rm-wood-2);stroke-width:1.2;fill:none;opacity:.7}
+/* the gap between the panels: the rest of the house, warm, a room away */
+.hm-shoji-gap{fill:var(--rm-light);opacity:.16}
+.hm-board{fill:color-mix(in srgb,#000 16%,transparent);
+  stroke:var(--rm-wood-2);stroke-width:3}
+html[data-theme="light"] .hm-board{fill:color-mix(in srgb,#8a6a43 14%,transparent)}
+
+.hm-trail{fill:none;stroke:var(--sage);stroke-width:2.4;stroke-linecap:round;opacity:.7}
+.hm-desk,.hm-lowtable{fill:var(--rm-wood-2)}
+.hm-paper{fill:#f3ead7;opacity:.92}
+html[data-theme="light"] .hm-paper{fill:#fffdf6;stroke:rgba(44,37,32,.1);stroke-width:.8}
+.hm-lamp{fill:none;stroke:var(--rm-wood-2);stroke-width:3;stroke-linecap:round}
+.hm-lampshade{fill:var(--gold);opacity:.75}
+.hm-lamplight{opacity:.5;transition:opacity .3s var(--ease)}
+.zone-desk:hover .hm-lamplight,.zone-desk:focus-visible .hm-lamplight{opacity:.9}
+.hm-ink{fill:#1f1b19}
+html[data-theme="light"] .hm-ink{fill:#3a2f26}
+
+/* the piano: black lacquer, and a lid that lifts when you reach for it */
+.hm-piano-lid,.hm-piano-body{fill:#1d1a18}
+html[data-theme="light"] .hm-piano-lid,html[data-theme="light"] .hm-piano-body{fill:#2e2823}
+.hm-piano-lid{transform-box:fill-box;transform-origin:50% 100%;
+  transition:transform .3s var(--ease)}
+.zone-piano:hover .hm-piano-lid,.zone-piano:focus-visible .hm-piano-lid{transform:translateY(-10px) rotate(-1.4deg)}
+.hm-key{fill:#f1e9da}
+.hm-key.dark{fill:#1d1a18}
+.hm-score{fill:#f3ead7;opacity:.95}
+.hm-score rect{fill:#f3ead7}
+.hm-score path{stroke:#6b5e53;stroke-width:1;fill:none}
+
+.hm-bass{fill:var(--rm-wood);opacity:.9}
+.hm-bass-neck{fill:none;stroke:var(--rm-wood-2);stroke-width:6;stroke-linecap:round}
+.hm-bass-str{fill:none;stroke:var(--gold);stroke-width:1;opacity:.6}
+.hm-drum{fill:var(--rm-cush-2);opacity:.9}
+.hm-cymbal,.hm-sax{fill:none}
+.hm-cymbal{fill:var(--gold);opacity:.8}
+.hm-cymbal-post{fill:none;stroke:var(--rm-wood-2);stroke-width:2.4}
+.hm-sax{stroke:var(--gold);stroke-width:7;stroke-linecap:round;opacity:.9}
+.zone-band>*{transition:transform .22s var(--ease)}
+.zone-band:hover>*,.zone-band:focus-visible>*{transform:translateY(-3px)}
+
+/* the bar */
+.hm-backbar{fill:none;stroke:var(--rm-wood-2);stroke-width:3}
+.hm-counter{fill:var(--rm-wood-2)}
+.hm-counter-front{fill:var(--rm-wood)}
+.hm-drawer{fill:var(--rm-wood);stroke:var(--rm-line);stroke-width:.8}
+.obj-medicine:hover .hm-drawer:nth-of-type(3n){transform:translateX(3px)}
+.hm-drawer{transition:transform .2s var(--ease)}
+.hm-crystal{fill:var(--rm-cush);opacity:.85}
+.hm-crystal:nth-of-type(2n){fill:var(--sage)}
+.hm-crystal:nth-of-type(3n){fill:var(--gold)}
+.obj-crystals:hover .hm-crystal{animation:hmShimmer 1.8s var(--ease) infinite;
+  animation-delay:calc(var(--i) * -.22s)}
+@keyframes hmShimmer{0%,100%{opacity:.85}50%{opacity:1}}
+.hm-machine{fill:#2a2522}
+html[data-theme="light"] .hm-machine{fill:#4a403a}
+.hm-machine-cup{fill:#f1e9da}
+.hm-steam{fill:none;stroke:var(--rm-say);stroke-width:2;stroke-linecap:round;opacity:.22}
+.obj-drinks:hover .hm-steam{animation:hmSteam 2.6s var(--ease) infinite;
+  animation-delay:calc(var(--i, 0) * -.9s)}
+@keyframes hmSteam{0%{opacity:.1;transform:translateY(3px)}
+  50%{opacity:.34}100%{opacity:.1;transform:translateY(-4px)}}
+.hm-bottle rect{fill:var(--rm-cloth);opacity:.85}
+.hm-bottle:nth-of-type(3n) rect{fill:var(--sage)}
+.hm-bottle:nth-of-type(4n) rect{fill:var(--gold)}
+.hm-bottle{transform-box:fill-box;transform-origin:50% 100%;transition:transform .2s var(--ease)}
+.obj-drinks:hover .hm-bottle{transform:translateY(-2px)}
+
+/* the nook */
+.hm-nook-glow{opacity:.55;transition:opacity .3s var(--ease)}
+.zone-nook:hover .hm-nook-glow,.zone-nook:focus-visible .hm-nook-glow{opacity:.9}
+.hm-chair-back{fill:var(--rm-cush-2)}
+.hm-chair-seat{fill:var(--rm-cush)}
+.hm-blanket{fill:var(--sage);opacity:.8}
+
+/* the wall of coincidences */
+.hm-pin-note{fill:#f3ead7;opacity:.9;transition:transform .2s var(--ease)}
+html[data-theme="light"] .hm-pin-note{fill:#fffdf6;stroke:rgba(44,37,32,.12);stroke-width:.8}
+.zone-synch:hover .hm-pin-note:nth-of-type(2n){transform:translateY(-2px) rotate(2deg)}
+.hm-thread{fill:none;stroke:var(--rose);stroke-width:1;opacity:.5}
+.hm-thread:nth-of-type(2n){stroke:var(--sage)}
+.hm-thread:nth-of-type(3n){stroke:var(--gold)}
+
+@media (prefers-reduced-motion: reduce){
+  .hm-piano-lid,.hm-bottle,.hm-drawer,.hm-pin-note,.zone-band>*,.hm-lamplight,.hm-nook-glow{transition:none}
+  .obj-crystals:hover .hm-crystal,.obj-drinks:hover .hm-steam{animation:none!important}
+}
+
+/* ---------- the drink naming ceremony ---------- */
+.drink-rite{min-width:0}
+.drink-bases{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.drink-base{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:10px 12px;
+  border:1px solid var(--line);border-radius:12px;background:var(--surface-2);color:var(--muted);
+  font:inherit;text-align:left;cursor:pointer;transition:all .18s var(--ease)}
+.drink-base:hover{color:var(--text);border-color:var(--line-2)}
+.drink-base.on{color:var(--text);border-color:var(--terra);
+  background:color-mix(in srgb,var(--terra) 12%,transparent)}
+.drink-base b{font-family:var(--serif);font-size:.94rem}
+.drink-base .mono{font-size:.6rem;color:var(--faint)}
+.db-ic{font-size:1.2rem;line-height:1}
+
+.drink-card{margin-top:16px;padding:14px;border-radius:12px;
+  border:1px solid var(--line);border-left:3px solid var(--gold);background:var(--surface-2)}
+.dk-from{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+.dk-because{font-family:var(--quote);font-style:italic;margin:6px 0 12px;color:var(--text)}
+.dk-name{font-family:var(--display);font-size:1.15rem}
+.dk-recipe{margin:12px 0;padding:10px 12px;border-radius:10px;background:var(--surface)}
+.dk-base{font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);
+  margin-bottom:6px}
+.dk-ing{display:flex;justify-content:space-between;gap:12px;align-items:baseline;
+  padding:4px 0;border-top:1px dashed var(--line)}
+.dk-ing:first-of-type{border-top:0}
+.dk-ing b{font-family:var(--serif);font-size:.95rem}
+.dk-ing .mono{font-size:.66rem;color:var(--faint);text-align:right}
 </style>
 </head>
 <body>
@@ -7768,7 +7890,7 @@ function tagChips(e, {link=true}={}){ const t = entryTags(e); return t.length ? 
 const KEY = 'lifeinstrument.v1';
 let S = null;
 /* persistence lives in db.js (Dexie schema + load/save/backup) */
-function migrate(){ if(S.settings && ['map','home','compass'].includes(S.settings.home)) S.settings.home = 'today'; wipeDemoData(); if(S.rehearsal && !S.rehearsal){ S.rehearsal = S.rehearsal; } delete S.rehearsal; if(typeof migrateEras === 'function') migrateEras(); const d = seed(); for(const k of Object.keys(d)) if(S[k]===undefined) S[k] = d[k]; if(typeof migrateLifeline === 'function') migrateLifeline(); if(typeof migrateSkillLevels === 'function') migrateSkillLevels(); if(typeof migrateSkillAbilities === 'function') migrateSkillAbilities(); if(typeof migrateProjects === 'function') migrateProjects(); if(typeof migrateStages === 'function') migrateStages(); if(typeof migrateTasks === 'function') migrateTasks(); if(typeof migrateIdeas === 'function') migrateIdeas(); if(typeof migrateMedia === 'function') migrateMedia(); if(typeof migrateSkillFocus === 'function') migrateSkillFocus(); if(typeof migrateSkillCats === 'function') migrateSkillCats(); if(typeof migratePeople === 'function') migratePeople(); if(typeof migrateValuePractices === 'function') migrateValuePractices(); if(typeof migrateFinance === 'function') migrateFinance(); if(typeof migrateRhythm === 'function') migrateRhythm(); if(typeof migrateTheatre === 'function') migrateTheatre(); if(typeof migrateStillness === 'function') migrateStillness(); if(typeof migrateReviews === 'function') migrateReviews(); if(typeof migrateJournalTypes === 'function') migrateJournalTypes(); S.boards = Array.isArray(S.boards) ? S.boards : []; if(typeof migrateBoards === 'function') migrateBoards(); }
+function migrate(){ if(S.settings && ['map','home','compass'].includes(S.settings.home)) S.settings.home = 'today'; wipeDemoData(); if(S.rehearsal && !S.rehearsal){ S.rehearsal = S.rehearsal; } delete S.rehearsal; if(typeof migrateEras === 'function') migrateEras(); const d = seed(); for(const k of Object.keys(d)) if(S[k]===undefined) S[k] = d[k]; if(typeof migrateLifeline === 'function') migrateLifeline(); if(typeof migrateEntryLinks === 'function') migrateEntryLinks(); if(typeof migrateSkillLevels === 'function') migrateSkillLevels(); if(typeof migrateSkillAbilities === 'function') migrateSkillAbilities(); if(typeof migrateProjects === 'function') migrateProjects(); if(typeof migrateStages === 'function') migrateStages(); if(typeof migrateTasks === 'function') migrateTasks(); if(typeof migrateIdeas === 'function') migrateIdeas(); if(typeof migrateMedia === 'function') migrateMedia(); if(typeof migrateSkillFocus === 'function') migrateSkillFocus(); if(typeof migrateSkillCats === 'function') migrateSkillCats(); if(typeof migratePeople === 'function') migratePeople(); if(typeof migrateValuePractices === 'function') migrateValuePractices(); if(typeof migrateFinance === 'function') migrateFinance(); if(typeof migrateRhythm === 'function') migrateRhythm(); if(typeof migrateTheatre === 'function') migrateTheatre(); if(typeof migrateStillness === 'function') migrateStillness(); if(typeof migrateReviews === 'function') migrateReviews(); if(typeof migrateJournalTypes === 'function') migrateJournalTypes(); S.boards = Array.isArray(S.boards) ? S.boards : []; if(typeof migrateBoards === 'function') migrateBoards(); }
 
 /* One-time: the house used to open furnished with a demonstration life. If that
    demonstration is still here, clear it so the rooms start empty. */
@@ -8278,7 +8400,7 @@ const HICKS = ['Fear / Grief / Depression / Despair / Powerlessness','Insecurity
 const hicksName = n => HICKS[clamp(Math.round(n),1,22)-1];
 const DIMS = [{id:'physical',name:'Physical',c:'var(--phys)'},{id:'emotional',name:'Emotional',c:'var(--emo)'},{id:'mental',name:'Mental',c:'var(--ment)'},{id:'spiritual',name:'Spiritual',c:'var(--spir)'}];
 const CONF = ['hunch','exploring','plan','committed','in motion','lived'];
-const ENTRY_TYPES = [['uncategorized','Uncategorized','▫'],['decision','Decision','⚖'],['lifeevent','Life event','◆'],['memory','Memory','◌'],['reflection','Reflection','✎'],['synchronicity','Synchronicity','∞'],['manifestation','Manifestation','✦'],['gratitude','Gratitude','♡'],['dream','Dream','☾'],['progress','Progress','↗'],['nod','Nod','·'],['artifact','Artifact','▣'],['letter','Letter','✉'],['quote','Quote','“'],['question','Question','?'],['visualization','Visualization','◉'],['divination','Divination','🔮'],['intuition','Intuition','⚡']];
+const ENTRY_TYPES = [['uncategorized','Uncategorized','▫'],['decision','Decision','⚖'],['lifeevent','Life event','◆'],['memory','Memory','◌'],['reflection','Reflection','✎'],['synchronicity','Synchronicity','∞'],['manifestation','Manifestation','✦'],['gratitude','Gratitude','♡'],['dream','Dream','☾'],['progress','Progress','↗'],['nod','Nod','·'],['artifact','Artifact','▣'],['letter','Letter','✉'],['quote','Quote','“'],['question','Question','?'],['visualization','Visualization','◉'],['divination','Divination','🔮'],['intuition','Intuition','⚡'],['drink','From the bar','🍸']];
 const typeName = t => (ENTRY_TYPES.find(x=>x[0]===t)||[t,t])[1];
 const typeIcon = t => (ENTRY_TYPES.find(x=>x[0]===t)||['','','·'])[2];
 /* ============================================================
@@ -11753,6 +11875,22 @@ const ERA_PALETTE = ['#7f916a','#6b7f8e','#b08968','#a0727e','#d4a44c','#8a7f9e'
 function erasList(){ return [...(S.visionEras||[])].sort((a,b)=>a.order-b.order).map(e => Object.assign(e, {label:e.name, desc:e.subtitle})); }
 const LEVEL_LABELS = ['Beginner','Novice','Competent','Proficient','Expert','Master'];
 const RESOURCE_TYPES = ['book','video','course','article','tool'];
+/* ---------- every entry has a links object ----------
+   Thirty-odd places in the house read e.links.values or e.links.threads
+   straight through, because everything this app writes carries the object.
+   An entry that arrives without one — through an import, or out of a version
+   old enough to predate a field — then takes down whichever page reads it
+   first with a TypeError, and the page becomes the error floor. Guarding one
+   call site fixes one page; filling the gap on load fixes all of them, and
+   costs one pass over the entries at boot. */
+const ENTRY_LINK_KEYS = ['stages','substages','threads','values','visions','skills','projects','people'];
+function migrateEntryLinks(){
+  (S.entries || []).forEach(e => {
+    if(!e || typeof e !== 'object') return;
+    if(!e.links || typeof e.links !== 'object') e.links = {};
+    ENTRY_LINK_KEYS.forEach(k => { if(!Array.isArray(e.links[k])) e.links[k] = []; });
+  });
+}
 function migrateSkillLevels(){
   S.skills.forEach(s => {
     if(!Array.isArray(s.levels) || !s.levels.length){ const rub = Array.isArray(s.rubric) && s.rubric.length ? s.rubric : ['','','','','']; s.levels = rub.map((d,i) => ({number:i+1, label:LEVEL_LABELS[i] || `Level ${i+1}`, description:d||'', criteria:[], resources:[], estimatedTime:'', targetDate:null})); }
@@ -28649,6 +28787,166 @@ routes.finance = function(root){
   reveal(root);
 };
 /* ============================================================
+   THE DRINK NAMING CEREMONY
+
+   The bar in the main room is the only object in the house that makes
+   something you can hold. You draw one card, and the card's own keywords
+   decide what goes in the glass: the reading becomes a recipe, the recipe
+   gets a name, and the name goes on a list that grows.
+
+   It is the lightest thing in the instrument and that is deliberate. Every
+   other practice here asks you to be honest about something; this one asks
+   you to make a drink and write down what it tasted like. A house with no
+   room in it for play is a clinic.
+
+   The recipe is genuinely derived rather than picked from a list. Every card
+   in the house already carries keywords — the tarot has five each, the oracle
+   decks carry a line apiece — and those keywords are matched against a table
+   of flavours. So the Star gives you something floral and the Ten of Swords
+   gives you something bitter, every time, for a reason you can read back.
+   ============================================================ */
+
+/* what a word tastes like. Two dozen entries, each one an ingredient a person
+   could actually find, with the note that says why it is there. Anything
+   unmatched falls through to the base's own character rather than to nothing. */
+const DRINK_FLAVOURS = [
+  [/hope|renew|revival|dawn|spring|begin/i,        'chamomile',            'floral, forgiving'],
+  [/passion|desire|fire|heat|courage|strength/i,   'chilli',               'a slow heat at the back'],
+  [/change|transform|death|rebirth|turning/i,      'butterfly pea flower', 'goes from blue to violet'],
+  [/wisdom|hermit|study|learn|know|teacher/i,      'ginseng',              'earthy, steadying'],
+  [/love|lovers|union|heart|kind|tender/i,         'rose water',           'sweet, opening'],
+  [/clarity|truth|sword|clear|honest|judge/i,      'peppermint',           'bright, clearing'],
+  [/intuit|moon|dream|mystery|priestess|hidden/i,  'lavender',             'dreamy, receptive'],
+  [/focus|work|craft|discipline|practice/i,        'matcha',               'bold and level'],
+  [/rest|pause|sleep|still|quiet|patience/i,       'valerian',             'heavy-lidded'],
+  [/grief|loss|sorrow|ruin|exhaust|defeat/i,       'bitter orange',        'the good kind of bitter'],
+  [/abundance|empress|harvest|plenty|wealth/i,     'honey',                'thick, generous'],
+  [/travel|journey|road|chariot|move|world/i,      'cardamom',             'smells like somewhere else'],
+  [/fortune|luck|wheel|chance|risk/i,              'ginger',               'sharp, unpredictable'],
+  [/home|family|four of wands|belong|root/i,       'cinnamon',             'the smell of a kitchen'],
+  [/shadow|devil|fear|temptation|dark/i,           'black cardamom',       'smoke, and something under it'],
+  [/star|wish|faith|guide|light/i,                 'elderflower',          'faint and far off'],
+  [/sun|joy|play|delight|child/i,                  'blood orange',         'unembarrassed'],
+  [/justice|balance|weigh|temperance|measure/i,    'green tea',            'nothing in excess'],
+  [/tower|break|shock|sudden|collapse/i,           'mezcal smoke',         'the roof coming off'],
+  [/patience|hang|wait|suspend|surrender/i,        'cold brew',            'made slowly on purpose'],
+  [/magic|magician|will|make|create/i,             'yuzu',                 'sharper than it looks'],
+  [/friend|company|three of cups|together/i,       'mint',                 'meant to be shared'],
+  [/solitude|alone|retreat|withdraw/i,             'smoked salt',          'a rim for one'],
+  [/money|coin|pentacle|earn|build/i,              'oat milk',             'plain and sustaining'],
+];
+const DRINK_BASES = [
+  ['tea',     '\u{1F375}', 'Tea',          'hot water, and time'],
+  ['coffee',  '☕',    'Coffee',       'the one that gets you upright'],
+  ['cocktail','\u{1F378}', 'Cocktail',     'for an evening with an edge'],
+  ['herbal',  '\u{1F33F}', 'Herbal brew',  'the one that is half medicine'],
+];
+const drinkBase = k => DRINK_BASES.find(b => b[0] === k) || DRINK_BASES[0];
+
+/* the card, whichever system it came from, reduced to the two things a recipe
+   needs: something to call it and some words to taste */
+function drinkCardOf(system, deckId){
+  if(system === 'tarot'){
+    const c = TAROT[Math.floor(Math.random() * TAROT.length)];
+    return {system:'tarot', id:c.n, name:c.n, words:(c.k || []).join(' '), line:(c.u || '').split('.')[0]};
+  }
+  const deck = ORACLE_DECKS.find(d => d.id === deckId) || ORACLE_DECKS[0];
+  const i = oracleDraw(deck.id, 1)[0] || 0;
+  const [name, line] = deck.cards[i];
+  return {system:'oracle', deck:deck.id, id:String(i), name, words:name + ' ' + line, line};
+}
+/* Two or three ingredients, never the same one twice, in the order the card
+   named them. A card whose words match nothing gets the base's own character
+   rather than an empty glass — there is no such thing as a failed draw. */
+function drinkRecipe(card, base){
+  const out = [];
+  DRINK_FLAVOURS.forEach(([re, name, note]) => {
+    if(out.length >= 3) return;
+    if(re.test(card.words) && !out.some(x => x.name === name)) out.push({name, note});
+  });
+  if(!out.length) out.push({name: drinkBase(base)[3], note: 'and nothing else in the way'});
+  return {
+    base,
+    ingredients: out,
+    name: `The ${String(card.name).replace(/^The\s+/i, '')}`,
+    inspiredBy: {system: card.system, deck: card.deck || '', cardId: card.id, cardName: card.name},
+    because: card.line || '',
+  };
+}
+
+function drinkEntries(){
+  return (S.entries || []).filter(e => e.type === 'drink')
+    .sort((a, b) => (b.occurredAt || '') < (a.occurredAt || '') ? -1 : 1);
+}
+
+/* ---------- the ceremony ---------- */
+function openDrinkCeremony(){
+  let base = 'tea', card = null, rec = null;
+  const m = openModal(`<div class="drink-rite">
+    <h2 class="entry-h">What does your spirit need tonight?</h2>
+    <p class="muted" style="font-size:.86rem;margin:0 0 14px">One card decides what goes in it.
+      You decide what it is called.</p>
+    <div class="field"><label>Start with</label>
+      <div class="drink-bases">${DRINK_BASES.map(([k, ic, n, why]) =>
+        `<button type="button" class="drink-base${k === base ? ' on' : ''}" data-dbase="${k}">
+          <span class="db-ic">${ic}</span><b>${esc(n)}</b><span class="mono">${esc(why)}</span></button>`).join('')}</div></div>
+    <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:6px">
+      <button class="btn primary" id="dkDraw">Draw a card</button>
+      <button class="btn ghost" id="dkTarot">…from the tarot instead</button>
+      <a class="btn sm ghost" href="#/journals/drink" id="dkArch">the menu →</a>
+    </div>
+    <div id="dkOut"></div>
+  </div>`, 'narrow');
+
+  m.querySelectorAll('[data-dbase]').forEach(b => b.onclick = () => {
+    base = b.dataset.dbase;
+    m.querySelectorAll('[data-dbase]').forEach(x => x.classList.toggle('on', x === b));
+    if(card) draw(card.system);
+  });
+  m.querySelector('#dkArch').onclick = () => m.remove();
+
+  const draw = system => {
+    card = drinkCardOf(system);
+    rec = drinkRecipe(card, base);
+    sound('click');
+    m.querySelector('#dkOut').innerHTML = `<div class="drink-card rv in">
+      <div class="dk-from mono">${esc(card.system === 'tarot' ? 'Tarot' : 'Oracle')} · ${esc(card.name)}</div>
+      ${rec.because ? `<p class="dk-because">${esc(rec.because)}</p>` : ''}
+      <div class="field"><label>Call it</label>
+        <input class="inp dk-name" id="dkName" value="${esc(rec.name)}"></div>
+      <div class="dk-recipe">
+        <div class="dk-base mono">${esc(drinkBase(base)[2])}</div>
+        ${rec.ingredients.map(x => `<div class="dk-ing">
+          <b>${esc(x.name)}</b><span class="mono">${esc(x.note)}</span></div>`).join('')}
+      </div>
+      <div class="field"><label>And when you drink it (optional)</label>
+        <textarea class="ta" id="dkNote" style="min-height:56px"
+          placeholder="Made this the night before the interview. It tasted like nerve."></textarea></div>
+      <div class="row" style="justify-content:flex-end;gap:8px;margin-top:10px">
+        <button class="btn sm ghost" id="dkAgain">draw again</button>
+        <button class="btn primary" id="dkKeep">Add it to the menu</button></div>
+    </div>`;
+    m.querySelector('#dkAgain').onclick = () => draw(system);
+    m.querySelector('#dkKeep').onclick = () => {
+      const name = m.querySelector('#dkName').value.trim() || rec.name;
+      S.entries.unshift({
+        id: uid(), type:'drink', title: name,
+        body: m.querySelector('#dkNote').value.trim(),
+        occurredAt: today(), createdAt: new Date().toISOString(), media:[],
+        links:{stages:[],substages:[],threads:[],values:[],visions:[],skills:[],projects:[],people:[]},
+        people:[], places:[], emotions:[], tags:['drink', base],
+        extra:{drink:{base, ingredients: rec.ingredients, inspiredBy: rec.inspiredBy}},
+      });
+      saveNow(); sound('success');
+      toast(`“${name}” is on the menu.`, 3600);
+      m.remove(); rerender();
+    };
+  };
+  m.querySelector('#dkDraw').onclick = () => draw('oracle');
+  m.querySelector('#dkTarot').onclick = () => draw('tarot');
+  return m;
+}
+/* ============================================================
    THE HOUSE
 
    The rooms of this app are a list in a sidebar. A list is the right shape
@@ -28920,10 +29218,199 @@ function sanctuaryHTML(){
   </div>`;
 }
 
+/* ---------- the main room ----------
+   The ground floor, and the room you arrive in. Everything in here is a thing
+   you MAKE something with — an instrument, a desk, a shelf, a counter — which
+   is the difference between this floor and the one above it, where everything
+   is a thing you sit with.
+
+   Laid out left to right the way you would meet it walking in: the bookshelf
+   and the writing desk against the left wall, the piano and its band holding
+   the middle, the bar along the right, and below them the two small places
+   that are not about output at all — the nook you go to to feel something, and
+   the wall where the coincidences are pinned up. */
+function mainRoomHTML(){
+  const books   = (S.entries || []).filter(e => e.type === 'media').length;
+  const synch   = (S.entries || []).filter(e => e.type === 'synchronicity').length;
+  const musical = (S.skills || []).filter(s => /music|piano|guitar|sing|jazz|instrument/i.test(
+                    (s.name || '') + ' ' + (s.cat || ''))).length;
+  const drinks  = (S.entries || []).filter(e => e.type === 'drink').length;
+
+  const floor = Array.from({length: 7}, (_, i) =>
+    `<path class="rm-plank" d="${roomEdge(0, 396 + i * 30, 1200, 390 + i * 30, 'mfl' + i)}"/>`).join('');
+  const wall = Array.from({length: 10}, (_, i) =>
+    `<path class="rm-brush" d="${roomEdge(64 + i * 120, 16, 70 + i * 120, 380, 'mwall' + i)}"/>`).join('');
+
+  /* a book for every piece of media logged, up to a full shelf */
+  const shelf = (y, n, seed) => Array.from({length: n}, (_, i) => {
+    const x = 74 + i * 15, h = 38 + ((i * 7 + seed) % 5) * 5;
+    return `<rect class="rm-book" x="${x}" y="${y - h}" width="${11 + (i % 3)}" height="${h}" rx="1.5"/>`;
+  }).join('');
+  const onShelf = Math.min(books, 24);
+
+  return `<div class="room-wrap house-room rv">
+    <svg class="sacred-room" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid meet"
+      role="group" aria-label="The main room: a piano, a bookshelf, a desk, a bar and a wall of coincidences">
+      <defs>
+        <radialGradient id="hmGlow"><stop offset="0" stop-color="var(--rm-light)" stop-opacity=".5"/>
+          <stop offset="1" stop-color="var(--rm-light)" stop-opacity="0"/></radialGradient>
+      </defs>
+
+      <g class="rm-bg">
+        <rect x="0" y="0" width="1200" height="392" class="rm-wall"/>
+        <rect x="0" y="392" width="1200" height="208" class="rm-floor"/>
+        <g class="rm-tex">${wall}${floor}</g>
+        <path class="rm-line" d="${roomEdge(0, 392, 1200, 392, 'mskirt')}"/>
+        <!-- The shoji at the back, standing open. Two panels with a gap of warm
+             light between them: drawn as one wide grid it read as a window,
+             and a window is not a door to anywhere. -->
+        <g class="hm-shoji">
+          <rect class="hm-shoji-gap" x="572" y="72" width="56" height="290"/>
+          ${[[440], [628]].map(([x]) => `<g class="hm-panel">
+            <rect x="${x}" y="72" width="132" height="290" rx="2"/>
+            ${[1,2].map(i => `<path d="M${x + 44 * i},72 V362"/>`).join('')}
+            ${[1,2,3,4].map(i => `<path d="M${x},${72 + 58 * i} H${x + 132}"/>`).join('')}
+          </g>`).join('')}
+        </g>
+      </g>
+
+      <!-- the bookshelf: one book for every piece of media you logged -->
+      <g class="zone zone-books" data-room="library" tabindex="0" role="button" aria-label="The shelf — your library">
+        <rect class="rm-shelf-box" x="58" y="120" width="180" height="250" rx="3"/>
+        <path class="rm-line" d="${roomEdge(62, 204, 234, 204, 'msha')}"/>
+        <path class="rm-line" d="${roomEdge(62, 288, 234, 288, 'mshb')}"/>
+        ${shelf(202, Math.min(onShelf, 10), 1)}
+        ${shelf(286, Math.max(0, Math.min(onShelf - 10, 10)), 3)}
+        ${shelf(368, Math.max(0, onShelf - 20), 5)}
+        <g class="hs-candle sm" transform="translate(214,118)">
+          <rect class="rm-wax" x="-5" y="-16" width="10" height="20" rx="2"/>
+          <g class="rm-flame" style="--fl:.8"><path class="rm-flame-out" d="M0,-30 C6,-23 5,-18 0,-16 C-5,-18 -6,-23 0,-30Z"/></g>
+        </g>
+        <path class="hm-trail" d="M64,128 C48,164 58,206 44,244 C36,268 44,290 38,312"/>
+        <text class="rm-say" x="148" y="392" text-anchor="middle">Every book is a door</text>
+      </g>
+
+      <!-- the desk: where the writing happens -->
+      <g class="zone zone-desk" data-room="writing" tabindex="0" role="button" aria-label="The desk — the writing studio">
+        <path class="hm-desk" d="M58,470 H266 L276,486 H48 Z"/>
+        <path class="rm-table-leg" d="M70,486 L74,566"/>
+        <path class="rm-table-leg" d="M254,486 L250,566"/>
+        <rect class="hm-paper" x="112" y="446" width="66" height="26" rx="1" transform="rotate(-3 145 459)"/>
+        <rect class="hm-paper" x="122" y="440" width="66" height="26" rx="1" transform="rotate(2 155 453)"/>
+        <path class="hm-lamp" d="M228,468 V430 C228,416 244,412 250,424"/>
+        <path class="hm-lampshade" d="M236,424 L266,424 L258,440 H244Z"/>
+        <circle class="hm-lamplight" cx="251" cy="452" r="46" fill="url(#hmGlow)"/>
+        <ellipse class="hm-ink" cx="90" cy="466" rx="9" ry="5"/>
+        <text class="rm-say" x="160" y="588" text-anchor="middle">Sit down. The words are waiting.</text>
+      </g>
+
+      <!-- the piano, and the band around it -->
+      <g class="zone zone-piano" data-room="piano" tabindex="0" role="button" aria-label="The piano — your skills">
+        <ellipse class="rm-table-glow" cx="560" cy="470" rx="196" ry="66"/>
+        <path class="hm-piano-lid" d="M404,398 C470,356 660,352 726,392 L700,404 C640,372 474,376 420,406Z"/>
+        <path class="hm-piano-body" d="M404,404 H726 L716,470 C640,486 474,486 414,470Z"/>
+        ${Array.from({length: 17}, (_, i) =>
+          `<rect class="hm-key" x="${430 + i * 16}" y="472" width="13" height="26" rx="1.5"/>`).join('')}
+        ${Array.from({length: 17}, (_, i) => (i % 7 === 2 || i % 7 === 6) ? '' :
+          `<rect class="hm-key dark" x="${440 + i * 16}" y="472" width="7" height="16" rx="1"/>`).join('')}
+        <path class="rm-table-leg" d="M430,498 L426,558 M700,498 L704,558"/>
+        ${musical ? `<g class="hm-score"><rect x="524" y="352" width="72" height="46" rx="2"/>
+          ${[0,1,2,3].map(i => `<path d="M532,${364 + i * 9} H588"/>`).join('')}</g>` : ''}
+        <text class="rm-say" x="560" y="584" text-anchor="middle">Make something beautiful</text>
+      </g>
+
+      <!-- the rest of the band: a different kind of making, so a different door -->
+      <g class="zone zone-band" data-room="band" tabindex="0" role="button" aria-label="The band — your projects">
+        <ellipse class="hm-bass" cx="790" cy="452" rx="34" ry="52"/>
+        <path class="hm-bass-neck" d="M790,400 V318"/>
+        <path class="hm-bass-str" d="M782,404 V330 M790,404 V326 M798,404 V330"/>
+        <circle class="hm-drum" cx="862" cy="486" r="34"/>
+        <ellipse class="hm-cymbal" cx="880" cy="424" rx="30" ry="7"/>
+        <path class="hm-cymbal-post" d="M880,428 V486"/>
+        <path class="hm-sax" d="M918,404 C930,404 936,416 936,432 L936,470 C936,486 922,494 910,486"/>
+        <text class="rm-say" x="862" y="556" text-anchor="middle">What are we building together?</text>
+      </g>
+
+      <!-- the bar: three doors on one counter -->
+      <g class="zone zone-bar" aria-label="The bar">
+        <rect class="hm-backbar" x="968" y="116" width="196" height="196" rx="3"/>
+        <path class="rm-line" d="${roomEdge(972, 182, 1160, 182, 'mbara')}"/>
+        <path class="rm-line" d="${roomEdge(972, 248, 1160, 248, 'mbarb')}"/>
+
+        <g class="obj obj-medicine" data-room="medicine" tabindex="0" role="button" aria-label="The medicine cupboard">
+          <ellipse class="obj-aura" cx="1066" cy="150" rx="94" ry="30"/>
+          ${Array.from({length: 18}, (_, i) =>
+            `<rect class="hm-drawer" x="${978 + (i % 6) * 31}" y="${124 + Math.floor(i / 6) * 19}"
+               width="26" height="15" rx="2"/>`).join('')}
+          <text class="obj-say" x="1066" y="114" text-anchor="middle">what the body needs</text>
+        </g>
+        <g class="obj obj-crystals" data-room="crystals" tabindex="0" role="button" aria-label="The crystals — charm casting">
+          <ellipse class="obj-aura" cx="1066" cy="222" rx="90" ry="28"/>
+          ${[[996, 8, 26], [1020, 11, 34], [1048, 7, 22], [1074, 12, 36],
+             [1104, 9, 28], [1134, 7, 23]].map(([x, w, h], i) =>
+            `<path class="hm-crystal" style="--i:${i}" d="M${x},244 L${x - w},${244 - h * .55}
+               L${x},${244 - h} L${x + w},${244 - h * .55}Z"/>`).join('')}
+          <text class="obj-say" x="1066" y="270" text-anchor="middle">Charms</text>
+        </g>
+        <path class="hm-counter" d="M940,404 H1190 L1200,430 H930 Z"/>
+        <path class="hm-counter-front" d="M930,430 H1200 V560 H946 Z"/>
+        <g class="obj obj-drinks" data-room="drinks" tabindex="0" role="button"
+           aria-label="The bar — the drink naming ceremony">
+          <ellipse class="obj-aura" cx="1060" cy="380" rx="96" ry="34"/>
+          <!-- the coffee machine, and its steam -->
+          <rect class="hm-machine" x="948" y="336" width="52" height="66" rx="4"/>
+          <rect class="hm-machine-cup" x="962" y="386" width="24" height="16" rx="2"/>
+          <path class="hm-steam" d="M974,330 C966,318 982,310 974,296"/>
+          <path class="hm-steam" style="--i:1" d="M986,332 C978,322 992,314 984,302"/>
+          ${Array.from({length: Math.min(6 + drinks, 14) }, (_, i) => {
+            const x = 1014 + i * 13, h = 30 + ((i * 5) % 4) * 7;
+            return `<g class="hm-bottle" style="--i:${i}">
+              <rect x="${x}" y="${402 - h}" width="9" height="${h}" rx="2"/>
+              <rect class="hm-bottle-neck" x="${x + 3}" y="${396 - h}" width="3" height="8"/></g>`; }).join('')}
+          <text class="obj-say" x="1060" y="326" text-anchor="middle">What does your spirit need?</text>
+        </g>
+        <text class="rm-say" x="1060" y="584" text-anchor="middle">The bar</text>
+      </g>
+
+      <!-- the nook: the one place in the house that is not for producing anything -->
+      <g class="zone zone-nook" data-room="nook" tabindex="0" role="button" aria-label="The nook — reflections">
+        <circle class="hm-nook-glow" cx="330" cy="470" r="96" fill="url(#hmGlow)"/>
+        <path class="hm-chair-back" d="M296,468 C296,418 312,404 336,404 C360,404 376,418 376,468Z"/>
+        <path class="hm-chair-seat" d="M290,468 H382 L388,494 H284Z"/>
+        <path class="rm-table-leg" d="M296,494 L292,538 M376,494 L380,538"/>
+        <path class="hm-blanket" d="M292,438 C276,452 272,474 278,496 C288,492 296,480 298,466Z"/>
+        <g class="hs-candle sm" transform="translate(404,492)">
+          <rect class="rm-wax" x="-5" y="-16" width="10" height="20" rx="2"/>
+          <g class="rm-flame" style="--fl:.9"><path class="rm-flame-out" d="M0,-30 C6,-23 5,-18 0,-16 C-5,-18 -6,-23 0,-30Z"/></g>
+        </g>
+        <text class="rm-say" x="334" y="562" text-anchor="middle">Feel everything. Write it down.</text>
+      </g>
+
+      <!-- the wall where the coincidences are pinned, and the map beside it -->
+      <g class="zone zone-synch" data-room="synch" tabindex="0" role="button"
+         aria-label="The synchronicity wall">
+        <!-- the board the notes are pinned to. Without it they were squares
+             hanging in mid-air, which reads as a rendering fault rather than
+             as a wall. -->
+        <rect class="hm-board" x="248" y="112" width="228" height="128" rx="3"/>
+        ${Array.from({length: Math.min(Math.max(synch, 3), 14)}, (_, i) => {
+          const x = 258 + (i % 7) * 30, y = 124 + Math.floor(i / 7) * 44;
+          const r = ((i * 31) % 15) - 7;
+          return `<rect class="hm-pin-note" x="${x}" y="${y}" width="24" height="24" rx="1"
+                    transform="rotate(${r} ${x + 12} ${y + 12})"/>`; }).join('')}
+        ${Array.from({length: 5}, (_, i) =>
+          `<path class="hm-thread" style="--i:${i}" d="M${270 + i * 30},${138 + (i % 2) * 44}
+             Q${298 + i * 26},${184} ${328 + i * 28},${148 + ((i + 1) % 2) * 44}"/>`).join('')}
+        <text class="rm-say" x="362" y="266" text-anchor="middle">Everything is connected. Look.</text>
+      </g>
+    </svg>
+  </div>`;
+}
+
 /* ---------- the frame every zone is drawn in ---------- */
 function houseHTML(){
   const z = houseZoneOf(houseZone());
-  const body = {sanctuary: sanctuaryHTML}[z.id];
+  const body = {sanctuary: sanctuaryHTML, main: mainRoomHTML}[z.id];
   return `<div class="page house-page">
     <div class="house-stage" data-zone="${z.id}" data-light="${houseHour()}">
       ${body ? body() : `<div class="room-wrap house-room"><div class="empty house-todo">
@@ -28984,6 +29471,16 @@ const HOUSE_PORTALS = {
   sanctuary: () => { const s = stillness(); s.prefs.kind = 'sanctuary'; saveNow();
                      houseOpenToday('t-still'); },
   shelf:     () => navigate('#/journals/library'),
+  /* the main room */
+  library:   () => navigate('#/journals/library'),
+  writing:   () => navigate('#/content/shelf'),
+  piano:     () => navigate('#/skills'),
+  band:      () => navigate('#/projects'),
+  medicine:  () => navigate('#/values'),
+  crystals:  () => openCharmCast(),
+  drinks:    () => openDrinkCeremony(),
+  nook:      () => navigate('#/journals/reflection'),
+  synch:     () => navigate('#/journals/synchronicity'),
   tarot:     () => openTarot(),
   iching:    () => openIChing(),
   oracle:    () => openOracle(),
@@ -38878,7 +39375,12 @@ function influenceMapHTML(){
   const all = mediaEntries();
   if(!all.length) return '<div class="empty">Log a few works and the patterns will show up here.</div>';
   const valTally = {}, thTally = {};
-  all.forEach(e => { (e.links.values||[]).forEach(x=>valTally[x.id]=(valTally[x.id]||0)+1); (e.links.threads||[]).forEach(id=>thTally[id]=(thTally[id]||0)+1); });
+  /* An entry with no links at all is not supposed to exist — everything this
+     app writes carries the object — but one can arrive through an import or
+     out of a version old enough not to have had it, and reading straight
+     through it took the whole Library down with a TypeError. Everywhere else
+     in the house asks with a `?.`; this was the one place that did not. */
+  all.forEach(e => { (e.links?.values||[]).forEach(x=>valTally[x.id]=(valTally[x.id]||0)+1); (e.links?.threads||[]).forEach(id=>thTally[id]=(thTally[id]||0)+1); });
   const kindTally = {}; all.forEach(e => { const k = mediaX(e).kind; kindTally[k] = (kindTally[k]||0)+1; });
   const resTally = {}; RESONANCE_LEVELS.forEach(([k])=>resTally[k]=0); all.forEach(e => { const r = mediaX(e).resonanceLevel; if(r) resTally[r]++; });
   const reexp = all.filter(e => { const x = mediaX(e); return x.resonanceLevel==='lives' && x.finishedAt && daysSince(x.finishedAt) > 365; });

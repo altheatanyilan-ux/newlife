@@ -6827,5 +6827,127 @@ html[data-theme="light"] .hs-note{fill:#fffdf6}
 @media (max-width:640px){
   .house-exit{font-size:1rem;padding:9px 16px}
 }
+
+/* ---------- the main room ----------
+   Everything down here is a thing you make something WITH, and the drawing
+   says so: hard edges, lacquer, keys, glass. The sanctuary above is all soft
+   curves and cloth. That contrast is the only thing telling you which floor
+   you are on once you stop reading the labels. */
+.hm-panel rect{fill:color-mix(in srgb,var(--rm-light) 9%,transparent);
+  stroke:var(--rm-wood-2);stroke-width:2.6}
+.hm-panel path{stroke:var(--rm-wood-2);stroke-width:1.2;fill:none;opacity:.7}
+/* the gap between the panels: the rest of the house, warm, a room away */
+.hm-shoji-gap{fill:var(--rm-light);opacity:.16}
+.hm-board{fill:color-mix(in srgb,#000 16%,transparent);
+  stroke:var(--rm-wood-2);stroke-width:3}
+html[data-theme="light"] .hm-board{fill:color-mix(in srgb,#8a6a43 14%,transparent)}
+
+.hm-trail{fill:none;stroke:var(--sage);stroke-width:2.4;stroke-linecap:round;opacity:.7}
+.hm-desk,.hm-lowtable{fill:var(--rm-wood-2)}
+.hm-paper{fill:#f3ead7;opacity:.92}
+html[data-theme="light"] .hm-paper{fill:#fffdf6;stroke:rgba(44,37,32,.1);stroke-width:.8}
+.hm-lamp{fill:none;stroke:var(--rm-wood-2);stroke-width:3;stroke-linecap:round}
+.hm-lampshade{fill:var(--gold);opacity:.75}
+.hm-lamplight{opacity:.5;transition:opacity .3s var(--ease)}
+.zone-desk:hover .hm-lamplight,.zone-desk:focus-visible .hm-lamplight{opacity:.9}
+.hm-ink{fill:#1f1b19}
+html[data-theme="light"] .hm-ink{fill:#3a2f26}
+
+/* the piano: black lacquer, and a lid that lifts when you reach for it */
+.hm-piano-lid,.hm-piano-body{fill:#1d1a18}
+html[data-theme="light"] .hm-piano-lid,html[data-theme="light"] .hm-piano-body{fill:#2e2823}
+.hm-piano-lid{transform-box:fill-box;transform-origin:50% 100%;
+  transition:transform .3s var(--ease)}
+.zone-piano:hover .hm-piano-lid,.zone-piano:focus-visible .hm-piano-lid{transform:translateY(-10px) rotate(-1.4deg)}
+.hm-key{fill:#f1e9da}
+.hm-key.dark{fill:#1d1a18}
+.hm-score{fill:#f3ead7;opacity:.95}
+.hm-score rect{fill:#f3ead7}
+.hm-score path{stroke:#6b5e53;stroke-width:1;fill:none}
+
+.hm-bass{fill:var(--rm-wood);opacity:.9}
+.hm-bass-neck{fill:none;stroke:var(--rm-wood-2);stroke-width:6;stroke-linecap:round}
+.hm-bass-str{fill:none;stroke:var(--gold);stroke-width:1;opacity:.6}
+.hm-drum{fill:var(--rm-cush-2);opacity:.9}
+.hm-cymbal,.hm-sax{fill:none}
+.hm-cymbal{fill:var(--gold);opacity:.8}
+.hm-cymbal-post{fill:none;stroke:var(--rm-wood-2);stroke-width:2.4}
+.hm-sax{stroke:var(--gold);stroke-width:7;stroke-linecap:round;opacity:.9}
+.zone-band>*{transition:transform .22s var(--ease)}
+.zone-band:hover>*,.zone-band:focus-visible>*{transform:translateY(-3px)}
+
+/* the bar */
+.hm-backbar{fill:none;stroke:var(--rm-wood-2);stroke-width:3}
+.hm-counter{fill:var(--rm-wood-2)}
+.hm-counter-front{fill:var(--rm-wood)}
+.hm-drawer{fill:var(--rm-wood);stroke:var(--rm-line);stroke-width:.8}
+.obj-medicine:hover .hm-drawer:nth-of-type(3n){transform:translateX(3px)}
+.hm-drawer{transition:transform .2s var(--ease)}
+.hm-crystal{fill:var(--rm-cush);opacity:.85}
+.hm-crystal:nth-of-type(2n){fill:var(--sage)}
+.hm-crystal:nth-of-type(3n){fill:var(--gold)}
+.obj-crystals:hover .hm-crystal{animation:hmShimmer 1.8s var(--ease) infinite;
+  animation-delay:calc(var(--i) * -.22s)}
+@keyframes hmShimmer{0%,100%{opacity:.85}50%{opacity:1}}
+.hm-machine{fill:#2a2522}
+html[data-theme="light"] .hm-machine{fill:#4a403a}
+.hm-machine-cup{fill:#f1e9da}
+.hm-steam{fill:none;stroke:var(--rm-say);stroke-width:2;stroke-linecap:round;opacity:.22}
+.obj-drinks:hover .hm-steam{animation:hmSteam 2.6s var(--ease) infinite;
+  animation-delay:calc(var(--i, 0) * -.9s)}
+@keyframes hmSteam{0%{opacity:.1;transform:translateY(3px)}
+  50%{opacity:.34}100%{opacity:.1;transform:translateY(-4px)}}
+.hm-bottle rect{fill:var(--rm-cloth);opacity:.85}
+.hm-bottle:nth-of-type(3n) rect{fill:var(--sage)}
+.hm-bottle:nth-of-type(4n) rect{fill:var(--gold)}
+.hm-bottle{transform-box:fill-box;transform-origin:50% 100%;transition:transform .2s var(--ease)}
+.obj-drinks:hover .hm-bottle{transform:translateY(-2px)}
+
+/* the nook */
+.hm-nook-glow{opacity:.55;transition:opacity .3s var(--ease)}
+.zone-nook:hover .hm-nook-glow,.zone-nook:focus-visible .hm-nook-glow{opacity:.9}
+.hm-chair-back{fill:var(--rm-cush-2)}
+.hm-chair-seat{fill:var(--rm-cush)}
+.hm-blanket{fill:var(--sage);opacity:.8}
+
+/* the wall of coincidences */
+.hm-pin-note{fill:#f3ead7;opacity:.9;transition:transform .2s var(--ease)}
+html[data-theme="light"] .hm-pin-note{fill:#fffdf6;stroke:rgba(44,37,32,.12);stroke-width:.8}
+.zone-synch:hover .hm-pin-note:nth-of-type(2n){transform:translateY(-2px) rotate(2deg)}
+.hm-thread{fill:none;stroke:var(--rose);stroke-width:1;opacity:.5}
+.hm-thread:nth-of-type(2n){stroke:var(--sage)}
+.hm-thread:nth-of-type(3n){stroke:var(--gold)}
+
+@media (prefers-reduced-motion: reduce){
+  .hm-piano-lid,.hm-bottle,.hm-drawer,.hm-pin-note,.zone-band>*,.hm-lamplight,.hm-nook-glow{transition:none}
+  .obj-crystals:hover .hm-crystal,.obj-drinks:hover .hm-steam{animation:none!important}
+}
+
+/* ---------- the drink naming ceremony ---------- */
+.drink-rite{min-width:0}
+.drink-bases{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.drink-base{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:10px 12px;
+  border:1px solid var(--line);border-radius:12px;background:var(--surface-2);color:var(--muted);
+  font:inherit;text-align:left;cursor:pointer;transition:all .18s var(--ease)}
+.drink-base:hover{color:var(--text);border-color:var(--line-2)}
+.drink-base.on{color:var(--text);border-color:var(--terra);
+  background:color-mix(in srgb,var(--terra) 12%,transparent)}
+.drink-base b{font-family:var(--serif);font-size:.94rem}
+.drink-base .mono{font-size:.6rem;color:var(--faint)}
+.db-ic{font-size:1.2rem;line-height:1}
+
+.drink-card{margin-top:16px;padding:14px;border-radius:12px;
+  border:1px solid var(--line);border-left:3px solid var(--gold);background:var(--surface-2)}
+.dk-from{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+.dk-because{font-family:var(--quote);font-style:italic;margin:6px 0 12px;color:var(--text)}
+.dk-name{font-family:var(--display);font-size:1.15rem}
+.dk-recipe{margin:12px 0;padding:10px 12px;border-radius:10px;background:var(--surface)}
+.dk-base{font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);
+  margin-bottom:6px}
+.dk-ing{display:flex;justify-content:space-between;gap:12px;align-items:baseline;
+  padding:4px 0;border-top:1px dashed var(--line)}
+.dk-ing:first-of-type{border-top:0}
+.dk-ing b{font-family:var(--serif);font-size:.95rem}
+.dk-ing .mono{font-size:.66rem;color:var(--faint);text-align:right}
 </style>
 </head>

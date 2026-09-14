@@ -338,7 +338,12 @@ function influenceMapHTML(){
   const all = mediaEntries();
   if(!all.length) return '<div class="empty">Log a few works and the patterns will show up here.</div>';
   const valTally = {}, thTally = {};
-  all.forEach(e => { (e.links.values||[]).forEach(x=>valTally[x.id]=(valTally[x.id]||0)+1); (e.links.threads||[]).forEach(id=>thTally[id]=(thTally[id]||0)+1); });
+  /* An entry with no links at all is not supposed to exist — everything this
+     app writes carries the object — but one can arrive through an import or
+     out of a version old enough not to have had it, and reading straight
+     through it took the whole Library down with a TypeError. Everywhere else
+     in the house asks with a `?.`; this was the one place that did not. */
+  all.forEach(e => { (e.links?.values||[]).forEach(x=>valTally[x.id]=(valTally[x.id]||0)+1); (e.links?.threads||[]).forEach(id=>thTally[id]=(thTally[id]||0)+1); });
   const kindTally = {}; all.forEach(e => { const k = mediaX(e).kind; kindTally[k] = (kindTally[k]||0)+1; });
   const resTally = {}; RESONANCE_LEVELS.forEach(([k])=>resTally[k]=0); all.forEach(e => { const r = mediaX(e).resonanceLevel; if(r) resTally[r]++; });
   const reexp = all.filter(e => { const x = mediaX(e); return x.resonanceLevel==='lives' && x.finishedAt && daysSince(x.finishedAt) > 365; });

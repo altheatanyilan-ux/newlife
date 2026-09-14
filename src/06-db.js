@@ -174,6 +174,22 @@ const ERA_PALETTE = ['#7f916a','#6b7f8e','#b08968','#a0727e','#d4a44c','#8a7f9e'
 function erasList(){ return [...(S.visionEras||[])].sort((a,b)=>a.order-b.order).map(e => Object.assign(e, {label:e.name, desc:e.subtitle})); }
 const LEVEL_LABELS = ['Beginner','Novice','Competent','Proficient','Expert','Master'];
 const RESOURCE_TYPES = ['book','video','course','article','tool'];
+/* ---------- every entry has a links object ----------
+   Thirty-odd places in the house read e.links.values or e.links.threads
+   straight through, because everything this app writes carries the object.
+   An entry that arrives without one — through an import, or out of a version
+   old enough to predate a field — then takes down whichever page reads it
+   first with a TypeError, and the page becomes the error floor. Guarding one
+   call site fixes one page; filling the gap on load fixes all of them, and
+   costs one pass over the entries at boot. */
+const ENTRY_LINK_KEYS = ['stages','substages','threads','values','visions','skills','projects','people'];
+function migrateEntryLinks(){
+  (S.entries || []).forEach(e => {
+    if(!e || typeof e !== 'object') return;
+    if(!e.links || typeof e.links !== 'object') e.links = {};
+    ENTRY_LINK_KEYS.forEach(k => { if(!Array.isArray(e.links[k])) e.links[k] = []; });
+  });
+}
 function migrateSkillLevels(){
   S.skills.forEach(s => {
     if(!Array.isArray(s.levels) || !s.levels.length){ const rub = Array.isArray(s.rubric) && s.rubric.length ? s.rubric : ['','','','','']; s.levels = rub.map((d,i) => ({number:i+1, label:LEVEL_LABELS[i] || `Level ${i+1}`, description:d||'', criteria:[], resources:[], estimatedTime:'', targetDate:null})); }

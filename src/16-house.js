@@ -270,10 +270,199 @@ function sanctuaryHTML(){
   </div>`;
 }
 
+/* ---------- the main room ----------
+   The ground floor, and the room you arrive in. Everything in here is a thing
+   you MAKE something with — an instrument, a desk, a shelf, a counter — which
+   is the difference between this floor and the one above it, where everything
+   is a thing you sit with.
+
+   Laid out left to right the way you would meet it walking in: the bookshelf
+   and the writing desk against the left wall, the piano and its band holding
+   the middle, the bar along the right, and below them the two small places
+   that are not about output at all — the nook you go to to feel something, and
+   the wall where the coincidences are pinned up. */
+function mainRoomHTML(){
+  const books   = (S.entries || []).filter(e => e.type === 'media').length;
+  const synch   = (S.entries || []).filter(e => e.type === 'synchronicity').length;
+  const musical = (S.skills || []).filter(s => /music|piano|guitar|sing|jazz|instrument/i.test(
+                    (s.name || '') + ' ' + (s.cat || ''))).length;
+  const drinks  = (S.entries || []).filter(e => e.type === 'drink').length;
+
+  const floor = Array.from({length: 7}, (_, i) =>
+    `<path class="rm-plank" d="${roomEdge(0, 396 + i * 30, 1200, 390 + i * 30, 'mfl' + i)}"/>`).join('');
+  const wall = Array.from({length: 10}, (_, i) =>
+    `<path class="rm-brush" d="${roomEdge(64 + i * 120, 16, 70 + i * 120, 380, 'mwall' + i)}"/>`).join('');
+
+  /* a book for every piece of media logged, up to a full shelf */
+  const shelf = (y, n, seed) => Array.from({length: n}, (_, i) => {
+    const x = 74 + i * 15, h = 38 + ((i * 7 + seed) % 5) * 5;
+    return `<rect class="rm-book" x="${x}" y="${y - h}" width="${11 + (i % 3)}" height="${h}" rx="1.5"/>`;
+  }).join('');
+  const onShelf = Math.min(books, 24);
+
+  return `<div class="room-wrap house-room rv">
+    <svg class="sacred-room" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid meet"
+      role="group" aria-label="The main room: a piano, a bookshelf, a desk, a bar and a wall of coincidences">
+      <defs>
+        <radialGradient id="hmGlow"><stop offset="0" stop-color="var(--rm-light)" stop-opacity=".5"/>
+          <stop offset="1" stop-color="var(--rm-light)" stop-opacity="0"/></radialGradient>
+      </defs>
+
+      <g class="rm-bg">
+        <rect x="0" y="0" width="1200" height="392" class="rm-wall"/>
+        <rect x="0" y="392" width="1200" height="208" class="rm-floor"/>
+        <g class="rm-tex">${wall}${floor}</g>
+        <path class="rm-line" d="${roomEdge(0, 392, 1200, 392, 'mskirt')}"/>
+        <!-- The shoji at the back, standing open. Two panels with a gap of warm
+             light between them: drawn as one wide grid it read as a window,
+             and a window is not a door to anywhere. -->
+        <g class="hm-shoji">
+          <rect class="hm-shoji-gap" x="572" y="72" width="56" height="290"/>
+          ${[[440], [628]].map(([x]) => `<g class="hm-panel">
+            <rect x="${x}" y="72" width="132" height="290" rx="2"/>
+            ${[1,2].map(i => `<path d="M${x + 44 * i},72 V362"/>`).join('')}
+            ${[1,2,3,4].map(i => `<path d="M${x},${72 + 58 * i} H${x + 132}"/>`).join('')}
+          </g>`).join('')}
+        </g>
+      </g>
+
+      <!-- the bookshelf: one book for every piece of media you logged -->
+      <g class="zone zone-books" data-room="library" tabindex="0" role="button" aria-label="The shelf — your library">
+        <rect class="rm-shelf-box" x="58" y="120" width="180" height="250" rx="3"/>
+        <path class="rm-line" d="${roomEdge(62, 204, 234, 204, 'msha')}"/>
+        <path class="rm-line" d="${roomEdge(62, 288, 234, 288, 'mshb')}"/>
+        ${shelf(202, Math.min(onShelf, 10), 1)}
+        ${shelf(286, Math.max(0, Math.min(onShelf - 10, 10)), 3)}
+        ${shelf(368, Math.max(0, onShelf - 20), 5)}
+        <g class="hs-candle sm" transform="translate(214,118)">
+          <rect class="rm-wax" x="-5" y="-16" width="10" height="20" rx="2"/>
+          <g class="rm-flame" style="--fl:.8"><path class="rm-flame-out" d="M0,-30 C6,-23 5,-18 0,-16 C-5,-18 -6,-23 0,-30Z"/></g>
+        </g>
+        <path class="hm-trail" d="M64,128 C48,164 58,206 44,244 C36,268 44,290 38,312"/>
+        <text class="rm-say" x="148" y="392" text-anchor="middle">Every book is a door</text>
+      </g>
+
+      <!-- the desk: where the writing happens -->
+      <g class="zone zone-desk" data-room="writing" tabindex="0" role="button" aria-label="The desk — the writing studio">
+        <path class="hm-desk" d="M58,470 H266 L276,486 H48 Z"/>
+        <path class="rm-table-leg" d="M70,486 L74,566"/>
+        <path class="rm-table-leg" d="M254,486 L250,566"/>
+        <rect class="hm-paper" x="112" y="446" width="66" height="26" rx="1" transform="rotate(-3 145 459)"/>
+        <rect class="hm-paper" x="122" y="440" width="66" height="26" rx="1" transform="rotate(2 155 453)"/>
+        <path class="hm-lamp" d="M228,468 V430 C228,416 244,412 250,424"/>
+        <path class="hm-lampshade" d="M236,424 L266,424 L258,440 H244Z"/>
+        <circle class="hm-lamplight" cx="251" cy="452" r="46" fill="url(#hmGlow)"/>
+        <ellipse class="hm-ink" cx="90" cy="466" rx="9" ry="5"/>
+        <text class="rm-say" x="160" y="588" text-anchor="middle">Sit down. The words are waiting.</text>
+      </g>
+
+      <!-- the piano, and the band around it -->
+      <g class="zone zone-piano" data-room="piano" tabindex="0" role="button" aria-label="The piano — your skills">
+        <ellipse class="rm-table-glow" cx="560" cy="470" rx="196" ry="66"/>
+        <path class="hm-piano-lid" d="M404,398 C470,356 660,352 726,392 L700,404 C640,372 474,376 420,406Z"/>
+        <path class="hm-piano-body" d="M404,404 H726 L716,470 C640,486 474,486 414,470Z"/>
+        ${Array.from({length: 17}, (_, i) =>
+          `<rect class="hm-key" x="${430 + i * 16}" y="472" width="13" height="26" rx="1.5"/>`).join('')}
+        ${Array.from({length: 17}, (_, i) => (i % 7 === 2 || i % 7 === 6) ? '' :
+          `<rect class="hm-key dark" x="${440 + i * 16}" y="472" width="7" height="16" rx="1"/>`).join('')}
+        <path class="rm-table-leg" d="M430,498 L426,558 M700,498 L704,558"/>
+        ${musical ? `<g class="hm-score"><rect x="524" y="352" width="72" height="46" rx="2"/>
+          ${[0,1,2,3].map(i => `<path d="M532,${364 + i * 9} H588"/>`).join('')}</g>` : ''}
+        <text class="rm-say" x="560" y="584" text-anchor="middle">Make something beautiful</text>
+      </g>
+
+      <!-- the rest of the band: a different kind of making, so a different door -->
+      <g class="zone zone-band" data-room="band" tabindex="0" role="button" aria-label="The band — your projects">
+        <ellipse class="hm-bass" cx="790" cy="452" rx="34" ry="52"/>
+        <path class="hm-bass-neck" d="M790,400 V318"/>
+        <path class="hm-bass-str" d="M782,404 V330 M790,404 V326 M798,404 V330"/>
+        <circle class="hm-drum" cx="862" cy="486" r="34"/>
+        <ellipse class="hm-cymbal" cx="880" cy="424" rx="30" ry="7"/>
+        <path class="hm-cymbal-post" d="M880,428 V486"/>
+        <path class="hm-sax" d="M918,404 C930,404 936,416 936,432 L936,470 C936,486 922,494 910,486"/>
+        <text class="rm-say" x="862" y="556" text-anchor="middle">What are we building together?</text>
+      </g>
+
+      <!-- the bar: three doors on one counter -->
+      <g class="zone zone-bar" aria-label="The bar">
+        <rect class="hm-backbar" x="968" y="116" width="196" height="196" rx="3"/>
+        <path class="rm-line" d="${roomEdge(972, 182, 1160, 182, 'mbara')}"/>
+        <path class="rm-line" d="${roomEdge(972, 248, 1160, 248, 'mbarb')}"/>
+
+        <g class="obj obj-medicine" data-room="medicine" tabindex="0" role="button" aria-label="The medicine cupboard">
+          <ellipse class="obj-aura" cx="1066" cy="150" rx="94" ry="30"/>
+          ${Array.from({length: 18}, (_, i) =>
+            `<rect class="hm-drawer" x="${978 + (i % 6) * 31}" y="${124 + Math.floor(i / 6) * 19}"
+               width="26" height="15" rx="2"/>`).join('')}
+          <text class="obj-say" x="1066" y="114" text-anchor="middle">what the body needs</text>
+        </g>
+        <g class="obj obj-crystals" data-room="crystals" tabindex="0" role="button" aria-label="The crystals — charm casting">
+          <ellipse class="obj-aura" cx="1066" cy="222" rx="90" ry="28"/>
+          ${[[996, 8, 26], [1020, 11, 34], [1048, 7, 22], [1074, 12, 36],
+             [1104, 9, 28], [1134, 7, 23]].map(([x, w, h], i) =>
+            `<path class="hm-crystal" style="--i:${i}" d="M${x},244 L${x - w},${244 - h * .55}
+               L${x},${244 - h} L${x + w},${244 - h * .55}Z"/>`).join('')}
+          <text class="obj-say" x="1066" y="270" text-anchor="middle">Charms</text>
+        </g>
+        <path class="hm-counter" d="M940,404 H1190 L1200,430 H930 Z"/>
+        <path class="hm-counter-front" d="M930,430 H1200 V560 H946 Z"/>
+        <g class="obj obj-drinks" data-room="drinks" tabindex="0" role="button"
+           aria-label="The bar — the drink naming ceremony">
+          <ellipse class="obj-aura" cx="1060" cy="380" rx="96" ry="34"/>
+          <!-- the coffee machine, and its steam -->
+          <rect class="hm-machine" x="948" y="336" width="52" height="66" rx="4"/>
+          <rect class="hm-machine-cup" x="962" y="386" width="24" height="16" rx="2"/>
+          <path class="hm-steam" d="M974,330 C966,318 982,310 974,296"/>
+          <path class="hm-steam" style="--i:1" d="M986,332 C978,322 992,314 984,302"/>
+          ${Array.from({length: Math.min(6 + drinks, 14) }, (_, i) => {
+            const x = 1014 + i * 13, h = 30 + ((i * 5) % 4) * 7;
+            return `<g class="hm-bottle" style="--i:${i}">
+              <rect x="${x}" y="${402 - h}" width="9" height="${h}" rx="2"/>
+              <rect class="hm-bottle-neck" x="${x + 3}" y="${396 - h}" width="3" height="8"/></g>`; }).join('')}
+          <text class="obj-say" x="1060" y="326" text-anchor="middle">What does your spirit need?</text>
+        </g>
+        <text class="rm-say" x="1060" y="584" text-anchor="middle">The bar</text>
+      </g>
+
+      <!-- the nook: the one place in the house that is not for producing anything -->
+      <g class="zone zone-nook" data-room="nook" tabindex="0" role="button" aria-label="The nook — reflections">
+        <circle class="hm-nook-glow" cx="330" cy="470" r="96" fill="url(#hmGlow)"/>
+        <path class="hm-chair-back" d="M296,468 C296,418 312,404 336,404 C360,404 376,418 376,468Z"/>
+        <path class="hm-chair-seat" d="M290,468 H382 L388,494 H284Z"/>
+        <path class="rm-table-leg" d="M296,494 L292,538 M376,494 L380,538"/>
+        <path class="hm-blanket" d="M292,438 C276,452 272,474 278,496 C288,492 296,480 298,466Z"/>
+        <g class="hs-candle sm" transform="translate(404,492)">
+          <rect class="rm-wax" x="-5" y="-16" width="10" height="20" rx="2"/>
+          <g class="rm-flame" style="--fl:.9"><path class="rm-flame-out" d="M0,-30 C6,-23 5,-18 0,-16 C-5,-18 -6,-23 0,-30Z"/></g>
+        </g>
+        <text class="rm-say" x="334" y="562" text-anchor="middle">Feel everything. Write it down.</text>
+      </g>
+
+      <!-- the wall where the coincidences are pinned, and the map beside it -->
+      <g class="zone zone-synch" data-room="synch" tabindex="0" role="button"
+         aria-label="The synchronicity wall">
+        <!-- the board the notes are pinned to. Without it they were squares
+             hanging in mid-air, which reads as a rendering fault rather than
+             as a wall. -->
+        <rect class="hm-board" x="248" y="112" width="228" height="128" rx="3"/>
+        ${Array.from({length: Math.min(Math.max(synch, 3), 14)}, (_, i) => {
+          const x = 258 + (i % 7) * 30, y = 124 + Math.floor(i / 7) * 44;
+          const r = ((i * 31) % 15) - 7;
+          return `<rect class="hm-pin-note" x="${x}" y="${y}" width="24" height="24" rx="1"
+                    transform="rotate(${r} ${x + 12} ${y + 12})"/>`; }).join('')}
+        ${Array.from({length: 5}, (_, i) =>
+          `<path class="hm-thread" style="--i:${i}" d="M${270 + i * 30},${138 + (i % 2) * 44}
+             Q${298 + i * 26},${184} ${328 + i * 28},${148 + ((i + 1) % 2) * 44}"/>`).join('')}
+        <text class="rm-say" x="362" y="266" text-anchor="middle">Everything is connected. Look.</text>
+      </g>
+    </svg>
+  </div>`;
+}
+
 /* ---------- the frame every zone is drawn in ---------- */
 function houseHTML(){
   const z = houseZoneOf(houseZone());
-  const body = {sanctuary: sanctuaryHTML}[z.id];
+  const body = {sanctuary: sanctuaryHTML, main: mainRoomHTML}[z.id];
   return `<div class="page house-page">
     <div class="house-stage" data-zone="${z.id}" data-light="${houseHour()}">
       ${body ? body() : `<div class="room-wrap house-room"><div class="empty house-todo">
@@ -334,6 +523,16 @@ const HOUSE_PORTALS = {
   sanctuary: () => { const s = stillness(); s.prefs.kind = 'sanctuary'; saveNow();
                      houseOpenToday('t-still'); },
   shelf:     () => navigate('#/journals/library'),
+  /* the main room */
+  library:   () => navigate('#/journals/library'),
+  writing:   () => navigate('#/content/shelf'),
+  piano:     () => navigate('#/skills'),
+  band:      () => navigate('#/projects'),
+  medicine:  () => navigate('#/values'),
+  crystals:  () => openCharmCast(),
+  drinks:    () => openDrinkCeremony(),
+  nook:      () => navigate('#/journals/reflection'),
+  synch:     () => navigate('#/journals/synchronicity'),
   tarot:     () => openTarot(),
   iching:    () => openIChing(),
   oracle:    () => openOracle(),
