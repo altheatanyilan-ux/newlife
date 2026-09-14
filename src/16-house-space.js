@@ -32,10 +32,20 @@
    ============================================================ */
 
 const House3D = (() => {
-  const TILT = 46;                 /* how far we look down into the room */
+  /* How far we look down into the room. This started at forty-six, which is
+     the angle at which a wall standing up and a floor lying flat project to
+     exactly the same size on the glass — and a floor the same size as the
+     wall, darker and more textured than it, simply reads AS the wall. The
+     furniture looked stuck to it.
+
+     Sixty-four is a person standing in a doorway rather than a drone above the
+     house: the wall keeps almost its full height, the floor is the shallow
+     band a floor actually looks like, and the objects standing on it have
+     somewhere to recede into. */
+  const TILT = 64;
   const TURN = -2;                 /* a couple of degrees off square, for character */
   const SWING = 3;                 /* how far the camera leans with the pointer */
-  const DEPTH = 2.15;              /* flat pixels of floor to real pixels of depth */
+  const DEPTH = 2.6;               /* flat pixels of floor to real pixels of depth */
 
   let scene = null, armed = false, pending = null;
 
@@ -68,11 +78,19 @@ const House3D = (() => {
        somebody sees a slightly rougher animation. The cost of being wrong in
        the other direction is taking the house away from them. */
     setTimeout(() => {
-      if(!scene || document.hidden) return;
+      /* The room it is judging, not just "a" room. This checked `scene` for
+         truthiness, which stays true when a door is walked through and a new
+         room is built — so a measurement begun in one room carried on through
+         the tearing down and building up of the next one, counted that as the
+         frame rate, and condemned the machine for it. Watching a specific
+         scene means walking through a door abandons the measurement, and the
+         next room starts a fresh one. */
+      const mine = scene;
+      if(!mine || document.hidden){ judged = false; return; }
       let frames = 0;
       const t0 = performance.now();
       const tick = () => {
-        if(!scene || document.hidden) return;
+        if(scene !== mine || document.hidden){ judged = false; return; }
         frames++;
         const ms = performance.now() - t0;
         if(ms < 2000){ requestAnimationFrame(tick); return; }
@@ -162,6 +180,13 @@ const House3D = (() => {
        no argument to have. It paints in document order on a surface that is
        already in the right place, which is also simply what a sconce on a wall
        and a star in the sky actually are. */
+    /* Every object that is cut out into its own svg needs the gradients with
+       it. They live in one <defs> at the top of the zone, and a url(#id) that
+       resolves to nothing paints nothing — which is how the desk lamp, the
+       nook and the fire quietly lost their glow the moment the flat scene was
+       taken apart. */
+    const defs = svg.querySelector(':scope > defs');
+
     const backdrop = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     backdrop.setAttribute('class', 'h3-backdrop');
     backdrop.setAttribute('viewBox', `0 0 1200 ${horizon}`);
@@ -173,12 +198,18 @@ const House3D = (() => {
     });
     const groups = zones;
 
-    /* how far the wall has to stand back for the tallest thing on it */
-    const wallHigh = zones.reduce((n, g) => {
+    /* How far the wall has to stand back for the tallest thing standing on the
+       FLOOR. A billboard leans away from the camera as it rises, so a tall
+       object's top reaches this far into the room behind it; without the gap
+       the piano's lid is painted inside the wall.
+
+       Things hanging ON the wall need none of it, because they do not stand up
+       at all — see below. */
+    const floorHigh = zones.reduce((n, g) => {
       let b; try { b = g.getBBox(); } catch(e){ return n; }
-      return (b && b.y + b.height <= horizon + 2) ? Math.max(n, b.height + 12) : n;
+      return (b && b.y + b.height > horizon + 2) ? Math.max(n, b.height + 12) : n;
     }, 0);
-    const porch = Math.round(wallHigh * LEAN + 14);
+    const porch = Math.round(floorHigh * LEAN * .6 + 14);
 
     /* --wallY is where the wall stands and the floor begins; --wallH is how
        tall the wall is. They were one variable, which collapsed the wall to a
@@ -218,6 +249,12 @@ const House3D = (() => {
          it goes to the back of the floor and is lifted up the wall by exactly
          as far as it was drawn above the line. Everything else stands on the
          floor, further forward the lower it was drawn. */
+      /* A bookshelf against a wall, drawn as an elevation, IS the wall plane.
+         Billboarded it has to stand far enough forward to clear the wall it is
+         leaning into, which at this camera angle puts it most of the way into
+         the middle of the room — a shelf floating over the floorboards. Laid
+         flat in the wall plane it needs no clearance at all, and at this angle
+         a wall is barely foreshortened anyway. */
       const onWall = foot <= horizon + 2;
       /* The scene IS the floor plane, so its y is depth: an object standing
          d deep has its foot at horizon + d, and there is no translateZ
@@ -229,7 +266,7 @@ const House3D = (() => {
          being against the wall. */
       /* Never quite at the front edge: the fire pit has the lowest foot in
          the garden and it was standing half off the bottom of the window. */
-      const z = onWall ? porch
+      const z = onWall ? 8
         : porch + (0.16 + 0.70 * ((foot - backline) / span)) * deep;
       const lift = onWall ? horizon - foot : 0;
       const top = (horizon - porch) + z - bh;
@@ -240,7 +277,7 @@ const House3D = (() => {
         left:${bx.toFixed(1)}px; top:${top.toFixed(1)}px;
         width:${bw.toFixed(1)}px; height:${bh.toFixed(1)}px;
         --lift:${lift.toFixed(1)}px; --far:${far.toFixed(3)}"
-        ${onWall ? 'data-wall' : ''}></div>`);
+        ${onWall ? 'data-wall data-flat' : ''}></div>`);
       /* the shadow lies on the floor and does not stand up with the object,
          which is what makes the object look like it is standing on something */
       slot.appendChild(el(`<i class="h3-shadow" style="--w:${bw.toFixed(0)}px"></i>`));
@@ -249,6 +286,7 @@ const House3D = (() => {
       cut.setAttribute('viewBox', `${bx} ${by} ${bw} ${bh}`);
       cut.setAttribute('width', bw); cut.setAttribute('height', bh);
       cut.classList.add('h3-art');
+      if(defs) cut.appendChild(defs.cloneNode(true));
       cut.appendChild(g);
       bill.appendChild(cut);
       slot.appendChild(bill);

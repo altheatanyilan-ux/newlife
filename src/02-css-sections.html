@@ -7084,7 +7084,7 @@ html[data-theme="light"] .hm-pin-note{fill:#fffdf6;stroke:rgba(44,37,32,.12);str
   width:1200px;height:calc(var(--deep,450px) + var(--back));
   background:var(--h3-ground,#5a4a3a)}
 .h3-floor[data-floor="main"]{background:
-  repeating-linear-gradient(93deg,#5a4a3a 0 78px,#4e3f31 78px 81px)}
+  repeating-linear-gradient(93deg,#8a7358 0 78px,#7d6850 78px 81px)}
 .h3-floor[data-floor="sanctuary"]{background:
   repeating-linear-gradient(0deg,#8a7a5c 0 46px,#7d6e51 46px 49px),
   repeating-linear-gradient(90deg,transparent 0 92px,rgba(0,0,0,.09) 92px 95px)}
@@ -7139,16 +7139,30 @@ html:not([data-theme="light"]) .h3-floor[data-floor="roof"]{background:
 .h3-bill{position:absolute;inset:0;transform-origin:50% 100%;
   transform:rotateX(calc(var(--tilt) * -1)) translateY(calc(var(--lift) * -1));
   transition:transform .22s var(--ease)}
+/* Hung on the wall, not standing in front of it: no counter-rotation, so it
+   lies in the wall plane exactly as it was drawn, lifted to the height it was
+   drawn at. */
+.h3-obj[data-flat] .h3-bill{transform:rotateX(-90deg) translateY(calc(var(--lift) * -1))}
+.h3-obj[data-flat]:hover .h3-bill,.h3-obj[data-flat]:focus-within .h3-bill{
+  transform:rotateX(-90deg) translateY(calc(var(--lift) * -1 - 8px))}
+
 /* The backdrop is painted on the wall rather than stood in front of it */
 .h3-backdrop{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
 .h3-backdrop .zone,.h3-backdrop .obj{pointer-events:auto;cursor:pointer}
 .h3-wall,.h3-horizon{pointer-events:none}
 .h3-art{display:block;width:100%;height:100%;overflow:visible;pointer-events:none}
 .h3-art .zone,.h3-art .obj{pointer-events:auto}
-/* the haze: the further back, the paler and the flatter. --far runs 0 at the
-   front of the room to 1 at the wall. */
-.h3-obj{opacity:calc(1 - var(--far,0) * .12)}
-.h3-obj .h3-art{filter:brightness(calc(1 - var(--far,0) * .1)) saturate(calc(1 - var(--far,0) * .12))}
+/* The haze: the further back, the paler and the flatter. --far runs 0 at the
+   front of the room to 1 at the wall.
+
+   It goes on the ART, never on the object. An opacity below one or a filter
+   creates a stacking context, and a stacking context FLATTENS preserve-3d for
+   everything inside it — so the billboard's counter-rotation stopped
+   cancelling the camera's tilt and every object in the room came out squashed
+   by the cosine of the angle. The leaf can be flattened safely; nothing below
+   it carries a 3D transform. */
+.h3-art{opacity:calc(1 - var(--far,0) * .12);
+  filter:brightness(calc(1 - var(--far,0) * .1)) saturate(calc(1 - var(--far,0) * .12))}
 
 /* the shadow stays on the floor while the object stands up off it, which is
    the thing that makes an object look like it is standing on something */

@@ -51,8 +51,17 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(1900); }
     return p;
   };
-  const go = async (p, zone) => { await p.evaluate(z => { location.hash = '#/house/' + z; }, zone);
-    await p.waitForTimeout(1300); };
+  /* wait for the room to actually be there rather than guessing at a delay:
+     the zone is redrawn on a hash change and then built on the next frame */
+  const go = async (p, zone) => {
+    await p.evaluate(z => {
+      if(location.hash === '#/house/' + z) rerender(); else location.hash = '#/house/' + z; }, zone);
+    await p.waitForFunction(z => {
+      const st = document.querySelector('.house-stage');
+      return st && st.dataset.zone === z && (st.querySelector('.h3-room') || st.querySelector('svg.sacred-room'));
+    }, zone, {timeout: 8000}).catch(() => {});
+    await p.waitForTimeout(500);
+  };
 
   let p = await open();
 
@@ -166,6 +175,8 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   await go(p, 'main');
   yes('a room is built on a machine that can manage one',
     await p.evaluate(() => !!document.querySelector('.h3-room')));
+  yes('  and the house knows how to give up on one', await p.evaluate(() =>
+    typeof House3D.slow === 'boolean'));
   await p.evaluate(() => { House3D.slow = true; rerender(); }); await p.waitForTimeout(800);
   yes('  and a machine that cannot gets the flat scene instead',
     await p.evaluate(() => !document.querySelector('.h3-room') && !!document.querySelector('svg.sacred-room')));
