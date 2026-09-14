@@ -6213,9 +6213,12 @@ html:is([data-decor="plain"],[data-decor="essential"]) .value-field + .value-fie
 html:is([data-decor="plain"],[data-decor="essential"]) .ornate-rule{display:none!important}
 
 /* surfaces go flat: no stone, no paper, no double frame */
-html:is([data-decor="plain"],[data-decor="essential"]) .card{background-image:none;background-color:var(--elev-2);
+/* The stone in the surfaces stays in Essential: it is a background-image on
+   an element that is not moving, which costs a decode once and nothing after.
+   Plain does without it. */
+html[data-decor="plain"] .card{background-image:none;background-color:var(--elev-2);
   box-shadow:var(--elev-2-shadow)}
-html:is([data-decor="plain"],[data-decor="essential"]) .card:hover{box-shadow:var(--elev-3-shadow)}
+html[data-decor="plain"] .card:hover{box-shadow:var(--elev-3-shadow)}
 html:is([data-decor="plain"],[data-decor="essential"]) .modal.rite,
 html:is([data-decor="plain"],[data-decor="essential"]) .body.theatre,
 html:is([data-decor="plain"],[data-decor="essential"]) .entry.sealed,
@@ -6236,11 +6239,17 @@ html:is([data-decor="plain"],[data-decor="essential"]) .page-head h1,
 html:is([data-decor="plain"],[data-decor="essential"]) .breathing,
 html[data-decor="plain"] .mist-band,
 html:is([data-decor="plain"],[data-decor="essential"]) .ripple-ring,
-html:is([data-decor="plain"],[data-decor="essential"]) .ink-leaf,
+/* the leaves go on falling in Essential — they are the one moving ornament
+   that is a handful of elements rather than a layer over everything */
+html[data-decor="plain"] .ink-leaf,
 html:is([data-decor="plain"],[data-decor="essential"]) .dv-pick .tc-back::after{animation:none}
-html:is([data-decor="plain"],[data-decor="essential"]) .entries > .entry,
-html:is([data-decor="plain"],[data-decor="essential"]) .vb-card,
-html:is([data-decor="plain"],[data-decor="essential"]) .era-col{rotate:0deg}
+/* The slight lean on a pinned thing stays in Essential. It is a static
+   transform — written once when the element is drawn, never touched again —
+   so it costs a paint and nothing after it, which is the test everything in
+   Essential has to pass. Plain wants the page square. */
+html[data-decor="plain"] .entries > .entry,
+html[data-decor="plain"] .vb-card,
+html[data-decor="plain"] .era-col{rotate:0deg}
 /* the firelight across a heading becomes a heading */
 html:is([data-decor="plain"],[data-decor="essential"]) .flow{background:none;-webkit-text-fill-color:currentColor;
   color:var(--text);animation:none}
@@ -6331,7 +6340,7 @@ html[data-decor="plain"] [data-reveal] .wd{opacity:1;transform:none;transition:n
 .fd-bubble.resting{border-color:color-mix(in srgb,var(--sage) 45%,transparent)}
 /* a sitting under way has to be visible from the corner of the eye, and stop
    being visible the moment it is paused */
-html[data-decor="full"] .fd-bubble.ticking{animation:fdPulse 2.6s ease-in-out infinite}
+html:not([data-decor="plain"]) .fd-bubble.ticking{animation:fdPulse 2.6s ease-in-out infinite}
 @keyframes fdPulse{0%,100%{box-shadow:var(--elev-2-shadow)}
   50%{box-shadow:var(--elev-2-shadow),0 0 0 5px color-mix(in srgb,var(--terra) 13%,transparent)}}
 @media (prefers-reduced-motion:reduce){.fd-bubble.ticking{animation:none}}
@@ -6450,5 +6459,61 @@ html[data-decor="full"] .fd-bubble.ticking{animation:fdPulse 2.6s ease-in-out in
    reading of the word and they sit on every page. */
 html:is([data-decor="plain"],[data-decor="essential"]) #vines,
 html:is([data-decor="plain"],[data-decor="essential"]) #roomtex{display:none!important}
+
+/* ============================================================
+   20. LOGGING IN THREE TAPS, AND THE SHAPE OF A FRIENDSHIP
+   ============================================================ */
+.ql .field{margin-bottom:2px}
+.ql-kinds{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.ql-kinds button{flex:1 1 88px;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:9px 6px;border-radius:10px;border:1px solid var(--line);background:var(--surface-2);
+  color:var(--muted);cursor:pointer;font-family:var(--sans);font-size:.72rem;
+  transition:border-color .18s var(--ease),background .18s var(--ease),color .18s var(--ease)}
+.ql-kinds button:hover{border-color:var(--line-2);background:var(--surface-3);color:var(--text)}
+.ql-kinds button.on{border-color:var(--page-accent);color:var(--text);
+  background:color-mix(in srgb,var(--page-accent) 12%,transparent)}
+.ql-ic{font-size:1.15rem;line-height:1}
+.ql-foot{margin-top:12px;gap:10px;flex-wrap:wrap}
+.ql-when{display:inline-flex;align-items:center;gap:6px;font-size:.66rem;color:var(--faint)}
+.ql-when .inp{width:auto;padding:4px 6px}
+
+/* the floating way in, mirroring the add button on the other side */
+.ppl-log-fab{position:fixed;right:96px;bottom:26px;z-index:55;border-radius:999px;
+  box-shadow:var(--elev-3-shadow)}
+@media (max-width:900px){.ppl-log-fab{right:82px;bottom:80px}}
+
+/* ninety days, one square each */
+.heat-wrap{margin-bottom:16px}
+.heat{display:flex;gap:2px;margin-top:7px;flex-wrap:nowrap;overflow:hidden}
+/* A day with nothing in it still has to be a square, or the strip reads as a
+   scattering of marks rather than as ninety days of which these were the
+   ones. Faint, but present. */
+.heat i{flex:1 1 0;min-width:0;height:24px;border-radius:2px;
+  background:color-mix(in srgb,var(--text) 7%,transparent)}
+.heat i.on{background:color-mix(in srgb,var(--c,var(--terra)) calc(34% + var(--n) * 17%),transparent)}
+
+/* the meetings, as marks on a line */
+.ptl-wrap{margin-bottom:16px}
+.ptl{position:relative;height:44px;margin-top:10px}
+.ptl-line{position:absolute;left:0;right:0;top:50%;height:1px;background:var(--line)}
+.ptl-mark{position:absolute;top:50%;transform:translate(-50%,-50%);width:24px;height:24px;
+  border-radius:50%;border:1px solid var(--c);background:var(--elev-2);color:var(--c);
+  font-size:.76rem;line-height:1;cursor:default;display:grid;place-items:center;
+  transition:transform .18s var(--ease)}
+.ptl-mark:hover{transform:translate(-50%,-50%) scale(1.25);z-index:2}
+.ptl-ends{margin-top:4px;font-size:.62rem}
+
+/* how it leaves you, meeting by meeting */
+.pe-wrap{display:flex;flex-direction:column;gap:4px}
+.pe-line{width:100%;max-width:260px;height:54px;display:block}
+.pe-mid{stroke:var(--line);stroke-width:1;stroke-dasharray:3 5}
+.pe-path{stroke:var(--line-2);stroke-width:1.4;stroke-linejoin:round;stroke-linecap:round}
+.person-shapes{display:flex;flex-direction:column;gap:2px}
+
+/* what you become around them, where you can see it */
+.person-pull{margin:10px 0 0;padding:0 0 0 12px;border-left:2px solid var(--c,var(--terra));
+  font-family:var(--quote);font-style:italic;font-size:1rem;line-height:1.5;color:var(--text)}
+.person-pull .mono{display:block;font-style:normal;font-size:.6rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--faint);margin-top:5px}
 </style>
 </head>

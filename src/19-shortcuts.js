@@ -109,6 +109,13 @@ function shortcutHintHTML(scope){
 document.addEventListener('keydown', ev => {
   if(ev.metaKey || ev.ctrlKey || ev.altKey) return;
   if(typeof isTyping === 'function' ? isTyping() : /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName || '')) return;
+  /* I, on the People page: the quick log, with the name field waiting. The
+     point of the quick log is that it is quick, and reaching for a mouse is
+     not. */
+  if(ev.key.toLowerCase() === 'i' && typeof parseHash === 'function' && parseHash().name === 'people'
+     && typeof openQuickLog === 'function' && !document.querySelector('#modals .modal')){
+    ev.preventDefault(); openQuickLog(null); return;
+  }
   if(ev.key !== '?') return;
   if(document.querySelector('.keyboard-card')) return closeModals();
   ev.preventDefault(); openShortcuts();

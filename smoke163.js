@@ -39,9 +39,9 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
      ['Interaction sounds','Ambient background']);
   /* the decoration is three choices rather than on and off, so it is three
      buttons like the theme rather than a switch */
-  is('  and the decoration offers all three', await p.evaluate(() =>
+  is('  and the decoration offers both', await p.evaluate(() =>
     [...document.querySelectorAll('[data-frdecor]')].map(n => n.dataset.frdecor)),
-    ['full','essential','plain']);
+    ['essential','plain']);
   /* the fifth Atmosphere row is deliberately not here */
   yes('and the interface sounds are not asked about',
     !rows.keys.includes('ui') && !rows.titles.some(t => /interface/i.test(t)), rows.titles.join(' / '));
@@ -62,13 +62,14 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   is('  and it is the same setting Settings uses',
     await p.evaluate(() => S.settings.decor), 'plain');
   await p.click('[data-frdecor="essential"]'); await p.waitForTimeout(400);
-  is('the middle one keeps the painting and takes off the rest',
+  is('and putting it back keeps the painting, the paper and the leaves',
     await p.evaluate(() => ({mode: document.documentElement.dataset.decor,
-      painted: paintedGround(), ornament: plainMode()})),
-    {mode: 'essential', painted: true, ornament: true});
-  await p.click('[data-frdecor="full"]'); await p.waitForTimeout(400);
-  is('and putting it all back puts it all back',
-    await p.evaluate(() => document.documentElement.dataset.decor), 'full');
+      painted: paintedGround(), ornament: plainMode(),
+      ambient: getComputedStyle(document.querySelector('.ambient')).display !== 'none'})),
+    {mode: 'essential', painted: true, ornament: false, ambient: true});
+  /* a setting saved before there were two lands on the richer of them */
+  is('a house that was set to "full" is Essential now',
+    await p.evaluate(() => { S.settings.decor = 'full'; applyDecor(); return decorMode(); }), 'essential');
 
   console.log('\n3. the interface sounds are on without being asked for');
   is('on by default', await p.evaluate(() => SoundManager.state().uiEnabled), true);
@@ -84,7 +85,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
       theme: S.settings.theme, decor: decorMode(),
       clicks: SoundManager.state().soundEnabled, amb: SoundManager.state().ambientEnabled,
       ui: SoundManager.state().uiEnabled})),
-    {theme: 'dark', decor: 'full', clicks: true, amb: true, ui: true});
+    {theme: 'dark', decor: 'essential', clicks: true, amb: true, ui: true});
 
   console.log('\n5. all four are in Settings, under Atmosphere, where they were promised');
   await p.evaluate(() => { location.hash = '#/settings'; }); await p.waitForTimeout(1100);
@@ -94,16 +95,16 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     const c = h3.parentElement;
     return {ids: [...c.querySelectorAll('.opt [id]')].map(n => n.id),
       uiOn: c.querySelector('#sUiSound')?.classList.contains('on'),
-      decorOn: !!c.querySelector('#sDecor [data-decor="full"].on')};
+      decorOn: !!c.querySelector('#sDecor [data-decor="essential"].on')};
   });
   yes('the Atmosphere card is there', card !== null);
   for(const id of ['sTheme','sSound','sAmbient','sUiSound','sDecor'])
     yes(`  it carries ${id}`, card && card.ids.includes(id), card && card.ids.join(' '));
   is('  the interface sounds read as on', card && card.uiOn, true);
-  is('  and the decoration reads as full', card && card.decorOn, true);
-  is('  offering all three', await p.evaluate(() =>
+  is('  and the decoration reads as essential', card && card.decorOn, true);
+  is('  offering both', await p.evaluate(() =>
     [...document.querySelectorAll('#sDecor [data-decor]')].map(n => n.dataset.decor)),
-    ['full','essential','plain']);
+    ['essential','plain']);
   await p.click('#sUiSound'); await p.waitForTimeout(300);
   is('  and turning them off in Settings turns them off',
     await p.evaluate(() => SoundManager.state().uiEnabled), false);

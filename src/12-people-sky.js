@@ -455,11 +455,23 @@ function mountSky(root){
   /* photographs are loaded once and kept, rather than decoded per frame */
   nodes.forEach(n => { if(n.person.photo){ const im = new Image(); im.src = n.person.photo; n.img = im; } });
 
+  /* The card has two buttons on it, and reaching for either of them takes the
+     pointer off the face that opened it. So it does not close the instant the
+     face is left: it waits a moment, and the pointer arriving on the card
+     cancels the wait. Without this the card is a thing you can read and never
+     press, which is worse than not having the buttons. */
+  let hideT = 0;
+  const holdCard = () => clearTimeout(hideT);
+  const dropCard = () => { clearTimeout(hideT); hideT = setTimeout(() => { card.hidden = true; }, 260); };
+  card.addEventListener('pointerenter', holdCard);
+  card.addEventListener('pointerleave', dropCard);
+
   _sky = new PeopleSky(cv, nodes, {
     height: innerWidth < 760 ? 380 : 520,
     labels: innerWidth >= 520,
     onHover(n, x, y){
-      if(!n){ card.hidden = true; return; }
+      if(!n){ dropCard(); return; }
+      clearTimeout(hideT);
       card.innerHTML = skyCardHTML(n);
       card.hidden = false;
       card.style.borderColor = `hsla(${n.hue},${n.sat}%,58%,.5)`;

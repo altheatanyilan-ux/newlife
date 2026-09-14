@@ -191,10 +191,12 @@ routes.people = function(root, params){
     <div class="page-bar rv"><div class="view-toggle">${[['circles','◎ Circles'],['list','▤ List'],['log','◷ Log'],['eras','▬ Life stages'],['audit','◈ Audit']].map(([k,l])=>`<button class="${view===k?'on':''}" data-pplview="${k}">${l}</button>`).join('')}</div><span class="pb-sep"></span><button class="btn sm ghost" id="rtReachout">☺ reach out to someone</button><button class="btn sm ghost" id="rtGratitude">♡ gratitude for someone</button><button class="btn sm ghost" id="rtRing">◎ ring review</button></div>
 
     <div id="pplBody"></div>
+    <button class="btn primary ppl-log-fab" id="pplQuick" title="log an interaction (I)">✎ Log</button>
   </div>`;
   const body = $('#pplBody');
   ({circles:pplCircles, list:pplList, log:pplTimeline, eras:pplEras, audit:pplAudit}[view])(body);
   $$('[data-pplview]',root).forEach(b => b.onclick = () => { S._pplView = b.dataset.pplview; rerender(); });
+  $('#pplQuick').onclick = () => openQuickLog(null);
   $$('[data-fudone]',root).forEach(b => b.onclick = () => { byId(S.interactions, b.dataset.fudone).followUpDone = true; saveNow(); sound('success'); rerender(); });
   if($('#pplAll')) $('#pplAll').onclick = () => { S._pplView = 'list'; S._pplNeeds = true; rerender(); };
   $('#rtReachout').onclick = () => reachOutRitual();
@@ -396,12 +398,20 @@ function renderPersonPage(root, id){
       <div style="flex:1;min-width:0">
         <h1 style="margin:0">${ed(`people.#${p.id}.name`)}</h1>
         <div class="quote">${ed(`people.#${p.id}.relationship`,{ph:'how you\'d describe this relationship — not a category'})}</div>
+        ${(p.becomeAround || '').trim() ? `<blockquote class="person-pull">${esc(p.becomeAround.trim())}
+          <span class="mono">what you become around them</span></blockquote>` : ''}
         <div class="row" style="gap:8px;margin-top:8px;flex-wrap:wrap">
           <select class="sel" style="width:auto" id="ppCircle">${Object.entries(CIRCLES).map(([k,x])=>`<option value="${k}" ${p.circle===k?'selected':''}>${x[0]} ${x[1]} ring</option>`).join('')}</select>
           <select class="sel" style="width:auto" id="ppStatus">${Object.entries(PERSON_STATUS).map(([k,x])=>`<option value="${k}" ${p.status===k?'selected':''}>${x[0]} ${x[1]}</option>`).join('')}</select>
           <select class="sel" style="width:auto" id="ppFreq" title="how often you would like to be in touch"><option value="">no rhythm set</option>${Object.keys(FREQUENCIES).map(k=>`<option value="${k}" ${p.desiredFrequency===k?'selected':''}>${k}</option>`).join('')}</select>
         </div></div>
     </div>
+
+    ${typeof personHeatHTML === 'function' ? `<div class="card rv person-shapes" style="margin:16px 0">
+      ${personHeatHTML(p.id)}
+      ${personTimelineHTML(p.id)}
+      ${personEnergyLineHTML(p.id)}
+    </div>` : ''}
 
     <div class="card rv" style="margin:16px 0"><div class="income-strip">
       <div><div class="k">last interaction</div><div class="num" style="font-size:1.4rem">${p.lastInteraction?relDays(daysSince(p.lastInteraction)):'—'}</div><div class="mono">${p.lastInteraction?fmtDate(p.lastInteraction,'med'):'nothing logged'}</div></div>
@@ -413,7 +423,7 @@ function renderPersonPage(root, id){
     ${od ? `<div class="card rv late-card" style="margin-bottom:16px"><b class="serif">${od.days===Infinity?'Nothing logged yet.':`It has been ${od.days} days.`}</b><div class="muted" style="font-size:.88rem;margin-top:4px">You set a ${esc(od.want)} rhythm for this ring. No obligation — the record is just noticing.</div>
       <div class="row" style="margin-top:10px;gap:8px"><button class="btn sm primary" id="ppLogNow">Log an interaction</button><button class="btn sm ghost" id="ppRemind">Put it on the plan</button></div></div>` : ''}
 
-    <div class="row rv" style="gap:8px;margin-bottom:16px"><button class="btn primary" id="ppLog">＋ Log an interaction</button><button class="btn ghost" id="ppWrite">Write about them</button></div>
+    <div class="row rv" style="gap:8px;margin-bottom:16px"><button class="btn primary" id="ppQuick">✎ Quick log</button><button class="btn" id="ppLog">＋ Log with everything</button><button class="btn ghost" id="ppWrite">Write about them</button></div>
 
     <section class="section rv"><span class="sc">Life stages present</span><p class="muted" style="font-size:.85rem">Which of your stages was this person part of? Feeds the Relationship Timeline.</p>
       <div class="deps" id="ppStages">${S.stages.filter(s=>!s.notyet).map(s=>`<span class="chip click ${(p.stagesPresent||[]).includes(s.id)?'on':''}" style="--c:${s.hue}" data-ppstage="${s.id}">${s.char} ${esc(s.name)}</span>`).join('')}</div></section>
@@ -469,6 +479,7 @@ function renderPersonPage(root, id){
   $('#ppCircle').onchange = e => { const to = e.target.value; if(to !== p.circle) p.ringHistory.push({date:today(), from:p.circle, to}); p.circle = to; saveNow(); rerender(); };
   $('#ppStatus').onchange = e => { p.status = e.target.value; saveNow(); rerender(); };
   $('#ppFreq').onchange = e => { p.desiredFrequency = e.target.value || null; saveNow(); rerender(); };
+  $('#ppQuick').onclick = () => openQuickLog(p.id);
   $('#ppLog').onclick = () => openInteractionModal(null, p.id);
   if($('#ppLogNow')) $('#ppLogNow').onclick = () => openInteractionModal(null, p.id);
   if($('#ppRemind')) $('#ppRemind').onclick = () => { S.tasks.push(newTask(`Reach out to ${p.name}`, today())); saveNow(); sound('success'); toast('Added to today\'s plan.'); };

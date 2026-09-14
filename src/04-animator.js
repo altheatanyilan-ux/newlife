@@ -79,6 +79,11 @@ const Animator = (() => {
     if(l.io) l.io.disconnect();
     if(!('IntersectionObserver' in window)){ l.visible = true; return; }
     l.io = new IntersectionObserver(es => {
+      /* An element that has left the document is not merely off the screen:
+         its layer will never be called again, so it would sit registered and
+         active for ever, and nothing would ever notice. A page swap is the
+         ordinary way that happens. */
+      if(!el.isConnected){ forget(id); return; }
       l.visible = es[0].isIntersecting;
       if(l.visible && l.active) start(); else if(!anyActive()) stop();
     }, {threshold: 0});

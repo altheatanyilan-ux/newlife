@@ -6876,9 +6876,12 @@ html:is([data-decor="plain"],[data-decor="essential"]) .value-field + .value-fie
 html:is([data-decor="plain"],[data-decor="essential"]) .ornate-rule{display:none!important}
 
 /* surfaces go flat: no stone, no paper, no double frame */
-html:is([data-decor="plain"],[data-decor="essential"]) .card{background-image:none;background-color:var(--elev-2);
+/* The stone in the surfaces stays in Essential: it is a background-image on
+   an element that is not moving, which costs a decode once and nothing after.
+   Plain does without it. */
+html[data-decor="plain"] .card{background-image:none;background-color:var(--elev-2);
   box-shadow:var(--elev-2-shadow)}
-html:is([data-decor="plain"],[data-decor="essential"]) .card:hover{box-shadow:var(--elev-3-shadow)}
+html[data-decor="plain"] .card:hover{box-shadow:var(--elev-3-shadow)}
 html:is([data-decor="plain"],[data-decor="essential"]) .modal.rite,
 html:is([data-decor="plain"],[data-decor="essential"]) .body.theatre,
 html:is([data-decor="plain"],[data-decor="essential"]) .entry.sealed,
@@ -6899,11 +6902,17 @@ html:is([data-decor="plain"],[data-decor="essential"]) .page-head h1,
 html:is([data-decor="plain"],[data-decor="essential"]) .breathing,
 html[data-decor="plain"] .mist-band,
 html:is([data-decor="plain"],[data-decor="essential"]) .ripple-ring,
-html:is([data-decor="plain"],[data-decor="essential"]) .ink-leaf,
+/* the leaves go on falling in Essential — they are the one moving ornament
+   that is a handful of elements rather than a layer over everything */
+html[data-decor="plain"] .ink-leaf,
 html:is([data-decor="plain"],[data-decor="essential"]) .dv-pick .tc-back::after{animation:none}
-html:is([data-decor="plain"],[data-decor="essential"]) .entries > .entry,
-html:is([data-decor="plain"],[data-decor="essential"]) .vb-card,
-html:is([data-decor="plain"],[data-decor="essential"]) .era-col{rotate:0deg}
+/* The slight lean on a pinned thing stays in Essential. It is a static
+   transform — written once when the element is drawn, never touched again —
+   so it costs a paint and nothing after it, which is the test everything in
+   Essential has to pass. Plain wants the page square. */
+html[data-decor="plain"] .entries > .entry,
+html[data-decor="plain"] .vb-card,
+html[data-decor="plain"] .era-col{rotate:0deg}
 /* the firelight across a heading becomes a heading */
 html:is([data-decor="plain"],[data-decor="essential"]) .flow{background:none;-webkit-text-fill-color:currentColor;
   color:var(--text);animation:none}
@@ -6994,7 +7003,7 @@ html[data-decor="plain"] [data-reveal] .wd{opacity:1;transform:none;transition:n
 .fd-bubble.resting{border-color:color-mix(in srgb,var(--sage) 45%,transparent)}
 /* a sitting under way has to be visible from the corner of the eye, and stop
    being visible the moment it is paused */
-html[data-decor="full"] .fd-bubble.ticking{animation:fdPulse 2.6s ease-in-out infinite}
+html:not([data-decor="plain"]) .fd-bubble.ticking{animation:fdPulse 2.6s ease-in-out infinite}
 @keyframes fdPulse{0%,100%{box-shadow:var(--elev-2-shadow)}
   50%{box-shadow:var(--elev-2-shadow),0 0 0 5px color-mix(in srgb,var(--terra) 13%,transparent)}}
 @media (prefers-reduced-motion:reduce){.fd-bubble.ticking{animation:none}}
@@ -7113,6 +7122,62 @@ html[data-decor="full"] .fd-bubble.ticking{animation:fdPulse 2.6s ease-in-out in
    reading of the word and they sit on every page. */
 html:is([data-decor="plain"],[data-decor="essential"]) #vines,
 html:is([data-decor="plain"],[data-decor="essential"]) #roomtex{display:none!important}
+
+/* ============================================================
+   20. LOGGING IN THREE TAPS, AND THE SHAPE OF A FRIENDSHIP
+   ============================================================ */
+.ql .field{margin-bottom:2px}
+.ql-kinds{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.ql-kinds button{flex:1 1 88px;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:9px 6px;border-radius:10px;border:1px solid var(--line);background:var(--surface-2);
+  color:var(--muted);cursor:pointer;font-family:var(--sans);font-size:.72rem;
+  transition:border-color .18s var(--ease),background .18s var(--ease),color .18s var(--ease)}
+.ql-kinds button:hover{border-color:var(--line-2);background:var(--surface-3);color:var(--text)}
+.ql-kinds button.on{border-color:var(--page-accent);color:var(--text);
+  background:color-mix(in srgb,var(--page-accent) 12%,transparent)}
+.ql-ic{font-size:1.15rem;line-height:1}
+.ql-foot{margin-top:12px;gap:10px;flex-wrap:wrap}
+.ql-when{display:inline-flex;align-items:center;gap:6px;font-size:.66rem;color:var(--faint)}
+.ql-when .inp{width:auto;padding:4px 6px}
+
+/* the floating way in, mirroring the add button on the other side */
+.ppl-log-fab{position:fixed;right:96px;bottom:26px;z-index:55;border-radius:999px;
+  box-shadow:var(--elev-3-shadow)}
+@media (max-width:900px){.ppl-log-fab{right:82px;bottom:80px}}
+
+/* ninety days, one square each */
+.heat-wrap{margin-bottom:16px}
+.heat{display:flex;gap:2px;margin-top:7px;flex-wrap:nowrap;overflow:hidden}
+/* A day with nothing in it still has to be a square, or the strip reads as a
+   scattering of marks rather than as ninety days of which these were the
+   ones. Faint, but present. */
+.heat i{flex:1 1 0;min-width:0;height:24px;border-radius:2px;
+  background:color-mix(in srgb,var(--text) 7%,transparent)}
+.heat i.on{background:color-mix(in srgb,var(--c,var(--terra)) calc(34% + var(--n) * 17%),transparent)}
+
+/* the meetings, as marks on a line */
+.ptl-wrap{margin-bottom:16px}
+.ptl{position:relative;height:44px;margin-top:10px}
+.ptl-line{position:absolute;left:0;right:0;top:50%;height:1px;background:var(--line)}
+.ptl-mark{position:absolute;top:50%;transform:translate(-50%,-50%);width:24px;height:24px;
+  border-radius:50%;border:1px solid var(--c);background:var(--elev-2);color:var(--c);
+  font-size:.76rem;line-height:1;cursor:default;display:grid;place-items:center;
+  transition:transform .18s var(--ease)}
+.ptl-mark:hover{transform:translate(-50%,-50%) scale(1.25);z-index:2}
+.ptl-ends{margin-top:4px;font-size:.62rem}
+
+/* how it leaves you, meeting by meeting */
+.pe-wrap{display:flex;flex-direction:column;gap:4px}
+.pe-line{width:100%;max-width:260px;height:54px;display:block}
+.pe-mid{stroke:var(--line);stroke-width:1;stroke-dasharray:3 5}
+.pe-path{stroke:var(--line-2);stroke-width:1.4;stroke-linejoin:round;stroke-linecap:round}
+.person-shapes{display:flex;flex-direction:column;gap:2px}
+
+/* what you become around them, where you can see it */
+.person-pull{margin:10px 0 0;padding:0 0 0 12px;border-left:2px solid var(--c,var(--terra));
+  font-family:var(--quote);font-style:italic;font-size:1rem;line-height:1.5;color:var(--text)}
+.person-pull .mono{display:block;font-style:normal;font-size:.6rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--faint);margin-top:5px}
 </style>
 </head>
 <body>
@@ -7245,6 +7310,11 @@ const Animator = (() => {
     if(l.io) l.io.disconnect();
     if(!('IntersectionObserver' in window)){ l.visible = true; return; }
     l.io = new IntersectionObserver(es => {
+      /* An element that has left the document is not merely off the screen:
+         its layer will never be called again, so it would sit registered and
+         active for ever, and nothing would ever notice. A page swap is the
+         ordinary way that happens. */
+      if(!el.isConnected){ forget(id); return; }
       l.visible = es[0].isIntersecting;
       if(l.visible && l.active) start(); else if(!anyActive()) stop();
     }, {threshold: 0});
@@ -7565,18 +7635,20 @@ function applyTheme(){ document.documentElement.dataset.theme = S.settings.theme
    the grain and the stone, the glows, the candlelight, the drift — and leaves
    the instrument, which was always the point. Nothing about what the app
    KNOWS changes; only what it spends drawing it. */
-/* Three settings. Plain takes everything decorative off; essential keeps the
-   ink painting behind the rooms and the paper under it and takes off the
-   hundred small things; full is the house as drawn.
+/* Two settings. Essential is the house: the ink painting behind the rooms,
+   the paper under it, the stone in the surfaces, the leaves coming down. Plain
+   is the writing and nothing else.
 
-   plainMode() answers "is the moving, per-element ornament off" — which is
-   true of both plain and essential, and is what every layer that asks wants
-   to know. decorMode() answers which of the three it is. */
-function decorMode(){
-  const d = S.settings && S.settings.decor;
-  return d === 'plain' || d === 'essential' ? d : 'full';
-}
-function plainMode(){ return decorMode() !== 'full'; }
+   There used to be a third above Essential — the dust in the air, the flowers
+   in every margin, the textures on every section, the blur behind the
+   chrome, the drift on everything that could hold one. It was a hundred small
+   things each sitting on its own element, and between them they were most of
+   what made the house slow. It is gone rather than demoted: a setting nobody
+   should choose is not a setting.
+
+   plainMode() answers "is the small per-element ornament off". */
+function decorMode(){ return (S.settings && S.settings.decor) === 'plain' ? 'plain' : 'essential'; }
+function plainMode(){ return decorMode() === 'plain'; }
 /* the painting behind the rooms, which essential keeps and plain does not */
 function paintedGround(){ return decorMode() !== 'plain'; }
 function applyDecor(){ document.documentElement.dataset.decor = decorMode(); }
@@ -12102,8 +12174,7 @@ function openFirstRun(after){
       ${firstRunRowHTML('ambient', 'Ambient background', 'A barely-audible wash of noise under the work, which ducks out of the way of every click.', snd.ambientEnabled)}
       <div class="fr-decor" role="radiogroup" aria-label="Decoration">
         <span class="fr-copy"><b>Decoration</b><span class="fr-desc">The ink painting behind the rooms, the dust in the air, the grain in the paper and the stone in the surfaces. All ornament, all of it costing something to draw.</span></span>
-        <div class="decor-pick">${[['full','Full','everything, as drawn'],
-          ['essential','Essential','the painting stays; the rest comes off'],
+        <div class="decor-pick">${[['essential','Essential','the painting, the paper, the falling leaves'],
           ['plain','Plain','nothing but the writing']].map(([v, n, why]) =>
           `<button class="${decorMode() === v ? 'on' : ''}" data-frdecor="${v}" role="radio"
             aria-checked="${decorMode() === v}"><b>${n}</b><span>${esc(why)}</span></button>`).join('')}</div>
@@ -15125,6 +15196,211 @@ function openImagePanel(kind, id){
   bindRecImages(p, redraw);
 }
 /* ============================================================
+   LOGGING SOMETHING IN FIVE SECONDS, AND THE SHAPE OF A FRIENDSHIP
+
+   Logging an interaction used to mean opening a person, finding their log,
+   and filling in a form with a date, a kind, a description, an energy reading
+   and a quality. Half a minute of typing for the fact that you had coffee.
+   So it did not get done, and a page whose whole value is the record was kept
+   by a record nobody kept.
+
+   This is the same data behind a door you can get through in three taps: who,
+   what kind, how it left you. The note is one line and optional — if there is
+   more to say, the person's own page is still there and still takes it.
+
+   And the second half: a friendship read back as a shape rather than a list.
+   Ninety days as a strip of days, the energy of each meeting as a line, the
+   meetings themselves as marks along a timeline. A list tells you what
+   happened; these tell you the rhythm, which is the thing you actually want
+   to know and the thing a list hides.
+   ============================================================ */
+
+/* The six kinds, in the order a hand reaches for them, and one of them is new:
+   thinking of somebody is a way of keeping them, and the record should be
+   able to say so. */
+const QUICK_KINDS = [
+  ['met_in_person', '◍', 'met'],
+  ['call',          '☎', 'called'],
+  ['text',          '✎', 'wrote'],
+  ['email',         '✉', 'emailed'],
+  ['video_call',    '▣', 'saw'],
+  ['thought',       '♡', 'thought of'],
+];
+
+function openQuickLog(personId, opts){
+  const o = opts || {};
+  const people = [...(S.people || [])].sort((a, b) =>
+    (b.lastInteraction || '').localeCompare(a.lastInteraction || '') || a.name.localeCompare(b.name));
+  if(!people.length){ toast('Nobody here yet. Add a person first.'); return; }
+  const kind = S._qlKind || 'met_in_person';
+  const energy = S._qlEnergy || '';
+
+  const m = openModal(`<h2 class="entry-h">Quick log</h2>
+    <p class="muted" style="font-size:.86rem;margin:-6px 0 14px">Three taps. Anything longer belongs on their page.</p>
+    <div class="stack ql">
+      <div class="field"><label for="qlWho">Who</label>
+        <input class="inp" id="qlWho" list="qlList" autocomplete="off" placeholder="start typing a name"
+          value="${personId ? esc((byId(S.people, personId) || {}).name || '') : ''}">
+        <datalist id="qlList">${people.map(p => `<option value="${esc(p.name)}"></option>`).join('')}</datalist>
+      </div>
+      <div class="field"><label>What</label>
+        <div class="ql-kinds" role="radiogroup" aria-label="kind">${QUICK_KINDS.map(([k, ic, say]) =>
+          `<button class="${kind === k ? 'on' : ''}" data-qlkind="${k}" role="radio" aria-checked="${kind === k}">
+            <span class="ql-ic">${ic}</span><span>${say}</span></button>`).join('')}</div>
+      </div>
+      <div class="field"><label>And it left you</label>
+        <div class="resonance-scale" id="qlEnergy">${Object.entries(ENERGY_READINGS).map(([k, x]) =>
+          `<button style="--c:${x[2]}" class="${energy === k ? 'on' : ''}" data-qlenergy="${k}">${x[0]} ${x[1]}</button>`).join('')}
+          <button class="${energy === '' ? 'on' : ''}" data-qlenergy="">· not saying</button></div>
+      </div>
+      <div class="field"><label for="qlNote">One line, if there is one</label>
+        <input class="inp" id="qlNote" autocomplete="off" placeholder="coffee, and she asked about the move">
+      </div>
+      <div class="row between ql-foot">
+        <label class="mono ql-when">when <input class="inp mono" type="date" id="qlDate" value="${today()}" max="${today()}"></label>
+        <span class="row" style="gap:8px">
+          <button class="btn ghost" id="qlMore" title="save this one and open another">save · another</button>
+          <button class="btn primary" id="qlSave">Save</button></span>
+      </div>
+    </div>`, 'narrow');
+
+  const who = m.querySelector('#qlWho');
+  setTimeout(() => { personId ? m.querySelector('#qlNote').focus() : who.focus(); }, 60);
+
+  m.querySelectorAll('[data-qlkind]').forEach(b => b.onclick = () => {
+    S._qlKind = b.dataset.qlkind;
+    m.querySelectorAll('[data-qlkind]').forEach(x => {
+      const on = x.dataset.qlkind === S._qlKind;
+      x.classList.toggle('on', on); x.setAttribute('aria-checked', on);
+    });
+    sound('click');
+  });
+  m.querySelectorAll('[data-qlenergy]').forEach(b => b.onclick = () => {
+    S._qlEnergy = b.dataset.qlenergy;
+    m.querySelectorAll('[data-qlenergy]').forEach(x => x.classList.toggle('on', x.dataset.qlenergy === S._qlEnergy));
+    sound('click');
+  });
+
+  /* the name is matched loosely, because nobody types a full name to log a
+     coffee: an unambiguous prefix is enough, and an unknown one offers to
+     become a new person rather than failing */
+  function resolve(){
+    const q = who.value.trim().toLowerCase(); if(!q) return null;
+    const exact = S.people.find(p => p.name.toLowerCase() === q
+      || (p.nickname || '').toLowerCase() === q);
+    if(exact) return exact;
+    const hits = S.people.filter(p => `${p.name} ${p.nickname || ''}`.toLowerCase().includes(q));
+    return hits.length === 1 ? hits[0] : null;
+  }
+  function save(again){
+    let p = resolve();
+    if(!p){
+      const nm = who.value.trim();
+      if(!nm){ who.focus(); toast('Who was it?'); return; }
+      if(!confirm(`No one here is called "${nm}". Add them?`)){ who.focus(); return; }
+      p = newPerson(nm); S.people.push(p);
+    }
+    const k = S._qlKind || 'met_in_person';
+    const date = m.querySelector('#qlDate').value || today();
+    const note = m.querySelector('#qlNote').value.trim();
+    S.interactions.push({id: uid(), personId: p.id, date, type: k,
+      description: note || (QUICK_KINDS.find(x => x[0] === k) || [])[2] || 'Saw them.',
+      mood: null, energy: S._qlEnergy || '', quality: '', followUp: null, followUpDone: false});
+    p.lastInteraction = lastInteractionDate(p.id);
+    saveNow(); sound('success');
+    /* the constellation answers straight away: the face brightens, the thread
+       refreshes, and a few motes come off it. That is the whole reward, and
+       it is the reason this gets done at all. */
+    if(typeof _sky !== 'undefined' && _sky){ _sky.light(p.id); skyBurstAt(p.id); }
+    toast(`${esc(p.nickname || p.name.split(' ')[0])} — logged.`);
+    if(again){
+      /* the energy stays, because a run of catching-up is usually one mood */
+      who.value = ''; m.querySelector('#qlNote').value = '';
+      who.focus();
+      return;
+    }
+    m.remove();
+    if(parseHash().name === 'people') rerender();
+  }
+  m.querySelector('#qlSave').onclick = () => save(false);
+  m.querySelector('#qlMore').onclick = () => save(true);
+  m.addEventListener('keydown', e => {
+    if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); save(e.metaKey || e.ctrlKey); }
+  });
+  return m;
+}
+
+/* ---------- ninety days, as ninety days ----------
+   A strip of squares, one per day, darker where there was more. It says in
+   one glance what a reverse-chronological list cannot: that you saw them
+   twice in April and not since, or that it is every other Tuesday. */
+function personHeatHTML(id, days = 90){
+  const by = {};
+  personInteractions(id).forEach(i => { if(daysSince(i.date) <= days) by[i.date] = (by[i.date] || 0) + 1; });
+  const T = today();
+  const cells = [];
+  for(let d = days - 1; d >= 0; d--){
+    const day = addDays(T, -d), n = by[day] || 0;
+    cells.push(`<i class="${n ? 'on' : ''}" style="--n:${Math.min(n, 4)}" title="${fmtDate(day, 'med')}${
+      n ? ` · ${n} interaction${n === 1 ? '' : 's'}` : ''}"></i>`);
+  }
+  const total = Object.values(by).reduce((a, c) => a + c, 0);
+  return `<div class="heat-wrap">
+    <div class="row between"><span class="k mono">last ninety days</span>
+      <span class="mono faint">${total} interaction${total === 1 ? '' : 's'}</span></div>
+    <div class="heat">${cells.join('')}</div>
+  </div>`;
+}
+
+/* ---------- the meetings, as marks on a line ----------
+   Where the gaps are is the information. A list puts every entry the same
+   distance from the next one, which is exactly the fact it should be showing
+   you. */
+function personTimelineHTML(id, days = 180){
+  const ints = personInteractions(id).filter(i => daysSince(i.date) <= days).reverse();
+  if(!ints.length) return '';
+  const T = today();
+  return `<div class="ptl-wrap">
+    <div class="row between"><span class="k mono">the last six months</span>
+      <span class="mono faint">hover a mark</span></div>
+    <div class="ptl">
+      <i class="ptl-line"></i>
+      ${ints.map(i => {
+        const at = 100 - (daysSince(i.date) / days) * 100;
+        const t = INTERACTION_TYPES[i.type] || (i.type === 'thought' ? ['♡', 'Thought of them'] : INTERACTION_TYPES.other);
+        const en = ENERGY_READINGS[i.energy];
+        return `<button class="ptl-mark" style="left:${at.toFixed(2)}%;--c:${en ? en[2] : 'var(--line-2)'}"
+          data-ptlint="${esc(i.id)}"
+          title="${fmtDate(i.date, 'med')} · ${esc(t[1])}${i.description ? ' — ' + esc(i.description) : ''}">${t[0]}</button>`;
+      }).join('')}
+    </div>
+    <div class="row between mono faint ptl-ends"><span>${fmtDate(addDays(T, -days), 'med')}</span><span>today</span></div>
+  </div>`;
+}
+
+/* ---------- how it has been leaving you ----------
+   One dot per meeting that carried a reading, in the order they happened. A
+   run that slopes down is worth seeing, and it is not visible anywhere else.  */
+function personEnergyLineHTML(id){
+  const pts = personInteractions(id).filter(i => i.energy).reverse()
+    .map(i => ({v: {energized: 1, neutral: 0, drained: -1}[i.energy] ?? 0, date: i.date}));
+  if(pts.length < 2) return '';
+  const W = 200, H = 54, pad = 6;
+  const x = i => pad + (i / (pts.length - 1)) * (W - pad * 2);
+  const y = v => H / 2 - v * (H / 2 - pad);
+  const d = pts.map((p, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(p.v).toFixed(1)}`).join('');
+  return `<div class="pe-wrap">
+    <span class="k mono">how it leaves you, meeting by meeting</span>
+    <svg viewBox="0 0 ${W} ${H}" class="pe-line" aria-hidden="true">
+      <line x1="${pad}" y1="${H / 2}" x2="${W - pad}" y2="${H / 2}" class="pe-mid"/>
+      <path d="${d}" fill="none" class="pe-path"/>
+      ${pts.map((p, i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(p.v).toFixed(1)}" r="2.6"
+        fill="${p.v > 0 ? ENERGY_READINGS.energized[2] : p.v < 0 ? ENERGY_READINGS.drained[2] : ENERGY_READINGS.neutral[2]}"/>`).join('')}
+    </svg>
+    <span class="mono faint">${pts.length} readings · ${fmtDate(pts[0].date, 'short')} to ${fmtDate(pts[pts.length - 1].date, 'short')}</span>
+  </div>`;
+}
+/* ============================================================
    THE CONSTELLATION
 
    The People page was a directory: rings drawn at fixed radii, faces placed
@@ -15581,11 +15857,23 @@ function mountSky(root){
   /* photographs are loaded once and kept, rather than decoded per frame */
   nodes.forEach(n => { if(n.person.photo){ const im = new Image(); im.src = n.person.photo; n.img = im; } });
 
+  /* The card has two buttons on it, and reaching for either of them takes the
+     pointer off the face that opened it. So it does not close the instant the
+     face is left: it waits a moment, and the pointer arriving on the card
+     cancels the wait. Without this the card is a thing you can read and never
+     press, which is worse than not having the buttons. */
+  let hideT = 0;
+  const holdCard = () => clearTimeout(hideT);
+  const dropCard = () => { clearTimeout(hideT); hideT = setTimeout(() => { card.hidden = true; }, 260); };
+  card.addEventListener('pointerenter', holdCard);
+  card.addEventListener('pointerleave', dropCard);
+
   _sky = new PeopleSky(cv, nodes, {
     height: innerWidth < 760 ? 380 : 520,
     labels: innerWidth >= 520,
     onHover(n, x, y){
-      if(!n){ card.hidden = true; return; }
+      if(!n){ dropCard(); return; }
+      clearTimeout(hideT);
       card.innerHTML = skyCardHTML(n);
       card.hidden = false;
       card.style.borderColor = `hsla(${n.hue},${n.sat}%,58%,.5)`;
@@ -15846,10 +16134,12 @@ routes.people = function(root, params){
     <div class="page-bar rv"><div class="view-toggle">${[['circles','◎ Circles'],['list','▤ List'],['log','◷ Log'],['eras','▬ Life stages'],['audit','◈ Audit']].map(([k,l])=>`<button class="${view===k?'on':''}" data-pplview="${k}">${l}</button>`).join('')}</div><span class="pb-sep"></span><button class="btn sm ghost" id="rtReachout">☺ reach out to someone</button><button class="btn sm ghost" id="rtGratitude">♡ gratitude for someone</button><button class="btn sm ghost" id="rtRing">◎ ring review</button></div>
 
     <div id="pplBody"></div>
+    <button class="btn primary ppl-log-fab" id="pplQuick" title="log an interaction (I)">✎ Log</button>
   </div>`;
   const body = $('#pplBody');
   ({circles:pplCircles, list:pplList, log:pplTimeline, eras:pplEras, audit:pplAudit}[view])(body);
   $$('[data-pplview]',root).forEach(b => b.onclick = () => { S._pplView = b.dataset.pplview; rerender(); });
+  $('#pplQuick').onclick = () => openQuickLog(null);
   $$('[data-fudone]',root).forEach(b => b.onclick = () => { byId(S.interactions, b.dataset.fudone).followUpDone = true; saveNow(); sound('success'); rerender(); });
   if($('#pplAll')) $('#pplAll').onclick = () => { S._pplView = 'list'; S._pplNeeds = true; rerender(); };
   $('#rtReachout').onclick = () => reachOutRitual();
@@ -16051,12 +16341,20 @@ function renderPersonPage(root, id){
       <div style="flex:1;min-width:0">
         <h1 style="margin:0">${ed(`people.#${p.id}.name`)}</h1>
         <div class="quote">${ed(`people.#${p.id}.relationship`,{ph:'how you\'d describe this relationship — not a category'})}</div>
+        ${(p.becomeAround || '').trim() ? `<blockquote class="person-pull">${esc(p.becomeAround.trim())}
+          <span class="mono">what you become around them</span></blockquote>` : ''}
         <div class="row" style="gap:8px;margin-top:8px;flex-wrap:wrap">
           <select class="sel" style="width:auto" id="ppCircle">${Object.entries(CIRCLES).map(([k,x])=>`<option value="${k}" ${p.circle===k?'selected':''}>${x[0]} ${x[1]} ring</option>`).join('')}</select>
           <select class="sel" style="width:auto" id="ppStatus">${Object.entries(PERSON_STATUS).map(([k,x])=>`<option value="${k}" ${p.status===k?'selected':''}>${x[0]} ${x[1]}</option>`).join('')}</select>
           <select class="sel" style="width:auto" id="ppFreq" title="how often you would like to be in touch"><option value="">no rhythm set</option>${Object.keys(FREQUENCIES).map(k=>`<option value="${k}" ${p.desiredFrequency===k?'selected':''}>${k}</option>`).join('')}</select>
         </div></div>
     </div>
+
+    ${typeof personHeatHTML === 'function' ? `<div class="card rv person-shapes" style="margin:16px 0">
+      ${personHeatHTML(p.id)}
+      ${personTimelineHTML(p.id)}
+      ${personEnergyLineHTML(p.id)}
+    </div>` : ''}
 
     <div class="card rv" style="margin:16px 0"><div class="income-strip">
       <div><div class="k">last interaction</div><div class="num" style="font-size:1.4rem">${p.lastInteraction?relDays(daysSince(p.lastInteraction)):'—'}</div><div class="mono">${p.lastInteraction?fmtDate(p.lastInteraction,'med'):'nothing logged'}</div></div>
@@ -16068,7 +16366,7 @@ function renderPersonPage(root, id){
     ${od ? `<div class="card rv late-card" style="margin-bottom:16px"><b class="serif">${od.days===Infinity?'Nothing logged yet.':`It has been ${od.days} days.`}</b><div class="muted" style="font-size:.88rem;margin-top:4px">You set a ${esc(od.want)} rhythm for this ring. No obligation — the record is just noticing.</div>
       <div class="row" style="margin-top:10px;gap:8px"><button class="btn sm primary" id="ppLogNow">Log an interaction</button><button class="btn sm ghost" id="ppRemind">Put it on the plan</button></div></div>` : ''}
 
-    <div class="row rv" style="gap:8px;margin-bottom:16px"><button class="btn primary" id="ppLog">＋ Log an interaction</button><button class="btn ghost" id="ppWrite">Write about them</button></div>
+    <div class="row rv" style="gap:8px;margin-bottom:16px"><button class="btn primary" id="ppQuick">✎ Quick log</button><button class="btn" id="ppLog">＋ Log with everything</button><button class="btn ghost" id="ppWrite">Write about them</button></div>
 
     <section class="section rv"><span class="sc">Life stages present</span><p class="muted" style="font-size:.85rem">Which of your stages was this person part of? Feeds the Relationship Timeline.</p>
       <div class="deps" id="ppStages">${S.stages.filter(s=>!s.notyet).map(s=>`<span class="chip click ${(p.stagesPresent||[]).includes(s.id)?'on':''}" style="--c:${s.hue}" data-ppstage="${s.id}">${s.char} ${esc(s.name)}</span>`).join('')}</div></section>
@@ -16124,6 +16422,7 @@ function renderPersonPage(root, id){
   $('#ppCircle').onchange = e => { const to = e.target.value; if(to !== p.circle) p.ringHistory.push({date:today(), from:p.circle, to}); p.circle = to; saveNow(); rerender(); };
   $('#ppStatus').onchange = e => { p.status = e.target.value; saveNow(); rerender(); };
   $('#ppFreq').onchange = e => { p.desiredFrequency = e.target.value || null; saveNow(); rerender(); };
+  $('#ppQuick').onclick = () => openQuickLog(p.id);
   $('#ppLog').onclick = () => openInteractionModal(null, p.id);
   if($('#ppLogNow')) $('#ppLogNow').onclick = () => openInteractionModal(null, p.id);
   if($('#ppRemind')) $('#ppRemind').onclick = () => { S.tasks.push(newTask(`Reach out to ${p.name}`, today())); saveNow(); sound('success'); toast('Added to today\'s plan.'); };
@@ -32986,8 +33285,7 @@ routes.settings = function(root){
            information. -->
       <div class="opt"><div><b>Decoration</b><div class="d">The ink painting behind the rooms, the dust in the air, the grain in the paper and the stone in the surfaces, the candlelight, the glows, the drift. All of it is ornament and all of it costs something to draw. On an older machine the instrument is untouched by turning it down — only quieter to look at, and a great deal faster.</div>
         <div class="decor-pick" id="sDecor" role="radiogroup" aria-label="Decoration">${
-          [['full','Full','everything, as drawn'],
-           ['essential','Essential','the ink painting stays; the rest comes off'],
+          [['essential','Essential','the painting, the paper, the stone, the falling leaves'],
            ['plain','Plain','nothing but the writing']].map(([v,n,why]) =>
           `<button class="${decorMode()===v?'on':''}" data-decor="${v}" role="radio"
             aria-checked="${decorMode()===v}" title="${esc(why)}"><b>${n}</b><span>${esc(why)}</span></button>`).join('')}</div>
@@ -33076,8 +33374,7 @@ routes.settings = function(root){
     toast(+this.value === 0 ? 'The day turns over at midnight again.'
       : `The day turns over at ${this.value} AM. Anything before that is still the day before.`); };
   $('#sTheme').onclick = function(){ S.settings.theme = S.settings.theme==='dark'?'light':'dark'; saveNow(); applyTheme(); this.classList.toggle('on', S.settings.theme==='light'); };
-  const DECOR_SAID = {full: 'The ornament is all back.',
-    essential: 'Essential. The painting stays; the rest is off.',
+  const DECOR_SAID = {essential: 'Essential. The painting and the paper stay.',
     plain: 'Plain. Every ornament is off.'};
   $$('#sDecor [data-decor]').forEach(b => b.onclick = () => {
     S.settings.decor = b.dataset.decor; saveNow(); applyDecor();
@@ -41836,6 +42133,13 @@ function shortcutHintHTML(scope){
 document.addEventListener('keydown', ev => {
   if(ev.metaKey || ev.ctrlKey || ev.altKey) return;
   if(typeof isTyping === 'function' ? isTyping() : /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName || '')) return;
+  /* I, on the People page: the quick log, with the name field waiting. The
+     point of the quick log is that it is quick, and reaching for a mouse is
+     not. */
+  if(ev.key.toLowerCase() === 'i' && typeof parseHash === 'function' && parseHash().name === 'people'
+     && typeof openQuickLog === 'function' && !document.querySelector('#modals .modal')){
+    ev.preventDefault(); openQuickLog(null); return;
+  }
   if(ev.key !== '?') return;
   if(document.querySelector('.keyboard-card')) return closeModals();
   ev.preventDefault(); openShortcuts();

@@ -51,8 +51,7 @@ function openFirstRun(after){
       ${firstRunRowHTML('ambient', 'Ambient background', 'A barely-audible wash of noise under the work, which ducks out of the way of every click.', snd.ambientEnabled)}
       <div class="fr-decor" role="radiogroup" aria-label="Decoration">
         <span class="fr-copy"><b>Decoration</b><span class="fr-desc">The ink painting behind the rooms, the dust in the air, the grain in the paper and the stone in the surfaces. All ornament, all of it costing something to draw.</span></span>
-        <div class="decor-pick">${[['full','Full','everything, as drawn'],
-          ['essential','Essential','the painting stays; the rest comes off'],
+        <div class="decor-pick">${[['essential','Essential','the painting, the paper, the falling leaves'],
           ['plain','Plain','nothing but the writing']].map(([v, n, why]) =>
           `<button class="${decorMode() === v ? 'on' : ''}" data-frdecor="${v}" role="radio"
             aria-checked="${decorMode() === v}"><b>${n}</b><span>${esc(why)}</span></button>`).join('')}</div>
