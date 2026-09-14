@@ -17,8 +17,8 @@ const rects = () => {
     return {t:Math.round(b.top), b:Math.round(b.bottom), l:Math.round(b.left), r:Math.round(b.right),
       h:Math.round(b.height), w:Math.round(b.width),
       scrolls: e.scrollHeight > e.clientHeight + 1, ch:e.clientHeight, sh:e.scrollHeight}; };
-  return {focus:r('t-focus'), plan:r('t-plan'), tasks:r('t-tasks'), checkin:r('t-checkin'),
-    habits:r('t-habits'), theatre:r('t-theatre'), still:r('t-still'),
+  return {plan:r('t-plan'), tasks:r('t-tasks'), habits:r('t-habits'), tonight:r('t-tonight'),
+    checkin:r('t-checkin'), theatre:r('t-theatre'), still:r('t-still'),
     vh:innerHeight, hscroll: document.documentElement.scrollWidth > innerWidth + 1};
 };
 
@@ -52,9 +52,9 @@ const rects = () => {
   let p = await open(1440, 900);
   let m = await p.evaluate(rects);
   yes('it spans the same width as the sections under it',
-      m.plan.l === m.focus.l && m.plan.r === m.tasks.r,
-      `plan ${m.plan.l}-${m.plan.r}, focus ${m.focus.l}-${m.focus.r}, tasks ${m.tasks.l}-${m.tasks.r}`);
-  yes('  and stands above them', m.plan.b <= m.focus.t + 2 && m.plan.b <= m.tasks.t + 2);
+      m.plan.l === m.tasks.l && m.plan.r === m.tasks.r,
+      `plan ${m.plan.l}-${m.plan.r}, tasks ${m.tasks.l}-${m.tasks.r}`);
+  yes('  and stands above them', m.plan.b <= m.tasks.t + 2);
   yes('  it is still a section you can fold', await p.evaluate(() => {
     const d = document.getElementById('t-plan'); const was = d.open;
     d.querySelector('summary').click(); const now = d.open; d.open = was; return was !== now; }));
@@ -65,7 +65,11 @@ const rects = () => {
         return shutH < openH * 0.8 && shutH < 90; }));
 
   console.log('\n2. every section has a line of its own, about a screenful tall');
-  const secs = ['plan','focus','tasks','checkin','habits','theatre','still'];
+  /* The clock used to be one of these. It floats over every room now, so it is
+     not a section of this page and has no line of its own to hold. And the day
+     is two views, one at a time — doing it and looking at it — so the sections
+     on screen together are the ones Execution carries. */
+  const secs = ['plan','tasks','habits','tonight'];
   yes('nothing shares a line with anything else', secs.every((k, i) =>
     i === 0 || m[k].t >= m[secs[i-1]].b - 2), secs.map(k => `${k} ${m[k].t}-${m[k].b}`).join(', '));
   yes('  they all use the whole width', secs.every(k => m[k].w === m.plan.w),
@@ -157,41 +161,38 @@ const rects = () => {
       `found ${rw.stepFound}, two-line ${rw.stepTwoLine}, inline ${rw.stepInline}`);
   await p.close();
 
-  console.log('\n5. the clock scrolls too, so the sittings can be read');
+  /* Section 5 was about the ledger of the day's sittings running off the
+     bottom of the clock's box. There is no box: the clock is a gadget over the
+     page, and the ledger is not on it — what the sittings went on is read on
+     the task's own panel, where there is room for it. Nothing here to pin. */
+
+  console.log('\n5. the clock is over the page rather than a part of it');
   /* this is the whole point of the redesign: the ledger of what the sittings
      went on sits below the clock face and used to be unreachable */
   p = await open(1440, 900, {many:false, sittings:true});
-  const led = await p.evaluate(() => {
-    const f = document.getElementById('t-focus'), log = f.querySelector('.fl-wrap');
-    if(!log) return {found:false};
-    log.open = true;
-    const box = f.getBoundingClientRect();
-    /* opened, the ledger runs off the bottom of its box — which is exactly
-       the state in which it used to be unreachable */
-    const outOfSight = log.getBoundingClientRect().bottom > box.bottom + 20;
-    f.scrollTop = f.scrollHeight;
-    const seen = log.getBoundingClientRect();
-    const head = f.querySelector('.fp-head').getBoundingClientRect();
-    return {found:true, outOfSight, moved: f.scrollTop,
-      /* a real scroller, not an element quietly spilling past its own edge */
-      scrolls: getComputedStyle(f).overflowY === 'auto' && f.scrollHeight > f.clientHeight + 1,
-      /* the whole of it, ending inside the box — not merely overlapping it */
-      inSight: seen.bottom <= box.bottom + 2 && seen.bottom > box.top,
-      headPinned: Math.round(head.top) <= Math.round(box.top) + 3,
-      rows: f.querySelectorAll('.fl-row').length}; });
-  yes('the ledger of the day\'s sittings is there', led.found && led.rows === 14, `${led.rows} sittings`);
-  yes('  opened, it runs off the bottom of its box', led.outOfSight);
-  yes('  the box scrolls', led.scrolls);
-  yes('  and scrolling it brings the whole ledger into view', led.inSight && led.moved > 0,
-      `scrolled ${led.moved}`);
-  yes('  with the Focus heading still pinned to the top', led.headPinned);
+  const clk = await p.evaluate(() => {
+    const d = document.getElementById('focusDock'); if(!d) return {found:false};
+    const cs = getComputedStyle(d), r = d.getBoundingClientRect();
+    return {found:true, fixed: cs.position === 'fixed', inMain: !!document.querySelector('#main #focusDock'),
+      shut: focusDockShut(), w: Math.round(r.width), h: Math.round(r.height),
+      bottom: Math.round(innerHeight - r.bottom), left: Math.round(r.left),
+      sidebar: Math.round(document.querySelector('.sidebar').getBoundingClientRect().right),
+      section: !!document.getElementById('t-focus')}; });
+  yes('the clock is on the page', clk.found);
+  yes('  fixed to the window, not laid out in the page', clk.fixed && !clk.inMain);
+  yes('  and it is not a section of Today', !clk.section);
+  yes('  folded to its circle until it is wanted', clk.shut && clk.w <= 56 && clk.h <= 56,
+      `${clk.w}x${clk.h}`);
+  yes('  in the bottom corner', clk.bottom <= 26, String(clk.bottom));
+  yes('  clear of the navigation rather than over it', clk.left >= clk.sidebar,
+      `${clk.left} vs sidebar ${clk.sidebar}`);
   await p.close();
 
   console.log('\n6. the index is pinned, and it is the way between the rooms');
   p = await open(1440, 900, {many:true});
   is('it offers the sections in the order the page has them',
      await p.evaluate(() => [...document.querySelectorAll('[data-jump]')].map(n => n.dataset.jump).join(',')),
-     't-plan,t-focus,t-tasks,t-checkin,t-habits,t-theatre,t-still,t-tonight');
+     't-plan,t-tasks,t-habits,t-tonight');
   await p.evaluate(() => document.querySelector('[data-jump="t-tasks"]').click());
   await p.waitForTimeout(1300);
   const nav = await p.evaluate(() => {
@@ -220,15 +221,14 @@ const rects = () => {
   console.log('\n7. a narrow screen is the plain single column it always was');
   p = await open(880, 1100, {many:true});
   m = await p.evaluate(rects);
-  is('the clock and the list share a left edge', m.tasks.l, m.focus.l);
-  yes('  the plan is above them both', m.plan.b <= m.focus.t + 2);
-  yes('  the clock is above the list', m.focus.b <= m.tasks.t + 2);
-  yes('  everything else stacks too', m.habits.t >= m.checkin.b - 2 && m.still.t >= m.theatre.b - 2);
+  is('the plan and the list share a left edge', m.tasks.l, m.plan.l);
+  yes('  the plan is above the list', m.plan.b <= m.tasks.t + 2);
+  yes('  everything else stacks too', m.habits.t >= m.tasks.b - 2 && m.tonight.t >= m.habits.b - 2);
   yes('  a section is as tall as it needs to be, not a screenful',
       m.tasks.h > m.vh * 0.9, `tasks ${m.tasks.h} of ${m.vh}`);
   yes('  nothing runs off the side', !m.hscroll);
-  yes('  nothing is trapped in a scroller', !m.tasks.scrolls && !m.focus.scrolls,
-      `tasks ${m.tasks.ch}/${m.tasks.sh}, focus ${m.focus.ch}/${m.focus.sh}`);
+  yes('  nothing is trapped in a scroller', !m.tasks.scrolls,
+      `tasks ${m.tasks.ch}/${m.tasks.sh}`);
   yes('  and the compartment frames are gone', await p.evaluate(() => {
     const cs = getComputedStyle(document.getElementById('t-tasks'));
     return cs.borderTopWidth === '0px' && cs.paddingLeft === '0px'; }));

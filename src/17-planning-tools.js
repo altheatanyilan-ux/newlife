@@ -95,6 +95,12 @@ const FocusTimer = (() => {
     logSession(false);
     notify(); }
   function stop(logIt = true){
+    /* The sitting is over, so a break still open is over with it. Pausing is
+       the opposite case: the break has just begun and is waiting to be told
+       what it is for, and closing it there — which writing the session down
+       used to do — meant that pausing after a minute of real work never asked
+       the question at all. Only the two ends of a sitting close a break. */
+    closeBreak();
     if(st && logIt && st.phase === 'focus') logSession(false);
     st = null; pendingTask = null; notify();
   }
@@ -109,7 +115,6 @@ const FocusTimer = (() => {
     const already = st.logged || 0;
     const delta = mins - already;
     if(mins < 1 || delta < 1) return;
-    closeBreak();
     const breaks = (st.breaks || []).filter(b => b.to).map(b => ({from:b.from, to:b.to, note:b.note || ''}));
     const sessions = planState().focusSessions;
     let rec = st.sessionId ? sessions.find(s => s.id === st.sessionId) : null;
@@ -134,6 +139,7 @@ const FocusTimer = (() => {
   }
   function finish(skipped){
     const c = cfg(), was = st.phase, taskId = st.taskId, round = st.round;
+    closeBreak();
     if(was === 'focus') logSession(!skipped);
     const nextRound = was === 'focus' ? round + 1 : round;
     const nextPhase = was === 'focus' ? (round % c.longBreakAfter === 0 ? 'long' : 'short') : 'focus';

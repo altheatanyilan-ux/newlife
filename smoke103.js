@@ -1,4 +1,9 @@
-/* smoke103 — the focus panel, and a Compass drawn from measured time */
+/* smoke103 — the clock, and a Compass drawn from measured time. The clock used
+   to be a panel on Today; it floats over every room now, so what was "is it on
+   the page" is "is it on every page". What it records has not changed, which is
+   the half of this file that matters: a sitting of seconds is not a session, a
+   sitting of a quarter of an hour is, and the break inside it is written down
+   with what the break was for. */
 const {chromium} = require('playwright');
 const path = require('path');
 const FILE = 'file://' + path.resolve('/home/user/newlife/index.html');
@@ -20,14 +25,20 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   const onToday = async () => { await p.evaluate(() => { if(location.hash === '#/today') rerender(); else location.hash = '#/today'; }); await p.waitForTimeout(900); };
   const onCompass = async () => { await p.evaluate(() => { if(location.hash === '#/compass') rerender(); else location.hash = '#/compass'; }); await p.waitForTimeout(1200); };
 
-  console.log('\n1. the timer is on Today, not somewhere you go to');
+  console.log('\n1. the timer is not somewhere you go to — it is everywhere');
   await onToday();
-  yes('there is a focus panel on the page', !!(await p.$('#t-focus')));
-  yes('and it is in the page index', await p.evaluate(() =>
-    [...document.querySelectorAll('[data-jump]')].some(x => /focus/.test(x.textContent))));
+  yes('the clock is on the page', !!(await p.$('#focusDock')));
+  yes('and it is not a section of Today any more', !(await p.$('#t-focus')));
+  yes('and Today does not offer to jump to it', await p.evaluate(() =>
+    ![...document.querySelectorAll('[data-jump]')].some(x => /focus/.test(x.textContent))));
   await p.evaluate(() => { location.hash = '#/planning'; }); await p.waitForTimeout(1500);
-  yes('Planning no longer opens a second one',
-      await p.evaluate(() => { const b = document.querySelector('#plFocusBtn'); return !!b && /↗/.test(b.textContent); }));
+  yes('and it is still there in the next room', !!(await p.$('#focusDock')));
+  /* Planning used to carry a lesser timer of its own — one that could start
+     and stop and could not take a note of anything. It is gone, not merely
+     relabelled: there is one clock and it is the floating one. */
+  yes('Planning no longer has a timer of its own',
+      await p.evaluate(() => !document.querySelector('#plFocusBtn')
+        && !document.querySelector('.ft-wrap') && typeof openFocusTimer === 'undefined'));
 
   console.log('\n2. a task becomes the subject by being dragged into it');
   const tid = await p.evaluate(() => {
@@ -47,10 +58,10 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     ev(from, 'dragstart'); ev(to, 'dragover'); ev(to, 'drop'); ev(from, 'dragend');
     return FocusTimer.state().taskId;
   }, tid);
-  is('dropping a task on the panel makes it the session’s subject', dropped, tid);
+  is('dropping a task on the clock makes it the session’s subject', dropped, tid);
   await draw();
-  yes('and the panel says which task it is on',
-      await p.evaluate(() => /grant section/.test(document.querySelector('#t-focus').textContent)));
+  yes('and the clock says which task it is on',
+      await p.evaluate(() => /grant section/.test(document.querySelector('#focusDock').textContent)));
 
   console.log('\n3. pausing is a break, and the break takes a note');
   await p.evaluate(() => FocusTimer.start(undefined, 'focus'));
@@ -116,6 +127,12 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('  how long was actually worked', wr.minutes > 0, String(wr.minutes));
   yes('  over how many sittings', wr.sessions >= 2, String(wr.sessions));
   yes('  and what the breaks were for', wr.breakNotes.includes('a walk'), wr.breakNotes.join(' | '));
+
+  /* The clock is a floating gadget now, and an open one stands over the
+     bottom-left of whatever room you are in — which is where the Compass draws
+     its chart. Fold it back to its circle before measuring anything by
+     coordinate, the same way a person would. */
+  await p.evaluate(() => setFocusDockShut(true)); await p.waitForTimeout(400);
 
   console.log('\n6. the Compass draws the measured hours, and no longer asks about wasted ones');
   await p.evaluate(() => {
@@ -206,10 +223,16 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('taking the pointer off puts the resting day back',
       await p.evaluate(() => document.querySelector('#wkReadout .wk-say:not([hidden])')?.classList.contains('rest')),
       await shown());
+  /* A tap has no hover to read a line out with, so pressing a column opens
+     that day's two ends instead — which names the day and shows both times,
+     and is also how you change them. */
   await p.evaluate(d => document.querySelector(`[data-wkday="${d}"]`).dispatchEvent(
     new MouseEvent('click', {bubbles: true})), target.d);
-  await p.waitForTimeout(200);
-  is('and a tap reads it out, for a screen with no pointer', await shown(), target.want);
+  await p.waitForTimeout(500);
+  const tapped = await p.evaluate(() => {
+    const m = document.querySelector('#modals .modal'); return m ? m.innerText : ''; });
+  yes('and a tap opens that day, for a screen with no pointer',
+      /\d/.test(tapped) && /woke|sleep|slept|wake/i.test(tapped), JSON.stringify(tapped.slice(0, 70)));
 
   console.log('\n' + (errs.length ? 'console:\n  ' + errs.join('\n  ') : 'console: clean'));
   if(errs.length) bad += errs.length;

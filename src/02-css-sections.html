@@ -6263,5 +6263,78 @@ html[data-decor="plain"] [data-reveal] .wd{opacity:1;transform:none;transition:n
   transition:width .35s var(--ease)}
 .ts-bar .pct{text-align:right;color:var(--faint)}
 @media (max-width:640px){.ts-bar{grid-template-columns:1fr 70px 26px}}
+
+/* ============================================================
+   18. THE FOCUS GADGET
+
+   It floats over every room rather than living on one, so it is fixed to the
+   bottom-left corner — the opposite corner from the add button, which is the
+   only other thing that floats. Folded, it is a circle that still says how
+   many minutes you are in. Open, it is a small card: the clock, what the
+   sitting is on, and the two notes.
+   ============================================================ */
+/* The bottom-left corner of the room, not of the window: at left:0 the gadget
+   sits on top of the navigation, and a clock that hides the way out of the
+   page is a bad trade. It follows the sidebar in and out. */
+.fdock{position:fixed;left:calc(var(--sidebar) + 20px);bottom:20px;z-index:60;
+  display:flex;flex-direction:column;align-items:flex-start;
+  transition:transform .28s var(--ease)}
+@media (max-width:640px){.fdock{left:12px;bottom:12px}}
+
+/* --- folded: the circle --- */
+.fd-bubble{position:relative;width:48px;height:48px;padding:0;border-radius:50%;
+  border:1px solid var(--line-2);background:var(--elev-2);box-shadow:var(--elev-2-shadow);
+  cursor:pointer;display:grid;place-items:center;color:var(--muted);
+  transition:transform .2s var(--ease),box-shadow .2s var(--ease),border-color .2s var(--ease)}
+.fd-bubble:hover{transform:translateY(-2px);box-shadow:var(--elev-3-shadow);border-color:var(--line)}
+.fd-bubble svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+.fd-bubble .ft-track{fill:none;stroke:var(--line);stroke-width:2.4}
+.fd-bubble .ft-arc{fill:none;stroke-width:2.4;stroke-linecap:round;transition:stroke-dashoffset .6s linear}
+.fd-bmark{position:relative;font-size:.76rem;letter-spacing:.02em;color:var(--text)}
+.fd-bubble.over{border-color:var(--gold);box-shadow:0 0 0 4px color-mix(in srgb,var(--gold) 20%,transparent)}
+.fd-bubble.ticking{border-color:color-mix(in srgb,var(--terra) 45%,transparent)}
+.fd-bubble.resting{border-color:color-mix(in srgb,var(--sage) 45%,transparent)}
+/* a sitting under way has to be visible from the corner of the eye, and stop
+   being visible the moment it is paused */
+html[data-decor="full"] .fd-bubble.ticking{animation:fdPulse 2.6s ease-in-out infinite}
+@keyframes fdPulse{0%,100%{box-shadow:var(--elev-2-shadow)}
+  50%{box-shadow:var(--elev-2-shadow),0 0 0 5px color-mix(in srgb,var(--terra) 13%,transparent)}}
+@media (prefers-reduced-motion:reduce){.fd-bubble.ticking{animation:none}}
+
+/* --- open: the card --- */
+.fd-card{width:268px;max-width:calc(100vw - 40px);border-radius:var(--radius);
+  border:1px solid var(--line-2);background:var(--elev-3);box-shadow:var(--elev-3-shadow);
+  padding:13px 14px 14px;display:flex;flex-direction:column;gap:10px;
+  animation:fdIn .22s var(--ease)}
+@keyframes fdIn{from{opacity:0;transform:translateY(8px) scale(.97)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.fd-card{animation:none}}
+.fd-card.running{border-color:color-mix(in srgb,var(--terra) 34%,transparent)}
+.fd-card.onbreak{border-color:color-mix(in srgb,var(--sage) 34%,transparent)}
+.fd-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.fd-shut{border:0;background:none;color:var(--faint);cursor:pointer;font-size:1.1rem;
+  line-height:1;padding:2px 6px;border-radius:6px}
+.fd-shut:hover{color:var(--text);background:var(--surface-2)}
+
+.fd-drop{border:1px dashed var(--line);border-radius:9px;padding:8px 10px;
+  transition:border-color .18s var(--ease),background .18s var(--ease)}
+.fd-drop.over{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 9%,transparent)}
+.fd-on{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+.fd-on b{font-size:.92rem;line-height:1.25;overflow-wrap:anywhere}
+.fd-on .pl-mini{margin-left:auto}
+.fd-step{font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);
+  margin-top:4px;overflow-wrap:anywhere}
+.fd-empty{font-size:.78rem;color:var(--faint);line-height:1.4}
+
+/* the clock face is the one the panel used; only the room around it changed */
+.fdock .fp-ring{align-self:center}
+.fd-go{display:flex;gap:8px;align-items:center}
+.fd-note{display:flex;flex-direction:column;gap:4px}
+.fd-note .inp.sm{width:100%}
+.fd-note.resting .k{color:var(--sage)}
+
+/* Out of the way of the page while something is being dragged onto it: a
+   gadget in the corner is over whatever is in the corner. */
+.fdock:has(.fd-card){max-height:calc(100vh - 40px);overflow:visible}
+@media (max-height:560px){.fdock .fp-ring{display:none}}
 </style>
 </head>

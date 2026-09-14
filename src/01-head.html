@@ -581,7 +581,10 @@ details .body{padding:4px 0 18px}
 .dropzone:hover,.dropzone.over{border-color:var(--page-accent);color:var(--muted)}
 .thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 .thumbs img{width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--line)}
-.toast-wrap{position:fixed;bottom:28px;left:calc(var(--sidebar) + 24px);z-index:120;display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+/* The focus gadget stands in this corner too, and it is the thing that has to
+   stay readable, so the toasts stack on top of it rather than across it.
+   --dock-h is written by the gadget itself as it changes size. */
+.toast-wrap{position:fixed;bottom:calc(28px + var(--dock-h, 0px));left:calc(var(--sidebar) + 24px + var(--dock-w, 0px));z-index:120;display:flex;flex-direction:column;gap:8px;align-items:flex-start;transition:bottom .22s var(--ease),left .22s var(--ease)}
 .toast{background:var(--surface);border:1px solid var(--line-2);border-left:3px solid var(--page-accent);padding:10px 16px;border-radius:10px;font-size:.85rem;box-shadow:var(--shadow);animation:rise .3s var(--ease);max-width:340px}
 .ripple{position:fixed;border-radius:50%;pointer-events:none;z-index:200;transform:translate(-50%,-50%);animation:rip 1s var(--ease) forwards;border:2px solid var(--c,var(--page-accent))}
 @keyframes rip{from{width:0;height:0;opacity:.8}to{width:600px;height:600px;opacity:0}}

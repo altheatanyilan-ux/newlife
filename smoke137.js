@@ -33,21 +33,23 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
       await p.evaluate(() => { openSpeedDial(); const t = document.querySelector('#speedDial').textContent;
         closeSpeedDial(); return /Quick note/.test(t) && /Unfinished thought/.test(t); }));
 
-  console.log('\n2. the plan is read first, then the clock and the list together');
+  console.log('\n2. the plan is read first, then the list');
   /* document order, not child order: the sections sit inside the day's own
      compartments now, so a direct-child selector no longer finds any of them.
      The plan leads: it takes a line to itself and it is the frame the rest of
-     the day hangs on. Under it the clock and the list stand side by side, and
-     the clock comes first in the source because it is the left-hand one. */
+     the day hangs on. The clock is no longer one of these at all — it floats
+     over every room rather than standing between the plan and the list. */
   const order = await p.evaluate(() => [...document.querySelectorAll('#main .page [id^="t-"]')].map(n => n.id));
-  const iF = order.indexOf('t-focus'), iP = order.indexOf('t-plan'), iT = order.indexOf('t-tasks');
-  yes('the plan, then the clock, then the tasks', iP >= 0 && iP < iF && iF < iT, order.join(' → '));
+  const iP = order.indexOf('t-plan'), iT = order.indexOf('t-tasks');
+  yes('the plan, then the tasks', iP >= 0 && iP < iT, order.join(' → '));
+  yes('  and the clock is not among them', !order.includes('t-focus'), order.join(' → '));
   const jumps = await p.evaluate(() => [...document.querySelectorAll('.today-jump [data-jump]')].map(b => b.dataset.jump));
   yes('  and the jump links read in the same order as the page',
       jumps.filter(j => order.includes(j)).join(',') === order.filter(o => jumps.includes(o)).join(','),
       jumps.join(' → '));
 
   console.log('\n3. the focus clock has three hands');
+  await p.evaluate(() => setFocusDockShut(false)); await p.waitForTimeout(500);
   const hands = await p.evaluate(() => ({
     hour: !!document.querySelector('.fc-hour'), min: !!document.querySelector('.fc-min'), sec: !!document.querySelector('.fc-sec')}));
   yes('an hour hand, a minute hand and a second hand', hands.hour && hands.min && hands.sec, JSON.stringify(hands));

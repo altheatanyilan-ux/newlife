@@ -19,6 +19,10 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   const today_ = async () => { await p.evaluate(() => { if(location.hash === '#/today') rerender(); else location.hash = '#/today'; }); await p.waitForTimeout(1400); };
   await today_();
 
+  /* The clock is a floating gadget now and starts folded to its circle, so
+     everything about the dial has to open it first. */
+  await p.evaluate(() => setFocusDockShut(false)); await p.waitForTimeout(500);
+
   console.log('\n1. the timer is a clock, and its hands move');
   is('the dial has sixty marks', await p.evaluate(() => document.querySelectorAll('.fc-mark').length), 60);
   is('  twelve of them major', await p.evaluate(() => document.querySelectorAll('.fc-mark.major').length), 12);
@@ -38,7 +42,17 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('  and the digital reading is still there', /^\d\d:\d\d$/.test(
     (await p.evaluate(() => document.querySelector('.fp-time')?.textContent.trim())) || ''));
   await p.evaluate(() => { FocusTimer.stop(); FocusTimer.reset(); });
-  yes('the setup rows sit in a band of their own', !!(await p.$('.fp-setup .fp-mode')));
+  /* The band of setup rows above the dial — which kind of sitting, how long —
+     is gone with the panel: the gadget is the clock, the task and the two
+     notes, and a length is chosen by pressing a task's estimate. */
+  yes('and nothing is asked before it starts but starting it',
+      !(await p.$('.fp-mode')) && !(await p.$('.fp-len')));
+  /* it is over the page, not part of it */
+  yes('the clock stands clear of the room it is over', await p.evaluate(() => {
+    const d = document.querySelector('#focusDock');
+    return !!d && getComputedStyle(d).position === 'fixed' && !document.querySelector('#main #focusDock');
+  }));
+  await p.evaluate(() => setFocusDockShut(true)); await p.waitForTimeout(400);
 
   console.log('\n2. today\'s tasks are grouped by the list each lives in');
   const set = await p.evaluate(() => {

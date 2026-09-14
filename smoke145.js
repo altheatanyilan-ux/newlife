@@ -23,7 +23,14 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     await p.clock.runFor(1700); await p.evaluate(() => document.querySelectorAll('.toast').forEach(n => n.remove())); };
   await go('#/today');
 
-  console.log('\n1. the tick belongs at the clock');
+  /* The clock is a floating gadget now and carries only the clock, the task
+     and the two notes — the tick box that used to sit on it went with the
+     panel. What it did has not gone anywhere: crossing the work off, wherever
+     you cross it off, is still the end of the sitting. That is what these
+     three sections are actually about, so they cross it off from the list. */
+  await p.evaluate(() => setFocusDockShut(false)); await p.clock.runFor(500);
+
+  console.log('\n1. crossing the work off is the end of the sitting');
   const id = await p.evaluate(() => {
     const r = document.querySelector('.task-row'); const i = r.dataset.taskrow;
     const t = findTaskRef(i); t.task.done = false; t.task.duration = 15;
@@ -31,15 +38,15 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     planState().focusSessions = []; saveNow(); rerender(); return i; });
   await p.clock.runFor(400);
   await p.evaluate(i => focusOnTask(i, 0, ''), id); await p.clock.runFor(1400);
-  yes('the panel carries a tick box for the task it is timing',
-      await p.evaluate(() => !!document.querySelector('#t-focus [data-fpdone]')));
+  yes('the clock names the task it is timing',
+      await p.evaluate(() => !!document.querySelector('#focusDock .fd-on b')?.textContent));
   await p.clock.runFor(6 * 60 * 1000);
-  await p.evaluate(() => document.querySelector('#t-focus [data-fpdone]').click());
+  await p.evaluate(i => setTaskDone(i, true), id);
   await p.clock.runFor(1200);
   const A = await p.evaluate(i => ({idle: FocusTimer.state().idle, done: findTaskRef(i).done,
     spent: taskSpentOn(i), sessions: (planState().focusSessions || []).length,
     burst: !!document.querySelector('.fw-burst'), note: !!document.querySelector('.fw-note b')?.textContent}), id);
-  is('  ticking it there ends the sitting', A.idle, true);
+  is('  ticking it ends the sitting', A.idle, true);
   is('  the task is crossed off', A.done, true);
   is('  the minutes are kept against it', A.spent, 6);
   yes('  and the fireworks go up, with a sentence', A.burst && A.note);
@@ -49,10 +56,10 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     t.task.subtasks[0].isCompleted = false; planState().focusSessions = []; saveNow(); rerender(); }, id);
   await p.clock.runFor(400);
   await p.evaluate(i => focusOnTask(i, 0, '', 's-one'), id); await p.clock.runFor(1400);
-  is('the panel says which step it is on',
-     await p.evaluate(() => document.querySelector('.fp-stepname')?.textContent), 'the tricky bit');
+  is('the clock says which step it is on',
+     await p.evaluate(() => document.querySelector('#focusDock .fd-step')?.textContent), 'the tricky bit');
   await p.clock.runFor(3 * 60 * 1000);
-  await p.evaluate(() => document.querySelector('#t-focus [data-fpsubdone]').click());
+  await p.evaluate(i => setSubDone(i, 's-one', true), id);
   await p.clock.runFor(1200);
   const B = await p.evaluate(i => ({idle: FocusTimer.state().idle, sub: findTaskRef(i).task.subtasks[0].isCompleted,
     task: findTaskRef(i).done, spent: subSpentOn(i, 's-one'), burst: !!document.querySelector('.fw-burst')}), id);
@@ -81,12 +88,10 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('there is a project to put one in', !!pid);
   if(pid){
     await p.evaluate(i => focusOnTask(i, 0, ''), pid); await p.clock.runFor(1400);
-    is('  the panel names it', await p.evaluate(() => document.querySelector('.fp-on b')?.textContent),
+    is('  the clock names it', await p.evaluate(() => document.querySelector('#focusDock .fd-on b')?.textContent),
        'A task inside a project');
-    yes('  with a tick of its own', await p.evaluate(() => !!document.querySelector('#t-focus [data-fpdone]')));
-    yes('  and its estimate', await p.evaluate(() => !!document.querySelector('.fp-on .task-est')));
     await p.clock.runFor(2 * 60 * 1000);
-    await p.evaluate(() => document.querySelector('#t-focus [data-fpdone]').click());
+    await p.evaluate(i => setTaskDone(i, true), pid);
     await p.clock.runFor(1200);
     const C = await p.evaluate(i => ({idle: FocusTimer.state().idle, done: findTaskRef(i).done,
       spent: taskSpentOn(i)}), pid);

@@ -203,6 +203,9 @@ function focusOnTask(id, minutes = 0, what = '', subId = null){
   const st = FocusTimer.state();
   if(!st.running || st.taskId !== id || st.subId !== (subId || null)) FocusTimer.start();
   if(what && typeof FocusTimer.noteWork === 'function') FocusTimer.noteWork(what);
+  /* pressing an estimate is an unambiguous "I am sitting down with this now",
+     so the clock opens rather than staying a circle in the corner */
+  if(typeof setFocusDockShut === 'function') setFocusDockShut(false);
   sound('success');
   const thing = what || t?.text || 'this';
   toast(!minutes ? `Focusing on ${thing} — it is on today's list now.`
@@ -292,221 +295,13 @@ function focusClockHTML(face, frac, col, s, stop){
   </div>`;
 }
 
-/* ---------- the panel ---------- */
-function focusPanelHTML(){
-  const s = FocusTimer.state(), c = planState().timer;
-  /* One lookup, not two. planTaskById only knows the standalone tasks, so a
-     task living inside a project reached the timer as a bare name with no
-     steps, no estimate and nothing to tick. findTaskRef knows both kinds. */
-  const ref = s.taskId && typeof findTaskRef === 'function' ? findTaskRef(s.taskId) : null;
-  const t = ref ? ref.task : null;
-  const name = ref ? ref.text : '';
-  /* A sitting can be on one step rather than the whole task, and until now the
-     panel said only the task's name — so you could not tell which. */
-  const sub = t && s.subId ? (Array.isArray(t.subtasks) ? t.subtasks : []).find(x => x.id === s.subId) : null;
-  const total = (s.phase === 'focus' ? c.focusDuration : s.phase === 'long' ? c.longBreak : c.shortBreak) * 60;
-  /* A countdown's ring empties towards an end. A stopwatch has no end, so its
-     ring fills once round every hour — a shape that says "time is passing"
-     without pretending to a finish line. */
-  const stop = s.mode === 'stopwatch' && s.phase === 'focus';
-  const frac = stop ? (s.elapsed % 3600) / 3600 : (total ? 1 - s.left / total : 0);
-  const face = stop ? s.elapsed : s.left;
-  const R = 52, C = 2 * Math.PI * R;
-  const col = s.phase === 'focus' ? 'var(--terra)' : 'var(--sage)';
-  const rec = s.taskId ? taskWorkRecord(s.taskId) : null;
-  const todayMins = focusMinutesOn(today());
+/* The panel that used to stand on Today is gone; the clock floats over every
+   room instead. What it carried besides the clock — the estimate, the steps,
+   the description, the record of past sittings, the log of today's — was
+   reference material, and it is still on the pages where reference material
+   belongs: the task's own panel reads its sittings back, and Today still
+   counts the minutes into the day. See 09-focus-dock.js for what replaced it. */
 
-  return `<section class="section rv focus-block" id="t-focus">
-    <div class="row between fp-head" style="gap:10px;flex-wrap:wrap">
-      <span class="sc" style="margin:0">Focus</span>
-      <span class="mono faint">${todayMins ? `${fmtHM(todayMins)} worked today` : 'nothing timed yet today'}</span>
-    </div>
-    <div class="card fp-card${s.running ? ' running' : ''}${s.onBreak ? ' onbreak' : ''}">
-      <!-- How the sitting is counted is chosen before it starts, because the two
-           are different questions: can I hold this for twenty-five minutes, or
-           how long did that actually take. It is fixed once the clock runs. -->
-      <div class="fp-setup">
-      <div class="fp-mode${s.idle ? '' : ' locked'}">
-        ${[['countdown', 'Countdown', 'to a length you set'], ['stopwatch', 'Stopwatch', 'counts up, no end']]
-          .map(([k, n, why]) => `<button class="fp-modebtn${s.mode === k ? ' on' : ''}" data-fpmode="${k}"
-            ${s.idle ? '' : 'disabled'} title="${s.idle ? esc(why) : 'the clock is already running'}">
-            <span class="fp-mname">${n}</span><span class="fp-mwhy">${esc(why)}</span></button>`).join('')}
-      </div>
-      ${s.mode === 'countdown' ? `<div class="fp-len${s.idle ? '' : ' locked'}">
-        <span class="k mono">how long</span>
-        ${[15, 25, 45, 60, 90].map(n => `<button class="fp-lenbtn${c.focusDuration === n ? ' on' : ''}"
-          data-fplen="${n}" ${s.idle ? '' : 'disabled'}>${n}m</button>`).join('')}
-        <input class="inp mono fp-lenn" id="fpLen" type="number" min="1" max="240"
-          value="${c.focusDuration}" ${s.idle ? '' : 'disabled'} aria-label="minutes">
-      </div>` : ''}
-      </div>
-
-      <!-- the drop target: a task becomes the subject by being dragged here -->
-      <div class="fp-drop" data-focusdrop>
-        ${name ? `<div class="fp-on">
-            <!-- Finishing the work happens at the clock, so the tick belongs at
-                 the clock. Without it you had to leave the timer, scroll down
-                 to the list and find the row to say you were done — which is
-                 why the sitting so rarely got closed by the task it was for. -->
-            <button class="task-check fp-check${ref.done ? ' on' : ''}" data-fpdone="${esc(ref.id)}"
-              role="checkbox" aria-checked="${!!ref.done}"
-              title="${ref.done ? 'not done after all' : 'done — this ends the sitting'}">${ref.done ? '✓' : ''}</button>
-            <span class="k mono">on</span>
-            ${subCaretHTML(ref.id, t, 'task-caret fp-caret')}
-            <b class="serif${ref.done ? ' struck' : ''}">${esc(name)}</b>
-            ${taskEstHTML(ref.id, t, {sm:true})}
-            <button class="pl-mini" id="fpClear" title="take it out of the timer">×</button>
-          </div>
-          ${sub ? `<div class="fp-step">
-            <button class="task-check sm fp-check${sub.isCompleted ? ' on' : ''}"
-              data-fpsubdone="${esc(ref.id)}|${esc(sub.id)}" role="checkbox"
-              aria-checked="${!!sub.isCompleted}"
-              title="${sub.isCompleted ? 'not done after all' : 'done — this ends the sitting'}">${sub.isCompleted ? '✓' : ''}</button>
-            <span class="k mono">this step</span>
-            <span class="fp-stepname${sub.isCompleted ? ' struck' : ''}">${esc(sub.title || '')}</span>
-            ${subSpentOn(ref.id, sub.id) >= 1 || +sub.minutes ? `<span class="mono faint">${
-              esc(fmtSpent(subSpentOn(ref.id, sub.id), +sub.minutes || 0) || fmtEst(sub.minutes))}</span>` : ''}
-          </div>` : ''}
-          ${rec ? `<div class="fp-rec mono">${fmtHM(rec.minutes)} over ${rec.sessions} sitting${rec.sessions === 1 ? '' : 's'}${rec.breaks ? ` · ${rec.breaks} break${rec.breaks === 1 ? '' : 's'}` : ''} · started ${clockOf(rec.startedAt)}</div>` : ''}
-          <!-- The steps and the links are the reason the task was parked here:
-               they are what you are about to work from. Hiding them behind the
-               task's own page meant leaving the timer to read them. -->
-          ${subsOpen(ref.id, t) ? subBlockHTML(ref.id, t) : ''}
-          ${t && t.desc ? `<div class="fp-desc">${esc(t.desc)}</div>` : ''}`
-        : `<div class="fp-empty">Drag a task here to time it — or start the clock without one.</div>`}
-      </div>
-
-      <div class="fp-body">
-        ${focusClockHTML(face, frac, col, s, stop)}
-        <div class="fp-side">
-          <div class="row" style="gap:8px;flex-wrap:wrap">
-            <button class="btn sm primary" id="fpGo">${s.running ? '⏸ pause' : s.idle ? '▶ start' : '▶ resume'}</button>
-            ${s.idle ? '' : `<button class="btn sm ghost" id="fpStop">finish the sitting</button>`}
-          </div>
-          ${s.onBreak ? `<div class="fp-break">
-            <label class="k mono" for="fpBreakNote">what is this break for?</label>
-            <input class="inp sm" id="fpBreakNote" value="${esc(s.breakNote || '')}"
-              placeholder="tea · a walk · scrolling, honestly" autocomplete="off">
-            <div class="faint" style="font-size:.7rem">Since ${clockOf(s.breakSince)}. It is not counted as work.</div>
-          </div>` : `<div class="faint" style="font-size:.76rem">${s.running
-            ? 'Pausing starts a break, and asks what it is for.'
-            : 'Only time the clock is running counts as worked.'}</div>`}
-          <!-- A break has always been asked what it was for. A sitting of work
-               was not, which left the record saying how long but never what. -->
-          ${s.idle ? '' : `<div class="fp-did">
-            <label class="k mono" for="fpDid">what are you actually doing?</label>
-            <input class="inp sm" id="fpDid" value="${esc(s.notes || '')}"
-              placeholder="the second draft · the tricky bit of the proof" autocomplete="off">
-            <div class="faint" style="font-size:.7rem">Kept with the sitting when it is finished.</div>
-          </div>`}
-        </div>
-      </div>
-      ${typeof focusLogHTML === 'function' ? focusLogHTML() : ''}
-    </div>
-  </section>`;
-}
-
-function bindFocusPanel(root, redraw){
-  const go = redraw || rerender;
-  const box = root.querySelector('#t-focus');
-  if(!box) return;
-
-  const gob = box.querySelector('#fpGo');
-  if(gob) gob.onclick = () => { const s = FocusTimer.state();
-    s.running ? FocusTimer.pause() : FocusTimer.start(undefined, s.phase); sound('click'); go(); };
-  const stop = box.querySelector('#fpStop');
-  if(stop) stop.onclick = () => { FocusTimer.stop(); sound('click'); go(); };
-  const clr = box.querySelector('#fpClear');
-  if(clr) clr.onclick = () => { FocusTimer.setTask(null); go(); };
-  /* Crossing it off here is the same act as crossing it off in the list: the
-     shared setter runs, so the sitting ends and the cheer goes up. The cheer
-     makes its own noise, so we stay quiet when it fired. */
-  const fpd = box.querySelector('[data-fpdone]');
-  if(fpd) fpd.onclick = () => {
-    const id = fpd.dataset.fpdone;
-    const r = typeof findTaskRef === 'function' ? findTaskRef(id) : null; if(!r) return;
-    const was = r.done;
-    setTaskDone(id, !was);
-    if(was || !taskWasTimed(id)) sound(was ? 'click' : 'success');
-    go(); };
-  const fps = box.querySelector('[data-fpsubdone]');
-  if(fps) fps.onclick = () => {
-    const [rid, sid] = fps.dataset.fpsubdone.split('|');
-    const sb = typeof findSub === 'function' ? findSub(rid, sid) : null; if(!sb) return;
-    const was = sb.isCompleted;
-    const cheered = setSubDone(rid, sid, !was);
-    if(!cheered) sound(was ? 'click' : 'success');
-    go(); };
-  if(typeof bindTaskTimers === 'function') bindTaskTimers(box);
-
-  /* the note is written while the break is happening, so it saves as it is
-     typed rather than needing to be confirmed before the break ends */
-  const note = box.querySelector('#fpBreakNote');
-  if(note) note.oninput = debounce(function(){ FocusTimer.noteBreak(this.value); }, 300);
-  const did = box.querySelector('#fpDid');
-  if(did) did.oninput = debounce(function(){ FocusTimer.noteWork(this.value); }, 300);
-
-  /* the mode and the length are settable only while the clock is idle, which
-     the timer enforces as well as the disabled attribute */
-  box.querySelectorAll('[data-fpmode]').forEach(bt => bt.onclick = () => {
-    if(FocusTimer.setMode(bt.dataset.fpmode)){ sound('click'); go(); } });
-  box.querySelectorAll('[data-fplen]').forEach(bt => bt.onclick = () => {
-    if(FocusTimer.setLength(+bt.dataset.fplen)){ sound('click'); go(); } });
-  const len = box.querySelector('#fpLen');
-  if(len) len.onchange = () => { if(FocusTimer.setLength(len.value)) go(); };
-
-  /* the steps of the task being worked on are live here, not a picture of it */
-  if(typeof bindSubtasks === 'function') bindSubtasks(box, go);
-
-  const drop = box.querySelector('[data-focusdrop]');
-  if(drop){
-    drop.addEventListener('dragover', ev => {
-      if(!window._taskDrag) return;
-      ev.preventDefault(); ev.stopPropagation(); drop.classList.add('over');
-    });
-    drop.addEventListener('dragleave', () => drop.classList.remove('over'));
-    drop.addEventListener('drop', ev => {
-      const id = window._taskDrag || ev.dataTransfer.getData('text/plain');
-      drop.classList.remove('over');
-      if(!id) return;
-      ev.preventDefault(); ev.stopPropagation();
-      FocusTimer.setTask(id);
-      sound('success');
-      go();
-    });
-  }
-}
-
-/* Keep the ring moving while the page is open, without redrawing the whole of
-   Today every second: only the two numbers change. */
-function liveFocusFace(root){
-  const off = FocusTimer.subscribe(() => {});
-  const face = () => {
-    const box = root.querySelector('#t-focus'); if(!box || !box.isConnected){ clearInterval(iv); off(); return; }
-    const s = FocusTimer.state();
-    /* a stopwatch counts up and has no `left` to show: reading that field
-       regardless is how the face sat at 00:00 while the clock was running */
-    const up = s.mode === 'stopwatch' && s.phase === 'focus';
-    const tEl = box.querySelector('.fp-time'); if(tEl) tEl.textContent = fmtClock(up ? s.elapsed : s.left);
-    const c = planState().timer;
-    const total = (s.phase === 'focus' ? c.focusDuration : s.phase === 'long' ? c.longBreak : c.shortBreak) * 60;
-    const arc = box.querySelector('.ft-arc');
-    if(arc){ const C = 2 * Math.PI * FP_R;
-      const frac = up ? (s.elapsed % 3600) / 3600 : (total ? 1 - s.left / total : 0);
-      arc.style.strokeDashoffset = (C * (1 - frac)).toFixed(1); }
-    /* the hands are the point of the face, so they move every second rather
-       than only when the panel happens to be redrawn */
-    const secs = Math.max(0, (up ? s.elapsed : s.left) | 0);
-    const mh = box.querySelector('.fc-min'), sh = box.querySelector('.fc-sec'), hh = box.querySelector('.fc-hour');
-    if(hh) hh.style.transform = `rotate(${((secs % 43200) / 43200 * 360).toFixed(2)}deg)`;
-    if(mh) mh.style.transform = `rotate(${((secs % 3600) / 3600 * 360).toFixed(2)}deg)`;
-    if(sh) sh.style.transform = `rotate(${((secs % 60) * 6).toFixed(2)}deg)`;
-    const ring = box.querySelector('.fp-ring');
-    if(ring){ ring.classList.toggle('ticking', !!s.running); ring.classList.toggle('resting', !!s.onBreak); }
-  };
-  const iv = setInterval(face, 1000);
-  face();
-}
 
 /* ============================================================
    FINISHING THE THING YOU WERE SITTING WITH
@@ -555,7 +350,11 @@ function fireworks(x, y){
 }
 function celebrateFinish(minutes){
   const line = FINISH_LINES[Math.floor(Math.random() * FINISH_LINES.length)];
-  const face = document.querySelector('#t-focus .fp-ring') || document.querySelector('.fp-ring');
+  /* the burst comes from the middle of the clock, wherever the clock is —
+     open in the corner, folded to its circle, or not on screen at all */
+  const face = document.querySelector('#focusDock .fp-ring')
+    || document.querySelector('#focusDock .fd-bubble')
+    || document.querySelector('.fp-ring');
   const r = face ? face.getBoundingClientRect() : null;
   fireworks(r ? r.left + r.width / 2 : innerWidth / 2, r ? r.top + r.height / 2 : innerHeight / 3);
   const note = el(`<div class="fw-note" role="status">

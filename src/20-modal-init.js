@@ -405,6 +405,9 @@ async function initInner(){
   updateBackButton();
   /* every layer on its own guard: a decoration that throws must never be the
      reason the house does not open */
+  /* The clock is not part of any page, so it is hung on the document once and
+     never rebuilt: a redraw of #main cannot stop it or eat a half-typed note. */
+  try { mountFocusDock(); } catch(e){ console.warn('the clock could not be hung', e); }
   try { MicroFX.start(); } catch(e){ console.warn('pointer layer skipped', e); }
   try { AmbientFX.start(); } catch(e){ console.warn('ambient layer skipped', e); }
   try { ScrollFX.parallax(); PolishFX.start(); } catch(e){ console.warn('polish layer skipped', e); }

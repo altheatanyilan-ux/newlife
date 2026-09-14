@@ -30,12 +30,11 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     const v = n.closest('.today-view');
     return v ? v.dataset.view : 'neither';
   }, id);
-  /* .t-sec is the fold-memory class and only goes on a <details>; the focus
-     panel is a <section>, because it is never folded away. Both are sections
-     of the day, so both count here. */
+  /* .t-sec is the fold-memory class and only goes on a <details>. The clock
+     used to be a <section> here as well — it is a gadget over every room now,
+     so it is not a section of the day at all. */
   const shown = () => p.evaluate(() =>
-    [...document.querySelectorAll('.today-view:not([hidden]) .t-sec, .today-view:not([hidden]) #t-focus')]
-      .map(n => n.id));
+    [...document.querySelectorAll('.today-view:not([hidden]) .t-sec')].map(n => n.id));
   const jumps = () => p.evaluate(() =>
     [...document.querySelectorAll('[data-jump]')].map(n => n.dataset.jump));
 
@@ -47,12 +46,12 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     document.querySelector('.today-switch button.on')?.textContent.trim()), 'Execution');
 
   console.log('\n2. doing the day');
-  for(const id of ['t-plan','t-focus','t-tasks','t-habits','t-tonight'])
+  for(const id of ['t-plan','t-tasks','t-habits','t-tonight'])
     is(`${id} is execution`, await where(id), 'do');
   is('  and that is what is on the screen', await shown(),
-    ['t-plan','t-focus','t-tasks','t-habits','t-tonight']);
+    ['t-plan','t-tasks','t-habits','t-tonight']);
   is('  with an index of exactly those', await jumps(),
-    ['t-plan','t-focus','t-tasks','t-habits','t-tonight']);
+    ['t-plan','t-tasks','t-habits','t-tonight']);
 
   console.log('\n3. looking at it');
   for(const id of ['t-checkin','t-theatre','t-still','t-unfinished'])
