@@ -301,6 +301,10 @@ function stillnessHTML(){
            <div class="field"><label>How long to stay</label>${lengths}</div>`;
   const recent = s.sessions.slice(0, 3);
   return `<div class="body stillness">
+    <!-- The room comes first, because the going is half of the practice. The
+         row of tabs is still under it: the room is how you arrive, the tabs
+         are how you switch once you are already sitting. -->
+    ${typeof sacredRoomHTML === 'function' ? sacredRoomHTML() : ''}
     <div class="still-tabs">${STILL_KINDS.map(([k, n, ic]) =>
       `<button class="${kind === k ? 'on' : ''}" data-stkind="${k}">${ic} ${n}</button>`).join('')}</div>
     <div class="still-pane">${body}
@@ -328,6 +332,7 @@ function stillnessHTML(){
 function bindStillness(root){
   const s = stillness(), p = s.prefs;
   const q = x => root.querySelector(x);
+  if(typeof bindSacredRoom === 'function') bindSacredRoom(root);
   const re = () => { saveNow(); rerender(); };
   root.querySelectorAll('[data-stkind]').forEach(b => b.onclick = () => { p.kind = b.dataset.stkind; re(); });
   root.querySelectorAll('[data-stmin]').forEach(b => b.onclick = () => { p.minutes = +b.dataset.stmin; re(); });
