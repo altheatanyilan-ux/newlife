@@ -94,6 +94,17 @@ function milestonesWithin(days){
   }));
   return out.sort((a,b) => a.m.by.localeCompare(b.m.by));
 }
+/* ---------- the two horizons you are actually working with ----------
+   "In focus" is the handful being practised now; "Active" is what is held and
+   kept warm. Between them they are the live inventory — everything else is
+   either not started, deliberately set down, or a note to a future self. The
+   horizon filter could pick one or the other and not both, so the commonest
+   question a skill list is asked ("what am I actually working on?") was the
+   one thing it could not answer. This is a sixth value for that filter rather
+   than a second control beside it, so the chips, the select and the clear
+   button all keep meaning one thing. */
+const SKILL_LIVE = ['focus', 'active'];
+const SKILL_LIVE_KEY = 'live';
 function skillFilterState(){
   const f = S._skf = S._skf || {q:'', horizon:'all', cat:'all', level:'all', prio:'all', sort:'horizon'};
   return f;
@@ -101,7 +112,8 @@ function skillFilterState(){
 function filteredSkills(){
   const f = skillFilterState(); const q = f.q.toLowerCase();
   let list = S.skills.filter(s => {
-    if(f.horizon !== 'all' && skillHorizon(s) !== f.horizon) return false;
+    if(f.horizon === SKILL_LIVE_KEY){ if(!SKILL_LIVE.includes(skillHorizon(s))) return false; }
+    else if(f.horizon !== 'all' && skillHorizon(s) !== f.horizon) return false;
     if(f.cat !== 'all' && s.cat !== f.cat) return false;
     if(f.prio !== 'all' && (s.priority||'P3') !== f.prio) return false;
     if(f.level !== 'all'){
@@ -142,6 +154,7 @@ routes.skills = function(root, params){
      whole page: the standard seven, plus anything genuinely in use. */
   const list = filteredSkills(); const cats = skillCatOptions(f.cat !== 'all' ? f.cat : null);
   const counts = {}; Object.keys(SKILL_HORIZONS).forEach(k => counts[k] = S.skills.filter(s => skillHorizon(s) === k).length);
+  const liveN = SKILL_LIVE.reduce((n, k) => n + counts[k], 0);
   root.innerHTML = `<div class="page">
 
     <!-- 1. what you are actually doing now -->
@@ -177,14 +190,17 @@ routes.skills = function(root, params){
       <div class="row" style="gap:8px;margin:12px 0"><button class="btn primary" id="skNew">＋ Developing skill</button><button class="btn ghost" id="skSomeday">＋ Future skill</button></div>
       <div class="filter-bar">
         <input class="inp" id="skq" placeholder="search name, category, reason, tag" value="${esc(f.q)}">
-        <select class="sel" id="skHorizon"><option value="all">every horizon</option>${Object.entries(SKILL_HORIZONS).map(([k,v])=>`<option value="${k}" ${f.horizon===k?'selected':''}>${v[0]} ${v[1]} (${counts[k]})</option>`).join('')}</select>
+        <select class="sel" id="skHorizon"><option value="all">every horizon</option><option value="${SKILL_LIVE_KEY}" ${f.horizon===SKILL_LIVE_KEY?'selected':''}>◉○ in focus and active (${liveN})</option>${Object.entries(SKILL_HORIZONS).map(([k,v])=>`<option value="${k}" ${f.horizon===k?'selected':''}>${v[0]} ${v[1]} (${counts[k]})</option>`).join('')}</select>
         <select class="sel" id="skCat"><option value="all">every category</option>${cats.map(c=>{ const n = S.skills.filter(x=>x.cat===c).length; return `<option value="${esc(c)}" ${f.cat===c?'selected':''}>${esc(c)}${n?` (${n})`:' — none yet'}</option>`; }).join('')}</select>
         <select class="sel" id="skLevel">${[['all','any level'],['0','not started'],['1-2','level 1–2'],['3-4','level 3–4'],['5+','level 5 and up'],['due','has a milestone'],['atrophy','atrophying']].map(([v,l])=>`<option value="${v}" ${f.level===v?'selected':''}>${l}</option>`).join('')}</select>
         <select class="sel" id="skPrio"><option value="all">any priority</option>${Object.keys(SKILL_PRIOS).map(p=>`<option value="${p}" ${f.prio===p?'selected':''}>${p}</option>`).join('')}</select>
         <select class="sel" id="skSort">${[['horizon','by horizon'],['priority','by priority'],['level','by level'],['recent','by last practised'],['cat','by category'],['name','by name']].map(([v,l])=>`<option value="${v}" ${f.sort===v?'selected':''}>${l}</option>`).join('')}</select>
         ${(f.q||f.horizon!=='all'||f.cat!=='all'||f.level!=='all'||f.prio!=='all')?`<button class="btn sm ghost" id="skClearF">clear</button>`:''}
       </div>
-      <div class="chip-row" style="margin-bottom:12px">${Object.entries(SKILL_HORIZONS).map(([k,v])=>`<button class="chip click ${f.horizon===k?'on':''}" style="--c:${v[3]}" data-skh="${k}" title="${esc(v[2])}">${v[0]} ${v[1]} <span class="mono">${counts[k]}</span></button>`).join('')}</div>
+      <div class="chip-row" style="margin-bottom:12px">
+        <button class="chip click sk-live ${f.horizon===SKILL_LIVE_KEY?'on':''}" style="--c:${SKILL_HORIZONS.focus[3]}" data-skh="${SKILL_LIVE_KEY}"
+          title="the two horizons you are actually working with — in focus and active, and nothing that is waiting">◉○ In play <span class="mono">${liveN}</span></button>
+        ${Object.entries(SKILL_HORIZONS).map(([k,v])=>`<button class="chip click ${f.horizon===k?'on':''}" style="--c:${v[3]}" data-skh="${k}" title="${esc(v[2])}">${v[0]} ${v[1]} <span class="mono">${counts[k]}</span></button>`).join('')}</div>
       <div class="inv-list">${list.length ? list.map(s => { const h = SKILL_HORIZONS[skillHorizon(s)]; const lc = skillLevelCount(s); const lv = s.currentLevel||0; const since = daysSince(skillLastPracticed(s)); const nm = nextMilestone(s);
         return `<div class="inv-row" data-sopen="${s.id}" style="--c:${catColor(s.cat)}">
           <span class="inv-h" title="${esc(h[2])}" style="color:${h[3]}">${h[0]}</span>

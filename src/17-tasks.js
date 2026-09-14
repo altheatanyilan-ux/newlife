@@ -125,10 +125,13 @@ function subRowHTML(rid, s){
 }
 /* The same block under a Today row and under a Planning row, so the two rooms
    cannot drift into showing steps differently. */
-function subBlockHTML(rid, task){
-  const subs = Array.isArray(task.subtasks) ? task.subtasks : [];
+function subBlockHTML(rid, task, hideDone){
+  const all = Array.isArray(task.subtasks) ? task.subtasks : [];
+  const subs = hideDone ? all.filter(s => !s.isCompleted) : all;
+  const gone = all.length - subs.length;
   return `<div class="sub-wrap" data-subwrap="${esc(rid)}">
     ${subs.map(s => subRowHTML(rid, s)).join('')}
+    ${gone ? `<div class="sub-gone mono">${gone} finished step${gone === 1 ? '' : 's'} hidden</div>` : ''}
     <div class="sub-add"><input class="inp sm" data-subnew="${esc(rid)}" placeholder="＋ add a step and press Enter"></div>
   </div>`;
 }
@@ -139,7 +142,7 @@ function subCaretHTML(rid, task, cls = 'task-caret'){
 }
 
 /* ---------- one row ---------- */
-function taskRowHTML(r, {showDay=false}={}){
+function taskRowHTML(r, {showDay=false, hideDone=false}={}){
   const late = r.day && !r.done && r.day < today();
   const prog = taskSubCount(r.task);
   const open = subsOpen(r.id, r.task);
@@ -181,7 +184,7 @@ function taskRowHTML(r, {showDay=false}={}){
     <button class="del-x inline" data-tdel="${r.id}" title="delete this task for good">×</button>
     </div></div>
   </div>
-  ${open ? subBlockHTML(r.id, r.task) : ''}`;
+  ${open ? subBlockHTML(r.id, r.task, hideDone) : ''}`;
 }
 
 /* ---------- rewriting a task, or a step, where it sits ----------
@@ -431,11 +434,17 @@ function dayGroupColor(id){
   return id === 'projects' ? 'var(--terra)'
     : (typeof planListColor === 'function' ? planListColor(id) : 'var(--faint)');
 }
-function dayGroupsHTML(rows, kind){
-  const gs = dayGroups(rows);
+/* `left` and `total` are counted on everything in the group, not on what is
+   drawn: a heading that says "2 left · 5" while hiding the three that are
+   done is telling the truth, and one that said "2 left · 2" would not. */
+function dayGroupsHTML(rows, kind, hideDone){
+  const gs = dayGroups(rows)
+    .map(g => ({...g, shown: hideDone ? g.rows.filter(r => !r.done) : g.rows}))
+    .filter(g => g.shown.length);
   if(!gs.length) return '';
+  const row = r => taskRowHTML(r, {hideDone});
   /* one list is not a grouping — draw the rows plainly */
-  if(gs.length === 1) return `<div class="stack" style="gap:2px">${gs[0].rows.map(r => taskRowHTML(r)).join('')}</div>`;
+  if(gs.length === 1) return `<div class="stack" style="gap:2px">${gs[0].shown.map(row).join('')}</div>`;
   return gs.map(g => { const open = dayGroupOpen(kind, g.id);
     return `<div class="tg${open ? ' open' : ''}" style="--c:${dayGroupColor(g.id)}">
       <button class="tg-head" data-tgroup="${esc(kind)}:${esc(g.id)}" aria-expanded="${open}">
@@ -443,14 +452,28 @@ function dayGroupsHTML(rows, kind){
         <span class="tg-name">${esc(g.name)}</span>
         <span class="tg-n mono">${g.left ? `${g.left} left` : 'all done'}${g.total !== g.left ? ` · ${g.total}` : ''}</span>
       </button>
-      ${open ? `<div class="tg-rows stack" style="gap:2px">${g.rows.map(r => taskRowHTML(r)).join('')}</div>` : ''}
+      ${open ? `<div class="tg-rows stack" style="gap:2px">${g.shown.map(row).join('')}</div>` : ''}
     </div>`; }).join('');
 }
+/* ---------- what is finished is out of the way ----------
+   A day's list is a list of what is left. Once something is ticked it has
+   stopped being work and started being a receipt, and a receipt sitting in
+   the middle of the day's list costs a line of attention every time the eye
+   passes it. So a ticked task leaves the list, and so does a ticked step
+   inside one; the count in the section heading still says how many of how
+   many, because that is what the tick was for.
+
+   It is hidden rather than deleted, and the chip that hides it says how many
+   are behind it, so "where did that go" has an answer that is one press away
+   and visible before you ask. */
+const todayShowDone = () => !!S._todayDone;
+
 /* Compulsory first, then bonus. The bonus heading carries its own sentence,
    because the whole point of the split is what it means not to finish. */
 function dayTaskListHTML(rows){
   const shown = filterRowsByList(rows);
   if(!shown.length) return '';
+  const hideDone = !todayShowDone();
   const must = shown.filter(r => !taskIsBonus(r)), extra = shown.filter(taskIsBonus);
   const band = (label, note, list, kind) => { if(!list.length) return '';
     const left = list.filter(r => !r.done).length;
@@ -460,11 +483,19 @@ function dayTaskListHTML(rows){
         <span class="mono tband-n">${left ? `${left} of ${list.length} left` : `all ${list.length} done`}</span>
       </div>
       <div class="tband-note">${esc(note)}</div>
-      ${dayGroupsHTML(list, kind)}
+      ${dayGroupsHTML(list, kind, hideDone)}
     </div>`; };
   /* with nothing marked bonus there is nothing to contrast, so the day is
      just a list and the headings would be noise */
-  if(!extra.length) return dayGroupsHTML(must, 'must');
+  if(!extra.length){
+    const body = dayGroupsHTML(must, 'must', hideDone);
+    /* everything on the day is done and put away. Saying so is better than
+       falling through to "nothing in that list today", which is what the
+       caller says when the list filter has excluded everything. */
+    return body || (hideDone && must.length
+      ? `<div class="empty tasks-all-done">All ${must.length} done. <button class="tbtn" data-tdone="1">show them</button></div>`
+      : '');
+  }
   return band('Compulsory', 'Finish these today.', must, 'must')
        + band('Bonus', 'Good to reach. Leaving them is not a miss.', extra, 'bonus');
 }
@@ -474,19 +505,29 @@ function filterRowsByList(rows){
 }
 function dayListFilterHTML(rows){
   const buckets = dayListBuckets(rows);
-  if(buckets.length < 2) return '';            // one list is not a choice
   const pick = S._todayList || 'all';
-  return `<div class="task-lists" role="group" aria-label="show one list">
-    <button class="tl-chip${pick === 'all' ? ' on' : ''}" data-tlist="all">all <i>${rows.length}</i></button>
-    ${buckets.map(b => `<button class="tl-chip${pick === b.id ? ' on' : ''}" data-tlist="${esc(b.id)}"
-      style="--c:${b.id === 'projects' ? 'var(--terra)' : (typeof planListColor === 'function' ? planListColor(b.id) : 'var(--faint)')}">${esc(b.name)} <i>${b.n}</i></button>`).join('')}
-  </div>`;
+  /* one list is not a choice, so the list chips come and go; the done chip
+     does not depend on how many lists there are */
+  const lists = buckets.length < 2 ? ''
+    : `<button class="tl-chip${pick === 'all' ? ' on' : ''}" data-tlist="all">all <i>${rows.length}</i></button>`
+      + buckets.map(b => `<button class="tl-chip${pick === b.id ? ' on' : ''}" data-tlist="${esc(b.id)}"
+      style="--c:${b.id === 'projects' ? 'var(--terra)' : (typeof planListColor === 'function' ? planListColor(b.id) : 'var(--faint)')}">${esc(b.name)} <i>${b.n}</i></button>`).join('');
+  const nDone = rows.filter(r => r.done).length
+    + rows.reduce((n, r) => n + ((r.task && r.task.subtasks) || []).filter(s => s.isCompleted && !r.done).length, 0);
+  const done = nDone ? `<button class="tl-chip tl-done${todayShowDone() ? ' on' : ''}" data-tdone="1"
+      title="${todayShowDone() ? 'put what is finished away again' : 'show what has been finished today'}"
+      aria-pressed="${todayShowDone()}">show done <i>${nDone}</i></button>` : '';
+  if(!lists && !done) return '';
+  return `<div class="task-lists" role="group" aria-label="show one list">${lists}${done}</div>`;
 }
 function bindDayListFilter(root, after){
   const redraw = after || rerender;
   $$('[data-tlist]', root).forEach(b => b.onclick = () => {
     S._todayList = b.dataset.tlist === 'all' ? null : b.dataset.tlist;
     sound('click'); redraw();
+  });
+  $$('[data-tdone]', root).forEach(b => b.onclick = () => {
+    S._todayDone = !S._todayDone; sound('click'); redraw();
   });
 }
 

@@ -690,6 +690,9 @@ button.tm-cell:hover{border-color:var(--page-accent)}
 .sub-row.done .sub-text{text-decoration:line-through;color:var(--faint)}
 .task-check.sm{width:14px;height:14px;border-radius:5px;font-size:.6rem}
 .sub-row.done .task-check{background:var(--page-accent);border-color:var(--page-accent)}
+/* the steps that have been ticked are put away with the tasks, and counted
+   where they were, so nothing simply vanishes */
+.sub-gone{padding:3px 6px 0 26px;font-size:.62rem;color:var(--faint);opacity:.75}
 .sub-add{padding:4px 6px 2px}
 .sub-add .inp.sm{font-size:.8rem;padding:5px 8px;background:none;border-style:dashed}
 .sub-add .inp.sm:focus{background:var(--surface-2);border-style:solid}
@@ -947,6 +950,12 @@ textarea.pd-title{resize:none;overflow:hidden;white-space:pre-wrap;overflow-wrap
 .tl-chip:hover{color:var(--text);border-color:var(--line-2)}
 .tl-chip.on{color:var(--text);border-color:var(--c,var(--page-accent));
   background:color-mix(in srgb,var(--c,var(--page-accent)) 14%,transparent)}
+/* The done chip is not one of the lists — it is the switch that says whether
+   what is finished is in the room at all — so it sits at the far end with a
+   gap between, and reads as an aside until it is on. */
+.tl-chip.tl-done{margin-left:auto;--c:var(--sage);border-style:dashed;opacity:.8}
+.tl-chip.tl-done:hover,.tl-chip.tl-done.on{opacity:1;border-style:solid}
+.tasks-all-done{text-align:center}
 /* the same steps under a Planning row */
 .pt-caret{margin-right:-2px}
 button.pt-sub{border:none;cursor:pointer}
