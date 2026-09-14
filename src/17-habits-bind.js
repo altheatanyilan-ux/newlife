@@ -8,11 +8,13 @@
    breaking one asks a three-way question — clean, resisted, slipped — because
    an urge that came and did not win is the most informative day of the three
    and has nowhere else to be recorded. */
-function openHabitCheckIn(id, day = today()){
+function openHabitCheckIn(id, day = today(), how = {}){
   const h = habDefaults(byId(S.habits, id)); if(!h) return;
   const br = habIsBreaking(h);
   const cur = habEntry(h, day) || {};
-  let status = cur.status || (br ? 'clean' : 'completed');
+  /* opened from "account for this" rather than from the ring, so it opens on
+     the question that was asked rather than making you pick Skipped first */
+  let status = cur.status || (how.status && !br ? how.status : br ? 'clean' : 'completed');
   const opts = br ? [['clean','○  Clean day — no urges'], ['resisted','🛡  Resisted an urge'], ['slipped','↯  Slipped']]
     : [['completed','✓  Completed'], ['partial','◐  Partial'], ['skipped','·  Skipped']];
 
@@ -20,6 +22,11 @@ function openHabitCheckIn(id, day = today()){
     <div class="hb-ci-status">${opts.map(([k, n]) =>
       `<button type="button" class="hb-cis${status === k ? ' on' : ''}" data-cis="${k}">${esc(n)}</button>`).join('')}</div>
     ${!br ? `
+      <!-- how long it took and how it left you are questions about a thing
+           that happened. On a skipped day they are not unanswered, they are
+           inapplicable, and three empty fields above the one question that
+           does apply is how a form teaches you to close it. -->
+      <div id="ciKept" ${status === 'skipped' ? 'hidden' : ''}>
       <div class="grid c2" style="gap:10px">
         <div class="field"><label>How long</label><div class="row" style="gap:6px;align-items:baseline">
           <input class="inp mono" id="ciDur" type="number" min="0" max="600" style="width:88px"
@@ -28,7 +35,8 @@ function openHabitCheckIn(id, day = today()){
       <div class="field"><label>Mood after</label><div class="feeling" id="ciMood">${[1,2,3,4,5].map(n =>
         `<button type="button" data-cim="${n}" class="${(cur.mood || 0) === n ? 'on' : ''}">${n}</button>`).join('')}</div></div>
       <div class="field"><label>Energy after</label><div class="feeling" id="ciEn">${[1,2,3,4,5].map(n =>
-        `<button type="button" data-cie="${n}" class="${(cur.energy || 0) === n ? 'on' : ''}">${n}</button>`).join('')}</div></div>`
+        `<button type="button" data-cie="${n}" class="${(cur.energy || 0) === n ? 'on' : ''}">${n}</button>`).join('')}</div></div>
+      </div>`
     : `
       <div id="ciResist" ${status === 'resisted' ? '' : 'hidden'}>
         <div class="field"><label>How strong was it</label><div class="feeling" id="ciInt">${[1,2,3,4,5].map(n =>
@@ -40,11 +48,23 @@ function openHabitCheckIn(id, day = today()){
       <div id="ciSlip" ${status === 'slipped' ? '' : 'hidden'}>
         <div class="hb-gentle">${esc(HAB_QUOTES.slip[1])} <cite>${esc(HAB_QUOTES.slip[0])}</cite></div>
       </div>`}
-    <div class="field"><label>${br ? 'What happened, and what you did' : 'Anything worth saying'}${h.prompt ? ` — ${esc(h.prompt)}` : ''}</label>
+    <!-- A skipped day is the one with something to say, and it used to be the
+         one that asked for nothing: the note said "optional" and the day went
+         into the record blank. The reasons are chips because a reason you can
+         press is a reason you will actually record, and because six of them
+         are countable later in a way free text never is. -->
+    <div id="ciMissed" ${status === 'skipped' ? '' : 'hidden'}>
+      <div class="field"><label>What got in the way?</label>
+        <div class="hb-why">${HAB_MISS_REASONS.map(([k, ic, n]) =>
+          `<button type="button" class="hb-whyb${cur.reason === k ? ' on' : ''}" data-ciw="${k}">
+            <span class="hb-whyi">${ic}</span>${esc(n)}</button>`).join('')}</div></div>
+    </div>
+    <div class="field"><label id="ciNoteLbl">${br ? 'What happened, and what you did'
+        : status === 'skipped' ? 'What happened' : 'Anything worth saying'}${h.prompt ? ` — ${esc(h.prompt)}` : ''}</label>
       <textarea class="ta" id="ciNote" style="min-height:64px" placeholder="${br ? 'Felt the pull after a stressful hour. Put the phone in the drawer.' : 'optional'}">${esc(cur.note || '')}</textarea></div>`;
 
   const m = openModal(`<h2>${esc(h.icon || (br ? '🛡' : '✓'))} ${esc(h.name)}</h2>
-    <p class="muted" style="font-size:.86rem">${esc(fmtDate(day, 'full') || fmtDate(day, 'med'))}</p>
+    <p class="muted" style="font-size:.86rem">${esc(fmtDate(day, 'long'))}</p>
     <div class="stack" id="ciBody">${body()}</div>
     <div class="row between" style="margin-top:16px">
       ${habEntry(h, day) ? '<button class="btn sm ghost" id="ciClear">clear this day</button>' : '<span></span>'}
@@ -57,7 +77,16 @@ function openHabitCheckIn(id, day = today()){
       const r = m.querySelector('#ciResist'), s = m.querySelector('#ciSlip');
       if(r) r.hidden = status !== 'resisted';
       if(s) s.hidden = status !== 'slipped';
+      const ms = m.querySelector('#ciMissed');
+      if(ms) ms.hidden = status !== 'skipped';
+      const kp = m.querySelector('#ciKept');
+      if(kp) kp.hidden = status === 'skipped';
+      const lbl = m.querySelector('#ciNoteLbl');
+      if(lbl && !br) lbl.textContent = (status === 'skipped' ? 'What happened' : 'Anything worth saying')
+        + (h.prompt ? ` — ${h.prompt}` : '');
     });
+    m.querySelectorAll('[data-ciw]').forEach(b => b.onclick = () =>
+      m.querySelectorAll('[data-ciw]').forEach(x => x.classList.toggle('on', x === b && !b.classList.contains('on'))));
     ['cim','cie','cii'].forEach(k => m.querySelectorAll(`[data-${k}]`).forEach(b => b.onclick = () =>
       b.parentElement.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b))));
   };
@@ -71,7 +100,8 @@ function openHabitCheckIn(id, day = today()){
     const before = habStreak(h).cur;
     const patch = {status, note: m.querySelector('#ciNote').value.trim()};
     if(!br){ patch.minutes = +m.querySelector('#ciDur')?.value || 0;
-      patch.mood = pick('cim'); patch.energy = pick('cie'); }
+      patch.mood = pick('cim'); patch.energy = pick('cie');
+      patch.reason = status === 'skipped' ? (m.querySelector('[data-ciw].on')?.dataset.ciw || '') : ''; }
     else { patch.intensity = pick('cii'); patch.triggerId = m.querySelector('#ciTrig')?.value || '';
       if(status !== 'clean') h.urgeLog.unshift({id:uid(), date:day, intensity:patch.intensity,
         outcome: status === 'slipped' ? 'slipped' : 'resisted', strategy:'', note:patch.note}); }
@@ -89,6 +119,44 @@ function openHabitCheckIn(id, day = today()){
     rerenderPlanBody();
   };
 }
+/* ---------- accounting for a week, or a month ----------
+   A "three times a week" habit is not answerable for the four days it was not
+   done — that is the design. It is answerable for the week, once the week has
+   closed and it came up short, and this is where that is said. Same six
+   reasons as a missed day, because the answers are the same answers; what
+   changes is the unit being accounted for. */
+function openHabitPeriodAccount(id, start, after){
+  const h = habDefaults(byId(S.habits, id)); if(!h) return;
+  const redraw = after || rerenderPlanBody;
+  const target = habPeriodTarget(h), kept = habPeriodKept(h, start);
+  const cur = habAccountOf(h, start) || {};
+  const m = openModal(`<h2>${esc(h.icon || '○')} ${esc(h.name)}</h2>
+    <p class="muted" style="font-size:.86rem">${esc(habPeriodLabel(h, start))} — kept ${kept} of ${target}.</p>
+    <div class="hb-gentle">A short week is not a failed one. What it is, is a week with something to say
+      about it, and this is the only place it can be said.</div>
+    <div class="field"><label>What got in the way?</label>
+      <div class="hb-why">${HAB_MISS_REASONS.map(([k, ic, n]) =>
+        `<button type="button" class="hb-whyb${cur.reason === k ? ' on' : ''}" data-paw="${k}">
+          <span class="hb-whyi">${ic}</span>${esc(n)}</button>`).join('')}</div></div>
+    <div class="field"><label>What happened</label>
+      <textarea class="ta" id="paNote" style="min-height:72px"
+        placeholder="Three evenings went to the deadline. Worth it, and I would rather it had been two.">${esc(cur.note || '')}</textarea></div>
+    <div class="row between" style="margin-top:16px">
+      ${habAccountOf(h, start) ? '<button class="btn sm ghost" id="paClear">clear this</button>' : '<span></span>'}
+      <button class="btn primary" id="paSave">Save</button></div>`, 'narrow');
+  m.querySelectorAll('[data-paw]').forEach(b => b.onclick = () =>
+    m.querySelectorAll('[data-paw]').forEach(x => x.classList.toggle('on', x === b && !b.classList.contains('on'))));
+  if(m.querySelector('#paClear')) m.querySelector('#paClear').onclick = () => {
+    habClearAccount(h, start); m.remove(); sound('click'); redraw(); };
+  m.querySelector('#paSave').onclick = () => {
+    habSetAccount(h, start, {kept, target,
+      reason: m.querySelector('[data-paw].on')?.dataset.paw || '',
+      note: m.querySelector('#paNote').value.trim()});
+    m.remove(); sound('success'); redraw();
+  };
+  return m;
+}
+
 /* seven, twenty-one, thirty, sixty, ninety, a year — each one named for the
    reason it is a threshold at all */
 function habCelebrate(h, m){
@@ -270,6 +338,7 @@ function bindHabitPanel(p, h){
 /* ---------- the room's own wiring ---------- */
 function bindHabRoom(root){
   $$('[data-hbview]', root).forEach(b => b.onclick = () => habSetView(b.dataset.hbview));
+  if(typeof bindHabAccount === 'function') bindHabAccount(root, rerenderPlanBody);
   const nb = $('#hbNew', root); if(nb) nb.onclick = () => openHabitModal();
   $$('[data-hbf]', root).forEach(b => b.onclick = () => {
     const [k, v] = b.dataset.hbf.split(':');

@@ -229,3 +229,136 @@ function habList({archived = false} = {}){
 function habBuilding(){ return habList().filter(h => !habIsBreaking(h)); }
 function habBreaking(){ return habList().filter(habIsBreaking); }
 function habDueOn(d = today()){ return habList().filter(h => habDue(h, d)); }
+
+/* ============================================================
+   ACCOUNTABILITY — the days you did not keep it
+
+   A habit page that only records what you did is half a record. The days a
+   habit was due and nothing happened are the ones with something to say, and
+   they were silently blank: no tick, no note, nothing to come back to. A
+   streak that broke on a Tuesday told you it broke and never what happened.
+
+   So every habit is accountable on its own rhythm, and "accounted for" means
+   there is an entry — kept, partial, skipped, whatever — with a reason or a
+   line of writing attached to it. Nothing is compulsory and nothing nags; the
+   page simply shows what is still unaccounted for and offers the quickest
+   possible way to say it.
+
+   The rhythm matters, and getting it wrong would make the whole thing a
+   scold. A daily habit is answerable for a day. A "three times a week" habit
+   is NOT answerable for the four days it was not done — that is the design —
+   it is answerable for the week, once the week has closed and it came up
+   short. habitDue() returns true every day for those, which is right for
+   drawing a ring and wrong for asking a question, so the rhythm is read off
+   the frequency here instead.
+   ============================================================ */
+
+/* 'day' — answerable each day it is due. 'week' / 'month' — answerable for
+   the period, once the period is over. */
+function habRhythm(h){
+  const t = (h.freq || {}).type;
+  return t === 'perWeek' ? 'week' : t === 'perMonth' ? 'month' : 'day';
+}
+function habPeriodTarget(h){
+  return habRhythm(h) === 'day' ? null : Math.max(1, +(h.freq || {}).count || 1);
+}
+/* the first day of the period a given day belongs to; that day is the key */
+function habPeriodStart(h, d){
+  const r = habRhythm(h);
+  if(r === 'week') return weekStart(d);
+  if(r === 'month') return d.slice(0, 8) + '01';
+  return d;
+}
+function habPeriodEnd(h, start){
+  if(habRhythm(h) === 'week') return addDays(start, 6);
+  if(habRhythm(h) === 'month'){
+    const x = parseDay(start); x.setMonth(x.getMonth() + 1);
+    return addDays(isoDay(x), -1);
+  }
+  return start;
+}
+function habPeriodDays(h, start){
+  const end = habPeriodEnd(h, start), out = [];
+  for(let d = start; d <= end; d = addDays(d, 1)) out.push(d);
+  return out;
+}
+function habPeriodKept(h, start){
+  return habPeriodDays(h, start).filter(d => habKept(h, d)).length;
+}
+function habPeriodLabel(h, start){
+  const r = habRhythm(h);
+  if(r === 'month') return fmtDate(start, 'med').replace(/^\d+\s/, '');
+  return `the week of ${fmtDate(start, 'short')}`;
+}
+
+/* ---------- what has been said about a period ----------
+   A day's account lives on the day's entry, where the rest of that day lives.
+   A period has no entry of its own, so it gets one here, keyed by the habit
+   and the first day of the period. */
+function habAccounts(){ return S.habitAccounts = S.habitAccounts || {}; }
+function habAccountOf(h, start){ return habAccounts()[`${h.id}|${start}`] || null; }
+function habSetAccount(h, start, patch){
+  habAccounts()[`${h.id}|${start}`] = Object.assign({habitId:h.id, period:start},
+    habAccountOf(h, start) || {}, patch, {at: new Date().toISOString()});
+  saveNow();
+}
+function habClearAccount(h, start){ delete habAccounts()[`${h.id}|${start}`]; saveNow(); }
+
+/* ---------- the reasons, for the days it did not happen ----------
+   Offered as chips because a reason you can press is a reason you will
+   actually record, and because a set of six makes the record countable later
+   in a way free text never is. "Chose something else" is in the list on
+   purpose: it is the commonest honest answer and the one a list of excuses
+   would leave out. */
+const HAB_MISS_REASONS = [
+  ['time',    '⏱',  'Ran out of time'],
+  ['tired',   '◑',  'Too tired'],
+  ['forgot',  '…',  'Forgot'],
+  ['chose',   '⇄',  'Chose something else'],
+  ['away',    '✈',  'Not where I could'],
+  ['unwell',  '⚕',  'Unwell'],
+];
+const habMissReason = k => (HAB_MISS_REASONS.find(r => r[0] === k) || [,, ''])[2];
+
+/* ---------- what is still unanswered ----------
+   Daily habits, for one day: due, and nothing written. A habit that was
+   ticked is already accounted for — the tick is the account.
+
+   Breaking habits are deliberately not here. Their resting state is the good
+   one: a day nobody recorded is a day nothing happened, and "what got in the
+   way of not doing it" is not a question. They are asked about when there is
+   an urge to record, which is their own three-way check-in. */
+function habUnaccountedOn(d = today()){
+  return habList().filter(h => !habIsBreaking(h) && habRhythm(h) === 'day'
+    && habDue(h, d) && !habEntry(h, d));
+}
+/* Weekly and monthly habits, for the periods that have closed. Only the ones
+   that came up short, and only the ones nothing has been said about — a
+   period that hit its target was kept and needs no account.
+
+   At most ONE per habit, the most recent that qualifies. A habit nobody has
+   touched in a month would otherwise put four rows in the block at once, and
+   four rows of the same unanswered question is not accountability, it is a
+   wall of guilt — which gets the block closed and never opened again. The
+   look-back exists so that skipping one week does not lose the week before
+   it, not so that the block can accumulate. */
+function habPeriodsToAccount(upto = today(), back = 4){
+  const out = [];
+  habList().forEach(h => {
+    const r = habRhythm(h); if(r === 'day' || habIsBreaking(h)) return;
+    const target = habPeriodTarget(h);
+    const born = (h.createdAt || '').slice(0, 10);
+    let start = habPeriodStart(h, upto);
+    for(let i = 0; i < back; i++){
+      start = habPeriodStart(h, addDays(start, -1));
+      /* a period that closed before the habit existed is not its business */
+      if(born && habPeriodEnd(h, start) < born) break;
+      if(habPeriodKept(h, start) >= target) continue;
+      if(habAccountOf(h, start)) continue;
+      out.push({h, start, kept: habPeriodKept(h, start), target,
+        label: habPeriodLabel(h, start)});
+      break;
+    }
+  });
+  return out.sort((a, b) => a.start < b.start ? 1 : -1);
+}

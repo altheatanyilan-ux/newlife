@@ -6688,5 +6688,40 @@ html[data-theme="light"] .rm-oracle{fill:#584a70}
   .obj-say{font-size:16px}
   .sit-opts{grid-template-columns:1fr}
 }
+
+/* ---------- accounting for what did not happen ----------
+   The one block in the house whose job is to ask rather than to show. It is
+   warm rather than red: a missed day is a day with something to say, not a
+   charge sheet, and the moment this reads as a telling-off it will be closed
+   and never opened. */
+.hb-account{margin:12px 0;padding:10px 12px;border-radius:12px;
+  border:1px solid var(--line);border-left:3px solid var(--gold);
+  background:color-mix(in srgb,var(--gold) 5%,var(--surface-2))}
+.hb-acc-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;
+  flex-wrap:wrap;margin-bottom:6px}
+.hb-acc-head .mono{font-size:.62rem}
+.hb-acc-row{display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+  padding:7px 6px;background:none;border:0;border-top:1px dashed var(--line);
+  color:var(--text);font:inherit;cursor:pointer;border-radius:8px;
+  transition:background .16s var(--ease)}
+.hb-acc-row:hover{background:color-mix(in srgb,var(--gold) 9%,transparent)}
+.hb-acc-ico{flex:none;width:22px;text-align:center;font-size:1rem}
+.hb-acc-what{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.hb-acc-what b{font-family:var(--serif);font-size:.94rem}
+.hb-acc-what .mono{font-size:.62rem}
+.hb-acc-go{flex:none;font-size:.62rem;color:var(--gold);opacity:.75}
+.hb-acc-row:hover .hb-acc-go{opacity:1}
+@media (max-width:520px){ .hb-acc-go{display:none} }
+
+/* the six reasons, pressable */
+.hb-why{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:6px}
+.hb-whyb{display:flex;align-items:center;gap:7px;padding:8px 10px;border-radius:10px;
+  border:1px solid var(--line);background:var(--surface-2);color:var(--muted);
+  font:inherit;font-size:.84rem;text-align:left;cursor:pointer;
+  transition:border-color .16s var(--ease),color .16s var(--ease),background .16s var(--ease)}
+.hb-whyb:hover{color:var(--text);border-color:var(--line-2)}
+.hb-whyb.on{color:var(--text);border-color:var(--gold);
+  background:color-mix(in srgb,var(--gold) 12%,transparent)}
+.hb-whyi{font-size:1rem;line-height:1}
 </style>
 </head>

@@ -291,6 +291,7 @@ routes.today = function(root){
         <span class="mono faint">${(() => { const due = S.habits.filter(h => !h.archived && !h.negative && habitDue(h, T)); const dn = due.filter(h => habitDone(h, T)).length; return due.length ? `${dn} of ${due.length} kept` : 'nothing due'; })()}</span></summary>
       <div class="body">
       <div id="todayRings" style="margin-top:10px"></div>
+      ${typeof habAccountHTML === 'function' ? habAccountHTML(T) : ''}
       <div class="row" style="gap:6px;margin-top:12px;flex-wrap:wrap">
         <button class="btn sm primary" id="todayAddHabit">＋ add habit</button>
         ${S.habits.some(h => h.archived) ? '<button class="btn sm ghost" id="todayArchHabit">archived</button>' : ''}
@@ -486,6 +487,7 @@ routes.today = function(root){
   const ringsBox = root.querySelector('#todayRings');
   if(ringsBox && typeof habitRingRow === 'function') ringsBox.innerHTML = habitRingRow(T);
   if(ringsBox && typeof bindHabitRings === 'function') bindHabitRings(ringsBox);
+  if(typeof bindHabAccount === 'function') bindHabAccount(root);
 
   /* morning flow tracker */
   root.querySelectorAll('.mf-check').forEach(cb => cb.onchange = () => {

@@ -7351,6 +7351,41 @@ html[data-theme="light"] .rm-oracle{fill:#584a70}
   .obj-say{font-size:16px}
   .sit-opts{grid-template-columns:1fr}
 }
+
+/* ---------- accounting for what did not happen ----------
+   The one block in the house whose job is to ask rather than to show. It is
+   warm rather than red: a missed day is a day with something to say, not a
+   charge sheet, and the moment this reads as a telling-off it will be closed
+   and never opened. */
+.hb-account{margin:12px 0;padding:10px 12px;border-radius:12px;
+  border:1px solid var(--line);border-left:3px solid var(--gold);
+  background:color-mix(in srgb,var(--gold) 5%,var(--surface-2))}
+.hb-acc-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;
+  flex-wrap:wrap;margin-bottom:6px}
+.hb-acc-head .mono{font-size:.62rem}
+.hb-acc-row{display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+  padding:7px 6px;background:none;border:0;border-top:1px dashed var(--line);
+  color:var(--text);font:inherit;cursor:pointer;border-radius:8px;
+  transition:background .16s var(--ease)}
+.hb-acc-row:hover{background:color-mix(in srgb,var(--gold) 9%,transparent)}
+.hb-acc-ico{flex:none;width:22px;text-align:center;font-size:1rem}
+.hb-acc-what{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.hb-acc-what b{font-family:var(--serif);font-size:.94rem}
+.hb-acc-what .mono{font-size:.62rem}
+.hb-acc-go{flex:none;font-size:.62rem;color:var(--gold);opacity:.75}
+.hb-acc-row:hover .hb-acc-go{opacity:1}
+@media (max-width:520px){ .hb-acc-go{display:none} }
+
+/* the six reasons, pressable */
+.hb-why{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:6px}
+.hb-whyb{display:flex;align-items:center;gap:7px;padding:8px 10px;border-radius:10px;
+  border:1px solid var(--line);background:var(--surface-2);color:var(--muted);
+  font:inherit;font-size:.84rem;text-align:left;cursor:pointer;
+  transition:border-color .16s var(--ease),color .16s var(--ease),background .16s var(--ease)}
+.hb-whyb:hover{color:var(--text);border-color:var(--line-2)}
+.hb-whyb.on{color:var(--text);border-color:var(--gold);
+  background:color-mix(in srgb,var(--gold) 12%,transparent)}
+.hb-whyi{font-size:1rem;line-height:1}
 </style>
 </head>
 <body>
@@ -14488,6 +14523,7 @@ routes.today = function(root){
         <span class="mono faint">${(() => { const due = S.habits.filter(h => !h.archived && !h.negative && habitDue(h, T)); const dn = due.filter(h => habitDone(h, T)).length; return due.length ? `${dn} of ${due.length} kept` : 'nothing due'; })()}</span></summary>
       <div class="body">
       <div id="todayRings" style="margin-top:10px"></div>
+      ${typeof habAccountHTML === 'function' ? habAccountHTML(T) : ''}
       <div class="row" style="gap:6px;margin-top:12px;flex-wrap:wrap">
         <button class="btn sm primary" id="todayAddHabit">＋ add habit</button>
         ${S.habits.some(h => h.archived) ? '<button class="btn sm ghost" id="todayArchHabit">archived</button>' : ''}
@@ -14683,6 +14719,7 @@ routes.today = function(root){
   const ringsBox = root.querySelector('#todayRings');
   if(ringsBox && typeof habitRingRow === 'function') ringsBox.innerHTML = habitRingRow(T);
   if(ringsBox && typeof bindHabitRings === 'function') bindHabitRings(ringsBox);
+  if(typeof bindHabAccount === 'function') bindHabAccount(root);
 
   /* morning flow tracker */
   root.querySelectorAll('.mf-check').forEach(cb => cb.onchange = () => {
@@ -33168,11 +33205,13 @@ function bindTheatre(root){
    breaking one asks a three-way question — clean, resisted, slipped — because
    an urge that came and did not win is the most informative day of the three
    and has nowhere else to be recorded. */
-function openHabitCheckIn(id, day = today()){
+function openHabitCheckIn(id, day = today(), how = {}){
   const h = habDefaults(byId(S.habits, id)); if(!h) return;
   const br = habIsBreaking(h);
   const cur = habEntry(h, day) || {};
-  let status = cur.status || (br ? 'clean' : 'completed');
+  /* opened from "account for this" rather than from the ring, so it opens on
+     the question that was asked rather than making you pick Skipped first */
+  let status = cur.status || (how.status && !br ? how.status : br ? 'clean' : 'completed');
   const opts = br ? [['clean','○  Clean day — no urges'], ['resisted','🛡  Resisted an urge'], ['slipped','↯  Slipped']]
     : [['completed','✓  Completed'], ['partial','◐  Partial'], ['skipped','·  Skipped']];
 
@@ -33180,6 +33219,11 @@ function openHabitCheckIn(id, day = today()){
     <div class="hb-ci-status">${opts.map(([k, n]) =>
       `<button type="button" class="hb-cis${status === k ? ' on' : ''}" data-cis="${k}">${esc(n)}</button>`).join('')}</div>
     ${!br ? `
+      <!-- how long it took and how it left you are questions about a thing
+           that happened. On a skipped day they are not unanswered, they are
+           inapplicable, and three empty fields above the one question that
+           does apply is how a form teaches you to close it. -->
+      <div id="ciKept" ${status === 'skipped' ? 'hidden' : ''}>
       <div class="grid c2" style="gap:10px">
         <div class="field"><label>How long</label><div class="row" style="gap:6px;align-items:baseline">
           <input class="inp mono" id="ciDur" type="number" min="0" max="600" style="width:88px"
@@ -33188,7 +33232,8 @@ function openHabitCheckIn(id, day = today()){
       <div class="field"><label>Mood after</label><div class="feeling" id="ciMood">${[1,2,3,4,5].map(n =>
         `<button type="button" data-cim="${n}" class="${(cur.mood || 0) === n ? 'on' : ''}">${n}</button>`).join('')}</div></div>
       <div class="field"><label>Energy after</label><div class="feeling" id="ciEn">${[1,2,3,4,5].map(n =>
-        `<button type="button" data-cie="${n}" class="${(cur.energy || 0) === n ? 'on' : ''}">${n}</button>`).join('')}</div></div>`
+        `<button type="button" data-cie="${n}" class="${(cur.energy || 0) === n ? 'on' : ''}">${n}</button>`).join('')}</div></div>
+      </div>`
     : `
       <div id="ciResist" ${status === 'resisted' ? '' : 'hidden'}>
         <div class="field"><label>How strong was it</label><div class="feeling" id="ciInt">${[1,2,3,4,5].map(n =>
@@ -33200,11 +33245,23 @@ function openHabitCheckIn(id, day = today()){
       <div id="ciSlip" ${status === 'slipped' ? '' : 'hidden'}>
         <div class="hb-gentle">${esc(HAB_QUOTES.slip[1])} <cite>${esc(HAB_QUOTES.slip[0])}</cite></div>
       </div>`}
-    <div class="field"><label>${br ? 'What happened, and what you did' : 'Anything worth saying'}${h.prompt ? ` — ${esc(h.prompt)}` : ''}</label>
+    <!-- A skipped day is the one with something to say, and it used to be the
+         one that asked for nothing: the note said "optional" and the day went
+         into the record blank. The reasons are chips because a reason you can
+         press is a reason you will actually record, and because six of them
+         are countable later in a way free text never is. -->
+    <div id="ciMissed" ${status === 'skipped' ? '' : 'hidden'}>
+      <div class="field"><label>What got in the way?</label>
+        <div class="hb-why">${HAB_MISS_REASONS.map(([k, ic, n]) =>
+          `<button type="button" class="hb-whyb${cur.reason === k ? ' on' : ''}" data-ciw="${k}">
+            <span class="hb-whyi">${ic}</span>${esc(n)}</button>`).join('')}</div></div>
+    </div>
+    <div class="field"><label id="ciNoteLbl">${br ? 'What happened, and what you did'
+        : status === 'skipped' ? 'What happened' : 'Anything worth saying'}${h.prompt ? ` — ${esc(h.prompt)}` : ''}</label>
       <textarea class="ta" id="ciNote" style="min-height:64px" placeholder="${br ? 'Felt the pull after a stressful hour. Put the phone in the drawer.' : 'optional'}">${esc(cur.note || '')}</textarea></div>`;
 
   const m = openModal(`<h2>${esc(h.icon || (br ? '🛡' : '✓'))} ${esc(h.name)}</h2>
-    <p class="muted" style="font-size:.86rem">${esc(fmtDate(day, 'full') || fmtDate(day, 'med'))}</p>
+    <p class="muted" style="font-size:.86rem">${esc(fmtDate(day, 'long'))}</p>
     <div class="stack" id="ciBody">${body()}</div>
     <div class="row between" style="margin-top:16px">
       ${habEntry(h, day) ? '<button class="btn sm ghost" id="ciClear">clear this day</button>' : '<span></span>'}
@@ -33217,7 +33274,16 @@ function openHabitCheckIn(id, day = today()){
       const r = m.querySelector('#ciResist'), s = m.querySelector('#ciSlip');
       if(r) r.hidden = status !== 'resisted';
       if(s) s.hidden = status !== 'slipped';
+      const ms = m.querySelector('#ciMissed');
+      if(ms) ms.hidden = status !== 'skipped';
+      const kp = m.querySelector('#ciKept');
+      if(kp) kp.hidden = status === 'skipped';
+      const lbl = m.querySelector('#ciNoteLbl');
+      if(lbl && !br) lbl.textContent = (status === 'skipped' ? 'What happened' : 'Anything worth saying')
+        + (h.prompt ? ` — ${h.prompt}` : '');
     });
+    m.querySelectorAll('[data-ciw]').forEach(b => b.onclick = () =>
+      m.querySelectorAll('[data-ciw]').forEach(x => x.classList.toggle('on', x === b && !b.classList.contains('on'))));
     ['cim','cie','cii'].forEach(k => m.querySelectorAll(`[data-${k}]`).forEach(b => b.onclick = () =>
       b.parentElement.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b))));
   };
@@ -33231,7 +33297,8 @@ function openHabitCheckIn(id, day = today()){
     const before = habStreak(h).cur;
     const patch = {status, note: m.querySelector('#ciNote').value.trim()};
     if(!br){ patch.minutes = +m.querySelector('#ciDur')?.value || 0;
-      patch.mood = pick('cim'); patch.energy = pick('cie'); }
+      patch.mood = pick('cim'); patch.energy = pick('cie');
+      patch.reason = status === 'skipped' ? (m.querySelector('[data-ciw].on')?.dataset.ciw || '') : ''; }
     else { patch.intensity = pick('cii'); patch.triggerId = m.querySelector('#ciTrig')?.value || '';
       if(status !== 'clean') h.urgeLog.unshift({id:uid(), date:day, intensity:patch.intensity,
         outcome: status === 'slipped' ? 'slipped' : 'resisted', strategy:'', note:patch.note}); }
@@ -33249,6 +33316,44 @@ function openHabitCheckIn(id, day = today()){
     rerenderPlanBody();
   };
 }
+/* ---------- accounting for a week, or a month ----------
+   A "three times a week" habit is not answerable for the four days it was not
+   done — that is the design. It is answerable for the week, once the week has
+   closed and it came up short, and this is where that is said. Same six
+   reasons as a missed day, because the answers are the same answers; what
+   changes is the unit being accounted for. */
+function openHabitPeriodAccount(id, start, after){
+  const h = habDefaults(byId(S.habits, id)); if(!h) return;
+  const redraw = after || rerenderPlanBody;
+  const target = habPeriodTarget(h), kept = habPeriodKept(h, start);
+  const cur = habAccountOf(h, start) || {};
+  const m = openModal(`<h2>${esc(h.icon || '○')} ${esc(h.name)}</h2>
+    <p class="muted" style="font-size:.86rem">${esc(habPeriodLabel(h, start))} — kept ${kept} of ${target}.</p>
+    <div class="hb-gentle">A short week is not a failed one. What it is, is a week with something to say
+      about it, and this is the only place it can be said.</div>
+    <div class="field"><label>What got in the way?</label>
+      <div class="hb-why">${HAB_MISS_REASONS.map(([k, ic, n]) =>
+        `<button type="button" class="hb-whyb${cur.reason === k ? ' on' : ''}" data-paw="${k}">
+          <span class="hb-whyi">${ic}</span>${esc(n)}</button>`).join('')}</div></div>
+    <div class="field"><label>What happened</label>
+      <textarea class="ta" id="paNote" style="min-height:72px"
+        placeholder="Three evenings went to the deadline. Worth it, and I would rather it had been two.">${esc(cur.note || '')}</textarea></div>
+    <div class="row between" style="margin-top:16px">
+      ${habAccountOf(h, start) ? '<button class="btn sm ghost" id="paClear">clear this</button>' : '<span></span>'}
+      <button class="btn primary" id="paSave">Save</button></div>`, 'narrow');
+  m.querySelectorAll('[data-paw]').forEach(b => b.onclick = () =>
+    m.querySelectorAll('[data-paw]').forEach(x => x.classList.toggle('on', x === b && !b.classList.contains('on'))));
+  if(m.querySelector('#paClear')) m.querySelector('#paClear').onclick = () => {
+    habClearAccount(h, start); m.remove(); sound('click'); redraw(); };
+  m.querySelector('#paSave').onclick = () => {
+    habSetAccount(h, start, {kept, target,
+      reason: m.querySelector('[data-paw].on')?.dataset.paw || '',
+      note: m.querySelector('#paNote').value.trim()});
+    m.remove(); sound('success'); redraw();
+  };
+  return m;
+}
+
 /* seven, twenty-one, thirty, sixty, ninety, a year — each one named for the
    reason it is a threshold at all */
 function habCelebrate(h, m){
@@ -33430,6 +33535,7 @@ function bindHabitPanel(p, h){
 /* ---------- the room's own wiring ---------- */
 function bindHabRoom(root){
   $$('[data-hbview]', root).forEach(b => b.onclick = () => habSetView(b.dataset.hbview));
+  if(typeof bindHabAccount === 'function') bindHabAccount(root, rerenderPlanBody);
   const nb = $('#hbNew', root); if(nb) nb.onclick = () => openHabitModal();
   $$('[data-hbf]', root).forEach(b => b.onclick = () => {
     const [k, v] = b.dataset.hbf.split(':');
@@ -33677,6 +33783,139 @@ function habList({archived = false} = {}){
 function habBuilding(){ return habList().filter(h => !habIsBreaking(h)); }
 function habBreaking(){ return habList().filter(habIsBreaking); }
 function habDueOn(d = today()){ return habList().filter(h => habDue(h, d)); }
+
+/* ============================================================
+   ACCOUNTABILITY — the days you did not keep it
+
+   A habit page that only records what you did is half a record. The days a
+   habit was due and nothing happened are the ones with something to say, and
+   they were silently blank: no tick, no note, nothing to come back to. A
+   streak that broke on a Tuesday told you it broke and never what happened.
+
+   So every habit is accountable on its own rhythm, and "accounted for" means
+   there is an entry — kept, partial, skipped, whatever — with a reason or a
+   line of writing attached to it. Nothing is compulsory and nothing nags; the
+   page simply shows what is still unaccounted for and offers the quickest
+   possible way to say it.
+
+   The rhythm matters, and getting it wrong would make the whole thing a
+   scold. A daily habit is answerable for a day. A "three times a week" habit
+   is NOT answerable for the four days it was not done — that is the design —
+   it is answerable for the week, once the week has closed and it came up
+   short. habitDue() returns true every day for those, which is right for
+   drawing a ring and wrong for asking a question, so the rhythm is read off
+   the frequency here instead.
+   ============================================================ */
+
+/* 'day' — answerable each day it is due. 'week' / 'month' — answerable for
+   the period, once the period is over. */
+function habRhythm(h){
+  const t = (h.freq || {}).type;
+  return t === 'perWeek' ? 'week' : t === 'perMonth' ? 'month' : 'day';
+}
+function habPeriodTarget(h){
+  return habRhythm(h) === 'day' ? null : Math.max(1, +(h.freq || {}).count || 1);
+}
+/* the first day of the period a given day belongs to; that day is the key */
+function habPeriodStart(h, d){
+  const r = habRhythm(h);
+  if(r === 'week') return weekStart(d);
+  if(r === 'month') return d.slice(0, 8) + '01';
+  return d;
+}
+function habPeriodEnd(h, start){
+  if(habRhythm(h) === 'week') return addDays(start, 6);
+  if(habRhythm(h) === 'month'){
+    const x = parseDay(start); x.setMonth(x.getMonth() + 1);
+    return addDays(isoDay(x), -1);
+  }
+  return start;
+}
+function habPeriodDays(h, start){
+  const end = habPeriodEnd(h, start), out = [];
+  for(let d = start; d <= end; d = addDays(d, 1)) out.push(d);
+  return out;
+}
+function habPeriodKept(h, start){
+  return habPeriodDays(h, start).filter(d => habKept(h, d)).length;
+}
+function habPeriodLabel(h, start){
+  const r = habRhythm(h);
+  if(r === 'month') return fmtDate(start, 'med').replace(/^\d+\s/, '');
+  return `the week of ${fmtDate(start, 'short')}`;
+}
+
+/* ---------- what has been said about a period ----------
+   A day's account lives on the day's entry, where the rest of that day lives.
+   A period has no entry of its own, so it gets one here, keyed by the habit
+   and the first day of the period. */
+function habAccounts(){ return S.habitAccounts = S.habitAccounts || {}; }
+function habAccountOf(h, start){ return habAccounts()[`${h.id}|${start}`] || null; }
+function habSetAccount(h, start, patch){
+  habAccounts()[`${h.id}|${start}`] = Object.assign({habitId:h.id, period:start},
+    habAccountOf(h, start) || {}, patch, {at: new Date().toISOString()});
+  saveNow();
+}
+function habClearAccount(h, start){ delete habAccounts()[`${h.id}|${start}`]; saveNow(); }
+
+/* ---------- the reasons, for the days it did not happen ----------
+   Offered as chips because a reason you can press is a reason you will
+   actually record, and because a set of six makes the record countable later
+   in a way free text never is. "Chose something else" is in the list on
+   purpose: it is the commonest honest answer and the one a list of excuses
+   would leave out. */
+const HAB_MISS_REASONS = [
+  ['time',    '⏱',  'Ran out of time'],
+  ['tired',   '◑',  'Too tired'],
+  ['forgot',  '…',  'Forgot'],
+  ['chose',   '⇄',  'Chose something else'],
+  ['away',    '✈',  'Not where I could'],
+  ['unwell',  '⚕',  'Unwell'],
+];
+const habMissReason = k => (HAB_MISS_REASONS.find(r => r[0] === k) || [,, ''])[2];
+
+/* ---------- what is still unanswered ----------
+   Daily habits, for one day: due, and nothing written. A habit that was
+   ticked is already accounted for — the tick is the account.
+
+   Breaking habits are deliberately not here. Their resting state is the good
+   one: a day nobody recorded is a day nothing happened, and "what got in the
+   way of not doing it" is not a question. They are asked about when there is
+   an urge to record, which is their own three-way check-in. */
+function habUnaccountedOn(d = today()){
+  return habList().filter(h => !habIsBreaking(h) && habRhythm(h) === 'day'
+    && habDue(h, d) && !habEntry(h, d));
+}
+/* Weekly and monthly habits, for the periods that have closed. Only the ones
+   that came up short, and only the ones nothing has been said about — a
+   period that hit its target was kept and needs no account.
+
+   At most ONE per habit, the most recent that qualifies. A habit nobody has
+   touched in a month would otherwise put four rows in the block at once, and
+   four rows of the same unanswered question is not accountability, it is a
+   wall of guilt — which gets the block closed and never opened again. The
+   look-back exists so that skipping one week does not lose the week before
+   it, not so that the block can accumulate. */
+function habPeriodsToAccount(upto = today(), back = 4){
+  const out = [];
+  habList().forEach(h => {
+    const r = habRhythm(h); if(r === 'day' || habIsBreaking(h)) return;
+    const target = habPeriodTarget(h);
+    const born = (h.createdAt || '').slice(0, 10);
+    let start = habPeriodStart(h, upto);
+    for(let i = 0; i < back; i++){
+      start = habPeriodStart(h, addDays(start, -1));
+      /* a period that closed before the habit existed is not its business */
+      if(born && habPeriodEnd(h, start) < born) break;
+      if(habPeriodKept(h, start) >= target) continue;
+      if(habAccountOf(h, start)) continue;
+      out.push({h, start, kept: habPeriodKept(h, start), target,
+        label: habPeriodLabel(h, start)});
+      break;
+    }
+  });
+  return out.sort((a, b) => a.start < b.start ? 1 : -1);
+}
 /* ============================================================
    HABITS — the three ways of looking at them
 
@@ -33804,12 +34043,14 @@ function habCardHTML(h){
 function habTodayHTML(){
   const T = today(), due = habDueOn(T);
   const kept = due.filter(h => habKept(h, T)), open = due.filter(h => !habKept(h, T));
-  if(!due.length) return `<div class="hb-focus"><div class="empty hb-quiet">Nothing due today. Recovery is part of the oscillation.</div></div>`;
+  if(!due.length) return `<div class="hb-focus">${habAccountHTML(T)}
+    <div class="empty hb-quiet">Nothing due today. A day off is part of the rhythm, not a gap in it.</div></div>`;
   const groups = [...TOD.filter(t => open.some(h => (h.timeOfDay || 'anytime') === t)), ]
     .map(t => [t, open.filter(h => (h.timeOfDay || 'anytime') === t)]);
   const loose = open.filter(h => !TOD.includes(h.timeOfDay || 'anytime'));
   if(loose.length) groups.push(['anytime', loose]);
   return `<div class="hb-focus">
+    ${habAccountHTML(T)}
     ${open.length ? groups.map(([t, hs]) => `<div class="hb-tgroup">
       <div class="hb-tlabel mono">${esc(t)}</div>
       ${hs.map(habTodayRowHTML).join('')}</div>`).join('')
@@ -33899,6 +34140,42 @@ function habAnalyticsHTML(){
       </div>
     </section>
   </div>`;
+}
+
+/* ---------- what is still unaccounted for ----------
+   The one block in the house whose job is to ask a question rather than show
+   a number. It appears only when there is something unanswered, it says how
+   many and what, and every line is one press from the place where it is
+   answered. Nothing here is compulsory and nothing counts against you for
+   being open: a day you have not got to yet is not a day you failed. */
+function habAccountHTML(day = today()){
+  const missed = habUnaccountedOn(day);
+  const periods = habPeriodsToAccount(day);
+  if(!missed.length && !periods.length) return '';
+  const n = missed.length + periods.length;
+  return `<div class="hb-account">
+    <div class="hb-acc-head">
+      <span class="sc" style="margin:0">Nothing said about ${n === 1 ? 'one of them' : `${n} of them`}</span>
+      <span class="mono faint">a missed day is a day with something to say</span>
+    </div>
+    ${missed.map(h => `<button class="hb-acc-row" data-hbacc="${esc(h.id)}">
+      <span class="hb-acc-ico">${esc(h.icon || '○')}</span>
+      <span class="hb-acc-what"><b>${esc(h.name)}</b><span class="mono faint">due today · nothing logged</span></span>
+      <span class="hb-acc-go mono">say what happened →</span></button>`).join('')}
+    ${periods.map(({h, start, kept, target, label}) => `<button class="hb-acc-row" data-hbper="${esc(h.id)}|${esc(start)}">
+      <span class="hb-acc-ico">${esc(h.icon || '○')}</span>
+      <span class="hb-acc-what"><b>${esc(h.name)}</b><span class="mono faint">${esc(label)} · kept ${kept} of ${target}</span></span>
+      <span class="hb-acc-go mono">account for it →</span></button>`).join('')}
+  </div>`;
+}
+function bindHabAccount(root, after){
+  const redraw = after || rerender;
+  $$('[data-hbacc]', root).forEach(b => b.onclick = () =>
+    openHabitCheckIn(b.dataset.hbacc, today(), {status:'skipped'}));
+  $$('[data-hbper]', root).forEach(b => b.onclick = () => {
+    const [id, start] = b.dataset.hbper.split('|');
+    openHabitPeriodAccount(id, start, redraw);
+  });
 }
 /* ============================================================
    13. SETTINGS

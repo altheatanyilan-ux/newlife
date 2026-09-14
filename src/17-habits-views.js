@@ -125,12 +125,14 @@ function habCardHTML(h){
 function habTodayHTML(){
   const T = today(), due = habDueOn(T);
   const kept = due.filter(h => habKept(h, T)), open = due.filter(h => !habKept(h, T));
-  if(!due.length) return `<div class="hb-focus"><div class="empty hb-quiet">Nothing due today. Recovery is part of the oscillation.</div></div>`;
+  if(!due.length) return `<div class="hb-focus">${habAccountHTML(T)}
+    <div class="empty hb-quiet">Nothing due today. A day off is part of the rhythm, not a gap in it.</div></div>`;
   const groups = [...TOD.filter(t => open.some(h => (h.timeOfDay || 'anytime') === t)), ]
     .map(t => [t, open.filter(h => (h.timeOfDay || 'anytime') === t)]);
   const loose = open.filter(h => !TOD.includes(h.timeOfDay || 'anytime'));
   if(loose.length) groups.push(['anytime', loose]);
   return `<div class="hb-focus">
+    ${habAccountHTML(T)}
     ${open.length ? groups.map(([t, hs]) => `<div class="hb-tgroup">
       <div class="hb-tlabel mono">${esc(t)}</div>
       ${hs.map(habTodayRowHTML).join('')}</div>`).join('')
@@ -220,4 +222,40 @@ function habAnalyticsHTML(){
       </div>
     </section>
   </div>`;
+}
+
+/* ---------- what is still unaccounted for ----------
+   The one block in the house whose job is to ask a question rather than show
+   a number. It appears only when there is something unanswered, it says how
+   many and what, and every line is one press from the place where it is
+   answered. Nothing here is compulsory and nothing counts against you for
+   being open: a day you have not got to yet is not a day you failed. */
+function habAccountHTML(day = today()){
+  const missed = habUnaccountedOn(day);
+  const periods = habPeriodsToAccount(day);
+  if(!missed.length && !periods.length) return '';
+  const n = missed.length + periods.length;
+  return `<div class="hb-account">
+    <div class="hb-acc-head">
+      <span class="sc" style="margin:0">Nothing said about ${n === 1 ? 'one of them' : `${n} of them`}</span>
+      <span class="mono faint">a missed day is a day with something to say</span>
+    </div>
+    ${missed.map(h => `<button class="hb-acc-row" data-hbacc="${esc(h.id)}">
+      <span class="hb-acc-ico">${esc(h.icon || '○')}</span>
+      <span class="hb-acc-what"><b>${esc(h.name)}</b><span class="mono faint">due today · nothing logged</span></span>
+      <span class="hb-acc-go mono">say what happened →</span></button>`).join('')}
+    ${periods.map(({h, start, kept, target, label}) => `<button class="hb-acc-row" data-hbper="${esc(h.id)}|${esc(start)}">
+      <span class="hb-acc-ico">${esc(h.icon || '○')}</span>
+      <span class="hb-acc-what"><b>${esc(h.name)}</b><span class="mono faint">${esc(label)} · kept ${kept} of ${target}</span></span>
+      <span class="hb-acc-go mono">account for it →</span></button>`).join('')}
+  </div>`;
+}
+function bindHabAccount(root, after){
+  const redraw = after || rerender;
+  $$('[data-hbacc]', root).forEach(b => b.onclick = () =>
+    openHabitCheckIn(b.dataset.hbacc, today(), {status:'skipped'}));
+  $$('[data-hbper]', root).forEach(b => b.onclick = () => {
+    const [id, start] = b.dataset.hbper.split('|');
+    openHabitPeriodAccount(id, start, redraw);
+  });
 }
