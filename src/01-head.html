@@ -220,32 +220,58 @@ kbd{font-family:var(--mono);font-size:.68rem;padding:2px 6px;border:1px solid va
 
 /* Ambient: the ink painting the rooms hang in */
 .ambient{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
-.page-scene{position:absolute;inset:0;opacity:0;transition:opacity .55s var(--ease);display:flex;align-items:flex-end;justify-content:center}
-.page-scene.on{opacity:var(--scene-op,.075)}
+/* Anything in this stack that is faded out is still a full-viewport layer the
+   compositor has to blend on every frame, and half of them are faded out on
+   any given page. visibility takes them out of the work entirely; the delay on
+   the way out is what lets the crossfade still happen. */
+.page-scene{position:absolute;inset:0;opacity:0;visibility:hidden;
+  transition:opacity .55s var(--ease),visibility 0s .55s;
+  display:flex;align-items:flex-end;justify-content:center}
+.page-scene.on{opacity:var(--scene-op,.075);visibility:visible;transition:opacity .55s var(--ease),visibility 0s}
 .page-scene .scene-svg{width:100%;height:100%;display:block}
 .page-scene::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 62% 48% at 50% 38%,color-mix(in srgb,var(--bg) 82%,transparent) 0%,color-mix(in srgb,var(--bg) 40%,transparent) 52%,transparent 82%);pointer-events:none}
 @media (max-width:900px){.page-scene.on{opacity:calc(var(--scene-op,.075) * .7)}}
 @media (prefers-reduced-motion:reduce){.page-scene{transition:none}}
-.page-grad{position:absolute;inset:0;opacity:0;transition:opacity .35s var(--ease);background-image:linear-gradient(135deg,var(--page-gradient-start),var(--page-gradient-end))}
-.page-grad.on{opacity:var(--page-grad-op)}
+.page-grad{position:absolute;inset:0;opacity:0;visibility:hidden;transition:opacity .35s var(--ease),visibility 0s .35s;background-image:linear-gradient(135deg,var(--page-gradient-start),var(--page-gradient-end))}
+.page-grad.on{opacity:var(--page-grad-op);visibility:visible;transition:opacity .35s var(--ease),visibility 0s}
 /* 水墨画 — the ink layers. Everything inside them is monochrome: the rooms own
    the colour, the paper owns the ink. Parallax rides a single scroll variable. */
 .page-scene,.ink-layer{--page-accent:var(--ink);--page-gradient-start:var(--ink);--page-gradient-end:var(--ink)}
 .page-scene{transform:translate3d(0,calc(var(--ink-par,0) * .03px),0)}
 .ink-layer{position:absolute;inset:0;overflow:hidden}
 .ink-layer svg{position:absolute;inset:0;width:100%;height:100%;display:block}
-#inkMist{opacity:var(--mist-op);transform:translate3d(0,calc(var(--ink-par,0) * .05px),0);will-change:transform}
-.mist-band{will-change:transform}
-.mb1{animation:mistA 96s ease-in-out infinite alternate}
-.mb2{animation:mistB 118s ease-in-out infinite alternate}
-.mb3{animation:mistC 134s ease-in-out infinite alternate}
-@keyframes mistA{from{transform:translate3d(-6%,0,0)}to{transform:translate3d(7%,-1.5%,0)}}
-@keyframes mistB{from{transform:translate3d(8%,1%,0)}to{transform:translate3d(-7%,-1%,0)}}
-@keyframes mistC{from{transform:translate3d(-4%,-1%,0)}to{transform:translate3d(9%,1.5%,0)}}
+/* No opacity and no transform on the group: both of them force the three
+   bands inside it to be drawn into one buffer, and then any one of them
+   moving repaints all of it. The bands carry their own fade and their own
+   parallax, one layer each. */
+#inkMist{opacity:1}
+/* Each band is its own element, soft by construction — a pair of overlapping
+   radial gradients, which have no edge, rather than a hard shape under a
+   Gaussian blur. The blur was costing eighty-five milliseconds of every frame
+   because a filter is recomputed whenever anything inside it moves, and what
+   was moving inside it was the whole full-viewport wash. */
+.mist-band{position:absolute;left:-12%;width:124%;display:block;
+  will-change:transform;transform:translate3d(0,calc(var(--ink-par,0) * .05px),0)}
+/* Stepped, and this is the whole trick of it. A band crosses about a tenth of
+   the screen in a hundred seconds, which is a fraction of a pixel per frame —
+   but the compositor does not care how far a layer moved, only that it moved,
+   and it was recompositing three full-width translucent layers sixty times a
+   second to achieve nothing visible. In a hundred and sixty steps each move
+   is about a pixel, arrives once every two-thirds of a second, and is
+   invisible on a wash at five per cent. The other fifty-nine frames in sixty,
+   the machine does nothing at all. */
+.mb1{animation:mistA 96s steps(160,end) infinite alternate}
+.mb2{animation:mistB 118s steps(160,end) infinite alternate}
+.mb3{animation:mistC 134s steps(160,end) infinite alternate}
+/* the parallax rides inside the drift, because an animation on transform
+   replaces the whole property and would otherwise throw the scroll offset away */
+@keyframes mistA{from{transform:translate3d(-6%,calc(var(--ink-par,0) * .05px),0)}to{transform:translate3d(7%,calc(var(--ink-par,0) * .05px - 1.5%),0)}}
+@keyframes mistB{from{transform:translate3d(8%,calc(var(--ink-par,0) * .05px + 1%),0)}to{transform:translate3d(-7%,calc(var(--ink-par,0) * .05px - 1%),0)}}
+@keyframes mistC{from{transform:translate3d(-4%,calc(var(--ink-par,0) * .05px - 1%),0)}to{transform:translate3d(9%,calc(var(--ink-par,0) * .05px + 1.5%),0)}}
 html[data-season="winter"] #inkMist{opacity:calc(var(--mist-op) * 1.6)}
 html[data-season="summer"] #inkMist{opacity:calc(var(--mist-op) * .7)}
-#inkRipple{top:auto;height:26vh;opacity:0;transition:opacity .8s var(--ease)}
-#inkRipple.on{opacity:var(--ripple-op)}
+#inkRipple{top:auto;height:26vh;opacity:0;visibility:hidden;transition:opacity .8s var(--ease),visibility 0s .8s}
+#inkRipple.on{opacity:var(--ripple-op);visibility:visible;transition:opacity .8s var(--ease),visibility 0s}
 .ripple-ring{will-change:transform;transform-origin:600px 168px}
 .rr1{animation:rippleOut 8s ease-in-out infinite}
 .rr2{animation:rippleOut 9s ease-in-out infinite .9s}

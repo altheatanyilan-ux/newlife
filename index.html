@@ -220,32 +220,58 @@ kbd{font-family:var(--mono);font-size:.68rem;padding:2px 6px;border:1px solid va
 
 /* Ambient: the ink painting the rooms hang in */
 .ambient{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
-.page-scene{position:absolute;inset:0;opacity:0;transition:opacity .55s var(--ease);display:flex;align-items:flex-end;justify-content:center}
-.page-scene.on{opacity:var(--scene-op,.075)}
+/* Anything in this stack that is faded out is still a full-viewport layer the
+   compositor has to blend on every frame, and half of them are faded out on
+   any given page. visibility takes them out of the work entirely; the delay on
+   the way out is what lets the crossfade still happen. */
+.page-scene{position:absolute;inset:0;opacity:0;visibility:hidden;
+  transition:opacity .55s var(--ease),visibility 0s .55s;
+  display:flex;align-items:flex-end;justify-content:center}
+.page-scene.on{opacity:var(--scene-op,.075);visibility:visible;transition:opacity .55s var(--ease),visibility 0s}
 .page-scene .scene-svg{width:100%;height:100%;display:block}
 .page-scene::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 62% 48% at 50% 38%,color-mix(in srgb,var(--bg) 82%,transparent) 0%,color-mix(in srgb,var(--bg) 40%,transparent) 52%,transparent 82%);pointer-events:none}
 @media (max-width:900px){.page-scene.on{opacity:calc(var(--scene-op,.075) * .7)}}
 @media (prefers-reduced-motion:reduce){.page-scene{transition:none}}
-.page-grad{position:absolute;inset:0;opacity:0;transition:opacity .35s var(--ease);background-image:linear-gradient(135deg,var(--page-gradient-start),var(--page-gradient-end))}
-.page-grad.on{opacity:var(--page-grad-op)}
+.page-grad{position:absolute;inset:0;opacity:0;visibility:hidden;transition:opacity .35s var(--ease),visibility 0s .35s;background-image:linear-gradient(135deg,var(--page-gradient-start),var(--page-gradient-end))}
+.page-grad.on{opacity:var(--page-grad-op);visibility:visible;transition:opacity .35s var(--ease),visibility 0s}
 /* 水墨画 — the ink layers. Everything inside them is monochrome: the rooms own
    the colour, the paper owns the ink. Parallax rides a single scroll variable. */
 .page-scene,.ink-layer{--page-accent:var(--ink);--page-gradient-start:var(--ink);--page-gradient-end:var(--ink)}
 .page-scene{transform:translate3d(0,calc(var(--ink-par,0) * .03px),0)}
 .ink-layer{position:absolute;inset:0;overflow:hidden}
 .ink-layer svg{position:absolute;inset:0;width:100%;height:100%;display:block}
-#inkMist{opacity:var(--mist-op);transform:translate3d(0,calc(var(--ink-par,0) * .05px),0);will-change:transform}
-.mist-band{will-change:transform}
-.mb1{animation:mistA 96s ease-in-out infinite alternate}
-.mb2{animation:mistB 118s ease-in-out infinite alternate}
-.mb3{animation:mistC 134s ease-in-out infinite alternate}
-@keyframes mistA{from{transform:translate3d(-6%,0,0)}to{transform:translate3d(7%,-1.5%,0)}}
-@keyframes mistB{from{transform:translate3d(8%,1%,0)}to{transform:translate3d(-7%,-1%,0)}}
-@keyframes mistC{from{transform:translate3d(-4%,-1%,0)}to{transform:translate3d(9%,1.5%,0)}}
+/* No opacity and no transform on the group: both of them force the three
+   bands inside it to be drawn into one buffer, and then any one of them
+   moving repaints all of it. The bands carry their own fade and their own
+   parallax, one layer each. */
+#inkMist{opacity:1}
+/* Each band is its own element, soft by construction — a pair of overlapping
+   radial gradients, which have no edge, rather than a hard shape under a
+   Gaussian blur. The blur was costing eighty-five milliseconds of every frame
+   because a filter is recomputed whenever anything inside it moves, and what
+   was moving inside it was the whole full-viewport wash. */
+.mist-band{position:absolute;left:-12%;width:124%;display:block;
+  will-change:transform;transform:translate3d(0,calc(var(--ink-par,0) * .05px),0)}
+/* Stepped, and this is the whole trick of it. A band crosses about a tenth of
+   the screen in a hundred seconds, which is a fraction of a pixel per frame —
+   but the compositor does not care how far a layer moved, only that it moved,
+   and it was recompositing three full-width translucent layers sixty times a
+   second to achieve nothing visible. In a hundred and sixty steps each move
+   is about a pixel, arrives once every two-thirds of a second, and is
+   invisible on a wash at five per cent. The other fifty-nine frames in sixty,
+   the machine does nothing at all. */
+.mb1{animation:mistA 96s steps(160,end) infinite alternate}
+.mb2{animation:mistB 118s steps(160,end) infinite alternate}
+.mb3{animation:mistC 134s steps(160,end) infinite alternate}
+/* the parallax rides inside the drift, because an animation on transform
+   replaces the whole property and would otherwise throw the scroll offset away */
+@keyframes mistA{from{transform:translate3d(-6%,calc(var(--ink-par,0) * .05px),0)}to{transform:translate3d(7%,calc(var(--ink-par,0) * .05px - 1.5%),0)}}
+@keyframes mistB{from{transform:translate3d(8%,calc(var(--ink-par,0) * .05px + 1%),0)}to{transform:translate3d(-7%,calc(var(--ink-par,0) * .05px - 1%),0)}}
+@keyframes mistC{from{transform:translate3d(-4%,calc(var(--ink-par,0) * .05px - 1%),0)}to{transform:translate3d(9%,calc(var(--ink-par,0) * .05px + 1.5%),0)}}
 html[data-season="winter"] #inkMist{opacity:calc(var(--mist-op) * 1.6)}
 html[data-season="summer"] #inkMist{opacity:calc(var(--mist-op) * .7)}
-#inkRipple{top:auto;height:26vh;opacity:0;transition:opacity .8s var(--ease)}
-#inkRipple.on{opacity:var(--ripple-op)}
+#inkRipple{top:auto;height:26vh;opacity:0;visibility:hidden;transition:opacity .8s var(--ease),visibility 0s .8s}
+#inkRipple.on{opacity:var(--ripple-op);visibility:visible;transition:opacity .8s var(--ease),visibility 0s}
 .ripple-ring{will-change:transform;transform-origin:600px 168px}
 .rr1{animation:rippleOut 8s ease-in-out infinite}
 .rr2{animation:rippleOut 9s ease-in-out infinite .9s}
@@ -6587,18 +6613,18 @@ html[data-theme="dark"]{
    is the layer that makes the house feel made rather than generated, and a
    thing that was made by hand does not fidget.
    ============================================================ */
-#vines{position:absolute;inset:0;opacity:0;transition:opacity .6s var(--ease);
+#vines{position:absolute;inset:0;opacity:0;visibility:hidden;transition:opacity .6s var(--ease),visibility 0s .6s;
   background-repeat:no-repeat;background-size:250px 460px,250px 460px;
   background-position:left top,right bottom}
 body[data-route="today"] #vines,
 body[data-route="values"] #vines,
 body[data-route="journals"] #vines,
-body[data-route="commonplace"] #vines{opacity:.24;
+body[data-route="commonplace"] #vines{opacity:.24;visibility:visible;transition:opacity .6s var(--ease),visibility 0s;
   background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'150'%20height%3D'280'%20viewBox%3D'0%200%20150%20280'%3E%0A%20%20%3Cpath%20d%3D%22M1%201C30%2025%2047%2053%2053%2088%2059%20123%2051%20151%2062%20181%2073%20214%2097%20242%20130%20265%22%20fill%3D%22none%22%20stroke%3D%22%237a5a3c%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M53%2088%20C64%2092%2074%2089%2084%2080%22%20fill%3D%22none%22%20stroke%3D%22%237a5a3c%22%20stroke-width%3D%221%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpath%20d%3D%22M57%20122%20C46%20129%2039%20140%2037%20154%22%20fill%3D%22none%22%20stroke%3D%22%237a5a3c%22%20stroke-width%3D%221%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpath%20d%3D%22M62%20181%20C74%20186%2082%20196%2086%20210%22%20fill%3D%22none%22%20stroke%3D%22%237a5a3c%22%20stroke-width%3D%221%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpath%20d%3D%22M40%2040%20C50%2044%2057%2042%2064%2036%22%20fill%3D%22none%22%20stroke%3D%22%237a5a3c%22%20stroke-width%3D%221%22%20stroke-linecap%3D%22round%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M0%200%20Q9.5%20-6.5%2019%200%20Q9.5%206.5%200%200Z%22%20transform%3D%22translate(38%2034)%20rotate(-34)%22%20fill%3D%22%236b7d56%22%20opacity%3D%220.9%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M0%200%20Q7.5%20-5.2%2015%200%20Q7.5%205.2%200%200Z%22%20transform%3D%22translate(64%2036)%20rotate(-12)%22%20fill%3D%22%236b7d56%22%20opacity%3D%220.75%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M0%200%20Q10.5%20-7%2021%200%20Q10.5%207%200%200Z%22%20transform%3D%22translate(50%2070)%20rotate(28)%22%20fill%3D%22%236b7d56%22%20opacity%3D%220.95%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M0%200%20Q8.5%20-5.8%2017%200%20Q8.5%205.8%200%200Z%22%20transform%3D%22translate(84%2080)%20rotate(-4)%22%20fill%3D%22%236b7d56%22%20opacity%3D%220.8%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M0%200%20Q9.0%20-6%2018%200%20Q9.0%206%200%200Z%22%20transform%3D%22translate(56%20112)%20rotate(48)%22%20fill%3D%22%236b7d56%22%20opacity%3D%220.85%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M0%200%20Q10.0%20-6.6%2020%200%20Q10.0%206.6%200%200Z%22%20transform%3D%22translate(37%20154)%20rotate(128)%22%20fill%3D%22%236b7d56%22%20opacity%3D%220.9%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M0%200%20Q8.0%20-5.4%2016%200%20Q8.0%205.4%200%200Z%22%20transform%3D%22translate(59%20160)%20rotate(14)%22%20fill%3D%22%236b7d56%22%20opacity%3D%220.7%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M0%200%20Q9.5%20-6.4%2019%200%20Q9.5%206.4%200%200Z%22%20transform%3D%22translate(66%20196)%20rotate(40)%22%20fill%3D%22%236b7d56%22%20opacity%3D%220.88%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M0%200%20Q7.5%20-5%2015%200%20Q7.5%205%200%200Z%22%20transform%3D%22translate(86%20210)%20rotate(8)%22%20fill%3D%22%236b7d56%22%20opacity%3D%220.72%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M0%200%20Q9.0%20-6%2018%200%20Q9.0%206%200%200Z%22%20transform%3D%22translate(78%20232)%20rotate(62)%22%20fill%3D%22%236b7d56%22%20opacity%3D%220.8%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M0%200%20Q8.5%20-5.6%2017%200%20Q8.5%205.6%200%200Z%22%20transform%3D%22translate(112%20252)%20rotate(24)%22%20fill%3D%22%236b7d56%22%20opacity%3D%220.75%22%2F%3E%0A%20%20%3Ccircle%20cx%3D%2288%22%20cy%3D%2276%22%20r%3D%222.6%22%20fill%3D%22%239c7452%22%20opacity%3D%220.8%22%2F%3E%0A%20%20%3Ccircle%20cx%3D%2235%22%20cy%3D%22158%22%20r%3D%222.2%22%20fill%3D%22%239c7452%22%20opacity%3D%220.7%22%2F%3E%0A%20%20%3Ccircle%20cx%3D%22133%22%20cy%3D%22267%22%20r%3D%222.8%22%20fill%3D%22%239c7452%22%20opacity%3D%220.75%22%2F%3E%0A%20%20%0A%20%20%3Cg%20transform%3D%22translate(57%20122)%22%3E%0A%20%20%20%20%3Cellipse%20rx%3D%223.2%22%20ry%3D%226%22%20cy%3D%22-6%22%20fill%3D%22%23b98aa6%22%20opacity%3D%22.62%22%20transform%3D%22rotate(0)%22%2F%3E%3Cellipse%20rx%3D%223.2%22%20ry%3D%226%22%20cy%3D%22-6%22%20fill%3D%22%23b98aa6%22%20opacity%3D%22.62%22%20transform%3D%22rotate(72)%22%2F%3E%3Cellipse%20rx%3D%223.2%22%20ry%3D%226%22%20cy%3D%22-6%22%20fill%3D%22%23b98aa6%22%20opacity%3D%22.62%22%20transform%3D%22rotate(144)%22%2F%3E%3Cellipse%20rx%3D%223.2%22%20ry%3D%226%22%20cy%3D%22-6%22%20fill%3D%22%23b98aa6%22%20opacity%3D%22.62%22%20transform%3D%22rotate(216)%22%2F%3E%3Cellipse%20rx%3D%223.2%22%20ry%3D%226%22%20cy%3D%22-6%22%20fill%3D%22%23b98aa6%22%20opacity%3D%22.62%22%20transform%3D%22rotate(288)%22%2F%3E%0A%20%20%20%20%3Ccircle%20r%3D%221.9%22%20fill%3D%22%239c7452%22%20opacity%3D%22.85%22%2F%3E%0A%20%20%3C%2Fg%3E%3C%2Fsvg%3E"),url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'150'%20height%3D'280'%20viewBox%3D'0%200%20150%20280'%3E%3Cg%20transform%3D'translate(150%20280)%20scale(-1%20-1)'%3E%0A%20%20%3Cpath%20d%3D%22M1%201C30%2025%2047%2053%2053%2088%2059%20123%2051%20151%2062%20181%2073%20214%2097%20242%20130%20265%22%20fill%3D%22none%22%20stroke%3D%22%237a5a3c%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M53%2088%20C64%2092%2074%2089%2084%2080%22%20fill%3D%22none%22%20stroke%3D%22%237a5a3c%22%20stroke-width%3D%221%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpath%20d%3D%22M57%20122%20C46%20129%2039%20140%2037%20154%22%20fill%3D%22none%22%20stroke%3D%22%237a5a3c%22%20stroke-width%3D%221%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpath%20d%3D%22M62%20181%20C74%20186%2082%20196%2086%20210%22%20fill%3D%22none%22%20stroke%3D%22%237a5a3c%22%20stroke-width%3D%221%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpath%20d%3D%22M40%2040%20C50%2044%2057%2042%2064%2036%22%20fill%3D%22none%22%20stroke%3D%22%237a5a3c%22%20stroke-width%3D%221%22%20stroke-linecap%3D%22round%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M0%200%20Q9.5%20-6.5%2019%200%20Q9.5%206.5%200%200Z%22%20transform%3D%22translate(38%2034)%20rotate(-34)%22%20fill%3D%22%236b7d56%22%20opacity%3D%220.9%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M0%200%20Q7.5%20-5.2%2015%200%20Q7.5%205.2%200%200Z%22%20transform%3D%22translate(64%2036)%20rotate(-12)%22%20fill%3D%22%236b7d56%22%20opacity%3D%220.75%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M0%200%20Q10.5%20-7%2021%200%20Q10.5%207%200%200Z%22%20transform%3D%22translate(50%2070)%20rotate(28)%22%20fill%3D%22%236b7d56%22%20opacity%3D%220.95%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M0%200%20Q8.5%20-5.8%2017%200%20Q8.5%205.8%200%200Z%22%20transform%3D%22translate(84%2080)%20rotate(-4)%22%20fill%3D%22%236b7d56%22%20opacity%3D%220.8%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M0%200%20Q9.0%20-6%2018%200%20Q9.0%206%200%200Z%22%20transform%3D%22translate(56%20112)%20rotate(48)%22%20fill%3D%22%236b7d56%22%20opacity%3D%220.85%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M0%200%20Q10.0%20-6.6%2020%200%20Q10.0%206.6%200%200Z%22%20transform%3D%22translate(37%20154)%20rotate(128)%22%20fill%3D%22%236b7d56%22%20opacity%3D%220.9%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M0%200%20Q8.0%20-5.4%2016%200%20Q8.0%205.4%200%200Z%22%20transform%3D%22translate(59%20160)%20rotate(14)%22%20fill%3D%22%236b7d56%22%20opacity%3D%220.7%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M0%200%20Q9.5%20-6.4%2019%200%20Q9.5%206.4%200%200Z%22%20transform%3D%22translate(66%20196)%20rotate(40)%22%20fill%3D%22%236b7d56%22%20opacity%3D%220.88%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M0%200%20Q7.5%20-5%2015%200%20Q7.5%205%200%200Z%22%20transform%3D%22translate(86%20210)%20rotate(8)%22%20fill%3D%22%236b7d56%22%20opacity%3D%220.72%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M0%200%20Q9.0%20-6%2018%200%20Q9.0%206%200%200Z%22%20transform%3D%22translate(78%20232)%20rotate(62)%22%20fill%3D%22%236b7d56%22%20opacity%3D%220.8%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M0%200%20Q8.5%20-5.6%2017%200%20Q8.5%205.6%200%200Z%22%20transform%3D%22translate(112%20252)%20rotate(24)%22%20fill%3D%22%236b7d56%22%20opacity%3D%220.75%22%2F%3E%0A%20%20%3Ccircle%20cx%3D%2288%22%20cy%3D%2276%22%20r%3D%222.6%22%20fill%3D%22%239c7452%22%20opacity%3D%220.8%22%2F%3E%0A%20%20%3Ccircle%20cx%3D%2235%22%20cy%3D%22158%22%20r%3D%222.2%22%20fill%3D%22%239c7452%22%20opacity%3D%220.7%22%2F%3E%0A%20%20%3Ccircle%20cx%3D%22133%22%20cy%3D%22267%22%20r%3D%222.8%22%20fill%3D%22%239c7452%22%20opacity%3D%220.75%22%2F%3E%0A%20%20%0A%20%20%3Cg%20transform%3D%22translate(57%20122)%22%3E%0A%20%20%20%20%3Cellipse%20rx%3D%223.2%22%20ry%3D%226%22%20cy%3D%22-6%22%20fill%3D%22%23b98aa6%22%20opacity%3D%22.62%22%20transform%3D%22rotate(0)%22%2F%3E%3Cellipse%20rx%3D%223.2%22%20ry%3D%226%22%20cy%3D%22-6%22%20fill%3D%22%23b98aa6%22%20opacity%3D%22.62%22%20transform%3D%22rotate(72)%22%2F%3E%3Cellipse%20rx%3D%223.2%22%20ry%3D%226%22%20cy%3D%22-6%22%20fill%3D%22%23b98aa6%22%20opacity%3D%22.62%22%20transform%3D%22rotate(144)%22%2F%3E%3Cellipse%20rx%3D%223.2%22%20ry%3D%226%22%20cy%3D%22-6%22%20fill%3D%22%23b98aa6%22%20opacity%3D%22.62%22%20transform%3D%22rotate(216)%22%2F%3E%3Cellipse%20rx%3D%223.2%22%20ry%3D%226%22%20cy%3D%22-6%22%20fill%3D%22%23b98aa6%22%20opacity%3D%22.62%22%20transform%3D%22rotate(288)%22%2F%3E%0A%20%20%20%20%3Ccircle%20r%3D%221.9%22%20fill%3D%22%239c7452%22%20opacity%3D%22.85%22%2F%3E%0A%20%20%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E")}
 html[data-theme="dark"] body[data-route="today"] #vines,
 html[data-theme="dark"] body[data-route="values"] #vines,
 html[data-theme="dark"] body[data-route="journals"] #vines,
-html[data-theme="dark"] body[data-route="commonplace"] #vines{opacity:.2;
+html[data-theme="dark"] body[data-route="commonplace"] #vines{opacity:.2;visibility:visible;
   background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'150'%20height%3D'280'%20viewBox%3D'0%200%20150%20280'%3E%0A%20%20%3Cpath%20d%3D%22M1%201C30%2025%2047%2053%2053%2088%2059%20123%2051%20151%2062%20181%2073%20214%2097%20242%20130%20265%22%20fill%3D%22none%22%20stroke%3D%22%23c9a05a%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M53%2088%20C64%2092%2074%2089%2084%2080%22%20fill%3D%22none%22%20stroke%3D%22%23c9a05a%22%20stroke-width%3D%221%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpath%20d%3D%22M57%20122%20C46%20129%2039%20140%2037%20154%22%20fill%3D%22none%22%20stroke%3D%22%23c9a05a%22%20stroke-width%3D%221%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpath%20d%3D%22M62%20181%20C74%20186%2082%20196%2086%20210%22%20fill%3D%22none%22%20stroke%3D%22%23c9a05a%22%20stroke-width%3D%221%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpath%20d%3D%22M40%2040%20C50%2044%2057%2042%2064%2036%22%20fill%3D%22none%22%20stroke%3D%22%23c9a05a%22%20stroke-width%3D%221%22%20stroke-linecap%3D%22round%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M0%200%20Q9.5%20-6.5%2019%200%20Q9.5%206.5%200%200Z%22%20transform%3D%22translate(38%2034)%20rotate(-34)%22%20fill%3D%22%238a9a6a%22%20opacity%3D%220.9%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M0%200%20Q7.5%20-5.2%2015%200%20Q7.5%205.2%200%200Z%22%20transform%3D%22translate(64%2036)%20rotate(-12)%22%20fill%3D%22%238a9a6a%22%20opacity%3D%220.75%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M0%200%20Q10.5%20-7%2021%200%20Q10.5%207%200%200Z%22%20transform%3D%22translate(50%2070)%20rotate(28)%22%20fill%3D%22%238a9a6a%22%20opacity%3D%220.95%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M0%200%20Q8.5%20-5.8%2017%200%20Q8.5%205.8%200%200Z%22%20transform%3D%22translate(84%2080)%20rotate(-4)%22%20fill%3D%22%238a9a6a%22%20opacity%3D%220.8%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M0%200%20Q9.0%20-6%2018%200%20Q9.0%206%200%200Z%22%20transform%3D%22translate(56%20112)%20rotate(48)%22%20fill%3D%22%238a9a6a%22%20opacity%3D%220.85%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M0%200%20Q10.0%20-6.6%2020%200%20Q10.0%206.6%200%200Z%22%20transform%3D%22translate(37%20154)%20rotate(128)%22%20fill%3D%22%238a9a6a%22%20opacity%3D%220.9%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M0%200%20Q8.0%20-5.4%2016%200%20Q8.0%205.4%200%200Z%22%20transform%3D%22translate(59%20160)%20rotate(14)%22%20fill%3D%22%238a9a6a%22%20opacity%3D%220.7%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M0%200%20Q9.5%20-6.4%2019%200%20Q9.5%206.4%200%200Z%22%20transform%3D%22translate(66%20196)%20rotate(40)%22%20fill%3D%22%238a9a6a%22%20opacity%3D%220.88%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M0%200%20Q7.5%20-5%2015%200%20Q7.5%205%200%200Z%22%20transform%3D%22translate(86%20210)%20rotate(8)%22%20fill%3D%22%238a9a6a%22%20opacity%3D%220.72%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M0%200%20Q9.0%20-6%2018%200%20Q9.0%206%200%200Z%22%20transform%3D%22translate(78%20232)%20rotate(62)%22%20fill%3D%22%238a9a6a%22%20opacity%3D%220.8%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M0%200%20Q8.5%20-5.6%2017%200%20Q8.5%205.6%200%200Z%22%20transform%3D%22translate(112%20252)%20rotate(24)%22%20fill%3D%22%238a9a6a%22%20opacity%3D%220.75%22%2F%3E%0A%20%20%3Ccircle%20cx%3D%2288%22%20cy%3D%2276%22%20r%3D%222.6%22%20fill%3D%22%23d4a44c%22%20opacity%3D%220.8%22%2F%3E%0A%20%20%3Ccircle%20cx%3D%2235%22%20cy%3D%22158%22%20r%3D%222.2%22%20fill%3D%22%23d4a44c%22%20opacity%3D%220.7%22%2F%3E%0A%20%20%3Ccircle%20cx%3D%22133%22%20cy%3D%22267%22%20r%3D%222.8%22%20fill%3D%22%23d4a44c%22%20opacity%3D%220.75%22%2F%3E%0A%20%20%0A%20%20%3Cg%20transform%3D%22translate(57%20122)%22%3E%0A%20%20%20%20%3Cellipse%20rx%3D%223.2%22%20ry%3D%226%22%20cy%3D%22-6%22%20fill%3D%22%23a0727e%22%20opacity%3D%22.62%22%20transform%3D%22rotate(0)%22%2F%3E%3Cellipse%20rx%3D%223.2%22%20ry%3D%226%22%20cy%3D%22-6%22%20fill%3D%22%23a0727e%22%20opacity%3D%22.62%22%20transform%3D%22rotate(72)%22%2F%3E%3Cellipse%20rx%3D%223.2%22%20ry%3D%226%22%20cy%3D%22-6%22%20fill%3D%22%23a0727e%22%20opacity%3D%22.62%22%20transform%3D%22rotate(144)%22%2F%3E%3Cellipse%20rx%3D%223.2%22%20ry%3D%226%22%20cy%3D%22-6%22%20fill%3D%22%23a0727e%22%20opacity%3D%22.62%22%20transform%3D%22rotate(216)%22%2F%3E%3Cellipse%20rx%3D%223.2%22%20ry%3D%226%22%20cy%3D%22-6%22%20fill%3D%22%23a0727e%22%20opacity%3D%22.62%22%20transform%3D%22rotate(288)%22%2F%3E%0A%20%20%20%20%3Ccircle%20r%3D%221.9%22%20fill%3D%22%23d4a44c%22%20opacity%3D%22.85%22%2F%3E%0A%20%20%3C%2Fg%3E%3C%2Fsvg%3E"),url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'150'%20height%3D'280'%20viewBox%3D'0%200%20150%20280'%3E%3Cg%20transform%3D'translate(150%20280)%20scale(-1%20-1)'%3E%0A%20%20%3Cpath%20d%3D%22M1%201C30%2025%2047%2053%2053%2088%2059%20123%2051%20151%2062%20181%2073%20214%2097%20242%20130%20265%22%20fill%3D%22none%22%20stroke%3D%22%23c9a05a%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M53%2088%20C64%2092%2074%2089%2084%2080%22%20fill%3D%22none%22%20stroke%3D%22%23c9a05a%22%20stroke-width%3D%221%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpath%20d%3D%22M57%20122%20C46%20129%2039%20140%2037%20154%22%20fill%3D%22none%22%20stroke%3D%22%23c9a05a%22%20stroke-width%3D%221%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpath%20d%3D%22M62%20181%20C74%20186%2082%20196%2086%20210%22%20fill%3D%22none%22%20stroke%3D%22%23c9a05a%22%20stroke-width%3D%221%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpath%20d%3D%22M40%2040%20C50%2044%2057%2042%2064%2036%22%20fill%3D%22none%22%20stroke%3D%22%23c9a05a%22%20stroke-width%3D%221%22%20stroke-linecap%3D%22round%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M0%200%20Q9.5%20-6.5%2019%200%20Q9.5%206.5%200%200Z%22%20transform%3D%22translate(38%2034)%20rotate(-34)%22%20fill%3D%22%238a9a6a%22%20opacity%3D%220.9%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M0%200%20Q7.5%20-5.2%2015%200%20Q7.5%205.2%200%200Z%22%20transform%3D%22translate(64%2036)%20rotate(-12)%22%20fill%3D%22%238a9a6a%22%20opacity%3D%220.75%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M0%200%20Q10.5%20-7%2021%200%20Q10.5%207%200%200Z%22%20transform%3D%22translate(50%2070)%20rotate(28)%22%20fill%3D%22%238a9a6a%22%20opacity%3D%220.95%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M0%200%20Q8.5%20-5.8%2017%200%20Q8.5%205.8%200%200Z%22%20transform%3D%22translate(84%2080)%20rotate(-4)%22%20fill%3D%22%238a9a6a%22%20opacity%3D%220.8%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M0%200%20Q9.0%20-6%2018%200%20Q9.0%206%200%200Z%22%20transform%3D%22translate(56%20112)%20rotate(48)%22%20fill%3D%22%238a9a6a%22%20opacity%3D%220.85%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M0%200%20Q10.0%20-6.6%2020%200%20Q10.0%206.6%200%200Z%22%20transform%3D%22translate(37%20154)%20rotate(128)%22%20fill%3D%22%238a9a6a%22%20opacity%3D%220.9%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M0%200%20Q8.0%20-5.4%2016%200%20Q8.0%205.4%200%200Z%22%20transform%3D%22translate(59%20160)%20rotate(14)%22%20fill%3D%22%238a9a6a%22%20opacity%3D%220.7%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M0%200%20Q9.5%20-6.4%2019%200%20Q9.5%206.4%200%200Z%22%20transform%3D%22translate(66%20196)%20rotate(40)%22%20fill%3D%22%238a9a6a%22%20opacity%3D%220.88%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M0%200%20Q7.5%20-5%2015%200%20Q7.5%205%200%200Z%22%20transform%3D%22translate(86%20210)%20rotate(8)%22%20fill%3D%22%238a9a6a%22%20opacity%3D%220.72%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M0%200%20Q9.0%20-6%2018%200%20Q9.0%206%200%200Z%22%20transform%3D%22translate(78%20232)%20rotate(62)%22%20fill%3D%22%238a9a6a%22%20opacity%3D%220.8%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M0%200%20Q8.5%20-5.6%2017%200%20Q8.5%205.6%200%200Z%22%20transform%3D%22translate(112%20252)%20rotate(24)%22%20fill%3D%22%238a9a6a%22%20opacity%3D%220.75%22%2F%3E%0A%20%20%3Ccircle%20cx%3D%2288%22%20cy%3D%2276%22%20r%3D%222.6%22%20fill%3D%22%23d4a44c%22%20opacity%3D%220.8%22%2F%3E%0A%20%20%3Ccircle%20cx%3D%2235%22%20cy%3D%22158%22%20r%3D%222.2%22%20fill%3D%22%23d4a44c%22%20opacity%3D%220.7%22%2F%3E%0A%20%20%3Ccircle%20cx%3D%22133%22%20cy%3D%22267%22%20r%3D%222.8%22%20fill%3D%22%23d4a44c%22%20opacity%3D%220.75%22%2F%3E%0A%20%20%0A%20%20%3Cg%20transform%3D%22translate(57%20122)%22%3E%0A%20%20%20%20%3Cellipse%20rx%3D%223.2%22%20ry%3D%226%22%20cy%3D%22-6%22%20fill%3D%22%23a0727e%22%20opacity%3D%22.62%22%20transform%3D%22rotate(0)%22%2F%3E%3Cellipse%20rx%3D%223.2%22%20ry%3D%226%22%20cy%3D%22-6%22%20fill%3D%22%23a0727e%22%20opacity%3D%22.62%22%20transform%3D%22rotate(72)%22%2F%3E%3Cellipse%20rx%3D%223.2%22%20ry%3D%226%22%20cy%3D%22-6%22%20fill%3D%22%23a0727e%22%20opacity%3D%22.62%22%20transform%3D%22rotate(144)%22%2F%3E%3Cellipse%20rx%3D%223.2%22%20ry%3D%226%22%20cy%3D%22-6%22%20fill%3D%22%23a0727e%22%20opacity%3D%22.62%22%20transform%3D%22rotate(216)%22%2F%3E%3Cellipse%20rx%3D%223.2%22%20ry%3D%226%22%20cy%3D%22-6%22%20fill%3D%22%23a0727e%22%20opacity%3D%22.62%22%20transform%3D%22rotate(288)%22%2F%3E%0A%20%20%20%20%3Ccircle%20r%3D%221.9%22%20fill%3D%22%23d4a44c%22%20opacity%3D%22.85%22%2F%3E%0A%20%20%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E")}
 /* on a phone the two of them meet in the middle of the reading column */
 @media (max-width:760px){#vines{background-size:150px 280px,150px 280px}}
@@ -6731,15 +6757,15 @@ html[data-theme="light"] .card:hover{box-shadow:
   var(--surface-shadow-hover)}
 
 /* ---------- what each room is printed on ---------- */
-#roomtex{position:absolute;inset:0;opacity:0;transition:opacity .6s var(--ease);
+#roomtex{position:absolute;inset:0;opacity:0;visibility:hidden;transition:opacity .6s var(--ease),visibility 0s .6s;
   background-repeat:repeat;background-position:center}
 /* a stage you have finished with has been handled, and shows it */
-body[data-route="stage"] #roomtex,body[data-route="timeline"] #roomtex{opacity:.5;
+body[data-route="stage"] #roomtex,body[data-route="timeline"] #roomtex{opacity:.5;visibility:visible;transition:opacity .6s var(--ease),visibility 0s;
   background-repeat:no-repeat;background-size:130% 120%;background-position:22% 18%;
   background-image:radial-gradient(46% 38% at 30% 26%,color-mix(in srgb,var(--boho-copper) 9%,transparent) 0%,transparent 70%),
     radial-gradient(30% 26% at 72% 64%,color-mix(in srgb,var(--boho-gold) 7%,transparent) 0%,transparent 72%)}
 /* the studio is ruled paper */
-body[data-route="writing"] #roomtex,body[data-route="content"] #roomtex{opacity:1;
+body[data-route="writing"] #roomtex,body[data-route="content"] #roomtex{opacity:1;visibility:visible;transition:opacity .6s var(--ease),visibility 0s;
   background-image:repeating-linear-gradient(to bottom,
     transparent 0 23px,color-mix(in srgb,var(--ink) 4%,transparent) 23px 24px)}
 html[data-theme="dark"] body[data-route="writing"] #roomtex,
@@ -6765,6 +6791,75 @@ html[data-theme="dark"] .body.theatre{background-image:url("data:image/svg+xml,%
 .entry.sealed{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'120'%20height%3D'120'%20viewBox%3D'0%200%20120%20120'%3E%0A%20%20%3Ccircle%20cx%3D'60'%20cy%3D'62'%20r%3D'34'%20fill%3D'%237a3b4a'%20opacity%3D'.22'%2F%3E%0A%20%20%3Ccircle%20cx%3D'60'%20cy%3D'62'%20r%3D'34'%20fill%3D'none'%20stroke%3D'%237a3b4a'%20stroke-width%3D'1.2'%20opacity%3D'.4'%2F%3E%0A%20%20%3Ccircle%20cx%3D'60'%20cy%3D'62'%20r%3D'26'%20fill%3D'none'%20stroke%3D'%237a3b4a'%20stroke-width%3D'.6'%20opacity%3D'.3'%2F%3E%0A%20%20%3Cpath%20d%3D'M48%2062h24M60%2050v24'%20stroke%3D'%237a3b4a'%20stroke-width%3D'1.4'%20opacity%3D'.35'%20stroke-linecap%3D'round'%2F%3E%0A%20%20%3Cpath%20d%3D'M32%2058q-6%2010%202%2018M88%2058q6%2010-2%2018'%20stroke%3D'%237a3b4a'%20stroke-width%3D'1'%20opacity%3D'.24'%20fill%3D'none'%20stroke-linecap%3D'round'%2F%3E%3C%2Fsvg%3E");background-repeat:no-repeat;
   background-position:right -18px bottom -22px;background-size:120px 120px}
 html[data-theme="dark"] .entry.sealed{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'120'%20height%3D'120'%20viewBox%3D'0%200%20120%20120'%3E%0A%20%20%3Ccircle%20cx%3D'60'%20cy%3D'62'%20r%3D'34'%20fill%3D'%23b0616a'%20opacity%3D'.22'%2F%3E%0A%20%20%3Ccircle%20cx%3D'60'%20cy%3D'62'%20r%3D'34'%20fill%3D'none'%20stroke%3D'%23b0616a'%20stroke-width%3D'1.2'%20opacity%3D'.4'%2F%3E%0A%20%20%3Ccircle%20cx%3D'60'%20cy%3D'62'%20r%3D'26'%20fill%3D'none'%20stroke%3D'%23b0616a'%20stroke-width%3D'.6'%20opacity%3D'.3'%2F%3E%0A%20%20%3Cpath%20d%3D'M48%2062h24M60%2050v24'%20stroke%3D'%23b0616a'%20stroke-width%3D'1.4'%20opacity%3D'.35'%20stroke-linecap%3D'round'%2F%3E%0A%20%20%3Cpath%20d%3D'M32%2058q-6%2010%202%2018M88%2058q6%2010-2%2018'%20stroke%3D'%23b0616a'%20stroke-width%3D'1'%20opacity%3D'.24'%20fill%3D'none'%20stroke-linecap%3D'round'%2F%3E%3C%2Fsvg%3E")}
+
+/* ============================================================
+   16. PLAIN
+
+   One switch, for a machine that is working hard enough already.
+
+   Everything below is ornament: the painting behind the rooms, the dust in
+   the air, the grain in the paper and the stone in the surfaces, the
+   candlelight, the glows, the drift, the flourishes. None of it carries any
+   information — every one of them is a way of saying something the page also
+   says in words — so taking all of it off costs nothing but atmosphere, and
+   buys back most of a frame.
+
+   Written as one block rather than scattered through the file so that the
+   answer to "what does plain actually turn off" is one place, and so that
+   anything added later has to be added here on purpose.
+   ============================================================ */
+html[data-decor="plain"] .ambient,
+html[data-decor="plain"] #dust,
+html[data-decor="plain"] #warmth::before,
+html[data-decor="plain"] #warmth::after,
+html[data-decor="plain"] body::before,
+html[data-decor="plain"] body::after,
+html[data-decor="plain"] .page-head::before,
+html[data-decor="plain"] .page-head::after,
+html[data-decor="plain"] .ph-plant,
+html[data-decor="plain"] .sheen::after,
+html[data-decor="plain"] .card::after,
+html[data-decor="plain"] .modal.rite::before,html[data-decor="plain"] .modal.rite::after,
+html[data-decor="plain"] .dv-veil-in::before,html[data-decor="plain"] .dv-veil-in::after,
+html[data-decor="plain"] .body.theatre::before,html[data-decor="plain"] .body.theatre::after,
+html[data-decor="plain"] .ic-sec + .ic-sec::before,
+html[data-decor="plain"] .value-field + .value-field::before,
+html[data-decor="plain"] .ornate-rule{display:none!important}
+
+/* surfaces go flat: no stone, no paper, no double frame */
+html[data-decor="plain"] .card{background-image:none;background-color:var(--elev-2);
+  box-shadow:var(--elev-2-shadow)}
+html[data-decor="plain"] .card:hover{box-shadow:var(--elev-3-shadow)}
+html[data-decor="plain"] .modal.rite,
+html[data-decor="plain"] .body.theatre,
+html[data-decor="plain"] .entry.sealed,
+html[data-decor="plain"] .dv-veil{background-image:none}
+html[data-decor="plain"] .dv-veil{background:radial-gradient(120% 90% at 50% 40%,#241d18,#15110e 70%)}
+
+/* A backdrop filter is the single most expensive thing on this page: the
+   blurred sample behind it has to be taken again whenever anything behind it
+   moves at all. Plain does without. */
+html[data-decor="plain"] .page-head,
+html[data-decor="plain"] .today-jump,
+html[data-decor="plain"] .overlay,
+html[data-decor="plain"] .back-btn{backdrop-filter:none;-webkit-backdrop-filter:none}
+html[data-decor="plain"] .page-head{background:color-mix(in srgb,var(--surface) 80%,transparent)}
+
+/* nothing moves that was not asked to move */
+html[data-decor="plain"] .page-head h1,
+html[data-decor="plain"] .breathing,
+html[data-decor="plain"] .mist-band,
+html[data-decor="plain"] .ripple-ring,
+html[data-decor="plain"] .ink-leaf,
+html[data-decor="plain"] .dv-pick .tc-back::after{animation:none}
+html[data-decor="plain"] .entries > .entry,
+html[data-decor="plain"] .vb-card,
+html[data-decor="plain"] .era-col{rotate:0deg}
+/* the firelight across a heading becomes a heading */
+html[data-decor="plain"] .flow{background:none;-webkit-text-fill-color:currentColor;
+  color:var(--text);animation:none}
+/* and the words are simply there */
+html[data-decor="plain"] [data-reveal] .wd{opacity:1;transform:none;transition:none;animation:none}
 </style>
 </head>
 <body>
@@ -7091,7 +7186,16 @@ const io = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting)
 function reveal(root=document){ let i=0; const sp = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--page-motion-speed')) || 1; $$('.rv:not(.in)', root).forEach(n => { n.style.transitionDelay = `${Math.round((i++%12)*60*sp)}ms`; io.observe(n); }); }
 
 /* ---------- theme ---------- */
-function applyTheme(){ document.documentElement.dataset.theme = S.settings.theme; $('#btnTheme').textContent = S.settings.theme==='dark' ? '☾' : '☀'; applySeason(); if(typeof applyPageTheme === 'function') applyPageTheme(); }
+function applyTheme(){ document.documentElement.dataset.theme = S.settings.theme; $('#btnTheme').textContent = S.settings.theme==='dark' ? '☾' : '☀'; applySeason(); applyDecor(); if(typeof applyPageTheme === 'function') applyPageTheme(); }
+/* ---------- plain, for a machine that is working hard enough already ----------
+   Every ornament in this house costs something to draw, and on an older
+   laptop the sum of them is the difference between a page that answers and a
+   page that lags. One switch takes all of it off — the ink layers, the dust,
+   the grain and the stone, the glows, the candlelight, the drift — and leaves
+   the instrument, which was always the point. Nothing about what the app
+   KNOWS changes; only what it spends drawing it. */
+function plainMode(){ return S.settings.decor === 'plain'; }
+function applyDecor(){ document.documentElement.dataset.decor = plainMode() ? 'plain' : 'full'; }
 /* the season is a data attribute; the ink layer reads it for how heavy the mist
    hangs, and paints the margin sprig to match */
 function applySeason(){ if(typeof season === 'function') document.documentElement.dataset.season = season(); }
@@ -7467,8 +7571,15 @@ function startSway(root){
   swayRoot = root;
 
   const t0 = performance.now();
+  let lastFrame = 0;
   const tick = t => {
     if(!swayRoot || !document.contains(swayRoot)){ stopSway(); return; }
+    /* Thirty frames a second. Writing a transform onto every leaf is a style
+       recalculation and an SVG repaint for each one, and a canopy has a lot of
+       leaves; at sixty that is the whole frame budget spent on a movement of
+       under a degree. At thirty it is the same tree in the same wind. */
+    if(t - lastFrame < 32 || document.hidden){ swayRAF = requestAnimationFrame(tick); return; }
+    lastFrame = t;
     const s = (t - t0) / 1000;
     /* the gust: a slow swell that crosses the canopy, so the whole tree leans
        together for a moment and then lets go, instead of shimmering forever */
@@ -7555,21 +7666,41 @@ const INK_WATER = ['skills','compass'];              // the wide canvases that f
 function inkSeed(){ return hashSeed('ink:' + ((typeof S !== 'undefined' && S?.settings?.firstOpen) || 'first-light')); }
 function season(d = new Date()){ const m = d.getMonth(); return (m === 11 || m <= 1) ? 'winter' : m <= 4 ? 'spring' : m <= 7 ? 'summer' : 'autumn'; }
 
-/* ---------- mist: three breaths of wash, none of them with an edge ---------- */
-function mistRibbon(y, h, seed){
-  const r = mulberry32(hashSeed(seed)); const W = 1400, steps = 7, pts = [];
-  for(let i = 0; i <= steps; i++) pts.push([(i/steps)*W, y + (r()-.5)*h*.75]);
-  for(let i = steps; i >= 0; i--) pts.push([(i/steps)*W, y + h + (r()-.5)*h*.75]);
-  pts.push(pts[0]);
-  return smoothClosed(pts);
-}
-function inkMistSVG(){
-  const bands = [[190,140,'mist-a'], [420,185,'mist-b'], [655,150,'mist-c']];
-  return `<svg viewBox="0 0 1400 900" preserveAspectRatio="xMidYMid slice">
-    <defs><filter id="inkMistBlur" x="-25%" y="-80%" width="150%" height="260%"><feGaussianBlur stdDeviation="26"/></filter></defs>
-    <g filter="url(#inkMistBlur)" fill="var(--ink)">
-      ${bands.map(([y,h,s], i) => `<path class="mist-band mb${i+1}" d="${mistRibbon(y, h, s)}" opacity="${(.55 - i*.09).toFixed(2)}"/>`).join('')}
-    </g></svg>`;
+/* ---------- mist: three breaths of wash, none of them with an edge ----------
+
+   This used to be three SVG paths inside one <filter> carrying a Gaussian
+   blur of twenty-six, with a slow translate on each path. It looked right and
+   it cost eighty-five milliseconds of every frame — the whole page ran at ten
+   frames a second because of it. A filter has to be recomputed whenever
+   anything inside it moves, and what was moving inside it was the entire
+   full-viewport wash, sixty times a second, forever.
+
+   So the blur is gone, and nothing is lost: a band of mist has no edge in the
+   first place, and a radial gradient has no edge either. Three ordinary
+   divs, each a pair of overlapping soft ellipses so the shape is irregular
+   rather than a lozenge, each moved with a transform. Divs get their own
+   compositor layer and a transform on one costs nothing to redraw. */
+function inkMistHTML(){
+  /* Kept deliberately small. Each band is a translucent full-width layer and
+     the compositor pays for every pixel of it on every frame it moves; three
+     of them at 140% by 40% was nearly two screenfuls of overdraw for a wash
+     you are not supposed to look at directly. */
+  const bands = [
+    {top: 17, h: 24, op: .60, a: '62% 58%', b: '46% 70%', ax: 34, bx: 72},
+    {top: 45, h: 28, op: .50, a: '55% 64%', b: '52% 56%', ax: 66, bx: 24},
+    {top: 73, h: 22, op: .40, a: '58% 60%', b: '44% 72%', ax: 44, bx: 80},
+  ];
+  /* The opacity is carried by each band rather than by the group. A parent
+     with opacity below one has to render its children into a buffer of its
+     own before it can fade them, so a child moving inside it re-rasterises
+     the whole wash — thirteen milliseconds a frame, measured. With the fade
+     on the band itself each one is its own compositor layer and its drift is
+     free. */
+  return bands.map((b, i) => `<i class="mist-band mb${i + 1}" style="
+    top:${b.top}%;height:${b.h}%;opacity:calc(${b.op} * var(--mist-op));
+    background:
+      radial-gradient(ellipse ${b.a} at ${b.ax}% 46%,var(--ink) 0%,transparent 68%),
+      radial-gradient(ellipse ${b.b} at ${b.bx}% 58%,var(--ink) 0%,transparent 72%)"></i>`).join('');
 }
 
 /* ---------- still water at the foot of the wide rooms ---------- */
@@ -7620,7 +7751,12 @@ function applyInk(){
   const mist = document.getElementById('inkMist'),
         seas = document.getElementById('inkSeason'), rip = document.getElementById('inkRipple');
   if(!mist || !seas || !rip) return;
-  if(!_inkPainted){ mist.innerHTML = inkMistSVG(); rip.innerHTML = inkRippleSVG(); _inkPainted = true; }
+  /* plain leaves the paper blank: the painting is never painted, so none of
+     it is in the tree to be composited */
+  if(typeof plainMode === 'function' && plainMode()){
+    mist.innerHTML = rip.innerHTML = seas.innerHTML = ''; _inkPainted = false; _inkKey = null; return;
+  }
+  if(!_inkPainted){ mist.innerHTML = inkMistHTML(); rip.innerHTML = inkRippleSVG(); _inkPainted = true; }
   const key = (typeof pageThemeKey === 'function' ? pageThemeKey() : 'compass') + ':' + season();
   if(key !== _inkKey){ seas.innerHTML = inkSeasonHTML(); _inkKey = key; }
   rip.classList.toggle('on', INK_WATER.includes(typeof pageThemeKey === 'function' ? pageThemeKey() : 'compass'));
@@ -9570,7 +9706,8 @@ const AmbientFX = (() => {
   const OWN_CANVAS = ['skills', 'values'];
   function dust(){
     const c = document.getElementById('dust');
-    if(!c || reduced()) return;
+    /* plain does not draw the air: not dimmed, not paused — never started */
+    if(!c || reduced() || (typeof plainMode === 'function' && plainMode())) return;
     const ctx = c.getContext('2d');
     let ps = [];
     /* Thirty, not fourteen. Fourteen motes across a 1400px page is one mote
@@ -9592,7 +9729,13 @@ const AmbientFX = (() => {
     const tick = t => {
       requestAnimationFrame(tick);
       if(document.hidden) return;            // nobody is looking
-      if(t - last < 33) return;              // 30fps, not 60
+      /* Twenty frames a second, not sixty. A mote drifts a quarter of a pixel
+         per frame, so at sixty you are asking the machine to recomposite the
+         whole page — every translucent ambient layer over it included — to
+         move something a distance you cannot see. At twenty it moves three
+         quarters of a pixel a frame, which reads identically, and two frames
+         in three the compositor has nothing to do at all. */
+      if(t - last < 50) return;
       last = t;
       if(OWN_CANVAS.includes(currentRoute)){ // that page draws its own
         if(!cleared){ ctx.clearRect(0, 0, c.width, c.height); cleared = true; }
@@ -31105,6 +31248,10 @@ routes.settings = function(root){
            want it, and it is silent anyway while the chimes are off. -->
       <div class="opt"><div><b>Interface sounds ⌁</b><div class="d">A tick almost too quiet to hear as the pointer crosses the sidebar; a breath of air when a panel opens or closes; a wooden knock on anything finished. Needs interaction sounds on. Off by default.</div></div><label class="toggle ${SoundManager.state().uiEnabled?'on':''}" id="sUiSound"><span class="sw"></span></label></div>
       <div class="opt"><div><b>Felt time</b><div class="d">Default timeline mode: stretch dense stages, compress thin ones.</div></div><label class="toggle ${S.settings.feltTime?'on':''}" id="sFelt"><span>clock</span><span class="sw"></span><span>felt</span></label></div>
+      <!-- The one switch that is about the machine rather than about taste.
+           Everything it turns off is decoration; nothing it turns off is
+           information. -->
+      <div class="opt"><div><b>Decoration</b><div class="d">The ink painting behind the rooms, the dust in the air, the grain in the paper and the stone in the surfaces, the candlelight, the glows, the drift. All of it is ornament and all of it costs something to draw. Turn it off on an older machine and the instrument is untouched — only quieter to look at, and a great deal faster.</div></div><label class="toggle ${!plainMode()?'on':''}" id="sDecor"><span>plain</span><span class="sw"></span><span>full</span></label></div>
       <div class="opt"><div><b>Landing page</b><div class="d">Where the site opens.</div></div><select class="sel" style="width:auto" id="sHome">${[['compass','Compass'],['today','Today']].map(([v,l])=>`<option value="${v}" ${(S.settings.home||'compass')===v?'selected':''}>${l}</option>`).join('')}</select></div>
     </div>
     <div class="card rv"><h3>Day &amp; sleep</h3>
@@ -31189,6 +31336,11 @@ routes.settings = function(root){
     toast(+this.value === 0 ? 'The day turns over at midnight again.'
       : `The day turns over at ${this.value} AM. Anything before that is still the day before.`); };
   $('#sTheme').onclick = function(){ S.settings.theme = S.settings.theme==='dark'?'light':'dark'; saveNow(); applyTheme(); this.classList.toggle('on', S.settings.theme==='light'); };
+  $('#sDecor').onclick = function(){ S.settings.decor = plainMode() ? 'full' : 'plain'; saveNow(); applyDecor();
+    this.classList.toggle('on', !plainMode());
+    /* the particle canvas and the ink layer are built, not just styled, so
+       the page is drawn again rather than only re-skinned */
+    rerender(); toast(plainMode() ? 'Plain. Every ornament is off.' : 'The ornament is back.'); };
   $('#sSound').onclick = function(){ SoundManager.toggleSound(); this.classList.toggle('on', SoundManager.state().soundEnabled); };
   $('#sAmbient').onclick = function(){ SoundManager.toggleAmbient(); this.classList.toggle('on', SoundManager.state().ambientEnabled); };
   $('#sUiSound').onclick = function(){ SoundManager.toggleUi(); this.classList.toggle('on', SoundManager.state().uiEnabled); };

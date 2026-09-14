@@ -18,21 +18,41 @@ const INK_WATER = ['skills','compass'];              // the wide canvases that f
 function inkSeed(){ return hashSeed('ink:' + ((typeof S !== 'undefined' && S?.settings?.firstOpen) || 'first-light')); }
 function season(d = new Date()){ const m = d.getMonth(); return (m === 11 || m <= 1) ? 'winter' : m <= 4 ? 'spring' : m <= 7 ? 'summer' : 'autumn'; }
 
-/* ---------- mist: three breaths of wash, none of them with an edge ---------- */
-function mistRibbon(y, h, seed){
-  const r = mulberry32(hashSeed(seed)); const W = 1400, steps = 7, pts = [];
-  for(let i = 0; i <= steps; i++) pts.push([(i/steps)*W, y + (r()-.5)*h*.75]);
-  for(let i = steps; i >= 0; i--) pts.push([(i/steps)*W, y + h + (r()-.5)*h*.75]);
-  pts.push(pts[0]);
-  return smoothClosed(pts);
-}
-function inkMistSVG(){
-  const bands = [[190,140,'mist-a'], [420,185,'mist-b'], [655,150,'mist-c']];
-  return `<svg viewBox="0 0 1400 900" preserveAspectRatio="xMidYMid slice">
-    <defs><filter id="inkMistBlur" x="-25%" y="-80%" width="150%" height="260%"><feGaussianBlur stdDeviation="26"/></filter></defs>
-    <g filter="url(#inkMistBlur)" fill="var(--ink)">
-      ${bands.map(([y,h,s], i) => `<path class="mist-band mb${i+1}" d="${mistRibbon(y, h, s)}" opacity="${(.55 - i*.09).toFixed(2)}"/>`).join('')}
-    </g></svg>`;
+/* ---------- mist: three breaths of wash, none of them with an edge ----------
+
+   This used to be three SVG paths inside one <filter> carrying a Gaussian
+   blur of twenty-six, with a slow translate on each path. It looked right and
+   it cost eighty-five milliseconds of every frame — the whole page ran at ten
+   frames a second because of it. A filter has to be recomputed whenever
+   anything inside it moves, and what was moving inside it was the entire
+   full-viewport wash, sixty times a second, forever.
+
+   So the blur is gone, and nothing is lost: a band of mist has no edge in the
+   first place, and a radial gradient has no edge either. Three ordinary
+   divs, each a pair of overlapping soft ellipses so the shape is irregular
+   rather than a lozenge, each moved with a transform. Divs get their own
+   compositor layer and a transform on one costs nothing to redraw. */
+function inkMistHTML(){
+  /* Kept deliberately small. Each band is a translucent full-width layer and
+     the compositor pays for every pixel of it on every frame it moves; three
+     of them at 140% by 40% was nearly two screenfuls of overdraw for a wash
+     you are not supposed to look at directly. */
+  const bands = [
+    {top: 17, h: 24, op: .60, a: '62% 58%', b: '46% 70%', ax: 34, bx: 72},
+    {top: 45, h: 28, op: .50, a: '55% 64%', b: '52% 56%', ax: 66, bx: 24},
+    {top: 73, h: 22, op: .40, a: '58% 60%', b: '44% 72%', ax: 44, bx: 80},
+  ];
+  /* The opacity is carried by each band rather than by the group. A parent
+     with opacity below one has to render its children into a buffer of its
+     own before it can fade them, so a child moving inside it re-rasterises
+     the whole wash — thirteen milliseconds a frame, measured. With the fade
+     on the band itself each one is its own compositor layer and its drift is
+     free. */
+  return bands.map((b, i) => `<i class="mist-band mb${i + 1}" style="
+    top:${b.top}%;height:${b.h}%;opacity:calc(${b.op} * var(--mist-op));
+    background:
+      radial-gradient(ellipse ${b.a} at ${b.ax}% 46%,var(--ink) 0%,transparent 68%),
+      radial-gradient(ellipse ${b.b} at ${b.bx}% 58%,var(--ink) 0%,transparent 72%)"></i>`).join('');
 }
 
 /* ---------- still water at the foot of the wide rooms ---------- */
@@ -83,7 +103,12 @@ function applyInk(){
   const mist = document.getElementById('inkMist'),
         seas = document.getElementById('inkSeason'), rip = document.getElementById('inkRipple');
   if(!mist || !seas || !rip) return;
-  if(!_inkPainted){ mist.innerHTML = inkMistSVG(); rip.innerHTML = inkRippleSVG(); _inkPainted = true; }
+  /* plain leaves the paper blank: the painting is never painted, so none of
+     it is in the tree to be composited */
+  if(typeof plainMode === 'function' && plainMode()){
+    mist.innerHTML = rip.innerHTML = seas.innerHTML = ''; _inkPainted = false; _inkKey = null; return;
+  }
+  if(!_inkPainted){ mist.innerHTML = inkMistHTML(); rip.innerHTML = inkRippleSVG(); _inkPainted = true; }
   const key = (typeof pageThemeKey === 'function' ? pageThemeKey() : 'compass') + ':' + season();
   if(key !== _inkKey){ seas.innerHTML = inkSeasonHTML(); _inkKey = key; }
   rip.classList.toggle('on', INK_WATER.includes(typeof pageThemeKey === 'function' ? pageThemeKey() : 'compass'));

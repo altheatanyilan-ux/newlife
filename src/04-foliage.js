@@ -47,8 +47,15 @@ function startSway(root){
   swayRoot = root;
 
   const t0 = performance.now();
+  let lastFrame = 0;
   const tick = t => {
     if(!swayRoot || !document.contains(swayRoot)){ stopSway(); return; }
+    /* Thirty frames a second. Writing a transform onto every leaf is a style
+       recalculation and an SVG repaint for each one, and a canopy has a lot of
+       leaves; at sixty that is the whole frame budget spent on a movement of
+       under a degree. At thirty it is the same tree in the same wind. */
+    if(t - lastFrame < 32 || document.hidden){ swayRAF = requestAnimationFrame(tick); return; }
+    lastFrame = t;
     const s = (t - t0) / 1000;
     /* the gust: a slow swell that crosses the canopy, so the whole tree leans
        together for a moment and then lets go, instead of shimmering forever */

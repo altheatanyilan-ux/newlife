@@ -1,5 +1,4 @@
 node_modules/
 
-# scratch renderers used while calibrating textures
-_t.js
-_s.js
+# scratch drivers: renderers, screenshotters, the frame-time probe
+_*.js

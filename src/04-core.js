@@ -273,7 +273,16 @@ const io = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting)
 function reveal(root=document){ let i=0; const sp = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--page-motion-speed')) || 1; $$('.rv:not(.in)', root).forEach(n => { n.style.transitionDelay = `${Math.round((i++%12)*60*sp)}ms`; io.observe(n); }); }
 
 /* ---------- theme ---------- */
-function applyTheme(){ document.documentElement.dataset.theme = S.settings.theme; $('#btnTheme').textContent = S.settings.theme==='dark' ? '☾' : '☀'; applySeason(); if(typeof applyPageTheme === 'function') applyPageTheme(); }
+function applyTheme(){ document.documentElement.dataset.theme = S.settings.theme; $('#btnTheme').textContent = S.settings.theme==='dark' ? '☾' : '☀'; applySeason(); applyDecor(); if(typeof applyPageTheme === 'function') applyPageTheme(); }
+/* ---------- plain, for a machine that is working hard enough already ----------
+   Every ornament in this house costs something to draw, and on an older
+   laptop the sum of them is the difference between a page that answers and a
+   page that lags. One switch takes all of it off — the ink layers, the dust,
+   the grain and the stone, the glows, the candlelight, the drift — and leaves
+   the instrument, which was always the point. Nothing about what the app
+   KNOWS changes; only what it spends drawing it. */
+function plainMode(){ return S.settings.decor === 'plain'; }
+function applyDecor(){ document.documentElement.dataset.decor = plainMode() ? 'plain' : 'full'; }
 /* the season is a data attribute; the ink layer reads it for how heavy the mist
    hangs, and paints the margin sprig to match */
 function applySeason(){ if(typeof season === 'function') document.documentElement.dataset.season = season(); }

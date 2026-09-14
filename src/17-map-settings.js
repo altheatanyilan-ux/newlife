@@ -13,6 +13,10 @@ routes.settings = function(root){
            want it, and it is silent anyway while the chimes are off. -->
       <div class="opt"><div><b>Interface sounds ⌁</b><div class="d">A tick almost too quiet to hear as the pointer crosses the sidebar; a breath of air when a panel opens or closes; a wooden knock on anything finished. Needs interaction sounds on. Off by default.</div></div><label class="toggle ${SoundManager.state().uiEnabled?'on':''}" id="sUiSound"><span class="sw"></span></label></div>
       <div class="opt"><div><b>Felt time</b><div class="d">Default timeline mode: stretch dense stages, compress thin ones.</div></div><label class="toggle ${S.settings.feltTime?'on':''}" id="sFelt"><span>clock</span><span class="sw"></span><span>felt</span></label></div>
+      <!-- The one switch that is about the machine rather than about taste.
+           Everything it turns off is decoration; nothing it turns off is
+           information. -->
+      <div class="opt"><div><b>Decoration</b><div class="d">The ink painting behind the rooms, the dust in the air, the grain in the paper and the stone in the surfaces, the candlelight, the glows, the drift. All of it is ornament and all of it costs something to draw. Turn it off on an older machine and the instrument is untouched — only quieter to look at, and a great deal faster.</div></div><label class="toggle ${!plainMode()?'on':''}" id="sDecor"><span>plain</span><span class="sw"></span><span>full</span></label></div>
       <div class="opt"><div><b>Landing page</b><div class="d">Where the site opens.</div></div><select class="sel" style="width:auto" id="sHome">${[['compass','Compass'],['today','Today']].map(([v,l])=>`<option value="${v}" ${(S.settings.home||'compass')===v?'selected':''}>${l}</option>`).join('')}</select></div>
     </div>
     <div class="card rv"><h3>Day &amp; sleep</h3>
@@ -97,6 +101,11 @@ routes.settings = function(root){
     toast(+this.value === 0 ? 'The day turns over at midnight again.'
       : `The day turns over at ${this.value} AM. Anything before that is still the day before.`); };
   $('#sTheme').onclick = function(){ S.settings.theme = S.settings.theme==='dark'?'light':'dark'; saveNow(); applyTheme(); this.classList.toggle('on', S.settings.theme==='light'); };
+  $('#sDecor').onclick = function(){ S.settings.decor = plainMode() ? 'full' : 'plain'; saveNow(); applyDecor();
+    this.classList.toggle('on', !plainMode());
+    /* the particle canvas and the ink layer are built, not just styled, so
+       the page is drawn again rather than only re-skinned */
+    rerender(); toast(plainMode() ? 'Plain. Every ornament is off.' : 'The ornament is back.'); };
   $('#sSound').onclick = function(){ SoundManager.toggleSound(); this.classList.toggle('on', SoundManager.state().soundEnabled); };
   $('#sAmbient').onclick = function(){ SoundManager.toggleAmbient(); this.classList.toggle('on', SoundManager.state().ambientEnabled); };
   $('#sUiSound').onclick = function(){ SoundManager.toggleUi(); this.classList.toggle('on', SoundManager.state().uiEnabled); };

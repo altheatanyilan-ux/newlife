@@ -382,7 +382,8 @@ const AmbientFX = (() => {
   const OWN_CANVAS = ['skills', 'values'];
   function dust(){
     const c = document.getElementById('dust');
-    if(!c || reduced()) return;
+    /* plain does not draw the air: not dimmed, not paused — never started */
+    if(!c || reduced() || (typeof plainMode === 'function' && plainMode())) return;
     const ctx = c.getContext('2d');
     let ps = [];
     /* Thirty, not fourteen. Fourteen motes across a 1400px page is one mote
@@ -404,7 +405,13 @@ const AmbientFX = (() => {
     const tick = t => {
       requestAnimationFrame(tick);
       if(document.hidden) return;            // nobody is looking
-      if(t - last < 33) return;              // 30fps, not 60
+      /* Twenty frames a second, not sixty. A mote drifts a quarter of a pixel
+         per frame, so at sixty you are asking the machine to recomposite the
+         whole page — every translucent ambient layer over it included — to
+         move something a distance you cannot see. At twenty it moves three
+         quarters of a pixel a frame, which reads identically, and two frames
+         in three the compositor has nothing to do at all. */
+      if(t - last < 50) return;
       last = t;
       if(OWN_CANVAS.includes(currentRoute)){ // that page draws its own
         if(!cleared){ ctx.clearRect(0, 0, c.width, c.height); cleared = true; }
