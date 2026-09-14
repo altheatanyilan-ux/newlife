@@ -6208,5 +6208,52 @@ html[data-decor="plain"] .flow{background:none;-webkit-text-fill-color:currentCo
   color:var(--text);animation:none}
 /* and the words are simply there */
 html[data-decor="plain"] [data-reveal] .wd{opacity:1;transform:none;transition:none;animation:none}
+
+/* ============================================================
+   17. THE VALUES SOLAR SYSTEM
+
+   The canvas draws itself; this is only the room it sits in and the card
+   that follows the pointer round it.
+   ============================================================ */
+.solar-wrap{margin-top:6px}
+.solar{position:relative;width:100%;border-radius:var(--radius);overflow:hidden;
+  background:radial-gradient(ellipse 70% 60% at 50% 50%,
+    color-mix(in srgb,var(--gold) 5%,transparent) 0%,transparent 72%)}
+.solar canvas{display:block;touch-action:none}
+/* the key: seven facts, read in a glance, not a paragraph to wade through */
+.solar-key{display:grid;grid-template-columns:repeat(auto-fit,minmax(226px,1fr));
+  gap:2px 22px;margin:0 0 10px}
+.solar-key div{display:flex;gap:8px;align-items:baseline;padding:2px 0;font-size:.8rem}
+.solar-key dt{flex:0 0 96px;font-family:var(--mono);font-size:.62rem;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--faint)}
+.solar-key dd{margin:0;color:var(--muted)}
+@media (max-width:560px){.solar-key dt{flex-basis:84px}}
+/* the card: warm, bordered in the planet's own colour, never off the edge */
+.solar-tip{position:absolute;z-index:4;pointer-events:none;max-width:300px;
+  background:var(--elev-3);border:1px solid var(--line-2);border-radius:10px;
+  padding:11px 13px;box-shadow:var(--elev-3-shadow);font-size:.85rem;line-height:1.45}
+.solar-tip[hidden]{display:none}
+.solar-tip b{font-family:var(--serif);font-size:1.05rem}
+.solar-tip .mono{font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+.solar-tip .st-row{display:flex;justify-content:space-between;gap:14px;margin-top:5px;
+  padding-top:5px;border-top:1px dashed var(--line);color:var(--muted)}
+.solar-tip .st-row b{font-family:var(--sans);font-size:.85rem;color:var(--text)}
+.solar-tip .st-line{margin:8px 0 0;padding-top:7px;border-top:1px dashed var(--line);
+  font-family:var(--quote);font-style:italic;color:var(--muted);font-size:.82rem}
+.solar-tip .st-warn{margin:8px 0 0;padding-top:7px;border-top:1px dashed var(--line);
+  font-size:.78rem;color:var(--rose)}
+@media (max-width:560px){.solar-tip{max-width:220px;font-size:.8rem}}
+
+/* the readings, as bars rather than as a ten-sided shape */
+.ts-read{min-height:300px}
+.ts-date{font-size:1.1rem;margin-bottom:10px}
+.ts-bar{display:grid;grid-template-columns:1fr 120px 30px;gap:10px;align-items:center;
+  padding:4px 0;font-size:.84rem}
+.ts-bar .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)}
+.ts-bar .bar{height:6px;border-radius:3px;background:var(--surface-3);overflow:hidden}
+.ts-bar .bar i{display:block;height:100%;background:var(--c);border-radius:3px;
+  transition:width .35s var(--ease)}
+.ts-bar .pct{text-align:right;color:var(--faint)}
+@media (max-width:640px){.ts-bar{grid-template-columns:1fr 70px 26px}}
 </style>
 </head>

@@ -25,6 +25,8 @@ routes.values = function(root){
     </div>
     <div class="row" style="margin-top:14px;gap:8px;flex-wrap:wrap"><button class="btn sm primary" id="takeSnap">Take a snapshot</button>${gaps[0] ? `<a class="btn sm ghost" href="#/value/${gaps[0].id}">open ${esc(gaps[0].name)}</a>` : ''}</div></div>
 
+    ${solarHTML()}
+
     <!-- 3. one table that is priority, congruence, gap and trend at once -->
     <section class="section rv"><div class="row between"><span class="sc" style="margin:0">The compass</span><span class="mono">drag to re-rank · ${S.valueOrderHistory.length} re-rankings</span></div>
       <p class="muted" style="font-size:.85rem">Ranked by what you say matters. The bar is where your days actually are; the number on the right is the distance between the two.</p>
@@ -40,20 +42,24 @@ routes.values = function(root){
       <details style="margin-top:10px"><summary><span class="mono">how the ranking has changed</span></summary><div class="body">${[...S.valueOrderHistory].reverse().map(h=>`<div class="mono" style="padding:6px 0;border-top:1px dashed var(--line)">${fmtDate(h.date,'med')} · ${h.order.map(id=>byId(S.values,id)?.name.split(' ')[0]).join(' › ')}</div>`).join('')||'<div class="faint mono" style="padding:6px 0">No re-rankings yet.</div>'}</div></details>
     </section>
 
-    <!-- 4. the one picture: the shape, over time -->
-    ${snaps.length ? `<section class="section rv"><div class="row between"><span class="sc" style="margin:0">The shape of a life</span><span class="mono">drag the slider to walk back through your readings</span></div>
+    <!-- 4. the readings themselves.
+         The radar chart used to live here. It is gone: it drew ten numbers as
+         a shape, which the system above now does with every one of them
+         attached to something that actually happened. What the radar had and
+         the system did not was the walk back through time, so the slider
+         moved with it and drives the readings list instead. -->
+    ${snaps.length ? `<section class="section rv"><div class="row between"><span class="sc" style="margin:0">The readings</span><span class="mono">drag the slider to walk back through them</span></div>
       <div class="shape-grid">
-        <div class="card shape-card"><div id="radarBox">${radar(axes,[{vals:S.valueOrder.map(id=>latest?.ratings[id]??0),color:'var(--page-accent)'}],{size:340})}</div>
+        <div class="card shape-card">
+          <div class="ts-read"><div class="ts-date serif" id="tsLbl2">${latest?fmtDate(latest.date,'med'):''}</div>
+            <div class="ts-bars" id="tsBars"></div></div>
           <div class="time-slider">
             <input type="range" class="slider" min="0" max="${snaps.length-1}" value="${snaps.length-1}" id="timeSlider">
-            <!-- the moving label rides the handle; the two fixed ends are the
-                 first and last readings. A separate "now" beside a date that
-                 already is now read as two different moments. -->
             <div class="ts-track"><span class="ts-float mono" id="tsLbl">${latest?fmtDate(latest.date,'med'):''}</span></div>
             <div class="lbl"><span>${snaps[0]?fmtDate(snaps[0].date,'med'):''}</span><span>${latest?fmtDate(latest.date,'med'):''}</span></div>
             <div class="quote" id="tsNote" style="font-size:.9rem;margin-top:6px;min-height:1.5em">${esc(latest?.note||'')}</div>
           </div></div>
-        <div class="card shape-card"><span class="sc">Readings</span><div id="snapHistory" class="shape-scroll"><div class="empty">Loading…</div></div></div>
+        <div class="card shape-card"><span class="sc">Every reading</span><div id="snapHistory" class="shape-scroll"><div class="empty">Loading…</div></div></div>
       </div></section>` : ''}
 
     ` : `<div class="empty rv">The compass has no points yet. Add the handful of words you would want said about how you lived — five is plenty to start.</div>`}
@@ -63,14 +69,22 @@ routes.values = function(root){
   const list = $('#valuesList'); let dragId = null;
   list.querySelectorAll('li').forEach(li => { li.addEventListener('dragstart', ()=>{ dragId = li.dataset.vid; li.classList.add('dragging'); }); li.addEventListener('dragend', ()=>li.classList.remove('dragging')); li.addEventListener('dragover', e=>{ e.preventDefault(); li.classList.add('over'); }); li.addEventListener('dragleave', ()=>li.classList.remove('over')); li.addEventListener('drop', e=>{ e.preventDefault(); li.classList.remove('over'); if(!dragId || dragId===li.dataset.vid) return; const o = S.valueOrder.filter(x=>x!==dragId); o.splice(o.indexOf(li.dataset.vid),0,dragId); S.valueOrderHistory.push({date:today(),order:[...S.valueOrder]}); S.valueOrder = o; saveNow(); rerender(); toast('Priorities re-ranked. The previous order is kept.'); }); });
   $('#takeSnap').onclick = () => openSnapshotModal(() => rerender());
+  mountSolar(root);
+  /* one reading, drawn as the bars it is rather than as a ten-sided shape */
+  const readingBars = s => S.valueOrder.map(id => { const v = byId(S.values, id), n = s.ratings[id] ?? 0;
+    return `<div class="ts-bar" style="--c:${v.color}"><span class="nm">${esc(v.name)}</span>
+      <span class="bar"><i style="width:${n}%"></i></span><span class="pct mono">${n}</span></div>`; }).join('');
   const ts = $('#timeSlider');
   if(ts){ renderSnapshotHistory($('#snapHistory'));
+    $('#tsBars').innerHTML = readingBars(snaps[snaps.length - 1]);
     /* put the floating label where the handle actually is, allowing for the
        handle's own width so it does not drift past the ends of the track */
     const placeTs = () => { const max = +ts.max || 1; const f = (+ts.value) / max;
       $('#tsLbl').style.left = `calc(${(f * 100).toFixed(2)}% + ${(8 - f * 16).toFixed(1)}px)`; };
     placeTs();
-    ts.oninput = () => { const s = snaps[+ts.value]; $('#radarBox').innerHTML = radar(axes,[{vals:S.valueOrder.map(id=>s.ratings[id]??0),color:s.retro?(byId(S.stages,s.stageId)?.hue||'var(--page-accent)'):'var(--page-accent)'}],{size:340}); $('#tsLbl').textContent = fmtDate(s.date,'med'); $('#tsNote').textContent = s.note||''; placeTs(); };
+    ts.oninput = () => { const s = snaps[+ts.value]; $('#tsBars').innerHTML = readingBars(s);
+      $('#tsLbl').textContent = $('#tsLbl2').textContent = fmtDate(s.date,'med');
+      $('#tsNote').textContent = s.note||''; placeTs(); };
   }
 };
 /* ---------- the reading: what the numbers mean, in sentences ---------- */
