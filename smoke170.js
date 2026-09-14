@@ -60,10 +60,16 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
       .every(h => [...document.querySelectorAll('.nav a')].some(a => a.getAttribute('href') === h))));
   await go('#/house/sanctuary');
   is('the sanctuary floor draws', await zone(), 'sanctuary');
+  /* It used to say "one svg", which was true of the flat scene and stopped
+     being true the moment the room became a room — each object is lifted into
+     its own billboard. What that assertion was ever about is cost: the house
+     is vector art drawn in the page, with nothing fetched and nothing
+     rasterised. */
   const shape = await p.evaluate(() => { const st = document.querySelector('.house-stage');
     return {svg: st.querySelectorAll('svg').length, canvas: st.querySelectorAll('canvas').length,
-      img: st.querySelectorAll('img,image').length}; });
-  is('  one svg for the zone', shape.svg, 1);
+      img: st.querySelectorAll('img,image').length,
+      ext: [...st.querySelectorAll('[src],[href],[xlink\\:href]')].length}; });
+  yes('  it is drawn, not fetched', shape.svg > 0 && shape.ext === 0, `${shape.svg} svg, ${shape.ext} external`);
   is('  no canvas', shape.canvas, 0);
   is('  and no images', shape.img, 0);
 

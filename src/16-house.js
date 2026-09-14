@@ -793,6 +793,10 @@ routes.house = function(root, params){
   S._houseZone = (asked && houseZoneOf(asked).id === asked) ? asked
     : ((S.settings && S.settings.houseZone) || 'main');
   root.innerHTML = houseHTML();
+  /* the flat scene is the source the room is built from, so this runs before
+     anything is bound — the groups move into their own billboards and the
+     handlers have to be hung on where they end up */
+  try { House3D.build(root); } catch(err){ console.warn('the room stayed flat', err); }
   bindHouse(root);
   /* the scene that just left slid out in the direction you walked; this one
      arrives behind it */

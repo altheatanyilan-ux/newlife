@@ -69,8 +69,9 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   console.log('\n1. the room is on the ground floor, and it is one drawing');
   is('the main room draws', await p.evaluate(() => document.querySelector('.house-stage').dataset.zone), 'main');
   const shape = await p.evaluate(() => { const st = document.querySelector('.house-stage');
-    return {svg: st.querySelectorAll('svg').length, canvas: st.querySelectorAll('canvas').length}; });
-  is('  one svg', shape.svg, 1);
+    return {svg: st.querySelectorAll('svg').length, canvas: st.querySelectorAll('canvas').length,
+      ext: [...st.querySelectorAll('[src],[href]')].length}; });
+  yes('  it is drawn, not fetched', shape.svg > 0 && shape.ext === 0, `${shape.svg} svg, ${shape.ext} external`);
   is('  no canvas', shape.canvas, 0);
 
   console.log('\n2. every object is a door into the thing it is a picture of');
