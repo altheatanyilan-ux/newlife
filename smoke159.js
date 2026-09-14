@@ -38,10 +38,15 @@ const atLeast = (n,a,b,g='') => a >= b ? ok(n, g||String(a)) : no(n, `${a} is un
     await p.evaluate(t => { S.settings.theme = t; applyTheme(); }, set);
     await p.waitForTimeout(250);
     const grain = plain(await tok('--grain')), face = plain(await tok('--card-face'));
-    atLeast(`the ${room} ground is 宣纸: pulp, fibres and a tooth`,
-      (grain.match(/feTurbulence/g) || []).length, 5, (grain.match(/feTurbulence/g)||[]).length + ' layers');
-    yes(`  and the fibres are creased noise, not blobs`, /type='turbulence'/.test(grain),
-      'thresholded fractalNoise only ever gives blobs');
+    /* Tooth, and a coarser pass under it for body. Nothing else: the version
+       that drew the loose fibres of real 宣纸 read as scratches across a flat
+       tint at page scale, and the wide soft wash under them read as stains. */
+    is(`the ${room} ground is tooth and nothing else`,
+      (grain.match(/feTurbulence/g) || []).length, 2);
+    yes(`  and none of it has a direction`, !/baseFrequency='[.\d]+ /.test(grain),
+      'a stretched baseFrequency is a streak, which is what cheap looks like');
+    yes(`  smooth noise, because tooth is speckle rather than filament`,
+      !/type='turbulence'/.test(grain));
     atLeast(`the ${room} surfaces are stone: hairlines, veins and the drift under them`,
       (face.match(/feTurbulence/g) || []).length, 3);
     yes(`  laid on a tile wider than any card`, /width='900'/.test(face));
