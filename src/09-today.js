@@ -60,6 +60,14 @@ function openMorningGreeting(){
 
 function checkin(day=today()){ if(!S.checkins[day]) S.checkins[day] = {mood:0, sentence:'', energy:{}, setpoint:0, intention:''}; return S.checkins[day]; }
 function rememberFold(id, open){ if(!id) return; S.settings.todayOpen = S.settings.todayOpen || {}; S.settings.todayOpen[id] = !!open; saveNow(); }
+/* Doing the day and looking at it are two states of mind, and they are two
+   views. Which one you were last in is a preference like any other fold. */
+const TODAY_VIEWS = ['do', 'in'];
+function setTodayView(v){
+  if(!TODAY_VIEWS.includes(v) || S.settings.todayView === v) return;
+  S.settings.todayView = v; saveNow();
+  if(typeof rerender === 'function') rerender();
+}
 /* one small dialog for the two ends of the day */
 const nowHM = () => { const d = new Date(); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
 /* An empty <input type="time"> opens its picker at midnight, which is never
@@ -149,25 +157,40 @@ routes.today = function(root){
 
   const seasonName = (()=>{ if(typeof season === 'function'){ const s = season(parseDay(T)); return {winter:'Winter',spring:'Spring',summer:'Summer',autumn:'Autumn'}[s]||''; } return ''; })();
 
-  /* the page is long by design — everything a day needs is on it — so it
-     carries its own index. Sections that are not on the page today (a letter
-     due, a review closing tonight) drop out of the index with them. */
-  const jumps = [
-    ['t-letters', 'letters',  ready.length > 0],
-    ['t-plan',    'plan',     true],
-    ['t-focus',   'focus',    true],
-    ['t-tasks',   'tasks',    true],
-    /* the order the index offers is the order the page is in */
-    ['t-checkin', 'check-in', true],
-    ['t-habits',  'habits',   true],
-    ['t-theatre', 'theatre',  true],
-    ['t-still',   'stillness',true],
-    ['t-tonight', 'tonight',  true],
-    /* The bottom of a long page cannot catch an eye on its own. The count
-       rides up here so an unfinished thought is visible from the top, which
-       is the whole reason the section exists. */
-    ['t-unfinished', `unfinished ${unfinishedEntries().length}`, unfinishedEntries().length > 0],
-  ].filter(x => x[2]);
+  /* ---------- the two halves of a day ----------
+     Doing the day and looking at it are two different states of mind, and
+     putting them on one scroll meant that reaching the check-in required
+     scrolling past the task list — which is to say, being asked to reflect
+     while looking at the work. They are two views now, one at a time.
+
+     What is above both of them is what does not belong to either: the date
+     and the hour you woke, and a letter of yours that has come due, which is
+     time-sensitive and must not be behind a switch. The hour you went to
+     sleep closes the page under both, for the same reason.
+
+     The index is per view, so it only ever offers what is actually on the
+     screen. */
+  const VIEWS = [['do', 'Execution'], ['in', 'Looking inward']];
+  const view = TODAY_VIEWS.includes(S.settings.todayView) ? S.settings.todayView : 'do';
+  const jumpsFor = {
+    do: [
+      ['t-plan',    'plan',     true],
+      ['t-focus',   'focus',    true],
+      ['t-tasks',   'tasks',    true],
+      ['t-habits',  'habits',   true],
+      ['t-tonight', 'before you sleep', true],
+    ],
+    in: [
+      ['t-checkin', 'check-in', true],
+      ['t-theatre', 'theatre',  true],
+      ['t-still',   'stillness',true],
+      /* The bottom of a long page cannot catch an eye on its own. The count
+         rides up here so an unfinished thought is visible from the top, which
+         is the whole reason the section exists. */
+      ['t-unfinished', `unfinished ${unfinishedEntries().length}`, unfinishedEntries().length > 0],
+    ],
+  };
+  const jumps = jumpsFor[view].filter(x => x[2]);
 
   root.innerHTML = `<div class="page today-page">
 
@@ -194,6 +217,11 @@ routes.today = function(root){
       <p class="day-edge waking">I woke up at <button class="day-edge-t" id="wokeAt">${c.wakeAt ? esc(_ft(c.wakeAt)) : '—'}</button>${dreamEdgeHTML(T)}</p>
     </header>
 
+    <div class="today-switch rv" role="tablist" aria-label="which half of the day">
+      ${VIEWS.map(([id, label]) => `<button role="tab" aria-selected="${view === id}"
+        class="${view === id ? 'on' : ''}" data-tview="${id}">${esc(label)}</button>`).join('')}
+    </div>
+
     <nav class="today-jump rv" aria-label="jump to a section">
       ${jumps.map(([id, label]) => `<button data-jump="${id}">${esc(label)}</button>`).join('')}
     </nav>
@@ -205,6 +233,8 @@ routes.today = function(root){
       <summary><span class="sc">A letter from you has come due</span><span class="mono">${ready.length}</span></summary><div class="body">
       ${ready.map(e=>`<div class="card ready-letter" style="margin-top:8px"><div class="row between"><span><b class="serif">${esc(e.title||'To myself')}</b><div class="mono faint">${daysBetween((e.createdAt||'').slice(0,10), T)} days ago</div></span><button class="btn sm primary" data-lopen="${e.id}">Open it</button></div></div>`).join('')}
     </div></details>` : ''}
+
+    <section class="today-view" data-view="do"${view === 'do' ? '' : ' hidden'}>
 
     <!-- THE DAY, ONE ROOM AT A TIME
          Every section has a line to itself and stands about a screenful
@@ -253,36 +283,6 @@ routes.today = function(root){
         <div class="row" style="margin-top:10px;gap:8px">${quickTaskInput(T)}<button class="btn sm ghost" id="pullTask">pull in ↓</button><a class="btn sm ghost" href="#/planning/today">all of it →</a></div>
         ${carried.length?`<div class="row" style="margin-top:10px"><span class="mono" style="color:#d08080">${carried.length} carried over from earlier days</span><button class="btn sm ghost" id="carryAll">bring to today</button></div>`:''}
       </div></div></details>
-    </div><!-- /daybox-work -->
-
-    <div class="daybox daybox-solo">
-
-    <!-- daily check-in (intention + mood + energy + setpoint) -->
-    <!-- Past the small hours the morning check-in is not a form to fill in, it
-         is something you did fifteen hours ago. It folds itself away rather
-         than sitting open asking to start a morning you are at the end of. -->
-    <details class="section rv today-checkin t-sec" id="t-checkin"${fold('t-checkin', !isLateNight() && (!c.intention || (!c.setpoint && !c.mood)))}>
-      <summary><span class="sc">Daily check-in</span><span class="mono">${c.intention ? esc(c.intention.slice(0,40)) : 'not yet set'}</span>${flowTick('checkinAt')}</summary>
-      <div class="body stack" style="gap:20px">
-        <div class="field"><label>Today's intention ${planT.planned && c.intention ? '<span class="mono faint" style="text-transform:none;letter-spacing:0">· set last night</span>' : ''}</label>
-          ${ed('checkins.' + T + '.intention', {ph:'One thing to give attention to today.', cls:'serif-lg'})}</div>
-        <div class="field"><label>Mood right now</label>
-          <div class="mood-shapes row" style="gap:10px;flex-wrap:wrap">
-            ${MOODS.map(m=>`<button class="mood-btn ${c.mood===m.v?'on':''}" data-mood="${m.v}" style="flex-direction:column;gap:3px"><span class="mood-icon">${m.icon}</span><span class="mono" style="font-size:.65rem">${m.label}</span></button>`).join('')}
-          </div>
-        </div>
-        <div class="field"><label>In one sentence, how is today going?</label>
-          ${ed('checkins.' + T + '.sentence', {ph:'One honest sentence.', cls:'serif-lg'})}</div>
-        <div class="field"><label>Energy — four dimensions</label>
-          <div class="energy-row">${DIMS.map(d=>`<div class="energy-dim" style="--c:${d.c}"><div class="lbl"><span>${d.name}</span><span class="mono">${c.energy?.[d.id]||'–'}/5</span></div><div class="dots">${[1,2,3,4,5].map(n=>`<i class="${(c.energy?.[d.id]||0)>=n?'on':''}" data-dim="${d.id}" data-n="${n}"></i>`).join('')}</div></div>`).join('')}</div></div>
-        <div class="field setpoint"><label>Emotional set-point (Hicks' guidance scale)</label>
-          <input type="range" class="slider" min="1" max="22" value="${c.setpoint||14}" id="setpoint" style="--c:var(--rose)">
-          <div class="lbls"><span>1 · Fear / Despair</span><span>11 · Disappointment</span><span>22 · Joy / Freedom / Love</span></div>
-          <div class="cur"><span id="spName">${c.setpoint?hicksName(c.setpoint):'<span class="faint">place yourself on the scale</span>'}</span><span class="mono" id="spNum">${c.setpoint||''}</span></div>
-        </div>
-      </div>
-    </details>
-
     <!-- the habit checklist: the whole of habit-keeping now lives here -->
     <details class="section rv t-sec" style="margin-top:8px" id="t-habits"${fold('t-habits')}>
       <summary><span class="sc" style="margin:0">Today's habits</span>
@@ -295,28 +295,11 @@ routes.today = function(root){
         <button class="btn sm ghost" id="todayHabitGrid">the whole grid →</button>
       </div>
     </div></details>
-    </div><!-- /daybox -->
-
-    <div class="daybox daybox-solo">
-    <!-- morning rehearsal (Maltz) -->
-    <details class="section rv rehearsal-wrap t-sec" id="t-theatre"${fold('t-theatre', !theatreDoneToday())} style="margin-top:8px">
-      <summary><span class="sc">Morning Theatre</span><span class="mono">${theatreDoneToday() ? 'practised today' : 'six ways in · pick one'}</span>${flowTick('theatreAt')}</summary>
-      ${theatreHTML()}
-    </details>
-
-    <!-- The receptive half of the practice, and the two quick doors that
-         belong beside it: a card to draw and an impression to catch. -->
-    <details class="section rv t-sec" id="t-still"${fold('t-still')} style="margin-top:8px">
-      <summary><span class="sc">Stillness</span><span class="mono">${(() => {
-        const mins = stillMinutesOn(T); const st = stillStreak();
-        return mins ? `${mins} min today${st > 1 ? ` · ${st} days running` : ''}` : 'nothing sat today'; })()}</span></summary>
-      ${stillnessHTML()}
-    </details>
-
-    </div><!-- /daybox -->
+    </div><!-- /daybox-work -->
 
 
-    ${due.length ? `<section class="section rv"><div class="card"><div class="row between"><span class="sc" style="margin:0">Decisions ready to grade</span><a class="mono" href="#/journals/decision">all →</a></div>${due.map(e=>`<div class="row between" style="margin-top:8px"><span><b class="serif">${esc(e.title)}</b><div class="mono">${fmtDate((e.createdAt||'').slice(0,10),'med')}</div></span><button class="btn sm" data-dopen="${e.id}">Look back</button></div>`).join('')}</div></section>` : ''}
+
+
     ${milestones.length ? `<section class="section rv"><span class="sc">Skill milestones within 30 days</span><div class="card" style="border-left:3px solid var(--ment)">${milestones.map(({skill,m,days})=>`<a href="#/skills/${skill.id}" class="row between" style="text-decoration:none;color:inherit;padding:8px 0;border-top:1px dashed var(--line);gap:12px"><span><b class="serif">${esc(skill.name)}</b> <span class="muted">→ ${esc(skillLevelLabel(skill,m.levelTarget))}</span></span><span class="status-pill ${days<0?'due':'ahead'}">${days<0?'⚠ ' + (-days) + 'd overdue':days===0?'today':'in ' + days + 'd'}</span></a>`).join('')}</div></section>` : ''}
 
 
@@ -371,11 +354,69 @@ routes.today = function(root){
       </div></div>
     </details>
 
+    </section><!-- /execution -->
+
+    <section class="today-view" data-view="in"${view === 'in' ? '' : ' hidden'}>
+
+    <div class="daybox daybox-solo">
+
+    <!-- daily check-in (intention + mood + energy + setpoint) -->
+    <!-- Past the small hours the morning check-in is not a form to fill in, it
+         is something you did fifteen hours ago. It folds itself away rather
+         than sitting open asking to start a morning you are at the end of. -->
+    <details class="section rv today-checkin t-sec" id="t-checkin"${fold('t-checkin', !isLateNight() && (!c.intention || (!c.setpoint && !c.mood)))}>
+      <summary><span class="sc">Daily check-in</span><span class="mono">${c.intention ? esc(c.intention.slice(0,40)) : 'not yet set'}</span>${flowTick('checkinAt')}</summary>
+      <div class="body stack" style="gap:20px">
+        <div class="field"><label>Today's intention ${planT.planned && c.intention ? '<span class="mono faint" style="text-transform:none;letter-spacing:0">· set last night</span>' : ''}</label>
+          ${ed('checkins.' + T + '.intention', {ph:'One thing to give attention to today.', cls:'serif-lg'})}</div>
+        <div class="field"><label>Mood right now</label>
+          <div class="mood-shapes row" style="gap:10px;flex-wrap:wrap">
+            ${MOODS.map(m=>`<button class="mood-btn ${c.mood===m.v?'on':''}" data-mood="${m.v}" style="flex-direction:column;gap:3px"><span class="mood-icon">${m.icon}</span><span class="mono" style="font-size:.65rem">${m.label}</span></button>`).join('')}
+          </div>
+        </div>
+        <div class="field"><label>In one sentence, how is today going?</label>
+          ${ed('checkins.' + T + '.sentence', {ph:'One honest sentence.', cls:'serif-lg'})}</div>
+        <div class="field"><label>Energy — four dimensions</label>
+          <div class="energy-row">${DIMS.map(d=>`<div class="energy-dim" style="--c:${d.c}"><div class="lbl"><span>${d.name}</span><span class="mono">${c.energy?.[d.id]||'–'}/5</span></div><div class="dots">${[1,2,3,4,5].map(n=>`<i class="${(c.energy?.[d.id]||0)>=n?'on':''}" data-dim="${d.id}" data-n="${n}"></i>`).join('')}</div></div>`).join('')}</div></div>
+        <div class="field setpoint"><label>Emotional set-point (Hicks' guidance scale)</label>
+          <input type="range" class="slider" min="1" max="22" value="${c.setpoint||14}" id="setpoint" style="--c:var(--rose)">
+          <div class="lbls"><span>1 · Fear / Despair</span><span>11 · Disappointment</span><span>22 · Joy / Freedom / Love</span></div>
+          <div class="cur"><span id="spName">${c.setpoint?hicksName(c.setpoint):'<span class="faint">place yourself on the scale</span>'}</span><span class="mono" id="spNum">${c.setpoint||''}</span></div>
+        </div>
+      </div>
+    </details>
+
+    </div><!-- /daybox -->
+
+    <div class="daybox daybox-solo">
+    <!-- morning rehearsal (Maltz) -->
+    <details class="section rv rehearsal-wrap t-sec" id="t-theatre"${fold('t-theatre', !theatreDoneToday())} style="margin-top:8px">
+      <summary><span class="sc">Morning Theatre</span><span class="mono">${theatreDoneToday() ? 'practised today' : 'six ways in · pick one'}</span>${flowTick('theatreAt')}</summary>
+      ${theatreHTML()}
+    </details>
+
+    <!-- The receptive half of the practice, and the two quick doors that
+         belong beside it: a card to draw and an impression to catch. -->
+    <details class="section rv t-sec" id="t-still"${fold('t-still')} style="margin-top:8px">
+      <summary><span class="sc">Stillness</span><span class="mono">${(() => {
+        const mins = stillMinutesOn(T); const st = stillStreak();
+        return mins ? `${mins} min today${st > 1 ? ` · ${st} days running` : ''}` : 'nothing sat today'; })()}</span></summary>
+      ${stillnessHTML()}
+    </details>
+
+    </div><!-- /daybox -->
+
+    ${due.length ? `<section class="section rv"><div class="card"><div class="row between"><span class="sc" style="margin:0">Decisions ready to grade</span><a class="mono" href="#/journals/decision">all →</a></div>${due.map(e=>`<div class="row between" style="margin-top:8px"><span><b class="serif">${esc(e.title)}</b><div class="mono">${fmtDate((e.createdAt||'').slice(0,10),'med')}</div></span><button class="btn sm" data-dopen="${e.id}">Look back</button></div>`).join('')}</div></section>` : ''}
+
     <!-- last on the page by request: the half-written things, which stay
          here until they are called finished. Nothing expires them. -->
     ${unfinishedSectionHTML()}
 
+    </section><!-- /looking inward -->
+
     <p class="day-edge sleeping">I went to sleep at <button class="day-edge-t" id="sleptAt">${(() => { const r = rhythmDay(T); return r.sleepTime ? esc(r.sleepTime) : '—'; })()}</button></p>
+
+
 
   </div>`;
 
@@ -383,6 +424,13 @@ routes.today = function(root){
   /* The index is sticky, so scrolling a section to the top of the window puts
      it underneath the index. Scroll to the section's own top minus the height
      of the bar that would otherwise be standing on it. */
+  root.querySelectorAll('[data-tview]').forEach(b => b.onclick = () => {
+    /* back to the top: the two views are different lengths, and landing
+       halfway down a view you have just arrived in is disorienting */
+    setTodayView(b.dataset.tview);
+    window.scrollTo({top: 0, behavior: reduced() ? 'auto' : 'smooth'});
+  });
+
   root.querySelectorAll('[data-jump]').forEach(b => b.onclick = () => {
     const t = root.querySelector('#' + b.dataset.jump); if(!t) return;
     if(t.tagName === 'DETAILS' && !t.open){ t.open = true; rememberFold(t.id, true); }

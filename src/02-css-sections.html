@@ -2569,6 +2569,28 @@ html.vision-deep .page-scene.on{opacity:var(--scene-op)}
    under the floating Back pill, which ate the first button on the strip.
    The gradient goes transparent in the padding below the buttons, not
    behind them, so nothing scrolls through a word. */
+/* ---------- the two halves of a day ----------
+   Doing the day and looking at it are two states of mind. Putting them on one
+   scroll meant reaching the check-in required scrolling past the task list —
+   being asked to reflect while looking at the work. A segmented control, the
+   soft kind: the track is pressed into the page and the chosen half stands up
+   out of it. */
+.today-switch{position:sticky;top:14px;z-index:7;display:inline-flex;gap:3px;margin:0 0 4px;
+  padding:3px;border-radius:999px;background:var(--neu-bg);box-shadow:var(--neu-pressed)}
+.today-switch button{background:none;border:none;border-radius:999px;cursor:pointer;
+  padding:6px 16px;font-family:var(--sans);font-size:.8rem;letter-spacing:.02em;
+  color:var(--muted);transition:color .2s var(--ease),box-shadow .25s var(--ease),background .2s var(--ease)}
+.today-switch button:hover{color:var(--text)}
+.today-switch button.on{color:var(--text);background:var(--neu-bg);box-shadow:var(--neu-raised)}
+html[data-theme="dark"] .today-switch button.on,html:not([data-theme="light"]) .today-switch button.on{
+  box-shadow:var(--neu-raised),0 0 12px color-mix(in srgb,var(--page-accent) 18%,transparent)}
+.today-switch button:focus-visible{outline:none;box-shadow:var(--neu-raised),var(--focus-ring)}
+@media (max-width:560px){.today-switch{display:flex;width:100%}
+  .today-switch button{flex:1;padding:7px 8px;font-size:.76rem}}
+/* a view that is not the one you are in is not there at all */
+.today-view[hidden]{display:none}
+@media (prefers-reduced-motion:reduce){.today-switch button{transition:none}}
+
 .today-jump{position:sticky;top:56px;z-index:6;display:flex;gap:4px;flex-wrap:wrap;
   margin:0 0 18px;padding:8px 0 14px;background:linear-gradient(to bottom,var(--bg) 78%,transparent);
   backdrop-filter:blur(6px)}
