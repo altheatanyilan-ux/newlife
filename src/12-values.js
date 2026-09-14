@@ -13,7 +13,6 @@ routes.values = function(root){
   const drift = (cur !== null && prev !== null) ? Math.round(cur - prev) : null;
   const age = latest ? daysSince(latest.date) : null;
   root.innerHTML = `<div class="page">
-    <div class="page-head"><h1>Values</h1></div>
 
     ${S.valueOrder.length ? `
     <!-- 2. the four numbers worth knowing -->

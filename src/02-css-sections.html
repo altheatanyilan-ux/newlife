@@ -3711,6 +3711,14 @@ select.sm-active{border-color:var(--page-accent);
    ============================================================ */
 .ct-page{max-width:1320px}
 .ct-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+/* A room used to open with a pane of tinted glass carrying its own name — a
+   name the sidebar was already showing, over a band of blur the page had to
+   pay for on every scroll. The name is gone; what the banner actually carried
+   (which view you are in, how the list is sorted, the one button that makes a
+   new thing) sits in a plain bar directly over the work it governs. */
+.page-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 18px}
+.page-bar .pb-sep{flex:0 0 1px;align-self:stretch;min-height:24px;background:var(--line);margin:0 4px}
+@media (max-width:640px){.page-bar .pb-sep{display:none}}
 .ct-views{display:flex;gap:2px;background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:3px}
 .ct-views button{background:none;border:0;color:var(--faint);font-family:var(--serif);font-size:.86rem;
   padding:5px 11px;border-radius:7px;cursor:pointer;transition:all .2s var(--ease);white-space:nowrap}
@@ -6221,7 +6229,7 @@ html[data-decor="plain"] [data-reveal] .wd{opacity:1;transform:none;transition:n
     color-mix(in srgb,var(--gold) 5%,transparent) 0%,transparent 72%)}
 .solar canvas{display:block;touch-action:none}
 /* the key: seven facts, read in a glance, not a paragraph to wade through */
-.solar-key{display:grid;grid-template-columns:repeat(auto-fit,minmax(226px,1fr));
+.solar-key{display:grid;grid-template-columns:repeat(auto-fit,minmax(268px,1fr));
   gap:2px 22px;margin:0 0 10px}
 .solar-key div{display:flex;gap:8px;align-items:baseline;padding:2px 0;font-size:.8rem}
 .solar-key dt{flex:0 0 96px;font-family:var(--mono);font-size:.62rem;letter-spacing:.07em;

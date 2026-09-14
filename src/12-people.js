@@ -181,8 +181,6 @@ routes.people = function(root, params){
   const view = S._pplView || 'circles';
   const overdue = peopleNeedingAttention(); const bdays = birthdaysSoon(30); const follow = openFollowUps();
   root.innerHTML = `<div class="page">
-    <div class="page-head row between"><div><h1>People</h1></div>
-      <div class="view-toggle">${[['circles','◎ Circles'],['list','▤ List'],['log','◷ Log'],['eras','▬ Life stages'],['audit','◈ Audit']].map(([k,l])=>`<button class="${view===k?'on':''}" data-pplview="${k}">${l}</button>`).join('')}</div></div>
 
     ${overdue.length || bdays.length || follow.length ? `<div class="grid c3 rv" style="margin-bottom:20px;align-items:start">
       ${overdue.length ? `<div class="card"><span class="sc">Needs attention</span><div class="stack" style="gap:5px;margin-top:8px">${overdue.slice(0,5).map(({p,days,want})=>`<a class="quiet-row" href="#/people/${p.id}"><span>${CIRCLES[p.circle][0]} ${esc(p.name)}</span><span class="mono">${days===Infinity?'never':days+'d'} · wanted ${esc(want)}</span></a>`).join('')}</div>${overdue.length>5?`<button class="btn sm ghost" id="pplAll" style="margin-top:8px">see all ${overdue.length}</button>`:''}</div>` : ''}
@@ -190,7 +188,7 @@ routes.people = function(root, params){
       ${follow.length ? `<div class="card"><span class="sc">Follow-ups</span><div class="stack" style="gap:5px;margin-top:8px">${follow.slice(0,5).map(({i,p})=>`<div class="quiet-row"><span><b>${esc(p.name)}</b> — ${esc(i.followUp)}</span><button class="btn sm ghost" data-fudone="${i.id}">done</button></div>`).join('')}</div></div>` : ''}
     </div>` : ''}
 
-    <div class="row rv" style="gap:8px;margin-bottom:14px"><button class="btn sm ghost" id="rtReachout">☺ reach out to someone</button><button class="btn sm ghost" id="rtGratitude">♡ gratitude for someone</button><button class="btn sm ghost" id="rtRing">◎ ring review</button></div>
+    <div class="page-bar rv"><div class="view-toggle">${[['circles','◎ Circles'],['list','▤ List'],['log','◷ Log'],['eras','▬ Life stages'],['audit','◈ Audit']].map(([k,l])=>`<button class="${view===k?'on':''}" data-pplview="${k}">${l}</button>`).join('')}</div><span class="pb-sep"></span><button class="btn sm ghost" id="rtReachout">☺ reach out to someone</button><button class="btn sm ghost" id="rtGratitude">♡ gratitude for someone</button><button class="btn sm ghost" id="rtRing">◎ ring review</button></div>
 
     <div id="pplBody"></div>
   </div>`;

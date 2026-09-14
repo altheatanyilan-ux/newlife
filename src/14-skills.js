@@ -143,7 +143,6 @@ routes.skills = function(root, params){
   const list = filteredSkills(); const cats = skillCatOptions(f.cat !== 'all' ? f.cat : null);
   const counts = {}; Object.keys(SKILL_HORIZONS).forEach(k => counts[k] = S.skills.filter(s => skillHorizon(s) === k).length);
   root.innerHTML = `<div class="page">
-    <div class="page-head"><h1>Skill Tree</h1></div>
 
     <!-- 1. what you are actually doing now -->
     <section class="section rv"><div class="row between"><span class="sc" style="margin:0">In focus now</span><span class="mono">${foc.length ? `${foc.length} skill${foc.length===1?'':'s'} · everything else is waiting patiently` : 'nothing in focus'}</span></div>

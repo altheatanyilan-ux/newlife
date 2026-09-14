@@ -494,8 +494,6 @@ routes.finance = function(root){
   const annualCurrent = totalCurrentBase*12, annualTarget = totalTargetBase*12;
   const blendedRate = totalHours ? totalCurrentBase/(totalHours*4.33) : null;
   root.innerHTML = `<div class="page">
-    <div class="page-head"><h1>Finance</h1></div>
-
     <details class="section rv" id="finWords"${S._finWordsOpen ? ' open' : ''}><summary><span class="sc">Money, in your own words</span></summary><div class="body stack" style="gap:16px;padding-top:10px">
       <div><span class="k mono">principles</span><ul class="principles">${S.finance.principles.map((p,i)=>`<li><span>${ed(`finance.principles.${i}`,{ph:'a rule you want to keep'})}</span><button class="del-x inline" data-fpdel="${i}">×</button></li>`).join('')}</ul><button class="btn sm ghost" id="finPrin">＋ principle</button></div>
       <div><span class="k mono">notes</span>${ed('finance.note',{multi:true,mdr:true,cls:'prose',ph:'What you are working out about money — fears, plans, the thing you have never said out loud about it.'})}</div>

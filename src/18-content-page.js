@@ -89,7 +89,6 @@ routes.content = function(root, params){
     : contentPipelineHTML();
 
   root.innerHTML = `<div class="page ct-page">
-    <div class="page-head"><h1>Content Studio</h1></div>
     <div class="ct-head">
       <div class="ct-views">
         ${[['pipeline','Pipeline','▥'],['calendar','Calendar','▦'],['library','Shelf','▤'],['stats','Numbers','◫']].map(([k, n, ic], i) =>

@@ -1,8 +1,12 @@
 /* Banners that bloom instead of growing — flowers only, and only where the
    words are not — plus Money in your own words moved to the top of Finance. */
 const { chromium } = require('playwright');
-const ROUTES = ['#/compass','#/journals','#/values','#/skills','#/projects','#/finance',
-                '#/commonplace','#/people','#/timeline','#/writing','#/settings'];
+/* Seven rooms had their banner taken off them — Planning, Content Studio,
+   Projects, Finance, Skill Tree, Values and People — so there is nothing left
+   there to bloom. These are the ones that still open with one. */
+const ROUTES = ['#/compass','#/journals','#/commonplace','#/timeline','#/settings'];
+/* and these must have no banner at all, nor anything that grew on it */
+const BARE = ['#/planning','#/writing','#/projects','#/finance','#/skills','#/values','#/people'];
 let fails = 0;
 const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n + (cond ? '' : '  — ' + detail)); if(!cond) fails++; };
 
@@ -60,8 +64,17 @@ const WORDS = () => {
   ok('no flower is cut off by the banner edge', spilling.length === 0, spilling.join(' ; '));
   ok('no stems and no leaves are left anywhere', stemmed.length === 0, stemmed.join(' ; '));
 
+  const stray = [];
+  for(const r of BARE){
+    await go(r);
+    const m = await page.evaluate(() => ({head: !!document.querySelector('#main .page-head'),
+      plant: document.querySelectorAll('#main .ph-plant, #main .ph-bloom').length}));
+    if(m.head || m.plant) stray.push(r + ' → ' + JSON.stringify(m));
+  }
+  ok('and the rooms that lost their banner kept nothing of it', stray.length === 0, stray.join(' ; '));
+
   console.log('\n2. nothing travels: a flower opens where it is and stays there');
-  await go('#/values');
+  await go('#/journals');
   const travel = await page.evaluate(async () => {
     const b = document.querySelector('.ph-bloom'); if(!b) return null;
     const at = () => { const r = b.getBoundingClientRect(); return {x: r.left + r.width/2, y: r.top + r.height/2, w: r.width}; };
@@ -77,7 +90,7 @@ const WORDS = () => {
   await page.setViewportSize({width:620,height:900});
   await page.waitForTimeout(900);
   const narrow = [];
-  for(const r of ['#/compass','#/people','#/projects','#/timeline']){
+  for(const r of ['#/compass','#/journals','#/commonplace','#/timeline']){
     await go(r);
     const m = await page.evaluate(WORDS);
     if(m && !m.none && m.hit) narrow.push(r + ' → ' + m.hit);
@@ -87,7 +100,7 @@ const WORDS = () => {
   await page.waitForTimeout(600);
 
   console.log('\n4. the banner does not swallow clicks meant for the head');
-  await go('#/people');
+  await go('#/journals');
   const blocked = await page.evaluate(() => Array.from(document.querySelectorAll('.page-head button'))
     .map(b => { const r = b.getBoundingClientRect();
       const top = document.elementFromPoint(r.left + r.width/2, r.top + r.height/2);

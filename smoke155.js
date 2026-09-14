@@ -121,7 +121,9 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   is('  as a flat sheet, not a blended one', amb.blend, 'normal');
   is('  that nothing can be clicked through', amb.through, 'none');
   yes('  the dust canvas is there', amb.dust);
-  await go(p, '#/values');
+  /* Values lost its banner along with six other rooms, so the title this asks
+     about is now on one of the rooms that kept theirs. */
+  await go(p, '#/settings');
   is('  and the page title breathes',
      await p.evaluate(() => getComputedStyle(document.querySelector('.page-head h1')).animationName), 'mfxBreathe');
 

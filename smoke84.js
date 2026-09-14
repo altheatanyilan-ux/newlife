@@ -45,14 +45,16 @@ const { chromium } = require('playwright');
 
   /* 2. every banner is as wide as its page, translucent, and carries its rule */
   const banners = {};
-  for(const r of ['compass','journals','values','skills','projects','finance','commonplace','people','timeline','writing','settings']){
+  /* only the rooms that still open with one: seven others had their banner
+     taken off, and a null here would quietly pass the filter below */
+  for(const r of ['compass','journals','commonplace','timeline','settings']){
     await page.evaluate(n => { location.hash='#/'+n; }, r); await page.waitForTimeout(420);
     banners[r] = await page.evaluate(() => { const h=document.querySelector('.page-head'); if(!h) return null;
       const pg=h.closest('.page'), a=h.getBoundingClientRect(), b=pg.getBoundingClientRect();
       return {l:+(a.left-b.left).toFixed(0), r:+(b.right-a.right).toFixed(0),
         glass:getComputedStyle(h).backdropFilter!=='none', rule:!!h.querySelector('.ph-rule')}; });
   }
-  const bad = Object.entries(banners).filter(([,v]) => v && (v.l!==0||v.r!==0||!v.glass||!v.rule));
+  const bad = Object.entries(banners).filter(([,v]) => !v || v.l!==0 || v.r!==0 || !v.glass || !v.rule);
   console.log('banners aligned + glass + ruled:', bad.length ? JSON.stringify(bad) : 'all ' + Object.keys(banners).length);
 
   /* 3. one calendar, everywhere */

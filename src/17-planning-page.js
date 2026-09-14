@@ -576,7 +576,6 @@ routes.planning = function(root, params){
   const room = planRoom();
   if(room === 'habits' || room === 'stats'){
     root.innerHTML = `<div class="page plan-page">
-      <div class="page-head"><h1>Planning</h1></div>
       ${planRoomsHTML()}
       <div class="pl-habits-room${room === 'stats' ? ' pl-stats-room' : ''}">${room === 'habits' ? habRoomHTML() : planStatsHTML()}</div>
     </div>`;
@@ -586,7 +585,6 @@ routes.planning = function(root, params){
   }
 
   root.innerHTML = `<div class="page plan-page">
-    <div class="page-head"><h1>Planning</h1></div>
     ${planRoomsHTML()}
     ${planReminderBannerHTML()}
     <div class="plan-shell${planState().prefs.sidebarCollapsed ? ' shut' : ''}">
