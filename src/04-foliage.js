@@ -20,8 +20,6 @@ function stopSway(){ Animator.deactivate('sway'); swayRAF = 0; swayLeaves = null
 function startSway(root){
   stopSway();
   if(!root || reduced()) return;
-  /* the wind is decoration, and decoration is what plain mode is for */
-  if(typeof plainMode === 'function' && plainMode()) return;
   const nodes = $$('.leaf', root);
   if(!nodes.length) return;
 

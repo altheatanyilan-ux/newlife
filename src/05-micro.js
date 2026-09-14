@@ -439,8 +439,7 @@ const AmbientFX = (() => {
   const OWN_CANVAS = ['skills', 'values'];
   function dust(){
     const c = document.getElementById('dust');
-    /* plain does not draw the air: not dimmed, not paused — never started */
-    if(!c || reduced() || (typeof plainMode === 'function' && plainMode())) return;
+    if(!c || reduced()) return;
     const ctx = c.getContext('2d');
     let ps = [];
     /* Thirty, not fourteen. Fourteen motes across a 1400px page is one mote

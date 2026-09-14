@@ -1,14 +1,17 @@
 /* ============================================================
    THE OPENING QUESTION
 
-   Four things about this house are matters of taste rather than of
+   Three things about this house are matters of taste rather than of
    data, and every one of them is wrong for somebody by default:
    whether the rooms are lit or dark, whether the buttons answer when
-   pressed, whether there is a sound under the work, and how much of
-   the drawing is there at all. They are the four at the top of the
-   Atmosphere card in Settings, asked here in the same order and with
-   the same words, so that finding them again later is recognising
-   them rather than searching.
+   pressed, and whether there is a sound under the work. They are the
+   three at the top of the Atmosphere card in Settings, asked here in
+   the same order and with the same words, so that finding them again
+   later is recognising them rather than searching.
+
+   There was a fourth for a while — how much of the drawing is there at
+   all — put there because the house was slow. The house is not slow
+   now, so there is nothing to ask.
 
    Guessing is worse than asking, and asking later is worse than
    asking first — a page that arrives in the wrong theme has already
@@ -16,10 +19,9 @@
    this is the first thing on screen.
 
    Every control takes effect as you touch it. There is no Save: the
-   dark option makes the room dark under the dialog, the sound options
-   play and stop as you toggle them, because the only honest way to
-   choose a sound is to hear it, and turning the decoration off takes
-   it off the page behind. "Begin" only closes the door.
+   dark option makes the room dark under the dialog, and the sound
+   options play and stop as you toggle them, because the only honest
+   way to choose a sound is to hear it. "Begin" only closes the door.
 
    It asks once. The flag lives in S.settings, which resetAll()
    rebuilds from the seed, so clearing all data brings the question
@@ -38,7 +40,7 @@ function firstRunRowHTML(key, title, desc, on){
 function openFirstRun(after){
   const snd = SoundManager.state();
   const m = openModal(`<h2 class="entry-h">Before you start</h2>
-    <p class="muted" style="font-size:.9rem;margin:-6px 0 16px">Four things that are a matter of taste. All of them are in Settings under <b>Atmosphere</b>, and none of them is permanent.</p>
+    <p class="muted" style="font-size:.9rem;margin:-6px 0 16px">Three things that are a matter of taste. All of them are in Settings under <b>Atmosphere</b>, and none of them is permanent.</p>
     <div class="stack fr-stack">
       <div class="fr-themes" role="radiogroup" aria-label="Light or dark">
         ${[['light', 'Light', 'Paper. The default.'], ['dark', 'Dark', 'Ink. Easier at night.']].map(([v, n, d]) => `
@@ -49,13 +51,6 @@ function openFirstRun(after){
       </div>
       ${firstRunRowHTML('clicks', 'Interaction sounds', 'Soft chimes on a click, a low note on moving rooms, a rising pair when something is finished. Made in the browser; nothing is downloaded.', snd.soundEnabled)}
       ${firstRunRowHTML('ambient', 'Ambient background', 'A barely-audible wash of noise under the work, which ducks out of the way of every click.', snd.ambientEnabled)}
-      <div class="fr-decor" role="radiogroup" aria-label="Decoration">
-        <span class="fr-copy"><b>Decoration</b><span class="fr-desc">The ink painting behind the rooms, the dust in the air, the grain in the paper and the stone in the surfaces. All ornament, all of it costing something to draw.</span></span>
-        <div class="decor-pick">${[['essential','Essential','the painting, the paper, the falling leaves'],
-          ['plain','Plain','nothing but the writing']].map(([v, n, why]) =>
-          `<button class="${decorMode() === v ? 'on' : ''}" data-frdecor="${v}" role="radio"
-            aria-checked="${decorMode() === v}"><b>${n}</b><span>${esc(why)}</span></button>`).join('')}</div>
-      </div>
       <div class="row" style="justify-content:flex-end;margin-top:6px">
         <button class="btn primary" id="frGo" style="padding:12px 30px;font-size:1rem">Begin</button>
       </div>
@@ -75,19 +70,6 @@ function openFirstRun(after){
      the first one counts, so what follows boot is never run twice. */
   let settled = false;
   const done = () => { if(settled) return; settled = true; if(after) after(); };
-
-  /* the decoration is three choices, so it is three buttons like the theme
-     rather than a switch — and like the theme it takes effect as it is
-     pressed, because the only honest way to choose it is to watch it go */
-  m.querySelectorAll('[data-frdecor]').forEach(b => b.onclick = () => {
-    S.settings.decor = b.dataset.frdecor;
-    saveNow(); applyDecor();
-    m.querySelectorAll('[data-frdecor]').forEach(x => {
-      const on = x.dataset.frdecor === decorMode();
-      x.classList.toggle('on', on); x.setAttribute('aria-checked', on);
-    });
-    sound('click');
-  });
 
   m.querySelectorAll('[data-frtheme]').forEach(b => b.onclick = () => {
     S.settings.theme = b.dataset.frtheme;

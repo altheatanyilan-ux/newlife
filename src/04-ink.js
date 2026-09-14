@@ -103,11 +103,6 @@ function applyInk(){
   const mist = document.getElementById('inkMist'),
         seas = document.getElementById('inkSeason'), rip = document.getElementById('inkRipple');
   if(!mist || !seas || !rip) return;
-  /* plain leaves the paper blank: the painting is never painted, so none of
-     it is in the tree to be composited */
-  if(typeof plainMode === 'function' && plainMode()){
-    mist.innerHTML = rip.innerHTML = seas.innerHTML = ''; _inkPainted = false; _inkKey = null; return;
-  }
   if(!_inkPainted){ mist.innerHTML = inkMistHTML(); rip.innerHTML = inkRippleSVG(); _inkPainted = true; }
   const key = (typeof pageThemeKey === 'function' ? pageThemeKey() : 'compass') + ':' + season();
   if(key !== _inkKey){ seas.innerHTML = inkSeasonHTML(); _inkKey = key; }

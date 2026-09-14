@@ -5557,7 +5557,9 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
    The border stays — it is load-bearing for legibility at small sizes — but
    it thins to almost nothing and the shadow does the work of separating a
    card from the page. */
-.card{background:var(--card-face);border:var(--surface-border);box-shadow:var(--elev-2-shadow);
+/* No stone. A card is a plane of the room's own paper with a shadow under it;
+   the marble was a photograph of a material pretending to be the material. */
+.card{background:var(--surface);border:var(--surface-border);box-shadow:var(--elev-2-shadow);
   transition:border-color calc(.3s * var(--page-motion-speed)) var(--page-ease),
     transform calc(.3s * var(--page-motion-speed)) var(--page-ease),
     box-shadow .35s var(--ease)}
@@ -6194,67 +6196,55 @@ html[data-theme="dark"] .entry.sealed{background-image:url("data:image/svg+xml,%
    things, each on its own element, each recalculated when anything near it
    moved.
    ============================================================ */
-html[data-decor="plain"] .ambient,
-html:is([data-decor="plain"],[data-decor="essential"]) #dust,
-html:is([data-decor="plain"],[data-decor="essential"]) #warmth::before,
-html:is([data-decor="plain"],[data-decor="essential"]) #warmth::after,
-html[data-decor="plain"] body::before,
-html[data-decor="plain"] body::after,
-html:is([data-decor="plain"],[data-decor="essential"]) .page-head::before,
-html:is([data-decor="plain"],[data-decor="essential"]) .page-head::after,
-html:is([data-decor="plain"],[data-decor="essential"]) .ph-plant,
-html:is([data-decor="plain"],[data-decor="essential"]) .sheen::after,
-html:is([data-decor="plain"],[data-decor="essential"]) .card::after,
-html:is([data-decor="plain"],[data-decor="essential"]) .modal.rite::before,html:is([data-decor="plain"],[data-decor="essential"]) .modal.rite::after,
-html:is([data-decor="plain"],[data-decor="essential"]) .dv-veil-in::before,html:is([data-decor="plain"],[data-decor="essential"]) .dv-veil-in::after,
-html:is([data-decor="plain"],[data-decor="essential"]) .body.theatre::before,html:is([data-decor="plain"],[data-decor="essential"]) .body.theatre::after,
-html:is([data-decor="plain"],[data-decor="essential"]) .ic-sec + .ic-sec::before,
-html:is([data-decor="plain"],[data-decor="essential"]) .value-field + .value-field::before,
-html:is([data-decor="plain"],[data-decor="essential"]) .ornate-rule{display:none!important}
+
+#dust,
+#warmth::before,
+#warmth::after,
+.page-head::before,
+.page-head::after,
+.ph-plant,
+.sheen::after,
+.card::after,
+.modal.rite::before,.modal.rite::after,
+.dv-veil-in::before,.dv-veil-in::after,
+.body.theatre::before,.body.theatre::after,
+.ic-sec + .ic-sec::before,
+.value-field + .value-field::before,
+.ornate-rule{display:none!important}
 
 /* surfaces go flat: no stone, no paper, no double frame */
 /* The stone in the surfaces stays in Essential: it is a background-image on
    an element that is not moving, which costs a decode once and nothing after.
    Plain does without it. */
-html[data-decor="plain"] .card{background-image:none;background-color:var(--elev-2);
-  box-shadow:var(--elev-2-shadow)}
-html[data-decor="plain"] .card:hover{box-shadow:var(--elev-3-shadow)}
-html:is([data-decor="plain"],[data-decor="essential"]) .modal.rite,
-html:is([data-decor="plain"],[data-decor="essential"]) .body.theatre,
-html:is([data-decor="plain"],[data-decor="essential"]) .entry.sealed,
-html:is([data-decor="plain"],[data-decor="essential"]) .dv-veil{background-image:none}
-html:is([data-decor="plain"],[data-decor="essential"]) .dv-veil{background:radial-gradient(120% 90% at 50% 40%,#241d18,#15110e 70%)}
+.modal.rite,
+.body.theatre,
+.entry.sealed,
+.dv-veil{background-image:none}
+.dv-veil{background:radial-gradient(120% 90% at 50% 40%,#241d18,#15110e 70%)}
 
 /* A backdrop filter is the single most expensive thing on this page: the
    blurred sample behind it has to be taken again whenever anything behind it
    moves at all. Plain does without. */
-html:is([data-decor="plain"],[data-decor="essential"]) .page-head,
-html:is([data-decor="plain"],[data-decor="essential"]) .today-jump,
-html:is([data-decor="plain"],[data-decor="essential"]) .overlay,
-html:is([data-decor="plain"],[data-decor="essential"]) .back-btn{backdrop-filter:none;-webkit-backdrop-filter:none}
-html:is([data-decor="plain"],[data-decor="essential"]) .page-head{background:color-mix(in srgb,var(--surface) 80%,transparent)}
+.page-head,
+.today-jump,
+.overlay,
+.back-btn{backdrop-filter:none;-webkit-backdrop-filter:none}
+.page-head{background:color-mix(in srgb,var(--surface) 80%,transparent)}
 
 /* nothing moves that was not asked to move */
-html:is([data-decor="plain"],[data-decor="essential"]) .page-head h1,
-html:is([data-decor="plain"],[data-decor="essential"]) .breathing,
-html[data-decor="plain"] .mist-band,
-html:is([data-decor="plain"],[data-decor="essential"]) .ripple-ring,
-/* the leaves go on falling in Essential — they are the one moving ornament
-   that is a handful of elements rather than a layer over everything */
-html[data-decor="plain"] .ink-leaf,
-html:is([data-decor="plain"],[data-decor="essential"]) .dv-pick .tc-back::after{animation:none}
+.page-head h1,
+.breathing,
+
+.ripple-ring,
+.dv-pick .tc-back::after{animation:none}
 /* The slight lean on a pinned thing stays in Essential. It is a static
    transform — written once when the element is drawn, never touched again —
    so it costs a paint and nothing after it, which is the test everything in
    Essential has to pass. Plain wants the page square. */
-html[data-decor="plain"] .entries > .entry,
-html[data-decor="plain"] .vb-card,
-html[data-decor="plain"] .era-col{rotate:0deg}
 /* the firelight across a heading becomes a heading */
-html:is([data-decor="plain"],[data-decor="essential"]) .flow{background:none;-webkit-text-fill-color:currentColor;
+.flow{background:none;-webkit-text-fill-color:currentColor;
   color:var(--text);animation:none}
 /* and the words are simply there */
-html[data-decor="plain"] [data-reveal] .wd{opacity:1;transform:none;transition:none;animation:none}
 
 /* ============================================================
    17. THE VALUES SOLAR SYSTEM
@@ -6340,7 +6330,7 @@ html[data-decor="plain"] [data-reveal] .wd{opacity:1;transform:none;transition:n
 .fd-bubble.resting{border-color:color-mix(in srgb,var(--sage) 45%,transparent)}
 /* a sitting under way has to be visible from the corner of the eye, and stop
    being visible the moment it is paused */
-html:not([data-decor="plain"]) .fd-bubble.ticking{animation:fdPulse 2.6s ease-in-out infinite}
+.fd-bubble.ticking{animation:fdPulse 2.6s ease-in-out infinite}
 @keyframes fdPulse{0%,100%{box-shadow:var(--elev-2-shadow)}
   50%{box-shadow:var(--elev-2-shadow),0 0 0 5px color-mix(in srgb,var(--terra) 13%,transparent)}}
 @media (prefers-reduced-motion:reduce){.fd-bubble.ticking{animation:none}}
@@ -6457,8 +6447,8 @@ html:not([data-decor="plain"]) .fd-bubble.ticking{animation:fdPulse 2.6s ease-in
 /* The margin vines and the room texture were never on the list of things the
    decoration setting took off — an oversight, since they are ornament by any
    reading of the word and they sit on every page. */
-html:is([data-decor="plain"],[data-decor="essential"]) #vines,
-html:is([data-decor="plain"],[data-decor="essential"]) #roomtex{display:none!important}
+#vines,
+#roomtex{display:none!important}
 
 /* ============================================================
    20. LOGGING IN THREE TAPS, AND THE SHAPE OF A FRIENDSHIP

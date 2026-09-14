@@ -6220,7 +6220,9 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
    The border stays — it is load-bearing for legibility at small sizes — but
    it thins to almost nothing and the shadow does the work of separating a
    card from the page. */
-.card{background:var(--card-face);border:var(--surface-border);box-shadow:var(--elev-2-shadow);
+/* No stone. A card is a plane of the room's own paper with a shadow under it;
+   the marble was a photograph of a material pretending to be the material. */
+.card{background:var(--surface);border:var(--surface-border);box-shadow:var(--elev-2-shadow);
   transition:border-color calc(.3s * var(--page-motion-speed)) var(--page-ease),
     transform calc(.3s * var(--page-motion-speed)) var(--page-ease),
     box-shadow .35s var(--ease)}
@@ -6857,67 +6859,55 @@ html[data-theme="dark"] .entry.sealed{background-image:url("data:image/svg+xml,%
    things, each on its own element, each recalculated when anything near it
    moved.
    ============================================================ */
-html[data-decor="plain"] .ambient,
-html:is([data-decor="plain"],[data-decor="essential"]) #dust,
-html:is([data-decor="plain"],[data-decor="essential"]) #warmth::before,
-html:is([data-decor="plain"],[data-decor="essential"]) #warmth::after,
-html[data-decor="plain"] body::before,
-html[data-decor="plain"] body::after,
-html:is([data-decor="plain"],[data-decor="essential"]) .page-head::before,
-html:is([data-decor="plain"],[data-decor="essential"]) .page-head::after,
-html:is([data-decor="plain"],[data-decor="essential"]) .ph-plant,
-html:is([data-decor="plain"],[data-decor="essential"]) .sheen::after,
-html:is([data-decor="plain"],[data-decor="essential"]) .card::after,
-html:is([data-decor="plain"],[data-decor="essential"]) .modal.rite::before,html:is([data-decor="plain"],[data-decor="essential"]) .modal.rite::after,
-html:is([data-decor="plain"],[data-decor="essential"]) .dv-veil-in::before,html:is([data-decor="plain"],[data-decor="essential"]) .dv-veil-in::after,
-html:is([data-decor="plain"],[data-decor="essential"]) .body.theatre::before,html:is([data-decor="plain"],[data-decor="essential"]) .body.theatre::after,
-html:is([data-decor="plain"],[data-decor="essential"]) .ic-sec + .ic-sec::before,
-html:is([data-decor="plain"],[data-decor="essential"]) .value-field + .value-field::before,
-html:is([data-decor="plain"],[data-decor="essential"]) .ornate-rule{display:none!important}
+
+#dust,
+#warmth::before,
+#warmth::after,
+.page-head::before,
+.page-head::after,
+.ph-plant,
+.sheen::after,
+.card::after,
+.modal.rite::before,.modal.rite::after,
+.dv-veil-in::before,.dv-veil-in::after,
+.body.theatre::before,.body.theatre::after,
+.ic-sec + .ic-sec::before,
+.value-field + .value-field::before,
+.ornate-rule{display:none!important}
 
 /* surfaces go flat: no stone, no paper, no double frame */
 /* The stone in the surfaces stays in Essential: it is a background-image on
    an element that is not moving, which costs a decode once and nothing after.
    Plain does without it. */
-html[data-decor="plain"] .card{background-image:none;background-color:var(--elev-2);
-  box-shadow:var(--elev-2-shadow)}
-html[data-decor="plain"] .card:hover{box-shadow:var(--elev-3-shadow)}
-html:is([data-decor="plain"],[data-decor="essential"]) .modal.rite,
-html:is([data-decor="plain"],[data-decor="essential"]) .body.theatre,
-html:is([data-decor="plain"],[data-decor="essential"]) .entry.sealed,
-html:is([data-decor="plain"],[data-decor="essential"]) .dv-veil{background-image:none}
-html:is([data-decor="plain"],[data-decor="essential"]) .dv-veil{background:radial-gradient(120% 90% at 50% 40%,#241d18,#15110e 70%)}
+.modal.rite,
+.body.theatre,
+.entry.sealed,
+.dv-veil{background-image:none}
+.dv-veil{background:radial-gradient(120% 90% at 50% 40%,#241d18,#15110e 70%)}
 
 /* A backdrop filter is the single most expensive thing on this page: the
    blurred sample behind it has to be taken again whenever anything behind it
    moves at all. Plain does without. */
-html:is([data-decor="plain"],[data-decor="essential"]) .page-head,
-html:is([data-decor="plain"],[data-decor="essential"]) .today-jump,
-html:is([data-decor="plain"],[data-decor="essential"]) .overlay,
-html:is([data-decor="plain"],[data-decor="essential"]) .back-btn{backdrop-filter:none;-webkit-backdrop-filter:none}
-html:is([data-decor="plain"],[data-decor="essential"]) .page-head{background:color-mix(in srgb,var(--surface) 80%,transparent)}
+.page-head,
+.today-jump,
+.overlay,
+.back-btn{backdrop-filter:none;-webkit-backdrop-filter:none}
+.page-head{background:color-mix(in srgb,var(--surface) 80%,transparent)}
 
 /* nothing moves that was not asked to move */
-html:is([data-decor="plain"],[data-decor="essential"]) .page-head h1,
-html:is([data-decor="plain"],[data-decor="essential"]) .breathing,
-html[data-decor="plain"] .mist-band,
-html:is([data-decor="plain"],[data-decor="essential"]) .ripple-ring,
-/* the leaves go on falling in Essential — they are the one moving ornament
-   that is a handful of elements rather than a layer over everything */
-html[data-decor="plain"] .ink-leaf,
-html:is([data-decor="plain"],[data-decor="essential"]) .dv-pick .tc-back::after{animation:none}
+.page-head h1,
+.breathing,
+
+.ripple-ring,
+.dv-pick .tc-back::after{animation:none}
 /* The slight lean on a pinned thing stays in Essential. It is a static
    transform — written once when the element is drawn, never touched again —
    so it costs a paint and nothing after it, which is the test everything in
    Essential has to pass. Plain wants the page square. */
-html[data-decor="plain"] .entries > .entry,
-html[data-decor="plain"] .vb-card,
-html[data-decor="plain"] .era-col{rotate:0deg}
 /* the firelight across a heading becomes a heading */
-html:is([data-decor="plain"],[data-decor="essential"]) .flow{background:none;-webkit-text-fill-color:currentColor;
+.flow{background:none;-webkit-text-fill-color:currentColor;
   color:var(--text);animation:none}
 /* and the words are simply there */
-html[data-decor="plain"] [data-reveal] .wd{opacity:1;transform:none;transition:none;animation:none}
 
 /* ============================================================
    17. THE VALUES SOLAR SYSTEM
@@ -7003,7 +6993,7 @@ html[data-decor="plain"] [data-reveal] .wd{opacity:1;transform:none;transition:n
 .fd-bubble.resting{border-color:color-mix(in srgb,var(--sage) 45%,transparent)}
 /* a sitting under way has to be visible from the corner of the eye, and stop
    being visible the moment it is paused */
-html:not([data-decor="plain"]) .fd-bubble.ticking{animation:fdPulse 2.6s ease-in-out infinite}
+.fd-bubble.ticking{animation:fdPulse 2.6s ease-in-out infinite}
 @keyframes fdPulse{0%,100%{box-shadow:var(--elev-2-shadow)}
   50%{box-shadow:var(--elev-2-shadow),0 0 0 5px color-mix(in srgb,var(--terra) 13%,transparent)}}
 @media (prefers-reduced-motion:reduce){.fd-bubble.ticking{animation:none}}
@@ -7120,8 +7110,8 @@ html:not([data-decor="plain"]) .fd-bubble.ticking{animation:fdPulse 2.6s ease-in
 /* The margin vines and the room texture were never on the list of things the
    decoration setting took off — an oversight, since they are ornament by any
    reading of the word and they sit on every page. */
-html:is([data-decor="plain"],[data-decor="essential"]) #vines,
-html:is([data-decor="plain"],[data-decor="essential"]) #roomtex{display:none!important}
+#vines,
+#roomtex{display:none!important}
 
 /* ============================================================
    20. LOGGING IN THREE TAPS, AND THE SHAPE OF A FRIENDSHIP
@@ -7627,31 +7617,22 @@ const io = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting)
 function reveal(root=document){ let i=0; const sp = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--page-motion-speed')) || 1; $$('.rv:not(.in)', root).forEach(n => { n.style.transitionDelay = `${Math.round((i++%12)*60*sp)}ms`; io.observe(n); }); }
 
 /* ---------- theme ---------- */
-function applyTheme(){ document.documentElement.dataset.theme = S.settings.theme; $('#btnTheme').textContent = S.settings.theme==='dark' ? '☾' : '☀'; applySeason(); applyDecor(); if(typeof applyPageTheme === 'function') applyPageTheme(); }
-/* ---------- plain, for a machine that is working hard enough already ----------
-   Every ornament in this house costs something to draw, and on an older
-   laptop the sum of them is the difference between a page that answers and a
-   page that lags. One switch takes all of it off — the ink layers, the dust,
-   the grain and the stone, the glows, the candlelight, the drift — and leaves
-   the instrument, which was always the point. Nothing about what the app
-   KNOWS changes; only what it spends drawing it. */
-/* Two settings. Essential is the house: the ink painting behind the rooms,
-   the paper under it, the stone in the surfaces, the leaves coming down. Plain
-   is the writing and nothing else.
+function applyTheme(){ document.documentElement.dataset.theme = S.settings.theme; $('#btnTheme').textContent = S.settings.theme==='dark' ? '☾' : '☀'; applySeason(); if(typeof applyPageTheme === 'function') applyPageTheme(); }
+/* ---------- there is no decoration setting ----------
+   There used to be one, and removing it is the result of the work rather than
+   a retreat from it. It began as a switch because the house was slow and
+   somebody on an old laptop needed a way out; then it was three settings, then
+   two. What actually made the house slow turned out to be two lines writing a
+   custom property onto the root element on every frame of a scroll, and a
+   third writing one onto the page container on every frame of a pointer move.
+   A write like that invalidates style for the whole document. Those are fixed,
+   and measured: the heaviest room went from six seconds of renderer time in a
+   pointer sweep to half of one.
 
-   There used to be a third above Essential — the dust in the air, the flowers
-   in every margin, the textures on every section, the blur behind the
-   chrome, the drift on everything that could hold one. It was a hundred small
-   things each sitting on its own element, and between them they were most of
-   what made the house slow. It is gone rather than demoted: a setting nobody
-   should choose is not a setting.
-
-   plainMode() answers "is the small per-element ornament off". */
-function decorMode(){ return (S.settings && S.settings.decor) === 'plain' ? 'plain' : 'essential'; }
-function plainMode(){ return decorMode() === 'plain'; }
-/* the painting behind the rooms, which essential keeps and plain does not */
-function paintedGround(){ return decorMode() !== 'plain'; }
-function applyDecor(){ document.documentElement.dataset.decor = decorMode(); }
+   So there is one house and it looks like itself. Anybody who has asked their
+   system for less motion still gets a still one — that is honoured in the
+   stylesheet and in reduced(), where it belongs, rather than in a preference
+   nobody should have to find. */
 /* the season is a data attribute; the ink layer reads it for how heavy the mist
    hangs, and paints the margin sprig to match */
 function applySeason(){ if(typeof season === 'function') document.documentElement.dataset.season = season(); }
@@ -8000,8 +7981,6 @@ function stopSway(){ Animator.deactivate('sway'); swayRAF = 0; swayLeaves = null
 function startSway(root){
   stopSway();
   if(!root || reduced()) return;
-  /* the wind is decoration, and decoration is what plain mode is for */
-  if(typeof plainMode === 'function' && plainMode()) return;
   const nodes = $$('.leaf', root);
   if(!nodes.length) return;
 
@@ -8209,11 +8188,6 @@ function applyInk(){
   const mist = document.getElementById('inkMist'),
         seas = document.getElementById('inkSeason'), rip = document.getElementById('inkRipple');
   if(!mist || !seas || !rip) return;
-  /* plain leaves the paper blank: the painting is never painted, so none of
-     it is in the tree to be composited */
-  if(typeof plainMode === 'function' && plainMode()){
-    mist.innerHTML = rip.innerHTML = seas.innerHTML = ''; _inkPainted = false; _inkKey = null; return;
-  }
   if(!_inkPainted){ mist.innerHTML = inkMistHTML(); rip.innerHTML = inkRippleSVG(); _inkPainted = true; }
   const key = (typeof pageThemeKey === 'function' ? pageThemeKey() : 'compass') + ':' + season();
   if(key !== _inkKey){ seas.innerHTML = inkSeasonHTML(); _inkKey = key; }
@@ -10269,8 +10243,7 @@ const AmbientFX = (() => {
   const OWN_CANVAS = ['skills', 'values'];
   function dust(){
     const c = document.getElementById('dust');
-    /* plain does not draw the air: not dimmed, not paused — never started */
-    if(!c || reduced() || (typeof plainMode === 'function' && plainMode())) return;
+    if(!c || reduced()) return;
     const ctx = c.getContext('2d');
     let ps = [];
     /* Thirty, not fourteen. Fourteen motes across a 1400px page is one mote
@@ -12124,14 +12097,17 @@ function stageChip(s){ return `<span class="chip on click" style="--c:${s.hue}" 
 /* ============================================================
    THE OPENING QUESTION
 
-   Four things about this house are matters of taste rather than of
+   Three things about this house are matters of taste rather than of
    data, and every one of them is wrong for somebody by default:
    whether the rooms are lit or dark, whether the buttons answer when
-   pressed, whether there is a sound under the work, and how much of
-   the drawing is there at all. They are the four at the top of the
-   Atmosphere card in Settings, asked here in the same order and with
-   the same words, so that finding them again later is recognising
-   them rather than searching.
+   pressed, and whether there is a sound under the work. They are the
+   three at the top of the Atmosphere card in Settings, asked here in
+   the same order and with the same words, so that finding them again
+   later is recognising them rather than searching.
+
+   There was a fourth for a while — how much of the drawing is there at
+   all — put there because the house was slow. The house is not slow
+   now, so there is nothing to ask.
 
    Guessing is worse than asking, and asking later is worse than
    asking first — a page that arrives in the wrong theme has already
@@ -12139,10 +12115,9 @@ function stageChip(s){ return `<span class="chip on click" style="--c:${s.hue}" 
    this is the first thing on screen.
 
    Every control takes effect as you touch it. There is no Save: the
-   dark option makes the room dark under the dialog, the sound options
-   play and stop as you toggle them, because the only honest way to
-   choose a sound is to hear it, and turning the decoration off takes
-   it off the page behind. "Begin" only closes the door.
+   dark option makes the room dark under the dialog, and the sound
+   options play and stop as you toggle them, because the only honest
+   way to choose a sound is to hear it. "Begin" only closes the door.
 
    It asks once. The flag lives in S.settings, which resetAll()
    rebuilds from the seed, so clearing all data brings the question
@@ -12161,7 +12136,7 @@ function firstRunRowHTML(key, title, desc, on){
 function openFirstRun(after){
   const snd = SoundManager.state();
   const m = openModal(`<h2 class="entry-h">Before you start</h2>
-    <p class="muted" style="font-size:.9rem;margin:-6px 0 16px">Four things that are a matter of taste. All of them are in Settings under <b>Atmosphere</b>, and none of them is permanent.</p>
+    <p class="muted" style="font-size:.9rem;margin:-6px 0 16px">Three things that are a matter of taste. All of them are in Settings under <b>Atmosphere</b>, and none of them is permanent.</p>
     <div class="stack fr-stack">
       <div class="fr-themes" role="radiogroup" aria-label="Light or dark">
         ${[['light', 'Light', 'Paper. The default.'], ['dark', 'Dark', 'Ink. Easier at night.']].map(([v, n, d]) => `
@@ -12172,13 +12147,6 @@ function openFirstRun(after){
       </div>
       ${firstRunRowHTML('clicks', 'Interaction sounds', 'Soft chimes on a click, a low note on moving rooms, a rising pair when something is finished. Made in the browser; nothing is downloaded.', snd.soundEnabled)}
       ${firstRunRowHTML('ambient', 'Ambient background', 'A barely-audible wash of noise under the work, which ducks out of the way of every click.', snd.ambientEnabled)}
-      <div class="fr-decor" role="radiogroup" aria-label="Decoration">
-        <span class="fr-copy"><b>Decoration</b><span class="fr-desc">The ink painting behind the rooms, the dust in the air, the grain in the paper and the stone in the surfaces. All ornament, all of it costing something to draw.</span></span>
-        <div class="decor-pick">${[['essential','Essential','the painting, the paper, the falling leaves'],
-          ['plain','Plain','nothing but the writing']].map(([v, n, why]) =>
-          `<button class="${decorMode() === v ? 'on' : ''}" data-frdecor="${v}" role="radio"
-            aria-checked="${decorMode() === v}"><b>${n}</b><span>${esc(why)}</span></button>`).join('')}</div>
-      </div>
       <div class="row" style="justify-content:flex-end;margin-top:6px">
         <button class="btn primary" id="frGo" style="padding:12px 30px;font-size:1rem">Begin</button>
       </div>
@@ -12198,19 +12166,6 @@ function openFirstRun(after){
      the first one counts, so what follows boot is never run twice. */
   let settled = false;
   const done = () => { if(settled) return; settled = true; if(after) after(); };
-
-  /* the decoration is three choices, so it is three buttons like the theme
-     rather than a switch — and like the theme it takes effect as it is
-     pressed, because the only honest way to choose it is to watch it go */
-  m.querySelectorAll('[data-frdecor]').forEach(b => b.onclick = () => {
-    S.settings.decor = b.dataset.frdecor;
-    saveNow(); applyDecor();
-    m.querySelectorAll('[data-frdecor]').forEach(x => {
-      const on = x.dataset.frdecor === decorMode();
-      x.classList.toggle('on', on); x.setAttribute('aria-checked', on);
-    });
-    sound('click');
-  });
 
   m.querySelectorAll('[data-frtheme]').forEach(b => b.onclick = () => {
     S.settings.theme = b.dataset.frtheme;
@@ -15486,11 +15441,10 @@ function PeopleSky(canvas, nodes, opts){
   this.nodes = nodes; this.opts = opts || {};
   this.hover = null; this.drag = null; this.pressed = null;
   this.t0 = performance.now(); this.lit = new Map();
-  /* Still, for anyone who has asked for less motion and for anyone running
-     plain: the simulation is settled in one go and drawn once. The layout is
-     the information; the drifting is not. */
-  this.soft = (typeof reduced === 'function' && reduced())
-    || (typeof plainMode === 'function' && plainMode());
+  /* Still, for anyone who has asked their system for less motion: the
+     simulation is settled in one go and drawn once. The layout is the
+     information; the drifting is not. */
+  this.soft = (typeof reduced === 'function' && reduced());
   this.resize();
   this.place();
   this.bind();
@@ -15926,7 +15880,6 @@ function thoughtOfThem(id){
    for a small kindness and it should be the size of one. */
 function skyBurstAt(id){
   if(typeof reduced === 'function' && reduced()) return;
-  if(typeof plainMode === 'function' && plainMode()) return;
   if(!_sky) return;
   const n = _sky.nodes.find(x => x.id === id); if(!n) return;
   const r = _sky.cv.getBoundingClientRect();
@@ -16584,6 +16537,20 @@ function valueHue(hex){
   h = Math.round(h * 60); return h < 0 ? h + 360 : h;
 }
 
+/* One number per value, spread as far from its neighbours as it can be.
+   FNV-1a with a finalising mix: a plain rolling multiply — which is what this
+   used to be — puts ids that differ in one character next to each other, and
+   ids here end in three characters of a timestamp, so a set of values made in
+   one sitting came out bunched on the same arc of the system and wearing the
+   same face. The avalanche step is the whole difference. */
+function valueHash(id){
+  let h = 2166136261 >>> 0;
+  for(let i = 0; i < id.length; i++) h = Math.imul(h ^ id.charCodeAt(i), 16777619) >>> 0;
+  h = (h ^ (h >>> 15)) >>> 0;
+  h = Math.imul(h, 2246822507) >>> 0;
+  return (h ^ (h >>> 13)) >>> 0;              /* unsigned, or every mod goes negative */
+}
+
 /* everything the canvas needs, worked out once per render rather than per frame */
 function valuePlanets(){
   const snaps = allSnapshotsWithRetro();
@@ -16612,12 +16579,44 @@ function valuePlanets(){
       aura: .05 + (cong / 100) * .35,
       /* the same value starts at the same place on its orbit every time the
          page is drawn, rather than jumping to a new one on every render */
-      seed: [...id].reduce((n, c) => (n * 31 + c.charCodeAt(0)) % 3600, 7) / 3600 * Math.PI * 2,
+      hash: valueHash(id),
+      seed: (valueHash(id) % 3600) / 3600 * Math.PI * 2,
       tagline: v.tagline || (v.fields?.embody || []).slice(-1)[0]?.text || '',
     };
   });
+  /* How fast it goes. The old floor was half a degree a second — twelve
+     minutes for one circuit — so a system with no evidence in it yet had every
+     planet effectively nailed down, which is the state a new house is in and
+     the worst possible first impression. The floor is now a circuit in about a
+     minute; the ceiling, for the value you have tended most, is a quarter of
+     that. Both are slow enough to read and fast enough to be obviously alive.
+
+     The inner orbits are shorter, so a fixed angular speed makes the outer
+     planets look becalmed next to them. Kepler's rule — the further out, the
+     slower round — is both true of real systems and the thing that makes a
+     drawing of one read as motion rather than as a spinning plate.
+
+     Then what the planet is made of. Six surfaces, a ring or no ring, a storm
+     or none, a moon or none: enough combinations that no two planets in a
+     realistic house are the same object, and every one of them is drawn in the
+     value's own hue at the value's own saturation, so the data still reads.
+     All of it comes off one hash of the id, which means a value keeps its face
+     for as long as it exists — you learn to find Craft by looking for the
+     banded one, the way you find Jupiter. */
+  const FACES = ['banded', 'cratered', 'marbled', 'swirled', 'capped', 'smooth'];
   const maxR = Math.max(...raw.map(p => p.recency), 1);
-  raw.forEach(p => { p.speed = 0.5 + (p.recency / maxR) * 5.5; });   /* degrees a second */
+  raw.forEach((p, i) => {
+    const tended = p.recency / maxR;                    /* 0 … 1 */
+    const far = 1 / Math.sqrt(1 + i * .55);             /* the outer ones, slower */
+    p.speed = (6 + tended * 22) * far;                  /* degrees a second */
+    const hash = p.hash;
+    p.face   = FACES[hash % FACES.length];
+    p.ringed = (hash >>> 4) % 3 === 0;
+    p.storm  = (p.face === 'banded' || p.face === 'swirled') && (hash >>> 9) % 2 === 0;
+    p.tilt   = (((hash >>> 2) % 31) - 15) * Math.PI / 180;
+    p.moon = p.evidence >= 6 ? {r: Math.max(2.4, p.radius * .22), d: p.radius * 2.1 + 6,
+      w: .9 + (i % 3) * .35, ph: p.seed * 1.7} : null;
+  });
   return raw;
 }
 
@@ -16629,12 +16628,11 @@ function ValuesSolar(canvas, planets, opts){
   this.planets = planets;
   this.opts = opts || {};
   this.hover = null; this.drag = null; this.raf = 0; this.t0 = performance.now();
-  /* Still, for anyone who has asked for less motion and for anyone running
-     plain. The orbits are how the data is laid out, not the point of it —
-     a frozen system says everything a moving one says except the speeds, and
-     the speeds are also written in the tooltip. */
-  this.soft = (typeof reduced === 'function' && reduced())
-    || (typeof plainMode === 'function' && plainMode());
+  /* Still, for anyone who has asked their system for less motion. The orbits
+     are how the data is laid out, not the point of it — a frozen system says
+     everything a moving one says except the speeds, and the speeds are also
+     written in the tooltip. */
+  this.soft = (typeof reduced === 'function' && reduced());
   this.resize();
   this.bind();
   this.start();
@@ -16649,20 +16647,33 @@ ValuesSolar.prototype.resize = function(){
   this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   this.cx = w / 2; this.cy = h / 2;
   this.ysq = w < 700 ? .4 : SOLAR_YSQUASH;
-  /* the innermost orbit has to clear the sun's corona, and the outermost has
-     to leave room for a label under the planet */
-  const minR = 84, maxR = Math.max(minR + 20, Math.min(w / 2 - 56, h / (2 * this.ysq) - 34));
+  /* The innermost orbit has to clear the sun, which is drawn to clear the
+     largest planet, so both of those go into the floor; the outermost has to
+     leave room for a label under the planet. Everything about the sun's size
+     lives in sunCore so the two cannot drift apart. */
+  const big = this.planets.reduce((n, p) => Math.max(n, p.radius), 0);
+  const minR = Math.max(84, this.sunCore() + big + 20);
+  const maxR = Math.max(minR + 20, Math.min(w / 2 - 56 - big, h / (2 * this.ysq) - 34 - big));
   const n = this.planets.length;
   const step = n > 1 ? (maxR - minR) / (n - 1) : 0;
   this.planets.forEach((p, i) => { p.orbit = minR + i * step; });
+};
+ValuesSolar.prototype.sunCore = function(){
+  return Math.max(26, this.planets.reduce((n, p) => Math.max(n, p.radius), 0) * 1.3);
 };
 ValuesSolar.prototype.pos = function(p, ang){
   return {x: this.cx + p.orbit * Math.cos(ang), y: this.cy + p.orbit * Math.sin(ang) * this.ysq};
 };
 ValuesSolar.prototype.angleAt = function(p, ms){
+  let a = p.seed + (p.off || 0) + (ms / 1000) * p.speed * Math.PI / 180;
   /* a planet under the pointer stops, so it can be read */
-  if(p === this.hover || p === this.drag) return p.ang != null ? p.ang : p.seed;
-  return p.seed + (ms / 1000) * p.speed * Math.PI / 180;
+  if(p === this.hover || p === this.drag){ if(p.held == null) p.held = a; return p.held; }
+  /* and starts again from where it stopped rather than from where it would
+     have got to. Carrying the lost arc in an offset is the whole fix: without
+     it every planet the pointer crosses snaps forward when the pointer
+     leaves, which is the one thing in the picture that reads as broken. */
+  if(p.held != null){ p.off = (p.off || 0) + (p.held - a); a = p.held; p.held = null; }
+  return a;
 };
 ValuesSolar.prototype.ink = function(){
   return document.documentElement.dataset.theme === 'light'
@@ -16694,10 +16705,10 @@ ValuesSolar.prototype.frame = function(now){
   const order = [...ps].sort((a, b) => Math.sin(a.ang) - Math.sin(b.ang));
   order.forEach(p => {
     const dim = this.hover && p !== this.hover ? .4 : 1;
-    if(p === this.drag){ this.planet(p, this.drag.x, this.drag.y, 1.25, 1); return; }
+    if(p === this.drag){ this.planet(p, this.drag.x, this.drag.y, 1.25, 1, now); return; }
     const {x, y} = this.pos(p, p.ang);
     this.trail(p, p.ang, dim, ink);
-    this.planet(p, x, y, p === this.hover ? 1.4 : 1, dim);
+    this.planet(p, x, y, p === this.hover ? 1.4 : 1, dim, now);
     if(this.opts.labels !== false){
       c.save();
       c.fillStyle = ink.label; c.globalAlpha = .72 * dim;
@@ -16722,40 +16733,164 @@ ValuesSolar.prototype.trail = function(p, ang, dim, ink){
     c.fill();
   }
 };
-ValuesSolar.prototype.planet = function(p, x, y, scale, dim){
+/* A ball with a highlight on it is a ball. These are planets. Six surfaces —
+   banded, cratered, veined, swirled, ice-capped, and the plain sphere the
+   others are variations on — crossed with a ring or no ring and a storm or
+   none, all of it taken from the id so a value keeps its face for as long as
+   it exists.
+
+   The order matters and is the order light arrives in: the aura, the far half
+   of the ring, the body, the surface clipped to the body, the storm, the
+   terminator falling across all of it, the rim light on the lit limb, then the
+   near half of the ring and the moon. The rim light is the cheapest line here
+   and does the most work — a lit edge is what separates a sphere from a disc.
+
+   All of it is drawn in the planet's own colour at its own saturation, so the
+   data still reads: a value with no evidence is still pale, a betrayed one is
+   still grey, and the ornament does not lie about either. */
+ValuesSolar.prototype.planet = function(p, x, y, scale, dim, now){
   const c = this.ctx, r = p.radius * scale;
+  const sat = p.saturation | 0, h = p.hue;
   const aura = p.aura * (p === this.hover ? 1.5 : 1) * dim;
   if(aura > .02){
     const g = c.createRadialGradient(x, y, r, x, y, r * 2.6);
-    g.addColorStop(0, `hsla(${p.hue},${p.saturation | 0}%,62%,${aura.toFixed(3)})`);
-    g.addColorStop(1, `hsla(${p.hue},${p.saturation | 0}%,62%,0)`);
+    g.addColorStop(0, `hsla(${h},${sat}%,62%,${aura.toFixed(3)})`);
+    g.addColorStop(1, `hsla(${h},${sat}%,62%,0)`);
     c.fillStyle = g; c.beginPath(); c.arc(x, y, r * 2.6, 0, Math.PI * 2); c.fill();
   }
-  const g = c.createRadialGradient(x - r * .32, y - r * .32, 0, x, y, r);
-  g.addColorStop(0, `hsla(${p.hue},${p.saturation | 0}%,72%,${dim})`);
-  g.addColorStop(1, `hsla(${p.hue},${p.saturation | 0}%,38%,${dim})`);
+  /* the far half of the ring passes behind the planet */
+  if(p.ringed) this.ring(p, x, y, r, dim, true);
+
+  const g = c.createRadialGradient(x - r * .34, y - r * .34, 0, x, y, r);
+  g.addColorStop(0, `hsla(${h},${sat}%,74%,${dim})`);
+  g.addColorStop(.55, `hsla(${h},${sat}%,56%,${dim})`);
+  g.addColorStop(1, `hsla(${h},${sat}%,34%,${dim})`);
   c.fillStyle = g; c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill();
+
+  /* the surface, clipped to the sphere */
+  if(r > 6){
+    c.save();
+    c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.clip();
+    c.translate(x, y); c.rotate(p.tilt);
+    if(p.face === 'banded'){
+      for(let i = -2; i <= 2; i++){
+        const yy = i * r * .34, hh = r * (i % 2 ? .13 : .2);
+        c.fillStyle = `hsla(${h},${sat}%,${i % 2 ? 66 : 44}%,${(.32 * dim).toFixed(3)})`;
+        c.beginPath(); c.ellipse(0, yy, r, hh, 0, 0, Math.PI * 2); c.fill();
+      }
+    } else if(p.face === 'cratered'){
+      for(let i = 0; i < 5; i++){
+        const a = p.seed * (i + 2), d = r * (.18 + (i % 3) * .26);
+        const cr = r * (.11 + (i % 2) * .09);
+        c.fillStyle = `hsla(${h},${sat}%,38%,${(.4 * dim).toFixed(3)})`;
+        c.beginPath(); c.arc(Math.cos(a) * d, Math.sin(a * 1.7) * d * .8, cr, 0, Math.PI * 2); c.fill();
+        c.fillStyle = `hsla(${h},${sat}%,72%,${(.22 * dim).toFixed(3)})`;
+        c.beginPath(); c.arc(Math.cos(a) * d - cr * .25, Math.sin(a * 1.7) * d * .8 - cr * .25, cr * .7, 0, Math.PI * 2); c.fill();
+      }
+    } else if(p.face === 'marbled'){
+      c.strokeStyle = `hsla(${h},${sat}%,72%,${(.3 * dim).toFixed(3)})`;
+      c.lineWidth = Math.max(1, r * .1);
+      for(let i = 0; i < 3; i++){
+        const o = (i - 1) * r * .5;
+        c.beginPath();
+        c.moveTo(-r, o - r * .3);
+        c.bezierCurveTo(-r * .3, o + r * .4, r * .3, o - r * .5, r, o + r * .2);
+        c.stroke();
+      }
+    } else if(p.face === 'swirled'){
+      /* a gas giant's turbulence: shallow arcs that do not line up, so the
+         eye reads weather rather than stripes */
+      c.lineWidth = Math.max(1, r * .16);
+      c.lineCap = 'round';
+      for(let i = 0; i < 5; i++){
+        const o = (i - 2) * r * .38, bend = ((i % 2) ? 1 : -1) * r * .3;
+        c.strokeStyle = `hsla(${h},${sat}%,${i % 2 ? 70 : 42}%,${(.3 * dim).toFixed(3)})`;
+        c.beginPath();
+        c.moveTo(-r * 1.1, o);
+        c.bezierCurveTo(-r * .35, o + bend, r * .35, o - bend, r * 1.1, o + bend * .3);
+        c.stroke();
+      }
+    } else if(p.face === 'capped'){
+      /* ice at both poles and a darker belt between them */
+      c.fillStyle = `hsla(${h},${Math.max(6, sat - 30)}%,88%,${(.5 * dim).toFixed(3)})`;
+      c.beginPath(); c.ellipse(0, -r * .82, r * .78, r * .34, 0, 0, Math.PI * 2); c.fill();
+      c.beginPath(); c.ellipse(0,  r * .86, r * .66, r * .3,  0, 0, Math.PI * 2); c.fill();
+      c.fillStyle = `hsla(${h},${sat}%,40%,${(.24 * dim).toFixed(3)})`;
+      c.beginPath(); c.ellipse(0, r * .06, r, r * .24, 0, 0, Math.PI * 2); c.fill();
+    }
+    /* the one eye in the weather */
+    if(p.storm){
+      const sx = -r * .3, sy = r * .28;
+      c.fillStyle = `hsla(${(h + 22) % 360},${Math.min(96, sat + 22)}%,58%,${(.5 * dim).toFixed(3)})`;
+      c.beginPath(); c.ellipse(sx, sy, r * .34, r * .2, .3, 0, Math.PI * 2); c.fill();
+      c.strokeStyle = `hsla(${(h + 22) % 360},${Math.min(96, sat + 22)}%,80%,${(.34 * dim).toFixed(3)})`;
+      c.lineWidth = Math.max(.8, r * .05);
+      c.beginPath(); c.ellipse(sx, sy, r * .34, r * .2, .3, 0, Math.PI * 2); c.stroke();
+    }
+    /* everything gets a terminator: the far side falls into shadow */
+    const sh = c.createLinearGradient(-r, -r, r, r);
+    sh.addColorStop(0, 'rgba(0,0,0,0)');
+    sh.addColorStop(.55, 'rgba(0,0,0,0)');
+    sh.addColorStop(1, `rgba(0,0,0,${(.34 * dim).toFixed(3)})`);
+    c.fillStyle = sh; c.beginPath(); c.arc(0, 0, r, 0, Math.PI * 2); c.fill();
+    c.restore();
+    /* the lit limb: one thin bright arc on the side the sun is on. This is the
+       line that makes the whole thing read as lit rather than coloured. */
+    c.save();
+    c.strokeStyle = `hsla(${h},${Math.max(8, sat - 16)}%,92%,${(.42 * dim).toFixed(3)})`;
+    c.lineWidth = Math.max(.7, r * .09);
+    c.beginPath(); c.arc(x, y, r * .94, Math.PI * 1.02, Math.PI * 1.72); c.stroke();
+    c.restore();
+  }
+  if(p.ringed) this.ring(p, x, y, r, dim, false);
+  /* a value with a good deal of evidence behind it has something of its own
+     going round it */
+  if(p.moon && now != null && r > 7){
+    const a = (now / 1000) * p.moon.w + p.moon.ph;
+    const mx = x + Math.cos(a) * p.moon.d, my = y + Math.sin(a) * p.moon.d * .42;
+    c.fillStyle = `hsla(${h},${Math.max(10, sat - 24)}%,${Math.sin(a) > 0 ? 74 : 52}%,${(.85 * dim).toFixed(2)})`;
+    c.beginPath(); c.arc(mx, my, p.moon.r, 0, Math.PI * 2); c.fill();
+  }
 };
+/* the ring, in two halves so the planet sits inside it */
+ValuesSolar.prototype.ring = function(p, x, y, r, dim, behind){
+  const c = this.ctx;
+  c.save();
+  c.translate(x, y); c.rotate(p.tilt - .34);
+  c.beginPath();
+  c.ellipse(0, 0, r * 1.95, r * .52, 0, behind ? Math.PI : 0, behind ? Math.PI * 2 : Math.PI);
+  c.strokeStyle = `hsla(${p.hue},${p.saturation | 0}%,${behind ? 52 : 70}%,${((behind ? .3 : .5) * dim).toFixed(3)})`;
+  c.lineWidth = Math.max(1.4, r * .2);
+  c.stroke();
+  c.restore();
+};
+/* The sun has to be the biggest thing in the picture. A value with fifty
+   pieces of evidence behind it draws at thirty-six pixels, and a sun of
+   twenty-four next to it reads as a small planet in the middle rather than as
+   the thing everything else goes round — which would be exactly backwards
+   about whose system it is. So the core clears the largest planet, and the
+   corona clears the core. */
 ValuesSolar.prototype.sun = function(ms, ink){
   const c = this.ctx, cx = this.cx, cy = this.cy;
-  const pulse = this.soft ? 52 : 52 + Math.sin(ms / 1000 * 1.26) * 5;
-  const g = c.createRadialGradient(cx, cy, 20, cx, cy, pulse);
+  const core = this.sunCore();
+  const pulse = (core * 2.3) + (this.soft ? 0 : Math.sin(ms / 1000 * 1.26) * 5);
+  const g = c.createRadialGradient(cx, cy, core * .8, cx, cy, pulse);
   g.addColorStop(0, `rgba(212,164,76,${ink.corona})`);
   g.addColorStop(.5, `rgba(212,164,76,${(ink.corona * .25).toFixed(3)})`);
   g.addColorStop(1, 'rgba(212,164,76,0)');
   c.fillStyle = g; c.beginPath(); c.arc(cx, cy, pulse, 0, Math.PI * 2); c.fill();
-  const core = c.createRadialGradient(cx - 5, cy - 5, 0, cx, cy, 24);
-  core.addColorStop(0, ink.light ? '#f6e3bd' : '#f5deb3');
-  core.addColorStop(.6, ink.light ? '#c49552' : '#d4a44c');
-  core.addColorStop(1, ink.light ? '#8a6d4a' : '#b08968');
-  c.fillStyle = core; c.beginPath(); c.arc(cx, cy, 24, 0, Math.PI * 2); c.fill();
+  const face = c.createRadialGradient(cx - core * .2, cy - core * .2, 0, cx, cy, core);
+  face.addColorStop(0, ink.light ? '#fdf3df' : '#fbeccb');
+  face.addColorStop(.55, ink.light ? '#d8ab63' : '#e2b45a');
+  face.addColorStop(1, ink.light ? '#8a6d4a' : '#b08968');
+  c.fillStyle = face; c.beginPath(); c.arc(cx, cy, core, 0, Math.PI * 2); c.fill();
   /* it is worth saying out loud whose system this is */
   if(this.opts.labels !== false){
     c.save();
-    c.fillStyle = ink.label; c.globalAlpha = .5;
+    c.fillStyle = ink.label; c.globalAlpha = .72;
     c.font = '10px ' + (getComputedStyle(document.body).fontFamily || 'sans-serif');
     c.textAlign = 'center'; c.letterSpacing && (c.letterSpacing = '1.5px');
-    c.fillText('you', cx, cy + 44);
+    c.fillText('you', cx, cy + core + 26);
     c.restore();
   }
 };
@@ -31482,6 +31617,287 @@ function renderPatterns(body){
 /* the local report uses **bold**; render just that much inline */
 function mdInline(s){ return esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>'); }
 /* ============================================================
+   THE SACRED ROOM
+
+   Stillness was a row of tabs — Meditation, Breathwork, Body scan,
+   Sanctuary — and divination was a row of buttons. Both were correct and
+   both asked you to pick a noun off a form before you had arrived anywhere.
+   A practice is a place you go, and the going is half of it.
+
+   So it is a room, seen from the doorway. The cushion is on the floor, the
+   table is against the right wall with the four systems laid out on it, the
+   quiet room is through the door at the back, and two candles are burning.
+   You do not press "Tarot"; you reach for the deck.
+
+   The room is one SVG and nothing else — no canvas, no images, no loop. Every
+   zone is a group with a hover and a click; everything that moves is a CSS
+   animation on two flames and a handful of small objects, so the whole scene
+   costs one paint and then nothing per frame. Anyone who has asked their
+   system for less motion gets the room with the flames standing still, which
+   is a room you can still use.
+
+   It is not a replacement for the row of tabs underneath it. The room is how
+   you arrive; the tabs are how you change your mind once you are already
+   sitting, and taking those away would make switching practice a journey.
+
+   And it remembers. The candles burn to the height of how recently you sat;
+   the cushion keeps the mark of having been sat on; an object you consulted
+   today keeps its glow until tomorrow; and a streak of three days puts out a
+   vine beside the cushion with a leaf for every day.
+   ============================================================ */
+
+/* how brightly the candles burn: the last time you sat, as one number */
+function roomCandle(){
+  const xs = (typeof stillness === 'function' ? stillness().sessions : []) || [];
+  if(!xs.length) return .3;
+  const last = xs.map(x => x.date).sort().slice(-1)[0];
+  const d = daysSince(last);
+  return d === 0 ? 1 : d === 1 ? .85 : d <= 3 ? .65 : d <= 7 ? .45 : .3;
+}
+/* which systems you have already consulted today, so the table can show it */
+function roomConsultedToday(){
+  const T = today();
+  const out = {};
+  (S.entries || []).forEach(e => {
+    if(e.type !== 'divination') return;
+    if((e.occurredAt || e.createdAt || '').slice(0, 10) !== T) return;
+    /* the system lives under extra, where every reading this house has ever
+       saved has put it — reading it off the entry itself finds nothing, and
+       finding nothing looks exactly like not having consulted anything */
+    const k = (e.extra && e.extra.divination && e.extra.divination.system) || '';
+    if(k) out[k] = true;
+  });
+  return out;
+}
+function roomSatEver(){ return ((typeof stillness === 'function' ? stillness().sessions : []) || []).length > 0; }
+
+/* A hand does not draw a straight line. Every long edge in the room is bent
+   by a pixel or so, seeded from its own name so the room is the same room
+   every time it is drawn rather than twitching on each render. */
+function roomWobble(seed){
+  let n = [...String(seed)].reduce((a, c) => (a * 31 + c.charCodeAt(0)) % 9973, 7);
+  return () => { n = (n * 1103515245 + 12345) % 2147483648; return (n / 2147483648 - .5) * 2.4; };
+}
+function roomEdge(x1, y1, x2, y2, seed){
+  const w = roomWobble(seed);
+  const mx = (x1 + x2) / 2 + w(), my = (y1 + y2) / 2 + w();
+  return `M${x1.toFixed(1)},${(y1 + w()).toFixed(1)} Q${mx.toFixed(1)},${my.toFixed(1)} ${x2.toFixed(1)},${(y2 + w()).toFixed(1)}`;
+}
+
+function sacredRoomHTML(){
+  const lit = roomCandle();
+  const done = roomConsultedToday();
+  const sat = roomSatEver();
+  const streak = typeof stillStreak === 'function' ? stillStreak() : 0;
+  const leaves = streak >= 3 ? Math.min(streak, 9) : 0;
+  const aura = k => done[k] ? ' consulted' : '';
+
+  /* the planks and the brush strokes: a few faint lines, not a texture */
+  const floor = Array.from({length: 7}, (_, i) =>
+    `<path class="rm-plank" d="${roomEdge(0, 392 + i * 26, 1200, 386 + i * 26, 'plank' + i)}"/>`).join('');
+  const wall = Array.from({length: 11}, (_, i) =>
+    `<path class="rm-brush" d="${roomEdge(60 + i * 108, 20, 66 + i * 108, 382, 'brush' + i)}"/>`).join('');
+
+  return `<div class="room-wrap rv" data-lit="${lit >= .85 ? 'high' : lit >= .45 ? 'mid' : 'low'}">
+    <svg class="sacred-room" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid meet"
+      role="group" aria-label="The room: a cushion, a table, a door and a shelf">
+
+      <defs>
+        <radialGradient id="rmGlow"><stop offset="0" stop-color="var(--rm-light)" stop-opacity=".55"/>
+          <stop offset="1" stop-color="var(--rm-light)" stop-opacity="0"/></radialGradient>
+        <radialGradient id="rmDoorLight"><stop offset="0" stop-color="#f5deb3" stop-opacity=".8"/>
+          <stop offset="1" stop-color="#f5deb3" stop-opacity="0"/></radialGradient>
+      </defs>
+
+      <g class="rm-bg">
+        <rect x="0" y="0" width="1200" height="392" class="rm-wall"/>
+        <rect x="0" y="392" width="1200" height="208" class="rm-floor"/>
+        <g class="rm-tex">${wall}${floor}</g>
+        <path class="rm-line" d="${roomEdge(0, 392, 1200, 392, 'skirt')}"/>
+      </g>
+
+      <!-- the candles: not clickable, only alive. Their height is the last
+           time you sat down, which is the room's one honest opinion of you. -->
+      <g class="rm-candles" style="--lit:${lit.toFixed(2)}">
+        ${[[210, 'l'], [990, 'r']].map(([x, s]) => `<g class="rm-sconce" transform="translate(${x},96)">
+          <circle class="rm-halo" cx="0" cy="-6" r="${(54 + lit * 46).toFixed(0)}" fill="url(#rmGlow)"/>
+          <path class="rm-sconce-arm" d="${roomEdge(-16, 26, 16, 26, 'sconce' + s)}"/>
+          <rect class="rm-wax" x="-7" y="-4" width="14" height="30" rx="3"/>
+          <g class="rm-flame" style="--fl:${(.6 + lit * .6).toFixed(2)}">
+            <path class="rm-flame-out" d="M0,-30 C9,-19 8,-8 0,-4 C-8,-8 -9,-19 0,-30Z"/>
+            <path class="rm-flame-in" d="M0,-22 C4.5,-15 4,-8 0,-6 C-4,-8 -4.5,-15 0,-22Z"/>
+          </g></g>`).join('')}
+      </g>
+
+      <!-- the door at the back: your quiet room, ajar -->
+      <g class="zone zone-door" data-room="sanctuary" tabindex="0" role="button" aria-label="Your quiet room">
+        <ellipse class="rm-spill" cx="470" cy="300" rx="120" ry="150" fill="url(#rmDoorLight)"/>
+        <rect class="rm-doorframe" x="392" y="128" width="156" height="264" rx="3"/>
+        <rect class="rm-doorgap" x="400" y="136" width="140" height="256"/>
+        <g class="rm-door-leaf">
+          <rect class="rm-door" x="400" y="136" width="112" height="256" rx="2"/>
+          <rect class="rm-door-panel" x="414" y="152" width="84" height="104" rx="2"/>
+          <rect class="rm-door-panel" x="414" y="272" width="84" height="104" rx="2"/>
+          <circle class="rm-knob" cx="498" cy="268" r="4.5"/>
+        </g>
+        <text class="rm-say" x="470" y="424" text-anchor="middle">Your quiet room</text>
+      </g>
+
+      <!-- the shelf: atmosphere, and a way to what you have been reading -->
+      <g class="zone zone-shelf" data-room="shelf" tabindex="0" role="button" aria-label="Your wisdom shelf">
+        <rect class="rm-shelf-box" x="60" y="176" width="168" height="182" rx="3"/>
+        <path class="rm-line" d="${roomEdge(64, 244, 224, 244, 'shelfA')}"/>
+        <path class="rm-line" d="${roomEdge(64, 304, 224, 304, 'shelfB')}"/>
+        ${[[74, 186, 14, 54], [92, 190, 12, 50], [108, 184, 16, 56], [128, 192, 11, 48],
+           [74, 250, 13, 50], [90, 246, 15, 54], [110, 252, 12, 48], [126, 248, 14, 52],
+           [74, 310, 16, 44], [94, 314, 12, 40]].map(([x, y, w, h], i) =>
+          `<rect class="rm-book${i === 2 ? ' rm-book-lit' : ''}" x="${x}" y="${y}" width="${w}" height="${h}" rx="1.5"/>`).join('')}
+        <text class="rm-say" x="144" y="384" text-anchor="middle">Your wisdom shelf</text>
+      </g>
+
+      <!-- the cushion: you do not press "meditate", you sit down -->
+      <g class="zone zone-cushion" data-room="cushion" tabindex="0" role="button" aria-label="Sit. Breathe. Be still.">
+        <ellipse class="rm-cush-ring" cx="600" cy="506" rx="150" ry="44"/>
+        <ellipse class="rm-mat" cx="600" cy="508" rx="122" ry="34"/>
+        <ellipse class="rm-cush-shadow" cx="600" cy="498" rx="78" ry="22"/>
+        <ellipse class="rm-cush-base" cx="600" cy="486" rx="76" ry="26"/>
+        <ellipse class="rm-cush-top" cx="600" cy="474" rx="70" ry="23"/>
+        ${Array.from({length: 9}, (_, i) => `<path class="rm-cush-seam" d="${
+          roomEdge(600 + Math.cos(i / 9 * Math.PI * 2) * 22, 470 + Math.sin(i / 9 * Math.PI * 2) * 8,
+                   600 + Math.cos(i / 9 * Math.PI * 2) * 68, 474 + Math.sin(i / 9 * Math.PI * 2) * 22,
+                   'seam' + i)}"/>`).join('')}
+        ${sat ? '<ellipse class="rm-impression" cx="600" cy="472" rx="34" ry="11"/>' : ''}
+        ${leaves ? `<g class="rm-vine">
+          <path class="rm-vine-stem" d="M700,512 C716,486 706,452 722,${(432 - leaves * 6).toFixed(0)}"/>
+          ${Array.from({length: leaves}, (_, i) => { const t = (i + 1) / (leaves + 1);
+            const x = 700 + t * 22 + Math.sin(t * 6) * 5, y = 512 - t * (80 + leaves * 6);
+            const s = i % 2 ? 1 : -1;
+            return `<path class="rm-leaf" style="--i:${i}" d="M${x.toFixed(1)},${y.toFixed(1)}
+              q${(s * 13)},-6 ${(s * 19)},2 q${(-s * 8)},7 ${(-s * 19)},-2Z"/>`; }).join('')}
+        </g>` : ''}
+        <text class="rm-say" x="600" y="556" text-anchor="middle">Sit. Breathe. Be still.</text>
+      </g>
+
+      <!-- the table: four systems, laid out, each its own thing to reach for -->
+      <!-- the table is not itself a door: the four things on it are, and each
+           of them carries its own focus and its own label -->
+      <g class="zone zone-table" aria-label="The oracle awaits your question">
+        <ellipse class="rm-table-glow" cx="930" cy="386" rx="190" ry="86"/>
+        <path class="rm-table-top" d="M772,382 H1088 L1104,414 H756 Z"/>
+        <path class="rm-cloth" d="M756,414 H1104 C1096,472 1080,506 1062,530
+          C1040,518 1012,524 992,536 C968,522 938,528 914,540
+          C890,524 860,530 838,540 C818,516 792,472 776,442 Z"/>
+        ${Array.from({length: 5}, (_, i) => `<path class="rm-cloth-fold" d="${
+          roomEdge(792 + i * 66, 420, 800 + i * 66, 520, 'fold' + i)}"/>`).join('')}
+        <path class="rm-table-leg" d="M800,530 L806,590"/>
+        <path class="rm-table-leg" d="M1060,530 L1054,590"/>
+
+        <g class="obj obj-tarot${aura('tarot')}" data-room="tarot" tabindex="0" role="button" aria-label="Tarot">
+          <ellipse class="obj-aura" cx="812" cy="374" rx="40" ry="22"/>
+          ${[6, 3, 0].map(o => `<rect class="rm-card" x="${790 + o}" y="${348 - o}" width="44" height="62" rx="4"/>`).join('')}
+          <rect class="rm-card-face" x="790" y="348" width="44" height="62" rx="4"/>
+          <circle class="rm-card-mark" cx="812" cy="379" r="11"/>
+          <circle class="rm-card-mark" cx="812" cy="379" r="5"/>
+          <text class="obj-say" x="812" y="336" text-anchor="middle">Tarot</text>
+        </g>
+
+        <g class="obj obj-coins${aura('iching')}" data-room="iching" tabindex="0" role="button" aria-label="I Ching">
+          <ellipse class="obj-aura" cx="888" cy="386" rx="34" ry="19"/>
+          ${[[872, 392], [900, 396], [886, 374]].map(([x, y], i) =>
+            `<g class="rm-coin" style="--i:${i}"><circle cx="${x}" cy="${y}" r="12"/>
+              <rect class="rm-coin-hole" x="${x - 4}" y="${y - 4}" width="8" height="8" rx="1"/></g>`).join('')}
+          <text class="obj-say" x="888" y="346" text-anchor="middle">I Ching</text>
+        </g>
+
+        <g class="obj obj-oracle${aura('oracle')}" data-room="oracle" tabindex="0" role="button" aria-label="Oracle cards">
+          <ellipse class="obj-aura" cx="968" cy="372" rx="32" ry="26"/>
+          <g transform="rotate(-5 968 372)">
+            <rect class="rm-oracle" x="950" y="342" width="36" height="58" rx="4"/>
+            <path class="rm-oracle-star" d="M968,356 L972,368 L984,372 L972,376 L968,388 L964,376 L952,372 L964,368Z"/>
+          </g>
+          <text class="obj-say" x="968" y="332" text-anchor="middle">Oracle</text>
+        </g>
+
+        <g class="obj obj-charms${aura('charms')}" data-room="charms" tabindex="0" role="button" aria-label="Charm casting">
+          <ellipse class="obj-aura" cx="1042" cy="392" rx="36" ry="20"/>
+          ${[[1024, 390, 5], [1038, 397, 4], [1052, 388, 5.5], [1046, 380, 3.5],
+             [1060, 398, 4], [1030, 381, 4.5], [1068, 386, 3]].map(([x, y, r], i) =>
+            `<circle class="rm-charm" style="--i:${i}" cx="${x}" cy="${y}" r="${r}"/>`).join('')}
+          <text class="obj-say" x="1042" y="352" text-anchor="middle">Charms</text>
+        </g>
+        <text class="rm-say" x="930" y="576" text-anchor="middle">The oracle awaits your question</text>
+      </g>
+    </svg>
+  </div>`;
+}
+
+/* ---------- what the room does when you reach into it ---------- */
+function bindSacredRoom(root, redraw){
+  const go = redraw || rerender;
+  const wrap = (root || document).querySelector('.room-wrap'); if(!wrap) return;
+
+  const enter = (el, then) => {
+    /* the room stands back for a moment and then the practice is there. Not a
+       five-stage dissolve: the ceremonies have their own openings, and two
+       cinematics in a row is one too many. */
+    wrap.classList.add('entering');
+    el && el.classList.add('taken');
+    setTimeout(() => { wrap.classList.remove('entering'); el && el.classList.remove('taken'); then(); },
+      (typeof reduced === 'function' && reduced()) ? 0 : 260);
+  };
+
+  wrap.querySelectorAll('[data-room]').forEach(z => {
+    const act = () => {
+      const k = z.dataset.room;
+      sound('open');
+      if(k === 'cushion'){
+        /* sitting down is not choosing a practice: the four ways to be still
+           are offered once you are on the cushion, in a ring round it */
+        enter(z, () => openStillnessRing());
+        return;
+      }
+      if(k === 'sanctuary'){
+        enter(z, () => {
+          const s = stillness(); s.prefs.kind = 'sanctuary'; saveNow(); go();
+          setTimeout(() => document.querySelector('#stBegin')?.click(), 80);
+        });
+        return;
+      }
+      if(k === 'shelf'){ enter(z, () => navigate('#/journals/library')); return; }
+      const open = {tarot: () => openTarot(), iching: () => openIChing(),
+        oracle: () => openOracle(), charms: () => openCharmCast()}[k];
+      if(open) enter(z, open);
+    };
+    z.addEventListener('click', ev => { ev.stopPropagation(); act(); });
+    z.addEventListener('keydown', ev => {
+      if(ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); act(); }
+    });
+  });
+}
+
+/* The four ways to be still, offered round the cushion rather than as a row
+   of tabs above a form. Same four, same preferences, same session — this is
+   only where you are standing when you choose. */
+function openStillnessRing(){
+  const s = stillness();
+  const m = openModal(`<div class="sit-ring">
+    <div class="sit-cushion" aria-hidden="true"></div>
+    <h2 class="entry-h sit-h">How still, and for how long?</h2>
+    <div class="sit-opts">${STILL_KINDS.map(([k, n, ic]) =>
+      `<button class="sit-opt${s.prefs.kind === k ? ' on' : ''}" data-sitkind="${k}">
+        <span class="sit-ic">${ic}</span><b>${esc(n)}</b></button>`).join('')}</div>
+    <p class="muted sit-why">Whichever you pick, the length and the rest of it are on the page behind this.</p>
+  </div>`, 'narrow');
+  m.querySelectorAll('[data-sitkind]').forEach(b => b.onclick = () => {
+    s.prefs.kind = b.dataset.sitkind; saveNow(); sound('click'); m.remove();
+    rerender();
+    /* the pane for that practice is what you wanted to be looking at */
+    setTimeout(() => document.querySelector('#t-still .still-pane')
+      ?.scrollIntoView({block: 'center', behavior: reduced() ? 'auto' : 'smooth'}), 120);
+  });
+  return m;
+}
+/* ============================================================
    STILLNESS PRACTICE — the receptive half
 
    The Morning Theatre is the active half: constructing a future and feeling
@@ -31784,6 +32200,10 @@ function stillnessHTML(){
            <div class="field"><label>How long to stay</label>${lengths}</div>`;
   const recent = s.sessions.slice(0, 3);
   return `<div class="body stillness">
+    <!-- The room comes first, because the going is half of the practice. The
+         row of tabs is still under it: the room is how you arrive, the tabs
+         are how you switch once you are already sitting. -->
+    ${typeof sacredRoomHTML === 'function' ? sacredRoomHTML() : ''}
     <div class="still-tabs">${STILL_KINDS.map(([k, n, ic]) =>
       `<button class="${kind === k ? 'on' : ''}" data-stkind="${k}">${ic} ${n}</button>`).join('')}</div>
     <div class="still-pane">${body}
@@ -31811,6 +32231,7 @@ function stillnessHTML(){
 function bindStillness(root){
   const s = stillness(), p = s.prefs;
   const q = x => root.querySelector(x);
+  if(typeof bindSacredRoom === 'function') bindSacredRoom(root);
   const re = () => { saveNow(); rerender(); };
   root.querySelectorAll('[data-stkind]').forEach(b => b.onclick = () => { p.kind = b.dataset.stkind; re(); });
   root.querySelectorAll('[data-stmin]').forEach(b => b.onclick = () => { p.minutes = +b.dataset.stmin; re(); });
@@ -33283,13 +33704,6 @@ routes.settings = function(root){
       <!-- The one switch that is about the machine rather than about taste.
            Everything it turns off is decoration; nothing it turns off is
            information. -->
-      <div class="opt"><div><b>Decoration</b><div class="d">The ink painting behind the rooms, the dust in the air, the grain in the paper and the stone in the surfaces, the candlelight, the glows, the drift. All of it is ornament and all of it costs something to draw. On an older machine the instrument is untouched by turning it down — only quieter to look at, and a great deal faster.</div>
-        <div class="decor-pick" id="sDecor" role="radiogroup" aria-label="Decoration">${
-          [['essential','Essential','the painting, the paper, the stone, the falling leaves'],
-           ['plain','Plain','nothing but the writing']].map(([v,n,why]) =>
-          `<button class="${decorMode()===v?'on':''}" data-decor="${v}" role="radio"
-            aria-checked="${decorMode()===v}" title="${esc(why)}"><b>${n}</b><span>${esc(why)}</span></button>`).join('')}</div>
-        </div></div>
       <div class="opt"><div><b>Landing page</b><div class="d">Where the site opens.</div></div><select class="sel" style="width:auto" id="sHome">${[['compass','Compass'],['today','Today']].map(([v,l])=>`<option value="${v}" ${(S.settings.home||'compass')===v?'selected':''}>${l}</option>`).join('')}</select></div>
     </div>
     <div class="card rv"><h3>Day &amp; sleep</h3>
@@ -33374,13 +33788,6 @@ routes.settings = function(root){
     toast(+this.value === 0 ? 'The day turns over at midnight again.'
       : `The day turns over at ${this.value} AM. Anything before that is still the day before.`); };
   $('#sTheme').onclick = function(){ S.settings.theme = S.settings.theme==='dark'?'light':'dark'; saveNow(); applyTheme(); this.classList.toggle('on', S.settings.theme==='light'); };
-  const DECOR_SAID = {essential: 'Essential. The painting and the paper stay.',
-    plain: 'Plain. Every ornament is off.'};
-  $$('#sDecor [data-decor]').forEach(b => b.onclick = () => {
-    S.settings.decor = b.dataset.decor; saveNow(); applyDecor();
-    /* the particle canvas and the ink layer are built, not just styled, so
-       the page is drawn again rather than only re-skinned */
-    rerender(); sound('click'); toast(DECOR_SAID[decorMode()]); });
   $('#sSound').onclick = function(){ SoundManager.toggleSound(); this.classList.toggle('on', SoundManager.state().soundEnabled); };
   $('#sAmbient').onclick = function(){ SoundManager.toggleAmbient(); this.classList.toggle('on', SoundManager.state().ambientEnabled); };
   $('#sUiSound').onclick = function(){ SoundManager.toggleUi(); this.classList.toggle('on', SoundManager.state().uiEnabled); };

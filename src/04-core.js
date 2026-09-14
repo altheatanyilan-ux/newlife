@@ -273,31 +273,22 @@ const io = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting)
 function reveal(root=document){ let i=0; const sp = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--page-motion-speed')) || 1; $$('.rv:not(.in)', root).forEach(n => { n.style.transitionDelay = `${Math.round((i++%12)*60*sp)}ms`; io.observe(n); }); }
 
 /* ---------- theme ---------- */
-function applyTheme(){ document.documentElement.dataset.theme = S.settings.theme; $('#btnTheme').textContent = S.settings.theme==='dark' ? '☾' : '☀'; applySeason(); applyDecor(); if(typeof applyPageTheme === 'function') applyPageTheme(); }
-/* ---------- plain, for a machine that is working hard enough already ----------
-   Every ornament in this house costs something to draw, and on an older
-   laptop the sum of them is the difference between a page that answers and a
-   page that lags. One switch takes all of it off — the ink layers, the dust,
-   the grain and the stone, the glows, the candlelight, the drift — and leaves
-   the instrument, which was always the point. Nothing about what the app
-   KNOWS changes; only what it spends drawing it. */
-/* Two settings. Essential is the house: the ink painting behind the rooms,
-   the paper under it, the stone in the surfaces, the leaves coming down. Plain
-   is the writing and nothing else.
+function applyTheme(){ document.documentElement.dataset.theme = S.settings.theme; $('#btnTheme').textContent = S.settings.theme==='dark' ? '☾' : '☀'; applySeason(); if(typeof applyPageTheme === 'function') applyPageTheme(); }
+/* ---------- there is no decoration setting ----------
+   There used to be one, and removing it is the result of the work rather than
+   a retreat from it. It began as a switch because the house was slow and
+   somebody on an old laptop needed a way out; then it was three settings, then
+   two. What actually made the house slow turned out to be two lines writing a
+   custom property onto the root element on every frame of a scroll, and a
+   third writing one onto the page container on every frame of a pointer move.
+   A write like that invalidates style for the whole document. Those are fixed,
+   and measured: the heaviest room went from six seconds of renderer time in a
+   pointer sweep to half of one.
 
-   There used to be a third above Essential — the dust in the air, the flowers
-   in every margin, the textures on every section, the blur behind the
-   chrome, the drift on everything that could hold one. It was a hundred small
-   things each sitting on its own element, and between them they were most of
-   what made the house slow. It is gone rather than demoted: a setting nobody
-   should choose is not a setting.
-
-   plainMode() answers "is the small per-element ornament off". */
-function decorMode(){ return (S.settings && S.settings.decor) === 'plain' ? 'plain' : 'essential'; }
-function plainMode(){ return decorMode() === 'plain'; }
-/* the painting behind the rooms, which essential keeps and plain does not */
-function paintedGround(){ return decorMode() !== 'plain'; }
-function applyDecor(){ document.documentElement.dataset.decor = decorMode(); }
+   So there is one house and it looks like itself. Anybody who has asked their
+   system for less motion still gets a still one — that is honoured in the
+   stylesheet and in reduced(), where it belongs, rather than in a preference
+   nobody should have to find. */
 /* the season is a data attribute; the ink layer reads it for how heavy the mist
    hangs, and paints the margin sprig to match */
 function applySeason(){ if(typeof season === 'function') document.documentElement.dataset.season = season(); }

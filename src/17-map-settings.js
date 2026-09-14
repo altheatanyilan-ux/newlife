@@ -16,13 +16,6 @@ routes.settings = function(root){
       <!-- The one switch that is about the machine rather than about taste.
            Everything it turns off is decoration; nothing it turns off is
            information. -->
-      <div class="opt"><div><b>Decoration</b><div class="d">The ink painting behind the rooms, the dust in the air, the grain in the paper and the stone in the surfaces, the candlelight, the glows, the drift. All of it is ornament and all of it costs something to draw. On an older machine the instrument is untouched by turning it down — only quieter to look at, and a great deal faster.</div>
-        <div class="decor-pick" id="sDecor" role="radiogroup" aria-label="Decoration">${
-          [['essential','Essential','the painting, the paper, the stone, the falling leaves'],
-           ['plain','Plain','nothing but the writing']].map(([v,n,why]) =>
-          `<button class="${decorMode()===v?'on':''}" data-decor="${v}" role="radio"
-            aria-checked="${decorMode()===v}" title="${esc(why)}"><b>${n}</b><span>${esc(why)}</span></button>`).join('')}</div>
-        </div></div>
       <div class="opt"><div><b>Landing page</b><div class="d">Where the site opens.</div></div><select class="sel" style="width:auto" id="sHome">${[['compass','Compass'],['today','Today']].map(([v,l])=>`<option value="${v}" ${(S.settings.home||'compass')===v?'selected':''}>${l}</option>`).join('')}</select></div>
     </div>
     <div class="card rv"><h3>Day &amp; sleep</h3>
@@ -107,13 +100,6 @@ routes.settings = function(root){
     toast(+this.value === 0 ? 'The day turns over at midnight again.'
       : `The day turns over at ${this.value} AM. Anything before that is still the day before.`); };
   $('#sTheme').onclick = function(){ S.settings.theme = S.settings.theme==='dark'?'light':'dark'; saveNow(); applyTheme(); this.classList.toggle('on', S.settings.theme==='light'); };
-  const DECOR_SAID = {essential: 'Essential. The painting and the paper stay.',
-    plain: 'Plain. Every ornament is off.'};
-  $$('#sDecor [data-decor]').forEach(b => b.onclick = () => {
-    S.settings.decor = b.dataset.decor; saveNow(); applyDecor();
-    /* the particle canvas and the ink layer are built, not just styled, so
-       the page is drawn again rather than only re-skinned */
-    rerender(); sound('click'); toast(DECOR_SAID[decorMode()]); });
   $('#sSound').onclick = function(){ SoundManager.toggleSound(); this.classList.toggle('on', SoundManager.state().soundEnabled); };
   $('#sAmbient').onclick = function(){ SoundManager.toggleAmbient(); this.classList.toggle('on', SoundManager.state().ambientEnabled); };
   $('#sUiSound').onclick = function(){ SoundManager.toggleUi(); this.classList.toggle('on', SoundManager.state().uiEnabled); };

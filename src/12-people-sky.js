@@ -84,11 +84,10 @@ function PeopleSky(canvas, nodes, opts){
   this.nodes = nodes; this.opts = opts || {};
   this.hover = null; this.drag = null; this.pressed = null;
   this.t0 = performance.now(); this.lit = new Map();
-  /* Still, for anyone who has asked for less motion and for anyone running
-     plain: the simulation is settled in one go and drawn once. The layout is
-     the information; the drifting is not. */
-  this.soft = (typeof reduced === 'function' && reduced())
-    || (typeof plainMode === 'function' && plainMode());
+  /* Still, for anyone who has asked their system for less motion: the
+     simulation is settled in one go and drawn once. The layout is the
+     information; the drifting is not. */
+  this.soft = (typeof reduced === 'function' && reduced());
   this.resize();
   this.place();
   this.bind();
@@ -524,7 +523,6 @@ function thoughtOfThem(id){
    for a small kindness and it should be the size of one. */
 function skyBurstAt(id){
   if(typeof reduced === 'function' && reduced()) return;
-  if(typeof plainMode === 'function' && plainMode()) return;
   if(!_sky) return;
   const n = _sky.nodes.find(x => x.id === id); if(!n) return;
   const r = _sky.cv.getBoundingClientRect();
