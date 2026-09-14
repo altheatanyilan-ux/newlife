@@ -1,10 +1,14 @@
 /* ============================================================
    THE OPENING QUESTION
 
-   Three things about this house are matters of taste rather than
-   of data, and all three are wrong for somebody by default: whether
-   the rooms are lit or dark, whether there is a sound under the
-   work, and whether the buttons answer when pressed.
+   Four things about this house are matters of taste rather than of
+   data, and every one of them is wrong for somebody by default:
+   whether the rooms are lit or dark, whether the buttons answer when
+   pressed, whether there is a sound under the work, and how much of
+   the drawing is there at all. They are the four at the top of the
+   Atmosphere card in Settings, asked here in the same order and with
+   the same words, so that finding them again later is recognising
+   them rather than searching.
 
    Guessing is worse than asking, and asking later is worse than
    asking first — a page that arrives in the wrong theme has already
@@ -12,9 +16,10 @@
    this is the first thing on screen.
 
    Every control takes effect as you touch it. There is no Save: the
-   dark option makes the room dark under the dialog, and the sound
-   options play and stop as you toggle them, because the only honest
-   way to choose a sound is to hear it. "Begin" only closes the door.
+   dark option makes the room dark under the dialog, the sound options
+   play and stop as you toggle them, because the only honest way to
+   choose a sound is to hear it, and turning the decoration off takes
+   it off the page behind. "Begin" only closes the door.
 
    It asks once. The flag lives in S.settings, which resetAll()
    rebuilds from the seed, so clearing all data brings the question
@@ -33,7 +38,7 @@ function firstRunRowHTML(key, title, desc, on){
 function openFirstRun(after){
   const snd = SoundManager.state();
   const m = openModal(`<h2 class="entry-h">Before you start</h2>
-    <p class="muted" style="font-size:.9rem;margin:-6px 0 16px">Three things that are a matter of taste. All of them are in Settings later, and none of them is permanent.</p>
+    <p class="muted" style="font-size:.9rem;margin:-6px 0 16px">Four things that are a matter of taste. All of them are in Settings under <b>Atmosphere</b>, and none of them is permanent.</p>
     <div class="stack fr-stack">
       <div class="fr-themes" role="radiogroup" aria-label="Light or dark">
         ${[['light', 'Light', 'Paper. The default.'], ['dark', 'Dark', 'Ink. Easier at night.']].map(([v, n, d]) => `
@@ -42,8 +47,9 @@ function openFirstRun(after){
             <b>${n}</b><span class="fr-desc">${d}</span>
           </button>`).join('')}
       </div>
-      ${firstRunRowHTML('ambient', 'Sound in the room', 'A quiet bed of noise under the work — rain, a café, a slow piano. Off by default.', snd.ambientEnabled)}
-      ${firstRunRowHTML('clicks', 'Sound on the buttons', 'Two soft piano notes when something is pressed or saved. Off by default.', snd.soundEnabled)}
+      ${firstRunRowHTML('clicks', 'Interaction sounds', 'Soft chimes on a click, a low note on moving rooms, a rising pair when something is finished. Made in the browser; nothing is downloaded.', snd.soundEnabled)}
+      ${firstRunRowHTML('ambient', 'Ambient background', 'A barely-audible wash of noise under the work, which ducks out of the way of every click.', snd.ambientEnabled)}
+      ${firstRunRowHTML('decor', 'Decoration', 'The ink painting behind the rooms, the dust in the air, the grain in the paper and the stone in the surfaces. All ornament, all of it costing something to draw — turn it off on an older machine and nothing is lost but the drawing.', !plainMode())}
       <div class="row" style="justify-content:flex-end;margin-top:6px">
         <button class="btn primary" id="frGo" style="padding:12px 30px;font-size:1rem">Begin</button>
       </div>
@@ -77,7 +83,15 @@ function openFirstRun(after){
   m.querySelectorAll('[data-fr]').forEach(b => b.onclick = () => {
     const on = !b.classList.contains('on');
     b.classList.toggle('on', on); b.setAttribute('aria-checked', on);
-    /* Toggling a sound plays it. Choosing one you cannot hear is guessing. */
+    /* Toggling a sound plays it. Choosing one you cannot hear is guessing.
+       Turning the decoration off takes it off the page behind the dialog, for
+       the same reason: the only honest way to choose it is to see it go. */
+    if(b.dataset.fr === 'decor'){
+      S.settings.decor = on ? 'full' : 'plain';
+      saveNow(); applyDecor();
+      sound('click');
+      return;
+    }
     if(b.dataset.fr === 'ambient') SoundManager.setAmbient(on);
     else SoundManager.setSound(on);
     if(typeof syncSoundButtons === 'function') syncSoundButtons();

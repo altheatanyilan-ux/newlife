@@ -41,7 +41,12 @@ const SoundManager = (() => {
      opens — so they are off until somebody says otherwise, and they are off
      entirely whenever the interaction sounds are, since they are quieter
      versions of the same idea and a muted house should be silent. */
-  let uiOn = readFlag('li.ui.sounds', false);
+  /* On unless it has been turned off. It is the quietest layer in the house —
+     a tick under the pointer, a breath when a panel opens — and it is silent
+     anyway while the chimes are off, so the cost of having it on for someone
+     who did not ask is a sound they will not notice, and the cost of having it
+     off is that nobody ever finds it. */
+  let uiOn = readFlag('li.ui.sounds', true);
   let ambientKind = readStr(LS_KIND, 'brown'), ambientVol = parseFloat(readStr(LS_VOL, '0.5'));
   let ambient = null;               // {nodes:[], gain, timer}
   let pendingClick = null, lastPlay = 0;

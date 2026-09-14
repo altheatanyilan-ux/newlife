@@ -11,7 +11,7 @@ routes.settings = function(root){
            pointer passing over the sidebar, a panel taking a breath as it
            opens. Kept behind its own switch because most people will never
            want it, and it is silent anyway while the chimes are off. -->
-      <div class="opt"><div><b>Interface sounds ⌁</b><div class="d">A tick almost too quiet to hear as the pointer crosses the sidebar; a breath of air when a panel opens or closes; a wooden knock on anything finished. Needs interaction sounds on. Off by default.</div></div><label class="toggle ${SoundManager.state().uiEnabled?'on':''}" id="sUiSound"><span class="sw"></span></label></div>
+      <div class="opt"><div><b>Interface sounds ⌁</b><div class="d">A tick almost too quiet to hear as the pointer crosses the sidebar; a breath of air when a panel opens or closes; a wooden knock on anything finished. Needs interaction sounds on. On by default.</div></div><label class="toggle ${SoundManager.state().uiEnabled?'on':''}" id="sUiSound"><span class="sw"></span></label></div>
       <div class="opt"><div><b>Felt time</b><div class="d">Default timeline mode: stretch dense stages, compress thin ones.</div></div><label class="toggle ${S.settings.feltTime?'on':''}" id="sFelt"><span>clock</span><span class="sw"></span><span>felt</span></label></div>
       <!-- The one switch that is about the machine rather than about taste.
            Everything it turns off is decoration; nothing it turns off is
