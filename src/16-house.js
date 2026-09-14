@@ -459,10 +459,223 @@ function mainRoomHTML(){
   </div>`;
 }
 
+/* ---------- the garden ----------
+   Outside, and the only zone where the weather is real. The sky is the hour
+   of the day and the moon is the actual moon, because a garden that is always
+   at noon is a diagram of a garden.
+
+   Four things grow out here, and each of them grows for a reason that is
+   already recorded somewhere: the herbs stand taller the more congruent your
+   health is, the fire keeps its embers while you have been writing letters,
+   the chest opens further the more artifacts are on the shelf, and the tree
+   is the skill tree — not a picture of it, the same count of branches. */
+function gardenHTML(){
+  const light = houseHour();
+  const moon = typeof moonPhase === 'function' ? moonPhase() : {p:.5, name:''};
+  const night = light === 'night';
+  const arts = (S.stages || []).reduce((n, st) => n + ((st.artifacts || []).length), 0);
+  const letters = (S.entries || []).filter(e => e.type === 'letter').length;
+  const skills = (S.skills || []).filter(s => !s.planned && skillHorizon(s) !== 'someday').length;
+  /* how well the health values are being kept, as one number, which is what
+     decides how tall the herbs stand */
+  const health = (() => {
+    const ids = (S.values || []).filter(v => /health|body|rigour|rigor|vital/i.test(v.name || ''))
+      .map(v => v.id);
+    if(!ids.length) return .5;
+    const xs = ids.map(id => (typeof valueCurrent === 'function' ? valueCurrent(id) : 50) || 50);
+    return Math.max(.15, Math.min(1, (xs.reduce((a, b) => a + b, 0) / xs.length) / 100));
+  })();
+
+  const path = Array.from({length: 8}, (_, i) =>
+    `<path class="hg-path" d="${roomEdge(0, 318 + i * 36, 1200, 312 + i * 36, 'gp' + i)}"/>`).join('');
+
+  return `<div class="room-wrap house-room rv" data-sky="${light}">
+    <svg class="sacred-room" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid meet"
+      role="group" aria-label="The garden: herbs, a fire pit, a chest and the tree">
+      <defs>
+        <linearGradient id="hgSky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" class="hg-sky-top"/><stop offset="1" class="hg-sky-low"/></linearGradient>
+        <radialGradient id="hgFire"><stop offset="0" stop-color="#e8a54a" stop-opacity=".6"/>
+          <stop offset="1" stop-color="#e8a54a" stop-opacity="0"/></radialGradient>
+      </defs>
+
+      <!-- the horizon sits at two fifths, not three quarters. With the sky
+           taking the top three quarters, every growing thing was crushed into
+           a strip along the bottom — which is a photograph of a sky with a
+           garden in it, rather than a garden. -->
+      <rect x="0" y="0" width="1200" height="300" fill="url(#hgSky)"/>
+      <rect x="0" y="300" width="1200" height="300" class="hg-ground"/>
+      <g class="rm-tex">${path}</g>
+
+      <!-- the sun, or the moon at the phase it is actually at tonight -->
+      ${night
+        ? `<g class="hg-moon"><circle cx="1010" cy="86" r="34" class="hg-moon-disc"/>
+             <ellipse cx="${(1010 - (1 - Math.abs(Math.cos(moon.p * 2 * Math.PI))) * 26).toFixed(0)}"
+               cy="86" rx="${(Math.abs(Math.cos(moon.p * 2 * Math.PI)) * 34).toFixed(0)}" ry="34"
+               class="hg-moon-shade"/>
+             <title>${esc(moon.name)}</title></g>
+           ${Array.from({length: 40}, (_, i) => {
+             const x = (i * 149) % 1180 + 10, y = (i * 83) % 250 + 14;
+             return `<circle class="hg-star" style="--i:${i % 7}" cx="${x}" cy="${y}" r="${1 + (i % 3) * .5}"/>`;
+           }).join('')}`
+        : `<circle class="hg-sun" cx="1010" cy="${light === 'midday' ? 66 : 108}" r="40"/>`}
+
+      <!-- the herb garden: taller and in flower the better the body is kept -->
+      <g class="zone zone-herbs" data-room="herbs" tabindex="0" role="button"
+         aria-label="The herb garden — the values you keep your body by">
+        <path class="hg-bed" d="M48,506 H402 L420,568 H30 Z"/>
+        ${Array.from({length: 13}, (_, i) => {
+          const x = 66 + i * 27, h = 44 + health * 96 + ((i * 7) % 4) * 9;
+          const lean = ((i * 31) % 9) - 4;
+          return `<g class="hg-herb" style="--i:${i}" transform="translate(${x},506) rotate(${lean})">
+            <path class="hg-stem" d="M0,0 V${-h}"/>
+            <path class="hg-leaf" d="M0,${-h * .55} q-9,-5 -13,3 q7,5 13,-3Z"/>
+            <path class="hg-leaf" d="M0,${-h * .78} q9,-5 13,3 q-7,5 -13,-3Z"/>
+            ${health > .6 && i % 3 === 0 ? `<circle class="hg-bloom" cx="0" cy="${-h - 4}" r="4.5"/>` : ''}
+          </g>`; }).join('')}
+        <text class="rm-say" x="224" y="592" text-anchor="middle">What you grow, you become</text>
+      </g>
+
+      <!-- the fire: what you are releasing goes in it -->
+      <g class="zone zone-fire" data-room="fire" tabindex="0" role="button"
+         aria-label="The fire pit — letters, and what you are letting go of">
+        <ellipse class="hg-firelight" cx="580" cy="498" rx="160" ry="92" fill="url(#hgFire)"/>
+        ${Array.from({length: 10}, (_, i) => { const a = i / 10 * Math.PI * 2;
+          return `<ellipse class="hg-stone" cx="${(580 + Math.cos(a) * 78).toFixed(0)}"
+            cy="${(508 + Math.sin(a) * 27).toFixed(0)}" rx="18" ry="12"/>`; }).join('')}
+        ${letters ? `<g class="hg-flames">
+          <path class="hg-flame-out" d="M580,430 C608,458 603,485 580,500 C557,485 552,458 580,430Z"/>
+          <path class="hg-flame-in" d="M580,456 C594,472 592,488 580,496 C568,488 566,472 580,456Z"/>
+        </g>` : `<path class="hg-ember" d="M560,498 h40"/>`}
+        <path class="hm-paper hg-scrap" d="M672,496 l34,-7 l5,21 l-34,7Z"/>
+        <text class="rm-say" x="580" y="590" text-anchor="middle">Write what you are releasing</text>
+      </g>
+
+      <!-- the chest: it opens further the more you have kept -->
+      <g class="zone zone-chest" data-room="chest" tabindex="0" role="button"
+         aria-label="The souvenir chest — the artifacts on your timeline">
+        <path class="hg-chest-body" d="M756,498 H906 V572 H756 Z"/>
+        <path class="hg-chest-band" d="M756,530 H906"/>
+        ${Array.from({length: Math.min(arts, 5)}, (_, i) =>
+          `<rect class="hg-relic" x="${770 + i * 27}" y="${484 - (i % 2) * 6}" width="20" height="14" rx="2"
+             transform="rotate(${((i * 23) % 17) - 8} ${780 + i * 27} 491)"/>`).join('')}
+        <!-- the lid swings on the hinge at its back edge, which in a flat view
+             is its left end. Rotated about its own middle it read as a slab
+             floating off the box. -->
+        <g class="hg-chest-lid" style="--open:${Math.min(34, 6 + arts * 5)}">
+          <path d="M752,498 H910 L910,482 C910,470 890,464 831,464 C772,464 752,470 752,482 Z"/>
+        </g>
+        <text class="rm-say" x="832" y="592" text-anchor="middle">Nothing is truly forgotten</text>
+      </g>
+
+      <!-- the tree: the same skills, out here as a real tree -->
+      <g class="zone zone-tree" data-room="tree" tabindex="0" role="button"
+         aria-label="The tree — your skills">
+        <!-- canopy first, so it is behind: branches that stick out past the
+             leaves read as sticks rather than as a tree -->
+        ${(() => {
+          const n = Math.min(Math.max(skills, 2), 10);
+          const rx = 96 + n * 7, ry = 76 + n * 5, cx = 1050, cy = 296;
+          return `<ellipse class="hg-canopy" cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}"/>
+            <path class="hg-trunk" d="M1032,572 C1028,512 1038,462 1046,420 C1050,392 1050,360 1050,${cy + ry * .4}"/>
+            ${Array.from({length: n}, (_, i) => {
+              const up = i / Math.max(1, n - 1);
+              const y = 452 - up * 120, sg = i % 2 ? 1 : -1;
+              const len = (30 + (1 - up) * 26);
+              return `<path class="hg-branch" d="M${1038 + up * 12},${y}
+                q${sg * len * .6},${-len * .3} ${sg * len},${-len * .5}"/>`; }).join('')}
+            ${Array.from({length: Math.min(skills, 12)}, (_, i) => { const a = i / 12 * Math.PI * 2;
+              return `<circle class="hg-blossom" style="--i:${i}"
+                cx="${(cx + Math.cos(a) * rx * .74).toFixed(0)}"
+                cy="${(cy + Math.sin(a) * ry * .74).toFixed(0)}" r="4.5"/>`; }).join('')}`;
+        })()}
+        <text class="rm-say" x="1050" y="592" text-anchor="middle">Every skill is a branch</text>
+      </g>
+    </svg>
+  </div>`;
+}
+
+/* ---------- the roof ----------
+   The one place in the house you can see the whole of it from, and the zone
+   where the two things this app draws as skies are actually in the sky: the
+   values go round overhead as planets, the people stand out as stars. It is
+   also the only room where the strategic view belongs — you do not plan a
+   quarter from a cushion. */
+function roofHTML(){
+  const night = houseHour() === 'night';
+  const vals = (S.valueOrder || []).filter(id => byId(S.values, id)).length;
+  const folk = (S.people || []).filter(p => !p.archived).length;
+  return `<div class="room-wrap house-room rv" data-sky="${houseHour()}">
+    <svg class="sacred-room" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid meet"
+      role="group" aria-label="The roof: the sky, a telescope and the planning table">
+      <defs>
+        <linearGradient id="hrSky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" class="hr-sky-top"/><stop offset="1" class="hr-sky-low"/></linearGradient>
+      </defs>
+      <rect x="0" y="0" width="1200" height="470" fill="url(#hrSky)"/>
+
+      <!-- the values, going round overhead -->
+      <g class="zone zone-sky" data-room="sky" tabindex="0" role="button"
+         aria-label="The sky — your values, orbiting">
+        <circle class="hr-sun" cx="600" cy="196" r="26"/>
+        ${Array.from({length: 4}, (_, i) =>
+          `<ellipse class="hr-orbit" cx="600" cy="196" rx="${86 + i * 54}" ry="${(86 + i * 54) * .34}"/>`).join('')}
+        ${Array.from({length: Math.min(vals, 8)}, (_, i) => {
+          const ring = 86 + (i % 4) * 54, a = (i * 137.5) * Math.PI / 180;
+          const v = byId(S.values, S.valueOrder[i]);
+          return `<circle class="hr-planet" style="--i:${i};--c:${(v && v.color) || 'var(--gold)'}"
+            cx="${(600 + Math.cos(a) * ring).toFixed(0)}"
+            cy="${(196 + Math.sin(a) * ring * .34).toFixed(0)}" r="${7 - (i % 4)}"/>`; }).join('')}
+        <text class="rm-say" x="600" y="104" text-anchor="middle">Your values orbit around you</text>
+      </g>
+
+      <!-- and the people, as stars -->
+      <g class="zone zone-stars" data-room="stars" tabindex="0" role="button"
+         aria-label="The stars — the people in your life">
+        ${Array.from({length: Math.min(Math.max(folk, 6), 26)}, (_, i) => {
+          const x = 70 + ((i * 167) % 1060), y = 36 + ((i * 97) % 300);
+          return `<circle class="hr-star" style="--i:${i % 8}" cx="${x}" cy="${y}" r="${1.4 + (i % 3)}"/>`;
+        }).join('')}
+        <text class="rm-say" x="200" y="360" text-anchor="middle">Everyone you love is a star</text>
+      </g>
+
+      <!-- the parapet, and the two things you do up here -->
+      <rect x="0" y="470" width="1200" height="130" class="hr-deck"/>
+      <path class="hr-rail" d="M0,470 H1200 M0,446 H1200"/>
+      ${Array.from({length: 17}, (_, i) => `<path class="hr-baluster" d="M${34 + i * 70},446 V470"/>`).join('')}
+
+      <g class="zone zone-scope" data-room="scope" tabindex="0" role="button"
+         aria-label="The telescope — look toward what you are building">
+        <!-- the legs meet the tube. They used to stop forty pixels short of
+             it, which reads as two objects rather than one instrument. -->
+        <path class="hr-tripod" d="M236,572 L268,496 M300,572 L268,496 M268,572 V496"/>
+        <g class="hr-scope-body">
+          <rect x="212" y="470" width="112" height="26" rx="13" transform="rotate(-26 268 483)"/>
+          <circle cx="220" cy="500" r="9"/>
+        </g>
+        <text class="rm-say" x="268" y="592" text-anchor="middle">What do you see in the distance?</text>
+      </g>
+
+      <g class="zone zone-plans" data-room="plans" tabindex="0" role="button"
+         aria-label="The planning table — the week, and the money">
+        <path class="hm-desk" d="M760,500 H1040 L1052,518 H748 Z"/>
+        <path class="rm-table-leg" d="M772,518 L776,584 M1028,518 L1024,584"/>
+        <rect class="hm-paper" x="800" y="472" width="86" height="30" rx="1" transform="rotate(-4 843 487)"/>
+        <rect class="hm-paper" x="872" y="468" width="76" height="34" rx="1" transform="rotate(3 910 485)"/>
+        ${Array.from({length: 4}, (_, i) =>
+          `<path class="hr-ruled" d="M808,${480 + i * 6} H876"/>`).join('')}
+        <rect class="hr-map" x="952" y="470" width="78" height="32" rx="2" transform="rotate(-2 991 486)"/>
+        <text class="rm-say" x="900" y="592" text-anchor="middle">The view from above makes it clearer</text>
+      </g>
+    </svg>
+  </div>`;
+}
+
 /* ---------- the frame every zone is drawn in ---------- */
 function houseHTML(){
   const z = houseZoneOf(houseZone());
-  const body = {sanctuary: sanctuaryHTML, main: mainRoomHTML}[z.id];
+  const body = {sanctuary: sanctuaryHTML, main: mainRoomHTML,
+                garden: gardenHTML, roof: roofHTML}[z.id];
   return `<div class="page house-page">
     <div class="house-stage" data-zone="${z.id}" data-light="${houseHour()}">
       ${body ? body() : `<div class="room-wrap house-room"><div class="empty house-todo">
@@ -533,6 +746,16 @@ const HOUSE_PORTALS = {
   drinks:    () => openDrinkCeremony(),
   nook:      () => navigate('#/journals/reflection'),
   synch:     () => navigate('#/journals/synchronicity'),
+  /* the garden */
+  herbs:     () => navigate('#/values'),
+  fire:      () => navigate('#/journals/letter'),
+  chest:     () => navigate('#/journals/timeline'),
+  tree:      () => navigate('#/skills'),
+  /* the roof */
+  sky:       () => navigate('#/values'),
+  stars:     () => navigate('#/people'),
+  scope:     () => navigate('#/journals/manifestation'),
+  plans:     () => navigate('#/planning'),
   tarot:     () => openTarot(),
   iching:    () => openIChing(),
   oracle:    () => openOracle(),

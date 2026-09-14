@@ -6949,5 +6949,105 @@ html[data-theme="light"] .hm-pin-note{fill:#fffdf6;stroke:rgba(44,37,32,.12);str
 .dk-ing:first-of-type{border-top:0}
 .dk-ing b{font-family:var(--serif);font-size:.95rem}
 .dk-ing .mono{font-size:.66rem;color:var(--faint);text-align:right}
+
+/* ---------- the garden ----------
+   The one zone where the weather is real: the sky is the hour of the day and
+   the moon is the actual moon. A garden that is always at noon is a diagram
+   of a garden. Every colour here is a stop on a gradient rather than a fill,
+   so the whole sky changes with one attribute on the wrapper. */
+.hg-sky-top{stop-color:#bcd0d8}
+.hg-sky-low{stop-color:#e6dcc8}
+[data-sky="morning"] .hg-sky-top{stop-color:#d8c9c0}
+[data-sky="morning"] .hg-sky-low{stop-color:#f2e2c9}
+[data-sky="evening"] .hg-sky-top{stop-color:#b3859a}
+[data-sky="evening"] .hg-sky-low{stop-color:#e8b782}
+[data-sky="night"]   .hg-sky-top{stop-color:#141a26}
+[data-sky="night"]   .hg-sky-low{stop-color:#26242c}
+.hg-ground{fill:#9c8156}
+[data-sky="night"] .hg-ground{fill:#2b2620}
+.hg-path{fill:none;stroke:rgba(0,0,0,.08);stroke-width:1}
+.hg-sun{fill:#f4d78c;opacity:.85}
+.hg-moon-disc{fill:#e8e0d4;opacity:.92}
+.hg-moon-shade{fill:#141a26;opacity:.92}
+.hg-star{fill:#e8e0d4;opacity:.5;animation:hgTwinkle 5s ease-in-out infinite;
+  animation-delay:calc(var(--i) * -.7s)}
+@keyframes hgTwinkle{0%,100%{opacity:.28}50%{opacity:.7}}
+
+.hg-bed{fill:#6b5236}
+[data-sky="night"] .hg-bed{fill:#221d18}
+.hg-stem{fill:none;stroke:var(--sage);stroke-width:2.4;stroke-linecap:round}
+.hg-leaf{fill:var(--sage);opacity:.85}
+.hg-bloom{fill:var(--rose)}
+/* the whole bed leans when you reach for it, each plant a beat behind the last */
+.hg-herb{transform-box:fill-box;transition:transform .3s var(--ease)}
+.zone-herbs:hover .hg-herb,.zone-herbs:focus-visible .hg-herb{
+  animation:hgSway 3.4s var(--ease) infinite;animation-delay:calc(var(--i) * -.24s)}
+@keyframes hgSway{0%,100%{transform:rotate(-1.6deg)}50%{transform:rotate(1.6deg)}}
+
+.hg-stone{fill:#7b7169}
+[data-sky="night"] .hg-stone{fill:#3a342e}
+.hg-firelight{opacity:.5;transition:opacity .3s var(--ease)}
+.zone-fire:hover .hg-firelight{opacity:.85}
+.hg-flame-out{fill:#e8a54a;opacity:.85}
+.hg-flame-in{fill:#fff0cf}
+.hg-flames{transform-box:fill-box;transform-origin:50% 100%;
+  animation:rmFlame 2.1s var(--ease) infinite}
+.hg-ember{fill:none;stroke:#c2582d;stroke-width:5;stroke-linecap:round;opacity:.65;
+  animation:hgEmber 3.6s ease-in-out infinite}
+@keyframes hgEmber{0%,100%{opacity:.4}50%{opacity:.8}}
+.hg-scrap{opacity:.85}
+
+.hg-chest-body{fill:var(--rm-wood)}
+.hg-chest-band{fill:none;stroke:var(--gold);stroke-width:3;opacity:.7}
+/* the lid stands further open the more there is in it */
+/* the hinge is the lid's back edge, which in this flat view is its left end */
+.hg-chest-lid{fill:var(--rm-wood-2);transform-box:fill-box;transform-origin:4% 100%;
+  transform:rotate(calc(var(--open) * -1deg));transition:transform .3s var(--ease)}
+.zone-chest:hover .hg-chest-lid{transform:rotate(calc((var(--open) + 12) * -1deg))}
+.hg-relic{fill:#f3ead7;opacity:.9}
+
+.hg-trunk{fill:none;stroke:#5c4632;stroke-width:14;stroke-linecap:round}
+.hg-branch{fill:none;stroke:#5c4632;stroke-width:5;stroke-linecap:round}
+.hg-canopy{fill:var(--sage);opacity:.42}
+.hg-blossom{fill:var(--rose);opacity:.9;
+  animation:hgOpen .6s var(--ease) both;animation-delay:calc(var(--i) * .05s)}
+@keyframes hgOpen{from{opacity:0;transform:scale(.4)}to{opacity:.9;transform:scale(1)}}
+
+/* ---------- the roof ----------
+   The two things this app already draws as skies are actually in the sky
+   here: the values go round overhead, the people stand out as stars. Neither
+   is the real canvas — those live on their own pages and this is the view
+   from the roof, which is a different thing and should look like one. */
+.hr-sky-top{stop-color:#7f93ad}
+.hr-sky-low{stop-color:#dcc9b4}
+[data-sky="evening"] .hr-sky-top{stop-color:#5e4a63}
+[data-sky="evening"] .hr-sky-low{stop-color:#e0a271}
+[data-sky="night"]   .hr-sky-top{stop-color:#0e1320}
+[data-sky="night"]   .hr-sky-low{stop-color:#1d2130}
+.hr-sun{fill:#f4d78c;opacity:.9}
+.hr-orbit{fill:none;stroke:#e8e0d4;stroke-width:1;opacity:.24;stroke-dasharray:3 7}
+.hr-planet{fill:var(--c);opacity:.9;
+  animation:hgOpen .5s var(--ease) both;animation-delay:calc(var(--i) * .06s)}
+.hr-star{fill:#e8e0d4;opacity:.55;animation:hgTwinkle 4.4s ease-in-out infinite;
+  animation-delay:calc(var(--i) * -.55s)}
+.zone-sky:hover .hr-orbit{opacity:.44}
+.zone-stars:hover .hr-star{opacity:.9}
+.hr-deck{fill:#7b6a55}
+[data-sky="night"] .hr-deck{fill:#241f1b}
+.hr-rail,.hr-baluster{fill:none;stroke:#5c4632;stroke-width:4;stroke-linecap:round}
+.hr-baluster{stroke-width:3;opacity:.8}
+.hr-tripod{fill:none;stroke:#3f3a34;stroke-width:4;stroke-linecap:round}
+.hr-scope-body{fill:#3f3a34}
+.hr-scope-body circle{fill:var(--gold)}
+.hr-scope-body{transform-box:fill-box;transform-origin:40% 80%;transition:transform .3s var(--ease)}
+.zone-scope:hover .hr-scope-body{transform:rotate(-9deg)}
+.hr-ruled{fill:none;stroke:#8a7b6c;stroke-width:1}
+.hr-map{fill:#cdbb9b;stroke:#8a7b6c;stroke-width:1}
+
+@media (prefers-reduced-motion: reduce){
+  .hg-star,.hg-flames,.hg-ember,.hg-blossom,.hr-star,.hr-planet{animation:none!important}
+  .zone-herbs:hover .hg-herb{animation:none!important}
+  .hg-herb,.hg-chest-lid,.hr-scope-body,.hg-firelight{transition:none}
+}
 </style>
 </head>

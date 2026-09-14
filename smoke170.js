@@ -132,15 +132,93 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
       tarot: document.querySelector('.obj-tarot').classList.contains('consulted')})),
     {oracle: true, tarot: false});
 
-  console.log('\n5. it costs one paint and then nothing');
+  console.log('\n5. outside, and above');
+  /* The garden is the only zone where the weather is real: the sky is the hour
+     of the day and the moon is the actual moon. A garden always at noon is a
+     diagram of a garden. */
+  await p.evaluate(() => {
+    for(let i = 0; i < 4; i++) S.entries.push({id:'lt'+i, type:'letter', occurredAt: today(), title:'A letter'});
+    if(S.stages && S.stages[0]) S.stages[0].artifacts = [1,2,3].map(i => ({id:'a'+i, caption:'ticket', date:'', src:''}));
+    saveNow(); });
+  await go('#/house/garden');
+  is('the garden draws', await zone(), 'garden');
+  const gdoors = await p.evaluate(() =>
+    [...document.querySelectorAll('.house-room [data-room]')].map(n => n.dataset.room));
+  is('  four things grow out there', gdoors, ['herbs','fire','chest','tree']);
+  is('  and the sky is the hour it actually is',
+    await p.evaluate(() => document.querySelector('.room-wrap').dataset.sky),
+    await p.evaluate(() => houseHour()));
+  /* each of them grows off something already recorded */
+  is('  three artifacts stand three relics in the chest',
+    await p.evaluate(() => document.querySelectorAll('.hg-relic').length), 3);
+  yes('  and four letters keep the fire lit',
+    await p.evaluate(() => !!document.querySelector('.hg-flames')));
+  await p.evaluate(() => { S.entries = S.entries.filter(e => e.type !== 'letter'); saveNow(); });
+  await go('#/house/garden');
+  yes('    a fire nobody has written to is embers',
+    await p.evaluate(() => !document.querySelector('.hg-flames') && !!document.querySelector('.hg-ember')));
+
+  await go('#/house/roof');
+  is('the roof draws', await zone(), 'roof');
+  const rdoors = await p.evaluate(() =>
+    [...document.querySelectorAll('.house-room [data-room]')].map(n => n.dataset.room));
+  is('  and four things to do up there', rdoors, ['sky','stars','scope','plans']);
+  /* the two things this app draws as skies are actually in the sky here */
+  yes('  the values are overhead as planets',
+    await p.evaluate(() => document.querySelectorAll('.hr-planet').length) > 0);
+  yes('    in the colours they carry everywhere else',
+    await p.evaluate(() => { const v = byId(S.values, S.valueOrder[0]);
+      const p0 = document.querySelector('.hr-planet');
+      return !v || !p0 || p0.style.getPropertyValue('--c') === v.color; }));
+  yes('  and the people are stars',
+    await p.evaluate(() => document.querySelectorAll('.hr-star').length) > 0);
+
+  console.log('\n6. every door in the house opens something that exists');
+  /* a door that leads nowhere is scenery, and there are thirty of them now */
+  const dead = await p.evaluate(() => {
+    const out = [];
+    for(const z of ['main','sanctuary','garden','roof']){
+      S._houseZone = z;
+      const html = houseHTML();
+      const d = document.createElement('div'); d.innerHTML = html;
+      d.querySelectorAll('[data-room]').forEach(n => {
+        if(typeof HOUSE_PORTALS[n.dataset.room] !== 'function') out.push(z + ':' + n.dataset.room); });
+    }
+    return out;
+  });
+  is('  no object anywhere is a picture of nothing', dead, []);
+
+  console.log('\n7. it costs one paint and then nothing');
   const loops = await p.evaluate(() => Animator.stats().loops.map(l => l.id));
   yes('  the house asks for no loop of its own',
     !loops.some(id => /house|sanct|zone/i.test(id)), loops.join(' '));
+  /* Naming the allowed animations was the wrong test: it passed until a zone
+     added a star, and then failed for a two-pixel circle changing opacity.
+     What actually matters is that nothing here touches layout and that the
+     number of things running forever stays small. */
   const moving = await p.evaluate(() => [...document.querySelectorAll('.house-stage *')]
-    .map(n => getComputedStyle(n).animationName).filter(a => a && a !== 'none'));
-  yes('  and only the candlelight and the vine move on their own',
-    moving.every(a => /rmFlame|rmLeaf/.test(a)), moving.join(' ') || 'nothing at all');
-  yes('    which is under a dozen elements', moving.length < 12, String(moving.length));
+    .map(n => { const cs = getComputedStyle(n);
+      return {name: cs.animationName, count: cs.animationIterationCount}; })
+    .filter(x => x.name && x.name !== 'none'));
+  const forever = moving.filter(x => x.count === 'infinite');
+  const props = await p.evaluate(names => {
+    const want = new Set(names), out = new Set();
+    for(const sheet of document.styleSheets){
+      let rules; try { rules = sheet.cssRules; } catch(e){ continue; }
+      for(const r of rules){
+        if(r.type !== CSSRule.KEYFRAMES_RULE || !want.has(r.name)) continue;
+        for(const f of r.cssRules) for(const pn of f.style) out.add(pn);
+      }
+    }
+    return [...out];
+  }, [...new Set(moving.map(x => x.name))]);
+  yes('  nothing that moves on its own touches layout',
+    props.length && props.every(x => /^(transform|opacity)$/.test(x)), props.join(' '));
+  yes('    and what runs forever is a handful of small things',
+    forever.length <= 40, `${forever.length} of ${moving.length}`);
+  yes('    the rest are one-shots that finish and stop',
+    moving.every(x => x.count === 'infinite' || +x.count > 0),
+    moving.map(x => x.name + ':' + x.count).join(' '));
 
   console.log('\nconsole: ' + (errs.length ? errs.join(' | ') : 'clean'));
   errs.forEach(e => no(e));
