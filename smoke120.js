@@ -42,6 +42,8 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   const go = async h => { await p.evaluate(x => { if(location.hash === x) rerender(); else location.hash = x; }, h);
     await p.waitForTimeout(1400); };
   const face = () => p.evaluate(() => document.querySelector('#focusDock .fp-time')?.textContent);
+  const onToday = async () => { await p.evaluate(() => { if(location.hash === '#/today') rerender();
+    else location.hash = '#/today'; }); await p.waitForTimeout(1200); };
   /* the clock starts the instant an estimate is pressed, so by the time the
      face is read a second has gone: assert the minute, not the tick */
   const secs = async () => { const t = await face(); if(!t) return null;
@@ -105,8 +107,25 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('  and it is the same in the next room', !!(await p.$('#focusDock .fd-card')));
   await go('#/today');
 
-  console.log('\n3. started from the clock, a sitting counts up');
+  console.log('\n3. the dial is a dial, with three hands');
   await open();
+  const dial = await p.evaluate(() => {
+    const d = document.querySelector('#focusDock');
+    const ring = d.querySelector('.fp-ring');
+    return {hour: !!d.querySelector('.fc-hour'), min: !!d.querySelector('.fc-min'),
+      sec: !!d.querySelector('.fc-sec'), marks: d.querySelectorAll('.fc-mark').length,
+      major: d.querySelectorAll('.fc-mark.major').length,
+      shown: !!ring && getComputedStyle(ring).display !== 'none',
+      h: ring ? Math.round(ring.getBoundingClientRect().height) : 0,
+      reading: d.querySelector('.fp-time')?.textContent};
+  });
+  yes('an hour hand, a minute hand and a second hand', dial.hour && dial.min && dial.sec, JSON.stringify(dial));
+  is('  sixty marks round it', dial.marks, 60);
+  is('  twelve of them major', dial.major, 12);
+  yes('  and it is there with nothing running at all',
+    dial.shown && dial.h > 60 && /^\d\d:\d\d$/.test(dial.reading || ''), JSON.stringify(dial));
+
+  console.log('\n3b. started from the dial, a sitting counts up');
   yes('there is nothing to set before it starts',
     !(await p.$('#focusDock .fp-mode')) && !(await p.$('#focusDock .fp-len'))
     && !(await p.$('[data-fpmode]')) && !(await p.$('[data-fplen]')));
@@ -118,14 +137,16 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('  which the timer agrees with', Math.abs(el - 200) <= 3, `${el}s`);
   yes('  and it does not finish itself', await p.evaluate(() => FocusTimer.state().running));
 
-  console.log('\n4. the sitting takes a note of what it was for');
-  yes('there is somewhere to write it', !!(await p.$('#focusDock #fpDid')));
-  await p.fill('#focusDock #fpDid', 'the second draft'); await p.waitForTimeout(600);
+  console.log('\n4. the sitting takes a note of what it was for — on Today, where the words are');
+  await onToday();
+  yes('there is somewhere to write it', !!(await p.$('#t-focus #fpDid')));
+  yes('  and it is not on the dial', !(await p.$('#focusDock #fpDid')));
+  await p.fill('#t-focus #fpDid', 'the second draft'); await p.waitForTimeout(600);
   is('  and it reaches the timer', await p.evaluate(() => FocusTimer.state().notes), 'the second draft');
   /* the half-typed note must survive everything that redraws the page */
   await p.evaluate(() => rerender()); await p.waitForTimeout(600);
   is('  a redraw of the page does not eat it',
-    await p.evaluate(() => document.querySelector('#focusDock #fpDid')?.value), 'the second draft');
+    await p.evaluate(() => document.querySelector('#t-focus #fpDid')?.value), 'the second draft');
   await p.clock.fastForward('10:00'); await p.waitForTimeout(500);
   await p.click('#focusDock #fpStop'); await p.waitForTimeout(1000);
   const s = await p.evaluate(() => planState().focusSessions.slice(-1)[0]);
@@ -139,8 +160,8 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   await p.clock.fastForward('02:00'); await p.waitForTimeout(400);
   await p.click('#focusDock #fpGo'); await p.waitForTimeout(600);
   yes('pausing opens a break', await p.evaluate(() => FocusTimer.state().onBreak));
-  yes('  and asks what it is for', !!(await p.$('#focusDock #fpBreakNote')));
-  await p.fill('#focusDock #fpBreakNote', 'tea, and answering Mara'); await p.waitForTimeout(600);
+  yes('  and asks what it is for, beside the other note', !!(await p.$('#t-focus #fpBreakNote')));
+  await p.fill('#t-focus #fpBreakNote', 'tea, and answering Mara'); await p.waitForTimeout(600);
   is('  what is typed is kept on the break',
     await p.evaluate(() => FocusTimer.state().breakNote), 'tea, and answering Mara');
   await p.click('#focusDock #fpGo'); await p.waitForTimeout(600);
@@ -160,8 +181,12 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   near(await secs(), 45 * 60, '  starting at the estimate');
   yes('  and it opens the clock rather than leaving it a circle',
     !!(await p.$('#focusDock .fd-card')));
-  is('  which says what it is on', await p.evaluate(() =>
-    document.querySelector('#focusDock .fd-on b')?.textContent),
+  is('  the dial says, in one line, what it is counting', await p.evaluate(() =>
+    document.querySelector('#focusDock .fd-onname')?.textContent),
+    await p.evaluate(i => findTaskRef(i).text, tid));
+  await onToday();
+  is('  and Today says it properly', await p.evaluate(() =>
+    document.querySelector('#t-focus .tf-on b')?.textContent),
     await p.evaluate(i => findTaskRef(i).text, tid));
   await p.clock.fastForward('01:00'); await p.waitForTimeout(500);
   near(await secs(), 44 * 60, '  a minute in, a minute is gone');
@@ -171,18 +196,30 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   near(await secs(), 44 * 60, 'a later sitting counts down what is still owed');
   await p.evaluate(() => { FocusTimer.stop(); FocusTimer.reset(); }); await p.waitForTimeout(400);
 
-  console.log('\n7. everything the panel carried besides the clock is gone from it');
+  console.log('\n7. the words are on the page and the dial keeps none of them');
+  /* a sitting with a task in it and the clock running: that is when every one
+     of these is supposed to be somewhere */
   await open();
+  await p.evaluate(i => focusOnTask(i, 45), tid); await p.waitForTimeout(1500);
+  await onToday();
   const gone = await p.evaluate(() => {
     const d = document.querySelector('#focusDock');
     return {mode: !!d.querySelector('[data-fpmode]'), len: !!d.querySelector('[data-fplen]'),
       tick: !!d.querySelector('[data-fpdone]'), est: !!d.querySelector('.task-est'),
-      steps: !!d.querySelector('.sub-wrap'), desc: !!d.querySelector('.fp-desc'),
-      record: !!d.querySelector('.fp-rec'), log: !!d.querySelector('.fl-wrap')};
+      steps: !!d.querySelector('.sub-wrap'), note: !!d.querySelector('#fpDid'),
+      record: !!d.querySelector('.tf-rec'), log: !!d.querySelector('.fl-wrap')};
   });
-  for(const [k, v] of Object.entries(gone)) is(`no ${k} on the clock`, v, false);
-  yes('and the panel is not on Today either', !(await p.$('#t-focus')));
-  yes('nor anywhere else in the app',
+  for(const [k, v] of Object.entries(gone)) is(`no ${k} on the dial`, v, false);
+  /* and the things a sitting is actually described by are on Today */
+  const there = await p.evaluate(() => {
+    const b = document.querySelector('#t-focus');
+    return {section: !!b, drop: !!b.querySelector('[data-focusdrop]'),
+      tick: !!b.querySelector('[data-fpdone]'), est: !!b.querySelector('.task-est'),
+      note: !!b.querySelector('#fpDid'), log: !!b.querySelector('.fl-wrap')};
+  });
+  for(const k of ['section', 'drop', 'tick', 'est', 'note', 'log'])
+    is(`the ${k} is on Today`, there[k], true);
+  yes('and the old panel is gone from the app',
     await p.evaluate(() => typeof focusPanelHTML === 'undefined'));
 
   console.log('\n8. a task reaches it by being dragged on, narrow or wide');

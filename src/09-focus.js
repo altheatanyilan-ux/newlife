@@ -295,12 +295,150 @@ function focusClockHTML(face, frac, col, s, stop){
   </div>`;
 }
 
-/* The panel that used to stand on Today is gone; the clock floats over every
-   room instead. What it carried besides the clock — the estimate, the steps,
-   the description, the record of past sittings, the log of today's — was
-   reference material, and it is still on the pages where reference material
-   belongs: the task's own panel reads its sittings back, and Today still
-   counts the minutes into the day. See 09-focus-dock.js for what replaced it. */
+/* ---------- the sitting, in words ----------
+   The dial is in the foot of the sidebar, where it is visible from every room
+   and small enough to leave the work alone. Everything the dial cannot say is
+   here, on Today, where there is a column's width for it: what the sitting is
+   on and which step of it, what you are actually doing, what the break was
+   for, and what the day has held so far.
+
+   The split is the point. A number that changes every second wants to be
+   somewhere you can see without looking; a sentence you are writing wants to
+   be somewhere you are already reading. Trying to be both is how the panel
+   ended up too big for a corner and too thin for a page. */
+function focusSectionHTML(){
+  const s = FocusTimer.state();
+  const ref = s.taskId && typeof findTaskRef === 'function' ? findTaskRef(s.taskId) : null;
+  const t = ref ? ref.task : null;
+  const name = ref ? ref.text : '';
+  const sub = t && s.subId ? (Array.isArray(t.subtasks) ? t.subtasks : []).find(x => x.id === s.subId) : null;
+  const rec = s.taskId ? taskWorkRecord(s.taskId) : null;
+  const todayMins = focusMinutesOn(today());
+  const face = s.mode === 'stopwatch' && s.phase === 'focus' ? s.elapsed : s.left;
+
+  return `<section class="section rv focus-block" id="t-focus">
+    <div class="row between fp-head" style="gap:10px;flex-wrap:wrap">
+      <span class="sc" style="margin:0">Focus</span>
+      <span class="mono faint">${s.idle
+        ? (todayMins ? `${fmtHM(todayMins)} worked today` : 'nothing timed yet today')
+        : `<b class="tf-clock">${fmtClock(face)}</b> ${s.onBreak ? 'on a break' : s.running ? 'running' : 'held'}${
+            todayMins ? ` · ${fmtHM(todayMins)} today` : ''}`}</span>
+    </div>
+    <div class="card tf-card${s.running ? ' running' : ''}${s.onBreak ? ' onbreak' : ''}">
+
+      <!-- the subject: dragged in from any list, or cleared out again -->
+      <div class="tf-drop" data-focusdrop>
+        ${name ? `<div class="tf-on">
+            <button class="task-check tf-check${ref.done ? ' on' : ''}" data-fpdone="${esc(ref.id)}"
+              role="checkbox" aria-checked="${!!ref.done}"
+              title="${ref.done ? 'not done after all' : 'done — this ends the sitting'}">${ref.done ? '✓' : ''}</button>
+            <span class="k mono">on</span>
+            <b class="serif${ref.done ? ' struck' : ''}">${esc(name)}</b>
+            ${typeof taskEstHTML === 'function' ? taskEstHTML(ref.id, t, {sm:true}) : ''}
+            <button class="pl-mini" id="fpClear" title="take it out of the clock">×</button>
+          </div>
+          ${sub ? `<div class="tf-step">
+            <button class="task-check sm tf-check${sub.isCompleted ? ' on' : ''}"
+              data-fpsubdone="${esc(ref.id)}|${esc(sub.id)}" role="checkbox"
+              aria-checked="${!!sub.isCompleted}"
+              title="${sub.isCompleted ? 'not done after all' : 'done — this ends the sitting'}">${sub.isCompleted ? '✓' : ''}</button>
+            <span class="k mono">this step</span>
+            <span class="tf-stepname${sub.isCompleted ? ' struck' : ''}">${esc(sub.title || '')}</span>
+            ${subSpentOn(ref.id, sub.id) >= 1 || +sub.minutes ? `<span class="mono faint">${
+              esc(fmtSpent(subSpentOn(ref.id, sub.id), +sub.minutes || 0) || fmtEst(sub.minutes))}</span>` : ''}
+          </div>` : ''}
+          ${rec ? `<div class="tf-rec mono">${fmtHM(rec.minutes)} over ${rec.sessions} sitting${rec.sessions === 1 ? '' : 's'}${rec.breaks ? ` · ${rec.breaks} break${rec.breaks === 1 ? '' : 's'}` : ''} · started ${clockOf(rec.startedAt)}</div>` : ''}`
+        : `<div class="tf-empty">Drag a task here to time it — or start the clock at the foot of the sidebar without one.</div>`}
+      </div>
+
+      <!-- Two notes, and they answer different questions. One is what the work
+           actually was; the other is what the time that was not work went on.
+           Both are written while they are happening, because neither is
+           remembered accurately an hour later. -->
+      ${s.idle ? `<div class="faint tf-hint">The clock is in the foot of the sidebar. Start it there, and this is where you say what the sitting was.</div>`
+       : `<div class="tf-note">
+        <label class="k mono" for="fpDid">what are you actually doing?</label>
+        <input class="inp" id="fpDid" value="${esc(s.notes || '')}"
+          placeholder="the second draft · the tricky bit of the proof" autocomplete="off">
+        <div class="faint" style="font-size:.72rem">Kept with the sitting when it is finished.</div>
+      </div>`}
+      ${s.onBreak ? `<div class="tf-note resting">
+        <label class="k mono" for="fpBreakNote">what is this break for?</label>
+        <input class="inp" id="fpBreakNote" value="${esc(s.breakNote || '')}"
+          placeholder="tea · a walk · scrolling, honestly" autocomplete="off">
+        <div class="faint" style="font-size:.72rem">Since ${clockOf(s.breakSince)}. It is not counted as work.</div>
+      </div>` : ''}
+
+      ${typeof focusLogHTML === 'function' ? focusLogHTML() : ''}
+    </div>
+  </section>`;
+}
+
+function bindFocusSection(root, redraw){
+  const go = redraw || rerender;
+  const box = (root || document).querySelector('#t-focus');
+  if(!box) return;
+
+  const clr = box.querySelector('#fpClear');
+  if(clr) clr.onclick = () => { FocusTimer.setTask(null); go(); };
+
+  /* Crossing it off here is the same act as crossing it off in the list: the
+     shared setter runs, so the sitting ends and the cheer goes up. The cheer
+     makes its own noise, so we stay quiet when it fired. */
+  const fpd = box.querySelector('[data-fpdone]');
+  if(fpd) fpd.onclick = () => {
+    const id = fpd.dataset.fpdone;
+    const r = typeof findTaskRef === 'function' ? findTaskRef(id) : null; if(!r) return;
+    const was = r.done;
+    setTaskDone(id, !was);
+    if(was || !taskWasTimed(id)) sound(was ? 'click' : 'success');
+    go(); };
+  const fps = box.querySelector('[data-fpsubdone]');
+  if(fps) fps.onclick = () => {
+    const [rid, sid] = fps.dataset.fpsubdone.split('|');
+    const sb = typeof findSub === 'function' ? findSub(rid, sid) : null; if(!sb) return;
+    const was = sb.isCompleted;
+    const cheered = setSubDone(rid, sid, !was);
+    if(!cheered) sound(was ? 'click' : 'success');
+    go(); };
+  if(typeof bindTaskTimers === 'function') bindTaskTimers(box);
+
+  /* the notes save as they are typed rather than needing to be confirmed
+     before the sitting or the break ends */
+  const did = box.querySelector('#fpDid');
+  if(did) did.oninput = debounce(function(){ FocusTimer.noteWork(this.value); }, 300);
+  const note = box.querySelector('#fpBreakNote');
+  if(note) note.oninput = debounce(function(){ FocusTimer.noteBreak(this.value); }, 300);
+
+  const drop = box.querySelector('[data-focusdrop]');
+  if(drop){
+    drop.addEventListener('dragover', ev => {
+      if(!window._taskDrag) return;
+      ev.preventDefault(); ev.stopPropagation(); drop.classList.add('over');
+    });
+    drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+    drop.addEventListener('drop', ev => {
+      const id = window._taskDrag || ev.dataTransfer.getData('text/plain');
+      drop.classList.remove('over');
+      if(!id) return;
+      ev.preventDefault(); ev.stopPropagation();
+      FocusTimer.setTask(id); sound('success'); go();
+    });
+  }
+
+  /* One number here changes every second — the reading beside the heading. The
+     dial in the sidebar has its own tick; this borrows it rather than redrawing
+     the page, so a note being typed is never interrupted. */
+  const live = () => {
+    const n = box.querySelector('.tf-clock');
+    if(!n || !n.isConnected){ clearInterval(iv); return; }
+    const st = FocusTimer.state();
+    n.textContent = fmtClock(st.mode === 'stopwatch' && st.phase === 'focus' ? st.elapsed : st.left);
+  };
+  const iv = setInterval(live, 1000);
+  live();
+}
+
 
 
 /* ============================================================

@@ -38,8 +38,8 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     planState().focusSessions = []; saveNow(); rerender(); return i; });
   await p.clock.runFor(400);
   await p.evaluate(i => focusOnTask(i, 0, ''), id); await p.clock.runFor(1400);
-  yes('the clock names the task it is timing',
-      await p.evaluate(() => !!document.querySelector('#focusDock .fd-on b')?.textContent));
+  yes('the sitting names the task it is timing',
+      await p.evaluate(() => !!document.querySelector('#t-focus .tf-on b')?.textContent));
   await p.clock.runFor(6 * 60 * 1000);
   await p.evaluate(i => setTaskDone(i, true), id);
   await p.clock.runFor(1200);
@@ -56,8 +56,8 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     t.task.subtasks[0].isCompleted = false; planState().focusSessions = []; saveNow(); rerender(); }, id);
   await p.clock.runFor(400);
   await p.evaluate(i => focusOnTask(i, 0, '', 's-one'), id); await p.clock.runFor(1400);
-  is('the clock says which step it is on',
-     await p.evaluate(() => document.querySelector('#focusDock .fd-step')?.textContent), 'the tricky bit');
+  is('the sitting says which step it is on',
+     await p.evaluate(() => document.querySelector('#t-focus .tf-stepname')?.textContent), 'the tricky bit');
   await p.clock.runFor(3 * 60 * 1000);
   await p.evaluate(i => setSubDone(i, 's-one', true), id);
   await p.clock.runFor(1200);
@@ -88,7 +88,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('there is a project to put one in', !!pid);
   if(pid){
     await p.evaluate(i => focusOnTask(i, 0, ''), pid); await p.clock.runFor(1400);
-    is('  the clock names it', await p.evaluate(() => document.querySelector('#focusDock .fd-on b')?.textContent),
+    is('  the sitting names it', await p.evaluate(() => document.querySelector('#t-focus .tf-on b')?.textContent),
        'A task inside a project');
     await p.clock.runFor(2 * 60 * 1000);
     await p.evaluate(i => setTaskDone(i, true), pid);

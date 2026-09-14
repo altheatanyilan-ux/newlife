@@ -175,8 +175,10 @@ routes.today = function(root){
   const jumpsFor = {
     do: [
       ['t-plan',    'plan',     true],
-      /* The clock used to be a section here. It floats over every room now,
-         so there is nothing on this page to jump to. */
+      /* The dial itself is in the foot of the sidebar; this is everything it
+         cannot say — what the sitting is on, what you are doing in it, and
+         what the day has held. */
+      ['t-focus',   'focus',    true],
       ['t-tasks',   'tasks',    true],
       ['t-habits',  'habits',   true],
       ['t-tonight', 'before you sleep', true],
@@ -261,6 +263,8 @@ routes.today = function(root){
     </div>
 
     <div class="daybox daybox-solo daybox-work">
+    ${focusSectionHTML()}
+
     <!-- today's tasks -->
     <details class="section rv t-sec" id="t-tasks"${fold('t-tasks')}>
       <summary><span class="sc" style="margin:0">Today's tasks</span><span class="mono">${(() => {
@@ -523,6 +527,7 @@ routes.today = function(root){
   $('#pullTask').onclick = () => openTaskPicker(T, rerender);
   if($('#carryAll')) $('#carryAll').onclick = () => { carried.forEach(r => r.task.day = T); saveNow(); sound('success'); rerender(); };
   bindTaskRows(root); bindDayDrop(root); bindQuickTask(root); bindDayListFilter(root);
+  bindFocusSection(root, redraw);
 
   /* letters & decisions */
   bindSealedLetters(root);

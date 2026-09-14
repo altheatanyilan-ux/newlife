@@ -56,7 +56,8 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   await p.click('#focusDock #fpGo'); await p.waitForTimeout(800);
   const after = await p.evaluate(() => window.__rebuilds);
   yes('pausing rebuilds it, because the break note is new', after > before, `${before} → ${after}`);
-  yes('  and the break note is there', !!(await p.$('#focusDock #fpBreakNote')));
+  /* the note about the break is on Today, with the other words */
+  yes('  and the break note is there, on the page', !!(await p.$('#t-focus #fpBreakNote')));
   await p.evaluate(() => { FocusTimer.stop(); FocusTimer.reset(); }); await p.waitForTimeout(600);
 
   console.log('\n2. nothing the page pins lands in the chrome band');

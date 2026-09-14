@@ -33,16 +33,15 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
       await p.evaluate(() => { openSpeedDial(); const t = document.querySelector('#speedDial').textContent;
         closeSpeedDial(); return /Quick note/.test(t) && /Unfinished thought/.test(t); }));
 
-  console.log('\n2. the plan is read first, then the list');
+  console.log('\n2. the plan is read first, then the sitting, then the list');
   /* document order, not child order: the sections sit inside the day's own
      compartments now, so a direct-child selector no longer finds any of them.
      The plan leads: it takes a line to itself and it is the frame the rest of
-     the day hangs on. The clock is no longer one of these at all — it floats
-     over every room rather than standing between the plan and the list. */
+     the day hangs on. The dial itself is no longer one of these — it is in the
+     foot of the sidebar — but everything it cannot say still is. */
   const order = await p.evaluate(() => [...document.querySelectorAll('#main .page [id^="t-"]')].map(n => n.id));
-  const iP = order.indexOf('t-plan'), iT = order.indexOf('t-tasks');
-  yes('the plan, then the tasks', iP >= 0 && iP < iT, order.join(' → '));
-  yes('  and the clock is not among them', !order.includes('t-focus'), order.join(' → '));
+  const iP = order.indexOf('t-plan'), iF = order.indexOf('t-focus'), iT = order.indexOf('t-tasks');
+  yes('the plan, then the focus, then the tasks', iP >= 0 && iP < iF && iF < iT, order.join(' → '));
   const jumps = await p.evaluate(() => [...document.querySelectorAll('.today-jump [data-jump]')].map(b => b.dataset.jump));
   yes('  and the jump links read in the same order as the page',
       jumps.filter(j => order.includes(j)).join(',') === order.filter(o => jumps.includes(o)).join(','),

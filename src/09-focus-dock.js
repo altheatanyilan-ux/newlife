@@ -87,54 +87,32 @@ function focusDockHTML(){
   if(focusDockShut()) return focusDockBubbleHTML(s);
 
   const c = planState().timer;
-  const ref = s.taskId && typeof findTaskRef === 'function' ? findTaskRef(s.taskId) : null;
-  const name = ref ? ref.text : '';
-  const t = ref ? ref.task : null;
-  const sub = t && s.subId ? (Array.isArray(t.subtasks) ? t.subtasks : []).find(x => x.id === s.subId) : null;
   const stop = s.mode === 'stopwatch' && s.phase === 'focus';
   const total = (s.phase === 'focus' ? c.focusDuration : s.phase === 'long' ? c.longBreak : c.shortBreak) * 60;
   const frac = stop ? (s.elapsed % 3600) / 3600 : (total ? 1 - s.left / total : 0);
   const face = stop ? s.elapsed : s.left;
   const col = s.phase === 'focus' ? 'var(--terra)' : 'var(--sage)';
+  const ref = s.taskId && typeof findTaskRef === 'function' ? findTaskRef(s.taskId) : null;
 
-  return `<div class="fd-card${s.running ? ' running' : ''}${s.onBreak ? ' onbreak' : ''}">
-    <div class="fd-head">
-      <span class="sc" style="margin:0">Focus</span>
-    </div>
+  /* The dial, and the two buttons that start and end a sitting. Nothing else:
+     what the sitting is on, what you are doing in it, what the break was for
+     and what the day has already held are all words, and words want a column
+     of a page rather than the width of a sidebar. They are on Today, in the
+     Focus section, which is where you were reading them anyway.
 
-    <!-- the task: dragged in from any list, or cleared out again -->
-    <div class="fd-drop" data-focusdrop>
-      ${name ? `<div class="fd-on">
-          <span class="k mono">on</span>
-          <b class="serif">${esc(name)}</b>
-          <button class="pl-mini" id="fdClear" title="take it out of the clock">×</button>
-        </div>
-        ${sub ? `<div class="fd-step mono">${esc(sub.title || '')}</div>` : ''}`
-       : `<div class="fd-empty">Drag a task in, or just start the clock.</div>`}
-    </div>
-
+     It is here whether or not anything is running. A clock that appears only
+     once you have started is a clock you have to remember exists. */
+  return `<div class="fd-card${s.running ? ' running' : ''}${s.onBreak ? ' onbreak' : ''}"
+      data-focusdrop>
     ${focusClockHTML(face, frac, col, s, stop)}
-
     <div class="fd-go">
       <button class="btn sm primary" id="fpGo">${s.running ? '⏸ pause' : s.idle ? '▶ start' : '▶ resume'}</button>
       ${s.idle ? '' : `<button class="btn sm ghost" id="fpStop">finish</button>`}
     </div>
-
-    <!-- Two notes, and they answer different questions. One is what the work
-         actually was; the other is what the time that was not work went on.
-         Both are written while they are happening, because neither is
-         remembered accurately an hour later. -->
-    ${s.idle ? '' : `<div class="fd-note">
-      <label class="k mono" for="fpDid">what are you actually doing?</label>
-      <input class="inp sm" id="fpDid" value="${esc(s.notes || '')}"
-        placeholder="the second draft · the tricky bit of the proof" autocomplete="off">
-    </div>`}
-    ${s.onBreak ? `<div class="fd-note resting">
-      <label class="k mono" for="fpBreakNote">what is this break for?</label>
-      <input class="inp sm" id="fpBreakNote" value="${esc(s.breakNote || '')}"
-        placeholder="tea · a walk · scrolling, honestly" autocomplete="off">
-      <div class="faint" style="font-size:.7rem">Since ${clockOf(s.breakSince)}. Not counted as work.</div>
-    </div>` : ''}
+    <!-- one line, because the dial alone cannot say what it is counting -->
+    <a class="fd-on" href="#/today" title="the sitting, in words, on Today">${
+      ref ? `<span class="fd-onname">${esc(ref.text)}</span>`
+          : `<span class="fd-onname faint">${s.idle ? 'nothing parked' : 'no task'}</span>`}</a>
   </div>`;
 }
 
@@ -158,6 +136,23 @@ function focusDockSig(s){
   return [focusDockShut() ? 'shut' : 'open', s.idle ? 'idle' : s.running ? 'run' : 'held',
     s.onBreak ? 'break' : '', s.phase, s.taskId || '', s.subId || ''].join('|');
 }
+/* The words about the sitting are on Today, and Today is a rendered page
+   rather than a subscriber — so when the shape of the sitting changes while
+   that page is open, it is redrawn with the clock. */
+let _dockPageSig = null;
+function focusSectionFollow(sig){
+  if(sig === _dockPageSig) return;
+  const first = _dockPageSig === null;
+  _dockPageSig = sig;
+  if(first) return;
+  if(typeof parseHash === 'function' && parseHash().name === 'today'
+    && document.getElementById('t-focus') && !focusSectionTyping()) rerender();
+}
+/* never over a half-written note */
+function focusSectionTyping(){
+  const a = document.activeElement;
+  return !!(a && a.closest && a.closest('#t-focus') && /INPUT|TEXTAREA/.test(a.tagName));
+}
 let _dockSig = null;
 
 function paintFocusDock(force){
@@ -170,6 +165,7 @@ function paintFocusDock(force){
   const sig = focusDockSig(s);
   if(!force && sig === _dockSig && dock.firstChild){ focusDockFace(); return; }
   _dockSig = sig;
+  focusSectionFollow(sig);
   dock.dataset.shut = focusDockShut() ? '1' : '';
   dock.dataset.running = s.running ? '1' : '';
   dock.innerHTML = focusDockHTML();
@@ -213,13 +209,6 @@ function bindFocusDock(dock){
   };
   const stop = dock.querySelector('#fpStop');
   if(stop) stop.onclick = () => { FocusTimer.stop(); sound('click'); paintFocusDock(); };
-  const clr = dock.querySelector('#fdClear');
-  if(clr) clr.onclick = () => { FocusTimer.setTask(null); paintFocusDock(); };
-
-  const did = dock.querySelector('#fpDid');
-  if(did) did.oninput = debounce(function(){ FocusTimer.noteWork(this.value); }, 300);
-  const note = dock.querySelector('#fpBreakNote');
-  if(note) note.oninput = debounce(function(){ FocusTimer.noteBreak(this.value); }, 300);
 
   /* Open or folded, the clock takes a task by being dragged on: folding it
      away must not put the drop target out of reach, so the circle is one too,
@@ -238,6 +227,8 @@ function bindFocusDock(dock){
       ev.preventDefault(); ev.stopPropagation();
       FocusTimer.setTask(id); sound('success');
       if(focusDockShut()) setFocusDockShut(false); else paintFocusDock();
+      /* the words about it live on Today, so redraw that too if it is open */
+      if(typeof parseHash === 'function' && parseHash().name === 'today') rerender();
     });
   }
 }

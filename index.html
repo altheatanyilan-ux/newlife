@@ -3238,12 +3238,11 @@ html.vision-deep .page-scene.on{opacity:var(--scene-op)}
    out of it. */
 .today-switch{position:sticky;top:var(--chrome-h);z-index:7;display:inline-flex;gap:3px;margin:0 0 4px;
   padding:3px;border-radius:999px;background:var(--neu-bg);box-shadow:var(--neu-pressed)}
-/* pinned, it is a pill with the page running behind it on both sides; this is
-   the ground it stands on, spanning the column rather than the pill */
-.today-switch::before{content:"";position:absolute;z-index:-1;pointer-events:none;
-  left:-56px;right:-56px;top:calc(-1 * var(--chrome-h));bottom:-11px;
-  background:linear-gradient(to bottom,var(--bg) 92%,transparent)}
-@media (max-width:900px){.today-switch::before{left:-18px;right:-18px}}
+/* It had a band of ground behind it for a while, so that the page did not
+   scroll through the gaps beside the pill. At rest — which is most of the time
+   — that band was a pale rectangle sitting over the line under the date, and a
+   fix that is visible when the problem is not is not a fix. The pill stands on
+   its own, as it did before. */
 .today-switch button{background:none;border:none;border-radius:999px;cursor:pointer;
   padding:6px 16px;font-family:var(--sans);font-size:.8rem;letter-spacing:.02em;
   color:var(--muted);transition:color .2s var(--ease),box-shadow .25s var(--ease),background .2s var(--ease)}
@@ -6978,33 +6977,54 @@ html[data-decor="full"] .fd-bubble.ticking{animation:fdPulse 2.6s ease-in-out in
   50%{box-shadow:var(--elev-2-shadow),0 0 0 5px color-mix(in srgb,var(--terra) 13%,transparent)}}
 @media (prefers-reduced-motion:reduce){.fd-bubble.ticking{animation:none}}
 
-/* --- open: the card, as wide as the sidebar gives it --- */
+/* --- open: the dial, as wide as the sidebar gives it --- */
 .fd-card{width:100%;border-radius:12px;
   border:1px solid var(--line-2);background:var(--elev-2);box-shadow:var(--elev-2-shadow);
-  padding:10px 11px 11px;display:flex;flex-direction:column;gap:8px}
+  padding:10px 11px 11px;display:flex;flex-direction:column;gap:8px;
+  transition:border-color .2s var(--ease)}
+.fd-card.over{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 8%,transparent)}
 @media (max-width:900px){.fd-card{width:268px;max-width:calc(100vw - 24px)}}
 .fd-card.running{border-color:color-mix(in srgb,var(--terra) 34%,transparent)}
 .fd-card.onbreak{border-color:color-mix(in srgb,var(--sage) 34%,transparent)}
 .fd-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
 
-.fd-drop{border:1px dashed var(--line);border-radius:8px;padding:6px 8px;
-  transition:border-color .18s var(--ease),background .18s var(--ease)}
-.fd-drop.over{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 9%,transparent)}
-.fd-on{display:flex;align-items:baseline;gap:5px;flex-wrap:wrap}
-.fd-on b{font-size:.84rem;line-height:1.25;overflow-wrap:anywhere}
-.fd-on .pl-mini{margin-left:auto}
-.fd-step{font-size:.62rem;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);
-  margin-top:3px;overflow-wrap:anywhere}
-.fd-empty{font-size:.74rem;color:var(--faint);line-height:1.4}
 
-/* the clock face is the one the panel used; only the room around it changed */
-.fdock .fp-ring{align-self:center;transform:scale(.86);margin:-8px 0}
-.fd-go{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-.fd-note{display:flex;flex-direction:column;gap:3px}
-.fd-note .inp.sm{width:100%}
-.fd-note.resting .k{color:var(--sage)}
-/* a short window has no room for a dial beside a list of rooms */
-@media (max-height:680px){.fdock .fp-ring{display:none}}
+/* --- the sitting in words, on Today --- */
+.tf-card{display:flex;flex-direction:column;gap:14px}
+.tf-card.running{border-color:color-mix(in srgb,var(--terra) 30%,transparent)}
+.tf-card.onbreak{border-color:color-mix(in srgb,var(--sage) 30%,transparent)}
+.tf-drop{border:1px dashed var(--line);border-radius:10px;padding:11px 13px;
+  transition:border-color .18s var(--ease),background .18s var(--ease)}
+.tf-drop.over{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 9%,transparent)}
+.tf-on{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.tf-on b{font-size:1.05rem;line-height:1.3;overflow-wrap:anywhere}
+.tf-on .pl-mini{margin-left:auto}
+.tf-check{flex:0 0 auto;align-self:center}
+.tf-step{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-top:8px;
+  padding-top:8px;border-top:1px dashed var(--line)}
+.tf-stepname{font-size:.92rem;overflow-wrap:anywhere}
+.tf-stepname.struck,.tf-on b.struck{text-decoration:line-through;color:var(--faint)}
+.tf-rec{margin-top:8px;font-size:.72rem;color:var(--faint)}
+.tf-empty{font-size:.88rem;color:var(--faint);line-height:1.5}
+.tf-hint{font-size:.8rem;line-height:1.5}
+.tf-note{display:flex;flex-direction:column;gap:5px}
+.tf-note .inp{width:100%}
+.tf-note.resting .k{color:var(--sage)}
+.focus-block .fp-head .tf-clock{font-family:var(--mono);color:var(--text);font-size:.8rem}
+
+/* The dial is the whole point of the thing standing here, so it is never the
+   part that gets dropped to save room: on a short window it shrinks instead.
+   Three hands — hour, minute and second — because a sweeping hand is the
+   plainest signal in the world that something is running. */
+.fdock .fp-ring{align-self:center;margin:-6px 0}
+@media (max-height:760px){.fdock .fp-ring{transform:scale(.84);margin:-16px 0}}
+@media (max-height:620px){.fdock .fp-ring{transform:scale(.7);margin:-24px 0}}
+.fd-go{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:center}
+/* one line saying what it is counting, and a way back to the words about it */
+.fd-on{display:block;text-align:center;text-decoration:none;color:var(--muted);
+  font-size:.74rem;line-height:1.3;overflow:hidden}
+.fd-on:hover{color:var(--text)}
+.fd-onname{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 </style>
 </head>
 <body>
@@ -11907,54 +11927,32 @@ function focusDockHTML(){
   if(focusDockShut()) return focusDockBubbleHTML(s);
 
   const c = planState().timer;
-  const ref = s.taskId && typeof findTaskRef === 'function' ? findTaskRef(s.taskId) : null;
-  const name = ref ? ref.text : '';
-  const t = ref ? ref.task : null;
-  const sub = t && s.subId ? (Array.isArray(t.subtasks) ? t.subtasks : []).find(x => x.id === s.subId) : null;
   const stop = s.mode === 'stopwatch' && s.phase === 'focus';
   const total = (s.phase === 'focus' ? c.focusDuration : s.phase === 'long' ? c.longBreak : c.shortBreak) * 60;
   const frac = stop ? (s.elapsed % 3600) / 3600 : (total ? 1 - s.left / total : 0);
   const face = stop ? s.elapsed : s.left;
   const col = s.phase === 'focus' ? 'var(--terra)' : 'var(--sage)';
+  const ref = s.taskId && typeof findTaskRef === 'function' ? findTaskRef(s.taskId) : null;
 
-  return `<div class="fd-card${s.running ? ' running' : ''}${s.onBreak ? ' onbreak' : ''}">
-    <div class="fd-head">
-      <span class="sc" style="margin:0">Focus</span>
-    </div>
+  /* The dial, and the two buttons that start and end a sitting. Nothing else:
+     what the sitting is on, what you are doing in it, what the break was for
+     and what the day has already held are all words, and words want a column
+     of a page rather than the width of a sidebar. They are on Today, in the
+     Focus section, which is where you were reading them anyway.
 
-    <!-- the task: dragged in from any list, or cleared out again -->
-    <div class="fd-drop" data-focusdrop>
-      ${name ? `<div class="fd-on">
-          <span class="k mono">on</span>
-          <b class="serif">${esc(name)}</b>
-          <button class="pl-mini" id="fdClear" title="take it out of the clock">×</button>
-        </div>
-        ${sub ? `<div class="fd-step mono">${esc(sub.title || '')}</div>` : ''}`
-       : `<div class="fd-empty">Drag a task in, or just start the clock.</div>`}
-    </div>
-
+     It is here whether or not anything is running. A clock that appears only
+     once you have started is a clock you have to remember exists. */
+  return `<div class="fd-card${s.running ? ' running' : ''}${s.onBreak ? ' onbreak' : ''}"
+      data-focusdrop>
     ${focusClockHTML(face, frac, col, s, stop)}
-
     <div class="fd-go">
       <button class="btn sm primary" id="fpGo">${s.running ? '⏸ pause' : s.idle ? '▶ start' : '▶ resume'}</button>
       ${s.idle ? '' : `<button class="btn sm ghost" id="fpStop">finish</button>`}
     </div>
-
-    <!-- Two notes, and they answer different questions. One is what the work
-         actually was; the other is what the time that was not work went on.
-         Both are written while they are happening, because neither is
-         remembered accurately an hour later. -->
-    ${s.idle ? '' : `<div class="fd-note">
-      <label class="k mono" for="fpDid">what are you actually doing?</label>
-      <input class="inp sm" id="fpDid" value="${esc(s.notes || '')}"
-        placeholder="the second draft · the tricky bit of the proof" autocomplete="off">
-    </div>`}
-    ${s.onBreak ? `<div class="fd-note resting">
-      <label class="k mono" for="fpBreakNote">what is this break for?</label>
-      <input class="inp sm" id="fpBreakNote" value="${esc(s.breakNote || '')}"
-        placeholder="tea · a walk · scrolling, honestly" autocomplete="off">
-      <div class="faint" style="font-size:.7rem">Since ${clockOf(s.breakSince)}. Not counted as work.</div>
-    </div>` : ''}
+    <!-- one line, because the dial alone cannot say what it is counting -->
+    <a class="fd-on" href="#/today" title="the sitting, in words, on Today">${
+      ref ? `<span class="fd-onname">${esc(ref.text)}</span>`
+          : `<span class="fd-onname faint">${s.idle ? 'nothing parked' : 'no task'}</span>`}</a>
   </div>`;
 }
 
@@ -11978,6 +11976,23 @@ function focusDockSig(s){
   return [focusDockShut() ? 'shut' : 'open', s.idle ? 'idle' : s.running ? 'run' : 'held',
     s.onBreak ? 'break' : '', s.phase, s.taskId || '', s.subId || ''].join('|');
 }
+/* The words about the sitting are on Today, and Today is a rendered page
+   rather than a subscriber — so when the shape of the sitting changes while
+   that page is open, it is redrawn with the clock. */
+let _dockPageSig = null;
+function focusSectionFollow(sig){
+  if(sig === _dockPageSig) return;
+  const first = _dockPageSig === null;
+  _dockPageSig = sig;
+  if(first) return;
+  if(typeof parseHash === 'function' && parseHash().name === 'today'
+    && document.getElementById('t-focus') && !focusSectionTyping()) rerender();
+}
+/* never over a half-written note */
+function focusSectionTyping(){
+  const a = document.activeElement;
+  return !!(a && a.closest && a.closest('#t-focus') && /INPUT|TEXTAREA/.test(a.tagName));
+}
 let _dockSig = null;
 
 function paintFocusDock(force){
@@ -11990,6 +12005,7 @@ function paintFocusDock(force){
   const sig = focusDockSig(s);
   if(!force && sig === _dockSig && dock.firstChild){ focusDockFace(); return; }
   _dockSig = sig;
+  focusSectionFollow(sig);
   dock.dataset.shut = focusDockShut() ? '1' : '';
   dock.dataset.running = s.running ? '1' : '';
   dock.innerHTML = focusDockHTML();
@@ -12033,13 +12049,6 @@ function bindFocusDock(dock){
   };
   const stop = dock.querySelector('#fpStop');
   if(stop) stop.onclick = () => { FocusTimer.stop(); sound('click'); paintFocusDock(); };
-  const clr = dock.querySelector('#fdClear');
-  if(clr) clr.onclick = () => { FocusTimer.setTask(null); paintFocusDock(); };
-
-  const did = dock.querySelector('#fpDid');
-  if(did) did.oninput = debounce(function(){ FocusTimer.noteWork(this.value); }, 300);
-  const note = dock.querySelector('#fpBreakNote');
-  if(note) note.oninput = debounce(function(){ FocusTimer.noteBreak(this.value); }, 300);
 
   /* Open or folded, the clock takes a task by being dragged on: folding it
      away must not put the drop target out of reach, so the circle is one too,
@@ -12058,6 +12067,8 @@ function bindFocusDock(dock){
       ev.preventDefault(); ev.stopPropagation();
       FocusTimer.setTask(id); sound('success');
       if(focusDockShut()) setFocusDockShut(false); else paintFocusDock();
+      /* the words about it live on Today, so redraw that too if it is open */
+      if(typeof parseHash === 'function' && parseHash().name === 'today') rerender();
     });
   }
 }
@@ -12404,12 +12415,150 @@ function focusClockHTML(face, frac, col, s, stop){
   </div>`;
 }
 
-/* The panel that used to stand on Today is gone; the clock floats over every
-   room instead. What it carried besides the clock — the estimate, the steps,
-   the description, the record of past sittings, the log of today's — was
-   reference material, and it is still on the pages where reference material
-   belongs: the task's own panel reads its sittings back, and Today still
-   counts the minutes into the day. See 09-focus-dock.js for what replaced it. */
+/* ---------- the sitting, in words ----------
+   The dial is in the foot of the sidebar, where it is visible from every room
+   and small enough to leave the work alone. Everything the dial cannot say is
+   here, on Today, where there is a column's width for it: what the sitting is
+   on and which step of it, what you are actually doing, what the break was
+   for, and what the day has held so far.
+
+   The split is the point. A number that changes every second wants to be
+   somewhere you can see without looking; a sentence you are writing wants to
+   be somewhere you are already reading. Trying to be both is how the panel
+   ended up too big for a corner and too thin for a page. */
+function focusSectionHTML(){
+  const s = FocusTimer.state();
+  const ref = s.taskId && typeof findTaskRef === 'function' ? findTaskRef(s.taskId) : null;
+  const t = ref ? ref.task : null;
+  const name = ref ? ref.text : '';
+  const sub = t && s.subId ? (Array.isArray(t.subtasks) ? t.subtasks : []).find(x => x.id === s.subId) : null;
+  const rec = s.taskId ? taskWorkRecord(s.taskId) : null;
+  const todayMins = focusMinutesOn(today());
+  const face = s.mode === 'stopwatch' && s.phase === 'focus' ? s.elapsed : s.left;
+
+  return `<section class="section rv focus-block" id="t-focus">
+    <div class="row between fp-head" style="gap:10px;flex-wrap:wrap">
+      <span class="sc" style="margin:0">Focus</span>
+      <span class="mono faint">${s.idle
+        ? (todayMins ? `${fmtHM(todayMins)} worked today` : 'nothing timed yet today')
+        : `<b class="tf-clock">${fmtClock(face)}</b> ${s.onBreak ? 'on a break' : s.running ? 'running' : 'held'}${
+            todayMins ? ` · ${fmtHM(todayMins)} today` : ''}`}</span>
+    </div>
+    <div class="card tf-card${s.running ? ' running' : ''}${s.onBreak ? ' onbreak' : ''}">
+
+      <!-- the subject: dragged in from any list, or cleared out again -->
+      <div class="tf-drop" data-focusdrop>
+        ${name ? `<div class="tf-on">
+            <button class="task-check tf-check${ref.done ? ' on' : ''}" data-fpdone="${esc(ref.id)}"
+              role="checkbox" aria-checked="${!!ref.done}"
+              title="${ref.done ? 'not done after all' : 'done — this ends the sitting'}">${ref.done ? '✓' : ''}</button>
+            <span class="k mono">on</span>
+            <b class="serif${ref.done ? ' struck' : ''}">${esc(name)}</b>
+            ${typeof taskEstHTML === 'function' ? taskEstHTML(ref.id, t, {sm:true}) : ''}
+            <button class="pl-mini" id="fpClear" title="take it out of the clock">×</button>
+          </div>
+          ${sub ? `<div class="tf-step">
+            <button class="task-check sm tf-check${sub.isCompleted ? ' on' : ''}"
+              data-fpsubdone="${esc(ref.id)}|${esc(sub.id)}" role="checkbox"
+              aria-checked="${!!sub.isCompleted}"
+              title="${sub.isCompleted ? 'not done after all' : 'done — this ends the sitting'}">${sub.isCompleted ? '✓' : ''}</button>
+            <span class="k mono">this step</span>
+            <span class="tf-stepname${sub.isCompleted ? ' struck' : ''}">${esc(sub.title || '')}</span>
+            ${subSpentOn(ref.id, sub.id) >= 1 || +sub.minutes ? `<span class="mono faint">${
+              esc(fmtSpent(subSpentOn(ref.id, sub.id), +sub.minutes || 0) || fmtEst(sub.minutes))}</span>` : ''}
+          </div>` : ''}
+          ${rec ? `<div class="tf-rec mono">${fmtHM(rec.minutes)} over ${rec.sessions} sitting${rec.sessions === 1 ? '' : 's'}${rec.breaks ? ` · ${rec.breaks} break${rec.breaks === 1 ? '' : 's'}` : ''} · started ${clockOf(rec.startedAt)}</div>` : ''}`
+        : `<div class="tf-empty">Drag a task here to time it — or start the clock at the foot of the sidebar without one.</div>`}
+      </div>
+
+      <!-- Two notes, and they answer different questions. One is what the work
+           actually was; the other is what the time that was not work went on.
+           Both are written while they are happening, because neither is
+           remembered accurately an hour later. -->
+      ${s.idle ? `<div class="faint tf-hint">The clock is in the foot of the sidebar. Start it there, and this is where you say what the sitting was.</div>`
+       : `<div class="tf-note">
+        <label class="k mono" for="fpDid">what are you actually doing?</label>
+        <input class="inp" id="fpDid" value="${esc(s.notes || '')}"
+          placeholder="the second draft · the tricky bit of the proof" autocomplete="off">
+        <div class="faint" style="font-size:.72rem">Kept with the sitting when it is finished.</div>
+      </div>`}
+      ${s.onBreak ? `<div class="tf-note resting">
+        <label class="k mono" for="fpBreakNote">what is this break for?</label>
+        <input class="inp" id="fpBreakNote" value="${esc(s.breakNote || '')}"
+          placeholder="tea · a walk · scrolling, honestly" autocomplete="off">
+        <div class="faint" style="font-size:.72rem">Since ${clockOf(s.breakSince)}. It is not counted as work.</div>
+      </div>` : ''}
+
+      ${typeof focusLogHTML === 'function' ? focusLogHTML() : ''}
+    </div>
+  </section>`;
+}
+
+function bindFocusSection(root, redraw){
+  const go = redraw || rerender;
+  const box = (root || document).querySelector('#t-focus');
+  if(!box) return;
+
+  const clr = box.querySelector('#fpClear');
+  if(clr) clr.onclick = () => { FocusTimer.setTask(null); go(); };
+
+  /* Crossing it off here is the same act as crossing it off in the list: the
+     shared setter runs, so the sitting ends and the cheer goes up. The cheer
+     makes its own noise, so we stay quiet when it fired. */
+  const fpd = box.querySelector('[data-fpdone]');
+  if(fpd) fpd.onclick = () => {
+    const id = fpd.dataset.fpdone;
+    const r = typeof findTaskRef === 'function' ? findTaskRef(id) : null; if(!r) return;
+    const was = r.done;
+    setTaskDone(id, !was);
+    if(was || !taskWasTimed(id)) sound(was ? 'click' : 'success');
+    go(); };
+  const fps = box.querySelector('[data-fpsubdone]');
+  if(fps) fps.onclick = () => {
+    const [rid, sid] = fps.dataset.fpsubdone.split('|');
+    const sb = typeof findSub === 'function' ? findSub(rid, sid) : null; if(!sb) return;
+    const was = sb.isCompleted;
+    const cheered = setSubDone(rid, sid, !was);
+    if(!cheered) sound(was ? 'click' : 'success');
+    go(); };
+  if(typeof bindTaskTimers === 'function') bindTaskTimers(box);
+
+  /* the notes save as they are typed rather than needing to be confirmed
+     before the sitting or the break ends */
+  const did = box.querySelector('#fpDid');
+  if(did) did.oninput = debounce(function(){ FocusTimer.noteWork(this.value); }, 300);
+  const note = box.querySelector('#fpBreakNote');
+  if(note) note.oninput = debounce(function(){ FocusTimer.noteBreak(this.value); }, 300);
+
+  const drop = box.querySelector('[data-focusdrop]');
+  if(drop){
+    drop.addEventListener('dragover', ev => {
+      if(!window._taskDrag) return;
+      ev.preventDefault(); ev.stopPropagation(); drop.classList.add('over');
+    });
+    drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+    drop.addEventListener('drop', ev => {
+      const id = window._taskDrag || ev.dataTransfer.getData('text/plain');
+      drop.classList.remove('over');
+      if(!id) return;
+      ev.preventDefault(); ev.stopPropagation();
+      FocusTimer.setTask(id); sound('success'); go();
+    });
+  }
+
+  /* One number here changes every second — the reading beside the heading. The
+     dial in the sidebar has its own tick; this borrows it rather than redrawing
+     the page, so a note being typed is never interrupted. */
+  const live = () => {
+    const n = box.querySelector('.tf-clock');
+    if(!n || !n.isConnected){ clearInterval(iv); return; }
+    const st = FocusTimer.state();
+    n.textContent = fmtClock(st.mode === 'stopwatch' && st.phase === 'focus' ? st.elapsed : st.left);
+  };
+  const iv = setInterval(live, 1000);
+  live();
+}
+
 
 
 /* ============================================================
@@ -13666,8 +13815,10 @@ routes.today = function(root){
   const jumpsFor = {
     do: [
       ['t-plan',    'plan',     true],
-      /* The clock used to be a section here. It floats over every room now,
-         so there is nothing on this page to jump to. */
+      /* The dial itself is in the foot of the sidebar; this is everything it
+         cannot say — what the sitting is on, what you are doing in it, and
+         what the day has held. */
+      ['t-focus',   'focus',    true],
       ['t-tasks',   'tasks',    true],
       ['t-habits',  'habits',   true],
       ['t-tonight', 'before you sleep', true],
@@ -13752,6 +13903,8 @@ routes.today = function(root){
     </div>
 
     <div class="daybox daybox-solo daybox-work">
+    ${focusSectionHTML()}
+
     <!-- today's tasks -->
     <details class="section rv t-sec" id="t-tasks"${fold('t-tasks')}>
       <summary><span class="sc" style="margin:0">Today's tasks</span><span class="mono">${(() => {
@@ -14014,6 +14167,7 @@ routes.today = function(root){
   $('#pullTask').onclick = () => openTaskPicker(T, rerender);
   if($('#carryAll')) $('#carryAll').onclick = () => { carried.forEach(r => r.task.day = T); saveNow(); sound('success'); rerender(); };
   bindTaskRows(root); bindDayDrop(root); bindQuickTask(root); bindDayListFilter(root);
+  bindFocusSection(root, redraw);
 
   /* letters & decisions */
   bindSealedLetters(root);

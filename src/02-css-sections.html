@@ -2577,12 +2577,11 @@ html.vision-deep .page-scene.on{opacity:var(--scene-op)}
    out of it. */
 .today-switch{position:sticky;top:var(--chrome-h);z-index:7;display:inline-flex;gap:3px;margin:0 0 4px;
   padding:3px;border-radius:999px;background:var(--neu-bg);box-shadow:var(--neu-pressed)}
-/* pinned, it is a pill with the page running behind it on both sides; this is
-   the ground it stands on, spanning the column rather than the pill */
-.today-switch::before{content:"";position:absolute;z-index:-1;pointer-events:none;
-  left:-56px;right:-56px;top:calc(-1 * var(--chrome-h));bottom:-11px;
-  background:linear-gradient(to bottom,var(--bg) 92%,transparent)}
-@media (max-width:900px){.today-switch::before{left:-18px;right:-18px}}
+/* It had a band of ground behind it for a while, so that the page did not
+   scroll through the gaps beside the pill. At rest — which is most of the time
+   — that band was a pale rectangle sitting over the line under the date, and a
+   fix that is visible when the problem is not is not a fix. The pill stands on
+   its own, as it did before. */
 .today-switch button{background:none;border:none;border-radius:999px;cursor:pointer;
   padding:6px 16px;font-family:var(--sans);font-size:.8rem;letter-spacing:.02em;
   color:var(--muted);transition:color .2s var(--ease),box-shadow .25s var(--ease),background .2s var(--ease)}
@@ -6317,32 +6316,53 @@ html[data-decor="full"] .fd-bubble.ticking{animation:fdPulse 2.6s ease-in-out in
   50%{box-shadow:var(--elev-2-shadow),0 0 0 5px color-mix(in srgb,var(--terra) 13%,transparent)}}
 @media (prefers-reduced-motion:reduce){.fd-bubble.ticking{animation:none}}
 
-/* --- open: the card, as wide as the sidebar gives it --- */
+/* --- open: the dial, as wide as the sidebar gives it --- */
 .fd-card{width:100%;border-radius:12px;
   border:1px solid var(--line-2);background:var(--elev-2);box-shadow:var(--elev-2-shadow);
-  padding:10px 11px 11px;display:flex;flex-direction:column;gap:8px}
+  padding:10px 11px 11px;display:flex;flex-direction:column;gap:8px;
+  transition:border-color .2s var(--ease)}
+.fd-card.over{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 8%,transparent)}
 @media (max-width:900px){.fd-card{width:268px;max-width:calc(100vw - 24px)}}
 .fd-card.running{border-color:color-mix(in srgb,var(--terra) 34%,transparent)}
 .fd-card.onbreak{border-color:color-mix(in srgb,var(--sage) 34%,transparent)}
 .fd-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
 
-.fd-drop{border:1px dashed var(--line);border-radius:8px;padding:6px 8px;
-  transition:border-color .18s var(--ease),background .18s var(--ease)}
-.fd-drop.over{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 9%,transparent)}
-.fd-on{display:flex;align-items:baseline;gap:5px;flex-wrap:wrap}
-.fd-on b{font-size:.84rem;line-height:1.25;overflow-wrap:anywhere}
-.fd-on .pl-mini{margin-left:auto}
-.fd-step{font-size:.62rem;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);
-  margin-top:3px;overflow-wrap:anywhere}
-.fd-empty{font-size:.74rem;color:var(--faint);line-height:1.4}
 
-/* the clock face is the one the panel used; only the room around it changed */
-.fdock .fp-ring{align-self:center;transform:scale(.86);margin:-8px 0}
-.fd-go{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-.fd-note{display:flex;flex-direction:column;gap:3px}
-.fd-note .inp.sm{width:100%}
-.fd-note.resting .k{color:var(--sage)}
-/* a short window has no room for a dial beside a list of rooms */
-@media (max-height:680px){.fdock .fp-ring{display:none}}
+/* --- the sitting in words, on Today --- */
+.tf-card{display:flex;flex-direction:column;gap:14px}
+.tf-card.running{border-color:color-mix(in srgb,var(--terra) 30%,transparent)}
+.tf-card.onbreak{border-color:color-mix(in srgb,var(--sage) 30%,transparent)}
+.tf-drop{border:1px dashed var(--line);border-radius:10px;padding:11px 13px;
+  transition:border-color .18s var(--ease),background .18s var(--ease)}
+.tf-drop.over{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 9%,transparent)}
+.tf-on{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.tf-on b{font-size:1.05rem;line-height:1.3;overflow-wrap:anywhere}
+.tf-on .pl-mini{margin-left:auto}
+.tf-check{flex:0 0 auto;align-self:center}
+.tf-step{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-top:8px;
+  padding-top:8px;border-top:1px dashed var(--line)}
+.tf-stepname{font-size:.92rem;overflow-wrap:anywhere}
+.tf-stepname.struck,.tf-on b.struck{text-decoration:line-through;color:var(--faint)}
+.tf-rec{margin-top:8px;font-size:.72rem;color:var(--faint)}
+.tf-empty{font-size:.88rem;color:var(--faint);line-height:1.5}
+.tf-hint{font-size:.8rem;line-height:1.5}
+.tf-note{display:flex;flex-direction:column;gap:5px}
+.tf-note .inp{width:100%}
+.tf-note.resting .k{color:var(--sage)}
+.focus-block .fp-head .tf-clock{font-family:var(--mono);color:var(--text);font-size:.8rem}
+
+/* The dial is the whole point of the thing standing here, so it is never the
+   part that gets dropped to save room: on a short window it shrinks instead.
+   Three hands — hour, minute and second — because a sweeping hand is the
+   plainest signal in the world that something is running. */
+.fdock .fp-ring{align-self:center;margin:-6px 0}
+@media (max-height:760px){.fdock .fp-ring{transform:scale(.84);margin:-16px 0}}
+@media (max-height:620px){.fdock .fp-ring{transform:scale(.7);margin:-24px 0}}
+.fd-go{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:center}
+/* one line saying what it is counting, and a way back to the words about it */
+.fd-on{display:block;text-align:center;text-decoration:none;color:var(--muted);
+  font-size:.74rem;line-height:1.3;overflow:hidden}
+.fd-on:hover{color:var(--text)}
+.fd-onname{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 </style>
 </head>

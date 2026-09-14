@@ -28,9 +28,11 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   console.log('\n1. the timer is not somewhere you go to — it is everywhere');
   await onToday();
   yes('the clock is on the page', !!(await p.$('#focusDock')));
-  yes('and it is not a section of Today any more', !(await p.$('#t-focus')));
-  yes('and Today does not offer to jump to it', await p.evaluate(() =>
-    ![...document.querySelectorAll('[data-jump]')].some(x => /focus/.test(x.textContent))));
+  /* the dial is in the sidebar and the words about the sitting are on Today,
+     so both are true at once */
+  yes('and the words about the sitting are still a section of Today', !!(await p.$('#t-focus')));
+  yes('and Today offers to jump to them', await p.evaluate(() =>
+    [...document.querySelectorAll('[data-jump]')].some(x => /focus/.test(x.textContent))));
   await p.evaluate(() => { location.hash = '#/planning'; }); await p.waitForTimeout(1500);
   yes('and it is still there in the next room', !!(await p.$('#focusDock')));
   /* Planning used to carry a lesser timer of its own — one that could start
