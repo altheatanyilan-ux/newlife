@@ -34,9 +34,14 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     titles: [...document.querySelectorAll('[data-fr] b')].map(n => n.textContent.trim()),
   }));
   is('light and dark, in that order', rows.themes, ['light','dark']);
-  is('then the three switches, in the order Settings uses', rows.keys, ['clicks','ambient','decor']);
+  is('then the two sound switches, in the order Settings uses', rows.keys, ['clicks','ambient']);
   is('  named as Settings names them', rows.titles,
-     ['Interaction sounds','Ambient background','Decoration']);
+     ['Interaction sounds','Ambient background']);
+  /* the decoration is three choices rather than on and off, so it is three
+     buttons like the theme rather than a switch */
+  is('  and the decoration offers all three', await p.evaluate(() =>
+    [...document.querySelectorAll('[data-frdecor]')].map(n => n.dataset.frdecor)),
+    ['full','essential','plain']);
   /* the fifth Atmosphere row is deliberately not here */
   yes('and the interface sounds are not asked about',
     !rows.keys.includes('ui') && !rows.titles.some(t => /interface/i.test(t)), rows.titles.join(' / '));
@@ -51,13 +56,18 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   await p.click('[data-fr="ambient"]'); await p.waitForTimeout(400);
   is('so does the wash under them',
     await p.evaluate(() => SoundManager.state().ambientEnabled), true);
-  await p.click('[data-fr="decor"]'); await p.waitForTimeout(400);
+  await p.click('[data-frdecor="plain"]'); await p.waitForTimeout(400);
   is('turning the decoration off takes it off the page behind',
     await p.evaluate(() => document.documentElement.dataset.decor), 'plain');
-  is('  and it is the same switch Settings uses',
+  is('  and it is the same setting Settings uses',
     await p.evaluate(() => S.settings.decor), 'plain');
-  await p.click('[data-fr="decor"]'); await p.waitForTimeout(400);
-  is('and putting it back puts it back',
+  await p.click('[data-frdecor="essential"]'); await p.waitForTimeout(400);
+  is('the middle one keeps the painting and takes off the rest',
+    await p.evaluate(() => ({mode: document.documentElement.dataset.decor,
+      painted: paintedGround(), ornament: plainMode()})),
+    {mode: 'essential', painted: true, ornament: true});
+  await p.click('[data-frdecor="full"]'); await p.waitForTimeout(400);
+  is('and putting it all back puts it all back',
     await p.evaluate(() => document.documentElement.dataset.decor), 'full');
 
   console.log('\n3. the interface sounds are on without being asked for');
@@ -71,7 +81,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   await p.reload(); await p.waitForTimeout(1800);
   yes('a second visit is not asked again', await p.$('#frGo') === null);
   is('  and every answer survived it', await p.evaluate(() => ({
-      theme: S.settings.theme, decor: S.settings.decor,
+      theme: S.settings.theme, decor: decorMode(),
       clicks: SoundManager.state().soundEnabled, amb: SoundManager.state().ambientEnabled,
       ui: SoundManager.state().uiEnabled})),
     {theme: 'dark', decor: 'full', clicks: true, amb: true, ui: true});
@@ -84,13 +94,16 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     const c = h3.parentElement;
     return {ids: [...c.querySelectorAll('.opt [id]')].map(n => n.id),
       uiOn: c.querySelector('#sUiSound')?.classList.contains('on'),
-      decorOn: c.querySelector('#sDecor')?.classList.contains('on')};
+      decorOn: !!c.querySelector('#sDecor [data-decor="full"].on')};
   });
   yes('the Atmosphere card is there', card !== null);
   for(const id of ['sTheme','sSound','sAmbient','sUiSound','sDecor'])
     yes(`  it carries ${id}`, card && card.ids.includes(id), card && card.ids.join(' '));
   is('  the interface sounds read as on', card && card.uiOn, true);
   is('  and the decoration reads as full', card && card.decorOn, true);
+  is('  offering all three', await p.evaluate(() =>
+    [...document.querySelectorAll('#sDecor [data-decor]')].map(n => n.dataset.decor)),
+    ['full','essential','plain']);
   await p.click('#sUiSound'); await p.waitForTimeout(300);
   is('  and turning them off in Settings turns them off',
     await p.evaluate(() => SoundManager.state().uiEnabled), false);

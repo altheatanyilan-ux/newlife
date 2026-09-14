@@ -6050,14 +6050,20 @@ html.mfx-cursor .pl-gbaredge{cursor:ew-resize!important}
 .mfx-ring.warm{border-color:rgba(212,164,76,.3)}
 .mfx-dot.gone,.mfx-ring.gone{opacity:0}
 
-/* the light that follows the pointer across a large surface. Dim on purpose:
-   at 4% it reads as warmth following you, not as a lamp on the screen. */
+/* The light that follows the pointer across a large surface. Dim on purpose:
+   at 4% it reads as warmth following you, not as a lamp on the screen.
+
+   It is an element rather than a pseudo-element, and it is moved rather than
+   redrawn — see the note in 05-micro.js for why a gradient positioned by a
+   custom property on the page container was the single most expensive thing
+   the pointer did. */
 .nav,.page,.flashlight-panel{position:relative}
-.nav::before,.page::before,.flashlight-panel::before{content:'';position:absolute;inset:0;
-  background:radial-gradient(300px circle at var(--mx,50%) var(--my,50%),
-    color-mix(in srgb,var(--terra) 9%,transparent) 0%,transparent 100%);
-  pointer-events:none;opacity:0;transition:opacity .5s var(--ease);z-index:0}
-.nav.mfx-lit::before,.page.mfx-lit::before,.flashlight-panel.mfx-lit::before{opacity:1}
+.mfx-lamp{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0;
+  opacity:0;transition:opacity .5s var(--ease);border-radius:inherit}
+.mfx-lit > .mfx-lamp{opacity:1}
+.mfx-lamp > i{position:absolute;left:0;top:0;width:600px;height:600px;border-radius:50%;
+  background:radial-gradient(circle,color-mix(in srgb,var(--terra) 9%,transparent) 0%,transparent 70%);
+  will-change:transform}
 /* the glare on a tilted card: a soft spot of light where you are looking from */
 .mfx-tilt{transform-style:preserve-3d;will-change:transform}
 .mfx-tilt::after{content:'';position:absolute;inset:0;border-radius:inherit;
@@ -6066,7 +6072,7 @@ html.mfx-cursor .pl-gbaredge{cursor:ew-resize!important}
   pointer-events:none;z-index:1}
 @media (prefers-reduced-motion:reduce){
   .mfx-dot,.mfx-ring{display:none}
-  .nav::before,.page::before,.flashlight-panel::before,.mfx-tilt::after{display:none}
+  .mfx-lamp,.mfx-tilt::after{display:none}
 }
 /* ============================================================
    THE AMBIENT, FEEDBACK AND POLISH LAYERS
@@ -6837,55 +6843,69 @@ html[data-theme="dark"] .entry.sealed{background-image:url("data:image/svg+xml,%
    answer to "what does plain actually turn off" is one place, and so that
    anything added later has to be added here on purpose.
    ============================================================ */
+/* ============================================================
+   WHAT COMES OFF, AND IN WHICH ORDER
+
+   Three settings, not two. "Plain" takes off everything that is drawing
+   rather than telling you something. "Essential" keeps the one thing that is
+   the house's face — the ink painting behind the rooms, and the paper it is
+   painted on — and takes off everything else: the dust, the flowers, the
+   stone in the surfaces, the blur, the drifting.
+
+   The painting is kept because it is two layers that sit still behind
+   everything and cost the compositor one blend; the rest was a hundred small
+   things, each on its own element, each recalculated when anything near it
+   moved.
+   ============================================================ */
 html[data-decor="plain"] .ambient,
-html[data-decor="plain"] #dust,
-html[data-decor="plain"] #warmth::before,
-html[data-decor="plain"] #warmth::after,
+html:is([data-decor="plain"],[data-decor="essential"]) #dust,
+html:is([data-decor="plain"],[data-decor="essential"]) #warmth::before,
+html:is([data-decor="plain"],[data-decor="essential"]) #warmth::after,
 html[data-decor="plain"] body::before,
 html[data-decor="plain"] body::after,
-html[data-decor="plain"] .page-head::before,
-html[data-decor="plain"] .page-head::after,
-html[data-decor="plain"] .ph-plant,
-html[data-decor="plain"] .sheen::after,
-html[data-decor="plain"] .card::after,
-html[data-decor="plain"] .modal.rite::before,html[data-decor="plain"] .modal.rite::after,
-html[data-decor="plain"] .dv-veil-in::before,html[data-decor="plain"] .dv-veil-in::after,
-html[data-decor="plain"] .body.theatre::before,html[data-decor="plain"] .body.theatre::after,
-html[data-decor="plain"] .ic-sec + .ic-sec::before,
-html[data-decor="plain"] .value-field + .value-field::before,
-html[data-decor="plain"] .ornate-rule{display:none!important}
+html:is([data-decor="plain"],[data-decor="essential"]) .page-head::before,
+html:is([data-decor="plain"],[data-decor="essential"]) .page-head::after,
+html:is([data-decor="plain"],[data-decor="essential"]) .ph-plant,
+html:is([data-decor="plain"],[data-decor="essential"]) .sheen::after,
+html:is([data-decor="plain"],[data-decor="essential"]) .card::after,
+html:is([data-decor="plain"],[data-decor="essential"]) .modal.rite::before,html:is([data-decor="plain"],[data-decor="essential"]) .modal.rite::after,
+html:is([data-decor="plain"],[data-decor="essential"]) .dv-veil-in::before,html:is([data-decor="plain"],[data-decor="essential"]) .dv-veil-in::after,
+html:is([data-decor="plain"],[data-decor="essential"]) .body.theatre::before,html:is([data-decor="plain"],[data-decor="essential"]) .body.theatre::after,
+html:is([data-decor="plain"],[data-decor="essential"]) .ic-sec + .ic-sec::before,
+html:is([data-decor="plain"],[data-decor="essential"]) .value-field + .value-field::before,
+html:is([data-decor="plain"],[data-decor="essential"]) .ornate-rule{display:none!important}
 
 /* surfaces go flat: no stone, no paper, no double frame */
-html[data-decor="plain"] .card{background-image:none;background-color:var(--elev-2);
+html:is([data-decor="plain"],[data-decor="essential"]) .card{background-image:none;background-color:var(--elev-2);
   box-shadow:var(--elev-2-shadow)}
-html[data-decor="plain"] .card:hover{box-shadow:var(--elev-3-shadow)}
-html[data-decor="plain"] .modal.rite,
-html[data-decor="plain"] .body.theatre,
-html[data-decor="plain"] .entry.sealed,
-html[data-decor="plain"] .dv-veil{background-image:none}
-html[data-decor="plain"] .dv-veil{background:radial-gradient(120% 90% at 50% 40%,#241d18,#15110e 70%)}
+html:is([data-decor="plain"],[data-decor="essential"]) .card:hover{box-shadow:var(--elev-3-shadow)}
+html:is([data-decor="plain"],[data-decor="essential"]) .modal.rite,
+html:is([data-decor="plain"],[data-decor="essential"]) .body.theatre,
+html:is([data-decor="plain"],[data-decor="essential"]) .entry.sealed,
+html:is([data-decor="plain"],[data-decor="essential"]) .dv-veil{background-image:none}
+html:is([data-decor="plain"],[data-decor="essential"]) .dv-veil{background:radial-gradient(120% 90% at 50% 40%,#241d18,#15110e 70%)}
 
 /* A backdrop filter is the single most expensive thing on this page: the
    blurred sample behind it has to be taken again whenever anything behind it
    moves at all. Plain does without. */
-html[data-decor="plain"] .page-head,
-html[data-decor="plain"] .today-jump,
-html[data-decor="plain"] .overlay,
-html[data-decor="plain"] .back-btn{backdrop-filter:none;-webkit-backdrop-filter:none}
-html[data-decor="plain"] .page-head{background:color-mix(in srgb,var(--surface) 80%,transparent)}
+html:is([data-decor="plain"],[data-decor="essential"]) .page-head,
+html:is([data-decor="plain"],[data-decor="essential"]) .today-jump,
+html:is([data-decor="plain"],[data-decor="essential"]) .overlay,
+html:is([data-decor="plain"],[data-decor="essential"]) .back-btn{backdrop-filter:none;-webkit-backdrop-filter:none}
+html:is([data-decor="plain"],[data-decor="essential"]) .page-head{background:color-mix(in srgb,var(--surface) 80%,transparent)}
 
 /* nothing moves that was not asked to move */
-html[data-decor="plain"] .page-head h1,
-html[data-decor="plain"] .breathing,
+html:is([data-decor="plain"],[data-decor="essential"]) .page-head h1,
+html:is([data-decor="plain"],[data-decor="essential"]) .breathing,
 html[data-decor="plain"] .mist-band,
-html[data-decor="plain"] .ripple-ring,
-html[data-decor="plain"] .ink-leaf,
-html[data-decor="plain"] .dv-pick .tc-back::after{animation:none}
-html[data-decor="plain"] .entries > .entry,
-html[data-decor="plain"] .vb-card,
-html[data-decor="plain"] .era-col{rotate:0deg}
+html:is([data-decor="plain"],[data-decor="essential"]) .ripple-ring,
+html:is([data-decor="plain"],[data-decor="essential"]) .ink-leaf,
+html:is([data-decor="plain"],[data-decor="essential"]) .dv-pick .tc-back::after{animation:none}
+html:is([data-decor="plain"],[data-decor="essential"]) .entries > .entry,
+html:is([data-decor="plain"],[data-decor="essential"]) .vb-card,
+html:is([data-decor="plain"],[data-decor="essential"]) .era-col{rotate:0deg}
 /* the firelight across a heading becomes a heading */
-html[data-decor="plain"] .flow{background:none;-webkit-text-fill-color:currentColor;
+html:is([data-decor="plain"],[data-decor="essential"]) .flow{background:none;-webkit-text-fill-color:currentColor;
   color:var(--text);animation:none}
 /* and the words are simply there */
 html[data-decor="plain"] [data-reveal] .wd{opacity:1;transform:none;transition:none;animation:none}
@@ -7027,6 +7047,72 @@ html[data-decor="full"] .fd-bubble.ticking{animation:fdPulse 2.6s ease-in-out in
   font-size:.74rem;line-height:1.3;overflow:hidden}
 .fd-on:hover{color:var(--text)}
 .fd-onname{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+/* ============================================================
+   19. THE CONSTELLATION
+
+   The canvas draws itself; this is the room it sits in, the card that follows
+   the pointer round it, and the strip of rings under it.
+   ============================================================ */
+.sky-wrap{margin:2px 0 10px}
+.sky{position:relative;width:100%;border-radius:var(--radius);overflow:hidden;
+  background:radial-gradient(ellipse 68% 62% at 50% 50%,
+    color-mix(in srgb,var(--gold) 5%,transparent) 0%,transparent 72%)}
+.sky canvas{display:block;touch-action:none}
+.sky-foot{gap:14px;flex-wrap:wrap;margin-top:4px;font-size:.62rem}
+@media (max-width:720px){.sky-foot span:last-child{display:none}}
+
+/* the card: warm, bordered in the person's own colour, never off the edge */
+.sky-card{position:absolute;z-index:4;pointer-events:auto;max-width:290px;
+  background:var(--elev-3);border:1px solid var(--line-2);border-radius:10px;
+  padding:11px 13px;box-shadow:var(--elev-3-shadow);font-size:.85rem;line-height:1.45}
+.sky-card[hidden]{display:none}
+.sky-card b{font-family:var(--serif);font-size:1.05rem}
+.sky-card .mono{font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+.sky-card .sk-row{display:flex;justify-content:space-between;gap:14px;margin-top:5px;
+  padding-top:5px;border-top:1px dashed var(--line);color:var(--muted)}
+.sky-card .sk-row b{font-family:var(--sans);font-size:.84rem;color:var(--text)}
+.sky-card .sk-line{margin:8px 0 0;padding-top:7px;border-top:1px dashed var(--line);
+  font-family:var(--quote);font-style:italic;color:var(--muted);font-size:.84rem}
+.sky-card .sk-attrib{margin-top:3px}
+.sky-card .sk-warn{margin:8px 0 0;padding-top:7px;border-top:1px dashed var(--line);
+  font-size:.78rem;color:var(--rose)}
+.sky-card .sk-do{display:flex;gap:6px;margin-top:10px}
+@media (max-width:560px){.sky-card{max-width:215px;font-size:.8rem}}
+
+/* while a face is being carried, the ring it would land in says its name */
+.sky-ring-say{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);z-index:5;
+  pointer-events:none;font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;
+  background:var(--elev-2);border:1px solid var(--line-2);border-radius:999px;padding:4px 12px}
+.sky-ring-say[hidden]{display:none}
+
+.sky-legend{gap:10px;justify-content:center;flex-wrap:wrap;margin-top:2px}
+.sky-ring-chip{background:none;border:1px solid transparent;border-radius:999px;
+  padding:3px 10px;font-size:.66rem;color:var(--c);cursor:pointer;
+  transition:border-color .2s var(--ease),background .2s var(--ease)}
+.sky-ring-chip:hover{border-color:color-mix(in srgb,var(--c) 45%,transparent);
+  background:color-mix(in srgb,var(--c) 9%,transparent)}
+/* a dozen motes, not a firework */
+.sky-burst i{width:5px;height:5px}
+
+/* three settings, not a switch: a switch cannot say what the middle one is */
+.decor-pick{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.decor-pick button{flex:1 1 150px;min-width:0;text-align:left;cursor:pointer;
+  background:var(--surface-2);border:1px solid var(--line);border-radius:10px;
+  padding:8px 11px;color:var(--muted);font-family:var(--sans);
+  transition:border-color .2s var(--ease),background .2s var(--ease),color .2s var(--ease)}
+.decor-pick button b{display:block;font-family:var(--serif);font-size:.92rem;color:var(--text)}
+.decor-pick button span{display:block;font-size:.72rem;line-height:1.35;margin-top:2px}
+.decor-pick button:hover{border-color:var(--line-2);background:var(--surface-3)}
+.decor-pick button.on{border-color:var(--page-accent);background:color-mix(in srgb,var(--page-accent) 10%,transparent);color:var(--text)}
+.fr-decor{display:flex;flex-direction:column;gap:8px;padding:12px 14px;border-radius:12px;
+  border:1px solid var(--line);background:var(--surface-2)}
+.fr-decor .decor-pick{margin-top:2px}
+/* The margin vines and the room texture were never on the list of things the
+   decoration setting took off — an oversight, since they are ornament by any
+   reading of the word and they sit on every page. */
+html:is([data-decor="plain"],[data-decor="essential"]) #vines,
+html:is([data-decor="plain"],[data-decor="essential"]) #roomtex{display:none!important}
 </style>
 </head>
 <body>
@@ -7479,8 +7565,21 @@ function applyTheme(){ document.documentElement.dataset.theme = S.settings.theme
    the grain and the stone, the glows, the candlelight, the drift — and leaves
    the instrument, which was always the point. Nothing about what the app
    KNOWS changes; only what it spends drawing it. */
-function plainMode(){ return S.settings.decor === 'plain'; }
-function applyDecor(){ document.documentElement.dataset.decor = plainMode() ? 'plain' : 'full'; }
+/* Three settings. Plain takes everything decorative off; essential keeps the
+   ink painting behind the rooms and the paper under it and takes off the
+   hundred small things; full is the house as drawn.
+
+   plainMode() answers "is the moving, per-element ornament off" — which is
+   true of both plain and essential, and is what every layer that asks wants
+   to know. decorMode() answers which of the three it is. */
+function decorMode(){
+  const d = S.settings && S.settings.decor;
+  return d === 'plain' || d === 'essential' ? d : 'full';
+}
+function plainMode(){ return decorMode() !== 'full'; }
+/* the painting behind the rooms, which essential keeps and plain does not */
+function paintedGround(){ return decorMode() !== 'plain'; }
+function applyDecor(){ document.documentElement.dataset.decor = decorMode(); }
 /* the season is a data attribute; the ink layer reads it for how heavy the mist
    hangs, and paints the margin sprig to match */
 function applySeason(){ if(typeof season === 'function') document.documentElement.dataset.season = season(); }
@@ -9769,6 +9868,58 @@ const MicroFX = (() => {
     out.flash = t.closest(FLASHLIGHT);
     return out;
   }
+  /* ---------- measuring, once ----------
+     Every frame the pointer moved, this layer asked the browser where the
+     card under it was, and where the button was, and where the lit panel was.
+     getBoundingClientRect is a question the browser cannot answer without
+     finishing any layout it was putting off — and these calls sit between
+     style writes, so each one forced a full layout of whatever page you were
+     on. On a page of a few thousand elements that is the entire frame, spent
+     to move a cursor ring: the pointer visibly lagged behind the mouse, and
+     worse the further down a heavy page you were.
+
+     A card does not move while you cross it, so it is measured once when the
+     pointer arrives and the answer is kept until it leaves. The magnet is the
+     one that could not be measured repeatedly even if it were free: it writes
+     a transform onto its own node, and a rect read back includes it, so each
+     frame was measuring a target that the last frame had moved.
+
+     Scrolling and resizing do move things, so both throw the answers away. */
+  /* ---------- the lamp ----------
+     The warmth that follows the pointter across a large surface used to be a
+     pseudo-element on that surface, with the pointer's position written onto
+     the surface as a custom property. The surface is `.page` — the whole room
+     — so every frame the mouse moved wrote a property onto the container of
+     everything on screen, invalidating the style of every element that could
+     inherit it, and then repainting a page-sized gradient. That is what a
+     cursor lagging behind the mouse actually is.
+
+     It is a real element now: one circle, six hundred pixels across, carrying
+     the gradient as a fixed background, with nothing inside it. Moving it is a
+     transform on a childless promoted layer — no property to inherit, no
+     subtree to invalidate, and the compositor does the move. */
+  function lampIn(node){
+    let wrap = node.querySelector(':scope > .mfx-lamp');
+    if(!wrap){
+      wrap = document.createElement('div');
+      wrap.className = 'mfx-lamp';
+      wrap.setAttribute('aria-hidden', 'true');
+      wrap.appendChild(document.createElement('i'));
+      node.insertBefore(wrap, node.firstChild);
+    }
+    return wrap.firstChild;
+  }
+
+  let RECTS = new WeakMap();
+  function rectOf(node){
+    let r = RECTS.get(node);
+    if(!r){ r = node.getBoundingClientRect(); RECTS.set(node, r); }
+    return r;
+  }
+  /* a whole new map rather than a walk: there is nothing to keep, and a
+     WeakMap has no clear */
+  function dropRects(){ RECTS = new WeakMap(); }
+
   function release(e){
     if(!e) return;
     if(e.magnet) settle(e.magnet.node, 'translate(0,0)', 400);
@@ -9801,10 +9952,10 @@ const MicroFX = (() => {
     effects = next;
 
     if(next.flash){
-      const r = next.flash.getBoundingClientRect();
+      const r = rectOf(next.flash);
       next.flash.classList.add('mfx-lit');
-      next.flash.style.setProperty('--mx', (px - r.left) + 'px');
-      next.flash.style.setProperty('--my', (py - r.top) + 'px');
+      const lamp = lampIn(next.flash);
+      lamp.style.translate = `${(px - r.left - 300).toFixed(0)}px ${(py - r.top - 300).toFixed(0)}px`;
     }
     /* A magnet and a tilt only fight when they land on the SAME node, since
        both write transform. Usually they do not: the tilt is the card and the
@@ -9813,7 +9964,7 @@ const MicroFX = (() => {
        which is nearly all of them. */
     const sameNode = !!(next.tilt && next.magnet && next.tilt.node === next.magnet.node);
     if(next.tilt){
-      const n = next.tilt.node, r = n.getBoundingClientRect();
+      const n = next.tilt.node, r = rectOf(n);
       const x = (px - r.left) / r.width, y = (py - r.top) / r.height;
       n.classList.add('mfx-tilt');
       n.style.setProperty('--mouse-x', (x * 100) + '%');
@@ -9823,7 +9974,7 @@ const MicroFX = (() => {
         + `rotateY(${(x - .5) * next.tilt.max * 2}deg) scale3d(1.02,1.02,1.02)`;
     }
     if(next.magnet && !sameNode){
-      const n = next.magnet.node, r = n.getBoundingClientRect();
+      const n = next.magnet.node, r = rectOf(n);
       const dx = px - (r.left + r.width / 2), dy = py - (r.top + r.height / 2);
       const d = Math.hypot(dx, dy);
       if(d < next.magnet.threshold){
@@ -9850,9 +10001,12 @@ const MicroFX = (() => {
     /* mousemove stops during a drag; dragover is the only thing still saying
        where the pointer is, so the ring keeps up instead of being left behind */
     document.addEventListener('dragover', queue, {passive:true});
+    /* the answers about where things are stop being true when things move */
+    addEventListener('scroll', dropRects, {passive:true, capture:true});
+    addEventListener('resize', dropRects, {passive:true});
     /* a page swap leaves transforms on nodes that are already gone; the ones
        still here are let go so nothing is stuck mid-lean */
-    window.addEventListener('hashchange', () => { release(effects); effects = null; hovered = null; });
+    window.addEventListener('hashchange', () => { release(effects); effects = null; hovered = null; dropRects(); });
   }
   function stop(){
     if(!started) return;
@@ -9863,6 +10017,8 @@ const MicroFX = (() => {
     cancelAnimationFrame(raf); raf = 0;
     document.removeEventListener('mousemove', queue);
     document.removeEventListener('dragover', queue);
+    removeEventListener('scroll', dropRects, {capture:true});
+    removeEventListener('resize', dropRects);
     document.documentElement.classList.remove('mfx-cursor');
     dot?.remove(); ring?.remove(); dot = ring = null;
     release(effects); effects = null;
@@ -11944,7 +12100,14 @@ function openFirstRun(after){
       </div>
       ${firstRunRowHTML('clicks', 'Interaction sounds', 'Soft chimes on a click, a low note on moving rooms, a rising pair when something is finished. Made in the browser; nothing is downloaded.', snd.soundEnabled)}
       ${firstRunRowHTML('ambient', 'Ambient background', 'A barely-audible wash of noise under the work, which ducks out of the way of every click.', snd.ambientEnabled)}
-      ${firstRunRowHTML('decor', 'Decoration', 'The ink painting behind the rooms, the dust in the air, the grain in the paper and the stone in the surfaces. All ornament, all of it costing something to draw — turn it off on an older machine and nothing is lost but the drawing.', !plainMode())}
+      <div class="fr-decor" role="radiogroup" aria-label="Decoration">
+        <span class="fr-copy"><b>Decoration</b><span class="fr-desc">The ink painting behind the rooms, the dust in the air, the grain in the paper and the stone in the surfaces. All ornament, all of it costing something to draw.</span></span>
+        <div class="decor-pick">${[['full','Full','everything, as drawn'],
+          ['essential','Essential','the painting stays; the rest comes off'],
+          ['plain','Plain','nothing but the writing']].map(([v, n, why]) =>
+          `<button class="${decorMode() === v ? 'on' : ''}" data-frdecor="${v}" role="radio"
+            aria-checked="${decorMode() === v}"><b>${n}</b><span>${esc(why)}</span></button>`).join('')}</div>
+      </div>
       <div class="row" style="justify-content:flex-end;margin-top:6px">
         <button class="btn primary" id="frGo" style="padding:12px 30px;font-size:1rem">Begin</button>
       </div>
@@ -11965,6 +12128,19 @@ function openFirstRun(after){
   let settled = false;
   const done = () => { if(settled) return; settled = true; if(after) after(); };
 
+  /* the decoration is three choices, so it is three buttons like the theme
+     rather than a switch — and like the theme it takes effect as it is
+     pressed, because the only honest way to choose it is to watch it go */
+  m.querySelectorAll('[data-frdecor]').forEach(b => b.onclick = () => {
+    S.settings.decor = b.dataset.frdecor;
+    saveNow(); applyDecor();
+    m.querySelectorAll('[data-frdecor]').forEach(x => {
+      const on = x.dataset.frdecor === decorMode();
+      x.classList.toggle('on', on); x.setAttribute('aria-checked', on);
+    });
+    sound('click');
+  });
+
   m.querySelectorAll('[data-frtheme]').forEach(b => b.onclick = () => {
     S.settings.theme = b.dataset.frtheme;
     saveNow(); applyTheme();
@@ -11981,12 +12157,6 @@ function openFirstRun(after){
     /* Toggling a sound plays it. Choosing one you cannot hear is guessing.
        Turning the decoration off takes it off the page behind the dialog, for
        the same reason: the only honest way to choose it is to see it go. */
-    if(b.dataset.fr === 'decor'){
-      S.settings.decor = on ? 'full' : 'plain';
-      saveNow(); applyDecor();
-      sound('click');
-      return;
-    }
     if(b.dataset.fr === 'ambient') SoundManager.setAmbient(on);
     else SoundManager.setSound(on);
     if(typeof syncSoundButtons === 'function') syncSoundButtons();
@@ -14955,6 +15125,535 @@ function openImagePanel(kind, id){
   bindRecImages(p, redraw);
 }
 /* ============================================================
+   THE CONSTELLATION
+
+   The People page was a directory: rings drawn at fixed radii, faces placed
+   round them at even angles, nothing moving. It was accurate and it was inert,
+   and a page about the people you love should not be the coldest room in the
+   house.
+
+   So the rings become a physics simulation. You are at the centre; everyone
+   else is a node on a thread; and every property of a node is read off what
+   you have actually done rather than chosen to look well:
+
+     how far out      which ring you put them in
+     how big          how much of your writing they are in
+     how bright       how recently you saw them
+     how warm         whether time with them leaves you fuller or emptier
+     the thread       the same recency, and it frays when it goes cold
+     a dashed ring    somebody you have not met yet
+
+   The forces are the four that matter, reimplemented rather than imported: a
+   spring holding each node at its ring's distance, a repulsion keeping faces
+   off each other, a slow drift so the whole thing breathes, and damping so it
+   settles instead of oscillating. Nothing here is random from render to
+   render — a person starts at the same angle every time, seeded from their
+   id, so the sky you learn is the sky you come back to.
+   ============================================================ */
+
+/* ---------- what a person is, as a node ---------- */
+
+/* Distances are fractions of the outermost ring, so the same sky fits a
+   phone and a wide window without a second set of numbers. */
+const SKY_RINGS = {core: .22, close: .43, warm: .63, orbit: .82, aspirational: 1};
+
+/* How recently you saw them, as one number between nothing and one. The
+   thresholds are the doc's: three days is bright, a fortnight is fading, two
+   months is nearly out. */
+function skyGlow(days){
+  if(days == null || !isFinite(days)) return .02;
+  if(days < 3) return .25;
+  if(days < 7) return .18;
+  if(days < 14) return .12;
+  if(days < 30) return .08;
+  if(days < 60) return .04;
+  return .02;
+}
+/* the same angle every time, from the id rather than from Math.random */
+function skySeed(id){
+  return [...String(id)].reduce((n, c) => (n * 31 + c.charCodeAt(0)) % 3600, 7) / 3600 * Math.PI * 2;
+}
+function skyNodes(){
+  return (S.people || []).filter(p => p && p.id && p.name).map(p => {
+    const ints = personInteractions(p.id);
+    const last = p.lastInteraction || (ints.length ? ints[0].date : null);
+    const days = last ? daysSince(last) : null;
+    const bal = energyBalanceScore(p.id, 180);            /* −1 … +1, or null */
+    const written = typeof personEntryCount === 'function' ? personEntryCount(p.id) : 0;
+    const hue = bal == null ? 32 : bal > .34 ? 40 : bal > -.34 ? 30 : bal > -.7 ? 210 : 0;
+    const sat = bal == null ? 34 : bal > .34 ? 66 : bal > -.34 ? 40 : bal > -.7 ? 20 : 10;
+    return {
+      id: p.id, person: p,
+      name: p.nickname || p.name.split(' ')[0], full: p.name,
+      ring: SKY_RINGS[p.circle] != null ? p.circle : 'orbit',
+      /* the two kinds of weight a person has in a life: what you have written
+         about them, and how often you have seen them */
+      radius: Math.min(8 + (ints.length + written * 2) * .55, 26),
+      hue, sat, lum: bal == null ? 52 : bal > -.34 ? 58 : 50,
+      glow: skyGlow(days), days, last,
+      interactions: ints.length, written,
+      energy: bal,
+      overdue: personOverdue(p),
+      /* somebody you have not met is drawn as an outline and hangs on no
+         thread — there is nothing yet between you */
+      unmet: p.circle === 'aspirational' || p.status === 'notyetmet',
+      faded: ['lost', 'estranged', 'deceased'].includes(p.status),
+      seed: skySeed(p.id),
+      x: 0, y: 0, vx: 0, vy: 0, ang: 0,
+    };
+  });
+}
+
+/* ---------- the sky ---------- */
+function PeopleSky(canvas, nodes, opts){
+  this.cv = canvas; this.ctx = canvas.getContext('2d');
+  this.nodes = nodes; this.opts = opts || {};
+  this.hover = null; this.drag = null; this.pressed = null;
+  this.t0 = performance.now(); this.lit = new Map();
+  /* Still, for anyone who has asked for less motion and for anyone running
+     plain: the simulation is settled in one go and drawn once. The layout is
+     the information; the drifting is not. */
+  this.soft = (typeof reduced === 'function' && reduced())
+    || (typeof plainMode === 'function' && plainMode());
+  this.resize();
+  this.place();
+  this.bind();
+  this.start();
+}
+PeopleSky.prototype.resize = function(){
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const w = this.cv.parentElement.clientWidth || 640;
+  const h = this.opts.height || 520;
+  this.w = w; this.h = h;
+  this.cv.width = Math.round(w * dpr); this.cv.height = Math.round(h * dpr);
+  this.cv.style.width = w + 'px'; this.cv.style.height = h + 'px';
+  this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  this.cx = w / 2; this.cy = h / 2;
+  /* the outermost ring has to leave room for a name under a face */
+  this.maxR = Math.max(120, Math.min(w / 2 - 54, h / 2 - 40));
+  this.nodes.forEach(n => { n.target = SKY_RINGS[n.ring] * this.maxR; });
+};
+/* Everyone starts on their own ring at their own angle, so the first frame is
+   already a readable sky rather than a heap in the middle that sorts itself
+   out while you watch. */
+PeopleSky.prototype.place = function(){
+  this.nodes.forEach(n => {
+    n.x = this.cx + Math.cos(n.seed) * n.target;
+    n.y = this.cy + Math.sin(n.seed) * n.target;
+    n.vx = n.vy = 0;
+  });
+  if(this.soft) for(let i = 0; i < 120; i++) this.step(1);
+};
+
+/* ---------- the forces ---------- */
+PeopleSky.prototype.step = function(scale){
+  const k = scale == null ? 1 : scale;
+  const ns = this.nodes;
+  for(const n of ns){
+    if(n === this.drag) continue;
+    /* the spring that holds a person at their ring's distance */
+    const dx = n.x - this.cx, dy = n.y - this.cy;
+    const d = Math.max(1, Math.hypot(dx, dy));
+    const pull = (d - n.target) * .004 * k;
+    n.vx -= (dx / d) * pull; n.vy -= (dy / d) * pull;
+    /* the drift that keeps it breathing — deterministic, so a still frame in
+       plain mode is the same still frame every time */
+    if(!this.soft){
+      const t = (performance.now() - this.t0) / 1000;
+      n.vx += Math.sin(t * .27 + n.seed * 3.1) * .016 * k;
+      n.vy += Math.cos(t * .23 + n.seed * 2.3) * .016 * k;
+    }
+  }
+  /* faces do not sit on top of each other */
+  for(let i = 0; i < ns.length; i++){
+    for(let j = i + 1; j < ns.length; j++){
+      const a = ns[i], b = ns[j];
+      const dx = b.x - a.x, dy = b.y - a.y;
+      const d = Math.max(1, Math.hypot(dx, dy));
+      const min = a.radius + b.radius + 22;
+      if(d >= min) continue;
+      const f = (min - d) * .06 * k;
+      if(a !== this.drag){ a.vx -= (dx / d) * f; a.vy -= (dy / d) * f; }
+      if(b !== this.drag){ b.vx += (dx / d) * f; b.vy += (dy / d) * f; }
+    }
+  }
+  for(const n of ns){
+    if(n === this.drag) continue;
+    n.vx *= .93; n.vy *= .93;
+    n.x += n.vx; n.y += n.vy;
+  }
+};
+
+/* ---------- the ink ---------- */
+PeopleSky.prototype.ink = function(){
+  return document.documentElement.dataset.theme === 'light'
+    ? {label: '#2c2520', ring: 'rgba(120,90,60,.10)', thread: .8, light: true}
+    : {label: '#e8e0d4', ring: 'rgba(212,164,76,.07)', thread: 1, light: false};
+};
+PeopleSky.prototype.frame = function(now){
+  const c = this.ctx, ink = this.ink();
+  if(!this.soft) this.step();
+  c.clearRect(0, 0, this.w, this.h);
+
+  /* the rings, faint, for orientation only */
+  c.save();
+  c.setLineDash([4, 8]); c.strokeStyle = ink.ring; c.lineWidth = 1;
+  Object.entries(SKY_RINGS).forEach(([k, f]) => {
+    c.beginPath(); c.arc(this.cx, this.cy, f * this.maxR, 0, Math.PI * 2); c.stroke();
+  });
+  c.restore();
+  c.save();
+  c.fillStyle = ink.label; c.globalAlpha = .2;
+  c.font = '9px ' + (getComputedStyle(document.body).fontFamily || 'sans-serif');
+  c.textAlign = 'center';
+  Object.entries(SKY_RINGS).forEach(([k, f]) => {
+    c.fillText(CIRCLES[k][1].toUpperCase(), this.cx, this.cy - f * this.maxR - 5);
+  });
+  c.restore();
+
+  this.nodes.forEach(n => this.thread(n, now, ink));
+  /* far ones first, so a near face passes in front of a far one */
+  [...this.nodes]
+    .sort((a, b) => Math.hypot(a.x - this.cx, a.y - this.cy) - Math.hypot(b.x - this.cx, b.y - this.cy))
+    .reverse()
+    .forEach(n => this.node(n, now, ink));
+  this.self(now, ink);
+};
+
+/* The thread is the whole story: bright and whole when it is warm, and when it
+   has gone cold it frays — drawn as two thin lines slightly apart instead of
+   one, which is what a loosening connection looks like. A thread you have
+   tended lately carries a point of light out along it, once every few
+   seconds, from you towards them. */
+PeopleSky.prototype.thread = function(n, now, ink){
+  if(n.unmet) return;                       /* nothing between you yet */
+  const c = this.ctx;
+  const dim = this.hover && n !== this.hover ? .3 : 1;
+  const op = (n === this.hover ? .6 : n.glow * 1.5) * dim * ink.thread * (n.faded ? .5 : 1);
+  const cold = n.days == null || n.days >= 30;
+  const mx = (this.cx + n.x) / 2 + Math.cos(n.seed) * 14;
+  const my = (this.cy + n.y) / 2 + Math.sin(n.seed) * 14;
+  c.save();
+  c.strokeStyle = `hsla(${n.hue},${n.sat}%,${n.lum + 6}%,${op.toFixed(3)})`;
+  c.lineWidth = (n === this.hover ? 2 : 1) + n.radius * .05;
+  const runs = cold ? [-1.6, 1.6] : [0];
+  runs.forEach(o => {
+    c.beginPath();
+    c.moveTo(this.cx + o, this.cy);
+    c.quadraticCurveTo(mx + o, my + o, n.x + o, n.y);
+    c.stroke();
+  });
+  c.restore();
+  /* the pulse, on threads you have tended within the week */
+  if(!this.soft && n.days != null && n.days < 7){
+    const t = ((now - this.t0) / 5000 + n.seed / 6.283) % 1;
+    if(t < .34){
+      const u = t / .34;
+      const x = (1 - u) * (1 - u) * this.cx + 2 * (1 - u) * u * mx + u * u * n.x;
+      const y = (1 - u) * (1 - u) * this.cy + 2 * (1 - u) * u * my + u * u * n.y;
+      c.save();
+      c.fillStyle = `hsla(${n.hue},${n.sat}%,72%,${(.5 * (1 - u) * dim).toFixed(3)})`;
+      c.beginPath(); c.arc(x, y, 2.2, 0, Math.PI * 2); c.fill();
+      c.restore();
+    }
+  }
+};
+PeopleSky.prototype.node = function(n, now, ink){
+  const c = this.ctx;
+  const dim = this.hover && n !== this.hover ? .3 : 1;
+  const hot = this.lit.get(n.id);                    /* a just-logged bloom */
+  const bloom = hot ? Math.max(0, 1 - (now - hot) / 1400) : 0;
+  const scale = (n === this.hover ? 1.3 : 1) * (1 + bloom * .15);
+  const r = n.radius * scale;
+  const x = n === this.drag ? this.drag.px : n.x, y = n === this.drag ? this.drag.py : n.y;
+  const glow = Math.min(.4, n.glow * (n === this.hover ? 2 : 1) + bloom * .25) * dim * (n.faded ? .4 : 1);
+
+  if(glow > .025){
+    const g = c.createRadialGradient(x, y, r, x, y, r * 3);
+    g.addColorStop(0, `hsla(${n.hue},${n.sat}%,${n.lum + 8}%,${glow.toFixed(3)})`);
+    g.addColorStop(1, `hsla(${n.hue},${n.sat}%,${n.lum + 8}%,0)`);
+    c.fillStyle = g; c.beginPath(); c.arc(x, y, r * 3, 0, Math.PI * 2); c.fill();
+  }
+  if(n.unmet){
+    /* an outline, not a face: there is nobody there yet */
+    c.save();
+    c.setLineDash([3, 4]); c.lineWidth = 1.2;
+    c.strokeStyle = `hsla(42,60%,58%,${(.45 * dim).toFixed(3)})`;
+    c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.stroke();
+    c.fillStyle = `hsla(42,60%,64%,${(.5 * dim).toFixed(3)})`;
+    c.font = `${Math.max(9, r)}px serif`; c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.fillText('✦', x, y + 1);
+    c.restore();
+  } else {
+    const g = c.createRadialGradient(x - r * .3, y - r * .3, 0, x, y, r);
+    g.addColorStop(0, `hsla(${n.hue},${n.sat}%,${n.lum + 16}%,${dim})`);
+    g.addColorStop(1, `hsla(${n.hue},${n.sat}%,${n.lum - 12}%,${dim})`);
+    c.fillStyle = g; c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill();
+    /* the face, if there is one, clipped into the node */
+    const img = n.img;
+    if(img && img.complete && img.naturalWidth){
+      c.save(); c.globalAlpha = dim;
+      c.beginPath(); c.arc(x, y, r - 1, 0, Math.PI * 2); c.clip();
+      c.drawImage(img, x - r + 1, y - r + 1, (r - 1) * 2, (r - 1) * 2);
+      c.restore();
+    } else if(r >= 9){
+      c.save();
+      c.fillStyle = `rgba(255,253,245,${(.92 * dim).toFixed(2)})`;
+      c.font = `${Math.max(9, r * .78)}px ${getComputedStyle(document.body).fontFamily || 'sans-serif'}`;
+      c.textAlign = 'center'; c.textBaseline = 'middle';
+      c.fillText(personInitials(n.person), x, y + .5);
+      c.restore();
+    }
+  }
+  /* somebody you meant to see and have not */
+  if(n.overdue && !n.unmet){
+    c.save();
+    c.strokeStyle = `hsla(4,50%,58%,${(.5 * dim).toFixed(2)})`; c.lineWidth = 1.4;
+    c.beginPath(); c.arc(x, y, r + 4, -.5, 1.1); c.stroke();
+    c.restore();
+  }
+  if(this.opts.labels !== false){
+    c.save();
+    c.fillStyle = ink.label; c.globalAlpha = (n === this.hover ? .95 : .66) * dim;
+    c.font = '10px ' + (getComputedStyle(document.body).fontFamily || 'sans-serif');
+    c.textAlign = 'center';
+    c.fillText(n.name, x, y + r + 12);
+    c.restore();
+  }
+};
+PeopleSky.prototype.self = function(now, ink){
+  const c = this.ctx, cx = this.cx, cy = this.cy;
+  const pulse = this.soft ? 52 : 52 + Math.sin((now - this.t0) / 1000 * 1.1) * 4;
+  const g = c.createRadialGradient(cx, cy, 18, cx, cy, pulse);
+  g.addColorStop(0, `rgba(212,164,76,${ink.light ? .26 : .5})`);
+  g.addColorStop(.5, `rgba(212,164,76,${ink.light ? .08 : .14})`);
+  g.addColorStop(1, 'rgba(212,164,76,0)');
+  c.fillStyle = g; c.beginPath(); c.arc(cx, cy, pulse, 0, Math.PI * 2); c.fill();
+  const core = c.createRadialGradient(cx - 5, cy - 5, 0, cx, cy, 22);
+  core.addColorStop(0, ink.light ? '#f6e3bd' : '#f5deb3');
+  core.addColorStop(.6, ink.light ? '#c49552' : '#d4a44c');
+  core.addColorStop(1, ink.light ? '#8a6d4a' : '#b08968');
+  c.fillStyle = core; c.beginPath(); c.arc(cx, cy, 22, 0, Math.PI * 2); c.fill();
+  c.save();
+  c.fillStyle = ink.label; c.globalAlpha = .5;
+  c.font = '10px ' + (getComputedStyle(document.body).fontFamily || 'sans-serif');
+  c.textAlign = 'center'; c.fillText('you', cx, cy + 40);
+  c.restore();
+};
+
+/* ---------- the pointer ---------- */
+PeopleSky.prototype.at = function(mx, my){
+  let best = null, bd = Infinity;
+  for(const n of this.nodes){
+    const d = Math.hypot(mx - n.x, my - n.y);
+    if(d < n.radius + 14 && d < bd){ best = n; bd = d; }
+  }
+  return best;
+};
+/* which ring a dropped face has landed in */
+PeopleSky.prototype.ringAt = function(x, y){
+  const d = Math.hypot(x - this.cx, y - this.cy) / this.maxR;
+  let best = 'orbit', bd = Infinity;
+  Object.entries(SKY_RINGS).forEach(([k, f]) => {
+    const diff = Math.abs(f - d); if(diff < bd){ bd = diff; best = k; }
+  });
+  return best;
+};
+PeopleSky.prototype.bind = function(){
+  const cv = this.cv;
+  const local = e => { const r = cv.getBoundingClientRect(); return {x: e.clientX - r.left, y: e.clientY - r.top}; };
+  this.onMove = e => {
+    const {x, y} = local(e);
+    if(this.drag){
+      this.drag.px = x; this.drag.py = y; this.drag.x = x; this.drag.y = y;
+      this.dropRing = this.ringAt(x, y);
+      this.opts.onDragOver && this.opts.onDragOver(this.drag, this.dropRing);
+      if(this.soft) this.frame(performance.now());
+      return;
+    }
+    const n = this.at(x, y);
+    if(n !== this.hover){ this.hover = n; this.opts.onHover && this.opts.onHover(n, x, y); }
+    else if(n && this.opts.onHover) this.opts.onHover(n, x, y);
+    cv.style.cursor = n ? 'pointer' : 'default';
+    if(this.soft) this.frame(performance.now());
+  };
+  this.onDown = e => {
+    const {x, y} = local(e);
+    const n = this.at(x, y); if(!n) return;
+    this.pressed = n; this.pressAt = {x, y};
+    /* a hold picks a face up to move it between rings; a click opens them */
+    this.holdT = setTimeout(() => {
+      if(!this.pressed) return;
+      this.drag = this.pressed; this.drag.px = x; this.drag.py = y;
+      cv.style.cursor = 'grabbing';
+      this.opts.onHover && this.opts.onHover(null);
+      if(this.soft) this.frame(performance.now());
+    }, 280);
+    cv.setPointerCapture && cv.setPointerCapture(e.pointerId);
+  };
+  this.onUp = e => {
+    clearTimeout(this.holdT);
+    const was = this.drag, pressed = this.pressed;
+    this.pressed = null;
+    if(was){
+      this.drag = null; cv.style.cursor = 'default';
+      const to = this.dropRing; this.dropRing = null;
+      this.opts.onDragOver && this.opts.onDragOver(null);
+      if(to && to !== was.ring && this.opts.onRing) this.opts.onRing(was, to);
+      else { was.target = SKY_RINGS[was.ring] * this.maxR; }
+      return;
+    }
+    if(pressed && this.opts.onOpen){
+      const {x, y} = local(e);
+      if(Math.hypot(x - this.pressAt.x, y - this.pressAt.y) < 8) this.opts.onOpen(pressed);
+    }
+  };
+  this.onLeave = () => { if(this.drag) return; this.hover = null; this.opts.onHover && this.opts.onHover(null); };
+  cv.addEventListener('pointermove', this.onMove);
+  cv.addEventListener('pointerdown', this.onDown);
+  cv.addEventListener('pointerup', this.onUp);
+  cv.addEventListener('pointerleave', this.onLeave);
+  this.onResize = debounce(() => { this.resize(); if(this.soft){ this.place(); this.frame(performance.now()); } }, 200);
+  window.addEventListener('resize', this.onResize);
+};
+/* a face that has just been given an interaction blooms for a moment */
+PeopleSky.prototype.light = function(id){
+  this.lit.set(id, performance.now());
+  const n = this.nodes.find(x => x.id === id);
+  if(n){ n.days = 0; n.glow = skyGlow(0); n.interactions++; }
+  if(this.soft) this.frame(performance.now());
+};
+PeopleSky.prototype.start = function(){
+  if(this.soft){ this.frame(performance.now()); return; }
+  Animator.register('sky', now => {
+    if(!this.cv.isConnected){ this.stop(); return; }
+    this.frame(now);
+  }, {priority: Animator.PAGE});
+  Animator.watch('sky', this.cv);
+  Animator.activate('sky');
+};
+PeopleSky.prototype.stop = function(){
+  Animator.forget('sky');
+  window.removeEventListener('resize', this.onResize);
+};
+
+/* ---------- the room round it ---------- */
+function skyHTML(){
+  return `<div class="sky-wrap rv">
+    <div class="sky" id="skyBox"><canvas id="skyCv"></canvas>
+      <div class="sky-card" id="skyCard" hidden></div>
+      <div class="sky-ring-say mono" id="skyRing" hidden></div>
+    </div>
+    <div class="row between sky-foot"><span class="mono faint">hold a face to move it between rings · click to open them</span>
+      <span class="mono faint">size = how present they are in what you have written · brightness = how recently you saw them</span></div>
+  </div>`;
+}
+/* the card beside a face: everything the node is, in words, and the two
+   things you are most likely to want to do about it */
+function skyCardHTML(n){
+  const when = n.days == null ? 'no contact logged'
+    : n.days === 0 ? 'seen today' : `${relDays(n.days)}`;
+  const en = n.energy == null ? null : n.energy > .34 ? ['⚡', 'leaves you fuller', 'var(--sage)']
+    : n.energy > -.34 ? ['·', 'about even', 'var(--muted)'] : ['◔', 'leaves you emptier', 'var(--rose)'];
+  const line = (n.person.becomeAround || '').trim();
+  return `<b>${esc(n.full)}</b>
+    <div class="mono">${esc(CIRCLES[n.ring][1])}${n.person.relationshipType ? ' · ' + esc(n.person.relationshipType) : ''}</div>
+    <div class="sk-row"><span>last seen</span><b>${esc(when)}</b></div>
+    ${en ? `<div class="sk-row"><span>energy</span><b style="color:${en[2]}">${en[0]} ${en[1]}</b></div>` : ''}
+    <div class="sk-row"><span>interactions</span><b>${n.interactions}${n.written ? ` · in ${n.written} ${n.written === 1 ? 'entry' : 'entries'}` : ''}</b></div>
+    ${line ? `<p class="sk-line">${esc(line.slice(0, 130))}${line.length > 130 ? '…' : ''}</p>
+      <div class="sk-attrib mono">what you become around them</div>` : ''}
+    ${n.overdue ? `<p class="sk-warn">You wanted ${esc(n.overdue.want)}. It has been ${
+      n.overdue.days === Infinity ? 'the whole time' : relDays(n.overdue.days)}.</p>` : ''}
+    <div class="sk-do">
+      <button class="btn sm" data-skthought="${esc(n.id)}" title="thinking of somebody is a kind of keeping in touch">♡ thought of them</button>
+      <button class="btn sm ghost" data-skopen="${esc(n.id)}">open</button>
+    </div>`;
+}
+
+let _sky = null;
+function mountSky(root){
+  const cv = (root || document).querySelector('#skyCv'); if(!cv) return;
+  const box = cv.parentElement;
+  const card = box.querySelector('#skyCard'), ringSay = box.querySelector('#skyRing');
+  if(_sky) _sky.stop();
+  const nodes = skyNodes(); if(!nodes.length){ _sky = null; return; }
+  /* photographs are loaded once and kept, rather than decoded per frame */
+  nodes.forEach(n => { if(n.person.photo){ const im = new Image(); im.src = n.person.photo; n.img = im; } });
+
+  _sky = new PeopleSky(cv, nodes, {
+    height: innerWidth < 760 ? 380 : 520,
+    labels: innerWidth >= 520,
+    onHover(n, x, y){
+      if(!n){ card.hidden = true; return; }
+      card.innerHTML = skyCardHTML(n);
+      card.hidden = false;
+      card.style.borderColor = `hsla(${n.hue},${n.sat}%,58%,.5)`;
+      const w = card.offsetWidth, h = card.offsetHeight;
+      card.style.left = Math.max(6, Math.min(box.clientWidth - w - 6, x + 20)) + 'px';
+      card.style.top  = Math.max(6, Math.min(box.clientHeight - h - 6, y - h / 2)) + 'px';
+      card.querySelector('[data-skopen]').onclick = () => navigate('#/people/' + n.id);
+      card.querySelector('[data-skthought]').onclick = () => thoughtOfThem(n.id);
+    },
+    onDragOver(n, ring){
+      if(!n){ ringSay.hidden = true; return; }
+      ringSay.hidden = false;
+      ringSay.textContent = `${CIRCLES[ring][0]} ${CIRCLES[ring][1]}`;
+      ringSay.style.color = CIRCLES[ring][4];
+    },
+    onOpen(n){ navigate('#/people/' + n.id); },
+    onRing(n, to){
+      const p = byId(S.people, n.id); if(!p) return;
+      p.ringHistory = p.ringHistory || [];
+      p.ringHistory.push({date: today(), from: p.circle, to});
+      p.circle = to;
+      if(to === 'aspirational' && p.status === 'active') p.status = 'notyetmet';
+      if(to !== 'aspirational' && p.status === 'notyetmet') p.status = 'active';
+      saveNow(); sound('success');
+      toast(`${p.nickname || p.name.split(' ')[0]} is in ${CIRCLES[to][1]} now.`);
+      rerender();
+    },
+  });
+}
+
+/* ---------- the gentlest interaction ----------
+   Many relationships are kept alive in thought long before they are kept alive
+   in a phone call, and the thought is not nothing. One button, no dialog: it
+   is written down as an interaction like any other, the face brightens, and
+   the thread refreshes. Whether it prompts an actual message is between you
+   and the constellation. */
+function thoughtOfThem(id){
+  const p = byId(S.people, id); if(!p) return;
+  S.interactions.push({id: uid(), personId: id, date: today(), type: 'thought',
+    description: 'Thought of them.', mood: null, energy: '', quality: '',
+    followUp: null, followUpDone: false});
+  p.lastInteraction = today();
+  saveNow(); sound('success');
+  if(_sky) _sky.light(id);
+  skyBurstAt(id);
+  toast(`Thought of ${esc(p.nickname || p.name.split(' ')[0])}. That counts.`);
+}
+/* A dozen motes off the face, in the face's own colour, and gone in under a
+   second. The finishing fireworks are for finishing a piece of work; this is
+   for a small kindness and it should be the size of one. */
+function skyBurstAt(id){
+  if(typeof reduced === 'function' && reduced()) return;
+  if(typeof plainMode === 'function' && plainMode()) return;
+  if(!_sky) return;
+  const n = _sky.nodes.find(x => x.id === id); if(!n) return;
+  const r = _sky.cv.getBoundingClientRect();
+  const c = el('<div class="fw-burst sky-burst" aria-hidden="true"></div>');
+  for(let i = 0; i < 11; i++){
+    const a = (i / 11) * Math.PI * 2 + Math.random() * .4, d = 22 + Math.random() * 34;
+    c.insertAdjacentHTML('beforeend', `<i style="left:${(r.left + n.x).toFixed(0)}px;top:${(r.top + n.y).toFixed(0)}px;
+      --dx:${(Math.cos(a) * d).toFixed(0)}px;--dy:${(Math.sin(a) * d).toFixed(0)}px;
+      animation-delay:${(Math.random() * .08).toFixed(2)}s;
+      background:hsl(${n.hue},${n.sat}%,${n.lum + 14}%)"></i>`);
+  }
+  document.body.appendChild(c);
+  setTimeout(() => c.remove(), 1100);
+}
+/* ============================================================
    PEOPLE — a relationship garden, not a CRM.
    The point is not to manage anyone. It is to remember what
    they told you, notice when you have drifted, and be
@@ -15185,45 +15884,40 @@ function gratitudeRitual(afterDone){
 
 /* view 1: the concentric rings (the Constellation) */
 function pplCircles(box){
+  /* The rings are still the rings — the same five, the same meaning, the same
+     drag to move somebody between them. What has changed is that they are a
+     sky rather than a diagram: see 12-people-sky.js for why, and for what
+     every property of a face is read off. */
   const ring = k => S.people.filter(p => p.circle === k);
-  const R = {core:90, close:165, warm:240, orbit:315, aspirational:390};
-  const SZbase = {core:30, close:24, warm:19, orbit:15, aspirational:15};
-  box.innerHTML = `<div class="circle-map rv" style="--maxr:${R.aspirational+40}">
-    <svg viewBox="0 0 860 860" class="cm-rings">${Object.entries(CIRCLES).map(([k,c])=>`<circle cx="430" cy="430" r="${R[k]}" fill="none" stroke="${c[4]}" stroke-opacity=".28" stroke-dasharray="${k==='aspirational'?'2 5':'3 7'}"/><text x="430" y="${430-R[k]+16}" text-anchor="middle" class="cm-lbl" style="fill:${c[4]}">${esc(c[1].toUpperCase())}</text>`).join('')}</svg>
-    ${Object.entries(CIRCLES).map(([k,c]) => { const list = ring(k);
-      return list.map((p,i) => { const a = -Math.PI/2 + i * 2*Math.PI / Math.max(list.length,1) + (k==='close'?.22:k==='warm'?.4:k==='orbit'?.6:k==='aspirational'?.8:0);
-        const x = 430 + Math.cos(a)*R[k], y = 430 + Math.sin(a)*R[k]; const od = personOverdue(p);
-        const n = personEntryCount(p.id); const sz = clamp(SZbase[k] + Math.sqrt(n)*3, SZbase[k], SZbase[k]+30);
-        const recent = p.lastInteraction && daysSince(p.lastInteraction) <= 30;
-        const hollow = p.status === 'notyetmet'; const faded = ['lost','estranged'].includes(p.status); const dashed = p.status === 'dormant';
-        const nc = personNodeColor(p);
-        return `<button class="cm-person ${od?'overdue':''} ${recent?'glow':''} ${hollow?'hollow':''} ${faded?'faded':''} ${dashed?'dashed':''}" draggable="true" data-cmp="${p.id}" style="left:${(x/860*100).toFixed(2)}%;top:${(y/860*100).toFixed(2)}%;--s:${(sz*2).toFixed(0)}px;--c:${nc}" title="${esc(p.name)}${od?` · ${od.days===Infinity?'never written about':od.days+' days'}`:''} · ${PERSON_STATUS[p.status][1]}">
-          ${p.photo?`<img src="${esc(p.photo)}" alt="">`:`<span>${esc(personInitials(p))}</span>`}
-          <span class="cm-name">${esc(p.nickname || p.name.split(' ')[0])}</span>${od?'<span class="cm-warn">!</span>':''}</button>`; }).join('');
-    }).join('')}
-    ${Object.keys(CIRCLES).map(k=>`<div class="cm-drop" data-cmring="${k}" style="--rp:${(R[k]/860*100).toFixed(2)}"></div>`).join('')}
-    ${!S.people.length ? '<div class="empty cm-empty">No one here yet. Start with five names — the ones you would actually call.</div>' : ''}
-  </div>
-  <div class="row rv" style="gap:14px;justify-content:center;margin-top:6px;flex-wrap:wrap">${Object.entries(CIRCLES).map(([k,c])=>`<span class="mono" style="color:${c[4]}">${c[0]} ${esc(c[1])} · ${ring(k).length}${c[3]?` of about ${c[3]}`:''}</span>`).join('')}<span class="faint mono">drag a face between rings to reclassify · size = how present they are in what you've written · warm glow = contact within 30 days</span></div>`;
-  $$('[data-cmp]',box).forEach(b => {
-    b.onclick = () => navigate('#/people/' + b.dataset.cmp);
-    b.addEventListener('dragstart', () => { window._cmDrag = b.dataset.cmp; b.classList.add('dragging'); });
-    b.addEventListener('dragend', () => { b.classList.remove('dragging'); window._cmDrag = null; });
+  box.innerHTML = `${skyHTML()}
+    ${!S.people.length ? '<div class="empty rv" style="margin-top:12px">No one here yet. Start with five names — the ones you would actually call.</div>' : ''}
+    <div class="row rv sky-legend">${Object.entries(CIRCLES).map(([k, c]) => {
+      const list = ring(k);
+      const seen = list.filter(p => { const d = p.lastInteraction ? daysSince(p.lastInteraction) : null;
+        return d != null && d <= (CIRCLES[k][3] ? FREQ_FOR_RING[k] : 9999); }).length;
+      return `<button class="sky-ring-chip mono" data-skyring="${k}" style="--c:${c[4]}"
+        title="${esc(c[2])}">${c[0]} ${esc(c[1])} · ${list.length}${c[3] ? ` of about ${c[3]}` : ''}${
+        list.length && CIRCLES[k][3] ? ` · ${seen} in touch` : ''}</button>`;
+    }).join('')}<span class="faint mono">${peopleWeekCount()} interaction${peopleWeekCount() === 1 ? '' : 's'} this week</span></div>`;
+  mountSky(box);
+  /* a ring name scrolls the directory to the people in it */
+  $$('[data-skyring]', box).forEach(b => b.onclick = () => {
+    S._pplView = 'list'; S._pplRingFilter = b.dataset.skyring; rerender();
   });
-  $$('[data-cmring]',box).forEach(r => {
-    r.addEventListener('dragover', e => { e.preventDefault(); r.classList.add('over'); });
-    r.addEventListener('dragleave', () => r.classList.remove('over'));
-    r.addEventListener('drop', e => { e.preventDefault(); r.classList.remove('over');
-      const p = byId(S.people, window._cmDrag); if(!p || p.circle === r.dataset.cmring) return;
-      p.ringHistory.push({date:today(), from:p.circle, to:r.dataset.cmring}); p.circle = r.dataset.cmring;
-      if(r.dataset.cmring === 'aspirational' && p.status === 'active') p.status = 'notyetmet';
-      saveNow(); sound('click'); rerender(); });
-  });
+}
+/* What "in touch" means for a ring: the cadence the ring implies, which is
+   also what the overdue mark on a face is measured against. */
+const FREQ_FOR_RING = {core: 7, close: 14, warm: 30, orbit: 90, aspirational: 9999};
+function peopleWeekCount(){
+  const from = addDays(today(), -7);
+  return (S.interactions || []).filter(i => i.date >= from).length;
 }
 /* view 2: the directory */
 function pplList(box){
   const f = S._pplF = S._pplF || {q:'', rel:'all', circle:'all', status:'all', tag:'all', sort:'last'};
   if(S._pplNeeds){ f.needs = true; S._pplNeeds = false; }
+  /* a ring pressed on the constellation arrives here as a filter */
+  if(S._pplRingFilter){ f.circle = S._pplRingFilter; f.sort = 'last'; S._pplRingFilter = null; }
   const tags = [...new Set(S.people.flatMap(p => p.tags || []))].sort();
   let list = S.people.filter(p => {
     if(f.rel !== 'all' && p.relationship !== f.rel) return false;
@@ -32290,7 +32984,14 @@ routes.settings = function(root){
       <!-- The one switch that is about the machine rather than about taste.
            Everything it turns off is decoration; nothing it turns off is
            information. -->
-      <div class="opt"><div><b>Decoration</b><div class="d">The ink painting behind the rooms, the dust in the air, the grain in the paper and the stone in the surfaces, the candlelight, the glows, the drift. All of it is ornament and all of it costs something to draw. Turn it off on an older machine and the instrument is untouched — only quieter to look at, and a great deal faster.</div></div><label class="toggle ${!plainMode()?'on':''}" id="sDecor"><span>plain</span><span class="sw"></span><span>full</span></label></div>
+      <div class="opt"><div><b>Decoration</b><div class="d">The ink painting behind the rooms, the dust in the air, the grain in the paper and the stone in the surfaces, the candlelight, the glows, the drift. All of it is ornament and all of it costs something to draw. On an older machine the instrument is untouched by turning it down — only quieter to look at, and a great deal faster.</div>
+        <div class="decor-pick" id="sDecor" role="radiogroup" aria-label="Decoration">${
+          [['full','Full','everything, as drawn'],
+           ['essential','Essential','the ink painting stays; the rest comes off'],
+           ['plain','Plain','nothing but the writing']].map(([v,n,why]) =>
+          `<button class="${decorMode()===v?'on':''}" data-decor="${v}" role="radio"
+            aria-checked="${decorMode()===v}" title="${esc(why)}"><b>${n}</b><span>${esc(why)}</span></button>`).join('')}</div>
+        </div></div>
       <div class="opt"><div><b>Landing page</b><div class="d">Where the site opens.</div></div><select class="sel" style="width:auto" id="sHome">${[['compass','Compass'],['today','Today']].map(([v,l])=>`<option value="${v}" ${(S.settings.home||'compass')===v?'selected':''}>${l}</option>`).join('')}</select></div>
     </div>
     <div class="card rv"><h3>Day &amp; sleep</h3>
@@ -32375,11 +33076,14 @@ routes.settings = function(root){
     toast(+this.value === 0 ? 'The day turns over at midnight again.'
       : `The day turns over at ${this.value} AM. Anything before that is still the day before.`); };
   $('#sTheme').onclick = function(){ S.settings.theme = S.settings.theme==='dark'?'light':'dark'; saveNow(); applyTheme(); this.classList.toggle('on', S.settings.theme==='light'); };
-  $('#sDecor').onclick = function(){ S.settings.decor = plainMode() ? 'full' : 'plain'; saveNow(); applyDecor();
-    this.classList.toggle('on', !plainMode());
+  const DECOR_SAID = {full: 'The ornament is all back.',
+    essential: 'Essential. The painting stays; the rest is off.',
+    plain: 'Plain. Every ornament is off.'};
+  $$('#sDecor [data-decor]').forEach(b => b.onclick = () => {
+    S.settings.decor = b.dataset.decor; saveNow(); applyDecor();
     /* the particle canvas and the ink layer are built, not just styled, so
        the page is drawn again rather than only re-skinned */
-    rerender(); toast(plainMode() ? 'Plain. Every ornament is off.' : 'The ornament is back.'); };
+    rerender(); sound('click'); toast(DECOR_SAID[decorMode()]); });
   $('#sSound').onclick = function(){ SoundManager.toggleSound(); this.classList.toggle('on', SoundManager.state().soundEnabled); };
   $('#sAmbient').onclick = function(){ SoundManager.toggleAmbient(); this.classList.toggle('on', SoundManager.state().ambientEnabled); };
   $('#sUiSound').onclick = function(){ SoundManager.toggleUi(); this.classList.toggle('on', SoundManager.state().uiEnabled); };

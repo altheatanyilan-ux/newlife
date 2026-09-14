@@ -281,8 +281,21 @@ function applyTheme(){ document.documentElement.dataset.theme = S.settings.theme
    the grain and the stone, the glows, the candlelight, the drift — and leaves
    the instrument, which was always the point. Nothing about what the app
    KNOWS changes; only what it spends drawing it. */
-function plainMode(){ return S.settings.decor === 'plain'; }
-function applyDecor(){ document.documentElement.dataset.decor = plainMode() ? 'plain' : 'full'; }
+/* Three settings. Plain takes everything decorative off; essential keeps the
+   ink painting behind the rooms and the paper under it and takes off the
+   hundred small things; full is the house as drawn.
+
+   plainMode() answers "is the moving, per-element ornament off" — which is
+   true of both plain and essential, and is what every layer that asks wants
+   to know. decorMode() answers which of the three it is. */
+function decorMode(){
+  const d = S.settings && S.settings.decor;
+  return d === 'plain' || d === 'essential' ? d : 'full';
+}
+function plainMode(){ return decorMode() !== 'full'; }
+/* the painting behind the rooms, which essential keeps and plain does not */
+function paintedGround(){ return decorMode() !== 'plain'; }
+function applyDecor(){ document.documentElement.dataset.decor = decorMode(); }
 /* the season is a data attribute; the ink layer reads it for how heavy the mist
    hangs, and paints the margin sprig to match */
 function applySeason(){ if(typeof season === 'function') document.documentElement.dataset.season = season(); }

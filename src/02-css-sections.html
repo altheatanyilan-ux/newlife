@@ -5387,14 +5387,20 @@ html.mfx-cursor .pl-gbaredge{cursor:ew-resize!important}
 .mfx-ring.warm{border-color:rgba(212,164,76,.3)}
 .mfx-dot.gone,.mfx-ring.gone{opacity:0}
 
-/* the light that follows the pointer across a large surface. Dim on purpose:
-   at 4% it reads as warmth following you, not as a lamp on the screen. */
+/* The light that follows the pointer across a large surface. Dim on purpose:
+   at 4% it reads as warmth following you, not as a lamp on the screen.
+
+   It is an element rather than a pseudo-element, and it is moved rather than
+   redrawn — see the note in 05-micro.js for why a gradient positioned by a
+   custom property on the page container was the single most expensive thing
+   the pointer did. */
 .nav,.page,.flashlight-panel{position:relative}
-.nav::before,.page::before,.flashlight-panel::before{content:'';position:absolute;inset:0;
-  background:radial-gradient(300px circle at var(--mx,50%) var(--my,50%),
-    color-mix(in srgb,var(--terra) 9%,transparent) 0%,transparent 100%);
-  pointer-events:none;opacity:0;transition:opacity .5s var(--ease);z-index:0}
-.nav.mfx-lit::before,.page.mfx-lit::before,.flashlight-panel.mfx-lit::before{opacity:1}
+.mfx-lamp{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0;
+  opacity:0;transition:opacity .5s var(--ease);border-radius:inherit}
+.mfx-lit > .mfx-lamp{opacity:1}
+.mfx-lamp > i{position:absolute;left:0;top:0;width:600px;height:600px;border-radius:50%;
+  background:radial-gradient(circle,color-mix(in srgb,var(--terra) 9%,transparent) 0%,transparent 70%);
+  will-change:transform}
 /* the glare on a tilted card: a soft spot of light where you are looking from */
 .mfx-tilt{transform-style:preserve-3d;will-change:transform}
 .mfx-tilt::after{content:'';position:absolute;inset:0;border-radius:inherit;
@@ -5403,7 +5409,7 @@ html.mfx-cursor .pl-gbaredge{cursor:ew-resize!important}
   pointer-events:none;z-index:1}
 @media (prefers-reduced-motion:reduce){
   .mfx-dot,.mfx-ring{display:none}
-  .nav::before,.page::before,.flashlight-panel::before,.mfx-tilt::after{display:none}
+  .mfx-lamp,.mfx-tilt::after{display:none}
 }
 /* ============================================================
    THE AMBIENT, FEEDBACK AND POLISH LAYERS
@@ -6174,55 +6180,69 @@ html[data-theme="dark"] .entry.sealed{background-image:url("data:image/svg+xml,%
    answer to "what does plain actually turn off" is one place, and so that
    anything added later has to be added here on purpose.
    ============================================================ */
+/* ============================================================
+   WHAT COMES OFF, AND IN WHICH ORDER
+
+   Three settings, not two. "Plain" takes off everything that is drawing
+   rather than telling you something. "Essential" keeps the one thing that is
+   the house's face — the ink painting behind the rooms, and the paper it is
+   painted on — and takes off everything else: the dust, the flowers, the
+   stone in the surfaces, the blur, the drifting.
+
+   The painting is kept because it is two layers that sit still behind
+   everything and cost the compositor one blend; the rest was a hundred small
+   things, each on its own element, each recalculated when anything near it
+   moved.
+   ============================================================ */
 html[data-decor="plain"] .ambient,
-html[data-decor="plain"] #dust,
-html[data-decor="plain"] #warmth::before,
-html[data-decor="plain"] #warmth::after,
+html:is([data-decor="plain"],[data-decor="essential"]) #dust,
+html:is([data-decor="plain"],[data-decor="essential"]) #warmth::before,
+html:is([data-decor="plain"],[data-decor="essential"]) #warmth::after,
 html[data-decor="plain"] body::before,
 html[data-decor="plain"] body::after,
-html[data-decor="plain"] .page-head::before,
-html[data-decor="plain"] .page-head::after,
-html[data-decor="plain"] .ph-plant,
-html[data-decor="plain"] .sheen::after,
-html[data-decor="plain"] .card::after,
-html[data-decor="plain"] .modal.rite::before,html[data-decor="plain"] .modal.rite::after,
-html[data-decor="plain"] .dv-veil-in::before,html[data-decor="plain"] .dv-veil-in::after,
-html[data-decor="plain"] .body.theatre::before,html[data-decor="plain"] .body.theatre::after,
-html[data-decor="plain"] .ic-sec + .ic-sec::before,
-html[data-decor="plain"] .value-field + .value-field::before,
-html[data-decor="plain"] .ornate-rule{display:none!important}
+html:is([data-decor="plain"],[data-decor="essential"]) .page-head::before,
+html:is([data-decor="plain"],[data-decor="essential"]) .page-head::after,
+html:is([data-decor="plain"],[data-decor="essential"]) .ph-plant,
+html:is([data-decor="plain"],[data-decor="essential"]) .sheen::after,
+html:is([data-decor="plain"],[data-decor="essential"]) .card::after,
+html:is([data-decor="plain"],[data-decor="essential"]) .modal.rite::before,html:is([data-decor="plain"],[data-decor="essential"]) .modal.rite::after,
+html:is([data-decor="plain"],[data-decor="essential"]) .dv-veil-in::before,html:is([data-decor="plain"],[data-decor="essential"]) .dv-veil-in::after,
+html:is([data-decor="plain"],[data-decor="essential"]) .body.theatre::before,html:is([data-decor="plain"],[data-decor="essential"]) .body.theatre::after,
+html:is([data-decor="plain"],[data-decor="essential"]) .ic-sec + .ic-sec::before,
+html:is([data-decor="plain"],[data-decor="essential"]) .value-field + .value-field::before,
+html:is([data-decor="plain"],[data-decor="essential"]) .ornate-rule{display:none!important}
 
 /* surfaces go flat: no stone, no paper, no double frame */
-html[data-decor="plain"] .card{background-image:none;background-color:var(--elev-2);
+html:is([data-decor="plain"],[data-decor="essential"]) .card{background-image:none;background-color:var(--elev-2);
   box-shadow:var(--elev-2-shadow)}
-html[data-decor="plain"] .card:hover{box-shadow:var(--elev-3-shadow)}
-html[data-decor="plain"] .modal.rite,
-html[data-decor="plain"] .body.theatre,
-html[data-decor="plain"] .entry.sealed,
-html[data-decor="plain"] .dv-veil{background-image:none}
-html[data-decor="plain"] .dv-veil{background:radial-gradient(120% 90% at 50% 40%,#241d18,#15110e 70%)}
+html:is([data-decor="plain"],[data-decor="essential"]) .card:hover{box-shadow:var(--elev-3-shadow)}
+html:is([data-decor="plain"],[data-decor="essential"]) .modal.rite,
+html:is([data-decor="plain"],[data-decor="essential"]) .body.theatre,
+html:is([data-decor="plain"],[data-decor="essential"]) .entry.sealed,
+html:is([data-decor="plain"],[data-decor="essential"]) .dv-veil{background-image:none}
+html:is([data-decor="plain"],[data-decor="essential"]) .dv-veil{background:radial-gradient(120% 90% at 50% 40%,#241d18,#15110e 70%)}
 
 /* A backdrop filter is the single most expensive thing on this page: the
    blurred sample behind it has to be taken again whenever anything behind it
    moves at all. Plain does without. */
-html[data-decor="plain"] .page-head,
-html[data-decor="plain"] .today-jump,
-html[data-decor="plain"] .overlay,
-html[data-decor="plain"] .back-btn{backdrop-filter:none;-webkit-backdrop-filter:none}
-html[data-decor="plain"] .page-head{background:color-mix(in srgb,var(--surface) 80%,transparent)}
+html:is([data-decor="plain"],[data-decor="essential"]) .page-head,
+html:is([data-decor="plain"],[data-decor="essential"]) .today-jump,
+html:is([data-decor="plain"],[data-decor="essential"]) .overlay,
+html:is([data-decor="plain"],[data-decor="essential"]) .back-btn{backdrop-filter:none;-webkit-backdrop-filter:none}
+html:is([data-decor="plain"],[data-decor="essential"]) .page-head{background:color-mix(in srgb,var(--surface) 80%,transparent)}
 
 /* nothing moves that was not asked to move */
-html[data-decor="plain"] .page-head h1,
-html[data-decor="plain"] .breathing,
+html:is([data-decor="plain"],[data-decor="essential"]) .page-head h1,
+html:is([data-decor="plain"],[data-decor="essential"]) .breathing,
 html[data-decor="plain"] .mist-band,
-html[data-decor="plain"] .ripple-ring,
-html[data-decor="plain"] .ink-leaf,
-html[data-decor="plain"] .dv-pick .tc-back::after{animation:none}
-html[data-decor="plain"] .entries > .entry,
-html[data-decor="plain"] .vb-card,
-html[data-decor="plain"] .era-col{rotate:0deg}
+html:is([data-decor="plain"],[data-decor="essential"]) .ripple-ring,
+html:is([data-decor="plain"],[data-decor="essential"]) .ink-leaf,
+html:is([data-decor="plain"],[data-decor="essential"]) .dv-pick .tc-back::after{animation:none}
+html:is([data-decor="plain"],[data-decor="essential"]) .entries > .entry,
+html:is([data-decor="plain"],[data-decor="essential"]) .vb-card,
+html:is([data-decor="plain"],[data-decor="essential"]) .era-col{rotate:0deg}
 /* the firelight across a heading becomes a heading */
-html[data-decor="plain"] .flow{background:none;-webkit-text-fill-color:currentColor;
+html:is([data-decor="plain"],[data-decor="essential"]) .flow{background:none;-webkit-text-fill-color:currentColor;
   color:var(--text);animation:none}
 /* and the words are simply there */
 html[data-decor="plain"] [data-reveal] .wd{opacity:1;transform:none;transition:none;animation:none}
@@ -6364,5 +6384,71 @@ html[data-decor="full"] .fd-bubble.ticking{animation:fdPulse 2.6s ease-in-out in
   font-size:.74rem;line-height:1.3;overflow:hidden}
 .fd-on:hover{color:var(--text)}
 .fd-onname{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+/* ============================================================
+   19. THE CONSTELLATION
+
+   The canvas draws itself; this is the room it sits in, the card that follows
+   the pointer round it, and the strip of rings under it.
+   ============================================================ */
+.sky-wrap{margin:2px 0 10px}
+.sky{position:relative;width:100%;border-radius:var(--radius);overflow:hidden;
+  background:radial-gradient(ellipse 68% 62% at 50% 50%,
+    color-mix(in srgb,var(--gold) 5%,transparent) 0%,transparent 72%)}
+.sky canvas{display:block;touch-action:none}
+.sky-foot{gap:14px;flex-wrap:wrap;margin-top:4px;font-size:.62rem}
+@media (max-width:720px){.sky-foot span:last-child{display:none}}
+
+/* the card: warm, bordered in the person's own colour, never off the edge */
+.sky-card{position:absolute;z-index:4;pointer-events:auto;max-width:290px;
+  background:var(--elev-3);border:1px solid var(--line-2);border-radius:10px;
+  padding:11px 13px;box-shadow:var(--elev-3-shadow);font-size:.85rem;line-height:1.45}
+.sky-card[hidden]{display:none}
+.sky-card b{font-family:var(--serif);font-size:1.05rem}
+.sky-card .mono{font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+.sky-card .sk-row{display:flex;justify-content:space-between;gap:14px;margin-top:5px;
+  padding-top:5px;border-top:1px dashed var(--line);color:var(--muted)}
+.sky-card .sk-row b{font-family:var(--sans);font-size:.84rem;color:var(--text)}
+.sky-card .sk-line{margin:8px 0 0;padding-top:7px;border-top:1px dashed var(--line);
+  font-family:var(--quote);font-style:italic;color:var(--muted);font-size:.84rem}
+.sky-card .sk-attrib{margin-top:3px}
+.sky-card .sk-warn{margin:8px 0 0;padding-top:7px;border-top:1px dashed var(--line);
+  font-size:.78rem;color:var(--rose)}
+.sky-card .sk-do{display:flex;gap:6px;margin-top:10px}
+@media (max-width:560px){.sky-card{max-width:215px;font-size:.8rem}}
+
+/* while a face is being carried, the ring it would land in says its name */
+.sky-ring-say{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);z-index:5;
+  pointer-events:none;font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;
+  background:var(--elev-2);border:1px solid var(--line-2);border-radius:999px;padding:4px 12px}
+.sky-ring-say[hidden]{display:none}
+
+.sky-legend{gap:10px;justify-content:center;flex-wrap:wrap;margin-top:2px}
+.sky-ring-chip{background:none;border:1px solid transparent;border-radius:999px;
+  padding:3px 10px;font-size:.66rem;color:var(--c);cursor:pointer;
+  transition:border-color .2s var(--ease),background .2s var(--ease)}
+.sky-ring-chip:hover{border-color:color-mix(in srgb,var(--c) 45%,transparent);
+  background:color-mix(in srgb,var(--c) 9%,transparent)}
+/* a dozen motes, not a firework */
+.sky-burst i{width:5px;height:5px}
+
+/* three settings, not a switch: a switch cannot say what the middle one is */
+.decor-pick{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.decor-pick button{flex:1 1 150px;min-width:0;text-align:left;cursor:pointer;
+  background:var(--surface-2);border:1px solid var(--line);border-radius:10px;
+  padding:8px 11px;color:var(--muted);font-family:var(--sans);
+  transition:border-color .2s var(--ease),background .2s var(--ease),color .2s var(--ease)}
+.decor-pick button b{display:block;font-family:var(--serif);font-size:.92rem;color:var(--text)}
+.decor-pick button span{display:block;font-size:.72rem;line-height:1.35;margin-top:2px}
+.decor-pick button:hover{border-color:var(--line-2);background:var(--surface-3)}
+.decor-pick button.on{border-color:var(--page-accent);background:color-mix(in srgb,var(--page-accent) 10%,transparent);color:var(--text)}
+.fr-decor{display:flex;flex-direction:column;gap:8px;padding:12px 14px;border-radius:12px;
+  border:1px solid var(--line);background:var(--surface-2)}
+.fr-decor .decor-pick{margin-top:2px}
+/* The margin vines and the room texture were never on the list of things the
+   decoration setting took off — an oversight, since they are ornament by any
+   reading of the word and they sit on every page. */
+html:is([data-decor="plain"],[data-decor="essential"]) #vines,
+html:is([data-decor="plain"],[data-decor="essential"]) #roomtex{display:none!important}
 </style>
 </head>

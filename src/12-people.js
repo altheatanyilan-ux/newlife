@@ -229,45 +229,40 @@ function gratitudeRitual(afterDone){
 
 /* view 1: the concentric rings (the Constellation) */
 function pplCircles(box){
+  /* The rings are still the rings — the same five, the same meaning, the same
+     drag to move somebody between them. What has changed is that they are a
+     sky rather than a diagram: see 12-people-sky.js for why, and for what
+     every property of a face is read off. */
   const ring = k => S.people.filter(p => p.circle === k);
-  const R = {core:90, close:165, warm:240, orbit:315, aspirational:390};
-  const SZbase = {core:30, close:24, warm:19, orbit:15, aspirational:15};
-  box.innerHTML = `<div class="circle-map rv" style="--maxr:${R.aspirational+40}">
-    <svg viewBox="0 0 860 860" class="cm-rings">${Object.entries(CIRCLES).map(([k,c])=>`<circle cx="430" cy="430" r="${R[k]}" fill="none" stroke="${c[4]}" stroke-opacity=".28" stroke-dasharray="${k==='aspirational'?'2 5':'3 7'}"/><text x="430" y="${430-R[k]+16}" text-anchor="middle" class="cm-lbl" style="fill:${c[4]}">${esc(c[1].toUpperCase())}</text>`).join('')}</svg>
-    ${Object.entries(CIRCLES).map(([k,c]) => { const list = ring(k);
-      return list.map((p,i) => { const a = -Math.PI/2 + i * 2*Math.PI / Math.max(list.length,1) + (k==='close'?.22:k==='warm'?.4:k==='orbit'?.6:k==='aspirational'?.8:0);
-        const x = 430 + Math.cos(a)*R[k], y = 430 + Math.sin(a)*R[k]; const od = personOverdue(p);
-        const n = personEntryCount(p.id); const sz = clamp(SZbase[k] + Math.sqrt(n)*3, SZbase[k], SZbase[k]+30);
-        const recent = p.lastInteraction && daysSince(p.lastInteraction) <= 30;
-        const hollow = p.status === 'notyetmet'; const faded = ['lost','estranged'].includes(p.status); const dashed = p.status === 'dormant';
-        const nc = personNodeColor(p);
-        return `<button class="cm-person ${od?'overdue':''} ${recent?'glow':''} ${hollow?'hollow':''} ${faded?'faded':''} ${dashed?'dashed':''}" draggable="true" data-cmp="${p.id}" style="left:${(x/860*100).toFixed(2)}%;top:${(y/860*100).toFixed(2)}%;--s:${(sz*2).toFixed(0)}px;--c:${nc}" title="${esc(p.name)}${od?` · ${od.days===Infinity?'never written about':od.days+' days'}`:''} · ${PERSON_STATUS[p.status][1]}">
-          ${p.photo?`<img src="${esc(p.photo)}" alt="">`:`<span>${esc(personInitials(p))}</span>`}
-          <span class="cm-name">${esc(p.nickname || p.name.split(' ')[0])}</span>${od?'<span class="cm-warn">!</span>':''}</button>`; }).join('');
-    }).join('')}
-    ${Object.keys(CIRCLES).map(k=>`<div class="cm-drop" data-cmring="${k}" style="--rp:${(R[k]/860*100).toFixed(2)}"></div>`).join('')}
-    ${!S.people.length ? '<div class="empty cm-empty">No one here yet. Start with five names — the ones you would actually call.</div>' : ''}
-  </div>
-  <div class="row rv" style="gap:14px;justify-content:center;margin-top:6px;flex-wrap:wrap">${Object.entries(CIRCLES).map(([k,c])=>`<span class="mono" style="color:${c[4]}">${c[0]} ${esc(c[1])} · ${ring(k).length}${c[3]?` of about ${c[3]}`:''}</span>`).join('')}<span class="faint mono">drag a face between rings to reclassify · size = how present they are in what you've written · warm glow = contact within 30 days</span></div>`;
-  $$('[data-cmp]',box).forEach(b => {
-    b.onclick = () => navigate('#/people/' + b.dataset.cmp);
-    b.addEventListener('dragstart', () => { window._cmDrag = b.dataset.cmp; b.classList.add('dragging'); });
-    b.addEventListener('dragend', () => { b.classList.remove('dragging'); window._cmDrag = null; });
+  box.innerHTML = `${skyHTML()}
+    ${!S.people.length ? '<div class="empty rv" style="margin-top:12px">No one here yet. Start with five names — the ones you would actually call.</div>' : ''}
+    <div class="row rv sky-legend">${Object.entries(CIRCLES).map(([k, c]) => {
+      const list = ring(k);
+      const seen = list.filter(p => { const d = p.lastInteraction ? daysSince(p.lastInteraction) : null;
+        return d != null && d <= (CIRCLES[k][3] ? FREQ_FOR_RING[k] : 9999); }).length;
+      return `<button class="sky-ring-chip mono" data-skyring="${k}" style="--c:${c[4]}"
+        title="${esc(c[2])}">${c[0]} ${esc(c[1])} · ${list.length}${c[3] ? ` of about ${c[3]}` : ''}${
+        list.length && CIRCLES[k][3] ? ` · ${seen} in touch` : ''}</button>`;
+    }).join('')}<span class="faint mono">${peopleWeekCount()} interaction${peopleWeekCount() === 1 ? '' : 's'} this week</span></div>`;
+  mountSky(box);
+  /* a ring name scrolls the directory to the people in it */
+  $$('[data-skyring]', box).forEach(b => b.onclick = () => {
+    S._pplView = 'list'; S._pplRingFilter = b.dataset.skyring; rerender();
   });
-  $$('[data-cmring]',box).forEach(r => {
-    r.addEventListener('dragover', e => { e.preventDefault(); r.classList.add('over'); });
-    r.addEventListener('dragleave', () => r.classList.remove('over'));
-    r.addEventListener('drop', e => { e.preventDefault(); r.classList.remove('over');
-      const p = byId(S.people, window._cmDrag); if(!p || p.circle === r.dataset.cmring) return;
-      p.ringHistory.push({date:today(), from:p.circle, to:r.dataset.cmring}); p.circle = r.dataset.cmring;
-      if(r.dataset.cmring === 'aspirational' && p.status === 'active') p.status = 'notyetmet';
-      saveNow(); sound('click'); rerender(); });
-  });
+}
+/* What "in touch" means for a ring: the cadence the ring implies, which is
+   also what the overdue mark on a face is measured against. */
+const FREQ_FOR_RING = {core: 7, close: 14, warm: 30, orbit: 90, aspirational: 9999};
+function peopleWeekCount(){
+  const from = addDays(today(), -7);
+  return (S.interactions || []).filter(i => i.date >= from).length;
 }
 /* view 2: the directory */
 function pplList(box){
   const f = S._pplF = S._pplF || {q:'', rel:'all', circle:'all', status:'all', tag:'all', sort:'last'};
   if(S._pplNeeds){ f.needs = true; S._pplNeeds = false; }
+  /* a ring pressed on the constellation arrives here as a filter */
+  if(S._pplRingFilter){ f.circle = S._pplRingFilter; f.sort = 'last'; S._pplRingFilter = null; }
   const tags = [...new Set(S.people.flatMap(p => p.tags || []))].sort();
   let list = S.people.filter(p => {
     if(f.rel !== 'all' && p.relationship !== f.rel) return false;

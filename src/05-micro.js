@@ -110,6 +110,58 @@ const MicroFX = (() => {
     out.flash = t.closest(FLASHLIGHT);
     return out;
   }
+  /* ---------- measuring, once ----------
+     Every frame the pointer moved, this layer asked the browser where the
+     card under it was, and where the button was, and where the lit panel was.
+     getBoundingClientRect is a question the browser cannot answer without
+     finishing any layout it was putting off — and these calls sit between
+     style writes, so each one forced a full layout of whatever page you were
+     on. On a page of a few thousand elements that is the entire frame, spent
+     to move a cursor ring: the pointer visibly lagged behind the mouse, and
+     worse the further down a heavy page you were.
+
+     A card does not move while you cross it, so it is measured once when the
+     pointer arrives and the answer is kept until it leaves. The magnet is the
+     one that could not be measured repeatedly even if it were free: it writes
+     a transform onto its own node, and a rect read back includes it, so each
+     frame was measuring a target that the last frame had moved.
+
+     Scrolling and resizing do move things, so both throw the answers away. */
+  /* ---------- the lamp ----------
+     The warmth that follows the pointter across a large surface used to be a
+     pseudo-element on that surface, with the pointer's position written onto
+     the surface as a custom property. The surface is `.page` — the whole room
+     — so every frame the mouse moved wrote a property onto the container of
+     everything on screen, invalidating the style of every element that could
+     inherit it, and then repainting a page-sized gradient. That is what a
+     cursor lagging behind the mouse actually is.
+
+     It is a real element now: one circle, six hundred pixels across, carrying
+     the gradient as a fixed background, with nothing inside it. Moving it is a
+     transform on a childless promoted layer — no property to inherit, no
+     subtree to invalidate, and the compositor does the move. */
+  function lampIn(node){
+    let wrap = node.querySelector(':scope > .mfx-lamp');
+    if(!wrap){
+      wrap = document.createElement('div');
+      wrap.className = 'mfx-lamp';
+      wrap.setAttribute('aria-hidden', 'true');
+      wrap.appendChild(document.createElement('i'));
+      node.insertBefore(wrap, node.firstChild);
+    }
+    return wrap.firstChild;
+  }
+
+  let RECTS = new WeakMap();
+  function rectOf(node){
+    let r = RECTS.get(node);
+    if(!r){ r = node.getBoundingClientRect(); RECTS.set(node, r); }
+    return r;
+  }
+  /* a whole new map rather than a walk: there is nothing to keep, and a
+     WeakMap has no clear */
+  function dropRects(){ RECTS = new WeakMap(); }
+
   function release(e){
     if(!e) return;
     if(e.magnet) settle(e.magnet.node, 'translate(0,0)', 400);
@@ -142,10 +194,10 @@ const MicroFX = (() => {
     effects = next;
 
     if(next.flash){
-      const r = next.flash.getBoundingClientRect();
+      const r = rectOf(next.flash);
       next.flash.classList.add('mfx-lit');
-      next.flash.style.setProperty('--mx', (px - r.left) + 'px');
-      next.flash.style.setProperty('--my', (py - r.top) + 'px');
+      const lamp = lampIn(next.flash);
+      lamp.style.translate = `${(px - r.left - 300).toFixed(0)}px ${(py - r.top - 300).toFixed(0)}px`;
     }
     /* A magnet and a tilt only fight when they land on the SAME node, since
        both write transform. Usually they do not: the tilt is the card and the
@@ -154,7 +206,7 @@ const MicroFX = (() => {
        which is nearly all of them. */
     const sameNode = !!(next.tilt && next.magnet && next.tilt.node === next.magnet.node);
     if(next.tilt){
-      const n = next.tilt.node, r = n.getBoundingClientRect();
+      const n = next.tilt.node, r = rectOf(n);
       const x = (px - r.left) / r.width, y = (py - r.top) / r.height;
       n.classList.add('mfx-tilt');
       n.style.setProperty('--mouse-x', (x * 100) + '%');
@@ -164,7 +216,7 @@ const MicroFX = (() => {
         + `rotateY(${(x - .5) * next.tilt.max * 2}deg) scale3d(1.02,1.02,1.02)`;
     }
     if(next.magnet && !sameNode){
-      const n = next.magnet.node, r = n.getBoundingClientRect();
+      const n = next.magnet.node, r = rectOf(n);
       const dx = px - (r.left + r.width / 2), dy = py - (r.top + r.height / 2);
       const d = Math.hypot(dx, dy);
       if(d < next.magnet.threshold){
@@ -191,9 +243,12 @@ const MicroFX = (() => {
     /* mousemove stops during a drag; dragover is the only thing still saying
        where the pointer is, so the ring keeps up instead of being left behind */
     document.addEventListener('dragover', queue, {passive:true});
+    /* the answers about where things are stop being true when things move */
+    addEventListener('scroll', dropRects, {passive:true, capture:true});
+    addEventListener('resize', dropRects, {passive:true});
     /* a page swap leaves transforms on nodes that are already gone; the ones
        still here are let go so nothing is stuck mid-lean */
-    window.addEventListener('hashchange', () => { release(effects); effects = null; hovered = null; });
+    window.addEventListener('hashchange', () => { release(effects); effects = null; hovered = null; dropRects(); });
   }
   function stop(){
     if(!started) return;
@@ -204,6 +259,8 @@ const MicroFX = (() => {
     cancelAnimationFrame(raf); raf = 0;
     document.removeEventListener('mousemove', queue);
     document.removeEventListener('dragover', queue);
+    removeEventListener('scroll', dropRects, {capture:true});
+    removeEventListener('resize', dropRects);
     document.documentElement.classList.remove('mfx-cursor');
     dot?.remove(); ring?.remove(); dot = ring = null;
     release(effects); effects = null;

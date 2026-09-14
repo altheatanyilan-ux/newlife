@@ -49,7 +49,14 @@ function openFirstRun(after){
       </div>
       ${firstRunRowHTML('clicks', 'Interaction sounds', 'Soft chimes on a click, a low note on moving rooms, a rising pair when something is finished. Made in the browser; nothing is downloaded.', snd.soundEnabled)}
       ${firstRunRowHTML('ambient', 'Ambient background', 'A barely-audible wash of noise under the work, which ducks out of the way of every click.', snd.ambientEnabled)}
-      ${firstRunRowHTML('decor', 'Decoration', 'The ink painting behind the rooms, the dust in the air, the grain in the paper and the stone in the surfaces. All ornament, all of it costing something to draw — turn it off on an older machine and nothing is lost but the drawing.', !plainMode())}
+      <div class="fr-decor" role="radiogroup" aria-label="Decoration">
+        <span class="fr-copy"><b>Decoration</b><span class="fr-desc">The ink painting behind the rooms, the dust in the air, the grain in the paper and the stone in the surfaces. All ornament, all of it costing something to draw.</span></span>
+        <div class="decor-pick">${[['full','Full','everything, as drawn'],
+          ['essential','Essential','the painting stays; the rest comes off'],
+          ['plain','Plain','nothing but the writing']].map(([v, n, why]) =>
+          `<button class="${decorMode() === v ? 'on' : ''}" data-frdecor="${v}" role="radio"
+            aria-checked="${decorMode() === v}"><b>${n}</b><span>${esc(why)}</span></button>`).join('')}</div>
+      </div>
       <div class="row" style="justify-content:flex-end;margin-top:6px">
         <button class="btn primary" id="frGo" style="padding:12px 30px;font-size:1rem">Begin</button>
       </div>
@@ -70,6 +77,19 @@ function openFirstRun(after){
   let settled = false;
   const done = () => { if(settled) return; settled = true; if(after) after(); };
 
+  /* the decoration is three choices, so it is three buttons like the theme
+     rather than a switch — and like the theme it takes effect as it is
+     pressed, because the only honest way to choose it is to watch it go */
+  m.querySelectorAll('[data-frdecor]').forEach(b => b.onclick = () => {
+    S.settings.decor = b.dataset.frdecor;
+    saveNow(); applyDecor();
+    m.querySelectorAll('[data-frdecor]').forEach(x => {
+      const on = x.dataset.frdecor === decorMode();
+      x.classList.toggle('on', on); x.setAttribute('aria-checked', on);
+    });
+    sound('click');
+  });
+
   m.querySelectorAll('[data-frtheme]').forEach(b => b.onclick = () => {
     S.settings.theme = b.dataset.frtheme;
     saveNow(); applyTheme();
@@ -86,12 +106,6 @@ function openFirstRun(after){
     /* Toggling a sound plays it. Choosing one you cannot hear is guessing.
        Turning the decoration off takes it off the page behind the dialog, for
        the same reason: the only honest way to choose it is to see it go. */
-    if(b.dataset.fr === 'decor'){
-      S.settings.decor = on ? 'full' : 'plain';
-      saveNow(); applyDecor();
-      sound('click');
-      return;
-    }
     if(b.dataset.fr === 'ambient') SoundManager.setAmbient(on);
     else SoundManager.setSound(on);
     if(typeof syncSoundButtons === 'function') syncSoundButtons();
