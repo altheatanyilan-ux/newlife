@@ -155,6 +155,9 @@ function valuePlanets(){
 
 /* ---------- the canvas ---------- */
 const SOLAR_YSQUASH = 0.6;        /* orbits are circles seen at an angle */
+/* how much room past the outermost planet the night needs in order to reach
+   nothing before it reaches an edge. Read by resize() and by night(). */
+const SOLAR_NIGHT_PAD = 58;
 
 function ValuesSolar(canvas, planets, opts){
   this.cv = canvas; this.ctx = canvas.getContext('2d');
@@ -183,10 +186,19 @@ ValuesSolar.prototype.resize = function(){
   /* The innermost orbit has to clear the sun, which is drawn to clear the
      largest planet, so both of those go into the floor; the outermost has to
      leave room for a label under the planet. Everything about the sun's size
-     lives in sunCore so the two cannot drift apart. */
+     lives in sunCore so the two cannot drift apart.
+
+     And the outermost has to leave the eclipse somewhere to fade. The system
+     used to fill the canvas to its edges, which was fine while the ground was
+     the page; now the ground is drawn, and a planet sitting in the last tenth
+     of the gradient is a bright thing on a half-lit ground with an unreadable
+     label under it. NIGHT_PAD is the room the darkness needs to get to
+     nothing, reserved here so the two cannot be tuned apart. */
   const big = this.planets.reduce((n, p) => Math.max(n, p.radius), 0);
   const minR = Math.max(84, this.sunCore() + big + 20);
-  const maxR = Math.max(minR + 20, Math.min(w / 2 - 56 - big, h / (2 * this.ysq) - 34 - big));
+  const maxR = Math.max(minR + 20, Math.min(
+    w / 2 - 56 - big - SOLAR_NIGHT_PAD * this.ysq,
+    (h / 2 - SOLAR_NIGHT_PAD) / this.ysq - 20 - big));
   const n = this.planets.length;
   const step = n > 1 ? (maxR - minR) / (n - 1) : 0;
   this.planets.forEach((p, i) => { p.orbit = minR + i * step; });
@@ -208,15 +220,56 @@ ValuesSolar.prototype.angleAt = function(p, ms){
   if(p.held != null){ p.off = (p.off || 0) + (p.held - a); a = p.held; p.held = null; }
   return a;
 };
+/* ---------- the system is always at night ----------
+   A solar system drawn on white paper is a diagram. The whole point of this
+   one is that it is a sky you are looking up into, and a sky has to be dark
+   before a small pale planet means anything: the aura, the corona, the comet
+   tail and the rim light are all light against dark, and every one of them
+   disappears on a cream ground. So the canvas keeps the night palette whether
+   or not the rest of the house is in it.
+
+   The night is drawn rather than set as a background, because a rectangle of
+   black dropped into a daylit page is a hole in the page. See night(). */
 ValuesSolar.prototype.ink = function(){
-  return document.documentElement.dataset.theme === 'light'
-    ? {label: '#2c2520', path: .3, trail: .55, corona: .3, light: true}
-    : {label: '#e8e0d4', path: .42, trail: 1, corona: .6, light: false};
+  return {label: '#e8e0d4', path: .42, trail: 1, corona: .6, light: false};
+};
+
+/* An eclipse rather than a box: one ellipse of darkness centred on the sun,
+   opaque enough across the middle that a pale planet reads against it, and
+   falling away to nothing before it reaches any edge. The shape follows the
+   orbits — same squash, so it is the shape the system actually is — and it is
+   sized to clear the outermost planet and the label under it, so nothing is
+   ever drawn out on the light part of the fade where it cannot be read.
+
+   Both radii are clamped to half the canvas, which is what keeps the corners
+   of the page showing through: the gradient reaches zero exactly as it
+   reaches the edge, so there is no line anywhere for the eye to catch. */
+ValuesSolar.prototype.night = function(){
+  const c = this.ctx;
+  /* the label sits under the planet, so the darkness has to clear that too */
+  const far = this.planets.reduce((n, p) => Math.max(n, p.orbit + p.radius), 90);
+  const rx = Math.min(this.w / 2, far + SOLAR_NIGHT_PAD + 18);
+  const ry = Math.min(this.h / 2, far * this.ysq + SOLAR_NIGHT_PAD);
+  if(rx <= 0 || ry <= 0) return;
+  const g = c.createRadialGradient(0, 0, 0, 0, 0, rx);
+  /* held near full out to where the last label sits, then let go */
+  g.addColorStop(0,   'rgba(20,17,14,.95)');
+  g.addColorStop(.62, 'rgba(20,17,14,.93)');
+  g.addColorStop(.84, 'rgba(20,17,14,.88)');
+  g.addColorStop(.95, 'rgba(20,17,14,.42)');
+  g.addColorStop(1,   'rgba(20,17,14,0)');
+  c.save();
+  c.translate(this.cx, this.cy);
+  c.scale(1, ry / rx);
+  c.fillStyle = g;
+  c.beginPath(); c.arc(0, 0, rx, 0, Math.PI * 2); c.fill();
+  c.restore();
 };
 
 ValuesSolar.prototype.frame = function(now){
   const c = this.ctx, ms = now - this.t0, ink = this.ink();
   c.clearRect(0, 0, this.w, this.h);
+  this.night();
   const ps = this.planets;
   ps.forEach(p => { if(p !== this.drag) p.ang = this.angleAt(p, ms); });
 

@@ -191,6 +191,42 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   for(const term of ['how far out', 'how fast', 'how bright', 'how big', 'how saturated', 'the tail', 'a broken orbit'])
     yes(`the key explains "${term}"`, key.includes(term), key.join(' / '));
 
+  /* A solar system drawn on white paper is a diagram. The aura, the corona,
+     the comet tail and the rim light are all light against dark, and every one
+     of them disappears on a cream ground — so the canvas keeps the night
+     whether or not the rest of the house is in it. It is DRAWN, not set as a
+     background, because a rectangle of black dropped into a daylit page is a
+     hole in the page: an ellipse that covers every planet and reaches nothing
+     before it reaches any edge. */
+  console.log('\n9. the system is always at night, and the night is a shape');
+  await p.emulateMedia({reducedMotion: 'no-preference'});
+  await p.evaluate(() => { S.settings.theme = 'light'; applyTheme(); }); await values();
+  const ground = () => p.evaluate(() => {
+    const cv = document.querySelector('#solarCv'), g = cv.getContext('2d');
+    const a = (fx, fy) => g.getImageData(Math.round(cv.width * fx), Math.round(cv.height * fy), 1, 1).data[3] / 255;
+    /* under every planet and the label beneath it, in canvas coordinates */
+    const s = _solar, dpr = s.dpr;
+    const under = s.planets.map(q => { const {x, y} = s.pos(q, q.ang == null ? q.seed : q.ang);
+      const ly = Math.min(s.h - 1, y + q.radius + 14);
+      return {name: q.name,
+        on: g.getImageData(Math.round(x * dpr), Math.round(y * dpr), 1, 1).data[3] / 255,
+        label: g.getImageData(Math.round(x * dpr), Math.round(ly * dpr), 1, 1).data[3] / 255}; });
+    return {corners: [a(.01,.02), a(.99,.02), a(.01,.98), a(.99,.98)],
+      middle: a(.5,.5), ink: s.ink().label, under};
+  });
+  const gr = await ground();
+  is('  the palette is the night one even on a daylit page', gr.ink, '#e8e0d4');
+  yes('  the middle is night', gr.middle > .9, String(gr.middle));
+  yes('  and every corner of the canvas is the page showing through',
+    gr.corners.every(a => a < .02), gr.corners.map(a => a.toFixed(2)).join(' '));
+  /* the whole point of reserving room for the fade: a bright planet sitting in
+     the last tenth of the gradient is a lit thing on a half-lit ground with an
+     unreadable label under it */
+  yes('  every planet is on ground that is actually dark',
+    gr.under.every(u => u.on > .8), gr.under.map(u => `${u.name} ${u.on.toFixed(2)}`).join(' / '));
+  yes('    and so is the label under it',
+    gr.under.every(u => u.label > .8), gr.under.map(u => `${u.name} ${u.label.toFixed(2)}`).join(' / '));
+
   console.log('\nconsole: ' + (errs.length ? errs.join(' | ') : 'clean'));
   errs.forEach(e => no(e));
   await b.close();
