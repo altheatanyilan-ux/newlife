@@ -77,6 +77,12 @@
   --boho-midnight:#2a2840; --boho-copper:#9a6840; --boho-parchment:#d4c4a8;
   --radius:14px;
   --sidebar:220px;
+  /* The band across the top that belongs to the chrome rather than to the
+     page: the Back button on the left and the topbar on the right both sit
+     fixed at 16px and stand 33px tall. Anything the page pins to the top of
+     the window has to start below it, or the chrome lands on the page's own
+     words — which is what the Back button was doing to Today's view switch. */
+  --chrome-h:57px;
   --content:640px;
   /* page theme defaults (overridden per room by applyPageTheme) */
   --page-accent:var(--terra); --page-accent-ink:#1a1816;
@@ -584,7 +590,7 @@ details .body{padding:4px 0 18px}
 /* The focus gadget stands in this corner too, and it is the thing that has to
    stay readable, so the toasts stack on top of it rather than across it.
    --dock-h is written by the gadget itself as it changes size. */
-.toast-wrap{position:fixed;bottom:calc(28px + var(--dock-h, 0px));left:calc(var(--sidebar) + 24px + var(--dock-w, 0px));z-index:120;display:flex;flex-direction:column;gap:8px;align-items:flex-start;transition:bottom .22s var(--ease),left .22s var(--ease)}
+.toast-wrap{position:fixed;bottom:28px;left:calc(var(--sidebar) + 24px);z-index:120;display:flex;flex-direction:column;gap:8px;align-items:flex-start}
 .toast{background:var(--surface);border:1px solid var(--line-2);border-left:3px solid var(--page-accent);padding:10px 16px;border-radius:10px;font-size:.85rem;box-shadow:var(--shadow);animation:rise .3s var(--ease);max-width:340px}
 .ripple{position:fixed;border-radius:50%;pointer-events:none;z-index:200;transform:translate(-50%,-50%);animation:rip 1s var(--ease) forwards;border:2px solid var(--c,var(--page-accent))}
 @keyframes rip{from{width:0;height:0;opacity:.8}to{width:600px;height:600px;opacity:0}}

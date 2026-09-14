@@ -7,9 +7,14 @@
    clock was on another screen again, and a clock you cannot see is a clock you
    forget to stop.
 
-   So it floats over every room, folded to a circle until it is wanted, and it
-   lives outside #main — which is rebuilt on nearly every edit — so that a
-   redraw cannot stop it or eat a half-typed note.
+   So it stands in the foot of the sidebar, which was empty, and takes its
+   shape from it: the sidebar open, it is the clock; the sidebar narrowed to
+   its icons, it is one more icon-sized thing — a circle that still says how
+   many minutes you are in. One switch for both rather than two that can
+   disagree, and the page's own words are never under it. It lives outside
+   #main — which is rebuilt on nearly every edit — and outside the sidebar,
+   which is rebuilt whenever the navigation changes, so that a redraw of
+   either cannot stop it or eat a half-typed note.
 
    And it holds only what a sitting is: the clock, the task, what you are
    actually doing, and what the break was for. The mode chooser, the length
@@ -44,44 +49,60 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   const near = (n, want, why, tol = 3) =>
     Math.abs(n - want) <= tol ? ok(n === want ? why : `${why}  (${n}s of ${want}s)`)
                               : no(why, `got ${n}s, want about ${want}s`);
-  const open = async () => { await p.evaluate(() => setFocusDockShut(false)); await p.waitForTimeout(500); };
+  const open = async () => { await p.evaluate(() => setFocusDockShut(false)); await p.waitForTimeout(600); };
   await go('#/today');
 
-  console.log('\n1. it is over every room, not in one of them');
+  console.log('\n1. it is beside every room, not in one of them');
   yes('the clock is on the page', !!(await p.$('#focusDock')));
   is('  fixed to the window', await p.evaluate(() =>
     getComputedStyle(document.querySelector('#focusDock')).position), 'fixed');
-  yes('  and outside the part of the page that is redrawn',
-    await p.evaluate(() => !document.querySelector('#main #focusDock')));
+  yes('  and outside both the parts of the page that are redrawn',
+    await p.evaluate(() => !document.querySelector('#main #focusDock')
+      && !document.querySelector('.sidebar #focusDock')));
   const same = await p.evaluate(() => { const a = document.querySelector('#focusDock');
-    rerender(); return a === document.querySelector('#focusDock'); });
-  yes('  so a redraw leaves the very same element standing', same);
+    rerender(); renderNav(); return a === document.querySelector('#focusDock'); });
+  yes('  so a redraw of either leaves the very same element standing', same);
   for(const room of ['#/values', '#/projects', '#/writing', '#/planning']){
     await go(room);
     yes(`  still there in ${room}`, !!(await p.$('#focusDock')));
   }
   await go('#/today');
 
-  console.log('\n2. folded to a circle until it is wanted');
-  yes('it starts folded', await p.evaluate(() => focusDockShut()));
-  const bub = await p.evaluate(() => { const n = document.querySelector('#focusDock .fd-bubble');
-    if(!n) return null; const r = n.getBoundingClientRect();
-    return {w: Math.round(r.width), h: Math.round(r.height),
-      round: getComputedStyle(n).borderRadius,
-      bottom: Math.round(innerHeight - r.bottom), left: Math.round(r.left),
-      sidebar: Math.round(document.querySelector('.sidebar').getBoundingClientRect().right)}; });
-  yes('as a circle', bub && bub.w === bub.h && bub.w <= 56 && /50%/.test(bub.round), JSON.stringify(bub));
-  yes('  in the bottom corner', bub && bub.bottom <= 26, bub && String(bub.bottom));
-  yes('  clear of the navigation rather than on top of it', bub && bub.left >= bub.sidebar,
-    bub && `${bub.left} vs ${bub.sidebar}`);
-  yes('  and there is no card while it is folded', !(await p.$('#focusDock .fd-card')));
-  await p.click('#focusDock #fdOpen'); await p.waitForTimeout(600);
-  yes('pressing it opens the card', !!(await p.$('#focusDock .fd-card')));
-  await p.click('#focusDock #fdShut'); await p.waitForTimeout(600);
-  yes('  and the − folds it back', !!(await p.$('#focusDock .fd-bubble')));
-  is('  which is remembered', await p.evaluate(() => S.settings.focusDock), 'shut');
+  console.log('\n2. it takes its shape from the sidebar it stands in');
+  const where = () => p.evaluate(() => {
+    const d = document.querySelector('#focusDock'), r = d.getBoundingClientRect();
+    const sb = document.querySelector('.sidebar').getBoundingClientRect();
+    const links = [...document.querySelectorAll('.sidebar .nav a')];
+    const last = links.length ? links[links.length - 1].getBoundingClientRect() : null;
+    const bub = d.querySelector('.fd-bubble');
+    return {card: !!d.querySelector('.fd-card'), bubble: !!bub,
+      w: Math.round(r.width), h: Math.round(r.height),
+      round: bub ? getComputedStyle(bub).borderRadius : '',
+      bubW: bub ? Math.round(bub.getBoundingClientRect().width) : 0,
+      bubH: bub ? Math.round(bub.getBoundingClientRect().height) : 0,
+      inSidebar: r.left >= sb.left - 1 && r.right <= sb.right + 1,
+      bottom: Math.round(innerHeight - r.bottom),
+      clearsLinks: !last || last.bottom <= r.top + 1}; });
+  /* the sidebar starts open */
+  await p.evaluate(() => setFocusDockShut(false)); await p.waitForTimeout(700);
+  let m = await where();
+  yes('the sidebar open, it is the clock', m.card && !m.bubble);
+  yes('  standing inside the sidebar, not over the page', m.inSidebar, JSON.stringify(m));
+  yes('  at the foot of it', m.bottom <= 26, String(m.bottom));
+  yes('  with the room names stopping above it rather than under it', m.clearsLinks);
+  await p.click('#sbToggle'); await p.waitForTimeout(700);
+  m = await where();
+  yes('the sidebar narrowed, it is a circle', m.bubble && !m.card);
+  yes('  a real circle, the size of an icon', m.bubW === m.bubH && m.bubW <= 48 && /50%/.test(m.round),
+    JSON.stringify(m));
+  yes('  still inside the sidebar', m.inSidebar, JSON.stringify(m));
+  is('  and the clock agrees it is folded', await p.evaluate(() => focusDockShut()), true);
+  await p.click('#focusDock #fdOpen'); await p.waitForTimeout(700);
+  yes('pressing the circle opens the sidebar, and the clock with it',
+    await p.evaluate(() => !document.documentElement.classList.contains('sb-collapsed'))
+    && !!(await p.$('#focusDock .fd-card')));
   await go('#/values');
-  yes('  on the next room too', !!(await p.$('#focusDock .fd-bubble')));
+  yes('  and it is the same in the next room', !!(await p.$('#focusDock .fd-card')));
   await go('#/today');
 
   console.log('\n3. started from the clock, a sitting counts up');
@@ -164,8 +185,8 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('nor anywhere else in the app',
     await p.evaluate(() => typeof focusPanelHTML === 'undefined'));
 
-  console.log('\n8. a task reaches it by being dragged on, folded or open');
-  await p.evaluate(() => { FocusTimer.setTask(null); setFocusDockShut(true); }); await p.waitForTimeout(500);
+  console.log('\n8. a task reaches it by being dragged on, narrow or wide');
+  await p.evaluate(() => { FocusTimer.setTask(null); setFocusDockShut(true); }); await p.waitForTimeout(700);
   const dropped = await p.evaluate(i => {
     const to = document.querySelector('#focusDock [data-focusdrop]');
     if(!to) return 'no target';
@@ -177,8 +198,22 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     return FocusTimer.state().taskId;
   }, tid);
   is('the circle is a drop target too', dropped, tid);
-  await p.waitForTimeout(500);
+  await p.waitForTimeout(700);
   yes('  and a task dropped on it opens it', !!(await p.$('#focusDock .fd-card')));
+
+  console.log('\n9. where there is no sidebar, it floats clear of what replaced it');
+  await p.setViewportSize({width: 420, height: 820}); await p.waitForTimeout(500);
+  await p.evaluate(() => paintFocusDock(true)); await p.waitForTimeout(500);
+  const phone = await p.evaluate(() => {
+    const d = document.querySelector('#focusDock'), r = d.getBoundingClientRect();
+    const bar = document.querySelector('.mobile-nav');
+    return {bubble: !!d.querySelector('.fd-bubble'), left: Math.round(r.left),
+      clearsBar: !bar || r.bottom <= bar.getBoundingClientRect().top + 1,
+      onScreen: r.left >= 0 && r.right <= innerWidth}; });
+  yes('it is the circle on a phone', phone.bubble, JSON.stringify(phone));
+  yes('  above the bar the navigation became', phone.clearsBar, JSON.stringify(phone));
+  yes('  and inside the screen', phone.onScreen, JSON.stringify(phone));
+  await p.setViewportSize({width: 1500, height: 1200}); await p.waitForTimeout(500);
 
   console.log('\n' + (errs.length ? 'console:\n  ' + errs.join('\n  ') : 'console: clean'));
   if(errs.length) bad += errs.length;

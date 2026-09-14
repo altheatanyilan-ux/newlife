@@ -122,6 +122,16 @@ const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v === 
 const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} };
 function activePageKey(){ const {name} = parseHash(); return {stage:'timeline', value:'values', home:'compass', rhythm:'today', lifetape:'today'}[name] || name; }
 function navLink(key, zoneAccent){ const p = NAV_PAGES[key]; return `<a href="${p.route}" data-page="${key}" data-tip="${esc(p.label)}" style="--z:${zoneAccent||'var(--terra)'}"><span class="ico">${p.ico}</span><span class="lbl">${esc(p.label)}</span>${key === 'planning' ? '<span class="nav-badge" hidden></span>' : ''}</a>`; }
+/* The clock stands in the foot of the sidebar and takes its shape from it, so
+   whatever opens or closes the sidebar has to tell the clock — otherwise it
+   keeps the shape the last render gave it. */
+function setSidebarCollapsed(shut){
+  lsSet('sidebarCollapsed', !!shut);
+  renderNav();
+  if(typeof paintFocusDock === 'function') paintFocusDock(true);
+}
+function sidebarCollapsed(){ return lsGet('sidebarCollapsed', false); }
+
 function renderNav(){
   const n = navConfig(); const collapsedZones = lsGet('navZoneCollapsed', {}); const sbCollapsed = lsGet('sidebarCollapsed', false);
   document.documentElement.classList.toggle('sb-collapsed', !!sbCollapsed);
@@ -135,7 +145,7 @@ function renderNav(){
     ${NAV_PINNED.filter(k => NAV_PAGES[k]).length ? `<nav class="nav nav-foot">
       ${NAV_PINNED.filter(k => NAV_PAGES[k]).map(k => navLink(k, 'var(--terra)')).join('')}
     </nav>` : ''}`;
-  sb.querySelector('#sbToggle').onclick = () => { lsSet('sidebarCollapsed', !lsGet('sidebarCollapsed', false)); renderNav(); };
+  sb.querySelector('#sbToggle').onclick = () => setSidebarCollapsed(!lsGet('sidebarCollapsed', false));
   sb.querySelectorAll('[data-zoneh]').forEach(b => b.onclick = () => { const c = lsGet('navZoneCollapsed', {}); c[b.dataset.zoneh] = !c[b.dataset.zoneh]; lsSet('navZoneCollapsed', c); renderNav(); });
   // mobile bottom bar
   let mb = $('#mobileNav'); if(!mb){ mb = el('<nav class="mobile-nav" id="mobileNav"></nav>'); document.body.appendChild(mb); }

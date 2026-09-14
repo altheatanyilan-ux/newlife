@@ -31,15 +31,24 @@
    reads them back.
    ============================================================ */
 
-/* Folded until it is wanted, and then remembered: whichever state you leave it
-   in you want on every page and on the next visit too. It starts as the circle
-   because a card in the corner of every room is a card over somebody's work,
-   and the circle still says how many minutes you are in. Pressing an estimate
-   opens it, because that is an unambiguous "I am starting now". */
-function focusDockShut(){ return !(S.settings && S.settings.focusDock === 'open'); }
+/* It stands in the foot of the sidebar, which is empty, and takes its shape
+   from it: the sidebar open, the clock is the clock; the sidebar narrowed to
+   its icons, the clock is one more icon-sized thing — a circle that still says
+   how many minutes you are in. That is one switch for both rather than two
+   that can disagree, and it means the clock is never over the page's words.
+
+   Where there is no sidebar at all — a phone, where it becomes a bar along the
+   bottom — it is the circle, floating clear of that bar. */
+function focusDockInSidebar(){ return innerWidth > 900; }
+function focusDockShut(){
+  return !focusDockInSidebar()
+    || document.documentElement.classList.contains('sb-collapsed');
+}
+/* Opening the clock is opening the sidebar it lives in. */
 function setFocusDockShut(shut){
-  S.settings.focusDock = shut ? 'shut' : 'open';
-  saveNow(); paintFocusDock(true);
+  if(!focusDockInSidebar()){ paintFocusDock(true); return; }
+  if(typeof setSidebarCollapsed === 'function') setSidebarCollapsed(!!shut);
+  else { document.documentElement.classList.toggle('sb-collapsed', !!shut); paintFocusDock(true); }
 }
 
 /* ---------- what it says ---------- */
@@ -91,8 +100,6 @@ function focusDockHTML(){
   return `<div class="fd-card${s.running ? ' running' : ''}${s.onBreak ? ' onbreak' : ''}">
     <div class="fd-head">
       <span class="sc" style="margin:0">Focus</span>
-      <button class="fd-shut" id="fdShut" title="fold it down to the corner"
-        aria-label="Fold the clock down to the corner">−</button>
     </div>
 
     <!-- the task: dragged in from any list, or cleared out again -->
@@ -141,6 +148,18 @@ function focusDockTyping(){
   return !!(a && a.closest && a.closest('#focusDock') && /INPUT|TEXTAREA/.test(a.tagName));
 }
 
+/* What the gadget is made of, as opposed to what it reads. The clock
+   subscribes to the timer, and the timer says something every second — so
+   rebuilding on every word from it meant the card was thrown away and made
+   again sixty times a minute, replaying its entrance animation each time. It
+   is rebuilt only when one of these changes; the rest of the time the hands
+   move and nothing else is touched. */
+function focusDockSig(s){
+  return [focusDockShut() ? 'shut' : 'open', s.idle ? 'idle' : s.running ? 'run' : 'held',
+    s.onBreak ? 'break' : '', s.phase, s.taskId || '', s.subId || ''].join('|');
+}
+let _dockSig = null;
+
 function paintFocusDock(force){
   const dock = document.getElementById('focusDock'); if(!dock) return;
   /* An incidental repaint — the timer ticking over, a break opening — waits
@@ -148,38 +167,33 @@ function paintFocusDock(force){
      it, does not: they asked for it, and the caret going with it is the point.  */
   if(!force && focusDockTyping()){ focusDockFace(); return; }
   const s = FocusTimer.state();
+  const sig = focusDockSig(s);
+  if(!force && sig === _dockSig && dock.firstChild){ focusDockFace(); return; }
+  _dockSig = sig;
   dock.dataset.shut = focusDockShut() ? '1' : '';
   dock.dataset.running = s.running ? '1' : '';
   dock.innerHTML = focusDockHTML();
   bindFocusDock(dock);
   focusDockMeasure();
 }
-/* The toasts rise in this same corner, so they are told how much of it is
-   taken, and measured rather than guessed: the card is a different height with
-   a task in it, with a note open, and with a break running.
+/* How much of the foot the clock is standing on, so that the sidebar's own
+   links stop above it rather than sliding under it — and, on a phone where it
+   floats instead, so the toasts step around it.
 
-   Open, they go above it — a 268px card would bury them. Folded, they go
-   beside it: the circle is 48px, and pushing a whole stack of toasts up by
-   that much for something it does not actually cover puts the top of the
-   stack over the middle of the page. */
+   Measured now rather than on the next frame. The gadget's own contents have
+   just been written, so the box is already right, and waiting for a frame
+   meant that anything which stops frames arriving (a page in the background, a
+   clock under test) left everything else standing where it used to be. */
 function focusDockMeasure(){
   const dock = document.getElementById('focusDock'); if(!dock) return;
-  /* Measured now rather than on the next frame. The gadget's own contents have
-     just been written, so the box is already right — and waiting for a frame
-     meant that anything which stops frames arriving (a page in the background,
-     a clock under test) left the toasts standing where the gadget used to be. */
   const r = dock.getBoundingClientRect();
-  const shut = focusDockShut();
   const root = document.documentElement.style;
-  root.setProperty('--dock-h', shut ? '0px' : (r.height ? Math.round(r.height) + 12 : 0) + 'px');
-  root.setProperty('--dock-w', shut ? (r.width ? Math.round(r.width) + 12 : 0) + 'px' : '0px');
+  root.setProperty('--dock-h', (r.height ? Math.round(r.height) + 14 : 0) + 'px');
 }
 
 function bindFocusDock(dock){
   const open = dock.querySelector('#fdOpen');
   if(open) open.onclick = () => { setFocusDockShut(false); sound('click'); };
-  const shut = dock.querySelector('#fdShut');
-  if(shut) shut.onclick = () => { setFocusDockShut(true); sound('click'); };
 
   const go = dock.querySelector('#fpGo');
   if(go) go.onclick = () => {
@@ -269,4 +283,7 @@ function mountFocusDock(){
      the hands, which nothing else knows about */
   FocusTimer.subscribe(() => paintFocusDock());
   setInterval(focusDockFace, 1000);
+  /* the sidebar is there above 900px and gone below it, and the clock is a
+     different thing in each case */
+  addEventListener('resize', debounce(() => paintFocusDock(true), 200));
 }

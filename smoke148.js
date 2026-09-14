@@ -176,16 +176,17 @@ const rects = () => {
     return {found:true, fixed: cs.position === 'fixed', inMain: !!document.querySelector('#main #focusDock'),
       shut: focusDockShut(), w: Math.round(r.width), h: Math.round(r.height),
       bottom: Math.round(innerHeight - r.bottom), left: Math.round(r.left),
+      right: Math.round(r.right),
       sidebar: Math.round(document.querySelector('.sidebar').getBoundingClientRect().right),
       section: !!document.getElementById('t-focus')}; });
   yes('the clock is on the page', clk.found);
   yes('  fixed to the window, not laid out in the page', clk.fixed && !clk.inMain);
   yes('  and it is not a section of Today', !clk.section);
-  yes('  folded to its circle until it is wanted', clk.shut && clk.w <= 56 && clk.h <= 56,
-      `${clk.w}x${clk.h}`);
+  /* it stands in the foot of the sidebar and takes its shape from it: open
+     beside the room names, a circle beside their icons */
   yes('  in the bottom corner', clk.bottom <= 26, String(clk.bottom));
-  yes('  clear of the navigation rather than over it', clk.left >= clk.sidebar,
-      `${clk.left} vs sidebar ${clk.sidebar}`);
+  yes('  inside the sidebar rather than over the page', clk.left <= 1 && clk.right <= clk.sidebar + 1,
+      `${clk.left}–${clk.right} vs sidebar ${clk.sidebar}`);
   await p.close();
 
   console.log('\n6. the index is pinned, and it is the way between the rooms');

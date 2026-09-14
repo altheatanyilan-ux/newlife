@@ -77,6 +77,12 @@
   --boho-midnight:#2a2840; --boho-copper:#9a6840; --boho-parchment:#d4c4a8;
   --radius:14px;
   --sidebar:220px;
+  /* The band across the top that belongs to the chrome rather than to the
+     page: the Back button on the left and the topbar on the right both sit
+     fixed at 16px and stand 33px tall. Anything the page pins to the top of
+     the window has to start below it, or the chrome lands on the page's own
+     words — which is what the Back button was doing to Today's view switch. */
+  --chrome-h:57px;
   --content:640px;
   /* page theme defaults (overridden per room by applyPageTheme) */
   --page-accent:var(--terra); --page-accent-ink:#1a1816;
@@ -584,7 +590,7 @@ details .body{padding:4px 0 18px}
 /* The focus gadget stands in this corner too, and it is the thing that has to
    stay readable, so the toasts stack on top of it rather than across it.
    --dock-h is written by the gadget itself as it changes size. */
-.toast-wrap{position:fixed;bottom:calc(28px + var(--dock-h, 0px));left:calc(var(--sidebar) + 24px + var(--dock-w, 0px));z-index:120;display:flex;flex-direction:column;gap:8px;align-items:flex-start;transition:bottom .22s var(--ease),left .22s var(--ease)}
+.toast-wrap{position:fixed;bottom:28px;left:calc(var(--sidebar) + 24px);z-index:120;display:flex;flex-direction:column;gap:8px;align-items:flex-start}
 .toast{background:var(--surface);border:1px solid var(--line-2);border-left:3px solid var(--page-accent);padding:10px 16px;border-radius:10px;font-size:.85rem;box-shadow:var(--shadow);animation:rise .3s var(--ease);max-width:340px}
 .ripple{position:fixed;border-radius:50%;pointer-events:none;z-index:200;transform:translate(-50%,-50%);animation:rip 1s var(--ease) forwards;border:2px solid var(--c,var(--page-accent))}
 @keyframes rip{from{width:0;height:0;opacity:.8}to{width:600px;height:600px;opacity:0}}
@@ -1395,7 +1401,7 @@ button.tm-cell:hover{border-color:var(--page-accent)}
   /* one compartment's height, and the only number that decides the shape of
      the page: the screen, less the pinned index and a little air. The floor
      keeps it usable on a short window, where a screenful is not much. */
-  --cell:max(360px,calc(100dvh - 106px))}
+  --cell:max(360px,calc(100dvh - var(--chrome-h) - 92px))}
 .daybox>*{margin-top:0!important}
 /* both are one column now; the names are kept because the markup and the
    tests speak them, and because a pair may want to come back */
@@ -1425,7 +1431,7 @@ button.tm-cell:hover{border-color:var(--page-accent)}
   .daybox>.t-sec:not([open]){align-self:start;overflow:visible;padding-bottom:0}
   /* land a section under the pinned index, not behind it, whoever does the
      scrolling — the jump buttons, the keyboard, or the browser itself */
-  .daybox>.t-sec,.daybox>.focus-block{scroll-margin-top:101px}
+  .daybox>.t-sec,.daybox>.focus-block{scroll-margin-top:calc(var(--chrome-h) + 87px)}
   /* The heading stays put while its contents move under it, so you always
      know which box you are reading. It is opaque and in the box's own colour
      — text scrolling past has to go behind it, not show through it. */
@@ -3230,8 +3236,14 @@ html.vision-deep .page-scene.on{opacity:var(--scene-op)}
    being asked to reflect while looking at the work. A segmented control, the
    soft kind: the track is pressed into the page and the chosen half stands up
    out of it. */
-.today-switch{position:sticky;top:14px;z-index:7;display:inline-flex;gap:3px;margin:0 0 4px;
+.today-switch{position:sticky;top:var(--chrome-h);z-index:7;display:inline-flex;gap:3px;margin:0 0 4px;
   padding:3px;border-radius:999px;background:var(--neu-bg);box-shadow:var(--neu-pressed)}
+/* pinned, it is a pill with the page running behind it on both sides; this is
+   the ground it stands on, spanning the column rather than the pill */
+.today-switch::before{content:"";position:absolute;z-index:-1;pointer-events:none;
+  left:-56px;right:-56px;top:calc(-1 * var(--chrome-h));bottom:-11px;
+  background:linear-gradient(to bottom,var(--bg) 92%,transparent)}
+@media (max-width:900px){.today-switch::before{left:-18px;right:-18px}}
 .today-switch button{background:none;border:none;border-radius:999px;cursor:pointer;
   padding:6px 16px;font-family:var(--sans);font-size:.8rem;letter-spacing:.02em;
   color:var(--muted);transition:color .2s var(--ease),box-shadow .25s var(--ease),background .2s var(--ease)}
@@ -3246,7 +3258,7 @@ html[data-theme="dark"] .today-switch button.on,html:not([data-theme="light"]) .
 .today-view[hidden]{display:none}
 @media (prefers-reduced-motion:reduce){.today-switch button{transition:none}}
 
-.today-jump{position:sticky;top:56px;z-index:6;display:flex;gap:4px;flex-wrap:wrap;
+.today-jump{position:sticky;top:calc(var(--chrome-h) + 42px);z-index:6;display:flex;gap:4px;flex-wrap:wrap;
   margin:0 0 18px;padding:8px 0 14px;background:linear-gradient(to bottom,var(--bg) 78%,transparent);
   backdrop-filter:blur(6px)}
 .today-jump button{background:none;border:1px solid transparent;border-radius:999px;
@@ -5360,7 +5372,12 @@ select.sm-active{border-color:var(--page-accent);
   border-radius:7px;padding:2px 7px;box-shadow:0 1px 4px rgba(0,0,0,.14)}
 .tc-board .tc-slot.bare .tc-capslot{min-height:0;font-size:.62rem}
 .tc-no{font-family:var(--mono);font-size:.56rem;color:var(--faint);line-height:1}
-.tc-board .tc-cap-name{font-size:.7rem}
+/* Two lines and no more. The room under a card on the board is a fixed band —
+   it has to be, because the board is laid out before the cards are known — so
+   a name allowed to run to three lines would push the word under it out of
+   sight however generous the band was. "The Wheel of Fortune" takes two. */
+.tc-board .tc-cap-name{font-size:.7rem;display:-webkit-box;-webkit-line-clamp:2;
+  -webkit-box-orient:vertical;overflow:hidden}
 .tc-board .tc-cap-rev{font-size:.5rem}
 @media (prefers-reduced-motion:reduce){.tc-board{transition:none}}
 
@@ -6922,30 +6939,35 @@ html[data-decor="plain"] [data-reveal] .wd{opacity:1;transform:none;transition:n
 /* ============================================================
    18. THE FOCUS GADGET
 
-   It floats over every room rather than living on one, so it is fixed to the
-   bottom-left corner — the opposite corner from the add button, which is the
-   only other thing that floats. Folded, it is a circle that still says how
-   many minutes you are in. Open, it is a small card: the clock, what the
-   sitting is on, and the two notes.
-   ============================================================ */
-/* The bottom-left corner of the room, not of the window: at left:0 the gadget
-   sits on top of the navigation, and a clock that hides the way out of the
-   page is a bad trade. It follows the sidebar in and out. */
-.fdock{position:fixed;left:calc(var(--sidebar) + 20px);bottom:20px;z-index:60;
-  display:flex;flex-direction:column;align-items:flex-start;
-  transition:transform .28s var(--ease)}
-@media (max-width:640px){.fdock{left:12px;bottom:12px}}
+   It stands in the foot of the sidebar, which was empty, and takes its shape
+   from it — open beside the room names, a circle beside their icons. Fixed
+   rather than laid out inside the sidebar, because the sidebar is rebuilt
+   whenever the navigation changes and the clock must not be: it is the one
+   element on the page that has to survive every redraw.
 
-/* --- folded: the circle --- */
-.fd-bubble{position:relative;width:48px;height:48px;padding:0;border-radius:50%;
+   Below 900px there is no sidebar — the navigation becomes a bar along the
+   bottom — so there it floats clear of that bar as the circle.
+   ============================================================ */
+.fdock{position:fixed;left:0;bottom:0;width:var(--sidebar);z-index:41;
+  display:flex;flex-direction:column;align-items:center;
+  padding:0 12px 14px;transition:width .3s var(--ease)}
+/* the sidebar's own links stop above it rather than sliding under it */
+.sidebar{padding-bottom:calc(14px + var(--dock-h, 0px))}
+@media (max-width:900px){
+  /* no sidebar to stand in: it floats, clear of the bar along the bottom */
+  .fdock{left:12px;bottom:74px;width:auto;padding:0;align-items:flex-start}
+}
+
+/* --- narrow: the circle --- */
+.fd-bubble{position:relative;width:40px;height:40px;padding:0;border-radius:50%;
   border:1px solid var(--line-2);background:var(--elev-2);box-shadow:var(--elev-2-shadow);
   cursor:pointer;display:grid;place-items:center;color:var(--muted);
   transition:transform .2s var(--ease),box-shadow .2s var(--ease),border-color .2s var(--ease)}
 .fd-bubble:hover{transform:translateY(-2px);box-shadow:var(--elev-3-shadow);border-color:var(--line)}
 .fd-bubble svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
-.fd-bubble .ft-track{fill:none;stroke:var(--line);stroke-width:2.4}
-.fd-bubble .ft-arc{fill:none;stroke-width:2.4;stroke-linecap:round;transition:stroke-dashoffset .6s linear}
-.fd-bmark{position:relative;font-size:.76rem;letter-spacing:.02em;color:var(--text)}
+.fd-bubble .ft-track{fill:none;stroke:var(--line);stroke-width:2.6}
+.fd-bubble .ft-arc{fill:none;stroke-width:2.6;stroke-linecap:round;transition:stroke-dashoffset .6s linear}
+.fd-bmark{position:relative;font-size:.7rem;letter-spacing:.02em;color:var(--text)}
 .fd-bubble.over{border-color:var(--gold);box-shadow:0 0 0 4px color-mix(in srgb,var(--gold) 20%,transparent)}
 .fd-bubble.ticking{border-color:color-mix(in srgb,var(--terra) 45%,transparent)}
 .fd-bubble.resting{border-color:color-mix(in srgb,var(--sage) 45%,transparent)}
@@ -6956,41 +6978,33 @@ html[data-decor="full"] .fd-bubble.ticking{animation:fdPulse 2.6s ease-in-out in
   50%{box-shadow:var(--elev-2-shadow),0 0 0 5px color-mix(in srgb,var(--terra) 13%,transparent)}}
 @media (prefers-reduced-motion:reduce){.fd-bubble.ticking{animation:none}}
 
-/* --- open: the card --- */
-.fd-card{width:268px;max-width:calc(100vw - 40px);border-radius:var(--radius);
-  border:1px solid var(--line-2);background:var(--elev-3);box-shadow:var(--elev-3-shadow);
-  padding:13px 14px 14px;display:flex;flex-direction:column;gap:10px;
-  animation:fdIn .22s var(--ease)}
-@keyframes fdIn{from{opacity:0;transform:translateY(8px) scale(.97)}to{opacity:1;transform:none}}
-@media (prefers-reduced-motion:reduce){.fd-card{animation:none}}
+/* --- open: the card, as wide as the sidebar gives it --- */
+.fd-card{width:100%;border-radius:12px;
+  border:1px solid var(--line-2);background:var(--elev-2);box-shadow:var(--elev-2-shadow);
+  padding:10px 11px 11px;display:flex;flex-direction:column;gap:8px}
+@media (max-width:900px){.fd-card{width:268px;max-width:calc(100vw - 24px)}}
 .fd-card.running{border-color:color-mix(in srgb,var(--terra) 34%,transparent)}
 .fd-card.onbreak{border-color:color-mix(in srgb,var(--sage) 34%,transparent)}
 .fd-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.fd-shut{border:0;background:none;color:var(--faint);cursor:pointer;font-size:1.1rem;
-  line-height:1;padding:2px 6px;border-radius:6px}
-.fd-shut:hover{color:var(--text);background:var(--surface-2)}
 
-.fd-drop{border:1px dashed var(--line);border-radius:9px;padding:8px 10px;
+.fd-drop{border:1px dashed var(--line);border-radius:8px;padding:6px 8px;
   transition:border-color .18s var(--ease),background .18s var(--ease)}
 .fd-drop.over{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 9%,transparent)}
-.fd-on{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
-.fd-on b{font-size:.92rem;line-height:1.25;overflow-wrap:anywhere}
+.fd-on{display:flex;align-items:baseline;gap:5px;flex-wrap:wrap}
+.fd-on b{font-size:.84rem;line-height:1.25;overflow-wrap:anywhere}
 .fd-on .pl-mini{margin-left:auto}
-.fd-step{font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);
-  margin-top:4px;overflow-wrap:anywhere}
-.fd-empty{font-size:.78rem;color:var(--faint);line-height:1.4}
+.fd-step{font-size:.62rem;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);
+  margin-top:3px;overflow-wrap:anywhere}
+.fd-empty{font-size:.74rem;color:var(--faint);line-height:1.4}
 
 /* the clock face is the one the panel used; only the room around it changed */
-.fdock .fp-ring{align-self:center}
-.fd-go{display:flex;gap:8px;align-items:center}
-.fd-note{display:flex;flex-direction:column;gap:4px}
+.fdock .fp-ring{align-self:center;transform:scale(.86);margin:-8px 0}
+.fd-go{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.fd-note{display:flex;flex-direction:column;gap:3px}
 .fd-note .inp.sm{width:100%}
 .fd-note.resting .k{color:var(--sage)}
-
-/* Out of the way of the page while something is being dragged onto it: a
-   gadget in the corner is over whatever is in the corner. */
-.fdock:has(.fd-card){max-height:calc(100vh - 40px);overflow:visible}
-@media (max-height:560px){.fdock .fp-ring{display:none}}
+/* a short window has no room for a dial beside a list of rooms */
+@media (max-height:680px){.fdock .fp-ring{display:none}}
 </style>
 </head>
 <body>
@@ -11837,15 +11851,24 @@ function maybeAskPreferences(then){
    reads them back.
    ============================================================ */
 
-/* Folded until it is wanted, and then remembered: whichever state you leave it
-   in you want on every page and on the next visit too. It starts as the circle
-   because a card in the corner of every room is a card over somebody's work,
-   and the circle still says how many minutes you are in. Pressing an estimate
-   opens it, because that is an unambiguous "I am starting now". */
-function focusDockShut(){ return !(S.settings && S.settings.focusDock === 'open'); }
+/* It stands in the foot of the sidebar, which is empty, and takes its shape
+   from it: the sidebar open, the clock is the clock; the sidebar narrowed to
+   its icons, the clock is one more icon-sized thing — a circle that still says
+   how many minutes you are in. That is one switch for both rather than two
+   that can disagree, and it means the clock is never over the page's words.
+
+   Where there is no sidebar at all — a phone, where it becomes a bar along the
+   bottom — it is the circle, floating clear of that bar. */
+function focusDockInSidebar(){ return innerWidth > 900; }
+function focusDockShut(){
+  return !focusDockInSidebar()
+    || document.documentElement.classList.contains('sb-collapsed');
+}
+/* Opening the clock is opening the sidebar it lives in. */
 function setFocusDockShut(shut){
-  S.settings.focusDock = shut ? 'shut' : 'open';
-  saveNow(); paintFocusDock(true);
+  if(!focusDockInSidebar()){ paintFocusDock(true); return; }
+  if(typeof setSidebarCollapsed === 'function') setSidebarCollapsed(!!shut);
+  else { document.documentElement.classList.toggle('sb-collapsed', !!shut); paintFocusDock(true); }
 }
 
 /* ---------- what it says ---------- */
@@ -11897,8 +11920,6 @@ function focusDockHTML(){
   return `<div class="fd-card${s.running ? ' running' : ''}${s.onBreak ? ' onbreak' : ''}">
     <div class="fd-head">
       <span class="sc" style="margin:0">Focus</span>
-      <button class="fd-shut" id="fdShut" title="fold it down to the corner"
-        aria-label="Fold the clock down to the corner">−</button>
     </div>
 
     <!-- the task: dragged in from any list, or cleared out again -->
@@ -11947,6 +11968,18 @@ function focusDockTyping(){
   return !!(a && a.closest && a.closest('#focusDock') && /INPUT|TEXTAREA/.test(a.tagName));
 }
 
+/* What the gadget is made of, as opposed to what it reads. The clock
+   subscribes to the timer, and the timer says something every second — so
+   rebuilding on every word from it meant the card was thrown away and made
+   again sixty times a minute, replaying its entrance animation each time. It
+   is rebuilt only when one of these changes; the rest of the time the hands
+   move and nothing else is touched. */
+function focusDockSig(s){
+  return [focusDockShut() ? 'shut' : 'open', s.idle ? 'idle' : s.running ? 'run' : 'held',
+    s.onBreak ? 'break' : '', s.phase, s.taskId || '', s.subId || ''].join('|');
+}
+let _dockSig = null;
+
 function paintFocusDock(force){
   const dock = document.getElementById('focusDock'); if(!dock) return;
   /* An incidental repaint — the timer ticking over, a break opening — waits
@@ -11954,38 +11987,33 @@ function paintFocusDock(force){
      it, does not: they asked for it, and the caret going with it is the point.  */
   if(!force && focusDockTyping()){ focusDockFace(); return; }
   const s = FocusTimer.state();
+  const sig = focusDockSig(s);
+  if(!force && sig === _dockSig && dock.firstChild){ focusDockFace(); return; }
+  _dockSig = sig;
   dock.dataset.shut = focusDockShut() ? '1' : '';
   dock.dataset.running = s.running ? '1' : '';
   dock.innerHTML = focusDockHTML();
   bindFocusDock(dock);
   focusDockMeasure();
 }
-/* The toasts rise in this same corner, so they are told how much of it is
-   taken, and measured rather than guessed: the card is a different height with
-   a task in it, with a note open, and with a break running.
+/* How much of the foot the clock is standing on, so that the sidebar's own
+   links stop above it rather than sliding under it — and, on a phone where it
+   floats instead, so the toasts step around it.
 
-   Open, they go above it — a 268px card would bury them. Folded, they go
-   beside it: the circle is 48px, and pushing a whole stack of toasts up by
-   that much for something it does not actually cover puts the top of the
-   stack over the middle of the page. */
+   Measured now rather than on the next frame. The gadget's own contents have
+   just been written, so the box is already right, and waiting for a frame
+   meant that anything which stops frames arriving (a page in the background, a
+   clock under test) left everything else standing where it used to be. */
 function focusDockMeasure(){
   const dock = document.getElementById('focusDock'); if(!dock) return;
-  /* Measured now rather than on the next frame. The gadget's own contents have
-     just been written, so the box is already right — and waiting for a frame
-     meant that anything which stops frames arriving (a page in the background,
-     a clock under test) left the toasts standing where the gadget used to be. */
   const r = dock.getBoundingClientRect();
-  const shut = focusDockShut();
   const root = document.documentElement.style;
-  root.setProperty('--dock-h', shut ? '0px' : (r.height ? Math.round(r.height) + 12 : 0) + 'px');
-  root.setProperty('--dock-w', shut ? (r.width ? Math.round(r.width) + 12 : 0) + 'px' : '0px');
+  root.setProperty('--dock-h', (r.height ? Math.round(r.height) + 14 : 0) + 'px');
 }
 
 function bindFocusDock(dock){
   const open = dock.querySelector('#fdOpen');
   if(open) open.onclick = () => { setFocusDockShut(false); sound('click'); };
-  const shut = dock.querySelector('#fdShut');
-  if(shut) shut.onclick = () => { setFocusDockShut(true); sound('click'); };
 
   const go = dock.querySelector('#fpGo');
   if(go) go.onclick = () => {
@@ -12075,6 +12103,9 @@ function mountFocusDock(){
      the hands, which nothing else knows about */
   FocusTimer.subscribe(() => paintFocusDock());
   setInterval(focusDockFace, 1000);
+  /* the sidebar is there above 900px and gone below it, and the clock is a
+     different thing in each case */
+  addEventListener('resize', debounce(() => paintFocusDock(true), 200));
 }
 /* ============================================================
    THE FOCUS PANEL — where the day's work actually gets done.
@@ -25045,7 +25076,13 @@ const SPREAD_LAYOUTS = {
    Never below 1: a row step shorter than a card is two cards on top of each
    other, which is what the first version of this did to the Celtic cross's
    staff. Above 1 is breathing room for the layouts that want it. */
-const LAYOUT_VS = {tree:1, celtic_cross:1.04, circle:1.02, horseshoe:1.06, grid:1.06};
+/* How far apart the rows of a layout stand, as a multiple of a card plus the
+   room under it. An arc is the one that needs more than the rest: its cards
+   are spaced along the curve rather than on a grid, so two neighbours can be
+   most of a card-width apart horizontally while being only a fraction of a row
+   apart vertically — and a two-line caption under the lower one then reaches
+   the card beside it. */
+const LAYOUT_VS = {tree:1, celtic_cross:1.04, circle:1.02, horseshoe:1.2, grid:1.06};
 
 /* The geometry of one spread, normalised so the top-left cell is at 0 and
    the caller knows how many card-widths and card-heights it needs. */
@@ -25090,9 +25127,27 @@ function tarotBoardHTML(sp, slotHTML){
   const g = spreadGeometry(sp);
   const cw = spreadCardW(sp.cardCount), ch = Math.round(cw * CARD_RATIO);
   const named = cw >= 165;                       /* below that a label is a smudge */
-  /* the vertical step has to clear the card AND the name that arrives under
-     it, or a spread deeper than one row stacks on itself */
-  const under = named ? 46 : 30;
+  /* The vertical step has to clear the card AND everything else in the slot,
+     or a spread deeper than one row stacks on itself — and the board's own
+     height has to clear the last row's caption, or the wrapper (which hides
+     vertical overflow, so that a board wider than the room does not also grow
+     a vertical scrollbar) cuts it in half.
+
+     A slot is a column of four things, not one: the label above the card, the
+     card, and then the caption — the card's name, which wraps to two lines at
+     these widths, and under that the word "reversed" when it landed the other
+     way up. The old figures counted the caption alone, and only its first
+     line, so a reversed card was the one case where the last line was always
+     half cut off — in every spread in the library.
+
+       named   label 13 + gap 5 + gap 5 + caption 30 = 53, and 3 to spare
+       bare    label  9 + gap 5 + gap 5 + caption 40 = 59, and 3 to spare
+
+     The bare figure is the larger because its cards are the narrower: a name
+     the width of "The Papess/High Priestess" takes one line at 200px and two
+     at 125. The caption is clamped to two lines in CSS so that this stays the
+     worst case rather than the common one. */
+  const under = named ? 56 : 62;
   const stepX = cw * 1.14, stepY = (ch + under) * g.vs;
   const W = Math.round((g.cols - 1) * stepX + cw), H = Math.round((g.rows - 1) * stepY + ch + under);
   return `<div class="tc-boardwrap" data-board style="--bw:${W}px;--bh:${H}px">
@@ -40291,6 +40346,16 @@ const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v === 
 const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} };
 function activePageKey(){ const {name} = parseHash(); return {stage:'timeline', value:'values', home:'compass', rhythm:'today', lifetape:'today'}[name] || name; }
 function navLink(key, zoneAccent){ const p = NAV_PAGES[key]; return `<a href="${p.route}" data-page="${key}" data-tip="${esc(p.label)}" style="--z:${zoneAccent||'var(--terra)'}"><span class="ico">${p.ico}</span><span class="lbl">${esc(p.label)}</span>${key === 'planning' ? '<span class="nav-badge" hidden></span>' : ''}</a>`; }
+/* The clock stands in the foot of the sidebar and takes its shape from it, so
+   whatever opens or closes the sidebar has to tell the clock — otherwise it
+   keeps the shape the last render gave it. */
+function setSidebarCollapsed(shut){
+  lsSet('sidebarCollapsed', !!shut);
+  renderNav();
+  if(typeof paintFocusDock === 'function') paintFocusDock(true);
+}
+function sidebarCollapsed(){ return lsGet('sidebarCollapsed', false); }
+
 function renderNav(){
   const n = navConfig(); const collapsedZones = lsGet('navZoneCollapsed', {}); const sbCollapsed = lsGet('sidebarCollapsed', false);
   document.documentElement.classList.toggle('sb-collapsed', !!sbCollapsed);
@@ -40304,7 +40369,7 @@ function renderNav(){
     ${NAV_PINNED.filter(k => NAV_PAGES[k]).length ? `<nav class="nav nav-foot">
       ${NAV_PINNED.filter(k => NAV_PAGES[k]).map(k => navLink(k, 'var(--terra)')).join('')}
     </nav>` : ''}`;
-  sb.querySelector('#sbToggle').onclick = () => { lsSet('sidebarCollapsed', !lsGet('sidebarCollapsed', false)); renderNav(); };
+  sb.querySelector('#sbToggle').onclick = () => setSidebarCollapsed(!lsGet('sidebarCollapsed', false));
   sb.querySelectorAll('[data-zoneh]').forEach(b => b.onclick = () => { const c = lsGet('navZoneCollapsed', {}); c[b.dataset.zoneh] = !c[b.dataset.zoneh]; lsSet('navZoneCollapsed', c); renderNav(); });
   // mobile bottom bar
   let mb = $('#mobileNav'); if(!mb){ mb = el('<nav class="mobile-nav" id="mobileNav"></nav>'); document.body.appendChild(mb); }

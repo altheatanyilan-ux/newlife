@@ -423,7 +423,13 @@ const SPREAD_LAYOUTS = {
    Never below 1: a row step shorter than a card is two cards on top of each
    other, which is what the first version of this did to the Celtic cross's
    staff. Above 1 is breathing room for the layouts that want it. */
-const LAYOUT_VS = {tree:1, celtic_cross:1.04, circle:1.02, horseshoe:1.06, grid:1.06};
+/* How far apart the rows of a layout stand, as a multiple of a card plus the
+   room under it. An arc is the one that needs more than the rest: its cards
+   are spaced along the curve rather than on a grid, so two neighbours can be
+   most of a card-width apart horizontally while being only a fraction of a row
+   apart vertically — and a two-line caption under the lower one then reaches
+   the card beside it. */
+const LAYOUT_VS = {tree:1, celtic_cross:1.04, circle:1.02, horseshoe:1.2, grid:1.06};
 
 /* The geometry of one spread, normalised so the top-left cell is at 0 and
    the caller knows how many card-widths and card-heights it needs. */
@@ -468,9 +474,27 @@ function tarotBoardHTML(sp, slotHTML){
   const g = spreadGeometry(sp);
   const cw = spreadCardW(sp.cardCount), ch = Math.round(cw * CARD_RATIO);
   const named = cw >= 165;                       /* below that a label is a smudge */
-  /* the vertical step has to clear the card AND the name that arrives under
-     it, or a spread deeper than one row stacks on itself */
-  const under = named ? 46 : 30;
+  /* The vertical step has to clear the card AND everything else in the slot,
+     or a spread deeper than one row stacks on itself — and the board's own
+     height has to clear the last row's caption, or the wrapper (which hides
+     vertical overflow, so that a board wider than the room does not also grow
+     a vertical scrollbar) cuts it in half.
+
+     A slot is a column of four things, not one: the label above the card, the
+     card, and then the caption — the card's name, which wraps to two lines at
+     these widths, and under that the word "reversed" when it landed the other
+     way up. The old figures counted the caption alone, and only its first
+     line, so a reversed card was the one case where the last line was always
+     half cut off — in every spread in the library.
+
+       named   label 13 + gap 5 + gap 5 + caption 30 = 53, and 3 to spare
+       bare    label  9 + gap 5 + gap 5 + caption 40 = 59, and 3 to spare
+
+     The bare figure is the larger because its cards are the narrower: a name
+     the width of "The Papess/High Priestess" takes one line at 200px and two
+     at 125. The caption is clamped to two lines in CSS so that this stays the
+     worst case rather than the common one. */
+  const under = named ? 56 : 62;
   const stepX = cw * 1.14, stepY = (ch + under) * g.vs;
   const W = Math.round((g.cols - 1) * stepX + cw), H = Math.round((g.rows - 1) * stepY + ch + under);
   return `<div class="tc-boardwrap" data-board style="--bw:${W}px;--bh:${H}px">
