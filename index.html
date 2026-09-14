@@ -16850,10 +16850,17 @@ function valuePlanets(){
 }
 
 /* ---------- the canvas ---------- */
-const SOLAR_YSQUASH = 0.6;        /* orbits are circles seen at an angle */
-/* how much room past the outermost planet the night needs in order to reach
-   nothing before it reaches an edge. Read by resize() and by night(). */
-const SOLAR_NIGHT_PAD = 58;
+/* Orbits are circles seen at an angle. Flatter than it used to be: the night
+   is an ellipse inscribed in the canvas, and a steeply squashed system needs a
+   very tall canvas before there is any room left above and below it for the
+   darkness to fade in. A shallower angle reads more like an orbital plane
+   anyway. */
+const SOLAR_YSQUASH = 0.46;
+/* The fraction of the night that is solid. Everything from here out to the
+   edge is the fade, so this is the single number that decides how gradual it
+   looks — and resize() keeps every planet and every label inside it, which is
+   what stops a lit thing from ever being drawn on half-lit ground. */
+const SOLAR_NIGHT_CORE = 0.60;
 
 function ValuesSolar(canvas, planets, opts){
   this.cv = canvas; this.ctx = canvas.getContext('2d');
@@ -16884,17 +16891,18 @@ ValuesSolar.prototype.resize = function(){
      leave room for a label under the planet. Everything about the sun's size
      lives in sunCore so the two cannot drift apart.
 
-     And the outermost has to leave the eclipse somewhere to fade. The system
-     used to fill the canvas to its edges, which was fine while the ground was
-     the page; now the ground is drawn, and a planet sitting in the last tenth
-     of the gradient is a bright thing on a half-lit ground with an unreadable
-     label under it. NIGHT_PAD is the room the darkness needs to get to
-     nothing, reserved here so the two cannot be tuned apart. */
+     And the whole system has to sit inside the solid part of the night. The
+     orbits used to fill the canvas to its edges, which was fine while the
+     ground was the page; now the ground is drawn, and a planet out in the
+     gradient is a bright thing on half-lit ground with an unreadable label
+     under it. So the outermost orbit, plus its planet, plus the label beneath
+     it, all fit within SOLAR_NIGHT_CORE of the canvas — the same constant the
+     gradient is built from, so the two cannot be tuned apart. */
   const big = this.planets.reduce((n, p) => Math.max(n, p.radius), 0);
   const minR = Math.max(84, this.sunCore() + big + 20);
-  const maxR = Math.max(minR + 20, Math.min(
-    w / 2 - 56 - big - SOLAR_NIGHT_PAD * this.ysq,
-    (h / 2 - SOLAR_NIGHT_PAD) / this.ysq - 20 - big));
+  const LABEL = 20;
+  const core = SOLAR_NIGHT_CORE * Math.min(w / 2, (h / 2) / this.ysq);
+  const maxR = Math.max(minR + 20, Math.min(w / 2 - 56 - big, core - big - LABEL));
   const n = this.planets.length;
   const step = n > 1 ? (maxR - minR) / (n - 1) : 0;
   this.planets.forEach((p, i) => { p.orbit = minR + i * step; });
@@ -16931,29 +16939,34 @@ ValuesSolar.prototype.ink = function(){
 };
 
 /* An eclipse rather than a box: one ellipse of darkness centred on the sun,
-   opaque enough across the middle that a pale planet reads against it, and
-   falling away to nothing before it reaches any edge. The shape follows the
-   orbits — same squash, so it is the shape the system actually is — and it is
-   sized to clear the outermost planet and the label under it, so nothing is
-   ever drawn out on the light part of the fade where it cannot be read.
+   opaque across the middle so a pale planet reads against it, and gone by the
+   time it reaches an edge.
 
-   Both radii are clamped to half the canvas, which is what keeps the corners
-   of the page showing through: the gradient reaches zero exactly as it
-   reaches the edge, so there is no line anywhere for the eye to catch. */
+   The ellipse is inscribed in the canvas rather than fitted around the
+   planets. That guarantees it reaches exactly zero exactly at the edge — no
+   clamp, no clipped side, the corners always the page showing through — and,
+   more usefully, it means the LENGTH of the fade is decided here rather than
+   by how big the system happens to be that day. The layout's only job is then
+   to keep every planet inside SOLAR_NIGHT_CORE; everything beyond that is
+   fade, and there is a great deal of it. */
 ValuesSolar.prototype.night = function(){
   const c = this.ctx;
-  /* the label sits under the planet, so the darkness has to clear that too */
-  const far = this.planets.reduce((n, p) => Math.max(n, p.orbit + p.radius), 90);
-  const rx = Math.min(this.w / 2, far + SOLAR_NIGHT_PAD + 18);
-  const ry = Math.min(this.h / 2, far * this.ysq + SOLAR_NIGHT_PAD);
+  const rx = this.w / 2, ry = this.h / 2;
   if(rx <= 0 || ry <= 0) return;
   const g = c.createRadialGradient(0, 0, 0, 0, 0, rx);
-  /* held near full out to where the last label sits, then let go */
-  g.addColorStop(0,   'rgba(20,17,14,.95)');
-  g.addColorStop(.62, 'rgba(20,17,14,.93)');
-  g.addColorStop(.84, 'rgba(20,17,14,.88)');
-  g.addColorStop(.95, 'rgba(20,17,14,.42)');
-  g.addColorStop(1,   'rgba(20,17,14,0)');
+  /* A smoothstep sampled at twenty points, not a handful of straight segments.
+     Linear interpolation between five stops leaves a kink at every one of
+     them, and a kink in a gradient this large is precisely what the eye reads
+     as artificial — it sees the edge of a shape where there is meant to be
+     none. This is flat where it meets the core, flat again where it meets
+     nothing, and has no straight run anywhere in between. */
+  const A = .95, t0 = SOLAR_NIGHT_CORE, N = 20;
+  for(let i = 0; i <= N; i++){
+    const t = i / N;
+    const u = t <= t0 ? 0 : Math.min(1, (t - t0) / (1 - t0));
+    const smooth = u * u * (3 - 2 * u);
+    g.addColorStop(t, `rgba(20,17,14,${(A * (1 - smooth)).toFixed(4)})`);
+  }
   c.save();
   c.translate(this.cx, this.cy);
   c.scale(1, ry / rx);
@@ -17320,7 +17333,7 @@ function mountSolar(root){
   if(_solar) _solar.stop();
   const planets = valuePlanets(); if(!planets.length) return;
   _solar = new ValuesSolar(cv, planets, {
-    height: innerWidth < 760 ? 320 : 500,
+    height: innerWidth < 760 ? 360 : 560,
     labels: innerWidth >= 560,
     onHover(p, x, y){
       if(!p){ tip.hidden = true; return; }

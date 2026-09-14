@@ -219,6 +219,28 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('  the middle is night', gr.middle > .9, String(gr.middle));
   yes('  and every corner of the canvas is the page showing through',
     gr.corners.every(a => a < .02), gr.corners.map(a => a.toFixed(2)).join(' '));
+  /* The first version of this fell from .88 to nothing over the last sixth of
+     the radius, in four straight segments. It read as a grey shape pasted onto
+     the page rather than as a sky, and the reason is that a straight segment
+     ends in a kink and the eye finds a kink. Walking out from the centre, no
+     single step may jump, and the fade must be long. */
+  const walk = await p.evaluate(() => {
+    const cv = document.querySelector('#solarCv'), g = cv.getContext('2d');
+    const cy = Math.round(cv.height / 2), out = [];
+    for(let i = 0; i <= 24; i++){
+      const x = Math.min(cv.width - 1, Math.round(cv.width / 2 + (cv.width / 2 - 1) * (i / 24)));
+      out.push(g.getImageData(x, cy, 1, 1).data[3] / 255);
+    }
+    return out;
+  });
+  const steps = walk.slice(1).map((a, i) => walk[i] - a);
+  yes('  the night never drops away in a step', Math.max(...steps) < .2,
+    'biggest step ' + Math.max(...steps).toFixed(3));
+  yes('    and it never brightens on the way out', Math.min(...steps) > -.06,
+    'biggest rise ' + (-Math.min(...steps)).toFixed(3));
+  /* a third of the half-width or more spent fading, rather than a sixth */
+  const fading = steps.filter(d => d > .004).length / steps.length;
+  yes('    it spends a third of the way out fading', fading > .3, fading.toFixed(2));
   /* the whole point of reserving room for the fade: a bright planet sitting in
      the last tenth of the gradient is a lit thing on a half-lit ground with an
      unreadable label under it */
