@@ -93,7 +93,13 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     const p2 = await (await b2.newContext({viewport:{width:1200,height:900}})).newPage();
     let syntax = false;
     p2.on('pageerror', e => { if(/SyntaxError|Unexpected/.test(e.message)) syntax = true; });
-    await p2.goto('file://' + TMP + '/wrecked.html'); await p2.waitForTimeout(2200);
+    await p2.goto('file://' + TMP + '/wrecked.html');
+    /* The notice holds its tongue for five seconds before it will speak, so
+       that opening a healthy house never flashes a false alarm — see the note
+       at the top of the stylesheet. Waiting past that here is the point of the
+       wait, not a way round it: what this section is asking is whether a file
+       that cannot parse ever explains itself, and it does. */
+    await p2.waitForTimeout(6200);
     const r = await p2.evaluate(() => { const d = document.querySelector('#deadStart');
       return {shown:!!d, txt: d ? d.textContent : '', chars:(document.body.innerText||'').trim().length}; });
     yes('the script really did fail to parse', syntax);

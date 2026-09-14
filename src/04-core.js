@@ -116,10 +116,6 @@ function wipeDemoData(){
   S.settings.demoWiped = true;
 }
 
-/* The script parsed, so the last-resort notice in the HTML is wrong: take it
-   down immediately, before anything else can go wrong and want to speak. */
-try { const d = document.getElementById('deadStart'); if(d) d.remove(); } catch(e){}
-
 /* path access: "stages.#id.narrative" or "rehearsal.script" */
 function resolve(path){ const segs = path.split('.'); let o = S; for(let i=0;i<segs.length-1;i++){ o = step(o, segs[i]); if(o==null) return [null,null]; } return [o, segs[segs.length-1]]; }
 function step(o, seg){ if(seg.startsWith('#')) return Array.isArray(o) ? o.find(x=>x.id===seg.slice(1)) : undefined; return o?.[seg]; }

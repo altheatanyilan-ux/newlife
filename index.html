@@ -661,6 +661,57 @@ svg text{font-family:var(--mono);fill:var(--faint);font-size:10px}
   .rv{opacity:1;transform:none}
 }
 html.reduce-motion *,html.reduce-motion *::before,html.reduce-motion *::after{animation-duration:.001ms!important;transition-duration:.001ms!important}
+/* ============================================================
+   WHEN THE LAST RESORT IS ALLOWED TO SPEAK
+
+   The notice at the top of the body says "The house did not start." It is
+   plain HTML, sitting in the document from the beginning, because the failure
+   it exists for is the script failing to PARSE — and then no JavaScript runs
+   at all, no error handler fires, and every cleverer recovery further down is
+   dead code. Boot takes it down the moment the script has parsed.
+
+   But this file is four and a half megabytes and almost all of it is that one
+   script, so the parser reaches the body long before it reaches the end of it
+   — and paints. Every cold open showed a person the words "The house did not
+   start." for about a second before the house started. The notice was right
+   about everything except whether it had happened.
+
+   So it waits. Hidden to begin with, and revealed by an animation that does
+   nothing at all for five seconds first.
+
+   Five is measured, not picked. Slowing a machine down sixteen times — slower
+   than any phone anybody still opens files on — a healthy boot takes the
+   notice down at about 4.4 seconds, and a file with a conflict marker in it
+   reports the parse error at about 3.4. Most of that second between them is
+   V8 compiling four and a half megabytes it has already parsed, and no
+   rearranging of the source gets it back. At ordinary speed the notice is
+   gone in a fifth of a second, so five seconds is a margin of twenty-five to
+   one against ever accusing a house that is merely opening slowly.
+
+   What it costs is the other side: a file that really is broken shows nothing
+   for five seconds before it explains itself. That is the right way round. A
+   false alarm on every single healthy open is a worse thing than a wait in
+   the rare case that is actually broken — and "nothing" here is the app's own
+   paper colour, which is already painted by this stylesheet, so it reads as a
+   page opening rather than as a page that has failed.
+
+   Time is the only thing that can do this, because the one case that matters
+   is the case where no script runs. So it is CSS, it is the first rule in the
+   stylesheet, and it hides with `visibility` rather than `opacity` so that
+   while it waits it cannot swallow a click meant for the house behind it.
+
+   The reduced-motion reset in the head zeroes animation DURATION and not
+   animation DELAY, so this still waits its four seconds there and then simply
+   appears rather than fading — which is the right answer for somebody who
+   asked for less movement. It is also moot: that class is put on by the
+   script, and if the script ran, this notice is already gone.
+   ============================================================ */
+#deadStart{visibility:hidden;opacity:0;
+  animation:deadStartWait .6s ease 5s forwards}
+@keyframes deadStartWait{
+  from{visibility:visible;opacity:0}
+  to{visibility:visible;opacity:1}}
+
 
 /* ============================================================
    1. TODAY
@@ -7794,7 +7845,10 @@ html:not([data-theme="light"]) .room-wrap::after{mix-blend-mode:screen;opacity:.
 
      So this sits in the document from the start and boot removes it. Seeing it
      means the app never started, and it says the one thing that matters: the
-     writing is in the browser's storage, not in this file. -->
+     writing is in the browser's storage, not in this file.
+
+     It is hidden until four seconds have passed without boot taking it down —
+     see the note in the head for why, and for why that has to be CSS. -->
 <div id="deadStart" style="position:fixed;inset:0;z-index:99998;overflow:auto;background:#f7f4ef;
   color:#2e2a26;padding:min(9vh,72px) 22px;font:15px/1.6 ui-serif,Georgia,serif">
   <div style="max-width:640px;margin:0 auto">
@@ -7891,6 +7945,33 @@ html:not([data-theme="light"]) .room-wrap::after{mix-blend-mode:screen;opacity:.
 <div class="toast-wrap" id="toasts"></div>
 <div id="modals"></div>
 <script>
+/* ============================================================
+   THE FIRST THING THAT HAPPENS
+
+   The notice in the HTML says "The house did not start." It exists for one
+   failure only — the script failing to PARSE — because that is the failure
+   where nothing else in this file gets a vote: no handler fires, no recovery
+   runs, and the only thing left on the page is HTML that was already there.
+
+   If this line runs, the script parsed, and the notice is wrong. So it is
+   taken down here, in the first statement of the first file in the bundle,
+   rather than a couple of hundred lines into the core where it used to live.
+
+   The notice hides itself for five seconds before it will speak, so that
+   opening the house never flashes a false alarm, and that wait has to cover
+   everything between "the script parsed" and "something took the notice
+   down". Doing it first makes that stretch as short as it can be.
+
+   Honesty about what this bought: nothing measurable. On a machine slowed
+   sixteen times, a broken file reports its parse error at about 3.4 seconds
+   and a healthy one takes the notice down at about 4.4, and moving this line
+   from the middle of the core to the front of the bundle did not close that
+   second. It is not setup code — it is V8 compiling four and a half megabytes
+   after it has finished parsing them, and no arrangement of the source avoids
+   that. The line belongs here on the argument alone: the moment the script is
+   known to have parsed is the moment the notice is known to be wrong.
+   ============================================================ */
+try { const d = document.getElementById('deadStart'); if(d) d.remove(); } catch(e){}
 /* ============================================================
    ONE LOOP
 
@@ -8131,10 +8212,6 @@ function wipeDemoData(){
   if(demo) S.settings = Object.assign(fresh.settings, {theme:keep.theme||'light', sound:keep.sound, feltTime:keep.feltTime, home:keep.home||'compass', nav:keep.nav, projectView:keep.projectView, firstOpen:keep.firstOpen||today()});
   S.settings.demoWiped = true;
 }
-
-/* The script parsed, so the last-resort notice in the HTML is wrong: take it
-   down immediately, before anything else can go wrong and want to speak. */
-try { const d = document.getElementById('deadStart'); if(d) d.remove(); } catch(e){}
 
 /* path access: "stages.#id.narrative" or "rehearsal.script" */
 function resolve(path){ const segs = path.split('.'); let o = S; for(let i=0;i<segs.length-1;i++){ o = step(o, segs[i]); if(o==null) return [null,null]; } return [o, segs[segs.length-1]]; }

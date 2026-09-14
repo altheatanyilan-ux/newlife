@@ -7,7 +7,10 @@
 
      So this sits in the document from the start and boot removes it. Seeing it
      means the app never started, and it says the one thing that matters: the
-     writing is in the browser's storage, not in this file. -->
+     writing is in the browser's storage, not in this file.
+
+     It is hidden until four seconds have passed without boot taking it down —
+     see the note in the head for why, and for why that has to be CSS. -->
 <div id="deadStart" style="position:fixed;inset:0;z-index:99998;overflow:auto;background:#f7f4ef;
   color:#2e2a26;padding:min(9vh,72px) 22px;font:15px/1.6 ui-serif,Georgia,serif">
   <div style="max-width:640px;margin:0 auto">

@@ -1,3 +1,54 @@
+/* ============================================================
+   WHEN THE LAST RESORT IS ALLOWED TO SPEAK
+
+   The notice at the top of the body says "The house did not start." It is
+   plain HTML, sitting in the document from the beginning, because the failure
+   it exists for is the script failing to PARSE — and then no JavaScript runs
+   at all, no error handler fires, and every cleverer recovery further down is
+   dead code. Boot takes it down the moment the script has parsed.
+
+   But this file is four and a half megabytes and almost all of it is that one
+   script, so the parser reaches the body long before it reaches the end of it
+   — and paints. Every cold open showed a person the words "The house did not
+   start." for about a second before the house started. The notice was right
+   about everything except whether it had happened.
+
+   So it waits. Hidden to begin with, and revealed by an animation that does
+   nothing at all for five seconds first.
+
+   Five is measured, not picked. Slowing a machine down sixteen times — slower
+   than any phone anybody still opens files on — a healthy boot takes the
+   notice down at about 4.4 seconds, and a file with a conflict marker in it
+   reports the parse error at about 3.4. Most of that second between them is
+   V8 compiling four and a half megabytes it has already parsed, and no
+   rearranging of the source gets it back. At ordinary speed the notice is
+   gone in a fifth of a second, so five seconds is a margin of twenty-five to
+   one against ever accusing a house that is merely opening slowly.
+
+   What it costs is the other side: a file that really is broken shows nothing
+   for five seconds before it explains itself. That is the right way round. A
+   false alarm on every single healthy open is a worse thing than a wait in
+   the rare case that is actually broken — and "nothing" here is the app's own
+   paper colour, which is already painted by this stylesheet, so it reads as a
+   page opening rather than as a page that has failed.
+
+   Time is the only thing that can do this, because the one case that matters
+   is the case where no script runs. So it is CSS, it is the first rule in the
+   stylesheet, and it hides with `visibility` rather than `opacity` so that
+   while it waits it cannot swallow a click meant for the house behind it.
+
+   The reduced-motion reset in the head zeroes animation DURATION and not
+   animation DELAY, so this still waits its four seconds there and then simply
+   appears rather than fading — which is the right answer for somebody who
+   asked for less movement. It is also moot: that class is put on by the
+   script, and if the script ran, this notice is already gone.
+   ============================================================ */
+#deadStart{visibility:hidden;opacity:0;
+  animation:deadStartWait .6s ease 5s forwards}
+@keyframes deadStartWait{
+  from{visibility:visible;opacity:0}
+  to{visibility:visible;opacity:1}}
+
 
 /* ============================================================
    1. TODAY
