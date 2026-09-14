@@ -172,7 +172,7 @@ function houseIsEmpty(){
    make the difference between a rule and a replacement: what you do instead,
    what sets it off, and what to do the moment it hits. */
 STARTER.habits = [
-  {name:'Morning writing', icon:'✍', category:'creative', dimension:'mental', kind:'expenditure',
+  {name:'Morning writing', icon:'✍', category:'creative', dimension:'mental',
    timeOfDay:'morning', specificTime:'06:30', durationTarget:30,
    identity:'I am someone who writes before the world wakes up.',
    why:'Writing is how I digest a life. Without it, things pass through me undigested.',
@@ -186,7 +186,7 @@ STARTER.habits = [
    reward:'The first walk of the day', difficulty:3,
    progression:[{week:1,target:'10 minutes'},{week:2,target:'15 minutes'},{week:4,target:'20 minutes'},{week:8,target:'30 minutes'}],
    freq:{type:'daily',days:[],count:1}},
-  {name:'Japanese study', icon:'あ', category:'mind', dimension:'mental', kind:'expenditure',
+  {name:'Japanese study', icon:'あ', category:'mind', dimension:'mental',
    timeOfDay:'afternoon', specificTime:'14:00', durationTarget:25,
    identity:'I am someone who is becoming fluent in Japanese.',
    why:'Japanese is the bridge to the life I am building.',
@@ -197,7 +197,7 @@ STARTER.habits = [
    reward:'A proper coffee', difficulty:3,
    progression:[{week:1,target:'15 minutes of review'},{week:4,target:'25 minutes with new material'},{week:8,target:'30 minutes of immersion'}],
    freq:{type:'daily',days:[],count:1}},
-  {name:'No doom-scrolling', icon:'🔓', negative:true, category:'mind', dimension:'mental', kind:'recovery',
+  {name:'No doom-scrolling', icon:'🔓', negative:true, category:'mind', dimension:'mental',
    identity:'I am someone who chooses what enters my mind.',
    reframe:'I am no longer someone who numbs with infinite feeds. I am someone who sits with the quiet.',
    standard:'No feeds after ten at night',
@@ -209,7 +209,7 @@ STARTER.habits = [
      {id:'', type:'temporal', description:'The ten o\'clock wind-down', intensity:3, strategy:'Phone charges in another room after half past nine'},
      {id:'', type:'situational', description:'Waiting for something — a bus, food, a person', intensity:2, strategy:'Always carry a book'}],
    freq:{type:'daily',days:[],count:1}},
-  {name:'No late-night eating', icon:'🔓', negative:true, category:'health', dimension:'physical', kind:'recovery',
+  {name:'No late-night eating', icon:'🔓', negative:true, category:'health', dimension:'physical',
    identity:'I am someone who respects my body\'s rhythms.',
    reframe:'I no longer use food as padding for a feeling. I sit with what I feel.',
    standard:'Kitchen closed after nine',
@@ -299,8 +299,8 @@ function applyStarter(){
     S.ideas.unshift({id:uid(), seeded:STARTER_TAG, seedKey:key, text, kind, note:'', createdAt:stamp,
       tags: typeof parseTags === 'function' ? parseTags(text) : []}); });
 
-  /* Four habits, two of each kind, filled in far enough that the fields mean
-     something the first time they are seen. An empty habit page teaches
+  /* Four habits, two to build and two to break, filled in far enough that the
+     fields mean something the first time they are seen. An empty habit page teaches
      nothing about what a habit here is for. */
   STARTER.habits.forEach((h, i) => { const key = 'hab-' + i; if(has(S.habits, key)) return;
     const rec = Object.assign(habitDefaults(), h, {id:uid(), seeded:STARTER_TAG, seedKey:key,

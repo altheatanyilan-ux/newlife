@@ -30,7 +30,7 @@ const HABIT_KINDS = [
 ];
 function habitDefaults(){
   return {id:uid(), name:'', freq:{type:'daily',days:[],count:3}, timeOfDay:'morning',
-    dimension:'physical', kind:'expenditure', links:{values:[],skills:[]},
+    dimension:'physical', links:{values:[],skills:[]},
     min:'', ideal:'', prompt:'', negative:false, archived:false, stackAfter:null,
     relational:'', standard:'', trigger:'', instead:'', cost:'', order:S.habits.length};
 }
@@ -56,12 +56,7 @@ function openHabitModal(id){
     </div>
     <div class="row" id="hDays">${DOW.map((d,i)=>`<button class="btn sm ${h.freq.days.includes(i)?'primary':''}" data-day="${i}">${d.slice(0,3)}</button>`).join('')}</div>
     <div class="row" id="hCount"><span class="mono">how many times</span><input class="inp" type="number" min="1" max="31" id="hCountN" value="${h.freq.count||3}" style="width:80px"></div>
-    <div class="grid c2" style="gap:10px">
-      <div class="field"><label>Energy dimension</label><select class="sel" id="hDim">${DIMS.map(d=>`<option value="${d.id}" ${h.dimension===d.id?'selected':''}>${d.name}</option>`).join('')}</select></div>
-      <div class="field"><label>Kind</label><select class="sel" id="hKind">
-        <option value="expenditure" ${h.kind==='expenditure'?'selected':''}>expenditure (stress / growth)</option>
-        <option value="recovery" ${h.kind==='recovery'?'selected':''}>recovery (renewal)</option></select></div>
-    </div>
+    <div class="field"><label>Energy dimension</label><select class="sel" id="hDim">${DIMS.map(d=>`<option value="${d.id}" ${h.dimension===d.id?'selected':''}>${d.name}</option>`).join('')}</select></div>
     <div class="grid c2" style="gap:10px">
       <div class="field"><label>Minimum version</label><input class="inp" id="hMin" value="${esc(h.min)}" placeholder="1 pushup"></div>
       <div class="field"><label>Ideal version</label><input class="inp" id="hIdeal" value="${esc(h.ideal)}" placeholder="30-minute workout"></div>
@@ -134,7 +129,7 @@ function openHabitModal(id){
     if(neg){ h.standard = g('#hStandard') ?? h.standard; h.trigger = g('#hTrigger') ?? h.trigger;
       h.instead = g('#hInstead') ?? h.instead; h.cost = g('#hCost') ?? h.cost; }
     else { h.min = g('#hMin') ?? h.min; h.ideal = g('#hIdeal') ?? h.ideal;
-      h.timeOfDay = g('#hTod') ?? h.timeOfDay; h.kind = g('#hKind') ?? h.kind;
+      h.timeOfDay = g('#hTod') ?? h.timeOfDay;
       h.stackAfter = (g('#hStack') || null); h.relational = g('#hRelational') ?? h.relational;
       const ft = g('#hFreq'); if(ft) h.freq = {type: ft,
         days: [...m.querySelectorAll('[data-day].primary')].map(b => +b.dataset.day),

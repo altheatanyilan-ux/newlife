@@ -76,7 +76,8 @@ function habitDue(h, day){ const dow = parseDay(day).getDay(); if(h.negative||h.
 function habitDone(h, day){ return S.habitLog[day]?.[h.id]; }
 function habitStreak(h){ let cur=0, d=today(); if(!habitDone(h,d)) d = addDays(d,-1); while(true){ if(habitDone(h,d)) cur++; else if(habitDue(h,d) || h.freq.type!=='days') break; d = addDays(d,-1); if(cur>400) break; } let best=cur; let run=0; lastDays(365).forEach(x => { if(habitDone(h,x)){ run++; best=Math.max(best,run);} else if(habitDue(h,x)) run=0; }); return {cur,best}; }
 function habitWeekRates(h, weeks=4){ const out=[]; for(let w=weeks-1; w>=0; w--){ const days = Array.from({length:7},(_,i)=>addDays(today(), -(w*7+ (6-i)))); const due = h.freq.type==='perWeek' ? h.freq.count : h.freq.type==='perMonth' ? Math.max(1,Math.round(h.freq.count/4)) : days.filter(d=>habitDue(h,d)).length; const done = days.filter(d=>habitDone(h,d)).length; out.push({done, due:Math.max(due,1)}); } return out; }
-function energyBalance(week=true){ const days = week ? lastDays(7) : [today()]; const out = {}; DIMS.forEach(d => out[d.id] = {exp:0, rec:0}); days.forEach(day => S.habits.forEach(h => { if(habitDone(h,day) && !h.negative) out[h.dimension][h.kind==='recovery'?'rec':'exp']++; })); return out; }
+/* how many habits were kept in each energy dimension over the window */
+function dimensionLoad(week=true){ const days = week ? lastDays(7) : [today()]; const out = {}; DIMS.forEach(d => out[d.id] = 0); days.forEach(day => S.habits.forEach(h => { if(habitDone(h,day) && !h.negative && out[h.dimension] != null) out[h.dimension]++; })); return out; }
 /* one honest number for a day: the four energy dimensions and the emotional
    set-point, each normalised, averaged over whatever was actually logged. */
 function dayState(day){
@@ -107,8 +108,8 @@ function signals(){
   const pr = S.projects.filter(p=>p.status==='active').map(p=>({p, last:projectNods(p)[0]?.date})).sort((a,b)=>daysSince(b.last)-daysSince(a.last))[0];
   if(pr) out.push({k:'Coldest project', v:pr.p.name, d:`last nod ${relDays(daysSince(pr.last))}`, go:'#/projects/'+pr.p.id});
   const y = S.checkins[addDays(today(),-1)]; out.push({k:"Yesterday's intention", v:y?.intention || '—', d:y?.intention ? 'did you give it attention?' : 'no intention was set yesterday', go:'#/today'});
-  const bal = energyBalance(true); const imb = DIMS.map(d=>({d, diff:bal[d.id].exp - bal[d.id].rec, ...bal[d.id]})).sort((a,b)=>Math.abs(b.diff)-Math.abs(a.diff))[0];
-  if(imb) out.push({k:'Oscillation check', v:`${imb.d.name}: ${imb.diff>0?'overtraining':imb.diff<0?'undertraining':'balanced'}`, d:`${imb.exp} expenditure · ${imb.rec} recovery this week`, go:'#/rituals'});
+  const load = dimensionLoad(true); const thin = DIMS.map(d=>({d, n:load[d.id]})).sort((a,b)=>a.n-b.n)[0];
+  if(thin) out.push({k:'Thinnest dimension', v:thin.d.name, d:thin.n ? `${thin.n} kept this week — the fewest of the four` : 'nothing kept here this week', go:'#/rituals'});
   return out;
 }
 function onThisDay(){ const d = parseDay(today()); const md_ = x => { const dd = parseDay(x); return {m:dd.getMonth(), d:dd.getDate(), y:dd.getFullYear()}; }; return S.entries.filter(e => /^\d{4}-\d{2}-\d{2}/.test(e.occurredAt||'') && (()=>{ const o = md_(e.occurredAt.slice(0,10)); if(o.y >= d.getFullYear()) return false; const a = new Date(d.getFullYear(), o.m, o.d); return Math.abs((a - d)/DAY) <= 3; })()).sort((a,b)=>occurredSort(b)-occurredSort(a)); }

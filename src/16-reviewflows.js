@@ -128,10 +128,10 @@ function flowWeekly(opts = {}){
     {title:'A congruence snapshot.', hint:'Sliders pre-filled with last week — move only what actually moved.',
      body: () => `<div class="row"><button class="btn sm primary" id="fwSnap">log a snapshot</button></div>`,
      bind: b => b.querySelector('#fwSnap').onclick = () => openSnapshotModal(() => {})},
-    {title:'Which dimension did you overtrain?', hint:'And which one went unpaid this week?',
-     body: () => { const bal = energyBalance(true);
-       return `<div class="stack" style="gap:6px">${DIMS.map(d => { const b2 = bal[d.id] || {exp:0,rec:0}; const t = b2.exp + b2.rec;
-         return `<div class="row between"><span style="color:${d.c};min-width:6em">${d.name}</span><span class="bar" style="flex:1;--c:${d.c}"><i style="width:${Math.min(100,t*12)}%"></i></span><span class="mono">${t} logged</span></div>`; }).join('')}</div>`; }},
+    {title:'Which dimension got the week?', hint:'And which one went unpaid?',
+     body: () => { const load = dimensionLoad(true);
+       return `<div class="stack" style="gap:6px">${DIMS.map(d => { const t = load[d.id] || 0;
+         return `<div class="row between"><span style="color:${d.c};min-width:6em">${d.name}</span><span class="bar" style="flex:1;--c:${d.c}"><i style="width:${Math.min(100,t*12)}%"></i></span><span class="mono">${t} kept</span></div>`; }).join('')}</div>`; }},
     {title:'The week against the lists you made.', hint:'Seven days of intentions, against seven days of evidence.',
      body: () => tasksReviewHTML(days[0], days[6])},
     {title:'Anything else from this week?', hint:'Anything that happened and never got written down. Add it here and the review stays where it is.',

@@ -806,17 +806,26 @@ function bindHabitRings(box){
     ['pointerup','pointerleave','pointercancel'].forEach(ev => b.addEventListener(ev, () => { if(timer){ clearTimeout(timer); timer = null; } }));
   });
 }
-/* expenditure against recovery — a flat line in either direction is the problem */
+/* Where the habits are landing across the four energy dimensions. This used
+   to be a single expenditure-against-recovery bar, drawn from a field every
+   habit carried saying which of the two it was. That field is gone: a run is
+   expenditure on Tuesday and recovery on Sunday, and asking somebody to
+   settle it once at the moment they create the habit produced an answer the
+   whole panel then reasoned from. Which dimension a habit belongs to is a
+   question with an answer, so that is what is drawn. */
 function habitOscillationHTML(days = 14){
-  const ds = lastDays(days); const tally = {exp:0, rec:0};
-  S.habits.filter(h => !h.archived && !h.negative).forEach(h => ds.forEach(d => { if(habitDone(h,d)) tally[h.kind === 'recovery' ? 'rec' : 'exp']++; }));
-  const total = tally.exp + tally.rec; if(!total) return '';
-  const pct = Math.round(tally.exp/total*100);
-  const verdict = pct > 72 ? 'Almost all output. Nothing here is putting anything back.'
-    : pct < 28 ? 'Almost all recovery. Rest is the point — until nothing is being spent.'
-    : 'Spending and renewing, roughly in turn. That is the shape you want.';
-  return `<div class="osc"><div class="row between"><span class="sc" style="margin:0">Oscillation · ${days} days</span><span class="mono">${pct}% expenditure</span></div>
-    <div class="osc-bar"><i class="exp" style="width:${pct}%"></i><i class="rec" style="width:${100-pct}%"></i></div>
+  const ds = lastDays(days);
+  const tally = {}; DIMS.forEach(d => tally[d.id] = 0);
+  S.habits.filter(h => !h.archived && !h.negative)
+    .forEach(h => ds.forEach(d => { if(habitDone(h,d) && tally[h.dimension] != null) tally[h.dimension]++; }));
+  const total = DIMS.reduce((n, d) => n + tally[d.id], 0); if(!total) return '';
+  const thin = DIMS.filter(d => !tally[d.id]);
+  const verdict = thin.length === 3 ? 'All of it in one dimension. The other three are not being paid at all.'
+    : thin.length ? `Nothing kept in ${thin.map(d => d.name.toLowerCase()).join(', ')}.`
+    : 'Something kept in all four. That is the shape you want.';
+  return `<div class="osc"><div class="row between"><span class="sc" style="margin:0">Where it landed · ${days} days</span><span class="mono">${total} kept</span></div>
+    <div class="osc-bar">${DIMS.map(d => tally[d.id]
+      ? `<i style="width:${tally[d.id]/total*100}%;background:${d.c}" title="${esc(d.name)} · ${tally[d.id]}"></i>` : '').join('')}</div>
     <div class="faint" style="font-size:.78rem;margin-top:4px">${verdict}</div></div>`;
 }
 function habit90HTML(h){
@@ -864,7 +873,7 @@ function renderHabitsPanel(box, focus){
       <div class="stack" style="gap:4px;margin-top:8px">${list.map((h,i) => { const st = habitStreak(h); const c = (DIMS.find(x=>x.id===h.dimension)||{}).c||'var(--page-accent)';
         return `<details class="habit-detail" style="--c:${c}"><summary><span class="hs-n">${h.icon||'○'} ${esc(h.name)}</span><span class="bar" style="flex:1;--c:${c}"><i style="width:${Math.round(rates[i]*100)}%"></i></span><span class="mono">${Math.round(rates[i]*100)}%</span></summary>
           <div class="body">
-            <div class="row between mono" style="margin-bottom:6px"><span>${st.cur?`${st.cur}-day streak`:'not running'}${st.best?` · best ${st.best}`:''}</span><span>${esc(habitFreqLabel(h))} · ${esc(h.timeOfDay)} · ${esc(h.kind)}</span></div>
+            <div class="row between mono" style="margin-bottom:6px"><span>${st.cur?`${st.cur}-day streak`:'not running'}${st.best?` · best ${st.best}`:''}</span><span>${esc(habitFreqLabel(h))} · ${esc(h.timeOfDay)}</span></div>
             <div class="mono" style="font-size:.6rem;color:var(--faint)">last 90 days</div>${habit90HTML(h)}
             <div class="mono" style="font-size:.6rem;color:var(--faint);margin-top:8px">last 8 weeks</div>${habit8wHTML(h)}
             ${h.min||h.ideal?`<div class="faint" style="font-size:.78rem;margin-top:8px">${h.min?`minimum: ${esc(h.min)}`:''}${h.min&&h.ideal?' · ':''}${h.ideal?`ideal: ${esc(h.ideal)}`:''}</div>`:''}

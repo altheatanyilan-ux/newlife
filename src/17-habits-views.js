@@ -43,7 +43,8 @@ function habSummaryHTML(){
   const due = habDueOn(T), kept = due.filter(h => habKept(h, T));
   const b = all.filter(h => !habIsBreaking(h)).length, k = all.length - b;
   const best = all.map(h => ({h, s: habStreak(h)})).sort((a, c) => c.s.cur - a.s.cur)[0];
-  const bal = habEnergyBalance(T), over = habOvertrained(T);
+  const bal = habEnergyBalance(T);
+  const unpaid = DIMS.filter(x => bal[x.id].due && !bal[x.id].done).map(x => x.name.toLowerCase());
   const pct = due.length ? kept.length / due.length : 0;
   const R = 15, C = 2 * Math.PI * R;
   return `<div class="hb-strip card">
@@ -60,9 +61,9 @@ function habSummaryHTML(){
       <div class="mono faint">${best?.s.cur ? esc(best.h.name) : 'nothing running yet'}</div></div>
     <div class="hb-s1 hb-bal"><div class="k">energy today</div>
       <div class="hb-dots">${DIMS.map(x => { const v = bal[x.id];
-        const state = !v.exp && !v.rec ? 'none' : (v.exp && !v.rec) ? 'over' : 'ok';
-        return `<span class="hb-dot ${state}" style="--c:${x.c}" title="${esc(x.name)} — ${v.exp} spending, ${v.rec} renewing">${x.name[0]}</span>`; }).join('')}</div>
-      ${over.length ? `<div class="hb-warn">${esc(over.join(' and '))} ${over.length === 1 ? 'is' : 'are'} all expenditure today. Where is the recovery?</div>` : ''}</div>
+        const state = !v.due ? 'none' : v.done === v.due ? 'ok' : v.done ? 'part' : 'over';
+        return `<span class="hb-dot ${state}" style="--c:${x.c}" title="${esc(x.name)} — ${v.done} of ${v.due} kept">${x.name[0]}</span>`; }).join('')}</div>
+      ${unpaid.length ? `<div class="hb-warn">Nothing kept yet in ${esc(unpaid.join(' or '))}.</div>` : ''}</div>
   </div>`;
 }
 
@@ -111,7 +112,7 @@ function habCardHTML(h){
       return `<i class="${cls}" title="${esc(fmtDate(d, 'short'))}${s ? ' — ' + HAB_SESSION_STATUS[s][1] : ''}"></i>`; }).join('')}</div>
     <div class="hb-meta mono">
       <span>${!due ? 'not due today' : kept ? '✅ done today' : 'due today'}</span>
-      <span class="hb-dim">${esc(DIMS.find(d => d.id === h.dimension)?.name || '')} · ${h.kind === 'recovery' ? 'recovery' : 'expenditure'}</span>
+      <span class="hb-dim">${esc(DIMS.find(d => d.id === h.dimension)?.name || '')}</span>
     </div>
     ${(h.links.values || []).length ? `<div class="hb-vals">${(h.links.values || []).map(id =>
       byId(S.values, id)).filter(Boolean).map(v => `<span class="hb-val" style="--c:${v.color}">${esc(v.name)}</span>`).join('')}</div>` : ''}
@@ -191,18 +192,16 @@ function habAnalyticsHTML(){
           <span class="mono faint">${st.cur} / ${st.best}</span></div>`; }).join('')}</div>
     </section>
 
-    <section class="hb-asec"><span class="sc">The four dimensions, spent and renewed</span>
+    <section class="hb-asec"><span class="sc">The four dimensions, and what got kept</span>
       <div class="hb-quad">${DIMS.map(x => { const v = bal[x.id];
-        const over = v.exp >= 2 && v.rec === 0;
-        const tot = Math.max(1, v.exp + v.rec);
-        return `<div class="hb-q${over ? ' over' : ''}" style="--c:${x.c}">
+        const none = v.due === 0;
+        return `<div class="hb-q${none ? ' empty-dim' : ''}" style="--c:${x.c}">
           <div class="hb-qname">${esc(x.name)}</div>
           <div class="hb-qbars">
-            <div class="hb-qb"><span class="k">spending</span><div class="bar"><i style="width:${v.exp / tot * 100}%"></i></div><span class="mono">${v.exp}</span></div>
-            <div class="hb-qb rec"><span class="k">renewing</span><div class="bar"><i style="width:${v.rec / tot * 100}%"></i></div><span class="mono">${v.rec}</span></div>
+            <div class="hb-qb"><span class="k">kept</span><div class="bar"><i style="width:${v.due ? v.done / v.due * 100 : 0}%"></i></div><span class="mono">${v.done} / ${v.due}</span></div>
           </div>
-          ${over ? '<div class="hb-warn">all spending, no renewal</div>' : ''}</div>`; }).join('')}</div>
-      <div class="hb-quote">“${esc(HAB_QUOTES.oscillate[1])}” <cite>${esc(HAB_QUOTES.oscillate[0])}</cite></div>
+          ${none ? '<div class="hb-warn">nothing due here</div>' : ''}</div>`; }).join('')}</div>
+      <div class="hb-quote">“${esc(HAB_QUOTES.ritual[1])}” <cite>${esc(HAB_QUOTES.ritual[0])}</cite></div>
     </section>
 
     <section class="hb-asec"><span class="sc">Milestones reached</span>

@@ -42,7 +42,6 @@ const HAB_QUOTES = {
   energy:     ['Loehr & Schwartz', 'We build emotional, mental and spiritual capacity in precisely the same way that we build physical capacity.'],
   replace:    ['Knight Dunlap, in Psycho-Cybernetics', 'The best way to break a habit is to form a clear mental image of the desired end result, and to practice without effort toward reaching that goal.'],
   ritual:     ['Loehr & Schwartz', 'Positive energy rituals are the key to full engagement and sustained high performance.'],
-  oscillate:  ['Loehr & Schwartz', 'We must balance energy expenditure with intermittent renewal in all dimensions.'],
   slip:       ['Maltz, adapted', 'Negative feedback is not failure — it is information. The servo-mechanism corrects course.'],
   m21:        ['Maltz', 'It usually requires a minimum of about 21 days to effect any perceptible change in a mental image.'],
   m60:        ['Loehr & Schwartz', 'The thirty-to-sixty-day acquisition period requires precision and specificity.'],
@@ -70,7 +69,12 @@ function habDefaults(h){
   h.reward     = h.reward     || '';
   h.accountability = ['self','partner','public'].includes(h.accountability) ? h.accountability : 'self';
   h.difficulty = clamp(+h.difficulty || 3, 1, 5);
-  h.kind       = h.kind === 'recovery' ? 'recovery' : 'expenditure';
+  /* Habits used to carry a second axis — expenditure (stress, and therefore
+     growth) against recovery (renewal) — and the page reasoned from it. It is
+     gone, and so is the stored value: a habit written by an older version is
+     cleaned the next time it is looked at rather than carrying a field nothing
+     reads. */
+  delete h.kind;
   h.milestones = Array.isArray(h.milestones) && h.milestones.length
     ? h.milestones : HAB_MILESTONES.map(m => ({...m, reached:false, reachedAt:null}));
   h.milestones.forEach((m, i) => { const d = HAB_MILESTONES[i];
@@ -197,25 +201,24 @@ function habMilestonesReached(){
   return out.sort((a, b) => a.m.reachedAt < b.m.reachedAt ? 1 : -1);
 }
 
-/* ---------- the four dimensions, spent and renewed ----------
-   Loehr's whole argument in one number per dimension: a dimension that is all
-   expenditure and no recovery is being overtrained, and the system should say
-   so rather than congratulate you on the streak. */
+/* ---------- the four dimensions, and how each one is going ----------
+   Habits used to carry a second axis: every one of them was either
+   expenditure (stress, and therefore growth) or recovery (renewal), and the
+   page argued with you about the balance between them. It asked a question at
+   the point of creating a habit that almost nobody could answer honestly —
+   a run is expenditure on Tuesday and recovery on Sunday, and the same is
+   true of most of the good ones — and then drew conclusions from the answer.
+   So the axis is gone and what is left is the honest half: which dimension a
+   habit belongs to, and how much of what was due there today was kept. */
 function habEnergyBalance(day = today()){
   const out = {};
-  DIMS.forEach(x => out[x.id] = {exp:0, rec:0, expDone:0, recDone:0, name:x.name, c:x.c});
+  DIMS.forEach(x => out[x.id] = {due:0, done:0, name:x.name, c:x.c});
   habList().forEach(h => {
     const slot = out[h.dimension]; if(!slot) return;
-    const k = h.kind === 'recovery' ? 'rec' : 'exp';
     if(!habDue(h, day)) return;
-    slot[k]++; if(habKept(h, day)) slot[k + 'Done']++;
+    slot.due++; if(habKept(h, day)) slot.done++;
   });
   return out;
-}
-function habOvertrained(day = today()){
-  return Object.entries(habEnergyBalance(day))
-    .filter(([, v]) => v.exp >= 2 && v.rec === 0)
-    .map(([id, v]) => v.name);
 }
 
 /* ---------- reading the list ---------- */

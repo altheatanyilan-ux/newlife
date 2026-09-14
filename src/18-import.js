@@ -281,7 +281,7 @@ const IMP_COMMIT = {
   habit(it){
     S.habits.push({id: uid(), name: it.title, freq: {type:'daily', days:[], count:3},
       timeOfDay: ['morning','afternoon','evening','anytime'].includes(impF(it,'timeOfDay')) ? impF(it,'timeOfDay') : 'morning',
-      dimension: 'physical', kind: 'expenditure', links: {values:[], visions:[], skills:[]},
+      dimension: 'physical', links: {values:[], visions:[], skills:[]},
       min: impF(it,'min'), ideal: '', prompt: '', negative: false, archived: false,
       stackAfter: null, relational: '', order: S.habits.length});
     return 'Rhythm';

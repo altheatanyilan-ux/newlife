@@ -119,7 +119,7 @@ function habPanelHTML(h){
       <div style="min-width:0;flex:1">
         <input class="inp pd-title" id="hpName" value="${esc(h.name)}">
         <div class="mono hb-psub">${br ? '🔓 breaking' : '🌱 building'} · ${esc(h.category)} ·
-          ${esc(DIMS.find(d => d.id === h.dimension)?.name || '')} · ${h.kind === 'recovery' ? 'recovery' : 'expenditure'}</div>
+          ${esc(DIMS.find(d => d.id === h.dimension)?.name || '')}</div>
       </div>
       <div class="hb-pstreak">${br ? '🛡' : '🔥'} ${st.cur}</div>
     </div>
