@@ -19,11 +19,23 @@ function planSetSel(kind, id){
      matrix answers, and carrying over whichever view happened to be open last
      answered it by accident. A list that has deliberately been given a view of
      its own still gets it. */
+  /* Except the three that are a date. Today, Tomorrow and the next seven days
+     are not asking "what should I touch first" — the answer to that is the
+     order they are already in. They are asking "what is there", and the matrix
+     sorts a day into four boxes when what you wanted was the day. */
   const l = kind === 'list' ? planList(id) : null;
-  S._planView = l?.defaultView || PLAN_VIEW_DEFAULT;
+  S._planView = (kind === 'smart' && PLAN_SPANS.includes(id)) ? 'list'
+    : (l?.defaultView || PLAN_VIEW_DEFAULT);
   saveNow(); rerender();
 }
 function planView(){
+  /* Arriving at the page with a date already chosen has to agree with
+     pressing that date: both are "show me the day". _planView is only set by
+     a deliberate switch or a fresh selection this session, so its absence is
+     exactly the case where the saved preference would otherwise decide, and
+     the saved preference is a memory of some other list. */
+  const sel = typeof planSel === 'function' ? planSel() : null;
+  if(!S._planView && sel && sel.kind === 'smart' && PLAN_SPANS.includes(sel.id)) return 'list';
   const v = S._planView || planState().prefs.view || PLAN_VIEW_DEFAULT;
   /* Board and Timeline are gone. A list that still remembers one of them —
      or a saved preference from before — must not leave the workspace blank. */
@@ -43,12 +55,12 @@ function planSidebarHTML(){
   return `<aside class="pl-side${p.prefs.sidebarCollapsed ? ' collapsed' : ''}" id="plSide">
     <button class="pl-collapse" id="plCollapse" title="${p.prefs.sidebarCollapsed ? 'show the sidebar' : 'collapse the sidebar'}">${p.prefs.sidebarCollapsed ? '›' : '‹'}</button>
     <div class="pl-scroll">
-      <input class="inp mono pl-search" id="plSearch" placeholder="search tasks…" value="${esc(S._planQ || '')}">
       <!-- "All" is gone: a list of every task in the house is the one view
            that never answers a question, and it was standing between the
-           search and the lists. The lists come up to meet the search instead,
-           and the filter goes to the foot with Completed — both are things
-           you reach for after you have decided what you are looking at. -->
+           search and the lists. The search has gone too, up onto the line the
+           new-task button is on, where the two things you do before you have
+           chosen a list sit together — so the lists now start at the top of
+           this column, level with the content beside them. -->
       <div class="pl-group">
         <!-- one dated row, with the span chosen on it: the same question over
              three lengths of time, not three separate places -->
@@ -389,6 +401,16 @@ function planHeaderHTML(sel){
   if(f.search) chips.push(`<span class="pf-chip on" data-pfclear="search">“${esc(f.search)}”<i>×</i></span>`);
   const special = sel.kind === 'smart' && sel.id === 'stats';
   return `<div class="pl-header">
+    <!-- The new-task button is placed here rather than above the page: the
+         slot is a promise mountContextAdd knows how to keep. Searching and
+         adding are the two things you do before you have decided what you are
+         looking at, so they share a line, and the sidebar starts level with
+         it rather than a search box lower down. -->
+    <div class="pl-top">
+      <span class="pl-add-slot" data-ctx-slot></span>
+      <input class="inp mono pl-search" id="plSearch" placeholder="search tasks…"
+        value="${esc(S._planQ || '')}">
+    </div>
     <div class="row between" style="align-items:baseline;gap:12px">
       <h2 class="pl-title">${esc(planSelectionTitle(sel))}</h2>
       ${special ? '' : `<div class="pl-viewsw">${PLAN_VIEWS.map((x, i) => `<button class="${v === x.id ? 'on' : ''}" data-plview="${x.id}" title="${esc(x.name)} view (${i + 1})">${x.icon}</button>`).join('')}</div>`}

@@ -3337,7 +3337,9 @@ select.sm-active{border-color:var(--page-accent);
 .plan-shell{display:grid;grid-template-columns:264px minmax(0,1fr);gap:22px;align-items:start;
   transition:grid-template-columns .28s var(--ease)}
 .plan-shell.shut{grid-template-columns:44px minmax(0,1fr)}
-.pl-side{position:sticky;top:14px;display:flex;flex-direction:column;gap:6px;max-height:calc(100vh - 40px);min-width:0}
+.pl-side{position:sticky;top:14px;display:flex;flex-direction:column;gap:6px;max-height:calc(100vh - 40px);min-width:0;
+  padding-top:0}
+
 .pl-side.collapsed{width:44px;overflow:hidden}
 /* With the names gone there is nothing to align to, so the icons take the
    middle — and a bare 8px pip is not a control anybody can aim at or read, so
@@ -3354,10 +3356,15 @@ select.sm-active{border-color:var(--page-accent);
 .pl-side.collapsed .pl-empty{display:none}
 .pl-side.collapsed .pl-name,.pl-side.collapsed .pl-n,.pl-side.collapsed .pl-head,
 .pl-side.collapsed .pl-search,.pl-side.collapsed .pl-mini-row{display:none}
-.pl-collapse{align-self:flex-end;background:none;border:none;color:var(--faint);cursor:pointer;font-size:1rem;padding:2px 6px}
+/* Out of the flow, not out of the way. It used to sit above the lists and
+   push the whole column a button-height down, which is precisely the gap that
+   made the two sides of this page look out of step — and it is a chevron,
+   not a heading; nothing should be measured from it. */
+.pl-collapse{position:absolute;top:-2px;right:0;z-index:2;
+  background:none;border:none;color:var(--faint);cursor:pointer;font-size:1rem;padding:2px 6px}
 .pl-collapse:hover{color:var(--text)}
 .pl-scroll{overflow-y:auto;flex:1;min-height:0;scrollbar-width:thin;padding-right:4px}
-.pl-search{font-size:.78rem;padding:7px 10px;margin-bottom:10px}
+.pl-search{font-size:.78rem;padding:7px 10px}
 .pl-group{display:flex;flex-direction:column;gap:1px;margin-bottom:6px}
 .pl-item{display:flex;align-items:center;gap:9px;width:100%;padding:6px 9px;border:none;border-radius:8px;
   background:transparent;color:var(--muted);font-size:.84rem;text-align:left;cursor:pointer;
@@ -7311,6 +7318,25 @@ html[data-theme="light"] .wk-sleep{
   .wk-axis{margin-left:44px}
   .wk-row{grid-template-columns:40px 1fr;gap:4px}
   .wk-awake{grid-column:2;text-align:left;min-width:0}
+}
+
+/* ---------- the planning header, and the column beside it ----------
+   Searching and adding are the two things you do before you have decided what
+   you are looking at, so they share the top line. The sidebar used to carry
+   the search, which pushed the lists a box-height below the content they sit
+   beside; with it gone they start level, which is the only reason the two
+   columns ever looked out of step. */
+.pl-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 10px}
+.pl-add-slot{display:flex;flex:0 0 auto}
+.pl-top .ctx-add.inline{margin:0;padding:0;border:0;background:none}
+.pl-top .pl-search{flex:1 1 220px;min-width:160px;max-width:420px;
+  padding:7px 11px;font-size:.82rem}
+/* both columns start at the same line */
+.plan-shell{align-items:start}
+.pl-side>.pl-scroll{padding-top:0}
+@media (max-width:760px){
+  .pl-top{margin-bottom:8px}
+  .pl-top .pl-search{flex:1 1 100%;max-width:none}
 }
 </style>
 </head>
