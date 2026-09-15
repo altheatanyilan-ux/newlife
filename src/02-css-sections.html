@@ -7252,5 +7252,65 @@ html:not([data-theme="light"]) .room-wrap::after{mix-blend-mode:screen;opacity:.
   .day-gist{grid-column:1/-1}
   .day-marks{grid-column:1/-1}
 }
+
+/* ============================================================
+   THE WEEK AS BARS
+
+   One row a day, midnight to midnight, dark where you were asleep. The waking
+   day is the gap between the two dark ends — which is the whole reason for
+   the shape, so nothing else may be allowed to fill that gap by accident.
+   What sits in it is only what was logged. */
+.wk-bars{margin-top:14px}
+.wk-axis{position:relative;height:16px;margin:14px 0 4px 64px}
+.wk-axis span{position:absolute;transform:translateX(-50%);font-size:.62rem;
+  opacity:.55;white-space:nowrap}
+.wk-axis span:first-child{transform:none}
+.wk-axis span:last-child{transform:translateX(-100%)}
+.wk-rows{display:flex;flex-direction:column;gap:4px}
+.wk-row{display:grid;grid-template-columns:58px 1fr auto;align-items:center;
+  gap:6px;cursor:pointer;border-radius:6px;padding:1px 2px}
+.wk-row:hover{background:color-mix(in srgb,var(--accent) 6%,transparent)}
+.wk-day{font-size:.66rem;opacity:.7;text-align:right;white-space:nowrap}
+.wk-awake{font-size:.64rem;opacity:.6;white-space:nowrap;min-width:74px;text-align:right}
+/* the bar itself is the ground: what shows through is time that is yours */
+.wk-bar{position:relative;height:28px;border-radius:5px;overflow:hidden;
+  background:var(--card,#efe7da);border:1px solid var(--line)}
+.wk-row.is-today .wk-bar{border-color:color-mix(in srgb,var(--accent) 55%,var(--line))}
+.wk-row.is-today .wk-day{opacity:1;font-weight:600}
+/* Asleep. A gradient rather than a flat block, deepest in the middle: falling
+   asleep and waking are not edges, and a hard edge says the night began at
+   exactly the minute somebody typed in. */
+.wk-sleep{position:absolute;top:0;bottom:0;border:0;
+  background:linear-gradient(90deg,#4a4a66,#3a3a5a 45%,#3a3a5a 55%,#4a4a66)}
+.wk-morning{border-radius:0 3px 3px 0}
+.wk-evening{border-radius:3px 0 0 3px}
+html[data-theme="light"] .wk-sleep{
+  background:linear-gradient(90deg,#5b5b7a,#43435f 45%,#43435f 55%,#5b5b7a)}
+/* what was logged inside the waking part */
+.wk-act{position:absolute;top:3px;bottom:3px;border-radius:3px;
+  background:var(--c,#9a8f84);opacity:.85;display:flex;align-items:center;
+  justify-content:center;overflow:hidden}
+.wk-act .wk-ic{font-size:.7rem;line-height:1;filter:saturate(.9)}
+.wk-act:hover{opacity:1}
+/* a block logged across the night is a block logged wrong, and it is told so
+   rather than silently making the free figure smaller */
+.wk-act.is-over{outline:1px dashed var(--danger,#a8523f);opacity:.6}
+
+.wk-readout{margin-top:10px;min-height:1.2em;font-size:.7rem}
+.wk-acct{display:flex;flex-wrap:wrap;gap:3px 12px;align-items:baseline;opacity:.82}
+.wk-acct b{opacity:1}
+.wk-acct .wk-free{color:var(--accent);opacity:.95}
+
+.wk-add{gap:6px;flex-wrap:wrap;margin:12px 0 0;align-items:center}
+.wk-add .inp.sm{padding:4px 8px;font-size:.78rem;width:auto}
+.wk-week{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:12px;
+  padding-top:10px;border-top:1px dashed var(--line);font-size:.7rem;opacity:.78}
+.wk-week b{opacity:1}
+
+@media (max-width:620px){
+  .wk-axis{margin-left:44px}
+  .wk-row{grid-template-columns:40px 1fr;gap:4px}
+  .wk-awake{grid-column:2;text-align:left;min-width:0}
+}
 </style>
 </head>

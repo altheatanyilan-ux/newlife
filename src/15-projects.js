@@ -10,10 +10,10 @@ const KANBAN = [['future','Future'],['idea','Not Started'],['active','In Progres
    start, no tasks and no dates would be an empty card and a bar of nothing.
    The inventory is where everything is, which is the point of an inventory. */
 const projectIsFuture = p => p.status === 'future';
-function migrateProjects(){ (S.projects || []).forEach(p => {
-  if(!PSTATUS[p.status]) p.status = 'idea';
-  if(!Array.isArray(p.tags)) p.tags = [];
-}); }
+/* There was a second migrateProjects here, and because this file sorts after
+   06-db.js its declaration won — so the thorough migration over in the db
+   layer, the one boot actually calls, had never run once. This did a fraction
+   of its work. Everything it did, the real one does. */
 const PRIORITY = {P1:['P1','#c25b5b'],P2:['P2','#d4a44c'],P3:['P3','#7f916a'],P4:['P4','#8a8d8f']};
 const prBadge = p => `<span class="pri ${p.priority||'P3'}" title="priority">${p.priority||'P3'}</span>`;
 const stBadge = p => { const st = PSTATUS[p.status]||PSTATUS.idea; return `<span class="pstatus" style="--c:${st[2]}">${st[0]} ${st[1]}</span>`; };

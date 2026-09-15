@@ -272,7 +272,10 @@ function migrateProjects(){
   S.projects.forEach(p => {
     if(p.description === undefined) p.description = p.desc || ''; delete p.desc;
     if(p.status === 'shipped') p.status = 'completed';
-    if(!['idea','active','paused','completed','archived','abandoned'].includes(p.status)) p.status = 'idea';
+    /* asked of the table the app actually draws from, not a copy of it made
+       here once: this list had gone stale and did not know about 'future',
+       so every project in that state was quietly reset to an idea */
+    if(!(typeof PSTATUS === 'object' && PSTATUS && PSTATUS[p.status])) p.status = 'idea';
     if(!p.priority) p.priority = 'P3'; if(p.startDate === undefined) p.startDate = (p.createdAt||today()).slice(0,10); if(p.targetDate === undefined) p.targetDate = '';
     p.phases = Array.isArray(p.phases) ? p.phases : []; p.phases.forEach(ph => { ph.id = ph.id||uid(); ph.tasks = ph.tasks||[]; ph.startDate = ph.startDate||''; ph.endDate = ph.endDate||''; ph.tasks.forEach(t => { t.id = t.id||uid(); t.done = !!t.done; if(t.dueDate===undefined) t.dueDate = null; }); });
     p.resources = Array.isArray(p.resources) ? p.resources : []; p.linkedSkills = Array.isArray(p.linkedSkills) ? p.linkedSkills : []; if(p.linkedVisionEra === undefined) p.linkedVisionEra = null; if(p.notes === undefined) p.notes = ''; p.tags = p.tags||[]; p.income = p.income||{model:'',current:0,target:0,milestones:[]};

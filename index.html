@@ -7915,6 +7915,66 @@ html:not([data-theme="light"]) .room-wrap::after{mix-blend-mode:screen;opacity:.
   .day-gist{grid-column:1/-1}
   .day-marks{grid-column:1/-1}
 }
+
+/* ============================================================
+   THE WEEK AS BARS
+
+   One row a day, midnight to midnight, dark where you were asleep. The waking
+   day is the gap between the two dark ends — which is the whole reason for
+   the shape, so nothing else may be allowed to fill that gap by accident.
+   What sits in it is only what was logged. */
+.wk-bars{margin-top:14px}
+.wk-axis{position:relative;height:16px;margin:14px 0 4px 64px}
+.wk-axis span{position:absolute;transform:translateX(-50%);font-size:.62rem;
+  opacity:.55;white-space:nowrap}
+.wk-axis span:first-child{transform:none}
+.wk-axis span:last-child{transform:translateX(-100%)}
+.wk-rows{display:flex;flex-direction:column;gap:4px}
+.wk-row{display:grid;grid-template-columns:58px 1fr auto;align-items:center;
+  gap:6px;cursor:pointer;border-radius:6px;padding:1px 2px}
+.wk-row:hover{background:color-mix(in srgb,var(--accent) 6%,transparent)}
+.wk-day{font-size:.66rem;opacity:.7;text-align:right;white-space:nowrap}
+.wk-awake{font-size:.64rem;opacity:.6;white-space:nowrap;min-width:74px;text-align:right}
+/* the bar itself is the ground: what shows through is time that is yours */
+.wk-bar{position:relative;height:28px;border-radius:5px;overflow:hidden;
+  background:var(--card,#efe7da);border:1px solid var(--line)}
+.wk-row.is-today .wk-bar{border-color:color-mix(in srgb,var(--accent) 55%,var(--line))}
+.wk-row.is-today .wk-day{opacity:1;font-weight:600}
+/* Asleep. A gradient rather than a flat block, deepest in the middle: falling
+   asleep and waking are not edges, and a hard edge says the night began at
+   exactly the minute somebody typed in. */
+.wk-sleep{position:absolute;top:0;bottom:0;border:0;
+  background:linear-gradient(90deg,#4a4a66,#3a3a5a 45%,#3a3a5a 55%,#4a4a66)}
+.wk-morning{border-radius:0 3px 3px 0}
+.wk-evening{border-radius:3px 0 0 3px}
+html[data-theme="light"] .wk-sleep{
+  background:linear-gradient(90deg,#5b5b7a,#43435f 45%,#43435f 55%,#5b5b7a)}
+/* what was logged inside the waking part */
+.wk-act{position:absolute;top:3px;bottom:3px;border-radius:3px;
+  background:var(--c,#9a8f84);opacity:.85;display:flex;align-items:center;
+  justify-content:center;overflow:hidden}
+.wk-act .wk-ic{font-size:.7rem;line-height:1;filter:saturate(.9)}
+.wk-act:hover{opacity:1}
+/* a block logged across the night is a block logged wrong, and it is told so
+   rather than silently making the free figure smaller */
+.wk-act.is-over{outline:1px dashed var(--danger,#a8523f);opacity:.6}
+
+.wk-readout{margin-top:10px;min-height:1.2em;font-size:.7rem}
+.wk-acct{display:flex;flex-wrap:wrap;gap:3px 12px;align-items:baseline;opacity:.82}
+.wk-acct b{opacity:1}
+.wk-acct .wk-free{color:var(--accent);opacity:.95}
+
+.wk-add{gap:6px;flex-wrap:wrap;margin:12px 0 0;align-items:center}
+.wk-add .inp.sm{padding:4px 8px;font-size:.78rem;width:auto}
+.wk-week{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:12px;
+  padding-top:10px;border-top:1px dashed var(--line);font-size:.7rem;opacity:.78}
+.wk-week b{opacity:1}
+
+@media (max-width:620px){
+  .wk-axis{margin-left:44px}
+  .wk-row{grid-template-columns:40px 1fr;gap:4px}
+  .wk-awake{grid-column:2;text-align:left;min-width:0}
+}
 </style>
 </head>
 <body>
@@ -12359,7 +12419,10 @@ function migrateProjects(){
   S.projects.forEach(p => {
     if(p.description === undefined) p.description = p.desc || ''; delete p.desc;
     if(p.status === 'shipped') p.status = 'completed';
-    if(!['idea','active','paused','completed','archived','abandoned'].includes(p.status)) p.status = 'idea';
+    /* asked of the table the app actually draws from, not a copy of it made
+       here once: this list had gone stale and did not know about 'future',
+       so every project in that state was quietly reset to an idea */
+    if(!(typeof PSTATUS === 'object' && PSTATUS && PSTATUS[p.status])) p.status = 'idea';
     if(!p.priority) p.priority = 'P3'; if(p.startDate === undefined) p.startDate = (p.createdAt||today()).slice(0,10); if(p.targetDate === undefined) p.targetDate = '';
     p.phases = Array.isArray(p.phases) ? p.phases : []; p.phases.forEach(ph => { ph.id = ph.id||uid(); ph.tasks = ph.tasks||[]; ph.startDate = ph.startDate||''; ph.endDate = ph.endDate||''; ph.tasks.forEach(t => { t.id = t.id||uid(); t.done = !!t.done; if(t.dueDate===undefined) t.dueDate = null; }); });
     p.resources = Array.isArray(p.resources) ? p.resources : []; p.linkedSkills = Array.isArray(p.linkedSkills) ? p.linkedSkills : []; if(p.linkedVisionEra === undefined) p.linkedVisionEra = null; if(p.notes === undefined) p.notes = ''; p.tags = p.tags||[]; p.income = p.income||{model:'',current:0,target:0,milestones:[]};
@@ -14614,140 +14677,16 @@ const wkClock = h => { const hh = Math.floor(h) % 24, mm = Math.round((h % 1) * 
    Two quantities, two lines, and the band between them is the time you were
    awake. Nothing is stacked and nothing is inferred: each line is one clock
    reading a day, which is the only way a line here can mean anything. */
+/* The week's sleep, as bars rather than as dots joined by a line. The line
+   was the trouble: its length was the night, and a line drawn between "went
+   to bed" and "got up" reads as the part of the day you were IN — so the
+   chart said the opposite of what it meant. The drawing, the arithmetic of a
+   night that crosses midnight, and what fills the waking gap are all in
+   09-sleepbars; this is the name the rest of the house already calls. */
 function sleepWakeHTML(anchor = today()){
-  const days = weekShapeDays(anchor);
-  const rows = days.map(weekShapeRow);
-  const filled = rows.filter(r => r.wake != null || r.close != null);
-  /* Two things made this hard to read. It was drawn at 320–450px wide inside a
-     full-width page, so a week of readings sat in a third of the space; and
-     the axis ran a fixed 4am–4am whatever the week held, which squeezed every
-     real reading into the middle third of the height.
-
-     So: the figure fills the width it is given, and the scale is chosen from
-     the data — the range actually recorded, padded by an hour either side and
-     snapped to whole hours, with a sane floor so one flat week is not blown up
-     into drama. */
-  const H = 260, padL = 48, padB = 28, padT = 10;
-  const T = today();
-  const vals = rows.flatMap(r => [r.wake, r.close]).filter(v => v != null);
-  let lo = WK_LO, hi = WK_HI;
-  if(vals.length){
-    lo = Math.floor(Math.min(...vals) - 1);
-    hi = Math.ceil(Math.max(...vals) + 1);
-    if(hi - lo < 6){ const mid = (hi + lo) / 2; lo = Math.floor(mid - 3); hi = Math.ceil(mid + 3); }
-    lo = Math.max(WK_LO, lo); hi = Math.min(WK_HI, hi);
-  }
-  /* the viewBox is a coordinate space, not a pixel size: the svg is set to
-     100% width, so this only fixes the aspect the marks are drawn at */
-  const W = 900;
-  const y = h => (H - padB) - ((h - lo) / (hi - lo)) * (H - padB - padT);
-  const colW = (W - padL) / days.length;
-  const x = i => padL + (i + .5) * colW;
-  /* a gridline every 2 or 3 hours depending on how much range there is, so the
-     labels never collide and never thin out to two */
-  const step = (hi - lo) > 14 ? 3 : (hi - lo) > 8 ? 2 : 1;
-  const ticks = [];
-  for(let h = Math.ceil(lo / step) * step; h <= hi; h += step) ticks.push(h);
-
-  /* the shaded band is only drawn across runs of days that have both ends —
-     a gap in the record must read as a gap, not as a straight line through it */
-  const bands = [];
-  let run = [];
-  const flush = () => {
-    if(run.length > 1){
-      const top = run.map(i => `${x(i).toFixed(1)},${y(rows[i].close).toFixed(1)}`);
-      const bot = run.slice().reverse().map(i => `${x(i).toFixed(1)},${y(rows[i].wake).toFixed(1)}`);
-      bands.push(`<polygon points="${top.concat(bot).join(' ')}" fill="var(--page-accent)" opacity=".12"/>`);
-    } else if(run.length === 1){
-      const i = run[0];
-      bands.push(`<rect x="${(x(i)-7).toFixed(1)}" y="${y(rows[i].close).toFixed(1)}" width="14" height="${Math.max(2, y(rows[i].wake)-y(rows[i].close)).toFixed(1)}" rx="3" fill="var(--page-accent)" opacity=".12"/>`);
-    }
-    run = [];
-  };
-  rows.forEach((r, i) => { if(r.wake != null && r.close != null) run.push(i); else flush(); });
-  flush();
-
-  const series = (key, color) => {
-    /* break the line wherever a day has no reading, for the same reason */
-    const segs = []; let cur = [];
-    rows.forEach((r, i) => { if(r[key] == null){ if(cur.length > 1) segs.push(cur); cur = []; }
-      else cur.push(`${x(i).toFixed(1)},${y(r[key]).toFixed(1)}`); });
-    if(cur.length > 1) segs.push(cur);
-    const lines = segs.map(pts => `<polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" opacity=".85"/>`).join('');
-    const dots = rows.map((r, i) => r[key] == null ? '' : (() => {
-      /* a bedtime nobody logged is drawn hollow: the shape says "this is the
-         last time you were here, not something you told me" without a word */
-      const guess = key === 'close' && r.guessedClose;
-      return `<g><circle cx="${x(i).toFixed(1)}" cy="${y(r[key]).toFixed(1)}" r="3.2"
-        fill="${guess ? 'var(--bg)' : color}" stroke="${color}" stroke-width="${guess ? 1.6 : 0}"
-        ${guess ? 'stroke-dasharray="2 1.6"' : ''}/>
-       <title>${esc(fmtDate(r.d,'med'))} · ${key === 'wake' ? 'woke' : (guess ? 'last here' : 'went to sleep')} ${wkClock(r[key])}</title></g>`;
-    })()).join('');
-    return lines + dots;
-  };
-
-  const avgOf = k => { const v = rows.map(r => r[k]).filter(z => z != null); return v.length ? avg(v) : null; };
-  const aw = avgOf('wake'), ac = avgOf('close');
-
-  /* A dot three pixels wide is a poor thing to have to hit, and a title on the
-     dot alone says nothing when you are pointing at the gap between two. Each
-     day gets a full-height strip instead: hovering anywhere in the column
-     lights it and reads out that day — both ends, how long awake, how much of
-     it was worked. */
-  /* An SVG <title> is the browser's own tooltip: a second of hover, a system
-     bubble, nothing on a touch screen, and impossible to style or to read at a
-     glance. The readout is a line of the page instead — it fills in the moment
-     the pointer crosses a column, and rests on today when it is not being
-     pointed at. */
-  const dayLine = r => {
-    const parts = [fmtDate(r.d, 'med')];
-    parts.push(r.wake != null ? `woke ${wkClock(r.wake)}` : 'no waking time');
-    parts.push(r.close == null ? 'no sleeping time'
-      : r.guessedClose ? `last here ${wkClock(r.close)} — assumed` : `slept ${wkClock(r.close)}`);
-    if(r.awake) parts.push(`${r.awake.toFixed(1)}h awake`);
-    if(r.worked) parts.push(`${r.worked.toFixed(1)}h worked${r.ratio != null ? ` · ${r.ratio}% of it` : ''}`);
-    parts.push('click to set');
-    return parts.join('  ·  ');
-  };
-  const restRow = rows.find(r => r.d === T && !r.empty) || [...rows].reverse().find(r => !r.empty) || rows[rows.length - 1];
-  const hovers = rows.map((r, i) => `<g class="wk-col${r.d === T ? ' now' : ''}" data-wkday="${r.d}"
-      role="button" tabindex="0" aria-label="Set the two ends of ${esc(fmtDate(r.d, 'med'))}">
-      <rect x="${(x(i) - colW / 2).toFixed(1)}" y="${padT}" width="${colW.toFixed(1)}" height="${(H - padB - padT).toFixed(1)}"
-        fill="transparent" class="wk-hit"/>
-    </g>`).join('');
-  const readouts = rows.map(r => `<span class="wk-say" data-wksay="${r.d}" hidden>${esc(dayLine(r))}</span>`).join('');
-
-  return `<section class="section rv week-shape">
-    <div class="row between" style="align-items:baseline;flex-wrap:wrap;gap:8px">
-      <span class="sc" style="margin:0">Sleep and waking</span>
-      <span class="mono faint">${filled.length} of ${days.length} days logged</span>
-    </div>
-    <p class="muted" style="font-size:.85rem;margin:4px 0 0">The top line is when each day ended, the bottom line is when it began. The band between them is how long you were up. Click any day to set or correct either end.</p>
-    <div class="wk-legend row" style="gap:16px;flex-wrap:wrap;margin:10px 0 2px">
-      <span class="wk-key"><i class="ln" style="background:var(--gold)"></i>I woke up${aw!=null?` · usually ${wkClock(aw)}`:''}</span>
-      <span class="wk-key"><i class="ln" style="background:var(--ment)"></i>I went to sleep${ac!=null?` · usually ${wkClock(ac)}`:''}</span>
-      <span class="wk-key"><i class="bnd"></i>awake${(aw!=null&&ac!=null)?` · ${(ac-aw).toFixed(1)}h a day`:''}</span>
-      ${rows.some(r => r.guessedClose) ? `<span class="wk-key"><i class="gs"></i>assumed from the last time you were here</span>` : ''}
-    </div>
-    ${filled.length ? `<div class="wk-readout mono" id="wkReadout" aria-live="polite">
-      <span class="wk-say rest">${esc(restRow ? dayLine(restRow) : '')}</span>${readouts}</div>
-    <div class="wk-scroll"><svg class="wk-svg" viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="none">
-      ${ticks.map(h => `<g><line x1="${padL}" y1="${y(h).toFixed(1)}" x2="${W}" y2="${y(h).toFixed(1)}" stroke="var(--line)" stroke-width="1" opacity=".5"/>
-        <text x="2" y="${(y(h)+3).toFixed(1)}" class="wk-tick">${wkClock(h)}</text></g>`).join('')}
-      ${bands.join('')}
-      ${series('close','var(--ment)')}
-      ${series('wake','var(--gold)')}
-      ${rows.map((r, i) => `<text x="${x(i).toFixed(1)}" y="${H - 8}" class="wk-day ${r.d === T ? 'now' : ''}" text-anchor="middle">${DOW[parseDay(r.d).getDay()][0]}</text>`).join('')}
-      ${hovers}
-    </svg></div>`
-      : `<div class="empty" style="margin-top:10px">Nothing logged this week yet. The two ends of each day are set on the Today page — "I woke up at" and "I went to sleep at".</div>`}
-  </section>`;
+  return typeof sleepBarsHTML === 'function' ? sleepBarsHTML(anchor) : '';
 }
 
-/* ---------- 2. how much of the day was made use of ----------
-   One measured quantity against one measured quantity: hours the timer was
-   running, over hours you were awake. Nothing here is entered by hand, which
-   is why it can be believed. */
 const TIME_SPANS = [['1','the past day'],['7','the past week'],['30','the past month'],['90','the past three months'],['365','the past year']];
 function timeSpanDays(){ const v = S.settings?.timeSpan; return TIME_SPANS.some(x => x[0] === v) ? +v : 7; }
 function timeSplit(n){
@@ -14924,37 +14863,255 @@ function openBedtimeAsk(d){
 
 function weekShapeHTML(anchor = today()){ return sleepWakeHTML(anchor) + timePieHTML(); }
 function bindWeekShape(root, redraw){
-  /* one line, many prepared sentences: hovering a column reveals its own and
-     hides the resting one, which costs nothing and needs no re-render */
-  const say = root.querySelector('#wkReadout');
-  if(say){
-    const rest = say.querySelector('.wk-say.rest');
-    const show = d => {
-      say.querySelectorAll('.wk-say').forEach(n => { n.hidden = true; });
-      const one = d && say.querySelector(`[data-wksay="${d}"]`);
-      (one || rest).hidden = false;
-    };
-    root.querySelectorAll('[data-wkday]').forEach(g => {
-      const d = g.dataset.wkday;
-      g.addEventListener('pointerenter', () => show(d));
-      g.addEventListener('pointermove', () => show(d));
-    });
-    const svg = root.querySelector('.wk-svg');
-    if(svg) svg.addEventListener('pointerleave', () => show(null));
-  }
-  /* A column is a button: pressing it opens that day's two ends. On a phone,
-     where there is no hover, the dialog is also how you read the day — it
-     names it and shows both times. */
-  root.querySelectorAll('[data-wkday]').forEach(g => {
-    const d = g.dataset.wkday;
-    g.addEventListener('click', () => openDayEdgesEditor(d, redraw || rerender));
-    g.addEventListener('keydown', e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openDayEdgesEditor(d, redraw || rerender); } });
+  /* A row is a button: pressing it opens that day's two ends. It was a column
+     in the old chart and the sentence under it changed as you hovered; a bar
+     says what it is on its face, so the readout has gone with the columns. */
+  /* one line, seven prepared sentences: the row you are on says its own day
+     and the resting one goes away, which costs nothing and needs no redraw */
+  const acct = root.querySelector('#wkAccount');
+  const sayDay = d => { if(!acct) return;
+    acct.querySelectorAll('.wk-acct').forEach(n => { n.hidden = true; });
+    (acct.querySelector(`[data-acct="${d}"]`) || acct.querySelector('.wk-acct.rest') || {}).hidden = false; };
+  root.querySelectorAll('.wk-row').forEach(g => {
+    const d = g.dataset.day; if(!d) return;
+    g.addEventListener('pointerenter', () => sayDay(d));
+    g.addEventListener('click', ev => {
+      if(ev.target.closest('.wk-add, .wk-act')) return;
+      openDayEdgesEditor(d, redraw || rerender); });
   });
+  const rows = root.querySelector('.wk-rows');
+  if(rows && acct) rows.addEventListener('pointerleave', () =>
+    sayDay(acct.querySelector('.wk-acct.rest')?.dataset.acct));
+  if(typeof bindSleepBars === 'function') bindSleepBars(root);
 
   /* "claim today's hours" is gone with the hand-entered figures it wrote:
      the timer records the hours now, so there is nothing to claim. */
   const span = root.querySelector('#tpSpan');
   if(span) span.onchange = () => { S.settings.timeSpan = span.value; saveNow(); (redraw || rerender)(); };
+}
+/* ============================================================
+   THE WEEK AS BARS
+
+   The sleep and wake chart was two dots a day joined by a line, and the line
+   was the trouble. Its length was the night, but a line drawn between "went
+   to bed" and "got up" reads, to anybody who has not been told otherwise, as
+   the part of the day you were in — so the chart said the opposite of what it
+   meant. And a bedtime in the small hours crossed midnight, which left the
+   awake figure looking like arithmetic you had to take on trust.
+
+   So: one bar a day, midnight to midnight, dark where you were asleep. The
+   waking day is the gap between the two dark ends, which needs no line and no
+   legend, and the hours in it are printed at the end of the row.
+
+   WHERE A NIGHT GOES. A night of sleep belongs to two calendar days, and
+   which two depends on the clock:
+
+     went to bed 23:30 on Monday   →  Monday  dark 23:30–24:00
+                                      Tuesday dark 00:00–(Tuesday's wake)
+     went to bed 01:30 on Monday   →  Monday  dark 01:30–(Monday's wake)
+       (which the house files under Monday, because Monday is the day you
+        were still living at half past one)
+
+   The test for which of those it is, is the boundary hour — the same four in
+   the morning the rest of the house uses to decide which day you are in. It
+   is not a second rule invented for this chart; if somebody moves their day
+   boundary to six, this moves with it.
+
+   WHAT THE BARS ARE FILLED WITH. The waking gap is not empty. The house has
+   kept time blocks on the day strip for a long time — a start, an end and a
+   label — and they belong here too, so the day reads as sleep, the things
+   that happen every day whether you like them or not, and what is left. That
+   last figure is the one worth having, and it is the one nobody could see.
+
+   This does not invent a second store for them. The specification asks for a
+   new array under a new key; the blocks already exist, on the day they belong
+   to, with the shape it describes. What is new is a category on them, so a
+   commute can be told from a meal at a glance.
+   ============================================================ */
+
+/* The recurring things a day is made of. Emoji so a block is legible at a
+   glance without reading, colour so a week of them is legible without looking
+   at any one. A block with no category keeps the neutral fill it always had. */
+const TIME_CATS = [
+  {id:'commute',  icon:'🚌', name:'Commute',  c:'#6b7f8e'},
+  {id:'meal',     icon:'🍽', name:'Meal',     c:'#8a7560'},
+  {id:'grooming', icon:'🚿', name:'Shower',   c:'#7a9aaa'},
+  {id:'exercise', icon:'💪', name:'Exercise', c:'#7f916a'},
+  {id:'chores',   icon:'🏠', name:'Chores',   c:'#a09080'},
+];
+const timeCatOf = id => TIME_CATS.find(c => c.id === id) || null;
+/* anything somebody made up, kept beside the five so it can be chosen again */
+function timeCatsAll(){
+  const extra = (S.settings && S.settings.timeCats) || [];
+  return TIME_CATS.concat(extra.filter(c => c && c.id && !timeCatOf(c.id)));
+}
+const timeCatAny = id => timeCatsAll().find(c => c.id === id) || null;
+
+/* ---------- where a night falls on a calendar day ----------
+   Returns the stretches of THIS date you were asleep for, in minutes from
+   midnight. Everything the chart claims about a day comes through here. */
+function daySleepSpans(d){
+  const B = (typeof dayBoundaryHour === 'function' ? dayBoundaryHour() : 4) * 60;
+  const wake = hm2min(rhythmDay(d).wakeTime);
+  const spans = [];
+  /* last night, ending this morning. Where it started on today's clock is the
+     whole question: a bedtime before the boundary happened after midnight, so
+     it began today; anything later was yesterday evening and you were already
+     asleep when the day turned over. */
+  const last = hm2min(rhythmSleep(addDays(d, -1)).hm);
+  if(wake != null){
+    const from = (last != null && last < B) ? last : 0;
+    if(wake > from) spans.push({a: from, b: wake, end: 'morning'});
+  }
+  /* tonight, if you turned in before midnight. If you did not, it lands on
+     tomorrow's bar as the clause above, and must not be drawn twice. */
+  const tonight = hm2min(rhythmSleep(d).hm);
+  if(tonight != null && tonight >= B) spans.push({a: tonight, b: 1440, end: 'evening'});
+  return spans;
+}
+function dayAwakeMinutes(d){
+  return Math.max(0, 1440 - daySleepSpans(d).reduce((n, s) => n + (s.b - s.a), 0));
+}
+/* The blocks of a day, clipped to the part of it you were awake for. Named
+   barBlocksOn and not dayBlocks because dayBlocks was taken — the rhythm page
+   has one — and that file sorts later, so its declaration wins and this one
+   silently never runs. Second time in a day; build.js now refuses to build
+   when two files declare the same name, so it cannot be a third.
+
+   Clipped, because a block
+   that overlaps sleep is a block logged wrong, and drawing it over the night
+   would quietly make the free figure too small */
+function barBlocksOn(d){
+  const sleep = daySleepSpans(d);
+  const asleep = m => sleep.some(s => m >= s.a && m < s.b);
+  return ((rhythmDay(d).blocks) || []).map(b => {
+    const a = hm2min(b.startTime); let z = rhythmBlockEnd(b);
+    if(a == null) return null;
+    z = Math.min(1440, z);
+    return {id: b.id, a, b: z, kind: b.kind || '', tag: b.tag || '',
+      cat: timeCatAny(b.kind), over: asleep(a)};
+  }).filter(Boolean).filter(x => x.b > x.a);
+}
+function dayAccount(d){
+  const sleep = daySleepSpans(d).reduce((n, s) => n + (s.b - s.a), 0);
+  const blocks = barBlocksOn(d);
+  const by = {};
+  blocks.forEach(b => { const k = b.kind || 'other'; by[k] = (by[k] || 0) + (b.b - b.a); });
+  const spent = Object.values(by).reduce((a, b) => a + b, 0);
+  return {d, sleep, awake: 1440 - sleep, by, spent, free: Math.max(0, 1440 - sleep - spent)};
+}
+
+/* ---------- the chart ---------- */
+function sleepBarsHTML(anchor = today()){
+  const days = weekShapeDays(anchor);
+  const T = today();
+  const pc = m => (m / 1440 * 100).toFixed(3) + '%';
+  const any = days.some(d => daySleepSpans(d).length || barBlocksOn(d).length);
+  const axis = [0, 4, 8, 12, 16, 20, 24];
+  const rows = days.map(d => {
+    const sp = daySleepSpans(d), bl = barBlocksOn(d), acc = dayAccount(d);
+    const told = rhythmSleep(d);
+    return `<div class="wk-row${d === T ? ' is-today' : ''}" data-day="${esc(d)}">
+      <span class="wk-day mono">${esc(fmtDate(d, 'short'))}</span>
+      <div class="wk-bar" role="img"
+        aria-label="${esc(fmtDate(d, 'med'))}: awake ${fmtDur(acc.awake)}">
+        ${sp.map(s => `<i class="wk-sleep wk-${s.end}" style="left:${pc(s.a)};width:${pc(s.b - s.a)}"
+            title="asleep ${min2hm(s.a)}–${s.b >= 1440 ? '24:00' : min2hm(s.b)}"></i>`).join('')}
+        ${bl.map(b => { const w = b.b - b.a; const wide = (w / 1440) * 100 > 2.6;
+          const c = b.cat;
+          return `<i class="wk-act${b.over ? ' is-over' : ''}" data-blk="${esc(b.id)}"
+            style="left:${pc(b.a)};width:${pc(w)}${c ? `;--c:${c.c}` : ''}"
+            title="${esc((c ? c.name : (b.tag || 'logged')) )} · ${esc(b.startTime || min2hm(b.a))}–${esc(min2hm(b.b))} · ${fmtDur(w)}${b.over ? ' · logged over sleep' : ''}"
+            >${wide && c ? `<span class="wk-ic">${c.icon}</span>` : ''}</i>`; }).join('')}
+      </div>
+      <span class="wk-awake mono">${told.hm || rhythmDay(d).wakeTime ? fmtDur(acc.awake) + ' awake' : '—'}</span>
+    </div>`;
+  }).join('');
+  const week = days.map(dayAccount);
+  const wsum = k => week.reduce((n, a) => n + (k === 'sleep' ? a.sleep : k === 'free' ? a.free : (a.by[k] || 0)), 0);
+  const kinds = [...new Set(week.flatMap(a => Object.keys(a.by)))];
+  return `<section class="section rv wk-bars">
+    <div class="row between" style="align-items:baseline">
+      <h2 class="sc" style="margin:0">Sleep, and the shape of the waking day</h2>
+      <span class="mono faint" style="font-size:.7rem">midnight to midnight</span>
+    </div>
+    <p class="muted" style="font-size:.86rem;margin:6px 0 2px">Dark is asleep. The gap between
+      the two dark ends is the day you had; what is coloured inside it is what you logged,
+      and what is left is what was yours.</p>
+    ${!any ? `<div class="empty" style="margin-top:12px">Nothing logged this week yet.
+        The two ends of each day are set on Today — “I woke up at” and “I went to sleep at”.</div>`
+    : `<div class="wk-axis mono" aria-hidden="true">
+        ${axis.map(h => `<span style="left:${pc(h * 60)}">${h}:00</span>`).join('')}
+      </div>
+      <div class="wk-rows">${rows}</div>
+      <!-- One line, seven prepared sentences. The specification asks for a
+           summary under every day; seven of them under a seven-row chart is
+           more reading than the chart, and the chart is the point. The line
+           belongs to whichever row you are on, and rests on today. -->
+      <div class="wk-readout mono" id="wkAccount">
+        ${days.map(d => { const a = dayAccount(d);
+          return `<span class="wk-acct${d === T ? ' rest' : ''}" data-acct="${esc(d)}"${d === T ? '' : ' hidden'}>
+            <b>${esc(fmtDate(d, 'med'))}</b>
+            <span>slept ${fmtDur(a.sleep)}</span><span>awake ${fmtDur(a.awake)}</span>
+            ${Object.keys(a.by).map(k => { const c = timeCatAny(k);
+              return `<span>${c ? c.icon + ' ' : ''}${esc(c ? c.name.toLowerCase() : 'other')} ${fmtDur(a.by[k])}</span>`; }).join('')}
+            <span class="wk-free">free ${fmtDur(a.free)}</span></span>`; }).join('')}
+      </div>
+      ${quickBlockHTML(anchor)}
+      <div class="wk-week mono">
+        <b>This week</b>
+        <span>sleep ${fmtDur(Math.round(wsum('sleep') / week.length))} a night</span>
+        ${kinds.map(k => { const c = timeCatAny(k);
+          return `<span>${c ? c.icon + ' ' + esc(c.name.toLowerCase()) : 'other'} ${fmtDur(wsum(k))}</span>`; }).join('')}
+        <span>free ${fmtDur(Math.round(wsum('free') / week.length))} a day</span>
+      </div>`}
+  </section>`;
+}
+
+/* ---------- logging one, in one line ---------- */
+function quickBlockHTML(anchor){
+  const days = weekShapeDays(anchor);
+  const cats = timeCatsAll();
+  return `<form class="wk-add row" data-wkadd>
+    <select class="inp sm" name="day" aria-label="which day">
+      ${days.slice().reverse().map(d => `<option value="${esc(d)}"${d === today() ? ' selected' : ''}>${esc(fmtDate(d, 'short'))}</option>`).join('')}
+    </select>
+    <select class="inp sm" name="kind" aria-label="what it was">
+      ${cats.map(c => `<option value="${esc(c.id)}">${c.icon} ${esc(c.name)}</option>`).join('')}
+      <option value="__new">✏️ something else…</option>
+    </select>
+    <input class="inp sm mono" type="time" name="from" value="08:30" aria-label="from">
+    <input class="inp sm mono" type="time" name="to" value="09:15" aria-label="to">
+    <button class="btn sm primary" type="submit">add</button>
+  </form>`;
+}
+function bindSleepBars(root){
+  const scope = root || document;
+  scope.querySelectorAll('[data-wkadd]').forEach(f => {
+    if(f.dataset.hung === '1') return; f.dataset.hung = '1';
+    f.addEventListener('submit', ev => {
+      ev.preventDefault();
+      const d = f.day.value, from = f.from.value, to = f.to.value;
+      let kind = f.kind.value;
+      if(!d || !from || !to) return;
+      if(kind === '__new'){
+        const name = (prompt('What is it called?') || '').trim();
+        if(!name) return;
+        const id = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 24) || 'other';
+        S.settings.timeCats = S.settings.timeCats || [];
+        if(!timeCatAny(id)) S.settings.timeCats.push({id, name, icon:'✏️', c:'#9a8f84'});
+        kind = id;
+      }
+      const r = rhythmDay(d);
+      r.blocks = r.blocks || [];
+      const c = timeCatAny(kind);
+      r.blocks.push({id: uid(), startTime: from, endTime: to, category: 'intentional',
+        kind, tag: c ? c.name : ''});
+      r.blocks.sort((a, b) => hm2min(a.startTime) - hm2min(b.startTime));
+      rhythmCompute(r); saveNow(); sound('click');
+      if(typeof rerender === 'function') rerender();
+    });
+  });
 }
 /* One table, two readers: the check-in offers these and the day archive in
    the Lived Record reads back what was chosen, so it cannot live inside the
@@ -20683,10 +20840,10 @@ const KANBAN = [['future','Future'],['idea','Not Started'],['active','In Progres
    start, no tasks and no dates would be an empty card and a bar of nothing.
    The inventory is where everything is, which is the point of an inventory. */
 const projectIsFuture = p => p.status === 'future';
-function migrateProjects(){ (S.projects || []).forEach(p => {
-  if(!PSTATUS[p.status]) p.status = 'idea';
-  if(!Array.isArray(p.tags)) p.tags = [];
-}); }
+/* There was a second migrateProjects here, and because this file sorts after
+   06-db.js its declaration won — so the thorough migration over in the db
+   layer, the one boot actually calls, had never run once. This did a fraction
+   of its work. Everything it did, the real one does. */
 const PRIORITY = {P1:['P1','#c25b5b'],P2:['P2','#d4a44c'],P3:['P3','#7f916a'],P4:['P4','#8a8d8f']};
 const prBadge = p => `<span class="pri ${p.priority||'P3'}" title="priority">${p.priority||'P3'}</span>`;
 const stBadge = p => { const st = PSTATUS[p.status]||PSTATUS.idea; return `<span class="pstatus" style="--c:${st[2]}">${st[0]} ${st[1]}</span>`; };
@@ -32441,7 +32598,7 @@ async function askAboutPeriod(c, from, to, out, btn){
   out.innerHTML = `<p class="faint">Reading ${st.entries.length} entr${st.entries.length===1?'y':'ies'} from ${esc(fmtDate(from,'short'))} to ${esc(fmtDate(to,'short'))} — and nothing else.</p>`;
   try {
     const text = await askClaude(PERIOD_SYSTEM, periodDigest(from, to, st), {maxTokens: 1400});
-    out.innerHTML = `<div class="cyc-reading">${mdInline(text)}</div>
+    out.innerHTML = `<div class="cyc-reading">${mdBlocks(text)}</div>
       <div class="row" style="gap:8px;margin-top:10px"><button class="btn sm ghost" data-cyckeep>keep this as a reflection</button></div>`;
     out.querySelector('[data-cyckeep]').onclick = () => {
       S.entries.push({id:uid(), type:'reflection', title:`${c.name} — ${fmtDate(from,'short')} to ${fmtDate(to,'short')}`, body:text,
@@ -32458,7 +32615,12 @@ async function askAboutPeriod(c, from, to, out, btn){
 }
 
 /* a very small markdown: headings and paragraphs, nothing else */
-function mdInline(t){
+/* Named for what it does, because there is another one. This turns blank
+   lines into paragraphs and short unpunctuated lines into headings; the one in
+   16-rituals only handles **bold**. They shared a name, that file sorts later,
+   and so a reading here was rendered by the wrong one — paragraphs and
+   headings silently lost. */
+function mdBlocks(t){
   return String(t || '').split(/\n{2,}/).map(p => {
     const line = p.trim(); if(!line) return '';
     if(/^#{1,4}\s/.test(line)) return `<h4>${esc(line.replace(/^#{1,4}\s*/, ''))}</h4>`;

@@ -675,140 +675,16 @@ const wkClock = h => { const hh = Math.floor(h) % 24, mm = Math.round((h % 1) * 
    Two quantities, two lines, and the band between them is the time you were
    awake. Nothing is stacked and nothing is inferred: each line is one clock
    reading a day, which is the only way a line here can mean anything. */
+/* The week's sleep, as bars rather than as dots joined by a line. The line
+   was the trouble: its length was the night, and a line drawn between "went
+   to bed" and "got up" reads as the part of the day you were IN — so the
+   chart said the opposite of what it meant. The drawing, the arithmetic of a
+   night that crosses midnight, and what fills the waking gap are all in
+   09-sleepbars; this is the name the rest of the house already calls. */
 function sleepWakeHTML(anchor = today()){
-  const days = weekShapeDays(anchor);
-  const rows = days.map(weekShapeRow);
-  const filled = rows.filter(r => r.wake != null || r.close != null);
-  /* Two things made this hard to read. It was drawn at 320–450px wide inside a
-     full-width page, so a week of readings sat in a third of the space; and
-     the axis ran a fixed 4am–4am whatever the week held, which squeezed every
-     real reading into the middle third of the height.
-
-     So: the figure fills the width it is given, and the scale is chosen from
-     the data — the range actually recorded, padded by an hour either side and
-     snapped to whole hours, with a sane floor so one flat week is not blown up
-     into drama. */
-  const H = 260, padL = 48, padB = 28, padT = 10;
-  const T = today();
-  const vals = rows.flatMap(r => [r.wake, r.close]).filter(v => v != null);
-  let lo = WK_LO, hi = WK_HI;
-  if(vals.length){
-    lo = Math.floor(Math.min(...vals) - 1);
-    hi = Math.ceil(Math.max(...vals) + 1);
-    if(hi - lo < 6){ const mid = (hi + lo) / 2; lo = Math.floor(mid - 3); hi = Math.ceil(mid + 3); }
-    lo = Math.max(WK_LO, lo); hi = Math.min(WK_HI, hi);
-  }
-  /* the viewBox is a coordinate space, not a pixel size: the svg is set to
-     100% width, so this only fixes the aspect the marks are drawn at */
-  const W = 900;
-  const y = h => (H - padB) - ((h - lo) / (hi - lo)) * (H - padB - padT);
-  const colW = (W - padL) / days.length;
-  const x = i => padL + (i + .5) * colW;
-  /* a gridline every 2 or 3 hours depending on how much range there is, so the
-     labels never collide and never thin out to two */
-  const step = (hi - lo) > 14 ? 3 : (hi - lo) > 8 ? 2 : 1;
-  const ticks = [];
-  for(let h = Math.ceil(lo / step) * step; h <= hi; h += step) ticks.push(h);
-
-  /* the shaded band is only drawn across runs of days that have both ends —
-     a gap in the record must read as a gap, not as a straight line through it */
-  const bands = [];
-  let run = [];
-  const flush = () => {
-    if(run.length > 1){
-      const top = run.map(i => `${x(i).toFixed(1)},${y(rows[i].close).toFixed(1)}`);
-      const bot = run.slice().reverse().map(i => `${x(i).toFixed(1)},${y(rows[i].wake).toFixed(1)}`);
-      bands.push(`<polygon points="${top.concat(bot).join(' ')}" fill="var(--page-accent)" opacity=".12"/>`);
-    } else if(run.length === 1){
-      const i = run[0];
-      bands.push(`<rect x="${(x(i)-7).toFixed(1)}" y="${y(rows[i].close).toFixed(1)}" width="14" height="${Math.max(2, y(rows[i].wake)-y(rows[i].close)).toFixed(1)}" rx="3" fill="var(--page-accent)" opacity=".12"/>`);
-    }
-    run = [];
-  };
-  rows.forEach((r, i) => { if(r.wake != null && r.close != null) run.push(i); else flush(); });
-  flush();
-
-  const series = (key, color) => {
-    /* break the line wherever a day has no reading, for the same reason */
-    const segs = []; let cur = [];
-    rows.forEach((r, i) => { if(r[key] == null){ if(cur.length > 1) segs.push(cur); cur = []; }
-      else cur.push(`${x(i).toFixed(1)},${y(r[key]).toFixed(1)}`); });
-    if(cur.length > 1) segs.push(cur);
-    const lines = segs.map(pts => `<polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" opacity=".85"/>`).join('');
-    const dots = rows.map((r, i) => r[key] == null ? '' : (() => {
-      /* a bedtime nobody logged is drawn hollow: the shape says "this is the
-         last time you were here, not something you told me" without a word */
-      const guess = key === 'close' && r.guessedClose;
-      return `<g><circle cx="${x(i).toFixed(1)}" cy="${y(r[key]).toFixed(1)}" r="3.2"
-        fill="${guess ? 'var(--bg)' : color}" stroke="${color}" stroke-width="${guess ? 1.6 : 0}"
-        ${guess ? 'stroke-dasharray="2 1.6"' : ''}/>
-       <title>${esc(fmtDate(r.d,'med'))} · ${key === 'wake' ? 'woke' : (guess ? 'last here' : 'went to sleep')} ${wkClock(r[key])}</title></g>`;
-    })()).join('');
-    return lines + dots;
-  };
-
-  const avgOf = k => { const v = rows.map(r => r[k]).filter(z => z != null); return v.length ? avg(v) : null; };
-  const aw = avgOf('wake'), ac = avgOf('close');
-
-  /* A dot three pixels wide is a poor thing to have to hit, and a title on the
-     dot alone says nothing when you are pointing at the gap between two. Each
-     day gets a full-height strip instead: hovering anywhere in the column
-     lights it and reads out that day — both ends, how long awake, how much of
-     it was worked. */
-  /* An SVG <title> is the browser's own tooltip: a second of hover, a system
-     bubble, nothing on a touch screen, and impossible to style or to read at a
-     glance. The readout is a line of the page instead — it fills in the moment
-     the pointer crosses a column, and rests on today when it is not being
-     pointed at. */
-  const dayLine = r => {
-    const parts = [fmtDate(r.d, 'med')];
-    parts.push(r.wake != null ? `woke ${wkClock(r.wake)}` : 'no waking time');
-    parts.push(r.close == null ? 'no sleeping time'
-      : r.guessedClose ? `last here ${wkClock(r.close)} — assumed` : `slept ${wkClock(r.close)}`);
-    if(r.awake) parts.push(`${r.awake.toFixed(1)}h awake`);
-    if(r.worked) parts.push(`${r.worked.toFixed(1)}h worked${r.ratio != null ? ` · ${r.ratio}% of it` : ''}`);
-    parts.push('click to set');
-    return parts.join('  ·  ');
-  };
-  const restRow = rows.find(r => r.d === T && !r.empty) || [...rows].reverse().find(r => !r.empty) || rows[rows.length - 1];
-  const hovers = rows.map((r, i) => `<g class="wk-col${r.d === T ? ' now' : ''}" data-wkday="${r.d}"
-      role="button" tabindex="0" aria-label="Set the two ends of ${esc(fmtDate(r.d, 'med'))}">
-      <rect x="${(x(i) - colW / 2).toFixed(1)}" y="${padT}" width="${colW.toFixed(1)}" height="${(H - padB - padT).toFixed(1)}"
-        fill="transparent" class="wk-hit"/>
-    </g>`).join('');
-  const readouts = rows.map(r => `<span class="wk-say" data-wksay="${r.d}" hidden>${esc(dayLine(r))}</span>`).join('');
-
-  return `<section class="section rv week-shape">
-    <div class="row between" style="align-items:baseline;flex-wrap:wrap;gap:8px">
-      <span class="sc" style="margin:0">Sleep and waking</span>
-      <span class="mono faint">${filled.length} of ${days.length} days logged</span>
-    </div>
-    <p class="muted" style="font-size:.85rem;margin:4px 0 0">The top line is when each day ended, the bottom line is when it began. The band between them is how long you were up. Click any day to set or correct either end.</p>
-    <div class="wk-legend row" style="gap:16px;flex-wrap:wrap;margin:10px 0 2px">
-      <span class="wk-key"><i class="ln" style="background:var(--gold)"></i>I woke up${aw!=null?` · usually ${wkClock(aw)}`:''}</span>
-      <span class="wk-key"><i class="ln" style="background:var(--ment)"></i>I went to sleep${ac!=null?` · usually ${wkClock(ac)}`:''}</span>
-      <span class="wk-key"><i class="bnd"></i>awake${(aw!=null&&ac!=null)?` · ${(ac-aw).toFixed(1)}h a day`:''}</span>
-      ${rows.some(r => r.guessedClose) ? `<span class="wk-key"><i class="gs"></i>assumed from the last time you were here</span>` : ''}
-    </div>
-    ${filled.length ? `<div class="wk-readout mono" id="wkReadout" aria-live="polite">
-      <span class="wk-say rest">${esc(restRow ? dayLine(restRow) : '')}</span>${readouts}</div>
-    <div class="wk-scroll"><svg class="wk-svg" viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="none">
-      ${ticks.map(h => `<g><line x1="${padL}" y1="${y(h).toFixed(1)}" x2="${W}" y2="${y(h).toFixed(1)}" stroke="var(--line)" stroke-width="1" opacity=".5"/>
-        <text x="2" y="${(y(h)+3).toFixed(1)}" class="wk-tick">${wkClock(h)}</text></g>`).join('')}
-      ${bands.join('')}
-      ${series('close','var(--ment)')}
-      ${series('wake','var(--gold)')}
-      ${rows.map((r, i) => `<text x="${x(i).toFixed(1)}" y="${H - 8}" class="wk-day ${r.d === T ? 'now' : ''}" text-anchor="middle">${DOW[parseDay(r.d).getDay()][0]}</text>`).join('')}
-      ${hovers}
-    </svg></div>`
-      : `<div class="empty" style="margin-top:10px">Nothing logged this week yet. The two ends of each day are set on the Today page — "I woke up at" and "I went to sleep at".</div>`}
-  </section>`;
+  return typeof sleepBarsHTML === 'function' ? sleepBarsHTML(anchor) : '';
 }
 
-/* ---------- 2. how much of the day was made use of ----------
-   One measured quantity against one measured quantity: hours the timer was
-   running, over hours you were awake. Nothing here is entered by hand, which
-   is why it can be believed. */
 const TIME_SPANS = [['1','the past day'],['7','the past week'],['30','the past month'],['90','the past three months'],['365','the past year']];
 function timeSpanDays(){ const v = S.settings?.timeSpan; return TIME_SPANS.some(x => x[0] === v) ? +v : 7; }
 function timeSplit(n){
@@ -985,32 +861,26 @@ function openBedtimeAsk(d){
 
 function weekShapeHTML(anchor = today()){ return sleepWakeHTML(anchor) + timePieHTML(); }
 function bindWeekShape(root, redraw){
-  /* one line, many prepared sentences: hovering a column reveals its own and
-     hides the resting one, which costs nothing and needs no re-render */
-  const say = root.querySelector('#wkReadout');
-  if(say){
-    const rest = say.querySelector('.wk-say.rest');
-    const show = d => {
-      say.querySelectorAll('.wk-say').forEach(n => { n.hidden = true; });
-      const one = d && say.querySelector(`[data-wksay="${d}"]`);
-      (one || rest).hidden = false;
-    };
-    root.querySelectorAll('[data-wkday]').forEach(g => {
-      const d = g.dataset.wkday;
-      g.addEventListener('pointerenter', () => show(d));
-      g.addEventListener('pointermove', () => show(d));
-    });
-    const svg = root.querySelector('.wk-svg');
-    if(svg) svg.addEventListener('pointerleave', () => show(null));
-  }
-  /* A column is a button: pressing it opens that day's two ends. On a phone,
-     where there is no hover, the dialog is also how you read the day — it
-     names it and shows both times. */
-  root.querySelectorAll('[data-wkday]').forEach(g => {
-    const d = g.dataset.wkday;
-    g.addEventListener('click', () => openDayEdgesEditor(d, redraw || rerender));
-    g.addEventListener('keydown', e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openDayEdgesEditor(d, redraw || rerender); } });
+  /* A row is a button: pressing it opens that day's two ends. It was a column
+     in the old chart and the sentence under it changed as you hovered; a bar
+     says what it is on its face, so the readout has gone with the columns. */
+  /* one line, seven prepared sentences: the row you are on says its own day
+     and the resting one goes away, which costs nothing and needs no redraw */
+  const acct = root.querySelector('#wkAccount');
+  const sayDay = d => { if(!acct) return;
+    acct.querySelectorAll('.wk-acct').forEach(n => { n.hidden = true; });
+    (acct.querySelector(`[data-acct="${d}"]`) || acct.querySelector('.wk-acct.rest') || {}).hidden = false; };
+  root.querySelectorAll('.wk-row').forEach(g => {
+    const d = g.dataset.day; if(!d) return;
+    g.addEventListener('pointerenter', () => sayDay(d));
+    g.addEventListener('click', ev => {
+      if(ev.target.closest('.wk-add, .wk-act')) return;
+      openDayEdgesEditor(d, redraw || rerender); });
   });
+  const rows = root.querySelector('.wk-rows');
+  if(rows && acct) rows.addEventListener('pointerleave', () =>
+    sayDay(acct.querySelector('.wk-acct.rest')?.dataset.acct));
+  if(typeof bindSleepBars === 'function') bindSleepBars(root);
 
   /* "claim today's hours" is gone with the hand-entered figures it wrote:
      the timer records the hours now, so there is nothing to claim. */

@@ -53,8 +53,39 @@ function assertNoConflictMarkers(){
     process.exit(1);
   }
 }
+/* Every file in src/ shares one global scope, and a function declaration
+   later in the bundle silently replaces an identical name earlier in it.
+   Nothing warns you: the losing function simply never runs, and the caller
+   gets a different shape back than it wrote. That has now cost two
+   afternoons — dayRecord, then dayBlocks — so it is a build error.
+
+   Only top-level declarations count. A name declared inside a function is
+   somebody's local variable and is nobody else's business. */
+function assertNoClashingNames(){
+  const seen = new Map(), clash = [];
+  for(const f of parts){
+    if(!f.endsWith('.js')) continue;
+    const text = fs.readFileSync(path.join(src, f), 'utf8');
+    const names = new Set();
+    for(const line of text.split('\n')){
+      const m = /^(?:function\s+([A-Za-z_$][\w$]*)|(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=)/.exec(line);
+      if(m) names.add(m[1] || m[2]);
+    }
+    for(const n of names){
+      if(seen.has(n) && seen.get(n) !== f) clash.push(`${n}  (${seen.get(n)} and ${f})`);
+      else seen.set(n, f);
+    }
+  }
+  if(clash.length){
+    console.error('BUILD FAILED — two files declare the same top-level name.\n' +
+      'One global scope: the later file wins and the earlier one never runs.\n  ' +
+      clash.join('\n  '));
+    process.exit(1);
+  }
+}
 assertNoConflictMarkers();
 assertNothingStrayed();
+assertNoClashingNames();
 
 fs.writeFileSync(path.join(__dirname, 'index.html'), out);
 

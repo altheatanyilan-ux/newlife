@@ -298,7 +298,7 @@ async function askAboutPeriod(c, from, to, out, btn){
   out.innerHTML = `<p class="faint">Reading ${st.entries.length} entr${st.entries.length===1?'y':'ies'} from ${esc(fmtDate(from,'short'))} to ${esc(fmtDate(to,'short'))} — and nothing else.</p>`;
   try {
     const text = await askClaude(PERIOD_SYSTEM, periodDigest(from, to, st), {maxTokens: 1400});
-    out.innerHTML = `<div class="cyc-reading">${mdInline(text)}</div>
+    out.innerHTML = `<div class="cyc-reading">${mdBlocks(text)}</div>
       <div class="row" style="gap:8px;margin-top:10px"><button class="btn sm ghost" data-cyckeep>keep this as a reflection</button></div>`;
     out.querySelector('[data-cyckeep]').onclick = () => {
       S.entries.push({id:uid(), type:'reflection', title:`${c.name} — ${fmtDate(from,'short')} to ${fmtDate(to,'short')}`, body:text,
@@ -315,7 +315,12 @@ async function askAboutPeriod(c, from, to, out, btn){
 }
 
 /* a very small markdown: headings and paragraphs, nothing else */
-function mdInline(t){
+/* Named for what it does, because there is another one. This turns blank
+   lines into paragraphs and short unpunctuated lines into headings; the one in
+   16-rituals only handles **bold**. They shared a name, that file sorts later,
+   and so a reading here was rendered by the wrong one — paragraphs and
+   headings silently lost. */
+function mdBlocks(t){
   return String(t || '').split(/\n{2,}/).map(p => {
     const line = p.trim(); if(!line) return '';
     if(/^#{1,4}\s/.test(line)) return `<h4>${esc(line.replace(/^#{1,4}\s*/, ''))}</h4>`;
