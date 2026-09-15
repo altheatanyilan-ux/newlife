@@ -20617,10 +20617,16 @@ function organicSVG(W, H){
     const col = catColor(c), tip = catTips[c], out = tip[0] >= trunkX ? 1 : -1;
     const count = S.skills.filter(s => s.cat === c).length;
     const lx = tip[0] + out * 13, anchor = out > 0 ? 'start' : 'end';
-    labels += `<text class="sk-catlbl" x="${lx.toFixed(1)}" y="${(tip[1]+4).toFixed(1)}" text-anchor="${anchor}" style="fill:${col}">${esc(c)}</text>`
-      + `<text class="sk-catsub" x="${lx.toFixed(1)}" y="${(tip[1]+16).toFixed(1)}" text-anchor="${anchor}">${count} skill${count===1?'':'s'}</text>`;
+    /* A category name used to be written here, at the branch tip, and entered
+       the relaxation below marked `fixed` — which meant a skill label would
+       move out of its way but two category names would not move out of each
+       other's. With half a dozen categories on a tree grown from whatever ids
+       the skills happen to have, that came out overlapping about half the
+       time: "Intellectual" printed through "Social". It is written after the
+       relaxation now, like every other label, and it can move like one. */
     lblItems.push({id: 'cat:' + c, ex: tip[0], ey: tip[1] + 8, x: lx, y: tip[1] + 8, anchor,
-      w: Math.max(c.length * 7.2, 62) + 10, h: 24, fixed: true});
+      w: Math.max(c.length * 7.2, 62) + 10, h: 24,
+      cat: true, name: c, sub: `${count} skill${count === 1 ? '' : 's'}`, col});
   });
 
   /* ---------- the skills ----------
@@ -20787,6 +20793,13 @@ function organicSVG(W, H){
     l.y = clamp(l.y, 16, H - 52);
     const dy = Math.abs(l.y - l.ey);
     const leader = dy > 7 ? `<line class="sk-leader" x1="${l.ex.toFixed(1)}" y1="${l.ey.toFixed(1)}" x2="${(l.anchor === 'start' ? l.x - 2 : l.x + 2).toFixed(1)}" y2="${l.y.toFixed(1)}"/>` : '';
+    /* a category name belongs with the branches rather than in the layer of
+       skill labels over them, so it goes back into `labels` where it was */
+    if(l.cat){
+      labels += `${leader}<text class="sk-catlbl" x="${l.x.toFixed(1)}" y="${(l.y - 4).toFixed(1)}" text-anchor="${l.anchor}" style="fill:${l.col}">${esc(l.name)}</text>`
+        + `<text class="sk-catsub" x="${l.x.toFixed(1)}" y="${(l.y + 8).toFixed(1)}" text-anchor="${l.anchor}">${esc(l.sub)}</text>`;
+      return;
+    }
     labelsBySkill[l.id] = `${leader}<text class="sk-lbl" x="${l.x.toFixed(1)}" y="${(l.y-3).toFixed(1)}" text-anchor="${l.anchor}" style="font-size:${l.fs}px">${esc(l.name)}</text><text class="sk-sublbl" x="${l.x.toFixed(1)}" y="${(l.y+9).toFixed(1)}" text-anchor="${l.anchor}">${esc(l.sub)}</text>`;
   });
   const labelLayer = Object.keys(labelsBySkill).map(id =>

@@ -48,11 +48,20 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     return p.evaluate(() => { const t = document.querySelector('.sk-trunk');
       return t ? {w: +t.dataset.w, h: t.getBBox().height} : {w:0, h:1}; }); };
   const one = await trunkAt(1), full = await trunkAt(await p.evaluate(() => S._all.length));
-  const slender = x => x.w / x.h;
-  yes('a sapling is a slender stem', slender(one) < .085, `${one.w.toFixed(1)}px wide on ${one.h.toFixed(0)}px tall`);
-  yes('  and the grown tree a proper trunk', slender(full) > slender(one) * 1.25,
-      `${slender(one).toFixed(3)} → ${slender(full).toFixed(3)}`);
-  yes('  which is also thicker in plain pixels', full.w > one.w + 4, `${one.w.toFixed(1)} → ${full.w.toFixed(1)}`);
+  /* This used to be measured as width over height, to normalise for the
+     drawing being scaled to fit the plot. It is the wrong ratio: the trunk's
+     width is already in data-w and is perfectly steady — 16.1 for one skill and
+     about 32 for the whole set, every time — while the HEIGHT swings from 183
+     to 314 with the shape the tree happens to grow into, and the tree is grown
+     from the skills' own ids, which are made fresh on every install. So the
+     ratio said "slender" or "not slender" depending on nothing that matters,
+     and the grown tree came out thinner than the sapling about half the time
+     while being twice as thick. The width is what the claim is about. */
+  yes('a sapling is a slender stem', one.w < 20, `${one.w.toFixed(1)}px wide`);
+  yes('  and the grown tree a proper trunk', full.w > one.w * 1.6,
+      `${one.w.toFixed(1)}px → ${full.w.toFixed(1)}px`);
+  yes('  and it is taller as well as thicker', full.h > one.h,
+      `${one.h.toFixed(0)}px → ${full.h.toFixed(0)}px tall`);
   is('  one twig per skill', await p.evaluate(() => document.querySelectorAll('.sk-twig').length),
      await p.evaluate(() => S.skills.length));
   yes('  the limbs are leaved too, not bare sticks',
