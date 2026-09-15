@@ -14778,6 +14778,104 @@ function openDayEdgesEditor(d, after){
   m.querySelector('#deOk').onclick = () => write(m.querySelector('#deWake').value || '', m.querySelector('#deSleep').value || '');
   m.querySelector('#deClear').onclick = () => write('', '');
 }
+/* ---------- last night, asked for in the morning ----------
+
+   The two ends of a day are set on the Today page, and the Today page only
+   ever asks about today — so a bedtime is the one thing in this house you
+   cannot log at the time it happens, because at the time it happens you are
+   asleep. By the morning the question has moved onto yesterday's page, and
+   yesterday's page is not where anybody is standing. The gap was quiet: the
+   chart just said "no sleeping time" for that night, for ever.
+
+   So on a morning, once, the house asks.
+
+   Four things keep that from being a nag, and every one of them matters more
+   than the asking does.
+
+   It waits for a second day. On the first morning there is no yesterday to
+   have slept through, and a house that greets somebody with a form on the day
+   they move in is not a house.
+
+   It asks only when the answer is actually missing, and only if you were here
+   yesterday — a night the house never saw is not a night it gets to question
+   you about.
+
+   It asks once in a morning and then stops, whatever you answer, including
+   nothing. Closing it is an answer. The mark goes down before the question is
+   put, so a dismissal cannot fail to count.
+
+   And it can be turned off for good from inside itself, which is the only
+   honest thing to put on a window that opens by itself.
+
+   The boundary hour is why this is not simply "is it before noon". A day here
+   ends when you go to sleep, so at two in the morning today() is still
+   yesterday, nothing has ended, and there is no new night to ask about. */
+function bedtimeAskDue(at = new Date()){
+  if(typeof S === 'undefined' || !S || !S.settings) return null;
+  if(S.settings.askBedtime === false) return null;
+  const e = effectiveDate(at);
+  /* before the boundary the house is still living last night */
+  if(e.isLateNight) return null;
+  const h = at.getHours();
+  if(h < e.boundaryHour || h >= 12) return null;
+  const d = e.date, y = addDays(d, -1);
+  /* the first morning has no yesterday to ask about */
+  if(S.settings.firstOpen === d) return null;
+  if((S.dailyRhythm || {})[d]?.askedBedtime) return null;
+  /* you have to have been here, or there was no night for the house to watch */
+  const yr = (S.dailyRhythm || {})[y];
+  const here = !!(yr && (yr.lastSeenAt || yr.wakeTime || yr.sleepTime || (yr.blocks || []).length))
+    || !!(S.checkins || {})[y];
+  if(!here) return null;
+  /* rhythmDay rather than the raw record: a bedtime logged before this page
+     existed lives on the old check-in, and reading it through here migrates it */
+  if(rhythmDay(y).sleepTime) return null;
+  return y;
+}
+function maybeAskBedtime(){
+  const y = bedtimeAskDue(); if(!y) return;
+  /* never on top of something already speaking */
+  if(document.querySelector('#modals .overlay')) return;
+  const r = rhythmDay(today());
+  r.askedBedtime = true; save();
+  openBedtimeAsk(y);
+}
+function openBedtimeAsk(d){
+  const r = rhythmDay(d);
+  /* The house knows the last minute you were in it that night. Offering that
+     is not the same as recording it: it goes in the box as something to
+     correct or accept, and it is named as a guess. */
+  const guess = r.lastSeenAt || '';
+  const m = openModal(`<h2 class="serif">Last night</h2>
+    <p class="muted" style="font-size:.88rem;margin:0 0 16px">You did not close
+      ${esc(fmtDate(d, 'med'))}, so the night has no end on it. What time did
+      you go to sleep?</p>
+    <div class="field"><label>I went to sleep at</label>
+      <input type="time" class="inp mono serif-lg" id="bnTime" value="${esc(guess)}">
+      ${guess ? `<div class="mono faint" style="margin-top:5px;font-size:.7rem">
+        the last time you were here was ${esc(guess)} — change it if that was not when you turned in</div>` : ''}</div>
+    <div class="row" style="justify-content:space-between;margin-top:18px;gap:8px">
+      <button class="btn sm ghost" id="bnSkip">I don't remember</button>
+      <button class="btn primary" id="bnOk">Save</button></div>
+    <div style="margin-top:14px;text-align:center">
+      <button class="btn sm ghost" id="bnNever"
+        style="font-size:.72rem;opacity:.7">don't ask me in the mornings</button></div>`, 'narrow');
+  const done = () => { saveNow(); m.remove(); if(typeof rerender === 'function') rerender(); };
+  m.querySelector('#bnOk').onclick = () => {
+    const v = m.querySelector('#bnTime').value || '';
+    if(v){ r.sleepTime = v; rhythmCompute(r); sound('click'); }
+    done();
+  };
+  /* not knowing is a real answer, and it must not leave a guess behind
+     dressed up as something you said */
+  m.querySelector('#bnSkip').onclick = () => { sound('click'); done(); };
+  m.querySelector('#bnNever').onclick = () => {
+    S.settings.askBedtime = false; sound('click'); done();
+    if(typeof toast === 'function') toast('The house will stop asking. Settings can turn it back on, and the two ends of any day are always editable from the sleep chart.', 8000);
+  };
+  return m;
+}
+
 function weekShapeHTML(anchor = today()){ return sleepWakeHTML(anchor) + timePieHTML(); }
 function bindWeekShape(root, redraw){
   /* one line, many prepared sentences: hovering a column reveals its own and
@@ -45526,6 +45624,11 @@ async function initInner(){
      to speak, and the rest of boot waits behind it. */
   const restOfBoot = () => setTimeout(() => {
     try { maybeOfferHandoff(); } catch(e){ console.warn('handoff notice skipped', e); }
+    /* A bedtime is the one thing here that cannot be logged when it happens,
+       so on a morning the house asks for last night's — once, and only from
+       the second day on. See the note above bedtimeAskDue for everything that
+       stops it being a nag. */
+    try { maybeAskBedtime(); } catch(e){ console.warn('bedtime question skipped', e); }
     try { maybeOfferStarter(); } catch(e){ console.warn('starter set skipped', e); }
     try { migratePlanning(); planSeedIfEmpty(); } catch(e){ console.warn('planning seed skipped', e); }
     try { migrateContent(); contentSeedIfEmpty(); } catch(e){ console.warn('content seed skipped', e); } }, 1200);

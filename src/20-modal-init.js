@@ -424,6 +424,11 @@ async function initInner(){
      to speak, and the rest of boot waits behind it. */
   const restOfBoot = () => setTimeout(() => {
     try { maybeOfferHandoff(); } catch(e){ console.warn('handoff notice skipped', e); }
+    /* A bedtime is the one thing here that cannot be logged when it happens,
+       so on a morning the house asks for last night's — once, and only from
+       the second day on. See the note above bedtimeAskDue for everything that
+       stops it being a nag. */
+    try { maybeAskBedtime(); } catch(e){ console.warn('bedtime question skipped', e); }
     try { maybeOfferStarter(); } catch(e){ console.warn('starter set skipped', e); }
     try { migratePlanning(); planSeedIfEmpty(); } catch(e){ console.warn('planning seed skipped', e); }
     try { migrateContent(); contentSeedIfEmpty(); } catch(e){ console.warn('content seed skipped', e); } }, 1200);
