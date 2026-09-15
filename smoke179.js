@@ -72,16 +72,19 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   is('  and it comes back as a day, not a matrix', arrived.view, 'list');
 
   console.log('\n3. searching and adding share the top line');
+  /* the add was a button when this was written; it is a field now (smoke180),
+     and the only thing this section ever cared about is that the two sit
+     together on the line above the content */
   const top = await p.evaluate(() => {
     const s = document.querySelector('.pl-top #plSearch');
-    const a = document.querySelector('.pl-top .ctx-add');
+    const a = document.querySelector('.pl-top .pl-add-input');
     const t = n => n ? Math.round(n.getBoundingClientRect().top) : null;
     return {search: !!s, add: !!a,
       sameLine: s && a ? Math.abs(t(s) - t(a)) < 14 : false,
       stillInSidebar: !!document.querySelector('.pl-side #plSearch')};
   });
   yes('the search box is at the top of the content', top.search);
-  yes('  beside the new-task button', top.add && top.sameLine);
+  yes('  beside the place you write a new task', top.add && top.sameLine);
   yes('  and no longer inside the column of lists', !top.stillInSidebar);
   /* it still has to work from there */
   await p.fill('.pl-top #plSearch', 'zzzznothing'); await p.waitForTimeout(700);

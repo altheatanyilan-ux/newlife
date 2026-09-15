@@ -9,6 +9,12 @@ function planSel(){ return S._planSel = planFixSel(S._planSel || {kind:'smart', 
    which is what the top of the sidebar now opens with. */
 function planFixSel(sel){
   if(sel.kind === 'smart' && sel.id === 'all') return {kind:'smart', id: planSpan()};
+  /* There are two ways to name the Inbox — the smart view and the list that
+     actually holds the tasks — and they answer almost but not quite the same
+     way. The list is the real one: it has sections, a view of its own, and it
+     obeys "show done". Anything asking for the Inbox gets that one, so the
+     button at the top lights up whichever way you arrived. */
+  if(sel.kind === 'smart' && sel.id === 'inbox') return {kind:'list', id:'inbox'};
   return sel;
 }
 function planSetSel(kind, id){
@@ -51,7 +57,11 @@ function planSidebarHTML(){
       title="${esc(l.name)}${planListCount(l.id) ? ` · ${planListCount(l.id)} open` : ''}">
     <span class="pl-dot" style="background:${esc(l.color)}"></span><span class="pl-name">${esc(l.name)}</span>
     <span class="pl-n mono">${planListCount(l.id) || ''}</span></button>`;
-  const loose = planLists().filter(l => !l.folderId);
+  /* The Inbox is not one list among the lists. It is the place a task goes
+     when you have not said where it goes, so it belongs on the line that puts
+     things there — up beside the box you type into — not filed in the middle
+     of the column of the lists you made on purpose. */
+  const loose = planLists().filter(l => !l.folderId && l.id !== 'inbox');
   return `<aside class="pl-side${p.prefs.sidebarCollapsed ? ' collapsed' : ''}" id="plSide">
     <button class="pl-collapse" id="plCollapse" title="${p.prefs.sidebarCollapsed ? 'show the sidebar' : 'collapse the sidebar'}">${p.prefs.sidebarCollapsed ? '›' : '‹'}</button>
     <div class="pl-scroll">
@@ -401,13 +411,28 @@ function planHeaderHTML(sel){
   if(f.search) chips.push(`<span class="pf-chip on" data-pfclear="search">“${esc(f.search)}”<i>×</i></span>`);
   const special = sel.kind === 'smart' && sel.id === 'stats';
   return `<div class="pl-header">
-    <!-- The new-task button is placed here rather than above the page: the
-         slot is a promise mountContextAdd knows how to keep. Searching and
-         adding are the two things you do before you have decided what you are
-         looking at, so they share a line, and the sidebar starts level with
-         it rather than a search box lower down. -->
+    <!-- Writing a task down and looking for one are the two things you do
+         before you have decided what you are looking at, so they share the top
+         line, and the sidebar starts level with it rather than a search box
+         lower down.
+
+         Adding used to be a button that opened the whole task panel — a form
+         with a dozen fields for a sentence you already know how to write. It is
+         a line now: type it, press return, it is in the Inbox. The parse is the
+         same one the quadrants and the list use, so "friday 2pm !high ~1h"
+         still means what it means, and the Inbox is beside it because that is
+         where the line puts things and where you go to deal with them. -->
     <div class="pl-top">
-      <span class="pl-add-slot" data-ctx-slot></span>
+      <div class="pq-wrap pl-add">
+        <input class="inp pq-input pl-add-input" data-pqadd="${esc(JSON.stringify({listId:'inbox', fixed:true}))}"
+          placeholder="＋ new task — it waits in the Inbox">
+        <div class="pq-preview"></div>
+      </div>
+      ${(() => { const ib = planList('inbox'), n = planListCount('inbox');
+        return `<button class="pl-inbox${sel.kind === 'list' && sel.id === 'inbox' ? ' on' : ''}"
+          data-plsel="list:inbox" title="everything written down and not yet placed${n ? ` · ${n} open` : ''}">
+          <span class="pl-dot" style="background:${esc(ib ? ib.color : '#a89f94')}"></span>Inbox
+          ${n ? `<span class="pl-n mono">${n}</span>` : ''}</button>`; })()}
       <input class="inp mono pl-search" id="plSearch" placeholder="search tasks…"
         value="${esc(S._planQ || '')}">
     </div>
@@ -575,9 +600,10 @@ routes.planning = function(root, params){
     consumeHashParam('#/planning');
   }
   const sel = planSel();
-  registerPageEntry({pageName:'Planning', addLabel:'New task', defaultEntryType:'task', prefilledFields:{},
-    hint:'or type it straight into a quadrant, or the line at the top of the list',
-    options:[{label:'New task', run:() => openPlanTask(null)}]});
+  /* No contextual Add button here. The top line is the add: one field, one
+     return, into the Inbox. A button that opened a panel of empty fields was
+     the long way round to the same sentence, and having both would have meant
+     two answers to the same question sitting next to each other. */
 
   let tasks = planSelectionTasks(sel);
   if(planFilterCount(S._planFilter)) tasks = tasks.filter(t => planFilterKeep(S._planFilter, t));

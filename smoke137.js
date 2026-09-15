@@ -106,10 +106,17 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   await p.evaluate(() => closePanel?.());
 
   console.log('\n4. every other page keeps its add button');
-  for(const [hash, page] of [['#/planning','Planning'], ['#/people','People'], ['#/projects','Projects']]){
+  /* Planning dropped out of this list deliberately: its add is the field at
+     the top of the page now, not a button that opens the task panel (smoke180).
+     It is checked here for the absence, so that a page losing its button by
+     accident still shows up as a failure somewhere. */
+  for(const [hash, page] of [['#/people','People'], ['#/projects','Projects']]){
     await go(hash);
     yes(`${page} still has one`, await p.evaluate(() => !!document.querySelector('#ctxAdd')));
   }
+  await go('#/planning');
+  yes('Planning writes a task on its top line instead of opening a panel',
+      await p.evaluate(() => !document.querySelector('#ctxAdd') && !!document.querySelector('.pl-top .pl-add-input')));
   await go('#/today');
   yes('and coming back to Today still has none', await p.evaluate(() => !document.querySelector('#ctxAdd')));
 

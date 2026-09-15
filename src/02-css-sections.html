@@ -7326,17 +7326,44 @@ html[data-theme="light"] .wk-sleep{
    the search, which pushed the lists a box-height below the content they sit
    beside; with it gone they start level, which is the only reason the two
    columns ever looked out of step. */
-.pl-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 10px}
-.pl-add-slot{display:flex;flex:0 0 auto}
-.pl-top .ctx-add.inline{margin:0;padding:0;border:0;background:none}
-.pl-top .pl-search{flex:1 1 220px;min-width:160px;max-width:420px;
+.pl-top{display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap;margin:0 0 10px}
+/* The add is the widest thing on the line because it is the thing you use
+   most, and because what you type into it is a sentence. */
+.pl-top .pl-add{flex:2 1 300px;min-width:200px;margin:0;position:relative}
+.pl-top .pl-add-input{width:100%;padding:7px 11px;font-size:.82rem}
+/* the parse floats over the page rather than shoving the header down a line
+   with every keystroke */
+.pl-top .pl-add .pq-preview{position:absolute;left:0;right:0;top:100%;z-index:6}
+/* solid, because it is floating over the page now rather than sitting in it */
+.pl-top .pl-add .qp-preview{margin-top:4px;background:var(--surface-2);
+  border:1px solid var(--line-2);box-shadow:var(--surface-shadow)}
+.pl-inbox{display:flex;align-items:center;gap:7px;flex:0 0 auto;
+  padding:7px 11px;border:1px solid var(--line-2);border-radius:8px;
+  background:var(--surface-2);color:var(--muted);font-size:.82rem;cursor:pointer;
+  transition:background .18s var(--ease),color .18s var(--ease),border-color .18s var(--ease)}
+.pl-inbox:hover{color:var(--text);border-color:color-mix(in srgb,var(--text) 22%,transparent)}
+.pl-inbox.on{background:color-mix(in srgb,var(--page-accent) 15%,transparent);
+  color:var(--text);border-color:color-mix(in srgb,var(--page-accent) 40%,transparent)}
+.pl-inbox.over{background:color-mix(in srgb,var(--page-accent) 26%,transparent);color:var(--text)}
+.pl-inbox .pl-n{opacity:.7}
+/* something landed in there while you were looking elsewhere */
+.pl-inbox.landed{animation:plLanded .9s ease}
+@keyframes plLanded{
+  0%{background:color-mix(in srgb,var(--page-accent) 40%,transparent);
+     border-color:var(--page-accent);color:var(--text)}
+  100%{}}
+.pl-top .pl-search{flex:1 1 180px;min-width:150px;max-width:340px;
   padding:7px 11px;font-size:.82rem}
 /* both columns start at the same line */
 .plan-shell{align-items:start}
 .pl-side>.pl-scroll{padding-top:0}
 @media (max-width:760px){
   .pl-top{margin-bottom:8px}
+  .pl-top .pl-add{flex:1 1 100%}
   .pl-top .pl-search{flex:1 1 100%;max-width:none}
+}
+@media (prefers-reduced-motion:reduce){
+  .pl-inbox,.pl-inbox.landed{transition:none;animation:none}
 }
 </style>
 </head>

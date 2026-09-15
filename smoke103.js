@@ -167,74 +167,14 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('  and both are shown', pie.keys.includes(want.worked) && pie.keys.includes(want.rest),
       `${pie.keys.join(' ')} vs ${want.worked}/${want.rest}`);
 
-  console.log('\n7. the sleep chart is readable');
-  const chart = await p.evaluate(() => {
-    const svg = document.querySelector('.wk-svg'); if(!svg) return null;
-    const r = svg.getBoundingClientRect();
-    const page = document.querySelector('.week-shape').getBoundingClientRect();
-    const ticks = [...document.querySelectorAll('.wk-tick')].map(t => t.textContent);
-    return {w: Math.round(r.width), pageW: Math.round(page.width), ticks,
-      cols: document.querySelectorAll('.wk-col').length,
-      hasReadout: !!document.querySelector('#wkReadout')};
-  });
-  yes('it fills the width it is given rather than a third of it',
-      chart && chart.w > chart.pageW * 0.85, chart ? `${chart.w} of ${chart.pageW}` : 'no chart');
-  yes('the scale is fitted to the readings, not a fixed 4am–4am',
-      chart && !chart.ticks.includes('4am') && chart.ticks.length >= 4, (chart?.ticks || []).join(' '));
-  is('every day is a strip you can point at', chart && chart.cols, 7);
-
-  /* An SVG <title> was the browser's own tooltip: a second of delay, a system
-     bubble, and nothing at all under a finger. So the readout is a line of the
-     page — which means the test has to move a real pointer over a real column
-     and read what the line then says, not read an attribute off the markup. */
-  yes('there is a readout line at all', chart && chart.hasReadout);
-  const shown = () => p.evaluate(() => {
-    const n = document.querySelector('#wkReadout .wk-say:not([hidden])');
-    return n ? n.textContent.trim() : '';
-  });
-  const atRest = await shown();
-  yes('it rests on a day rather than sitting blank',
-      /woke|no waking time/.test(atRest), JSON.stringify(atRest));
-  /* pick a column that is not the one already being read out, so a change is
-     proof the pointer did it and not the initial paint */
-  const target = await p.evaluate(rest => {
-    const cols = [...document.querySelectorAll('[data-wkday]')];
-    const g = cols.find(c => { const say = document.querySelector(`[data-wksay="${c.dataset.wkday}"]`);
-      return say && say.textContent.trim() !== rest; }) || cols[0];
-    if(!g) return null;
-    const r = g.querySelector('.wk-hit').getBoundingClientRect();
-    return {d: g.dataset.wkday, x: r.x + r.width / 2, y: r.y + r.height / 2,
-      want: document.querySelector(`[data-wksay="${g.dataset.wkday}"]`).textContent.trim()};
-  }, atRest);
-  yes('a column can be found to point at', !!target);
-  await p.mouse.move(target.x, target.y);
-  await p.waitForTimeout(200);
-  const onHover = await shown();
-  is('pointing at a column reads out that column', onHover, target.want);
-  yes('  and it changed under the pointer', onHover !== atRest, `still ${JSON.stringify(onHover)}`);
-  yes('  naming the day and both ends of it',
-      /woke/.test(onHover) && /slept/.test(onHover), onHover);
-  yes('  including how much of it was worked, when any was',
-      !/h awake/.test(onHover) || /worked/.test(onHover) || /0\.0h/.test(onHover), onHover);
-  /* a tap has no hover, so a click has to read out too */
-  await p.mouse.move(5, 5);
-  await p.waitForTimeout(200);
-  /* which day rests there is whichever day is most recently logged, and the
-     page keeps redrawing as the timer runs — so assert it is the resting line,
-     not the string it happened to hold a moment ago */
-  yes('taking the pointer off puts the resting day back',
-      await p.evaluate(() => document.querySelector('#wkReadout .wk-say:not([hidden])')?.classList.contains('rest')),
-      await shown());
-  /* A tap has no hover to read a line out with, so pressing a column opens
-     that day's two ends instead — which names the day and shows both times,
-     and is also how you change them. */
-  await p.evaluate(d => document.querySelector(`[data-wkday="${d}"]`).dispatchEvent(
-    new MouseEvent('click', {bubbles: true})), target.d);
-  await p.waitForTimeout(500);
-  const tapped = await p.evaluate(() => {
-    const m = document.querySelector('#modals .modal'); return m ? m.innerText : ''; });
-  yes('and a tap opens that day, for a screen with no pointer',
-      /\d/.test(tapped) && /woke|sleep|slept|wake/i.test(tapped), JSON.stringify(tapped.slice(0, 70)));
+  /* Section 7 used to be here: the sleep chart, when it was a dot-and-line
+     drawing with an SVG the pointer moved over. It is stacked bars now, one
+     row to a day, with a readout that follows the row — a different drawing
+     with different markup, and smoke178 tests it end to end, including the
+     things this section cared about: that it fills its width, that the scale
+     is the whole day rather than a fixed 4am-to-4am window, that there is a
+     line saying which day you are on, and that it answers a pointer. Keeping
+     a copy here that asserts the old markup only taught this file to crash. */
 
   console.log('\n' + (errs.length ? 'console:\n  ' + errs.join('\n  ') : 'console: clean'));
   if(errs.length) bad += errs.length;

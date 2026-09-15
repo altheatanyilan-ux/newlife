@@ -210,19 +210,31 @@ function bindPlanning(root, sel, tasks){
       if(ev.key !== 'Enter') return; ev.preventDefault();
       const v = inp.value.trim(); if(!v) return;
       const merged = Object.assign({}, ctx);
-      if(sel.kind === 'list') merged.listId = merged.listId || sel.id;
-      if(sel.kind === 'tag')  merged.tag = sel.id;
-      if(sel.kind === 'smart' && sel.id === 'today')    merged.day = today();
-      if(sel.kind === 'smart' && sel.id === 'tomorrow') merged.day = addDays(today(), 1);
+      /* A line inside the workspace is asking about what is open: type into
+         Tuesday and you meant Tuesday. The line at the top of the page is not
+         — it is there before you have chosen anything, and it says where it
+         puts things on its own face. fixed means take the page at its word and
+         leave the selection out of it. */
+      if(!ctx.fixed){
+        if(sel.kind === 'list') merged.listId = merged.listId || sel.id;
+        if(sel.kind === 'tag')  merged.tag = sel.id;
+        if(sel.kind === 'smart' && sel.id === 'today')    merged.day = today();
+        if(sel.kind === 'smart' && sel.id === 'tomorrow') merged.day = addDays(today(), 1);
+      }
       const t = commitQuickTask(v, merged);
       if(!t) return;
       if(merged.tag && !t.tags.includes(merged.tag)){ t.tags.push(merged.tag); planEnsureTag(merged.tag); saveNow(); }
       sound('success');
-      const mark = inp.dataset.pqadd;
+      const mark = inp.dataset.pqadd, landed = t.listId;
       rerender();
       /* the redraw replaces this input, so the caret goes to its replacement */
       requestAnimationFrame(() => { const next = document.querySelector(`[data-pqadd='${CSS.escape(mark)}']`);
-        if(next){ next.value = ''; next.focus(); } });
+        if(next){ next.value = ''; next.focus(); }
+        /* Typed from the top line while looking at Tuesday, the task lands
+           somewhere you cannot see. The Inbox is the one thing on that line
+           that can say so: its count goes up and it answers. */
+        if(ctx.fixed && landed === 'inbox'){ const ib = document.querySelector('.pl-inbox');
+          if(ib){ ib.classList.remove('landed'); void ib.offsetWidth; ib.classList.add('landed'); } } });
     });
   });
 

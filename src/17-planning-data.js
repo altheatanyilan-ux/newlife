@@ -34,8 +34,9 @@ const PLAN_COLORS = ['#b08968','#a0727e','#7f916a','#d4a44c','#6b7f8e','#8a7f9e'
 
 /* Today, tomorrow and the next seven days are one question asked over three
    spans, not three places to go — so they are one row with the span chosen on
-   it. Inbox is gone from the sidebar: a list nobody filed anything into is not
-   worth a permanent line, and the Inbox list itself is still in Lists below.
+   it. Inbox is not in this column at all: it is the other half of the line you
+   type a task into, at the top of the page, because that is where tasks go
+   when you have not said where they go.
    Completed sits at the bottom because finished work is what you look at last. */
 const PLAN_SMART_VIEWS = [
   {id:'inbox',    icon:'▫', name:'Inbox',       hint:'anything not yet filed'},

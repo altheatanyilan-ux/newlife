@@ -28,6 +28,10 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     saveNow(); location.hash = '#/planning'; rerender();
   });
   await p.waitForTimeout(1500);
+  /* A date opens as a day now, not as a matrix (smoke179) — which is right,
+     and beside the point here: this is about the tray on the matrix, so ask
+     for the matrix. */
+  await p.evaluate(() => { planSetView('eisenhower'); }); await p.waitForTimeout(1200);
   is('the page is on the matrix', await p.evaluate(() => planView()), 'eisenhower');
   const tray = await p.evaluate(() => {
     const box = document.querySelector('.pe-traybox'); if(!box) return null;
