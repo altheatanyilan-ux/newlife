@@ -283,6 +283,9 @@ function divinationSave(rec){
          typed in afterwards. Everything else about the two is identical. */
       source: rec.source === 'physical' ? 'physical' : 'digital'}}};
   S.entries.push(e); saveNow();
+  /* a reading kept because you need to keep hearing it, rather than because
+     it happened */
+  if(rec.pin && typeof setEntryPinned === 'function') setEntryPinned(e.id, true);
   return e;
 }
 const divinationOf = e => e?.extra?.divination || null;
@@ -706,7 +709,7 @@ function openTarot(pre = {}){
             title:`${sp.name} — ${picks.map(pk => TAROT[pk.card].n).join(', ')}`,
             cards:picks.map((pk, i) => ({card:pk.card, rev:pk.rev, pos:sp.pos[i]})),
             reading:m.querySelector('#dvText').value.trim(), source:'digital',
-            revisit:m.querySelector('#dvRevisit').checked, projectId:m.querySelector('#dvProj')?.value || null});
+            revisit:m.querySelector('#dvRevisit').checked, pin: m.querySelector('#dvPin')?.checked, projectId:m.querySelector('#dvProj')?.value || null});
           stopAll();
           sound('success'); toast('Kept in the Lived Record.'); m.remove(); rerender();
         };
@@ -723,6 +726,11 @@ function divKeepHTML(projects){
     <div class="field"><textarea class="inp" id="dvText" rows="5" placeholder="Not what the book says. What it says to you, about the thing you asked."></textarea></div>
     <div class="row between" style="margin-top:10px;flex-wrap:wrap;gap:8px">
       <label class="row" style="gap:6px;font-size:.78rem;align-items:center"><input type="checkbox" id="dvRevisit"> <span>come back to this one</span></label>
+      <!-- Some readings say the thing once and you are done with them. Some say
+           the thing you have been avoiding, and the use of them is hearing it
+           again tomorrow. This is the moment to know which — you have just read
+           it — so the choice is here rather than found later in the archive. -->
+      <label class="row" style="gap:6px;font-size:.78rem;align-items:center"><input type="checkbox" id="dvPin"> <span>📌 keep it on Today</span></label>
       ${(projects || []).length ? `<select class="inp sm" id="dvProj"><option value="">nothing in particular</option>
         ${projects.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select>` : ''}
       <button class="btn primary" id="dvSave">Keep the reading</button></div>
@@ -881,7 +889,7 @@ function openIChing(pre = {}){
           hexagram:{i:h.i, n:h.n, c:h.c}, relating:rel ? {i:rel.i, n:rel.n} : null,
           method, tosses:rolls,
           reading:m.querySelector('#dvText').value.trim(),
-          revisit:m.querySelector('#dvRevisit').checked,
+          revisit:m.querySelector('#dvRevisit').checked, pin: m.querySelector('#dvPin')?.checked,
           projectId:m.querySelector('#dvProj')?.value || null});
         stopAll(); sound('success'); toast('Kept in the Lived Record.'); m.remove(); rerender();
       };
@@ -936,6 +944,7 @@ function openOracle(deckId){
         <p>${esc(ORACLE_SIT[deck.id] || ORACLE_SIT.inner)}</p></section>
       <section class="or-yours"><h4 class="dv-sec-h">Your response</h4>
         <div class="field"><textarea class="inp" id="orText" rows="4" placeholder="Not what it means in general. What it means here."></textarea></div>
+        <label class="row" style="gap:6px;font-size:.78rem;align-items:center"><input type="checkbox" id="orPin"> <span>📌 keep it on Today</span></label>
       </section>`;
     const card = m.querySelector('#orCard');
     const turn = () => { card.classList.add('up'); sound('click');
@@ -945,7 +954,8 @@ function openOracle(deckId){
     m.querySelector('#orDraw').onclick = () => {
       divinationSave({system:'oracle', deck:deck.id, question:m.querySelector('#orQ').value.trim(),
         title:`${deck.name} — ${name}`, cards:[{name, text}],
-        reading:m.querySelector('#orText').value.trim()});
+        reading:m.querySelector('#orText').value.trim(),
+        pin:m.querySelector('#orPin')?.checked});
       sound('success'); m.remove(); rerender();
     };
   };

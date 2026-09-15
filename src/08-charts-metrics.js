@@ -252,8 +252,13 @@ function entryCard(e, {clamp:cl=true, tools=true}={}){
     ${pics.length ? imageBackdropHTML(e) : ''}
     <div class="meta"><span class="mono">${typeIcon(e.type)} ${typeName(e.type)}</span><span class="mono">${esc(fmtDate(e.occurredAt,'med'))}</span>${unfinishedFlag(e)?`<span class="status-pill unf-pill" title="waiting at the bottom of Today">unfinished</span>`:''}${e.confidence?`<span class="status-pill">${esc(e.confidence)}</span>`:''}${tools?`<span class="tools"><button class="tbtn" data-edit="${e.id}">edit</button><button class="snip-btn" data-snip="${e.id}" title="save to the Writing Studio">✂</button>${
       /* a quote, or an entry carrying a photograph, can go straight onto the
-         Morning Theatre's vision board without being retyped there */
-      (q || pics.length) ? `<button class="snip-btn" data-vbpin="${e.id}" title="pin to the vision board">📌</button>` : ''}</span>`:''}</div>${tools?`<button class="del-x" data-del="${e.id}" title="delete" aria-label="delete entry">×</button>`:''}
+         Morning Theatre's vision board without being retyped there. It used to
+         be a 📌 too, which stopped being tellable the moment the pin below
+         arrived meaning something else — so it is the board's own glyph now. */
+      (q || pics.length) ? `<button class="snip-btn" data-vbpin="${e.id}" title="add to the vision board">▣</button>` : ''}${
+      /* and any entry at all can be kept on Today, to be reread rather than
+         merely filed — see 16-pins.js */
+      `<button class="snip-btn pin-btn${e.pinned ? ' on' : ''}" data-pin="${e.id}" aria-pressed="${!!e.pinned}" title="${e.pinned ? 'stop keeping this on Today' : 'keep this on Today, to reread'}">📌</button>`}</span>`:''}</div>${tools?`<button class="del-x" data-del="${e.id}" title="delete" aria-label="delete entry">×</button>`:''}
     ${e.title?`<div class="title">${esc(e.title)}</div>`:''}
     ${e.body?`<div class="body ${cl?'clamp':''} ${q?'quote':''}">${q?'“'+esc(e.body)+'”':md(e.body)}</div>`:''}
     ${rest.length?`<div class="thumbs">${rest.map(m=>`<div class="photo" style="width:88px;height:88px;cursor:zoom-in" data-lb="${m.id}"><img src="${m.src}" alt="${esc(m.caption)}"></div>`).join('')}</div>`:''}
@@ -281,6 +286,8 @@ document.addEventListener('click', e => {
     else pinToVisionBoard({type:'quote', text:ent.body || ent.title || '', source:ent.title || '',
       projectId:(ent.links?.projects || [])[0] || null}, 'The quote');
     rerender(); }
+  const kp = e.target.closest('[data-pin]');
+  if(kp){ e.stopPropagation(); togglePinEntry(kp.dataset.pin); rerender(); return; }
   const qw = e.target.closest('[data-qwopen]'); if(qw){ e.stopPropagation(); navigate('#/commonplace/' + qw.dataset.qwopen); }
   const an = e.target.closest('[data-answer]'); if(an){ const ent = byId(S.entries, an.dataset.answer);
     const m = openModal(`<h2>An answer, for now</h2><p class="quote">${esc(ent.title)}</p>

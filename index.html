@@ -8028,6 +8028,22 @@ html[data-theme="light"] .wk-sleep{
 @media (prefers-reduced-motion:reduce){
   .pl-inbox,.pl-inbox.landed{transition:none;animation:none}
 }
+
+/* ---------- Pinned: the entries kept for rereading ----------
+   The panel draws real entry cards, which carry their own look already, so
+   there is very little here — a little air between them, and a pin that says
+   whether it is in or out. */
+.th-pinned{display:flex;flex-direction:column;gap:2px}
+.th-pinned .entry{margin-bottom:0}
+/* inside the theatre the cards are reading matter, not a page of their own */
+.th-pinned .entry .body{font-size:.88rem}
+.pin-btn{transition:color .16s var(--ease),transform .16s var(--ease);filter:grayscale(1);opacity:.55}
+.pin-btn:hover{opacity:1;transform:translateY(-1px)}
+.pin-btn.on{filter:none;opacity:1}
+@media (prefers-reduced-motion:reduce){
+  .pin-btn{transition:none}
+  .pin-btn:hover{transform:none}
+}
 </style>
 </head>
 <body>
@@ -8393,7 +8409,16 @@ function tagChips(e, {link=true}={}){ const t = entryTags(e); return t.length ? 
 const KEY = 'lifeinstrument.v1';
 let S = null;
 /* persistence lives in db.js (Dexie schema + load/save/backup) */
-function migrate(){ if(S.settings && ['map','home','compass'].includes(S.settings.home)) S.settings.home = 'today'; wipeDemoData(); if(S.rehearsal && !S.rehearsal){ S.rehearsal = S.rehearsal; } delete S.rehearsal; if(typeof migrateEras === 'function') migrateEras(); const d = seed(); for(const k of Object.keys(d)) if(S[k]===undefined) S[k] = d[k]; if(typeof migrateLifeline === 'function') migrateLifeline(); if(typeof migrateEntryLinks === 'function') migrateEntryLinks(); if(typeof migrateSkillLevels === 'function') migrateSkillLevels(); if(typeof migrateSkillAbilities === 'function') migrateSkillAbilities(); if(typeof migrateProjects === 'function') migrateProjects(); if(typeof migrateStages === 'function') migrateStages(); if(typeof migrateTasks === 'function') migrateTasks(); if(typeof migrateIdeas === 'function') migrateIdeas(); if(typeof migrateMedia === 'function') migrateMedia(); if(typeof migrateSkillFocus === 'function') migrateSkillFocus(); if(typeof migrateSkillCats === 'function') migrateSkillCats(); if(typeof migratePeople === 'function') migratePeople(); if(typeof migrateValuePractices === 'function') migrateValuePractices(); if(typeof migrateFinance === 'function') migrateFinance(); if(typeof migrateRhythm === 'function') migrateRhythm(); if(typeof migrateTheatre === 'function') migrateTheatre(); if(typeof migrateStillness === 'function') migrateStillness(); if(typeof migrateReviews === 'function') migrateReviews(); if(typeof migrateJournalTypes === 'function') migrateJournalTypes(); S.boards = Array.isArray(S.boards) ? S.boards : []; if(typeof migrateBoards === 'function') migrateBoards(); }
+function migrate(){ if(S.settings && ['map','home','compass'].includes(S.settings.home)) S.settings.home = 'today'; wipeDemoData(); /* There was a clause here that read `if(S.rehearsal && !S.rehearsal){ S.rehearsal
+   = S.rehearsal; } delete S.rehearsal;` — a rename migration whose two sides had
+   been collapsed onto one name by some past search-and-replace. The condition could
+   never be true, so all that survived of it was an unconditional delete, and it ran
+   on every boot: the whole Morning Theatre — the self-image script, the winning
+   feeling, the chief aim, the vision board, every scene, every scripting, the thanks,
+   the 21-day tracker and the section order — was thrown away and reseeded empty every
+   time the page was opened. Nothing else is needed in its place: seed() already fills
+   `rehearsal` when it is genuinely absent, three lines below. */
+  if(typeof migrateEras === 'function') migrateEras(); const d = seed(); for(const k of Object.keys(d)) if(S[k]===undefined) S[k] = d[k]; if(typeof migrateLifeline === 'function') migrateLifeline(); if(typeof migrateEntryLinks === 'function') migrateEntryLinks(); if(typeof migrateSkillLevels === 'function') migrateSkillLevels(); if(typeof migrateSkillAbilities === 'function') migrateSkillAbilities(); if(typeof migrateProjects === 'function') migrateProjects(); if(typeof migrateStages === 'function') migrateStages(); if(typeof migrateTasks === 'function') migrateTasks(); if(typeof migrateIdeas === 'function') migrateIdeas(); if(typeof migrateMedia === 'function') migrateMedia(); if(typeof migrateSkillFocus === 'function') migrateSkillFocus(); if(typeof migrateSkillCats === 'function') migrateSkillCats(); if(typeof migratePeople === 'function') migratePeople(); if(typeof migrateValuePractices === 'function') migrateValuePractices(); if(typeof migrateFinance === 'function') migrateFinance(); if(typeof migrateRhythm === 'function') migrateRhythm(); if(typeof migrateTheatre === 'function') migrateTheatre(); if(typeof migrateStillness === 'function') migrateStillness(); if(typeof migrateReviews === 'function') migrateReviews(); if(typeof migrateJournalTypes === 'function') migrateJournalTypes(); S.boards = Array.isArray(S.boards) ? S.boards : []; if(typeof migrateBoards === 'function') migrateBoards(); }
 
 /* One-time: the house used to open furnished with a demonstration life. If that
    demonstration is still here, clear it so the rooms start empty. */
@@ -13016,8 +13041,13 @@ function entryCard(e, {clamp:cl=true, tools=true}={}){
     ${pics.length ? imageBackdropHTML(e) : ''}
     <div class="meta"><span class="mono">${typeIcon(e.type)} ${typeName(e.type)}</span><span class="mono">${esc(fmtDate(e.occurredAt,'med'))}</span>${unfinishedFlag(e)?`<span class="status-pill unf-pill" title="waiting at the bottom of Today">unfinished</span>`:''}${e.confidence?`<span class="status-pill">${esc(e.confidence)}</span>`:''}${tools?`<span class="tools"><button class="tbtn" data-edit="${e.id}">edit</button><button class="snip-btn" data-snip="${e.id}" title="save to the Writing Studio">✂</button>${
       /* a quote, or an entry carrying a photograph, can go straight onto the
-         Morning Theatre's vision board without being retyped there */
-      (q || pics.length) ? `<button class="snip-btn" data-vbpin="${e.id}" title="pin to the vision board">📌</button>` : ''}</span>`:''}</div>${tools?`<button class="del-x" data-del="${e.id}" title="delete" aria-label="delete entry">×</button>`:''}
+         Morning Theatre's vision board without being retyped there. It used to
+         be a 📌 too, which stopped being tellable the moment the pin below
+         arrived meaning something else — so it is the board's own glyph now. */
+      (q || pics.length) ? `<button class="snip-btn" data-vbpin="${e.id}" title="add to the vision board">▣</button>` : ''}${
+      /* and any entry at all can be kept on Today, to be reread rather than
+         merely filed — see 16-pins.js */
+      `<button class="snip-btn pin-btn${e.pinned ? ' on' : ''}" data-pin="${e.id}" aria-pressed="${!!e.pinned}" title="${e.pinned ? 'stop keeping this on Today' : 'keep this on Today, to reread'}">📌</button>`}</span>`:''}</div>${tools?`<button class="del-x" data-del="${e.id}" title="delete" aria-label="delete entry">×</button>`:''}
     ${e.title?`<div class="title">${esc(e.title)}</div>`:''}
     ${e.body?`<div class="body ${cl?'clamp':''} ${q?'quote':''}">${q?'“'+esc(e.body)+'”':md(e.body)}</div>`:''}
     ${rest.length?`<div class="thumbs">${rest.map(m=>`<div class="photo" style="width:88px;height:88px;cursor:zoom-in" data-lb="${m.id}"><img src="${m.src}" alt="${esc(m.caption)}"></div>`).join('')}</div>`:''}
@@ -13045,6 +13075,8 @@ document.addEventListener('click', e => {
     else pinToVisionBoard({type:'quote', text:ent.body || ent.title || '', source:ent.title || '',
       projectId:(ent.links?.projects || [])[0] || null}, 'The quote');
     rerender(); }
+  const kp = e.target.closest('[data-pin]');
+  if(kp){ e.stopPropagation(); togglePinEntry(kp.dataset.pin); rerender(); return; }
   const qw = e.target.closest('[data-qwopen]'); if(qw){ e.stopPropagation(); navigate('#/commonplace/' + qw.dataset.qwopen); }
   const an = e.target.closest('[data-answer]'); if(an){ const ent = byId(S.entries, an.dataset.answer);
     const m = openModal(`<h2>An answer, for now</h2><p class="quote">${esc(ent.title)}</p>
@@ -24343,7 +24375,7 @@ function castStageInto(host, thrown, opt){
           up:t.up, flipped:t.flipped})),
         cards: [], source: opt.source || 'digital',
         reading: host.querySelector('#dvText').value.trim(),
-        revisit: host.querySelector('#dvRevisit').checked,
+        revisit: host.querySelector('#dvRevisit').checked, pin: host.querySelector('#dvPin')?.checked,
         projectId: host.querySelector('#dvProj')?.value || null});
       stopAll(); sound('success'); toast('Kept in the Lived Record.');
       if(opt.modal) opt.modal.remove();
@@ -27167,7 +27199,7 @@ function openPhysicalReading(pre = {}){
         title:`${s.name} — ${picks.map(pk => TAROT[pk.card].n).join(', ')}`,
         cards:picks.map((pk, i) => ({card:pk.card, rev:pk.rev, pos:s.pos[i]})),
         reading:m.querySelector('#dvText').value.trim(), source:'physical',
-        revisit:m.querySelector('#dvRevisit').checked, projectId:m.querySelector('#dvProj')?.value || null});
+        revisit:m.querySelector('#dvRevisit').checked, pin: m.querySelector('#dvPin')?.checked, projectId:m.querySelector('#dvProj')?.value || null});
       sound('success'); toast('Kept in the Lived Record.'); m.remove(); rerender();
     };
   };
@@ -28429,6 +28461,9 @@ function divinationSave(rec){
          typed in afterwards. Everything else about the two is identical. */
       source: rec.source === 'physical' ? 'physical' : 'digital'}}};
   S.entries.push(e); saveNow();
+  /* a reading kept because you need to keep hearing it, rather than because
+     it happened */
+  if(rec.pin && typeof setEntryPinned === 'function') setEntryPinned(e.id, true);
   return e;
 }
 const divinationOf = e => e?.extra?.divination || null;
@@ -28852,7 +28887,7 @@ function openTarot(pre = {}){
             title:`${sp.name} — ${picks.map(pk => TAROT[pk.card].n).join(', ')}`,
             cards:picks.map((pk, i) => ({card:pk.card, rev:pk.rev, pos:sp.pos[i]})),
             reading:m.querySelector('#dvText').value.trim(), source:'digital',
-            revisit:m.querySelector('#dvRevisit').checked, projectId:m.querySelector('#dvProj')?.value || null});
+            revisit:m.querySelector('#dvRevisit').checked, pin: m.querySelector('#dvPin')?.checked, projectId:m.querySelector('#dvProj')?.value || null});
           stopAll();
           sound('success'); toast('Kept in the Lived Record.'); m.remove(); rerender();
         };
@@ -28869,6 +28904,11 @@ function divKeepHTML(projects){
     <div class="field"><textarea class="inp" id="dvText" rows="5" placeholder="Not what the book says. What it says to you, about the thing you asked."></textarea></div>
     <div class="row between" style="margin-top:10px;flex-wrap:wrap;gap:8px">
       <label class="row" style="gap:6px;font-size:.78rem;align-items:center"><input type="checkbox" id="dvRevisit"> <span>come back to this one</span></label>
+      <!-- Some readings say the thing once and you are done with them. Some say
+           the thing you have been avoiding, and the use of them is hearing it
+           again tomorrow. This is the moment to know which — you have just read
+           it — so the choice is here rather than found later in the archive. -->
+      <label class="row" style="gap:6px;font-size:.78rem;align-items:center"><input type="checkbox" id="dvPin"> <span>📌 keep it on Today</span></label>
       ${(projects || []).length ? `<select class="inp sm" id="dvProj"><option value="">nothing in particular</option>
         ${projects.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select>` : ''}
       <button class="btn primary" id="dvSave">Keep the reading</button></div>
@@ -29027,7 +29067,7 @@ function openIChing(pre = {}){
           hexagram:{i:h.i, n:h.n, c:h.c}, relating:rel ? {i:rel.i, n:rel.n} : null,
           method, tosses:rolls,
           reading:m.querySelector('#dvText').value.trim(),
-          revisit:m.querySelector('#dvRevisit').checked,
+          revisit:m.querySelector('#dvRevisit').checked, pin: m.querySelector('#dvPin')?.checked,
           projectId:m.querySelector('#dvProj')?.value || null});
         stopAll(); sound('success'); toast('Kept in the Lived Record.'); m.remove(); rerender();
       };
@@ -29082,6 +29122,7 @@ function openOracle(deckId){
         <p>${esc(ORACLE_SIT[deck.id] || ORACLE_SIT.inner)}</p></section>
       <section class="or-yours"><h4 class="dv-sec-h">Your response</h4>
         <div class="field"><textarea class="inp" id="orText" rows="4" placeholder="Not what it means in general. What it means here."></textarea></div>
+        <label class="row" style="gap:6px;font-size:.78rem;align-items:center"><input type="checkbox" id="orPin"> <span>📌 keep it on Today</span></label>
       </section>`;
     const card = m.querySelector('#orCard');
     const turn = () => { card.classList.add('up'); sound('click');
@@ -29091,7 +29132,8 @@ function openOracle(deckId){
     m.querySelector('#orDraw').onclick = () => {
       divinationSave({system:'oracle', deck:deck.id, question:m.querySelector('#orQ').value.trim(),
         title:`${deck.name} — ${name}`, cards:[{name, text}],
-        reading:m.querySelector('#orText').value.trim()});
+        reading:m.querySelector('#orText').value.trim(),
+        pin:m.querySelector('#orPin')?.checked});
       sound('success'); m.remove(); rerender();
     };
   };
@@ -31485,6 +31527,73 @@ function renderLifeTape(box){
   bindTapeFilters(box);
   _bindLtBody(box.querySelector('#ltBody') || box);
   reveal(box);
+}
+/* ============================================================
+   PINNED — the things you know you need to hear again.
+
+   Some of what gets written down is a record: it happened, it is filed, you
+   will find it when you go looking. And some of it is a message. A reading
+   that said the thing you had been avoiding, a quote that keeps turning out
+   to be about your life, a reflection you wrote once and have not managed to
+   act on yet. Those are not for the archive. They are for every morning.
+
+   So an entry can be pinned, and pinned entries gather in the Morning
+   Theatre, beside the vision board — which is the same idea in pictures.
+
+   Every one of these is an entry in S.entries: a kept divination reading is
+   an entry of type `divination`, a quote is an entry of type `quote`, a
+   reflection is an entry of type `reflection`. That is why this is one
+   mechanism and not three, and why the control can live in entryCard(),
+   which is what draws an entry everywhere in the house.
+
+   The pin is a flag on the entry rather than a list of ids kept somewhere
+   else. A list would have to be swept every time an entry is deleted, and
+   the sweep is the kind of thing that gets forgotten until somebody's Today
+   page is trying to draw an entry that is not there any more.
+   ============================================================ */
+
+function entryPinned(id){ const e = byId(S.entries, id); return !!(e && e.pinned); }
+function pinnedEntries(){
+  return (S.entries || []).filter(e => e && e.pinned)
+    /* most recently pinned first: a thing you pinned this morning is the
+       thing you pinned it for */
+    .sort((a, b) => String(b.pinnedAt || '').localeCompare(String(a.pinnedAt || '')));
+}
+function setEntryPinned(id, on){
+  const e = byId(S.entries, id); if(!e) return null;
+  if(on){ e.pinned = true; e.pinnedAt = new Date().toISOString(); }
+  else { delete e.pinned; delete e.pinnedAt; }
+  saveNow();
+  return e;
+}
+function togglePinEntry(id){
+  const e = byId(S.entries, id); if(!e) return null;
+  const on = !e.pinned;
+  setEntryPinned(id, on);
+  sound(on ? 'success' : 'click');
+  toast(on ? 'Pinned to Today.' : 'Unpinned.');
+  return e;
+}
+
+/* ---------- the panel, inside the Morning Theatre ----------
+   It is drawn by entryCard(), the same as anywhere else, which is the whole
+   point: a pinned reading looks like the reading, a pinned quote looks like
+   the quote, and the 📌 that put it here is the 📌 that takes it away. */
+function pinsPanelHTML(){
+  const items = pinnedEntries();
+  const n = items.length;
+  return `<details class="th-sec th-pins" data-th="pins" open>
+    <summary><span class="th-name">Pinned</span>
+      <span class="mono faint">${n ? `${n} to reread` : 'nothing pinned'}</span>
+      ${n ? '<i class="th-tick">✓</i>' : ''}</summary>
+    <div class="th-body">
+      ${n
+        ? `<p class="th-quote">The ones you keep needing to hear. Read them before the day starts talking.</p>
+           <div class="th-pinned">${items.map(e => entryCard(e)).join('')}</div>`
+        : `<div class="empty">Nothing pinned yet. Anywhere an entry is read — a kept reading,
+             a quote, a reflection — the 📌 beside it keeps a copy here, for the ones you know
+             you need to hear again rather than merely to have written down.</div>`}
+    </div></details>`;
 }
 /* ============================================================
    THE REVIEW — reading the period before writing about it
@@ -34691,6 +34800,7 @@ const TH_FEELINGS = ['excited','peaceful','powerful','held','free','proud','ligh
 const TH_SECTIONS = [
   ['script',   'Self-image script'],
   ['winning',  'The winning feeling'],
+  ['pins',     'Pinned'],
   ['board',    'Vision board'],
   ['scene',    'A scene, entered'],
   ['scripting','Scripting'],
@@ -34707,8 +34817,27 @@ function migrateTheatre(){
   ['scenes','scripts','tension','thanks','wheels'].forEach(k => { if(!Array.isArray(r[k])) r[k] = []; });
   if(!r.prefs) r.prefs = {order:TH_SECTIONS.map(s => s[0]), project:null, showFlow:true};
   if(!Array.isArray(r.prefs.order)) r.prefs.order = TH_SECTIONS.map(s => s[0]);
-  /* a section added after someone set their own order still has to appear */
-  TH_SECTIONS.forEach(([k]) => { if(!r.prefs.order.includes(k)) r.prefs.order.push(k); });
+  /* A section added after someone set their own order still has to appear —
+     and it has to appear where it was meant to be. Pushing it onto the end put
+     every new section at the bottom of the theatre regardless of where it was
+     placed in TH_SECTIONS, which for one placed deliberately next to another
+     (Pinned, beside the vision board) is simply the wrong place. So it goes in
+     after whichever of its TH_SECTIONS predecessors this person already has,
+     and only falls to the end when it has none. */
+  TH_SECTIONS.forEach(([k], i) => {
+    if(r.prefs.order.includes(k)) return;
+    /* Its neighbours here are the only record of where it was meant to go, and
+       the one it comes BEFORE is the better anchor: a section is added next to
+       the thing it belongs with (Pinned, before the vision board), and if that
+       thing has been dragged to the top of somebody's theatre then the top is
+       where the new one belongs too. Falling back to the section it comes
+       after covers a new last section, which has nothing in front of it. */
+    let at = -1;
+    for(let j = i + 1; j < TH_SECTIONS.length && at < 0; j++) at = r.prefs.order.indexOf(TH_SECTIONS[j][0]);
+    if(at >= 0){ r.prefs.order.splice(at, 0, k); return; }
+    for(let j = i - 1; j >= 0 && at < 0; j--) at = r.prefs.order.indexOf(TH_SECTIONS[j][0]);
+    if(at < 0) r.prefs.order.push(k); else r.prefs.order.splice(at + 1, 0, k);
+  });
   r.prefs.order = r.prefs.order.filter(k => TH_SECTIONS.some(s => s[0] === k));
   if(!Array.isArray(r.days)) r.days = [];
   return r;
@@ -35121,6 +35250,9 @@ function theatrePanelHTML(key){
   if(key === 'aim') return `<details class="th-sec" data-th="aim">${head('Definite chief aim', 'Hill')}
     <div class="th-body"><div class="faint" style="font-size:.8rem;margin-bottom:6px">The exact thing desired, what you will give in return, the date, the plan. Read aloud morning and night, with feeling.</div>
       ${ed('rehearsal.aim', {multi:true, cls:'prose serif-lg', ph:'By [date] I will have [exactly this]. In return I will give [this].'})}</div></details>`;
+
+  /* drawn next door, where the entries it holds are already drawn from */
+  if(key === 'pins') return typeof pinsPanelHTML === 'function' ? pinsPanelHTML() : '';
 
   if(key === 'board'){
     const items = vbSorted();

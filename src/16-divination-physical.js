@@ -212,7 +212,7 @@ function openPhysicalReading(pre = {}){
         title:`${s.name} — ${picks.map(pk => TAROT[pk.card].n).join(', ')}`,
         cards:picks.map((pk, i) => ({card:pk.card, rev:pk.rev, pos:s.pos[i]})),
         reading:m.querySelector('#dvText').value.trim(), source:'physical',
-        revisit:m.querySelector('#dvRevisit').checked, projectId:m.querySelector('#dvProj')?.value || null});
+        revisit:m.querySelector('#dvRevisit').checked, pin: m.querySelector('#dvPin')?.checked, projectId:m.querySelector('#dvProj')?.value || null});
       sound('success'); toast('Kept in the Lived Record.'); m.remove(); rerender();
     };
   };

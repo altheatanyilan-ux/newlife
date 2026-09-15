@@ -7365,5 +7365,21 @@ html[data-theme="light"] .wk-sleep{
 @media (prefers-reduced-motion:reduce){
   .pl-inbox,.pl-inbox.landed{transition:none;animation:none}
 }
+
+/* ---------- Pinned: the entries kept for rereading ----------
+   The panel draws real entry cards, which carry their own look already, so
+   there is very little here — a little air between them, and a pin that says
+   whether it is in or out. */
+.th-pinned{display:flex;flex-direction:column;gap:2px}
+.th-pinned .entry{margin-bottom:0}
+/* inside the theatre the cards are reading matter, not a page of their own */
+.th-pinned .entry .body{font-size:.88rem}
+.pin-btn{transition:color .16s var(--ease),transform .16s var(--ease);filter:grayscale(1);opacity:.55}
+.pin-btn:hover{opacity:1;transform:translateY(-1px)}
+.pin-btn.on{filter:none;opacity:1}
+@media (prefers-reduced-motion:reduce){
+  .pin-btn{transition:none}
+  .pin-btn:hover{transform:none}
+}
 </style>
 </head>

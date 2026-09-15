@@ -42,6 +42,7 @@ const TH_FEELINGS = ['excited','peaceful','powerful','held','free','proud','ligh
 const TH_SECTIONS = [
   ['script',   'Self-image script'],
   ['winning',  'The winning feeling'],
+  ['pins',     'Pinned'],
   ['board',    'Vision board'],
   ['scene',    'A scene, entered'],
   ['scripting','Scripting'],
@@ -58,8 +59,27 @@ function migrateTheatre(){
   ['scenes','scripts','tension','thanks','wheels'].forEach(k => { if(!Array.isArray(r[k])) r[k] = []; });
   if(!r.prefs) r.prefs = {order:TH_SECTIONS.map(s => s[0]), project:null, showFlow:true};
   if(!Array.isArray(r.prefs.order)) r.prefs.order = TH_SECTIONS.map(s => s[0]);
-  /* a section added after someone set their own order still has to appear */
-  TH_SECTIONS.forEach(([k]) => { if(!r.prefs.order.includes(k)) r.prefs.order.push(k); });
+  /* A section added after someone set their own order still has to appear —
+     and it has to appear where it was meant to be. Pushing it onto the end put
+     every new section at the bottom of the theatre regardless of where it was
+     placed in TH_SECTIONS, which for one placed deliberately next to another
+     (Pinned, beside the vision board) is simply the wrong place. So it goes in
+     after whichever of its TH_SECTIONS predecessors this person already has,
+     and only falls to the end when it has none. */
+  TH_SECTIONS.forEach(([k], i) => {
+    if(r.prefs.order.includes(k)) return;
+    /* Its neighbours here are the only record of where it was meant to go, and
+       the one it comes BEFORE is the better anchor: a section is added next to
+       the thing it belongs with (Pinned, before the vision board), and if that
+       thing has been dragged to the top of somebody's theatre then the top is
+       where the new one belongs too. Falling back to the section it comes
+       after covers a new last section, which has nothing in front of it. */
+    let at = -1;
+    for(let j = i + 1; j < TH_SECTIONS.length && at < 0; j++) at = r.prefs.order.indexOf(TH_SECTIONS[j][0]);
+    if(at >= 0){ r.prefs.order.splice(at, 0, k); return; }
+    for(let j = i - 1; j >= 0 && at < 0; j--) at = r.prefs.order.indexOf(TH_SECTIONS[j][0]);
+    if(at < 0) r.prefs.order.push(k); else r.prefs.order.splice(at + 1, 0, k);
+  });
   r.prefs.order = r.prefs.order.filter(k => TH_SECTIONS.some(s => s[0] === k));
   if(!Array.isArray(r.days)) r.days = [];
   return r;
@@ -472,6 +492,9 @@ function theatrePanelHTML(key){
   if(key === 'aim') return `<details class="th-sec" data-th="aim">${head('Definite chief aim', 'Hill')}
     <div class="th-body"><div class="faint" style="font-size:.8rem;margin-bottom:6px">The exact thing desired, what you will give in return, the date, the plan. Read aloud morning and night, with feeling.</div>
       ${ed('rehearsal.aim', {multi:true, cls:'prose serif-lg', ph:'By [date] I will have [exactly this]. In return I will give [this].'})}</div></details>`;
+
+  /* drawn next door, where the entries it holds are already drawn from */
+  if(key === 'pins') return typeof pinsPanelHTML === 'function' ? pinsPanelHTML() : '';
 
   if(key === 'board'){
     const items = vbSorted();

@@ -436,7 +436,7 @@ function castStageInto(host, thrown, opt){
           up:t.up, flipped:t.flipped})),
         cards: [], source: opt.source || 'digital',
         reading: host.querySelector('#dvText').value.trim(),
-        revisit: host.querySelector('#dvRevisit').checked,
+        revisit: host.querySelector('#dvRevisit').checked, pin: host.querySelector('#dvPin')?.checked,
         projectId: host.querySelector('#dvProj')?.value || null});
       stopAll(); sound('success'); toast('Kept in the Lived Record.');
       if(opt.modal) opt.modal.remove();
