@@ -485,9 +485,15 @@ html[data-motion] .rv.in{transform:none}
 @media (hover:none),(max-width:900px){.del-x{opacity:1}}
 .entry,.tile,.snap-row,.habit,.nod,.card,.values-list li,.versions .v,.jnav button,.formative,.value-field,.evidence-item,.tension,.thread-list .th,.ideas li,.songs li,.artifact{position:relative}
 .field{display:flex;flex-direction:column;gap:6px}
-/* display:flex out-specifies the UA rule for [hidden], so a field hidden by
-   script stayed on screen. Any form that shows and hides its own fields — the
-   habit form, for one — depends on this. */
+/* An author rule that sets `display` out-specifies the UA's `[hidden]`, so
+   anything given a display here stayed on screen when script set `hidden` on
+   it. It had been patched one element at a time for years — .field, .stack,
+   .speed-dial, .today-view, .solar-tip and half a dozen more below — and every
+   one of those patches is the same bug found again. The Back button was the one
+   nobody had found: `.back-btn{...display:inline-flex}` meant it never hid, so
+   it sat over the home page it is explicitly coded not to appear on.
+   One rule, stated once, instead of the next dozen. */
+[hidden]{display:none !important}
 .field[hidden]{display:none}
 .stack[hidden]{display:none}
 .field label{font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:600}

@@ -485,9 +485,15 @@ html[data-motion] .rv.in{transform:none}
 @media (hover:none),(max-width:900px){.del-x{opacity:1}}
 .entry,.tile,.snap-row,.habit,.nod,.card,.values-list li,.versions .v,.jnav button,.formative,.value-field,.evidence-item,.tension,.thread-list .th,.ideas li,.songs li,.artifact{position:relative}
 .field{display:flex;flex-direction:column;gap:6px}
-/* display:flex out-specifies the UA rule for [hidden], so a field hidden by
-   script stayed on screen. Any form that shows and hides its own fields — the
-   habit form, for one — depends on this. */
+/* An author rule that sets `display` out-specifies the UA's `[hidden]`, so
+   anything given a display here stayed on screen when script set `hidden` on
+   it. It had been patched one element at a time for years — .field, .stack,
+   .speed-dial, .today-view, .solar-tip and half a dozen more below — and every
+   one of those patches is the same bug found again. The Back button was the one
+   nobody had found: `.back-btn{...display:inline-flex}` meant it never hid, so
+   it sat over the home page it is explicitly coded not to appear on.
+   One rule, stated once, instead of the next dozen. */
+[hidden]{display:none !important}
 .field[hidden]{display:none}
 .stack[hidden]{display:none}
 .field label{font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:600}
@@ -1486,7 +1492,8 @@ button.tm-cell:hover{border-color:var(--page-accent)}
   .daybox>.t-sec:not([open]){align-self:start;overflow:visible;padding-bottom:0}
   /* land a section under the pinned index, not behind it, whoever does the
      scrolling — the jump buttons, the keyboard, or the browser itself */
-  .daybox>.t-sec,.daybox>.focus-block{scroll-margin-top:calc(var(--chrome-h) + 87px)}
+  /* clear of the pinned bar, which is one line now rather than two */
+  .daybox>.t-sec,.daybox>.focus-block{scroll-margin-top:calc(var(--chrome-h) + 53px)}
   /* The heading stays put while its contents move under it, so you always
      know which box you are reading. It is opaque and in the box's own colour
      — text scrolling past has to go behind it, not show through it. */
@@ -3297,7 +3304,13 @@ html.vision-deep .page-scene.on{opacity:var(--scene-op)}
    being asked to reflect while looking at the work. A segmented control, the
    soft kind: the track is pressed into the page and the chosen half stands up
    out of it. */
-.today-switch{position:sticky;top:var(--chrome-h);z-index:7;display:inline-flex;gap:3px;margin:0 0 4px;
+/* One band, not two: the pill and the jumps share a line, and the line is
+   what sticks. */
+.today-bar{position:sticky;top:var(--chrome-h);z-index:7;display:flex;align-items:center;
+  gap:14px;flex-wrap:wrap;margin:0 0 18px;padding:6px 0 10px;
+  background:linear-gradient(to bottom,var(--bg) 78%,transparent);
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.today-switch{display:inline-flex;gap:3px;margin:0;flex:0 0 auto;
   padding:3px;border-radius:999px;background:var(--neu-bg);box-shadow:var(--neu-pressed)}
 /* It had a band of ground behind it for a while, so that the page did not
    scroll through the gaps beside the pill. At rest — which is most of the time
@@ -3312,15 +3325,13 @@ html.vision-deep .page-scene.on{opacity:var(--scene-op)}
 html[data-theme="dark"] .today-switch button.on,html:not([data-theme="light"]) .today-switch button.on{
   box-shadow:var(--neu-raised),0 0 12px color-mix(in srgb,var(--page-accent) 18%,transparent)}
 .today-switch button:focus-visible{outline:none;box-shadow:var(--neu-raised),var(--focus-ring)}
-@media (max-width:560px){.today-switch{display:flex;width:100%}
+@media (max-width:560px){.today-switch{display:flex;width:100%;flex:1 1 100%}
   .today-switch button{flex:1;padding:7px 8px;font-size:.76rem}}
 /* a view that is not the one you are in is not there at all */
 .today-view[hidden]{display:none}
 @media (prefers-reduced-motion:reduce){.today-switch button{transition:none}}
 
-.today-jump{position:sticky;top:calc(var(--chrome-h) + 42px);z-index:6;display:flex;gap:4px;flex-wrap:wrap;
-  margin:0 0 18px;padding:8px 0 14px;background:linear-gradient(to bottom,var(--bg) 78%,transparent);
-  backdrop-filter:blur(6px)}
+.today-jump{display:flex;gap:4px;flex-wrap:wrap;margin:0;padding:0;min-width:0}
 .today-jump button{background:none;border:1px solid transparent;border-radius:999px;
   padding:3px 10px;font-family:var(--mono);font-size:.62rem;letter-spacing:.08em;
   text-transform:lowercase;color:var(--muted);cursor:pointer;
@@ -8044,6 +8055,125 @@ html[data-theme="light"] .wk-sleep{
   .pin-btn{transition:none}
   .pin-btn:hover{transform:none}
 }
+
+/* ---------- the sacred space: the room, or what to do in it ----------
+   Two views, one at a time, because stacked they were taller than a screen. */
+.sacred-switch{display:inline-flex;gap:3px;margin:0 0 12px;padding:3px;border-radius:999px;
+  background:var(--neu-bg);box-shadow:var(--neu-pressed)}
+.sacred-switch button{background:none;border:none;border-radius:999px;cursor:pointer;
+  padding:5px 14px;font-family:var(--sans);font-size:.76rem;letter-spacing:.02em;
+  color:var(--muted);transition:color .2s var(--ease),box-shadow .25s var(--ease),background .2s var(--ease)}
+.sacred-switch button:hover{color:var(--text)}
+.sacred-switch button.on{color:var(--text);background:var(--neu-bg);box-shadow:var(--neu-raised)}
+.sacred-switch button:focus-visible{outline:none;box-shadow:var(--neu-raised),var(--focus-ring)}
+/* The room gets the height the page has left, and grows into it. The drawing
+   is 2:1, so the width is still what is capped — a height cap on a fixed
+   viewBox letterboxes, and a room with a bar of nothing down each side is a
+   picture of a room rather than a room. Capping the width at twice the free
+   height is the same limit said in the dimension the SVG actually obeys. */
+.stillness{--sacred-h:min(76dvh, 760px)}
+/* It leaned out past the column for a while, to buy the room some height. The
+   section it sits in clips, so the far side of the bar came off — a wider room
+   with its right-hand end missing. It stays inside the column. */
+.sacred-stage{display:flex;flex-direction:column;justify-content:center;margin-bottom:4px}
+/* Width is still what is capped: a height cap on a fixed viewBox letterboxes,
+   and twice the free height is the same limit said in the dimension the SVG
+   actually obeys. So the room grows sideways until either the space beside it
+   or the space under it runs out, and what it cannot use it gives back. */
+/* houseHTML draws itself inside .house-page, which caps at 1180 for a page of
+   its own. Here it is not a page, it is the picture. */
+.sacred-stage .house-page{max-width:none}
+.sacred-stage .room-wrap{max-width:min(100%, calc(var(--sacred-h) * 1.72));margin-bottom:0}
+@media (max-width:760px){.stillness{--sacred-h:min(62dvh, 520px)}}
+@media (prefers-reduced-motion:reduce){.sacred-switch button{transition:none}}
+
+/* ---------- the Inbox matrix: the pile, and where it is going ----------
+   Only for the Inbox, where emptying the pile is the whole job. The tray is a
+   column down the left instead of a wrapping row underneath, so the card and
+   the quadrant it is being dragged to are both on screen. */
+.pe-withtray{display:grid;grid-template-columns:minmax(180px, var(--pew,320px)) minmax(0, 1fr);
+  gap:14px;align-items:start}
+.pe-withtray .pe-tray{margin-top:0;border-top:none;border-right:1px dashed var(--line);
+  padding-right:12px;min-width:0}
+.pe-withtray .pe-tray summary{padding-top:0}
+/* down, not across: the width is the column's now, so a card takes all of it
+   and the drag handle that used to set it has nothing left to do */
+.pe-withtray .pe-traybox{flex-direction:column;flex-wrap:nowrap;padding-top:2px}
+.pe-withtray .pe-traybox .pk-card{flex:0 0 auto;width:100%}
+.pe-withtray .pe-grip{display:none}
+@media (max-width:860px){
+  .pe-withtray{grid-template-columns:1fr}
+  .pe-withtray .pe-tray{border-right:none;border-bottom:1px dashed var(--line);
+    padding-right:0;padding-bottom:10px}
+  .pe-withtray .pe-traybox{flex-direction:row;flex-wrap:wrap}
+  .pe-withtray .pe-traybox .pk-card{flex:0 0 var(--pew,320px);max-width:100%}
+}
+
+/* ---------- the Morning Theatre's guided session ----------
+   The opening asks one question, so it is the only thing on the screen that
+   looks like a question. */
+.ths-open{display:flex;flex-direction:column;gap:16px;padding:4px 0 14px}
+.ths-ask{font-family:var(--serif);font-weight:400;font-size:1.12rem;margin:0}
+.ths-moods{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:8px}
+.ths-mood{display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;
+  padding:12px 8px;border:1px solid var(--line);border-radius:12px;background:var(--surface);
+  color:var(--muted);cursor:pointer;
+  transition:border-color .18s var(--ease),background .18s var(--ease),transform .18s var(--ease)}
+.ths-mood:hover{transform:translateY(-1px);color:var(--text);border-color:var(--line-2)}
+.ths-mood.on{border-color:var(--page-accent);color:var(--text);
+  background:color-mix(in srgb,var(--page-accent) 9%,transparent)}
+.ths-emo{font-size:1.5rem;line-height:1.1}
+.ths-name{font-family:var(--serif);font-size:.92rem;color:var(--text)}
+.ths-desc{font-size:.58rem;letter-spacing:.04em;line-height:1.35;color:var(--faint)}
+.ths-when{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.ths-mins{display:inline-flex;gap:3px;padding:3px;border-radius:999px;
+  background:var(--neu-bg);box-shadow:var(--neu-pressed)}
+.ths-min{background:none;border:none;border-radius:999px;cursor:pointer;padding:5px 14px;
+  font-family:var(--sans);font-size:.78rem;color:var(--muted);
+  transition:color .2s var(--ease),box-shadow .25s var(--ease)}
+.ths-min:hover{color:var(--text)}
+.ths-min.on{color:var(--text);background:var(--neu-bg);box-shadow:var(--neu-raised)}
+.ths-go{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.ths-done{font-size:.64rem;color:var(--faint)}
+.ths-manual{background:none;border:none;padding:0;margin:0;color:var(--faint);
+  font-family:var(--mono);font-size:.62rem;letter-spacing:.06em;cursor:pointer;text-align:left}
+.ths-manual:hover{color:var(--page-accent)}
+.theatre > .ths-manual{margin-bottom:10px}
+.ths-pins{border-top:1px dashed var(--line);padding-top:12px}
+
+/* today's focus, and the session itself */
+.ths-ov{align-items:center}
+.ths-modal{width:min(720px,94vw);max-height:88dvh;overflow:auto}
+.ths-focus,.ths{display:flex;flex-direction:column;gap:14px}
+.ths-vis{display:flex;flex-direction:column;gap:8px}
+.ths-v{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border:1px solid var(--line);
+  border-left:3px solid var(--page-accent);border-radius:10px;background:var(--surface)}
+.ths-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.ths-pick{border-top:1px dashed var(--line);padding-top:10px}
+.ths-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.ths-head .mono{font-size:.64rem;letter-spacing:.08em;color:var(--muted)}
+.ths-head .ths-clock{margin-left:auto}
+.ths-rail{display:flex;gap:4px}
+.ths-rail i{height:3px;flex:1;border-radius:2px;background:var(--line-2);opacity:.5}
+.ths-rail i.done{background:var(--page-accent);opacity:.45}
+.ths-rail i.on{background:var(--page-accent);opacity:1}
+.ths-title{font-family:var(--serif);font-weight:400;font-size:1.1rem;margin:0}
+.ths-body{min-height:180px}
+/* the practice inside a step is the accordion panel, opened and unlabelled:
+   its name is the heading above it, so its own summary would say it twice */
+.ths-step .th-sec{border:none;background:none;overflow:visible}
+.ths-step .th-sec > summary{display:none}
+.ths-step .th-body{padding:0}
+.ths-centre{font-family:var(--quote);font-style:italic;font-size:1.05rem;color:var(--muted);margin:0}
+.ths-nav{display:flex;align-items:center;gap:10px;justify-content:space-between;
+  border-top:1px dashed var(--line);padding-top:12px}
+.ths-tick{font-family:var(--serif);font-size:1.1rem;color:var(--sage,#7f916a)}
+.ths-list{margin:0;padding-left:18px;font-size:.88rem;line-height:1.7}
+.ths-streak{font-family:var(--mono);font-size:.68rem;color:var(--muted)}
+.ths-leave{background:none;border:none;padding:0;color:var(--faint);font-family:var(--mono);
+  font-size:.6rem;letter-spacing:.06em;cursor:pointer}
+.ths-leave:hover{color:var(--terra,#b4462f)}
+@media (prefers-reduced-motion:reduce){.ths-mood,.ths-min{transition:none}.ths-mood:hover{transform:none}}
 </style>
 </head>
 <body>
@@ -15424,14 +15554,20 @@ routes.today = function(root){
       <p class="day-edge waking">I woke up at <button class="day-edge-t" id="wokeAt">${c.wakeAt ? esc(_ft(c.wakeAt)) : '—'}</button>${dreamEdgeHTML(T)}</p>
     </header>
 
-    <div class="today-switch rv" role="tablist" aria-label="which half of the day">
-      ${VIEWS.map(([id, label]) => `<button role="tab" aria-selected="${view === id}"
-        class="${view === id ? 'on' : ''}" data-tview="${id}">${esc(label)}</button>`).join('')}
+    <!-- Which half of the day, and where in it — one line. They were two
+         sticky rows at two different tops, which meant the page carried two
+         bands of buttons above everything it was actually for. They are asking
+         the same question at two scales, so they read better side by side, and
+         the page gets a band of itself back. -->
+    <div class="today-bar rv">
+      <div class="today-switch" role="tablist" aria-label="which half of the day">
+        ${VIEWS.map(([id, label]) => `<button role="tab" aria-selected="${view === id}"
+          class="${view === id ? 'on' : ''}" data-tview="${id}">${esc(label)}</button>`).join('')}
+      </div>
+      <nav class="today-jump" aria-label="jump to a section">
+        ${jumps.map(([id, label]) => `<button data-jump="${id}">${esc(label)}</button>`).join('')}
+      </nav>
     </div>
-
-    <nav class="today-jump rv" aria-label="jump to a section">
-      ${jumps.map(([id, label]) => `<button data-jump="${id}">${esc(label)}</button>`).join('')}
-    </nav>
 
     <!-- the day's shape now lives on the Compass, across a whole week; here
          the two ends of the day are simply stated, at the two ends of the page -->
@@ -15605,7 +15741,7 @@ routes.today = function(root){
     <div class="daybox daybox-solo">
     <!-- morning rehearsal (Maltz) -->
     <details class="section rv rehearsal-wrap t-sec" id="t-theatre"${fold('t-theatre', !theatreDoneToday())} style="margin-top:8px">
-      <summary><span class="sc">Morning Theatre</span><span class="mono">${theatreDoneToday() ? 'practised today' : 'six ways in · pick one'}</span>${flowTick('theatreAt')}</summary>
+      <summary><span class="sc">Morning Theatre</span><span class="mono">${theatreDoneToday() ? 'practised today' : 'one question, then a session'}</span>${flowTick('theatreAt')}</summary>
       ${theatreHTML()}
     </details>
 
@@ -15648,9 +15784,12 @@ routes.today = function(root){
   root.querySelectorAll('[data-jump]').forEach(b => b.onclick = () => {
     const t = root.querySelector('#' + b.dataset.jump); if(!t) return;
     if(t.tagName === 'DETAILS' && !t.open){ t.open = true; rememberFold(t.id, true); }
-    /* the strip is pinned clear of the floating chrome, so the room a
-       section needs above it is where the strip ends, not how tall it is */
-    const bar = root.querySelector('.today-jump');
+    /* The room a section needs above it is where the pinned bar ENDS, not how
+       tall it is. The bar is the whole line now — the view switch and the
+       jumps together — and the jumps inside it are no longer sticky, so
+       measuring them gave a top of auto, a height of one row of chips, and a
+       section that landed behind the bar instead of below it. */
+    const bar = root.querySelector('.today-bar') || root.querySelector('.today-jump');
     const pad = bar ? Math.max(0, parseFloat(getComputedStyle(bar).top) || 0)
       + bar.getBoundingClientRect().height + 4 : 14;
     const y = t.getBoundingClientRect().top + window.scrollY - pad;
@@ -34695,7 +34834,20 @@ function stillnessHTML(){
              : `<div class="empty">You have not built it yet. Four questions, and then it is yours to come back to.</div>`}
            <div class="field"><label>How long to stay</label>${lengths}</div>`;
   const recent = s.sessions.slice(0, 3);
-  return `<div class="body stillness">
+  const sview = SACRED_VIEWS.includes(S._sacredView) ? S._sacredView : 'house';
+  /* data-sacred, not data-sview: the buttons below carry data-sview, and a
+     wrapper wearing the same attribute caught their clicks on the way up and
+     set the view back to the one it already was. */
+  return `<div class="body stillness" data-sacred="${sview}">
+    <!-- The house and the things you can do in it were stacked, and the stack
+         was taller than a screen: you could not see the room you had come to
+         sit in without scrolling past it, and you could not read the four ways
+         to be still without scrolling the room off the top. They are two views
+         now. One at a time, and each of them fits. -->
+    <div class="sacred-switch" role="tablist" aria-label="the room, or what to do in it">
+      ${SACRED_VIEWS.map(v => `<button role="tab" aria-selected="${sview === v}"
+        class="${sview === v ? 'on' : ''}" data-sview="${v}">${esc(SACRED_VIEW_NAME[v])}</button>`).join('')}
+    </div>
     <!-- The room comes first, because the going is half of the practice. The
          row of tabs is still under it: the room is how you arrive, the tabs
          are how you switch once you are already sitting. -->
@@ -34705,7 +34857,10 @@ function stillnessHTML(){
          path lead off it. What is below — the four ways to be still, the
          length, and the button that begins — is what the cushion in that room
          opens onto, so it stays exactly where it was. -->
-    <div class="house-here">${typeof houseHTML === 'function' ? houseHTML() : ''}</div>
+    <div class="sacred-stage"${sview === 'house' ? '' : ' hidden'}>
+      <div class="house-here">${typeof houseHTML === 'function' ? houseHTML() : ''}</div>
+    </div>
+    <div class="sacred-rest"${sview === 'doing' ? '' : ' hidden'}>
     <div class="still-tabs">${STILL_KINDS.map(([k, n, ic]) =>
       `<button class="${kind === k ? 'on' : ''}" data-stkind="${k}">${ic} ${n}</button>`).join('')}</div>
     <div class="still-pane">${body}
@@ -34728,7 +34883,14 @@ function stillnessHTML(){
     </div>
     <!-- a card drawn here is for today, so it stays here as well as being filed -->
     ${typeof drawnTodayHTML === 'function' ? drawnTodayHTML(today()) : ''}
+    </div>
   </div>`;
+}
+const SACRED_VIEWS = ['house', 'doing'];
+const SACRED_VIEW_NAME = {house:'the house', doing:'what to do here'};
+function setSacredView(v){
+  if(!SACRED_VIEWS.includes(v) || S._sacredView === v) return;
+  S._sacredView = v; sound('click'); rerender();
 }
 function bindStillness(root){
   const s = stillness(), p = s.prefs;
@@ -34737,6 +34899,7 @@ function bindStillness(root){
      doors — binding them a second time from here gave every one of them two
      handlers, and the cushion two rings stacked on each other */
   const re = () => { saveNow(); rerender(); };
+  root.querySelectorAll('.sacred-switch [data-sview]').forEach(b => b.onclick = () => setSacredView(b.dataset.sview));
   root.querySelectorAll('[data-stkind]').forEach(b => b.onclick = () => { p.kind = b.dataset.stkind; re(); });
   root.querySelectorAll('[data-stmin]').forEach(b => b.onclick = () => { p.minutes = +b.dataset.stmin; re(); });
   root.querySelectorAll('[data-stanchor]').forEach(b => b.onclick = () => { p.anchor = b.dataset.stanchor; re(); });
@@ -34755,6 +34918,364 @@ function bindStillness(root){
   if(q('#stDeck')) q('#stDeck').onclick = () => openCardDirectory();
   if(typeof bindDrawnToday === 'function') bindDrawnToday(root);
   if(q('#stIntuit')) q('#stIntuit').onclick = () => openIntuitionQuick();
+}
+/* ============================================================
+   MORNING THEATRE — the guided session.
+
+   The theatre was nine panels in an accordion and a question you had to
+   answer before anything could start: which of these nine do I want to do
+   this morning? That is a question about the practices, and you are not there
+   to think about the practices. You are there because of how you feel about
+   what you want, and the practices are the means.
+
+   So the theatre asks the question you can actually answer — how are you
+   feeling about your visions right now — and assembles the session itself:
+   a mood chooses an ordered recipe of two to four of the same nine practices,
+   the length you have decides how many of them fit, and the rotation queue
+   decides which of your visions they are about, so that all of them get a
+   morning over a week or two rather than only the favourite.
+
+   Nothing underneath has changed. Each practice renders exactly as it does in
+   the accordion — it is literally theatrePanelHTML() drawn one to a screen,
+   with the summary hidden and the details forced open — so a scene built in a
+   session is the same scene, saved the same way, and manual mode is still one
+   click away for anybody who already knows what they came to do.
+   ============================================================ */
+
+const TH_MOODS = [
+  {id:'on_fire',   emoji:'🔥', name:'On fire',   desc:'Energised, excited, ready to go',
+   line:'Channel it into something vivid while it is here.'},
+  {id:'foggy',     emoji:'🌫', name:'Foggy',     desc:'Unclear, scattered, unfocused',
+   line:'Find out what you want and where you actually are.'},
+  {id:'resistant', emoji:'😤', name:'Resistant', desc:'Doubtful, blocked, frustrated',
+   line:'Do not push. Find the nearest thing that feels better.'},
+  {id:'grateful',  emoji:'🙏', name:'Grateful',  desc:'Calm, aligned, feeling good',
+   line:'Amplify what is already flowing.'},
+  {id:'inspired',  emoji:'✨', name:'Inspired',  desc:'Creative, visionary, expansive',
+   line:'Write it down boldly before the inspiration goes.'},
+];
+const TH_DURATIONS = [5, 15, 30];
+/* Mood → an ordered sequence of practices, one list per length. The keys are
+   the same ones theatrePanelHTML draws, plus 'wheel' for the focus wheel,
+   which is a ceremony of its own rather than a panel.
+
+   The spec's own table gives the five-minute sessions a single practice and no
+   chief aim, and then says two paragraphs later that the chief aim always
+   appears. The prose wins — reading it aloud is the thing the books are most
+   insistent about and it costs under a minute — so thRecipe adds it to any
+   sequence that does not already have it.
+
+   "At the end", though, the spec contradicts itself on: two of its own
+   thirty-minute recipes put a two-minute vision-board browse after the chief
+   aim, and its time budget for thirty minutes says the same. That is a
+   deliberate fade-out after the loud part, so where a recipe has already
+   placed the aim, it is left where it was placed. The rule that holds
+   everywhere is one chief aim, never none and never two. */
+const TH_RECIPES = {
+  on_fire:   {5:['scene'],      15:['scene','scripting'],   30:['scene','scripting','tension','aim','board']},
+  foggy:     {5:['tension'],    15:['tension','script'],    30:['tension','script','winning']},
+  resistant: {5:['wheel'],      15:['wheel','thanks'],      30:['wheel','thanks','winning']},
+  grateful:  {5:['thanks'],     15:['thanks','scene'],      30:['thanks','scene','scripting']},
+  inspired:  {5:['scripting'],  15:['scripting','scene'],   30:['scripting','scene','board']},
+};
+const TH_STEP_NAME = {
+  script:'Self-image script', winning:'The winning feeling', aim:'Definite chief aim',
+  board:'Vision board', scene:'A scene, entered', scripting:'Scripting',
+  tension:'Structural tension', thanks:'Thanks, in advance', wheel:'The focus wheel',
+};
+/* how long each step is meant to take, so the timer can say "about four
+   minutes" rather than counting down at you */
+const TH_BUDGETS = {5:[4, 1], 15:[7, 5, 3], 30:[12, 8, 5, 3, 2]};
+
+const thMood = id => TH_MOODS.find(m => m.id === id) || TH_MOODS[0];
+function thRecipe(mood, minutes){
+  const byLen = TH_RECIPES[mood] || TH_RECIPES.on_fire;
+  const seq = (byLen[minutes] || byLen[15] || []).slice();
+  if(!seq.includes('aim')) seq.push('aim');
+  return seq;
+}
+
+/* ---------- the rotation queue ----------
+   Which visions have gone longest without a morning, weighted by how thin
+   they still are and how far up the ladder they have been committed to. */
+function thVisionsEligible(){
+  return (S.visions || []).filter(v => v && !v.archived
+    && v.confidence !== 'lived' && v.status !== 'completed');
+}
+function thVisionScore(v, T){
+  const seen = (v.lastMorningTheatreDate || '').slice(0, 10);
+  /* never practised counts as a long time, not as no time */
+  const days = seen ? Math.max(0, daysBetween(seen, T)) : 45;
+  const thin = 100 - (typeof structuralTension === 'function' ? structuralTension(v) : 0);
+  const rung = CONF.indexOf(v.confidence);
+  const boost = rung >= CONF.indexOf('committed') ? 1.5 : 1;
+  return days * 2 + thin + boost * 10;
+}
+function thRotation(){
+  const T = today();
+  return thVisionsEligible()
+    .map(v => ({v, score: thVisionScore(v, T)}))
+    .sort((a, b) => b.score - a.score)
+    .map(x => x.v);
+}
+function thPickVisions(minutes){
+  return thRotation().slice(0, minutes === 5 ? 1 : 2);
+}
+function thVisionName(v){ return v?.title || v?.name || v?.text || 'A vision'; }
+function thLastPractised(v){
+  const seen = (v.lastMorningTheatreDate || '').slice(0, 10);
+  if(!seen) return 'never practised here';
+  const d = daysBetween(seen, today());
+  return d <= 0 ? 'practised today' : d === 1 ? 'yesterday' : `${d} days ago`;
+}
+
+/* ---------- the opening ---------- */
+function theatreOpenHTML(){
+  const r = theatre(), T = today();
+  const sess = (r.sessions || []).filter(x => x.date === T);
+  const mood = r.prefs.lastMood || '';
+  const mins = TH_DURATIONS.includes(r.prefs.lastMinutes) ? r.prefs.lastMinutes : 15;
+  return `<div class="ths-open">
+    <h3 class="ths-ask">How are you feeling about your visions right now?</h3>
+    <div class="ths-moods" role="radiogroup" aria-label="how you are feeling">
+      ${TH_MOODS.map(m => `<button class="ths-mood${mood === m.id ? ' on' : ''}" data-thmood="${m.id}"
+        role="radio" aria-checked="${mood === m.id}" title="${esc(m.desc)}">
+        <span class="ths-emo">${m.emoji}</span><span class="ths-name">${esc(m.name)}</span>
+        <span class="ths-desc mono">${esc(m.desc)}</span></button>`).join('')}
+    </div>
+    <div class="ths-when">
+      <span class="mono faint">How long do you have?</span>
+      <div class="ths-mins" role="radiogroup" aria-label="how long">
+        ${TH_DURATIONS.map(n => `<button class="ths-min${mins === n ? ' on' : ''}" data-thmin="${n}"
+          role="radio" aria-checked="${mins === n}">${n} min</button>`).join('')}
+      </div>
+    </div>
+    <div class="ths-go">
+      <button class="btn primary" id="thBegin"${mood ? '' : ' disabled'}>Begin session</button>
+      ${mood ? `<span class="mono faint">${esc(thMood(mood).line)}</span>` : '<span class="mono faint">Pick how you are feeling, and it will assemble the rest.</span>'}
+    </div>
+    ${sess.length ? `<div class="ths-done mono">${sess.length} session${sess.length === 1 ? '' : 's'} today · ${
+      sess.map(x => `${x.minutes} min, ${esc(thMood(x.mood).name.toLowerCase())}`).join(' · ')}</div>` : ''}
+    <button class="ths-manual" id="thManual">⚙ Manual mode — choose practices individually</button>
+    <!-- The pinned things stay on this screen rather than retreating into
+         manual mode with the other eight panels. They were put in the theatre
+         to be reread every day, and a door you have to know about is not every
+         day. They also belong here: they are what you are about to sit with. -->
+    ${typeof pinsPanelHTML === 'function' ? `<div class="ths-pins">${pinsPanelHTML()}</div>` : ''}
+  </div>`;
+}
+
+/* ---------- today's focus, before anything begins ---------- */
+function thFocusHTML(pick, all, minutes){
+  const max = minutes === 5 ? 1 : 2;
+  return `<div class="ths-focus">
+    <h3 class="ths-ask">Today's focus</h3>
+    ${pick.length ? `<div class="ths-vis">${pick.map(v => `<div class="ths-v">
+      <b class="serif">${esc(thVisionName(v))}</b>
+      <span class="mono faint">${esc(thLastPractised(v))}</span></div>`).join('')}</div>`
+      : `<div class="empty">There are no visions on the tree yet, so this session is about the practices alone. That works — the practices are the point and a vision only gives them somewhere to point.</div>`}
+    ${S._thPicking ? `<div class="ths-pick">
+      <div class="mono faint">Choose up to ${max}:</div>
+      <div class="ths-chips">${all.map(v => `<button class="chip ${pick.some(x => x.id === v.id) ? 'on' : ''}"
+        data-thvis="${v.id}">${esc(thVisionName(v))}</button>`).join('') || '<span class="mono faint">nothing to choose from</span>'}</div>
+    </div>` : ''}
+    <div class="ths-go">
+      <button class="btn primary" id="thFocusGo">These feel right → Start</button>
+      ${all.length > pick.length || S._thPicking
+        ? `<button class="btn sm ghost" id="thFocusPick">${S._thPicking ? 'done choosing' : 'Pick different ones'}</button>` : ''}
+      <button class="btn sm ghost" id="thFocusBack">← back</button>
+    </div>
+  </div>`;
+}
+
+/* ---------- the session ---------- */
+function thSessionStart(mood, minutes){
+  const r = theatre();
+  r.prefs.lastMood = mood; r.prefs.lastMinutes = minutes; saveNow();
+  S._thSession = {mood, minutes, steps: thRecipe(mood, minutes),
+    visions: (S._thFocus || thPickVisions(minutes)).map(v => v.id),
+    i: -1, startedAt: new Date().toISOString(), stepAt: Date.now(), done: []};
+  thSessionDraw();
+}
+function thStepVision(n){
+  const s = S._thSession; if(!s || !s.visions.length) return null;
+  return byId(S.visions, s.visions[n % s.visions.length]);
+}
+function thStepBudget(){
+  const s = S._thSession; if(!s) return 0;
+  const b = TH_BUDGETS[s.minutes] || TH_BUDGETS[15];
+  return b[Math.min(s.i, b.length - 1)] || 0;
+}
+function thSessionBodyHTML(){
+  const s = S._thSession, r = theatre();
+  if(s.i < 0){
+    const vs = s.visions.map(id => byId(S.visions, id)).filter(Boolean);
+    return `<div class="ths-step ths-opening">
+      <p class="ths-centre">Sit down. Put both feet on the floor. Take one breath all the way out.</p>
+      ${vs.length ? `<div class="ths-vis">${vs.map(v => `<div class="ths-v"><b class="serif">${esc(thVisionName(v))}</b></div>`).join('')}</div>` : ''}
+      <p class="th-quote">${esc(thMood(s.mood).line)}</p>
+    </div>`;
+  }
+  if(s.i >= s.steps.length) return thClosingHTML();
+  const key = s.steps[s.i];
+  if(key === 'wheel') return `<div class="ths-step">
+    <p class="th-quote">Hicks: reach for the next thought that feels a little better than the one before it, twelve times, until the subject stops hurting to think about.</p>
+    <div class="row"><button class="btn primary" id="thStepWheel">Open the focus wheel</button></div>
+    <div class="mono faint" style="margin-top:8px">It opens on top of this. Close it when you are done and come back to press next.</div>
+  </div>`;
+  return `<div class="ths-step">${typeof theatrePanelHTML === 'function' ? theatrePanelHTML(key) : ''}</div>`;
+}
+function thClosingHTML(){
+  const s = S._thSession, r = theatre();
+  const T = today();
+  const cycleStart = r.cycleStart || T;
+  const day = clamp(daysBetween(cycleStart, T) + 1, 1, 21);
+  const kept = r.days.filter(d => d >= cycleStart).length;
+  return `<div class="ths-step ths-closing">
+    <div class="ths-tick">✓ Session complete · ${s.minutes} minutes</div>
+    <div class="mono faint">You practised:</div>
+    <ul class="ths-list">
+      ${s.steps.map((k, n) => { const v = k === 'aim' ? null : thStepVision(n);
+        return `<li>${esc(TH_STEP_NAME[k] || k)}${v ? ` → ${esc(thVisionName(v))}` : ''}</li>`; }).join('')}
+    </ul>
+    <div class="ths-streak">🌱 Day ${day} of your 21-day cycle · ${kept} practised</div>
+    <p class="th-quote">Maltz: your nervous system cannot tell the difference between a real experience and one vividly imagined.</p>
+  </div>`;
+}
+function thSessionHTML(){
+  const s = S._thSession;
+  const n = s.steps.length;
+  const closing = s.i >= n;
+  const v = s.i >= 0 && !closing ? thStepVision(s.i) : null;
+  const budget = thStepBudget();
+  return `<div class="ths">
+    <div class="ths-head">
+      <span class="mono">${closing ? 'done' : s.i < 0 ? 'before you start'
+        : `Step ${s.i + 1} of ${n}`}${v ? ' · ' + esc(thVisionName(v)) : ''}</span>
+      ${!closing && s.i >= 0 && budget ? `<span class="mono faint ths-clock" id="thClock">about ${budget} min</span>` : ''}
+    </div>
+    ${!closing ? `<div class="ths-rail" aria-hidden="true">${
+      Array.from({length:n}, (_, k) => `<i class="${k < s.i ? 'done' : k === s.i ? 'on' : ''}"></i>`).join('')}</div>` : ''}
+    ${!closing && s.i >= 0 ? `<h3 class="ths-title">${esc(TH_STEP_NAME[s.steps[s.i]] || '')}</h3>` : ''}
+    <div class="ths-body" id="thBody">${thSessionBodyHTML()}</div>
+    <div class="ths-nav">
+      ${closing ? `<button class="btn primary" id="thClose">Close</button>`
+        : `<button class="btn sm ghost" id="thPrev"${s.i < 0 ? ' disabled' : ''}>← Back</button>
+           <button class="ths-leave" id="thLeave">leave — what you wrote is kept</button>
+           <button class="btn primary" id="thNext">${s.i + 1 >= n ? 'Finish' : 'Next →'}</button>`}
+    </div>
+  </div>`;
+}
+function thSessionDraw(){
+  let host = document.querySelector('#thSessionOv');
+  if(!host){
+    /* No backdrop-to-close here, and no browser confirm() either: a stray click
+       beside a half-finished session should not end it, and the house does not
+       use native dialogs. Leaving is a button that says what leaving costs. */
+    host = el(`<div class="overlay ths-ov" id="thSessionOv" data-keep="1"><div class="modal rite ths-modal"></div></div>`);
+    $('#modals').appendChild(host);
+  }
+  const box = host.querySelector('.ths-modal');
+  box.innerHTML = thSessionHTML();
+  thSessionBind(box);
+  box.scrollTop = 0;
+}
+function thSessionEnd(){
+  document.querySelector('#thSessionOv')?.remove();
+  S._thSession = null; S._thFocus = null; S._thPicking = false;
+  rerender();
+}
+function thSessionBind(box){
+  const s = S._thSession;
+  const q = x => box.querySelector(x);
+  if(q('#thPrev')) q('#thPrev').onclick = () => { if(s.i > -1){ s.i--; s.stepAt = Date.now(); thSessionDraw(); } };
+  if(q('#thNext')) q('#thNext').onclick = () => {
+    if(s.i >= 0 && s.i < s.steps.length) s.done.push(s.steps[s.i]);
+    s.i++; s.stepAt = Date.now();
+    if(s.i >= s.steps.length) thSessionLog();
+    thSessionDraw();
+  };
+  if(q('#thClose')) q('#thClose').onclick = () => thSessionEnd();
+  /* leaving early keeps whatever the practices wrote — they each save
+     themselves as you go — but does not log a session or tick the tracker */
+  if(q('#thLeave')) q('#thLeave').onclick = () => { toast('Kept what you wrote. The session was not logged.'); thSessionEnd(); };
+  if(q('#thStepWheel')) q('#thStepWheel').onclick = () => openFocusWheel();
+  /* The practice inside the step is the panel it always was — which means it
+     is a <details>, and in the accordion only the first one is open. Here the
+     step IS the practice, so it is opened: hiding the summary in CSS without
+     this gave a step with a title, a timer, a next button and nothing at all
+     in between. */
+  box.querySelectorAll('.ths-step .th-sec').forEach(d => { d.open = true; });
+  /* and then bound the way the accordion binds it */
+  if(typeof bindTheatre === 'function' && box.querySelector('.th-sec')) bindTheatre(box);
+}
+/* ---------- what the session leaves behind ---------- */
+function thSessionLog(){
+  const s = S._thSession; if(!s || s.logged) return;
+  s.logged = true;
+  const r = theatre(), T = today();
+  if(!Array.isArray(r.sessions)) r.sessions = [];
+  r.sessions.unshift({id:uid(), date:T, mood:s.mood, minutes:s.minutes,
+    practices:s.steps.slice(), visions:s.visions.slice(),
+    startedAt:s.startedAt, finishedAt:new Date().toISOString()});
+  /* the tracker counts a session, not a single practice */
+  if(!r.days.includes(T)) r.days.push(T);
+  if(!r.cycleStart) r.cycleStart = T;
+  /* so that the rotation moves on */
+  s.visions.forEach(id => { const v = byId(S.visions, id); if(!v) return;
+    v.lastMorningTheatreDate = new Date().toISOString();
+    v.morningTheatreCount = (+v.morningTheatreCount || 0) + 1; });
+  saveNow();
+  sound('success');
+}
+
+/* ---------- binding the opening ---------- */
+function bindTheatreOpen(root){
+  const r = theatre();
+  const q = x => root.querySelector(x);
+  root.querySelectorAll('[data-thmood]').forEach(b => b.onclick = () => {
+    r.prefs.lastMood = b.dataset.thmood; saveNow(); rerender(); });
+  root.querySelectorAll('[data-thmin]').forEach(b => b.onclick = () => {
+    r.prefs.lastMinutes = +b.dataset.thmin; saveNow(); rerender(); });
+  if(q('#thManual')) q('#thManual').onclick = () => { r.prefs.manual = true; saveNow(); rerender(); };
+  if(q('#thGuided')) q('#thGuided').onclick = () => { r.prefs.manual = false; saveNow(); rerender(); };
+  if(q('#thBegin')) q('#thBegin').onclick = () => {
+    const mood = r.prefs.lastMood; if(!mood) return;
+    const mins = TH_DURATIONS.includes(r.prefs.lastMinutes) ? r.prefs.lastMinutes : 15;
+    S._thFocus = thPickVisions(mins); S._thPicking = false;
+    thFocusDraw();
+  };
+}
+function thFocusDraw(){
+  const r = theatre();
+  const mins = TH_DURATIONS.includes(r.prefs.lastMinutes) ? r.prefs.lastMinutes : 15;
+  let host = document.querySelector('#thFocusOv');
+  if(!host){
+    host = el(`<div class="overlay ths-ov" id="thFocusOv" data-keep="1"><div class="modal rite ths-modal"></div></div>`);
+    host.addEventListener('mousedown', e => { if(e.target === host) thFocusEnd(); });
+    $('#modals').appendChild(host);
+  }
+  const box = host.querySelector('.ths-modal');
+  box.innerHTML = thFocusHTML(S._thFocus || [], thRotation(), mins);
+  const q = x => box.querySelector(x);
+  box.querySelectorAll('[data-thvis]').forEach(b => b.onclick = () => {
+    const max = mins === 5 ? 1 : 2;
+    const id = b.dataset.thvis;
+    let pick = (S._thFocus || []).slice();
+    if(pick.some(v => v.id === id)) pick = pick.filter(v => v.id !== id);
+    else { pick.push(byId(S.visions, id)); if(pick.length > max) pick = pick.slice(pick.length - max); }
+    S._thFocus = pick.filter(Boolean); thFocusDraw();
+  });
+  if(q('#thFocusPick')) q('#thFocusPick').onclick = () => { S._thPicking = !S._thPicking; thFocusDraw(); };
+  if(q('#thFocusBack')) q('#thFocusBack').onclick = () => thFocusEnd();
+  if(q('#thFocusGo')) q('#thFocusGo').onclick = () => {
+    document.querySelector('#thFocusOv')?.remove();
+    thSessionStart(r.prefs.lastMood, mins);
+  };
+}
+function thFocusEnd(){
+  document.querySelector('#thFocusOv')?.remove();
+  S._thFocus = null; S._thPicking = false;
 }
 /* ============================================================
    THE MORNING THEATRE — six ways of practising a future
@@ -34816,6 +35337,11 @@ function migrateTheatre(){
   if(!Array.isArray(r.board.items)) r.board.items = [];
   ['scenes','scripts','tension','thanks','wheels'].forEach(k => { if(!Array.isArray(r[k])) r[k] = []; });
   if(!r.prefs) r.prefs = {order:TH_SECTIONS.map(s => s[0]), project:null, showFlow:true};
+  /* what the guided session leaves behind, and whether this person has asked
+     to see the nine practices directly instead */
+  if(!Array.isArray(r.sessions)) r.sessions = [];
+  r.prefs.manual = !!r.prefs.manual;
+  if(r.prefs.lastMinutes === undefined) r.prefs.lastMinutes = 15;
   if(!Array.isArray(r.prefs.order)) r.prefs.order = TH_SECTIONS.map(s => s[0]);
   /* A section added after someone set their own order still has to appear —
      and it has to appear where it was meant to be. Pushing it onto the end put
@@ -35350,26 +35876,37 @@ function theatreHTML(){
   const c = theatreCountsOn(T);
   const did = [c.scenes && `${c.scenes} scene${c.scenes === 1 ? '' : 's'}`, c.scripts && `${c.scripts} script${c.scripts === 1 ? '' : 's'}`,
     c.tension && 'tension held', c.thanks && 'thanks given', c.wheels && 'a wheel'].filter(Boolean).join(' · ');
+  /* The nine panels are still all here, and manual mode is one line away. But
+     the door into the theatre is the question you can answer without knowing
+     what any of them are. */
+  if(!r.prefs.manual && typeof theatreOpenHTML === 'function')
+    return `<div class="body theatre">${theatreOpenHTML()}
+      <div class="th-foot">${theatreTrackerHTML(cycleStart, cycleDay, kept, did)}</div>
+    </div>`;
   return `<div class="body theatre">
+    <button class="ths-manual" id="thGuided">← back to the guided session</button>
     ${r.prefs.showFlow ? `<div class="th-flow"><span class="mono">a suggested half hour</span>
       <span>5 min self-image script · 5 min vision board, focus mode · 10 min a scene · 5 min scripting · 3 min thanks · 2 min the chief aim, read aloud</span>
       <button class="th-flow-x" id="thHideFlow" title="don't show this again">×</button></div>` : ''}
     <div class="th-secs" id="thSecs">${r.prefs.order.map(theatrePanelHTML).join('')}</div>
-    <div class="th-foot">
-      <div class="field"><label>21-day tracker <span class="mono" style="text-transform:none;letter-spacing:0">· day ${clamp(cycleDay + 1, 1, 21)} of 21 · ${kept} practised${did ? ' · today: ' + did : ''}</span></label>
-        <div class="tracker">${Array.from({length:21}, (_, i) => { const d = addDays(cycleStart, i);
-          return `<i class="${r.days.includes(d) ? 'done' : ''} ${d === T ? 'today' : ''}" data-td="${d}" title="${fmtDate(d, 'med')}"></i>`; }).join('')}</div>
-        <div class="row" style="margin-top:12px;gap:8px;flex-wrap:wrap">
-          <button class="btn sm ${theatreDoneToday() ? '' : 'primary'}" id="markTheatre">${theatreDoneToday() ? '✓ Practised today' : "Mark today's practice"}</button>
-          <button class="btn sm ghost" id="newCycle">Begin a new 21-day cycle</button>
-          <button class="btn sm ghost" id="thWheel">Feeling resistance?</button>
-        </div>
-      </div>
-    </div>
+    <div class="th-foot">${theatreTrackerHTML(cycleStart, cycleDay, kept, did)}</div>
   </div>`;
+}
+function theatreTrackerHTML(cycleStart, cycleDay, kept, did){
+  const r = theatre(), T = today();
+  return `<div class="field"><label>21-day tracker <span class="mono" style="text-transform:none;letter-spacing:0">· day ${clamp(cycleDay + 1, 1, 21)} of 21 · ${kept} practised${did ? ' · today: ' + did : ''}</span></label>
+      <div class="tracker">${Array.from({length:21}, (_, i) => { const d = addDays(cycleStart, i);
+        return `<i class="${r.days.includes(d) ? 'done' : ''} ${d === T ? 'today' : ''}" data-td="${d}" title="${fmtDate(d, 'med')}"></i>`; }).join('')}</div>
+      <div class="row" style="margin-top:12px;gap:8px;flex-wrap:wrap">
+        <button class="btn sm ${theatreDoneToday() ? '' : 'primary'}" id="markTheatre">${theatreDoneToday() ? '✓ Practised today' : "Mark today's practice"}</button>
+        <button class="btn sm ghost" id="newCycle">Begin a new 21-day cycle</button>
+        <button class="btn sm ghost" id="thWheel">Feeling resistance?</button>
+      </div>
+    </div>`;
 }
 function bindTheatre(root){
   const r = theatre();
+  if(typeof bindTheatreOpen === 'function') bindTheatreOpen(root);
   const re = () => { saveNow(); rerender(); };
   const q = s => root.querySelector(s);
 
@@ -37930,7 +38467,7 @@ function rerenderPlanBody(){
   const special = sel.kind === 'smart' && sel.id === 'stats';
   body.innerHTML = special ? planStatsHTML()
     : v === 'calendar' ? planCalendarHTML(tasks)
-    : v === 'eisenhower' ? planMatrixHTML(tasks)
+    : v === 'eisenhower' ? planMatrixHTML(tasks, sel)
     : planListViewHTML(sel, tasks);
   bindPlanning(main, sel, tasks);
   if(keep && !$('#panel')) document.body.appendChild(keep);
@@ -38622,7 +39159,7 @@ routes.planning = function(root, params){
   const body = special
     ? planStatsHTML()
     : v === 'calendar'   ? planCalendarHTML(tasks)
-    : v === 'eisenhower' ? planMatrixHTML(tasks)
+    : v === 'eisenhower' ? planMatrixHTML(tasks, sel)
     : planListViewHTML(sel, tasks);
 
   const room = planRoom();
@@ -39460,20 +39997,32 @@ function peTrayWidth(){ return clamp(+planState().prefs.trayW || PE_TRAY_W, PE_T
 function peSetTrayWidth(w){ planState().prefs.trayW = Math.round(clamp(w, PE_TRAY_MIN, PE_TRAY_MAX)); }
 const peTrayGripHTML = () => `<div class="pe-grip" data-petraygrip title="drag to widen · double-click to reset"
   role="separator" aria-label="width of the cards waiting here" tabindex="0"></div>`;
-function planMatrixHTML(tasks){
+/* The Inbox is the one selection where the unplaced pile IS the subject: you
+   are there to empty it into the four boxes. Under the matrix it was below the
+   fold, so the drag went off the bottom of the screen and back. Beside the
+   matrix — on the left, where you read from — the pile and the place it is
+   going are both on the screen at once. Everywhere else the tray stays where
+   it was, because everywhere else the placed tasks are the point and the
+   stragglers are the footnote. */
+function planMatrixIsInbox(sel){ return !!sel && sel.kind === 'list' && sel.id === 'inbox'; }
+function planMatrixHTML(tasks, sel){
   const loose = tasks.filter(t => !t.quadrant);
-  return `<div class="pe-grid">${PLAN_QUADRANTS.map(q => {
+  const aside = planMatrixIsInbox(sel);
+  const grid = `<div class="pe-grid">${PLAN_QUADRANTS.map(q => {
     const ts = tasks.filter(t => t.quadrant === q.n);
     return `<div class="pe-quad" data-pequad="${q.n}" style="--c:${q.color}">
       <div class="pe-head"><span class="pe-name">${esc(q.name)}</span><span class="pe-act">${esc(q.act)}</span>
         <span class="mono">${ts.length}</span></div>
       <div class="pe-cards" data-ptgroup>${ts.map(t => planCardHTML(t)).join('') || '<div class="pk-empty">Empty. That is allowed.</div>'}</div>
       <input class="inp pk-add" data-pqadd='${esc(JSON.stringify({quadrant: q.n}))}' placeholder="＋ add here">
-    </div>`; }).join('')}</div>
-    <details class="pe-tray"${loose.length ? ' open' : ''}><summary><span class="sc">Not yet placed</span><span class="mono">${loose.length}</span></summary>
+    </div>`; }).join('')}</div>`;
+  const tray = `<details class="pe-tray"${loose.length ? ' open' : ''}><summary><span class="sc">Not yet placed</span><span class="mono">${loose.length}</span></summary>
       <div class="pe-traybox" data-pequad="0" data-ptgroup style="--pew:${peTrayWidth()}px">${
         loose.map(t => planCardHTML(t, peTrayGripHTML())).join('')
         || '<div class="pk-empty">Everything has been placed.</div>'}</div></details>`;
+  return aside
+    ? `<div class="pe-withtray" style="--pew:${peTrayWidth()}px">${tray}${grid}</div>`
+    : grid + tray;
 }
 
 function bindPlanViews(root, sel, tasks){

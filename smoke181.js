@@ -99,10 +99,20 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('  and it says how many there are to reread', /1 to reread/.test(one?.note || ''), one?.note);
 
   console.log('\n3. it sits beside the vision board, which is where it was asked for');
-  const order = await p.evaluate(() => [...document.querySelectorAll('.th-sec')].map(n => n.dataset.th));
+  /* The theatre opens on the guided session now (smoke183), and the accordion
+     of nine practices is behind manual mode. Pinned is in both: on the opening
+     screen, because it was put here to be reread every day, and in the
+     accordion in the place it was asked for — beside the board. This section
+     is about that place, so it asks for the accordion. */
+  await p.evaluate(() => { theatre().prefs.manual = true; saveNow(); rerender(); });
+  await p.waitForTimeout(1300);
+  await inward();
+  const order = await p.evaluate(() => [...document.querySelectorAll('#thSecs .th-sec')].map(n => n.dataset.th));
   const iP = order.indexOf('pins'), iB = order.indexOf('board');
   yes('both are in the theatre', iP >= 0 && iB >= 0, order.join(' '));
   is('  with Pinned immediately before the board', iB - iP, 1);
+  await p.evaluate(() => { theatre().prefs.manual = false; saveNow(); rerender(); });
+  await p.waitForTimeout(1200);
 
   console.log('\n4. a house that set its own order before Pinned existed still gets it there');
   /* the trap: appending a new section puts it at the bottom, which for this

@@ -139,20 +139,32 @@ function peTrayWidth(){ return clamp(+planState().prefs.trayW || PE_TRAY_W, PE_T
 function peSetTrayWidth(w){ planState().prefs.trayW = Math.round(clamp(w, PE_TRAY_MIN, PE_TRAY_MAX)); }
 const peTrayGripHTML = () => `<div class="pe-grip" data-petraygrip title="drag to widen · double-click to reset"
   role="separator" aria-label="width of the cards waiting here" tabindex="0"></div>`;
-function planMatrixHTML(tasks){
+/* The Inbox is the one selection where the unplaced pile IS the subject: you
+   are there to empty it into the four boxes. Under the matrix it was below the
+   fold, so the drag went off the bottom of the screen and back. Beside the
+   matrix — on the left, where you read from — the pile and the place it is
+   going are both on the screen at once. Everywhere else the tray stays where
+   it was, because everywhere else the placed tasks are the point and the
+   stragglers are the footnote. */
+function planMatrixIsInbox(sel){ return !!sel && sel.kind === 'list' && sel.id === 'inbox'; }
+function planMatrixHTML(tasks, sel){
   const loose = tasks.filter(t => !t.quadrant);
-  return `<div class="pe-grid">${PLAN_QUADRANTS.map(q => {
+  const aside = planMatrixIsInbox(sel);
+  const grid = `<div class="pe-grid">${PLAN_QUADRANTS.map(q => {
     const ts = tasks.filter(t => t.quadrant === q.n);
     return `<div class="pe-quad" data-pequad="${q.n}" style="--c:${q.color}">
       <div class="pe-head"><span class="pe-name">${esc(q.name)}</span><span class="pe-act">${esc(q.act)}</span>
         <span class="mono">${ts.length}</span></div>
       <div class="pe-cards" data-ptgroup>${ts.map(t => planCardHTML(t)).join('') || '<div class="pk-empty">Empty. That is allowed.</div>'}</div>
       <input class="inp pk-add" data-pqadd='${esc(JSON.stringify({quadrant: q.n}))}' placeholder="＋ add here">
-    </div>`; }).join('')}</div>
-    <details class="pe-tray"${loose.length ? ' open' : ''}><summary><span class="sc">Not yet placed</span><span class="mono">${loose.length}</span></summary>
+    </div>`; }).join('')}</div>`;
+  const tray = `<details class="pe-tray"${loose.length ? ' open' : ''}><summary><span class="sc">Not yet placed</span><span class="mono">${loose.length}</span></summary>
       <div class="pe-traybox" data-pequad="0" data-ptgroup style="--pew:${peTrayWidth()}px">${
         loose.map(t => planCardHTML(t, peTrayGripHTML())).join('')
         || '<div class="pk-empty">Everything has been placed.</div>'}</div></details>`;
+  return aside
+    ? `<div class="pe-withtray" style="--pew:${peTrayWidth()}px">${tray}${grid}</div>`
+    : grid + tray;
 }
 
 function bindPlanViews(root, sel, tasks){

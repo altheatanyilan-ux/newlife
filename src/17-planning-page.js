@@ -618,7 +618,7 @@ routes.planning = function(root, params){
   const body = special
     ? planStatsHTML()
     : v === 'calendar'   ? planCalendarHTML(tasks)
-    : v === 'eisenhower' ? planMatrixHTML(tasks)
+    : v === 'eisenhower' ? planMatrixHTML(tasks, sel)
     : planListViewHTML(sel, tasks);
 
   const room = planRoom();

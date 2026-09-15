@@ -58,6 +58,11 @@ function migrateTheatre(){
   if(!Array.isArray(r.board.items)) r.board.items = [];
   ['scenes','scripts','tension','thanks','wheels'].forEach(k => { if(!Array.isArray(r[k])) r[k] = []; });
   if(!r.prefs) r.prefs = {order:TH_SECTIONS.map(s => s[0]), project:null, showFlow:true};
+  /* what the guided session leaves behind, and whether this person has asked
+     to see the nine practices directly instead */
+  if(!Array.isArray(r.sessions)) r.sessions = [];
+  r.prefs.manual = !!r.prefs.manual;
+  if(r.prefs.lastMinutes === undefined) r.prefs.lastMinutes = 15;
   if(!Array.isArray(r.prefs.order)) r.prefs.order = TH_SECTIONS.map(s => s[0]);
   /* A section added after someone set their own order still has to appear —
      and it has to appear where it was meant to be. Pushing it onto the end put
@@ -592,26 +597,37 @@ function theatreHTML(){
   const c = theatreCountsOn(T);
   const did = [c.scenes && `${c.scenes} scene${c.scenes === 1 ? '' : 's'}`, c.scripts && `${c.scripts} script${c.scripts === 1 ? '' : 's'}`,
     c.tension && 'tension held', c.thanks && 'thanks given', c.wheels && 'a wheel'].filter(Boolean).join(' · ');
+  /* The nine panels are still all here, and manual mode is one line away. But
+     the door into the theatre is the question you can answer without knowing
+     what any of them are. */
+  if(!r.prefs.manual && typeof theatreOpenHTML === 'function')
+    return `<div class="body theatre">${theatreOpenHTML()}
+      <div class="th-foot">${theatreTrackerHTML(cycleStart, cycleDay, kept, did)}</div>
+    </div>`;
   return `<div class="body theatre">
+    <button class="ths-manual" id="thGuided">← back to the guided session</button>
     ${r.prefs.showFlow ? `<div class="th-flow"><span class="mono">a suggested half hour</span>
       <span>5 min self-image script · 5 min vision board, focus mode · 10 min a scene · 5 min scripting · 3 min thanks · 2 min the chief aim, read aloud</span>
       <button class="th-flow-x" id="thHideFlow" title="don't show this again">×</button></div>` : ''}
     <div class="th-secs" id="thSecs">${r.prefs.order.map(theatrePanelHTML).join('')}</div>
-    <div class="th-foot">
-      <div class="field"><label>21-day tracker <span class="mono" style="text-transform:none;letter-spacing:0">· day ${clamp(cycleDay + 1, 1, 21)} of 21 · ${kept} practised${did ? ' · today: ' + did : ''}</span></label>
-        <div class="tracker">${Array.from({length:21}, (_, i) => { const d = addDays(cycleStart, i);
-          return `<i class="${r.days.includes(d) ? 'done' : ''} ${d === T ? 'today' : ''}" data-td="${d}" title="${fmtDate(d, 'med')}"></i>`; }).join('')}</div>
-        <div class="row" style="margin-top:12px;gap:8px;flex-wrap:wrap">
-          <button class="btn sm ${theatreDoneToday() ? '' : 'primary'}" id="markTheatre">${theatreDoneToday() ? '✓ Practised today' : "Mark today's practice"}</button>
-          <button class="btn sm ghost" id="newCycle">Begin a new 21-day cycle</button>
-          <button class="btn sm ghost" id="thWheel">Feeling resistance?</button>
-        </div>
-      </div>
-    </div>
+    <div class="th-foot">${theatreTrackerHTML(cycleStart, cycleDay, kept, did)}</div>
   </div>`;
+}
+function theatreTrackerHTML(cycleStart, cycleDay, kept, did){
+  const r = theatre(), T = today();
+  return `<div class="field"><label>21-day tracker <span class="mono" style="text-transform:none;letter-spacing:0">· day ${clamp(cycleDay + 1, 1, 21)} of 21 · ${kept} practised${did ? ' · today: ' + did : ''}</span></label>
+      <div class="tracker">${Array.from({length:21}, (_, i) => { const d = addDays(cycleStart, i);
+        return `<i class="${r.days.includes(d) ? 'done' : ''} ${d === T ? 'today' : ''}" data-td="${d}" title="${fmtDate(d, 'med')}"></i>`; }).join('')}</div>
+      <div class="row" style="margin-top:12px;gap:8px;flex-wrap:wrap">
+        <button class="btn sm ${theatreDoneToday() ? '' : 'primary'}" id="markTheatre">${theatreDoneToday() ? '✓ Practised today' : "Mark today's practice"}</button>
+        <button class="btn sm ghost" id="newCycle">Begin a new 21-day cycle</button>
+        <button class="btn sm ghost" id="thWheel">Feeling resistance?</button>
+      </div>
+    </div>`;
 }
 function bindTheatre(root){
   const r = theatre();
+  if(typeof bindTheatreOpen === 'function') bindTheatreOpen(root);
   const re = () => { saveNow(); rerender(); };
   const q = s => root.querySelector(s);
 

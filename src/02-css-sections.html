@@ -823,7 +823,8 @@ button.tm-cell:hover{border-color:var(--page-accent)}
   .daybox>.t-sec:not([open]){align-self:start;overflow:visible;padding-bottom:0}
   /* land a section under the pinned index, not behind it, whoever does the
      scrolling — the jump buttons, the keyboard, or the browser itself */
-  .daybox>.t-sec,.daybox>.focus-block{scroll-margin-top:calc(var(--chrome-h) + 87px)}
+  /* clear of the pinned bar, which is one line now rather than two */
+  .daybox>.t-sec,.daybox>.focus-block{scroll-margin-top:calc(var(--chrome-h) + 53px)}
   /* The heading stays put while its contents move under it, so you always
      know which box you are reading. It is opaque and in the box's own colour
      — text scrolling past has to go behind it, not show through it. */
@@ -2634,7 +2635,13 @@ html.vision-deep .page-scene.on{opacity:var(--scene-op)}
    being asked to reflect while looking at the work. A segmented control, the
    soft kind: the track is pressed into the page and the chosen half stands up
    out of it. */
-.today-switch{position:sticky;top:var(--chrome-h);z-index:7;display:inline-flex;gap:3px;margin:0 0 4px;
+/* One band, not two: the pill and the jumps share a line, and the line is
+   what sticks. */
+.today-bar{position:sticky;top:var(--chrome-h);z-index:7;display:flex;align-items:center;
+  gap:14px;flex-wrap:wrap;margin:0 0 18px;padding:6px 0 10px;
+  background:linear-gradient(to bottom,var(--bg) 78%,transparent);
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.today-switch{display:inline-flex;gap:3px;margin:0;flex:0 0 auto;
   padding:3px;border-radius:999px;background:var(--neu-bg);box-shadow:var(--neu-pressed)}
 /* It had a band of ground behind it for a while, so that the page did not
    scroll through the gaps beside the pill. At rest — which is most of the time
@@ -2649,15 +2656,13 @@ html.vision-deep .page-scene.on{opacity:var(--scene-op)}
 html[data-theme="dark"] .today-switch button.on,html:not([data-theme="light"]) .today-switch button.on{
   box-shadow:var(--neu-raised),0 0 12px color-mix(in srgb,var(--page-accent) 18%,transparent)}
 .today-switch button:focus-visible{outline:none;box-shadow:var(--neu-raised),var(--focus-ring)}
-@media (max-width:560px){.today-switch{display:flex;width:100%}
+@media (max-width:560px){.today-switch{display:flex;width:100%;flex:1 1 100%}
   .today-switch button{flex:1;padding:7px 8px;font-size:.76rem}}
 /* a view that is not the one you are in is not there at all */
 .today-view[hidden]{display:none}
 @media (prefers-reduced-motion:reduce){.today-switch button{transition:none}}
 
-.today-jump{position:sticky;top:calc(var(--chrome-h) + 42px);z-index:6;display:flex;gap:4px;flex-wrap:wrap;
-  margin:0 0 18px;padding:8px 0 14px;background:linear-gradient(to bottom,var(--bg) 78%,transparent);
-  backdrop-filter:blur(6px)}
+.today-jump{display:flex;gap:4px;flex-wrap:wrap;margin:0;padding:0;min-width:0}
 .today-jump button{background:none;border:1px solid transparent;border-radius:999px;
   padding:3px 10px;font-family:var(--mono);font-size:.62rem;letter-spacing:.08em;
   text-transform:lowercase;color:var(--muted);cursor:pointer;
@@ -7381,5 +7386,124 @@ html[data-theme="light"] .wk-sleep{
   .pin-btn{transition:none}
   .pin-btn:hover{transform:none}
 }
+
+/* ---------- the sacred space: the room, or what to do in it ----------
+   Two views, one at a time, because stacked they were taller than a screen. */
+.sacred-switch{display:inline-flex;gap:3px;margin:0 0 12px;padding:3px;border-radius:999px;
+  background:var(--neu-bg);box-shadow:var(--neu-pressed)}
+.sacred-switch button{background:none;border:none;border-radius:999px;cursor:pointer;
+  padding:5px 14px;font-family:var(--sans);font-size:.76rem;letter-spacing:.02em;
+  color:var(--muted);transition:color .2s var(--ease),box-shadow .25s var(--ease),background .2s var(--ease)}
+.sacred-switch button:hover{color:var(--text)}
+.sacred-switch button.on{color:var(--text);background:var(--neu-bg);box-shadow:var(--neu-raised)}
+.sacred-switch button:focus-visible{outline:none;box-shadow:var(--neu-raised),var(--focus-ring)}
+/* The room gets the height the page has left, and grows into it. The drawing
+   is 2:1, so the width is still what is capped — a height cap on a fixed
+   viewBox letterboxes, and a room with a bar of nothing down each side is a
+   picture of a room rather than a room. Capping the width at twice the free
+   height is the same limit said in the dimension the SVG actually obeys. */
+.stillness{--sacred-h:min(76dvh, 760px)}
+/* It leaned out past the column for a while, to buy the room some height. The
+   section it sits in clips, so the far side of the bar came off — a wider room
+   with its right-hand end missing. It stays inside the column. */
+.sacred-stage{display:flex;flex-direction:column;justify-content:center;margin-bottom:4px}
+/* Width is still what is capped: a height cap on a fixed viewBox letterboxes,
+   and twice the free height is the same limit said in the dimension the SVG
+   actually obeys. So the room grows sideways until either the space beside it
+   or the space under it runs out, and what it cannot use it gives back. */
+/* houseHTML draws itself inside .house-page, which caps at 1180 for a page of
+   its own. Here it is not a page, it is the picture. */
+.sacred-stage .house-page{max-width:none}
+.sacred-stage .room-wrap{max-width:min(100%, calc(var(--sacred-h) * 1.72));margin-bottom:0}
+@media (max-width:760px){.stillness{--sacred-h:min(62dvh, 520px)}}
+@media (prefers-reduced-motion:reduce){.sacred-switch button{transition:none}}
+
+/* ---------- the Inbox matrix: the pile, and where it is going ----------
+   Only for the Inbox, where emptying the pile is the whole job. The tray is a
+   column down the left instead of a wrapping row underneath, so the card and
+   the quadrant it is being dragged to are both on screen. */
+.pe-withtray{display:grid;grid-template-columns:minmax(180px, var(--pew,320px)) minmax(0, 1fr);
+  gap:14px;align-items:start}
+.pe-withtray .pe-tray{margin-top:0;border-top:none;border-right:1px dashed var(--line);
+  padding-right:12px;min-width:0}
+.pe-withtray .pe-tray summary{padding-top:0}
+/* down, not across: the width is the column's now, so a card takes all of it
+   and the drag handle that used to set it has nothing left to do */
+.pe-withtray .pe-traybox{flex-direction:column;flex-wrap:nowrap;padding-top:2px}
+.pe-withtray .pe-traybox .pk-card{flex:0 0 auto;width:100%}
+.pe-withtray .pe-grip{display:none}
+@media (max-width:860px){
+  .pe-withtray{grid-template-columns:1fr}
+  .pe-withtray .pe-tray{border-right:none;border-bottom:1px dashed var(--line);
+    padding-right:0;padding-bottom:10px}
+  .pe-withtray .pe-traybox{flex-direction:row;flex-wrap:wrap}
+  .pe-withtray .pe-traybox .pk-card{flex:0 0 var(--pew,320px);max-width:100%}
+}
+
+/* ---------- the Morning Theatre's guided session ----------
+   The opening asks one question, so it is the only thing on the screen that
+   looks like a question. */
+.ths-open{display:flex;flex-direction:column;gap:16px;padding:4px 0 14px}
+.ths-ask{font-family:var(--serif);font-weight:400;font-size:1.12rem;margin:0}
+.ths-moods{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:8px}
+.ths-mood{display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;
+  padding:12px 8px;border:1px solid var(--line);border-radius:12px;background:var(--surface);
+  color:var(--muted);cursor:pointer;
+  transition:border-color .18s var(--ease),background .18s var(--ease),transform .18s var(--ease)}
+.ths-mood:hover{transform:translateY(-1px);color:var(--text);border-color:var(--line-2)}
+.ths-mood.on{border-color:var(--page-accent);color:var(--text);
+  background:color-mix(in srgb,var(--page-accent) 9%,transparent)}
+.ths-emo{font-size:1.5rem;line-height:1.1}
+.ths-name{font-family:var(--serif);font-size:.92rem;color:var(--text)}
+.ths-desc{font-size:.58rem;letter-spacing:.04em;line-height:1.35;color:var(--faint)}
+.ths-when{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.ths-mins{display:inline-flex;gap:3px;padding:3px;border-radius:999px;
+  background:var(--neu-bg);box-shadow:var(--neu-pressed)}
+.ths-min{background:none;border:none;border-radius:999px;cursor:pointer;padding:5px 14px;
+  font-family:var(--sans);font-size:.78rem;color:var(--muted);
+  transition:color .2s var(--ease),box-shadow .25s var(--ease)}
+.ths-min:hover{color:var(--text)}
+.ths-min.on{color:var(--text);background:var(--neu-bg);box-shadow:var(--neu-raised)}
+.ths-go{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.ths-done{font-size:.64rem;color:var(--faint)}
+.ths-manual{background:none;border:none;padding:0;margin:0;color:var(--faint);
+  font-family:var(--mono);font-size:.62rem;letter-spacing:.06em;cursor:pointer;text-align:left}
+.ths-manual:hover{color:var(--page-accent)}
+.theatre > .ths-manual{margin-bottom:10px}
+.ths-pins{border-top:1px dashed var(--line);padding-top:12px}
+
+/* today's focus, and the session itself */
+.ths-ov{align-items:center}
+.ths-modal{width:min(720px,94vw);max-height:88dvh;overflow:auto}
+.ths-focus,.ths{display:flex;flex-direction:column;gap:14px}
+.ths-vis{display:flex;flex-direction:column;gap:8px}
+.ths-v{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border:1px solid var(--line);
+  border-left:3px solid var(--page-accent);border-radius:10px;background:var(--surface)}
+.ths-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.ths-pick{border-top:1px dashed var(--line);padding-top:10px}
+.ths-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.ths-head .mono{font-size:.64rem;letter-spacing:.08em;color:var(--muted)}
+.ths-head .ths-clock{margin-left:auto}
+.ths-rail{display:flex;gap:4px}
+.ths-rail i{height:3px;flex:1;border-radius:2px;background:var(--line-2);opacity:.5}
+.ths-rail i.done{background:var(--page-accent);opacity:.45}
+.ths-rail i.on{background:var(--page-accent);opacity:1}
+.ths-title{font-family:var(--serif);font-weight:400;font-size:1.1rem;margin:0}
+.ths-body{min-height:180px}
+/* the practice inside a step is the accordion panel, opened and unlabelled:
+   its name is the heading above it, so its own summary would say it twice */
+.ths-step .th-sec{border:none;background:none;overflow:visible}
+.ths-step .th-sec > summary{display:none}
+.ths-step .th-body{padding:0}
+.ths-centre{font-family:var(--quote);font-style:italic;font-size:1.05rem;color:var(--muted);margin:0}
+.ths-nav{display:flex;align-items:center;gap:10px;justify-content:space-between;
+  border-top:1px dashed var(--line);padding-top:12px}
+.ths-tick{font-family:var(--serif);font-size:1.1rem;color:var(--sage,#7f916a)}
+.ths-list{margin:0;padding-left:18px;font-size:.88rem;line-height:1.7}
+.ths-streak{font-family:var(--mono);font-size:.68rem;color:var(--muted)}
+.ths-leave{background:none;border:none;padding:0;color:var(--faint);font-family:var(--mono);
+  font-size:.6rem;letter-spacing:.06em;cursor:pointer}
+.ths-leave:hover{color:var(--terra,#b4462f)}
+@media (prefers-reduced-motion:reduce){.ths-mood,.ths-min{transition:none}.ths-mood:hover{transform:none}}
 </style>
 </head>

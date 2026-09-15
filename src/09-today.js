@@ -224,14 +224,20 @@ routes.today = function(root){
       <p class="day-edge waking">I woke up at <button class="day-edge-t" id="wokeAt">${c.wakeAt ? esc(_ft(c.wakeAt)) : '—'}</button>${dreamEdgeHTML(T)}</p>
     </header>
 
-    <div class="today-switch rv" role="tablist" aria-label="which half of the day">
-      ${VIEWS.map(([id, label]) => `<button role="tab" aria-selected="${view === id}"
-        class="${view === id ? 'on' : ''}" data-tview="${id}">${esc(label)}</button>`).join('')}
+    <!-- Which half of the day, and where in it — one line. They were two
+         sticky rows at two different tops, which meant the page carried two
+         bands of buttons above everything it was actually for. They are asking
+         the same question at two scales, so they read better side by side, and
+         the page gets a band of itself back. -->
+    <div class="today-bar rv">
+      <div class="today-switch" role="tablist" aria-label="which half of the day">
+        ${VIEWS.map(([id, label]) => `<button role="tab" aria-selected="${view === id}"
+          class="${view === id ? 'on' : ''}" data-tview="${id}">${esc(label)}</button>`).join('')}
+      </div>
+      <nav class="today-jump" aria-label="jump to a section">
+        ${jumps.map(([id, label]) => `<button data-jump="${id}">${esc(label)}</button>`).join('')}
+      </nav>
     </div>
-
-    <nav class="today-jump rv" aria-label="jump to a section">
-      ${jumps.map(([id, label]) => `<button data-jump="${id}">${esc(label)}</button>`).join('')}
-    </nav>
 
     <!-- the day's shape now lives on the Compass, across a whole week; here
          the two ends of the day are simply stated, at the two ends of the page -->
@@ -405,7 +411,7 @@ routes.today = function(root){
     <div class="daybox daybox-solo">
     <!-- morning rehearsal (Maltz) -->
     <details class="section rv rehearsal-wrap t-sec" id="t-theatre"${fold('t-theatre', !theatreDoneToday())} style="margin-top:8px">
-      <summary><span class="sc">Morning Theatre</span><span class="mono">${theatreDoneToday() ? 'practised today' : 'six ways in · pick one'}</span>${flowTick('theatreAt')}</summary>
+      <summary><span class="sc">Morning Theatre</span><span class="mono">${theatreDoneToday() ? 'practised today' : 'one question, then a session'}</span>${flowTick('theatreAt')}</summary>
       ${theatreHTML()}
     </details>
 
@@ -448,9 +454,12 @@ routes.today = function(root){
   root.querySelectorAll('[data-jump]').forEach(b => b.onclick = () => {
     const t = root.querySelector('#' + b.dataset.jump); if(!t) return;
     if(t.tagName === 'DETAILS' && !t.open){ t.open = true; rememberFold(t.id, true); }
-    /* the strip is pinned clear of the floating chrome, so the room a
-       section needs above it is where the strip ends, not how tall it is */
-    const bar = root.querySelector('.today-jump');
+    /* The room a section needs above it is where the pinned bar ENDS, not how
+       tall it is. The bar is the whole line now — the view switch and the
+       jumps together — and the jumps inside it are no longer sticky, so
+       measuring them gave a top of auto, a height of one row of chips, and a
+       section that landed behind the bar instead of below it. */
+    const bar = root.querySelector('.today-bar') || root.querySelector('.today-jump');
     const pad = bar ? Math.max(0, parseFloat(getComputedStyle(bar).top) || 0)
       + bar.getBoundingClientRect().height + 4 : 14;
     const y = t.getBoundingClientRect().top + window.scrollY - pad;

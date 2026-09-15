@@ -300,7 +300,20 @@ function stillnessHTML(){
              : `<div class="empty">You have not built it yet. Four questions, and then it is yours to come back to.</div>`}
            <div class="field"><label>How long to stay</label>${lengths}</div>`;
   const recent = s.sessions.slice(0, 3);
-  return `<div class="body stillness">
+  const sview = SACRED_VIEWS.includes(S._sacredView) ? S._sacredView : 'house';
+  /* data-sacred, not data-sview: the buttons below carry data-sview, and a
+     wrapper wearing the same attribute caught their clicks on the way up and
+     set the view back to the one it already was. */
+  return `<div class="body stillness" data-sacred="${sview}">
+    <!-- The house and the things you can do in it were stacked, and the stack
+         was taller than a screen: you could not see the room you had come to
+         sit in without scrolling past it, and you could not read the four ways
+         to be still without scrolling the room off the top. They are two views
+         now. One at a time, and each of them fits. -->
+    <div class="sacred-switch" role="tablist" aria-label="the room, or what to do in it">
+      ${SACRED_VIEWS.map(v => `<button role="tab" aria-selected="${sview === v}"
+        class="${sview === v ? 'on' : ''}" data-sview="${v}">${esc(SACRED_VIEW_NAME[v])}</button>`).join('')}
+    </div>
     <!-- The room comes first, because the going is half of the practice. The
          row of tabs is still under it: the room is how you arrive, the tabs
          are how you switch once you are already sitting. -->
@@ -310,7 +323,10 @@ function stillnessHTML(){
          path lead off it. What is below — the four ways to be still, the
          length, and the button that begins — is what the cushion in that room
          opens onto, so it stays exactly where it was. -->
-    <div class="house-here">${typeof houseHTML === 'function' ? houseHTML() : ''}</div>
+    <div class="sacred-stage"${sview === 'house' ? '' : ' hidden'}>
+      <div class="house-here">${typeof houseHTML === 'function' ? houseHTML() : ''}</div>
+    </div>
+    <div class="sacred-rest"${sview === 'doing' ? '' : ' hidden'}>
     <div class="still-tabs">${STILL_KINDS.map(([k, n, ic]) =>
       `<button class="${kind === k ? 'on' : ''}" data-stkind="${k}">${ic} ${n}</button>`).join('')}</div>
     <div class="still-pane">${body}
@@ -333,7 +349,14 @@ function stillnessHTML(){
     </div>
     <!-- a card drawn here is for today, so it stays here as well as being filed -->
     ${typeof drawnTodayHTML === 'function' ? drawnTodayHTML(today()) : ''}
+    </div>
   </div>`;
+}
+const SACRED_VIEWS = ['house', 'doing'];
+const SACRED_VIEW_NAME = {house:'the house', doing:'what to do here'};
+function setSacredView(v){
+  if(!SACRED_VIEWS.includes(v) || S._sacredView === v) return;
+  S._sacredView = v; sound('click'); rerender();
 }
 function bindStillness(root){
   const s = stillness(), p = s.prefs;
@@ -342,6 +365,7 @@ function bindStillness(root){
      doors — binding them a second time from here gave every one of them two
      handlers, and the cushion two rings stacked on each other */
   const re = () => { saveNow(); rerender(); };
+  root.querySelectorAll('.sacred-switch [data-sview]').forEach(b => b.onclick = () => setSacredView(b.dataset.sview));
   root.querySelectorAll('[data-stkind]').forEach(b => b.onclick = () => { p.kind = b.dataset.stkind; re(); });
   root.querySelectorAll('[data-stmin]').forEach(b => b.onclick = () => { p.minutes = +b.dataset.stmin; re(); });
   root.querySelectorAll('[data-stanchor]').forEach(b => b.onclick = () => { p.anchor = b.dataset.stanchor; re(); });
