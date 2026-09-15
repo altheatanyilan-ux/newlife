@@ -113,25 +113,18 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   }, pid);
   is('  once a sitting is logged, it is', await p.evaluate(i => taskIsInProgress(i), pid), true);
   is('  and the time is readable', await p.evaluate(i => taskFocusMinutes(i), pid), 25);
-  /* the board puts it under In progress without being dragged there */
+  /* The Board filed a sat-with task under In progress on its own, and a column
+     chosen by hand beat that inference. The Board has since been retired — it
+     arranged tasks by a status the matrix already arranges them by — so the
+     only place "in progress" is still said is on the row, which is where it is
+     read. The inference itself is tested above, on taskIsInProgress. */
   await p.evaluate(i => { const t = byId(S.tasks, i); t.listId = planState().lists.find(l => l.id !== 'inbox').id;
-    t.day = ''; delete t.kanbanColumn; saveNow(); }, pid);
+    t.day = ''; saveNow(); }, pid);
   const lid = await p.evaluate(i => byId(S.tasks, i).listId, pid);
-  await p.evaluate(l => { S._planSel = {kind:'list', id:l}; S._planView = 'kanban'; location.hash = '#/planning'; rerender(); }, lid);
+  await p.evaluate(l => { S._planSel = {kind:'list', id:l}; S._planView = 'list'; location.hash = '#/planning'; rerender(); }, lid);
   await p.waitForTimeout(1200);
-  const inWip = await p.evaluate(i => {
-    const col = document.querySelector('[data-pkcol="in_progress"]');
-    return !!col && !!col.querySelector(`[data-ptcard="${i}"]`);
-  }, pid);
-  yes('the board files it under In progress on its own', inWip);
-  await p.evaluate(() => { S._planView = 'list'; rerender(); }); await p.waitForTimeout(1000);
-  yes('  and the row says so too', await p.evaluate(i =>
+  yes('the row says it is in progress, without being told', await p.evaluate(i =>
     !!document.querySelector(`[data-ptrow="${i}"] .pt-wip`), pid));
-  /* a column chosen by hand is a decision, and beats the inference */
-  await p.evaluate(i => { const t = byId(S.tasks, i); t.kanbanColumn = 'todo'; t.kanbanPinned = true; saveNow(); }, pid);
-  await p.evaluate(() => { S._planView = 'kanban'; rerender(); }); await p.waitForTimeout(1000);
-  yes('but a column chosen by hand still wins', await p.evaluate(i =>
-    !!document.querySelector(`[data-pkcol="todo"] [data-ptcard="${i}"]`), pid));
 
   console.log('\n' + (errs.length ? 'console:\n  ' + errs.join('\n  ') : 'console: clean'));
   if(errs.length) bad += errs.length;

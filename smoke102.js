@@ -1,4 +1,11 @@
-/* smoke102 — Planning opens on the matrix, and habits are a room of their own */
+/* smoke102 — Planning opens on the matrix, and habits are a room of their own.
+
+   One exception has been carved out of "the matrix leads" since: Today,
+   Tomorrow and the next seven days open as a day (smoke179). They are not
+   asking "what should I touch first" — the answer to that is the order the day
+   is already in — they are asking what is there, and the matrix takes a day
+   and sorts it into four boxes when what you wanted was the day. Everything
+   else still opens on the matrix, so this file asks a list. */
 const {chromium} = require('playwright');
 const path = require('path');
 const FILE = 'file://' + path.resolve('/home/user/newlife/index.html');
@@ -17,10 +24,20 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   await p.goto(FILE); await p.waitForTimeout(900);
   if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(1800); }
   const plan = async () => { await p.evaluate(() => { if(location.hash === '#/planning') rerender(); else location.hash = '#/planning'; }); await p.waitForTimeout(1500); };
+  /* a list, not a date: a date is the one selection the matrix does not lead on */
+  const onAList = async () => { await plan();
+    await p.evaluate(() => { const l = planLists().find(x => x.id !== 'inbox') || planLists()[0];
+      planSetSel('list', l.id); delete S._planView; });
+    await p.waitForTimeout(1200); };
 
   console.log('\n1. the matrix leads');
+  await onAList();
+  is('a list opens on it', await p.evaluate(() => planView()), 'eisenhower');
+  /* and the one exception, stated here so that losing it shows up */
   await plan();
-  is('Planning opens on it', await p.evaluate(() => planView()), 'eisenhower');
+  await p.evaluate(() => { planSetSel('smart', 'today'); }); await p.waitForTimeout(1100);
+  is('  while a date opens as a day', await p.evaluate(() => planView()), 'list');
+  await onAList();
   is('and it is the first button in the row',
      await p.$$eval('[data-plview]', n => n[0].dataset.plview), 'eisenhower');
   yes('  which is the one shown as chosen',
@@ -34,13 +51,13 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   await p.evaluate(() => flushSave());
   await p.reload(); await p.waitForTimeout(2500);
   if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(1800); }
-  await plan();
+  await onAList();
   is('the old default is moved to the matrix', await p.evaluate(() => planView()), 'eisenhower');
   await p.evaluate(() => { planState().prefs.view = 'calendar'; saveNow(); });
   await p.evaluate(() => flushSave());
   await p.reload(); await p.waitForTimeout(2500);
   if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(1800); }
-  await plan();
+  await onAList();
   is('but a view chosen deliberately since is left alone', await p.evaluate(() => planView()), 'calendar');
   await p.evaluate(() => { planState().prefs.view = 'eisenhower'; saveNow(); });
 
@@ -60,6 +77,9 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     if(!t) return;
     t.quadrant = 1; t.day = today();
     t.subtasks = [{id: uid(), title: 'a step on a matrix card', isCompleted: false, completedAt: null, sortOrder: 0}];
+    /* look at the list this task is actually in, or the card is not on the
+       page to tick a step from */
+    planSetSel('list', t.listId || 'inbox');
     saveNow(); S._planView = 'eisenhower'; rerender();
   });
   await p.waitForTimeout(1100);
@@ -88,17 +108,26 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('it opens', !!(await p.$('.pl-habits-room')));
   yes('with no list sidebar, because habits do not live in lists', !(await p.$('.pl-side')));
   yes('and no task view switcher either', !(await p.$('[data-plview]')));
-  yes('the habit is there', await p.evaluate(() => document.querySelectorAll('[data-phtick]').length > 0));
+  /* the room was rewritten afterwards: three views of its own, and a tick
+     against every habit that opens a check-in */
+  yes('the habit is there', await p.evaluate(() => document.querySelectorAll('[data-hbcheck]').length > 0));
 
   console.log('\n5. ticking a habit works inside its own room');
   const before = await p.evaluate(() => Object.keys(S.habitLog[today()] || {}).length);
-  await p.evaluate(() => document.querySelector('[data-phtick]').click());
+  /* ticking asks how it went before it writes the day, so the tick opens a
+     check-in and the check-in is what records it */
+  await p.evaluate(() => document.querySelector('[data-hbcheck]').click());
+  await p.waitForTimeout(800);
+  yes('the tick opens a check-in', await p.evaluate(() => !!document.querySelector('#ciSave')));
+  await p.evaluate(() => document.querySelector('#ciSave').click());
   await p.waitForTimeout(1000);
-  is('the tick is recorded',
+  is('  and saving it records the day',
      await p.evaluate(() => Object.keys(S.habitLog[today()] || {}).length), before + 1);
   yes('and it did not throw you back to the task room', !!(await p.$('.pl-habits-room')));
   yes('  nor leave the tick unpainted',
-      await p.evaluate(() => !!document.querySelector('.ph-card.done')));
+      await p.evaluate(() => { const T = today();
+        const id = Object.keys(S.habitLog[T] || {})[0];
+        return !!id && !!habitDone(byId(S.habits, id), T); }));
 
   console.log('\n6. the room is remembered, and the old address still works');
   await p.evaluate(() => flushSave());

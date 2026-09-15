@@ -111,26 +111,19 @@ const near = (n,a,b,tol) => Math.abs(a-b) <= tol ? ok(n, `${a.toFixed(1)} vs ${b
       !/done|late/.test(state.find(s => s.name === 'Hearing').cls), state.find(s => s.name === 'Hearing').cls);
   yes('the count says how many are still ahead', /3 ahead/.test(await p.textContent('.pl-ms')));
 
-  console.log('\n6. the Timeline view draws them on its own scale, beside the work');
-  await p.evaluate(() => { S._planView = 'timeline'; rerender(); });
-  await p.waitForTimeout(1200);
-  is('every milestone gets a marker', await p.evaluate(() => document.querySelectorAll('.pl-gms').length), 4);
-  yes('  in a lane of its own', !!(await p.$('.pl-tlms')));
-  yes('  above the task bars', await p.evaluate(() => {
-    const lane = document.querySelector('.pl-tlms'), bar = document.querySelector('.pl-gbar');
-    return !!lane && !!bar && !!(lane.compareDocumentPosition(bar) & Node.DOCUMENT_POSITION_FOLLOWING); }));
-  yes('  and the task bars are still drawn', await p.evaluate(() => document.querySelectorAll('.pl-gbar').length > 0));
+  /* Section 6 was here: the Timeline view drew the same milestones on its own
+     scale, in a lane above the Gantt bars. The Timeline has since been retired
+     along with the Board — it drew bars against dates the milestone strip
+     draws above every view, which is the strip sections 1 to 5 are about. */
 
-  console.log('\n7. clicking one opens it, from either place');
-  await p.click('.pl-gms');
-  await p.waitForTimeout(800);
-  yes('the timeline marker opens the form', !!(await p.$('#msName')));
-  await p.evaluate(() => closeModals());
+  console.log('\n7. clicking one opens it');
   await p.evaluate(() => { S._planView = 'list'; rerender(); });
   await p.waitForTimeout(1100);
-  await p.click('.pl-mspin');
+  /* pressing the pin itself filters the list to that milestone; the pencil on
+     it is the door into the form, and it is its own door on purpose */
+  await p.evaluate(() => document.querySelector('.pl-mspin [data-plms]')?.click());
   await p.waitForTimeout(800);
-  yes('and so does the pin on the strip', !!(await p.$('#msName')));
+  yes('the pencil on the pin opens the form', !!(await p.$('#msName')));
   /* the first pin is "First draft", which was already met, so the toggle
      un-marks it — either way the switch has to be written down */
   await p.click('#msDone'); await p.click('#msSave');

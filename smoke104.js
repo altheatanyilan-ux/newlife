@@ -31,12 +31,31 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
       : m.dataset?.plsel?.startsWith('folder:') ? 'folder'
       : 'head:' + m.textContent.trim().split(/\s+/)[0].toLowerCase());
   });
-  is('filter comes first, above everything', order[1], 'filter');
-  is('  then All', order[2], 'all');
-  is('  then the one dated row', order[3], 'dated');
+  /* Three things have moved since this was written, all of them deliberately,
+     and all of them out of the top of this column:
+
+       The search went up onto the line the new-task field is on, where the two
+       things you do before you have chosen a list sit together — leaving the
+       lists level with the content beside them instead of a box-height lower.
+
+       "All" went altogether: a list of every task in the house is the one view
+       that never answers a question, and it was standing between the search
+       and the lists.
+
+       The filter went to the foot, beside Completed, which is where the two
+       things that narrow what you are already looking at belong.
+
+     So the column now opens on the dated row and the lists, and ends with the
+     filter and Completed. */
+  is('the dated row comes first, above everything', order[0], 'dated');
   /* the heading carries its own ＋ button, so match the word rather than the
      exact text content */
-  yes('  then the lists', /^head:lists/.test(order[4]), order.join(' > '));
+  yes('  then the lists', /^head:lists/.test(order[1]), order.join(' > '));
+  yes('and the search is not in this column at all',
+      await p.evaluate(() => !document.querySelector('.pl-side #plSearch')));
+  yes('  nor All, which answered nothing',
+      await p.evaluate(() => !document.querySelector('[data-plsel="smart:all"]')));
+  is('the filter is at the foot with Completed', order[order.length - 2], 'filter');
   is('and Completed is the very last thing', order[order.length - 1], 'completed');
   yes('nothing sits below it in the sidebar', await p.evaluate(() => {
     const d = document.querySelector('[data-plsel="smart:done"]');

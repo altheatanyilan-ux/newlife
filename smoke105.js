@@ -112,16 +112,10 @@ const DRAG = `(fromSel, toSel, atFraction) => {
   is('alpha changed quadrant instead of being reordered',
      await p.evaluate(i => S.tasks.find(t => t.id === i).quadrant, aId), 3);
 
-  console.log('\n3. the board: a card can be moved within its column');
-  await setUp('kanban');
-  aId = await idOf('alpha'); gId = await idOf('gamma');
-  is('all four are in the same column', (await shown('.pk-col[data-pkcol="todo"] [data-ptcard]')).join(','),
-     'alpha,beta,gamma,delta');
-  is('the drag lands', await drag(`.pk-cards [data-ptcard="${aId}"]`, `.pk-cards [data-ptcard="${gId}"]`, 0.85), 'ok');
-  await p.waitForTimeout(900);
-  is('and it moved down the column',
-     (await shown('.pk-col[data-pkcol="todo"] [data-ptcard]')).join(','), 'beta,gamma,alpha,delta');
-  is('  without leaving the column', await p.evaluate(i => S.tasks.find(t => t.id === i).kanbanColumn, aId), 'todo');
+  /* Section 3 was here: reordering a card inside a Board column. The Board has
+     since been retired — it arranged tasks by a status the matrix already
+     arranges them by — so there is no column to reorder in. Sections 1, 2 and
+     4 cover the same drop-means-reorder rule in the three views that remain. */
 
   console.log('\n4. the calendar: pills in one day can be put in an order');
   await setUp('calendar');
@@ -137,17 +131,11 @@ const DRAG = `(fromSel, toSel, atFraction) => {
   is('  still on the same day', await p.evaluate(i => S.tasks.find(t => t.id === i).day,
      aId), await p.evaluate(() => today()));
 
-  console.log('\n5. the timeline: the name is the handle, the bar still means dates');
-  await setUp('timeline');
-  aId = await idOf('alpha'); gId = await idOf('gamma');
-  const tlBefore = await shown('.pl-tlrows [data-ptgrip]');
-  is('the rows start in order', tlBefore.slice(0, 4).join(','), 'alpha,beta,gamma,delta');
-  is('the drag lands', await drag(`[data-ptgrip="${aId}"]`, `[data-ptgrip="${gId}"]`, 0.85), 'ok');
-  await p.waitForTimeout(900);
-  is('the rows rearranged', (await shown('.pl-tlrows [data-ptgrip]')).slice(0, 4).join(','),
-     'beta,gamma,alpha,delta');
-  const dayBefore = await p.evaluate(i => S.tasks.find(t => t.id === i).day, aId);
-  is('and the date was not touched by a reorder', dayBefore, await p.evaluate(() => today()));
+  /* Section 5 was here: dragging a Timeline row by its name rather than its
+     bar, so that a reorder did not become a date change. The Timeline has been
+     retired with the Board — it drew bars against dates the milestone strip
+     draws above every view — and with it the only place where a reorder and a
+     date edit shared a row. */
 
   console.log('\n6. what the drop means is decided by where it lands');
   /* a task dragged onto a list in the sidebar still moves list, and one

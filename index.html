@@ -4861,7 +4861,11 @@ select.sm-active{border-color:var(--page-accent);
 /* The rail sits in the middle of the box so names have somewhere to go on
    both sides of it: the ticks along the top, then three tiers of names above
    the line, the line, then three tiers below. */
-.pl-msline{position:relative;margin:14px 40px 0;--step:36px;
+/* The step between tiers has to clear a whole pin, not most of one: a name
+   that wraps to two lines makes a pin about 55px tall, and at 36 the tier
+   above it landed 19px inside the tier below. Four milestones inside a week —
+   which is exactly when the tiers are needed — came out overlapping. */
+.pl-msline{position:relative;margin:14px 40px 0;--step:60px;
   --above:calc(28px + (var(--up,0) + 1) * var(--step));
   --below:calc(22px + (var(--down,0) + 1) * var(--step));
   height:calc(var(--above) + var(--below))}
@@ -46760,11 +46764,16 @@ async function initInner(){
     document.addEventListener('visibilitychange', () => { if(!document.hidden) touchPresence(); });
   } catch(e){ console.warn('presence stamp skipped', e); }
   window.addEventListener('beforeunload', () => { if(saving || queued) saveNow(); });
-  if(S.settings.firstOpen === today() && !S._welcomed){ S._welcomed = true; setTimeout(()=>toast('Welcome home. Every piece of text here is editable — click it. The placeholder life is yours to overwrite.', 7000), 800); }
   registerServiceWorker();
   /* The question about theme and sound comes before anything else has a chance
      to speak, and the rest of boot waits behind it. */
   const restOfBoot = () => setTimeout(() => {
+    /* The welcome used to be raised up there with the service worker, on an
+       800ms timer, which put it on screen while the opening question was still
+       being answered — the one thing the line above says does not happen. It
+       waits behind it with everything else now. */
+    if(S.settings.firstOpen === today() && !S._welcomed){ S._welcomed = true;
+      toast('Welcome home. Every piece of text here is editable — click it. The placeholder life is yours to overwrite.', 7000); }
     try { maybeOfferHandoff(); } catch(e){ console.warn('handoff notice skipped', e); }
     /* A bedtime is the one thing here that cannot be logged when it happens,
        so on a morning the house asks for last night's — once, and only from

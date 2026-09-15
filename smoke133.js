@@ -24,8 +24,12 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('  and not Journals', !labels.some(l => l === 'Journals'), labels.join(' | '));
   yes('the sidebar says Content Studio', labels.some(l => /Content Studio/.test(l)), labels.join(' | '));
   await go('#/content');
-  is('and the Content page names itself', await p.evaluate(() =>
-    document.querySelector('#main h1')?.textContent.trim()), 'Content Studio');
+  /* It used to name itself in a banner. Content Studio is one of the seven
+     rooms that had their banner taken off afterwards — the sidebar already
+     says where you are, and a heading that repeats it costs a screenful.
+     So what is checked is that the name is right where it is still said. */
+  yes('and the Content room has no banner repeating it', await p.evaluate(() =>
+    !document.querySelector('#main .page-head') && !document.querySelector('#main h1')));
 
   console.log('\n2. under Lived Record, the banner names the view you are in');
   for(const [route, want] of [['#/journals', 'Journals'], ['#/journals/timeline', 'Timeline'], ['#/journals/library', 'Library']]){

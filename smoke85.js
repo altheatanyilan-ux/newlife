@@ -80,14 +80,16 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
     return {n: cards.length, rows: Object.values(rows),
       keys: cards.map(c => c.querySelector('.k')?.textContent.replace('→','').trim()),
       bg: cards.map(c => getComputedStyle(c).backgroundColor),
-      house: getComputedStyle(document.querySelector('.house-wrap')).backgroundColor,
+      /* the house diagram that used to sit on this page has since moved to
+         Today, as My sacred space, so there is no .house-wrap here to read */
       lefts: [...new Set(cards.filter((_,i)=>i%3===0).map(c => Math.round(c.getBoundingClientRect().left)))]};
   });
   ok('nine readings', lv.n === 9, 'saw ' + lv.n);
   ok('three even rows, no ragged tail', lv.rows.length === 3 && lv.rows.every(r => r === 3), JSON.stringify(lv.rows));
   ok('People and Money are among them', /People/.test(lv.keys.join('|')) && /Money/.test(lv.keys.join('|')), lv.keys.join(' | '));
   ok('every card ground is transparent', lv.bg.every(b => /rgba\(0, 0, 0, 0\)|transparent/.test(b)), JSON.stringify(lv.bg.slice(0,3)));
-  ok('the house ground is transparent', /rgba\(0, 0, 0, 0\)|transparent/.test(lv.house), lv.house);
+  ok('and the house diagram has left this page for Today',
+     await page.evaluate(() => !document.querySelector('.house-wrap')));
   ok('the first card of each row starts on one left edge', lv.lefts.length === 1, JSON.stringify(lv.lefts));
 
   console.log('\n5. every select keeps room for its chevron');

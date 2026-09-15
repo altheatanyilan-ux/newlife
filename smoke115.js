@@ -99,7 +99,10 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
 
   console.log('\n7. what was written is read back where it matters');
   await p.evaluate(() => openHabitsPanel()); await p.waitForTimeout(1200);
-  const row = await p.evaluate(() => { const n = document.querySelector('.neg-row');
+  /* the starter set has habits of its own being broken, and they are drawn
+     first — read the row for the one this file wrote */
+  const row = await p.evaluate(() => { const n = [...document.querySelectorAll('.neg-row')]
+      .find(x => /Scrolling after ten/.test(x.textContent));
     return n ? n.textContent.replace(/\s+/g, ' ') : null; });
   yes('the days-since row exists', !!row);
   yes('  and shows the standard', /no phone in the bedroom/.test(row), row);

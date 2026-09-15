@@ -25,8 +25,14 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   /* Setting location.hash to the value it already holds fires no hashchange,
      so a "navigate" to the page you are on redraws nothing. Ask directly. */
   const go = async (h) => {
-    await p.evaluate(x => { if(location.hash === x) rerender(); else location.hash = x; }, h);
-    await p.waitForTimeout(800);
+    await p.evaluate(x => {
+      /* Today has two halves now, and the unfinished section is on the
+         looking-inward one. It is still in the page when the other half is
+         showing — the two views swap by `hidden`, not by rendering — so
+         everything here was found and none of it could be clicked. */
+      if(x === '#/today' && typeof setTodayView === 'function') setTodayView('in');
+      if(location.hash === x) rerender(); else location.hash = x; }, h);
+    await p.waitForTimeout(900);
   };
 
   console.log('\n1. the section is last on Today, and says so when empty');

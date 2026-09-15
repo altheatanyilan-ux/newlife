@@ -63,8 +63,24 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   is('the count moves', await p.$eval(`${row} .task-subcount`, n => n.textContent), '1/3');
   is('and it is recorded on the task itself',
      await p.evaluate(id => byId(S.tasks, id).subtasks.filter(s => s.isCompleted).length, tid), 1);
-  yes('the step is struck through',
-      await p.$eval(`[data-subwrap="${tid}"] .sub-row:first-child`, n => n.classList.contains('done')));
+  /* A finished step goes out of sight unless "show done" is on — the same rule
+     the tasks themselves follow — so what happens when it is ticked is that it
+     leaves the list and the block says how many are hidden. It is struck
+     through where it is still shown. */
+  is('the finished step is out of sight',
+     await p.$$eval(`[data-subwrap="${tid}"] .sub-row`, n => n.length), 2);
+  yes('  and the block says one is hidden',
+      await p.evaluate(id => /1 finished step hidden/.test(
+        document.querySelector(`[data-subwrap="${id}"] .sub-gone`)?.textContent || ''), tid));
+  await p.evaluate(() => { S._todayDone = true; rerender(); });
+  await p.waitForTimeout(800);
+  await openTasks();
+  yes('  and with "show done" on it is there, struck through',
+      await p.evaluate(id => { const r = document.querySelector(`[data-subwrap="${id}"] .sub-row`);
+        return !!r && r.classList.contains('done'); }, tid));
+  await p.evaluate(() => { S._todayDone = false; rerender(); });
+  await p.waitForTimeout(700);
+  await openTasks();
   yes('but the parent task is not silently completed — finishing a step is not finishing the task',
       await p.evaluate(id => byId(S.tasks, id).done === false, tid));
 

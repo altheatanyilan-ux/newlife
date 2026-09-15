@@ -60,10 +60,19 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
   ok('a status that already contains the stage leaves it alone', sync.stayed === 'refining', JSON.stringify(sync));
   ok('a status that does not, moves it', sync.moved === 'published', JSON.stringify(sync));
 
-  console.log('\n4. the board fits on the screen');
+  console.log('\n4. the board scrolls inside itself, and the page does not');
+  /* It used to be asked to fit: eight columns squeezed into whatever width the
+     window had. The columns are a fixed 248px now, with a handle on the right
+     edge of each so the width is yours to set, which means the board is wider
+     than the window and carries its own sideways scroll. What must not happen
+     is the PAGE scrolling sideways — that is the thing a reader feels. */
   const fit = await page.evaluate(() => { const b = document.querySelector('.ct-board');
-    return {sw:b.scrollWidth, cw:b.clientWidth, page: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1}; });
-  ok('all eight columns, no horizontal scroll', fit.sw <= fit.cw + 1 && !fit.page, JSON.stringify(fit));
+    return {cols: b.querySelectorAll('.ct-col').length, sw:b.scrollWidth, cw:b.clientWidth,
+      ox: getComputedStyle(b).overflowX,
+      page: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1}; });
+  ok('all eight columns are there', fit.cols === 8, JSON.stringify(fit));
+  ok('the board carries the scroll itself', fit.ox === 'auto', JSON.stringify(fit));
+  ok('and the page does not scroll sideways', !fit.page, JSON.stringify(fit));
 
   console.log('\n5. the four views');
   for(const [k, v] of [['2','calendar'],['3','library'],['4','stats'],['1','pipeline']]){

@@ -1,7 +1,33 @@
 /* smoke96 — the house installs, survives losing the network, and is unchanged on disk */
 const {chromium} = require('playwright');
 const path = require('path');
-const BASE = 'http://localhost:8099/newlife/';
+const http = require('http');
+const fs = require('fs');
+const PORT = 8099;
+const BASE = `http://localhost:${PORT}/newlife/`;
+/* A service worker will not register off file://, so this one has to be served.
+   It used to expect a server to be running already, which meant the file was
+   only ever green on a machine where somebody had started one by hand and red
+   everywhere else. It brings its own. */
+const TYPES = {'.html':'text/html', '.js':'text/javascript', '.json':'application/json',
+  '.webmanifest':'application/manifest+json', '.png':'image/png', '.svg':'image/svg+xml',
+  '.ico':'image/x-icon', '.css':'text/css'};
+function serve(root){
+  return new Promise((res, rej) => {
+    const srv = http.createServer((req, rsp) => {
+      let rel = decodeURIComponent(req.url.split('?')[0]).replace(/^\/newlife\/?/, '');
+      if(!rel || rel.endsWith('/')) rel += 'index.html';
+      const file = path.join(root, rel);
+      if(!file.startsWith(root) || !fs.existsSync(file) || fs.statSync(file).isDirectory()){
+        rsp.writeHead(404); return rsp.end('not found'); }
+      const t = TYPES[path.extname(file)] || 'application/octet-stream';
+      rsp.writeHead(200, {'Content-Type': t, 'Service-Worker-Allowed': '/'});
+      fs.createReadStream(file).pipe(rsp);
+    });
+    srv.on('error', rej);
+    srv.listen(PORT, () => res(srv));
+  });
+}
 const FILE = 'file://' + path.resolve('/home/user/newlife/index.html');
 let bad = 0;
 const ok  = (n, x='') => console.log(`  ok   ${n}${x?'  — '+x:''}`);
@@ -31,6 +57,7 @@ const clickToast = (pg, re) => pg.evaluate(src => {
 }, re.source);
 
 (async () => {
+  const srv = await serve(path.resolve('/home/user/newlife'));
   const b = await chromium.launch({executablePath:'/opt/pw-browsers/chromium'});
 
   console.log('\n1. the manifest is one a browser will actually install');
@@ -220,5 +247,6 @@ const clickToast = (pg, re) => pg.evaluate(src => {
   if(errs.length) bad += errs.length;
   console.log(bad ? `\n${bad} FAILED` : '\nsmoke96  all good');
   await b.close();
+  srv.close();
   process.exit(bad ? 1 : 0);
 })();

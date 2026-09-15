@@ -46,7 +46,10 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   await p.keyboard.press('Enter');
   await p.waitForTimeout(800);
   is('what was typed is what was saved',
-     await p.evaluate(i => byId(S.skills, i).levels[0].criteria.join('|'), id), 'plays a blues in three keys');
+     /* a criterion is an object — {id, text, done, metAt} — so joining the
+        array itself gives a row of [object Object] and nothing else */
+     await p.evaluate(i => byId(S.skills, i).levels[0].criteria.map(c => c.text).join('|'), id),
+     'plays a blues in three keys');
   yes('  and it is now readable on the panel',
       await p.evaluate(() => /plays a blues/.test(document.querySelector('#panel .lvl-criteria').textContent)));
 

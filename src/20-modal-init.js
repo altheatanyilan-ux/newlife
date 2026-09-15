@@ -418,11 +418,16 @@ async function initInner(){
     document.addEventListener('visibilitychange', () => { if(!document.hidden) touchPresence(); });
   } catch(e){ console.warn('presence stamp skipped', e); }
   window.addEventListener('beforeunload', () => { if(saving || queued) saveNow(); });
-  if(S.settings.firstOpen === today() && !S._welcomed){ S._welcomed = true; setTimeout(()=>toast('Welcome home. Every piece of text here is editable — click it. The placeholder life is yours to overwrite.', 7000), 800); }
   registerServiceWorker();
   /* The question about theme and sound comes before anything else has a chance
      to speak, and the rest of boot waits behind it. */
   const restOfBoot = () => setTimeout(() => {
+    /* The welcome used to be raised up there with the service worker, on an
+       800ms timer, which put it on screen while the opening question was still
+       being answered — the one thing the line above says does not happen. It
+       waits behind it with everything else now. */
+    if(S.settings.firstOpen === today() && !S._welcomed){ S._welcomed = true;
+      toast('Welcome home. Every piece of text here is editable — click it. The placeholder life is yours to overwrite.', 7000); }
     try { maybeOfferHandoff(); } catch(e){ console.warn('handoff notice skipped', e); }
     /* A bedtime is the one thing here that cannot be logged when it happens,
        so on a morning the house asks for last night's — once, and only from

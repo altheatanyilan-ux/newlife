@@ -60,23 +60,25 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   is('a view chosen by hand is honoured', await p.evaluate(() => planView()), 'calendar');
   await p.click(`[data-plsel="list:${listId}"]`); await p.waitForTimeout(1300);
   is('then picking a list goes back to the matrix', await p.evaluate(() => planView()), 'eisenhower');
-  await p.evaluate(() => { planSetView('kanban'); }); await p.waitForTimeout(1100);
-  await p.click('[data-plsel="smart:all"]'); await p.waitForTimeout(1300);
-  is('  and so does picking All', await p.evaluate(() => planView()), 'eisenhower');
-  await p.evaluate(() => { planSetView('list'); }); await p.waitForTimeout(1100);
+  /* "All" has gone from the sidebar — a list of every task in the house is the
+     one view that never answers a question. A span is the other change: Today,
+     Tomorrow and the next seven days open as a day rather than a matrix, on
+     purpose (smoke179), so the span is held to that instead. */
+  await p.evaluate(() => { planSetView('calendar'); }); await p.waitForTimeout(1100);
   await p.click('[data-plspan="tomorrow"]'); await p.waitForTimeout(1300);
-  is('  and choosing a span', await p.evaluate(() => planView()), 'eisenhower');
+  is('  while choosing a span opens the day', await p.evaluate(() => planView()), 'list');
   const folder = await p.evaluate(() => planState().folders[0]?.id);
   if(folder){
-    await p.evaluate(() => { planSetView('timeline'); }); await p.waitForTimeout(1100);
+    await p.evaluate(() => { planSetView('calendar'); }); await p.waitForTimeout(1100);
     await p.click(`[data-plsel="folder:${folder}"]`); await p.waitForTimeout(1300);
-    is('  and a folder', await p.evaluate(() => planView()), 'eisenhower');
+    is('  and a folder is back on the matrix', await p.evaluate(() => planView()), 'eisenhower');
   }
 
   console.log('\n3b. a list given a view of its own still gets it');
-  await p.evaluate(i => { planList(i).defaultView = 'kanban'; saveNow(); }, listId);
+  /* the Board is retired, so a list asks for the calendar instead */
+  await p.evaluate(i => { planList(i).defaultView = 'calendar'; saveNow(); }, listId);
   await p.click(`[data-plsel="list:${listId}"]`); await p.waitForTimeout(1300);
-  is('the board, as that list asked', await p.evaluate(() => planView()), 'kanban');
+  is('the calendar, as that list asked', await p.evaluate(() => planView()), 'calendar');
 
   console.log('\n' + (errs.length ? 'console:\n  ' + errs.join('\n  ') : 'console: clean'));
   if(errs.length) bad += errs.length;

@@ -4192,7 +4192,11 @@ select.sm-active{border-color:var(--page-accent);
 /* The rail sits in the middle of the box so names have somewhere to go on
    both sides of it: the ticks along the top, then three tiers of names above
    the line, the line, then three tiers below. */
-.pl-msline{position:relative;margin:14px 40px 0;--step:36px;
+/* The step between tiers has to clear a whole pin, not most of one: a name
+   that wraps to two lines makes a pin about 55px tall, and at 36 the tier
+   above it landed 19px inside the tier below. Four milestones inside a week —
+   which is exactly when the tiers are needed — came out overlapping. */
+.pl-msline{position:relative;margin:14px 40px 0;--step:60px;
   --above:calc(28px + (var(--up,0) + 1) * var(--step));
   --below:calc(22px + (var(--down,0) + 1) * var(--step));
   height:calc(var(--above) + var(--below))}

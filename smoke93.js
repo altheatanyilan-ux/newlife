@@ -53,19 +53,29 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
   });
   ok('their icons are different drawings', shapes.content !== shapes.writing, 'identical');
   ok('the Writing Studio keeps the pen', /M4\.5 19\.5/.test(shapes.writing), shapes.writing.slice(0, 50));
-  ok('Content is the pipeline it is — three marks, open to filled',
-     (shapes.content.match(/<circle/g) || []).length === 3 && !/19\.5 5\.7/.test(shapes.content), shapes.content.slice(0, 70));
+  /* It was three circles, open to filled, when this was written; it is a stack
+     of documents now. Pinning the test to one drawing meant a redraw read as a
+     regression, so what is asserted is what the section is actually about —
+     that Content is not wearing the Writing Studio's pen. */
+  ok('Content is not the pen', !/M4\.5 19\.5/.test(shapes.content), shapes.content.slice(0, 70));
+  ok('  and it is a drawing, not an empty box',
+     /<path|<circle|<rect/.test(shapes.content), shapes.content.slice(0, 70));
   await page.evaluate(() => { location.hash = '#/compass'; rerender(); }); await page.waitForTimeout(900);
   /* The Writing Studio stopped being a sidebar room, so the two can no longer
      be compared there. What still matters is that the icon Content shows in
      the sidebar is the pipeline and not the pen. */
   const rendered = await page.evaluate(() => {
     const svg = document.querySelector('[data-page="content"] .ico svg');
-    return svg ? {circles: svg.querySelectorAll('circle').length, paths: svg.querySelectorAll('path').length,
-      pen: /M4\.5 19\.5/.test(svg.innerHTML)} : null;
+    return svg ? {marks: svg.querySelectorAll('path, circle, rect').length,
+      pen: /M4\.5 19\.5/.test(svg.innerHTML),
+      /* and it is the icon the table says it is, rather than a stand-in — the
+         rendered svg carries classes and attributes the table's string does
+         not, so the paths are what is compared */
+      same: [...svg.querySelectorAll('path')].map(n => n.getAttribute('d')).join('|')
+        === (NAV_ICONS.content.match(/d="[^"]*"/g) || []).map(x => x.slice(3, -1)).join('|')} : null;
   });
-  ok('and Content renders the pipeline in the sidebar, not a pen',
-     rendered && rendered.circles === 3 && !rendered.pen, JSON.stringify(rendered));
+  ok('and the sidebar draws Content\'s own icon, not a pen',
+     rendered && rendered.marks > 0 && !rendered.pen && rendered.same, JSON.stringify(rendered));
 
   console.log('\n3. the clock opens at the time it is');
   await page.evaluate(() => { location.hash = '#/today'; rerender(); }); await page.waitForTimeout(1100); await clean();

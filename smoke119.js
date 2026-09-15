@@ -25,7 +25,9 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   console.log('\n2. it is the third view of Journals, after the other two');
   await p.evaluate(() => { location.hash = '#/journals'; }); await p.waitForTimeout(1700);
   const views = await p.$$eval('[data-jrview]', n => n.map(x => x.dataset.jrview));
-  is('the three views, in order', views.join(','), 'entries,timeline,library');
+  /* a fourth joined them afterwards: the Compass was retired into the Lived
+     Record as the Review tab (smoke144). The Library is still the third. */
+  is('the views, in order', views.join(','), 'entries,timeline,library,review');
   await p.click('[data-jrview="library"]'); await p.waitForTimeout(1800);
   is('clicking it goes there', await p.evaluate(() => location.hash), '#/journals/library');
   yes('  the Library really renders', !!(await p.$('.media-kind-row')));
