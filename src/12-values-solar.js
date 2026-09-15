@@ -242,6 +242,27 @@ ValuesSolar.prototype.ink = function(){
   return {label: '#e8e0d4', path: .42, trail: 1, corona: .6, light: false};
 };
 
+/* ---------- what colour the night is ----------
+   Always dark is not the same as always black, and on a light page the
+   difference is the whole thing. A near-black disc on a cream ground is a
+   hole punched in the page however softly it fades; the dark is not wrong,
+   the pitch is.
+
+   So the ground under the planets is a dusk rather than an absence, and it is
+   built the way the sky over the house is built: two colours, warm close in
+   and cool further out, so it reads as air with a light in it rather than as
+   a flat wash. It has to stay dark enough for a pale planet and a cream label
+   to hold against it — that was the original reason for the night and it has
+   not gone away — but dark enough and pitch are different things.
+
+   In dark mode it stays as deep as it ever was. Somebody who has put the
+   whole house in the dark is not asking for a dusk. */
+const SOLAR_DUSK = {core: [98, 79, 92], edge: [56, 66, 100], a: .84};
+const SOLAR_NIGHT = {core: [24, 20, 18], edge: [18, 16, 14], a: .95};
+ValuesSolar.prototype.sky = function(){
+  return document.documentElement.dataset.theme === 'light' ? SOLAR_DUSK : SOLAR_NIGHT;
+};
+
 /* An eclipse rather than a box: one ellipse of darkness centred on the sun,
    opaque across the middle so a pale planet reads against it, and gone by the
    time it reaches an edge.
@@ -264,12 +285,20 @@ ValuesSolar.prototype.night = function(){
      as artificial — it sees the edge of a shape where there is meant to be
      none. This is flat where it meets the core, flat again where it meets
      nothing, and has no straight run anywhere in between. */
-  const A = .95, t0 = SOLAR_NIGHT_CORE, N = 20;
+  const sky = this.sky();
+  const A = sky.a, t0 = SOLAR_NIGHT_CORE, N = 20;
   for(let i = 0; i <= N; i++){
     const t = i / N;
     const u = t <= t0 ? 0 : Math.min(1, (t - t0) / (1 - t0));
     const smooth = u * u * (3 - 2 * u);
-    g.addColorStop(t, `rgba(20,17,14,${(A * (1 - smooth)).toFixed(4)})`);
+    /* the colour walks the whole radius while the alpha only starts moving at
+       the core, so the warm-to-cool turn happens across the lit part rather
+       than out in the fade where nobody could see it */
+    const mix = (a, b) => Math.round(a + (b - a) * t);
+    const r = mix(sky.core[0], sky.edge[0]);
+    const gr = mix(sky.core[1], sky.edge[1]);
+    const bl = mix(sky.core[2], sky.edge[2]);
+    g.addColorStop(t, `rgba(${r},${gr},${bl},${(A * (1 - smooth)).toFixed(4)})`);
   }
   c.save();
   c.translate(this.cx, this.cy);

@@ -249,6 +249,48 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('    and so is the label under it',
     gr.under.every(u => u.label > .8), gr.under.map(u => `${u.name} ${u.label.toFixed(2)}`).join(' / '));
 
+  /* Always dark and always black are not the same thing, and on a light page
+     the difference is the whole thing. A near-black disc on a cream ground is
+     a hole punched in the page however softly it fades — the dark was never
+     wrong, the pitch was. So on a light page the ground is a dusk: two
+     colours, warm close in and cool further out, the way the sky over the
+     house is built. In dark mode it stays as deep as it ever was, because
+     somebody who has put the whole house in the dark is not asking for dusk. */
+  console.log('\n10. the night is a dusk on a light page and a night on a dark one');
+  /* the ground itself, not the sun sitting on top of it: the median of a ring
+     well inside the core, so a planet crossing it cannot swing the answer */
+  const ring = () => p.evaluate(() => {
+    const cv = document.querySelector('#solarCv'), g = cv.getContext('2d');
+    const lum = [];
+    for(let i = 0; i < 32; i++){
+      const a = i / 32 * Math.PI * 2;
+      const x = Math.round(cv.width / 2 + Math.cos(a) * cv.width * .22);
+      const y = Math.round(cv.height / 2 + Math.sin(a) * cv.height * .22);
+      const d = g.getImageData(x, y, 1, 1).data;
+      lum.push({v: (d[0] * .2126 + d[1] * .7152 + d[2] * .0722) * (d[3] / 255), a: d[3] / 255});
+    }
+    lum.sort((m, n) => m.v - n.v);
+    return lum[16];
+  });
+  await p.evaluate(() => { S.settings.theme = 'light'; applyTheme(); }); await values();
+  const day = await ring();
+  const dayMix = await p.evaluate(() => _solar.sky());
+  await p.evaluate(() => { S.settings.theme = 'dark'; applyTheme(); }); await values();
+  const night = await ring();
+  const nightMix = await p.evaluate(() => _solar.sky());
+  await p.evaluate(() => { S.settings.theme = 'light'; applyTheme(); }); await values();
+
+  yes('on a light page the ground is a dusk, not a hole', day.v > 18,
+    `luminance ${day.v.toFixed(1)}`);
+  yes('  built out of two colours, warm in and cool out, like the sky over the house',
+    dayMix.core.join() !== dayMix.edge.join(), JSON.stringify(dayMix));
+  yes('  and still dark enough to hold a pale planet', day.v < 90 && day.a > .7,
+    `luminance ${day.v.toFixed(1)}, alpha ${day.a.toFixed(2)}`);
+  yes('in the dark it stays as deep as it ever was', night.v < day.v * .6,
+    `${night.v.toFixed(1)} against ${day.v.toFixed(1)}`);
+  yes('  which is a darker ink than the dusk, not merely a dimmer one',
+    nightMix.core.join() !== dayMix.core.join(), JSON.stringify(nightMix));
+
   console.log('\nconsole: ' + (errs.length ? errs.join(' | ') : 'clean'));
   errs.forEach(e => no(e));
   await b.close();
