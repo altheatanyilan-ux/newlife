@@ -19,7 +19,14 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   const editing = () => p.evaluate(() => document.querySelectorAll('.ed.editing, .task-row input, .pt-row input, .pk-card input').length);
 
   console.log('\n1. Today: the name opens the task');
-  await p.evaluate(() => { location.hash = '#/today'; }); await p.waitForTimeout(1800);
+  /* Today has two halves now, and the tasks are on the execution one; the
+     section itself is a <details> whose open state is remembered, so it has to
+     be asked for rather than assumed. */
+  await p.evaluate(() => { if(typeof setTodayView === 'function') setTodayView('do');
+    location.hash = '#/today'; }); await p.waitForTimeout(1800);
+  await p.evaluate(() => { const d = document.querySelector('#t-tasks');
+    if(d && !d.open){ d.open = true; if(typeof rememberFold === 'function') rememberFold('t-tasks', true); } });
+  await p.waitForTimeout(600);
   yes('there are task rows', !!(await p.$('.task-row .task-text')));
   /* the name is the largest thing on the row, so it should do the thing you
      mostly want, which is to look at the task */

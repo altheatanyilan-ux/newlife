@@ -300,11 +300,19 @@ function bindTaskRows(root, after){
       {label: 'put it back', fn: () => { setTaskDay(r.id, was); redraw(); }});
     redraw();
   });
-  /* the pencil renames the name beside it, not itself */
+  /* The pencil renames the name beside it, not itself. It used to look for the
+     name in its own parent, which held while the two were siblings and stopped
+     the day the row's buttons were wrapped in .task-tools to stop them eating
+     the name's width: the pencil's parent no longer contains the name, the
+     lookup fell through to `|| n`, and pressing rename replaced the PENCIL
+     with the input while the name sat there unchanged. It asks the row now,
+     which is true however the row is arranged. */
   $$('[data-tedit]', root).forEach(n => n.onclick = e => {
     e.stopPropagation();
     const r = findTaskRef(n.dataset.tedit); if(!r) return;
-    const label = n.parentElement.querySelector('[data-topen]') || n;
+    const scope = n.closest('.task-body') || n.closest('[data-taskrow]') || n.parentElement;
+    const label = scope.querySelector(`[data-topen="${CSS.escape(n.dataset.tedit)}"]`)
+      || scope.querySelector('[data-topen]') || n;
     inlineTaskEdit(label, r.task.text || '', v => { r.task.text = v; }, redraw);
   });
   /* Today never had a way to open a task at all; the row's own page is where

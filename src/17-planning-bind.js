@@ -131,7 +131,10 @@ function bindPlanning(root, sel, tasks){
   $$('[data-tedit]', root).forEach(n => n.onclick = ev => {
     ev.stopPropagation();
     const t = planTaskById(n.dataset.tedit); if(!t) return;
-    const label = n.parentElement.querySelector('.pt-text, .pk-text') || n;
+    /* from the row, not from the pencil's parent: the same lookup on Today
+       broke the day its buttons were wrapped, and this one would too */
+    const scope = n.closest('.pt-row, .pk-card') || n.parentElement;
+    const label = scope.querySelector('.pt-text, .pk-text') || n;
     inlineTaskEdit(label, t.text || '', v => { t.text = v; t.updatedAt = new Date().toISOString(); }, planRedraw);
   });
 
