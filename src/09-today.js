@@ -1,3 +1,15 @@
+/* One table, two readers: the check-in offers these and the day archive in
+   the Lived Record reads back what was chosen, so it cannot live inside the
+   function that draws Today. */
+const MOODS = [
+  {v:'open',    icon:'◯', label:'Open'},
+  {v:'tender',  icon:'◌', label:'Tender'},
+  {v:'charged', icon:'◉', label:'Charged'},
+  {v:'settled', icon:'●', label:'Settled'},
+  {v:'flat',    icon:'—', label:'Flat'},
+];
+const moodOf = v => MOODS.find(m => m.v === v) || null;
+
 /* ============================================================
    1. TODAY — the entryway (lean ritual space, ≤640px column)
    ============================================================ */
@@ -146,14 +158,6 @@ routes.today = function(root){
      own line, an intention in the check-in, an unfinished thought in the
      section that holds them — and the speed dial still reaches all of them. */
   PageEntryConfig.clear();
-
-  const MOODS = [
-    {v:'open',    icon:'◯', label:'Open'},
-    {v:'tender',  icon:'◌', label:'Tender'},
-    {v:'charged', icon:'◉', label:'Charged'},
-    {v:'settled', icon:'●', label:'Settled'},
-    {v:'flat',    icon:'—', label:'Flat'},
-  ];
 
   const seasonName = (()=>{ if(typeof season === 'function'){ const s = season(parseDay(T)); return {winter:'Winter',spring:'Spring',summer:'Summer',autumn:'Autumn'}[s]||''; } return ''; })();
 
@@ -377,8 +381,15 @@ routes.today = function(root){
             ${MOODS.map(m=>`<button class="mood-btn ${c.mood===m.v?'on':''}" data-mood="${m.v}" style="flex-direction:column;gap:3px"><span class="mood-icon">${m.icon}</span><span class="mono" style="font-size:.65rem">${m.label}</span></button>`).join('')}
           </div>
         </div>
-        <div class="field"><label>In one sentence, how is today going?</label>
-          ${ed('checkins.' + T + '.sentence', {ph:'One honest sentence.', cls:'serif-lg'})}</div>
+        <!-- Not one line. It was asked for as one sentence and given a
+             single-line box, which is a box that argues with you the moment
+             the day needs more than a sentence — and the days that need more
+             than a sentence are the ones worth having written down. The
+             editor already grows with what is typed into it; it only had to
+             be asked to. -->
+        <div class="field"><label>How is today going?</label>
+          ${ed('checkins.' + T + '.sentence',
+            {multi: true, ph:'One honest sentence — or as many as it takes.', cls:'serif-lg'})}</div>
         <div class="field"><label>Energy — four dimensions</label>
           <div class="energy-row">${DIMS.map(d=>`<div class="energy-dim" style="--c:${d.c}"><div class="lbl"><span>${d.name}</span><span class="mono">${c.energy?.[d.id]||'–'}/5</span></div><div class="dots">${[1,2,3,4,5].map(n=>`<i class="${(c.energy?.[d.id]||0)>=n?'on':''}" data-dim="${d.id}" data-n="${n}"></i>`).join('')}</div></div>`).join('')}</div></div>
         <div class="field setpoint"><label>Emotional set-point (Hicks' guidance scale)</label>

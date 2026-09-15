@@ -7869,6 +7869,52 @@ html:not([data-theme="light"]) .room-wrap::after{mix-blend-mode:screen;opacity:.
    folds already drawn on the cloth. */
 .rm-cush-top{fill:url(#wovKilim)}
 .rm-cloth{fill:url(#wovDamask)}
+
+/* ============================================================
+   THE DAYS, IN THE LIVED RECORD
+
+   A month is a line until it is opened; a day is a line until it is opened.
+   The whole thing has to read as an index you scan rather than a pile you
+   wade through, because the reason to come here is to find one Tuesday. */
+.day-archive{margin-top:18px}
+.day-month{border-top:1px solid var(--line)}
+.day-month>summary{display:flex;align-items:baseline;justify-content:space-between;
+  gap:10px;cursor:pointer;padding:11px 2px;list-style:none}
+.day-month>summary::-webkit-details-marker{display:none}
+.day-month>summary .serif{font-size:1.02rem}
+.day-month[open]>summary{border-bottom:1px dashed var(--line)}
+
+.day-row{border-bottom:1px solid var(--line)}
+.day-row:last-child{border-bottom:0}
+/* Five columns for four things. The house puts a chevron on section summaries
+   as a ::before, and a pseudo-element is a grid item like any other — so a row
+   laid out for its own four children silently had a fifth, and the marks wrapped
+   onto a line of their own. The chevron gets a column of its own. */
+.day-row>summary{display:grid;grid-template-columns:auto auto auto 1fr auto;align-items:baseline;
+  gap:10px;cursor:pointer;padding:9px 2px 9px 4px;list-style:none}
+.day-row>summary::-webkit-details-marker{display:none}
+.day-row>summary:hover{background:color-mix(in srgb,var(--accent) 5%,transparent)}
+.day-when{font-size:.92rem;white-space:nowrap}
+.day-mood{opacity:.7;width:1em;text-align:center}
+/* The gist is whatever the day was about, and it must not push the marks off
+   the end of the line. min-width:0 is the whole trick: a grid item is
+   min-width:auto by default, so a nowrap line refuses to shrink below its own
+   text and the 1fr column it lives in quietly grows past its share. */
+.day-gist{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  color:var(--muted);font-size:.86rem}
+.day-marks{font-size:.68rem;opacity:.65;white-space:nowrap}
+.day-body{padding:4px 2px 18px 14px}
+.day-readings{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.72rem;opacity:.8}
+.day-readings b{font-weight:600}
+.day-tasks{margin:4px 0 0;padding-left:18px;font-size:.88rem}
+.day-tasks li{margin:2px 0}
+.day-tasks li.is-done{opacity:.5;text-decoration:line-through}
+
+@media (max-width:640px){
+  .day-row>summary{grid-template-columns:auto 1fr auto;gap:4px 8px}
+  .day-gist{grid-column:1/-1}
+  .day-marks{grid-column:1/-1}
+}
 </style>
 </head>
 <body>
@@ -14910,6 +14956,18 @@ function bindWeekShape(root, redraw){
   const span = root.querySelector('#tpSpan');
   if(span) span.onchange = () => { S.settings.timeSpan = span.value; saveNow(); (redraw || rerender)(); };
 }
+/* One table, two readers: the check-in offers these and the day archive in
+   the Lived Record reads back what was chosen, so it cannot live inside the
+   function that draws Today. */
+const MOODS = [
+  {v:'open',    icon:'◯', label:'Open'},
+  {v:'tender',  icon:'◌', label:'Tender'},
+  {v:'charged', icon:'◉', label:'Charged'},
+  {v:'settled', icon:'●', label:'Settled'},
+  {v:'flat',    icon:'—', label:'Flat'},
+];
+const moodOf = v => MOODS.find(m => m.v === v) || null;
+
 /* ============================================================
    1. TODAY — the entryway (lean ritual space, ≤640px column)
    ============================================================ */
@@ -15058,14 +15116,6 @@ routes.today = function(root){
      own line, an intention in the check-in, an unfinished thought in the
      section that holds them — and the speed dial still reaches all of them. */
   PageEntryConfig.clear();
-
-  const MOODS = [
-    {v:'open',    icon:'◯', label:'Open'},
-    {v:'tender',  icon:'◌', label:'Tender'},
-    {v:'charged', icon:'◉', label:'Charged'},
-    {v:'settled', icon:'●', label:'Settled'},
-    {v:'flat',    icon:'—', label:'Flat'},
-  ];
 
   const seasonName = (()=>{ if(typeof season === 'function'){ const s = season(parseDay(T)); return {winter:'Winter',spring:'Spring',summer:'Summer',autumn:'Autumn'}[s]||''; } return ''; })();
 
@@ -15289,8 +15339,15 @@ routes.today = function(root){
             ${MOODS.map(m=>`<button class="mood-btn ${c.mood===m.v?'on':''}" data-mood="${m.v}" style="flex-direction:column;gap:3px"><span class="mood-icon">${m.icon}</span><span class="mono" style="font-size:.65rem">${m.label}</span></button>`).join('')}
           </div>
         </div>
-        <div class="field"><label>In one sentence, how is today going?</label>
-          ${ed('checkins.' + T + '.sentence', {ph:'One honest sentence.', cls:'serif-lg'})}</div>
+        <!-- Not one line. It was asked for as one sentence and given a
+             single-line box, which is a box that argues with you the moment
+             the day needs more than a sentence — and the days that need more
+             than a sentence are the ones worth having written down. The
+             editor already grows with what is typed into it; it only had to
+             be asked to. -->
+        <div class="field"><label>How is today going?</label>
+          ${ed('checkins.' + T + '.sentence',
+            {multi: true, ph:'One honest sentence — or as many as it takes.', cls:'serif-lg'})}</div>
         <div class="field"><label>Energy — four dimensions</label>
           <div class="energy-row">${DIMS.map(d=>`<div class="energy-dim" style="--c:${d.c}"><div class="lbl"><span>${d.name}</span><span class="mono">${c.energy?.[d.id]||'–'}/5</span></div><div class="dots">${[1,2,3,4,5].map(n=>`<i class="${(c.energy?.[d.id]||0)>=n?'on':''}" data-dim="${d.id}" data-n="${n}"></i>`).join('')}</div></div>`).join('')}</div></div>
         <div class="field setpoint"><label>Emotional set-point (Hicks' guidance scale)</label>
@@ -18433,6 +18490,202 @@ function bindDreamCalendar(root){
   });
 }
 /* ============================================================
+   THE DAYS
+
+   Today is a page you write on and then never see again. Everything it asks
+   for — what you meant to give the day to, how it was going, where you were
+   on the scale, what you kept, what you sat for — is filed by date and then
+   only ever consulted in aggregate, as a line on a chart or a number in a
+   dashboard. The charts are true and they are not the thing: a chart can say
+   your set-point averaged eleven in August and cannot say that on the ninth
+   you wrote one sentence you would want to read again.
+
+   So the Review tab of the Lived Record gets the days themselves. It belongs
+   there rather than anywhere else because that tab is already the two halves
+   of looking back — the numbers, and the reviews written about the periods
+   the numbers cover. The days are what both of those are ABOUT, and they were
+   the one thing you could not get to.
+
+   Two decisions worth stating.
+
+   A day is listed only if something was actually put into it. The rhythm
+   record is created by anything that so much as glances at a date — a chart
+   walking back seven days leaves seven empty records behind it — so presence
+   in the store proves nothing and every day is tested on its contents.
+
+   And the words can be edited where the readings cannot. A sentence you wrote
+   about a Tuesday is yours and a typo in it is worth fixing; the mood you
+   chose and the numbers you gave are readings taken at a time, and a record
+   you can quietly improve after the fact is not a record. The same reasoning
+   the garden runs on.
+   ============================================================ */
+
+/* One global scope, one bundle. Every name in this file is checked against
+   every other file before it is used: `dayRecord` was taken — the rhythm page
+   has one, with a different shape — and because that file sorts later its
+   declaration quietly won, so this archive spent an afternoon reading a
+   record it had not built. Nothing warns you. The prefix is the warning. */
+/* everything one day holds, gathered from wherever it actually lives */
+function archiveDayOf(d){
+  const c = (S.checkins || {})[d] || {};
+  const r = (S.dailyRhythm || {})[d] || {};
+  const tasks = typeof tasksForDay === 'function' ? tasksForDay(d) : [];
+  const focus = typeof focusMinutesOn === 'function' ? (focusMinutesOn(d) || 0) : 0;
+  const still = typeof stillMinutesOn === 'function' ? (stillMinutesOn(d) || 0) : 0;
+  const habits = (S.habits || []).filter(h => typeof habitDue === 'function' && habitDue(h, d));
+  const kept = habits.filter(h => typeof habitDone === 'function' && habitDone(h, d));
+  const entries = (S.entries || []).filter(e => (e.createdAt || '').slice(0, 10) === d);
+  const energy = c.energy && Object.keys(c.energy).some(k => c.energy[k]) ? c.energy : null;
+  const rec = {d, c, r, tasks, focus, still, habits, kept, entries, energy,
+    done: tasks.filter(t => t.done).length};
+  /* A record is a day somebody put something into. Anything that reads a date
+     leaves a rhythm record behind it, so the store having a key for a day is
+     not evidence that the day happened. */
+  rec.any = !!(c.intention || c.sentence || c.mood || c.setpoint || energy
+    || r.wakeTime || r.sleepTime || (r.blocks || []).length
+    || tasks.length || focus || still || kept.length || entries.length);
+  return rec;
+}
+/* Days that had something PUT into them, gathered by walking what was
+   written rather than by asking every date in the store whether it counts.
+
+   Reading the keys is the obvious way and it is wrong twice over. It is
+   wrong because anything that so much as glances at a date leaves a rhythm
+   record behind it — the charts walk back a week every time they draw, so a
+   fresh house already has seven days of nothing in it, and a month of those
+   appears here as a month with days in it that turns out empty when opened.
+   And it is wrong because deciding it per-day means calling tasksForDay once
+   per candidate, which rebuilds every task reference in the house each time.
+
+   One pass over each collection instead, keeping only what carries content. */
+function archiveDays(){
+  const set = new Set();
+  const add = d => { if(typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d)) set.add(d); };
+  Object.entries(S.checkins || {}).forEach(([d, c]) => {
+    if(c && (c.intention || c.sentence || c.mood || c.setpoint
+      || (c.energy && Object.values(c.energy).some(Boolean)))) add(d); });
+  Object.entries(S.dailyRhythm || {}).forEach(([d, r]) => {
+    if(r && (r.wakeTime || r.sleepTime || (r.blocks || []).length)) add(d); });
+  Object.entries(S.habitLog || {}).forEach(([d, kept]) => {
+    if(kept && Object.values(kept).some(Boolean)) add(d); });
+  (S.tasks || []).forEach(t => add(t.day));
+  (S.entries || []).forEach(e => add((e.createdAt || '').slice(0, 10)));
+  try { (typeof focusSessions === 'function' ? focusSessions() : [])
+    .forEach(f => add((f.startedAt || '').slice(0, 10))); } catch(e){}
+  try { ((typeof stillness === 'function' ? stillness().sessions : []) || [])
+    .forEach(x => add(x.date)); } catch(e){}
+  /* Not tomorrow. A task scheduled for October puts October in this set, and
+     a record of days that have not happened yet is a plan — which is a room
+     the house already has. The archive stops at today. */
+  const T = today();
+  return [...set].filter(d => d <= T).sort().reverse();
+}
+
+/* ---------- the list ----------
+   Months are shut and empty until they are opened. A year of days is three
+   hundred rows of markup to build and lay out, and the overwhelming majority
+   of them are months nobody is going to look at on this visit — so a month
+   costs one line until somebody asks for it, and then it costs what it costs.
+   That is the same bargain the rest of this house makes everywhere: the page
+   is built for the person who opened it, not for every person who might. */
+function dayArchiveHTML(){
+  const days = archiveDays();
+  const months = [];
+  days.forEach(d => {
+    const key = d.slice(0, 7);
+    if(!months.length || months[months.length - 1].key !== key) months.push({key, days: []});
+    months[months.length - 1].days.push(d);
+  });
+  const name = k => { const [y, m] = k.split('-'); return `${MONTHS[+m - 1]} ${y}`; };
+  return `<section class="section rv day-archive" id="rvDays">
+    <h2 class="sc">The days</h2>
+    <p class="muted" style="font-size:.88rem;margin:0 0 4px">Every day you put something into,
+      as you left it. The charts above say what the months came to; this is what the days said.</p>
+    ${!days.length ? `<div class="empty" style="margin-top:12px">Nothing written down yet.
+        Today is where days are written; they arrive here on their own.</div>`
+      : months.map((mo, i) => `<details class="day-month"${i === 0 ? ' open' : ''} data-month="${mo.key}">
+          <summary><span class="serif">${esc(name(mo.key))}</span>
+            <span class="mono faint">${mo.days.length} day${mo.days.length === 1 ? '' : 's'}</span></summary>
+          <div class="day-month-body" data-fill="${mo.key}">${i === 0 ? archiveMonthHTML(mo.days) : ''}</div>
+        </details>`).join('')}
+  </section>`;
+}
+function archiveMonthHTML(days){
+  const rows = days.map(d => archiveDayOf(d)).filter(r => r.any);
+  if(!rows.length) return `<div class="empty">Nothing was written down in this month.</div>`;
+  return rows.map(archiveRowHTML).join('');
+}
+function archiveRowHTML(r){
+  const mood = typeof moodOf === 'function' ? moodOf(r.c.mood) : null;
+  const marks = [];
+  if(r.tasks.length) marks.push(`${r.done}/${r.tasks.length} done`);
+  if(r.focus) marks.push(`${fmtDur(r.focus)} focused`);
+  if(r.still) marks.push(`${r.still}m still`);
+  if(r.habits.length) marks.push(`${r.kept.length}/${r.habits.length} kept`);
+  if(r.entries.length) marks.push(`${r.entries.length} written`);
+  const sl = typeof rhythmSleep === 'function' ? rhythmSleep(r.d) : {hm: r.r.sleepTime, inferred: false};
+  return `<details class="day-row" data-day="${esc(r.d)}">
+    <summary>
+      <span class="day-when serif">${esc(fmtDate(r.d, 'long'))}</span>
+      <!-- always drawn, even empty: four cells in a four-column row, or the
+           day with no mood on it silently shifts every other column along -->
+      <span class="day-mood"${mood ? ` title="${esc(mood.label)}"` : ''}>${mood ? mood.icon : ''}</span>
+      <span class="day-gist">${esc(r.c.intention || r.c.sentence || '')}</span>
+      <span class="mono faint day-marks">${esc(marks.join(' · '))}</span>
+    </summary>
+    <div class="day-body stack" style="gap:14px">
+      <div class="field"><label>The intention</label>
+        ${ed('checkins.' + r.d + '.intention', {ph:'nothing was set', cls:'serif-lg'})}</div>
+      <div class="field"><label>How it was going</label>
+        ${ed('checkins.' + r.d + '.sentence', {multi: true, ph:'nothing was written', cls:'serif-lg'})}</div>
+      <!-- read, not written: a reading taken on a Tuesday is not improvable on
+           a Friday, and a record you can tidy up afterwards is not a record -->
+      <div class="day-readings mono">
+        ${mood ? `<span>mood <b>${mood.icon} ${esc(mood.label)}</b></span>` : ''}
+        ${r.c.setpoint ? `<span>set-point <b>${r.c.setpoint}</b> ${esc(typeof hicksName === 'function' ? hicksName(r.c.setpoint) : '')}</span>` : ''}
+        ${r.energy ? DIMS.filter(dm => r.energy[dm.id]).map(dm =>
+            `<span>${esc(dm.name.toLowerCase())} <b>${r.energy[dm.id]}/5</b></span>`).join('') : ''}
+        ${r.r.wakeTime ? `<span>woke <b>${esc(r.r.wakeTime)}</b></span>` : ''}
+        ${sl.hm ? `<span>slept <b>${esc(sl.hm)}</b>${sl.inferred ? ' <i class="faint">(assumed)</i>' : ''}</span>` : ''}
+      </div>
+      ${r.tasks.length ? `<div class="field"><label>What was on the day</label>
+        <ul class="day-tasks">${r.tasks.map(t =>
+          `<li class="${t.done ? 'is-done' : ''}">${esc(t.text || '')}</li>`).join('')}</ul></div>` : ''}
+      ${r.entries.length ? `<div class="field"><label>Written that day</label>
+        <ul class="day-tasks">${r.entries.slice(0, 12).map(e =>
+          `<li><a href="#/journals">${esc((e.title || e.body || '').slice(0, 80) || 'an entry')}</a></li>`).join('')}</ul></div>` : ''}
+      <div class="row" style="gap:8px;flex-wrap:wrap">
+        <button class="btn sm ghost" data-dayedges="${esc(r.d)}">set the two ends of this day</button>
+      </div>
+    </div>
+  </details>`;
+}
+function bindDayArchive(root){
+  const scope = root || document;
+  /* a month builds itself the first time it is opened, and only then */
+  scope.querySelectorAll('.day-month').forEach(mo => {
+    mo.addEventListener('toggle', () => {
+      if(!mo.open) return;
+      const box = mo.querySelector('[data-fill]');
+      if(!box || box.dataset.filled === '1' || box.innerHTML.trim()) { if(box) box.dataset.filled = '1'; return; }
+      const days = archiveDays().filter(d => d.slice(0, 7) === mo.dataset.month);
+      box.innerHTML = archiveMonthHTML(days);
+      box.dataset.filled = '1';
+      /* the editable fields need no wiring: one delegated click listener on
+         the document owns every .ed in the house, however late it arrives */
+      bindArchiveEdges(box);
+    });
+    const box = mo.querySelector('[data-fill]');
+    if(mo.open && box) box.dataset.filled = '1';
+  });
+  bindArchiveEdges(scope);
+}
+function bindArchiveEdges(scope){
+  scope.querySelectorAll('[data-dayedges]').forEach(b => b.onclick = () => {
+    if(typeof openDayEdgesEditor === 'function') openDayEdgesEditor(b.dataset.dayedges, () => rerender());
+  });
+}
+/* ============================================================
    6. COMMONPLACE BOOK — journals
    ============================================================ */
 /* Journals is now two ways of looking at the same entries. What was the
@@ -18502,12 +18755,17 @@ routes.journals = function(root, params){
      of its own; it is a tab here, because looking at the numbers and writing
      about them is one activity and it was two rooms. */
   if(params[0] === 'review'){
+    /* and under both: the days themselves. The numbers say what the months
+       came to and the reviews say what you made of them; neither can hand
+       back the Tuesday. See the note at the top of 13-journals-days. */
     root.innerHTML = `<div class="page">${journalsHeadHTML('review')}
       <div class="rv-dash">${typeof compassBodyHTML === 'function' ? compassBodyHTML() : ''}</div>
-      ${typeof reviewListHTML === 'function' ? reviewListHTML() : ''}</div>`;
+      ${typeof reviewListHTML === 'function' ? reviewListHTML() : ''}
+      ${typeof dayArchiveHTML === 'function' ? dayArchiveHTML() : ''}</div>`;
     bindJournalViews(root);
     if(typeof bindCompassBody === 'function') bindCompassBody(root, () => rerender());
     if(typeof bindReviewList === 'function') bindReviewList(root);
+    if(typeof bindDayArchive === 'function') bindDayArchive(root);
     return;
   }
   if(params[0] === 'timeline'){

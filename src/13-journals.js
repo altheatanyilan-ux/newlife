@@ -68,12 +68,17 @@ routes.journals = function(root, params){
      of its own; it is a tab here, because looking at the numbers and writing
      about them is one activity and it was two rooms. */
   if(params[0] === 'review'){
+    /* and under both: the days themselves. The numbers say what the months
+       came to and the reviews say what you made of them; neither can hand
+       back the Tuesday. See the note at the top of 13-journals-days. */
     root.innerHTML = `<div class="page">${journalsHeadHTML('review')}
       <div class="rv-dash">${typeof compassBodyHTML === 'function' ? compassBodyHTML() : ''}</div>
-      ${typeof reviewListHTML === 'function' ? reviewListHTML() : ''}</div>`;
+      ${typeof reviewListHTML === 'function' ? reviewListHTML() : ''}
+      ${typeof dayArchiveHTML === 'function' ? dayArchiveHTML() : ''}</div>`;
     bindJournalViews(root);
     if(typeof bindCompassBody === 'function') bindCompassBody(root, () => rerender());
     if(typeof bindReviewList === 'function') bindReviewList(root);
+    if(typeof bindDayArchive === 'function') bindDayArchive(root);
     return;
   }
   if(params[0] === 'timeline'){

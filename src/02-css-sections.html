@@ -7206,5 +7206,51 @@ html:not([data-theme="light"]) .room-wrap::after{mix-blend-mode:screen;opacity:.
    folds already drawn on the cloth. */
 .rm-cush-top{fill:url(#wovKilim)}
 .rm-cloth{fill:url(#wovDamask)}
+
+/* ============================================================
+   THE DAYS, IN THE LIVED RECORD
+
+   A month is a line until it is opened; a day is a line until it is opened.
+   The whole thing has to read as an index you scan rather than a pile you
+   wade through, because the reason to come here is to find one Tuesday. */
+.day-archive{margin-top:18px}
+.day-month{border-top:1px solid var(--line)}
+.day-month>summary{display:flex;align-items:baseline;justify-content:space-between;
+  gap:10px;cursor:pointer;padding:11px 2px;list-style:none}
+.day-month>summary::-webkit-details-marker{display:none}
+.day-month>summary .serif{font-size:1.02rem}
+.day-month[open]>summary{border-bottom:1px dashed var(--line)}
+
+.day-row{border-bottom:1px solid var(--line)}
+.day-row:last-child{border-bottom:0}
+/* Five columns for four things. The house puts a chevron on section summaries
+   as a ::before, and a pseudo-element is a grid item like any other — so a row
+   laid out for its own four children silently had a fifth, and the marks wrapped
+   onto a line of their own. The chevron gets a column of its own. */
+.day-row>summary{display:grid;grid-template-columns:auto auto auto 1fr auto;align-items:baseline;
+  gap:10px;cursor:pointer;padding:9px 2px 9px 4px;list-style:none}
+.day-row>summary::-webkit-details-marker{display:none}
+.day-row>summary:hover{background:color-mix(in srgb,var(--accent) 5%,transparent)}
+.day-when{font-size:.92rem;white-space:nowrap}
+.day-mood{opacity:.7;width:1em;text-align:center}
+/* The gist is whatever the day was about, and it must not push the marks off
+   the end of the line. min-width:0 is the whole trick: a grid item is
+   min-width:auto by default, so a nowrap line refuses to shrink below its own
+   text and the 1fr column it lives in quietly grows past its share. */
+.day-gist{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  color:var(--muted);font-size:.86rem}
+.day-marks{font-size:.68rem;opacity:.65;white-space:nowrap}
+.day-body{padding:4px 2px 18px 14px}
+.day-readings{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.72rem;opacity:.8}
+.day-readings b{font-weight:600}
+.day-tasks{margin:4px 0 0;padding-left:18px;font-size:.88rem}
+.day-tasks li{margin:2px 0}
+.day-tasks li.is-done{opacity:.5;text-decoration:line-through}
+
+@media (max-width:640px){
+  .day-row>summary{grid-template-columns:auto 1fr auto;gap:4px 8px}
+  .day-gist{grid-column:1/-1}
+  .day-marks{grid-column:1/-1}
+}
 </style>
 </head>
