@@ -14,7 +14,7 @@ const yes = (n, c, got='')=> c ? ok(n) : no(n, got);
   const errs = [];
   p.on('pageerror', e => errs.push('pageerror: ' + e.message));
   /* the webfont link cannot be reached from a file:// page in this sandbox */
-  p.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET/.test(m.text())) errs.push('console: ' + m.text()); });
+  p.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET|ERR_CERT_AUTHORITY_INVALID/.test(m.text())) errs.push('console: ' + m.text()); });
   await p.goto(FILE); await p.waitForTimeout(1400);
   /* A fresh profile is asked about theme and sound before anything else, and
      the rest of boot waits behind that dialog. Take the defaults and get on

@@ -8,7 +8,7 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
   const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
   const p = await b.newPage(); await p.setViewportSize({width:1500,height:1100});
   const errs=[]; p.on('pageerror', e=>errs.push('PAGEERROR '+e.message));
-  p.on('console', m=>{ if(m.type()==='error' && !/ERR_CONNECTION/.test(m.text())) errs.push('CONSOLE '+m.text()); });
+  p.on('console', m=>{ if(m.type()==='error' && !/ERR_CONNECTION|ERR_CERT_AUTHORITY_INVALID/.test(m.text())) errs.push('CONSOLE '+m.text()); });
   await p.goto('file://' + process.cwd() + '/index.html'); await p.waitForTimeout(2900);
   /* A fresh profile is asked about theme and sound before anything else, and
      the rest of boot waits behind that dialog. Take the defaults and get on

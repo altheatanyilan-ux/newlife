@@ -35,7 +35,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   const p = await b.newPage({viewport:{width:1340, height:900}});
   const errs = [];
   p.on('pageerror', e => errs.push('pageerror: ' + e.message));
-  p.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET|Failed to load resource/.test(m.text())) errs.push('console: ' + m.text()); });
+  p.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET|Failed to load resource|ERR_CERT_AUTHORITY_INVALID/.test(m.text())) errs.push('console: ' + m.text()); });
   /* every rAF the page asks for, counted */
   await p.addInitScript(() => {
     window.__raf = 0;

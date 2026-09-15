@@ -22,7 +22,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   const p = await c.newPage({viewport:{width:1300, height:1000}});
   const errs = [];
   p.on('pageerror', e => errs.push('pageerror: ' + e.message));
-  p.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET|Failed to load resource/.test(m.text())) errs.push('console: ' + m.text()); });
+  p.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET|Failed to load resource|ERR_CERT_AUTHORITY_INVALID/.test(m.text())) errs.push('console: ' + m.text()); });
   await p.goto(FILE); await p.waitForTimeout(1000);
   if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(2000); }
   await p.evaluate(() => { location.hash = '#/today'; rerender(); }); await p.waitForTimeout(1200);

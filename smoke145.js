@@ -15,7 +15,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   const p = await b.newPage({viewport:{width:1500, height:1300}});
   const errs = [];
   p.on('pageerror', e => errs.push('pageerror: ' + e.message));
-  p.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET|Failed to load resource/.test(m.text())) errs.push('console: ' + m.text()); });
+  p.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET|Failed to load resource|ERR_CERT_AUTHORITY_INVALID/.test(m.text())) errs.push('console: ' + m.text()); });
   await p.clock.install({time: new Date('2026-09-13T09:00:00')});
   await p.goto(FILE); await p.clock.runFor(2000);
   if(await p.$('#frGo')){ await p.click('#frGo'); await p.clock.runFor(2500); }
@@ -140,9 +140,9 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
 
   console.log('\n6. a draw taken on Today stays on Today');
   await go('#/today');
-  await p.evaluate(() => { const d = document.querySelector('#t-still'); if(d) d.open = true; });
+  await p.evaluate(() => { const d = document.querySelector('#t-sacred'); if(d) d.open = true; });
   await p.clock.runFor(500);
-  const still = await p.evaluate(() => document.querySelector('#t-still')?.textContent || '');
+  const still = await p.evaluate(() => document.querySelector('#t-sacred')?.textContent || '');
   yes('the stillness section shows what was drawn today', /drawn today/.test(still), still.slice(0, 120));
   yes('  naming the cards', /The Fool/.test(still));
   yes('  and giving their meaning', /standing at the edge of something/.test(still));
@@ -158,10 +158,10 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   await p.evaluate(() => { S.entries.filter(e => e.type === 'divination')
     .forEach(e => e.occurredAt = '2020-01-01'); saveNow(); });
   await go('#/today');
-  await p.evaluate(() => { const d = document.querySelector('#t-still'); if(d) d.open = true; });
+  await p.evaluate(() => { const d = document.querySelector('#t-sacred'); if(d) d.open = true; });
   await p.clock.runFor(500);
   yes('nothing drawn today means nothing shown', await p.evaluate(() =>
-    !document.querySelector('#t-still .dv-today')));
+    !document.querySelector('#t-sacred .dv-today')));
 
   console.log('\n7. quiet');
   is('no errors on the console', errs.length, 0, errs.join(' | '));

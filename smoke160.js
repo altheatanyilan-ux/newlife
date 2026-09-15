@@ -18,7 +18,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   const p = await b.newPage({viewport:{width:1340, height:1000}});
   const errs = [];
   p.on('pageerror', e => errs.push('pageerror: ' + e.message));
-  p.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET|Failed to load resource/.test(m.text())) errs.push('console: ' + m.text()); });
+  p.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET|Failed to load resource|ERR_CERT_AUTHORITY_INVALID/.test(m.text())) errs.push('console: ' + m.text()); });
   await p.goto(FILE); await p.waitForTimeout(900);
   if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(1600); }
   await p.evaluate(() => { location.hash = '#/today'; }); await p.waitForTimeout(1200);
@@ -55,12 +55,12 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     ['t-plan','t-focus','t-tasks','t-habits','t-tonight']);
 
   console.log('\n3. looking at it');
-  for(const id of ['t-checkin','t-theatre','t-still','t-unfinished'])
+  for(const id of ['t-checkin','t-theatre','t-sacred','t-unfinished'])
     is(`${id} is inward`, await where(id), 'in');
   await p.click('[data-tview="in"]'); await p.waitForTimeout(800);
-  is('the switch turns the page over', await shown(), ['t-checkin','t-theatre','t-still']);
+  is('the switch turns the page over', await shown(), ['t-checkin','t-theatre','t-sacred']);
   yes('  and the index turns with it',
-    (await jumps()).every(j => ['t-checkin','t-theatre','t-still','t-unfinished'].includes(j)));
+    (await jumps()).every(j => ['t-checkin','t-theatre','t-sacred','t-unfinished'].includes(j)));
 
   console.log('\n4. what belongs to neither stays out of both');
   /* the hour you woke and the hour you slept bracket the whole day, and a

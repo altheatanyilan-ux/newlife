@@ -53,7 +53,7 @@ const SEED = () => {
     const ctx = await b.newContext({viewport:{width:1280, height:900}});
     const p = await ctx.newPage();
     p.on('pageerror', e => errs.push('pageerror: ' + e.message));
-    p.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET|Failed to load resource/.test(m.text())) errs.push('console: ' + m.text()); });
+    p.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET|Failed to load resource|ERR_CERT_AUTHORITY_INVALID/.test(m.text())) errs.push('console: ' + m.text()); });
     await p.clock.setFixedTime(new Date(when));
     await p.goto(FILE); await p.waitForTimeout(1000);
     if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(1900); }

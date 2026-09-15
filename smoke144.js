@@ -14,7 +14,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   const p = await b.newPage({viewport:{width:1500, height:1200}});
   const errs = [];
   p.on('pageerror', e => errs.push('pageerror: ' + e.message));
-  p.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET|Failed to load resource/.test(m.text())) errs.push('console: ' + m.text()); });
+  p.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET|Failed to load resource|ERR_CERT_AUTHORITY_INVALID/.test(m.text())) errs.push('console: ' + m.text()); });
   await p.goto(FILE); await p.waitForTimeout(900);
   if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(1800); }
   const go = async h => { await p.evaluate(x => { if(location.hash === x) rerender(); else location.hash = x; }, h);
@@ -30,7 +30,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     [...document.querySelectorAll('[data-jrview]')].map(x => x.dataset.jrview).join(',')), 'entries,timeline,library,review');
   is('  and the banner names it', await p.evaluate(() => document.querySelector('h1')?.textContent), 'Review');
   yes('the charts came with it — the week of sleep',
-      await p.evaluate(() => !!document.querySelector('.rv-dash .week-shape')));
+      await p.evaluate(() => !!document.querySelector('.rv-dash .wk-bars')));
   yes('  the long view', await p.evaluate(() => /The long view/.test(document.querySelector('.rv-dash')?.textContent || '')));
   /* live, not a picture: the span selector on the time pie is bound the same
      way it was on the Compass, and the sleep chart's own columns appear as

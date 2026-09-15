@@ -14,13 +14,13 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   const p = await b.newPage({viewport:{width:1400, height:1200}});
   const errs = [];
   p.on('pageerror', e => errs.push('pageerror: ' + e.message));
-  p.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET|Failed to load resource/.test(m.text())) errs.push('console: ' + m.text()); });
+  p.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET|Failed to load resource|ERR_CERT_AUTHORITY_INVALID/.test(m.text())) errs.push('console: ' + m.text()); });
   await p.goto(FILE); await p.waitForTimeout(900);
   if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(1800); }
   const today_ = async () => { await p.evaluate(() => { if(location.hash === '#/today') rerender(); else location.hash = '#/today'; });
     await p.waitForTimeout(1500);
     await p.evaluate(() => { document.querySelectorAll('.toast').forEach(n => n.remove());
-      const d = document.querySelector('#t-still'); if(d) d.open = true; });
+      const d = document.querySelector('#t-sacred'); if(d) d.open = true; });
     await p.waitForTimeout(200); };
   await today_();
 
@@ -316,7 +316,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   await today_();
   yes('the section is on Today, under the theatre', await p.evaluate(() => {
     const ids = [...document.querySelectorAll('#main .page [id^="t-"]')].map(n => n.id);
-    return ids.indexOf('t-still') > ids.indexOf('t-theatre'); }));
+    return ids.indexOf('t-sacred') > ids.indexOf('t-theatre'); }));
   is('  four ways in', await p.$$eval('[data-stkind]', n => n.length), 4);
   /* Drawn is not the same as wired. The whole section once rendered perfectly
      with every button dead, because the line that binds it was never added —
@@ -326,7 +326,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('  and the pane follows', await p.evaluate(() => !!document.querySelector('[data-stpat]')));
   await p.evaluate(() => document.querySelector('[data-stmin="20"]').click()); await p.waitForTimeout(900);
   is('pressing a length sets it', await p.evaluate(() => stillness().prefs.minutes), 20);
-  await p.evaluate(() => { document.querySelector('#t-still').open = true;
+  await p.evaluate(() => { document.querySelector('#t-sacred').open = true;
     document.querySelector('#stBegin').click(); });
   await p.waitForTimeout(700);
   yes('pressing begin starts a sitting', await p.evaluate(() => !!document.querySelector('.still-run')));
@@ -335,11 +335,11 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('  and ending it asks how it went', await p.evaluate(() => !!document.querySelector('#stDepth')));
   await p.evaluate(() => closeModals());
   await today_();
-  await p.evaluate(() => { document.querySelector('#t-still').open = true; document.querySelector('#stDraw').click(); });
+  await p.evaluate(() => { document.querySelector('#t-sacred').open = true; document.querySelector('#stDraw').click(); });
   await p.waitForTimeout(600);
   yes('the quick draw opens', await p.evaluate(() => !!document.querySelector('[data-qd]')));
   await p.evaluate(() => closeModals());
-  await p.evaluate(() => { document.querySelector('#t-still').open = true; document.querySelector('#stIntuit').click(); });
+  await p.evaluate(() => { document.querySelector('#t-sacred').open = true; document.querySelector('#stIntuit').click(); });
   await p.waitForTimeout(600);
   yes('  and so does the intuition log', await p.evaluate(() => !!document.querySelector('#inText')));
   await p.evaluate(() => closeModals());
@@ -354,7 +354,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   await today_();
   yes('a finished sitting is counted on the day', await p.evaluate(() => stillMinutesOn(today()) === 10));
   yes('  and shows in the heading', await p.evaluate(() =>
-    /10 min today/.test(document.querySelector('#t-still summary')?.textContent || '')));
+    /10 min today/.test(document.querySelector('#t-sacred summary')?.textContent || '')));
   is('  a streak starts at one', await p.evaluate(() => stillStreak()), 1);
   /* an insight from a sitting can become an impression to check later */
   await p.evaluate(() => { S.entries = S.entries.filter(e => e.type !== 'intuition'); saveNow(); });

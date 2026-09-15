@@ -5,7 +5,7 @@ const { chromium } = require('playwright');
   await page.setViewportSize({width:1400, height:900});
   const errors = [];
   page.on('pageerror', e => errors.push('PAGEERROR: ' + e.message));
-  page.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET/.test(m.text())) errors.push('CONSOLE: '+m.text()); });
+  page.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET|ERR_CERT_AUTHORITY_INVALID/.test(m.text())) errors.push('CONSOLE: '+m.text()); });
   await page.goto('file://' + process.cwd() + '/index.html');
   await page.waitForTimeout(600);
 

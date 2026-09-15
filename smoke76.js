@@ -3,7 +3,7 @@ const { chromium } = require('playwright');
   const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
   const p = await b.newPage(); await p.setViewportSize({width:1400,height:1100});
   const errs=[]; p.on('pageerror',e=>errs.push('PAGEERROR: '+e.message));
-  p.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET/.test(m.text())) errs.push('CONSOLE: '+m.text()); });
+  p.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET|ERR_CERT_AUTHORITY_INVALID/.test(m.text())) errs.push('CONSOLE: '+m.text()); });
   await p.goto('file://' + process.cwd() + '/index.html'); await p.waitForTimeout(800);
   await p.evaluate(() => { S.settings.starterApplied='skip'; S.settings.starterDeclined=true;
     S.values=[{id:'v1',name:'Authenticity',color:'#ab93cf',fields:{},practices:[]},{id:'v2',name:'Mastery',color:'#3fae7a',fields:{},practices:[]}];

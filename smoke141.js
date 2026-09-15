@@ -1,6 +1,20 @@
 /* smoke141 — the Morning Theatre's six practices: a vision board you can pin
    to, a scene you walk into, scripting, structural tension, thanks given in
-   advance, and the focus wheel for the day you believe none of it */
+   advance, and the focus wheel for the day you believe none of it.
+
+   Two things have moved under this file since it was written, neither of them
+   about the practices themselves:
+
+   The theatre opens on a guided session now (smoke183) — one question, a
+   length, and an assembled sequence — and the accordion of panels this file is
+   about lives behind manual mode. So every section here asks for manual mode
+   first. That is not a workaround: the panels are what manual mode is, and
+   testing them is testing it.
+
+   And there are nine panels, not eight. Pinned joined them (smoke181): the
+   entries you keep to reread, in the theatre because that is the half hour you
+   reread things in. It sits beside the vision board, which is the same idea in
+   pictures. */
 const {chromium} = require('playwright');
 const path = require('path');
 const FILE = 'file://' + path.resolve('/home/user/newlife/index.html');
@@ -15,10 +29,13 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   const p = await b.newPage({viewport:{width:1400, height:1200}});
   const errs = [];
   p.on('pageerror', e => errs.push('pageerror: ' + e.message));
-  p.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET|Failed to load resource/.test(m.text())) errs.push('console: ' + m.text()); });
+  p.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET|Failed to load resource|ERR_CERT_AUTHORITY_INVALID/.test(m.text())) errs.push('console: ' + m.text()); });
   await p.goto(FILE); await p.waitForTimeout(900);
   if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(1800); }
-  const today_ = async () => { await p.evaluate(() => { if(location.hash === '#/today') rerender(); else location.hash = '#/today'; });
+  const today_ = async () => { await p.evaluate(() => {
+      /* the accordion this file is about is what manual mode shows */
+      theatre().prefs.manual = true; saveNow();
+      if(location.hash === '#/today') rerender(); else location.hash = '#/today'; });
     await p.waitForTimeout(1500);
     await p.evaluate(() => { document.querySelectorAll('.toast').forEach(n => n.remove());
       const d = document.querySelector('#t-theatre'); if(d) d.open = true;
@@ -26,17 +43,19 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     await p.waitForTimeout(300); };
   await today_();
 
-  console.log('\n1. the room holds eight practices, in an order you set');
-  const secs = await p.$$eval('[data-th]', n => n.map(x => x.dataset.th));
-  is('all eight are there', secs.length, 8);
+  console.log('\n1. the room holds nine practices, in an order you set');
+  const secs = await p.$$eval('#thSecs [data-th]', n => n.map(x => x.dataset.th));
+  is('all nine are there', secs.length, 9);
   yes('  the three old ones are kept, not replaced',
       ['script','winning','aim'].every(k => secs.includes(k)), secs.join(','));
   yes('  and the six new ones are with them',
       ['board','scene','scripting','tension','thanks'].every(k => secs.includes(k)), secs.join(','));
+  yes('  and Pinned, which arrived later, beside the board',
+      secs.indexOf('board') - secs.indexOf('pins') === 1, secs.join(','));
   /* the order is remembered, so a person can practise in their own sequence */
   await p.evaluate(() => { const r = theatre(); r.prefs.order = ['thanks', ...r.prefs.order.filter(k => k !== 'thanks')]; saveNow(); });
   await today_();
-  is('the order is the one that was saved', (await p.$$eval('[data-th]', n => n.map(x => x.dataset.th)))[0], 'thanks');
+  is('the order is the one that was saved', (await p.$$eval('#thSecs [data-th]', n => n.map(x => x.dataset.th)))[0], 'thanks');
   await p.evaluate(() => { const r = theatre(); r.prefs.order = TH_SECTIONS.map(s => s[0]); saveNow(); });
   await today_();
 

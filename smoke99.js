@@ -24,7 +24,7 @@ const fs = require('fs');
   const p = await ctx.newPage();
   const errs = [];
   p.on('pageerror', e => errs.push('pageerror: ' + e.message));
-  p.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET|Failed to load resource/.test(m.text())) errs.push('console: ' + m.text()); });
+  p.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET|Failed to load resource|ERR_CERT_AUTHORITY_INVALID/.test(m.text())) errs.push('console: ' + m.text()); });
   await p.goto(FILE);
   await p.waitForSelector('#frGo', {timeout: 15000}).catch(() => {});
   yes('the question is on screen', !!(await p.$('#frGo')));

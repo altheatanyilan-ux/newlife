@@ -13,7 +13,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   const p = await b.newPage({viewport:{width:1500, height:1200}});
   const errs = [];
   p.on('pageerror', e => errs.push('pageerror: ' + e.message));
-  p.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET|Failed to load resource/.test(m.text())) errs.push('console: ' + m.text()); });
+  p.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET|Failed to load resource|ERR_CERT_AUTHORITY_INVALID/.test(m.text())) errs.push('console: ' + m.text()); });
   await p.goto(FILE); await p.waitForTimeout(900);
   if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(1800); }
 
@@ -26,8 +26,12 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     return !/what is happening now|long-term growth, identity|relationships, memory, meaning/.test(t); }));
   yes('the functions that built it are gone too', await p.evaluate(() =>
     typeof zoneCardsHTML === 'undefined' && typeof zoneSummaries === 'undefined'));
-  yes('and the page still draws everything else',
-      await p.evaluate(() => !!document.querySelector('.week-shape') && !!document.querySelector('.house-wrap')));
+  /* the Compass itself was retired into the Lived Record afterwards (smoke144),
+     so #/compass lands on the Review tab and "everything else" is what that
+     dashboard carries — the house drawing that used to sit here went to Today */
+  yes('and the page it lands on still draws everything else',
+      await p.evaluate(() => !!document.querySelector('.wk-bars')
+        && /The long view/.test(document.querySelector('.rv-dash')?.textContent || '')));
 
   console.log('\n2. how far away a date is, said as a person would');
   const said = await p.evaluate(() => [0,1,-1,3,6,7,8,13,14,21,34,-9]
@@ -66,10 +70,11 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     /\d/.test(document.querySelector('.pl-mspin[title]')?.title || '') &&
     /·/.test(document.querySelector('.pl-mspin[title]')?.title || '')));
 
-  console.log('\n3b. and so does the timeline lane');
-  await p.evaluate(() => { planSetView('timeline'); }); await p.waitForTimeout(1500);
-  const bars = await p.$$eval('.pl-gms', n => n.map(x => x.textContent.replace(/\s+/g, ' ').trim()));
-  yes('the markers carry it as well', bars.some(t => /in 1 week 2 days/.test(t)), bars.join(' | '));
+  /* Section 3b was here: the same "in 1 week 2 days" phrasing on the Gantt
+     markers of the Timeline view. The Timeline view has since been retired
+     along with the Board — it drew bars against dates the milestone strip
+     draws above every view — so there is no lane left to check. Section 3
+     covers the phrasing where it still appears. */
 
   console.log('\n' + (errs.length ? 'console:\n  ' + errs.join('\n  ') : 'console: clean'));
   if(errs.length) bad += errs.length;

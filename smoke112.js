@@ -16,7 +16,7 @@ const WANT = ['Musical','Artistic','Income','Language','Intellectual','Social','
   const p = await b.newPage({viewport:{width:1500, height:1100}});
   const errs = [];
   p.on('pageerror', e => errs.push('pageerror: ' + e.message));
-  p.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET|Failed to load resource/.test(m.text())) errs.push('console: ' + m.text()); });
+  p.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET|Failed to load resource|ERR_CERT_AUTHORITY_INVALID/.test(m.text())) errs.push('console: ' + m.text()); });
   await p.goto(FILE); await p.waitForTimeout(900);
   if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(1800); }
   await p.evaluate(() => { location.hash = '#/skills'; }); await p.waitForTimeout(1600);

@@ -9,7 +9,7 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
   const page = await browser.newPage(); await page.setViewportSize({width:1500,height:1100});
   const errors = [];
   page.on('pageerror', e => errors.push('PAGEERROR: ' + e.message));
-  page.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION/.test(m.text())) errors.push('CONSOLE: '+m.text()); });
+  page.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION|ERR_CERT_AUTHORITY_INVALID/.test(m.text())) errors.push('CONSOLE: '+m.text()); });
   await page.goto('file://' + process.cwd() + '/index.html');
   /* A fresh profile is asked about theme and sound before anything else, and
      the rest of boot waits behind that dialog. Take the defaults and get on
@@ -39,8 +39,12 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
      The sidebar since carried three smart entries rather than seven: All, one
      dated row whose span is chosen on the row itself, and Completed at the
      foot. Today, Tomorrow and Next 7 days are the same question over three
-     lengths of time, so they share a row instead of taking three. */
-  ok('the sidebar carries All, one dated row and Completed', seed.smart === 3, 'saw ' + seed.smart);
+     lengths of time, so they share a row instead of taking three.
+
+     And then two: All went, because a list of every task in the house is the
+     one view that never answers a question, and it was standing between the
+     search and the lists. */
+  ok('the sidebar carries one dated row and Completed', seed.smart === 2, 'saw ' + seed.smart);
   ok('and the dated row offers all three spans',
      await page.evaluate(() => [...document.querySelectorAll('[data-plspan]')].map(b => b.dataset.plspan).join(',') === 'today,tomorrow,next7'));
   ok('habits is not among them', await page.evaluate(() => !document.querySelector('[data-plsel="smart:habits"]')));
@@ -82,7 +86,11 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
 
   console.log('\n4. the five views');
   const views = {};
-  for(const v of ['list','calendar','kanban','eisenhower','timeline']){
+  /* The Board and the Timeline have since been retired: the Board arranged
+     tasks by a status the matrix already arranges them by, and the Timeline
+     drew bars against dates the milestone strip draws above every view. Three
+     views, not five. */
+  for(const v of ['list','calendar','eisenhower']){
     await page.evaluate(x => planSetView(x), v); await page.waitForTimeout(700);
     views[v] = await page.evaluate(() => ({view: planView(),
       list: document.querySelectorAll('.pt-row').length, cal: document.querySelectorAll('.pc-cell').length,
@@ -91,9 +99,9 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
   }
   ok('list shows rows', views.list.list > 0, JSON.stringify(views.list));
   ok('calendar shows a month of cells', views.calendar.cal >= 28, JSON.stringify(views.calendar));
-  ok('the board has columns', views.kanban.board === 3, JSON.stringify(views.kanban));
   ok('the matrix has four quadrants', views.eisenhower.quad === 4, JSON.stringify(views.eisenhower));
-  ok('the timeline draws bars', views.timeline.bars > 0, JSON.stringify(views.timeline));
+  ok('and the two that were retired are not offered',
+     await page.evaluate(() => PLAN_VIEWS.every(v => v.id !== 'kanban' && v.id !== 'timeline')));
   /* the header toolbar and the gantt bar once shared a class, and the second
      rule tore the toolbar out of the page */
   const barPos = await page.evaluate(() => { const b = document.querySelector('.pl-bar');
@@ -184,9 +192,22 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
     planSetRoom('habits'); return {id:h.id, before: !!habitDone(h, T)};
   });
   await page.waitForTimeout(900);
-  ok('the habits view renders cards', await page.evaluate(() => document.querySelectorAll('.ph-card').length) > 0, 'no cards');
-  await page.evaluate(() => document.querySelector('[data-phtick]')?.click());
-  await page.waitForTimeout(600);
+  /* the habits room was rewritten afterwards — three views of its own, and a
+     row per ritual rather than a card per habit */
+  /* the habits room was rewritten afterwards — three views of its own, opening
+     on the dashboard, with a tick against every habit in any of them */
+  ok('the habits room renders its habits',
+     await page.evaluate(() => !!document.querySelector('.hb-room')
+       && document.querySelectorAll('.hb-room [data-hbcheck]').length > 0), 'no habits drawn');
+  /* ticking is a check-in now — how it went, how long, how it left you — so
+     the tick opens a dialog and the dialog is what writes the day */
+  await page.evaluate(() => { const h = S.habits[0];
+    document.querySelector(`[data-hbcheck="${h.id}"]`)?.click(); });
+  await page.waitForTimeout(700);
+  ok('the tick opens a check-in', await page.evaluate(() => !!document.querySelector('#ciSave')),
+     'no check-in dialog');
+  await page.evaluate(() => document.querySelector('#ciSave').click());
+  await page.waitForTimeout(800);
   const shared = await page.evaluate(() => { const T = today();
     return {log: !!S.habitLog[T]?.[S.habits[0].id], stores: !!S.habitLog && !S.planning.habits}; });
   ok('ticking writes to the habit log the rings already use', shared.log, 'nothing written to S.habitLog');

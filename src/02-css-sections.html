@@ -750,8 +750,8 @@ button.tm-cell:hover{border-color:var(--page-accent)}
 
 /* the sleep/wake figure fills the page rather than a third of it, and each
    day is a strip you can point at rather than a three-pixel dot */
-.week-shape .wk-scroll{width:100%;overflow:visible}
-.week-shape .wk-svg{width:100%;height:260px;display:block}
+/* .week-shape .wk-scroll and .week-shape .wk-svg were here, sizing an SVG
+   chart that stacked bars replaced. Neither selector matches anything now. */
 .wk-readout{min-height:1.5em;margin:8px 0 2px;font-size:.72rem;letter-spacing:.03em;
   color:var(--muted);transition:color .15s var(--ease)}
 .wk-readout .wk-say[hidden]{display:none}
@@ -7505,5 +7505,14 @@ html[data-theme="light"] .wk-sleep{
   font-size:.6rem;letter-spacing:.06em;cursor:pointer}
 .ths-leave:hover{color:var(--terra,#b4462f)}
 @media (prefers-reduced-motion:reduce){.ths-mood,.ths-min{transition:none}.ths-mood:hover{transform:none}}
+
+/* an end of the night nobody typed: read from the last time the house saw you */
+.wk-sleep.is-guess{background-image:repeating-linear-gradient(135deg,
+  rgba(255,255,255,.22) 0 3px, transparent 3px 7px)}
+html[data-theme="light"] .wk-sleep.is-guess{background-image:repeating-linear-gradient(135deg,
+  rgba(0,0,0,.16) 0 3px, transparent 3px 7px)}
+.wk-legend{display:block;margin-top:4px;font-size:.78rem;color:var(--faint)}
+.wk-guessed{font-style:normal;opacity:.75}
+.wk-guessed::before{content:" · "}
 </style>
 </head>

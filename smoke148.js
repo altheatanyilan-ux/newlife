@@ -18,7 +18,7 @@ const rects = () => {
       h:Math.round(b.height), w:Math.round(b.width),
       scrolls: e.scrollHeight > e.clientHeight + 1, ch:e.clientHeight, sh:e.scrollHeight}; };
   return {plan:r('t-plan'), focus:r('t-focus'), tasks:r('t-tasks'), habits:r('t-habits'),
-    tonight:r('t-tonight'), checkin:r('t-checkin'), theatre:r('t-theatre'), still:r('t-still'),
+    tonight:r('t-tonight'), checkin:r('t-checkin'), theatre:r('t-theatre'), still:r('t-sacred'),
     vh:innerHeight, hscroll: document.documentElement.scrollWidth > innerWidth + 1};
 };
 
@@ -28,7 +28,7 @@ const rects = () => {
   const open = async (w, h, {many = true, sittings = false} = {}) => {
     const p = await b.newPage({viewport:{width:w, height:h}});
     p.on('pageerror', e => errs.push(`${w}x${h} pageerror: ` + e.message));
-    p.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET|Failed to load resource/.test(m.text())) errs.push(`${w}x${h} console: ` + m.text()); });
+    p.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET|Failed to load resource|ERR_CERT_AUTHORITY_INVALID/.test(m.text())) errs.push(`${w}x${h} console: ` + m.text()); });
     await p.goto(FILE); await p.waitForTimeout(1000);
     if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(2100); }
     await p.evaluate(() => { location.hash = '#/today'; rerender(); }); await p.waitForTimeout(1500);

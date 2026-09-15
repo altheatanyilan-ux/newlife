@@ -3,7 +3,7 @@ const { chromium } = require('playwright');
   const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
   const page = await browser.newPage(); await page.setViewportSize({width:1400,height:1000});
   const errors=[]; page.on('pageerror',e=>errors.push('PAGEERROR: '+e.message));
-  page.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET/.test(m.text())) errors.push('CONSOLE: '+m.text()); });
+  page.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET|ERR_CERT_AUTHORITY_INVALID/.test(m.text())) errors.push('CONSOLE: '+m.text()); });
   await page.goto('file://' + process.cwd() + '/index.html'); await page.waitForTimeout(800);
   await page.evaluate(() => {
     S.settings.starterApplied='skip'; S.settings.starterDeclined=true;
@@ -27,7 +27,7 @@ const { chromium } = require('playwright');
   await page.waitForTimeout(700);
 
   const wk = await page.evaluate(() => ({
-    present: !!document.querySelector('.week-shape'),
+    present: !!document.querySelector('.wk-bars'),
     bars: document.querySelectorAll('.wk-bar').length,
     wakeDots: document.querySelectorAll('.wk-svg circle').length,
     lines: document.querySelectorAll('.wk-svg polyline').length,
@@ -55,7 +55,7 @@ const { chromium } = require('playwright');
 
   console.log('today has no graph:', await page.evaluate(async () => {
     location.hash='#/today'; await new Promise(r=>setTimeout(r,800));
-    return !document.querySelector('.week-shape, .time-use'); }));
+    return !document.querySelector('.wk-bars, .time-use'); }));
 
   console.log('ERRORS:', errors.length); errors.slice(0,6).forEach(e=>console.log('  '+e));
   await browser.close();

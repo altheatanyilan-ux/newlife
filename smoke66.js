@@ -3,7 +3,7 @@ const { chromium } = require('playwright');
   const b = await chromium.launch({ executablePath:'/opt/pw-browsers/chromium', args:['--autoplay-policy=no-user-gesture-required'] });
   const p = await b.newPage();
   const errs=[]; p.on('pageerror', e=>errs.push(e.message));
-  p.on('console', m=>{ if(m.type()==='error' && !/ERR_CONNECTION_RESET/.test(m.text())) errs.push(m.text()); });
+  p.on('console', m=>{ if(m.type()==='error' && !/ERR_CONNECTION_RESET|ERR_CERT_AUTHORITY_INVALID/.test(m.text())) errs.push(m.text()); });
   await p.goto('file://' + process.cwd() + '/index.html');
   await p.waitForTimeout(600);
   const r = await p.evaluate(async () => {

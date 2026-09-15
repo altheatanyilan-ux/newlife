@@ -3,7 +3,7 @@ const { chromium } = require('playwright');
   const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
   const page = await browser.newPage(); await page.setViewportSize({width:1400,height:1000});
   const errors=[]; page.on('pageerror',e=>errors.push('PAGEERROR: '+e.message));
-  page.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET/.test(m.text())) errors.push('CONSOLE: '+m.text().slice(0,160)); });
+  page.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET|ERR_CERT_AUTHORITY_INVALID/.test(m.text())) errors.push('CONSOLE: '+m.text().slice(0,160)); });
   await page.goto('file://' + process.cwd() + '/index.html'); await page.waitForTimeout(800);
 
   await page.evaluate(() => {
@@ -52,7 +52,7 @@ const { chromium } = require('playwright');
   await page.waitForTimeout(900);
   console.log('compass:', await page.evaluate(() => ({
     habitTrend: [...document.querySelectorAll('.bento .k')].some(k=>/Habits, 12 weeks/.test(k.textContent)),
-    weekShape: !!document.querySelector('.week-shape'),
+    weekShape: !!document.querySelector('.wk-bars'),
     ledgerGone: !document.querySelector('#lifeLedger'),
     position: !!document.querySelector('.position'),
     visionsCardGone: ![...document.querySelectorAll('.bento .k')].some(k=>/Visions/.test(k.textContent)),

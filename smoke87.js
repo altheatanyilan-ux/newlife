@@ -9,7 +9,15 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
   const page = await browser.newPage(); await page.setViewportSize({width:1400,height:1050});
   const errors = [];
   page.on('pageerror', e => errors.push('PAGEERROR: ' + e.message));
-  page.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION/.test(m.text())) errors.push('CONSOLE: '+m.text()); });
+  /* ERR_CERT_AUTHORITY_INVALID is in the ignore list here and in every other
+     smoke file for one reason: index.html asks Google Fonts for its typefaces
+     over the network, deliberately and non-blockingly (media="print" then
+     onload), with a real local fallback stack behind it. In this container the
+     egress proxy intercepts TLS, so that request always fails and Chromium
+     logs it. It is the environment refusing a font, not the app raising an
+     error, and a test that cannot tell those apart reports a broken app every
+     time it runs offline. */
+  page.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION|ERR_CERT_AUTHORITY_INVALID/.test(m.text())) errors.push('CONSOLE: '+m.text()); });
   await page.goto('file://' + process.cwd() + '/index.html');
   /* A fresh profile is asked about theme and sound before anything else, and
      the rest of boot waits behind that dialog. Take the defaults and get on

@@ -14,7 +14,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   const p = await b.newPage({viewport:{width:1400, height:1100}});
   const errs = [];
   p.on('pageerror', e => errs.push('pageerror: ' + e.message));
-  p.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET|Failed to load resource/.test(m.text())) errs.push('console: ' + m.text()); });
+  p.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET|Failed to load resource|ERR_CERT_AUTHORITY_INVALID/.test(m.text())) errs.push('console: ' + m.text()); });
   await p.goto(FILE); await p.waitForTimeout(900);
   if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(1800); }
   const compass = async () => { await p.evaluate(() => { if(location.hash === '#/compass') rerender(); else location.hash = '#/compass'; });
@@ -63,21 +63,27 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   is('a day with nothing recorded still has nothing', none.hm, '');
 
   console.log('\n4. the chart shows the difference');
+  /* The chart was a dot-and-line drawing when this was written and is stacked
+     bars now (smoke178). The distinction it is about — a bedtime you gave
+     against one read off the last time the house saw you — went missing in
+     that rework and has been put back: the assumed end of a night is hatched
+     rather than solid, and the day's line says so. Same claim, new drawing. */
   await compass();
-  yes('the guessed dot is drawn hollow, the logged ones solid',
-      await p.evaluate(() => document.querySelectorAll('.wk-svg circle[stroke-dasharray]').length === 1));
+  yes('the assumed end of a night is hatched, the given ones solid',
+      await p.evaluate(() => document.querySelectorAll('.wk-rows .wk-sleep.is-guess').length >= 1));
   yes('  the legend says what that means',
       await p.evaluate(() => /assumed from the last time you were here/.test(document.querySelector('.wk-legend')?.textContent || '')));
   yes('  and the readout for that day calls it assumed',
-      await p.evaluate(d => /assumed/.test(document.querySelector(`[data-wksay="${d}"]`)?.textContent || ''), D));
-  yes('  while a day with no reading says so plainly',
-      await p.evaluate(d => /no sleeping time/.test(document.querySelector(`[data-wksay="${d}"]`)?.textContent || ''),
+      await p.evaluate(d => /assumed/.test(document.querySelector(`[data-acct="${d}"]`)?.textContent || ''), D));
+  yes('  while a day with no reading claims nothing',
+      await p.evaluate(d => { const n = document.querySelector(`[data-acct="${d}"]`);
+        return !!n && !/assumed/.test(n.textContent) && /slept 0/.test(n.textContent); },
         await p.evaluate(() => addDays(today(), -3))));
 
   console.log('\n5. any day can be set from the chart');
-  yes('a column is a button', await p.evaluate(d =>
-    document.querySelector(`[data-wkday="${d}"]`)?.getAttribute('role') === 'button', D));
-  await p.evaluate(d => document.querySelector(`[data-wkday="${d}"]`).dispatchEvent(new MouseEvent('click', {bubbles:true})), D);
+  yes('a row is a way in', await p.evaluate(d =>
+    !!document.querySelector(`.wk-row[data-day="${d}"]`), D));
+  await p.evaluate(d => document.querySelector(`.wk-row[data-day="${d}"]`).dispatchEvent(new MouseEvent('click', {bubbles:true})), D);
   await p.waitForTimeout(600);
   const dlg = await p.evaluate(() => ({open: !!document.querySelector('#deWake'),
     wake: document.querySelector('#deWake')?.value, sleep: document.querySelector('#deSleep')?.value,
@@ -91,11 +97,11 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   const after = await p.evaluate(d => ({stored: rhythmDay(d).sleepTime, guess: weekShapeRow(d).guessedClose}), D);
   is('saving writes it as a real bedtime', after.stored, '22:15');
   is('  no longer a guess', after.guess, false);
-  yes('  and the chart no longer draws it hollow',
-      await p.evaluate(() => document.querySelectorAll('.wk-svg circle[stroke-dasharray]').length === 0));
+  yes('  and the chart no longer hatches it',
+      await p.evaluate(d => !document.querySelector(`.wk-row[data-day="${d}"] .wk-sleep.is-guess`), D));
 
   console.log('\n6. and it can be cleared again');
-  await p.evaluate(d => document.querySelector(`[data-wkday="${d}"]`).dispatchEvent(new MouseEvent('click', {bubbles:true})), D);
+  await p.evaluate(d => document.querySelector(`.wk-row[data-day="${d}"]`).dispatchEvent(new MouseEvent('click', {bubbles:true})), D);
   await p.waitForTimeout(600);
   await p.evaluate(() => document.querySelector('#deClear').click());
   await p.waitForTimeout(1000);

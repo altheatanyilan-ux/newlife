@@ -6,7 +6,7 @@ const { chromium } = require('playwright');
   const page = await browser.newPage(); await page.setViewportSize({width:1400,height:1200});
   const errors = [];
   page.on('pageerror', e => errors.push('PAGEERROR: ' + e.message));
-  page.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET/.test(m.text())) errors.push('CONSOLE: '+m.text()); });
+  page.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET|ERR_CERT_AUTHORITY_INVALID/.test(m.text())) errors.push('CONSOLE: '+m.text()); });
   await page.goto('file://' + process.cwd() + '/index.html');
   /* a fresh profile is asked about theme and sound before anything else, and
      everything behind that dialog is unreachable until it is answered */
@@ -58,10 +58,16 @@ const { chromium } = require('playwright');
   console.log('banners aligned + glass + ruled:', bad.length ? JSON.stringify(bad) : 'all ' + Object.keys(banners).length);
 
   /* 3. one calendar, everywhere */
-  await page.evaluate(() => { location.hash='#/journals'; }); await page.waitForTimeout(700);
-  const box = await page.evaluate(() => { const i=document.querySelector('#jfrom'); const r=i.getBoundingClientRect();
-    return {x:r.x+r.width/2, y:r.y+r.height/2}; });
-  await page.mouse.click(box.x, box.y); await page.waitForTimeout(400);
+  await page.evaluate(() => { location.hash='#/journals'; });
+  /* fixed waits raced the render: 700ms was sometimes enough for the page and
+     400ms sometimes enough for the popup, and when either fell short the test
+     crashed on a null rather than failing on anything. Wait for the thing. */
+  await page.waitForSelector('#jfrom', {timeout: 10000});
+  /* click the field itself rather than its coordinates: a raw mouse click at a
+     point hits whatever is on top of that point, which on a fresh profile is
+     sometimes still the starter card */
+  await page.click('#jfrom');
+  await page.waitForSelector('.dp-pop .dp-year', {timeout: 10000});
   const dp = await page.evaluate(() => ({ open:!!document.querySelector('.dp-pop'),
     cells:document.querySelectorAll('.dp-cell[data-dpd]').length,
     months:document.querySelectorAll('.dp-month option').length,
@@ -153,11 +159,13 @@ const { chromium } = require('playwright');
   /* 9. two charts, not one */
   await page.evaluate(() => { location.hash='#/compass'; rerender(); }); await page.waitForTimeout(1200);
   console.log('charts:', JSON.stringify({
-    sleepWake: await page.evaluate(() => !!document.querySelector('.week-shape')),
+    sleepWake: await page.evaluate(() => !!document.querySelector('.wk-bars')),
     pie: await page.evaluate(() => !!document.querySelector('.time-pie')),
     arcs: await page.evaluate(() => document.querySelectorAll('.tp-svg path').length),
     spanOptions: await page.evaluate(() => document.querySelectorAll('#tpSpan option').length),
-    noStackedBars: await page.evaluate(() => !document.querySelector('.week-shape .wk-bar')) }));
+    /* it used to say noStackedBars, about a drawing that has since been
+       replaced by stacked bars on purpose (smoke178) */
+    stackedBars: await page.evaluate(() => document.querySelectorAll('.wk-bars .wk-bar').length) }));
 
   /* 10. the tree flowers */
   await page.evaluate(() => { location.hash='#/skills'; }); await page.waitForTimeout(1600);

@@ -21,7 +21,7 @@ const atLeast = (n,a,b,g='') => a >= b ? ok(n, g||String(a)) : no(n, `${a} is un
   const p = await b.newPage({viewport:{width:1340, height:1000}});
   const errs = [];
   p.on('pageerror', e => errs.push('pageerror: ' + e.message));
-  p.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET|Failed to load resource/.test(m.text())) errs.push('console: ' + m.text()); });
+  p.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET|Failed to load resource|ERR_CERT_AUTHORITY_INVALID/.test(m.text())) errs.push('console: ' + m.text()); });
   await p.goto(FILE); await p.waitForTimeout(900);
   if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(1600); }
   const dark = async () => { await p.evaluate(() => { S.settings.theme = 'dark'; applyTheme(); }); await p.waitForTimeout(300); };

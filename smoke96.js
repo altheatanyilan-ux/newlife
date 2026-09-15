@@ -60,7 +60,7 @@ const clickToast = (pg, re) => pg.evaluate(src => {
   await ctx.route(/fonts\.(googleapis|gstatic)\.com/, r => r.abort());
   const errs = [];
   p.on('pageerror', e => errs.push('pageerror: ' + e.message));
-  p.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET|Failed to load resource/.test(m.text())) errs.push('console: ' + m.text()); });
+  p.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET|Failed to load resource|ERR_CERT_AUTHORITY_INVALID/.test(m.text())) errs.push('console: ' + m.text()); });
   await p.goto(BASE);
   await p.waitForTimeout(2500);
   const reg = await p.evaluate(async () => {
@@ -172,7 +172,7 @@ const clickToast = (pg, re) => pg.evaluate(src => {
   const p3 = await b.newPage();
   const fileErrs = [];
   p3.on('pageerror', e => fileErrs.push('pageerror: ' + e.message));
-  p3.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET|Failed to load resource/.test(m.text())) fileErrs.push('console: ' + m.text()); });
+  p3.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET|Failed to load resource|ERR_CERT_AUTHORITY_INVALID/.test(m.text())) fileErrs.push('console: ' + m.text()); });
   await p3.goto(FILE);
   await p3.waitForTimeout(2200);
   yes('the local file still opens clean', fileErrs.length === 0, fileErrs.join(' | '));

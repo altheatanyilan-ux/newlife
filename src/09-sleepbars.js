@@ -67,15 +67,21 @@ function daySleepSpans(d){
      whole question: a bedtime before the boundary happened after midnight, so
      it began today; anything later was yesterday evening and you were already
      asleep when the day turned over. */
-  const last = hm2min(rhythmSleep(addDays(d, -1)).hm);
+  const lastNight = rhythmSleep(addDays(d, -1));
+  const last = hm2min(lastNight.hm);
   if(wake != null){
-    const from = (last != null && last < B) ? last : 0;
-    if(wake > from) spans.push({a: from, b: wake, end: 'morning'});
+    const used = (last != null && last < B);
+    const from = used ? last : 0;
+    /* A bedtime nobody typed is the last time the house saw you that evening.
+       It is a reasonable reading and it is still a guess, so the bar says so
+       rather than drawing it as solidly as a time you actually gave. */
+    if(wake > from) spans.push({a: from, b: wake, end: 'morning', guess: used && !!lastNight.inferred});
   }
   /* tonight, if you turned in before midnight. If you did not, it lands on
      tomorrow's bar as the clause above, and must not be drawn twice. */
-  const tonight = hm2min(rhythmSleep(d).hm);
-  if(tonight != null && tonight >= B) spans.push({a: tonight, b: 1440, end: 'evening'});
+  const told = rhythmSleep(d);
+  const tonight = hm2min(told.hm);
+  if(tonight != null && tonight >= B) spans.push({a: tonight, b: 1440, end: 'evening', guess: !!told.inferred});
   return spans;
 }
 function dayAwakeMinutes(d){
@@ -124,8 +130,8 @@ function sleepBarsHTML(anchor = today()){
       <span class="wk-day mono">${esc(fmtDate(d, 'short'))}</span>
       <div class="wk-bar" role="img"
         aria-label="${esc(fmtDate(d, 'med'))}: awake ${fmtDur(acc.awake)}">
-        ${sp.map(s => `<i class="wk-sleep wk-${s.end}" style="left:${pc(s.a)};width:${pc(s.b - s.a)}"
-            title="asleep ${min2hm(s.a)}–${s.b >= 1440 ? '24:00' : min2hm(s.b)}"></i>`).join('')}
+        ${sp.map(s => `<i class="wk-sleep wk-${s.end}${s.guess ? ' is-guess' : ''}" style="left:${pc(s.a)};width:${pc(s.b - s.a)}"
+            title="asleep ${min2hm(s.a)}–${s.b >= 1440 ? '24:00' : min2hm(s.b)}${s.guess ? ' · assumed from the last time you were here' : ''}"></i>`).join('')}
         ${bl.map(b => { const w = b.b - b.a; const wide = (w / 1440) * 100 > 2.6;
           const c = b.cat;
           return `<i class="wk-act${b.over ? ' is-over' : ''}" data-blk="${esc(b.id)}"
@@ -146,7 +152,9 @@ function sleepBarsHTML(anchor = today()){
     </div>
     <p class="muted" style="font-size:.86rem;margin:6px 0 2px">Dark is asleep. The gap between
       the two dark ends is the day you had; what is coloured inside it is what you logged,
-      and what is left is what was yours.</p>
+      and what is left is what was yours.
+      <span class="wk-legend">A hatched end is assumed from the last time you were here that
+      day, rather than a time you gave.</span></p>
     ${!any ? `<div class="empty" style="margin-top:12px">Nothing logged this week yet.
         The two ends of each day are set on Today — “I woke up at” and “I went to sleep at”.</div>`
     : `<div class="wk-axis mono" aria-hidden="true">
@@ -161,7 +169,7 @@ function sleepBarsHTML(anchor = today()){
         ${days.map(d => { const a = dayAccount(d);
           return `<span class="wk-acct${d === T ? ' rest' : ''}" data-acct="${esc(d)}"${d === T ? '' : ' hidden'}>
             <b>${esc(fmtDate(d, 'med'))}</b>
-            <span>slept ${fmtDur(a.sleep)}</span><span>awake ${fmtDur(a.awake)}</span>
+            <span>slept ${fmtDur(a.sleep)}${daySleepSpans(d).some(x => x.guess) ? ' <i class="wk-guessed">assumed</i>' : ''}</span><span>awake ${fmtDur(a.awake)}</span>
             ${Object.keys(a.by).map(k => { const c = timeCatAny(k);
               return `<span>${c ? c.icon + ' ' : ''}${esc(c ? c.name.toLowerCase() : 'other')} ${fmtDur(a.by[k])}</span>`; }).join('')}
             <span class="wk-free">free ${fmtDur(a.free)}</span></span>`; }).join('')}
