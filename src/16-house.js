@@ -49,16 +49,31 @@ function houseZone(){
    where you started. Where you are standing is the sort of thing that ought to
    survive a reload and be linkable anyway. */
 let _houseGoing = null;
+/* Walking from one zone to the next used to be a change of address, because
+   the house was a page and the zone was in the hash. It is a section on Today
+   now, so the address is #/today wherever you are standing in it and the zone
+   is state again — redrawn in place, with the same walk in and out. */
 function setHouseZone(id, dir){
   const z = houseZoneOf(id).id;
   if(z === houseZone()) return;
+  S._houseZone = z;
   S.settings.houseZone = z; saveNow();
-  const go = () => { _houseGoing = dir || 'up'; navigate('#/house/' + z); };
+  const go = () => { _houseGoing = dir || 'up'; redrawHouse(); };
   const stage = document.querySelector('.house-stage');
   if(!stage || (typeof reduced === 'function' && reduced())){ go(); return; }
   stage.dataset.going = dir || 'up';
   stage.classList.add('walking');
   setTimeout(go, 240);
+}
+/* Only the house, not the page around it: Today is a long page and somebody
+   standing in the garden has scrolled to get there. Redrawing all of Today to
+   walk through a door would put them back at the top of it. */
+function redrawHouse(){
+  const host = document.querySelector('.house-here');
+  if(!host){ if(typeof rerender === 'function') rerender(); return; }
+  host.innerHTML = houseHTML();
+  bindHouse(host);
+  houseArrive(host);
 }
 
 /* ---------- how the light falls ----------
@@ -728,11 +743,15 @@ function roofHTML(){
 }
 
 /* ---------- the frame every zone is drawn in ---------- */
+/* The house is not a page any more. It is the sacred space on Today, inside
+   the section that used to be Stillness — so what it returns is a piece of a
+   page rather than a page, and the wrapper it used to carry is gone with the
+   route that needed it. */
 function houseHTML(){
   const z = houseZoneOf(houseZone());
   const body = {sanctuary: sanctuaryHTML, main: mainRoomHTML,
                 garden: gardenHTML, roof: roofHTML}[z.id];
-  return `<div class="page house-page">
+  return `<div class="house-page">
     <div class="house-stage" data-zone="${z.id}" data-light="${houseHour()}">
       ${body ? body() : `<div class="room-wrap house-room"><div class="empty house-todo">
         ${esc(z.name)} is still being built. The stairs and the garden path work;
@@ -786,11 +805,15 @@ const HOUSE_PORTALS = {
   mirror:    () => houseOpenToday('t-theatre'),
   blessing:  () => navigate('#/journals/gratitude'),
   fashion:   () => navigate('#/journals/manifestation'),
+  /* These three used to walk you out of the house and back to Today to open
+     the Stillness section. The house IS that section now, so walking out of it
+     to reach it would be a circle: they set the practice and open the ring
+     where it is chosen, which is what the cushion always did. */
   soundbath: () => { const s = stillness(); s.prefs.kind = 'breath'; saveNow();
-                     houseOpenToday('t-still'); },
+                     openStillnessRing(); },
   cushion:   () => openStillnessRing(),
   sanctuary: () => { const s = stillness(); s.prefs.kind = 'sanctuary'; saveNow();
-                     houseOpenToday('t-still'); },
+                     openStillnessRing(); },
   shelf:     () => navigate('#/journals/library'),
   /* the main room */
   library:   () => navigate('#/journals/library'),
@@ -817,6 +840,13 @@ const HOUSE_PORTALS = {
   oracle:    () => openOracle(),
   charms:    () => openCharmCast(),
 };
+/* Binding twice must be harmless. The doors are hung with addEventListener
+   rather than onclick — a click has to be able to stop propagating — and a
+   second listener on the same node is a second modal, two sounds, and a walk
+   animation played over itself. That could not happen while the house owned
+   its own route and was bound once per draw; it is a section on Today now,
+   inside a page with its own render lifecycle, and "called once" is not a
+   thing this file gets to assume about itself any more. */
 function bindHouse(root){
   const scope = root || document;
   scope.querySelectorAll('[data-hgo]').forEach(b => b.onclick = () => {
@@ -830,6 +860,8 @@ function bindHouse(root){
       reduced() ? 0 : 260);
   };
   wrap.querySelectorAll('[data-room]').forEach(zn => {
+    if(zn.dataset.hung === '1') return;
+    zn.dataset.hung = '1';
     const act = () => {
       const open = HOUSE_PORTALS[zn.dataset.room];
       if(!open) return;
@@ -843,18 +875,23 @@ function bindHouse(root){
   });
 }
 
+/* The house is not a page any more — it is the sacred space on Today, under
+   the looking-inward view. This route stays only to catch what still points
+   here: a bookmark, a link written before the move, a zone deep-linked from
+   somewhere. It honours the zone it was asked for and then puts you where the
+   house actually is. */
 routes.house = function(root, params){
-  /* the address decides; with no zone in it, you come back to where you were */
   const asked = params && params[0];
-  S._houseZone = (asked && houseZoneOf(asked).id === asked) ? asked
-    : ((S.settings && S.settings.houseZone) || 'main');
-  root.innerHTML = houseHTML();
-  bindHouse(root);
-  /* the scene that just left slid out in the direction you walked; this one
-     arrives behind it */
-  const stage = root.querySelector('.house-stage');
+  if(asked && houseZoneOf(asked).id === asked){ S._houseZone = asked;
+    if(S.settings) S.settings.houseZone = asked; }
+  houseOpenToday('t-sacred');
+};
+/* the scene that just left slid out in the direction you walked; this one
+   arrives behind it */
+function houseArrive(host){
+  const stage = (host || document).querySelector('.house-stage');
   if(stage && _houseGoing){
     stage.dataset.arriving = _houseGoing; _houseGoing = null;
     requestAnimationFrame(() => stage.classList.add('arrived'));
   }
-};
+}

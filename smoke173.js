@@ -53,15 +53,25 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(1900); }
     return p;
   };
-  const go = async (p, zone) => {
+  /* The house is a section on Today now rather than a page of its own, so
+     standing in a zone means opening that section and being in that zone —
+     there is no address to change any more. */
+  const inHouse = async (p, zone) => {
     await p.evaluate(z => {
-      if(location.hash === '#/house/' + z) rerender(); else location.hash = '#/house/' + z; }, zone);
+      S.settings.todayView = 'in';
+      S.settings.todayOpen = S.settings.todayOpen || {};
+      S.settings.todayOpen['t-sacred'] = true;
+      S._houseZone = z; if(S.settings) S.settings.houseZone = z;
+      saveNow();
+      if(location.hash !== '#/today') location.hash = '#/today'; else rerender();
+    }, zone);
     await p.waitForFunction(z => {
-      const st = document.querySelector('.house-stage');
-      return st && st.dataset.zone === z && st.querySelector('svg.sacred-room');
-    }, zone, {timeout: 8000}).catch(() => {});
-    await p.waitForTimeout(400);
+      const st = document.querySelector('#t-sacred .house-stage');
+      return st && st.dataset.zone === z;
+    }, zone, {timeout: 9000}).catch(() => {});
+    await p.waitForTimeout(450);
   };
+  const go = (p, zone) => inHouse(p, zone);
 
   let p = await open();
 

@@ -59,18 +59,26 @@ const SEASONS = ['spring', 'summer', 'autumn', 'winter'];
 
   /* everything the garden is, in one reading */
   const walk = async year => {
-    await p.evaluate(s => { window.season = () => s;
-      if(location.hash === '#/house/garden') rerender(); else location.hash = '#/house/garden'; }, year);
+    await p.evaluate(s => {
+      window.season = () => s;
+      S.settings.todayView = 'in';
+      S.settings.todayOpen = S.settings.todayOpen || {};
+      S.settings.todayOpen['t-sacred'] = true;
+      S._houseZone = 'garden'; S.settings.houseZone = 'garden';
+      saveNow();
+      /* the house is a section on Today now, not a page of its own */
+      if(location.hash !== '#/today') location.hash = '#/today'; else rerender();
+    }, year);
     await p.waitForFunction(s => {
-      const w = document.querySelector('.house-stage .room-wrap');
-      return w && w.dataset.season === s; }, year, {timeout: 8000}).catch(() => {});
-    await p.waitForTimeout(250);
+      const w = document.querySelector('#t-sacred .house-stage .room-wrap');
+      return w && w.dataset.season === s; }, year, {timeout: 9000}).catch(() => {});
+    await p.waitForTimeout(350);
     return p.evaluate(() => {
       const q = s => [...document.querySelectorAll(s)];
       const d = n => n ? n.getAttribute('d') : null;
       return {
         /* what the year is allowed to move */
-        says: document.querySelector('.house-stage .room-wrap').dataset.season,
+        says: document.querySelector('#t-sacred .house-stage .room-wrap').dataset.season,
         canopy: q('.hg-canopy').length,
         canopyFill: q('.hg-canopy')[0] ? getComputedStyle(q('.hg-canopy')[0]).fill : '-',
         bears: q('.hg-blossom')[0]?.dataset.bears || '',
@@ -148,7 +156,7 @@ const SEASONS = ['spring', 'summer', 'autumn', 'winter'];
   await p.waitForTimeout(200);
   const own = await p.evaluate(() => ({
     html: document.documentElement.dataset.season,
-    room: document.querySelector('.house-stage .room-wrap').dataset.season,
+    room: document.querySelector('#t-sacred .house-stage .room-wrap').dataset.season,
     canopy: getComputedStyle(document.querySelector('.hg-canopy')).fill,
     ground: getComputedStyle(document.querySelector('.hg-ground')).fill}));
   is('  the document can say one thing', own.html, 'autumn');

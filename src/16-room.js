@@ -66,196 +66,25 @@ function roomEdge(x1, y1, x2, y2, seed){
   return `M${x1.toFixed(1)},${(y1 + w()).toFixed(1)} Q${mx.toFixed(1)},${my.toFixed(1)} ${x2.toFixed(1)},${(y2 + w()).toFixed(1)}`;
 }
 
-function sacredRoomHTML(){
-  const lit = roomCandle();
-  const done = roomConsultedToday();
-  const sat = roomSatEver();
-  const streak = typeof stillStreak === 'function' ? stillStreak() : 0;
-  const leaves = streak >= 3 ? Math.min(streak, 9) : 0;
-  const aura = k => done[k] ? ' consulted' : '';
+/* ---------- what used to be here ----------
+   sacredRoomHTML drew the room, and bindSacredRoom hung its doors. Both are
+   gone, and the reason is that they had quietly become a second copy of
+   something the house already does better: the room grew into the sanctuary
+   floor when the house was built, and the two drawings have been the same
+   room in two places ever since — one on Today, one in the house.
 
-  /* the planks and the brush strokes: a few faint lines, not a texture */
-  const floor = Array.from({length: 7}, (_, i) =>
-    `<path class="rm-plank" d="${roomEdge(0, 392 + i * 26, 1200, 386 + i * 26, 'plank' + i)}"/>`).join('');
-  const wall = Array.from({length: 11}, (_, i) =>
-    `<path class="rm-brush" d="${roomEdge(60 + i * 108, 20, 66 + i * 108, 382, 'brush' + i)}"/>`).join('');
+   The house is the sacred space on Today now, so the duplicate is not just
+   redundant, it was actively wrong. Both binders looked for [data-room]
+   inside .room-wrap, which is exactly the markup the sanctuary uses, so every
+   door in the house was hung twice: two sounds, two walk animations played
+   over each other, and the cushion opening two rings stacked on top of one
+   another.
 
-  return `<div class="room-wrap rv" data-lit="${lit >= .85 ? 'high' : lit >= .45 ? 'mid' : 'low'}">
-    <svg class="sacred-room" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid meet"
-      role="group" aria-label="The room: a cushion, a table, a door and a shelf">
+   What the room knew is kept and still used by the house above: the candle
+   that burns to how recently you sat, the decks consulted today, whether you
+   have ever sat at all, the hand-drawn wobble every long edge in the house is
+   bent by, and the ring of four ways to be still that the cushion opens. */
 
-      <defs>
-        <radialGradient id="rmGlow"><stop offset="0" stop-color="var(--rm-light)" stop-opacity=".55"/>
-          <stop offset="1" stop-color="var(--rm-light)" stop-opacity="0"/></radialGradient>
-        <radialGradient id="rmDoorLight"><stop offset="0" stop-color="#f5deb3" stop-opacity=".8"/>
-          <stop offset="1" stop-color="#f5deb3" stop-opacity="0"/></radialGradient>
-      </defs>
-
-      <g class="rm-bg">
-        <rect x="0" y="0" width="1200" height="392" class="rm-wall"/>
-        <rect x="0" y="392" width="1200" height="208" class="rm-floor"/>
-        <g class="rm-tex">${wall}${floor}</g>
-        <path class="rm-line" d="${roomEdge(0, 392, 1200, 392, 'skirt')}"/>
-      </g>
-
-      <!-- the candles: not clickable, only alive. Their height is the last
-           time you sat down, which is the room's one honest opinion of you. -->
-      <g class="rm-candles" style="--lit:${lit.toFixed(2)}">
-        ${[[210, 'l'], [990, 'r']].map(([x, s]) => `<g class="rm-sconce" transform="translate(${x},96)">
-          <circle class="rm-halo" cx="0" cy="-6" r="${(54 + lit * 46).toFixed(0)}" fill="url(#rmGlow)"/>
-          <path class="rm-sconce-arm" d="${roomEdge(-16, 26, 16, 26, 'sconce' + s)}"/>
-          <rect class="rm-wax" x="-7" y="-4" width="14" height="30" rx="3"/>
-          <g class="rm-flame" style="--fl:${(.6 + lit * .6).toFixed(2)}">
-            <path class="rm-flame-out" d="M0,-30 C9,-19 8,-8 0,-4 C-8,-8 -9,-19 0,-30Z"/>
-            <path class="rm-flame-in" d="M0,-22 C4.5,-15 4,-8 0,-6 C-4,-8 -4.5,-15 0,-22Z"/>
-          </g></g>`).join('')}
-      </g>
-
-      <!-- the door at the back: your quiet room, ajar -->
-      <g class="zone zone-door" data-room="sanctuary" tabindex="0" role="button" aria-label="Your quiet room">
-        <ellipse class="rm-spill" cx="470" cy="300" rx="120" ry="150" fill="url(#rmDoorLight)"/>
-        <rect class="rm-doorframe" x="392" y="128" width="156" height="264" rx="3"/>
-        <rect class="rm-doorgap" x="400" y="136" width="140" height="256"/>
-        <g class="rm-door-leaf">
-          <rect class="rm-door" x="400" y="136" width="112" height="256" rx="2"/>
-          <rect class="rm-door-panel" x="414" y="152" width="84" height="104" rx="2"/>
-          <rect class="rm-door-panel" x="414" y="272" width="84" height="104" rx="2"/>
-          <circle class="rm-knob" cx="498" cy="268" r="4.5"/>
-        </g>
-        <text class="rm-say" x="470" y="424" text-anchor="middle">Your quiet room</text>
-      </g>
-
-      <!-- the shelf: atmosphere, and a way to what you have been reading -->
-      <g class="zone zone-shelf" data-room="shelf" tabindex="0" role="button" aria-label="Your wisdom shelf">
-        <rect class="rm-shelf-box" x="60" y="176" width="168" height="182" rx="3"/>
-        <path class="rm-line" d="${roomEdge(64, 244, 224, 244, 'shelfA')}"/>
-        <path class="rm-line" d="${roomEdge(64, 304, 224, 304, 'shelfB')}"/>
-        ${[[74, 186, 14, 54], [92, 190, 12, 50], [108, 184, 16, 56], [128, 192, 11, 48],
-           [74, 250, 13, 50], [90, 246, 15, 54], [110, 252, 12, 48], [126, 248, 14, 52],
-           [74, 310, 16, 44], [94, 314, 12, 40]].map(([x, y, w, h], i) =>
-          `<rect class="rm-book${i === 2 ? ' rm-book-lit' : ''}" x="${x}" y="${y}" width="${w}" height="${h}" rx="1.5"/>`).join('')}
-        <text class="rm-say" x="144" y="384" text-anchor="middle">Your wisdom shelf</text>
-      </g>
-
-      <!-- the cushion: you do not press "meditate", you sit down -->
-      <g class="zone zone-cushion" data-room="cushion" tabindex="0" role="button" aria-label="Sit. Breathe. Be still.">
-        <ellipse class="rm-cush-ring" cx="600" cy="506" rx="150" ry="44"/>
-        <ellipse class="rm-mat" cx="600" cy="508" rx="122" ry="34"/>
-        <ellipse class="rm-cush-shadow" cx="600" cy="498" rx="78" ry="22"/>
-        <ellipse class="rm-cush-base" cx="600" cy="486" rx="76" ry="26"/>
-        <ellipse class="rm-cush-top" cx="600" cy="474" rx="70" ry="23"/>
-        ${Array.from({length: 9}, (_, i) => `<path class="rm-cush-seam" d="${
-          roomEdge(600 + Math.cos(i / 9 * Math.PI * 2) * 22, 470 + Math.sin(i / 9 * Math.PI * 2) * 8,
-                   600 + Math.cos(i / 9 * Math.PI * 2) * 68, 474 + Math.sin(i / 9 * Math.PI * 2) * 22,
-                   'seam' + i)}"/>`).join('')}
-        ${sat ? '<ellipse class="rm-impression" cx="600" cy="472" rx="34" ry="11"/>' : ''}
-        ${leaves ? `<g class="rm-vine">
-          <path class="rm-vine-stem" d="M700,512 C716,486 706,452 722,${(432 - leaves * 6).toFixed(0)}"/>
-          ${Array.from({length: leaves}, (_, i) => { const t = (i + 1) / (leaves + 1);
-            const x = 700 + t * 22 + Math.sin(t * 6) * 5, y = 512 - t * (80 + leaves * 6);
-            const s = i % 2 ? 1 : -1;
-            return `<path class="rm-leaf" style="--i:${i}" d="M${x.toFixed(1)},${y.toFixed(1)}
-              q${(s * 13)},-6 ${(s * 19)},2 q${(-s * 8)},7 ${(-s * 19)},-2Z"/>`; }).join('')}
-        </g>` : ''}
-        <text class="rm-say" x="600" y="556" text-anchor="middle">Sit. Breathe. Be still.</text>
-      </g>
-
-      <!-- the table: four systems, laid out, each its own thing to reach for -->
-      <!-- the table is not itself a door: the four things on it are, and each
-           of them carries its own focus and its own label -->
-      <g class="zone zone-table" aria-label="The oracle awaits your question">
-        <ellipse class="rm-table-glow" cx="930" cy="386" rx="190" ry="86"/>
-        <path class="rm-table-top" d="M772,382 H1088 L1104,414 H756 Z"/>
-        <path class="rm-cloth" d="M756,414 H1104 C1096,472 1080,506 1062,530
-          C1040,518 1012,524 992,536 C968,522 938,528 914,540
-          C890,524 860,530 838,540 C818,516 792,472 776,442 Z"/>
-        ${Array.from({length: 5}, (_, i) => `<path class="rm-cloth-fold" d="${
-          roomEdge(792 + i * 66, 420, 800 + i * 66, 520, 'fold' + i)}"/>`).join('')}
-        <path class="rm-table-leg" d="M800,530 L806,590"/>
-        <path class="rm-table-leg" d="M1060,530 L1054,590"/>
-
-        <g class="obj obj-tarot${aura('tarot')}" data-room="tarot" tabindex="0" role="button" aria-label="Tarot">
-          <ellipse class="obj-aura" cx="812" cy="374" rx="40" ry="22"/>
-          ${[6, 3, 0].map(o => `<rect class="rm-card" x="${790 + o}" y="${348 - o}" width="44" height="62" rx="4"/>`).join('')}
-          <rect class="rm-card-face" x="790" y="348" width="44" height="62" rx="4"/>
-          <circle class="rm-card-mark" cx="812" cy="379" r="11"/>
-          <circle class="rm-card-mark" cx="812" cy="379" r="5"/>
-          <text class="obj-say" x="812" y="336" text-anchor="middle">Tarot</text>
-        </g>
-
-        <g class="obj obj-coins${aura('iching')}" data-room="iching" tabindex="0" role="button" aria-label="I Ching">
-          <ellipse class="obj-aura" cx="888" cy="386" rx="34" ry="19"/>
-          ${[[872, 392], [900, 396], [886, 374]].map(([x, y], i) =>
-            `<g class="rm-coin" style="--i:${i}"><circle cx="${x}" cy="${y}" r="12"/>
-              <rect class="rm-coin-hole" x="${x - 4}" y="${y - 4}" width="8" height="8" rx="1"/></g>`).join('')}
-          <text class="obj-say" x="888" y="346" text-anchor="middle">I Ching</text>
-        </g>
-
-        <g class="obj obj-oracle${aura('oracle')}" data-room="oracle" tabindex="0" role="button" aria-label="Oracle cards">
-          <ellipse class="obj-aura" cx="968" cy="372" rx="32" ry="26"/>
-          <g transform="rotate(-5 968 372)">
-            <rect class="rm-oracle" x="950" y="342" width="36" height="58" rx="4"/>
-            <path class="rm-oracle-star" d="M968,356 L972,368 L984,372 L972,376 L968,388 L964,376 L952,372 L964,368Z"/>
-          </g>
-          <text class="obj-say" x="968" y="332" text-anchor="middle">Oracle</text>
-        </g>
-
-        <g class="obj obj-charms${aura('charms')}" data-room="charms" tabindex="0" role="button" aria-label="Charm casting">
-          <ellipse class="obj-aura" cx="1042" cy="392" rx="36" ry="20"/>
-          ${[[1024, 390, 5], [1038, 397, 4], [1052, 388, 5.5], [1046, 380, 3.5],
-             [1060, 398, 4], [1030, 381, 4.5], [1068, 386, 3]].map(([x, y, r], i) =>
-            `<circle class="rm-charm" style="--i:${i}" cx="${x}" cy="${y}" r="${r}"/>`).join('')}
-          <text class="obj-say" x="1042" y="352" text-anchor="middle">Charms</text>
-        </g>
-        <text class="rm-say" x="930" y="576" text-anchor="middle">The oracle awaits your question</text>
-      </g>
-    </svg>
-  </div>`;
-}
-
-/* ---------- what the room does when you reach into it ---------- */
-function bindSacredRoom(root, redraw){
-  const go = redraw || rerender;
-  const wrap = (root || document).querySelector('.room-wrap'); if(!wrap) return;
-
-  const enter = (el, then) => {
-    /* the room stands back for a moment and then the practice is there. Not a
-       five-stage dissolve: the ceremonies have their own openings, and two
-       cinematics in a row is one too many. */
-    wrap.classList.add('entering');
-    el && el.classList.add('taken');
-    setTimeout(() => { wrap.classList.remove('entering'); el && el.classList.remove('taken'); then(); },
-      (typeof reduced === 'function' && reduced()) ? 0 : 260);
-  };
-
-  wrap.querySelectorAll('[data-room]').forEach(z => {
-    const act = () => {
-      const k = z.dataset.room;
-      sound('open');
-      if(k === 'cushion'){
-        /* sitting down is not choosing a practice: the four ways to be still
-           are offered once you are on the cushion, in a ring round it */
-        enter(z, () => openStillnessRing());
-        return;
-      }
-      if(k === 'sanctuary'){
-        enter(z, () => {
-          const s = stillness(); s.prefs.kind = 'sanctuary'; saveNow(); go();
-          setTimeout(() => document.querySelector('#stBegin')?.click(), 80);
-        });
-        return;
-      }
-      if(k === 'shelf'){ enter(z, () => navigate('#/journals/library')); return; }
-      const open = {tarot: () => openTarot(), iching: () => openIChing(),
-        oracle: () => openOracle(), charms: () => openCharmCast()}[k];
-      if(open) enter(z, open);
-    };
-    z.addEventListener('click', ev => { ev.stopPropagation(); act(); });
-    z.addEventListener('keydown', ev => {
-      if(ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); act(); }
-    });
-  });
-}
 
 /* The four ways to be still, offered round the cushion rather than as a row
    of tabs above a form. Same four, same preferences, same session — this is
@@ -274,7 +103,7 @@ function openStillnessRing(){
     s.prefs.kind = b.dataset.sitkind; saveNow(); sound('click'); m.remove();
     rerender();
     /* the pane for that practice is what you wanted to be looking at */
-    setTimeout(() => document.querySelector('#t-still .still-pane')
+    setTimeout(() => document.querySelector('#t-sacred .still-pane')
       ?.scrollIntoView({block: 'center', behavior: reduced() ? 'auto' : 'smooth'}), 120);
   });
   return m;

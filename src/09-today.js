@@ -190,7 +190,7 @@ routes.today = function(root){
     in: [
       ['t-checkin', 'check-in', true],
       ['t-theatre', 'theatre',  true],
-      ['t-still',   'stillness',true],
+      ['t-sacred',  'sacred space', true],
       /* The bottom of a long page cannot catch an eye on its own. The count
          rides up here so an unfinished thought is visible from the top, which
          is the whole reason the section exists. */
@@ -411,8 +411,8 @@ routes.today = function(root){
 
     <!-- The receptive half of the practice, and the two quick doors that
          belong beside it: a card to draw and an impression to catch. -->
-    <details class="section rv t-sec" id="t-still"${fold('t-still')} style="margin-top:8px">
-      <summary><span class="sc">Stillness</span><span class="mono">${(() => {
+    <details class="section rv t-sec" id="t-sacred"${fold('t-sacred')} style="margin-top:8px">
+      <summary><span class="sc">My sacred space</span><span class="mono">${(() => {
         const mins = stillMinutesOn(T); const st = stillStreak();
         return mins ? `${mins} min today${st > 1 ? ` · ${st} days running` : ''}` : 'nothing sat today'; })()}</span></summary>
       ${stillnessHTML()}
@@ -523,6 +523,10 @@ routes.today = function(root){
   /* and the stillness practice under it — without this the section drew
      perfectly and every button in it was dead */
   if(typeof bindStillness === 'function') bindStillness(root);
+  /* the house is a section on this page now, so this page hangs its handlers */
+  if(typeof bindHouse === 'function' && root.querySelector('.house-here')){
+    try { bindHouse(root); houseArrive(root); } catch(e){ console.warn('the house did not open', e); }
+  }
   $('#markTheatre').onclick = () => { if(!S.rehearsal.days.includes(T)){ S.rehearsal.days.push(T); if(!S.rehearsal.cycleStart) S.rehearsal.cycleStart = T; saveNow(); sound('chime'); toast('Practice marked. The nervous system takes care of the rest, in time.'); rerender(); } };
   $('#newCycle').onclick = () => confirmDlg('Start a fresh 21-day cycle from today? Past days stay in your history.', () => { S.rehearsal.cycleStart = T; saveNow(); rerender(); });
   root.querySelectorAll('.tracker i').forEach(i => i.onclick = () => { const d = i.dataset.td; if(d > T) return; const idx = S.rehearsal.days.indexOf(d); if(idx>=0) S.rehearsal.days.splice(idx,1); else S.rehearsal.days.push(d); saveNow(); rerender(); });

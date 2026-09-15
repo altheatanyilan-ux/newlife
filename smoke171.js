@@ -41,7 +41,13 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
      drawn rather than guessing at a delay. Setting a hash you are already on
      fires nothing, so the room is asked for explicitly. */
   const room = async () => {
-    await p.evaluate(() => { if(location.hash === '#/house/main') rerender(); else location.hash = '#/house/main'; });
+    /* the house is a section on Today now, not a page of its own */
+    await p.evaluate(() => {
+      S.settings.todayView = 'in';
+      S.settings.todayOpen = S.settings.todayOpen || {};
+      S.settings.todayOpen['t-sacred'] = true;
+      S._houseZone = 'main'; S.settings.houseZone = 'main'; saveNow();
+      if(location.hash !== '#/today') location.hash = '#/today'; else rerender(); });
     await p.waitForSelector('.zone-piano', {state:'attached'});
     await p.waitForTimeout(450);
   };

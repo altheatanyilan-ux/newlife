@@ -304,7 +304,13 @@ function stillnessHTML(){
     <!-- The room comes first, because the going is half of the practice. The
          row of tabs is still under it: the room is how you arrive, the tabs
          are how you switch once you are already sitting. -->
-    ${typeof sacredRoomHTML === 'function' ? sacredRoomHTML() : ''}
+    <!-- The house, where the drawing of one room used to be. The going is
+         half of the practice and there is more to walk through now: the
+         sanctuary is the room this always was, and the stairs and the garden
+         path lead off it. What is below — the four ways to be still, the
+         length, and the button that begins — is what the cushion in that room
+         opens onto, so it stays exactly where it was. -->
+    <div class="house-here">${typeof houseHTML === 'function' ? houseHTML() : ''}</div>
     <div class="still-tabs">${STILL_KINDS.map(([k, n, ic]) =>
       `<button class="${kind === k ? 'on' : ''}" data-stkind="${k}">${ic} ${n}</button>`).join('')}</div>
     <div class="still-pane">${body}
@@ -332,7 +338,9 @@ function stillnessHTML(){
 function bindStillness(root){
   const s = stillness(), p = s.prefs;
   const q = x => root.querySelector(x);
-  if(typeof bindSacredRoom === 'function') bindSacredRoom(root);
+  /* the room that used to be drawn here is the house now, and Today hangs its
+     doors — binding them a second time from here gave every one of them two
+     handlers, and the cushion two rings stacked on each other */
   const re = () => { saveNow(); rerender(); };
   root.querySelectorAll('[data-stkind]').forEach(b => b.onclick = () => { p.kind = b.dataset.stkind; re(); });
   root.querySelectorAll('[data-stmin]').forEach(b => b.onclick = () => { p.minutes = +b.dataset.stmin; re(); });

@@ -43,10 +43,17 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
 
   /* the room lives in the Stillness section of the looking-inward half of Today */
   const room = async () => {
-    await p.evaluate(() => { location.hash = '#/today'; rerender(); }); await p.waitForTimeout(800);
+    /* the section it lives in is "My sacred space" now, and it holds the whole
+       house rather than the one room — the sanctuary is where that room went */
+    await p.evaluate(() => {
+      S.settings.todayView = 'in';
+      S.settings.todayOpen = S.settings.todayOpen || {};
+      S.settings.todayOpen['t-sacred'] = true;
+      S._houseZone = 'sanctuary'; S.settings.houseZone = 'sanctuary'; saveNow();
+      location.hash = '#/today'; rerender(); }); await p.waitForTimeout(900);
     if(await p.$('[data-tview="in"]')) await p.click('[data-tview="in"]');
     await p.waitForTimeout(700);
-    await p.evaluate(() => { const d = document.querySelector('#t-still'); if(d) d.open = true; });
+    await p.evaluate(() => { const d = document.querySelector('#t-sacred'); if(d) d.open = true; });
     await p.waitForTimeout(500);
     await p.evaluate(() => document.querySelector('.room-wrap')?.scrollIntoView({block:'center'}));
     await p.waitForTimeout(300);
@@ -78,8 +85,14 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   console.log('\n2. everything in it is a way in');
   const zones = await p.evaluate(() =>
     [...document.querySelectorAll('.room-wrap [data-room]')].map(n => n.dataset.room));
-  for(const k of ['sanctuary','shelf','cushion','tarot','iching','oracle','charms'])
+  /* The shelf is not on this list any more and that is not a loss. The room
+     grew into a whole floor and then into a whole house: the books went
+     downstairs to the main room, where there is a wall for them, and the
+     shelf here would have been the same door drawn twice. */
+  for(const k of ['sanctuary','cushion','tarot','iching','oracle','charms'])
     yes(`  you can reach the ${k}`, zones.includes(k), zones.join(' '));
+  yes('  and the books are downstairs rather than drawn twice',
+    !zones.includes('shelf'), zones.join(' '));
   yes('  and every one of them can be reached from the keyboard',
     await p.evaluate(() => [...document.querySelectorAll('.room-wrap [data-room]')]
       .every(n => n.getAttribute('tabindex') === '0' && n.getAttribute('aria-label'))));

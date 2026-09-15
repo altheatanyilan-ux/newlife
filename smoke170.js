@@ -12,10 +12,12 @@
    Every object is a door, and the door opens the thing it is a picture of. A
    mirror that does not open the mirror work is scenery.
 
-   Where you are standing is the address. It was a variable first, and the
-   route read the zone back out of the hash on every draw — so walking through
-   a door set the state, redrew, and put you back where you started. It also
-   means a floor of the house can be linked to and survives a reload.
+   Where you are standing survives. It was the address for a while, because
+   the house was a page of its own; it is the sacred space on Today now, so
+   the address is #/today from every floor and the zone is state again. The
+   thing that always mattered is unchanged and still checked here: walking
+   through a door must not put you back where you started, and a reload must
+   leave you standing where you were.
 
    The sacred room's mechanics survive being grown into a whole floor: the
    candles still burn to how recently you sat, the cushion still keeps its
@@ -48,17 +50,32 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     await p.evaluate(h => { if(location.hash === h) rerender(); else location.hash = h; }, hash);
     await p.waitForTimeout(1000);
   };
-  const zone = () => p.evaluate(() => document.querySelector('.house-stage')?.dataset.zone);
+  const zone = () => p.evaluate(() => document.querySelector('#t-sacred .house-stage')?.dataset.zone);
   const shut = () => p.evaluate(() => document.querySelectorAll('.overlay').forEach(n => n.remove()));
 
-  console.log('\n1. there is a house, and it is in the sidebar');
-  yes('the sidebar offers it', await p.evaluate(() =>
-    [...document.querySelectorAll('.nav a')].some(a => a.getAttribute('href') === '#/house')));
-  /* it is offered BESIDE the list, never instead of it */
-  yes('  and the list it stands beside is untouched', await p.evaluate(() =>
+  console.log('\n1. there is a house, and it is on Today');
+  /* It was a room of its own in the sidebar, offered beside the list. It is
+     the sacred space on Today now, under the looking-inward view, where the
+     Stillness section used to be — so the sidebar must not still offer a door
+     to a page that is not there. */
+  yes('the sidebar no longer offers it as a room', await p.evaluate(() =>
+    ![...document.querySelectorAll('.nav a')].some(a => a.getAttribute('href') === '#/house')));
+  yes('  and the rest of the list is untouched', await p.evaluate(() =>
     ['#/today','#/planning','#/values','#/people','#/skills']
       .every(h => [...document.querySelectorAll('.nav a')].some(a => a.getAttribute('href') === h))));
-  await go('#/house/sanctuary');
+  /* anything still pointing at the old address lands where the house went */
+  await p.evaluate(() => { location.hash = '#/house/garden'; });
+  await p.waitForTimeout(1200);
+  yes('  and an old link to it puts you where it went', await p.evaluate(() =>
+    location.hash === '#/today' && !!document.querySelector('#t-sacred')),
+    await p.evaluate(() => location.hash));
+  await p.evaluate(() => {
+    S.settings.todayView = 'in';
+    S.settings.todayOpen = S.settings.todayOpen || {};
+    S.settings.todayOpen['t-sacred'] = true;
+    S._houseZone = 'sanctuary'; S.settings.houseZone = 'sanctuary'; saveNow();
+    if(location.hash !== '#/today') location.hash = '#/today'; else rerender(); });
+  await p.waitForTimeout(1100);
   is('the sanctuary floor draws', await zone(), 'sanctuary');
   /* It used to say "one svg", which was true of the flat scene and stopped
      being true the moment the room became a room — each object is lifted into
@@ -85,21 +102,48 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   /* a door that does not open the thing it is a picture of is scenery */
   await p.click('.zone-blessing .hs-lowtable'); await p.waitForTimeout(900);
   is('the bowls open the gratitude journal', await p.evaluate(() => location.hash), '#/journals/gratitude');
-  await go('#/house/sanctuary');
+  await p.evaluate(() => {
+    S.settings.todayView = 'in';
+    S.settings.todayOpen = S.settings.todayOpen || {};
+    S.settings.todayOpen['t-sacred'] = true;
+    S._houseZone = 'sanctuary'; S.settings.houseZone = 'sanctuary'; saveNow();
+    if(location.hash !== '#/today') location.hash = '#/today'; else rerender(); });
+  await p.waitForTimeout(1100);
   await p.click('.zone-mirror .hs-mirror-glass'); await p.waitForTimeout(1200);
   is('the mirror opens the morning theatre, and opens it',
     await p.evaluate(() => location.hash + '|' + !!document.querySelector('#t-theatre')?.open),
     '#/today|true');
-  await go('#/house/sanctuary');
+  await p.evaluate(() => {
+    S.settings.todayView = 'in';
+    S.settings.todayOpen = S.settings.todayOpen || {};
+    S.settings.todayOpen['t-sacred'] = true;
+    S._houseZone = 'sanctuary'; S.settings.houseZone = 'sanctuary'; saveNow();
+    if(location.hash !== '#/today') location.hash = '#/today'; else rerender(); });
+  await p.waitForTimeout(1100);
   await p.click('.obj-tarot .rm-card-face'); await p.waitForTimeout(1200);
   yes('reaching for the deck opens the tarot', await p.evaluate(() => !!document.querySelector('.overlay')));
   await shut();
 
-  console.log('\n3. where you are standing is the address');
-  await go('#/house/sanctuary');
+  console.log('\n3. where you are standing survives, without being the address');
+  await p.evaluate(() => {
+    S.settings.todayView = 'in';
+    S.settings.todayOpen = S.settings.todayOpen || {};
+    S.settings.todayOpen['t-sacred'] = true;
+    S._houseZone = 'sanctuary'; S.settings.houseZone = 'sanctuary'; saveNow();
+    if(location.hash !== '#/today') location.hash = '#/today'; else rerender(); });
+  await p.waitForTimeout(1100);
   await p.click('.house-exit[data-hgo="main"]'); await p.waitForTimeout(1200);
   is('walking downstairs puts you downstairs', await zone(), 'main');
-  is('  and the address says so', await p.evaluate(() => location.hash), '#/house/main');
+  /* It used to be the address, because the house was a page. It is a section
+     on Today now, so the address is #/today from every floor of it — and the
+     thing that mattered about the address is the thing still tested two lines
+     down: walking through a door must not put you back where you started, and
+     a reload must leave you standing where you were. */
+  is('  and Today is where you still are', await p.evaluate(() => location.hash), '#/today');
+  /* the page around it does not jump: somebody in the garden scrolled to get
+     there, and redrawing all of Today to walk through a door would lose it */
+  yes('  and the rest of the page is undisturbed', await p.evaluate(() =>
+    !!document.querySelector('#t-checkin') && !!document.querySelector('#t-theatre')));
   await p.click('.hm-cell[data-hgo="roof"]'); await p.waitForTimeout(1200);
   is('the plan of the house jumps you to a floor', await zone(), 'roof');
   await p.reload(); await p.waitForTimeout(2200);
@@ -117,13 +161,25 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
 
   console.log('\n4. the sacred room survives being grown into a floor');
   await p.evaluate(() => { stillness().sessions = []; saveNow(); });
-  await go('#/house/sanctuary');
+  await p.evaluate(() => {
+    S.settings.todayView = 'in';
+    S.settings.todayOpen = S.settings.todayOpen || {};
+    S.settings.todayOpen['t-sacred'] = true;
+    S._houseZone = 'sanctuary'; S.settings.houseZone = 'sanctuary'; saveNow();
+    if(location.hash !== '#/today') location.hash = '#/today'; else rerender(); });
+  await p.waitForTimeout(1100);
   const cold = await p.evaluate(() => document.querySelector('.room-wrap').dataset.lit);
   is('  a floor nobody has sat on burns low', cold, 'low');
   yes('    and the cushion carries no mark', await p.$('.rm-impression') === null);
   await p.evaluate(() => { stillness().sessions = [0,1,2,3].map(i =>
     ({date: addDays(today(), -i), kind:'breath', actual:12})); saveNow(); });
-  await go('#/house/sanctuary');
+  await p.evaluate(() => {
+    S.settings.todayView = 'in';
+    S.settings.todayOpen = S.settings.todayOpen || {};
+    S.settings.todayOpen['t-sacred'] = true;
+    S._houseZone = 'sanctuary'; S.settings.houseZone = 'sanctuary'; saveNow();
+    if(location.hash !== '#/today') location.hash = '#/today'; else rerender(); });
+  await p.waitForTimeout(1100);
   is('  sat in today, it burns high',
     await p.evaluate(() => document.querySelector('.room-wrap').dataset.lit), 'high');
   yes('    the cushion keeps its mark', await p.$('.rm-impression') !== null);
@@ -132,7 +188,13 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   await p.evaluate(() => { S.entries = (S.entries||[]).filter(e => e.type !== 'divination');
     S.entries.push({id:'d1', type:'divination', occurredAt: today(), extra:{divination:{system:'oracle'}}});
     saveNow(); });
-  await go('#/house/sanctuary');
+  await p.evaluate(() => {
+    S.settings.todayView = 'in';
+    S.settings.todayOpen = S.settings.todayOpen || {};
+    S.settings.todayOpen['t-sacred'] = true;
+    S._houseZone = 'sanctuary'; S.settings.houseZone = 'sanctuary'; saveNow();
+    if(location.hash !== '#/today') location.hash = '#/today'; else rerender(); });
+  await p.waitForTimeout(1100);
   is('    and the deck you drew from this morning is still lit',
     await p.evaluate(() => ({oracle: document.querySelector('.obj-oracle').classList.contains('consulted'),
       tarot: document.querySelector('.obj-tarot').classList.contains('consulted')})),
@@ -146,7 +208,13 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     for(let i = 0; i < 4; i++) S.entries.push({id:'lt'+i, type:'letter', occurredAt: today(), title:'A letter'});
     if(S.stages && S.stages[0]) S.stages[0].artifacts = [1,2,3].map(i => ({id:'a'+i, caption:'ticket', date:'', src:''}));
     saveNow(); });
-  await go('#/house/garden');
+  await p.evaluate(() => {
+    S.settings.todayView = 'in';
+    S.settings.todayOpen = S.settings.todayOpen || {};
+    S.settings.todayOpen['t-sacred'] = true;
+    S._houseZone = 'garden'; S.settings.houseZone = 'garden'; saveNow();
+    if(location.hash !== '#/today') location.hash = '#/today'; else rerender(); });
+  await p.waitForTimeout(1100);
   is('the garden draws', await zone(), 'garden');
   const gdoors = await p.evaluate(() =>
     [...document.querySelectorAll('.house-room [data-room]')].map(n => n.dataset.room));
@@ -160,11 +228,23 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('  and four letters keep the fire lit',
     await p.evaluate(() => !!document.querySelector('.hg-flames')));
   await p.evaluate(() => { S.entries = S.entries.filter(e => e.type !== 'letter'); saveNow(); });
-  await go('#/house/garden');
+  await p.evaluate(() => {
+    S.settings.todayView = 'in';
+    S.settings.todayOpen = S.settings.todayOpen || {};
+    S.settings.todayOpen['t-sacred'] = true;
+    S._houseZone = 'garden'; S.settings.houseZone = 'garden'; saveNow();
+    if(location.hash !== '#/today') location.hash = '#/today'; else rerender(); });
+  await p.waitForTimeout(1100);
   yes('    a fire nobody has written to is embers',
     await p.evaluate(() => !document.querySelector('.hg-flames') && !!document.querySelector('.hg-ember')));
 
-  await go('#/house/roof');
+  await p.evaluate(() => {
+    S.settings.todayView = 'in';
+    S.settings.todayOpen = S.settings.todayOpen || {};
+    S.settings.todayOpen['t-sacred'] = true;
+    S._houseZone = 'roof'; S.settings.houseZone = 'roof'; saveNow();
+    if(location.hash !== '#/today') location.hash = '#/today'; else rerender(); });
+  await p.waitForTimeout(1100);
   is('the roof draws', await zone(), 'roof');
   const rdoors = await p.evaluate(() =>
     [...document.querySelectorAll('.house-room [data-room]')].map(n => n.dataset.room));
