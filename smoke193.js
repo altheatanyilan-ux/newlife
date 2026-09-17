@@ -72,6 +72,27 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   await p.evaluate(() => { FocusTimer.stop(); paintFocusDock(true); }); await p.waitForTimeout(600);
   const after = await dock();
   yes('ending it folds the clock away again', after.bubble && !after.card, JSON.stringify(after));
+  /* A task parked on the clock is the clock in use, even before the sitting
+     starts: it is holding something you put there deliberately, and the name
+     on it is the way back to that task. Finishing empties it of both, so no
+     parked task is left behind to keep the panel standing open. */
+  const parked = await p.evaluate(() => {
+    const t = {id: uid(), text:'s193 the one being timed', day: today(), done:false, doneAt:null,
+      notes:'', order:0, createdAt:new Date().toISOString(), links:{projects:[], skills:[]}};
+    planTaskDefaults(t); S.tasks.push(t); saveNow();
+    FocusTimer.setTask(t.id); paintFocusDock(true);
+    const held = {card: !!document.querySelector('.fd-card'),
+      name: (document.querySelector('.fd-onname') || {}).textContent,
+      jump: !!document.querySelector('[data-fdjump]'), idle: FocusTimer.state().idle};
+    FocusTimer.stop(); paintFocusDock(true);
+    return {held, after: {bubble: !!document.querySelector('.fd-bubble'), task: FocusTimer.state().taskId}};
+  });
+  yes('a task parked on it opens it, although nothing is running yet',
+    parked.held.card && parked.held.idle, JSON.stringify(parked.held));
+  is('  and it says which task', parked.held.name, 's193 the one being timed');
+  yes('  with the name as the way back to it', parked.held.jump);
+  is('finishing empties it of the task as well as the sitting',
+    [parked.after.bubble, parked.after.task], [true, null]);
 
   console.log('\n3. a press is a peek, and the peek ends when you fold it');
   await p.evaluate(() => document.querySelector('#fdOpen').click()); await p.waitForTimeout(600);

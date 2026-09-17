@@ -170,7 +170,7 @@ const rects = () => {
   /* this is the whole point of the redesign: the ledger of what the sittings
      went on sits below the clock face and used to be unreachable */
   p = await open(1440, 900, {many:false, sittings:true});
-  const clk = await p.evaluate(() => {
+  const where = () => p.evaluate(() => {
     const d = document.getElementById('focusDock'); if(!d) return {found:false};
     const cs = getComputedStyle(d), r = d.getBoundingClientRect();
     return {found:true, fixed: cs.position === 'fixed', inMain: !!document.querySelector('#main #focusDock'),
@@ -179,8 +179,18 @@ const rects = () => {
       right: Math.round(r.right),
       sidebar: Math.round(document.querySelector('.sidebar').getBoundingClientRect().right),
       hands: ['.fc-hour', '.fc-min', '.fc-sec'].every(x => !!d.querySelector(x)),
+      bubble: !!d.querySelector('.fd-bubble'),
       section: !!document.getElementById('t-focus')}; });
-  yes('the dial is on the page', clk.found);
+  /* Holding nothing, it is the dial alone — a panel with two idle buttons on
+     it standing in the corner of every page is a lot of furniture for the fact
+     that nothing is running. The face, with its hands, is what a sitting
+     opens. */
+  const empty = await where();
+  yes('with nothing in it, it is the small dial', empty.found && empty.bubble && !empty.hands,
+      JSON.stringify(empty));
+  await p.evaluate(() => { FocusTimer.start(); paintFocusDock(true); }); await p.waitForTimeout(700);
+  const clk = await where();
+  yes('a sitting opens the clock face', clk.found && !clk.bubble);
   yes('  with all three of its hands', clk.hands);
   yes('  fixed to the window, not laid out in the page', clk.fixed && !clk.inMain);
   yes('  while the words about the sitting are a section of Today', clk.section);
@@ -189,6 +199,13 @@ const rects = () => {
   yes('  in the bottom corner', clk.bottom <= 26, String(clk.bottom));
   yes('  inside the sidebar rather than over the page', clk.left <= 1 && clk.right <= clk.sidebar + 1,
       `${clk.left}–${clk.right} vs sidebar ${clk.sidebar}`);
+  /* and the dial it folds back to stands in the same corner as the face did,
+     so the clock does not move about the screen as it opens and shuts */
+  await p.evaluate(() => { FocusTimer.stop(); paintFocusDock(true); }); await p.waitForTimeout(700);
+  const shut = await where();
+  yes('  and folding it back leaves it in that same corner',
+      shut.bubble && shut.bottom <= 26 && shut.left <= 1 && shut.right <= shut.sidebar + 1,
+      JSON.stringify(shut));
   await p.close();
 
   console.log('\n6. the index is pinned, and it is the way between the rooms');

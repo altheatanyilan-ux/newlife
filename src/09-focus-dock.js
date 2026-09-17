@@ -40,16 +40,23 @@
    Where there is no sidebar at all — a phone, where it becomes a bar along the
    bottom — it is the circle, floating clear of that bar. */
 function focusDockInSidebar(){ return innerWidth > 900; }
-/* With nothing running it is a dial and nothing else, whatever the sidebar is
+/* With nothing in it, it is a dial and nothing else, whatever the sidebar is
    doing. An open sidebar used to mean an open clock, so a panel with two idle
    buttons on it sat in the corner of every page all day saying "nothing
    parked" — which is a lot of furniture for a fact nobody asked for.
 
-   It opens for a sitting, and for a press. A press is a peek: it lasts until
-   you fold it away or until the sitting it was opened for ends, at which point
-   it is a dial again by itself. */
+   It opens for a sitting, for a task parked on it, and for a press. A task
+   parked is the clock in use even before the sitting starts: it is holding
+   something you put there deliberately, and the name on it — which is the way
+   back to the task — is most of what the panel is for. Finishing a sitting
+   empties the clock of both, so it folds itself.
+
+   A press is a peek: it lasts until you fold it away or until the sitting it
+   was opened over ends, at which point it is a dial again by itself. */
 function focusDockIdle(){
-  return typeof FocusTimer === 'undefined' || FocusTimer.state().idle;
+  if(typeof FocusTimer === 'undefined') return true;
+  const s = FocusTimer.state();
+  return s.idle && !s.taskId;
 }
 function focusDockShut(){
   if(!focusDockInSidebar()) return true;
