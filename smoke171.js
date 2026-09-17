@@ -91,7 +91,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
 
   for(const [sel, want, said] of [
     ['.zone-books .rm-shelf-box',  '#/journals/library',       'the shelf opens the library'],
-    ['.zone-piano .hm-piano-body', '#/skills',                 'the piano opens your skills'],
+    ['.zone-piano .hm-piano-body', '#/piano',                  'the Fazioli opens the Piano Studio'],
     ['.zone-band .hm-drum',        '#/projects',               'the band opens your projects'],
     ['.obj-medicine .hm-drawer',   '#/values',                 'the medicine cupboard opens your values'],
     ['.zone-nook .hm-chair-back',  '#/journals/reflection',    'the nook opens the reflections'],

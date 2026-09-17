@@ -8198,7 +8198,246 @@ html[data-theme="light"] .wk-sleep.is-guess{background-image:repeating-linear-gr
 /* finished today, but never on today's list */
 .task-elsewhere{opacity:.7;font-style:italic}
 
+/* ============ THE PIANO STUDIO ============
+   Concert-programme typography where the music is listed, and the ordinary
+   instrument furniture everywhere else. The one object that is allowed to be
+   beautiful on its own is the twelve-key wheel: it fills over months, and it
+   is supposed to be something you want to finish. */
+.pn-page .pn-lede{max-width:70ch}
+.pn-tabs{display:flex;gap:10px;margin:18px 0 6px;flex-wrap:wrap}
+.pn-tab{display:flex;flex-direction:column;gap:2px;align-items:flex-start;padding:9px 16px;border-radius:var(--radius);
+  border:1px solid var(--line);background:var(--surface);color:var(--text);cursor:pointer;
+  transition:border-color .2s var(--ease),background .2s var(--ease)}
+.pn-tab span{font-family:var(--serif);font-size:1.02rem}
+.pn-tab em{font-style:normal;font-size:.7rem;opacity:.6;font-family:var(--mono)}
+.pn-tab:hover{border-color:var(--page-accent)}
+.pn-tab.on{border-color:var(--page-accent);background:color-mix(in srgb,var(--page-accent) 9%,var(--surface))}
+.pn-views{display:flex;gap:8px;margin:14px 0 4px;flex-wrap:wrap}
+.pn-view{padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:transparent;
+  color:var(--text);cursor:pointer;font-size:.8rem}
+.pn-view.on{border-color:var(--page-accent);background:color-mix(in srgb,var(--page-accent) 12%,transparent)}
+.pn-body{margin-top:14px}
+.pn-toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.pn-toolbar .grow{flex:1}
+.pn-search{min-width:200px}
+
+/* the stand, as a concert programme would set it */
+.pn-table{border-top:1px solid var(--line)}
+.pn-head,.pn-row{display:grid;grid-template-columns:minmax(0,2.4fr) minmax(0,1.3fr) minmax(0,1.1fr) minmax(0,.9fr);
+  gap:12px;align-items:baseline;padding:10px 6px;border-bottom:1px solid var(--line);text-align:left}
+.pn-head{font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;opacity:.55}
+.pn-row{background:transparent;border-left:none;border-right:none;border-top:none;cursor:pointer;color:var(--text);width:100%}
+.pn-row:hover{background:color-mix(in srgb,var(--page-accent) 5%,transparent)}
+.pn-title{font-family:var(--serif);font-size:1.02rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pn-arr{font-size:.78rem;opacity:.6}
+.pn-comp{font-family:var(--serif);font-size:.88rem;opacity:.8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pn-state{font-size:.82rem;white-space:nowrap}
+.pn-last{font-size:.76rem;opacity:.7}
+.pn-row.rusty .pn-last{color:#c98b7a}
+.pn-warn{font-style:normal;margin-left:4px;color:#c98b7a}
+.pn-dot{font-size:.9rem;line-height:1}
+.pn-dot.pn-polished,.pn-dot.pn-performance_ready{color:var(--sage)}
+.pn-dot.pn-learning{color:var(--gold,#d8a45f)}
+.pn-dot.pn-rusty{color:#c98b7a}
+.pn-dot.pn-want_to_learn,.pn-dot.pn-archived{opacity:.5}
+
+/* the readiness dashboard */
+.pn-ready .k{display:block;margin-bottom:6px}
+.pn-mini{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) auto;gap:10px;align-items:baseline;
+  width:100%;text-align:left;background:transparent;border:none;border-bottom:1px dotted var(--line);
+  padding:5px 2px;cursor:pointer;color:var(--text)}
+.pn-mini:hover{background:color-mix(in srgb,var(--page-accent) 5%,transparent)}
+.pn-mini-t{font-size:.94rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pn-mini-c{font-size:.8rem;opacity:.65;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pn-mini-x{font-size:.74rem;opacity:.7}
+.pn-total{margin-top:8px;font-size:.78rem;opacity:.7}
+.empty.sm{padding:10px 4px;font-size:.84rem}
+
+/* what to practise */
+.pn-budget{width:64px;text-align:center}
+.pn-sugg{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;cursor:pointer;color:var(--text);
+  background:transparent;border:1px solid var(--line);border-radius:var(--radius);padding:9px 11px;
+  border-left-width:3px}
+.pn-sugg:hover{border-color:var(--page-accent)}
+.pn-sugg-maintenance{border-left-color:#c98b7a}
+.pn-sugg-learning{border-left-color:#d8a45f}
+.pn-sugg-runthrough{border-left-color:var(--sage)}
+.pn-sugg-i{font-size:1rem;line-height:1.3;opacity:.8}
+.pn-sugg-b{display:flex;flex-direction:column;gap:2px;min-width:0}
+.pn-sugg-h b{font-size:.98rem}
+.pn-sugg-w{font-size:.8rem;opacity:.72}
+.pn-free{font-size:.78rem;opacity:.6;padding:4px 2px}
+
+/* one piece */
+.pn-piece .pn-h{margin:12px 0 2px;font-size:1.7rem}
+.pn-sub{font-family:var(--serif);opacity:.78;font-size:.95rem}
+.pn-badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.pn-badge{font-size:.74rem;padding:2px 9px;border:1px solid var(--line);border-radius:999px;opacity:.85}
+.pn-sec{display:grid;grid-template-columns:minmax(0,1.5fr) auto minmax(0,.8fr) auto;gap:8px;align-items:center;
+  padding:5px 0;border-bottom:1px dotted var(--line)}
+.pn-secnote{grid-column:1 / -1;font-size:.78rem}
+.pn-secname,.pn-secnote{background:transparent;border:none;border-bottom:1px solid transparent;color:var(--text);
+  font:inherit;padding:2px 0;min-width:0}
+.pn-secname{font-family:var(--serif);font-size:.94rem}
+.pn-secname:focus,.pn-secnote:focus{outline:none;border-bottom-color:var(--page-accent)}
+.pn-pips{display:flex;gap:3px}
+.pn-pip{width:11px;height:11px;border-radius:50%;border:1px solid var(--line);background:transparent;cursor:pointer;padding:0}
+.pn-pip.on{background:var(--sage);border-color:var(--sage)}
+.pn-secr{font-size:.72rem;opacity:.65}
+.pn-heat{display:grid;grid-template-columns:repeat(15,1fr);gap:3px;margin-top:8px}
+.pn-hd{display:block;aspect-ratio:1;border-radius:2px;background:color-mix(in srgb,var(--line) 60%,transparent)}
+.pn-hd.l1{background:color-mix(in srgb,var(--sage) 35%,transparent)}
+.pn-hd.l2{background:color-mix(in srgb,var(--sage) 62%,transparent)}
+.pn-hd.l3{background:var(--sage)}
+.pn-log{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto auto auto;gap:8px;align-items:baseline;
+  font-size:.8rem;padding:3px 0;border-bottom:1px dotted var(--line)}
+.pn-log-d,.pn-log-m,.pn-log-b{font-size:.72rem;opacity:.7}
+.pn-log-f{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pn-log-q{font-size:.74rem;opacity:.65}
+.pn-spark{margin:8px 0 4px}
+
+/* sets */
+.pn-slcard{cursor:pointer;text-align:left}
+.pn-sl-h{font-size:1.05rem}
+.pn-slwarn{font-size:.78rem;color:#c98b7a;margin-top:6px}
+.pn-slwarn.big{font-size:.86rem;margin:10px 0}
+.pn-slok{font-size:.78rem;color:var(--sage);margin-top:6px}
+.pn-slname{font-family:var(--serif);font-size:1.3rem;border:none;border-bottom:1px solid var(--line);
+  background:transparent;color:var(--text);min-width:0;flex:1}
+.pn-slrow{display:grid;grid-template-columns:auto minmax(0,1.6fr) minmax(0,1fr) auto minmax(0,1fr) auto auto auto;
+  gap:8px;align-items:center;padding:6px 0;border-bottom:1px dotted var(--line)}
+.pn-slnote{grid-column:1 / -1;font-size:.78rem;background:transparent;border:none;border-bottom:1px solid transparent;
+  color:var(--text);font-family:var(--sans);padding:2px 0}
+.pn-slnote:focus{outline:none;border-bottom-color:var(--page-accent)}
+.pn-slt{font-size:.96rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pn-slc,.pn-slm,.pn-sls{font-size:.78rem;opacity:.72;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* the programme: black on white, whatever the room is doing */
+.pn-print{background:#fdfcf9;color:#1a1815;padding:34px 40px;border-radius:4px}
+.pn-print h1{font-family:var(--serif);font-size:1.9rem;text-align:center;margin:0 0 4px;color:#1a1815}
+.pn-print-rule{height:1px;background:#1a1815;opacity:.35;margin:14px 0}
+.pn-print-list{list-style:none;margin:0;padding:0;counter-reset:pnp}
+.pn-print-list li{display:flex;justify-content:space-between;align-items:baseline;gap:20px;padding:9px 0;counter-increment:pnp}
+.pn-print-list li::before{content:counter(pnp) ".";font-family:var(--mono);font-size:.78rem;opacity:.5;min-width:22px}
+.pn-print-t{font-size:1.06rem;flex:1}
+.pn-print-c{font-family:var(--serif);font-style:italic;font-size:.9rem;opacity:.72;text-align:right}
+.pn-print-foot{text-align:center;font-family:var(--mono);font-size:.72rem;opacity:.55}
+
+/* ---- the jazz lab ---- */
+.pn-ratio{margin-bottom:18px}
+.pn-ratiobar{display:flex;height:8px;border-radius:999px;overflow:hidden;background:var(--line);margin:8px 0 6px}
+.pn-ratiobar .prac{background:#c98b7a}
+.pn-ratiobar .play{background:var(--sage)}
+.pn-ratio-say{font-size:.82rem;opacity:.78;max-width:70ch}
+.pn-ratio.thin{border-color:#c98b7a}
+.pn-phase{border-left:2px solid var(--line);padding-left:16px}
+.pn-ph-head{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.pn-ph-n{font-size:.82rem;opacity:.6;font-family:var(--mono)}
+.pn-ph-name{font-size:1.3rem}
+.pn-ph-m{font-size:.74rem;opacity:.6}
+.pn-ph-blurb{font-size:.86rem;opacity:.75;margin:2px 0 8px;max-width:70ch}
+.pn-bar{position:relative;height:16px;border-radius:999px;background:var(--line);overflow:hidden}
+.pn-bar i{display:block;height:100%;background:linear-gradient(90deg,#c98b7a,var(--sage));transition:width .5s var(--ease)}
+.pn-bar span{position:absolute;inset:0;display:grid;place-items:center;font-size:.66rem;mix-blend-mode:luminosity;opacity:.9}
+.pn-stage{border:1px solid var(--line);border-radius:var(--radius);background:var(--surface)}
+.pn-stage.open{border-color:var(--page-accent)}
+.pn-st-head{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto auto;gap:10px;align-items:center;
+  width:100%;text-align:left;background:transparent;border:none;color:var(--text);cursor:pointer;padding:9px 12px}
+.pn-st-mark{font-size:.9rem;opacity:.7}
+.pn-st-mark.completed{color:var(--sage);opacity:1}
+.pn-st-mark.in_progress{color:#d8a45f;opacity:1}
+.pn-st-n{font-size:.72rem;opacity:.5}
+.pn-st-name{font-family:var(--serif);font-size:1rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pn-st-w,.pn-st-p{font-size:.72rem}
+.pn-st-body{padding:4px 14px 14px;border-top:1px solid var(--line)}
+.pn-st-focus{font-size:.88rem;opacity:.85;margin-top:8px;max-width:72ch}
+.pn-st-res{font-size:.74rem;opacity:.6;margin-top:4px}
+.pn-st-drill{font-size:.82rem;opacity:.8;margin-top:6px;padding:6px 10px;border-left:2px solid var(--line)}
+.pn-concept{border-top:1px dotted var(--line);padding-top:10px}
+.pn-c-name{font-family:var(--serif);font-size:.98rem}
+.pn-c-note{font-size:.78rem;opacity:.7;margin-top:6px}
+
+/* the wheel: a mandala you fill in over months */
+.pn-wheelwrap{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.pn-wheel{width:208px;height:208px;flex:none}
+.pn-wheel .pn-seg{cursor:pointer}
+.pn-wheel .pn-seg path{transition:fill-opacity .45s var(--ease),fill .45s var(--ease)}
+.pn-wheel .pn-seg:hover path,.pn-wheel .pn-seg:focus path{fill-opacity:.95;outline:none}
+.pn-wheel text{font-family:var(--mono);font-size:10px;fill:var(--text);opacity:.8;pointer-events:none}
+.pn-wheelhub{fill:var(--surface);stroke:var(--line)}
+.pn-wheelbig{font-family:var(--serif)!important;font-size:22px!important;opacity:.9!important}
+.pn-wheelsm{font-size:8px!important;opacity:.55!important}
+.pn-wheelside{flex:1;min-width:190px}
+.pn-legend{display:flex;flex-wrap:wrap;gap:6px 12px}
+.pn-lg{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:.7rem;opacity:.8}
+.pn-lg i{width:9px;height:9px;border-radius:2px;display:inline-block}
+.pn-fluency{display:flex;gap:4px;flex-wrap:wrap}
+.pn-fl{font-size:.7rem;padding:3px 9px;border-radius:999px;border:1px solid var(--line);background:transparent;
+  color:var(--text);cursor:pointer;opacity:.7}
+.pn-fl.on{border-color:var(--c);background:color-mix(in srgb,var(--c) 24%,transparent);opacity:1}
+.pn-fluency.big .pn-fl{font-size:.8rem;padding:5px 12px}
+.pn-entries{list-style:none;margin:8px 0 0;padding:0;font-size:.82rem}
+.pn-entries li{padding:3px 0;border-bottom:1px dotted var(--line)}
+.pn-keypick,.pn-modepick{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.pn-kp{font-family:var(--mono);font-size:.78rem;padding:5px 11px;border-radius:999px;border:1px solid var(--line);
+  background:transparent;color:var(--text);cursor:pointer}
+.pn-kp.on{border-color:var(--sage);background:color-mix(in srgb,var(--sage) 22%,transparent)}
+.pn-mp{flex:1;min-width:160px;text-align:left;padding:8px 12px;border-radius:var(--radius);border:1px solid var(--line);
+  background:transparent;color:var(--text);cursor:pointer}
+.pn-mp em{display:block;font-style:normal;font-size:.7rem;opacity:.6;font-family:var(--mono)}
+.pn-mp.on{border-color:var(--page-accent);background:color-mix(in srgb,var(--page-accent) 10%,transparent)}
+
+/* the ladder, the shelf, the jams */
+.pn-ladder{display:flex;flex-direction:column-reverse;gap:4px;margin-top:8px}
+.pn-rung{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;
+  padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius)}
+.pn-rung.pn-competent{border-color:color-mix(in srgb,var(--sage) 45%,var(--line))}
+.pn-rung.pn-strong{border-color:var(--sage);background:color-mix(in srgb,var(--sage) 7%,transparent)}
+.pn-rung-n{font-size:.8rem;opacity:.5}
+.pn-rung-b{display:flex;flex-direction:column;gap:1px;min-width:0}
+.pn-rung-h{font-size:1rem}
+.pn-rung-w{font-size:.8rem;opacity:.8}
+.pn-rung-j{font-size:.76rem;opacity:.6;font-style:italic}
+.pn-rung-lv{display:flex;gap:4px}
+.pn-lv{font-size:.68rem;padding:3px 8px;border-radius:999px;border:1px solid var(--line);background:transparent;
+  color:var(--text);cursor:pointer;opacity:.65}
+.pn-lv.on{border-color:var(--sage);opacity:1;background:color-mix(in srgb,var(--sage) 18%,transparent)}
+.pn-shelf{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;margin-top:10px}
+.pn-res{position:relative;border:1px solid var(--line);border-radius:var(--radius);padding:9px 11px;
+  display:flex;flex-direction:column;gap:2px}
+.pn-res-t{font-size:.98rem}
+.pn-res-a{font-size:.74rem;opacity:.6;font-family:var(--mono)}
+.pn-res-f{font-size:.8rem;opacity:.8}
+.pn-res-b{font-size:.76rem;opacity:.7}
+.pn-res-b b,.pn-jam-w b,.pn-jam-i b{font-weight:600;opacity:.7;font-size:.7rem;text-transform:uppercase;letter-spacing:.06em}
+.pn-jam{position:relative;border:1px solid var(--line);border-radius:var(--radius);padding:9px 11px}
+.pn-jam-t{display:flex;gap:5px;flex-wrap:wrap;margin:6px 0}
+.pn-tune{font-size:.72rem;padding:2px 8px;border-radius:999px;background:color-mix(in srgb,var(--page-accent) 10%,transparent)}
+.pn-jam-w,.pn-jam-i{font-size:.82rem;opacity:.85}
+.pn-res .del-x,.pn-jam .del-x{position:absolute;top:6px;right:6px}
+
 .pt-do{opacity:.72;font-style:italic}
+.pn-res input,.pn-res select{background:transparent;border:none;border-bottom:1px solid transparent;color:inherit;
+  font:inherit;padding:1px 0;min-width:0;width:100%}
+.pn-res-a input{width:auto;flex:1}
+.pn-res-a{display:flex;gap:6px;align-items:baseline}
+.pn-res input:focus,.pn-res select:focus{outline:none;border-bottom-color:var(--page-accent)}
+.pn-settings{display:flex;gap:18px;flex-wrap:wrap;margin-top:26px;padding-top:14px;border-top:1px solid var(--line);
+  font-size:.82rem;opacity:.82}
+.pn-settings .inp{width:70px;text-align:center}
+.pn-lib{display:flex;gap:6px;flex-wrap:wrap;align-items:baseline;margin-top:10px}
+.ths-ev{display:block;font-size:.76rem;opacity:.72;margin-top:3px;font-style:italic}
+/* the piano in the house gains a stack and a metronome as the shelf fills */
+.hm-stack{fill:color-mix(in srgb,#efe9dd 70%,transparent);stroke:rgba(0,0,0,.25);stroke-width:1}
+.hm-metronome{fill:none;stroke:rgba(0,0,0,.4);stroke-width:2}
+
+@media (max-width:760px){
+  .pn-head,.pn-row{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);row-gap:2px}
+  .pn-head span:nth-child(n+3),.pn-row .pn-state{grid-column:1}
+  .pn-slrow{grid-template-columns:auto minmax(0,1fr) auto auto auto}
+  .pn-slrow .pn-slc,.pn-slrow .pn-sls{display:none}
+  .pn-wheelwrap{justify-content:center}
+}
+
 </style>
 </head>
 <body>
@@ -13482,10 +13721,18 @@ function focusDockHTML(){
          with no clue where the thing you are timing sits is a link that only
          half arrives. With nothing parked there is nowhere to go, so it is not
          a link at all. -->
-    <a class="fd-on" href="#/today"${ref ? ` data-fdjump="${esc(ref.id)}"` : ''}
+    ${(() => {
+      /* A sitting the Piano Studio started has no task on it — it is on a
+         piece — so the line says the piece and goes to the studio instead of
+         to a Today row that does not exist. */
+      const pn = !ref && !s.idle && S._pianoTimed && typeof pianoPiece === 'function'
+        ? pianoPiece(S._pianoTimed.pieceId) : null;
+      if(pn) return `<a class="fd-on" href="#/piano" title="go to this piece in the Piano Studio"><span class="fd-onname">${esc(pn.title)}</span></a>`;
+      return `<a class="fd-on" href="#/today"${ref ? ` data-fdjump="${esc(ref.id)}"` : ''}
        title="${ref ? 'go to this task on Today' : 'the sitting, in words, on Today'}">${
       ref ? `<span class="fd-onname">${esc(ref.text)}</span>`
-          : `<span class="fd-onname faint">${s.idle ? 'nothing parked' : 'no task'}</span>`}</a>
+          : `<span class="fd-onname faint">${s.idle ? 'nothing parked' : 'no task'}</span>`}</a>`;
+    })()}
   </div>`;
 }
 
@@ -13585,7 +13832,10 @@ function bindFocusDock(dock){
   if(stop) stop.onclick = () => {
     /* ask whose sitting this is before stopping it — stop() clears the task */
     const on = FocusTimer.state().taskId;
+    const mins = Math.round((FocusTimer.state().elapsed || 0) / 60);
     FocusTimer.stop(); focusSaySpent('Finished', on); sound('click'); paintFocusDock();
+    /* a sitting the Piano Studio started comes back to it with its minutes */
+    if(typeof pianoSittingEnded === 'function') pianoSittingEnded(mins);
   };
 
   /* the name goes to the row, wherever on Today it has ended up */
@@ -30515,6 +30765,15 @@ function mainRoomHTML(){
   const synch   = (S.entries || []).filter(e => e.type === 'synchronicity').length;
   const musical = (S.skills || []).filter(s => /music|piano|guitar|sing|jazz|instrument/i.test(
                     (s.name || '') + ' ' + (s.cat || ''))).length;
+  /* The stand carries what is under the hands now, and the stack beside it
+     grows with the repertoire: an empty piano and a piano with eleven pieces
+     on it should not look the same. */
+  /* Read what is there rather than asking the studio for it: pianoState()
+     builds the whole twenty-stage roadmap on first access, and drawing a room
+     should not decide on somebody's behalf that they are learning jazz. */
+  const onStand = (S.piano && Array.isArray(S.piano.pieces)) ? S.piano.pieces : [];
+  const learning = onStand.filter(x => x.status === 'learning');
+  const stack = clamp(Math.floor(onStand.length / 4), 0, 4);
   const drinks  = (S.entries || []).filter(e => e.type === 'drink').length;
 
   const floor = Array.from({length: 7}, (_, i) =>
@@ -30586,7 +30845,7 @@ function mainRoomHTML(){
       </g>
 
       <!-- the piano, and the band around it -->
-      <g class="zone zone-piano" data-room="piano" tabindex="0" role="button" aria-label="The piano — your skills">
+      <g class="zone zone-piano" data-room="piano" tabindex="0" role="button" aria-label="The Fazioli — the Piano Studio">
         <ellipse class="rm-table-glow" cx="560" cy="470" rx="196" ry="66"/>
         <path class="hm-piano-lid" d="M404,398 C470,356 660,352 726,392 L700,404 C640,372 474,376 420,406Z"/>
         <path class="hm-piano-body" d="M404,404 H726 L716,470 C640,486 474,486 414,470Z"/>
@@ -30595,9 +30854,14 @@ function mainRoomHTML(){
         ${Array.from({length: 17}, (_, i) => (i % 7 === 2 || i % 7 === 6) ? '' :
           `<rect class="hm-key dark" x="${440 + i * 16}" y="472" width="7" height="16" rx="1"/>`).join('')}
         <path class="rm-table-leg" d="M430,498 L426,558 M700,498 L704,558"/>
-        ${musical ? `<g class="hm-score"><rect x="524" y="352" width="72" height="46" rx="2"/>
+        ${musical || learning.length ? `<g class="hm-score"><rect x="524" y="352" width="72" height="46" rx="2"/>
           ${[0,1,2,3].map(i => `<path d="M532,${364 + i * 9} H588"/>`).join('')}</g>` : ''}
-        <text class="rm-say" x="560" y="584" text-anchor="middle">Make something beautiful</text>
+        ${Array.from({length: stack}, (_, i) =>
+          `<rect class="hm-stack" x="${612 + i * 3}" y="${386 - i * 4}" width="58" height="8" rx="1.5"/>`).join('')}
+        ${stack >= 2 ? `<g class="hm-metronome"><path d="M694,392 L706,340 L718,392Z"/><path d="M706,344 V386"/></g>` : ''}
+        <text class="rm-say" x="560" y="584" text-anchor="middle">${learning.length
+          ? esc(learning[0].title) + ' is open on the stand'
+          : 'Make something beautiful'}</text>
       </g>
 
       <!-- the rest of the band: a different kind of making, so a different door -->
@@ -31032,7 +31296,9 @@ const HOUSE_PORTALS = {
   /* the main room */
   library:   () => navigate('#/journals/library'),
   writing:   () => navigate('#/content/shelf'),
-  piano:     () => navigate('#/skills'),
+  /* The Fazioli opens the room the practice actually lives in. The skills it
+     used to open are still one link away, and are not what you sit down to. */
+  piano:     () => navigate('#/piano'),
   band:      () => navigate('#/projects'),
   medicine:  () => navigate('#/values'),
   crystals:  () => openCharmCast(),
@@ -32553,6 +32819,13 @@ function flowEvening(opts = {}){
 /* ---------- 3. the weekly review ---------- */
 function flowWeekly(opts = {}){
   const T = today(); const days = planDaysFrom(T);
+  /* The bench, but only when there is something to say about it — a review
+     step that reads "nothing happened" every week is a step people learn to
+     press past, and then press past on the week it does say something. */
+  const pianoSaid = typeof pianoReviewLines === 'function' ? pianoReviewLines(days[0], days[6]) : [];
+  const pianoWeek = pianoSaid.length ? [{title:'The week at the piano.', hint:'Hours, keys, and what is going rusty.',
+    body: () => `<div class="stack" style="gap:6px">${pianoSaid.map(l => `<div class="rev-summary">${esc(l)}</div>`).join('')}
+      <div class="row"><button class="btn sm ghost" data-flowgo="#/piano">open the studio</button></div></div>`}] : [];
   guidedFlow('Weekly review', [
     {title:'The week, in shape.', hint:'Which days were full? Which were quiet? Is there a pattern you did not choose?',
      body: () => tapeWeekHTML(T)},
@@ -32570,6 +32843,7 @@ function flowWeekly(opts = {}){
          return `<div class="row between"><span style="color:${d.c};min-width:6em">${d.name}</span><span class="bar" style="flex:1;--c:${d.c}"><i style="width:${Math.min(100,t*12)}%"></i></span><span class="mono">${t} kept</span></div>`; }).join('')}</div>`; }},
     {title:'The week against the lists you made.', hint:'Seven days of intentions, against seven days of evidence.',
      body: () => tasksReviewHTML(days[0], days[6])},
+    ...pianoWeek,
     {title:'Anything else from this week?', hint:'Anything that happened and never got written down. Add it here and the review stays where it is.',
      body: () => captureStepHTML(days[0], days[6]), bind: b => bindCaptureStep(b, days[0], days[6])},
     {title:"Next week's one intention.",
@@ -35177,6 +35451,19 @@ function thPickVisions(minutes){
   return thRotation().slice(0, minutes === 5 ? 1 : 2);
 }
 function thVisionName(v){ return v?.title || v?.name || v?.text || 'A vision'; }
+/* A vision is easier to hold in the morning when something has actually moved
+   towards it. Where a vision is about music, the studio can say what moved —
+   hours at the bench, a piece that became performable, a key that came good.
+   Nothing is invented: if the vision is not about music, or nothing happened,
+   this says nothing at all, which is better than encouragement. */
+function thVisionEvidence(v){
+  const said = String(thVisionName(v) + ' ' + (v?.note || v?.desc || '')).toLowerCase();
+  if(!/music|piano|jazz|sing|song|gig|band|perform|album|ep\b|record/.test(said)) return '';
+  if(typeof pianoReviewLines !== 'function') return '';
+  const lines = pianoReviewLines(addDays(today(), -28), today());
+  return lines.length
+    ? `<span class="ths-ev">${esc(lines[0])}</span>` : '';
+}
 function thLastPractised(v){
   const seen = (v.lastMorningTheatreDate || '').slice(0, 10);
   if(!seen) return 'never practised here';
@@ -35227,7 +35514,8 @@ function thFocusHTML(pick, all, minutes){
     <h3 class="ths-ask">Today's focus</h3>
     ${pick.length ? `<div class="ths-vis">${pick.map(v => `<div class="ths-v">
       <b class="serif">${esc(thVisionName(v))}</b>
-      <span class="mono faint">${esc(thLastPractised(v))}</span></div>`).join('')}</div>`
+      <span class="mono faint">${esc(thLastPractised(v))}</span>
+      ${thVisionEvidence(v)}</div>`).join('')}</div>`
       : `<div class="empty">There are no visions on the tree yet, so this session is about the practices alone. That works — the practices are the point and a vision only gives them somewhere to point.</div>`}
     ${S._thPicking ? `<div class="ths-pick">
       <div class="mono faint">Choose up to ${max}:</div>
@@ -45800,6 +46088,9 @@ const NAV_ICONS = {
      so it is drawn as what it holds: a sheet with its corner turned, and a
      second one behind it. Still not a pen — the Writing Studio has the pen. */
   content:'<svg viewBox="0 0 24 24"><path d="M8.8 6.9V5.2a1.8 1.8 0 0 1 1.8-1.8h6.2a1.8 1.8 0 0 1 1.8 1.8v9.5a1.8 1.8 0 0 1-1.8 1.8h-1.4"/><path d="M6.2 6.9h5.5l4.3 4.3v7.4a1.8 1.8 0 0 1-1.8 1.8H6.2a1.8 1.8 0 0 1-1.8-1.8V8.7a1.8 1.8 0 0 1 1.8-1.8Z"/><path d="M11.5 7.1v4.3h4.3"/><path d="M7.3 15.1h5.2M7.3 17.6h3.4"/></svg>',
+  /* A grand seen from above: the straight edge with the keys along it, and
+     the lid curving away. Not a keyboard — a keyboard at 24px is a barcode. */
+  piano:    '<svg viewBox="0 0 24 24"><path d="M4.5 7.5h8.2c4 0 6.8 2.4 6.8 5.6 0 2-1.5 3.4-3.6 3.4H4.5Z"/><path d="M4.5 7.5v9M8 7.5v4M11.5 7.5v4M15 8.2v3.4"/><path d="M4.5 11.5h11"/></svg>',
   import:     '<svg viewBox="0 0 24 24"><rect x="3.5" y="13" width="17" height="7.5" rx="2"/><path d="M3.5 16h4l1.5 2h6l1.5-2h4"/><path d="M12 3.5v9M9.5 10l2.5 2.5L14.5 10"/></svg>',
 };
 /* labels match the h1 of the page they open; `short` is for the mobile bar only */
@@ -45815,6 +46106,7 @@ const NAV_PAGES = {
   content:  {label:'Content Studio',   short:'Studio',   ico:NAV_ICONS.content,  route:'#/content'},
   values:   {label:'Values',           short:'Values',   ico:NAV_ICONS.values,   route:'#/values'},
   skills:   {label:'Skill Tree',       short:'Skills',   ico:NAV_ICONS.skills,   route:'#/skills'},
+  piano:    {label:'Piano Studio',     short:'Piano',    ico:NAV_ICONS.piano,    route:'#/piano'},
   timeline: {label:'Timeline',         short:'Timeline', ico:NAV_ICONS.timeline, route:'#/journals/timeline'},
 };
 /* The three rooms you are in most days sit above everything, unlabelled and
@@ -45832,7 +46124,7 @@ const NAV_PAGES = {
 const NAV_TOP = ['today','planning'];
 const NAV_PINNED = [];
 const NAV_DEFAULT = {
-  create:   ['content','projects','finance','skills'],
+  create:   ['content','projects','finance','skills','piano'],
   identity: ['values','journals','people'],
   standalone:[],
 };
@@ -46063,6 +46355,1565 @@ function bindZoneEditor(root){
   root.querySelectorAll('.zone-item').forEach(it => { it.addEventListener('dragstart', () => { dragKey = it.dataset.zitem; it.classList.add('dragging'); }); it.addEventListener('dragend', () => it.classList.remove('dragging')); });
   root.querySelectorAll('.zone-col').forEach(col => { col.addEventListener('dragover', e => { e.preventDefault(); col.classList.add('over'); }); col.addEventListener('dragleave', () => col.classList.remove('over')); col.addEventListener('drop', e => { e.preventDefault(); col.classList.remove('over'); if(!dragKey) return; NAV_ZONE_IDS.forEach(z => n[z] = n[z].filter(k => k !== dragKey)); const target = col.dataset.zcol; const after = e.target.closest('.zone-item')?.dataset.zitem; const arr = n[target]; const i = after ? arr.indexOf(after) : -1; if(i >= 0) arr.splice(i, 0, dragKey); else arr.push(dragKey); dragKey = null; saveNow(); renderNav(); rerender(); }); });
   root.querySelector('#zoneReset').onclick = () => { S.settings.nav = JSON.parse(JSON.stringify(NAV_DEFAULT)); saveNow(); renderNav(); rerender(); };
+}
+/* ============================================================
+   THE PIANO STUDIO — what you play, and what you have internalised.
+
+   Two systems that share a bench. The Repertoire is the music stand: the
+   pieces you can play, the ones you are learning, the ones going quietly
+   rusty because you have not touched them since August. The Jazz Lab is
+   the other kind of practice entirely — not pieces but vocabulary, tracked
+   across twelve keys, because a voicing you can only play in C is a voicing
+   you cannot play.
+
+   They are kept apart because they answer different questions. "What could
+   I play if somebody asked me right now" is a repertoire question. "Can I
+   hear a ii-V-I in Ab and put my hands on it without thinking" is not.
+   ============================================================ */
+
+const PIANO_GENRES = [
+  ['classical','Classical'], ['jazz_standard','Jazz standard'], ['pop','Pop'],
+  ['film_score','Film score'], ['original','Original'], ['musical_theatre','Musical theatre'],
+  ['other','Other']];
+/* The lifecycle of a piece, in the order it is usually travelled. "Rusty" is
+   the one nobody chooses — it is arrived at by not practising, and the studio
+   works it out for itself. */
+const PIANO_STATUSES = [
+  ['want_to_learn','Want to learn',    '○', 'on the list, not yet opened'],
+  ['learning','Learning',              '◐', 'under the hands now'],
+  ['performance_ready','Performance ready','●', 'you could play it if asked'],
+  ['polished','Polished',              '◉', 'it is yours'],
+  ['rusty','Rusty',                    '◌', 'it was yours, and it is slipping'],
+  ['archived','Archived',              '·', 'put away on purpose']];
+const PIANO_DIFFICULTIES = [
+  ['comfortable','Comfortable','inside what your hands already do'],
+  ['stretching','Stretching','just past it, which is where you grow'],
+  ['aspirational','Aspirational','a year of work, and worth it']];
+/* five steps from untouched to performable, for a named passage */
+const PIANO_READINESS = [
+  ['not_started','Not started', 0],
+  ['rough','Rough', 1],
+  ['working','Working', 2],
+  ['solid','Solid', 3],
+  ['polished','Polished', 4]];
+const PIANO_QUALITIES = [
+  ['rough','Rough'], ['okay','Okay'], ['good','Good'], ['flowing','Flowing'], ['transcendent','Transcendent']];
+/* the twelve, in the order of the circle of fifths, because that is the order
+   they are learned in and the order the wheel draws them */
+const PIANO_KEYS = ['C','G','D','A','E','B','Gb','Db','Ab','Eb','Bb','F'];
+/* Six degrees of having something in your hands. The gap that matters is
+   between "comfortable" and "fluent": comfortable is you thinking about it
+   and getting it right; fluent is you not thinking about it. */
+const PIANO_FLUENCY = [
+  ['cant_do',"Can't do",        0, '#b8b0a6'],
+  ['aware','Aware',             1, '#c98b7a'],
+  ['practicing','Practising',   2, '#d8a45f'],
+  ['comfortable','Comfortable', 3, '#c9bd63'],
+  ['fluent','Fluent',           4, '#8fa86a'],
+  ['second_nature','Second nature', 5, '#7fa2a8']];
+const PIANO_CONCEPT_TYPES = [
+  ['keyboard_drill','Keyboard drill','twelve keys, a tempo, and how it feels'],
+  ['voicing_type','Voicing','twelve keys against each chord quality'],
+  ['transcription','Transcription','what you took off a record, by ear'],
+  ['listening','Listening','what you studied, and what stayed'],
+  ['vocal_technique','Vocal technique','syllables, phrasing, swing'],
+  ['composition','Composition','what you wrote'],
+  ['live_performance','Live','what you played in a room with other people']];
+const PIANO_CHORD_QUALITIES = ['maj7','min7','dom7','half-dim'];
+
+const pianoFluency = id => PIANO_FLUENCY.find(f => f[0] === id) || PIANO_FLUENCY[0];
+const pianoStatus = id => PIANO_STATUSES.find(s => s[0] === id) || PIANO_STATUSES[0];
+const pianoReadiness = id => PIANO_READINESS.find(r => r[0] === id) || PIANO_READINESS[0];
+const pianoGenreName = id => (PIANO_GENRES.find(g => g[0] === id) || ['other','Other'])[1];
+
+/* ---------- storage ----------
+   Built lazily, the way the planner's is: a room nobody has opened yet costs
+   nothing, and a save from an older version cannot be missing a field. */
+function pianoState(){
+  if(!S.piano) S.piano = {};
+  const p = S.piano;
+  p.pieces        = Array.isArray(p.pieces) ? p.pieces : [];
+  p.practiceLogs  = Array.isArray(p.practiceLogs) ? p.practiceLogs : [];
+  p.setlists      = Array.isArray(p.setlists) ? p.setlists : [];
+  p.jazz          = p.jazz && typeof p.jazz === 'object' ? p.jazz : {};
+  p.jazz.phases   = Array.isArray(p.jazz.phases) && p.jazz.phases.length
+    ? p.jazz.phases : pianoDefaultRoadmap();
+  p.jazz.audiation = Array.isArray(p.jazz.audiation) && p.jazz.audiation.length
+    ? p.jazz.audiation : pianoDefaultAudiation();
+  p.jazz.resources = Array.isArray(p.jazz.resources) && p.jazz.resources.length
+    ? p.jazz.resources : pianoDefaultResources();
+  p.jazz.logs     = Array.isArray(p.jazz.logs) ? p.jazz.logs : [];
+  p.jazz.jams     = Array.isArray(p.jazz.jams) ? p.jazz.jams : [];
+  p.settings = Object.assign({rustThresholdDays:30, defaultPracticeMinutes:30, tab:'repertoire',
+    practiceCount:0, playCount:0}, p.settings || {});
+  p.pieces.forEach(pianoPieceDefaults);
+  return p;
+}
+function pianoPieceDefaults(x){
+  x.id = x.id || uid();
+  x.title = x.title || '';
+  x.composer = x.composer || '';
+  x.arranger = x.arranger || '';
+  x.genre = PIANO_GENRES.some(g => g[0] === x.genre) ? x.genre : 'other';
+  x.status = PIANO_STATUSES.some(s => s[0] === x.status) ? x.status : 'want_to_learn';
+  x.difficulty = ['comfortable','stretching','aspirational'].includes(x.difficulty) ? x.difficulty : 'stretching';
+  x.key = x.key || '';
+  x.tempo = x.tempo || '';
+  x.targetBpm = x.targetBpm == null ? null : +x.targetBpm;
+  x.timeSignature = x.timeSignature || '';
+  x.duration = x.duration == null ? null : +x.duration;
+  x.dateAdded = x.dateAdded || new Date().toISOString();
+  x.startedAt = x.startedAt || null;
+  x.readyAt = x.readyAt || null;
+  x.sheetUrl = x.sheetUrl || '';
+  x.notes = x.notes || '';
+  x.sections = Array.isArray(x.sections) ? x.sections : [];
+  x.sections.forEach(s => { s.id = s.id || uid(); s.name = s.name || '';
+    s.readiness = PIANO_READINESS.some(r => r[0] === s.readiness) ? s.readiness : 'not_started';
+    s.notes = s.notes || ''; });
+  x.emotionalTag = x.emotionalTag || '';
+  x.tags = Array.isArray(x.tags) ? x.tags : [];
+  x.peopleIds = Array.isArray(x.peopleIds) ? x.peopleIds : [];
+  x.projectId = x.projectId || null;
+  if(x.sortOrder == null) x.sortOrder = Date.now();
+  return x;
+}
+function newPiece(title = ''){
+  return pianoPieceDefaults({id:uid(), title, dateAdded:new Date().toISOString()});
+}
+const pianoPieces = () => pianoState().pieces;
+const pianoPiece = id => byId(pianoState().pieces, id);
+const pianoLogs = () => pianoState().practiceLogs;
+const pianoLogsFor = id => pianoLogs().filter(l => l.pieceId === id)
+  .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+/* ---------- when a piece was last touched, and whether it is going ----------
+   Rust is not a status somebody sets; it is a fact about a date. So it is
+   computed rather than stored, and `status` keeps whatever the player last
+   said about the piece — which is what you want back when you practise it
+   again and it stops being rusty. */
+function pianoLastPracticed(id){
+  const ls = pianoLogsFor(id);
+  return ls.length ? ls[0].date : null;
+}
+function pianoDaysSince(id){
+  const d = pianoLastPracticed(id);
+  return d ? Math.max(0, daysBetween(d, today())) : null;
+}
+function pianoIsRusty(x){
+  if(!x || x.status === 'archived' || x.status === 'want_to_learn' || x.status === 'learning') return false;
+  const n = pianoDaysSince(x.id);
+  return n != null && n > (pianoState().settings.rustThresholdDays || 30);
+}
+/* what the piece is called in a list: its own status, unless the calendar
+   has overruled it */
+const pianoShownStatus = x => pianoIsRusty(x) ? 'rusty' : x.status;
+const pianoIsReady = x => ['performance_ready','polished'].includes(pianoShownStatus(x));
+/* how far through its own sections a piece is, 0..1 */
+function pianoSectionProgress(x){
+  const ss = x.sections || [];
+  if(!ss.length) return null;
+  const got = sum(ss.map(s => pianoReadiness(s.readiness)[2]));
+  return got / (ss.length * 4);
+}
+function pianoTotalMinutes(id){
+  return sum(pianoLogsFor(id).map(l => +l.durationMinutes || 0));
+}
+/* every BPM anybody wrote down for a piece, oldest first, for the climb */
+function pianoBpmSeries(id){
+  return pianoLogsFor(id).filter(l => +l.currentBpm > 0)
+    .map(l => ({date:l.date, bpm:+l.currentBpm}))
+    .sort((a, b) => a.date.localeCompare(b.date));
+}
+
+/* ---------- setlists ---------- */
+const pianoSetlists = () => pianoState().setlists;
+const pianoSetlist = id => byId(pianoState().setlists, id);
+function newSetlist(name = ''){
+  return {id:uid(), name, pieces:[], tags:[], createdAt:new Date().toISOString(), lastUsed:null};
+}
+function setlistMinutes(sl){
+  return sum((sl.pieces || []).map(p => +(pianoPiece(p.pieceId)?.duration) || 0));
+}
+/* what is wrong with the set, in the order you would want to be told */
+function setlistWarnings(sl){
+  const out = [];
+  const rows = (sl.pieces || []).map(p => pianoPiece(p.pieceId)).filter(Boolean);
+  const rusty = rows.filter(pianoIsRusty).length;
+  const learning = rows.filter(x => x.status === 'learning' || x.status === 'want_to_learn').length;
+  if(rusty) out.push(`${rusty} ${rusty === 1 ? 'piece is' : 'pieces are'} rusty`);
+  if(learning) out.push(`${learning} still learning`);
+  return out;
+}
+
+/* ---------- what to practise ----------
+   Three claims on the time, in this order: what you are about to lose, what
+   you are in the middle of learning, and what stays good only because you keep
+   playing it. The split is 30 / 40 / 30 of a planned portion that is smaller
+   than the whole sitting — the free minutes at the end are deliberate, because
+   a practice plan that accounts for every minute is a plan you stop keeping,
+   and because the thing you actually want to play is worth some of the time.
+
+   Minutes are rounded down as they are taken and the remainder is what is
+   left, so the plan can never add up to more than you said you had. */
+const PIANO_PLANNED_SHARE = 0.8;
+function pianoSuggestPractice(minutes){
+  const budget = Math.max(5, +minutes || pianoState().settings.defaultPracticeMinutes || 30);
+  const planned = budget * PIANO_PLANNED_SHARE;
+  const all = pianoPieces().filter(x => x.status !== 'archived');
+  const out = [];
+  const spend = (kind, x, mins, why) => { if(mins < 2) return; out.push({kind, piece:x, minutes:mins, why}); };
+
+  const rusty = all.filter(pianoIsRusty)
+    .sort((a, b) => (pianoDaysSince(b.id) || 0) - (pianoDaysSince(a.id) || 0));
+  const learning = all.filter(x => x.status === 'learning')
+    .sort((a, b) => pianoWeakCount(b) - pianoWeakCount(a));
+  const keep = all.filter(x => pianoIsReady(x) && !pianoIsRusty(x))
+    .sort((a, b) => (pianoDaysSince(b.id) ?? 9e9) - (pianoDaysSince(a.id) ?? 9e9));
+
+  let left = budget;
+  const take = n => { const got = Math.max(0, Math.min(left, Math.floor(n))); left -= got; return got; };
+  rusty.slice(0, 2).forEach(x => { const n = pianoDaysSince(x.id);
+    spend('maintenance', x, take(planned * 0.3 / Math.min(2, rusty.length)),
+      `${n} days since you last played it — this is the one you are about to lose`); });
+  learning.slice(0, 2).forEach(x => { const weak = pianoWeakest(x);
+    spend('learning', x, take(planned * 0.4 / Math.min(2, learning.length)),
+      weak ? `${weak.name} is the weakest of its ${x.sections.length} sections` : 'the whole of it, slowly'); });
+  keep.slice(0, 2).forEach(x => { const n = pianoDaysSince(x.id);
+    spend('runthrough', x, take(planned * 0.3 / Math.min(2, keep.length)),
+      n == null ? 'never logged — play it once and write down how it went' : `last played ${n} days ago — one run keeps it`); });
+  /* whatever the three claims did not take, including anything they were too
+     small to spend, is yours */
+  return {items: out, free: Math.max(0, budget - sum(out.map(i => i.minutes))), budget};
+}
+const pianoWeakCount = x => (x.sections || []).filter(s => s.readiness === 'rough' || s.readiness === 'not_started').length;
+function pianoWeakest(x){
+  const ss = (x.sections || []).slice().sort((a, b) => pianoReadiness(a.readiness)[2] - pianoReadiness(b.readiness)[2]);
+  return ss[0] || null;
+}
+
+/* ---------- the jazz side ---------- */
+const pianoPhases = () => pianoState().jazz.phases;
+function pianoAllStages(){ return pianoPhases().flatMap(ph => (ph.stages || []).map(s => ({stage:s, phase:ph}))); }
+function pianoStage(id){ return pianoAllStages().find(x => x.stage.id === id)?.stage || null; }
+function pianoConcept(id){
+  for(const {stage} of pianoAllStages()){ const c = byId(stage.concepts || [], id); if(c) return c; }
+  return null;
+}
+function pianoConceptStage(id){
+  for(const {stage, phase} of pianoAllStages()) if((stage.concepts || []).some(c => c.id === id)) return {stage, phase};
+  return null;
+}
+/* A concept's twelve keys, always all twelve, whatever the record holds. */
+function pianoKeyMastery(c){
+  c.keys = c.keys && typeof c.keys === 'object' ? c.keys : {};
+  PIANO_KEYS.forEach(k => { if(!PIANO_FLUENCY.some(f => f[0] === c.keys[k])) c.keys[k] = 'cant_do'; });
+  return c.keys;
+}
+function pianoKeyCounts(c){
+  const keys = pianoKeyMastery(c);
+  const out = {};
+  PIANO_FLUENCY.forEach(f => out[f[0]] = 0);
+  PIANO_KEYS.forEach(k => out[keys[k]]++);
+  return out;
+}
+/* One number for a concept: the average rung of its twelve keys, 0..1. A
+   concept that is not about keys at all is scored on its own fluency instead,
+   because "transcribed four solos" has no key. */
+function pianoConceptProgress(c){
+  if(!pianoIsKeyed(c)) return pianoFluency(c.fluency)[2] / 5;
+  const keys = pianoKeyMastery(c);
+  return sum(PIANO_KEYS.map(k => pianoFluency(keys[k])[2])) / (PIANO_KEYS.length * 5);
+}
+const pianoIsKeyed = c => c && (c.type === 'keyboard_drill' || c.type === 'voicing_type');
+function pianoStageProgress(st){
+  const cs = st.concepts || [];
+  if(!cs.length) return st.status === 'completed' ? 1 : 0;
+  return sum(cs.map(pianoConceptProgress)) / cs.length;
+}
+function pianoPhaseProgress(ph){
+  const ss = ph.stages || [];
+  return ss.length ? sum(ss.map(pianoStageProgress)) / ss.length : 0;
+}
+/* the keys a concept is worst at, for "practise the weakest" */
+function pianoWeakKeys(c, n = 4){
+  const keys = pianoKeyMastery(c);
+  return PIANO_KEYS.slice().sort((a, b) => pianoFluency(keys[a])[2] - pianoFluency(keys[b])[2]).slice(0, n);
+}
+/* Logging a sitting raises every key it touched by one rung, at most to
+   fluent. The last rung is not something a log can give you: "second nature"
+   is a claim about not thinking, and only the player can say it, on the key's
+   own little panel. */
+function pianoRaiseKey(c, key){
+  const keys = pianoKeyMastery(c);
+  const i = pianoFluency(keys[key])[2];
+  if(i < 4) keys[key] = PIANO_FLUENCY[i + 1][0];
+  return keys[key];
+}
+function pianoLogJazz(rec){
+  const p = pianoState();
+  const log = Object.assign({id:uid(), date:today(), durationMinutes:30, conceptId:null,
+    keys:[], quality:'good', bpm:null, notes:'', mode:'practice'}, rec || {});
+  p.jazz.logs.push(log);
+  const c = log.conceptId ? pianoConcept(log.conceptId) : null;
+  if(c){
+    (log.keys || []).forEach(k => pianoRaiseKey(c, k));
+    c.lastPracticed = log.date;
+    c.practiceCount = (+c.practiceCount || 0) + 1;
+    if(log.bpm) c.bpm = Object.assign({}, c.bpm, {max: Math.max(+c.bpm?.max || 0, +log.bpm)});
+    /* a concept being worked on drags its stage out of "not started" */
+    const owner = pianoConceptStage(c.id);
+    if(owner && owner.stage.status === 'not_started') owner.stage.status = 'in_progress';
+    if(owner && owner.phase.status === 'not_started') owner.phase.status = 'in_progress';
+  }
+  if(log.mode === 'play') p.settings.playCount = (+p.settings.playCount || 0) + 1;
+  else p.settings.practiceCount = (+p.settings.practiceCount || 0) + 1;
+  saveNow();
+  return log;
+}
+/* Werner: practice and play are different activities, and the second one is
+   the one that gets skipped. The ratio is reported rather than enforced. */
+function pianoPlayRatio(){
+  const s = pianoState().settings;
+  const pr = +s.practiceCount || 0, pl = +s.playCount || 0;
+  return {practice:pr, play:pl, total:pr + pl, share: (pr + pl) ? pl / (pr + pl) : 0};
+}
+/* ============================================================
+   THE JAZZ LAB — vocabulary, not pieces.
+
+   The roadmap is drawn as a timeline you climb rather than a checklist you
+   tick, because none of this finishes: a stage is "done" in the sense that
+   you have stopped working on it daily, not in the sense that it is over.
+   The progress bars are averages of twelve-key fluency, which means they
+   move slowly and honestly — you cannot finish a stage by declaring it
+   finished.
+   ============================================================ */
+function pianoJazzHTML(){
+  const openId = S._pianoStage || null;
+  const r = pianoPlayRatio();
+  return `<div class="pn-jazz">
+    ${pianoRatioHTML(r)}
+    <div class="stack" style="gap:18px">${pianoPhases().map(ph => {
+      const pct = Math.round(pianoPhaseProgress(ph) * 100);
+      return `<section class="pn-phase">
+        <div class="pn-ph-head">
+          <span class="serif pn-ph-n">Phase ${ph.number}</span>
+          <span class="serif pn-ph-name">${esc(ph.name)}</span>
+          <span class="mono pn-ph-m">${esc(ph.months)}</span>
+        </div>
+        <div class="pn-ph-blurb">${esc(ph.blurb || '')}</div>
+        <div class="pn-bar" role="img" aria-label="${pct} per cent"><i style="width:${pct}%"></i><span class="mono">${pct}%</span></div>
+        <div class="stack" style="gap:6px;margin-top:10px">${(ph.stages || []).map(st => {
+          const on = openId === st.id;
+          const sp = Math.round(pianoStageProgress(st) * 100);
+          return `<div class="pn-stage${on ? ' open' : ''}">
+            <button class="pn-st-head" data-pnstage="${esc(st.id)}" aria-expanded="${on}">
+              <span class="pn-st-mark ${esc(st.status)}">${st.status === 'completed' ? '✓' : st.status === 'in_progress' ? '◐' : '○'}</span>
+              <span class="pn-st-n mono">${st.number}</span>
+              <span class="pn-st-name">${esc(st.name)}</span>
+              <span class="pn-st-w mono faint">${esc(st.weeks || '')}</span>
+              <span class="pn-st-p mono">${sp}%</span>
+            </button>
+            ${on ? pianoStageBodyHTML(st) : ''}
+          </div>`; }).join('')}</div>
+      </section>`; }).join('')}</div>
+  </div>`;
+}
+/* Werner's line, and the number it is about. It is shown on the roadmap
+   rather than buried in a setting, because the whole point of the
+   distinction is that it is the thing you forget. */
+function pianoRatioHTML(r){
+  const pct = Math.round(r.share * 100);
+  const thin = r.total >= 6 && r.share < 0.25;
+  return `<div class="card no-tilt pn-ratio${thin ? ' thin' : ''}">
+    <div class="row between" style="align-items:baseline">
+      <span class="k">Practice against play</span>
+      <span class="mono">${r.practice} practised · ${r.play} played${r.total ? ` · ${pct}% play` : ''}</span></div>
+    <div class="pn-ratiobar"><i class="prac" style="flex:${r.practice || 0}"></i><i class="play" style="flex:${r.play || 0}"></i></div>
+    <div class="pn-ratio-say">${thin
+      ? 'Werner: “Separate practice time from play time. In play time, analytical thought is strictly forbidden.” It has been nearly all practice lately.'
+      : r.total ? 'Practice is analytical, slow and repetitive. Play is fearless and unedited. Both are the work.'
+        : 'Log a sitting and mark it practice or play. The difference is the point.'}</div>
+  </div>`;
+}
+function pianoStageBodyHTML(st){
+  return `<div class="pn-st-body">
+    <div class="pn-st-focus">${esc(st.focus || '')}</div>
+    ${st.resource ? `<div class="pn-st-res mono">${esc(st.resource)}</div>` : ''}
+    ${st.drill ? `<div class="pn-st-drill"><span class="k mono">the daily drill</span> ${esc(st.drill)}</div>` : ''}
+    <div class="stack" style="gap:14px;margin-top:12px">${(st.concepts || []).map(pianoConceptHTML).join('')}</div>
+    <div class="row" style="margin-top:12px;gap:8px">
+      <select class="sel sm" data-pnststatus="${esc(st.id)}">
+        ${[['not_started','not started'],['in_progress','in progress'],['completed','completed']].map(([v, n]) =>
+          `<option value="${v}" ${st.status === v ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select>
+      <button class="btn sm primary" data-pnstlog="${esc(st.id)}">＋ log practice</button>
+    </div>
+  </div>`;
+}
+
+/* ---------- a concept, tracked the way its kind needs ---------- */
+function pianoConceptHTML(c){
+  const t = PIANO_CONCEPT_TYPES.find(x => x[0] === c.type) || PIANO_CONCEPT_TYPES[0];
+  return `<div class="pn-concept" data-pnconcept="${esc(c.id)}">
+    <div class="row between" style="align-items:baseline">
+      <span class="pn-c-name">${esc(c.name)}</span>
+      <span class="mono faint">${esc(t[1].toLowerCase())}${c.lastPracticed ? ` · ${esc(fmtDate(c.lastPracticed, 'short'))}` : ''}</span></div>
+    ${pianoIsKeyed(c) ? pianoWheelHTML(c) : pianoLedgerHTML(c)}
+  </div>`;
+}
+/* The signature object: the circle of fifths, each segment filled by how
+   fluent the key is. It fills over months, which is the point — it is meant
+   to be something you want to complete, and the only way to complete it is
+   to actually be able to play the thing in B. */
+function pianoWheelHTML(c){
+  const keys = pianoKeyMastery(c);
+  const counts = pianoKeyCounts(c);
+  const R = 92, r0 = 46, cx = 104, cy = 104;
+  const seg = (i) => {
+    const a0 = (i * 30 - 105) * Math.PI / 180, a1 = ((i + 1) * 30 - 105) * Math.PI / 180;
+    const P = (a, rad) => `${(cx + Math.cos(a) * rad).toFixed(2)},${(cy + Math.sin(a) * rad).toFixed(2)}`;
+    return `M${P(a0, r0)} L${P(a0, R)} A${R},${R} 0 0 1 ${P(a1, R)} L${P(a1, r0)} A${r0},${r0} 0 0 0 ${P(a0, r0)}Z`;
+  };
+  const mid = i => { const a = ((i + 0.5) * 30 - 105) * Math.PI / 180;
+    return {x: cx + Math.cos(a) * (R + r0) / 2, y: cy + Math.sin(a) * (R + r0) / 2}; };
+  return `<div class="pn-wheelwrap">
+    <svg class="pn-wheel" viewBox="0 0 208 208" role="img"
+      aria-label="the twelve keys, coloured by how fluent each one is">
+      ${PIANO_KEYS.map((k, i) => { const f = pianoFluency(keys[k]); const m = mid(i);
+        return `<g class="pn-seg" data-pnkey="${esc(k)}" tabindex="0" role="button"
+          aria-label="${esc(k)} — ${esc(f[1])}">
+          <path d="${seg(i)}" fill="${f[3]}" fill-opacity="${0.18 + f[2] * 0.16}" stroke="var(--line)"/>
+          <text x="${m.x.toFixed(1)}" y="${(m.y + 4).toFixed(1)}" text-anchor="middle">${esc(k)}</text>
+        </g>`; }).join('')}
+      <circle cx="${cx}" cy="${cy}" r="${r0 - 4}" class="pn-wheelhub"/>
+      <text x="${cx}" y="${cy - 2}" text-anchor="middle" class="pn-wheelbig">${counts.fluent + counts.second_nature}</text>
+      <text x="${cx}" y="${cy + 14}" text-anchor="middle" class="pn-wheelsm">of 12 fluent</text>
+    </svg>
+    <div class="pn-wheelside">
+      <div class="pn-legend">${PIANO_FLUENCY.map(f => counts[f[0]]
+        ? `<span class="pn-lg"><i style="background:${f[3]}"></i>${esc(f[1])} ${counts[f[0]]}</span>` : '').join('')}</div>
+      <div class="row" style="gap:6px;margin-top:8px">
+        <button class="btn sm ghost" data-pnweak="${esc(c.id)}">practise the weakest</button>
+        <button class="btn sm ghost" data-pnclog="${esc(c.id)}">log practice</button>
+      </div>
+      ${c.notes ? `<div class="pn-c-note">${esc(c.notes)}</div>` : ''}
+    </div>
+  </div>`;
+}
+/* Everything that is not twelve keys is a log: things transcribed, records
+   studied, gigs played. One fluency dial and a list of what happened. */
+function pianoLedgerHTML(c){
+  const rows = (c.entries || []).slice().reverse();
+  return `<div class="pn-ledger">
+    <div class="pn-fluency" role="group" aria-label="how fluent this is">${PIANO_FLUENCY.map(f =>
+      `<button class="pn-fl${c.fluency === f[0] ? ' on' : ''}" data-pnfluency="${esc(c.id)}|${f[0]}"
+        style="--c:${f[3]}" title="${esc(f[1])}">${esc(f[1])}</button>`).join('')}</div>
+    ${rows.length ? `<ul class="pn-entries">${rows.slice(0, 8).map((e, i) => `<li>
+      <span class="mono">${esc(e.date || '')}</span> ${esc(e.text || '')}
+      <button class="del-x inline" data-pnentdel="${esc(c.id)}|${esc(e.id)}">×</button></li>`).join('')}</ul>` : ''}
+    <div class="row" style="gap:6px;margin-top:8px">
+      <input class="inp sm" data-pnentry="${esc(c.id)}" placeholder="${esc(pianoEntryPrompt(c.type))}">
+      <button class="btn sm ghost" data-pnentadd="${esc(c.id)}">add</button>
+    </div>
+  </div>`;
+}
+const pianoEntryPrompt = type => ({
+  transcription: 'what you took off the record, and whose',
+  listening: 'the album or the solo, and what stayed',
+  vocal_technique: 'the pattern, and how it felt',
+  composition: 'what you wrote',
+  live_performance: 'where, what you called, how it went'
+}[type] || 'what happened');
+
+/* ---------- logging a jazz sitting ---------- */
+function openJazzLog(stageId, conceptId){
+  const stages = pianoAllStages();
+  const cs = [];
+  stages.forEach(({stage, phase}) => (stage.concepts || []).forEach(c =>
+    cs.push({c, label:`${stage.number}. ${stage.name} — ${c.name}`})));
+  const picked = conceptId || (stageId ? (pianoStage(stageId)?.concepts || [])[0]?.id : null) || cs[0]?.c.id;
+  const m = openModal(`<h2>Log jazz practice</h2>
+    <div class="grid c2" style="gap:10px">
+      <label class="pd-q"><span class="k">date</span><input type="date" class="inp" id="jlDate" value="${today()}"></label>
+      <label class="pd-q"><span class="k">minutes</span><input type="number" class="inp mono" id="jlMin" value="${pianoState().settings.defaultPracticeMinutes}"></label>
+    </div>
+    <label class="pd-q" style="margin-top:10px"><span class="k">what you worked on</span>
+      <select class="sel" id="jlConcept">${cs.map(({c, label}) =>
+        `<option value="${esc(c.id)}" ${c.id === picked ? 'selected' : ''}>${esc(label)}</option>`).join('')}</select></label>
+    <div style="margin-top:12px"><span class="k mono">which keys</span>
+      <div class="pn-keypick" id="jlKeys">${PIANO_KEYS.map(k =>
+        `<button class="pn-kp" data-jlkey="${esc(k)}" aria-pressed="false">${esc(k)}</button>`).join('')}</div></div>
+    <div class="grid c2" style="gap:10px;margin-top:12px">
+      <label class="pd-q"><span class="k">quality</span><select class="sel" id="jlQ">${PIANO_QUALITIES.map(([v, n]) =>
+        `<option value="${v}" ${v === 'good' ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label>
+      <label class="pd-q"><span class="k">♩=</span><input type="number" class="inp mono" id="jlBpm" placeholder="100"></label>
+    </div>
+    <!-- Werner's distinction, made at the moment it is true rather than
+         reconstructed later: this is the field the whole ratio rests on. -->
+    <div style="margin-top:12px"><span class="k mono">what kind of sitting</span>
+      <div class="pn-modepick">
+        <button class="pn-mp on" data-jlmode="practice">Practice <em>analytical, slow, repetitive</em></button>
+        <button class="pn-mp" data-jlmode="play">Play <em>fearless, unedited, no consequences</em></button>
+      </div></div>
+    <label class="pd-q" style="margin-top:12px"><span class="k">notes</span>
+      <textarea class="inp" rows="3" id="jlNotes" placeholder="Eb and Ab still feel clunky. F and G are smooth now."></textarea></label>
+    <div class="row" style="justify-content:flex-end;margin-top:14px;gap:8px">
+      <button class="btn primary" id="jlSave">Save</button></div>`, 'narrow');
+  let mode = 'practice';
+  m.querySelectorAll('[data-jlmode]').forEach(b => b.onclick = () => {
+    mode = b.dataset.jlmode;
+    m.querySelectorAll('[data-jlmode]').forEach(x => x.classList.toggle('on', x === b)); });
+  m.querySelectorAll('[data-jlkey]').forEach(b => b.onclick = () => {
+    const on = b.getAttribute('aria-pressed') === 'true';
+    b.setAttribute('aria-pressed', String(!on)); b.classList.toggle('on', !on); });
+  m.querySelector('#jlSave').onclick = () => {
+    const keys = [...m.querySelectorAll('[data-jlkey][aria-pressed="true"]')].map(b => b.dataset.jlkey);
+    pianoLogJazz({date: m.querySelector('#jlDate').value || today(),
+      durationMinutes: +m.querySelector('#jlMin').value || 0,
+      conceptId: m.querySelector('#jlConcept').value || null,
+      keys, quality: m.querySelector('#jlQ').value,
+      bpm: +m.querySelector('#jlBpm').value || null,
+      notes: m.querySelector('#jlNotes').value, mode});
+    m.remove(); sound('success');
+    toast(keys.length ? `Logged. ${keys.length} ${keys.length === 1 ? 'key' : 'keys'} moved up a rung.` : 'Logged.');
+    rerender();
+  };
+  return m;
+}
+/* One key's own little panel: where "second nature" is claimed, because a
+   log cannot give you that — only you can say you have stopped thinking. */
+function openKeyPanel(c, key){
+  const keys = pianoKeyMastery(c);
+  c.keyNotes = c.keyNotes || {};
+  const m = openModal(`<h2>${esc(c.name)} — ${esc(key)}</h2>
+    <div class="pn-fluency big">${PIANO_FLUENCY.map(f =>
+      `<button class="pn-fl${keys[key] === f[0] ? ' on' : ''}" data-kpf="${f[0]}" style="--c:${f[3]}">${esc(f[1])}</button>`).join('')}</div>
+    <label class="pd-q" style="margin-top:12px"><span class="k">how it feels in this key</span>
+      <textarea class="inp" rows="3" id="kpNote">${esc(c.keyNotes[key] || '')}</textarea></label>
+    <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary" id="kpSave">Save</button></div>`, 'narrow');
+  let lvl = keys[key];
+  m.querySelectorAll('[data-kpf]').forEach(b => b.onclick = () => { lvl = b.dataset.kpf;
+    m.querySelectorAll('[data-kpf]').forEach(x => x.classList.toggle('on', x === b)); });
+  m.querySelector('#kpSave').onclick = () => {
+    keys[key] = lvl; c.keyNotes[key] = m.querySelector('#kpNote').value;
+    saveNow(); m.remove(); sound('click'); rerender();
+  };
+  return m;
+}
+
+/* ---------- the ladder, the shelf, the jams ---------- */
+function pianoAudiationHTML(){
+  const LV = [['developing','developing'],['competent','competent'],['strong','strong']];
+  return `<div class="card no-tilt">
+    <div class="k">Audiation</div>
+    <p class="muted" style="font-size:.85rem">Gordon's six stages: hearing it before you play it. This moves on the scale of seasons, not days — it is asked about in the weekly review rather than logged.</p>
+    <div class="pn-ladder">${pianoState().jazz.audiation.map(a => `
+      <div class="pn-rung pn-${esc(a.level)}">
+        <span class="mono pn-rung-n">${a.stage}</span>
+        <span class="pn-rung-b">
+          <span class="pn-rung-h serif">${esc(a.name)}</span>
+          <span class="pn-rung-w">${esc(a.what)}</span>
+          <span class="pn-rung-j">${esc(a.jazz)}</span></span>
+        <span class="pn-rung-lv">${LV.map(([v, n]) =>
+          `<button class="pn-lv${a.level === v ? ' on' : ''}" data-pnaud="${a.stage}|${v}">${esc(n)}</button>`).join('')}</span>
+      </div>`).join('')}</div>
+  </div>`;
+}
+function pianoShelfHTML(){
+  const TYPE = {book:'book', video_course:'course', youtube:'YouTube', app:'app', website:'online'};
+  return `<div class="card no-tilt">
+    <div class="row between"><span class="k">The shelf</span>
+      <button class="pl-mini" id="pnResAdd">＋ resource</button></div>
+    <div class="pn-shelf">${pianoState().jazz.resources.map(r => `
+      <div class="pn-res" data-pnres="${esc(r.id)}">
+        <input class="pn-res-t serif" data-pnresf="${esc(r.id)}|title" value="${esc(r.title)}" placeholder="title">
+        <span class="pn-res-a"><input data-pnresf="${esc(r.id)}|author" value="${esc(r.author || '')}" placeholder="who wrote it">
+          <select data-pnresf="${esc(r.id)}|type">${Object.entries(TYPE).map(([v, n]) =>
+            `<option value="${v}" ${r.type === v ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></span>
+        <input class="pn-res-f" data-pnresf="${esc(r.id)}|focus" value="${esc(r.focus || '')}" placeholder="what it is">
+        <span class="pn-res-b"><b>best for</b>
+          <input data-pnresf="${esc(r.id)}|bestFor" value="${esc(r.bestFor || '')}" placeholder="when to reach for it"></span>
+        <button class="del-x inline" data-pnresdel="${esc(r.id)}">×</button>
+      </div>`).join('')}</div>
+  </div>`;
+}
+function pianoJamsHTML(){
+  const jams = pianoState().jazz.jams.slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  return `<div class="card no-tilt">
+    <div class="row between"><span class="k">Jam nights</span>
+      <button class="pl-mini" id="pnJamAdd">＋ a night out</button></div>
+    <p class="muted" style="font-size:.85rem">The part that cannot be practised alone. What you called, what went well, and who was there.</p>
+    ${jams.length ? `<div class="stack" style="gap:8px;margin-top:8px">${jams.map(j => `
+      <div class="pn-jam">
+        <div class="row between"><span class="serif">${esc(j.venue || 'somewhere')}</span>
+          <span class="mono faint">${esc(fmtDate(j.date, 'med'))} · ${'●'.repeat(+j.confidence || 0)}${'○'.repeat(5 - (+j.confidence || 0))}</span></div>
+        ${(j.tunes || []).length ? `<div class="pn-jam-t">${(j.tunes || []).map(t => `<span class="pn-tune">${esc(t)}</span>`).join('')}</div>` : ''}
+        ${j.well ? `<div class="pn-jam-w"><b>went well</b> ${esc(j.well)}</div>` : ''}
+        ${j.improve ? `<div class="pn-jam-i"><b>next time</b> ${esc(j.improve)}</div>` : ''}
+        ${(j.peopleIds || []).length ? `<div class="pn-jam-t">${(j.peopleIds || []).map(id => {
+          const pp = byId(S.people || [], id); return pp ? `<a class="pn-tune" href="#/people">${esc(pp.name)}</a>` : ''; }).join('')}</div>` : ''}
+        <button class="del-x inline" data-pnjamdel="${esc(j.id)}">×</button>
+      </div>`).join('')}</div>`
+      : '<div class="empty sm">Nothing logged. The first one is the hard one.</div>'}
+  </div>`;
+}
+function openJamLog(){
+  const m = openModal(`<h2>A night out</h2>
+    <div class="grid c2" style="gap:10px">
+      <label class="pd-q"><span class="k">date</span><input type="date" class="inp" id="jmDate" value="${today()}"></label>
+      <label class="pd-q"><span class="k">where</span><input class="inp" id="jmVenue" placeholder="Blu Jaz · Maduro · The Jazz Loft"></label>
+    </div>
+    <label class="pd-q" style="margin-top:10px"><span class="k">tunes called</span>
+      <input class="inp" id="jmTunes" placeholder="Autumn Leaves, Blue Bossa, All The Things You Are"></label>
+    <label class="pd-q" style="margin-top:10px"><span class="k">what went well</span>
+      <textarea class="inp" rows="2" id="jmWell"></textarea></label>
+    <label class="pd-q" style="margin-top:10px"><span class="k">what to work on</span>
+      <textarea class="inp" rows="2" id="jmImp"></textarea></label>
+    <label class="pd-q" style="margin-top:10px"><span class="k">how you felt, 1–5</span>
+      <input type="number" class="inp mono" id="jmConf" min="1" max="5" value="3"></label>
+    <!-- the musicians you meet at these are the point of going to these -->
+    ${(S.people || []).length ? `<div style="margin-top:10px"><span class="k mono">who was there</span>
+      <div class="pn-keypick" id="jmPeople">${(S.people || []).map(pp =>
+        `<button class="pn-kp" data-jmp="${esc(pp.id)}" aria-pressed="false">${esc(pp.name)}</button>`).join('')}</div></div>` : ''}
+    <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary" id="jmSave">Save</button></div>`, 'narrow');
+  m.querySelectorAll('[data-jmp]').forEach(b => b.onclick = () => {
+    const on = b.getAttribute('aria-pressed') === 'true';
+    b.setAttribute('aria-pressed', String(!on)); b.classList.toggle('on', !on); });
+  m.querySelector('#jmSave').onclick = () => {
+    pianoState().jazz.jams.push({id:uid(), date:m.querySelector('#jmDate').value || today(),
+      venue:m.querySelector('#jmVenue').value,
+      tunes:m.querySelector('#jmTunes').value.split(',').map(s => s.trim()).filter(Boolean),
+      well:m.querySelector('#jmWell').value, improve:m.querySelector('#jmImp').value,
+      confidence:clamp(+m.querySelector('#jmConf').value || 3, 1, 5),
+      peopleIds:[...m.querySelectorAll('[data-jmp][aria-pressed="true"]')].map(b => b.dataset.jmp)});
+    saveNow(); m.remove(); sound('success'); rerender();
+  };
+  return m;
+}
+/* ============================================================
+   THE PIANO STUDIO — the room, and everything you can press in it.
+   ============================================================ */
+const PIANO_TABS = [['repertoire','Repertoire','what you play'], ['jazz','Jazz Lab','what you have internalised']];
+const PIANO_REP_VIEWS = [['list','The stand'], ['ready','Ready to play'], ['practice','What to practise'], ['sets','Sets']];
+
+function pianoTab(){
+  const t = pianoState().settings.tab;
+  return PIANO_TABS.some(x => x[0] === t) ? t : 'repertoire';
+}
+function setPianoTab(t){ pianoState().settings.tab = t; saveNow(); rerender(); }
+
+routes.piano = function(root, params){
+  const p = pianoState();
+  /* an address of its own for a piece, so a link from anywhere lands on it */
+  if(params && params[0] === 'piece' && params[1]){ S._pianoPiece = params[1]; }
+  registerPageEntry({pageName:'Piano Studio', addLabel:'Add a piece', defaultEntryType:'piece', prefilledFields:{}, options:[
+    {icon:'🎹', label:'A piece', desc:'Something you play, are learning, or mean to learn.', run:()=>openPieceEditor()},
+    {icon:'🎷', label:'Jazz practice', desc:'A sitting with the vocabulary.', run:()=>openJazzLog()},
+    {icon:'🎤', label:'A jam night', desc:'What you called, and how it went.', run:()=>openJamLog()}]});
+
+  const tab = pianoTab();
+  const piece = S._pianoPiece ? pianoPiece(S._pianoPiece) : null;
+  root.innerHTML = `<div class="page pn-page">
+    <h1 class="serif">Piano Studio</h1>
+    <p class="muted pn-lede">Two systems on one bench. The Repertoire is the music stand — what you can play, what you are learning, what is going quietly rusty. The Jazz Lab is the other kind of practice: not pieces, but vocabulary, tracked across all twelve keys, because a voicing you can only play in C is a voicing you cannot play.</p>
+    <div class="pn-tabs" role="tablist">${PIANO_TABS.map(([id, name, hint]) =>
+      `<button class="pn-tab${tab === id ? ' on' : ''}" data-pntab="${id}" role="tab" aria-selected="${tab === id}"
+        title="${esc(hint)}"><span>${esc(name)}</span><em>${esc(hint)}</em></button>`).join('')}</div>
+
+    ${tab === 'repertoire'
+      ? (piece ? pianoPieceHTML(piece) : `<div class="pn-views">${PIANO_REP_VIEWS.map(([v, n]) =>
+          `<button class="pn-view${pianoRepView() === v ? ' on' : ''}" data-pnview="${v}">${esc(n)}</button>`).join('')}</div>
+        <div class="pn-body">${
+          pianoRepView() === 'ready' ? pianoReadyHTML()
+          : pianoRepView() === 'practice' ? pianoSuggestHTML()
+          : pianoRepView() === 'sets' ? pianoSetlistsHTML()
+          : pianoListHTML()}</div>`)
+      : `${pianoJazzHTML()}
+         <div class="stack" style="gap:16px;margin-top:20px">
+           ${pianoAudiationHTML()}${pianoShelfHTML()}${pianoJamsHTML()}</div>`}
+    <!-- The two numbers everything else is measured against. They are at the
+         bottom because you set them once; they are on the page at all because
+         "rusty after thirty days" is a judgement, not a fact, and a piece you
+         play twice a year is not necessarily one you are losing. -->
+    <div class="pn-settings">
+      <label class="pd-q"><span class="k">rusty after</span>
+        <input class="inp mono" type="number" id="pnRust" min="3" max="365" value="${p.settings.rustThresholdDays}"> days</label>
+      <label class="pd-q"><span class="k">a practice is usually</span>
+        <input class="inp mono" type="number" id="pnDef" min="5" max="240" step="5" value="${p.settings.defaultPracticeMinutes}"> minutes</label>
+    </div>
+  </div>`;
+  bindPianoPage(root);
+};
+
+function bindPianoPage(root){
+  const p = pianoState();
+  const redraw = () => { saveNow(); rerender(); };
+  const soft = () => { saveNow(); };
+
+  $$('[data-pntab]', root).forEach(b => b.onclick = () => {
+    S._pianoPiece = null; S._pianoSet = null; setPianoTab(b.dataset.pntab); sound('click'); });
+  $$('[data-pnview]', root).forEach(b => b.onclick = () => {
+    S._pianoSet = null; setPianoRepView(b.dataset.pnview); sound('click'); });
+  $$('[data-pnopen]', root).forEach(b => b.onclick = () => {
+    S._pianoPiece = b.dataset.pnopen; sound('click'); rerender(); });
+
+  /* ---- the list ---- */
+  const f = pianoPieceFilter();
+  const g = root.querySelector('#pnGenre'); if(g) g.onchange = () => { f.genre = g.value; rerender(); };
+  const st = root.querySelector('#pnStatus'); if(st) st.onchange = () => { f.status = st.value; rerender(); };
+  const q = root.querySelector('#pnQ');
+  if(q) q.oninput = debounce(() => { f.q = q.value; const at = q.selectionStart; rerender();
+    const again = document.querySelector('#pnQ'); if(again){ again.focus(); try { again.setSelectionRange(at, at); } catch(e){} } }, 260);
+  const add = root.querySelector('#pnAdd'); if(add) add.onclick = () => openPieceEditor();
+
+  /* ---- the suggestion ---- */
+  const bud = root.querySelector('#pnBudget');
+  if(bud) bud.onchange = () => { S._pianoBudget = clamp(+bud.value || 30, 5, 240); rerender(); };
+  const sg = root.querySelector('#pnSuggGo');
+  if(sg) sg.onclick = () => {
+    const first = pianoSuggestPractice(S._pianoBudget || p.settings.defaultPracticeMinutes).items[0];
+    if(!first){ toast('Nothing to suggest yet.'); return; }
+    startPianoTimer(first.piece.id, null, first.minutes);
+  };
+
+  /* ---- one piece ---- */
+  const back = root.querySelector('#pnBack');
+  if(back) back.onclick = () => { S._pianoPiece = null; sound('click'); rerender(); };
+  const cur = S._pianoPiece ? pianoPiece(S._pianoPiece) : null;
+  if(cur){
+    $$('[data-pnf]', root).forEach(inp => inp.onchange = () => {
+      const k = inp.dataset.pnf;
+      const v = inp.type === 'number' ? (inp.value === '' ? null : +inp.value) : inp.value;
+      cur[k] = v;
+      /* the two dates a piece keeps for itself, written when the word changes */
+      if(k === 'status'){
+        if(v === 'learning' && !cur.startedAt) cur.startedAt = new Date().toISOString();
+        if((v === 'performance_ready' || v === 'polished') && !cur.readyAt) cur.readyAt = new Date().toISOString();
+      }
+      soft(); if(k === 'status' || k === 'targetBpm') rerender();
+    });
+    const secAdd = root.querySelector('#pnSecAdd');
+    if(secAdd) secAdd.onclick = () => { cur.sections.push({id:uid(), name:'', readiness:'not_started', notes:''});
+      sound('click'); redraw(); };
+    $$('[data-pnsecname]', root).forEach(inp => inp.onchange = () => {
+      const s = byId(cur.sections, inp.dataset.pnsecname); if(s){ s.name = inp.value; soft(); } });
+    $$('[data-pnsecnote]', root).forEach(inp => inp.onchange = () => {
+      const s = byId(cur.sections, inp.dataset.pnsecnote); if(s){ s.notes = inp.value; soft(); } });
+    $$('[data-pnready]', root).forEach(b => b.onclick = () => {
+      const [sid, r] = b.dataset.pnready.split('|');
+      const s = byId(cur.sections, sid); if(!s) return;
+      /* pressing the pip you are already on steps back down, so the row is
+         reversible without a second control */
+      s.readiness = s.readiness === r ? PIANO_READINESS[Math.max(0, pianoReadiness(r)[2] - 1)][0] : r;
+      sound('click'); redraw(); });
+    $$('[data-pnsecdel]', root).forEach(b => b.onclick = () => {
+      spliceOut(cur.sections, s => s.id === b.dataset.pnsecdel); sound('click'); redraw(); });
+    $$('[data-pnlogdel]', root).forEach(b => b.onclick = () => {
+      spliceOut(pianoLogs(), l => l.id === b.dataset.pnlogdel); sound('click'); redraw(); });
+    $$('[data-pnperson]', root).forEach(b => b.onclick = () => {
+      const id = b.dataset.pnperson;
+      const at = cur.peopleIds.indexOf(id);
+      at < 0 ? cur.peopleIds.push(id) : cur.peopleIds.splice(at, 1);
+      b.classList.toggle('on', at < 0); sound('click'); soft(); });
+    const lg = root.querySelector('#pnLog'); if(lg) lg.onclick = () => openPracticeLog(cur.id);
+    const tm = root.querySelector('#pnTimer'); if(tm) tm.onclick = () => startPianoTimer(cur.id);
+    const lib = root.querySelector('#pnLib');
+    if(lib) lib.onclick = () => { if(typeof openMediaModal !== 'function'){ toast('The Library is not open.'); return; }
+      /* openMediaModal hands the new entry back and leaves the redraw to the
+         caller, so the link is written first and the page redrawn after */
+      openMediaModal({kind:'album', title:cur.title}, e => { e.pieceId = cur.id; saveNow();
+        toast(`Filed under ${cur.title}.`); rerender(); }); };
+    const del = root.querySelector('#pnDel');
+    if(del) del.onclick = () => requestDelete({label: cur.title || 'this piece', after: () => { S._pianoPiece = null; rerender(); },
+      remove: () => spliceOut(pianoState().pieces, x => x.id === cur.id)});
+  }
+
+  /* ---- sets ---- */
+  const slAdd = root.querySelector('#pnSlAdd');
+  if(slAdd) slAdd.onclick = () => { const sl = newSetlist('New set'); p.setlists.push(sl);
+    S._pianoSet = sl.id; sound('success'); redraw(); };
+  $$('[data-pnset]', root).forEach(b => b.onclick = () => { S._pianoSet = b.dataset.pnset; sound('click'); rerender(); });
+  const slBack = root.querySelector('#pnSlBack');
+  if(slBack) slBack.onclick = () => { S._pianoSet = null; sound('click'); rerender(); };
+  const sl = S._pianoSet ? pianoSetlist(S._pianoSet) : null;
+  if(sl){
+    const nm = root.querySelector('#pnSlName'); if(nm) nm.onchange = () => { sl.name = nm.value; soft(); };
+    const pick = root.querySelector('#pnSlPick');
+    if(pick) pick.onchange = () => { if(!pick.value) return;
+      sl.pieces.push({pieceId:pick.value, order:sl.pieces.length, notes:''}); sound('click'); redraw(); };
+    $$('[data-pnslnote]', root).forEach(inp => inp.onchange = () => {
+      const row = sl.pieces[+inp.dataset.pnslnote]; if(row){ row.notes = inp.value; soft(); } });
+    const move = (i, d) => { const j = i + d; if(j < 0 || j >= sl.pieces.length) return;
+      const [x] = sl.pieces.splice(i, 1); sl.pieces.splice(j, 0, x);
+      sl.pieces.forEach((r, n) => r.order = n); sound('click'); redraw(); };
+    $$('[data-pnslup]', root).forEach(b => b.onclick = () => move(+b.dataset.pnslup, -1));
+    $$('[data-pnsldn]', root).forEach(b => b.onclick = () => move(+b.dataset.pnsldn, 1));
+    $$('[data-pnslrm]', root).forEach(b => b.onclick = () => { sl.pieces.splice(+b.dataset.pnslrm, 1); sound('click'); redraw(); });
+    const pr = root.querySelector('#pnSlPrint');
+    if(pr) pr.onclick = () => { sl.lastUsed = today(); soft(); openSetlistPrint(sl); };
+    const sd = root.querySelector('#pnSlDel');
+    if(sd) sd.onclick = () => requestDelete({label: sl.name || 'this set', after: () => { S._pianoSet = null; rerender(); },
+      remove: () => spliceOut(p.setlists, x => x.id === sl.id)});
+  }
+
+  /* ---- the jazz side ---- */
+  $$('[data-pnstage]', root).forEach(b => b.onclick = () => {
+    S._pianoStage = S._pianoStage === b.dataset.pnstage ? null : b.dataset.pnstage; sound('click'); rerender(); });
+  $$('[data-pnststatus]', root).forEach(sel => sel.onchange = () => {
+    const s = pianoStage(sel.dataset.pnststatus); if(s){ s.status = sel.value; redraw(); } });
+  $$('[data-pnstlog]', root).forEach(b => b.onclick = () => openJazzLog(b.dataset.pnstlog));
+  $$('[data-pnclog]', root).forEach(b => b.onclick = () => openJazzLog(null, b.dataset.pnclog));
+  $$('[data-pnweak]', root).forEach(b => b.onclick = () => {
+    const c = pianoConcept(b.dataset.pnweak); if(!c) return;
+    const weak = pianoWeakKeys(c);
+    toast(`Weakest in ${weak.join(', ')} — that is where the next fifteen minutes go.`, 6000);
+    sound('click'); });
+  $$('[data-pnkey]', root).forEach(gnode => {
+    const open = () => { const c = pianoConcept(gnode.closest('[data-pnconcept]')?.dataset.pnconcept);
+      if(c) openKeyPanel(c, gnode.dataset.pnkey); };
+    gnode.onclick = open;
+    gnode.onkeydown = ev => { if(ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); open(); } };
+  });
+  $$('[data-pnfluency]', root).forEach(b => b.onclick = () => {
+    const [cid, lvl] = b.dataset.pnfluency.split('|');
+    const c = pianoConcept(cid); if(c){ c.fluency = lvl; sound('click'); redraw(); } });
+  $$('[data-pnentadd]', root).forEach(b => b.onclick = () => {
+    const c = pianoConcept(b.dataset.pnentadd); if(!c) return;
+    const inp = root.querySelector(`[data-pnentry="${CSS.escape(c.id)}"]`);
+    const text = inp ? inp.value.trim() : ''; if(!text) return;
+    c.entries = c.entries || []; c.entries.push({id:uid(), date:today(), text});
+    c.lastPracticed = today(); sound('success'); redraw(); });
+  $$('[data-pnentdel]', root).forEach(b => b.onclick = () => {
+    const [cid, eid] = b.dataset.pnentdel.split('|');
+    const c = pianoConcept(cid); if(c && c.entries){ spliceOut(c.entries, e => e.id === eid); sound('click'); redraw(); } });
+  $$('[data-pnaud]', root).forEach(b => b.onclick = () => {
+    const [n, lvl] = b.dataset.pnaud.split('|');
+    const a = p.jazz.audiation.find(x => x.stage === +n);
+    if(a){ a.level = lvl; a.assessedAt = new Date().toISOString(); sound('click'); redraw(); } });
+  const resAdd = root.querySelector('#pnResAdd');
+  if(resAdd) resAdd.onclick = () => { p.jazz.resources.push({id:uid(), title:'New resource', author:'',
+    type:'book', focus:'', bestFor:'', url:'', notes:'', stageIds:[]}); sound('click'); redraw(); };
+  $$('[data-pnresf]', root).forEach(inp => inp.onchange = () => {
+    const [rid, field] = inp.dataset.pnresf.split('|');
+    const r = byId(p.jazz.resources, rid); if(r){ r[field] = inp.value; soft(); } });
+  $$('[data-pnresdel]', root).forEach(b => b.onclick = () => {
+    spliceOut(p.jazz.resources, r => r.id === b.dataset.pnresdel); sound('click'); redraw(); });
+  const rust = root.querySelector('#pnRust');
+  if(rust) rust.onchange = () => { p.settings.rustThresholdDays = clamp(+rust.value || 30, 3, 365); redraw(); };
+  const def = root.querySelector('#pnDef');
+  if(def) def.onchange = () => { p.settings.defaultPracticeMinutes = clamp(+def.value || 30, 5, 240); soft(); };
+  const jamAdd = root.querySelector('#pnJamAdd'); if(jamAdd) jamAdd.onclick = () => openJamLog();
+  $$('[data-pnjamdel]', root).forEach(b => b.onclick = () => {
+    spliceOut(p.jazz.jams, j => j.id === b.dataset.pnjamdel); sound('click'); redraw(); });
+}
+
+/* ---------- adding and logging ---------- */
+function openPieceEditor(){
+  const m = openModal(`<h2>A piece</h2>
+    <div class="grid c2" style="gap:10px">
+      <label class="pd-q"><span class="k">title</span><input class="inp serif-lg" id="peTitle" autofocus placeholder="Clair de Lune"></label>
+      <label class="pd-q"><span class="k">composer</span><input class="inp" id="peComposer" placeholder="Claude Debussy"></label>
+      <label class="pd-q"><span class="k">genre</span><select class="sel" id="peGenre">${PIANO_GENRES.map(([v, n]) =>
+        `<option value="${v}">${esc(n)}</option>`).join('')}</select></label>
+      <label class="pd-q"><span class="k">state</span><select class="sel" id="peStatus">${PIANO_STATUSES.filter(s => s[0] !== 'rusty').map(([v, n]) =>
+        `<option value="${v}" ${v === 'want_to_learn' ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label>
+    </div>
+    <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary" id="peSave">Add</button></div>`, 'narrow');
+  const save = () => {
+    const t = m.querySelector('#peTitle').value.trim();
+    if(!t){ m.querySelector('#peTitle').focus(); return; }
+    const x = newPiece(t);
+    x.composer = m.querySelector('#peComposer').value.trim();
+    x.genre = m.querySelector('#peGenre').value;
+    x.status = m.querySelector('#peStatus').value;
+    if(x.status === 'learning') x.startedAt = new Date().toISOString();
+    pianoState().pieces.push(x); saveNow(); m.remove(); sound('success');
+    S._pianoPiece = x.id; rerender();
+  };
+  m.querySelector('#peSave').onclick = save;
+  m.querySelector('#peTitle').onkeydown = ev => { if(ev.key === 'Enter') save(); };
+  return m;
+}
+function openPracticeLog(pieceId, prefill = {}){
+  const x = pianoPiece(pieceId); if(!x) return null;
+  const m = openModal(`<h2>${esc(x.title)}</h2>
+    <div class="grid c2" style="gap:10px">
+      <label class="pd-q"><span class="k">date</span><input type="date" class="inp" id="plDate" value="${today()}"></label>
+      <label class="pd-q"><span class="k">minutes</span><input type="number" class="inp mono" id="plMin" value="${+prefill.minutes || pianoState().settings.defaultPracticeMinutes}"></label>
+    </div>
+    ${(x.sections || []).length ? `<div style="margin-top:12px"><span class="k mono">which sections</span>
+      <div class="pn-keypick">${x.sections.map(s =>
+        `<button class="pn-kp" data-plsec="${esc(s.id)}" aria-pressed="false">${esc(s.name || 'unnamed')}</button>`).join('')}</div></div>` : ''}
+    <label class="pd-q" style="margin-top:12px"><span class="k">what you worked on</span>
+      <input class="inp" id="plFocus" placeholder="slow practice, mm. 32–48 · a memorisation run"></label>
+    <div class="grid c2" style="gap:10px;margin-top:10px">
+      <label class="pd-q"><span class="k">how it went</span><select class="sel" id="plQ">${PIANO_QUALITIES.map(([v, n]) =>
+        `<option value="${v}" ${v === 'good' ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label>
+      <label class="pd-q"><span class="k">♩= today</span><input type="number" class="inp mono" id="plBpm" placeholder="${x.targetBpm || 90}"></label>
+    </div>
+    <label class="pd-q" style="margin-top:10px"><span class="k">notes</span>
+      <textarea class="inp" rows="2" id="plNotes"></textarea></label>
+    <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary" id="plSave">Save</button></div>`, 'narrow');
+  m.querySelectorAll('[data-plsec]').forEach(b => b.onclick = () => {
+    const on = b.getAttribute('aria-pressed') === 'true';
+    b.setAttribute('aria-pressed', String(!on)); b.classList.toggle('on', !on); });
+  m.querySelector('#plSave').onclick = () => {
+    logPianoPractice(pieceId, {
+      date: m.querySelector('#plDate').value || today(),
+      durationMinutes: +m.querySelector('#plMin').value || 0,
+      sections: [...m.querySelectorAll('[data-plsec][aria-pressed="true"]')].map(b => b.dataset.plsec),
+      focusArea: m.querySelector('#plFocus').value,
+      quality: m.querySelector('#plQ').value,
+      currentBpm: +m.querySelector('#plBpm').value || null,
+      notes: m.querySelector('#plNotes').value});
+    m.remove(); sound('success'); rerender();
+  };
+  return m;
+}
+/* One way in for a logged sitting, whoever is calling: the modal, the timer,
+   or the studio's own suggestion. Everything that has to happen when practice
+   is recorded happens here, once. */
+function logPianoPractice(pieceId, rec){
+  const x = pianoPiece(pieceId); if(!x) return null;
+  const log = Object.assign({id:uid(), pieceId, date:today(), durationMinutes:0,
+    sections:[], focusArea:'', quality:'good', currentBpm:null, notes:''}, rec || {});
+  pianoState().practiceLogs.push(log);
+  /* practising a piece you had put down picks it up again: "rusty" is worked
+     out from the dates, so this happens by itself, but a piece nobody has
+     started is started by being practised */
+  if(x.status === 'want_to_learn'){ x.status = 'learning'; x.startedAt = x.startedAt || new Date().toISOString(); }
+  pianoCreditSkill(log.durationMinutes);
+  pianoCreditHabit();
+  saveNow();
+  return log;
+}
+
+/* ---------- the shared clock ----------
+   There is already one timer in this house and it is good. Rather than build
+   a second, a practice sitting borrows it: the piece becomes the thing being
+   timed, and when the sitting ends the minutes come back here as a log. That
+   also means practice minutes land in the same focus history as everything
+   else, which is what makes the skill credit honest. */
+function startPianoTimer(pieceId, sectionId, minutes){
+  const x = pianoPiece(pieceId); if(!x) return;
+  S._pianoTimed = {pieceId, sectionId: sectionId || null, at: Date.now()};
+  if(typeof FocusTimer === 'undefined'){ openPracticeLog(pieceId, {minutes}); return; }
+  if(FocusTimer.state().running) FocusTimer.stop();
+  FocusTimer.reset();
+  const n = +minutes || 0;
+  if(n >= 1){ FocusTimer.setMode('countdown'); FocusTimer.setLength(n); }
+  else FocusTimer.setMode('stopwatch');
+  FocusTimer.setTask(null);
+  FocusTimer.start();
+  sound('success');
+  toast(`The clock is on ${x.title}. End the sitting and it will ask how it went.`, 6000);
+  if(typeof paintFocusDock === 'function') paintFocusDock();
+}
+/* When a borrowed sitting ends, offer to write it down — with the minutes
+   already filled in, because the whole reason to time it was not to have to
+   remember them. */
+function pianoSittingEnded(mins){
+  const t = S._pianoTimed; if(!t) return false;
+  S._pianoTimed = null;
+  if(!(mins >= 1)) return false;
+  const x = pianoPiece(t.pieceId); if(!x) return false;
+  openPracticeLog(t.pieceId, {minutes: Math.round(mins)});
+  return true;
+}
+
+/* ---------- what the rest of the house gets out of it ----------
+   Practice hours are hours: they belong to the Piano skill, wherever the
+   player keeps it. Nothing is invented — if there is no piano skill on the
+   tree, nothing is credited, because a skill that appears because you
+   practised is a skill you did not choose to track. */
+function pianoSkill(){
+  return (S.skills || []).find(s => /piano|keyboard/i.test(s.name || '')) || null;
+}
+function pianoCreditSkill(mins){
+  const m = +mins || 0; if(m < 1) return;
+  const sk = pianoSkill(); if(!sk) return;
+  sk.hours = +(((+sk.hours || 0) + m / 60).toFixed(2));
+  sk.lastPracticed = today();
+}
+/* A habit whose whole content is "practise the piano" is kept by practising
+   the piano. Ticking it a second time by hand is the kind of bookkeeping that
+   makes people stop using a habit tracker. */
+function pianoCreditHabit(){
+  const h = (S.habits || []).find(x => !x.archived && /piano|keyboard/i.test(x.name || ''));
+  if(!h) return;
+  const d = today();
+  S.habitLog = S.habitLog || {};
+  S.habitLog[d] = S.habitLog[d] || {};
+  if(S.habitLog[d][h.id]) return;                 // already kept by hand today
+  S.habitLog[d][h.id] = {level:'full', note:'practised'};
+}
+/* what the weekly review wants to know about the bench */
+function pianoReviewLines(from, to){
+  /* Asking the studio for a state it has never had would build the whole
+     twenty-stage roadmap to answer "nothing happened" — so a room nobody has
+     opened stays unopened, and the review and the morning session simply have
+     nothing to say about it. */
+  if(!S.piano) return [];
+  const p = pianoState();
+  const logs = p.practiceLogs.filter(l => l.date >= from && l.date <= to);
+  const jazz = p.jazz.logs.filter(l => l.date >= from && l.date <= to);
+  if(!logs.length && !jazz.length) return [];
+  const out = [];
+  const mins = sum(logs.map(l => +l.durationMinutes || 0)) + sum(jazz.map(l => +l.durationMinutes || 0));
+  const pieces = new Set(logs.map(l => l.pieceId)).size;
+  if(mins) out.push(`${Math.round(mins / 60 * 10) / 10} hours at the piano${pieces ? `, across ${pieces} ${pieces === 1 ? 'piece' : 'pieces'}` : ''}.`);
+  const keys = new Set(); jazz.forEach(l => (l.keys || []).forEach(k => keys.add(k)));
+  if(keys.size) out.push(`Jazz vocabulary worked in ${[...keys].join(', ')}.`);
+  const jams = p.jazz.jams.filter(j => j.date >= from && j.date <= to).length;
+  if(jams) out.push(`${jams} jam ${jams === 1 ? 'night' : 'nights'}.`);
+  const play = jazz.filter(l => l.mode === 'play').length;
+  if(jazz.length) out.push(play
+    ? `${play} of ${jazz.length} jazz sittings were play rather than practice.`
+    : 'Every jazz sitting was practice. Werner would want one of them to be play.');
+  const rusty = p.pieces.filter(pianoIsRusty).length;
+  if(rusty) out.push(`${rusty} ${rusty === 1 ? 'piece is' : 'pieces are'} going rusty.`);
+  return out;
+}
+/* ============================================================
+   THE REPERTOIRE — what is on the music stand.
+   ============================================================ */
+const pianoRepView = () => S._pianoRep || 'list';
+function setPianoRepView(v){ S._pianoRep = v; rerender(); }
+
+function pianoPieceFilter(){
+  S._pianoFilter = S._pianoFilter || {genre:'', status:'', q:''};
+  return S._pianoFilter;
+}
+function pianoFilteredPieces(){
+  const f = pianoPieceFilter(), q = (f.q || '').toLowerCase();
+  return pianoPieces().filter(x => {
+    if(f.genre && x.genre !== f.genre) return false;
+    if(f.status && pianoShownStatus(x) !== f.status) return false;
+    /* Archived is out of the way by default, but asking for it by name has to
+       find it — a filter that names a state and then shows nothing is worse
+       than not offering the state at all. */
+    if(x.status === 'archived' && f.status !== 'archived') return false;
+    if(q && !`${x.title} ${x.composer} ${x.arranger} ${x.tags.join(' ')}`.toLowerCase().includes(q)) return false;
+    return true;
+  }).sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0) || a.title.localeCompare(b.title));
+}
+/* "45 days ago" is the number you act on; the date is not. */
+function pianoWhenLast(id){
+  const n = pianoDaysSince(id);
+  if(n == null) return 'never logged';
+  return n === 0 ? 'today' : n === 1 ? 'yesterday' : `${n} days ago`;
+}
+function pianoStatusDotHTML(x){
+  const st = pianoStatus(pianoShownStatus(x));
+  return `<span class="pn-dot pn-${st[0]}" title="${esc(st[3])}">${st[2]}</span>`;
+}
+
+function pianoListHTML(){
+  const rows = pianoFilteredPieces();
+  const f = pianoPieceFilter();
+  const pick = (id, val, opts, blank) => `<select class="sel sm" id="${id}">
+    <option value="">${blank}</option>
+    ${opts.map(([v, name]) => `<option value="${v}" ${val === v ? 'selected' : ''}>${esc(name)}</option>`).join('')}</select>`;
+  return `<div class="pn-toolbar">
+      ${pick('pnGenre', f.genre, PIANO_GENRES, 'every genre')}
+      ${pick('pnStatus', f.status, PIANO_STATUSES.map(s => [s[0], s[1]]), 'every state')}
+      <input class="inp sm pn-search" id="pnQ" placeholder="title, composer, tag" value="${esc(f.q || '')}">
+      <span class="grow"></span>
+      <button class="btn sm primary" id="pnAdd">＋ piece</button>
+    </div>
+    ${rows.length ? `<div class="pn-table" role="table">
+      <div class="pn-head" role="row"><span>Title</span><span>Composer</span><span>State</span><span>Last practised</span></div>
+      ${rows.map(x => { const rusty = pianoIsRusty(x);
+        return `<button class="pn-row${rusty ? ' rusty' : ''}" role="row" data-pnopen="${esc(x.id)}">
+        <span class="pn-title serif">${esc(x.title || 'Untitled')}${x.arranger ? `<em class="pn-arr"> arr. ${esc(x.arranger)}</em>` : ''}</span>
+        <span class="pn-comp">${esc(x.composer || '—')}</span>
+        <span class="pn-state">${pianoStatusDotHTML(x)} ${esc(pianoStatus(pianoShownStatus(x))[1])}${rusty ? '<i class="pn-warn" title="past the rust threshold">⚠</i>' : ''}</span>
+        <span class="pn-last mono">${esc(pianoWhenLast(x.id))}</span>
+      </button>`; }).join('')}</div>`
+    : `<div class="empty">${pianoPieces().length
+        ? 'Nothing matches that. Widen the filter.'
+        : 'Nothing on the stand yet. A piece here is anything you play, are learning, or mean to learn.'}</div>`}`;
+}
+
+/* ---------- the readiness dashboard ----------
+   One question: if somebody asked you to play, right now, what would you
+   play? Everything else on this page is about work in progress; this is the
+   only view that is about what is finished. */
+function pianoReadyHTML(){
+  const all = pianoPieces().filter(x => x.status !== 'archived');
+  const ready = all.filter(x => pianoIsReady(x) && !pianoIsRusty(x))
+    .sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+  const rusty = all.filter(pianoIsRusty)
+    .sort((a, b) => (pianoDaysSince(b.id) || 0) - (pianoDaysSince(a.id) || 0));
+  const learning = all.filter(x => x.status === 'learning');
+  const mins = sum(ready.map(x => +x.duration || 0));
+  const line = (x, tail) => `<button class="pn-mini" data-pnopen="${esc(x.id)}">
+    <span class="pn-mini-t serif">${esc(x.title || 'Untitled')}</span>
+    <span class="pn-mini-c">${esc(x.composer || '')}</span>
+    <span class="pn-mini-x mono">${esc(tail)}</span></button>`;
+  return `<div class="grid c2 pn-ready">
+    <div class="card no-tilt">
+      <div class="k">Could play right now <span class="mono faint">${ready.length}</span></div>
+      ${ready.length ? `<div class="stack" style="gap:2px">${ready.map(x =>
+        line(x, x.duration ? `${x.duration} min` : '—')).join('')}</div>
+        <div class="pn-total mono">${mins ? `about ${mins} minutes of music` : 'no lengths written down yet'}</div>`
+        : '<div class="empty sm">Nothing is marked performance-ready or polished yet.</div>'}
+    </div>
+    <div class="stack" style="gap:14px">
+      <div class="card no-tilt">
+        <div class="k">Going rusty <span class="mono faint">${rusty.length}</span></div>
+        <p class="muted" style="font-size:.8rem">Untouched for more than ${pianoState().settings.rustThresholdDays} days. These are the ones you lose without noticing.</p>
+        ${rusty.length ? `<div class="stack" style="gap:2px">${rusty.map(x =>
+          line(x, `${pianoDaysSince(x.id)} days`)).join('')}</div>`
+          : '<div class="empty sm">Nothing has slipped. Good.</div>'}
+      </div>
+      <div class="card no-tilt">
+        <div class="k">Under the hands <span class="mono faint">${learning.length}</span></div>
+        ${learning.length ? `<div class="stack" style="gap:2px">${learning.map(x => { const pr = pianoSectionProgress(x);
+          return line(x, pr == null ? 'no sections yet' : `${Math.round(pr * 100)}% through its sections`); }).join('')}</div>`
+          : '<div class="empty sm">Nothing being learned. That is either rest or drift.</div>'}
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---------- what to practise today ---------- */
+function pianoSuggestHTML(){
+  const mins = S._pianoBudget || pianoState().settings.defaultPracticeMinutes || 30;
+  const {items, free} = pianoSuggestPractice(mins);
+  const ICON = {maintenance:'◌', learning:'◐', runthrough:'●'};
+  const WORD = {maintenance:'Maintenance', learning:'Learning', runthrough:'Run-through'};
+  return `<div class="card no-tilt pn-suggest">
+    <div class="row between" style="align-items:baseline">
+      <span class="k">If you have <input class="inp sm mono pn-budget" id="pnBudget" type="number" min="5" max="240" step="5" value="${mins}"> minutes</span>
+      <span class="mono faint">${items.length ? `${items.length} things` : 'nothing to suggest yet'}</span>
+    </div>
+    ${items.length ? `<div class="stack" style="gap:8px;margin-top:10px">${items.map(it => `
+      <button class="pn-sugg pn-sugg-${it.kind}" data-pnopen="${esc(it.piece.id)}">
+        <span class="pn-sugg-i">${ICON[it.kind]}</span>
+        <span class="pn-sugg-b">
+          <span class="pn-sugg-h"><b class="serif">${esc(it.piece.title)}</b> <span class="mono faint">${WORD[it.kind]} · ${it.minutes} min</span></span>
+          <span class="pn-sugg-w">${esc(it.why)}</span></span>
+      </button>`).join('')}
+      ${free >= 2 ? `<div class="pn-free mono">＋ ${free} minutes free — sight-reading, or whatever you actually want to play</div>` : ''}
+      </div>
+      <button class="btn sm primary" id="pnSuggGo" style="margin-top:12px">start the clock on the first one</button>`
+    : `<div class="empty sm">Add a piece or two and this will tell you where the time should go.</div>`}
+  </div>`;
+}
+
+/* ---------- one piece, in full ---------- */
+function pianoPieceHTML(x){
+  const logs = pianoLogsFor(x.id);
+  const total = pianoTotalMinutes(x.id);
+  const st = pianoStatus(pianoShownStatus(x));
+  const meta = [pianoGenreName(x.genre), x.key, x.tempo,
+    x.duration ? `about ${x.duration} min` : '', x.timeSignature].filter(Boolean);
+  return `<div class="pn-piece">
+    <button class="btn sm ghost" id="pnBack">← the whole stand</button>
+    <h2 class="serif pn-h">${esc(x.title || 'Untitled')}</h2>
+    <div class="pn-sub">${esc(x.composer || 'composer unknown')}${x.arranger ? ` · arr. ${esc(x.arranger)}` : ''}
+      ${meta.length ? ` · ${esc(meta.join(' · '))}` : ''}</div>
+    <div class="pn-badges">
+      <span class="pn-badge">${pianoStatusDotHTML(x)} ${esc(st[1])}</span>
+      <span class="pn-badge">${esc((PIANO_DIFFICULTIES.find(d => d[0] === x.difficulty) || [,''])[1])}</span>
+      ${total ? `<span class="pn-badge mono">${total} minutes logged</span>` : ''}
+      <span class="pn-badge mono">last played ${esc(pianoWhenLast(x.id))}</span>
+      ${x.emotionalTag ? `<span class="pn-badge">${esc(x.emotionalTag)}</span>` : ''}
+    </div>
+
+    <div class="grid c2" style="gap:16px;margin-top:16px">
+      <div class="card no-tilt">
+        <div class="row between"><span class="k">Sections</span>
+          <button class="pl-mini" id="pnSecAdd">＋ section</button></div>
+        <p class="muted" style="font-size:.8rem">A piece is not uniformly learned. Naming the passages is how you find out which twenty bars are costing you the performance.</p>
+        ${(x.sections || []).length ? `<div class="stack" style="gap:4px;margin-top:8px">${x.sections.map(s => {
+          const r = pianoReadiness(s.readiness);
+          return `<div class="pn-sec" data-pnsec="${esc(s.id)}">
+            <input class="pn-secname" value="${esc(s.name)}" data-pnsecname="${esc(s.id)}" placeholder="Exposition · the bridge · mm. 32–48">
+            <span class="pn-pips" role="group" aria-label="how ready this passage is">${PIANO_READINESS.map(([rid, , n]) =>
+              `<button class="pn-pip${n <= r[2] ? ' on' : ''}" data-pnready="${esc(s.id)}|${rid}" title="${esc(PIANO_READINESS[n][1])}"></button>`).join('')}</span>
+            <span class="pn-secr mono">${esc(r[1])}</span>
+            <button class="del-x inline" data-pnsecdel="${esc(s.id)}" title="remove this section">×</button>
+            <input class="pn-secnote" value="${esc(s.notes)}" data-pnsecnote="${esc(s.id)}" placeholder="what is actually wrong with it">
+          </div>`; }).join('')}</div>`
+          : '<div class="empty sm">No sections yet.</div>'}
+      </div>
+
+      <div class="card no-tilt">
+        <div class="row between"><span class="k">Practice history</span>
+          <button class="btn sm primary" id="pnLog">＋ log practice</button></div>
+        ${pianoHeatHTML(x.id)}
+        ${logs.length ? `<div class="stack pn-logs" style="gap:2px;margin-top:10px">${logs.slice(0, 12).map(l => `
+          <div class="pn-log">
+            <span class="mono pn-log-d">${esc(l.date === today() ? 'today' : fmtDate(l.date, 'short'))}</span>
+            <span class="mono pn-log-m">${l.durationMinutes} min</span>
+            <span class="pn-log-f">${esc(l.focusArea || (l.sections || []).map(id =>
+              (byId(x.sections, id) || {}).name).filter(Boolean).join(', ') || 'the whole of it')}</span>
+            <span class="pn-log-q">${esc((PIANO_QUALITIES.find(q => q[0] === l.quality) || [,'—'])[1].toLowerCase())}</span>
+            ${l.currentBpm ? `<span class="mono pn-log-b">♩=${l.currentBpm}</span>` : ''}
+            <button class="del-x inline" data-pnlogdel="${esc(l.id)}" title="delete this entry">×</button>
+          </div>`).join('')}
+          ${logs.length > 12 ? `<div class="faint mono" style="font-size:.72rem">…and ${logs.length - 12} earlier</div>` : ''}</div>`
+          : '<div class="empty sm">Nothing logged yet.</div>'}
+      </div>
+    </div>
+
+    ${pianoTempoHTML(x)}
+
+    <div class="card no-tilt" style="margin-top:16px">
+      <div class="k">The piece itself</div>
+      <div class="grid c2" style="gap:10px;margin-top:8px">
+        <label class="pd-q"><span class="k">title</span><input class="inp" data-pnf="title" value="${esc(x.title)}"></label>
+        <label class="pd-q"><span class="k">composer</span><input class="inp" data-pnf="composer" value="${esc(x.composer)}"></label>
+        <label class="pd-q"><span class="k">arranger</span><input class="inp" data-pnf="arranger" value="${esc(x.arranger)}"></label>
+        <label class="pd-q"><span class="k">genre</span><select class="sel" data-pnf="genre">${PIANO_GENRES.map(([v, n]) =>
+          `<option value="${v}" ${x.genre === v ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label>
+        <label class="pd-q"><span class="k">state</span><select class="sel" data-pnf="status">${PIANO_STATUSES.map(([v, n]) =>
+          `<option value="${v}" ${x.status === v ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label>
+        <label class="pd-q"><span class="k">difficulty</span><select class="sel" data-pnf="difficulty">${PIANO_DIFFICULTIES.map(([v, n]) =>
+          `<option value="${v}" ${x.difficulty === v ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label>
+        <label class="pd-q"><span class="k">key</span><input class="inp" data-pnf="key" value="${esc(x.key)}" placeholder="Db major"></label>
+        <label class="pd-q"><span class="k">tempo</span><input class="inp" data-pnf="tempo" value="${esc(x.tempo)}" placeholder="♩= 72, Andante"></label>
+        <label class="pd-q"><span class="k">target ♩=</span><input class="inp mono" type="number" data-pnf="targetBpm" value="${x.targetBpm ?? ''}"></label>
+        <label class="pd-q"><span class="k">time</span><input class="inp" data-pnf="timeSignature" value="${esc(x.timeSignature)}" placeholder="3/4"></label>
+        <label class="pd-q"><span class="k">minutes</span><input class="inp mono" type="number" data-pnf="duration" value="${x.duration ?? ''}"></label>
+        <label class="pd-q"><span class="k">feels like</span><input class="inp" data-pnf="emotionalTag" value="${esc(x.emotionalTag)}" placeholder="reflective · triumphant"></label>
+        <label class="pd-q"><span class="k">sheet music</span><input class="inp" data-pnf="sheetUrl" value="${esc(x.sheetUrl)}" placeholder="where the score is"></label>
+        <!-- A piece is rarely only yours: somebody taught it to you, somebody
+             sings it with you, somebody asked for it at a wedding. And an
+             original belongs to the project it came out of. -->
+        <label class="pd-q"><span class="k">project</span><select class="sel" data-pnf="projectId">
+          <option value="">— none —</option>
+          ${(S.projects || []).map(pr => `<option value="${esc(pr.id)}" ${x.projectId === pr.id ? 'selected' : ''}>${esc(pr.name)}</option>`).join('')}</select></label>
+      </div>
+      ${(S.people || []).length ? `<div style="margin-top:10px"><span class="k mono">who this piece has people in it</span>
+        <div class="pn-keypick">${(S.people || []).map(pp =>
+          `<button class="pn-kp${x.peopleIds.includes(pp.id) ? ' on' : ''}" data-pnperson="${esc(pp.id)}">${esc(pp.name)}</button>`).join('')}</div></div>` : ''}
+      <label class="pd-q" style="margin-top:10px"><span class="k">notes</span>
+        <textarea class="inp" rows="4" data-pnf="notes" placeholder="Anything about it: who taught it to you, what it is for, the bar that never works.">${esc(x.notes)}</textarea></label>
+      <!-- Scores, transcription audio and the records you are learning it
+           from are library entries like any other: they are things you have
+           read or listened to, and they belong where the rest of that lives.
+           A media entry that points at a piece shows up here, on the piece. -->
+      ${pianoLibraryHTML(x)}
+      <div class="row" style="margin-top:12px;gap:8px">
+        <button class="btn sm ghost" id="pnTimer">sit down with it</button>
+        <button class="btn sm ghost" id="pnLib">file something in the Library</button>
+        <span class="grow"></span>
+        <button class="btn sm ghost danger" id="pnDel">delete this piece</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* Thirty days of dots, the same grid the habits use — one glance says whether
+   this is a piece you are actually working on or one you think you are. */
+function pianoHeatHTML(id){
+  const by = {};
+  pianoLogsFor(id).forEach(l => { by[l.date] = (by[l.date] || 0) + (+l.durationMinutes || 0); });
+  const days = Array.from({length:30}, (_, i) => addDays(today(), i - 29));
+  return `<div class="pn-heat" role="img" aria-label="the last thirty days">${days.map(d => {
+    const m = by[d] || 0;
+    const lvl = !m ? 0 : m < 15 ? 1 : m < 35 ? 2 : 3;
+    return `<i class="pn-hd l${lvl}" title="${esc(fmtDate(d, 'med'))}${m ? ` — ${m} min` : ' — nothing'}"></i>`;
+  }).join('')}</div>`;
+}
+/* The tempo climb. It is the one chart here that is genuinely a chart: a
+   number that is supposed to go up over months, with a line across it for
+   the tempo the piece is actually marked at. */
+function pianoTempoHTML(x){
+  const series = pianoBpmSeries(x.id);
+  if(series.length < 2) return '';
+  const target = +x.targetBpm || Math.max(...series.map(s => s.bpm));
+  return `<div class="card no-tilt pn-tempo" style="margin-top:16px">
+    <div class="row between" style="align-items:baseline"><span class="k">Tempo</span>
+      <span class="mono faint">${series[0].bpm} → ${series[series.length - 1].bpm}${x.targetBpm ? ` · target ♩=${x.targetBpm}` : ''}</span></div>
+    <div class="pn-spark">${sparkline(series.map(s => s.bpm), {h:64, color:'var(--sage)',
+      min:Math.min(...series.map(s => s.bpm)) - 4, max:Math.max(target, ...series.map(s => s.bpm)) + 4})}</div>
+    <div class="mono faint" style="font-size:.72rem">${esc(fmtDate(series[0].date, 'short'))} — ${esc(fmtDate(series[series.length - 1].date, 'short'))}</div>
+  </div>`;
+}
+
+/* ---------- setlists ---------- */
+function pianoSetlistsHTML(){
+  const sls = pianoSetlists();
+  const cur = S._pianoSet ? pianoSetlist(S._pianoSet) : null;
+  if(cur) return pianoOneSetlistHTML(cur);
+  return `<div class="row between" style="align-items:baseline">
+      <span class="k">Sets</span><button class="btn sm primary" id="pnSlAdd">＋ set</button></div>
+    <p class="muted" style="font-size:.85rem">A named order of pieces, for a night. The total tells you whether it is a set or half of one.</p>
+    ${sls.length ? `<div class="grid c3" style="gap:12px;margin-top:12px">${sls.map(sl => {
+      const warn = setlistWarnings(sl);
+      return `<button class="card no-tilt pn-slcard" data-pnset="${esc(sl.id)}">
+        <div class="serif pn-sl-h">${esc(sl.name || 'Untitled set')}</div>
+        <div class="mono faint">${(sl.pieces || []).length} ${(sl.pieces || []).length === 1 ? 'piece' : 'pieces'} · ${setlistMinutes(sl)} min</div>
+        ${warn.length ? `<div class="pn-slwarn">⚠ ${esc(warn.join(', '))}</div>` : '<div class="pn-slok">all of it ready</div>'}
+      </button>`; }).join('')}</div>`
+      : '<div class="empty">No sets yet.</div>'}`;
+}
+function pianoOneSetlistHTML(sl){
+  const warn = setlistWarnings(sl);
+  const rows = (sl.pieces || []).map((p, i) => ({p, i, x:pianoPiece(p.pieceId)})).filter(r => r.x);
+  const pool = pianoPieces().filter(x => x.status !== 'archived' && !(sl.pieces || []).some(p => p.pieceId === x.id));
+  return `<button class="btn sm ghost" id="pnSlBack">← every set</button>
+    <div class="row between" style="align-items:baseline;margin-top:10px">
+      <input class="inp serif-lg pn-slname" id="pnSlName" value="${esc(sl.name)}" placeholder="Bar night set">
+      <span class="mono">${setlistMinutes(sl)} min</span></div>
+    ${warn.length ? `<div class="pn-slwarn big">⚠ ${esc(warn.join(' · '))}</div>` : ''}
+    <div class="stack pn-slrows" style="gap:4px;margin-top:12px">${rows.length ? rows.map(({p, i, x}) => `
+      <div class="pn-slrow" data-pnslrow="${i}">
+        <span class="mono pn-sln">${i + 1}.</span>
+        <span class="serif pn-slt">${esc(x.title)}</span>
+        <span class="pn-slc">${esc(x.composer || '')}</span>
+        <span class="mono pn-slm">${x.duration ? x.duration + ' min' : '—'}</span>
+        <span class="pn-sls">${pianoStatusDotHTML(x)} ${esc(pianoStatus(pianoShownStatus(x))[1])}</span>
+        <input class="pn-slnote" value="${esc(p.notes || '')}" data-pnslnote="${i}" placeholder="start rubato, pick it up in the bridge">
+        <button class="pl-mini" data-pnslup="${i}" ${i === 0 ? 'disabled' : ''} title="earlier">↑</button>
+        <button class="pl-mini" data-pnsldn="${i}" ${i === rows.length - 1 ? 'disabled' : ''} title="later">↓</button>
+        <button class="del-x inline" data-pnslrm="${i}" title="take it out">×</button>
+      </div>`).join('') : '<div class="empty sm">Nothing in the set yet.</div>'}</div>
+    ${pool.length ? `<div class="row" style="margin-top:12px;gap:8px">
+      <select class="sel" id="pnSlPick"><option value="">— add a piece —</option>
+        ${pool.map(x => `<option value="${esc(x.id)}">${esc(x.title)}${x.composer ? ' — ' + esc(x.composer) : ''}</option>`).join('')}</select>
+      <span class="grow"></span>
+      <button class="btn sm ghost" id="pnSlPrint">print view</button>
+      <button class="btn sm ghost danger" id="pnSlDel">delete the set</button></div>`
+      : `<div class="row" style="margin-top:12px;gap:8px"><span class="grow"></span>
+        <button class="btn sm ghost" id="pnSlPrint">print view</button>
+        <button class="btn sm ghost danger" id="pnSlDel">delete the set</button></div>`}`;
+}
+/* A programme, not a screen: black on white, serif, and the apparatus — the
+   states, the notes to self, the buttons — left out, because none of it is
+   anybody else's business. */
+function openSetlistPrint(sl){
+  const rows = (sl.pieces || []).map(p => pianoPiece(p.pieceId)).filter(Boolean);
+  openModal(`<div class="pn-print">
+    <h1 class="serif">${esc(sl.name || 'Programme')}</h1>
+    <div class="pn-print-rule"></div>
+    <ol class="pn-print-list">${rows.map(x => `<li>
+      <span class="pn-print-t serif">${esc(x.title)}</span>
+      <span class="pn-print-c">${esc(x.composer || '')}</span></li>`).join('')}</ol>
+    <div class="pn-print-rule"></div>
+    <div class="pn-print-foot">${rows.length} ${rows.length === 1 ? 'piece' : 'pieces'}${
+      setlistMinutes(sl) ? ` · about ${setlistMinutes(sl)} minutes` : ''}</div>
+  </div>`, 'narrow pn-print-modal');
+}
+
+/* Everything in the Library that points back at this piece. The link is a
+   field on the entry, so the Library keeps being one shelf rather than
+   growing a second one for music. */
+function pianoLibraryFor(id){
+  return (S.entries || []).filter(e => e.type === 'media' && e.pieceId === id);
+}
+function pianoLibraryHTML(x){
+  const rows = pianoLibraryFor(x.id);
+  if(!rows.length) return '';
+  return `<div class="pn-lib"><span class="k mono">in the Library</span>
+    ${rows.map(e => `<a class="pn-tune" href="#/journals/library">${esc(e.title || 'untitled')}</a>`).join('')}</div>`;
+}
+/* ============================================================
+   THE JAZZ ROADMAP, as it arrives.
+
+   Four phases and twenty micro-stages, taken from the training documents
+   this was built from. It is a scaffold, not a rule: every field of it can
+   be rewritten, and stages can be added, reordered or deleted. It is here
+   at all because an empty roadmap is not a roadmap — the hardest part of a
+   five-year plan is writing down the first year of it, and that part is
+   already known.
+   ============================================================ */
+function pianoConceptSeed(name, type, extra = {}){
+  return Object.assign({id:uid(), name, type, keys:{}, fluency:'cant_do',
+    bpm:{comfortable:null, max:null}, notes:'', lastPracticed:null, practiceCount:0,
+    entries:[]}, extra);
+}
+function pianoStageSeed(n, name, weeks, focus, resource, drill, concepts){
+  return {id:uid(), number:n, name, weeks, focus, resource, drill,
+    status:'not_started', notes:'', concepts};
+}
+function pianoDefaultRoadmap(){
+  const C = pianoConceptSeed;
+  return [
+    {id:uid(), number:1, name:'Foundational Restructuring', months:'1–12', status:'not_started',
+     blurb:'Dismantle visual dependency. Build a functional jazz harmonic vocabulary.',
+     stages:[
+      pianoStageSeed(1, 'Major Scales & Intervals', 'Weeks 1–4',
+        'Twelve major scales as formulas rather than pictures; instant identification of the 3rd and the 7th.',
+        'Jazz Piano Fundamentals, Book 1 — Jeremy Siskind',
+        'Play a major scale in one hand, then put root, 3rd, 5th and 7th down together. Fifteen minutes.',
+        [C('Major scale fluency', 'keyboard_drill'),
+         C('Instant 3rd and 7th', 'keyboard_drill')]),
+      pianoStageSeed(2, 'Core 7th Chords', 'Weeks 5–12',
+        'Maj7, min7, dom7 and half-diminished, built from the formula and not from memory of a shape.',
+        'Jazz Piano Fundamentals, Book 1 — Jeremy Siskind',
+        'One chord quality, all twelve keys, no looking. Then the next.',
+        [C('Maj7 in twelve keys', 'voicing_type', {quality:'maj7'}),
+         C('Min7 in twelve keys', 'voicing_type', {quality:'min7'}),
+         C('Dom7 in twelve keys', 'voicing_type', {quality:'dom7'}),
+         C('Half-diminished in twelve keys', 'voicing_type', {quality:'half-dim'})]),
+      pianoStageSeed(3, 'Shell Voicings', 'Weeks 13–18',
+        'Left-hand guide tones — the 3rd and the 7th — and voice leading them through ii-V-I.',
+        'Jazz Keyboard Harmony — Phil DeGreg, chapters 1–2',
+        'ii-V-I around the cycle of fifths with shells only. Listen for the two notes moving.',
+        [C('Shell voicing per key', 'keyboard_drill'),
+         C('ii-V-I around the cycle', 'keyboard_drill')]),
+      pianoStageSeed(4, 'Melody over Shells', 'Weeks 19–24',
+        'Right-hand melody over left-hand shells, on real standards.',
+        'Jazz Keyboard Harmony — Phil DeGreg, chapters 1–2',
+        'One standard a week: melody in the right, shells in the left, in time.',
+        [C('Standards played with shells', 'transcription', {type:'listening'})]),
+      pianoStageSeed(5, 'Vocal Syllabification', 'Weeks 25–30',
+        'Scat syllables mapped to articulation; the swing feel that comes with them.',
+        'Scat! Vocal Improvisation Techniques — Bob Stoloff',
+        'Doo, bah, bop, dit — one syllable family at a time, over a blues.',
+        [C('Syllable families', 'vocal_technique'),
+         C('Swing feel at tempo', 'vocal_technique')]),
+      pianoStageSeed(6, 'Transcription', 'Weeks 31–36',
+        'Aural imitation of simple solos. Ear first, paper second, and paper optional.',
+        'Scat! Vocal Improvisation Techniques — Bob Stoloff',
+        'Eight bars, sung back until it is right, then found on the keys.',
+        [C('Solos transcribed', 'transcription')])]},
+
+    {id:uid(), number:2, name:'Advanced Harmonic Architecture', months:'Years 2–3', status:'not_started',
+     blurb:'The textures that make it sound like the record.',
+     stages:[
+      pianoStageSeed(7, 'Rootless A & B Voicings', 'Weeks 37–48',
+        '3-5-7-9 without the root, in both inversions — the bass player has the root.',
+        'DeGreg ch. 3–4; Siskind Book 2',
+        'A-form through the cycle, then B-form, then alternating so the hand barely moves.',
+        [C('Rootless A form', 'voicing_type', {quality:'dom7'}),
+         C('Rootless B form', 'voicing_type', {quality:'dom7'})]),
+      pianoStageSeed(8, 'Self-Accompaniment Basics', 'Weeks 49–56',
+        'Singing while playing rootless voicings — two independent things at once.',
+        '—',
+        'One tune, sung and played, slowly, until the hands stop listening to the voice.',
+        [C('Tunes sung while playing', 'live_performance')]),
+      pianoStageSeed(9, 'Enclosures & Chromaticism', 'Weeks 57–68',
+        'Approaching a chord tone from above and below before landing on it.',
+        'The Barry Harris method',
+        'One enclosure shape, twelve keys, over a ii-V.',
+        [C('Enclosure patterns', 'keyboard_drill')]),
+      pianoStageSeed(10, 'Drop 2 Voicings', '—',
+        'Open four-note voicings — the Bill Evans texture.',
+        'The Jazz Piano Book — Mark Levine (reference)',
+        'Drop the second voice from the top, one quality at a time.',
+        [C('Drop 2 — maj7', 'voicing_type', {quality:'maj7'}),
+         C('Drop 2 — min7', 'voicing_type', {quality:'min7'}),
+         C('Drop 2 — dom7', 'voicing_type', {quality:'dom7'})]),
+      pianoStageSeed(11, 'Upper Structure Triads', '—',
+        'A tritone shell underneath and a triad on top of it — the fastest route to colour.',
+        'The Jazz Piano Book — Mark Levine (reference)',
+        'One upper structure at a time over a dom7: II, bIII, #IV, bVI, VI.',
+        [C('Upper structures over dom7', 'voicing_type', {quality:'dom7'})]),
+      pianoStageSeed(12, 'Forward Motion & Swing Physics', '—',
+        'The 2/2 macro-pulse, the backbeat, and where the notes sit against it.',
+        'Forward Motion — Hal Galper',
+        'Metronome on 2 and 4 only. Then on 4 only. Then on the "and" of 2.',
+        [C('Metronome on 2 and 4', 'keyboard_drill'),
+         C('Lines that resolve forward', 'keyboard_drill')]),
+      pianoStageSeed(13, 'The 6th Diminished Scale', '—',
+        'Barry Harris: the eight-note scale where a 6th chord and a dim7 interlock.',
+        'The Barry Harris method',
+        'Scale up, chords down, all twelve keys, hands together.',
+        [C('6th-diminished scale', 'keyboard_drill')])]},
+
+    {id:uid(), number:3, name:'Dual-Tasking — Self-Accompaniment', months:'Year 4', status:'not_started',
+     blurb:'Two musicians, one person. The piano answers the voice.',
+     stages:[
+      pianoStageSeed(14, 'The Shirley Horn Method', '—',
+        'Chords land in the gaps between vocal phrases: call and response with yourself.',
+        'Study: Shirley Horn, Diana Krall, Nat King Cole',
+        'Sing a phrase. Say nothing. Answer it with the left hand.',
+        [C('Self-accompanied tunes', 'live_performance')]),
+      pianoStageSeed(15, 'Contrary Motion & Inner Voices', '—',
+        'A chromatic line hidden inside a held chord while the voice sustains.',
+        '—',
+        'Hold a chord, move one inner voice, keep singing.',
+        [C('Inner-voice moves in use', 'keyboard_drill')]),
+      pianoStageSeed(16, 'Intro & Outro Construction', '—',
+        'Piano passages that set the emotional stage before a word is sung.',
+        '—',
+        'Write an intro for a standard you already play. Then a second, different one.',
+        [C('Intros composed', 'composition')]),
+      pianoStageSeed(17, 'Texture Variation', '—',
+        'Sparse rubato verse, then a chorus with a walking bass underneath it.',
+        '—',
+        'One tune, three textures, in one pass.',
+        [C('Arrangement approaches', 'composition')])]},
+
+    {id:uid(), number:4, name:'Singer-Songwriter Synthesis', months:'Year 5', status:'not_started',
+     blurb:'The vocabulary becomes yours: your harmony, your songs.',
+     stages:[
+      pianoStageSeed(18, 'Jazz-Pop Harmonic Analysis', '—',
+        'Pull the jazz tropes out of Laufey, Bruno Major, Norah Jones.',
+        'Lead sheets',
+        'One song a week: write out what the harmony is actually doing.',
+        [C('Songs analysed', 'listening')]),
+      pianoStageSeed(19, 'Reharmonisation', '—',
+        'Secondary dominants, tritone subs, modal interchange — on tunes you know.',
+        '—',
+        'Take one standard and reharmonise eight bars of it, twelve ways.',
+        [C('Reharmonisation techniques', 'keyboard_drill')]),
+      pianoStageSeed(20, 'Composition & Production', '—',
+        'Original jazz-pop songwriting, and getting it out of the room.',
+        'Ableton Live',
+        'Finish something. Finished is the skill.',
+        [C('Original compositions', 'composition')])]}];
+}
+
+/* Gordon's six stages of audiation, self-assessed. The ladder is here because
+   it is the thing underneath all of the above: hearing it before you play it.
+   It is asked about periodically rather than tracked daily — it moves on the
+   scale of seasons. */
+function pianoDefaultAudiation(){
+  return [
+    [1,'Momentary Retention','Hold a short sequence of notes right after hearing it.',
+       'Catching a complex phrase and still having it a second later.'],
+    [2,'Imitation','Sing back what you heard, accurately.',
+       'Singing a lick off the record before you go near the keys.'],
+    [3,'Assimilation','Recognise the pattern behind what you imitated.',
+       'Hearing that the lick is an enclosure, not just a shape.'],
+    [4,'Retention','Hold longer material, and hold it over time.',
+       'Carrying a whole chorus in your head on the way home.'],
+    [5,'Generalisation','Recognise the same pattern somewhere new.',
+       'Hearing that ii-V in a key you have never played it in.'],
+    [6,'Creativity','Make new material out of the vocabulary, in real time.',
+       'Improvising a line you have never played and meaning it.']
+  ].map(([stage, name, what, jazz]) =>
+    ({stage, name, what, jazz, level:'developing', assessedAt:null}));
+}
+
+/* The shelf. These are the books the roadmap is built on, so they arrive with
+   it — the point of a reference shelf is that you do not have to remember
+   which book the thing you are stuck on is in. */
+function pianoDefaultResources(){
+  return [
+    ['Jazz Piano Fundamentals, Books 1 & 2','Jeremy Siskind','book',
+     'Step-by-step adult pedagogy, practice plans, listening guides.',
+     'The transition in. Lead sheets and basic 7th chords.'],
+    ['Jazz Keyboard Harmony','Phil DeGreg','book',
+     'Voicings built systematically, cycle by cycle.',
+     'Shells, then rootless. The core of phases 1 and 2.'],
+    ['The Jazz Piano Book','Mark Levine','book',
+     'The encyclopedia. Not a course.',
+     'Looking one thing up, thoroughly.'],
+    ['Scat! Vocal Improvisation Techniques','Bob Stoloff','book',
+     'Syllables, rhythm, and the ear.',
+     'The vocal half, and transcription by ear.'],
+    ['Forward Motion','Hal Galper','book',
+     'Why lines that are correct still sound wrong.',
+     'Rhythm and phrasing, once the notes are there.'],
+    ['Effortless Mastery','Kenny Werner','book',
+     'The psychology of it: practice time against play time.',
+     'The weeks where it stops being fun.'],
+    ['Barry Harris masterclasses','Barry Harris','youtube',
+     'The 6th-diminished world, taught by the man himself.',
+     'Phase 2, stages 9 and 13.'],
+    ['Jazzedge / Open Studio','—','website',
+     'Structured online lessons and play-alongs.',
+     'When you want somebody to tell you what to do today.']
+  ].map(([title, author, type, focus, bestFor]) =>
+    ({id:uid(), title, author, type, focus, bestFor, url:'', notes:'', stageIds:[]}));
 }
 /* ============================================================
    PLANNING — the room, already furnished.

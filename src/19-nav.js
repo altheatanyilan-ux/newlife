@@ -45,6 +45,9 @@ const NAV_ICONS = {
      so it is drawn as what it holds: a sheet with its corner turned, and a
      second one behind it. Still not a pen — the Writing Studio has the pen. */
   content:'<svg viewBox="0 0 24 24"><path d="M8.8 6.9V5.2a1.8 1.8 0 0 1 1.8-1.8h6.2a1.8 1.8 0 0 1 1.8 1.8v9.5a1.8 1.8 0 0 1-1.8 1.8h-1.4"/><path d="M6.2 6.9h5.5l4.3 4.3v7.4a1.8 1.8 0 0 1-1.8 1.8H6.2a1.8 1.8 0 0 1-1.8-1.8V8.7a1.8 1.8 0 0 1 1.8-1.8Z"/><path d="M11.5 7.1v4.3h4.3"/><path d="M7.3 15.1h5.2M7.3 17.6h3.4"/></svg>',
+  /* A grand seen from above: the straight edge with the keys along it, and
+     the lid curving away. Not a keyboard — a keyboard at 24px is a barcode. */
+  piano:    '<svg viewBox="0 0 24 24"><path d="M4.5 7.5h8.2c4 0 6.8 2.4 6.8 5.6 0 2-1.5 3.4-3.6 3.4H4.5Z"/><path d="M4.5 7.5v9M8 7.5v4M11.5 7.5v4M15 8.2v3.4"/><path d="M4.5 11.5h11"/></svg>',
   import:     '<svg viewBox="0 0 24 24"><rect x="3.5" y="13" width="17" height="7.5" rx="2"/><path d="M3.5 16h4l1.5 2h6l1.5-2h4"/><path d="M12 3.5v9M9.5 10l2.5 2.5L14.5 10"/></svg>',
 };
 /* labels match the h1 of the page they open; `short` is for the mobile bar only */
@@ -60,6 +63,7 @@ const NAV_PAGES = {
   content:  {label:'Content Studio',   short:'Studio',   ico:NAV_ICONS.content,  route:'#/content'},
   values:   {label:'Values',           short:'Values',   ico:NAV_ICONS.values,   route:'#/values'},
   skills:   {label:'Skill Tree',       short:'Skills',   ico:NAV_ICONS.skills,   route:'#/skills'},
+  piano:    {label:'Piano Studio',     short:'Piano',    ico:NAV_ICONS.piano,    route:'#/piano'},
   timeline: {label:'Timeline',         short:'Timeline', ico:NAV_ICONS.timeline, route:'#/journals/timeline'},
 };
 /* The three rooms you are in most days sit above everything, unlabelled and
@@ -77,7 +81,7 @@ const NAV_PAGES = {
 const NAV_TOP = ['today','planning'];
 const NAV_PINNED = [];
 const NAV_DEFAULT = {
-  create:   ['content','projects','finance','skills'],
+  create:   ['content','projects','finance','skills','piano'],
   identity: ['values','journals','people'],
   standalone:[],
 };

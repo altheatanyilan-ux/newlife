@@ -114,10 +114,18 @@ function focusDockHTML(){
          with no clue where the thing you are timing sits is a link that only
          half arrives. With nothing parked there is nowhere to go, so it is not
          a link at all. -->
-    <a class="fd-on" href="#/today"${ref ? ` data-fdjump="${esc(ref.id)}"` : ''}
+    ${(() => {
+      /* A sitting the Piano Studio started has no task on it — it is on a
+         piece — so the line says the piece and goes to the studio instead of
+         to a Today row that does not exist. */
+      const pn = !ref && !s.idle && S._pianoTimed && typeof pianoPiece === 'function'
+        ? pianoPiece(S._pianoTimed.pieceId) : null;
+      if(pn) return `<a class="fd-on" href="#/piano" title="go to this piece in the Piano Studio"><span class="fd-onname">${esc(pn.title)}</span></a>`;
+      return `<a class="fd-on" href="#/today"${ref ? ` data-fdjump="${esc(ref.id)}"` : ''}
        title="${ref ? 'go to this task on Today' : 'the sitting, in words, on Today'}">${
       ref ? `<span class="fd-onname">${esc(ref.text)}</span>`
-          : `<span class="fd-onname faint">${s.idle ? 'nothing parked' : 'no task'}</span>`}</a>
+          : `<span class="fd-onname faint">${s.idle ? 'nothing parked' : 'no task'}</span>`}</a>`;
+    })()}
   </div>`;
 }
 
@@ -217,7 +225,10 @@ function bindFocusDock(dock){
   if(stop) stop.onclick = () => {
     /* ask whose sitting this is before stopping it — stop() clears the task */
     const on = FocusTimer.state().taskId;
+    const mins = Math.round((FocusTimer.state().elapsed || 0) / 60);
     FocusTimer.stop(); focusSaySpent('Finished', on); sound('click'); paintFocusDock();
+    /* a sitting the Piano Studio started comes back to it with its minutes */
+    if(typeof pianoSittingEnded === 'function') pianoSittingEnded(mins);
   };
 
   /* the name goes to the row, wherever on Today it has ended up */

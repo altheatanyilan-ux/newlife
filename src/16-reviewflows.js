@@ -117,6 +117,13 @@ function flowEvening(opts = {}){
 /* ---------- 3. the weekly review ---------- */
 function flowWeekly(opts = {}){
   const T = today(); const days = planDaysFrom(T);
+  /* The bench, but only when there is something to say about it — a review
+     step that reads "nothing happened" every week is a step people learn to
+     press past, and then press past on the week it does say something. */
+  const pianoSaid = typeof pianoReviewLines === 'function' ? pianoReviewLines(days[0], days[6]) : [];
+  const pianoWeek = pianoSaid.length ? [{title:'The week at the piano.', hint:'Hours, keys, and what is going rusty.',
+    body: () => `<div class="stack" style="gap:6px">${pianoSaid.map(l => `<div class="rev-summary">${esc(l)}</div>`).join('')}
+      <div class="row"><button class="btn sm ghost" data-flowgo="#/piano">open the studio</button></div></div>`}] : [];
   guidedFlow('Weekly review', [
     {title:'The week, in shape.', hint:'Which days were full? Which were quiet? Is there a pattern you did not choose?',
      body: () => tapeWeekHTML(T)},
@@ -134,6 +141,7 @@ function flowWeekly(opts = {}){
          return `<div class="row between"><span style="color:${d.c};min-width:6em">${d.name}</span><span class="bar" style="flex:1;--c:${d.c}"><i style="width:${Math.min(100,t*12)}%"></i></span><span class="mono">${t} kept</span></div>`; }).join('')}</div>`; }},
     {title:'The week against the lists you made.', hint:'Seven days of intentions, against seven days of evidence.',
      body: () => tasksReviewHTML(days[0], days[6])},
+    ...pianoWeek,
     {title:'Anything else from this week?', hint:'Anything that happened and never got written down. Add it here and the review stays where it is.',
      body: () => captureStepHTML(days[0], days[6]), bind: b => bindCaptureStep(b, days[0], days[6])},
     {title:"Next week's one intention.",
