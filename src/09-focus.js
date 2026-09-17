@@ -181,12 +181,17 @@ function askSubEstimate(rid, sid){
    Three things, in order: put the task on today, because a task you are
    sitting down with now is today's whether or not it was this morning; set
    the countdown to the length you estimated and hand it the task; and go to
-   the page the timer lives on. */
+   the page the timer lives on.
+
+   It is the do date that moves. Sitting down with a thing says when you are
+   doing it, and says nothing about when it is owed — moving the deadline to
+   today because you started the work would make every task you touch look
+   due today, and lose the date somebody else is waiting on. */
 function focusOnTask(id, minutes = 0, what = '', subId = null){
   const t = (typeof planTaskById === 'function' ? planTaskById(id) : null) ||
             (typeof findTaskRef === 'function' ? findTaskRef(id)?.task : null);
   const T = today();
-  if(t && t.day !== T){ t.day = T; t.updatedAt = new Date().toISOString(); saveNow(); }
+  if(t && t.doDay !== T && t.day !== T){ t.doDay = T; t.updatedAt = new Date().toISOString(); saveNow(); }
   /* a length can only be set while nothing is running, so a sitting already
      under way is stopped first — pressing an estimate is an unambiguous
      request to sit down with that thing for that long */

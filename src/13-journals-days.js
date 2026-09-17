@@ -77,7 +77,7 @@ function archiveDays(){
     if(r && (r.wakeTime || r.sleepTime || (r.blocks || []).length)) add(d); });
   Object.entries(S.habitLog || {}).forEach(([d, kept]) => {
     if(kept && Object.values(kept).some(Boolean)) add(d); });
-  (S.tasks || []).forEach(t => add(t.day));
+  (S.tasks || []).forEach(t => { add(t.day); add(t.doDay); });
   (S.entries || []).forEach(e => add((e.createdAt || '').slice(0, 10)));
   try { (typeof focusSessions === 'function' ? focusSessions() : [])
     .forEach(f => add((f.startedAt || '').slice(0, 10))); } catch(e){}

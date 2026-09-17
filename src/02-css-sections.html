@@ -1025,6 +1025,11 @@ button.pt-sub{border:none;cursor:pointer}
 @media (hover:none){.task-defer{opacity:1}}
 .task-where:hover{color:var(--terra)}
 .task-day{flex:none}
+/* A row on a day for a reason other than the obvious one says so quietly: the
+   deadline behind a planned day, or the planned day behind a deadline. It is
+   an aside, not a warning, so it reads as an outline rather than a colour. */
+.task-when{flex:none;font-size:.66rem;opacity:.72;padding:1px 6px;border:1px solid var(--line);
+  border-radius:999px;white-space:nowrap}
 .week-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px;margin-top:8px}
 .day-col{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:10px 9px;min-height:220px;display:flex;flex-direction:column;transition:border-color .2s var(--ease),background .2s var(--ease)}
 .day-col.over,.late-card.over,.shelf-drop.over{border-color:var(--page-accent);background:color-mix(in srgb,var(--page-accent) 7%,var(--surface))}
@@ -3562,6 +3567,8 @@ select.sm-active{border-color:var(--page-accent);
   background:color-mix(in srgb,var(--c,var(--page-accent)) 16%,transparent);
   border:none;border-left:2px solid var(--c,var(--page-accent));border-radius:4px;color:var(--text);cursor:pointer;
   font-size:.7rem;padding:2px 6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* a day you chose, rather than a day you were given: hollow, dashed, lighter */
+.pc-pill.planned{background:transparent;border-left-style:dashed;opacity:.86}
 .pc-pill:hover{background:color-mix(in srgb,var(--c,var(--page-accent)) 28%,transparent)}
 .pc-pill.done{opacity:.45;text-decoration:line-through}
 .pc-pill .mono{font-size:.62rem;opacity:.75}
@@ -7521,5 +7528,7 @@ html[data-theme="light"] .wk-sleep.is-guess{background-image:repeating-linear-gr
 
 /* finished today, but never on today's list */
 .task-elsewhere{opacity:.7;font-style:italic}
+
+.pt-do{opacity:.72;font-style:italic}
 </style>
 </head>

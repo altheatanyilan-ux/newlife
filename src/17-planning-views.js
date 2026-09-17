@@ -60,6 +60,22 @@ function planCalendarHTML(tasks){
       : `<div class="pc-scroll">${mode === 'month' ? planCalMonthHTML(cur, tasks) : planCalWeekHTML(cur, tasks)}</div>`}
   </div>`;
 }
+/* A pill is "planned" on a day when that is the day you said you would do it
+   and not the day it is owed — the case worth marking, because the other
+   three (owed only, both, neither) are already what a calendar square means. */
+const planPillPlanned = (t, d) => t.doDay === d && t.day !== d;
+function planPillWhy(t, d){
+  if(t.doDay === d && t.day && t.day !== d) return `${t.text} — to do today, owed ${fmtDate(t.day, 'med')}`;
+  if(t.day === d && t.doDay && t.doDay !== d) return `${t.text} — owed today, to do ${fmtDate(t.doDay, 'med')}`;
+  return t.text;
+}
+/* Moving a pill moves the date that put it where it was picked up from. A
+   thing dragged out of Tuesday because you will not get to it until Thursday
+   is moving your plan, not the day your client expects it. */
+function planMoveCalDate(t, from, to){
+  if(from && t.doDay === from && t.day !== from) t.doDay = to;
+  else t.day = to;
+}
 function planMonthLabel(d){ const x = parseDay(d); return `${MONTHS[x.getMonth()]} ${x.getFullYear()}`; }
 function planWeekStart(d){ const x = parseDay(d); const back = (x.getDay() + 6) % 7; return addDays(d, -back); }
 function planCalMonthHTML(cur, tasks){
@@ -67,7 +83,12 @@ function planCalMonthHTML(cur, tasks){
   const first = new Date(y, m, 1), lead = (first.getDay() + 6) % 7;
   const days = new Date(y, m + 1, 0).getDate();
   const byDay = new Map();
-  tasks.forEach(t => { if(!t.day) return; if(!byDay.has(t.day)) byDay.set(t.day, []); byDay.get(t.day).push(t); });
+  /* A task is on a calendar day for either reason: it is owed then, or you
+     said you would do it then. The two are drawn differently, because a
+     square with four things in it is only useful if you can see at a glance
+     which of them somebody else is waiting for. */
+  const put = (d, t) => { if(!d) return; if(!byDay.has(d)) byDay.set(d, []); byDay.get(d).push(t); };
+  tasks.forEach(t => { put(t.day, t); if(t.doDay && t.doDay !== t.day) put(t.doDay, t); });
   const cells = [];
   for(let i = 0; i < lead; i++) cells.push('<div class="pc-cell blank"></div>');
   for(let d = 1; d <= days; d++){
@@ -76,8 +97,8 @@ function planCalMonthHTML(cur, tasks){
     const late = ts.some(planIsLate);
     cells.push(`<div class="pc-cell${iso === today() ? ' now' : ''}${late ? ' late' : ''}" data-pcday="${iso}">
       <div class="pc-n"><span>${d}</span><button class="pc-add" data-pcadd="${iso}" title="add on this day">＋</button></div>
-      ${ts.slice(0, 3).map(t => `<button class="pc-pill${t.done ? ' done' : ''}" data-ptcard="${t.id}" draggable="true"
-        title="${esc(t.text)}${t.dueTime ? ' · ' + esc(t.dueTime) : ''}"
+      ${ts.slice(0, 3).map(t => `<button class="pc-pill${t.done ? ' done' : ''}${planPillPlanned(t, iso) ? ' planned' : ''}" data-ptcard="${t.id}" draggable="true"
+        title="${esc(planPillWhy(t, iso))}${t.dueTime ? ' · ' + esc(t.dueTime) : ''}"
         style="--c:${planPriority(t.priority).color || planListColor(t.listId)}">${esc(t.text)}</button>`).join('')}
       ${ts.length > 3 ? `<button class="pc-more" data-pcopen="${iso}">+${ts.length - 3} more</button>` : ''}</div>`);
   }
@@ -88,22 +109,22 @@ function planCalWeekHTML(cur, tasks){
   const start = planWeekStart(cur);
   const days = Array.from({length:7}, (_, i) => addDays(start, i));
   return `<div class="pc-week">${days.map(d => {
-    const ts = tasks.filter(t => t.day === d);
+    const ts = tasks.filter(t => planOnDay(t, d));
     const timed = ts.filter(t => t.dueTime).sort((a, b) => a.dueTime.localeCompare(b.dueTime));
     const allday = ts.filter(t => !t.dueTime);
-    return `<div class="pc-col${d === today() ? ' now' : ''}" data-pcday="${d}">
+    return `<div class="pc-col${d === today() ? ' now' : ''}" data-pcday="${d}" data-pccol="${d}">
       <div class="pc-colh"><span class="mono">${['Mo','Tu','We','Th','Fr','Sa','Su'][(parseDay(d).getDay() + 6) % 7]}</span>
         <span class="serif">${parseDay(d).getDate()}</span>
         <button class="pc-add" data-pcadd="${d}">＋</button></div>
-      <div class="pc-allday" data-ptgroup>${allday.map(t => `<button class="pc-pill${t.done ? ' done' : ''}" data-ptcard="${t.id}" draggable="true"
-        title="${esc(t.text)}" style="--c:${planPriority(t.priority).color || planListColor(t.listId)}">${esc(t.text)}</button>`).join('')}</div>
+      <div class="pc-allday" data-ptgroup>${allday.map(t => `<button class="pc-pill${t.done ? ' done' : ''}${planPillPlanned(t, d) ? ' planned' : ''}" data-ptcard="${t.id}" draggable="true"
+        title="${esc(planPillWhy(t, d))}" style="--c:${planPriority(t.priority).color || planListColor(t.listId)}">${esc(t.text)}</button>`).join('')}</div>
       <div class="pc-timed" data-ptgroup>${timed.map(t => `<button class="pc-pill timed${t.done ? ' done' : ''}" data-ptcard="${t.id}" draggable="true"
         title="${esc(t.dueTime)} · ${esc(t.text)}" style="--c:${planPriority(t.priority).color || planListColor(t.listId)}"><span class="mono">${esc(t.dueTime)}</span> ${esc(t.text)}</button>`).join('')}</div>
     </div>`; }).join('')}</div>`;
 }
 const PC_DAY_H = 46;                              // pixels per hour on the day timeline
 function planCalDayHTML(cur, tasks){
-  const ts = tasks.filter(t => t.day === cur);
+  const ts = tasks.filter(t => planOnDay(t, cur));
   const timed = ts.filter(t => t.dueTime), loose = ts.filter(t => !t.dueTime);
   const now = new Date(), nowMin = now.getHours() * 60 + now.getMinutes();
   return `<div class="pc-daywrap">
@@ -188,8 +209,10 @@ function bindPlanViews(root, sel, tasks){
     cell.addEventListener('dragover', ev => { if(window._plTaskDrag){ ev.preventDefault(); cell.classList.add('over'); } });
     cell.addEventListener('dragleave', () => cell.classList.remove('over'));
     cell.addEventListener('drop', ev => { ev.preventDefault(); cell.classList.remove('over');
-      const t = planTaskById(window._plTaskDrag); window._plTaskDrag = null; if(!t) return;
-      t.day = cell.dataset.pcday; planSyncReminders(t); saveNow(); sound('click'); rerender(); });
+      const t = planTaskById(window._plTaskDrag), from = window._plTaskDragFrom || '';
+      window._plTaskDrag = null; window._plTaskDragFrom = '';
+      if(!t) return;
+      planMoveCalDate(t, from, cell.dataset.pcday); planSyncReminders(t); saveNow(); sound('click'); rerender(); });
   });
   const unsched = root.querySelector('[data-pcunsched]');
   if(unsched){
@@ -208,6 +231,8 @@ function bindPlanViews(root, sel, tasks){
       const t = planTaskById(window._plTaskDrag); window._plTaskDrag = null; if(!t) return;
       const y = ev.clientY - line.getBoundingClientRect().top;
       const mins = clamp(Math.round((y / PC_DAY_H) * 60 / 15) * 15, 0, 23 * 60 + 45);
+      /* the day timeline is hours, and an hour is a time something is owed at,
+         so landing on it is always the deadline */
       t.day = line.dataset.pcdayline; t.dueTime = planMinToTime(mins);
       planSyncReminders(t); saveNow(); sound('click'); rerender(); });
     line.addEventListener('click', ev => {

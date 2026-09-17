@@ -104,6 +104,14 @@ function planTaskDefaults(t){
   t.sectionId = t.sectionId === undefined ? null : t.sectionId;
   t.priority  = clamp(+t.priority || 0, 0, 3);
   t.dueTime   = t.dueTime || '';
+  /* A task can carry two dates and they answer different questions. `day` is
+     the deadline — the day the thing is owed to somebody, often not you.
+     `doDay` is the appointment you made with yourself to sit down with it,
+     which is usually earlier, and is the honest answer to "what am I doing
+     today". Keeping only the deadline meant that everything with a Friday
+     due date sat in Friday until Friday, and a day's page was either empty
+     or a wall. A task needs neither date, either, or both. */
+  t.doDay     = t.doDay || '';
   t.startDate = t.startDate || '';
   t.duration  = t.duration == null ? null : +t.duration;
   t.desc      = t.desc || '';
@@ -230,13 +238,24 @@ function planEnsureTag(name){
 function planOwnTasks(){ return (S.tasks || []).map(planTaskDefaults); }
 function planIsLate(t){ return t.day && !t.done && t.day < today(); }
 function planDueWithin(t, from, to){ return t.day && t.day >= from && t.day <= to; }
+/* The date lists answer "what is on for this period", and a task is on for a
+   period if either of its dates falls in it: the day it is owed, or the day
+   you said you would do it. Lateness is not the same question — missing a day
+   you set for yourself is not being late, it is just not having got to it —
+   so planIsLate stays on the deadline alone. */
+function planOnWithin(t, from, to){
+  return (!!t.day && t.day >= from && t.day <= to) || (!!t.doDay && t.doDay >= from && t.doDay <= to);
+}
+const planOnDay = (t, day) => t.day === day || t.doDay === day;
+const planHasDate = t => !!(t.day || t.doDay);
 
 function planSmartFilter(id){
   const T = today(), all = planOwnTasks();
   if(id === 'inbox')    return all.filter(t => !t.done && t.listId === 'inbox');
-  if(id === 'today')    return all.filter(t => !t.done && t.day && t.day <= T);
-  if(id === 'tomorrow') return all.filter(t => !t.done && t.day === addDays(T, 1));
-  if(id === 'next7')    return all.filter(t => !t.done && planDueWithin(t, T, addDays(T, 7)));
+  if(id === 'today')    return all.filter(t => !t.done && planHasDate(t)
+    && ((t.day && t.day <= T) || (t.doDay && t.doDay <= T)));
+  if(id === 'tomorrow') return all.filter(t => !t.done && planOnDay(t, addDays(T, 1)));
+  if(id === 'next7')    return all.filter(t => !t.done && planOnWithin(t, T, addDays(T, 7)));
   if(id === 'all')      return all.filter(t => !t.done);
   if(id === 'done')     return all.filter(t => t.done && (t.doneAt || '') >= addDays(T, -30));
   return all;
@@ -365,11 +384,11 @@ function planFilterKeep(f, t){
   if(f.search && !(t.text + ' ' + t.desc).toLowerCase().includes(f.search.toLowerCase())) return false;
   const d = f.dateRange;
   if(d === 'overdue'  && !planIsLate(t)) return false;
-  if(d === 'today'    && t.day !== T) return false;
-  if(d === 'tomorrow' && t.day !== addDays(T,1)) return false;
-  if(d === 'next7days'&& !planDueWithin(t, T, addDays(T,7))) return false;
-  if(d === 'noDate'   && t.day) return false;
-  if(d && typeof d === 'object' && d.start && !planDueWithin(t, d.start, d.end || '9999-12-31')) return false;
+  if(d === 'today'    && !planOnDay(t, T)) return false;
+  if(d === 'tomorrow' && !planOnDay(t, addDays(T,1))) return false;
+  if(d === 'next7days'&& !planOnWithin(t, T, addDays(T,7))) return false;
+  if(d === 'noDate'   && planHasDate(t)) return false;
+  if(d && typeof d === 'object' && d.start && !planOnWithin(t, d.start, d.end || '9999-12-31')) return false;
   return true;
 }
 /* how many axes a filter is actually narrowing on, for the badge */
@@ -397,11 +416,11 @@ function planApplySmartList(sl){
     if(f.search && !(t.text + ' ' + t.desc).toLowerCase().includes(f.search.toLowerCase())) return false;
     const d = f.dateRange;
     if(d === 'overdue'  && !planIsLate(t)) return false;
-    if(d === 'today'    && t.day !== T) return false;
-    if(d === 'tomorrow' && t.day !== addDays(T,1)) return false;
-    if(d === 'next7days'&& !planDueWithin(t, T, addDays(T,7))) return false;
-    if(d === 'noDate'   && t.day) return false;
-    if(d && typeof d === 'object' && d.start && !planDueWithin(t, d.start, d.end || '9999-12-31')) return false;
+    if(d === 'today'    && !planOnDay(t, T)) return false;
+    if(d === 'tomorrow' && !planOnDay(t, addDays(T,1))) return false;
+    if(d === 'next7days'&& !planOnWithin(t, T, addDays(T,7))) return false;
+    if(d === 'noDate'   && planHasDate(t)) return false;
+    if(d && typeof d === 'object' && d.start && !planOnWithin(t, d.start, d.end || '9999-12-31')) return false;
     return true;
   });
 }
@@ -542,7 +561,7 @@ function planRollRecurrence(t){
   const r = t.recurrence;
   if(r.endAfter != null){ r.endAfter -= 1; if(r.endAfter <= 0) return null; }
   const copy = newPlanTask(t.text, next, {
-    listId:t.listId, sectionId:t.sectionId, priority:t.priority, dueTime:t.dueTime,
+    listId:t.listId, sectionId:t.sectionId, priority:t.priority, dueTime:t.dueTime, doDay:t.doDay,
     duration:t.duration, desc:t.desc, tags:t.tags.slice(),
     subtasks:t.subtasks.map(s => ({...s, id:uid(), isCompleted:false, completedAt:null})),
     reminders:t.reminders.map(x => ({...x})), recurrence:JSON.parse(JSON.stringify(r)),

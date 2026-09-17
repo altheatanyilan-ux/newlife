@@ -1694,6 +1694,11 @@ button.pt-sub{border:none;cursor:pointer}
 @media (hover:none){.task-defer{opacity:1}}
 .task-where:hover{color:var(--terra)}
 .task-day{flex:none}
+/* A row on a day for a reason other than the obvious one says so quietly: the
+   deadline behind a planned day, or the planned day behind a deadline. It is
+   an aside, not a warning, so it reads as an outline rather than a colour. */
+.task-when{flex:none;font-size:.66rem;opacity:.72;padding:1px 6px;border:1px solid var(--line);
+  border-radius:999px;white-space:nowrap}
 .week-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px;margin-top:8px}
 .day-col{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:10px 9px;min-height:220px;display:flex;flex-direction:column;transition:border-color .2s var(--ease),background .2s var(--ease)}
 .day-col.over,.late-card.over,.shelf-drop.over{border-color:var(--page-accent);background:color-mix(in srgb,var(--page-accent) 7%,var(--surface))}
@@ -4231,6 +4236,8 @@ select.sm-active{border-color:var(--page-accent);
   background:color-mix(in srgb,var(--c,var(--page-accent)) 16%,transparent);
   border:none;border-left:2px solid var(--c,var(--page-accent));border-radius:4px;color:var(--text);cursor:pointer;
   font-size:.7rem;padding:2px 6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* a day you chose, rather than a day you were given: hollow, dashed, lighter */
+.pc-pill.planned{background:transparent;border-left-style:dashed;opacity:.86}
 .pc-pill:hover{background:color-mix(in srgb,var(--c,var(--page-accent)) 28%,transparent)}
 .pc-pill.done{opacity:.45;text-decoration:line-through}
 .pc-pill .mono{font-size:.62rem;opacity:.75}
@@ -8190,6 +8197,8 @@ html[data-theme="light"] .wk-sleep.is-guess{background-image:repeating-linear-gr
 
 /* finished today, but never on today's list */
 .task-elsewhere{opacity:.7;font-style:italic}
+
+.pt-do{opacity:.72;font-style:italic}
 </style>
 </head>
 <body>
@@ -13880,12 +13889,17 @@ function askSubEstimate(rid, sid){
    Three things, in order: put the task on today, because a task you are
    sitting down with now is today's whether or not it was this morning; set
    the countdown to the length you estimated and hand it the task; and go to
-   the page the timer lives on. */
+   the page the timer lives on.
+
+   It is the do date that moves. Sitting down with a thing says when you are
+   doing it, and says nothing about when it is owed — moving the deadline to
+   today because you started the work would make every task you touch look
+   due today, and lose the date somebody else is waiting on. */
 function focusOnTask(id, minutes = 0, what = '', subId = null){
   const t = (typeof planTaskById === 'function' ? planTaskById(id) : null) ||
             (typeof findTaskRef === 'function' ? findTaskRef(id)?.task : null);
   const T = today();
-  if(t && t.day !== T){ t.day = T; t.updatedAt = new Date().toISOString(); saveNow(); }
+  if(t && t.doDay !== T && t.day !== T){ t.doDay = T; t.updatedAt = new Date().toISOString(); saveNow(); }
   /* a length can only be set while nothing is running, so a sitting already
      under way is stopped first — pressing an estimate is an unambiguous
      request to sit down with that thing for that long */
@@ -15521,7 +15535,14 @@ routes.today = function(root){
   const T = today(); const c = checkin(T); const moon = moonPhase();
   const yesterday = addDays(T, -1); const cyest = S.checkins?.[yesterday];
   const cycleDay = S.rehearsal.cycleStart ? daysBetween(S.rehearsal.cycleStart, T) : 0;
-  const rows = tasksForDay(T); const carried = allTaskRefs().filter(r => r.day && !r.done && r.day < T);
+  const rows = tasksForDay(T);
+  /* Work left behind: either it was owed before today, or you said you would
+     sit down with it on a day that has been and gone. Bringing it forward
+     moves the day you mean to do it and leaves the deadline where it is — a
+     thing that was owed on Monday is still late, and saying otherwise would
+     quietly lose the fact you most need. */
+  const carried = allTaskRefs().filter(r => !r.done && !taskOnDay(r.task, T)
+    && ((r.day && r.day < T) || (r.doDay && r.doDay < T)));
   const doneN = rows.filter(r=>r.done).length;
   const ready = lettersOpeningNow();
   const due = decisionsDue();
@@ -15708,7 +15729,7 @@ routes.today = function(root){
       <div class="body">
       <div class="card no-tilt" data-daydrop="${T}" style="margin-top:10px">
         ${dayListFilterHTML(rows)}
-        ${dayTaskListHTML(rows) || (rows.length
+        ${dayTaskListHTML(rows, T) || (rows.length
           ? `<div class="empty">Nothing in that list today. <button class="tbtn" data-tlist="all">show all ${rows.length}</button></div>`
           : `<div class="empty">Park work here from a project, or write one below.</div>`)}
         <div class="row" style="margin-top:10px;gap:8px">${quickTaskInput(T)}<button class="btn sm ghost" id="pullTask">pull in ↓</button><a class="btn sm ghost" href="#/planning/today">all of it →</a></div>
@@ -15993,7 +16014,7 @@ routes.today = function(root){
 
   /* tasks */
   $('#pullTask').onclick = () => openTaskPicker(T, rerender);
-  if($('#carryAll')) $('#carryAll').onclick = () => { carried.forEach(r => r.task.day = T); saveNow(); sound('success'); rerender(); };
+  if($('#carryAll')) $('#carryAll').onclick = () => { carried.forEach(r => r.task.doDay = T); saveNow(); sound('success'); rerender(); };
   bindTaskRows(root); bindDayDrop(root); bindQuickTask(root); bindDayListFilter(root);
   bindFocusSection(root, redraw);
 
@@ -19065,7 +19086,7 @@ function archiveDays(){
     if(r && (r.wakeTime || r.sleepTime || (r.blocks || []).length)) add(d); });
   Object.entries(S.habitLog || {}).forEach(([d, kept]) => {
     if(kept && Object.values(kept).some(Boolean)) add(d); });
-  (S.tasks || []).forEach(t => add(t.day));
+  (S.tasks || []).forEach(t => { add(t.day); add(t.doDay); });
   (S.entries || []).forEach(e => add((e.createdAt || '').slice(0, 10)));
   try { (typeof focusSessions === 'function' ? focusSessions() : [])
     .forEach(f => add((f.startedAt || '').slice(0, 10))); } catch(e){}
@@ -33249,7 +33270,7 @@ function monthDays(y, m){                       // full weeks, Monday first
 function dayRecord(d){
   const c = S.checkins[d] || null;
   const entries = S.entries.filter(e => (e.occurredAt||'').slice(0,10) === d || (e.createdAt||'').slice(0,10) === d);
-  const tasks = allTaskRefs().filter(r => r.day === d);
+  const tasks = allTaskRefs().filter(r => taskOnDay(r.task, d));
   const habits = S.habits.filter(h => !h.archived && !h.negative && habitDue(h,d));
   const habitsDone = habits.filter(h => habitDone(h,d));
   const nods = S.nods.filter(n => (n.date||'').slice(0,10) === d);
@@ -33356,7 +33377,7 @@ const EST_OPTIONS = [[0,'—'],[0.25,'15m'],[0.5,'30m'],[1,'1h'],[1.5,'1½h'],[2
 function dayBlocks(d){
   const out = [];
   S.events.filter(e => e.day === d).forEach(e => out.push({kind:'event', id:e.id, title:e.title, start:+e.start, dur:+e.dur, color:domainColor(e.domain), imported:!!e.imported, ref:e}));
-  allTaskRefs().filter(r => r.day === d).forEach(r => { const at = r.task.at; if(at == null) return;
+  allTaskRefs().filter(r => taskOnDay(r.task, d)).forEach(r => { const at = r.task.at; if(at == null) return;
     out.push({kind:'task', id:r.id, title:r.text, start:+at, dur:+(r.task.est || 1), color:'var(--terra)', done:r.done, ref:r}); });
   S.habits.filter(h => !h.archived && !h.negative && habitDue(h,d) && h.at != null).forEach(h => {
     const dim = DIMS.find(x => x.id === h.dimension);
@@ -33366,7 +33387,9 @@ function dayBlocks(d){
 }
 function moveBlock(kind, id, day, start){
   if(kind === 'event'){ const e = byId(S.events, id); if(e){ e.day = day; e.start = start; } }
-  else if(kind === 'task'){ const r = findTaskRef(id); if(r){ r.task.day = day; r.task.at = start; } }
+  /* the day timeline is the shape of a day you are living, so moving a block
+     to another day says when you will do it — the deadline is elsewhere */
+  else if(kind === 'task'){ const r = findTaskRef(id); if(r){ r.task.doDay = day; r.task.at = start; } }
   else if(kind === 'habit'){ const h = byId(S.habits, id); if(h) h.at = start; }
   saveNow();
 }
@@ -33555,7 +33578,8 @@ function openTaskSidePanel(r){
       <button class="btn sm ${r.done?'ghost':'primary'}" id="tsDone">${r.done?'mark not done':'mark done'}</button>
       ${r.go?`<a class="btn sm ghost" href="${r.go}">open ${r.kind==='project'?'the project':'it'}</a>`:''}</div>
     <div class="grid c2" style="gap:10px">
-      <div class="field"><label>Day</label><input class="inp" type="date" id="tsDay" value="${r.day||''}"></div>
+      <div class="field"><label>Due</label><input class="inp" type="date" id="tsDay" value="${r.day||''}"></div>
+      <div class="field"><label>Do on</label><input class="inp" type="date" id="tsDoDay" value="${r.task.doDay||''}"></div>
       <div class="field"><label>Time on the calendar</label><select class="sel" id="tsAt"><option value="">unscheduled</option>${Array.from({length:(HOUR1-HOUR0)*2},(_,i)=>HOUR0+i/2).map(h=>`<option value="${h}" ${+r.task.at===h?'selected':''}>${fmtHour(h)}</option>`).join('')}</select></div>
     </div>
     <div class="field" style="margin-top:10px"><label>Estimate</label><select class="sel" id="tsEst">${EST_OPTIONS.map(([v,l])=>`<option value="${v}" ${+(r.task.est||0)===v?'selected':''}>${l}</option>`).join('')}</select></div>
@@ -33563,6 +33587,7 @@ function openTaskSidePanel(r){
     <div class="row" style="margin-top:14px"><button class="btn sm ghost danger" id="tsDel">Delete this task</button></div>`, 'task-panel');
   p.querySelector('#tsDone').onclick = () => { setTaskDone(r.id, !r.done); sound(r.done?'click':'success'); closePanel(); rerender(); };
   p.querySelector('#tsDay').onchange = e => { r.task.day = e.target.value; saveNow(); rerender(); };
+  p.querySelector('#tsDoDay').onchange = e => { r.task.doDay = e.target.value; saveNow(); rerender(); };
   p.querySelector('#tsAt').onchange = e => { r.task.at = e.target.value === '' ? null : +e.target.value; saveNow(); rerender(); };
   p.querySelector('#tsEst').onchange = e => { r.task.est = +e.target.value; saveNow(); rerender(); };
   const tsN = p.querySelector('#tsNote'); tsN.addEventListener('input', debounce(() => { r.task.notes = tsN.value; saveNow(); }, 500));
@@ -33634,7 +33659,12 @@ function bindRunLog(box, d){
 /* ---------- panel 2: the day's plan ---------- */
 function renderPlanPanel(box, d){
   const p = dayPlan(d); const T = today();
-  const rows = tasksForDay(d); const carried = allTaskRefs().filter(r => r.day && !r.done && r.day < d);
+  const rows = tasksForDay(d);
+  /* left behind on either count: owed before this day, or set aside for a day
+     that has gone. Bringing it forward moves the plan and leaves the deadline
+     alone, so a thing that was late stays late. */
+  const carried = allTaskRefs().filter(r => !r.done && !taskOnDay(r.task, d)
+    && ((r.day && r.day < d) || (r.doDay && r.doDay < d)));
   const planned = sum(p.items.map(i => +i.est || 0)) + sum(rows.filter(r => !p.items.some(i => i.ref === r.id)).map(r => +r.task.est || 0));
   const doneN = p.items.filter(i => i.done).length + rows.filter(r => r.done).length;
   const totalN = p.items.length + rows.length;
@@ -33678,7 +33708,7 @@ function renderPlanPanel(box, d){
   $('#planPull').onclick = () => openTaskPicker(d, rerender);
   $('#planWeekly').onclick = () => openWeeklyPlan(d);
   $('#planMonthly').onclick = () => openMonthlyPlan(d);
-  $('#planCarry') && ($('#planCarry').onclick = () => { carried.forEach(r => r.task.day = d); saveNow(); sound('success'); rerender(); });
+  $('#planCarry') && ($('#planCarry').onclick = () => { carried.forEach(r => r.task.doDay = d); saveNow(); sound('success'); rerender(); });
   $('#planQuick').addEventListener('keydown', e => { if(e.key !== 'Enter') return; const v = e.target.value.trim(); if(!v) return;
     p.items.push({id:uid(), text:v, est:0, done:false, doneAt:''}); saveNow(); sound('click'); rerender(); });
   bindTaskRows(box);
@@ -33843,7 +33873,7 @@ function planMyDay(d = today()){
       const fm = m.querySelector('[data-planfirst]'); if(fm) p.firstMove = fm.value.trim();
       const rk = m.querySelector('[data-planrisk]'); if(rk) p.risk = rk.value.trim();
       if(step < STEPS - 1){ step++; draw(); return; }
-      pool.forEach(r => { if(chosen.has(r.id)) r.task.day = d; });
+      pool.forEach(r => { if(chosen.has(r.id)) r.task.doDay = d; });
       habits.forEach(h => { if(!chosenH.has(h.id)) h.at = null; });
       p.planned = true;
       const first = p.intentions.filter(Boolean)[0];
@@ -37408,9 +37438,13 @@ function bindPlanning(root, sel, tasks){
       openPlanTask(id);
     });
     row.addEventListener('contextmenu', ev => { ev.preventDefault(); openPlanRowMenu(ev, id); });
+    /* Which day the pill was picked up from, so a calendar drop can move the
+       date that put it there rather than always moving the deadline. */
     row.addEventListener('dragstart', ev => { window._plTaskDrag = id; row.classList.add('dragging');
+      window._plTaskDragFrom = row.closest('[data-pcday], [data-pccol]')?.dataset.pcday
+        || row.closest('[data-pccol]')?.dataset.pccol || '';
       ev.dataTransfer.effectAllowed = 'move'; try { ev.dataTransfer.setData('text/plain', id); } catch(e){} });
-    row.addEventListener('dragend', () => { row.classList.remove('dragging'); window._plTaskDrag = null; });
+    row.addEventListener('dragend', () => { row.classList.remove('dragging'); window._plTaskDrag = null; window._plTaskDragFrom = ''; });
   });
   /* the timeline's bar already means "move the dates", so there the name is
      the handle for rearranging the rows */
@@ -37518,6 +37552,7 @@ function planBatchBarHTML(){
     <button class="btn sm ghost" data-pb="move">move…</button>
     <button class="btn sm ghost" data-pb="prio">priority…</button>
     <button class="btn sm ghost" data-pb="day">due date…</button>
+    <button class="btn sm ghost" data-pb="doday">do on…</button>
     <button class="btn sm ghost" data-pb="tag">tag…</button>
     <button class="btn sm ghost" data-pb="quad">matrix…</button>
     <button class="btn sm ghost danger" data-pb="del">delete</button>
@@ -37544,6 +37579,9 @@ function bindPlanBatch(root){
       v => { planEnsureTag(v); ts.forEach(t => { if(!t.tags.includes(v)) t.tags.push(v); }); done(); }, true); return; }
     if(k === 'day'){ planChoose('Due date', [['', 'No date'], [today(), 'Today'], [addDays(today(),1), 'Tomorrow'],
       [addDays(today(),7), 'In a week']], v => { ts.forEach(t => { t.day = v; planSyncReminders(t); }); done(); }); return; }
+    /* the other date: when you are sitting down with them, not when they are owed */
+    if(k === 'doday'){ planChoose('Do on', [['', 'No day'], [today(), 'Today'], [addDays(today(),1), 'Tomorrow'],
+      [addDays(today(),7), 'In a week']], v => { ts.forEach(t => { t.doDay = v; }); done(); }); return; }
     function done(){ S._planPick = null; saveNow(); sound('click'); rerender(); }
   });
 }
@@ -37583,7 +37621,7 @@ function openPlanRowMenu(ev, id){
     if(k === 'del') return requestDelete({label:t.text || 'Task', after:planRedraw,
       remove: () => spliceOut(S.tasks, x => x.id === t.id)});
     if(k === 'dup'){ const c = newPlanTask(t.text + ' (copy)', t.day, JSON.parse(JSON.stringify(
-      {listId:t.listId, sectionId:t.sectionId, priority:t.priority, dueTime:t.dueTime, duration:t.duration,
+      {listId:t.listId, sectionId:t.sectionId, priority:t.priority, dueTime:t.dueTime, doDay:t.doDay, duration:t.duration,
        desc:t.desc, tags:t.tags, subtasks:t.subtasks, quadrant:t.quadrant, kanbanColumn:t.kanbanColumn})));
       c.subtasks.forEach(s => { s.id = uid(); s.isCompleted = false; }); S.tasks.push(c); }
     else t.day = k === 'today' ? today() : k === 'tomorrow' ? addDays(today(), 1)
@@ -37918,6 +37956,14 @@ function planTaskDefaults(t){
   t.sectionId = t.sectionId === undefined ? null : t.sectionId;
   t.priority  = clamp(+t.priority || 0, 0, 3);
   t.dueTime   = t.dueTime || '';
+  /* A task can carry two dates and they answer different questions. `day` is
+     the deadline — the day the thing is owed to somebody, often not you.
+     `doDay` is the appointment you made with yourself to sit down with it,
+     which is usually earlier, and is the honest answer to "what am I doing
+     today". Keeping only the deadline meant that everything with a Friday
+     due date sat in Friday until Friday, and a day's page was either empty
+     or a wall. A task needs neither date, either, or both. */
+  t.doDay     = t.doDay || '';
   t.startDate = t.startDate || '';
   t.duration  = t.duration == null ? null : +t.duration;
   t.desc      = t.desc || '';
@@ -38044,13 +38090,24 @@ function planEnsureTag(name){
 function planOwnTasks(){ return (S.tasks || []).map(planTaskDefaults); }
 function planIsLate(t){ return t.day && !t.done && t.day < today(); }
 function planDueWithin(t, from, to){ return t.day && t.day >= from && t.day <= to; }
+/* The date lists answer "what is on for this period", and a task is on for a
+   period if either of its dates falls in it: the day it is owed, or the day
+   you said you would do it. Lateness is not the same question — missing a day
+   you set for yourself is not being late, it is just not having got to it —
+   so planIsLate stays on the deadline alone. */
+function planOnWithin(t, from, to){
+  return (!!t.day && t.day >= from && t.day <= to) || (!!t.doDay && t.doDay >= from && t.doDay <= to);
+}
+const planOnDay = (t, day) => t.day === day || t.doDay === day;
+const planHasDate = t => !!(t.day || t.doDay);
 
 function planSmartFilter(id){
   const T = today(), all = planOwnTasks();
   if(id === 'inbox')    return all.filter(t => !t.done && t.listId === 'inbox');
-  if(id === 'today')    return all.filter(t => !t.done && t.day && t.day <= T);
-  if(id === 'tomorrow') return all.filter(t => !t.done && t.day === addDays(T, 1));
-  if(id === 'next7')    return all.filter(t => !t.done && planDueWithin(t, T, addDays(T, 7)));
+  if(id === 'today')    return all.filter(t => !t.done && planHasDate(t)
+    && ((t.day && t.day <= T) || (t.doDay && t.doDay <= T)));
+  if(id === 'tomorrow') return all.filter(t => !t.done && planOnDay(t, addDays(T, 1)));
+  if(id === 'next7')    return all.filter(t => !t.done && planOnWithin(t, T, addDays(T, 7)));
   if(id === 'all')      return all.filter(t => !t.done);
   if(id === 'done')     return all.filter(t => t.done && (t.doneAt || '') >= addDays(T, -30));
   return all;
@@ -38179,11 +38236,11 @@ function planFilterKeep(f, t){
   if(f.search && !(t.text + ' ' + t.desc).toLowerCase().includes(f.search.toLowerCase())) return false;
   const d = f.dateRange;
   if(d === 'overdue'  && !planIsLate(t)) return false;
-  if(d === 'today'    && t.day !== T) return false;
-  if(d === 'tomorrow' && t.day !== addDays(T,1)) return false;
-  if(d === 'next7days'&& !planDueWithin(t, T, addDays(T,7))) return false;
-  if(d === 'noDate'   && t.day) return false;
-  if(d && typeof d === 'object' && d.start && !planDueWithin(t, d.start, d.end || '9999-12-31')) return false;
+  if(d === 'today'    && !planOnDay(t, T)) return false;
+  if(d === 'tomorrow' && !planOnDay(t, addDays(T,1))) return false;
+  if(d === 'next7days'&& !planOnWithin(t, T, addDays(T,7))) return false;
+  if(d === 'noDate'   && planHasDate(t)) return false;
+  if(d && typeof d === 'object' && d.start && !planOnWithin(t, d.start, d.end || '9999-12-31')) return false;
   return true;
 }
 /* how many axes a filter is actually narrowing on, for the badge */
@@ -38211,11 +38268,11 @@ function planApplySmartList(sl){
     if(f.search && !(t.text + ' ' + t.desc).toLowerCase().includes(f.search.toLowerCase())) return false;
     const d = f.dateRange;
     if(d === 'overdue'  && !planIsLate(t)) return false;
-    if(d === 'today'    && t.day !== T) return false;
-    if(d === 'tomorrow' && t.day !== addDays(T,1)) return false;
-    if(d === 'next7days'&& !planDueWithin(t, T, addDays(T,7))) return false;
-    if(d === 'noDate'   && t.day) return false;
-    if(d && typeof d === 'object' && d.start && !planDueWithin(t, d.start, d.end || '9999-12-31')) return false;
+    if(d === 'today'    && !planOnDay(t, T)) return false;
+    if(d === 'tomorrow' && !planOnDay(t, addDays(T,1))) return false;
+    if(d === 'next7days'&& !planOnWithin(t, T, addDays(T,7))) return false;
+    if(d === 'noDate'   && planHasDate(t)) return false;
+    if(d && typeof d === 'object' && d.start && !planOnWithin(t, d.start, d.end || '9999-12-31')) return false;
     return true;
   });
 }
@@ -38356,7 +38413,7 @@ function planRollRecurrence(t){
   const r = t.recurrence;
   if(r.endAfter != null){ r.endAfter -= 1; if(r.endAfter <= 0) return null; }
   const copy = newPlanTask(t.text, next, {
-    listId:t.listId, sectionId:t.sectionId, priority:t.priority, dueTime:t.dueTime,
+    listId:t.listId, sectionId:t.sectionId, priority:t.priority, dueTime:t.dueTime, doDay:t.doDay,
     duration:t.duration, desc:t.desc, tags:t.tags.slice(),
     subtasks:t.subtasks.map(s => ({...s, id:uid(), isCompleted:false, completedAt:null})),
     reminders:t.reminders.map(x => ({...x})), recurrence:JSON.parse(JSON.stringify(r)),
@@ -38428,6 +38485,11 @@ function planDetailHTML(t){
     <div class="pd-quick">
       <label class="pd-q"><span class="k">due</span><input type="date" class="inp" id="pdDay" value="${esc(t.day || '')}"></label>
       <label class="pd-q"><span class="k">at</span><input type="time" class="inp" id="pdTime" value="${esc(t.dueTime || '')}"></label>
+      <!-- The day it is owed and the day you will sit down with it are
+           different questions, and only the second one is a plan. A task due
+           on Friday sat in Friday until Friday, which is how a week ends in a
+           wall; this is where you say "Tuesday" and mean it. -->
+      <label class="pd-q"><span class="k">do on</span><input type="date" class="inp" id="pdDoDay" value="${esc(t.doDay || '')}"></label>
       <label class="pd-q"><span class="k">starts</span><input type="date" class="inp" id="pdStart" value="${esc(t.startDate || '')}"></label>
       <label class="pd-q"><span class="k">list</span><select class="sel" id="pdList">
         ${planLists().map(l => `<option value="${l.id}" ${t.listId === l.id ? 'selected' : ''}>${esc(l.name)}</option>`).join('')}</select></label>
@@ -38529,6 +38591,7 @@ function bindPlanDetail(p, t){
   p.querySelectorAll('[data-pdprio]').forEach(b => b.onclick = () => { t.priority = +b.dataset.pdprio; touch(); redraw(); });
   p.querySelector('#pdDay').onchange = function(){ t.day = this.value; planSyncReminders(t); touch(); rerenderPlanBody(); };
   p.querySelector('#pdTime').onchange = function(){ t.dueTime = this.value; planSyncReminders(t); touch(); rerenderPlanBody(); };
+  p.querySelector('#pdDoDay').onchange = function(){ t.doDay = this.value; touch(); rerenderPlanBody(); };
   p.querySelector('#pdStart').onchange = function(){ t.startDate = this.value; touch(); };
   p.querySelector('#pdList').onchange = function(){ t.listId = this.value; t.sectionId = null; touch(); rerenderPlanBody(); };
   p.querySelector('#pdMilestone').onchange = function(){
@@ -38595,7 +38658,7 @@ function bindPlanDetail(p, t){
   p.querySelector('#pdFocus').onclick = () => { FocusTimer.setTask(t.id); closePanelTo('#/today'); };
   p.querySelector('#pdDup').onclick = () => {
     const c = newPlanTask(t.text + ' (copy)', t.day, JSON.parse(JSON.stringify({listId:t.listId, sectionId:t.sectionId,
-      priority:t.priority, dueTime:t.dueTime, duration:t.duration, desc:t.desc, tags:t.tags,
+      priority:t.priority, dueTime:t.dueTime, doDay:t.doDay, duration:t.duration, desc:t.desc, tags:t.tags,
       subtasks:t.subtasks, quadrant:t.quadrant, kanbanColumn:t.kanbanColumn, links:t.links})));
     c.subtasks.forEach(s => { s.id = uid(); s.isCompleted = false; s.completedAt = null; });
     S.tasks.push(c); saveNow(); closePanel(); sound('success'); rerender(); };
@@ -39208,6 +39271,11 @@ function planRowHTML(t, {showList = false, showDate = true} = {}){
       ${t.tags.map(x => `<span class="pt-tag" style="--c:${planTagColor(x)}">${esc(x)}</span>`).join('')}
       ${showList && t.listId !== 'inbox' ? `<span class="pt-list" style="--c:${planListColor(t.listId)}">${esc(planListName(t.listId))}</span>` : ''}
       ${showDate && t.day ? `<span class="pt-day mono${late ? ' late' : ''}">${late ? '⚠ ' : ''}${esc(fmtDate(t.day, 'short'))}${t.dueTime ? ' ' + esc(t.dueTime) : ''}</span>` : ''}
+      <!-- The day you meant to sit down with it, shown when it is not the day
+           it is owed. A row whose only date is a do date used to show no date
+           at all, which made the thing you had planned look unscheduled. -->
+      ${showDate && t.doDay && t.doDay !== t.day
+        ? `<span class="pt-day pt-do mono" title="the day you set aside for it">to do ${esc(fmtDate(t.doDay, 'short'))}</span>` : ''}
     </span>
     <button class="del-x inline" data-ptdel="${t.id}" title="delete">×</button>
   </div>
@@ -39223,8 +39291,12 @@ function planGroupTasks(tasks, sel){
   if(mode === 'date'){
     const g = new Map();
     tasks.forEach(t => {
-      const k = !t.day ? 'No date' : t.day < T ? 'Overdue' : t.day === T ? 'Today'
-        : t.day === addDays(T, 1) ? 'Tomorrow' : fmtDate(t.day, 'med');
+      /* grouped by the date that decides where it sits: the deadline when it
+         has one, otherwise the day you set aside for it — a task with only a
+         do date read as "No date", which is exactly the task you had planned */
+      const d = t.day || t.doDay;
+      const k = !d ? 'No date' : d < T ? 'Overdue' : d === T ? 'Today'
+        : d === addDays(T, 1) ? 'Tomorrow' : fmtDate(d, 'med');
       if(!g.has(k)) g.set(k, []); g.get(k).push(t);
     });
     const order = ['Overdue','Today','Tomorrow'];
@@ -40035,7 +40107,7 @@ function planStatsHTML(){
    ticked off inside tasks. It is a rough instrument and says so. */
 function planProductivityScore(day){
   const all = planOwnTasks();
-  const due = all.filter(t => t.day === day);
+  const due = all.filter(t => planOnDay(t, day));
   const done = due.filter(t => t.done).length;
   const doneShare = due.length ? done / due.length : (all.some(t => t.doneAt === day) ? 1 : 0);
   const mins = sum(planState().focusSessions.filter(s => s.type === 'focus' && (s.startedAt || '').slice(0, 10) === day)
@@ -40110,6 +40182,22 @@ function planCalendarHTML(tasks){
       : `<div class="pc-scroll">${mode === 'month' ? planCalMonthHTML(cur, tasks) : planCalWeekHTML(cur, tasks)}</div>`}
   </div>`;
 }
+/* A pill is "planned" on a day when that is the day you said you would do it
+   and not the day it is owed — the case worth marking, because the other
+   three (owed only, both, neither) are already what a calendar square means. */
+const planPillPlanned = (t, d) => t.doDay === d && t.day !== d;
+function planPillWhy(t, d){
+  if(t.doDay === d && t.day && t.day !== d) return `${t.text} — to do today, owed ${fmtDate(t.day, 'med')}`;
+  if(t.day === d && t.doDay && t.doDay !== d) return `${t.text} — owed today, to do ${fmtDate(t.doDay, 'med')}`;
+  return t.text;
+}
+/* Moving a pill moves the date that put it where it was picked up from. A
+   thing dragged out of Tuesday because you will not get to it until Thursday
+   is moving your plan, not the day your client expects it. */
+function planMoveCalDate(t, from, to){
+  if(from && t.doDay === from && t.day !== from) t.doDay = to;
+  else t.day = to;
+}
 function planMonthLabel(d){ const x = parseDay(d); return `${MONTHS[x.getMonth()]} ${x.getFullYear()}`; }
 function planWeekStart(d){ const x = parseDay(d); const back = (x.getDay() + 6) % 7; return addDays(d, -back); }
 function planCalMonthHTML(cur, tasks){
@@ -40117,7 +40205,12 @@ function planCalMonthHTML(cur, tasks){
   const first = new Date(y, m, 1), lead = (first.getDay() + 6) % 7;
   const days = new Date(y, m + 1, 0).getDate();
   const byDay = new Map();
-  tasks.forEach(t => { if(!t.day) return; if(!byDay.has(t.day)) byDay.set(t.day, []); byDay.get(t.day).push(t); });
+  /* A task is on a calendar day for either reason: it is owed then, or you
+     said you would do it then. The two are drawn differently, because a
+     square with four things in it is only useful if you can see at a glance
+     which of them somebody else is waiting for. */
+  const put = (d, t) => { if(!d) return; if(!byDay.has(d)) byDay.set(d, []); byDay.get(d).push(t); };
+  tasks.forEach(t => { put(t.day, t); if(t.doDay && t.doDay !== t.day) put(t.doDay, t); });
   const cells = [];
   for(let i = 0; i < lead; i++) cells.push('<div class="pc-cell blank"></div>');
   for(let d = 1; d <= days; d++){
@@ -40126,8 +40219,8 @@ function planCalMonthHTML(cur, tasks){
     const late = ts.some(planIsLate);
     cells.push(`<div class="pc-cell${iso === today() ? ' now' : ''}${late ? ' late' : ''}" data-pcday="${iso}">
       <div class="pc-n"><span>${d}</span><button class="pc-add" data-pcadd="${iso}" title="add on this day">＋</button></div>
-      ${ts.slice(0, 3).map(t => `<button class="pc-pill${t.done ? ' done' : ''}" data-ptcard="${t.id}" draggable="true"
-        title="${esc(t.text)}${t.dueTime ? ' · ' + esc(t.dueTime) : ''}"
+      ${ts.slice(0, 3).map(t => `<button class="pc-pill${t.done ? ' done' : ''}${planPillPlanned(t, iso) ? ' planned' : ''}" data-ptcard="${t.id}" draggable="true"
+        title="${esc(planPillWhy(t, iso))}${t.dueTime ? ' · ' + esc(t.dueTime) : ''}"
         style="--c:${planPriority(t.priority).color || planListColor(t.listId)}">${esc(t.text)}</button>`).join('')}
       ${ts.length > 3 ? `<button class="pc-more" data-pcopen="${iso}">+${ts.length - 3} more</button>` : ''}</div>`);
   }
@@ -40138,22 +40231,22 @@ function planCalWeekHTML(cur, tasks){
   const start = planWeekStart(cur);
   const days = Array.from({length:7}, (_, i) => addDays(start, i));
   return `<div class="pc-week">${days.map(d => {
-    const ts = tasks.filter(t => t.day === d);
+    const ts = tasks.filter(t => planOnDay(t, d));
     const timed = ts.filter(t => t.dueTime).sort((a, b) => a.dueTime.localeCompare(b.dueTime));
     const allday = ts.filter(t => !t.dueTime);
-    return `<div class="pc-col${d === today() ? ' now' : ''}" data-pcday="${d}">
+    return `<div class="pc-col${d === today() ? ' now' : ''}" data-pcday="${d}" data-pccol="${d}">
       <div class="pc-colh"><span class="mono">${['Mo','Tu','We','Th','Fr','Sa','Su'][(parseDay(d).getDay() + 6) % 7]}</span>
         <span class="serif">${parseDay(d).getDate()}</span>
         <button class="pc-add" data-pcadd="${d}">＋</button></div>
-      <div class="pc-allday" data-ptgroup>${allday.map(t => `<button class="pc-pill${t.done ? ' done' : ''}" data-ptcard="${t.id}" draggable="true"
-        title="${esc(t.text)}" style="--c:${planPriority(t.priority).color || planListColor(t.listId)}">${esc(t.text)}</button>`).join('')}</div>
+      <div class="pc-allday" data-ptgroup>${allday.map(t => `<button class="pc-pill${t.done ? ' done' : ''}${planPillPlanned(t, d) ? ' planned' : ''}" data-ptcard="${t.id}" draggable="true"
+        title="${esc(planPillWhy(t, d))}" style="--c:${planPriority(t.priority).color || planListColor(t.listId)}">${esc(t.text)}</button>`).join('')}</div>
       <div class="pc-timed" data-ptgroup>${timed.map(t => `<button class="pc-pill timed${t.done ? ' done' : ''}" data-ptcard="${t.id}" draggable="true"
         title="${esc(t.dueTime)} · ${esc(t.text)}" style="--c:${planPriority(t.priority).color || planListColor(t.listId)}"><span class="mono">${esc(t.dueTime)}</span> ${esc(t.text)}</button>`).join('')}</div>
     </div>`; }).join('')}</div>`;
 }
 const PC_DAY_H = 46;                              // pixels per hour on the day timeline
 function planCalDayHTML(cur, tasks){
-  const ts = tasks.filter(t => t.day === cur);
+  const ts = tasks.filter(t => planOnDay(t, cur));
   const timed = ts.filter(t => t.dueTime), loose = ts.filter(t => !t.dueTime);
   const now = new Date(), nowMin = now.getHours() * 60 + now.getMinutes();
   return `<div class="pc-daywrap">
@@ -40238,8 +40331,10 @@ function bindPlanViews(root, sel, tasks){
     cell.addEventListener('dragover', ev => { if(window._plTaskDrag){ ev.preventDefault(); cell.classList.add('over'); } });
     cell.addEventListener('dragleave', () => cell.classList.remove('over'));
     cell.addEventListener('drop', ev => { ev.preventDefault(); cell.classList.remove('over');
-      const t = planTaskById(window._plTaskDrag); window._plTaskDrag = null; if(!t) return;
-      t.day = cell.dataset.pcday; planSyncReminders(t); saveNow(); sound('click'); rerender(); });
+      const t = planTaskById(window._plTaskDrag), from = window._plTaskDragFrom || '';
+      window._plTaskDrag = null; window._plTaskDragFrom = '';
+      if(!t) return;
+      planMoveCalDate(t, from, cell.dataset.pcday); planSyncReminders(t); saveNow(); sound('click'); rerender(); });
   });
   const unsched = root.querySelector('[data-pcunsched]');
   if(unsched){
@@ -40258,6 +40353,8 @@ function bindPlanViews(root, sel, tasks){
       const t = planTaskById(window._plTaskDrag); window._plTaskDrag = null; if(!t) return;
       const y = ev.clientY - line.getBoundingClientRect().top;
       const mins = clamp(Math.round((y / PC_DAY_H) * 60 / 15) * 15, 0, 23 * 60 + 45);
+      /* the day timeline is hours, and an hour is a time something is owed at,
+         so landing on it is always the deadline */
       t.day = line.dataset.pcdayline; t.dueTime = planMinToTime(mins);
       planSyncReminders(t); saveNow(); sound('click'); rerender(); });
     line.addEventListener('click', ev => {
@@ -40333,11 +40430,11 @@ function migrateTasks(){
   }
 }
 /* a uniform view over both kinds, so the planner does not care where a task lives */
-function taskRef(t){ return {kind:'own', id:t.id, text:t.text, day:t.day||'', done:!!t.done, task:t, where:'', color:'var(--page-accent)', go:''}; }
+function taskRef(t){ return {kind:'own', id:t.id, text:t.text, day:t.day||'', doDay:t.doDay||'', done:!!t.done, task:t, where:'', color:'var(--page-accent)', go:''}; }
 function projectTaskRefs(){
   const out = [];
   (S.projects||[]).forEach(p => (p.phases||[]).forEach(ph => (ph.tasks||[]).forEach(t => {
-    out.push({kind:'project', id:`${p.id}:${ph.id}:${t.id}`, text:t.text, day:t.day||'', done:!!t.done, task:t, project:p, phase:ph, where:`${p.name} · ${ph.name}`, color:'var(--terra)', go:`#/projects/${p.id}`});
+    out.push({kind:'project', id:`${p.id}:${ph.id}:${t.id}`, text:t.text, day:t.day||'', doDay:t.doDay||'', done:!!t.done, task:t, project:p, phase:ph, where:`${p.name} · ${ph.name}`, color:'var(--terra)', go:`#/projects/${p.id}`});
   })));
   return out;
 }
@@ -40354,8 +40451,18 @@ const taskOrder = r => (r.task.order == null ? 0 : +r.task.order);
    cleared six unplanned things read as "0 of 0 done", which is both wrong and
    dispiriting. A task finished on this day belongs to it, whatever date it
    carried, and says so on its row. */
+/* Which of a task's two dates land on a given day, or null if neither does.
+   The deadline puts it on the day it is owed; the do date puts it on the day
+   you said you would sit down with it. Both can be the same day, and usually
+   are for work that is only ever a day's worth. */
+function taskDatesOn(t, day){
+  if(!t || !day) return null;
+  const due = (t.day || '') === day, plan = (t.doDay || '') === day;
+  return due || plan ? {due, plan} : null;
+}
+const taskOnDay = (t, day) => !!taskDatesOn(t, day);
 function tasksForDay(day){
-  const own = allTaskRefs().filter(r => r.day === day);
+  const own = allTaskRefs().filter(r => taskOnDay(r.task, day));
   const seen = new Set(own.map(r => r.id));
   const finished = allTaskRefs().filter(r =>
     !seen.has(r.id) && r.done && (r.task.doneAt || '') === day)
@@ -40378,8 +40485,9 @@ function reorderTaskInDay(day, dragId, targetId, before){
   return true;
 }
 function tasksDueBy(day){ return allTaskRefs().filter(r => r.day && r.day <= day && !r.done).sort((a,b)=> a.day.localeCompare(b.day)); }
-function unscheduledTasks(){ return allTaskRefs().filter(r => !r.day && !r.done); }
+function unscheduledTasks(){ return allTaskRefs().filter(r => !r.day && !r.doDay && !r.done); }
 function setTaskDay(id, day){ const r = findTaskRef(id); if(!r) return; r.task.day = day || ''; saveNow(); }
+function setTaskDoDay(id, day){ const r = findTaskRef(id); if(!r) return; r.task.doDay = day || ''; saveNow(); }
 function setTaskDone(id, done){ const r = findTaskRef(id); if(!r) return;
   r.task.done = !!done; r.task.doneAt = done ? today() : null; saveNow();
   if(done) try { RewardFX.check(); } catch(e){}
@@ -40473,8 +40581,18 @@ function subCaretHTML(rid, task, cls = 'task-caret'){
 }
 
 /* ---------- one row ---------- */
-function taskRowHTML(r, {showDay=false, hideDone=false}={}){
+function taskRowHTML(r, {showDay=false, hideDone=false, onDay=''}={}){
   const late = r.day && !r.done && r.day < today();
+  /* Which of the two dates put this row on this day. When they are the same
+     day there is nothing to explain, and when only one is set the row is
+     already about that one — the pill is for the case that used to be
+     impossible: a thing owed on Friday that you sat down with on Tuesday. */
+  const on = onDay ? taskDatesOn(r.task, onDay) : null;
+  const why = on && on.plan && !on.due && r.day
+    ? `<span class="mono task-day task-when" title="you planned to do it today; it is owed ${esc(fmtDate(r.day, 'med'))}">due ${esc(fmtDate(r.day, 'short'))}</span>`
+    : on && on.due && !on.plan && r.doDay
+    ? `<span class="mono task-day task-when" title="it is owed today; you planned to sit down with it ${esc(fmtDate(r.doDay, 'med'))}">to do ${esc(fmtDate(r.doDay, 'short'))}</span>`
+    : '';
   const prog = taskSubCount(r.task);
   const open = subsOpen(r.id, r.task);
   return `<div class="task-row ${r.done?'done':''} ${late?'late':''}${open?' subs-open':''}${taskIsBonus(r)?' bonus':''}" data-taskrow="${r.id}" draggable="true">
@@ -40502,6 +40620,7 @@ function taskRowHTML(r, {showDay=false, hideDone=false}={}){
       title="${prog.done} of ${prog.total} steps done">${prog.done}/${prog.total}</button>`:''}
     ${r.where?`<a class="task-where" href="${r.go}" title="${esc(r.where)}">${esc(r.where)}</a>`:''}
     ${showDay && r.day?`<span class="mono task-day">${late?'⚠ ':''}${fmtDate(r.day,'short')}</span>`:''}
+    ${why}
     <!-- it was not on this day's list; it was finished on this day -->
     ${r.elsewhere?`<span class="mono task-day task-elsewhere" title="${r.day ? 'set for ' + esc(fmtDate(r.day,'med')) + ', finished today' : 'never given a day — finished today'}">${r.day ? esc(fmtDate(r.day,'short')) : 'unplanned'}</span>`:''}
     <!-- Taking something off a day is not the same as deciding never to do it.
@@ -40513,7 +40632,7 @@ function taskRowHTML(r, {showDay=false, hideDone=false}={}){
     <button class="task-bonus${taskIsBonus(r) ? ' on' : ''}" data-tbonus="${r.id}"
       title="${taskIsBonus(r) ? 'a bonus — leaving it is not a miss. Press to make it compulsory.' : 'compulsory today. Press to make it a bonus.'}"
       aria-label="compulsory or bonus">${taskIsBonus(r) ? '✧' : '✦'}</button>
-    ${r.day?`<button class="task-defer" data-tdefer="${r.id}" title="not today — keep it for another day">not today</button>`:''}
+    ${r.day || r.doDay?`<button class="task-defer" data-tdefer="${r.id}" data-tdeferday="${esc(onDay || today())}" title="not today — keep it for another day">not today</button>`:''}
     <button class="del-x inline" data-tdel="${r.id}" title="delete this task for good">×</button>
     </div></div>
   </div>
@@ -40626,11 +40745,15 @@ function bindTaskRows(root, after){
   $$('[data-tdefer]', root).forEach(b => b.onclick = e => {
     e.stopPropagation();
     const r = findTaskRef(b.dataset.tdefer); if(!r) return;
-    const was = r.day;
-    setTaskDay(r.id, '');
+    /* a task can be on this day for either of two reasons, so taking it off
+       has to let go of both, and putting it back has to restore both */
+    const day = b.dataset.tdeferday || today();
+    const was = {day: r.task.day, doDay: r.task.doDay};
+    if(r.task.day === day)   setTaskDay(r.id, '');
+    if(r.task.doDay === day) setTaskDoDay(r.id, '');
     sound('click');
     toast('Off today. It is waiting in the unscheduled list, and “pull in” will find it on any day.', 6000,
-      {label: 'put it back', fn: () => { setTaskDay(r.id, was); redraw(); }});
+      {label: 'put it back', fn: () => { setTaskDay(r.id, was.day); setTaskDoDay(r.id, was.doDay); redraw(); }});
     redraw();
   });
   /* The pencil renames the name beside it, not itself. It used to look for the
@@ -40685,6 +40808,8 @@ function bindTaskRows(root, after){
    column. Landing on a sibling row means order instead, so the row handler
    stops the event before the column sees it — otherwise one drop would be read
    as both, and the day-drop would win by being outermost. */
+/* which day a row is being shown under, read off the column it sits in */
+function dayOfRow(row){ const col = row.closest('[data-daydrop]'); return col ? col.dataset.daydrop : ''; }
 function bindTaskReorder(root, after){
   const redraw = after || rerender;
   const clear = () => $$('.task-row.drop-above, .task-row.drop-below', root)
@@ -40695,8 +40820,11 @@ function bindTaskReorder(root, after){
       if(!id || id === row.dataset.taskrow) return;
       const dragged = findTaskRef(id), target = findTaskRef(row.dataset.taskrow);
       /* only within one day: across days the drop means rescheduling, and the
-         column behind this row is the thing that knows how to do that */
-      if(!dragged || !target || !target.day || dragged.day !== target.day) return;
+         column behind this row is the thing that knows how to do that. The day
+         is the column's, not either task's own date — two rows can sit on the
+         same day for different reasons, one owed on it and one planned for it,
+         and comparing their dates to each other would refuse the drop. */
+      if(!dragged || !target || !dayOfRow(row)) return;
       ev.preventDefault(); ev.stopPropagation();
       const box = row.getBoundingClientRect();
       const before = ev.clientY < box.top + box.height / 2;
@@ -40708,11 +40836,12 @@ function bindTaskReorder(root, after){
       const id = window._taskDrag || ev.dataTransfer.getData('text/plain');
       if(!id || id === row.dataset.taskrow) return;
       const dragged = findTaskRef(id), target = findTaskRef(row.dataset.taskrow);
-      if(!dragged || !target || !target.day || dragged.day !== target.day) return;
+      const day = dayOfRow(row);
+      if(!dragged || !target || !day) return;
       ev.preventDefault(); ev.stopPropagation();
       const before = row.classList.contains('drop-above');
       clear();
-      if(reorderTaskInDay(target.day, id, row.dataset.taskrow, before)){ sound('click'); redraw(); }
+      if(reorderTaskInDay(day, id, row.dataset.taskrow, before)){ sound('click'); redraw(); }
     });
   });
 }
@@ -40721,7 +40850,11 @@ function bindDayDrop(root, after){
   $$('[data-daydrop]', root).forEach(col => {
     col.addEventListener('dragover', ev => { ev.preventDefault(); col.classList.add('over'); });
     col.addEventListener('dragleave', () => col.classList.remove('over'));
-    col.addEventListener('drop', ev => { ev.preventDefault(); col.classList.remove('over'); const id = window._taskDrag || ev.dataTransfer.getData('text/plain'); if(!id) return; setTaskDay(id, col.dataset.daydrop); sound('click'); redraw(); });
+    /* Dropping a task on a day says when you will do it. It used to move the
+       due date, which is a different and much stronger claim: dragging a thing
+       onto Thursday should not tell your client it is now owed on Thursday.
+       The deadline is set where the word "due" is written next to the box. */
+    col.addEventListener('drop', ev => { ev.preventDefault(); col.classList.remove('over'); const id = window._taskDrag || ev.dataTransfer.getData('text/plain'); if(!id) return; setTaskDoDay(id, col.dataset.daydrop); sound('click'); redraw(); });
   });
 }
 /* ---------- narrowing a day to one list ----------
@@ -40778,12 +40911,12 @@ function dayGroupColor(id){
 /* `left` and `total` are counted on everything in the group, not on what is
    drawn: a heading that says "2 left · 5" while hiding the three that are
    done is telling the truth, and one that said "2 left · 2" would not. */
-function dayGroupsHTML(rows, kind, hideDone){
+function dayGroupsHTML(rows, kind, hideDone, day = today()){
   const gs = dayGroups(rows)
     .map(g => ({...g, shown: hideDone ? g.rows.filter(r => !r.done) : g.rows}))
     .filter(g => g.shown.length);
   if(!gs.length) return '';
-  const row = r => taskRowHTML(r, {hideDone});
+  const row = r => taskRowHTML(r, {hideDone, onDay: day});
   /* one list is not a grouping — draw the rows plainly */
   if(gs.length === 1) return `<div class="stack" style="gap:2px">${gs[0].shown.map(row).join('')}</div>`;
   return gs.map(g => { const open = dayGroupOpen(kind, g.id);
@@ -40811,7 +40944,7 @@ const todayShowDone = () => !!S._todayDone;
 
 /* Compulsory first, then bonus. The bonus heading carries its own sentence,
    because the whole point of the split is what it means not to finish. */
-function dayTaskListHTML(rows){
+function dayTaskListHTML(rows, day = today()){
   const shown = filterRowsByList(rows);
   if(!shown.length) return '';
   const hideDone = !todayShowDone();
@@ -40824,12 +40957,12 @@ function dayTaskListHTML(rows){
         <span class="mono tband-n">${left ? `${left} of ${list.length} left` : `all ${list.length} done`}</span>
       </div>
       <div class="tband-note">${esc(note)}</div>
-      ${dayGroupsHTML(list, kind, hideDone)}
+      ${dayGroupsHTML(list, kind, hideDone, day)}
     </div>`; };
   /* with nothing marked bonus there is nothing to contrast, so the day is
      just a list and the headings would be noise */
   if(!extra.length){
-    const body = dayGroupsHTML(must, 'must', hideDone);
+    const body = dayGroupsHTML(must, 'must', hideDone, day);
     /* everything on the day is done and put away. Saying so is better than
        falling through to "nothing in that list today", which is what the
        caller says when the list filter has excluded everything. */
@@ -40877,7 +41010,7 @@ function openTaskPicker(day, after){
   const redraw = after || rerender;
   const draw = (q='') => {
     const needle = q.toLowerCase();
-    const pool = allTaskRefs().filter(r => !r.done && r.day !== day && (!needle || (r.text+' '+r.where).toLowerCase().includes(needle)));
+    const pool = allTaskRefs().filter(r => !r.done && !taskOnDay(r.task, day) && (!needle || (r.text+' '+r.where).toLowerCase().includes(needle)));
     return pool.length ? pool.slice(0,60).map(r => `<button class="choice" data-pick="${r.id}"><span class="ico">${r.kind==='project'?'🎨':'▫'}</span><span><b>${esc(r.text||'Untitled task')}</b>${r.where?`<div class="d">${esc(r.where)}</div>`:''}${r.day?`<div class="d mono">currently ${fmtDate(r.day,'med')}</div>`:'<div class="d mono">unscheduled</div>'}</span></button>`).join('')
       : `<div class="empty">Nothing to pull in. Tasks made inside a project appear here, and so does anything you add below.</div>`;
   };
@@ -40899,12 +41032,12 @@ function openTaskPicker(day, after){
   const refresh = () => { list.innerHTML = draw(m.querySelector('#tpQ').value.trim()); bind(); };
   const bind = () => list.querySelectorAll('[data-pick]').forEach(b => b.onclick = () => {
     const ref = allTaskRefs().find(r => r.id === b.dataset.pick);
-    setTaskDay(b.dataset.pick, day); added.push(ref?.text || 'a task');
+    setTaskDoDay(b.dataset.pick, day); added.push(ref?.text || 'a task');
     sound('success'); note(); refresh(); redraw(); });
   bind(); note();
   m.querySelector('#tpQ').oninput = () => refresh();
   const add = () => { const inp = m.querySelector('#tpNew'); const v = inp.value.trim(); if(!v) return;
-    S.tasks.push(newTask(v, day)); added.push(v); saveNow(); sound('success');
+    S.tasks.push(Object.assign(newTask(v), {doDay: day})); added.push(v); saveNow(); sound('success');
     inp.value = ''; inp.focus(); note(); refresh(); redraw(); };
   m.querySelector('#tpAdd').onclick = add;
   m.querySelector('#tpNew').onkeydown = e => { if(e.key === 'Enter'){ e.preventDefault(); add(); } };

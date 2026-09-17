@@ -47,6 +47,11 @@ function planDetailHTML(t){
     <div class="pd-quick">
       <label class="pd-q"><span class="k">due</span><input type="date" class="inp" id="pdDay" value="${esc(t.day || '')}"></label>
       <label class="pd-q"><span class="k">at</span><input type="time" class="inp" id="pdTime" value="${esc(t.dueTime || '')}"></label>
+      <!-- The day it is owed and the day you will sit down with it are
+           different questions, and only the second one is a plan. A task due
+           on Friday sat in Friday until Friday, which is how a week ends in a
+           wall; this is where you say "Tuesday" and mean it. -->
+      <label class="pd-q"><span class="k">do on</span><input type="date" class="inp" id="pdDoDay" value="${esc(t.doDay || '')}"></label>
       <label class="pd-q"><span class="k">starts</span><input type="date" class="inp" id="pdStart" value="${esc(t.startDate || '')}"></label>
       <label class="pd-q"><span class="k">list</span><select class="sel" id="pdList">
         ${planLists().map(l => `<option value="${l.id}" ${t.listId === l.id ? 'selected' : ''}>${esc(l.name)}</option>`).join('')}</select></label>
@@ -148,6 +153,7 @@ function bindPlanDetail(p, t){
   p.querySelectorAll('[data-pdprio]').forEach(b => b.onclick = () => { t.priority = +b.dataset.pdprio; touch(); redraw(); });
   p.querySelector('#pdDay').onchange = function(){ t.day = this.value; planSyncReminders(t); touch(); rerenderPlanBody(); };
   p.querySelector('#pdTime').onchange = function(){ t.dueTime = this.value; planSyncReminders(t); touch(); rerenderPlanBody(); };
+  p.querySelector('#pdDoDay').onchange = function(){ t.doDay = this.value; touch(); rerenderPlanBody(); };
   p.querySelector('#pdStart').onchange = function(){ t.startDate = this.value; touch(); };
   p.querySelector('#pdList').onchange = function(){ t.listId = this.value; t.sectionId = null; touch(); rerenderPlanBody(); };
   p.querySelector('#pdMilestone').onchange = function(){
@@ -214,7 +220,7 @@ function bindPlanDetail(p, t){
   p.querySelector('#pdFocus').onclick = () => { FocusTimer.setTask(t.id); closePanelTo('#/today'); };
   p.querySelector('#pdDup').onclick = () => {
     const c = newPlanTask(t.text + ' (copy)', t.day, JSON.parse(JSON.stringify({listId:t.listId, sectionId:t.sectionId,
-      priority:t.priority, dueTime:t.dueTime, duration:t.duration, desc:t.desc, tags:t.tags,
+      priority:t.priority, dueTime:t.dueTime, doDay:t.doDay, duration:t.duration, desc:t.desc, tags:t.tags,
       subtasks:t.subtasks, quadrant:t.quadrant, kanbanColumn:t.kanbanColumn, links:t.links})));
     c.subtasks.forEach(s => { s.id = uid(); s.isCompleted = false; s.completedAt = null; });
     S.tasks.push(c); saveNow(); closePanel(); sound('success'); rerender(); };

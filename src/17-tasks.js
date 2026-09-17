@@ -15,11 +15,11 @@ function migrateTasks(){
   }
 }
 /* a uniform view over both kinds, so the planner does not care where a task lives */
-function taskRef(t){ return {kind:'own', id:t.id, text:t.text, day:t.day||'', done:!!t.done, task:t, where:'', color:'var(--page-accent)', go:''}; }
+function taskRef(t){ return {kind:'own', id:t.id, text:t.text, day:t.day||'', doDay:t.doDay||'', done:!!t.done, task:t, where:'', color:'var(--page-accent)', go:''}; }
 function projectTaskRefs(){
   const out = [];
   (S.projects||[]).forEach(p => (p.phases||[]).forEach(ph => (ph.tasks||[]).forEach(t => {
-    out.push({kind:'project', id:`${p.id}:${ph.id}:${t.id}`, text:t.text, day:t.day||'', done:!!t.done, task:t, project:p, phase:ph, where:`${p.name} · ${ph.name}`, color:'var(--terra)', go:`#/projects/${p.id}`});
+    out.push({kind:'project', id:`${p.id}:${ph.id}:${t.id}`, text:t.text, day:t.day||'', doDay:t.doDay||'', done:!!t.done, task:t, project:p, phase:ph, where:`${p.name} · ${ph.name}`, color:'var(--terra)', go:`#/projects/${p.id}`});
   })));
   return out;
 }
@@ -36,8 +36,18 @@ const taskOrder = r => (r.task.order == null ? 0 : +r.task.order);
    cleared six unplanned things read as "0 of 0 done", which is both wrong and
    dispiriting. A task finished on this day belongs to it, whatever date it
    carried, and says so on its row. */
+/* Which of a task's two dates land on a given day, or null if neither does.
+   The deadline puts it on the day it is owed; the do date puts it on the day
+   you said you would sit down with it. Both can be the same day, and usually
+   are for work that is only ever a day's worth. */
+function taskDatesOn(t, day){
+  if(!t || !day) return null;
+  const due = (t.day || '') === day, plan = (t.doDay || '') === day;
+  return due || plan ? {due, plan} : null;
+}
+const taskOnDay = (t, day) => !!taskDatesOn(t, day);
 function tasksForDay(day){
-  const own = allTaskRefs().filter(r => r.day === day);
+  const own = allTaskRefs().filter(r => taskOnDay(r.task, day));
   const seen = new Set(own.map(r => r.id));
   const finished = allTaskRefs().filter(r =>
     !seen.has(r.id) && r.done && (r.task.doneAt || '') === day)
@@ -60,8 +70,9 @@ function reorderTaskInDay(day, dragId, targetId, before){
   return true;
 }
 function tasksDueBy(day){ return allTaskRefs().filter(r => r.day && r.day <= day && !r.done).sort((a,b)=> a.day.localeCompare(b.day)); }
-function unscheduledTasks(){ return allTaskRefs().filter(r => !r.day && !r.done); }
+function unscheduledTasks(){ return allTaskRefs().filter(r => !r.day && !r.doDay && !r.done); }
 function setTaskDay(id, day){ const r = findTaskRef(id); if(!r) return; r.task.day = day || ''; saveNow(); }
+function setTaskDoDay(id, day){ const r = findTaskRef(id); if(!r) return; r.task.doDay = day || ''; saveNow(); }
 function setTaskDone(id, done){ const r = findTaskRef(id); if(!r) return;
   r.task.done = !!done; r.task.doneAt = done ? today() : null; saveNow();
   if(done) try { RewardFX.check(); } catch(e){}
@@ -155,8 +166,18 @@ function subCaretHTML(rid, task, cls = 'task-caret'){
 }
 
 /* ---------- one row ---------- */
-function taskRowHTML(r, {showDay=false, hideDone=false}={}){
+function taskRowHTML(r, {showDay=false, hideDone=false, onDay=''}={}){
   const late = r.day && !r.done && r.day < today();
+  /* Which of the two dates put this row on this day. When they are the same
+     day there is nothing to explain, and when only one is set the row is
+     already about that one — the pill is for the case that used to be
+     impossible: a thing owed on Friday that you sat down with on Tuesday. */
+  const on = onDay ? taskDatesOn(r.task, onDay) : null;
+  const why = on && on.plan && !on.due && r.day
+    ? `<span class="mono task-day task-when" title="you planned to do it today; it is owed ${esc(fmtDate(r.day, 'med'))}">due ${esc(fmtDate(r.day, 'short'))}</span>`
+    : on && on.due && !on.plan && r.doDay
+    ? `<span class="mono task-day task-when" title="it is owed today; you planned to sit down with it ${esc(fmtDate(r.doDay, 'med'))}">to do ${esc(fmtDate(r.doDay, 'short'))}</span>`
+    : '';
   const prog = taskSubCount(r.task);
   const open = subsOpen(r.id, r.task);
   return `<div class="task-row ${r.done?'done':''} ${late?'late':''}${open?' subs-open':''}${taskIsBonus(r)?' bonus':''}" data-taskrow="${r.id}" draggable="true">
@@ -184,6 +205,7 @@ function taskRowHTML(r, {showDay=false, hideDone=false}={}){
       title="${prog.done} of ${prog.total} steps done">${prog.done}/${prog.total}</button>`:''}
     ${r.where?`<a class="task-where" href="${r.go}" title="${esc(r.where)}">${esc(r.where)}</a>`:''}
     ${showDay && r.day?`<span class="mono task-day">${late?'⚠ ':''}${fmtDate(r.day,'short')}</span>`:''}
+    ${why}
     <!-- it was not on this day's list; it was finished on this day -->
     ${r.elsewhere?`<span class="mono task-day task-elsewhere" title="${r.day ? 'set for ' + esc(fmtDate(r.day,'med')) + ', finished today' : 'never given a day — finished today'}">${r.day ? esc(fmtDate(r.day,'short')) : 'unplanned'}</span>`:''}
     <!-- Taking something off a day is not the same as deciding never to do it.
@@ -195,7 +217,7 @@ function taskRowHTML(r, {showDay=false, hideDone=false}={}){
     <button class="task-bonus${taskIsBonus(r) ? ' on' : ''}" data-tbonus="${r.id}"
       title="${taskIsBonus(r) ? 'a bonus — leaving it is not a miss. Press to make it compulsory.' : 'compulsory today. Press to make it a bonus.'}"
       aria-label="compulsory or bonus">${taskIsBonus(r) ? '✧' : '✦'}</button>
-    ${r.day?`<button class="task-defer" data-tdefer="${r.id}" title="not today — keep it for another day">not today</button>`:''}
+    ${r.day || r.doDay?`<button class="task-defer" data-tdefer="${r.id}" data-tdeferday="${esc(onDay || today())}" title="not today — keep it for another day">not today</button>`:''}
     <button class="del-x inline" data-tdel="${r.id}" title="delete this task for good">×</button>
     </div></div>
   </div>
@@ -308,11 +330,15 @@ function bindTaskRows(root, after){
   $$('[data-tdefer]', root).forEach(b => b.onclick = e => {
     e.stopPropagation();
     const r = findTaskRef(b.dataset.tdefer); if(!r) return;
-    const was = r.day;
-    setTaskDay(r.id, '');
+    /* a task can be on this day for either of two reasons, so taking it off
+       has to let go of both, and putting it back has to restore both */
+    const day = b.dataset.tdeferday || today();
+    const was = {day: r.task.day, doDay: r.task.doDay};
+    if(r.task.day === day)   setTaskDay(r.id, '');
+    if(r.task.doDay === day) setTaskDoDay(r.id, '');
     sound('click');
     toast('Off today. It is waiting in the unscheduled list, and “pull in” will find it on any day.', 6000,
-      {label: 'put it back', fn: () => { setTaskDay(r.id, was); redraw(); }});
+      {label: 'put it back', fn: () => { setTaskDay(r.id, was.day); setTaskDoDay(r.id, was.doDay); redraw(); }});
     redraw();
   });
   /* The pencil renames the name beside it, not itself. It used to look for the
@@ -367,6 +393,8 @@ function bindTaskRows(root, after){
    column. Landing on a sibling row means order instead, so the row handler
    stops the event before the column sees it — otherwise one drop would be read
    as both, and the day-drop would win by being outermost. */
+/* which day a row is being shown under, read off the column it sits in */
+function dayOfRow(row){ const col = row.closest('[data-daydrop]'); return col ? col.dataset.daydrop : ''; }
 function bindTaskReorder(root, after){
   const redraw = after || rerender;
   const clear = () => $$('.task-row.drop-above, .task-row.drop-below', root)
@@ -377,8 +405,11 @@ function bindTaskReorder(root, after){
       if(!id || id === row.dataset.taskrow) return;
       const dragged = findTaskRef(id), target = findTaskRef(row.dataset.taskrow);
       /* only within one day: across days the drop means rescheduling, and the
-         column behind this row is the thing that knows how to do that */
-      if(!dragged || !target || !target.day || dragged.day !== target.day) return;
+         column behind this row is the thing that knows how to do that. The day
+         is the column's, not either task's own date — two rows can sit on the
+         same day for different reasons, one owed on it and one planned for it,
+         and comparing their dates to each other would refuse the drop. */
+      if(!dragged || !target || !dayOfRow(row)) return;
       ev.preventDefault(); ev.stopPropagation();
       const box = row.getBoundingClientRect();
       const before = ev.clientY < box.top + box.height / 2;
@@ -390,11 +421,12 @@ function bindTaskReorder(root, after){
       const id = window._taskDrag || ev.dataTransfer.getData('text/plain');
       if(!id || id === row.dataset.taskrow) return;
       const dragged = findTaskRef(id), target = findTaskRef(row.dataset.taskrow);
-      if(!dragged || !target || !target.day || dragged.day !== target.day) return;
+      const day = dayOfRow(row);
+      if(!dragged || !target || !day) return;
       ev.preventDefault(); ev.stopPropagation();
       const before = row.classList.contains('drop-above');
       clear();
-      if(reorderTaskInDay(target.day, id, row.dataset.taskrow, before)){ sound('click'); redraw(); }
+      if(reorderTaskInDay(day, id, row.dataset.taskrow, before)){ sound('click'); redraw(); }
     });
   });
 }
@@ -403,7 +435,11 @@ function bindDayDrop(root, after){
   $$('[data-daydrop]', root).forEach(col => {
     col.addEventListener('dragover', ev => { ev.preventDefault(); col.classList.add('over'); });
     col.addEventListener('dragleave', () => col.classList.remove('over'));
-    col.addEventListener('drop', ev => { ev.preventDefault(); col.classList.remove('over'); const id = window._taskDrag || ev.dataTransfer.getData('text/plain'); if(!id) return; setTaskDay(id, col.dataset.daydrop); sound('click'); redraw(); });
+    /* Dropping a task on a day says when you will do it. It used to move the
+       due date, which is a different and much stronger claim: dragging a thing
+       onto Thursday should not tell your client it is now owed on Thursday.
+       The deadline is set where the word "due" is written next to the box. */
+    col.addEventListener('drop', ev => { ev.preventDefault(); col.classList.remove('over'); const id = window._taskDrag || ev.dataTransfer.getData('text/plain'); if(!id) return; setTaskDoDay(id, col.dataset.daydrop); sound('click'); redraw(); });
   });
 }
 /* ---------- narrowing a day to one list ----------
@@ -460,12 +496,12 @@ function dayGroupColor(id){
 /* `left` and `total` are counted on everything in the group, not on what is
    drawn: a heading that says "2 left · 5" while hiding the three that are
    done is telling the truth, and one that said "2 left · 2" would not. */
-function dayGroupsHTML(rows, kind, hideDone){
+function dayGroupsHTML(rows, kind, hideDone, day = today()){
   const gs = dayGroups(rows)
     .map(g => ({...g, shown: hideDone ? g.rows.filter(r => !r.done) : g.rows}))
     .filter(g => g.shown.length);
   if(!gs.length) return '';
-  const row = r => taskRowHTML(r, {hideDone});
+  const row = r => taskRowHTML(r, {hideDone, onDay: day});
   /* one list is not a grouping — draw the rows plainly */
   if(gs.length === 1) return `<div class="stack" style="gap:2px">${gs[0].shown.map(row).join('')}</div>`;
   return gs.map(g => { const open = dayGroupOpen(kind, g.id);
@@ -493,7 +529,7 @@ const todayShowDone = () => !!S._todayDone;
 
 /* Compulsory first, then bonus. The bonus heading carries its own sentence,
    because the whole point of the split is what it means not to finish. */
-function dayTaskListHTML(rows){
+function dayTaskListHTML(rows, day = today()){
   const shown = filterRowsByList(rows);
   if(!shown.length) return '';
   const hideDone = !todayShowDone();
@@ -506,12 +542,12 @@ function dayTaskListHTML(rows){
         <span class="mono tband-n">${left ? `${left} of ${list.length} left` : `all ${list.length} done`}</span>
       </div>
       <div class="tband-note">${esc(note)}</div>
-      ${dayGroupsHTML(list, kind, hideDone)}
+      ${dayGroupsHTML(list, kind, hideDone, day)}
     </div>`; };
   /* with nothing marked bonus there is nothing to contrast, so the day is
      just a list and the headings would be noise */
   if(!extra.length){
-    const body = dayGroupsHTML(must, 'must', hideDone);
+    const body = dayGroupsHTML(must, 'must', hideDone, day);
     /* everything on the day is done and put away. Saying so is better than
        falling through to "nothing in that list today", which is what the
        caller says when the list filter has excluded everything. */
@@ -559,7 +595,7 @@ function openTaskPicker(day, after){
   const redraw = after || rerender;
   const draw = (q='') => {
     const needle = q.toLowerCase();
-    const pool = allTaskRefs().filter(r => !r.done && r.day !== day && (!needle || (r.text+' '+r.where).toLowerCase().includes(needle)));
+    const pool = allTaskRefs().filter(r => !r.done && !taskOnDay(r.task, day) && (!needle || (r.text+' '+r.where).toLowerCase().includes(needle)));
     return pool.length ? pool.slice(0,60).map(r => `<button class="choice" data-pick="${r.id}"><span class="ico">${r.kind==='project'?'🎨':'▫'}</span><span><b>${esc(r.text||'Untitled task')}</b>${r.where?`<div class="d">${esc(r.where)}</div>`:''}${r.day?`<div class="d mono">currently ${fmtDate(r.day,'med')}</div>`:'<div class="d mono">unscheduled</div>'}</span></button>`).join('')
       : `<div class="empty">Nothing to pull in. Tasks made inside a project appear here, and so does anything you add below.</div>`;
   };
@@ -581,12 +617,12 @@ function openTaskPicker(day, after){
   const refresh = () => { list.innerHTML = draw(m.querySelector('#tpQ').value.trim()); bind(); };
   const bind = () => list.querySelectorAll('[data-pick]').forEach(b => b.onclick = () => {
     const ref = allTaskRefs().find(r => r.id === b.dataset.pick);
-    setTaskDay(b.dataset.pick, day); added.push(ref?.text || 'a task');
+    setTaskDoDay(b.dataset.pick, day); added.push(ref?.text || 'a task');
     sound('success'); note(); refresh(); redraw(); });
   bind(); note();
   m.querySelector('#tpQ').oninput = () => refresh();
   const add = () => { const inp = m.querySelector('#tpNew'); const v = inp.value.trim(); if(!v) return;
-    S.tasks.push(newTask(v, day)); added.push(v); saveNow(); sound('success');
+    S.tasks.push(Object.assign(newTask(v), {doDay: day})); added.push(v); saveNow(); sound('success');
     inp.value = ''; inp.focus(); note(); refresh(); redraw(); };
   m.querySelector('#tpAdd').onclick = add;
   m.querySelector('#tpNew').onkeydown = e => { if(e.key === 'Enter'){ e.preventDefault(); add(); } };

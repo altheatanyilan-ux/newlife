@@ -102,7 +102,14 @@ routes.today = function(root){
   const T = today(); const c = checkin(T); const moon = moonPhase();
   const yesterday = addDays(T, -1); const cyest = S.checkins?.[yesterday];
   const cycleDay = S.rehearsal.cycleStart ? daysBetween(S.rehearsal.cycleStart, T) : 0;
-  const rows = tasksForDay(T); const carried = allTaskRefs().filter(r => r.day && !r.done && r.day < T);
+  const rows = tasksForDay(T);
+  /* Work left behind: either it was owed before today, or you said you would
+     sit down with it on a day that has been and gone. Bringing it forward
+     moves the day you mean to do it and leaves the deadline where it is — a
+     thing that was owed on Monday is still late, and saying otherwise would
+     quietly lose the fact you most need. */
+  const carried = allTaskRefs().filter(r => !r.done && !taskOnDay(r.task, T)
+    && ((r.day && r.day < T) || (r.doDay && r.doDay < T)));
   const doneN = rows.filter(r=>r.done).length;
   const ready = lettersOpeningNow();
   const due = decisionsDue();
@@ -289,7 +296,7 @@ routes.today = function(root){
       <div class="body">
       <div class="card no-tilt" data-daydrop="${T}" style="margin-top:10px">
         ${dayListFilterHTML(rows)}
-        ${dayTaskListHTML(rows) || (rows.length
+        ${dayTaskListHTML(rows, T) || (rows.length
           ? `<div class="empty">Nothing in that list today. <button class="tbtn" data-tlist="all">show all ${rows.length}</button></div>`
           : `<div class="empty">Park work here from a project, or write one below.</div>`)}
         <div class="row" style="margin-top:10px;gap:8px">${quickTaskInput(T)}<button class="btn sm ghost" id="pullTask">pull in ↓</button><a class="btn sm ghost" href="#/planning/today">all of it →</a></div>
@@ -574,7 +581,7 @@ routes.today = function(root){
 
   /* tasks */
   $('#pullTask').onclick = () => openTaskPicker(T, rerender);
-  if($('#carryAll')) $('#carryAll').onclick = () => { carried.forEach(r => r.task.day = T); saveNow(); sound('success'); rerender(); };
+  if($('#carryAll')) $('#carryAll').onclick = () => { carried.forEach(r => r.task.doDay = T); saveNow(); sound('success'); rerender(); };
   bindTaskRows(root); bindDayDrop(root); bindQuickTask(root); bindDayListFilter(root);
   bindFocusSection(root, redraw);
 

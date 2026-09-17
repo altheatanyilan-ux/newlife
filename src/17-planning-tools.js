@@ -427,7 +427,7 @@ function planStatsHTML(){
    ticked off inside tasks. It is a rough instrument and says so. */
 function planProductivityScore(day){
   const all = planOwnTasks();
-  const due = all.filter(t => t.day === day);
+  const due = all.filter(t => planOnDay(t, day));
   const done = due.filter(t => t.done).length;
   const doneShare = due.length ? done / due.length : (all.some(t => t.doneAt === day) ? 1 : 0);
   const mins = sum(planState().focusSessions.filter(s => s.type === 'focus' && (s.startedAt || '').slice(0, 10) === day)

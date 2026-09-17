@@ -499,6 +499,11 @@ function planRowHTML(t, {showList = false, showDate = true} = {}){
       ${t.tags.map(x => `<span class="pt-tag" style="--c:${planTagColor(x)}">${esc(x)}</span>`).join('')}
       ${showList && t.listId !== 'inbox' ? `<span class="pt-list" style="--c:${planListColor(t.listId)}">${esc(planListName(t.listId))}</span>` : ''}
       ${showDate && t.day ? `<span class="pt-day mono${late ? ' late' : ''}">${late ? '⚠ ' : ''}${esc(fmtDate(t.day, 'short'))}${t.dueTime ? ' ' + esc(t.dueTime) : ''}</span>` : ''}
+      <!-- The day you meant to sit down with it, shown when it is not the day
+           it is owed. A row whose only date is a do date used to show no date
+           at all, which made the thing you had planned look unscheduled. -->
+      ${showDate && t.doDay && t.doDay !== t.day
+        ? `<span class="pt-day pt-do mono" title="the day you set aside for it">to do ${esc(fmtDate(t.doDay, 'short'))}</span>` : ''}
     </span>
     <button class="del-x inline" data-ptdel="${t.id}" title="delete">×</button>
   </div>
@@ -514,8 +519,12 @@ function planGroupTasks(tasks, sel){
   if(mode === 'date'){
     const g = new Map();
     tasks.forEach(t => {
-      const k = !t.day ? 'No date' : t.day < T ? 'Overdue' : t.day === T ? 'Today'
-        : t.day === addDays(T, 1) ? 'Tomorrow' : fmtDate(t.day, 'med');
+      /* grouped by the date that decides where it sits: the deadline when it
+         has one, otherwise the day you set aside for it — a task with only a
+         do date read as "No date", which is exactly the task you had planned */
+      const d = t.day || t.doDay;
+      const k = !d ? 'No date' : d < T ? 'Overdue' : d === T ? 'Today'
+        : d === addDays(T, 1) ? 'Tomorrow' : fmtDate(d, 'med');
       if(!g.has(k)) g.set(k, []); g.get(k).push(t);
     });
     const order = ['Overdue','Today','Tomorrow'];

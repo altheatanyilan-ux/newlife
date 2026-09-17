@@ -37,7 +37,7 @@ function monthDays(y, m){                       // full weeks, Monday first
 function dayRecord(d){
   const c = S.checkins[d] || null;
   const entries = S.entries.filter(e => (e.occurredAt||'').slice(0,10) === d || (e.createdAt||'').slice(0,10) === d);
-  const tasks = allTaskRefs().filter(r => r.day === d);
+  const tasks = allTaskRefs().filter(r => taskOnDay(r.task, d));
   const habits = S.habits.filter(h => !h.archived && !h.negative && habitDue(h,d));
   const habitsDone = habits.filter(h => habitDone(h,d));
   const nods = S.nods.filter(n => (n.date||'').slice(0,10) === d);
@@ -144,7 +144,7 @@ const EST_OPTIONS = [[0,'—'],[0.25,'15m'],[0.5,'30m'],[1,'1h'],[1.5,'1½h'],[2
 function dayBlocks(d){
   const out = [];
   S.events.filter(e => e.day === d).forEach(e => out.push({kind:'event', id:e.id, title:e.title, start:+e.start, dur:+e.dur, color:domainColor(e.domain), imported:!!e.imported, ref:e}));
-  allTaskRefs().filter(r => r.day === d).forEach(r => { const at = r.task.at; if(at == null) return;
+  allTaskRefs().filter(r => taskOnDay(r.task, d)).forEach(r => { const at = r.task.at; if(at == null) return;
     out.push({kind:'task', id:r.id, title:r.text, start:+at, dur:+(r.task.est || 1), color:'var(--terra)', done:r.done, ref:r}); });
   S.habits.filter(h => !h.archived && !h.negative && habitDue(h,d) && h.at != null).forEach(h => {
     const dim = DIMS.find(x => x.id === h.dimension);
@@ -154,7 +154,9 @@ function dayBlocks(d){
 }
 function moveBlock(kind, id, day, start){
   if(kind === 'event'){ const e = byId(S.events, id); if(e){ e.day = day; e.start = start; } }
-  else if(kind === 'task'){ const r = findTaskRef(id); if(r){ r.task.day = day; r.task.at = start; } }
+  /* the day timeline is the shape of a day you are living, so moving a block
+     to another day says when you will do it — the deadline is elsewhere */
+  else if(kind === 'task'){ const r = findTaskRef(id); if(r){ r.task.doDay = day; r.task.at = start; } }
   else if(kind === 'habit'){ const h = byId(S.habits, id); if(h) h.at = start; }
   saveNow();
 }
@@ -343,7 +345,8 @@ function openTaskSidePanel(r){
       <button class="btn sm ${r.done?'ghost':'primary'}" id="tsDone">${r.done?'mark not done':'mark done'}</button>
       ${r.go?`<a class="btn sm ghost" href="${r.go}">open ${r.kind==='project'?'the project':'it'}</a>`:''}</div>
     <div class="grid c2" style="gap:10px">
-      <div class="field"><label>Day</label><input class="inp" type="date" id="tsDay" value="${r.day||''}"></div>
+      <div class="field"><label>Due</label><input class="inp" type="date" id="tsDay" value="${r.day||''}"></div>
+      <div class="field"><label>Do on</label><input class="inp" type="date" id="tsDoDay" value="${r.task.doDay||''}"></div>
       <div class="field"><label>Time on the calendar</label><select class="sel" id="tsAt"><option value="">unscheduled</option>${Array.from({length:(HOUR1-HOUR0)*2},(_,i)=>HOUR0+i/2).map(h=>`<option value="${h}" ${+r.task.at===h?'selected':''}>${fmtHour(h)}</option>`).join('')}</select></div>
     </div>
     <div class="field" style="margin-top:10px"><label>Estimate</label><select class="sel" id="tsEst">${EST_OPTIONS.map(([v,l])=>`<option value="${v}" ${+(r.task.est||0)===v?'selected':''}>${l}</option>`).join('')}</select></div>
@@ -351,6 +354,7 @@ function openTaskSidePanel(r){
     <div class="row" style="margin-top:14px"><button class="btn sm ghost danger" id="tsDel">Delete this task</button></div>`, 'task-panel');
   p.querySelector('#tsDone').onclick = () => { setTaskDone(r.id, !r.done); sound(r.done?'click':'success'); closePanel(); rerender(); };
   p.querySelector('#tsDay').onchange = e => { r.task.day = e.target.value; saveNow(); rerender(); };
+  p.querySelector('#tsDoDay').onchange = e => { r.task.doDay = e.target.value; saveNow(); rerender(); };
   p.querySelector('#tsAt').onchange = e => { r.task.at = e.target.value === '' ? null : +e.target.value; saveNow(); rerender(); };
   p.querySelector('#tsEst').onchange = e => { r.task.est = +e.target.value; saveNow(); rerender(); };
   const tsN = p.querySelector('#tsNote'); tsN.addEventListener('input', debounce(() => { r.task.notes = tsN.value; saveNow(); }, 500));
@@ -422,7 +426,12 @@ function bindRunLog(box, d){
 /* ---------- panel 2: the day's plan ---------- */
 function renderPlanPanel(box, d){
   const p = dayPlan(d); const T = today();
-  const rows = tasksForDay(d); const carried = allTaskRefs().filter(r => r.day && !r.done && r.day < d);
+  const rows = tasksForDay(d);
+  /* left behind on either count: owed before this day, or set aside for a day
+     that has gone. Bringing it forward moves the plan and leaves the deadline
+     alone, so a thing that was late stays late. */
+  const carried = allTaskRefs().filter(r => !r.done && !taskOnDay(r.task, d)
+    && ((r.day && r.day < d) || (r.doDay && r.doDay < d)));
   const planned = sum(p.items.map(i => +i.est || 0)) + sum(rows.filter(r => !p.items.some(i => i.ref === r.id)).map(r => +r.task.est || 0));
   const doneN = p.items.filter(i => i.done).length + rows.filter(r => r.done).length;
   const totalN = p.items.length + rows.length;
@@ -466,7 +475,7 @@ function renderPlanPanel(box, d){
   $('#planPull').onclick = () => openTaskPicker(d, rerender);
   $('#planWeekly').onclick = () => openWeeklyPlan(d);
   $('#planMonthly').onclick = () => openMonthlyPlan(d);
-  $('#planCarry') && ($('#planCarry').onclick = () => { carried.forEach(r => r.task.day = d); saveNow(); sound('success'); rerender(); });
+  $('#planCarry') && ($('#planCarry').onclick = () => { carried.forEach(r => r.task.doDay = d); saveNow(); sound('success'); rerender(); });
   $('#planQuick').addEventListener('keydown', e => { if(e.key !== 'Enter') return; const v = e.target.value.trim(); if(!v) return;
     p.items.push({id:uid(), text:v, est:0, done:false, doneAt:''}); saveNow(); sound('click'); rerender(); });
   bindTaskRows(box);
@@ -631,7 +640,7 @@ function planMyDay(d = today()){
       const fm = m.querySelector('[data-planfirst]'); if(fm) p.firstMove = fm.value.trim();
       const rk = m.querySelector('[data-planrisk]'); if(rk) p.risk = rk.value.trim();
       if(step < STEPS - 1){ step++; draw(); return; }
-      pool.forEach(r => { if(chosen.has(r.id)) r.task.day = d; });
+      pool.forEach(r => { if(chosen.has(r.id)) r.task.doDay = d; });
       habits.forEach(h => { if(!chosenH.has(h.id)) h.at = null; });
       p.planned = true;
       const first = p.intentions.filter(Boolean)[0];

@@ -174,9 +174,13 @@ function bindPlanning(root, sel, tasks){
       openPlanTask(id);
     });
     row.addEventListener('contextmenu', ev => { ev.preventDefault(); openPlanRowMenu(ev, id); });
+    /* Which day the pill was picked up from, so a calendar drop can move the
+       date that put it there rather than always moving the deadline. */
     row.addEventListener('dragstart', ev => { window._plTaskDrag = id; row.classList.add('dragging');
+      window._plTaskDragFrom = row.closest('[data-pcday], [data-pccol]')?.dataset.pcday
+        || row.closest('[data-pccol]')?.dataset.pccol || '';
       ev.dataTransfer.effectAllowed = 'move'; try { ev.dataTransfer.setData('text/plain', id); } catch(e){} });
-    row.addEventListener('dragend', () => { row.classList.remove('dragging'); window._plTaskDrag = null; });
+    row.addEventListener('dragend', () => { row.classList.remove('dragging'); window._plTaskDrag = null; window._plTaskDragFrom = ''; });
   });
   /* the timeline's bar already means "move the dates", so there the name is
      the handle for rearranging the rows */
@@ -284,6 +288,7 @@ function planBatchBarHTML(){
     <button class="btn sm ghost" data-pb="move">move…</button>
     <button class="btn sm ghost" data-pb="prio">priority…</button>
     <button class="btn sm ghost" data-pb="day">due date…</button>
+    <button class="btn sm ghost" data-pb="doday">do on…</button>
     <button class="btn sm ghost" data-pb="tag">tag…</button>
     <button class="btn sm ghost" data-pb="quad">matrix…</button>
     <button class="btn sm ghost danger" data-pb="del">delete</button>
@@ -310,6 +315,9 @@ function bindPlanBatch(root){
       v => { planEnsureTag(v); ts.forEach(t => { if(!t.tags.includes(v)) t.tags.push(v); }); done(); }, true); return; }
     if(k === 'day'){ planChoose('Due date', [['', 'No date'], [today(), 'Today'], [addDays(today(),1), 'Tomorrow'],
       [addDays(today(),7), 'In a week']], v => { ts.forEach(t => { t.day = v; planSyncReminders(t); }); done(); }); return; }
+    /* the other date: when you are sitting down with them, not when they are owed */
+    if(k === 'doday'){ planChoose('Do on', [['', 'No day'], [today(), 'Today'], [addDays(today(),1), 'Tomorrow'],
+      [addDays(today(),7), 'In a week']], v => { ts.forEach(t => { t.doDay = v; }); done(); }); return; }
     function done(){ S._planPick = null; saveNow(); sound('click'); rerender(); }
   });
 }
@@ -349,7 +357,7 @@ function openPlanRowMenu(ev, id){
     if(k === 'del') return requestDelete({label:t.text || 'Task', after:planRedraw,
       remove: () => spliceOut(S.tasks, x => x.id === t.id)});
     if(k === 'dup'){ const c = newPlanTask(t.text + ' (copy)', t.day, JSON.parse(JSON.stringify(
-      {listId:t.listId, sectionId:t.sectionId, priority:t.priority, dueTime:t.dueTime, duration:t.duration,
+      {listId:t.listId, sectionId:t.sectionId, priority:t.priority, dueTime:t.dueTime, doDay:t.doDay, duration:t.duration,
        desc:t.desc, tags:t.tags, subtasks:t.subtasks, quadrant:t.quadrant, kanbanColumn:t.kanbanColumn})));
       c.subtasks.forEach(s => { s.id = uid(); s.isCompleted = false; }); S.tasks.push(c); }
     else t.day = k === 'today' ? today() : k === 'tomorrow' ? addDays(today(), 1)

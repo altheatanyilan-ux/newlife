@@ -71,13 +71,18 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     !!document.querySelector(`[data-test="${i}"].on`), tid));
 
   /* pressed from Planning: the task joins today's list and you land on Today,
-     at the full timer rather than a lesser one in a side panel */
+     at the full timer rather than a lesser one in a side panel. Joining today
+     is the DO date moving, not the deadline: sitting down with a thing says
+     when you are doing it and nothing at all about when it is owed, and
+     moving the deadline would make every task you ever touched read as due
+     today. */
   await p.evaluate(() => FocusTimer.reset());
+  /* give it a deadline five days out, so there is something to check is left
+     alone — a task with no deadline cannot show that one was not moved */
   const away = await p.evaluate(() => {
-    const t = (S.tasks || []).find(x => !x.done && x.day !== today());
-    if(t) return t.id;
-    const u = (S.tasks || []).find(x => !x.done); if(u){ u.day = addDays(today(), 5); saveNow(); return u.id; }
-    return null;
+    const t = (S.tasks || []).find(x => !x.done);
+    if(!t) return null;
+    t.day = addDays(today(), 5); t.doDay = ''; saveNow(); return t.id;
   });
   /* "All" now redirects to the dated view, and this task is deliberately not
      on today — so look at it in the list it actually lives in */
@@ -91,8 +96,10 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('the task is reachable in Planning', !!btn, String(away));
   if(btn){
     await btn.click(); await p.waitForTimeout(1400);
-    is('  it is put on today', await p.evaluate(i => byId(S.tasks, i).day, away),
+    is('  it is put on today', await p.evaluate(i => byId(S.tasks, i).doDay, away),
        await p.evaluate(() => today()));
+    is('  and is still owed when it was owed', await p.evaluate(i => byId(S.tasks, i).day, away),
+       await p.evaluate(() => addDays(today(), 5)));
     is('  and we are taken to Today', await p.evaluate(() => parseHash().name), 'today');
     yes('  where the full timer is, with its work note and break log',
         !!(await p.$('#fpDid')) || await p.evaluate(() => !!document.querySelector('.fp-card')));
