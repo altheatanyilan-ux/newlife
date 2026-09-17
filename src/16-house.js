@@ -308,6 +308,10 @@ function mainRoomHTML(){
      builds the whole twenty-stage roadmap on first access, and drawing a room
      should not decide on somebody's behalf that they are learning jazz. */
   const onStand = (S.piano && Array.isArray(S.piano.pieces)) ? S.piano.pieces : [];
+  /* read, do not build: asking the Study Deck for a count it has never had
+     would seed the whole thing for somebody who has never opened it */
+  const cardsDue = (S.study && Array.isArray(S.study.cards))
+    ? S.study.cards.filter(c => c.status === 'active' && (c.due || '') <= today()).length : 0;
   const learning = onStand.filter(x => x.status === 'learning');
   const stack = clamp(Math.floor(onStand.length / 4), 0, 4);
   const drinks  = (S.entries || []).filter(e => e.type === 'drink').length;
@@ -364,6 +368,23 @@ function mainRoomHTML(){
         </g>
         <path class="hm-trail" d="M64,128 C48,164 58,206 44,244 C36,268 44,290 38,312"/>
         <text class="rm-say" x="148" y="392" text-anchor="middle">Every book is a door</text>
+      </g>
+
+      <!-- The card box at the foot of the shelf. The shelf holds what you
+           have read; the box holds what you kept out of it, and the two are
+           different rooms for that reason. A band round it says how many are
+           waiting, because a study queue nobody can see is a study queue
+           nobody clears. -->
+      <g class="zone zone-cards" data-room="study" tabindex="0" role="button" aria-label="The card box — the Study Deck">
+        <rect class="hm-cardbox" x="72" y="392" width="128" height="58" rx="4"/>
+        <path class="hm-cardlid" d="M72,392 L136,372 L200,392"/>
+        ${Array.from({length: 5}, (_, i) =>
+          `<path class="hm-cardslip" d="M${88 + i * 22},390 v-${14 + (i % 3) * 5}"/>`).join('')}
+        ${cardsDue ? `<g class="hm-cardband"><rect x="86" y="404" width="100" height="20" rx="10"/>
+          <text x="136" y="418" text-anchor="middle">${cardsDue} due</text></g>` : ''}
+        <text class="rm-say" x="136" y="470" text-anchor="middle">${cardsDue
+          ? 'Some of it is waiting to be remembered'
+          : 'Nothing waiting. Keep something.'}</text>
       </g>
 
       <!-- the desk: where the writing happens -->
@@ -831,6 +852,7 @@ const HOUSE_PORTALS = {
   shelf:     () => navigate('#/journals/library'),
   /* the main room */
   library:   () => navigate('#/journals/library'),
+  study:     () => navigate('#/study'),
   writing:   () => navigate('#/content/shelf'),
   /* The Fazioli opens the room the practice actually lives in. The skills it
      used to open are still one link away, and are not what you sit down to. */

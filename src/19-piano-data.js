@@ -307,6 +307,16 @@ function pianoLogJazz(rec){
     const owner = pianoConceptStage(c.id);
     if(owner && owner.stage.status === 'not_started') owner.stage.status = 'in_progress';
     if(owner && owner.phase.status === 'not_started') owner.phase.status = 'in_progress';
+    /* A voicing you are working on is worth being asked for in the key you
+       are worst at, which is not the key you just practised. It is a
+       suggestion rather than a card: the Study Deck's inbox decides. */
+    if(typeof suggestStudyCard === 'function' && pianoIsKeyed(c)){
+      const weak = pianoWeakKeys(c, 1)[0];
+      if(weak) suggestStudyCard({type:'action', sourceType:'jazz_concept', sourceId:c.id,
+        front:`Play ${c.name} in ${weak}.`,
+        reference:`Your weakest key for this. Fluent in ${pianoKeyCounts(c).fluent + pianoKeyCounts(c).second_nature} of 12.`,
+        sourceLabel:`Jazz Lab — ${c.name}`, tags:['jazz', weak.toLowerCase()]});
+    }
   }
   if(log.mode === 'play') p.settings.playCount = (+p.settings.playCount || 0) + 1;
   else p.settings.practiceCount = (+p.settings.practiceCount || 0) + 1;

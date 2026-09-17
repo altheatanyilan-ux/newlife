@@ -258,7 +258,14 @@ function entryCard(e, {clamp:cl=true, tools=true}={}){
       (q || pics.length) ? `<button class="snip-btn" data-vbpin="${e.id}" title="add to the vision board">▣</button>` : ''}${
       /* and any entry at all can be kept on Today, to be reread rather than
          merely filed — see 16-pins.js */
-      `<button class="snip-btn pin-btn${e.pinned ? ' on' : ''}" data-pin="${e.id}" aria-pressed="${!!e.pinned}" title="${e.pinned ? 'stop keeping this on Today' : 'keep this on Today, to reread'}">📌</button>`}</span>`:''}</div>${tools?`<button class="del-x" data-del="${e.id}" title="delete" aria-label="delete entry">×</button>`:''}
+      `<button class="snip-btn pin-btn${e.pinned ? ' on' : ''}" data-pin="${e.id}" aria-pressed="${!!e.pinned}" title="${e.pinned ? 'stop keeping this on Today' : 'keep this on Today, to reread'}">📌</button>`}<!--
+      Keeping a thing on Today and having it by heart are different wants: one
+      puts it in front of you daily, the other asks you to produce it from
+      nothing months later. So they are two buttons. -->
+      <button class="snip-btn sd-take" data-sdpin="${esc(e.type === 'quote' ? 'quote' : 'journal')}|${esc(e.id)}"
+        data-sdfront="${esc(studyFrontFor(e))}" data-sdback="${esc(studyBackFor(e))}"
+        data-sdsay="${esc(typeName(e.type) + ', ' + fmtDate(e.occurredAt, 'med'))}"
+        title="make a card of this — you will be asked for it again in a week, then a month">◆</button></span>`:''}</div>${tools?`<button class="del-x" data-del="${e.id}" title="delete" aria-label="delete entry">×</button>`:''}
     ${e.title?`<div class="title">${esc(e.title)}</div>`:''}
     ${e.body?`<div class="body ${cl?'clamp':''} ${q?'quote':''}">${q?'“'+esc(e.body)+'”':md(e.body)}</div>`:''}
     ${rest.length?`<div class="thumbs">${rest.map(m=>`<div class="photo" style="width:88px;height:88px;cursor:zoom-in" data-lb="${m.id}"><img src="${m.src}" alt="${esc(m.caption)}"></div>`).join('')}</div>`:''}
@@ -308,3 +315,22 @@ document.addEventListener('click', e => {
 });
 function sortEntries(arr){ return [...arr].sort((a,b)=>occurredSort(b)-occurredSort(a) || (b.createdAt<a.createdAt?-1:1)); }
 function stageChip(s){ return `<span class="chip on click" style="--c:${s.hue}" data-go="#/stage/${s.id}"><span class="dot"></span>${s.char} ${esc(s.name)}</span>`; }
+
+
+/* ---------- an entry, as a card ----------
+   A quote already has its two halves: who said it goes on the front and the
+   words go on the back, because recognising a quote you are shown is not
+   remembering it. Everything else gets its title as the prompt, which is a
+   guess — and the modal it opens is editable for exactly that reason. */
+function studyFrontFor(e){
+  const x = e.extra || {};
+  const sel = typeof studySelection === 'function' ? studySelection() : '';
+  if(sel) return sel;
+  if(e.type === 'quote') return [x.author, x.source].filter(Boolean).join(', ') || 'A quote you kept';
+  return (e.title || '').trim() || (e.body || '').split('\n')[0].slice(0, 90);
+}
+function studyBackFor(e){
+  const x = e.extra || {};
+  if(e.type === 'quote') return e.body || '';
+  return (e.body || '').slice(0, 600);
+}

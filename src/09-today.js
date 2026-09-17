@@ -303,6 +303,13 @@ routes.today = function(root){
         ${carried.length?`<div class="row" style="margin-top:10px"><span class="mono" style="color:#d08080">${carried.length} carried over from earlier days</span><button class="btn sm ghost" id="carryAll">bring to today</button></div>`:''}
       </div></div></details>
     <!-- the habit checklist: the whole of habit-keeping now lives here -->
+    <!-- What is waiting to be remembered. It sits between the day's work and
+         the day's habits because it is both: a queue with a number on it, and
+         a thing you either do daily or lose. Five minutes is offered rather
+         than the whole queue, because the whole queue is how a study habit
+         dies. -->
+    ${studyTodayHTML(T)}
+
     <details class="section rv t-sec" style="margin-top:8px" id="t-habits"${fold('t-habits')}>
       <summary><span class="sc" style="margin:0">Today's habits</span>
         <span class="mono faint">${(() => { const due = S.habits.filter(h => !h.archived && !h.negative && habitDue(h, T)); const dn = due.filter(h => habitDone(h, T)).length; return due.length ? `${dn} of ${due.length} kept` : 'nothing due'; })()}</span></summary>
@@ -581,6 +588,7 @@ routes.today = function(root){
 
   /* tasks */
   $('#pullTask').onclick = () => openTaskPicker(T, rerender);
+  if($('#sdFive')) $('#sdFive').onclick = () => startShortStudy();
   if($('#carryAll')) $('#carryAll').onclick = () => { carried.forEach(r => r.task.doDay = T); saveNow(); sound('success'); rerender(); };
   bindTaskRows(root); bindDayDrop(root); bindQuickTask(root); bindDayListFilter(root);
   bindFocusSection(root, redraw);

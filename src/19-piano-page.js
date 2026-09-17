@@ -289,7 +289,17 @@ function logPianoPractice(pieceId, rec){
   /* practising a piece you had put down picks it up again: "rusty" is worked
      out from the dates, so this happens by itself, but a piece nobody has
      started is started by being practised */
-  if(x.status === 'want_to_learn'){ x.status = 'learning'; x.startedAt = x.startedAt || new Date().toISOString(); }
+  if(x.status === 'want_to_learn'){ x.status = 'learning'; x.startedAt = x.startedAt || new Date().toISOString();
+    /* the first sitting with a new piece is when its facts are worth keeping:
+       what key it is in, and whether the opening is under your hands */
+    if(typeof suggestStudyCard === 'function'){
+      if(x.key) suggestStudyCard({sourceType:'piece', sourceId:x.id, front:`What key is ${x.title} in?`,
+        back:x.key, sourceLabel:`Repertoire — ${x.title}`, tags:['repertoire']});
+      suggestStudyCard({type:'action', sourceType:'piece', sourceId:x.id,
+        front:`Play the opening of ${x.title} from memory.`,
+        reference:[x.composer, x.tempo, x.key].filter(Boolean).join(' · '),
+        sourceLabel:`Repertoire — ${x.title}`, tags:['repertoire']});
+    } }
   pianoCreditSkill(log.durationMinutes);
   pianoCreditHabit();
   saveNow();

@@ -183,6 +183,13 @@ routes.value = function(root, params){
       <div class="vf-prose">${latest?md(latest.text):'<span class="vf-empty">Not yet written.</span>'}</div>
       <footer class="vf-foot">
         <button class="btn sm ghost" data-vf="${k}">${latest?'write a new version':'write'}</button>
+        <!-- A definition you cannot produce from nothing is a definition you
+             have read rather than one you hold. The question goes on the front
+             and what you wrote goes on the back. -->
+        ${latest ? `<button class="snip-btn sd-take" data-sdpin="value|${esc(v.id)}"
+          data-sdfront="${esc(v.name + ' — ' + q.replace(/<[^>]*>/g, ''))}"
+          data-sdback="${esc(latest.text)}" data-sdsay="${esc(v.name + ', ' + f.lede)}"
+          title="have this by heart">◆</button>` : ''}
         ${hist.length>1
           ? `<details class="vf-vers"><summary><span class="mono">${hist.length-1} earlier version${hist.length>2?'s':''}</span></summary><div class="body versions">${hist.slice(0,-1).map((h,i)=>`<div class="v"><div class="mono">${fmtDate(h.date,'med')}</div>${md(h.text)}<button class="del-x" data-vfdel="${k}:${i}" title="delete this version">×</button></div>`).reverse().join('')}</div></details>`
           : latest ? `<span class="mono vf-when">${fmtDate(latest.date,'med')}</span>` : ''}

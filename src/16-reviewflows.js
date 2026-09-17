@@ -120,6 +120,10 @@ function flowWeekly(opts = {}){
   /* The bench, but only when there is something to say about it — a review
      step that reads "nothing happened" every week is a step people learn to
      press past, and then press past on the week it does say something. */
+  const studySaidLines = typeof studyReviewLines === 'function' ? studyReviewLines(days[0], days[6]) : [];
+  const studyWeek = studySaidLines.length ? [{title:'What you kept, and what you are keeping.', hint:'Cards, streak, and any deck running away from you.',
+    body: () => `<div class="stack" style="gap:6px">${studySaidLines.map(l => `<div class="rev-summary">${esc(l)}</div>`).join('')}
+      <div class="row"><button class="btn sm ghost" data-flowgo="#/study">open the decks</button></div></div>`}] : [];
   const pianoSaid = typeof pianoReviewLines === 'function' ? pianoReviewLines(days[0], days[6]) : [];
   const pianoWeek = pianoSaid.length ? [{title:'The week at the piano.', hint:'Hours, keys, and what is going rusty.',
     body: () => `<div class="stack" style="gap:6px">${pianoSaid.map(l => `<div class="rev-summary">${esc(l)}</div>`).join('')}
@@ -142,6 +146,7 @@ function flowWeekly(opts = {}){
     {title:'The week against the lists you made.', hint:'Seven days of intentions, against seven days of evidence.',
      body: () => tasksReviewHTML(days[0], days[6])},
     ...pianoWeek,
+    ...studyWeek,
     {title:'Anything else from this week?', hint:'Anything that happened and never got written down. Add it here and the review stays where it is.',
      body: () => captureStepHTML(days[0], days[6]), bind: b => bindCaptureStep(b, days[0], days[6])},
     {title:"Next week's one intention.",

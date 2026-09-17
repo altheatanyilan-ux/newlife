@@ -47,6 +47,10 @@ const NAV_ICONS = {
   content:'<svg viewBox="0 0 24 24"><path d="M8.8 6.9V5.2a1.8 1.8 0 0 1 1.8-1.8h6.2a1.8 1.8 0 0 1 1.8 1.8v9.5a1.8 1.8 0 0 1-1.8 1.8h-1.4"/><path d="M6.2 6.9h5.5l4.3 4.3v7.4a1.8 1.8 0 0 1-1.8 1.8H6.2a1.8 1.8 0 0 1-1.8-1.8V8.7a1.8 1.8 0 0 1 1.8-1.8Z"/><path d="M11.5 7.1v4.3h4.3"/><path d="M7.3 15.1h5.2M7.3 17.6h3.4"/></svg>',
   /* A grand seen from above: the straight edge with the keys along it, and
      the lid curving away. Not a keyboard — a keyboard at 24px is a barcode. */
+  /* Cards in a stack, the top one turned. Not a book — the Library is a book,
+     and the difference between the two rooms is exactly that one is what you
+     have read and the other is what you have kept. */
+  study:    '<svg viewBox="0 0 24 24"><rect x="6.5" y="4" width="13" height="16" rx="2" transform="rotate(6 13 12)"/><rect x="4.5" y="5" width="13" height="16" rx="2"/><path d="M7.8 9.5h6.4M7.8 13h4.2"/></svg>',
   piano:    '<svg viewBox="0 0 24 24"><path d="M4.5 7.5h8.2c4 0 6.8 2.4 6.8 5.6 0 2-1.5 3.4-3.6 3.4H4.5Z"/><path d="M4.5 7.5v9M8 7.5v4M11.5 7.5v4M15 8.2v3.4"/><path d="M4.5 11.5h11"/></svg>',
   import:     '<svg viewBox="0 0 24 24"><rect x="3.5" y="13" width="17" height="7.5" rx="2"/><path d="M3.5 16h4l1.5 2h6l1.5-2h4"/><path d="M12 3.5v9M9.5 10l2.5 2.5L14.5 10"/></svg>',
 };
@@ -64,6 +68,7 @@ const NAV_PAGES = {
   values:   {label:'Values',           short:'Values',   ico:NAV_ICONS.values,   route:'#/values'},
   skills:   {label:'Skill Tree',       short:'Skills',   ico:NAV_ICONS.skills,   route:'#/skills'},
   piano:    {label:'Piano Studio',     short:'Piano',    ico:NAV_ICONS.piano,    route:'#/piano'},
+  study:    {label:'Study Deck',       short:'Study',    ico:NAV_ICONS.study,    route:'#/study'},
   timeline: {label:'Timeline',         short:'Timeline', ico:NAV_ICONS.timeline, route:'#/journals/timeline'},
 };
 /* The three rooms you are in most days sit above everything, unlabelled and
@@ -82,7 +87,7 @@ const NAV_TOP = ['today','planning'];
 const NAV_PINNED = [];
 const NAV_DEFAULT = {
   create:   ['content','projects','finance','skills','piano'],
-  identity: ['values','journals','people'],
+  identity: ['values','journals','people','study'],
   standalone:[],
 };
 const NAV_ZONES = [

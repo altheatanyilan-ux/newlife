@@ -8470,6 +8470,176 @@ a.pn-res-t:hover{text-decoration:underline}
 .linkbox.has-link .linkgo{opacity:1;border-color:color-mix(in srgb,var(--terra) 40%,var(--line));color:var(--terra)}
 .linkgo:hover{border-color:var(--terra);color:var(--terra)}
 
+
+/* what the day says about the queue */
+.sd-today{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:8px;padding:10px 14px;
+  border:1px solid color-mix(in srgb,var(--page-accent) 35%,var(--line));border-radius:var(--radius);
+  background:color-mix(in srgb,var(--page-accent) 5%,var(--surface))}
+.sd-today.quiet{border-color:var(--line);background:transparent;opacity:.7}
+.sd-today-n{font-family:var(--serif);font-size:.98rem}
+.sd-today-n b{font-size:1.2rem}
+.sd-today-s{font-size:.8rem;opacity:.8}
+.sd-today .grow{flex:1}
+/* the card box at the foot of the shelf */
+.hm-cardbox{fill:color-mix(in srgb,#b08a5e 30%,transparent);stroke:rgba(0,0,0,.35);stroke-width:1.5}
+.hm-cardlid{fill:none;stroke:rgba(0,0,0,.35);stroke-width:1.5}
+.hm-cardslip{stroke:color-mix(in srgb,#efe9dd 80%,transparent);stroke-width:5;stroke-linecap:round}
+.hm-cardband rect{fill:var(--terra);opacity:.9}
+.hm-cardband text{fill:#fff;font-family:var(--mono);font-size:12px}
+/* ============ THE STUDY DECK ============
+   A card is a piece of stationery, not a row in a database. Cream and thick
+   in the light, candle-lit at the edges in the dark, and large enough that
+   the thing on it is the only thing you are looking at. */
+.sd-page .sd-lede{max-width:72ch}
+.sd-views{display:flex;gap:8px;margin:16px 0 4px;flex-wrap:wrap}
+.sd-view{padding:5px 14px;border-radius:999px;border:1px solid var(--line);background:transparent;
+  color:var(--text);cursor:pointer;font-size:.84rem}
+.sd-view.on{border-color:var(--page-accent);background:color-mix(in srgb,var(--page-accent) 12%,transparent)}
+.sd-body{margin-top:14px}
+
+.sd-begin{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:14px 18px;margin-bottom:16px;
+  border:1px solid var(--line);border-radius:var(--radius);background:var(--surface)}
+.sd-begin-n{font-family:var(--serif);font-size:1.1rem}
+.sd-begin-n b{font-size:1.5rem}
+.sd-flame{margin-left:auto;font-family:var(--mono);font-size:.84rem;opacity:.8}
+.sd-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+.sd-deck{border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);padding:0;
+  display:flex;flex-direction:column;overflow:hidden;transition:border-color .2s var(--ease)}
+.sd-deck.due{border-color:color-mix(in srgb,var(--c) 55%,var(--line))}
+.sd-deck-face{display:flex;flex-direction:column;gap:5px;align-items:flex-start;width:100%;text-align:left;
+  padding:14px 15px 12px;background:linear-gradient(160deg,color-mix(in srgb,var(--c) 12%,transparent),transparent 65%);
+  border:none;color:var(--text);cursor:pointer}
+.sd-deck-face[disabled]{cursor:default;opacity:.66}
+.sd-deck-e{font-size:1.6rem;line-height:1}
+.sd-deck-n{font-size:1.06rem}
+.sd-deck-c{font-size:.72rem;opacity:.7}
+.sd-deck-bar{display:block;width:100%;height:3px;border-radius:2px;background:var(--line);margin-top:4px}
+.sd-deck-bar i{display:block;height:100%;border-radius:2px;background:var(--c);transition:width .5s var(--ease)}
+.sd-deck-about{font-size:.76rem;opacity:.62;padding:0 15px 12px}
+.sd-kids{display:flex;flex-direction:column;gap:2px;padding:0 10px 6px}
+.sd-kid{text-align:left;background:transparent;border:none;border-left:2px solid color-mix(in srgb,var(--c) 40%,transparent);
+  padding:3px 8px;color:var(--text);cursor:pointer;font-size:.8rem;opacity:.85}
+.sd-kid[disabled]{opacity:.45;cursor:default}
+.sd-kid:hover:not([disabled]){background:color-mix(in srgb,var(--c) 8%,transparent)}
+.sd-newdeck{cursor:pointer;align-items:flex-start;justify-content:center;padding:18px 15px;gap:6px;
+  border-style:dashed;background:transparent;color:var(--text);opacity:.7}
+.sd-newdeck:hover{opacity:1;border-color:var(--page-accent)}
+.sd-stats-line{margin-top:14px;font-size:.74rem;opacity:.6}
+
+/* the inbox */
+.sd-inbox{border:1px solid color-mix(in srgb,var(--gold,#d8a45f) 40%,var(--line));border-radius:var(--radius);
+  background:color-mix(in srgb,var(--gold,#d8a45f) 5%,var(--surface));padding:12px 15px;margin-top:14px}
+.sd-inrow{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;
+  padding:5px 0;border-bottom:1px dotted var(--line)}
+.sd-in-body{display:flex;flex-direction:column;gap:1px;min-width:0}
+.sd-in-f{font-family:var(--serif);font-size:.92rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sd-in-b{font-size:.72rem;opacity:.6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* the session */
+.sd-session{max-width:720px;margin:0 auto}
+.sd-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.sd-where{font-family:var(--serif);opacity:.8}
+.sd-left{margin-left:auto;font-size:.76rem;opacity:.7}
+.sd-rule{height:2px;background:var(--line);border-radius:2px;margin:10px 0 26px;overflow:hidden}
+.sd-rule i{display:block;height:100%;background:var(--page-accent);transition:width .4s var(--ease)}
+.sd-card{border:1px solid color-mix(in srgb,var(--terra) 35%,var(--line));border-radius:12px;
+  background:#fffdf8;color:#26221d;padding:38px 34px;min-height:220px;display:flex;align-items:center;
+  justify-content:center;box-shadow:0 3px 14px rgba(0,0,0,.08);
+  background-image:radial-gradient(rgba(0,0,0,.018) 1px,transparent 1px);background-size:4px 4px}
+:root:not([data-theme="light"]) .sd-card,:root[data-theme="dark"] .sd-card{
+  background:#1e1c1a;color:#e8e2d8;border-color:rgba(201,169,110,.3);
+  box-shadow:0 0 26px rgba(201,169,110,.07),0 3px 14px rgba(0,0,0,.4)}
+.sd-face{width:100%;text-align:center}
+.sd-kind{font-size:.64rem;letter-spacing:.14em;text-transform:uppercase;opacity:.45;margin-bottom:12px}
+.sd-front{font-family:var(--serif);font-size:1.45rem;line-height:1.5}
+.sd-front p{margin:0 0 .5em}
+.sd-back{margin-top:22px;padding-top:20px;border-top:1px solid rgba(128,110,90,.28);
+  font-family:var(--serif);font-size:1.2rem;line-height:1.55;animation:sdIn .35s var(--ease)}
+@keyframes sdIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.sd-ref{margin-top:18px;padding-top:14px;border-top:1px dashed rgba(128,110,90,.3);font-size:.94rem;opacity:.82}
+.sd-img{max-width:100%;max-height:220px;border-radius:6px;margin-bottom:14px}
+.sd-gap{display:inline-block;min-width:4.5em;border-bottom:2px solid currentColor;margin:0 .2em;opacity:.55}
+.sd-gap.shown{opacity:1;border-bottom-color:var(--sage);color:var(--sage)}
+.sd-opts{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:20px}
+.sd-opt{font-family:var(--serif);font-size:1.05rem;padding:6px 16px;border-radius:8px;border:1px solid currentColor;
+  background:transparent;color:inherit;cursor:pointer;opacity:.75}
+.sd-opt:hover{opacity:1}
+.sd-type{margin-top:20px;max-width:260px;text-align:center;font-family:var(--serif);font-size:1.1rem}
+.sd-go{display:flex;gap:10px;justify-content:center;align-items:center;margin-top:24px}
+.sd-grade{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:24px}
+.sd-btn{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:92px;padding:10px 14px;
+  border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--text);cursor:pointer;
+  transition:border-color .18s var(--ease),background .18s var(--ease)}
+.sd-btn:hover{border-color:currentColor}
+.sd-btn-n{font-family:var(--serif);font-size:1rem}
+.sd-btn-i{font-size:.66rem;opacity:.6}
+.sd-again{--c:#a05050}.sd-hard{--c:#b08840}.sd-good{--c:#6a8a5a}.sd-easy{--c:#4a8a7a}
+.sd-btn{border-bottom:2px solid var(--c)}
+.sd-btn:hover{background:color-mix(in srgb,var(--c) 12%,transparent);border-color:var(--c)}
+.sd-good{min-width:104px}
+.sd-source{margin-top:20px;text-align:center;font-size:.72rem;opacity:.6}
+.sd-summary{max-width:560px;margin:40px auto;text-align:center}
+.sd-done{font-size:2.6rem;color:var(--sage)}
+.sd-sum-n{opacity:.75;margin-top:4px}
+.sd-tally{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin:16px 0}
+.sd-tal{font-size:.8rem;opacity:.8}
+.sd-tal b{font-family:var(--serif);font-size:1.2rem;color:var(--c)}
+.sd-next{font-size:.78rem;opacity:.65}
+.sd-streak{margin:10px 0;font-family:var(--mono);font-size:.9rem}
+.sd-parting{font-family:var(--serif);font-style:italic;opacity:.85;margin:22px auto;max-width:44ch;
+  border-left:2px solid var(--line);padding-left:14px;text-align:left}
+.sd-parting cite{display:block;font-style:normal;font-size:.76rem;opacity:.6;margin-top:6px}
+
+/* every card */
+.sd-row{border:1px solid var(--line);border-radius:var(--radius);padding:9px 12px;background:var(--surface)}
+.sd-row.sd-suspended{opacity:.6}
+.sd-row.sd-graduated{border-color:color-mix(in srgb,var(--sage) 40%,var(--line))}
+.sd-row-top{display:flex;gap:12px;align-items:baseline;justify-content:space-between}
+.sd-row-f{font-size:1rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.sd-row-d{font-size:.7rem;flex:none;opacity:.8;border-left:2px solid var(--c);padding-left:6px}
+.sd-row-meta{font-size:.7rem;opacity:.62;margin-top:3px}
+.sd-role{padding:0 5px;border:1px solid var(--line);border-radius:999px}
+.sd-row-tools{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;opacity:0;transition:opacity .16s var(--ease)}
+.sd-row:hover .sd-row-tools,.sd-row:focus-within .sd-row-tools{opacity:1}
+@media (hover:none){.sd-row-tools{opacity:1}}
+.sd-famrows{margin-left:22px;border-left:2px solid var(--line);padding-left:10px;
+  display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.sd-family{display:flex;gap:9px;align-items:flex-start;margin-top:12px;font-size:.84rem;cursor:pointer}
+.sd-family em{display:block;font-style:normal;font-size:.72rem;opacity:.6}
+.sd-src{margin-top:10px;font-size:.72rem;opacity:.6}
+.sd-ta{font-family:var(--serif);font-size:.98rem;line-height:1.5}
+
+/* how it is going */
+.sd-bigflame{font-family:var(--serif);font-size:1.1rem;margin:6px 0}
+.sd-bigflame b{font-size:2.2rem}
+.sd-bigflame small{opacity:.6;font-size:.8rem;margin-left:6px}
+.sd-bars{display:flex;flex-direction:column;gap:5px;margin-top:8px}
+.sd-bar-row{display:grid;grid-template-columns:5.5em minmax(0,1fr) 2.5em;gap:8px;align-items:center;font-size:.78rem}
+.sd-bar-n{opacity:.8}
+.sd-heat{display:grid;grid-template-columns:repeat(30,1fr);gap:3px;margin-top:8px}
+.sd-hd{display:block;aspect-ratio:1;border-radius:2px;background:color-mix(in srgb,var(--line) 60%,transparent)}
+.sd-hd.l1{background:color-mix(in srgb,var(--sage) 35%,transparent)}
+.sd-hd.l2{background:color-mix(in srgb,var(--sage) 62%,transparent)}
+.sd-hd.l3{background:var(--sage)}
+.sd-settings{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:8px}
+.sd-settings .inp{width:82px}
+
+/* the 📌, which says nothing until you look for it */
+.sd-pin{background:transparent;border:none;cursor:pointer;font-size:.8rem;padding:1px 4px;
+  opacity:0;transition:opacity .16s var(--ease);line-height:1}
+.entry:hover .sd-pin,.sd-pin:focus-visible,tr:hover .sd-pin,.pn-res:hover .sd-pin,
+.card:hover .sd-pin,li:hover .sd-pin,.int-row:hover .sd-pin{opacity:.55}
+.sd-pin:hover{opacity:1}
+@media (hover:none){.sd-pin{opacity:.45}}
+
+@media (max-width:760px){
+  .sd-card{padding:26px 18px;min-height:180px}
+  .sd-front{font-size:1.2rem}
+  .sd-btn{min-width:72px;padding:9px 8px}
+  .sd-heat{grid-template-columns:repeat(15,1fr)}
+}
+
+
 </style>
 </head>
 <body>
@@ -13586,7 +13756,14 @@ function entryCard(e, {clamp:cl=true, tools=true}={}){
       (q || pics.length) ? `<button class="snip-btn" data-vbpin="${e.id}" title="add to the vision board">▣</button>` : ''}${
       /* and any entry at all can be kept on Today, to be reread rather than
          merely filed — see 16-pins.js */
-      `<button class="snip-btn pin-btn${e.pinned ? ' on' : ''}" data-pin="${e.id}" aria-pressed="${!!e.pinned}" title="${e.pinned ? 'stop keeping this on Today' : 'keep this on Today, to reread'}">📌</button>`}</span>`:''}</div>${tools?`<button class="del-x" data-del="${e.id}" title="delete" aria-label="delete entry">×</button>`:''}
+      `<button class="snip-btn pin-btn${e.pinned ? ' on' : ''}" data-pin="${e.id}" aria-pressed="${!!e.pinned}" title="${e.pinned ? 'stop keeping this on Today' : 'keep this on Today, to reread'}">📌</button>`}<!--
+      Keeping a thing on Today and having it by heart are different wants: one
+      puts it in front of you daily, the other asks you to produce it from
+      nothing months later. So they are two buttons. -->
+      <button class="snip-btn sd-take" data-sdpin="${esc(e.type === 'quote' ? 'quote' : 'journal')}|${esc(e.id)}"
+        data-sdfront="${esc(studyFrontFor(e))}" data-sdback="${esc(studyBackFor(e))}"
+        data-sdsay="${esc(typeName(e.type) + ', ' + fmtDate(e.occurredAt, 'med'))}"
+        title="make a card of this — you will be asked for it again in a week, then a month">◆</button></span>`:''}</div>${tools?`<button class="del-x" data-del="${e.id}" title="delete" aria-label="delete entry">×</button>`:''}
     ${e.title?`<div class="title">${esc(e.title)}</div>`:''}
     ${e.body?`<div class="body ${cl?'clamp':''} ${q?'quote':''}">${q?'“'+esc(e.body)+'”':md(e.body)}</div>`:''}
     ${rest.length?`<div class="thumbs">${rest.map(m=>`<div class="photo" style="width:88px;height:88px;cursor:zoom-in" data-lb="${m.id}"><img src="${m.src}" alt="${esc(m.caption)}"></div>`).join('')}</div>`:''}
@@ -13636,6 +13813,25 @@ document.addEventListener('click', e => {
 });
 function sortEntries(arr){ return [...arr].sort((a,b)=>occurredSort(b)-occurredSort(a) || (b.createdAt<a.createdAt?-1:1)); }
 function stageChip(s){ return `<span class="chip on click" style="--c:${s.hue}" data-go="#/stage/${s.id}"><span class="dot"></span>${s.char} ${esc(s.name)}</span>`; }
+
+
+/* ---------- an entry, as a card ----------
+   A quote already has its two halves: who said it goes on the front and the
+   words go on the back, because recognising a quote you are shown is not
+   remembering it. Everything else gets its title as the prompt, which is a
+   guess — and the modal it opens is editable for exactly that reason. */
+function studyFrontFor(e){
+  const x = e.extra || {};
+  const sel = typeof studySelection === 'function' ? studySelection() : '';
+  if(sel) return sel;
+  if(e.type === 'quote') return [x.author, x.source].filter(Boolean).join(', ') || 'A quote you kept';
+  return (e.title || '').trim() || (e.body || '').split('\n')[0].slice(0, 90);
+}
+function studyBackFor(e){
+  const x = e.extra || {};
+  if(e.type === 'quote') return e.body || '';
+  return (e.body || '').slice(0, 600);
+}
 /* ============================================================
    THE OPENING QUESTION
 
@@ -16126,6 +16322,13 @@ routes.today = function(root){
         ${carried.length?`<div class="row" style="margin-top:10px"><span class="mono" style="color:#d08080">${carried.length} carried over from earlier days</span><button class="btn sm ghost" id="carryAll">bring to today</button></div>`:''}
       </div></div></details>
     <!-- the habit checklist: the whole of habit-keeping now lives here -->
+    <!-- What is waiting to be remembered. It sits between the day's work and
+         the day's habits because it is both: a queue with a number on it, and
+         a thing you either do daily or lose. Five minutes is offered rather
+         than the whole queue, because the whole queue is how a study habit
+         dies. -->
+    ${studyTodayHTML(T)}
+
     <details class="section rv t-sec" style="margin-top:8px" id="t-habits"${fold('t-habits')}>
       <summary><span class="sc" style="margin:0">Today's habits</span>
         <span class="mono faint">${(() => { const due = S.habits.filter(h => !h.archived && !h.negative && habitDue(h, T)); const dn = due.filter(h => habitDone(h, T)).length; return due.length ? `${dn} of ${due.length} kept` : 'nothing due'; })()}</span></summary>
@@ -16404,6 +16607,7 @@ routes.today = function(root){
 
   /* tasks */
   $('#pullTask').onclick = () => openTaskPicker(T, rerender);
+  if($('#sdFive')) $('#sdFive').onclick = () => startShortStudy();
   if($('#carryAll')) $('#carryAll').onclick = () => { carried.forEach(r => r.task.doDay = T); saveNow(); sound('success'); rerender(); };
   bindTaskRows(root); bindDayDrop(root); bindQuickTask(root); bindDayListFilter(root);
   bindFocusSection(root, redraw);
@@ -19214,6 +19418,13 @@ routes.value = function(root, params){
       <div class="vf-prose">${latest?md(latest.text):'<span class="vf-empty">Not yet written.</span>'}</div>
       <footer class="vf-foot">
         <button class="btn sm ghost" data-vf="${k}">${latest?'write a new version':'write'}</button>
+        <!-- A definition you cannot produce from nothing is a definition you
+             have read rather than one you hold. The question goes on the front
+             and what you wrote goes on the back. -->
+        ${latest ? `<button class="snip-btn sd-take" data-sdpin="value|${esc(v.id)}"
+          data-sdfront="${esc(v.name + ' — ' + q.replace(/<[^>]*>/g, ''))}"
+          data-sdback="${esc(latest.text)}" data-sdsay="${esc(v.name + ', ' + f.lede)}"
+          title="have this by heart">◆</button>` : ''}
         ${hist.length>1
           ? `<details class="vf-vers"><summary><span class="mono">${hist.length-1} earlier version${hist.length>2?'s':''}</span></summary><div class="body versions">${hist.slice(0,-1).map((h,i)=>`<div class="v"><div class="mono">${fmtDate(h.date,'med')}</div>${md(h.text)}<button class="del-x" data-vfdel="${k}:${i}" title="delete this version">×</button></div>`).reverse().join('')}</div></details>`
           : latest ? `<span class="mono vf-when">${fmtDate(latest.date,'med')}</span>` : ''}
@@ -25811,6 +26022,14 @@ function openCardDirectory(startAt){
           ${c.essence ? `<p class="cd-ess">${esc(c.essence)}</p>` : ''}
           ${counts[i] ? `<span class="cd-seen mono">drawn ${counts[i]} time${counts[i] === 1 ? '' : 's'}</span>`
             : '<span class="cd-seen mono none">not yet drawn</span>'}
+          <!-- A deck you have to look up is a deck you are reading rather than
+               reading with. The card's name on the front, what it means on the
+               back — opt in one card at a time, because studying all
+               seventy-eight is a decision, not a default. -->
+          <button class="snip-btn sd-take" data-sdpin="tarot|${esc(c.name)}"
+            data-sdfront="${esc(c.name)}" data-sdsay="Tarot"
+            data-sdback="${esc([c.essence, (c.upright && c.upright.meaning) || ''].filter(Boolean).join('\n\n'))}"
+            title="learn this card by heart">◆</button>
         </div></div>
       ${c.imagery ? `<section class="cd-side"><h4 class="dv-sec-h">What it shows</h4>
         <p class="cd-p">${esc(c.imagery)}</p></section>` : ''}
@@ -30912,6 +31131,10 @@ function mainRoomHTML(){
      builds the whole twenty-stage roadmap on first access, and drawing a room
      should not decide on somebody's behalf that they are learning jazz. */
   const onStand = (S.piano && Array.isArray(S.piano.pieces)) ? S.piano.pieces : [];
+  /* read, do not build: asking the Study Deck for a count it has never had
+     would seed the whole thing for somebody who has never opened it */
+  const cardsDue = (S.study && Array.isArray(S.study.cards))
+    ? S.study.cards.filter(c => c.status === 'active' && (c.due || '') <= today()).length : 0;
   const learning = onStand.filter(x => x.status === 'learning');
   const stack = clamp(Math.floor(onStand.length / 4), 0, 4);
   const drinks  = (S.entries || []).filter(e => e.type === 'drink').length;
@@ -30968,6 +31191,23 @@ function mainRoomHTML(){
         </g>
         <path class="hm-trail" d="M64,128 C48,164 58,206 44,244 C36,268 44,290 38,312"/>
         <text class="rm-say" x="148" y="392" text-anchor="middle">Every book is a door</text>
+      </g>
+
+      <!-- The card box at the foot of the shelf. The shelf holds what you
+           have read; the box holds what you kept out of it, and the two are
+           different rooms for that reason. A band round it says how many are
+           waiting, because a study queue nobody can see is a study queue
+           nobody clears. -->
+      <g class="zone zone-cards" data-room="study" tabindex="0" role="button" aria-label="The card box — the Study Deck">
+        <rect class="hm-cardbox" x="72" y="392" width="128" height="58" rx="4"/>
+        <path class="hm-cardlid" d="M72,392 L136,372 L200,392"/>
+        ${Array.from({length: 5}, (_, i) =>
+          `<path class="hm-cardslip" d="M${88 + i * 22},390 v-${14 + (i % 3) * 5}"/>`).join('')}
+        ${cardsDue ? `<g class="hm-cardband"><rect x="86" y="404" width="100" height="20" rx="10"/>
+          <text x="136" y="418" text-anchor="middle">${cardsDue} due</text></g>` : ''}
+        <text class="rm-say" x="136" y="470" text-anchor="middle">${cardsDue
+          ? 'Some of it is waiting to be remembered'
+          : 'Nothing waiting. Keep something.'}</text>
       </g>
 
       <!-- the desk: where the writing happens -->
@@ -31435,6 +31675,7 @@ const HOUSE_PORTALS = {
   shelf:     () => navigate('#/journals/library'),
   /* the main room */
   library:   () => navigate('#/journals/library'),
+  study:     () => navigate('#/study'),
   writing:   () => navigate('#/content/shelf'),
   /* The Fazioli opens the room the practice actually lives in. The skills it
      used to open are still one link away, and are not what you sit down to. */
@@ -32962,6 +33203,10 @@ function flowWeekly(opts = {}){
   /* The bench, but only when there is something to say about it — a review
      step that reads "nothing happened" every week is a step people learn to
      press past, and then press past on the week it does say something. */
+  const studySaidLines = typeof studyReviewLines === 'function' ? studyReviewLines(days[0], days[6]) : [];
+  const studyWeek = studySaidLines.length ? [{title:'What you kept, and what you are keeping.', hint:'Cards, streak, and any deck running away from you.',
+    body: () => `<div class="stack" style="gap:6px">${studySaidLines.map(l => `<div class="rev-summary">${esc(l)}</div>`).join('')}
+      <div class="row"><button class="btn sm ghost" data-flowgo="#/study">open the decks</button></div></div>`}] : [];
   const pianoSaid = typeof pianoReviewLines === 'function' ? pianoReviewLines(days[0], days[6]) : [];
   const pianoWeek = pianoSaid.length ? [{title:'The week at the piano.', hint:'Hours, keys, and what is going rusty.',
     body: () => `<div class="stack" style="gap:6px">${pianoSaid.map(l => `<div class="rev-summary">${esc(l)}</div>`).join('')}
@@ -32984,6 +33229,7 @@ function flowWeekly(opts = {}){
     {title:'The week against the lists you made.', hint:'Seven days of intentions, against seven days of evidence.',
      body: () => tasksReviewHTML(days[0], days[6])},
     ...pianoWeek,
+    ...studyWeek,
     {title:'Anything else from this week?', hint:'Anything that happened and never got written down. Add it here and the review stays where it is.',
      body: () => captureStepHTML(days[0], days[6]), bind: b => bindCaptureStep(b, days[0], days[6])},
     {title:"Next week's one intention.",
@@ -46232,6 +46478,10 @@ const NAV_ICONS = {
   content:'<svg viewBox="0 0 24 24"><path d="M8.8 6.9V5.2a1.8 1.8 0 0 1 1.8-1.8h6.2a1.8 1.8 0 0 1 1.8 1.8v9.5a1.8 1.8 0 0 1-1.8 1.8h-1.4"/><path d="M6.2 6.9h5.5l4.3 4.3v7.4a1.8 1.8 0 0 1-1.8 1.8H6.2a1.8 1.8 0 0 1-1.8-1.8V8.7a1.8 1.8 0 0 1 1.8-1.8Z"/><path d="M11.5 7.1v4.3h4.3"/><path d="M7.3 15.1h5.2M7.3 17.6h3.4"/></svg>',
   /* A grand seen from above: the straight edge with the keys along it, and
      the lid curving away. Not a keyboard — a keyboard at 24px is a barcode. */
+  /* Cards in a stack, the top one turned. Not a book — the Library is a book,
+     and the difference between the two rooms is exactly that one is what you
+     have read and the other is what you have kept. */
+  study:    '<svg viewBox="0 0 24 24"><rect x="6.5" y="4" width="13" height="16" rx="2" transform="rotate(6 13 12)"/><rect x="4.5" y="5" width="13" height="16" rx="2"/><path d="M7.8 9.5h6.4M7.8 13h4.2"/></svg>',
   piano:    '<svg viewBox="0 0 24 24"><path d="M4.5 7.5h8.2c4 0 6.8 2.4 6.8 5.6 0 2-1.5 3.4-3.6 3.4H4.5Z"/><path d="M4.5 7.5v9M8 7.5v4M11.5 7.5v4M15 8.2v3.4"/><path d="M4.5 11.5h11"/></svg>',
   import:     '<svg viewBox="0 0 24 24"><rect x="3.5" y="13" width="17" height="7.5" rx="2"/><path d="M3.5 16h4l1.5 2h6l1.5-2h4"/><path d="M12 3.5v9M9.5 10l2.5 2.5L14.5 10"/></svg>',
 };
@@ -46249,6 +46499,7 @@ const NAV_PAGES = {
   values:   {label:'Values',           short:'Values',   ico:NAV_ICONS.values,   route:'#/values'},
   skills:   {label:'Skill Tree',       short:'Skills',   ico:NAV_ICONS.skills,   route:'#/skills'},
   piano:    {label:'Piano Studio',     short:'Piano',    ico:NAV_ICONS.piano,    route:'#/piano'},
+  study:    {label:'Study Deck',       short:'Study',    ico:NAV_ICONS.study,    route:'#/study'},
   timeline: {label:'Timeline',         short:'Timeline', ico:NAV_ICONS.timeline, route:'#/journals/timeline'},
 };
 /* The three rooms you are in most days sit above everything, unlabelled and
@@ -46267,7 +46518,7 @@ const NAV_TOP = ['today','planning'];
 const NAV_PINNED = [];
 const NAV_DEFAULT = {
   create:   ['content','projects','finance','skills','piano'],
-  identity: ['values','journals','people'],
+  identity: ['values','journals','people','study'],
   standalone:[],
 };
 const NAV_ZONES = [
@@ -46807,6 +47058,16 @@ function pianoLogJazz(rec){
     const owner = pianoConceptStage(c.id);
     if(owner && owner.stage.status === 'not_started') owner.stage.status = 'in_progress';
     if(owner && owner.phase.status === 'not_started') owner.phase.status = 'in_progress';
+    /* A voicing you are working on is worth being asked for in the key you
+       are worst at, which is not the key you just practised. It is a
+       suggestion rather than a card: the Study Deck's inbox decides. */
+    if(typeof suggestStudyCard === 'function' && pianoIsKeyed(c)){
+      const weak = pianoWeakKeys(c, 1)[0];
+      if(weak) suggestStudyCard({type:'action', sourceType:'jazz_concept', sourceId:c.id,
+        front:`Play ${c.name} in ${weak}.`,
+        reference:`Your weakest key for this. Fluent in ${pianoKeyCounts(c).fluent + pianoKeyCounts(c).second_nature} of 12.`,
+        sourceLabel:`Jazz Lab — ${c.name}`, tags:['jazz', weak.toLowerCase()]});
+    }
   }
   if(log.mode === 'play') p.settings.playCount = (+p.settings.playCount || 0) + 1;
   else p.settings.practiceCount = (+p.settings.practiceCount || 0) + 1;
@@ -47428,7 +47689,17 @@ function logPianoPractice(pieceId, rec){
   /* practising a piece you had put down picks it up again: "rusty" is worked
      out from the dates, so this happens by itself, but a piece nobody has
      started is started by being practised */
-  if(x.status === 'want_to_learn'){ x.status = 'learning'; x.startedAt = x.startedAt || new Date().toISOString(); }
+  if(x.status === 'want_to_learn'){ x.status = 'learning'; x.startedAt = x.startedAt || new Date().toISOString();
+    /* the first sitting with a new piece is when its facts are worth keeping:
+       what key it is in, and whether the opening is under your hands */
+    if(typeof suggestStudyCard === 'function'){
+      if(x.key) suggestStudyCard({sourceType:'piece', sourceId:x.id, front:`What key is ${x.title} in?`,
+        back:x.key, sourceLabel:`Repertoire — ${x.title}`, tags:['repertoire']});
+      suggestStudyCard({type:'action', sourceType:'piece', sourceId:x.id,
+        front:`Play the opening of ${x.title} from memory.`,
+        reference:[x.composer, x.tempo, x.key].filter(Boolean).join(' · '),
+        sourceLabel:`Repertoire — ${x.title}`, tags:['repertoire']});
+    } }
   pianoCreditSkill(log.durationMinutes);
   pianoCreditHabit();
   saveNow();
@@ -48676,6 +48947,1017 @@ function maybeOfferStarter(){
   applyStarter(); rerender();
   toast('Added a starter set — goals, skills, projects, a compass and some open questions, built from the vision board you described. All of it is editable, and Settings has one button that takes every bit of it back out.', 12000,
     {label:'take it out', fn:()=>{ removeStarter(); S.settings.starterDeclined = true; saveNow(); rerender(); toast('Gone. Nothing of yours was touched.'); }});
+}
+/* ============================================================
+   REMEMBER THIS — one press, from anywhere.
+
+   The difference between this and a flashcard app is that you never leave
+   what you were reading. The button knows where it is, fills the card in
+   from its surroundings, files it in the deck that room feeds, and writes
+   down the way back — so six months later, when the card comes round and the
+   answer means nothing without its context, the context is one press away.
+   ============================================================ */
+
+/* Which deck a room's cards go to, and what to call the source. Everything
+   the button knows about where it is, in one table rather than scattered
+   through twelve call sites. */
+const STUDY_SOURCES = {
+  journal:      {deck:'mindsets',       say:'Journal entry',      go: id => `#/journals`},
+  library:      {deck:'mindsets',       say:'Library',            go: () => '#/journals/library'},
+  quote:        {deck:'mindsets',       say:'Quote',              go: () => '#/journals/library'},
+  theatre:      {deck:'mindsets',       say:'Morning Theatre',    go: () => '#/today'},
+  value:        {deck:'mindsets',       say:'A value',            go: () => '#/values'},
+  grammar:      {deck:'ja_grammar',     say:'Grammar Journey',    go: () => '#/japanese'},
+  vocab:        {deck:'ja_vocab',       say:'Vocabulary Lab',     go: () => '#/japanese'},
+  error_log:    {deck:'ja_corrections', say:'Speaking Lab',       go: () => '#/japanese'},
+  island:       {deck:'ja_vocab',       say:'An island',          go: () => '#/japanese'},
+  jazz_concept: {deck:'jazz',           say:'Jazz Lab',           go: () => '#/piano'},
+  piece:        {deck:'repertoire',     say:'Repertoire',         go: id => `#/piano/piece/${id}`},
+  tarot:        {deck:'divination',     say:'Tarot',              go: () => '#/today'},
+  iching:       {deck:'divination',     say:'I Ching',            go: () => '#/today'},
+  charm:        {deck:'divination',     say:'Charms',             go: () => '#/today'},
+  manual:       {deck:'mindsets',       say:'Written by hand',    go: () => '#/study'},
+};
+const studySourceDeck = t => (STUDY_SOURCES[t] || STUDY_SOURCES.manual).deck;
+
+/* The button. It is small and it is everywhere, which only works because it
+   says nothing until you look at it. */
+function rememberBtnHTML(sourceType, sourceId, label = '') {
+  return `<button class="sd-pin" data-sdpin="${esc(sourceType)}|${esc(sourceId || '')}"
+    title="${esc(label || 'remember this')}" aria-label="make a card of this">📌</button>`;
+}
+/* Every one of these on every page, bound once and for all. Delegated rather
+   than wired per render, because the button appears in a dozen rooms and half
+   of them redraw on their own — a binder you have to remember to call is a
+   button that is dead in whichever room somebody forgot.
+
+   What it needs to fill the card in comes off the element: data-sdfront,
+   data-sdback, and data-sdsay for what to call the source. */
+document.addEventListener('click', ev => {
+  const b = ev.target.closest('[data-sdpin]'); if(!b) return;
+  ev.preventDefault(); ev.stopPropagation();
+  const [type, id] = b.dataset.sdpin.split('|');
+  /* what is selected beats what the button guessed: you selected it on
+     purpose, and the button's guess is only a guess */
+  const picked = studySelection();
+  openRememberModal({sourceType: type, sourceId: id || null,
+    front: picked || b.dataset.sdfront || '', back: picked ? '' : (b.dataset.sdback || ''),
+    sourceLabel: b.dataset.sdsay || ''});
+}, true);
+/* What the browser thinks is selected, if anything, and only when it is on
+   the page rather than inside a field somebody is typing in. */
+function studySelection(){
+  try {
+    const sel = window.getSelection();
+    if(!sel || sel.isCollapsed) return '';
+    const n = sel.anchorNode;
+    if(n && n.parentElement && n.parentElement.closest('input, textarea, .ed.editing')) return '';
+    return String(sel).trim();
+  } catch(e){ return ''; }
+}
+/* Anywhere, on any page: select some words and press the keys. The deck is
+   guessed from the room you are standing in. */
+const STUDY_PAGE_SOURCE = {journals:'journal', commonplace:'library', values:'value',
+  piano:'jazz_concept', japanese:'vocab', today:'theatre'};
+document.addEventListener('keydown', ev => {
+  if(!(ev.key === 'R' || ev.key === 'r') || !ev.shiftKey || !(ev.metaKey || ev.ctrlKey)) return;
+  if(typeof S === 'undefined' || !S) return;
+  ev.preventDefault();
+  const text = studySelection();
+  const where = (typeof parseHash === 'function' ? parseHash().name : '') || '';
+  openRememberModal({sourceType: STUDY_PAGE_SOURCE[where] || 'manual', front: text, back: ''});
+});
+
+/* ---------- the quick-create modal ----------
+   Small, dismissible, and pre-filled. It is a capture, not a form: the whole
+   value of it is that it costs nothing to use, so nothing in it is required
+   except a front. */
+function openRememberModal(pre = {}){
+  const st = studyState();
+  const src = STUDY_SOURCES[pre.sourceType] || STUDY_SOURCES.manual;
+  const deckId = pre.deckId || studySourceDeck(pre.sourceType);
+  const say = pre.sourceLabel || (pre.sourceType === 'manual' ? '' : `${src.say}, ${fmtDate(today(), 'med')}`);
+  const m = openModal(`<h2>📌 Remember this</h2>
+    <label class="pd-q"><span class="k">front</span>
+      <textarea class="inp sd-ta" id="sdFront" rows="3" autofocus placeholder="the question, or the prompt">${esc(pre.front || '')}</textarea></label>
+    <label class="pd-q" style="margin-top:8px"><span class="k">back</span>
+      <textarea class="inp sd-ta" id="sdBack" rows="3" placeholder="the answer">${esc(pre.back || '')}</textarea></label>
+    <div class="grid c2" style="gap:10px;margin-top:10px">
+      <label class="pd-q"><span class="k">deck</span><select class="sel" id="sdDeck">${studyDecks().map(d =>
+        `<option value="${esc(d.id)}" ${d.id === deckId ? 'selected' : ''}>${esc(d.emoji)} ${esc(d.name)}</option>`).join('')}</select></label>
+      <label class="pd-q"><span class="k">kind</span><select class="sel" id="sdType">${STUDY_TYPES.filter(t => t[0] !== 'image_recall').map(([v, n]) =>
+        `<option value="${v}" ${v === (pre.type || 'text_recall') ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label>
+    </div>
+    <label class="pd-q" style="margin-top:10px"><span class="k">tags</span>
+      <input class="inp mono" id="sdTags" value="${esc((pre.tags || []).join(' '))}" placeholder="fritz structural-tension"></label>
+    <!-- One card confirms you know a thing. Three carry it at three depths:
+         retrieve it, use it somewhere new, and tell it from its neighbour.
+         Off by default, because the point of this button is that it is cheap. -->
+    <label class="sd-family"><input type="checkbox" id="sdFamily">
+      <span>Make a family — recall, application and compare<em>three cards at three depths, which is what actually sticks</em></span></label>
+    ${say ? `<div class="sd-src mono">from ${esc(say)}</div>` : ''}
+    <div class="row" style="justify-content:flex-end;margin-top:14px;gap:8px">
+      <button class="btn primary" id="sdSave">Save card</button></div>`, 'narrow sd-modal');
+  const save = () => {
+    const front = m.querySelector('#sdFront').value.trim();
+    if(!front){ m.querySelector('#sdFront').focus(); toast('A card needs a front.'); return; }
+    const base = {
+      front, back: m.querySelector('#sdBack').value.trim(),
+      deckId: m.querySelector('#sdDeck').value,
+      type: m.querySelector('#sdType').value,
+      tags: m.querySelector('#sdTags').value.split(/[\s,]+/).map(x => x.replace(/^#/, '')).filter(Boolean),
+      sourceType: pre.sourceType || 'manual', sourceId: pre.sourceId || null,
+      sourceLabel: say || null, sourceGo: pre.sourceGo || (src.go ? src.go(pre.sourceId) : null)};
+    const made = m.querySelector('#sdFamily').checked
+      ? studyMakeFamily(base) : [addStudyCard(base)];
+    saveNow(); m.remove(); sound('success');
+    toast(made.length > 1 ? `${made.length} cards made — the deeper two are yours to finish.` : 'Card made.', 4200,
+      {label:'open the deck', fn: () => navigate('#/study')});
+    if(parseHash().name === 'study') rerender();
+  };
+  m.querySelector('#sdSave').onclick = save;
+  /* ⌘↵ saves from either field, because a capture you have to reach for the
+     mouse to finish is a capture you stop making */
+  m.querySelectorAll('textarea, input').forEach(n => n.onkeydown = ev => {
+    if(ev.key === 'Enter' && (ev.metaKey || ev.ctrlKey)){ ev.preventDefault(); save(); } });
+  return m;
+}
+function addStudyCard(fields){
+  const c = newStudyCard(fields);
+  studyState().cards.push(c);
+  return c;
+}
+
+/* ---------- card families ----------
+   Laufer and Hulstijn: what is retained is proportional to how hard you had
+   to work with it. Retrieval is the shallow end. So a family is three cards:
+   the one that asks whether you have it, the one that makes you use it
+   somewhere it has never been, and the one that makes you tell it from the
+   thing it is nearly the same as.
+
+   The second two are written as prompts rather than guesses. The instrument
+   does not know what your weekend plans are or which framework you would set
+   this one against — and a card with an invented answer on the back is worse
+   than no card, because you will believe it. */
+function studyMakeFamily(base){
+  const familyId = uid();
+  const subject = (base.front || '').split('\n')[0].slice(0, 80);
+  const made = [];
+  made.push(addStudyCard(Object.assign({}, base, {familyId, familyRole:'recall', involvement:1})));
+  made.push(addStudyCard(Object.assign({}, base, {
+    familyId, familyRole:'application', involvement:3, type: base.type === 'action' ? 'action' : 'text_recall',
+    front: `Use it somewhere new — ${subject}\n\nWhere in your own life does this apply right now? Be specific.`,
+    back: base.back ? `For reference:\n\n${base.back}` : ''})));
+  made.push(addStudyCard(Object.assign({}, base, {
+    familyId, familyRole:'compare', involvement:5, type:'text_recall',
+    front: `Tell it from its neighbour — ${subject}\n\nWhat is the nearest thing to this that it is NOT? Where is the line?`,
+    back: base.back ? `For reference:\n\n${base.back}` : ''})));
+  return made;
+}
+/* Grown later, from the browse view, for a card that turned out to matter */
+function studyDeepen(id){
+  const c = studyCard(id); if(!c) return null;
+  if(c.familyId && studyCards().some(x => x.familyId === c.familyId && x.familyRole !== 'recall')){
+    toast('This one already has its family.'); return null;
+  }
+  const familyId = c.familyId || uid();
+  c.familyId = familyId; c.familyRole = 'recall'; c.involvement = 1;
+  const rest = studyMakeFamily(Object.assign({}, c, {familyId})).filter(x => x.familyRole !== 'recall');
+  /* studyMakeFamily makes its own recall card; this one already exists */
+  const extra = studyCards().filter(x => x.familyId === familyId && x.familyRole === 'recall' && x.id !== c.id);
+  extra.forEach(x => spliceOut(studyState().cards, y => y.id === x.id));
+  rest.forEach(x => { x.familyId = familyId; });
+  saveNow();
+  return rest;
+}
+const studyFamily = id => { const c = studyCard(id);
+  return c && c.familyId ? studyCards().filter(x => x.familyId === c.familyId) : (c ? [c] : []); };
+
+/* ---------- the inbox ----------
+   Cards the house made for you rather than cards you asked for. They wait:
+   a system that silently adds work to tomorrow is a system you stop trusting,
+   so nothing enters the rotation until it has been looked at. */
+function suggestStudyCard(fields){
+  const st = studyState();
+  /* the same suggestion twice is one suggestion */
+  const same = st.cards.find(c => c.status === 'inbox' && c.front === fields.front && c.deckId === (fields.deckId || studySourceDeck(fields.sourceType)));
+  if(same) return same;
+  const c = addStudyCard(Object.assign({status:'inbox', deckId: studySourceDeck(fields.sourceType)}, fields));
+  saveNow();
+  return c;
+}
+function acceptStudyCard(id){ const c = studyCard(id); if(!c) return;
+  c.status = 'active'; c.due = today(); saveNow(); }
+function dismissStudyCard(id){ spliceOut(studyState().cards, c => c.id === id); saveNow(); }
+/* ============================================================
+   THE CARDS THEMSELVES — four kinds, because four kinds of knowing.
+
+   A fact you can state, a phrase you have to produce, a sentence with a hole
+   in it, and a thing you do with your hands. They are different cards because
+   answering them is a different act: you cannot check whether you can play a
+   ii-V-I in Eb by reading the answer.
+   ============================================================ */
+
+/* The front of a card, whatever kind it is. `shown` is whether the answer has
+   been asked for yet — an action card has no back to flip to, so its front
+   carries its own two buttons and the reference only appears after. */
+function studyFaceHTML(c, shown){
+  const t = c.type;
+  if(t === 'cloze') return studyClozeHTML(c, shown);
+  if(t === 'action') return `<div class="sd-face sd-action">
+    <div class="sd-kind mono">do this</div>
+    <div class="sd-front">${md(c.front)}</div>
+    ${shown && c.reference ? `<div class="sd-ref">${md(c.reference)}</div>` : ''}
+  </div>`;
+  if(t === 'production') return `<div class="sd-face sd-production">
+    <div class="sd-kind mono">say it</div>
+    <div class="sd-front">${md(c.front)}</div>
+    ${shown ? `<div class="sd-back">${md(c.back)}</div>` : ''}
+  </div>`;
+  if(t === 'image_recall') return `<div class="sd-face">
+    ${c.imageData ? `<img class="sd-img" src="${esc(c.imageData)}" alt="">` : ''}
+    <div class="sd-front">${md(c.front)}</div>
+    ${shown ? `<div class="sd-back">${md(c.back)}</div>` : ''}
+  </div>`;
+  return `<div class="sd-face">
+    <div class="sd-front">${md(c.front)}</div>
+    ${shown ? `<div class="sd-back">${md(c.back)}</div>` : ''}
+  </div>`;
+}
+/* The hole in a cloze is written as {{…}} in the front text. Typing the answer
+   is the honest version and multiple choice is the fast one; which you get is
+   a setting, because on a day when you have twenty of these the difference
+   between honest and finished is the difference between doing it and not. */
+const CLOZE_RE = /\{\{([^}]*)\}\}/;
+function clozeParts(c){
+  const m = CLOZE_RE.exec(c.front || '');
+  if(!m) return {before: c.front || '', answer: c.clozeAnswer || '', after: ''};
+  return {before: (c.front || '').slice(0, m.index), answer: c.clozeAnswer || m[1], after: (c.front || '').slice(m.index + m[0].length)};
+}
+function studyClozeHTML(c, shown){
+  const {before, answer, after} = clozeParts(c);
+  const opts = (c.clozeOptions || []).length ? c.clozeOptions : null;
+  const mode = studyState().settings.clozeInput;
+  return `<div class="sd-face sd-cloze">
+    <div class="sd-kind mono">fill the gap</div>
+    <div class="sd-front">${esc(before)}<span class="sd-gap${shown ? ' shown' : ''}">${
+      shown ? esc(answer) : '&nbsp;&nbsp;&nbsp;&nbsp;'}</span>${esc(after)}</div>
+    ${shown ? '' : opts && mode === 'multiple_choice'
+      ? `<div class="sd-opts">${opts.map(o => `<button class="sd-opt" data-sdopt="${esc(o)}">${esc(o)}</button>`).join('')}</div>`
+      : `<input class="inp sd-type" id="sdType" placeholder="type it" autocomplete="off" spellcheck="false">`}
+    ${shown && c.back ? `<div class="sd-back">${md(c.back)}</div>` : ''}
+  </div>`;
+}
+/* Whether what was typed is the answer. Deliberately forgiving about the
+   things that are not the point: surrounding space, and the full-width space
+   a Japanese keyboard produces. It is not forgiving about the characters
+   themselves, because those are the point. */
+function clozeMatches(c, typed){
+  const norm = s => String(s ?? '').replace(/[\s　]+/g, '').trim();
+  return !!norm(typed) && norm(typed) === norm(clozeParts(c).answer);
+}
+
+/* ---------- the session ---------- */
+function studySession(){
+  return S._study = S._study || {queue:[], at:0, shown:false, deckId:null, done:null, typed:''};
+}
+function startStudySession(deckId){
+  const q = studyQueue(deckId || null);
+  if(!q.length){ toast(deckId ? 'Nothing due in that deck.' : 'Nothing due. Come back tomorrow.'); return false; }
+  S._study = {queue:q.map(c => c.id), at:0, shown:false, deckId: deckId || null,
+    started: Date.now(), tally:{again:0, hard:0, good:0, easy:0}, done:null, typed:''};
+  navigate('#/study/session');
+  return true;
+}
+const studyCurrent = () => { const s = studySession(); return studyCard(s.queue[s.at]) || null; };
+
+function studySessionHTML(){
+  const s = studySession();
+  if(s.done) return studySummaryHTML(s);
+  const c = studyCurrent();
+  if(!c) return `<div class="empty">This session is over. <a href="#/study">Back to the decks</a>.</div>`;
+  const d = studyDeck(c.deckId);
+  const left = s.queue.length - s.at;
+  const prev = studyPreview(c);
+  const showPrev = studyState().settings.showPreview;
+  return `<div class="sd-session">
+    <div class="sd-top">
+      <a class="btn sm ghost" href="#/study">← the decks</a>
+      <span class="sd-where">${d ? `${d.emoji} ${esc(d.name)}` : ''}</span>
+      <span class="mono sd-left">${left} of ${s.queue.length} left</span>
+    </div>
+    <div class="sd-rule"><i style="width:${Math.round(s.at / s.queue.length * 100)}%"></i></div>
+    <div class="sd-card${s.shown ? ' shown' : ''}" data-sdcard="${esc(c.id)}">${studyFaceHTML(c, s.shown)}</div>
+    ${s.shown
+      ? `<div class="sd-grade">${STUDY_BUTTONS.map(([k, name, hint]) => `
+          <button class="sd-btn sd-${k}" data-sdgrade="${k}" title="${esc(hint)}">
+            <span class="sd-btn-n">${esc(name)}</span>
+            ${showPrev ? `<span class="sd-btn-i mono">${esc(studySaid(prev[k]))}</span>` : ''}
+          </button>`).join('')}</div>`
+      : `<div class="sd-go">
+          <button class="btn primary" id="sdShow">${c.type === 'action' ? 'I did it — show the answer' : 'Show the answer'}</button>
+          <button class="btn sm ghost" id="sdSkip">skip</button>
+        </div>`}
+    ${c.sourceLabel ? `<div class="sd-source mono">📌 ${esc(c.sourceLabel)}${
+      c.sourceGo ? ` <a href="${esc(c.sourceGo)}">→ go to it</a>` : ''}</div>` : ''}
+  </div>`;
+}
+function studySummaryHTML(s){
+  const mins = Math.max(1, Math.round((Date.now() - (s.started || Date.now())) / 60000));
+  const n = s.queue.length;
+  const [line, who] = STUDY_PARTINGS[Math.floor(Math.random() * STUDY_PARTINGS.length)];
+  const tomorrow = studyCards().filter(c => c.status === 'active' && c.due === addDays(today(), 1)).length;
+  return `<div class="sd-summary">
+    <div class="sd-done">✓</div>
+    <h2 class="serif">Session complete</h2>
+    <div class="sd-sum-n mono">${n} card${n === 1 ? '' : 's'} in ${mins} minute${mins === 1 ? '' : 's'}</div>
+    <div class="sd-tally">${STUDY_BUTTONS.map(([k, name]) =>
+      `<span class="sd-tal sd-${k}"><b>${s.tally[k] || 0}</b> ${esc(name.toLowerCase())}</span>`).join('')}</div>
+    <div class="sd-next mono">${tomorrow ? `${tomorrow} due tomorrow` : 'nothing due tomorrow'}</div>
+    <div class="sd-streak">🔥 ${studyStreak()}-day streak</div>
+    <blockquote class="sd-parting">${esc(line)}<cite>— ${esc(who)}</cite></blockquote>
+    <div class="row" style="gap:8px;justify-content:center">
+      <a class="btn ghost" href="#/study">Close</a>
+      ${studyDue(null).length ? `<button class="btn primary" id="sdMore">Study the rest (${studyDue(null).length})</button>` : ''}
+    </div>
+  </div>`;
+}
+function bindStudySession(root){
+  const s = studySession();
+  const c = studyCurrent();
+  const show = root.querySelector('#sdShow');
+  if(show) show.onclick = () => { s.shown = true; sound('click'); rerender(); };
+  const skip = root.querySelector('#sdSkip');
+  /* Skipping moves the card to the back rather than dropping it: you skipped
+     because you were not ready this second, not because it is not due. */
+  if(skip) skip.onclick = () => { const id = s.queue.splice(s.at, 1)[0];
+    s.queue.push(id); s.shown = false; sound('click'); rerender(); };
+  const typed = root.querySelector('#sdType');
+  if(typed){ typed.focus();
+    typed.onkeydown = ev => { if(ev.key !== 'Enter') return;
+      s.typed = typed.value; s.shown = true;
+      /* the typed answer grades itself: right is Good, wrong is Again, and
+         either can be overruled by pressing a different button */
+      s.suggest = clozeMatches(c, typed.value) ? 'good' : 'again';
+      sound(s.suggest === 'good' ? 'success' : 'click'); rerender(); }; }
+  $$('[data-sdopt]', root).forEach(b => b.onclick = () => {
+    s.typed = b.dataset.sdopt; s.shown = true;
+    s.suggest = clozeMatches(c, b.dataset.sdopt) ? 'good' : 'again';
+    sound(s.suggest === 'good' ? 'success' : 'click'); rerender(); });
+  $$('[data-sdgrade]', root).forEach(b => b.onclick = () => {
+    const k = b.dataset.sdgrade;
+    studyAnswer(s.queue[s.at], k);
+    s.tally[k] = (s.tally[k] || 0) + 1;
+    s.at += 1; s.shown = false; s.typed = ''; s.suggest = null;
+    if(s.at >= s.queue.length){ s.done = true; sound('success'); try { RewardFX.check(); } catch(e){} }
+    else sound('click');
+    rerender();
+  });
+  const more = root.querySelector('#sdMore');
+  if(more) more.onclick = () => startStudySession(null);
+  /* the four grades on the keys under your fingers, and space to turn a card */
+  if(!root._sdKeys){
+    root._sdKeys = true;
+    root.addEventListener('keydown', ev => {
+      if(ev.target.matches('input, textarea')) return;
+      if(ev.key === ' ' && !s.shown){ ev.preventDefault(); s.shown = true; rerender(); return; }
+      const n = ['1','2','3','4'].indexOf(ev.key);
+      if(n > -1 && s.shown){ ev.preventDefault(); root.querySelector(`[data-sdgrade="${STUDY_BUTTONS[n][0]}"]`)?.click(); }
+    });
+  }
+}
+/* ============================================================
+   THE STUDY DECK — the memory layer of the whole instrument.
+
+   Not a flashcard app that happens to live here. Anything encountered
+   anywhere in the house — an insight in a journal entry, a quote off a
+   shelf, a grammar point, a voicing, a tarot meaning — can become a card
+   with one press, and the card remembers where it came from so you can go
+   back and read the thing in its own context.
+
+   The scheduling is SM-2, which is the algorithm Anki was originally built
+   on. It is about forty lines and it has been right for thirty years: show
+   a card, ask how it went, and let how it went decide when you see it next.
+   ============================================================ */
+
+/* Six degrees of how a recall went, in SM-2's own numbering. The four the
+   player is offered map onto these; the two in between exist because the
+   algorithm's ease calculation reads the whole scale. */
+const SM2_GRADES = {again:1, hard:3, good:4, easy:5};
+const STUDY_BUTTONS = [
+  ['again', 'Again', 'no — start it over',        '#a05050'],
+  ['hard',  'Hard',  'yes, but it hurt',          '#b08840'],
+  ['good',  'Good',  'yes, with a little thought', '#6a8a5a'],
+  ['easy',  'Easy',  'immediately',               '#4a8a7a']];
+const STUDY_TYPES = [
+  ['text_recall', 'Text → recall', 'a prompt on the front, the answer on the back'],
+  ['production',  'Production',    'a meaning on the front; you produce the language'],
+  ['cloze',       'Cloze',         'a sentence with a hole in it'],
+  ['action',      'Action',        'an instruction; you do the thing and mark yourself'],
+  ['image_recall','Image → recall','a picture on the front']];
+const STUDY_STATUSES = ['inbox', 'active', 'suspended', 'graduated'];
+/* Three depths of involvement, after Laufer and Hulstijn: retrieving a thing,
+   deploying it somewhere new, and weighing it against its neighbour. The third
+   is the expensive one and the one that sticks. */
+const STUDY_ROLES = [
+  ['recall',      'Recall',      'do you have it', 1],
+  ['application', 'Application', 'use it somewhere new', 3],
+  ['compare',     'Compare',     'tell it from its neighbour', 5]];
+
+const STUDY_DECKS_DEFAULT = () => [
+  {id:'mindsets', name:'Mindsets & Principles', emoji:'🧠', color:'#8a6a5e', isDefault:true, parentId:null,
+   about:'Insights, mental models and paradigm shifts worth having by heart.',
+   autoSources:['journal','library','theatre']},
+  {id:'japanese', name:'Japanese', emoji:'🇯🇵', color:'#c4484e', isDefault:true, parentId:null,
+   about:'The language, in three parts.', autoSources:[]},
+  {id:'ja_grammar', name:'Grammar', emoji:'⛩', color:'#c4484e', isDefault:true, parentId:'japanese',
+   about:'Grammar points, particles, conjugations.', autoSources:['grammar']},
+  {id:'ja_vocab', name:'Vocabulary', emoji:'📝', color:'#c4484e', isDefault:true, parentId:'japanese',
+   about:'Words, chunks and the collocations they live in.', autoSources:['vocab']},
+  {id:'ja_corrections', name:'Corrections', emoji:'🎙', color:'#c4484e', isDefault:true, parentId:'japanese',
+   about:'What you meant, and what a native would have said.', autoSources:['error_log']},
+  {id:'jazz', name:'Jazz Piano', emoji:'🎹', color:'#6b7f8e', isDefault:true, parentId:null,
+   about:'Voicings, progressions, theory.', autoSources:['jazz_concept']},
+  {id:'repertoire', name:'Repertoire Memory', emoji:'🎵', color:'#6b7f8e', isDefault:true, parentId:null,
+   about:'Pieces: keys, openings, structure.', autoSources:['piece']},
+  {id:'divination', name:'Divination Study', emoji:'🔮', color:'#7f6a8e', isDefault:true, parentId:null,
+   about:'Tarot meanings, hexagrams, charm symbols.', autoSources:['tarot','iching','charm']}];
+
+/* What the session says on its way out. They rotate, and they are all from
+   the books the rest of the house is built on — the point being that a study
+   session is not a separate activity from the rest of it. */
+const STUDY_PARTINGS = [
+  ['The nervous system cannot tell the difference between a real experience and one vividly imagined.', 'Maltz'],
+  ['Structural tension seeks resolution. Do not resolve it by lowering the vision.', 'Fritz'],
+  ['No more than a quarter of the time on the direct study of items; no less than a quarter on fluency.', 'Nation'],
+  ['In play time, analytical thought is strictly forbidden.', 'Werner'],
+  ['You do not rise to the level of your goals. You fall to the level of your systems.', 'Clear'],
+  ['What is retained is what you had to work to understand.', 'Laufer & Hulstijn']];
+
+/* ---------- storage ----------
+   Built on first use, like the planner's and the studio's: a room nobody has
+   opened costs nothing, and a save from an older version cannot be missing a
+   field. */
+function studyState(){
+  if(!S.study) S.study = {};
+  const st = S.study;
+  st.cards = Array.isArray(st.cards) ? st.cards : [];
+  st.decks = Array.isArray(st.decks) && st.decks.length ? st.decks : STUDY_DECKS_DEFAULT();
+  /* a default deck the player deleted in an older version comes back, because
+     its auto-sources point at it by name and cards would land nowhere */
+  STUDY_DECKS_DEFAULT().forEach(d => { if(!st.decks.some(x => x.id === d.id)) st.decks.push(d); });
+  st.settings = Object.assign({newPerDay:20, reviewsPerDay:100, graduateAt:180,
+    clozeInput:'type', showPreview:true, order:'due_first'}, st.settings || {});
+  st.stats = Object.assign({reviews:0, streak:0, longest:0, lastStudied:null, perDay:{}}, st.stats || {});
+  st.cards.forEach(studyCardDefaults);
+  return st;
+}
+function studyCardDefaults(c){
+  c.id = c.id || uid();
+  c.type = STUDY_TYPES.some(t => t[0] === c.type) ? c.type : 'text_recall';
+  c.front = c.front || '';
+  c.back = c.back || '';
+  c.clozeAnswer = c.clozeAnswer == null ? null : String(c.clozeAnswer);
+  c.clozeOptions = Array.isArray(c.clozeOptions) ? c.clozeOptions : null;
+  c.imageData = c.imageData || null;
+  c.reference = c.reference || null;
+  c.deckId = c.deckId || 'mindsets';
+  c.tags = Array.isArray(c.tags) ? c.tags : [];
+  c.sourceType = c.sourceType || null;
+  c.sourceId = c.sourceId || null;
+  c.sourceLabel = c.sourceLabel || null;
+  c.sourceGo = c.sourceGo || null;
+  /* SM-2's three numbers. The ease factor starts at 2.5 and never goes below
+     1.3 — below that a card you keep failing would be scheduled further and
+     further out, which is exactly backwards. */
+  c.interval = +c.interval || 0;
+  c.reps = +c.reps || 0;
+  c.ease = +c.ease || 2.5;
+  c.due = c.due || today();
+  c.lastReviewed = c.lastReviewed || null;
+  c.createdAt = c.createdAt || new Date().toISOString();
+  c.status = STUDY_STATUSES.includes(c.status) ? c.status : 'active';
+  c.history = Array.isArray(c.history) ? c.history : [];
+  c.familyId = c.familyId || null;
+  c.familyRole = STUDY_ROLES.some(r => r[0] === c.familyRole) ? c.familyRole : null;
+  c.involvement = c.involvement == null ? null : +c.involvement;
+  return c;
+}
+function newStudyCard(extra = {}){
+  return studyCardDefaults(Object.assign({id:uid(), createdAt:new Date().toISOString(),
+    due:today(), status:'active'}, extra));
+}
+const studyCards = () => studyState().cards;
+const studyCard = id => byId(studyState().cards, id);
+const studyDecks = () => studyState().decks;
+const studyDeck = id => byId(studyState().decks, id);
+const studyDeckName = id => (studyDeck(id) || {name:'Unfiled'}).name;
+/* a deck and everything filed under it */
+function studyDeckIds(id){
+  const kids = studyDecks().filter(d => d.parentId === id).map(d => d.id);
+  return [id, ...kids];
+}
+const studyTopDecks = () => studyDecks().filter(d => !d.parentId);
+
+/* ---------- SM-2 ----------
+   Show a card, ask how it went, let the answer decide when you see it next.
+   Two rules carry the whole thing: a right answer multiplies the interval by
+   the card's own ease, and a wrong one sends the card back to tomorrow with
+   its streak reset — because a thing you have just failed is not a thing you
+   know in six days' time.
+
+   The ease moves too, and more slowly. A card that is always easy drifts
+   towards long intervals; one that is always hard sinks to the 1.3 floor and
+   stays close. That floor matters: without it a card you keep failing gets
+   scheduled further out each time, which is the opposite of what failing it
+   means. */
+function sm2(card, grade){
+  let {interval, reps, ease} = card;
+  if(grade >= 3){
+    /* Textbook SM-2 makes the interval depend only on whether you passed, so
+       Hard, Good and Easy all produce the same date and only the ease factor
+       moves. That is defensible on paper and useless in the hand: three
+       buttons that do the same thing today are three buttons nobody can
+       choose between, and the preview under them would read 8 days, 8 days,
+       8 days forever.
+
+       So the three passing grades are spread, the way every scheduler built
+       on SM-2 has ended up doing it. Hard advances a little; Good is the
+       textbook interval; Easy jumps. The ease formula underneath is
+       untouched — that is the part SM-2 is actually right about. */
+    interval = grade === 3
+      ? (reps === 0 ? 1 : Math.max(interval + 1, Math.round(interval * 1.2)))
+      : grade >= 5
+        ? (reps === 0 ? 4 : reps === 1 ? 8 : Math.round(interval * ease * 1.3))
+        : (reps === 0 ? 1 : reps === 1 ? 6 : Math.round(interval * ease));
+    reps += 1;
+  } else {
+    /* A thing you have just failed is not a thing you know in six days */
+    reps = 0;
+    interval = 1;
+  }
+  ease = Math.max(1.3, ease + (0.1 - (5 - grade) * (0.08 + (5 - grade) * 0.02)));
+  return {interval, reps, ease: Math.round(ease * 1000) / 1000, due: addDays(today(), interval)};
+}
+/* what pressing each button would do, so the choice can be calibrated */
+function studyPreview(card){
+  const out = {};
+  STUDY_BUTTONS.forEach(([k]) => { out[k] = sm2(card, SM2_GRADES[k]).interval; });
+  return out;
+}
+const studySaid = n => n < 1 ? 'today' : n === 1 ? '1 day' : n < 30 ? `${n} days`
+  : n < 365 ? `${Math.round(n / 30)} months` : `${(n / 365).toFixed(1)} years`;
+
+/* Answering a card is the one place any of this is written down. It moves the
+   schedule, records what happened, graduates the card if it has gone far
+   enough, and keeps the streak — all of it here so there is one story about
+   what a review does. */
+function studyAnswer(id, key){
+  const c = studyCard(id); if(!c) return null;
+  const grade = SM2_GRADES[key] ?? 4;
+  const next = sm2(c, grade);
+  Object.assign(c, next);
+  c.lastReviewed = new Date().toISOString();
+  c.history.push({date:new Date().toISOString(), grade});
+  const st = studyState();
+  /* Graduation is not mastery, it is "this is far enough out that a daily
+     queue is the wrong place for it". It can be brought back. */
+  if(c.interval >= st.settings.graduateAt && c.status === 'active') c.status = 'graduated';
+  st.stats.reviews = (+st.stats.reviews || 0) + 1;
+  const d = today();
+  st.stats.perDay[d] = (+st.stats.perDay[d] || 0) + 1;
+  studyTouchStreak(d);
+  saveNow();
+  return c;
+}
+/* A streak is consecutive days with at least one review. Studying twice in a
+   day does not extend it, and the day you actually study is the only thing
+   that moves it — so it is computed from the last day studied rather than
+   incremented blindly. */
+function studyTouchStreak(d){
+  const st = studyState().stats;
+  if(st.lastStudied === d) return;
+  st.streak = st.lastStudied === addDays(d, -1) ? (+st.streak || 0) + 1 : 1;
+  st.lastStudied = d;
+  st.longest = Math.max(+st.longest || 0, st.streak);
+}
+/* the streak as it stands today, which is not what is stored the moment a day
+   is missed — stored numbers do not decay by themselves */
+function studyStreak(){
+  const st = studyState().stats;
+  if(!st.lastStudied) return 0;
+  const gap = daysBetween(st.lastStudied, today());
+  return gap <= 1 ? (+st.streak || 0) : 0;
+}
+
+/* ---------- the queue ---------- */
+const studyIsDue = c => c.status === 'active' && c.due <= today();
+function studyDue(deckId){
+  const ids = deckId ? new Set(studyDeckIds(deckId)) : null;
+  return studyCards().filter(c => studyIsDue(c) && (!ids || ids.has(c.deckId)));
+}
+function studyInbox(){ return studyCards().filter(c => c.status === 'inbox'); }
+function studyDeckCount(deckId){
+  const ids = new Set(studyDeckIds(deckId));
+  const mine = studyCards().filter(c => ids.has(c.deckId) && c.status !== 'inbox');
+  return {due: mine.filter(studyIsDue).length, total: mine.length,
+    graduated: mine.filter(c => c.status === 'graduated').length};
+}
+/* The session queue, capped by the day's limits. A card never reviewed is a
+   new card and gets its own smaller allowance, because twenty new things is a
+   different afternoon from twenty reminders. */
+function studyQueue(deckId){
+  const st = studyState();
+  const due = studyDue(deckId);
+  const fresh = due.filter(c => !c.reps);
+  const seen = due.filter(c => c.reps);
+  const take = (list, n) => n > 0 ? list.slice(0, n) : list;
+  const q = take(seen, st.settings.reviewsPerDay).concat(take(fresh, st.settings.newPerDay));
+  if(st.settings.order === 'new_first') q.reverse();
+  else if(st.settings.order === 'mixed') studyShuffle(q);
+  else q.sort((a, b) => (a.due || '').localeCompare(b.due || ''));
+  return q;
+}
+function studyShuffle(a){
+  for(let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+/* how far along the life of a card is, for the distribution chart */
+function studyMaturity(c){
+  if(c.status === 'graduated') return 'graduated';
+  if(!c.reps) return 'new';
+  if(c.interval < 7) return 'learning';
+  if(c.interval < 30) return 'young';
+  return 'mature';
+}
+const STUDY_MATURITY = [['new','New','#b8b0a6'], ['learning','Learning','#c98b7a'],
+  ['young','Young','#d8a45f'], ['mature','Mature','#8fa86a'], ['graduated','Graduated','#7fa2a8']];
+/* ============================================================
+   THE STUDY DECK — the room.
+   ============================================================ */
+const STUDY_VIEWS = [['decks','The decks'], ['browse','Every card'], ['stats','How it is going']];
+const studyView = () => S._studyView || 'decks';
+
+routes.study = function(root, params){
+  studyState();
+  if(params && params[0] === 'session'){ root.innerHTML = `<div class="page sd-page">${studySessionHTML()}</div>`;
+    bindStudySession(root); return; }
+  registerPageEntry({pageName:'Study Deck', addLabel:'Make a card', defaultEntryType:'card', prefilledFields:{}, options:[
+    {icon:'📌', label:'A card', desc:'Something worth having by heart.', run:()=>openRememberModal({sourceType:'manual'})},
+    {icon:'📚', label:'A deck', desc:'A place to file a kind of thing.', run:()=>openDeckModal()}]});
+  const v = studyView();
+  root.innerHTML = `<div class="page sd-page">
+    <h1 class="serif">Study Deck</h1>
+    <p class="muted sd-lede">The memory layer. Anything anywhere in the house — an insight in a journal entry, a quote off a shelf, a grammar point, a voicing — becomes a card with one press, and the card remembers where it came from. The scheduling is SM-2: a thing you got right you see later, a thing you missed you see tomorrow.</p>
+    <div class="sd-views">${STUDY_VIEWS.map(([k, n]) =>
+      `<button class="sd-view${v === k ? ' on' : ''}" data-sdview="${k}">${esc(n)}</button>`).join('')}</div>
+    ${studyInboxHTML()}
+    <div class="sd-body">${v === 'browse' ? studyBrowseHTML() : v === 'stats' ? studyStatsHTML() : studyDecksHTML()}</div>
+  </div>`;
+  bindStudyPage(root);
+};
+
+function studyDecksHTML(){
+  const due = studyDue(null).length;
+  return `<div class="sd-begin">
+      <div class="sd-begin-n"><b>${due}</b> ${due === 1 ? 'card' : 'cards'} due today</div>
+      ${due ? `<button class="btn primary" id="sdBegin">Begin a session</button>`
+        : `<div class="faint">Nothing waiting. The next one comes round when it comes round.</div>`}
+      <span class="sd-flame" title="${studyStreak()} consecutive days">🔥 ${studyStreak()}</span>
+    </div>
+    <div class="sd-grid">${studyTopDecks().map(d => {
+      const n = studyDeckCount(d.id);
+      const kids = studyDecks().filter(k => k.parentId === d.id);
+      const pct = n.total ? Math.round(n.graduated / n.total * 100) : 0;
+      return `<div class="sd-deck${n.due ? ' due' : ''}" style="--c:${esc(d.color)}">
+        <button class="sd-deck-face" data-sddeck="${esc(d.id)}" ${n.due ? '' : 'disabled'}
+          title="${n.due ? 'study this deck' : 'nothing due in here'}">
+          <span class="sd-deck-e">${esc(d.emoji)}</span>
+          <span class="sd-deck-n serif">${esc(d.name)}</span>
+          <span class="sd-deck-c mono">${n.due} due · ${n.total} in all</span>
+          <span class="sd-deck-bar"><i style="width:${pct}%"></i></span>
+        </button>
+        ${kids.length ? `<div class="sd-kids">${kids.map(k => { const kn = studyDeckCount(k.id);
+          return `<button class="sd-kid" data-sddeck="${esc(k.id)}" ${kn.due ? '' : 'disabled'}>
+            ${esc(k.emoji)} ${esc(k.name)} <span class="mono">${kn.due}/${kn.total}</span></button>`; }).join('')}</div>` : ''}
+        <div class="sd-deck-about">${esc(d.about || '')}</div>
+      </div>`; }).join('')}
+      <button class="sd-deck sd-newdeck" id="sdNewDeck"><span class="sd-deck-e">＋</span>
+        <span class="sd-deck-n serif">A deck of your own</span></button>
+    </div>
+    <div class="sd-stats-line mono">${studyCards().filter(c => c.status !== 'inbox').length} cards · ${
+      studyCards().filter(c => studyMaturity(c) === 'mature' || c.status === 'graduated').length} matured · ${
+      studyState().stats.reviews} reviews all told</div>`;
+}
+
+/* Cards the house suggested. They wait here until they are looked at, because
+   a system that quietly adds work to tomorrow is one you stop trusting. */
+function studyInboxHTML(){
+  const box = studyInbox();
+  if(!box.length) return '';
+  return `<div class="sd-inbox">
+    <div class="row between" style="align-items:baseline">
+      <span class="k">📥 ${box.length} suggested ${box.length === 1 ? 'card' : 'cards'}</span>
+      <button class="pl-mini" id="sdAcceptAll">take them all</button></div>
+    <p class="muted" style="font-size:.82rem">Made from what you did elsewhere. Nothing enters the rotation until you say so.</p>
+    <div class="stack" style="gap:6px;margin-top:8px">${box.slice(0, 8).map(c => `
+      <div class="sd-inrow" data-sdin="${esc(c.id)}">
+        <span class="sd-in-deck mono">${esc((studyDeck(c.deckId) || {emoji:'▫'}).emoji)}</span>
+        <span class="sd-in-body">
+          <span class="sd-in-f">${esc((c.front || '').slice(0, 120))}</span>
+          <span class="sd-in-b mono">${esc((c.back || '').slice(0, 90))}</span></span>
+        <span class="row" style="gap:4px">
+          <button class="tbtn" data-sdaccept="${esc(c.id)}">keep</button>
+          <button class="tbtn" data-sdedit="${esc(c.id)}">edit</button>
+          <button class="del-x inline" data-sddismiss="${esc(c.id)}" title="not this one">×</button></span>
+      </div>`).join('')}
+      ${box.length > 8 ? `<div class="faint mono" style="font-size:.72rem">…and ${box.length - 8} more</div>` : ''}</div>
+  </div>`;
+}
+
+/* ---------- every card ---------- */
+function studyFilter(){ return S._sdFilter = S._sdFilter || {deck:'', type:'', status:'', q:''}; }
+function studyFiltered(){
+  const f = studyFilter(), q = (f.q || '').toLowerCase();
+  return studyCards().filter(c => {
+    if(c.status === 'inbox') return false;
+    if(f.deck && !studyDeckIds(f.deck).includes(c.deckId)) return false;
+    if(f.type && c.type !== f.type) return false;
+    if(f.status && c.status !== f.status) return false;
+    if(q && !`${c.front} ${c.back} ${c.tags.join(' ')}`.toLowerCase().includes(q)) return false;
+    return true;
+  }).sort((a, b) => (a.due || '').localeCompare(b.due || ''));
+}
+function studyBrowseHTML(){
+  const f = studyFilter();
+  const rows = studyFiltered();
+  const pick = (id, val, opts, blank) => `<select class="sel sm" id="${id}"><option value="">${blank}</option>${
+    opts.map(([v, n]) => `<option value="${v}" ${val === v ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select>`;
+  /* a family is shown as one thing, with its deeper cards folded under the
+     card they came from */
+  const seen = new Set();
+  return `<div class="pn-toolbar">
+      ${pick('sdfDeck', f.deck, studyDecks().map(d => [d.id, `${d.emoji} ${d.name}`]), 'every deck')}
+      ${pick('sdfType', f.type, STUDY_TYPES.map(t => [t[0], t[1]]), 'every kind')}
+      ${pick('sdfStatus', f.status, [['active','In rotation'],['suspended','Paused'],['graduated','Mastered']], 'every state')}
+      <input class="inp sm pn-search" id="sdfQ" placeholder="front, back, tag" value="${esc(f.q || '')}">
+      <span class="grow"></span>
+      <span class="mono faint">${rows.length} of ${studyCards().filter(c => c.status !== 'inbox').length}</span>
+      <button class="btn sm primary" id="sdAdd">＋ card</button>
+    </div>
+    ${rows.length ? `<div class="stack" style="gap:6px">${rows.map(c => {
+      if(c.familyId && seen.has(c.familyId) && c.familyRole !== 'recall') return '';
+      const fam = c.familyId ? studyFamily(c.id).filter(x => x.id !== c.id) : [];
+      if(c.familyId) seen.add(c.familyId);
+      return studyRowHTML(c) + (fam.length ? `<div class="sd-famrows">${fam.map(studyRowHTML).join('')}</div>` : '');
+    }).join('')}</div>` : `<div class="empty">Nothing matches. Widen the filter, or press 📌 on something.</div>`}`;
+}
+function studyRowHTML(c){
+  const d = studyDeck(c.deckId);
+  const role = STUDY_ROLES.find(r => r[0] === c.familyRole);
+  const last = c.history.length ? c.history[c.history.length - 1] : null;
+  return `<div class="sd-row sd-${esc(c.status)}" data-sdrow="${esc(c.id)}">
+    <div class="sd-row-top">
+      <span class="sd-row-f serif">${esc((c.front || '').replace(/\s+/g, ' ').slice(0, 110))}</span>
+      <span class="sd-row-d mono" style="--c:${esc(d ? d.color : 'var(--line)')}">${esc(d ? d.emoji + ' ' + d.name : 'unfiled')}</span>
+    </div>
+    <div class="sd-row-meta mono">
+      ${c.status === 'graduated' ? 'mastered' : c.status === 'suspended' ? 'paused'
+        : `due ${esc(c.due === today() ? 'today' : fmtDate(c.due, 'short'))}`}
+      · ${esc(studySaid(c.interval))} · ease ${c.ease.toFixed(2)}
+      · ${c.history.length} review${c.history.length === 1 ? '' : 's'}${last ? ` · last ${esc(fmtDate((last.date || '').slice(0, 10), 'short'))}` : ''}
+      ${role ? ` · <span class="sd-role">${esc(role[1].toLowerCase())}</span>` : ''}
+      ${c.sourceLabel ? ` · ${esc(c.sourceLabel)}` : ''}
+    </div>
+    <div class="sd-row-tools">
+      <button class="tbtn" data-sdedit="${esc(c.id)}">edit</button>
+      <button class="tbtn" data-sdpause="${esc(c.id)}">${c.status === 'suspended' ? 'resume' : 'pause'}</button>
+      ${c.status === 'graduated' ? `<button class="tbtn" data-sdungrad="${esc(c.id)}">bring it back</button>` : ''}
+      ${!c.familyId || c.familyRole === 'recall' ? `<button class="tbtn" data-sddeepen="${esc(c.id)}" title="add an application and a compare card">＋ deeper</button>` : ''}
+      ${c.sourceGo ? `<a class="tbtn" href="${esc(c.sourceGo)}">source</a>` : ''}
+      <button class="del-x inline" data-sddel="${esc(c.id)}" title="delete this card">×</button>
+    </div>
+  </div>`;
+}
+
+/* ---------- how it is going ---------- */
+function studyStatsHTML(){
+  const st = studyState();
+  const buckets = {};
+  STUDY_MATURITY.forEach(([k]) => buckets[k] = 0);
+  studyCards().filter(c => c.status !== 'inbox').forEach(c => buckets[studyMaturity(c)]++);
+  const total = sum(Object.values(buckets)) || 1;
+  const days = Array.from({length:90}, (_, i) => addDays(today(), i - 89));
+  const most = Math.max(1, ...days.map(d => +st.stats.perDay[d] || 0));
+  return `<div class="grid c2" style="gap:16px">
+    <div class="card no-tilt">
+      <div class="k">The streak</div>
+      <div class="sd-bigflame">🔥 <b>${studyStreak()}</b><small>day${studyStreak() === 1 ? '' : 's'} running</small></div>
+      <div class="mono faint">longest ${st.stats.longest || 0} · ${st.stats.reviews || 0} reviews all told</div>
+    </div>
+    <div class="card no-tilt">
+      <div class="k">Where the cards are</div>
+      <div class="sd-bars">${STUDY_MATURITY.map(([k, name, col]) => `
+        <div class="sd-bar-row"><span class="sd-bar-n">${esc(name)}</span>
+          <span class="bar" style="--c:${col}"><i style="width:${Math.round(buckets[k] / total * 100)}%"></i></span>
+          <span class="mono">${buckets[k]}</span></div>`).join('')}</div>
+      <p class="muted" style="font-size:.78rem;margin-top:8px">A card is mature once it is on a month's cycle, and it graduates out of the queue past ${st.settings.graduateAt} days. Graduating is not mastery — it is the point at which a daily list is the wrong place for it.</p>
+    </div>
+    <div class="card no-tilt span2">
+      <div class="k">Ninety days</div>
+      <div class="sd-heat">${days.map(d => { const n = +st.stats.perDay[d] || 0;
+        const lvl = !n ? 0 : n < most * 0.25 ? 1 : n < most * 0.6 ? 2 : 3;
+        return `<i class="sd-hd l${lvl}" title="${esc(fmtDate(d, 'med'))}${n ? ` — ${n} reviewed` : ' — nothing'}"></i>`; }).join('')}</div>
+    </div>
+    <div class="card no-tilt span2">
+      <div class="k">How it is set up</div>
+      <div class="sd-settings">
+        <label class="pd-q"><span class="k">new cards a day</span><input class="inp mono" type="number" id="sdSetNew" min="0" max="200" value="${st.settings.newPerDay}"></label>
+        <label class="pd-q"><span class="k">reviews a day</span><input class="inp mono" type="number" id="sdSetRev" min="0" max="999" value="${st.settings.reviewsPerDay}"></label>
+        <label class="pd-q"><span class="k">graduates past</span><input class="inp mono" type="number" id="sdSetGrad" min="30" max="3650" value="${st.settings.graduateAt}"> days</label>
+        <label class="pd-q"><span class="k">a gap is</span><select class="sel" id="sdSetCloze">
+          <option value="type" ${st.settings.clozeInput === 'type' ? 'selected' : ''}>typed</option>
+          <option value="multiple_choice" ${st.settings.clozeInput === 'multiple_choice' ? 'selected' : ''}>chosen</option></select></label>
+        <label class="pd-q"><span class="k">order</span><select class="sel" id="sdSetOrder">
+          ${[['due_first','longest overdue first'],['new_first','new ones first'],['mixed','shuffled']].map(([v, n]) =>
+            `<option value="${v}" ${st.settings.order === v ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label>
+        <label class="pd-q"><span class="k">show what each grade would do</span>
+          <input type="checkbox" id="sdSetPrev" ${st.settings.showPreview ? 'checked' : ''}></label>
+      </div>
+    </div>
+  </div>`;
+}
+
+function bindStudyPage(root){
+  const st = studyState();
+  const redraw = () => { saveNow(); rerender(); };
+  $$('[data-sdview]', root).forEach(b => b.onclick = () => { S._studyView = b.dataset.sdview; sound('click'); rerender(); });
+  const begin = root.querySelector('#sdBegin'); if(begin) begin.onclick = () => startStudySession(null);
+  $$('[data-sddeck]', root).forEach(b => b.onclick = () => startStudySession(b.dataset.sddeck));
+  const nd = root.querySelector('#sdNewDeck'); if(nd) nd.onclick = () => openDeckModal();
+  const add = root.querySelector('#sdAdd'); if(add) add.onclick = () => openRememberModal({sourceType:'manual'});
+
+  /* the inbox */
+  $$('[data-sdaccept]', root).forEach(b => b.onclick = () => { acceptStudyCard(b.dataset.sdaccept); sound('success'); rerender(); });
+  $$('[data-sddismiss]', root).forEach(b => b.onclick = () => { dismissStudyCard(b.dataset.sddismiss); sound('click'); rerender(); });
+  const all = root.querySelector('#sdAcceptAll');
+  if(all) all.onclick = () => { studyInbox().forEach(c => acceptStudyCard(c.id)); sound('success'); rerender(); };
+
+  /* the browse filters */
+  const f = studyFilter();
+  [['#sdfDeck','deck'], ['#sdfType','type'], ['#sdfStatus','status']].forEach(([sel, key]) => {
+    const n = root.querySelector(sel); if(n) n.onchange = () => { f[key] = n.value; rerender(); }; });
+  const q = root.querySelector('#sdfQ');
+  if(q) q.oninput = debounce(() => { f.q = q.value; const at = q.selectionStart; rerender();
+    const again = document.querySelector('#sdfQ'); if(again){ again.focus(); try { again.setSelectionRange(at, at); } catch(e){} } }, 260);
+
+  $$('[data-sdedit]', root).forEach(b => b.onclick = () => openCardEditor(b.dataset.sdedit));
+  $$('[data-sdpause]', root).forEach(b => b.onclick = () => { const c = studyCard(b.dataset.sdpause); if(!c) return;
+    c.status = c.status === 'suspended' ? 'active' : 'suspended'; sound('click'); redraw(); });
+  $$('[data-sdungrad]', root).forEach(b => b.onclick = () => { const c = studyCard(b.dataset.sdungrad); if(!c) return;
+    /* it comes back at the beginning of the long end rather than at zero:
+       you did know it once, and pretending otherwise wastes a month */
+    c.status = 'active'; c.interval = 21; c.due = addDays(today(), 1); sound('click'); redraw(); });
+  $$('[data-sddeepen]', root).forEach(b => b.onclick = () => { const made = studyDeepen(b.dataset.sddeepen);
+    if(made){ sound('success'); toast('Two deeper cards, waiting for you to finish their fronts.'); rerender(); } });
+  $$('[data-sddel]', root).forEach(b => b.onclick = () => { const c = studyCard(b.dataset.sddel); if(!c) return;
+    requestDelete({label: (c.front || 'this card').slice(0, 40), node: b.closest('.sd-row'), after: rerender,
+      remove: () => spliceOut(st.cards, x => x.id === c.id)}); });
+
+  /* the settings */
+  const num = (sel, key, lo, hi) => { const n = root.querySelector(sel);
+    if(n) n.onchange = () => { st.settings[key] = clamp(+n.value || 0, lo, hi); saveNow(); }; };
+  num('#sdSetNew', 'newPerDay', 0, 200);
+  num('#sdSetRev', 'reviewsPerDay', 0, 999);
+  num('#sdSetGrad', 'graduateAt', 30, 3650);
+  const cz = root.querySelector('#sdSetCloze'); if(cz) cz.onchange = () => { st.settings.clozeInput = cz.value; saveNow(); };
+  const or = root.querySelector('#sdSetOrder'); if(or) or.onchange = () => { st.settings.order = or.value; saveNow(); };
+  const pv = root.querySelector('#sdSetPrev'); if(pv) pv.onchange = () => { st.settings.showPreview = pv.checked; saveNow(); };
+}
+
+function openCardEditor(id){
+  const c = studyCard(id); if(!c) return null;
+  const m = openModal(`<h2>The card</h2>
+    <label class="pd-q"><span class="k">front</span><textarea class="inp sd-ta" id="ceFront" rows="4">${esc(c.front)}</textarea></label>
+    <label class="pd-q" style="margin-top:8px"><span class="k">back</span><textarea class="inp sd-ta" id="ceBack" rows="4">${esc(c.back)}</textarea></label>
+    ${c.type === 'cloze' ? `<label class="pd-q" style="margin-top:8px"><span class="k">the answer in the gap</span>
+      <input class="inp" id="ceCloze" value="${esc(c.clozeAnswer || '')}" placeholder="what belongs in {{ }}"></label>
+      <label class="pd-q" style="margin-top:8px"><span class="k">or four to choose from</span>
+      <input class="inp mono" id="ceOpts" value="${esc((c.clozeOptions || []).join(' '))}" placeholder="に へ で を"></label>` : ''}
+    ${c.type === 'action' ? `<label class="pd-q" style="margin-top:8px"><span class="k">what to show afterwards</span>
+      <textarea class="inp" id="ceRef" rows="3" placeholder="the voicing spelled out, the fingering, the answer you can check against">${esc(c.reference || '')}</textarea></label>` : ''}
+    <div class="grid c2" style="gap:10px;margin-top:10px">
+      <label class="pd-q"><span class="k">deck</span><select class="sel" id="ceDeck">${studyDecks().map(d =>
+        `<option value="${esc(d.id)}" ${c.deckId === d.id ? 'selected' : ''}>${esc(d.emoji)} ${esc(d.name)}</option>`).join('')}</select></label>
+      <label class="pd-q"><span class="k">kind</span><select class="sel" id="ceType">${STUDY_TYPES.map(([v, n]) =>
+        `<option value="${v}" ${c.type === v ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label>
+    </div>
+    <label class="pd-q" style="margin-top:10px"><span class="k">tags</span>
+      <input class="inp mono" id="ceTags" value="${esc(c.tags.join(' '))}"></label>
+    <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary" id="ceSave">Save</button></div>`, 'narrow sd-modal');
+  m.querySelector('#ceSave').onclick = () => {
+    c.front = m.querySelector('#ceFront').value;
+    c.back = m.querySelector('#ceBack').value;
+    c.deckId = m.querySelector('#ceDeck').value;
+    c.type = m.querySelector('#ceType').value;
+    c.tags = m.querySelector('#ceTags').value.split(/[\s,]+/).map(x => x.replace(/^#/, '')).filter(Boolean);
+    const cz = m.querySelector('#ceCloze'); if(cz) c.clozeAnswer = cz.value.trim() || null;
+    const op = m.querySelector('#ceOpts');
+    if(op){ const list = op.value.split(/[\s,]+/).filter(Boolean); c.clozeOptions = list.length ? list : null; }
+    const rf = m.querySelector('#ceRef'); if(rf) c.reference = rf.value.trim() || null;
+    /* editing a suggestion is accepting it — you would not have edited it
+       otherwise, and asking twice is a click nobody wants */
+    if(c.status === 'inbox'){ c.status = 'active'; c.due = today(); }
+    saveNow(); m.remove(); sound('click'); rerender();
+  };
+  return m;
+}
+function openDeckModal(existing){
+  const d = existing || {id:uid(), name:'', emoji:'📗', color:'#8a6a5e', about:'', parentId:null, isDefault:false};
+  const m = openModal(`<h2>${existing ? 'The deck' : 'A deck of your own'}</h2>
+    <div class="grid c2" style="gap:10px">
+      <label class="pd-q"><span class="k">name</span><input class="inp serif-lg" id="dkName" value="${esc(d.name)}" autofocus placeholder="Law School · Recipes"></label>
+      <label class="pd-q"><span class="k">a mark for it</span><input class="inp" id="dkEmoji" value="${esc(d.emoji)}" maxlength="4"></label>
+    </div>
+    <label class="pd-q" style="margin-top:10px"><span class="k">what goes in it</span>
+      <input class="inp" id="dkAbout" value="${esc(d.about)}" placeholder="one line"></label>
+    <label class="pd-q" style="margin-top:10px"><span class="k">inside</span><select class="sel" id="dkParent">
+      <option value="">— on its own —</option>
+      ${studyTopDecks().filter(x => x.id !== d.id).map(x => `<option value="${esc(x.id)}" ${d.parentId === x.id ? 'selected' : ''}>${esc(x.emoji)} ${esc(x.name)}</option>`).join('')}</select></label>
+    <div class="row" style="justify-content:flex-end;margin-top:14px;gap:8px">
+      ${existing && !d.isDefault ? `<button class="btn sm ghost danger" id="dkDel">Delete</button><span class="grow"></span>` : ''}
+      <button class="btn primary" id="dkSave">${existing ? 'Save' : 'Make it'}</button></div>`, 'narrow');
+  m.querySelector('#dkSave').onclick = () => {
+    const name = m.querySelector('#dkName').value.trim();
+    if(!name){ m.querySelector('#dkName').focus(); return; }
+    Object.assign(d, {name, emoji: m.querySelector('#dkEmoji').value.trim() || '📗',
+      about: m.querySelector('#dkAbout').value.trim(), parentId: m.querySelector('#dkParent').value || null});
+    if(!existing) studyState().decks.push(d);
+    saveNow(); m.remove(); sound('success'); rerender();
+  };
+  const del = m.querySelector('#dkDel');
+  if(del) del.onclick = () => {
+    /* the cards outlive the deck: they go back to the first one rather than
+       vanishing with it, because a deleted deck should not be a way to lose
+       four hundred cards you did not mean to delete */
+    studyCards().filter(c => c.deckId === d.id).forEach(c => { c.deckId = 'mindsets'; });
+    spliceOut(studyState().decks, x => x.id === d.id);
+    saveNow(); m.remove(); sound('click'); rerender();
+  };
+  return m;
+}
+
+/* ---------- what the rest of the house sees ----------
+   A queue nobody can see is a queue nobody clears, so the day says how many
+   are waiting. It says nothing at all when the room has never been opened —
+   a page offering to study a deck you have never made is noise. */
+function studyTodayHTML(T){
+  if(!S.study || !Array.isArray(S.study.cards) || !S.study.cards.length) return '';
+  const due = studyDue(null).length;
+  const box = studyInbox().length;
+  const streak = studyStreak();
+  if(!due && !box) return `<div class="sd-today quiet">
+    <span class="mono">Nothing to review today${streak ? ` · 🔥 ${streak}` : ''}</span>
+    <a class="btn sm ghost" href="#/study">the decks</a></div>`;
+  return `<div class="sd-today">
+    <span class="sd-today-n"><b>${due}</b> ${due === 1 ? 'card' : 'cards'} to review${
+      box ? ` · ${box} suggested` : ''}</span>
+    ${streak ? `<span class="mono sd-today-s">🔥 ${streak}</span>` : ''}
+    <span class="grow"></span>
+    ${due ? `<button class="btn sm primary" id="sdFive">five minutes</button>` : ''}
+    <a class="btn sm ghost" href="#/study">the decks</a>
+  </div>`;
+}
+/* Five minutes is about ten cards, at the speed anybody actually answers
+   them. It is a different button from "begin a session" because the whole
+   difficulty with a review queue is the days you do not have an hour. */
+function startShortStudy(){
+  const q = studyQueue(null).slice(0, 10);
+  if(!q.length){ toast('Nothing due.'); return false; }
+  S._study = {queue:q.map(c => c.id), at:0, shown:false, deckId:null,
+    started:Date.now(), tally:{again:0, hard:0, good:0, easy:0}, done:null, typed:''};
+  navigate('#/study/session');
+  return true;
+}
+/* what the weekly review wants to know about the cards */
+function studyReviewLines(from, to){
+  if(!S.study || !Array.isArray(S.study.cards)) return [];
+  const st = studyState();
+  const n = sum(Object.keys(st.stats.perDay).filter(d => d >= from && d <= to).map(d => +st.stats.perDay[d] || 0));
+  const out = [];
+  if(n) out.push(`${n} cards reviewed.`);
+  const made = st.cards.filter(c => (c.createdAt || '').slice(0, 10) >= from && (c.createdAt || '').slice(0, 10) <= to).length;
+  if(made) out.push(`${made} new ${made === 1 ? 'card' : 'cards'} kept.`);
+  const grad = st.cards.filter(c => c.status === 'graduated').length;
+  if(grad) out.push(`${grad} mastered and out of the queue.`);
+  const streak = studyStreak();
+  if(streak >= 3) out.push(`A ${streak}-day streak.`);
+  /* the useful warning is not "you are behind", it is which deck is running
+     away from you — a backlog is always one deck long before it is four */
+  const behind = studyTopDecks().map(d => ({d, n: studyDeckCount(d.id).due}))
+    .filter(x => x.n >= 20).sort((a, b) => b.n - a.n)[0];
+  if(behind) out.push(`${behind.d.name} has ${behind.n} waiting — that one is getting away.`);
+  return out;
 }
 /* ============================================================
    11. GLOBAL ADD ENTRY MODAL

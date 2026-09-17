@@ -272,6 +272,14 @@ function openCardDirectory(startAt){
           ${c.essence ? `<p class="cd-ess">${esc(c.essence)}</p>` : ''}
           ${counts[i] ? `<span class="cd-seen mono">drawn ${counts[i]} time${counts[i] === 1 ? '' : 's'}</span>`
             : '<span class="cd-seen mono none">not yet drawn</span>'}
+          <!-- A deck you have to look up is a deck you are reading rather than
+               reading with. The card's name on the front, what it means on the
+               back — opt in one card at a time, because studying all
+               seventy-eight is a decision, not a default. -->
+          <button class="snip-btn sd-take" data-sdpin="tarot|${esc(c.name)}"
+            data-sdfront="${esc(c.name)}" data-sdsay="Tarot"
+            data-sdback="${esc([c.essence, (c.upright && c.upright.meaning) || ''].filter(Boolean).join('\n\n'))}"
+            title="learn this card by heart">◆</button>
         </div></div>
       ${c.imagery ? `<section class="cd-side"><h4 class="dv-sec-h">What it shows</h4>
         <p class="cd-p">${esc(c.imagery)}</p></section>` : ''}
