@@ -1,4 +1,6 @@
 node_modules/
 
-# scratch drivers: renderers, screenshotters, the frame-time probe
+# scratch drivers: renderers, screenshotters, the frame-time probe, the
+# runner that walks the whole smoke suite
 _*.js
+_*.sh
