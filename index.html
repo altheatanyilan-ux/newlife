@@ -40710,7 +40710,9 @@ function bindPlanViews(root, sel, tasks){
 function newTask(text='', day=''){ return {id:uid(), text, day, done:false, doneAt:null, notes:'', order:Date.now(), createdAt:new Date().toISOString(), links:{projects:[],skills:[]}}; }
 function migrateTasks(){
   S.tasks = Array.isArray(S.tasks) ? S.tasks : [];
-  S.tasks.forEach(t => { t.links = t.links || {projects:[],skills:[]}; if(t.day === undefined) t.day = ''; if(t.done === undefined) t.done = false; });
+  S.tasks.forEach(t => { t.links = t.links || {projects:[],skills:[]};
+    if(t.day === undefined) t.day = ''; if(t.doDay === undefined) t.doDay = '';
+    if(t.done === undefined) t.done = false; });
   // reminders were dated one-liners: the same thing, so fold them in once
   if(Array.isArray(S.reminders) && S.reminders.length){
     S.reminders.forEach(r => { if(!S.tasks.some(t => t.id === r.id)) S.tasks.push(Object.assign(newTask(r.text || '', r.date || ''), {id:r.id, done:!!r.done, doneAt:r.doneAt||null})); });
