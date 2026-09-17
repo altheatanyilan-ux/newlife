@@ -50,6 +50,9 @@ const NAV_ICONS = {
   /* Cards in a stack, the top one turned. Not a book — the Library is a book,
      and the difference between the two rooms is exactly that one is what you
      have read and the other is what you have kept. */
+  /* A torii, because that is what the room is about and a flag would be
+     about a country rather than a language. */
+  japanese: '<svg viewBox="0 0 24 24"><path d="M3.5 6.5h17M4.5 9h15"/><path d="M7 9v11M17 9v11"/><path d="M6 5.6c2.2-1 3.9-1.5 6-1.5s3.8.5 6 1.5"/><path d="M7 13h10"/></svg>',
   study:    '<svg viewBox="0 0 24 24"><rect x="6.5" y="4" width="13" height="16" rx="2" transform="rotate(6 13 12)"/><rect x="4.5" y="5" width="13" height="16" rx="2"/><path d="M7.8 9.5h6.4M7.8 13h4.2"/></svg>',
   piano:    '<svg viewBox="0 0 24 24"><path d="M4.5 7.5h8.2c4 0 6.8 2.4 6.8 5.6 0 2-1.5 3.4-3.6 3.4H4.5Z"/><path d="M4.5 7.5v9M8 7.5v4M11.5 7.5v4M15 8.2v3.4"/><path d="M4.5 11.5h11"/></svg>',
   import:     '<svg viewBox="0 0 24 24"><rect x="3.5" y="13" width="17" height="7.5" rx="2"/><path d="M3.5 16h4l1.5 2h6l1.5-2h4"/><path d="M12 3.5v9M9.5 10l2.5 2.5L14.5 10"/></svg>',
@@ -69,6 +72,7 @@ const NAV_PAGES = {
   skills:   {label:'Skill Tree',       short:'Skills',   ico:NAV_ICONS.skills,   route:'#/skills'},
   piano:    {label:'Piano Studio',     short:'Piano',    ico:NAV_ICONS.piano,    route:'#/piano'},
   study:    {label:'Study Deck',       short:'Study',    ico:NAV_ICONS.study,    route:'#/study'},
+  japanese: {label:'Japanese Studio',  short:'日本語',    ico:NAV_ICONS.japanese, route:'#/japanese'},
   timeline: {label:'Timeline',         short:'Timeline', ico:NAV_ICONS.timeline, route:'#/journals/timeline'},
 };
 /* The three rooms you are in most days sit above everything, unlabelled and
@@ -86,7 +90,7 @@ const NAV_PAGES = {
 const NAV_TOP = ['today','planning'];
 const NAV_PINNED = [];
 const NAV_DEFAULT = {
-  create:   ['content','projects','finance','skills','piano'],
+  create:   ['content','projects','finance','skills','piano','japanese'],
   identity: ['values','journals','people','study'],
   standalone:[],
 };

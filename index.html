@@ -8640,6 +8640,217 @@ a.pn-res-t:hover{text-decoration:underline}
 }
 
 
+.hg-marker rect{fill:#c4484e;opacity:.85}
+.hg-marker text{fill:#fff;font-family:var(--mono);font-size:12px}
+/* ============ THE JAPANESE STUDIO ============ */
+.ja-page .ja-lede{max-width:74ch}
+.ja-tabs{display:flex;gap:8px;margin:18px 0 6px;flex-wrap:wrap}
+.ja-tab{display:flex;flex-direction:column;gap:1px;align-items:flex-start;padding:8px 15px;border-radius:var(--radius);
+  border:1px solid var(--line);background:var(--surface);color:var(--text);cursor:pointer}
+.ja-tab span{font-family:var(--serif);font-size:.98rem}
+.ja-tab em{font-style:normal;font-size:.68rem;opacity:.55;font-family:var(--mono)}
+.ja-tab.on{border-color:#c4484e;background:color-mix(in srgb,#c4484e 9%,var(--surface))}
+.ja-body{margin-top:16px}
+.ja-sec{margin-bottom:28px}
+.ja-note{font-size:.84rem;max-width:74ch;margin:4px 0 0}
+.ja-jp,.ja-jp-inline,.ja-jp-input{font-family:var(--serif);font-feature-settings:"palt"}
+.ja-jp{font-size:1.02rem;line-height:1.8;margin:6px 0}
+.ja-jp-input{font-size:1.02rem;line-height:1.8}
+.ja-en{font-size:.9rem;opacity:.8}
+.ja-warn{margin-top:10px;padding:9px 13px;border-left:3px solid #c98b7a;border-radius:4px;
+  background:color-mix(in srgb,#c98b7a 8%,transparent);font-size:.84rem}
+.ja-warn.sm{font-size:.78rem;margin-top:8px}
+.ja-ok{margin-top:8px;font-size:.82rem;color:var(--sage)}
+
+/* a session, drawn as three takes */
+.ja-session{border:1px solid var(--line);border-radius:var(--radius);padding:10px 13px;background:var(--surface)}
+.ja-topic{font-size:1.02rem}
+.ja-takes{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.ja-take{flex:1;min-width:118px;display:flex;flex-direction:column;gap:1px;padding:7px 10px;
+  border:1px solid var(--line);border-radius:6px;border-left-width:3px}
+.ja-take:nth-child(1){border-left-color:color-mix(in srgb,#c4484e 40%,var(--line))}
+.ja-take:nth-child(2){border-left-color:color-mix(in srgb,#c4484e 62%,var(--line))}
+.ja-take:nth-child(3){border-left-color:#c4484e}
+.ja-take-n{font-size:.66rem;opacity:.55}
+.ja-take-w{font-family:var(--serif);font-size:1.12rem}
+.ja-take-w em{font-style:normal;font-size:.62rem;opacity:.55}
+.ja-take-p{font-size:.66rem;opacity:.6}
+.ja-take-q{font-size:.7rem;opacity:.8}
+.ja-q-rough{color:#c98b7a}.ja-q-okay{color:#d8a45f}.ja-q-good{color:#8fa86a}.ja-q-flowing{color:#7fa2a8}
+.ja-gain{font-size:.74rem;margin-top:6px;color:var(--sage)}
+.ja-pause{display:inline-block;font-size:.72rem;padding:2px 9px;border-radius:999px;margin-top:6px;border:1px solid var(--line)}
+.ja-p-mostly_mid_clause{border-color:#c98b7a;color:#c98b7a}
+.ja-p-mostly_boundary{border-color:var(--sage);color:var(--sage)}
+.ja-snotes{font-size:.82rem;opacity:.8;margin-top:6px}
+.ja-tools{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;opacity:0;transition:opacity .16s var(--ease)}
+.ja-session:hover .ja-tools,.ja-island:hover .ja-tools,.ja-err:hover .ja-tools,.ja-gram:hover .ja-tools,
+.ja-chunk:hover .ja-tools,.ja-write:hover .ja-tools,.ja-shadow:hover .ja-tools,.ja-trans:hover .ja-tools,
+.ja-scenario:hover .ja-tools,.ja-sec:focus-within .ja-tools{opacity:1}
+@media (hover:none){.ja-tools{opacity:1}}
+.ja-grid{width:100%;border-collapse:collapse;margin-top:12px}
+.ja-grid th{font-family:var(--mono);font-size:.68rem;text-transform:uppercase;letter-spacing:.07em;
+  opacity:.55;text-align:left;padding:5px 6px;font-weight:400}
+.ja-grid td{padding:3px 4px}
+.ja-grid .inp{width:100%}
+.ja-pauses{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.ja-pbtn{flex:1;min-width:140px;text-align:left;padding:8px 11px;border-radius:var(--radius);
+  border:1px solid var(--line);background:transparent;color:var(--text);cursor:pointer}
+.ja-pbtn b{display:block;font-size:.88rem}
+.ja-pbtn em{display:block;font-style:normal;font-size:.68rem;opacity:.6;margin-top:1px}
+.ja-pbtn.on{border-color:#c4484e;background:color-mix(in srgb,#c4484e 9%,transparent)}
+.ja-check{display:flex;gap:7px;align-items:center;font-size:.84rem;margin-top:4px;cursor:pointer}
+
+/* islands */
+.ja-islands{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-top:10px}
+.ja-island{border:1px solid var(--line);border-radius:var(--radius);padding:11px 13px;background:var(--surface);
+  border-left-width:3px}
+.ja-is-drafting{border-left-color:var(--line)}
+.ja-is-corrected{border-left-color:#d8a45f}
+.ja-is-memorizing{border-left-color:#c4484e}
+.ja-is-automatic{border-left-color:var(--sage)}
+.ja-island-t{font-size:1rem}
+.ja-badge{font-size:.66rem;padding:1px 8px;border:1px solid var(--line);border-radius:999px;opacity:.8}
+.ja-island-m{font-size:.68rem;opacity:.6;margin-top:6px}
+.ja-tools-ref{margin-top:14px}
+.ja-toollist{font-size:.85rem;line-height:1.7;padding-left:20px}
+.ja-toollist b{font-family:var(--serif)}
+
+/* scenarios */
+.ja-scen{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin-top:10px}
+.ja-scenario{border:1px solid var(--line);border-radius:var(--radius);padding:10px 12px;background:var(--surface)}
+.ja-scen-m{font-size:.68rem;opacity:.6;margin-top:4px}
+
+/* shadowing */
+.ja-shadow{border:1px solid var(--line);border-radius:var(--radius);padding:10px 13px;background:var(--surface)}
+.ja-ipom{display:flex;gap:14px;flex-wrap:wrap;margin-top:7px}
+.ja-ip{display:flex;flex-direction:column;gap:0}
+.ja-ip em{font-style:normal;font-size:.64rem;opacity:.55;font-family:var(--mono)}
+.ja-ip b{font-size:.74rem;letter-spacing:.1em;color:var(--sage)}
+.ja-ipom-set{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.ja-ipom-row{display:grid;grid-template-columns:minmax(0,1fr) 130px;gap:10px;align-items:center}
+.ja-ipom-row b{font-size:.86rem}
+.ja-ipom-row em{display:block;font-style:normal;font-size:.7rem;opacity:.6}
+
+/* the error log, as a notebook */
+.ja-errs{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.ja-err{border:1px solid var(--line);border-radius:var(--radius);padding:10px 13px;
+  background:repeating-linear-gradient(transparent,transparent 25px,color-mix(in srgb,var(--line) 45%,transparent) 26px),var(--surface);
+  line-height:26px}
+.ja-err-m{font-size:.66rem;opacity:.55}
+.ja-err-i,.ja-err-a,.ja-err-c{font-size:.9rem}
+.ja-err-a{opacity:.72}
+.ja-err-c{color:var(--sage)}
+.ja-err .k{display:inline-block;min-width:4.5em;font-size:.62rem;opacity:.5}
+.ja-top{margin-top:10px;padding:9px 13px;border:1px dashed var(--line);border-radius:var(--radius);
+  display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.ja-top.sm{margin-top:8px;padding:6px 9px}
+.ja-pat{font-size:.78rem;padding:2px 9px;border-radius:999px;background:color-mix(in srgb,#c98b7a 14%,transparent)}
+.ja-pat b{font-family:var(--mono)}
+.ja-top-say{font-size:.74rem;opacity:.6;flex-basis:100%}
+
+/* the strands */
+.ja-strands{display:flex;flex-direction:column;gap:7px;margin-top:10px}
+.ja-strand{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,2fr) 3em;gap:10px;align-items:center}
+.ja-strand-n{font-size:.86rem}
+.ja-strand-n em{display:block;font-style:normal;font-size:.68rem;opacity:.55}
+.ja-strands.sm .ja-strand{grid-template-columns:minmax(0,1fr) minmax(0,1.4fr) 2.6em;font-size:.8rem}
+.ja-strand.off .ja-strand-n{color:#c98b7a}
+.ja-strand-set{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.ja-strand-row{display:grid;grid-template-columns:minmax(0,1fr) 90px;gap:10px;align-items:center}
+.ja-strand-row em{display:block;font-style:normal;font-size:.7rem;opacity:.6}
+.ja-total{text-align:right;margin-top:8px;font-size:.86rem;color:var(--sage)}
+.ja-total.off{color:#c98b7a}
+
+/* the ladder */
+.ja-ladder{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.ja-rung{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;
+  padding:9px 13px;border:1px solid var(--line);border-radius:var(--radius);opacity:.5}
+.ja-gate{font-size:1.1rem;opacity:.6}
+.ja-rung-b{display:flex;flex-direction:column;gap:1px;min-width:0}
+.ja-rung-h{font-size:.98rem}
+.ja-rung-e{font-size:.84rem;opacity:.75}
+.ja-rung-w{font-size:.72rem;opacity:.55}
+.ja-rung-s{font-size:.66rem;letter-spacing:.06em;text-transform:uppercase}
+.ja-r-solid{opacity:1;border-color:color-mix(in srgb,var(--sage) 45%,var(--line))}
+.ja-r-consolidating{opacity:1;border-color:#c4484e;background:color-mix(in srgb,#c4484e 7%,transparent)}
+.ja-r-consolidating .ja-gate{opacity:1;filter:drop-shadow(0 0 6px color-mix(in srgb,#c4484e 60%,transparent))}
+.ja-r-reaching{opacity:.85;border-style:dashed}
+.ja-ptmini{display:flex;flex-direction:column;gap:3px;margin-top:8px;font-size:.8rem}
+.ja-ptm{opacity:.45;padding:2px 0}
+.ja-ptm.solid{opacity:.8}
+.ja-ptm.cur{opacity:1;color:#c4484e}
+.ja-ptm.next{opacity:.75;font-style:italic}
+
+/* grammar points */
+.ja-grams{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;margin-top:10px}
+.ja-gram{border:1px solid var(--line);border-radius:var(--radius);padding:10px 12px;background:var(--surface)}
+.ja-gram.trouble{border-color:#c98b7a}
+.ja-gram-n{font-size:1.05rem}
+.ja-lv{font-size:.64rem;padding:1px 7px;border-radius:999px;border:1px solid var(--c);color:var(--c)}
+.ja-gram-m{font-size:.68rem;opacity:.6;margin-top:3px}
+.ja-gram-notes{font-size:.8rem;opacity:.85;margin-top:6px}
+.ja-trouble{font-size:.72rem;color:#c98b7a;margin-top:5px}
+
+/* double translation */
+.ja-trans{border:1px solid var(--line);border-radius:var(--radius);padding:10px 13px;background:var(--surface)}
+.ja-t-completed{border-color:color-mix(in srgb,var(--sage) 40%,var(--line))}
+.ja-div{font-size:.74rem;opacity:.7;margin-top:4px}
+.ja-compare{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:10px}
+.ja-en-box{padding:10px 13px;border-left:3px solid var(--line);font-size:.9rem;opacity:.85}
+.ja-divs{margin-top:12px}
+.ja-dv{display:flex;gap:8px;flex-wrap:wrap;align-items:baseline;padding:4px 0;border-bottom:1px dotted var(--line);font-size:.86rem}
+.ja-dv-v{font-size:.66rem;opacity:.5}
+.ja-dv em{font-style:italic;font-size:.78rem;opacity:.7;flex-basis:100%}
+
+/* chunks */
+.ja-topics{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:9px;margin-top:10px}
+.ja-topic-card{display:flex;flex-direction:column;gap:2px;align-items:flex-start;padding:9px 11px;
+  border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);color:var(--text);cursor:pointer}
+.ja-topic-card.on{border-color:#c4484e;background:color-mix(in srgb,#c4484e 8%,transparent)}
+.ja-topic-e{font-size:1.2rem;line-height:1}
+.ja-topic-n{font-size:.86rem}
+.ja-topic-m{font-size:.66rem;opacity:.6}
+.ja-topic-bar{display:block;width:100%;height:3px;border-radius:2px;background:var(--line);margin-top:3px}
+.ja-topic-bar i{display:block;height:100%;border-radius:2px;background:var(--sage)}
+.ja-chunks{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;margin-top:12px}
+.ja-chunk{border:1px solid var(--line);border-left:3px solid #d8a45f;border-radius:var(--radius);
+  padding:10px 12px;background:var(--surface);display:flex;flex-direction:column;gap:2px}
+.ja-chunk.ready{border-left-color:var(--sage)}
+.ja-reading{font-size:.7rem;opacity:.55}
+.ja-chunk-j{font-size:1.15rem}
+.ja-chunk-m{font-size:.84rem;opacity:.85}
+.ja-chunk-e{font-size:.78rem;opacity:.6;margin-top:3px}
+
+/* writing */
+.ja-write{border:1px solid var(--line);border-radius:var(--radius);padding:10px 13px;background:var(--surface)}
+.ja-caf{display:flex;gap:16px;flex-wrap:wrap;margin-top:6px}
+.ja-caf-g{display:flex;flex-direction:column}
+.ja-caf-g em{font-style:normal;font-size:.64rem;opacity:.55;font-family:var(--mono)}
+.ja-caf-g b{font-size:.74rem;letter-spacing:.1em;color:var(--terra)}
+
+/* the numbers */
+.ja-spark{margin:8px 0 4px}
+.ja-pauseline{display:flex;height:16px;border-radius:999px;overflow:hidden;background:var(--line);margin:10px 0 4px}
+.ja-pauseline.sm{height:9px;margin:0}
+.ja-pauseline .mid{background:#c98b7a}
+.ja-pauseline .bnd{background:var(--sage)}
+.ja-pausehist{display:flex;flex-direction:column;gap:5px;margin-top:10px}
+.ja-ph-row{display:grid;grid-template-columns:6.5em minmax(0,1fr);gap:10px;align-items:center;font-size:.7rem}
+.ja-nums{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:8px}
+.ja-nums div{display:flex;flex-direction:column}
+.ja-nums b{font-family:var(--serif);font-size:1.5rem}
+.ja-nums span{font-size:.7rem;opacity:.6;font-family:var(--mono)}
+.ja-prog-row{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1.6fr) 3.4em;gap:10px;
+  align-items:center;font-size:.82rem;margin-top:7px}
+
+/* the herbs, which grow with the practice */
+.hg-herb-lush{opacity:1}
+@media (max-width:760px){
+  .ja-compare{grid-template-columns:1fr}
+  .ja-nums{grid-template-columns:1fr 1fr}
+  .ja-strand{grid-template-columns:minmax(0,1fr) minmax(0,1.2fr) 2.6em}
+}
+
 </style>
 </head>
 <body>
@@ -31375,6 +31586,12 @@ function gardenHTML(){
   const arts = (S.stages || []).reduce((n, st) => n + ((st.artifacts || []).length), 0);
   const letters = (S.entries || []).filter(e => e.type === 'letter').length;
   const skills = (S.skills || []).filter(s => !s.planned && skillHorizon(s) !== 'someday').length;
+  /* How much Japanese has been spoken lately. Read, never built: asking the
+     studio for a count it has never had would create the whole thing for
+     somebody who has never opened it. */
+  const jaWeek = (S.japanese && Array.isArray(S.japanese.sessions))
+    ? S.japanese.sessions.filter(x => (x.date || '') >= addDays(today(), -7)).length : 0;
+  const jaGrowth = Math.min(1, jaWeek / 5);
   /* how well the health values are being kept, as one number, which is what
      decides how tall the herbs stand */
   const health = (() => {
@@ -31434,12 +31651,17 @@ function gardenHTML(){
            }).join('')}`
         : `<circle class="hg-sun" cx="1010" cy="${light === 'midday' ? 66 : 108}" r="40"/>`}
 
-      <!-- the herb garden: taller and in flower the better the body is kept -->
+      <!-- The herb garden: taller and in flower the better the body is kept,
+           and taller again for every week you have spoken Japanese out loud.
+           A language is a thing you grow rather than a thing you finish, which
+           is why it is planted here and not shelved indoors. -->
       <g class="zone zone-herbs" data-room="herbs" tabindex="0" role="button"
-         aria-label="The herb garden — the values you keep your body by">
+         aria-label="The herb garden — the Japanese Studio">
         <path class="hg-bed" d="M48,506 H402 L420,568 H30 Z"/>
+        ${jaWeek ? `<g class="hg-marker"><rect x="336" y="452" width="72" height="26" rx="4"/>
+          <text x="372" y="469" text-anchor="middle">${jaWeek} this week</text></g>` : ''}
         ${Array.from({length: 13}, (_, i) => {
-          const x = 66 + i * 27, h = 44 + health * 96 + ((i * 7) % 4) * 9;
+          const x = 66 + i * 27, h = 44 + health * 96 + ((i * 7) % 4) * 9 + jaGrowth * 40;
           const lean = ((i * 31) % 9) - 4;
           return `<g class="hg-herb" style="--i:${i}" transform="translate(${x},506) rotate(${lean})">
             <path class="hg-stem" d="M0,0 V${-h}"/>
@@ -31447,7 +31669,9 @@ function gardenHTML(){
             <path class="hg-leaf" d="M0,${-h * .78} q9,-5 13,3 q-7,5 -13,-3Z"/>
             ${health > .6 && i % 3 === 0 ? `<circle class="hg-bloom" cx="0" cy="${-h - 4}" r="4.5"/>` : ''}
           </g>`; }).join('')}
-        <text class="rm-say" x="224" y="592" text-anchor="middle">What you grow, you become</text>
+        <text class="rm-say" x="224" y="592" text-anchor="middle">${jaWeek
+          ? 'Say it out loud and it grows'
+          : 'What you grow, you become'}</text>
       </g>
 
       <!-- the fire: what you are releasing goes in it -->
@@ -31687,7 +31911,7 @@ const HOUSE_PORTALS = {
   nook:      () => navigate('#/journals/reflection'),
   synch:     () => navigate('#/journals/synchronicity'),
   /* the garden */
-  herbs:     () => navigate('#/values'),
+  herbs:     () => navigate('#/japanese'),
   fire:      () => navigate('#/journals/letter'),
   chest:     () => navigate('#/journals/timeline'),
   tree:      () => navigate('#/skills'),
@@ -33207,6 +33431,10 @@ function flowWeekly(opts = {}){
   const studyWeek = studySaidLines.length ? [{title:'What you kept, and what you are keeping.', hint:'Cards, streak, and any deck running away from you.',
     body: () => `<div class="stack" style="gap:6px">${studySaidLines.map(l => `<div class="rev-summary">${esc(l)}</div>`).join('')}
       <div class="row"><button class="btn sm ghost" data-flowgo="#/study">open the decks</button></div></div>`}] : [];
+  const jaSaid = typeof jaReviewLines === 'function' ? jaReviewLines(days[0], days[6]) : [];
+  const jaWeekStep = jaSaid.length ? [{title:'The week in Japanese.', hint:'Speed, pauses, errors, and who you practised with.',
+    body: () => `<div class="stack" style="gap:6px">${jaSaid.map(l => `<div class="rev-summary">${esc(l)}</div>`).join('')}
+      <div class="row"><button class="btn sm ghost" data-flowgo="#/japanese">open the studio</button></div></div>`}] : [];
   const pianoSaid = typeof pianoReviewLines === 'function' ? pianoReviewLines(days[0], days[6]) : [];
   const pianoWeek = pianoSaid.length ? [{title:'The week at the piano.', hint:'Hours, keys, and what is going rusty.',
     body: () => `<div class="stack" style="gap:6px">${pianoSaid.map(l => `<div class="rev-summary">${esc(l)}</div>`).join('')}
@@ -33229,6 +33457,7 @@ function flowWeekly(opts = {}){
     {title:'The week against the lists you made.', hint:'Seven days of intentions, against seven days of evidence.',
      body: () => tasksReviewHTML(days[0], days[6])},
     ...pianoWeek,
+    ...jaWeekStep,
     ...studyWeek,
     {title:'Anything else from this week?', hint:'Anything that happened and never got written down. Add it here and the review stays where it is.',
      body: () => captureStepHTML(days[0], days[6]), bind: b => bindCaptureStep(b, days[0], days[6])},
@@ -46430,6 +46659,1220 @@ function contentSeedIfEmpty(){
   saveNow();
 }
 /* ============================================================
+   THE JAPANESE STUDIO — five rooms around one question.
+
+   Not "do I know more Japanese" but "can I say it, now, without the sentence
+   assembling itself in my head first". Everything here is built on the
+   research the specification cites, and the parts that matter most are the
+   ones that are least like a textbook: the shrinking clock, the memorised
+   islands you can stand on while you think, and the one diagnostic that
+   actually predicts fluency — where your pauses fall.
+   ============================================================ */
+
+const JA_TABS = [
+  ['speaking', 'Speaking Lab',  'the mouth'],
+  ['grammar',  'Grammar Journey','the ladder'],
+  ['vocab',    'Vocabulary Lab', 'the chunks'],
+  ['writing',  'Writing Lab',    'the hand'],
+  ['progress', 'Progress',       'the numbers']];
+
+const JA_QUALITY = [['rough','Rough'], ['okay','Okay'], ['good','Good'], ['flowing','Flowing']];
+/* The single most telling thing about a spoken minute. A native pauses
+   between clauses, to plan the next one; a learner pauses inside a clause,
+   because the grammar is still being assembled. Watching that move is
+   watching the grammar become automatic. */
+const JA_PAUSE = [
+  ['mostly_mid_clause', 'Mostly mid-clause', 'the sentence is still being built as you speak'],
+  ['mixed',             'Mixed',             'some of each'],
+  ['mostly_boundary',   'Mostly at boundaries', 'you pause to plan, not to assemble — this is the destination']];
+const JA_ISLAND_STATUS = [
+  ['drafting','Drafting','written in English, not yet Japanese'],
+  ['corrected','Corrected','a native has been over it'],
+  ['memorizing','Memorising','learning it by heart'],
+  ['automatic','Automatic','it comes out without you deciding to']];
+const JA_ERROR_TYPES = ['particle','conjugation','word order','vocabulary','register','pitch accent','expression','other'];
+const JA_PARTNERS = [['solo','Solo','recorded, alone'], ['ai','AI','a machine'], ['human','Human','a person']];
+/* Pienemann's five, mapped onto Japanese by Kawaguchi and Di Biase. The point
+   of the ladder is the Teachability Hypothesis: instruction aimed above the
+   rung you are on is wasted, however good the instruction. */
+const JA_PT_STAGES = [
+  [1, 'Lemma Access', 'はい、ありがとう、すみません', 'Whole items, pulled out of memory without being built.'],
+  [2, 'Category Procedure', 'V-て, N-が, N-を', 'A word marked for what it is doing.'],
+  [3, 'Phrasal Procedure', 'noun modification, adjective + noun', 'Agreement inside one phrase.'],
+  [4, 'S-Procedure', 'SOV, verbs agreeing with subjects', 'Information crossing phrases inside one clause.'],
+  [5, 'Subordinate Clause Procedure', 'relative clauses, ば / たら', 'Information crossing clauses.']];
+const JA_GRAMMAR_STATUS = [['not_started','Not started'], ['studying','Studying'],
+  ['shaky','Shaky'], ['solid','Solid'], ['automatic','Automatic']];
+const JLPT = [['N5','#7f916a'], ['N4','#5c7c8a'], ['N3','#7f6a8e'], ['N2','#c4484e'], ['N1','#c9a96e']];
+/* Lewis: fluency is mostly having the phrase ready, not building it. */
+const JA_CHUNK_TYPES = [
+  ['collocation','Collocation','予定を決める, not 決める on its own'],
+  ['sentence_frame','Sentence frame','〜と思うんですけど…'],
+  ['polyword','Polyword','a fixed multi-word unit'],
+  ['institutional_utterance','Whole utterance','a phrase that does a job by itself']];
+const JA_TOPICS_DEFAULT = [
+  ['self','Self-introduction','👤'], ['routine','Daily routine','🌅'], ['work','Work & study','💼'],
+  ['hobbies','Hobbies','🎨'], ['food','Food & restaurants','🍜'], ['travel','Travel','🚅'],
+  ['weather','Weather','☁️'], ['opinions','Opinions','💭'], ['family','Family','🏠'],
+  ['health','Health','🩺'], ['shopping','Shopping','🛍'], ['directions','Directions','🧭'],
+  ['emotions','Emotions','💗'], ['plans','Plans & goals','📅'], ['news','News','📰']];
+/* Kadota's loop, as four questions you can honestly answer about a shadowing
+   take. They are separate because they fail separately: you can hear every
+   word and still not get your mouth round it. */
+const JA_IPOM = [
+  ['input','Input','Could I parse the words?'],
+  ['practice','Practice','Could I hold the phrase long enough to say it?'],
+  ['output','Output','Could my mouth keep up?'],
+  ['monitoring','Monitoring','Could I hear my own errors as they happened?']];
+/* Nation's four. The rule is the interesting part: nothing above a quarter,
+   nothing below about a sixth, and the strand people starve is always the
+   fourth one. */
+const JA_STRANDS = [
+  ['input','Meaning-focused input','listening and reading for the message'],
+  ['output','Meaning-focused output','speaking and writing to be understood'],
+  ['study','Language-focused learning','deliberate study of the items themselves'],
+  ['fluency','Fluency development','known material only, pushed for speed']];
+const JA_SCENARIOS_DEFAULT = [
+  ['Self-introduction','daily_life','beginner'], ['Convenience store','daily_life','beginner'],
+  ['Restaurant','daily_life','beginner'], ['Asking directions','daily_life','beginner'],
+  ['At the doctor','daily_life','intermediate'], ['A phone call','social','intermediate'],
+  ['At work','professional','intermediate'], ['Holding an opinion','abstract','advanced']];
+/* Shekhtman's seven, which are not grammar at all — they are what to do when
+   the grammar runs out mid-sentence. */
+const JA_TOOLS = [
+  ['Show your stuff','Steer the conversation to what you can already say well.'],
+  ['Build islands','Have the monologue ready before you need it.'],
+  ['Shift gears','Turn away from the word you do not know, towards one you do.'],
+  ['Simplify','Break the English thought down before translating it.'],
+  ['Break away','Leave a dead end politely rather than drowning in it.'],
+  ['Embellish','Fillers, intensifiers, feeling — a simple sentence said like a person.'],
+  ['Say what?','Ask for the repeat properly, so the conversation survives it.']];
+
+function jaState(){
+  if(!S.japanese) S.japanese = {};
+  const j = S.japanese;
+  j.sessions   = Array.isArray(j.sessions) ? j.sessions : [];
+  j.islands    = Array.isArray(j.islands) ? j.islands : [];
+  j.scenarios  = Array.isArray(j.scenarios) && j.scenarios.length ? j.scenarios
+    : JA_SCENARIOS_DEFAULT.map(([name, category, difficulty], i) =>
+        ({id:uid(), name, category, difficulty, order:i, script:'', myLines:'',
+          corrected:false, times:0, lastDone:null, errorIds:[]}));
+  j.shadowing  = Array.isArray(j.shadowing) ? j.shadowing : [];
+  j.errors     = Array.isArray(j.errors) ? j.errors : [];
+  j.strands    = Array.isArray(j.strands) ? j.strands : [];
+  j.pt         = Object.assign({current:1, reaching:2, lastAssessed:null}, j.pt || {});
+  j.grammar    = Array.isArray(j.grammar) ? j.grammar : [];
+  j.translations = Array.isArray(j.translations) ? j.translations : [];
+  j.topics     = Array.isArray(j.topics) && j.topics.length ? j.topics
+    : JA_TOPICS_DEFAULT.map(([id, name, emoji]) => ({id, name, emoji}));
+  j.chunks     = Array.isArray(j.chunks) ? j.chunks : [];
+  j.writing    = Array.isArray(j.writing) ? j.writing : [];
+  j.settings   = Object.assign({aiWarnAt:0.8, playTarget:0.4, hoursGoal:5}, j.settings || {});
+  return j;
+}
+
+/* ---------- what the numbers say ---------- */
+const jaSessions = () => jaState().sessions;
+const jaIn = (list, from, to) => list.filter(x => (x.date || '') >= from && (x.date || '') <= to);
+/* A 4/3/2 session is three deliveries of one talk. What it is for is the
+   difference between the first and the last: the content is fixed, so
+   anything that improves is the machinery, not the material. */
+function jaSessionGain(s){
+  const d = (s.deliveries || []).filter(x => +x.wpm > 0);
+  if(d.length < 2) return null;
+  const first = +d[0].wpm, last = +d[d.length - 1].wpm;
+  return {first, last, pct: first ? Math.round((last - first) / first * 100) : 0};
+}
+function jaWpmSeries(){
+  return jaSessions().filter(s => (s.deliveries || []).some(d => +d.wpm > 0))
+    .map(s => { const d = (s.deliveries || []).filter(x => +x.wpm > 0);
+      return {date:s.date, wpm: Math.round(sum(d.map(x => +x.wpm)) / d.length)}; })
+    .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+}
+function jaPauseSeries(){
+  return jaSessions().filter(s => s.pauseLocation)
+    .map(s => ({date:s.date, mid: s.pauseLocation === 'mostly_mid_clause' ? 1
+      : s.pauseLocation === 'mixed' ? 0.5 : 0}))
+    .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+}
+/* The holy-grail metric, as a share over a window: how much of your pausing
+   is still happening inside clauses. Down is the direction. */
+function jaMidClauseShare(from, to){
+  const rows = jaIn(jaSessions().filter(s => s.pauseLocation), from, to);
+  if(!rows.length) return null;
+  return sum(rows.map(s => s.pauseLocation === 'mostly_mid_clause' ? 1
+    : s.pauseLocation === 'mixed' ? 0.5 : 0)) / rows.length;
+}
+/* Accuracy is error rate per session, which is the only honest way to read an
+   error log: logging more errors because you spoke more is not getting worse. */
+function jaErrorRate(from, to){
+  const ses = jaIn(jaSessions(), from, to).length;
+  const errs = jaIn(jaState().errors, from, to).length;
+  return ses ? errs / ses : null;
+}
+function jaTopPatterns(from, to, n = 3){
+  const tally = {};
+  jaIn(jaState().errors, from, to).forEach(e => {
+    const k = (e.patternTag || e.errorType || 'other').trim().toLowerCase();
+    if(k) tally[k] = (tally[k] || 0) + 1; });
+  return Object.entries(tally).sort((a, b) => b[1] - a[1]).slice(0, n);
+}
+/* Sustained practice against a machine produces a register that machines like
+   and people do not: rigid, over-explicit, one intent per sentence. In a
+   language that runs on omitted subjects and aizuchi, that is a real cost. */
+function jaPartnerMix(weeks = 4){
+  const from = addDays(today(), -7 * weeks);
+  const rows = jaIn(jaSessions(), from, today());
+  const by = {solo:0, ai:0, human:0};
+  rows.forEach(s => { by[s.partnerType || 'solo'] = (by[s.partnerType || 'solo'] || 0) + 1; });
+  const withPartner = by.ai + by.human;
+  return {...by, total: rows.length, aiShare: withPartner ? by.ai / withPartner : 0, weeks};
+}
+const jaAiWarning = () => { const m = jaPartnerMix(4);
+  return (m.ai + m.human) >= 4 && m.aiShare > jaState().settings.aiWarnAt ? m : null; };
+function jaPlayMix(from, to){
+  const rows = jaIn(jaSessions(), from, to);
+  const play = rows.filter(s => s.sessionType === 'play').length;
+  return {practice: rows.length - play, play, total: rows.length};
+}
+const jaStrandsLatest = () => jaState().strands.slice().sort((a, b) => (b.weekOf || '').localeCompare(a.weekOf || ''))[0] || null;
+/* Nation's own limits, read back as a complaint rather than a score */
+function jaStrandTrouble(a){
+  if(!a) return [];
+  const out = [];
+  JA_STRANDS.forEach(([k, name]) => {
+    const v = +a[k] || 0;
+    if(k === 'study' && v > 30) out.push(`${name} is ${v}% — Nation's ceiling is about a quarter.`);
+    if(k === 'fluency' && v < 20) out.push(`${name} is ${v}%. This is the strand nearly everybody starves, and it is the one that makes you sound fluent.`);
+    else if(v > 40) out.push(`${name} is ${v}%, which is most of your time.`);
+  });
+  return out;
+}
+const jaIslands = () => jaState().islands;
+const jaAutomatic = () => jaIslands().filter(i => i.status === 'automatic').length;
+function jaChunksFor(topicId){ return jaState().chunks.filter(c => c.topicId === topicId); }
+function jaTopicReady(topicId){
+  const cs = jaChunksFor(topicId);
+  return {total: cs.length, ready: cs.filter(c => c.productionReady).length};
+}
+function jaGrammarTrouble(){
+  const since = addDays(today(), -30);
+  return jaState().grammar.filter(g => (g.linkedErrorIds || []).length >= 3
+    || jaIn(jaState().errors.filter(e => (e.grammarId || '') === g.id), since, today()).length >= 3);
+}
+/* every hour at it, whatever room it happened in */
+function jaHours(from, to){
+  const j = jaState();
+  const mins = jaIn(j.sessions, from, to).length * 9        // a 4/3/2 is nine minutes of talking
+    + sum(jaIn(j.shadowing, from, to).map(() => 15))
+    + sum(jaIn(j.writing, from, to).map(() => 30))
+    + jaIn(j.translations, from, to).length * 20;
+  return Math.round(mins / 6) / 10;
+}
+/* ============================================================
+   THE JAPANESE STUDIO — the room, and everything you can press in it.
+   ============================================================ */
+const jaTab = () => { const t = S._jaTab || 'speaking';
+  return JA_TABS.some(x => x[0] === t) ? t : 'speaking'; };
+
+routes.japanese = function(root){
+  const j = jaState();
+  registerPageEntry({pageName:'Japanese Studio', addLabel:'Log a session', defaultEntryType:'session', prefilledFields:{}, options:[
+    {icon:'🎙', label:'A 4/3/2 session', desc:'One talk, three times, a shrinking clock.', run:()=>openJa432()},
+    {icon:'🏝', label:'An island', desc:'A monologue worth having by heart.', run:()=>openJaIsland()},
+    {icon:'✏️', label:'An error', desc:'What you meant, and what it should have been.', run:()=>openJaError()}]});
+  const tab = jaTab();
+  root.innerHTML = `<div class="page ja-page">
+    <h1 class="serif">Japanese Studio</h1>
+    <p class="muted ja-lede">Knowing more Japanese and being able to say the Japanese you already know are different skills, and only the second one is what anybody means by fluent. This room trains the second: repetition against a clock, monologues you can stand on while you think, and a log that turns the things you got wrong into the things you drill.</p>
+    <div class="ja-tabs" role="tablist">${JA_TABS.map(([id, name, hint]) =>
+      `<button class="ja-tab${tab === id ? ' on' : ''}" data-jatab="${id}" role="tab" aria-selected="${tab === id}">
+        <span>${esc(name)}</span><em>${esc(hint)}</em></button>`).join('')}</div>
+    <div class="ja-body">${
+      tab === 'grammar' ? jaLadderHTML() + jaGrammarHTML() + jaTranslationsHTML()
+      : tab === 'vocab' ? jaVocabHTML()
+      : tab === 'writing' ? jaWritingHTML()
+      : tab === 'progress' ? jaProgressHTML()
+      : ja432HTML() + jaIslandsHTML() + jaScenariosHTML() + jaShadowingHTML() + jaErrorsHTML() + jaStrandsHTML()}</div>
+  </div>`;
+  bindJapanese(root);
+};
+
+function bindJapanese(root){
+  const j = jaState();
+  const redraw = () => { saveNow(); rerender(); };
+  const on = (sel, fn) => { const n = root.querySelector(sel); if(n) n.onclick = fn; };
+  const each = (attr, fn) => $$(`[data-${attr}]`, root).forEach(b => b.onclick = () => fn(b.dataset[attr], b));
+
+  $$('[data-jatab]', root).forEach(b => b.onclick = () => { S._jaTab = b.dataset.jatab; sound('click'); rerender(); });
+
+  /* speaking */
+  on('#ja432New', () => openJa432());
+  each('jaerr', id => openJaError(id));
+  each('jasessdel', id => { spliceOut(j.sessions, s => s.id === id); sound('click'); redraw(); });
+  on('#jaIslandNew', () => openJaIsland());
+  each('jaislandedit', id => openJaIsland(id));
+  each('jaislandpx', id => { const i = byId(j.islands, id); if(i){ i.lastPracticed = today();
+    /* practising an island is what moves it along, so the status follows the
+       practice rather than waiting to be set by hand */
+    if(i.status === 'corrected') i.status = 'memorizing';
+    sound('success'); redraw(); } });
+  each('jaislandcard', id => { const i = byId(j.islands, id);
+    if(!i || typeof suggestStudyCard !== 'function') return;
+    suggestStudyCard({type:'production', sourceType:'island', sourceId:i.id,
+      front:`Deliver your island: ${i.topic}`, back:i.japaneseText,
+      sourceLabel:`Island — ${i.topic}`, tags:['island']});
+    sound('success'); toast('In the Study Deck inbox.'); rerender(); });
+  each('jaislanddel', id => { spliceOut(j.islands, i => i.id === id); sound('click'); redraw(); });
+  on('#jaScenNew', () => openJaScenario());
+  each('jascenedit', id => openJaScenario(id));
+  each('jascenrun', id => { const s = byId(j.scenarios, id); if(s){ s.times = (+s.times || 0) + 1;
+    s.lastDone = today(); sound('success'); redraw(); } });
+  on('#jaShadowNew', () => openJaShadow());
+  each('jashadowdel', id => { spliceOut(j.shadowing, s => s.id === id); sound('click'); redraw(); });
+  on('#jaErrNew', () => openJaError());
+  each('jaerrcard', id => { const e = byId(j.errors, id);
+    if(!e || typeof suggestStudyCard !== 'function') return;
+    suggestStudyCard({type:'production', sourceType:'error_log', sourceId:e.id,
+      front:`Say this in Japanese:\n\n${e.intendedMeaning}`, back:e.correctedNatural,
+      sourceLabel:`Speaking Lab, ${fmtDate(e.date, 'med')}`, tags:[String(e.errorType || '').replace(/\s+/g, '-')]});
+    e.sentToStudyDeck = true; sound('success'); redraw(); });
+  each('jaerrdel', id => { spliceOut(j.errors, e => e.id === id); sound('click'); redraw(); });
+  on('#jaStrandNew', () => openJaStrands());
+
+  /* grammar */
+  on('#jaPtSet', () => openJaPt());
+  on('#jaGramNew', () => openJaGrammar());
+  each('jagramedit', id => openJaGrammar(id));
+  each('jagramcard', id => jaGrammarCard(id));
+  each('jagramdel', id => { spliceOut(j.grammar, g => g.id === id); sound('click'); redraw(); });
+  on('#jaTransNew', () => openJaTranslation());
+  each('jatransback', id => openJaTranslation(id, 'back'));
+  each('jatranssee', id => openJaTranslation(id, 'see'));
+  each('jatransdel', id => { spliceOut(j.translations, t => t.id === id); sound('click'); redraw(); });
+
+  /* vocabulary */
+  on('#jaChunkNew', () => openJaChunk());
+  each('jatopic', id => { S._jaTopic = S._jaTopic === id ? null : id; sound('click'); rerender(); });
+  each('jachunkready', id => { const c = byId(j.chunks, id); if(c){ c.productionReady = !c.productionReady;
+    c.lastDrilled = today(); sound('click'); redraw(); } });
+  each('jachunkcard', id => jaChunkCards(id));
+  each('jachunkdel', id => { spliceOut(j.chunks, c => c.id === id); sound('click'); redraw(); });
+
+  /* writing */
+  on('#jaWriteNew', () => openJaWriting());
+  each('jawriteedit', id => openJaWriting(id));
+  each('jawritedel', id => { spliceOut(j.writing, w => w.id === id); sound('click'); redraw(); });
+}
+
+function openJaScenario(id){
+  const j = jaState();
+  const s = id ? byId(j.scenarios, id) : {id:uid(), name:'', category:'daily_life', difficulty:'beginner',
+    order:j.scenarios.length, script:'', myLines:'', corrected:false, times:0, lastDone:null, errorIds:[]};
+  const m = openModal(`<h2>${id ? s.name || 'The scenario' : 'A scenario'}</h2>
+    <div class="grid c3" style="gap:10px">
+      <label class="pd-q"><span class="k">what</span><input class="inp" id="scName" value="${esc(s.name)}" autofocus placeholder="At the post office"></label>
+      <label class="pd-q"><span class="k">kind</span><select class="sel" id="scCat">${
+        [['daily_life','daily life'],['social','social'],['professional','work'],['abstract','abstract']].map(([v, n]) =>
+          `<option value="${v}" ${s.category === v ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label>
+      <label class="pd-q"><span class="k">how hard</span><select class="sel" id="scDiff">${
+        ['beginner','intermediate','advanced'].map(v => `<option value="${v}" ${s.difficulty === v ? 'selected' : ''}>${v}</option>`).join('')}</select></label>
+    </div>
+    <!-- both sides, because you cannot drill your half without knowing what
+         it is answering -->
+    <label class="pd-q" style="margin-top:10px"><span class="k">the whole dialogue</span>
+      <textarea class="inp ja-jp-input" rows="6" id="scScript" placeholder="店員：いらっしゃいませ。&#10;私：…">${esc(s.script)}</textarea></label>
+    <label class="pd-q" style="margin-top:10px"><span class="k">just your lines, for drilling</span>
+      <textarea class="inp ja-jp-input" rows="4" id="scMine">${esc(s.myLines)}</textarea></label>
+    <label class="ja-check" style="margin-top:10px"><input type="checkbox" id="scOk" ${s.corrected ? 'checked' : ''}> a native has been over it</label>
+    <div class="row" style="justify-content:flex-end;margin-top:14px;gap:8px">
+      ${id ? `<button class="btn sm ghost danger" id="scDel">Delete</button><span class="grow"></span>` : ''}
+      <button class="btn primary" id="scSave">Save</button></div>`, 'narrow ja-modal');
+  m.querySelector('#scSave').onclick = () => {
+    const name = m.querySelector('#scName').value.trim();
+    if(!name){ m.querySelector('#scName').focus(); return; }
+    Object.assign(s, {name, category:m.querySelector('#scCat').value, difficulty:m.querySelector('#scDiff').value,
+      script:m.querySelector('#scScript').value, myLines:m.querySelector('#scMine').value,
+      corrected:m.querySelector('#scOk').checked});
+    if(!id) j.scenarios.push(s);
+    saveNow(); m.remove(); sound('success'); rerender();
+  };
+  const del = m.querySelector('#scDel');
+  if(del) del.onclick = () => { spliceOut(j.scenarios, x => x.id === s.id); saveNow(); m.remove(); sound('click'); rerender(); };
+  return m;
+}
+
+function openJaChunk(){
+  const j = jaState();
+  const m = openModal(`<h2>A chunk</h2>
+    <p class="muted ja-note">Not a word. 決める is a dictionary entry; 予定を決める is something you can say.</p>
+    <label class="pd-q"><span class="k">the Japanese</span>
+      <input class="inp serif-lg ja-jp-input" id="chJa" autofocus placeholder="予定を決める"></label>
+    <div class="grid c2" style="gap:10px;margin-top:10px">
+      <label class="pd-q"><span class="k">how it reads</span><input class="inp ja-jp-input" id="chRead" placeholder="よていをきめる"></label>
+      <label class="pd-q"><span class="k">pitch</span><input class="inp mono" id="chPitch" placeholder="optional"></label>
+    </div>
+    <label class="pd-q" style="margin-top:10px"><span class="k">what it means</span>
+      <input class="inp" id="chMean" placeholder="to decide on a plan"></label>
+    <div class="grid c2" style="gap:10px;margin-top:10px">
+      <label class="pd-q"><span class="k">topic</span><select class="sel" id="chTopic">${j.topics.map(t =>
+        `<option value="${esc(t.id)}" ${S._jaTopic === t.id ? 'selected' : ''}>${esc(t.emoji)} ${esc(t.name)}</option>`).join('')}</select></label>
+      <label class="pd-q"><span class="k">what kind</span><select class="sel" id="chType">${JA_CHUNK_TYPES.map(([v, n, eg]) =>
+        `<option value="${v}" title="${esc(eg)}">${esc(n)}</option>`).join('')}</select></label>
+    </div>
+    <label class="pd-q" style="margin-top:10px"><span class="k">in a sentence</span>
+      <input class="inp ja-jp-input" id="chEg" placeholder="明日の予定を決めましょう。"></label>
+    <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary" id="chSave">Save</button></div>`, 'narrow ja-modal');
+  m.querySelector('#chSave').onclick = () => {
+    const japanese = m.querySelector('#chJa').value.trim();
+    if(!japanese){ m.querySelector('#chJa').focus(); return; }
+    const topicId = m.querySelector('#chTopic').value;
+    j.chunks.push({id:uid(), japanese, reading:m.querySelector('#chRead').value.trim(),
+      meaning:m.querySelector('#chMean').value.trim(), topicId,
+      type:m.querySelector('#chType').value, pitchAccent:m.querySelector('#chPitch').value.trim() || null,
+      exampleSentence:m.querySelector('#chEg').value.trim() || null, productionReady:false,
+      lastDrilled:null, linkedIslandIds:[], sentToStudyDeck:false, createdAt:new Date().toISOString()});
+    S._jaTopic = topicId;
+    saveNow(); m.remove(); sound('success'); rerender();
+  };
+  return m;
+}
+
+/* The delay is enforced rather than suggested: without it you are copying
+   from memory rather than reconstructing, and the whole exercise collapses
+   into a transcription test. */
+function openJaTranslation(id, step){
+  const j = jaState();
+  const t = id ? byId(j.translations, id) : null;
+  if(step === 'see' && t) return openModal(`<h2>${esc(t.originalSource || 'Side by side')}</h2>
+    <div class="ja-compare">
+      <div><span class="k mono">what was written</span><p class="ja-jp">${esc(t.originalJapanese)}</p></div>
+      <div><span class="k mono">what you put back</span><p class="ja-jp">${esc(t.backTranslation || '')}</p></div>
+    </div>
+    <label class="pd-q" style="margin-top:12px"><span class="k">your English, in between</span>
+      <p class="ja-en">${esc(t.userEnglish || '')}</p></label>
+    ${(t.divergences || []).length ? `<div class="ja-divs"><span class="k mono">the gaps</span>
+      ${t.divergences.map(d => `<div class="ja-dv"><span class="ja-jp-inline">${esc(d.original)}</span>
+        <span class="ja-dv-v">vs</span><span class="ja-jp-inline">${esc(d.mine)}</span>
+        ${d.note ? `<em>${esc(d.note)}</em>` : ''}</div>`).join('')}</div>` : ''}`, 'ja-modal');
+  if(step === 'back' && t){
+    const m = openModal(`<h2>Put it back into Japanese</h2>
+      <p class="muted ja-note">Without looking at the original. Every place yours differs is a gap you could not have found by reading.</p>
+      <div class="ja-en-box">${esc(t.userEnglish)}</div>
+      <label class="pd-q" style="margin-top:10px"><span class="k">your Japanese</span>
+        <textarea class="inp ja-jp-input" rows="6" id="tbJa" autofocus>${esc(t.backTranslation || '')}</textarea></label>
+      <label class="pd-q" style="margin-top:10px"><span class="k">what you noticed, comparing</span>
+        <textarea class="inp" rows="3" id="tbNotes" placeholder="one line per gap"></textarea></label>
+      <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary" id="tbSave">Done — compare</button></div>`, 'narrow ja-modal');
+    m.querySelector('#tbSave').onclick = () => {
+      t.backTranslation = m.querySelector('#tbJa').value;
+      t.step2Date = today(); t.status = 'completed';
+      const notes = m.querySelector('#tbNotes').value.split('\n').map(x => x.trim()).filter(Boolean);
+      t.divergences = notes.map(n => ({original:'', mine:'', note:n}));
+      saveNow(); m.remove(); sound('success'); rerender();
+      openJaTranslation(t.id, 'see');
+    };
+    return m;
+  }
+  const m = openModal(`<h2>A text to work through</h2>
+    <label class="pd-q"><span class="k">where it is from</span>
+      <input class="inp" id="tnSrc" autofocus placeholder="an article, a novel, a lyric"></label>
+    <label class="pd-q" style="margin-top:10px"><span class="k">the Japanese</span>
+      <textarea class="inp ja-jp-input" rows="5" id="tnJa" placeholder="paste it here"></textarea></label>
+    <label class="pd-q" style="margin-top:10px"><span class="k">your English, in full</span>
+      <textarea class="inp" rows="5" id="tnEn" placeholder="comprehensively — this is the step that breaks the structure open"></textarea></label>
+    <p class="muted ja-note">It then rests until tomorrow. You cannot reconstruct a sentence you can still remember.</p>
+    <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary" id="tnSave">Put it away</button></div>`, 'narrow ja-modal');
+  m.querySelector('#tnSave').onclick = () => {
+    const jp = m.querySelector('#tnJa').value.trim();
+    if(!jp){ m.querySelector('#tnJa').focus(); return; }
+    j.translations.push({id:uid(), originalJapanese:jp, userEnglish:m.querySelector('#tnEn').value,
+      backTranslation:'', originalSource:m.querySelector('#tnSrc').value.trim(),
+      step1Date:today(), step2Date:null, divergences:[], status:'awaiting_back_translation',
+      createdAt:new Date().toISOString()});
+    jaCredit(20);
+    saveNow(); m.remove(); sound('success');
+    toast('Resting. It will be ready tomorrow — that is the point of it.');
+    rerender();
+  };
+  return m;
+}
+
+function openJaWriting(id){
+  const j = jaState();
+  const w = id ? byId(j.writing, id) : {id:uid(), date:today(), topic:'', plan:'', japaneseText:'',
+    correctedText:null, selfAssessment:{complexity:3, accuracy:3, fluency:3}, wordCount:0,
+    errorsFound:null, linkedGrammarPoints:[], createdAt:new Date().toISOString()};
+  const m = openModal(`<h2>${id ? 'The piece' : 'Something to write'}</h2>
+    <label class="pd-q"><span class="k">about what</span>
+      <input class="inp" id="wrTopic" value="${esc(w.topic)}" autofocus placeholder="my weekend · why I moved here"></label>
+    <!-- English, deliberately. Thinking and encoding at the same time is what
+         makes the sentences short and the ideas smaller than they are. -->
+    <label class="pd-q" style="margin-top:10px"><span class="k">plan it — in English</span>
+      <textarea class="inp" rows="3" id="wrPlan" placeholder="what you want to say, and which structures you mean to use">${esc(w.plan)}</textarea></label>
+    <label class="pd-q" style="margin-top:10px"><span class="k">now write it</span>
+      <textarea class="inp ja-jp-input" rows="7" id="wrJa">${esc(w.japaneseText)}</textarea></label>
+    <div style="margin-top:12px"><span class="k mono">mark yourself, one to five</span>
+      <div class="ja-ipom-set">${[['complexity','Complexity','Did I use a subordinate clause? Anything from the rung I am reaching for?'],
+        ['accuracy','Accuracy','Can I find my own particle and conjugation errors?'],
+        ['fluency','Fluency','Does it flow, or is it a row of short disconnected sentences?']].map(([k, n, q]) => `
+        <label class="ja-ipom-row"><span><b>${esc(n)}</b><em>${esc(q)}</em></span>
+          <input type="range" min="1" max="5" value="${+w.selfAssessment[k] || 3}" id="wr_${k}"></label>`).join('')}</div>
+      <p class="muted ja-note">They trade against each other. Push the complexity and the accuracy dips — that is stretching, not sliding.</p></div>
+    <label class="pd-q" style="margin-top:10px"><span class="k">corrected version, once you have one</span>
+      <textarea class="inp ja-jp-input" rows="5" id="wrFix" placeholder="paste the rewrite here and the two sit side by side">${esc(w.correctedText || '')}</textarea></label>
+    <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary" id="wrSave">Save</button></div>`, 'narrow ja-modal');
+  m.querySelector('#wrSave').onclick = () => {
+    const text = m.querySelector('#wrJa').value;
+    Object.assign(w, {topic:m.querySelector('#wrTopic').value.trim(), plan:m.querySelector('#wrPlan').value,
+      japaneseText:text, correctedText:m.querySelector('#wrFix').value.trim() || null,
+      wordCount:[...text.replace(/\s+/g, '')].length,
+      selfAssessment:{complexity:+m.querySelector('#wr_complexity').value,
+        accuracy:+m.querySelector('#wr_accuracy').value, fluency:+m.querySelector('#wr_fluency').value}});
+    if(!id){ j.writing.push(w); jaCredit(30); }
+    saveNow(); m.remove(); sound('success'); rerender();
+  };
+  return m;
+}
+
+/* ---------- what the rest of the house gets out of it ---------- */
+function jaSkill(){
+  return (S.skills || []).find(s => /japanese|日本語|nihongo/i.test(s.name || '')) || null;
+}
+/* Minutes at it are hours on the skill, if there is a Japanese skill to put
+   them on. Nothing is invented: a skill that appears because you practised is
+   a skill you did not choose to track. */
+function jaCredit(mins){
+  const m = +mins || 0; if(m < 1) return;
+  const sk = jaSkill();
+  if(sk){ sk.hours = +(((+sk.hours || 0) + m / 60).toFixed(2)); sk.lastPracticed = today(); }
+  const h = (S.habits || []).find(x => !x.archived && /japanese|日本語|language/i.test(x.name || ''));
+  if(h){ const d = today(); S.habitLog = S.habitLog || {}; S.habitLog[d] = S.habitLog[d] || {};
+    if(!S.habitLog[d][h.id]) S.habitLog[d][h.id] = {level:'full', note:'practised'}; }
+}
+function jaReviewLines(from, to){
+  if(!S.japanese) return [];
+  const j = jaState();
+  const out = [];
+  const ses = jaIn(j.sessions, from, to);
+  if(ses.length) out.push(`${ses.length} speaking ${ses.length === 1 ? 'session' : 'sessions'}, ${jaHours(from, to)} hours in all.`);
+  const gains = ses.map(jaSessionGain).filter(Boolean);
+  if(gains.length){ const avg = Math.round(sum(gains.map(g => g.pct)) / gains.length);
+    if(avg > 0) out.push(`The third delivery ran ${avg}% faster than the first, on average.`); }
+  const mid = jaMidClauseShare(from, to);
+  if(mid != null) out.push(mid > 0.6
+    ? `Still pausing mid-clause most of the time — the grammar is being assembled as you speak.`
+    : mid < 0.35 ? `Pausing at clause boundaries now, which is what proceduralised grammar sounds like.`
+    : `Pauses are mixed — halfway between assembling and planning.`);
+  const chunks = jaIn(j.chunks.map(c => ({date:(c.createdAt || '').slice(0, 10)})), from, to).length;
+  if(chunks) out.push(`${chunks} new ${chunks === 1 ? 'chunk' : 'chunks'}.`);
+  const top = jaTopPatterns(from, to, 3);
+  if(top.length) out.push(`Errors: ${top.map(([k, n]) => `${k} (${n})`).join(', ')}.`);
+  const w = jaAiWarning();
+  if(w) out.push(`${Math.round(w.aiShare * 100)}% of your partnered practice was with a machine. Book a person.`);
+  const st = jaStrandTrouble(jaStrandsLatest());
+  if(st.length) out.push(st[0]);
+  return out;
+}
+/* ============================================================
+   THE OTHER FOUR ROOMS — grammar, vocabulary, writing, and the numbers.
+   ============================================================ */
+
+/* ---------- the ladder ----------
+   Pienemann's stages, and the reason to draw them at all is the Teachability
+   Hypothesis: a structure two rungs above where you are cannot be taught to
+   you, however well it is explained. Knowing which rung you are on is
+   therefore not idle self-assessment — it is what decides whether the next
+   month is spent usefully. */
+function jaLadderHTML(){
+  const pt = jaState().pt;
+  return `<div class="ja-sec">
+    <div class="row between" style="align-items:baseline">
+      <span class="sc" style="margin:0">The ladder</span>
+      <button class="btn sm ghost" id="jaPtSet">where am I?</button></div>
+    <p class="muted ja-note">You can only acquire what your processing can currently carry. Instruction aimed two rungs up is not difficult — it is wasted. So the useful question is not "what should I learn next" but "what am I ready for".</p>
+    <div class="ja-ladder">${JA_PT_STAGES.slice().reverse().map(([n, name, eg, what]) => {
+      const state = n < pt.current ? 'solid' : n === pt.current ? 'consolidating'
+        : n === pt.reaching ? 'reaching' : 'ahead';
+      return `<div class="ja-rung ja-r-${state}">
+        <span class="ja-gate">⛩</span>
+        <span class="ja-rung-b">
+          <span class="ja-rung-h serif">Stage ${n} · ${esc(name)}</span>
+          <span class="ja-rung-e ja-jp-inline">${esc(eg)}</span>
+          <span class="ja-rung-w">${esc(what)}</span></span>
+        <span class="ja-rung-s mono">${state === 'solid' ? 'solid' : state === 'consolidating' ? 'consolidating'
+          : state === 'reaching' ? 'reaching for' : ''}</span>
+      </div>`; }).join('')}</div>
+    ${pt.lastAssessed ? `<div class="mono faint" style="font-size:.72rem">last asked ${esc(fmtDate(pt.lastAssessed, 'med'))}</div>` : ''}
+  </div>`;
+}
+function openJaPt(){
+  const pt = jaState().pt;
+  const m = openModal(`<h2>Which rung</h2>
+    <p class="muted ja-note">Consolidating is where most of your errors are. Reaching is the one above it — the only one instruction can currently help with.</p>
+    <label class="pd-q"><span class="k">consolidating</span><select class="sel" id="ptCur">${JA_PT_STAGES.map(([n, name]) =>
+      `<option value="${n}" ${pt.current === n ? 'selected' : ''}>${n} — ${esc(name)}</option>`).join('')}</select></label>
+    <label class="pd-q" style="margin-top:10px"><span class="k">reaching for</span><select class="sel" id="ptNext">${JA_PT_STAGES.map(([n, name]) =>
+      `<option value="${n}" ${pt.reaching === n ? 'selected' : ''}>${n} — ${esc(name)}</option>`).join('')}</select></label>
+    <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary" id="ptSave">Save</button></div>`, 'narrow ja-modal');
+  m.querySelector('#ptSave').onclick = () => {
+    pt.current = +m.querySelector('#ptCur').value;
+    pt.reaching = +m.querySelector('#ptNext').value;
+    pt.lastAssessed = today();
+    saveNow(); m.remove(); sound('click'); rerender();
+  };
+  return m;
+}
+
+/* ---------- grammar points ----------
+   A personal annotation layer rather than a reference. The value is not the
+   explanation — there are a hundred of those — it is the count beside it of
+   how many times this exact thing has tripped you in the last month. */
+function jaGrammarHTML(){
+  const list = jaState().grammar;
+  const trouble = new Set(jaGrammarTrouble().map(g => g.id));
+  return `<div class="ja-sec">
+    <div class="row between" style="align-items:baseline">
+      <span class="sc" style="margin:0">Grammar points</span>
+      <button class="btn sm primary" id="jaGramNew">＋ a point</button></div>
+    <p class="muted ja-note">Only the ones you are actually working on, with your own notes on them. What makes this worth keeping is the error count: anything that has caught you three times in a month is not a note in a margin, it is next week.</p>
+    ${list.length ? `<div class="ja-grams">${list.map(g => {
+      const lv = JLPT.find(l => l[0] === g.jlptLevel) || JLPT[0];
+      return `<div class="ja-gram${trouble.has(g.id) ? ' trouble' : ''}" data-jagram="${esc(g.id)}">
+        <div class="row between" style="align-items:baseline">
+          <span class="ja-gram-n ja-jp-inline">${esc(g.name)}</span>
+          <span class="ja-lv" style="--c:${lv[1]}">${esc(g.jlptLevel)}</span></div>
+        <div class="ja-gram-m mono">stage ${g.ptStage} · ${esc((JA_GRAMMAR_STATUS.find(s => s[0] === g.status) || [,''])[1].toLowerCase())}${
+          g.errorCount ? ` · ${g.errorCount} error${g.errorCount === 1 ? '' : 's'}` : ''}</div>
+        ${g.myNotes ? `<div class="ja-gram-notes">${linkify(g.myNotes)}</div>` : ''}
+        ${trouble.has(g.id) ? '<div class="ja-trouble">a problem structure — give it a week</div>' : ''}
+        <div class="ja-tools">
+          <button class="tbtn" data-jagramedit="${esc(g.id)}">open</button>
+          <button class="tbtn" data-jagramcard="${esc(g.id)}">make a card</button>
+          <button class="del-x inline" data-jagramdel="${esc(g.id)}">×</button></div>
+      </div>`; }).join('')}</div>`
+      : '<div class="empty">Nothing tracked yet. Add the one that keeps catching you.</div>'}
+  </div>`;
+}
+function openJaGrammar(id){
+  const j = jaState();
+  const g = id ? byId(j.grammar, id) : {id:uid(), name:'', jlptLevel:'N5', ptStage:2,
+    status:'studying', myNotes:'', examples:[], errorCount:0, lastErrorDate:null,
+    linkedErrorIds:[], createdAt:new Date().toISOString()};
+  const m = openModal(`<h2>${id ? 'The point' : 'A grammar point'}</h2>
+    <label class="pd-q"><span class="k">what it is</span>
+      <input class="inp serif-lg ja-jp-input" id="grName" value="${esc(g.name)}" autofocus placeholder="ている · ば conditional"></label>
+    <div class="grid c3" style="gap:10px;margin-top:10px">
+      <label class="pd-q"><span class="k">level</span><select class="sel" id="grLv">${JLPT.map(([v]) =>
+        `<option value="${v}" ${g.jlptLevel === v ? 'selected' : ''}>${v}</option>`).join('')}</select></label>
+      <label class="pd-q"><span class="k">rung</span><select class="sel" id="grPt">${JA_PT_STAGES.map(([n, name]) =>
+        `<option value="${n}" ${g.ptStage === n ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
+      <label class="pd-q"><span class="k">how it stands</span><select class="sel" id="grSt">${JA_GRAMMAR_STATUS.map(([v, n]) =>
+        `<option value="${v}" ${g.status === v ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label>
+    </div>
+    <label class="pd-q" style="margin-top:10px"><span class="k">your own notes</span>
+      <textarea class="inp" rows="4" id="grNotes" placeholder="What confuses you about it. What finally made it click. The example you always think of.">${esc(g.myNotes)}</textarea></label>
+    <label class="pd-q" style="margin-top:10px"><span class="k">a sentence with it in</span>
+      <input class="inp ja-jp-input" id="grEg" value="${esc((g.examples || [])[0]?.japanese || '')}" placeholder="明日東京に行きます"></label>
+    <label class="pd-q" style="margin-top:8px"><span class="k">and what it means</span>
+      <input class="inp" id="grEgEn" value="${esc((g.examples || [])[0]?.english || '')}"></label>
+    <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary" id="grSave">Save</button></div>`, 'narrow ja-modal');
+  m.querySelector('#grSave').onclick = () => {
+    const name = m.querySelector('#grName').value.trim();
+    if(!name){ m.querySelector('#grName').focus(); return; }
+    const jp = m.querySelector('#grEg').value.trim(), en = m.querySelector('#grEgEn').value.trim();
+    Object.assign(g, {name, jlptLevel:m.querySelector('#grLv').value, ptStage:+m.querySelector('#grPt').value,
+      status:m.querySelector('#grSt').value, myNotes:m.querySelector('#grNotes').value,
+      examples: jp ? [{japanese:jp, english:en, source:''}] : (g.examples || [])});
+    if(!id) j.grammar.push(g);
+    saveNow(); m.remove(); sound('success'); rerender();
+  };
+  return m;
+}
+/* A grammar point becomes a gap in one of its own sentences, which is the
+   only card shape that asks whether you can use it rather than describe it. */
+function jaGrammarCard(id){
+  const g = byId(jaState().grammar, id); if(!g) return;
+  const eg = (g.examples || [])[0];
+  if(!eg || !eg.japanese){ toast('Write a sentence with it in first — a cloze needs somewhere to put the hole.'); return; }
+  if(typeof suggestStudyCard !== 'function') return;
+  suggestStudyCard({type:'cloze', sourceType:'grammar', sourceId:g.id,
+    front: eg.japanese.includes('{{') ? eg.japanese : `${eg.japanese}\n\n(${eg.english || ''})`,
+    clozeAnswer: g.name, back: g.myNotes || '',
+    sourceLabel:`Grammar Journey — ${g.name}`, tags:['grammar', g.jlptLevel.toLowerCase()]});
+  sound('success');
+  toast('In the Study Deck inbox. Put {{ }} round the part to hide when you accept it.');
+  rerender();
+}
+
+/* ---------- double translation ----------
+   Lampariello's, and the delay is the whole mechanism: translate it out,
+   wait until you have forgotten the Japanese, translate it back, and every
+   place your version differs from the original is a gap you could not have
+   found by reading. */
+function jaTranslationsHTML(){
+  const list = jaState().translations.slice().sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+  const T = today();
+  return `<div class="ja-sec">
+    <div class="row between" style="align-items:baseline">
+      <span class="sc" style="margin:0">Double translation</span>
+      <button class="btn sm primary" id="jaTransNew">＋ a text</button></div>
+    <p class="muted ja-note">Japanese out to English, then — a day later, once you have forgotten the words — English back to Japanese. Every place your reconstruction differs from the original is a gap you could not have found by reading it.</p>
+    ${list.length ? `<div class="stack" style="gap:8px;margin-top:10px">${list.map(t => {
+      const ready = t.status === 'awaiting_back_translation' && t.step1Date && t.step1Date < T;
+      return `<div class="ja-trans ja-t-${esc(t.status)}">
+        <div class="row between" style="align-items:baseline">
+          <span class="serif">${esc(t.originalSource || 'a text')}</span>
+          <span class="mono faint">${esc(fmtDate(t.step1Date, 'short'))}${
+            t.status === 'completed' ? ' · done' : ready ? ' · ready' : ' · resting'}</span></div>
+        <p class="ja-jp">${esc((t.originalJapanese || '').slice(0, 120))}${(t.originalJapanese || '').length > 120 ? '…' : ''}</p>
+        ${t.status === 'completed' && (t.divergences || []).length
+          ? `<div class="ja-div">${t.divergences.length} divergence${t.divergences.length === 1 ? '' : 's'} logged</div>` : ''}
+        <div class="ja-tools">
+          ${t.status === 'completed' ? `<button class="tbtn" data-jatranssee="${esc(t.id)}">compare</button>`
+            : ready ? `<button class="tbtn" data-jatransback="${esc(t.id)}">translate it back</button>`
+            : `<span class="mono faint">rest it until tomorrow — the delay is the point</span>`}
+          <button class="del-x inline" data-jatransdel="${esc(t.id)}">×</button></div>
+      </div>`; }).join('')}</div>`
+      : '<div class="empty">Nothing in progress. Paste something a native wrote — a paragraph is plenty.</div>'}
+  </div>`;
+}
+
+/* ---------- chunks ----------
+   Lewis: what makes somebody sound fluent is mostly having the phrase ready,
+   not assembling it. So nothing here is a single word — 決める is not a chunk,
+   予定を決める is. */
+function jaVocabHTML(){
+  const j = jaState();
+  return `<div class="ja-sec">
+    <div class="row between" style="align-items:baseline">
+      <span class="sc" style="margin:0">Chunks, by topic</span>
+      <button class="btn sm primary" id="jaChunkNew">＋ a chunk</button></div>
+    <p class="muted ja-note">Not words — collocations, frames, whole utterances. 決める on its own is a dictionary entry; 予定を決める is something you can say. Harvest a topic's worth, drill them meaning-to-Japanese, then immediately use them in a talk on that topic.</p>
+    <div class="ja-topics">${j.topics.map(t => { const n = jaTopicReady(t.id);
+      const pct = n.total ? Math.round(n.ready / n.total * 100) : 0;
+      return `<button class="ja-topic-card${S._jaTopic === t.id ? ' on' : ''}" data-jatopic="${esc(t.id)}">
+        <span class="ja-topic-e">${esc(t.emoji)}</span>
+        <span class="ja-topic-n">${esc(t.name)}</span>
+        <span class="ja-topic-m mono">${n.ready}/${n.total}</span>
+        <span class="ja-topic-bar"><i style="width:${pct}%"></i></span>
+      </button>`; }).join('')}</div>
+    ${S._jaTopic ? (() => { const cs = jaChunksFor(S._jaTopic);
+      return `<div class="ja-chunks">${cs.length ? cs.map(c => `
+        <div class="ja-chunk${c.productionReady ? ' ready' : ''}" data-jachunk="${esc(c.id)}">
+          ${c.reading ? `<span class="ja-reading">${esc(c.reading)}</span>` : ''}
+          <span class="ja-chunk-j ja-jp-inline">${esc(c.japanese)}</span>
+          <span class="ja-chunk-m">${esc(c.meaning)}</span>
+          ${c.exampleSentence ? `<span class="ja-chunk-e ja-jp-inline">${esc(c.exampleSentence)}</span>` : ''}
+          <div class="ja-tools">
+            <button class="tbtn" data-jachunkready="${esc(c.id)}">${c.productionReady ? 'still passive' : 'production-ready'}</button>
+            ${c.sentToStudyDeck ? '' : `<button class="tbtn" data-jachunkcard="${esc(c.id)}">make cards</button>`}
+            <button class="del-x inline" data-jachunkdel="${esc(c.id)}">×</button></div>
+        </div>`).join('') : '<div class="empty">Nothing in this topic yet.</div>'}</div>`; })() : ''}
+  </div>`;
+}
+/* A chunk is worth three cards rather than one, and the specification is right
+   about why: retrieval alone is the shallow end. Using it in a sentence about
+   your own weekend, and telling it from the chunk that nearly means the same
+   thing, are where it actually sticks. */
+function jaChunkCards(id){
+  const c = byId(jaState().chunks, id); if(!c || typeof studyMakeFamily !== 'function') return;
+  const base = {type:'production', sourceType:'vocab', sourceId:c.id,
+    front:`Say in Japanese:\n\n"${c.meaning}"`, back:`${c.japanese}${c.reading ? `\n(${c.reading})` : ''}${
+      c.exampleSentence ? `\n\n${c.exampleSentence}` : ''}`,
+    sourceLabel:`Vocabulary Lab — ${c.japanese}`, tags:['japanese', 'chunk']};
+  const made = studyMakeFamily(base);
+  made.forEach(x => { x.status = 'inbox'; });
+  c.sentToStudyDeck = true;
+  saveNow(); sound('success');
+  toast(`${made.length} cards waiting in the Study Deck — recall, use it, and tell it from its neighbour.`);
+  rerender();
+}
+
+/* ---------- writing ----------
+   Flower and Hayes: plan, translate, review, and the middle one is where an
+   L2 writer's attention all goes. So the plan is written in English on
+   purpose — thinking and encoding at once is what makes the sentences short. */
+function jaWritingHTML(){
+  const list = jaState().writing.slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  return `<div class="ja-sec">
+    <div class="row between" style="align-items:baseline">
+      <span class="sc" style="margin:0">Writing</span>
+      <button class="btn sm primary" id="jaWriteNew">＋ a piece</button></div>
+    <p class="muted ja-note">Plan in English, write in Japanese, then mark yourself on three things separately. They are separate because they trade against each other: push the complexity and the accuracy dips, which is not going backwards — it is stretching.</p>
+    ${list.length ? `<div class="stack" style="gap:8px;margin-top:10px">${list.map(w => `
+      <div class="ja-write">
+        <div class="row between" style="align-items:baseline">
+          <span class="serif">${esc(w.topic || 'untitled')}</span>
+          <span class="mono faint">${esc(fmtDate(w.date, 'short'))} · ${w.wordCount || 0} chars${
+            w.correctedText ? ' · corrected' : ''}</span></div>
+        <p class="ja-jp">${esc((w.japaneseText || '').slice(0, 140))}${(w.japaneseText || '').length > 140 ? '…' : ''}</p>
+        <div class="ja-caf">${[['complexity','Complexity'],['accuracy','Accuracy'],['fluency','Fluency']].map(([k, n]) =>
+          `<span class="ja-caf-g"><em>${esc(n)}</em><b>${'●'.repeat(+w.selfAssessment?.[k] || 0)}${'○'.repeat(5 - (+w.selfAssessment?.[k] || 0))}</b></span>`).join('')}</div>
+        <div class="ja-tools">
+          <button class="tbtn" data-jawriteedit="${esc(w.id)}">open</button>
+          <button class="del-x inline" data-jawritedel="${esc(w.id)}">×</button></div>
+      </div>`).join('')}</div>`
+      : '<div class="empty">Nothing written yet.</div>'}
+  </div>`;
+}
+
+/* ---------- the numbers ----------
+   Complexity, accuracy and fluency, which is the only honest frame for this:
+   Skehan's trade-off says they compete for the same attention, so a month
+   where complexity climbed and accuracy dipped is a good month, and a chart
+   that showed only accuracy would call it a bad one. */
+function jaProgressHTML(){
+  const j = jaState();
+  const T = today(), from = addDays(T, -90);
+  const wpm = jaWpmSeries();
+  const mid = jaMidClauseShare(from, T);
+  const mix = jaPartnerMix(4);
+  const play = jaPlayMix(from, T);
+  const rate = jaErrorRate(from, T);
+  const top = jaTopPatterns(addDays(T, -30), T);
+  const strands = jaStrandsLatest();
+  const bySeason = [90, 60, 30].map(d => ({d, v: jaMidClauseShare(addDays(T, -d), addDays(T, -d + 30))}))
+    .filter(x => x.v != null);
+  return `<div class="grid c2" style="gap:16px">
+    <div class="card no-tilt span2">
+      <div class="k">Speed, over time</div>
+      ${wpm.length > 1 ? `<div class="ja-spark">${sparkline(wpm.map(x => x.wpm), {h:70, color:'var(--slate,#6b7d8e)', dots:true})}</div>
+        <div class="mono faint" style="font-size:.72rem">${esc(fmtDate(wpm[0].date, 'short'))} — ${esc(fmtDate(wpm[wpm.length - 1].date, 'short'))} · ${wpm[0].wpm} → ${wpm[wpm.length - 1].wpm} words a minute</div>`
+        : '<div class="empty sm">Two sessions with a word count and this becomes a line.</div>'}
+    </div>
+
+    <!-- The one worth watching. Where the silences fall says whether the
+         grammar is still being assembled while you talk. -->
+    <div class="card no-tilt span2">
+      <div class="k">Where the pauses fall</div>
+      <p class="muted" style="font-size:.82rem">Native speakers pause between clauses, to plan the next one. Learners pause inside them, because the sentence is still being built. Watching the red shrink is watching the grammar become automatic — and it is the single strongest predictor there is.</p>
+      ${mid == null ? '<div class="empty sm">Log the pause location on a session or two.</div>'
+        : `<div class="ja-pauseline"><i class="mid" style="width:${Math.round(mid * 100)}%"></i><i class="bnd" style="width:${Math.round((1 - mid) * 100)}%"></i></div>
+           <div class="row between mono" style="font-size:.72rem"><span>${Math.round(mid * 100)}% mid-clause</span><span>${Math.round((1 - mid) * 100)}% at boundaries</span></div>
+           ${bySeason.length > 1 ? `<div class="ja-pausehist">${bySeason.map(x => `
+             <div class="ja-ph-row"><span class="mono">${x.d} days ago</span>
+               <span class="ja-pauseline sm"><i class="mid" style="width:${Math.round(x.v * 100)}%"></i><i class="bnd" style="width:${Math.round((1 - x.v) * 100)}%"></i></span></div>`).join('')}</div>` : ''}`}
+    </div>
+
+    <div class="card no-tilt">
+      <div class="k">This quarter</div>
+      <div class="ja-nums">
+        <div><b>${jaIn(j.sessions, from, T).length}</b><span>sessions</span></div>
+        <div><b>${jaHours(from, T)}</b><span>hours</span></div>
+        <div><b>${mix.ai}/${mix.human}</b><span>AI / human</span></div>
+        <div><b>${play.practice}/${play.play}</b><span>practice / play</span></div>
+      </div>
+      ${rate != null ? `<div class="mono faint" style="font-size:.74rem;margin-top:6px">${rate.toFixed(1)} errors logged per session</div>` : ''}
+      ${jaAiWarning() ? `<div class="ja-warn sm">Mostly machines lately. A machine cannot hear your pitch accent and will teach you a register only machines enjoy.</div>` : ''}
+    </div>
+
+    <div class="card no-tilt">
+      <div class="k">The four strands</div>
+      ${strands ? `<div class="ja-strands sm">${JA_STRANDS.map(([k, name]) => { const v = +strands[k] || 0;
+        const bad = (k === 'study' && v > 30) || (k === 'fluency' && v < 20);
+        return `<div class="ja-strand${bad ? ' off' : ''}"><span class="ja-strand-n">${esc(name)}</span>
+          <span class="bar" style="--c:${bad ? '#c98b7a' : 'var(--sage)'}"><i style="width:${clamp(v, 0, 100)}%"></i></span>
+          <span class="mono">${v}%</span></div>`; }).join('')}</div>`
+        : '<div class="empty sm">Not assessed yet.</div>'}
+    </div>
+
+    <div class="card no-tilt">
+      <div class="k">The ladder</div>
+      <div class="ja-ptmini">${JA_PT_STAGES.slice().reverse().map(([n, name]) => `
+        <div class="ja-ptm ${n < j.pt.current ? 'solid' : n === j.pt.current ? 'cur' : n === j.pt.reaching ? 'next' : ''}">
+          <span class="mono">${n}</span> ${esc(name)}</div>`).join('')}</div>
+    </div>
+
+    <div class="card no-tilt">
+      <div class="k">Islands, scenarios, patterns</div>
+      <div class="ja-prog-row"><span>Islands at automatic</span>
+        <span class="bar" style="--c:var(--sage)"><i style="width:${j.islands.length ? Math.round(jaAutomatic() / j.islands.length * 100) : 0}%"></i></span>
+        <span class="mono">${jaAutomatic()}/${j.islands.length}</span></div>
+      <div class="ja-prog-row"><span>Scenarios run</span>
+        <span class="bar" style="--c:var(--terra)"><i style="width:${j.scenarios.length ? Math.round(j.scenarios.filter(s => s.times > 0).length / j.scenarios.length * 100) : 0}%"></i></span>
+        <span class="mono">${j.scenarios.filter(s => s.times > 0).length}/${j.scenarios.length}</span></div>
+      ${top.length ? `<div class="ja-top sm"><span class="k mono">this month</span>${top.map(([k, n]) =>
+        `<span class="ja-pat">${esc(k)} <b>${n}</b></span>`).join('')}</div>` : ''}
+    </div>
+  </div>`;
+}
+/* ============================================================
+   THE SPEAKING LAB — where the mouth is trained rather than the head.
+
+   The whole room rests on one distinction: knowing more Japanese and being
+   able to say the Japanese you already know are different skills, and only
+   the second one is what people mean by fluent. Everything here uses
+   material you already have and pushes it for speed.
+   ============================================================ */
+
+/* ---------- the 4/3/2 ----------
+   Maurice's drill, Nation's evidence, de Jong and Perfetti's proof that it
+   transfers. Same talk three times, four minutes then three then two. Because
+   the content is fixed, nothing that improves between the first delivery and
+   the third is the material — it is the machinery underneath, which is the
+   thing you were trying to train. */
+function ja432HTML(){
+  const rows = jaSessions().slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  const warn = jaAiWarning();
+  return `<div class="ja-sec">
+    <div class="row between" style="align-items:baseline">
+      <span class="sc" style="margin:0">4 / 3 / 2</span>
+      <button class="btn sm primary" id="ja432New">＋ a session</button></div>
+    <p class="muted ja-note">One talk you already have, delivered three times against a shrinking clock. The content is held constant on purpose: anything that gets faster between the first delivery and the third is the machinery, not the material — which is why the gains carry over to topics you have never rehearsed.</p>
+    ${warn ? `<div class="ja-warn">Your practice is heavily AI-weighted — ${Math.round(warn.aiShare * 100)}% of the last ${warn.weeks} weeks. Book a human session this week. Aizuchi timing, keigo shifts and indirectness are not things a machine can teach you, and talking to one long enough teaches you a register that only machines like.</div>` : ''}
+    ${rows.length ? `<div class="stack" style="gap:8px;margin-top:10px">${rows.slice(0, 12).map(s => {
+      const g = jaSessionGain(s);
+      const pause = JA_PAUSE.find(p => p[0] === s.pauseLocation);
+      return `<div class="ja-session" data-jasess="${esc(s.id)}">
+        <div class="row between" style="align-items:baseline">
+          <span class="serif ja-topic">${esc(s.topic || 'untitled')}</span>
+          <span class="mono faint">${esc(fmtDate(s.date, 'med'))} · ${esc(s.sessionType === 'play' ? 'play' : 'practice')} · ${esc(s.partnerType || 'solo')}</span></div>
+        <div class="ja-takes">${(s.deliveries || []).map((d, i) => `
+          <div class="ja-take">
+            <span class="ja-take-n mono">${d.duration || [4,3,2][i]} min</span>
+            <span class="ja-take-w">${d.wpm ? `${d.wpm} <em>wpm</em>` : '—'}</span>
+            <span class="ja-take-p mono">${d.pauseCount != null ? `${d.pauseCount} pauses` : ''}</span>
+            <span class="ja-take-q ja-q-${esc(d.quality || 'okay')}">${esc(d.quality || '')}</span>
+          </div>`).join('')}</div>
+        ${g ? `<div class="ja-gain mono">${g.first} → ${g.last} wpm${g.pct > 0 ? ` · ${g.pct}% faster by the third` : ''}</div>` : ''}
+        ${pause ? `<div class="ja-pause ja-p-${esc(s.pauseLocation)}" title="${esc(pause[2])}">${esc(pause[1])}</div>` : ''}
+        ${s.notes ? `<div class="ja-snotes">${linkify(s.notes)}</div>` : ''}
+        <div class="ja-tools">
+          <button class="tbtn" data-jaerr="${esc(s.id)}">log an error from this</button>
+          <button class="del-x inline" data-jasessdel="${esc(s.id)}">×</button></div>
+      </div>`; }).join('')}</div>`
+      : '<div class="empty">No sessions yet. Pick a topic you could already talk about for four minutes — that is the whole entry requirement.</div>'}
+  </div>`;
+}
+function openJa432(){
+  const j = jaState();
+  const m = openModal(`<h2>A 4 / 3 / 2 session</h2>
+    <div class="grid c2" style="gap:10px">
+      <label class="pd-q"><span class="k">date</span><input type="date" class="inp" id="jsDate" value="${today()}"></label>
+      <label class="pd-q"><span class="k">topic</span><input class="inp" id="jsTopic" autofocus placeholder="something you could already talk about"></label>
+    </div>
+    ${j.islands.length ? `<label class="pd-q" style="margin-top:10px"><span class="k">an island, if it was one</span>
+      <select class="sel" id="jsIsland"><option value="">— not one of them —</option>
+      ${j.islands.map(i => `<option value="${esc(i.id)}">${esc(i.topic)}</option>`).join('')}</select></label>` : ''}
+    <div class="grid c2" style="gap:10px;margin-top:10px">
+      <div><span class="k mono">what kind of sitting</span>
+        <div class="pn-modepick"><button class="pn-mp on" data-jstype="practice">Practice <em>analytical, slow, repetitive</em></button>
+          <button class="pn-mp" data-jstype="play">Play <em>fearless, unedited</em></button></div></div>
+      <div><span class="k mono">who with</span>
+        <div class="pn-keypick">${JA_PARTNERS.map(([v, n, hint], i) =>
+          `<button class="pn-kp${i === 0 ? ' on' : ''}" data-jspartner="${v}" title="${esc(hint)}">${esc(n)}</button>`).join('')}</div></div>
+    </div>
+    <table class="ja-grid"><thead><tr><th></th><th>4 min</th><th>3 min</th><th>2 min</th></tr></thead>
+      <tbody>
+        <tr><th>words a minute</th>${[0,1,2].map(i => `<td><input class="inp mono" type="number" id="jsW${i}" placeholder="—"></td>`).join('')}</tr>
+        <tr><th>pauses</th>${[0,1,2].map(i => `<td><input class="inp mono" type="number" id="jsP${i}" placeholder="—"></td>`).join('')}</tr>
+        <tr><th>how it felt</th>${[0,1,2].map(i => `<td><select class="sel" id="jsQ${i}">${JA_QUALITY.map(([v, n]) =>
+          `<option value="${v}" ${v === 'okay' ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></td>`).join('')}</tr>
+      </tbody></table>
+    <!-- The one diagnostic worth the trouble of noticing. Where the silences
+         fall says whether the grammar is being assembled as you speak. -->
+    <div style="margin-top:12px"><span class="k mono">where the pauses fell</span>
+      <div class="ja-pauses">${JA_PAUSE.map(([v, n, hint], i) =>
+        `<button class="ja-pbtn${i === 1 ? ' on' : ''}" data-jspause="${v}" title="${esc(hint)}">
+          <b>${esc(n)}</b><em>${esc(hint)}</em></button>`).join('')}</div></div>
+    <label class="pd-q" style="margin-top:12px"><span class="k">notes</span>
+      <textarea class="inp" rows="2" id="jsNotes" placeholder="what fell apart, what surprised you"></textarea></label>
+    <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary" id="jsSave">Save</button></div>`, 'narrow ja-modal');
+  let type = 'practice', partner = 'solo', pause = 'mixed';
+  const group = (attr, set) => m.querySelectorAll(`[data-${attr}]`).forEach(b => b.onclick = () => {
+    set(b.dataset[attr]); m.querySelectorAll(`[data-${attr}]`).forEach(x => x.classList.toggle('on', x === b)); });
+  group('jstype', v => type = v); group('jspartner', v => partner = v); group('jspause', v => pause = v);
+  m.querySelector('#jsSave').onclick = () => {
+    const topic = m.querySelector('#jsTopic').value.trim();
+    if(!topic){ m.querySelector('#jsTopic').focus(); return; }
+    j.sessions.push({id:uid(), date:m.querySelector('#jsDate').value || today(), topic,
+      linkedIslandId: m.querySelector('#jsIsland')?.value || null,
+      sessionType:type, partnerType:partner, pauseLocation:pause,
+      deliveries:[4,3,2].map((d, i) => ({duration:d,
+        wpm: +m.querySelector('#jsW' + i).value || null,
+        pauseCount: m.querySelector('#jsP' + i).value === '' ? null : +m.querySelector('#jsP' + i).value,
+        quality: m.querySelector('#jsQ' + i).value})),
+      notes: m.querySelector('#jsNotes').value, errorsLogged:0, createdAt:new Date().toISOString()});
+    jaCredit(9);
+    saveNow(); m.remove(); sound('success'); rerender();
+  };
+  return m;
+}
+
+/* ---------- islands ----------
+   Shekhtman's central idea, and the most practical thing in the whole
+   specification: a monologue you have by heart is somewhere to stand. While
+   your mouth is delivering it your head is free to plan what comes after —
+   which is exactly the working memory a learner never has. */
+function jaIslandsHTML(){
+  const list = jaIslands();
+  const auto = jaAutomatic();
+  return `<div class="ja-sec">
+    <div class="row between" style="align-items:baseline">
+      <span class="sc" style="margin:0">Islands</span>
+      <span class="row" style="gap:8px"><span class="mono faint">${auto} of ${list.length} automatic${list.length < 15 ? ` · ${15 - list.length} short of fifteen` : ''}</span>
+      <button class="btn sm primary" id="jaIslandNew">＋ an island</button></span></div>
+    <p class="muted ja-note">Pre-built monologues on the things you are asked about anyway: your job, your family, why you are learning this. Somewhere to stand while you think. Build fifteen to thirty — and write each one in English first, because a sentence you translated is a sentence about your life, and a sentence from a phrasebook is not.</p>
+    ${list.length ? `<div class="ja-islands">${list.map(i => {
+      const st = JA_ISLAND_STATUS.find(x => x[0] === i.status) || JA_ISLAND_STATUS[0];
+      return `<div class="ja-island ja-is-${esc(i.status)}" data-jaisland="${esc(i.id)}">
+        <div class="row between" style="align-items:baseline">
+          <span class="serif ja-island-t">🏝 ${esc(i.topic)}</span>
+          <span class="ja-badge">${esc(st[1])}</span></div>
+        ${i.japaneseText ? `<p class="ja-jp">${esc(i.japaneseText.slice(0, 160))}${i.japaneseText.length > 160 ? '…' : ''}</p>`
+          : `<p class="ja-en faint">${esc((i.englishDraft || '').slice(0, 160)) || 'nothing written yet'}</p>`}
+        <div class="ja-island-m mono">
+          ${i.pitchMarked ? '✅ pitch-marked' : '○ not pitch-marked'} ·
+          ${i.nativeVerified ? '✅ native-verified' : '○ AI only'}
+          ${i.lastPracticed ? ` · ${esc(fmtDate(i.lastPracticed, 'short'))}` : ''}
+          ${(i.linkedChunks || []).length ? ` · ${i.linkedChunks.length} chunks` : ''}</div>
+        <div class="ja-tools">
+          <button class="tbtn" data-jaislandedit="${esc(i.id)}">open</button>
+          <button class="tbtn" data-jaislandpx="${esc(i.id)}">practised</button>
+          ${i.japaneseText ? `<button class="tbtn" data-jaislandcard="${esc(i.id)}">make a card</button>` : ''}
+          <button class="del-x inline" data-jaislanddel="${esc(i.id)}">×</button></div>
+      </div>`; }).join('')}</div>`
+      : '<div class="empty">No islands yet. The first one is your self-introduction, and you will use it more than anything else you ever learn.</div>'}
+    <details class="ja-tools-ref"><summary><span class="sc">The seven tools</span></summary>
+      <div class="body"><p class="muted ja-note">Shekhtman's, and none of them are grammar — they are what to do when the grammar runs out halfway through a sentence.</p>
+      <ol class="ja-toollist">${JA_TOOLS.map(([n, w]) => `<li><b>${esc(n)}</b> ${esc(w)}</li>`).join('')}</ol></div></details>
+  </div>`;
+}
+function openJaIsland(id){
+  const j = jaState();
+  const i = id ? byId(j.islands, id) : {id:uid(), topic:'', japaneseText:'', englishDraft:'',
+    status:'drafting', lastPracticed:null, pitchMarked:false, linkedChunks:[], nativeVerified:false,
+    version:1, createdAt:new Date().toISOString()};
+  const m = openModal(`<h2>${id ? 'The island' : 'A new island'}</h2>
+    <label class="pd-q"><span class="k">what it is about</span>
+      <input class="inp serif-lg" id="isTopic" value="${esc(i.topic)}" autofocus placeholder="My job · Why I'm learning Japanese · My hometown"></label>
+    <!-- English first, on purpose. A sentence you translated is a sentence
+         about your actual life; one taken from a phrasebook is about nobody's. -->
+    <label class="pd-q" style="margin-top:10px"><span class="k">first, in English</span>
+      <textarea class="inp" rows="4" id="isEn" placeholder="Specific and true. Not what a textbook would have you say.">${esc(i.englishDraft)}</textarea></label>
+    <label class="pd-q" style="margin-top:10px"><span class="k">then, in Japanese</span>
+      <textarea class="inp ja-jp-input" rows="5" id="isJa" placeholder="私はソフトウェアエンジニアとして…">${esc(i.japaneseText)}</textarea></label>
+    <div class="grid c2" style="gap:10px;margin-top:10px">
+      <label class="pd-q"><span class="k">how far along</span><select class="sel" id="isStatus">${JA_ISLAND_STATUS.map(([v, n, h]) =>
+        `<option value="${v}" ${i.status === v ? 'selected' : ''} title="${esc(h)}">${esc(n)}</option>`).join('')}</select></label>
+      <div class="pd-q"><span class="k">checked</span>
+        <label class="ja-check"><input type="checkbox" id="isPitch" ${i.pitchMarked ? 'checked' : ''}> pitch-marked</label>
+        <label class="ja-check"><input type="checkbox" id="isNative" ${i.nativeVerified ? 'checked' : ''}> a human has read it</label></div>
+    </div>
+    <p class="muted ja-note">A machine cannot hear pitch accent and will invent idioms with great confidence. Use it for volume and a person for the verdict.</p>
+    <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary" id="isSave">Save</button></div>`, 'narrow ja-modal');
+  m.querySelector('#isSave').onclick = () => {
+    const topic = m.querySelector('#isTopic').value.trim();
+    if(!topic){ m.querySelector('#isTopic').focus(); return; }
+    Object.assign(i, {topic, englishDraft:m.querySelector('#isEn').value,
+      japaneseText:m.querySelector('#isJa').value, status:m.querySelector('#isStatus').value,
+      pitchMarked:m.querySelector('#isPitch').checked, nativeVerified:m.querySelector('#isNative').checked});
+    if(!id) j.islands.push(i); else i.version = (+i.version || 1) + 1;
+    saveNow(); m.remove(); sound('success'); rerender();
+  };
+  return m;
+}
+
+/* ---------- scenarios ---------- */
+function jaScenariosHTML(){
+  const list = jaState().scenarios.slice().sort((a, b) => (a.order || 0) - (b.order || 0));
+  const done = list.filter(s => s.times > 0).length;
+  return `<div class="ja-sec">
+    <div class="row between" style="align-items:baseline">
+      <span class="sc" style="margin:0">Scenarios</span>
+      <span class="row" style="gap:8px"><span class="mono faint">${done} of ${list.length} run at least once</span>
+      <button class="btn sm primary" id="jaScenNew">＋ a scenario</button></span></div>
+    <p class="muted ja-note">Ordered by how often they actually happen, which is the only sensible order. Script both sides, get it corrected, drill your half, then run it with somebody swapping the variables on you.</p>
+    <div class="ja-scen">${list.map(s => `<div class="ja-scenario ja-sc-${esc(s.category)}" data-jascen="${esc(s.id)}">
+      <div class="row between" style="align-items:baseline">
+        <span class="serif">${esc(s.name)}</span>
+        <span class="mono faint">${esc(s.difficulty)}${s.times ? ` · run ${s.times}×` : ''}</span></div>
+      <div class="ja-scen-m mono">${s.corrected ? '✅ corrected' : '○ not corrected'}${
+        s.script ? ' · scripted' : ' · no script yet'}${(s.errorIds || []).length ? ` · ${s.errorIds.length} errors caught` : ''}</div>
+      <div class="ja-tools">
+        <button class="tbtn" data-jascenedit="${esc(s.id)}">open</button>
+        <button class="tbtn" data-jascenrun="${esc(s.id)}">ran it</button></div>
+    </div>`).join('')}</div>
+  </div>`;
+}
+
+/* ---------- shadowing ---------- */
+function jaShadowingHTML(){
+  const rows = jaState().shadowing.slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  return `<div class="ja-sec">
+    <div class="row between" style="align-items:baseline">
+      <span class="sc" style="margin:0">Shadowing</span>
+      <button class="btn sm primary" id="jaShadowNew">＋ a take</button></div>
+    <p class="muted ja-note">Speaking along a beat behind, matching rhythm and intonation rather than just words. The four ratings are separate because they fail separately — you can hear every syllable and still not get your mouth round it.</p>
+    ${rows.length ? `<div class="stack" style="gap:8px;margin-top:10px">${rows.slice(0, 10).map(s => `
+      <div class="ja-shadow">
+        <div class="row between" style="align-items:baseline">
+          <span class="serif">${s.materialLink ? `<a class="autolink" href="${esc(s.materialLink)}" target="_blank" rel="noopener noreferrer">${esc(s.material)}</a>` : esc(s.material)}</span>
+          <span class="mono faint">${esc(fmtDate(s.date, 'short'))} · ${esc(s.speed)} · ${esc(s.mode)}${s.pitchMarked ? ' · pitch-marked' : ''}</span></div>
+        <div class="ja-ipom">${JA_IPOM.map(([k, n, q]) => `
+          <span class="ja-ip" title="${esc(q)}"><em>${esc(n)}</em><b>${'●'.repeat(+s.ipom?.[k] || 0)}${'○'.repeat(5 - (+s.ipom?.[k] || 0))}</b></span>`).join('')}</div>
+        ${s.notes ? `<div class="ja-snotes">${linkify(s.notes)}</div>` : ''}
+        <div class="ja-tools"><button class="del-x inline" data-jashadowdel="${esc(s.id)}">×</button></div>
+      </div>`).join('')}</div>`
+      : '<div class="empty">Nothing shadowed yet. Start with a transcript in front of you; take it away when you stop needing it.</div>'}
+  </div>`;
+}
+function openJaShadow(){
+  const j = jaState();
+  const m = openModal(`<h2>A shadowing take</h2>
+    <div class="grid c2" style="gap:10px">
+      <label class="pd-q"><span class="k">date</span><input type="date" class="inp" id="shDate" value="${today()}"></label>
+      <label class="pd-q"><span class="k">what</span><input class="inp" id="shMat" autofocus placeholder="the podcast, the drama, the news clip"></label>
+    </div>
+    <label class="pd-q" style="margin-top:10px"><span class="k">where it is</span>
+      ${linkBoxHTML(`<input class="inp mono" id="shLink" placeholder="https://…">`, '')}</label>
+    <div class="grid c2" style="gap:10px;margin-top:10px">
+      <label class="pd-q"><span class="k">speed</span><select class="sel" id="shSpeed">
+        ${['0.8x','1.0x','1.2x'].map(v => `<option ${v === '1.0x' ? 'selected' : ''}>${v}</option>`).join('')}</select></label>
+      <label class="pd-q"><span class="k">with the words in front of you?</span><select class="sel" id="shMode">
+        <option value="scripted">scripted</option><option value="blind">blind</option></select></label>
+    </div>
+    <div style="margin-top:12px"><span class="k mono">how it went, one to five</span>
+      <div class="ja-ipom-set">${JA_IPOM.map(([k, n, q]) => `
+        <label class="ja-ipom-row"><span><b>${esc(n)}</b><em>${esc(q)}</em></span>
+          <input type="range" min="1" max="5" value="3" id="sh_${k}"></label>`).join('')}</div></div>
+    <label class="ja-check" style="margin-top:10px"><input type="checkbox" id="shPitch"> pitch-marked first</label>
+    <label class="pd-q" style="margin-top:10px"><span class="k">notes</span>
+      <textarea class="inp" rows="2" id="shNotes"></textarea></label>
+    <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary" id="shSave">Save</button></div>`, 'narrow ja-modal');
+  m.querySelector('#shSave').onclick = () => {
+    const material = m.querySelector('#shMat').value.trim();
+    if(!material){ m.querySelector('#shMat').focus(); return; }
+    const ipom = {}; JA_IPOM.forEach(([k]) => ipom[k] = +m.querySelector('#sh_' + k).value);
+    j.shadowing.push({id:uid(), date:m.querySelector('#shDate').value || today(), material,
+      materialLink:m.querySelector('#shLink').value.trim() || null,
+      speed:m.querySelector('#shSpeed').value, mode:m.querySelector('#shMode').value,
+      pitchMarked:m.querySelector('#shPitch').checked, ipom,
+      notes:m.querySelector('#shNotes').value, createdAt:new Date().toISOString()});
+    jaCredit(15);
+    saveNow(); m.remove(); sound('success'); rerender();
+  };
+  return m;
+}
+
+/* ---------- the error log ----------
+   The feedback loop the whole room is built around. Not a list of mistakes —
+   a list of reformulations: what you meant, what you said, and what a native
+   would have said instead. The third column is the one that teaches, and it
+   has to be a rewrite rather than a correction, because the gap between your
+   sentence and their sentence is usually bigger than one particle. */
+function jaErrorsHTML(){
+  const rows = jaState().errors.slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  const top = jaTopPatterns(addDays(today(), -30), today());
+  return `<div class="ja-sec">
+    <div class="row between" style="align-items:baseline">
+      <span class="sc" style="margin:0">Error log</span>
+      <button class="btn sm primary" id="jaErrNew">＋ an error</button></div>
+    <p class="muted ja-note">What you meant, what came out, and what a native would have said. The third column is a rewrite rather than a correction — the distance between your sentence and theirs is usually more than one particle, and noticing that distance is the thing that teaches.</p>
+    ${top.length ? `<div class="ja-top">
+      <span class="k mono">this month, again and again</span>
+      ${top.map(([k, n]) => `<span class="ja-pat">${esc(k)} <b>${n}</b></span>`).join('')}
+      <span class="ja-top-say">Three of anything in a month is a week's micro-drill, not a note in a margin.</span>
+    </div>` : ''}
+    ${rows.length ? `<div class="ja-errs">${rows.slice(0, 20).map(e => `
+      <div class="ja-err" data-jaerrrow="${esc(e.id)}">
+        <div class="ja-err-m mono">${esc(fmtDate(e.date, 'short'))} · ${esc(e.errorType || '')}${
+          e.patternTag ? ` · ${esc(e.patternTag)}` : ''}${e.sentToStudyDeck ? ' · carded' : ''}</div>
+        <div class="ja-err-i"><span class="k mono">meant</span> ${esc(e.intendedMeaning)}</div>
+        <div class="ja-err-a"><span class="k mono">said</span> <span class="ja-jp-inline">${esc(e.actualJapanese)}</span></div>
+        <div class="ja-err-c"><span class="k mono">natural</span> <span class="ja-jp-inline">${esc(e.correctedNatural)}</span></div>
+        <div class="ja-tools">
+          ${e.sentToStudyDeck ? '' : `<button class="tbtn" data-jaerrcard="${esc(e.id)}">make a card</button>`}
+          <button class="del-x inline" data-jaerrdel="${esc(e.id)}">×</button></div>
+      </div>`).join('')}</div>`
+      : '<div class="empty">Nothing logged. An error you did not write down is an error you will make again on Thursday.</div>'}
+  </div>`;
+}
+function openJaError(sessionId){
+  const j = jaState();
+  const m = openModal(`<h2>An error, and what it should have been</h2>
+    <label class="pd-q"><span class="k">what you meant to say</span>
+      <input class="inp" id="erMean" autofocus placeholder="in English — the meaning, not the words"></label>
+    <label class="pd-q" style="margin-top:10px"><span class="k">what actually came out</span>
+      <input class="inp ja-jp-input" id="erSaid" placeholder="your Japanese, errors and all"></label>
+    <label class="pd-q" style="margin-top:10px"><span class="k">what a native would say</span>
+      <input class="inp ja-jp-input" id="erNat" placeholder="the whole sentence rewritten, not just the bit that was wrong"></label>
+    <div class="grid c2" style="gap:10px;margin-top:10px">
+      <label class="pd-q"><span class="k">what kind</span><select class="sel" id="erType">${JA_ERROR_TYPES.map(t =>
+        `<option value="${esc(t)}">${esc(t)}</option>`).join('')}</select></label>
+      <label class="pd-q"><span class="k">the pattern, if it has one</span>
+        <input class="inp" id="erPat" placeholder="て-form · は vs が"></label>
+    </div>
+    <label class="ja-check" style="margin-top:10px"><input type="checkbox" id="erCard" checked>
+      send it to the Study Deck — you will be asked to produce the corrected version aloud</label>
+    <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary" id="erSave">Save</button></div>`, 'narrow ja-modal');
+  m.querySelector('#erSave').onclick = () => {
+    const intendedMeaning = m.querySelector('#erMean').value.trim();
+    const correctedNatural = m.querySelector('#erNat').value.trim();
+    if(!intendedMeaning){ m.querySelector('#erMean').focus(); return; }
+    const e = {id:uid(), date:today(), intendedMeaning,
+      actualJapanese:m.querySelector('#erSaid').value.trim(), correctedNatural,
+      errorType:m.querySelector('#erType').value, patternTag:m.querySelector('#erPat').value.trim(),
+      sourceType: sessionId ? 'session_432' : 'other', sourceId: sessionId || null,
+      sentToStudyDeck:false, createdAt:new Date().toISOString()};
+    j.errors.push(e);
+    if(sessionId){ const s = byId(j.sessions, sessionId); if(s) s.errorsLogged = (+s.errorsLogged || 0) + 1; }
+    if(m.querySelector('#erCard').checked && correctedNatural && typeof suggestStudyCard === 'function'){
+      suggestStudyCard({type:'production', sourceType:'error_log', sourceId:e.id,
+        front:`Say this in Japanese:\n\n${intendedMeaning}`, back:correctedNatural,
+        sourceLabel:`Speaking Lab, ${fmtDate(today(), 'med')}`,
+        tags:[e.errorType.replace(/\s+/g, '-'), e.patternTag].filter(Boolean)});
+      e.sentToStudyDeck = true;
+    }
+    saveNow(); m.remove(); sound('success'); rerender();
+  };
+  return m;
+}
+
+/* ---------- the four strands ---------- */
+function jaStrandsHTML(){
+  const a = jaStrandsLatest();
+  const trouble = jaStrandTrouble(a);
+  return `<div class="ja-sec">
+    <div class="row between" style="align-items:baseline">
+      <span class="sc" style="margin:0">The four strands</span>
+      <button class="btn sm primary" id="jaStrandNew">＋ this week</button></div>
+    <p class="muted ja-note">Nation's rule: no more than about a quarter of the time on the direct study of items, and no less than about a quarter on fluency. The fourth strand is the one nearly every self-teacher starves, and it is the one that makes you sound fluent.</p>
+    ${a ? `<div class="ja-strands">${JA_STRANDS.map(([k, name, what]) => { const v = +a[k] || 0;
+      const bad = (k === 'study' && v > 30) || (k === 'fluency' && v < 20);
+      return `<div class="ja-strand${bad ? ' off' : ''}">
+        <span class="ja-strand-n">${esc(name)}<em>${esc(what)}</em></span>
+        <span class="bar" style="--c:${bad ? '#c98b7a' : 'var(--sage)'}"><i style="width:${clamp(v, 0, 100)}%"></i></span>
+        <span class="mono">${v}%</span></div>`; }).join('')}</div>
+      ${trouble.length ? `<div class="ja-warn">${trouble.map(t => esc(t)).join('<br>')}</div>`
+        : '<div class="ja-ok">Balanced, near enough.</div>'}
+      <div class="mono faint" style="font-size:.72rem;margin-top:6px">assessed ${esc(fmtDate(a.weekOf || a.date, 'med'))}</div>`
+      : '<div class="empty">Not assessed yet. It takes a minute and it is the only way to find out you have spent a month on grammar drills.</div>'}
+  </div>`;
+}
+function openJaStrands(){
+  const j = jaState();
+  const m = openModal(`<h2>Where the week went</h2>
+    <p class="muted ja-note">Four numbers that add to a hundred. Guessing is fine — the point is the shape, not the accounting.</p>
+    <div class="ja-strand-set">${JA_STRANDS.map(([k, name, what]) => `
+      <label class="ja-strand-row"><span><b>${esc(name)}</b><em>${esc(what)}</em></span>
+        <input class="inp mono" type="number" min="0" max="100" id="st_${k}" value="25"></label>`).join('')}</div>
+    <div class="mono ja-total" id="stTotal">100%</div>
+    <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary" id="stSave">Save</button></div>`, 'narrow ja-modal');
+  const total = () => sum(JA_STRANDS.map(([k]) => +m.querySelector('#st_' + k).value || 0));
+  const paint = () => { const t = total();
+    const el = m.querySelector('#stTotal');
+    el.textContent = `${t}%`; el.classList.toggle('off', t !== 100); };
+  JA_STRANDS.forEach(([k]) => m.querySelector('#st_' + k).oninput = paint);
+  m.querySelector('#stSave').onclick = () => {
+    const rec = {id:uid(), date:today(), weekOf:today()};
+    JA_STRANDS.forEach(([k]) => rec[k] = +m.querySelector('#st_' + k).value || 0);
+    j.strands.push(rec); saveNow(); m.remove(); sound('success'); rerender();
+  };
+  return m;
+}
+/* ============================================================
    NAVIGATION — two zones (Present / Becoming) + standalone pages
    Rendered from S.settings.nav so the user can move pages between
    zones in Settings. Page content is untouched; routes are unchanged.
@@ -46481,6 +47924,9 @@ const NAV_ICONS = {
   /* Cards in a stack, the top one turned. Not a book — the Library is a book,
      and the difference between the two rooms is exactly that one is what you
      have read and the other is what you have kept. */
+  /* A torii, because that is what the room is about and a flag would be
+     about a country rather than a language. */
+  japanese: '<svg viewBox="0 0 24 24"><path d="M3.5 6.5h17M4.5 9h15"/><path d="M7 9v11M17 9v11"/><path d="M6 5.6c2.2-1 3.9-1.5 6-1.5s3.8.5 6 1.5"/><path d="M7 13h10"/></svg>',
   study:    '<svg viewBox="0 0 24 24"><rect x="6.5" y="4" width="13" height="16" rx="2" transform="rotate(6 13 12)"/><rect x="4.5" y="5" width="13" height="16" rx="2"/><path d="M7.8 9.5h6.4M7.8 13h4.2"/></svg>',
   piano:    '<svg viewBox="0 0 24 24"><path d="M4.5 7.5h8.2c4 0 6.8 2.4 6.8 5.6 0 2-1.5 3.4-3.6 3.4H4.5Z"/><path d="M4.5 7.5v9M8 7.5v4M11.5 7.5v4M15 8.2v3.4"/><path d="M4.5 11.5h11"/></svg>',
   import:     '<svg viewBox="0 0 24 24"><rect x="3.5" y="13" width="17" height="7.5" rx="2"/><path d="M3.5 16h4l1.5 2h6l1.5-2h4"/><path d="M12 3.5v9M9.5 10l2.5 2.5L14.5 10"/></svg>',
@@ -46500,6 +47946,7 @@ const NAV_PAGES = {
   skills:   {label:'Skill Tree',       short:'Skills',   ico:NAV_ICONS.skills,   route:'#/skills'},
   piano:    {label:'Piano Studio',     short:'Piano',    ico:NAV_ICONS.piano,    route:'#/piano'},
   study:    {label:'Study Deck',       short:'Study',    ico:NAV_ICONS.study,    route:'#/study'},
+  japanese: {label:'Japanese Studio',  short:'日本語',    ico:NAV_ICONS.japanese, route:'#/japanese'},
   timeline: {label:'Timeline',         short:'Timeline', ico:NAV_ICONS.timeline, route:'#/journals/timeline'},
 };
 /* The three rooms you are in most days sit above everything, unlabelled and
@@ -46517,7 +47964,7 @@ const NAV_PAGES = {
 const NAV_TOP = ['today','planning'];
 const NAV_PINNED = [];
 const NAV_DEFAULT = {
-  create:   ['content','projects','finance','skills','piano'],
+  create:   ['content','projects','finance','skills','piano','japanese'],
   identity: ['values','journals','people','study'],
   standalone:[],
 };

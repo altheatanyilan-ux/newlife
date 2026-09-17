@@ -552,6 +552,12 @@ function gardenHTML(){
   const arts = (S.stages || []).reduce((n, st) => n + ((st.artifacts || []).length), 0);
   const letters = (S.entries || []).filter(e => e.type === 'letter').length;
   const skills = (S.skills || []).filter(s => !s.planned && skillHorizon(s) !== 'someday').length;
+  /* How much Japanese has been spoken lately. Read, never built: asking the
+     studio for a count it has never had would create the whole thing for
+     somebody who has never opened it. */
+  const jaWeek = (S.japanese && Array.isArray(S.japanese.sessions))
+    ? S.japanese.sessions.filter(x => (x.date || '') >= addDays(today(), -7)).length : 0;
+  const jaGrowth = Math.min(1, jaWeek / 5);
   /* how well the health values are being kept, as one number, which is what
      decides how tall the herbs stand */
   const health = (() => {
@@ -611,12 +617,17 @@ function gardenHTML(){
            }).join('')}`
         : `<circle class="hg-sun" cx="1010" cy="${light === 'midday' ? 66 : 108}" r="40"/>`}
 
-      <!-- the herb garden: taller and in flower the better the body is kept -->
+      <!-- The herb garden: taller and in flower the better the body is kept,
+           and taller again for every week you have spoken Japanese out loud.
+           A language is a thing you grow rather than a thing you finish, which
+           is why it is planted here and not shelved indoors. -->
       <g class="zone zone-herbs" data-room="herbs" tabindex="0" role="button"
-         aria-label="The herb garden — the values you keep your body by">
+         aria-label="The herb garden — the Japanese Studio">
         <path class="hg-bed" d="M48,506 H402 L420,568 H30 Z"/>
+        ${jaWeek ? `<g class="hg-marker"><rect x="336" y="452" width="72" height="26" rx="4"/>
+          <text x="372" y="469" text-anchor="middle">${jaWeek} this week</text></g>` : ''}
         ${Array.from({length: 13}, (_, i) => {
-          const x = 66 + i * 27, h = 44 + health * 96 + ((i * 7) % 4) * 9;
+          const x = 66 + i * 27, h = 44 + health * 96 + ((i * 7) % 4) * 9 + jaGrowth * 40;
           const lean = ((i * 31) % 9) - 4;
           return `<g class="hg-herb" style="--i:${i}" transform="translate(${x},506) rotate(${lean})">
             <path class="hg-stem" d="M0,0 V${-h}"/>
@@ -624,7 +635,9 @@ function gardenHTML(){
             <path class="hg-leaf" d="M0,${-h * .78} q9,-5 13,3 q-7,5 -13,-3Z"/>
             ${health > .6 && i % 3 === 0 ? `<circle class="hg-bloom" cx="0" cy="${-h - 4}" r="4.5"/>` : ''}
           </g>`; }).join('')}
-        <text class="rm-say" x="224" y="592" text-anchor="middle">What you grow, you become</text>
+        <text class="rm-say" x="224" y="592" text-anchor="middle">${jaWeek
+          ? 'Say it out loud and it grows'
+          : 'What you grow, you become'}</text>
       </g>
 
       <!-- the fire: what you are releasing goes in it -->
@@ -864,7 +877,7 @@ const HOUSE_PORTALS = {
   nook:      () => navigate('#/journals/reflection'),
   synch:     () => navigate('#/journals/synchronicity'),
   /* the garden */
-  herbs:     () => navigate('#/values'),
+  herbs:     () => navigate('#/japanese'),
   fire:      () => navigate('#/journals/letter'),
   chest:     () => navigate('#/journals/timeline'),
   tree:      () => navigate('#/skills'),
