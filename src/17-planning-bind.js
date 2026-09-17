@@ -19,6 +19,23 @@ function planCompleteRow(row, t, done){
   if(done && typeof planOfferReflection === 'function') planOfferReflection(t);
 }
 
+/* rerenderPlanBody replaces #plBody and leaves the sidebar, the header and the
+   milestone strip standing — then binds the whole page again. Handlers set with
+   `node.onclick = …` replace, so binding twice is harmless. Handlers added with
+   addEventListener STACK, and the nodes that survive a partial redraw collect
+   one more of each every time: after three ticks, one Enter in the top-line add
+   field made three tasks, which is exactly as puzzling as it sounds because the
+   count depends on how much you happened to do since the last full redraw.
+
+   Body nodes are new on every redraw, so they are never marked and always bind.
+   A node that lived through it is bound once and remembered. */
+const planBoundOnce = (node, key) => {
+  const k = 'pb' + key;
+  if(node.dataset[k]) return false;
+  node.dataset[k] = '1';
+  return true;
+};
+
 function bindPlanning(root, sel, tasks){
   const p = planState();
   /* every task row and card carries its own timer, wherever it is drawn */
@@ -41,8 +58,9 @@ function bindPlanning(root, sel, tasks){
     const f = planNewFolder('New folder'); saveNow(); rerender();
     setTimeout(() => openPlanFolderRename(f.id), 60); };
   const nfil = $('#plNewFilter'); if(nfil) nfil.onclick = () => openPlanFilterModal(null);
-  $$('[data-plfolder] .pl-fhead', root).forEach(h => h.addEventListener('contextmenu', ev => {
-    ev.preventDefault(); openPlanFolderRename(h.closest('[data-plfolder]').dataset.plfolder); }));
+  $$('[data-plfolder] .pl-fhead', root).forEach(h => { if(!planBoundOnce(h, 'fhead')) return;
+    h.addEventListener('contextmenu', ev => {
+      ev.preventDefault(); openPlanFolderRename(h.closest('[data-plfolder]').dataset.plfolder); }); });
   /* the span on the one dated row */
   $$('[data-plspan]', root).forEach(b => b.onclick = ev => {
     ev.stopPropagation(); sound('click'); planSetSpan(b.dataset.plspan); });
@@ -57,6 +75,7 @@ function bindPlanning(root, sel, tasks){
   const edge = (el, ev) => { const r = el.getBoundingClientRect(); return ev.clientY < r.top + r.height / 2; };
 
   $$('[data-pldrag]', root).forEach(b => {
+    if(!planBoundOnce(b, 'ldrag')) return;
     b.addEventListener('dragstart', ev => { ev.stopPropagation();
       window._plListDrag = b.dataset.pldrag; window._plFolderDrag = null;
       ev.dataTransfer.effectAllowed = 'move'; });
@@ -78,6 +97,7 @@ function bindPlanning(root, sel, tasks){
   });
 
   $$('[data-plfdrag]', root).forEach(fr => {
+    if(!planBoundOnce(fr, 'fdrag')) return;
     fr.addEventListener('dragstart', ev => { ev.stopPropagation();
       window._plFolderDrag = fr.dataset.plfdrag; window._plListDrag = null;
       ev.dataTransfer.effectAllowed = 'move'; });
@@ -100,6 +120,7 @@ function bindPlanning(root, sel, tasks){
 
   /* a list dropped anywhere else inside a folder still just joins it */
   $$('[data-plfolder]', root).forEach(fd => {
+    if(!planBoundOnce(fd, 'fdrop')) return;
     fd.addEventListener('dragover', ev => { if(window._plListDrag){ ev.preventDefault(); fd.classList.add('over'); } });
     fd.addEventListener('dragleave', () => fd.classList.remove('over'));
     fd.addEventListener('drop', ev => { fd.classList.remove('over');
@@ -195,6 +216,7 @@ function bindPlanning(root, sel, tasks){
   });
   /* dropping a task on a list in the sidebar moves it there */
   $$('[data-plsel^="list:"]', root).forEach(b => {
+    if(!planBoundOnce(b, 'listdrop')) return;
     b.addEventListener('dragover', ev => { if(window._plTaskDrag){ ev.preventDefault(); b.classList.add('over'); } });
     b.addEventListener('dragleave', () => b.classList.remove('over'));
     b.addEventListener('drop', ev => { ev.preventDefault(); b.classList.remove('over');
@@ -204,6 +226,7 @@ function bindPlanning(root, sel, tasks){
 
   /* --- quick add, with the parse shown before it is committed --- */
   $$('[data-pqadd]', root).forEach(inp => {
+    if(!planBoundOnce(inp, 'qadd')) return;
     let ctx = {}; try { ctx = JSON.parse(inp.dataset.pqadd); } catch(e){}
     const prev = inp.parentElement.querySelector('.pq-preview');
     const draw = () => { const v = inp.value.trim();

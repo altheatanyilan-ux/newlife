@@ -287,7 +287,7 @@ routes.today = function(root){
           ? `${mDone} of ${must.length} done · ${eDone}/${extra.length} bonus`
           : `${mDone} of ${must.length} done`; })()}</span>${flowTick('tasksAt')}</summary>
       <div class="body">
-      <div class="card" data-daydrop="${T}" style="margin-top:10px">
+      <div class="card no-tilt" data-daydrop="${T}" style="margin-top:10px">
         ${dayListFilterHTML(rows)}
         ${dayTaskListHTML(rows) || (rows.length
           ? `<div class="empty">Nothing in that list today. <button class="tbtn" data-tlist="all">show all ${rows.length}</button></div>`

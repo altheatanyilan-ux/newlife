@@ -49,10 +49,15 @@ const MicroFX = (() => {
     {sel:'.btn.primary,#fab,.speed-item', strength:.3,  threshold:60},
     {sel:'.nav a,.nav button',            strength:.2,  threshold:40},
     {sel:'.ring,.habit-ring,.hb-ring',    strength:.25, threshold:50}];
+  /* A tilt is for a card you look at. A card you WORK in — a list of task rows
+     you are reading down, ticking, renaming and dragging — should hold still:
+     tipping the whole list a few degrees as the pointer crosses it moves every
+     row you are aiming at. .no-tilt opts a card out, and the card holding the
+     day's tasks wears it. */
   const TILTS = [
     {sel:'.tarot-card,.card-face,.div-card', max:8},
     {sel:'.nav a',                           max:2},
-    {sel:'.card,.tile,.panel-card',          max:4}];
+    {sel:'.card:not(.no-tilt),.tile:not(.no-tilt),.panel-card:not(.no-tilt)', max:4}];
   const FLASHLIGHT = '.nav,.page,.flashlight-panel';
 
   let dot = null, ring = null, ringX = 0, ringY = 0, px = 0, py = 0, raf = 0;

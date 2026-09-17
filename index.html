@@ -10964,10 +10964,15 @@ const MicroFX = (() => {
     {sel:'.btn.primary,#fab,.speed-item', strength:.3,  threshold:60},
     {sel:'.nav a,.nav button',            strength:.2,  threshold:40},
     {sel:'.ring,.habit-ring,.hb-ring',    strength:.25, threshold:50}];
+  /* A tilt is for a card you look at. A card you WORK in — a list of task rows
+     you are reading down, ticking, renaming and dragging — should hold still:
+     tipping the whole list a few degrees as the pointer crosses it moves every
+     row you are aiming at. .no-tilt opts a card out, and the card holding the
+     day's tasks wears it. */
   const TILTS = [
     {sel:'.tarot-card,.card-face,.div-card', max:8},
     {sel:'.nav a',                           max:2},
-    {sel:'.card,.tile,.panel-card',          max:4}];
+    {sel:'.card:not(.no-tilt),.tile:not(.no-tilt),.panel-card:not(.no-tilt)', max:4}];
   const FLASHLIGHT = '.nav,.page,.flashlight-panel';
 
   let dot = null, ring = null, ringX = 0, ringY = 0, px = 0, py = 0, raf = 0;
@@ -15638,7 +15643,7 @@ routes.today = function(root){
           ? `${mDone} of ${must.length} done · ${eDone}/${extra.length} bonus`
           : `${mDone} of ${must.length} done`; })()}</span>${flowTick('tasksAt')}</summary>
       <div class="body">
-      <div class="card" data-daydrop="${T}" style="margin-top:10px">
+      <div class="card no-tilt" data-daydrop="${T}" style="margin-top:10px">
         ${dayListFilterHTML(rows)}
         ${dayTaskListHTML(rows) || (rows.length
           ? `<div class="empty">Nothing in that list today. <button class="tbtn" data-tlist="all">show all ${rows.length}</button></div>`
@@ -37162,6 +37167,23 @@ function planCompleteRow(row, t, done){
   if(done && typeof planOfferReflection === 'function') planOfferReflection(t);
 }
 
+/* rerenderPlanBody replaces #plBody and leaves the sidebar, the header and the
+   milestone strip standing — then binds the whole page again. Handlers set with
+   `node.onclick = …` replace, so binding twice is harmless. Handlers added with
+   addEventListener STACK, and the nodes that survive a partial redraw collect
+   one more of each every time: after three ticks, one Enter in the top-line add
+   field made three tasks, which is exactly as puzzling as it sounds because the
+   count depends on how much you happened to do since the last full redraw.
+
+   Body nodes are new on every redraw, so they are never marked and always bind.
+   A node that lived through it is bound once and remembered. */
+const planBoundOnce = (node, key) => {
+  const k = 'pb' + key;
+  if(node.dataset[k]) return false;
+  node.dataset[k] = '1';
+  return true;
+};
+
 function bindPlanning(root, sel, tasks){
   const p = planState();
   /* every task row and card carries its own timer, wherever it is drawn */
@@ -37184,8 +37206,9 @@ function bindPlanning(root, sel, tasks){
     const f = planNewFolder('New folder'); saveNow(); rerender();
     setTimeout(() => openPlanFolderRename(f.id), 60); };
   const nfil = $('#plNewFilter'); if(nfil) nfil.onclick = () => openPlanFilterModal(null);
-  $$('[data-plfolder] .pl-fhead', root).forEach(h => h.addEventListener('contextmenu', ev => {
-    ev.preventDefault(); openPlanFolderRename(h.closest('[data-plfolder]').dataset.plfolder); }));
+  $$('[data-plfolder] .pl-fhead', root).forEach(h => { if(!planBoundOnce(h, 'fhead')) return;
+    h.addEventListener('contextmenu', ev => {
+      ev.preventDefault(); openPlanFolderRename(h.closest('[data-plfolder]').dataset.plfolder); }); });
   /* the span on the one dated row */
   $$('[data-plspan]', root).forEach(b => b.onclick = ev => {
     ev.stopPropagation(); sound('click'); planSetSpan(b.dataset.plspan); });
@@ -37200,6 +37223,7 @@ function bindPlanning(root, sel, tasks){
   const edge = (el, ev) => { const r = el.getBoundingClientRect(); return ev.clientY < r.top + r.height / 2; };
 
   $$('[data-pldrag]', root).forEach(b => {
+    if(!planBoundOnce(b, 'ldrag')) return;
     b.addEventListener('dragstart', ev => { ev.stopPropagation();
       window._plListDrag = b.dataset.pldrag; window._plFolderDrag = null;
       ev.dataTransfer.effectAllowed = 'move'; });
@@ -37221,6 +37245,7 @@ function bindPlanning(root, sel, tasks){
   });
 
   $$('[data-plfdrag]', root).forEach(fr => {
+    if(!planBoundOnce(fr, 'fdrag')) return;
     fr.addEventListener('dragstart', ev => { ev.stopPropagation();
       window._plFolderDrag = fr.dataset.plfdrag; window._plListDrag = null;
       ev.dataTransfer.effectAllowed = 'move'; });
@@ -37243,6 +37268,7 @@ function bindPlanning(root, sel, tasks){
 
   /* a list dropped anywhere else inside a folder still just joins it */
   $$('[data-plfolder]', root).forEach(fd => {
+    if(!planBoundOnce(fd, 'fdrop')) return;
     fd.addEventListener('dragover', ev => { if(window._plListDrag){ ev.preventDefault(); fd.classList.add('over'); } });
     fd.addEventListener('dragleave', () => fd.classList.remove('over'));
     fd.addEventListener('drop', ev => { fd.classList.remove('over');
@@ -37338,6 +37364,7 @@ function bindPlanning(root, sel, tasks){
   });
   /* dropping a task on a list in the sidebar moves it there */
   $$('[data-plsel^="list:"]', root).forEach(b => {
+    if(!planBoundOnce(b, 'listdrop')) return;
     b.addEventListener('dragover', ev => { if(window._plTaskDrag){ ev.preventDefault(); b.classList.add('over'); } });
     b.addEventListener('dragleave', () => b.classList.remove('over'));
     b.addEventListener('drop', ev => { ev.preventDefault(); b.classList.remove('over');
@@ -37347,6 +37374,7 @@ function bindPlanning(root, sel, tasks){
 
   /* --- quick add, with the parse shown before it is committed --- */
   $$('[data-pqadd]', root).forEach(inp => {
+    if(!planBoundOnce(inp, 'qadd')) return;
     let ctx = {}; try { ctx = JSON.parse(inp.dataset.pqadd); } catch(e){}
     const prev = inp.parentElement.querySelector('.pq-preview');
     const draw = () => { const v = inp.value.trim();
@@ -38596,6 +38624,14 @@ function planFixSel(sel){
   return sel;
 }
 function planSetSel(kind, id){
+  /* A filter belongs to the thing it was set on. Carrying it to the next list
+     meant opening a list and finding it half empty, or empty, for a reason
+     three clicks away at the foot of the sidebar — the list looked wrong
+     rather than narrowed. Changing what you are looking at clears it.
+     (The search box on the top line stays: its text is on the screen, so a
+     narrowed list there says why it is narrowed.) */
+  const changed = !S._planSel || S._planSel.kind !== kind || S._planSel.id !== id;
+  if(changed && typeof planFilterCount === 'function' && planFilterCount(S._planFilter)) S._planFilter = {};
   S._planSel = {kind, id};
   planState().prefs.lastView = `${kind}:${id}`;
   /* Every selection opens on the matrix. Picking a list is asking "what is in

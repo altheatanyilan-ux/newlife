@@ -18,6 +18,14 @@ function planFixSel(sel){
   return sel;
 }
 function planSetSel(kind, id){
+  /* A filter belongs to the thing it was set on. Carrying it to the next list
+     meant opening a list and finding it half empty, or empty, for a reason
+     three clicks away at the foot of the sidebar — the list looked wrong
+     rather than narrowed. Changing what you are looking at clears it.
+     (The search box on the top line stays: its text is on the screen, so a
+     narrowed list there says why it is narrowed.) */
+  const changed = !S._planSel || S._planSel.kind !== kind || S._planSel.id !== id;
+  if(changed && typeof planFilterCount === 'function' && planFilterCount(S._planFilter)) S._planFilter = {};
   S._planSel = {kind, id};
   planState().prefs.lastView = `${kind}:${id}`;
   /* Every selection opens on the matrix. Picking a list is asking "what is in
