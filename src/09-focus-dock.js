@@ -110,7 +110,12 @@ function focusDockHTML(){
       ${s.idle ? '' : `<button class="btn sm ghost" id="fpStop">finish</button>`}
     </div>
     <!-- one line, because the dial alone cannot say what it is counting -->
-    <a class="fd-on" href="#/today" title="the sitting, in words, on Today">${
+    <!-- The name goes to the task, not to the top of Today: a page this long
+         with no clue where the thing you are timing sits is a link that only
+         half arrives. With nothing parked there is nowhere to go, so it is not
+         a link at all. -->
+    <a class="fd-on" href="#/today"${ref ? ` data-fdjump="${esc(ref.id)}"` : ''}
+       title="${ref ? 'go to this task on Today' : 'the sitting, in words, on Today'}">${
       ref ? `<span class="fd-onname">${esc(ref.text)}</span>`
           : `<span class="fd-onname faint">${s.idle ? 'nothing parked' : 'no task'}</span>`}</a>
   </div>`;
@@ -209,6 +214,16 @@ function bindFocusDock(dock){
   };
   const stop = dock.querySelector('#fpStop');
   if(stop) stop.onclick = () => { FocusTimer.stop(); sound('click'); paintFocusDock(); };
+
+  /* the name goes to the row, wherever on Today it has ended up */
+  const jump = dock.querySelector('[data-fdjump]');
+  if(jump) jump.onclick = ev => {
+    ev.preventDefault();
+    S._todayJump = jump.dataset.fdjump;
+    /* the tasks live on the execution half */
+    if(typeof setTodayView === 'function') setTodayView('do');
+    if(parseHash().name === 'today') rerender(); else navigate('#/today');
+  };
 
   /* Open or folded, the clock takes a task by being dragged on: folding it
      away must not put the drop target out of reach, so the circle is one too,

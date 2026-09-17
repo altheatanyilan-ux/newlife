@@ -196,7 +196,14 @@ function openQueueItemModal(existing){
     <div class="row" style="justify-content:flex-end"><button class="btn primary" id="qiSave">${existing?'Save':'Add to queue'}</button></div></div>`,'narrow');
   m.querySelector('#qiSave').onclick = () => {
     const title = m.querySelector('#qiTitle').value.trim(); if(!title){ toast('Give it a title.'); return; }
-    Object.assign(it, {title, medium:m.querySelector('#qiMedium').value, why:m.querySelector('#qiWhy').value.trim(), visionId:m.querySelector('#qiVision').value||'', valueId:m.querySelector('#qiValue').value||''});
+    /* There was a `visionId: m.querySelector('#qiVision').value` here, reading a
+       field this dialog does not have — it was dropped from the markup and the
+       reader was left behind. querySelector returned null, the handler threw on
+       .value, and it threw BEFORE the push: pressing "Add to queue" closed
+       nothing, saved nothing and said nothing. A queue item's vision is not
+       asked for here, so it is not read here; one already on the item is left
+       alone by Object.assign. */
+    Object.assign(it, {title, medium:m.querySelector('#qiMedium').value, why:m.querySelector('#qiWhy').value.trim(), valueId:m.querySelector('#qiValue').value||''});
     if(!existing) S.mediaQueue.push(it); saveNow(); m.remove(); sound('success'); rerender();
   };
 }

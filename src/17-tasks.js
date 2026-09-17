@@ -30,8 +30,21 @@ function findTaskRef(id){ return allTaskRefs().find(r => r.id === id); }
    sinks, and anything never dragged keeps the sequence it was written in,
    because that is what `order` already held. */
 const taskOrder = r => (r.task.order == null ? 0 : +r.task.order);
-function tasksForDay(day){ return allTaskRefs().filter(r => r.day === day)
-  .sort((a,b)=> (a.done?1:0)-(b.done?1:0) || taskOrder(a) - taskOrder(b) || a.text.localeCompare(b.text)); }
+/* A day's work is what was put on that day — plus whatever was actually
+   finished on it. Some of what you do is never scheduled: you think of it, you
+   do it, you tick it. Counting only the dated ones meant a day where you
+   cleared six unplanned things read as "0 of 0 done", which is both wrong and
+   dispiriting. A task finished on this day belongs to it, whatever date it
+   carried, and says so on its row. */
+function tasksForDay(day){
+  const own = allTaskRefs().filter(r => r.day === day);
+  const seen = new Set(own.map(r => r.id));
+  const finished = allTaskRefs().filter(r =>
+    !seen.has(r.id) && r.done && (r.task.doneAt || '') === day)
+    .map(r => Object.assign({}, r, {elsewhere: true}));
+  return own.concat(finished)
+    .sort((a,b)=> (a.done?1:0)-(b.done?1:0) || taskOrder(a) - taskOrder(b) || a.text.localeCompare(b.text));
+}
 /* Dropping one row onto another rewrites the whole day's sequence rather than
    nudging two numbers: cheap at this size, and it cannot drift. */
 function reorderTaskInDay(day, dragId, targetId, before){
@@ -171,6 +184,8 @@ function taskRowHTML(r, {showDay=false, hideDone=false}={}){
       title="${prog.done} of ${prog.total} steps done">${prog.done}/${prog.total}</button>`:''}
     ${r.where?`<a class="task-where" href="${r.go}" title="${esc(r.where)}">${esc(r.where)}</a>`:''}
     ${showDay && r.day?`<span class="mono task-day">${late?'⚠ ':''}${fmtDate(r.day,'short')}</span>`:''}
+    <!-- it was not on this day's list; it was finished on this day -->
+    ${r.elsewhere?`<span class="mono task-day task-elsewhere" title="${r.day ? 'set for ' + esc(fmtDate(r.day,'med')) + ', finished today' : 'never given a day — finished today'}">${r.day ? esc(fmtDate(r.day,'short')) : 'unplanned'}</span>`:''}
     <!-- Taking something off a day is not the same as deciding never to do it.
          This clears the day and keeps the task, so it comes back in the pull-in
          list for any other day; the × beside it still deletes, with its undo. -->

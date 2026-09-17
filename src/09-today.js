@@ -467,6 +467,29 @@ routes.today = function(root){
     t.classList.add('jump-lit'); setTimeout(() => t.classList.remove('jump-lit'), 1200);
   });
 
+  /* Arriving from the clock's task line: it used to be a plain link to #/today,
+     which put you at the top of a long page with no clue where the thing you
+     are timing actually is. The id it set on the way in is spent here — the
+     execution half, the section opened, the row scrolled to and lit, the same
+     way the jump strip lights a section. */
+  if(S._todayJump){
+    const want = S._todayJump; S._todayJump = null;
+    const row = root.querySelector(`[data-taskrow="${CSS.escape(want)}"]`);
+    if(row){
+      const sec = row.closest('details.t-sec');
+      if(sec && !sec.open){ sec.open = true; rememberFold(sec.id, true); }
+      /* restoreScroll() puts a forward navigation back at the top, and does it
+         again at the next frame, at 60ms and at 160ms, to outlast late layout.
+         Scrolling before all of that is scrolling into an argument — and the
+         page is still growing while the reveals run, so a target measured once
+         lands short. Twice, after it has finished having the argument, and let
+         scrollIntoView do the arithmetic against the row's own scroll margin. */
+      row.classList.add('jump-lit'); setTimeout(() => row.classList.remove('jump-lit'), 2200);
+      const land = () => row.scrollIntoView({block: 'center', behavior: reduced() ? 'auto' : 'smooth'});
+      setTimeout(land, 220); setTimeout(land, 620);
+    }
+  }
+
   /* what is folded shut is a preference, not a fact about today */
   root.querySelectorAll('details.t-sec').forEach(d => d.addEventListener('toggle', () => rememberFold(d.id, d.open)));
 

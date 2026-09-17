@@ -8187,6 +8187,9 @@ html[data-theme="light"] .wk-sleep.is-guess{background-image:repeating-linear-gr
 .wk-legend{display:block;margin-top:4px;font-size:.78rem;color:var(--faint)}
 .wk-guessed{font-style:normal;opacity:.75}
 .wk-guessed::before{content:" · "}
+
+/* finished today, but never on today's list */
+.task-elsewhere{opacity:.7;font-style:italic}
 </style>
 </head>
 <body>
@@ -13466,7 +13469,12 @@ function focusDockHTML(){
       ${s.idle ? '' : `<button class="btn sm ghost" id="fpStop">finish</button>`}
     </div>
     <!-- one line, because the dial alone cannot say what it is counting -->
-    <a class="fd-on" href="#/today" title="the sitting, in words, on Today">${
+    <!-- The name goes to the task, not to the top of Today: a page this long
+         with no clue where the thing you are timing sits is a link that only
+         half arrives. With nothing parked there is nowhere to go, so it is not
+         a link at all. -->
+    <a class="fd-on" href="#/today"${ref ? ` data-fdjump="${esc(ref.id)}"` : ''}
+       title="${ref ? 'go to this task on Today' : 'the sitting, in words, on Today'}">${
       ref ? `<span class="fd-onname">${esc(ref.text)}</span>`
           : `<span class="fd-onname faint">${s.idle ? 'nothing parked' : 'no task'}</span>`}</a>
   </div>`;
@@ -13565,6 +13573,16 @@ function bindFocusDock(dock){
   };
   const stop = dock.querySelector('#fpStop');
   if(stop) stop.onclick = () => { FocusTimer.stop(); sound('click'); paintFocusDock(); };
+
+  /* the name goes to the row, wherever on Today it has ended up */
+  const jump = dock.querySelector('[data-fdjump]');
+  if(jump) jump.onclick = ev => {
+    ev.preventDefault();
+    S._todayJump = jump.dataset.fdjump;
+    /* the tasks live on the execution half */
+    if(typeof setTodayView === 'function') setTodayView('do');
+    if(parseHash().name === 'today') rerender(); else navigate('#/today');
+  };
 
   /* Open or folded, the clock takes a task by being dragged on: folding it
      away must not put the drop target out of reach, so the circle is one too,
@@ -15822,6 +15840,29 @@ routes.today = function(root){
     window.scrollTo({top: Math.max(0, y), behavior: reduced() ? 'auto' : 'smooth'});
     t.classList.add('jump-lit'); setTimeout(() => t.classList.remove('jump-lit'), 1200);
   });
+
+  /* Arriving from the clock's task line: it used to be a plain link to #/today,
+     which put you at the top of a long page with no clue where the thing you
+     are timing actually is. The id it set on the way in is spent here — the
+     execution half, the section opened, the row scrolled to and lit, the same
+     way the jump strip lights a section. */
+  if(S._todayJump){
+    const want = S._todayJump; S._todayJump = null;
+    const row = root.querySelector(`[data-taskrow="${CSS.escape(want)}"]`);
+    if(row){
+      const sec = row.closest('details.t-sec');
+      if(sec && !sec.open){ sec.open = true; rememberFold(sec.id, true); }
+      /* restoreScroll() puts a forward navigation back at the top, and does it
+         again at the next frame, at 60ms and at 160ms, to outlast late layout.
+         Scrolling before all of that is scrolling into an argument — and the
+         page is still growing while the reveals run, so a target measured once
+         lands short. Twice, after it has finished having the argument, and let
+         scrollIntoView do the arithmetic against the row's own scroll margin. */
+      row.classList.add('jump-lit'); setTimeout(() => row.classList.remove('jump-lit'), 2200);
+      const land = () => row.scrollIntoView({block: 'center', behavior: reduced() ? 'auto' : 'smooth'});
+      setTimeout(land, 220); setTimeout(land, 620);
+    }
+  }
 
   /* what is folded shut is a preference, not a fact about today */
   root.querySelectorAll('details.t-sec').forEach(d => d.addEventListener('toggle', () => rememberFold(d.id, d.open)));
@@ -40229,8 +40270,21 @@ function findTaskRef(id){ return allTaskRefs().find(r => r.id === id); }
    sinks, and anything never dragged keeps the sequence it was written in,
    because that is what `order` already held. */
 const taskOrder = r => (r.task.order == null ? 0 : +r.task.order);
-function tasksForDay(day){ return allTaskRefs().filter(r => r.day === day)
-  .sort((a,b)=> (a.done?1:0)-(b.done?1:0) || taskOrder(a) - taskOrder(b) || a.text.localeCompare(b.text)); }
+/* A day's work is what was put on that day — plus whatever was actually
+   finished on it. Some of what you do is never scheduled: you think of it, you
+   do it, you tick it. Counting only the dated ones meant a day where you
+   cleared six unplanned things read as "0 of 0 done", which is both wrong and
+   dispiriting. A task finished on this day belongs to it, whatever date it
+   carried, and says so on its row. */
+function tasksForDay(day){
+  const own = allTaskRefs().filter(r => r.day === day);
+  const seen = new Set(own.map(r => r.id));
+  const finished = allTaskRefs().filter(r =>
+    !seen.has(r.id) && r.done && (r.task.doneAt || '') === day)
+    .map(r => Object.assign({}, r, {elsewhere: true}));
+  return own.concat(finished)
+    .sort((a,b)=> (a.done?1:0)-(b.done?1:0) || taskOrder(a) - taskOrder(b) || a.text.localeCompare(b.text));
+}
 /* Dropping one row onto another rewrites the whole day's sequence rather than
    nudging two numbers: cheap at this size, and it cannot drift. */
 function reorderTaskInDay(day, dragId, targetId, before){
@@ -40370,6 +40424,8 @@ function taskRowHTML(r, {showDay=false, hideDone=false}={}){
       title="${prog.done} of ${prog.total} steps done">${prog.done}/${prog.total}</button>`:''}
     ${r.where?`<a class="task-where" href="${r.go}" title="${esc(r.where)}">${esc(r.where)}</a>`:''}
     ${showDay && r.day?`<span class="mono task-day">${late?'⚠ ':''}${fmtDate(r.day,'short')}</span>`:''}
+    <!-- it was not on this day's list; it was finished on this day -->
+    ${r.elsewhere?`<span class="mono task-day task-elsewhere" title="${r.day ? 'set for ' + esc(fmtDate(r.day,'med')) + ', finished today' : 'never given a day — finished today'}">${r.day ? esc(fmtDate(r.day,'short')) : 'unplanned'}</span>`:''}
     <!-- Taking something off a day is not the same as deciding never to do it.
          This clears the day and keeps the task, so it comes back in the pull-in
          list for any other day; the × beside it still deletes, with its undo. -->
@@ -41153,7 +41209,14 @@ function openQueueItemModal(existing){
     <div class="row" style="justify-content:flex-end"><button class="btn primary" id="qiSave">${existing?'Save':'Add to queue'}</button></div></div>`,'narrow');
   m.querySelector('#qiSave').onclick = () => {
     const title = m.querySelector('#qiTitle').value.trim(); if(!title){ toast('Give it a title.'); return; }
-    Object.assign(it, {title, medium:m.querySelector('#qiMedium').value, why:m.querySelector('#qiWhy').value.trim(), visionId:m.querySelector('#qiVision').value||'', valueId:m.querySelector('#qiValue').value||''});
+    /* There was a `visionId: m.querySelector('#qiVision').value` here, reading a
+       field this dialog does not have — it was dropped from the markup and the
+       reader was left behind. querySelector returned null, the handler threw on
+       .value, and it threw BEFORE the push: pressing "Add to queue" closed
+       nothing, saved nothing and said nothing. A queue item's vision is not
+       asked for here, so it is not read here; one already on the item is left
+       alone by Object.assign. */
+    Object.assign(it, {title, medium:m.querySelector('#qiMedium').value, why:m.querySelector('#qiWhy').value.trim(), valueId:m.querySelector('#qiValue').value||''});
     if(!existing) S.mediaQueue.push(it); saveNow(); m.remove(); sound('success'); rerender();
   };
 }
