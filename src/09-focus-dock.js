@@ -40,15 +40,41 @@
    Where there is no sidebar at all — a phone, where it becomes a bar along the
    bottom — it is the circle, floating clear of that bar. */
 function focusDockInSidebar(){ return innerWidth > 900; }
-function focusDockShut(){
-  return !focusDockInSidebar()
-    || document.documentElement.classList.contains('sb-collapsed');
+/* With nothing running it is a dial and nothing else, whatever the sidebar is
+   doing. An open sidebar used to mean an open clock, so a panel with two idle
+   buttons on it sat in the corner of every page all day saying "nothing
+   parked" — which is a lot of furniture for a fact nobody asked for.
+
+   It opens for a sitting, and for a press. A press is a peek: it lasts until
+   you fold it away or until the sitting it was opened for ends, at which point
+   it is a dial again by itself. */
+function focusDockIdle(){
+  return typeof FocusTimer === 'undefined' || FocusTimer.state().idle;
 }
-/* Opening the clock is opening the sidebar it lives in. */
+function focusDockShut(){
+  if(!focusDockInSidebar()) return true;
+  if(document.documentElement.classList.contains('sb-collapsed')) return true;
+  return focusDockIdle() && !S._fdPeek;
+}
+/* A peek ends when the sitting it was opened over ends — and a sitting can end
+   three ways: the button on the gadget, a countdown reaching zero, or the task
+   being finished from its own page. So the peek is cleared where the state is
+   read rather than in the one handler, which covered one of the three and left
+   the panel standing open for the other two. */
+let _dockWasBusy = false;
+function focusDockPeekCheck(s){
+  const busy = !s.idle;
+  if(_dockWasBusy && !busy) S._fdPeek = false;
+  _dockWasBusy = busy;
+}
+/* Opening the clock is opening the sidebar it lives in, and asking to see it
+   even when there is nothing in it. */
 function setFocusDockShut(shut){
+  S._fdPeek = !shut;
   if(!focusDockInSidebar()){ paintFocusDock(true); return; }
   if(typeof setSidebarCollapsed === 'function') setSidebarCollapsed(!!shut);
-  else { document.documentElement.classList.toggle('sb-collapsed', !!shut); paintFocusDock(true); }
+  else document.documentElement.classList.toggle('sb-collapsed', !!shut);
+  paintFocusDock(true);
 }
 
 /* ---------- what it says ---------- */
@@ -107,7 +133,8 @@ function focusDockHTML(){
     ${focusClockHTML(face, frac, col, s, stop)}
     <div class="fd-go">
       <button class="btn sm primary" id="fpGo">${s.running ? '⏸ pause' : s.idle ? '▶ start' : '▶ resume'}</button>
-      ${s.idle ? '' : `<button class="btn sm ghost" id="fpStop">finish</button>`}
+      ${s.idle ? `<button class="btn sm ghost" id="fpFold" title="back to the dial">fold away</button>`
+               : `<button class="btn sm ghost" id="fpStop">finish</button>`}
     </div>
     <!-- one line, because the dial alone cannot say what it is counting -->
     <!-- The name goes to the task, not to the top of Today: a page this long
@@ -173,8 +200,9 @@ function paintFocusDock(force){
   /* An incidental repaint — the timer ticking over, a break opening — waits
      while somebody is mid-word. A deliberate one, folding it away or opening
      it, does not: they asked for it, and the caret going with it is the point.  */
-  if(!force && focusDockTyping()){ focusDockFace(); return; }
   const s = FocusTimer.state();
+  focusDockPeekCheck(s);
+  if(!force && focusDockTyping()){ focusDockFace(); return; }
   const sig = focusDockSig(s);
   if(!force && sig === _dockSig && dock.firstChild){ focusDockFace(); return; }
   _dockSig = sig;
@@ -203,6 +231,8 @@ function focusDockMeasure(){
 function bindFocusDock(dock){
   const open = dock.querySelector('#fdOpen');
   if(open) open.onclick = () => { setFocusDockShut(false); sound('click'); };
+  const fold = dock.querySelector('#fpFold');
+  if(fold) fold.onclick = () => { S._fdPeek = false; sound('click'); paintFocusDock(true); };
 
   const go = dock.querySelector('#fpGo');
   if(go) go.onclick = () => {
@@ -226,7 +256,10 @@ function bindFocusDock(dock){
     /* ask whose sitting this is before stopping it — stop() clears the task */
     const on = FocusTimer.state().taskId;
     const mins = Math.round((FocusTimer.state().elapsed || 0) / 60);
-    FocusTimer.stop(); focusSaySpent('Finished', on); sound('click'); paintFocusDock();
+    FocusTimer.stop(); focusSaySpent('Finished', on); sound('click');
+    /* the sitting is over, so the panel it was open for goes with it —
+       focusDockPeekCheck does the folding, here and wherever else it ends */
+    paintFocusDock(true);
     /* a sitting the Piano Studio started comes back to it with its minutes */
     if(typeof pianoSittingEnded === 'function') pianoSittingEnded(mins);
   };

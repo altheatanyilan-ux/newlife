@@ -17,18 +17,23 @@ const STUDY_SOURCES = {
   quote:        {deck:'mindsets',       say:'Quote',              go: () => '#/journals/library'},
   theatre:      {deck:'mindsets',       say:'Morning Theatre',    go: () => '#/today'},
   value:        {deck:'mindsets',       say:'A value',            go: () => '#/values'},
-  grammar:      {deck:'ja_grammar',     say:'Grammar Journey',    go: () => '#/japanese'},
-  vocab:        {deck:'ja_vocab',       say:'Vocabulary Lab',     go: () => '#/japanese'},
+  grammar:      {deck:'ja_grammar',     say:'Japanese Studio',    go: () => '#/japanese'},
+  vocab:        {deck:'ja_vocab',       say:'Japanese Studio',    go: () => '#/japanese'},
   error_log:    {deck:'ja_corrections', say:'Speaking Lab',       go: () => '#/japanese'},
   island:       {deck:'ja_vocab',       say:'An island',          go: () => '#/japanese'},
-  jazz_concept: {deck:'jazz',           say:'Jazz Lab',           go: () => '#/piano'},
-  piece:        {deck:'repertoire',     say:'Repertoire',         go: id => `#/piano/piece/${id}`},
   tarot:        {deck:'divination',     say:'Tarot',              go: () => '#/today'},
   iching:       {deck:'divination',     say:'I Ching',            go: () => '#/today'},
   charm:        {deck:'divination',     say:'Charms',             go: () => '#/today'},
   manual:       {deck:'mindsets',       say:'Written by hand',    go: () => '#/study'},
+  import:       {deck:'mindsets',       say:'Imported',           go: () => '#/study'},
 };
-const studySourceDeck = t => (STUDY_SOURCES[t] || STUDY_SOURCES.manual).deck;
+/* Where a room's cards go, falling back to the first deck when the one it
+   named has been retired — a card with nowhere to land is a card that
+   disappears, which is worse than one filed in the wrong place. */
+function studySourceDeck(t){
+  const want = (STUDY_SOURCES[t] || STUDY_SOURCES.manual).deck;
+  return (typeof studyDeck === 'function' && studyDeck(want)) ? want : 'mindsets';
+}
 
 /* The button. It is small and it is everywhere, which only works because it
    says nothing until you look at it. */
@@ -68,7 +73,7 @@ function studySelection(){
 /* Anywhere, on any page: select some words and press the keys. The deck is
    guessed from the room you are standing in. */
 const STUDY_PAGE_SOURCE = {journals:'journal', commonplace:'library', values:'value',
-  piano:'jazz_concept', japanese:'vocab', today:'theatre'};
+  japanese:'vocab', today:'theatre'};
 document.addEventListener('keydown', ev => {
   if(!(ev.key === 'R' || ev.key === 'r') || !ev.shiftKey || !(ev.metaKey || ev.ctrlKey)) return;
   if(typeof S === 'undefined' || !S) return;

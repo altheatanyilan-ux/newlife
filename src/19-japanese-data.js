@@ -1,5 +1,5 @@
 /* ============================================================
-   THE JAPANESE STUDIO — five rooms around one question.
+   THE JAPANESE STUDIO — one room around one question.
 
    Not "do I know more Japanese" but "can I say it, now, without the sentence
    assembling itself in my head first". Everything here is built on the
@@ -7,14 +7,13 @@
    ones that are least like a textbook: the shrinking clock, the memorised
    islands you can stand on while you think, and the one diagnostic that
    actually predicts fluency — where your pauses fall.
-   ============================================================ */
 
-const JA_TABS = [
-  ['speaking', 'Speaking Lab',  'the mouth'],
-  ['grammar',  'Grammar Journey','the ladder'],
-  ['vocab',    'Vocabulary Lab', 'the chunks'],
-  ['writing',  'Writing Lab',    'the hand'],
-  ['progress', 'Progress',       'the numbers']];
+   It used to have five tabs — a grammar ladder, a chunk bank, a writing desk
+   and a dashboard over the top of them. They are gone. Four of the five were
+   about knowing more Japanese, which is the thing this room is explicitly
+   not for, and a studio you have to choose a tab in before you can do
+   anything is a studio you open less often. What is left is the mouth.
+   ============================================================ */
 
 const JA_QUALITY = [['rough','Rough'], ['okay','Okay'], ['good','Good'], ['flowing','Flowing']];
 /* The single most telling thing about a spoken minute. A native pauses
@@ -32,30 +31,6 @@ const JA_ISLAND_STATUS = [
   ['automatic','Automatic','it comes out without you deciding to']];
 const JA_ERROR_TYPES = ['particle','conjugation','word order','vocabulary','register','pitch accent','expression','other'];
 const JA_PARTNERS = [['solo','Solo','recorded, alone'], ['ai','AI','a machine'], ['human','Human','a person']];
-/* Pienemann's five, mapped onto Japanese by Kawaguchi and Di Biase. The point
-   of the ladder is the Teachability Hypothesis: instruction aimed above the
-   rung you are on is wasted, however good the instruction. */
-const JA_PT_STAGES = [
-  [1, 'Lemma Access', 'はい、ありがとう、すみません', 'Whole items, pulled out of memory without being built.'],
-  [2, 'Category Procedure', 'V-て, N-が, N-を', 'A word marked for what it is doing.'],
-  [3, 'Phrasal Procedure', 'noun modification, adjective + noun', 'Agreement inside one phrase.'],
-  [4, 'S-Procedure', 'SOV, verbs agreeing with subjects', 'Information crossing phrases inside one clause.'],
-  [5, 'Subordinate Clause Procedure', 'relative clauses, ば / たら', 'Information crossing clauses.']];
-const JA_GRAMMAR_STATUS = [['not_started','Not started'], ['studying','Studying'],
-  ['shaky','Shaky'], ['solid','Solid'], ['automatic','Automatic']];
-const JLPT = [['N5','#7f916a'], ['N4','#5c7c8a'], ['N3','#7f6a8e'], ['N2','#c4484e'], ['N1','#c9a96e']];
-/* Lewis: fluency is mostly having the phrase ready, not building it. */
-const JA_CHUNK_TYPES = [
-  ['collocation','Collocation','予定を決める, not 決める on its own'],
-  ['sentence_frame','Sentence frame','〜と思うんですけど…'],
-  ['polyword','Polyword','a fixed multi-word unit'],
-  ['institutional_utterance','Whole utterance','a phrase that does a job by itself']];
-const JA_TOPICS_DEFAULT = [
-  ['self','Self-introduction','👤'], ['routine','Daily routine','🌅'], ['work','Work & study','💼'],
-  ['hobbies','Hobbies','🎨'], ['food','Food & restaurants','🍜'], ['travel','Travel','🚅'],
-  ['weather','Weather','☁️'], ['opinions','Opinions','💭'], ['family','Family','🏠'],
-  ['health','Health','🩺'], ['shopping','Shopping','🛍'], ['directions','Directions','🧭'],
-  ['emotions','Emotions','💗'], ['plans','Plans & goals','📅'], ['news','News','📰']];
 /* Kadota's loop, as four questions you can honestly answer about a shadowing
    take. They are separate because they fail separately: you can hear every
    word and still not get your mouth round it. */
@@ -100,13 +75,10 @@ function jaState(){
   j.shadowing  = Array.isArray(j.shadowing) ? j.shadowing : [];
   j.errors     = Array.isArray(j.errors) ? j.errors : [];
   j.strands    = Array.isArray(j.strands) ? j.strands : [];
-  j.pt         = Object.assign({current:1, reaching:2, lastAssessed:null}, j.pt || {});
-  j.grammar    = Array.isArray(j.grammar) ? j.grammar : [];
-  j.translations = Array.isArray(j.translations) ? j.translations : [];
-  j.topics     = Array.isArray(j.topics) && j.topics.length ? j.topics
-    : JA_TOPICS_DEFAULT.map(([id, name, emoji]) => ({id, name, emoji}));
-  j.chunks     = Array.isArray(j.chunks) ? j.chunks : [];
-  j.writing    = Array.isArray(j.writing) ? j.writing : [];
+  /* The grammar points, chunks, written pieces and translations of the four
+     retired rooms are deliberately not touched. Nothing reads them any more,
+     but a save is somebody's writing and closing a room is no reason to
+     delete it out from under them. */
   j.settings   = Object.assign({aiWarnAt:0.8, playTarget:0.4, hoursGoal:5}, j.settings || {});
   return j;
 }
@@ -190,22 +162,10 @@ function jaStrandTrouble(a){
 }
 const jaIslands = () => jaState().islands;
 const jaAutomatic = () => jaIslands().filter(i => i.status === 'automatic').length;
-function jaChunksFor(topicId){ return jaState().chunks.filter(c => c.topicId === topicId); }
-function jaTopicReady(topicId){
-  const cs = jaChunksFor(topicId);
-  return {total: cs.length, ready: cs.filter(c => c.productionReady).length};
-}
-function jaGrammarTrouble(){
-  const since = addDays(today(), -30);
-  return jaState().grammar.filter(g => (g.linkedErrorIds || []).length >= 3
-    || jaIn(jaState().errors.filter(e => (e.grammarId || '') === g.id), since, today()).length >= 3);
-}
-/* every hour at it, whatever room it happened in */
+/* every hour at it, whatever it was */
 function jaHours(from, to){
   const j = jaState();
   const mins = jaIn(j.sessions, from, to).length * 9        // a 4/3/2 is nine minutes of talking
-    + sum(jaIn(j.shadowing, from, to).map(() => 15))
-    + sum(jaIn(j.writing, from, to).map(() => 30))
-    + jaIn(j.translations, from, to).length * 20;
+    + sum(jaIn(j.shadowing, from, to).map(() => 15));
   return Math.round(mins / 6) / 10;
 }

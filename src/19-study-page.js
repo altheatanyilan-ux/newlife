@@ -10,7 +10,8 @@ routes.study = function(root, params){
     bindStudySession(root); return; }
   registerPageEntry({pageName:'Study Deck', addLabel:'Make a card', defaultEntryType:'card', prefilledFields:{}, options:[
     {icon:'📌', label:'A card', desc:'Something worth having by heart.', run:()=>openRememberModal({sourceType:'manual'})},
-    {icon:'📚', label:'A deck', desc:'A place to file a kind of thing.', run:()=>openDeckModal()}]});
+    {icon:'📚', label:'A deck', desc:'A place to file a kind of thing.', run:()=>openDeckModal()},
+    {icon:'📥', label:'A deck from an AI', desc:'Ask for one in the format, paste it back.', run:()=>openStudyImport()}]});
   const v = studyView();
   root.innerHTML = `<div class="page sd-page">
     <h1 class="serif">Study Deck</h1>
@@ -50,6 +51,9 @@ function studyDecksHTML(){
       </div>`; }).join('')}
       <button class="sd-deck sd-newdeck" id="sdNewDeck"><span class="sd-deck-e">＋</span>
         <span class="sd-deck-n serif">A deck of your own</span></button>
+      <button class="sd-deck sd-newdeck" id="sdImport"><span class="sd-deck-e">📥</span>
+        <span class="sd-deck-n serif">A deck from an AI</span>
+        <span class="sd-deck-c mono">ask for one, paste it back</span></button>
     </div>
     <div class="sd-stats-line mono">${studyCards().filter(c => c.status !== 'inbox').length} cards · ${
       studyCards().filter(c => studyMaturity(c) === 'mature' || c.status === 'graduated').length} matured · ${
@@ -201,6 +205,7 @@ function bindStudyPage(root){
   const begin = root.querySelector('#sdBegin'); if(begin) begin.onclick = () => startStudySession(null);
   $$('[data-sddeck]', root).forEach(b => b.onclick = () => startStudySession(b.dataset.sddeck));
   const nd = root.querySelector('#sdNewDeck'); if(nd) nd.onclick = () => openDeckModal();
+  const im = root.querySelector('#sdImport'); if(im) im.onclick = () => openStudyImport();
   const add = root.querySelector('#sdAdd'); if(add) add.onclick = () => openRememberModal({sourceType:'manual'});
 
   /* the inbox */

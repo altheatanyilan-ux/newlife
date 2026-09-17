@@ -48,10 +48,6 @@ const STUDY_DECKS_DEFAULT = () => [
    about:'Words, chunks and the collocations they live in.', autoSources:['vocab']},
   {id:'ja_corrections', name:'Corrections', emoji:'🎙', color:'#c4484e', isDefault:true, parentId:'japanese',
    about:'What you meant, and what a native would have said.', autoSources:['error_log']},
-  {id:'jazz', name:'Jazz Piano', emoji:'🎹', color:'#6b7f8e', isDefault:true, parentId:null,
-   about:'Voicings, progressions, theory.', autoSources:['jazz_concept']},
-  {id:'repertoire', name:'Repertoire Memory', emoji:'🎵', color:'#6b7f8e', isDefault:true, parentId:null,
-   about:'Pieces: keys, openings, structure.', autoSources:['piece']},
   {id:'divination', name:'Divination Study', emoji:'🔮', color:'#7f6a8e', isDefault:true, parentId:null,
    about:'Tarot meanings, hexagrams, charm symbols.', autoSources:['tarot','iching','charm']}];
 
@@ -78,6 +74,16 @@ function studyState(){
   /* a default deck the player deleted in an older version comes back, because
      its auto-sources point at it by name and cards would land nowhere */
   STUDY_DECKS_DEFAULT().forEach(d => { if(!st.decks.some(x => x.id === d.id)) st.decks.push(d); });
+  /* The two piano decks were taken out. A save from before that still holds
+     them and the cards filed in them, and neither should simply vanish: the
+     decks go, the cards move to the first one. A deck being retired is not a
+     reason to lose what somebody wrote. */
+  ['jazz', 'repertoire'].forEach(id => {
+    if(!st.decks.some(d => d.id === id)) return;
+    st.cards.forEach(c => { if(c.deckId === id) c.deckId = 'mindsets'; });
+    const at = st.decks.findIndex(d => d.id === id);
+    if(at > -1) st.decks.splice(at, 1);
+  });
   st.settings = Object.assign({newPerDay:20, reviewsPerDay:100, graduateAt:180,
     clozeInput:'type', showPreview:true, order:'due_first'}, st.settings || {});
   st.stats = Object.assign({reviews:0, streak:0, longest:0, lastStudied:null, perDay:{}}, st.stats || {});

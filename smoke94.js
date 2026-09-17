@@ -43,11 +43,13 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
      a door of its own in this zone. The Piano Studio joined it: practising is
      making something, and the Fazioli in the house is a second way in rather
      than the only one. */
-  ok('Create holds Content, Projects, Finance, the Skill Tree and the Piano Studio',
-     nav.zones[0]?.name === 'Create' && JSON.stringify(nav.zones[0].pages) === JSON.stringify(['content','projects','finance','skills','piano']),
+  ok('Create holds Content, Projects, Finance, the Skill Tree, the Piano Studio and the Japanese Studio',
+     nav.zones[0]?.name === 'Create' && JSON.stringify(nav.zones[0].pages) === JSON.stringify(['content','projects','finance','skills','piano','japanese']),
      JSON.stringify(nav.zones[0]));
-  ok('Identity holds Values, Journals, People',
-     nav.zones[1]?.name === 'Identity' && JSON.stringify(nav.zones[1].pages) === JSON.stringify(['values','journals','people']),
+  /* the Study Deck sits with Identity rather than Create: what you are
+     holding on to is closer to who you are than to what you are making */
+  ok('Identity holds Values, Journals, People and the Study Deck',
+     nav.zones[1]?.name === 'Identity' && JSON.stringify(nav.zones[1].pages) === JSON.stringify(['values','journals','people','study']),
      JSON.stringify(nav.zones[1]));
   ok('both zones fold', await page.evaluate(() => document.querySelectorAll('.zone [data-zoneh]').length === 2), 'no');
   ok('nothing is left loose at the bottom', nav.loose.length === 0, JSON.stringify(nav.loose));

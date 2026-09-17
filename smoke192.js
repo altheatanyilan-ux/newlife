@@ -43,11 +43,18 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(2000); }
   await p.evaluate(() => document.querySelectorAll('.overlay').forEach(n => n.remove()));
 
-  console.log('\n1. five rooms, and the way in from the garden');
+  console.log('\n1. one room, and the way in from the garden');
   await p.evaluate(() => { location.hash = '#/japanese'; }); await p.waitForTimeout(1700);
   yes('the page is there', await p.evaluate(() => !!document.querySelector('.ja-page')));
-  is('  five tabs', await p.evaluate(() => [...document.querySelectorAll('[data-jatab]')].map(x => x.dataset.jatab)),
-    ['speaking','grammar','vocab','writing','progress']);
+  /* It had five tabs and now has none. Four of them were about knowing more
+     Japanese, which is the thing this room is explicitly not for, and a room
+     you have to choose a tab in before you can start is a room you open less
+     often. Everything on the page is the one that was left. */
+  is('  nothing to choose between before you can start',
+    await p.evaluate(() => document.querySelectorAll('[data-jatab]').length), 0);
+  is('  and all six sections are simply there',
+    await p.evaluate(() => [...document.querySelectorAll('.ja-sec > .row > .sc')].map(x => x.textContent.trim())),
+    ['4 / 3 / 2','Islands','Scenarios','Shadowing','Error log','The four strands']);
   is('the herb garden opens it', await p.evaluate(() => { const was = location.hash;
     HOUSE_PORTALS.herbs(); const to = location.hash; location.hash = was; return to; }), '#/japanese');
   is('  and the scenarios arrive in order of how often they happen',
@@ -88,10 +95,16 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   /* one mid-clause and two boundary is a third of the way up the wrong end */
   yes('the share is the mix, not a count', Math.abs(pause.share - (1 / 3)) < 0.01, String(pause.share));
   is('  and a period with nothing in it says nothing rather than zero', pause.none, null);
-  await p.evaluate(() => { S._jaTab = 'progress'; rerender(); }); await p.waitForTimeout(1300);
-  const bar = await p.evaluate(() => { const el = document.querySelector('.ja-pauseline');
-    return el ? {mid: el.querySelector('.mid')?.style.width, bnd: el.querySelector('.bnd')?.style.width} : null; });
-  yes('it is drawn as two shares of one line', bar && bar.mid === '33%' && bar.bnd === '67%', JSON.stringify(bar));
+  /* and on the page it is said per session rather than as a share, because
+     the reading belongs to the sitting it was taken in */
+  await p.evaluate(() => rerender()); await p.waitForTimeout(1300);
+  const chips = await p.evaluate(() => [...document.querySelectorAll('.ja-pause')].map(n =>
+    ({cls: n.className, txt: n.textContent.trim()})));
+  is('every session wears its own reading', chips.length, 3);
+  yes('  the mid-clause one is marked as such',
+    chips.some(c => /ja-p-mostly_mid_clause/.test(c.cls) && /Mostly mid-clause/.test(c.txt)), JSON.stringify(chips));
+  yes('  and the two at boundaries as that',
+    chips.filter(c => /ja-p-mostly_boundary/.test(c.cls)).length === 2, JSON.stringify(chips));
 
   console.log('\n4. what a machine cannot teach you');
   const mix = await p.evaluate(() => {
@@ -125,20 +138,33 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('  and so is too much deliberate study', strands.heavy.some(s => /Language-focused/.test(s)), JSON.stringify(strands.heavy));
   is('a balanced week is left alone', strands.fine, []);
 
-  console.log('\n6. the ladder, and what it is for');
-  const ladder = await p.evaluate(() => {
-    const j = jaState(); j.pt = {current:3, reaching:4, lastAssessed:today()};
-    S._jaTab = 'grammar'; saveNow(); rerender(); return JA_PT_STAGES.length; });
-  is('five rungs', ladder, 5);
-  await p.waitForTimeout(1300);
-  const rungs = await p.evaluate(() => [...document.querySelectorAll('.ja-rung')].map(r =>
-    ({cls: r.className, txt: r.textContent.replace(/\s+/g, ' ').trim().slice(0, 30)})));
-  yes('the one being consolidated is marked',
-    rungs.some(r => /ja-r-consolidating/.test(r.cls) && /Stage 3/.test(r.txt)), JSON.stringify(rungs.map(r=>r.cls)));
-  yes('  the one above it is what you are reaching for',
-    rungs.some(r => /ja-r-reaching/.test(r.cls) && /Stage 4/.test(r.txt)), JSON.stringify(rungs.map(r=>r.cls)));
-  yes('  and the ones below are solid',
-    rungs.filter(r => /ja-r-solid/.test(r.cls)).length === 2, JSON.stringify(rungs.map(r=>r.cls)));
+  console.log('\n6. the four rooms that were taken out, and what became of what was in them');
+  const gone = await p.evaluate(() => ['jaLadderHTML','jaGrammarHTML','jaTranslationsHTML',
+    'jaVocabHTML','jaWritingHTML','jaProgressHTML','jaChunkCards','openJaGrammar','openJaChunk',
+    'openJaWriting','openJaTranslation'].filter(n => typeof window[n] === 'function'));
+  is('none of their code is still shipped', gone, []);
+  /* A closed room is not a reason to delete somebody's writing. The grammar
+     notes, the chunks and the pieces stay in the save exactly as they were —
+     nothing reads them any more, and nothing throws them away either. */
+  const kept = await p.evaluate(() => {
+    const j = jaState();
+    j.grammar = [{id:'g1', name:'ている', myNotes:'the one that keeps catching me'}];
+    j.chunks = [{id:'c1', japanese:'予定を決める'}];
+    j.writing = [{id:'w1', topic:'my weekend'}];
+    saveNow();
+    const again = jaState();
+    return {grammar: (again.grammar || []).length, chunks: (again.chunks || []).length,
+      writing: (again.writing || []).length, notes: (again.grammar || [])[0]?.myNotes};
+  });
+  is('what was written in them is left alone', [kept.grammar, kept.chunks, kept.writing], [1, 1, 1]);
+  is('  word for word', kept.notes, 'the one that keeps catching me');
+  /* the hours those rooms used to add are not still being counted */
+  is('and nothing claims time in a room that no longer exists',
+    await p.evaluate(() => { const j = jaState();
+      j.sessions = []; j.shadowing = [];
+      j.writing = [{id:'w2', date:today(), topic:'x'}, {id:'w3', date:today(), topic:'y'}];
+      j.translations = [{id:'t1', date:today()}];
+      return jaHours(addDays(today(), -7), today()); }), 0);
 
   console.log('\n7. an error becomes something you have to produce');
   const carded = await p.evaluate(() => {
@@ -162,24 +188,32 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('the meaning is the prompt and the Japanese is the answer',
     /decide on a plan/.test(carded.front) && carded.back === '予定を決めます', JSON.stringify(carded));
 
-  console.log('\n8. a chunk is worth three cards, not one');
-  const chunk = await p.evaluate(() => {
+  console.log('\n8. an island becomes something you have to deliver');
+  /* the card is the whole monologue, because half an island is no island —
+     the point of it is that it comes out without you assembling it */
+  const island = await p.evaluate(() => {
     const j = jaState();
-    const c = {id:'s192c1', japanese:'予定を決める', reading:'よていをきめる',
-      meaning:'to decide on a plan', topicId:'plans', type:'collocation', pitchAccent:null,
-      exampleSentence:'明日の予定を決めましょう。', productionReady:false, lastDrilled:null,
-      linkedIslandIds:[], sentToStudyDeck:false, createdAt:new Date().toISOString()};
-    j.chunks.push(c);
-    jaChunkCards(c.id);
-    const made = (S.study.cards || []).filter(x => x.sourceId === c.id);
-    return {n: made.length, roles: made.map(x => x.familyRole), statuses: [...new Set(made.map(x => x.status))],
-      marked: c.sentToStudyDeck, topicReady: jaTopicReady('plans')};
+    const i = {id:'s192i', topic:'Why I am learning Japanese', englishDraft:'because…',
+      japaneseText:'日本語を勉強している理由は…', status:'memorizing', lastPracticed:null,
+      pitchMarked:false, linkedChunks:[], nativeVerified:false, version:1,
+      createdAt:new Date().toISOString()};
+    j.islands.push(i);
+    saveNow(); rerender();
+    return i.id;
   });
-  is('three of them', chunk.n, 3);
-  is('  recall, application, compare', chunk.roles, ['recall','application','compare']);
-  is('  all of them waiting to be looked at', chunk.statuses, ['inbox']);
-  yes('  and the chunk knows it has been carded', chunk.marked);
-  is('the topic counts it as not yet production-ready', chunk.topicReady, {total:1, ready:0});
+  await p.waitForTimeout(1200);
+  const carded2 = await p.evaluate(id => {
+    document.querySelector(`[data-jaislandcard="${id}"]`).click();
+    const made = (S.study.cards || []).filter(x => x.sourceId === id);
+    return {n: made.length, type: made[0]?.type, status: made[0]?.status,
+      front: made[0]?.front, back: made[0]?.back};
+  }, island);
+  is('one card', carded2.n, 1);
+  is('  that asks you to produce it', carded2.type, 'production');
+  is('  and waits to be looked at', carded2.status, 'inbox');
+  yes('the topic is the prompt and the whole monologue is the answer',
+    /Why I am learning Japanese/.test(carded2.front || '') && carded2.back === '日本語を勉強している理由は…',
+    JSON.stringify(carded2));
 
   console.log('\n9. hours land on the Japanese skill, if there is one');
   const credit = await p.evaluate(() => {
@@ -214,13 +248,12 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   is('a studio nobody has opened has nothing to say', quiet.said, []);
   yes('  and is not opened on their behalf by the asking', !quiet.made);
 
-  console.log('\n11. every tab draws');
-  for(const t of ['speaking','grammar','vocab','writing','progress']){
-    await p.evaluate(x => { S._jaTab = x; rerender(); }, t);
-    await p.waitForTimeout(900);
-    const body = await p.evaluate(() => (document.querySelector('.ja-body') || {}).textContent || '');
-    yes(`  ${t}`, body.trim().length > 60, body.slice(0, 50));
-  }
+  console.log('\n11. every section draws');
+  await p.evaluate(() => { location.hash = '#/japanese'; rerender(); }); await p.waitForTimeout(1300);
+  const secs = await p.evaluate(() => [...document.querySelectorAll('.ja-sec')].map(n =>
+    ({name: (n.querySelector('.sc') || {}).textContent || '?', len: n.textContent.trim().length})));
+  is('  six of them', secs.length, 6);
+  secs.forEach(x => yes(`  ${x.name.trim()}`, x.len > 60, String(x.len)));
 
   console.log('\n12. nothing threw');
   is('no page errors', errs, []);

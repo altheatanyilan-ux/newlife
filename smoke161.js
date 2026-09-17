@@ -226,14 +226,27 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
      single step may jump, and the fade must be long. */
   const walk = await p.evaluate(() => {
     const cv = document.querySelector('#solarCv'), g = cv.getContext('2d');
+    const s = _solar, dpr = s.dpr;
     const cy = Math.round(cv.height / 2), out = [];
+    /* The planets orbit, so sooner or later one of them is sitting on the
+       line this walk reads along — and where a planet or its label is drawn,
+       the alpha under the cursor is the planet's and not the ground's. Those
+       samples are marked rather than measured: a reading taken through
+       something drawn on top of the sky was never a reading of the sky. */
+    const spots = s.planets.map(q => { const {x, y} = s.pos(q, q.ang == null ? q.seed : q.ang);
+      return {x, y, r: q.radius + 24}; });
     for(let i = 0; i <= 24; i++){
       const x = Math.min(cv.width - 1, Math.round(cv.width / 2 + (cv.width / 2 - 1) * (i / 24)));
-      out.push(g.getImageData(x, cy, 1, 1).data[3] / 255);
+      const cx = x / dpr, ccy = cy / dpr;
+      out.push({a: g.getImageData(x, cy, 1, 1).data[3] / 255,
+        clear: !spots.some(q => Math.abs(cx - q.x) < q.r && Math.abs(ccy - q.y) < q.r + 20)});
     }
     return out;
   });
-  const steps = walk.slice(1).map((a, i) => walk[i] - a);
+  /* a step is only a step between two readings that are both of the ground */
+  const steps = walk.slice(1).map((x, i) => walk[i].clear && x.clear ? walk[i].a - x.a : null)
+    .filter(d => d != null);
+  yes('  most of the line is ground rather than planet', steps.length >= 14, `${steps.length} of 24 steps`);
   yes('  the night never drops away in a step', Math.max(...steps) < .2,
     'biggest step ' + Math.max(...steps).toFixed(3));
   yes('    and it never brightens on the way out', Math.min(...steps) > -.06,
