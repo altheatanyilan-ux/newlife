@@ -418,13 +418,30 @@ function planApplySmartList(sl){
 function planListMilestones(l){ return Array.isArray(l?.milestones) ? l.milestones : []; }
 /* every milestone the current selection is about, each carrying its list, so
    a folder can show the dates of all the lists inside it at once */
+/* Which dates a dated selection is asking about — the same window its tasks
+   are drawn from, so the strip above the list is about the list below it.
+   Today means today and anything already past, the way the day's tasks do. */
+function planSpanWindow(id){
+  const T = today();
+  if(id === 'tomorrow'){ const d = addDays(T, 1); return {from: d, to: d}; }
+  if(id === 'next7') return {from: T, to: addDays(T, 7)};
+  return {from: null, to: T};          // today: everything up to and including it
+}
 function planMilestonesFor(sel){
   if(!sel) return [];
+  const all = () => planLists().flatMap(l => planListMilestones(l).map(m => ({m, list: l})));
+  const sorted = xs => xs.sort((a, b) => (a.m.date || '9999-12-31').localeCompare(b.m.date || '9999-12-31'));
+  /* Today, Tomorrow and the next seven days are not a list, so they have no
+     milestones of their own — they have every list's, narrowed to the days
+     they are about. */
+  if(sel.kind === 'smart' && typeof PLAN_SPANS !== 'undefined' && PLAN_SPANS.includes(sel.id)){
+    const {from, to} = planSpanWindow(sel.id);
+    return sorted(all().filter(x => x.m.date && (!from || x.m.date >= from) && x.m.date <= to));
+  }
   let lists = [];
   if(sel.kind === 'list'){ const l = planList(sel.id); if(l) lists = [l]; }
   else if(sel.kind === 'folder') lists = planLists().filter(l => l.folderId === sel.id);
-  return lists.flatMap(l => planListMilestones(l).map(m => ({m, list: l})))
-    .sort((a, b) => (a.m.date || '9999-12-31').localeCompare(b.m.date || '9999-12-31'));
+  return sorted(lists.flatMap(l => planListMilestones(l).map(m => ({m, list: l}))));
 }
 function planMilestoneList(sel){
   if(sel?.kind === 'list') return planList(sel.id);

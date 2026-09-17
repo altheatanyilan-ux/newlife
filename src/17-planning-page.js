@@ -151,6 +151,14 @@ function planSidebarHTML(){
    The scale is fitted to the dates it has, with a little air either side, and
    today is always inside it — a strip whose window excludes the present is a
    strip you cannot read your position off. */
+/* the window a dated selection draws, stretched to hold whatever falls in it */
+function planDatedSpan(id, items){
+  const w = planSpanWindow(id), T = today();
+  const ds = items.map(x => x.m.date).filter(Boolean).concat([w.from || T, w.to]).sort();
+  let lo = ds[0], hi = ds[ds.length - 1];
+  const pad = Math.max(1, Math.round(Math.abs(daysBetween(lo, hi)) * 0.12));
+  return {from: addDays(lo, -pad), to: addDays(hi, pad)};
+}
 function planMilestoneSpan(items){
   const ds = items.map(x => x.m.date).filter(Boolean).sort();
   const T = today();
@@ -208,7 +216,8 @@ function planWhenAway(date, from = today()){
   return past ? `${said} ago` : `in ${said}`;
 }
 function planMilestoneStripHTML(sel){
-  if(!sel || (sel.kind !== 'list' && sel.kind !== 'folder')) return '';
+  const dated = !!sel && sel.kind === 'smart' && PLAN_SPANS.includes(sel.id);
+  if(!sel || (sel.kind !== 'list' && sel.kind !== 'folder' && !dated)) return '';
   const items = planMilestonesFor(sel);
   const host = planMilestoneList(sel);
   const add = host ? `<button class="pl-mini" id="plMsAdd" title="a date that matters for this list">＋ milestone</button>` : '';
@@ -219,9 +228,14 @@ function planMilestoneStripHTML(sel){
   const manage = items.length ? `<button class="pl-mini" id="plMsManage" title="rename, re-date or remove these">manage</button>` : '';
   if(!items.length) return `<div class="pl-ms empty-strip">
     <span class="k mono">Milestones</span>
-    <span class="faint">No dates set for this ${sel.kind === 'folder' ? 'folder' : 'list'} yet — a shipping date, a hearing, the day a deposit is due.</span>
+    <span class="faint">${dated
+      ? `Nothing falls ${sel.id === 'today' ? 'today, and nothing is overdue' : sel.id === 'tomorrow' ? 'tomorrow' : 'in the next seven days'}.`
+      : `No dates set for this ${sel.kind === 'folder' ? 'folder' : 'list'} yet — a shipping date, a hearing, the day a deposit is due.`}</span>
     ${add}</div>`;
-  const {from, to} = planMilestoneSpan(items);
+  /* A dated selection draws the period it names, not just the spread of what
+     happens to fall in it: seven days should look like seven days even when
+     both dates in them are on the Thursday. */
+  const {from, to} = dated ? planDatedSpan(sel.id, items) : planMilestoneSpan(items);
   const total = Math.max(1, daysBetween(from, to));
   const at = d => clamp(daysBetween(from, d) / total * 100, 0, 100);
   const T = today();
@@ -238,7 +252,9 @@ function planMilestoneStripHTML(sel){
   return `<div class="pl-ms">
     <div class="row between" style="align-items:baseline">
       <span class="k mono">Milestones</span>
-      <span class="mono faint">${items.filter(x => !x.m.done).length} ahead · ${items.length} in all</span>
+      <span class="mono faint">${dated
+        ? `${items.length} ${sel.id === 'today' ? 'today or overdue' : sel.id === 'tomorrow' ? 'tomorrow' : 'in the next seven days'}`
+        : `${items.filter(x => !x.m.done).length} ahead · ${items.length} in all`}</span>
       <span class="row" style="gap:6px">${manage}${add}</span>
     </div>
     <div class="pl-msline" role="list" style="--up:${upT};--down:${downT}">

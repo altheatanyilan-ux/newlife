@@ -199,7 +199,8 @@ function bindFocusDock(dock){
   const go = dock.querySelector('#fpGo');
   if(go) go.onclick = () => {
     const s = FocusTimer.state();
-    if(s.running){ FocusTimer.pause(); }
+    /* pausing is a moment you want the figure at: it is usually why you paused */
+    if(s.running){ FocusTimer.pause(); focusSaySpent('Paused'); }
     else {
       /* Starting it here is starting a stopwatch: the gadget has no length to
          set and asking one of it would be a second question at the moment you
@@ -213,7 +214,11 @@ function bindFocusDock(dock){
     sound('click'); paintFocusDock();
   };
   const stop = dock.querySelector('#fpStop');
-  if(stop) stop.onclick = () => { FocusTimer.stop(); sound('click'); paintFocusDock(); };
+  if(stop) stop.onclick = () => {
+    /* ask whose sitting this is before stopping it — stop() clears the task */
+    const on = FocusTimer.state().taskId;
+    FocusTimer.stop(); focusSaySpent('Finished', on); sound('click'); paintFocusDock();
+  };
 
   /* the name goes to the row, wherever on Today it has ended up */
   const jump = dock.querySelector('[data-fdjump]');
@@ -240,12 +245,52 @@ function bindFocusDock(dock){
       drop.classList.remove('over');
       if(!id) return;
       ev.preventDefault(); ev.stopPropagation();
-      FocusTimer.setTask(id); sound('success');
+      focusTakeTask(id);
       if(focusDockShut()) setFocusDockShut(false); else paintFocusDock();
       /* the words about it live on Today, so redraw that too if it is open */
       if(typeof parseHash === 'function' && parseHash().name === 'today') rerender();
     });
   }
+}
+
+/* ---------- a task dropped on the clock ----------
+   Dropping used to park the task and leave the dial exactly as it was, which
+   for a task with no estimate meant a twenty-five minute countdown nobody had
+   asked for — and a countdown is a claim about how long the thing takes.
+   Where there is an estimate, sit down with what is left of it. Where there is
+   none, the honest instrument is a stopwatch: it counts up and tells you
+   afterwards how long the thing actually took, which is how you come to have
+   an estimate next time. */
+function focusTakeTask(id){
+  const ref = typeof findTaskRef === 'function' ? findTaskRef(id) : null;
+  const est = ref && typeof taskEstOf === 'function' ? taskEstOf(ref.task) : 0;
+  const left = typeof focusLeftOn === 'function' ? focusLeftOn(id, est) : 0;
+  if(FocusTimer.state().running) FocusTimer.stop();
+  FocusTimer.reset();
+  if(left >= 1){ FocusTimer.setMode('countdown'); FocusTimer.setLength(left); }
+  else FocusTimer.setMode('stopwatch');
+  FocusTimer.setTask(id);
+  FocusTimer.start();
+  sound('success');
+  const name = ref ? ref.text : 'it';
+  toast(left >= 1
+    ? `${fmtEst(left)} left on ${name}.`
+    : est ? `${fmtEst(est)} was the estimate and it is spent — this one counts up.`
+          : `Counting up on ${name}. Pause or finish to see how long it took.`);
+}
+/* What to say when a sitting stops: how long this one was, and how long the
+   task has had in total — the figure you came for when you pressed pause.
+   The id is passed in because finishing empties the clock: stopping writes
+   the minutes down and then forgets whose they were, so the caller has to
+   have asked before it stopped. */
+function focusSaySpent(verb, taskId){
+  const id = taskId || FocusTimer.state().taskId; if(!id) return;
+  const ref = typeof findTaskRef === 'function' ? findTaskRef(id) : null;
+  const total = typeof taskSpentOn === 'function' ? taskSpentOn(id) : 0;
+  const est = ref && typeof taskEstOf === 'function' ? taskEstOf(ref.task) : 0;
+  if(total < 1) return;
+  const name = ref ? ref.text : 'this';
+  toast(`${verb} — ${fmtEst(total)} on ${name} so far${est ? `, of ${fmtEst(est)} estimated` : ''}.`);
 }
 
 /* The face moves every second; the rest of the gadget does not change every

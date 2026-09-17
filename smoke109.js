@@ -131,10 +131,18 @@ const near = (n,a,b,tol) => Math.abs(a-b) <= tol ? ok(n, `${a.toFixed(1)} vs ${b
   is('the met switch is written down',
      await p.evaluate(id => planList(id).milestones.find(m => m.name === 'First draft').done, listId), false);
 
-  console.log('\n8. a smart view is not a list, so it has no strip');
+  /* Today, Tomorrow and the next seven days used to have no strip at all,
+     because a milestone belongs to a list and they are not lists. They are a
+     window instead: every list's dates, narrowed to the days they name. The
+     one smart view that is still not about a period — Done — keeps nothing
+     above it, because "everything I have finished" has no dates to draw. */
+  console.log('\n8. a dated view is a window, and the view that is not stays bare');
   await p.evaluate(() => { planSetSel('smart', 'today'); });
   await p.waitForTimeout(1300);
-  yes('nothing above Today', !(await p.$('.pl-ms')));
+  yes('Today has a strip, of whatever falls in it', !!(await p.$('.pl-ms')));
+  await p.evaluate(() => { planSetSel('smart', 'done'); });
+  await p.waitForTimeout(1300);
+  yes('  nothing above Done', !(await p.$('.pl-ms')));
 
   console.log('\n9. a folder shows the dates of every list inside it');
   const folder = await p.evaluate(() => {
