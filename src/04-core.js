@@ -74,6 +74,103 @@ function el(html){ const t = document.createElement('template'); t.innerHTML = h
 function hexA(hex, a){ const n = parseInt(hex.slice(1),16); return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`; }
 function occurredSort(e){ if(e.occurredSort) return e.occurredSort; const s = e.occurredAt||''; if(/^\d{4}-\d{2}-\d{2}/.test(s)) return parseDay(s.slice(0,10)).getTime(); const y = (s.match(/\d{4}/)||[])[0]; if(y) return new Date(+y,5,1).getTime(); return new Date(e.createdAt||0).getTime(); }
 
+/* ---------- an address is a door ----------
+   A link written down anywhere in here used to be a string you had to select,
+   copy and paste into a bar. It is a thing you press now, wherever it appears:
+   in prose, in a field that holds nothing but an address, and beside a box you
+   have just pasted one into.
+
+   Everything opens in another tab with rel="noopener noreferrer": this page is
+   somebody's whole instrument, and neither losing it to a navigation nor
+   handing the opened page a handle on it is acceptable.
+
+   The trailing characters are trimmed because a link at the end of a sentence
+   ends with the sentence — "see https://example.com/x." is a full stop, not
+   part of the path. A closing bracket goes the same way unless the path opened
+   one, which is how Wikipedia addresses survive. */
+const URL_RE = /((?:https?:\/\/|www\.)[^\s<>"'`]+)/gi;
+const MAIL_RE = /\b([\w.+-]+@[\w-]+(?:\.[\w-]+)+)\b/g;
+function linkTrim(s){
+  let out = s;
+  /* &amp; and friends end in a semicolon that belongs to them */
+  while(out && /[.,:!?]$/.test(out)) out = out.slice(0, -1);
+  while(/[)\]}]$/.test(out)){
+    const open = {')':'(', ']':'[', '}':'{'}[out.slice(-1)];
+    const closes = out.split(out.slice(-1)).length - 1;
+    const opens = out.split(open).length - 1;
+    if(opens >= closes) break;
+    out = out.slice(0, -1);
+  }
+  return out;
+}
+/* what a written address actually points at, or '' if it does not point */
+function linkHrefOf(raw){
+  const s = String(raw ?? '').trim();
+  if(!s) return '';
+  if(/^(https?:\/\/|mailto:)/i.test(s)) return s;
+  if(/^www\./i.test(s)) return 'https://' + s;
+  if(MAIL_RE.test(s) && !/\s/.test(s)){ MAIL_RE.lastIndex = 0; return 'mailto:' + s; }
+  MAIL_RE.lastIndex = 0;
+  return '';
+}
+/* The address, shortened to the part that tells you where it goes. It is
+   given text that has already been escaped, so it must not escape it again —
+   and must not cut an entity in half while shortening, which is how a query
+   string with an ampersand in it turns into gibberish. */
+function linkLabel(s, max = 52){
+  const bare = String(s).replace(/^https?:\/\//i, '').replace(/\/$/, '');
+  if(bare.length <= max) return bare;
+  let cut = bare.slice(0, max - 1);
+  const amp = cut.lastIndexOf('&');
+  if(amp > -1 && !cut.slice(amp).includes(';')) cut = cut.slice(0, amp);
+  return cut + '…';
+}
+const linkTag = (href, label, cls = '') =>
+  `<a class="autolink${cls ? ' ' + cls : ''}" href="${href}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+/* Walks already-escaped HTML and links the bare addresses in it, copying tags
+   through untouched and leaving anything already inside an <a> alone — so a
+   markdown link whose own label is an address does not end up nested. */
+function autolink(html){
+  const parts = String(html ?? '').split(/(<[^>]*>)/);
+  let depth = 0;
+  return parts.map(part => {
+    if(part.startsWith('<')){
+      if(/^<a\b/i.test(part)) depth++;
+      else if(/^<\/a\s*>/i.test(part)) depth = Math.max(0, depth - 1);
+      return part;
+    }
+    if(depth) return part;
+    return part
+      .replace(URL_RE, m => { const keep = linkTrim(m); const tail = m.slice(keep.length);
+        const href = /^www\./i.test(keep) ? 'https://' + keep : keep;
+        return linkTag(href, linkLabel(keep)) + tail; })
+      .replace(MAIL_RE, m => linkTag('mailto:' + m, m));
+  }).join('');
+}
+/* plain text in, text with its addresses pressable out */
+function linkify(text){ return autolink(esc(String(text ?? ''))); }
+
+/* Opens whatever is in the box beside it — what is in it now, not what was
+   last saved, because you have usually just pasted it. */
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-linkgo]'); if(!b) return;
+  e.preventDefault(); e.stopPropagation();
+  const box = b.closest('.linkbox');
+  const inp = box && box.querySelector('input, textarea');
+  const href = linkHrefOf(inp ? inp.value : '');
+  if(!href){ if(typeof toast === 'function') toast('Nothing that looks like a link in there yet.'); return; }
+  window.open(href, '_blank', 'noopener,noreferrer');
+});
+document.addEventListener('input', e => {
+  const inp = e.target.closest('.linkbox input, .linkbox textarea'); if(!inp) return;
+  inp.closest('.linkbox').classList.toggle('has-link', !!linkHrefOf(inp.value));
+}, true);
+/* a box that holds an address, with the way out of it beside the way in */
+function linkBoxHTML(inner, value){
+  return `<span class="linkbox${linkHrefOf(value) ? ' has-link' : ''}">${inner}<button type="button"
+    class="linkgo" data-linkgo title="open it in a new tab" aria-label="open this link">↗</button></span>`;
+}
+
 /* ---------- markdown (small, safe) ---------- */
 function md(src){
   if(!src) return '';
@@ -82,8 +179,12 @@ function md(src){
   s = s.replace(/^&gt; ?(.*)$/gm,'<blockquote>$1</blockquote>').replace(/<\/blockquote>\n<blockquote>/g,'<br>');
   s = s.replace(/^[-*] (.*)$/gm,'<li>$1</li>').replace(/(<li>[\s\S]*?<\/li>)(?!\n<li>)/g,'<ul>$1</ul>').replace(/<\/li>\n<li>/g,'</li><li>');
   s = s.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/(^|[^*])\*([^*\n]+)\*/g,'$1<em>$2</em>').replace(/_([^_\n]+)_/g,'<em>$1</em>');
-  s = s.replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
+  s = s.replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g,'<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
   s = s.replace(TAG_RE, (m, pre, t) => `${pre}<a class="tag" href="#/tag/${encodeURIComponent(t.toLowerCase())}">#${t}</a>`);
+  /* Last, and after the hashtags, so that it is looking at every anchor this
+     function makes and stays out of all of them. This is the pass that catches
+     a link written as itself, which is how anybody actually pastes one. */
+  s = autolink(s);
   s = s.split(/\n{2,}/).map(p => /^<(h\d|ul|blockquote)/.test(p.trim()) ? p : `<p>${p.replace(/\n/g,'<br>')}</p>`).join('');
   return s;
 }
@@ -138,8 +239,15 @@ const hooks = {};
    calendar, and touching it opens the same one every date field in the house
    opens, so a day never has to be typed from memory. */
 function edInner(val, ph, mdr, date){
-  const body = String(val).trim() ? (mdr ? md(val) : esc(val)) : `<span class="ph">${esc(ph)}</span>`;
-  return body + (date ? `<span class="dp-btn sm" aria-hidden="true">${DP_ICON}</span>` : '');
+  const raw = String(val).trim();
+  const body = raw ? (mdr ? md(val) : linkify(val)) : `<span class="ph">${esc(ph)}</span>`;
+  /* A field whose whole content is a link has nothing left to click on to
+     edit, because the link takes the click — which is what you want nine
+     times in ten. So it carries its own small way in, which is not an anchor
+     and therefore starts an edit rather than opening anything. */
+  const onlyLink = raw && /^<a\b[^>]*>[^<]*<\/a>$/i.test(body);
+  return body + (onlyLink ? `<span class="ed-pen" title="rewrite this" aria-hidden="true">✎</span>` : '')
+    + (date ? `<span class="dp-btn sm" aria-hidden="true">${DP_ICON}</span>` : '');
 }
 function ed(path, opts={}){
   const val = getPath(path) ?? '';

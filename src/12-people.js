@@ -185,7 +185,7 @@ routes.people = function(root, params){
     ${overdue.length || bdays.length || follow.length ? `<div class="grid c3 rv" style="margin-bottom:20px;align-items:start">
       ${overdue.length ? `<div class="card"><span class="sc">Needs attention</span><div class="stack" style="gap:5px;margin-top:8px">${overdue.slice(0,5).map(({p,days,want})=>`<a class="quiet-row" href="#/people/${p.id}"><span>${CIRCLES[p.circle][0]} ${esc(p.name)}</span><span class="mono">${days===Infinity?'never':days+'d'} · wanted ${esc(want)}</span></a>`).join('')}</div>${overdue.length>5?`<button class="btn sm ghost" id="pplAll" style="margin-top:8px">see all ${overdue.length}</button>`:''}</div>` : ''}
       ${bdays.length ? `<div class="card"><span class="sc">Birthdays</span><div class="stack" style="gap:5px;margin-top:8px">${bdays.slice(0,5).map(({p,next,days})=>`<a class="quiet-row" href="#/people/${p.id}"><span>${esc(p.name)}</span><span class="mono">${days===0?'today':`in ${days}d · ${fmtDate(next,'short')}`}</span></a>`).join('')}</div></div>` : ''}
-      ${follow.length ? `<div class="card"><span class="sc">Follow-ups</span><div class="stack" style="gap:5px;margin-top:8px">${follow.slice(0,5).map(({i,p})=>`<div class="quiet-row"><span><b>${esc(p.name)}</b> — ${esc(i.followUp)}</span><button class="btn sm ghost" data-fudone="${i.id}">done</button></div>`).join('')}</div></div>` : ''}
+      ${follow.length ? `<div class="card"><span class="sc">Follow-ups</span><div class="stack" style="gap:5px;margin-top:8px">${follow.slice(0,5).map(({i,p})=>`<div class="quiet-row"><span><b>${esc(p.name)}</b> — ${linkify(i.followUp)}</span><button class="btn sm ghost" data-fudone="${i.id}">done</button></div>`).join('')}</div></div>` : ''}
     </div>` : ''}
 
     <div class="page-bar rv"><div class="view-toggle">${[['circles','◎ Circles'],['list','▤ List'],['log','◷ Log'],['eras','▬ Life stages'],['audit','◈ Audit']].map(([k,l])=>`<button class="${view===k?'on':''}" data-pplview="${k}">${l}</button>`).join('')}</div><span class="pb-sep"></span><button class="btn sm ghost" id="rtReachout">☺ reach out to someone</button><button class="btn sm ghost" id="rtGratitude">♡ gratitude for someone</button><button class="btn sm ghost" id="rtRing">◎ ring review</button></div>
@@ -320,8 +320,8 @@ function pplTimeline(box){
       ${byYear[y].map(i => { const p = byId(S.people, i.personId); if(!p) return ''; const c = CIRCLES[p.circle]; const t = INTERACTION_TYPES[i.type] || INTERACTION_TYPES.other; const en = ENERGY_READINGS[i.energy];
         return `<div class="int-row" data-intopen="${i.id}"><span class="ppl-face sm" style="--c:${c[4]}">${p.photo?`<img src="${esc(p.photo)}" alt="">`:esc(personInitials(p))}</span>
           <span class="int-body"><span class="row between"><b>${esc(p.name)}</b><span class="mono">${t[0]} ${esc(t[1])} · ${fmtDate(i.date,'med')}${en?` · ${en[0]} ${en[1]}`:''}</span></span>
-          <span class="int-desc">${esc(i.description || '—')}${i.quality?` <span class="status-pill">${esc(i.quality)}</span>`:''}</span>
-          ${i.followUp?`<span class="int-follow ${i.followUpDone?'done':''}">↪ ${esc(i.followUp)}</span>`:''}</span></div>`; }).join('')}</div>`).join('')
+          <span class="int-desc">${i.description ? linkify(i.description) : '—'}${i.quality?` <span class="status-pill">${esc(i.quality)}</span>`:''}</span>
+          ${i.followUp?`<span class="int-follow ${i.followUpDone?'done':''}">↪ ${linkify(i.followUp)}</span>`:''}</span></div>`; }).join('')}</div>`).join('')
       : '<div class="empty rv">Nothing logged yet. Every entry you tag with someone shows up here too.</div>'}`;
   $('#ptPerson').onchange = e => { f.person = e.target.value; rerender(); };
   $('#ptType').onchange = e => { f.type = e.target.value; rerender(); };
@@ -467,7 +467,7 @@ function renderPersonPage(root, id){
         return `<div class="int-row" data-intopen="${i.id}"><span class="int-ico">${t[0]}</span><span class="int-body">
           <span class="row between"><span class="mono">${esc(t[1])} · ${fmtDate(i.date,'med')}</span><span class="row" style="gap:4px">${en?`<span class="resonance-pill" style="--c:${en[2]}">${en[0]} ${en[1]}</span>`:''}${i.mood?`<span class="status-pill">${esc(i.mood)}</span>`:''}</span></span>
           <span class="int-desc">${esc(i.description||'—')}${i.quality?` <span class="status-pill">${esc(i.quality)}</span>`:''}</span>
-          ${i.followUp?`<span class="int-follow ${i.followUpDone?'done':''}">↪ ${esc(i.followUp)}</span>`:''}</span>
+          ${i.followUp?`<span class="int-follow ${i.followUpDone?'done':''}">↪ ${linkify(i.followUp)}</span>`:''}</span>
           ${i.entryId?'<span class="mono int-src">from an entry</span>':''}</div>`; }).join('')}</div>`
         : '<div class="empty">Nothing logged. Tag them in a journal entry and it appears here automatically.</div>'}</section>
 

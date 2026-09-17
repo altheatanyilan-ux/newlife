@@ -8438,6 +8438,38 @@ html[data-theme="light"] .wk-sleep.is-guess{background-image:repeating-linear-gr
   .pn-wheelwrap{justify-content:center}
 }
 
+
+.pn-res-u{display:flex;gap:6px;align-items:center;margin-top:4px}
+.pn-res-rt{flex:0 1 40%}
+a.pn-res-t{text-decoration:none}
+a.pn-res-t:hover{text-decoration:underline}
+/* ============ AN ADDRESS IS A DOOR ============
+   A link reads as one wherever it appears — underlined on the diagonal so it
+   is legible against the paper grounds, and carrying the ↗ that says it
+   leaves. The mark is generous enough to hit on a phone. */
+.autolink{color:var(--terra);text-decoration:underline;text-decoration-thickness:1px;
+  text-underline-offset:2px;text-decoration-color:color-mix(in srgb,var(--terra) 45%,transparent);
+  word-break:break-word;transition:text-decoration-color .2s var(--ease),color .2s var(--ease)}
+.autolink:hover,.autolink:focus-visible{text-decoration-color:var(--terra)}
+.autolink::after{content:'↗';font-size:.78em;opacity:.55;margin-left:2px;text-decoration:none;display:inline-block}
+/* inside a run of prose the arrow on every one is a rash, so only standalone
+   fields and list rows wear it */
+.body .autolink::after,.prose .autolink::after,.quote .autolink::after{content:none}
+.ed .autolink{display:inline}
+/* the small way back into a field that is nothing but a link */
+.ed-pen{margin-left:6px;font-size:.72em;opacity:0;cursor:text;transition:opacity .16s var(--ease)}
+.ed:hover .ed-pen,.ed:focus-within .ed-pen,.ed:focus .ed-pen{opacity:.55}
+.ed-pen:hover{opacity:1}
+@media (hover:none){.ed-pen{opacity:.5}}
+/* a box you type an address into, and the way out of it */
+.linkbox{display:inline-flex;align-items:center;gap:4px;width:100%;min-width:0}
+.linkbox > input,.linkbox > textarea{flex:1;min-width:0}
+.linkgo{flex:none;border:1px solid var(--line);background:transparent;color:var(--text);
+  border-radius:6px;cursor:pointer;font-size:.8rem;line-height:1;padding:5px 7px;opacity:.35;
+  transition:opacity .2s var(--ease),border-color .2s var(--ease),color .2s var(--ease)}
+.linkbox.has-link .linkgo{opacity:1;border-color:color-mix(in srgb,var(--terra) 40%,var(--line));color:var(--terra)}
+.linkgo:hover{border-color:var(--terra);color:var(--terra)}
+
 </style>
 </head>
 <body>
@@ -8775,6 +8807,103 @@ function el(html){ const t = document.createElement('template'); t.innerHTML = h
 function hexA(hex, a){ const n = parseInt(hex.slice(1),16); return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`; }
 function occurredSort(e){ if(e.occurredSort) return e.occurredSort; const s = e.occurredAt||''; if(/^\d{4}-\d{2}-\d{2}/.test(s)) return parseDay(s.slice(0,10)).getTime(); const y = (s.match(/\d{4}/)||[])[0]; if(y) return new Date(+y,5,1).getTime(); return new Date(e.createdAt||0).getTime(); }
 
+/* ---------- an address is a door ----------
+   A link written down anywhere in here used to be a string you had to select,
+   copy and paste into a bar. It is a thing you press now, wherever it appears:
+   in prose, in a field that holds nothing but an address, and beside a box you
+   have just pasted one into.
+
+   Everything opens in another tab with rel="noopener noreferrer": this page is
+   somebody's whole instrument, and neither losing it to a navigation nor
+   handing the opened page a handle on it is acceptable.
+
+   The trailing characters are trimmed because a link at the end of a sentence
+   ends with the sentence — "see https://example.com/x." is a full stop, not
+   part of the path. A closing bracket goes the same way unless the path opened
+   one, which is how Wikipedia addresses survive. */
+const URL_RE = /((?:https?:\/\/|www\.)[^\s<>"'`]+)/gi;
+const MAIL_RE = /\b([\w.+-]+@[\w-]+(?:\.[\w-]+)+)\b/g;
+function linkTrim(s){
+  let out = s;
+  /* &amp; and friends end in a semicolon that belongs to them */
+  while(out && /[.,:!?]$/.test(out)) out = out.slice(0, -1);
+  while(/[)\]}]$/.test(out)){
+    const open = {')':'(', ']':'[', '}':'{'}[out.slice(-1)];
+    const closes = out.split(out.slice(-1)).length - 1;
+    const opens = out.split(open).length - 1;
+    if(opens >= closes) break;
+    out = out.slice(0, -1);
+  }
+  return out;
+}
+/* what a written address actually points at, or '' if it does not point */
+function linkHrefOf(raw){
+  const s = String(raw ?? '').trim();
+  if(!s) return '';
+  if(/^(https?:\/\/|mailto:)/i.test(s)) return s;
+  if(/^www\./i.test(s)) return 'https://' + s;
+  if(MAIL_RE.test(s) && !/\s/.test(s)){ MAIL_RE.lastIndex = 0; return 'mailto:' + s; }
+  MAIL_RE.lastIndex = 0;
+  return '';
+}
+/* The address, shortened to the part that tells you where it goes. It is
+   given text that has already been escaped, so it must not escape it again —
+   and must not cut an entity in half while shortening, which is how a query
+   string with an ampersand in it turns into gibberish. */
+function linkLabel(s, max = 52){
+  const bare = String(s).replace(/^https?:\/\//i, '').replace(/\/$/, '');
+  if(bare.length <= max) return bare;
+  let cut = bare.slice(0, max - 1);
+  const amp = cut.lastIndexOf('&');
+  if(amp > -1 && !cut.slice(amp).includes(';')) cut = cut.slice(0, amp);
+  return cut + '…';
+}
+const linkTag = (href, label, cls = '') =>
+  `<a class="autolink${cls ? ' ' + cls : ''}" href="${href}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+/* Walks already-escaped HTML and links the bare addresses in it, copying tags
+   through untouched and leaving anything already inside an <a> alone — so a
+   markdown link whose own label is an address does not end up nested. */
+function autolink(html){
+  const parts = String(html ?? '').split(/(<[^>]*>)/);
+  let depth = 0;
+  return parts.map(part => {
+    if(part.startsWith('<')){
+      if(/^<a\b/i.test(part)) depth++;
+      else if(/^<\/a\s*>/i.test(part)) depth = Math.max(0, depth - 1);
+      return part;
+    }
+    if(depth) return part;
+    return part
+      .replace(URL_RE, m => { const keep = linkTrim(m); const tail = m.slice(keep.length);
+        const href = /^www\./i.test(keep) ? 'https://' + keep : keep;
+        return linkTag(href, linkLabel(keep)) + tail; })
+      .replace(MAIL_RE, m => linkTag('mailto:' + m, m));
+  }).join('');
+}
+/* plain text in, text with its addresses pressable out */
+function linkify(text){ return autolink(esc(String(text ?? ''))); }
+
+/* Opens whatever is in the box beside it — what is in it now, not what was
+   last saved, because you have usually just pasted it. */
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-linkgo]'); if(!b) return;
+  e.preventDefault(); e.stopPropagation();
+  const box = b.closest('.linkbox');
+  const inp = box && box.querySelector('input, textarea');
+  const href = linkHrefOf(inp ? inp.value : '');
+  if(!href){ if(typeof toast === 'function') toast('Nothing that looks like a link in there yet.'); return; }
+  window.open(href, '_blank', 'noopener,noreferrer');
+});
+document.addEventListener('input', e => {
+  const inp = e.target.closest('.linkbox input, .linkbox textarea'); if(!inp) return;
+  inp.closest('.linkbox').classList.toggle('has-link', !!linkHrefOf(inp.value));
+}, true);
+/* a box that holds an address, with the way out of it beside the way in */
+function linkBoxHTML(inner, value){
+  return `<span class="linkbox${linkHrefOf(value) ? ' has-link' : ''}">${inner}<button type="button"
+    class="linkgo" data-linkgo title="open it in a new tab" aria-label="open this link">↗</button></span>`;
+}
+
 /* ---------- markdown (small, safe) ---------- */
 function md(src){
   if(!src) return '';
@@ -8783,8 +8912,12 @@ function md(src){
   s = s.replace(/^&gt; ?(.*)$/gm,'<blockquote>$1</blockquote>').replace(/<\/blockquote>\n<blockquote>/g,'<br>');
   s = s.replace(/^[-*] (.*)$/gm,'<li>$1</li>').replace(/(<li>[\s\S]*?<\/li>)(?!\n<li>)/g,'<ul>$1</ul>').replace(/<\/li>\n<li>/g,'</li><li>');
   s = s.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/(^|[^*])\*([^*\n]+)\*/g,'$1<em>$2</em>').replace(/_([^_\n]+)_/g,'<em>$1</em>');
-  s = s.replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
+  s = s.replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g,'<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
   s = s.replace(TAG_RE, (m, pre, t) => `${pre}<a class="tag" href="#/tag/${encodeURIComponent(t.toLowerCase())}">#${t}</a>`);
+  /* Last, and after the hashtags, so that it is looking at every anchor this
+     function makes and stays out of all of them. This is the pass that catches
+     a link written as itself, which is how anybody actually pastes one. */
+  s = autolink(s);
   s = s.split(/\n{2,}/).map(p => /^<(h\d|ul|blockquote)/.test(p.trim()) ? p : `<p>${p.replace(/\n/g,'<br>')}</p>`).join('');
   return s;
 }
@@ -8839,8 +8972,15 @@ const hooks = {};
    calendar, and touching it opens the same one every date field in the house
    opens, so a day never has to be typed from memory. */
 function edInner(val, ph, mdr, date){
-  const body = String(val).trim() ? (mdr ? md(val) : esc(val)) : `<span class="ph">${esc(ph)}</span>`;
-  return body + (date ? `<span class="dp-btn sm" aria-hidden="true">${DP_ICON}</span>` : '');
+  const raw = String(val).trim();
+  const body = raw ? (mdr ? md(val) : linkify(val)) : `<span class="ph">${esc(ph)}</span>`;
+  /* A field whose whole content is a link has nothing left to click on to
+     edit, because the link takes the click — which is what you want nine
+     times in ten. So it carries its own small way in, which is not an anchor
+     and therefore starts an edit rather than opening anything. */
+  const onlyLink = raw && /^<a\b[^>]*>[^<]*<\/a>$/i.test(body);
+  return body + (onlyLink ? `<span class="ed-pen" title="rewrite this" aria-hidden="true">✎</span>` : '')
+    + (date ? `<span class="dp-btn sm" aria-hidden="true">${DP_ICON}</span>` : '');
 }
 function ed(path, opts={}){
   const val = getPath(path) ?? '';
@@ -13404,7 +13544,7 @@ function entryExtraHTML(e){
        otherwise the connection exists only in the data */
     const w = typeof quoteWork === 'function' ? quoteWork(e) : null;
     if(w) rows.push(`<button class="qw-chip" data-qwopen="${w.id}" title="open ${esc(w.title||'the work')} in the Library">${esc((MEDIA_KINDS[mediaX(w).kind]||MEDIA_KINDS.book)[0])} ${esc(w.title || 'Untitled')}</button>`);
-    rows.push(`<div class="mono">— ${esc(x.author||'')}${x.source?', <em>'+esc(x.source)+'</em>':''}${x.page?' · '+esc(x.page):''}${x.link?` · <a href="${esc(x.link)}" target="_blank" rel="noopener">↗ link</a>`:''}${x.category?` · ${esc(x.category)}`:''}</div>`);
+    rows.push(`<div class="mono">— ${esc(x.author||'')}${x.source?', <em>'+esc(x.source)+'</em>':''}${x.page?' · '+esc(x.page):''}${x.link?` · <a class="autolink" href="${esc(x.link)}" target="_blank" rel="noopener noreferrer">${esc(linkLabel(x.link, 36))}</a>`:''}${x.category?` · ${esc(x.category)}`:''}</div>`);
     if(x.why) rows.push(`<div><span class="mono">why this caught me</span><br>${esc(x.why)}</div>`); }
   if(e.type==='question'){ const ans = x.answers||[]; const age = daysSince((e.occurredAt||e.createdAt||'').slice(0,10));
     const st = x.status || 'open';
@@ -17815,7 +17955,7 @@ routes.people = function(root, params){
     ${overdue.length || bdays.length || follow.length ? `<div class="grid c3 rv" style="margin-bottom:20px;align-items:start">
       ${overdue.length ? `<div class="card"><span class="sc">Needs attention</span><div class="stack" style="gap:5px;margin-top:8px">${overdue.slice(0,5).map(({p,days,want})=>`<a class="quiet-row" href="#/people/${p.id}"><span>${CIRCLES[p.circle][0]} ${esc(p.name)}</span><span class="mono">${days===Infinity?'never':days+'d'} · wanted ${esc(want)}</span></a>`).join('')}</div>${overdue.length>5?`<button class="btn sm ghost" id="pplAll" style="margin-top:8px">see all ${overdue.length}</button>`:''}</div>` : ''}
       ${bdays.length ? `<div class="card"><span class="sc">Birthdays</span><div class="stack" style="gap:5px;margin-top:8px">${bdays.slice(0,5).map(({p,next,days})=>`<a class="quiet-row" href="#/people/${p.id}"><span>${esc(p.name)}</span><span class="mono">${days===0?'today':`in ${days}d · ${fmtDate(next,'short')}`}</span></a>`).join('')}</div></div>` : ''}
-      ${follow.length ? `<div class="card"><span class="sc">Follow-ups</span><div class="stack" style="gap:5px;margin-top:8px">${follow.slice(0,5).map(({i,p})=>`<div class="quiet-row"><span><b>${esc(p.name)}</b> — ${esc(i.followUp)}</span><button class="btn sm ghost" data-fudone="${i.id}">done</button></div>`).join('')}</div></div>` : ''}
+      ${follow.length ? `<div class="card"><span class="sc">Follow-ups</span><div class="stack" style="gap:5px;margin-top:8px">${follow.slice(0,5).map(({i,p})=>`<div class="quiet-row"><span><b>${esc(p.name)}</b> — ${linkify(i.followUp)}</span><button class="btn sm ghost" data-fudone="${i.id}">done</button></div>`).join('')}</div></div>` : ''}
     </div>` : ''}
 
     <div class="page-bar rv"><div class="view-toggle">${[['circles','◎ Circles'],['list','▤ List'],['log','◷ Log'],['eras','▬ Life stages'],['audit','◈ Audit']].map(([k,l])=>`<button class="${view===k?'on':''}" data-pplview="${k}">${l}</button>`).join('')}</div><span class="pb-sep"></span><button class="btn sm ghost" id="rtReachout">☺ reach out to someone</button><button class="btn sm ghost" id="rtGratitude">♡ gratitude for someone</button><button class="btn sm ghost" id="rtRing">◎ ring review</button></div>
@@ -17950,8 +18090,8 @@ function pplTimeline(box){
       ${byYear[y].map(i => { const p = byId(S.people, i.personId); if(!p) return ''; const c = CIRCLES[p.circle]; const t = INTERACTION_TYPES[i.type] || INTERACTION_TYPES.other; const en = ENERGY_READINGS[i.energy];
         return `<div class="int-row" data-intopen="${i.id}"><span class="ppl-face sm" style="--c:${c[4]}">${p.photo?`<img src="${esc(p.photo)}" alt="">`:esc(personInitials(p))}</span>
           <span class="int-body"><span class="row between"><b>${esc(p.name)}</b><span class="mono">${t[0]} ${esc(t[1])} · ${fmtDate(i.date,'med')}${en?` · ${en[0]} ${en[1]}`:''}</span></span>
-          <span class="int-desc">${esc(i.description || '—')}${i.quality?` <span class="status-pill">${esc(i.quality)}</span>`:''}</span>
-          ${i.followUp?`<span class="int-follow ${i.followUpDone?'done':''}">↪ ${esc(i.followUp)}</span>`:''}</span></div>`; }).join('')}</div>`).join('')
+          <span class="int-desc">${i.description ? linkify(i.description) : '—'}${i.quality?` <span class="status-pill">${esc(i.quality)}</span>`:''}</span>
+          ${i.followUp?`<span class="int-follow ${i.followUpDone?'done':''}">↪ ${linkify(i.followUp)}</span>`:''}</span></div>`; }).join('')}</div>`).join('')
       : '<div class="empty rv">Nothing logged yet. Every entry you tag with someone shows up here too.</div>'}`;
   $('#ptPerson').onchange = e => { f.person = e.target.value; rerender(); };
   $('#ptType').onchange = e => { f.type = e.target.value; rerender(); };
@@ -18097,7 +18237,7 @@ function renderPersonPage(root, id){
         return `<div class="int-row" data-intopen="${i.id}"><span class="int-ico">${t[0]}</span><span class="int-body">
           <span class="row between"><span class="mono">${esc(t[1])} · ${fmtDate(i.date,'med')}</span><span class="row" style="gap:4px">${en?`<span class="resonance-pill" style="--c:${en[2]}">${en[0]} ${en[1]}</span>`:''}${i.mood?`<span class="status-pill">${esc(i.mood)}</span>`:''}</span></span>
           <span class="int-desc">${esc(i.description||'—')}${i.quality?` <span class="status-pill">${esc(i.quality)}</span>`:''}</span>
-          ${i.followUp?`<span class="int-follow ${i.followUpDone?'done':''}">↪ ${esc(i.followUp)}</span>`:''}</span>
+          ${i.followUp?`<span class="int-follow ${i.followUpDone?'done':''}">↪ ${linkify(i.followUp)}</span>`:''}</span>
           ${i.entryId?'<span class="mono int-src">from an entry</span>':''}</div>`; }).join('')}</div>`
         : '<div class="empty">Nothing logged. Tag them in a journal entry and it appears here automatically.</div>'}</section>
 
@@ -21278,7 +21418,7 @@ function levelTrackHTML(s){
             return l.criteria.length ? ` <span class="crit-count">${m}/${l.criteria.length} met</span>` : ''; })()}</div><ul class="lvl-criteria">${l.criteria.map((c,ci)=>`<li class="${c.done?'met':''}">
             <button class="task-check sm" data-crittick="${i}:${c.id}" role="checkbox" aria-checked="${!!c.done}" title="${c.done?'not met yet':'mark this one met'}">${c.done?'✓':''}</button>
             ${ed(`skills.#${s.id}.levels.${i}.criteria.${ci}.text`,{ph:'something I can be seen doing'})}<button class="del-x inline" data-critdel="${i}:${c.id}" title="remove">×</button></li>`).join('')}</ul><button class="tbtn" data-critadd="${i}">+ criterion</button>
-          <div class="k mono" style="margin-top:10px">resources</div><div class="lvl-res">${l.resources.map((r,ri)=>{ let host=''; try { host = new URL(r.url).hostname; } catch(e){} return `<div class="res-row"><span class="res-type" title="${esc(r.type)}">${RES_ICON[r.type]||'▫'}</span>${r.url?`<a class="res-link" href="${esc(r.url)}" target="_blank" rel="noopener">${host?`<img class="res-fav" src="https://www.google.com/s2/favicons?domain=${esc(host)}&sz=16" alt="" onerror="this.style.display='none'">`:''}${esc(r.title||r.url)}</a>`:`<span>${esc(r.title||'untitled resource')}</span>`}<span class="status-pill" style="font-size:.6rem">${esc(r.type)}</span><span class="res-edit"><span class="ed-wrap">${ed(`skills.#${s.id}.levels.${i}.resources.${ri}.title`,{ph:'title',cls:'mono'})}</span><span class="ed-wrap">${ed(`skills.#${s.id}.levels.${i}.resources.${ri}.url`,{ph:'https://…',cls:'mono'})}</span><select class="sel" data-restype="${i}:${ri}" style="width:auto;padding:1px 6px;font-size:.66rem;padding-right:22px">${RESOURCE_TYPES.map(t=>`<option ${r.type===t?'selected':''}>${t}</option>`).join('')}</select><button class="del-x inline" data-resdel="${i}:${ri}" title="remove">×</button></span></div>`; }).join('')}</div><button class="tbtn" data-resadd="${i}">+ resource</button>
+          <div class="k mono" style="margin-top:10px">resources</div><div class="lvl-res">${l.resources.map((r,ri)=>{ let host=''; try { host = new URL(r.url).hostname; } catch(e){} return `<div class="res-row"><span class="res-type" title="${esc(r.type)}">${RES_ICON[r.type]||'▫'}</span>${r.url?`<a class="res-link autolink" href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">${host?`<img class="res-fav" src="https://www.google.com/s2/favicons?domain=${esc(host)}&sz=16" alt="" onerror="this.style.display='none'">`:''}${esc(r.title||linkLabel(r.url))}</a>`:`<span>${esc(r.title||'untitled resource')}</span>`}<span class="status-pill" style="font-size:.6rem">${esc(r.type)}</span><span class="res-edit"><span class="ed-wrap">${ed(`skills.#${s.id}.levels.${i}.resources.${ri}.title`,{ph:'title',cls:'mono'})}</span><span class="ed-wrap">${ed(`skills.#${s.id}.levels.${i}.resources.${ri}.url`,{ph:'https://…',cls:'mono'})}</span><select class="sel" data-restype="${i}:${ri}" style="width:auto;padding:1px 6px;font-size:.66rem;padding-right:22px">${RESOURCE_TYPES.map(t=>`<option ${r.type===t?'selected':''}>${t}</option>`).join('')}</select><button class="del-x inline" data-resdel="${i}:${ri}" title="remove">×</button></span></div>`; }).join('')}</div><button class="tbtn" data-resadd="${i}">+ resource</button>
           <div class="row" style="gap:16px;margin-top:10px;flex-wrap:wrap"><span><span class="k mono">estimated time</span> ${ed(`skills.#${s.id}.levels.${i}.estimatedTime`,{ph:'e.g. 3 months',cls:'mono'})}</span><span><span class="k mono">target date</span> ${ed(`skills.#${s.id}.levels.${i}.targetDate`,{ph:'YYYY-MM-DD',cls:'mono',date:true,hook:'lvldate:'+s.id+':'+i})}</span><button class="tbtn" data-lvldel="${i}" style="margin-left:auto;color:var(--faint)">remove level</button></div>
         </div></div>
       </div></div>`; }).join('')}
@@ -21473,7 +21613,7 @@ function projectCardHTML(p){
   const ns = projectNods(p); const st = PSTATUS[p.status]||PSTATUS.idea; const r = projectTaskRatio(p); const pct = r.total ? Math.round(r.done/r.total*100) : 0; const due = p.targetDate ? daysBetween(today(), p.targetDate.slice(0,10)) : null;
   return `<div class="card pcard rv ${hasImages(p) ? 'plated' : ''}" data-popen="${p.id}" draggable="true" data-kdrag="${p.id}" style="cursor:pointer;--c:${st[2]}">${imageBackdropHTML(p)}<div class="hd"><h3>${esc(p.name)}</h3><span class="row" style="gap:6px">${prBadge(p)}${stBadge(p)}</span></div><div class="muted" style="font-size:.85rem">${esc(p.description||'')}</div><div class="row">${(p.tags||[]).map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div>
     <div class="ptask"><div class="row between"><span class="mono">${(p.phases||[]).length} phase${(p.phases||[]).length===1?'':'s'} · ${r.done}/${r.total} tasks done</span><span class="mono ${due!==null&&due<0&&p.status!=='completed'?'due':''}">${p.targetDate?`🎯 ${fmtDate(p.targetDate,'med')}${due!==null&&p.status!=='completed'?(due<0?` · ${-due}d over`:` · ${due}d`):''}`:''}</span></div><div class="bar" style="--c:${st[2]}"><i style="width:${pct}%"></i></div></div>
-    ${nodHeat(p)}<div class="mono">${ns.length} nods · last ${relDays(daysSince(ns[0]?.date))}${p.income?.current?` · ${fmtYen(p.income.current)}/mo`:''}</div>${p.link&&p.status==='completed'?`<a href="${esc(p.link)}" target="_blank" rel="noopener" class="mono" onclick="event.stopPropagation()">↗ ${esc(p.link)}</a>`:''}</div>`;
+    ${nodHeat(p)}<div class="mono">${ns.length} nods · last ${relDays(daysSince(ns[0]?.date))}${p.income?.current?` · ${fmtYen(p.income.current)}/mo`:''}</div>${p.link&&p.status==='completed'?`<a href="${esc(p.link)}" target="_blank" rel="noopener noreferrer" class="autolink mono" onclick="event.stopPropagation()">${esc(linkLabel(p.link))}</a>`:''}</div>`;
 }
 function kanbanHTML(ps){
   return `<div class="kanban">${KANBAN.map(([k,label]) => { const cards = ps.filter(p => p.status===k || (k==='archived' && p.status==='abandoned')); const st = PSTATUS[k]; return `<div class="kcol" data-kcol="${k}" style="--c:${st[2]}"><div class="kcol-h"><span>${label}</span><span class="mono">${cards.length}</span></div><div class="kcol-body">${cards.map(p => { const r = projectTaskRatio(p); return `<div class="kcard ${hasImages(p) ? 'plated' : ''}" draggable="true" data-kdrag="${p.id}" data-popen="${p.id}">${imageBackdropHTML(p)}<div class="row between"><b class="serif" style="font-size:1rem">${esc(p.name)}</b>${prBadge(p)}</div><div class="mono" style="margin-top:4px">${r.done}/${r.total} tasks${p.targetDate?` · 🎯 ${fmtDate(p.targetDate,'short')}`:''}${p.status==='abandoned'?' · abandoned':''}</div><div class="bar" style="--c:${(PSTATUS[p.status]||st)[2]};margin-top:6px"><i style="width:${r.total?Math.round(r.done/r.total*100):0}%"></i></div></div>`; }).join('')||'<div class="faint" style="font-size:.75rem;padding:8px">drop here</div>'}</div></div>`; }).join('')}</div>`;
@@ -21657,7 +21797,7 @@ function openProjectPanel(id){
           <div class="tasks">${(ph.tasks||[]).map((t,ti) => { const due = t.dueDate ? daysBetween(today(), t.dueDate.slice(0,10)) : null; return `<div class="task ${t.done?'done':''}" data-task="${t.id}"><label><input type="checkbox" data-tdone="${ph.id}:${t.id}" ${t.done?'checked':''}></label><span class="task-text">${ed(`projects.#${p.id}.phases.${i}.tasks.${ti}.text`,{ph:'task'})}</span><input type="date" class="inp task-due ${due!==null&&due<0&&!t.done?'over':''}" value="${t.dueDate?t.dueDate.slice(0,10):''}" data-tdue="${ph.id}:${t.id}" title="due date">${due!==null&&!t.done?`<span class="mono ${due<0?'due':''}">${due<0?`${-due}d over`:due===0?'today':`${due}d`}</span>`:''}<button class="del-x inline" data-tdel="${ph.id}:${t.id}" title="delete task">×</button></div>`; }).join('')||'<div class="faint" style="font-size:.78rem;padding:4px 0">no tasks yet</div>'}</div>
         </div></div></div>`; }).join('')||'<div class="faint" style="font-size:.8rem">No phases yet. Add one to break the project into steps.</div>'}</div></div>
     <div class="vp-sec"><div class="row between"><span class="sc">Resources</span><button class="btn sm ghost" id="resAdd">+ resource</button></div>
-      <div class="lvl-res">${(p.resources||[]).map((rs,ri)=>`<div class="res-row"><span class="res-type">${{link:'🔗',file:'📎',note:'📝'}[rs.type]||'▫'}</span>${rs.url?`<a class="res-link" href="${esc(rs.url)}" target="_blank" rel="noopener">${esc(rs.title||rs.url)}</a>`:`<span>${esc(rs.title||'untitled')}</span>`}<span class="status-pill" style="font-size:.6rem">${esc(rs.type)}</span><span class="res-edit"><span class="ed-wrap">${ed(`projects.#${p.id}.resources.${ri}.title`,{ph:'title',cls:'mono'})}</span><span class="ed-wrap">${ed(`projects.#${p.id}.resources.${ri}.url`,{ph:'https://… (optional for notes)',cls:'mono'})}</span><select class="sel" data-prestype="${ri}" style="width:auto;padding:1px 6px;font-size:.66rem;padding-right:22px">${['link','file','note'].map(t=>`<option ${rs.type===t?'selected':''}>${t}</option>`).join('')}</select><button class="del-x inline" data-presdel="${ri}" title="remove">×</button></span></div>`).join('')||'<div class="faint" style="font-size:.8rem">Links, files, notes.</div>'}</div></div>
+      <div class="lvl-res">${(p.resources||[]).map((rs,ri)=>`<div class="res-row"><span class="res-type">${{link:'🔗',file:'📎',note:'📝'}[rs.type]||'▫'}</span>${rs.url?`<a class="res-link autolink" href="${esc(rs.url)}" target="_blank" rel="noopener noreferrer">${esc(rs.title||linkLabel(rs.url))}</a>`:`<span>${esc(rs.title||'untitled')}</span>`}<span class="status-pill" style="font-size:.6rem">${esc(rs.type)}</span><span class="res-edit"><span class="ed-wrap">${ed(`projects.#${p.id}.resources.${ri}.title`,{ph:'title',cls:'mono'})}</span><span class="ed-wrap">${ed(`projects.#${p.id}.resources.${ri}.url`,{ph:'https://… (optional for notes)',cls:'mono'})}</span><select class="sel" data-prestype="${ri}" style="width:auto;padding:1px 6px;font-size:.66rem;padding-right:22px">${['link','file','note'].map(t=>`<option ${rs.type===t?'selected':''}>${t}</option>`).join('')}</select><button class="del-x inline" data-presdel="${ri}" title="remove">×</button></span></div>`).join('')||'<div class="faint" style="font-size:.8rem">Links, files, notes.</div>'}</div></div>
     <div class="vp-sec"><span class="sc">Develops skills</span><div class="deps">${S.skills.map(sk=>`<span class="chip click ${(p.linkedSkills||[]).includes(sk.id)?'on':''}" style="--c:${catColor(sk.cat)}" data-plink="${sk.id}">${esc(sk.name)}</span>`).join('')}</div></div>
     <div class="vp-sec"><span class="sc">Notes</span>${ed(`projects.#${p.id}.notes`,{multi:true,mdr:true,cls:'prose',ph:'Working notes. Markdown welcome.'})}</div>
     <div class="vp-sec"><div class="row between"><span class="sc">Activity, twelve weeks</span><button class="btn sm primary" id="pNod">+ nod</button></div>${nodHeat(p)}</div>
@@ -21670,7 +21810,7 @@ function openProjectPanel(id){
       <div>exercises skills: ${skills.map(s=>`<span class="chip on click" style="--c:var(--ment)" data-go="#/skills/${s.id}">${esc(s.name)}</span>`).join(' ')||'<span class="faint">—</span>'}</div>
       <div>serves values: ${values.map(v=>`<span class="chip on click" style="--c:${v.color}" data-go="#/value/${v.id}">${esc(v.name)}</span>`).join(' ')||'<span class="faint">—</span>'}</div>
       <div class="faint" style="font-size:.78rem">Derived from entries tagged to this project. The varied interests become facets of one body of work.</div></div></div>
-    <div class="vp-sec"><span class="sc">Nods</span><div class="nodlist">${ns.slice(0,40).map(n=>`<div class="nod"><span class="mono">${fmtDate(n.date,'med')}</span><span>${esc(n.text)}${n.link?` <a href="${esc(n.link)}" target="_blank" rel="noopener" class="mono">↗</a>`:''}${n.image?`<div class="photo" style="width:60px;height:60px;margin-top:4px"><img src="${n.image}"></div>`:''}</span><span class="row" style="gap:6px"><span class="mono">${n.duration||''} · ${'●'.repeat(n.energy)}${'○'.repeat(5-n.energy)}</span><button class="tbtn" data-nodedit="${n.id}">edit</button><button class="del-x inline" data-noddel="${n.id}" title="delete nod">×</button></span></div>`).join('')||'<div class="empty">No nods yet. Show up once.</div>'}</div></div>
+    <div class="vp-sec"><span class="sc">Nods</span><div class="nodlist">${ns.slice(0,40).map(n=>`<div class="nod"><span class="mono">${fmtDate(n.date,'med')}</span><span>${linkify(n.text)}${n.link?` <a class="autolink mono" href="${esc(n.link)}" target="_blank" rel="noopener noreferrer">↗</a>`:''}${n.image?`<div class="photo" style="width:60px;height:60px;margin-top:4px"><img src="${n.image}"></div>`:''}</span><span class="row" style="gap:6px"><span class="mono">${n.duration||''} · ${'●'.repeat(n.energy)}${'○'.repeat(5-n.energy)}</span><button class="tbtn" data-nodedit="${n.id}">edit</button><button class="del-x inline" data-noddel="${n.id}" title="delete nod">×</button></span></div>`).join('')||'<div class="empty">No nods yet. Show up once.</div>'}</div></div>
     ${typeof planLinkedTasksHTML === 'function' ? planLinkedTasksHTML('projects', p.id, {heading:'Tasks in Planning'}) : ''}
     ${(() => { const pieces = es.filter(e => e.type === 'writing');
       if(!pieces.length) return '';
@@ -21726,7 +21866,7 @@ function openNodModal(projectId, after, existing=null){
     <select class="sel" id="nodP">${active.map(p=>`<option value="${p.id}" ${p.id===(existing?.projectId||projectId)?'selected':''}>${esc(p.name)}</option>`).join('')}</select>
     <input class="inp serif-lg" id="nodText" placeholder="What I did — one line" value="${esc(existing?.text||'')}" autofocus>
     <div class="dur-pick">${['15min','30min','1hr','2hr','half-day','full-day'].map(d=>`<button data-dur="${d}">${d}</button>`).join('')}</div>
-    <input class="inp" id="nodLink" placeholder="link (optional) — or drop an image below" value="${esc(existing?.link||'')}">${existing?`<div class="field"><label>Date</label><input class="inp" type="date" id="nodDate" value="${existing.date}"></div>`:''}
+    ${linkBoxHTML(`<input class="inp" id="nodLink" placeholder="link (optional) — or drop an image below" value="${esc(existing?.link||'')}">`, existing?.link || '')}${existing?`<div class="field"><label>Date</label><input class="inp" type="date" id="nodDate" value="${existing.date}"></div>`:''}
     <div class="dropzone" id="nodDrop">drop an image</div><input type="file" id="nodFile" accept="image/*" hidden>
     <div class="energy-pick">${['drained','low','neutral','good','energized'].map((l,i)=>`<button data-en="${i+1}" class="${(existing?existing.energy:3)===i+1?'on':''}">${l}</button>`).join('')}</div>
     <div class="row" style="justify-content:flex-end"><button class="btn primary" id="nodSave">${existing?'Save':'Nod ↵'}</button></div></div>`,'narrow');
@@ -42729,7 +42869,7 @@ function pieceDetailHTML(e){
         `<label class="pcd-check${c.checks[k] ? ' on' : ''}"><button class="pt-box sm" data-pcchk="${k}" role="checkbox" aria-checked="${!!c.checks[k]}">
           <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.2" class="pt-ring"/><path d="M5.6 10.3 L8.7 13.3 L14.4 6.9" class="pt-tick"/></svg></button>
         <span>${esc(label)}</span></label>`).join('')}</div>
-      <input class="inp mono" id="pcUrl" value="${esc(c.url)}" placeholder="https://… once it is up" style="margin-top:8px"></div>` : ''}
+      ${linkBoxHTML(`<input class="inp mono" id="pcUrl" value="${esc(c.url)}" placeholder="https://… once it is up" style="margin-top:8px">`, c.url)}</div>` : ''}
 
     <details class="pd-sec pcd-fold"><summary><span class="k mono">the draft so far</span>
       <span class="mono faint">${w ? w.toLocaleString() + ' words' : 'nothing yet'}</span></summary>
@@ -42753,7 +42893,7 @@ function pieceDetailHTML(e){
       <div>started ${esc(fmtDate((e.createdAt || '').slice(0, 10), 'med'))}</div>
       <div>last touched ${esc(fmtDate((pieceEditedAt(e) || '').slice(0, 10), 'med'))}</div>
       <div>moved to ${esc(st.name.toLowerCase())} ${esc(relDays(daysSince((c.stageAt || '').slice(0, 10))))}</div>
-      ${c.url ? `<div><a href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.url)}</a></div>` : ''}</div>
+      ${c.url ? `<div><a class="autolink" href="${esc(c.url)}" target="_blank" rel="noopener noreferrer">${esc(linkLabel(c.url))}</a></div>` : ''}</div>
     <div class="row" style="gap:8px;margin-top:14px;flex-wrap:wrap">
       ${c.stage === 'idea' ? '<button class="btn sm" id="pcPromote">give it a shape →</button>' : ''}
       <button class="btn sm ghost" id="pcCompost">send to the compost heap</button>
@@ -44736,7 +44876,7 @@ function renderWritingDesk(root, id){
           <div class="stack" style="gap:6px;margin-top:8px">${[...x.versions].reverse().map((v,ri)=>{ const i = x.versions.length-1-ri; return `<div class="rail-item"><div class="row between"><span class="mono">${fmtDate(v.date,'med')} · ${v.words}w</span><span class="row" style="gap:4px"><button class="tbtn" data-vrestore="${i}">restore</button><button class="del-x inline" data-vdel="${i}">×</button></span></div></div>`; }).join('') || '<div class="faint" style="font-size:.78rem">Every "keep this version" click creates a snapshot you can come back to.</div>'}</div></div></details>
         <details style="margin-top:10px"><summary><span class="sc">Publishing pipeline</span></summary><div class="body stack" style="gap:8px">
           <select class="sel" id="pubStatus" style="width:auto">${PUB_STATUSES.map(s=>`<option ${x.publication.status===s?'selected':''}>${s}</option>`).join('')}</select>
-          <input class="inp" id="pubWhere" placeholder="submitted to / published at (a name or URL)" value="${esc(x.publication.where)}">
+          ${linkBoxHTML(`<input class="inp" id="pubWhere" placeholder="submitted to / published at (a name or URL)" value="${esc(x.publication.where)}">`, x.publication.where)}
           <input class="inp" id="pubWhen" type="date" value="${x.publication.when||''}">
         </div></details>
         ${moreSection(`<div class="danger-zone"><span>This deletes the piece, its research pins, and its version history.</span><button class="btn sm ghost danger" id="wDel">Delete this piece</button></div>`)}
@@ -46928,13 +47068,18 @@ function pianoShelfHTML(){
       <button class="pl-mini" id="pnResAdd">＋ resource</button></div>
     <div class="pn-shelf">${pianoState().jazz.resources.map(r => `
       <div class="pn-res" data-pnres="${esc(r.id)}">
-        <input class="pn-res-t serif" data-pnresf="${esc(r.id)}|title" value="${esc(r.title)}" placeholder="title">
+        <!-- the title is the way to it when there is somewhere to go -->
+        ${r.url ? `<a class="pn-res-t serif autolink" href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">${esc(r.title || r.url)}</a>`
+          : `<input class="pn-res-t serif" data-pnresf="${esc(r.id)}|title" value="${esc(r.title)}" placeholder="title">`}
         <span class="pn-res-a"><input data-pnresf="${esc(r.id)}|author" value="${esc(r.author || '')}" placeholder="who wrote it">
           <select data-pnresf="${esc(r.id)}|type">${Object.entries(TYPE).map(([v, n]) =>
             `<option value="${v}" ${r.type === v ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></span>
         <input class="pn-res-f" data-pnresf="${esc(r.id)}|focus" value="${esc(r.focus || '')}" placeholder="what it is">
         <span class="pn-res-b"><b>best for</b>
           <input data-pnresf="${esc(r.id)}|bestFor" value="${esc(r.bestFor || '')}" placeholder="when to reach for it"></span>
+        <span class="pn-res-u">${linkBoxHTML(
+          `<input data-pnresf="${esc(r.id)}|url" value="${esc(r.url || '')}" placeholder="where to find it">`, r.url)}
+          ${r.url ? `<input class="pn-res-rt" data-pnresf="${esc(r.id)}|title" value="${esc(r.title)}" placeholder="title">` : ''}</span>
         <button class="del-x inline" data-pnresdel="${esc(r.id)}">×</button>
       </div>`).join('')}</div>
   </div>`;
@@ -47581,7 +47726,8 @@ function pianoPieceHTML(x){
         <label class="pd-q"><span class="k">time</span><input class="inp" data-pnf="timeSignature" value="${esc(x.timeSignature)}" placeholder="3/4"></label>
         <label class="pd-q"><span class="k">minutes</span><input class="inp mono" type="number" data-pnf="duration" value="${x.duration ?? ''}"></label>
         <label class="pd-q"><span class="k">feels like</span><input class="inp" data-pnf="emotionalTag" value="${esc(x.emotionalTag)}" placeholder="reflective · triumphant"></label>
-        <label class="pd-q"><span class="k">sheet music</span><input class="inp" data-pnf="sheetUrl" value="${esc(x.sheetUrl)}" placeholder="where the score is"></label>
+        <label class="pd-q"><span class="k">sheet music</span>${linkBoxHTML(
+          `<input class="inp" data-pnf="sheetUrl" value="${esc(x.sheetUrl)}" placeholder="where the score is">`, x.sheetUrl)}</label>
         <!-- A piece is rarely only yours: somebody taught it to you, somebody
              sings it with you, somebody asked for it at a wedding. And an
              original belongs to the project it came out of. -->

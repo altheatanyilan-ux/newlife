@@ -216,7 +216,7 @@ function entryExtraHTML(e){
        otherwise the connection exists only in the data */
     const w = typeof quoteWork === 'function' ? quoteWork(e) : null;
     if(w) rows.push(`<button class="qw-chip" data-qwopen="${w.id}" title="open ${esc(w.title||'the work')} in the Library">${esc((MEDIA_KINDS[mediaX(w).kind]||MEDIA_KINDS.book)[0])} ${esc(w.title || 'Untitled')}</button>`);
-    rows.push(`<div class="mono">— ${esc(x.author||'')}${x.source?', <em>'+esc(x.source)+'</em>':''}${x.page?' · '+esc(x.page):''}${x.link?` · <a href="${esc(x.link)}" target="_blank" rel="noopener">↗ link</a>`:''}${x.category?` · ${esc(x.category)}`:''}</div>`);
+    rows.push(`<div class="mono">— ${esc(x.author||'')}${x.source?', <em>'+esc(x.source)+'</em>':''}${x.page?' · '+esc(x.page):''}${x.link?` · <a class="autolink" href="${esc(x.link)}" target="_blank" rel="noopener noreferrer">${esc(linkLabel(x.link, 36))}</a>`:''}${x.category?` · ${esc(x.category)}`:''}</div>`);
     if(x.why) rows.push(`<div><span class="mono">why this caught me</span><br>${esc(x.why)}</div>`); }
   if(e.type==='question'){ const ans = x.answers||[]; const age = daysSince((e.occurredAt||e.createdAt||'').slice(0,10));
     const st = x.status || 'open';

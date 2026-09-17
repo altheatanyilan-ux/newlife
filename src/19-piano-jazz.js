@@ -246,13 +246,18 @@ function pianoShelfHTML(){
       <button class="pl-mini" id="pnResAdd">＋ resource</button></div>
     <div class="pn-shelf">${pianoState().jazz.resources.map(r => `
       <div class="pn-res" data-pnres="${esc(r.id)}">
-        <input class="pn-res-t serif" data-pnresf="${esc(r.id)}|title" value="${esc(r.title)}" placeholder="title">
+        <!-- the title is the way to it when there is somewhere to go -->
+        ${r.url ? `<a class="pn-res-t serif autolink" href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">${esc(r.title || r.url)}</a>`
+          : `<input class="pn-res-t serif" data-pnresf="${esc(r.id)}|title" value="${esc(r.title)}" placeholder="title">`}
         <span class="pn-res-a"><input data-pnresf="${esc(r.id)}|author" value="${esc(r.author || '')}" placeholder="who wrote it">
           <select data-pnresf="${esc(r.id)}|type">${Object.entries(TYPE).map(([v, n]) =>
             `<option value="${v}" ${r.type === v ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></span>
         <input class="pn-res-f" data-pnresf="${esc(r.id)}|focus" value="${esc(r.focus || '')}" placeholder="what it is">
         <span class="pn-res-b"><b>best for</b>
           <input data-pnresf="${esc(r.id)}|bestFor" value="${esc(r.bestFor || '')}" placeholder="when to reach for it"></span>
+        <span class="pn-res-u">${linkBoxHTML(
+          `<input data-pnresf="${esc(r.id)}|url" value="${esc(r.url || '')}" placeholder="where to find it">`, r.url)}
+          ${r.url ? `<input class="pn-res-rt" data-pnresf="${esc(r.id)}|title" value="${esc(r.title)}" placeholder="title">` : ''}</span>
         <button class="del-x inline" data-pnresdel="${esc(r.id)}">×</button>
       </div>`).join('')}</div>
   </div>`;

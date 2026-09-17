@@ -7769,5 +7769,37 @@ html[data-theme="light"] .wk-sleep.is-guess{background-image:repeating-linear-gr
   .pn-wheelwrap{justify-content:center}
 }
 
+
+.pn-res-u{display:flex;gap:6px;align-items:center;margin-top:4px}
+.pn-res-rt{flex:0 1 40%}
+a.pn-res-t{text-decoration:none}
+a.pn-res-t:hover{text-decoration:underline}
+/* ============ AN ADDRESS IS A DOOR ============
+   A link reads as one wherever it appears — underlined on the diagonal so it
+   is legible against the paper grounds, and carrying the ↗ that says it
+   leaves. The mark is generous enough to hit on a phone. */
+.autolink{color:var(--terra);text-decoration:underline;text-decoration-thickness:1px;
+  text-underline-offset:2px;text-decoration-color:color-mix(in srgb,var(--terra) 45%,transparent);
+  word-break:break-word;transition:text-decoration-color .2s var(--ease),color .2s var(--ease)}
+.autolink:hover,.autolink:focus-visible{text-decoration-color:var(--terra)}
+.autolink::after{content:'↗';font-size:.78em;opacity:.55;margin-left:2px;text-decoration:none;display:inline-block}
+/* inside a run of prose the arrow on every one is a rash, so only standalone
+   fields and list rows wear it */
+.body .autolink::after,.prose .autolink::after,.quote .autolink::after{content:none}
+.ed .autolink{display:inline}
+/* the small way back into a field that is nothing but a link */
+.ed-pen{margin-left:6px;font-size:.72em;opacity:0;cursor:text;transition:opacity .16s var(--ease)}
+.ed:hover .ed-pen,.ed:focus-within .ed-pen,.ed:focus .ed-pen{opacity:.55}
+.ed-pen:hover{opacity:1}
+@media (hover:none){.ed-pen{opacity:.5}}
+/* a box you type an address into, and the way out of it */
+.linkbox{display:inline-flex;align-items:center;gap:4px;width:100%;min-width:0}
+.linkbox > input,.linkbox > textarea{flex:1;min-width:0}
+.linkgo{flex:none;border:1px solid var(--line);background:transparent;color:var(--text);
+  border-radius:6px;cursor:pointer;font-size:.8rem;line-height:1;padding:5px 7px;opacity:.35;
+  transition:opacity .2s var(--ease),border-color .2s var(--ease),color .2s var(--ease)}
+.linkbox.has-link .linkgo{opacity:1;border-color:color-mix(in srgb,var(--terra) 40%,var(--line));color:var(--terra)}
+.linkgo:hover{border-color:var(--terra);color:var(--terra)}
+
 </style>
 </head>

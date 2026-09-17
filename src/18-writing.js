@@ -382,7 +382,7 @@ function renderWritingDesk(root, id){
           <div class="stack" style="gap:6px;margin-top:8px">${[...x.versions].reverse().map((v,ri)=>{ const i = x.versions.length-1-ri; return `<div class="rail-item"><div class="row between"><span class="mono">${fmtDate(v.date,'med')} · ${v.words}w</span><span class="row" style="gap:4px"><button class="tbtn" data-vrestore="${i}">restore</button><button class="del-x inline" data-vdel="${i}">×</button></span></div></div>`; }).join('') || '<div class="faint" style="font-size:.78rem">Every "keep this version" click creates a snapshot you can come back to.</div>'}</div></div></details>
         <details style="margin-top:10px"><summary><span class="sc">Publishing pipeline</span></summary><div class="body stack" style="gap:8px">
           <select class="sel" id="pubStatus" style="width:auto">${PUB_STATUSES.map(s=>`<option ${x.publication.status===s?'selected':''}>${s}</option>`).join('')}</select>
-          <input class="inp" id="pubWhere" placeholder="submitted to / published at (a name or URL)" value="${esc(x.publication.where)}">
+          ${linkBoxHTML(`<input class="inp" id="pubWhere" placeholder="submitted to / published at (a name or URL)" value="${esc(x.publication.where)}">`, x.publication.where)}
           <input class="inp" id="pubWhen" type="date" value="${x.publication.when||''}">
         </div></details>
         ${moreSection(`<div class="danger-zone"><span>This deletes the piece, its research pins, and its version history.</span><button class="btn sm ghost danger" id="wDel">Delete this piece</button></div>`)}

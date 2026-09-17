@@ -203,7 +203,8 @@ function pianoPieceHTML(x){
         <label class="pd-q"><span class="k">time</span><input class="inp" data-pnf="timeSignature" value="${esc(x.timeSignature)}" placeholder="3/4"></label>
         <label class="pd-q"><span class="k">minutes</span><input class="inp mono" type="number" data-pnf="duration" value="${x.duration ?? ''}"></label>
         <label class="pd-q"><span class="k">feels like</span><input class="inp" data-pnf="emotionalTag" value="${esc(x.emotionalTag)}" placeholder="reflective · triumphant"></label>
-        <label class="pd-q"><span class="k">sheet music</span><input class="inp" data-pnf="sheetUrl" value="${esc(x.sheetUrl)}" placeholder="where the score is"></label>
+        <label class="pd-q"><span class="k">sheet music</span>${linkBoxHTML(
+          `<input class="inp" data-pnf="sheetUrl" value="${esc(x.sheetUrl)}" placeholder="where the score is">`, x.sheetUrl)}</label>
         <!-- A piece is rarely only yours: somebody taught it to you, somebody
              sings it with you, somebody asked for it at a wedding. And an
              original belongs to the project it came out of. -->

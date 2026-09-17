@@ -113,7 +113,7 @@ function pieceDetailHTML(e){
         `<label class="pcd-check${c.checks[k] ? ' on' : ''}"><button class="pt-box sm" data-pcchk="${k}" role="checkbox" aria-checked="${!!c.checks[k]}">
           <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.2" class="pt-ring"/><path d="M5.6 10.3 L8.7 13.3 L14.4 6.9" class="pt-tick"/></svg></button>
         <span>${esc(label)}</span></label>`).join('')}</div>
-      <input class="inp mono" id="pcUrl" value="${esc(c.url)}" placeholder="https://… once it is up" style="margin-top:8px"></div>` : ''}
+      ${linkBoxHTML(`<input class="inp mono" id="pcUrl" value="${esc(c.url)}" placeholder="https://… once it is up" style="margin-top:8px">`, c.url)}</div>` : ''}
 
     <details class="pd-sec pcd-fold"><summary><span class="k mono">the draft so far</span>
       <span class="mono faint">${w ? w.toLocaleString() + ' words' : 'nothing yet'}</span></summary>
@@ -137,7 +137,7 @@ function pieceDetailHTML(e){
       <div>started ${esc(fmtDate((e.createdAt || '').slice(0, 10), 'med'))}</div>
       <div>last touched ${esc(fmtDate((pieceEditedAt(e) || '').slice(0, 10), 'med'))}</div>
       <div>moved to ${esc(st.name.toLowerCase())} ${esc(relDays(daysSince((c.stageAt || '').slice(0, 10))))}</div>
-      ${c.url ? `<div><a href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.url)}</a></div>` : ''}</div>
+      ${c.url ? `<div><a class="autolink" href="${esc(c.url)}" target="_blank" rel="noopener noreferrer">${esc(linkLabel(c.url))}</a></div>` : ''}</div>
     <div class="row" style="gap:8px;margin-top:14px;flex-wrap:wrap">
       ${c.stage === 'idea' ? '<button class="btn sm" id="pcPromote">give it a shape →</button>' : ''}
       <button class="btn sm ghost" id="pcCompost">send to the compost heap</button>
