@@ -64,14 +64,20 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
       e && e.rows.length === 1 && e.rows[0] === 'Post the parcel', JSON.stringify(e));
   yes('  each group says how many', w?.count === 2 && e?.count === 1, JSON.stringify({w:w?.count, e:e?.count}));
 
-  console.log('\n3. ticking one parks it, and the dated one is left alone');
+  /* Choosing a task for tomorrow's plan is saying when you will do it, not
+     when it is owed — so it is the do date that is written, and a task that
+     already had a deadline keeps it. */
+  console.log('\n3. ticking one plans it, and the dated one is left alone');
   await p.evaluate(i => document.querySelector(`.modal [data-pick2="${i}"]`).click(), set.ids.w1);
   await p.waitForTimeout(400);
   await next(); await next();   // through habits, to the last step
   await p.click('#pmNext'); await p.waitForTimeout(1200);
   const tomorrow = await p.evaluate(() => addDays(today(), 1));
-  is('the ticked task is given the day', await p.evaluate(i => byId(S.tasks, i).day, set.ids.w1), tomorrow);
-  is('  the unticked one keeps no day', await p.evaluate(i => byId(S.tasks, i).day, set.ids.w2), '');
+  is('the ticked task is set aside for the day', await p.evaluate(i => byId(S.tasks, i).doDay, set.ids.w1), tomorrow);
+  is('  without inventing a deadline for it', await p.evaluate(i => byId(S.tasks, i).day, set.ids.w1), '');
+  yes('  the unticked one is set aside for nothing',
+    !(await p.evaluate(i => byId(S.tasks, i).doDay, set.ids.w2)));
+  is('  and keeps no deadline either', await p.evaluate(i => byId(S.tasks, i).day, set.ids.w2), '');
   is('  and the already-dated one still has the day it had',
      await p.evaluate(i => byId(S.tasks, i).day, set.ids.dated), tomorrow);
 
