@@ -7852,6 +7852,25 @@ a.pn-res-t:hover{text-decoration:underline}
   padding:3px 8px;color:var(--text);cursor:pointer;font-size:.8rem;opacity:.85}
 .sd-kid[disabled]{opacity:.45;cursor:default}
 .sd-kid:hover:not([disabled]){background:color-mix(in srgb,var(--c) 8%,transparent)}
+.sd-deck{position:relative}
+.sd-gear{position:absolute;top:6px;right:7px;z-index:2;background:transparent;border:none;cursor:pointer;
+  font-size:.8rem;line-height:1;padding:3px 5px;border-radius:5px;color:var(--text);
+  opacity:0;transition:opacity .16s var(--ease)}
+.sd-deck:hover .sd-gear,.sd-gear:focus-visible{opacity:.6}
+.sd-gear:hover{opacity:1;background:color-mix(in srgb,var(--c) 14%,transparent)}
+@media (hover:none){.sd-gear{opacity:.45}}
+.sd-kidrow{display:flex;align-items:center;gap:2px}
+.sd-kidrow .sd-kid{flex:1;min-width:0}
+.sd-kidrow .sd-gear{position:static;opacity:0}
+.sd-kidrow:hover .sd-gear{opacity:.6}
+.sd-deck-rule{display:block;margin-top:3px;font-size:.66rem;opacity:.75;color:var(--c)}
+.sd-deck-foot{margin-top:12px;font-size:.72rem;opacity:.6}
+/* nine inks rather than a colour wheel */
+.sd-swatches{display:flex;gap:7px;flex-wrap:wrap;margin-top:5px}
+.sd-swatch{width:26px;height:26px;border-radius:50%;background:var(--c);cursor:pointer;
+  border:2px solid transparent;box-shadow:0 0 0 1px var(--line);transition:transform .14s var(--ease)}
+.sd-swatch:hover{transform:scale(1.12)}
+.sd-swatch.on{border-color:var(--surface);box-shadow:0 0 0 2px var(--c)}
 .sd-newdeck{cursor:pointer;align-items:flex-start;justify-content:center;padding:18px 15px;gap:6px;
   border-style:dashed;background:transparent;color:var(--text);opacity:.7}
 .sd-newdeck:hover{opacity:1;border-color:var(--page-accent)}

@@ -62,6 +62,25 @@ const STUDY_PARTINGS = [
   ['You do not rise to the level of your goals. You fall to the level of your systems.', 'Clear'],
   ['What is retained is what you had to work to understand.', 'Laufer & Hulstijn']];
 
+/* Nine inks off the house's own palette. A colour picker that offers sixteen
+   million of them is a colour picker that produces one deck in magenta: these
+   are the ones that sit together on a shelf. */
+const STUDY_DECK_COLORS = [
+  ['#8a6a5e', 'Clay'],    ['#c4484e', 'Vermilion'], ['#7f6a8e', 'Iris'],
+  ['#6b7f8e', 'Slate'],   ['#7f916a', 'Moss'],      ['#c9a96e', 'Brass'],
+  ['#5c7c8a', 'Teal'],    ['#b0705e', 'Terracotta'],['#6e6e78', 'Graphite']];
+/* What a deck may decide for itself. Each of these is blank by default and
+   blank means "whatever the room says" — an override you have to set on every
+   deck before the room works is not an override, it is a chore. */
+const STUDY_ORDERS = [
+  ['due_first', 'Longest overdue first'],
+  ['new_first', 'New ones first'],
+  ['mixed',     'Shuffled']];
+const STUDY_DECK_RULES = [
+  ['newPerDay',     'new cards a day',  0,  200,  'newPerDay'],
+  ['reviewsPerDay', 'reviews a day',    0,  999,  'reviewsPerDay'],
+  ['graduateAt',    'graduates past',   30, 3650, 'graduateAt']];
+
 /* ---------- storage ----------
    Built on first use, like the planner's and the studio's: a room nobody has
    opened costs nothing, and a save from an older version cannot be missing a
@@ -70,25 +89,83 @@ function studyState(){
   if(!S.study) S.study = {};
   const st = S.study;
   st.cards = Array.isArray(st.cards) ? st.cards : [];
-  st.decks = Array.isArray(st.decks) && st.decks.length ? st.decks : STUDY_DECKS_DEFAULT();
-  /* a default deck the player deleted in an older version comes back, because
-     its auto-sources point at it by name and cards would land nowhere */
-  STUDY_DECKS_DEFAULT().forEach(d => { if(!st.decks.some(x => x.id === d.id)) st.decks.push(d); });
+  st.decks = Array.isArray(st.decks) ? st.decks : STUDY_DECKS_DEFAULT();
+  /* Decks that were deliberately thrown away. Without this list a deck the
+     house ships would come back on the next load, which is the most annoying
+     bug an instrument can have: you delete a thing, it returns, and you learn
+     not to trust the delete button. */
+  st.retired = Array.isArray(st.retired) ? st.retired : [];
+  /* A save from before any of this has no decks at all rather than an empty
+     shelf, so the starting set arrives once — and only once. */
+  if(!st.decks.length && !st.retired.length) st.decks = STUDY_DECKS_DEFAULT();
+  STUDY_DECKS_DEFAULT().forEach(d => {
+    if(st.retired.includes(d.id)) return;
+    if(!st.decks.some(x => x.id === d.id)) st.decks.push(d); });
+  /* An empty shelf is not a state the room can work in — a card has to be
+     filed somewhere. You cannot get here by throwing decks away (the last one
+     will not go), so this is for a save that arrives broken. */
+  if(!st.decks.length) st.decks.push({id:uid(), name:'Cards', emoji:'📗',
+    about:'Everything, until there is a reason to sort it.'});
   /* The two piano decks were taken out. A save from before that still holds
      them and the cards filed in them, and neither should simply vanish: the
-     decks go, the cards move to the first one. A deck being retired is not a
-     reason to lose what somebody wrote. */
+     decks go, the cards move to whatever is first. A deck being retired is not
+     a reason to lose what somebody wrote. */
   ['jazz', 'repertoire'].forEach(id => {
     if(!st.decks.some(d => d.id === id)) return;
-    st.cards.forEach(c => { if(c.deckId === id) c.deckId = 'mindsets'; });
+    const home = studyHomeId(st.decks.filter(d => d.id !== 'jazz' && d.id !== 'repertoire'));
+    st.cards.forEach(c => { if(c.deckId === id) c.deckId = home; });
     const at = st.decks.findIndex(d => d.id === id);
     if(at > -1) st.decks.splice(at, 1);
   });
   st.settings = Object.assign({newPerDay:20, reviewsPerDay:100, graduateAt:180,
     clozeInput:'type', showPreview:true, order:'due_first'}, st.settings || {});
   st.stats = Object.assign({reviews:0, streak:0, longest:0, lastStudied:null, perDay:{}}, st.stats || {});
+  st.decks.forEach(studyDeckDefaults);
+  /* a deck whose parent has been thrown away is not a sub-deck of nothing —
+     it comes up to the top rather than disappearing off the shelf */
+  st.decks.forEach(d => { if(d.parentId && !st.decks.some(x => x.id === d.parentId)) d.parentId = null; });
   st.cards.forEach(studyCardDefaults);
+  /* A card filed into a deck that is no longer on the shelf is a card you
+     would never see again — it is due forever in a place nothing looks. */
+  const shelf = new Set(st.decks.map(d => d.id));
+  const home = studyHomeId(st.decks);
+  st.cards.forEach(c => { if(!shelf.has(c.deckId)) c.deckId = home; });
   return st;
+}
+function studyDeckDefaults(d){
+  d.id = d.id || uid();
+  d.name = d.name || 'Untitled';
+  d.emoji = d.emoji || '📗';
+  d.color = /^#[0-9a-f]{3,8}$/i.test(d.color || '') ? d.color : STUDY_DECK_COLORS[0][0];
+  d.about = d.about || '';
+  d.parentId = d.parentId || null;
+  /* Blank, not zero. Zero is a real answer to "how many new cards a day" and
+     it has to stay tellable from "you never said". */
+  STUDY_DECK_RULES.forEach(([k]) => { d[k] = d[k] === '' || d[k] == null ? null : +d[k]; });
+  d.order = ['due_first','new_first','mixed'].includes(d.order) ? d.order : null;
+  return d;
+}
+/* Somewhere for a homeless card to land: the deck the room ships first if it
+   is still on the shelf, otherwise whatever is. A card filed into a deck that
+   does not exist is a card you will never see again, which is worse than one
+   filed in the wrong place. Takes the list rather than reading it, so that
+   studyState can call it while it is still building. */
+function studyHomeId(decks){
+  /* never studyState() — this is called from inside it while the shelf is
+     still being put together, and a round trip through the builder would not
+     come back */
+  const list = decks && decks.length ? decks
+    : ((S.study && Array.isArray(S.study.decks)) ? S.study.decks : []);
+  const d = list.find(x => x.id === 'mindsets') || list.find(x => !x.parentId) || list[0];
+  return d ? d.id : null;
+}
+/* What this deck is actually run by: its own answer where it gave one, the
+   room's where it did not. */
+function studyRule(deckId, key){
+  const st = studyState();
+  const d = byId(st.decks, deckId);
+  const own = d ? d[key] : null;
+  return own == null ? st.settings[key] : own;
 }
 function studyCardDefaults(c){
   c.id = c.id || uid();
@@ -99,7 +176,7 @@ function studyCardDefaults(c){
   c.clozeOptions = Array.isArray(c.clozeOptions) ? c.clozeOptions : null;
   c.imageData = c.imageData || null;
   c.reference = c.reference || null;
-  c.deckId = c.deckId || 'mindsets';
+  c.deckId = c.deckId || studyHomeId() || 'mindsets';
   c.tags = Array.isArray(c.tags) ? c.tags : [];
   c.sourceType = c.sourceType || null;
   c.sourceId = c.sourceId || null;
@@ -136,6 +213,38 @@ function studyDeckIds(id){
   return [id, ...kids];
 }
 const studyTopDecks = () => studyDecks().filter(d => !d.parentId);
+
+/* ---------- throwing a deck away ----------
+   Any deck can go, the ones the room shipped included. Two things make that
+   safe rather than frightening. The cards outlive it: they are moved to a deck
+   you name, and only deleted if you say so in as many words. And the removal
+   sticks — a deck the house ships is remembered as retired, because a delete
+   that quietly undoes itself on the next load is worse than no delete at all.
+
+   The one refusal is the last deck. A card has to be filed somewhere. */
+function removeStudyDeck(id, opts = {}){
+  const st = studyState();
+  const d = byId(st.decks, id);
+  if(!d) return {ok:false, why:'no such deck'};
+  const ids = studyDeckIds(id);                       // it and anything under it
+  if(ids.length >= st.decks.length) return {ok:false, why:'that is every deck you have'};
+  const doomed = st.cards.filter(c => ids.includes(c.deckId));
+  let moved = 0;
+  if(opts.deleteCards){
+    st.cards = st.cards.filter(c => !ids.includes(c.deckId));
+  } else {
+    const rest = st.decks.filter(x => !ids.includes(x.id));
+    const to = (opts.moveTo && byId(rest, opts.moveTo)) ? opts.moveTo : studyHomeId(rest);
+    doomed.forEach(c => { c.deckId = to; });
+    moved = doomed.length;
+  }
+  st.decks = st.decks.filter(x => !ids.includes(x.id));
+  /* only the shipped ones need remembering: a deck you made yourself will not
+     be handed back to you by anything */
+  ids.forEach(x => { if(STUDY_DECKS_DEFAULT().some(y => y.id === x) && !st.retired.includes(x)) st.retired.push(x); });
+  saveNow();
+  return {ok:true, removed:ids.length, moved, deleted: opts.deleteCards ? doomed.length : 0};
+}
 
 /* ---------- SM-2 ----------
    Show a card, ask how it went, let the answer decide when you see it next.
@@ -200,7 +309,7 @@ function studyAnswer(id, key){
   const st = studyState();
   /* Graduation is not mastery, it is "this is far enough out that a daily
      queue is the wrong place for it". It can be brought back. */
-  if(c.interval >= st.settings.graduateAt && c.status === 'active') c.status = 'graduated';
+  if(c.interval >= studyRule(c.deckId, 'graduateAt') && c.status === 'active') c.status = 'graduated';
   st.stats.reviews = (+st.stats.reviews || 0) + 1;
   const d = today();
   st.stats.perDay[d] = (+st.stats.perDay[d] || 0) + 1;
@@ -249,10 +358,20 @@ function studyQueue(deckId){
   const due = studyDue(deckId);
   const fresh = due.filter(c => !c.reps);
   const seen = due.filter(c => c.reps);
-  const take = (list, n) => n > 0 ? list.slice(0, n) : list;
-  const q = take(seen, st.settings.reviewsPerDay).concat(take(fresh, st.settings.newPerDay));
-  if(st.settings.order === 'new_first') q.reverse();
-  else if(st.settings.order === 'mixed') studyShuffle(q);
+  /* Zero is zero. It used to mean "no limit", which reads fine in a config
+     file and not at all in a box labelled "new cards a day" — and it made the
+     one thing a per-deck limit is for, pausing the new cards out of a deck
+     you are ahead on, impossible to say. Blank is how you say "no limit", and
+     blank is only offerable per deck, because the room has to say something. */
+  const take = (list, n) => n == null ? list : list.slice(0, Math.max(0, +n || 0));
+  /* Sitting down with one deck is run by that deck's own rules; sitting down
+     with everything is run by the room's, because a mixed queue cannot obey
+     four different daily limits at once without one of them being a lie. */
+  const lim = k => deckId ? studyRule(deckId, k) : st.settings[k];
+  const q = take(seen, lim('reviewsPerDay')).concat(take(fresh, lim('newPerDay')));
+  const order = (deckId && (byId(st.decks, deckId) || {}).order) || st.settings.order;
+  if(order === 'new_first') q.reverse();
+  else if(order === 'mixed') studyShuffle(q);
   else q.sort((a, b) => (a.due || '').localeCompare(b.due || ''));
   return q;
 }

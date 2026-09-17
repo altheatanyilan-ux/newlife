@@ -32,7 +32,7 @@ const STUDY_SOURCES = {
    disappears, which is worse than one filed in the wrong place. */
 function studySourceDeck(t){
   const want = (STUDY_SOURCES[t] || STUDY_SOURCES.manual).deck;
-  return (typeof studyDeck === 'function' && studyDeck(want)) ? want : 'mindsets';
+  return (typeof studyDeck === 'function' && studyDeck(want)) ? want : studyHomeId();
 }
 
 /* The button. It is small and it is everywhere, which only works because it

@@ -146,7 +146,7 @@ function studyImportApply(parsed, opts = {}){
       deckId = d.id;
     }
   }
-  if(!deckId || !studyDeck(deckId)) deckId = 'mindsets';
+  if(!deckId || !studyDeck(deckId)) deckId = studyHomeId();
   /* every imported card says so and says when, because six months from now
      "where did this come from" is the only question you will have about it */
   const say = `Imported ${fmtDate(today(), 'med')}`;

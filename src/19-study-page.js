@@ -37,6 +37,7 @@ function studyDecksHTML(){
       const kids = studyDecks().filter(k => k.parentId === d.id);
       const pct = n.total ? Math.round(n.graduated / n.total * 100) : 0;
       return `<div class="sd-deck${n.due ? ' due' : ''}" style="--c:${esc(d.color)}">
+        <button class="sd-gear" data-sdgear="${esc(d.id)}" title="what this deck is and how it is run">⚙</button>
         <button class="sd-deck-face" data-sddeck="${esc(d.id)}" ${n.due ? '' : 'disabled'}
           title="${n.due ? 'study this deck' : 'nothing due in here'}">
           <span class="sd-deck-e">${esc(d.emoji)}</span>
@@ -45,9 +46,12 @@ function studyDecksHTML(){
           <span class="sd-deck-bar"><i style="width:${pct}%"></i></span>
         </button>
         ${kids.length ? `<div class="sd-kids">${kids.map(k => { const kn = studyDeckCount(k.id);
-          return `<button class="sd-kid" data-sddeck="${esc(k.id)}" ${kn.due ? '' : 'disabled'}>
-            ${esc(k.emoji)} ${esc(k.name)} <span class="mono">${kn.due}/${kn.total}</span></button>`; }).join('')}</div>` : ''}
-        <div class="sd-deck-about">${esc(d.about || '')}</div>
+          return `<div class="sd-kidrow">
+            <button class="sd-kid" data-sddeck="${esc(k.id)}" ${kn.due ? '' : 'disabled'}>
+              ${esc(k.emoji)} ${esc(k.name)} <span class="mono">${kn.due}/${kn.total}</span></button>
+            <button class="sd-gear sm" data-sdgear="${esc(k.id)}" title="open this one">⚙</button>
+          </div>`; }).join('')}</div>` : ''}
+        <div class="sd-deck-about">${esc(d.about || '')}${studyDeckRuleSay(d)}</div>
       </div>`; }).join('')}
       <button class="sd-deck sd-newdeck" id="sdNewDeck"><span class="sd-deck-e">＋</span>
         <span class="sd-deck-n serif">A deck of your own</span></button>
@@ -58,6 +62,23 @@ function studyDecksHTML(){
     <div class="sd-stats-line mono">${studyCards().filter(c => c.status !== 'inbox').length} cards · ${
       studyCards().filter(c => studyMaturity(c) === 'mature' || c.status === 'graduated').length} matured · ${
       studyState().stats.reviews} reviews all told</div>`;
+}
+
+/* A deck that runs by its own rules says so on its face. An override you
+   cannot see from the shelf is an override you forget you set, and then the
+   deck that stopped giving you new cards is a mystery rather than a decision. */
+function studyDeckRuleSay(d){
+  const st = studyState();
+  const said = [];
+  if(d.newPerDay != null && d.newPerDay !== st.settings.newPerDay)
+    said.push(d.newPerDay === 0 ? 'no new cards' : `${d.newPerDay} new a day`);
+  if(d.reviewsPerDay != null && d.reviewsPerDay !== st.settings.reviewsPerDay)
+    said.push(`${d.reviewsPerDay} reviews a day`);
+  if(d.graduateAt != null && d.graduateAt !== st.settings.graduateAt)
+    said.push(`graduates past ${d.graduateAt}d`);
+  if(d.order && d.order !== st.settings.order)
+    said.push((STUDY_ORDERS.find(o => o[0] === d.order) || [,''])[1].toLowerCase());
+  return said.length ? `<span class="sd-deck-rule mono">${esc(said.join(' · '))}</span>` : '';
 }
 
 /* Cards the house suggested. They wait here until they are looked at, because
@@ -171,7 +192,7 @@ function studyStatsHTML(){
         <div class="sd-bar-row"><span class="sd-bar-n">${esc(name)}</span>
           <span class="bar" style="--c:${col}"><i style="width:${Math.round(buckets[k] / total * 100)}%"></i></span>
           <span class="mono">${buckets[k]}</span></div>`).join('')}</div>
-      <p class="muted" style="font-size:.78rem;margin-top:8px">A card is mature once it is on a month's cycle, and it graduates out of the queue past ${st.settings.graduateAt} days. Graduating is not mastery — it is the point at which a daily list is the wrong place for it.</p>
+      <p class="muted" style="font-size:.78rem;margin-top:8px">A card is mature once it is on a month's cycle, and it graduates out of the queue past ${st.settings.graduateAt} days — unless the deck it is in says otherwise. Graduating is not mastery; it is the point at which a daily list is the wrong place for it.</p>
     </div>
     <div class="card no-tilt span2">
       <div class="k">Ninety days</div>
@@ -181,6 +202,7 @@ function studyStatsHTML(){
     </div>
     <div class="card no-tilt span2">
       <div class="k">How it is set up</div>
+      <p class="muted" style="font-size:.78rem">What every deck does unless it says otherwise. A deck of its own mind is set from its own ⚙.</p>
       <div class="sd-settings">
         <label class="pd-q"><span class="k">new cards a day</span><input class="inp mono" type="number" id="sdSetNew" min="0" max="200" value="${st.settings.newPerDay}"></label>
         <label class="pd-q"><span class="k">reviews a day</span><input class="inp mono" type="number" id="sdSetRev" min="0" max="999" value="${st.settings.reviewsPerDay}"></label>
@@ -189,8 +211,8 @@ function studyStatsHTML(){
           <option value="type" ${st.settings.clozeInput === 'type' ? 'selected' : ''}>typed</option>
           <option value="multiple_choice" ${st.settings.clozeInput === 'multiple_choice' ? 'selected' : ''}>chosen</option></select></label>
         <label class="pd-q"><span class="k">order</span><select class="sel" id="sdSetOrder">
-          ${[['due_first','longest overdue first'],['new_first','new ones first'],['mixed','shuffled']].map(([v, n]) =>
-            `<option value="${v}" ${st.settings.order === v ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label>
+          ${STUDY_ORDERS.map(([v, n]) =>
+            `<option value="${v}" ${st.settings.order === v ? 'selected' : ''}>${esc(n.toLowerCase())}</option>`).join('')}</select></label>
         <label class="pd-q"><span class="k">show what each grade would do</span>
           <input type="checkbox" id="sdSetPrev" ${st.settings.showPreview ? 'checked' : ''}></label>
       </div>
@@ -206,6 +228,8 @@ function bindStudyPage(root){
   $$('[data-sddeck]', root).forEach(b => b.onclick = () => startStudySession(b.dataset.sddeck));
   const nd = root.querySelector('#sdNewDeck'); if(nd) nd.onclick = () => openDeckModal();
   const im = root.querySelector('#sdImport'); if(im) im.onclick = () => openStudyImport();
+  $$('[data-sdgear]', root).forEach(b => b.onclick = ev => { ev.stopPropagation();
+    openDeckModal(studyDeck(b.dataset.sdgear)); });
   const add = root.querySelector('#sdAdd'); if(add) add.onclick = () => openRememberModal({sourceType:'manual'});
 
   /* the inbox */
@@ -283,37 +307,129 @@ function openCardEditor(id){
   };
   return m;
 }
+/* ---------- a deck, and everything you can decide about one ----------
+   The four scheduling questions are per-deck and blank by default, and blank
+   means "whatever the room says". That is the whole trick: a deck of two
+   hundred kanji and a deck of eleven mental models want completely different
+   daily limits, and asking you to set both before either works would be a
+   form to fill in rather than a choice to make. So the placeholders show what
+   the room currently does, and you override the one deck that needs it. */
 function openDeckModal(existing){
-  const d = existing || {id:uid(), name:'', emoji:'📗', color:'#8a6a5e', about:'', parentId:null, isDefault:false};
-  const m = openModal(`<h2>${existing ? 'The deck' : 'A deck of your own'}</h2>
+  const st = studyState();
+  const d = existing || {id:uid(), name:'', emoji:'\u{1F4D7}', color:STUDY_DECK_COLORS[0][0],
+    about:'', parentId:null, isDefault:false, newPerDay:null, reviewsPerDay:null,
+    graduateAt:null, order:null};
+  const n = existing ? studyDeckCount(d.id) : {total:0, due:0};
+  const kids = existing ? studyDecks().filter(k => k.parentId === d.id) : [];
+  const m = openModal(`<h2>${existing ? esc(d.emoji + ' ' + d.name) : 'A deck of your own'}</h2>
     <div class="grid c2" style="gap:10px">
-      <label class="pd-q"><span class="k">name</span><input class="inp serif-lg" id="dkName" value="${esc(d.name)}" autofocus placeholder="Law School · Recipes"></label>
+      <label class="pd-q"><span class="k">name</span><input class="inp serif-lg" id="dkName" value="${esc(d.name)}" autofocus placeholder="Law School \u00b7 Recipes"></label>
       <label class="pd-q"><span class="k">a mark for it</span><input class="inp" id="dkEmoji" value="${esc(d.emoji)}" maxlength="4"></label>
     </div>
     <label class="pd-q" style="margin-top:10px"><span class="k">what goes in it</span>
       <input class="inp" id="dkAbout" value="${esc(d.about)}" placeholder="one line"></label>
-    <label class="pd-q" style="margin-top:10px"><span class="k">inside</span><select class="sel" id="dkParent">
-      <option value="">— on its own —</option>
-      ${studyTopDecks().filter(x => x.id !== d.id).map(x => `<option value="${esc(x.id)}" ${d.parentId === x.id ? 'selected' : ''}>${esc(x.emoji)} ${esc(x.name)}</option>`).join('')}</select></label>
+    <div class="pd-q" style="margin-top:10px"><span class="k">its colour</span>
+      <div class="sd-swatches">${STUDY_DECK_COLORS.map(([c, name]) =>
+        `<button class="sd-swatch${d.color === c ? ' on' : ''}" data-dkcol="${c}" style="--c:${c}"
+          title="${esc(name)}" aria-label="${esc(name)}"></button>`).join('')}</div></div>
+    <!-- a shelf two deep and no deeper: a deck already holding sub-decks
+         cannot be filed inside a third, because nothing below that level would
+         be counted, studied or found again -->
+    <label class="pd-q" style="margin-top:10px"><span class="k">inside</span>
+      <select class="sel" id="dkParent" ${kids.length ? 'disabled' : ''}>
+        <option value="">\u2014 on its own \u2014</option>
+        ${studyTopDecks().filter(x => x.id !== d.id).map(x => `<option value="${esc(x.id)}" ${d.parentId === x.id ? 'selected' : ''}>${esc(x.emoji)} ${esc(x.name)}</option>`).join('')}</select>
+      ${kids.length ? `<span class="faint mono" style="font-size:.7rem">it holds ${kids.length} sub-deck${kids.length === 1 ? '' : 's'}, so it stays at the top</span>` : ''}</label>
+
+    <details class="sd-imp-fold" style="margin-top:14px">
+      <summary><span class="sc">how this deck is run</span></summary>
+      <div class="sd-imp-body">
+        <p class="muted" style="font-size:.8rem">Leave any of them blank and the deck follows the room. A deck of two hundred kanji and a deck of eleven mental models want different days.</p>
+        <div class="sd-settings">
+          ${STUDY_DECK_RULES.map(([k, label, lo, hi]) => `
+            <label class="pd-q"><span class="k">${esc(label)}</span>
+              <input class="inp mono" type="number" id="dk_${k}" min="${lo}" max="${hi}"
+                value="${d[k] == null ? '' : d[k]}" placeholder="${st.settings[k]}"></label>`).join('')}
+          <label class="pd-q"><span class="k">order</span><select class="sel" id="dkOrder">
+            <option value="">as the room does</option>
+            ${STUDY_ORDERS.map(([v, name]) =>
+              `<option value="${v}" ${d.order === v ? 'selected' : ''}>${esc(name.toLowerCase())}</option>`).join('')}</select></label>
+        </div>
+      </div>
+    </details>
+
+    ${existing ? `<div class="sd-deck-foot mono">${n.total} card${n.total === 1 ? '' : 's'} in it${
+      d.isDefault ? ' \u00b7 one the room came with' : ''}</div>` : ''}
     <div class="row" style="justify-content:flex-end;margin-top:14px;gap:8px">
-      ${existing && !d.isDefault ? `<button class="btn sm ghost danger" id="dkDel">Delete</button><span class="grow"></span>` : ''}
-      <button class="btn primary" id="dkSave">${existing ? 'Save' : 'Make it'}</button></div>`, 'narrow');
+      ${existing ? `<button class="btn sm ghost danger" id="dkDel">Throw it away</button><span class="grow"></span>` : ''}
+      <button class="btn primary" id="dkSave">${existing ? 'Save' : 'Make it'}</button></div>`, 'narrow sd-modal');
+
+  let color = d.color;
+  $$('[data-dkcol]', m).forEach(b => b.onclick = () => { color = b.dataset.dkcol;
+    $$('[data-dkcol]', m).forEach(x => x.classList.toggle('on', x === b)); });
+
   m.querySelector('#dkSave').onclick = () => {
     const name = m.querySelector('#dkName').value.trim();
     if(!name){ m.querySelector('#dkName').focus(); return; }
-    Object.assign(d, {name, emoji: m.querySelector('#dkEmoji').value.trim() || '📗',
-      about: m.querySelector('#dkAbout').value.trim(), parentId: m.querySelector('#dkParent').value || null});
-    if(!existing) studyState().decks.push(d);
+    /* an empty box is not zero: zero new cards a day is a real instruction and
+       has to stay tellable from "you never said" */
+    const num = k => { const v = m.querySelector('#dk_' + k).value.trim(); return v === '' ? null : +v; };
+    Object.assign(d, {name, emoji: m.querySelector('#dkEmoji').value.trim() || '\u{1F4D7}', color,
+      about: m.querySelector('#dkAbout').value.trim(),
+      parentId: kids.length ? null : (m.querySelector('#dkParent').value || null),
+      order: m.querySelector('#dkOrder').value || null});
+    STUDY_DECK_RULES.forEach(([k, , lo, hi]) => { const v = num(k); d[k] = v == null ? null : clamp(v, lo, hi); });
+    if(!existing) st.decks.push(studyDeckDefaults(d));
     saveNow(); m.remove(); sound('success'); rerender();
   };
   const del = m.querySelector('#dkDel');
-  if(del) del.onclick = () => {
-    /* the cards outlive the deck: they go back to the first one rather than
-       vanishing with it, because a deleted deck should not be a way to lose
-       four hundred cards you did not mean to delete */
-    studyCards().filter(c => c.deckId === d.id).forEach(c => { c.deckId = 'mindsets'; });
-    spliceOut(studyState().decks, x => x.id === d.id);
-    saveNow(); m.remove(); sound('click'); rerender();
+  if(del) del.onclick = () => { m.remove(); openDeckRemoveModal(d.id); };
+  return m;
+}
+
+/* Throwing a deck away asks the one question that matters, which is not "are
+   you sure" \u2014 it is what happens to the cards. Moving them is the default and
+   the destination is named out loud; deleting them with the deck is possible
+   and has to be chosen. "Are you sure" teaches you to press yes without
+   reading; naming the consequence does not. */
+function openDeckRemoveModal(id){
+  const st = studyState();
+  const d = studyDeck(id); if(!d) return null;
+  const ids = studyDeckIds(id);
+  const kids = studyDecks().filter(k => k.parentId === id);
+  const held = st.cards.filter(c => ids.includes(c.deckId)).length;
+  const rest = studyDecks().filter(x => !ids.includes(x.id));
+  if(!rest.length){
+    toast('That is the only deck you have, and a card has to be filed somewhere.');
+    return null;
+  }
+  const m = openModal(`<h2>Throw away ${esc(d.emoji + ' ' + d.name)}?</h2>
+    <p class="muted" style="font-size:.86rem">${kids.length
+      ? `The ${kids.length} deck${kids.length === 1 ? '' : 's'} inside it go too \u2014 ${esc(kids.map(k => k.name).join(', '))}. `
+      : ''}${held ? `${held} card${held === 1 ? ' is' : 's are'} filed in ${kids.length ? 'them' : 'it'}.`
+        : 'There is nothing in it.'}</p>
+    ${held ? `<label class="pd-q" style="margin-top:10px"><span class="k">where the cards go</span>
+      <select class="sel" id="dkMove">${rest.map(x =>
+        `<option value="${esc(x.id)}" ${x.id === studyHomeId(rest) ? 'selected' : ''}>${esc(x.emoji)} ${esc(x.name)}</option>`).join('')}</select></label>
+    <label class="sd-family" style="margin-top:10px"><input type="checkbox" id="dkBurn">
+      <span>Delete the cards as well<em>they do not come back \u2014 use this only for a deck you never meant to make</em></span></label>` : ''}
+    ${d.isDefault ? `<p class="muted" style="font-size:.78rem;margin-top:10px">This is one of the decks the room came with. It stays gone: it is remembered as retired rather than handed back to you on the next load.</p>` : ''}
+    <div class="row" style="justify-content:flex-end;margin-top:14px;gap:8px">
+      <button class="btn sm ghost" id="dkNo">Keep it</button>
+      <button class="btn primary danger" id="dkYes">Throw it away</button></div>`, 'narrow sd-modal');
+  m.querySelector('#dkNo').onclick = () => m.remove();
+  m.querySelector('#dkYes').onclick = () => {
+    const move = m.querySelector('#dkMove');
+    const burn = m.querySelector('#dkBurn');
+    const to = move ? move.value : null;
+    const res = removeStudyDeck(id, {moveTo: to, deleteCards: burn ? burn.checked : false});
+    m.remove();
+    if(!res.ok){ toast(`It stays: ${res.why}.`); return; }
+    sound('click');
+    toast(res.deleted ? `Gone, with ${res.deleted} card${res.deleted === 1 ? '' : 's'}.`
+      : res.moved ? `Gone. ${res.moved} card${res.moved === 1 ? '' : 's'} moved to ${studyDeckName(to || studyHomeId())}.`
+      : 'Gone.');
+    rerender();
   };
   return m;
 }
