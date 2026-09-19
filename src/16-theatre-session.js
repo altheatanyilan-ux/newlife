@@ -101,19 +101,6 @@ function thPickVisions(minutes){
   return thRotation().slice(0, minutes === 5 ? 1 : 2);
 }
 function thVisionName(v){ return v?.title || v?.name || v?.text || 'A vision'; }
-/* A vision is easier to hold in the morning when something has actually moved
-   towards it. Where a vision is about music, the studio can say what moved —
-   hours at the bench, a piece that became performable, a key that came good.
-   Nothing is invented: if the vision is not about music, or nothing happened,
-   this says nothing at all, which is better than encouragement. */
-function thVisionEvidence(v){
-  const said = String(thVisionName(v) + ' ' + (v?.note || v?.desc || '')).toLowerCase();
-  if(!/music|piano|jazz|sing|song|gig|band|perform|album|ep\b|record/.test(said)) return '';
-  if(typeof pianoReviewLines !== 'function') return '';
-  const lines = pianoReviewLines(addDays(today(), -28), today());
-  return lines.length
-    ? `<span class="ths-ev">${esc(lines[0])}</span>` : '';
-}
 function thLastPractised(v){
   const seen = (v.lastMorningTheatreDate || '').slice(0, 10);
   if(!seen) return 'never practised here';
@@ -165,7 +152,7 @@ function thFocusHTML(pick, all, minutes){
     ${pick.length ? `<div class="ths-vis">${pick.map(v => `<div class="ths-v">
       <b class="serif">${esc(thVisionName(v))}</b>
       <span class="mono faint">${esc(thLastPractised(v))}</span>
-      ${thVisionEvidence(v)}</div>`).join('')}</div>`
+      </div>`).join('')}</div>`
       : `<div class="empty">There are no visions on the tree yet, so this session is about the practices alone. That works — the practices are the point and a vision only gives them somewhere to point.</div>`}
     ${S._thPicking ? `<div class="ths-pick">
       <div class="mono faint">Choose up to ${max}:</div>

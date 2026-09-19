@@ -83,15 +83,24 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   console.log('\n2. every object is a door into the thing it is a picture of');
   const doors = await p.evaluate(() =>
     [...document.querySelectorAll('.house-room [data-room]')].map(n => n.dataset.room));
-  for(const k of ['library','writing','piano','band','medicine','crystals','drinks','nook','synch'])
+  for(const k of ['library','writing','band','medicine','crystals','drinks','nook','synch'])
     yes(`  you can reach the ${k}`, doors.includes(k), doors.join(' '));
   yes('  and every one of them takes a keyboard', await p.evaluate(() =>
     [...document.querySelectorAll('.house-room [data-room]')]
       .every(n => n.getAttribute('tabindex') === '0' && n.getAttribute('aria-label'))));
+  /* The Fazioli is the exception, and deliberately. The Piano Studio it used
+     to open was taken out of the house altogether; the instrument stays in
+     the picture because it is the middle of this room's composition and
+     somebody who plays lives here. It is furniture, not a door — a thing you
+     can press that opens nothing is worse than a thing you cannot press. */
+  const faz = await p.evaluate(() => { const g = document.querySelector('.zone-piano');
+    return g && {drawn: !!g.querySelector('.hm-piano-body'), room: g.dataset.room || null,
+      tab: g.getAttribute('tabindex'), role: g.getAttribute('role')}; });
+  yes('the piano is still drawn', faz && faz.drawn, JSON.stringify(faz));
+  is('  but it is furniture rather than a door', [faz.room, faz.tab, faz.role], [null, null, null]);
 
   for(const [sel, want, said] of [
     ['.zone-books .rm-shelf-box',  '#/journals/library',       'the shelf opens the library'],
-    ['.zone-piano .hm-piano-body', '#/piano',                  'the Fazioli opens the Piano Studio'],
     ['.zone-band .hm-drum',        '#/projects',               'the band opens your projects'],
     ['.obj-medicine .hm-drawer',   '#/values',                 'the medicine cupboard opens your values'],
     ['.zone-nook .hm-chair-back',  '#/journals/reflection',    'the nook opens the reflections'],

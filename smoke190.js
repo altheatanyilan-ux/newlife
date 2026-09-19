@@ -153,19 +153,25 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   await p.evaluate(() => closePanel());
 
   console.log('\n8. a box you type an address into has the way out beside the way in');
-  await p.evaluate(() => { location.hash = '#/piano'; }); await p.waitForTimeout(1700);
-  await p.evaluate(() => { const x = newPiece('s190 a piece'); x.sheetUrl = 'https://example.com/score.pdf';
-    pianoState().pieces.push(x); saveNow(); S._pianoPiece = x.id; rerender(); });
-  await p.waitForTimeout(1400);
+  /* the shadowing take's "where it is" field, which is a link box like any
+     other — it used to be the Piano Studio's sheet-music field, and that room
+     is gone */
+  await p.evaluate(() => { location.hash = '#/japanese'; }); await p.waitForTimeout(1700);
+  await p.evaluate(() => { document.querySelectorAll('.overlay').forEach(n => n.remove()); openJaShadow(); });
+  await p.waitForTimeout(1200);
+  await p.evaluate(() => { const inp = document.querySelector('#shLink');
+    inp.value = 'https://example.com/score.pdf';
+    inp.dispatchEvent(new Event('input', {bubbles:true})); });
+  await p.waitForTimeout(400);
   const box = await p.evaluate(() => {
-    const el = [...document.querySelectorAll('.linkbox')].find(x => x.querySelector('[data-pnf="sheetUrl"]'));
+    const el = document.querySelector('#shLink').closest('.linkbox');
     return el ? {lit: el.classList.contains('has-link'), go: !!el.querySelector('[data-linkgo]')} : null; });
   yes('the box carries an opener', box && box.go, JSON.stringify(box));
   yes('  lit, because there is something in it', box && box.lit, JSON.stringify(box));
   /* it follows the field rather than the last save, because you have usually
      just pasted and not yet left the box */
   const live = await p.evaluate(() => {
-    const el = [...document.querySelectorAll('.linkbox')].find(x => x.querySelector('[data-pnf="sheetUrl"]'));
+    const el = document.querySelector('#shLink').closest('.linkbox');
     const inp = el.querySelector('input');
     const set = v => { inp.value = v; inp.dispatchEvent(new Event('input', {bubbles:true})); return el.classList.contains('has-link'); };
     return {emptied: set(''), typed: set('www.imslp.org/x'), nonsense: set('not a link at all')}; });

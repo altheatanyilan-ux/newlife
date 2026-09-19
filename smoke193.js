@@ -13,12 +13,13 @@
    shape follows the work: it opens for a sitting, and for a press, and a press
    is a peek that ends when you fold it away or when the sitting does.
 
-   THE TWO PIANO DECKS. The Piano Studio already keeps a record of a piece and
-   a concept. A second copy of both, living in a flashcard queue, was the same
+   THE TWO PIANO DECKS. The Piano Studio kept its own record of a piece and a
+   concept, so a second copy of both living in a flashcard queue was the same
    thing written down in two places — and two records of one fact is one record
-   and one lie waiting to happen. They go. What was filed in them does not: the
-   decks are removed and the cards move to the first deck, because retiring a
-   room is not a reason to burn what was in it.
+   and one lie waiting to happen. They go. (The studio itself went shortly
+   afterwards.) What was filed in them does not: the decks are removed and the
+   cards move to the first deck, because retiring a room is not a reason to
+   burn what was in it.
 
    A DECK FROM ANYWHERE. A model will write two hundred cards on Ottoman tax
    law at two in the morning; the cost has always been typing them in. So the
@@ -142,8 +143,8 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   is('a save that still holds them loses them', moved.decks, []);
   is('  but the cards in them move rather than vanish', moved.where, ['mindsets','mindsets']);
   is('  word for word', moved.front, 'ii-V-I in Eb');
-  /* the Piano Studio's old capture route named a deck that is not there any
-     more; a card with nowhere to land is a card that disappears */
+  /* the old capture route named a deck that is not there any more; a card
+     with nowhere to land is a card that disappears */
   yes('nothing can be filed into a deck that no longer exists', !!moved.lands, String(moved.lands));
 
   console.log('\n6. a paste is read before anything is written');

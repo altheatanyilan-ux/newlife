@@ -30,7 +30,7 @@
    sheet everything else is stuck to, and a torn horizon is a tear in the
    wrong thing.
 
-   And the doors still open. A filter between a person and a piano is one more
+   And the doors still open. A filter between a person and a door is one more
    chance to lose the click. */
 const {chromium} = require('playwright');
 const path = require('path');
@@ -158,8 +158,10 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   console.log('\n6. and the doors still open through all of it');
   await go(p, 'main');
   const before = await p.evaluate(() => location.hash);
-  await p.click('.sacred-room [data-room="piano"]', {timeout: 5000})
-    .catch(e => no('the piano can be reached', e.message.split('\n')[0]));
+  /* a concrete shape rather than the group, whose bounding box has empty
+     space at its centre */
+  await p.click('.sacred-room .zone-band .hm-drum', {timeout: 5000})
+    .catch(e => no('the band can be reached', e.message.split('\n')[0]));
   await p.waitForTimeout(700);
   yes('reaching through the filter still opens the door',
     await p.evaluate(() => location.hash) !== before, before);

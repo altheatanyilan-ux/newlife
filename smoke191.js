@@ -49,9 +49,8 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     [...document.querySelectorAll('[data-sdview]')].map(x => x.dataset.sdview)), ['decks','browse','stats']);
   const decks = await p.evaluate(() => ({top: studyTopDecks().map(d => d.id),
     japaneseKids: studyDecks().filter(d => d.parentId === 'japanese').map(d => d.id)}));
-  /* the two piano decks were taken out again: the Piano Studio keeps its own
-     record of a piece and a concept, and a second copy of it living in a
-     flashcard queue was one place too many to keep the same thing */
+  /* the two piano decks were taken out, and then so was the Piano Studio they
+     belonged to — the whole room is gone */
   is('the decks the roadmap asked for', decks.top, ['mindsets','japanese','divination']);
   is('  with Japanese holding its three', decks.japaneseKids, ['ja_grammar','ja_vocab','ja_corrections']);
   /* the shelf's card box is the other way in */

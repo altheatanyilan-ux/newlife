@@ -301,19 +301,19 @@ function mainRoomHTML(){
   const synch   = (S.entries || []).filter(e => e.type === 'synchronicity').length;
   const musical = (S.skills || []).filter(s => /music|piano|guitar|sing|jazz|instrument/i.test(
                     (s.name || '') + ' ' + (s.cat || ''))).length;
-  /* The stand carries what is under the hands now, and the stack beside it
-     grows with the repertoire: an empty piano and a piano with eleven pieces
-     on it should not look the same. */
-  /* Read what is there rather than asking the studio for it: pianoState()
-     builds the whole twenty-stage roadmap on first access, and drawing a room
-     should not decide on somebody's behalf that they are learning jazz. */
-  const onStand = (S.piano && Array.isArray(S.piano.pieces)) ? S.piano.pieces : [];
+  /* The stand and the stack of sheets grow with the musical skills that are
+     being worked on, now that there is no studio behind the instrument to ask.
+     The piano stays in the picture: it is furniture in a room somebody lives
+     in, and the middle of this composition. It is no longer a door — a thing
+     you can press that opens nothing is worse than a thing you cannot press. */
+  const learning = (S.skills || []).filter(x => !x.archived
+    && /music|piano|guitar|sing|jazz|instrument/i.test((x.name || '') + ' ' + (x.cat || ''))
+    && (x.horizon === 'focus' || x.horizon === 'active'));
   /* read, do not build: asking the Study Deck for a count it has never had
      would seed the whole thing for somebody who has never opened it */
   const cardsDue = (S.study && Array.isArray(S.study.cards))
     ? S.study.cards.filter(c => c.status === 'active' && (c.due || '') <= today()).length : 0;
-  const learning = onStand.filter(x => x.status === 'learning');
-  const stack = clamp(Math.floor(onStand.length / 4), 0, 4);
+  const stack = clamp(Math.floor(musical / 2), 0, 4);
   const drinks  = (S.entries || []).filter(e => e.type === 'drink').length;
 
   const floor = Array.from({length: 7}, (_, i) =>
@@ -402,7 +402,7 @@ function mainRoomHTML(){
       </g>
 
       <!-- the piano, and the band around it -->
-      <g class="zone zone-piano" data-room="piano" tabindex="0" role="button" aria-label="The Fazioli — the Piano Studio">
+      <g class="zone-piano">
         <ellipse class="rm-table-glow" cx="560" cy="470" rx="196" ry="66"/>
         <path class="hm-piano-lid" d="M404,398 C470,356 660,352 726,392 L700,404 C640,372 474,376 420,406Z"/>
         <path class="hm-piano-body" d="M404,404 H726 L716,470 C640,486 474,486 414,470Z"/>
@@ -417,7 +417,7 @@ function mainRoomHTML(){
           `<rect class="hm-stack" x="${612 + i * 3}" y="${386 - i * 4}" width="58" height="8" rx="1.5"/>`).join('')}
         ${stack >= 2 ? `<g class="hm-metronome"><path d="M694,392 L706,340 L718,392Z"/><path d="M706,344 V386"/></g>` : ''}
         <text class="rm-say" x="560" y="584" text-anchor="middle">${learning.length
-          ? esc(learning[0].title) + ' is open on the stand'
+          ? esc(learning[0].name) + ' is open on the stand'
           : 'Make something beautiful'}</text>
       </g>
 
@@ -869,7 +869,6 @@ const HOUSE_PORTALS = {
   writing:   () => navigate('#/content/shelf'),
   /* The Fazioli opens the room the practice actually lives in. The skills it
      used to open are still one link away, and are not what you sit down to. */
-  piano:     () => navigate('#/piano'),
   band:      () => navigate('#/projects'),
   medicine:  () => navigate('#/values'),
   crystals:  () => openCharmCast(),
