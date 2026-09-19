@@ -130,17 +130,146 @@ function scoreViewerHTML(x){
       <button class="btn sm" id="scRead" title="the score and nothing else">⛶ read</button>
       <button class="btn sm primary" id="scNewSec">＋ a section</button>
     </div>
-    ${ui.more ? `<div class="sc-bar sc-bar2">${scoreMetroHTML(x)}</div>` : ''}
+    ${ui.more ? `<div class="sc-bar sc-bar2">${scoreMetroHTML(x)}</div>
+      <div class="sc-bar sc-bar2">${scoreLayerPickHTML(x)}
+        <span class="grow"></span>${scoreXposeHTML(x)}</div>
+      <div class="sc-bar sc-bar2">${scoreCursorHTML(x)}</div>` : ''}
     ${scoreReadStripHTML(x)}
     <div class="sc-body">
       <div class="sc-stage" id="scStage">
         <div class="sc-canvas" id="scCanvas"></div>
         <div class="sc-overlay" id="scOverlay" aria-hidden="true"></div>
+        <div class="sc-marks" id="scMarks2" aria-hidden="true"></div>
+        <div class="sc-marks" id="scCur" aria-hidden="true"></div>
         <div class="sc-pins" id="scPins"></div>
         <div class="sc-loading" id="scLoading">engraving…</div>
       </div>
       <aside class="sc-side" id="scSide">${scoreSideHTML(x)}</aside>
     </div>`;
+}
+
+/* The marker, and the three sizes of step. It is off until you ask for it:
+   a line under the music you are not following is one more thing on a page
+   that already has notes on it. */
+function scoreCursorHTML(x, compact){
+  const on = scoreCursorOn();
+  const mode = (scoreCursorAt() || {}).mode || 'beat';
+  return `<span class="sc-cur">
+    <button class="btn sm${on ? ' primary' : ''}" data-sccuron="1"
+      title="${on ? 'put the marker away' : 'walk through the piece a step at a time'}">${on ? '\u25c9' : '\u25cb'} walk</button>
+    <button class="tbtn" data-sccur="-1" ${on ? '' : 'disabled'} title="back a step">\u25c2</button>
+    <span class="mono sc-cursay">${esc(scoreCursorSay())}</span>
+    <button class="tbtn" data-sccur="1" ${on ? '' : 'disabled'} title="on a step">\u25b8</button>
+    ${compact ? '' : `<span class="sc-curmodes">${SCORE_CURSOR_MODES.map(([k, name]) =>
+      `<button class="tbtn${mode === k ? ' on' : ''}" data-sccurmode="${k}" ${on ? '' : 'disabled'}
+        title="a step is one ${esc(name)}">${esc(name)}</button>`).join('')}</span>`}
+    <button class="tbtn${_scAuto ? ' on' : ''}" data-sccurauto="1" ${on ? '' : 'disabled'}
+      title="let it walk on by itself">${_scAuto ? '\u25fc' : '\u25b6'}${compact ? '' : ' on its own'}</button>
+    ${compact ? '' : `<select class="sel sm" id="scCurSpeed" ${on ? '' : 'disabled'} title="how fast, when nothing is clicking">
+      ${SCORE_CURSOR_SPEEDS.map(v => `<option value="${v}" ${(x.cursorSpeed || 1) === v ? 'selected' : ''}>${v}/sec</option>`).join('')}</select>`}
+  </span>`;
+}
+/* The marker itself: a band the height of the system, at the place in the bar
+   the step landed on. Drawn from the same measure boxes as the section bands,
+   so it lands where the notation actually is rather than where the engraver's
+   own cursor thinks the page starts. */
+function scoreCursorPaint(x){
+  const box = document.getElementById('scCur');
+  if(!box) return;
+  const at = scoreCursorAt();
+  $$('.sc-cursay').forEach(n => n.textContent = scoreCursorSay());
+  if(!at){ box.innerHTML = ''; return; }
+  const sv = scoreView();
+  const boxes = measureBoxes().filter(b => b.measure === at.measure
+    && (!sv || !sv.page || b.page === sv.at));
+  if(!boxes.length){ box.innerHTML = ''; return; }
+  const u = scoreUnitPx();
+  const top = boxes.reduce((a, b) => Math.min(a, b.y), Infinity);
+  const bot = boxes.reduce((a, b) => Math.max(a, b.y + b.h), -Infinity);
+  box.innerHTML = `<i class="sc-cursor" style="left:${at.x.toFixed(1)}px;top:${
+    (top - u * 0.6).toFixed(1)}px;height:${(bot - top + u * 1.2).toFixed(1)}px;width:${
+    Math.max(3, u * 0.5).toFixed(1)}px"></i>`;
+}
+/* A step, and everything that follows from it: the page turns if the step
+   went over the leaf, the marker is scrolled to if it went off the bottom. */
+function scoreCursorGo(by, x){
+  if(!scoreCursorStep(by)) return false;
+  const at = scoreCursorAt();
+  const sv = scoreView();
+  if(sv && sv.page && at.page != null && at.page !== sv.at){
+    showScorePage(at.page); scoreOverlayPaint(x); scoreLayersPaint(x); scorePageSay();
+  }
+  scoreCursorPaint(x);
+  const stage = document.getElementById('scStage');
+  if(stage && !(sv && sv.page)){
+    const b = measureBox(at.measure);
+    if(b && (b.y < stage.scrollTop || b.y > stage.scrollTop + stage.clientHeight - 80))
+      stage.scrollTo({top: Math.max(0, b.y - 80), behavior:'smooth'});
+  }
+  return true;
+}
+/* Walking on its own. Where the click is running the marker moves on the
+   click, because two clocks in one room drift apart and the sight of the
+   marker landing a little after the beat is worse than no marker. */
+function scoreCursorAuto(on, x){
+  if(_scAuto){ _scAuto(); _scAuto = null; }
+  $$('[data-sccurauto]').forEach(n => { n.textContent = on
+    ? (n.closest('.sc-strip') ? '\u25fc' : '\u25fc on its own')
+    : (n.closest('.sc-strip') ? '\u25b6' : '\u25b6 on its own');
+    n.classList.toggle('on', !!on); });
+  if(!on) return false;
+  const rec = x || scoreById(scoreUi().id);
+  if(!rec || !scoreCursorOn()) return false;
+  if(ScoreMetronome.running){
+    const off = ScoreMetronome.onBeat(() => { if(!scoreCursorGo(1, rec)) scoreCursorAuto(false, rec); });
+    _scAuto = off;
+  } else {
+    const per = 1000 / (+rec.cursorSpeed || 1);
+    const id = setInterval(() => { if(!scoreCursorGo(1, rec)) scoreCursorAuto(false, rec); }, per);
+    _scAuto = () => clearInterval(id);
+  }
+  return true;
+}
+
+/* Moving the piece into another key. Two buttons and the key it lands in,
+   because the number of semitones is not what a musician is thinking about —
+   "can I read this in E flat" is, and the answer wants saying in those words.
+
+   The key is read off the engraving rather than worked out from the record,
+   so what it says is what is actually on the glass: if the rewrite went wrong
+   the readout is wrong with it, which is the honest failure. It is empty for
+   the first frame, before there is an engraving to ask, and filled in the
+   moment there is. */
+function scoreXposeHTML(x){
+  const by = Math.round(+x.transpose || 0);
+  return `<span class="sc-xpose"><span class="k mono">key</span>
+    <button class="tbtn" data-scxp="-1" title="down a semitone">♭</button>
+    <span class="mono" id="scXpSay" title="${esc(transposeSaid(by))}">${esc(scoreXposeSay(x))}</span>
+    <button class="tbtn" data-scxp="1" title="up a semitone">♯</button>
+    <button class="tbtn" data-scxp="0" id="scXpOff" ${by ? '' : 'disabled'}
+      title="back to what the composer wrote">as written</button></span>`;
+}
+function scoreXposeSay(x){
+  const sv = scoreView();
+  const key = (sv && sv.loaded && sv.scoreId === x.id) ? scoreKeyName() : '';
+  const by = Math.round(+x.transpose || 0);
+  const step = by ? `${by > 0 ? '+' : '−'}${Math.abs(by)}` : '';
+  return key && step ? `${key} · ${step}` : (key || step);
+}
+function scoreXposeRepaint(x){
+  const by = Math.round(+x.transpose || 0);
+  $$('#scXpSay').forEach(n => { n.textContent = scoreXposeSay(x); n.title = transposeSaid(by); });
+  $$('#scXpOff').forEach(n => n.disabled = !by);
+}
+
+/* Which layers are on. Named rather than iconic, because "degrees" and
+   "names" look identical as symbols and you are choosing between them. */
+function scoreLayerPickHTML(x){
+  const ov = x.overlays || {};
+  return `<span class="k mono">over the notes</span>
+    <span class="sc-layers">${SCORE_OVERLAYS.map(([k, name, hint, col]) =>
+      `<button class="tbtn sc-layer${ov[k] ? ' on' : ''}" data-sclayer="${k}" style="--c:${col}"
+        title="${esc(hint)}">${esc(name)}</button>`).join('')}</span>`;
 }
 
 /* The metronome. It is the one thing in the room that turns reading into
@@ -200,6 +329,10 @@ function scoreReadStripHTML(x){
     ${parts.length > 1 ? `<span class="sc-strip-parts">${parts.map(p =>
       `<button class="tbtn${(x.hidden || []).includes(p.index) ? '' : ' on'}" data-scrpart="${p.index}">${esc(p.name)}</button>`).join('')}</span>` : ''}
     <button class="tbtn${ui.marks ? ' on' : ''}" id="scMarks" title="the bands and pins you have put on it">marks</button>
+    <span class="sc-layers">${SCORE_OVERLAYS.map(([k, name, hint, col]) =>
+      `<button class="tbtn sc-layer${(x.overlays || {})[k] ? ' on' : ''}" data-sclayer="${k}" style="--c:${col}"
+        title="${esc(hint)}">${esc(name)}</button>`).join('')}</span>
+    ${scoreCursorHTML(x, true)}
     <span class="sc-pager"><button class="tbtn" data-scturn="-1" title="back a page">‹</button>
       <span class="mono" id="scPageSay"></span>
       <button class="tbtn" data-scturn="1" title="on a page">›</button></span>
@@ -352,6 +485,9 @@ async function scorePaint(x){
        always, because before it there is nothing there to correct */
     scoreRepaintParts(x);
     scoreOverlayPaint(x);
+    scoreLayersPaint(x);
+    scoreXposeRepaint(x);
+    scoreCursorPaint(x);
     scorePageSay();
     saveNow();
   } catch(e){
@@ -377,7 +513,9 @@ function scoreOverlayPaint(x){
   const pinBox = document.getElementById('scPins');
   if(!over || !pinBox) return;
   const ui = scoreUi();
-  if(!ui.marks){ over.innerHTML = ''; pinBox.innerHTML = ''; return; }
+  if(!ui.marks){ over.innerHTML = ''; pinBox.innerHTML = '';
+    const layer = document.getElementById('scMarks2'); if(layer) layer.innerHTML = '';
+    return; }
   over.innerHTML = (x.sections || []).map(s => {
     const dim = ui.focus && ui.focus !== s.id;
     return measureRangeBands(s.startMeasure, s.endMeasure).map((b, i) =>
@@ -394,6 +532,233 @@ function scoreOverlayPaint(x){
   $$('[data-scpin]', pinBox).forEach(b => b.onclick = ev => { ev.stopPropagation();
     openPinModal(x.id, b.dataset.scpin); });
 }
+/* ---------- the layers over the notation ----------
+   Letters, degrees, the count under the bar. Each is a crutch, and the point
+   of a crutch is that you can put it down — so they are all off to begin
+   with, each has its own ink, and each sits a different distance from the
+   staff so that two at once do not land on each other.
+
+   Drawn as their own layer rather than into the engraving, because the
+   engraving is redrawn for a dozen reasons and none of them should cost the
+   labels, and because a label written into the SVG is a label that prints
+   and that nobody can switch off. */
+function scoreLayersPaint(x){
+  const box = document.getElementById('scMarks2');
+  if(!box) return;
+  const ov = x.overlays || {};
+  if(!scoreUi().marks || !(ov.names || ov.degrees || ov.beats || ov.chords || ov.fingerings)){
+    box.innerHTML = ''; return; }
+  const sv = scoreView();
+  const on = sv && sv.page ? sv.at : null;
+  const notes = scoreNotes().filter(n => on === null || n.page === on);
+  /* A page of a Ballade is a couple of thousand note heads and a label on
+     each is unreadable anyway; past a sensible number the layer says so
+     rather than painting a grey fog over the music. */
+  if(notes.length > SCORE_LAYER_MAX){
+    box.innerHTML = `<i class="sc-toomany mono">too many notes on this page to label — fewer bars to a line, or focus a section</i>`;
+    return;
+  }
+  const key = scoreKey();
+  const root = keyRootOf(key.fifths, key.minor);
+  /* Everything is measured in staff spaces rather than pixels, because the
+     engraving is drawn at whatever size the zoom or the bars-to-a-line have
+     settled on and a label pinned at thirteen pixels sits on the notes at one
+     size and in the next system at another. */
+  const u = scoreUnitPx();
+  const size = clamp(u * 0.78, 6, 15);
+  const out = [];
+  notes.forEach(n => {
+    if(n.rest || n.midi == null) return;
+    /* the letter goes ON the head, which is the only place with room for it
+       in a chord — the heads of a chord are half a space apart and nothing
+       fits between them */
+    if(ov.names) out.push(`<i class="sc-lab sc-lab-name" style="left:${n.x}px;top:${n.y}px;font-size:${
+      (size * 0.86).toFixed(1)}px">${esc(noteLetter(n))}</i>`);
+    /* the degree goes beside it, for the same reason */
+    if(ov.degrees) out.push(`<i class="sc-lab sc-lab-deg" style="left:${(n.x + u * 0.95).toFixed(1)}px;top:${
+      n.y}px;font-size:${size.toFixed(1)}px">${esc(SCALE_DEGREES[((n.midi - root) % 12 + 12) % 12])}</i>`);
+  });
+  if(ov.beats) out.push(scoreBeatsHTML(notes, u, size));
+  if(ov.chords) out.push(scoreChordsHTML(x, notes, u, size));
+  if(ov.fingerings) out.push(scoreFingerHTML(x, notes, u, size));
+  box.innerHTML = out.join('');
+}
+/* one staff space, in pixels, at whatever size the engraving is now */
+function scoreUnitPx(){
+  const sv = scoreView();
+  return sv && sv.osmd ? (sv.osmd.zoom || 1) * 10 : 10;
+}
+const SCORE_LAYER_MAX = 900;
+function scoreChordsHTML(x, notes, u, size){
+  const key = scoreKey();
+  const line = scoreChordLine(notes, {flat: (+key.fifths || 0) < 0});
+  /* the symbol goes over the top staff of the bar, where a lead sheet puts
+     it — not over the hand that happens to be playing the lowest note */
+  const tops = {};
+  measureBoxes().forEach(b => { if(tops[b.measure] == null || b.y < tops[b.measure]) tops[b.measure] = b.y; });
+  const over = x.chordOverrides || {};
+  return line.map(c => {
+    const mine = Object.prototype.hasOwnProperty.call(over, c.key);
+    const said = mine ? over[c.key] : c.say;
+    if(!said) return '';
+    const top = (tops[c.measure] == null ? 0 : tops[c.measure]) - u * 1.1;
+    const why = mine ? 'yours \u2014 press to change it'
+      : c.sure ? 'read off the notes \u2014 press to change it'
+      : 'read off the notes, but not confidently \u2014 press to change it';
+    return `<i class="sc-lab sc-lab-chord${c.sure ? '' : ' unsure'}${mine ? ' mine' : ''}"
+      data-scchord="${esc(c.key)}" title="${esc(why)} (bar ${c.measure}, beat ${c.beat + 1})"
+      style="left:${c.x.toFixed(1)}px;top:${top.toFixed(1)}px;font-size:${(size * 1.15).toFixed(1)}px"
+      >${esc(said)}</i>`;
+  }).join('');
+}
+/* ---------- fingerings ----------
+   The one layer that is not read off the notation but written onto it. A
+   fingering is a decision — which of five fingers takes this note, given what
+   the hand has to do next — and it is the decision you lose first and spend
+   the longest rediscovering, which is why writing it down is worth this much
+   machinery.
+
+   It is anchored to the bar, the beat, the staff and the note's place in the
+   chord, counting from the bottom. Not to anything the engraver hands out:
+   those identities are rebuilt every time the file is read, so a fingering
+   pinned to one would not survive a zoom, let alone a transposition. */
+function scoreFingerKeys(notes){
+  const groups = {};
+  notes.forEach(n => { if(n.midi == null) return;
+    const g = `${n.measure}|${Math.round(n.at * 48)}|${n.staff}`;
+    (groups[g] = groups[g] || []).push(n); });
+  const out = new Map();
+  Object.keys(groups).forEach(g => groups[g].sort((a, b) => a.midi - b.midi)
+    .forEach((n, i) => out.set(n, `${g}|${i}`)));
+  return out;
+}
+/* Right hand above the note, left hand below — which is where a century of
+   engraving puts them, and which is also the only arrangement that stays
+   readable when both hands have something to say about the same beat. */
+function scoreFingerHTML(x, notes, u, size){
+  const keys = scoreFingerKeys(notes);
+  const have = x.fingerings || {};
+  const out = [];
+  keys.forEach((k, n) => {
+    const v = have[k];
+    if(!v || !v.finger) return;
+    const up = v.hand !== 'L';
+    out.push(`<i class="sc-lab sc-fing ${up ? 'rh' : 'lh'}" data-scfing="${esc(k)}"
+      title="${up ? 'right' : 'left'} hand, finger ${v.finger} \u2014 press to change it"
+      style="left:${n.x.toFixed(1)}px;top:${(n.y + (up ? -u * 1.7 : u * 1.7)).toFixed(1)}px;font-size:${
+      (size * 0.82).toFixed(1)}px">${v.finger}</i>`);
+  });
+  return out.join('');
+}
+/* The note a fingering belongs to, found again on whatever is drawn now. */
+function scoreNoteByKey(key){
+  const sv = scoreView();
+  const on = sv && sv.page ? sv.at : null;
+  const notes = scoreNotes().filter(n => n.midi != null && (on === null || n.page === on));
+  const keys = scoreFingerKeys(notes);
+  for(const [n, k] of keys) if(k === key) return {note: n, key};
+  return null;
+}
+/* Which note head a press landed on. Within about a space and a half, which
+   is close enough to be deliberate and far enough to be hittable on glass. */
+function scoreNoteAt(px, py){
+  const sv = scoreView();
+  const on = sv && sv.page ? sv.at : null;
+  const notes = scoreNotes().filter(n => n.midi != null && (on === null || n.page === on));
+  const reach = scoreUnitPx() * 1.8;
+  let best = null, gap = reach;
+  notes.forEach(n => { const d = Math.hypot(n.x - px, n.y - py); if(d < gap){ gap = d; best = n; } });
+  if(!best) return null;
+  return {note: best, key: scoreFingerKeys(notes).get(best)};
+}
+/* Ten buttons and a way out. A modal would be the house style and would be
+   wrong here: you are choosing fingerings for a run of notes and a dialogue
+   that has to be dismissed between each one turns a minute into ten. */
+function openFingerPicker(x, hit){
+  const stage = document.getElementById('scStage');
+  if(!stage || !hit) return null;
+  $$('.sc-fingpick').forEach(n => n.remove());
+  const now = (x.fingerings || {})[hit.key] || {};
+  const row = (hand, label) => `<span class="sc-fingrow"><b class="mono">${label}</b>${
+    [1,2,3,4,5].map(f => `<button class="tbtn${now.hand === hand && now.finger === f ? ' on' : ''}"
+      data-fing="${hand}${f}">${f}</button>`).join('')}</span>`;
+  const box = document.createElement('div');
+  box.className = 'sc-fingpick';
+  box.style.left = `${hit.note.x}px`;
+  box.style.top = `${hit.note.y + scoreUnitPx() * 2.4}px`;
+  box.innerHTML = `${row('R', 'RH')}${row('L', 'LH')}
+    <span class="sc-fingrow"><button class="tbtn" data-fing="">clear</button>
+      <button class="tbtn" data-fingclose="1">\u2715</button></span>`;
+  stage.appendChild(box);
+  const shut = () => box.remove();
+  $$('[data-fing]', box).forEach(b => b.onclick = ev => { ev.stopPropagation();
+    const v = b.dataset.fing;
+    if(v) x.fingerings[hit.key] = {hand: v[0], finger: +v[1]};
+    else delete x.fingerings[hit.key];
+    /* writing a fingering on a score you cannot see the fingerings of is a
+       trap you fall into once and never work out */
+    x.overlays.fingerings = true;
+    saveNow(); sound('click'); shut(); scoreLayersPaint(x);
+  });
+  const close = box.querySelector('[data-fingclose]');
+  if(close) close.onclick = ev => { ev.stopPropagation(); shut(); };
+  return box;
+}
+
+/* Anything read off the notes can be wrong, and a chord symbol you cannot
+   correct is worse than none: you would stop trusting the whole layer. */
+function openChordModal(scoreId, key){
+  const x = scoreById(scoreId); if(!x) return null;
+  const over = x.chordOverrides || {};
+  const mine = Object.prototype.hasOwnProperty.call(over, key);
+  const [bar, at] = key.split('|');
+  const m = openModal(`<h2>The chord at bar ${esc(bar)}</h2>
+    <div class="mono faint">beat ${Math.round(+at / 12) + 1}</div>
+    <label class="pd-q" style="margin-top:8px"><span class="k">what to call it</span>
+      <input class="inp" id="chSay" autofocus placeholder="Am7, F\u266f\u00b07, B\u266d/D\u2026" value="${esc(mine ? over[key] : '')}"></label>
+    <p class="faint sm" style="margin:8px 0 0">Leave it empty to say nothing at all here.</p>
+    <div class="row" style="justify-content:flex-end;margin-top:14px;gap:8px">
+      ${mine ? `<button class="btn sm ghost" id="chAuto">Read it off the notes again</button><span class="grow"></span>` : ''}
+      <button class="btn primary" id="chSave">Save</button></div>`, 'narrow sc-modal');
+  const done = () => { saveNow(); m.remove(); scoreLayersPaint(x); };
+  m.querySelector('#chSave').onclick = () => {
+    x.chordOverrides[key] = m.querySelector('#chSay').value.trim();
+    sound('success'); done();
+  };
+  const auto = m.querySelector('#chAuto');
+  if(auto) auto.onclick = () => { delete x.chordOverrides[key]; sound('click'); done(); };
+  return m;
+}
+/* The count, once under each beat that has something on it, and only under
+   the top staff — counting is one thing you do with the whole bar, not one
+   per hand. */
+function scoreBeatsHTML(notes, u, size){
+  /* one count per moment that has something on it, under the top staff only:
+     counting is a thing you do with the whole bar rather than once per hand */
+  const per = {};
+  notes.forEach(n => {
+    if(n.staff) return;
+    const k = `${n.measure}|${Math.round(n.beat * 48)}`;
+    if(!per[k] || n.y < per[k].y) per[k] = n;
+  });
+  const t = scoreTimeSignature();
+  const beats = t ? t.beats : 4;
+  const unitOf = t ? 4 / t.unit : 1;
+  /* the count sits below the staff rather than below the note, so a row of
+     them is a row rather than a line that follows the tune up and down */
+  const lines = {};
+  Object.values(per).forEach(n => { const k = Math.round(n.y / (u * 4));
+    lines[k] = Math.max(lines[k] ?? -Infinity, n.y); });
+  return Object.values(per).map(n => {
+    const b = n.beat / unitOf;
+    const whole = Math.abs(b - Math.round(b)) < 0.01;
+    const say = whole ? String((Math.round(b) % beats) + 1) : '+';
+    const floor = lines[Math.round(n.y / (u * 4))] ?? n.y;
+    return `<i class="sc-lab sc-lab-beat${whole ? '' : ' weak'}" style="left:${n.x}px;top:${
+      (floor + u * 3.4).toFixed(1)}px;font-size:${size.toFixed(1)}px">${say}</i>`;
+  }).join('');
+}
+
 /* a re-engraving, for the three things that really change the picture */
 async function scoreRedraw(x){
   const ui = scoreUi();
@@ -402,6 +767,9 @@ async function scoreRedraw(x){
     await renderScore(x, Object.assign({page: scorePageShape()},
       focus ? {from:focus.startMeasure, to:focus.endMeasure} : {from:null, to:null}));
     scoreOverlayPaint(x);
+    scoreLayersPaint(x);
+    scoreXposeRepaint(x);
+    scoreCursorPaint(x);
     scorePageSay();
   } catch(e){ console.warn('score redraw failed', e); }
 }
@@ -476,12 +844,50 @@ function bindScoreViewer(root, x){
   on('#scAllParts', () => { x.hidden = []; applyScoreParts(x); saveNow();
     scoreRepaintParts(x); scoreRedraw(x); });
   on('#scMore', () => { ui.more = !ui.more; saveNow(); rerender(); });
+  $$('[data-sclayer]', root).forEach(b => b.onclick = () => {
+    const k = b.dataset.sclayer;
+    x.overlays[k] = !x.overlays[k];
+    b.classList.toggle('on', x.overlays[k]);
+    saveNow(); scoreLayersPaint(x);
+  });
+  $$('[data-sccuron]', root).forEach(b => b.onclick = () => { const was = scoreCursorOn();
+    scoreCursorShow(!was); if(was) scoreCursorAuto(false, x);
+    saveNow(); rerender(); });
+  $$('[data-sccur]', root).forEach(b => b.onclick = () => {
+    if(!scoreCursorGo(+b.dataset.sccur, x)) toast(+b.dataset.sccur > 0 ? 'That is the end of it.' : 'That is the beginning.');
+  });
+  $$('[data-sccurmode]', root).forEach(b => b.onclick = () => {
+    scoreCursorMode(b.dataset.sccurmode);
+    $$('[data-sccurmode]').forEach(y => y.classList.toggle('on', y.dataset.sccurmode === b.dataset.sccurmode));
+    scoreCursorPaint(x);
+  });
+  $$('[data-sccurauto]', root).forEach(b => b.onclick = () => scoreCursorAuto(!_scAuto, x));
+  const speed = root.querySelector('#scCurSpeed');
+  if(speed) speed.onchange = () => { x.cursorSpeed = +speed.value || 1; saveNow();
+    if(_scAuto) scoreCursorAuto(true, x); };
+  const marks = root.querySelector('#scMarks2');
+  if(marks) marks.onclick = ev => {
+    const chord = ev.target.closest('[data-scchord]');
+    if(chord){ ev.stopPropagation(); openChordModal(x.id, chord.dataset.scchord); return; }
+    /* a fingering already written is the handle for changing it: it sits a
+       space and a half off the note and pressing the note again is fiddly */
+    const fing = ev.target.closest('[data-scfing]');
+    if(fing){ ev.stopPropagation();
+      const hit = scoreNoteByKey(fing.dataset.scfing);
+      if(hit) openFingerPicker(x, hit); }
+  };
   bindScoreMetro(root, x);
   on('#scRead', () => setScoreReading(true));
   on('#scUnread', () => setScoreReading(false));
   on('#scMarks', () => { const u = scoreUi(); u.marks = !u.marks; saveNow();
     const btn = root.querySelector('#scMarks'); if(btn) btn.classList.toggle('on', u.marks);
-    scoreOverlayPaint(x); });
+    scoreOverlayPaint(x); scoreLayersPaint(x); });
+  $$('[data-scxp]', root).forEach(b => b.onclick = async () => {
+    const step = +b.dataset.scxp;
+    x.transpose = step ? clamp((+x.transpose || 0) + step, -12, 12) : 0;
+    saveNow();
+    await scoreRedraw(x);
+  });
   $$('[data-scbpl]', root).forEach(b => b.onclick = async () => {
     const step = +b.dataset.scbpl;
     /* off the bottom is back to letting it fit as many as it can */
@@ -540,16 +946,32 @@ function bindScoreViewer(root, x){
     });
   }
   if(stage) stage.addEventListener('click', ev => {
+    if(ev.target.closest('.sc-fingpick')) return;
+    if(ev.target.closest('.sc-pin, .sc-band-n, [data-scchord]')) return;
+    /* the engraving's own box, not the stage's: it moves with the scroll and
+       it starts where the notation starts, so the sums are the coordinates
+       the measure boxes and the note heads are already in */
+    const canvas = document.getElementById('scCanvas');
+    const box = (canvas || stage).getBoundingClientRect();
+    const px = ev.clientX - box.left, py = ev.clientY - box.top;
+    /* with the fingering layer on, the score is a thing you write fingerings
+       on: a press near a note head is for that note, and only a press nowhere
+       near one falls through to the bar */
+    if(x.overlays && x.overlays.fingerings){
+      const hit = scoreNoteAt(px, py);
+      if(hit){ ev.stopPropagation(); openFingerPicker(x, hit); return; }
+    }
     if(ui.reading) return;           /* a tap is for waking the strip, not pinning */
-    if(ev.target.closest('.sc-pin, .sc-band-n')) return;
-    const box = stage.getBoundingClientRect();
-    const m = measureAt(ev.clientX - box.left + stage.scrollLeft, ev.clientY - box.top + stage.scrollTop);
+    const m = measureAt(px, py);
     if(m) openPinModal(x.id, null, m);
   });
   /* the watcher is re-armed after every redraw of the page, because the
      listeners it hangs on went with the old one */
   if(ui.reading){ scoreQuietWatch(true); scoreKeysWatch(x); bindScoreMetro(root, x); }
-  else scoreKeysWatch(null);
+  /* out of reading mode the arrows are nobody's until the marker is out, and
+     then they are the marker's — which is the only thing on this page that
+     wants a key rather than a press */
+  else scoreKeysWatch(scoreCursorOn() ? x : null);
   bindScoreSide(root, x);
 }
 /* The metronome's controls, which appear in two places — the toolbar's second
@@ -616,6 +1038,14 @@ function scoreKeysWatch(x){
     const by = /ArrowRight|PageDown| /.test(ev.key) ? 1 : /ArrowLeft|PageUp/.test(ev.key) ? -1 : 0;
     if(!by) return;
     if(ev.key === ' ' && ev.repeat) return;
+    /* while the marker is out the arrows are its, because stepping through a
+       passage is what you are doing and turning the page out from under it
+       would leave it somewhere you cannot see. The space bar sets it walking,
+       which is the one thing you want without looking down. */
+    if(scoreCursorOn()){
+      if(ev.key === ' '){ scoreCursorAuto(!_scAuto, x); ev.preventDefault(); return; }
+      if(/Arrow/.test(ev.key)){ scoreCursorGo(by, x); ev.preventDefault(); return; }
+    }
     if(scoreTurn(by, x)) ev.preventDefault();
   };
   addEventListener('keydown', _scKeys, true);
@@ -649,6 +1079,8 @@ function scoreTurn(by, x){
   const at = turnScorePage(by);
   if(at === null) return false;
   scoreOverlayPaint(x);
+  scoreLayersPaint(x);
+  scoreCursorPaint(x);
   scorePageSay();
   const stage = document.getElementById('scStage');
   if(stage) stage.scrollTo({top:0, left:0});

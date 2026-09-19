@@ -14,6 +14,19 @@
    avoid reading the next time you play that page.
    ============================================================ */
 
+/* The layers that can sit over the notation, each with its own ink so two of
+   them at once are still tellable apart, and each a different distance from
+   the staff so they do not land on each other. */
+const SCORE_OVERLAYS = [
+  ['names',      'Note names',    'the letter of each note',              '#7f916a'],
+  ['degrees',    'Scale degrees', 'where each note sits in the key',      '#5c7c8a'],
+  ['chords',     'Chords',        'the harmony under each beat',          '#b0705e'],
+  ['beats',      'Beat counts',   'what to count under the bar',          '#8a7f9e'],
+  ['fingerings', 'Fingerings',    'yours \u2014 with it on, a press on a note sets one', '#a0727e']];
+/* Degrees of the scale, and the spelling a musician would use for the notes
+   between them. */
+const SCALE_DEGREES = ['1','♭2','2','♭3','3','4','♯4','5','♭6','6','♭7','7'];
+
 /* Warm, and off the house's own palette — a score is black on cream, and a
    neon band over it makes the notes harder to read, which is the one thing a
    practice annotation must never do. */
@@ -59,6 +72,22 @@ function scoreDefaults(x){
      something up and useless for reading, because the eye reads a phrase and
      a phrase is rarely two bars long. Zero means let it decide. */
   x.barsPerLine = clamp(+x.barsPerLine || 0, 0, 16);
+  /* How far the piece is moved, in semitones. It belongs to the score rather
+     than to the room because it is a property of how you are working on this
+     piece this month — singing it down a third, reading it up a tone — and it
+     should still be there tomorrow. The file itself is never touched. */
+  x.transpose = clamp(Math.round(+x.transpose || 0), -12, 12);
+  /* Chord symbols you have written over the room's reading. Keyed by bar and
+     beat, so they stay put through a transposition, a re-engraving or a
+     change of how many bars go on a line. An empty string is "say nothing
+     here", which is different from having no opinion. */
+  x.chordOverrides = (x.chordOverrides && typeof x.chordOverrides === 'object') ? x.chordOverrides : {};
+  /* Fingerings, keyed by bar, beat, staff and place in the chord. An object
+     rather than a list because every redraw looks up every note and a list
+     would be a scan per note head; the data is the same either way. */
+  x.fingerings = (x.fingerings && typeof x.fingerings === 'object' && !Array.isArray(x.fingerings))
+    ? x.fingerings : {};
+  x.cursorSpeed = SCORE_CURSOR_SPEEDS.includes(+x.cursorSpeed) ? +x.cursorSpeed : 1;
   x.sections = Array.isArray(x.sections) ? x.sections : [];
   x.sections.forEach(s => scoreSectionDefaults(s, x));
   x.pins = Array.isArray(x.pins) ? x.pins : [];
@@ -68,6 +97,11 @@ function scoreDefaults(x){
      finding the metronome at somebody else's number is a small thing that
      happens every single time. The beats a bar are read off the notation and
      only stored so a piece can override a wrong reading. */
+  /* Which of the layers over the notation are on. All off to begin with: the
+     notation is the thing, and every layer over it is a crutch you should be
+     able to put down. */
+  x.overlays = Object.assign({names:false, degrees:false, beats:false, chords:false,
+    fingerings:true}, x.overlays || {});
   x.metronome = Object.assign({bpm:90, perBar:null}, x.metronome || {});
   x.metronome.bpm = clamp(+x.metronome.bpm || 90, 20, 300);
   x.metronome.perBar = x.metronome.perBar == null ? null : clamp(+x.metronome.perBar, 1, 16);

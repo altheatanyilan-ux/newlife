@@ -8289,6 +8289,49 @@ html[data-theme="light"] .wk-sleep.is-guess{background-image:repeating-linear-gr
 .sc-band-n{position:absolute;top:-10px;left:3px;font-family:var(--mono);font-size:.58rem;
   font-weight:400;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;
   color:#fff;background:var(--c);opacity:.9;padding:1px 5px;border-radius:2px}
+/* the layers over the notation: each its own ink, each a different distance
+   from the staff so two at once do not sit on each other */
+.sc-marks{position:absolute;inset:10px;pointer-events:none;z-index:2}
+.sc-lab{position:absolute;font-family:var(--mono);line-height:1;white-space:nowrap;
+  font-style:normal;letter-spacing:.01em;transform:translate(-50%,-50%)}
+/* the letter sits on the head, which is the only place with room for it in a
+   chord — so it is reversed out of the ink rather than written beside it */
+.sc-lab-name{color:#fff;font-weight:600;
+  text-shadow:0 0 2px #7f916a,0 0 3px #7f916a,0 0 1px rgba(0,0,0,.6)}
+.sc-lab-deg{color:#5c7c8a;transform:translate(0,-50%)}
+.sc-lab-beat{color:#8a7f9e}
+.sc-lab-beat.weak{opacity:.55}
+.sc-lab-chord{color:#b0705e;font-family:var(--serif);transform:translate(-50%,-100%);
+  pointer-events:auto;cursor:pointer;padding:0 2px;border-radius:3px}
+.sc-lab-chord:hover{background:rgba(176,112,94,.14)}
+.sc-lab-chord.unsure{opacity:.5;font-style:italic}
+.sc-lab-chord.mine{border-bottom:1.5px solid rgba(176,112,94,.55)}
+/* a fingering is a circled number, which is how a century of engraving writes
+   one, and it sits above the note for the right hand and below for the left */
+.sc-fing{color:#a0727e;background:rgba(253,250,243,.92);border:1px solid rgba(160,114,126,.6);
+  border-radius:50%;width:1.5em;height:1.5em;display:flex;align-items:center;justify-content:center;
+  transform:translate(-50%,-50%);font-weight:600;pointer-events:auto;cursor:pointer}
+.sc-fing:hover{background:rgba(160,114,126,.2)}
+.sc-fingpick{position:absolute;z-index:6;transform:translate(-50%,0);display:flex;flex-direction:column;
+  gap:3px;padding:6px;border-radius:8px;background:var(--surface,#fdfaf3);border:1px solid var(--line);
+  box-shadow:0 6px 22px rgba(0,0,0,.18)}
+.sc-fingrow{display:flex;align-items:center;gap:3px}
+.sc-fingrow b{width:2em;font-size:.68rem;opacity:.7}
+.sc-fingrow .tbtn{min-width:1.9em;padding:2px 4px}
+/* the marker, which is a place rather than a highlight: a band the height of
+   the system, warm enough to find and faint enough to read the notes through */
+.sc-cursor{position:absolute;display:block;border-radius:3px;background:#c9a96e;opacity:.42;
+  transform:translateX(-50%);transition:left .12s ease, top .12s ease}
+.sc-cur{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.sc-cur #scCurSay{min-width:7em;text-align:center;font-size:.72rem}
+.sc-curmodes{display:flex;gap:3px}
+.sc-toomany{position:absolute;top:4px;left:50%;transform:translateX(-50%);
+  font-size:.66rem;opacity:.6;font-style:normal;background:var(--surface);
+  padding:2px 9px;border-radius:999px;border:1px solid var(--line)}
+html[data-theme="dark"] .sc-lab-name{color:#6d7d5c}
+html[data-theme="dark"] .sc-lab-deg{color:#4c6874}
+.sc-layers{display:flex;gap:4px;flex-wrap:wrap}
+.sc-layer.on{border-color:var(--c);background:color-mix(in srgb,var(--c) 16%,transparent);color:var(--c)}
 .sc-pin{position:absolute;transform:translate(-50%,-90%);pointer-events:auto;cursor:pointer;
   background:none;border:none;font-size:.78rem;line-height:1;padding:2px;
   filter:drop-shadow(0 0 3px color-mix(in srgb,var(--c) 70%,transparent))}
@@ -8397,6 +8440,9 @@ html.sc-reading .sc-strip .tbtn,html.sc-reading .sc-strip .sel{min-height:34px;p
   .sc-pulse.lit,.sc-pulse.lit.strong{animation:none;background:var(--sage)}
 }
 .sc-bpl{display:flex;align-items:center;gap:5px}
+.sc-xpose{display:flex;align-items:center;gap:5px}
+.sc-xpose .mono{min-width:6.5em;text-align:center;font-size:.72rem}
+.sc-xpose [data-scxp="-1"],.sc-xpose [data-scxp="1"]{min-width:1.9em;font-size:.95rem;line-height:1}
 .sc-bpl .mono{min-width:2.2em;text-align:center;font-size:.72rem}
 
 /* Engraved black on cream, which is what a score is. On a dark page the stage
@@ -47754,6 +47800,265 @@ function maybeOfferHandoff(){
     22000, {label: 'go to Settings', fn: () => navigate('#/settings')});
 }
 /* ============================================================
+   READING THE HARMONY OFF THE NOTES.
+
+   A lead sheet tells you the chord. A piano score does not: it gives you the
+   notes and expects you to hear the harmony in them, which is exactly the
+   skill that takes years and exactly the thing that would help most while you
+   are learning the piece. So the room works it out and writes it over the bar.
+
+   The obvious way to do it is the way the specification suggests: take the
+   notes sounding, and go through a list of chord shapes returning the first
+   one whose notes are all present. That is wrong, and wrong in a way that
+   looks right in testing, because "all present" is a subset test — A C E G is
+   an A minor seventh, and a subset search finds C major inside it and stops.
+   Every seventh chord in the piece comes out named as the triad three notes
+   up, which is worse than no chord symbols at all.
+
+   So every root and every shape is scored, and the best fit wins. What makes
+   a fit good:
+
+     a note in the chord that is not being played is a small cost, and the
+     fifth is the smallest of all, because pianists leave fifths out;
+     a note being played that the chord cannot explain is a large cost, and it
+     is the thing that rules out the wrong answer above;
+     the bass is a strong vote for the root, because a chord in root position
+     is far commoner than one in second inversion;
+     and an odd shape has to earn its name — sus2 and add9 are real, and they
+     are not what a C major triad is.
+
+   Where it is unsure it says so by writing faintly rather than by writing
+   confidently, and anything it gets wrong can be written over by hand.
+   ============================================================ */
+
+/* Name, the semitones above the root, and how odd the shape is — the last is
+   a handicap, so a plain triad beats an exotic name that happens to fit. */
+const CHORD_SHAPES = [
+  ['',      [0,4,7],       0],
+  ['m',     [0,3,7],       0],
+  ['5',     [0,7],         1.0],
+  ['dim',   [0,3,6],       1.0],
+  ['aug',   [0,4,8],       1.5],
+  ['sus4',  [0,5,7],       1.0],
+  ['sus2',  [0,2,7],       1.5],
+  ['6',     [0,4,7,9],     1.0],
+  ['m6',    [0,3,7,9],     1.2],
+  ['7',     [0,4,7,10],    0.3],
+  ['maj7',  [0,4,7,11],    0.5],
+  ['m7',    [0,3,7,10],    0.4],
+  ['m7♭5', [0,3,6,10], 1.0],
+  ['dim7',  [0,3,6,9],     1.2],
+  ['9',     [0,2,4,7,10],  1.2],
+  ['maj9',  [0,2,4,7,11],  1.4],
+  ['m9',    [0,2,3,7,10],  1.4],
+  ['add9',  [0,2,4,7],     1.6],
+];
+/* A chord tone nobody played. The fifth is nearly free — leaving it out is
+   ordinary piano writing — and a missing root is worse than a missing third,
+   because without it there is not much reason to call it that chord. */
+const CHORD_MISS = t => t === 7 ? 0.4 : t === 0 ? 1.0 : 1.2;
+/* A note the name cannot account for. Twice the cost of a missing one: the
+   thing that is there is harder evidence than the thing that is not. */
+const CHORD_EXTRA = 2.0;
+/* How wrong a reading can be before it is written faintly instead of plainly. */
+const CHORD_UNSURE = 1.0;
+
+/* The best name for a handful of pitch classes. `pcs` is a Set of 0–11 and
+   `bass` the pitch class of the lowest note, or null. */
+function chordFit(pcs, bass){
+  let best = null;
+  for(let r = 0; r < 12; r++){
+    for(const [name, tones, odd] of CHORD_SHAPES){
+      let cost = odd + tones.length * 0.05;   /* a tie goes to the simpler name */
+      const has = {};
+      tones.forEach(t => { has[t] = true; if(!pcs.has((r + t) % 12)) cost += CHORD_MISS(t); });
+      pcs.forEach(p => { if(!has[((p - r) % 12 + 12) % 12]) cost += CHORD_EXTRA; });
+      if(bass != null && bass === r) cost -= 1.2;
+      if(!best || cost < best.cost) best = {cost, root: r, name, tones};
+    }
+  }
+  return best;
+}
+/* The letter, spelled the way the key is spelled — a piece in flats does not
+   suddenly acquire a D sharp chord. */
+function chordRootName(pc, flat){
+  const [letter, alter] = (flat ? XP_FLAT : XP_SHARP)[((pc % 12) + 12) % 12];
+  return letter + (alter > 0 ? '♯' : alter < 0 ? '♭' : '');
+}
+/* The whole symbol, bass and all. A chord over a bass that is not its root is
+   written as a slash chord, because that is what it is and because it is the
+   thing a left hand most wants told. */
+function chordSymbol(fit, bass, flat){
+  const head = chordRootName(fit.root, flat) + fit.name;
+  return (bass != null && bass !== fit.root)
+    ? `${head}/${chordRootName(bass, flat)}` : head;
+}
+
+/* What is sounding on each beat of each bar, and what to call it.
+   Beats rather than note onsets: a passing quaver is not a chord change, and
+   analysing every onset gives a different name twice a beat, which is noise
+   drawn over the music. */
+function scoreChordLine(notes, opts = {}){
+  const t = scoreTimeSignature();
+  const beats = opts.beats || (t ? t.beats : 4);
+  const step = 1 / (t ? t.unit : 4);       /* one beat, as a fraction of a whole */
+  const flat = !!opts.flat;
+  const byBar = {};
+  notes.forEach(n => { if(n.midi == null) return; (byBar[n.measure] = byBar[n.measure] || []).push(n); });
+  const out = [];
+  let last = null;
+  Object.keys(byBar).map(Number).sort((a, b) => a - b).forEach(bar => {
+    const list = byBar[bar];
+    for(let i = 0; i < beats; i++){
+      const at = i * step;
+      /* held notes count: a bass note under a melody is part of the harmony
+         for as long as it lasts, not only on the beat it was struck */
+      const on = list.filter(n => n.at <= at + 1e-6
+        && n.at + Math.max(n.dur || 0, 1 / 64) > at + 1e-6);
+      if(!on.length) continue;
+      const pcs = new Set(on.map(n => ((n.midi % 12) + 12) % 12));
+      /* one note is a note, not a chord */
+      if(pcs.size < 2) continue;
+      const low = on.reduce((a, n) => n.midi < a.midi ? n : a);
+      const bass = ((low.midi % 12) + 12) % 12;
+      const fit = chordFit(pcs, bass);
+      const say = chordSymbol(fit, bass, flat);
+      /* only where it changes: the same symbol on all four beats of a bar is
+         three symbols too many */
+      if(say === last) continue;
+      last = say;
+      const struck = on.filter(n => Math.abs(n.at - at) < 1e-6);
+      out.push({measure: bar, beat: i, at, key: `${bar}|${Math.round(at * 48)}`,
+        say, cost: fit.cost, sure: fit.cost <= CHORD_UNSURE,
+        x: (struck.length ? struck : on).reduce((a, n) => Math.min(a, n.x), Infinity),
+        page: on[0].page});
+    }
+  });
+  return out;
+}
+/* ============================================================
+   WALKING THROUGH THE PIECE.
+
+   The room cannot play the score — there is no synthesiser in it and there is
+   not going to be one. What it can do is move a marker through the notation
+   at whatever pace you can follow, which turns out to be the more useful half
+   of playback anyway: it is how you read a passage you cannot yet play, one
+   chord at a time, with the chord symbols and the degrees switched on so you
+   can see what each moment is made of.
+
+   The specification reaches for the engraver's own cursor and drives it with
+   setInterval. Neither part survives contact with this room. The engraver's
+   cursor draws itself into whichever page it thinks is current and the room
+   has already taken the pages apart to show one at a time; and setInterval
+   drifts, which is the whole reason the metronome does not use it. So the
+   marker is drawn from the same measure boxes everything else here is drawn
+   from, and when the click is running the marker moves on the click — one
+   clock for the room, not two that slowly disagree.
+   ============================================================ */
+
+/* The three sizes of step. A note is what you want when you are working out a
+   chord; a bar is what you want when you are finding your place. */
+const SCORE_CURSOR_MODES = [['beat', 'beat'], ['note', 'note'], ['measure', 'bar']];
+const SCORE_CURSOR_SPEEDS = [0.5, 1, 2, 4];
+
+let _scCur = null;            /* where the marker is, or null for put away */
+let _scAuto = null;           /* the auto-advance timer, or the metronome's hold */
+
+/* Every place the marker can stop, in order, for the whole of what is drawn.
+   Not only the page on the glass: stepping off the end of a page should turn
+   it, which it cannot do if it does not know what is over the leaf. */
+function scoreCursorStops(mode){
+  const notes = scoreNotes();
+  const boxes = measureBoxes();
+  const bars = [...new Set(boxes.map(b => b.measure))].sort((a, b) => a - b);
+  if(!bars.length) return [];
+  const t = scoreTimeSignature();
+  const beats = t ? t.beats : 4;
+  const step = 1 / (t ? t.unit : 4);
+  const byBar = {};
+  notes.forEach(n => (byBar[n.measure] = byBar[n.measure] || []).push(n));
+  const topOf = bar => {
+    const own = boxes.filter(b => b.measure === bar);
+    return own.length ? own.reduce((a, b) => b.y < a.y ? b : a) : null;
+  };
+  const stops = [];
+  bars.forEach(bar => {
+    const box = topOf(bar);
+    if(!box) return;
+    const here = byBar[bar] || [];
+    /* where in the bar to put the marker: on a note if one starts there, and
+       otherwise across the bar in proportion, which is where the engraver
+       would have put a note had there been one */
+    const place = at => {
+      const struck = here.filter(n => Math.abs(n.at - at) < 1e-6);
+      if(struck.length) return {x: struck.reduce((a, n) => Math.min(a, n.x), Infinity),
+        page: struck[0].page};
+      const across = beats * step;
+      return {x: box.x + box.w * (across ? at / across : 0), page: box.page};
+    };
+    if(mode === 'measure'){ const p = place(0); stops.push({measure:bar, at:0, ...p}); return; }
+    if(mode === 'note'){
+      const ats = [...new Set(here.map(n => Math.round(n.at * 48)))].sort((a, b) => a - b);
+      (ats.length ? ats : [0]).forEach(k => { const at = k / 48; stops.push({measure:bar, at, ...place(at)}); });
+      return;
+    }
+    for(let i = 0; i < beats; i++){ const at = i * step; stops.push({measure:bar, at, ...place(at)}); }
+  });
+  return stops;
+}
+/* Which stop the marker is on now — by bar and place in the bar rather than by
+   a remembered index, because the list is rebuilt whenever the engraving is,
+   and an index into the old list points at the wrong note in the new one. */
+function scoreCursorIndex(stops){
+  if(!_scCur) return -1;
+  let best = -1, gap = Infinity;
+  stops.forEach((s, i) => {
+    const d = Math.abs(s.measure - _scCur.measure) * 100 + Math.abs(s.at - _scCur.at);
+    if(d < gap){ gap = d; best = i; }
+  });
+  return best;
+}
+function scoreCursorAt(){ return _scCur; }
+function scoreCursorOn(){ return !!_scCur; }
+/* put it on the page, or take it off */
+function scoreCursorShow(on, mode){
+  if(!on){ _scCur = null; scoreCursorAuto(false); return null; }
+  const stops = scoreCursorStops(mode || (_scCur && _scCur.mode) || 'beat');
+  if(!stops.length) return null;
+  _scCur = Object.assign({mode: mode || (_scCur && _scCur.mode) || 'beat'}, stops[0]);
+  return _scCur;
+}
+/* one step. Returns false at either end, so the caller can say so rather than
+   leaving you pressing an arrow that does nothing. */
+function scoreCursorStep(by){
+  if(!_scCur) return false;
+  const stops = scoreCursorStops(_scCur.mode);
+  if(!stops.length) return false;
+  const at = scoreCursorIndex(stops);
+  const next = clamp(at + by, 0, stops.length - 1);
+  if(next === at && stops.length > 1 && (at === 0 || at === stops.length - 1)) return false;
+  _scCur = Object.assign({mode: _scCur.mode}, stops[next]);
+  return true;
+}
+/* the mode changes under the marker without losing the place */
+function scoreCursorMode(mode){
+  if(!_scCur){ return scoreCursorShow(true, mode); }
+  const was = {measure:_scCur.measure, at:_scCur.at};
+  _scCur.mode = mode;
+  const stops = scoreCursorStops(mode);
+  if(!stops.length) return _scCur;
+  _scCur = Object.assign({mode}, stops[Math.max(0, stops.findIndex(s =>
+    s.measure > was.measure || (s.measure === was.measure && s.at >= was.at - 1e-6)))]);
+  return _scCur;
+}
+/* How it says where it is, for the readout. */
+function scoreCursorSay(){
+  if(!_scCur) return '';
+  const t = scoreTimeSignature();
+  const beat = Math.round(_scCur.at * (t ? t.unit : 4)) + 1;
+  return _scCur.mode === 'measure' ? `bar ${_scCur.measure}` : `bar ${_scCur.measure} · ${beat}`;
+}
+/* ============================================================
    SCORE PRACTICE — the notation, and what you have written on it.
 
    A practice companion rather than a notation editor. The score is engraved
@@ -47768,6 +48073,19 @@ function maybeOfferHandoff(){
    will read in three weeks; kept on the notation it is a note you cannot
    avoid reading the next time you play that page.
    ============================================================ */
+
+/* The layers that can sit over the notation, each with its own ink so two of
+   them at once are still tellable apart, and each a different distance from
+   the staff so they do not land on each other. */
+const SCORE_OVERLAYS = [
+  ['names',      'Note names',    'the letter of each note',              '#7f916a'],
+  ['degrees',    'Scale degrees', 'where each note sits in the key',      '#5c7c8a'],
+  ['chords',     'Chords',        'the harmony under each beat',          '#b0705e'],
+  ['beats',      'Beat counts',   'what to count under the bar',          '#8a7f9e'],
+  ['fingerings', 'Fingerings',    'yours \u2014 with it on, a press on a note sets one', '#a0727e']];
+/* Degrees of the scale, and the spelling a musician would use for the notes
+   between them. */
+const SCALE_DEGREES = ['1','♭2','2','♭3','3','4','♯4','5','♭6','6','♭7','7'];
 
 /* Warm, and off the house's own palette — a score is black on cream, and a
    neon band over it makes the notes harder to read, which is the one thing a
@@ -47814,6 +48132,22 @@ function scoreDefaults(x){
      something up and useless for reading, because the eye reads a phrase and
      a phrase is rarely two bars long. Zero means let it decide. */
   x.barsPerLine = clamp(+x.barsPerLine || 0, 0, 16);
+  /* How far the piece is moved, in semitones. It belongs to the score rather
+     than to the room because it is a property of how you are working on this
+     piece this month — singing it down a third, reading it up a tone — and it
+     should still be there tomorrow. The file itself is never touched. */
+  x.transpose = clamp(Math.round(+x.transpose || 0), -12, 12);
+  /* Chord symbols you have written over the room's reading. Keyed by bar and
+     beat, so they stay put through a transposition, a re-engraving or a
+     change of how many bars go on a line. An empty string is "say nothing
+     here", which is different from having no opinion. */
+  x.chordOverrides = (x.chordOverrides && typeof x.chordOverrides === 'object') ? x.chordOverrides : {};
+  /* Fingerings, keyed by bar, beat, staff and place in the chord. An object
+     rather than a list because every redraw looks up every note and a list
+     would be a scan per note head; the data is the same either way. */
+  x.fingerings = (x.fingerings && typeof x.fingerings === 'object' && !Array.isArray(x.fingerings))
+    ? x.fingerings : {};
+  x.cursorSpeed = SCORE_CURSOR_SPEEDS.includes(+x.cursorSpeed) ? +x.cursorSpeed : 1;
   x.sections = Array.isArray(x.sections) ? x.sections : [];
   x.sections.forEach(s => scoreSectionDefaults(s, x));
   x.pins = Array.isArray(x.pins) ? x.pins : [];
@@ -47823,6 +48157,11 @@ function scoreDefaults(x){
      finding the metronome at somebody else's number is a small thing that
      happens every single time. The beats a bar are read off the notation and
      only stored so a piece can override a wrong reading. */
+  /* Which of the layers over the notation are on. All off to begin with: the
+     notation is the thing, and every layer over it is a crutch you should be
+     able to put down. */
+  x.overlays = Object.assign({names:false, degrees:false, beats:false, chords:false,
+    fingerings:true}, x.overlays || {});
   x.metronome = Object.assign({bpm:90, perBar:null}, x.metronome || {});
   x.metronome.bpm = clamp(+x.metronome.bpm || 90, 20, 300);
   x.metronome.perBar = x.metronome.perBar == null ? null : clamp(+x.metronome.perBar, 1, 16);
@@ -48247,7 +48586,7 @@ async function openScoreIn(container, rec, opts = {}){
     drawingParameters: 'default',
   });
   _sv = {osmd, container, scoreId: rec.id, from: null, to: null, loaded: false,
-    page: null, pages: 1, at: 0};
+    page: null, pages: 1, at: 0, by: 0};
   await renderScore(rec, opts);
   return _sv;
 }
@@ -48272,8 +48611,13 @@ async function renderScore(rec, opts = {}){
      a score up and wrong for playing from it. */
   const page = opts.page === undefined ? _sv.page : opts.page;
   const pageSame = (a, b) => (!a && !b) || (a && b && Math.abs(a - b) < 0.01);
-  const changed = !_sv.loaded || from !== _sv.from || to !== _sv.to || !pageSame(page, _sv.page);
-  _sv.from = from; _sv.to = to; _sv.page = page;
+  /* Moving the piece into another key is a different set of notes, so it is a
+     re-read like the measure range is — and like the measure range, it is only
+     paid when it changes. */
+  const by = Math.round(+rec.transpose || 0);
+  const changed = !_sv.loaded || from !== _sv.from || to !== _sv.to
+    || !pageSame(page, _sv.page) || by !== _sv.by;
+  _sv.from = from; _sv.to = to; _sv.page = page; _sv.by = by;
   if(changed){
     const r = osmd.EngravingRules || osmd.rules;
     if(r){
@@ -48287,7 +48631,7 @@ async function renderScore(rec, opts = {}){
         else osmd.setPageFormat('Endless');
       } catch(e){}
     }
-    await osmd.load(rec.musicXml);
+    await osmd.load(scoreXmlFor(rec));
     _sv.loaded = true;
   }
   /* every engraving, not only the ones that re-read the file: reading the
@@ -48336,6 +48680,117 @@ function turnScorePage(by){
   const now = showScorePage(_sv.at + by);
   return now === was ? null : now;
 }
+/* ---------- every note, in one shape ----------
+   The layout tree keeps a note's pitch in one place, its position in another
+   and its place in the bar in a third, and calls them things nobody outside
+   OSMD would guess. This flattens all of it into one row per note head, which
+   is what the overlays, the chord reading, the fingerings and the cursor all
+   want — and it means there is one function to repair if the engraver is ever
+   swapped out, rather than five.
+
+   The accidental is worked out from the pitch rather than read off the
+   accidental field, whose enumeration puts "none" at 2 and is not worth
+   trusting when the arithmetic is three lines. */
+function scoreNotes(){
+  if(!_sv) return [];
+  const {osmd} = _sv;
+  const unit = (osmd.zoom || 1) * 10;
+  const lo = _sv.from || -Infinity, hi = _sv.to || Infinity;
+  const pages = (() => { try { return osmd.GraphicSheet.MusicPages || []; } catch(e){ return []; } })();
+  const out = [];
+  try {
+    (osmd.GraphicSheet.MeasureList || []).forEach(line => (line || []).forEach(m => {
+      if(!m) return;
+      const n = m.MeasureNumber;
+      if(n == null || n < lo || n > hi) return;
+      const sys = m.ParentStaffLine && m.ParentStaffLine.ParentMusicSystem;
+      const pg = sys && sys.Parent ? Math.max(0, pages.indexOf(sys.Parent)) : 0;
+      const staff = (m.ParentStaffLine && m.ParentStaffLine.ParentStaff)
+        ? (m.ParentStaffLine.ParentStaff.idInMusicSheet ?? 0) : 0;
+      (m.staffEntries || []).forEach(se => {
+        const ts = se.relInMeasureTimestamp || (se.sourceStaffEntry && se.sourceStaffEntry.Timestamp);
+        /* the timestamp is a fraction of a whole note; times four is quarters,
+           which is what anybody counting a bar of four-four is counting in */
+        const where = ts && ts.RealValue != null ? ts.RealValue : 0;
+        (se.graphicalVoiceEntries || []).forEach((ve, vi) => {
+          (ve.notes || []).forEach((gn, ni) => {
+            const sn = gn.sourceNote;
+            const ps = gn.PositionAndShape;
+            if(!ps || !ps.AbsolutePosition) return;
+            const rest = !!(sn && sn.isRest && sn.isRest());
+            const pitch = sn && sn.Pitch;
+            let midi = null, step = null, alter = 0;
+            if(pitch && pitch.halfTone != null){
+              midi = pitch.halfTone + 12;              /* OSMD counts C4 as 48 */
+              step = pitch.fundamentalNote;
+              alter = (pitch.halfTone % 12) - step;
+              if(alter > 6) alter -= 12;
+              if(alter < -6) alter += 12;
+            }
+            /* how long it sounds, as a fraction of a whole note. A bass
+               note held under a melody is part of the harmony on every beat
+               it lasts, and without the length there is no way to know that. */
+            const len = sn && sn.Length && sn.Length.RealValue;
+            out.push({measure:n, page:pg, staff, voice:vi, index:ni, rest,
+              x: ps.AbsolutePosition.x * unit, y: ps.AbsolutePosition.y * unit,
+              midi, step, alter, at: where, beat: where * 4,
+              dur: len != null ? len : 0});
+          });
+        });
+      });
+    }));
+  } catch(e){ return out; }
+  return out;
+}
+/* The natural names, and what to call a pitch. Sharps and flats are spelled
+   as the score spells them rather than normalised, because a piece in D flat
+   full of C sharps would be a piece nobody could read. */
+const NOTE_LETTERS = {0:'C', 2:'D', 4:'E', 5:'F', 7:'G', 9:'A', 11:'B'};
+function noteLetter(n){
+  if(n.midi == null) return '';
+  const letter = NOTE_LETTERS[n.step];
+  if(!letter) return '';
+  const marks = n.alter > 0 ? '♯'.repeat(Math.min(2, n.alter))
+    : n.alter < 0 ? '♭'.repeat(Math.min(2, -n.alter)) : '';
+  return letter + marks;
+}
+/* The key the piece is written in, off its own signature. The engraver keeps
+   it among the instructions at the head of the first bar, beside the clef and
+   the time — none of which announce which they are, so the key is the one
+   carrying a list of altered notes. */
+function scoreKey(){
+  if(!_sv) return {fifths:0, minor:false};
+  try {
+    const ms = _sv.osmd.Sheet.SourceMeasures || [];
+    for(const m of ms){
+      const rows = m.FirstInstructionsStaffEntries || m.firstInstructionsStaffEntries || [];
+      for(const row of rows){
+        for(const i of (row && (row.Instructions || row.instructions) || [])){
+          if(!i || i.Key == null || i.alteratedNotes === undefined) continue;
+          /* the engraver's mode enumeration puts major first and minor next */
+          return {fifths: i.Key, minor: i.Mode === 1 || i.mode === 1};
+        }
+      }
+    }
+  } catch(e){}
+  return {fifths:0, minor:false};
+}
+const scoreKeyFifths = () => scoreKey().fifths;
+/* fifths round the circle to the tonic's pitch class: 0 is C, one sharp is G.
+   A minor key's tonic is three semitones below its relative major's, and it
+   is the tonic the degrees are counted from — in D minor, D is the one. */
+function keyRootOf(fifths, minor){
+  const major = ((+fifths || 0) * 7 % 12 + 12) % 12;
+  return minor ? ((major - 3) % 12 + 12) % 12 : major;
+}
+/* what to call the key, for the toolbar. The spelling is decided by which way
+   the signature leans — sharps get sharp names, flats get flat ones — which is
+   the same rule a transposed key is named by, so both go through one place. */
+function scoreKeyName(k){
+  const key = k || scoreKey();
+  return scoreKeyNameOf(key.fifths, key.minor);
+}
+
 /* which page a bar is on, so a jump to a section turns to it */
 function pageOfMeasure(n){
   const b = measureBoxes().find(x => x.measure === n);
@@ -48498,10 +48953,15 @@ function measureRangeBands(from, to){
 const measureBox = n => { const on = _sv && _sv.page ? _sv.at : null;
   return measureBoxes().find(b => b.measure === n && (on === null || b.page === on)) || null; };
 /* which measure a press landed in, for the pin popover */
+/* Which bar a press landed in. The band is the staff, and plenty of the notes
+   are not on it — a C below the treble stave sits a space under the bottom
+   line, and pressing the note you meant should not miss the bar it is in. So
+   the catch reaches a little above and below, which costs nothing: where two
+   staves are close enough for the reaches to meet they are the same bar. */
 function measureAt(x, y){
   const on = _sv && _sv.page ? _sv.at : null;
   const hit = measureBoxes().filter(b => (on === null || b.page === on)
-    && x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h);
+    && x >= b.x && x <= b.x + b.w && y >= b.y - b.h * 0.7 && y <= b.y + b.h * 1.7);
   return hit.length ? hit[0].measure : null;
 }
 /* ============================================================
@@ -48636,17 +49096,146 @@ function scoreViewerHTML(x){
       <button class="btn sm" id="scRead" title="the score and nothing else">⛶ read</button>
       <button class="btn sm primary" id="scNewSec">＋ a section</button>
     </div>
-    ${ui.more ? `<div class="sc-bar sc-bar2">${scoreMetroHTML(x)}</div>` : ''}
+    ${ui.more ? `<div class="sc-bar sc-bar2">${scoreMetroHTML(x)}</div>
+      <div class="sc-bar sc-bar2">${scoreLayerPickHTML(x)}
+        <span class="grow"></span>${scoreXposeHTML(x)}</div>
+      <div class="sc-bar sc-bar2">${scoreCursorHTML(x)}</div>` : ''}
     ${scoreReadStripHTML(x)}
     <div class="sc-body">
       <div class="sc-stage" id="scStage">
         <div class="sc-canvas" id="scCanvas"></div>
         <div class="sc-overlay" id="scOverlay" aria-hidden="true"></div>
+        <div class="sc-marks" id="scMarks2" aria-hidden="true"></div>
+        <div class="sc-marks" id="scCur" aria-hidden="true"></div>
         <div class="sc-pins" id="scPins"></div>
         <div class="sc-loading" id="scLoading">engraving…</div>
       </div>
       <aside class="sc-side" id="scSide">${scoreSideHTML(x)}</aside>
     </div>`;
+}
+
+/* The marker, and the three sizes of step. It is off until you ask for it:
+   a line under the music you are not following is one more thing on a page
+   that already has notes on it. */
+function scoreCursorHTML(x, compact){
+  const on = scoreCursorOn();
+  const mode = (scoreCursorAt() || {}).mode || 'beat';
+  return `<span class="sc-cur">
+    <button class="btn sm${on ? ' primary' : ''}" data-sccuron="1"
+      title="${on ? 'put the marker away' : 'walk through the piece a step at a time'}">${on ? '\u25c9' : '\u25cb'} walk</button>
+    <button class="tbtn" data-sccur="-1" ${on ? '' : 'disabled'} title="back a step">\u25c2</button>
+    <span class="mono sc-cursay">${esc(scoreCursorSay())}</span>
+    <button class="tbtn" data-sccur="1" ${on ? '' : 'disabled'} title="on a step">\u25b8</button>
+    ${compact ? '' : `<span class="sc-curmodes">${SCORE_CURSOR_MODES.map(([k, name]) =>
+      `<button class="tbtn${mode === k ? ' on' : ''}" data-sccurmode="${k}" ${on ? '' : 'disabled'}
+        title="a step is one ${esc(name)}">${esc(name)}</button>`).join('')}</span>`}
+    <button class="tbtn${_scAuto ? ' on' : ''}" data-sccurauto="1" ${on ? '' : 'disabled'}
+      title="let it walk on by itself">${_scAuto ? '\u25fc' : '\u25b6'}${compact ? '' : ' on its own'}</button>
+    ${compact ? '' : `<select class="sel sm" id="scCurSpeed" ${on ? '' : 'disabled'} title="how fast, when nothing is clicking">
+      ${SCORE_CURSOR_SPEEDS.map(v => `<option value="${v}" ${(x.cursorSpeed || 1) === v ? 'selected' : ''}>${v}/sec</option>`).join('')}</select>`}
+  </span>`;
+}
+/* The marker itself: a band the height of the system, at the place in the bar
+   the step landed on. Drawn from the same measure boxes as the section bands,
+   so it lands where the notation actually is rather than where the engraver's
+   own cursor thinks the page starts. */
+function scoreCursorPaint(x){
+  const box = document.getElementById('scCur');
+  if(!box) return;
+  const at = scoreCursorAt();
+  $$('.sc-cursay').forEach(n => n.textContent = scoreCursorSay());
+  if(!at){ box.innerHTML = ''; return; }
+  const sv = scoreView();
+  const boxes = measureBoxes().filter(b => b.measure === at.measure
+    && (!sv || !sv.page || b.page === sv.at));
+  if(!boxes.length){ box.innerHTML = ''; return; }
+  const u = scoreUnitPx();
+  const top = boxes.reduce((a, b) => Math.min(a, b.y), Infinity);
+  const bot = boxes.reduce((a, b) => Math.max(a, b.y + b.h), -Infinity);
+  box.innerHTML = `<i class="sc-cursor" style="left:${at.x.toFixed(1)}px;top:${
+    (top - u * 0.6).toFixed(1)}px;height:${(bot - top + u * 1.2).toFixed(1)}px;width:${
+    Math.max(3, u * 0.5).toFixed(1)}px"></i>`;
+}
+/* A step, and everything that follows from it: the page turns if the step
+   went over the leaf, the marker is scrolled to if it went off the bottom. */
+function scoreCursorGo(by, x){
+  if(!scoreCursorStep(by)) return false;
+  const at = scoreCursorAt();
+  const sv = scoreView();
+  if(sv && sv.page && at.page != null && at.page !== sv.at){
+    showScorePage(at.page); scoreOverlayPaint(x); scoreLayersPaint(x); scorePageSay();
+  }
+  scoreCursorPaint(x);
+  const stage = document.getElementById('scStage');
+  if(stage && !(sv && sv.page)){
+    const b = measureBox(at.measure);
+    if(b && (b.y < stage.scrollTop || b.y > stage.scrollTop + stage.clientHeight - 80))
+      stage.scrollTo({top: Math.max(0, b.y - 80), behavior:'smooth'});
+  }
+  return true;
+}
+/* Walking on its own. Where the click is running the marker moves on the
+   click, because two clocks in one room drift apart and the sight of the
+   marker landing a little after the beat is worse than no marker. */
+function scoreCursorAuto(on, x){
+  if(_scAuto){ _scAuto(); _scAuto = null; }
+  $$('[data-sccurauto]').forEach(n => { n.textContent = on
+    ? (n.closest('.sc-strip') ? '\u25fc' : '\u25fc on its own')
+    : (n.closest('.sc-strip') ? '\u25b6' : '\u25b6 on its own');
+    n.classList.toggle('on', !!on); });
+  if(!on) return false;
+  const rec = x || scoreById(scoreUi().id);
+  if(!rec || !scoreCursorOn()) return false;
+  if(ScoreMetronome.running){
+    const off = ScoreMetronome.onBeat(() => { if(!scoreCursorGo(1, rec)) scoreCursorAuto(false, rec); });
+    _scAuto = off;
+  } else {
+    const per = 1000 / (+rec.cursorSpeed || 1);
+    const id = setInterval(() => { if(!scoreCursorGo(1, rec)) scoreCursorAuto(false, rec); }, per);
+    _scAuto = () => clearInterval(id);
+  }
+  return true;
+}
+
+/* Moving the piece into another key. Two buttons and the key it lands in,
+   because the number of semitones is not what a musician is thinking about —
+   "can I read this in E flat" is, and the answer wants saying in those words.
+
+   The key is read off the engraving rather than worked out from the record,
+   so what it says is what is actually on the glass: if the rewrite went wrong
+   the readout is wrong with it, which is the honest failure. It is empty for
+   the first frame, before there is an engraving to ask, and filled in the
+   moment there is. */
+function scoreXposeHTML(x){
+  const by = Math.round(+x.transpose || 0);
+  return `<span class="sc-xpose"><span class="k mono">key</span>
+    <button class="tbtn" data-scxp="-1" title="down a semitone">♭</button>
+    <span class="mono" id="scXpSay" title="${esc(transposeSaid(by))}">${esc(scoreXposeSay(x))}</span>
+    <button class="tbtn" data-scxp="1" title="up a semitone">♯</button>
+    <button class="tbtn" data-scxp="0" id="scXpOff" ${by ? '' : 'disabled'}
+      title="back to what the composer wrote">as written</button></span>`;
+}
+function scoreXposeSay(x){
+  const sv = scoreView();
+  const key = (sv && sv.loaded && sv.scoreId === x.id) ? scoreKeyName() : '';
+  const by = Math.round(+x.transpose || 0);
+  const step = by ? `${by > 0 ? '+' : '−'}${Math.abs(by)}` : '';
+  return key && step ? `${key} · ${step}` : (key || step);
+}
+function scoreXposeRepaint(x){
+  const by = Math.round(+x.transpose || 0);
+  $$('#scXpSay').forEach(n => { n.textContent = scoreXposeSay(x); n.title = transposeSaid(by); });
+  $$('#scXpOff').forEach(n => n.disabled = !by);
+}
+
+/* Which layers are on. Named rather than iconic, because "degrees" and
+   "names" look identical as symbols and you are choosing between them. */
+function scoreLayerPickHTML(x){
+  const ov = x.overlays || {};
+  return `<span class="k mono">over the notes</span>
+    <span class="sc-layers">${SCORE_OVERLAYS.map(([k, name, hint, col]) =>
+      `<button class="tbtn sc-layer${ov[k] ? ' on' : ''}" data-sclayer="${k}" style="--c:${col}"
+        title="${esc(hint)}">${esc(name)}</button>`).join('')}</span>`;
 }
 
 /* The metronome. It is the one thing in the room that turns reading into
@@ -48706,6 +49295,10 @@ function scoreReadStripHTML(x){
     ${parts.length > 1 ? `<span class="sc-strip-parts">${parts.map(p =>
       `<button class="tbtn${(x.hidden || []).includes(p.index) ? '' : ' on'}" data-scrpart="${p.index}">${esc(p.name)}</button>`).join('')}</span>` : ''}
     <button class="tbtn${ui.marks ? ' on' : ''}" id="scMarks" title="the bands and pins you have put on it">marks</button>
+    <span class="sc-layers">${SCORE_OVERLAYS.map(([k, name, hint, col]) =>
+      `<button class="tbtn sc-layer${(x.overlays || {})[k] ? ' on' : ''}" data-sclayer="${k}" style="--c:${col}"
+        title="${esc(hint)}">${esc(name)}</button>`).join('')}</span>
+    ${scoreCursorHTML(x, true)}
     <span class="sc-pager"><button class="tbtn" data-scturn="-1" title="back a page">‹</button>
       <span class="mono" id="scPageSay"></span>
       <button class="tbtn" data-scturn="1" title="on a page">›</button></span>
@@ -48858,6 +49451,9 @@ async function scorePaint(x){
        always, because before it there is nothing there to correct */
     scoreRepaintParts(x);
     scoreOverlayPaint(x);
+    scoreLayersPaint(x);
+    scoreXposeRepaint(x);
+    scoreCursorPaint(x);
     scorePageSay();
     saveNow();
   } catch(e){
@@ -48883,7 +49479,9 @@ function scoreOverlayPaint(x){
   const pinBox = document.getElementById('scPins');
   if(!over || !pinBox) return;
   const ui = scoreUi();
-  if(!ui.marks){ over.innerHTML = ''; pinBox.innerHTML = ''; return; }
+  if(!ui.marks){ over.innerHTML = ''; pinBox.innerHTML = '';
+    const layer = document.getElementById('scMarks2'); if(layer) layer.innerHTML = '';
+    return; }
   over.innerHTML = (x.sections || []).map(s => {
     const dim = ui.focus && ui.focus !== s.id;
     return measureRangeBands(s.startMeasure, s.endMeasure).map((b, i) =>
@@ -48900,6 +49498,233 @@ function scoreOverlayPaint(x){
   $$('[data-scpin]', pinBox).forEach(b => b.onclick = ev => { ev.stopPropagation();
     openPinModal(x.id, b.dataset.scpin); });
 }
+/* ---------- the layers over the notation ----------
+   Letters, degrees, the count under the bar. Each is a crutch, and the point
+   of a crutch is that you can put it down — so they are all off to begin
+   with, each has its own ink, and each sits a different distance from the
+   staff so that two at once do not land on each other.
+
+   Drawn as their own layer rather than into the engraving, because the
+   engraving is redrawn for a dozen reasons and none of them should cost the
+   labels, and because a label written into the SVG is a label that prints
+   and that nobody can switch off. */
+function scoreLayersPaint(x){
+  const box = document.getElementById('scMarks2');
+  if(!box) return;
+  const ov = x.overlays || {};
+  if(!scoreUi().marks || !(ov.names || ov.degrees || ov.beats || ov.chords || ov.fingerings)){
+    box.innerHTML = ''; return; }
+  const sv = scoreView();
+  const on = sv && sv.page ? sv.at : null;
+  const notes = scoreNotes().filter(n => on === null || n.page === on);
+  /* A page of a Ballade is a couple of thousand note heads and a label on
+     each is unreadable anyway; past a sensible number the layer says so
+     rather than painting a grey fog over the music. */
+  if(notes.length > SCORE_LAYER_MAX){
+    box.innerHTML = `<i class="sc-toomany mono">too many notes on this page to label — fewer bars to a line, or focus a section</i>`;
+    return;
+  }
+  const key = scoreKey();
+  const root = keyRootOf(key.fifths, key.minor);
+  /* Everything is measured in staff spaces rather than pixels, because the
+     engraving is drawn at whatever size the zoom or the bars-to-a-line have
+     settled on and a label pinned at thirteen pixels sits on the notes at one
+     size and in the next system at another. */
+  const u = scoreUnitPx();
+  const size = clamp(u * 0.78, 6, 15);
+  const out = [];
+  notes.forEach(n => {
+    if(n.rest || n.midi == null) return;
+    /* the letter goes ON the head, which is the only place with room for it
+       in a chord — the heads of a chord are half a space apart and nothing
+       fits between them */
+    if(ov.names) out.push(`<i class="sc-lab sc-lab-name" style="left:${n.x}px;top:${n.y}px;font-size:${
+      (size * 0.86).toFixed(1)}px">${esc(noteLetter(n))}</i>`);
+    /* the degree goes beside it, for the same reason */
+    if(ov.degrees) out.push(`<i class="sc-lab sc-lab-deg" style="left:${(n.x + u * 0.95).toFixed(1)}px;top:${
+      n.y}px;font-size:${size.toFixed(1)}px">${esc(SCALE_DEGREES[((n.midi - root) % 12 + 12) % 12])}</i>`);
+  });
+  if(ov.beats) out.push(scoreBeatsHTML(notes, u, size));
+  if(ov.chords) out.push(scoreChordsHTML(x, notes, u, size));
+  if(ov.fingerings) out.push(scoreFingerHTML(x, notes, u, size));
+  box.innerHTML = out.join('');
+}
+/* one staff space, in pixels, at whatever size the engraving is now */
+function scoreUnitPx(){
+  const sv = scoreView();
+  return sv && sv.osmd ? (sv.osmd.zoom || 1) * 10 : 10;
+}
+const SCORE_LAYER_MAX = 900;
+function scoreChordsHTML(x, notes, u, size){
+  const key = scoreKey();
+  const line = scoreChordLine(notes, {flat: (+key.fifths || 0) < 0});
+  /* the symbol goes over the top staff of the bar, where a lead sheet puts
+     it — not over the hand that happens to be playing the lowest note */
+  const tops = {};
+  measureBoxes().forEach(b => { if(tops[b.measure] == null || b.y < tops[b.measure]) tops[b.measure] = b.y; });
+  const over = x.chordOverrides || {};
+  return line.map(c => {
+    const mine = Object.prototype.hasOwnProperty.call(over, c.key);
+    const said = mine ? over[c.key] : c.say;
+    if(!said) return '';
+    const top = (tops[c.measure] == null ? 0 : tops[c.measure]) - u * 1.1;
+    const why = mine ? 'yours \u2014 press to change it'
+      : c.sure ? 'read off the notes \u2014 press to change it'
+      : 'read off the notes, but not confidently \u2014 press to change it';
+    return `<i class="sc-lab sc-lab-chord${c.sure ? '' : ' unsure'}${mine ? ' mine' : ''}"
+      data-scchord="${esc(c.key)}" title="${esc(why)} (bar ${c.measure}, beat ${c.beat + 1})"
+      style="left:${c.x.toFixed(1)}px;top:${top.toFixed(1)}px;font-size:${(size * 1.15).toFixed(1)}px"
+      >${esc(said)}</i>`;
+  }).join('');
+}
+/* ---------- fingerings ----------
+   The one layer that is not read off the notation but written onto it. A
+   fingering is a decision — which of five fingers takes this note, given what
+   the hand has to do next — and it is the decision you lose first and spend
+   the longest rediscovering, which is why writing it down is worth this much
+   machinery.
+
+   It is anchored to the bar, the beat, the staff and the note's place in the
+   chord, counting from the bottom. Not to anything the engraver hands out:
+   those identities are rebuilt every time the file is read, so a fingering
+   pinned to one would not survive a zoom, let alone a transposition. */
+function scoreFingerKeys(notes){
+  const groups = {};
+  notes.forEach(n => { if(n.midi == null) return;
+    const g = `${n.measure}|${Math.round(n.at * 48)}|${n.staff}`;
+    (groups[g] = groups[g] || []).push(n); });
+  const out = new Map();
+  Object.keys(groups).forEach(g => groups[g].sort((a, b) => a.midi - b.midi)
+    .forEach((n, i) => out.set(n, `${g}|${i}`)));
+  return out;
+}
+/* Right hand above the note, left hand below — which is where a century of
+   engraving puts them, and which is also the only arrangement that stays
+   readable when both hands have something to say about the same beat. */
+function scoreFingerHTML(x, notes, u, size){
+  const keys = scoreFingerKeys(notes);
+  const have = x.fingerings || {};
+  const out = [];
+  keys.forEach((k, n) => {
+    const v = have[k];
+    if(!v || !v.finger) return;
+    const up = v.hand !== 'L';
+    out.push(`<i class="sc-lab sc-fing ${up ? 'rh' : 'lh'}" data-scfing="${esc(k)}"
+      title="${up ? 'right' : 'left'} hand, finger ${v.finger} \u2014 press to change it"
+      style="left:${n.x.toFixed(1)}px;top:${(n.y + (up ? -u * 1.7 : u * 1.7)).toFixed(1)}px;font-size:${
+      (size * 0.82).toFixed(1)}px">${v.finger}</i>`);
+  });
+  return out.join('');
+}
+/* The note a fingering belongs to, found again on whatever is drawn now. */
+function scoreNoteByKey(key){
+  const sv = scoreView();
+  const on = sv && sv.page ? sv.at : null;
+  const notes = scoreNotes().filter(n => n.midi != null && (on === null || n.page === on));
+  const keys = scoreFingerKeys(notes);
+  for(const [n, k] of keys) if(k === key) return {note: n, key};
+  return null;
+}
+/* Which note head a press landed on. Within about a space and a half, which
+   is close enough to be deliberate and far enough to be hittable on glass. */
+function scoreNoteAt(px, py){
+  const sv = scoreView();
+  const on = sv && sv.page ? sv.at : null;
+  const notes = scoreNotes().filter(n => n.midi != null && (on === null || n.page === on));
+  const reach = scoreUnitPx() * 1.8;
+  let best = null, gap = reach;
+  notes.forEach(n => { const d = Math.hypot(n.x - px, n.y - py); if(d < gap){ gap = d; best = n; } });
+  if(!best) return null;
+  return {note: best, key: scoreFingerKeys(notes).get(best)};
+}
+/* Ten buttons and a way out. A modal would be the house style and would be
+   wrong here: you are choosing fingerings for a run of notes and a dialogue
+   that has to be dismissed between each one turns a minute into ten. */
+function openFingerPicker(x, hit){
+  const stage = document.getElementById('scStage');
+  if(!stage || !hit) return null;
+  $$('.sc-fingpick').forEach(n => n.remove());
+  const now = (x.fingerings || {})[hit.key] || {};
+  const row = (hand, label) => `<span class="sc-fingrow"><b class="mono">${label}</b>${
+    [1,2,3,4,5].map(f => `<button class="tbtn${now.hand === hand && now.finger === f ? ' on' : ''}"
+      data-fing="${hand}${f}">${f}</button>`).join('')}</span>`;
+  const box = document.createElement('div');
+  box.className = 'sc-fingpick';
+  box.style.left = `${hit.note.x}px`;
+  box.style.top = `${hit.note.y + scoreUnitPx() * 2.4}px`;
+  box.innerHTML = `${row('R', 'RH')}${row('L', 'LH')}
+    <span class="sc-fingrow"><button class="tbtn" data-fing="">clear</button>
+      <button class="tbtn" data-fingclose="1">\u2715</button></span>`;
+  stage.appendChild(box);
+  const shut = () => box.remove();
+  $$('[data-fing]', box).forEach(b => b.onclick = ev => { ev.stopPropagation();
+    const v = b.dataset.fing;
+    if(v) x.fingerings[hit.key] = {hand: v[0], finger: +v[1]};
+    else delete x.fingerings[hit.key];
+    /* writing a fingering on a score you cannot see the fingerings of is a
+       trap you fall into once and never work out */
+    x.overlays.fingerings = true;
+    saveNow(); sound('click'); shut(); scoreLayersPaint(x);
+  });
+  const close = box.querySelector('[data-fingclose]');
+  if(close) close.onclick = ev => { ev.stopPropagation(); shut(); };
+  return box;
+}
+
+/* Anything read off the notes can be wrong, and a chord symbol you cannot
+   correct is worse than none: you would stop trusting the whole layer. */
+function openChordModal(scoreId, key){
+  const x = scoreById(scoreId); if(!x) return null;
+  const over = x.chordOverrides || {};
+  const mine = Object.prototype.hasOwnProperty.call(over, key);
+  const [bar, at] = key.split('|');
+  const m = openModal(`<h2>The chord at bar ${esc(bar)}</h2>
+    <div class="mono faint">beat ${Math.round(+at / 12) + 1}</div>
+    <label class="pd-q" style="margin-top:8px"><span class="k">what to call it</span>
+      <input class="inp" id="chSay" autofocus placeholder="Am7, F\u266f\u00b07, B\u266d/D\u2026" value="${esc(mine ? over[key] : '')}"></label>
+    <p class="faint sm" style="margin:8px 0 0">Leave it empty to say nothing at all here.</p>
+    <div class="row" style="justify-content:flex-end;margin-top:14px;gap:8px">
+      ${mine ? `<button class="btn sm ghost" id="chAuto">Read it off the notes again</button><span class="grow"></span>` : ''}
+      <button class="btn primary" id="chSave">Save</button></div>`, 'narrow sc-modal');
+  const done = () => { saveNow(); m.remove(); scoreLayersPaint(x); };
+  m.querySelector('#chSave').onclick = () => {
+    x.chordOverrides[key] = m.querySelector('#chSay').value.trim();
+    sound('success'); done();
+  };
+  const auto = m.querySelector('#chAuto');
+  if(auto) auto.onclick = () => { delete x.chordOverrides[key]; sound('click'); done(); };
+  return m;
+}
+/* The count, once under each beat that has something on it, and only under
+   the top staff — counting is one thing you do with the whole bar, not one
+   per hand. */
+function scoreBeatsHTML(notes, u, size){
+  /* one count per moment that has something on it, under the top staff only:
+     counting is a thing you do with the whole bar rather than once per hand */
+  const per = {};
+  notes.forEach(n => {
+    if(n.staff) return;
+    const k = `${n.measure}|${Math.round(n.beat * 48)}`;
+    if(!per[k] || n.y < per[k].y) per[k] = n;
+  });
+  const t = scoreTimeSignature();
+  const beats = t ? t.beats : 4;
+  const unitOf = t ? 4 / t.unit : 1;
+  /* the count sits below the staff rather than below the note, so a row of
+     them is a row rather than a line that follows the tune up and down */
+  const lines = {};
+  Object.values(per).forEach(n => { const k = Math.round(n.y / (u * 4));
+    lines[k] = Math.max(lines[k] ?? -Infinity, n.y); });
+  return Object.values(per).map(n => {
+    const b = n.beat / unitOf;
+    const whole = Math.abs(b - Math.round(b)) < 0.01;
+    const say = whole ? String((Math.round(b) % beats) + 1) : '+';
+    const floor = lines[Math.round(n.y / (u * 4))] ?? n.y;
+    return `<i class="sc-lab sc-lab-beat${whole ? '' : ' weak'}" style="left:${n.x}px;top:${
+      (floor + u * 3.4).toFixed(1)}px;font-size:${size.toFixed(1)}px">${say}</i>`;
+  }).join('');
+}
+
 /* a re-engraving, for the three things that really change the picture */
 async function scoreRedraw(x){
   const ui = scoreUi();
@@ -48908,6 +49733,9 @@ async function scoreRedraw(x){
     await renderScore(x, Object.assign({page: scorePageShape()},
       focus ? {from:focus.startMeasure, to:focus.endMeasure} : {from:null, to:null}));
     scoreOverlayPaint(x);
+    scoreLayersPaint(x);
+    scoreXposeRepaint(x);
+    scoreCursorPaint(x);
     scorePageSay();
   } catch(e){ console.warn('score redraw failed', e); }
 }
@@ -48982,12 +49810,50 @@ function bindScoreViewer(root, x){
   on('#scAllParts', () => { x.hidden = []; applyScoreParts(x); saveNow();
     scoreRepaintParts(x); scoreRedraw(x); });
   on('#scMore', () => { ui.more = !ui.more; saveNow(); rerender(); });
+  $$('[data-sclayer]', root).forEach(b => b.onclick = () => {
+    const k = b.dataset.sclayer;
+    x.overlays[k] = !x.overlays[k];
+    b.classList.toggle('on', x.overlays[k]);
+    saveNow(); scoreLayersPaint(x);
+  });
+  $$('[data-sccuron]', root).forEach(b => b.onclick = () => { const was = scoreCursorOn();
+    scoreCursorShow(!was); if(was) scoreCursorAuto(false, x);
+    saveNow(); rerender(); });
+  $$('[data-sccur]', root).forEach(b => b.onclick = () => {
+    if(!scoreCursorGo(+b.dataset.sccur, x)) toast(+b.dataset.sccur > 0 ? 'That is the end of it.' : 'That is the beginning.');
+  });
+  $$('[data-sccurmode]', root).forEach(b => b.onclick = () => {
+    scoreCursorMode(b.dataset.sccurmode);
+    $$('[data-sccurmode]').forEach(y => y.classList.toggle('on', y.dataset.sccurmode === b.dataset.sccurmode));
+    scoreCursorPaint(x);
+  });
+  $$('[data-sccurauto]', root).forEach(b => b.onclick = () => scoreCursorAuto(!_scAuto, x));
+  const speed = root.querySelector('#scCurSpeed');
+  if(speed) speed.onchange = () => { x.cursorSpeed = +speed.value || 1; saveNow();
+    if(_scAuto) scoreCursorAuto(true, x); };
+  const marks = root.querySelector('#scMarks2');
+  if(marks) marks.onclick = ev => {
+    const chord = ev.target.closest('[data-scchord]');
+    if(chord){ ev.stopPropagation(); openChordModal(x.id, chord.dataset.scchord); return; }
+    /* a fingering already written is the handle for changing it: it sits a
+       space and a half off the note and pressing the note again is fiddly */
+    const fing = ev.target.closest('[data-scfing]');
+    if(fing){ ev.stopPropagation();
+      const hit = scoreNoteByKey(fing.dataset.scfing);
+      if(hit) openFingerPicker(x, hit); }
+  };
   bindScoreMetro(root, x);
   on('#scRead', () => setScoreReading(true));
   on('#scUnread', () => setScoreReading(false));
   on('#scMarks', () => { const u = scoreUi(); u.marks = !u.marks; saveNow();
     const btn = root.querySelector('#scMarks'); if(btn) btn.classList.toggle('on', u.marks);
-    scoreOverlayPaint(x); });
+    scoreOverlayPaint(x); scoreLayersPaint(x); });
+  $$('[data-scxp]', root).forEach(b => b.onclick = async () => {
+    const step = +b.dataset.scxp;
+    x.transpose = step ? clamp((+x.transpose || 0) + step, -12, 12) : 0;
+    saveNow();
+    await scoreRedraw(x);
+  });
   $$('[data-scbpl]', root).forEach(b => b.onclick = async () => {
     const step = +b.dataset.scbpl;
     /* off the bottom is back to letting it fit as many as it can */
@@ -49046,16 +49912,32 @@ function bindScoreViewer(root, x){
     });
   }
   if(stage) stage.addEventListener('click', ev => {
+    if(ev.target.closest('.sc-fingpick')) return;
+    if(ev.target.closest('.sc-pin, .sc-band-n, [data-scchord]')) return;
+    /* the engraving's own box, not the stage's: it moves with the scroll and
+       it starts where the notation starts, so the sums are the coordinates
+       the measure boxes and the note heads are already in */
+    const canvas = document.getElementById('scCanvas');
+    const box = (canvas || stage).getBoundingClientRect();
+    const px = ev.clientX - box.left, py = ev.clientY - box.top;
+    /* with the fingering layer on, the score is a thing you write fingerings
+       on: a press near a note head is for that note, and only a press nowhere
+       near one falls through to the bar */
+    if(x.overlays && x.overlays.fingerings){
+      const hit = scoreNoteAt(px, py);
+      if(hit){ ev.stopPropagation(); openFingerPicker(x, hit); return; }
+    }
     if(ui.reading) return;           /* a tap is for waking the strip, not pinning */
-    if(ev.target.closest('.sc-pin, .sc-band-n')) return;
-    const box = stage.getBoundingClientRect();
-    const m = measureAt(ev.clientX - box.left + stage.scrollLeft, ev.clientY - box.top + stage.scrollTop);
+    const m = measureAt(px, py);
     if(m) openPinModal(x.id, null, m);
   });
   /* the watcher is re-armed after every redraw of the page, because the
      listeners it hangs on went with the old one */
   if(ui.reading){ scoreQuietWatch(true); scoreKeysWatch(x); bindScoreMetro(root, x); }
-  else scoreKeysWatch(null);
+  /* out of reading mode the arrows are nobody's until the marker is out, and
+     then they are the marker's — which is the only thing on this page that
+     wants a key rather than a press */
+  else scoreKeysWatch(scoreCursorOn() ? x : null);
   bindScoreSide(root, x);
 }
 /* The metronome's controls, which appear in two places — the toolbar's second
@@ -49122,6 +50004,14 @@ function scoreKeysWatch(x){
     const by = /ArrowRight|PageDown| /.test(ev.key) ? 1 : /ArrowLeft|PageUp/.test(ev.key) ? -1 : 0;
     if(!by) return;
     if(ev.key === ' ' && ev.repeat) return;
+    /* while the marker is out the arrows are its, because stepping through a
+       passage is what you are doing and turning the page out from under it
+       would leave it somewhere you cannot see. The space bar sets it walking,
+       which is the one thing you want without looking down. */
+    if(scoreCursorOn()){
+      if(ev.key === ' '){ scoreCursorAuto(!_scAuto, x); ev.preventDefault(); return; }
+      if(/Arrow/.test(ev.key)){ scoreCursorGo(by, x); ev.preventDefault(); return; }
+    }
     if(scoreTurn(by, x)) ev.preventDefault();
   };
   addEventListener('keydown', _scKeys, true);
@@ -49155,6 +50045,8 @@ function scoreTurn(by, x){
   const at = turnScorePage(by);
   if(at === null) return false;
   scoreOverlayPaint(x);
+  scoreLayersPaint(x);
+  scoreCursorPaint(x);
   scorePageSay();
   const stage = document.getElementById('scStage');
   if(stage) stage.scrollTo({top:0, left:0});
@@ -49312,6 +50204,148 @@ function openScoreLogModal(scoreId, sectionId){
     scoreSidePaint(x);
   };
   return m;
+}
+/* ============================================================
+   TRANSPOSITION.
+
+   Shifting the whole score up or down, at the moment it is drawn. The file
+   is never touched: everything you have written on the score — the sections,
+   the pins, the fingerings — is anchored to bar numbers rather than to
+   pitches, so it all survives a piece being moved into another key, which is
+   the whole reason this is worth having.
+
+   It is done by rewriting the notation in memory rather than asking the
+   engraver to do it, because a rewritten file is a file the chord reading,
+   the note names and the scale degrees all see — transpose into E flat and
+   the letters, the degrees and the chord symbols move with it, because they
+   are all reading the same notes.
+
+   The part the specification waves at is the key signature. Its own note says
+   the arithmetic is a simplification, and it is: it divides by twelve where it
+   should multiply. Moving up a semitone is seven steps clockwise round the
+   circle of fifths, not half a step, and the difference is the difference
+   between D flat major and a key signature nobody has ever seen.
+   ============================================================ */
+
+/* Where each letter sits in the octave, and the way back. */
+const XP_STEPS = {C:0, D:2, E:4, F:5, G:7, A:9, B:11};
+/* Two spellings of every pitch class: the one a sharp key wants and the one a
+   flat key wants. C sharp and D flat are the same note and never the same
+   thing on a page. */
+const XP_SHARP = [['C',0],['C',1],['D',0],['D',1],['E',0],['F',0],['F',1],['G',0],['G',1],['A',0],['A',1],['B',0]];
+const XP_FLAT  = [['C',0],['D',-1],['D',0],['E',-1],['E',0],['F',0],['G',-1],['G',0],['A',-1],['A',0],['B',-1],['B',0]];
+
+/* Up a semitone is seven steps clockwise. Past six accidentals the same key
+   is better written the other way round — seven sharps is C sharp major, and
+   nobody reading a practice score wants C sharp major when D flat is the same
+   sound with five flats. */
+function transposedFifths(fifths, semitones){
+  let f = (+fifths || 0) + 7 * (+semitones || 0);
+  while(f > 6) f -= 12;
+  while(f < -6) f += 12;
+  return f;
+}
+const transposedKeyName = (fifths, minor, semitones) =>
+  scoreKeyNameOf(transposedFifths(fifths, semitones), minor);
+/* naming a key from its signature alone, without needing a rendered score */
+function scoreKeyNameOf(fifths, minor){
+  const root = keyRootOf(fifths, minor);
+  const table = (+fifths || 0) < 0 ? XP_FLAT : XP_SHARP;
+  const [letter, alter] = table[root];
+  return `${letter}${alter > 0 ? '♯' : alter < 0 ? '♭' : ''}${minor ? ' minor' : ' major'}`;
+}
+
+/* The rewrite. Every sounding pitch moves; every key signature moves with it;
+   nothing else is touched. */
+function transposeMusicXml(xml, semitones){
+  const by = Math.round(+semitones || 0);
+  if(!by) return xml;
+  let doc;
+  try {
+    doc = new DOMParser().parseFromString(xml, 'application/xml');
+    if(doc.querySelector('parsererror')) return xml;
+  } catch(e){ return xml; }
+
+  /* which way to spell the result, decided once from where the key lands —
+     a piece in flats stays in flats */
+  const firstKey = doc.querySelector('key fifths');
+  const startFifths = firstKey ? parseInt(firstKey.textContent, 10) || 0 : 0;
+  const flat = transposedFifths(startFifths, by) < 0;
+  const table = flat ? XP_FLAT : XP_SHARP;
+
+  doc.querySelectorAll('note > pitch').forEach(pitch => {
+    const stepEl = pitch.querySelector('step');
+    const octEl = pitch.querySelector('octave');
+    if(!stepEl || !octEl) return;
+    const alterEl = pitch.querySelector('alter');
+    const base = XP_STEPS[stepEl.textContent.trim().toUpperCase()];
+    if(base == null) return;
+    const alter = alterEl ? parseInt(alterEl.textContent, 10) || 0 : 0;
+    const octave = parseInt(octEl.textContent, 10) || 4;
+    /* MusicXML's octave changes at C, so the arithmetic is the same as MIDI's
+       and the octave falls out of the division */
+    const midi = (octave + 1) * 12 + base + alter + by;
+    const [letter, newAlter] = table[((midi % 12) + 12) % 12];
+    stepEl.textContent = letter;
+    octEl.textContent = String(Math.floor(midi / 12) - 1);
+    if(newAlter){
+      if(alterEl) alterEl.textContent = String(newAlter);
+      else {
+        const el = doc.createElement('alter');
+        el.textContent = String(newAlter);
+        /* MusicXML wants step, alter, octave in that order */
+        pitch.insertBefore(el, octEl);
+      }
+    } else if(alterEl) alterEl.remove();
+  });
+
+  doc.querySelectorAll('key > fifths').forEach(k => {
+    k.textContent = String(transposedFifths(parseInt(k.textContent, 10) || 0, by));
+  });
+  /* A chord symbol written into the file is a pitch too, and one that would
+     otherwise be left naming the old key over the new notes. */
+  doc.querySelectorAll('harmony root, harmony bass').forEach(node => {
+    const stepEl = node.querySelector('root-step, bass-step');
+    if(!stepEl) return;
+    const alterEl = node.querySelector('root-alter, bass-alter');
+    const base = XP_STEPS[stepEl.textContent.trim().toUpperCase()];
+    if(base == null) return;
+    const alter = alterEl ? parseInt(alterEl.textContent, 10) || 0 : 0;
+    const [letter, newAlter] = table[(((base + alter + by) % 12) + 12) % 12];
+    stepEl.textContent = letter;
+    if(newAlter){
+      if(alterEl) alterEl.textContent = String(newAlter);
+      else {
+        const el = doc.createElement(stepEl.tagName.startsWith('root') ? 'root-alter' : 'bass-alter');
+        el.textContent = String(newAlter);
+        node.appendChild(el);
+      }
+    } else if(alterEl) alterEl.remove();
+  });
+
+  try { return new XMLSerializer().serializeToString(doc); } catch(e){ return xml; }
+}
+
+/* The notation as it should be drawn now. Cached against the file and the
+   interval, because rewriting a three-hundred-kilobyte document is not
+   something to do on every redraw — only when the interval changes. */
+let _xpCache = {id:null, by:null, xml:null};
+function scoreXmlFor(rec){
+  const by = Math.round(+rec.transpose || 0);
+  if(!by) return rec.musicXml;
+  if(_xpCache.id === rec.id && _xpCache.by === by && _xpCache.xml) return _xpCache.xml;
+  const xml = transposeMusicXml(rec.musicXml, by);
+  _xpCache = {id:rec.id, by, xml};
+  return xml;
+}
+/* the interval, said the way a musician would say it */
+const XP_NAMES = ['', 'a semitone', 'a tone', 'a minor third', 'a major third', 'a fourth',
+  'a tritone', 'a fifth', 'a minor sixth', 'a major sixth', 'a minor seventh', 'a major seventh', 'an octave'];
+function transposeSaid(by){
+  const n = Math.round(+by || 0);
+  if(!n) return 'as written';
+  const name = XP_NAMES[Math.min(12, Math.abs(n))] || `${Math.abs(n)} semitones`;
+  return `${n > 0 ? '+' : '−'}${Math.abs(n)} · ${name} ${n > 0 ? 'up' : 'down'}`;
 }
 /* ============================================================
    THE KEYBOARD — one grammar, written down where it can be read.

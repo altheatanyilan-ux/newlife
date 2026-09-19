@@ -67,7 +67,7 @@ async function openScoreIn(container, rec, opts = {}){
     drawingParameters: 'default',
   });
   _sv = {osmd, container, scoreId: rec.id, from: null, to: null, loaded: false,
-    page: null, pages: 1, at: 0};
+    page: null, pages: 1, at: 0, by: 0};
   await renderScore(rec, opts);
   return _sv;
 }
@@ -92,8 +92,13 @@ async function renderScore(rec, opts = {}){
      a score up and wrong for playing from it. */
   const page = opts.page === undefined ? _sv.page : opts.page;
   const pageSame = (a, b) => (!a && !b) || (a && b && Math.abs(a - b) < 0.01);
-  const changed = !_sv.loaded || from !== _sv.from || to !== _sv.to || !pageSame(page, _sv.page);
-  _sv.from = from; _sv.to = to; _sv.page = page;
+  /* Moving the piece into another key is a different set of notes, so it is a
+     re-read like the measure range is — and like the measure range, it is only
+     paid when it changes. */
+  const by = Math.round(+rec.transpose || 0);
+  const changed = !_sv.loaded || from !== _sv.from || to !== _sv.to
+    || !pageSame(page, _sv.page) || by !== _sv.by;
+  _sv.from = from; _sv.to = to; _sv.page = page; _sv.by = by;
   if(changed){
     const r = osmd.EngravingRules || osmd.rules;
     if(r){
@@ -107,7 +112,7 @@ async function renderScore(rec, opts = {}){
         else osmd.setPageFormat('Endless');
       } catch(e){}
     }
-    await osmd.load(rec.musicXml);
+    await osmd.load(scoreXmlFor(rec));
     _sv.loaded = true;
   }
   /* every engraving, not only the ones that re-read the file: reading the
@@ -156,6 +161,117 @@ function turnScorePage(by){
   const now = showScorePage(_sv.at + by);
   return now === was ? null : now;
 }
+/* ---------- every note, in one shape ----------
+   The layout tree keeps a note's pitch in one place, its position in another
+   and its place in the bar in a third, and calls them things nobody outside
+   OSMD would guess. This flattens all of it into one row per note head, which
+   is what the overlays, the chord reading, the fingerings and the cursor all
+   want — and it means there is one function to repair if the engraver is ever
+   swapped out, rather than five.
+
+   The accidental is worked out from the pitch rather than read off the
+   accidental field, whose enumeration puts "none" at 2 and is not worth
+   trusting when the arithmetic is three lines. */
+function scoreNotes(){
+  if(!_sv) return [];
+  const {osmd} = _sv;
+  const unit = (osmd.zoom || 1) * 10;
+  const lo = _sv.from || -Infinity, hi = _sv.to || Infinity;
+  const pages = (() => { try { return osmd.GraphicSheet.MusicPages || []; } catch(e){ return []; } })();
+  const out = [];
+  try {
+    (osmd.GraphicSheet.MeasureList || []).forEach(line => (line || []).forEach(m => {
+      if(!m) return;
+      const n = m.MeasureNumber;
+      if(n == null || n < lo || n > hi) return;
+      const sys = m.ParentStaffLine && m.ParentStaffLine.ParentMusicSystem;
+      const pg = sys && sys.Parent ? Math.max(0, pages.indexOf(sys.Parent)) : 0;
+      const staff = (m.ParentStaffLine && m.ParentStaffLine.ParentStaff)
+        ? (m.ParentStaffLine.ParentStaff.idInMusicSheet ?? 0) : 0;
+      (m.staffEntries || []).forEach(se => {
+        const ts = se.relInMeasureTimestamp || (se.sourceStaffEntry && se.sourceStaffEntry.Timestamp);
+        /* the timestamp is a fraction of a whole note; times four is quarters,
+           which is what anybody counting a bar of four-four is counting in */
+        const where = ts && ts.RealValue != null ? ts.RealValue : 0;
+        (se.graphicalVoiceEntries || []).forEach((ve, vi) => {
+          (ve.notes || []).forEach((gn, ni) => {
+            const sn = gn.sourceNote;
+            const ps = gn.PositionAndShape;
+            if(!ps || !ps.AbsolutePosition) return;
+            const rest = !!(sn && sn.isRest && sn.isRest());
+            const pitch = sn && sn.Pitch;
+            let midi = null, step = null, alter = 0;
+            if(pitch && pitch.halfTone != null){
+              midi = pitch.halfTone + 12;              /* OSMD counts C4 as 48 */
+              step = pitch.fundamentalNote;
+              alter = (pitch.halfTone % 12) - step;
+              if(alter > 6) alter -= 12;
+              if(alter < -6) alter += 12;
+            }
+            /* how long it sounds, as a fraction of a whole note. A bass
+               note held under a melody is part of the harmony on every beat
+               it lasts, and without the length there is no way to know that. */
+            const len = sn && sn.Length && sn.Length.RealValue;
+            out.push({measure:n, page:pg, staff, voice:vi, index:ni, rest,
+              x: ps.AbsolutePosition.x * unit, y: ps.AbsolutePosition.y * unit,
+              midi, step, alter, at: where, beat: where * 4,
+              dur: len != null ? len : 0});
+          });
+        });
+      });
+    }));
+  } catch(e){ return out; }
+  return out;
+}
+/* The natural names, and what to call a pitch. Sharps and flats are spelled
+   as the score spells them rather than normalised, because a piece in D flat
+   full of C sharps would be a piece nobody could read. */
+const NOTE_LETTERS = {0:'C', 2:'D', 4:'E', 5:'F', 7:'G', 9:'A', 11:'B'};
+function noteLetter(n){
+  if(n.midi == null) return '';
+  const letter = NOTE_LETTERS[n.step];
+  if(!letter) return '';
+  const marks = n.alter > 0 ? '♯'.repeat(Math.min(2, n.alter))
+    : n.alter < 0 ? '♭'.repeat(Math.min(2, -n.alter)) : '';
+  return letter + marks;
+}
+/* The key the piece is written in, off its own signature. The engraver keeps
+   it among the instructions at the head of the first bar, beside the clef and
+   the time — none of which announce which they are, so the key is the one
+   carrying a list of altered notes. */
+function scoreKey(){
+  if(!_sv) return {fifths:0, minor:false};
+  try {
+    const ms = _sv.osmd.Sheet.SourceMeasures || [];
+    for(const m of ms){
+      const rows = m.FirstInstructionsStaffEntries || m.firstInstructionsStaffEntries || [];
+      for(const row of rows){
+        for(const i of (row && (row.Instructions || row.instructions) || [])){
+          if(!i || i.Key == null || i.alteratedNotes === undefined) continue;
+          /* the engraver's mode enumeration puts major first and minor next */
+          return {fifths: i.Key, minor: i.Mode === 1 || i.mode === 1};
+        }
+      }
+    }
+  } catch(e){}
+  return {fifths:0, minor:false};
+}
+const scoreKeyFifths = () => scoreKey().fifths;
+/* fifths round the circle to the tonic's pitch class: 0 is C, one sharp is G.
+   A minor key's tonic is three semitones below its relative major's, and it
+   is the tonic the degrees are counted from — in D minor, D is the one. */
+function keyRootOf(fifths, minor){
+  const major = ((+fifths || 0) * 7 % 12 + 12) % 12;
+  return minor ? ((major - 3) % 12 + 12) % 12 : major;
+}
+/* what to call the key, for the toolbar. The spelling is decided by which way
+   the signature leans — sharps get sharp names, flats get flat ones — which is
+   the same rule a transposed key is named by, so both go through one place. */
+function scoreKeyName(k){
+  const key = k || scoreKey();
+  return scoreKeyNameOf(key.fifths, key.minor);
+}
+
 /* which page a bar is on, so a jump to a section turns to it */
 function pageOfMeasure(n){
   const b = measureBoxes().find(x => x.measure === n);
@@ -318,9 +434,14 @@ function measureRangeBands(from, to){
 const measureBox = n => { const on = _sv && _sv.page ? _sv.at : null;
   return measureBoxes().find(b => b.measure === n && (on === null || b.page === on)) || null; };
 /* which measure a press landed in, for the pin popover */
+/* Which bar a press landed in. The band is the staff, and plenty of the notes
+   are not on it — a C below the treble stave sits a space under the bottom
+   line, and pressing the note you meant should not miss the bar it is in. So
+   the catch reaches a little above and below, which costs nothing: where two
+   staves are close enough for the reaches to meet they are the same bar. */
 function measureAt(x, y){
   const on = _sv && _sv.page ? _sv.at : null;
   const hit = measureBoxes().filter(b => (on === null || b.page === on)
-    && x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h);
+    && x >= b.x && x <= b.x + b.w && y >= b.y - b.h * 0.7 && y <= b.y + b.h * 1.7);
   return hit.length ? hit[0].measure : null;
 }

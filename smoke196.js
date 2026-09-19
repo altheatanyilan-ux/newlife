@@ -43,6 +43,25 @@ const XML = `<?xml version="1.0" encoding="UTF-8"?><score-partwise version="3.1"
 ${part('P1', 12, 3)}
 </score-partwise>`;
 
+/* D major, a chord, an off-beat and a rest — everything the layers have to
+   have an opinion about */
+const KEYED = `<?xml version="1.0" encoding="UTF-8"?><score-partwise version="3.1">
+  <work><work-title>In D</work-title></work>
+  <part-list><score-part id="P1"><part-name>Piano</part-name></score-part></part-list>
+  <part id="P1">
+    <measure number="1"><attributes><divisions>2</divisions><key><fifths>2</fifths><mode>major</mode></key>
+      <time><beats>4</beats><beat-type>4</beat-type></time><clef><sign>G</sign><line>2</line></clef></attributes>
+      <note><pitch><step>D</step><octave>4</octave></pitch><duration>2</duration><type>quarter</type></note>
+      <note><chord/><pitch><step>F</step><alter>1</alter><octave>4</octave></pitch><duration>2</duration><type>quarter</type></note>
+      <note><chord/><pitch><step>A</step><octave>4</octave></pitch><duration>2</duration><type>quarter</type></note>
+      <note><pitch><step>G</step><octave>4</octave></pitch><duration>2</duration><type>quarter</type></note>
+      <note><pitch><step>B</step><octave>4</octave></pitch><duration>1</duration><type>eighth</type></note>
+      <note><pitch><step>C</step><alter>1</alter><octave>5</octave></pitch><duration>1</duration><type>eighth</type></note>
+      <note><rest/><duration>2</duration><type>quarter</type></note>
+    </measure>
+  </part>
+</score-partwise>`;
+
 (async () => {
   const b = await chromium.launch({executablePath:'/opt/pw-browsers/chromium'});
   const errs = [];
@@ -186,7 +205,101 @@ ${part('P1', 12, 3)}
     return {was, now: ScoreMetronome.running}; });
   is('a click does not follow you out of the room', [left.was, left.now], [true, false]);
 
-  console.log('\n8. nothing threw');
+  console.log('\n8. what the notation says, flattened');
+  /* Everything the layers, the chord reading, the fingerings and the cursor
+     need comes from one place, so there is one thing to repair if the
+     engraver is ever swapped out rather than five. */
+  await p.evaluate(() => { location.hash = '#/score'; scoreUi().id = null; rerender(); });
+  await p.waitForTimeout(1300);
+  await p.evaluate(async xml => { await takeScoreFile(new File([xml], 'In D.musicxml')); }, KEYED);
+  await p.waitForTimeout(5000);
+  const read = await p.evaluate(() => scoreNotes().map(n =>
+    ({m:n.measure, midi:n.midi, letter:noteLetter(n), beat:+n.beat.toFixed(2), rest:n.rest})));
+  is('every note, with its pitch and its place in the bar',
+    read.map(n => [n.letter, n.beat]),
+    [['D',0],['F♯',0],['A',0],['G',1],['B',2],['C♯',2.5],['',3]]);
+  is('  a chord is three notes at one moment', read.filter(n => n.beat === 0).length, 3);
+  is('  and a rest is a moment with no pitch in it',
+    [read[6].rest, read[6].midi], [true, null]);
+  /* the accidental is worked out from the pitch rather than read off a field
+     whose enumeration puts "none" at two */
+  is('sharps and flats are spelled', [read[1].letter, read[5].letter], ['F♯', 'C♯']);
+
+  console.log('\n9. the key, and the degrees counted from it');
+  const key = await p.evaluate(() => ({k: scoreKey(), name: scoreKeyName(),
+    root: keyRootOf(scoreKey().fifths, scoreKey().minor)}));
+  is('two sharps is D major', [key.k.fifths, key.k.minor], [2, false]);
+  is('  named as such', key.name, 'D major');
+  is('  and D is where the counting starts', key.root, 2);
+  /* a minor key counts from its own tonic, not its relative major's: in D
+     minor the answer is D, not F */
+  is('a minor key counts from its own tonic',
+    await p.evaluate(() => keyRootOf(-1, true)), 2);
+  is('  while its relative major counts from F',
+    await p.evaluate(() => keyRootOf(-1, false)), 5);
+
+  console.log('\n10. the layers over the notation');
+  const off = await p.evaluate(() => ({
+    ov: scores().find(x => x.title === 'In D').overlays,
+    drawn: document.querySelectorAll('.sc-lab').length}));
+  yes('they start off, because the notation is the thing',
+    !off.ov.names && !off.ov.degrees && !off.ov.beats, JSON.stringify(off.ov));
+  is('  so nothing is written over it', off.drawn, 0);
+  const on = await p.evaluate(() => {
+    const x = scores().find(y => y.title === 'In D');
+    x.overlays.names = x.overlays.degrees = x.overlays.beats = true;
+    saveNow(); scoreLayersPaint(x);
+    return {names: [...document.querySelectorAll('.sc-lab-name')].map(n => n.textContent),
+      degs: [...document.querySelectorAll('.sc-lab-deg')].map(n => n.textContent),
+      beats: [...document.querySelectorAll('.sc-lab-beat')].map(n => n.textContent)};
+  });
+  is('the letter of every note', on.names, ['D','F♯','A','G','B','C♯']);
+  is('  its degree in the key it is in', on.degs, ['1','3','5','4','6','7']);
+  /* not the degrees it would have in C, which is what reading the key off the
+     wrong place gives you — D would be a 2 and F sharp a sharp 4 */
+  yes('    counted from D rather than from C', on.degs[0] === '1' && on.degs[1] === '3',
+    JSON.stringify(on.degs));
+  is('  and the count under the bar, with the "and" between', on.beats, ['1','2','3','+','4']);
+  /* the labels are measured in staff spaces, so the engraving can be any size
+     and they stay where they belong rather than sitting on the notes */
+  /* The gap between a note's letter and its degree, not the degree's distance
+     from the left edge of the page: the page-edge distance doubles with the
+     zoom whatever the offset is made of, so it would pass just as happily
+     with the offset nailed at nine pixels — which is the bug. */
+  const scaled = await p.evaluate(async () => {
+    const x = scores().find(y => y.title === 'In D');
+    const at = () => { const d = document.querySelector('.sc-lab-deg'),
+        n = document.querySelector('.sc-lab-name');
+      return {gap: parseFloat(d.style.left) - parseFloat(n.style.left),
+        size: parseFloat(d.style.fontSize)}; };
+    x.zoom = 1; await scoreRedraw(x); scoreLayersPaint(x);
+    const small = at();
+    x.zoom = 2; await scoreRedraw(x); scoreLayersPaint(x);
+    const big = at();
+    x.zoom = 1; await scoreRedraw(x); scoreLayersPaint(x);
+    return {small, big};
+  });
+  yes('a bigger engraving gets bigger labels', scaled.big.size > scaled.small.size * 1.6,
+    JSON.stringify(scaled));
+  yes('  standing further out, so they still clear the notes',
+    scaled.big.gap > scaled.small.gap * 1.6, JSON.stringify(scaled));
+  /* through the buttons, because pressing them is how you put a layer down
+     and setting the field by hand would not notice a button that had stopped
+     writing to it */
+  const gone = await p.evaluate(async () => {
+    for(const k of ['names','degrees','beats']){
+      const b = document.querySelector(`[data-sclayer="${k}"]`);
+      if(b) b.click();
+      await new Promise(r => setTimeout(r, 0));
+    }
+    const x = scores().find(y => y.title === 'In D');
+    return {drawn: document.querySelectorAll('.sc-lab').length, ov: x.overlays};
+  });
+  is('and every one of them can be put down again', gone.drawn, 0);
+  yes('  the buttons are what put them down', !gone.ov.names && !gone.ov.degrees && !gone.ov.beats,
+    JSON.stringify(gone.ov));
+
+  console.log('\n11. nothing threw');
   is('no page errors', errs, []);
 
   console.log(bad ? `\n${bad} FAILED` : '\nall good');
