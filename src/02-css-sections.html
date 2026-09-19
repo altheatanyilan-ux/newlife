@@ -7661,6 +7661,42 @@ html[data-theme="light"] .wk-sleep.is-guess{background-image:repeating-linear-gr
 .sc-swatch:hover{transform:scale(1.12)}
 .sc-swatch.on{border-color:var(--surface);box-shadow:0 0 0 2px var(--c)}
 
+/* ---- reading: a tablet on the music desk ----
+   Nothing on the glass but the page. The sidebar, the topbar, the clock, the
+   panel of notes and the add button are all things you press between sittings,
+   and none of them is something you look at while your hands are busy. */
+html.sc-reading .sidebar,
+html.sc-reading .topbar,
+html.sc-reading .back-btn,
+html.sc-reading .fab-wrap,
+html.sc-reading #focusDock,
+html.sc-reading .dust,
+html.sc-reading .sc-head,
+html.sc-reading .sc-bar,
+html.sc-reading .sc-side,
+html.sc-reading .page-entry,
+html.sc-reading .ctx-add{display:none !important}
+html.sc-reading #main{padding:0 !important;margin:0 !important;max-width:none !important}
+html.sc-reading .page{padding:0 !important;margin:0 !important;max-width:none !important}
+html.sc-reading .sc-body{display:block;margin:0;gap:0}
+html.sc-reading .sc-stage{max-height:100vh;height:100vh;border:none;border-radius:0;
+  padding:14px 10px 10px}
+html.sc-reading .sc-overlay,html.sc-reading .sc-pins{inset:14px 10px 10px}
+/* the only thing left, and it goes away by itself */
+.sc-strip{position:fixed;top:0;left:0;right:0;z-index:60;display:flex;align-items:center;
+  gap:10px;flex-wrap:wrap;padding:7px 14px;background:color-mix(in srgb,var(--surface) 92%,transparent);
+  border-bottom:1px solid var(--line);backdrop-filter:blur(6px);
+  transition:opacity .35s var(--ease),transform .35s var(--ease)}
+html.sc-quiet .sc-strip{opacity:0;transform:translateY(-100%);pointer-events:none}
+.sc-strip-t{font-size:1rem;max-width:34ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sc-strip-parts{display:flex;gap:5px;flex-wrap:wrap}
+.sc-strip .tbtn.on{border-color:var(--page-accent);
+  background:color-mix(in srgb,var(--page-accent) 14%,transparent)}
+/* a wide, obvious target, because it is pressed with a finger between phrases */
+html.sc-reading .sc-strip .tbtn,html.sc-reading .sc-strip .sel{min-height:34px;padding:5px 12px}
+.sc-bpl{display:flex;align-items:center;gap:5px}
+.sc-bpl .mono{min-width:2.2em;text-align:center;font-size:.72rem}
+
 /* Engraved black on cream, which is what a score is. On a dark page the stage
    keeps its own pale ground rather than inverting the notation — an inverted
    stave reads as a photographic negative, and the one thing this page must not

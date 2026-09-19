@@ -155,9 +155,12 @@ ${part('P2', 16)}
   const bands = await p.evaluate(() => [...document.querySelectorAll('.sc-band')]
     .map(n => ({w: Math.round(parseFloat(n.style.width)), h: Math.round(parseFloat(n.style.height))})));
   yes('each one is a band behind the notation', bands.length >= 2, JSON.stringify(bands));
-  /* a band one staff-gap tall is a stripe through the middle of the notes;
-     it has to be the height of the staff to sit behind them */
-  yes('  as tall as the staff it sits behind', bands.every(x => x.h >= 30), JSON.stringify(bands));
+  /* A band one staff-gap tall is a stripe through the middle of the notes. A
+     band a whole system tall is a block hanging down the page across the lines
+     underneath. Both have shipped from this file, in that order, so the claim
+     is bounded at both ends: it is the height of one staff. */
+  yes('  as tall as the staff it sits behind, and no taller',
+    bands.every(x => x.h >= 30 && x.h <= 70), JSON.stringify(bands));
   yes('  and the panel reads them back with what each one needs',
     await p.evaluate(() => /Do not rush the arpeggios/.test(document.querySelector('#scSide').textContent)));
   is('  saying how each is going', await p.evaluate(() =>
@@ -271,12 +274,112 @@ ${part('P2', 16)}
     const said = scoreReviewLines(addDays(today(), -7), today()); S.scores = keep; return said; });
   is('a shelf with nothing on it has nothing to say', quiet, []);
 
-  console.log('\n11. taking one off the shelf');
+  console.log('\n11. bars to a line');
+  /* section nine left us on the shelf; open the score again */
+  await p.evaluate(() => { const x = scores()[0]; scoreUi().id = x.id; scoreUi().focus = null;
+    location.hash = '#/score/' + x.id; });
+  await p.waitForTimeout(5000);
+  /* Two bars to a line is not a score, it is a lookup. The eye reads a phrase
+     and a phrase is rarely two bars long, so the number is adjustable — and it
+     is a promise rather than a ceiling: the engraver's own setting will
+     happily give five when eight were asked for, if five is all the width
+     takes, so the engraving is shrunk until the number asked for arrives. */
+  const perLine = async n => {
+    await p.evaluate(async k => { const x = scores()[0]; x.barsPerLine = k; await scoreRedraw(x); }, n);
+    await p.waitForTimeout(900);
+    return p.evaluate(() => { const rows = {};
+      measureBoxes().forEach(b => { const k = Math.round(b.y / 20); rows[k] = (rows[k] || 0) + 1; });
+      return Math.max(...Object.values(rows)); });
+  };
+  is('asking for four gives four', await perLine(4), 4);
+  is('  asking for six gives six', await perLine(6), 6);
+  /* the one that proves it is a promise: six fits at this width, eight does
+     not, and eight still arrives */
+  is('  and asking for eight gives eight, by making the engraving smaller', await perLine(8), 8);
+  /* Eight may well fit at full size on a wide screen, so the mechanism is only
+     really shown by asking for a number that cannot: fourteen bars in this
+     column is not a thing the engraver will do until the engraving is made
+     smaller, and fourteen still arrive. */
+  is('  and fourteen, which needs the shrinking', await perLine(14), 14);
+  const sized = await p.evaluate(() => { const sv = scoreView();
+    return {fitted: !!sv.fitted, zoom: sv.fitted && sv.fitted.zoom, set: scores()[0].zoom}; });
+  yes('    which is where the size came from', sized.fitted && sized.zoom < sized.set,
+    JSON.stringify(sized));
+  await p.evaluate(async () => { const x = scores()[0]; x.barsPerLine = 0; await scoreRedraw(x); });
+  await p.waitForTimeout(900);
+  is('nought hands the line breaks back to the engraver',
+    await p.evaluate(() => !!scoreView().fitted), false);
+
+  console.log('\n12. reading: the score, and nothing else');
+  /* A tablet on the music desk. Everything you press between sittings is
+     something you are not looking at while your hands are busy. */
+  await p.evaluate(() => document.querySelector('#scRead').click());
+  await p.waitForTimeout(4500);
+  const reading = await p.evaluate(() => ({
+    on: document.documentElement.classList.contains('sc-reading'),
+    sidebar: getComputedStyle(document.querySelector('.sidebar')).display,
+    panel: document.querySelector('.sc-side') ? getComputedStyle(document.querySelector('.sc-side')).display : 'gone',
+    bar: document.querySelector('.sc-bar') ? getComputedStyle(document.querySelector('.sc-bar')).display : 'gone',
+    strip: !!document.querySelector('#scStrip'),
+    out: !!document.querySelector('#scUnread'),
+    full: Math.round(document.querySelector('#scStage').getBoundingClientRect().height) >= innerHeight - 2}));
+  yes('the room goes', reading.on && reading.sidebar === 'none'
+    && reading.panel === 'none' && reading.bar === 'none', JSON.stringify(reading));
+  yes('  the stage takes the whole glass', reading.full, JSON.stringify(reading));
+  yes('  and the one strip left carries the way out', reading.strip && reading.out);
+  /* more width is more bars a line, which is most of why this mode exists */
+  const wide = await p.evaluate(() => { const rows = {};
+    measureBoxes().forEach(b => { const k = Math.round(b.y / 20); rows[k] = (rows[k] || 0) + 1; });
+    return Math.max(...Object.values(rows)); });
+  yes('  and the line gets longer for it', wide >= 6, `${wide} bars a line`);
+  /* the strip takes itself away, and a touch brings it back */
+  await p.waitForTimeout(4200);
+  yes('the strip goes quiet on its own',
+    await p.evaluate(() => document.documentElement.classList.contains('sc-quiet')));
+  await p.mouse.move(500, 400); await p.waitForTimeout(400);
+  yes('  and a touch brings it back',
+    await p.evaluate(() => !document.documentElement.classList.contains('sc-quiet')));
+  /* a tap on the page is for waking the strip, never for pinning: your hands
+     are on the keys and an accidental pin every time you brush the glass is
+     worse than having no pins at all */
+  const tapped = await p.evaluate(() => {
+    const x = scores()[0], stage = document.querySelector('#scStage');
+    /* squarely in the middle of a real bar, in the coordinates the handler
+       reads — a tap at an arbitrary point would land on nothing and pass
+       whether the guard is there or not */
+    const box = measureBoxes()[0];
+    const r = stage.getBoundingClientRect();
+    const at = {clientX: r.left + box.x + box.w / 2 - stage.scrollLeft,
+      clientY: r.top + box.y + box.h / 2 - stage.scrollTop};
+    const hits = measureAt(box.x + box.w / 2, box.y + box.h / 2);
+    stage.dispatchEvent(new MouseEvent('click', Object.assign({bubbles:true}, at)));
+    return {onABar: hits, after: x.pins.length, before: x.pins.length,
+      open: !!document.querySelector('.sc-modal')};
+  });
+  yes('the tap really did land on a bar', !!tapped.onABar, String(tapped.onABar));
+  yes('  and it opened nothing', !tapped.open);
+  /* the marks are yours to keep or hide, since they are notes rather than chrome */
+  const marks = await p.evaluate(() => { const before = document.querySelectorAll('.sc-band').length;
+    document.querySelector('#scMarks').click();
+    return {before, after: document.querySelectorAll('.sc-band').length}; });
+  yes('the marks can be taken off the page', marks.before > 0 && marks.after === 0, JSON.stringify(marks));
+  await p.evaluate(() => document.querySelector('#scMarks').click()); await p.waitForTimeout(400);
+  /* leaving by any other door has to put the instrument back, or the whole
+     app is left without a sidebar */
+  await p.evaluate(() => { location.hash = '#/today'; }); await p.waitForTimeout(1600);
+  const left = await p.evaluate(() => ({cls: document.documentElement.classList.contains('sc-reading'),
+    sidebar: getComputedStyle(document.querySelector('.sidebar')).display,
+    quiet: document.documentElement.classList.contains('sc-quiet')}));
+  yes('walking out of the room another way puts it back',
+    !left.cls && left.sidebar !== 'none' && !left.quiet, JSON.stringify(left));
+  await p.evaluate(() => { location.hash = '#/score/' + scores()[0].id; }); await p.waitForTimeout(4000);
+
+  console.log('\n13. taking one off the shelf');
   const gone = await p.evaluate(() => { const id = scores()[0].id;
     removeScore(id); return {left: scores().length, still: !!scoreById(id)}; });
   is('the score goes, and its notes with it', [gone.left, gone.still], [0, false]);
 
-  console.log('\n12. nothing threw');
+  console.log('\n14. nothing threw');
   is('no page errors', errs, []);
 
   console.log(bad ? `\n${bad} FAILED` : '\nall good');

@@ -44,6 +44,11 @@ const osmdBuiltIn = () => { const t = document.getElementById('osmdSrc');
    Held outside the state on purpose. It is a live object over a DOM node, it
    cannot be serialised, and a redraw of the page throws the node away — so it
    is rebuilt from the file rather than kept across renders. */
+/* A five-line staff is four line-gaps tall, and the engraver draws one gap to
+   the unit. This is the one number the overlay needs that the layout tree does
+   not hand over honestly. */
+const STAFF_UNITS = 4;
+
 let _sv = null;
 const scoreView = () => _sv;
 
@@ -96,11 +101,46 @@ async function renderScore(rec, opts = {}){
      file resets every part to visible, and a caller that changed which parts
      are on without saying so would otherwise get the old picture back */
   applyScoreParts(rec);
+  const rules = osmd.EngravingRules || osmd.rules;
+  const want = clamp(+rec.barsPerLine || 0, 0, 16);
+  if(rules) rules.RenderXMeasuresPerLineAkaSystem = want;
   osmd.zoom = clamp(+rec.zoom || 1, 0.4, 2.5);
   osmd.render();
+  /* Asking for eight bars to a line is asking for eight, and the engraver's
+     own setting is only a ceiling: it will happily give five if five is all
+     the width takes. So when a number has been asked for, the engraving is
+     shrunk until the number is what arrives. Two or three passes settle it,
+     and they are only paid when the setting or the width changes. */
+  if(want) _sv.fitted = fitBarsPerLine(osmd, rec, want);
+  else _sv.fitted = null;
   /* the count is the whole piece's, which only a full engraving can say */
   if(!from && !to) rec.totalMeasures = scoreMeasureCount(osmd) || rec.totalMeasures;
   return _sv;
+}
+/* How many bars the widest line actually got. Lines are found by grouping the
+   drawn measures by the height they sit at, which is the same trick the bands
+   use, so the two always agree about what a line is. */
+function barsOnWidestLine(){
+  const rows = {};
+  measureBoxes().forEach(b => { const k = Math.round(b.y / 20); rows[k] = (rows[k] || 0) + 1; });
+  const counts = Object.values(rows);
+  return counts.length ? Math.max(...counts) : 0;
+}
+function fitBarsPerLine(osmd, rec, want){
+  let zoom = clamp(+rec.zoom || 1, 0.4, 2.5);
+  for(let pass = 0; pass < 3; pass++){
+    const got = barsOnWidestLine();
+    if(!got || got >= want) return {zoom, got};
+    /* width needed runs about linearly with the size of the engraving, so the
+       ratio of what arrived to what was asked for is the first guess, and it
+       is a good one — a little under, so a near miss does not need a third go */
+    const next = clamp(zoom * (got / want) * 0.97, 0.25, 2.5);
+    if(Math.abs(next - zoom) < 0.01) return {zoom, got};
+    zoom = next;
+    osmd.zoom = zoom;
+    osmd.render();
+  }
+  return {zoom, got: barsOnWidestLine()};
 }
 function scoreMeasureCount(osmd){
   try { return (osmd.Sheet && osmd.Sheet.SourceMeasures || []).length; } catch(e){ return 0; }
@@ -167,13 +207,18 @@ function measureBoxes(){
         const abs = m.PositionAndShape.AbsolutePosition;
         const size = m.PositionAndShape.Size;
         if(!abs || !size) return;
-        /* OSMD reports a measure's height as the distance between two staff
-           lines, not the height of the staff. A five-line staff is four of
-           those gaps, and a band drawn one gap tall sits as a stripe through
-           the middle of the notes instead of behind them. */
-        const line = (size.height || 1) * unit;
+        /* The height to draw a band at is the staff's, and a measure's own
+           reported height is not it — that is the bounding box of what is
+           written in the measure, so a bar of whole notes reports one unit and
+           the same bar with stems and a beam reports four. Reading it as the
+           staff gives a stripe through the middle of the notes for one bar and
+           a block hanging over three systems for the next, and both have
+           shipped from this file.
+
+           The staff itself is fixed by the engraver: five lines one unit
+           apart, so four units tall, whatever is written on it. */
         const box = {measure:n, x: abs.x * unit, y: abs.y * unit,
-          w: size.width * unit, h: line * 4};
+          w: size.width * unit, h: STAFF_UNITS * unit};
         /* a measure is drawn once per staff; where two staves are one
            instrument the band wants the union, so it covers both hands */
         const had = out.find(b => b.measure === n && Math.abs(b.y - box.y) < box.h * 0.75);

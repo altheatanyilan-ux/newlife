@@ -13,8 +13,22 @@
    the engraver to go again.
    ============================================================ */
 
+/* Reading mode strips the app down to the notation, so leaving the room by any
+   other door — the sidebar, a search result, the back button — has to put the
+   room back. Bound once here rather than remembered at every exit, because a
+   cleanup you have to remember is a cleanup somebody eventually forgets and
+   the whole instrument is left without a sidebar. */
+addEventListener('hashchange', () => {
+  if(typeof parseHash !== 'function') return;
+  if(parseHash().name === 'score') return;
+  document.documentElement.classList.remove('sc-reading');
+  if(S && S._score) S._score.reading = false;
+  if(typeof scoreKeepAwake === 'function') scoreKeepAwake(false);
+  if(typeof scoreQuietWatch === 'function') scoreQuietWatch(false);
+});
+
 const scoreOpenId = () => S._score && S._score.id;
-function scoreUi(){ return S._score = S._score || {id:null, focus:null, picking:null}; }
+function scoreUi(){ return S._score = S._score || {id:null, focus:null, reading:false, marks:true}; }
 
 routes.score = function(root, params){
   scoreState();
@@ -25,7 +39,9 @@ routes.score = function(root, params){
   registerPageEntry({pageName:'Score Practice', addLabel:'Add a score', defaultEntryType:'score', prefilledFields:{}, options:[
     {icon:'📄', label:'A score', desc:'A MusicXML file, from MuseScore or anywhere.', run:()=>scorePickFile()},
     ...(rec ? [{icon:'🎯', label:'A section', desc:'A measure range worth practising on its own.', run:()=>openSectionModal(rec.id)}] : [])]});
-  if(!rec){ root.innerHTML = `<div class="page sc-page">${scoreLibraryHTML()}</div>`; bindScoreLibrary(root); return; }
+  if(!rec){ document.documentElement.classList.remove('sc-reading'); ui.reading = false;
+    root.innerHTML = `<div class="page sc-page">${scoreLibraryHTML()}</div>`; bindScoreLibrary(root); return; }
+  document.documentElement.classList.toggle('sc-reading', !!ui.reading);
   root.innerHTML = `<div class="page sc-page sc-open">${scoreViewerHTML(rec)}</div>`;
   bindScoreViewer(root, rec);
   scorePaint(rec);
@@ -98,13 +114,17 @@ function scoreViewerHTML(x){
       ${parts.length > 1 ? `<button class="tbtn" id="scSolo">solo the first</button>
         <button class="tbtn" id="scAllParts">all of them</button>` : ''}
       <span class="grow"></span>
-      <span class="sc-zoom"><button class="tbtn" data-sczoom="-1">−</button>
-        <span class="mono" id="scZoomSay">${Math.round((x.zoom || 1) * 100)}%</span>
-        <button class="tbtn" data-sczoom="1">+</button></span>
+      ${scoreBplHTML(x)}
+      <span class="sc-zoom"><button class="tbtn" data-sczoom="-1" ${x.barsPerLine ? 'disabled' : ''}>−</button>
+        <span class="mono" id="scZoomSay" title="${x.barsPerLine
+          ? 'set by the bars to a line' : 'how big the engraving is'}">${scoreZoomSay(x)}</span>
+        <button class="tbtn" data-sczoom="1" ${x.barsPerLine ? 'disabled' : ''}>+</button></span>
       <label class="sc-jump"><span class="k mono">bar</span>
         <input class="inp sm mono" id="scJump" type="number" min="1" max="${x.totalMeasures || 9999}" placeholder="#"></label>
+      <button class="btn sm" id="scRead" title="the score and nothing else">⛶ read</button>
       <button class="btn sm primary" id="scNewSec">＋ a section</button>
     </div>
+    ${scoreReadStripHTML(x)}
     <div class="sc-body">
       <div class="sc-stage" id="scStage">
         <div class="sc-canvas" id="scCanvas"></div>
@@ -114,6 +134,94 @@ function scoreViewerHTML(x){
       </div>
       <aside class="sc-side" id="scSide">${scoreSideHTML(x)}</aside>
     </div>`;
+}
+
+/* How many bars to a line. Nought is "however many fit", which is the right
+   answer for looking something up and the wrong one for reading: a column
+   half a page wide fits two, and nobody reads music two bars at a time. */
+function scoreBplHTML(x){
+  return `<span class="sc-bpl"><span class="k mono">bars/line</span>
+    <button class="tbtn" data-scbpl="-1" ${!x.barsPerLine ? 'disabled' : ''}>−</button>
+    <span class="mono" id="scBplSay">${x.barsPerLine || 'fit'}</span>
+    <button class="tbtn" data-scbpl="1">+</button></span>`;
+}
+/* Asking for a number of bars decides the size, so the size stops being
+   something you set — saying so is better than two controls quietly fighting. */
+function scoreZoomSay(x){
+  const sv = scoreView();
+  const z = (x.barsPerLine && sv && sv.fitted) ? sv.fitted.zoom : (x.zoom || 1);
+  return Math.round(z * 100) + '%';
+}
+
+/* ---------- reading ----------
+   A tablet on the music desk wants the notation and nothing else: no sidebar,
+   no panel of notes, no toolbar sitting where the first system should be. The
+   strip that carries the way out is the only thing left, and it takes itself
+   away after a few seconds so that what is on the glass is a page of music. */
+function scoreReadStripHTML(x){
+  const ui = scoreUi();
+  if(!ui.reading) return '';
+  const parts = x.instruments || [];
+  const secs = (x.sections || []).slice().sort((a, b) => a.startMeasure - b.startMeasure);
+  return `<div class="sc-strip" id="scStrip">
+    <button class="tbtn" id="scUnread" title="back to the room">✕ done</button>
+    <span class="sc-strip-t serif">${esc(x.title)}</span>
+    ${scoreBplHTML(x)}
+    ${parts.length > 1 ? `<span class="sc-strip-parts">${parts.map(p =>
+      `<button class="tbtn${(x.hidden || []).includes(p.index) ? '' : ' on'}" data-scrpart="${p.index}">${esc(p.name)}</button>`).join('')}</span>` : ''}
+    <button class="tbtn${ui.marks ? ' on' : ''}" id="scMarks" title="the bands and pins you have put on it">marks</button>
+    ${secs.length ? `<select class="sel sm" id="scSecJump"><option value="">go to…</option>${secs.map(sv =>
+      `<option value="${esc(sv.id)}">${esc(sv.name)} · ${sv.startMeasure}</option>`).join('')}</select>` : ''}
+    <span class="grow"></span>
+    <span class="mono faint" id="scWake"></span>
+  </div>`;
+}
+/* A screen that sleeps in the middle of a phrase is the one failure this mode
+   cannot have. Not every browser offers the lock; where it does not, nothing
+   is claimed. */
+let _scWake = null;
+async function scoreKeepAwake(on){
+  const say = document.getElementById('scWake');
+  if(!on){
+    if(_scWake){ try { await _scWake.release(); } catch(e){} _scWake = null; }
+    return false;
+  }
+  if(!navigator.wakeLock || !navigator.wakeLock.request){ if(say) say.textContent = ''; return false; }
+  try {
+    _scWake = await navigator.wakeLock.request('screen');
+    _scWake.addEventListener('release', () => { _scWake = null; });
+    if(say) say.textContent = 'screen held';
+    return true;
+  } catch(e){ if(say) say.textContent = ''; return false; }
+}
+function setScoreReading(on){
+  const ui = scoreUi();
+  ui.reading = !!on;
+  document.documentElement.classList.toggle('sc-reading', ui.reading);
+  scoreKeepAwake(ui.reading);
+  scoreQuietWatch(ui.reading);
+  /* the width changed by a lot, so the lines have to be broken again */
+  rerender();
+}
+/* The strip takes itself away after a few seconds and comes back on any touch.
+   Which is also why a tap in reading mode wakes the strip and never pins a
+   note: your hands are on the keys, and an accidental pin at bar 43 every time
+   you brush the glass is worse than having no pins at all. */
+let _scQuiet = null;
+function scoreQuietWatch(on){
+  const root = document.documentElement;
+  if(_scQuiet){
+    clearTimeout(_scQuiet.timer);
+    ['pointerdown','pointermove','keydown','wheel'].forEach(e => removeEventListener(e, _scQuiet.wake, true));
+    _scQuiet = null;
+  }
+  root.classList.remove('sc-quiet');
+  if(!on) return;
+  const hide = () => root.classList.add('sc-quiet');
+  const wake = () => { root.classList.remove('sc-quiet');
+    if(_scQuiet){ clearTimeout(_scQuiet.timer); _scQuiet.timer = setTimeout(hide, 3500); } };
+  _scQuiet = {wake, timer: setTimeout(hide, 3500)};
+  ['pointerdown','pointermove','keydown','wheel'].forEach(e => addEventListener(e, wake, true));
 }
 
 /* The panel beside the score. Repainted on its own, because writing a note
@@ -215,6 +323,7 @@ function scoreOverlayPaint(x){
   const pinBox = document.getElementById('scPins');
   if(!over || !pinBox) return;
   const ui = scoreUi();
+  if(!ui.marks){ over.innerHTML = ''; pinBox.innerHTML = ''; return; }
   over.innerHTML = (x.sections || []).map(s => {
     const dim = ui.focus && ui.focus !== s.id;
     return measureRangeBands(s.startMeasure, s.endMeasure).map((b, i) =>
@@ -301,7 +410,7 @@ function bindScoreLibrary(root){
 function bindScoreViewer(root, x){
   const ui = scoreUi();
   const on = (sel, fn) => { const n = root.querySelector(sel); if(n) n.onclick = fn; };
-  on('#scBack', () => { ui.id = null; ui.focus = null; });
+  on('#scBack', () => { ui.id = null; ui.focus = null; setScoreReading(false); });
   on('#scNewSec', () => openSectionModal(x.id));
   on('#scUnfocus', () => { ui.focus = null; rerender(); });
   on('#scLog', () => openScoreLogModal(x.id, ui.focus));
@@ -310,6 +419,30 @@ function bindScoreViewer(root, x){
     scoreRepaintParts(x); scoreRedraw(x); });
   on('#scAllParts', () => { x.hidden = []; applyScoreParts(x); saveNow();
     scoreRepaintParts(x); scoreRedraw(x); });
+  on('#scRead', () => setScoreReading(true));
+  on('#scUnread', () => setScoreReading(false));
+  on('#scMarks', () => { const u = scoreUi(); u.marks = !u.marks; saveNow();
+    const btn = root.querySelector('#scMarks'); if(btn) btn.classList.toggle('on', u.marks);
+    scoreOverlayPaint(x); });
+  $$('[data-scbpl]', root).forEach(b => b.onclick = async () => {
+    const step = +b.dataset.scbpl;
+    /* off the bottom is back to letting it fit as many as it can */
+    x.barsPerLine = clamp((+x.barsPerLine || 0) + (x.barsPerLine === 0 && step > 0 ? 4 : step), 0, 16);
+    if(x.barsPerLine === 1) x.barsPerLine = step > 0 ? 2 : 0;
+    saveNow();
+    await scoreRedraw(x);
+    scoreBplRepaint(x);
+  });
+  $$('[data-scrpart]', root).forEach(b => b.onclick = async () => {
+    const i = +b.dataset.scrpart;
+    const showing = !(x.hidden || []).includes(i);
+    if(!setScorePartVisible(x, i, !showing)){ toast('Something has to be visible.'); return; }
+    b.classList.toggle('on', !showing);
+    saveNow(); await scoreRedraw(x);
+  });
+  const secJump = root.querySelector('#scSecJump');
+  if(secJump) secJump.onchange = () => { const sec = scoreSection(x, secJump.value);
+    if(sec) scoreScrollTo(sec.startMeasure); secJump.value = ''; };
   $$('[data-sczoom]', root).forEach(b => b.onclick = () => {
     x.zoom = clamp((+x.zoom || 1) + (+b.dataset.sczoom) * 0.15, 0.4, 2.5);
     const say = root.querySelector('#scZoomSay');
@@ -326,11 +459,15 @@ function bindScoreViewer(root, x){
   /* a press on the notation pins a note to the bar it landed in */
   const stage = root.querySelector('#scStage');
   if(stage) stage.addEventListener('click', ev => {
+    if(ui.reading) return;           /* a tap is for waking the strip, not pinning */
     if(ev.target.closest('.sc-pin, .sc-band-n')) return;
     const box = stage.getBoundingClientRect();
     const m = measureAt(ev.clientX - box.left + stage.scrollLeft, ev.clientY - box.top + stage.scrollTop);
     if(m) openPinModal(x.id, null, m);
   });
+  /* the watcher is re-armed after every redraw of the page, because the
+     listeners it hangs on went with the old one */
+  if(ui.reading) scoreQuietWatch(true);
   bindScoreSide(root, x);
 }
 function bindScoreSide(root, x){
@@ -353,6 +490,13 @@ function bindScoreSide(root, x){
     spliceOut(x.pins, p => p.id === b.dataset.scpindel); saveNow();
     scoreSidePaint(x); scoreOverlayPaint(x);
   });
+}
+/* both copies of the control, since reading mode carries its own */
+function scoreBplRepaint(x){
+  $$('#scBplSay').forEach(n => n.textContent = x.barsPerLine || 'fit');
+  $$('[data-scbpl="-1"]').forEach(n => n.disabled = !x.barsPerLine);
+  $$('#scZoomSay').forEach(n => n.textContent = scoreZoomSay(x));
+  $$('[data-sczoom]').forEach(n => n.disabled = !!x.barsPerLine);
 }
 function scoreScrollTo(n){
   const stage = document.getElementById('scStage');

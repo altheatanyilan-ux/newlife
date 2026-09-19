@@ -54,6 +54,11 @@ function scoreDefaults(x){
   x.hidden = Array.isArray(x.hidden) ? x.hidden : [];      // part indices switched off
   x.totalMeasures = +x.totalMeasures || 0;
   x.zoom = +x.zoom || 1;
+  /* How many bars to a line. Left alone the engraver fits as many as the
+     width allows, which on a narrow column is two or three — fine for looking
+     something up and useless for reading, because the eye reads a phrase and
+     a phrase is rarely two bars long. Zero means let it decide. */
+  x.barsPerLine = clamp(+x.barsPerLine || 0, 0, 16);
   x.sections = Array.isArray(x.sections) ? x.sections : [];
   x.sections.forEach(s => scoreSectionDefaults(s, x));
   x.pins = Array.isArray(x.pins) ? x.pins : [];
