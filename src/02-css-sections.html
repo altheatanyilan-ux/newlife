@@ -8195,5 +8195,64 @@ html[data-theme="dark"] .sc-stage{background:#f2ece0}
   .ja-strand{grid-template-columns:minmax(0,1fr) minmax(0,1.2fr) 2.6em}
 }
 
+
+/* ============================================================
+   TIME — the pill in the corner, and the room it opens
+   ============================================================ */
+.tdock{position:fixed;right:14px;bottom:78px;z-index:41;max-width:min(320px,calc(100vw - 28px))}
+@media (max-width:900px){ .tdock{bottom:132px} }
+html.sc-reading .tdock{display:none}
+.td-pill,.td-card{border:1px solid var(--line-2);background:var(--elev-2);
+  box-shadow:var(--elev-2-shadow);border-radius:999px;display:flex;align-items:center;gap:2px;
+  padding:3px 4px 3px 10px}
+.td-card{border-radius:14px;flex-direction:column;align-items:stretch;gap:4px;padding:8px 10px;
+  border-left:3px solid var(--c,var(--line))}
+.td-go{background:none;border:0;cursor:pointer;font:inherit;font-size:.78rem;color:var(--ink);
+  padding:4px 2px;white-space:nowrap}
+.td-today{background:none;border:0;cursor:pointer;font-size:.7rem;opacity:.6;padding:4px 6px}
+.td-more{background:none;border:0;cursor:pointer;font-size:.7rem;opacity:.6;padding:4px 8px}
+.td-go:hover,.td-today:hover,.td-more:hover{opacity:1}
+.td-row{display:flex;align-items:center;gap:7px}
+.td-tools{gap:5px}
+.td-dot{width:8px;height:8px;border-radius:50%;background:#c4484e;flex:none;
+  animation:tdBreathe 2.6s var(--ease) infinite}
+@keyframes tdBreathe{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.8)}}
+.td-clock{font-size:.92rem;font-variant-numeric:tabular-nums}
+.td-what{font-size:.78rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
+.td-sub{font-size:.66rem;opacity:.65;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.tm-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.tm-bar-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.tm-bar-h .pd-q{margin:0}
+.tm-strip{position:relative;height:30px;border-radius:7px;background:var(--line);overflow:hidden}
+.tm-seg{position:absolute;top:0;bottom:0;display:block;background:var(--c);opacity:.82;
+  border-radius:2px;cursor:pointer;min-width:2px}
+.tm-seg:hover{opacity:1;outline:1px solid var(--ink)}
+.tm-ticks{position:relative;height:14px;margin-bottom:14px;font-size:.62rem;opacity:.5}
+.tm-ticks span{position:absolute;transform:translateX(-50%)}
+.tm-list{display:flex;flex-direction:column;gap:7px;margin-bottom:16px}
+.tm-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:10px;align-items:center;
+  border:1px solid var(--line);border-left:3px solid var(--c);border-radius:var(--radius);
+  padding:8px 10px;background:var(--surface)}
+.tm-emoji{font-size:1.05rem}
+.tm-what{font-size:.86rem}
+.tm-mins{font-size:.76rem;white-space:nowrap}
+.tm-notes{font-size:.74rem;opacity:.8;margin-top:4px}
+.tm-sum{display:flex;flex-direction:column;gap:5px;margin-top:6px}
+.tm-sumrow{display:grid;grid-template-columns:minmax(0,180px) minmax(0,1fr) auto;gap:10px;
+  align-items:center;font-size:.76rem}
+.tm-sumn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tm-sumbar{height:9px;border-radius:5px;background:var(--line);overflow:hidden}
+.tm-sumbar i{display:block;height:100%;background:var(--c);opacity:.8}
+.tm-week{display:flex;flex-direction:column;gap:7px;margin-bottom:16px}
+.tm-wday{display:grid;grid-template-columns:78px minmax(0,1fr) 62px;gap:10px;align-items:center}
+.tm-wname{justify-self:start;font-size:.7rem}
+.tm-wstrip .tm-strip{height:20px}
+.tm-wstrip .tm-ticks{display:none}
+.tm-trend{margin-bottom:14px}
+.t-timeline{display:block;width:100%;text-align:left;margin:0 0 12px;padding:7px 12px;
+  border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);
+  font-size:.74rem;cursor:pointer;opacity:.85}
+.t-timeline:hover{opacity:1;border-color:var(--line-2)}
 </style>
 </head>

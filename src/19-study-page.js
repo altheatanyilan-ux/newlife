@@ -6,7 +6,15 @@ const studyView = () => S._studyView || 'decks';
 
 routes.study = function(root, params){
   studyState();
-  if(params && params[0] === 'session'){ root.innerHTML = `<div class="page sd-page">${studySessionHTML()}</div>`;
+  if(params && params[0] === 'session'){
+    /* the queue is a sitting like any other, and it is the one people most
+       often do not think of as time spent */
+    try { const q = S._study;
+      if(q && !q.done && typeof timeAutoStart === 'function') timeAutoStart({categoryId:'study',
+        feature:'study', what:'the review queue'});
+      else if((!q || q.done) && typeof timeAutoStop === 'function') timeAutoStop('study');
+    } catch(e){}
+    root.innerHTML = `<div class="page sd-page">${studySessionHTML()}</div>`;
     bindStudySession(root); return; }
   registerPageEntry({pageName:'Study Deck', addLabel:'Make a card', defaultEntryType:'card', prefilledFields:{}, options:[
     {icon:'📌', label:'A card', desc:'Something worth having by heart.', run:()=>openRememberModal({sourceType:'manual'})},

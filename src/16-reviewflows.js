@@ -132,6 +132,10 @@ function flowWeekly(opts = {}){
   const scWeek = scSaid.length ? [{title:'The week at the score.', hint:'Which sections you practised, and which are going cold.',
     body: () => `<div class="stack" style="gap:6px">${scSaid.map(l => `<div class="rev-summary">${esc(l)}</div>`).join('')}
       <div class="row"><button class="btn sm ghost" data-flowgo="#/score">open the scores</button></div></div>`}] : [];
+  const tmSaid = typeof timeReviewLines === 'function' ? timeReviewLines(days[0], days[6]) : [];
+  const tmWeek = tmSaid.length ? [{title:'Where the hours went.', hint:'What you tracked, against the week before, and against what you say matters.',
+    body: () => `<div class="stack" style="gap:6px">${tmSaid.map(l => `<div class="rev-summary">${esc(l)}</div>`).join('')}
+      <div class="row"><button class="btn sm ghost" data-flowgo="#/time/week">open the week</button></div></div>`}] : [];
   guidedFlow('Weekly review', [
     {title:'The week, in shape.', hint:'Which days were full? Which were quiet? Is there a pattern you did not choose?',
      body: () => tapeWeekHTML(T)},
@@ -151,6 +155,7 @@ function flowWeekly(opts = {}){
      body: () => tasksReviewHTML(days[0], days[6])},
     ...jaWeekStep,
     ...scWeek,
+    ...tmWeek,
     ...studyWeek,
     {title:'Anything else from this week?', hint:'Anything that happened and never got written down. Add it here and the review stays where it is.',
      body: () => captureStepHTML(days[0], days[6]), bind: b => bindCaptureStep(b, days[0], days[6])},

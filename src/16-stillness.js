@@ -78,6 +78,7 @@ function stillDigest(from, to){
 }
 function saveStillSession(rec){
   const s = stillness();
+  try { if(typeof timeAutoStop === 'function') timeAutoStop('stillness'); } catch(e){}
   s.sessions.unshift(Object.assign({id:uid(), date:today(), createdAt:new Date().toISOString()}, rec));
   /* a session counts towards any habit that is about sitting still */
   if(typeof S.habits !== 'undefined') S.habits.forEach(h => {
@@ -93,6 +94,10 @@ function saveStillSession(rec){
    else. The point of the screen is to stop being a screen. */
 function openStillTimer(opts){
   const {kind, minutes, anchor, mantra, pattern, picture} = opts;
+  /* the one clock, so a sitting shows up in the day's shape as well as in
+     the stillness log — refused if something is already running */
+  try { if(typeof timeAutoStart === 'function') timeAutoStart({categoryId:'meditation',
+    feature:'stillness', what: kind || 'sitting still'}); } catch(e){}
   const pat = BREATH_PATTERNS.find(p => p.id === pattern) || BREATH_PATTERNS[0];
   const total = Math.max(1, minutes) * 60;
   const m = openModal(`<div class="still-run" id="stillRun">

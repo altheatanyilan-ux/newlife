@@ -8864,6 +8864,65 @@ html[data-theme="dark"] .sc-stage{background:#f2ece0}
   .ja-strand{grid-template-columns:minmax(0,1fr) minmax(0,1.2fr) 2.6em}
 }
 
+
+/* ============================================================
+   TIME — the pill in the corner, and the room it opens
+   ============================================================ */
+.tdock{position:fixed;right:14px;bottom:78px;z-index:41;max-width:min(320px,calc(100vw - 28px))}
+@media (max-width:900px){ .tdock{bottom:132px} }
+html.sc-reading .tdock{display:none}
+.td-pill,.td-card{border:1px solid var(--line-2);background:var(--elev-2);
+  box-shadow:var(--elev-2-shadow);border-radius:999px;display:flex;align-items:center;gap:2px;
+  padding:3px 4px 3px 10px}
+.td-card{border-radius:14px;flex-direction:column;align-items:stretch;gap:4px;padding:8px 10px;
+  border-left:3px solid var(--c,var(--line))}
+.td-go{background:none;border:0;cursor:pointer;font:inherit;font-size:.78rem;color:var(--ink);
+  padding:4px 2px;white-space:nowrap}
+.td-today{background:none;border:0;cursor:pointer;font-size:.7rem;opacity:.6;padding:4px 6px}
+.td-more{background:none;border:0;cursor:pointer;font-size:.7rem;opacity:.6;padding:4px 8px}
+.td-go:hover,.td-today:hover,.td-more:hover{opacity:1}
+.td-row{display:flex;align-items:center;gap:7px}
+.td-tools{gap:5px}
+.td-dot{width:8px;height:8px;border-radius:50%;background:#c4484e;flex:none;
+  animation:tdBreathe 2.6s var(--ease) infinite}
+@keyframes tdBreathe{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.8)}}
+.td-clock{font-size:.92rem;font-variant-numeric:tabular-nums}
+.td-what{font-size:.78rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
+.td-sub{font-size:.66rem;opacity:.65;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.tm-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.tm-bar-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.tm-bar-h .pd-q{margin:0}
+.tm-strip{position:relative;height:30px;border-radius:7px;background:var(--line);overflow:hidden}
+.tm-seg{position:absolute;top:0;bottom:0;display:block;background:var(--c);opacity:.82;
+  border-radius:2px;cursor:pointer;min-width:2px}
+.tm-seg:hover{opacity:1;outline:1px solid var(--ink)}
+.tm-ticks{position:relative;height:14px;margin-bottom:14px;font-size:.62rem;opacity:.5}
+.tm-ticks span{position:absolute;transform:translateX(-50%)}
+.tm-list{display:flex;flex-direction:column;gap:7px;margin-bottom:16px}
+.tm-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:10px;align-items:center;
+  border:1px solid var(--line);border-left:3px solid var(--c);border-radius:var(--radius);
+  padding:8px 10px;background:var(--surface)}
+.tm-emoji{font-size:1.05rem}
+.tm-what{font-size:.86rem}
+.tm-mins{font-size:.76rem;white-space:nowrap}
+.tm-notes{font-size:.74rem;opacity:.8;margin-top:4px}
+.tm-sum{display:flex;flex-direction:column;gap:5px;margin-top:6px}
+.tm-sumrow{display:grid;grid-template-columns:minmax(0,180px) minmax(0,1fr) auto;gap:10px;
+  align-items:center;font-size:.76rem}
+.tm-sumn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tm-sumbar{height:9px;border-radius:5px;background:var(--line);overflow:hidden}
+.tm-sumbar i{display:block;height:100%;background:var(--c);opacity:.8}
+.tm-week{display:flex;flex-direction:column;gap:7px;margin-bottom:16px}
+.tm-wday{display:grid;grid-template-columns:78px minmax(0,1fr) 62px;gap:10px;align-items:center}
+.tm-wname{justify-self:start;font-size:.7rem}
+.tm-wstrip .tm-strip{height:20px}
+.tm-wstrip .tm-ticks{display:none}
+.tm-trend{margin-bottom:14px}
+.t-timeline{display:block;width:100%;text-align:left;margin:0 0 12px;padding:7px 12px;
+  border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);
+  font-size:.74rem;cursor:pointer;opacity:.85}
+.t-timeline:hover{opacity:1;border-color:var(--line-2)}
 </style>
 </head>
 <body>
@@ -13212,6 +13271,11 @@ const DB_SCHEMA = {          // primary key first, then indexes — Dexie syntax
      MusicXML each — which is why the room says out loud what the library is
      costing rather than letting it grow silently. */
   scores:         'id, title',
+  /* One row a sitting. They are small and there will be thousands of them, so
+     they get a store rather than a meta key: a meta key is one JSON blob
+     rewritten in full on every save, and this is the store that grows fastest
+     in the house. */
+  timeEntries:    'id, startTime, categoryId',
 };
 /* keys of S that are single objects/arrays without their own identity — kept as rows in `meta` */
 /* Every top-level key of S that is an object rather than an array has to be
@@ -13224,8 +13288,8 @@ const DB_SCHEMA = {          // primary key first, then indexes — Dexie syntax
    history and the day's rhythm — all of it discarded on every reload. A new
    object on S is not saved until its name appears in this line. */
 const META_KEYS = ['settings','rehearsal','reviews','valueOrder','valueOrderHistory','places','journals','negLast','finance','plans','reviewLog',
-  'planning','content','contentVault','wsDaily','wsRead','runLog','weekPlans','monthPlans','monthReviews','position','dailyRhythm','stillness','reviewEntries','reviewPrefs'];
-const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders','visionEras','tasks','boards','people','events','accounts','txns','budgets','finGoals','chapters','turns','threadsN','interactions','mediaQueue','mediaLists','mediaRecs','compost','incomeStreams','spendCategories','scores'];
+  'planning','content','contentVault','wsDaily','wsRead','runLog','weekPlans','monthPlans','monthReviews','position','dailyRhythm','stillness','reviewEntries','reviewPrefs','time'];
+const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders','visionEras','tasks','boards','people','events','accounts','txns','budgets','finGoals','chapters','turns','threadsN','interactions','mediaQueue','mediaLists','mediaRecs','compost','incomeStreams','spendCategories','scores','timeEntries'];
 
 /* ---------- MiniDexie: Dexie-compatible subset over IndexedDB ---------- */
 class MiniTable {
@@ -13313,7 +13377,7 @@ const usingRealDexie = DexieImpl !== MiniDexie;
 
 /* ---------- the database ---------- */
 const db = new DexieImpl(DB_NAME);
-db.version(12).stores(DB_SCHEMA);   // v8 finance rebuild, v9 chronicle chapters/turns/threads + interactions, v10 library + writing studio stores, v11 income streams + spend categories, v12 scores
+db.version(13).stores(DB_SCHEMA);   // v8 finance rebuild, v9 chronicle chapters/turns/threads + interactions, v10 library + writing studio stores, v11 income streams + spend categories, v12 scores, v13 time entries
 
 /* ---------- S <-> stores ---------- */
 function stateToStores(state){
@@ -16531,6 +16595,12 @@ routes.today = function(root){
       ${ready.map(e=>`<div class="card ready-letter" style="margin-top:8px"><div class="row between"><span><b class="serif">${esc(e.title||'To myself')}</b><div class="mono faint">${daysBetween((e.createdAt||'').slice(0,10), T)} days ago</div></span><button class="btn sm primary" data-lopen="${e.id}">Open it</button></div></div>`).join('')}
     </div></details>` : ''}
 
+    <!-- One line for where the day has gone so far. It only appears once
+         something has been tracked: a strip that reads "0h 0m" every morning
+         is a reproach, not information. -->
+    ${(typeof timeTodaySay === 'function' && timeTodaySay()) ? `<button class="t-timeline mono" id="tTime"
+      title="where today went">\u23f1 ${esc(timeTodaySay())}</button>` : ''}
+
     <section class="today-view" data-view="do"${view === 'do' ? '' : ' hidden'}>
 
     <!-- THE DAY, ONE ROOM AT A TIME
@@ -16812,6 +16882,7 @@ routes.today = function(root){
     rerender(); });
 
   /* habits */
+  $('#tTime') && ($('#tTime').onclick = () => navigate('#/time'));
   $('#todayAddHabit') && ($('#todayAddHabit').onclick = () => openHabitModal());
   $('#todayArchHabit') && ($('#todayArchHabit').onclick = () => openArchivedHabits());
   $('#todayHabitGrid') && ($('#todayHabitGrid').onclick = () => openHabitsPanel());
@@ -33485,6 +33556,10 @@ function flowWeekly(opts = {}){
   const scWeek = scSaid.length ? [{title:'The week at the score.', hint:'Which sections you practised, and which are going cold.',
     body: () => `<div class="stack" style="gap:6px">${scSaid.map(l => `<div class="rev-summary">${esc(l)}</div>`).join('')}
       <div class="row"><button class="btn sm ghost" data-flowgo="#/score">open the scores</button></div></div>`}] : [];
+  const tmSaid = typeof timeReviewLines === 'function' ? timeReviewLines(days[0], days[6]) : [];
+  const tmWeek = tmSaid.length ? [{title:'Where the hours went.', hint:'What you tracked, against the week before, and against what you say matters.',
+    body: () => `<div class="stack" style="gap:6px">${tmSaid.map(l => `<div class="rev-summary">${esc(l)}</div>`).join('')}
+      <div class="row"><button class="btn sm ghost" data-flowgo="#/time/week">open the week</button></div></div>`}] : [];
   guidedFlow('Weekly review', [
     {title:'The week, in shape.', hint:'Which days were full? Which were quiet? Is there a pattern you did not choose?',
      body: () => tapeWeekHTML(T)},
@@ -33504,6 +33579,7 @@ function flowWeekly(opts = {}){
      body: () => tasksReviewHTML(days[0], days[6])},
     ...jaWeekStep,
     ...scWeek,
+    ...tmWeek,
     ...studyWeek,
     {title:'Anything else from this week?', hint:'Anything that happened and never got written down. Add it here and the review stays where it is.',
      body: () => captureStepHTML(days[0], days[6]), bind: b => bindCaptureStep(b, days[0], days[6])},
@@ -35702,6 +35778,7 @@ function stillDigest(from, to){
 }
 function saveStillSession(rec){
   const s = stillness();
+  try { if(typeof timeAutoStop === 'function') timeAutoStop('stillness'); } catch(e){}
   s.sessions.unshift(Object.assign({id:uid(), date:today(), createdAt:new Date().toISOString()}, rec));
   /* a session counts towards any habit that is about sitting still */
   if(typeof S.habits !== 'undefined') S.habits.forEach(h => {
@@ -35717,6 +35794,10 @@ function saveStillSession(rec){
    else. The point of the screen is to stop being a screen. */
 function openStillTimer(opts){
   const {kind, minutes, anchor, mantra, pattern, picture} = opts;
+  /* the one clock, so a sitting shows up in the day's shape as well as in
+     the stillness log — refused if something is already running */
+  try { if(typeof timeAutoStart === 'function') timeAutoStart({categoryId:'meditation',
+    feature:'stillness', what: kind || 'sitting still'}); } catch(e){}
   const pat = BREATH_PATTERNS.find(p => p.id === pattern) || BREATH_PATTERNS[0];
   const total = Math.max(1, minutes) * 60;
   const m = openModal(`<div class="still-run" id="stillRun">
@@ -38103,6 +38184,20 @@ routes.settings = function(root){
            information. -->
       <div class="opt"><div><b>Landing page</b><div class="d">Where the site opens.</div></div><select class="sel" style="width:auto" id="sHome">${[['compass','Compass'],['today','Today']].map(([v,l])=>`<option value="${v}" ${(S.settings.home||'compass')===v?'selected':''}>${l}</option>`).join('')}</select></div>
     </div>
+    <div class="card rv"><h3>The clock</h3>
+      <div class="opt"><div><b>The timer in the corner</b><div class="d">One clock for the whole house, on every page. Off, and the rooms that start it still log their own time; nothing is lost, it simply stops being in one place.</div></div><label class="toggle ${timeSettings().widget?'on':''}" id="sTimeWidget"><span class="sw"></span></label></div>
+      <div class="opt"><div><b>Start it in</b><div class="d">The category a timer with nothing said about it falls into.</div></div>
+        <select class="sel" style="width:auto" id="sTimeCat"><option value="">nothing</option>${timeCategories().map(c =>
+          `<option value="${esc(c.id)}" ${timeSettings().defaultCategory === c.id ? 'selected' : ''}>${esc(c.emoji)} ${esc(c.name)}</option>`).join('')}</select></div>
+      <!-- rounding is a way of saying, not a way of storing: the real times
+           are kept whatever this is set to, and a short sitting is rounded up
+           rather than away -->
+      <div class="opt"><div><b>Say the minutes</b><div class="d">How lengths are read out. The exact times are always what is kept underneath, and anything that happened counts as at least one step.</div></div>
+        <select class="sel" style="width:auto" id="sTimeRound">${[[1,'to the minute'],[5,'to five minutes'],[15,'to the quarter hour']].map(([v, l]) =>
+          `<option value="${v}" ${timeSettings().round === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
+      <div class="opt"><div><b>A sitting on a project is a nod</b><div class="d">Time hung on a project writes itself into that project's record of work.</div></div><label class="toggle ${timeSettings().autoNods?'on':''}" id="sTimeNods"><span class="sw"></span></label></div>
+      <div class="opt"><div><b>An hour with somebody is an hour with them</b><div class="d">Time hung on a person writes itself into their record.</div></div><label class="toggle ${timeSettings().autoInteractions?'on':''}" id="sTimeInts"><span class="sw"></span></label></div>
+    </div>
     <div class="card rv"><h3>Day &amp; sleep</h3>
       <div class="opt"><div><b>The day turns over at</b>
         <div class="d">A day ends when you go to sleep, not at midnight. Before this hour the site is still on yesterday — so a bedtime logged at half past one belongs to the day you have been living, and the sleep chart draws it at the end of that day rather than the start of the next.</div></div>
@@ -38184,6 +38279,20 @@ routes.settings = function(root){
   };  $('#sBoundary').onchange = function(){ S.settings.dayBoundaryHour = +this.value; saveNow(); rerender();
     toast(+this.value === 0 ? 'The day turns over at midnight again.'
       : `The day turns over at ${this.value} AM. Anything before that is still the day before.`); };
+  /* the clock */
+  $('#sTimeWidget') && ($('#sTimeWidget').onclick = function(){
+    timeSettings().widget = !timeSettings().widget; saveNow();
+    this.classList.toggle('on', timeSettings().widget); paintTimeDock(); });
+  $('#sTimeCat') && ($('#sTimeCat').onchange = function(){
+    timeSettings().defaultCategory = this.value || null; saveNow(); });
+  $('#sTimeRound') && ($('#sTimeRound').onchange = function(){
+    timeSettings().round = +this.value || 1; saveNow(); });
+  $('#sTimeNods') && ($('#sTimeNods').onclick = function(){
+    timeSettings().autoNods = !timeSettings().autoNods; saveNow();
+    this.classList.toggle('on', timeSettings().autoNods); });
+  $('#sTimeInts') && ($('#sTimeInts').onclick = function(){
+    timeSettings().autoInteractions = !timeSettings().autoInteractions; saveNow();
+    this.classList.toggle('on', timeSettings().autoInteractions); });
   $('#sTheme').onclick = function(){ S.settings.theme = S.settings.theme==='dark'?'light':'dark'; saveNow(); applyTheme(); this.classList.toggle('on', S.settings.theme==='light'); };
   $('#sSound').onclick = function(){ SoundManager.toggleSound(); this.classList.toggle('on', SoundManager.state().soundEnabled); };
   $('#sAmbient').onclick = function(){ SoundManager.toggleAmbient(); this.classList.toggle('on', SoundManager.state().ambientEnabled); };
@@ -47429,6 +47538,9 @@ const NAV_ICONS = {
   /* a stave with a note sitting on it — the room is notation, not an instrument */
   score:    '<svg viewBox="0 0 24 24"><path d="M3 7h18M3 10.5h18M3 14h18M3 17.5h18"/><circle cx="9" cy="15.6" r="2.1" fill="currentColor" stroke="none"/><path d="M11.1 15.6V6.6l6 1.6"/></svg>',
   study:    '<svg viewBox="0 0 24 24"><rect x="6.5" y="4" width="13" height="16" rx="2" transform="rotate(6 13 12)"/><rect x="4.5" y="5" width="13" height="16" rx="2"/><path d="M7.8 9.5h6.4M7.8 13h4.2"/></svg>',
+  /* a clock face with one hand, because the room is about where the hours
+     went rather than about what time it is */
+  time:     '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 6.8V12l3.6 2.2"/></svg>',
   import:     '<svg viewBox="0 0 24 24"><rect x="3.5" y="13" width="17" height="7.5" rx="2"/><path d="M3.5 16h4l1.5 2h6l1.5-2h4"/><path d="M12 3.5v9M9.5 10l2.5 2.5L14.5 10"/></svg>',
 };
 /* labels match the h1 of the page they open; `short` is for the mobile bar only */
@@ -47447,6 +47559,7 @@ const NAV_PAGES = {
   study:    {label:'Study Deck',       short:'Study',    ico:NAV_ICONS.study,    route:'#/study'},
   score:    {label:'Score Practice',    short:'Score',    ico:NAV_ICONS.score,    route:'#/score'},
   japanese: {label:'Japanese Studio',  short:'日本語',    ico:NAV_ICONS.japanese, route:'#/japanese'},
+  time:     {label:'Time',             short:'Time',     ico:NAV_ICONS.time,     route:'#/time'},
   timeline: {label:'Timeline',         short:'Timeline', ico:NAV_ICONS.timeline, route:'#/journals/timeline'},
 };
 /* The three rooms you are in most days sit above everything, unlabelled and
@@ -47465,7 +47578,7 @@ const NAV_TOP = ['today','planning'];
 const NAV_PINNED = [];
 const NAV_DEFAULT = {
   create:   ['content','projects','finance','skills','score','japanese'],
-  identity: ['values','journals','people','study'],
+  identity: ['values','journals','people','study','time'],
   standalone:[],
 };
 const NAV_ZONES = [
@@ -50316,6 +50429,15 @@ function bindScoreSide(root, x){
     if(s) scoreScrollTo(s.startMeasure); });
   $$('[data-scfocus]', root).forEach(b => b.onclick = () => {
     ui.focus = ui.focus === b.dataset.scfocus ? null : b.dataset.scfocus;
+    /* working on a passage is the clearest "I am practising" this house has,
+       so it is where the clock starts without being asked */
+    try {
+      const sec = ui.focus ? scoreSection(x, ui.focus) : null;
+      if(sec && typeof timeAutoStart === 'function') timeAutoStart({categoryId:'piano',
+        feature:'score', what:`${x.title} \u2014 ${sec.name}`,
+        linkedType:'score', linkedId:x.id, linkedLabel:x.title});
+      else if(!sec && typeof timeAutoStop === 'function') timeAutoStop('score');
+    } catch(e){}
     sound('click'); rerender();
   });
   $$('[data-scsecdel]', root).forEach(b => b.onclick = () => {
@@ -52200,7 +52322,15 @@ const studyView = () => S._studyView || 'decks';
 
 routes.study = function(root, params){
   studyState();
-  if(params && params[0] === 'session'){ root.innerHTML = `<div class="page sd-page">${studySessionHTML()}</div>`;
+  if(params && params[0] === 'session'){
+    /* the queue is a sitting like any other, and it is the one people most
+       often do not think of as time spent */
+    try { const q = S._study;
+      if(q && !q.done && typeof timeAutoStart === 'function') timeAutoStart({categoryId:'study',
+        feature:'study', what:'the review queue'});
+      else if((!q || q.done) && typeof timeAutoStop === 'function') timeAutoStop('study');
+    } catch(e){}
+    root.innerHTML = `<div class="page sd-page">${studySessionHTML()}</div>`;
     bindStudySession(root); return; }
   registerPageEntry({pageName:'Study Deck', addLabel:'Make a card', defaultEntryType:'card', prefilledFields:{}, options:[
     {icon:'📌', label:'A card', desc:'Something worth having by heart.', run:()=>openRememberModal({sourceType:'manual'})},
@@ -52681,6 +52811,890 @@ function studyReviewLines(from, to){
   return out;
 }
 /* ============================================================
+   WHAT THE CLOCK FEEDS.
+
+   A time tracker that only fills its own dashboard is a second set of books.
+   The point of one clock is that an hour is logged once and shows up wherever
+   that hour matters: on the skill, on the project, in the record of who you
+   saw. So an entry, once it has an end on it, is pushed outward.
+
+   The hard part is not the pushing, it is the pushing again. An entry can be
+   edited — a wrong end time, a category changed, a link added a week later —
+   and every edit runs this again. If it creates a new nod each time, a month
+   of tidying up leaves a project with forty nods for four sittings. So every
+   derived row is remembered by the entry that made it, and the second pass
+   updates that row rather than adding another. The same goes for the skill
+   hours: what is credited is the difference between what this entry has
+   already put on the skill and what it is worth now, so correcting an entry
+   from two hours to one takes an hour back off rather than adding one more.
+   ============================================================ */
+function timeAfterSave(e){
+  if(!e || !e.endTime) return e;      /* nothing is derived from a clock still running */
+  try { timeCreditSkill(e); } catch(err){ console.warn('skill credit skipped', err); }
+  try { timeMakeNod(e); } catch(err){ console.warn('nod skipped', err); }
+  try { timeMakeInteraction(e); } catch(err){ console.warn('interaction skipped', err); }
+  return e;
+}
+/* The hours on a skill, kept as a difference. `e.creditedHours` is what this
+   entry has already added; anything else double-counts every correction. */
+function timeCreditSkill(e){
+  if(e.linkedType !== 'skill' || !e.linkedId) return null;
+  const sk = byId(S.skills || [], e.linkedId);
+  if(!sk) return null;
+  const want = +(timeMinutes(e) / 60).toFixed(2);
+  const had = +e.creditedHours || 0;
+  if(Math.abs(want - had) < 0.005) return sk;
+  sk.hours = Math.max(0, +(((+sk.hours || 0) + want - had).toFixed(2)));
+  sk.lastPracticed = timeDayOf(e.startTime) || today();
+  e.creditedHours = want;
+  return sk;
+}
+/* A sitting on a project is a nod on it — the atomic unit of creative work
+   this house already counts. Written once and thereafter corrected. */
+function timeMakeNod(e){
+  if(e.linkedType !== 'project' || !e.linkedId || !timeSettings().autoNods) return null;
+  if(!Array.isArray(S.nods)) S.nods = [];
+  let nod = e.nodId ? byId(S.nods, e.nodId) : null;
+  const fields = {projectId: e.linkedId, text: e.what || 'a sitting',
+    duration: Math.round(timeMinutes(e)), date: timeDayOf(e.startTime) || today(),
+    fromTime: e.id};
+  if(nod){ Object.assign(nod, fields); return nod; }
+  nod = Object.assign({id:uid(), link:'', image:null, energy:null}, fields);
+  S.nods.push(nod);
+  e.nodId = nod.id;
+  return nod;
+}
+/* And an hour with somebody is an hour with them. */
+function timeMakeInteraction(e){
+  if(e.linkedType !== 'person' || !e.linkedId || !timeSettings().autoInteractions) return null;
+  if(!Array.isArray(S.interactions)) S.interactions = [];
+  let it = e.interactionId ? byId(S.interactions, e.interactionId) : null;
+  const fields = {personId: e.linkedId, date: timeDayOf(e.startTime) || today(),
+    description: e.what || '', duration: Math.round(timeMinutes(e)), fromTime: e.id};
+  if(it){ Object.assign(it, fields); return it; }
+  it = Object.assign({id:uid(), type:'met_in_person', mood:null, energy:'', quality:'',
+    followUp:null, followUpDone:false}, fields);
+  S.interactions.push(it);
+  const p = byId(S.people || [], e.linkedId);
+  if(p) p.lastInteraction = fields.date;
+  e.interactionId = it.id;
+  return it;
+}
+
+/* ---------- hanging an entry on something ----------
+   The label is stored beside the id so a day can be drawn without going and
+   looking up five other stores, and so deleting a project leaves a readable
+   entry behind instead of a blank. */
+const TIME_LINK_SOURCES = {
+  score:   () => (S.scores || []).map(x => [x.id, x.title]),
+  project: () => (S.projects || []).filter(p => p.status !== 'archived').map(p => [p.id, p.name]),
+  person:  () => (S.people || []).map(p => [p.id, p.name]),
+  skill:   () => (S.skills || []).filter(s => !s.archived).map(s => [s.id, s.name]),
+  vision:  () => (S.visions || []).map(v => [v.id, v.title || v.name || 'a vision']),
+  task:    () => (S.tasks || []).filter(t => !t.done).slice(0, 200).map(t => [t.id, t.title]),
+  deck:    () => (S.study && S.study.decks || []).map(d => [d.id, d.name]),
+  journal: () => [],
+};
+const timeLinkName = k => ({score:'a score', project:'a project', person:'a person',
+  skill:'a skill', vision:'a vision', task:'a task', deck:'a deck', journal:'the record'})[k] || k;
+function timeLinkPickHTML(e){
+  const type = e && e.linkedType || '';
+  const kinds = TIME_LINKS.filter(k => (TIME_LINK_SOURCES[k] ? TIME_LINK_SOURCES[k]() : []).length);
+  if(!kinds.length) return '';
+  return `<div class="row" style="gap:10px;margin-top:10px">
+    <label class="pd-q" style="flex:1"><span class="k">hang it on</span>
+      <select class="sel" id="tlType"><option value="">— nothing —</option>${kinds.map(k =>
+        `<option value="${k}" ${type === k ? 'selected' : ''}>${esc(timeLinkName(k))}</option>`).join('')}</select></label>
+    <label class="pd-q" style="flex:1"><span class="k">which</span>
+      <select class="sel" id="tlId">${timeLinkOptionsHTML(type, e && e.linkedId)}</select></label>
+  </div>`;
+}
+function timeLinkOptionsHTML(type, id){
+  const list = (TIME_LINK_SOURCES[type] ? TIME_LINK_SOURCES[type]() : []);
+  return `<option value="">—</option>${list.map(([k, label]) =>
+    `<option value="${esc(k)}" ${k === id ? 'selected' : ''}>${esc(label || k)}</option>`).join('')}`;
+}
+function timeLinkValue(m){
+  const t = m.querySelector('#tlType'), i = m.querySelector('#tlId');
+  if(!t || !i || !t.value || !i.value) return {type:null, id:null, label:''};
+  return {type: t.value, id: i.value,
+    label: (i.selectedOptions[0] && i.selectedOptions[0].textContent || '').trim()};
+}
+/* the second list follows the first, which is the only reason this needs a
+   binder of its own */
+function bindTimeLinkPick(m){
+  const t = m.querySelector('#tlType'), i = m.querySelector('#tlId');
+  if(!t || !i) return;
+  t.onchange = () => { i.innerHTML = timeLinkOptionsHTML(t.value, null); };
+}
+
+/* ---------- a room asking for the clock ----------
+   Starting a session in a room starts the clock, tagged to what the room
+   knows. But only when nothing is already running: if you started the clock
+   by hand before walking into the room, that is the timing you meant, and a
+   second timer would count the same hour twice. */
+function timeAutoStart(fields){
+  timeState();
+  if(timeRunning()) return null;
+  const e = startTimer(Object.assign({source:'auto'}, fields || {}));
+  paintTimeDock();
+  return e;
+}
+/* And a room finishing stops the clock only if the clock is the one it
+   started. A hand-started timer is nobody else's to stop. */
+function timeAutoStop(feature){
+  const e = timeRunning();
+  if(!e || e.source !== 'auto' || (feature && e.feature !== feature)) return null;
+  const done = stopTimer();
+  paintTimeDock();
+  return done;
+}
+/* What the Today page says in one line, and what the weekly review says in
+   three. Both silent for somebody who has never started the clock: a summary
+   that invents a line about a room you have never been in is a summary you
+   stop reading. */
+function timeTodaySay(){
+  const rows = timeOnDay(today());
+  if(!rows.length) return '';
+  const by = timeByCategory(rows).slice(0, 4);
+  return `${by.map(b => `${b.cat.emoji} ${timeSaid(b.minutes)}`).join(' · ')}
+    · ${timeSaid(sum(rows.map(timeMinutes)))} in all`;
+}
+function timeReviewLines(from, to){
+  timeState();
+  const rows = timeBetween(from, to);
+  if(!rows.length) return [];
+  const out = [];
+  const mins = sum(rows.map(timeMinutes));
+  const by = timeByCategory(rows);
+  out.push(`${timeSaid(mins)} tracked${by[0] ? `, most of it on ${by[0].cat.name.toLowerCase()}` : ''}.`);
+  /* the same span again, a week earlier — "more or less than last week" is the
+     only comparison anybody actually makes */
+  const span = daysBetween(from, to) + 1;
+  const back = d => { const q = parseDay(d); q.setDate(q.getDate() - span); return timeDayOf(q.toISOString()); };
+  const prev = timeBetween(back(from), back(to));
+  if(prev.length){
+    const was = sum(prev.map(timeMinutes));
+    const diff = mins - was;
+    if(Math.abs(diff) >= 30) out.push(`${timeSaid(Math.abs(diff))} ${diff > 0 ? 'more' : 'less'} than the week before.`);
+  }
+  /* where the time went against what you said matters, which is the one
+     comparison this house is in a position to make */
+  const top = (S.values || []).slice(0, 3).map(v => (v.name || '').toLowerCase());
+  const thin = by.filter(b => b.minutes / mins < 0.05)
+    .find(b => top.some(n => n && b.cat.name.toLowerCase().includes(n)));
+  if(thin) out.push(`${thin.cat.name} is near the top of your values and under a twentieth of your tracked time.`);
+  return out;
+}
+/* ============================================================
+   WHERE THE TIME WENT.
+
+   The house was full of clocks that did not talk to each other: the stillness
+   timer, the writing session, the practice log at the score, the pomodoro on
+   the planning page. Each one knew about its own quarter of an hour and
+   nothing else, so the question nobody could answer was the only one worth
+   asking — where did today actually go?
+
+   So: one clock, which any room can start and which anybody can start for
+   anything at all, including the two hours on a bus that belong to no room.
+
+   Three decisions are worth writing down, because the obvious version of each
+   is wrong in a way that only shows up after a month of use.
+
+   A RUNNING TIMER IS A ROW WITH NO END ON IT. The obvious model keeps the
+   running timer beside the entries — an id and a started-at, pointing at the
+   row. Two places holding one fact drift: close the tab mid-sitting, or let
+   the save fail halfway, and the pointer and the row disagree about whether
+   anything is running. One row whose endTime is null is the timer, and
+   finding it is a scan of one field.
+
+   THE LENGTH IS THE TWO TIMES, NOT A THIRD NUMBER. A stored duration beside a
+   start and an end is a fact that can contradict the other two, and it does
+   the first time anybody corrects a start time. It is derived, always. A
+   manual entry given as "two hours" gets an end time computed from it, so
+   even then the two times are what is kept.
+
+   AND ROUNDING IS A WAY OF SAYING, NOT A WAY OF STORING. Rounding to the
+   quarter hour on the way in destroys the real times and cannot be undone.
+   It happens where the number is shown.
+   ============================================================ */
+
+/* The categories time comes in. Emoji rather than icons because this list is
+   read at a glance in a bar chart, and colour off the house's own palette so
+   a day's timeline looks like the rest of the place rather than like a
+   spreadsheet. */
+const TIME_CATEGORIES = [
+  {id:'piano',      name:'Piano',            emoji:'🎹', color:'#6b7f8e'},
+  {id:'japanese',   name:'Japanese',         emoji:'日',        color:'#c4484e'},
+  {id:'meditation', name:'Meditation',       emoji:'🧘', color:'#7f916a'},
+  {id:'writing',    name:'Writing',          emoji:'✍️',  color:'#a0727e'},
+  {id:'reading',    name:'Reading',          emoji:'📖', color:'#8a7560'},
+  {id:'exercise',   name:'Exercise',         emoji:'💪', color:'#7f916a'},
+  {id:'work',       name:'Work',             emoji:'💼', color:'#6b7f8e'},
+  {id:'social',     name:'Social',           emoji:'👥', color:'#a0727e'},
+  {id:'spiritual',  name:'Spiritual',        emoji:'🔮', color:'#8060a0'},
+  {id:'study',      name:'Study',            emoji:'📚', color:'#b08968'},
+  {id:'creative',   name:'Creative',         emoji:'🎨', color:'#c47832'},
+  {id:'errands',    name:'Errands',          emoji:'📋', color:'#8a8d8f'},
+  {id:'commute',    name:'Commute',          emoji:'🚌', color:'#6b7f8e'},
+  {id:'meal',       name:'Meal',             emoji:'🍽', color:'#8a7560'},
+  {id:'rest',       name:'Rest',             emoji:'😴', color:'#5a6a5a'},
+  {id:'tasks',      name:'Tasks',            emoji:'✓',       color:'#8a8d8f'},
+];
+/* The kinds of thing an entry can be hung on. A label is kept beside the id
+   so a day can be drawn without going and looking up five other stores — and
+   so a deleted project leaves a readable entry behind rather than a blank. */
+const TIME_LINKS = ['score','vision','project','person','skill','task','deck','journal'];
+const TIME_ROUNDING = [1, 5, 15];
+/* A timer left running overnight is not fourteen hours of piano. Past this,
+   the entry is closed where it stopped being believable and says so. */
+const TIME_RUNAWAY = 6 * 60;
+
+function timeState(){
+  if(!Array.isArray(S.timeEntries)) S.timeEntries = [];
+  S.timeEntries.forEach(timeEntryDefaults);
+  const t = S.time = S.time || {};
+  t.custom = Array.isArray(t.custom) ? t.custom : [];
+  t.custom.forEach(c => { c.id = c.id || uid(); c.name = c.name || 'Something';
+    c.emoji = c.emoji || '⚙️'; c.color = c.color || '#8a8d8f'; });
+  t.settings = Object.assign({
+    defaultCategory: null,
+    widget: true,               /* the pill, on every page */
+    round: 1,                   /* say the minutes as they are */
+    autoNods: true,             /* a sitting on a project is a nod on it */
+    autoInteractions: true,     /* an hour with somebody is an hour with them */
+  }, t.settings || {});
+  t.settings.round = TIME_ROUNDING.includes(+t.settings.round) ? +t.settings.round : 1;
+  return S.timeEntries;
+}
+const timeEntries = () => timeState();
+const timeCategories = () => timeState() && TIME_CATEGORIES.concat(S.time.custom);
+const timeCategory = id => timeCategories().find(c => c.id === id)
+  || {id:null, name:'Untagged', emoji:'○', color:'#8a8d8f'};
+const timeSettings = () => timeState() && S.time.settings;
+
+function timeEntryDefaults(e){
+  e.id = e.id || uid();
+  e.what = e.what || '';
+  e.startTime = e.startTime || new Date().toISOString();
+  e.endTime = e.endTime || null;
+  e.categoryId = e.categoryId || null;
+  e.tags = Array.isArray(e.tags) ? e.tags.filter(Boolean) : [];
+  e.linkedType = TIME_LINKS.includes(e.linkedType) ? e.linkedType : null;
+  e.linkedId = e.linkedId || null;
+  e.linkedLabel = e.linkedLabel || '';
+  e.source = ['timer','manual','auto'].includes(e.source) ? e.source : 'timer';
+  e.feature = e.feature || null;
+  e.notes = Array.isArray(e.notes) ? e.notes : [];
+  e.createdAt = e.createdAt || e.startTime;
+  return e;
+}
+
+/* ---------- reading the clock ---------- */
+/* Minutes, from the two times. An entry still running is measured to now, so
+   the number on the widget climbs without anything being written. */
+function timeMinutes(e, now){
+  if(!e || !e.startTime) return 0;
+  const a = Date.parse(e.startTime);
+  const b = e.endTime ? Date.parse(e.endTime) : (now || Date.now());
+  if(!isFinite(a) || !isFinite(b)) return 0;
+  return Math.max(0, (b - a) / 60000);
+}
+/* said the way the settings ask for it, and never rounded on the way in */
+/* Up to the step, never down to nothing. Rounding to the nearest quarter
+   turns seven minutes into "0m", which is not a rounder way of saying seven
+   minutes — it is the room telling you that you did not practise. Anything
+   that happened is at least one step. */
+function timeSaid(mins, round){
+  const r = round || timeSettings().round;
+  const m = Math.max(0, mins);
+  if(!m) return fmtHM(0);
+  return fmtHM(r > 1 ? Math.ceil(m / r) * r : Math.round(m) || 1);
+}
+/* the clock on the widget, which wants seconds */
+function timeClockSaid(e, now){
+  const secs = Math.max(0, Math.floor(timeMinutes(e, now) * 60));
+  const h = Math.floor(secs / 3600), m = Math.floor(secs / 60) % 60, s = secs % 60;
+  const pad = n => String(n).padStart(2, '0');
+  return h ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
+}
+/* Which local day an entry belongs to. Stored in UTC and bucketed in local
+   time, because "yesterday" is a thing that happened where you were. */
+function timeDayOf(iso){
+  const d = new Date(iso);
+  if(isNaN(d)) return null;
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+const timeRunning = () => timeEntries().find(e => !e.endTime) || null;
+const timeOnDay = day => timeEntries().filter(e => timeDayOf(e.startTime) === day);
+function timeBetween(from, to){
+  return timeEntries().filter(e => { const d = timeDayOf(e.startTime);
+    return d && d >= from && d <= to; });
+}
+const timeMinutesOn = day => sum(timeOnDay(day).map(e => timeMinutes(e)));
+
+/* ---------- starting and stopping ---------- */
+/* Starting while something is already running stops that first: two clocks
+   running at once is two answers to "what am I doing", and the whole point of
+   this is that there is one. */
+function startTimer(fields){
+  timeState();
+  const was = timeRunning();
+  if(was) stopTimer();
+  const e = timeEntryDefaults(Object.assign({id:uid(), startTime:new Date().toISOString(),
+    endTime:null, source:'timer'}, fields || {}));
+  if(!e.categoryId) e.categoryId = timeSettings().defaultCategory || null;
+  S.timeEntries.push(e);
+  saveNow();
+  return e;
+}
+function stopTimer(at){
+  const e = timeRunning();
+  if(!e) return null;
+  e.endTime = at || new Date().toISOString();
+  /* a timer stopped before it started is a clock somebody wound backwards */
+  if(Date.parse(e.endTime) < Date.parse(e.startTime)) e.endTime = e.startTime;
+  timeAfterSave(e);
+  saveNow();
+  return e;
+}
+/* A note put on the running entry while it runs — "moved to the coda at
+   forty-five minutes" — which is the thing you would otherwise lose. */
+function noteOnTimer(text){
+  const e = timeRunning();
+  if(!e || !String(text || '').trim()) return null;
+  e.notes.push({at:new Date().toISOString(), text:String(text).trim()});
+  saveNow();
+  return e;
+}
+/* Logging something after the fact. Either two times or a length — whichever
+   is given, what is stored is two times. */
+function logTime(fields){
+  timeState();
+  const f = fields || {};
+  let start = f.startTime, end = f.endTime;
+  if(!start) start = new Date().toISOString();
+  if(!end){
+    const mins = Math.max(0, +f.minutes || 0);
+    end = new Date(Date.parse(start) + mins * 60000).toISOString();
+  }
+  const e = timeEntryDefaults(Object.assign({}, f, {id:uid(), startTime:start, endTime:end,
+    source: f.source || 'manual'}));
+  delete e.minutes;
+  S.timeEntries.push(e);
+  timeAfterSave(e);
+  saveNow();
+  return e;
+}
+function removeTimeEntry(id){
+  const gone = spliceOut(timeState(), e => e.id === id);
+  saveNow();
+  return gone;
+}
+/* Two ISO times out of a day and a clock face, which is what a form gives. */
+function timeAtOn(day, hhmm){
+  const [h, m] = String(hhmm || '').split(':').map(Number);
+  const d = parseDay(day);
+  d.setHours(isFinite(h) ? h : 0, isFinite(m) ? m : 0, 0, 0);
+  return d.toISOString();
+}
+const timeClockOf = iso => { const d = new Date(iso);
+  return isNaN(d) ? '' : `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; };
+
+/* ---------- a timer somebody forgot ----------
+   Found on the next load rather than policed by a timer of its own: a clock
+   that fires while the tab is shut is a clock that does not fire. */
+function closeRunawayTimer(){
+  const e = timeRunning();
+  if(!e) return null;
+  const mins = timeMinutes(e);
+  if(mins <= TIME_RUNAWAY) return null;
+  e.endTime = new Date(Date.parse(e.startTime) + TIME_RUNAWAY * 60000).toISOString();
+  e.notes.push({at:new Date().toISOString(),
+    text:`Left running — closed at ${fmtHM(TIME_RUNAWAY)}. Correct it if that is wrong.`});
+  timeAfterSave(e);
+  saveNow();
+  return e;
+}
+/* ============================================================
+   WHERE THE TIME WENT — the room.
+
+   Three views of the same rows. The day is a bar from midnight to midnight
+   with the tracked stretches coloured in, because the thing you want to see
+   first is not a total but a shape: where the gaps are, how late the evening
+   started, how much of the afternoon is simply missing. The week is seven of
+   those bars stacked, which turns "I keep meaning to practise" into a picture
+   of the four days you did not. The reports are for the question the other
+   two cannot answer — how much of this month went on one particular thing.
+
+   The untracked hours are drawn rather than hidden. A dashboard that shows
+   only what you logged always says you had a productive day; the empty parts
+   of the bar are the honest half of the picture.
+   ============================================================ */
+function timeUi(){
+  return S._time = S._time || {view:'day', day:null, span:30, cat:null, tag:null, link:null};
+}
+const timeDay = () => { const u = timeUi(); return u.day || today(); };
+
+routes.time = function(root, params){
+  timeState();
+  const u = timeUi();
+  const want = params && params[0];
+  if(['day','week','reports'].includes(want)) u.view = want;
+  registerPageEntry({pageName:'Time', addLabel:'Log a sitting', defaultEntryType:'time',
+    prefilledFields:{}, options:[
+      {icon:'⏱', label:'Start the clock', desc:'Now, for whatever you are about to do.',
+        run:()=>openTimeStartModal()},
+      {icon:'✎', label:'A sitting, after the fact', desc:'Two hours of reading you forgot to time.',
+        run:()=>openTimeEntryModal(null, timeDay())}]});
+  root.innerHTML = `<div class="page tm-page">
+    <div class="tm-head">
+      <h1 class="serif">Time</h1>
+      <span class="grow"></span>
+      <span class="tabs sm">${[['day','Day'],['week','Week'],['reports','Reports']].map(([k, n]) =>
+        `<button class="tab${u.view === k ? ' on' : ''}" data-tmview="${k}">${n}</button>`).join('')}</span>
+    </div>
+    ${u.view === 'week' ? timeWeekHTML() : u.view === 'reports' ? timeReportsHTML() : timeDayHTML()}
+  </div>`;
+  bindTimePage(root);
+};
+
+/* ---------- the day ---------- */
+function timeDayHTML(){
+  const day = timeDay();
+  const rows = timeOnDay(day).slice().sort((a, b) => String(a.startTime).localeCompare(String(b.startTime)));
+  const mins = sum(rows.map(e => timeMinutes(e)));
+  const by = timeByCategory(rows);
+  return `<div class="tm-bar-h">
+      <button class="tbtn" data-tmday="-1">‹ day before</button>
+      <span class="mono">${esc(fmtDate(day, 'med'))}</span>
+      <button class="tbtn" data-tmday="1" ${day >= today() ? 'disabled' : ''}>day after ›</button>
+      <span class="grow"></span>
+      <span class="mono">${timeSaid(mins)} tracked</span>
+      <button class="btn sm primary" id="tmAdd">+ a sitting</button>
+    </div>
+    ${timeStripHTML(rows, day)}
+    ${rows.length ? `<div class="tm-list">${rows.map(timeRowHTML).join('')}</div>`
+      : `<div class="empty">Nothing tracked on this day. Start the clock in the corner, or write
+        down a sitting you did not time.</div>`}
+    ${by.length ? `<div class="tm-sum">${timeSumHTML(by, 1440)}</div>` : ''}`;
+}
+/* Midnight to midnight, in proportion. A sitting that runs past midnight is
+   clipped to the day it is being drawn for rather than allowed to run off the
+   end, because the hours after midnight belong to the next bar. */
+function timeStripHTML(rows, day){
+  const seg = e => {
+    const a = new Date(e.startTime);
+    const from = Math.max(0, a.getHours() * 60 + a.getMinutes());
+    const to = Math.min(1440, from + timeMinutes(e));
+    return {from, to, e};
+  };
+  const parts = rows.map(seg).filter(s => s.to > s.from);
+  const marks = [0, 6, 12, 18, 24];
+  return `<div class="tm-strip" role="img" aria-label="the day, midnight to midnight">
+    ${parts.map(({from, to, e}) => { const c = timeCategory(e.categoryId);
+      return `<i class="tm-seg" data-tmgo="${esc(e.id)}" style="left:${(from / 14.4).toFixed(2)}%;width:${
+        ((to - from) / 14.4).toFixed(2)}%;--c:${esc(c.color)}"
+        title="${esc(c.emoji)} ${esc(e.what || c.name)} · ${esc(timeClockOf(e.startTime))}–${
+        e.endTime ? esc(timeClockOf(e.endTime)) : 'now'}"></i>`; }).join('')}
+  </div>
+  <div class="tm-ticks mono">${marks.map(h =>
+    `<span style="left:${(h / 24 * 100).toFixed(2)}%">${h === 24 ? '24' : String(h).padStart(2, '0')}</span>`).join('')}</div>`;
+}
+function timeRowHTML(e){
+  const c = timeCategory(e.categoryId);
+  return `<div class="tm-row" style="--c:${esc(c.color)}" data-tmrow="${esc(e.id)}">
+    <span class="tm-emoji" aria-hidden="true">${esc(c.emoji)}</span>
+    <div class="tm-body">
+      <div class="tm-what">${esc(e.what || c.name)}${
+        e.linkedLabel ? ` <span class="faint">· ${esc(e.linkedLabel)}</span>` : ''}</div>
+      <div class="mono faint sm">${esc(timeClockOf(e.startTime))}–${
+        e.endTime ? esc(timeClockOf(e.endTime)) : '…'}${
+        e.tags.length ? ` · ${esc(e.tags.join(', '))}` : ''}${
+        e.source === 'auto' ? ' · started by the room' : ''}</div>
+      ${e.notes.length ? `<div class="tm-notes">${e.notes.map(n =>
+        `<span class="mono sm">${esc(timeClockOf(n.at))}</span> ${esc(n.text)}`).join('<br>')}</div>` : ''}
+    </div>
+    <span class="mono tm-mins">${e.endTime ? timeSaid(timeMinutes(e)) : 'running'}</span>
+    <button class="tbtn" data-tmedit="${esc(e.id)}" title="change it">✎</button>
+  </div>`;
+}
+function timeByCategory(rows){
+  const by = {};
+  rows.forEach(e => { const k = e.categoryId || '';
+    by[k] = (by[k] || 0) + timeMinutes(e); });
+  return Object.keys(by).map(k => ({cat: timeCategory(k || null), minutes: by[k]}))
+    .sort((a, b) => b.minutes - a.minutes);
+}
+/* The bars, and the hours nobody accounted for beside them. The untracked
+   line is the point: without it every day looks full. */
+function timeSumHTML(by, whole){
+  const top = Math.max(1, ...by.map(b => b.minutes));
+  const tracked = sum(by.map(b => b.minutes));
+  return `${by.map(b => `<div class="tm-sumrow" style="--c:${esc(b.cat.color)}">
+      <span class="tm-sumn">${esc(b.cat.emoji)} ${esc(b.cat.name)}</span>
+      <span class="tm-sumbar"><i style="width:${(100 * b.minutes / top).toFixed(1)}%"></i></span>
+      <span class="mono">${timeSaid(b.minutes)}</span>
+    </div>`).join('')}
+    ${whole ? `<div class="tm-sumrow faint">
+      <span class="tm-sumn">untracked</span>
+      <span class="tm-sumbar"></span>
+      <span class="mono">~${timeSaid(Math.max(0, whole - tracked))}</span>
+    </div>` : ''}`;
+}
+
+/* ---------- the week ---------- */
+function timeWeekHTML(){
+  const end = timeDay();
+  const days = Array.from({length:7}, (_, i) => {
+    const d = parseDay(end); d.setDate(d.getDate() - (6 - i));
+    return d.toISOString().slice(0, 10) === '' ? end : timeDayOf(d.toISOString());
+  });
+  const rows = days.map(d => ({day: d, entries: timeOnDay(d)}));
+  const all = rows.flatMap(r => r.entries);
+  const mins = sum(all.map(e => timeMinutes(e)));
+  const by = timeByCategory(all);
+  return `<div class="tm-bar-h">
+      <button class="tbtn" data-tmday="-7">‹ week before</button>
+      <span class="mono">${esc(fmtDate(days[0], 'med'))} – ${esc(fmtDate(days[6], 'med'))}</span>
+      <button class="tbtn" data-tmday="7" ${end >= today() ? 'disabled' : ''}>week after ›</button>
+      <span class="grow"></span>
+      <span class="mono">${timeSaid(mins)} in the week</span>
+    </div>
+    <div class="tm-week">${rows.map(r => `<div class="tm-wday">
+      <button class="tbtn mono tm-wname" data-tmpick="${esc(r.day)}">${esc(fmtDate(r.day, 'short'))}</button>
+      <div class="tm-wstrip">${timeStripHTML(r.entries, r.day)}</div>
+      <span class="mono faint">${r.entries.length ? timeSaid(sum(r.entries.map(timeMinutes))) : '—'}</span>
+    </div>`).join('')}</div>
+    ${by.length ? `<div class="tm-sum">${timeSumHTML(by, 0)}
+      <p class="faint sm">${timeSaid(mins / 7)} a day on average${
+        by[0] ? `, most of it on ${esc(by[0].cat.name.toLowerCase())}` : ''}.</p></div>`
+      : '<div class="empty">Nothing tracked this week.</div>'}`;
+}
+
+/* ---------- the reports ----------
+   The one question the day and the week cannot answer: how much of the last
+   month went on one particular thing — not one category, one thing. Filtering
+   by what an entry is hung on is the whole reason entries carry a link. */
+function timeReportsHTML(){
+  const u = timeUi();
+  const to = today();
+  const d = parseDay(to); d.setDate(d.getDate() - (u.span - 1));
+  const from = timeDayOf(d.toISOString());
+  let rows = timeBetween(from, to);
+  if(u.cat) rows = rows.filter(e => e.categoryId === u.cat);
+  if(u.tag) rows = rows.filter(e => e.tags.includes(u.tag));
+  if(u.link) rows = rows.filter(e => `${e.linkedType}:${e.linkedId}` === u.link);
+  const by = timeByCategory(rows);
+  const mins = sum(rows.map(e => timeMinutes(e)));
+  const tags = [...new Set(timeBetween(from, to).flatMap(e => e.tags))].sort();
+  const links = [...new Map(timeBetween(from, to).filter(e => e.linkedId)
+    .map(e => [`${e.linkedType}:${e.linkedId}`, e.linkedLabel || e.linkedId])).entries()];
+  return `<div class="tm-bar-h">
+      <label class="pd-q"><span class="k">over</span>
+        <select class="sel sm" id="tmSpan">${[7, 30, 90, 365].map(n =>
+          `<option value="${n}" ${u.span === n ? 'selected' : ''}>${n} days</option>`).join('')}</select></label>
+      <label class="pd-q"><span class="k">category</span>
+        <select class="sel sm" id="tmCat"><option value="">all</option>${timeCategories().map(c =>
+          `<option value="${esc(c.id)}" ${u.cat === c.id ? 'selected' : ''}>${esc(c.emoji)} ${esc(c.name)}</option>`).join('')}</select></label>
+      <label class="pd-q"><span class="k">tag</span>
+        <select class="sel sm" id="tmTag"><option value="">all</option>${tags.map(t =>
+          `<option value="${esc(t)}" ${u.tag === t ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></label>
+      <label class="pd-q"><span class="k">on</span>
+        <select class="sel sm" id="tmLink"><option value="">anything</option>${links.map(([k, label]) =>
+          `<option value="${esc(k)}" ${u.link === k ? 'selected' : ''}>${esc(label)}</option>`).join('')}</select></label>
+      <span class="grow"></span>
+      <span class="mono">${timeSaid(mins)}</span>
+    </div>
+    ${rows.length ? `${timeTrendHTML(rows, from, to)}
+      <div class="tm-sum">${timeSumHTML(by, 0)}</div>`
+      : '<div class="empty">Nothing matches that.</div>'}`;
+}
+/* A day-by-day line, so a habit that died three weeks ago is visible as the
+   place the line goes flat rather than as a number that is merely smaller. */
+function timeTrendHTML(rows, from, to){
+  const days = [];
+  const d = parseDay(from), end = parseDay(to);
+  while(d <= end){ days.push(timeDayOf(d.toISOString())); d.setDate(d.getDate() + 1); }
+  const per = days.map(day => sum(rows.filter(e => timeDayOf(e.startTime) === day).map(timeMinutes)));
+  const top = Math.max(60, ...per);
+  const W = 640, H = 110, pad = 6;
+  const at = (v, i) => [pad + (W - pad * 2) * (days.length < 2 ? 0 : i / (days.length - 1)),
+    H - pad - (H - pad * 2) * (v / top)];
+  const line = per.map((v, i) => { const q = at(v, i); return `${i ? 'L' : 'M'}${q[0].toFixed(1)} ${q[1].toFixed(1)}`; }).join(' ');
+  return `<div class="tm-trend"><svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" aria-hidden="true">
+      <path d="${line}" fill="none" stroke="#5c7c8a" stroke-width="1.8" stroke-linejoin="round"/>
+    </svg>
+    <div class="mono faint sm">${esc(fmtDate(days[0], 'short'))} → ${esc(fmtDate(days[days.length - 1], 'short'))}
+      · tallest day ${timeSaid(top)}</div></div>`;
+}
+
+function bindTimePage(root){
+  const u = timeUi();
+  $$('[data-tmview]', root).forEach(b => b.onclick = () => navigate(`#/time/${b.dataset.tmview}`));
+  $$('[data-tmday]', root).forEach(b => b.onclick = () => {
+    const d = parseDay(timeDay()); d.setDate(d.getDate() + (+b.dataset.tmday));
+    const next = timeDayOf(d.toISOString());
+    u.day = next > today() ? today() : next;
+    saveNow(); rerender();
+  });
+  $$('[data-tmpick]', root).forEach(b => b.onclick = () => {
+    u.day = b.dataset.tmpick; u.view = 'day'; saveNow(); navigate('#/time/day'); });
+  $$('[data-tmedit]', root).forEach(b => b.onclick = ev => { ev.stopPropagation();
+    openTimeEntryModal(b.dataset.tmedit); });
+  $$('[data-tmgo]', root).forEach(b => b.onclick = () => openTimeEntryModal(b.dataset.tmgo));
+  const add = root.querySelector('#tmAdd');
+  if(add) add.onclick = () => openTimeEntryModal(null, timeDay());
+  const pick = (sel, key, num) => { const n = root.querySelector(sel); if(!n) return;
+    n.onchange = () => { u[key] = num ? (+n.value || 0) : (n.value || null); saveNow(); rerender(); }; };
+  pick('#tmSpan', 'span', true); pick('#tmCat', 'cat'); pick('#tmTag', 'tag'); pick('#tmLink', 'link');
+}
+/* ============================================================
+   THE ROOMS THAT START THE CLOCK.
+
+   Every room that already had a timer keeps its own screen — the breathing
+   circle, the card queue, the focus mode over a passage — and the duration
+   now runs through the one clock instead of into its own silo. That is the
+   whole difference between a tracker that gets used and one that does not:
+   you never have to time the same hour twice.
+
+   Two rules hold everywhere.
+
+   NOTHING STARTS A SECOND CLOCK. If a timer is already running when a room
+   asks, the room is refused and the hour is counted once. The commonest case
+   is the honest one: you started the clock by hand before sitting down, and
+   then walked into the room. That is the timing you meant.
+
+   AND NOTHING STOPS A CLOCK IT DID NOT START. A room ending only stops the
+   entry it started itself — a hand-started timer is nobody else's to stop.
+   ============================================================ */
+
+/* The pomodoro, and every other sitting on a task, through the timer that
+   already exists for them. Subscribed rather than wired into its innards:
+   the focus timer has four ways in and one place where its state changes. */
+let _timeFocusWas = null;
+function timeWatchFocus(){
+  if(typeof FocusTimer === 'undefined' || !FocusTimer.subscribe) return;
+  FocusTimer.subscribe(() => {
+    let st = null;
+    try { st = FocusTimer.state(); } catch(e){ return; }
+    const on = !!(st && st.running && st.phase === 'focus');
+    const id = on ? (st.taskId || null) : null;
+    const sig = on ? `${id || 'none'}` : null;
+    if(sig === _timeFocusWas) return;
+    _timeFocusWas = sig;
+    if(!on){ timeAutoStop('focus'); return; }
+    const t = id ? taskById(id) : null;
+    timeAutoStart({categoryId:'tasks', feature:'focus',
+      what: t ? t.title : 'a sitting',
+      linkedType: t ? 'task' : null, linkedId: t ? t.id : null,
+      linkedLabel: t ? t.title : ''});
+  });
+}
+/* the small helper the above needs, and the room's own way of finding a task
+   is behind four different shapes of reference */
+function taskById(id){
+  if(typeof allTaskRefs === 'function'){
+    const r = allTaskRefs().find(v => v.task && v.task.id === id);
+    if(r) return r.task;
+  }
+  return byId(S.tasks || [], id);
+}
+/* ============================================================
+   THE CLOCK ITSELF.
+
+   A pill in the corner, on every page, because the moment you have to go
+   somewhere to start a timer is the moment you stop starting it. Idle it is
+   one line; running it is the count, what you are doing, and the way to stop.
+
+   Like the focus dock, it is hung on the document once at boot and never
+   rebuilt — a redraw of the page underneath must not be able to stop the
+   clock or eat a half-typed description.
+
+   Two ways in, because there are two moods. Press the pill and it starts
+   immediately with no label, for when you just want the clock running and
+   will say what it was afterwards. Press the arrow and it opens the form, for
+   when you already know.
+   ============================================================ */
+let _timeTick = null;
+
+function mountTimeDock(){
+  if(document.getElementById('timeDock')) return;
+  const dock = el('<div id="timeDock" class="tdock" aria-live="polite"></div>');
+  document.body.appendChild(dock);
+  /* a timer left running overnight, found on the way in rather than policed
+     by a clock that cannot fire while the tab is shut */
+  try { const ran = closeRunawayTimer();
+    if(ran) toast('A timer had been left running. It was closed at six hours.');
+  } catch(e){}
+  paintTimeDock();
+  try { timeWatchFocus(); } catch(e){ console.warn('the focus timer is not being followed', e); }
+  if(_timeTick) clearInterval(_timeTick);
+  /* the face only; anything that changes what the pill says repaints it */
+  _timeTick = setInterval(timeDockFace, 1000);
+}
+/* just the digits, which is all that changes between one second and the next */
+function timeDockFace(){
+  const e = timeRunning();
+  if(!e) return;
+  $$('#timeDock .td-clock').forEach(n => n.textContent = timeClockSaid(e));
+}
+function paintTimeDock(){
+  const dock = document.getElementById('timeDock');
+  if(!dock) return;
+  timeState();
+  if(!timeSettings().widget){ dock.innerHTML = ''; dock.hidden = true; return; }
+  dock.hidden = false;
+  const e = timeRunning();
+  dock.classList.toggle('running', !!e);
+  dock.innerHTML = e ? timeDockRunningHTML(e) : timeDockIdleHTML();
+  bindTimeDock(dock);
+}
+function timeDockIdleHTML(){
+  const mins = timeMinutesOn(today());
+  return `<div class="td-pill">
+    <button class="td-go" id="tdQuick" title="start the clock now, and say what it was afterwards">
+      ⏱ Start tracking</button>
+    ${mins ? `<button class="td-today mono" id="tdOpen" title="where today went">${timeSaid(mins)}</button>` : ''}
+    <button class="td-more" id="tdForm" title="say what it is first" aria-label="start with details">▴</button>
+  </div>`;
+}
+function timeDockRunningHTML(e){
+  const c = timeCategory(e.categoryId);
+  return `<div class="td-card" style="--c:${esc(c.color)}">
+    <div class="td-row">
+      <i class="td-dot" aria-hidden="true"></i>
+      <span class="td-clock mono">${esc(timeClockSaid(e))}</span>
+      <span class="td-what">${esc(e.what || 'untitled')}</span>
+    </div>
+    ${e.linkedLabel || e.categoryId ? `<div class="td-sub mono">${esc(c.emoji)} ${esc(c.name)}${
+      e.linkedLabel ? ` · ${esc(e.linkedLabel)}` : ''}</div>` : ''}
+    <div class="td-row td-tools">
+      <button class="btn sm" id="tdStop">◼ Stop</button>
+      <button class="tbtn" id="tdNote" title="a note on the sitting, timestamped">+ note</button>
+      <button class="tbtn" id="tdEdit" title="what this is">✎</button>
+      <span class="grow"></span>
+      <button class="tbtn" id="tdOpen" title="where today went">today</button>
+    </div>
+  </div>`;
+}
+function bindTimeDock(dock){
+  const on = (sel, fn) => { const n = dock.querySelector(sel); if(n) n.onclick = fn; };
+  on('#tdQuick', () => { startTimer({what:''}); sound('click'); paintTimeDock(); });
+  on('#tdForm', () => openTimeStartModal());
+  on('#tdStop', () => { const e = stopTimer(); sound('success');
+    if(e) toast(`${timeSaid(timeMinutes(e))} on ${e.what || 'that'}.`);
+    paintTimeDock(); if(location.hash.startsWith('#/time')) rerender(); });
+  on('#tdNote', () => openTimeNoteModal());
+  on('#tdEdit', () => { const e = timeRunning(); if(e) openTimeEntryModal(e.id); });
+  on('#tdOpen', () => navigate('#/time'));
+}
+
+/* ---------- the forms ---------- */
+function timeCategoryPickHTML(id, sel){
+  return `<select class="sel" id="${sel}"><option value="">— no category —</option>${
+    timeCategories().map(c => `<option value="${esc(c.id)}" ${c.id === id ? 'selected' : ''}>${
+      esc(c.emoji)} ${esc(c.name)}</option>`).join('')}</select>`;
+}
+function openTimeStartModal(){
+  timeState();
+  const m = openModal(`<h2>⏱ What are you doing?</h2>
+    <label class="pd-q"><span class="k">the thing</span>
+      <input class="inp" id="tsWhat" autofocus placeholder="the coda, slowly"></label>
+    <label class="pd-q" style="margin-top:10px"><span class="k">category</span>
+      ${timeCategoryPickHTML(timeSettings().defaultCategory, 'tsCat')}</label>
+    <label class="pd-q" style="margin-top:10px"><span class="k">tags</span>
+      <input class="inp" id="tsTags" placeholder="classical, slow practice"></label>
+    <div class="row" style="justify-content:flex-end;margin-top:14px">
+      <button class="btn primary" id="tsGo">▶ Start</button></div>`, 'narrow');
+  m.querySelector('#tsGo').onclick = () => {
+    startTimer({what: m.querySelector('#tsWhat').value.trim(),
+      categoryId: m.querySelector('#tsCat').value || null,
+      tags: timeTagsOf(m.querySelector('#tsTags').value)});
+    m.remove(); sound('success'); paintTimeDock();
+    if(location.hash.startsWith('#/time')) rerender();
+  };
+  return m;
+}
+const timeTagsOf = s => String(s || '').split(',').map(v => v.trim()).filter(Boolean);
+function openTimeNoteModal(){
+  const e = timeRunning();
+  if(!e){ toast('Nothing is running.'); return null; }
+  const m = openModal(`<h2>A note on this sitting</h2>
+    <label class="pd-q"><span class="k">what happened</span>
+      <textarea class="inp" rows="3" id="tnText" autofocus placeholder="moved to the coda"></textarea></label>
+    <div class="row" style="justify-content:flex-end;margin-top:14px">
+      <button class="btn primary" id="tnSave">Save</button></div>`, 'narrow');
+  m.querySelector('#tnSave').onclick = () => {
+    noteOnTimer(m.querySelector('#tnText').value);
+    m.remove(); sound('success'); toast('Noted.');
+    if(location.hash.startsWith('#/time')) rerender();
+  };
+  return m;
+}
+/* One form for correcting an entry and for writing one down afterwards, since
+   they ask for exactly the same things. A running entry has no end yet, so
+   the end field is left out rather than shown empty and ignored. */
+function openTimeEntryModal(id, day){
+  timeState();
+  const e = id ? byId(S.timeEntries, id) : null;
+  const running = e && !e.endTime;
+  const on = e ? timeDayOf(e.startTime) : (day || today());
+  const m = openModal(`<h2>${e ? (running ? 'What is running' : 'That sitting') : '+ A sitting'}</h2>
+    <label class="pd-q"><span class="k">the thing</span>
+      <input class="inp" id="teWhat" autofocus value="${esc(e ? e.what : '')}" placeholder="read the Jazz Piano Book"></label>
+    <div class="row" style="gap:10px;margin-top:10px">
+      <label class="pd-q" style="flex:1"><span class="k">day</span>
+        <input class="inp mono" type="date" id="teDay" value="${esc(on)}"></label>
+      <label class="pd-q" style="flex:1"><span class="k">from</span>
+        <input class="inp mono" type="time" id="teFrom" value="${esc(e ? timeClockOf(e.startTime) : '')}"></label>
+      ${running ? '' : `<label class="pd-q" style="flex:1"><span class="k">to</span>
+        <input class="inp mono" type="time" id="teTo" value="${esc(e && e.endTime ? timeClockOf(e.endTime) : '')}"></label>`}
+    </div>
+    ${running ? '' : `<label class="pd-q" style="margin-top:4px"><span class="k">or just how long, in minutes</span>
+      <input class="inp mono" type="number" id="teMins" min="0" max="1440" placeholder="120"></label>`}
+    <label class="pd-q" style="margin-top:10px"><span class="k">category</span>
+      ${timeCategoryPickHTML(e ? e.categoryId : timeSettings().defaultCategory, 'teCat')}</label>
+    <label class="pd-q" style="margin-top:10px"><span class="k">tags</span>
+      <input class="inp" id="teTags" value="${esc(e ? e.tags.join(', ') : '')}" placeholder="jazz, theory"></label>
+    ${timeLinkPickHTML(e)}
+    <div class="row" style="justify-content:flex-end;margin-top:14px;gap:8px">
+      ${e ? `<button class="btn sm ghost danger" id="teDel">Delete</button><span class="grow"></span>` : ''}
+      <button class="btn primary" id="teSave">Save</button></div>`, 'narrow');
+  m.querySelector('#teSave').onclick = () => {
+    const dayV = m.querySelector('#teDay').value || today();
+    const from = m.querySelector('#teFrom').value;
+    const toEl = m.querySelector('#teTo'), minsEl = m.querySelector('#teMins');
+    const link = timeLinkValue(m);
+    const common = {what: m.querySelector('#teWhat').value.trim(),
+      categoryId: m.querySelector('#teCat').value || null,
+      tags: timeTagsOf(m.querySelector('#teTags').value),
+      linkedType: link.type, linkedId: link.id, linkedLabel: link.label};
+    if(e){
+      Object.assign(e, common);
+      if(from) e.startTime = timeAtOn(dayV, from);
+      if(toEl && toEl.value) e.endTime = timeAtOn(dayV, toEl.value);
+      else if(minsEl && +minsEl.value > 0) e.endTime = new Date(Date.parse(e.startTime) + (+minsEl.value) * 60000).toISOString();
+      /* an end before its start is a night that ran past midnight */
+      if(e.endTime && Date.parse(e.endTime) < Date.parse(e.startTime))
+        e.endTime = new Date(Date.parse(e.endTime) + 864e5).toISOString();
+      timeAfterSave(e);
+      saveNow();
+    } else {
+      logTime(Object.assign({}, common, {
+        startTime: from ? timeAtOn(dayV, from) : timeAtOn(dayV, '09:00'),
+        endTime: toEl && toEl.value ? timeAtOn(dayV, toEl.value) : null,
+        minutes: minsEl ? +minsEl.value || 0 : 0}));
+    }
+    m.remove(); sound('success'); paintTimeDock(); rerender();
+  };
+  const del = m.querySelector('#teDel');
+  if(del) del.onclick = () => { removeTimeEntry(e.id); m.remove(); sound('click');
+    paintTimeDock(); rerender(); };
+  return m;
+}
+/* ============================================================
    11. GLOBAL ADD ENTRY MODAL
    ============================================================ */
 function openEntryModal({type='reflection', links={}, entryId=null, after=null, title='', occurredAt='', allowedTypes=null, heading='', openLinks=false, focusPeople=false}={}){
@@ -53090,6 +54104,7 @@ async function initInner(){
   /* The clock is not part of any page, so it is hung on the document once and
      never rebuilt: a redraw of #main cannot stop it or eat a half-typed note. */
   try { mountFocusDock(); } catch(e){ console.warn('the clock could not be hung', e); }
+  try { mountTimeDock(); } catch(e){ console.warn('the time pill could not be hung', e); }
   try { MicroFX.start(); } catch(e){ console.warn('pointer layer skipped', e); }
   try { AmbientFX.start(); } catch(e){ console.warn('ambient layer skipped', e); }
   try { ScrollFX.parallax(); PolishFX.start(); } catch(e){ console.warn('polish layer skipped', e); }

@@ -188,7 +188,9 @@ const XML = `<?xml version="1.0" encoding="UTF-8"?><score-partwise version="3.1"
     window.print = () => { window.__printed++;
       seen = {mode: document.documentElement.dataset.scprint,
         from: scoreView().from, to: scoreView().to, page: scoreView().page,
-        bars: measureBoxes().length}; };
+        bars: measureBoxes().length,
+        bands: document.querySelectorAll('.sc-band').length,
+        dimmed: document.querySelectorAll('.sc-band.dim').length}; };
     await scorePrint(x, 'everything');
     window.print = real;
     return {seen, printed: window.__printed, after: document.documentElement.dataset.scprint,
@@ -200,6 +202,10 @@ const XML = `<?xml version="1.0" encoding="UTF-8"?><score-partwise version="3.1"
     [printed.seen.from, printed.seen.to], [null, null]);
   is('  as one long page rather than the page you were looking at', printed.seen.page, null);
   is('  so every bar is on it', printed.seen.bars, 32);
+  /* and every section at full strength: focus greys the ones you are not
+     working on, which is right on the glass and wrong on paper */
+  yes('  with every section drawn, none of them greyed',
+    printed.seen.bands > 0 && printed.seen.dimmed === 0, JSON.stringify(printed.seen));
   is('and the room is given back afterwards', printed.after, undefined);
   yes('  still reading, as it was', printed.reading, JSON.stringify(printed));
 

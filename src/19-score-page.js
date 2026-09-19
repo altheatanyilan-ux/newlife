@@ -1226,6 +1226,15 @@ function bindScoreSide(root, x){
     if(s) scoreScrollTo(s.startMeasure); });
   $$('[data-scfocus]', root).forEach(b => b.onclick = () => {
     ui.focus = ui.focus === b.dataset.scfocus ? null : b.dataset.scfocus;
+    /* working on a passage is the clearest "I am practising" this house has,
+       so it is where the clock starts without being asked */
+    try {
+      const sec = ui.focus ? scoreSection(x, ui.focus) : null;
+      if(sec && typeof timeAutoStart === 'function') timeAutoStart({categoryId:'piano',
+        feature:'score', what:`${x.title} \u2014 ${sec.name}`,
+        linkedType:'score', linkedId:x.id, linkedLabel:x.title});
+      else if(!sec && typeof timeAutoStop === 'function') timeAutoStop('score');
+    } catch(e){}
     sound('click'); rerender();
   });
   $$('[data-scsecdel]', root).forEach(b => b.onclick = () => {

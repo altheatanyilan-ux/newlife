@@ -408,6 +408,7 @@ async function initInner(){
   /* The clock is not part of any page, so it is hung on the document once and
      never rebuilt: a redraw of #main cannot stop it or eat a half-typed note. */
   try { mountFocusDock(); } catch(e){ console.warn('the clock could not be hung', e); }
+  try { mountTimeDock(); } catch(e){ console.warn('the time pill could not be hung', e); }
   try { MicroFX.start(); } catch(e){ console.warn('pointer layer skipped', e); }
   try { AmbientFX.start(); } catch(e){ console.warn('ambient layer skipped', e); }
   try { ScrollFX.parallax(); PolishFX.start(); } catch(e){ console.warn('polish layer skipped', e); }

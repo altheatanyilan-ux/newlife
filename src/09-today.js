@@ -254,6 +254,12 @@ routes.today = function(root){
       ${ready.map(e=>`<div class="card ready-letter" style="margin-top:8px"><div class="row between"><span><b class="serif">${esc(e.title||'To myself')}</b><div class="mono faint">${daysBetween((e.createdAt||'').slice(0,10), T)} days ago</div></span><button class="btn sm primary" data-lopen="${e.id}">Open it</button></div></div>`).join('')}
     </div></details>` : ''}
 
+    <!-- One line for where the day has gone so far. It only appears once
+         something has been tracked: a strip that reads "0h 0m" every morning
+         is a reproach, not information. -->
+    ${(typeof timeTodaySay === 'function' && timeTodaySay()) ? `<button class="t-timeline mono" id="tTime"
+      title="where today went">\u23f1 ${esc(timeTodaySay())}</button>` : ''}
+
     <section class="today-view" data-view="do"${view === 'do' ? '' : ' hidden'}>
 
     <!-- THE DAY, ONE ROOM AT A TIME
@@ -535,6 +541,7 @@ routes.today = function(root){
     rerender(); });
 
   /* habits */
+  $('#tTime') && ($('#tTime').onclick = () => navigate('#/time'));
   $('#todayAddHabit') && ($('#todayAddHabit').onclick = () => openHabitModal());
   $('#todayArchHabit') && ($('#todayArchHabit').onclick = () => openArchivedHabits());
   $('#todayHabitGrid') && ($('#todayHabitGrid').onclick = () => openHabitsPanel());

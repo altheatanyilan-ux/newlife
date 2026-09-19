@@ -56,6 +56,9 @@ const NAV_ICONS = {
   /* a stave with a note sitting on it — the room is notation, not an instrument */
   score:    '<svg viewBox="0 0 24 24"><path d="M3 7h18M3 10.5h18M3 14h18M3 17.5h18"/><circle cx="9" cy="15.6" r="2.1" fill="currentColor" stroke="none"/><path d="M11.1 15.6V6.6l6 1.6"/></svg>',
   study:    '<svg viewBox="0 0 24 24"><rect x="6.5" y="4" width="13" height="16" rx="2" transform="rotate(6 13 12)"/><rect x="4.5" y="5" width="13" height="16" rx="2"/><path d="M7.8 9.5h6.4M7.8 13h4.2"/></svg>',
+  /* a clock face with one hand, because the room is about where the hours
+     went rather than about what time it is */
+  time:     '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 6.8V12l3.6 2.2"/></svg>',
   import:     '<svg viewBox="0 0 24 24"><rect x="3.5" y="13" width="17" height="7.5" rx="2"/><path d="M3.5 16h4l1.5 2h6l1.5-2h4"/><path d="M12 3.5v9M9.5 10l2.5 2.5L14.5 10"/></svg>',
 };
 /* labels match the h1 of the page they open; `short` is for the mobile bar only */
@@ -74,6 +77,7 @@ const NAV_PAGES = {
   study:    {label:'Study Deck',       short:'Study',    ico:NAV_ICONS.study,    route:'#/study'},
   score:    {label:'Score Practice',    short:'Score',    ico:NAV_ICONS.score,    route:'#/score'},
   japanese: {label:'Japanese Studio',  short:'日本語',    ico:NAV_ICONS.japanese, route:'#/japanese'},
+  time:     {label:'Time',             short:'Time',     ico:NAV_ICONS.time,     route:'#/time'},
   timeline: {label:'Timeline',         short:'Timeline', ico:NAV_ICONS.timeline, route:'#/journals/timeline'},
 };
 /* The three rooms you are in most days sit above everything, unlabelled and
@@ -92,7 +96,7 @@ const NAV_TOP = ['today','planning'];
 const NAV_PINNED = [];
 const NAV_DEFAULT = {
   create:   ['content','projects','finance','skills','score','japanese'],
-  identity: ['values','journals','people','study'],
+  identity: ['values','journals','people','study','time'],
   standalone:[],
 };
 const NAV_ZONES = [

@@ -18,6 +18,20 @@ routes.settings = function(root){
            information. -->
       <div class="opt"><div><b>Landing page</b><div class="d">Where the site opens.</div></div><select class="sel" style="width:auto" id="sHome">${[['compass','Compass'],['today','Today']].map(([v,l])=>`<option value="${v}" ${(S.settings.home||'compass')===v?'selected':''}>${l}</option>`).join('')}</select></div>
     </div>
+    <div class="card rv"><h3>The clock</h3>
+      <div class="opt"><div><b>The timer in the corner</b><div class="d">One clock for the whole house, on every page. Off, and the rooms that start it still log their own time; nothing is lost, it simply stops being in one place.</div></div><label class="toggle ${timeSettings().widget?'on':''}" id="sTimeWidget"><span class="sw"></span></label></div>
+      <div class="opt"><div><b>Start it in</b><div class="d">The category a timer with nothing said about it falls into.</div></div>
+        <select class="sel" style="width:auto" id="sTimeCat"><option value="">nothing</option>${timeCategories().map(c =>
+          `<option value="${esc(c.id)}" ${timeSettings().defaultCategory === c.id ? 'selected' : ''}>${esc(c.emoji)} ${esc(c.name)}</option>`).join('')}</select></div>
+      <!-- rounding is a way of saying, not a way of storing: the real times
+           are kept whatever this is set to, and a short sitting is rounded up
+           rather than away -->
+      <div class="opt"><div><b>Say the minutes</b><div class="d">How lengths are read out. The exact times are always what is kept underneath, and anything that happened counts as at least one step.</div></div>
+        <select class="sel" style="width:auto" id="sTimeRound">${[[1,'to the minute'],[5,'to five minutes'],[15,'to the quarter hour']].map(([v, l]) =>
+          `<option value="${v}" ${timeSettings().round === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
+      <div class="opt"><div><b>A sitting on a project is a nod</b><div class="d">Time hung on a project writes itself into that project's record of work.</div></div><label class="toggle ${timeSettings().autoNods?'on':''}" id="sTimeNods"><span class="sw"></span></label></div>
+      <div class="opt"><div><b>An hour with somebody is an hour with them</b><div class="d">Time hung on a person writes itself into their record.</div></div><label class="toggle ${timeSettings().autoInteractions?'on':''}" id="sTimeInts"><span class="sw"></span></label></div>
+    </div>
     <div class="card rv"><h3>Day &amp; sleep</h3>
       <div class="opt"><div><b>The day turns over at</b>
         <div class="d">A day ends when you go to sleep, not at midnight. Before this hour the site is still on yesterday — so a bedtime logged at half past one belongs to the day you have been living, and the sleep chart draws it at the end of that day rather than the start of the next.</div></div>
@@ -99,6 +113,20 @@ routes.settings = function(root){
   };  $('#sBoundary').onchange = function(){ S.settings.dayBoundaryHour = +this.value; saveNow(); rerender();
     toast(+this.value === 0 ? 'The day turns over at midnight again.'
       : `The day turns over at ${this.value} AM. Anything before that is still the day before.`); };
+  /* the clock */
+  $('#sTimeWidget') && ($('#sTimeWidget').onclick = function(){
+    timeSettings().widget = !timeSettings().widget; saveNow();
+    this.classList.toggle('on', timeSettings().widget); paintTimeDock(); });
+  $('#sTimeCat') && ($('#sTimeCat').onchange = function(){
+    timeSettings().defaultCategory = this.value || null; saveNow(); });
+  $('#sTimeRound') && ($('#sTimeRound').onchange = function(){
+    timeSettings().round = +this.value || 1; saveNow(); });
+  $('#sTimeNods') && ($('#sTimeNods').onclick = function(){
+    timeSettings().autoNods = !timeSettings().autoNods; saveNow();
+    this.classList.toggle('on', timeSettings().autoNods); });
+  $('#sTimeInts') && ($('#sTimeInts').onclick = function(){
+    timeSettings().autoInteractions = !timeSettings().autoInteractions; saveNow();
+    this.classList.toggle('on', timeSettings().autoInteractions); });
   $('#sTheme').onclick = function(){ S.settings.theme = S.settings.theme==='dark'?'light':'dark'; saveNow(); applyTheme(); this.classList.toggle('on', S.settings.theme==='light'); };
   $('#sSound').onclick = function(){ SoundManager.toggleSound(); this.classList.toggle('on', SoundManager.state().soundEnabled); };
   $('#sAmbient').onclick = function(){ SoundManager.toggleAmbient(); this.classList.toggle('on', SoundManager.state().ambientEnabled); };

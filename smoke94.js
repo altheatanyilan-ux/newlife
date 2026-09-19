@@ -51,9 +51,11 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
      !nav.zones.some(z => z.pages.includes('piano')) && !nav.top.includes('piano'),
      JSON.stringify(nav.zones));
   /* the Study Deck sits with Identity rather than Create: what you are
-     holding on to is closer to who you are than to what you are making */
-  ok('Identity holds Values, Journals, People and the Study Deck',
-     nav.zones[1]?.name === 'Identity' && JSON.stringify(nav.zones[1].pages) === JSON.stringify(['values','journals','people','study']),
+     holding on to is closer to who you are than to what you are making. Time
+     is here for the same reason — where the hours went is a fact about who
+     you are, not about what you produced. */
+  ok('Identity holds Values, Journals, People, the Study Deck and Time',
+     nav.zones[1]?.name === 'Identity' && JSON.stringify(nav.zones[1].pages) === JSON.stringify(['values','journals','people','study','time']),
      JSON.stringify(nav.zones[1]));
   ok('both zones fold', await page.evaluate(() => document.querySelectorAll('.zone [data-zoneh]').length === 2), 'no');
   ok('nothing is left loose at the bottom', nav.loose.length === 0, JSON.stringify(nav.loose));
