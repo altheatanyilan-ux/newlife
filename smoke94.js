@@ -41,10 +41,11 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
      await page.evaluate(() => !document.querySelector('.nav-top .zone-h')), 'a heading appeared');
   /* the Library moved in with Journals as its third view, so it is no longer
      a door of its own in this zone. The Piano Studio was here and is gone —
-     the whole room was taken out — so what is left is the four that make
-     something and the studio that trains a mouth. */
-  ok('Create holds Content, Projects, Finance, the Skill Tree and the Japanese Studio',
-     nav.zones[0]?.name === 'Create' && JSON.stringify(nav.zones[0].pages) === JSON.stringify(['content','projects','finance','skills','japanese']),
+     the whole room was taken out — and Score Practice stands where it stood:
+     a piece of notation with your own marks on it is a thing you are making
+     as much as a thing you are reading. */
+  ok('Create holds Content, Projects, Finance, the Skill Tree, Score Practice and the Japanese Studio',
+     nav.zones[0]?.name === 'Create' && JSON.stringify(nav.zones[0].pages) === JSON.stringify(['content','projects','finance','skills','score','japanese']),
      JSON.stringify(nav.zones[0]));
   ok('  and the Piano Studio is not a room any more',
      !nav.zones.some(z => z.pages.includes('piano')) && !nav.top.includes('piano'),
