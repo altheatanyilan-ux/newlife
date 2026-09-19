@@ -186,6 +186,20 @@ function fitBarsPerLine(osmd, rec, want){
   }
   return {zoom, got: barsOnWidestLine()};
 }
+/* The time signature the piece starts in, which is what a metronome needs to
+   know where to put the accent. A piece that changes metre partway is not
+   argued with — the count follows the opening until somebody says otherwise. */
+function scoreTimeSignature(){
+  if(!_sv) return null;
+  try {
+    const ms = _sv.osmd.Sheet.SourceMeasures || [];
+    for(const m of ms){
+      const t = m.ActiveTimeSignature || m.Duration;
+      if(t && t.Numerator) return {beats: t.Numerator, unit: t.Denominator};
+    }
+  } catch(e){}
+  return null;
+}
 function scoreMeasureCount(osmd){
   try { return (osmd.Sheet && osmd.Sheet.SourceMeasures || []).length; } catch(e){ return 0; }
 }

@@ -7712,6 +7712,21 @@ html.sc-quiet .sc-strip{opacity:0;transform:translateY(-100%);pointer-events:non
   background:color-mix(in srgb,var(--page-accent) 14%,transparent)}
 /* a wide, obvious target, because it is pressed with a finger between phrases */
 html.sc-reading .sc-strip .tbtn,html.sc-reading .sc-strip .sel{min-height:34px;padding:5px 12px}
+.sc-bar2{border-top:none;padding-top:0}
+.sc-metro{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.sc-bpm{display:flex;align-items:center;gap:4px}
+.sc-bpm .inp{width:4.4em;text-align:center}
+.sc-per{display:flex;align-items:center;gap:5px}
+.sc-per .inp{width:3.4em;text-align:center}
+/* the dot: lit for a moment on the beat, wider on the one you count from */
+.sc-pulse{display:block;width:9px;height:9px;border-radius:50%;background:var(--line);flex:none}
+.sc-pulse.lit{animation:scPulse .16s var(--ease)}
+.sc-pulse.lit.strong{animation:scPulseStrong .22s var(--ease)}
+@keyframes scPulse{from{background:var(--sage);transform:scale(1.5)}to{background:var(--line);transform:scale(1)}}
+@keyframes scPulseStrong{from{background:var(--terra);transform:scale(2)}to{background:var(--line);transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){
+  .sc-pulse.lit,.sc-pulse.lit.strong{animation:none;background:var(--sage)}
+}
 .sc-bpl{display:flex;align-items:center;gap:5px}
 .sc-bpl .mono{min-width:2.2em;text-align:center;font-size:.72rem}
 

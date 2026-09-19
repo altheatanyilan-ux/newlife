@@ -64,6 +64,13 @@ function scoreDefaults(x){
   x.pins = Array.isArray(x.pins) ? x.pins : [];
   x.pins.forEach(scorePinDefaults);
   x.practice = Array.isArray(x.practice) ? x.practice : [];
+  /* The tempo belongs to the piece: coming back to a score tomorrow and
+     finding the metronome at somebody else's number is a small thing that
+     happens every single time. The beats a bar are read off the notation and
+     only stored so a piece can override a wrong reading. */
+  x.metronome = Object.assign({bpm:90, perBar:null}, x.metronome || {});
+  x.metronome.bpm = clamp(+x.metronome.bpm || 90, 20, 300);
+  x.metronome.perBar = x.metronome.perBar == null ? null : clamp(+x.metronome.perBar, 1, 16);
   x.createdAt = x.createdAt || new Date().toISOString();
   x.lastOpened = x.lastOpened || null;
   return x;

@@ -26,10 +26,13 @@ addEventListener('hashchange', () => {
   if(typeof scoreKeepAwake === 'function') scoreKeepAwake(false);
   if(typeof scoreQuietWatch === 'function') scoreQuietWatch(false);
   if(typeof scoreKeysWatch === 'function') scoreKeysWatch(null);
+  /* a click still going in a room you have left is a click you have to hunt
+     for the off switch of */
+  if(typeof ScoreMetronome !== 'undefined') ScoreMetronome.stop();
 });
 
 const scoreOpenId = () => S._score && S._score.id;
-function scoreUi(){ return S._score = S._score || {id:null, focus:null, reading:false, marks:true}; }
+function scoreUi(){ return S._score = S._score || {id:null, focus:null, reading:false, marks:true, more:false}; }
 
 routes.score = function(root, params){
   scoreState();
@@ -122,9 +125,12 @@ function scoreViewerHTML(x){
         <button class="tbtn" data-sczoom="1" ${x.barsPerLine ? 'disabled' : ''}>+</button></span>
       <label class="sc-jump"><span class="k mono">bar</span>
         <input class="inp sm mono" id="scJump" type="number" min="1" max="${x.totalMeasures || 9999}" placeholder="#"></label>
+      <button class="tbtn" id="scMore" title="the metronome and the rest"
+        aria-expanded="${ui.more ? 'true' : 'false'}">${ui.more ? '▾' : '▸'} more</button>
       <button class="btn sm" id="scRead" title="the score and nothing else">⛶ read</button>
       <button class="btn sm primary" id="scNewSec">＋ a section</button>
     </div>
+    ${ui.more ? `<div class="sc-bar sc-bar2">${scoreMetroHTML(x)}</div>` : ''}
     ${scoreReadStripHTML(x)}
     <div class="sc-body">
       <div class="sc-stage" id="scStage">
@@ -135,6 +141,29 @@ function scoreViewerHTML(x){
       </div>
       <aside class="sc-side" id="scSide">${scoreSideHTML(x)}</aside>
     </div>`;
+}
+
+/* The metronome. It is the one thing in the room that turns reading into
+   practising: it makes "slowly" a number rather than a feeling, and it hears
+   the thing you cannot hear yourself doing, which is speeding up in the easy
+   bar and slowing down in the hard one. */
+function scoreMetroHTML(x){
+  const t = scoreTimeSignature();
+  const per = x.metronome.perBar || (t ? t.beats : 4);
+  const on = ScoreMetronome.running;
+  return `<span class="sc-metro">
+    <button class="btn sm${on ? ' primary' : ''}" id="scMetro" title="${on ? 'stop' : 'start'} the click">
+      ${on ? '◼' : '▶'} ♩</button>
+    <i class="sc-pulse" id="scPulse" aria-hidden="true"></i>
+    <span class="sc-bpm"><button class="tbtn" data-scbpm="-5">−</button>
+      <input class="inp sm mono" id="scBpmIn" type="number" min="20" max="300" value="${x.metronome.bpm}">
+      <button class="tbtn" data-scbpm="5">+</button></span>
+    <button class="tbtn" id="scTap" title="press it in time, four or more">tap</button>
+    <label class="sc-per"><span class="k mono">beats/bar</span>
+      <input class="inp sm mono" id="scPer" type="number" min="1" max="16" value="${per}"
+        title="${t ? `${t.beats}/${t.unit} in the score` : 'no time signature found'}"></label>
+    ${t ? `<span class="mono faint">${t.beats}/${t.unit}</span>` : ''}
+  </span>`;
 }
 
 /* How many bars to a line. Nought is "however many fit", which is the right
@@ -177,6 +206,7 @@ function scoreReadStripHTML(x){
     ${secs.length ? `<select class="sel sm" id="scSecJump"><option value="">go to…</option>${secs.map(sv =>
       `<option value="${esc(sv.id)}">${esc(sv.name)} · ${sv.startMeasure}</option>`).join('')}</select>` : ''}
     <span class="grow"></span>
+    ${scoreMetroHTML(x)}
     <span class="mono faint" id="scWake"></span>
   </div>`;
 }
@@ -445,6 +475,8 @@ function bindScoreViewer(root, x){
     scoreRepaintParts(x); scoreRedraw(x); });
   on('#scAllParts', () => { x.hidden = []; applyScoreParts(x); saveNow();
     scoreRepaintParts(x); scoreRedraw(x); });
+  on('#scMore', () => { ui.more = !ui.more; saveNow(); rerender(); });
+  bindScoreMetro(root, x);
   on('#scRead', () => setScoreReading(true));
   on('#scUnread', () => setScoreReading(false));
   on('#scMarks', () => { const u = scoreUi(); u.marks = !u.marks; saveNow();
@@ -516,10 +548,63 @@ function bindScoreViewer(root, x){
   });
   /* the watcher is re-armed after every redraw of the page, because the
      listeners it hangs on went with the old one */
-  if(ui.reading){ scoreQuietWatch(true); scoreKeysWatch(x); }
+  if(ui.reading){ scoreQuietWatch(true); scoreKeysWatch(x); bindScoreMetro(root, x); }
   else scoreKeysWatch(null);
   bindScoreSide(root, x);
 }
+/* The metronome's controls, which appear in two places — the toolbar's second
+   row and the reading strip — so they are bound by one function over whatever
+   is on the page rather than twice by hand. */
+function bindScoreMetro(root, x){
+  const say = () => { $$('#scMetro').forEach(b => {
+    b.textContent = (ScoreMetronome.running ? '◼' : '▶') + ' ♩';
+    b.classList.toggle('primary', ScoreMetronome.running); }); };
+  const perOf = () => { const t = scoreTimeSignature();
+    return x.metronome.perBar || (t ? t.beats : 4); };
+  $$('#scMetro', root).forEach(b => b.onclick = () => {
+    ScoreMetronome.setBpm(x.metronome.bpm);
+    ScoreMetronome.setPerBar(perOf());
+    if(!ScoreMetronome.toggle() && !ScoreMetronome.running)
+      toast('This browser will not make a sound.');
+    say();
+  });
+  $$('[data-scbpm]', root).forEach(b => b.onclick = () => {
+    x.metronome.bpm = ScoreMetronome.setBpm(x.metronome.bpm + (+b.dataset.scbpm));
+    saveNow(); scoreMetroSay(x);
+  });
+  $$('#scBpmIn', root).forEach(n => n.onchange = () => {
+    x.metronome.bpm = ScoreMetronome.setBpm(n.value); saveNow(); scoreMetroSay(x); });
+  $$('#scPer', root).forEach(n => n.onchange = () => {
+    x.metronome.perBar = ScoreMetronome.setPerBar(n.value); saveNow(); scoreMetroSay(x); });
+  $$('#scTap', root).forEach(b => b.onclick = () => {
+    const n = scoreTapTempo();
+    if(n == null){ toast('Again, in time — four or more.'); return; }
+    x.metronome.bpm = ScoreMetronome.setBpm(n);
+    saveNow(); scoreMetroSay(x);
+  });
+  say();
+  scorePulseWatch();
+}
+function scoreMetroSay(x){
+  $$('#scBpmIn').forEach(n => { if(n.value !== String(x.metronome.bpm)) n.value = x.metronome.bpm; });
+  $$('#scPer').forEach(n => { const v = x.metronome.perBar || ScoreMetronome.perBar;
+    if(n.value !== String(v)) n.value = v; });
+}
+/* The dot, lit for a moment on every beat and a little bigger on the downbeat.
+   Subscribed once: the beat arrives whichever room is on the screen, and the
+   handler simply finds nothing to light when the score is not. */
+let _scPulseOff = null;
+function scorePulseWatch(){
+  if(_scPulseOff) return;
+  _scPulseOff = ScoreMetronome.onBeat(({strong}) => {
+    $$('.sc-pulse').forEach(n => {
+      n.classList.remove('lit', 'strong');
+      void n.offsetWidth;                       /* restart the animation */
+      n.classList.add('lit'); if(strong) n.classList.add('strong');
+    });
+  });
+}
+
 /* The arrow keys, for a pedal or a keyboard. Bound to the window rather than
    the page, because in reading mode there is nothing on the page to focus. */
 let _scKeys = null;
