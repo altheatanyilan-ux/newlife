@@ -49,6 +49,11 @@ const DB_SCHEMA = {          // primary key first, then indexes — Dexie syntax
   compost:        'id',
   incomeStreams:  'id',
   spendCategories:'id',
+  /* One row per score, and the engraved notation lives in it. They are the
+     heaviest rows in the database by a long way — a few hundred kilobytes of
+     MusicXML each — which is why the room says out loud what the library is
+     costing rather than letting it grow silently. */
+  scores:         'id, title',
 };
 /* keys of S that are single objects/arrays without their own identity — kept as rows in `meta` */
 /* Every top-level key of S that is an object rather than an array has to be
@@ -62,7 +67,7 @@ const DB_SCHEMA = {          // primary key first, then indexes — Dexie syntax
    object on S is not saved until its name appears in this line. */
 const META_KEYS = ['settings','rehearsal','reviews','valueOrder','valueOrderHistory','places','journals','negLast','finance','plans','reviewLog',
   'planning','content','contentVault','wsDaily','wsRead','runLog','weekPlans','monthPlans','monthReviews','position','dailyRhythm','stillness','reviewEntries','reviewPrefs'];
-const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders','visionEras','tasks','boards','people','events','accounts','txns','budgets','finGoals','chapters','turns','threadsN','interactions','mediaQueue','mediaLists','mediaRecs','compost','incomeStreams','spendCategories'];
+const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders','visionEras','tasks','boards','people','events','accounts','txns','budgets','finGoals','chapters','turns','threadsN','interactions','mediaQueue','mediaLists','mediaRecs','compost','incomeStreams','spendCategories','scores'];
 
 /* ---------- MiniDexie: Dexie-compatible subset over IndexedDB ---------- */
 class MiniTable {
@@ -150,7 +155,7 @@ const usingRealDexie = DexieImpl !== MiniDexie;
 
 /* ---------- the database ---------- */
 const db = new DexieImpl(DB_NAME);
-db.version(11).stores(DB_SCHEMA);   // v8 finance rebuild, v9 chronicle chapters/turns/threads + interactions, v10 library + writing studio stores, v11 income streams + spend categories
+db.version(12).stores(DB_SCHEMA);   // v8 finance rebuild, v9 chronicle chapters/turns/threads + interactions, v10 library + writing studio stores, v11 income streams + spend categories, v12 scores
 
 /* ---------- S <-> stores ---------- */
 function stateToStores(state){

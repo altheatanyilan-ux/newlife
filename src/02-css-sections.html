@@ -7552,6 +7552,127 @@ html[data-theme="light"] .wk-sleep.is-guess{background-image:repeating-linear-gr
 .hm-stack{fill:color-mix(in srgb,#efe9dd 70%,transparent);stroke:rgba(0,0,0,.25);stroke-width:1}
 .hm-metronome{fill:none;stroke:rgba(0,0,0,.4);stroke-width:2}
 
+/* ============ SCORE PRACTICE ============
+   The notation is the object; everything this room adds sits over it at low
+   opacity so the notes underneath stay the most legible thing on the page.
+   That is the one rule here a practice annotation must not break. */
+.sc-page .sc-lede{max-width:74ch}
+.sc-warn{margin:14px 0;padding:10px 14px;border-left:3px solid #c98b7a;border-radius:4px;
+  background:color-mix(in srgb,#c98b7a 8%,transparent);font-size:.86rem}
+
+/* the shelf */
+.sc-drop{display:flex;flex-direction:column;align-items:center;gap:4px;margin:18px 0 16px;
+  padding:24px 20px;border:2px dashed var(--line);border-radius:var(--radius);
+  background:transparent;color:var(--text);cursor:pointer;text-align:center;
+  transition:border-color .2s var(--ease),background .2s var(--ease)}
+.sc-drop:hover,.sc-drop:focus-visible,.sc-drop.over{border-color:var(--page-accent);
+  background:color-mix(in srgb,var(--page-accent) 6%,transparent)}
+.sc-drop-i{font-size:1.7rem;line-height:1}
+.sc-drop-t{font-size:1.05rem}
+.sc-drop-s{font-size:.72rem;opacity:.6}
+.sc-drop-h{font-size:.76rem;opacity:.55;max-width:52ch;margin-top:5px}
+.sc-shelf{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.sc-item{border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);
+  display:flex;flex-direction:column;overflow:hidden}
+.sc-item-face{display:flex;flex-direction:column;gap:3px;align-items:flex-start;text-align:left;
+  padding:13px 15px 10px;background:none;border:none;color:var(--text);cursor:pointer;width:100%}
+.sc-item-t{font-size:1.06rem}
+.sc-item-c{font-size:.82rem;opacity:.7}
+.sc-item-m{font-size:.68rem;opacity:.6}
+.sc-item-bar{display:flex;gap:2px;width:100%;height:4px;margin-top:6px}
+.sc-item-bar i{display:block;height:100%;border-radius:2px;background:var(--c);opacity:.75}
+.sc-item-tools{display:flex;align-items:center;gap:6px;padding:0 13px 10px;font-size:.7rem;
+  opacity:0;transition:opacity .16s var(--ease)}
+.sc-item:hover .sc-item-tools,.sc-item:focus-within .sc-item-tools{opacity:1}
+@media (hover:none){.sc-item-tools{opacity:1}}
+.sc-weigh{margin-top:14px;font-size:.72rem;opacity:.6}
+.sc-weigh.heavy{color:#c98b7a;opacity:.9}
+
+/* the open score */
+.sc-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.sc-title{font-size:1.5rem}
+.sc-comp{opacity:.7}
+.sc-focusbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;
+  padding:8px 13px;border-radius:var(--radius);border:1px solid var(--c);
+  background:color-mix(in srgb,var(--c) 10%,transparent)}
+.sc-focus-t{font-family:var(--serif);font-size:1rem}
+.sc-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 0;
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.sc-parts{display:flex;gap:12px;flex-wrap:wrap}
+.sc-part{display:flex;align-items:center;gap:5px;font-size:.84rem;cursor:pointer}
+.sc-zoom{display:flex;align-items:center;gap:5px}
+.sc-zoom .mono{font-size:.72rem;min-width:3.2em;text-align:center}
+.sc-jump{display:flex;align-items:center;gap:5px}
+.sc-jump .inp{width:5em}
+.sc-body{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:16px;margin-top:14px;align-items:start}
+.sc-stage{position:relative;overflow:auto;max-height:calc(100vh - 230px);
+  border:1px solid var(--line);border-radius:var(--radius);background:#fdfaf3;padding:10px}
+.sc-canvas{position:relative;z-index:1}
+/* the bands go behind the engraving, the pins in front of it */
+.sc-overlay{position:absolute;inset:10px;pointer-events:none;z-index:0}
+.sc-pins{position:absolute;inset:10px;pointer-events:none;z-index:2}
+.sc-band{position:absolute;display:block;border-radius:3px;background:var(--c);opacity:.13;
+  border-left:2px solid var(--c);transition:opacity .2s var(--ease);
+  margin-top:-7px;padding-bottom:14px;box-sizing:content-box}
+.sc-band.dim{opacity:.05}
+/* the name sits above its band rather than inside it: printed over the staff
+   it competes with the notes, which is the one thing the overlay must not do */
+.sc-band-n{position:absolute;top:-10px;left:3px;font-family:var(--mono);font-size:.58rem;
+  font-weight:400;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;
+  color:#fff;background:var(--c);opacity:.9;padding:1px 5px;border-radius:2px}
+.sc-pin{position:absolute;transform:translate(-50%,-90%);pointer-events:auto;cursor:pointer;
+  background:none;border:none;font-size:.78rem;line-height:1;padding:2px;
+  filter:drop-shadow(0 0 3px color-mix(in srgb,var(--c) 70%,transparent))}
+.sc-pin:hover{transform:translate(-50%,-115%) scale(1.15)}
+.sc-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:.78rem;opacity:.55;text-align:center;padding:20px;z-index:3}
+
+/* the words beside it */
+.sc-side{display:flex;flex-direction:column;gap:10px;position:sticky;top:14px}
+.sc-side-h{display:flex;align-items:baseline;gap:8px}
+.sc-side-t{font-family:var(--mono);font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;opacity:.6}
+.sc-secs{display:flex;flex-direction:column;gap:8px;max-height:52vh;overflow:auto}
+.sc-sec{border:1px solid var(--line);border-left:3px solid var(--c);border-radius:var(--radius);
+  padding:9px 12px;background:var(--surface)}
+.sc-sec.on{border-color:var(--c);background:color-mix(in srgb,var(--c) 7%,var(--surface))}
+.sc-sec-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.sc-sec-n{font-size:.98rem}
+.sc-sec-m{font-size:.66rem;opacity:.6;flex:none}
+.sc-sec-s{font-size:.66rem;opacity:.72;margin-top:2px;letter-spacing:.04em}
+.sc-tempo{display:inline-block;font-size:.66rem;opacity:.8;margin-top:3px;
+  padding:1px 7px;border-radius:999px;border:1px solid var(--line)}
+.sc-tempo em{font-style:normal;opacity:.5}
+.sc-tempo b{font-weight:400;color:var(--terra)}
+.sc-focusbar .sc-tempo{margin-top:0;border-color:color-mix(in srgb,var(--c) 45%,var(--line))}
+.sc-sec-notes{font-size:.8rem;opacity:.86;margin-top:5px;line-height:1.55}
+.sc-sec-tools{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px;opacity:0;transition:opacity .16s var(--ease)}
+.sc-sec:hover .sc-sec-tools,.sc-sec:focus-within .sc-sec-tools,.sc-sec.on .sc-sec-tools{opacity:1}
+@media (hover:none){.sc-sec-tools{opacity:1}}
+.sc-pinlist{display:flex;flex-direction:column;gap:5px;border-top:1px solid var(--line);padding-top:9px}
+.sc-pinrow{display:flex;align-items:baseline;gap:7px;font-size:.78rem}
+.sc-pin-m{background:none;border:none;cursor:pointer;font-size:.66rem;color:var(--c);
+  padding:0;flex:none;text-decoration:underline;text-underline-offset:2px}
+.sc-pin-t{flex:1;min-width:0;opacity:.85}
+.sc-hint{font-size:.72rem;opacity:.5}
+.sc-ta{font-family:var(--serif);font-size:.98rem;line-height:1.55}
+.sc-swatches{display:flex;gap:7px;flex-wrap:wrap;margin-top:5px}
+.sc-swatch{width:26px;height:26px;border-radius:50%;background:var(--c);cursor:pointer;
+  border:2px solid transparent;box-shadow:0 0 0 1px var(--line);transition:transform .14s var(--ease)}
+.sc-swatch:hover{transform:scale(1.12)}
+.sc-swatch.on{border-color:var(--surface);box-shadow:0 0 0 2px var(--c)}
+
+/* Engraved black on cream, which is what a score is. On a dark page the stage
+   keeps its own pale ground rather than inverting the notation — an inverted
+   stave reads as a photographic negative, and the one thing this page must not
+   do is make the notes harder to read than paper would. */
+html[data-theme="dark"] .sc-stage{background:#f2ece0}
+@media (max-width:900px){
+  .sc-body{grid-template-columns:minmax(0,1fr)}
+  .sc-side{position:static;max-height:none}
+  .sc-secs{max-height:none}
+  .sc-stage{max-height:70vh}
+}
+
 /* ============ AN ADDRESS IS A DOOR ============
    A link reads as one wherever it appears — underlined on the diagonal so it
    is legible against the paper grounds, and carrying the ↗ that says it

@@ -10,6 +10,21 @@ let dexie = '';
 for(const p of ['node_modules/dexie/dist/dexie.min.js', 'node_modules/dexie/dist/dexie.js']){
   const f = path.join(__dirname, p); if(fs.existsSync(f)){ dexie = fs.readFileSync(f, 'utf8'); break; }
 }
+/* OpenSheetMusicDisplay engraves the scores in the practice room. It is a
+   megabyte of somebody else's code, and a megabyte of JavaScript parsed at
+   boot to serve one room most days go by without opening is a tax on every
+   other room. So it does not go in the script the app lives in: it is written
+   to the end of the document inside a <script type="text/plain">, which the
+   browser stores and does not parse, and the room compiles it the first time
+   somebody opens a score. Without it the room still keeps its notes and says
+   plainly that the engraver is missing. */
+let osmd = '';
+{ const f = path.join(__dirname, 'node_modules/opensheetmusicdisplay/build/opensheetmusicdisplay.min.js');
+  if(fs.existsSync(f)) osmd = fs.readFileSync(f, 'utf8'); }
+if(osmd.includes('</script')){
+  console.error('BUILD FAILED — the OSMD bundle contains a closing script tag and cannot be embedded as a payload.');
+  process.exit(1);
+}
 let out = '';
 for(const f of parts){
   if(f.startsWith('06-db') && dexie) out += `/* ---- dexie (inlined by build.js, Apache-2.0, https://dexie.org) ---- */\n${dexie}\n/* ---- end dexie ---- */\n`;
@@ -87,6 +102,14 @@ assertNoConflictMarkers();
 assertNothingStrayed();
 assertNoClashingNames();
 
+/* The engraver goes in last, after the script the app lives in has closed,
+   where it is bytes rather than code until somebody asks for it. */
+if(osmd){
+  const tag = `<script type="text/plain" id="osmdSrc">\n${osmd}\n<\/script>\n`;
+  const at = out.lastIndexOf('</body>');
+  out = at > -1 ? out.slice(0, at) + tag + out.slice(at) : out + tag;
+}
+
 fs.writeFileSync(path.join(__dirname, 'index.html'), out);
 
 /* The service worker holds a copy of index.html for offline use, and the only
@@ -108,4 +131,6 @@ function stampServiceWorker(){
   return hash;
 }
 const build = stampServiceWorker();
-console.log(`index.html written (${(out.length/1024).toFixed(0)} KB) — database layer: ${dexie ? 'Dexie (inlined)' : 'built-in MiniDexie fallback'}${build ? ` — build ${build}` : ''}`);
+console.log(`index.html written (${(out.length/1024).toFixed(0)} KB) — database layer: ${dexie ? 'Dexie (inlined)' : 'built-in MiniDexie fallback'}`
+  + ` — score engraver: ${osmd ? `OSMD (${(osmd.length/1024).toFixed(0)} KB, parsed on first use)` : 'not installed'}`
+  + `${build ? ` — build ${build}` : ''}`);
