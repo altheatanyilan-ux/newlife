@@ -7656,6 +7656,55 @@ html[data-theme="light"] .wk-sleep.is-guess{background-image:repeating-linear-gr
 .sc-cur{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
 .sc-cur #scCurSay{min-width:7em;text-align:center;font-size:.72rem}
 .sc-curmodes{display:flex;gap:3px}
+/* the notebook */
+.sc-side-tabs{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.sc-nb-top{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline;font-size:.74rem;margin-bottom:8px}
+.sc-nb-chart{margin:4px 0 10px}
+.sc-heat{display:flex;flex-direction:column;gap:4px;margin-bottom:6px}
+.sc-heat-row{display:grid;grid-template-columns:minmax(0,1fr) 84px 2.4em;gap:6px;align-items:center;font-size:.72rem}
+.sc-heat-n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sc-heat-bar{height:7px;border-radius:4px;background:var(--line);overflow:hidden}
+.sc-heat-bar i{display:block;height:100%;background:var(--c);opacity:.75}
+.sc-nb-list{display:flex;flex-direction:column;gap:8px}
+.sc-sitting{border:1px solid var(--line);border-radius:var(--radius);padding:8px 10px;background:var(--surface)}
+.sc-sitting-h{display:flex;align-items:center;gap:8px;font-size:.72rem}
+.sc-sitting-f{font-size:.78rem;margin-top:4px}
+.sc-sitting-d{font-size:.78rem;margin-top:4px;font-family:var(--hand,inherit);opacity:.88}
+.sc-q{font-size:.66rem;padding:1px 6px;border-radius:99px;border:1px solid var(--line)}
+.sc-q-rough{background:rgba(176,112,94,.18)}
+.sc-q-shaky{background:rgba(201,169,110,.2)}
+.sc-q-improving{background:rgba(92,124,138,.18)}
+.sc-q-solid{background:rgba(127,145,106,.2)}
+.sc-q-flowing{background:rgba(127,145,106,.34)}
+.sc-logsecs{display:flex;flex-direction:column;gap:3px;max-height:160px;overflow:auto}
+.sc-logsec{display:flex;align-items:center;gap:6px;font-size:.8rem}
+.sc-prints{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.sc-prints .btn{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left}
+
+/* Printing. Whatever the room looks like, the printed thing is the notation:
+   white paper, black notes, no furniture. Visibility rather than display, so
+   the engraving keeps the box it was measured in and the annotations stay
+   where they were put. */
+@media print{
+  html[data-scprint] *{visibility:hidden !important;box-shadow:none !important}
+  html[data-scprint] body{background:#fff !important}
+  html[data-scprint] .sc-stage,html[data-scprint] .sc-stage *{visibility:visible !important}
+  html[data-scprint] .sc-stage{position:absolute !important;left:0;top:0;width:100%;
+    max-height:none !important;height:auto !important;overflow:visible !important;
+    border:none !important;border-radius:0;background:#fff !important;padding:0}
+  html[data-scprint] .sc-canvas svg{display:block !important}
+  html[data-scprint] .sc-loading,html[data-scprint] .sc-cursor,
+  html[data-scprint] .sc-fingpick{display:none !important}
+  /* clean, for the stand */
+  html[data-scprint="score"] .sc-overlay,
+  html[data-scprint="score"] .sc-pins,
+  html[data-scprint="score"] .sc-marks{display:none !important}
+  /* the shape of the piece, and nothing written in the margins */
+  html[data-scprint="sections"] .sc-pins,
+  html[data-scprint="sections"] .sc-marks{display:none !important}
+  html[data-scprint] .sc-band{opacity:.1 !important}
+  @page{margin:12mm}
+}
 .sc-toomany{position:absolute;top:4px;left:50%;transform:translateX(-50%);
   font-size:.66rem;opacity:.6;font-style:normal;background:var(--surface);
   padding:2px 9px;border-radius:999px;border:1px solid var(--line)}

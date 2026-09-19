@@ -42,6 +42,19 @@ const SCORE_STATUS = [
   ['working',     'Working',     'playable slowly, falls apart at tempo'],
   ['solid',       'Solid',       'holds together on its own'],
   ['polished',    'Polished',    'holds together with somebody listening']];
+/* How a sitting went. Not the same vocabulary as a section's standing: that
+   is where the passage is after weeks, this is how the last twenty-five
+   minutes felt, and conflating them loses the only thing a practice journal
+   is for — noticing that three rough days in a row means something is wrong
+   with how you are practising it rather than with the passage. */
+const SCORE_QUALITY = [
+  ['rough',     'Rough'],
+  ['shaky',     'Shaky'],
+  ['improving', 'Improving'],
+  ['solid',     'Solid'],
+  ['flowing',   'Flowing']];
+const scoreQualityName = k => (SCORE_QUALITY.find(q => q[0] === k) || [, '\u2014'])[1];
+const scoreQualityAt = k => SCORE_QUALITY.findIndex(q => q[0] === k);
 const scoreStatusName = k => (SCORE_STATUS.find(s => s[0] === k) || SCORE_STATUS[0])[1];
 const scoreStatusDots = k => {
   const n = Math.max(1, SCORE_STATUS.findIndex(s => s[0] === k) + 1);
@@ -93,6 +106,7 @@ function scoreDefaults(x){
   x.pins = Array.isArray(x.pins) ? x.pins : [];
   x.pins.forEach(scorePinDefaults);
   x.practice = Array.isArray(x.practice) ? x.practice : [];
+  x.practice.forEach(scorePracticeDefaults);
   /* The tempo belongs to the piece: coming back to a score tomorrow and
      finding the metronome at somebody else's number is a small thing that
      happens every single time. The beats a bar are read off the notation and
@@ -132,6 +146,24 @@ function scoreSectionDefaults(s, score){
   s.practiceCount = +s.practiceCount || 0;
   s.createdAt = s.createdAt || new Date().toISOString();
   return s;
+}
+/* A sitting at the piano. The old rows named one section and nothing else;
+   the new ones name what you worked on, what you were after, how fast you got
+   it and what you found out — which is the difference between a log that
+   tells you that you practised and one that tells you what happened. */
+function scorePracticeDefaults(r){
+  r.id = r.id || uid();
+  r.date = r.date || today();
+  r.minutes = Math.max(0, Math.round(+r.minutes || 0));
+  /* one section became several, and the old rows still have to read */
+  r.sections = Array.isArray(r.sections) ? r.sections : (r.sectionId ? [r.sectionId] : []);
+  r.sectionId = r.sections[0] || null;
+  r.focus = r.focus || '';
+  r.tempo = +r.tempo || null;
+  r.quality = SCORE_QUALITY.some(q => q[0] === r.quality) ? r.quality : null;
+  r.discoveries = r.discoveries || '';
+  r.at = r.at || new Date().toISOString();
+  return r;
 }
 function scorePinDefaults(p){
   p.id = p.id || uid();
@@ -267,12 +299,16 @@ function removeScoreSection(scoreId, id){
    and the piece's own log all follow from it rather than being kept by hand. */
 function logScorePractice(scoreId, sectionId, minutes, opts){
   const x = scoreById(scoreId); if(!x) return null;
+  const o = opts || {};
+  const ids = (Array.isArray(o.sections) && o.sections.length) ? o.sections.slice()
+    : (sectionId ? [sectionId] : []);
   const s = sectionId ? scoreSection(x, sectionId) : null;
-  const rec = {id:uid(), date:today(), sectionId: sectionId || null,
-    minutes: Math.max(0, Math.round(+minutes || 0)), at:new Date().toISOString()};
+  const rec = scorePracticeDefaults({sections: ids, minutes,
+    focus: o.focus, tempo: o.tempo, quality: o.quality, discoveries: o.discoveries});
   x.practice.push(rec);
-  if(s){ s.practiceCount = (+s.practiceCount || 0) + 1; s.lastPracticedDate = today(); }
-  if(s && opts && +opts.comfort > 0) s.comfortTempo = Math.round(+opts.comfort);
+  ids.forEach(id => { const sec = scoreSection(x, id); if(!sec) return;
+    sec.practiceCount = (+sec.practiceCount || 0) + 1; sec.lastPracticedDate = today(); });
+  if(s && +o.comfort > 0) s.comfortTempo = Math.round(+o.comfort);
   /* minutes at the instrument are hours on the skill, if there is a skill to
      put them on. Nothing is invented — a skill that appears because you
      practised is a skill you did not choose to track. */
@@ -289,6 +325,45 @@ function scoreCreditSkill(mins){
   return sk;
 }
 const scoreMinutesOn = (x, day) => sum((x.practice || []).filter(r => r.date === day).map(r => +r.minutes || 0));
+
+/* ---------- the notebook ----------
+   What the log adds up to. The two numbers worth drawing are the tempo over
+   time — the only hard evidence that slow practice is working — and how the
+   sittings are spread across the sections, because the thing a practice log
+   reveals that nothing else does is the section you have been quietly
+   avoiding for a month. */
+const scorePracticeOf = (x, sectionId) =>
+  (x.practice || []).filter(r => (r.sections || []).includes(sectionId));
+/* the fastest a section has been logged at, which is a fact about the log
+   rather than a number kept by hand and left stale */
+function scoreSectionBest(x, sectionId){
+  const t = scorePracticeOf(x, sectionId).map(r => +r.tempo || 0).filter(Boolean);
+  return t.length ? Math.max(...t) : null;
+}
+function scoreNotebook(x){
+  const rows = (x.practice || []).slice().sort((a, b) => String(b.at).localeCompare(String(a.at)));
+  const old = rows.slice().reverse();
+  const tempos = old.filter(r => r.tempo);
+  const graded = old.filter(r => r.quality);
+  const last10 = graded.slice(-10);
+  const targets = (x.sections || []).map(s => +s.targetTempo || 0).filter(Boolean);
+  return {
+    rows,
+    sessions: rows.length,
+    minutes: sum(rows.map(r => +r.minutes || 0)),
+    tempos: tempos.map(r => ({date: r.date, tempo: r.tempo})),
+    from: tempos.length ? tempos[0].tempo : null,
+    to: tempos.length ? tempos[tempos.length - 1].tempo : null,
+    best: tempos.length ? Math.max(...tempos.map(r => r.tempo)) : null,
+    target: targets.length ? Math.max(...targets) : null,
+    /* the average of the last ten, because one bad day is not a trend and a
+       lifetime average stops moving after a month */
+    mood: last10.length ? last10.reduce((a, r) => a + scoreQualityAt(r.quality), 0) / last10.length : null,
+    heat: (x.sections || []).map(s => ({section: s, sessions: scorePracticeOf(x, s.id).length,
+      minutes: sum(scorePracticeOf(x, s.id).map(r => +r.minutes || 0)),
+      best: scoreSectionBest(x, s.id)})),
+  };
+}
 /* which section a measure falls in, for the pin popover and the measure click */
 function sectionAtMeasure(x, m){
   return (x.sections || []).find(s => m >= s.startMeasure && m <= s.endMeasure) || null;

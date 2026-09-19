@@ -41,15 +41,21 @@ const head = `<attributes><divisions>4</divisions><key><fifths>0</fifths><mode>m
 const bass = `<attributes><divisions>4</divisions><key><fifths>0</fifths><mode>major</mode></key>
   <time><beats>4</beats><beat-type>4</beat-type></time><clef><sign>F</sign><line>4</line></clef></attributes>`;
 /* six bars, each one a question the reader has to get right */
+/* four quarters, so something can change inside a bar while the bass holds */
+const Q = list => list.map(ps => ps.map((pp, j) =>
+  `<note>${j ? '<chord/>' : ''}<pitch><step>${pp[0]}</step><octave>${pp[1]}</octave></pitch><duration>4</duration><type>quarter</type></note>`).join('')).join('');
 const TOP = [
-  CH([['C',4],['E',4],['G',4]]),                 /* 1. root position           */
-  CH([['E',4],['G',4],['C',5]]),                 /* 2. first inversion         */
-  CH([['C',5],['E',5],['G',5]]),                 /* 3. an Am7 with the A below */
-  CH([['A',4],['C',5],['F',5]]),                 /* 4. an F with its fifth low */
-  CH([['C',4,1],['D',4],['E',4,-1]]),            /* 5. not a chord at all      */
-  CH([['C',4],['E',4],['G',4]]),                 /* 6. back to where it began  */
+  CH([['C',4],['E',4],['G',4]]),                 /* 1. root position            */
+  CH([['E',4],['G',4],['C',5]]),                 /* 2. first inversion          */
+  CH([['C',5],['E',5],['G',5]]),                 /* 3. an Am7 with the A below  */
+  CH([['A',4],['C',5],['F',5]]),                 /* 4. an F with its fifth low  */
+  CH([['C',4,1],['D',4],['E',4,-1]]),            /* 5. not a chord at all       */
+  CH([['C',4],['E',4],['G',4]]),                 /* 6. back to where it began   */
+  CH([['A',4],['C',5],['E',5],['G',5]]),         /* 7. bar 3's notes, C beneath */
+  Q([[['C',4],['E',4],['G',4]], [['C',4],['E',4],['G',4]],
+     [['D',4],['F',4],['A',4]], [['D',4],['F',4],['A',4]]]),  /* 8. under a held A */
 ];
-const LOW = [W('C',3), W('E',3), W('A',2), W('C',3), W('D',4), W('C',3)];
+const LOW = [W('C',3), W('E',3), W('A',2), W('C',3), W('D',4), W('C',3), W('C',3), W('A',2)];
 const bars = list => list.map((n, i) =>
   `<measure number="${i+1}">${i === 0 ? '' : ''}${n}</measure>`).join('\n');
 const CHORDS = `<?xml version="1.0" encoding="UTF-8"?><score-partwise version="3.1">
@@ -103,6 +109,10 @@ const LONG = `<?xml version="1.0" encoding="UTF-8"?><score-partwise version="3.1
   yes('    which a subset search would have called C', c[2] && c[2][0] !== 'C',
     JSON.stringify(c[2]));
   is('  a triad over its own fifth names its root, not the bass', c[3] && c[3][0], 'F/C');
+  /* the same four notes, and which one is underneath decides what they are:
+     an A minor seventh over an A, a C sixth over a C */
+  is('  and the bass is what decides between two names that both fit',
+    [c[2] && c[2][0], c[6] && c[6][0]], ['Am7', 'C6']);
 
   console.log('\n2. it says when it is guessing');
   yes('four notes that are not a chord are written faintly',
@@ -111,16 +121,21 @@ const LONG = `<?xml version="1.0" encoding="UTF-8"?><score-partwise version="3.1
     c[0] && c[0][2] === false && c[2][2] === false, JSON.stringify([c[0], c[2]]));
 
   console.log('\n3. one symbol per change, not one per beat');
-  is('six bars of harmony make six symbols', c.length, 6);
+  is('eight bars of harmony make nine symbols', c.length, 9);
   const held = await p.evaluate(() => {
     /* the bass note is a whole note: it is part of the harmony on every beat
        it lasts, not only the one it was struck on */
     const x = scores().find(y => y.title === 'Six Questions');
     return scoreChordLine(scoreNotes(), {flat:false}).map(v => [v.measure, v.beat, v.say]);
   });
-  is('and each one sits on the first beat of its bar',
-    held.map(v => v[1]), [0,0,0,0,0,0]);
-  is('  bar by bar', held.map(v => v[0]), [1,2,3,4,5,6]);
+  is('  each one where the harmony turns over',
+    held.map(v => [v[0], v[1]]), [[1,0],[2,0],[3,0],[4,0],[5,0],[6,0],[7,0],[8,0],[8,2]]);
+  /* the last bar is the one that proves a held note keeps sounding: the A is
+     struck once and is part of both chords over it, so the two halves of the
+     bar are an A minor seventh and a D minor over an A \u2014 and not, as reading
+     only what is struck on the beat would have it, a plain C and a plain Dm */
+  is('  and a note held under a change is part of what comes after it',
+    [held[7][2], held[8][2]], ['Am7', 'Dm/A']);
 
   console.log('\n4. writing over it by hand');
   const over = await p.evaluate(async () => {

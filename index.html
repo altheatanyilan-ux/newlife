@@ -8325,6 +8325,55 @@ html[data-theme="light"] .wk-sleep.is-guess{background-image:repeating-linear-gr
 .sc-cur{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
 .sc-cur #scCurSay{min-width:7em;text-align:center;font-size:.72rem}
 .sc-curmodes{display:flex;gap:3px}
+/* the notebook */
+.sc-side-tabs{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.sc-nb-top{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline;font-size:.74rem;margin-bottom:8px}
+.sc-nb-chart{margin:4px 0 10px}
+.sc-heat{display:flex;flex-direction:column;gap:4px;margin-bottom:6px}
+.sc-heat-row{display:grid;grid-template-columns:minmax(0,1fr) 84px 2.4em;gap:6px;align-items:center;font-size:.72rem}
+.sc-heat-n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sc-heat-bar{height:7px;border-radius:4px;background:var(--line);overflow:hidden}
+.sc-heat-bar i{display:block;height:100%;background:var(--c);opacity:.75}
+.sc-nb-list{display:flex;flex-direction:column;gap:8px}
+.sc-sitting{border:1px solid var(--line);border-radius:var(--radius);padding:8px 10px;background:var(--surface)}
+.sc-sitting-h{display:flex;align-items:center;gap:8px;font-size:.72rem}
+.sc-sitting-f{font-size:.78rem;margin-top:4px}
+.sc-sitting-d{font-size:.78rem;margin-top:4px;font-family:var(--hand,inherit);opacity:.88}
+.sc-q{font-size:.66rem;padding:1px 6px;border-radius:99px;border:1px solid var(--line)}
+.sc-q-rough{background:rgba(176,112,94,.18)}
+.sc-q-shaky{background:rgba(201,169,110,.2)}
+.sc-q-improving{background:rgba(92,124,138,.18)}
+.sc-q-solid{background:rgba(127,145,106,.2)}
+.sc-q-flowing{background:rgba(127,145,106,.34)}
+.sc-logsecs{display:flex;flex-direction:column;gap:3px;max-height:160px;overflow:auto}
+.sc-logsec{display:flex;align-items:center;gap:6px;font-size:.8rem}
+.sc-prints{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.sc-prints .btn{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left}
+
+/* Printing. Whatever the room looks like, the printed thing is the notation:
+   white paper, black notes, no furniture. Visibility rather than display, so
+   the engraving keeps the box it was measured in and the annotations stay
+   where they were put. */
+@media print{
+  html[data-scprint] *{visibility:hidden !important;box-shadow:none !important}
+  html[data-scprint] body{background:#fff !important}
+  html[data-scprint] .sc-stage,html[data-scprint] .sc-stage *{visibility:visible !important}
+  html[data-scprint] .sc-stage{position:absolute !important;left:0;top:0;width:100%;
+    max-height:none !important;height:auto !important;overflow:visible !important;
+    border:none !important;border-radius:0;background:#fff !important;padding:0}
+  html[data-scprint] .sc-canvas svg{display:block !important}
+  html[data-scprint] .sc-loading,html[data-scprint] .sc-cursor,
+  html[data-scprint] .sc-fingpick{display:none !important}
+  /* clean, for the stand */
+  html[data-scprint="score"] .sc-overlay,
+  html[data-scprint="score"] .sc-pins,
+  html[data-scprint="score"] .sc-marks{display:none !important}
+  /* the shape of the piece, and nothing written in the margins */
+  html[data-scprint="sections"] .sc-pins,
+  html[data-scprint="sections"] .sc-marks{display:none !important}
+  html[data-scprint] .sc-band{opacity:.1 !important}
+  @page{margin:12mm}
+}
 .sc-toomany{position:absolute;top:4px;left:50%;transform:translateX(-50%);
   font-size:.66rem;opacity:.6;font-style:normal;background:var(--surface);
   padding:2px 9px;border-radius:999px;border:1px solid var(--line)}
@@ -48102,6 +48151,19 @@ const SCORE_STATUS = [
   ['working',     'Working',     'playable slowly, falls apart at tempo'],
   ['solid',       'Solid',       'holds together on its own'],
   ['polished',    'Polished',    'holds together with somebody listening']];
+/* How a sitting went. Not the same vocabulary as a section's standing: that
+   is where the passage is after weeks, this is how the last twenty-five
+   minutes felt, and conflating them loses the only thing a practice journal
+   is for — noticing that three rough days in a row means something is wrong
+   with how you are practising it rather than with the passage. */
+const SCORE_QUALITY = [
+  ['rough',     'Rough'],
+  ['shaky',     'Shaky'],
+  ['improving', 'Improving'],
+  ['solid',     'Solid'],
+  ['flowing',   'Flowing']];
+const scoreQualityName = k => (SCORE_QUALITY.find(q => q[0] === k) || [, '\u2014'])[1];
+const scoreQualityAt = k => SCORE_QUALITY.findIndex(q => q[0] === k);
 const scoreStatusName = k => (SCORE_STATUS.find(s => s[0] === k) || SCORE_STATUS[0])[1];
 const scoreStatusDots = k => {
   const n = Math.max(1, SCORE_STATUS.findIndex(s => s[0] === k) + 1);
@@ -48153,6 +48215,7 @@ function scoreDefaults(x){
   x.pins = Array.isArray(x.pins) ? x.pins : [];
   x.pins.forEach(scorePinDefaults);
   x.practice = Array.isArray(x.practice) ? x.practice : [];
+  x.practice.forEach(scorePracticeDefaults);
   /* The tempo belongs to the piece: coming back to a score tomorrow and
      finding the metronome at somebody else's number is a small thing that
      happens every single time. The beats a bar are read off the notation and
@@ -48192,6 +48255,24 @@ function scoreSectionDefaults(s, score){
   s.practiceCount = +s.practiceCount || 0;
   s.createdAt = s.createdAt || new Date().toISOString();
   return s;
+}
+/* A sitting at the piano. The old rows named one section and nothing else;
+   the new ones name what you worked on, what you were after, how fast you got
+   it and what you found out — which is the difference between a log that
+   tells you that you practised and one that tells you what happened. */
+function scorePracticeDefaults(r){
+  r.id = r.id || uid();
+  r.date = r.date || today();
+  r.minutes = Math.max(0, Math.round(+r.minutes || 0));
+  /* one section became several, and the old rows still have to read */
+  r.sections = Array.isArray(r.sections) ? r.sections : (r.sectionId ? [r.sectionId] : []);
+  r.sectionId = r.sections[0] || null;
+  r.focus = r.focus || '';
+  r.tempo = +r.tempo || null;
+  r.quality = SCORE_QUALITY.some(q => q[0] === r.quality) ? r.quality : null;
+  r.discoveries = r.discoveries || '';
+  r.at = r.at || new Date().toISOString();
+  return r;
 }
 function scorePinDefaults(p){
   p.id = p.id || uid();
@@ -48327,12 +48408,16 @@ function removeScoreSection(scoreId, id){
    and the piece's own log all follow from it rather than being kept by hand. */
 function logScorePractice(scoreId, sectionId, minutes, opts){
   const x = scoreById(scoreId); if(!x) return null;
+  const o = opts || {};
+  const ids = (Array.isArray(o.sections) && o.sections.length) ? o.sections.slice()
+    : (sectionId ? [sectionId] : []);
   const s = sectionId ? scoreSection(x, sectionId) : null;
-  const rec = {id:uid(), date:today(), sectionId: sectionId || null,
-    minutes: Math.max(0, Math.round(+minutes || 0)), at:new Date().toISOString()};
+  const rec = scorePracticeDefaults({sections: ids, minutes,
+    focus: o.focus, tempo: o.tempo, quality: o.quality, discoveries: o.discoveries});
   x.practice.push(rec);
-  if(s){ s.practiceCount = (+s.practiceCount || 0) + 1; s.lastPracticedDate = today(); }
-  if(s && opts && +opts.comfort > 0) s.comfortTempo = Math.round(+opts.comfort);
+  ids.forEach(id => { const sec = scoreSection(x, id); if(!sec) return;
+    sec.practiceCount = (+sec.practiceCount || 0) + 1; sec.lastPracticedDate = today(); });
+  if(s && +o.comfort > 0) s.comfortTempo = Math.round(+o.comfort);
   /* minutes at the instrument are hours on the skill, if there is a skill to
      put them on. Nothing is invented — a skill that appears because you
      practised is a skill you did not choose to track. */
@@ -48349,6 +48434,45 @@ function scoreCreditSkill(mins){
   return sk;
 }
 const scoreMinutesOn = (x, day) => sum((x.practice || []).filter(r => r.date === day).map(r => +r.minutes || 0));
+
+/* ---------- the notebook ----------
+   What the log adds up to. The two numbers worth drawing are the tempo over
+   time — the only hard evidence that slow practice is working — and how the
+   sittings are spread across the sections, because the thing a practice log
+   reveals that nothing else does is the section you have been quietly
+   avoiding for a month. */
+const scorePracticeOf = (x, sectionId) =>
+  (x.practice || []).filter(r => (r.sections || []).includes(sectionId));
+/* the fastest a section has been logged at, which is a fact about the log
+   rather than a number kept by hand and left stale */
+function scoreSectionBest(x, sectionId){
+  const t = scorePracticeOf(x, sectionId).map(r => +r.tempo || 0).filter(Boolean);
+  return t.length ? Math.max(...t) : null;
+}
+function scoreNotebook(x){
+  const rows = (x.practice || []).slice().sort((a, b) => String(b.at).localeCompare(String(a.at)));
+  const old = rows.slice().reverse();
+  const tempos = old.filter(r => r.tempo);
+  const graded = old.filter(r => r.quality);
+  const last10 = graded.slice(-10);
+  const targets = (x.sections || []).map(s => +s.targetTempo || 0).filter(Boolean);
+  return {
+    rows,
+    sessions: rows.length,
+    minutes: sum(rows.map(r => +r.minutes || 0)),
+    tempos: tempos.map(r => ({date: r.date, tempo: r.tempo})),
+    from: tempos.length ? tempos[0].tempo : null,
+    to: tempos.length ? tempos[tempos.length - 1].tempo : null,
+    best: tempos.length ? Math.max(...tempos.map(r => r.tempo)) : null,
+    target: targets.length ? Math.max(...targets) : null,
+    /* the average of the last ten, because one bad day is not a trend and a
+       lifetime average stops moving after a month */
+    mood: last10.length ? last10.reduce((a, r) => a + scoreQualityAt(r.quality), 0) / last10.length : null,
+    heat: (x.sections || []).map(s => ({section: s, sessions: scorePracticeOf(x, s.id).length,
+      minutes: sum(scorePracticeOf(x, s.id).map(r => +r.minutes || 0)),
+      best: scoreSectionBest(x, s.id)})),
+  };
+}
 /* which section a measure falls in, for the pin popover and the measure click */
 function sectionAtMeasure(x, m){
   return (x.sections || []).find(s => m >= s.startMeasure && m <= s.endMeasure) || null;
@@ -48998,7 +49122,7 @@ addEventListener('hashchange', () => {
 });
 
 const scoreOpenId = () => S._score && S._score.id;
-function scoreUi(){ return S._score = S._score || {id:null, focus:null, reading:false, marks:true, more:false}; }
+function scoreUi(){ return S._score = S._score || {id:null, focus:null, reading:false, marks:true, more:false, side:'marks'}; }
 
 routes.score = function(root, params){
   scoreState();
@@ -49067,6 +49191,7 @@ function scoreViewerHTML(x){
       ${x.composer ? `<span class="sc-comp">${esc(x.composer)}</span>` : ''}
       <span class="grow"></span>
       <span class="mono faint">${x.totalMeasures ? `${x.totalMeasures} bars` : ''}</span>
+      <button class="tbtn" id="scPrint" title="print it, with or without what you have written on it">⎙ print</button>
     </div>
     ${focus ? `<div class="sc-focusbar" style="--c:${esc(focus.color)}">
       <span class="sc-focus-t">🎯 ${esc(focus.name)}</span>
@@ -49361,13 +49486,20 @@ function scoreQuietWatch(on){
    about bar 48 should not cost a re-engraving of the whole Ballade. */
 function scoreSideHTML(x){
   const ui = scoreUi();
-  const list = (x.sections || []).slice().sort((a, b) => a.startMeasure - b.startMeasure);
-  const pins = (x.pins || []).slice().sort((a, b) => a.measure - b.measure);
   const mins = scoreMinutesOn(x, today());
-  return `<div class="sc-side-h">
-      <span class="sc-side-t">📝 Sections</span>
+  return `<div class="sc-side-tabs">
+      <button class="tbtn${ui.side !== 'notebook' ? ' on' : ''}" data-scside="marks">📝 Sections</button>
+      <button class="tbtn${ui.side === 'notebook' ? ' on' : ''}" data-scside="notebook">📓 Notebook</button>
+      <span class="grow"></span>
       ${mins ? `<span class="mono faint">${fmtHM(mins)} today</span>` : ''}
     </div>
+    ${ui.side === 'notebook' ? scoreNotebookHTML(x) : scoreMarksSideHTML(x)}`;
+}
+function scoreMarksSideHTML(x){
+  const ui = scoreUi();
+  const list = (x.sections || []).slice().sort((a, b) => a.startMeasure - b.startMeasure);
+  const pins = (x.pins || []).slice().sort((a, b) => a.measure - b.measure);
+  return `
     ${list.length ? `<div class="sc-secs">${list.map(s => `
       <div class="sc-sec${ui.focus === s.id ? ' on' : ''}" style="--c:${esc(s.color)}" data-scsec="${esc(s.id)}">
         <div class="sc-sec-h">
@@ -49380,6 +49512,7 @@ function scoreSideHTML(x){
           · ${s.lastPracticedDate ? esc(scoreAgo(s.lastPracticedDate)) : 'never practised'}${
             s.practiceCount ? ` · ${s.practiceCount}×` : ''}
         </div>
+        ${scoreSectionStatsSay(x, s)}
         ${s.notes ? `<div class="sc-sec-notes">${linkify(s.notes)}</div>`
           : '<div class="sc-sec-notes faint">nothing written about it yet</div>'}
         <div class="sc-sec-tools">
@@ -49577,6 +49710,150 @@ function scoreChordsHTML(x, notes, u, size){
       >${esc(said)}</i>`;
   }).join('');
 }
+/* ---------- the notebook ----------
+   A practice log that only says "practised today" is a log you stop keeping,
+   because nothing in it ever tells you anything. What is worth writing down
+   is what you were after, how fast you got it and what you found out — and
+   what that adds up to over a month is two pictures you cannot get any other
+   way: the tempo climbing, and the section you have quietly been avoiding.
+
+   Both are drawn from the log rather than kept as counters, so nothing can
+   drift out of step with what actually happened. */
+function scoreNotebookHTML(x){
+  const nb = scoreNotebook(x);
+  if(!nb.sessions) return `<div class="empty sm">Nothing logged yet. After a sitting,
+    write down what you worked on and how fast you got it \u2014 a month of that is the
+    only evidence slow practice is working.</div>
+    <div class="row" style="margin-top:10px"><button class="btn sm primary" id="scLogAny">Log a sitting</button></div>`;
+  return `<div class="sc-nb-top">
+      <span class="mono">${nb.sessions} sitting${nb.sessions === 1 ? '' : 's'}</span>
+      <span class="mono faint">${fmtHM(nb.minutes)} in all</span>
+      ${nb.from && nb.to ? `<span class="mono">\u2669=${nb.from} \u2192 ${nb.to}</span>` : ''}
+      ${nb.mood != null ? `<span class="mono faint" title="the average of the last ten">${
+        esc(SCORE_QUALITY[Math.round(nb.mood)][1].toLowerCase())} lately</span>` : ''}
+    </div>
+    ${scoreTempoChartHTML(nb)}
+    ${scoreHeatHTML(x, nb)}
+    <div class="row" style="margin:10px 0 6px"><button class="btn sm primary" id="scLogAny">Log a sitting</button></div>
+    <div class="sc-nb-list">${nb.rows.map(r => scoreSittingHTML(x, r)).join('')}</div>`;
+}
+/* The tempo over time, with the fastest anything is written at as the line to
+   get to. Drawn only once there are two points: one dot is not a trend and a
+   chart of it says something it cannot know. */
+function scoreTempoChartHTML(nb){
+  if(nb.tempos.length < 2) return '';
+  const W = 270, H = 74, pad = 4;
+  const lo = Math.min(...nb.tempos.map(t => t.tempo), nb.target || Infinity) - 6;
+  const hi = Math.max(...nb.tempos.map(t => t.tempo), nb.target || 0) + 6;
+  const span = Math.max(1, hi - lo);
+  const at = (t, i) => [pad + (W - pad * 2) * (nb.tempos.length < 2 ? 0 : i / (nb.tempos.length - 1)),
+    H - pad - (H - pad * 2) * ((t - lo) / span)];
+  const pts = nb.tempos.map((t, i) => at(t.tempo, i));
+  const line = pts.map((q, i) => `${i ? 'L' : 'M'}${q[0].toFixed(1)} ${q[1].toFixed(1)}`).join(' ');
+  const targetY = nb.target ? at(nb.target, 0)[1] : null;
+  return `<div class="sc-nb-chart"><svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" aria-hidden="true">
+    ${targetY != null ? `<line x1="0" y1="${targetY.toFixed(1)}" x2="${W}" y2="${targetY.toFixed(1)}"
+      stroke="#b0705e" stroke-dasharray="4 4" stroke-width="1" opacity=".7"/>` : ''}
+    <path d="${line}" fill="none" stroke="#5c7c8a" stroke-width="2" stroke-linejoin="round"/>
+    ${pts.map(q => `<circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="2.6" fill="#5c7c8a"/>`).join('')}
+  </svg>
+  <div class="mono faint sm">${nb.target ? `the dashed line is \u2669=${nb.target}, what it is written at`
+    : 'no target tempo written on any section yet'}</div></div>`;
+}
+/* Which sections have had the time. The one at the bottom of this list is the
+   thing the notebook is for. */
+function scoreHeatHTML(x, nb){
+  if(!nb.heat.length) return '';
+  const top = Math.max(1, ...nb.heat.map(h => h.sessions));
+  const cold = nb.heat.filter(h => !h.sessions);
+  return `<div class="sc-heat">
+    ${nb.heat.map(h => `<div class="sc-heat-row" style="--c:${esc(h.section.color)}">
+      <span class="sc-heat-n">${esc(h.section.name)}</span>
+      <span class="sc-heat-bar"><i style="width:${Math.round(100 * h.sessions / top)}%"></i></span>
+      <span class="mono faint">${h.sessions ? `${h.sessions}\u00d7` : '\u2014'}</span>
+    </div>`).join('')}
+    ${cold.length ? `<p class="faint sm" style="margin:6px 0 0">${cold.length === 1
+      ? `${esc(cold[0].section.name)} has never been practised.`
+      : `${cold.length} sections have never been practised.`}</p>` : ''}
+  </div>`;
+}
+function scoreSittingHTML(x, r){
+  const names = (r.sections || []).map(id => (scoreSection(x, id) || {}).name).filter(Boolean);
+  return `<div class="sc-sitting">
+    <div class="sc-sitting-h">
+      <span class="mono">${esc(fmtDate(r.date, 'short'))}</span>
+      <span class="mono faint">${r.minutes ? fmtHM(r.minutes) : ''}</span>
+      ${r.quality ? `<span class="sc-q sc-q-${esc(r.quality)}">${esc(scoreQualityName(r.quality))}</span>` : ''}
+      <span class="grow"></span>
+      ${r.tempo ? `<span class="mono">\u2669=${r.tempo}</span>` : ''}
+      <button class="del-x inline" data-scsitdel="${esc(r.id)}">\u00d7</button>
+    </div>
+    ${names.length ? `<div class="mono faint sm">${esc(names.join(' \u00b7 '))}</div>` : ''}
+    ${r.focus ? `<div class="sc-sitting-f">${esc(r.focus)}</div>` : ''}
+    ${r.discoveries ? `<div class="sc-sitting-d">${linkify(r.discoveries)}</div>` : ''}
+  </div>`;
+}
+/* What the log knows about a section that the section record does not: how
+   many sittings it has had, and the fastest it has ever been logged at. */
+function scoreSectionStatsSay(x, s){
+  const best = scoreSectionBest(x, s.id);
+  const mins = sum(scorePracticeOf(x, s.id).map(r => +r.minutes || 0));
+  if(!best && !mins) return '';
+  return `<div class="sc-sec-s mono faint">${mins ? fmtHM(mins) : ''}${
+    best ? `${mins ? ' \u00b7 ' : ''}best \u2669=${best}${s.targetTempo ? ` of ${s.targetTempo}` : ''}` : ''}</div>`;
+}
+
+/* ---------- printing ----------
+   Three copies, because they are three different objects: the clean one you
+   put on a stand, the one with the sections marked so you can see the shape,
+   and the practice copy with everything you have written on it.
+
+   Whatever is on the glass, the printed thing is the whole piece as one long
+   page: printing a paginated reading view prints the page you happen to be
+   looking at, and printing a focused section prints eight bars. So the score
+   is re-engraved unclipped and unpaginated first, and put back afterwards. */
+const SCORE_PRINTS = [
+  ['score',      'Score only',        'clean, for the stand'],
+  ['sections',   'With the sections', 'the shape of the piece, lightly marked'],
+  ['everything', 'Everything',        'a practice copy \u2014 pins, fingerings, chords and all']];
+async function scorePrint(x, mode){
+  const doc = document.documentElement;
+  const ui = scoreUi();
+  const was = ui.reading, focus = ui.focus;
+  try {
+    /* out of reading and out of focus by hand rather than through the room's
+       own switches: those rebuild the page, and the thing being printed is
+       the engraving standing in it. Nothing is repainted that does not have
+       to be, and both are put back in the same breath. */
+    ui.reading = false; ui.focus = null;
+    doc.classList.remove('sc-reading');
+    await renderScore(x, {page:null, from:null, to:null});
+    scoreOverlayPaint(x); scoreLayersPaint(x);
+    doc.dataset.scprint = SCORE_PRINTS.some(q => q[0] === mode) ? mode : 'score';
+    await new Promise(r => setTimeout(r, 80));
+    if(typeof window.print === 'function') window.print();
+  } catch(e){ console.warn('score print failed', e); }
+  finally {
+    delete doc.dataset.scprint;
+    ui.reading = was; ui.focus = focus;
+    doc.classList.toggle('sc-reading', was);
+    await scoreRedraw(x);
+    scoreCursorPaint(x);
+  }
+  return true;
+}
+function openPrintModal(scoreId){
+  const x = scoreById(scoreId); if(!x) return null;
+  const m = openModal(`<h2>Print ${esc(x.title)}</h2>
+    <div class="sc-prints">${SCORE_PRINTS.map(([k, name, hint]) =>
+      `<button class="btn" data-scprint="${k}"><b>${esc(name)}</b><span class="faint sm">${esc(hint)}</span></button>`).join('')}</div>`,
+    'narrow sc-modal');
+  $$('[data-scprint]', m).forEach(b => b.onclick = async () => {
+    m.remove(); await scorePrint(x, b.dataset.scprint);
+  });
+  return m;
+}
+
 /* ---------- fingerings ----------
    The one layer that is not read off the notation but written onto it. A
    fingering is a decision — which of five fingers takes this note, given what
@@ -49831,6 +50108,7 @@ function bindScoreViewer(root, x){
   const speed = root.querySelector('#scCurSpeed');
   if(speed) speed.onchange = () => { x.cursorSpeed = +speed.value || 1; saveNow();
     if(_scAuto) scoreCursorAuto(true, x); };
+  on('#scPrint', () => openPrintModal(x.id));
   const marks = root.querySelector('#scMarks2');
   if(marks) marks.onclick = ev => {
     const chord = ev.target.closest('[data-scchord]');
@@ -50018,6 +50296,21 @@ function scoreKeysWatch(x){
 }
 function bindScoreSide(root, x){
   const ui = scoreUi();
+  /* bound here rather than with the rest of the room, because the panel is
+     repainted on its own and anything bound outside it goes with the old one */
+  $$('[data-scside]', root).forEach(b => b.onclick = () => {
+    ui.side = b.dataset.scside; saveNow(); scoreSidePaint(x); });
+  const any = root.querySelector('#scLogAny');
+  if(any) any.onclick = () => openScoreLogModal(x.id, ui.focus);
+  $$('[data-scsitdel]', root).forEach(b => b.onclick = () => {
+    const r = byId(x.practice, b.dataset.scsitdel); if(!r) return;
+    requestDelete({label: `that sitting`, node: b.closest('.sc-sitting'),
+      after: () => scoreSidePaint(x),
+      remove: () => { spliceOut(x.practice, q => q.id === r.id);
+        (r.sections || []).forEach(id => { const sec = scoreSection(x, id);
+          if(sec) sec.practiceCount = Math.max(0, (+sec.practiceCount || 0) - 1); });
+        saveNow(); }});
+  });
   $$('[data-scedit]', root).forEach(b => b.onclick = () => openSectionModal(x.id, b.dataset.scedit));
   $$('[data-scgo]', root).forEach(b => b.onclick = () => { const s = scoreSection(x, b.dataset.scgo);
     if(s) scoreScrollTo(s.startMeasure); });
@@ -50182,23 +50475,46 @@ function openPinModal(scoreId, pinId, measure){
 function openScoreLogModal(scoreId, sectionId){
   const x = scoreById(scoreId); if(!x) return null;
   const s = sectionId ? scoreSection(x, sectionId) : null;
-  const m = openModal(`<h2>Log practice${s ? ` — ${esc(s.name)}` : ''}</h2>
+  const list = (x.sections || []).slice().sort((a, b) => a.startMeasure - b.startMeasure);
+  const target = s ? s.targetTempo : Math.max(0, ...list.map(v => +v.targetTempo || 0)) || null;
+  const m = openModal(`<h2>Log a sitting${s ? ` \u2014 ${esc(s.name)}` : ''}</h2>
     <label class="pd-q"><span class="k">minutes</span>
       <input class="inp mono" type="number" id="logMins" min="0" max="600" value="20" autofocus></label>
+    ${list.length ? `<div class="pd-q" style="margin-top:10px"><span class="k">what you worked on</span>
+      <div class="sc-logsecs">${list.map(v =>
+        `<label class="sc-logsec"><input type="checkbox" data-logsec="${esc(v.id)}"
+          ${s && s.id === v.id ? 'checked' : ''}> ${esc(v.name)}
+          <span class="mono faint">${v.startMeasure}\u2013${v.endMeasure}</span></label>`).join('')}</div></div>` : ''}
+    <label class="pd-q" style="margin-top:10px"><span class="k">what you were after</span>
+      <input class="inp" id="logFocus" placeholder="tempo in the waltz; the left-hand leaps at 58"></label>
+    <div class="row" style="gap:10px;margin-top:10px">
+      <label class="pd-q" style="flex:1"><span class="k">fastest you held it \u2669=</span>
+        <input class="inp mono" type="number" id="logTempo" min="20" max="300"
+          placeholder="${target ? `written at ${target}` : '\u2014'}"></label>
+      <label class="pd-q" style="flex:1"><span class="k">how it went</span>
+        <select class="sel" id="logQuality"><option value="">\u2014</option>${SCORE_QUALITY.map(([v, n]) =>
+          `<option value="${v}">${esc(n)}</option>`).join('')}</select></label>
+    </div>
     ${s ? `<label class="pd-q" style="margin-top:10px"><span class="k">how it stands now</span>
       <select class="sel" id="logStatus">${SCORE_STATUS.map(([v, n, hint]) =>
-        `<option value="${v}" ${s.status === v ? 'selected' : ''}>${esc(n)} — ${esc(hint)}</option>`).join('')}</select></label>
-    <!-- asked here because you have just played it, and nobody knows what you
-         can hold better than you do this minute -->
-    <label class="pd-q" style="margin-top:10px"><span class="k">fastest you could hold it ♩=</span>
-      <input class="inp mono" type="number" id="logComfort" min="20" max="300" value="${s.comfortTempo || ''}" placeholder="${s.targetTempo ? `written at ${s.targetTempo}` : '—'}"></label>` : ''}
-    <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary" id="logSave">Done</button></div>`, 'narrow sc-modal');
+        `<option value="${v}" ${s.status === v ? 'selected' : ''}>${esc(n)} \u2014 ${esc(hint)}</option>`).join('')}</select></label>` : ''}
+    <!-- the field the whole notebook is for: what you noticed, which is the
+         thing that is gone by tomorrow if it is not written down now -->
+    <label class="pd-q" style="margin-top:10px"><span class="k">what you found out</span>
+      <textarea class="inp" rows="3" id="logNotes" placeholder="There is an inner voice in the tenor I have been ignoring. Bar 48 should be pp."></textarea></label>
+    <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary" id="logSave">Done</button></div>`,
+    'narrow sc-modal');
   m.querySelector('#logSave').onclick = () => {
     const mins = +m.querySelector('#logMins').value || 0;
     const st = m.querySelector('#logStatus');
     if(s && st) s.status = st.value;
-    const comfort = m.querySelector('#logComfort');
-    logScorePractice(x.id, s ? s.id : null, mins, {comfort: comfort ? comfort.value : null});
+    const picked = $$('[data-logsec]', m).filter(b => b.checked).map(b => b.dataset.logsec);
+    const tempo = +m.querySelector('#logTempo').value || null;
+    logScorePractice(x.id, s ? s.id : null, mins, {
+      sections: picked, comfort: tempo, tempo,
+      focus: m.querySelector('#logFocus').value.trim(),
+      quality: m.querySelector('#logQuality').value || null,
+      discoveries: m.querySelector('#logNotes').value.trim()});
     m.remove(); sound('success');
     toast(mins ? `${fmtHM(mins)} logged.` : 'Logged.');
     scoreSidePaint(x);
