@@ -66,7 +66,8 @@ async function openScoreIn(container, rec, opts = {}){
     measureNumberInterval: 1,
     drawingParameters: 'default',
   });
-  _sv = {osmd, container, scoreId: rec.id, from: null, to: null, loaded: false};
+  _sv = {osmd, container, scoreId: rec.id, from: null, to: null, loaded: false,
+    page: null, pages: 1, at: 0};
   await renderScore(rec, opts);
   return _sv;
 }
@@ -83,16 +84,28 @@ async function openScoreIn(container, rec, opts = {}){
 async function renderScore(rec, opts = {}){
   if(!_sv) return null;
   const {osmd} = _sv;
+  const lib = (typeof opensheetmusicdisplay !== 'undefined') ? opensheetmusicdisplay : null;
   const from = opts.from === undefined ? _sv.from : opts.from;
   const to = opts.to === undefined ? _sv.to : opts.to;
-  const changed = !_sv.loaded || from !== _sv.from || to !== _sv.to;
-  _sv.from = from; _sv.to = to;
+  /* The shape of a page, or null for one endless page — which is the scroll.
+     Music is read a page at a time and turned; a scroll is right for marking
+     a score up and wrong for playing from it. */
+  const page = opts.page === undefined ? _sv.page : opts.page;
+  const pageSame = (a, b) => (!a && !b) || (a && b && Math.abs(a - b) < 0.01);
+  const changed = !_sv.loaded || from !== _sv.from || to !== _sv.to || !pageSame(page, _sv.page);
+  _sv.from = from; _sv.to = to; _sv.page = page;
   if(changed){
     const r = osmd.EngravingRules || osmd.rules;
     if(r){
       /* the rules count from zero and the room counts from one */
       r.MinMeasureToDrawIndex = from ? Math.max(0, from - 1) : 0;
       r.MaxMeasureToDrawIndex = to ? Math.max(0, to - 1) : Number.MAX_SAFE_INTEGER;
+      /* the ratio is what matters, not the numbers: the engraving is drawn at
+         the width of its container and the height follows from the shape */
+      try {
+        if(page) r.PageFormat = new lib.PageFormat(PAGE_UNITS, PAGE_UNITS * page, 'screen');
+        else osmd.setPageFormat('Endless');
+      } catch(e){}
     }
     await osmd.load(rec.musicXml);
     _sv.loaded = true;
@@ -113,9 +126,40 @@ async function renderScore(rec, opts = {}){
      and they are only paid when the setting or the width changes. */
   if(want) _sv.fitted = fitBarsPerLine(osmd, rec, want);
   else _sv.fitted = null;
+  _sv.pages = pageCount(osmd);
+  _sv.at = clamp(_sv.at, 0, _sv.pages - 1);
+  showScorePage(_sv.at);
   /* the count is the whole piece's, which only a full engraving can say */
   if(!from && !to) rec.totalMeasures = scoreMeasureCount(osmd) || rec.totalMeasures;
   return _sv;
+}
+/* One page's worth of shape, in the engraver's units. Only the ratio is read,
+   so the number itself is arbitrary — it is here as a name rather than a
+   magic 160 three lines down. */
+const PAGE_UNITS = 160;
+function pageCount(osmd){
+  try { return Math.max(1, (osmd.GraphicSheet.MusicPages || []).length); } catch(e){ return 1; }
+}
+/* Turning a page is showing one engraving and hiding the rest: every page is
+   its own <svg>, already drawn, so a turn costs nothing and never waits. */
+function showScorePage(i){
+  if(!_sv) return 0;
+  const svgs = _sv.container.querySelectorAll('svg');
+  const at = clamp(i, 0, Math.max(0, svgs.length - 1));
+  svgs.forEach((n, k) => n.style.display = (!_sv.page || k === at) ? '' : 'none');
+  _sv.at = at;
+  return at;
+}
+function turnScorePage(by){
+  if(!_sv || !_sv.page) return null;
+  const was = _sv.at;
+  const now = showScorePage(_sv.at + by);
+  return now === was ? null : now;
+}
+/* which page a bar is on, so a jump to a section turns to it */
+function pageOfMeasure(n){
+  const b = measureBoxes().find(x => x.measure === n);
+  return b ? b.page : null;
 }
 /* How many bars the widest line actually got. Lines are found by grouping the
    drawn measures by the height they sit at, which is the same trick the bands
@@ -196,6 +240,12 @@ function measureBoxes(){
      model without this filter is reading where a measure used to be — which
      is how a band for bar 40 ends up drawn over a page that stops at bar 6. */
   const lo = _sv.from || -Infinity, hi = _sv.to || Infinity;
+  /* Paginated, every page's coordinates start again at its own top left, so a
+     box is only meaningful beside the page it belongs to. */
+  const pages = (() => { try { return osmd.GraphicSheet.MusicPages || []; } catch(e){ return []; } })();
+  const pageOf = m => { try { const sys = m.ParentStaffLine && m.ParentStaffLine.ParentMusicSystem;
+    const pg = sys && sys.Parent; const at = pg ? pages.indexOf(pg) : -1; return at < 0 ? 0 : at;
+  } catch(e){ return 0; } };
   const unit = (osmd.zoom || 1) * 10;             /* OSMD's unit-to-pixel scale */
   try {
     (osmd.GraphicSheet.MeasureList || []).forEach(staffLine => {
@@ -217,11 +267,12 @@ function measureBoxes(){
 
            The staff itself is fixed by the engraver: five lines one unit
            apart, so four units tall, whatever is written on it. */
-        const box = {measure:n, x: abs.x * unit, y: abs.y * unit,
+        const box = {measure:n, page: pageOf(m), x: abs.x * unit, y: abs.y * unit,
           w: size.width * unit, h: STAFF_UNITS * unit};
         /* a measure is drawn once per staff; where two staves are one
            instrument the band wants the union, so it covers both hands */
-        const had = out.find(b => b.measure === n && Math.abs(b.y - box.y) < box.h * 0.75);
+        const had = out.find(b => b.measure === n && b.page === box.page
+          && Math.abs(b.y - box.y) < box.h * 0.75);
         if(had){
           const x2 = Math.max(had.x + had.w, box.x + box.w), y2 = Math.max(had.y + had.h, box.y + box.h);
           had.x = Math.min(had.x, box.x); had.y = Math.min(had.y, box.y);
@@ -236,7 +287,9 @@ function measureBoxes(){
    wraps is two shapes on the page and drawing it as one rectangle would paint
    over everything between them. */
 function measureRangeBands(from, to){
-  const rows = measureBoxes().filter(b => b.measure >= from && b.measure <= to);
+  const on = _sv && _sv.page ? _sv.at : null;
+  const rows = measureBoxes().filter(b => b.measure >= from && b.measure <= to
+    && (on === null || b.page === on));
   const bands = [];
   rows.sort((a, b) => a.y - b.y || a.x - b.x).forEach(b => {
     const line = bands.find(x => Math.abs(x.y - b.y) < Math.max(8, b.h * 0.6));
@@ -248,9 +301,12 @@ function measureRangeBands(from, to){
   });
   return bands;
 }
-const measureBox = n => measureBoxes().find(b => b.measure === n) || null;
+const measureBox = n => { const on = _sv && _sv.page ? _sv.at : null;
+  return measureBoxes().find(b => b.measure === n && (on === null || b.page === on)) || null; };
 /* which measure a press landed in, for the pin popover */
 function measureAt(x, y){
-  const hit = measureBoxes().filter(b => x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h);
+  const on = _sv && _sv.page ? _sv.at : null;
+  const hit = measureBoxes().filter(b => (on === null || b.page === on)
+    && x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h);
   return hit.length ? hit[0].measure : null;
 }

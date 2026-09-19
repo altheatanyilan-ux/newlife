@@ -25,6 +25,7 @@ addEventListener('hashchange', () => {
   if(S && S._score) S._score.reading = false;
   if(typeof scoreKeepAwake === 'function') scoreKeepAwake(false);
   if(typeof scoreQuietWatch === 'function') scoreQuietWatch(false);
+  if(typeof scoreKeysWatch === 'function') scoreKeysWatch(null);
 });
 
 const scoreOpenId = () => S._score && S._score.id;
@@ -170,6 +171,9 @@ function scoreReadStripHTML(x){
     ${parts.length > 1 ? `<span class="sc-strip-parts">${parts.map(p =>
       `<button class="tbtn${(x.hidden || []).includes(p.index) ? '' : ' on'}" data-scrpart="${p.index}">${esc(p.name)}</button>`).join('')}</span>` : ''}
     <button class="tbtn${ui.marks ? ' on' : ''}" id="scMarks" title="the bands and pins you have put on it">marks</button>
+    <span class="sc-pager"><button class="tbtn" data-scturn="-1" title="back a page">‹</button>
+      <span class="mono" id="scPageSay"></span>
+      <button class="tbtn" data-scturn="1" title="on a page">›</button></span>
     ${secs.length ? `<select class="sel sm" id="scSecJump"><option value="">go to…</option>${secs.map(sv =>
       `<option value="${esc(sv.id)}">${esc(sv.name)} · ${sv.startMeasure}</option>`).join('')}</select>` : ''}
     <span class="grow"></span>
@@ -280,6 +284,24 @@ const scoreAgo = d => { const n = daysBetween(d, today());
   return n <= 0 ? 'practised today' : n === 1 ? 'yesterday' : `${n} days ago`; };
 
 /* ---------- drawing what sits over the notation ---------- */
+/* The shape of one page, as a ratio of the stage it has to fill. Reading is
+   paged; the room is a scroll, because marking a score up wants the whole of
+   it under one continuous thumb and playing from it wants a page you turn. */
+function scorePageShape(){
+  const ui = scoreUi();
+  if(!ui.reading) return null;
+  const stage = document.getElementById('scStage');
+  if(!stage) return null;
+  /* the room the page actually gets, which is the box less its padding — take
+     the whole box and the page comes out taller than the space by exactly the
+     padding, which is elevenish pixels of scroll on a thing that is supposed
+     to have none */
+  const cs = getComputedStyle(stage);
+  const padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+  const padY = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+  const w = stage.clientWidth - padX, h = stage.clientHeight - padY;
+  return (w > 40 && h > 40) ? clamp(h / w, 0.3, 3) : null;
+}
 async function scorePaint(x){
   const stage = document.getElementById('scCanvas');
   const say = document.getElementById('scLoading');
@@ -291,7 +313,8 @@ async function scorePaint(x){
   const ui = scoreUi();
   const focus = ui.focus ? scoreSection(x, ui.focus) : null;
   try {
-    await openScoreIn(stage, x, focus ? {from:focus.startMeasure, to:focus.endMeasure} : {});
+    await openScoreIn(stage, x, Object.assign({page: scorePageShape()},
+      focus ? {from:focus.startMeasure, to:focus.endMeasure} : {}));
     x.lastOpened = new Date().toISOString();
     if(say) say.remove();
     /* the parts are only known once the file has been read, so the bar above
@@ -299,6 +322,7 @@ async function scorePaint(x){
        always, because before it there is nothing there to correct */
     scoreRepaintParts(x);
     scoreOverlayPaint(x);
+    scorePageSay();
     saveNow();
   } catch(e){
     if(say) say.textContent = `That score could not be drawn — ${e.message}`;
@@ -345,8 +369,10 @@ async function scoreRedraw(x){
   const ui = scoreUi();
   const focus = ui.focus ? scoreSection(x, ui.focus) : null;
   try {
-    await renderScore(x, focus ? {from:focus.startMeasure, to:focus.endMeasure} : {from:null, to:null});
+    await renderScore(x, Object.assign({page: scorePageShape()},
+      focus ? {from:focus.startMeasure, to:focus.endMeasure} : {from:null, to:null}));
     scoreOverlayPaint(x);
+    scorePageSay();
   } catch(e){ console.warn('score redraw failed', e); }
 }
 /* and a repaint of the words, for everything else */
@@ -457,7 +483,30 @@ function bindScoreViewer(root, x){
   const jump = root.querySelector('#scJump');
   if(jump) jump.onchange = () => { const n = +jump.value; if(n >= 1) scoreScrollTo(n); };
   /* a press on the notation pins a note to the bar it landed in */
+  $$('[data-scturn]', root).forEach(b => b.onclick = ev => { ev.stopPropagation();
+    scoreTurn(+b.dataset.scturn, x); });
   const stage = root.querySelector('#scStage');
+  /* reading: the outer thirds turn, the middle does nothing but wake the strip */
+  if(stage && ui.reading){
+    stage.addEventListener('click', ev => {
+      const r = stage.getBoundingClientRect();
+      const at = (ev.clientX - r.left) / r.width;
+      if(at > 0.72) scoreTurn(1, x);
+      else if(at < 0.28) scoreTurn(-1, x);
+    });
+    let swipe = null;
+    stage.addEventListener('pointerdown', ev => { swipe = {x:ev.clientX, y:ev.clientY, t:Date.now()}; });
+    stage.addEventListener('pointerup', ev => {
+      if(!swipe) return;
+      const dx = ev.clientX - swipe.x, dy = ev.clientY - swipe.y, took = Date.now() - swipe.t;
+      swipe = null;
+      /* a swipe is sideways, quick, and further across than down — otherwise
+         it is a scroll on a page that happens to be taller than the glass, or
+         a finger that came to rest on the score */
+      if(Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5 || took > 900) return;
+      scoreTurn(dx < 0 ? 1 : -1, x);
+    });
+  }
   if(stage) stage.addEventListener('click', ev => {
     if(ui.reading) return;           /* a tap is for waking the strip, not pinning */
     if(ev.target.closest('.sc-pin, .sc-band-n')) return;
@@ -467,8 +516,24 @@ function bindScoreViewer(root, x){
   });
   /* the watcher is re-armed after every redraw of the page, because the
      listeners it hangs on went with the old one */
-  if(ui.reading) scoreQuietWatch(true);
+  if(ui.reading){ scoreQuietWatch(true); scoreKeysWatch(x); }
+  else scoreKeysWatch(null);
   bindScoreSide(root, x);
+}
+/* The arrow keys, for a pedal or a keyboard. Bound to the window rather than
+   the page, because in reading mode there is nothing on the page to focus. */
+let _scKeys = null;
+function scoreKeysWatch(x){
+  if(_scKeys){ removeEventListener('keydown', _scKeys, true); _scKeys = null; }
+  if(!x) return;
+  _scKeys = ev => {
+    if(ev.target && ev.target.matches && ev.target.matches('input, textarea, select')) return;
+    const by = /ArrowRight|PageDown| /.test(ev.key) ? 1 : /ArrowLeft|PageUp/.test(ev.key) ? -1 : 0;
+    if(!by) return;
+    if(ev.key === ' ' && ev.repeat) return;
+    if(scoreTurn(by, x)) ev.preventDefault();
+  };
+  addEventListener('keydown', _scKeys, true);
 }
 function bindScoreSide(root, x){
   const ui = scoreUi();
@@ -491,6 +556,26 @@ function bindScoreSide(root, x){
     scoreSidePaint(x); scoreOverlayPaint(x);
   });
 }
+/* Turning a page: a tap on the right third or the left third, an arrow key, or
+   a swipe. Three ways because the same person uses all three — a finger while
+   playing, a pedal or keyboard between phrases, and a thumb when the tablet is
+   in the other hand. */
+function scoreTurn(by, x){
+  const at = turnScorePage(by);
+  if(at === null) return false;
+  scoreOverlayPaint(x);
+  scorePageSay();
+  const stage = document.getElementById('scStage');
+  if(stage) stage.scrollTo({top:0, left:0});
+  return true;
+}
+function scorePageSay(){
+  const say = document.getElementById('scPageSay');
+  const sv = scoreView();
+  if(!say) return;
+  if(!sv || !sv.page || sv.pages < 2){ say.textContent = ''; return; }
+  say.textContent = `${sv.at + 1} / ${sv.pages}`;
+}
 /* both copies of the control, since reading mode carries its own */
 function scoreBplRepaint(x){
   $$('#scBplSay').forEach(n => n.textContent = x.barsPerLine || 'fit');
@@ -500,6 +585,15 @@ function scoreBplRepaint(x){
 }
 function scoreScrollTo(n){
   const stage = document.getElementById('scStage');
+  const sv = scoreView();
+  /* paginated, "go to bar 60" is a page to turn to before it is a place to
+     scroll to, and the bar is not on the page you are looking at */
+  if(sv && sv.page){
+    const pg = pageOfMeasure(n);
+    if(pg == null){ toast(`Bar ${n} is not in what is drawn.`); return false; }
+    if(pg !== sv.at){ showScorePage(pg); const x = scoreById(scoreUi().id);
+      if(x) scoreOverlayPaint(x); scorePageSay(); }
+  }
   const b = measureBox(n);
   if(!stage || !b){ toast(`Bar ${n} is not on this page.`); return false; }
   stage.scrollTo({top: Math.max(0, b.y - 60), left: Math.max(0, b.x - 80), behavior:'smooth'});

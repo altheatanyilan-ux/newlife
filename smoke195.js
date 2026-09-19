@@ -63,6 +63,14 @@ ${part('P1', 16)}
 ${part('P2', 16)}
 </score-partwise>`;
 
+/* and a longer one, because a page you turn needs more than one page's worth */
+const LONG = `<?xml version="1.0" encoding="UTF-8"?>
+<score-partwise version="3.1">
+  <work><work-title>Sixty Bars</work-title></work>
+  <part-list><score-part id="P1"><part-name>Piano</part-name></score-part></part-list>
+${part('P1', 60)}
+</score-partwise>`;
+
 (async () => {
   const b = await chromium.launch({executablePath:'/opt/pw-browsers/chromium'});
   const errs = [];
@@ -374,12 +382,96 @@ ${part('P2', 16)}
     !left.cls && left.sidebar !== 'none' && !left.quiet, JSON.stringify(left));
   await p.evaluate(() => { location.hash = '#/score/' + scores()[0].id; }); await p.waitForTimeout(4000);
 
-  console.log('\n13. taking one off the shelf');
-  const gone = await p.evaluate(() => { const id = scores()[0].id;
-    removeScore(id); return {left: scores().length, still: !!scoreById(id)}; });
-  is('the score goes, and its notes with it', [gone.left, gone.still], [0, false]);
+  console.log('\n13. a page you turn, not a scroll you fall down');
+  /* Music is read a page at a time and turned. A scroll is right for marking a
+     score up — the whole of it under one continuous thumb — and wrong for
+     playing from it, where what you want is a page that fits the glass and a
+     turn between phrases. So the room scrolls and reading paginates. */
+  /* its own score, long enough to need turning, and back into reading mode —
+     section twelve walked out of the room to prove the app came back */
+  await p.evaluate(async xml => {
+    await takeScoreFile(new File([xml], 'Sixty Bars.musicxml'));
+  }, LONG);
+  await p.waitForTimeout(5500);
+  await p.evaluate(() => { const x = scores().find(y => y.title === 'Sixty Bars');
+    addScoreSection(x.id, {name:'Opening', startMeasure:1, endMeasure:8, color:'#5c7c8a'});
+    /* four to a line, so sixty bars is fifteen lines and more than one page
+       even on a screen this size — and the two controls have to agree */
+    x.barsPerLine = 4;
+    saveNow(); document.querySelector('#scRead').click(); });
+  await p.waitForTimeout(7000);
+  const paged = await p.evaluate(() => { const sv = scoreView();
+    return {pages: sv.pages, shape: sv.page,
+      svgs: document.querySelectorAll('#scCanvas svg').length,
+      shown: [...document.querySelectorAll('#scCanvas svg')].filter(n => n.style.display !== 'none').length,
+      say: (document.querySelector('#scPageSay') || {}).textContent}; });
+  yes('the engraving is broken into pages', paged.pages > 1 && paged.svgs === paged.pages,
+    JSON.stringify(paged));
+  is('  and one of them is on the glass', paged.shown, 1);
+  yes('  numbered, so you know where you are', /1 \/ \d/.test(paged.say || ''), paged.say);
+  /* a page is the shape of the screen, so there is nothing left to scroll */
+  const fits = await p.evaluate(() => { const sv = scoreView();
+    const svg = [...document.querySelectorAll('#scCanvas svg')][sv.at];
+    const stage = document.getElementById('scStage');
+    return {page: Math.round(svg.getBoundingClientRect().height),
+      glass: stage.clientHeight, over: stage.scrollHeight - stage.clientHeight}; });
+  yes('a page is the shape of the glass it is on', Math.abs(fits.page - fits.glass) < 60,
+    JSON.stringify(fits));
+  yes('  with nothing hanging below it to scroll to', fits.over <= 2, JSON.stringify(fits));
+  /* turning: the arrow keys, for a pedal or a keyboard between phrases */
+  await p.keyboard.press('ArrowRight'); await p.waitForTimeout(450);
+  is('an arrow turns the page', await p.evaluate(() => scoreView().at), 1);
+  await p.keyboard.press('ArrowLeft'); await p.waitForTimeout(450);
+  is('  and turns it back', await p.evaluate(() => scoreView().at), 0);
+  await p.keyboard.press('ArrowLeft'); await p.waitForTimeout(450);
+  is('  the first page has nothing before it', await p.evaluate(() => scoreView().at), 0);
+  /* and a tap on the outer third, for a finger while your hands are at the keys */
+  const tapTurn = await p.evaluate(() => {
+    const stage = document.getElementById('scStage'), r = stage.getBoundingClientRect();
+    stage.dispatchEvent(new MouseEvent('click', {bubbles:true,
+      clientX: r.left + r.width * 0.9, clientY: r.top + r.height / 2}));
+    return scoreView().at; });
+  is('a tap on the right edge turns on', tapTurn, 1);
+  const tapBack = await p.evaluate(() => {
+    const stage = document.getElementById('scStage'), r = stage.getBoundingClientRect();
+    stage.dispatchEvent(new MouseEvent('click', {bubbles:true,
+      clientX: r.left + r.width * 0.1, clientY: r.top + r.height / 2}));
+    return scoreView().at; });
+  is('  and on the left edge turns back', tapBack, 0);
+  const tapMiddle = await p.evaluate(() => {
+    const stage = document.getElementById('scStage'), r = stage.getBoundingClientRect();
+    stage.dispatchEvent(new MouseEvent('click', {bubbles:true,
+      clientX: r.left + r.width / 2, clientY: r.top + r.height / 2}));
+    return scoreView().at; });
+  is('  while the middle of the page turns nothing', tapMiddle, 0);
+  /* the marks belong to the page they are on: page-by-page, every page's
+     coordinates start again at its own top left, so a band read off the wrong
+     page lands over whatever happens to be at those numbers */
+  const perPage = await p.evaluate(() => {
+    const byPage = {};
+    measureBoxes().forEach(b => { (byPage[b.page] = byPage[b.page] || []).push(b.measure); });
+    return Object.entries(byPage).map(([k, v]) => [ +k, Math.min(...v), Math.max(...v) ]);
+  });
+  yes('every bar knows which page it is on', perPage.length > 1, JSON.stringify(perPage));
+  yes('  and no page repeats another page\'s bars',
+    perPage.every(([, lo], i) => i === 0 || lo > perPage[i - 1][2]), JSON.stringify(perPage));
+  /* going to a bar is turning to its page first, since it is not on this one */
+  const far = perPage[perPage.length - 1][1];
+  const jumped = await p.evaluate(n => { scoreScrollTo(n); return scoreView().at; }, far);
+  is('going to a bar turns to the page it is on', jumped, perPage.length - 1);
+  /* leaving reading mode gives the scroll back */
+  await p.evaluate(() => document.querySelector('#scUnread').click());
+  await p.waitForTimeout(4500);
+  const backToScroll = await p.evaluate(() => ({page: scoreView().page, pages: scoreView().pages,
+    svgs: document.querySelectorAll('#scCanvas svg').length}));
+  is('the room is one continuous page again', [backToScroll.page, backToScroll.svgs], [null, 1]);
 
-  console.log('\n14. nothing threw');
+  console.log('\n14. taking one off the shelf');
+  const gone = await p.evaluate(() => { const id = scores()[0].id, was = scores().length;
+    removeScore(id); return {left: scores().length, was, still: !!scoreById(id)}; });
+  is('the score goes, and its notes with it', [gone.left, gone.still], [gone.was - 1, false]);
+
+  console.log('\n15. nothing threw');
   is('no page errors', errs, []);
 
   console.log(bad ? `\n${bad} FAILED` : '\nall good');

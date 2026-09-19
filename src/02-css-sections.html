@@ -7661,6 +7661,24 @@ html[data-theme="light"] .wk-sleep.is-guess{background-image:repeating-linear-gr
 .sc-swatch:hover{transform:scale(1.12)}
 .sc-swatch.on{border-color:var(--surface);box-shadow:0 0 0 2px var(--c)}
 
+/* A page is a page: it fits the glass by construction, so there is nothing to
+   scroll, and the turn is a turn rather than a slide. */
+html.sc-reading .sc-stage{overflow:hidden}
+html.sc-reading .sc-canvas svg{margin:0 auto;display:block}
+.sc-pager{display:flex;align-items:center;gap:5px}
+.sc-pager .mono{min-width:3.4em;text-align:center;font-size:.72rem;opacity:.75}
+/* the two thirds that turn, shown only while the strip is up, so the page is
+   clean once it settles */
+html.sc-reading .sc-stage::before,html.sc-reading .sc-stage::after{
+  content:"";position:absolute;top:0;bottom:0;width:26%;pointer-events:none;z-index:1;
+  opacity:0;transition:opacity .3s var(--ease)}
+html.sc-reading .sc-stage::before{left:0;
+  background:linear-gradient(90deg,color-mix(in srgb,var(--ink,#1d1a18) 7%,transparent),transparent)}
+html.sc-reading .sc-stage::after{right:0;
+  background:linear-gradient(270deg,color-mix(in srgb,var(--ink,#1d1a18) 7%,transparent),transparent)}
+html.sc-reading:not(.sc-quiet) .sc-stage::before,
+html.sc-reading:not(.sc-quiet) .sc-stage::after{opacity:1}
+
 /* ---- reading: a tablet on the music desk ----
    Nothing on the glass but the page. The sidebar, the topbar, the clock, the
    panel of notes and the add button are all things you press between sittings,
