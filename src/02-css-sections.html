@@ -8237,20 +8237,17 @@ html[data-theme="dark"] .sc-stage{background:#f2ece0}
 .ja-islandpage .serif-lg{font-family:var(--serif);font-size:1.25rem}
 #isSaved{font-size:.66rem;opacity:.45;transition:opacity .2s var(--ease)}
 #isSaved.just{opacity:.9;color:var(--sage)}
-/* the worked-out reading, beside the phrase it came from */
-.ja-read{background:none;border:0;padding:2px 6px;border-radius:5px;font:inherit;font-size:.74rem;
-  color:inherit;opacity:.72;cursor:pointer;text-align:left;min-width:0;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ja-read:hover{opacity:1;background:color-mix(in srgb,var(--line) 40%,transparent)}
-/* one you have corrected is yours, and says so */
-.ja-read.mine{opacity:.95;border-bottom:1.5px solid color-mix(in srgb,var(--sage) 60%,transparent)}
-/* and one with a character the table does not know is not claiming to be whole */
-.ja-read.partial{border-bottom:1px dotted #c98b7a;opacity:.6}
-.ja-rubybox{margin-top:10px;padding:10px 12px;border-radius:var(--radius);
-  border:1px solid var(--line);background:color-mix(in srgb,var(--surface) 55%,transparent)}
-.ja-rubybox[hidden]{display:none}
-.ja-rubyline{font-size:1.15rem;line-height:2.4}
-.ja-rubyline rt{font-size:.5em;opacity:.7;font-family:var(--mono)}
+/* the stepping stones, grouped by voice */
+.ja-stonegroup{margin-bottom:10px}
+.ja-stonevoice{display:block;font-size:.62rem;text-transform:uppercase;letter-spacing:.08em;
+  opacity:.55;margin-bottom:4px}
+.ja-v-formal .ja-stonevoice,.ja-stonevoice.ja-v-formal{color:#5c7c8a}
+.ja-v-casual .ja-stonevoice,.ja-stonevoice.ja-v-casual{color:#b0705e}
+.ja-stone{border-left:2px solid var(--line)}
+.ja-stone.ja-v-formal{border-left-color:#5c7c8a}
+.ja-stone.ja-v-casual{border-left-color:#b0705e}
+.ja-stoneread{display:block;font-size:.6rem;opacity:.55;font-style:normal;line-height:1.3}
+.ja-shelfn{margin-left:auto;opacity:.5}
 .ja-islands{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-top:10px}
 .ja-island{border:1px solid var(--line);border-radius:var(--radius);padding:11px 13px;background:var(--surface);
   border-left-width:3px}
@@ -8492,7 +8489,14 @@ html.ja-running{overflow:hidden}
 .ja-registers{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
 @media (max-width:760px){ .ja-registers{grid-template-columns:1fr} }
 .ja-chunks{display:flex;flex-direction:column;gap:4px;margin-bottom:6px}
-.ja-chunk{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) 5.5rem 1.6rem;gap:8px;align-items:center;margin-bottom:4px}
+.ja-chunk{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) minmax(0,1.2fr) 5.5rem 1.6rem;
+  gap:6px 8px;align-items:center;margin-bottom:8px}
+@media (max-width:820px){.ja-chunk{grid-template-columns:minmax(0,1fr) 5.5rem 1.6rem}
+  .ja-chunk > :nth-child(2),.ja-chunk > :nth-child(3){grid-column:1 / -1}}
+/* the phrase with the reading over it, under the two fields it came from */
+.ja-chunkruby{grid-column:1 / -1;font-size:1.05rem;line-height:2.1;min-height:0;padding-left:2px}
+.ja-chunkruby:empty{display:none}
+.ja-chunkruby rt{font-size:.5em;opacity:.72;font-family:var(--mono);font-weight:400}
 @media (max-width:760px){ .ja-chunk{grid-template-columns:1fr 1fr} }
 .ja-check{display:inline-flex;align-items:center;gap:6px;font-size:.78rem}
 

@@ -95,22 +95,47 @@ function jaTopicOverviewHTML(){
    pause and a silence, which is the difference between a conversation that
    continues and one that somebody else has to rescue. */
 function jaStonesHTML(){
+  const all = jaState2().stones || [];
   return `<div class="ja-sec">
     <div class="row between" style="align-items:baseline">
       <span class="sc" style="margin:0">Stepping stones</span>
-      <button class="btn sm primary" id="jaStoneNew">＋ a phrase</button></div>
-    <p class="muted ja-note">The phrases that buy you a second without buying a silence. Glance at this while you talk; it is meant to be a cheat sheet, not a syllabus.</p>
+      <span class="row" style="gap:8px">
+        <span class="mono faint">${all.length} phrase${all.length === 1 ? '' : 's'}</span>
+        <button class="btn sm ghost" id="jaStonesTopUp" title="add the phrases that ship with the room, leaving yours alone">top up</button>
+        <button class="btn sm primary" id="jaStoneNew">\uff0b a phrase</button></span></div>
+    <p class="muted ja-note">The phrases that buy you a second without buying a silence. Glance at this while
+      you talk; it is meant to be a cheat sheet, not a syllabus. The voice matters more here than anywhere:
+      a stepping stone is said under pressure without thinking, and one said in the wrong register is worse
+      than a pause \u2014 it is a pause and then an apology.</p>
     <div class="ja-shelves">${JA_STONE_SHELVES.map(([k, name, jp, hint]) => {
       const list = jaStones(k);
+      /* grouped by voice rather than mixed, because the point of the shelf is
+         to be glanced at, and a glance cannot sort */
+      const by = r => list.filter(v => v.register === r);
+      const group = (r, label) => { const rows = by(r); if(!rows.length) return '';
+        return `<div class="ja-stonegroup">
+          <span class="ja-stonevoice mono ja-v-${r}">${esc(label)}</span>
+          <div class="ja-stones">${rows.map(jaStoneChipHTML).join('')}</div></div>`; };
       return `<details class="ja-shelf" ${list.length ? 'open' : ''}>
-        <summary><span class="sc">${esc(name)}</span><span class="mono faint">${esc(jp)} · ${esc(hint)}</span></summary>
-        <div class="body"><div class="ja-stones">${list.map(v => `<span class="ja-stone" data-jastone="${esc(v.id)}">
-          <b>${esc(v.text)}</b>${v.note ? ` <em class="faint">${esc(v.note)}</em>` : ''}
-          <button class="del-x inline" data-jastonedel="${esc(v.id)}">×</button></span>`).join('')
-          || '<span class="faint sm">nothing on this shelf yet</span>'}</div>
-          <button class="tbtn" data-jastoneadd="${esc(k)}">＋ add to this shelf</button></div>
+        <summary><span class="sc">${esc(name)}</span><span class="mono faint">${esc(jp)} \u00b7 ${esc(hint)}</span>
+          <span class="mono faint ja-shelfn">${list.length}</span></summary>
+        <div class="body">
+          ${list.length
+            ? group('either', 'either') + group('formal', '\u4e01\u5be7\u8a9e \u2014 formal') + group('casual', '\u30bf\u30e1\u53e3 \u2014 casual')
+            : '<span class="faint sm">nothing on this shelf yet</span>'}
+          <button class="tbtn" data-jastoneadd="${esc(k)}">\uff0b add to this shelf</button></div>
       </details>`; }).join('')}</div>
   </div>`;
+}
+/* One phrase. The reading sits under it rather than beside it, because the
+   chip is read at a glance and two things on one line is one thing nobody
+   reads. */
+function jaStoneChipHTML(v){
+  return `<span class="ja-stone ja-v-${esc(v.register)}" data-jastone="${esc(v.id)}">
+    <b class="ja-jp">${esc(v.text)}</b>
+    ${v.reading && v.reading !== v.text ? `<i class="ja-stoneread mono">${esc(v.reading)}</i>` : ''}
+    ${v.note ? `<em class="faint">${esc(v.note)}</em>` : ''}
+    <button class="del-x inline" data-jastonedel="${esc(v.id)}">\u00d7</button></span>`;
 }
 
 /* ---------- the editor ---------- */
@@ -183,17 +208,15 @@ function jaIslandPage(root, i){
     <div class="row" style="gap:14px;margin-top:6px;flex-wrap:wrap">
       <label class="ja-check"><input type="checkbox" id="isVerified" ${i.nativeVerified ? 'checked' : ''}> a native has been over it</label>
       <label class="ja-check"><input type="checkbox" id="isPitch" ${i.pitchMarked ? 'checked' : ''}> pitch marked</label>
-      <span class="grow"></span>
-      <button class="tbtn" id="isRuby" title="the reading over the kanji, worked out rather than typed">ふりがな</button>
     </div>
-    <div id="isRubyBox" class="ja-rubybox" hidden></div>
 
     <section class="section rv ja-isle-sec">
       <div class="row between" style="align-items:baseline">
         <span class="sc" style="margin:0">The chunks this needs</span>
         <button class="btn sm" id="isChunkAdd">＋ a chunk</button></div>
-      <p class="muted" style="font-size:.85rem">Write the Japanese and nothing else. The reading is worked out
-        from it, and a word you cannot produce matters here, in this monologue, and nowhere else.</p>
+      <p class="muted" style="font-size:.85rem">The phrase, how it is said, and what it means \u2014 the English is
+        the cue when these become flashcards, and a card you can answer by recognising teaches nothing.
+        A word you cannot produce matters here, in this monologue, and nowhere else.</p>
       <div class="ja-chunks" id="isChunks">${jaChunkListHTML(i)}</div>
     </section>
 
@@ -234,60 +257,46 @@ function jaChunkListHTML(i){
   if(!(i.chunks || []).length) return '<span class="faint sm">Nothing yet. What would you need to know how to say, to say this?</span>';
   return i.chunks.map(c => jaChunkRowHTML(c)).join('');
 }
-/* One chunk: the Japanese, and the reading worked out from it.
-   Nothing else is asked for. It used to want the reading and an English
-   meaning as well, which is three fields for one phrase — and two of them
-   are work a machine can do or work that does not need doing. The reading is
-   read off the Japanese; the meaning was only ever there to put on the front
-   of a flashcard, and a card that asks you to produce a phrase from its
-   sound is a better production card than one that asks you to translate. */
+/* One chunk: the phrase, how it is said, and what it means.
+
+   There was a table in here for a while that worked the reading out from the
+   characters. It is gone: a reading you type is a reading you have thought
+   about, and thinking about it is most of the reason for writing the phrase
+   down at all.
+
+   What the room does do, once the reading is there, is put it over the right
+   characters \u2014 which is not a language problem but an alignment one, and
+   alignment is exact where generation is a guess. The kana in the phrase are
+   anchors; what falls between them belongs to the kanji between them.
+
+   The English went away for a version and came back, for a reason worth
+   writing down: these chunks become flashcards, and a production card needs
+   a cue in a language you are not trying to produce. Given the Japanese you
+   would be recognising it; given the English you have to reach for it, and
+   reaching for it is the whole exercise. */
 function jaChunkRowHTML(c){
-  const auto = jaFurigana(c.japanese);
-  const sure = jaFuriganaSure(c.japanese);
-  const mine = !!(c.reading && c.reading !== auto);
   return `<div class="ja-chunk" data-jachunkrow="${esc(c.id)}">
     <input class="inp ja-jp" data-jachunkid="${esc(c.id)}" data-jachunkf="japanese"
       value="${esc(c.japanese)}" placeholder="\u7d4c\u55b6\u3059\u308b">
-    <button class="ja-read mono${mine ? ' mine' : ''}${sure || !c.japanese ? '' : ' partial'}"
-      data-jachunkread="${esc(c.id)}"
-      title="${mine ? 'yours \u2014 press to change it, or to put the worked-out one back'
-        : sure ? 'worked out from the Japanese \u2014 press to correct it'
-        : 'partly worked out: there is a character this room does not have a reading for. Press to fill it in.'}"
-      >${esc(c.reading || auto) || '\u2014'}</button>
+    <input class="inp" data-jachunkid="${esc(c.id)}" data-jachunkf="reading"
+      value="${esc(c.reading)}" placeholder="\u3051\u3044\u3048\u3044\u3059\u308b">
+    <input class="inp" data-jachunkid="${esc(c.id)}" data-jachunkf="meaning"
+      value="${esc(c.meaning)}" placeholder="to run a business">
     <label class="ja-check mono" title="can you produce it without reaching for it?">
       <input type="checkbox" data-jachunkready="${esc(c.id)}" ${c.ready ? 'checked' : ''}> fluent</label>
     <button class="del-x inline" data-jachunkdel="${esc(c.id)}">\u00d7</button>
+    <div class="ja-chunkruby ja-jp" data-jachunkruby="${esc(c.id)}">${jaChunkRubySay(c)}</div>
   </div>`;
 }
-/* The reading, when the table did not know a word or got one wrong. Offered
-   rather than demanded: the field arrives filled in with what was worked
-   out, and putting it back to that is one press. */
-function openJaChunkReading(islandId, chunkId){
-  const isle = byId(jaState2().islands, islandId); if(!isle) return null;
-  const c = byId(isle.chunks || [], chunkId); if(!c) return null;
-  const auto = jaFurigana(c.japanese);
-  const sure = jaFuriganaSure(c.japanese);
-  const m = openModal(`<h2>\u3075\u308a\u304c\u306a</h2>
-    <div class="ja-rubyline ja-jp">${jaRubyHTML(c.japanese)}</div>
-    <label class="pd-q" style="margin-top:10px"><span class="k">the reading</span>
-      <input class="inp ja-jp" id="crRead" autofocus value="${esc(c.reading || auto)}"></label>
-    <p class="faint sm">${sure
-      ? `Worked out from the Japanese. Change it if it is wrong \u2014 what you write here is kept.`
-      : `Part of this was worked out and part of it was not: there is a character this room has no reading for,
-         so it is left as it is rather than guessed at.`}</p>
-    <div class="row" style="justify-content:flex-end;margin-top:14px;gap:8px">
-      <button class="btn sm ghost" id="crAuto">Put the worked-out one back</button>
-      <span class="grow"></span>
-      <button class="btn primary" id="crSave">Save</button></div>`, 'narrow');
-  m.querySelector('#crAuto').onclick = () => { m.querySelector('#crRead').value = auto; };
-  m.querySelector('#crSave').onclick = () => {
-    const v = m.querySelector('#crRead').value.trim();
-    /* storing it only when it differs keeps a corrected reading and lets an
-       uncorrected one follow the Japanese as it is edited */
-    c.reading = (v && v !== auto) ? v : '';
-    saveNow(); m.remove(); sound('success'); rerender();
-  };
-  return m;
+/* The phrase with the reading set over its kanji, or nothing at all. Nothing
+   at all is the right answer more often than it looks: before a reading is
+   typed there is nothing to set, and where the reading will not align it is
+   already on the line above where it can be read. */
+function jaChunkRubySay(c){
+  if(!c.japanese || !c.reading) return '';
+  return jaRubyFits(c.japanese, c.reading)
+    ? jaRubyHTML(c.japanese, c.reading)
+    : `<span class="faint sm">the reading does not line up with the kanji \u2014 check it against the phrase</span>`;
 }
 
 /* ---------- the page's bindings ----------
@@ -325,20 +334,6 @@ function bindJaIslandPage(root, i){
     ? '#/japanese/islands/' + i.parentId : '#/japanese/islands');
   const to432 = one('#isTo432');
   if(to432) to432.onclick = () => openJa432Setup(i.id);
-  /* the reading of the whole monologue, over the kanji where a reader wants
-     it rather than beside it */
-  const ruby = one('#isRuby'), rubyBox = one('#isRubyBox');
-  if(ruby && rubyBox) ruby.onclick = () => {
-    if(!rubyBox.hidden){ rubyBox.hidden = true; return; }
-    const text = (one('#isTeineigo').value || '') + (one('#isTameguchi').value
-      ? '\n\n' + one('#isTameguchi').value : '');
-    rubyBox.innerHTML = text.trim()
-      ? `<div class="ja-rubyline ja-jp">${jaRubyHTML(text).replace(/\n/g, '<br>')}</div>
-         <p class="faint sm">Worked out from the characters. Where a word is not in the table it is left
-           bare rather than guessed at.</p>`
-      : '<p class="faint sm">Nothing written yet.</p>';
-    rubyBox.hidden = false;
-  };
   const rebuild = () => { saveNow(); const box = one('#isChunks');
     if(box){ box.innerHTML = jaChunkListHTML(i); bindChunks(); } };
   const bindChunks = () => {
@@ -346,15 +341,15 @@ function bindJaIslandPage(root, i){
       const c = byId(i.chunks, b.dataset.jachunkready); if(c) c.ready = b.checked; saveNow(); mark(); });
     $$('[data-jachunkdel]', root).forEach(b => b.onclick = () => {
       spliceOut(i.chunks, c => c.id === b.dataset.jachunkdel); rebuild(); });
-    $$('[data-jachunkread]', root).forEach(b => b.onclick = () =>
-      openJaChunkReading(i.id, b.dataset.jachunkread));
-    /* the reading follows the Japanese as it is typed, which is the whole
-       point: nobody should have to go and update it */
-    $$('[data-jachunkf="japanese"]', root).forEach(n => n.oninput = debounce(() => {
+    /* both fields write straight through, so nothing is lost by leaving the
+       page and there is no Save for anything to be waiting behind \u2014 and the
+       reading is set over the kanji as it is typed, which is the only way to
+       see whether it has landed where you meant it to */
+    $$('[data-jachunkf]', root).forEach(n => n.oninput = debounce(() => {
       const c = byId(i.chunks, n.dataset.jachunkid); if(!c) return;
-      c.japanese = n.value;
-      const say = root.querySelector(`[data-jachunkread="${CSS.escape(c.id)}"]`);
-      if(say && !c.reading) say.textContent = jaFurigana(c.japanese) || '\u2014';
+      c[n.dataset.jachunkf] = n.value;
+      const over = root.querySelector(`[data-jachunkruby="${CSS.escape(c.id)}"]`);
+      if(over) over.innerHTML = jaChunkRubySay(c);
       saveNow(); mark();
     }, 250));
   };
@@ -398,16 +393,17 @@ function jaChunksToDeck(){
   jaState2().islands.forEach(i => (i.chunks || []).forEach(c => {
     if(c.ready || c.sentToDeck || !c.japanese.trim()) return;
     suggestStudyCard({type:'production', sourceType:'island', sourceId:c.id,
-      /* Reading to writing. A chunk is logged in Japanese and nothing else
-         now, so there is no English to put on the front — and there is no
-         need for any: given the sound of a phrase, producing the phrase is
-         the thing an island actually needs, and translating from English is
-         not. Where an older chunk still carries a meaning it is used, because
-         throwing away something somebody typed would be rude. */
+      /* A production card, so the cue has to be in a language you are not
+         trying to produce: given the Japanese you would be recognising it,
+         and recognising is not the skill an island needs. The English goes
+         on the front; the phrase and how it is said go on the back. Where
+         there is no English — an older chunk, or one written in a hurry —
+         the reading is the next best cue, because producing a phrase from
+         its sound is at least producing it. */
       front: c.meaning
         ? `Say this in Japanese:\n\n${c.meaning}`
-        : `Write this out:\n\n${jaFurigana(c.japanese) || c.japanese}`,
-      back: `${c.japanese}${c.meaning ? `\n${jaFurigana(c.japanese)}` : ''}`,
+        : `Write this out:\n\n${c.reading || c.japanese}`,
+      back: `${c.japanese}${c.reading ? `\n${c.reading}` : ''}`,
       sourceLabel:`Island — ${i.topic}`, tags:['chunk']});
     c.sentToDeck = true; n++;
   }));
@@ -424,16 +420,22 @@ function openJaStone(shelf, id){
       <input class="inp" id="stRead" value="${esc(v ? v.reading : '')}"></label>
     <label class="pd-q" style="margin-top:8px"><span class="k">what it does</span>
       <input class="inp" id="stNote" value="${esc(v ? v.note : '')}" placeholder="how should I put it"></label>
-    <label class="pd-q" style="margin-top:8px"><span class="k">shelf</span>
-      <select class="sel" id="stShelf">${JA_STONE_SHELVES.map(([k, name]) =>
-        `<option value="${k}" ${(v ? v.shelf : shelf) === k ? 'selected' : ''}>${esc(name)}</option>`).join('')}</select></label>
+    <div class="row" style="gap:10px;margin-top:8px">
+      <label class="pd-q" style="flex:1"><span class="k">shelf</span>
+        <select class="sel" id="stShelf">${JA_STONE_SHELVES.map(([k, name]) =>
+          `<option value="${k}" ${(v ? v.shelf : shelf) === k ? 'selected' : ''}>${esc(name)}</option>`).join('')}</select></label>
+      <label class="pd-q" style="flex:1"><span class="k">voice</span>
+        <select class="sel" id="stReg">${JA_STONE_REGISTERS.map(([k, name, jp, hint]) =>
+          `<option value="${k}" ${(v ? v.register : 'either') === k ? 'selected' : ''}>${esc(name)} \u2014 ${esc(hint)}</option>`).join('')}</select></label>
+    </div>
     <div class="row" style="justify-content:flex-end;margin-top:14px">
       <button class="btn primary" id="stSave">Save</button></div>`, 'narrow sc-modal');
   m.querySelector('#stSave').onclick = () => {
     const text = m.querySelector('#stText').value.trim();
     if(!text){ m.querySelector('#stText').focus(); return; }
     const fields = {text, reading: m.querySelector('#stRead').value.trim(),
-      note: m.querySelector('#stNote').value.trim(), shelf: m.querySelector('#stShelf').value};
+      note: m.querySelector('#stNote').value.trim(), shelf: m.querySelector('#stShelf').value,
+      register: m.querySelector('#stReg').value};
     if(v) Object.assign(v, fields);
     else j.stones.push(Object.assign({id:uid(), order:j.stones.length}, fields));
     saveNow(); m.remove(); sound('success'); rerender();

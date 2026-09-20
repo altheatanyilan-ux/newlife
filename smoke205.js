@@ -23,18 +23,21 @@
    English meaning too: three fields for one phrase, two of which are either
    work a machine can do or work that does not need doing.
 
-   AND THE READING IS WORKED OUT. Perfect Japanese readings need a
-   morphological analyser and ten megabytes of dictionary, because readings
-   belong to words and not to characters. What is here instead is the
-   structure that covers ordinary vocabulary: a word list first for
-   everything irregular, then okurigana matching — 食.べる identifies both
-   the reading and where the word ends — then on readings for runs of kanji.
-   The conjugations matter and are handled: 飲み物 is のみもの, not いんみもの,
-   because a verb's tail stays in its own consonant row.
+   AND THE READING YOU TYPE IS SET OVER THE RIGHT CHARACTERS. Generating
+   readings was tried and taken out: a reading you type is a reading you have
+   thought about, and thinking about it is most of the reason for writing the
+   phrase down. But once the reading is there, putting it over the right
+   characters is not a language problem at all — it is an alignment problem,
+   and alignment is exact where generation is a guess.
 
-   It says when it does not know. A character not in the table comes back
-   unread rather than guessed at, because a wrong reading written down
-   confidently is worse than none: you will learn it. */
+   組み合わせる and くみあわせる. The kana in the phrase are anchors: み and
+   わせる must appear in the reading, in that order. Find them, and what falls
+   between belongs to the kanji between them. Nothing is looked up.
+
+   It refuses rather than guesses. If the anchors are not there in order —
+   a typo, a reading of something else, a phrase with no kana to hold on to —
+   there is no alignment and the phrase is left plain, because furigana in
+   the wrong place is worse than furigana on the line below: you will read it. */
 const {chromium} = require('playwright');
 const path = require('path');
 const FILE = 'file://' + path.resolve(__dirname, 'index.html');
@@ -54,58 +57,62 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(2200); }
   await p.evaluate(() => document.querySelectorAll('.overlay').forEach(n => n.remove()));
 
-  console.log('\n1. the reading, worked out');
-  const read = await p.evaluate(() => {
-    const say = t => jaFurigana(t);
+  console.log('\n1. the reading you typed, over the characters it belongs to');
+  const fit = await p.evaluate(() => {
+    const say = (a, b) => { const al = jaAlign(a, b);
+      return al ? al.map(p => p.reading ? `${p.text}[${p.reading}]` : p.text).join('') : null; };
     return {
-      /* a word whose reading is not the sum of its parts */
-      irregular: say('今日'),
-      /* okurigana picks the reading and marks where the word ends */
-      okuri: say('食べる'),
-      /* a run of kanji takes on readings, in order */
-      compound: say('経営'),
-      /* conjugated: the tail is み, not the dictionary む */
-      inflected: say('飲み物'),
-      /* and the sound change before て: 降って, not 降る */
-      onbin: say('雨が降っている'),
-      /* an い-adjective through か: 高.い is the kun, 高かった the text */
-      adj: say('高かった'),
-      /* a kanji among other kanji takes its on reading, alone its kun.
-         教室 is a word; the 内 after it is on its own, and what decides
-         between ない and うち is only that there is a kanji beside it */
-      inWord: say('教室内'),
-      alone: say('内'),
-      /* kana and anything else pass through untouched */
-      kana: say('ひらがなはそのまま'),
-      sentence: say('日本語を勉強しています'),
+      /* the kana in the phrase are the anchors, and what falls between them
+         belongs to the kanji between them */
+      broken: say('組み合わせる', 'くみあわせる'),
+      /* a run of kanji is one group: nothing says where けい stops */
+      run: say('経営する', 'けいえいする'),
+      /* a phrase that ends in kanji takes the rest of the reading */
+      ends: say('飲み物', 'のみもの'),
+      /* katakana in the phrase, hiragana in the reading: the same thing */
+      kata: say('バーの仕事', 'ばーのしごと'),
+      /* and a whole sentence, with the particles as anchors */
+      sentence: say('日本語を勉強しています', 'にほんごをべんきょうしています'),
+      /* nothing is looked up, so a reading nobody would have guessed works */
+      odd: say('今日', 'きょう'),
     };
   });
-  is('a word with its own reading', read.irregular, 'きょう');
-  is('  okurigana says which reading and where the word ends', read.okuri, 'たべる');
-  is('  a run of kanji takes on readings', read.compound, 'けいえい');
-  /* the case that makes or breaks this: running text is conjugated */
-  is('  a conjugated tail still finds its verb', read.inflected, 'のみもの');
-  is('  and so does a sound change before て', read.onbin, 'あめがふっている');
-  is('  an adjective inflects through its own row', read.adj, 'たかかった');
-  /* 内 is うち alone and ない against another kanji, and reading it うち in
-     both is how 教室内 comes out きょうしつうち */
-  is('the same character reads differently by what is beside it',
-    [read.inWord, read.alone], ['きょうしつない', 'うち']);
-  is('  kana pass through untouched', read.kana, 'ひらがなはそのまま');
-  is('  and a whole sentence comes out whole', read.sentence, 'にほんごをべんきょうしています');
-  const honest = await p.evaluate(() => {
-    /* a character the table has no reading for */
-    const odd = '鬱憤';
-    return {sure: jaFuriganaSure('食べる'), notSure: jaFuriganaSure(odd),
-      /* left as it is rather than guessed at */
-      said: jaFurigana(odd),
-      ruby: jaRubyHTML('食べる')};
-  });
-  yes('it knows when it knows', honest.sure);
-  yes('  and says so when it does not', !honest.notSure, JSON.stringify(honest));
-  is('  leaving what it cannot read alone rather than guessing', honest.said, '鬱憤');
-  yes('  and the reading can sit over the word rather than beside it',
-    /<ruby>食<rt>た<\/rt><\/ruby>べる/.test(honest.ruby), honest.ruby);
+  is('the kana are anchors and the kanji take what falls between',
+    fit.broken, '組[く]み合[あ]わせる');
+  is('  a run of kanji is one group', fit.run, '経営[けいえい]する');
+  is('  a phrase ending in kanji takes the rest', fit.ends, '飲[の]み物[もの]');
+  is('  katakana and hiragana are the same thing here', fit.kata, 'バーの仕事[しごと]');
+  is('  and the particles of a sentence are anchors too',
+    fit.sentence, '日本語[にほんご]を勉強[べんきょう]しています');
+  /* the point of typing it rather than generating it: nothing needs to know
+     that 今日 is きょう */
+  is('  nothing is looked up, so an irregular reading needs no table',
+    fit.odd, '今日[きょう]');
+  const jaFitsIn = (a, b) => fitsIn[a + '|' + b];
+  const fitsIn = await p.evaluate(() => ({
+    'お茶|ごちゃ': jaRubyFits('お茶', 'ごちゃ'),
+    'お茶|おちゃ': jaRubyFits('お茶', 'おちゃ'),
+  }));
+  const refuse = await p.evaluate(() => ({
+    wrong: jaRubyFits('組み合わせる', 'まちがった'),
+    allKana: jaRubyFits('ひらがなだけ', 'ひらがなだけ'),
+    short: jaRubyFits('経営する', 'する'),
+    plain: jaRubyHTML('組み合わせる', 'まちがった'),
+    right: jaRubyHTML('食べる', 'たべる'),
+  }));
+  yes('a reading that is of something else does not line up', !refuse.wrong);
+  /* a phrase that STARTS with kana isolates the anchor check: there is no
+     later kana to fail to find, so if the opening kana are not matched
+     against the reading, the kanji after them silently swallows the lot */
+  yes('  and so does one whose opening kana are wrong',
+    !jaFitsIn('お茶', 'ごちゃ') && jaFitsIn('お茶', 'おちゃ'), 'お茶 / ごちゃ');
+  yes('  nor does one with nothing to write over', !refuse.allKana);
+  yes('  nor one with no reading left for the kanji', !refuse.short);
+  /* furigana in the wrong place is worse than furigana on the line below */
+  is('  and where it does not line up the phrase is left plain',
+    refuse.plain, '組み合わせる');
+  yes('  where it does, the reading sits over the character',
+    /<ruby>食<rt>た<\/rt><\/ruby>べる/.test(refuse.right), refuse.right);
 
   console.log('\n2. an island is a page');
   await p.evaluate(() => { location.hash = '#/japanese/islands'; }); await p.waitForTimeout(1000);
@@ -181,54 +188,135 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     const jp = row.querySelector('[data-jachunkf="japanese"]');
     jp.value = '組み合わせる';
     jp.dispatchEvent(new Event('input', {bubbles:true}));
-    await new Promise(r => setTimeout(r, 600));
+    await new Promise(r => setTimeout(r, 500));
+    const before = document.querySelector('[data-jachunkruby]').innerHTML.trim();
+    const rd = row.querySelector('[data-jachunkf="reading"]');
+    rd.value = 'くみあわせる';
+    rd.dispatchEvent(new Event('input', {bubbles:true}));
+    await new Promise(r => setTimeout(r, 500));
     const c = byId(jaState2().islands, id).chunks[0];
-    return {fields, said: document.querySelector('[data-jachunkread]').textContent.trim(),
+    return {fields, before, over: document.querySelector('[data-jachunkruby]').innerHTML,
       stored: c.japanese, reading: c.reading};
   }, made.id);
   /* one field. The reading is worked out and the meaning was only ever there
      to put on the front of a flashcard */
-  is('there is one thing to type, and it is the Japanese', chunk.fields, ['japanese']);
-  is('  the reading appears beside it as you type', chunk.said, 'くみあわせる');
-  /* and it is not stored: an uncorrected reading follows the Japanese as the
-     Japanese is edited, rather than going stale beside it */
-  is('  worked out rather than written down', [chunk.stored, chunk.reading], ['組み合わせる', '']);
-  const corrected = await p.evaluate(async id => {
-    document.querySelector('[data-jachunkread]').click();
-    await new Promise(r => setTimeout(r, 500));
-    const open = !!document.querySelector('#crRead');
-    document.querySelector('#crRead').value = 'くみあわせる！';
-    document.querySelector('#crSave').click();
-    await new Promise(r => setTimeout(r, 700));
-    const c = byId(jaState2().islands, id).chunks[0];
-    return {open, kept: c.reading, mine: !!document.querySelector('.ja-read.mine')};
-  }, made.id);
-  yes('a reading you correct is offered, not demanded', corrected.open);
-  is('  and what you write is kept', corrected.kept, 'くみあわせる！');
-  yes('  and the row says it is yours now', corrected.mine);
-  const putBack = await p.evaluate(async id => {
-    document.querySelector('[data-jachunkread]').click();
-    await new Promise(r => setTimeout(r, 500));
-    document.querySelector('#crAuto').click();
-    document.querySelector('#crSave').click();
-    await new Promise(r => setTimeout(r, 700));
-    const c = byId(jaState2().islands, id).chunks[0];
-    /* and now the Japanese changes: an uncorrected reading has to follow it */
-    const jp = document.querySelector('[data-jachunkf="japanese"]');
-    jp.value = '経営する';
-    jp.dispatchEvent(new Event('input', {bubbles:true}));
+  /* the English is the cue when these become flashcards: a production card
+     whose front is the Japanese is a card you answer by recognising, and
+     recognising is not the skill an island needs */
+  is('the phrase, how it is said, and what it means',
+    chunk.fields, ['japanese', 'reading', 'meaning']);
+  /* nothing is set over anything until there is a reading to set */
+  is('  and nothing is written over the kanji until you say how it is said',
+    chunk.before, '');
+  yes('  then it appears over the characters as you type it',
+    /<ruby>\u7d44<rt>\u304f<\/rt><\/ruby>\u307f<ruby>\u5408<rt>\u3042<\/rt><\/ruby>\u308f\u305b\u308b/.test(chunk.over),
+    chunk.over);
+  is('  and both are kept as typed', [chunk.stored, chunk.reading],
+    ['\u7d44\u307f\u5408\u308f\u305b\u308b', '\u304f\u307f\u3042\u308f\u305b\u308b']);
+  const mismatch = await p.evaluate(async id => {
+    const rd = document.querySelector('[data-jachunkf="reading"]');
+    rd.value = '\u307e\u3061\u304c\u3063\u305f';
+    rd.dispatchEvent(new Event('input', {bubbles:true}));
     await new Promise(r => setTimeout(r, 600));
-    return {afterPutBack: c.reading, mine: !!document.querySelector('.ja-read.mine'),
-      said: document.querySelector('[data-jachunkread]').textContent.trim()};
+    return {over: document.querySelector('[data-jachunkruby]').textContent.trim(),
+      kept: byId(jaState2().islands, id).chunks[0].reading};
   }, made.id);
-  /* taking the worked-out one back does not freeze it as a correction: a
-     reading nobody has changed follows the Japanese as the Japanese is
-     edited, rather than going stale beside it */
-  is('  putting the worked-out one back stops it being yours', putBack.afterPutBack, '');
-  yes('  and an unchanged reading follows the Japanese when it changes',
-    putBack.said === 'けいえいする' && !putBack.mine, JSON.stringify(putBack));
+  /* it says so rather than spreading the reading over the characters anyway */
+  yes('a reading that does not line up is said so, not forced on',
+    /does not line up/.test(mismatch.over), mismatch.over);
+  is('  and what you typed is still kept, because it is yours',
+    mismatch.kept, '\u307e\u3061\u304c\u3063\u305f');
 
-  console.log('\n5. nothing threw');
+  console.log('\n5. the stepping stones, and which voice they are in');
+  const stones = await p.evaluate(async () => {
+    location.hash = '#/japanese/islands';
+    await new Promise(r => setTimeout(r, 1200));
+    const all = jaState2().stones;
+    const by = {};
+    all.forEach(v => { const k = v.shelf + '/' + v.register; by[k] = (by[k] || 0) + 1; });
+    return {n: all.length, by,
+      shelves: [...new Set(all.map(v => v.shelf))].sort(),
+      registers: [...new Set(all.map(v => v.register))].sort(),
+      /* every one of them says how it is pronounced */
+      unread: all.filter(v => !v.reading).length,
+      /* and what it does, so the shelf can be glanced at rather than studied */
+      unnoted: all.filter(v => !v.note).length,
+      groups: document.querySelectorAll('.ja-stonegroup').length,
+      voices: [...new Set([...document.querySelectorAll('.ja-stonevoice')].map(n => n.textContent.trim()))]};
+  });
+  yes('there are a good many of them', stones.n >= 80, String(stones.n));
+  is('  on all five shelves', stones.shelves,
+    ['aizuchi', 'filler', 'gear', 'repair', 'simple']);
+  /* the voice matters most on this shelf: a stepping stone is said under
+     pressure without thinking, and one in the wrong register is a pause
+     followed by an apology */
+  is('  in three voices', stones.registers, ['casual', 'either', 'formal']);
+  yes('  with both a formal and a casual one on every shelf',
+    ['aizuchi','filler','gear','repair','simple'].every(k =>
+      stones.by[k + '/formal'] && stones.by[k + '/casual']), JSON.stringify(stones.by));
+  is('  every one of them with a reading', stones.unread, 0);
+  is('  and every one with what it does', stones.unnoted, 0);
+  yes('  and the shelves are grouped by voice rather than mixed',
+    stones.groups >= 10 && stones.voices.some(v => /formal/.test(v))
+      && stones.voices.some(v => /casual/.test(v)), JSON.stringify(stones.voices));
+  const topUp = await p.evaluate(async () => {
+    const j = jaState2();
+    const was = j.stones.length;
+    const mine = j.stones[0];
+    mine.note = 'my own note on it';
+    /* two thrown away, and one of the shipped ones rewritten */
+    j.stones.splice(1, 2);
+    saveNow();
+    const after = jaAddShippedStones();
+    rerender();
+    await new Promise(r => setTimeout(r, 600));
+    return {was, added: after, now: j.stones.length,
+      keptMine: (j.stones.find(v => v.id === mine.id) || {}).note,
+      /* no phrase is on the same shelf twice. The same words on two
+         different shelves is not a duplicate: そうですね is a filler while
+         you think and an aizuchi while somebody else talks */
+      dupes: j.stones.length - new Set(j.stones.map(v => v.shelf + '|' + v.text)).size};
+  });
+  is('topping up adds back only what is missing', [topUp.added, topUp.now], [2, topUp.was]);
+  /* a phrase you have written a note on is yours, and topping up leaves it */
+  is('  leaving what you have written on your own alone', topUp.keptMine, 'my own note on it');
+  is('  and putting nothing in twice', topUp.dupes, 0);
+
+  console.log('\n6. and it is all still there tomorrow');
+  /* The save pass walks META_KEYS and ARRAY_STORES rather than the state, so
+     a room keeping its things under a key in neither list is a room whose
+     things are written on every change and stored by nothing. It works all
+     session and is empty the next morning, and nothing in the app can see
+     the difference, because everything reads the state. Four rooms were in
+     exactly that position: every stepping stone, island, card and correction
+     was thrown away on reload. The only way to test it is to reload. */
+  const before = await p.evaluate(async () => {
+    const j = jaState2();
+    j.stones.push({id:'stone-test', shelf:'filler', text:'\u306a\u3093\u3068\u3044\u3046\u304b',
+      reading:'\u306a\u3093\u3068\u3044\u3046\u304b', note:'a test stone', order:999});
+    studyState().decks.push({id:'deck-test', name:'A test deck'});
+    S.habitAccounts = Object.assign(S.habitAccounts || {}, {testAccount: 7});
+    saveNow();
+    await new Promise(r => setTimeout(r, 900));
+    return {stones: j.stones.length, decks: studyState().decks.length};
+  });
+  await p.reload(); await p.waitForTimeout(2200);
+  await p.evaluate(() => document.querySelectorAll('.overlay').forEach(n => n.remove()));
+  const after = await p.evaluate(() => ({
+    stone: !!(jaState2().stones || []).find(v => v.id === 'stone-test'),
+    stones: (jaState2().stones || []).length,
+    islands: jaState2().islands.length,
+    chunk: ((jaState2().islands.find(i => (i.chunks || []).length) || {}).chunks || [{}])[0].japanese,
+    deck: !!(studyState().decks || []).find(d => d.id === 'deck-test'),
+    account: (S.habitAccounts || {}).testAccount,
+  }));
+  yes('a stepping stone is still there after a reload', after.stone, JSON.stringify(after));
+  yes('  and so are the islands, with what was written in them',
+    after.islands >= 2 && after.chunk === '\u7d44\u307f\u5408\u308f\u305b\u308b', JSON.stringify(after));
+  yes('  and the study deck', after.deck);
+  is('  and the habit accounts', after.account, 7);
+
+  console.log('\n7. nothing threw');
   is('no page errors', errs, []);
 
   console.log(bad ? `\n${bad} FAILED` : '\nall good');

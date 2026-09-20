@@ -102,6 +102,9 @@ function bindJapanese(root){
     toast(n ? `${n} chunk${n === 1 ? '' : 's'} in the Study Deck inbox.` : 'Nothing hesitant left to send.');
     if(n) sound('success'); rerender(); });
   on('#jaStoneNew', () => openJaStone('filler'));
+  on('#jaStonesTopUp', () => { const n = jaAddShippedStones();
+    toast(n ? `${n} phrase${n === 1 ? '' : 's'} added.` : 'You already have all of them.');
+    if(n){ sound('success'); rerender(); } });
   each('jastoneadd', shelf => openJaStone(shelf));
   each('jastone', id => openJaStone(null, id));
   /* the chip opens the phrase and the cross inside it throws the phrase away,

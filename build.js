@@ -98,9 +98,48 @@ function assertNoClashingNames(){
     process.exit(1);
   }
 }
+/* ---------- every room's state has somewhere to be saved ----------
+   The save pass walks META_KEYS and ARRAY_STORES, not the state object. A
+   room that keeps its things under a top-level key nobody added to either
+   list is a room whose things are written on every change and stored by
+   nothing: it works perfectly all session and is empty the next morning.
+
+   That happened to four rooms at once and was invisible, because everything
+   in the app reads the state and not the database — the only way to see it
+   is to reload, and by then the evidence is gone. So it is checked here
+   instead. A key beginning with an underscore is the room's own scratch: a
+   filter, a scroll position, which tab is open, none of which should
+   outlive the session. */
+function assertEverythingIsSaved(){
+  const db = fs.readFileSync(path.join(src, '06-db.js'), 'utf8');
+  const listed = name => {
+    const m = new RegExp('const ' + name + ' = \\[([\\s\\S]*?)\\];').exec(db);
+    return m ? [...m[1].matchAll(/'([^']+)'/g)].map(x => x[1]) : [];
+  };
+  const kept = new Set([...listed('META_KEYS'), ...listed('ARRAY_STORES'), 'habitLog', 'checkins']);
+  const lost = new Map();
+  for(const f of parts){
+    if(!f.endsWith('.js')) continue;
+    const text = fs.readFileSync(path.join(src, f), 'utf8');
+    for(const m of text.matchAll(/\bS\.([A-Za-z][A-Za-z0-9_]*)\s*=(?!=)/g)){
+      const k = m[1];
+      if(kept.has(k) || lost.has(k)) continue;
+      lost.set(k, f);
+    }
+  }
+  if(lost.size){
+    console.error('BUILD FAILED — state that nothing saves.\n' +
+      'These are written to the state and are in neither META_KEYS nor ARRAY_STORES,\n' +
+      'so everything they hold is thrown away on reload. Add the key to one of those\n' +
+      'lists in src/06-db.js, or rename it with a leading underscore if it is scratch.\n  ' +
+      [...lost].map(([k, f]) => `S.${k}  (${f})`).join('\n  '));
+    process.exit(1);
+  }
+}
 assertNoConflictMarkers();
 assertNothingStrayed();
 assertNoClashingNames();
+assertEverythingIsSaved();
 
 /* The engraver goes in last, after the script the app lives in has closed,
    where it is bytes rather than code until somebody asks for it. */

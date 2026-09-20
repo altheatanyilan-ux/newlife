@@ -75,8 +75,18 @@ const DB_SCHEMA = {          // primary key first, then indexes — Dexie syntax
    the streak, the running log, the week and month plans, the position
    history and the day's rhythm — all of it discarded on every reload. A new
    object on S is not saved until its name appears in this line. */
+/* Every key here is a whole-object row in the meta store, and the save pass
+   walks THIS LIST rather than the state. A key that is in neither this nor
+   ARRAY_STORES is a key nothing writes to the database: the room using it
+   works perfectly all session and is empty the next morning, and nothing in
+   the app can see the difference because everything reads the state. Four
+   rooms were in that position at once — the Japanese Studio, the Study Deck,
+   the habit accounts and the marks the exchange keeps — and every stone,
+   island, card and correction any of them held was thrown away on reload.
+   build.js refuses to build a state key that is saved by nothing now, so it
+   cannot happen quietly again. */
 const META_KEYS = ['settings','rehearsal','reviews','valueOrder','valueOrderHistory','places','journals','negLast','finance','plans','reviewLog',
-  'planning','content','contentVault','wsDaily','wsRead','runLog','weekPlans','monthPlans','monthReviews','position','dailyRhythm','stillness','reviewEntries','reviewPrefs','time','musicianship'];
+  'planning','content','contentVault','wsDaily','wsRead','runLog','weekPlans','monthPlans','monthReviews','position','dailyRhythm','stillness','reviewEntries','reviewPrefs','time','musicianship','japanese','study','habitAccounts','sync'];
 const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders','visionEras','tasks','boards','people','events','accounts','txns','budgets','finGoals','chapters','turns','threadsN','interactions','mediaQueue','mediaLists','mediaRecs','compost','incomeStreams','spendCategories','scores','timeEntries'];
 
 /* ---------- MiniDexie: Dexie-compatible subset over IndexedDB ---------- */

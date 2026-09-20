@@ -173,24 +173,147 @@ const JA_STONE_SHELVES = [
   ['aizuchi','Aizuchi',        '相槌',        'the noises that prove you are listening'],
   ['simple', 'Simplifiers',    '要するに', 'saying the smaller version of the thought'],
   ['repair', 'Repair',         '直し',        'getting the conversation back when it breaks']];
-/* Shipped with something on every shelf, because an empty vault teaches
-   nothing and these are the twenty phrases every book starts with anyway. */
+/* Which voice a phrase is in, because this is the shelf where it matters
+   most. A stepping stone is said under pressure, without thinking, and one
+   said in the wrong register is worse than a pause: it is a pause plus an
+   apology. おっしゃる通りです to a friend is arch; ほんと? to a client is
+   rude; and a great many of these phrases exist in both voices with
+   different words, which is the thing worth learning.
+
+   "Either" is not a hedge. Some of the commonest ones genuinely do not
+   change — ところで, なるほど, つまり — and marking them as one or the other
+   would be teaching something untrue. */
+const JA_STONE_REGISTERS = [
+  ['either', 'Either', '\u3069\u3061\u3089\u3067\u3082', 'said the same to anybody'],
+  ['formal', 'Formal', '\u4e01\u5be7\u8a9e',    'a client, a teacher, somebody you have just met'],
+  ['casual', 'Casual', '\u30bf\u30e1\u53e3',    'a friend, a colleague you drink with']];
+/* Shipped with a good deal on every shelf, because an empty vault teaches
+   nothing, and because these are not personal — they are the phrases that
+   buy a second in anybody's Japanese. Kept as [shelf, register, text,
+   reading, what it does]. */
 const JA_STONES_DEFAULT = [
-  ['gear', 'ところで', 'by the way'],
-  ['gear', '実は', 'actually'],
-  ['gear', 'そういえば', 'come to think of it'],
-  ['filler', 'なんというか', 'how should I put it'],
-  ['filler', 'えーと', 'umm'],
-  ['filler', 'そうですね', 'let me think'],
-  ['filler', 'やっぱり', 'as expected'],
-  ['aizuchi', 'そうですね', 'agreement'],
-  ['aizuchi', 'へえ', 'surprise'],
-  ['aizuchi', 'そうなんだ', 'empathy'],
-  ['simple', '簡単に言うと', 'to put it simply'],
-  ['simple', 'つまり', 'in other words'],
-  ['repair', 'もう一度お願いします', 'once more, please'],
-  ['repair', '日本語で何と言いますか', 'how do you say it in Japanese'],
+  /* ---------- turning the conversation somewhere you can go ---------- */
+  ['gear', 'either', '\u3068\u3053\u308d\u3067', '\u3068\u3053\u308d\u3067', 'by the way'],
+  ['gear', 'either', '\u5b9f\u306f', '\u3058\u3064\u306f', 'actually \u2014 the truth is'],
+  ['gear', 'either', '\u305d\u3046\u3044\u3048\u3070', '\u305d\u3046\u3044\u3048\u3070', 'come to think of it'],
+  ['gear', 'either', '\u3061\u306a\u307f\u306b', '\u3061\u306a\u307f\u306b', 'incidentally'],
+  ['gear', 'either', '\u3068\u306b\u304b\u304f', '\u3068\u306b\u304b\u304f', 'anyway \u2014 in any case'],
+  ['gear', 'either', '\u305d\u308c\u3067', '\u305d\u308c\u3067', 'and so \u2014 so then'],
+  ['gear', 'either', '\u3068\u3044\u3046\u3053\u3068\u3067', '\u3068\u3044\u3046\u3053\u3068\u3067', 'and with that'],
+  ['gear', 'either', '\u8a71\u3092\u623b\u3059\u3068', '\u306f\u306a\u3057\u3092\u3082\u3069\u3059\u3068', 'getting back to the point'],
+  ['gear', 'formal', '\u8a71\u306f\u5909\u308f\u308a\u307e\u3059\u304c', '\u306f\u306a\u3057\u306f\u304b\u308f\u308a\u307e\u3059\u304c', 'to change the subject'],
+  ['gear', 'formal', '\u672c\u984c\u306b\u5165\u308a\u307e\u3059\u3068', '\u307b\u3093\u3060\u3044\u306b\u306f\u3044\u308a\u307e\u3059\u3068', 'to get to the main point'],
+  ['gear', 'formal', '\u305d\u308c\u306f\u3055\u3066\u304a\u304d', '\u305d\u308c\u306f\u3055\u3066\u304a\u304d', 'that aside'],
+  ['gear', 'formal', '\u3044\u305a\u308c\u306b\u3057\u3066\u3082', '\u3044\u305a\u308c\u306b\u3057\u3066\u3082', 'either way'],
+  ['gear', 'casual', '\u8a71\u5909\u308f\u308b\u3051\u3069', '\u306f\u306a\u3057\u304b\u308f\u308b\u3051\u3069', 'changing the subject'],
+  ['gear', 'casual', '\u3066\u3044\u3046\u304b', '\u3066\u3044\u3046\u304b', 'or rather \u2014 I mean'],
+  ['gear', 'casual', '\u3069\u3063\u3061\u306b\u3057\u3066\u3082', '\u3069\u3063\u3061\u306b\u3057\u3066\u3082', 'either way'],
+  ['gear', 'casual', '\u305d\u308c\u3088\u308a', '\u305d\u308c\u3088\u308a', 'more to the point'],
+  ['gear', 'casual', '\u3067', '\u3067', 'so \u2014 the one-syllable version'],
+
+  /* ---------- time bought without the silence ---------- */
+  ['filler', 'either', '\u3048\u30fc\u3068', '\u3048\u30fc\u3068', 'umm'],
+  ['filler', 'either', '\u3042\u306e\u30fc', '\u3042\u306e\u30fc', 'er \u2014 also how you start a sentence at a stranger'],
+  ['filler', 'either', '\u306a\u3093\u3068\u3044\u3046\u304b', '\u306a\u3093\u3068\u3044\u3046\u304b', 'how should I put it'],
+  ['filler', 'either', '\u3061\u3087\u3063\u3068', '\u3061\u3087\u3063\u3068', 'a little \u2014 and a softener for anything awkward'],
+  ['filler', 'either', '\u305d\u306e', '\u305d\u306e', 'uh \u2014 the one that buys the shortest second'],
+  ['filler', 'either', '\u8a00\u8449\u304c\u51fa\u3066\u3053\u306a\u3044', '\u3053\u3068\u3070\u304c\u3067\u3066\u3053\u306a\u3044', 'the word will not come'],
+  ['filler', 'formal', '\u305d\u3046\u3067\u3059\u306d', '\u305d\u3046\u3067\u3059\u306d', 'let me think'],
+  ['filler', 'formal', '\u4f55\u3068\u8a00\u3044\u307e\u3059\u304b', '\u306a\u3093\u3068\u3044\u3044\u307e\u3059\u304b', 'how should I put it'],
+  ['filler', 'formal', '\u3084\u306f\u308a', '\u3084\u306f\u308a', 'as expected'],
+  ['filler', 'formal', '\u3048\u3048', '\u3048\u3048', 'yes \u2014 softer than \u306f\u3044'],
+  ['filler', 'casual', '\u305d\u3046\u3060\u306d', '\u305d\u3046\u3060\u306d', 'let me think'],
+  ['filler', 'casual', '\u3084\u3063\u3071\u308a', '\u3084\u3063\u3071\u308a', 'as I thought'],
+  ['filler', 'casual', '\u306a\u3093\u304b', '\u306a\u3093\u304b', 'like \u2014 sort of'],
+  ['filler', 'casual', '\u306a\u3093\u3066\u8a00\u3046\u304b', '\u306a\u3093\u3066\u3044\u3046\u304b', 'how do I say it'],
+  ['filler', 'casual', '\u306a\u3093\u3066\u8a00\u3046\u3093\u3060\u308d\u3046', '\u306a\u3093\u3066\u3044\u3046\u3093\u3060\u308d\u3046', 'how would you say it \u2014 to yourself, out loud'],
+  ['filler', 'casual', '\u3046\u30fc\u3093', '\u3046\u30fc\u3093', 'hmm'],
+  ['filler', 'casual', '\u307b\u3089', '\u307b\u3089', 'you know \u2014 pointing at a shared memory'],
+
+  /* ---------- the noises that prove you are listening ---------- */
+  ['aizuchi', 'either', '\u306a\u308b\u307b\u3069', '\u306a\u308b\u307b\u3069', 'I see \u2014 that makes sense'],
+  ['aizuchi', 'either', '\u305f\u3057\u304b\u306b', '\u305f\u3057\u304b\u306b', 'true \u2014 you have a point'],
+  ['aizuchi', 'either', '\u3067\u3057\u3087\u3046\u306d', '\u3067\u3057\u3087\u3046\u306d', 'I bet \u2014 I can imagine'],
+  ['aizuchi', 'formal', '\u305d\u3046\u3067\u3059\u306d', '\u305d\u3046\u3067\u3059\u306d', 'agreement'],
+  ['aizuchi', 'formal', '\u305d\u3046\u306a\u3093\u3067\u3059\u306d', '\u305d\u3046\u306a\u3093\u3067\u3059\u306d', 'oh, I see'],
+  ['aizuchi', 'formal', '\u306f\u3044', '\u306f\u3044', 'yes \u2014 said often, as a pulse, not as an answer'],
+  ['aizuchi', 'formal', '\u308f\u304b\u308a\u307e\u3059', '\u308f\u304b\u308a\u307e\u3059', 'I understand'],
+  ['aizuchi', 'formal', '\u3067\u3059\u3088\u306d', '\u3067\u3059\u3088\u306d', 'right?'],
+  ['aizuchi', 'formal', '\u672c\u5f53\u3067\u3059\u304b', '\u307b\u3093\u3068\u3046\u3067\u3059\u304b', 'really?'],
+  ['aizuchi', 'formal', '\u3059\u3054\u3044\u3067\u3059\u306d', '\u3059\u3054\u3044\u3067\u3059\u306d', 'that is impressive'],
+  ['aizuchi', 'formal', '\u305d\u308c\u306f\u5927\u5909\u3067\u3057\u305f\u306d', '\u305d\u308c\u306f\u305f\u3044\u3078\u3093\u3067\u3057\u305f\u306d', 'that must have been hard'],
+  ['aizuchi', 'formal', '\u304a\u3063\u3057\u3083\u308b\u901a\u308a\u3067\u3059', '\u304a\u3063\u3057\u3083\u308b\u3068\u304a\u308a\u3067\u3059', 'exactly as you say'],
+  ['aizuchi', 'casual', '\u305d\u3046\u306a\u3093\u3060', '\u305d\u3046\u306a\u3093\u3060', 'oh really'],
+  ['aizuchi', 'casual', '\u3078\u3048', '\u3078\u3048', 'huh \u2014 mild surprise'],
+  ['aizuchi', 'casual', '\u3046\u3093', '\u3046\u3093', 'mm-hmm'],
+  ['aizuchi', 'casual', '\u305d\u3046\u305d\u3046', '\u305d\u3046\u305d\u3046', 'yes, exactly \u2014 twice, always'],
+  ['aizuchi', 'casual', '\u3060\u3088\u306d', '\u3060\u3088\u306d', 'right?'],
+  ['aizuchi', 'casual', '\u308f\u304b\u308b', '\u308f\u304b\u308b', 'I get it'],
+  ['aizuchi', 'casual', '\u307b\u3093\u3068', '\u307b\u3093\u3068', 'really?'],
+  ['aizuchi', 'casual', '\u3059\u3054\u3044', '\u3059\u3054\u3044', 'wow'],
+  ['aizuchi', 'casual', '\u5927\u5909\u3060\u3063\u305f\u306d', '\u305f\u3044\u3078\u3093\u3060\u3063\u305f\u306d', 'that must have been rough'],
+
+  /* ---------- saying the smaller version of the thought ---------- */
+  ['simple', 'either', '\u7c21\u5358\u306b\u8a00\u3046\u3068', '\u304b\u3093\u305f\u3093\u306b\u3044\u3046\u3068', 'to put it simply'],
+  ['simple', 'either', '\u3064\u307e\u308a', '\u3064\u307e\u308a', 'in other words'],
+  ['simple', 'either', '\u8981\u3059\u308b\u306b', '\u3088\u3046\u3059\u308b\u306b', 'in short'],
+  ['simple', 'either', '\u4f8b\u3048\u3070', '\u305f\u3068\u3048\u3070', 'for example \u2014 the escape from an abstract sentence'],
+  ['simple', 'either', '\u4e00\u8a00\u3067\u8a00\u3046\u3068', '\u3072\u3068\u3053\u3068\u3067\u3044\u3046\u3068', 'in a word'],
+  ['simple', 'either', '\u307e\u3068\u3081\u308b\u3068', '\u307e\u3068\u3081\u308b\u3068', 'to sum up'],
+  ['simple', 'formal', '\u5177\u4f53\u7684\u306b\u8a00\u3046\u3068', '\u3050\u305f\u3044\u3066\u304d\u306b\u3044\u3046\u3068', 'specifically'],
+  ['simple', 'formal', '\u8a00\u3044\u63db\u3048\u308b\u3068', '\u3044\u3044\u304b\u3048\u308b\u3068', 'to put it another way'],
+  ['simple', 'formal', '\u7aef\u7684\u306b\u8a00\u3046\u3068', '\u305f\u3093\u3066\u304d\u306b\u3044\u3046\u3068', 'to put it directly'],
+  ['simple', 'casual', '\u3056\u3063\u304f\u308a\u8a00\u3046\u3068', '\u3056\u3063\u304f\u308a\u3044\u3046\u3068', 'roughly speaking'],
+  ['simple', 'casual', '\u8981\u306f', '\u3088\u3046\u306f', 'the point is'],
+  ['simple', 'casual', '\u5e73\u305f\u304f\u8a00\u3046\u3068', '\u3072\u3089\u305f\u304f\u3044\u3046\u3068', 'to put it plainly'],
+
+  /* ---------- getting the conversation back when it breaks ---------- */
+  ['repair', 'either', '\u8a00\u3044\u76f4\u3059\u3068', '\u3044\u3044\u306a\u304a\u3059\u3068', 'let me say that again'],
+  ['repair', 'formal', '\u3082\u3046\u4e00\u5ea6\u304a\u9858\u3044\u3057\u307e\u3059', '\u3082\u3046\u3044\u3061\u3069\u304a\u306d\u304c\u3044\u3057\u307e\u3059', 'once more, please'],
+  ['repair', 'formal', '\u3086\u3063\u304f\u308a\u304a\u9858\u3044\u3057\u307e\u3059', '\u3086\u3063\u304f\u308a\u304a\u306d\u304c\u3044\u3057\u307e\u3059', 'slowly, please'],
+  ['repair', 'formal', '\u805e\u304d\u53d6\u308c\u307e\u305b\u3093\u3067\u3057\u305f', '\u304d\u304d\u3068\u308c\u307e\u305b\u3093\u3067\u3057\u305f', 'I did not catch that'],
+  ['repair', 'formal', '\u65e5\u672c\u8a9e\u3067\u4f55\u3068\u8a00\u3044\u307e\u3059\u304b', '\u306b\u307b\u3093\u3054\u3067\u306a\u3093\u3068\u3044\u3044\u307e\u3059\u304b', 'how do you say it in Japanese'],
+  ['repair', 'formal', '\u3069\u3046\u3044\u3046\u610f\u5473\u3067\u3059\u304b', '\u3069\u3046\u3044\u3046\u3044\u307f\u3067\u3059\u304b', 'what does that mean'],
+  ['repair', 'formal', '\u5c11\u3005\u304a\u5f85\u3061\u304f\u3060\u3055\u3044', '\u3057\u3087\u3046\u3057\u3087\u3046\u304a\u307e\u3061\u304f\u3060\u3055\u3044', 'one moment, please'],
+  ['repair', 'formal', '\u9593\u9055\u3048\u307e\u3057\u305f', '\u307e\u3061\u304c\u3048\u307e\u3057\u305f', 'I got that wrong'],
+  ['repair', 'formal', '\u4eca\u306e\u306f\u9055\u3044\u307e\u3059', '\u3044\u307e\u306e\u306f\u3061\u304c\u3044\u307e\u3059', 'that is not what I meant'],
+  ['repair', 'formal', '\u8a00\u3044\u76f4\u3057\u307e\u3059', '\u3044\u3044\u306a\u304a\u3057\u307e\u3059', 'let me rephrase'],
+  ['repair', 'formal', '\u6b63\u3057\u3044\u3067\u3059\u304b', '\u305f\u3060\u3057\u3044\u3067\u3059\u304b', 'is that right?'],
+  ['repair', 'formal', '\u6f22\u5b57\u3067\u3069\u3046\u66f8\u304d\u307e\u3059\u304b', '\u304b\u3093\u3058\u3067\u3069\u3046\u304b\u304d\u307e\u3059\u304b', 'how is it written in kanji'],
+  ['repair', 'casual', '\u3082\u3046\u4e00\u56de\u8a00\u3063\u3066', '\u3082\u3046\u3044\u3063\u304b\u3044\u3044\u3063\u3066', 'say that again'],
+  ['repair', 'casual', '\u3061\u3087\u3063\u3068\u5f85\u3063\u3066', '\u3061\u3087\u3063\u3068\u307e\u3063\u3066', 'hold on'],
+  ['repair', 'casual', '\u805e\u3053\u3048\u306a\u304b\u3063\u305f', '\u304d\u3053\u3048\u306a\u304b\u3063\u305f', 'I did not hear that'],
+  ['repair', 'casual', '\u65e5\u672c\u8a9e\u3067\u4f55\u3066\u8a00\u3046', '\u306b\u307b\u3093\u3054\u3067\u306a\u3093\u3066\u3044\u3046', 'how do you say it in Japanese'],
+  ['repair', 'casual', '\u3069\u3046\u3044\u3046\u610f\u5473', '\u3069\u3046\u3044\u3046\u3044\u307f', 'what is that'],
+  ['repair', 'casual', '\u9593\u9055\u3048\u305f', '\u307e\u3061\u304c\u3048\u305f', 'got it wrong'],
+  ['repair', 'casual', '\u4eca\u306e\u306a\u3057', '\u3044\u307e\u306e\u306a\u3057', 'scratch that'],
+  ['repair', 'casual', '\u5408\u3063\u3066\u308b', '\u3042\u3063\u3066\u308b', 'is that right?'],
 ];
+const jaStonesShipped = () => JA_STONES_DEFAULT.map(([shelf, register, text, reading, note], i) =>
+  ({id:uid(), shelf, register, text, reading, note, order:i}));
+/* Bringing the shipped phrases in without trampling yours. Matched on the
+   words themselves, so one you have already written down is left exactly as
+   you wrote it — your note, your reading, your shelf — and only the ones
+   that are not there at all are added. A phrase you deliberately threw away
+   will come back, which is the price of being able to top the shelves up at
+   all; it is one press to throw it away again. */
+function jaAddShippedStones(){
+  const j = jaState2();
+  /* matched on the shelf as well as the words: the same phrase does two
+     different jobs on two different shelves \u2014 \u305d\u3046\u3067\u3059\u306d is a filler while you
+     think and an aizuchi while somebody else talks \u2014 and having it on one
+     of them is not having it on the other */
+  const key = v => `${v.shelf}|${String(v.text || '').trim()}`;
+  const have = new Set(j.stones.map(key));
+  let n = 0, at = j.stones.length;
+  jaStonesShipped().forEach(v => {
+    if(have.has(key(v))) return;
+    j.stones.push(Object.assign(v, {order: at++}));
+    n++;
+  });
+  if(n) saveNow();
+  return n;
+}
 /* How far a chunk has got. Two states rather than five, because the only
    question that matters about a phrase you need for a topic is whether it
    comes out or whether you have to reach for it. */
@@ -434,10 +557,12 @@ function jaState2(){
   j.sessions.forEach(jaSessionDefaults);
   j.islands.forEach(jaIslandDefaults);
   j.errors.forEach(jaErrorDefaults);
-  j.stones = Array.isArray(j.stones) && j.stones.length ? j.stones
-    : JA_STONES_DEFAULT.map(([shelf, text, note], i) => ({id:uid(), shelf, text, reading:'', note, order:i}));
+  j.stones = Array.isArray(j.stones) && j.stones.length ? j.stones : jaStonesShipped();
   j.stones.forEach((v, i) => { v.id = v.id || uid(); v.shelf = v.shelf || 'filler';
     v.text = v.text || ''; v.reading = v.reading || ''; v.note = v.note || '';
+    /* anything written before the registers existed is 'either', which is
+       true of a good many of them and is at least not a claim */
+    v.register = JA_STONE_REGISTERS.some(r => r[0] === v.register) ? v.register : 'either';
     v.order = v.order == null ? i : v.order; });
   j.translations = Array.isArray(j.translations) ? j.translations : [];
   j.translations.forEach(jaTranslationDefaults);
