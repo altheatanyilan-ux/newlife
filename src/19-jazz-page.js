@@ -14,7 +14,7 @@
    ============================================================ */
 
 function jazzUi(){ return S._jazz = S._jazz || {stageId:null, exId:null, key:'C',
-  flash:null, tab:'road'}; }
+  interval:'major3rd', flash:null, tab:'road'}; }
 
 /* A clock this room started is this room's to stop. Leaving by any door —
    the sidebar, a search result, the back button — has to close it, because a
@@ -82,7 +82,8 @@ routes.jazz = function(root, params){
 /* ---------- the roadmap ---------- */
 function jazzRoadHTML(){
   const now = jazzNowStage();
-  const all = JAZZ_STAGES.map(s => jazzStageGot(s));
+  const ladder = jazzStages();
+  const all = ladder.map(s => jazzStageGot(s));
   const done = sum(all.map(g => g.done)), of = sum(all.map(g => g.of));
   return `<h1 class="serif">Jazz Studio</h1>
     <p class="page-blurb">Not pieces — patterns, in all twelve keys, until the hands go there
@@ -90,29 +91,38 @@ function jazzRoadHTML(){
     <div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:16px">
       <button class="btn primary" id="jzCards">\u{1f3af} Flashcards</button>
       <button class="btn sm ghost" id="jzHistory">\u{1f4ca} What you have practised</button>
+      <span class="grow"></span>
+      <!-- the ladder is advice, not a lock. Anybody who wants it to be a
+           lock can have that; nobody gets it without asking. -->
+      <label class="jz-gate mono"><input type="checkbox" id="jzGate" ${jazzGated() ? 'checked' : ''}>
+        one stage at a time</label>
     </div>
-    <div class="jz-road">${JAZZ_STAGES.map(s => jazzStageHTML(s, s.id === now.id)).join('')}</div>`;
+    <div class="jz-road">${ladder.map(s => jazzStageHTML(s, s.id === now.id)).join('')}</div>`;
 }
 function jazzStageHTML(s, here){
   const got = jazzStageGot(s);
   const open = jazzStageOpen(s);
+  /* run ahead if you like \u2014 it just says so */
+  const ahead = open && !jazzStageReached(s);
   const pct = got.of ? Math.round(got.done / got.of * 100) : 0;
   return `<section class="jz-stage${open ? '' : ' shut'}${here ? ' here' : ''}" data-jzstage="${esc(s.id)}">
     <header class="jz-shead">
-      <span class="jz-sn mono">${s.n}</span>
+      <span class="jz-sn mono">${s.n === 0 ? 'P' : s.n}</span>
       <span class="jz-st"><b class="serif">${esc(s.name)}</b>
         <span class="faint">${esc(s.blurb)}</span></span>
-      <span class="mono jz-scount">${open ? `${got.done}/${got.of}` : '\u{1f512}'}</span>
+      <span class="mono jz-scount">${open ? `${got.done}/${got.of}` : '\u{1f512}'}${
+        ahead ? '<em class="jz-ahead" title="the stage before this one is not finished">ahead</em>' : ''}</span>
     </header>
     <div class="jz-sbar"><i style="width:${pct}%"></i></div>
-    ${open ? `<div class="jz-subs">${s.subs.map(b => {
-      const ex = jazzExercise(b.ex); if(!ex) return '';
-      const n = jazzKeysGot(b.ex);
-      return `<button class="jz-sub" data-jzopen="${esc(b.ex)}">
-        <span class="jz-subn mono">${esc(b.id)}</span>
-        <span class="jz-subt">${esc(b.name)}</span>
+    ${open ? `<div class="jz-subs">${s.subs.map(id => {
+      const ex = jazzExercise(id); if(!ex) return '';
+      const n = jazzKeysGot(id);
+      return `<button class="jz-sub" data-jzopen="${esc(id)}">
+        <span class="jz-subn mono">${esc(id)}</span>
+        <span class="jz-subt">${esc(ex.name)}${
+          jazzHasScore(ex) ? '' : '<span class="jz-nodraw mono">no notation</span>'}</span>
         <span class="jz-keys">${JAZZ_KEY_NAMES.map(k =>
-          `<i class="${jazzRecord(b.ex).keys[k] ? 'on' : ''}" title="${esc(jazzPretty(k))}"></i>`).join('')}</span>
+          `<i class="${jazzRecord(id).keys[k] ? 'on' : ''}" title="${esc(jazzPretty(k))}"></i>`).join('')}</span>
         <span class="mono jz-subc">${n}/12</span></button>`; }).join('')}</div>
       <details class="jz-why"><summary><span class="mono">why this stage</span></summary>
         <p class="serif">${esc(s.theory)}</p>
@@ -120,7 +130,7 @@ function jazzStageHTML(s, here){
           <p>${esc(s.werner)}</p>
           <p class="jz-wm">${esc(s.mindset)}</p></div>
       </details>`
-    : `<p class="jz-shut mono">Opens when stage ${jazzStage(s.needs) ? jazzStage(s.needs).n : ''} is finished in all twelve keys.</p>`}
+    : `<p class="jz-shut mono">Shut until ${esc((jazzStage(s.needs) || {}).name || 'the stage before it')} is finished in all twelve keys.</p>`}
   </section>`;
 }
 function bindJazzRoad(root){
@@ -130,6 +140,9 @@ function bindJazzRoad(root){
   if(cards) cards.onclick = () => navigate('#/jazz/cards');
   const hist = root.querySelector('#jzHistory');
   if(hist) hist.onclick = () => openJazzHistory();
+  const gate = root.querySelector('#jzGate');
+  if(gate) gate.onchange = () => { jazzState().settings.gate = gate.checked;
+    saveNow(); sound('click'); rerender(); };
 }
 
 /* ---------- one exercise ---------- */
@@ -141,7 +154,7 @@ function jazzExerciseHTML(id){
   const got = jazzKeysGot(id);
   return `<div class="row between" style="align-items:baseline;gap:10px;flex-wrap:wrap">
       <button class="btn sm ghost" id="jzBack">← the roadmap</button>
-      <span class="mono faint">${at ? `${esc(at.sub.id)} · ${esc(at.stage.name)}` : ''}</span></div>
+      <span class="mono faint">${at ? `${esc(ex.id)} · ${esc(at.stage.name)}` : ''}</span></div>
     <h1 class="serif" style="margin-top:8px">${esc(ex.name)}</h1>
     <div class="jz-cols">
       <div class="jz-main">
@@ -151,7 +164,18 @@ function jazzExerciseHTML(id){
             `<button class="jz-k${k === key ? ' on' : ''}${r.keys[k] ? ' got' : ''}" data-jzkey="${esc(k)}"
               title="${r.keys[k] ? 'yours' : 'not yet'}">${esc(jazzPretty(k))}</button>`).join('')}</div>
         </div>
-        <div class="jz-stage-box"><div class="jz-score" id="jzScore"></div></div>
+        <!-- the first stage is about distances rather than chords, so it asks
+             for one as well as for a key -->
+        ${jazzWantsInterval(ex) ? `<div class="jz-keyrow">
+          <span class="mono faint">the distance</span>
+          <div class="jz-keypick">${JAZZ_INTERVALS.map(v =>
+            `<button class="jz-k wide${v === ui.interval ? ' on' : ''}" data-jzint="${esc(v)}">${
+              esc(jazzSayInterval(v))}</button>`).join('')}</div>
+        </div>` : ''}
+        ${jazzHasScore(ex) ? '<div class="jz-stage-box"><div class="jz-score" id="jzScore"></div></div>'
+          : `<div class="jz-stage-box"><div class="jz-noscore">This one has nothing to read.
+             It is a thing to do — at the instrument or on paper — and the words
+             beside it are the whole of it.</div></div>`}
         <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:12px">
           <button class="btn ${r.keys[key] ? 'ghost' : 'primary'}" id="jzGot">${
             r.keys[key] ? `✓ ${esc(jazzPretty(key))} is yours — take it back` : `Mark ${esc(jazzPretty(key))} as yours`}</button>
@@ -161,8 +185,11 @@ function jazzExerciseHTML(id){
         <div class="jz-count mono">${got} of 12 keys${r.lastAt ? ` · last practised ${esc(relDays(daysSince(r.lastAt)))}` : ''}</div>
       </div>
       <aside class="jz-side">
-        <div class="jz-note"><span class="sc">Why it matters</span><p class="serif">${esc(ex.why)}</p></div>
-        <div class="jz-note"><span class="sc">How to get it in</span><p>${esc(ex.tip)}</p></div>
+        ${ex.why ? `<div class="jz-note"><span class="sc">Why it matters</span><p class="serif">${esc(ex.why)}</p></div>` : ''}
+        ${ex.tip ? `<div class="jz-note"><span class="sc">How to get it in</span><p>${esc(ex.tip)}</p></div>` : ''}
+        ${ex.theory ? `<div class="jz-note"><span class="sc">The book says</span><p class="serif">${esc(ex.theory)}</p></div>` : ''}
+        ${ex.doubt ? `<div class="jz-note"><span class="sc">About these notes</span><p class="faint">${esc(ex.doubt)}</p></div>` : ''}
+        ${ex.source ? `<p class="jz-src mono">${esc(ex.source)}</p>` : ''}
         ${at ? `<div class="jz-werner"><span class="jz-wi">\u{1f9d8}</span>
           <p>${esc(at.stage.werner)}</p><p class="jz-wm">${esc(at.stage.mindset)}</p></div>` : ''}
         ${r.logs.length ? `<div class="jz-note"><span class="sc">Sittings</span>
@@ -177,8 +204,14 @@ function jazzExerciseHTML(id){
 function bindJazzExercise(root, id){
   const ex = jazzExercise(id);
   const ui = jazzUi();
-  const draw = () => jazzEngrave(root.querySelector('#jzScore'), jazzScoreXml(ex.pattern, ui.key));
+  const draw = () => { if(!jazzHasScore(ex)) return;
+    const xml = jazzScoreXml(ex, ui.key, {interval: ui.interval});
+    const box = root.querySelector('#jzScore');
+    if(xml) jazzEngrave(box, xml);
+    else if(box) box.innerHTML = '<div class="jz-noscore">The book names a way of writing this one out that this copy does not have.</div>'; };
   draw();
+  $$('[data-jzint]', root).forEach(b => b.onclick = () => {
+    ui.interval = b.dataset.jzint; sound('click'); rerender(); });
   root.querySelector('#jzBack').onclick = () => { ui.exId = null; navigate('#/jazz'); };
   $$('[data-jzkey]', root).forEach(b => b.onclick = () => {
     ui.key = b.dataset.jzkey; sound('click'); rerender(); });

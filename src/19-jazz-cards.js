@@ -23,9 +23,12 @@ function jazzFlashHTML(){
   if(ui.flash && ui.flash.cards && ui.flash.cards.length) return jazzCardHTML();
   /* everything the roadmap has opened is offerable; a locked stage is not */
   const offer = [];
-  JAZZ_STAGES.forEach(s => { if(!jazzStageOpen(s)) return;
-    s.subs.forEach(b => { if(jazzExercise(b.ex)) offer.push({stage: s, sub: b}); }); });
-  const chosen = new Set(st.syllabus.filter(id => offer.some(o => o.sub.ex === id)));
+  jazzStages().forEach(s => { if(!jazzStageOpen(s)) return;
+    s.subs.forEach(id => { const ex = jazzExercise(id);
+      /* an exercise with nothing to draw cannot be a flashcard: the whole
+         point of the card is the answer on the other side of it */
+      if(ex && jazzHasScore(ex)) offer.push({stage: s, ex}); }); });
+  const chosen = new Set(st.syllabus.filter(id => offer.some(o => o.ex.id === id)));
   return `<div class="row between" style="align-items:baseline">
       <h1 class="serif" style="margin:0">Flashcards</h1>
       <button class="btn sm ghost" id="jzFback">← the roadmap</button></div>
@@ -33,10 +36,10 @@ function jazzFlashHTML(){
       which of the twelve you actually have.</p>
     <div class="jz-setup">
       <div class="sc">What is in the deck</div>
-      <div class="jz-pick">${offer.map(o => `<label class="pick-row sm ${chosen.has(o.sub.ex) ? 'on' : ''}">
-        <input type="checkbox" data-jzsyl="${esc(o.sub.ex)}" ${chosen.has(o.sub.ex) ? 'checked' : ''}>
-        <span><b>${esc(o.sub.id)} ${esc(o.sub.name)}</b>
-          <span class="d">${esc(o.stage.name)} · ${jazzKeysGot(o.sub.ex)}/12</span></span></label>`).join('')}</div>
+      <div class="jz-pick">${offer.map(o => `<label class="pick-row sm ${chosen.has(o.ex.id) ? 'on' : ''}">
+        <input type="checkbox" data-jzsyl="${esc(o.ex.id)}" ${chosen.has(o.ex.id) ? 'checked' : ''}>
+        <span><b>${esc(o.ex.id)} ${esc(o.ex.name)}</b>
+          <span class="d">${esc(o.stage.name)} · ${jazzKeysGot(o.ex.id)}/12</span></span></label>`).join('')}</div>
       ${offer.length ? '' : '<div class="empty">Nothing is open yet. Start at stage one.</div>'}
       <div class="sc" style="margin-top:14px">Which keys</div>
       <div class="row" style="gap:8px;flex-wrap:wrap">
@@ -124,7 +127,8 @@ function bindJazzCard(root){
   const show = root.querySelector('#jzShow');
   if(show) show.onclick = () => { f.shown = true; f.at0 = f.at0 || Date.now();
     f.seconds = (Date.now() - (f.from || Date.now())) / 1000; sound('click'); rerender(); };
-  if(f.shown && ex) jazzEngrave(root.querySelector('#jzCardScore'), jazzScoreXml(ex.pattern, card.key));
+  if(f.shown && ex){ const xml = jazzScoreXml(ex, card.key, {interval: jazzUi().interval});
+    if(xml) jazzEngrave(root.querySelector('#jzCardScore'), xml); }
   $$('[data-jzg]', root).forEach(b => b.onclick = () => {
     const how = b.dataset.jzg;
     jazzGrade(card.exerciseId, card.key, how, f.seconds);

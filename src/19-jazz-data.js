@@ -12,185 +12,176 @@
    deal a random key rather than a random exercise, and an exercise is marked
    off one key at a time.
 
-   WHAT IS SHIPPED AND WHAT IS YOURS. The stages, the exercises, the theory
-   and the Werner passages are shipped as a constant, the way the stepping
-   stones are: they are somebody's curriculum, they will be corrected and
-   added to in later versions, and a copy of them sitting in everybody's
-   database would mean those corrections never arrive. What lives in the
-   state is only what you did — which keys you have, what you logged, how the
-   flashcards went. If an exercise is ever removed from the catalogue, its
-   record is kept rather than swept, because it is a record of your practice
-   and not of the catalogue's.
+   WHERE THE CURRICULUM COMES FROM. The stages, the exercises and the page of
+   Siskind each one cites live in the three files beside this one, exactly as
+   they were written. This file does not hold a curriculum; it reads one. It
+   adds the only thing those files do not carry — the mindset passage that
+   belongs to each stage, which is the half of practising nobody writes an
+   exercise for — and it turns the flat catalogue into the ladder the room
+   draws.
+
+   WHAT IS SHIPPED AND WHAT IS YOURS. The curriculum is shipped, the way the
+   stepping stones are: it is somebody's teaching, it will be corrected in
+   later versions, and a copy of it in everybody's database would mean those
+   corrections never arrive. What lives in the state is only what you did —
+   which keys you have, what you logged, how the flashcards went. A record
+   whose exercise has since left the book is kept rather than swept, because
+   it is a record of your practice and not of the catalogue's.
    ============================================================ */
 
-/* the ladder. Each stage names why it exists before it names what to do,
-   because an exercise you cannot see the point of is an exercise you will
-   drop in a fortnight. */
-const JAZZ_STAGES = [
-  {id:'s1', n:1, name:'Chord construction',
-   blurb:'The four shapes everything else is made of.',
-   theory:'Jazz runs on four chord types: major seventh, dominant seventh, minor seventh and half-diminished. The aim is not to work them out — it is to see "Cmaj7" and have the hand already there. Until that is true, everything built on top of it is being worked out too.',
-   werner:'Many musicians are so fixated on the complicated that they never spend enough time on the basics. Fear of not becoming great is what keeps people from becoming great.',
-   mindset:'Slowly and perfectly, one key at a time. Take your hands off the keys between keys and let it settle.',
-   subs:[
-     {id:'1.1', name:'Major sevenths', ex:'e-maj7'},
-     {id:'1.2', name:'Dominant sevenths', ex:'e-dom7'},
-     {id:'1.3', name:'Minor sevenths', ex:'e-min7'},
-     {id:'1.4', name:'Half-diminished', ex:'e-min7b5'}]},
-  {id:'s2', n:2, name:'Voice leading and shells', needs:'s1',
-   blurb:'Two notes that say everything, and the smallest possible move between them.',
-   theory:'Put the full chords down. The left hand plays two notes — the third and the seventh — and that is the whole harmony. Watch what happens through a two-five-one: the seventh of the ii falls a half step and becomes the third of the V. That single movement is why jazz sounds smooth, and it is the thing to feel rather than the notes to find.',
-   werner:'Neglecting the two-five-one can doom you to struggle with everything that comes after it.',
-   mindset:'Name the chord before you play it. If you cannot name it, you are reading shapes, not hearing harmony.',
-   subs:[
-     {id:'2.1', name:'Shell voicings, third and seventh', ex:'e-shell'},
-     {id:'2.2', name:'Two-five-one in root position', ex:'e-251-root'}]},
-  {id:'s3', n:3, name:'Two-handed A and B voicings', needs:'s2',
-   blurb:'The first voicing that sounds like a record rather than a lesson.',
-   theory:'Type A puts the third on the bottom, Type B the seventh. Alternating them through a two-five-one is what makes one pair of notes hold while the other steps down — the hands barely move and the harmony changes completely. Keep the lowest note between the C below middle C and middle C; lower than that and it turns to mud.',
-   werner:'Mastery is two things: staying out of the way and letting the music play itself, and being able to play the material perfectly every time without thinking about it.',
-   mindset:'Sacrifice speed for perfection. A passage played perfectly once, slowly, is worth an hour of it played nearly right.',
-   subs:[
-     {id:'3.1', name:'Two-five-one, A then B', ex:'e-251-ab'},
-     {id:'3.2', name:'Two-five-one, B then A', ex:'e-251-ba'}]},
-  {id:'s4', n:4, name:'One hand, and a bass in two', needs:'s3',
-   blurb:'Three notes in the right hand, so the left is free.',
-   theory:'Three notes are enough: third, seventh, ninth for a Type A; seventh, third, fifth for a Type B. With the voicing in one hand, the other can walk — root on one, fifth on three — and that is the whole texture you need to accompany a singer on your own.',
-   werner:'The objective is nothing less than complete perfection. When the passage plays itself from that place, mastery has happened.',
-   mindset:'The move between A and B should feel like a shift, not a jump. If it feels like a jump, the voicing is in the wrong octave.',
-   subs:[
-     {id:'4.1', name:'One-handed shells, A start', ex:'e-251-oneA'},
-     {id:'4.2', name:'One-handed shells, B start', ex:'e-251-oneB'}]},
-  {id:'s5', n:5, name:'The blues', needs:'s4',
-   blurb:'The form that gets called at every session there has ever been.',
-   theory:'Twelve bars: I7 for four, IV7 for two, I7 for two, then ii, V, I and a turnaround. Learn the form before the voicings — the form is what you are asked for, the voicings are what you bring to it. C, F, B flat and G first; those are the keys horn players call.',
-   werner:'Perfection is something you surrender to. It overcomes you.',
-   mindset:'Play the form through once with one finger before you play it with both hands. If the shape is not in your head, your hands are guessing.',
-   subs:[
-     {id:'5.1', name:'The jazz blues', ex:'e-blues'},
-     {id:'5.2', name:'The blues scale', ex:'e-bluescale'}]},
-  {id:'s6', n:6, name:'Beginning to improvise', needs:'s5',
-   blurb:'Notes to reach for, before there are ideas to play.',
-   theory:'Over a whole two-five-one you can use one scale — the major scale of the I chord — and it will not be wrong anywhere. That is the safety net. The arpeggio of the third, fifth, seventh and ninth is the other one: it is the chord, played one note at a time, and it always sounds like the harmony because it is the harmony.',
-   werner:'There are no wrong notes. Every note I play is the most beautiful sound I have ever heard.',
-   mindset:'Play four notes and stop. The silence is where you find out whether you meant them.',
-   subs:[
-     {id:'6.1', name:'Three-five-seven-nine over a two-five-one', ex:'e-3579'},
-     {id:'6.2', name:'The major scale of the one chord', ex:'e-majscale'}]},
-  {id:'s7', n:7, name:'Altered dominants and tritone subs', needs:'s6',
-   blurb:'Tension, on purpose.',
-   theory:'An altered dominant swaps the plain ninth and fifth for a flat ninth, a sharp ninth, a flat five or a sharp five. The tritone substitution goes further: replace the V with a dominant chord a half step above the I, and the bass walks down chromatically — D, D flat, C. That descending line is the sound of everything that is not a beginner playing.',
-   werner:'Fear and anxiety break focused practice. Stay with one thing until it is properly yours.',
-   mindset:'Start from the voicing you already have and move one note. Every altered chord is a chord you know with a finger shifted.',
-   subs:[
-     {id:'7.1', name:'Dominant with a flat ninth', ex:'e-b9'},
-     {id:'7.2', name:'Tritone substitution', ex:'e-tritone'}]},
-  {id:'s8', n:8, name:'Modal and pentatonic', needs:'s7',
-   blurb:'When the harmony stops moving and the question changes.',
-   theory:'Modal writing holds one chord for eight bars and the interest has to come from somewhere else: the mode, the register, the space. Quartal voicings — fourths stacked instead of thirds — are the sound of it, because a stack of fourths does not declare a key the way a stack of thirds does.',
-   werner:'Playing from the space, not from the mind. The material has to be so far inside you that there is nothing left to think about.',
-   mindset:'Hold a note longer than is comfortable. Modal playing is mostly about what you do not do.',
-   subs:[
-     {id:'8.1', name:'Dorian', ex:'e-dorian'},
-     {id:'8.2', name:'Quartal voicings', ex:'e-quartal'}]},
-];
-
-/* The exercises. Each is a pattern — degrees and voicings, no pitches — and
-   the engraver writes it out in whichever key is asked for. */
-const JAZZ_EXERCISES = {
-  'e-maj7': {name:'Major seventh', ask:'Play a major seventh chord in',
-    why:'The major seventh is home. It is the I chord in most standards, and it is the sound you are resolving to every time you play a two-five-one.',
-    tip:'Root, major third, fifth, major seventh. The seventh is a half step under the root — that rub is the whole colour of the chord.',
-    pattern:{title:'Major seventh', bars:[{on:'I', chord:'maj7'}], octave:4}},
-  'e-dom7': {name:'Dominant seventh', ask:'Play a dominant seventh chord in',
-    why:'The dominant is the engine. It is unstable on purpose, and everything it does is lean towards somewhere else.',
-    tip:'A major seventh with the seventh dropped a half step. That one note is what makes it want to move.',
-    pattern:{title:'Dominant seventh', bars:[{on:'I', chord:'dom7'}], octave:4}},
-  'e-min7': {name:'Minor seventh', ask:'Play a minor seventh chord in',
-    why:'The minor seventh is the ii — where nearly every phrase in jazz starts.',
-    tip:'Flatten the third and the seventh of a major seventh. Darker, and much less certain about where it is going.',
-    pattern:{title:'Minor seventh', bars:[{on:'I', chord:'min7'}], octave:4}},
-  'e-min7b5': {name:'Half-diminished', ask:'Play a half-diminished chord in',
-    why:'It is the ii of a minor two-five-one, which is most of the ballads worth knowing.',
-    tip:'A minor seventh with the fifth flattened too. Three notes lowered from a major seventh, and it sounds like every one of them.',
-    pattern:{title:'Half-diminished', bars:[{on:'I', chord:'min7b5'}], octave:4}},
-  'e-shell': {name:'Shell voicings', ask:'Play the shell voicing of the ii, the V and the I in',
-    why:'Every voicing you will ever learn is built on knowing where the third and the seventh are. Two notes carry the whole of the harmony; the rest is decoration.',
-    tip:'The third says major or minor. The seventh says stable or moving. Nothing else is load-bearing.',
-    pattern:{title:'Shell voicings', voicing:'shell', octave:3,
-      bars:[{on:'ii', chord:'min7'}, {on:'V', chord:'dom7'}, {on:'I', chord:'maj7'}]}},
-  'e-251-root': {name:'Two-five-one, root position', ask:'Play a two-five-one in root position in',
-    why:'The most common progression in the music. You will meet dozens of them in a single standard, and every one you have to work out is a bar you are not listening in.',
-    tip:'Go round in whole steps: C, B flat, A flat, G flat, E, D — then the other six. Name each chord out loud before you play it.',
-    pattern:{title:'Two-five-one', octave:3,
-      bars:[{on:'ii', chord:'min7'}, {on:'V', chord:'dom7'}, {on:'I', chord:'maj7', up:1}]}},
-  'e-251-ab': {name:'Two-five-one, A then B', ask:'Play a two-five-one with A and B voicings, starting on A, in',
-    why:'This is how it is actually voiced on a bandstand. Root position sounds like somebody learning; alternating A and B sounds like the record.',
-    tip:'Type A from the bottom: third, seventh, ninth, fifth. Type B: seventh, third, fifth, ninth. One pair holds, the other steps down.',
-    pattern:{title:'Two-five-one, A–B–A', hands:2, octave:3,
-      bars:[{on:'ii', chord:'min7', voicing:'typeA'}, {on:'V', chord:'dom7', voicing:'typeB'},
-            {on:'I', chord:'maj7', voicing:'typeA'}]}},
-  'e-251-ba': {name:'Two-five-one, B then A', ask:'Play a two-five-one with A and B voicings, starting on B, in',
-    why:'Which one you start on is decided by where the last chord left your hand, so both have to be there.',
-    tip:'Same two shapes, other order. The voice leading is exactly as smooth going this way, which is the point worth noticing.',
-    pattern:{title:'Two-five-one, B–A–B', hands:2, octave:3,
-      bars:[{on:'ii', chord:'min7', voicing:'typeB'}, {on:'V', chord:'dom7', voicing:'typeA'},
-            {on:'I', chord:'maj7', voicing:'typeB'}]}},
-  'e-251-oneA': {name:'One-handed shells, A start', ask:'Play a two-five-one with one-handed shells, A start, in',
-    why:'Three notes in one hand leaves the other one free, and a free left hand is the difference between playing chords and accompanying somebody.',
-    tip:'Type A is third, seventh, ninth. Type B is seventh, third, fifth. Keep the bottom note between the C below middle C and middle C.',
-    pattern:{title:'One-handed shells, A start', octave:3,
-      bars:[{on:'ii', chord:'min7', voicing:'oneA'}, {on:'V', chord:'dom7', voicing:'oneB'},
-            {on:'I', chord:'maj7', voicing:'oneA'}]}},
-  'e-251-oneB': {name:'One-handed shells, B start', ask:'Play a two-five-one with one-handed shells, B start, in',
-    why:'The other half of the same skill. Either hand position has to be able to start the phrase.',
-    tip:'If the move feels like a jump rather than a shift, you are in the wrong octave for one of the two.',
-    pattern:{title:'One-handed shells, B start', octave:3,
-      bars:[{on:'ii', chord:'min7', voicing:'oneB'}, {on:'V', chord:'dom7', voicing:'oneA'},
-            {on:'I', chord:'maj7', voicing:'oneB'}]}},
-  'e-blues': {name:'The jazz blues', ask:'Play the twelve-bar jazz blues in',
-    why:'It is the most-called form there is. If you cannot play a blues you cannot sit in, and that is the whole of it.',
-    tip:'Learn the shape before the voicings: four of the I, two of the IV, two of the I, then ii, V, I, and a turnaround.',
-    pattern:{title:'Jazz blues', voicing:'shell', octave:3, bars:[
-      {on:'I', chord:'dom7'}, {on:'IV', chord:'dom7'}, {on:'I', chord:'dom7'}, {on:'I', chord:'dom7'},
-      {on:'IV', chord:'dom7'}, {on:'IV', chord:'dom7'}, {on:'I', chord:'dom7'}, {on:'I', chord:'dom7'},
-      {on:'ii', chord:'min7'}, {on:'V', chord:'dom7'}, {on:'I', chord:'dom7'}, {on:'V', chord:'dom7'}]}},
-  'e-bluescale': {name:'The blues scale', ask:'Play the blues scale in',
-    why:'The net under everything. When you have run out of ideas it is still there and it still sounds like the music.',
-    tip:'One, flat three, four, sharp four, five, flat seven. Six notes. The sharp four is the one that does the work.',
-    pattern:{title:'Blues scale', octave:4, symbols:false,
-      line:[[0,0],[2,3],[3,5],[3,6],[4,7],[6,10],[7,12]]}},
-  'e-3579': {name:'Three-five-seven-nine', ask:'Play the three-five-seven-nine arpeggios over a two-five-one in',
-    why:'It is the chord played one note at a time, so it cannot be wrong, and it teaches your hand where the colour notes are.',
-    tip:'Start on the third, not the root. Starting on the root is what makes an arpeggio sound like an exercise.',
-    pattern:{title:'Three-five-seven-nine', octave:4, voicing:'typeA',
-      bars:[{on:'ii', chord:'min7'}, {on:'V', chord:'dom7'}, {on:'I', chord:'maj7'}]}},
-  'e-majscale': {name:'The major scale of the one', ask:'Play the major scale you can use over a whole two-five-one in',
-    why:'One scale over three chords. It is the first thing that lets you play a line through a progression instead of a shape per chord.',
-    tip:'It works because all three chords come out of the same key. Hear that, and you stop thinking chord by chord.',
-    pattern:{title:'Major scale', octave:4, symbols:false,
-      line:[[0,0],[1,2],[2,4],[3,5],[4,7],[5,9],[6,11],[7,12]]}},
-  'e-b9': {name:'Dominant with a flat ninth', ask:'Play a dominant seventh with a flat ninth in',
-    why:'The most tension a dominant can carry, and therefore the strongest pull home.',
-    tip:'Take the Type A voicing you already know and drop the ninth a half step. That is the whole alteration.',
-    pattern:{title:'Dominant flat nine', hands:2, octave:3,
-      bars:[{on:'I', chord:'dom7b9', voicing:'root'}]}},
-  'e-tritone': {name:'Tritone substitution', ask:'Play the tritone substitution two-five-one in',
-    why:'It turns the bass into a chromatic descent — D, D flat, C — which is the sound of harmony that has been thought about.',
-    tip:'The substitute is always a half step above the I. In C: D minor seven, D flat seven, C major seven.',
-    pattern:{title:'Tritone substitution', octave:3, voicing:'shell',
-      bars:[{on:'ii', chord:'min7'}, {on:'bII', chord:'dom7'}, {on:'I', chord:'maj7'}]}},
-  'e-dorian': {name:'Dorian', ask:'Play the Dorian mode in',
-    why:'The mode most modal jazz sits in. A minor scale with a raised sixth, and that one note is the whole flavour.',
-    tip:'It is the major scale of the key a whole step below, started on the second degree. Hearing it that way makes all twelve easy.',
-    pattern:{title:'Dorian', octave:4, symbols:false,
-      line:[[0,0],[1,2],[2,3],[3,5],[4,7],[5,9],[6,10],[7,12]]}},
-  'e-quartal': {name:'Quartal voicings', ask:'Play a quartal voicing in',
-    why:'Fourths stacked instead of thirds. It refuses to say which key it is in, which is exactly what modal writing wants.',
-    tip:'Three fourths on top of each other. Move the whole shape up and down the mode without changing its spacing.',
-    pattern:{title:'Quartal voicing', octave:3,
-      bars:[{on:'I', chord:'min7', voicing:'quartal'}], symbols:false}},
+/* The ladder, and what each rung is for. The exercises under each of these
+   come out of the catalogue; what is here is the part a list of exercises
+   cannot say — why the stage exists, and how to be while you are in it. */
+const JAZZ_STAGE_NOTES = {
+  'P0': {n:0, name:'Intervals, and the twelve by twelve',
+    blurb:'Before chords, before scales: the twelve distances.',
+    theory:'There are twelve notes, and from any one of them twelve distances to any other. Every chord, every scale, every voicing and every line you will ever play is made of them. A major chord is not an object — it is a root, a major third and a fifth. If you cannot hear and play every interval from any starting note, everything above this is built on sand.',
+    werner:'Many musicians are so fixated on the complicated that they never spend enough time on the basics. Fear of not becoming great is what keeps people from becoming great.',
+    mindset:'Slowly and perfectly, one distance at a time. Sing it before you play it — an interval you cannot sing is one your hands are guessing at.'},
+  1: {n:1, name:'Chord construction', needs:'P0',
+    blurb:'The four shapes everything else is made of.',
+    theory:'"For the vast majority of this book, you will be dealing with three crucial chord types." Major seventh, dominant seventh, minor seventh — and the half-diminished waiting behind them for the minor two-five-one. The aim is not to work them out. It is to see Cmaj7 and have the hand already there.',
+    werner:'Fear of not becoming great has kept you from becoming great.',
+    mindset:'Play them stacked in root position and do not fuss about inversions yet. Lowest note above F below the staff, highest below the G above it. Take your hands off the keys between keys and let it settle.'},
+  2: {n:2, name:'The two-five-one', needs:1,
+    blurb:'The progression that is most of the music.',
+    theory:'"The ii-V-I progression and its components makes up a high percentage of the harmonic landscape of jazz standards." A minor seventh on the second degree, a dominant on the fifth, a major seventh on the root. Alternate root position and second inversion and watch what happens: either the bottom two notes move and the top two hold, or the other way about. That is voice leading, and it is the thing to feel rather than the notes to find.',
+    werner:'Neglecting the two-five-one can doom you to struggle with everything that comes after it.',
+    mindset:'Name the chord before you play it. If you cannot name it you are reading shapes, not hearing harmony.'},
+  3: {n:3, name:'Two-handed A and B voicings', needs:2,
+    blurb:'The first voicing that sounds like a record rather than a lesson.',
+    theory:'"The third and seventh are called essential tones because they are absolutely necessary to hear the harmony." Type A puts the third under the seventh in the left hand and the ninth under the fifth in the right; Type B swaps them. Alternating A to B to A through a two-five-one is what makes one pair hold while the other steps down. Keep the lowest note between the C below middle C and middle C.',
+    werner:'Mastery is two things: staying out of the way and letting the music play itself, and being able to play the material perfectly every time without thinking about it.',
+    mindset:'Start high in the register rather than low, so you have room to come down. When you hit the bottom, jump back up like a typewriter.'},
+  4: {n:4, name:'One hand, and a bass in two', needs:3,
+    blurb:'Three notes in one hand, so the other is free.',
+    theory:'"Instead of four notes, you will only play three: the third and seventh plus either the ninth or the fifth." With the voicing in one hand the other can walk — root on one, fifth on three — and that is the whole texture you need to accompany a singer on your own.',
+    werner:'The objective is nothing less than complete perfection. When the passage plays itself from that place, mastery has happened.',
+    mindset:'The move between A and B should feel like a shift, not a jump. If it feels like a jump you are in the wrong octave for one of them.'},
+  5: {n:5, name:'The blues', needs:4,
+    blurb:'A quarter of the standards, and every session there has ever been.',
+    theory:'"About a quarter of jazz standards are blues tunes or some variation of the blues." The jazz blues adds a quick four in the second bar and finishes on a two-five turnaround rather than a plain cadence. Learn the form before the voicings: the form is what you are asked for, the voicings are what you bring to it. C, F, G and B flat first.',
+    werner:'Perfection is something you surrender to. It overcomes you.',
+    mindset:'Play the form through with one finger before you play it with two hands. If the shape is not in your head, your hands are guessing.'},
+  6: {n:6, name:'Licks, and beginning to improvise', needs:5,
+    blurb:'Phrases to have in the hands before there are ideas in the head.',
+    theory:'"Learning to rattle off set phrases without thinking is very useful. These set phrases are a chance to internalize grammar, practice details of correct pronunciation, and solidify elements of the language deep in your subconscious." Ten licks out of the book, each one practised four ways: articulation, then with the left hand comping, then through all twelve keys, then inside a tune.',
+    werner:'There are no wrong notes. Every note I play is the most beautiful sound I have ever heard.',
+    mindset:'Play four notes and stop. The silence is where you find out whether you meant them.'},
+  7: {n:7, name:'Altered dominants and tritone subs', needs:6,
+    blurb:'Tension, on purpose.',
+    theory:'"Altered dominant chords are created by raising or lowering the color tones of a dominant seventh chord by a half step. Musicians are permitted and expected to alter dominant chords themselves without any indication." Four alterations, and any of them can be combined. The tritone substitution goes further: two dominants a tritone apart are interchangeable, and swapping them turns the bass into a chromatic descent.',
+    werner:'Fear and anxiety break focused practice. Stay with one thing until it is properly yours.',
+    mindset:'Start from the voicing you already have and move one note. Every altered chord is a chord you know with a finger shifted.'},
+  8: {n:8, name:'Modal jazz and pentatonics', needs:7,
+    blurb:'When the harmony stops moving and the question changes.',
+    theory:'"Modal jazz features slow harmonic rhythm, ambiguous tonal centers, and root movements outside the circle of fifths." Modal voicings obey two rules: no doubling, and no stacks of thirds. Fourths instead — a stack of fourths does not declare a key the way a stack of thirds does.',
+    werner:'Playing from the space, not from the mind. The material has to be so far inside you that there is nothing left to think about.',
+    mindset:'Hold a note longer than is comfortable. Modal playing is mostly about what you do not do.'},
+  9: {n:9, name:'Reharmonisation', needs:8,
+    blurb:'The same tune, and somewhere else to take it.',
+    theory:'Secondary dominants, the backdoor two-five, diminished walk-ups, the turnaround, and Coltrane’s minor-third cycle laid over circle-of-fifths motion. Each one is a way of arriving at the same chord from a direction nobody expected.',
+    werner:'Do not practise to become better than somebody. Practise until the material is not in the way.',
+    mindset:'Play the plain version first, every time, so you can hear what the reharmonisation is doing to it.'},
+  10: {n:10, name:'Modal interchange, and playing outside', needs:9,
+    blurb:'Choosing a mode the chord did not ask for.',
+    theory:'"Modal interchange is choosing modes other than those that match the chords." Three ways out and back: tonicisation, where you precede a chord with its own five; sidestepping, where you aim at it from a half step away; and planing, where a shape moves in parallel and the key goes with it.',
+    werner:'The experience of playing is coloured by what you believe about music and what you believe about yourself.',
+    mindset:'Outside only means anything against an inside somebody can still hear. Keep the time.'},
+  11: {n:11, name:'Modal blues', needs:10,
+    blurb:'The oldest form, taken somewhere else.',
+    theory:'"By using modal harmonies, musicians can create alternate versions of the blues." Footprints, Eighty-One, Equinox, Matrix — the blues with sus chords, or minor sevenths, or quartal voicings over a minor two-five-one.',
+    werner:'Nothing has to be proved. The music is already there.',
+    mindset:'Know the plain blues cold first. A modal blues is a variation, and a variation on something you do not have is just notes.'},
+  12: {n:12, name:'Odd time, and making something', needs:11,
+    blurb:'Where the studying stops and the work starts.',
+    theory:'"When tunes originally in 4/4 are adapted to 5/4, every other measure loses one beat. In 7/4, every other measure gains one." And then: write a contrafact over a standard’s changes, reharmonise something that is not a jazz tune, and find out what you actually have.',
+    werner:'The goal was never the exercises. It was to be able to say something.',
+    mindset:'Finish something. An unfinished piece teaches you less than a bad finished one.'},
 };
+/* the rungs, in order, with P0 before everything */
+const JAZZ_STAGE_IDS = ['P0', 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+
+/* ---------- the catalogue, read rather than written ----------
+   Both shipped catalogues are merged into one flat table keyed by the id the
+   book gives each exercise. It is built once, on first use: the files it
+   reads are concatenated after this one, so anything that looked at them
+   while this file was being read would be looking at nothing. */
+let _jazzBook = null;
+function jazzBook(){
+  if(_jazzBook) return _jazzBook;
+  const out = {};
+  const take = cat => { if(!cat) return;
+    Object.keys(cat).forEach(id => {
+      if(id.charAt(0) === '_') return;
+      const e = cat[id];
+      if(!e || typeof e !== 'object') return;
+      /* a cross-reference is a signpost, not an exercise */
+      if(e.generatorType === 'reference') return;
+      out[id] = {id, stage: e.stage, name: e.name || id,
+        gen: e.generator || null, args: e.generatorArgs || ['key'],
+        kind: e.generatorType || '', why: e.whyItMatters || '',
+        tip: e.memorizationTips || '', source: e.source || '',
+        theory: e.theoryNotes || '',
+        ask: e.flashcardPrompt || `Play ${e.name || id}`,
+        /* some licks are transcribed by ear rather than derived, and the
+           book says so about itself; it is worth passing on */
+        doubt: e.noteAccuracy || ''};
+    }); };
+  try { take(typeof STAGE_P0_CATALOG !== 'undefined' ? STAGE_P0_CATALOG : null); } catch(e){}
+  try { take(typeof STAGES_0_12_CATALOG !== 'undefined' ? STAGES_0_12_CATALOG : null); } catch(e){}
+  _jazzBook = out;
+  return out;
+}
+const jazzExercise = id => jazzBook()[id] || null;
+/* what P0's own file says about the stage it is, which none of the others carry */
+const jazzP0Info = () => { try { return STAGE_P0_CATALOG._stageInfo || {}; } catch(e){ return {}; } };
+
+/* the ladder, built from the two of them */
+let _jazzLadder = null;
+function jazzStages(){
+  if(_jazzLadder) return _jazzLadder;
+  const book = jazzBook();
+  const byStage = {};
+  Object.keys(book).forEach(id => {
+    const s = book[id].stage;
+    (byStage[s] = byStage[s] || []).push(id);
+  });
+  const ord = id => { const m = /^(?:P0|\d+)\.(\d+)([a-z]?)$/.exec(id);
+    return m ? +m[1] * 10 + (m[2] ? m[2].charCodeAt(0) - 96 : 0) : 0; };
+  _jazzLadder = JAZZ_STAGE_IDS.map(sid => {
+    const note = JAZZ_STAGE_NOTES[sid] || {};
+    const subs = (byStage[sid] || []).sort((a, b) => ord(a) - ord(b));
+    return Object.assign({id: String(sid), key: sid, subs}, note);
+  }).filter(s => s.subs.length);
+  return _jazzLadder;
+}
+const jazzStage = id => jazzStages().find(s => s.id === String(id)) || null;
+const jazzSubOf = exId => { for(const s of jazzStages()) if(s.subs.includes(exId))
+  return {stage: s, sub: jazzExercise(exId)}; return null; };
+
+/* ---------- writing one out ----------
+   The catalogue names its generator and lists the arguments it wants. "key"
+   means the key you have chosen; "intervalName" means the distance you have
+   chosen; anything else is a literal the book wrote down. */
+const JAZZ_INTERVALS = ['minor2nd','major2nd','minor3rd','major3rd','perfect4th','tritone',
+  'perfect5th','minor6th','major6th','minor7th','major7th','octave'];
+function jazzScoreXml(ex, key, opts){
+  if(!ex || !ex.gen) return null;
+  const G = typeof JazzExerciseGenerator !== 'undefined' ? JazzExerciseGenerator : null;
+  if(!G || typeof G[ex.gen] !== 'function') return null;
+  const o = opts || {};
+  const args = (ex.args || ['key']).map(a =>
+    a === 'key' ? key
+    : a === 'intervalName' ? (o.interval || 'major3rd')
+    : a);
+  return G[ex.gen].apply(G, args);
+}
+/* whether an exercise wants a distance chosen as well as a key */
+const jazzWantsInterval = ex => !!(ex && (ex.args || []).includes('intervalName'));
+/* and whether it has any notation at all — some of the work is a project */
+const jazzHasScore = ex => !!(ex && ex.gen);
+
 /* ---------- what is yours ---------- */
 const JAZZ_QUALITY = [['rough','Rough'], ['shaky','Shaky'], ['improving','Improving'],
   ['solid','Solid'], ['automatic','Automatic']];
@@ -205,6 +196,7 @@ function jazzState(){
   st.keyMode = ['all','unmastered','custom'].includes(st.keyMode) ? st.keyMode : 'unmastered';
   st.customKeys = Array.isArray(st.customKeys) ? st.customKeys : ['C','F','Bb','Eb'];
   st.syllabus = Array.isArray(st.syllabus) ? st.syllabus : [];
+  st.gate = !!st.gate;              /* one stage at a time, if you want it */
   st.openId = st.openId || null;
   return j;
 }
@@ -223,27 +215,37 @@ function jazzRecord(id, make){
   r.logs = Array.isArray(r.logs) ? r.logs : [];
   return r;
 }
-const jazzExercise = id => JAZZ_EXERCISES[id] || null;
-const jazzStage = id => JAZZ_STAGES.find(s => s.id === id) || null;
-const jazzSubOf = exId => { for(const s of JAZZ_STAGES) for(const b of s.subs)
-  if(b.ex === exId) return {stage: s, sub: b}; return null; };
 /* how many of the twelve are yours, for one exercise and for a whole stage */
 const jazzKeysGot = id => JAZZ_KEY_NAMES.filter(k => jazzRecord(id).keys[k]).length;
 function jazzStageGot(stage){
-  const ids = stage.subs.map(b => b.ex);
+  const ids = (stage && stage.subs) || [];
   return {done: sum(ids.map(jazzKeysGot)), of: ids.length * 12};
 }
-/* a stage is shut until the one before it is finished, because the whole
-   point of a roadmap is that it says what not to do yet */
-function jazzStageOpen(stage){
-  if(!stage.needs) return true;
+/* Whether you have earned a stage: the one before it is finished in all
+   twelve keys. A roadmap is worth having because it says what not to do
+   yet, and this is the part that knows.
+
+   It does not shut the door. Locking stages was the first design and it was
+   wrong for the room this is: a shelf you cannot look at is a shelf you
+   cannot decide about, and the whole of stage twelve being greyed out for a
+   year tells you nothing except that it is there. So everything opens, the
+   stage you are actually on is marked, and a stage you have run ahead to
+   says so quietly rather than refusing.
+
+   The gate is still here, behind a switch, for anybody who wants the
+   discipline of it. Off unless asked for. */
+const jazzGated = () => !!(jazzState().settings || {}).gate;
+function jazzStageReached(stage){
+  if(!stage || stage.needs === undefined) return true;
   const before = jazzStage(stage.needs);
   if(!before) return true;
   const got = jazzStageGot(before);
   return got.of > 0 && got.done >= got.of;
 }
-const jazzNowStage = () => JAZZ_STAGES.find(s => jazzStageOpen(s) && jazzStageGot(s).done < jazzStageGot(s).of)
-  || JAZZ_STAGES[JAZZ_STAGES.length - 1];
+const jazzStageOpen = stage => !jazzGated() || jazzStageReached(stage);
+/* where you actually are: the first stage you have earned and not finished */
+const jazzNowStage = () => jazzStages().find(s => jazzStageReached(s) && jazzStageGot(s).done < jazzStageGot(s).of)
+  || jazzStages()[jazzStages().length - 1];
 
 function jazzSetKey(id, key, got){
   const r = jazzRecord(id, true);

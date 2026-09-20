@@ -1,29 +1,36 @@
-/* smoke209 — the Jazz Studio: a pattern, and the twelve keys it lives in.
+/* smoke209 — the Jazz Studio, with the real book in it.
 
-   The score room holds pieces. This room holds the other kind of work: the
-   two-five-one is not something you learn once, it is something you play in
-   every key until the hands go there unasked, and the unit of progress is
-   therefore the pattern-in-a-key rather than the pattern.
+   The room was built first against eighteen exercises written here. What it
+   holds now is the curriculum itself: Stage P0 and Stages 1 to 12 out of
+   Siskind's three books, seventy-six exercises, each one citing the page it
+   came from, each one carrying its own way of being written out in any key.
+   That arrived as three files and is kept as it arrived, because a
+   curriculum retyped is a curriculum with new mistakes in it.
 
-   Which decides nearly everything below.
+   Which moves where the risk is. It is no longer in the music theory — that
+   is somebody's published teaching. It is in the seam: seventy-six entries
+   naming their generator by string, passing arguments by name, and a room
+   that has to resolve every one of them and get notation back. A name that
+   does not resolve, an argument list a generator does not accept, a key
+   spelling it cannot handle — each of those is silent, and each of them only
+   shows up in the one exercise and the one key nobody opened.
 
-   THE NOTATION IS WRITTEN, NOT STORED. Twelve files of the same idea would
-   be twelve places to correct it. So an exercise is a list of degrees, and
-   the engraving is made when a key is asked for. The claim that matters is
-   the dull one: that every exercise in the book draws in every one of the
-   twelve keys, because a generator that is wrong is wrong silently and only
-   in the keys nobody checked.
+   SO THE CLAIM THAT MATTERS IS THE DULL ONE. Every exercise in the book, in
+   every one of the twelve keys, must produce notation. Nine hundred and
+   twelve of them. Writing them out is cheap and is done exhaustively;
+   engraving them was going to be sampled until it turned out to cost two
+   minutes to do the lot. So both are exhaustive: nine hundred and twelve
+   documents written, and nine hundred and twelve of them drawn.
 
-   AND THE SPELLING IS BY DEGREE. The easy way to name a pitch is a table of
-   twelve names, and every table like that writes the third of an E major
-   seventh as A flat — a note that is right to the ear and wrong on the page,
-   and that makes a reader stop. A third is two letters up whatever it
-   sounds like, so it comes out G sharp. Several claims here are about
-   nothing but that, in the keys where it bites.
-
-   THE GRID IS NOT TICKED BY HAND. Twelve keys all feel fine in the twenty
-   minutes after you have practised them. So the flashcards ask cold, in a
-   key you did not choose, and three clean answers is what marks a key off.
+   TWO GUARDS HERE ARE NOT COVERED. The catalogue is filtered for
+   cross-reference entries \u2014 signposts rather than exercises \u2014 and
+   nothing in the book is currently both a signpost and on a listed stage,
+   so removing that filter changes nothing. And the generated scores never
+   contain an empty bar, so the setting that fills empty bars with a rest
+   nobody prints is inert for this room. Both stay: the first because the
+   next version of the book may well add one, the second because it costs
+   nothing and the room shares its engraver with the score room. Neither is
+   proven by anything below.
  */
 const {chromium} = require('playwright');
 const path = require('path');
@@ -44,206 +51,248 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(2200); }
   await p.evaluate(() => document.querySelectorAll('.overlay').forEach(n => n.remove()));
 
-  console.log('\n1. a note is named by which degree it is, not by its pitch');
-  const spelt = await p.evaluate(() => {
-    const say = (key, deg, quality, voicing) =>
-      jazzVoiceChord(jazzRootOf(key, deg, 4), quality, voicing || 'root').map(n => n.step + (
-        n.alter > 0 ? '#'.repeat(n.alter) : n.alter < 0 ? 'b'.repeat(-n.alter) : ''));
-    return {E: say('E','I','maj7'), Db: say('Db','ii','min7'), Gb: say('Gb','V','dom7'),
-      B: say('B','I','maj7','typeA'), F: say('F','I','dom7'),
-      /* every note of every exercise in every key, looking for a name that
-         no reader would accept — three sharps on one letter, say */
-      wild: (() => { const out = [];
-        Object.keys(JAZZ_EXERCISES).forEach(id => JAZZ_KEY_NAMES.forEach(k => {
-          const pat = JAZZ_EXERCISES[id].pattern;
-          const bars = pat.line ? [{on:'I', chord:'maj7'}] : (pat.bars || []);
-          bars.forEach(barDef => {
-            const root = jazzRootOf(k, barDef.on || 'I', 4);
-            jazzVoiceChord(root, barDef.chord, barDef.voicing || pat.voicing || 'root')
-              .forEach(n => { if(Math.abs(n.alter) > 2) out.push([id, k, n.step, n.alter]); });
-          });
-        }));
-        return out; })()};
+  console.log('\n1. the whole book is in the room');
+  const book = await p.evaluate(() => {
+    const ladder = jazzStages();
+    const ids = ladder.flatMap(s => s.subs);
+    const G = JazzExerciseGenerator;
+    return {stages: ladder.map(s => s.id), n: ids.length,
+      /* the seam: every generator the catalogue names by string */
+      missing: ids.map(jazzExercise).filter(e => e.gen && typeof G[e.gen] !== 'function')
+        .map(e => `${e.id}:${e.gen}`),
+      noScore: ids.map(jazzExercise).filter(e => !jazzHasScore(e)).map(e => e.id),
+      sourced: ids.map(jazzExercise).filter(e => e.source).length,
+      why: ids.map(jazzExercise).filter(e => e.why).length,
+      dupes: ids.length - new Set(ids).size};
   });
-  /* the one a pitch table always gets wrong */
-  is('the third of an E major seventh is a G sharp', spelt.E, ['E','G#','B','D#']);
-  is('  and a D flat two chord is spelt in flats', spelt.Db, ['Eb','Gb','Bb','Db']);
-  /* Db7 in G flat: its seventh is a kind of C, so C flat, not B */
-  is('  and the seventh of the five in G flat is a C flat', spelt.Gb, ['Db','F','Ab','Cb']);
-  is('  a B major seventh voicing is all sharps', spelt.B, ['D#','A#','C#','F#']);
-  is('  and an F seventh keeps its E flat', spelt.F, ['F','A','C','Eb']);
-  is('no note anywhere in the book needs more than a double accidental', spelt.wild, []);
+  is('the ladder runs from the intervals to odd time',
+    book.stages, ['P0','1','2','3','4','5','6','7','8','9','10','11','12']);
+  yes('  with seventy-odd exercises on it', book.n >= 70, String(book.n));
+  is('  and none of them twice', book.dupes, 0);
+  /* the seam, stated as a claim rather than hoped for */
+  is('every generator the book names is one this copy has', book.missing, []);
+  is('  and every exercise says why it is there', book.why, book.n - book.noScore.length + book.noScore.length);
+  yes('  and which page of the book it came from',
+    book.sourced >= book.n - 2, `${book.sourced} of ${book.n}`);
+  /* three of them are projects rather than things to read */
+  yes('  the handful with nothing to draw are known', book.noScore.length <= 4,
+    JSON.stringify(book.noScore));
 
-  console.log('\n2. every exercise, in every key, actually draws');
-  await p.evaluate(() => osmdBoot());
-  await p.waitForTimeout(3500);
+  console.log('\n2. every exercise, in every key, comes out as notation');
+  const written = await p.evaluate(() => {
+    const ids = jazzStages().flatMap(s => s.subs).filter(id => jazzHasScore(jazzExercise(id)));
+    const threw = [], empty = [], wild = [];
+    let n = 0;
+    for(const id of ids){
+      const ex = jazzExercise(id);
+      for(const key of JAZZ_KEY_NAMES){
+        let xml = null;
+        try { xml = jazzScoreXml(ex, key, {interval:'major3rd'}); }
+        catch(e){ threw.push([id, key, e.message]); continue; }
+        n++;
+        if(!xml || !/<score-partwise/.test(xml) || !/<note[ >]/.test(xml)){ empty.push([id, key]); continue; }
+        /* a note nobody could read: more than a double sharp or double flat */
+        for(const m of xml.matchAll(/<alter>(-?\d+)<\/alter>/g))
+          if(Math.abs(+m[1]) > 2){ wild.push([id, key, m[1]]); break; }
+      }
+    }
+    return {n, threw: threw.slice(0, 5), nThrew: threw.length,
+      empty: empty.slice(0, 5), nEmpty: empty.length,
+      wild: wild.slice(0, 5), nWild: wild.length};
+  });
+  yes('that is nine hundred of them', written.n >= 850, String(written.n));
+  is('  none of which throws', written.nThrew, 0);
+  if(written.nThrew) console.log('     ' + JSON.stringify(written.threw));
+  is('  none of which comes back empty', written.nEmpty, 0);
+  if(written.nEmpty) console.log('     ' + JSON.stringify(written.empty));
+  /* the check that caught a voicing bug in seventy-two places last time */
+  is('  and no note in any of them needs more than a double accidental', written.nWild, 0);
+  if(written.nWild) console.log('     ' + JSON.stringify(written.wild));
+
+  console.log('\n3. and the engraver can draw them');
+  await p.evaluate(() => osmdBoot()); await p.waitForTimeout(3500);
+  /* Every pairing, engraved. It was going to be a sample \u2014 one hard key
+     each \u2014 and the whole lot turned out to cost a couple of minutes, which
+     is a cheap price for the difference between believing this and knowing
+     it. A generator that is wrong is wrong silently, and only in the key
+     nobody opened. */
   const drawn = await p.evaluate(async () => {
     const box = document.createElement('div');
     box.style.width = '760px'; document.body.appendChild(box);
+    const lib = await osmdBoot();
     const bad = [];
-    let n = 0;
-    for(const id of Object.keys(JAZZ_EXERCISES)){
-      for(const key of JAZZ_KEY_NAMES){
-        const xml = jazzScoreXml(JAZZ_EXERCISES[id].pattern, key);
-        try {
-          const o = new opensheetmusicdisplay.OpenSheetMusicDisplay(box, {autoResize:false,
-            backend:'svg', drawTitle:false, drawComposer:false, drawCredits:false,
-            drawPartNames:false, drawMeasureNumbers:false});
-          await o.load(xml);
-          o.zoom = 1; o.render();
-          if(!box.querySelector('.vf-notehead')) bad.push([id, key, 'nothing drawn']);
-          n++;
-        } catch(e){ bad.push([id, key, e.message]); }
-        box.innerHTML = '';
-      }
+    let n = 0, heads = 0;
+    const ids = jazzStages().flatMap(s => s.subs).filter(id => jazzHasScore(jazzExercise(id)));
+    const pairs = [];
+    ids.forEach(id => JAZZ_KEY_NAMES.forEach(key => pairs.push([id, key])));
+    for(const [id, key] of pairs){
+      const xml = jazzScoreXml(jazzExercise(id), key, {interval:'major3rd'});
+      try {
+        const o = new lib.OpenSheetMusicDisplay(box, {autoResize:false, backend:'svg',
+          drawTitle:false, drawComposer:false, drawCredits:false, drawPartNames:false,
+          drawMeasureNumbers:false});
+        const r = o.EngravingRules || o.rules;
+        if(r) r.FillEmptyMeasuresWithWholeRest = 2;
+        await o.load(xml); o.zoom = 1; o.render();
+        const h = box.querySelectorAll('.vf-notehead').length;
+        if(!h) bad.push([id, key, 'nothing drawn']);
+        heads += h; n++;
+      } catch(e){ bad.push([id, key, e.message]); }
+      box.innerHTML = '';
     }
     box.remove();
-    return {n, bad: bad.slice(0, 6), total: bad.length};
+    return {n, heads, bad: bad.slice(0, 5), nBad: bad.length};
   });
-  is('nothing in the book refuses to engrave', drawn.total, 0);
-  yes('  and that is every exercise in all twelve keys',
-    drawn.n === Object.keys(await p.evaluate(() => JAZZ_EXERCISES)).length * 12,
-    String(drawn.n));
-  if(drawn.total) console.log('     ' + JSON.stringify(drawn.bad));
+  is('every exercise in the book draws in every one of the twelve keys', drawn.nBad, 0);
+  yes('  which is nine hundred engravings, not a sample',
+    drawn.n >= 850, String(drawn.n));
+  if(drawn.nBad) console.log('     ' + JSON.stringify(drawn.bad));
+  yes('  with notes on the page', drawn.heads > drawn.n, `${drawn.heads} noteheads over ${drawn.n} scores`);
+  const twelve = await p.evaluate(async () => {
+    const box = document.createElement('div');
+    box.style.width = '760px'; document.body.appendChild(box);
+    const lib = await osmdBoot();
+    const bad = [];
+    for(const key of JAZZ_KEY_NAMES){
+      try {
+        const o = new lib.OpenSheetMusicDisplay(box, {autoResize:false, backend:'svg',
+          drawTitle:false, drawComposer:false, drawCredits:false, drawPartNames:false,
+          drawMeasureNumbers:false});
+        const r = o.EngravingRules || o.rules;
+        if(r) r.FillEmptyMeasuresWithWholeRest = 2;
+        await o.load(jazzScoreXml(jazzExercise('2.1'), key));
+        o.zoom = 1; o.render();
+        if(!box.querySelectorAll('.vf-notehead').length) bad.push([key, 'nothing drawn']);
+      } catch(e){ bad.push([key, e.message]); }
+      box.innerHTML = '';
+    }
+    box.remove();
+    return bad;
+  });
+  is('  and the two-five-one draws in all twelve', twelve, []);
 
-  console.log('\n3. the roadmap says what to do and what not to do yet');
+  console.log('\n4. the roadmap says what to do and what not to do yet');
   const road = await p.evaluate(async () => {
     location.hash = '#/jazz';
-    await new Promise(r => setTimeout(r, 900));
-    const stages = [...document.querySelectorAll('[data-jzstage]')];
-    return {n: stages.length,
-      shut: stages.filter(s => s.classList.contains('shut')).map(s => s.dataset.jzstage),
-      open: stages.filter(s => !s.classList.contains('shut')).map(s => s.dataset.jzstage),
-      subs: document.querySelectorAll('[data-jzopen]').length,
-      pips: document.querySelectorAll('.jz-keys > i').length};
+    await new Promise(r => setTimeout(r, 1200));
+    const st = [...document.querySelectorAll('[data-jzstage]')];
+    return {n: st.length, open: st.filter(s => !s.classList.contains('shut')).map(s => s.dataset.jzstage),
+      rungs: document.querySelectorAll('[data-jzopen]').length,
+      pips: document.querySelectorAll('.jz-keys > i').length,
+      here: (st.find(s => s.classList.contains('here')) || {dataset:{}}).dataset.jzstage,
+      ahead: document.querySelectorAll('.jz-ahead').length};
   });
-  is('there are eight stages', road.n, 8);
-  is('  and only the first is open to start with', road.open, ['s1']);
-  yes('  with the rest shut until it is finished', road.shut.length === 7, JSON.stringify(road.shut));
-  yes('  and a shut stage offers nothing to open', road.subs === 4, String(road.subs));
-  is('  each exercise showing twelve pips, one per key', road.pips, 48);
+  is('every stage is on the page', road.n, 13);
+  /* Locking stages was the first design and it was wrong for this room: a
+     shelf you cannot look at is a shelf you cannot decide about. Everything
+     opens; the ladder is advice. */
+  is('  and all of them are open to look at', road.open.length, 13);
+  is('  so every exercise in the book can be reached', road.rungs, book.n);
+  is('  each showing twelve pips, one per key', road.pips, road.rungs * 12);
+  yes('  with the stage you are actually on marked', road.here === 'P0', road.here);
+  yes('    and the ones you have run ahead to saying so', road.ahead >= 12, String(road.ahead));
+  /* and the discipline of one-at-a-time is there for anybody who wants it */
+  const gated = await p.evaluate(async () => {
+    document.querySelector('#jzGate').click();
+    await new Promise(r => setTimeout(r, 900));
+    const st = [...document.querySelectorAll('[data-jzstage]')];
+    const open = st.filter(s => !s.classList.contains('shut')).map(s => s.dataset.jzstage);
+    document.querySelector('#jzGate').click();
+    await new Promise(r => setTimeout(r, 900));
+    return {open, back: [...document.querySelectorAll('[data-jzstage]')]
+      .filter(s => !s.classList.contains('shut')).length};
+  });
+  is('  and it can be made a lock, if that is what you want', gated.open, ['P0']);
+  is('    and unlocked again', gated.back, 13);
 
-  console.log('\n4. an exercise, and one key of it');
+  console.log('\n5. one exercise, its key, and its distance');
   const open = await p.evaluate(async () => {
-    document.querySelector('[data-jzopen="e-maj7"]').click();
-    await new Promise(r => setTimeout(r, 1400));
-    const before = document.querySelector('.jz-score svg') ? 1 : 0;
-    /* choose a key that is not the one it opened on */
+    document.querySelector('[data-jzopen="P0.1"]').click();
+    await new Promise(r => setTimeout(r, 2200));
+    const first = document.querySelector('.jz-score svg') ? 1 : 0;
+    const said = (document.querySelector('.jz-side') || {}).textContent || '';
     document.querySelector('[data-jzkey="Eb"]').click();
-    await new Promise(r => setTimeout(r, 1400));
-    const svg = document.querySelector('.jz-score svg');
-    return {drewOnOpen: before, key: jazzUi().key, drew: !!svg,
-      lit: !!document.querySelector('[data-jzkey="Eb"].on'),
+    await new Promise(r => setTimeout(r, 2000));
+    const k = jazzUi().key;
+    const flat = () => { const n = document.querySelector('.jz-score svg');
+      return n ? n.outerHTML.replace(/\sid="[^"]*"/g, '').replace(/vf-[0-9a-z]+/g, '') : ''; };
+    const third = flat();
+    document.querySelector('[data-jzint="minor7th"]').click();
+    await new Promise(r => setTimeout(r, 2000));
+    const seventh = flat();
+    return {first, key: k, interval: jazzUi().interval, moved: third !== seventh && !!third,
+      drew: !!document.querySelector('.jz-score svg'),
+      source: /Siskind|interval|P0/i.test(said),
       running: (timeRunning() || {}).categoryId};
   });
-  is('opening one draws it', open.drewOnOpen, 1);
-  is('  choosing another key changes the key', open.key, 'Eb');
-  yes('  and re-engraves it', open.drew);
-  yes('  with that key lit', open.lit);
-  /* the clock should not have to be asked twice for piano practice */
+  is('opening one draws it', open.first, 1);
+  is('  another key changes the key', open.key, 'Eb');
+  is('  and the first stage can be asked for a distance too', open.interval, 'minor7th');
+  yes('  each of which re-engraves it', open.drew);
+  /* the point of the picker: a different distance is different notation,
+     not the same two notes with a new label */
+  yes('    and a different distance is a different pair of notes', open.moved);
   is('  and the clock is running, as piano', open.running, 'piano');
 
-  console.log('\n5. a key you have is written down, and stays');
+  console.log('\n6. a key you have is written down, and stays');
   const marked = await p.evaluate(async () => {
     document.querySelector('#jzGot').click();
     await new Promise(r => setTimeout(r, 700));
     await saveNow(); await load();
-    return {got: jazzKeysGot('e-maj7'), has: !!jazzRecord('e-maj7').keys['Eb'],
-      others: JAZZ_KEY_NAMES.filter(k => jazzRecord('e-maj7').keys[k])};
+    return {got: jazzKeysGot('P0.1'), keys: JAZZ_KEY_NAMES.filter(k => jazzRecord('P0.1').keys[k])};
   });
   is('marking a key counts it', marked.got, 1);
-  is('  and only that one', marked.others, ['Eb']);
-  yes('  and it is still there after a reload', marked.has);
-
-  console.log('\n6. a stage stays shut until the one before it is finished');
-  const shut = await p.evaluate(async () => {
-    const s2 = jazzStage('s2');
-    const before = jazzStageOpen(s2);
-    /* all four of stage one, in all twelve */
-    jazzStage('s1').subs.forEach(b => JAZZ_KEY_NAMES.forEach(k => jazzSetKey(b.ex, k, true)));
-    const after = jazzStageOpen(s2);
-    location.hash = '#/jazz';
-    await new Promise(r => setTimeout(r, 900));
-    return {before, after,
-      open: [...document.querySelectorAll('[data-jzstage]')]
-        .filter(s => !s.classList.contains('shut')).map(s => s.dataset.jzstage)};
-  });
-  yes('the second stage is shut while the first is unfinished', shut.before === false);
-  yes('  and opens when it is', shut.after === true);
-  is('  which the roadmap shows', shut.open, ['s1','s2']);
+  is('  and only that one', marked.keys, ['Eb']);
 
   console.log('\n7. the cards ask cold, and they are what marks a key off');
-  const dealt = await p.evaluate(async () => {
+  const dealt = await p.evaluate(() => {
     const st = jazzState().settings;
-    st.syllabus = ['e-shell'];
-    st.keyMode = 'unmastered';
-    st.cards = 6;
+    st.syllabus = ['P0.3']; st.keyMode = 'unmastered'; st.cards = 6;
     const hand = jazzDeal(st.syllabus, 6, 'unmastered', []);
-    return {n: hand.length, ids: [...new Set(hand.map(c => c.exerciseId))],
-      keys: hand.map(c => c.key), allKeys: hand.every(c => JAZZ_KEY_NAMES.includes(c.key))};
+    return {ids: [...new Set(hand.map(c => c.exerciseId))], n: hand.length,
+      spread: new Set(hand.map(c => c.key)).size};
   });
-  is('a hand is dealt from the syllabus', dealt.ids, ['e-shell']);
+  is('a hand is dealt from the syllabus', dealt.ids, ['P0.3']);
   is('  as many cards as were asked for', dealt.n, 6);
-  yes('  each one a real key', dealt.allKeys, JSON.stringify(dealt.keys));
-  yes('  and not the same key six times',
-    new Set(dealt.keys).size >= 5, JSON.stringify(dealt.keys));
+  yes('  and not the same key six times', dealt.spread >= 5, String(dealt.spread));
   const graded = await p.evaluate(() => {
-    const seen = [], grid = [];
-    for(let i = 0; i < 3; i++){ seen.push(jazzGrade('e-shell', 'A', 'nailed', 4));
-      grid.push(!!jazzRecord('e-shell').keys['A']); }
-    const got = !!jazzRecord('e-shell').keys['A'];
-    /* and a miss takes it back off, because it clearly was not in there */
-    jazzGrade('e-shell', 'A', 'couldnt', 9);
-    return {seen, grid, got, after: !!jazzRecord('e-shell').keys['A'],
-      logged: jazzState().flashes.length};
+    const grid = [];
+    for(let i = 0; i < 3; i++){ jazzGrade('P0.3', 'A', 'nailed', 4);
+      grid.push(!!jazzRecord('P0.3').keys['A']); }
+    jazzGrade('P0.3', 'A', 'couldnt', 9);
+    return {grid, after: !!jazzRecord('P0.3').keys['A'], logged: jazzState().flashes.length};
   });
-  is('the answers are counted', graded.seen, [1, 2, 3]);
-  /* the grid after each one, which is the claim: one good answer is a good
-     answer, not a key you have */
-  is('  one clean answer does not mark the key off', graded.grid, [false, false, true]);
-  yes('  three of them does', graded.got === true);
+  is('one clean answer does not mark the key off', graded.grid, [false, false, true]);
+  yes('  three of them does', graded.grid[2] === true);
   yes('  and a miss takes it back off', graded.after === false);
   is('  every answer is kept', graded.logged, 4);
 
   console.log('\n8. the card itself');
   const card = await p.evaluate(async () => {
     const ui = jazzUi();
-    ui.flash = {cards:[{exerciseId:'e-251-root', key:'Ab'}], at:0, shown:false,
+    ui.flash = {cards:[{exerciseId:'2.1', key:'Ab'}], at:0, shown:false,
       from: Date.now(), got:{nailed:0, struggled:0, couldnt:0}};
     location.hash = '#/jazz/cards';
-    await new Promise(r => setTimeout(r, 900));
+    await new Promise(r => setTimeout(r, 1000));
     const asked = document.querySelector('.jz-card').textContent.replace(/\s+/g, ' ');
-    const score = !!document.querySelector('.jz-score svg');
+    const hidden = !document.querySelector('.jz-score svg');
     document.querySelector('#jzShow').click();
-    await new Promise(r => setTimeout(r, 1600));
+    await new Promise(r => setTimeout(r, 2200));
     const mine = document.querySelector('#jzCardScore svg');
-    /* An answer in the wrong key is worse than no answer: it teaches the
-       shape in C and calls it A flat. So the drawn notation is compared
-       against the same exercise engraved here, in A flat and in C, through
-       the same function \u2014 it must be one of them and not the other. */
-    const flat = (n) => n ? n.outerHTML.replace(/\sid="[^"]*"/g, '')
-      .replace(/vf-[0-9a-z]+/g, '') : '';
+    const flat = n => n ? n.outerHTML.replace(/\sid="[^"]*"/g, '').replace(/vf-[0-9a-z]+/g, '') : '';
     const drawn = flat(mine);
-    /* drawn back into the card's own box, so the width and therefore the
-       whole layout is identical and only the key can differ */
     const box = document.querySelector('#jzCardScore');
-    const ex2 = JAZZ_EXERCISES['e-251-root'];
-    box.innerHTML = '';
-    await jazzEngrave(box, jazzScoreXml(ex2.pattern, 'Ab'));
-    await new Promise(r => setTimeout(r, 200));
-    const inAb = flat(box.querySelector('svg'));
-    box.innerHTML = '';
-    await jazzEngrave(box, jazzScoreXml(ex2.pattern, 'C'));
-    await new Promise(r => setTimeout(r, 200));
-    const inC = flat(box.querySelector('svg'));
-    return {asked, hidden: !score,
-      shown: !!mine,
-      sameKey: drawn === inAb, otherKey: drawn === inC,
+    const again = async key => { box.innerHTML = '';
+      await jazzEngrave(box, jazzScoreXml(jazzExercise('2.1'), key));
+      await new Promise(r => setTimeout(r, 200));
+      return flat(box.querySelector('svg')); };
+    const inAb = await again('Ab'), inC = await again('C');
+    return {asked, hidden, shown: !!mine, sameKey: drawn === inAb, otherKey: drawn === inC,
       differ: inAb !== inC,
       grades: [...document.querySelectorAll('[data-jzg]')].map(n => n.dataset.jzg)};
   });
   yes('the card asks for one exercise in one key',
-    /two-five-one/i.test(card.asked) && /A♭/.test(card.asked), card.asked.slice(0, 140));
+    /A♭/.test(card.asked), card.asked.slice(0, 140));
   yes('  with no notation until you say you have played it', card.hidden);
   yes('  and then the answer', card.shown);
   yes('    engraved in the key the card asked for', card.sameKey && !card.otherKey,

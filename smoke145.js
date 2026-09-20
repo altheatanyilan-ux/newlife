@@ -87,10 +87,19 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   await p.evaluate(() => { FocusTimer.stop(); FocusTimer.setTask(null); }); await p.clock.runFor(600);
 
   console.log('\n3. a task living in a project reaches the clock whole');
+  /* the project is made here too, for the same reason: a fresh instrument
+     has no projects in it either */
   const pid = await p.evaluate(() => {
-    const pr = (S.projects || [])[0], ph = pr && (pr.phases || [])[0]; if(!ph) return null;
+    S.projects = S.projects || [];
+    let pr = S.projects[0];
+    if(!pr){ pr = {id:'pr-145', name:'The recital', phases:[], links:{}, createdAt:new Date().toISOString()};
+      S.projects.push(pr); }
+    pr.phases = pr.phases || [];
+    let ph = pr.phases[0];
+    if(!ph){ ph = {id:'ph-145', name:'Learning it', tasks:[]}; pr.phases.push(ph); }
     ph.tasks = ph.tasks || [];
-    ph.tasks.push({id:'pt-x', text:'A task inside a project', day:today(), done:false, duration:20, subtasks:[]});
+    if(!ph.tasks.some(t => t.id === 'pt-x'))
+      ph.tasks.push({id:'pt-x', text:'A task inside a project', day:today(), done:false, duration:20, subtasks:[]});
     saveNow(); rerender(); return `${pr.id}:${ph.id}:pt-x`; });
   yes('there is a project to put one in', !!pid);
   if(pid){
