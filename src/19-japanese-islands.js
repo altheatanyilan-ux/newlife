@@ -187,8 +187,6 @@ function jaIslandPage(root, i){
       <button class="tbtn" id="isRuby" title="the reading over the kanji, worked out rather than typed">ふりがな</button>
     </div>
     <div id="isRubyBox" class="ja-rubybox" hidden></div>
-    <label class="pd-q" style="margin-top:12px"><span class="k">what was changed, and why — the part worth keeping</span>
-      <textarea class="inp" rows="3" id="isNotes" placeholder="Tutor changed 体験を組み合わせた to 体験が融合した — more natural for a concept than for objects.">${esc(i.correctionNotes)}</textarea></label>
 
     <section class="section rv ja-isle-sec">
       <div class="row between" style="align-items:baseline">
@@ -316,7 +314,6 @@ function bindJaIslandPage(root, i){
   const bump = () => { i.version = (+i.version || 1) + 1; };
   field('#isTeineigo', 'japaneseTeineigo', bump);
   field('#isTameguchi', 'japaneseTameguchi', bump);
-  field('#isNotes', 'correctionNotes');
   const st = one('#isStatus');
   if(st) st.onchange = () => { i.status = st.value; saveNow(); mark(); };
   ['isVerified|nativeVerified', 'isPitch|pitchMarked'].forEach(pair => {

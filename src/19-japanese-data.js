@@ -233,6 +233,10 @@ function jaIslandDefaults(i){
   i.status = JA_ISLAND_STATUS.some(v => v[0] === i.status) ? i.status : 'drafting';
   i.nativeVerified = !!i.nativeVerified;
   i.pitchMarked = !!i.pitchMarked;
+  /* There used to be a box on the page asking what a tutor changed and why.
+     It is gone. The field stays because anything written in it is somebody's
+     writing and a version that quietly deletes it would be a version that
+     eats work — it simply is not asked for any more. */
   i.correctionNotes = i.correctionNotes || '';
   /* The vocabulary this topic needs, kept with the topic rather than in one
      great list: a word you cannot produce matters here, in this monologue,

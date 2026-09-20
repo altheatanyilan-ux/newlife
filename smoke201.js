@@ -136,8 +136,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     const v1 = i.version;
     Object.assign(i, {englishDraft:'I run a bar in Singapore.',
       japaneseTeineigo:'シンガポールでバーを経営しています。',
-      japaneseTameguchi:'シンガポールでバーやってる。',
-      correctionNotes:'Tutor changed 組み合わせた to 融合した.'});
+      japaneseTameguchi:'シンガポールでバーやってる。'});
     i.chunks = [
       jaChunkDefaults({japanese:'経営する', reading:'けいえいする', meaning:'to run a business', ready:true}, i.id),
       jaChunkDefaults({japanese:'組み合わせる', meaning:'to combine'}, i.id),
