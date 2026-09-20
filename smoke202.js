@@ -87,7 +87,8 @@ const THIN = `<?xml version="1.0" encoding="UTF-8"?><score-partwise version="3.1
   yes('there is one', inv.there, JSON.stringify(inv));
   is('  with a row per score', inv.rows.length, 2);
   yes('  and it says how many of how many are shown', /2 of 2 shown/.test(inv.count || ''), inv.count);
-  is('  search, standing, shape and sort', inv.filters, ['scinvState','scinvShape','scinvSort']);
+  is('  search, standing, composer, period, shape and sort', inv.filters,
+    ['scinvState','scinvComposer','scinvPeriod','scinvShape','scinvSort']);
   /* what the shelf shows as a picture, the inventory shows as a number */
   const row = await p.evaluate(() => {
     const x = scores().find(y => y.title === 'A Thin One');

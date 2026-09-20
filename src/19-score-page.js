@@ -103,7 +103,8 @@ function scoreLibraryHTML(){
    Everything the shelf shows as a picture, this shows as a number, because
    the two questions want different answers. */
 function scoreFilters(){
-  return S._scinv = S._scinv || {q:'', state:'all', shape:'all', sort:'opened'};
+  return S._scinv = S._scinv || {q:'', state:'all', shape:'all', sort:'opened',
+    composer:'all', period:'all'};
 }
 /* Where a score stands, taken from its sections rather than set by hand: a
    piece is as ready as the least ready part of it that you have marked. */
@@ -123,6 +124,8 @@ function scoreMatches(x, f){
   const q = (f.q || '').trim().toLowerCase();
   if(q && !`${x.title} ${x.composer || ''} ${(x.sections || []).map(sc => sc.name).join(' ')}`.toLowerCase().includes(q)) return false;
   if(f.state !== 'all' && scoreStanding(x).key !== f.state) return false;
+  if(f.composer !== 'all' && (x.composer || '\u2014') !== f.composer) return false;
+  if(f.period !== 'all' && (scorePeriodOf(x) || '\u2014') !== f.period) return false;
   const last = scoreLastPractised(x);
   if(f.shape === 'unmarked' && (x.sections || []).length) return false;
   if(f.shape === 'marked'   && !(x.sections || []).length) return false;
@@ -141,27 +144,54 @@ function scoreInventoryHTML(){
   const list = all.filter(x => scoreMatches(x, f)).sort((a, b) => {
     if(f.sort === 'title')    return a.title.localeCompare(b.title);
     if(f.sort === 'composer') return (a.composer || '\uffff').localeCompare(b.composer || '\uffff') || a.title.localeCompare(b.title);
+    /* by period is by the order they happened in, not by their names: a list
+       that runs Baroque, Classical, Contemporary, Impressionist is a list
+       sorted by spelling, which is no use to anybody */
+    if(f.sort === 'period'){
+      const at = x => { const k = scorePeriodOf(x); const i = SCORE_PERIODS.findIndex(v => v[0] === k);
+        return i < 0 ? 99 : i; };
+      return at(a) - at(b) || (a.composer || '').localeCompare(b.composer || '')
+        || a.title.localeCompare(b.title);
+    }
     if(f.sort === 'bars')     return (+b.totalMeasures || 0) - (+a.totalMeasures || 0);
     if(f.sort === 'time')     return scoreMinutesAll(b) - scoreMinutesAll(a);
     if(f.sort === 'practised')return daysSince(scoreLastPractised(a)) - daysSince(scoreLastPractised(b));
     return (b.lastOpened || b.createdAt || '').localeCompare(a.lastOpened || a.createdAt || '');
   });
-  const dirty = f.q || f.state !== 'all' || f.shape !== 'all';
+  const dirty = f.q || f.state !== 'all' || f.shape !== 'all'
+    || f.composer !== 'all' || f.period !== 'all';
   const states = [['unmarked','not marked up'], ...SCORE_STATUS.map(([k, n]) => [k, n.toLowerCase()])];
+  /* the two categories are built from the shelf rather than from a fixed
+     list, so the menu only ever offers a composer you actually have, and
+     says how many — a menu of two hundred dead composers, all but six of
+     them empty, is a menu nobody reads */
+  const tally = get => { const t = {}; all.forEach(x => { const k = get(x);
+    if(k) t[k] = (t[k] || 0) + 1; }); return t; };
+  const comps = tally(x => x.composer || '\u2014');
+  const periods = tally(x => scorePeriodOf(x) || '\u2014');
+  const byCount = t => Object.keys(t).sort((a, b) => t[b] - t[a] || a.localeCompare(b));
+  const someGuessed = all.some(x => !x.period && scorePeriodGuess(x.composer));
   return `<section class="section rv sc-inv" id="scInv">
     <div class="row between"><span class="sc" style="margin:0">Inventory</span>
       <span class="mono">${list.length} of ${all.length} shown</span></div>
-    <p class="muted" style="font-size:.85rem">Everything you have brought in, including the pieces you have not started marking up. The shelf is what you are working on; this is what you have.</p>
+    <p class="muted" style="font-size:.85rem">Everything you have brought in, including the pieces you have not started marking up. The shelf is what you are working on; this is what you have.${
+      someGuessed ? ' A period in lighter type was guessed from the composer\u2019s name \u2014 press it to say for certain, or to correct it.' : ''}</p>
     <div class="filter-bar">
       <input class="inp" id="scinvq" placeholder="search title, composer, section" value="${esc(f.q)}">
       <select class="sel" id="scinvState"><option value="all">any standing</option>${states.map(([k, n]) =>
         `<option value="${k}" ${f.state === k ? 'selected' : ''}>${esc(n)}${counts[k] ? ` (${counts[k]})` : ''}</option>`).join('')}</select>
+      <select class="sel" id="scinvComposer"><option value="all">any composer</option>${
+        byCount(comps).map(k => `<option value="${esc(k)}" ${f.composer === k ? 'selected' : ''}>${
+          k === '\u2014' ? 'no composer named' : esc(k)} (${comps[k]})</option>`).join('')}</select>
+      <select class="sel" id="scinvPeriod"><option value="all">any period</option>${
+        byCount(periods).map(k => `<option value="${esc(k)}" ${f.period === k ? 'selected' : ''}>${
+          k === '\u2014' ? 'period not set' : esc(scorePeriodName(k))} (${periods[k]})</option>`).join('')}</select>
       <select class="sel" id="scinvShape">${[['all','any shape'],['marked','has sections'],['unmarked','no sections yet'],
         ['warm','practised this week'],['cold','nothing for three weeks'],['never','never practised'],
         ['written','has pins or fingerings']].map(([v, l]) =>
         `<option value="${v}" ${f.shape === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
       <select class="sel" id="scinvSort">${[['opened','by last opened'],['practised','by last practised'],
-        ['time','by time spent'],['bars','by length'],['composer','by composer'],['title','by title']].map(([v, l]) =>
+        ['time','by time spent'],['bars','by length'],['composer','by composer'],['period','by period'],['title','by title']].map(([v, l]) =>
         `<option value="${v}" ${f.sort === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
       ${dirty ? `<button class="btn sm ghost" id="scinvClear">clear</button>` : ''}
     </div>
@@ -172,10 +202,16 @@ function scoreInventoryHTML(){
       const last = scoreLastPractised(x);
       const pins = (x.pins || []).length;
       const fing = Object.keys(x.fingerings || {}).length;
+      const per = scorePeriodOf(x);
       return `<div class="sc-invrow" style="--c:${st.color}" data-scinvrow="${esc(x.id)}">
         <button class="sc-invname" data-scopen="${esc(x.id)}">
           <b class="serif">${esc(x.title)}</b>
           ${x.composer ? `<span class="faint">${esc(x.composer)}</span>` : ''}</button>
+        <button class="sc-invper mono${x.period ? '' : ' guess'}" data-scdetails="${esc(x.id)}"
+          title="${x.period ? 'the period you set \u2014 press to change it'
+            : per ? 'guessed from the composer \u2014 press to say for certain'
+            : 'press to name the composer and the period'}"
+          >${per ? esc(scorePeriodName(per)) : 'set the period'}</button>
         <span class="sc-invstate mono">${esc(st.name)}</span>
         <span class="mono faint">${x.totalMeasures ? `${x.totalMeasures} bars` : '\u2014'}${
           secs ? ` \u00b7 ${secs} section${secs === 1 ? '' : 's'}` : ''}${
@@ -197,8 +233,10 @@ function scoreViewerHTML(x){
   const parts = x.instruments || [];
   return `<div class="sc-head">
       <button class="btn sm ghost" id="scBack">← the shelf</button>
-      <span class="sc-title serif">${esc(x.title)}</span>
+      <button class="sc-title serif" data-scdetails="${esc(x.id)}"
+        title="what this piece is \u2014 title, composer, period">${esc(x.title)}</button>
       ${x.composer ? `<span class="sc-comp">${esc(x.composer)}</span>` : ''}
+      ${scorePeriodOf(x) ? `<span class="sc-comp faint">${esc(scorePeriodName(scorePeriodOf(x)))}</span>` : ''}
       <span class="grow"></span>
       <span class="mono faint">${x.totalMeasures ? `${x.totalMeasures} bars` : ''}</span>
       <button class="tbtn" id="scPrint" title="print it, with or without what you have written on it">⎙ print</button>
@@ -1051,6 +1089,38 @@ async function takeScoreFile(file){
   }
 }
 
+/* ---------- what the piece is ----------
+   The title and the composer come off the file, and files lie: half the
+   MusicXML on the internet is called "Untitled" by "Unknown", and the other
+   half spells the composer four different ways, which is enough to make a
+   composer filter useless. So all three are yours to set, and the period —
+   which no file carries at all — is set here or nowhere. */
+function openScoreDetails(id){
+  const x = scoreById(id);
+  if(!x) return null;
+  const guess = scorePeriodGuess(x.composer);
+  const m = openModal(`<h2>\u{1F3BC} What this piece is</h2>
+    <label class="pd-q"><span class="k">title</span>
+      <input class="inp" id="sdTitle" autofocus value="${esc(x.title)}"></label>
+    <label class="pd-q" style="margin-top:8px"><span class="k">composer</span>
+      <input class="inp" id="sdComposer" value="${esc(x.composer)}"
+        placeholder="the way you want it to sort \u2014 Chopin, not Fr\u00e9d\u00e9ric Fran\u00e7ois Chopin"></label>
+    <label class="pd-q" style="margin-top:8px"><span class="k">period</span>
+      <select class="sel" id="sdPeriod"><option value="">${guess
+        ? `let the name decide \u2014 ${esc(scorePeriodName(guess))}` : 'not set'}</option>${
+        SCORE_PERIODS.map(([v, n]) =>
+          `<option value="${v}" ${x.period === v ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label>
+    <p class="faint sm">The period is only ever a guess until you set it here. Nothing else in the room writes it.</p>
+    <div class="row" style="justify-content:flex-end;margin-top:14px;gap:8px">
+      <button class="btn primary" id="sdSave">Save</button></div>`);
+  m.querySelector('#sdSave').onclick = () => {
+    x.title = m.querySelector('#sdTitle').value.trim() || x.title;
+    x.composer = m.querySelector('#sdComposer').value.trim();
+    x.period = m.querySelector('#sdPeriod').value || null;
+    saveNow(); m.remove(); sound('success'); rerender();
+  };
+  return m;
+}
 function bindScoreLibrary(root){
   const file = root.querySelector('#scFile');
   const drop = root.querySelector('#scDrop');
@@ -1085,8 +1155,11 @@ function bindScoreInventory(root){
   const pick = (sel, key) => { const n = root.querySelector(sel); if(n)
     n.onchange = () => { f[key] = n.value; redraw(); }; };
   pick('#scinvState', 'state'); pick('#scinvShape', 'shape'); pick('#scinvSort', 'sort');
+  pick('#scinvComposer', 'composer'); pick('#scinvPeriod', 'period');
+  $$('[data-scdetails]', root).forEach(b => b.onclick = () => openScoreDetails(b.dataset.scdetails));
   const clear = root.querySelector('#scinvClear');
-  if(clear) clear.onclick = () => { f.q = ''; f.state = 'all'; f.shape = 'all'; redraw(); };
+  if(clear) clear.onclick = () => { f.q = ''; f.state = 'all'; f.shape = 'all';
+    f.composer = 'all'; f.period = 'all'; redraw(); };
 }
 
 function bindScoreViewer(root, x){
@@ -1099,6 +1172,7 @@ function bindScoreViewer(root, x){
   on('#scBack', () => { ui.id = null; ui.focus = null;
     scoreLeaveReading();
     saveNow(); navigate('#/score'); });
+  $$('[data-scdetails]', root).forEach(b => b.onclick = () => openScoreDetails(b.dataset.scdetails));
   on('#scNewSec', () => openSectionModal(x.id));
   on('#scUnfocus', () => { ui.focus = null; rerender(); });
   on('#scLog', () => openScoreLogModal(x.id, ui.focus));

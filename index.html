@@ -8259,7 +8259,9 @@ html[data-theme="light"] .wk-sleep.is-guess{background-image:repeating-linear-gr
 
 /* the open score */
 .sc-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:10px}
-.sc-title{font-size:1.5rem}
+.sc-title{font-size:1.5rem;background:none;border:0;padding:0;color:inherit;font-family:var(--serif);
+  cursor:pointer;text-align:left}
+.sc-title:hover{text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px}
 .sc-comp{opacity:.7}
 .sc-focusbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;
   padding:8px 13px;border-radius:var(--radius);border:1px solid var(--c);
@@ -8306,11 +8308,16 @@ html[data-theme="light"] .wk-sleep.is-guess{background-image:repeating-linear-gr
 .sc-lab-chord:hover{background:rgba(176,112,94,.14)}
 .sc-lab-chord.unsure{opacity:.5;font-style:italic}
 .sc-lab-chord.mine{border-bottom:1.5px solid rgba(176,112,94,.55)}
-/* a fingering is a circled number, which is how a century of engraving writes
-   one, and it sits above the note for the right hand and below for the left */
-.sc-fing{color:#a0727e;background:rgba(253,250,243,.92);border:1px solid rgba(160,114,126,.6);
-  border-radius:50%;width:1.5em;height:1.5em;display:flex;align-items:center;justify-content:center;
-  transform:translate(-50%,-50%);font-weight:600;pointer-events:auto;cursor:pointer}
+/* A fingering is a bare number above the note for the right hand and below it
+   for the left, which is what an edition prints. It used to be circled; the
+   circle is an editor's mark for a fingering that is being argued with, and on
+   a page where every fingering is yours it is thirty rings of nothing. The
+   number still needs a ground under it, or it disappears into a beam — but a
+   patch of paper the size of the digit, not a ring around it. */
+.sc-fing{color:#a0727e;background:rgba(253,250,243,.92);border:0;
+  min-width:.9em;height:1.1em;padding:0 .1em;display:flex;align-items:center;justify-content:center;
+  transform:translate(-50%,-50%);font-weight:600;pointer-events:auto;cursor:pointer;
+  border-radius:2px;line-height:1}
 .sc-fing:hover{background:rgba(160,114,126,.2)}
 .sc-fingpick{position:absolute;z-index:6;transform:translate(-50%,0);display:flex;flex-direction:column;
   gap:3px;padding:6px;border-radius:8px;background:var(--surface,#fdfaf3);border:1px solid var(--line);
@@ -8367,9 +8374,6 @@ html[data-theme="light"] .wk-sleep.is-guess{background-image:repeating-linear-gr
   html[data-scprint] .sc-band{opacity:.1 !important}
   @page{margin:12mm}
 }
-.sc-toomany{position:absolute;top:4px;left:50%;transform:translateX(-50%);
-  font-size:.66rem;opacity:.6;font-style:normal;background:var(--surface);
-  padding:2px 9px;border-radius:999px;border:1px solid var(--line)}
 html[data-theme="dark"] .sc-lab-name{color:#6d7d5c}
 html[data-theme="dark"] .sc-lab-deg{color:#4c6874}
 .sc-layers{display:flex;gap:4px;flex-wrap:wrap}
@@ -8506,7 +8510,7 @@ html.sc-reading .sc-strip .tbtn,html.sc-reading .sc-strip .sel{min-height:34px;p
 /* the inventory: one row a score, the same shape as the one on Projects */
 .sc-inv{margin-top:26px}
 .sc-invrows{display:flex;flex-direction:column;gap:2px;margin-top:10px}
-.sc-invrow{display:grid;grid-template-columns:minmax(0,2.2fr) 7.5rem minmax(0,1.3fr) minmax(0,1fr) 4.2rem 7rem 1.6rem;
+.sc-invrow{display:grid;grid-template-columns:minmax(0,2.2fr) 6.5rem 7rem minmax(0,1.2fr) minmax(0,1fr) 4.2rem 6.5rem 1.6rem;
   gap:10px;align-items:center;padding:6px 8px;border-radius:var(--radius);
   border-left:3px solid var(--c);font-size:.78rem}
 .sc-invrow:nth-child(odd){background:color-mix(in srgb,var(--surface) 60%,transparent)}
@@ -8517,9 +8521,17 @@ html.sc-reading .sc-strip .tbtn,html.sc-reading .sc-strip .sel{min-height:34px;p
 .sc-invname span{font-size:.7rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sc-invname:hover b{text-decoration:underline;text-underline-offset:2px}
 .sc-invstate{color:var(--c);font-size:.7rem}
+/* the period, which is also the way to set it. A guess is in lighter type
+   with a dotted rule under it, which is the same thing a dictionary does for
+   a word it is not sure of, and means the row never claims to know more than
+   it does. */
+.sc-invper{background:none;border:0;padding:0;font:inherit;font-size:.68rem;cursor:pointer;
+  color:inherit;text-align:left;opacity:.78;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sc-invper.guess{opacity:.5;border-bottom:1px dotted currentColor;align-self:center;justify-self:start}
+.sc-invper:hover{opacity:1;text-decoration:underline;text-underline-offset:2px}
 @media (max-width:900px){
   .sc-invrow{grid-template-columns:minmax(0,1fr) auto 1.6rem;row-gap:2px}
-  .sc-invrow > :nth-child(3),.sc-invrow > :nth-child(4),.sc-invrow > :nth-child(6){grid-column:1 / -1}
+  .sc-invrow > :nth-child(4),.sc-invrow > :nth-child(5),.sc-invrow > :nth-child(7){grid-column:1 / -1}
 }
 .sc-xpose{display:flex;align-items:center;gap:5px}
 .sc-xpose .mono{min-width:6.5em;text-align:center;font-size:.72rem}
@@ -8927,13 +8939,53 @@ html.sc-reading .tdock{display:none}
 .td-what{font-size:.78rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
 .td-sub{font-size:.66rem;opacity:.65;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
+/* the exchange, and what to do when both sides moved */
+.sy-sec{margin-top:18px}
+.sy-clash{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.sy-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:12px;align-items:center;
+  padding:7px 10px;border-radius:var(--radius);border:1px solid var(--line);background:var(--surface)}
+.sy-name{font-family:var(--serif);font-size:.95rem}
+.sy-opt{display:flex;align-items:center;gap:5px;font-size:.78rem;cursor:pointer;white-space:nowrap}
+.sy-opt b{font-size:.82rem}
+@media (max-width:700px){.sy-row{grid-template-columns:1fr;gap:4px}}
 .tm-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+/* the categories, edited in place */
+.tm-catrows{display:flex;flex-direction:column;gap:2px;margin-top:10px}
+.tm-cathead,.tm-catrow{display:grid;
+  grid-template-columns:3.4rem minmax(0,1fr) 2.6rem 6.5rem 3.6rem 5.4rem 1.6rem;
+  gap:9px;align-items:center}
+.tm-cathead{font-size:.64rem;text-transform:uppercase;letter-spacing:.07em;opacity:.5;padding:0 8px 2px}
+.tm-catrow{padding:5px 8px;border-radius:var(--radius);border-left:3px solid var(--c)}
+.tm-catrow:nth-child(odd){background:color-mix(in srgb,var(--surface) 55%,transparent)}
+.tm-catrow:hover{background:var(--surface)}
+.tm-catrow.off{opacity:.5}
+.tm-catrow.off .tm-catname input{text-decoration:line-through}
+.tm-catrow .inp{padding:3px 7px;font-size:.82rem}
+.tm-catemoji{text-align:center;font-size:.95rem!important;padding:3px 2px!important}
+.tm-catname{display:flex;flex-direction:column;gap:1px;min-width:0}
+.tm-catname em{font-size:.62rem;font-style:normal}
+.tm-catcolor{width:2.4rem;height:1.7rem;padding:0;border:1px solid var(--line);
+  border-radius:5px;background:none;cursor:pointer}
+.tm-catmove{display:flex;gap:2px}
+.tm-catmove .tbtn{min-width:1.6em;padding:1px 3px;line-height:1.1}
+@media (max-width:820px){
+  .tm-cathead{display:none}
+  .tm-catrow{grid-template-columns:3rem minmax(0,1fr) 2.4rem 1.6rem;row-gap:4px}
+  .tm-catrow > :nth-child(4),.tm-catrow > :nth-child(5),.tm-catrow > :nth-child(6){grid-column:2 / -1}
+}
 .tm-bar-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
 .tm-bar-h .pd-q{margin:0}
 .tm-strip{position:relative;height:30px;border-radius:7px;background:var(--line);overflow:hidden}
 .tm-seg{position:absolute;top:0;bottom:0;display:block;background:var(--c);opacity:.82;
   border-radius:2px;cursor:pointer;min-width:2px}
 .tm-seg:hover{opacity:1;outline:1px solid var(--ink)}
+/* the asleep hours, drawn under everything: a ground rather than a bar, in
+   a stripe so it never reads as a sitting you can press */
+.tm-sleepseg{background:repeating-linear-gradient(135deg,#5a6a7a 0 4px,transparent 4px 8px);
+  opacity:.26;pointer-events:none;border-radius:0}
+.tm-sleepseg:hover{opacity:.26;outline:0}
+.tm-sleeprow .tm-sumn a{text-decoration:none;display:block;font-size:.62rem;opacity:.8}
+.tm-sleeprow .tm-sumn a:hover{text-decoration:underline}
 .tm-ticks{position:relative;height:14px;margin-bottom:14px;font-size:.62rem;opacity:.5}
 .tm-ticks span{position:absolute;transform:translateX(-50%)}
 .tm-list{display:flex;flex-direction:column;gap:7px;margin-bottom:16px}
@@ -38421,13 +38473,13 @@ routes.settings = function(root){
           `<option value="${v}" ${timeSettings().round === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
       <div class="opt"><div><b>A sitting on a project is a nod</b><div class="d">Time hung on a project writes itself into that project's record of work.</div></div><label class="toggle ${timeSettings().autoNods?'on':''}" id="sTimeNods"><span class="sw"></span></label></div>
       <div class="opt"><div><b>An hour with somebody is an hour with them</b><div class="d">Time hung on a person writes itself into their record.</div></div><label class="toggle ${timeSettings().autoInteractions?'on':''}" id="sTimeInts"><span class="sw"></span></label></div>
-      <!-- the fifteen shipped categories are a guess at a life; anybody's
-           actual week has something in it they were not guessed -->
-      <div class="opt"><div><b>Your own categories</b>
-        <div class="d">${S.time.custom.length ? S.time.custom.map(c =>
-          `<span class="tm-cat">${esc(c.emoji)} ${esc(c.name)} <button class="del-x inline" data-tmcatdel="${esc(c.id)}">\u00d7</button></span>`).join(' ')
-          : 'None yet. The fifteen above are a guess at a life; add whatever yours has in it.'}</div></div>
-        <button class="btn sm" id="sTimeCatNew">\uff0b one</button></div>
+      <!-- there used to be a place here to add your own beside the shipped
+           ones, which made the shipped ones permanent and yours second-class.
+           The whole list is editable now, and it is edited where it is used -->
+      <div class="opt"><div><b>The categories</b>
+        <div class="d">All of them are yours \u2014 rename, recolour, reorder, put away or throw
+          out any of the ${timeAllCategories().length}, and add your own.</div></div>
+        <a class="btn sm" href="#/time/categories">Open them</a></div>
     </div>
     <div class="card rv"><h3>Day &amp; sleep</h3>
       <div class="opt"><div><b>The day turns over at</b>
@@ -38462,6 +38514,7 @@ routes.settings = function(root){
       <div class="opt"><div><b>Photo size on upload</b><div class="d">Long edge in pixels. Larger keeps more detail and uses more space.</div></div><select class="sel" style="width:auto" id="sPhotoMax">${[1200,1600,2400,4000].map(n=>`<option value="${n}" ${(S.settings.photoMax||1600)===n?'selected':''}>${n}px${n===1600?' (default)':''}</option>`).join('')}</select></div>
       <div class="opt"><div><b>Clear all data</b><div class="d">Erases everything in this browser and restores the placeholder content. Export first.</div></div><button class="btn danger" id="sClear">Clear all data</button></div>
     </div>
+    ${syncSectionHTML()}
     <div class="card rv"><h3>About</h3><div class="prose muted" style="font-size:.9rem">
       <p>Life Instrument is a house you are still building. Each section is a room. Some rooms look backward; some look forward; some hold tools; some hold artifacts. The hallway connecting them is a single data model that lets one entry live in many rooms at once.</p>
       <p>It is not a productivity app. Its job is to make the motifs of a life visible — recurring patterns, drifting values, dreams gaining or losing specificity — so you can interpret the past honestly and pull the future closer deliberately.</p>
@@ -38524,9 +38577,6 @@ routes.settings = function(root){
   $('#sTimeInts') && ($('#sTimeInts').onclick = function(){
     timeSettings().autoInteractions = !timeSettings().autoInteractions; saveNow();
     this.classList.toggle('on', timeSettings().autoInteractions); });
-  $('#sTimeCatNew') && ($('#sTimeCatNew').onclick = () => openTimeCategoryModal());
-  $$('[data-tmcatdel]').forEach(b => b.onclick = () => {
-    spliceOut(S.time.custom, c => c.id === b.dataset.tmcatdel); saveNow(); rerender(); });
   $('#sTheme').onclick = function(){ S.settings.theme = S.settings.theme==='dark'?'light':'dark'; saveNow(); applyTheme(); this.classList.toggle('on', S.settings.theme==='light'); };
   $('#sSound').onclick = function(){ SoundManager.toggleSound(); this.classList.toggle('on', SoundManager.state().soundEnabled); };
   $('#sAmbient').onclick = function(){ SoundManager.toggleAmbient(); this.classList.toggle('on', SoundManager.state().ambientEnabled); };
@@ -38534,6 +38584,7 @@ routes.settings = function(root){
   $('#sFelt').onclick = function(){ S.settings.feltTime = !S.settings.feltTime; saveNow(); this.classList.toggle('on', S.settings.feltTime); };
   $('#sHome').onchange = e => { S.settings.home = e.target.value; saveNow(); };
   bindZoneEditor($('#zoneEditor').parentElement);
+  bindSyncSection(document);
   const lb = daysSinceBackup(); $('#lastBackupLine').textContent = lb === null ? 'No backup exported yet from this browser.' : `Last backup: ${lb === 0 ? 'today' : lb + ' days ago'}.`;
   $('#sExport').onclick = () => exportToJSON().then(() => { toast('Backup exported.'); rerender(); });
   $('#sRestoreInfo').onclick = showRecoveryInfo;
@@ -49976,10 +50027,60 @@ function scoreState(){
   S.scores.forEach(scoreDefaults);
   return S.scores;
 }
+/* ---------- what a piece IS, as against how it is going ----------
+   The shelf and the standing answer "how far have I got". These answer "what
+   is it" — the question you ask when you are choosing what to pick up, and
+   the one the file cannot answer, because MusicXML carries a title and a
+   composer and nothing else. A period is not decoration: practising four
+   Romantic pieces and no counterpoint for three months is a thing you cannot
+   see until the shelf can be asked. */
+const SCORE_PERIODS = [
+  ['medieval',     'Medieval'],
+  ['renaissance',  'Renaissance'],
+  ['baroque',      'Baroque'],
+  ['classical',    'Classical'],
+  ['romantic',     'Romantic'],
+  ['impressionist','Impressionist'],
+  ['modern',       'Modern'],
+  ['contemporary', 'Contemporary'],
+  ['jazz',         'Jazz'],
+  ['traditional',  'Folk and traditional'],
+  ['screen',       'Film and game'],
+  ['other',        'Something else']];
+const scorePeriodName = k => (SCORE_PERIODS.find(v => v[0] === k) || [,''])[1];
+/* A first guess from the composer's name, for the hundred or so names that
+   account for most of what anybody imports. It is a guess and says so: the
+   period is stored only once you have looked at it, so a wrong guess is never
+   silently written down as a fact. */
+const SCORE_PERIOD_BY_NAME = [
+  [/machaut|hildegard|perotin|landini/i, 'medieval'],
+  [/palestrina|byrd|tallis|josquin|dowland|gesualdo|victoria|monteverdi/i, 'renaissance'],
+  [/bach|handel|h(ä|ae)ndel|vivaldi|scarlatti|telemann|purcell|rameau|couperin|corelli|albinoni|pachelbel|buxtehude/i, 'baroque'],
+  [/mozart|haydn|clementi|salieri|boccherini|czerny|kuhlau|diabelli|burgm(ü|ue)ller/i, 'classical'],
+  [/beethoven|schubert|chopin|schumann|brahms|liszt|mendelssohn|tchaikovsky|grieg|dvo(ř|r)(á|a)k|rachmanin|wagner|verdi|paganini|rossini|bruckner|mahler|franck|faur(é|e)|saint-sa(ë|e)ns|bizet|borodin|mussorgsky|rimsky|sibelius|elgar|albéniz|albeniz|granados|smetana|field|alkan|moszkowski|scriabin/i, 'romantic'],
+  [/debussy|ravel|satie|delius|respighi|griffes/i, 'impressionist'],
+  [/bart(ó|o)k|stravinsky|prokofiev|shostakovich|hindemith|schoenberg|sch(ö|oe)nberg|berg|webern|poulenc|milhaud|gershwin|copland|villa-lobos|janáček|janacek|kod(á|a)ly|ives|britten|barber|messiaen|piazzolla/i, 'modern'],
+  [/glass|reich|p(ä|ae)rt|adams|ligeti|takemitsu|gubaidulina|kapustin|einaudi|yiruma|sakamoto|richter|(ó|o)lafur|arnalds/i, 'contemporary'],
+  [/ellington|monk|parker|coltrane|evans|peterson|brubeck|jobim|hancock|corea|tatum|powell|garner|silver|mingus|shorter|joplin/i, 'jazz'],
+  [/williams|zimmer|shore|elfman|morricone|hisaishi|uematsu|shimomura|kondo|desplat|g(ó|o)ransson/i, 'screen']];
+function scorePeriodGuess(composer){
+  const n = String(composer || '').trim();
+  if(!n) return null;
+  const hit = SCORE_PERIOD_BY_NAME.find(([re]) => re.test(n));
+  return hit ? hit[1] : null;
+}
+/* What the room will show for a piece: what you said, or failing that what it
+   guessed. The two are kept apart so the inventory can say which it is. */
+const scorePeriodOf = x => x && x.period ? x.period : scorePeriodGuess(x && x.composer);
+
 function scoreDefaults(x){
   x.id = x.id || uid();
   x.title = x.title || 'Untitled';
   x.composer = x.composer || '';
+  /* Null until you say so, which is different from 'other': null means nobody
+     has decided and the guess stands, 'other' means you looked and none of
+     them fitted. */
+  x.period = SCORE_PERIODS.some(v => v[0] === x.period) ? x.period : null;
   x.musicXml = typeof x.musicXml === 'string' ? x.musicXml : '';
   x.instruments = Array.isArray(x.instruments) ? x.instruments : [];
   x.hidden = Array.isArray(x.hidden) ? x.hidden : [];      // part indices switched off
@@ -50626,11 +50727,23 @@ function scoreNotes(){
       const pg = sys && sys.Parent ? Math.max(0, pages.indexOf(sys.Parent)) : 0;
       const staff = (m.ParentStaffLine && m.ParentStaffLine.ParentStaff)
         ? (m.ParentStaffLine.ParentStaff.idInMusicSheet ?? 0) : 0;
+      /* where this bar starts, counted from the top of the piece. It is
+         needed because of the fallback below. */
+      const src = m.parentSourceMeasure;
+      const barAt = (src && src.AbsoluteTimestamp && src.AbsoluteTimestamp.RealValue) || 0;
       (m.staffEntries || []).forEach(se => {
         const ts = se.relInMeasureTimestamp || (se.sourceStaffEntry && se.sourceStaffEntry.Timestamp);
         /* the timestamp is a fraction of a whole note; times four is quarters,
            which is what anybody counting a bar of four-four is counting in */
-        const where = ts && ts.RealValue != null ? ts.RealValue : 0;
+        let where = ts && ts.RealValue != null ? ts.RealValue : 0;
+        /* and it is counted from the bar line — except in the fallback, which
+           some files take and which counts from the top of the piece instead.
+           Left alone, that put every note after bar one at a beat the bar does
+           not have, so everything that walks the beats of a bar — the chord
+           symbols above all — found notes in bar one and nothing anywhere
+           else. A relative stamp is always inside its own bar and so is always
+           smaller than the bar's own start; an absolute one never is. */
+        if(barAt > 0 && where >= barAt) where -= barAt;
         (se.graphicalVoiceEntries || []).forEach((ve, vi) => {
           (ve.notes || []).forEach((gn, ni) => {
             const sn = gn.sourceNote;
@@ -50988,7 +51101,8 @@ function scoreLibraryHTML(){
    Everything the shelf shows as a picture, this shows as a number, because
    the two questions want different answers. */
 function scoreFilters(){
-  return S._scinv = S._scinv || {q:'', state:'all', shape:'all', sort:'opened'};
+  return S._scinv = S._scinv || {q:'', state:'all', shape:'all', sort:'opened',
+    composer:'all', period:'all'};
 }
 /* Where a score stands, taken from its sections rather than set by hand: a
    piece is as ready as the least ready part of it that you have marked. */
@@ -51008,6 +51122,8 @@ function scoreMatches(x, f){
   const q = (f.q || '').trim().toLowerCase();
   if(q && !`${x.title} ${x.composer || ''} ${(x.sections || []).map(sc => sc.name).join(' ')}`.toLowerCase().includes(q)) return false;
   if(f.state !== 'all' && scoreStanding(x).key !== f.state) return false;
+  if(f.composer !== 'all' && (x.composer || '\u2014') !== f.composer) return false;
+  if(f.period !== 'all' && (scorePeriodOf(x) || '\u2014') !== f.period) return false;
   const last = scoreLastPractised(x);
   if(f.shape === 'unmarked' && (x.sections || []).length) return false;
   if(f.shape === 'marked'   && !(x.sections || []).length) return false;
@@ -51026,27 +51142,54 @@ function scoreInventoryHTML(){
   const list = all.filter(x => scoreMatches(x, f)).sort((a, b) => {
     if(f.sort === 'title')    return a.title.localeCompare(b.title);
     if(f.sort === 'composer') return (a.composer || '\uffff').localeCompare(b.composer || '\uffff') || a.title.localeCompare(b.title);
+    /* by period is by the order they happened in, not by their names: a list
+       that runs Baroque, Classical, Contemporary, Impressionist is a list
+       sorted by spelling, which is no use to anybody */
+    if(f.sort === 'period'){
+      const at = x => { const k = scorePeriodOf(x); const i = SCORE_PERIODS.findIndex(v => v[0] === k);
+        return i < 0 ? 99 : i; };
+      return at(a) - at(b) || (a.composer || '').localeCompare(b.composer || '')
+        || a.title.localeCompare(b.title);
+    }
     if(f.sort === 'bars')     return (+b.totalMeasures || 0) - (+a.totalMeasures || 0);
     if(f.sort === 'time')     return scoreMinutesAll(b) - scoreMinutesAll(a);
     if(f.sort === 'practised')return daysSince(scoreLastPractised(a)) - daysSince(scoreLastPractised(b));
     return (b.lastOpened || b.createdAt || '').localeCompare(a.lastOpened || a.createdAt || '');
   });
-  const dirty = f.q || f.state !== 'all' || f.shape !== 'all';
+  const dirty = f.q || f.state !== 'all' || f.shape !== 'all'
+    || f.composer !== 'all' || f.period !== 'all';
   const states = [['unmarked','not marked up'], ...SCORE_STATUS.map(([k, n]) => [k, n.toLowerCase()])];
+  /* the two categories are built from the shelf rather than from a fixed
+     list, so the menu only ever offers a composer you actually have, and
+     says how many — a menu of two hundred dead composers, all but six of
+     them empty, is a menu nobody reads */
+  const tally = get => { const t = {}; all.forEach(x => { const k = get(x);
+    if(k) t[k] = (t[k] || 0) + 1; }); return t; };
+  const comps = tally(x => x.composer || '\u2014');
+  const periods = tally(x => scorePeriodOf(x) || '\u2014');
+  const byCount = t => Object.keys(t).sort((a, b) => t[b] - t[a] || a.localeCompare(b));
+  const someGuessed = all.some(x => !x.period && scorePeriodGuess(x.composer));
   return `<section class="section rv sc-inv" id="scInv">
     <div class="row between"><span class="sc" style="margin:0">Inventory</span>
       <span class="mono">${list.length} of ${all.length} shown</span></div>
-    <p class="muted" style="font-size:.85rem">Everything you have brought in, including the pieces you have not started marking up. The shelf is what you are working on; this is what you have.</p>
+    <p class="muted" style="font-size:.85rem">Everything you have brought in, including the pieces you have not started marking up. The shelf is what you are working on; this is what you have.${
+      someGuessed ? ' A period in lighter type was guessed from the composer\u2019s name \u2014 press it to say for certain, or to correct it.' : ''}</p>
     <div class="filter-bar">
       <input class="inp" id="scinvq" placeholder="search title, composer, section" value="${esc(f.q)}">
       <select class="sel" id="scinvState"><option value="all">any standing</option>${states.map(([k, n]) =>
         `<option value="${k}" ${f.state === k ? 'selected' : ''}>${esc(n)}${counts[k] ? ` (${counts[k]})` : ''}</option>`).join('')}</select>
+      <select class="sel" id="scinvComposer"><option value="all">any composer</option>${
+        byCount(comps).map(k => `<option value="${esc(k)}" ${f.composer === k ? 'selected' : ''}>${
+          k === '\u2014' ? 'no composer named' : esc(k)} (${comps[k]})</option>`).join('')}</select>
+      <select class="sel" id="scinvPeriod"><option value="all">any period</option>${
+        byCount(periods).map(k => `<option value="${esc(k)}" ${f.period === k ? 'selected' : ''}>${
+          k === '\u2014' ? 'period not set' : esc(scorePeriodName(k))} (${periods[k]})</option>`).join('')}</select>
       <select class="sel" id="scinvShape">${[['all','any shape'],['marked','has sections'],['unmarked','no sections yet'],
         ['warm','practised this week'],['cold','nothing for three weeks'],['never','never practised'],
         ['written','has pins or fingerings']].map(([v, l]) =>
         `<option value="${v}" ${f.shape === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
       <select class="sel" id="scinvSort">${[['opened','by last opened'],['practised','by last practised'],
-        ['time','by time spent'],['bars','by length'],['composer','by composer'],['title','by title']].map(([v, l]) =>
+        ['time','by time spent'],['bars','by length'],['composer','by composer'],['period','by period'],['title','by title']].map(([v, l]) =>
         `<option value="${v}" ${f.sort === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
       ${dirty ? `<button class="btn sm ghost" id="scinvClear">clear</button>` : ''}
     </div>
@@ -51057,10 +51200,16 @@ function scoreInventoryHTML(){
       const last = scoreLastPractised(x);
       const pins = (x.pins || []).length;
       const fing = Object.keys(x.fingerings || {}).length;
+      const per = scorePeriodOf(x);
       return `<div class="sc-invrow" style="--c:${st.color}" data-scinvrow="${esc(x.id)}">
         <button class="sc-invname" data-scopen="${esc(x.id)}">
           <b class="serif">${esc(x.title)}</b>
           ${x.composer ? `<span class="faint">${esc(x.composer)}</span>` : ''}</button>
+        <button class="sc-invper mono${x.period ? '' : ' guess'}" data-scdetails="${esc(x.id)}"
+          title="${x.period ? 'the period you set \u2014 press to change it'
+            : per ? 'guessed from the composer \u2014 press to say for certain'
+            : 'press to name the composer and the period'}"
+          >${per ? esc(scorePeriodName(per)) : 'set the period'}</button>
         <span class="sc-invstate mono">${esc(st.name)}</span>
         <span class="mono faint">${x.totalMeasures ? `${x.totalMeasures} bars` : '\u2014'}${
           secs ? ` \u00b7 ${secs} section${secs === 1 ? '' : 's'}` : ''}${
@@ -51082,8 +51231,10 @@ function scoreViewerHTML(x){
   const parts = x.instruments || [];
   return `<div class="sc-head">
       <button class="btn sm ghost" id="scBack">← the shelf</button>
-      <span class="sc-title serif">${esc(x.title)}</span>
+      <button class="sc-title serif" data-scdetails="${esc(x.id)}"
+        title="what this piece is \u2014 title, composer, period">${esc(x.title)}</button>
       ${x.composer ? `<span class="sc-comp">${esc(x.composer)}</span>` : ''}
+      ${scorePeriodOf(x) ? `<span class="sc-comp faint">${esc(scorePeriodName(scorePeriodOf(x)))}</span>` : ''}
       <span class="grow"></span>
       <span class="mono faint">${x.totalMeasures ? `${x.totalMeasures} bars` : ''}</span>
       <button class="tbtn" id="scPrint" title="print it, with or without what you have written on it">⎙ print</button>
@@ -51936,6 +52087,38 @@ async function takeScoreFile(file){
   }
 }
 
+/* ---------- what the piece is ----------
+   The title and the composer come off the file, and files lie: half the
+   MusicXML on the internet is called "Untitled" by "Unknown", and the other
+   half spells the composer four different ways, which is enough to make a
+   composer filter useless. So all three are yours to set, and the period —
+   which no file carries at all — is set here or nowhere. */
+function openScoreDetails(id){
+  const x = scoreById(id);
+  if(!x) return null;
+  const guess = scorePeriodGuess(x.composer);
+  const m = openModal(`<h2>\u{1F3BC} What this piece is</h2>
+    <label class="pd-q"><span class="k">title</span>
+      <input class="inp" id="sdTitle" autofocus value="${esc(x.title)}"></label>
+    <label class="pd-q" style="margin-top:8px"><span class="k">composer</span>
+      <input class="inp" id="sdComposer" value="${esc(x.composer)}"
+        placeholder="the way you want it to sort \u2014 Chopin, not Fr\u00e9d\u00e9ric Fran\u00e7ois Chopin"></label>
+    <label class="pd-q" style="margin-top:8px"><span class="k">period</span>
+      <select class="sel" id="sdPeriod"><option value="">${guess
+        ? `let the name decide \u2014 ${esc(scorePeriodName(guess))}` : 'not set'}</option>${
+        SCORE_PERIODS.map(([v, n]) =>
+          `<option value="${v}" ${x.period === v ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label>
+    <p class="faint sm">The period is only ever a guess until you set it here. Nothing else in the room writes it.</p>
+    <div class="row" style="justify-content:flex-end;margin-top:14px;gap:8px">
+      <button class="btn primary" id="sdSave">Save</button></div>`);
+  m.querySelector('#sdSave').onclick = () => {
+    x.title = m.querySelector('#sdTitle').value.trim() || x.title;
+    x.composer = m.querySelector('#sdComposer').value.trim();
+    x.period = m.querySelector('#sdPeriod').value || null;
+    saveNow(); m.remove(); sound('success'); rerender();
+  };
+  return m;
+}
 function bindScoreLibrary(root){
   const file = root.querySelector('#scFile');
   const drop = root.querySelector('#scDrop');
@@ -51970,8 +52153,11 @@ function bindScoreInventory(root){
   const pick = (sel, key) => { const n = root.querySelector(sel); if(n)
     n.onchange = () => { f[key] = n.value; redraw(); }; };
   pick('#scinvState', 'state'); pick('#scinvShape', 'shape'); pick('#scinvSort', 'sort');
+  pick('#scinvComposer', 'composer'); pick('#scinvPeriod', 'period');
+  $$('[data-scdetails]', root).forEach(b => b.onclick = () => openScoreDetails(b.dataset.scdetails));
   const clear = root.querySelector('#scinvClear');
-  if(clear) clear.onclick = () => { f.q = ''; f.state = 'all'; f.shape = 'all'; redraw(); };
+  if(clear) clear.onclick = () => { f.q = ''; f.state = 'all'; f.shape = 'all';
+    f.composer = 'all'; f.period = 'all'; redraw(); };
 }
 
 function bindScoreViewer(root, x){
@@ -51984,6 +52170,7 @@ function bindScoreViewer(root, x){
   on('#scBack', () => { ui.id = null; ui.focus = null;
     scoreLeaveReading();
     saveNow(); navigate('#/score'); });
+  $$('[data-scdetails]', root).forEach(b => b.onclick = () => openScoreDetails(b.dataset.scdetails));
   on('#scNewSec', () => openSectionModal(x.id));
   on('#scUnfocus', () => { ui.focus = null; rerender(); });
   on('#scLog', () => openScoreLogModal(x.id, ui.focus));
@@ -54609,6 +54796,442 @@ function studyReviewLines(from, to){
   return out;
 }
 /* ============================================================
+   THE SAME LIFE ON TWO MACHINES.
+
+   The first question is whether this needs an account, and the honest answer
+   is: not to me, but to something. Two devices cannot both see the same data
+   out of thin air. Either they talk directly, which needs both of them awake
+   at the same moment on the same network, or something in the middle holds
+   the data — and whatever holds it has to know which data is yours, which is
+   what a login is.
+
+   So this room does not ask you to make an account here, does not have a
+   server, and never sends your life anywhere. It writes one file. You put
+   that file in a folder you already sync — iCloud Drive, Dropbox, Drive,
+   Syncthing, a USB stick — and the thing that already knows who you are does
+   the carrying. Your login is the one you already have.
+
+   WHAT MAKES THIS HARDER THAN COPYING A FILE is that both sides change. A
+   backup restored over the top is not sync; it is the newer machine throwing
+   away whatever the older one did. So the exchange is per store rather than
+   per file: practising on the tablet touches `scores`, tidying tasks on the
+   laptop touches `tasks`, and those two are not in conflict — both are taken,
+   and nobody is asked anything. Only a store that moved on BOTH sides since
+   the last exchange is a real conflict, and a real conflict is put to you
+   rather than guessed at.
+
+   HOW EACH SIDE KNOWS WHAT MOVED is a fingerprint per store, recorded at the
+   end of every successful exchange. Ours differing from that mark means we
+   changed it; theirs differing from it means they did. No clocks are compared,
+   which matters: two machines' clocks disagree by minutes, and a sync that
+   trusts the later timestamp silently loses whichever one is running slow.
+
+   AND NOTHING IS APPLIED WITHOUT A BACKUP first, written beside the sync file
+   in the same folder. It is the cheapest insurance there is.
+   ============================================================ */
+
+const SYNC_FILE = 'life-instrument.sync.json';
+const SYNC_VERSION = 1;
+const SYNC_HANDLE_KEY = 'syncFolder';
+
+/* ---------- this machine ----------
+   A name so the file can say who wrote it last, and an id so a device never
+   mistakes its own writing for somebody else's. Both in localStorage rather
+   than in the state, because they must NOT travel in the file. */
+const SYNC_ID_KEY = 'li.sync.device';
+function syncDevice(){
+  let v = null;
+  try { v = JSON.parse(localStorage.getItem(SYNC_ID_KEY) || 'null'); } catch(e){}
+  if(!v || !v.id){
+    v = {id: uid(), name: syncGuessName()};
+    try { localStorage.setItem(SYNC_ID_KEY, JSON.stringify(v)); } catch(e){}
+  }
+  return v;
+}
+function syncRenameDevice(name){
+  const v = syncDevice();
+  v.name = String(name || '').trim().slice(0, 40) || v.name;
+  try { localStorage.setItem(SYNC_ID_KEY, JSON.stringify(v)); } catch(e){}
+  return v;
+}
+/* a first guess, so nobody has to name their laptop before they can begin */
+function syncGuessName(){
+  const ua = (navigator.userAgent || '');
+  if(/iPad/i.test(ua)) return 'iPad';
+  if(/iPhone/i.test(ua)) return 'iPhone';
+  if(/Android/i.test(ua)) return 'the Android';
+  if(/Mac OS X/i.test(ua)) return 'the Mac';
+  if(/Windows/i.test(ua)) return 'the PC';
+  if(/Linux/i.test(ua)) return 'the Linux box';
+  return 'this machine';
+}
+
+/* ---------- what the state is made of, in pieces small enough to merge ----------
+   A store is the unit, except for `meta` — everything from the settings to
+   the daily rhythm lives in that one store, so a change to a sound setting
+   would collide with a change to a month plan. Each meta key is its own unit
+   instead, which makes a genuine conflict rare enough to be worth asking
+   about when it happens. */
+function syncUnits(rows){
+  const out = {};
+  (rows.meta || []).forEach(r => { out['meta:' + r.key] = r.value; });
+  Object.keys(rows).forEach(k => { if(k !== 'meta') out[k] = rows[k]; });
+  return out;
+}
+/* and back again */
+function syncUnitsToRows(units){
+  const rows = {meta: []};
+  Object.keys(units).forEach(k => {
+    if(k.indexOf('meta:') === 0) rows.meta.push({key: k.slice(5), value: units[k]});
+    else rows[k] = units[k];
+  });
+  return rows;
+}
+/* A fingerprint of one unit. Not a cryptographic hash — this only has to tell
+   "the same" from "not the same", and it runs over a megabyte of Chopin on
+   every exchange, so it is a cheap rolling one over the serialised form. */
+function syncPrint(v){
+  const s = JSON.stringify(v === undefined ? null : v);
+  let h1 = 0x811c9dc5, h2 = 0x01000193;
+  for(let i = 0; i < s.length; i++){
+    const c = s.charCodeAt(i);
+    h1 = ((h1 ^ c) * 16777619) >>> 0;
+    h2 = ((h2 + c) * 2654435761) >>> 0;
+  }
+  return s.length.toString(36) + '-' + h1.toString(36) + h2.toString(36);
+}
+const syncPrints = units => { const out = {};
+  Object.keys(units).forEach(k => out[k] = syncPrint(units[k])); return out; };
+
+/* ---------- the marks from the last exchange ----------
+   In the state, so they travel with a restored backup and a device that has
+   been through an exchange does not think every store changed. */
+function syncState(){
+  const s = S.sync = S.sync || {};
+  s.base = (s.base && typeof s.base === 'object') ? s.base : {};
+  s.at = s.at || null;
+  s.with = s.with || '';
+  s.auto = !!s.auto;
+  return s;
+}
+
+/* ---------- the folder ----------
+   A directory handle is structured-cloneable, so IndexedDB can keep it across
+   sessions; the browser still asks once per session before it will be used,
+   which is the browser's decision and not one to work around. */
+async function syncSaveHandle(h){
+  try { await db.meta.put({key: SYNC_HANDLE_KEY, value: h}); return true; }
+  catch(e){ console.warn('the folder could not be remembered', e); return false; }
+}
+async function syncLoadHandle(){
+  try { const r = await db.meta.get(SYNC_HANDLE_KEY); return (r && r.value) || null; }
+  catch(e){ return null; }
+}
+async function syncForgetFolder(){
+  try { await db.meta.delete(SYNC_HANDLE_KEY); } catch(e){}
+}
+const syncCanFolder = () => typeof window !== 'undefined' && typeof window.showDirectoryPicker === 'function';
+/* Asking is not the same as having: a handle remembered from last week needs
+   permission again this session, and a browser will only grant it inside a
+   gesture — so this is only ever called from a press. */
+async function syncPermission(h, write){
+  if(!h || !h.queryPermission) return true;
+  const opts = {mode: write ? 'readwrite' : 'read'};
+  let st = await h.queryPermission(opts);
+  if(st === 'granted') return true;
+  st = await h.requestPermission(opts);
+  return st === 'granted';
+}
+async function syncPickFolder(){
+  if(!syncCanFolder()) return null;
+  let h = null;
+  try { h = await window.showDirectoryPicker({id:'life-instrument-sync', mode:'readwrite'}); }
+  catch(e){ return null; }                    /* they changed their mind */
+  if(!h) return null;
+  await syncSaveHandle(h);
+  return h;
+}
+
+/* ---------- reading and writing the file ---------- */
+async function syncReadFrom(h){
+  try {
+    const f = await h.getFileHandle(SYNC_FILE);
+    const text = await (await f.getFile()).text();
+    const obj = JSON.parse(text);
+    return syncValid(obj) ? obj : null;
+  } catch(e){ return null; }                  /* no file yet is not an error */
+}
+async function syncWriteTo(h, payload, name){
+  const f = await h.getFileHandle(name || SYNC_FILE, {create:true});
+  const w = await f.createWritable();
+  await w.write(JSON.stringify(payload));
+  await w.close();
+  return true;
+}
+function syncValid(o){
+  return !!(o && typeof o === 'object' && o.version === SYNC_VERSION
+    && o.data && typeof o.data === 'object');
+}
+function syncPayload(rows){
+  const units = syncUnits(rows);
+  const d = syncDevice();
+  return {version: SYNC_VERSION, at: new Date().toISOString(),
+    device: d.name, deviceId: d.id, prints: syncPrints(units), data: rows};
+}
+
+/* ---------- the exchange itself ----------
+   Returns a plan rather than acting: what would be taken, what would be
+   pushed, and what genuinely collides. Nothing is written until the plan is
+   applied, so the page can show it first. */
+function syncPlan(ours, theirs, base){
+  const a = syncUnits(ours), b = syncUnits(theirs && theirs.data ? theirs.data : {});
+  const keys = [...new Set([...Object.keys(a), ...Object.keys(b)])].sort();
+  const pa = syncPrints(a), pb = (theirs && theirs.prints) || syncPrints(b);
+  const plan = {take: [], push: [], same: [], clash: []};
+  keys.forEach(k => {
+    const mine = pa[k], yours = pb[k], mark = base[k];
+    if(mine === yours){ plan.same.push(k); return; }
+    const iMoved = mark === undefined ? !(k in b) || mine !== mark : mine !== mark;
+    const theyMoved = mark === undefined ? !(k in a) || yours !== mark : yours !== mark;
+    if(iMoved && theyMoved) plan.clash.push(k);
+    else if(theyMoved) plan.take.push(k);
+    else plan.push.push(k);
+  });
+  return plan;
+}
+/* How big a unit is, in things rather than bytes — "142 tasks" is a number
+   anybody can weigh a choice against; "38 KB" is not. */
+function syncCount(v){
+  if(Array.isArray(v)) return v.length;
+  if(v && typeof v === 'object') return Object.keys(v).length;
+  return v == null ? 0 : 1;
+}
+const SYNC_UNIT_NAMES = {
+  meta:'settings', habitLog:'the habit log', checkins:'the check-ins',
+  timeEntries:'tracked time', scores:'scores', tasks:'tasks', projects:'projects',
+  people:'people', skills:'skills', entries:'journal entries', nods:'nods',
+  habits:'habits', visions:'visions', values:'values', ideas:'ideas',
+  txns:'transactions', events:'events', interactions:'interactions'};
+function syncUnitName(k){
+  if(k.indexOf('meta:') === 0) return SYNC_UNIT_NAMES[k.slice(5)] || k.slice(5);
+  return SYNC_UNIT_NAMES[k] || k;
+}
+/* Applying it. `choices` says what to do with each clash: 'mine' or 'theirs',
+   and anything unanswered stays as it is, which is the safe direction. */
+function syncApply(ours, theirs, plan, choices){
+  const a = syncUnits(ours), b = syncUnits(theirs && theirs.data ? theirs.data : {});
+  const out = Object.assign({}, a);
+  plan.take.forEach(k => { if(k in b) out[k] = b[k]; else delete out[k]; });
+  plan.clash.forEach(k => { if((choices || {})[k] === 'theirs' && k in b) out[k] = b[k]; });
+  return syncUnitsToRows(out);
+}
+
+/* ---------- one whole exchange ----------
+   Reads, plans, and either finishes or hands back the clashes to be answered.
+   Two passes at most: the first returns {needs:[...]} when something collides,
+   the second is given the answers and finishes. */
+async function syncRun(opts){
+  const o = opts || {};
+  const st = syncState();
+  const h = o.handle || await syncLoadHandle();
+  if(!h) return {ok:false, why:'no folder'};
+  if(!await syncPermission(h, true)) return {ok:false, why:'no permission'};
+  await flushSave();
+  const ours = await readAllStores();
+  const theirs = await syncReadFrom(h);
+  /* nothing there yet: this device is the first, and the file is simply ours */
+  if(!theirs){
+    await syncWriteTo(h, syncPayload(ours));
+    st.base = syncPrints(syncUnits(ours));
+    st.at = new Date().toISOString(); st.with = 'a new file';
+    saveNow();
+    return {ok:true, first:true, took:0, gave:Object.keys(st.base).length};
+  }
+  const plan = syncPlan(ours, theirs, st.base);
+  if(plan.clash.length && !o.choices)
+    return {ok:false, needs: plan.clash, plan, theirs, ours};
+  /* a backup of this side before anything is taken, beside the sync file */
+  if(plan.take.length || plan.clash.length){
+    try { await syncWriteTo(h, {version:SYNC_VERSION, at:new Date().toISOString(),
+      device: syncDevice().name, note:'taken before an exchange', data: ours},
+      `before-sync-${syncDevice().name.replace(/[^\w-]+/g, '-')}-${today()}.json`); }
+    catch(e){ console.warn('the safety copy could not be written', e); }
+  }
+  const merged = syncApply(ours, theirs, plan, o.choices);
+  if(plan.take.length || plan.clash.length){
+    await writeAllStores(merged);
+    S = storesToState(merged); migrate();
+  }
+  const payload = syncPayload(merged);
+  await syncWriteTo(h, payload);
+  st.base = payload.prints;
+  st.at = payload.at;
+  st.with = theirs.device || 'another machine';
+  saveNow();
+  return {ok:true, took: plan.take.length, gave: plan.push.length,
+    settled: plan.clash.length, plan};
+}
+
+/* ---------- the file fallback ----------
+   Safari and every iPhone have no folder picker. The exchange is the same;
+   only the carrying is by hand. You open the sync file from wherever it is,
+   the same merge runs, and the merged file is given back to be put where it
+   came from. Slower, and it loses nothing. */
+async function syncFromFile(file, choices){
+  const st = syncState();
+  let theirs = null;
+  try { theirs = JSON.parse(await file.text()); } catch(e){ return {ok:false, why:'not a sync file'}; }
+  if(!syncValid(theirs)) return {ok:false, why:'not a sync file'};
+  await flushSave();
+  const ours = await readAllStores();
+  const plan = syncPlan(ours, theirs, st.base);
+  if(plan.clash.length && !choices) return {ok:false, needs: plan.clash, plan, theirs, ours};
+  const merged = syncApply(ours, theirs, plan, choices);
+  if(plan.take.length || plan.clash.length){
+    await writeAllStores(merged);
+    S = storesToState(merged); migrate();
+  }
+  const payload = syncPayload(merged);
+  st.base = payload.prints; st.at = payload.at;
+  st.with = theirs.device || 'another machine';
+  saveNow();
+  return {ok:true, took: plan.take.length, gave: plan.push.length,
+    settled: plan.clash.length, payload, plan};
+}
+/* handing the merged file back */
+function syncDownload(payload){
+  const blob = new Blob([JSON.stringify(payload)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = SYNC_FILE;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+/* ---------- the room ---------- */
+function syncSaid(){
+  const st = syncState();
+  if(!st.at) return 'never';
+  const d = daysSince(timeDayOf(st.at));
+  return `${d === 0 ? 'today' : d === 1 ? 'yesterday' : `${d} days ago`}${
+    st.with ? `, with ${st.with}` : ''}`;
+}
+function syncSectionHTML(){
+  const st = syncState();
+  const d = syncDevice();
+  return `<section class="section rv sy-sec" id="syncSec">
+    <div class="row between" style="align-items:baseline">
+      <span class="sc" style="margin:0">The same life on two machines</span>
+      <span class="mono faint">last exchange: ${esc(syncSaid())}</span></div>
+    <p class="muted" style="font-size:.85rem">No account here, and nothing of yours goes to anybody’s
+      server — this writes one file. Put that file in a folder something already syncs for you
+      (iCloud Drive, Dropbox, Drive, Syncthing, even a stick you carry) and the thing that already
+      knows who you are does the carrying.</p>
+    <label class="pd-q" style="max-width:20rem"><span class="k">what to call this machine</span>
+      <input class="inp" id="syName" value="${esc(d.name)}" maxlength="40"></label>
+    ${syncCanFolder() ? `<div class="row" style="gap:8px;margin-top:12px;flex-wrap:wrap">
+        <button class="btn sm" id="syPick">Choose the folder</button>
+        <button class="btn sm primary" id="syNow">Exchange now</button>
+        <span class="grow"></span>
+        <button class="tbtn" id="syForget">forget the folder</button>
+      </div>
+      <p class="faint sm" style="margin-top:6px">The browser asks once each session before it will
+        touch the folder again. That is its decision, not this room’s.</p>`
+      : `<p class="faint sm" style="margin-top:10px">This browser has no folder picker — Safari and
+        every iPhone are in this boat — so the carrying is by hand. It merges exactly the same way.</p>`}
+    <div class="row" style="gap:8px;margin-top:10px;flex-wrap:wrap">
+      <button class="btn sm ghost" id="syOpen">Merge a sync file by hand…</button>
+      <input type="file" id="syFile" accept="application/json,.json" style="display:none">
+      <button class="tbtn" id="sySave">write this machine’s file out</button>
+    </div>
+    <p class="faint sm" style="margin-top:8px">Room by room rather than all at once: practising on the
+      tablet and tidying tasks on the laptop are not a disagreement, and both are kept without asking.
+      Only something changed in both places is put to you — and a copy of this side is written
+      beside the file before anything is taken.</p>
+  </section>`;
+}
+function bindSyncSection(root){
+  const name = root.querySelector('#syName');
+  if(name) name.onchange = () => { syncRenameDevice(name.value); toast('Named.'); };
+  const say = r => {
+    if(!r || !r.ok) return;
+    if(r.first) toast('Written. Open this file on the other machine and it will find its way.');
+    else if(!r.took && !r.settled) toast(r.gave ? 'Sent. Nothing to take.' : 'Nothing had moved.');
+    else toast(`Took ${r.took} thing${r.took === 1 ? '' : 's'}${
+      r.settled ? `, settled ${r.settled}` : ''}.`);
+    sound('success'); rerender();
+  };
+  const run = async opts => {
+    const r = await syncRun(opts).catch(e => ({ok:false, why: e && e.message}));
+    if(r.needs){ openSyncClash(r, choices => run(Object.assign({}, opts, {choices})).then(say)); return null; }
+    if(!r.ok && r.why) toast(r.why === 'no folder' ? 'Choose a folder first.'
+      : r.why === 'no permission' ? 'The browser did not let this page into that folder.' : r.why);
+    return r;
+  };
+  const pick = root.querySelector('#syPick');
+  if(pick) pick.onclick = async () => {
+    const h = await syncPickFolder();
+    if(!h) return;
+    say(await run({handle: h}));
+  };
+  const now = root.querySelector('#syNow');
+  if(now) now.onclick = async () => say(await run({}));
+  const forget = root.querySelector('#syForget');
+  if(forget) forget.onclick = async () => { await syncForgetFolder(); toast('Forgotten.'); };
+  const file = root.querySelector('#syFile');
+  const open = root.querySelector('#syOpen');
+  if(open && file){
+    open.onclick = () => file.click();
+    file.onchange = async () => {
+      const f = file.files && file.files[0]; file.value = '';
+      if(!f) return;
+      const go = async choices => {
+        const r = await syncFromFile(f, choices).catch(e => ({ok:false, why: e && e.message}));
+        if(r.needs){ openSyncClash(r, go); return; }
+        if(!r.ok){ toast(r.why || 'That did not work.'); return; }
+        syncDownload(r.payload);
+        say(r);
+      };
+      go(null);
+    };
+  }
+  const out = root.querySelector('#sySave');
+  if(out) out.onclick = async () => { await flushSave();
+    syncDownload(syncPayload(await readAllStores()));
+    toast('Written. Put it where the other machine can reach it.'); };
+}
+/* What to do when both sides moved the same thing. Listed rather than
+   guessed at, with how much is on each side, because "142 tasks here, 3
+   there" answers the question on its own most of the time. */
+function openSyncClash(r, then){
+  const a = syncUnits(r.ours), b = syncUnits(r.theirs.data || {});
+  const m = openModal(`<h2>⚠ Both sides moved these</h2>
+    <p>Everything else has already been worked out. These ${r.needs.length === 1 ? 'one has' : 'have'}
+      changed here <em>and</em> on ${esc(r.theirs.device || 'the other machine')} since the last exchange,
+      so nothing is taken until you say which to keep.</p>
+    <div class="sy-clash">${r.needs.map(k => `<div class="sy-row" data-syclash="${esc(k)}">
+      <span class="sy-name">${esc(syncUnitName(k))}</span>
+      <label class="sy-opt"><input type="radio" name="sy-${esc(k)}" value="mine" checked>
+        <span>keep this machine’s <b class="mono">${syncCount(a[k])}</b></span></label>
+      <label class="sy-opt"><input type="radio" name="sy-${esc(k)}" value="theirs">
+        <span>take ${esc(r.theirs.device || 'theirs')}’ <b class="mono">${syncCount(b[k])}</b></span></label>
+    </div>`).join('')}</div>
+    <p class="faint sm">Whichever you keep, a copy of this machine’s side is written beside the sync
+      file first, so nothing here can be lost by getting this wrong.</p>
+    <div class="row" style="justify-content:flex-end;margin-top:14px;gap:8px">
+      <button class="btn sm ghost" id="syCancel">Not now</button>
+      <button class="btn primary" id="syGo">Go on</button></div>`, 'wide');
+  m.querySelector('#syCancel').onclick = () => m.remove();
+  m.querySelector('#syGo').onclick = () => {
+    const choices = {};
+    r.needs.forEach(k => { const on = m.querySelector(`input[name="sy-${k}"]:checked`);
+      choices[k] = on ? on.value : 'mine'; });
+    m.remove();
+    then(choices);
+  };
+  return m;
+}
+/* ============================================================
    WHAT THE CLOCK FEEDS.
 
    A time tracker that only fills its own dashboard is a second set of books.
@@ -54734,7 +55357,14 @@ function bindTimeLinkPick(m){
 function timeAutoStart(fields){
   timeState();
   if(timeRunning()) return null;
-  const e = startTimer(Object.assign({source:'auto'}, fields || {}));
+  const f = Object.assign({source:'auto'}, fields || {});
+  /* The category a room asks for is one you can rename, put away or throw
+     out, and the room does not know that. If the one it named is gone, the
+     sitting still gets counted — under whatever you chose as the default, or
+     untagged — rather than being filed under an id nothing can name. */
+  if(f.categoryId && !timeAllCategories().some(c => c.id === f.categoryId))
+    f.categoryId = timeSettings().defaultCategory || null;
+  const e = startTimer(f);
   paintTimeDock();
   return e;
 }
@@ -54860,6 +55490,16 @@ const TIME_CATEGORIES = [
    so a day can be drawn without going and looking up five other stores — and
    so a deleted project leaves a readable entry behind rather than a blank. */
 const TIME_LINKS = ['score','vision','project','person','skill','task','deck','journal'];
+/* The five categories a room starts a clock on by itself. Renaming or
+   recolouring one is nobody's business but yours; taking one away means those
+   sittings arrive untagged, so the editor says which these are rather than
+   refusing. */
+const TIME_FED_BY_ROOM = {
+  piano:      'the score room, when you practise a section',
+  japanese:   'the Japanese studio, during a 4/3/2 sitting',
+  meditation: 'the stillness timer',
+  study:      'the study deck, during a review',
+  tasks:      'the focus clock on a task'};
 const TIME_ROUNDING = [1, 5, 15];
 /* A timer left running overnight is not fourteen hours of piano. Past this,
    the entry is closed where it stopped being believable and says so. */
@@ -54869,9 +55509,34 @@ function timeState(){
   if(!Array.isArray(S.timeEntries)) S.timeEntries = [];
   S.timeEntries.forEach(timeEntryDefaults);
   const t = S.time = S.time || {};
-  t.custom = Array.isArray(t.custom) ? t.custom : [];
-  t.custom.forEach(c => { c.id = c.id || uid(); c.name = c.name || 'Something';
-    c.emoji = c.emoji || '⚙️'; c.color = c.color || '#8a8d8f'; });
+  /* ---------- the list is yours, not the app's ----------
+     It used to be a fixed list with a place to append your own underneath,
+     which meant the sixteen names the app happened to ship with were
+     permanent and the ones you added were second-class. They are one list
+     now, seeded from the shipped one the first time and afterwards entirely
+     yours: rename, recolour, reorder, put away, throw out, start again.
+
+     Putting one away is not the same as throwing it out. Months of entries
+     point at these ids, and an id nothing can name any more turns a year of
+     Tuesdays into "Untagged" — so a category that is off keeps naming its own
+     past and only stops being offered for anything new. */
+  if(!Array.isArray(t.cats)){
+    t.cats = TIME_CATEGORIES.map(c => Object.assign({}, c));
+    (Array.isArray(t.custom) ? t.custom : []).forEach(c => t.cats.push(Object.assign({}, c)));
+  }
+  t.custom = [];
+  /* Pruned in place, and only when there is something to prune. Rebuilding
+     the list with `filter` on every call looked harmless and was not: this
+     runs on every read, so anything holding the list from one call was
+     holding an array the next call had already replaced — and a splice into
+     it vanished the moment anything else asked for the categories. */
+  if(t.cats.some(c => !c || typeof c !== 'object'))
+    t.cats = t.cats.filter(c => c && typeof c === 'object');
+  t.cats.forEach(c => { c.id = c.id || uid();
+    c.name = String(c.name || 'Something').trim().slice(0, 40) || 'Something';
+    c.emoji = String(c.emoji || '\u25cb').trim().slice(0, 8) || '\u25cb';
+    c.color = /^#[0-9a-fA-F]{3,8}$/.test(c.color || '') ? c.color : '#8a8d8f';
+    c.off = !!c.off; });
   t.settings = Object.assign({
     defaultCategory: null,
     widget: true,               /* the pill, on every page */
@@ -54883,9 +55548,52 @@ function timeState(){
   return S.timeEntries;
 }
 const timeEntries = () => timeState();
-const timeCategories = () => timeState() && TIME_CATEGORIES.concat(S.time.custom);
-const timeCategory = id => timeCategories().find(c => c.id === id)
-  || {id:null, name:'Untagged', emoji:'○', color:'#8a8d8f'};
+/* what to offer for something new */
+const timeCategories = () => timeState() && S.time.cats.filter(c => !c.off);
+/* and what exists at all, which is what naming an old entry needs */
+const timeAllCategories = () => timeState() && S.time.cats;
+const timeCategory = id => timeAllCategories().find(c => c.id === id)
+  || {id:null, name:'Untagged', emoji:'\u25cb', color:'#8a8d8f'};
+/* how many entries would be left unnamed by throwing this one out */
+const timeCategoryUsed = id => timeEntries().filter(e => e.categoryId === id).length;
+function timeAddCategory(at){
+  const c = {id: uid(), name:'Something', emoji:'\u25cb', color:'#8a8d8f', off:false};
+  const list = timeAllCategories();
+  if(at == null || at < 0 || at > list.length) list.push(c); else list.splice(at, 0, c);
+  return c;
+}
+/* Moving one. The order is the order everything is drawn in — the picker, the
+   day's bars, the week's report — so it is worth being able to put the four
+   you actually use at the top. */
+function timeMoveCategory(id, by){
+  const list = timeAllCategories();
+  const i = list.findIndex(c => c.id === id);
+  const to = i + by;
+  if(i < 0 || to < 0 || to >= list.length) return false;
+  list.splice(to, 0, list.splice(i, 1)[0]);
+  return true;
+}
+/* Throwing one out, and saying where its past goes. Entries are re-pointed
+   rather than orphaned: null is untagged, an id moves them. */
+function timeRemoveCategory(id, moveTo){
+  const list = timeAllCategories();
+  const i = list.findIndex(c => c.id === id);
+  if(i < 0) return 0;
+  const moved = timeEntries().filter(e => e.categoryId === id);
+  moved.forEach(e => { e.categoryId = moveTo || null; });
+  list.splice(i, 1);
+  const st = timeSettings();
+  if(st.defaultCategory === id) st.defaultCategory = moveTo || null;
+  return moved.length;
+}
+/* Back to the list the app ships with, keeping anything of yours that is not
+   one of them, and keeping every entry pointed where it was. */
+function timeResetCategories(){
+  const list = timeAllCategories();
+  const mine = list.filter(c => !TIME_CATEGORIES.some(v => v.id === c.id));
+  S.time.cats = TIME_CATEGORIES.map(c => Object.assign({}, c)).concat(mine);
+  return S.time.cats.length;
+}
 const timeSettings = () => timeState() && S.time.settings;
 
 function timeEntryDefaults(e){
@@ -55032,6 +55740,45 @@ function closeRunawayTimer(){
   saveNow();
   return e;
 }
+
+/* ---------- the hours you were asleep ----------
+   Sleep is not timed with a stopwatch; it is the wake and bed times you
+   already write on Today. They were only ever drawn there, which left the
+   Time page claiming a day was sixteen hours untracked when eight of them
+   were accounted for perfectly well one page over.
+
+   So they are read, not copied. A derived block cannot drift out of step with
+   the record it comes from, and there is exactly one place to correct a wrong
+   bedtime — the place you typed it. Nothing here writes a time entry. */
+const TIME_SLEEP_CAT = {id:'__sleep', name:'Sleep', emoji:'☾', color:'#5a6a7a', derived:true};
+/* Minutes past midnight for the parts of this calendar day you were asleep,
+   from that day's own wake and bed times. Going to bed after midnight is the
+   case worth getting right: it means the asleep stretch runs from the bedtime
+   to the waking, not from midnight, and not to the end of the day as well. */
+function timeSleepBlocks(day){
+  const r = (S.dailyRhythm || {})[day];
+  if(!r) return [];
+  const wake = hm2min(r.wakeTime), bed = hm2min(r.sleepTime);
+  const out = [];
+  const small = bed != null && wake != null && bed < wake;   /* went to bed after midnight */
+  if(wake != null){
+    const from = small ? bed : 0;
+    if(wake > from) out.push({from, to: wake, waking: true});
+  }
+  if(bed != null && !small) out.push({from: bed, to: 1440, waking: false});
+  return out;
+}
+const timeSleepMinutes = day => sum(timeSleepBlocks(day).map(b => b.to - b.from));
+/* whether there is anything to read at all, which decides whether the page
+   says "you have not written a wake time down" or says nothing */
+const timeSleepKnown = day => { const r = (S.dailyRhythm || {})[day];
+  return !!(r && (hm2min(r.wakeTime) != null || hm2min(r.sleepTime) != null)); };
+const timeSleepSaidOn = day => { const r = (S.dailyRhythm || {})[day] || {};
+  const bits = [];
+  if(r.wakeTime) bits.push(`up at ${r.wakeTime}`);
+  if(r.sleepTime) bits.push(`to bed at ${r.sleepTime}`);
+  return bits.join(' · ');
+};
 /* ============================================================
    WHERE THE TIME WENT — the room.
 
@@ -55056,7 +55803,7 @@ routes.time = function(root, params){
   timeState();
   const u = timeUi();
   const want = params && params[0];
-  if(['day','week','reports'].includes(want)) u.view = want;
+  if(['day','week','reports','categories'].includes(want)) u.view = want;
   registerPageEntry({pageName:'Time', addLabel:'Log a sitting', defaultEntryType:'time',
     prefilledFields:{}, options:[
       {icon:'⏱', label:'Start the clock', desc:'Now, for whatever you are about to do.',
@@ -55067,10 +55814,11 @@ routes.time = function(root, params){
     <div class="tm-head">
       <h1 class="serif">Time</h1>
       <span class="grow"></span>
-      <span class="tabs sm">${[['day','Day'],['week','Week'],['reports','Reports']].map(([k, n]) =>
+      <span class="tabs sm">${[['day','Day'],['week','Week'],['reports','Reports'],['categories','Categories']].map(([k, n]) =>
         `<button class="tab${u.view === k ? ' on' : ''}" data-tmview="${k}">${n}</button>`).join('')}</span>
     </div>
-    ${u.view === 'week' ? timeWeekHTML() : u.view === 'reports' ? timeReportsHTML() : timeDayHTML()}
+    ${u.view === 'week' ? timeWeekHTML() : u.view === 'reports' ? timeReportsHTML()
+      : u.view === 'categories' ? timeCategoriesHTML() : timeDayHTML()}
   </div>`;
   bindTimePage(root);
 };
@@ -55081,6 +55829,8 @@ function timeDayHTML(){
   const rows = timeOnDay(day).slice().sort((a, b) => String(a.startTime).localeCompare(String(b.startTime)));
   const mins = sum(rows.map(e => timeMinutes(e)));
   const by = timeByCategory(rows);
+  /* the hours you were asleep, read off Today rather than timed here */
+  const asleep = timeSleepMinutes(day);
   return `<div class="tm-bar-h">
       <button class="tbtn" data-tmday="-1">‹ day before</button>
       <span class="mono">${esc(fmtDate(day, 'med'))}</span>
@@ -55093,7 +55843,7 @@ function timeDayHTML(){
     ${rows.length ? `<div class="tm-list">${rows.map(timeRowHTML).join('')}</div>`
       : `<div class="empty">Nothing tracked on this day. Start the clock in the corner, or write
         down a sitting you did not time.</div>`}
-    ${by.length ? `<div class="tm-sum">${timeSumHTML(by, 1440)}</div>` : ''}`;
+    ${by.length || asleep ? `<div class="tm-sum">${timeSumHTML(by, 1440, day)}</div>` : ''}`;
 }
 /* Midnight to midnight, in proportion. A sitting that runs past midnight is
    clipped to the day it is being drawn for rather than allowed to run off the
@@ -55107,7 +55857,14 @@ function timeStripHTML(rows, day){
   };
   const parts = rows.map(seg).filter(s => s.to > s.from);
   const marks = [0, 6, 12, 18, 24];
+  /* drawn first and underneath: sleep is the ground the day sits on, and a
+     sitting that overlaps it — a nap logged by hand, a bedtime typed wrong —
+     should be the thing you can see, not the thing hidden behind it */
+  const said = timeSleepSaidOn(day);
   return `<div class="tm-strip" role="img" aria-label="the day, midnight to midnight">
+    ${timeSleepBlocks(day).map(b =>
+      `<i class="tm-seg tm-sleepseg" style="left:${(b.from / 14.4).toFixed(2)}%;width:${
+        ((b.to - b.from) / 14.4).toFixed(2)}%" title="asleep${said ? ` \u2014 ${esc(said)}` : ''}"></i>`).join('')}
     ${parts.map(({from, to, e}) => { const c = timeCategory(e.categoryId);
       return `<i class="tm-seg" data-tmgo="${esc(e.id)}" style="left:${(from / 14.4).toFixed(2)}%;width:${
         ((to - from) / 14.4).toFixed(2)}%;--c:${esc(c.color)}"
@@ -55144,18 +55901,35 @@ function timeByCategory(rows){
 }
 /* The bars, and the hours nobody accounted for beside them. The untracked
    line is the point: without it every day looks full. */
-function timeSumHTML(by, whole){
-  const top = Math.max(1, ...by.map(b => b.minutes));
+function timeSumHTML(by, whole, day){
+  /* Sleep is a bar like the others, and it is not tracked time: it is read
+     off the wake and bed times on Today. Counting it makes the untracked
+     line mean what it says — the waking hours nobody accounted for — rather
+     than counting eight hours of being asleep as time you lost. */
+  const asleep = day ? timeSleepMinutes(day) : 0;
+  const top = Math.max(1, asleep, ...by.map(b => b.minutes));
   const tracked = sum(by.map(b => b.minutes));
+  const said = day ? timeSleepSaidOn(day) : '';
   return `${by.map(b => `<div class="tm-sumrow" style="--c:${esc(b.cat.color)}">
       <span class="tm-sumn">${esc(b.cat.emoji)} ${esc(b.cat.name)}</span>
       <span class="tm-sumbar"><i style="width:${(100 * b.minutes / top).toFixed(1)}%"></i></span>
       <span class="mono">${timeSaid(b.minutes)}</span>
     </div>`).join('')}
+    ${asleep ? `<div class="tm-sumrow tm-sleeprow" style="--c:${esc(TIME_SLEEP_CAT.color)}">
+      <span class="tm-sumn">${TIME_SLEEP_CAT.emoji} ${esc(TIME_SLEEP_CAT.name)}
+        <a class="faint sm" href="#/today" title="wake and bed times are written on Today">${
+          said ? esc(said) : 'from Today'}</a></span>
+      <span class="tm-sumbar"><i style="width:${(100 * asleep / top).toFixed(1)}%"></i></span>
+      <span class="mono">${timeSaid(asleep)}</span>
+    </div>` : day && !timeSleepKnown(day) ? `<div class="tm-sumrow faint tm-sleeprow">
+      <span class="tm-sumn">${TIME_SLEEP_CAT.emoji} Sleep
+        <a class="faint sm" href="#/today">no wake or bed time written down for this day</a></span>
+      <span class="tm-sumbar"></span><span class="mono">\u2014</span>
+    </div>` : ''}
     ${whole ? `<div class="tm-sumrow faint">
-      <span class="tm-sumn">untracked</span>
+      <span class="tm-sumn">untracked${asleep ? ', awake' : ''}</span>
       <span class="tm-sumbar"></span>
-      <span class="mono">~${timeSaid(Math.max(0, whole - tracked))}</span>
+      <span class="mono">~${timeSaid(Math.max(0, whole - tracked - asleep))}</span>
     </div>` : ''}`;
 }
 
@@ -55170,6 +55944,11 @@ function timeWeekHTML(){
   const all = rows.flatMap(r => r.entries);
   const mins = sum(all.map(e => timeMinutes(e)));
   const by = timeByCategory(all);
+  /* averaged over the nights you actually wrote down rather than over seven,
+     because dividing by seven turns three recorded nights into a figure that
+     says you sleep three hours */
+  const slept = days.reduce((a, d) => { const m = timeSleepMinutes(d);
+    return m ? {mins: a.mins + m, nights: a.nights + 1} : a; }, {mins:0, nights:0});
   return `<div class="tm-bar-h">
       <button class="tbtn" data-tmday="-7">‹ week before</button>
       <span class="mono">${esc(fmtDate(days[0], 'med'))} – ${esc(fmtDate(days[6], 'med'))}</span>
@@ -55184,7 +55963,9 @@ function timeWeekHTML(){
     </div>`).join('')}</div>
     ${by.length ? `<div class="tm-sum">${timeSumHTML(by, 0)}
       <p class="faint sm">${timeSaid(mins / 7)} a day on average${
-        by[0] ? `, most of it on ${esc(by[0].cat.name.toLowerCase())}` : ''}.</p></div>`
+        by[0] ? `, most of it on ${esc(by[0].cat.name.toLowerCase())}` : ''}.${slept.nights
+          ? ` ${TIME_SLEEP_CAT.emoji} ${timeSaid(slept.mins / slept.nights)} asleep a night across ${
+            slept.nights} night${slept.nights === 1 ? '' : 's'} you wrote down.` : ''}</p></div>`
       : '<div class="empty">Nothing tracked this week.</div>'}`;
 }
 
@@ -55264,6 +56045,138 @@ function bindTimePage(root){
   const pick = (sel, key, num) => { const n = root.querySelector(sel); if(!n) return;
     n.onchange = () => { u[key] = num ? (+n.value || 0) : (n.value || null); saveNow(); rerender(); }; };
   pick('#tmSpan', 'span', true); pick('#tmCat', 'cat'); pick('#tmTag', 'tag'); pick('#tmLink', 'link');
+  bindTimeCategories(root);
+}
+
+/* ---------- the categories, which are yours ----------
+   Sixteen of them ship with the app and none of them is fixed. A time tracker
+   whose categories somebody else chose is one you fight with for a week and
+   then stop using, because the one distinction that actually matters in your
+   life is never in the list.
+
+   Everything is edited in place, on the row: the emoji, the name and the
+   colour are the three things that make a bar chart readable and they are
+   three fields, not three modals. The order is the order everything is drawn
+   in, so it is worth being able to put the four you really use at the top.
+
+   Two things are deliberately different from each other. Putting a category
+   away takes it out of every picker and leaves the months of entries under it
+   still named — which is what you want for the thing you did last year and
+   have stopped doing. Throwing it out removes it for good, and asks first
+   where its entries should go, because the alternative is a year of Tuesdays
+   that nothing can name. */
+function timeCategoriesHTML(){
+  const list = timeAllCategories();
+  const st = timeSettings();
+  const off = list.filter(c => c.off).length;
+  return `<section class="section rv tm-cats">
+    <div class="row between" style="align-items:baseline">
+      <span class="sc" style="margin:0">Categories</span>
+      <span class="mono faint">${list.length} · ${off ? `${off} put away` : 'all in use'}</span></div>
+    <p class="muted" style="font-size:.85rem">The whole list is yours. Rename any of them, change the colour they
+      are drawn in, put the ones you have stopped using away, or throw them out. Nothing here is the app’s.</p>
+    <div class="tm-catrows">
+      <div class="tm-cathead mono">
+        <span></span><span>name</span><span>colour</span><span>used</span><span>order</span><span></span><span></span></div>
+      ${list.map((c, i) => {
+        const used = timeCategoryUsed(c.id);
+        const fed = TIME_FED_BY_ROOM[c.id];
+        return `<div class="tm-catrow${c.off ? ' off' : ''}" style="--c:${esc(c.color)}" data-tmcatrow="${esc(c.id)}">
+          <input class="inp tm-catemoji" data-tmcatf="emoji" data-tmcat="${esc(c.id)}"
+            value="${esc(c.emoji)}" maxlength="8" aria-label="the mark for ${esc(c.name)}">
+          <span class="tm-catname">
+            <input class="inp" data-tmcatf="name" data-tmcat="${esc(c.id)}" value="${esc(c.name)}" maxlength="40">
+            ${fed ? `<em class="faint sm">started by ${esc(fed)}</em>` : ''}</span>
+          <input class="tm-catcolor" type="color" data-tmcatf="color" data-tmcat="${esc(c.id)}"
+            value="${esc(/^#[0-9a-fA-F]{6}$/.test(c.color) ? c.color : '#8a8d8f')}"
+            aria-label="the colour for ${esc(c.name)}">
+          <span class="mono faint">${used ? `${used} sitting${used === 1 ? '' : 's'}` : '—'}</span>
+          <span class="tm-catmove">
+            <button class="tbtn" data-tmcatup="${esc(c.id)}" ${i ? '' : 'disabled'} title="up">↑</button>
+            <button class="tbtn" data-tmcatdown="${esc(c.id)}"
+              ${i === list.length - 1 ? 'disabled' : ''} title="down">↓</button></span>
+          <button class="tbtn" data-tmcatoff="${esc(c.id)}"
+            title="${c.off ? 'put it back in the pickers' : 'take it out of the pickers, keeping what is already filed under it'}"
+            >${c.off ? 'put back' : 'put away'}</button>
+          <button class="del-x inline" data-tmcatdel="${esc(c.id)}" title="throw it out for good">×</button>
+        </div>`; }).join('')}
+    </div>
+    <div class="row" style="gap:8px;margin-top:10px;flex-wrap:wrap">
+      <button class="btn sm primary" id="tmCatAdd">＋ a category</button>
+      <label class="pd-q" style="flex:0 0 16rem;margin:0"><span class="k">what a new sitting starts as</span>
+        <select class="sel sm" id="tmCatDefault"><option value="">nothing — ask me</option>${
+          timeCategories().map(c => `<option value="${esc(c.id)}" ${st.defaultCategory === c.id ? 'selected' : ''}
+            >${esc(c.emoji)} ${esc(c.name)}</option>`).join('')}</select></label>
+      <span class="grow"></span>
+      <button class="btn sm ghost" id="tmCatReset">Start again from the shipped list</button>
+    </div>
+  </section>`;
+}
+function bindTimeCategories(root){
+  const redraw = () => { saveNow(); rerender(); };
+  /* typed rather than pressed: a name being edited must not take the caret
+     away every keystroke, so the field writes straight through and the page
+     is only rebuilt when the field is left */
+  $$('[data-tmcatf]', root).forEach(n => {
+    const write = () => { const c = timeCategory(n.dataset.tmcat);
+      if(!c || !c.id) return;
+      const v = n.value;
+      if(n.dataset.tmcatf === 'name') c.name = v.trim().slice(0, 40) || c.name;
+      else if(n.dataset.tmcatf === 'emoji') c.emoji = v.trim().slice(0, 8) || c.emoji;
+      else if(/^#[0-9a-fA-F]{3,8}$/.test(v)) c.color = v;
+      saveNow(); };
+    n.oninput = write;
+    n.onchange = () => { write(); rerender(); };
+  });
+  $$('[data-tmcatup]', root).forEach(b => b.onclick = () => {
+    if(timeMoveCategory(b.dataset.tmcatup, -1)) redraw(); });
+  $$('[data-tmcatdown]', root).forEach(b => b.onclick = () => {
+    if(timeMoveCategory(b.dataset.tmcatdown, 1)) redraw(); });
+  $$('[data-tmcatoff]', root).forEach(b => b.onclick = () => {
+    const c = timeCategory(b.dataset.tmcatoff); if(!c || !c.id) return;
+    c.off = !c.off;
+    toast(c.off ? `${c.name} is put away — what is already filed under it keeps its name.`
+      : `${c.name} is back.`);
+    redraw(); });
+  $$('[data-tmcatdel]', root).forEach(b => b.onclick = () => openTimeCategoryDelete(b.dataset.tmcatdel));
+  const add = root.querySelector('#tmCatAdd');
+  if(add) add.onclick = () => { const c = timeAddCategory(); saveNow(); rerender();
+    const n = document.querySelector(`[data-tmcat="${c.id}"][data-tmcatf="name"]`);
+    if(n){ n.focus(); n.select(); } };
+  const def = root.querySelector('#tmCatDefault');
+  if(def) def.onchange = () => { timeSettings().defaultCategory = def.value || null; redraw(); };
+  const reset = root.querySelector('#tmCatReset');
+  if(reset) reset.onclick = () => {
+    if(!confirm('Put the sixteen the app ships with back as they were? Anything you added stays, and no entry changes what it is filed under.')) return;
+    timeResetCategories(); toast('Back to the shipped list.'); redraw(); };
+}
+/* Throwing one out asks where its past goes first, because the alternative is
+   a year of entries nothing can name. */
+function openTimeCategoryDelete(id){
+  const c = timeCategory(id);
+  if(!c || !c.id) return null;
+  const used = timeCategoryUsed(id);
+  const others = timeAllCategories().filter(v => v.id !== id);
+  const m = openModal(`<h2>\u{1F5D1} ${esc(c.emoji)} ${esc(c.name)}</h2>
+    ${used ? `<p>There ${used === 1 ? 'is' : 'are'} <b>${used}</b> sitting${used === 1 ? '' : 's'}
+        filed under this. Throwing it out does not throw them away — say where they go.</p>
+      <label class="pd-q"><span class="k">move them to</span>
+        <select class="sel" id="tcMove"><option value="">nothing — leave them untagged</option>${
+          others.map(v => `<option value="${esc(v.id)}">${esc(v.emoji)} ${esc(v.name)}</option>`).join('')}</select></label>
+      <p class="faint sm">Putting it away instead keeps the name on all ${used} of them and only stops it being offered for anything new.</p>`
+      : '<p>Nothing is filed under this one, so there is nothing to move.</p>'}
+    <div class="row" style="justify-content:flex-end;margin-top:14px;gap:8px">
+      <button class="btn sm ghost" id="tcCancel">Keep it</button>
+      <button class="btn danger" id="tcGo">Throw it out</button></div>`);
+  m.querySelector('#tcCancel').onclick = () => m.remove();
+  m.querySelector('#tcGo').onclick = () => {
+    const to = m.querySelector('#tcMove');
+    const moved = timeRemoveCategory(id, to ? (to.value || null) : null);
+    m.remove(); saveNow(); sound('click');
+    toast(moved ? `${c.name} is gone; ${moved} sitting${moved === 1 ? '' : 's'} moved.` : `${c.name} is gone.`);
+    rerender();
+  };
+  return m;
 }
 /* ============================================================
    THE ROOMS THAT START THE CLOCK.
@@ -55510,35 +56423,6 @@ function openTimeEntryModal(id, day){
   return m;
 }
 
-/* A category of your own. The fifteen shipped ones are a guess at a life and
-   they will be wrong about somebody's — the point of the list is that a week
-   can be read at a glance, and a week with a quarter of it under "Custom"
-   cannot be. */
-function openTimeCategoryModal(){
-  timeState();
-  const m = openModal(`<h2>A category of your own</h2>
-    <div class="row" style="gap:10px">
-      <label class="pd-q" style="flex:0 0 5rem"><span class="k">emoji</span>
-        <input class="inp" id="tcEmoji" maxlength="4" value="⚙️"></label>
-      <label class="pd-q" style="flex:1"><span class="k">what it is</span>
-        <input class="inp" id="tcName" autofocus placeholder="Volunteering"></label>
-    </div>
-    <div class="pd-q" style="margin-top:10px"><span class="k">colour</span>
-      <div class="sc-swatches">${SCORE_COLORS.map(([c, name]) =>
-        `<button class="sc-swatch" data-tccol="${c}" style="--c:${c}" title="${esc(name)}" aria-label="${esc(name)}"></button>`).join('')}</div></div>
-    <div class="row" style="justify-content:flex-end;margin-top:14px">
-      <button class="btn primary" id="tcSave">Add it</button></div>`, 'narrow');
-  let color = SCORE_COLORS[0][0];
-  $$('[data-tccol]', m).forEach(b => b.onclick = () => { color = b.dataset.tccol;
-    $$('[data-tccol]', m).forEach(y => y.classList.toggle('on', y === b)); });
-  m.querySelector('#tcSave').onclick = () => {
-    const name = m.querySelector('#tcName').value.trim();
-    if(!name){ m.querySelector('#tcName').focus(); return; }
-    S.time.custom.push({id:'c' + uid(), name, emoji: m.querySelector('#tcEmoji').value.trim() || '⚙️', color});
-    saveNow(); m.remove(); sound('success'); rerender();
-  };
-  return m;
-}
 /* ============================================================
    11. GLOBAL ADD ENTRY MODAL
    ============================================================ */

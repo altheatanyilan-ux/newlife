@@ -31,13 +31,13 @@ routes.settings = function(root){
           `<option value="${v}" ${timeSettings().round === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
       <div class="opt"><div><b>A sitting on a project is a nod</b><div class="d">Time hung on a project writes itself into that project's record of work.</div></div><label class="toggle ${timeSettings().autoNods?'on':''}" id="sTimeNods"><span class="sw"></span></label></div>
       <div class="opt"><div><b>An hour with somebody is an hour with them</b><div class="d">Time hung on a person writes itself into their record.</div></div><label class="toggle ${timeSettings().autoInteractions?'on':''}" id="sTimeInts"><span class="sw"></span></label></div>
-      <!-- the fifteen shipped categories are a guess at a life; anybody's
-           actual week has something in it they were not guessed -->
-      <div class="opt"><div><b>Your own categories</b>
-        <div class="d">${S.time.custom.length ? S.time.custom.map(c =>
-          `<span class="tm-cat">${esc(c.emoji)} ${esc(c.name)} <button class="del-x inline" data-tmcatdel="${esc(c.id)}">\u00d7</button></span>`).join(' ')
-          : 'None yet. The fifteen above are a guess at a life; add whatever yours has in it.'}</div></div>
-        <button class="btn sm" id="sTimeCatNew">\uff0b one</button></div>
+      <!-- there used to be a place here to add your own beside the shipped
+           ones, which made the shipped ones permanent and yours second-class.
+           The whole list is editable now, and it is edited where it is used -->
+      <div class="opt"><div><b>The categories</b>
+        <div class="d">All of them are yours \u2014 rename, recolour, reorder, put away or throw
+          out any of the ${timeAllCategories().length}, and add your own.</div></div>
+        <a class="btn sm" href="#/time/categories">Open them</a></div>
     </div>
     <div class="card rv"><h3>Day &amp; sleep</h3>
       <div class="opt"><div><b>The day turns over at</b>
@@ -72,6 +72,7 @@ routes.settings = function(root){
       <div class="opt"><div><b>Photo size on upload</b><div class="d">Long edge in pixels. Larger keeps more detail and uses more space.</div></div><select class="sel" style="width:auto" id="sPhotoMax">${[1200,1600,2400,4000].map(n=>`<option value="${n}" ${(S.settings.photoMax||1600)===n?'selected':''}>${n}px${n===1600?' (default)':''}</option>`).join('')}</select></div>
       <div class="opt"><div><b>Clear all data</b><div class="d">Erases everything in this browser and restores the placeholder content. Export first.</div></div><button class="btn danger" id="sClear">Clear all data</button></div>
     </div>
+    ${syncSectionHTML()}
     <div class="card rv"><h3>About</h3><div class="prose muted" style="font-size:.9rem">
       <p>Life Instrument is a house you are still building. Each section is a room. Some rooms look backward; some look forward; some hold tools; some hold artifacts. The hallway connecting them is a single data model that lets one entry live in many rooms at once.</p>
       <p>It is not a productivity app. Its job is to make the motifs of a life visible — recurring patterns, drifting values, dreams gaining or losing specificity — so you can interpret the past honestly and pull the future closer deliberately.</p>
@@ -134,9 +135,6 @@ routes.settings = function(root){
   $('#sTimeInts') && ($('#sTimeInts').onclick = function(){
     timeSettings().autoInteractions = !timeSettings().autoInteractions; saveNow();
     this.classList.toggle('on', timeSettings().autoInteractions); });
-  $('#sTimeCatNew') && ($('#sTimeCatNew').onclick = () => openTimeCategoryModal());
-  $$('[data-tmcatdel]').forEach(b => b.onclick = () => {
-    spliceOut(S.time.custom, c => c.id === b.dataset.tmcatdel); saveNow(); rerender(); });
   $('#sTheme').onclick = function(){ S.settings.theme = S.settings.theme==='dark'?'light':'dark'; saveNow(); applyTheme(); this.classList.toggle('on', S.settings.theme==='light'); };
   $('#sSound').onclick = function(){ SoundManager.toggleSound(); this.classList.toggle('on', SoundManager.state().soundEnabled); };
   $('#sAmbient').onclick = function(){ SoundManager.toggleAmbient(); this.classList.toggle('on', SoundManager.state().ambientEnabled); };
@@ -144,6 +142,7 @@ routes.settings = function(root){
   $('#sFelt').onclick = function(){ S.settings.feltTime = !S.settings.feltTime; saveNow(); this.classList.toggle('on', S.settings.feltTime); };
   $('#sHome').onchange = e => { S.settings.home = e.target.value; saveNow(); };
   bindZoneEditor($('#zoneEditor').parentElement);
+  bindSyncSection(document);
   const lb = daysSinceBackup(); $('#lastBackupLine').textContent = lb === null ? 'No backup exported yet from this browser.' : `Last backup: ${lb === 0 ? 'today' : lb + ' days ago'}.`;
   $('#sExport').onclick = () => exportToJSON().then(() => { toast('Backup exported.'); rerender(); });
   $('#sRestoreInfo').onclick = showRecoveryInfo;

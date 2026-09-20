@@ -71,10 +71,60 @@ function scoreState(){
   S.scores.forEach(scoreDefaults);
   return S.scores;
 }
+/* ---------- what a piece IS, as against how it is going ----------
+   The shelf and the standing answer "how far have I got". These answer "what
+   is it" — the question you ask when you are choosing what to pick up, and
+   the one the file cannot answer, because MusicXML carries a title and a
+   composer and nothing else. A period is not decoration: practising four
+   Romantic pieces and no counterpoint for three months is a thing you cannot
+   see until the shelf can be asked. */
+const SCORE_PERIODS = [
+  ['medieval',     'Medieval'],
+  ['renaissance',  'Renaissance'],
+  ['baroque',      'Baroque'],
+  ['classical',    'Classical'],
+  ['romantic',     'Romantic'],
+  ['impressionist','Impressionist'],
+  ['modern',       'Modern'],
+  ['contemporary', 'Contemporary'],
+  ['jazz',         'Jazz'],
+  ['traditional',  'Folk and traditional'],
+  ['screen',       'Film and game'],
+  ['other',        'Something else']];
+const scorePeriodName = k => (SCORE_PERIODS.find(v => v[0] === k) || [,''])[1];
+/* A first guess from the composer's name, for the hundred or so names that
+   account for most of what anybody imports. It is a guess and says so: the
+   period is stored only once you have looked at it, so a wrong guess is never
+   silently written down as a fact. */
+const SCORE_PERIOD_BY_NAME = [
+  [/machaut|hildegard|perotin|landini/i, 'medieval'],
+  [/palestrina|byrd|tallis|josquin|dowland|gesualdo|victoria|monteverdi/i, 'renaissance'],
+  [/bach|handel|h(ä|ae)ndel|vivaldi|scarlatti|telemann|purcell|rameau|couperin|corelli|albinoni|pachelbel|buxtehude/i, 'baroque'],
+  [/mozart|haydn|clementi|salieri|boccherini|czerny|kuhlau|diabelli|burgm(ü|ue)ller/i, 'classical'],
+  [/beethoven|schubert|chopin|schumann|brahms|liszt|mendelssohn|tchaikovsky|grieg|dvo(ř|r)(á|a)k|rachmanin|wagner|verdi|paganini|rossini|bruckner|mahler|franck|faur(é|e)|saint-sa(ë|e)ns|bizet|borodin|mussorgsky|rimsky|sibelius|elgar|albéniz|albeniz|granados|smetana|field|alkan|moszkowski|scriabin/i, 'romantic'],
+  [/debussy|ravel|satie|delius|respighi|griffes/i, 'impressionist'],
+  [/bart(ó|o)k|stravinsky|prokofiev|shostakovich|hindemith|schoenberg|sch(ö|oe)nberg|berg|webern|poulenc|milhaud|gershwin|copland|villa-lobos|janáček|janacek|kod(á|a)ly|ives|britten|barber|messiaen|piazzolla/i, 'modern'],
+  [/glass|reich|p(ä|ae)rt|adams|ligeti|takemitsu|gubaidulina|kapustin|einaudi|yiruma|sakamoto|richter|(ó|o)lafur|arnalds/i, 'contemporary'],
+  [/ellington|monk|parker|coltrane|evans|peterson|brubeck|jobim|hancock|corea|tatum|powell|garner|silver|mingus|shorter|joplin/i, 'jazz'],
+  [/williams|zimmer|shore|elfman|morricone|hisaishi|uematsu|shimomura|kondo|desplat|g(ó|o)ransson/i, 'screen']];
+function scorePeriodGuess(composer){
+  const n = String(composer || '').trim();
+  if(!n) return null;
+  const hit = SCORE_PERIOD_BY_NAME.find(([re]) => re.test(n));
+  return hit ? hit[1] : null;
+}
+/* What the room will show for a piece: what you said, or failing that what it
+   guessed. The two are kept apart so the inventory can say which it is. */
+const scorePeriodOf = x => x && x.period ? x.period : scorePeriodGuess(x && x.composer);
+
 function scoreDefaults(x){
   x.id = x.id || uid();
   x.title = x.title || 'Untitled';
   x.composer = x.composer || '';
+  /* Null until you say so, which is different from 'other': null means nobody
+     has decided and the guess stands, 'other' means you looked and none of
+     them fitted. */
+  x.period = SCORE_PERIODS.some(v => v[0] === x.period) ? x.period : null;
   x.musicXml = typeof x.musicXml === 'string' ? x.musicXml : '';
   x.instruments = Array.isArray(x.instruments) ? x.instruments : [];
   x.hidden = Array.isArray(x.hidden) ? x.hidden : [];      // part indices switched off

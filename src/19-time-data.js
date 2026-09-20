@@ -57,6 +57,16 @@ const TIME_CATEGORIES = [
    so a day can be drawn without going and looking up five other stores — and
    so a deleted project leaves a readable entry behind rather than a blank. */
 const TIME_LINKS = ['score','vision','project','person','skill','task','deck','journal'];
+/* The five categories a room starts a clock on by itself. Renaming or
+   recolouring one is nobody's business but yours; taking one away means those
+   sittings arrive untagged, so the editor says which these are rather than
+   refusing. */
+const TIME_FED_BY_ROOM = {
+  piano:      'the score room, when you practise a section',
+  japanese:   'the Japanese studio, during a 4/3/2 sitting',
+  meditation: 'the stillness timer',
+  study:      'the study deck, during a review',
+  tasks:      'the focus clock on a task'};
 const TIME_ROUNDING = [1, 5, 15];
 /* A timer left running overnight is not fourteen hours of piano. Past this,
    the entry is closed where it stopped being believable and says so. */
@@ -66,9 +76,34 @@ function timeState(){
   if(!Array.isArray(S.timeEntries)) S.timeEntries = [];
   S.timeEntries.forEach(timeEntryDefaults);
   const t = S.time = S.time || {};
-  t.custom = Array.isArray(t.custom) ? t.custom : [];
-  t.custom.forEach(c => { c.id = c.id || uid(); c.name = c.name || 'Something';
-    c.emoji = c.emoji || '⚙️'; c.color = c.color || '#8a8d8f'; });
+  /* ---------- the list is yours, not the app's ----------
+     It used to be a fixed list with a place to append your own underneath,
+     which meant the sixteen names the app happened to ship with were
+     permanent and the ones you added were second-class. They are one list
+     now, seeded from the shipped one the first time and afterwards entirely
+     yours: rename, recolour, reorder, put away, throw out, start again.
+
+     Putting one away is not the same as throwing it out. Months of entries
+     point at these ids, and an id nothing can name any more turns a year of
+     Tuesdays into "Untagged" — so a category that is off keeps naming its own
+     past and only stops being offered for anything new. */
+  if(!Array.isArray(t.cats)){
+    t.cats = TIME_CATEGORIES.map(c => Object.assign({}, c));
+    (Array.isArray(t.custom) ? t.custom : []).forEach(c => t.cats.push(Object.assign({}, c)));
+  }
+  t.custom = [];
+  /* Pruned in place, and only when there is something to prune. Rebuilding
+     the list with `filter` on every call looked harmless and was not: this
+     runs on every read, so anything holding the list from one call was
+     holding an array the next call had already replaced — and a splice into
+     it vanished the moment anything else asked for the categories. */
+  if(t.cats.some(c => !c || typeof c !== 'object'))
+    t.cats = t.cats.filter(c => c && typeof c === 'object');
+  t.cats.forEach(c => { c.id = c.id || uid();
+    c.name = String(c.name || 'Something').trim().slice(0, 40) || 'Something';
+    c.emoji = String(c.emoji || '\u25cb').trim().slice(0, 8) || '\u25cb';
+    c.color = /^#[0-9a-fA-F]{3,8}$/.test(c.color || '') ? c.color : '#8a8d8f';
+    c.off = !!c.off; });
   t.settings = Object.assign({
     defaultCategory: null,
     widget: true,               /* the pill, on every page */
@@ -80,9 +115,52 @@ function timeState(){
   return S.timeEntries;
 }
 const timeEntries = () => timeState();
-const timeCategories = () => timeState() && TIME_CATEGORIES.concat(S.time.custom);
-const timeCategory = id => timeCategories().find(c => c.id === id)
-  || {id:null, name:'Untagged', emoji:'○', color:'#8a8d8f'};
+/* what to offer for something new */
+const timeCategories = () => timeState() && S.time.cats.filter(c => !c.off);
+/* and what exists at all, which is what naming an old entry needs */
+const timeAllCategories = () => timeState() && S.time.cats;
+const timeCategory = id => timeAllCategories().find(c => c.id === id)
+  || {id:null, name:'Untagged', emoji:'\u25cb', color:'#8a8d8f'};
+/* how many entries would be left unnamed by throwing this one out */
+const timeCategoryUsed = id => timeEntries().filter(e => e.categoryId === id).length;
+function timeAddCategory(at){
+  const c = {id: uid(), name:'Something', emoji:'\u25cb', color:'#8a8d8f', off:false};
+  const list = timeAllCategories();
+  if(at == null || at < 0 || at > list.length) list.push(c); else list.splice(at, 0, c);
+  return c;
+}
+/* Moving one. The order is the order everything is drawn in — the picker, the
+   day's bars, the week's report — so it is worth being able to put the four
+   you actually use at the top. */
+function timeMoveCategory(id, by){
+  const list = timeAllCategories();
+  const i = list.findIndex(c => c.id === id);
+  const to = i + by;
+  if(i < 0 || to < 0 || to >= list.length) return false;
+  list.splice(to, 0, list.splice(i, 1)[0]);
+  return true;
+}
+/* Throwing one out, and saying where its past goes. Entries are re-pointed
+   rather than orphaned: null is untagged, an id moves them. */
+function timeRemoveCategory(id, moveTo){
+  const list = timeAllCategories();
+  const i = list.findIndex(c => c.id === id);
+  if(i < 0) return 0;
+  const moved = timeEntries().filter(e => e.categoryId === id);
+  moved.forEach(e => { e.categoryId = moveTo || null; });
+  list.splice(i, 1);
+  const st = timeSettings();
+  if(st.defaultCategory === id) st.defaultCategory = moveTo || null;
+  return moved.length;
+}
+/* Back to the list the app ships with, keeping anything of yours that is not
+   one of them, and keeping every entry pointed where it was. */
+function timeResetCategories(){
+  const list = timeAllCategories();
+  const mine = list.filter(c => !TIME_CATEGORIES.some(v => v.id === c.id));
+  S.time.cats = TIME_CATEGORIES.map(c => Object.assign({}, c)).concat(mine);
+  return S.time.cats.length;
+}
 const timeSettings = () => timeState() && S.time.settings;
 
 function timeEntryDefaults(e){
@@ -229,3 +307,42 @@ function closeRunawayTimer(){
   saveNow();
   return e;
 }
+
+/* ---------- the hours you were asleep ----------
+   Sleep is not timed with a stopwatch; it is the wake and bed times you
+   already write on Today. They were only ever drawn there, which left the
+   Time page claiming a day was sixteen hours untracked when eight of them
+   were accounted for perfectly well one page over.
+
+   So they are read, not copied. A derived block cannot drift out of step with
+   the record it comes from, and there is exactly one place to correct a wrong
+   bedtime — the place you typed it. Nothing here writes a time entry. */
+const TIME_SLEEP_CAT = {id:'__sleep', name:'Sleep', emoji:'☾', color:'#5a6a7a', derived:true};
+/* Minutes past midnight for the parts of this calendar day you were asleep,
+   from that day's own wake and bed times. Going to bed after midnight is the
+   case worth getting right: it means the asleep stretch runs from the bedtime
+   to the waking, not from midnight, and not to the end of the day as well. */
+function timeSleepBlocks(day){
+  const r = (S.dailyRhythm || {})[day];
+  if(!r) return [];
+  const wake = hm2min(r.wakeTime), bed = hm2min(r.sleepTime);
+  const out = [];
+  const small = bed != null && wake != null && bed < wake;   /* went to bed after midnight */
+  if(wake != null){
+    const from = small ? bed : 0;
+    if(wake > from) out.push({from, to: wake, waking: true});
+  }
+  if(bed != null && !small) out.push({from: bed, to: 1440, waking: false});
+  return out;
+}
+const timeSleepMinutes = day => sum(timeSleepBlocks(day).map(b => b.to - b.from));
+/* whether there is anything to read at all, which decides whether the page
+   says "you have not written a wake time down" or says nothing */
+const timeSleepKnown = day => { const r = (S.dailyRhythm || {})[day];
+  return !!(r && (hm2min(r.wakeTime) != null || hm2min(r.sleepTime) != null)); };
+const timeSleepSaidOn = day => { const r = (S.dailyRhythm || {})[day] || {};
+  const bits = [];
+  if(r.wakeTime) bits.push(`up at ${r.wakeTime}`);
+  if(r.sleepTime) bits.push(`to bed at ${r.sleepTime}`);
+  return bits.join(' · ');
+};

@@ -192,32 +192,3 @@ function openTimeEntryModal(id, day){
   return m;
 }
 
-/* A category of your own. The fifteen shipped ones are a guess at a life and
-   they will be wrong about somebody's — the point of the list is that a week
-   can be read at a glance, and a week with a quarter of it under "Custom"
-   cannot be. */
-function openTimeCategoryModal(){
-  timeState();
-  const m = openModal(`<h2>A category of your own</h2>
-    <div class="row" style="gap:10px">
-      <label class="pd-q" style="flex:0 0 5rem"><span class="k">emoji</span>
-        <input class="inp" id="tcEmoji" maxlength="4" value="⚙️"></label>
-      <label class="pd-q" style="flex:1"><span class="k">what it is</span>
-        <input class="inp" id="tcName" autofocus placeholder="Volunteering"></label>
-    </div>
-    <div class="pd-q" style="margin-top:10px"><span class="k">colour</span>
-      <div class="sc-swatches">${SCORE_COLORS.map(([c, name]) =>
-        `<button class="sc-swatch" data-tccol="${c}" style="--c:${c}" title="${esc(name)}" aria-label="${esc(name)}"></button>`).join('')}</div></div>
-    <div class="row" style="justify-content:flex-end;margin-top:14px">
-      <button class="btn primary" id="tcSave">Add it</button></div>`, 'narrow');
-  let color = SCORE_COLORS[0][0];
-  $$('[data-tccol]', m).forEach(b => b.onclick = () => { color = b.dataset.tccol;
-    $$('[data-tccol]', m).forEach(y => y.classList.toggle('on', y === b)); });
-  m.querySelector('#tcSave').onclick = () => {
-    const name = m.querySelector('#tcName').value.trim();
-    if(!name){ m.querySelector('#tcName').focus(); return; }
-    S.time.custom.push({id:'c' + uid(), name, emoji: m.querySelector('#tcEmoji').value.trim() || '⚙️', color});
-    saveNow(); m.remove(); sound('success'); rerender();
-  };
-  return m;
-}

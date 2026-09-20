@@ -124,7 +124,14 @@ function bindTimeLinkPick(m){
 function timeAutoStart(fields){
   timeState();
   if(timeRunning()) return null;
-  const e = startTimer(Object.assign({source:'auto'}, fields || {}));
+  const f = Object.assign({source:'auto'}, fields || {});
+  /* The category a room asks for is one you can rename, put away or throw
+     out, and the room does not know that. If the one it named is gone, the
+     sitting still gets counted — under whatever you chose as the default, or
+     untagged — rather than being filed under an id nothing can name. */
+  if(f.categoryId && !timeAllCategories().some(c => c.id === f.categoryId))
+    f.categoryId = timeSettings().defaultCategory || null;
+  const e = startTimer(f);
   paintTimeDock();
   return e;
 }

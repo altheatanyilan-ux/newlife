@@ -390,7 +390,11 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   await p.evaluate(() => { location.hash = '#/japanese/errors'; }); await p.waitForTimeout(800);
   const book = await p.evaluate(async () => {
     const j = jaState2();
-    ['conditional confusion','conditional confusion','conditional confusion','hearsay'].forEach((tag, i) =>
+    /* three of one, two of another and one on its own: the counts have to
+       differ or an ordering claim proves nothing, and the one that happened
+       once is not a pattern yet */
+    ['conditional confusion','conditional confusion','conditional confusion',
+     'hearsay','hearsay','particle drift'].forEach((tag, i) =>
       j.errors.push(jaErrorDefaults({tried:`x${i}`, corrected:`y${i}`, errorType:'grammar',
         patternTag:tag, source:'manual'})));
     saveNow(); rerender();
@@ -401,8 +405,13 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     return {rows, open, openSaid: openSaid && openSaid.textContent.trim(),
       sources: [...new Set(j.errors.map(e => e.source))].sort()};
   });
-  yes('what keeps happening is counted', /conditional confusion/.test(book.rows[0] || ''),
-    JSON.stringify(book.rows));
+  const at = t => book.rows.findIndex(r => r.includes(t));
+  yes('what keeps happening is counted, commonest first',
+    at('conditional confusion') === 0 && at('hearsay') > 0, JSON.stringify(book.rows));
+  yes('  with how often, so the two are told apart',
+    /conditional confusion\D*3\b/.test(book.rows[0] || ''), JSON.stringify(book.rows));
+  /* once is not a pattern; it is a thing that happened */
+  is('  and something that happened once is not called one', at('particle drift'), -1);
   is('  and it is fed by every room', book.sources, ['432','manual','translation']);
   yes('  with the ones you have not answered yet called out',
     /no correction written in yet/.test(book.openSaid || ''), book.openSaid);

@@ -7590,7 +7590,9 @@ html[data-theme="light"] .wk-sleep.is-guess{background-image:repeating-linear-gr
 
 /* the open score */
 .sc-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:10px}
-.sc-title{font-size:1.5rem}
+.sc-title{font-size:1.5rem;background:none;border:0;padding:0;color:inherit;font-family:var(--serif);
+  cursor:pointer;text-align:left}
+.sc-title:hover{text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px}
 .sc-comp{opacity:.7}
 .sc-focusbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;
   padding:8px 13px;border-radius:var(--radius);border:1px solid var(--c);
@@ -7637,11 +7639,16 @@ html[data-theme="light"] .wk-sleep.is-guess{background-image:repeating-linear-gr
 .sc-lab-chord:hover{background:rgba(176,112,94,.14)}
 .sc-lab-chord.unsure{opacity:.5;font-style:italic}
 .sc-lab-chord.mine{border-bottom:1.5px solid rgba(176,112,94,.55)}
-/* a fingering is a circled number, which is how a century of engraving writes
-   one, and it sits above the note for the right hand and below for the left */
-.sc-fing{color:#a0727e;background:rgba(253,250,243,.92);border:1px solid rgba(160,114,126,.6);
-  border-radius:50%;width:1.5em;height:1.5em;display:flex;align-items:center;justify-content:center;
-  transform:translate(-50%,-50%);font-weight:600;pointer-events:auto;cursor:pointer}
+/* A fingering is a bare number above the note for the right hand and below it
+   for the left, which is what an edition prints. It used to be circled; the
+   circle is an editor's mark for a fingering that is being argued with, and on
+   a page where every fingering is yours it is thirty rings of nothing. The
+   number still needs a ground under it, or it disappears into a beam — but a
+   patch of paper the size of the digit, not a ring around it. */
+.sc-fing{color:#a0727e;background:rgba(253,250,243,.92);border:0;
+  min-width:.9em;height:1.1em;padding:0 .1em;display:flex;align-items:center;justify-content:center;
+  transform:translate(-50%,-50%);font-weight:600;pointer-events:auto;cursor:pointer;
+  border-radius:2px;line-height:1}
 .sc-fing:hover{background:rgba(160,114,126,.2)}
 .sc-fingpick{position:absolute;z-index:6;transform:translate(-50%,0);display:flex;flex-direction:column;
   gap:3px;padding:6px;border-radius:8px;background:var(--surface,#fdfaf3);border:1px solid var(--line);
@@ -7698,9 +7705,6 @@ html[data-theme="light"] .wk-sleep.is-guess{background-image:repeating-linear-gr
   html[data-scprint] .sc-band{opacity:.1 !important}
   @page{margin:12mm}
 }
-.sc-toomany{position:absolute;top:4px;left:50%;transform:translateX(-50%);
-  font-size:.66rem;opacity:.6;font-style:normal;background:var(--surface);
-  padding:2px 9px;border-radius:999px;border:1px solid var(--line)}
 html[data-theme="dark"] .sc-lab-name{color:#6d7d5c}
 html[data-theme="dark"] .sc-lab-deg{color:#4c6874}
 .sc-layers{display:flex;gap:4px;flex-wrap:wrap}
@@ -7837,7 +7841,7 @@ html.sc-reading .sc-strip .tbtn,html.sc-reading .sc-strip .sel{min-height:34px;p
 /* the inventory: one row a score, the same shape as the one on Projects */
 .sc-inv{margin-top:26px}
 .sc-invrows{display:flex;flex-direction:column;gap:2px;margin-top:10px}
-.sc-invrow{display:grid;grid-template-columns:minmax(0,2.2fr) 7.5rem minmax(0,1.3fr) minmax(0,1fr) 4.2rem 7rem 1.6rem;
+.sc-invrow{display:grid;grid-template-columns:minmax(0,2.2fr) 6.5rem 7rem minmax(0,1.2fr) minmax(0,1fr) 4.2rem 6.5rem 1.6rem;
   gap:10px;align-items:center;padding:6px 8px;border-radius:var(--radius);
   border-left:3px solid var(--c);font-size:.78rem}
 .sc-invrow:nth-child(odd){background:color-mix(in srgb,var(--surface) 60%,transparent)}
@@ -7848,9 +7852,17 @@ html.sc-reading .sc-strip .tbtn,html.sc-reading .sc-strip .sel{min-height:34px;p
 .sc-invname span{font-size:.7rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sc-invname:hover b{text-decoration:underline;text-underline-offset:2px}
 .sc-invstate{color:var(--c);font-size:.7rem}
+/* the period, which is also the way to set it. A guess is in lighter type
+   with a dotted rule under it, which is the same thing a dictionary does for
+   a word it is not sure of, and means the row never claims to know more than
+   it does. */
+.sc-invper{background:none;border:0;padding:0;font:inherit;font-size:.68rem;cursor:pointer;
+  color:inherit;text-align:left;opacity:.78;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sc-invper.guess{opacity:.5;border-bottom:1px dotted currentColor;align-self:center;justify-self:start}
+.sc-invper:hover{opacity:1;text-decoration:underline;text-underline-offset:2px}
 @media (max-width:900px){
   .sc-invrow{grid-template-columns:minmax(0,1fr) auto 1.6rem;row-gap:2px}
-  .sc-invrow > :nth-child(3),.sc-invrow > :nth-child(4),.sc-invrow > :nth-child(6){grid-column:1 / -1}
+  .sc-invrow > :nth-child(4),.sc-invrow > :nth-child(5),.sc-invrow > :nth-child(7){grid-column:1 / -1}
 }
 .sc-xpose{display:flex;align-items:center;gap:5px}
 .sc-xpose .mono{min-width:6.5em;text-align:center;font-size:.72rem}
@@ -8258,13 +8270,53 @@ html.sc-reading .tdock{display:none}
 .td-what{font-size:.78rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
 .td-sub{font-size:.66rem;opacity:.65;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
+/* the exchange, and what to do when both sides moved */
+.sy-sec{margin-top:18px}
+.sy-clash{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.sy-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:12px;align-items:center;
+  padding:7px 10px;border-radius:var(--radius);border:1px solid var(--line);background:var(--surface)}
+.sy-name{font-family:var(--serif);font-size:.95rem}
+.sy-opt{display:flex;align-items:center;gap:5px;font-size:.78rem;cursor:pointer;white-space:nowrap}
+.sy-opt b{font-size:.82rem}
+@media (max-width:700px){.sy-row{grid-template-columns:1fr;gap:4px}}
 .tm-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+/* the categories, edited in place */
+.tm-catrows{display:flex;flex-direction:column;gap:2px;margin-top:10px}
+.tm-cathead,.tm-catrow{display:grid;
+  grid-template-columns:3.4rem minmax(0,1fr) 2.6rem 6.5rem 3.6rem 5.4rem 1.6rem;
+  gap:9px;align-items:center}
+.tm-cathead{font-size:.64rem;text-transform:uppercase;letter-spacing:.07em;opacity:.5;padding:0 8px 2px}
+.tm-catrow{padding:5px 8px;border-radius:var(--radius);border-left:3px solid var(--c)}
+.tm-catrow:nth-child(odd){background:color-mix(in srgb,var(--surface) 55%,transparent)}
+.tm-catrow:hover{background:var(--surface)}
+.tm-catrow.off{opacity:.5}
+.tm-catrow.off .tm-catname input{text-decoration:line-through}
+.tm-catrow .inp{padding:3px 7px;font-size:.82rem}
+.tm-catemoji{text-align:center;font-size:.95rem!important;padding:3px 2px!important}
+.tm-catname{display:flex;flex-direction:column;gap:1px;min-width:0}
+.tm-catname em{font-size:.62rem;font-style:normal}
+.tm-catcolor{width:2.4rem;height:1.7rem;padding:0;border:1px solid var(--line);
+  border-radius:5px;background:none;cursor:pointer}
+.tm-catmove{display:flex;gap:2px}
+.tm-catmove .tbtn{min-width:1.6em;padding:1px 3px;line-height:1.1}
+@media (max-width:820px){
+  .tm-cathead{display:none}
+  .tm-catrow{grid-template-columns:3rem minmax(0,1fr) 2.4rem 1.6rem;row-gap:4px}
+  .tm-catrow > :nth-child(4),.tm-catrow > :nth-child(5),.tm-catrow > :nth-child(6){grid-column:2 / -1}
+}
 .tm-bar-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
 .tm-bar-h .pd-q{margin:0}
 .tm-strip{position:relative;height:30px;border-radius:7px;background:var(--line);overflow:hidden}
 .tm-seg{position:absolute;top:0;bottom:0;display:block;background:var(--c);opacity:.82;
   border-radius:2px;cursor:pointer;min-width:2px}
 .tm-seg:hover{opacity:1;outline:1px solid var(--ink)}
+/* the asleep hours, drawn under everything: a ground rather than a bar, in
+   a stripe so it never reads as a sitting you can press */
+.tm-sleepseg{background:repeating-linear-gradient(135deg,#5a6a7a 0 4px,transparent 4px 8px);
+  opacity:.26;pointer-events:none;border-radius:0}
+.tm-sleepseg:hover{opacity:.26;outline:0}
+.tm-sleeprow .tm-sumn a{text-decoration:none;display:block;font-size:.62rem;opacity:.8}
+.tm-sleeprow .tm-sumn a:hover{text-decoration:underline}
 .tm-ticks{position:relative;height:14px;margin-bottom:14px;font-size:.62rem;opacity:.5}
 .tm-ticks span{position:absolute;transform:translateX(-50%)}
 .tm-list{display:flex;flex-direction:column;gap:7px;margin-bottom:16px}

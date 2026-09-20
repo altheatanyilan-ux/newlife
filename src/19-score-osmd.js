@@ -188,11 +188,23 @@ function scoreNotes(){
       const pg = sys && sys.Parent ? Math.max(0, pages.indexOf(sys.Parent)) : 0;
       const staff = (m.ParentStaffLine && m.ParentStaffLine.ParentStaff)
         ? (m.ParentStaffLine.ParentStaff.idInMusicSheet ?? 0) : 0;
+      /* where this bar starts, counted from the top of the piece. It is
+         needed because of the fallback below. */
+      const src = m.parentSourceMeasure;
+      const barAt = (src && src.AbsoluteTimestamp && src.AbsoluteTimestamp.RealValue) || 0;
       (m.staffEntries || []).forEach(se => {
         const ts = se.relInMeasureTimestamp || (se.sourceStaffEntry && se.sourceStaffEntry.Timestamp);
         /* the timestamp is a fraction of a whole note; times four is quarters,
            which is what anybody counting a bar of four-four is counting in */
-        const where = ts && ts.RealValue != null ? ts.RealValue : 0;
+        let where = ts && ts.RealValue != null ? ts.RealValue : 0;
+        /* and it is counted from the bar line — except in the fallback, which
+           some files take and which counts from the top of the piece instead.
+           Left alone, that put every note after bar one at a beat the bar does
+           not have, so everything that walks the beats of a bar — the chord
+           symbols above all — found notes in bar one and nothing anywhere
+           else. A relative stamp is always inside its own bar and so is always
+           smaller than the bar's own start; an absolute one never is. */
+        if(barAt > 0 && where >= barAt) where -= barAt;
         (se.graphicalVoiceEntries || []).forEach((ve, vi) => {
           (ve.notes || []).forEach((gn, ni) => {
             const sn = gn.sourceNote;
