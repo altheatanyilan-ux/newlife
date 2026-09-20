@@ -31,11 +31,18 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   await p.evaluate(() => setFocusDockShut(false)); await p.clock.runFor(500);
 
   console.log('\n1. crossing the work off is the end of the sitting');
+  /* The work is made here rather than fished out of whatever happened to be
+     on the page. A fresh instrument starts with nothing written down — it
+     is somebody's life, not a demo — so a test that picked the first row it
+     found was standing on a seed that no longer exists. */
   const id = await p.evaluate(() => {
-    const r = document.querySelector('.task-row'); const i = r.dataset.taskrow;
-    const t = findTaskRef(i); t.task.done = false; t.task.duration = 15;
-    t.task.subtasks = [{id:'s-one', title:'the tricky bit', isCompleted:false, minutes:10}];
-    planState().focusSessions = []; saveNow(); rerender(); return i; });
+    planState();
+    const t = planTaskDefaults({id:'t-145', text:'the second movement',
+      listId: planLists()[0].id, day: today(), duration: 15,
+      subtasks: [{id:'s-one', title:'the tricky bit', isCompleted:false, minutes:10}]});
+    t.done = false;
+    S.tasks.push(t);
+    planState().focusSessions = []; saveNow(); rerender(); return t.id; });
   await p.clock.runFor(400);
   await p.evaluate(i => focusOnTask(i, 0, ''), id); await p.clock.runFor(1400);
   yes('the sitting names the task it is timing',

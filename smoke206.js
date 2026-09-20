@@ -26,6 +26,16 @@
 
    What is being tested is the second one hardest, because it is the one that
    decides whether a file nobody has seen yet opens or does not.
+
+   TWO DEFENCES HERE ARE NOT COVERED, and saying so is better than leaving
+   them looking tested. The net under the octave-shift pass, and the quiet
+   guard around the spacing calculations, both sit beneath a cause that has
+   since been fixed properly — empty bars are filled with a rest nobody
+   prints, so the brackets always have something to hang on. Nothing that can
+   be written as MusicXML trips either of them any more. They stay, because
+   the fix is a setting on somebody else's library and the next version of it
+   could move; but no sabotage of them makes a claim below fail, and they
+   should be read as unproven.
  */
 const {chromium} = require('playwright');
 const path = require('path');
@@ -60,6 +70,35 @@ const SLURRED = piece('The Long Phrase', [
   bar(1, HEAD + `<note><pitch><step>C</step><octave>5</octave></pitch><duration>4</duration><voice>1</voice><type>quarter</type><notations><slur type="start" number="1"/></notations></note>${N('D',5)}${N('E',5)}${N('F',5)}`),
   bar(2, run(5)), bar(3, run(5)), bar(4, run(5)), bar(5, ''),
   bar(6, `${N('C',5)}${N('D',5)}${N('E',5)}<note><pitch><step>F</step><octave>5</octave></pitch><duration>4</duration><voice>1</voice><type>quarter</type><notations><slur type="stop" number="1"/></notations></note>`)].join(''));
+/* An 8va that runs past the end of a line, with the bracket left to be
+   picked up on the next one. This is the shape that used to take the whole
+   score down and then, once it could not, used to have its bracket quietly
+   dropped instead. */
+const OTTAVA = piece('The Eight Held', [
+  bar(1, HEAD + UP + run(6)), bar(2, run(6)), bar(3, run(6)), bar(4, run(6)),
+  bar(5, run(6)), bar(6, run(6) + STOP), bar(7, run(5)), bar(8, run(5))].join(''));
+/* a trill held across bars where the hand it belongs to has nothing written
+   for it at all \u2014 not even a rest, which is how engravers write it */
+const TRILL = `<?xml version="1.0" encoding="UTF-8"?><score-partwise version="3.1">
+  <work><work-title>The Long Trill</work-title></work>
+  <part-list><score-part id="P1"><part-name>Piano</part-name></score-part></part-list>
+  <part id="P1">
+  <measure number="1"><attributes><divisions>4</divisions><key><fifths>0</fifths></key>
+    <time><beats>4</beats><beat-type>4</beat-type></time><staves>2</staves>
+    <clef number="1"><sign>G</sign><line>2</line></clef>
+    <clef number="2"><sign>F</sign><line>4</line></clef></attributes>
+    <note><pitch><step>C</step><octave>5</octave></pitch><duration>16</duration><voice>1</voice><type>whole</type><staff>1</staff></note>
+    <backup><duration>16</duration></backup>
+    <note><pitch><step>C</step><octave>3</octave></pitch><duration>16</duration><voice>2</voice><type>whole</type><staff>2</staff><notations><ornaments><trill-mark/><wavy-line type="start" number="1"/></ornaments></notations></note>
+  </measure>
+  <measure number="2"><note><pitch><step>D</step><octave>5</octave></pitch><duration>16</duration><voice>1</voice><type>whole</type><staff>1</staff></note></measure>
+  <measure number="3"><note><pitch><step>E</step><octave>5</octave></pitch><duration>16</duration><voice>1</voice><type>whole</type><staff>1</staff></note></measure>
+  <measure number="4"><note><pitch><step>F</step><octave>5</octave></pitch><duration>16</duration><voice>1</voice><type>whole</type><staff>1</staff></note>
+    <backup><duration>16</duration></backup>
+    <note><pitch><step>C</step><octave>3</octave></pitch><duration>16</duration><voice>2</voice><type>whole</type><staff>2</staff><notations><ornaments><wavy-line type="stop" number="1"/></ornaments></notations></note>
+  </measure>
+  </part></score-partwise>`;
+
 /* and a piece with nothing clever in it at all */
 const PLAIN = piece('Four Plain Bars',
   [bar(1, HEAD + run(5)), bar(2, run(5)), bar(3, run(5)), bar(4, run(5))].join(''));
@@ -101,9 +140,28 @@ const open = async (p, xml, name, perLine) => {
     eight.refused === '', eight.refused);
   yes('  with its notes on the page, not an apology',
     eight.heads >= 24, String(eight.heads));
-  is('  and the bracket is what was given up', eight.dropped, ['octave brackets']);
-  yes('  said once, quietly, under the score',
-    /octave brackets/.test(eight.line), eight.line);
+  /* It used to lose the bracket to save the score. It does not any more —
+     see section 5 — so there is nothing to report here. */
+  is('  and nothing is given up to do it', eight.dropped, []);
+  is('  so the room says nothing', eight.line, '');
+  /* The net is still under everything, and there is no longer a file in hand
+     that trips it. What can be tested is what it would say if it ever did,
+     which is the part somebody would have to read. */
+  const wouldSay = await p.evaluate(() => {
+    const was = scoreView().dropped;
+    const one = (() => { scoreView().dropped = ['octave brackets'];
+      scoreDroppedPaint();
+      const n = document.querySelector('.sc-dropped');
+      return n ? n.textContent : ''; })();
+    const two = (() => { scoreView().dropped = ['slurs', 'wavy lines'];
+      return scoreDroppedSay(); })();
+    scoreView().dropped = was; scoreDroppedPaint();
+    return {one, two, gone: !document.querySelector('.sc-dropped')};
+  });
+  yes('  and if a mark ever were lost, it would be said once and quietly',
+    /octave brackets/.test(wouldSay.one), wouldSay.one);
+  yes('    naming each one that went', /slurs and wavy lines/.test(wouldSay.two), wouldSay.two);
+  yes('    and saying nothing when nothing went', wouldSay.gone);
 
   console.log('\n2. the refusal itself');
   const refuses = await p.evaluate(() => {
@@ -139,7 +197,84 @@ const open = async (p, xml, name, perLine) => {
   yes('  and the line from the score before it is gone',
     !(await p.evaluate(() => !!document.querySelector('.sc-dropped'))));
 
-  console.log('\n5. nothing broke on the way');
+  console.log('\n5. the marks are drawn, not given up');
+  /* Catching a failure and losing the mark is better than losing the score
+     and worse than drawing the mark. What made all three of these fall over
+     is one thing: a bar the hand rests through, written in the file as
+     nothing at all. The engraver can fill those with a whole rest it does
+     not print, and then the brackets have something to hang on. */
+  const held = await open(p, OTTAVA, 'The Eight Held', 2);
+  yes('an 8va that runs past the end of a line still draws the score',
+    held.refused === '' && held.heads >= 24, JSON.stringify(held));
+  is('  and gives nothing up to do it', held.dropped, []);
+  const bracket = await p.evaluate(() => {
+    const svg = document.querySelector('#scCanvas');
+    const said = [...svg.querySelectorAll('text')].map(t => t.textContent.trim()).join('');
+    /* what the engraver holds, and what it put on the page */
+    let n = 0;
+    for(const page of scoreView().osmd.GraphicSheet.MusicPages)
+      for(const sys of page.MusicSystems) for(const sl of sys.StaffLines)
+        n += (sl.OctaveShifts || []).length;
+    return {held: n, said: /8v/.test(said.replace(/\s/g, ''))};
+  });
+  yes('  the bracket is worked out', bracket.held > 0, String(bracket.held));
+  yes('  and it is on the page', bracket.said);
+
+  /* two bars to a line, which is the layout that puts the trill's two ends
+     on different lines with nothing written on that staff in between — the
+     shape that used to take every wavy line in the piece with it */
+  const trill = await open(p, TRILL, 'The Long Trill', 2);
+  yes('a trill over bars the hand rests through draws too',
+    trill.refused === '' && trill.heads >= 4, JSON.stringify(trill));
+  is('  with nothing given up', trill.dropped, []);
+  const wavy = await p.evaluate(() => {
+    let n = 0;
+    for(const page of scoreView().osmd.GraphicSheet.MusicPages)
+      for(const sys of page.MusicSystems) for(const sl of sys.StaffLines)
+        n += (sl.WavyLines || []).length;
+    return n;
+  });
+  yes('  and the trill line itself is there', wavy > 0, String(wavy));
+
+  /* The whole rest the engraver fills an empty bar with must not be printed:
+     a bar the file leaves empty is a bar the reader should see as empty. It
+     takes room on the page either way — that is how it gives the brackets
+     somewhere to hang — so the question is only whether any ink lands on
+     it. Drawn twice at the same size, once the room's way and once with the
+     rest made visible: same layout, and the room's way has less on it. */
+  const draw = async fill => {
+    const h = await p.evaluate(async ([fill]) => {
+      document.querySelectorAll('#pixbox').forEach(n => n.remove());
+      const box = document.createElement('div');
+      box.id = 'pixbox';
+      box.style.cssText = 'width:820px;background:#fff;position:fixed;left:0;top:0;z-index:99999';
+      document.body.appendChild(box);
+      const lib = await osmdBoot();
+      const o = new lib.OpenSheetMusicDisplay(box, {autoResize:false, backend:'svg',
+        drawTitle:false, drawComposer:false, drawCredits:false, drawPartNames:false,
+        drawMeasureNumbers:false});
+      const r = o.EngravingRules || o.rules;
+      if(r){ r.FillEmptyMeasuresWithWholeRest = fill;
+        r.RenderXMeasuresPerLineAkaSystem = 2; }
+      await o.load(scores().find(x => x.title === 'The Long Trill').musicXml);
+      o.zoom = 1; o.render();
+      const svg = box.querySelector('svg');
+      return Math.round(svg.getBoundingClientRect().height);
+    }, [fill]);
+    await p.waitForTimeout(400);
+    return {shot: await p.locator('#pixbox').screenshot(), h};
+  };
+  const roomFill = await p.evaluate(() => {
+    const r = scoreView().osmd.EngravingRules || scoreView().osmd.rules;
+    return r ? r.FillEmptyMeasuresWithWholeRest : -1; });
+  const mine = await draw(roomFill), inked = await draw(1);
+  await p.evaluate(() => document.querySelectorAll('#pixbox').forEach(n => n.remove()));
+  is('  the bar it filled in takes the same room either way', mine.h, inked.h);
+  yes('    and the room does not print what it filled it with',
+    Buffer.compare(mine.shot, inked.shot) !== 0,
+    `fill=${roomFill}: ${mine.shot.length} vs ${inked.shot.length} bytes`);
+
+  console.log('\n6. nothing broke on the way');
   is('no errors', errs, []);
   console.log(bad ? `\n${bad} FAILED` : '\nall good');
   await b.close();

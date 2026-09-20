@@ -46,7 +46,10 @@ async function jazzEngrave(box, xml){
       drawTitle:false, drawComposer:false, drawCredits:false, drawPartNames:false,
       drawMeasureNumbers:false, drawingParameters:'compact'});
     const rules = osmd.EngravingRules || osmd.rules;
-    if(rules) rules.RenderChordSymbols = true;
+    if(rules){ rules.RenderChordSymbols = true;
+      /* the same reason as the score room: a bar with nothing in it is what
+         the engraver's span code cannot survive */
+      try { rules.FillEmptyMeasuresWithWholeRest = 2; } catch(e){} }
     await osmd.load(xml);
     osmd.zoom = 1.05;
     osmd.render();

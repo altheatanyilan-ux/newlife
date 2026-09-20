@@ -77,6 +77,8 @@ const osmdBuiltIn = () => { const t = document.getElementById('osmdSrc');
    that has been repaired upstream is simply not touched. */
 let _osmdSteadied = false;
 let _scoreDropped = [];
+/* the first thing that went wrong, kept so the room can be asked why */
+let _scoreWhy = '';
 function osmdSteady(lib){
   if(!lib || _osmdSteadied) return;
   _osmdSteadied = true;
@@ -102,8 +104,31 @@ function osmdSteady(lib){
           try { return was.apply(this, arguments); }
           catch(e){
             if(_scoreDropped.indexOf(said) < 0) _scoreDropped.push(said);
+            if(!_scoreWhy) _scoreWhy = `${name}: ${e && e.message}`;
             console.warn(`the engraver could not finish ${name}`, e);
           }
+        };
+      });
+    };
+    /* Working out where a bracket goes and drawing it are two different
+       things, and the engraver does them in the wrong order: it measures the
+       room a slur or an 8va needs on the staff ABOVE adding the bracket to
+       the line. So a bracket it cannot measure is a bracket that never gets
+       added at all — the mark is lost over a spacing calculation.
+
+       These are wrapped quietly, without counting as a loss, because what
+       they do when they fail is exactly nothing: the bracket is drawn where
+       it would have been, and at worst sits a little close to something.
+       That is a blemish. A missing 8va is a wrong note. */
+    const measured = (proto, names) => {
+      if(!proto) return;
+      names.forEach(name => {
+        if(!Object.prototype.hasOwnProperty.call(proto, name)) return;
+        const was = proto[name];
+        if(typeof was !== 'function') return;
+        proto[name] = function(){
+          try { return was.apply(this, arguments); }
+          catch(e){ console.warn(`the engraver could not make room for ${name}`, e); }
         };
       });
     };
@@ -113,6 +138,9 @@ function osmdSteady(lib){
       lib.VexFlowMusicSheetDrawer && lib.VexFlowMusicSheetDrawer.prototype];
     const pass = (names, said) => calcs.forEach(p => net(p, names, said));
     const paint = (names, said) => draws.forEach(p => net(p, names, said));
+    calcs.forEach(pr => measured(pr, ['calculateWavyLineSkyBottomLine',
+      'calculateOctaveShiftSkyBottomLine', 'calculatePedalSkyBottomLine',
+      'calculateSkyBottomLines', 'computeSkyBottomLinesFor']));
     pass(['calculateSlurs'], 'slurs');
     paint(['drawSlur'], 'slurs');
     pass(['calculateGlissandi'], 'glissandi');
@@ -194,7 +222,7 @@ async function renderScore(rec, opts = {}){
   const {osmd} = _sv;
   /* anything the net below catches during this engraving belongs to this
      engraving, so the tally starts empty rather than carrying the last one's */
-  _scoreDropped = [];
+  _scoreDropped = []; _scoreWhy = '';
   const lib = (typeof opensheetmusicdisplay !== 'undefined') ? opensheetmusicdisplay : null;
   const from = opts.from === undefined ? _sv.from : opts.from;
   const to = opts.to === undefined ? _sv.to : opts.to;
@@ -213,6 +241,20 @@ async function renderScore(rec, opts = {}){
   if(changed){
     const r = osmd.EngravingRules || osmd.rules;
     if(r){
+      /* A bar the hand rests through, written in the file as nothing at all
+         rather than as a rest, is the single thing most of the engraver's
+         span code cannot survive. A slur, an 8va bracket, a trill line —
+         each of them works itself out by walking from where it starts to
+         where it stops, and each of them takes the first note of a bar
+         without checking there is one. There often is not.
+
+         The engraver can fill those bars itself, with a whole rest it does
+         not print. Nothing changes on the page: a bar that was empty is
+         still empty to look at. But it now has something in it for the
+         brackets to hang on, which is the difference between an 8va that
+         draws and an 8va that disappears — and it fixes the whole family
+         at once rather than one mark at a time. */
+      try { r.FillEmptyMeasuresWithWholeRest = 2; } catch(e){}   /* 2 = yes, invisible */
       /* the rules count from zero and the room counts from one */
       r.MinMeasureToDrawIndex = from ? Math.max(0, from - 1) : 0;
       r.MaxMeasureToDrawIndex = to ? Math.max(0, to - 1) : Number.MAX_SAFE_INTEGER;
@@ -242,7 +284,7 @@ async function renderScore(rec, opts = {}){
      and they are only paid when the setting or the width changes. */
   if(want) _sv.fitted = fitBarsPerLine(osmd, rec, want);
   else _sv.fitted = null;
-  _sv.dropped = _scoreDropped.slice();
+  _sv.dropped = _scoreDropped.slice(); _sv.why = _scoreWhy;
   _sv.pages = pageCount(osmd);
   _sv.at = clamp(_sv.at, 0, _sv.pages - 1);
   showScorePage(_sv.at);

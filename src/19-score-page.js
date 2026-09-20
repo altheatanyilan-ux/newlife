@@ -673,7 +673,12 @@ function scoreDroppedPaint(){
   if(had) had.remove();
   const said = scoreDroppedSay();
   if(!said) return;
-  stage.appendChild(el(`<div class="sc-dropped mono">${esc(said)}</div>`));
+  /* what actually went wrong, kept on the line itself rather than printed:
+     it is a sentence for whoever comes to repair it, not for whoever is
+     trying to read the music */
+  const why = (scoreView() || {}).why || '';
+  stage.appendChild(el(`<div class="sc-dropped mono"${
+    why ? ` title="${esc(why)}"` : ''}>${esc(said)}</div>`));
 }
 function scoreRepaintParts(x){
   const bar = document.getElementById('scParts'); if(!bar) return;
