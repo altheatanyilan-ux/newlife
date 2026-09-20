@@ -1651,6 +1651,35 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 .pick-glabel .mono{font-size:.6rem;color:var(--faint);letter-spacing:.04em}
 .pick-group .pick-row{margin-left:8px}
 
+/* planning the week: the parts of a life, and the few things being carried */
+.wp-aspect{display:grid;grid-template-columns:auto minmax(150px,1fr) minmax(0,1.6fr);gap:10px;
+  align-items:center;cursor:default;box-shadow:inset 3px 0 0 -1px var(--c)}
+.wp-aspect .inp{padding:5px 8px;font-size:.84rem}
+.wp-aname{display:flex;flex-direction:column;gap:1px;min-width:0}
+.wp-aname .mono{font-size:.62rem;color:var(--faint);letter-spacing:.03em}
+.wp-star{background:none;border:0;cursor:pointer;font-size:.95rem;line-height:1;padding:2px 3px;
+  color:var(--faint);transition:color .18s var(--ease),transform .18s var(--ease)}
+.wp-star:hover{transform:scale(1.18)}
+.wp-star.on{color:var(--c,var(--page-accent))}
+.wp-goal{border:1px solid var(--line);border-radius:11px;padding:10px 12px}
+.wp-goal .in-n{flex:0 0 auto}
+.wp-under{margin:8px 0 0 28px}
+.wp-under > summary{cursor:pointer;list-style:none;font-family:var(--mono);font-size:.68rem;
+  color:var(--muted);padding:2px 0}
+.wp-under > summary::-webkit-details-marker{display:none}
+.wp-under > summary::before{content:'\25b8 ';opacity:.6}
+.wp-under[open] > summary::before{content:'\25be '}
+.wk-carry{border:1px solid var(--line);border-radius:11px;padding:9px 12px;margin:0 0 12px;
+  background:color-mix(in srgb,var(--line) 14%,transparent)}
+.wk-carry .sc{font-size:.6rem}
+.wk-theme{margin:4px 0 0;font-family:var(--serif);font-size:.95rem}
+.wk-win{margin:6px 0 0;font-size:.8rem;color:var(--muted)}
+.wk-win .mono{font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;margin-right:6px}
+.wk-goals{display:flex;flex-direction:column;gap:2px;font-size:.8rem;margin-top:5px}
+.wk-goals .mono{font-size:.68rem}
+.pick-row.sm{padding:4px 8px;font-size:.84rem;border-color:transparent}
+.pick-row.sm:hover{border-color:var(--line)}
+
 /* what you said mattered, shown before tomorrow's work is chosen */
 .plan-focus{border:1px solid var(--line);border-radius:11px;padding:10px 12px;margin:0 0 14px;
   background:color-mix(in srgb,var(--line) 16%,transparent)}

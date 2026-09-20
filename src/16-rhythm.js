@@ -438,7 +438,17 @@ function renderPlanPanel(box, d){
   const wk = weekStart(d); const wp = weekPlan(wk); const mp = monthPlan(monthKey(d));
   box.innerHTML = `
     <div class="row between"><span class="sc" style="margin:0">${d === T ? 'Today' : fmtDate(d,'med')}</span><span class="mono">${totalN ? `${doneN}/${totalN} done` : 'nothing planned'}</span></div>
-    ${(wp.theme || wp.outcomes.some(o=>o.text)) ? `<div class="intention-card" style="margin:10px 0;font-size:.92rem">${wp.theme?`<b>${esc(wp.theme)}</b>`:''}${wp.outcomes.filter(o=>o.text).length?`<div class="faint" style="font-size:.78rem;margin-top:4px">${wp.outcomes.filter(o=>o.text).map(o=>esc(o.text)).join(' · ')}</div>`:''}</div>` : ''}
+    ${(wp.theme || weekGoalsNamed(wp).length || wp.win) ? `<div class="intention-card" style="margin:10px 0;font-size:.92rem">
+      ${wp.theme ? `<b>${esc(wp.theme)}</b>` : ''}
+      ${/* a goal written on Sunday and never seen again is a goal that does
+            nothing. Each one says how much of its own work has gone, so the
+            week is answerable on any day of it rather than only at the end. */
+        weekGoalsNamed(wp).length ? `<div class="wk-goals">${weekGoalsNamed(wp).map(o => {
+          const g = weekGoalProgress(o);
+          return `<div class="row between" style="gap:8px"><span>${esc(o.text)}</span>${
+            g ? `<span class="mono faint">${g.done}/${g.total}</span>` : ''}</div>`; }).join('')}</div>` : ''}
+      ${wp.win ? `<div class="faint" style="font-size:.74rem;margin-top:5px">a win: ${esc(wp.win)}</div>` : ''}
+    </div>` : ''}
     ${p.planned ? '' : `<button class="btn primary" id="planStart" style="width:100%;margin-top:10px">◎ Plan my day</button>`}
     ${p.intentions.some(Boolean) ? `<div class="intentions">${p.intentions.map((t,i)=> t ? `<div class="intention"><span class="in-n">${i+1}</span><span>${esc(t)}</span></div>` : '').join('')}</div>` : ''}
 
@@ -1027,11 +1037,236 @@ function openWeeklyReview(d = today()){
 }
 
 /* ---------- forward-looking planning: the week and the month, before they happen ---------- */
+/* THE WEEK, BEFORE IT HAPPENS.
+
+   This was one box: a theme, three sentences and a row of hours. You could
+   fill it in without thinking, and a plan you can fill in without thinking is
+   a plan that does not change the week.
+
+   What a week actually needs deciding is three things, and none of them is a
+   theme. Which parts of a life are getting attention and which are being let
+   lie — said out loud, because letting something lie by accident is how a
+   year goes past. What two or three bigger things are being carried, and
+   which of the work already written down belongs under each. And what,
+   concretely, would make the week a win, written while the goals are still
+   in view so it is about them rather than a mood.
+
+   So it is a flow now, the way planning a day is, with last week's own
+   answers in front of you while you write this week's. The parts of a life
+   are your planning lists, because that is where you have already sorted
+   what you care about — nothing new to maintain. */
 function weekPlan(wk){
   S.weekPlans = S.weekPlans && typeof S.weekPlans === 'object' ? S.weekPlans : {};
   if(!S.weekPlans[wk]) S.weekPlans[wk] = {theme:'', outcomes:[], energyBudget:{}, setAt:''};
-  const p = S.weekPlans[wk]; p.outcomes = p.outcomes || []; p.energyBudget = p.energyBudget || {};
+  const p = S.weekPlans[wk];
+  p.outcomes = p.outcomes || [];
+  /* a goal made before this existed has no work under it, which is fine — it
+     just means the progress line has nothing to count yet */
+  p.outcomes.forEach(o => { o.taskIds = Array.isArray(o.taskIds) ? o.taskIds : []; });
+  p.energyBudget = p.energyBudget || {};
+  p.aims = p.aims && typeof p.aims === 'object' ? p.aims : {};
+  p.focus = Array.isArray(p.focus) ? p.focus : [];
+  p.win = p.win || '';
+  p.guard = p.guard || '';
   return p;
+}
+/* last week's plan as it was left, without writing an empty one for a week
+   nobody ever planned — reading a record should not create it */
+const weekPlanSeen = wk => (S.weekPlans && S.weekPlans[wk])
+  || {theme:'', outcomes:[], aims:{}, focus:[], win:'', guard:'', energyBudget:{}};
+/* how much of what was put under a goal is done. Named goals with nothing
+   under them return null rather than a hollow 0 of 0. */
+function weekGoalProgress(o){
+  const ids = (o && o.taskIds) || [];
+  if(!ids.length) return null;
+  const refs = ids.map(id => findTaskRef(id)).filter(Boolean);
+  return {done: refs.filter(r => r.done).length, total: ids.length, lost: ids.length - refs.length};
+}
+const weekGoalsNamed = p => (p.outcomes || []).filter(o => o.text && o.text.trim());
+/* what was finished in a stretch of days, which is the only honest way to say
+   how a week went: a task carries the day it was actually ticked */
+const tasksDoneBetween = (a, b) => allTaskRefs().filter(r =>
+  r.done && r.task.doneAt && r.task.doneAt >= a && r.task.doneAt <= b);
+/* the open work in one part of a life. Project work belongs to its project
+   rather than to a list, so it is counted under the goals instead. */
+const listOpenTasks = id => (S.tasks || []).filter(t => !t.done && (t.listId || 'inbox') === id);
+
+function openWeeklyPlan(d = today()){
+  const wk = weekStart(d), p = weekPlan(wk);
+  const lastWk = addDays(wk, -7), lastEnd = addDays(wk, -1);
+  const lp = weekPlanSeen(lastWk);
+  const lastDone = tasksDoneBetween(lastWk, lastEnd);
+  while(p.outcomes.length < 3) p.outcomes.push({id:uid(), text:'', linkType:'', linkId:null, taskIds:[]});
+  const lists = planLists();
+  const STEPS = 5;
+  let step = 0;
+  const m = openModal('', 'wide');
+
+  /* Everything on screen is harvested before anything redraws, because a
+     redraw throws the inputs away and a half-typed goal is exactly the thing
+     you would not forgive it for losing. */
+  const read = () => {
+    const q = sel => m.querySelector(sel);
+    const all = sel => [...m.querySelectorAll(sel)];
+    if(q('#wpTheme')) p.theme = q('#wpTheme').value.trim();
+    if(q('#wpWin')) p.win = q('#wpWin').value.trim();
+    if(q('#wpGuard')) p.guard = q('#wpGuard').value.trim();
+    all('[data-wpaim]').forEach(i => p.aims[i.dataset.wpaim] = i.value.trim());
+    all('[data-wpout]').forEach(i => p.outcomes[+i.dataset.wpout].text = i.value.trim());
+    all('[data-wplink]').forEach(sl => {
+      const [t, id] = (sl.value || '').split(':');
+      const o = p.outcomes[+sl.dataset.wplink];
+      o.linkType = t || ''; o.linkId = id || null;
+    });
+    all('[data-wpenergy]').forEach(i => p.energyBudget[i.dataset.wpenergy] = +i.value || 0);
+  };
+  const redraw = () => { read(); draw(); };
+
+  /* which work a goal may reach for: the open work of the part of a life it
+     was put under, or all of it while it has not been put anywhere */
+  const goalPool = o => {
+    if(o.linkType === 'list') return listOpenTasks(o.linkId).map(taskRef);
+    if(o.linkType === 'project') return projectTaskRefs().filter(r =>
+      !r.done && r.project && r.project.id === o.linkId);
+    return allTaskRefs().filter(r => !r.done);
+  };
+  const goalUnder = o => o.linkType === 'list' ? (planList(o.linkId) || {}).name
+    : o.linkType === 'project' ? ((S.projects || []).find(x => x.id === o.linkId) || {}).name : '';
+
+  const lastWeekHTML = () => {
+    const named = weekGoalsNamed(lp);
+    if(!named.length && !lastDone.length && !lp.win) return `<div class="empty">Last week was not planned here, so there is nothing to look back at. This one can be the first.</div>`;
+    return `<div class="plan-yest">
+      ${lp.theme ? `<div class="intention-card" style="margin-bottom:10px">${esc(lp.theme)}</div>` : ''}
+      ${named.length ? `<div class="sc" style="margin:10px 0 6px">What last week was carrying</div>
+        <div class="stack" style="gap:5px">${named.map(o => { const g = weekGoalProgress(o);
+          return `<div class="row between"><span>${esc(o.text)}</span><span class="mono faint">${
+            g ? `${g.done} of ${g.total} done` : 'nothing was put under it'}</span></div>`; }).join('')}</div>` : ''}
+      ${lp.win ? `<div class="sc" style="margin:12px 0 4px">You said it would be a win if</div>
+        <p class="serif" style="margin:0">${esc(lp.win)}</p>` : ''}
+      <p class="mono faint" style="margin-top:10px">${lastDone.length} task${lastDone.length === 1 ? '' : 's'} finished between ${
+        fmtDate(lastWk, 'med')} and ${fmtDate(lastEnd, 'med')}</p>
+    </div>`;
+  };
+
+  const aspectsHTML = () => `<div class="stack" style="gap:8px;max-height:46vh;overflow:auto">${
+    lists.map(l => { const open = listOpenTasks(l.id).length;
+      const moved = lastDone.filter(r => r.kind === 'own' && (r.task.listId || 'inbox') === l.id).length;
+      const on = p.focus.includes(l.id);
+      return `<div class="pick-row wp-aspect${on ? ' on' : ''}" style="--c:${esc(l.color)}">
+        <button class="wp-star${on ? ' on' : ''}" data-wpfocus="${esc(l.id)}" title="${
+          on ? 'this is where the week goes' : 'make this one of the week\u2019s few'}">${on ? '\u2605' : '\u2606'}</button>
+        <span class="wp-aname"><b style="color:${esc(l.color)}">${esc(l.name)}</b>
+          <span class="mono faint">${open} open \u00b7 ${moved} finished last week</span></span>
+        <input class="inp" data-wpaim="${esc(l.id)}" value="${esc(p.aims[l.id] || '')}"
+          placeholder="${moved || open ? 'what progress here?' : 'or nothing, on purpose'}">
+      </div>`; }).join('')}</div>`;
+
+  const goalsHTML = () => `<div class="stack" style="gap:12px">${p.outcomes.slice(0, 3).map((o, i) => {
+    const pool = goalPool(o), picked = new Set(o.taskIds);
+    const named = !!(o.text || '').trim();
+    return `<div class="wp-goal">
+      <div class="row" style="gap:6px"><span class="in-n">${i + 1}</span>
+        <input class="inp serif-lg" data-wpout="${i}" value="${esc(o.text)}" placeholder="${
+          ['the one the week is really about', 'the second thing worth carrying', 'and a third, if there is one'][i]}">
+        <select class="sel" data-wplink="${i}" style="width:auto">
+          <option value="">— which part of a life —</option>
+          <optgroup label="lists">${lists.map(l => `<option value="list:${esc(l.id)}" ${
+            o.linkType === 'list' && o.linkId === l.id ? 'selected' : ''}>${esc(l.name)}</option>`).join('')}</optgroup>
+          <optgroup label="projects">${(S.projects || []).map(pr => `<option value="project:${esc(pr.id)}" ${
+            o.linkType === 'project' && o.linkId === pr.id ? 'selected' : ''}>${esc(pr.name)}</option>`).join('')}</optgroup>
+        </select></div>
+      ${named ? `<details class="wp-under" ${o.taskIds.length ? 'open' : ''}>
+        <summary><span class="mono">${o.taskIds.length
+          ? `${o.taskIds.length} thing${o.taskIds.length === 1 ? '' : 's'} under it`
+          : 'nothing under it yet \u2014 choose the work'}</span></summary>
+        <div class="stack" style="gap:2px;max-height:26vh;overflow:auto;margin-top:6px">${
+          pool.length ? pool.slice(0, 60).map(r => `<label class="pick-row sm ${picked.has(r.id) ? 'on' : ''}">
+            <input type="checkbox" data-wptask="${i}" value="${esc(r.id)}" ${picked.has(r.id) ? 'checked' : ''}>
+            <span>${esc(r.text)}${r.where ? `<span class="d">${esc(r.where)}</span>` : ''}</span></label>`).join('')
+            : `<div class="empty">Nothing open in ${esc(goalUnder(o) || 'the planner')}.</div>`}</div>
+      </details>` : `<p class="faint" style="font-size:.78rem;margin:4px 0 0 28px">Name it and the work already written down can be put under it.</p>`}
+    </div>`; }).join('')}</div>`;
+
+  const recapHTML = () => { const named = weekGoalsNamed(p);
+    const aims = lists.filter(l => (p.aims[l.id] || '').trim());
+    return `<div class="plan-recap">
+      ${named.length ? `<div class="sc" style="margin:10px 0 6px">So the week is carrying</div>
+        <ol class="today-three">${named.map(o => { const g = weekGoalProgress(o);
+          return `<li>${esc(o.text)}${g ? ` <span class="mono faint">\u00b7 ${g.total} thing${
+            g.total === 1 ? '' : 's'} under it</span>` : ''}</li>`; }).join('')}</ol>` : ''}
+      ${aims.length ? `<div class="sc" style="margin:12px 0 6px">And in each part of a life</div>
+        <div class="stack" style="gap:3px">${aims.map(l => `<div class="row" style="gap:8px">
+          <b style="color:${esc(l.color)};min-width:110px">${esc(l.name)}</b><span>${esc(p.aims[l.id])}</span></div>`).join('')}</div>` : ''}
+      ${p.win ? `<div class="sc" style="margin:12px 0 4px">A win would be</div><p class="serif" style="margin:0">${esc(p.win)}</p>` : ''}
+    </div>`; };
+
+  function draw(){
+    const body = [
+      `<h2>Last week, before this one</h2>
+       <p class="muted" style="font-size:.88rem">What you said the week would be, and what it turned out to be. Plan the next one with this in front of you, not from memory.</p>
+       ${lastWeekHTML()}`,
+      `<h2>Each part of a life</h2>
+       <p class="muted" style="font-size:.88rem">Your lists, with what is open in each and what moved last week. Say what progress you want \u2014 and star the two or three the week actually goes to. Leaving one blank is a decision too, and a better one than letting it slide without noticing.</p>
+       ${aspectsHTML()}`,
+      `<h2>What the week is carrying</h2>
+       <p class="muted" style="font-size:.88rem">Two or three bigger things, and the work already written down that would finish them. A goal with nothing under it is a wish; a goal with four tasks under it is a week.</p>
+       ${goalsHTML()}`,
+      `<h2>What would make this a win?</h2>
+       <p class="muted" style="font-size:.88rem">Concretely, with the goals still in view \u2014 something you could hold up on Sunday and know the answer to.</p>
+       <textarea class="ta serif-lg" id="wpWin" placeholder="It would be a win if\u2026">${esc(p.win)}</textarea>
+       <div class="field" style="margin-top:14px"><label>And what would take it away?</label>
+         <textarea class="ta" id="wpGuard" placeholder="The week you already know is coming \u2014 the trip, the deadline, the tiredness.">${esc(p.guard)}</textarea></div>
+       ${weekGoalsNamed(p).length ? `<div class="plan-focus" style="margin-top:14px"><div class="pf-rows">${
+         weekGoalsNamed(p).map(o => { const g = weekGoalProgress(o);
+           return `<div class="pf-row"><span class="pf-ico">\u25c6</span><span class="pf-name">${esc(o.text)}</span>
+             <span class="mono pf-cold">${g ? `${g.total} under it` : 'nothing under it'}</span></div>`; }).join('')}</div></div>` : ''}`,
+      `<h2>And the shape of it</h2>
+       <div class="field"><label>A phrase that names the week</label>
+         <input class="inp serif-lg" id="wpTheme" value="${esc(p.theme)}" placeholder="One phrase that names what this week is for"></div>
+       <div class="field"><label>Hours you mean to give each, roughly</label>
+         <div class="grid c2" style="gap:8px">${DIMS.map(dm => `<div class="row between">
+           <span style="color:${dm.c}">${dm.name}</span>
+           <input class="inp mono" type="number" min="0" max="60" style="width:70px" data-wpenergy="${dm.id}" value="${p.energyBudget[dm.id] || 0}"></div>`).join('')}</div>
+         <div class="faint" style="font-size:.74rem">Not a ledger \u2014 a leaning.</div></div>
+       ${recapHTML()}`,
+    ][step];
+    m.querySelector('.modal').innerHTML = `<button class="close">\u00d7</button>${body}
+      <div class="row between" style="margin-top:18px"><span class="mono">step ${step + 1} of ${STEPS}</span>
+      <span class="row">${step ? '<button class="btn sm ghost" id="wpBack">back</button>' : ''}
+      <button class="btn primary" id="wpNext">${step === STEPS - 1 ? "Save the week's plan" : 'Next'}</button></span></div>`;
+    m.querySelector('.close').onclick = () => { read(); saveNow(); m.remove(); };
+    m.querySelectorAll('[data-wpfocus]').forEach(b => b.onclick = ev => {
+      ev.preventDefault();
+      const id = b.dataset.wpfocus, at = p.focus.indexOf(id);
+      at < 0 ? p.focus.push(id) : p.focus.splice(at, 1);
+      redraw();
+    });
+    /* changing what a goal sits under changes which work it can reach for, so
+       the list below it is redrawn rather than left showing another list's */
+    m.querySelectorAll('[data-wplink]').forEach(sl => sl.onchange = () => redraw());
+    m.querySelectorAll('[data-wpout]').forEach(i => i.onchange = () => redraw());
+    m.querySelectorAll('[data-wptask]').forEach(c => c.onchange = () => {
+      const o = p.outcomes[+c.dataset.wptask], at = o.taskIds.indexOf(c.value);
+      c.checked ? (at < 0 && o.taskIds.push(c.value)) : (at >= 0 && o.taskIds.splice(at, 1));
+      c.closest('.pick-row').classList.toggle('on', c.checked);
+      const sum = c.closest('.wp-goal').querySelector('summary .mono');
+      if(sum) sum.textContent = o.taskIds.length
+        ? `${o.taskIds.length} thing${o.taskIds.length === 1 ? '' : 's'} under it`
+        : 'nothing under it yet \u2014 choose the work';
+    });
+    const back = m.querySelector('#wpBack');
+    if(back) back.onclick = () => { read(); step--; draw(); };
+    m.querySelector('#wpNext').onclick = () => {
+      read();
+      if(step < STEPS - 1){ step++; saveNow(); draw(); return; }
+      p.setAt = today(); saveNow(); m.remove(); sound('success');
+      toast('This week has a shape.'); rerender();
+    };
+    attachDictationIn(m);
+  }
+  draw();
+  return m;
 }
 function monthKey(d = today()){ const x = parseDay(d); return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}`; }
 function monthPlan(mk){
@@ -1046,26 +1281,6 @@ function monthReview(mk){
   return S.monthReviews[mk];
 }
 function habitMonthRate(h, days){ const due = days.filter(d => habitDue(h,d)); if(!due.length) return null; return Math.round(due.filter(d => habitDone(h,d)).length / due.length * 100); }
-function openWeeklyPlan(d = today()){
-  const wk = weekStart(d); const p = weekPlan(wk);
-  while(p.outcomes.length < 3) p.outcomes.push({id:uid(), text:'', linkType:'', linkId:null});
-  const m = openModal(`<h2>The week ahead — ${fmtDate(wk,'med')}</h2>
-    <div class="field"><label>Theme for the week</label><input class="inp serif-lg" id="wpTheme" value="${esc(p.theme)}" placeholder="One phrase that names what this week is for" autofocus></div>
-    <div class="field"><label>Up to three key outcomes</label><div class="stack" style="gap:8px">${p.outcomes.slice(0,3).map((o,i) => `
-      <div class="row" style="gap:6px"><span class="in-n">${i+1}</span><input class="inp" data-wpout="${i}" value="${esc(o.text)}" placeholder="what would make this week a win">
-        <select class="sel" data-wplink="${i}" style="width:auto"><option value="">—</option>
-          ${S.projects.map(pr => `<option value="project:${pr.id}" ${o.linkType==='project'&&o.linkId===pr.id?'selected':''}>${esc(pr.name)}</option>`).join('')}</select></div>`).join('')}</div></div>
-    <div class="field"><label>Energy budget by dimension</label><div class="grid c2" style="gap:8px">${DIMS.map(dm => `<div class="row between"><span style="color:${dm.c}">${dm.name}</span><input class="inp mono" type="number" min="0" max="60" style="width:70px" data-wpenergy="${dm.id}" value="${p.energyBudget[dm.id]||0}"></div>`).join('')}</div><div class="faint" style="font-size:.74rem">Hours you mean to give each, roughly — not a ledger, a leaning.</div></div>
-    <div class="row between" style="margin-top:14px"><span class="faint" style="font-size:.78rem">${p.setAt ? `set ${relDays(daysSince(p.setAt))}` : 'not yet set this week'}</span><button class="btn primary" id="wpSave">Save the week's plan</button></div>`, 'wide');
-  m.querySelector('#wpSave').onclick = () => {
-    p.theme = m.querySelector('#wpTheme').value.trim();
-    m.querySelectorAll('[data-wpout]').forEach(i => p.outcomes[+i.dataset.wpout].text = i.value.trim());
-    m.querySelectorAll('[data-wplink]').forEach(s => { const [t,id] = (s.value||'').split(':'); p.outcomes[+s.dataset.wplink].linkType = t||''; p.outcomes[+s.dataset.wplink].linkId = id||null; });
-    m.querySelectorAll('[data-wpenergy]').forEach(i => p.energyBudget[i.dataset.wpenergy] = +i.value||0);
-    p.setAt = today(); saveNow(); m.remove(); sound('success'); toast("This week has a shape."); rerender();
-  };
-  attachDictationIn(m);
-}
 function openMonthlyPlan(d = today()){
   const mk = monthKey(d); const p = monthPlan(mk); const x = parseDay(d);
   while(p.milestones.length < 5) p.milestones.push({id:uid(), text:'', done:false});

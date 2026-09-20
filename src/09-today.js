@@ -153,6 +153,26 @@ routes.today = function(root){
   const planT = typeof dayPlan === 'function' ? dayPlan(T) : {intentions:[], planned:false};
   const planTom = typeof dayPlan === 'function' ? dayPlan(tomorrow) : {intentions:[], planned:false};
   const three = (planT.intentions || []).filter(Boolean);
+  /* What the week said it was carrying, on every day of it. A goal written on
+     Sunday and not seen again until the next Sunday is a goal that does
+     nothing — it has to be answerable on a Wednesday, which means saying how
+     much of its own work has gone. Read without creating: looking at this
+     week must not write an empty plan for it. */
+  const wkPlan = typeof weekPlanSeen === 'function' ? weekPlanSeen(weekStart(T)) : null;
+  const wkGoals = (wkPlan && typeof weekGoalsNamed === 'function') ? weekGoalsNamed(wkPlan) : [];
+  const weekCarryHTML = () => (!wkPlan || (!wkGoals.length && !wkPlan.theme && !wkPlan.win)) ? '' :
+    `<div class="wk-carry">
+      <div class="row between" style="align-items:baseline">
+        <span class="sc" style="margin:0">This week</span>
+        <button class="tbtn" id="planWeekHere" title="open the week's plan">edit</button></div>
+      ${wkPlan.theme ? `<p class="wk-theme">${esc(wkPlan.theme)}</p>` : ''}
+      ${wkGoals.length ? `<div class="wk-goals">${wkGoals.map(o => {
+        const g = weekGoalProgress(o);
+        return `<div class="row between" style="gap:8px"><span>${esc(o.text)}</span>${
+          g ? `<span class="mono faint">${g.done}/${g.total}</span>` : '<span class="mono faint">—</span>'}</div>`;
+      }).join('')}</div>` : ''}
+      ${wkPlan.win ? `<p class="wk-win"><span class="mono">a win</span> ${esc(wkPlan.win)}</p>` : ''}
+    </div>`;
   const threeTom = (planTom.intentions || []).filter(Boolean);
   const isSunday = parseDay(T).getDay() === 0;
   const evening = new Date().getHours() >= 17;
@@ -277,6 +297,7 @@ routes.today = function(root){
       <summary><span class="sc" style="margin:0">Today's plan</span>
         <span class="mono faint">${planT.planned ? 'set last night' : 'not planned in advance'}</span></summary>
       <div class="body">
+      ${weekCarryHTML()}
       ${planT.why ? `<p class="plan-why">${esc(planT.why)}</p>` : ''}
       ${three.length ? `<ol class="today-three">${three.map(t => `<li>${esc(t)}</li>`).join('')}</ol>`
         : `<div class="empty" style="margin-top:8px">Nothing was named for today. Plan tomorrow at the foot of this page — a day decided the night before starts already moving.</div>`}
@@ -380,7 +401,12 @@ routes.today = function(root){
         ${planTom.firstMove ? `<p class="plan-line"><span class="mono">first move</span> ${esc(planTom.firstMove)}</p>` : ''}
         <div class="row" style="gap:8px;flex-wrap:wrap">
           <button class="btn sm ${threeTom.length ? 'ghost' : 'primary'}" id="planTomorrow">${threeTom.length ? '↻ Replan tomorrow' : '◑ Plan tomorrow'}</button>
-          ${isSunday ? `<button class="btn sm ${evening ? 'primary' : 'ghost'}" id="planNextWeek">🗓 Plan next week</button>` : ''}
+          <!-- Sunday evening is when it is most wanted and not the only time it
+               is wanted: a week gets re-decided on a Tuesday too, and a
+               button that is only there one day in seven is a button nobody
+               learns is there. -->
+          <button class="btn sm ${isSunday && evening ? 'primary' : 'ghost'}" id="planNextWeek">🗓 Plan ${
+            isSunday ? 'next week' : 'the week'}</button>
           <button class="btn sm ghost" id="eveningReview">☾ Evening review</button>
           ${typeof reviewChipsHTML === 'function' ? reviewChipsHTML(T) : ''}
         </div>
@@ -591,6 +617,8 @@ routes.today = function(root){
   /* the night before */
   $('#planTomorrow') && ($('#planTomorrow').onclick = () => { if(typeof planMyDay === 'function') planMyDay(tomorrow); });
   $('#planNextWeek') && ($('#planNextWeek').onclick = () => { if(typeof openWeeklyPlan === 'function') openWeeklyPlan(addDays(T, 1)); });
+  /* the one on the plan card opens THIS week, which is the one it is showing */
+  $('#planWeekHere') && ($('#planWeekHere').onclick = () => { if(typeof openWeeklyPlan === 'function') openWeeklyPlan(T); });
   $('#eveningReview') && ($('#eveningReview').onclick = () => { if(typeof flowEvening === 'function') flowEvening(); });
 
   /* tasks */
