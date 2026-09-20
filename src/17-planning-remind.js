@@ -47,7 +47,12 @@ function planAskNotifyPermission(){
    not the browser ever agreed to show anything */
 let _planRemSeen = new Set();
 function planCheckReminders(){
-  if(!S.planning) return;
+  /* This runs on a timer, and a timer can fire before the database has
+     finished opening — on a cold load on a slow machine, and every time
+     under a test clock that is wound forward. The state is null until then,
+     so reading a key off it throws inside an interval, where nothing catches
+     it, and takes the boot down with it. */
+  if(!S || !S.planning) return;
   const due = planDueReminders();
   const badge = document.querySelector('[data-page="planning"] .nav-badge');
   if(badge){ badge.textContent = due.length || ''; badge.hidden = !due.length; }

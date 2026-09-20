@@ -156,6 +156,10 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   is('  and carrying the note', s.note, 'the second draft');
 
   console.log('\n5. pausing is a break, and the break takes its own note');
+  /* the sitting above ended, so the gadget folded back to its circle — which
+     is the point of it, and means the next sitting is started from an opened
+     one rather than from a button that is not on the page */
+  await open();
   await p.click('#focusDock #fpGo'); await p.waitForTimeout(500);
   await p.clock.fastForward('02:00'); await p.waitForTimeout(400);
   await p.click('#focusDock #fpGo'); await p.waitForTimeout(600);

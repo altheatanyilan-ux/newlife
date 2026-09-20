@@ -44,9 +44,15 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
      the whole room was taken out — and Score Practice stands where it stood:
      a piece of notation with your own marks on it is a thing you are making
      as much as a thing you are reading. */
-  ok('Create holds Content, Projects, Finance, the Skill Tree, Score Practice and the Japanese Studio',
-     nav.zones[0]?.name === 'Create' && JSON.stringify(nav.zones[0].pages) === JSON.stringify(['content','projects','finance','skills','score','japanese']),
+  ok('Create holds Content, Projects, Finance, the Skill Tree, both music rooms and the Japanese Studio',
+     nav.zones[0]?.name === 'Create' && JSON.stringify(nav.zones[0].pages) === JSON.stringify(['content','projects','finance','skills','score','jazz','japanese']),
      JSON.stringify(nav.zones[0]));
+  /* the Jazz Studio is beside Score Practice rather than inside it: one is
+     for pieces, the other for patterns in all twelve keys, and they are
+     different kinds of afternoon */
+  ok('  with the Jazz Studio beside Score Practice',
+     nav.zones[0].pages.indexOf('jazz') === nav.zones[0].pages.indexOf('score') + 1,
+     JSON.stringify(nav.zones[0].pages));
   ok('  and the Piano Studio is not a room any more',
      !nav.zones.some(z => z.pages.includes('piano')) && !nav.top.includes('piano'),
      JSON.stringify(nav.zones));
