@@ -8559,9 +8559,18 @@ html.sc-reading .sc-strip .tbtn,html.sc-reading .sc-strip .sel{min-height:34px;p
   .scr-bar{grid-template-columns:6rem minmax(0,1fr) 2.2rem}
 }
 .sc-invrows{display:flex;flex-direction:column;gap:2px;margin-top:10px}
-.sc-invrow{display:grid;grid-template-columns:minmax(0,2.2fr) 6.5rem 7rem minmax(0,1.2fr) minmax(0,1fr) 4.2rem 6.5rem 1.6rem;
+.sc-invrow{display:grid;grid-template-columns:minmax(0,2fr) 6rem 10rem minmax(0,1.2fr) minmax(0,.9fr) 4.2rem 6rem 1.6rem;
   gap:10px;align-items:center;padding:6px 8px;border-radius:var(--radius);
   border-left:3px solid var(--c);font-size:.78rem}
+/* how well you know it, set on the row: it is the one thing you come to this
+   list to change */
+.sc-invfam{display:flex;flex-direction:column;gap:2px;min-width:0}
+.sc-invfam .sel{font-size:.72rem;padding:2px 5px;width:100%}
+/* where what you said and what the log says disagree. Not a correction — you
+   know whether you can play it and this room does not — but a piece called
+   performance ready and not touched since the spring is worth a word. */
+.sc-invdoubt{font-size:.6rem;font-style:normal;line-height:1.3;color:#c98b7a;opacity:.85}
+.sc-invrow.doubt{background:color-mix(in srgb,#c98b7a 6%,transparent)}
 .sc-invrow:nth-child(odd){background:color-mix(in srgb,var(--surface) 60%,transparent)}
 .sc-invrow:hover{background:var(--surface)}
 .sc-invname{background:none;border:0;padding:0;text-align:left;cursor:pointer;font:inherit;
@@ -50710,6 +50719,55 @@ function scoreState(){
    composer and nothing else. A period is not decoration: practising four
    Romantic pieces and no counterpoint for three months is a thing you cannot
    see until the shelf can be asked. */
+/* ---------- how well you know a piece ----------
+   This is yours to say, and it is deliberately not the same question as the
+   one the sections answer. A section's standing is about a passage you have
+   marked up and worked on; this is about your relationship with the whole
+   piece over years, and the two genuinely differ — a piece can have no
+   sections marked at all and still be one you could play tomorrow, and a
+   piece can be marked up in detail precisely because it is the one you
+   cannot play.
+
+   The last two are not further along the ladder; they are off it. Rusty is
+   not a stage between learning and ready, it is having been ready and lost
+   it, which is a different problem with a different cure: the notes are
+   still in your head and the hands have forgotten, so what it needs is
+   slow playing rather than learning. Put down is a decision rather than a
+   condition. Both are how musicians actually talk about pieces, and a list
+   that only went up would have nowhere to put either. */
+const SCORE_FAMILIAR = [
+  ['unplayed', 'Not played',        'on the shelf, not opened at the piano', '#8a8d8f'],
+  ['read',     'Sight-read',        'played through, nothing learnt yet',    '#8a7f9e'],
+  ['learning', 'Learning',          'working through it now, not whole yet', '#b0705e'],
+  ['fingers',  'Under the fingers', 'can play it through, roughly',          '#c47832'],
+  ['polish',   'Needs polish',      'all there, and not ready to be heard',  '#c9a96e'],
+  ['ready',    'Performance ready', 'holds together with somebody listening','#7f916a'],
+  ['rusty',    'Rusty',             'learnt once, and the hands have forgotten', '#5c7c8a'],
+  ['retired',  'Put down',          'played properly once, and not coming back for now', '#7a7a7a'],
+];
+const scoreFamiliarOf = x => (SCORE_FAMILIAR.find(v => v[0] === (x && x.familiar)) || SCORE_FAMILIAR[0]);
+const scoreFamiliarName = k => (SCORE_FAMILIAR.find(v => v[0] === k) || SCORE_FAMILIAR[0])[1];
+/* Where it sits on the ladder, for sorting. The two that are off the ladder
+   are put at the end rather than given a false rung. */
+const scoreFamiliarAt = k => { const i = SCORE_FAMILIAR.findIndex(v => v[0] === k);
+  return i < 0 ? 0 : i; };
+/* What the record says about what you said. Not a correction — you know
+   whether you can play it and this room does not — but a piece you called
+   performance ready and have not touched since the spring is the honest
+   definition of one that has gone rusty, and saying so is the only use a
+   practice log has that a diary does not. */
+const SCORE_STALE_AFTER = 90;
+function scoreFamiliarDoubt(x){
+  const last = scoreLastPractised(x);
+  const at = scoreFamiliarAt(x.familiar);
+  if(!last) return at >= 4 ? 'never practised in this room, so nothing here can vouch for it' : '';
+  const days = daysSince(last);
+  if(at >= 5 && x.familiar !== 'rusty' && days > SCORE_STALE_AFTER)
+    return `called ${scoreFamiliarName(x.familiar).toLowerCase()}, not practised in ${Math.round(days / 30)} months`;
+  if(x.familiar === 'rusty' && days <= 21) return 'called rusty, and you have been at it this month';
+  return '';
+}
+
 const SCORE_PERIODS = [
   ['medieval',     'Medieval'],
   ['renaissance',  'Renaissance'],
@@ -50757,6 +50815,9 @@ function scoreDefaults(x){
      has decided and the guess stands, 'other' means you looked and none of
      them fitted. */
   x.period = SCORE_PERIODS.some(v => v[0] === x.period) ? x.period : null;
+  /* How well you know it, said by you. Nothing in the room writes this: it
+     is the one thing here only the person at the piano can know. */
+  x.familiar = SCORE_FAMILIAR.some(v => v[0] === x.familiar) ? x.familiar : 'unplayed';
   x.musicXml = typeof x.musicXml === 'string' ? x.musicXml : '';
   x.instruments = Array.isArray(x.instruments) ? x.instruments : [];
   x.hidden = Array.isArray(x.hidden) ? x.hidden : [];      // part indices switched off
@@ -51794,7 +51855,7 @@ function scoreLibraryHTML(){
    the two questions want different answers. */
 function scoreFilters(){
   return S._scinv = S._scinv || {q:'', state:'all', shape:'all', sort:'opened',
-    composer:'all', period:'all'};
+    composer:'all', period:'all', familiar:'all'};
 }
 /* Where a score stands, taken from its sections rather than set by hand: a
    piece is as ready as the least ready part of it that you have marked. */
@@ -51816,6 +51877,7 @@ function scoreMatches(x, f){
   if(f.state !== 'all' && scoreStanding(x).key !== f.state) return false;
   if(f.composer !== 'all' && (x.composer || '\u2014') !== f.composer) return false;
   if(f.period !== 'all' && (scorePeriodOf(x) || '\u2014') !== f.period) return false;
+  if(f.familiar !== 'all' && x.familiar !== f.familiar) return false;
   const last = scoreLastPractised(x);
   if(f.shape === 'unmarked' && (x.sections || []).length) return false;
   if(f.shape === 'marked'   && !(x.sections || []).length) return false;
@@ -51834,6 +51896,10 @@ function scoreInventoryHTML(){
   const list = all.filter(x => scoreMatches(x, f)).sort((a, b) => {
     if(f.sort === 'title')    return a.title.localeCompare(b.title);
     if(f.sort === 'composer') return (a.composer || '\uffff').localeCompare(b.composer || '\uffff') || a.title.localeCompare(b.title);
+    /* best known first: the question this sort answers is usually what could
+       I play for somebody tonight, not what have I barely started */
+    if(f.sort === 'familiar') return scoreFamiliarAt(b.familiar) - scoreFamiliarAt(a.familiar)
+      || daysSince(scoreLastPractised(a)) - daysSince(scoreLastPractised(b));
     /* by period is by the order they happened in, not by their names: a list
        that runs Baroque, Classical, Contemporary, Impressionist is a list
        sorted by spelling, which is no use to anybody */
@@ -51849,7 +51915,7 @@ function scoreInventoryHTML(){
     return (b.lastOpened || b.createdAt || '').localeCompare(a.lastOpened || a.createdAt || '');
   });
   const dirty = f.q || f.state !== 'all' || f.shape !== 'all'
-    || f.composer !== 'all' || f.period !== 'all';
+    || f.composer !== 'all' || f.period !== 'all' || f.familiar !== 'all';
   const states = [['unmarked','not marked up'], ...SCORE_STATUS.map(([k, n]) => [k, n.toLowerCase()])];
   /* the two categories are built from the shelf rather than from a fixed
      list, so the menu only ever offers a composer you actually have, and
@@ -51858,6 +51924,7 @@ function scoreInventoryHTML(){
   const tally = get => { const t = {}; all.forEach(x => { const k = get(x);
     if(k) t[k] = (t[k] || 0) + 1; }); return t; };
   const comps = tally(x => x.composer || '\u2014');
+  const fams = tally(x => x.familiar);
   const periods = tally(x => scorePeriodOf(x) || '\u2014');
   const byCount = t => Object.keys(t).sort((a, b) => t[b] - t[a] || a.localeCompare(b));
   const someGuessed = all.some(x => !x.period && scorePeriodGuess(x.composer));
@@ -51868,7 +51935,10 @@ function scoreInventoryHTML(){
       someGuessed ? ' A period in lighter type was guessed from the composer\u2019s name \u2014 press it to say for certain, or to correct it.' : ''}</p>
     <div class="filter-bar">
       <input class="inp" id="scinvq" placeholder="search title, composer, section" value="${esc(f.q)}">
-      <select class="sel" id="scinvState"><option value="all">any standing</option>${states.map(([k, n]) =>
+      <select class="sel" id="scinvFam"><option value="all">however well you know it</option>${
+        SCORE_FAMILIAR.map(([k, n, hint]) => `<option value="${k}" ${f.familiar === k ? 'selected' : ''}
+          >${esc(n)}${fams[k] ? ` (${fams[k]})` : ''}</option>`).join('')}</select>
+      <select class="sel" id="scinvState"><option value="all">any section standing</option>${states.map(([k, n]) =>
         `<option value="${k}" ${f.state === k ? 'selected' : ''}>${esc(n)}${counts[k] ? ` (${counts[k]})` : ''}</option>`).join('')}</select>
       <select class="sel" id="scinvComposer"><option value="all">any composer</option>${
         byCount(comps).map(k => `<option value="${esc(k)}" ${f.composer === k ? 'selected' : ''}>${
@@ -51881,7 +51951,7 @@ function scoreInventoryHTML(){
         ['written','has pins or fingerings']].map(([v, l]) =>
         `<option value="${v}" ${f.shape === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
       <select class="sel" id="scinvSort">${[['opened','by last opened'],['practised','by last practised'],
-        ['time','by time spent'],['bars','by length'],['composer','by composer'],['period','by period'],['title','by title']].map(([v, l]) =>
+        ['time','by time spent'],['bars','by length'],['composer','by composer'],['period','by period'],['familiar','by how well you know it'],['title','by title']].map(([v, l]) =>
         `<option value="${v}" ${f.sort === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
       ${dirty ? `<button class="btn sm ghost" id="scinvClear">clear</button>` : ''}
     </div>
@@ -51893,7 +51963,11 @@ function scoreInventoryHTML(){
       const pins = (x.pins || []).length;
       const fing = Object.keys(x.fingerings || {}).length;
       const per = scorePeriodOf(x);
-      return `<div class="sc-invrow" style="--c:${st.color}" data-scinvrow="${esc(x.id)}">
+      const fam = scoreFamiliarOf(x);
+      const doubt = scoreFamiliarDoubt(x);
+      /* the row is coloured by what YOU said about the piece rather than by
+         what the sections add up to: the sections are a detail of it */
+      return `<div class="sc-invrow${doubt ? ' doubt' : ''}" style="--c:${fam[3]}" data-scinvrow="${esc(x.id)}">
         <button class="sc-invname" data-scopen="${esc(x.id)}">
           <b class="serif">${esc(x.title)}</b>
           ${x.composer ? `<span class="faint">${esc(x.composer)}</span>` : ''}</button>
@@ -51902,9 +51976,13 @@ function scoreInventoryHTML(){
             : per ? 'guessed from the composer \u2014 press to say for certain'
             : 'press to name the composer and the period'}"
           >${per ? esc(scorePeriodName(per)) : 'set the period'}</button>
-        <span class="sc-invstate mono">${esc(st.name)}</span>
+        <span class="sc-invfam">
+          <select class="sel sm" data-scfam="${esc(x.id)}" title="${esc(fam[2])}">${
+            SCORE_FAMILIAR.map(([k, n]) =>
+              `<option value="${k}" ${x.familiar === k ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select>
+          ${doubt ? `<em class="sc-invdoubt faint" title="what the practice log says about what you said">${esc(doubt)}</em>` : ''}</span>
         <span class="mono faint">${x.totalMeasures ? `${x.totalMeasures} bars` : '\u2014'}${
-          secs ? ` \u00b7 ${secs} section${secs === 1 ? '' : 's'}` : ''}${
+          secs ? ` \u00b7 ${secs} section${secs === 1 ? '' : 's'}, ${esc(st.name)}` : ''}${
           x.transpose ? ` \u00b7 ${x.transpose > 0 ? '+' : '\u2212'}${Math.abs(x.transpose)}` : ''}</span>
         <span class="mono faint">${pins || fing ? `${pins ? `${pins} pin${pins === 1 ? '' : 's'}` : ''}${
           pins && fing ? ' \u00b7 ' : ''}${fing ? `${fing} finger${fing === 1 ? '' : 's'}` : ''}` : ''}</span>
@@ -52796,6 +52874,9 @@ function openScoreDetails(id){
     <label class="pd-q" style="margin-top:8px"><span class="k">composer</span>
       <input class="inp" id="sdComposer" value="${esc(x.composer)}"
         placeholder="the way you want it to sort \u2014 Chopin, not Fr\u00e9d\u00e9ric Fran\u00e7ois Chopin"></label>
+    <label class="pd-q" style="margin-top:8px"><span class="k">how well you know it</span>
+      <select class="sel" id="sdFam">${SCORE_FAMILIAR.map(([k, n, hint]) =>
+        `<option value="${k}" ${x.familiar === k ? 'selected' : ''}>${esc(n)} \u2014 ${esc(hint)}</option>`).join('')}</select></label>
     <label class="pd-q" style="margin-top:8px"><span class="k">period</span>
       <select class="sel" id="sdPeriod"><option value="">${guess
         ? `let the name decide \u2014 ${esc(scorePeriodName(guess))}` : 'not set'}</option>${
@@ -52808,6 +52889,7 @@ function openScoreDetails(id){
     x.title = m.querySelector('#sdTitle').value.trim() || x.title;
     x.composer = m.querySelector('#sdComposer').value.trim();
     x.period = m.querySelector('#sdPeriod').value || null;
+    x.familiar = m.querySelector('#sdFam').value;
     saveNow(); m.remove(); sound('success'); rerender();
   };
   return m;
@@ -52847,11 +52929,16 @@ function bindScoreInventory(root){
   const pick = (sel, key) => { const n = root.querySelector(sel); if(n)
     n.onchange = () => { f[key] = n.value; redraw(); }; };
   pick('#scinvState', 'state'); pick('#scinvShape', 'shape'); pick('#scinvSort', 'sort');
-  pick('#scinvComposer', 'composer'); pick('#scinvPeriod', 'period');
+  pick('#scinvComposer', 'composer'); pick('#scinvPeriod', 'period'); pick('#scinvFam', 'familiar');
+  /* set right on the row: it is the one thing you come to this list to
+     change, and a modal for an eight-way choice is two presses too many */
+  $$('[data-scfam]', root).forEach(n => n.onchange = () => {
+    const x = scoreById(n.dataset.scfam); if(!x) return;
+    x.familiar = n.value; sound('click'); redraw(); });
   $$('[data-scdetails]', root).forEach(b => b.onclick = () => openScoreDetails(b.dataset.scdetails));
   const clear = root.querySelector('#scinvClear');
   if(clear) clear.onclick = () => { f.q = ''; f.state = 'all'; f.shape = 'all';
-    f.composer = 'all'; f.period = 'all'; redraw(); };
+    f.composer = 'all'; f.period = 'all'; f.familiar = 'all'; redraw(); };
 }
 
 function bindScoreViewer(root, x){

@@ -286,7 +286,64 @@ const ARP = `<?xml version="1.0" encoding="UTF-8"?><score-partwise version="3.1"
   is('what you set beats what the name suggested',
     [own.composer, own.period, own.shown], ['Chopin', 'baroque', 'baroque']);
 
-  console.log('\n5. the time categories are yours');
+  console.log('\n5. how well you know each piece');
+  /* The sections answer a different question: a section's standing is about
+     a passage you have marked up, and this is about your relationship with
+     the whole piece over years. A piece can have no sections marked and
+     still be one you could play tomorrow. */
+  const fam = await p.evaluate(async () => {
+    const x = scores().find(y => y.title === 'Eight Changes');
+    const fresh = x.familiar;
+    const sel = document.querySelector(`[data-scfam="${CSS.escape(x.id)}"]`);
+    const offered = [...sel.options].map(o => o.textContent.trim());
+    sel.value = 'ready'; sel.onchange();
+    await new Promise(r => setTimeout(r, 700));
+    return {fresh, offered, now: scoreById(x.id).familiar,
+      /* the row is coloured by what you said, not by what the sections add up to */
+      colour: getComputedStyle(document.querySelector(`[data-scinvrow="${CSS.escape(x.id)}"]`))
+        .getPropertyValue('--c').trim()};
+  });
+  /* nothing is claimed about a piece nobody has played */
+  is('a piece starts as one you have not played', fam.fresh, 'unplayed');
+  yes('  and the three you asked for are all on the list',
+    fam.offered.includes('Performance ready') && fam.offered.includes('Needs polish')
+      && fam.offered.includes('Rusty'), JSON.stringify(fam.offered));
+  is('  eight rungs in all', fam.offered.length, 8);
+  is('  and saying so on the row is enough', fam.now, 'ready');
+  yes('  which is what the row is coloured by', /#7f916a/i.test(fam.colour), fam.colour);
+  const doubt = await p.evaluate(async () => {
+    const x = scores().find(y => y.title === 'Eight Changes');
+    /* called performance ready, and last practised in the spring */
+    const old = new Date(Date.now() - 200 * 86400000).toISOString().slice(0, 10);
+    x.practice = [{id:uid(), date: old, minutes: 30}];
+    const said = scoreFamiliarDoubt(x);
+    x.practice = [{id:uid(), date: today(), minutes: 30}];
+    const quiet = scoreFamiliarDoubt(x);
+    x.familiar = 'rusty';
+    const rusty = scoreFamiliarDoubt(x);
+    x.familiar = 'ready'; x.practice = [];
+    return {said, quiet, rusty};
+  });
+  /* what you say, held beside what the log says, where they disagree */
+  yes('a piece you called ready and have not touched in months says so',
+    /not practised in/.test(doubt.said), doubt.said);
+  is('  and one you have been at is left alone', doubt.quiet, '');
+  yes('  and one called rusty that you have been at this month says that too',
+    /been at it/.test(doubt.rusty), doubt.rusty);
+  const filt = await p.evaluate(async () => {
+    const sel = document.querySelector('#scinvFam');
+    sel.value = 'unplayed'; sel.onchange();
+    await new Promise(r => setTimeout(r, 700));
+    const rows = [...document.querySelectorAll('.sc-invrow .sc-invname b')].map(n => n.textContent.trim());
+    document.querySelector('#scinvClear').click();
+    await new Promise(r => setTimeout(r, 600));
+    return {rows, back: document.querySelectorAll('.sc-invrow').length};
+  });
+  yes('the list can be asked for one rung at a time',
+    !filt.rows.includes('Eight Changes'), JSON.stringify(filt.rows));
+  yes('  and clearing brings them back', filt.back >= 3, String(filt.back));
+
+  console.log('\n6. the time categories are yours');
   await p.evaluate(() => { location.hash = '#/time/categories'; }); await p.waitForTimeout(1000);
   const shown = await p.evaluate(() => ({
     rows: document.querySelectorAll('.tm-catrow').length,
@@ -351,7 +408,7 @@ const ARP = `<?xml version="1.0" encoding="UTF-8"?><score-partwise version="3.1"
   is('a new one can be added', fresh.grew, 1);
   is('  with the caret already in its name', fresh.focused, 'name');
 
-  console.log('\n6. sleep is read off Today, not timed here');
+  console.log('\n7. sleep is read off Today, not timed here');
   const slept = await p.evaluate(async () => {
     const d = today();
     S.dailyRhythm = S.dailyRhythm || {};
@@ -399,7 +456,7 @@ const ARP = `<?xml version="1.0" encoding="UTF-8"?><score-partwise version="3.1"
     JSON.stringify(untracked));
   yes('  and says it means the waking hours', /awake/.test(untracked.said), untracked.said);
 
-  console.log('\n7. the exchange');
+  console.log('\n8. the exchange');
   const parts = await p.evaluate(() => {
     const rows = {meta:[{key:'settings', value:{a:1}}, {key:'time', value:{b:2}}],
       tasks:[{id:'t1'}], scores:[{id:'s1'}]};
@@ -468,7 +525,7 @@ const ARP = `<?xml version="1.0" encoding="UTF-8"?><score-partwise version="3.1"
     /No account here/.test(room.says) && /nothing of yours goes/.test(room.says), room.says.slice(0, 160));
   yes('  and a way to do it by hand where there is no folder picker', room.byHand);
 
-  console.log('\n8. nothing threw');
+  console.log('\n9. nothing threw');
   is('no page errors', errs, []);
 
   console.log(bad ? `\n${bad} FAILED` : '\nall good');

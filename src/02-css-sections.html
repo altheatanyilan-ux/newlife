@@ -7890,9 +7890,18 @@ html.sc-reading .sc-strip .tbtn,html.sc-reading .sc-strip .sel{min-height:34px;p
   .scr-bar{grid-template-columns:6rem minmax(0,1fr) 2.2rem}
 }
 .sc-invrows{display:flex;flex-direction:column;gap:2px;margin-top:10px}
-.sc-invrow{display:grid;grid-template-columns:minmax(0,2.2fr) 6.5rem 7rem minmax(0,1.2fr) minmax(0,1fr) 4.2rem 6.5rem 1.6rem;
+.sc-invrow{display:grid;grid-template-columns:minmax(0,2fr) 6rem 10rem minmax(0,1.2fr) minmax(0,.9fr) 4.2rem 6rem 1.6rem;
   gap:10px;align-items:center;padding:6px 8px;border-radius:var(--radius);
   border-left:3px solid var(--c);font-size:.78rem}
+/* how well you know it, set on the row: it is the one thing you come to this
+   list to change */
+.sc-invfam{display:flex;flex-direction:column;gap:2px;min-width:0}
+.sc-invfam .sel{font-size:.72rem;padding:2px 5px;width:100%}
+/* where what you said and what the log says disagree. Not a correction — you
+   know whether you can play it and this room does not — but a piece called
+   performance ready and not touched since the spring is worth a word. */
+.sc-invdoubt{font-size:.6rem;font-style:normal;line-height:1.3;color:#c98b7a;opacity:.85}
+.sc-invrow.doubt{background:color-mix(in srgb,#c98b7a 6%,transparent)}
 .sc-invrow:nth-child(odd){background:color-mix(in srgb,var(--surface) 60%,transparent)}
 .sc-invrow:hover{background:var(--surface)}
 .sc-invname{background:none;border:0;padding:0;text-align:left;cursor:pointer;font:inherit;

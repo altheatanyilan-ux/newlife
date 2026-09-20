@@ -78,6 +78,55 @@ function scoreState(){
    composer and nothing else. A period is not decoration: practising four
    Romantic pieces and no counterpoint for three months is a thing you cannot
    see until the shelf can be asked. */
+/* ---------- how well you know a piece ----------
+   This is yours to say, and it is deliberately not the same question as the
+   one the sections answer. A section's standing is about a passage you have
+   marked up and worked on; this is about your relationship with the whole
+   piece over years, and the two genuinely differ — a piece can have no
+   sections marked at all and still be one you could play tomorrow, and a
+   piece can be marked up in detail precisely because it is the one you
+   cannot play.
+
+   The last two are not further along the ladder; they are off it. Rusty is
+   not a stage between learning and ready, it is having been ready and lost
+   it, which is a different problem with a different cure: the notes are
+   still in your head and the hands have forgotten, so what it needs is
+   slow playing rather than learning. Put down is a decision rather than a
+   condition. Both are how musicians actually talk about pieces, and a list
+   that only went up would have nowhere to put either. */
+const SCORE_FAMILIAR = [
+  ['unplayed', 'Not played',        'on the shelf, not opened at the piano', '#8a8d8f'],
+  ['read',     'Sight-read',        'played through, nothing learnt yet',    '#8a7f9e'],
+  ['learning', 'Learning',          'working through it now, not whole yet', '#b0705e'],
+  ['fingers',  'Under the fingers', 'can play it through, roughly',          '#c47832'],
+  ['polish',   'Needs polish',      'all there, and not ready to be heard',  '#c9a96e'],
+  ['ready',    'Performance ready', 'holds together with somebody listening','#7f916a'],
+  ['rusty',    'Rusty',             'learnt once, and the hands have forgotten', '#5c7c8a'],
+  ['retired',  'Put down',          'played properly once, and not coming back for now', '#7a7a7a'],
+];
+const scoreFamiliarOf = x => (SCORE_FAMILIAR.find(v => v[0] === (x && x.familiar)) || SCORE_FAMILIAR[0]);
+const scoreFamiliarName = k => (SCORE_FAMILIAR.find(v => v[0] === k) || SCORE_FAMILIAR[0])[1];
+/* Where it sits on the ladder, for sorting. The two that are off the ladder
+   are put at the end rather than given a false rung. */
+const scoreFamiliarAt = k => { const i = SCORE_FAMILIAR.findIndex(v => v[0] === k);
+  return i < 0 ? 0 : i; };
+/* What the record says about what you said. Not a correction — you know
+   whether you can play it and this room does not — but a piece you called
+   performance ready and have not touched since the spring is the honest
+   definition of one that has gone rusty, and saying so is the only use a
+   practice log has that a diary does not. */
+const SCORE_STALE_AFTER = 90;
+function scoreFamiliarDoubt(x){
+  const last = scoreLastPractised(x);
+  const at = scoreFamiliarAt(x.familiar);
+  if(!last) return at >= 4 ? 'never practised in this room, so nothing here can vouch for it' : '';
+  const days = daysSince(last);
+  if(at >= 5 && x.familiar !== 'rusty' && days > SCORE_STALE_AFTER)
+    return `called ${scoreFamiliarName(x.familiar).toLowerCase()}, not practised in ${Math.round(days / 30)} months`;
+  if(x.familiar === 'rusty' && days <= 21) return 'called rusty, and you have been at it this month';
+  return '';
+}
+
 const SCORE_PERIODS = [
   ['medieval',     'Medieval'],
   ['renaissance',  'Renaissance'],
@@ -125,6 +174,9 @@ function scoreDefaults(x){
      has decided and the guess stands, 'other' means you looked and none of
      them fitted. */
   x.period = SCORE_PERIODS.some(v => v[0] === x.period) ? x.period : null;
+  /* How well you know it, said by you. Nothing in the room writes this: it
+     is the one thing here only the person at the piano can know. */
+  x.familiar = SCORE_FAMILIAR.some(v => v[0] === x.familiar) ? x.familiar : 'unplayed';
   x.musicXml = typeof x.musicXml === 'string' ? x.musicXml : '';
   x.instruments = Array.isArray(x.instruments) ? x.instruments : [];
   x.hidden = Array.isArray(x.hidden) ? x.hidden : [];      // part indices switched off
