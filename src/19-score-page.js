@@ -87,7 +87,107 @@ function scoreLibraryHTML(){
       </div>`; }).join('')}</div>
       <div class="sc-weigh mono${scoreLibraryHeavy() ? ' heavy' : ''}">${list.length} score${list.length === 1 ? '' : 's'} · ${scoreSaid(weight)} of notation kept${
         scoreLibraryHeavy() ? ' — heavy enough to be slowing every save. Take off what you are not working on; the sections and notes go with it.' : ''}</div>`
-      : '<div class="empty">Nothing on the shelf yet.</div>'}`;
+      : '<div class="empty">Nothing on the shelf yet.</div>'}
+    ${scoreInventoryHTML()}`;
+}
+
+/* ---------- the inventory ----------
+   The shelf answers "what am I working on": biggest, newest, most recently
+   opened first. It does not answer "what have I got", which is the question
+   you ask when you are deciding what to pick up next, or wondering whether
+   that Debussy you imported in March is still here and how far you got with
+   it. Projects and the Skill Tree both grew this section for the same reason
+   and this is deliberately the same shape — search, filters as selects, one
+   row per score, sortable, with what you have done to it on the row.
+
+   Everything the shelf shows as a picture, this shows as a number, because
+   the two questions want different answers. */
+function scoreFilters(){
+  return S._scinv = S._scinv || {q:'', state:'all', shape:'all', sort:'opened'};
+}
+/* Where a score stands, taken from its sections rather than set by hand: a
+   piece is as ready as the least ready part of it that you have marked. */
+function scoreStanding(x){
+  const secs = x.sections || [];
+  if(!secs.length) return {key:'unmarked', name:'not marked up', color:'#8a8d8f'};
+  const rank = k => SCORE_STATUS.findIndex(v => v[0] === k);
+  const low = secs.reduce((a, sc) => Math.min(a, rank(sc.status)), 99);
+  const st = SCORE_STATUS[Math.max(0, low)];
+  const all = secs.every(sc => sc.status === 'polished');
+  if(all) return {key:'polished', name:'polished', color:'#7f916a'};
+  return {key: st[0], name: st[1].toLowerCase(), color: low >= 3 ? '#7f916a' : low >= 2 ? '#c9a96e' : '#b0705e'};
+}
+const scoreMinutesAll = x => sum((x.practice || []).map(r => +r.minutes || 0));
+const scoreLastPractised = x => (x.practice || []).map(r => r.date).sort().slice(-1)[0] || '';
+function scoreMatches(x, f){
+  const q = (f.q || '').trim().toLowerCase();
+  if(q && !`${x.title} ${x.composer || ''} ${(x.sections || []).map(sc => sc.name).join(' ')}`.toLowerCase().includes(q)) return false;
+  if(f.state !== 'all' && scoreStanding(x).key !== f.state) return false;
+  const last = scoreLastPractised(x);
+  if(f.shape === 'unmarked' && (x.sections || []).length) return false;
+  if(f.shape === 'marked'   && !(x.sections || []).length) return false;
+  if(f.shape === 'never'    && last) return false;
+  if(f.shape === 'cold'     && !(last && daysSince(last) > 21)) return false;
+  if(f.shape === 'warm'     && !(last && daysSince(last) <= 7)) return false;
+  if(f.shape === 'written'  && !((x.pins || []).length || Object.keys(x.fingerings || {}).length)) return false;
+  return true;
+}
+function scoreInventoryHTML(){
+  const all = scoreState();
+  if(!all.length) return '';
+  const f = scoreFilters();
+  const counts = {};
+  all.forEach(x => { const k = scoreStanding(x).key; counts[k] = (counts[k] || 0) + 1; });
+  const list = all.filter(x => scoreMatches(x, f)).sort((a, b) => {
+    if(f.sort === 'title')    return a.title.localeCompare(b.title);
+    if(f.sort === 'composer') return (a.composer || '\uffff').localeCompare(b.composer || '\uffff') || a.title.localeCompare(b.title);
+    if(f.sort === 'bars')     return (+b.totalMeasures || 0) - (+a.totalMeasures || 0);
+    if(f.sort === 'time')     return scoreMinutesAll(b) - scoreMinutesAll(a);
+    if(f.sort === 'practised')return daysSince(scoreLastPractised(a)) - daysSince(scoreLastPractised(b));
+    return (b.lastOpened || b.createdAt || '').localeCompare(a.lastOpened || a.createdAt || '');
+  });
+  const dirty = f.q || f.state !== 'all' || f.shape !== 'all';
+  const states = [['unmarked','not marked up'], ...SCORE_STATUS.map(([k, n]) => [k, n.toLowerCase()])];
+  return `<section class="section rv sc-inv" id="scInv">
+    <div class="row between"><span class="sc" style="margin:0">Inventory</span>
+      <span class="mono">${list.length} of ${all.length} shown</span></div>
+    <p class="muted" style="font-size:.85rem">Everything you have brought in, including the pieces you have not started marking up. The shelf is what you are working on; this is what you have.</p>
+    <div class="filter-bar">
+      <input class="inp" id="scinvq" placeholder="search title, composer, section" value="${esc(f.q)}">
+      <select class="sel" id="scinvState"><option value="all">any standing</option>${states.map(([k, n]) =>
+        `<option value="${k}" ${f.state === k ? 'selected' : ''}>${esc(n)}${counts[k] ? ` (${counts[k]})` : ''}</option>`).join('')}</select>
+      <select class="sel" id="scinvShape">${[['all','any shape'],['marked','has sections'],['unmarked','no sections yet'],
+        ['warm','practised this week'],['cold','nothing for three weeks'],['never','never practised'],
+        ['written','has pins or fingerings']].map(([v, l]) =>
+        `<option value="${v}" ${f.shape === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
+      <select class="sel" id="scinvSort">${[['opened','by last opened'],['practised','by last practised'],
+        ['time','by time spent'],['bars','by length'],['composer','by composer'],['title','by title']].map(([v, l]) =>
+        `<option value="${v}" ${f.sort === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
+      ${dirty ? `<button class="btn sm ghost" id="scinvClear">clear</button>` : ''}
+    </div>
+    ${list.length ? `<div class="sc-invrows">${list.map(x => {
+      const st = scoreStanding(x);
+      const secs = (x.sections || []).length;
+      const mins = scoreMinutesAll(x);
+      const last = scoreLastPractised(x);
+      const pins = (x.pins || []).length;
+      const fing = Object.keys(x.fingerings || {}).length;
+      return `<div class="sc-invrow" style="--c:${st.color}" data-scinvrow="${esc(x.id)}">
+        <button class="sc-invname" data-scopen="${esc(x.id)}">
+          <b class="serif">${esc(x.title)}</b>
+          ${x.composer ? `<span class="faint">${esc(x.composer)}</span>` : ''}</button>
+        <span class="sc-invstate mono">${esc(st.name)}</span>
+        <span class="mono faint">${x.totalMeasures ? `${x.totalMeasures} bars` : '\u2014'}${
+          secs ? ` \u00b7 ${secs} section${secs === 1 ? '' : 's'}` : ''}${
+          x.transpose ? ` \u00b7 ${x.transpose > 0 ? '+' : '\u2212'}${Math.abs(x.transpose)}` : ''}</span>
+        <span class="mono faint">${pins || fing ? `${pins ? `${pins} pin${pins === 1 ? '' : 's'}` : ''}${
+          pins && fing ? ' \u00b7 ' : ''}${fing ? `${fing} finger${fing === 1 ? '' : 's'}` : ''}` : ''}</span>
+        <span class="mono">${mins ? fmtHM(mins) : '\u2014'}</span>
+        <span class="mono faint">${last ? esc(scoreAgo(last)) : 'never practised'}</span>
+        <button class="del-x inline" data-scdel="${esc(x.id)}" title="take this score off the shelf">\u00d7</button>
+      </div>`; }).join('')}</div>`
+      : '<div class="empty sm">Nothing matches that.</div>'}
+  </section>`;
 }
 
 /* ---------- the score ---------- */
@@ -96,7 +196,7 @@ function scoreViewerHTML(x){
   const focus = ui.focus ? scoreSection(x, ui.focus) : null;
   const parts = x.instruments || [];
   return `<div class="sc-head">
-      <a class="btn sm ghost" href="#/score" id="scBack">← the shelf</a>
+      <button class="btn sm ghost" id="scBack">← the shelf</button>
       <span class="sc-title serif">${esc(x.title)}</span>
       ${x.composer ? `<span class="sc-comp">${esc(x.composer)}</span>` : ''}
       <span class="grow"></span>
@@ -133,103 +233,18 @@ function scoreViewerHTML(x){
     </div>
     ${ui.more ? `<div class="sc-bar sc-bar2">${scoreMetroHTML(x)}</div>
       <div class="sc-bar sc-bar2">${scoreLayerPickHTML(x)}
-        <span class="grow"></span>${scoreXposeHTML(x)}</div>
-      <div class="sc-bar sc-bar2">${scoreCursorHTML(x)}</div>` : ''}
+        <span class="grow"></span>${scoreXposeHTML(x)}</div>` : ''}
     ${scoreReadStripHTML(x)}
     <div class="sc-body">
       <div class="sc-stage" id="scStage">
         <div class="sc-canvas" id="scCanvas"></div>
         <div class="sc-overlay" id="scOverlay" aria-hidden="true"></div>
         <div class="sc-marks" id="scMarks2" aria-hidden="true"></div>
-        <div class="sc-marks" id="scCur" aria-hidden="true"></div>
         <div class="sc-pins" id="scPins"></div>
         <div class="sc-loading" id="scLoading">engraving…</div>
       </div>
       <aside class="sc-side" id="scSide">${scoreSideHTML(x)}</aside>
     </div>`;
-}
-
-/* The marker, and the three sizes of step. It is off until you ask for it:
-   a line under the music you are not following is one more thing on a page
-   that already has notes on it. */
-function scoreCursorHTML(x, compact){
-  const on = scoreCursorOn();
-  const mode = (scoreCursorAt() || {}).mode || 'beat';
-  return `<span class="sc-cur">
-    <button class="btn sm${on ? ' primary' : ''}" data-sccuron="1"
-      title="${on ? 'put the marker away' : 'walk through the piece a step at a time'}">${on ? '\u25c9' : '\u25cb'} walk</button>
-    <button class="tbtn" data-sccur="-1" ${on ? '' : 'disabled'} title="back a step">\u25c2</button>
-    <span class="mono sc-cursay">${esc(scoreCursorSay())}</span>
-    <button class="tbtn" data-sccur="1" ${on ? '' : 'disabled'} title="on a step">\u25b8</button>
-    ${compact ? '' : `<span class="sc-curmodes">${SCORE_CURSOR_MODES.map(([k, name]) =>
-      `<button class="tbtn${mode === k ? ' on' : ''}" data-sccurmode="${k}" ${on ? '' : 'disabled'}
-        title="a step is one ${esc(name)}">${esc(name)}</button>`).join('')}</span>`}
-    <button class="tbtn${_scAuto ? ' on' : ''}" data-sccurauto="1" ${on ? '' : 'disabled'}
-      title="let it walk on by itself">${_scAuto ? '\u25fc' : '\u25b6'}${compact ? '' : ' on its own'}</button>
-    ${compact ? '' : `<select class="sel sm" id="scCurSpeed" ${on ? '' : 'disabled'} title="how fast, when nothing is clicking">
-      ${SCORE_CURSOR_SPEEDS.map(v => `<option value="${v}" ${(x.cursorSpeed || 1) === v ? 'selected' : ''}>${v}/sec</option>`).join('')}</select>`}
-  </span>`;
-}
-/* The marker itself: a band the height of the system, at the place in the bar
-   the step landed on. Drawn from the same measure boxes as the section bands,
-   so it lands where the notation actually is rather than where the engraver's
-   own cursor thinks the page starts. */
-function scoreCursorPaint(x){
-  const box = document.getElementById('scCur');
-  if(!box) return;
-  const at = scoreCursorAt();
-  $$('.sc-cursay').forEach(n => n.textContent = scoreCursorSay());
-  if(!at){ box.innerHTML = ''; return; }
-  const sv = scoreView();
-  const boxes = measureBoxes().filter(b => b.measure === at.measure
-    && (!sv || !sv.page || b.page === sv.at));
-  if(!boxes.length){ box.innerHTML = ''; return; }
-  const u = scoreUnitPx();
-  const top = boxes.reduce((a, b) => Math.min(a, b.y), Infinity);
-  const bot = boxes.reduce((a, b) => Math.max(a, b.y + b.h), -Infinity);
-  box.innerHTML = `<i class="sc-cursor" style="left:${at.x.toFixed(1)}px;top:${
-    (top - u * 0.6).toFixed(1)}px;height:${(bot - top + u * 1.2).toFixed(1)}px;width:${
-    Math.max(3, u * 0.5).toFixed(1)}px"></i>`;
-}
-/* A step, and everything that follows from it: the page turns if the step
-   went over the leaf, the marker is scrolled to if it went off the bottom. */
-function scoreCursorGo(by, x){
-  if(!scoreCursorStep(by)) return false;
-  const at = scoreCursorAt();
-  const sv = scoreView();
-  if(sv && sv.page && at.page != null && at.page !== sv.at){
-    showScorePage(at.page); scoreOverlayPaint(x); scoreLayersPaint(x); scorePageSay();
-  }
-  scoreCursorPaint(x);
-  const stage = document.getElementById('scStage');
-  if(stage && !(sv && sv.page)){
-    const b = measureBox(at.measure);
-    if(b && (b.y < stage.scrollTop || b.y > stage.scrollTop + stage.clientHeight - 80))
-      stage.scrollTo({top: Math.max(0, b.y - 80), behavior:'smooth'});
-  }
-  return true;
-}
-/* Walking on its own. Where the click is running the marker moves on the
-   click, because two clocks in one room drift apart and the sight of the
-   marker landing a little after the beat is worse than no marker. */
-function scoreCursorAuto(on, x){
-  if(_scAuto){ _scAuto(); _scAuto = null; }
-  $$('[data-sccurauto]').forEach(n => { n.textContent = on
-    ? (n.closest('.sc-strip') ? '\u25fc' : '\u25fc on its own')
-    : (n.closest('.sc-strip') ? '\u25b6' : '\u25b6 on its own');
-    n.classList.toggle('on', !!on); });
-  if(!on) return false;
-  const rec = x || scoreById(scoreUi().id);
-  if(!rec || !scoreCursorOn()) return false;
-  if(ScoreMetronome.running){
-    const off = ScoreMetronome.onBeat(() => { if(!scoreCursorGo(1, rec)) scoreCursorAuto(false, rec); });
-    _scAuto = off;
-  } else {
-    const per = 1000 / (+rec.cursorSpeed || 1);
-    const id = setInterval(() => { if(!scoreCursorGo(1, rec)) scoreCursorAuto(false, rec); }, per);
-    _scAuto = () => clearInterval(id);
-  }
-  return true;
 }
 
 /* Moving the piece into another key. Two buttons and the key it lands in,
@@ -291,8 +306,8 @@ function scoreMetroHTML(x){
     <button class="tbtn" id="scTap" title="press it in time, four or more">tap</button>
     <label class="sc-per"><span class="k mono">beats/bar</span>
       <input class="inp sm mono" id="scPer" type="number" min="1" max="16" value="${per}"
-        title="${t ? `${t.beats}/${t.unit} in the score` : 'no time signature found'}"></label>
-    ${t ? `<span class="mono faint">${t.beats}/${t.unit}</span>` : ''}
+        title="${t ? `the score is written in ${t.beats}/${t.unit}` : 'no time signature found'}"></label>
+    ${scoreSigSayHTML(x)}
   </span>`;
 }
 
@@ -325,6 +340,7 @@ function scoreReadStripHTML(x){
   const secs = (x.sections || []).slice().sort((a, b) => a.startMeasure - b.startMeasure);
   return `<div class="sc-strip" id="scStrip">
     <button class="tbtn" id="scUnread" title="back to the room">✕ done</button>
+    <button class="tbtn" id="scHide" title="send this away now — a press anywhere brings it back">⌄</button>
     <span class="sc-strip-t serif">${esc(x.title)}</span>
     ${scoreBplHTML(x)}
     ${parts.length > 1 ? `<span class="sc-strip-parts">${parts.map(p =>
@@ -333,7 +349,6 @@ function scoreReadStripHTML(x){
     <span class="sc-layers">${SCORE_OVERLAYS.map(([k, name, hint, col]) =>
       `<button class="tbtn sc-layer${(x.overlays || {})[k] ? ' on' : ''}" data-sclayer="${k}" style="--c:${col}"
         title="${esc(hint)}">${esc(name)}</button>`).join('')}</span>
-    ${scoreCursorHTML(x, true)}
     <span class="sc-pager"><button class="tbtn" data-scturn="-1" title="back a page">‹</button>
       <span class="mono" id="scPageSay"></span>
       <button class="tbtn" data-scturn="1" title="on a page">›</button></span>
@@ -362,34 +377,110 @@ async function scoreKeepAwake(on){
     return true;
   } catch(e){ if(say) say.textContent = ''; return false; }
 }
+/* Reading mode used to be the room with its furniture taken away, which left
+   the browser's own furniture — tabs, address bar, bookmarks — standing over
+   a page of music on a tablet propped on the piano. That is most of a
+   centimetre of somebody else's interface at the top of the thing you are
+   reading from. So it asks for the screen itself.
+
+   The request has to come from a press, which it does; a browser that refuses
+   it, or a page that is not allowed to ask, simply gets what it had before —
+   the room without its furniture — and nothing is claimed that did not
+   happen. Leaving by any route puts the screen back, including the Escape
+   key, which the browser handles itself and tells us about afterwards. */
 function setScoreReading(on){
   const ui = scoreUi();
   ui.reading = !!on;
   document.documentElement.classList.toggle('sc-reading', ui.reading);
   scoreKeepAwake(ui.reading);
   scoreQuietWatch(ui.reading);
+  scoreFullscreen(ui.reading);
+  scoreFullscreenWatch(ui.reading);
   /* the width changed by a lot, so the lines have to be broken again */
   rerender();
+}
+/* Everything that leaving reading mode has to undo, in one place, so a press
+   on "done" and a press on "the shelf" put the same things back. */
+function scoreLeaveReading(){
+  const ui = scoreUi();
+  if(!ui.reading){ scoreFullscreen(false); return; }
+  ui.reading = false;
+  document.documentElement.classList.remove('sc-reading');
+  scoreKeepAwake(false);
+  scoreQuietWatch(false);
+  scoreFullscreen(false);
+  scoreFullscreenWatch(false);
+}
+function scoreFullscreen(on){
+  const el = document.documentElement;
+  try {
+    if(on){
+      if(document.fullscreenElement) return true;
+      const go = el.requestFullscreen || el.webkitRequestFullscreen;
+      if(!go) return false;
+      const p = go.call(el, {navigationUI:'hide'});
+      /* a refusal is not an error worth showing: the room is already stripped
+         and the only thing missing is the browser's own edges */
+      if(p && p.catch) p.catch(() => {});
+      return true;
+    }
+    if(!document.fullscreenElement && !document.webkitFullscreenElement) return false;
+    const out = document.exitFullscreen || document.webkitExitFullscreen;
+    if(!out) return false;
+    const q = out.call(document);
+    if(q && q.catch) q.catch(() => {});
+    return true;
+  } catch(e){ return false; }
+}
+/* The Escape key is the browser's, not ours: it leaves full screen without
+   telling anybody, and a room still in reading mode with the tabs back is
+   neither one thing nor the other. So the change is watched, and the room
+   follows the screen out. */
+let _scFs = null;
+function scoreFullscreenWatch(on){
+  if(_scFs){ removeEventListener('fullscreenchange', _scFs);
+    removeEventListener('webkitfullscreenchange', _scFs); _scFs = null; }
+  if(!on) return;
+  _scFs = () => {
+    if(document.fullscreenElement || document.webkitFullscreenElement) return;
+    if(!scoreUi().reading) return;
+    scoreLeaveReading();
+    rerender();
+  };
+  addEventListener('fullscreenchange', _scFs);
+  addEventListener('webkitfullscreenchange', _scFs);
 }
 /* The strip takes itself away after a few seconds and comes back on any touch.
    Which is also why a tap in reading mode wakes the strip and never pins a
    note: your hands are on the keys, and an accidental pin at bar 43 every time
    you brush the glass is worse than having no pins at all. */
 let _scQuiet = null;
+/* The strip takes itself away after a few seconds so that what is on the
+   glass is a page of music. It used to wake on any pointer movement, which on
+   a laptop meant it never stayed away for more than a moment: a mouse resting
+   on the desk twitches. Now it wakes on a press or a key — things you did on
+   purpose — and there is a button to send it away before the few seconds are
+   up, for when you already know you are done with it. */
+const SCORE_QUIET_AFTER = 3500;
 function scoreQuietWatch(on){
   const root = document.documentElement;
   if(_scQuiet){
     clearTimeout(_scQuiet.timer);
-    ['pointerdown','pointermove','keydown','wheel'].forEach(e => removeEventListener(e, _scQuiet.wake, true));
+    ['pointerdown','keydown'].forEach(e => removeEventListener(e, _scQuiet.wake, true));
     _scQuiet = null;
   }
   root.classList.remove('sc-quiet');
   if(!on) return;
   const hide = () => root.classList.add('sc-quiet');
   const wake = () => { root.classList.remove('sc-quiet');
-    if(_scQuiet){ clearTimeout(_scQuiet.timer); _scQuiet.timer = setTimeout(hide, 3500); } };
-  _scQuiet = {wake, timer: setTimeout(hide, 3500)};
-  ['pointerdown','pointermove','keydown','wheel'].forEach(e => addEventListener(e, wake, true));
+    if(_scQuiet){ clearTimeout(_scQuiet.timer); _scQuiet.timer = setTimeout(hide, SCORE_QUIET_AFTER); } };
+  _scQuiet = {wake, timer: setTimeout(hide, SCORE_QUIET_AFTER)};
+  ['pointerdown','keydown'].forEach(e => addEventListener(e, wake, true));
+}
+/* away now, rather than in three seconds */
+function scoreStripHide(){
+  if(_scQuiet) clearTimeout(_scQuiet.timer);
+  document.documentElement.classList.add('sc-quiet');
 }
 
 /* The panel beside the score. Repainted on its own, because writing a note
@@ -496,7 +587,6 @@ async function scorePaint(x){
     scoreOverlayPaint(x);
     scoreLayersPaint(x);
     scoreXposeRepaint(x);
-    scoreCursorPaint(x);
     scorePageSay();
     saveNow();
   } catch(e){
@@ -560,13 +650,14 @@ function scoreLayersPaint(x){
   const sv = scoreView();
   const on = sv && sv.page ? sv.at : null;
   const notes = scoreNotes().filter(n => on === null || n.page === on);
-  /* A page of a Ballade is a couple of thousand note heads and a label on
-     each is unreadable anyway; past a sensible number the layer says so
-     rather than painting a grey fog over the music. */
-  if(notes.length > SCORE_LAYER_MAX){
-    box.innerHTML = `<i class="sc-toomany mono">too many notes on this page to label — fewer bars to a line, or focus a section</i>`;
-    return;
-  }
+  /* There used to be a ceiling here: past nine hundred note heads the layer
+     refused and said so. It was the wrong call. The pieces where you most
+     need to see the harmony are the thick ones, and a room that goes quiet
+     exactly when you ask it the hard question is a room you stop asking. The
+     labels are cheap to draw — they are absolutely positioned text, not
+     layout — and if a page is too dense to read them, fewer bars to a line
+     is a thing you can already do, and now it is your decision rather than
+     the room's. */
   const key = scoreKey();
   const root = keyRootOf(key.fifths, key.minor);
   /* Everything is measured in staff spaces rather than pixels, because the
@@ -597,7 +688,6 @@ function scoreUnitPx(){
   const sv = scoreView();
   return sv && sv.osmd ? (sv.osmd.zoom || 1) * 10 : 10;
 }
-const SCORE_LAYER_MAX = 900;
 function scoreChordsHTML(x, notes, u, size){
   const key = scoreKey();
   const line = scoreChordLine(notes, {flat: (+key.fifths || 0) < 0});
@@ -748,7 +838,6 @@ async function scorePrint(x, mode){
     ui.reading = was; ui.focus = focus;
     doc.classList.toggle('sc-reading', was);
     await scoreRedraw(x);
-    scoreCursorPaint(x);
   }
   return true;
 }
@@ -922,7 +1011,6 @@ async function scoreRedraw(x){
     scoreOverlayPaint(x);
     scoreLayersPaint(x);
     scoreXposeRepaint(x);
-    scoreCursorPaint(x);
     scorePageSay();
   } catch(e){ console.warn('score redraw failed', e); }
 }
@@ -979,15 +1067,38 @@ function bindScoreLibrary(root){
     scoreUi().id = b.dataset.scopen; scoreUi().focus = null; navigate('#/score/' + b.dataset.scopen); });
   $$('[data-scdel]', root).forEach(b => b.onclick = () => {
     const x = scoreById(b.dataset.scdel); if(!x) return;
-    requestDelete({label: x.title, node: b.closest('.sc-item'), after: rerender,
+    requestDelete({label: x.title, node: b.closest('.sc-item, .sc-invrow'), after: rerender,
       remove: () => removeScore(x.id)});
   });
+  bindScoreInventory(root);
+}
+function bindScoreInventory(root){
+  const f = scoreFilters();
+  const redraw = () => { saveNow(); rerender(); };
+  const q = root.querySelector('#scinvq');
+  /* typed rather than pressed, so it filters as you go and keeps the caret
+     where it was — a rerender would take the focus with it otherwise */
+  if(q) q.oninput = debounce(() => { f.q = q.value; saveNow();
+    const at = q.selectionStart; rerender();
+    const again = document.getElementById('scinvq');
+    if(again){ again.focus(); again.setSelectionRange(at, at); } }, 220);
+  const pick = (sel, key) => { const n = root.querySelector(sel); if(n)
+    n.onchange = () => { f[key] = n.value; redraw(); }; };
+  pick('#scinvState', 'state'); pick('#scinvShape', 'shape'); pick('#scinvSort', 'sort');
+  const clear = root.querySelector('#scinvClear');
+  if(clear) clear.onclick = () => { f.q = ''; f.state = 'all'; f.shape = 'all'; redraw(); };
 }
 
 function bindScoreViewer(root, x){
   const ui = scoreUi();
   const on = (sel, fn) => { const n = root.querySelector(sel); if(n) n.onclick = fn; };
-  on('#scBack', () => { ui.id = null; ui.focus = null; setScoreReading(false); });
+  /* It was an anchor with a click handler on it, which is two ways back: the
+     handler cleared the score and redrew, the redraw read the id straight
+     back out of the address it was still at, and only the anchor's own
+     navigation — a beat later — actually left. One press, one navigation. */
+  on('#scBack', () => { ui.id = null; ui.focus = null;
+    scoreLeaveReading();
+    saveNow(); navigate('#/score'); });
   on('#scNewSec', () => openSectionModal(x.id));
   on('#scUnfocus', () => { ui.focus = null; rerender(); });
   on('#scLog', () => openScoreLogModal(x.id, ui.focus));
@@ -1003,22 +1114,6 @@ function bindScoreViewer(root, x){
     b.classList.toggle('on', x.overlays[k]);
     saveNow(); scoreLayersPaint(x);
   });
-  $$('[data-sccuron]', root).forEach(b => b.onclick = () => { const was = scoreCursorOn();
-    scoreCursorShow(!was); if(was) scoreCursorAuto(false, x);
-    saveNow(); rerender(); });
-  $$('[data-sccur]', root).forEach(b => b.onclick = () => {
-    if(!scoreCursorGo(+b.dataset.sccur, x)) toast(+b.dataset.sccur > 0 ? 'That is the end of it.' : 'That is the beginning.');
-  });
-  $$('[data-sccurmode]', root).forEach(b => b.onclick = () => {
-    scoreCursorMode(b.dataset.sccurmode);
-    $$('[data-sccurmode]').forEach(y => y.classList.toggle('on', y.dataset.sccurmode === b.dataset.sccurmode));
-    scoreCursorPaint(x);
-  });
-  $$('[data-sccurauto]', root).forEach(b => b.onclick = () => scoreCursorAuto(!_scAuto, x));
-  const speed = root.querySelector('#scCurSpeed');
-  if(speed) speed.onchange = () => { x.cursorSpeed = +speed.value || 1; saveNow();
-    if(_scAuto) scoreCursorAuto(true, x); };
-  on('#scPrint', () => openPrintModal(x.id));
   const marks = root.querySelector('#scMarks2');
   if(marks) marks.onclick = ev => {
     const chord = ev.target.closest('[data-scchord]');
@@ -1033,6 +1128,7 @@ function bindScoreViewer(root, x){
   bindScoreMetro(root, x);
   on('#scRead', () => setScoreReading(true));
   on('#scUnread', () => setScoreReading(false));
+  on('#scHide', () => scoreStripHide());
   on('#scMarks', () => { const u = scoreUi(); u.marks = !u.marks; saveNow();
     const btn = root.querySelector('#scMarks'); if(btn) btn.classList.toggle('on', u.marks);
     scoreOverlayPaint(x); scoreLayersPaint(x); });
@@ -1122,10 +1218,7 @@ function bindScoreViewer(root, x){
   /* the watcher is re-armed after every redraw of the page, because the
      listeners it hangs on went with the old one */
   if(ui.reading){ scoreQuietWatch(true); scoreKeysWatch(x); bindScoreMetro(root, x); }
-  /* out of reading mode the arrows are nobody's until the marker is out, and
-     then they are the marker's — which is the only thing on this page that
-     wants a key rather than a press */
-  else scoreKeysWatch(scoreCursorOn() ? x : null);
+  else scoreKeysWatch(null);
   bindScoreSide(root, x);
 }
 /* The metronome's controls, which appear in two places — the toolbar's second
@@ -1150,8 +1243,11 @@ function bindScoreMetro(root, x){
   });
   $$('#scBpmIn', root).forEach(n => n.onchange = () => {
     x.metronome.bpm = ScoreMetronome.setBpm(n.value); saveNow(); scoreMetroSay(x); });
-  $$('#scPer', root).forEach(n => n.onchange = () => {
+  $$('#scPer', root).forEach(n => n.oninput = n.onchange = () => {
     x.metronome.perBar = ScoreMetronome.setPerBar(n.value); saveNow(); scoreMetroSay(x); });
+  $$('#scSigBack', root).forEach(b => b.onclick = () => { x.metronome.perBar = null;
+    ScoreMetronome.setPerBar(scoreTimeSignature() ? scoreTimeSignature().beats : 4);
+    saveNow(); scoreMetroSay(x); });
   $$('#scTap', root).forEach(b => b.onclick = () => {
     const n = scoreTapTempo();
     if(n == null){ toast('Again, in time — four or more.'); return; }
@@ -1161,10 +1257,38 @@ function bindScoreMetro(root, x){
   say();
   scorePulseWatch();
 }
+/* What the click is actually counting, beside the field that sets it.
+
+   It used to be the time signature off the notation and nothing else, so
+   changing the beats in a bar left a number saying 3/4 next to a metronome
+   counting five — two readings of the same thing, disagreeing, and no way to
+   tell from the room which one was true. Now the readout follows the field:
+   it says what is being counted, says so plainly when that is not what is
+   written, and offers the way back. */
+function scoreSigSayHTML(x){
+  const t = scoreTimeSignature();
+  const per = x.metronome.perBar || (t ? t.beats : 4);
+  const unit = t ? t.unit : 4;
+  const mine = !!x.metronome.perBar && (!t || x.metronome.perBar !== t.beats);
+  return `<span class="sc-sig${mine ? ' mine' : ''}" id="scSigSay"
+    title="${mine ? `the score is written in ${t ? `${t.beats}/${t.unit}` : 'something else'} \u2014 you are counting it in ${per}`
+      : t ? 'read off the notation' : 'no time signature found, so four'}">
+    <b class="mono">${per}/${unit}</b>${mine ? `<button class="tbtn" id="scSigBack"
+      title="count it as it is written">as written</button>` : ''}</span>`;
+}
 function scoreMetroSay(x){
   $$('#scBpmIn').forEach(n => { if(n.value !== String(x.metronome.bpm)) n.value = x.metronome.bpm; });
   $$('#scPer').forEach(n => { const v = x.metronome.perBar || ScoreMetronome.perBar;
     if(n.value !== String(v)) n.value = v; });
+  /* the readout is rebuilt rather than patched, because it grows and loses a
+     button depending on whether the count is yours or the score's */
+  $$('#scSigSay').forEach(n => { const box = n.parentElement;
+    n.outerHTML = scoreSigSayHTML(x);
+    const again = box.querySelector('#scSigBack');
+    if(again) again.onclick = () => { x.metronome.perBar = null;
+      ScoreMetronome.setPerBar(scoreTimeSignature() ? scoreTimeSignature().beats : 4);
+      saveNow(); scoreMetroSay(x); };
+  });
 }
 /* The dot, lit for a moment on every beat and a little bigger on the downbeat.
    Subscribed once: the beat arrives whichever room is on the screen, and the
@@ -1192,14 +1316,6 @@ function scoreKeysWatch(x){
     const by = /ArrowRight|PageDown| /.test(ev.key) ? 1 : /ArrowLeft|PageUp/.test(ev.key) ? -1 : 0;
     if(!by) return;
     if(ev.key === ' ' && ev.repeat) return;
-    /* while the marker is out the arrows are its, because stepping through a
-       passage is what you are doing and turning the page out from under it
-       would leave it somewhere you cannot see. The space bar sets it walking,
-       which is the one thing you want without looking down. */
-    if(scoreCursorOn()){
-      if(ev.key === ' '){ scoreCursorAuto(!_scAuto, x); ev.preventDefault(); return; }
-      if(/Arrow/.test(ev.key)){ scoreCursorGo(by, x); ev.preventDefault(); return; }
-    }
     if(scoreTurn(by, x)) ev.preventDefault();
   };
   addEventListener('keydown', _scKeys, true);
@@ -1258,7 +1374,6 @@ function scoreTurn(by, x){
   if(at === null) return false;
   scoreOverlayPaint(x);
   scoreLayersPaint(x);
-  scoreCursorPaint(x);
   scorePageSay();
   const stage = document.getElementById('scStage');
   if(stage) stage.scrollTo({top:0, left:0});

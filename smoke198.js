@@ -1,6 +1,6 @@
-/* smoke198 — the harmony, the fingers and the marker.
+/* smoke198 — the harmony and the fingers.
 
-   Three things a practice score can do that a printed one cannot.
+   Two things a practice score can do that a printed one cannot.
 
    IT READS THE HARMONY OFF THE NOTES. A lead sheet tells you the chord; a
    piano score expects you to hear it, which is the skill that takes years.
@@ -16,12 +16,7 @@
    staff and the note's place in the chord, so it survives a zoom, a
    re-engraving and a change of key — anything hung on the engraver's own note
    objects would not, because those are rebuilt every time the file is read.
-
-   AND IT WALKS THROUGH THE PIECE. There is no playback and there is not going
-   to be any; what there is instead is a marker you move a note, a beat or a
-   bar at a time, which is how you read a passage you cannot yet play. Where
-   the click is running the marker moves on the click, because two clocks in
-   one room drift apart. */
+ */
 const {chromium} = require('playwright');
 const path = require('path');
 const FILE = 'file://' + path.resolve(__dirname, 'index.html');
@@ -68,15 +63,6 @@ const CHORDS = `<?xml version="1.0" encoding="UTF-8"?><score-partwise version="3
     `<measure number="${i+1}">${i === 0 ? bass : ''}${n}</measure>`).join('')}</part>
 </score-partwise>`;
 
-/* long enough to have more than one page to walk off the end of */
-const LONG = `<?xml version="1.0" encoding="UTF-8"?><score-partwise version="3.1">
-  <work><work-title>Ninety Bars</work-title></work>
-  <part-list><score-part id="P1"><part-name>Piano</part-name></score-part></part-list>
-  <part id="P1">${Array.from({length:90}, (_, i) =>
-    `<measure number="${i+1}">${i === 0 ? head : ''}${
-      ['C','D','E','F'].map(s => `<note><pitch><step>${s}</step><octave>4</octave></pitch><duration>4</duration><type>quarter</type></note>`).join('')
-    }</measure>`).join('')}</part>
-</score-partwise>`;
 
 (async () => {
   const b = await chromium.launch({executablePath:'/opt/pw-browsers/chromium'});
@@ -253,112 +239,7 @@ const LONG = `<?xml version="1.0" encoding="UTF-8"?><score-partwise version="3.1
   yes('the same press asks to pin a note to the bar', pinned.open, JSON.stringify(pinned));
   yes('  and does not offer fingers', !pinned.pick, JSON.stringify(pinned));
 
-  console.log('\n8. the marker');
-  await p.evaluate(async xml => { await takeScoreFile(new File([xml], 'Forty Bars.musicxml')); }, LONG);
-  await p.waitForTimeout(6000);
-  await p.evaluate(() => { if(!scoreUi().more){ scoreUi().more = true; rerender(); } });
-  await p.waitForTimeout(800);
-  const start = await p.evaluate(() => ({on: scoreCursorOn(), drawn: document.querySelectorAll('.sc-cursor').length}));
-  yes('it is put away until you ask for it', !start.on && start.drawn === 0, JSON.stringify(start));
-  const walked = await p.evaluate(async () => {
-    document.querySelector('[data-sccuron]').click();
-    await new Promise(r => setTimeout(r, 800));
-    return {at: scoreCursorAt(), say: document.querySelector('.sc-cursay').textContent,
-      drawn: document.querySelectorAll('.sc-cursor').length};
-  });
-  yes('asking for it puts it on the first beat of the first bar',
-    walked.at && walked.at.measure === 1 && walked.at.at === 0, JSON.stringify(walked));
-  is('  and says where it is', walked.say, 'bar 1 · 1');
-  is('  and draws itself on the page', walked.drawn, 1);
-  const stepped = await p.evaluate(async () => {
-    const say = [];
-    for(let i = 0; i < 5; i++){
-      dispatchEvent(new KeyboardEvent('keydown', {key:'ArrowRight', bubbles:true}));
-      await new Promise(r => setTimeout(r, 120));
-      say.push(document.querySelector('.sc-cursay').textContent);
-    }
-    dispatchEvent(new KeyboardEvent('keydown', {key:'ArrowLeft', bubbles:true}));
-    await new Promise(r => setTimeout(r, 120));
-    say.push(document.querySelector('.sc-cursay').textContent);
-    return say;
-  });
-  is('an arrow steps it a beat, and over the bar line',
-    stepped, ['bar 1 · 2','bar 1 · 3','bar 1 · 4','bar 2 · 1','bar 2 · 2','bar 2 · 1']);
-  const modes = await p.evaluate(() => {
-    const n = m => { scoreCursorMode(m); return scoreCursorStops(m).length; };
-    const out = {beat: n('beat'), note: n('note'), measure: n('measure')};
-    scoreCursorMode('beat');
-    return out;
-  });
-  is('a bar is one stop a bar', modes.measure, 90);
-  is('  a beat is four, in four-four', modes.beat, 360);
-  yes('  and a note is one per thing struck', modes.note === 360, JSON.stringify(modes));
-  /* pages are a reading-mode thing — out here the score is a scroll, and a
-     scroll has no leaf to walk off */
-  await p.evaluate(() => setScoreReading(true));
-  await p.waitForTimeout(4000);
-  const turned = await p.evaluate(async () => {
-    const was = scoreView().at;
-    for(let i = 0; i < 900 && scoreView().at === was; i++){
-      scoreCursorGo(1, scores().find(y => y.title === 'Ninety Bars'));
-    }
-    return {pages: scoreView().pages, was, now: scoreView().at,
-      bar: scoreCursorAt().measure, drawn: document.querySelectorAll('.sc-cursor').length,
-      inStrip: document.querySelectorAll('.sc-strip .sc-cur').length};
-  });
-  is('the walker is on the strip you read from at the piano too', turned.inStrip, 1);
-  yes('the piece is more than one page', turned.pages > 1, JSON.stringify(turned));
-  yes('  and walking off the end of one turns to the next', turned.now > turned.was,
-    JSON.stringify(turned));
-  is('  with the marker still on the page you are looking at', turned.drawn, 1);
-
-  await p.evaluate(() => setScoreReading(false));
-  await p.waitForTimeout(3500);
-
-  console.log('\n9. walking on its own');
-  /* how many beats in, counting from the top of the piece — so "it moved
-     three steps" is a number rather than two positions to eyeball */
-  const auto = await p.evaluate(async () => {
-    const x = scores().find(y => y.title === 'Ninety Bars');
-    const beat = () => { const c = scoreCursorAt(); return (c.measure - 1) * 4 + Math.round(c.at * 4); };
-    scoreCursorShow(true); scoreCursorPaint(x);
-    x.cursorSpeed = 4;
-    const from = beat();
-    scoreCursorAuto(true, x);
-    await new Promise(r => setTimeout(r, 1100));
-    const moving = beat();
-    scoreCursorAuto(false, x);
-    await new Promise(r => setTimeout(r, 700));
-    const stopped = beat();
-    await new Promise(r => setTimeout(r, 600));
-    return {from, moving, stopped, after: beat()};
-  });
-  yes('it walks by itself, about as fast as it was asked to',
-    auto.moving - auto.from >= 3, JSON.stringify(auto));
-  is('  and stops when told to', auto.after, auto.stopped);
-  /* one clock in the room: a marker on its own timer and a click on the audio
-     clock would start together and be a beat apart inside a minute */
-  const withClick = await p.evaluate(async () => {
-    const x = scores().find(y => y.title === 'Ninety Bars');
-    const beat = () => { const c = scoreCursorAt(); return (c.measure - 1) * 4 + Math.round(c.at * 4); };
-    ScoreMetronome.stop();
-    ScoreMetronome.setBpm(240); ScoreMetronome.setPerBar(4);
-    x.cursorSpeed = 0.5;
-    scoreCursorShow(true); scoreCursorPaint(x);
-    ScoreMetronome.start();
-    scoreCursorAuto(true, x);
-    const from = beat();
-    await new Promise(r => setTimeout(r, 1600));
-    const now = beat();
-    scoreCursorAuto(false, x); ScoreMetronome.stop();
-    return {from, now, ran: ScoreMetronome.bpm};
-  });
-  /* on its own clock at half a step a second it would have moved once in that
-     time; on a click at 240 it moves about six times */
-  yes('with the click running it moves on the click, not on its own clock',
-    withClick.now - withClick.from >= 3, JSON.stringify(withClick));
-
-  console.log('\n10. nothing threw');
+  console.log('\n8. nothing threw');
   is('no page errors', errs, []);
 
   console.log(bad ? `\n${bad} FAILED` : '\nall good');

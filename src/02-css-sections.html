@@ -7649,13 +7649,6 @@ html[data-theme="light"] .wk-sleep.is-guess{background-image:repeating-linear-gr
 .sc-fingrow{display:flex;align-items:center;gap:3px}
 .sc-fingrow b{width:2em;font-size:.68rem;opacity:.7}
 .sc-fingrow .tbtn{min-width:1.9em;padding:2px 4px}
-/* the marker, which is a place rather than a highlight: a band the height of
-   the system, warm enough to find and faint enough to read the notes through */
-.sc-cursor{position:absolute;display:block;border-radius:3px;background:#c9a96e;opacity:.42;
-  transform:translateX(-50%);transition:left .12s ease, top .12s ease}
-.sc-cur{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
-.sc-cur #scCurSay{min-width:7em;text-align:center;font-size:.72rem}
-.sc-curmodes{display:flex;gap:3px}
 /* the notebook */
 .sc-side-tabs{display:flex;align-items:center;gap:6px;margin-bottom:8px}
 .sc-nb-top{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline;font-size:.74rem;margin-bottom:8px}
@@ -7693,7 +7686,7 @@ html[data-theme="light"] .wk-sleep.is-guess{background-image:repeating-linear-gr
     max-height:none !important;height:auto !important;overflow:visible !important;
     border:none !important;border-radius:0;background:#fff !important;padding:0}
   html[data-scprint] .sc-canvas svg{display:block !important}
-  html[data-scprint] .sc-loading,html[data-scprint] .sc-cursor,
+  html[data-scprint] .sc-loading,
   html[data-scprint] .sc-fingpick{display:none !important}
   /* clean, for the stand */
   html[data-scprint="score"] .sc-overlay,
@@ -7793,10 +7786,17 @@ html.sc-reading .sc-stage{max-height:100vh;height:100vh;border:none;border-radiu
   padding:14px 10px 10px}
 html.sc-reading .sc-overlay,html.sc-reading .sc-pins{inset:14px 10px 10px}
 /* the only thing left, and it goes away by itself */
+/* One line that scrolls sideways, not three that wrap. The strip has grown —
+   parts, layers, the walker, the pager, the click — and wrapped it was three
+   rows of furniture across the top of the page you were trying to read. */
 .sc-strip{position:fixed;top:0;left:0;right:0;z-index:60;display:flex;align-items:center;
-  gap:10px;flex-wrap:wrap;padding:7px 14px;background:color-mix(in srgb,var(--surface) 92%,transparent);
+  gap:10px;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;
+  padding:7px 14px;background:color-mix(in srgb,var(--surface) 92%,transparent);
   border-bottom:1px solid var(--line);backdrop-filter:blur(6px);
   transition:opacity .35s var(--ease),transform .35s var(--ease)}
+.sc-strip::-webkit-scrollbar{display:none}
+.sc-strip > *{flex:none}
+.sc-strip .sc-metro,.sc-strip .sc-layers{flex-wrap:nowrap}
 html.sc-quiet .sc-strip{opacity:0;transform:translateY(-100%);pointer-events:none}
 .sc-strip-t{font-size:1rem;max-width:34ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sc-strip-parts{display:flex;gap:5px;flex-wrap:wrap}
@@ -7807,8 +7807,22 @@ html.sc-reading .sc-strip .tbtn,html.sc-reading .sc-strip .sel{min-height:34px;p
 .sc-bar2{border-top:none;padding-top:0}
 .sc-metro{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .sc-bpm{display:flex;align-items:center;gap:4px}
-.sc-bpm .inp{width:4.4em;text-align:center}
+/* Four and a bit em was the number plus the spinner arrows the browser draws
+   inside a number field, and the arrows were sitting on top of the last
+   digit. The arrows are no use here — there are already a minus and a plus
+   either side of it — so they come off and the field fits the number. */
+.sc-bpm .inp{width:3.6em;text-align:center;padding-left:4px;padding-right:4px;
+  -moz-appearance:textfield;appearance:textfield}
+.sc-bpm .inp::-webkit-outer-spin-button,
+.sc-bpm .inp::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.sc-per .inp::-webkit-outer-spin-button,
+.sc-per .inp::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.sc-per .inp{-moz-appearance:textfield;appearance:textfield}
 .sc-per{display:flex;align-items:center;gap:5px}
+.sc-sig{display:inline-flex;align-items:center;gap:6px;font-size:.72rem;opacity:.6}
+/* counting it differently from the way it is written is a thing worth seeing */
+.sc-sig.mine{opacity:1;color:#b0705e}
+.sc-sig.mine b{border-bottom:1.5px solid currentColor}
 .sc-per .inp{width:3.4em;text-align:center}
 /* the dot: lit for a moment on the beat, wider on the one you count from */
 .sc-pulse{display:block;width:9px;height:9px;border-radius:50%;background:var(--line);flex:none}
@@ -7820,6 +7834,24 @@ html.sc-reading .sc-strip .tbtn,html.sc-reading .sc-strip .sel{min-height:34px;p
   .sc-pulse.lit,.sc-pulse.lit.strong{animation:none;background:var(--sage)}
 }
 .sc-bpl{display:flex;align-items:center;gap:5px}
+/* the inventory: one row a score, the same shape as the one on Projects */
+.sc-inv{margin-top:26px}
+.sc-invrows{display:flex;flex-direction:column;gap:2px;margin-top:10px}
+.sc-invrow{display:grid;grid-template-columns:minmax(0,2.2fr) 7.5rem minmax(0,1.3fr) minmax(0,1fr) 4.2rem 7rem 1.6rem;
+  gap:10px;align-items:center;padding:6px 8px;border-radius:var(--radius);
+  border-left:3px solid var(--c);font-size:.78rem}
+.sc-invrow:nth-child(odd){background:color-mix(in srgb,var(--surface) 60%,transparent)}
+.sc-invrow:hover{background:var(--surface)}
+.sc-invname{background:none;border:0;padding:0;text-align:left;cursor:pointer;font:inherit;
+  display:flex;flex-direction:column;gap:1px;min-width:0;color:inherit}
+.sc-invname b{font-size:.92rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sc-invname span{font-size:.7rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sc-invname:hover b{text-decoration:underline;text-underline-offset:2px}
+.sc-invstate{color:var(--c);font-size:.7rem}
+@media (max-width:900px){
+  .sc-invrow{grid-template-columns:minmax(0,1fr) auto 1.6rem;row-gap:2px}
+  .sc-invrow > :nth-child(3),.sc-invrow > :nth-child(4),.sc-invrow > :nth-child(6){grid-column:1 / -1}
+}
 .sc-xpose{display:flex;align-items:center;gap:5px}
 .sc-xpose .mono{min-width:6.5em;text-align:center;font-size:.72rem}
 .sc-xpose [data-scxp="-1"],.sc-xpose [data-scxp="1"]{min-width:1.9em;font-size:.95rem;line-height:1}
@@ -8112,10 +8144,15 @@ html[data-theme="dark"] .sc-stage{background:#f2ece0}
 .ja-p-mostly_mid_clause{border-color:#c98b7a;color:#c98b7a}
 .ja-p-mostly_boundary{border-color:var(--sage);color:var(--sage)}
 .ja-snotes{font-size:.82rem;opacity:.8;margin-top:6px}
-.ja-tools{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;opacity:0;transition:opacity .16s var(--ease)}
-.ja-session:hover .ja-tools,.ja-island:hover .ja-tools,.ja-err:hover .ja-tools,.ja-shadow:hover .ja-tools,
-.ja-scenario:hover .ja-tools,.ja-sec:focus-within .ja-tools{opacity:1}
-@media (hover:none){.ja-tools{opacity:1}}
+/* The only way into a card is these buttons, so they are simply there. They
+   used to fade in on hover, which meant that on a grammar point — a card you
+   have to open to do anything at all — the way in was invisible until you
+   happened to click inside the section. A control you cannot see is a control
+   that is not there. */
+.ja-tools{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;align-items:center}
+/* the one exception is throwing the card away: present, but not shouting */
+.ja-tools .del-x{opacity:.4;transition:opacity .16s var(--ease)}
+.ja-tools .del-x:hover,.ja-tools .del-x:focus-visible{opacity:1}
 .ja-grid{width:100%;border-collapse:collapse;margin-top:12px}
 .ja-grid th{font-family:var(--mono);font-size:.68rem;text-transform:uppercase;letter-spacing:.07em;
   opacity:.55;text-align:left;padding:5px 6px;font-weight:400}
@@ -8308,8 +8345,9 @@ html.ja-running{overflow:hidden}
 .ja-target{display:flex;align-items:center;gap:7px;font-size:.84rem}
 .ja-gramused{display:flex;flex-direction:column;gap:5px}
 .ja-gramrow{display:grid;grid-template-columns:minmax(0,1fr) 13rem;gap:8px;align-items:center;font-size:.84rem}
-.ja-wpm{display:flex;align-items:center;gap:5px;font-size:.7rem}
-.ja-wpm .inp{width:4.6em}
+.ja-wpm{display:flex;align-items:center;gap:6px;font-size:.7rem;opacity:.7;
+  padding:4px 10px;border:1px solid var(--line);border-radius:999px}
+.ja-wpm b{font-size:1rem;font-weight:400;opacity:1;font-family:var(--serif)}
 
 /* the islands */
 .ja-islands{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin-top:10px}

@@ -93,13 +93,10 @@ function bindJapanese(root){
     if(n) sound('success'); rerender(); });
   on('#jaStoneNew', () => openJaStone('filler'));
   each('jastoneadd', shelf => openJaStone(shelf));
-  /* the chip opens the phrase and the cross on it throws the phrase away, and
-     the cross is inside the chip — so a press on the cross has to stop there,
-     or it deletes the phrase and then opens an editor for nothing */
-  $$('[data-jastone]', root).forEach(b => b.onclick = ev => {
-    if(ev.target.closest('[data-jastonedel]')) return;
-    openJaStone(null, b.dataset.jastone);
-  });
+  each('jastone', id => openJaStone(null, id));
+  /* the chip opens the phrase and the cross inside it throws the phrase away,
+     so the cross has to stop the press there — otherwise it deletes the
+     phrase and then opens an editor for a phrase that is no longer anywhere */
   $$('[data-jastonedel]', root).forEach(b => b.onclick = ev => { ev.stopPropagation();
     spliceOut(j.stones, v => v.id === b.dataset.jastonedel); sound('click'); redraw(); });
 

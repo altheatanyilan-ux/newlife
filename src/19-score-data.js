@@ -100,7 +100,6 @@ function scoreDefaults(x){
      would be a scan per note head; the data is the same either way. */
   x.fingerings = (x.fingerings && typeof x.fingerings === 'object' && !Array.isArray(x.fingerings))
     ? x.fingerings : {};
-  x.cursorSpeed = SCORE_CURSOR_SPEEDS.includes(+x.cursorSpeed) ? +x.cursorSpeed : 1;
   x.sections = Array.isArray(x.sections) ? x.sections : [];
   x.sections.forEach(s => scoreSectionDefaults(s, x));
   x.pins = Array.isArray(x.pins) ? x.pins : [];

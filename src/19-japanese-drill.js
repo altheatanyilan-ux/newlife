@@ -181,8 +181,12 @@ async function ja432EndStage(){
   if(d.timer){ clearInterval(d.timer); d.timer = null; }
   const got = await JaRecorder.stop();
   const audioId = await jaPutAudio(got.blob);
-  d.deliveries.push({stage: d.stage + 1, target: JA_432_STAGES[d.stage],
-    seconds: got.seconds, wpm: null, audioId, heard: got.heard || d.heard || ''});
+  const heard = got.heard || d.heard || '';
+  const delivery = {stage: d.stage + 1, target: JA_432_STAGES[d.stage],
+    seconds: got.seconds, wpm: null, audioId, heard};
+  /* counted here rather than asked for later */
+  delivery.wpm = jaDeliveryWpm(delivery, heard);
+  d.deliveries.push(delivery);
   d.stage += 1;
   if(d.stage >= JA_432_STAGES.length){ d.phase = 'done'; ja432Paint(); return d; }
   d.breathUntil = Date.now() + JA_432_BREATH * 1000;
@@ -419,13 +423,16 @@ function openJa432Audit(sessionId){
           <select class="sel" id="jaQual"><option value="">—</option>${JA_QUALITY.map(([v, n]) =>
             `<option value="${v}" ${s.quality === v ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label>
       </div>
-      <!-- counted by hand, because counting words in Japanese is a judgement
-           about what a word is and no machine here is in a position to make it -->
-      <div class="pd-q"><span class="k">words a minute, if you counted them</span>
-        <div class="row" style="gap:8px">${s.deliveries.map(v =>
-          `<label class="ja-wpm mono">stage ${v.stage}
-            <input class="inp sm mono" type="number" min="0" max="400" data-jawpm="${v.stage}"
-              value="${v.wpm || ''}"></label>`).join('')}</div></div>
+      <!-- counted for you, off the transcript and the seconds it took. The
+           last stage is recounted from what you type above, because that is
+           the accurate text; the earlier two are what the recogniser heard,
+           which is a floor rather than a figure. -->
+      <div class="pd-q"><span class="k">words a minute</span>
+        <div class="row" style="gap:8px" id="jaWpmRow">${jaWpmRowHTML(s)}</div>
+        <p class="faint sm" style="margin:4px 0 0">${last.heard
+          ? `Counted ${jaHasSegmenter() ? 'with the browser\u2019s own Japanese word breaker'
+            : 'roughly \u2014 this browser has no word breaker, so Japanese is counted at two characters to a word'}. The last stage follows what you type above.`
+          : 'Nothing was heard, so there is nothing to count. Type what you said above and the last stage is counted from it.'}</p></div>
     </div>
     <div class="row" style="justify-content:flex-end;margin-top:14px;gap:8px">
       <button class="btn sm ghost" id="jaToBook">Send what went wrong to the notebook</button>
@@ -452,6 +459,16 @@ function openJa432Audit(sessionId){
     sound('click');
   });
   jaBindMarkList(m, s);
+  /* the transcript is the text the last stage is measured against, so the
+     number follows it as it is corrected rather than waiting for a save */
+  const said = m.querySelector('#jaSaid');
+  const recount = () => {
+    const d = s.deliveries[s.deliveries.length - 1];
+    if(d) d.wpm = jaDeliveryWpm(d, said.value);
+    const row = m.querySelector('#jaWpmRow');
+    if(row) row.innerHTML = jaWpmRowHTML(s);
+  };
+  if(said) said.oninput = debounce(recount, 300);
   m.querySelector('#jaToBook').onclick = () => {
     const made = jaMarksToNotebook(s);
     toast(made ? `${made} in the notebook.` : 'Nothing marked yet.');
@@ -463,8 +480,9 @@ function openJa432Audit(sessionId){
     s.quality = m.querySelector('#jaQual').value || null;
     $$('[data-jaused]', m).forEach(b => s.chunksUsed[b.dataset.jaused] = b.checked);
     $$('[data-jagram]', m).forEach(b => s.grammarUsed[b.dataset.jagram] = b.value);
-    $$('[data-jawpm]', m).forEach(b => { const d = s.deliveries.find(v => v.stage === +b.dataset.jawpm);
-      if(d) d.wpm = +b.value || null; });
+    /* recounted from the corrected text, which is the accurate one */
+    const lastD = s.deliveries[s.deliveries.length - 1];
+    if(lastD) lastD.wpm = jaDeliveryWpm(lastD, s.transcript);
     /* a chunk you deployed is a chunk you can produce: the checkbox in the
        audit is the same fact as the one on the island, so it is written there */
     if(isl) (s.targetChunks || []).forEach(text => {
@@ -511,4 +529,10 @@ function jaMarksToNotebook(s){
   });
   if(made) saveNow();
   return made;
+}
+
+/* the three numbers, said plainly, with the ones nobody could hear left blank */
+function jaWpmRowHTML(s){
+  return (s.deliveries || []).map(v => `<span class="ja-wpm mono">stage ${v.stage}
+    <b>${v.wpm != null ? v.wpm : '\u2014'}</b></span>`).join('');
 }

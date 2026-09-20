@@ -68,6 +68,23 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   });
   is('it is on the page', gram.shown, 1);
   is('  and has not been drilled yet', gram.status, 'not_started');
+  /* the buttons on a card are the only way into it. they used to fade in
+     under the pointer, so on a fresh page a grammar point was a title with no
+     way in until you happened to click somewhere inside the section — read as
+     a card that did nothing. nothing is hidden now: seen without touching the
+     page at all, which is what a screen reader and a stylus see too */
+  const ways = await p.evaluate(() => {
+    const card = document.querySelector('.ja-gram');
+    const tools = card.querySelector('.ja-tools');
+    const shown = n => { const r = n.getBoundingClientRect();
+      return +getComputedStyle(n).opacity > .05 && r.width > 0 && r.height > 0; };
+    return {row: shown(tools),
+      labels: [...tools.querySelectorAll('button')].filter(shown).map(b => b.textContent.trim())};
+  });
+  yes('the way into it is on the card, without hovering or clicking first',
+    ways.row, JSON.stringify(ways));
+  is('  all four of them, and the way to throw it away',
+    ways.labels, ['the chart', 'drill it', 'use it', 'to the deck', '\u00d7']);
   const ran = await p.evaluate(async id => {
     openJaGrammarDrill(id);
     await new Promise(r => setTimeout(r, 300));
@@ -231,7 +248,8 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   console.log('\n8. the audit');
   const audit = await p.evaluate(async () => {
     const ta = document.querySelector('#jaSaid');
-    ta.value = 'ジャズピアノを始めたのは去年からで、progression がわからなかった。';
+    const said0 = 'ジャズピアノを始めたのは去年からで、progression がわからなかった。';
+    ta.value = said0;
     ta.selectionStart = ta.value.indexOf('progression');
     ta.selectionEnd = ta.selectionStart + 11;
     document.querySelector('[data-jamark="english"]').click();
@@ -240,10 +258,25 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     document.querySelector('[data-jaused]').checked = true;
     document.querySelector('#jaPause').value = 'mostly_boundary';
     document.querySelector('#jaQual').value = 'good';
-    document.querySelectorAll('[data-jawpm]').forEach((n, i) => n.value = String(100 + i * 12));
+    /* a minute exactly for the last delivery, so words a minute is the word
+       count and nothing has to be divided; and a number on the first, which
+       is what a gain is measured from */
+    s.deliveries[2].seconds = 60;
+    s.deliveries[0].wpm = 80;
     const before = jaState2().errors.length;
     document.querySelector('#jaToBook').click();
     await new Promise(r => setTimeout(r, 200));
+    /* the number follows the text as it is corrected, so it is read here,
+       while the audit is still open and before anything is saved */
+    ta.dispatchEvent(new Event('input', {bubbles:true}));
+    await new Promise(r => setTimeout(r, 600));
+    const asked = document.querySelectorAll('[data-jawpm]').length;
+    const pills = [...document.querySelectorAll('#jaWpmRow .ja-wpm')]
+      .map(n => n.textContent.replace(/\s+/g, ' ').trim());
+    /* and then a last correction with no pause after it, so the save has to
+       count it again rather than keeping what the live count left behind */
+    const shorter = 'ジャズピアノを始めたのは去年からです。';
+    ta.value = shorter;
     document.querySelector('#jaAuditSave').click();
     await new Promise(r => setTimeout(r, 600));
     const after = jaState2().sessions[0];
@@ -251,6 +284,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     return {marks: s.marks.map(m => [m.kind, m.text]), pause: after.pauseLocation,
       said: after.transcript.slice(0, 8),
       quality: after.quality, wpm: after.deliveries.map(d => d.wpm),
+      asked, pills, words: jaWordCount(said0), shortWords: jaWordCount(shorter),
       gain: jaSessionGain(after), errs: jaState2().errors.length - before,
       errTried: err && err.tried, errSource: err && err.source,
       chunkNowReady: (byId(jaState2().islands, jaState2().islands[0].id) || {}) && true};
@@ -263,8 +297,26 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     [audit.errs, audit.errTried, audit.errSource], [1, 'progression', '432']);
   is('where the pauses fell, which nobody can measure for you', audit.pause, 'mostly_boundary');
   is('  and how it went', audit.quality, 'good');
-  is('the words a minute you counted', audit.wpm, [100, 112, 124]);
-  is('  and what that means: the third is faster than the first', audit.gain.pct, 24);
+  /* nobody counts their own words. the number comes off the text and the
+     seconds the stage actually ran, and the last stage follows the transcript
+     rather than the recogniser, because the transcript is the accurate one */
+  is('nobody is asked for a number', audit.asked, 0);
+  yes('  it is a real count of words, not of characters',
+    audit.words > 5 && audit.words < 20, String(audit.words));
+  /* the number follows the text while you are still correcting it */
+  is('  and it follows the transcript as you type',
+    audit.pills[2], `stage 3 ${audit.words}`);
+  /* and again on the way out, for the correction with no pause after it */
+  yes('  and again on the last correction, unpaused',
+    audit.wpm[2] === audit.shortWords && audit.shortWords !== audit.words,
+    JSON.stringify([audit.wpm[2], audit.shortWords, audit.words]));
+  /* a stage nobody heard is blank. nought would be a claim that you said
+     nothing, and what happened is that there was no microphone */
+  is('a stage nobody heard is left blank rather than called nought',
+    [audit.wpm[1], audit.pills.length], [null, 3]);
+  yes('  and it reads as a dash', /stage 2 \u2014/.test(audit.pills[1]), JSON.stringify(audit.pills));
+  is('  and what that means: the third is faster than the first',
+    audit.gain.pct, Math.round((audit.shortWords - 80) / 80 * 100));
 
   console.log('\n9. a text, a day’s wait, and back again');
   await p.evaluate(() => { location.hash = '#/japanese/translate'; }); await p.waitForTimeout(800);

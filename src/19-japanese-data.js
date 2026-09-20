@@ -360,6 +360,46 @@ function jaSessionDefaults(s){
   s.createdAt = s.createdAt || new Date().toISOString();
   return s;
 }
+/* ---------- counting the words ----------
+   Words a minute used to be a number you worked out yourself, because what
+   counts as a word in Japanese is a judgement and the room was in no position
+   to make it. That was true and it was also the wrong call: a number you have
+   to stop and count is a number you count twice and then stop counting, and
+   the whole value of this measurement is the line it draws over two months.
+
+   So the room counts, and the browser's own word breaker does the hard part.
+   Intl.Segmenter carries ICU's dictionary-based segmentation for Japanese,
+   which is the same machinery a Japanese text editor uses to decide where a
+   double-click selects to; it gets 日本語を勉強しています to four words, which
+   is what a person would say. Where it is missing, the fallback is a rule of
+   thumb and is marked as one: Latin runs are words, and Japanese characters
+   are counted at two to a word, which is about the average. */
+function jaWordCount(text){
+  const t = String(text || '').trim();
+  if(!t) return 0;
+  try {
+    if(typeof Intl !== 'undefined' && Intl.Segmenter){
+      const seg = new Intl.Segmenter('ja', {granularity:'word'});
+      let n = 0;
+      for(const piece of seg.segment(t)) if(piece.isWordLike) n++;
+      return n;
+    }
+  } catch(e){}
+  const latin = (t.match(/[A-Za-z][A-Za-z'’-]*/g) || []).length;
+  const jp = (t.match(/[぀-ヿ㐀-鿿ｦ-ﾟ]/g) || []).length;
+  return latin + Math.round(jp / 2);
+}
+const jaHasSegmenter = () => { try { return !!(typeof Intl !== 'undefined' && Intl.Segmenter); } catch(e){ return false; } };
+/* Words a minute for one delivery, from whatever text there is for it and the
+   seconds it actually ran. Null rather than nought where there is no text:
+   nought would say you said nothing, and what happened is that nobody heard. */
+function jaDeliveryWpm(d, text){
+  if(!d || !(+d.seconds > 0)) return null;
+  const words = jaWordCount(text != null ? text : d.heard);
+  if(!words) return null;
+  return Math.round(words / (d.seconds / 60));
+}
+
 /* The kinds of thing you can mark in a transcript. Four, because these are
    the four that mean different things about what went wrong. */
 const JA_MARKS = [
