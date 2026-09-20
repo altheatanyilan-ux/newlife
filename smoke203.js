@@ -71,6 +71,36 @@ const XML = `<?xml version="1.0" encoding="UTF-8"?><score-partwise version="3.1"
 const XML2 = XML.replace('Eight Changes', 'Something Else')
   .replace('Fryderyk Chopin', 'Thelonious Monk');
 
+/* And a third, written the way piano music is actually written: a melody in
+   quavers over a left hand that lays the chord out one note at a time. Block
+   chords are the easy case and almost nothing real looks like them. */
+const ARP_RH = [['G','E','C','E'],['A','F','C','F'],['B','G','D','G'],['C','A','E','A'],
+                ['D','B','G','B'],
+                /* and a last bar with two notes in the tune that are not in
+                   the chord at all: a scale through D and F over a held C
+                   major. Counted as hard evidence they outvote the chord
+                   they are decorating and the bar comes out named C9. */
+                ['C','D','E','F']];
+const ARP_LH = [['C','G','E','G'],['F','C','A','C'],['G','D','B','D'],['A','E','C','E'],
+                ['G','D','B','D'], null /* a held triad, written below */];
+const ARP_WANT = ['C','F','G','Am','G','C'];
+const qn = (st, oct) => `<note><pitch><step>${st}</step><octave>${oct}</octave></pitch><duration>1</duration><type>eighth</type></note>`;
+const arpHead = clef => `<attributes><divisions>2</divisions><key><fifths>0</fifths></key>
+  <time><beats>2</beats><beat-type>4</beat-type></time>
+  <clef><sign>${clef}</sign><line>${clef === 'G' ? 2 : 4}</line></clef></attributes>`;
+const ARP = `<?xml version="1.0" encoding="UTF-8"?><score-partwise version="3.1">
+  <work><work-title>Broken Chords</work-title></work>
+  <part-list><score-part id="P1"><part-name>RH</part-name></score-part>
+    <score-part id="P2"><part-name>LH</part-name></score-part></part-list>
+  <part id="P1">${ARP_RH.map((b, i) =>
+    `<measure number="${i+1}">${i === 0 ? arpHead('G') : ''}${b.map(st => qn(st, 5)).join('')}</measure>`).join('')}</part>
+  <part id="P2">${ARP_LH.map((b, i) =>
+    `<measure number="${i+1}">${i === 0 ? arpHead('F') : ''}${b
+      ? b.map(st => qn(st, 3)).join('')
+      : ['C','E','G'].map((st, k) => `<note>${k ? '<chord/>' : ''}<pitch><step>${st}</step><octave>3</octave></pitch><duration>4</duration><type>half</type></note>`).join('')
+    }</measure>`).join('')}</part>
+</score-partwise>`;
+
 (async () => {
   const b = await chromium.launch({executablePath:'/opt/pw-browsers/chromium'});
   const errs = [];
@@ -142,7 +172,45 @@ const XML2 = XML.replace('Eight Changes', 'Something Else')
   yes('  and none of them is off the top of the page',
     drawn.tops.every(t => t > 0), JSON.stringify(drawn.tops));
 
-  console.log('\n2. a fingering is a number, not a ringed number');
+  console.log('\n2. the harmony of a piece written the way piano music is written');
+  /* Asking what is struck ON the beat is the question almost no piano score
+     answers. In a broken chord only one or two notes sound at any instant,
+     and two notes name a chord the way two letters name a word: confidently
+     and wrongly. The whole bar of C\u2013G\u2013E\u2013G is one C, and the only way
+     to see that is to look at the whole bar. */
+  await p.evaluate(async xml => { await takeScoreFile(new File([xml], 'Broken Chords.musicxml')); }, ARP);
+  await p.waitForTimeout(5000);
+  await p.evaluate(() => { const x = scores().find(y => y.title === 'Broken Chords');
+    scoreUi().id = x.id; x.overlays.chords = true; rerender(); });
+  await p.waitForTimeout(6000);
+  const arp = await p.evaluate(() => {
+    const notes = scoreNotes();
+    const line = scoreChordLine(notes, {});
+    /* how many notes there are to go on at the instant of a beat, which is
+       what the old reading had and why it could not work */
+    const bar1 = notes.filter(n => n.measure === 1 && n.midi != null);
+    const onBeat2 = bar1.filter(n => Math.abs(n.at - 0.25) < 1e-6).length;
+    return {says: line.map(c => c.say), bars: line.map(c => c.measure),
+      onBeat2, notesInBar: bar1.length,
+      drawn: [...document.querySelectorAll('.sc-lab-chord')].map(n => n.textContent.trim())};
+  });
+  yes('there are only two notes at the instant of the second beat',
+    arp.onBeat2 === 2 && arp.notesInBar === 8, JSON.stringify(arp).slice(0, 120));
+  is('  and the harmony is still read, one symbol a bar', arp.says, ARP_WANT);
+  is('  at the bar line where it turns over', arp.bars, [1,2,3,4,5,6]);
+  is('  and that is what is drawn on the page', arp.drawn, ARP_WANT);
+  /* the note under beat two of an arpeggio is the next note of the arpeggio,
+     not a change of harmony, and labelling F then F/A bar after bar is three
+     symbols of noise for every real one */
+  yes('  with no slash chord invented from a passing bass note',
+    arp.says.every(v => !v.includes('/')), JSON.stringify(arp.says));
+  /* the last bar is a held C major with two notes of a scale passing over
+     it. A passing note is not evidence against the chord it decorates, and
+     counted as though it were, the bar comes out named after the decoration */
+  is('  and a passing note does not rename the chord it decorates',
+    arp.says[arp.says.length - 1], 'C');
+
+  console.log('\n3. a fingering is a number, not a ringed number');
   const fing = await p.evaluate(async () => {
     const x = scores().find(y => y.title === 'Eight Changes');
     x.overlays.fingerings = true;
@@ -172,7 +240,7 @@ const XML2 = XML.replace('Eight Changes', 'Something Else')
   yes('  but still something behind it, so it is not lost in a beam',
     fing && !/rgba\(0, 0, 0, 0\)|transparent/.test(fing.ground), fing && fing.ground);
 
-  console.log('\n3. the inventory has categories');
+  console.log('\n4. the inventory has categories');
   await p.evaluate(() => { scoreUi().id = null; location.hash = '#/score'; });
   await p.waitForTimeout(1400);
   const cats = await p.evaluate(() => ({
@@ -187,10 +255,10 @@ const XML2 = XML.replace('Eight Changes', 'Something Else')
   }));
   yes('there is a composer menu and a period menu', cats.composer && cats.period, JSON.stringify(cats));
   is('  the composers are the ones on the shelf, with how many',
-    cats.comps, ['any composer', 'Fryderyk Chopin (1)', 'Thelonious Monk (1)']);
+    cats.comps, ['any composer', 'no composer named (1)', 'Fryderyk Chopin (1)', 'Thelonious Monk (1)']);
   /* guessed from the name, and the guess is not written down as a fact */
   is('  the period is guessed from the composer', cats.guessed,
-    [['Fryderyk Chopin', null, 'romantic'], ['Thelonious Monk', null, 'jazz']]);
+    [['Fryderyk Chopin', null, 'romantic'], ['Thelonious Monk', null, 'jazz'], ['', null, null]]);
   yes('  and the menu offers both of them',
     /Romantic/.test(cats.pers.join('|')) && /Jazz/.test(cats.pers.join('|')), JSON.stringify(cats.pers));
   const filtered = await p.evaluate(async () => {
@@ -218,7 +286,7 @@ const XML2 = XML.replace('Eight Changes', 'Something Else')
   is('what you set beats what the name suggested',
     [own.composer, own.period, own.shown], ['Chopin', 'baroque', 'baroque']);
 
-  console.log('\n4. the time categories are yours');
+  console.log('\n5. the time categories are yours');
   await p.evaluate(() => { location.hash = '#/time/categories'; }); await p.waitForTimeout(1000);
   const shown = await p.evaluate(() => ({
     rows: document.querySelectorAll('.tm-catrow').length,
@@ -283,7 +351,7 @@ const XML2 = XML.replace('Eight Changes', 'Something Else')
   is('a new one can be added', fresh.grew, 1);
   is('  with the caret already in its name', fresh.focused, 'name');
 
-  console.log('\n5. sleep is read off Today, not timed here');
+  console.log('\n6. sleep is read off Today, not timed here');
   const slept = await p.evaluate(async () => {
     const d = today();
     S.dailyRhythm = S.dailyRhythm || {};
@@ -331,7 +399,7 @@ const XML2 = XML.replace('Eight Changes', 'Something Else')
     JSON.stringify(untracked));
   yes('  and says it means the waking hours', /awake/.test(untracked.said), untracked.said);
 
-  console.log('\n6. the exchange');
+  console.log('\n7. the exchange');
   const parts = await p.evaluate(() => {
     const rows = {meta:[{key:'settings', value:{a:1}}, {key:'time', value:{b:2}}],
       tasks:[{id:'t1'}], scores:[{id:'s1'}]};
@@ -400,7 +468,7 @@ const XML2 = XML.replace('Eight Changes', 'Something Else')
     /No account here/.test(room.says) && /nothing of yours goes/.test(room.says), room.says.slice(0, 160));
   yes('  and a way to do it by hand where there is no folder picker', room.byHand);
 
-  console.log('\n7. nothing threw');
+  console.log('\n8. nothing threw');
   is('no page errors', errs, []);
 
   console.log(bad ? `\n${bad} FAILED` : '\nall good');
