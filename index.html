@@ -2320,6 +2320,93 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 .pick-glabel .mono{font-size:.6rem;color:var(--faint);letter-spacing:.04em}
 .pick-group .pick-row{margin-left:8px}
 
+/* ---------- the Jazz Studio ----------
+   A ladder, not a shelf. The roadmap is a column of stages, each with a bar
+   that fills as the twelve keys come in; a shut stage is dimmed rather than
+   hidden, because knowing what is coming is half of what a roadmap is for. */
+.jz-road{display:flex;flex-direction:column;gap:16px}
+.jz-stage{border:1px solid var(--line);border-radius:14px;padding:13px 15px;
+  transition:border-color .2s var(--ease),opacity .2s var(--ease)}
+.jz-stage.here{border-color:var(--page-accent);
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--page-accent) 12%,transparent)}
+.jz-stage.shut{opacity:.5}
+.jz-shead{display:grid;grid-template-columns:auto 1fr auto;gap:11px;align-items:baseline}
+.jz-sn{font-size:1.4rem;opacity:.35;line-height:1}
+.jz-st{display:flex;flex-direction:column;gap:2px;min-width:0}
+.jz-st b{font-size:1.02rem}
+.jz-st .faint{font-size:.8rem}
+.jz-scount{font-size:.72rem;color:var(--muted)}
+.jz-sbar{height:3px;border-radius:3px;background:color-mix(in srgb,var(--line) 70%,transparent);
+  margin:9px 0 2px;overflow:hidden}
+.jz-sbar > i{display:block;height:100%;background:var(--page-accent);
+  transition:width .5s var(--ease)}
+.jz-subs{display:flex;flex-direction:column;gap:3px;margin-top:9px}
+.jz-sub{display:grid;grid-template-columns:auto 1fr auto auto;gap:10px;align-items:center;
+  width:100%;text-align:left;background:none;border:1px solid transparent;border-radius:9px;
+  padding:6px 9px;cursor:pointer;color:inherit;font:inherit;
+  transition:border-color .16s var(--ease),background .16s var(--ease)}
+.jz-sub:hover{border-color:var(--line);background:color-mix(in srgb,var(--page-accent) 6%,transparent)}
+.jz-subn{font-size:.66rem;color:var(--faint)}
+.jz-subt{font-size:.9rem;min-width:0}
+.jz-subc{font-size:.68rem;color:var(--muted)}
+/* twelve pips, one per key: the fastest possible read of where an exercise is */
+.jz-keys{display:flex;gap:2px}
+.jz-keys > i{width:6px;height:6px;border-radius:50%;
+  background:color-mix(in srgb,var(--line) 85%,transparent)}
+.jz-keys > i.on{background:var(--page-accent)}
+.jz-why{margin-top:10px;border-top:1px dashed var(--line);padding-top:8px}
+.jz-why > summary{cursor:pointer;list-style:none;font-size:.66rem;color:var(--muted);
+  letter-spacing:.08em;text-transform:uppercase}
+.jz-why > summary::-webkit-details-marker{display:none}
+.jz-why p{font-size:.88rem;margin:8px 0 0}
+.jz-shut{font-size:.72rem;color:var(--faint);margin:8px 0 0}
+/* Werner, in the voice the rest of the coaching text uses */
+.jz-werner{display:grid;grid-template-columns:auto 1fr;gap:9px;margin-top:10px;
+  border-left:3px solid var(--terra);padding:7px 0 7px 11px}
+.jz-werner p{font-family:var(--serif);font-style:italic;font-size:.9rem;margin:0}
+.jz-werner .jz-wm{font-style:normal;font-family:inherit;font-size:.8rem;color:var(--muted);margin-top:6px}
+.jz-wi{font-size:.9rem;opacity:.75}
+
+/* one exercise */
+.jz-cols{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:20px;align-items:start}
+@media (max-width:1000px){.jz-cols{grid-template-columns:1fr}}
+.jz-keyrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.jz-keypick{display:flex;gap:4px;flex-wrap:wrap}
+.jz-k{min-width:38px;padding:5px 7px;border:1px solid var(--line);border-radius:8px;
+  background:none;color:inherit;font-family:var(--mono);font-size:.76rem;cursor:pointer;
+  transition:border-color .16s var(--ease),background .16s var(--ease)}
+.jz-k:hover{border-color:var(--page-accent)}
+.jz-k.got{border-color:color-mix(in srgb,var(--page-accent) 55%,var(--line))}
+.jz-k.got::after{content:'\00b7';margin-left:3px;color:var(--page-accent)}
+.jz-k.on{background:var(--page-accent);border-color:var(--page-accent);color:#fff}
+.jz-stage-box{border:1px solid var(--line);border-radius:12px;background:var(--card);
+  padding:10px;min-height:150px;overflow:auto}
+.jz-score svg{max-width:100%;height:auto}
+.jz-noscore{font-family:var(--mono);font-size:.76rem;color:var(--muted);padding:26px 12px;text-align:center}
+.jz-count{font-size:.7rem;color:var(--faint);margin-top:9px}
+.jz-side{display:flex;flex-direction:column;gap:12px;position:sticky;top:14px}
+.jz-note{border:1px solid var(--line);border-radius:11px;padding:10px 12px}
+.jz-note p{font-size:.86rem;margin:6px 0 0}
+.jz-logs{display:flex;flex-direction:column;gap:6px;margin-top:7px}
+.jz-log{display:flex;gap:8px;flex-wrap:wrap;align-items:baseline;font-size:.78rem}
+.jz-lognote{width:100%;font-size:.78rem;color:var(--muted);margin:2px 0 0}
+.jz-hday{margin-bottom:14px}
+
+/* the cards: one question, very large, and nothing else on the page */
+.jz-setup{border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.jz-pick{display:flex;flex-direction:column;gap:2px;margin-top:8px;max-height:34vh;overflow:auto}
+.jz-card{max-width:620px;margin:0 auto;text-align:center}
+.jz-cbar{height:3px;border-radius:3px;background:color-mix(in srgb,var(--line) 70%,transparent);
+  margin:8px 0 34px;overflow:hidden}
+.jz-cbar > i{display:block;height:100%;background:var(--page-accent);transition:width .4s var(--ease)}
+.jz-cprompt{font-size:1.5rem;line-height:1.35;margin:0}
+.jz-ckey{font-size:3.4rem;line-height:1.1;margin:18px 0 0;color:var(--page-accent)}
+.jz-chint{font-size:.66rem;color:var(--faint);margin-top:22px}
+.jz-cask{font-size:.76rem;color:var(--muted);margin:0 0 12px}
+.jz-chow{font-size:.9rem;margin:18px 0 10px}
+.btn.lg{padding:11px 26px;font-size:1rem}
+@media (max-width:640px){.jz-ckey{font-size:2.6rem}.jz-cprompt{font-size:1.2rem}}
+
 /* planning the week: the parts of a life, and the few things being carried */
 .wp-aspect{display:grid;grid-template-columns:auto minmax(150px,1fr) minmax(0,1.6fr);gap:10px;
   align-items:center;cursor:default;box-shadow:inset 3px 0 0 -1px var(--c)}
@@ -13655,7 +13742,7 @@ const DB_SCHEMA = {          // primary key first, then indexes — Dexie syntax
    build.js refuses to build a state key that is saved by nothing now, so it
    cannot happen quietly again. */
 const META_KEYS = ['settings','rehearsal','reviews','valueOrder','valueOrderHistory','places','journals','negLast','finance','plans','reviewLog',
-  'planning','content','contentVault','wsDaily','wsRead','runLog','weekPlans','monthPlans','monthReviews','position','dailyRhythm','stillness','reviewEntries','reviewPrefs','time','musicianship','japanese','study','habitAccounts','sync'];
+  'planning','content','contentVault','wsDaily','wsRead','runLog','weekPlans','monthPlans','monthReviews','position','dailyRhythm','stillness','reviewEntries','reviewPrefs','time','musicianship','japanese','study','habitAccounts','sync','jazz'];
 const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders','visionEras','tasks','boards','people','events','accounts','txns','budgets','finGoals','chapters','turns','threadsN','interactions','mediaQueue','mediaLists','mediaRecs','compost','incomeStreams','spendCategories','scores','timeEntries'];
 
 /* ---------- MiniDexie: Dexie-compatible subset over IndexedDB ---------- */
@@ -50258,6 +50345,963 @@ function jaDivergenceListHTML(t){
   </div>`).join('');
 }
 /* ============================================================
+   THE FLASHCARDS — the only honest way to find out.
+
+   A twelve-key grid you tick yourself is a grid that fills up. You practise
+   an exercise for twenty minutes, all twelve keys feel fine while you are
+   sitting there with the last one still in your hands, and you tick them
+   off. Three days later you cannot play it in E.
+
+   So the cards ask cold, in a random key, with no score in front of you:
+   play a two-five-one in E flat. You play it, then you turn the card over
+   and the answer is engraved in that key, written out at the moment you
+   asked for it. Then you say whether you had it.
+
+   The grid is not ticked by hand from here. Three clean answers on the same
+   exercise-and-key marks the key off; a miss takes one back. That is the
+   difference between a record of what you can play and a record of what you
+   felt able to play on a good afternoon.
+   ============================================================ */
+
+function jazzFlashHTML(){
+  const st = jazzState().settings;
+  const ui = jazzUi();
+  if(ui.flash && ui.flash.cards && ui.flash.cards.length) return jazzCardHTML();
+  /* everything the roadmap has opened is offerable; a locked stage is not */
+  const offer = [];
+  JAZZ_STAGES.forEach(s => { if(!jazzStageOpen(s)) return;
+    s.subs.forEach(b => { if(jazzExercise(b.ex)) offer.push({stage: s, sub: b}); }); });
+  const chosen = new Set(st.syllabus.filter(id => offer.some(o => o.sub.ex === id)));
+  return `<div class="row between" style="align-items:baseline">
+      <h1 class="serif" style="margin:0">Flashcards</h1>
+      <button class="btn sm ghost" id="jzFback">← the roadmap</button></div>
+    <p class="page-blurb">Cold, in a key you did not choose. It is the only way to find out
+      which of the twelve you actually have.</p>
+    <div class="jz-setup">
+      <div class="sc">What is in the deck</div>
+      <div class="jz-pick">${offer.map(o => `<label class="pick-row sm ${chosen.has(o.sub.ex) ? 'on' : ''}">
+        <input type="checkbox" data-jzsyl="${esc(o.sub.ex)}" ${chosen.has(o.sub.ex) ? 'checked' : ''}>
+        <span><b>${esc(o.sub.id)} ${esc(o.sub.name)}</b>
+          <span class="d">${esc(o.stage.name)} · ${jazzKeysGot(o.sub.ex)}/12</span></span></label>`).join('')}</div>
+      ${offer.length ? '' : '<div class="empty">Nothing is open yet. Start at stage one.</div>'}
+      <div class="sc" style="margin-top:14px">Which keys</div>
+      <div class="row" style="gap:8px;flex-wrap:wrap">
+        ${[['unmastered','the ones you have not got'], ['all','all twelve'], ['custom','only these']].map(([v, l]) =>
+          `<button class="btn sm ${st.keyMode === v ? 'primary' : 'ghost'}" data-jzmode="${v}">${l}</button>`).join('')}
+      </div>
+      ${st.keyMode === 'custom' ? `<div class="jz-keypick" style="margin-top:8px">${JAZZ_KEY_NAMES.map(k =>
+        `<button class="jz-k${st.customKeys.includes(k) ? ' on' : ''}" data-jzck="${esc(k)}">${esc(jazzPretty(k))}</button>`).join('')}</div>` : ''}
+      <div class="sc" style="margin-top:14px">How many cards</div>
+      <div class="row" style="gap:8px;flex-wrap:wrap">${[5, 10, 15, 25, 40].map(n =>
+        `<button class="btn sm ${st.cards === n ? 'primary' : 'ghost'}" data-jzn="${n}">${n}</button>`).join('')}</div>
+      <div class="row" style="margin-top:16px"><button class="btn primary" id="jzBegin"
+        ${chosen.size ? '' : 'disabled'}>Deal ${st.cards} cards</button></div>
+    </div>`;
+}
+function bindJazzFlash(root){
+  const st = jazzState().settings;
+  const ui = jazzUi();
+  if(ui.flash && ui.flash.cards && ui.flash.cards.length){ bindJazzCard(root); return; }
+  const back = root.querySelector('#jzFback');
+  if(back) back.onclick = () => navigate('#/jazz');
+  $$('[data-jzsyl]', root).forEach(c => c.onchange = () => {
+    const id = c.dataset.jzsyl, at = st.syllabus.indexOf(id);
+    c.checked ? (at < 0 && st.syllabus.push(id)) : (at >= 0 && st.syllabus.splice(at, 1));
+    c.closest('.pick-row').classList.toggle('on', c.checked);
+    saveNow();
+    const go = root.querySelector('#jzBegin');
+    if(go) go.disabled = !st.syllabus.length;
+  });
+  $$('[data-jzmode]', root).forEach(b => b.onclick = () => {
+    st.keyMode = b.dataset.jzmode; saveNow(); rerender(); });
+  $$('[data-jzck]', root).forEach(b => b.onclick = () => {
+    const k = b.dataset.jzck, at = st.customKeys.indexOf(k);
+    at < 0 ? st.customKeys.push(k) : st.customKeys.splice(at, 1);
+    b.classList.toggle('on', at < 0); saveNow(); });
+  $$('[data-jzn]', root).forEach(b => b.onclick = () => {
+    st.cards = +b.dataset.jzn; saveNow(); rerender(); });
+  const go = root.querySelector('#jzBegin');
+  if(go) go.onclick = () => {
+    const cards = jazzDeal(st.syllabus, st.cards, st.keyMode, st.customKeys);
+    if(!cards.length){ toast('Nothing to deal — choose an exercise first.'); return; }
+    ui.flash = {cards, at: 0, shown: false, from: Date.now(), got: {nailed:0, struggled:0, couldnt:0}};
+    /* a cold session is practice too, and the clock should be running for it */
+    try { if(typeof timeAutoStart === 'function')
+      timeAutoStart({categoryId:'piano', feature:'jazz', what:'jazz flashcards',
+        linkedType:'skill', linkedId:null, linkedLabel:'Jazz piano'}); } catch(e){}
+    sound('success'); rerender();
+  };
+}
+
+/* ---------- one card ---------- */
+function jazzCardHTML(){
+  const f = jazzUi().flash;
+  const card = f.cards[f.at];
+  const ex = jazzExercise(card.exerciseId);
+  if(!ex) return '<div class="empty">That exercise is no longer in the book.</div>';
+  return `<div class="jz-card">
+    <div class="row between" style="align-items:baseline">
+      <span class="mono faint">card ${f.at + 1} of ${f.cards.length}</span>
+      <button class="tbtn" id="jzQuit">stop</button></div>
+    <div class="jz-cbar"><i style="width:${Math.round(f.at / f.cards.length * 100)}%"></i></div>
+    ${f.shown ? `
+      <p class="jz-cask mono">${esc(ex.ask)} ${esc(jazzPretty(card.key))}</p>
+      <div class="jz-stage-box"><div class="jz-score" id="jzCardScore"></div></div>
+      <p class="jz-chow">Did you have it?</p>
+      <div class="row" style="gap:8px;justify-content:center;flex-wrap:wrap">
+        <button class="btn ghost danger" data-jzg="couldnt">✗ Couldn’t</button>
+        <button class="btn ghost" data-jzg="struggled">~ Struggled</button>
+        <button class="btn primary" data-jzg="nailed">✓ Had it</button>
+      </div>`
+    : `
+      <p class="jz-cprompt serif">${esc(ex.ask)}</p>
+      <p class="jz-ckey serif">${esc(jazzPretty(card.key))}</p>
+      <div class="row" style="justify-content:center;margin-top:26px">
+        <button class="btn primary lg" id="jzShow">Show me</button></div>
+      <p class="jz-chint mono">play it first — the card is worth nothing if you look</p>`}
+  </div>`;
+}
+function bindJazzCard(root){
+  const ui = jazzUi(), f = ui.flash;
+  const card = f.cards[f.at];
+  const ex = card && jazzExercise(card.exerciseId);
+  const quit = root.querySelector('#jzQuit');
+  if(quit) quit.onclick = () => { jazzEndSession(); };
+  const show = root.querySelector('#jzShow');
+  if(show) show.onclick = () => { f.shown = true; f.at0 = f.at0 || Date.now();
+    f.seconds = (Date.now() - (f.from || Date.now())) / 1000; sound('click'); rerender(); };
+  if(f.shown && ex) jazzEngrave(root.querySelector('#jzCardScore'), jazzScoreXml(ex.pattern, card.key));
+  $$('[data-jzg]', root).forEach(b => b.onclick = () => {
+    const how = b.dataset.jzg;
+    jazzGrade(card.exerciseId, card.key, how, f.seconds);
+    f.got[how] = (f.got[how] || 0) + 1;
+    sound(how === 'nailed' ? 'success' : 'click');
+    f.at++; f.shown = false; f.from = Date.now(); f.seconds = null;
+    if(f.at >= f.cards.length){ jazzEndSession(true); return; }
+    rerender();
+  });
+}
+function jazzEndSession(finished){
+  const ui = jazzUi();
+  const f = ui.flash;
+  ui.flash = null;
+  try { if(typeof timeAutoStop === 'function') timeAutoStop('jazz'); } catch(e){}
+  saveNow();
+  if(finished && f){
+    const said = `${f.got.nailed} had, ${f.got.struggled} shaky, ${f.got.couldnt} not yet.`;
+    sound('success'); toast(said, 6000);
+  }
+  navigate('#/jazz');
+  rerender();
+}
+/* ============================================================
+   THE JAZZ STUDIO — a roadmap, not a shelf.
+
+   The score room is for pieces: a thing with a beginning and an end that you
+   learn once. This room is for the opposite kind of work. Nobody "learns"
+   the two-five-one; you play it until your hands go there without being
+   asked, in every key, and the difference between a jazz musician and
+   somebody who knows some jazz chords is entirely that.
+
+   Which means the unit here is not the piece, it is the pattern-in-a-key.
+   Twelve of everything. So the roadmap counts in twelves, the flashcards
+   deal a random key rather than a random exercise, and an exercise is marked
+   off one key at a time.
+
+   WHAT IS SHIPPED AND WHAT IS YOURS. The stages, the exercises, the theory
+   and the Werner passages are shipped as a constant, the way the stepping
+   stones are: they are somebody's curriculum, they will be corrected and
+   added to in later versions, and a copy of them sitting in everybody's
+   database would mean those corrections never arrive. What lives in the
+   state is only what you did — which keys you have, what you logged, how the
+   flashcards went. If an exercise is ever removed from the catalogue, its
+   record is kept rather than swept, because it is a record of your practice
+   and not of the catalogue's.
+   ============================================================ */
+
+/* the ladder. Each stage names why it exists before it names what to do,
+   because an exercise you cannot see the point of is an exercise you will
+   drop in a fortnight. */
+const JAZZ_STAGES = [
+  {id:'s1', n:1, name:'Chord construction',
+   blurb:'The four shapes everything else is made of.',
+   theory:'Jazz runs on four chord types: major seventh, dominant seventh, minor seventh and half-diminished. The aim is not to work them out — it is to see "Cmaj7" and have the hand already there. Until that is true, everything built on top of it is being worked out too.',
+   werner:'Many musicians are so fixated on the complicated that they never spend enough time on the basics. Fear of not becoming great is what keeps people from becoming great.',
+   mindset:'Slowly and perfectly, one key at a time. Take your hands off the keys between keys and let it settle.',
+   subs:[
+     {id:'1.1', name:'Major sevenths', ex:'e-maj7'},
+     {id:'1.2', name:'Dominant sevenths', ex:'e-dom7'},
+     {id:'1.3', name:'Minor sevenths', ex:'e-min7'},
+     {id:'1.4', name:'Half-diminished', ex:'e-min7b5'}]},
+  {id:'s2', n:2, name:'Voice leading and shells', needs:'s1',
+   blurb:'Two notes that say everything, and the smallest possible move between them.',
+   theory:'Put the full chords down. The left hand plays two notes — the third and the seventh — and that is the whole harmony. Watch what happens through a two-five-one: the seventh of the ii falls a half step and becomes the third of the V. That single movement is why jazz sounds smooth, and it is the thing to feel rather than the notes to find.',
+   werner:'Neglecting the two-five-one can doom you to struggle with everything that comes after it.',
+   mindset:'Name the chord before you play it. If you cannot name it, you are reading shapes, not hearing harmony.',
+   subs:[
+     {id:'2.1', name:'Shell voicings, third and seventh', ex:'e-shell'},
+     {id:'2.2', name:'Two-five-one in root position', ex:'e-251-root'}]},
+  {id:'s3', n:3, name:'Two-handed A and B voicings', needs:'s2',
+   blurb:'The first voicing that sounds like a record rather than a lesson.',
+   theory:'Type A puts the third on the bottom, Type B the seventh. Alternating them through a two-five-one is what makes one pair of notes hold while the other steps down — the hands barely move and the harmony changes completely. Keep the lowest note between the C below middle C and middle C; lower than that and it turns to mud.',
+   werner:'Mastery is two things: staying out of the way and letting the music play itself, and being able to play the material perfectly every time without thinking about it.',
+   mindset:'Sacrifice speed for perfection. A passage played perfectly once, slowly, is worth an hour of it played nearly right.',
+   subs:[
+     {id:'3.1', name:'Two-five-one, A then B', ex:'e-251-ab'},
+     {id:'3.2', name:'Two-five-one, B then A', ex:'e-251-ba'}]},
+  {id:'s4', n:4, name:'One hand, and a bass in two', needs:'s3',
+   blurb:'Three notes in the right hand, so the left is free.',
+   theory:'Three notes are enough: third, seventh, ninth for a Type A; seventh, third, fifth for a Type B. With the voicing in one hand, the other can walk — root on one, fifth on three — and that is the whole texture you need to accompany a singer on your own.',
+   werner:'The objective is nothing less than complete perfection. When the passage plays itself from that place, mastery has happened.',
+   mindset:'The move between A and B should feel like a shift, not a jump. If it feels like a jump, the voicing is in the wrong octave.',
+   subs:[
+     {id:'4.1', name:'One-handed shells, A start', ex:'e-251-oneA'},
+     {id:'4.2', name:'One-handed shells, B start', ex:'e-251-oneB'}]},
+  {id:'s5', n:5, name:'The blues', needs:'s4',
+   blurb:'The form that gets called at every session there has ever been.',
+   theory:'Twelve bars: I7 for four, IV7 for two, I7 for two, then ii, V, I and a turnaround. Learn the form before the voicings — the form is what you are asked for, the voicings are what you bring to it. C, F, B flat and G first; those are the keys horn players call.',
+   werner:'Perfection is something you surrender to. It overcomes you.',
+   mindset:'Play the form through once with one finger before you play it with both hands. If the shape is not in your head, your hands are guessing.',
+   subs:[
+     {id:'5.1', name:'The jazz blues', ex:'e-blues'},
+     {id:'5.2', name:'The blues scale', ex:'e-bluescale'}]},
+  {id:'s6', n:6, name:'Beginning to improvise', needs:'s5',
+   blurb:'Notes to reach for, before there are ideas to play.',
+   theory:'Over a whole two-five-one you can use one scale — the major scale of the I chord — and it will not be wrong anywhere. That is the safety net. The arpeggio of the third, fifth, seventh and ninth is the other one: it is the chord, played one note at a time, and it always sounds like the harmony because it is the harmony.',
+   werner:'There are no wrong notes. Every note I play is the most beautiful sound I have ever heard.',
+   mindset:'Play four notes and stop. The silence is where you find out whether you meant them.',
+   subs:[
+     {id:'6.1', name:'Three-five-seven-nine over a two-five-one', ex:'e-3579'},
+     {id:'6.2', name:'The major scale of the one chord', ex:'e-majscale'}]},
+  {id:'s7', n:7, name:'Altered dominants and tritone subs', needs:'s6',
+   blurb:'Tension, on purpose.',
+   theory:'An altered dominant swaps the plain ninth and fifth for a flat ninth, a sharp ninth, a flat five or a sharp five. The tritone substitution goes further: replace the V with a dominant chord a half step above the I, and the bass walks down chromatically — D, D flat, C. That descending line is the sound of everything that is not a beginner playing.',
+   werner:'Fear and anxiety break focused practice. Stay with one thing until it is properly yours.',
+   mindset:'Start from the voicing you already have and move one note. Every altered chord is a chord you know with a finger shifted.',
+   subs:[
+     {id:'7.1', name:'Dominant with a flat ninth', ex:'e-b9'},
+     {id:'7.2', name:'Tritone substitution', ex:'e-tritone'}]},
+  {id:'s8', n:8, name:'Modal and pentatonic', needs:'s7',
+   blurb:'When the harmony stops moving and the question changes.',
+   theory:'Modal writing holds one chord for eight bars and the interest has to come from somewhere else: the mode, the register, the space. Quartal voicings — fourths stacked instead of thirds — are the sound of it, because a stack of fourths does not declare a key the way a stack of thirds does.',
+   werner:'Playing from the space, not from the mind. The material has to be so far inside you that there is nothing left to think about.',
+   mindset:'Hold a note longer than is comfortable. Modal playing is mostly about what you do not do.',
+   subs:[
+     {id:'8.1', name:'Dorian', ex:'e-dorian'},
+     {id:'8.2', name:'Quartal voicings', ex:'e-quartal'}]},
+];
+
+/* The exercises. Each is a pattern — degrees and voicings, no pitches — and
+   the engraver writes it out in whichever key is asked for. */
+const JAZZ_EXERCISES = {
+  'e-maj7': {name:'Major seventh', ask:'Play a major seventh chord in',
+    why:'The major seventh is home. It is the I chord in most standards, and it is the sound you are resolving to every time you play a two-five-one.',
+    tip:'Root, major third, fifth, major seventh. The seventh is a half step under the root — that rub is the whole colour of the chord.',
+    pattern:{title:'Major seventh', bars:[{on:'I', chord:'maj7'}], octave:4}},
+  'e-dom7': {name:'Dominant seventh', ask:'Play a dominant seventh chord in',
+    why:'The dominant is the engine. It is unstable on purpose, and everything it does is lean towards somewhere else.',
+    tip:'A major seventh with the seventh dropped a half step. That one note is what makes it want to move.',
+    pattern:{title:'Dominant seventh', bars:[{on:'I', chord:'dom7'}], octave:4}},
+  'e-min7': {name:'Minor seventh', ask:'Play a minor seventh chord in',
+    why:'The minor seventh is the ii — where nearly every phrase in jazz starts.',
+    tip:'Flatten the third and the seventh of a major seventh. Darker, and much less certain about where it is going.',
+    pattern:{title:'Minor seventh', bars:[{on:'I', chord:'min7'}], octave:4}},
+  'e-min7b5': {name:'Half-diminished', ask:'Play a half-diminished chord in',
+    why:'It is the ii of a minor two-five-one, which is most of the ballads worth knowing.',
+    tip:'A minor seventh with the fifth flattened too. Three notes lowered from a major seventh, and it sounds like every one of them.',
+    pattern:{title:'Half-diminished', bars:[{on:'I', chord:'min7b5'}], octave:4}},
+  'e-shell': {name:'Shell voicings', ask:'Play the shell voicing of the ii, the V and the I in',
+    why:'Every voicing you will ever learn is built on knowing where the third and the seventh are. Two notes carry the whole of the harmony; the rest is decoration.',
+    tip:'The third says major or minor. The seventh says stable or moving. Nothing else is load-bearing.',
+    pattern:{title:'Shell voicings', voicing:'shell', octave:3,
+      bars:[{on:'ii', chord:'min7'}, {on:'V', chord:'dom7'}, {on:'I', chord:'maj7'}]}},
+  'e-251-root': {name:'Two-five-one, root position', ask:'Play a two-five-one in root position in',
+    why:'The most common progression in the music. You will meet dozens of them in a single standard, and every one you have to work out is a bar you are not listening in.',
+    tip:'Go round in whole steps: C, B flat, A flat, G flat, E, D — then the other six. Name each chord out loud before you play it.',
+    pattern:{title:'Two-five-one', octave:3,
+      bars:[{on:'ii', chord:'min7'}, {on:'V', chord:'dom7'}, {on:'I', chord:'maj7', up:1}]}},
+  'e-251-ab': {name:'Two-five-one, A then B', ask:'Play a two-five-one with A and B voicings, starting on A, in',
+    why:'This is how it is actually voiced on a bandstand. Root position sounds like somebody learning; alternating A and B sounds like the record.',
+    tip:'Type A from the bottom: third, seventh, ninth, fifth. Type B: seventh, third, fifth, ninth. One pair holds, the other steps down.',
+    pattern:{title:'Two-five-one, A–B–A', hands:2, octave:3,
+      bars:[{on:'ii', chord:'min7', voicing:'typeA'}, {on:'V', chord:'dom7', voicing:'typeB'},
+            {on:'I', chord:'maj7', voicing:'typeA'}]}},
+  'e-251-ba': {name:'Two-five-one, B then A', ask:'Play a two-five-one with A and B voicings, starting on B, in',
+    why:'Which one you start on is decided by where the last chord left your hand, so both have to be there.',
+    tip:'Same two shapes, other order. The voice leading is exactly as smooth going this way, which is the point worth noticing.',
+    pattern:{title:'Two-five-one, B–A–B', hands:2, octave:3,
+      bars:[{on:'ii', chord:'min7', voicing:'typeB'}, {on:'V', chord:'dom7', voicing:'typeA'},
+            {on:'I', chord:'maj7', voicing:'typeB'}]}},
+  'e-251-oneA': {name:'One-handed shells, A start', ask:'Play a two-five-one with one-handed shells, A start, in',
+    why:'Three notes in one hand leaves the other one free, and a free left hand is the difference between playing chords and accompanying somebody.',
+    tip:'Type A is third, seventh, ninth. Type B is seventh, third, fifth. Keep the bottom note between the C below middle C and middle C.',
+    pattern:{title:'One-handed shells, A start', octave:3,
+      bars:[{on:'ii', chord:'min7', voicing:'oneA'}, {on:'V', chord:'dom7', voicing:'oneB'},
+            {on:'I', chord:'maj7', voicing:'oneA'}]}},
+  'e-251-oneB': {name:'One-handed shells, B start', ask:'Play a two-five-one with one-handed shells, B start, in',
+    why:'The other half of the same skill. Either hand position has to be able to start the phrase.',
+    tip:'If the move feels like a jump rather than a shift, you are in the wrong octave for one of the two.',
+    pattern:{title:'One-handed shells, B start', octave:3,
+      bars:[{on:'ii', chord:'min7', voicing:'oneB'}, {on:'V', chord:'dom7', voicing:'oneA'},
+            {on:'I', chord:'maj7', voicing:'oneB'}]}},
+  'e-blues': {name:'The jazz blues', ask:'Play the twelve-bar jazz blues in',
+    why:'It is the most-called form there is. If you cannot play a blues you cannot sit in, and that is the whole of it.',
+    tip:'Learn the shape before the voicings: four of the I, two of the IV, two of the I, then ii, V, I, and a turnaround.',
+    pattern:{title:'Jazz blues', voicing:'shell', octave:3, bars:[
+      {on:'I', chord:'dom7'}, {on:'IV', chord:'dom7'}, {on:'I', chord:'dom7'}, {on:'I', chord:'dom7'},
+      {on:'IV', chord:'dom7'}, {on:'IV', chord:'dom7'}, {on:'I', chord:'dom7'}, {on:'I', chord:'dom7'},
+      {on:'ii', chord:'min7'}, {on:'V', chord:'dom7'}, {on:'I', chord:'dom7'}, {on:'V', chord:'dom7'}]}},
+  'e-bluescale': {name:'The blues scale', ask:'Play the blues scale in',
+    why:'The net under everything. When you have run out of ideas it is still there and it still sounds like the music.',
+    tip:'One, flat three, four, sharp four, five, flat seven. Six notes. The sharp four is the one that does the work.',
+    pattern:{title:'Blues scale', octave:4, symbols:false,
+      line:[[0,0],[2,3],[3,5],[3,6],[4,7],[6,10],[7,12]]}},
+  'e-3579': {name:'Three-five-seven-nine', ask:'Play the three-five-seven-nine arpeggios over a two-five-one in',
+    why:'It is the chord played one note at a time, so it cannot be wrong, and it teaches your hand where the colour notes are.',
+    tip:'Start on the third, not the root. Starting on the root is what makes an arpeggio sound like an exercise.',
+    pattern:{title:'Three-five-seven-nine', octave:4, voicing:'typeA',
+      bars:[{on:'ii', chord:'min7'}, {on:'V', chord:'dom7'}, {on:'I', chord:'maj7'}]}},
+  'e-majscale': {name:'The major scale of the one', ask:'Play the major scale you can use over a whole two-five-one in',
+    why:'One scale over three chords. It is the first thing that lets you play a line through a progression instead of a shape per chord.',
+    tip:'It works because all three chords come out of the same key. Hear that, and you stop thinking chord by chord.',
+    pattern:{title:'Major scale', octave:4, symbols:false,
+      line:[[0,0],[1,2],[2,4],[3,5],[4,7],[5,9],[6,11],[7,12]]}},
+  'e-b9': {name:'Dominant with a flat ninth', ask:'Play a dominant seventh with a flat ninth in',
+    why:'The most tension a dominant can carry, and therefore the strongest pull home.',
+    tip:'Take the Type A voicing you already know and drop the ninth a half step. That is the whole alteration.',
+    pattern:{title:'Dominant flat nine', hands:2, octave:3,
+      bars:[{on:'I', chord:'dom7b9', voicing:'root'}]}},
+  'e-tritone': {name:'Tritone substitution', ask:'Play the tritone substitution two-five-one in',
+    why:'It turns the bass into a chromatic descent — D, D flat, C — which is the sound of harmony that has been thought about.',
+    tip:'The substitute is always a half step above the I. In C: D minor seven, D flat seven, C major seven.',
+    pattern:{title:'Tritone substitution', octave:3, voicing:'shell',
+      bars:[{on:'ii', chord:'min7'}, {on:'bII', chord:'dom7'}, {on:'I', chord:'maj7'}]}},
+  'e-dorian': {name:'Dorian', ask:'Play the Dorian mode in',
+    why:'The mode most modal jazz sits in. A minor scale with a raised sixth, and that one note is the whole flavour.',
+    tip:'It is the major scale of the key a whole step below, started on the second degree. Hearing it that way makes all twelve easy.',
+    pattern:{title:'Dorian', octave:4, symbols:false,
+      line:[[0,0],[1,2],[2,3],[3,5],[4,7],[5,9],[6,10],[7,12]]}},
+  'e-quartal': {name:'Quartal voicings', ask:'Play a quartal voicing in',
+    why:'Fourths stacked instead of thirds. It refuses to say which key it is in, which is exactly what modal writing wants.',
+    tip:'Three fourths on top of each other. Move the whole shape up and down the mode without changing its spacing.',
+    pattern:{title:'Quartal voicing', octave:3,
+      bars:[{on:'I', chord:'min7', voicing:'quartal'}], symbols:false}},
+};
+/* ---------- what is yours ---------- */
+const JAZZ_QUALITY = [['rough','Rough'], ['shaky','Shaky'], ['improving','Improving'],
+  ['solid','Solid'], ['automatic','Automatic']];
+function jazzState(){
+  S.jazz = S.jazz && typeof S.jazz === 'object' ? S.jazz : {};
+  const j = S.jazz;
+  j.progress = j.progress && typeof j.progress === 'object' ? j.progress : {};
+  j.flashes = Array.isArray(j.flashes) ? j.flashes : [];
+  j.settings = j.settings && typeof j.settings === 'object' ? j.settings : {};
+  const st = j.settings;
+  st.cards = clamp(+st.cards || 15, 3, 60);
+  st.keyMode = ['all','unmastered','custom'].includes(st.keyMode) ? st.keyMode : 'unmastered';
+  st.customKeys = Array.isArray(st.customKeys) ? st.customKeys : ['C','F','Bb','Eb'];
+  st.syllabus = Array.isArray(st.syllabus) ? st.syllabus : [];
+  st.openId = st.openId || null;
+  return j;
+}
+/* One exercise's record, made on demand. A record is only written when
+   something actually happened to it, so an untouched catalogue costs nothing
+   in the database. */
+function jazzRecord(id, make){
+  const j = jazzState();
+  if(!j.progress[id]){
+    if(!make) return {keys:{}, logs:[], nailed:{}, lastAt:null};
+    j.progress[id] = {keys:{}, logs:[], nailed:{}, lastAt:null};
+  }
+  const r = j.progress[id];
+  r.keys = r.keys && typeof r.keys === 'object' ? r.keys : {};
+  r.nailed = r.nailed && typeof r.nailed === 'object' ? r.nailed : {};
+  r.logs = Array.isArray(r.logs) ? r.logs : [];
+  return r;
+}
+const jazzExercise = id => JAZZ_EXERCISES[id] || null;
+const jazzStage = id => JAZZ_STAGES.find(s => s.id === id) || null;
+const jazzSubOf = exId => { for(const s of JAZZ_STAGES) for(const b of s.subs)
+  if(b.ex === exId) return {stage: s, sub: b}; return null; };
+/* how many of the twelve are yours, for one exercise and for a whole stage */
+const jazzKeysGot = id => JAZZ_KEY_NAMES.filter(k => jazzRecord(id).keys[k]).length;
+function jazzStageGot(stage){
+  const ids = stage.subs.map(b => b.ex);
+  return {done: sum(ids.map(jazzKeysGot)), of: ids.length * 12};
+}
+/* a stage is shut until the one before it is finished, because the whole
+   point of a roadmap is that it says what not to do yet */
+function jazzStageOpen(stage){
+  if(!stage.needs) return true;
+  const before = jazzStage(stage.needs);
+  if(!before) return true;
+  const got = jazzStageGot(before);
+  return got.of > 0 && got.done >= got.of;
+}
+const jazzNowStage = () => JAZZ_STAGES.find(s => jazzStageOpen(s) && jazzStageGot(s).done < jazzStageGot(s).of)
+  || JAZZ_STAGES[JAZZ_STAGES.length - 1];
+
+function jazzSetKey(id, key, got){
+  const r = jazzRecord(id, true);
+  got ? r.keys[key] = true : delete r.keys[key];
+  saveNow();
+  return jazzKeysGot(id);
+}
+function jazzLogPractice(id, fields){
+  const r = jazzRecord(id, true);
+  const log = Object.assign({id: uid(), at: new Date().toISOString(), day: today(),
+    keys: [], minutes: 0, quality: 'improving', note: '', from: null, to: null}, fields || {});
+  r.logs.unshift(log);
+  r.lastAt = log.day;
+  if(log.markKeys) log.keys.forEach(k => r.keys[k] = true);
+  saveNow();
+  return log;
+}
+/* every sitting across the whole studio, newest first, for the history */
+function jazzAllLogs(){
+  const j = jazzState();
+  const out = [];
+  Object.keys(j.progress).forEach(id => (j.progress[id].logs || []).forEach(l =>
+    out.push(Object.assign({exerciseId: id}, l))));
+  return out.sort((a, b) => String(b.at).localeCompare(String(a.at)));
+}
+const jazzMinutesOn = day => sum(jazzAllLogs().filter(l => l.day === day).map(l => +l.minutes || 0));
+
+/* ---------- the flashcards ----------
+   A card is an exercise and a key, because that pair is the thing that is
+   either in your hands or not. Three clean answers on the same pair marks
+   the key off, which is the only way the twelve-key grid ever fills in
+   without somebody ticking boxes about themselves. */
+const JAZZ_NAILED_FOR = 3;
+function jazzGrade(exerciseId, key, result, seconds){
+  const j = jazzState();
+  const r = jazzRecord(exerciseId, true);
+  j.flashes.unshift({id: uid(), exerciseId, key, at: new Date().toISOString(),
+    day: today(), result, seconds: seconds == null ? null : Math.round(seconds)});
+  if(j.flashes.length > 2000) j.flashes.length = 2000;
+  if(result === 'nailed'){
+    r.nailed[key] = (+r.nailed[key] || 0) + 1;
+    if(r.nailed[key] >= JAZZ_NAILED_FOR) r.keys[key] = true;
+  } else {
+    /* a miss is not a reset to zero — it is a step back, because one bad
+       morning should not wipe out a fortnight of getting it right */
+    r.nailed[key] = Math.max(0, (+r.nailed[key] || 0) - 1);
+    if(result === 'couldnt') delete r.keys[key];
+  }
+  r.lastAt = today();
+  saveNow();
+  return r.nailed[key] || 0;
+}
+/* which keys a session should deal from, and how the pool is weighted. A key
+   you could not play comes round sooner; one you have is only dealt when
+   there is nothing left to work on. */
+function jazzKeyPool(exerciseId, mode, custom){
+  const r = jazzRecord(exerciseId);
+  if(mode === 'custom') return (custom || []).filter(k => JAZZ_KEY_NAMES.includes(k));
+  if(mode === 'unmastered'){
+    const left = JAZZ_KEY_NAMES.filter(k => !r.keys[k]);
+    return left.length ? left : JAZZ_KEY_NAMES.slice();
+  }
+  return JAZZ_KEY_NAMES.slice();
+}
+function jazzDeal(ids, n, mode, custom){
+  const pool = [];
+  (ids || []).forEach(id => jazzKeyPool(id, mode, custom).forEach(key => {
+    const r = jazzRecord(id);
+    /* three tickets for one you have missed, two for a struggle, one for a
+       key that is already yours */
+    const last = (jazzState().flashes.find(f => f.exerciseId === id && f.key === key) || {}).result;
+    const weight = last === 'couldnt' ? 3 : last === 'struggled' ? 2 : r.keys[key] ? 1 : 2;
+    for(let i = 0; i < weight; i++) pool.push({exerciseId: id, key});
+  }));
+  if(!pool.length) return [];
+  const out = [];
+  const want = clamp(+n || 15, 1, 60);
+  /* drawn without putting the same pair back, until the pool runs out and it
+     is allowed to come round again */
+  let bag = pool.slice();
+  while(out.length < want){
+    if(!bag.length) bag = pool.slice();
+    const at = Math.floor(Math.random() * bag.length);
+    const card = bag.splice(at, 1)[0];
+    if(out.some(c => c.exerciseId === card.exerciseId && c.key === card.key) && bag.length) continue;
+    out.push(card);
+  }
+  return out;
+}
+const jazzFlashesOn = day => jazzState().flashes.filter(f => f.day === day);
+/* ============================================================
+   THE JAZZ STUDIO — the room.
+
+   Three views and one idea. The roadmap says where you are; an exercise is
+   one pattern and its twelve keys; the flashcards deal you a pattern and a
+   key and ask you to play it before showing you the answer.
+
+   The engraving is its own, deliberately. The score room holds exactly one
+   rendered score at a time in a module variable, because a score room shows
+   one score. Here a flashcard and an exercise can both want the engraver,
+   and a page that fights another page for a global is a page that draws the
+   wrong thing once in twenty. So this asks the engraver for a fresh view
+   over its own node and keeps nothing.
+   ============================================================ */
+
+function jazzUi(){ return S._jazz = S._jazz || {stageId:null, exId:null, key:'C',
+  flash:null, tab:'road'}; }
+
+/* A clock this room started is this room's to stop. Leaving by any door —
+   the sidebar, a search result, the back button — has to close it, because a
+   timer still running in a room you have left is an hour of piano practice
+   that was actually an hour of something else. Bound once, rather than
+   remembered at every exit. */
+addEventListener('hashchange', () => {
+  if(typeof parseHash !== 'function') return;
+  if(parseHash().name === 'jazz') return;
+  const ui = S && S._jazz;
+  if(ui) ui.flash = null;
+  try { if(typeof timeAutoStop === 'function') timeAutoStop('jazz'); } catch(e){}
+});
+
+/* ---------- drawing a generated score ----------
+   Everything here is written by the generator moments before it is drawn, so
+   there is no file to fail to read and no version of it to be stale. What
+   can still fail is the engraver, so it says so in words rather than leaving
+   an empty box. */
+async function jazzEngrave(box, xml){
+  if(!box) return null;
+  if(!osmdBuiltIn()){
+    box.innerHTML = '<div class="jz-noscore">The engraver is not built into this copy, so the notation cannot be drawn. The words are all still here.</div>';
+    return null;
+  }
+  try {
+    const lib = await osmdBoot();
+    const osmd = new lib.OpenSheetMusicDisplay(box, {autoResize:false, backend:'svg',
+      drawTitle:false, drawComposer:false, drawCredits:false, drawPartNames:false,
+      drawMeasureNumbers:false, drawingParameters:'compact'});
+    const rules = osmd.EngravingRules || osmd.rules;
+    if(rules) rules.RenderChordSymbols = true;
+    await osmd.load(xml);
+    osmd.zoom = 1.05;
+    osmd.render();
+    return osmd;
+  } catch(e){
+    console.warn('the jazz engraver could not draw that', e);
+    box.innerHTML = `<div class="jz-noscore">That could not be drawn — ${esc(e.message)}</div>`;
+    return null;
+  }
+}
+
+/* ---------- the route ---------- */
+routes.jazz = function(root, params){
+  jazzState();
+  const ui = jazzUi();
+  const want = params && params[0] ? params[0] : null;
+  if(want === 'cards'){ root.innerHTML = `<div class="page jz-page">${jazzFlashHTML()}</div>`;
+    bindJazzFlash(root); return; }
+  if(want && jazzExercise(want)) ui.exId = want;
+  else if(want === 'road') ui.exId = null;
+  if(ui.exId && jazzExercise(ui.exId)){
+    root.innerHTML = `<div class="page jz-page">${jazzExerciseHTML(ui.exId)}</div>`;
+    bindJazzExercise(root, ui.exId);
+    return;
+  }
+  root.innerHTML = `<div class="page jz-page">${jazzRoadHTML()}</div>`;
+  bindJazzRoad(root);
+};
+
+/* ---------- the roadmap ---------- */
+function jazzRoadHTML(){
+  const now = jazzNowStage();
+  const all = JAZZ_STAGES.map(s => jazzStageGot(s));
+  const done = sum(all.map(g => g.done)), of = sum(all.map(g => g.of));
+  return `<h1 class="serif">Jazz Studio</h1>
+    <p class="page-blurb">Not pieces — patterns, in all twelve keys, until the hands go there
+      without being asked. ${done} of ${of} keys are yours.</p>
+    <div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:16px">
+      <button class="btn primary" id="jzCards">\u{1f3af} Flashcards</button>
+      <button class="btn sm ghost" id="jzHistory">\u{1f4ca} What you have practised</button>
+    </div>
+    <div class="jz-road">${JAZZ_STAGES.map(s => jazzStageHTML(s, s.id === now.id)).join('')}</div>`;
+}
+function jazzStageHTML(s, here){
+  const got = jazzStageGot(s);
+  const open = jazzStageOpen(s);
+  const pct = got.of ? Math.round(got.done / got.of * 100) : 0;
+  return `<section class="jz-stage${open ? '' : ' shut'}${here ? ' here' : ''}" data-jzstage="${esc(s.id)}">
+    <header class="jz-shead">
+      <span class="jz-sn mono">${s.n}</span>
+      <span class="jz-st"><b class="serif">${esc(s.name)}</b>
+        <span class="faint">${esc(s.blurb)}</span></span>
+      <span class="mono jz-scount">${open ? `${got.done}/${got.of}` : '\u{1f512}'}</span>
+    </header>
+    <div class="jz-sbar"><i style="width:${pct}%"></i></div>
+    ${open ? `<div class="jz-subs">${s.subs.map(b => {
+      const ex = jazzExercise(b.ex); if(!ex) return '';
+      const n = jazzKeysGot(b.ex);
+      return `<button class="jz-sub" data-jzopen="${esc(b.ex)}">
+        <span class="jz-subn mono">${esc(b.id)}</span>
+        <span class="jz-subt">${esc(b.name)}</span>
+        <span class="jz-keys">${JAZZ_KEY_NAMES.map(k =>
+          `<i class="${jazzRecord(b.ex).keys[k] ? 'on' : ''}" title="${esc(jazzPretty(k))}"></i>`).join('')}</span>
+        <span class="mono jz-subc">${n}/12</span></button>`; }).join('')}</div>
+      <details class="jz-why"><summary><span class="mono">why this stage</span></summary>
+        <p class="serif">${esc(s.theory)}</p>
+        <div class="jz-werner"><span class="jz-wi">\u{1f9d8}</span>
+          <p>${esc(s.werner)}</p>
+          <p class="jz-wm">${esc(s.mindset)}</p></div>
+      </details>`
+    : `<p class="jz-shut mono">Opens when stage ${jazzStage(s.needs) ? jazzStage(s.needs).n : ''} is finished in all twelve keys.</p>`}
+  </section>`;
+}
+function bindJazzRoad(root){
+  $$('[data-jzopen]', root).forEach(b => b.onclick = () => {
+    jazzUi().exId = b.dataset.jzopen; navigate('#/jazz/' + b.dataset.jzopen); });
+  const cards = root.querySelector('#jzCards');
+  if(cards) cards.onclick = () => navigate('#/jazz/cards');
+  const hist = root.querySelector('#jzHistory');
+  if(hist) hist.onclick = () => openJazzHistory();
+}
+
+/* ---------- one exercise ---------- */
+function jazzExerciseHTML(id){
+  const ex = jazzExercise(id), at = jazzSubOf(id);
+  const r = jazzRecord(id);
+  const ui = jazzUi();
+  const key = JAZZ_KEY_NAMES.includes(ui.key) ? ui.key : 'C';
+  const got = jazzKeysGot(id);
+  return `<div class="row between" style="align-items:baseline;gap:10px;flex-wrap:wrap">
+      <button class="btn sm ghost" id="jzBack">← the roadmap</button>
+      <span class="mono faint">${at ? `${esc(at.sub.id)} · ${esc(at.stage.name)}` : ''}</span></div>
+    <h1 class="serif" style="margin-top:8px">${esc(ex.name)}</h1>
+    <div class="jz-cols">
+      <div class="jz-main">
+        <div class="jz-keyrow">
+          <span class="mono faint">in the key of</span>
+          <div class="jz-keypick">${JAZZ_KEY_NAMES.map(k =>
+            `<button class="jz-k${k === key ? ' on' : ''}${r.keys[k] ? ' got' : ''}" data-jzkey="${esc(k)}"
+              title="${r.keys[k] ? 'yours' : 'not yet'}">${esc(jazzPretty(k))}</button>`).join('')}</div>
+        </div>
+        <div class="jz-stage-box"><div class="jz-score" id="jzScore"></div></div>
+        <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:12px">
+          <button class="btn ${r.keys[key] ? 'ghost' : 'primary'}" id="jzGot">${
+            r.keys[key] ? `✓ ${esc(jazzPretty(key))} is yours — take it back` : `Mark ${esc(jazzPretty(key))} as yours`}</button>
+          <button class="btn sm ghost" id="jzLog">+ Log a sitting</button>
+          <button class="btn sm ghost" id="jzCard">\u{1f3af} Put this in the cards</button>
+        </div>
+        <div class="jz-count mono">${got} of 12 keys${r.lastAt ? ` · last practised ${esc(relDays(daysSince(r.lastAt)))}` : ''}</div>
+      </div>
+      <aside class="jz-side">
+        <div class="jz-note"><span class="sc">Why it matters</span><p class="serif">${esc(ex.why)}</p></div>
+        <div class="jz-note"><span class="sc">How to get it in</span><p>${esc(ex.tip)}</p></div>
+        ${at ? `<div class="jz-werner"><span class="jz-wi">\u{1f9d8}</span>
+          <p>${esc(at.stage.werner)}</p><p class="jz-wm">${esc(at.stage.mindset)}</p></div>` : ''}
+        ${r.logs.length ? `<div class="jz-note"><span class="sc">Sittings</span>
+          <div class="jz-logs">${r.logs.slice(0, 6).map(l => `<div class="jz-log">
+            <span class="mono">${esc(fmtDate(l.day, 'short'))}</span>
+            <span>${l.minutes ? `${l.minutes}m` : ''} ${esc((JAZZ_QUALITY.find(q => q[0] === l.quality) || [])[1] || '')}</span>
+            <span class="faint mono">${l.keys.length ? esc(l.keys.map(jazzPretty).join(' ')) : ''}</span>
+            ${l.note ? `<p class="jz-lognote">${esc(l.note)}</p>` : ''}</div>`).join('')}</div></div>` : ''}
+      </aside>
+    </div>`;
+}
+function bindJazzExercise(root, id){
+  const ex = jazzExercise(id);
+  const ui = jazzUi();
+  const draw = () => jazzEngrave(root.querySelector('#jzScore'), jazzScoreXml(ex.pattern, ui.key));
+  draw();
+  root.querySelector('#jzBack').onclick = () => { ui.exId = null; navigate('#/jazz'); };
+  $$('[data-jzkey]', root).forEach(b => b.onclick = () => {
+    ui.key = b.dataset.jzkey; sound('click'); rerender(); });
+  const got = root.querySelector('#jzGot');
+  if(got) got.onclick = () => {
+    const have = !!jazzRecord(id).keys[ui.key];
+    jazzSetKey(id, ui.key, !have);
+    sound(have ? 'click' : 'success');
+    if(!have) toast(`${jazzPretty(ui.key)} — ${jazzKeysGot(id)} of 12.`);
+    rerender();
+  };
+  const log = root.querySelector('#jzLog');
+  if(log) log.onclick = () => openJazzLog(id);
+  const card = root.querySelector('#jzCard');
+  if(card) card.onclick = () => {
+    const st = jazzState().settings;
+    if(!st.syllabus.includes(id)) st.syllabus.push(id);
+    saveNow(); sound('success'); toast('It will come round in the cards.');
+  };
+  /* a sitting at this exercise is piano practice, and the clock should not
+     need asking twice */
+  try { if(typeof timeAutoStart === 'function')
+    timeAutoStart({categoryId:'piano', feature:'jazz', what:`${ex.name}, in ${jazzPretty(ui.key)}`,
+      linkedType:'skill', linkedId:null, linkedLabel:'Jazz piano'}); } catch(e){}
+}
+
+/* ---------- logging a sitting ---------- */
+function openJazzLog(id){
+  const ex = jazzExercise(id);
+  const ui = jazzUi();
+  const m = openModal(`<h2>A sitting — ${esc(ex.name)}</h2>
+    <div class="row" style="gap:10px">
+      <label class="pd-q" style="flex:1"><span class="k">how long</span>
+        <input class="inp mono" type="number" min="0" max="600" id="jlMins" value="15"></label>
+      <label class="pd-q" style="flex:1"><span class="k">from ♪=</span>
+        <input class="inp mono" type="number" min="20" max="400" id="jlFrom" placeholder="80"></label>
+      <label class="pd-q" style="flex:1"><span class="k">to ♪=</span>
+        <input class="inp mono" type="number" min="20" max="400" id="jlTo" placeholder="120"></label>
+    </div>
+    <label class="pd-q" style="margin-top:10px"><span class="k">how it went</span>
+      <select class="sel" id="jlQ">${JAZZ_QUALITY.map(q =>
+        `<option value="${q[0]}" ${q[0] === 'improving' ? 'selected' : ''}>${q[1]}</option>`).join('')}</select></label>
+    <div class="pd-q" style="margin-top:10px"><span class="k">keys worked</span>
+      <div class="jz-keypick" id="jlKeys">${JAZZ_KEY_NAMES.map(k =>
+        `<button class="jz-k${k === ui.key ? ' on' : ''}" data-jlk="${esc(k)}">${esc(jazzPretty(k))}</button>`).join('')}</div></div>
+    <label class="pd-q" style="margin-top:10px"><span class="k">notes</span>
+      <textarea class="inp" rows="3" id="jlNote" placeholder="A flat and D flat still clunky. The V to I is the join that needs the work."></textarea></label>
+    <label class="row" style="gap:8px;margin-top:10px;align-items:center">
+      <input type="checkbox" id="jlMark" checked><span>mark those keys as yours</span></label>
+    <div class="row" style="justify-content:flex-end;margin-top:14px">
+      <button class="btn primary" id="jlSave">Save</button></div>`, 'narrow');
+  const picked = new Set([ui.key]);
+  m.querySelectorAll('[data-jlk]').forEach(b => b.onclick = ev => {
+    ev.preventDefault();
+    const k = b.dataset.jlk;
+    picked.has(k) ? picked.delete(k) : picked.add(k);
+    b.classList.toggle('on', picked.has(k));
+  });
+  m.querySelector('#jlSave').onclick = () => {
+    jazzLogPractice(id, {minutes: +m.querySelector('#jlMins').value || 0,
+      from: +m.querySelector('#jlFrom').value || null,
+      to: +m.querySelector('#jlTo').value || null,
+      quality: m.querySelector('#jlQ').value,
+      keys: [...picked], note: m.querySelector('#jlNote').value.trim(),
+      markKeys: m.querySelector('#jlMark').checked});
+    m.remove(); sound('success'); toast('Written down.'); rerender();
+  };
+  return m;
+}
+function openJazzHistory(){
+  const logs = jazzAllLogs();
+  const days = [];
+  logs.forEach(l => { const d = days.find(v => v.day === l.day);
+    d ? d.rows.push(l) : days.push({day: l.day, rows: [l]}); });
+  const m = openModal(`<h2>What you have practised</h2>
+    ${days.length ? days.slice(0, 20).map(d => `<div class="jz-hday">
+      <div class="row between"><span class="sc">${esc(fmtDate(d.day, 'med'))}</span>
+        <span class="mono">${sum(d.rows.map(r => +r.minutes || 0))} min</span></div>
+      ${d.rows.map(l => { const ex = jazzExercise(l.exerciseId);
+        return `<div class="jz-log"><span>${esc(ex ? ex.name : 'an exercise no longer in the book')}</span>
+          <span class="mono faint">${l.minutes}m · ${esc(l.keys.map(jazzPretty).join(' ') || 'no keys said')}</span></div>`; }).join('')}
+    </div>`).join('') : '<div class="empty">Nothing logged yet.</div>'}`, 'wide');
+  return m;
+}
+/* ============================================================
+   THE JAZZ ENGRAVER — a pattern, and every key it can live in.
+
+   A jazz exercise is not a piece. "Major seventh chord" is one shape that
+   exists twelve times, and storing twelve files of it would be storing the
+   same idea twelve times and having to correct it twelve times. So an
+   exercise here is a pattern — a list of chords said in scale degrees — and
+   the notation is written out of it whenever a key is asked for.
+
+   THE PART WORTH GETTING RIGHT IS THE SPELLING. The obvious way to turn a
+   pitch into a note is a table from the twelve pitch classes to twelve
+   names, and every table like that is wrong somewhere: it writes the third
+   of an E major seventh as A flat, which is a note no musician reading in E
+   wants to see. What decides a note's name is not its pitch, it is which
+   degree of the chord it is. So a chord is described as degrees — a third is
+   two letters up whatever it sounds like — and the accidental is whatever
+   makes that letter come out at the right pitch. G sharp, then, because the
+   third of an E chord is a kind of G.
+
+   Everything below is in service of that one idea.
+   ============================================================ */
+
+/* The twelve keys a jazz exercise is asked for, spelled the way a jazz
+   musician spells them: six flat keys, five sharps' worth of naturals, and
+   G flat rather than F sharp because that is what the books print.
+   [name, letter 0-6 from C, alteration, fifths for the key signature] */
+const JAZZ_KEYS = [
+  ['C',  0,  0,  0], ['Db', 1, -1, -5], ['D',  1,  0,  2], ['Eb', 2, -1, -3],
+  ['E',  2,  0,  4], ['F',  3,  0, -1], ['Gb', 4, -1, -6], ['G',  4,  0,  1],
+  ['Ab', 5, -1, -4], ['A',  5,  0,  3], ['Bb', 6, -1, -2], ['B',  6,  0,  5]];
+const JAZZ_KEY_NAMES = JAZZ_KEYS.map(k => k[0]);
+const jazzKey = name => JAZZ_KEYS.find(k => k[0] === name) || JAZZ_KEYS[0];
+/* what each letter sounds like on its own, which is the whole of the
+   arithmetic below: everything else is an accidental away from one of these */
+const JAZZ_NATURAL = [0, 2, 4, 5, 7, 9, 11];
+const JAZZ_LETTERS = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+const jazzPretty = n => String(n || '').replace(/b$/, '♭').replace(/#$/, '♯');
+
+/* ---------- a note, named by which degree it is ----------
+   A note here is three things: a letter, an accidental and the octave the
+   letter is written in. Given a root and a degree — so many letters up, so
+   many semitones up — all three follow exactly, with no table and no choice
+   to get wrong.
+
+   The letter is the root's letter plus the steps, wrapping every seven and
+   carrying an octave when it wraps. The sound is the root's pitch plus the
+   semitones. The accidental is simply the gap between the two, which is why
+   this spells rather than guesses: the third of an E chord is a kind of G
+   because a third is two letters up, and it is G sharp because that is what
+   makes a G sound four semitones above E.
+
+   Nothing needs folding into a range. A C flat comes out as a C with one
+   flat in octave four, which is the note as a reader wants to see it, and it
+   sounds a semitone below — which is exactly right and which no amount of
+   normalising the accidental would have got. */
+const jazzMidiOf = n => (n.octave + 1) * 12 + JAZZ_NATURAL[n.letter] + n.alter;
+function jazzStep(root, steps, semis){
+  /* steps can be negative — a Type B voicing puts the seventh a letter
+     BELOW the root and an octave down — and JavaScript's remainder of a
+     negative number is negative, which would ask for letter minus one. */
+  const letter = (((root.letter + steps) % 7) + 7) % 7;
+  const octave = root.octave + Math.floor((root.letter + steps) / 7);
+  const midi = jazzMidiOf(root) + semis;
+  /* what that letter sounds like with no accidental, in that octave */
+  const plain = (octave + 1) * 12 + JAZZ_NATURAL[letter];
+  return {letter, alter: midi - plain, octave, midi,
+    step: JAZZ_LETTERS[letter],
+    name: JAZZ_LETTERS[letter] + (midi - plain === -1 ? 'b' : midi - plain === 1 ? '#'
+      : midi - plain === 0 ? '' : String(midi - plain))};
+}
+
+/* ---------- chords, as degrees rather than pitches ----------
+   [steps up the letters, semitones up the sound]. A minor seventh is a
+   seventh, so six letters up and ten semitones — which is why an A flat
+   minor seventh gets a G flat on top and not an F sharp. */
+const JAZZ_CHORDS = {
+  maj7:   {say: 'maj7',  kind: 'major-seventh',          tones: [[0,0],[2,4],[4,7],[6,11]]},
+  dom7:   {say: '7',     kind: 'dominant',               tones: [[0,0],[2,4],[4,7],[6,10]]},
+  min7:   {say: 'm7',    kind: 'minor-seventh',          tones: [[0,0],[2,3],[4,7],[6,10]]},
+  min7b5: {say: 'm7♭5', kind: 'half-diminished',    tones: [[0,0],[2,3],[4,6],[6,10]]},
+  dim7:   {say: '°7', kind: 'diminished-seventh',   tones: [[0,0],[2,3],[4,6],[5,9]]},
+  dom7b9: {say: '7♭9', kind: 'dominant',            tones: [[0,0],[2,4],[4,7],[6,10],[8,13]]},
+};
+/* the two-note guide tones, and the four-note voicings built on them. A
+   Type A voicing is third on the bottom; a Type B is the seventh. The point
+   of alternating them is that one pair holds while the other steps down. */
+const JAZZ_VOICINGS = {
+  shell:  {maj7: [[2,4],[6,11]], dom7: [[2,4],[6,10]], min7: [[2,3],[6,10]], min7b5: [[2,3],[6,10]]},
+  typeA:  {maj7: [[2,4],[6,11],[8,14],[11,19]], dom7: [[2,4],[6,10],[8,14],[11,19]],
+           min7: [[2,3],[6,10],[8,14],[11,19]], min7b5: [[2,3],[6,10],[8,14],[11,18]]},
+  /* the seventh is written a letter below the root and an octave down, which
+     is what -1 means here — saying it as "six letters up, two semitones
+     down" asks for a B with a dozen flats on it */
+  typeB:  {maj7: [[-1,-1],[2,4],[4,7],[8,14]], dom7: [[-1,-2],[2,4],[4,7],[8,14]],
+           min7: [[-1,-2],[2,3],[4,7],[8,14]], min7b5: [[-1,-2],[2,3],[4,6],[8,14]]},
+  /* three notes, one hand, so the other hand is free for a bassline */
+  oneA:   {maj7: [[2,4],[6,11],[8,14]], dom7: [[2,4],[6,10],[8,14]],
+           min7: [[2,3],[6,10],[8,14]], min7b5: [[2,3],[6,10],[8,14]]},
+  oneB:   {maj7: [[-1,-1],[2,4],[4,7]], dom7: [[-1,-2],[2,4],[4,7]],
+           min7: [[-1,-2],[2,3],[4,7]], min7b5: [[-1,-2],[2,3],[4,6]]},
+  /* fourths stacked rather than thirds — a spacing rather than a chord
+     quality. It is here rather than beside the exercise that wants it
+     because this file is concatenated after the catalogue, and a catalogue
+     that reached back into this table would be reading a const before it
+     had been declared. That is a whole app that does not boot, for one
+     modal voicing. */
+  quartal:{min7: [[0,0],[3,5],[6,10],[9,15]], maj7: [[0,0],[3,5],[6,11],[9,16]],
+           dom7: [[0,0],[3,5],[6,10],[9,14]], min7b5: [[0,0],[3,5],[6,10],[9,15]]},
+};
+
+/* A chord's root, as a degree of the key. ii is one letter and two semitones
+   up from the tonic; V is four letters and seven. */
+const JAZZ_DEGREES = {
+  I:   [0, 0],  bII: [0, 1],  ii:  [1, 2],  iii: [2, 4],
+  IV:  [3, 5],  V:   [4, 7],  vi:  [5, 9],  vii: [6, 11],
+};
+
+/* the root of a degree of a key, which is the same arithmetic with the key's
+   own tonic as the root */
+function jazzRootOf(keyName, degree, octave){
+  const k = jazzKey(keyName);
+  const [steps, semis] = JAZZ_DEGREES[degree] || [0, 0];
+  return jazzStep({letter: k[1], alter: k[2], octave}, steps, semis);
+}
+const jazzChordNote = (root, [steps, semis]) => jazzStep(root, steps, semis);
+
+/* ---------- from a chord to a bar of notation ---------- */
+const jazzXmlPitch = n => `<pitch><step>${n.step}</step>${
+  n.alter ? `<alter>${n.alter}</alter>` : ''}<octave>${n.octave}</octave></pitch>`;
+/* A note of a chord after the first carries <chord/>, which is MusicXML for
+   "at the same time as the one before". Staff is written whenever there are
+   two, because a grand staff with no staff numbers puts everything on the
+   treble and a two-handed voicing becomes unreadable. */
+function jazzXmlNote(n, {first, dur, type, staff, voice}){
+  return `<note>${first ? '' : '<chord/>'}${jazzXmlPitch(n)}<duration>${dur}</duration>` +
+    `<voice>${voice}</voice><type>${type}</type>${staff ? `<staff>${staff}</staff>` : ''}</note>`;
+}
+const jazzXmlHarmony = (root, kind) => `<harmony><root><root-step>${root.step || root.name[0]}</root-step>${
+  root.alter ? `<root-alter>${root.alter}</root-alter>` : ''}</root><kind>${kind}</kind></harmony>`;
+
+/* One bar. `notes` are already sorted low to high; on a grand staff anything
+   below middle C goes to the left hand, which is where a pianist's left hand
+   in fact is for all of this material. */
+function jazzXmlBar(n, notes, {hands, harmony, dur, type}){
+  const low = notes.filter(v => v.midi < 60), high = notes.filter(v => v.midi >= 60);
+  const head = n === 1 ? '' : '';
+  if(hands < 2 || !low.length || !high.length){
+    const on = hands < 2 ? null : (low.length ? 2 : 1);
+    return `<measure number="${n}">${head}${harmony || ''}${
+      notes.map((v, i) => jazzXmlNote(v, {first: !i, dur, type, staff: on, voice: 1})).join('')}</measure>`;
+  }
+  return `<measure number="${n}">${head}${harmony || ''}${
+    high.map((v, i) => jazzXmlNote(v, {first: !i, dur, type, staff: 1, voice: 1})).join('')}` +
+    `<backup><duration>${dur}</duration></backup>` +
+    low.map((v, i) => jazzXmlNote(v, {first: !i, dur, type, staff: 2, voice: 2})).join('') +
+    `</measure>`;
+}
+function jazzXmlHead(keyName, {hands, beats}){
+  const k = jazzKey(keyName);
+  return `<attributes><divisions>4</divisions><key><fifths>${k[3]}</fifths><mode>major</mode></key>` +
+    `<time><beats>${beats}</beats><beat-type>4</beat-type></time>${hands > 1
+      ? `<staves>2</staves><clef number="1"><sign>G</sign><line>2</line></clef>` +
+        `<clef number="2"><sign>F</sign><line>4</line></clef>`
+      : `<clef><sign>G</sign><line>2</line></clef>`}</attributes>`;
+}
+const jazzXmlDoc = (title, bars) => `<?xml version="1.0" encoding="UTF-8"?>
+<score-partwise version="3.1">
+  <work><work-title>${esc(title)}</work-title></work>
+  <part-list><score-part id="P1"><part-name>Piano</part-name></score-part></part-list>
+  <part id="P1">${bars}</part>
+</score-partwise>`;
+
+/* ---------- the patterns themselves ----------
+   A pattern says which chords, on which degrees, voiced how. Everything the
+   catalogue needs is one of these; nothing in it mentions a pitch. */
+function jazzVoiceChord(root, quality, voicing){
+  const shape = voicing === 'root' ? JAZZ_CHORDS[quality].tones
+    : (JAZZ_VOICINGS[voicing] && JAZZ_VOICINGS[voicing][quality]) || JAZZ_CHORDS[quality].tones;
+  return shape.map(t => jazzChordNote(root, t)).sort((a, b) => a.midi - b.midi);
+}
+/* the score for one pattern in one key, as MusicXML */
+function jazzScoreXml(pattern, keyName){
+  const p = pattern || {};
+  const octave = p.octave == null ? 3 : p.octave;
+  const hands = p.hands || 1;
+  const beats = p.beats || 4;
+  const bars = (p.bars || []).map((bar, i) => {
+    const root = jazzRootOf(keyName, bar.on || 'I', octave + (bar.up || 0));
+    const notes = jazzVoiceChord(root, bar.chord, bar.voicing || p.voicing || 'root');
+    const kind = (JAZZ_CHORDS[bar.chord] || JAZZ_CHORDS.maj7).kind;
+    const say = p.symbols === false ? '' : jazzXmlHarmony(
+      {step: JAZZ_LETTERS[root.letter], alter: root.alter}, kind);
+    const body = jazzXmlBar(i + 1, notes, {hands, harmony: say, dur: 16, type: 'whole'});
+    return i === 0 ? body.replace('>', '>' + jazzXmlHead(keyName, {hands, beats})) : body;
+  });
+  /* a run of single notes — a scale — rather than a stack of them */
+  if(p.line) return jazzLineXml(p, keyName);
+  return jazzXmlDoc(jazzPatternTitle(p, keyName), bars.join(''));
+}
+/* a scale, written as one note after another rather than a chord */
+function jazzLineXml(p, keyName){
+  const root = jazzRootOf(keyName, 'I', p.octave == null ? 4 : p.octave);
+  const notes = p.line.map(t => jazzChordNote(root, t));
+  const beats = p.line.length;
+  const body = `<measure number="1">${jazzXmlHead(keyName, {hands: 1, beats})}${
+    notes.map(n => `<note>${jazzXmlPitch(n)}<duration>4</duration><voice>1</voice><type>quarter</type></note>`).join('')}</measure>`;
+  return jazzXmlDoc(jazzPatternTitle(p, keyName), body);
+}
+const jazzPatternTitle = (p, keyName) => `${p.title || 'Exercise'} — ${jazzPretty(keyName)}`;
+/* ============================================================
    NAVIGATION — two zones (Present / Becoming) + standalone pages
    Rendered from S.settings.nav so the user can move pages between
    zones in Settings. Page content is untouched; routes are unchanged.
@@ -50314,6 +51358,7 @@ const NAV_ICONS = {
   japanese: '<svg viewBox="0 0 24 24"><path d="M3.5 6.5h17M4.5 9h15"/><path d="M7 9v11M17 9v11"/><path d="M6 5.6c2.2-1 3.9-1.5 6-1.5s3.8.5 6 1.5"/><path d="M7 13h10"/></svg>',
   /* a stave with a note sitting on it — the room is notation, not an instrument */
   score:    '<svg viewBox="0 0 24 24"><path d="M3 7h18M3 10.5h18M3 14h18M3 17.5h18"/><circle cx="9" cy="15.6" r="2.1" fill="currentColor" stroke="none"/><path d="M11.1 15.6V6.6l6 1.6"/></svg>',
+  jazz:     '<svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 6v7M11 6v7M15 6v7M19 6v7"/></svg>',
   study:    '<svg viewBox="0 0 24 24"><rect x="6.5" y="4" width="13" height="16" rx="2" transform="rotate(6 13 12)"/><rect x="4.5" y="5" width="13" height="16" rx="2"/><path d="M7.8 9.5h6.4M7.8 13h4.2"/></svg>',
   /* a clock face with one hand, because the room is about where the hours
      went rather than about what time it is */
@@ -50335,6 +51380,7 @@ const NAV_PAGES = {
   skills:   {label:'Skill Tree',       short:'Skills',   ico:NAV_ICONS.skills,   route:'#/skills'},
   study:    {label:'Study Deck',       short:'Study',    ico:NAV_ICONS.study,    route:'#/study'},
   score:    {label:'Score Practice',    short:'Score',    ico:NAV_ICONS.score,    route:'#/score'},
+  jazz:     {label:'Jazz Studio',      short:'Jazz',     ico:NAV_ICONS.jazz,     route:'#/jazz'},
   japanese: {label:'Japanese Studio',  short:'日本語',    ico:NAV_ICONS.japanese, route:'#/japanese'},
   time:     {label:'Time',             short:'Time',     ico:NAV_ICONS.time,     route:'#/time'},
   timeline: {label:'Timeline',         short:'Timeline', ico:NAV_ICONS.timeline, route:'#/journals/timeline'},
@@ -50354,7 +51400,7 @@ const NAV_PAGES = {
 const NAV_TOP = ['today','planning'];
 const NAV_PINNED = [];
 const NAV_DEFAULT = {
-  create:   ['content','projects','finance','skills','score','japanese'],
+  create:   ['content','projects','finance','skills','score','jazz','japanese'],
   identity: ['values','journals','people','study','time'],
   standalone:[],
 };

@@ -55,6 +55,7 @@ const NAV_ICONS = {
   japanese: '<svg viewBox="0 0 24 24"><path d="M3.5 6.5h17M4.5 9h15"/><path d="M7 9v11M17 9v11"/><path d="M6 5.6c2.2-1 3.9-1.5 6-1.5s3.8.5 6 1.5"/><path d="M7 13h10"/></svg>',
   /* a stave with a note sitting on it — the room is notation, not an instrument */
   score:    '<svg viewBox="0 0 24 24"><path d="M3 7h18M3 10.5h18M3 14h18M3 17.5h18"/><circle cx="9" cy="15.6" r="2.1" fill="currentColor" stroke="none"/><path d="M11.1 15.6V6.6l6 1.6"/></svg>',
+  jazz:     '<svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 6v7M11 6v7M15 6v7M19 6v7"/></svg>',
   study:    '<svg viewBox="0 0 24 24"><rect x="6.5" y="4" width="13" height="16" rx="2" transform="rotate(6 13 12)"/><rect x="4.5" y="5" width="13" height="16" rx="2"/><path d="M7.8 9.5h6.4M7.8 13h4.2"/></svg>',
   /* a clock face with one hand, because the room is about where the hours
      went rather than about what time it is */
@@ -76,6 +77,7 @@ const NAV_PAGES = {
   skills:   {label:'Skill Tree',       short:'Skills',   ico:NAV_ICONS.skills,   route:'#/skills'},
   study:    {label:'Study Deck',       short:'Study',    ico:NAV_ICONS.study,    route:'#/study'},
   score:    {label:'Score Practice',    short:'Score',    ico:NAV_ICONS.score,    route:'#/score'},
+  jazz:     {label:'Jazz Studio',      short:'Jazz',     ico:NAV_ICONS.jazz,     route:'#/jazz'},
   japanese: {label:'Japanese Studio',  short:'日本語',    ico:NAV_ICONS.japanese, route:'#/japanese'},
   time:     {label:'Time',             short:'Time',     ico:NAV_ICONS.time,     route:'#/time'},
   timeline: {label:'Timeline',         short:'Timeline', ico:NAV_ICONS.timeline, route:'#/journals/timeline'},
@@ -95,7 +97,7 @@ const NAV_PAGES = {
 const NAV_TOP = ['today','planning'];
 const NAV_PINNED = [];
 const NAV_DEFAULT = {
-  create:   ['content','projects','finance','skills','score','japanese'],
+  create:   ['content','projects','finance','skills','score','jazz','japanese'],
   identity: ['values','journals','people','study','time'],
   standalone:[],
 };

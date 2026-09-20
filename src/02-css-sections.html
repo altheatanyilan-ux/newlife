@@ -1651,6 +1651,93 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 .pick-glabel .mono{font-size:.6rem;color:var(--faint);letter-spacing:.04em}
 .pick-group .pick-row{margin-left:8px}
 
+/* ---------- the Jazz Studio ----------
+   A ladder, not a shelf. The roadmap is a column of stages, each with a bar
+   that fills as the twelve keys come in; a shut stage is dimmed rather than
+   hidden, because knowing what is coming is half of what a roadmap is for. */
+.jz-road{display:flex;flex-direction:column;gap:16px}
+.jz-stage{border:1px solid var(--line);border-radius:14px;padding:13px 15px;
+  transition:border-color .2s var(--ease),opacity .2s var(--ease)}
+.jz-stage.here{border-color:var(--page-accent);
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--page-accent) 12%,transparent)}
+.jz-stage.shut{opacity:.5}
+.jz-shead{display:grid;grid-template-columns:auto 1fr auto;gap:11px;align-items:baseline}
+.jz-sn{font-size:1.4rem;opacity:.35;line-height:1}
+.jz-st{display:flex;flex-direction:column;gap:2px;min-width:0}
+.jz-st b{font-size:1.02rem}
+.jz-st .faint{font-size:.8rem}
+.jz-scount{font-size:.72rem;color:var(--muted)}
+.jz-sbar{height:3px;border-radius:3px;background:color-mix(in srgb,var(--line) 70%,transparent);
+  margin:9px 0 2px;overflow:hidden}
+.jz-sbar > i{display:block;height:100%;background:var(--page-accent);
+  transition:width .5s var(--ease)}
+.jz-subs{display:flex;flex-direction:column;gap:3px;margin-top:9px}
+.jz-sub{display:grid;grid-template-columns:auto 1fr auto auto;gap:10px;align-items:center;
+  width:100%;text-align:left;background:none;border:1px solid transparent;border-radius:9px;
+  padding:6px 9px;cursor:pointer;color:inherit;font:inherit;
+  transition:border-color .16s var(--ease),background .16s var(--ease)}
+.jz-sub:hover{border-color:var(--line);background:color-mix(in srgb,var(--page-accent) 6%,transparent)}
+.jz-subn{font-size:.66rem;color:var(--faint)}
+.jz-subt{font-size:.9rem;min-width:0}
+.jz-subc{font-size:.68rem;color:var(--muted)}
+/* twelve pips, one per key: the fastest possible read of where an exercise is */
+.jz-keys{display:flex;gap:2px}
+.jz-keys > i{width:6px;height:6px;border-radius:50%;
+  background:color-mix(in srgb,var(--line) 85%,transparent)}
+.jz-keys > i.on{background:var(--page-accent)}
+.jz-why{margin-top:10px;border-top:1px dashed var(--line);padding-top:8px}
+.jz-why > summary{cursor:pointer;list-style:none;font-size:.66rem;color:var(--muted);
+  letter-spacing:.08em;text-transform:uppercase}
+.jz-why > summary::-webkit-details-marker{display:none}
+.jz-why p{font-size:.88rem;margin:8px 0 0}
+.jz-shut{font-size:.72rem;color:var(--faint);margin:8px 0 0}
+/* Werner, in the voice the rest of the coaching text uses */
+.jz-werner{display:grid;grid-template-columns:auto 1fr;gap:9px;margin-top:10px;
+  border-left:3px solid var(--terra);padding:7px 0 7px 11px}
+.jz-werner p{font-family:var(--serif);font-style:italic;font-size:.9rem;margin:0}
+.jz-werner .jz-wm{font-style:normal;font-family:inherit;font-size:.8rem;color:var(--muted);margin-top:6px}
+.jz-wi{font-size:.9rem;opacity:.75}
+
+/* one exercise */
+.jz-cols{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:20px;align-items:start}
+@media (max-width:1000px){.jz-cols{grid-template-columns:1fr}}
+.jz-keyrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.jz-keypick{display:flex;gap:4px;flex-wrap:wrap}
+.jz-k{min-width:38px;padding:5px 7px;border:1px solid var(--line);border-radius:8px;
+  background:none;color:inherit;font-family:var(--mono);font-size:.76rem;cursor:pointer;
+  transition:border-color .16s var(--ease),background .16s var(--ease)}
+.jz-k:hover{border-color:var(--page-accent)}
+.jz-k.got{border-color:color-mix(in srgb,var(--page-accent) 55%,var(--line))}
+.jz-k.got::after{content:'\00b7';margin-left:3px;color:var(--page-accent)}
+.jz-k.on{background:var(--page-accent);border-color:var(--page-accent);color:#fff}
+.jz-stage-box{border:1px solid var(--line);border-radius:12px;background:var(--card);
+  padding:10px;min-height:150px;overflow:auto}
+.jz-score svg{max-width:100%;height:auto}
+.jz-noscore{font-family:var(--mono);font-size:.76rem;color:var(--muted);padding:26px 12px;text-align:center}
+.jz-count{font-size:.7rem;color:var(--faint);margin-top:9px}
+.jz-side{display:flex;flex-direction:column;gap:12px;position:sticky;top:14px}
+.jz-note{border:1px solid var(--line);border-radius:11px;padding:10px 12px}
+.jz-note p{font-size:.86rem;margin:6px 0 0}
+.jz-logs{display:flex;flex-direction:column;gap:6px;margin-top:7px}
+.jz-log{display:flex;gap:8px;flex-wrap:wrap;align-items:baseline;font-size:.78rem}
+.jz-lognote{width:100%;font-size:.78rem;color:var(--muted);margin:2px 0 0}
+.jz-hday{margin-bottom:14px}
+
+/* the cards: one question, very large, and nothing else on the page */
+.jz-setup{border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.jz-pick{display:flex;flex-direction:column;gap:2px;margin-top:8px;max-height:34vh;overflow:auto}
+.jz-card{max-width:620px;margin:0 auto;text-align:center}
+.jz-cbar{height:3px;border-radius:3px;background:color-mix(in srgb,var(--line) 70%,transparent);
+  margin:8px 0 34px;overflow:hidden}
+.jz-cbar > i{display:block;height:100%;background:var(--page-accent);transition:width .4s var(--ease)}
+.jz-cprompt{font-size:1.5rem;line-height:1.35;margin:0}
+.jz-ckey{font-size:3.4rem;line-height:1.1;margin:18px 0 0;color:var(--page-accent)}
+.jz-chint{font-size:.66rem;color:var(--faint);margin-top:22px}
+.jz-cask{font-size:.76rem;color:var(--muted);margin:0 0 12px}
+.jz-chow{font-size:.9rem;margin:18px 0 10px}
+.btn.lg{padding:11px 26px;font-size:1rem}
+@media (max-width:640px){.jz-ckey{font-size:2.6rem}.jz-cprompt{font-size:1.2rem}}
+
 /* planning the week: the parts of a life, and the few things being carried */
 .wp-aspect{display:grid;grid-template-columns:auto minmax(150px,1fr) minmax(0,1.6fr);gap:10px;
   align-items:center;cursor:default;box-shadow:inset 3px 0 0 -1px var(--c)}
