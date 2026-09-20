@@ -8254,5 +8254,137 @@ html.sc-reading .tdock{display:none}
   border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);
   font-size:.74rem;cursor:pointer;opacity:.85}
 .t-timeline:hover{opacity:1;border-color:var(--line-2)}
+.tm-cat{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;
+  border:1px solid var(--line);margin-right:4px}
+
+/* ============================================================
+   THE JAPANESE STUDIO, second draft — five tabs, a dark drill room
+   ============================================================ */
+/* The island editor holds two registers side by side and the comparison holds
+   two whole texts; 760px gives each of them about 360, which is narrower than
+   a line of Japanese wants to be. */
+.modal.wide.sc-modal{max-width:min(920px,94vw)}
+.ja-tabs{margin:14px 0 4px;flex-wrap:wrap}
+.ja-432-top{margin:8px 0 4px}
+.ja-chart{margin:6px 0 10px;max-width:520px}
+.ja-shift{font-size:.74rem;margin-bottom:10px;color:var(--sage)}
+
+/* the drill room: a screen that stops being a screen */
+html.ja-running{overflow:hidden}
+.ja-run{position:fixed;inset:0;z-index:120;background:#14120f;color:#efe7da;
+  display:grid;place-items:center;padding:24px}
+.ja-run-in{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;
+  max-width:44rem;width:100%}
+.ja-run-h{font-size:.78rem;opacity:.6;letter-spacing:.06em}
+.ja-clock{font-size:clamp(3rem,12vw,5rem);line-height:1;font-variant-numeric:tabular-nums}
+.ja-rec{font-size:.72rem;opacity:.7;display:flex;align-items:center;gap:6px}
+.ja-dot{width:9px;height:9px;border-radius:50%;background:#c4484e;display:inline-block;
+  animation:jaBreathe 2.4s var(--ease) infinite}
+@keyframes jaBreathe{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.75)}}
+.ja-topic{font-size:1.3rem;margin-top:6px}
+.ja-run-targets{font-size:.74rem;opacity:.72;display:flex;flex-direction:column;gap:2px;margin-top:4px}
+.ja-run-targets b{opacity:.55;font-weight:400;margin-right:6px}
+.ja-live{margin-top:14px;width:100%;max-height:34vh;overflow:auto;text-align:left;
+  font-family:var(--serif);font-size:1rem;line-height:1.9;opacity:.9;
+  border:1px solid rgba(239,231,218,.16);border-radius:8px;padding:12px 14px;min-height:4rem}
+.ja-run .btn,.ja-run .tbtn{color:#efe7da;border-color:rgba(239,231,218,.3);background:transparent}
+.ja-run .btn.primary{background:rgba(239,231,218,.14)}
+.ja-breath-t{font-size:1.6rem}
+.ja-breath{gap:14px}
+
+/* the audit */
+.ja-audit{display:flex;flex-direction:column;gap:2px}
+.ja-player{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:6px 0}
+.ja-player audio{flex:1;min-width:14rem}
+.ja-speeds{display:flex;gap:4px}
+.ja-heard{opacity:.75;font-family:var(--serif)}
+.ja-marks{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+.ja-marks .tbtn{border-left:3px solid var(--c)}
+.ja-marklist{display:flex;gap:6px;flex-wrap:wrap}
+.ja-mark{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;padding:3px 8px;
+  border-radius:999px;border:1px solid var(--c);background:color-mix(in srgb,var(--c) 12%,transparent)}
+.ja-mark b{font-size:.62rem;opacity:.6;font-weight:400}
+.ja-targets{display:flex;flex-direction:column;gap:3px}
+.ja-target{display:flex;align-items:center;gap:7px;font-size:.84rem}
+.ja-gramused{display:flex;flex-direction:column;gap:5px}
+.ja-gramrow{display:grid;grid-template-columns:minmax(0,1fr) 13rem;gap:8px;align-items:center;font-size:.84rem}
+.ja-wpm{display:flex;align-items:center;gap:5px;font-size:.7rem}
+.ja-wpm .inp{width:4.6em}
+
+/* the islands */
+.ja-islands{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin-top:10px}
+.ja-island{border:1px solid var(--line);border-radius:var(--radius);padding:10px 12px;
+  background:var(--surface);border-top:3px solid var(--line)}
+.ja-is-corrected{border-top-color:#c9a96e}
+.ja-is-memorizing{border-top-color:#b0705e}
+.ja-is-automatic{border-top-color:var(--sage)}
+.ja-island-t{font-size:1.02rem}
+.ja-island-s{font-size:.7rem;opacity:.7;margin-top:2px}
+.ja-island-r{display:flex;align-items:center;gap:7px;margin:6px 0 2px;font-size:.7rem}
+.ja-bar{flex:1;height:7px;border-radius:4px;background:var(--line);overflow:hidden;display:block}
+.ja-bar i{display:block;height:100%;background:var(--sage);opacity:.8}
+.ja-overview{margin-top:16px}
+.ja-orow{display:grid;grid-template-columns:minmax(0,13rem) minmax(0,1fr) 3.4rem;gap:10px;
+  align-items:center;font-size:.78rem;margin-bottom:4px}
+.ja-on{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ja-registers{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+@media (max-width:760px){ .ja-registers{grid-template-columns:1fr} }
+.ja-chunks{display:flex;flex-direction:column;gap:4px;margin-bottom:6px}
+.ja-chunk{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) minmax(0,1.4fr) auto auto;
+  gap:6px;align-items:center}
+@media (max-width:760px){ .ja-chunk{grid-template-columns:1fr 1fr} }
+.ja-check{display:inline-flex;align-items:center;gap:6px;font-size:.78rem}
+
+/* the vault */
+.ja-shelves{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.ja-shelf summary{display:flex;align-items:baseline;gap:10px;cursor:pointer}
+.ja-stones{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
+.ja-stone{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;
+  border:1px solid var(--line);background:var(--surface);font-size:.84rem;cursor:pointer}
+.ja-stone b{font-family:var(--serif);font-weight:400}
+.ja-stone em{font-style:normal;font-size:.68rem}
+
+/* translation */
+.ja-tr{border:1px solid var(--line);border-radius:var(--radius);padding:10px 13px;background:var(--surface)}
+.ja-tr-locked{opacity:.78;border-style:dashed}
+.ja-lock{display:flex;align-items:center;gap:10px;margin-top:6px;font-size:.82rem}
+.ja-sand{font-size:1.2rem;display:inline-block;animation:jaSand 6s ease-in-out infinite}
+@keyframes jaSand{0%,44%{transform:rotate(0)}50%,94%{transform:rotate(180deg)}100%{transform:rotate(360deg)}}
+.ja-frozen{border:1px solid var(--line);border-radius:var(--radius);padding:9px 12px;
+  background:var(--surface);font-size:.88rem;white-space:pre-wrap}
+.ja-frozen.sm{font-size:.8rem;opacity:.8}
+.ja-compare{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:760px){ .ja-compare{grid-template-columns:1fr} }
+.ja-divs{display:flex;flex-direction:column;gap:10px;margin-bottom:6px}
+.ja-div{border-left:3px solid #c9a96e;padding-left:9px;display:flex;flex-direction:column;gap:5px}
+
+/* grammar */
+.ja-grams{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;margin-top:10px}
+.ja-gram{border:1px solid var(--line);border-radius:var(--radius);padding:10px 12px;background:var(--surface)}
+.ja-gs-solid,.ja-gs-automatic{border-left:3px solid var(--sage)}
+.ja-gs-shaky{border-left:3px solid #c9a96e}
+.ja-drills{display:flex;flex-direction:column;gap:5px;margin-bottom:6px}
+.ja-drillrow{display:grid;grid-template-columns:9rem minmax(0,1fr) auto minmax(0,1fr) auto;gap:6px;align-items:center}
+@media (max-width:760px){ .ja-drillrow{grid-template-columns:1fr 1fr} }
+.ja-drill{display:flex;flex-direction:column;gap:8px}
+.ja-drill-p{font-size:1.4rem;margin:8px 0}
+.ja-drill-s{min-height:1.4rem;font-size:1rem}
+.ja-right{color:var(--sage)}
+.ja-wrong{color:#c4484e}
+.ja-drill-bar{height:5px;border-radius:3px;background:var(--line);overflow:hidden;margin-top:6px}
+.ja-drill-bar i{display:block;height:100%;background:var(--sage)}
+
+/* the notebook */
+.ja-open{margin:8px 0;font-size:.78rem;color:#c98b7a}
+.ja-patterns{margin:10px 0;padding:10px 13px;border:1px solid var(--line);border-radius:var(--radius);
+  background:var(--surface)}
+.ja-prow{display:grid;grid-template-columns:1.4rem minmax(0,12rem) minmax(0,1fr) 2.2rem;gap:9px;
+  align-items:center;font-size:.8rem;margin-top:4px}
+.ja-filters{margin-top:10px}
+.ja-err{border:1px solid var(--line);border-radius:var(--radius);padding:9px 13px;background:var(--surface)}
+.ja-err-open{border-left:3px solid #c98b7a}
+.ja-err-l{display:grid;grid-template-columns:5.4rem minmax(0,1fr);gap:8px;align-items:baseline}
+.ja-err-l .k{font-size:.64rem;opacity:.55}
+.ja-err-n{font-size:.8rem;opacity:.82;margin-top:4px}
 </style>
 </head>

@@ -21,6 +21,7 @@ const STUDY_SOURCES = {
   vocab:        {deck:'ja_vocab',       say:'Japanese Studio',    go: () => '#/japanese'},
   error_log:    {deck:'ja_corrections', say:'Speaking Lab',       go: () => '#/japanese'},
   island:       {deck:'ja_vocab',       say:'An island',          go: () => '#/japanese'},
+  translation:  {deck:'ja_corrections', say:'A translation',      go: () => '#/japanese/translate'},
   tarot:        {deck:'divination',     say:'Tarot',              go: () => '#/today'},
   iching:       {deck:'divination',     say:'I Ching',            go: () => '#/today'},
   charm:        {deck:'divination',     say:'Charms',             go: () => '#/today'},

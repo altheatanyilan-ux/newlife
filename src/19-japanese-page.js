@@ -1,61 +1,145 @@
 /* ============================================================
-   THE JAPANESE STUDIO — the room, and everything you can press in it.
+   THE JAPANESE STUDIO — five rooms and a notebook.
+
+   The pipeline, in the order it runs: a grammar point is drilled until the
+   transformation is mechanical, then used to say something true about your
+   own life; that becomes an island, in both registers, with the vocabulary it
+   needs beside it; the island is pushed to speed against a shrinking clock;
+   and translation, separately, keeps the structural knowledge honest by
+   making you rebuild real Japanese from your own English a day later.
+   Everything that goes wrong anywhere lands in one notebook, and the notebook
+   feeds back into the grammar drills and the Study Deck.
+
+   Five tabs rather than one long page, because these are five different
+   sittings: the drill needs a microphone and twelve minutes, the notebook
+   needs five, and putting them on one scroll meant the two at the bottom were
+   never opened.
+
+   What came out: the four-strands audit, the processability ladder and the
+   machine-versus-human ratio. All three were built from the research rather
+   than from a practice hour, and all three asked you to grade your week
+   before you had done anything in it.
    ============================================================ */
-routes.japanese = function(root){
-  const j = jaState();
-  registerPageEntry({pageName:'Japanese Studio', addLabel:'Log a session', defaultEntryType:'session', prefilledFields:{}, options:[
-    {icon:'🎙', label:'A 4/3/2 session', desc:'One talk, three times, a shrinking clock.', run:()=>openJa432()},
-    {icon:'🏝', label:'An island', desc:'A monologue worth having by heart.', run:()=>openJaIsland()},
-    {icon:'✏️', label:'An error', desc:'What you meant, and what it should have been.', run:()=>openJaError()}]});
-  /* One room, no tabs. Everything on this page is the Speaking Lab, so there
-     is nothing to choose between before you can start. */
+function jaUi(){
+  return S._ja = S._ja || {tab:'drill', errType:null, errSource:null, errFind:''};
+}
+const JA_TABS = [
+  ['drill',      '\ud83c\udf99 4/3/2'],
+  ['islands',    '\ud83c\udfdd Islands'],
+  ['translate',  '\ud83d\udcd6 Translation'],
+  ['grammar',    '\ud83d\udcd0 Grammar'],
+  ['errors',     '\ud83d\udcd5 Notebook']];
+
+routes.japanese = function(root, params){
+  const j = jaState2();
+  const u = jaUi();
+  const want = params && params[0];
+  if(JA_TABS.some(t => t[0] === want)) u.tab = want;
+  registerPageEntry({pageName:'Japanese Studio', addLabel:'Practise', defaultEntryType:'session', prefilledFields:{}, options:[
+    {icon:'\ud83c\udf99', label:'A 4/3/2 sitting', desc:'One talk, three times, a shrinking clock.', run:()=>openJa432Setup()},
+    {icon:'\ud83c\udfdd', label:'An island', desc:'A monologue worth having by heart, in both registers.', run:()=>openJaIsland()},
+    {icon:'\ud83d\udcd6', label:'A text to translate', desc:'Japanese in, English out, and back again a day later.', run:()=>openJaTr1()},
+    {icon:'\ud83d\udcd0', label:'A grammar point', desc:'The one you keep getting wrong.', run:()=>openJaGrammar()},
+    {icon:'\ud83d\udcd5', label:'An error', desc:'What you tried, and what it should have been.', run:()=>openJaError()}]});
   root.innerHTML = `<div class="page ja-page">
     <h1 class="serif">Japanese Studio</h1>
-    <p class="muted ja-lede">Knowing more Japanese and being able to say the Japanese you already know are different skills, and only the second one is what anybody means by fluent. This room trains the second: repetition against a clock, monologues you can stand on while you think, and a log that turns the things you got wrong into the things you drill.</p>
-    <div class="ja-body">${ja432HTML() + jaIslandsHTML() + jaScenariosHTML()
-      + jaShadowingHTML() + jaErrorsHTML() + jaStrandsHTML()}</div>
+    <p class="muted ja-lede">Knowing more Japanese and being able to say the Japanese you already know are different skills, and only the second is what anybody means by fluent. Five rooms in a line: drill a pattern, use it about your own life, learn the result by heart, push it to speed, and keep every mistake in one book.</p>
+    <div class="tabs ja-tabs">${JA_TABS.map(([k, name]) =>
+      `<button class="tab${u.tab === k ? ' on' : ''}" data-jatab="${k}">${name}</button>`).join('')}</div>
+    <div class="ja-body">${jaTabHTML(u.tab)}</div>
   </div>`;
   bindJapanese(root);
 };
+function jaTabHTML(tab){
+  if(tab === 'islands') return jaIslandsHTML();
+  if(tab === 'translate') return jaTranslateHTML();
+  if(tab === 'grammar') return jaGrammarHTML();
+  if(tab === 'errors') return jaErrorsHTML();
+  /* the drill, and the two other kinds of recorded practice that belong with
+     it: a scenario and a shadowing take are both "open your mouth" work */
+  return ja432HTML() + jaScenariosHTML() + jaShadowingHTML();
+}
 
 function bindJapanese(root){
-  const j = jaState();
+  const j = jaState2();
+  const u = jaUi();
   const redraw = () => { saveNow(); rerender(); };
   const on = (sel, fn) => { const n = root.querySelector(sel); if(n) n.onclick = fn; };
   const each = (attr, fn) => $$(`[data-${attr}]`, root).forEach(b => b.onclick = () => fn(b.dataset[attr], b));
 
-  on('#ja432New', () => openJa432());
-  each('jaerr', id => openJaError(id));
-  each('jasessdel', id => { spliceOut(j.sessions, s => s.id === id); sound('click'); redraw(); });
+  $$('[data-jatab]', root).forEach(b => b.onclick = () => navigate(`#/japanese/${b.dataset.jatab}`));
+
+  /* the drill */
+  on('#ja432New', () => openJa432Setup());
+  each('jaaudit', id => openJa432Audit(id));
+  each('jaerr', id => openJaError(null, {source:'432', sourceId:id}));
+  each('jasessdel', id => { const s = byId(j.sessions, id);
+    if(s) jaDropAudio((s.deliveries || []).map(d => d.audioId));
+    spliceOut(j.sessions, v => v.id === id); sound('click'); redraw(); });
+
+  /* the islands */
   on('#jaIslandNew', () => openJaIsland());
   each('jaislandedit', id => openJaIsland(id));
-  each('jaislandpx', id => { const i = byId(j.islands, id); if(i){ i.lastPracticed = today();
-    /* practising an island is what moves it along, so the status follows the
-       practice rather than waiting to be set by hand */
-    if(i.status === 'corrected') i.status = 'memorizing';
-    sound('success'); redraw(); } });
+  each('jaisland432', id => openJa432Setup(id));
   each('jaislandcard', id => { const i = byId(j.islands, id);
     if(!i || typeof suggestStudyCard !== 'function') return;
     suggestStudyCard({type:'production', sourceType:'island', sourceId:i.id,
-      front:`Deliver your island: ${i.topic}`, back:i.japaneseText,
-      sourceLabel:`Island — ${i.topic}`, tags:['island']});
+      front:`Deliver your island: ${i.topic}`, back: i.japaneseTeineigo || i.japaneseTameguchi,
+      sourceLabel:`Island \u2014 ${i.topic}`, tags:['island']});
     sound('success'); toast('In the Study Deck inbox.'); rerender(); });
   each('jaislanddel', id => { spliceOut(j.islands, i => i.id === id); sound('click'); redraw(); });
+  on('#jaChunksToDeck', () => { const n = jaChunksToDeck();
+    toast(n ? `${n} chunk${n === 1 ? '' : 's'} in the Study Deck inbox.` : 'Nothing hesitant left to send.');
+    if(n) sound('success'); rerender(); });
+  on('#jaStoneNew', () => openJaStone('filler'));
+  each('jastoneadd', shelf => openJaStone(shelf));
+  /* the chip opens the phrase and the cross on it throws the phrase away, and
+     the cross is inside the chip — so a press on the cross has to stop there,
+     or it deletes the phrase and then opens an editor for nothing */
+  $$('[data-jastone]', root).forEach(b => b.onclick = ev => {
+    if(ev.target.closest('[data-jastonedel]')) return;
+    openJaStone(null, b.dataset.jastone);
+  });
+  $$('[data-jastonedel]', root).forEach(b => b.onclick = ev => { ev.stopPropagation();
+    spliceOut(j.stones, v => v.id === b.dataset.jastonedel); sound('click'); redraw(); });
+
+  /* the scenarios and the shadowing */
   on('#jaScenNew', () => openJaScenario());
   each('jascenedit', id => openJaScenario(id));
   each('jascenrun', id => { const s = byId(j.scenarios, id); if(s){ s.times = (+s.times || 0) + 1;
     s.lastDone = today(); sound('success'); redraw(); } });
   on('#jaShadowNew', () => openJaShadow());
   each('jashadowdel', id => { spliceOut(j.shadowing, s => s.id === id); sound('click'); redraw(); });
+
+  /* the translations */
+  on('#jaTrNew', () => openJaTr1());
+  each('jatr1', id => openJaTr1(id));
+  each('jatr2', id => openJaTr2(id));
+  each('jatrcmp', id => openJaTrCompare(id));
+  each('jatrdel', id => { spliceOut(j.translations, t => t.id === id); sound('click'); redraw(); });
+
+  /* the grammar */
+  on('#jaGramNew', () => openJaGrammar());
+  each('jagramopen', id => openJaGrammar(id));
+  each('jagramdrill', id => openJaGrammarDrill(id));
+  each('jagramapply', id => openJaGrammarApply(id));
+  each('jagramdeck', id => { const n = jaGrammarToDeck(id);
+    toast(n ? `${n} card${n === 1 ? '' : 's'} in the Study Deck inbox.` : 'No drills to send.');
+    if(n) sound('success'); });
+  each('jagramdel', id => { spliceOut(j.grammar, g => g.id === id); sound('click'); redraw(); });
+
+  /* the notebook */
   on('#jaErrNew', () => openJaError());
-  each('jaerrcard', id => { const e = byId(j.errors, id);
-    if(!e || typeof suggestStudyCard !== 'function') return;
-    suggestStudyCard({type:'production', sourceType:'error_log', sourceId:e.id,
-      front:`Say this in Japanese:\n\n${e.intendedMeaning}`, back:e.correctedNatural,
-      sourceLabel:`Speaking Lab, ${fmtDate(e.date, 'med')}`, tags:[String(e.errorType || '').replace(/\s+/g, '-')]});
-    e.sentToStudyDeck = true; sound('success'); redraw(); });
+  each('jaerropen', id => openJaError(id));
+  each('jaerrcard', id => { if(jaErrorToDeck(id)){ sound('success'); redraw(); } });
+  each('jaerrgram', id => { u.tab = 'grammar'; saveNow(); navigate('#/japanese/grammar');
+    setTimeout(() => openJaGrammar(id), 60); });
   each('jaerrdel', id => { spliceOut(j.errors, e => e.id === id); sound('click'); redraw(); });
-  on('#jaStrandNew', () => openJaStrands());
+  const pick = (sel, key) => { const n = root.querySelector(sel); if(!n) return;
+    n.onchange = () => { u[key] = n.value || null; saveNow(); rerender(); }; };
+  pick('#jaErrType', 'errType'); pick('#jaErrSource', 'errSource');
+  const find = root.querySelector('#jaErrFind');
+  if(find) find.onchange = () => { u.errFind = find.value.trim(); saveNow(); rerender(); };
 }
 
 function openJaScenario(id){
@@ -126,9 +210,10 @@ function jaReviewLines(from, to){
     : `Pauses are mixed — halfway between assembling and planning.`);
   const top = jaTopPatterns(from, to, 3);
   if(top.length) out.push(`Errors: ${top.map(([k, n]) => `${k} (${n})`).join(', ')}.`);
-  const w = jaAiWarning();
-  if(w) out.push(`${Math.round(w.aiShare * 100)}% of your partnered practice was with a machine. Book a person.`);
-  const st = jaStrandTrouble(jaStrandsLatest());
-  if(st.length) out.push(st[0]);
+  const tr = j.translations ? j.translations.filter(t => (t.pass2Date || '').slice(0, 10) >= from
+    && (t.pass2Date || '').slice(0, 10) <= to) : [];
+  if(tr.length) out.push(`${tr.length} text${tr.length === 1 ? '' : 's'} rebuilt from your own English.`);
+  const open = (j.errors || []).filter(e => !String(e.corrected || '').trim()).length;
+  if(open) out.push(`${open} entr${open === 1 ? 'y in the notebook has' : 'ies in the notebook have'} no correction written in yet.`);
   return out;
 }

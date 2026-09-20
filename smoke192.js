@@ -19,10 +19,17 @@
    other is grammar becoming automatic, and it is the only measurement here
    that is worth more than the effort of taking it.
 
-   AND WHAT A MACHINE CANNOT TEACH YOU. Sustained practice against an AI
-   produces a register machines like and people do not — rigid, over-explicit,
-   one intent per sentence. In a language that runs on omitted subjects and
-   aizuchi that is a real cost, so the ratio is watched and said out loud. */
+   AND THE PIPELINE. The room is five sittings in a line rather than one long
+   page: drill a pattern until the transformation is mechanical, use it to say
+   something true about your own life, learn the result by heart in both
+   registers, push it to speed against the clock, and keep every mistake in
+   one book. This test holds the shape; smoke201 holds what each room does.
+
+   Three things this draft took out, and they are asserted gone below: the
+   four-strands audit, the processability ladder and the ratio of machine to
+   human practice. All three were built from the research rather than from a
+   practice hour, and all three asked you to grade a week before you had had
+   it. */
 const {chromium} = require('playwright');
 const path = require('path');
 const FILE = 'file://' + path.resolve(__dirname, 'index.html');
@@ -43,18 +50,20 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(2000); }
   await p.evaluate(() => document.querySelectorAll('.overlay').forEach(n => n.remove()));
 
-  console.log('\n1. one room, and the way in from the garden');
+  console.log('\n1. five rooms, and the way in from the garden');
   await p.evaluate(() => { location.hash = '#/japanese'; }); await p.waitForTimeout(1700);
   yes('the page is there', await p.evaluate(() => !!document.querySelector('.ja-page')));
-  /* It had five tabs and now has none. Four of them were about knowing more
-     Japanese, which is the thing this room is explicitly not for, and a room
-     you have to choose a tab in before you can start is a room you open less
-     often. Everything on the page is the one that was left. */
-  is('  nothing to choose between before you can start',
-    await p.evaluate(() => document.querySelectorAll('[data-jatab]').length), 0);
-  is('  and all six sections are simply there',
+  /* Five rooms, because these are five different sittings: the drill wants a
+     microphone and twelve minutes, the notebook wants five, and on one long
+     page the two at the bottom were never opened. */
+  is('  five rooms in a line',
+    await p.evaluate(() => [...document.querySelectorAll('[data-jatab]')].map(n => n.dataset.jatab)),
+    ['drill','islands','translate','grammar','errors']);
+  /* the drill tab carries the other two kinds of recorded practice with it:
+     a scenario and a shadowing take are both "open your mouth" work */
+  is('  and the drill opens with the speaking work on it',
     await p.evaluate(() => [...document.querySelectorAll('.ja-sec > .row > .sc')].map(x => x.textContent.trim())),
-    ['4 / 3 / 2','Islands','Scenarios','Shadowing','Error log','The four strands']);
+    ['4 / 3 / 2','Scenarios','Shadowing']);
   is('the herb garden opens it', await p.evaluate(() => { const was = location.hash;
     HOUSE_PORTALS.herbs(); const to = location.hash; location.hash = was; return to; }), '#/japanese');
   is('  and the scenarios arrive in order of how often they happen',
@@ -106,41 +115,33 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('  and the two at boundaries as that',
     chips.filter(c => /ja-p-mostly_boundary/.test(c.cls)).length === 2, JSON.stringify(chips));
 
-  console.log('\n4. what a machine cannot teach you');
-  const mix = await p.evaluate(() => {
-    const j = jaState();
-    j.sessions = [];
-    for(let i = 0; i < 5; i++) j.sessions.push({id:'ai' + i, date:addDays(today(), -i), topic:'x',
-      partnerType:'ai', sessionType:'practice', deliveries:[]});
-    saveNow();
-    const before = {mix: jaPartnerMix(4), warn: !!jaAiWarning()};
-    j.sessions.push({id:'h1', date:today(), topic:'x', partnerType:'human', sessionType:'practice', deliveries:[]});
-    j.sessions.push({id:'h2', date:today(), topic:'x', partnerType:'human', sessionType:'practice', deliveries:[]});
-    saveNow();
-    return {before, after: {mix: jaPartnerMix(4), warn: !!jaAiWarning()}};
-  });
-  is('five machine sessions and no people is all machine', mix.before.mix.aiShare, 1);
-  yes('  which is said out loud', mix.before.warn);
-  yes('two human sessions bring it under the line',
-    mix.after.mix.aiShare < 0.8 && !mix.after.warn, JSON.stringify(mix.after));
-  /* solo recording is neither: it is not a conversation, so it does not count
-     towards a ratio that is about who you are talking to */
-  is('  and solo work is not counted as either', mix.after.mix.aiShare,
-    await p.evaluate(() => { jaState().sessions.push({id:'solo1', date:today(), topic:'x',
-      partnerType:'solo', sessionType:'practice', deliveries:[]}); saveNow(); return jaPartnerMix(4).aiShare; }));
+  console.log('\n4. what the second draft took out');
+  /* Each of these asked you to grade your week before you had done anything
+     in it, and each was built from a paper rather than from a practice hour.
+     They are asserted gone rather than quietly dropped, because a room that
+     keeps its dead machinery around is a room nobody trusts the rest of. */
+  const retired = await p.evaluate(() => ({
+    fns: ['jaPartnerMix','jaAiWarning','jaStrandTrouble','jaStrandsLatest','jaStrandsHTML','openJaStrands']
+      .filter(n => typeof window[n] === 'function'),
+    strandsOnPage: document.body.textContent.includes('four strands'),
+    warnOnPage: document.querySelectorAll('.ja-warn').length}));
+  is('the machine-versus-human ratio and the strand audit are gone', retired.fns, []);
+  yes('  and nothing on the page still mentions them',
+    !retired.strandsOnPage && retired.warnOnPage === 0, JSON.stringify(retired));
+  /* what somebody wrote in them stays: the saved partner types and strand
+     rows are still in the file, unread rather than deleted */
+  is('  while what was logged into them is left where it is',
+    await p.evaluate(() => { const j = jaState();
+      j.strands = [{id:'st1', weekOf:'2026-01-05', input:25, output:25, study:25, fluency:25}];
+      saveNow(); return (jaState().strands || []).length; }), 1);
 
-  console.log('\n5. Nation\'s rule, said as a complaint rather than a score');
-  const strands = await p.evaluate(() => ({
-    starved: jaStrandTrouble({input:30, output:30, study:30, fluency:10}),
-    heavy:   jaStrandTrouble({input:20, output:15, study:40, fluency:25}),
-    fine:    jaStrandTrouble({input:25, output:25, study:25, fluency:25})}));
-  yes('a starved fluency strand is named', strands.starved.some(s => /Fluency/.test(s)), JSON.stringify(strands.starved));
-  yes('  and so is too much deliberate study', strands.heavy.some(s => /Language-focused/.test(s)), JSON.stringify(strands.heavy));
-  is('a balanced week is left alone', strands.fine, []);
-
-  console.log('\n6. the four rooms that were taken out, and what became of what was in them');
-  const gone = await p.evaluate(() => ['jaLadderHTML','jaGrammarHTML','jaTranslationsHTML',
-    'jaVocabHTML','jaWritingHTML','jaProgressHTML','jaChunkCards','openJaGrammar','openJaChunk',
+  console.log('\n5. the four rooms that were taken out, and what became of what was in them');
+  /* Two of the four have come back in a different shape — the grammar drills
+     and the double translation — so their names are alive again and are not
+     on this list. The vocabulary bank, the writing desk and the progress
+     dashboard have not. */
+  const gone = await p.evaluate(() => ['jaLadderHTML','jaTranslationsHTML',
+    'jaVocabHTML','jaWritingHTML','jaProgressHTML','jaChunkCards','openJaChunk',
     'openJaWriting','openJaTranslation'].filter(n => typeof window[n] === 'function'));
   is('none of their code is still shipped', gone, []);
   /* A closed room is not a reason to delete somebody's writing. The grammar
@@ -148,16 +149,32 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
      nothing reads them any more, and nothing throws them away either. */
   const kept = await p.evaluate(() => {
     const j = jaState();
-    j.grammar = [{id:'g1', name:'ている', myNotes:'the one that keeps catching me'}];
+    /* the old grammar rows called the level jlptLevel and carried a
+       processability stage; the new editor reads them anyway */
+    j.grammar = [{id:'g1', name:'ている', myNotes:'the one that keeps catching me',
+      jlptLevel:'N4', ptStage:3}];
     j.chunks = [{id:'c1', japanese:'予定を決める'}];
     j.writing = [{id:'w1', topic:'my weekend'}];
+    j.translations = [{id:'t9', originalJapanese:'先月、東京に。',
+      userEnglish:'Last month, Tokyo.', backTranslation:'東京に行った。',
+      originalSource:'a blog', step1Date:'2026-08-01', step2Date:'2026-08-03'}];
     saveNow();
-    const again = jaState();
+    const again = jaState2();
+    const g = (again.grammar || [])[0], t = (again.translations || [])[0];
     return {grammar: (again.grammar || []).length, chunks: (again.chunks || []).length,
-      writing: (again.writing || []).length, notes: (again.grammar || [])[0]?.myNotes};
+      writing: (again.writing || []).length, notes: g && g.myNotes, jlpt: g && g.jlpt,
+      trTitle: t && t.title, trBack: t && t.userBackTranslation, trState: jaTranslationState(t)};
   });
   is('what was written in them is left alone', [kept.grammar, kept.chunks, kept.writing], [1, 1, 1]);
   is('  word for word', kept.notes, 'the one that keeps catching me');
+  /* and the two that came back are read rather than overwritten: the level
+     under its old name, the back-translation under its old name, and a
+     finished exercise still finished */
+  is('  the old level is read under its new name', kept.jlpt, 'N4');
+  is('  the old back-translation too', kept.trBack, '東京に行った。');
+  is('  and an exercise that was finished is still finished', kept.trState, 'done');
+  yes('  with a title taken from the text, since the old rows had none',
+    /先月/.test(kept.trTitle || ''), kept.trTitle);
   /* the hours those rooms used to add are not still being counted */
   is('and nothing claims time in a room that no longer exists',
     await p.evaluate(() => { const j = jaState();
@@ -166,7 +183,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
       j.translations = [{id:'t1', date:today()}];
       return jaHours(addDays(today(), -7), today()); }), 0);
 
-  console.log('\n7. an error becomes something you have to produce');
+  console.log('\n6. an error becomes something you have to produce');
   const carded = await p.evaluate(() => {
     const before = (S.study?.cards || []).length;
     const e = {id:'s192e', date:today(), intendedMeaning:'to decide on a plan',
@@ -188,7 +205,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('the meaning is the prompt and the Japanese is the answer',
     /decide on a plan/.test(carded.front) && carded.back === '予定を決めます', JSON.stringify(carded));
 
-  console.log('\n8. an island becomes something you have to deliver');
+  console.log('\n7. an island becomes something you have to deliver');
   /* the card is the whole monologue, because half an island is no island —
      the point of it is that it comes out without you assembling it */
   const island = await p.evaluate(() => {
@@ -198,10 +215,12 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
       pitchMarked:false, linkedChunks:[], nativeVerified:false, version:1,
       createdAt:new Date().toISOString()};
     j.islands.push(i);
-    saveNow(); rerender();
+    saveNow();
+    /* the islands live in their own room now, so that is where the button is */
+    location.hash = '#/japanese/islands';
     return i.id;
   });
-  await p.waitForTimeout(1200);
+  await p.waitForTimeout(1500);
   const carded2 = await p.evaluate(id => {
     document.querySelector(`[data-jaislandcard="${id}"]`).click();
     const made = (S.study.cards || []).filter(x => x.sourceId === id);
@@ -215,7 +234,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     /Why I am learning Japanese/.test(carded2.front || '') && carded2.back === '日本語を勉強している理由は…',
     JSON.stringify(carded2));
 
-  console.log('\n9. hours land on the Japanese skill, if there is one');
+  console.log('\n8. hours land on the Japanese skill, if there is one');
   const credit = await p.evaluate(() => {
     S.skills = (S.skills || []).filter(s => !/japanese/i.test(s.name || ''));
     const before = S.skills.length;
@@ -230,7 +249,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   is('  an hour and a half is an hour and a half', credit.gained, 1.5);
   is('  practised today', credit.when, await p.evaluate(() => today()));
 
-  console.log('\n10. the week, in the review');
+  console.log('\n9. the week, in the review');
   /* give it its own session with a pause reading on it: section 4 replaced the
      sessions with partner-type fixtures that carry none, and a check that
      passes on whatever the previous section happened to leave behind is not a
@@ -248,14 +267,22 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   is('a studio nobody has opened has nothing to say', quiet.said, []);
   yes('  and is not opened on their behalf by the asking', !quiet.made);
 
-  console.log('\n11. every section draws');
-  await p.evaluate(() => { location.hash = '#/japanese'; rerender(); }); await p.waitForTimeout(1300);
-  const secs = await p.evaluate(() => [...document.querySelectorAll('.ja-sec')].map(n =>
-    ({name: (n.querySelector('.sc') || {}).textContent || '?', len: n.textContent.trim().length})));
-  is('  six of them', secs.length, 6);
-  secs.forEach(x => yes(`  ${x.name.trim()}`, x.len > 60, String(x.len)));
+  console.log('\n10. every room draws, with something in it');
+  /* a tab that renders an empty box is a tab somebody opens once */
+  const drawn2 = [];
+  for(const tab of ['drill','islands','translate','grammar','errors']){
+    await p.evaluate(t => { location.hash = `#/japanese/${t}`; }, tab);
+    await p.waitForTimeout(900);
+    drawn2.push(await p.evaluate(() => [...document.querySelectorAll('.ja-sec')].map(n =>
+      ({name: ((n.querySelector('.sc') || {}).textContent || '?').trim(),
+        len: n.textContent.trim().length}))));
+  }
+  is('  five rooms drew', drawn2.length, 5);
+  drawn2.flat().forEach(x => yes(`  ${x.name}`, x.len > 60, String(x.len)));
+  is('  and the drill carries three sections while the rest carry their own',
+    drawn2.map(v => v.length), [3, 2, 1, 1, 1]);
 
-  console.log('\n12. nothing threw');
+  console.log('\n11. nothing threw');
   is('no page errors', errs, []);
 
   console.log(bad ? `\n${bad} FAILED` : '\nall good');

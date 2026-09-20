@@ -31,6 +31,13 @@ routes.settings = function(root){
           `<option value="${v}" ${timeSettings().round === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
       <div class="opt"><div><b>A sitting on a project is a nod</b><div class="d">Time hung on a project writes itself into that project's record of work.</div></div><label class="toggle ${timeSettings().autoNods?'on':''}" id="sTimeNods"><span class="sw"></span></label></div>
       <div class="opt"><div><b>An hour with somebody is an hour with them</b><div class="d">Time hung on a person writes itself into their record.</div></div><label class="toggle ${timeSettings().autoInteractions?'on':''}" id="sTimeInts"><span class="sw"></span></label></div>
+      <!-- the fifteen shipped categories are a guess at a life; anybody's
+           actual week has something in it they were not guessed -->
+      <div class="opt"><div><b>Your own categories</b>
+        <div class="d">${S.time.custom.length ? S.time.custom.map(c =>
+          `<span class="tm-cat">${esc(c.emoji)} ${esc(c.name)} <button class="del-x inline" data-tmcatdel="${esc(c.id)}">\u00d7</button></span>`).join(' ')
+          : 'None yet. The fifteen above are a guess at a life; add whatever yours has in it.'}</div></div>
+        <button class="btn sm" id="sTimeCatNew">\uff0b one</button></div>
     </div>
     <div class="card rv"><h3>Day &amp; sleep</h3>
       <div class="opt"><div><b>The day turns over at</b>
@@ -127,6 +134,9 @@ routes.settings = function(root){
   $('#sTimeInts') && ($('#sTimeInts').onclick = function(){
     timeSettings().autoInteractions = !timeSettings().autoInteractions; saveNow();
     this.classList.toggle('on', timeSettings().autoInteractions); });
+  $('#sTimeCatNew') && ($('#sTimeCatNew').onclick = () => openTimeCategoryModal());
+  $$('[data-tmcatdel]').forEach(b => b.onclick = () => {
+    spliceOut(S.time.custom, c => c.id === b.dataset.tmcatdel); saveNow(); rerender(); });
   $('#sTheme').onclick = function(){ S.settings.theme = S.settings.theme==='dark'?'light':'dark'; saveNow(); applyTheme(); this.classList.toggle('on', S.settings.theme==='light'); };
   $('#sSound').onclick = function(){ SoundManager.toggleSound(); this.classList.toggle('on', SoundManager.state().soundEnabled); };
   $('#sAmbient').onclick = function(){ SoundManager.toggleAmbient(); this.classList.toggle('on', SoundManager.state().ambientEnabled); };

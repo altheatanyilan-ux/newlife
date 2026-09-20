@@ -73,7 +73,17 @@ function skillStreak(sk){ const days = new Set(entriesLinked('skills', sk.id).ma
 function skillHours(sk){ return entriesLinked('skills', sk.id).reduce((n,e)=>n+((+e.extra?.duration||0)/60),0); }
 function projectNods(p){ return S.nods.filter(n=>n.projectId===p.id).sort((a,b)=>a.date<b.date?1:-1); }
 function habitDue(h, day){ const dow = parseDay(day).getDay(); if(h.negative||h.archived) return false; if(h.freq.type==='daily') return true; if(h.freq.type==='days') return h.freq.days.includes(dow); return true; }
-function habitDone(h, day){ return S.habitLog[day]?.[h.id]; }
+/* Kept, either because you said so or because the clock says so. A habit
+   that is really a number of minutes is better answered by the tracked time
+   than by a tick: the time either reaches it or it does not, and correcting
+   an entry un-keeps the day, which a written tick could never do. */
+function habitDone(h, day){
+  const said = S.habitLog[day]?.[h.id];
+  if(said) return said;
+  if(typeof timeHabitMet === 'function' && timeHabitMet(h, day))
+    return {level:'full', note:'kept by the clock', fromClock:true};
+  return said;
+}
 function habitStreak(h){ let cur=0, d=today(); if(!habitDone(h,d)) d = addDays(d,-1); while(true){ if(habitDone(h,d)) cur++; else if(habitDue(h,d) || h.freq.type!=='days') break; d = addDays(d,-1); if(cur>400) break; } let best=cur; let run=0; lastDays(365).forEach(x => { if(habitDone(h,x)){ run++; best=Math.max(best,run);} else if(habitDue(h,x)) run=0; }); return {cur,best}; }
 function habitWeekRates(h, weeks=4){ const out=[]; for(let w=weeks-1; w>=0; w--){ const days = Array.from({length:7},(_,i)=>addDays(today(), -(w*7+ (6-i)))); const due = h.freq.type==='perWeek' ? h.freq.count : h.freq.type==='perMonth' ? Math.max(1,Math.round(h.freq.count/4)) : days.filter(d=>habitDue(h,d)).length; const done = days.filter(d=>habitDone(h,d)).length; out.push({done, due:Math.max(due,1)}); } return out; }
 /* how many habits were kept in each energy dimension over the window */

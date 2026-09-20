@@ -99,13 +99,30 @@ function dayAwakeMinutes(d){
 function barBlocksOn(d){
   const sleep = daySleepSpans(d);
   const asleep = m => sleep.some(s => m >= s.a && m < s.b);
-  return ((rhythmDay(d).blocks) || []).map(b => {
+  const own = ((rhythmDay(d).blocks) || []).map(b => {
     const a = hm2min(b.startTime); let z = rhythmBlockEnd(b);
     if(a == null) return null;
     z = Math.min(1440, z);
     return {id: b.id, a, b: z, kind: b.kind || '', tag: b.tag || '',
       cat: timeCatAny(b.kind), over: asleep(a)};
   }).filter(Boolean).filter(x => x.b > x.a);
+  /* The tracked hours are this chart's blocks now. There used to be two ways
+     to say what an hour was — a block logged here and a timer run elsewhere —
+     and keeping both meant either logging everything twice or having two
+     pictures of the same day that disagreed. So the clock is the source, and
+     the blocks somebody logged by hand are kept beside it except where they
+     cover the same ground, which would draw the same hour twice. */
+  const tracked = (typeof timeOnDay === 'function' ? timeOnDay(d) : []).map(e => {
+    const at = new Date(e.startTime);
+    const a = at.getHours() * 60 + at.getMinutes();
+    const z = Math.min(1440, a + timeMinutes(e));
+    if(!(z > a)) return null;
+    const c = timeCategory(e.categoryId);
+    return {id: `time:${e.id}`, a, b: z, kind: e.categoryId || '', tag: e.what || '',
+      cat: c.id ? {id:c.id, icon:c.emoji, name:c.name, c:c.color} : null, over: asleep(a)};
+  }).filter(Boolean);
+  const covered = (x) => tracked.some(t => x.a < t.b && t.a < x.b);
+  return tracked.concat(own.filter(x => !covered(x)));
 }
 function dayAccount(d){
   const sleep = daySleepSpans(d).reduce((n, s) => n + (s.b - s.a), 0);

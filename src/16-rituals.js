@@ -67,6 +67,18 @@ function openHabitModal(id){
         <div class="faint" style="font-size:.74rem">A ritual hangs off something that already happens.</div></div>
       <div class="field"><label>The set-up</label><input class="inp" id="hEnv" value="${esc(h.environment || '')}" placeholder="desk, phone in another room"></div>
     </div>
+    <!-- A habit that is really a number of minutes is better kept by the clock
+         than by a tick: the tracked time either reaches it or it does not, and
+         correcting an entry un-keeps it, which a written tick could never do. -->
+    <div class="grid c2" style="gap:10px">
+      <div class="field"><label>Kept by the clock (optional)</label>
+        <select class="sel" id="hTimeCat"><option value="">no — I tick it myself</option>${
+          (typeof timeCategories === 'function' ? timeCategories() : []).map(c =>
+            `<option value="${esc(c.id)}" ${h.timeCat === c.id ? 'selected' : ''}>${esc(c.emoji)} ${esc(c.name)}</option>`).join('')}</select>
+        <div class="faint" style="font-size:.74rem">It keeps itself once the day's tracked time reaches the number beside it.</div></div>
+      <div class="field"><label>Minutes a day</label>
+        <input class="inp" type="number" min="1" max="1440" id="hTimeMins" value="${h.timeMins || ''}" placeholder="30"></div>
+    </div>
     <div class="field"><label>Micro-journal prompt (optional)</label><input class="inp" id="hPrompt" value="${esc(h.prompt)}" placeholder="How was the run?"></div>
     <div class="field"><label>Relational ritual (optional)</label><select class="sel" id="hRelational"><option value="">not relational</option>
       <option value="reachout" ${h.relational==='reachout'?'selected':''}>reach out to one person</option>
@@ -133,7 +145,9 @@ function openHabitModal(id){
       h.stackAfter = (g('#hStack') || null); h.relational = g('#hRelational') ?? h.relational;
       const ft = g('#hFreq'); if(ft) h.freq = {type: ft,
         days: [...m.querySelectorAll('[data-day].primary')].map(b => +b.dataset.day),
-        count: +g('#hCountN') || 1}; }
+        count: +g('#hCountN') || 1};
+      h.timeCat = g('#hTimeCat') || null;
+      h.timeMins = Math.max(0, +g('#hTimeMins') || 0) || null; }
     h.dimension = g('#hDim') ?? h.dimension;
     h.prompt = g('#hPrompt') ?? h.prompt;
     if(neg) h.protocol = g('#hProtocol') ?? h.protocol;

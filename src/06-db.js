@@ -59,6 +59,11 @@ const DB_SCHEMA = {          // primary key first, then indexes — Dexie syntax
      rewritten in full on every save, and this is the store that grows fastest
      in the house. */
   timeEntries:    'id, startTime, categoryId',
+  /* Recordings from the 4/3/2 drill, as Blobs. Deliberately NOT in the state
+     snapshot: that pass runs everything through JSON to work out what
+     changed, and a Blob through JSON is an empty object. These rows are
+     written and read directly. */
+  jaAudio:        'id',
 };
 /* keys of S that are single objects/arrays without their own identity — kept as rows in `meta` */
 /* Every top-level key of S that is an object rather than an array has to be
@@ -160,7 +165,7 @@ const usingRealDexie = DexieImpl !== MiniDexie;
 
 /* ---------- the database ---------- */
 const db = new DexieImpl(DB_NAME);
-db.version(13).stores(DB_SCHEMA);   // v8 finance rebuild, v9 chronicle chapters/turns/threads + interactions, v10 library + writing studio stores, v11 income streams + spend categories, v12 scores, v13 time entries
+db.version(14).stores(DB_SCHEMA);   // v8 finance rebuild, v9 chronicle chapters/turns/threads + interactions, v10 library + writing studio stores, v11 income streams + spend categories, v12 scores, v13 time entries, v14 speaking recordings
 
 /* ---------- S <-> stores ---------- */
 function stateToStores(state){
@@ -307,12 +312,20 @@ function migrateLifeline(){
   if(!S.journals.some(j => j.type === 'lifeevent')) S.journals.push({type:'lifeevent', name:'Life events'});
 }
 function migrateEras(){ if(Array.isArray(S.visionEras) && S.visionEras.length) return; const old = Array.isArray(S.eras) ? S.eras : []; S.visionEras = old.map((e,i) => ({id:e.id, name:e.label||e.name||'Era', subtitle:e.desc||e.subtitle||'', startYear:null, endYear:null, color:ERA_PALETTE[i%ERA_PALETTE.length], order:i})); delete S.eras; }
-async function readAllStores(){ const rows = {}; for(const t of db.tables) rows[t.name] = await t.toArray(); return rows; }
+/* Tables whose rows are binary. A JSON backup cannot carry a Blob — it
+   serialises to an empty object — so these are left out of an export rather
+   than written into it as husks, and left alone by a restore rather than
+   cleared and replaced by them. That is not a gap in the backup so much as an
+   honest statement of what a text file can hold; the recordings stay where
+   they are, and a restore does not silently delete them. */
+const BINARY_STORES = ['jaAudio'];
+const textTables = () => db.tables.filter(t => !BINARY_STORES.includes(t.name));
+async function readAllStores(){ const rows = {}; for(const t of textTables()) rows[t.name] = await t.toArray(); return rows; }
 async function writeAllStores(rows){
   /* the same rule as persist: serialise before the write, so what is recorded
      as written is what was written and not whatever the state became meanwhile */
   const shot = {}; for(const k of Object.keys(rows)) shot[k] = JSON.stringify(rows[k]);
-  await db.transaction('rw', db.tables, async tx => { for(const t of db.tables){ const table = tx[t.name] || tx.table(t.name); await table.clear(); if(rows[t.name]?.length) await table.bulkPut(rows[t.name]); } });
+  await db.transaction('rw', textTables(), async tx => { for(const t of textTables()){ const table = tx[t.name] || tx.table(t.name); await table.clear(); if(rows[t.name]?.length) await table.bulkPut(rows[t.name]); } });
   lastWritten = shot;
 }
 
@@ -388,7 +401,7 @@ const fmtBytes = n => n > 1e9 ? (n/1e9).toFixed(2)+' GB' : n > 1e6 ? (n/1e6).toF
 const LAST_BACKUP_KEY = 'lastBackupDate';
 async function exportToJSON(){
   await flushSave();
-  const data = {}; for(const t of db.tables) data[t.name] = await t.toArray();
+  const data = {}; for(const t of textTables()) data[t.name] = await t.toArray();
   const payload = {version: 1, exportedAt: new Date().toISOString(), data};
   const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
   const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `backup-${today()}.json`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000);
@@ -411,7 +424,7 @@ function normaliseBackup(obj){
   return obj;
 }
 async function importBackup(obj){
-  const rows = {}; for(const t of db.tables) rows[t.name] = Array.isArray(obj.data[t.name]) ? obj.data[t.name] : [];
+  const rows = {}; for(const t of textTables()) rows[t.name] = Array.isArray(obj.data[t.name]) ? obj.data[t.name] : [];
   await writeAllStores(rows);
   S = storesToState(rows); migrate();
 }

@@ -137,6 +137,23 @@ function timeAutoStop(feature){
   paintTimeDock();
   return done;
 }
+/* A habit made of minutes. Answered rather than recorded: the day's tracked
+   time in that category either reaches the number or it does not, so the
+   habit follows the hours instead of needing to be ticked beside them — and
+   a correction to an entry takes the day back, which a tick could not. */
+function timeHabitMet(h, day){
+  if(!h || !h.timeCat || !(+h.timeMins > 0)) return false;
+  if(!Array.isArray(S.timeEntries) || !S.timeEntries.length) return false;
+  const mins = sum(timeOnDay(day).filter(e => e.categoryId === h.timeCat).map(e => timeMinutes(e)));
+  return mins >= +h.timeMins;
+}
+/* how far along it is, for a ring that fills rather than a box that ticks */
+function timeHabitShare(h, day){
+  if(!h || !h.timeCat || !(+h.timeMins > 0)) return null;
+  const mins = sum(timeOnDay(day).filter(e => e.categoryId === h.timeCat).map(e => timeMinutes(e)));
+  return Math.min(1, mins / +h.timeMins);
+}
+
 /* What the Today page says in one line, and what the weekly review says in
    three. Both silent for somebody who has never started the clock: a summary
    that invents a line about a room you have never been in is a summary you

@@ -256,7 +256,46 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     rooms.theirs && rooms.source === 'auto', JSON.stringify(rooms));
   yes('  and that one it may stop', rooms.stoppedIt && rooms.quiet, JSON.stringify(rooms));
 
-  console.log('\n13. what the rest of the house says about it');
+  console.log('\n13. the day\u2019s shape, and a habit made of minutes');
+  const chart = await p.evaluate(() => {
+    const day = today();
+    /* a block logged by hand over the same hours as a tracked sitting: the
+       same hour drawn twice would make the day look twice as full */
+    const r = rhythmDay(day);
+    r.blocks = [{id:'blk-a', startTime:'09:30', endTime:'10:00', kind:'chores'},
+      {id:'blk-b', startTime:'21:00', endTime:'21:30', kind:'chores'}];
+    const blocks = barBlocksOn(day);
+    return {ids: blocks.map(b => b.id.slice(0, 5)).sort(),
+      tracked: blocks.filter(b => b.id.startsWith('time:')).length,
+      hand: blocks.filter(b => !b.id.startsWith('time:')).map(b => b.id),
+      colours: [...new Set(blocks.filter(b => b.cat).map(b => b.cat.c))].length};
+  });
+  yes('every tracked sitting is a block on the day\u2019s bar', chart.tracked >= 3, JSON.stringify(chart));
+  /* nine-thirty is inside the two hours of reading, so the hand-logged block
+     there is the same hour said twice */
+  is('  and a block logged by hand over the same hours is not drawn again',
+    chart.hand, ['blk-b']);
+  yes('  each in its own category\u2019s colour', chart.colours >= 2, String(chart.colours));
+  const habit = await p.evaluate(() => {
+    S.habits = S.habits || [];
+    S.habitLog = S.habitLog || {};
+    const h = {id:'hb-time', name:'Read 60 minutes', dimension:'mental', negative:false,
+      archived:false, freq:{type:'daily', days:[], count:1}, timeCat:'reading', timeMins:60};
+    S.habits.push(h);
+    const met = !!habitDone(h, today());
+    const share = timeHabitShare(h, today());
+    /* correcting the sitting down takes the day back, which a tick could not */
+    const e = timeEntries().find(v => v.categoryId === 'reading');
+    e.endTime = timeAtOn(today(), '09:30');
+    const after = !!habitDone(h, today());
+    return {met, share, after, fromClock: (habitDone(h, today()) || {}).fromClock};
+  });
+  yes('two hours of reading keeps a sixty-minute habit', habit.met, JSON.stringify(habit));
+  is('  all the way round', habit.share, 1);
+  yes('  and cutting the sitting to half an hour takes the day back',
+    habit.after === false, JSON.stringify(habit));
+
+  console.log('\n14. what the rest of the house says about it');
   const said = await p.evaluate(() => {
     const line = timeTodaySay();
     const from = timeDayOf(new Date(Date.now() - 6 * 864e5).toISOString());
@@ -268,7 +307,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   await p.evaluate(() => { location.hash = '#/today'; }); await p.waitForTimeout(1200);
   yes('  and it is on the page', await p.evaluate(() => !!document.getElementById('tTime')));
 
-  console.log('\n14. nothing threw');
+  console.log('\n15. nothing threw');
   is('no page errors', errs, []);
 
   console.log(bad ? `\n${bad} FAILED` : '\nall good');
