@@ -600,7 +600,13 @@ function planMyDay(d = today()){
       `<h2>Anything waiting?</h2>${milestonesHTML()}${inFocusHTML()}<p class="muted" style="font-size:.88rem">Everything with no day on it, under the list it lives in. Tick what belongs to ${dayWord}; the rest keeps waiting without nagging.</p>
        <div class="stack" style="gap:10px;max-height:44vh;overflow:auto">${planGroups.length ? planGroups.map(g => `<div class="pick-group">
          <div class="pick-glabel" style="--c:${g.color}">${esc(g.label)}<span class="mono">${g.rows.length}</span></div>
-         ${g.rows.map(r=>`<label class="pick-row ${chosen.has(r.id)?'on':''}"><input type="checkbox" data-pick2="${r.id}" ${chosen.has(r.id)?'checked':''}><span><b>${esc(r.text)}</b>${r.kind === 'project' && r.phase ? `<span class="d">${esc(r.phase.name)}</span>` : ''}</span></label>`).join('')}
+         ${g.rows.map(r=>`<div class="pick-row ${chosen.has(r.id)?'on':''}" data-pickrow="${esc(r.id)}"><label><input type="checkbox" data-pick2="${r.id}" ${chosen.has(r.id)?'checked':''}><span><b>${esc(r.text)}</b>${r.kind === 'project' && r.phase ? `<span class="d">${esc(r.phase.name)}</span>` : ''}</span></label><!--
+           Half of what is in this pile on any given night is not a decision
+           waiting to be made \u2014 it is something already done, or something you
+           have quietly stopped intending to do, and both of them are asking
+           the same question every night forever. So it can be thrown away
+           from here, where you are actually looking at it.
+        --><button class="del-x inline" data-pickdel="${esc(r.id)}" title="throw this task away \u2014 it will stop being offered">\u00d7</button></div>`).join('')}
        </div>`).join('') : '<div class="empty">Nothing without a day on it. Everything you have written down is already placed.</div>'}</div>`,
       `<h2>And the habits?</h2><p class="muted" style="font-size:.88rem">The ones due ${dayWord}. Give one a time if it helps you keep it.</p>
        <div class="stack" style="gap:4px;max-height:44vh;overflow:auto">${habits.length ? habits.map(h=>`<label class="pick-row ${chosenH.has(h.id)?'on':''}"><input type="checkbox" data-pickh="${h.id}" ${chosenH.has(h.id)?'checked':''}><span><b>${h.icon||''} ${esc(h.name)}</b><span class="d">${esc(habitFreqLabel(h))} · ${esc(h.timeOfDay)}</span></span><select class="sel" data-hat="${h.id}" style="width:auto"><option value="">no time</option>${Array.from({length:(HOUR1-HOUR0)*2},(_,i)=>HOUR0+i/2).map(x=>`<option value="${x}" ${+h.at===x?'selected':''}>${fmtHour(x)}</option>`).join('')}</select></label>`).join('') : '<div class="empty">No habits due ${dayWord}.</div>'}</div>`,
@@ -620,6 +626,18 @@ function planMyDay(d = today()){
     m.querySelector('.close').onclick = () => m.remove();
     m.querySelectorAll('[data-int]').forEach(i => i.onchange = () => p.intentions[+i.dataset.int] = i.value.trim());
     m.querySelectorAll('[data-pick2]').forEach(c => c.onchange = () => { c.checked ? chosen.add(c.dataset.pick2) : chosen.delete(c.dataset.pick2); c.closest('.pick-row').classList.toggle('on', c.checked); });
+    /* thrown away from the pile, and from everywhere: the whole point is
+       that it stops being a question. Undoable, like every other delete
+       in the house, until the little bar goes away. */
+    m.querySelectorAll('[data-pickdel]').forEach(b => b.onclick = ev => {
+      ev.preventDefault(); ev.stopPropagation();
+      const id = b.dataset.pickdel;
+      chosen.delete(id);
+      /* the same delete the task rows use everywhere else, so a project step
+         goes from its phase and a loose task from the list, and both come
+         back if the little bar is pressed */
+      deleteTaskRef(id, b.closest('.pick-row'));
+    });
     m.querySelectorAll('[data-pickh]').forEach(c => c.onchange = () => { c.checked ? chosenH.add(c.dataset.pickh) : chosenH.delete(c.dataset.pickh); c.closest('.pick-row').classList.toggle('on', c.checked); });
     m.querySelectorAll('[data-hat]').forEach(s => s.onchange = () => { const h = byId(S.habits, s.dataset.hat); h.at = s.value === '' ? null : +s.value; });
     /* the things you said mattered, and the dates the work runs towards, are

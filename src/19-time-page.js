@@ -48,8 +48,11 @@ function timeDayHTML(){
   const rows = timeOnDay(day).slice().sort((a, b) => String(a.startTime).localeCompare(String(b.startTime)));
   const mins = sum(rows.map(e => timeMinutes(e)));
   const by = timeByCategory(rows);
-  /* the hours you were asleep, read off Today rather than timed here */
-  const asleep = timeSleepMinutes(day);
+  /* Last night's sleep, and separately the part of it that fell inside this
+     calendar day. The first is the number anybody wants; the second is what
+     the untracked line has to subtract to mean the waking hours. */
+  const night = timeSleepNight(day);
+  const asleep = timeSleepInDay(day);
   return `<div class="tm-bar-h">
       <button class="tbtn" data-tmday="-1">‹ day before</button>
       <span class="mono">${esc(fmtDate(day, 'med'))}</span>
@@ -62,7 +65,7 @@ function timeDayHTML(){
     ${rows.length ? `<div class="tm-list">${rows.map(timeRowHTML).join('')}</div>`
       : `<div class="empty">Nothing tracked on this day. Start the clock in the corner, or write
         down a sitting you did not time.</div>`}
-    ${by.length || asleep ? `<div class="tm-sum">${timeSumHTML(by, 1440, day)}</div>` : ''}`;
+    ${by.length || asleep || night ? `<div class="tm-sum">${timeSumHTML(by, 1440, day)}</div>` : ''}`;
 }
 /* Midnight to midnight, in proportion. A sitting that runs past midnight is
    clipped to the day it is being drawn for rather than allowed to run off the
@@ -124,11 +127,21 @@ function timeSumHTML(by, whole, day){
   /* Sleep is a bar like the others, and it is not tracked time: it is read
      off the wake and bed times on Today. Counting it makes the untracked
      line mean what it says — the waking hours nobody accounted for — rather
-     than counting eight hours of being asleep as time you lost. */
-  const asleep = day ? timeSleepMinutes(day) : 0;
+     than counting eight hours of being asleep as time you lost.
+
+     The number on the row is LAST NIGHT, from the bedtime you wrote to the
+     waking you wrote; the number the untracked line subtracts is the part of
+     that which fell inside this calendar day. Those differ by however much
+     of the night was before midnight, and adding the two fragments of two
+     different nights together — which is what this did — gives a figure that
+     belongs to no night at all. */
+  const night = day ? timeSleepNight(day) : null;
+  const inDay = day ? timeSleepInDay(day) : 0;
+  const asleep = night ? night.minutes : 0;
   const top = Math.max(1, asleep, ...by.map(b => b.minutes));
   const tracked = sum(by.map(b => b.minutes));
-  const said = day ? timeSleepSaidOn(day) : '';
+  const clock = m => `${String(Math.floor(m / 60) % 24).padStart(2, '0')}:${String(Math.round(m) % 60).padStart(2, '0')}`;
+  const said = night ? `${clock(night.from)} \u2192 ${clock(night.to)}` : (day ? timeSleepSaidOn(day) : '');
   return `${by.map(b => `<div class="tm-sumrow" style="--c:${esc(b.cat.color)}">
       <span class="tm-sumn">${esc(b.cat.emoji)} ${esc(b.cat.name)}</span>
       <span class="tm-sumbar"><i style="width:${(100 * b.minutes / top).toFixed(1)}%"></i></span>
@@ -136,7 +149,7 @@ function timeSumHTML(by, whole, day){
     </div>`).join('')}
     ${asleep ? `<div class="tm-sumrow tm-sleeprow" style="--c:${esc(TIME_SLEEP_CAT.color)}">
       <span class="tm-sumn">${TIME_SLEEP_CAT.emoji} ${esc(TIME_SLEEP_CAT.name)}
-        <a class="faint sm" href="#/today" title="wake and bed times are written on Today">${
+        <a class="faint sm" href="#/today" title="wake and bed times are written on Today">last night, ${
           said ? esc(said) : 'from Today'}</a></span>
       <span class="tm-sumbar"><i style="width:${(100 * asleep / top).toFixed(1)}%"></i></span>
       <span class="mono">${timeSaid(asleep)}</span>
@@ -146,9 +159,11 @@ function timeSumHTML(by, whole, day){
       <span class="tm-sumbar"></span><span class="mono">\u2014</span>
     </div>` : ''}
     ${whole ? `<div class="tm-sumrow faint">
-      <span class="tm-sumn">untracked${asleep ? ', awake' : ''}</span>
+      <span class="tm-sumn">untracked${inDay ? ', awake' : ''}${
+        inDay && night && inDay !== night.minutes
+          ? `<em class="faint sm" style="display:block;font-style:normal">${timeSaid(inDay)} of the night fell inside today</em>` : ''}</span>
       <span class="tm-sumbar"></span>
-      <span class="mono">~${timeSaid(Math.max(0, whole - tracked - asleep))}</span>
+      <span class="mono">~${timeSaid(Math.max(0, whole - tracked - inDay))}</span>
     </div>` : ''}`;
 }
 

@@ -373,6 +373,12 @@
 .pi-est{width:auto;padding:1px 5px;font-size:.62rem}
 .carried{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding:8px 10px;border-radius:9px;background:var(--surface-2);border-left:2px solid #c25b5b}
 .pick-row{display:flex;gap:9px;align-items:center;padding:8px 10px;border-radius:9px;border:1px solid var(--line);cursor:pointer;transition:border-color .18s var(--ease),background .18s var(--ease)}
+/* the row is a label plus a way to throw the task away, so the label has to
+   stop being the whole row */
+.pick-row > label{display:flex;gap:9px;align-items:center;flex:1;min-width:0;cursor:pointer}
+.pick-row .del-x{opacity:.3;transition:opacity .16s var(--ease)}
+.pick-row:hover .del-x{opacity:.75}
+.pick-row .del-x:hover{opacity:1}
 .pick-row.on{border-color:var(--page-accent);background:color-mix(in srgb,var(--page-accent) 9%,transparent)}
 .pick-row .d{display:block;font-size:.72rem;color:var(--muted)}
 .pick-row > span{flex:1;min-width:0}
@@ -7694,6 +7700,7 @@ html[data-theme="light"] .wk-sleep.is-guess{background-image:repeating-linear-gr
     border:none !important;border-radius:0;background:#fff !important;padding:0}
   html[data-scprint] .sc-canvas svg{display:block !important}
   html[data-scprint] .sc-loading,
+  html[data-scprint] .sc-dropped,
   html[data-scprint] .sc-fingpick{display:none !important}
   /* clean, for the stand */
   html[data-scprint="score"] .sc-overlay,
@@ -7715,6 +7722,12 @@ html[data-theme="dark"] .sc-lab-deg{color:#4c6874}
 .sc-pin:hover{transform:translate(-50%,-115%) scale(1.15)}
 .sc-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
   font-family:var(--mono);font-size:.78rem;opacity:.55;text-align:center;padding:20px;z-index:3}
+/* a mark the engraver could not place, said once along the foot of the stage.
+   It sits over the music rather than pushing it, so the page does not jump
+   between a score that drew whole and one that lost a slur. */
+.sc-dropped{position:absolute;left:0;right:0;bottom:0;padding:5px 10px;z-index:3;
+  font-size:.66rem;opacity:.6;text-align:center;pointer-events:none;
+  background:linear-gradient(to top,var(--bg) 55%,transparent)}
 
 /* the words beside it */
 .sc-side{display:flex;flex-direction:column;gap:10px;position:sticky;top:14px}

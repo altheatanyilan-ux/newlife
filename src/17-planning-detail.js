@@ -55,6 +55,14 @@ function planDetailHTML(t){
       <label class="pd-q"><span class="k">starts</span><input type="date" class="inp" id="pdStart" value="${esc(t.startDate || '')}"></label>
       <label class="pd-q"><span class="k">list</span><select class="sel" id="pdList">
         ${planLists().map(l => `<option value="${l.id}" ${t.listId === l.id ? 'selected' : ''}>${esc(l.name)}</option>`).join('')}</select></label>
+      <!-- Which part of a life this is, in the time tracker's own words. An
+           hour sat with this task is filed under whatever is chosen here, so
+           the week's report says "the bar's accounts" rather than "Tasks" —
+           three hours of tasks is not a fact about anybody's week. -->
+      <label class="pd-q"><span class="k">counts as</span><select class="sel" id="pdTimeCat">
+        <option value="">— just tasks —</option>
+        ${(typeof timeCategories === 'function' ? timeCategories() : []).map(c =>
+          `<option value="${esc(c.id)}" ${t.timeCategory === c.id ? 'selected' : ''}>${esc(c.emoji)} ${esc(c.name)}</option>`).join('')}</select></label>
       <!-- The date this task is for. A due date says when it must be done; a
            milestone says what it is being done towards, which is the thing
            you actually want back when you ask what is left before shipping.
@@ -170,6 +178,8 @@ function bindPlanDetail(p, t){
   p.querySelector('#pdDoDay').onchange = function(){ t.doDay = this.value; touch(); rerenderPlanBody(); };
   p.querySelector('#pdStart').onchange = function(){ t.startDate = this.value; touch(); };
   p.querySelector('#pdList').onchange = function(){ t.listId = this.value; t.sectionId = null; touch(); rerenderPlanBody(); };
+  const tcat = p.querySelector('#pdTimeCat');
+  if(tcat) tcat.onchange = function(){ t.timeCategory = this.value || null; touch(); };
   p.querySelector('#pdMilestone').onchange = function(){
     t.milestoneId = this.value || null; touch(); rerenderPlanBody(); };
   p.querySelectorAll('[data-pddur]').forEach(b => b.onclick = () => { const v = +b.dataset.pddur;

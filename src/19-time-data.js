@@ -318,27 +318,78 @@ function closeRunawayTimer(){
    the record it comes from, and there is exactly one place to correct a wrong
    bedtime — the place you typed it. Nothing here writes a time entry. */
 const TIME_SLEEP_CAT = {id:'__sleep', name:'Sleep', emoji:'☾', color:'#5a6a7a', derived:true};
-/* Minutes past midnight for the parts of this calendar day you were asleep,
-   from that day's own wake and bed times. Going to bed after midnight is the
-   case worth getting right: it means the asleep stretch runs from the bedtime
-   to the waking, not from midnight, and not to the end of the day as well. */
+/* ---------- a night, and a calendar day ----------
+   These are two different things and conflating them is how the sleep figure
+   came out wrong. A night runs from a bedtime to a waking and crosses
+   midnight; a calendar day runs midnight to midnight and contains the tail
+   of one night and the head of the next. Adding those two fragments together
+   was giving a number that belonged to no night at all — and when the bed
+   time was before midnight, the midnight-to-waking fragment silently assumed
+   you had gone to sleep at twelve.
+
+   The other thing worth writing down: a bedtime past midnight is recorded
+   against the day whose evening it belongs to, not the calendar day it falls
+   on. Going to bed at 01:40 on Tuesday morning is Monday's bedtime, because
+   it is Monday you were still up. So a record's sleepTime is past midnight
+   exactly when it is EARLIER than that same record's wakeTime, and that one
+   test is what tells the two apart everywhere below. */
+const timeRhythmOn = day => (S.dailyRhythm || {})[day] || null;
+/* the bedtime on a record, and whether it fell after midnight */
+function timeBedOn(day){
+  const r = timeRhythmOn(day);
+  if(!r) return null;
+  const bed = hm2min(r.sleepTime), wake = hm2min(r.wakeTime);
+  if(bed == null) return null;
+  return {at: bed, past: wake != null && bed < wake};
+}
+const timeDayBefore = day => { const d = parseDay(day); d.setDate(d.getDate() - 1);
+  return timeDayOf(d.toISOString()); };
+
+/* How long you actually slept last night, where "last night" is the one that
+   ended on this day's waking. Both times are yours; nothing is assumed. */
+function timeSleepNight(day){
+  const r = timeRhythmOn(day);
+  const wake = r ? hm2min(r.wakeTime) : null;
+  if(wake == null) return null;
+  const bed = timeBedOn(timeDayBefore(day));
+  if(!bed) return null;
+  /* a bedtime past midnight is already on this calendar day; one before
+     midnight is on the day before, so the night runs through midnight */
+  const minutes = bed.past ? wake - bed.at : (1440 - bed.at) + wake;
+  if(minutes <= 0 || minutes > 20 * 60) return null;   /* not a night */
+  return {minutes, from: bed.at, to: wake, crossed: !bed.past};
+}
+/* And the parts of THIS calendar day you were asleep, which is a different
+   question and the one the day strip is drawing. Two stretches at most: the
+   tail of the night that ended this morning, and the head of the one that
+   starts tonight. */
 function timeSleepBlocks(day){
-  const r = (S.dailyRhythm || {})[day];
+  const r = timeRhythmOn(day);
   if(!r) return [];
-  const wake = hm2min(r.wakeTime), bed = hm2min(r.sleepTime);
+  const wake = hm2min(r.wakeTime);
   const out = [];
-  const small = bed != null && wake != null && bed < wake;   /* went to bed after midnight */
   if(wake != null){
-    const from = small ? bed : 0;
-    if(wake > from) out.push({from, to: wake, waking: true});
+    /* where the night that ended this morning began, as far as this day is
+       concerned: midnight if the bedtime was before it, and the bedtime
+       itself if it was after */
+    const bed = timeBedOn(timeDayBefore(day));
+    const from = bed && bed.past ? bed.at : 0;
+    if(wake > from) out.push({from, to: wake, night: true});
   }
-  if(bed != null && !small) out.push({from: bed, to: 1440, waking: false});
+  /* and tonight, if it began before midnight. If it began after, it falls on
+     tomorrow and is tomorrow's to draw. */
+  const tonight = timeBedOn(day);
+  if(tonight && !tonight.past && tonight.at < 1440) out.push({from: tonight.at, to: 1440, night: false});
   return out;
 }
-const timeSleepMinutes = day => sum(timeSleepBlocks(day).map(b => b.to - b.from));
+/* what was asleep inside this calendar day, which is what the untracked line
+   has to subtract to mean the waking hours nobody accounted for */
+const timeSleepInDay = day => sum(timeSleepBlocks(day).map(b => b.to - b.from));
+/* kept under its old name, now meaning the night rather than the fragments */
+const timeSleepMinutes = day => { const n = timeSleepNight(day); return n ? n.minutes : 0; };
 /* whether there is anything to read at all, which decides whether the page
    says "you have not written a wake time down" or says nothing */
-const timeSleepKnown = day => { const r = (S.dailyRhythm || {})[day];
+const timeSleepKnown = day => { const r = timeRhythmOn(day);
   return !!(r && (hm2min(r.wakeTime) != null || hm2min(r.sleepTime) != null)); };
 const timeSleepSaidOn = day => { const r = (S.dailyRhythm || {})[day] || {};
   const bits = [];

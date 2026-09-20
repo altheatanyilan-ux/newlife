@@ -29,6 +29,7 @@ function osmdBoot(){
       (0, eval)(tag.textContent);
       if(typeof opensheetmusicdisplay === 'undefined')
         return reject(new Error('The engraver loaded but did not announce itself.'));
+      osmdSteady(opensheetmusicdisplay);
       resolve(opensheetmusicdisplay);
     } catch(e){ reject(e); }
   });
@@ -39,6 +40,113 @@ function osmdBoot(){
 }
 const osmdBuiltIn = () => { const t = document.getElementById('osmdSrc');
   return !!(t && t.textContent.trim()) || typeof opensheetmusicdisplay !== 'undefined'; };
+
+/* ---------- steadying the engraver ----------
+   OSMD draws real music beautifully and then falls over on a handful of
+   shapes real music has. The one that brought this on: an 8va bracket that
+   runs across more than one line of the page, where one of those lines opens
+   with a bar the hand is silent in. The engraver takes that bar's first note
+   to hang the bracket on, the bar has no first note, and what it hands to the
+   bracket is nothing — which the bracket reads without looking. One 8va, and
+   the whole piece refuses to draw.
+
+   It is not one bug. It is a family: every span that runs from one place in
+   the music to another — slurs, glissandi, octave brackets, pedal lines,
+   wavy lines — is worked out by walking from its start to its end, and every
+   one of them assumes it will find notes the whole way. A piece where a hand
+   rests for a line breaks that assumption, and the failure is always the
+   same: an engraving that would have been fine loses everything because of a
+   mark over one bar.
+
+   So two guards, applied once when the engraver is compiled.
+
+   The first is the missing check itself. The engraver's pedal line and wavy
+   line already refuse politely when handed nothing to hang on; its octave
+   bracket is the one that forgot to, so it is given the same refusal.
+
+   The second is the net. Every pass that decorates an already-drawn
+   engraving is wrapped, so a pass that cannot finish loses only what that
+   pass draws. The notes are what the room is for; a missing slur is a
+   blemish and a blank page is the room not working. Which passes were lost
+   is remembered, and the room says so under the score rather than leaving
+   somebody to wonder where their phrasing went.
+
+   This is somebody else's library being corrected from outside, which is not
+   free — a version bump could move these names. Both guards check that what
+   they are wrapping exists and leave it alone if it does not, so an engraver
+   that has been repaired upstream is simply not touched. */
+let _osmdSteadied = false;
+let _scoreDropped = [];
+function osmdSteady(lib){
+  if(!lib || _osmdSteadied) return;
+  _osmdSteadied = true;
+  try {
+    /* the bracket that reads what it was handed without looking */
+    const shift = lib.VexFlowOctaveShift && lib.VexFlowOctaveShift.prototype;
+    if(shift) ['setStartNote', 'setEndNote'].forEach(name => {
+      const was = shift[name];
+      if(typeof was !== 'function') return;
+      shift[name] = function(entry){
+        if(!entry || !entry.graphicalVoiceEntries) return false;
+        return was.apply(this, arguments);
+      };
+    });
+    /* and the net under the passes that decorate */
+    const net = (proto, names, said) => {
+      if(!proto) return;
+      names.forEach(name => {
+        if(!Object.prototype.hasOwnProperty.call(proto, name)) return;
+        const was = proto[name];
+        if(typeof was !== 'function') return;
+        proto[name] = function(){
+          try { return was.apply(this, arguments); }
+          catch(e){
+            if(_scoreDropped.indexOf(said) < 0) _scoreDropped.push(said);
+            console.warn(`the engraver could not finish ${name}`, e);
+          }
+        };
+      });
+    };
+    const calcs = [lib.MusicSheetCalculator && lib.MusicSheetCalculator.prototype,
+      lib.VexFlowMusicSheetCalculator && lib.VexFlowMusicSheetCalculator.prototype];
+    const draws = [lib.MusicSheetDrawer && lib.MusicSheetDrawer.prototype,
+      lib.VexFlowMusicSheetDrawer && lib.VexFlowMusicSheetDrawer.prototype];
+    const pass = (names, said) => calcs.forEach(p => net(p, names, said));
+    const paint = (names, said) => draws.forEach(p => net(p, names, said));
+    pass(['calculateSlurs'], 'slurs');
+    paint(['drawSlur'], 'slurs');
+    pass(['calculateGlissandi'], 'glissandi');
+    paint(['drawGlissando'], 'glissandi');
+    pass(['calculateOctaveShifts', 'calculateSingleOctaveShift'], 'octave brackets');
+    paint(['drawOctaveShifts'], 'octave brackets');
+    pass(['calculatePedals', 'calculateSinglePedal'], 'pedal lines');
+    paint(['drawPedals'], 'pedal lines');
+    pass(['calculateWavyLines', 'calculateSingleWavyLine'], 'wavy lines');
+    paint(['drawWavyLines'], 'wavy lines');
+    paint(['drawTremolosBetweenNotes'], 'tremolos');
+    pass(['calculateOrnaments'], 'ornaments');
+    pass(['calculateChordSymbols', 'calculateAlignedChordSymbolsOffset'], 'chord symbols');
+    pass(['calculateFingerings'], 'fingerings');
+    pass(['calculateDynamicExpressions'], 'dynamics');
+    pass(['calculateTupletNumbers'], 'tuplet numbers');
+    pass(['calculateLyricsPosition', 'calculateLyricsExtendsAndDashes'], 'lyrics');
+    pass(['calculateRepetitionEndings', 'calcGraphicalRepetitionEndingsRecursively'], 'repeat endings');
+    pass(['calculateTieCurves'], 'ties');
+    pass(['calculateTempoExpressions'], 'tempo marks');
+    pass(['calculateRehearsalMarks', 'calculateRehearsalMark'], 'rehearsal marks');
+    pass(['calculateMeasureNumberPlacement'], 'bar numbers');
+    pass(['calculateMarkedAreas', 'calculateComments'], 'annotations');
+  } catch(e){ console.warn('the engraver could not be steadied', e); }
+}
+/* what the last engraving could not finish, in a sentence, or nothing */
+function scoreDroppedSay(){
+  const list = (_sv && _sv.dropped) || [];
+  if(!list.length) return '';
+  const said = list.length === 1 ? list[0]
+    : list.slice(0, -1).join(', ') + ' and ' + list[list.length - 1];
+  return `Drawn without its ${said} — this engraver could not place ${
+    list.length === 1 ? 'them' : 'some of them'} in this file.`;
+}
 
 /* ---------- one rendered score ----------
    Held outside the state on purpose. It is a live object over a DOM node, it
@@ -84,6 +192,9 @@ async function openScoreIn(container, rec, opts = {}){
 async function renderScore(rec, opts = {}){
   if(!_sv) return null;
   const {osmd} = _sv;
+  /* anything the net below catches during this engraving belongs to this
+     engraving, so the tally starts empty rather than carrying the last one's */
+  _scoreDropped = [];
   const lib = (typeof opensheetmusicdisplay !== 'undefined') ? opensheetmusicdisplay : null;
   const from = opts.from === undefined ? _sv.from : opts.from;
   const to = opts.to === undefined ? _sv.to : opts.to;
@@ -131,6 +242,7 @@ async function renderScore(rec, opts = {}){
      and they are only paid when the setting or the width changes. */
   if(want) _sv.fitted = fitBarsPerLine(osmd, rec, want);
   else _sv.fitted = null;
+  _sv.dropped = _scoreDropped.slice();
   _sv.pages = pageCount(osmd);
   _sv.at = clamp(_sv.at, 0, _sv.pages - 1);
   showScorePage(_sv.at);

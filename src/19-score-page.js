@@ -648,6 +648,7 @@ async function scorePaint(x){
       focus ? {from:focus.startMeasure, to:focus.endMeasure} : {}));
     x.lastOpened = new Date().toISOString();
     if(say) say.remove();
+    scoreDroppedPaint();
     /* the parts are only known once the file has been read, so the bar above
        the score is filled in after the first engraving rather than guessed —
        always, because before it there is nothing there to correct */
@@ -661,6 +662,18 @@ async function scorePaint(x){
     if(say) say.textContent = `That score could not be drawn — ${e.message}`;
     console.warn('score render failed', e);
   }
+}
+/* A mark the engraver could not place is worth one quiet line and no more.
+   The music is drawn and readable; saying so beats a blank stage, and saying
+   it in a box over the notes would be worse than not saying it at all. */
+function scoreDroppedPaint(){
+  const stage = document.getElementById('scStage');
+  if(!stage) return;
+  const had = stage.querySelector('.sc-dropped');
+  if(had) had.remove();
+  const said = scoreDroppedSay();
+  if(!said) return;
+  stage.appendChild(el(`<div class="sc-dropped mono">${esc(said)}</div>`));
 }
 function scoreRepaintParts(x){
   const bar = document.getElementById('scParts'); if(!bar) return;

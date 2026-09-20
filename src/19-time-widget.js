@@ -155,7 +155,12 @@ function openTimeEntryModal(id, day){
       ${timeCategoryPickHTML(e ? e.categoryId : timeSettings().defaultCategory, 'teCat')}</label>
     <label class="pd-q" style="margin-top:10px"><span class="k">tags</span>
       <input class="inp" id="teTags" value="${esc(e ? e.tags.join(', ') : '')}" placeholder="jazz, theory"></label>
-    ${timeLinkPickHTML(e)}
+    <!-- There were two more fields here, "hang it on" and "which", offering to
+         attach the sitting to a project, a person, a score. They are gone
+         from the form: the entries that genuinely want a link get it from
+         the room that started them, and asking by hand for every sitting was
+         two selects nobody filled in. Whatever an entry already carries is
+         still carried, credited and shown. -->
     <div class="row" style="justify-content:flex-end;margin-top:14px;gap:8px">
       ${e ? `<button class="btn sm ghost danger" id="teDel">Delete</button><span class="grow"></span>` : ''}
       <button class="btn primary" id="teSave">Save</button></div>`, 'narrow');
@@ -163,11 +168,11 @@ function openTimeEntryModal(id, day){
     const dayV = m.querySelector('#teDay').value || today();
     const from = m.querySelector('#teFrom').value;
     const toEl = m.querySelector('#teTo'), minsEl = m.querySelector('#teMins');
-    const link = timeLinkValue(m);
+    /* the link is left exactly as it was: a sitting the score room started
+       knows which piece it was, and nothing here should quietly forget it */
     const common = {what: m.querySelector('#teWhat').value.trim(),
       categoryId: m.querySelector('#teCat').value || null,
-      tags: timeTagsOf(m.querySelector('#teTags').value),
-      linkedType: link.type, linkedId: link.id, linkedLabel: link.label};
+      tags: timeTagsOf(m.querySelector('#teTags').value)};
     if(e){
       Object.assign(e, common);
       if(from) e.startTime = timeAtOn(dayV, from);

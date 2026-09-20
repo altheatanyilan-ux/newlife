@@ -101,6 +101,14 @@ const DEFAULT_KANBAN = () => [
 function planTaskDefaults(t){
   t.links   = t.links || {}; t.links.projects = t.links.projects || []; t.links.skills = t.links.skills || [];
   t.listId  = t.listId || 'inbox';
+  /* Which part of a life this task belongs to, in the time tracker's own
+     words. A sitting on a task used to be filed under "Tasks", which told
+     the week's report nothing: three hours of tasks is not a fact about
+     anybody's week, and the whole reason for tracking time is to know that
+     those three hours were the bar's accounts rather than the piano. So the
+     task carries the category, the clock reads it off the task, and the
+     report says the real thing. */
+  t.timeCategory = t.timeCategory || null;
   t.sectionId = t.sectionId === undefined ? null : t.sectionId;
   t.priority  = clamp(+t.priority || 0, 0, 3);
   t.dueTime   = t.dueTime || '';

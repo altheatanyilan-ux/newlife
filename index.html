@@ -1042,6 +1042,12 @@ html.reduce-motion *,html.reduce-motion *::before,html.reduce-motion *::after{an
 .pi-est{width:auto;padding:1px 5px;font-size:.62rem}
 .carried{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding:8px 10px;border-radius:9px;background:var(--surface-2);border-left:2px solid #c25b5b}
 .pick-row{display:flex;gap:9px;align-items:center;padding:8px 10px;border-radius:9px;border:1px solid var(--line);cursor:pointer;transition:border-color .18s var(--ease),background .18s var(--ease)}
+/* the row is a label plus a way to throw the task away, so the label has to
+   stop being the whole row */
+.pick-row > label{display:flex;gap:9px;align-items:center;flex:1;min-width:0;cursor:pointer}
+.pick-row .del-x{opacity:.3;transition:opacity .16s var(--ease)}
+.pick-row:hover .del-x{opacity:.75}
+.pick-row .del-x:hover{opacity:1}
 .pick-row.on{border-color:var(--page-accent);background:color-mix(in srgb,var(--page-accent) 9%,transparent)}
 .pick-row .d{display:block;font-size:.72rem;color:var(--muted)}
 .pick-row > span{flex:1;min-width:0}
@@ -8363,6 +8369,7 @@ html[data-theme="light"] .wk-sleep.is-guess{background-image:repeating-linear-gr
     border:none !important;border-radius:0;background:#fff !important;padding:0}
   html[data-scprint] .sc-canvas svg{display:block !important}
   html[data-scprint] .sc-loading,
+  html[data-scprint] .sc-dropped,
   html[data-scprint] .sc-fingpick{display:none !important}
   /* clean, for the stand */
   html[data-scprint="score"] .sc-overlay,
@@ -8384,6 +8391,12 @@ html[data-theme="dark"] .sc-lab-deg{color:#4c6874}
 .sc-pin:hover{transform:translate(-50%,-115%) scale(1.15)}
 .sc-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
   font-family:var(--mono);font-size:.78rem;opacity:.55;text-align:center;padding:20px;z-index:3}
+/* a mark the engraver could not place, said once along the foot of the stage.
+   It sits over the music rather than pushing it, so the page does not jump
+   between a score that drew whole and one that lost a slur. */
+.sc-dropped{position:absolute;left:0;right:0;bottom:0;padding:5px 10px;z-index:3;
+  font-size:.66rem;opacity:.6;text-align:center;pointer-events:none;
+  background:linear-gradient(to top,var(--bg) 55%,transparent)}
 
 /* the words beside it */
 .sc-side{display:flex;flex-direction:column;gap:10px;position:sticky;top:14px}
@@ -35204,7 +35217,13 @@ function planMyDay(d = today()){
       `<h2>Anything waiting?</h2>${milestonesHTML()}${inFocusHTML()}<p class="muted" style="font-size:.88rem">Everything with no day on it, under the list it lives in. Tick what belongs to ${dayWord}; the rest keeps waiting without nagging.</p>
        <div class="stack" style="gap:10px;max-height:44vh;overflow:auto">${planGroups.length ? planGroups.map(g => `<div class="pick-group">
          <div class="pick-glabel" style="--c:${g.color}">${esc(g.label)}<span class="mono">${g.rows.length}</span></div>
-         ${g.rows.map(r=>`<label class="pick-row ${chosen.has(r.id)?'on':''}"><input type="checkbox" data-pick2="${r.id}" ${chosen.has(r.id)?'checked':''}><span><b>${esc(r.text)}</b>${r.kind === 'project' && r.phase ? `<span class="d">${esc(r.phase.name)}</span>` : ''}</span></label>`).join('')}
+         ${g.rows.map(r=>`<div class="pick-row ${chosen.has(r.id)?'on':''}" data-pickrow="${esc(r.id)}"><label><input type="checkbox" data-pick2="${r.id}" ${chosen.has(r.id)?'checked':''}><span><b>${esc(r.text)}</b>${r.kind === 'project' && r.phase ? `<span class="d">${esc(r.phase.name)}</span>` : ''}</span></label><!--
+           Half of what is in this pile on any given night is not a decision
+           waiting to be made \u2014 it is something already done, or something you
+           have quietly stopped intending to do, and both of them are asking
+           the same question every night forever. So it can be thrown away
+           from here, where you are actually looking at it.
+        --><button class="del-x inline" data-pickdel="${esc(r.id)}" title="throw this task away \u2014 it will stop being offered">\u00d7</button></div>`).join('')}
        </div>`).join('') : '<div class="empty">Nothing without a day on it. Everything you have written down is already placed.</div>'}</div>`,
       `<h2>And the habits?</h2><p class="muted" style="font-size:.88rem">The ones due ${dayWord}. Give one a time if it helps you keep it.</p>
        <div class="stack" style="gap:4px;max-height:44vh;overflow:auto">${habits.length ? habits.map(h=>`<label class="pick-row ${chosenH.has(h.id)?'on':''}"><input type="checkbox" data-pickh="${h.id}" ${chosenH.has(h.id)?'checked':''}><span><b>${h.icon||''} ${esc(h.name)}</b><span class="d">${esc(habitFreqLabel(h))} · ${esc(h.timeOfDay)}</span></span><select class="sel" data-hat="${h.id}" style="width:auto"><option value="">no time</option>${Array.from({length:(HOUR1-HOUR0)*2},(_,i)=>HOUR0+i/2).map(x=>`<option value="${x}" ${+h.at===x?'selected':''}>${fmtHour(x)}</option>`).join('')}</select></label>`).join('') : '<div class="empty">No habits due ${dayWord}.</div>'}</div>`,
@@ -35224,6 +35243,18 @@ function planMyDay(d = today()){
     m.querySelector('.close').onclick = () => m.remove();
     m.querySelectorAll('[data-int]').forEach(i => i.onchange = () => p.intentions[+i.dataset.int] = i.value.trim());
     m.querySelectorAll('[data-pick2]').forEach(c => c.onchange = () => { c.checked ? chosen.add(c.dataset.pick2) : chosen.delete(c.dataset.pick2); c.closest('.pick-row').classList.toggle('on', c.checked); });
+    /* thrown away from the pile, and from everywhere: the whole point is
+       that it stops being a question. Undoable, like every other delete
+       in the house, until the little bar goes away. */
+    m.querySelectorAll('[data-pickdel]').forEach(b => b.onclick = ev => {
+      ev.preventDefault(); ev.stopPropagation();
+      const id = b.dataset.pickdel;
+      chosen.delete(id);
+      /* the same delete the task rows use everywhere else, so a project step
+         goes from its phase and a loose task from the list, and both come
+         back if the little bar is pressed */
+      deleteTaskRef(id, b.closest('.pick-row'));
+    });
     m.querySelectorAll('[data-pickh]').forEach(c => c.onchange = () => { c.checked ? chosenH.add(c.dataset.pickh) : chosenH.delete(c.dataset.pickh); c.closest('.pick-row').classList.toggle('on', c.checked); });
     m.querySelectorAll('[data-hat]').forEach(s => s.onchange = () => { const h = byId(S.habits, s.dataset.hat); h.at = s.value === '' ? null : +s.value; });
     /* the things you said mattered, and the dates the work runs towards, are
@@ -39381,6 +39412,14 @@ const DEFAULT_KANBAN = () => [
 function planTaskDefaults(t){
   t.links   = t.links || {}; t.links.projects = t.links.projects || []; t.links.skills = t.links.skills || [];
   t.listId  = t.listId || 'inbox';
+  /* Which part of a life this task belongs to, in the time tracker's own
+     words. A sitting on a task used to be filed under "Tasks", which told
+     the week's report nothing: three hours of tasks is not a fact about
+     anybody's week, and the whole reason for tracking time is to know that
+     those three hours were the bar's accounts rather than the piano. So the
+     task carries the category, the clock reads it off the task, and the
+     report says the real thing. */
+  t.timeCategory = t.timeCategory || null;
   t.sectionId = t.sectionId === undefined ? null : t.sectionId;
   t.priority  = clamp(+t.priority || 0, 0, 3);
   t.dueTime   = t.dueTime || '';
@@ -39921,6 +39960,14 @@ function planDetailHTML(t){
       <label class="pd-q"><span class="k">starts</span><input type="date" class="inp" id="pdStart" value="${esc(t.startDate || '')}"></label>
       <label class="pd-q"><span class="k">list</span><select class="sel" id="pdList">
         ${planLists().map(l => `<option value="${l.id}" ${t.listId === l.id ? 'selected' : ''}>${esc(l.name)}</option>`).join('')}</select></label>
+      <!-- Which part of a life this is, in the time tracker's own words. An
+           hour sat with this task is filed under whatever is chosen here, so
+           the week's report says "the bar's accounts" rather than "Tasks" —
+           three hours of tasks is not a fact about anybody's week. -->
+      <label class="pd-q"><span class="k">counts as</span><select class="sel" id="pdTimeCat">
+        <option value="">— just tasks —</option>
+        ${(typeof timeCategories === 'function' ? timeCategories() : []).map(c =>
+          `<option value="${esc(c.id)}" ${t.timeCategory === c.id ? 'selected' : ''}>${esc(c.emoji)} ${esc(c.name)}</option>`).join('')}</select></label>
       <!-- The date this task is for. A due date says when it must be done; a
            milestone says what it is being done towards, which is the thing
            you actually want back when you ask what is left before shipping.
@@ -40036,6 +40083,8 @@ function bindPlanDetail(p, t){
   p.querySelector('#pdDoDay').onchange = function(){ t.doDay = this.value; touch(); rerenderPlanBody(); };
   p.querySelector('#pdStart').onchange = function(){ t.startDate = this.value; touch(); };
   p.querySelector('#pdList').onchange = function(){ t.listId = this.value; t.sectionId = null; touch(); rerenderPlanBody(); };
+  const tcat = p.querySelector('#pdTimeCat');
+  if(tcat) tcat.onchange = function(){ t.timeCategory = this.value || null; touch(); };
   p.querySelector('#pdMilestone').onchange = function(){
     t.milestoneId = this.value || null; touch(); rerenderPlanBody(); };
   p.querySelectorAll('[data-pddur]').forEach(b => b.onclick = () => { const v = +b.dataset.pddur;
@@ -51309,6 +51358,7 @@ function osmdBoot(){
       (0, eval)(tag.textContent);
       if(typeof opensheetmusicdisplay === 'undefined')
         return reject(new Error('The engraver loaded but did not announce itself.'));
+      osmdSteady(opensheetmusicdisplay);
       resolve(opensheetmusicdisplay);
     } catch(e){ reject(e); }
   });
@@ -51319,6 +51369,113 @@ function osmdBoot(){
 }
 const osmdBuiltIn = () => { const t = document.getElementById('osmdSrc');
   return !!(t && t.textContent.trim()) || typeof opensheetmusicdisplay !== 'undefined'; };
+
+/* ---------- steadying the engraver ----------
+   OSMD draws real music beautifully and then falls over on a handful of
+   shapes real music has. The one that brought this on: an 8va bracket that
+   runs across more than one line of the page, where one of those lines opens
+   with a bar the hand is silent in. The engraver takes that bar's first note
+   to hang the bracket on, the bar has no first note, and what it hands to the
+   bracket is nothing — which the bracket reads without looking. One 8va, and
+   the whole piece refuses to draw.
+
+   It is not one bug. It is a family: every span that runs from one place in
+   the music to another — slurs, glissandi, octave brackets, pedal lines,
+   wavy lines — is worked out by walking from its start to its end, and every
+   one of them assumes it will find notes the whole way. A piece where a hand
+   rests for a line breaks that assumption, and the failure is always the
+   same: an engraving that would have been fine loses everything because of a
+   mark over one bar.
+
+   So two guards, applied once when the engraver is compiled.
+
+   The first is the missing check itself. The engraver's pedal line and wavy
+   line already refuse politely when handed nothing to hang on; its octave
+   bracket is the one that forgot to, so it is given the same refusal.
+
+   The second is the net. Every pass that decorates an already-drawn
+   engraving is wrapped, so a pass that cannot finish loses only what that
+   pass draws. The notes are what the room is for; a missing slur is a
+   blemish and a blank page is the room not working. Which passes were lost
+   is remembered, and the room says so under the score rather than leaving
+   somebody to wonder where their phrasing went.
+
+   This is somebody else's library being corrected from outside, which is not
+   free — a version bump could move these names. Both guards check that what
+   they are wrapping exists and leave it alone if it does not, so an engraver
+   that has been repaired upstream is simply not touched. */
+let _osmdSteadied = false;
+let _scoreDropped = [];
+function osmdSteady(lib){
+  if(!lib || _osmdSteadied) return;
+  _osmdSteadied = true;
+  try {
+    /* the bracket that reads what it was handed without looking */
+    const shift = lib.VexFlowOctaveShift && lib.VexFlowOctaveShift.prototype;
+    if(shift) ['setStartNote', 'setEndNote'].forEach(name => {
+      const was = shift[name];
+      if(typeof was !== 'function') return;
+      shift[name] = function(entry){
+        if(!entry || !entry.graphicalVoiceEntries) return false;
+        return was.apply(this, arguments);
+      };
+    });
+    /* and the net under the passes that decorate */
+    const net = (proto, names, said) => {
+      if(!proto) return;
+      names.forEach(name => {
+        if(!Object.prototype.hasOwnProperty.call(proto, name)) return;
+        const was = proto[name];
+        if(typeof was !== 'function') return;
+        proto[name] = function(){
+          try { return was.apply(this, arguments); }
+          catch(e){
+            if(_scoreDropped.indexOf(said) < 0) _scoreDropped.push(said);
+            console.warn(`the engraver could not finish ${name}`, e);
+          }
+        };
+      });
+    };
+    const calcs = [lib.MusicSheetCalculator && lib.MusicSheetCalculator.prototype,
+      lib.VexFlowMusicSheetCalculator && lib.VexFlowMusicSheetCalculator.prototype];
+    const draws = [lib.MusicSheetDrawer && lib.MusicSheetDrawer.prototype,
+      lib.VexFlowMusicSheetDrawer && lib.VexFlowMusicSheetDrawer.prototype];
+    const pass = (names, said) => calcs.forEach(p => net(p, names, said));
+    const paint = (names, said) => draws.forEach(p => net(p, names, said));
+    pass(['calculateSlurs'], 'slurs');
+    paint(['drawSlur'], 'slurs');
+    pass(['calculateGlissandi'], 'glissandi');
+    paint(['drawGlissando'], 'glissandi');
+    pass(['calculateOctaveShifts', 'calculateSingleOctaveShift'], 'octave brackets');
+    paint(['drawOctaveShifts'], 'octave brackets');
+    pass(['calculatePedals', 'calculateSinglePedal'], 'pedal lines');
+    paint(['drawPedals'], 'pedal lines');
+    pass(['calculateWavyLines', 'calculateSingleWavyLine'], 'wavy lines');
+    paint(['drawWavyLines'], 'wavy lines');
+    paint(['drawTremolosBetweenNotes'], 'tremolos');
+    pass(['calculateOrnaments'], 'ornaments');
+    pass(['calculateChordSymbols', 'calculateAlignedChordSymbolsOffset'], 'chord symbols');
+    pass(['calculateFingerings'], 'fingerings');
+    pass(['calculateDynamicExpressions'], 'dynamics');
+    pass(['calculateTupletNumbers'], 'tuplet numbers');
+    pass(['calculateLyricsPosition', 'calculateLyricsExtendsAndDashes'], 'lyrics');
+    pass(['calculateRepetitionEndings', 'calcGraphicalRepetitionEndingsRecursively'], 'repeat endings');
+    pass(['calculateTieCurves'], 'ties');
+    pass(['calculateTempoExpressions'], 'tempo marks');
+    pass(['calculateRehearsalMarks', 'calculateRehearsalMark'], 'rehearsal marks');
+    pass(['calculateMeasureNumberPlacement'], 'bar numbers');
+    pass(['calculateMarkedAreas', 'calculateComments'], 'annotations');
+  } catch(e){ console.warn('the engraver could not be steadied', e); }
+}
+/* what the last engraving could not finish, in a sentence, or nothing */
+function scoreDroppedSay(){
+  const list = (_sv && _sv.dropped) || [];
+  if(!list.length) return '';
+  const said = list.length === 1 ? list[0]
+    : list.slice(0, -1).join(', ') + ' and ' + list[list.length - 1];
+  return `Drawn without its ${said} — this engraver could not place ${
+    list.length === 1 ? 'them' : 'some of them'} in this file.`;
+}
 
 /* ---------- one rendered score ----------
    Held outside the state on purpose. It is a live object over a DOM node, it
@@ -51364,6 +51521,9 @@ async function openScoreIn(container, rec, opts = {}){
 async function renderScore(rec, opts = {}){
   if(!_sv) return null;
   const {osmd} = _sv;
+  /* anything the net below catches during this engraving belongs to this
+     engraving, so the tally starts empty rather than carrying the last one's */
+  _scoreDropped = [];
   const lib = (typeof opensheetmusicdisplay !== 'undefined') ? opensheetmusicdisplay : null;
   const from = opts.from === undefined ? _sv.from : opts.from;
   const to = opts.to === undefined ? _sv.to : opts.to;
@@ -51411,6 +51571,7 @@ async function renderScore(rec, opts = {}){
      and they are only paid when the setting or the width changes. */
   if(want) _sv.fitted = fitBarsPerLine(osmd, rec, want);
   else _sv.fitted = null;
+  _sv.dropped = _scoreDropped.slice();
   _sv.pages = pageCount(osmd);
   _sv.at = clamp(_sv.at, 0, _sv.pages - 1);
   showScorePage(_sv.at);
@@ -52387,6 +52548,7 @@ async function scorePaint(x){
       focus ? {from:focus.startMeasure, to:focus.endMeasure} : {}));
     x.lastOpened = new Date().toISOString();
     if(say) say.remove();
+    scoreDroppedPaint();
     /* the parts are only known once the file has been read, so the bar above
        the score is filled in after the first engraving rather than guessed —
        always, because before it there is nothing there to correct */
@@ -52400,6 +52562,18 @@ async function scorePaint(x){
     if(say) say.textContent = `That score could not be drawn — ${e.message}`;
     console.warn('score render failed', e);
   }
+}
+/* A mark the engraver could not place is worth one quiet line and no more.
+   The music is drawn and readable; saying so beats a blank stage, and saying
+   it in a box over the notes would be worse than not saying it at all. */
+function scoreDroppedPaint(){
+  const stage = document.getElementById('scStage');
+  if(!stage) return;
+  const had = stage.querySelector('.sc-dropped');
+  if(had) had.remove();
+  const said = scoreDroppedSay();
+  if(!said) return;
+  stage.appendChild(el(`<div class="sc-dropped mono">${esc(said)}</div>`));
 }
 function scoreRepaintParts(x){
   const bar = document.getElementById('scParts'); if(!bar) return;
@@ -56976,27 +57150,78 @@ function closeRunawayTimer(){
    the record it comes from, and there is exactly one place to correct a wrong
    bedtime — the place you typed it. Nothing here writes a time entry. */
 const TIME_SLEEP_CAT = {id:'__sleep', name:'Sleep', emoji:'☾', color:'#5a6a7a', derived:true};
-/* Minutes past midnight for the parts of this calendar day you were asleep,
-   from that day's own wake and bed times. Going to bed after midnight is the
-   case worth getting right: it means the asleep stretch runs from the bedtime
-   to the waking, not from midnight, and not to the end of the day as well. */
+/* ---------- a night, and a calendar day ----------
+   These are two different things and conflating them is how the sleep figure
+   came out wrong. A night runs from a bedtime to a waking and crosses
+   midnight; a calendar day runs midnight to midnight and contains the tail
+   of one night and the head of the next. Adding those two fragments together
+   was giving a number that belonged to no night at all — and when the bed
+   time was before midnight, the midnight-to-waking fragment silently assumed
+   you had gone to sleep at twelve.
+
+   The other thing worth writing down: a bedtime past midnight is recorded
+   against the day whose evening it belongs to, not the calendar day it falls
+   on. Going to bed at 01:40 on Tuesday morning is Monday's bedtime, because
+   it is Monday you were still up. So a record's sleepTime is past midnight
+   exactly when it is EARLIER than that same record's wakeTime, and that one
+   test is what tells the two apart everywhere below. */
+const timeRhythmOn = day => (S.dailyRhythm || {})[day] || null;
+/* the bedtime on a record, and whether it fell after midnight */
+function timeBedOn(day){
+  const r = timeRhythmOn(day);
+  if(!r) return null;
+  const bed = hm2min(r.sleepTime), wake = hm2min(r.wakeTime);
+  if(bed == null) return null;
+  return {at: bed, past: wake != null && bed < wake};
+}
+const timeDayBefore = day => { const d = parseDay(day); d.setDate(d.getDate() - 1);
+  return timeDayOf(d.toISOString()); };
+
+/* How long you actually slept last night, where "last night" is the one that
+   ended on this day's waking. Both times are yours; nothing is assumed. */
+function timeSleepNight(day){
+  const r = timeRhythmOn(day);
+  const wake = r ? hm2min(r.wakeTime) : null;
+  if(wake == null) return null;
+  const bed = timeBedOn(timeDayBefore(day));
+  if(!bed) return null;
+  /* a bedtime past midnight is already on this calendar day; one before
+     midnight is on the day before, so the night runs through midnight */
+  const minutes = bed.past ? wake - bed.at : (1440 - bed.at) + wake;
+  if(minutes <= 0 || minutes > 20 * 60) return null;   /* not a night */
+  return {minutes, from: bed.at, to: wake, crossed: !bed.past};
+}
+/* And the parts of THIS calendar day you were asleep, which is a different
+   question and the one the day strip is drawing. Two stretches at most: the
+   tail of the night that ended this morning, and the head of the one that
+   starts tonight. */
 function timeSleepBlocks(day){
-  const r = (S.dailyRhythm || {})[day];
+  const r = timeRhythmOn(day);
   if(!r) return [];
-  const wake = hm2min(r.wakeTime), bed = hm2min(r.sleepTime);
+  const wake = hm2min(r.wakeTime);
   const out = [];
-  const small = bed != null && wake != null && bed < wake;   /* went to bed after midnight */
   if(wake != null){
-    const from = small ? bed : 0;
-    if(wake > from) out.push({from, to: wake, waking: true});
+    /* where the night that ended this morning began, as far as this day is
+       concerned: midnight if the bedtime was before it, and the bedtime
+       itself if it was after */
+    const bed = timeBedOn(timeDayBefore(day));
+    const from = bed && bed.past ? bed.at : 0;
+    if(wake > from) out.push({from, to: wake, night: true});
   }
-  if(bed != null && !small) out.push({from: bed, to: 1440, waking: false});
+  /* and tonight, if it began before midnight. If it began after, it falls on
+     tomorrow and is tomorrow's to draw. */
+  const tonight = timeBedOn(day);
+  if(tonight && !tonight.past && tonight.at < 1440) out.push({from: tonight.at, to: 1440, night: false});
   return out;
 }
-const timeSleepMinutes = day => sum(timeSleepBlocks(day).map(b => b.to - b.from));
+/* what was asleep inside this calendar day, which is what the untracked line
+   has to subtract to mean the waking hours nobody accounted for */
+const timeSleepInDay = day => sum(timeSleepBlocks(day).map(b => b.to - b.from));
+/* kept under its old name, now meaning the night rather than the fragments */
+const timeSleepMinutes = day => { const n = timeSleepNight(day); return n ? n.minutes : 0; };
 /* whether there is anything to read at all, which decides whether the page
    says "you have not written a wake time down" or says nothing */
-const timeSleepKnown = day => { const r = (S.dailyRhythm || {})[day];
+const timeSleepKnown = day => { const r = timeRhythmOn(day);
   return !!(r && (hm2min(r.wakeTime) != null || hm2min(r.sleepTime) != null)); };
 const timeSleepSaidOn = day => { const r = (S.dailyRhythm || {})[day] || {};
   const bits = [];
@@ -57054,8 +57279,11 @@ function timeDayHTML(){
   const rows = timeOnDay(day).slice().sort((a, b) => String(a.startTime).localeCompare(String(b.startTime)));
   const mins = sum(rows.map(e => timeMinutes(e)));
   const by = timeByCategory(rows);
-  /* the hours you were asleep, read off Today rather than timed here */
-  const asleep = timeSleepMinutes(day);
+  /* Last night's sleep, and separately the part of it that fell inside this
+     calendar day. The first is the number anybody wants; the second is what
+     the untracked line has to subtract to mean the waking hours. */
+  const night = timeSleepNight(day);
+  const asleep = timeSleepInDay(day);
   return `<div class="tm-bar-h">
       <button class="tbtn" data-tmday="-1">‹ day before</button>
       <span class="mono">${esc(fmtDate(day, 'med'))}</span>
@@ -57068,7 +57296,7 @@ function timeDayHTML(){
     ${rows.length ? `<div class="tm-list">${rows.map(timeRowHTML).join('')}</div>`
       : `<div class="empty">Nothing tracked on this day. Start the clock in the corner, or write
         down a sitting you did not time.</div>`}
-    ${by.length || asleep ? `<div class="tm-sum">${timeSumHTML(by, 1440, day)}</div>` : ''}`;
+    ${by.length || asleep || night ? `<div class="tm-sum">${timeSumHTML(by, 1440, day)}</div>` : ''}`;
 }
 /* Midnight to midnight, in proportion. A sitting that runs past midnight is
    clipped to the day it is being drawn for rather than allowed to run off the
@@ -57130,11 +57358,21 @@ function timeSumHTML(by, whole, day){
   /* Sleep is a bar like the others, and it is not tracked time: it is read
      off the wake and bed times on Today. Counting it makes the untracked
      line mean what it says — the waking hours nobody accounted for — rather
-     than counting eight hours of being asleep as time you lost. */
-  const asleep = day ? timeSleepMinutes(day) : 0;
+     than counting eight hours of being asleep as time you lost.
+
+     The number on the row is LAST NIGHT, from the bedtime you wrote to the
+     waking you wrote; the number the untracked line subtracts is the part of
+     that which fell inside this calendar day. Those differ by however much
+     of the night was before midnight, and adding the two fragments of two
+     different nights together — which is what this did — gives a figure that
+     belongs to no night at all. */
+  const night = day ? timeSleepNight(day) : null;
+  const inDay = day ? timeSleepInDay(day) : 0;
+  const asleep = night ? night.minutes : 0;
   const top = Math.max(1, asleep, ...by.map(b => b.minutes));
   const tracked = sum(by.map(b => b.minutes));
-  const said = day ? timeSleepSaidOn(day) : '';
+  const clock = m => `${String(Math.floor(m / 60) % 24).padStart(2, '0')}:${String(Math.round(m) % 60).padStart(2, '0')}`;
+  const said = night ? `${clock(night.from)} \u2192 ${clock(night.to)}` : (day ? timeSleepSaidOn(day) : '');
   return `${by.map(b => `<div class="tm-sumrow" style="--c:${esc(b.cat.color)}">
       <span class="tm-sumn">${esc(b.cat.emoji)} ${esc(b.cat.name)}</span>
       <span class="tm-sumbar"><i style="width:${(100 * b.minutes / top).toFixed(1)}%"></i></span>
@@ -57142,7 +57380,7 @@ function timeSumHTML(by, whole, day){
     </div>`).join('')}
     ${asleep ? `<div class="tm-sumrow tm-sleeprow" style="--c:${esc(TIME_SLEEP_CAT.color)}">
       <span class="tm-sumn">${TIME_SLEEP_CAT.emoji} ${esc(TIME_SLEEP_CAT.name)}
-        <a class="faint sm" href="#/today" title="wake and bed times are written on Today">${
+        <a class="faint sm" href="#/today" title="wake and bed times are written on Today">last night, ${
           said ? esc(said) : 'from Today'}</a></span>
       <span class="tm-sumbar"><i style="width:${(100 * asleep / top).toFixed(1)}%"></i></span>
       <span class="mono">${timeSaid(asleep)}</span>
@@ -57152,9 +57390,11 @@ function timeSumHTML(by, whole, day){
       <span class="tm-sumbar"></span><span class="mono">\u2014</span>
     </div>` : ''}
     ${whole ? `<div class="tm-sumrow faint">
-      <span class="tm-sumn">untracked${asleep ? ', awake' : ''}</span>
+      <span class="tm-sumn">untracked${inDay ? ', awake' : ''}${
+        inDay && night && inDay !== night.minutes
+          ? `<em class="faint sm" style="display:block;font-style:normal">${timeSaid(inDay)} of the night fell inside today</em>` : ''}</span>
       <span class="tm-sumbar"></span>
-      <span class="mono">~${timeSaid(Math.max(0, whole - tracked - asleep))}</span>
+      <span class="mono">~${timeSaid(Math.max(0, whole - tracked - inDay))}</span>
     </div>` : ''}`;
 }
 
@@ -57439,7 +57679,10 @@ function timeWatchFocus(){
     _timeFocusWas = sig;
     if(!on){ timeAutoStop('focus'); return; }
     const t = id ? taskById(id) : null;
-    timeAutoStart({categoryId:'tasks', feature:'focus',
+    /* the task's own category, falling back to the general one. A task that
+       has been told what part of a life it belongs to should never come out
+       of the week's report as "Tasks". */
+    timeAutoStart({categoryId: (t && t.timeCategory) || 'tasks', feature:'focus',
       what: t ? t.title : 'a sitting',
       linkedType: t ? 'task' : null, linkedId: t ? t.id : null,
       linkedLabel: t ? t.title : ''});
@@ -57611,7 +57854,12 @@ function openTimeEntryModal(id, day){
       ${timeCategoryPickHTML(e ? e.categoryId : timeSettings().defaultCategory, 'teCat')}</label>
     <label class="pd-q" style="margin-top:10px"><span class="k">tags</span>
       <input class="inp" id="teTags" value="${esc(e ? e.tags.join(', ') : '')}" placeholder="jazz, theory"></label>
-    ${timeLinkPickHTML(e)}
+    <!-- There were two more fields here, "hang it on" and "which", offering to
+         attach the sitting to a project, a person, a score. They are gone
+         from the form: the entries that genuinely want a link get it from
+         the room that started them, and asking by hand for every sitting was
+         two selects nobody filled in. Whatever an entry already carries is
+         still carried, credited and shown. -->
     <div class="row" style="justify-content:flex-end;margin-top:14px;gap:8px">
       ${e ? `<button class="btn sm ghost danger" id="teDel">Delete</button><span class="grow"></span>` : ''}
       <button class="btn primary" id="teSave">Save</button></div>`, 'narrow');
@@ -57619,11 +57867,11 @@ function openTimeEntryModal(id, day){
     const dayV = m.querySelector('#teDay').value || today();
     const from = m.querySelector('#teFrom').value;
     const toEl = m.querySelector('#teTo'), minsEl = m.querySelector('#teMins');
-    const link = timeLinkValue(m);
+    /* the link is left exactly as it was: a sitting the score room started
+       knows which piece it was, and nothing here should quietly forget it */
     const common = {what: m.querySelector('#teWhat').value.trim(),
       categoryId: m.querySelector('#teCat').value || null,
-      tags: timeTagsOf(m.querySelector('#teTags').value),
-      linkedType: link.type, linkedId: link.id, linkedLabel: link.label};
+      tags: timeTagsOf(m.querySelector('#teTags').value)};
     if(e){
       Object.assign(e, common);
       if(from) e.startTime = timeAtOn(dayV, from);

@@ -34,7 +34,10 @@ function timeWatchFocus(){
     _timeFocusWas = sig;
     if(!on){ timeAutoStop('focus'); return; }
     const t = id ? taskById(id) : null;
-    timeAutoStart({categoryId:'tasks', feature:'focus',
+    /* the task's own category, falling back to the general one. A task that
+       has been told what part of a life it belongs to should never come out
+       of the week's report as "Tasks". */
+    timeAutoStart({categoryId: (t && t.timeCategory) || 'tasks', feature:'focus',
       what: t ? t.title : 'a sitting',
       linkedType: t ? 'task' : null, linkedId: t ? t.id : null,
       linkedLabel: t ? t.title : ''});

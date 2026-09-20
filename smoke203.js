@@ -408,36 +408,67 @@ const ARP = `<?xml version="1.0" encoding="UTF-8"?><score-partwise version="3.1"
   is('a new one can be added', fresh.grew, 1);
   is('  with the caret already in its name', fresh.focused, 'name');
 
-  console.log('\n7. sleep is read off Today, not timed here');
+  console.log('\n7. a night is not a calendar day');
+  /* The figure was wrong, and wrong in a way nobody would spot from the
+     number alone: it read the hours from midnight to waking and called that
+     the night, which quietly assumes you went to bed at twelve. Write down
+     23:10 and it told you the same thing as 00:00.
+
+     So two days are needed to test it at all. A night belongs to the waking
+     that ended it, and the bedtime that began it is written on the day
+     before — which is the whole point, and is why one day's record could
+     never have answered the question. */
   const slept = await p.evaluate(async () => {
-    const d = today();
+    const d = today(), y = (() => { const t = parseDay(d); t.setDate(t.getDate() - 1);
+      return timeDayOf(t.toISOString()); })();
     S.dailyRhythm = S.dailyRhythm || {};
-    S.dailyRhythm[d] = Object.assign(S.dailyRhythm[d] || {}, {wakeTime:'06:30', sleepTime:'23:00'});
+    S.dailyRhythm[y] = {sleepTime:'23:10', wakeTime:'07:00'};
+    S.dailyRhythm[d] = {wakeTime:'06:40', sleepTime:'23:00'};
     location.hash = '#/time/day';
     await new Promise(r => setTimeout(r, 900));
-    return {blocks: timeSleepBlocks(d), mins: timeSleepMinutes(d),
+    return {night: timeSleepNight(d), mins: timeSleepMinutes(d),
+      blocks: timeSleepBlocks(d).map(v => [v.from, v.to]), inDay: timeSleepInDay(d),
       segs: document.querySelectorAll('.tm-sleepseg').length,
       row: !!document.querySelector('.tm-sleeprow'),
       says: (document.querySelector('.tm-sleeprow .tm-sumn') || {}).textContent};
   });
-  /* midnight to waking, and bedtime to midnight: six and a half hours plus one */
-  is('the asleep hours are worked out from the two times you wrote',
-    slept.blocks.map(v => [v.from, v.to]), [[0, 390], [1380, 1440]]);
-  is('  which is seven and a half hours', slept.mins, 450);
-  is('  drawn on the day as two stretches', slept.segs, 2);
-  yes('  and named as sleep in the day’s totals',
+  /* to bed at 23:10 and up at 06:40 is fifty minutes plus six hours forty */
+  is('the night is measured from the bedtime you wrote, not from midnight',
+    slept.mins, 450);
+  /* and this is the bug, stated as a number: midnight to 06:40 is 400 */
+  yes('  which is not the same as the hours since midnight',
+    slept.mins !== 400, String(slept.mins));
+  is('  and it is said as the two ends of it',
+    [slept.night.from, slept.night.to], [1390, 400]);
+  yes('  knowing it ran through midnight', slept.night.crossed === true);
+  /* the day strip draws the calendar day, which holds the tail of last night
+     and the head of tonight — two stretches, and neither one is the night */
+  is('the day itself is drawn as the fragments that fall inside it',
+    slept.blocks, [[0, 400], [1380, 1440]]);
+  is('  which is an hour more than the night was', slept.inDay, 460);
+  is('  drawn on the strip as two stretches', slept.segs, 2);
+  yes('  and named as sleep in the day\u2019s totals',
     slept.row && /Sleep/.test(slept.says || ''), slept.says);
-  yes('  saying where it came from', /06:30/.test(slept.says || ''), slept.says);
-  /* going to bed after midnight is the case worth getting right */
-  const late = await p.evaluate(() => {
-    const d = today();
-    S.dailyRhythm[d].sleepTime = '01:40';
-    const b = timeSleepBlocks(d);
-    S.dailyRhythm[d].sleepTime = '23:00';
-    return b.map(v => [v.from, v.to]);
+  yes('  saying which two times it came from',
+    /23:10/.test(slept.says || '') && /06:40/.test(slept.says || ''), slept.says);
+
+  /* Going to bed at 01:40 is the previous evening's bedtime, not that
+     morning's, and the night it begins is short. Reading it as a time on the
+     calendar day it falls on would have made the night nineteen hours. */
+  const late = await p.evaluate(async () => {
+    const d = today(), y = (() => { const t = parseDay(d); t.setDate(t.getDate() - 1);
+      return timeDayOf(t.toISOString()); })();
+    S.dailyRhythm[y] = {sleepTime:'01:40', wakeTime:'09:00'};
+    const n = timeSleepNight(d);
+    const b = timeSleepBlocks(d).map(v => [v.from, v.to]);
+    S.dailyRhythm[y] = {sleepTime:'23:10', wakeTime:'07:00'};
+    return {mins: n && n.minutes, crossed: n && n.crossed, blocks: b};
   });
-  is('a bedtime after midnight is one stretch, not two overlapping ones',
-    late, [[100, 390]]);
+  is('a bedtime after midnight is five hours of sleep, not nineteen', late.mins, 300);
+  yes('  and did not cross midnight', late.crossed === false);
+  is('  so the day starts asleep at the bedtime, not at midnight',
+    late.blocks, [[100, 400], [1380, 1440]]);
+
   const untracked = await p.evaluate(async () => {
     logTime({what:'reading', categoryId:'reading', minutes:60});
     location.hash = '#/time/week'; await new Promise(r => setTimeout(r, 400));
@@ -447,10 +478,12 @@ const ARP = `<?xml version="1.0" encoding="UTF-8"?><score-partwise version="3.1"
     const tracked = sum(timeOnDay(today()).map(e => timeMinutes(e)));
     return {said: rows[rows.length - 1], tracked,
       /* what the line would have said before, and what it says now */
-      old: timeSaid(1440 - tracked), now: timeSaid(1440 - tracked - 450)};
+      old: timeSaid(1440 - tracked), now: timeSaid(1440 - tracked - 460)};
   });
-  /* a day is 1440 minutes; an hour of it was read and seven and a half were
-     spent asleep. Counting the sleep as time lost was the old answer */
+  /* a day is 1440 minutes; an hour of it was read and seven hours forty of it
+     fell inside today asleep. Counting that as time lost was the old answer —
+     and the hours to subtract are the day's fragments, not the night, because
+     an hour of last night happened yesterday */
   yes('the untracked line no longer counts being asleep as time lost',
     untracked.said.includes(untracked.now) && !untracked.said.includes(untracked.old),
     JSON.stringify(untracked));
