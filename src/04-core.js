@@ -540,7 +540,11 @@ function preserveScroll(selectors, fn){
   fn();
   before.forEach(([sel,y]) => { const n = document.querySelector(sel); if(n) n.scrollTop = y; });
 }
-function closePanel({keep=false}={}){ const had = !!$('#panel'); $('#panelOv')?.remove(); $('#panel')?.remove(); if(had && !keep && history.state?.liPanel){ history.back(); } else updateBackButton(); }
+/* Closing a panel is also when the page underneath settles up. A name typed
+   in the panel is written straight onto the rows rather than rebuilding the
+   page for every few letters, so whatever that name could still move — a
+   search filter, a sort by name — is owed until here. */
+function closePanel({keep=false}={}){ const had = !!$('#panel'); $('#panelOv')?.remove(); $('#panel')?.remove(); const owed = had && typeof planPayRedraw === 'function' && planPayRedraw(); if(had && !keep && history.state?.liPanel){ history.back(); } else updateBackButton(); return owed; }
 /* Leaving a panel for another page is not the same as closing it. closePanel
    pops the entry the panel pushed, and history.back() is asynchronous: a
    navigate() that follows it is undone a moment later, when the pop lands and

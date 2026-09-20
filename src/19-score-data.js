@@ -219,6 +219,10 @@ function scorePinDefaults(p){
   p.measure = Math.max(1, +p.measure || 1);
   p.text = p.text || '';
   p.color = SCORE_COLORS.some(c => c[0] === p.color) ? p.color : SCORE_COLORS[0][0];
+  /* A pin that is also an unwritten rule keeps the rule's id, so the bar and
+     the library know about each other. It stays a pin either way: being true
+     of every piece does not make it less true of this bar. */
+  p.ruleId = p.ruleId || null;
   p.createdAt = p.createdAt || new Date().toISOString();
   return p;
 }

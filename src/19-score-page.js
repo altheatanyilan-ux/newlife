@@ -32,7 +32,7 @@ addEventListener('hashchange', () => {
 });
 
 const scoreOpenId = () => S._score && S._score.id;
-function scoreUi(){ return S._score = S._score || {id:null, focus:null, reading:false, marks:true, more:false, side:'marks'}; }
+function scoreUi(){ return S._score = S._score || {id:null, focus:null, reading:false, marks:true, more:false, side:'marks', goto:null}; }
 
 routes.score = function(root, params){
   scoreState();
@@ -49,6 +49,17 @@ routes.score = function(root, params){
   root.innerHTML = `<div class="page sc-page sc-open">${scoreViewerHTML(rec)}</div>`;
   bindScoreViewer(root, rec);
   scorePaint(rec);
+  /* Arriving from somewhere that knows which bar it means — a rule saying
+     where you met it — the engraving has not been drawn yet, so the scroll
+     waits for it rather than landing on an empty stage. */
+  if(ui.goto){
+    const at = ui.goto; ui.goto = null;
+    const tryIt = n => setTimeout(() => {
+      if(document.querySelector('#scCanvas svg')) scoreScrollTo(at);
+      else if(n > 0) tryIt(n - 1);
+    }, 400);
+    tryIt(14);
+  }
 };
 
 /* ---------- the shelf ---------- */
@@ -88,7 +99,8 @@ function scoreLibraryHTML(){
       <div class="sc-weigh mono${scoreLibraryHeavy() ? ' heavy' : ''}">${list.length} score${list.length === 1 ? '' : 's'} · ${scoreSaid(weight)} of notation kept${
         scoreLibraryHeavy() ? ' — heavy enough to be slowing every save. Take off what you are not working on; the sections and notes go with it.' : ''}</div>`
       : '<div class="empty">Nothing on the shelf yet.</div>'}
-    ${scoreInventoryHTML()}`;
+    ${scoreInventoryHTML()}
+    ${scoreRulesHTML()}`;
 }
 
 /* ---------- the inventory ----------
@@ -564,7 +576,8 @@ function scoreMarksSideHTML(x){
       : `<div class="empty sm">No sections yet. Mark the first one — an exposition, a bridge, the eight bars that keep falling apart.</div>`}
     ${pins.length ? `<div class="sc-pinlist">
       <span class="sc-side-t">📌 Pins</span>
-      ${pins.map(p => `<div class="sc-pinrow" style="--c:${esc(p.color)}" data-scpinrow="${esc(p.id)}">
+      ${pins.map(p => `<div class="sc-pinrow${p.ruleId ? ' rule' : ''}" style="--c:${esc(p.color)}" data-scpinrow="${esc(p.id)}"
+        ${p.ruleId ? 'title="also one of the unwritten rules"' : ''}>
         <button class="sc-pin-m mono" data-scpingo="${esc(p.id)}">m.${p.measure}</button>
         <span class="sc-pin-t">${esc(p.text)}</span>
         <button class="del-x inline" data-scpindel="${esc(p.id)}">×</button>
@@ -663,7 +676,7 @@ function scoreOverlayPaint(x){
   pinBox.innerHTML = (x.pins || []).map(p => {
     const b = measureBox(p.measure);
     if(!b) return '';
-    return `<button class="sc-pin" data-scpin="${esc(p.id)}" style="--c:${esc(p.color)};left:${b.x + b.w / 2}px;top:${b.y}px"
+    return `<button class="sc-pin${p.ruleId ? ' rule' : ''}" data-scpin="${esc(p.id)}" style="--c:${esc(p.color)};left:${b.x + b.w / 2}px;top:${b.y}px"
       title="${esc(p.text)}">📌</button>`;
   }).join('');
   $$('[data-scpin]', pinBox).forEach(b => b.onclick = ev => { ev.stopPropagation();
@@ -1141,6 +1154,7 @@ function bindScoreLibrary(root){
       remove: () => removeScore(x.id)});
   });
   bindScoreInventory(root);
+  bindScoreRules(root);
 }
 function bindScoreInventory(root){
   const f = scoreFilters();
@@ -1558,17 +1572,66 @@ function openPinModal(scoreId, pinId, measure){
     <div class="pd-q" style="margin-top:10px"><span class="k">colour</span>
       <div class="sc-swatches">${SCORE_COLORS.map(([c, name]) =>
         `<button class="sc-swatch${(p ? p.color : SCORE_COLORS[0][0]) === c ? ' on' : ''}" data-pincol="${c}" style="--c:${c}" title="${esc(name)}" aria-label="${esc(name)}"></button>`).join('')}</div></div>
+    <!-- Most of what gets pinned is about this bar. Some of it is not: "the
+         inner voice carries the line here" is true of every piece with an
+         inner voice, and you will rediscover it from scratch in the next one
+         unless it is kept somewhere that outlives this score. -->
+    <label class="sc-ruletick"><input type="checkbox" id="pinRule" ${p && p.ruleId ? 'checked' : ''}>
+      <span><b>This is true of more than this bar.</b>
+        <em class="faint">Keep it in the unwritten rules as well, where it will be waiting the next
+          time you write the same thing about another piece.</em></span></label>
+    <div id="pinRuleBox" class="sc-rulebox" ${p && p.ruleId ? '' : 'hidden'}>
+      <label class="pd-q"><span class="k">family</span>
+        <select class="sel" id="pinRuleFam">${RULE_FAMILIES.map(([k, n, hint]) =>
+          `<option value="${k}">${esc(n)} \u2014 ${esc(hint)}</option>`).join('')}</select></label>
+      <p class="faint sm" id="pinRuleSay"></p>
+    </div>
     <div class="row" style="justify-content:flex-end;margin-top:14px;gap:8px">
       ${p ? `<button class="btn sm ghost danger" id="pinDel">Delete</button><span class="grow"></span>` : ''}
       <button class="btn primary" id="pinSave">${p ? 'Save' : 'Pin it'}</button></div>`, 'narrow sc-modal');
   let color = p ? p.color : SCORE_COLORS[0][0];
   $$('[data-pincol]', m).forEach(b => b.onclick = () => { color = b.dataset.pincol;
     $$('[data-pincol]', m).forEach(y => y.classList.toggle('on', y === b)); });
+  /* The tick opens the family picker, and while it is open the room says
+     whether it already has a rule that says this — which is the thing worth
+     knowing before you write it down a second time. */
+  const tick = m.querySelector('#pinRule');
+  const box = m.querySelector('#pinRuleBox');
+  const ruleSay = () => {
+    const say = m.querySelector('#pinRuleSay'); if(!say) return;
+    const hit = ruleLike(m.querySelector('#pinText').value.trim());
+    say.innerHTML = hit
+      ? `You have written this before \u2014 <b>${esc(hit.rule.text)}</b>. This bar goes on that rule
+         rather than making a second one.`
+      : 'A new rule. It will be in the library on the shelf page.';
+    if(hit) m.querySelector('#pinRuleFam').value = hit.rule.family;
+  };
+  if(tick && box){
+    tick.onchange = () => { box.hidden = !tick.checked; if(tick.checked) ruleSay(); };
+    m.querySelector('#pinText').addEventListener('input', debounce(() => {
+      if(tick.checked) ruleSay(); }, 300));
+    if(tick.checked) ruleSay();
+  }
   m.querySelector('#pinSave').onclick = () => {
     const text = m.querySelector('#pinText').value.trim();
     if(!text){ m.querySelector('#pinText').focus(); return; }
-    if(p) Object.assign(p, {text, color});
-    else x.pins.push(scorePinDefaults({id:uid(), measure:at, text, color, createdAt:new Date().toISOString()}));
+    let pin = p;
+    if(pin) Object.assign(pin, {text, color});
+    else { pin = scorePinDefaults({id:uid(), measure:at, text, color, createdAt:new Date().toISOString()});
+      x.pins.push(pin); }
+    /* the pin stays a pin either way: a rule is an extra home for the
+       sentence, never a move out of the bar it belongs to */
+    if(tick && tick.checked){
+      const made = noteScoreRule({text, family: m.querySelector('#pinRuleFam').value,
+        scoreId: x.id, title: x.title, measure: at, pinId: pin.id});
+      if(made){
+        pin.ruleId = made.rule.id;
+        toast(made.again
+          ? (made.fresh ? 'You have written this before \u2014 that rule has another sighting now.'
+            : 'Already on that rule, at this very bar.')
+          : 'Kept as a rule as well.');
+      }
+    } else if(pin.ruleId){ pin.ruleId = null; }
     saveNow(); m.remove(); sound('success');
     scoreSidePaint(x); scoreOverlayPaint(x);
   };

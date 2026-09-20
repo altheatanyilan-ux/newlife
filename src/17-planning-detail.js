@@ -147,8 +147,22 @@ function bindPlanDetail(p, t){
   const pulse = () => { if(!pdT.isConnected) return;
     const s = el('<span class="saved-pulse">saved</span>');
     pdT.parentNode.appendChild(s); setTimeout(() => s.remove(), 1200); };
-  pdT.oninput = debounce(function(){ t.text = this.value; touch(); pulse(); rerenderPlanBody(); }, 350);
-  pdT.onkeydown = ev => { if(ev.key === 'Enter'){ ev.preventDefault(); t.text = pdT.value; touch(); pulse(); rerenderPlanBody(); pdT.blur(); } };
+  /* TYPING IS NOT A STRUCTURAL CHANGE, and it used to be treated as one.
+     Every three hundred and fifty milliseconds of typing rebuilt the page
+     underneath the panel — on Planning that was the task body, and anywhere
+     else, Today included, it was the entire page. The whole of Today flashed
+     under the panel every few letters, which reads as the app falling over.
+
+     What actually changes on the page behind while a name is being typed is
+     one string: that task's own label, wherever it is drawn. So write that
+     string, and leave everything else alone. The page is marked as owing a
+     redraw, and pays it once when the panel closes — which is when the
+     things a name really can move, a search filter or a sort by name, get to
+     take effect. */
+  const echo = v => planEchoTaskText(t.id, v);
+  pdT.oninput = debounce(function(){ t.text = this.value; touch(); pulse(); echo(this.value); }, 350);
+  pdT.onkeydown = ev => { if(ev.key === 'Enter'){ ev.preventDefault(); t.text = pdT.value;
+    touch(); pulse(); echo(pdT.value); pdT.blur(); } };
   p.querySelector('#pdDone').onclick = () => { planSetDone(t, !t.done); sound(t.done ? 'success' : 'click'); redraw(); };
   p.querySelectorAll('[data-pdprio]').forEach(b => b.onclick = () => { t.priority = +b.dataset.pdprio; touch(); redraw(); });
   p.querySelector('#pdDay').onchange = function(){ t.day = this.value; planSyncReminders(t); touch(); rerenderPlanBody(); };
@@ -230,7 +244,38 @@ function bindPlanDetail(p, t){
 
 /* Repainting the whole page would close this panel. Only the workspace needs
    to change while a task is being edited, so only the workspace is redrawn. */
+/* One task's name, written straight onto the rows that show it. It is the
+   cheapest possible redraw and the only one typing needs: no layout is
+   rebuilt, nothing loses focus, and the row reads right immediately. */
+function planEchoTaskText(id, text){
+  const said = String(text || '').trim() || 'Untitled task';
+  let n = 0;
+  try {
+    document.querySelectorAll(`.task-text[data-topen="${CSS.escape(id)}"]`).forEach(el => {
+      el.textContent = said; n++; });
+    /* the planner's list row and the matrix card draw the same task their
+       own way, and under their own class names */
+    document.querySelectorAll(`[data-ptrow="${CSS.escape(id)}"] .pt-text,
+      [data-ptcard="${CSS.escape(id)}"] .pk-text`).forEach(el => { el.textContent = said; n++; });
+  } catch(e){}
+  /* whatever the name could move — a search filter, a sort by name — is
+     settled the next time the page is drawn rather than mid-word */
+  planOweRedraw();
+  return n;
+}
+/* A redraw the page is owed but is not going to be given while somebody is
+   typing into the panel over it. Paid when the panel closes. */
+let _planOwed = false;
+function planOweRedraw(){ _planOwed = true; }
+function planPayRedraw(){
+  if(!_planOwed) return false;
+  _planOwed = false;
+  if(typeof rerender === 'function') rerender();
+  return true;
+}
 function rerenderPlanBody(){
+  /* a real redraw settles anything typing left owing */
+  _planOwed = false;
   const main = $('#main'); if(!main) return;
   const keep = $('#panel');
   const y = window.scrollY;

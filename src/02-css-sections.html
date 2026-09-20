@@ -7840,6 +7840,55 @@ html.sc-reading .sc-strip .tbtn,html.sc-reading .sc-strip .sel{min-height:34px;p
 .sc-bpl{display:flex;align-items:center;gap:5px}
 /* the inventory: one row a score, the same shape as the one on Projects */
 .sc-inv{margin-top:26px}
+/* the unwritten rules */
+.sc-rules{margin-top:18px}
+.scr-sum{margin:10px 0 14px}
+.scr-bars{display:flex;flex-direction:column;gap:3px}
+.scr-bar{display:grid;grid-template-columns:7rem minmax(0,1fr) 2.4rem;gap:9px;align-items:center;font-size:.72rem}
+.scr-bn{opacity:.75}
+.scr-bb{height:7px;border-radius:99px;background:color-mix(in srgb,var(--line) 60%,transparent);overflow:hidden}
+.scr-bb i{display:block;height:100%;border-radius:99px;background:var(--rc,#8a8d8f)}
+.scr-s-noticed{--rc:#b0705e}.scr-s-understood{--rc:#c9a96e}
+.scr-s-doing{--rc:#6b7f8e}.scr-s-automatic{--rc:#7f916a}
+.scr-says{margin:10px 0 0;padding-left:18px;font-size:.82rem;line-height:1.65}
+.scr-says b{font-family:var(--mono)}
+.scr-rows{display:flex;flex-direction:column;gap:2px;margin-top:10px}
+.scr-row{display:grid;grid-template-columns:minmax(0,2.4fr) minmax(0,1.3fr) 8.5rem 1.6rem;
+  gap:10px;align-items:center;padding:6px 8px;border-radius:var(--radius);
+  border-left:3px solid var(--rc,#8a8d8f)}
+.scr-row:nth-child(odd){background:color-mix(in srgb,var(--surface) 60%,transparent)}
+.scr-row:hover{background:var(--surface)}
+.scr-row.under{box-shadow:inset 0 0 0 1px color-mix(in srgb,#c9a96e 45%,transparent)}
+.scr-row.stale{opacity:.72}
+.scr-text{background:none;border:0;padding:0;text-align:left;font:inherit;color:inherit;cursor:pointer;
+  display:flex;flex-direction:column;gap:1px;min-width:0}
+.scr-text b{font-family:var(--serif);font-size:.92rem;font-weight:500}
+.scr-text span{font-size:.66rem}
+.scr-text:hover b{text-decoration:underline;text-underline-offset:2px}
+.scr-where{display:flex;gap:4px;flex-wrap:wrap;min-width:0}
+.scr-src{background:none;border:1px solid var(--line);border-radius:99px;padding:1px 7px;
+  font:inherit;font-size:.62rem;color:inherit;cursor:pointer;opacity:.8;white-space:nowrap}
+.scr-src:hover{opacity:1;border-color:var(--rc,#8a8d8f)}
+.scr-stand{font-size:.7rem;padding:2px 6px}
+.scr-srcs{display:flex;flex-direction:column;gap:3px;margin-top:4px}
+.scr-srcrow{display:flex;align-items:center;gap:8px}
+.scr-srcrow .tbtn{flex:1;text-align:left;justify-content:flex-start}
+/* the tick that turns a pinned note into a rule as well */
+.sc-ruletick{display:flex;gap:8px;align-items:flex-start;margin-top:12px;cursor:pointer;font-size:.84rem}
+.sc-ruletick input{margin-top:3px}
+.sc-ruletick em{display:block;font-style:normal;font-size:.72rem;margin-top:2px;line-height:1.5}
+.sc-rulebox{margin-top:8px;padding:8px 10px;border-radius:var(--radius);
+  border:1px dashed var(--line);background:color-mix(in srgb,var(--surface) 50%,transparent)}
+.sc-rulebox[hidden]{display:none}
+/* a pin that is also a rule wears a small mark, so the page says which of
+   your notes outlive this piece */
+.sc-pin.rule::after{content:'\u203b';position:absolute;top:-3px;right:-4px;font-size:.6rem;opacity:.85}
+.sc-pinrow.rule .sc-pin-t::after{content:' \u203b';opacity:.6}
+@media (max-width:820px){
+  .scr-row{grid-template-columns:minmax(0,1fr) 1.6rem;row-gap:4px}
+  .scr-row > :nth-child(2),.scr-row > :nth-child(3){grid-column:1 / -1}
+  .scr-bar{grid-template-columns:6rem minmax(0,1fr) 2.2rem}
+}
 .sc-invrows{display:flex;flex-direction:column;gap:2px;margin-top:10px}
 .sc-invrow{display:grid;grid-template-columns:minmax(0,2.2fr) 6.5rem 7rem minmax(0,1.2fr) minmax(0,1fr) 4.2rem 6.5rem 1.6rem;
   gap:10px;align-items:center;padding:6px 8px;border-radius:var(--radius);
