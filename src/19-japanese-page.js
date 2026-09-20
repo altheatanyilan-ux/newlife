@@ -35,6 +35,16 @@ routes.japanese = function(root, params){
   const u = jaUi();
   const want = params && params[0];
   if(JA_TABS.some(t => t[0] === want)) u.tab = want;
+  /* ---------- an island is a page ----------
+     It was a modal, and a modal is the wrong shape for it: an island holds
+     two full texts, a paragraph of correction notes, a list of vocabulary
+     and now a set of smaller islands, none of which fits in a box floating
+     over something else, and all of which you want to come back to by its
+     own address. #/japanese/islands/<id> is that address. */
+  if(want === 'islands' && params[1]){
+    const isle = byId(j.islands, params[1]);
+    if(isle){ u.tab = 'islands'; return jaIslandPage(root, isle); }
+  }
   registerPageEntry({pageName:'Japanese Studio', addLabel:'Practise', defaultEntryType:'session', prefilledFields:{}, options:[
     {icon:'\ud83c\udf99', label:'A 4/3/2 sitting', desc:'One talk, three times, a shrinking clock.', run:()=>openJa432Setup()},
     {icon:'\ud83c\udfdd', label:'An island', desc:'A monologue worth having by heart, in both registers.', run:()=>openJaIsland()},

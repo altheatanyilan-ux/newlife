@@ -8228,6 +8228,29 @@ html[data-theme="dark"] .sc-stage{background:#f2ece0}
 .ja-check{display:flex;gap:7px;align-items:center;font-size:.84rem;margin-top:4px;cursor:pointer}
 
 /* islands */
+/* an island as a page of its own */
+.ja-islandpage .ja-registers{margin-top:12px}
+.ja-isle-head{display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap}
+.ja-isle-in{font-size:.68rem;opacity:.65;margin-bottom:10px}
+.ja-isle-in a{color:inherit}
+.ja-isle-sec{margin-top:20px}
+.ja-islandpage .serif-lg{font-family:var(--serif);font-size:1.25rem}
+#isSaved{font-size:.66rem;opacity:.45;transition:opacity .2s var(--ease)}
+#isSaved.just{opacity:.9;color:var(--sage)}
+/* the worked-out reading, beside the phrase it came from */
+.ja-read{background:none;border:0;padding:2px 6px;border-radius:5px;font:inherit;font-size:.74rem;
+  color:inherit;opacity:.72;cursor:pointer;text-align:left;min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ja-read:hover{opacity:1;background:color-mix(in srgb,var(--line) 40%,transparent)}
+/* one you have corrected is yours, and says so */
+.ja-read.mine{opacity:.95;border-bottom:1.5px solid color-mix(in srgb,var(--sage) 60%,transparent)}
+/* and one with a character the table does not know is not claiming to be whole */
+.ja-read.partial{border-bottom:1px dotted #c98b7a;opacity:.6}
+.ja-rubybox{margin-top:10px;padding:10px 12px;border-radius:var(--radius);
+  border:1px solid var(--line);background:color-mix(in srgb,var(--surface) 55%,transparent)}
+.ja-rubybox[hidden]{display:none}
+.ja-rubyline{font-size:1.15rem;line-height:2.4}
+.ja-rubyline rt{font-size:.5em;opacity:.7;font-family:var(--mono)}
 .ja-islands{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-top:10px}
 .ja-island{border:1px solid var(--line);border-radius:var(--radius);padding:11px 13px;background:var(--surface);
   border-left-width:3px}
@@ -8469,8 +8492,7 @@ html.ja-running{overflow:hidden}
 .ja-registers{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
 @media (max-width:760px){ .ja-registers{grid-template-columns:1fr} }
 .ja-chunks{display:flex;flex-direction:column;gap:4px;margin-bottom:6px}
-.ja-chunk{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) minmax(0,1.4fr) auto auto;
-  gap:6px;align-items:center}
+.ja-chunk{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) 5.5rem 1.6rem;gap:8px;align-items:center;margin-bottom:4px}
 @media (max-width:760px){ .ja-chunk{grid-template-columns:1fr 1fr} }
 .ja-check{display:inline-flex;align-items:center;gap:6px;font-size:.78rem}
 

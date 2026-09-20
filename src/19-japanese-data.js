@@ -211,6 +211,16 @@ const JA_DRILL_TYPES = [
 /* ---------- the shapes ---------- */
 function jaIslandDefaults(i){
   i.id = i.id || uid();
+  /* ---------- islands within islands ----------
+     "My work" is not one monologue. It is the bar, the hours, why I left the
+     last job, the regular who comes in on Thursdays — each of which is its
+     own thing to be able to say, and each of which is useless as a heading
+     under one enormous text. So an island can hold smaller islands, and a
+     smaller island is an island: same shape, same registers, same chunks,
+     same everything. It is one field rather than a second kind of record,
+     which means a sub-island can be promoted to a full one by clearing it,
+     and nothing else in the room has to learn a new noun. */
+  i.parentId = i.parentId || null;
   /* the old shape had one topic and one Japanese text; both still read */
   i.topic = i.topic || i.topicEnglish || '';
   i.topicJapanese = i.topicJapanese || '';
@@ -243,6 +253,9 @@ function jaChunkDefaults(c, islandId){
   c.id = c.id || uid();
   c.islandId = c.islandId || islandId || null;
   c.japanese = c.japanese || '';
+  /* Worked out from the Japanese rather than typed. It is still a field
+     because a reading you have corrected by hand must survive the next save,
+     and because the table this room carries does not know every word. */
   c.reading = c.reading || '';
   c.meaning = c.meaning || '';
   c.type = JA_CHUNK_TYPES.includes(c.type) ? c.type : 'collocation';

@@ -150,14 +150,23 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
      rewritten, and what must not be lost is what you were trying to say */
   is('  and the English draft is still there', isl.keepsEnglish, 'I run a bar in Singapore.');
   const bumped = await p.evaluate(async id => {
-    openJaIsland(id);
-    await new Promise(r => setTimeout(r, 300));
+    /* the island is a page now, and a page you sit and work at has no Save
+       on it: what you type is what is kept */
+    location.hash = '#/japanese/islands/' + id;
+    await new Promise(r => setTimeout(r, 900));
     const was = byId(jaState2().islands, id).version;
-    document.querySelector('#isTeineigo').value = 'シンガポールでバーをやっています。';
-    document.querySelector('#isSave').click();
-    await new Promise(r => setTimeout(r, 500));
-    return {was, now: byId(jaState2().islands, id).version};
+    const box = document.querySelector('#isTeineigo');
+    box.value = 'シンガポールでバーをやっています。';
+    box.dispatchEvent(new Event('input', {bubbles:true}));
+    await new Promise(r => setTimeout(r, 700));
+    return {was, now: byId(jaState2().islands, id).version,
+      onItsOwnPage: !!document.querySelector('.ja-islandpage'),
+      noSave: !document.querySelector('#isSave'),
+      said: byId(jaState2().islands, id).japaneseTeineigo.slice(0, 8)};
   }, bridged.id);
+  yes('an island is a page of its own, with no Save on it',
+    bumped.onItsOwnPage && bumped.noSave, JSON.stringify(bumped));
+  is('  and what you type is what is kept', bumped.said, 'シンガポールでバ');
   is('rewriting the Japanese bumps the version, so an old recording is visibly of something else',
     [bumped.was, bumped.now], [1, 2]);
 

@@ -30,7 +30,9 @@
 
 function jaIslandsHTML(){
   const j = jaState2();
-  const list = j.islands.slice().sort((a, b) =>
+  /* only the islands that are not inside another one: a smaller island
+     belongs on its parent's page, not loose in the archipelago */
+  const list = j.islands.filter(i => !i.parentId).sort((a, b) =>
     JA_ISLAND_STATUS.findIndex(v => v[0] === b.status) - JA_ISLAND_STATUS.findIndex(v => v[0] === a.status));
   const auto = jaAutomatic();
   return `<div class="ja-sec">
@@ -51,7 +53,8 @@ function jaIslandsHTML(){
           <span class="ja-bar"><i style="width:${r.pct}%"></i></span>
           <span class="mono">${r.total ? `${r.pct}%` : 'no chunks yet'}</span></div>
         <div class="mono faint sm">${i.timesUsed ? `used ${i.timesUsed}× in a drill` : 'not yet drilled'}${
-          !i.japaneseTameguchi ? ' · no casual version' : ''}</div>
+          !i.japaneseTameguchi ? ' · no casual version' : ''}${
+          jaSubIslands(i.id).length ? ` · ${jaSubIslands(i.id).length} inside` : ''}</div>
         <div class="ja-tools">
           <button class="tbtn" data-jaislandedit="${esc(i.id)}">open</button>
           <button class="tbtn" data-jaisland432="${esc(i.id)}">4/3/2 it</button>
@@ -111,94 +114,282 @@ function jaStonesHTML(){
 }
 
 /* ---------- the editor ---------- */
+/* ---------- an island, as a page of its own ----------
+   The old one was a modal. A modal is a box floating over something else,
+   which is the right shape for a question and the wrong shape for a place
+   you sit and work: two full texts, a paragraph of what a tutor changed and
+   why, a list of vocabulary, and a set of smaller islands underneath. None
+   of that fits in a box, and all of it wants an address you can come back to. */
+const jaSubIslands = parentId => jaState2().islands
+  .filter(i => i.parentId === parentId)
+  .sort((a, b) => String(a.createdAt).localeCompare(String(b.createdAt)));
+const jaIslandParent = i => i && i.parentId ? byId(jaState2().islands, i.parentId) : null;
+
 function openJaIsland(id){
+  /* every way in now goes to the page. A new island is made first so that it
+     has an address to be at. */
+  if(id){ navigate('#/japanese/islands/' + id); return null; }
   const j = jaState2();
-  const i = id ? byId(j.islands, id) : jaIslandDefaults({});
-  const fresh = !id;
-  const m = openModal(`<h2>🏝 ${esc(i.topic || 'A new island')}</h2>
-    <div class="row" style="gap:10px">
+  const made = jaIslandDefaults({topic:'A new island'});
+  j.islands.push(made);
+  saveNow();
+  navigate('#/japanese/islands/' + made.id);
+  return null;
+}
+/* and one made inside another */
+function jaNewSubIsland(parentId){
+  const j = jaState2();
+  const made = jaIslandDefaults({topic:'A smaller island', parentId});
+  j.islands.push(made);
+  saveNow();
+  navigate('#/japanese/islands/' + made.id);
+  return made;
+}
+
+function jaIslandPage(root, i){
+  const j = jaState2();
+  const parent = jaIslandParent(i);
+  const subs = jaSubIslands(i.id);
+  const r = jaIslandReady(i);
+  root.innerHTML = `<div class="page ja-page ja-islandpage">
+    <div class="ja-isle-head">
+      <button class="btn sm ghost" id="isBack">← ${parent ? esc(parent.topicJapanese || parent.topic) : 'the islands'}</button>
+      <span class="grow"></span>
+      <span class="mono faint">${r.total ? `${r.ready} of ${r.total} chunks fluent` : 'no chunks yet'}${
+        i.timesUsed ? ` · used ${i.timesUsed}×` : ''}</span>
+      <button class="btn sm" id="isTo432">Use it in a 4/3/2</button>
+    </div>
+    ${parent ? `<div class="ja-isle-in mono">inside <a href="#/japanese/islands/${esc(parent.id)}">${
+      esc(parent.topicJapanese || parent.topic)}</a></div>` : ''}
+    <div class="row" style="gap:10px;align-items:flex-end">
       <label class="pd-q" style="flex:2"><span class="k">what it is about</span>
-        <input class="inp" id="isTopic" autofocus value="${esc(i.topic)}" placeholder="my work at the bar"></label>
+        <input class="inp serif-lg" id="isTopic" value="${esc(i.topic)}" placeholder="my work at the bar"></label>
       <label class="pd-q" style="flex:1"><span class="k">in Japanese</span>
-        <input class="inp" id="isTopicJa" value="${esc(i.topicJapanese)}" placeholder="バーの仕事"></label>
-      <label class="pd-q" style="flex:1"><span class="k">where it stands</span>
+        <input class="inp ja-jp" id="isTopicJa" value="${esc(i.topicJapanese)}" placeholder="バーの仕事"></label>
+      <label class="pd-q" style="flex:0 0 15rem"><span class="k">where it stands</span>
         <select class="sel" id="isStatus">${JA_ISLAND_STATUS.map(([v, n, hint]) =>
           `<option value="${v}" ${i.status === v ? 'selected' : ''}>${esc(n)} — ${esc(hint)}</option>`).join('')}</select></label>
     </div>
     <!-- kept forever: your Japanese will get better and this will be rewritten,
          and the thing that must not be lost is what you were trying to say -->
-    <label class="pd-q" style="margin-top:10px"><span class="k">the English draft — what you actually mean</span>
+    <label class="pd-q" style="margin-top:12px"><span class="k">the English draft — what you actually mean</span>
       <textarea class="inp" rows="4" id="isEn" placeholder="I run a bar in Singapore that blends…">${esc(i.englishDraft)}</textarea></label>
     <div class="ja-registers">
       <label class="pd-q"><span class="k">丁寧語 — polite</span>
-        <textarea class="inp ja-jp" rows="6" id="isTeineigo" placeholder="シンガポールでバーを経営しています。">${esc(i.japaneseTeineigo)}</textarea></label>
+        <textarea class="inp ja-jp" rows="8" id="isTeineigo" placeholder="シンガポールでバーを経営しています。">${esc(i.japaneseTeineigo)}</textarea></label>
       <label class="pd-q"><span class="k">タメ口 — casual</span>
-        <textarea class="inp ja-jp" rows="6" id="isTameguchi" placeholder="シンガポールでバーやってるんだけど、">${esc(i.japaneseTameguchi)}</textarea></label>
+        <textarea class="inp ja-jp" rows="8" id="isTameguchi" placeholder="シンガポールでバーやってるんだけど、">${esc(i.japaneseTameguchi)}</textarea></label>
     </div>
-    <div class="row" style="gap:14px;margin-top:6px">
+    <div class="row" style="gap:14px;margin-top:6px;flex-wrap:wrap">
       <label class="ja-check"><input type="checkbox" id="isVerified" ${i.nativeVerified ? 'checked' : ''}> a native has been over it</label>
       <label class="ja-check"><input type="checkbox" id="isPitch" ${i.pitchMarked ? 'checked' : ''}> pitch marked</label>
+      <span class="grow"></span>
+      <button class="tbtn" id="isRuby" title="the reading over the kanji, worked out rather than typed">ふりがな</button>
     </div>
-    <label class="pd-q" style="margin-top:10px"><span class="k">what was changed, and why — the part worth keeping</span>
+    <div id="isRubyBox" class="ja-rubybox" hidden></div>
+    <label class="pd-q" style="margin-top:12px"><span class="k">what was changed, and why — the part worth keeping</span>
       <textarea class="inp" rows="3" id="isNotes" placeholder="Tutor changed 体験を組み合わせた to 体験が融合した — more natural for a concept than for objects.">${esc(i.correctionNotes)}</textarea></label>
-    <div class="pd-q" style="margin-top:10px"><span class="k">the chunks this topic needs</span>
-      <div class="ja-chunks" id="isChunks">${jaChunkListHTML(i)}</div>
-      <button class="tbtn" id="isChunkAdd">＋ a chunk</button></div>
-    <div class="row" style="justify-content:flex-end;margin-top:14px;gap:8px">
-      ${fresh ? '' : `<button class="btn sm ghost" id="isTo432">Use it in a 4/3/2</button><span class="grow"></span>`}
-      <button class="btn primary" id="isSave">Save</button></div>`, 'wide sc-modal');
 
-  const rebuild = () => { m.querySelector('#isChunks').innerHTML = jaChunkListHTML(i); bindChunks(); };
-  const bindChunks = () => {
-    $$('[data-jachunkready]', m).forEach(b => b.onchange = () => {
-      const c = byId(i.chunks, b.dataset.jachunkready); if(c) c.ready = b.checked; });
-    $$('[data-jachunkdel]', m).forEach(b => b.onclick = () => {
-      spliceOut(i.chunks, c => c.id === b.dataset.jachunkdel); rebuild(); });
-    $$('[data-jachunkf]', m).forEach(b => b.oninput = () => {
-      const c = byId(i.chunks, b.dataset.jachunkid); if(c) c[b.dataset.jachunkf] = b.value; });
-  };
-  bindChunks();
-  m.querySelector('#isChunkAdd').onclick = () => {
-    i.chunks.push(jaChunkDefaults({}, i.id)); rebuild();
-    const last = [...m.querySelectorAll('[data-jachunkf="japanese"]')].pop();
-    if(last) last.focus();
-  };
-  const to432 = m.querySelector('#isTo432');
-  if(to432) to432.onclick = () => { m.remove(); openJa432Setup(i.id); };
-  m.querySelector('#isSave').onclick = () => {
-    const wasJa = i.japaneseTeineigo + '|' + i.japaneseTameguchi;
-    Object.assign(i, {
-      topic: m.querySelector('#isTopic').value.trim() || 'An island',
-      topicJapanese: m.querySelector('#isTopicJa').value.trim(),
-      status: m.querySelector('#isStatus').value,
-      englishDraft: m.querySelector('#isEn').value,
-      japaneseTeineigo: m.querySelector('#isTeineigo').value,
-      japaneseTameguchi: m.querySelector('#isTameguchi').value,
-      nativeVerified: m.querySelector('#isVerified').checked,
-      pitchMarked: m.querySelector('#isPitch').checked,
-      correctionNotes: m.querySelector('#isNotes').value});
-    /* a version so a recording made against an older wording is visibly a
-       recording of something else */
-    if(wasJa !== i.japaneseTeineigo + '|' + i.japaneseTameguchi) i.version = (+i.version || 1) + 1;
-    i.chunks = i.chunks.filter(c => c.japanese.trim());
-    if(fresh) j.islands.push(jaIslandDefaults(i));
+    <section class="section rv ja-isle-sec">
+      <div class="row between" style="align-items:baseline">
+        <span class="sc" style="margin:0">The chunks this needs</span>
+        <button class="btn sm" id="isChunkAdd">＋ a chunk</button></div>
+      <p class="muted" style="font-size:.85rem">Write the Japanese and nothing else. The reading is worked out
+        from it, and a word you cannot produce matters here, in this monologue, and nowhere else.</p>
+      <div class="ja-chunks" id="isChunks">${jaChunkListHTML(i)}</div>
+    </section>
+
+    <section class="section rv ja-isle-sec">
+      <div class="row between" style="align-items:baseline">
+        <span class="sc" style="margin:0">Smaller islands</span>
+        <button class="btn sm" id="isSubAdd">＋ one inside this</button></div>
+      <p class="muted" style="font-size:.85rem">“My work” is not one monologue — it is the bar, the hours,
+        why I left the last job, the regular who comes in on Thursdays. Each of those is its own thing to be able
+        to say, and useless as a heading under one enormous text.</p>
+      ${subs.length ? `<div class="ja-islands">${subs.map(v => {
+        const rr = jaIslandReady(v);
+        return `<div class="ja-island ja-is-${esc(v.status)}">
+          <div class="ja-island-t serif">${esc(v.topicJapanese || v.topic)}</div>
+          ${v.topicJapanese ? `<div class="mono faint">${esc(v.topic)}</div>` : ''}
+          <div class="ja-island-s mono">${esc((JA_ISLAND_STATUS.find(w => w[0] === v.status) || [,''])[1])}</div>
+          <div class="ja-island-r" title="${rr.ready} of ${rr.total} chunks you can produce">
+            <span class="ja-bar"><i style="width:${rr.pct}%"></i></span>
+            <span class="mono">${rr.total ? `${rr.pct}%` : 'no chunks yet'}</span></div>
+          <div class="ja-tools">
+            <button class="tbtn" data-jaislandedit="${esc(v.id)}">open</button>
+            <button class="tbtn" data-jaisland432="${esc(v.id)}">4/3/2 it</button>
+            <button class="tbtn" data-jaislandout="${esc(v.id)}" title="make it an island in its own right">set adrift</button>
+            <button class="del-x inline" data-jaislanddel="${esc(v.id)}">×</button></div>
+        </div>`; }).join('')}</div>`
+        : '<div class="empty sm">Nothing inside this one yet.</div>'}
+    </section>
+
+    <div class="row" style="margin-top:16px;gap:8px">
+      <button class="btn sm ghost danger" id="isDel">Throw this island away</button>
+      <span class="grow"></span>
+      <span class="mono faint" id="isSaved">saved as you type</span>
+    </div>
+  </div>`;
+  bindJaIslandPage(root, i);
+}
+function jaChunkListHTML(i){
+  if(!(i.chunks || []).length) return '<span class="faint sm">Nothing yet. What would you need to know how to say, to say this?</span>';
+  return i.chunks.map(c => jaChunkRowHTML(c)).join('');
+}
+/* One chunk: the Japanese, and the reading worked out from it.
+   Nothing else is asked for. It used to want the reading and an English
+   meaning as well, which is three fields for one phrase — and two of them
+   are work a machine can do or work that does not need doing. The reading is
+   read off the Japanese; the meaning was only ever there to put on the front
+   of a flashcard, and a card that asks you to produce a phrase from its
+   sound is a better production card than one that asks you to translate. */
+function jaChunkRowHTML(c){
+  const auto = jaFurigana(c.japanese);
+  const sure = jaFuriganaSure(c.japanese);
+  const mine = !!(c.reading && c.reading !== auto);
+  return `<div class="ja-chunk" data-jachunkrow="${esc(c.id)}">
+    <input class="inp ja-jp" data-jachunkid="${esc(c.id)}" data-jachunkf="japanese"
+      value="${esc(c.japanese)}" placeholder="\u7d4c\u55b6\u3059\u308b">
+    <button class="ja-read mono${mine ? ' mine' : ''}${sure || !c.japanese ? '' : ' partial'}"
+      data-jachunkread="${esc(c.id)}"
+      title="${mine ? 'yours \u2014 press to change it, or to put the worked-out one back'
+        : sure ? 'worked out from the Japanese \u2014 press to correct it'
+        : 'partly worked out: there is a character this room does not have a reading for. Press to fill it in.'}"
+      >${esc(c.reading || auto) || '\u2014'}</button>
+    <label class="ja-check mono" title="can you produce it without reaching for it?">
+      <input type="checkbox" data-jachunkready="${esc(c.id)}" ${c.ready ? 'checked' : ''}> fluent</label>
+    <button class="del-x inline" data-jachunkdel="${esc(c.id)}">\u00d7</button>
+  </div>`;
+}
+/* The reading, when the table did not know a word or got one wrong. Offered
+   rather than demanded: the field arrives filled in with what was worked
+   out, and putting it back to that is one press. */
+function openJaChunkReading(islandId, chunkId){
+  const isle = byId(jaState2().islands, islandId); if(!isle) return null;
+  const c = byId(isle.chunks || [], chunkId); if(!c) return null;
+  const auto = jaFurigana(c.japanese);
+  const sure = jaFuriganaSure(c.japanese);
+  const m = openModal(`<h2>\u3075\u308a\u304c\u306a</h2>
+    <div class="ja-rubyline ja-jp">${jaRubyHTML(c.japanese)}</div>
+    <label class="pd-q" style="margin-top:10px"><span class="k">the reading</span>
+      <input class="inp ja-jp" id="crRead" autofocus value="${esc(c.reading || auto)}"></label>
+    <p class="faint sm">${sure
+      ? `Worked out from the Japanese. Change it if it is wrong \u2014 what you write here is kept.`
+      : `Part of this was worked out and part of it was not: there is a character this room has no reading for,
+         so it is left as it is rather than guessed at.`}</p>
+    <div class="row" style="justify-content:flex-end;margin-top:14px;gap:8px">
+      <button class="btn sm ghost" id="crAuto">Put the worked-out one back</button>
+      <span class="grow"></span>
+      <button class="btn primary" id="crSave">Save</button></div>`, 'narrow');
+  m.querySelector('#crAuto').onclick = () => { m.querySelector('#crRead').value = auto; };
+  m.querySelector('#crSave').onclick = () => {
+    const v = m.querySelector('#crRead').value.trim();
+    /* storing it only when it differs keeps a corrected reading and lets an
+       uncorrected one follow the Japanese as it is edited */
+    c.reading = (v && v !== auto) ? v : '';
     saveNow(); m.remove(); sound('success'); rerender();
   };
   return m;
 }
-function jaChunkListHTML(i){
-  if(!(i.chunks || []).length) return '<span class="faint sm">Nothing yet. What would you need to know how to say, to say this?</span>';
-  return i.chunks.map(c => `<div class="ja-chunk" data-jachunkrow="${esc(c.id)}">
-    <input class="inp sm ja-jp" data-jachunkid="${esc(c.id)}" data-jachunkf="japanese"
-      value="${esc(c.japanese)}" placeholder="経営する">
-    <input class="inp sm" data-jachunkid="${esc(c.id)}" data-jachunkf="reading"
-      value="${esc(c.reading)}" placeholder="けいえいする">
-    <input class="inp sm" data-jachunkid="${esc(c.id)}" data-jachunkf="meaning"
-      value="${esc(c.meaning)}" placeholder="to run a business">
-    <label class="ja-check mono" title="can you produce it without reaching for it?">
-      <input type="checkbox" data-jachunkready="${esc(c.id)}" ${c.ready ? 'checked' : ''}> fluent</label>
-    <button class="del-x inline" data-jachunkdel="${esc(c.id)}">×</button>
-  </div>`).join('');
+
+/* ---------- the page's bindings ----------
+   Written straight through rather than saved on a button: a page you sit and
+   work at should not have a Save on it, and there is nowhere for unsaved
+   work to be lost to. The page is only rebuilt when something structural
+   changes \u2014 a chunk added or thrown away \u2014 never while you are typing. */
+function bindJaIslandPage(root, i){
+  const j = jaState2();
+  const one = sel => root.querySelector(sel);
+  const mark = () => { const n = one('#isSaved'); if(!n) return;
+    n.textContent = 'saved'; n.classList.add('just');
+    clearTimeout(bindJaIslandPage._t);
+    bindJaIslandPage._t = setTimeout(() => { n.textContent = 'saved as you type';
+      n.classList.remove('just'); }, 1400); };
+  const field = (sel, key, after) => { const n = one(sel); if(!n) return;
+    n.oninput = debounce(() => { i[key] = n.value; if(after) after(); saveNow(); mark(); }, 300);
+  };
+  field('#isTopic', 'topic');
+  field('#isTopicJa', 'topicJapanese');
+  field('#isEn', 'englishDraft');
+  /* a change of wording is a new version, so a recording made against the
+     old one is visibly a recording of something else */
+  const bump = () => { i.version = (+i.version || 1) + 1; };
+  field('#isTeineigo', 'japaneseTeineigo', bump);
+  field('#isTameguchi', 'japaneseTameguchi', bump);
+  field('#isNotes', 'correctionNotes');
+  const st = one('#isStatus');
+  if(st) st.onchange = () => { i.status = st.value; saveNow(); mark(); };
+  ['isVerified|nativeVerified', 'isPitch|pitchMarked'].forEach(pair => {
+    const [id, key] = pair.split('|');
+    const n = one('#' + id); if(n) n.onchange = () => { i[key] = n.checked; saveNow(); mark(); };
+  });
+  const back = one('#isBack');
+  if(back) back.onclick = () => navigate(i.parentId
+    ? '#/japanese/islands/' + i.parentId : '#/japanese/islands');
+  const to432 = one('#isTo432');
+  if(to432) to432.onclick = () => openJa432Setup(i.id);
+  /* the reading of the whole monologue, over the kanji where a reader wants
+     it rather than beside it */
+  const ruby = one('#isRuby'), rubyBox = one('#isRubyBox');
+  if(ruby && rubyBox) ruby.onclick = () => {
+    if(!rubyBox.hidden){ rubyBox.hidden = true; return; }
+    const text = (one('#isTeineigo').value || '') + (one('#isTameguchi').value
+      ? '\n\n' + one('#isTameguchi').value : '');
+    rubyBox.innerHTML = text.trim()
+      ? `<div class="ja-rubyline ja-jp">${jaRubyHTML(text).replace(/\n/g, '<br>')}</div>
+         <p class="faint sm">Worked out from the characters. Where a word is not in the table it is left
+           bare rather than guessed at.</p>`
+      : '<p class="faint sm">Nothing written yet.</p>';
+    rubyBox.hidden = false;
+  };
+  const rebuild = () => { saveNow(); const box = one('#isChunks');
+    if(box){ box.innerHTML = jaChunkListHTML(i); bindChunks(); } };
+  const bindChunks = () => {
+    $$('[data-jachunkready]', root).forEach(b => b.onchange = () => {
+      const c = byId(i.chunks, b.dataset.jachunkready); if(c) c.ready = b.checked; saveNow(); mark(); });
+    $$('[data-jachunkdel]', root).forEach(b => b.onclick = () => {
+      spliceOut(i.chunks, c => c.id === b.dataset.jachunkdel); rebuild(); });
+    $$('[data-jachunkread]', root).forEach(b => b.onclick = () =>
+      openJaChunkReading(i.id, b.dataset.jachunkread));
+    /* the reading follows the Japanese as it is typed, which is the whole
+       point: nobody should have to go and update it */
+    $$('[data-jachunkf="japanese"]', root).forEach(n => n.oninput = debounce(() => {
+      const c = byId(i.chunks, n.dataset.jachunkid); if(!c) return;
+      c.japanese = n.value;
+      const say = root.querySelector(`[data-jachunkread="${CSS.escape(c.id)}"]`);
+      if(say && !c.reading) say.textContent = jaFurigana(c.japanese) || '\u2014';
+      saveNow(); mark();
+    }, 250));
+  };
+  bindChunks();
+  const add = one('#isChunkAdd');
+  if(add) add.onclick = () => { i.chunks.push(jaChunkDefaults({}, i.id)); rebuild();
+    const last = [...root.querySelectorAll('[data-jachunkf="japanese"]')].pop();
+    if(last) last.focus(); };
+  const sub = one('#isSubAdd');
+  if(sub) sub.onclick = () => jaNewSubIsland(i.id);
+  $$('[data-jaislandedit]', root).forEach(b => b.onclick = () =>
+    navigate('#/japanese/islands/' + b.dataset.jaislandedit));
+  $$('[data-jaisland432]', root).forEach(b => b.onclick = () => openJa432Setup(b.dataset.jaisland432));
+  /* setting one adrift makes it an island in its own right rather than
+     throwing it away: the same record, one field cleared */
+  $$('[data-jaislandout]', root).forEach(b => b.onclick = () => {
+    const v = byId(j.islands, b.dataset.jaislandout); if(!v) return;
+    v.parentId = null; saveNow(); sound('click');
+    toast(`${v.topicJapanese || v.topic} is its own island now.`); rerender(); });
+  $$('[data-jaislanddel]', root).forEach(b => b.onclick = () => {
+    const v = byId(j.islands, b.dataset.jaislanddel); if(!v) return;
+    requestDelete({label: v.topicJapanese || v.topic, node: b.closest('.ja-island'), after: rerender,
+      remove: () => { jaSubIslands(v.id).forEach(k => k.parentId = v.parentId || null);
+        spliceOut(j.islands, w => w.id === v.id); saveNow(); }});
+  });
+  const del = one('#isDel');
+  if(del) del.onclick = () => confirmDlg(
+    `Throw <b>${esc(i.topic)}</b> away?${jaSubIslands(i.id).length
+      ? ` The ${jaSubIslands(i.id).length} inside it are set adrift rather than thrown away with it.` : ''}`,
+    () => { jaSubIslands(i.id).forEach(k => k.parentId = i.parentId || null);
+      spliceOut(j.islands, w => w.id === i.id); saveNow(); sound('click');
+      navigate(i.parentId ? '#/japanese/islands/' + i.parentId : '#/japanese/islands'); });
 }
 /* Everything you cannot yet produce, to the deck in one press. The card is a
    production card — meaning on the front, Japanese on the back — because
@@ -210,8 +401,16 @@ function jaChunksToDeck(){
   jaState2().islands.forEach(i => (i.chunks || []).forEach(c => {
     if(c.ready || c.sentToDeck || !c.japanese.trim()) return;
     suggestStudyCard({type:'production', sourceType:'island', sourceId:c.id,
-      front:`Say this in Japanese:\n\n${c.meaning || c.japanese}`,
-      back: c.reading ? `${c.japanese}\n${c.reading}` : c.japanese,
+      /* Reading to writing. A chunk is logged in Japanese and nothing else
+         now, so there is no English to put on the front — and there is no
+         need for any: given the sound of a phrase, producing the phrase is
+         the thing an island actually needs, and translating from English is
+         not. Where an older chunk still carries a meaning it is used, because
+         throwing away something somebody typed would be rude. */
+      front: c.meaning
+        ? `Say this in Japanese:\n\n${c.meaning}`
+        : `Write this out:\n\n${jaFurigana(c.japanese) || c.japanese}`,
+      back: `${c.japanese}${c.meaning ? `\n${jaFurigana(c.japanese)}` : ''}`,
       sourceLabel:`Island — ${i.topic}`, tags:['chunk']});
     c.sentToDeck = true; n++;
   }));

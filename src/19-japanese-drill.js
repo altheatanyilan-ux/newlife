@@ -286,7 +286,8 @@ function jaTargetChunksHTML(isl){
   if(!isl) return '<span class="faint sm">Pick an island and the phrases you cannot yet produce come up here.</span>';
   if(!list.length) return '<span class="faint sm">Every chunk on this island is one you can produce. Nothing to aim at.</span>';
   return list.map(c => `<label class="ja-target"><input type="checkbox" checked
-    data-jschunk="${esc(c.japanese)}"> ${esc(c.japanese)}${c.meaning ? ` <span class="faint">${esc(c.meaning)}</span>` : ''}</label>`).join('');
+    data-jschunk="${esc(c.japanese)}"> ${esc(c.japanese)}<span class="faint">${
+      esc(c.meaning || jaFurigana(c.japanese))}</span></label>`).join('');
 }
 
 let _ja432El = null;
